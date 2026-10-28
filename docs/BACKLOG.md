@@ -187,7 +187,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - The phone's GPU time can't be read (Metal has no timestamps in Godot 4.7), and at 60 Hz the
   main thread waits for the display inside "draw" (2–12 ms depending on the run), so the headroom
   under 16.7 ms isn't visible. A build that allows 120 Hz would show it as fps above 60 (not made
-  this round; the old build did 64 fps from the helicopter with four times the GPU work).
+  this round; the old build did 64 fps from the helicopter with four times the GPU work). Loop G1: a Metal System Trace reads the GPU (From loop G1).
 - The Mac's worst single frame in the bench reads 17–20 ms after against 9–20 before (the
   averages fell by half): one-off spikes, probably first-sight pipeline compiles (2–3 a run).
 - With the 60 cap on the Mac's 120 Hz display (`Engine.max_fps`) frames alternate unevenly
@@ -208,7 +208,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## Decided in loop 2b (orchestrator-free defaults; the user may still change them)
 - 60 fps is the default cap, 30 the battery saver; no 120 Hz option.
-- High stays the default quality on the phone (60 fps there); Medium is the first step down.
+- ~~High stays the default quality on the phone~~ Loop G1: Auto is the default (the level for the device); Medium is still the first step down from High.
 - The BENCH runs at the current settings and cap (not uncapped) from the spawn at the default
   view, 5 s settle + 55 s measured; the card's numbers are in English (Polish header/buttons).
 - Shadow edges are a little finer than before (0.37 m texels on High instead of 0.49 m).
@@ -471,3 +471,50 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - A traffic car's shape is picked by its own random stream, so where and which kind of car
   spawns is as before; its size (and the gap it keeps) is now the shape's.
 
+
+## From loop G1 (device tiers and the frame governor)
+- **The first rescue call's arrival is a hitch**: 61 ms on the iPhone 11, 100–117 ms on the Pro
+  Max (one frame, 3–6 refreshes), 60 s into play (`missions.gd` `_ring`, the context button and
+  what comes with it; the BENCH minute's "3 pipeline compilations" may be it). The BENCH minute
+  now holds the call clock, so cards don't show it; play does. Gameplay lane: warm the call's
+  pieces up at the start, or build them a frame or two before they show.
+- **The iPhone's frame pacing has two modes per launch**: the main thread waits for the display
+  inside "draw" (11.6 ms of it, frames jittering 1–8 ms either way, 1.6–16 % of frames over
+  17.7 ms with every refresh still drawn) or outside the frame's phases ("draw" 1.1–1.9 ms, no
+  jitter). Which one varies by launch, at either image size. Harmless to the eye as far as the
+  numbers go (no refresh missed); it made "draw" useless as a GPU reading and "% over 16.7 ms"
+  useless as a stutter reading, hence the missed-refresh count.
+- **The orchestrator's 25 fps 1 % low at ×1 didn't come back** in nine runs on a cool iPhone 11
+  (thermal state nominal; ×1 held 60 with 0 missed refreshes for 3 minutes). It was probably a
+  warm phone or the first call's hitch inside the minute. G0's 20-minute SOAK on the iPhone 11 at
+  Auto (High ×2) is what proves the heat margin.
+- **The GPU's time on the phone** comes from `xcrun xctrace record --template 'Metal System
+  Trace' --device ID --all-processes --time-limit 6s` while a `--probe` runs, then `xctrace
+  export --xpath '…/table[@schema="metal-gpu-intervals"]'` and `gpu-performance-state-intervals`
+  (the A13: Medium state 95 % at ×1, Minimum 99.9 % at ×2). Attaching by name or pid fails on
+  both phones, and starting the trace stalls the app ~11 s on iOS 27. G0 should script it.
+- The governor's GPU levels hold only two things today (reflection steps × 0.6, then the small
+  things' shadows); G2–G5's extras (FX count, lamp cones, dusk glow) join them as they land.
+  Glow at night stays out of it (the night lights).
+- The view rule takes the small things' shadows off in views over 150 m and in the helicopter
+  (0.4 % of pixels from the helicopter at 2868×1320; shadow pass −11 to −15 draw calls). A
+  zoom across 150 m switches them at once (no fade), masked by the zoom itself.
+- `--stress=wait:N` busy-waits in the draw phase: on the phone it shows only from N ≈ 40 (20 ms),
+  because the wait for the display shrinks to make room. G0's `--stress=gpu:N` (real GPU work)
+  is still to build.
+- The SE 2 / 3 (1334×750, 1.0 MP at ×1) land at ×2 (667×375) at High, by 4 % over High's
+  budget; nobody has run them. The 11 Pro and 11 Pro Max (A13, ×2 at 0.68 / 0.83 MP) keep their
+  ×2 image at High: the same GPU as the iPhone 11 with twice its ×2 pixels, unmeasured.
+- Mac windows over 0.96 MP at a scale of 1 (e.g. 1366×768) now draw at 2 at High.
+
+## Decided in loop G1 (perf-engineer defaults; the user may still change them)
+- The iPhone 11 at High (and so at Auto) draws 896×414 (×2), as the brief asked; ×1 (1792×828)
+  is Ultra on that phone (it held 60 on a cool phone, at a higher GPU clock).
+- Ultra is High + the 4096 shadow map + 16 reflection steps; Auto picks it on A17 Pro and newer
+  (and the 16 / 16 Plus, A18), the 16e stays High (4-core GPU). The iPhone 17e's id isn't in the
+  table (unknown → treated by its family: `iPhone18,x` → Ultra).
+- A saved "High" from before G1 becomes Auto once (the file then carries `tiers=1`).
+- The governor counts missed refreshes, not frames over the interval + 1 ms (the card shows
+  both); a raise needs under 0.5 % missed over 30 s.
+- The BENCH minute holds the governor (the card is the level's own cost) and the rescue calls;
+  `--governor=on` lets the governor act during a bench or probe.

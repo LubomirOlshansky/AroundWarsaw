@@ -32,6 +32,9 @@ extends Node
 ## opens the settings panel at tab N.
 ## Camera loop: --cam-log prints the camera every 0.25 s (`cam:` lines), --cam-test=classic_turn|
 ## point_release|brake drives one camera moment in the real city (frame strips).
+## Loop G1: --quality=auto|low|medium|high|ultra (Auto: the level for this device, tiers.gd),
+## --model=ID picks as if on that device (iPhone12,1), --governor=on|off, --stress=cpu:N|wait:N
+## with --stress-from=S --stress-to=S (load that makes the governor step down and back up).
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
@@ -63,6 +66,8 @@ const Settings := preload("res://scripts/settings.gd")
 const BenchStats := preload("res://scripts/bench.gd")
 const ScreenPoints := preload("res://scripts/screen_points.gd")
 const Splash := preload("res://scripts/splash.gd")
+const Tiers := preload("res://scripts/tiers.gd")
+const Governor := preload("res://scripts/governor.gd")
 const MAP_PATH := "res://map/centrum.json"
 const CITY_SCENE := "res://map/city.scn"
 
@@ -252,28 +257,55 @@ var start_weather := 0
 var live_clock := ""
 var live_date := 0
 var show_perf := false
-## Low, Medium, High: the pixel size (loop 2b: "step" whole screen pixels coarser than High's;
-## the old 0.85 / 0.7 render scales gave Medium High's image on a 1170-line phone and Low's on
-## a 1320-line one), shadows, glow, rain, reflection steps, traffic and pedestrians. Loop 2b: the sun's shadow map is 2048 on High
-## and 1024 on Medium (4096 / 2048 before): the shadow now covers only the view (see
+## Low, Medium, High, Ultra (loop G1: tiers.gd QUALITY): the pixel size (loop 2b: "step" whole
+## screen pixels coarser than High's; the old 0.85 / 0.7 render scales gave Medium High's image
+## on a 1170-line phone and Low's on a 1320-line one; G1: and a budget in megapixels), shadows,
+## glow, rain, reflection steps, traffic and pedestrians. Loop 2b: the sun's shadow map is 2048
+## on High and 1024 on Medium (4096 / 2048 before): the shadow now covers only the view (see
 ## _camera_far), so 2048 gives finer texels than 4096 did (0.37 m against 0.49). Medium casts
 ## sun shadows from buildings and trees only (lamps, signals, parked cars, columns and shelters,
 ## map_builder.gd SMALL_CASTERS, don't), Low none.
-const QUALITY := [
-	{"name": "Low", "step": 1, "shadows": false, "shadow_size": 1024, "glow": false, "rain": 0.4, "reflect": 0,
-		"traffic": 0.55, "people": 24, "small_shadows": false},
-	{"name": "Medium", "step": 1, "shadows": true, "shadow_size": 1024, "glow": true, "rain": 0.7, "reflect": 6,
-		"traffic": 0.8, "people": 40, "small_shadows": false},
-	{"name": "High", "step": 0, "shadows": true, "shadow_size": 2048, "glow": true, "rain": 1.0, "reflect": 10,
-		"traffic": 1.0, "people": 60, "small_shadows": true},
-]
-var quality := 2
+const QUALITY := Tiers.QUALITY
+## The level in force (Tiers.LOW..ULTRA); loop G1: the player's choice (Tiers.AUTO, the default,
+## or a level), the level Auto picks for this device and the model id it read (--model= for tests).
+var quality := Tiers.HIGH
+var quality_choice := Tiers.AUTO
+var auto_quality := Tiers.HIGH
+var model_name := ""
+var _flag_model := ""
+## Loop G1: the frame governor (governor.gd) and the fixed view rule: in a view wider than
+## WIDE_VIEW metres (back under 0.9 of it) or flying, the small things' sun shadows are off
+## (lamps, signals, parked cars, columns, shelters: a pixel or two wide there, and a shadow-pass
+## draw call per kind and 512 m tile). The governor runs in a normal launch; test runs (headless,
+## --shots, --bench, --probe, --autopilot, --demo, the camera and water tests) and the BENCH
+## button's minute hold it; --governor=on|off overrides.
+const WIDE_VIEW := 150.0
+var governor := Governor.new()
+var _flag_governor := -1
+var _governor_on := true
+## --governor=log: on, and a `governor status:` line every GOVERNOR_LOG_EVERY seconds.
+const GOVERNOR_LOG_EVERY := 5.0
+var _governor_log := false
+var _governor_log_next := 0.0
+var _wide := false
+## What _apply_extras last set (-1: nothing yet).
+var _small_cast := -1
+## Loop G1 testing aid (--stress=cpu:N|wait:N, --stress-from=S, --stress-to=S): N × 0.5 ms of busy
+## work a frame from S to S2 seconds after the city is up: in _process (`cpu`: the CPU's extras go
+## first) or in the draw phase (`wait`: what waiting for the GPU looks like to the main thread,
+## so the GPU's extras go first).
+var _stress_kind := ""
+var _stress_n := 0
+var _stress_from := 0.0
+var _stress_to := INF
+var _stress_t0 := 0
 ## Loop 2a: the driving controls (drive_controls.gd), the saved settings (settings.gd), the
 ## traffic level, and the command-line values that win over the saved ones (-1: none).
 var controls := Controls.new()
 var settings := Settings.new()
 var traffic_level := Settings.NORMAL_TRAFFIC
-var _flag_quality := -1
+## -2: no --quality= (Tiers.AUTO is -1).
+var _flag_quality := -2
 var _flag_controls := -1
 var _flag_traffic := -1
 var _flag_fixed := false
@@ -386,6 +418,8 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	if _stats != null:
 		_stats.unhook()
+	if RenderingServer.frame_pre_draw.is_connected(_stress_wait):
+		RenderingServer.frame_pre_draw.disconnect(_stress_wait)
 
 
 func _on_title_dismissed() -> void:
@@ -675,7 +709,7 @@ func _build_world() -> void:
 	if cam_test != "":
 		_start_cam_test()
 	_build_sound(data, world)
-	_set_quality(quality)
+	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
 	_apply_style()
 	_show_night_nodes(false)
@@ -715,6 +749,10 @@ func _build_world() -> void:
 		_open_settings.call_deferred()
 	_stats = _make_stats()
 	_stats.hook(get_tree())
+	# Loop G1, --stress=wait:N: after bench.gd's own frame_pre_draw, so it counts as "draw".
+	_stress_t0 = Time.get_ticks_msec()
+	if _stress_kind == "wait":
+		RenderingServer.frame_pre_draw.connect(_stress_wait)
 	_apply_experiments()
 	_apply_fps()
 	_bench_t0 = Time.get_ticks_msec()
@@ -787,34 +825,98 @@ func _build_sound(data: Dictionary, world: Node3D) -> void:
 		sfx.sound_check()
 
 
-## Quality: Low, Medium or High (U, Settings, --quality=).
-func _set_quality(q: int) -> void:
-	quality = posmod(q, QUALITY.size())
-	if settings.quality != quality and _started:
-		settings.quality = quality
+## Quality (U, Settings, --quality=): loop G1: Auto (Tiers.AUTO: the level Auto picked for this
+## device) or Low, Medium, High, Ultra. The governor starts again from the top.
+func _set_quality(choice: int) -> void:
+	quality_choice = clampi(choice, Tiers.AUTO, Tiers.ULTRA)
+	quality = auto_quality if quality_choice == Tiers.AUTO else quality_choice
+	if settings.quality != quality_choice and _started:
+		settings.quality = quality_choice
 		settings.save()
 	var qs: Dictionary = QUALITY[quality]
 	tod.shadows_allowed = qs["shadows"]
 	tod.glow_allowed = qs["glow"]
 	RenderingServer.directional_shadow_atlas_set_size(qs["shadow_size"], true)
-	var cast := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if qs["small_shadows"] else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	get_tree().call_group(MapBuilder.SMALL_CASTERS, "set_cast_shadows_setting", cast)
 	tod.refresh()
 	weather.density = qs["rain"]
 	weather.refresh()
-	post_mat.set_shader_parameter("reflect_steps", qs["reflect"])
-	_apply_traffic()
+	governor.restart(_clock_s())
+	_apply_extras()
 	if hud != null:
 		_apply_style()
 
 
+## Loop G1: the quality's extras as they are now: the level's own, less what the governor took
+## (governor.gd: GPU, mirror-reflection steps and then the small things' sun shadows; CPU,
+## traffic and pedestrians), and in a wide view or flying no small things' shadows (the fixed
+## view rule, WIDE_VIEW). Never the pixel size, the shadow map, glow, landmarks, the ghost, the
+## river or the night lights.
+func _apply_extras() -> void:
+	var qs: Dictionary = QUALITY[quality]
+	post_mat.set_shader_parameter("reflect_steps", ceili(int(qs["reflect"]) * float(Governor.REFLECT[governor.gpu])))
+	var cast: bool = qs["small_shadows"] and Governor.SMALL_SHADOWS[governor.gpu] and not _wide
+	if int(cast) != _small_cast:
+		_small_cast = int(cast)
+		get_tree().call_group(MapBuilder.SMALL_CASTERS, "set_cast_shadows_setting",
+				GeometryInstance3D.SHADOW_CASTING_SETTING_ON if cast else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
+	_apply_traffic()
+
+
 ## Loop 2a: traffic = the level (Settings → Traffic) × the quality's share; the
-## pedestrians follow the level more gently (settings.gd PEOPLE).
+## pedestrians follow the level more gently (settings.gd PEOPLE). Loop G1: × what the governor's
+## CPU level keeps.
 func _apply_traffic() -> void:
 	if traffic != null:
-		traffic.density = float(Settings.TRAFFIC[traffic_level]) * float(QUALITY[quality]["traffic"])
+		var density := float(Settings.TRAFFIC[traffic_level]) * float(QUALITY[quality]["traffic"]) * float(Governor.TRAFFIC[governor.cpu])
+		if not is_equal_approx(traffic.density, density):
+			traffic.density = density
 	if walkers != null:
-		walkers.limit = maxi(4, roundi(float(QUALITY[quality]["people"]) * float(Settings.PEOPLE[traffic_level])))
+		walkers.limit = maxi(4, roundi(float(QUALITY[quality]["people"]) * float(Settings.PEOPLE[traffic_level]) * float(Governor.PEOPLE[governor.cpu])))
+
+
+## Loop G1: the governor's clock, seconds since the game started.
+func _clock_s() -> float:
+	return Time.get_ticks_msec() / 1000.0
+
+
+## Loop G1: once a frame (in the game loop's own time): the fixed view rule and the governor (fed
+## the last frame's time and CPU work from bench.gd), held where it should be.
+func _govern() -> void:
+	var wide := flying or cam.size > (WIDE_VIEW * 0.9 if _wide else WIDE_VIEW)
+	if wide != _wide:
+		_wide = wide
+		print("governor: view %s (%.0f m%s) · small things' sun shadows %s" % ["wide" if wide else "back in",
+				cam.size, ", flying" if flying else "", "off" if wide else "as the quality sets them"])
+		_apply_extras()
+	governor.held = not _governor_on or title != null or _phone_bench or ((bench or probe) and _flag_governor != 1)
+	governor.frame(_stats.last_ms, _stats.last_cpu)
+	var now := _clock_s()
+	var line := governor.tick(now, _wide)
+	if line != "":
+		print("%s · at %.1f s" % [line, now - _stress_t0 / 1000.0])
+		_apply_extras()
+	if _governor_log and now >= _governor_log_next:
+		_governor_log_next = now + GOVERNOR_LOG_EVERY
+		print("governor status: %s · %.1f%% of refreshes missed in the last %.0f s · at %.1f s%s%s" % [governor.state(),
+				governor.late_share * 100.0, Governor.WINDOW, now - _stress_t0 / 1000.0, " · held" if governor.held else "",
+				" · stress on" if _stressing() else ""])
+
+
+## Loop G1, --stress: inside the load's time window (seconds after the city is up).
+func _stressing() -> bool:
+	var t := (Time.get_ticks_msec() - _stress_t0) / 1000.0
+	return _stress_n > 0 and t >= _stress_from and t < _stress_to
+
+
+func _busy(n: int) -> void:
+	var end := Time.get_ticks_usec() + n * 500
+	while Time.get_ticks_usec() < end:
+		pass
+
+
+func _stress_wait() -> void:
+	if _stressing():
+		_busy(_stress_n)
 
 
 ## The performance overlay (P, a three-finger tap, --perf): GPU time needs the
@@ -842,12 +944,15 @@ func _update_perf(dt: float) -> void:
 	var gpu := RenderingServer.viewport_get_measured_render_time_gpu(sv.get_viewport_rid())
 	# Loop 2e: four short lines (11 pt on the phone) so the overlay fits beside the HUD's
 	# panels; the time of day and the weather are on screen anyway, memory is in the BENCH card.
+	# Loop G1: the last line is the quality, its pixel scale and the governor's levels (objects
+	# and the shadow pass's triangles are on the BENCH card).
 	var lines := PackedStringArray([
 		"%.0f fps · %.1f ms · worst %.1f · cap %s" % [1000.0 / maxf(live["ms"], 0.01), live["ms"], live["worst"], _cap_name()],
 		"CPU %.1f + %.1f + %.1f ms · GPU %s · %.0f MB" % [live["process"], live["physics"], live["draw"],
 				"%.2f" % gpu if gpu > 0.0 else "n/a", Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0],
-		"draws %d = %d + %d + %d (3D, shadow, 2D)" % [p["all_draws"], p["main_draws"], p["shadow_draws"], p["canvas_draws"]],
-		"%d objects · %.2f M tris (%.2f M shadow)" % [p["all_objects"], p["all_tris"] / 1e6, p["shadow_tris"] / 1e6],
+		"draws %d = %d + %d + %d · %.2f M tris" % [p["all_draws"], p["main_draws"], p["shadow_draws"], p["canvas_draws"],
+				p["all_tris"] / 1e6],
+		"%s ×%d · gov %s%s" % [QUALITY[quality]["name"], view.stretch_shrink, governor.state(), " · wide" if _wide else ""],
 	])
 	hud.set_perf("\n".join(lines))
 
@@ -865,6 +970,9 @@ func _apply_fps() -> void:
 		cap = 0
 	_cap = cap
 	Engine.max_fps = 0 if cap == 60 and OS.has_feature("ios") else cap
+	# Loop G1: a frame is late against the cap's interval (60 fps when uncapped).
+	governor.interval_ms = 1000.0 / (cap if cap > 0 else 60)
+	governor.reset(_clock_s())
 
 
 func _cap_name() -> String:
@@ -880,8 +988,9 @@ func _bench_header(kind: String) -> PackedStringArray:
 		"device %s · %s %s · %s (%s, %s) · %s" % [OS.get_model_name(), OS.get_name(), OS.get_version(),
 				RenderingServer.get_video_adapter_name(), RenderingServer.get_current_rendering_driver_name(),
 				RenderingServer.get_current_rendering_method(), OS.get_processor_name()],
-		"screen %dx%d @ %.0f Hz · image %dx%d · view %.0f m · quality %s · traffic %s · %s · %s · cap %s · %s" % [
-				screen.x, screen.y, hz, sv.size.x, sv.size.y, base_size, QUALITY[quality]["name"],
+		"screen %dx%d @ %.0f Hz · image %dx%d (×%d) · view %.0f m · quality %s · traffic %s · %s · %s · cap %s · %s" % [
+				screen.x, screen.y, hz, sv.size.x, sv.size.y, view.stretch_shrink, base_size,
+				Tiers.describe(quality_choice, quality, model_name),
 				Settings.TRAFFIC_NAMES[traffic_level], TimeOfDay.NAMES[tod.mode], Weather.NAMES[weather.state],
 				_cap_name(), Controls.NAMES[controls.scheme]],
 		"thermal state: not readable from Godot; a phone that warms up shows it as falling fps per 10 s",
@@ -896,6 +1005,22 @@ func _write_bench_result(text: String) -> void:
 		f.store_string(text + "\n")
 		f.close()
 		print("bench: result written to %s" % ProjectSettings.globalize_path("user://bench_result.txt"))
+
+
+## Loop G1: the governor's line on the card: its levels, whether it was held for the run (the
+## run then measures the quality's own cost), the view rule's state, its changes so far.
+func _governor_notes() -> PackedStringArray:
+	var how := "held" if governor.held else ("on" if _governor_on else "off")
+	return PackedStringArray(["governor %s: %s%s, %d changes" % [how, governor.state(), ", wide" if _wide else "",
+			governor.changes]])
+
+
+## Loop G1: loop 2b's late measure (0.5 ms past the interval), in the log only, so a card from
+## before G1 compares.
+func _print_old_late(r: Dictionary) -> void:
+	print("bench: %.1f%% of frames over %.1f ms (the measure before loop G1)" % [r["old_over"],
+			r["budget"] + BenchStats.OLD_MARGIN])
+	print("bench: %s" % _stats.late_detail(r["budget"]))
 
 
 ## Loop 2b, the BENCH button: the car rides the bench route's ghost driver from the spawn at
@@ -926,8 +1051,12 @@ func _start_phone_bench() -> void:
 		return
 	_phone_saved = {"at": car.global_transform, "mask": car.collision_mask, "size": base_size,
 			"wallet": [wallet.zl, wallet.respect, wallet.jobs.duplicate(true), wallet.best.duplicate(true),
-					wallet.eggs.duplicate(true)], "persistent": wallet.persistent}
+					wallet.eggs.duplicate(true)], "persistent": wallet.persistent, "calls": missions.paused}
 	wallet.persistent = false
+	# Loop G1: no rescue call comes in during the minute (its clock waits, as during a race): the
+	# first call, 60 s into play, landed inside it and was the card's worst frame (61 ms on the
+	# iPhone 11, 100-117 ms on the Pro Max).
+	missions.paused = true
 	hud.hide_bench_card()
 	moments.stop()
 	base_size = FollowCamera.DEFAULT_SIZE
@@ -981,6 +1110,7 @@ func _end_phone_bench(done: bool) -> void:
 	wallet.best = w[3]
 	wallet.eggs = w[4]
 	wallet.persistent = _phone_saved["persistent"]
+	missions.paused = _phone_saved["calls"]
 	hud.set_wallet(wallet.zl, wallet.respect)
 	_set_perf(show_perf)
 	if not done or _measure_t0 == 0:
@@ -988,9 +1118,11 @@ func _end_phone_bench(done: bool) -> void:
 		print("bench: BENCH cancelled")
 		return
 	var r := _stats.report(1000.0 / (_cap if _cap > 0 else 60))
+	_stats.notes = _governor_notes()
 	var text := _stats.text(r)
 	for line in text.split("\n"):
 		print("bench detail: %s" % line)
+	_print_old_late(r)
 	_write_bench_result(text)
 	hud.show_bench_card(text)
 
@@ -1142,8 +1274,20 @@ func _parse_args() -> void:
 		elif arg == "--sound-check":
 			sound_check = true
 		elif arg.begins_with("--quality="):
-			var qv := arg.trim_prefix("--quality=").to_lower()
-			_flag_quality = {"low": 0, "medium": 1, "med": 1, "high": 2}.get(qv, clampi(int(qv), 0, 2))
+			_flag_quality = Tiers.parse(arg.trim_prefix("--quality="))
+		elif arg.begins_with("--model="):
+			_flag_model = arg.trim_prefix("--model=")
+		elif arg.begins_with("--governor="):
+			_flag_governor = 0 if arg.trim_prefix("--governor=") in ["off", "0", "no"] else 1
+			_governor_log = arg == "--governor=log"
+		elif arg.begins_with("--stress="):
+			var st := arg.trim_prefix("--stress=").split(":")
+			_stress_kind = st[0] if st[0] in ["cpu", "wait"] else ""
+			_stress_n = maxi(0, int(st[1])) if st.size() > 1 else 0
+		elif arg.begins_with("--stress-from="):
+			_stress_from = maxf(0.0, float(arg.trim_prefix("--stress-from=")))
+		elif arg.begins_with("--stress-to="):
+			_stress_to = maxf(0.0, float(arg.trim_prefix("--stress-to=")))
 		elif arg.begins_with("--controls="):
 			_flag_controls = Controls.parse(arg.trim_prefix("--controls="))
 		elif arg.begins_with("--traffic="):
@@ -1190,13 +1334,23 @@ func _parse_args() -> void:
 	var normal := show_title and shots.is_empty() and not bench and not probe and not bench_button and not demo
 	cinematic_flyin = normal or _flag_cinematic in ["all", "flyin"]
 	cinematic_look = normal or _flag_cinematic in ["all", "look"]
+	# Loop G1: the governor runs in a normal launch; test runs hold it so they repeat.
+	var test_run := DisplayServer.get_name() == "headless" or not shots.is_empty() or bench or probe or autopilot \
+			or demo or cam_test != "" or _water_test_at != Vector2.INF
+	_governor_on = _flag_governor == 1 if _flag_governor >= 0 else not test_run
 
 
 ## Loop 2a: the saved settings (not with --nosave), then the command-line flags over them.
+## Loop G1: the quality the player chose (Auto by default) and the level Auto picks here.
 func _load_settings() -> void:
 	settings.persistent = not no_save
 	settings.load_file()
-	quality = _flag_quality if _flag_quality >= 0 else settings.quality
+	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
+	auto_quality = Tiers.for_model(model_name)
+	quality_choice = _flag_quality if _flag_quality != -2 else settings.quality
+	quality = auto_quality if quality_choice == Tiers.AUTO else quality_choice
+	print("quality: %s · Auto picks %s for %s" % [Tiers.describe(quality_choice, quality, model_name),
+			Tiers.NAMES[auto_quality], model_name])
 	traffic_level = _flag_traffic if _flag_traffic >= 0 else settings.traffic
 	show_perf = _flag_perf or settings.perf
 	var scheme := _flag_controls if _flag_controls >= 0 else settings.controls
@@ -1340,7 +1494,9 @@ func _open_settings() -> void:
 
 ## What the settings panel shows (loop 2e: also the camera, time of day, weather, style, VHS).
 func _settings_state() -> Dictionary:
-	return {"controls": controls.scheme, "follow": follow, "traffic": traffic_level, "quality": quality,
+	# Loop G1: the panel's quality row is Auto, then Low..Ultra (the choice + 1).
+	return {"controls": controls.scheme, "follow": follow, "traffic": traffic_level, "quality": quality_choice + 1,
+			"auto": Tiers.NAMES[auto_quality],
 			"master": settings.master, "music": settings.music, "effects": settings.effects, "perf": int(show_perf),
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
 			"weather": weather.state, "time": tod.mode}
@@ -1384,7 +1540,7 @@ func _on_setting(key: String, value: Variant) -> void:
 			settings.traffic = traffic_level
 			_apply_traffic()
 		"quality":
-			_set_quality(int(value))
+			_set_quality(int(value) - 1)
 		"perf":
 			settings.perf = int(value) == 1
 			_set_perf(settings.perf)
@@ -1856,8 +2012,11 @@ func _next_style() -> void:
 func _apply_style() -> void:
 	var style: Dictionary = STYLES[style_index]
 	var screen := get_viewport().get_visible_rect().size
-	var lines: float = lines_override if lines_override > 0 else style["lines"]
-	view.stretch_shrink = maxi(1, floori(screen.y / lines)) + (0 if lines_override > 0 else int(QUALITY[quality]["step"]))
+	# Loop G1: the quality's step and budget (tiers.gd image_scale); --lines= is exact.
+	if lines_override > 0:
+		view.stretch_shrink = maxi(1, floori(screen.y / lines_override))
+	else:
+		view.stretch_shrink = Tiers.image_scale(screen, style["lines"], quality)
 	post_mat.set_shader_parameter("outline_strength", style["outline"])
 	post_mat.set_shader_parameter("levels", style["levels"])
 	post_mat.set_shader_parameter("saturation", style["saturation"])
@@ -1940,7 +2099,11 @@ func _process(dt: float) -> void:
 		_start_phone_bench()
 	if frame in shots:
 		_capture(frame)
+	_govern()
 	_main_usec = Time.get_ticks_usec() - t_main
+	# Loop G1, --stress=cpu: after the game loop's own time is taken (the load isn't the game's).
+	if _stress_kind == "cpu" and _stressing():
+		_busy(_stress_n)
 
 
 ## The occlusion ghost (ghost.gdshaderinc, loop 1): what stands on the camera's side of
@@ -2031,9 +2194,11 @@ func _bench_frame() -> void:
 			r.get("n:cars on screen", 0.0), r.get("n:driving", 0.0), "no traffic" if traffic == null else "traffic on", TimeOfDay.NAMES[tod.mode],
 			Weather.NAMES[weather.state], QUALITY[quality]["name"] + " · traffic " + Settings.TRAFFIC_NAMES[traffic_level]])
 	_stats.header = _bench_header("probe" if probe else "bench route (--bench)")
+	_stats.notes = _governor_notes()
 	var text := _stats.text(r)
 	for line in text.split("\n"):
 		print("%s detail: %s" % [what, line])
+	_print_old_late(r)
 	if probe:
 		print("probe view: %s" % _view_census())
 	_write_bench_result(text)
@@ -2583,8 +2748,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			KEY_ESCAPE:
 				_open_settings()
 			KEY_U:
+				# Loop G1: Auto → Low → Medium → High → Ultra → Auto.
 				_blip_sound()
-				_set_quality(quality + 1)
+				_set_quality(Tiers.AUTO if quality_choice >= Tiers.ULTRA else quality_choice + 1)
 			KEY_L:
 				if rivals != null:
 					rivals.flash()

@@ -18,6 +18,19 @@ loop 2b row in docs/ROADMAP.md, and say so in your report.
   several times slower, tile-based, and throttles when warm; GDScript runs several times slower.
 - Metal reports no GPU time in Godot. On the Mac, GPU times come from Vulkan:
   `--rendering-driver vulkan --rendering-method mobile` (add `--gpu-profile` for the passes).
+  On the phone (loop G1): `xcrun xctrace record --template 'Metal System Trace' --device ID
+  --all-processes --time-limit 6s` while a `--probe` runs (attaching by name or pid fails), then
+  `xctrace export --xpath` the `metal-gpu-intervals` and `gpu-performance-state-intervals`
+  tables: GPU ms per frame and how high iOS had to clock the GPU (the iPhone 11 at ×1: 88 %
+  busy in its Medium state; at ×2: its Minimum state). Starting the trace stalls the app ~11 s
+  on iOS 27; measure after it.
+- The draw-call cost above was Xcode's Metal validation; without it a call costs ≤ 1.2 µs on the
+  A18 Pro (graphics.md §1.2).
+- At the 60 fps cap the phone's frame times jitter (a launch either waits for the display inside
+  "draw", 1–8 ms either way with every refresh drawn, or outside the frame): read **missed
+  refreshes** on the BENCH card, not "late" frames, the 1 % low or "draw", for stutter (loop G1).
+- Quality levels and the pixel image's budget live in `tiers.gd`; the governor (`governor.gd`)
+  takes extras away when refreshes are missed. Bench both phones at Auto (README "Loop G1").
 
 ## Measure first (Godot's own advice: profile, cut the biggest cost, profile again)
 

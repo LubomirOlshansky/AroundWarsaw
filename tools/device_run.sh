@@ -112,7 +112,8 @@ pid=$(run xcrun devicectl device info processes --device $device 2>/dev/null | g
 
 print -r -- "== $label after ${t}s: $log"
 if [[ -f $log ]]; then
-	grep -E 'Metal|city built|settings:|save:|ERROR|SCRIPT|bench' $log | grep -v 'audio peaks' | head -30
+	# Loop G1: also the quality Auto picked and the governor's changes.
+	grep -E 'Metal|city built|settings:|quality:|save:|ERROR|SCRIPT|bench|governor:' $log | grep -v 'audio peaks' | head -40
 else
 	print -r -- "no log came back (did the app start? see $work/launch.txt)"
 	exit 1

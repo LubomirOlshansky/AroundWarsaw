@@ -10,6 +10,23 @@ This is a plan. It changes nothing by itself. The loops in section 5 do the work
 replaces them with device measurements. Every other number comes from a log or a run named
 beside it.
 
+**Status.** **G1 is done (2026-10-28; README "Loop G1", ROADMAP row).** What it changed from
+this plan:
+- The pixel image is a **budget per level** (`tiers.gd`): High 0.96 MP, so the iPhone 11 at High
+  draws 896×414 (×2), not ×1 (§6 Q1 answered by the loop's brief); Ultra's 1.6 MP keeps ×1 there
+  for whoever picks it. Every phone that scaled by 2 or more is unchanged.
+- Tiers as in §4.1 (Low `iPhone10,x` included); Ultra = High + 4096 + 16 reflection steps.
+- The governor counts **missed refreshes** against the display's clock, not frames over 17.2 ms:
+  on the iPhone 11, 1.6–16 % of frames come 1–8 ms late with the next as much early and every
+  refresh drawn (a per-launch pacing mode), so §4.3's "late" would never let it raise. Its
+  levels hold what exists today (GPU: reflection steps × 0.6, then small-caster shadows; CPU:
+  traffic and people); no thermal input yet (§4.4's plugin).
+- The view rule takes the small things' shadows off over 150 m and when flying.
+- §1.2 item 2 and §1.4 checked on the phone with a Metal System Trace (G0's tool, used once): the
+  A13 at the spawn by day is 88 % busy in its Medium GPU state at ×1 (14.5 ms a frame) and sits
+  in its Minimum state at ×2. A cool iPhone 11 held 60 at ×1 too (no refresh missed in 3 min),
+  so the orchestrator's 25 fps 1 % low was likely heat or the first rescue call's hitch.
+
 ---
 
 ## 0. In one screen
@@ -397,7 +414,7 @@ XS/XR (A12); the iPhone 11 is `iPhone12,1`.** The export allows iOS 16 and iPads
 
 | | Low | Medium | **High** (A13–A16) | **Ultra** (A17 Pro+) |
 | --- | --- | --- | --- | --- |
-| Pixel image | one step coarser | one step coarser | Sharp (×1 on the iPhone 11, §6 Q1) | Sharp |
+| Pixel image | one step coarser (budget 0.5 MP) | one step coarser (budget 0.5 MP) | Sharp, budget 0.96 MP: ×2 on the iPhone 11 (G1) | Sharp, budget 1.6 MP: ×1 on the iPhone 11 |
 | Sun shadows | off | 1024, buildings + trees | 2048, all over 1 m | **4096**, all over 1 m |
 | Per-pixel pack (items 2, 3, 5, 6; 1 if approved) | off | on | on | on |
 | Surface tiles (13), haze (15) | off | on | on | on |
@@ -482,7 +499,7 @@ PASS, docs and shots, every loop must pass:
 | Loop | Agent, model | Items | Acceptance on both phones |
 | --- | --- | --- | --- |
 | **G0 Headroom** (first) | perf-engineer, Opus; device-gated, both phones | §2.2 instruments. Fix README's Metal command (`--rendering-method mobile`). Update the skill's draw-call cost. Measure `--render-thread separate`. Run the §2.3 protocol | Stress off = bench unchanged. Ladders repeat within one step. The headroom table (4 views + 2 rain-night) and trace GPU ms for both phones in README. SOAK at High on both. Content budgets restated per phone (§1.4 warning) |
-| **G1 Tiers and governor** | perf-engineer, Opus (Settings row after 2e) | §4.1–4.3, with Ultra as High + 4096 shadows + 16 reflection steps | `check_tiers` and `check_governor` OK. Auto picks High on the iPhone 11 and Ultra on the Pro Max. Forced overload drops within 3 s and recovers after ≥ 30 s; a 10-minute Mac autopilot with stress toggled has no oscillation. BENCH ≥ 56 at the four views |
+| **G1 Tiers and governor** — **done 2026-10-28** | perf-engineer, Opus (Settings row after 2e) | §4.1–4.3, with Ultra as High + 4096 shadows + 16 reflection steps; the image as a budget per level | `check_tiers` and `check_governor` OK (in verify.sh). Auto picks High on the iPhone 11 and Ultra on the Pro Max. A forced overload (`--stress=wait:40`) dropped within 0.8 s on the iPhone 11 and came back 30 s after it ended; `check_governor` runs 15 minutes of a pulsing load without swinging. BENCH at Auto 56.6 (iPhone 11) / 57.3 (Pro Max), 0 missed refreshes; the probes 52.9–58.8 |
 | **G2 Per-pixel pack** | gameplay-dev, Opus; art-director review | Items 2, 3, 5, 6 and item 4 (smooth scrolling) | +0 draw calls. Mac Vulkan GPU ≤ +0.15 ms at the Pro Max image (medians of 5, interleaved). The iPhone 11 loses ≤ its budget in steps. The protect list unchanged |
 | **G3 Edge light** (only with your yes) | gameplay-dev, Opus | Item 1; A/B shots first | As G2. Art-bible line updated by you |
 | **G4 FX sprites** | gameplay-dev, Opus; game-designer for the PixelLab atlas (≤ 50 generations) | Items 7, 8; the system 3i reuses | ≤ 2 draw calls for all effects, none in the shadow pass. Scripts ≤ +0.05 ms on the Mac. iPhone 11 rain-night BENCH ≥ 56. iPhone 11 SOAK in rain-night |
@@ -502,6 +519,8 @@ haptics plugin is built.
 1. **The iPhone 11's pixel size.** Keep ×1 (828 lines: today's look there, the smoothest of
    any phone, at 1.57× the Pro Max's pixels)? Or switch to ×2 (414 lines: coarser than Sharp's
    480, and about 60 % less fill)? *Default: keep ×1. It holds 60, and it is what you saw.*
+   **G1:** ×2 at High (and so at Auto), as the loop's brief asked after the first iPhone 11
+   bench; ×1 is Ultra on that phone.
 2. **Edge light** (crease and sun-side lines). Allow this second line style in the art
    bible? *Default: not until you've seen G3's A/B shots.*
 3. **Ultra for everyone?** *Default: Auto picks Ultra on A17 Pro and newer; anyone can
@@ -517,7 +536,8 @@ haptics plugin is built.
    *Default: +30 % only in views ≤ 120 m, and none during a race or chase.*
 8. **The thermal plugin** (native iOS, built with the haptics plugin)? *Default: yes, in the
    haptics loop; the frame-based governor until then.*
-9. **Saved "High" becomes Auto once?** *Default: yes.*
+9. **Saved "High" becomes Auto once?** *Default: yes.* **G1: done** (`settings.gd`, the
+   `tiers` key).
 10. **Minimum iOS.** The export allows iOS 16, which installs on A11 and A12 phones below the
     target. iOS 26 runs on the iPhone 11 and SE 2 and later. *Default: Auto handles old
     phones now (Low/Medium); raise the minimum to 26 at loop 3j (TestFlight).*

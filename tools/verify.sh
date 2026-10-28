@@ -12,7 +12,9 @@
 # `roads` runs tools/check_roads.py (loop 3a): the road and deck rules C1-C10 over the whole
 # map; any finding not in tools/check_roads_allow.json FAILs (loop 3b; C4, C5, C9, C10 were a
 # WARN before). `drive` runs game/tools/check_drive.gd (loop 3b): a car and a bus along every
-# lane against the colliders, the autopilot over the bridges and tunnels.
+# lane against the colliders, the autopilot over the bridges and tunnels. `tiers` and
+# `governor` (loop G1): the device tiers and the pixel image's size rule, and the frame
+# governor's rules on scripted frames.
 # Every game run is headless, passes --nosave and quits by itself (--quit-after; Godot also
 # gets --fixed-fps 60 so a run covers the same game time on any Mac and its outcome repeats).
 # A run passes when Godot exits 0 and prints no ERROR / WARNING lines; autopilot runs also
@@ -29,8 +31,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads drive drive-prebuilt steering settings hud landmarks sfx radio water water-prebuilt plain heli race kebab splash rain prebuilt classic)
-STEPS_QUICK=(map roads drive steering settings hud landmarks sfx radio plain prebuilt)
+STEPS_ALL=(map roads drive drive-prebuilt steering settings tiers governor hud landmarks sfx radio water water-prebuilt plain heli race kebab splash rain prebuilt classic)
+STEPS_QUICK=(map roads drive steering settings tiers governor hud landmarks sfx radio plain prebuilt)
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
 STEP_LIMIT=${NW_STEP_LIMIT:-900}
 
@@ -203,6 +205,9 @@ for s in $want; do
 		drive-prebuilt) check drive-prebuilt '^check_drive:' --script res://tools/check_drive.gd -- --prebuilt ;;
 		steering) check steering 'check_steering:' --fixed-fps 60 --script res://tools/check_steering.gd ;;
 		settings) check settings '^settings:' --script res://tools/check_settings.gd ;;
+		# Loop G1: model id -> tier, the pixel image at the phones' sizes; the governor's rules.
+		tiers) check tiers '^check_tiers:' --script res://tools/check_tiers.gd ;;
+		governor) check governor '^check_governor:' --script res://tools/check_governor.gd ;;
 		# Loop 2e: the HUD at phone size: 44 pt controls, 11 / 13 pt text, the safe area, no overlaps.
 		hud) check hud '^check_hud:' --script res://tools/check_hud.gd ;;
 		landmarks) check landmarks '^landmark check:' --script res://tools/check_landmarks.gd ;;
