@@ -1,0 +1,110 @@
+# How the work is run
+
+Nocna Warszawa is made by one person and a set of AI agents (Claude Code). This page says how
+the work moves from an idea or a complaint from the phone to a change that is verified and
+written down. The rules every session follows are in `CLAUDE.md`; the agents and skills are
+in `.claude/`.
+
+## The loop
+
+Work comes in **loops**: one theme, three to seven items in priority order, done by one agent,
+then checked before it is accepted.
+
+```
+ the user plays on the iPhone ─► notes, wishes, shots
+            ▲                              │
+            │                              ▼
+   report: what changed,          pick the next loop (DEMO.md milestones,
+   numbers, "try this on          ROADMAP order, BACKLOG, the notes)
+   the phone", Open Questions                 │
+            ▲                              ▼
+   verify it yourself:            brief: goal, read-first, items, budget,
+   verify.sh, shots, bench,       hard constraints, acceptance, report format
+   scope, docs                    (.claude/skills/loop-brief)
+            ▲                              │
+            └──── one agent does it ◄──────┘
+                  (measure → change → measure; stop cleanly after a finished item)
+```
+
+- **Roads and performance before content.** A feature that breaks the phone's budget or sits
+  on a broken road is not done, however good it looks.
+- **Prove the cause first.** A brief's suspected cause is checked with a measurement
+  (a replay test, a debug render, a bench split) before anything is changed.
+- **One writer at a time.** The folder is shared and benches disturb each other; read-only
+  reviews (art direction, design proposals) can run beside a writer.
+- **The user's phone is the playtest.** Each report ends with what to try on the iPhone and
+  what to tell back; those notes become the next loop or BACKLOG lines. From the demo on, add
+  outside players: watch them play, don't explain, write down where they hesitate.
+
+## Who owns what
+
+| Area | Agent | Files |
+| --- | --- | --- |
+| Gameplay, controls, HUD, missions, jobs, police, traffic behaviour, landmarks in code, sound code | `gameplay-dev` | `game/scripts`, `game/shaders`, `game/tools`, `project.godot` |
+| Map data, bakes, roads, bridge decks, the lane graph, the demo area's map, city.scn | `map-engineer` | `tools/*.py`, `game/map`, `map_builder.gd`, `chunked_surface.gd` |
+| Frame cost, quality levels, budgets, device benches | `perf-engineer` | any code, for cost only; README "Performance budgets" |
+| Design, tuning, jokes, text, 2D art (PixelLab) | `game-designer` | design docs, `game/data`, `game/art` |
+| Look and readability review | `art-director` | none (read-only) |
+| Running checks, shots, device runs | `qa-tester` | none in the project |
+| Lookups, counts, log crunching | `scout` | none |
+| Planning, briefs, verification, docs that tie it together, talking to the user | the main session | `CLAUDE.md`, `docs/WORKFLOW.md`, ROADMAP/BACKLOG updates |
+
+## Models: one loop, several tiers
+
+The main session always runs on Opus and picks a model for every delegation by the kind of
+work (the table in CLAUDE.md, "Model routing"): **Opus** decides, **Sonnet** applies what is
+already decided, **Haiku** looks things up and counts. A loop is often split that way:
+
+| Loop | Opus | Sonnet | Haiku |
+| --- | --- | --- | --- |
+| Performance | `perf-engineer` measures, ranks and cuts the costs | | `scout` turns bench and device logs into a before/after table |
+| Roads | `map-engineer` finds the defect classes, fixes the bake and writes the exact fix list | `gameplay-dev` applies that list across many files (each change spelled out) | `scout` re-counts the findings over the whole map |
+| Police | `game-designer` designs the police; then `gameplay-dev` builds their AI and the feel | `game-designer` or `gameplay-dev` adds the strings and translations from the approved text | `scout` checks `dialogue.json` parses and counts the new lines |
+| Any loop's end | the main session verifies; `art-director` judges the shots | `qa-tester` runs `tools/verify.sh` and the shot set | |
+
+A cheaper run that returns Open Questions, fails a gate, overshoots its files or can't be
+verified is re-run one tier up with the whole task, not patched. Performance and anything on
+the phone never go below Opus. Only the main session spawns agents; an agent that wants a
+helper asks for one in its report.
+
+## The documents
+
+| Document | Holds | Updated |
+| --- | --- | --- |
+| `README.md` | how the game works: controls, flags, map data, bench, **Performance budgets** | with every behaviour change |
+| `docs/ROADMAP.md` | the order of work ("Agent order") and the progress log, one row per loop | each loop: item done + a row |
+| `docs/BACKLOG.md` | issues found along the way and decisions taken by default | each loop: fixed removed, found added |
+| `docs/DEMO.md` | the demo plan: area, quality bar, road defects, police, milestones | when the plan changes |
+| `docs/WORKFLOW.md` | this page | when the way of working changes |
+| `CREDITS.md` | data and asset licences, add-ons | with every new source, asset kind or add-on |
+| `.claude/skills/screenshot-review/art-bible.md` | the art bible | only with the user's agreement |
+
+## Definition of done (a loop item)
+
+1. **It works**: `tools/verify.sh` RESULT: PASS; the item's own checks pass, with numbers.
+2. **It was seen**: screenshots at phone size (2532x1170; 2868x1320 for HUD work) looked at,
+   before and after, on both city paths when the map builder changed; reviewed against the
+   art bible for anything visible.
+3. **It fits the phone**: bench before/after within README's budgets; vertices reported.
+4. **It ships**: `tools/verify.sh --ios` BUILD SUCCEEDED at the loop's end.
+5. **It is written down**: README, ROADMAP row, BACKLOG; CREDITS for anything new from outside.
+6. **It is honest**: what only the phone can tell (feel, heat, sound, touch) is named, with what
+   the user should try; Open Questions list every default taken.
+
+## Milestone gates
+
+Each gate is a **build that plays on the iPhone**, not a list of tasks. If a gate slips, cut
+scope; never skip the testing. The loops in docs/DEMO.md "Milestones" fall into these gates in
+order: the roads, performance, HUD and streaming loops make Foundations; the demo data,
+structures, landmarks, cars, police, jokes, the demo loop and the juice pass make the Demo; the
+device pass makes TestFlight. Open-source publication can happen any time after the demo data.
+
+| Gate | Passes when |
+| --- | --- |
+| **Foundations** | roads and overpasses in the current map have no known defect class left (checks count zero); the river is off-limits; the default view holds 60 fps on the user's iPhone within the budgets; the HUD is sized for the phone |
+| **Demo** (vertical slice) | the demo area from docs/DEMO.md at final quality: every activity (drive, rescues, side jobs, races, police) playable start to finish; the first minute polished; day and night; all text Polish + English; the art bible holds; the user's playtest says it is good, and outside players finish the first ten minutes without help |
+| **TestFlight** | no crash or soft-lock in repeated sessions; settings and save survive updates; onboarding; credits and licences checked (OpenStreetMap ODbL, GUGiK); privacy (no tracking); the open-source repo published; a channel for testers' notes |
+| **Launch** | the v1.0 device pass from the roadmap (iPhone 13 to current: 60 fps target, memory under 1.5 GB, load under 4 s), App Store assets and metadata, review notes |
+
+Further reading: code.claude.com/docs (subagents, skills, memory, best practices);
+docs.godotengine.org (performance, GDScript style guide, static typing).

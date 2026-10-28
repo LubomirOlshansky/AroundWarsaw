@@ -1,0 +1,222 @@
+shader_type spatial;
+render_mode unshaded, fog_disabled, depth_test_disabled, depth_draw_never, cull_disabled;
+// Full-screen pass on the low-resolution image: dark outlines where depth
+// jumps, optional colour posterize, and a saturation tweak. At dusk and at night
+// (main.gd sets the uniforms per time of day) it also paints a dithered sky
+// gradient, with stars at night, behind the diorama, and split-tones the image:
+// shadows towards one colour, highlights towards another (the vaporwave grade).
+//
+// v0.9: reflections and rain. Where the pixel is a level surface (its normal, from the
+// neighbours' depths, points up) that the surface map (tools/bake_water.py) calls water
+// or (when wet) road or paving, it marches the mirrored view ray up the screen through
+// the depth buffer (an orthographic camera: a straight line) and mixes in what it hits:
+// the bridges' dark undersides by day, every lamp, neon sign, signal and car light at
+// night, smeared a little along the ray (rough water, wet asphalt). Steps per pixel
+// are the quality setting's (0 switches it off). Then the rain: three layers of
+// one-pixel streaks falling at a slant, drifting with the view a little.
+
+#include "res://shaders/common.gdshaderinc"
+#include "res://shaders/ghost.gdshaderinc"
+
+uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
+uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
+uniform float outline_strength = 0.55;
+uniform float depth_threshold = 1.5;
+uniform float levels = 0.0;
+uniform float saturation = 1.05;
+uniform float vignette = 0.14;
+uniform vec3 grade = vec3(1.025, 1.0, 0.97); // a touch warm
+// Split tone (linear multipliers): 0 leaves the image alone (daytime).
+uniform float tone_amount = 0.0;
+uniform vec3 tone_shadow = vec3(1.0);
+uniform vec3 tone_light = vec3(1.0);
+// Sky behind the slab: top and bottom of the screen (linear), how much of it
+// replaces the plain background (0 = the day's flat colour), and stars.
+uniform float sky_amount = 0.0;
+uniform vec3 sky_top = vec3(0.0);
+uniform vec3 sky_bottom = vec3(0.0);
+uniform float stars = 0.0;
+// Reflections (main.gd sets the map; quality sets the steps) and the rain (weather.gd).
+uniform sampler2D surface_map : filter_linear, repeat_disable, hint_default_black;
+uniform vec4 surface_rect = vec4(0.0, 0.0, 1.0, 1.0);
+uniform int reflect_steps = 10;
+uniform float rain = 0.0;
+uniform vec2 rain_shift = vec2(0.0);
+global uniform float wetness;
+global uniform float daylight;
+global uniform float lights_on;
+
+const float BAYER[16] = float[16](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
+
+void vertex() {
+	POSITION = vec4(VERTEX.xy, 1.0, 1.0);
+}
+
+float linear_depth(vec2 uv, mat4 inv_projection) {
+	float d = texture(depth_tex, uv).r;
+	vec4 v = inv_projection * vec4(uv * 2.0 - 1.0, d, 1.0);
+	return -v.z / v.w;
+}
+
+float hash(vec2 p) {
+	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+	p3 += dot(p3, p3.yzx + 33.33);
+	return fract((p3.x + p3.y) * p3.z);
+}
+
+// The sky: a gradient in a few dithered bands (it reads as pixel art), and
+// sparse twinkling stars in the upper part.
+vec3 sky(vec2 uv, vec2 frag) {
+	float t = clamp(uv.y, 0.0, 1.0);
+	ivec2 p = ivec2(frag) % 4;
+	float dither = (BAYER[p.y * 4 + p.x] + 0.5) / 16.0 - 0.5;
+	float bands = 10.0;
+	t = clamp(floor(t * bands + dither + 0.5) / bands, 0.0, 1.0);
+	vec3 col = mix(sky_top, sky_bottom, t);
+	if (stars > 0.0) {
+		vec2 cell = floor(frag);
+		float h = hash(cell);
+		if (h > 0.9992 - 0.0008 * (1.0 - uv.y)) {
+			float tw = 0.55 + 0.45 * sin(TIME * (1.5 + hash(cell + 3.0) * 3.0) + h * 40.0);
+			col += vec3(0.9, 0.85, 1.0) * tw * stars * (1.0 - uv.y);
+		}
+	}
+	return col;
+}
+
+vec3 view_pos(vec2 uv, mat4 inv_projection) {
+	vec4 v = inv_projection * vec4(uv * 2.0 - 1.0, texture(depth_tex, uv).r, 1.0);
+	return v.xyz / v.w;
+}
+
+// Rain streaks of one layer: a streak `len` pixels long in some of the cells, falling.
+float rain_layer(vec2 frag, vec2 cell_size, float speed, float len, float slant, float density, float seed) {
+	vec2 p = frag;
+	p.x += p.y * slant;
+	p.y -= TIME * speed;
+	vec2 cell = floor(p / cell_size);
+	if (hash(cell + seed) > density) {
+		return 0.0;
+	}
+	float x0 = (cell.x + 0.15 + 0.7 * hash(cell + seed + 1.7)) * cell_size.x;
+	float y0 = (cell.y + hash(cell + seed + 3.1) * (1.0 - len / cell_size.y)) * cell_size.y;
+	float on = step(abs(p.x - x0), 0.5) * step(y0, p.y) * step(p.y, y0 + len);
+	return on * (0.45 + 0.55 * (p.y - y0) / len);
+}
+
+void fragment() {
+	vec2 px = 1.0 / VIEWPORT_SIZE;
+	vec3 col = texture(screen_tex, SCREEN_UV).rgb;
+
+	vec3 vc = view_pos(SCREEN_UV, INV_PROJECTION_MATRIX);
+	vec3 vr = view_pos(SCREEN_UV + vec2(px.x, 0.0), INV_PROJECTION_MATRIX);
+	vec3 vl = view_pos(SCREEN_UV - vec2(px.x, 0.0), INV_PROJECTION_MATRIX);
+	vec3 vd = view_pos(SCREEN_UV + vec2(0.0, px.y), INV_PROJECTION_MATRIX);
+	vec3 vu = view_pos(SCREEN_UV - vec2(0.0, px.y), INV_PROJECTION_MATRIX);
+	float c = -vc.z;
+	float jump = 0.0;
+	jump = max(jump, -vr.z - c);
+	jump = max(jump, -vl.z - c);
+	jump = max(jump, -vd.z - c);
+	jump = max(jump, -vu.z - c);
+	float edge = step(depth_threshold, jump);
+	if (edge > 0.0 && occlusion_radius > 0.0) {
+		// No outlines on the occlusion ghost's pixels (loop 1): every pixel it keeps stands
+		// in front of the street showing through beside it, and outlining each one turned
+		// the ghost into a dark stipple.
+		vec3 wc = (INV_VIEW_MATRIX * vec4(vc, 1.0)).xyz;
+		edge *= 1.0 - step(0.02, ghost_fade(vc.xy, wc.xz));
+	}
+
+	if (reflect_steps > 0 && texture(depth_tex, SCREEN_UV).r > 0.0 && jump < 0.6) {
+		// A level surface? Its normal from the neighbours (view space, then world).
+		vec3 n_view = normalize(cross(vr - vl, vu - vd));
+		vec3 n = (INV_VIEW_MATRIX * vec4(n_view, 0.0)).xyz;
+		vec3 world = (INV_VIEW_MATRIX * vec4(vc, 1.0)).xyz;
+		vec4 surf = texture(surface_map, (world.xz - surface_rect.xy) / surface_rect.zw);
+		// Water mirrors always; roads and paving once they're wet (puddles most).
+		float water = smoothstep(0.66, 0.8, surf.b);
+		float road = smoothstep(0.3, 0.45, surf.b) * (1.0 - water);
+		float paving = smoothstep(0.12, 0.22, surf.b) * (1.0 - smoothstep(0.3, 0.45, surf.b));
+		float puddle = 0.0;
+		if (wetness > 0.0 && road + paving > 0.0) {
+			// The same puddles as ground.gdshader.
+			float pm = value_noise(world.xz * 0.16 + 11.3) * 0.6 + value_noise(world.xz * 0.53 + 2.1) * 0.4;
+			puddle = smoothstep(0.64, 0.69, pm) * smoothstep(0.35, 0.9, wetness);
+		}
+		float strength = water * mix(0.38, 0.85, lights_on)
+				+ wetness * (road * 0.3 + paving * 0.18) + puddle * (road + paving) * 0.4;
+		if (abs(n.y) > 0.92 && strength > 0.01) {
+			// The mirrored view ray: into the screen and up. In view space it climbs the
+			// screen in a straight line; march it against the depth buffer.
+			vec3 fwd = -INV_VIEW_MATRIX[2].xyz;
+			vec3 r = vec3(fwd.x, -fwd.y, fwd.z);
+			vec3 r_view = (VIEW_MATRIX * vec4(r, 0.0)).xyz;
+			vec2 duv = (PROJECTION_MATRIX * vec4(r_view, 0.0)).xy * 0.5;
+			float span = 30.0;
+			float step_t = span / float(reflect_steps);
+			ivec2 bp = ivec2(FRAGCOORD.xy) % 4;
+			float jitter = (BAYER[bp.y * 4 + bp.x] + 0.5) / 16.0;
+			// Ripples bend the water's reflection sideways.
+			float wobble = water * (sin(world.z * 1.7 + TIME * 2.3) + sin(world.x * 2.3 - TIME * 1.7)) * 0.5 * px.x * 1.5;
+			for (int k = 0; k < 24; k++) {
+				if (k >= reflect_steps) {
+					break;
+				}
+				float t = step_t * (float(k) + jitter);
+				vec2 uv = SCREEN_UV + duv * t + vec2(wobble, 0.0);
+				if (uv.y < 0.0 || uv.y > 1.0 || uv.x < 0.0 || uv.x > 1.0) {
+					break;
+				}
+				float ray = c - r_view.z * t;
+				float scene = linear_depth(uv, INV_PROJECTION_MATRIX);
+				if (scene < ray - 0.2 && ray - scene < step_t * 0.6 + 2.0) {
+					// A hit: smear it a little along the ray (rough water, wet asphalt).
+					vec3 hit = texture(screen_tex, uv).rgb * 0.5
+							+ texture(screen_tex, uv - duv * step_t * 0.35).rgb * 0.25
+							+ texture(screen_tex, uv + duv * step_t * 0.35).rgb * 0.25;
+					// By day the water shows what stands over it as a darker band (its shade),
+					// not a pale copy of a concrete deck reading as a wake (loop 1).
+					hit = mix(hit, col * 0.62, water * (1.0 - lights_on));
+					// Fade towards the end of the march.
+					float fade = 1.0 - smoothstep(0.6, 1.0, t / span);
+					col = mix(col, hit, strength * fade);
+					break;
+				}
+			}
+		}
+	}
+	if (sky_amount > 0.0 && texture(depth_tex, SCREEN_UV).r <= 0.0) {
+		// Nothing drawn here (reversed depth: the far plane is 0): the sky.
+		col = mix(col, sky(SCREEN_UV, FRAGCOORD.xy), sky_amount);
+	}
+	col = mix(col, col * 0.32, edge * outline_strength);
+
+	float luma = dot(col, vec3(0.299, 0.587, 0.114));
+	col = max(mix(vec3(luma), col, saturation), vec3(0.0)) * grade;
+	if (tone_amount > 0.0) {
+		vec3 tint = mix(tone_shadow, tone_light, smoothstep(0.015, 0.45, luma));
+		col = mix(col, col * tint, tone_amount);
+	}
+	float edge_dist = length((SCREEN_UV - 0.5) * vec2(1.0, 0.8));
+	col *= 1.0 - vignette * smoothstep(0.3, 0.75, edge_dist);
+
+	if (rain > 0.0) {
+		// Rain: a grey veil by day, and three layers of falling streaks (far: short,
+		// slow, many; near: long, fast, few), drifting with the view.
+		col = mix(col, vec3(luma) * 0.92 + 0.02, 0.18 * rain * daylight);
+		vec2 f = FRAGCOORD.xy;
+		float s = rain_layer(f + rain_shift * 0.35, vec2(5.0, 34.0), 220.0, 5.0, 0.18, 0.55 * rain, 1.0) * 0.45
+				+ rain_layer(f + rain_shift * 0.6, vec2(7.0, 48.0), 320.0, 8.0, 0.2, 0.5 * rain, 7.0) * 0.7
+				+ rain_layer(f + rain_shift, vec2(11.0, 70.0), 460.0, 13.0, 0.22, 0.4 * rain, 13.0);
+		vec3 drop = mix(vec3(0.42, 0.46, 0.62), vec3(0.78, 0.82, 0.88), daylight);
+		col = mix(col, drop, clamp(s, 0.0, 1.0) * 0.55);
+	}
+
+	if (levels > 0.5) {
+		vec3 s = pow(col, vec3(1.0 / 2.2));
+		s = floor(s * levels + 0.5) / levels;
+		col = pow(s, vec3(2.2));
+	}
+	ALBEDO = col;
+}

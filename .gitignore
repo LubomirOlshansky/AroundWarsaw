@@ -1,0 +1,33 @@
+# Godot's import cache and editor state
+.godot/
+.DS_Store
+
+# Python bytecode from the tools
+__pycache__/
+*.pyc
+
+# Builds: tools/export_ios.sh makes build/ios
+build/
+
+# Raw downloads (about 5 GB, some single files near 300 MB); README.md, "Map data",
+# says where each comes from and how to bake it into game/map/
+data/raw/
+
+# Screenshots from test runs
+shots/
+
+# Temporary copies of the game made while measuring
+game_*/
+
+# Logs
+*.log
+
+# Session handoff notes (device IDs, local paths): local only
+.handoff/
+
+# Never commit keys: MCP server keys (PixelLab and others) stay in the user's Claude Code
+# config, never in a project .mcp.json
+.mcp.json
+.env
+*.env
+.claude/settings.local.json

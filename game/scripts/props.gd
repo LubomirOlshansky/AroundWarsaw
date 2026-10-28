@@ -1,0 +1,365 @@
+extends RefCounted
+## Box-built models for the side jobs and the easter eggs (v0.65), all drawn with
+## the actors' material (models.gd, actor.gdshader): a kebab stand with a pixel
+## KEBAB board that glows at night, the palm on Rondo de Gaulle'a with a neon ring,
+## pigeons (on the ground and in the air), roadwork barriers, a REMONT sign, the
+## Mermaid with her sword and shield, a billboard frame, and people standing about.
+## Fronts face -Z, like the vehicles.
+
+const Models := preload("res://scripts/models.gd")
+const PixelFont := preload("res://scripts/pixel_font.gd")
+
+const FIXED := Models.FIXED
+const PAINT := Models.PAINT
+const TROUSERS := Models.TROUSERS
+const HEAD_LAMP := Models.HEAD_LAMP
+const LIT_WINDOW := Models.LIT_WINDOW
+const LIT_SIGN := Models.LIT_SIGN
+const BLINK := Models.BLINK
+
+
+static func _begin() -> SurfaceTool:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	return st
+
+
+static func box(st: SurfaceTool, centre: Vector3, size: Vector3, colour: Color, part := FIXED) -> void:
+	Models.box(st, centre, size, colour, part)
+
+
+## A box turned by `basis` (unit axes) about its centre.
+static func obox(st: SurfaceTool, centre: Vector3, basis: Basis, size: Vector3, colour: Color, part := FIXED) -> void:
+	var h := size * 0.5
+	for axis in 3:
+		for sgn in [-1.0, 1.0]:
+			var n: Vector3 = basis[axis] * sgn
+			var u: Vector3 = basis[(axis + 1) % 3] * h[(axis + 1) % 3]
+			var v: Vector3 = basis[(axis + 2) % 3] * h[(axis + 2) % 3]
+			var c: Vector3 = centre + n * h[axis]
+			var q := [c - u - v, c + u - v, c + u + v, c - u + v]
+			if ((q[1] as Vector3) - q[0]).cross((q[2] as Vector3) - q[0]).dot(n) > 0.0:
+				q = [q[0], q[3], q[2], q[1]]
+			for k in [0, 1, 2, 0, 2, 3]:
+				st.set_color(colour)
+				st.set_normal(n)
+				st.set_uv(Vector2(part, 0.0))
+				st.add_vertex(q[k])
+
+
+## A box from a to b (its long axis), `w` wide and `t` thick; `side` sets which
+## way its width lies.
+static func beam(st: SurfaceTool, a: Vector3, b: Vector3, w: float, t: float, colour: Color, side := Vector3.UP, part := FIXED) -> void:
+	var along := b - a
+	var z := along.normalized()
+	var x := side.cross(z).normalized()
+	if x.length_squared() < 0.01:
+		x = Vector3.RIGHT
+	var y := z.cross(x).normalized()
+	obox(st, (a + b) * 0.5, Basis(x, y, z), Vector3(w, t, along.length()), colour, part)
+
+
+# --- the kebab stand ----------------------------------------------------------------
+
+## A kiosk about 3 m wide: cream walls with a red band, a lit serving hatch with a
+## striped awning, and a dark board on the roof with KEBAB in pixel letters (front
+## and back), framed by a neon tube. A tall table stands in front.
+static func kebab_stand() -> ArrayMesh:
+	var st := _begin()
+	var cream := Color("#efe4cc")
+	var red := Color("#c8282a")
+	var dark := Color("#2b2730")
+	box(st, Vector3(0, 1.2, 0), Vector3(3.0, 2.4, 2.0), cream)
+	box(st, Vector3(0, 0.18, 0), Vector3(3.04, 0.36, 2.04), red)
+	box(st, Vector3(0, 2.32, 0), Vector3(3.08, 0.2, 2.08), red)
+	box(st, Vector3(0, 2.48, 0), Vector3(3.2, 0.12, 2.2), Color("#5d5a57"))
+	# The hatch: warm light from inside at night, a counter under it.
+	box(st, Vector3(0, 1.45, -1.0), Vector3(2.1, 0.9, 0.06), Color("#f3cf8a"), LIT_WINDOW)
+	box(st, Vector3(-0.55, 1.4, -1.02), Vector3(0.22, 0.75, 0.04), Color("#8a4a24"))  # the spit inside
+	box(st, Vector3(0, 0.98, -1.18), Vector3(2.5, 0.08, 0.38), Color("#9aa0a6"))
+	# Awning: red and white stripes.
+	for k in 8:
+		var x := -1.4 + k * 0.4
+		box(st, Vector3(x, 2.08, -1.42), Vector3(0.4, 0.07, 0.9), red if k % 2 == 0 else Color("#f7f2e8"))
+	box(st, Vector3(0, 1.98, -1.86), Vector3(3.2, 0.16, 0.04), red)
+	# Roof board on two posts, KEBAB on both faces, a pink neon frame.
+	for x in [-1.1, 1.1]:
+		box(st, Vector3(x, 2.85, 0), Vector3(0.1, 0.6, 0.1), dark)
+	var w := 5.2
+	var h := 1.55
+	var y0 := 3.15
+	box(st, Vector3(0, y0 + h * 0.5, 0), Vector3(w, h, 0.2), dark)
+	var pink := Color("#ff4fb8")
+	for z in [-0.12, 0.12]:
+		box(st, Vector3(0, y0 + 0.04, z), Vector3(w, 0.07, 0.03), pink, LIT_SIGN)
+		box(st, Vector3(0, y0 + h - 0.04, z), Vector3(w, 0.07, 0.03), pink, LIT_SIGN)
+		for x in [-w * 0.5 + 0.04, w * 0.5 - 0.04]:
+			box(st, Vector3(x, y0 + h * 0.5, z), Vector3(0.07, h, 0.03), pink, LIT_SIGN)
+	var px := 0.15
+	var word := "KEBAB"
+	var tw := PixelFont.width(word) * px
+	var top := y0 + h * 0.5 + (PixelFont.BODY + 3.5) * px
+	var gold := Color("#ffd23f")
+	# Seen from the front (-Z) the text runs towards -X; from the back, towards +X.
+	PixelFont.add_quads(st, word, Vector3(tw * 0.5, top, -0.11), Vector3.LEFT, Vector3.DOWN, px, gold, LIT_SIGN)
+	PixelFont.add_quads(st, word, Vector3(-tw * 0.5, top, 0.11), Vector3.RIGHT, Vector3.DOWN, px, gold, LIT_SIGN)
+	# A tall table out front.
+	box(st, Vector3(1.0, 0.55, -2.5), Vector3(0.1, 1.1, 0.1), Color("#5d5a57"))
+	box(st, Vector3(1.0, 1.12, -2.5), Vector3(0.7, 0.06, 0.7), Color("#d9d4c8"))
+	box(st, Vector3(1.0, 0.03, -2.5), Vector3(0.5, 0.06, 0.5), Color("#5d5a57"))
+	return st.commit()
+
+
+# --- the palm -------------------------------------------------------------------------
+
+## The palm on Rondo de Gaulle'a: a ringed, gently curving trunk about 13 m tall on
+## a round-ish plinth, a crown of drooping fronds, a few coconuts, and a pink neon
+## ring and four uplights round the plinth that glow at night.
+static func palm() -> ArrayMesh:
+	var st := _begin()
+	var stone := Color("#bdb6aa")
+	box(st, Vector3(0, 0.3, 0), Vector3(2.4, 0.6, 1.2), stone)
+	box(st, Vector3(0, 0.3, 0), Vector3(1.2, 0.6, 2.4), stone)
+	box(st, Vector3(0, 0.3, 0), Vector3(2.0, 0.6, 2.0), stone)
+	var pink := Color("#ff4fd8")
+	box(st, Vector3(0, 0.66, 0), Vector3(2.5, 0.07, 0.07), pink, LIT_SIGN)
+	box(st, Vector3(0, 0.66, 0), Vector3(0.07, 0.07, 2.5), pink, LIT_SIGN)
+	for c in [Vector3(1.05, 0.66, 1.05), Vector3(-1.05, 0.66, 1.05), Vector3(1.05, 0.66, -1.05), Vector3(-1.05, 0.66, -1.05)]:
+		box(st, c, Vector3(0.18, 0.12, 0.18), Color("#fff3c4"), HEAD_LAMP)
+	# Trunk: rings alternating two browns, leaning a little and widening at the foot.
+	var segs := 16
+	var top := Vector3.ZERO
+	for i in segs:
+		var t := float(i) / segs
+		var lean := Vector3(0.9 * t * t, 0, -0.35 * t * t)
+		var y := 0.6 + i * 0.78
+		var wd := lerpf(0.78, 0.5, t)
+		box(st, Vector3(0, y + 0.39, 0) + lean, Vector3(wd, 0.8, wd), Color("#8b6c4a") if i % 2 == 0 else Color("#a2825b"))
+		top = Vector3(0, y + 0.8, 0) + lean
+	box(st, top + Vector3(0, 0.15, 0), Vector3(0.7, 0.4, 0.7), Color("#6f8a3a"))
+	# Coconuts.
+	for a in [0.3, 2.4, 4.4]:
+		box(st, top + Vector3(cos(a) * 0.38, -0.25, sin(a) * 0.38), Vector3(0.3, 0.3, 0.3), Color("#6b4a2b"))
+	# Fronds: chains of leaf boxes rising, then drooping, around the crown.
+	var greens := [Color("#3f8f3a"), Color("#4f9e3f"), Color("#5aa845"), Color("#3b7f36")]
+	var n := 9
+	for k in n:
+		var a := TAU * k / n + 0.2
+		var dir := Vector3(cos(a), 0, sin(a))
+		var p := top + Vector3(0, 0.2, 0)
+		var pitch := 0.75 - 0.15 * (k % 2)
+		for j in 6:
+			var length := 1.0
+			var step := (dir * cos(pitch) + Vector3.UP * sin(pitch)) * length
+			var q := p + step
+			beam(st, p, q, 0.85 - j * 0.1, 0.1, greens[(k + j) % greens.size()])
+			p = q
+			pitch -= 0.38
+	return st.commit()
+
+
+# --- pigeons -----------------------------------------------------------------------------
+
+## A pigeon about 0.7 m long (bigger than life, so it reads): grey body, a green
+## and violet neck, dark wing bars. `flying` spreads the wings.
+static func pigeon(flying: bool) -> ArrayMesh:
+	var st := _begin()
+	var grey := Color("#9097a1")
+	var dark := Color("#5f656e")
+	box(st, Vector3(0, 0.32, 0.02), Vector3(0.34, 0.3, 0.56), grey)
+	box(st, Vector3(0, 0.5, -0.24), Vector3(0.26, 0.22, 0.2), Color("#6e5a8f"))
+	box(st, Vector3(0, 0.6, -0.32), Vector3(0.22, 0.22, 0.24), Color("#7b828c"))
+	box(st, Vector3(0, 0.57, -0.47), Vector3(0.07, 0.06, 0.1), Color("#e8c9a8"))
+	box(st, Vector3(0, 0.3, 0.38), Vector3(0.26, 0.08, 0.26), dark)
+	if flying:
+		for s in [-1.0, 1.0]:
+			box(st, Vector3(s * 0.42, 0.42, 0.02), Vector3(0.55, 0.05, 0.36), grey)
+			box(st, Vector3(s * 0.62, 0.42, 0.1), Vector3(0.2, 0.06, 0.24), dark)
+	else:
+		for s in [-1.0, 1.0]:
+			box(st, Vector3(s * 0.18, 0.36, 0.08), Vector3(0.04, 0.18, 0.4), dark)
+		for s in [-0.07, 0.07]:
+			box(st, Vector3(s, 0.08, -0.02), Vector3(0.04, 0.16, 0.04), Color("#d77a7a"))
+	return st.commit()
+
+
+# --- roadworks -------------------------------------------------------------------------
+
+## A roadwork barrier 2 m long and 1.2 m tall, chunky enough to read at the default zoom
+## (loop 1; the old 1.6 m one with 22 cm boards was a few stray pixels): a deep top board
+## and a lower rail in red and white blocks, grey legs on dark feet, and an amber lamp on
+## top that blinks at dusk and at night.
+static func barrier() -> ArrayMesh:
+	var st := _begin()
+	var red := Color("#d8262b")
+	var white := Color("#f6f3ec")
+	for k in 5:
+		box(st, Vector3(-0.8 + k * 0.4, 0.95, 0), Vector3(0.4, 0.46, 0.14), red if k % 2 == 0 else white)
+		box(st, Vector3(-0.8 + k * 0.4, 0.39, 0), Vector3(0.4, 0.22, 0.12), white if k % 2 == 0 else red)
+	for x in [-0.93, 0.93]:
+		box(st, Vector3(x, 0.6, 0), Vector3(0.1, 1.2, 0.1), Color("#c9ccd0"))
+		box(st, Vector3(x, 0.05, 0), Vector3(0.2, 0.1, 0.85), Color("#2f3034"))
+	box(st, Vector3(-0.78, 1.24, 0), Vector3(0.08, 0.1, 0.08), Color("#2f3034"))
+	box(st, Vector3(-0.78, 1.4, 0), Vector3(0.28, 0.24, 0.2), Color("#ffb21e"), BLINK)
+	return st.commit()
+
+
+## A traffic cone, 0.75 m: orange with a white band (loop 1: bigger, stepped like a cone).
+static func cone() -> ArrayMesh:
+	var st := _begin()
+	var orange := Color("#ff6a13")
+	box(st, Vector3(0, 0.03, 0), Vector3(0.6, 0.06, 0.6), Color("#2b2c2f"))
+	box(st, Vector3(0, 0.18, 0), Vector3(0.44, 0.24, 0.44), orange)
+	box(st, Vector3(0, 0.38, 0), Vector3(0.34, 0.16, 0.34), Color("#f6f3ec"))
+	box(st, Vector3(0, 0.53, 0), Vector3(0.25, 0.14, 0.25), orange)
+	box(st, Vector3(0, 0.67, 0), Vector3(0.15, 0.14, 0.15), orange)
+	return st.commit()
+
+
+## The dig the barriers fence off: a dark trench and a heap of sand.
+static func dig(length: float, width: float) -> ArrayMesh:
+	var st := _begin()
+	box(st, Vector3(0, 0.04, 0), Vector3(width, 0.08, length), Color("#4a3a2c"))
+	box(st, Vector3(0, 0.09, length * 0.25), Vector3(width * 0.6, 0.06, length * 0.3), Color("#2f251c"))
+	box(st, Vector3(width * 0.15, 0.25, -length * 0.3), Vector3(width * 0.5, 0.5, 1.6), Color("#d8b77a"))
+	box(st, Vector3(width * 0.15, 0.55, -length * 0.3), Vector3(width * 0.3, 0.2, 0.9), Color("#cfa96a"))
+	return st.commit()
+
+
+## A yellow roadworks sign on two posts with `word` in black pixel letters on both
+## faces.
+static func work_sign(word: String) -> ArrayMesh:
+	var st := _begin()
+	var px := 0.09
+	var tw := PixelFont.width(word) * px
+	var w := tw + 0.5
+	var h := 1.1
+	var y0 := 1.3
+	for x in [-w * 0.5 + 0.2, w * 0.5 - 0.2]:
+		box(st, Vector3(x, (y0 + 0.1) * 0.5, 0), Vector3(0.08, y0 + 0.1, 0.08), Color("#8c9096"))
+	box(st, Vector3(0, y0 + h * 0.5, 0), Vector3(w, h, 0.06), Color("#f2c12e"))
+	box(st, Vector3(0, y0 + h * 0.5, 0), Vector3(w + 0.12, h + 0.12, 0.04), Color("#1d1b19"))
+	var top := y0 + h * 0.5 + (PixelFont.BODY + 3.5) * px
+	var ink := Color("#1d1b19")
+	PixelFont.add_quads(st, word, Vector3(tw * 0.5, top, -0.035), Vector3.LEFT, Vector3.DOWN, px, ink, FIXED)
+	PixelFont.add_quads(st, word, Vector3(-tw * 0.5, top, 0.035), Vector3.RIGHT, Vector3.DOWN, px, ink, FIXED)
+	box(st, Vector3(-w * 0.5 + 0.2, y0 + h + 0.12, 0), Vector3(0.16, 0.16, 0.12), Color("#ffb21e"), LIT_SIGN)
+	return st.commit()
+
+
+# --- the Mermaid -------------------------------------------------------------------------
+
+## A small Mermaid (no particular statue): a stone plinth, a curled fish tail, her
+## sword raised in the right hand and a round shield on the left arm, all in green
+## patinated bronze. About 5 m tall with the plinth, so she reads from the street.
+static func mermaid() -> ArrayMesh:
+	var st := _begin()
+	var stone := Color("#c3bcae")
+	var bronze := Color("#4f8a76")
+	var shade := Color("#3c6d5d")
+	var deep := Color("#2c5246")
+	box(st, Vector3(0, 0.15, 0), Vector3(2.2, 0.3, 2.2), Color("#a9a294"))
+	box(st, Vector3(0, 0.95, 0), Vector3(1.6, 1.3, 1.6), stone)
+	box(st, Vector3(0, 1.66, 0), Vector3(1.8, 0.14, 1.8), Color("#a9a294"))
+	var base := 1.73
+	# Tail: a coil on the plinth, rising into the hips, the fin flicked up behind.
+	box(st, Vector3(0, base + 0.15, 0.1), Vector3(1.1, 0.3, 0.9), shade)
+	box(st, Vector3(0.25, base + 0.42, 0.25), Vector3(0.6, 0.3, 0.6), bronze)
+	box(st, Vector3(0.05, base + 0.75, 0.05), Vector3(0.5, 0.4, 0.45), bronze)
+	beam(st, Vector3(-0.35, base + 0.2, 0.35), Vector3(-0.75, base + 0.8, 0.75), 0.35, 0.22, shade)
+	beam(st, Vector3(-0.75, base + 0.8, 0.75), Vector3(-1.0, base + 1.25, 0.75), 0.6, 0.08, deep)
+	beam(st, Vector3(-0.75, base + 0.8, 0.75), Vector3(-0.6, base + 1.3, 1.0), 0.6, 0.08, deep)
+	# Torso, head and hair.
+	box(st, Vector3(0, base + 1.25, 0), Vector3(0.52, 0.65, 0.34), bronze)
+	box(st, Vector3(0, base + 1.66, 0), Vector3(0.3, 0.18, 0.26), shade)
+	box(st, Vector3(0, base + 1.9, -0.02), Vector3(0.32, 0.34, 0.3), bronze)
+	box(st, Vector3(0, base + 2.0, 0.14), Vector3(0.36, 0.32, 0.18), deep)
+	# Right arm up, the sword above her head.
+	beam(st, Vector3(0.3, base + 1.5, 0), Vector3(0.5, base + 2.2, -0.05), 0.15, 0.15, bronze)
+	box(st, Vector3(0.52, base + 2.28, -0.05), Vector3(0.36, 0.08, 0.12), deep)
+	beam(st, Vector3(0.52, base + 2.3, -0.05), Vector3(0.62, base + 3.55, -0.1), 0.14, 0.05, Color("#6fa592"))
+	# Left arm forward with the round shield.
+	beam(st, Vector3(-0.3, base + 1.5, 0), Vector3(-0.45, base + 1.2, -0.3), 0.15, 0.15, bronze)
+	var shield := Vector3(-0.5, base + 1.25, -0.42)
+	box(st, shield, Vector3(0.8, 0.56, 0.08), shade)
+	box(st, shield, Vector3(0.56, 0.8, 0.08), shade)
+	box(st, shield + Vector3(0, 0, -0.05), Vector3(0.2, 0.2, 0.06), Color("#6fa592"))
+	return st.commit()
+
+
+# --- people and things ---------------------------------------------------------------------
+
+## A person standing, 1.75 m tall, in their own colours (no instance paint), so it
+## can be a plain MeshInstance3D. `bags` gives them two shopping bags of jars.
+static func person(shirt: Color, trousers: Color, bags := false) -> ArrayMesh:
+	var st := _begin()
+	for side in [-1.0, 1.0]:
+		box(st, Vector3(0.11 * side, 0.43, 0), Vector3(0.17, 0.86, 0.22), trousers)
+	box(st, Vector3(0, 1.15, 0), Vector3(0.46, 0.62, 0.28), shirt)
+	for side in [-1.0, 1.0]:
+		box(st, Vector3(0.29 * side, 1.12, 0), Vector3(0.12, 0.56, 0.16), shirt)
+	box(st, Vector3(0, 1.58, 0), Vector3(0.26, 0.26, 0.26), Color("#e2b48c"))
+	box(st, Vector3(0, 1.72, 0.02), Vector3(0.28, 0.08, 0.3), Color("#4a3426"))
+	if bags:
+		for side in [-1.0, 1.0]:
+			box(st, Vector3(0.48 * side, 0.55, 0), Vector3(0.34, 0.42, 0.24), Color("#e9e4d8"))
+			for k in 2:
+				box(st, Vector3(0.48 * side + (k - 0.5) * 0.14, 0.82, 0), Vector3(0.11, 0.14, 0.11), Color("#d9a441"))
+				box(st, Vector3(0.48 * side + (k - 0.5) * 0.14, 0.9, 0), Vector3(0.12, 0.03, 0.12), Color("#c8282a"))
+	return st.commit()
+
+
+## A billboard's frame: two posts and a dark border round a board w × h metres whose
+## bottom edge is `y0` up; the poster itself is a separate quad (poster.gdshader).
+static func billboard_frame(w: float, h: float, y0: float) -> ArrayMesh:
+	var st := _begin()
+	var steel := Color("#4a4d52")
+	for x in [-w * 0.3, w * 0.3]:
+		box(st, Vector3(x, (y0 + 0.2) * 0.5, 0.12), Vector3(0.3, y0 + 0.2, 0.3), steel)
+	box(st, Vector3(0, y0 + h * 0.5, 0.1), Vector3(w + 0.3, h + 0.3, 0.16), Color("#5b5f66"))
+	# The back: steel panels with a few ribs.
+	for k in 4:
+		box(st, Vector3(0, y0 + h * (k + 0.5) / 4.0, 0.19), Vector3(w + 0.1, 0.06, 0.04), Color("#43464b"))
+	# Lamps along the top that light the poster at night.
+	for k in 3:
+		box(st, Vector3((k - 1) * w * 0.33, y0 + h + 0.25, -0.35), Vector3(0.4, 0.12, 0.3), Color("#fff3c4"), HEAD_LAMP)
+		box(st, Vector3((k - 1) * w * 0.33, y0 + h + 0.2, -0.12), Vector3(0.06, 0.06, 0.5), steel)
+	return st.commit()
+
+
+## A flat quad w × h facing -Z with UV 0..1 (u right, v down), for a poster texture.
+static func poster_quad(w: float, h: float, y0: float) -> ArrayMesh:
+	var st := _begin()
+	var corners := [Vector3(w * 0.5, y0 + h, 0), Vector3(-w * 0.5, y0 + h, 0), Vector3(-w * 0.5, y0, 0), Vector3(w * 0.5, y0, 0)]
+	var uvs := [Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1)]
+	for k in [0, 1, 2, 0, 2, 3]:
+		st.set_normal(Vector3.FORWARD)
+		st.set_uv(uvs[k])
+		st.set_color(Color.WHITE)
+		st.add_vertex(corners[k])
+	return st.commit()
+
+
+## A soft glow sprite `size` metres across in `colour` (alpha = brightness), for the
+## glow material (glow.gdshader, billboard + radial): a halo round a sign at night.
+static func halo(size: float, colour: Color) -> ArrayMesh:
+	var st := _begin()
+	var h := size * 0.5
+	var corners := [Vector3(-h, h, 0), Vector3(h, h, 0), Vector3(h, -h, 0), Vector3(-h, -h, 0)]
+	var uvs := [Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1)]
+	for k in [0, 1, 2, 0, 2, 3]:
+		st.set_color(colour)
+		st.set_uv(uvs[k])
+		st.add_vertex(corners[k])
+	return st.commit()
+
+
+## The glow material for halos and light cones (night only, after the post pass).
+static func glow_material(billboard: bool, lift := 1.5) -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = load("res://shaders/glow.gdshader")
+	m.set_shader_parameter("billboard", billboard)
+	m.set_shader_parameter("radial", billboard)
+	m.set_shader_parameter("lift", lift)
+	m.render_priority = 1
+	return m

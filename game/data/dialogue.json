@@ -1,0 +1,662 @@
+{
+  "_about": "Original lines for Nocna Warszawa: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters.",
+  "radio_host": [
+    [
+      "Radio Nocna Warszawa, 87,3. Na Marszałkowskiej znowu remont. Czyli wszystko po staremu.",
+      "Radio Nocna Warszawa, 87.3. Roadworks on Marszałkowska again. So, business as usual."
+    ],
+    [
+      "Korek na Rondzie Dmowskiego. Jeśli tam stoisz — pozdrawiamy, zostań z nami, mamy czas.",
+      "Traffic jam at Rondo Dmowskiego. If you're stuck there, hello, stay with us, we've got time."
+    ],
+    [
+      "Najlepszy widok na Warszawę? Z Pałacu Kultury. Bo z Pałacu nie widać Pałacu.",
+      "The best view of Warsaw? From the Palace of Culture. Because from the Palace you can't see the Palace."
+    ],
+    [
+      "Pogoda: nad Mordorem zachmurzenie umiarkowane, przelotne maile do rana.",
+      "Weather: over Mordor, moderate clouds, scattered emails until morning."
+    ],
+    [
+      "Pozdrowienia dla wszystkich słoików, które wracają w niedzielę z pełnym bagażnikiem.",
+      "Greetings to all the słoiki driving back on Sunday with a full boot."
+    ],
+    [
+      "Gołębie z Placu Defilad przejęły kontrolę nad ruchem pieszym. Władze milczą.",
+      "The pigeons of Plac Defilad have taken over pedestrian traffic. The authorities are silent."
+    ],
+    [
+      "Palma na rondzie de Gaulle'a nadal stoi. My też.",
+      "The palm on Rondo de Gaulle'a is still standing. So are we."
+    ],
+    [
+      "Kolejny utwór dedykujemy kierowcy, który właśnie zajął dwa miejsca parkingowe na Powiślu.",
+      "The next track goes out to the driver who just took two parking spaces in Powiśle."
+    ],
+    [
+      "Jest trzecia w nocy. Kebab sam się nie dowiezie.",
+      "It's three a.m. The kebab won't deliver itself."
+    ],
+    [
+      "Wisła dziś niska, plaża po praskiej stronie szeroka, a my lecimy dalej.",
+      "The Vistula is low tonight, the Praga-side beach is wide, and we keep going."
+    ],
+    [
+      "Słuchacz z Mokotowa pyta, kiedy skończy się remont. Odpowiadamy: tak.",
+      "A listener from Mokotów asks when the roadworks will end. Our answer: yes."
+    ],
+    [
+      "Tramwaj ma pierwszeństwo. Zawsze. To nie przepis, to filozofia.",
+      "The tram has right of way. Always. It's not a rule, it's a philosophy."
+    ],
+    [
+      "Godzina trzecia. Miasto śpi, zostały taksówki, nocny tramwaj i ty.",
+      "Three o'clock. The city sleeps; just the taxis, the night tram and you."
+    ],
+    [
+      "Neony na Marszałkowskiej świecą jak w latach sześćdziesiątych. Tylko remont jest nowy.",
+      "The neons on Marszałkowska glow like it's the sixties. Only the roadworks are new."
+    ],
+    [
+      "Słuchaczka z Powiśla pyta, czy kebab o trzeciej to kolacja, czy śniadanie. Odpowiadamy: tak.",
+      "A listener from Powiśle asks if a kebab at three is dinner or breakfast. Our answer: yes."
+    ],
+    [
+      "Uwaga, kierowcy: barierki znowu zmieniły adres.",
+      "Drivers, note: the barriers have moved house again."
+    ]
+  ],
+  "kebab_order": [
+    [
+      "Duży, na cienkim, mieszany, ostry. I szybko, bo stygnie.",
+      "Large, thin bread, mixed meat, spicy. And hurry, it's getting cold."
+    ],
+    [
+      "Zamówienie dla pana Krzysztofa z Powiśla. W uwagach: „dużo czosnkowego”.",
+      "Order for Krzysztof in Powiśle. Note: \"lots of garlic sauce\".",
+      {
+        "only": "powisle",
+        "customer": "Krzysztof"
+      }
+    ],
+    [
+      "Klient za Wisłą mówi, że to „prawie centrum”. Leć.",
+      "The customer across the river says it's \"basically the centre\". Go.",
+      {
+        "only": "praga"
+      }
+    ],
+    [
+      "Trzy kebaby na trzecie piętro, domofon nie działa, krzyczeć od dołu.",
+      "Three kebabs to the third floor, the intercom's broken, shout from the street."
+    ],
+    [
+      "Zamówienie z Mordoru: „do biura, nadgodziny, ratuj”.",
+      "Order from Mordor: \"to the office, overtime, save me\".",
+      {
+        "only": "office"
+      }
+    ],
+    [
+      "Kebab w bułce, bez cebuli, podwójny sos. W uwagach: „pali się”.",
+      "Kebab in a bun, no onion, double sauce. Note: \"it's an emergency\"."
+    ],
+    [
+      "Rollo dla studentki z czwartego piętra. Winda nie działa od 2016.",
+      "A wrap for a student on the fourth floor. The lift's been broken since 2016."
+    ],
+    [
+      "Open space, dziesiąte piętro. W uwagach: „na koszt projektu”.",
+      "Open-plan office, tenth floor. Note: \"charge it to the project\".",
+      {
+        "only": "office"
+      }
+    ],
+    [
+      "Klient spod Narodowego mówi, że z mostu widać jego okno. Szukaj okna.",
+      "A customer by the National Stadium says you can see his window from the bridge. Look for the window.",
+      {
+        "only": "praga"
+      }
+    ],
+    [
+      "Powiśle, kamienica bez windy. Klientka prosi: „tylko nie trąbić, sąsiedzi”.",
+      "Powiśle, a walk-up. The customer asks: \"no honking, the neighbours\".",
+      {
+        "only": "powisle"
+      }
+    ]
+  ],
+  "kebab_hot": [
+    [
+      "Jeszcze ciepły! Masz napiwek i szacunek na dzielni.",
+      "Still warm! Here's a tip, and respect from the whole block."
+    ],
+    [
+      "Szybciej niż tramwaj o północy. Szacun.",
+      "Faster than a tram at midnight. Respect."
+    ],
+    [
+      "Pachnie jak sobota po meczu. Idealnie.",
+      "Smells like Saturday after the match. Perfect."
+    ],
+    [
+      "Ciepły jak kaloryfer w styczniu. Dzięki!",
+      "Warm as a radiator in January. Thanks!"
+    ]
+  ],
+  "kebab_cold": [
+    [
+      "Zimny… jak moje serce po ostatnim meczu.",
+      "Cold… like my heart after the last match."
+    ],
+    [
+      "Panie, to już nie kebab, to sałatka.",
+      "Mate, this isn't a kebab any more, it's a salad."
+    ],
+    [
+      "Zamawiałem na dziś, nie na jutro.",
+      "I ordered it for today, not tomorrow."
+    ],
+    [
+      "Dobra, odgrzeję w mikrofali. Jak zawsze.",
+      "Fine, I'll microwave it. Like always."
+    ]
+  ],
+  "sloik_start": [
+    [
+      "Mama spakowała słoiki: bigos, ogórki, smalec. Jak coś się stłucze, nie wracam na święta.",
+      "Mum packed the jars: bigos, pickles, lard. If anything breaks, I'm not going home for Christmas."
+    ],
+    [
+      "Niedziela, Dworzec Centralny, dwie torby słoików. Klasyka.",
+      "Sunday, Central Station, two bags of jars. A classic."
+    ]
+  ],
+  "sloik_bump": [
+    [
+      "Uwaga na ogórki!",
+      "Mind the pickles!"
+    ],
+    [
+      "Słyszałeś ten dźwięk? To był smalec.",
+      "Did you hear that? That was the lard."
+    ],
+    [
+      "Delikatnie! To jest kompot z 2019!",
+      "Gently! That's the 2019 compote!"
+    ]
+  ],
+  "sloik_crash": [
+    [
+      "No i po ogórkach.",
+      "Well, that's the pickles gone."
+    ],
+    [
+      "Kompot. Był.",
+      "The compote. It was."
+    ],
+    [
+      "Mama to poczuje. Ona zawsze czuje.",
+      "Mum will feel it. She always does."
+    ],
+    [
+      "To był smalec ze skwarkami. Minuta ciszy.",
+      "That was lard with crackling. A minute's silence."
+    ]
+  ],
+  "sloik_done": [
+    [
+      "Wszystkie całe! Mama byłaby dumna.",
+      "All in one piece! Mum would be proud.",
+      {
+        "only": "all"
+      }
+    ],
+    [
+      "Dowiezione. Bigos przetrwał, ja też.",
+      "Delivered. The bigos survived, and so did I."
+    ],
+    [
+      "Prawie wszystkie całe. Mama nie musi wiedzieć.",
+      "Almost all in one piece. Mum doesn't need to know.",
+      {
+        "only": "some"
+      }
+    ]
+  ],
+  "sloik_broken": [
+    [
+      "Bigos na tapicerce. Tego się nie da odzobaczyć.",
+      "Bigos on the upholstery. You can't unsee that."
+    ],
+    [
+      "Mama dzwoni. Nie odbieram.",
+      "Mum's calling. I'm not picking up."
+    ]
+  ],
+  "passenger": [
+    [
+      "Wie pan, ja jestem stąd. Z dziada pradziada. No, od 2019.",
+      "I'm from here, you know. Born and bred. Well, since 2019."
+    ],
+    [
+      "Mieszkam na Mokotowie, pracuję w Mordorze, a żyję w korku.",
+      "I live in Mokotów, work in Mordor, and actually live in traffic."
+    ],
+    [
+      "Tu kiedyś był parking. A przedtem też parking.",
+      "This used to be a car park. And before that, also a car park."
+    ],
+    [
+      "Proszę skręcić w lewo. Nie, w moje lewo.",
+      "Turn left, please. No, my left."
+    ],
+    [
+      "Na Marszałkowskiej szybciej pieszo. Ale kto by chodził.",
+      "On Marszałkowska it's faster to walk. But who walks."
+    ],
+    [
+      "Kawalerka na Powiślu? Tyle co ten samochód. Razy dwadzieścia.",
+      "A studio flat in Powiśle? About as much as this car. Times twenty."
+    ],
+    [
+      "Nad Wisłą w lecie jest jak na Ibizie. Tylko taniej. Trochę.",
+      "By the Vistula in summer it's like Ibiza. Only cheaper. A bit."
+    ],
+    [
+      "Mama mówi, że w Warszawie nikt nie gotuje. Dlatego słoiki.",
+      "Mum says nobody in Warsaw cooks. Hence the jars."
+    ],
+    [
+      "Za rok też będę mówić, że jestem stąd.",
+      "In a year I'll be saying I'm from here too."
+    ]
+  ],
+  "traffic": [
+    [
+      "Zielone! ZIELONE!",
+      "Green! GREEN!"
+    ],
+    [
+      "Kierunkowskaz to nie opcja dodatkowa!",
+      "The indicator isn't an optional extra!"
+    ],
+    [
+      "Gdzie się pchasz, kierowniku?",
+      "Where are you squeezing in, boss?"
+    ],
+    [
+      "Ja tu tylko na chwilkę, na awaryjnych.",
+      "I'm only here for a sec, hazard lights on."
+    ],
+    [
+      "Pierwszy raz w Warszawie?",
+      "First time in Warsaw?"
+    ],
+    [
+      "Rondo to nie parking!",
+      "A roundabout isn't a car park!"
+    ],
+    [
+      "Może jeszcze herbatki?",
+      "Fancy a cup of tea while you're at it?"
+    ],
+    [
+      "Ej, stoję tu od samej Pragi!",
+      "Hey, I've been stuck here since Praga!"
+    ]
+  ],
+  "signs": [
+    [
+      "REMONT MARSZAŁKOWSKIEJ · ETAP 47 Z 312",
+      "MARSZAŁKOWSKA ROADWORKS · PHASE 47 OF 312"
+    ],
+    [
+      "OBJAZD → OBJAZD → OBJAZD",
+      "DETOUR → DETOUR → DETOUR"
+    ],
+    [
+      "UWAGA: GOŁĘBIE",
+      "CAUTION: PIGEONS"
+    ],
+    [
+      "PALMA · NIE PODLEWAĆ",
+      "PALM · DO NOT WATER"
+    ],
+    [
+      "KEBAB 24H · NAPRAWDĘ 24H",
+      "KEBAB 24H · REALLY 24H"
+    ]
+  ],
+  "kebab_vendor": [
+    [
+      "Dwa kebaby: jeden ostry, jeden „średni, ale ostry”. Jedź!",
+      "Two kebabs: one hot, one \"medium, but hot\". Go!"
+    ],
+    [
+      "Zawijam w folię, ale folia nie czeka wiecznie.",
+      "I'm wrapping it in foil, but foil doesn't wait forever."
+    ],
+    [
+      "Sos czosnkowy osobno, żeby się nie rozmoczyło. Profesjonalizm.",
+      "Garlic sauce on the side so it doesn't go soggy. Professionalism."
+    ],
+    [
+      "Mięso z rożna, sos z serca. Dowieź, zanim wystygnie.",
+      "Meat off the spit, sauce from the heart. Get it there before it cools."
+    ]
+  ],
+  "rescue_person": [
+    [
+      "Wszedłem tylko zrobić zdjęcie zachodu słońca…",
+      "I only came up to take a photo of the sunset…",
+      {
+        "only": "roof"
+      }
+    ],
+    [
+      "Klucze w środku, drzwi na dach się zatrzasnęły. Klasyka.",
+      "Keys inside, the roof door slammed shut. A classic.",
+      {
+        "only": "roof"
+      }
+    ],
+    [
+      "Nareszcie! Bateria dwa procent, a relacja jeszcze niewrzucona.",
+      "Finally! Two per cent battery and I haven't posted my story yet."
+    ],
+    [
+      "Dziękuję! Tylko proszę nie mówić mamie.",
+      "Thank you! Just please don't tell my mum."
+    ],
+    [
+      "Ten krawężnik wyrósł spod ziemi. Jak remont.",
+      "That kerb sprang out of nowhere. Like the roadworks.",
+      {
+        "only": "street"
+      }
+    ],
+    [
+      "Rower cały? Bo ja się zregeneruję.",
+      "Is the bike all right? I'll heal.",
+      {
+        "only": "street"
+      }
+    ],
+    [
+      "Na zdjęciach woda wyglądała na cieplejszą.",
+      "The water looked warmer in the photos.",
+      {
+        "only": "river"
+      }
+    ],
+    [
+      "Chciałem tylko przepłynąć na Pragę. Na skróty.",
+      "I only wanted to swim over to Praga. A shortcut.",
+      {
+        "only": "river"
+      }
+    ],
+    [
+      "Ja wcale nie płaczę. To od piasku.",
+      "I'm not crying. It's the sand.",
+      {
+        "only": "child"
+      }
+    ],
+    [
+      "Za dużo pierogów, za mało wody.",
+      "Too many pierogi, not enough water.",
+      {
+        "only": "square"
+      }
+    ]
+  ],
+  "rescue_done": [
+    [
+      "Przekazany. Szpital dziękuje, automat z kawą nadal nie działa.",
+      "Handed over. The hospital says thanks; the coffee machine still doesn't work."
+    ],
+    [
+      "Pacjent cały. Mówi, że następnym razem zrobi zdjęcie z parteru.",
+      "Patient in one piece. Says next time the photo is from the ground floor."
+    ],
+    [
+      "Na SOR-ze mówią, że rekord. Pielęgniarka nawet podniosła wzrok.",
+      "A&E says it's a record. The nurse even looked up."
+    ]
+  ],
+  "easter_palma": [
+    [
+      "Palma na rondzie. W Warszawie. W październiku. Nikt nie pyta, wszyscy kochają.",
+      "A palm on a roundabout. In Warsaw. In October. Nobody asks, everybody loves it."
+    ],
+    [
+      "Palma melduje: liście na miejscu, plaży brak.",
+      "The palm reports: leaves in place, no beach."
+    ]
+  ],
+  "easter_pigeons": [
+    [
+      "Gołębie nie ustępują. Gołębie nigdy nie ustępują.",
+      "The pigeons don't move. The pigeons never move."
+    ],
+    [
+      "Gruu. (Gołąb uważa, że to jego plac.)",
+      "Coo. (The pigeon thinks this is its square.)"
+    ]
+  ],
+  "easter_syrenka": [
+    [
+      "Syrenka z mieczem pilnuje miasta. Ograniczenia prędkości też.",
+      "The Mermaid with her sword guards the city. And the speed limit."
+    ]
+  ],
+  "easter_patelnia": [
+    [
+      "Patelnia przy metrze: tu umawia się pół miasta. Druga połowa — pod Rotundą.",
+      "The Frying Pan by the metro: half the city meets here. The other half, by the Rotunda."
+    ]
+  ],
+  "easter_barriers": [
+    [
+      "Wczoraj barierki stały tutaj. Dziś stoją tam. Jutro — kto wie.",
+      "Yesterday the barriers stood here. Today they're over there. Tomorrow, who knows."
+    ],
+    [
+      "Barierka pozdrawia. Zostaje z nami do 2031.",
+      "The barrier says hi. It's staying with us until 2031."
+    ]
+  ],
+  "column_posters": [
+    [
+      "ZAGINĄŁ GOŁĄB. CECHY: SZARY.",
+      "Missing: one pigeon. Distinguishing features: grey.",
+      {
+        "poster": [
+          "ZAGINĄŁ",
+          "GOŁĄB.",
+          "CECHY:",
+          "SZARY."
+        ]
+      }
+    ],
+    [
+      "POKÓJ 9 M2 · 3999 ZŁ · BLISKO CENTRUM",
+      "Room, 9 m² · 3,999 zł a month · close to the centre",
+      {
+        "poster": [
+          "POKÓJ",
+          "9 M2",
+          "3999 ZŁ",
+          "CENTRUM"
+        ]
+      }
+    ],
+    [
+      "TRAMWAJ ODJECHAŁ. ZNOWU.",
+      "The tram has left. Again.",
+      {
+        "poster": [
+          "TRAMWAJ",
+          "ODJECHAŁ",
+          "ZNOWU."
+        ]
+      }
+    ],
+    [
+      "SPRZEDAM SŁOIK PO OGÓRKACH",
+      "For sale: one jar, formerly pickles",
+      {
+        "poster": [
+          "SPRZEDAM",
+          "SŁOIK",
+          "PO",
+          "OGÓRKACH"
+        ]
+      }
+    ],
+    [
+      "KEBAB O 3:00 SMAKUJE LEPIEJ",
+      "Kebab at 3 a.m. tastes better",
+      {
+        "poster": [
+          "KEBAB",
+          "O 3:00",
+          "SMAKUJE",
+          "LEPIEJ"
+        ]
+      }
+    ],
+    [
+      "MORDOR SZUKA ORKÓW. B2B.",
+      "Mordor is hiring orcs. Self-employed contract.",
+      {
+        "poster": [
+          "MORDOR",
+          "SZUKA",
+          "ORKÓW.",
+          "B2B."
+        ]
+      }
+    ],
+    [
+      "TRAMWAJ ZAWSZE MA RACJĘ",
+      "The tram is always right",
+      {
+        "poster": [
+          "TRAMWAJ",
+          "ZAWSZE",
+          "MA",
+          "RACJĘ"
+        ]
+      }
+    ],
+    [
+      "REMONT · ETAP 48 Z 312",
+      "Roadworks · phase 48 of 312",
+      {
+        "poster": [
+          "REMONT",
+          "ETAP 48",
+          "Z 312"
+        ]
+      }
+    ],
+    [
+      "ZIMĄ PALMA NOSI SZALIK",
+      "In winter the Palm wears a scarf",
+      {
+        "poster": [
+          "ZIMĄ",
+          "PALMA",
+          "NOSI",
+          "SZALIK"
+        ]
+      }
+    ],
+    [
+      "KOREPETYCJE Z PARKOWANIA",
+      "Private lessons: parallel parking",
+      {
+        "poster": [
+          "KOREPE-",
+          "TYCJE Z",
+          "PARKO-",
+          "WANIA"
+        ]
+      }
+    ],
+    [
+      "WSZĘDZIE BLISKO. Z PRAGI TEŻ.",
+      "Everywhere is close. From Praga too.",
+      {
+        "poster": [
+          "WSZĘDZIE",
+          "BLISKO.",
+          "Z PRAGI",
+          "TEŻ."
+        ]
+      }
+    ],
+    [
+      "KOREK TO STAN UMYSŁU",
+      "A traffic jam is a state of mind",
+      {
+        "poster": [
+          "KOREK",
+          "TO STAN",
+          "UMYSŁU"
+        ]
+      }
+    ],
+    [
+      "SŁOIKI WRACAJĄ W NIEDZIELĘ",
+      "The jars come back on Sunday",
+      {
+        "poster": [
+          "SŁOIKI",
+          "WRACAJĄ",
+          "W NIE-",
+          "DZIELĘ"
+        ]
+      }
+    ],
+    [
+      "SZUKAM PARKINGU. OD 2019.",
+      "Looking for a parking space. Since 2019.",
+      {
+        "poster": [
+          "SZUKAM",
+          "PARKINGU",
+          "OD 2019."
+        ]
+      }
+    ],
+    [
+      "NIE KARMIĆ GOŁĘBI (ONE WIEDZĄ)",
+      "Do not feed the pigeons (they know)",
+      {
+        "poster": [
+          "NIE",
+          "KARMIĆ",
+          "GOŁĘBI",
+          "(WIEDZĄ)"
+        ]
+      }
+    ],
+    [
+      "CISZA NOCNA 3:00–3:05",
+      "Quiet hours: 3:00 to 3:05",
+      {
+        "poster": [
+          "CISZA",
+          "NOCNA",
+          "3:00-",
+          "-3:05"
+        ]
+      }
+    ]
+  ]
+}

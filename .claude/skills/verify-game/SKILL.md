@@ -1,0 +1,71 @@
+---
+name: verify-game
+description: Runs the Nocna Warszawa verification set with tools/verify.sh (map-data invariants, the check scripts, headless game runs with --nosave, optionally the iOS export and unsigned Xcode build) and names what it cannot prove. Use after any change under game/ or tools/, before reporting a loop or task done, and when asked "is it green?", "verify", "run the checks".
+argument-hint: "[--quick | --ios | --only=step,step]"
+---
+
+# Verify a Nocna Warszawa change
+
+## 1. Before running
+
+- `pgrep -lx Godot`: if another Godot is running, someone may be measuring frame times.
+  The script says so and goes on; don't start the full set beside a bench you were told about.
+- Know your scope: list the files you changed (no git yet: `find game tools docs -newer <marker>
+  -type f`; once the repo exists: `git status --short`). Unexpected files: stop and report.
+
+## 2. Run
+
+```zsh
+tools/verify.sh $ARGUMENTS        # default: everything but the iOS build (~1-2 min on an M4 Pro)
+tools/verify.sh --quick           # while iterating (~30 s)
+tools/verify.sh --only=race,kebab # re-run just the steps that failed
+tools/verify.sh --ios             # at the end of a loop: also export + unsigned xcodebuild
+```
+
+`--ios` runs `tools/export_ios.sh`, which **rebuilds game/map/city.scn** with a renderer (a
+window opens): use it only when your task may change the city or at a loop's end.
+
+## 3. Read the table
+
+- **FAIL**: open the log path in the row, read the first `ERROR` / `SCRIPT ERROR` line and
+  its `at:` line, fix, re-run that step with `--only=`.
+- **WARN map data / city.scn older than ...**: the prebuilt city is stale. Rebuild it with a
+  renderer (bake-map skill), then check the look on both paths (`--prebuilt`).
+- **WARN run: race / kebab / heli, no outcome line**: the autopilot didn't finish in the
+  frames given. Look at the log's tail: a stuck autopilot is a bug; a longer route only needs
+  more frames (edit the frame count in `tools/verify.sh` and say why).
+- A **counts FAIL** after a deliberate re-bake: update `EXPECTED` in `tools/check_map_data.py`
+  and the counts in README "Map data" in the same change, and say why they changed.
+
+## 4. What the script does not prove (do these by hand when they apply)
+
+| When | Do |
+| --- | --- |
+| Anything visible changed | `tools/shots.sh` (screenshot-review skill), then **look** at every shot; runtime and `--prebuilt` paths |
+| Anything that runs per frame, or new geometry, materials, lights | bench before/after (godot-mobile-perf skill), compared with README "Performance budgets" |
+| Controls or the car | `check_steering.gd` is in the set; the feel on the phone is the user's to judge: say what to try |
+| Sound | `check_sfx.gd` checks loops; nobody has heard it on a phone: say so |
+| Device-only behaviour (Metal, thermal, touch, haptics, audio session) | device-run skill, only when the user allowed it |
+
+## 5. Gotchas
+
+- Engine flags (`--headless --fixed-fps --quit-after --resolution --script`) go **before**
+  `--`; game flags (`--nosave --prebuilt --time=` ...) go after it. Godot ignores unknown
+  flags silently, so a typo'd flag just does nothing: check the log shows its effect.
+- Every game run: `--nosave` and a way to quit (`--quit-after N` or `--shots=`). Autopilot runs
+  never quit by themselves.
+- `check_landmarks.gd` always exits 0: the script reads its `landmark check: OK` line.
+- macOS has no `timeout` (the scripts use `perl -e 'alarm ...'`); never name a zsh loop
+  variable `path`; `pgrep -f X` inside a wait loop matches the loop itself (use `pgrep -x Godot`).
+
+## 6. Keep the set complete
+
+A loop that adds a check (docs/DEMO.md plans `tools/check_roads.py` and
+`game/tools/check_drive.gd`) adds it as a step in `tools/verify.sh` in the same change, with
+its OK line, and lists it in this skill. A check that only exists outside the script gets
+forgotten.
+
+## 7. Report
+
+Paste the final table and the `RESULT:` line, the extra checks from section 4 you ran (with
+numbers), and the ones you could not run, each with the reason.

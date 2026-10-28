@@ -1,0 +1,749 @@
+"""Generate the game's sound effects and ambience (original, synthesised from scratch).
+
+Usage: python3 -I tools/make_sfx.py game/audio/sfx [game/audio/radio]
+
+No samples, no downloads: every sound is built here from oscillators, noise and
+filters, in the same pure-Python way as make_music.py and make_ui_sounds.py.
+
+Loops are made seamless the way the radio loops are: the excitation is periodic by
+construction (pulses at whole-sample periods, noise generated once per loop length)
+and every filter runs over the loop three times, keeping the last pass, so its state
+at the end matches the start. Writes 16-bit 22.05 kHz WAVs: mono, except the city and
+rain beds (stereo: they are wide and nothing sits in the middle). In Godot, import the
+loops with loop mode Forward, loop end = the full length, QOA (tools/check_sfx.gd).
+
+After writing, it prints a table per file: peak and RMS (dBFS), for loops the step
+and the slope across the loop point against the 99.9th percentile elsewhere, the
+share of energy below 2 kHz and the 85% roll-off frequency; and the radio loops'
+levels (if their folder is given) to balance the buses against.
+
+  engine_idle / engine_mid / engine_high   a tired 1.2 l four-cylinder hatchback at
+      ~850, ~2400 and ~4500 rpm: firing pulses (one weak cylinder, a little timing
+      jitter) through an exhaust and a small muffler, intake roar with load
+  tyre_roll    the tyres on dry asphalt (low rumble), by speed
+  tyre_wet     the hiss of tyres on a wet road
+  tyre_squeal  a squeal for slides and hard braking
+  rotor        a light helicopter: four-blade slap at ~18 Hz, turbine whine, tail rotor
+  city_day / city_night   distant traffic beds (stereo)
+  rain         a rain bed with droplets (stereo)
+  thump_soft / thump_hard / crash / clang   collisions (clang: a guard rail)
+  jar_clink / jar_break   the słoiki run's jars
+  tram_bell    the tram's two-tone bell
+  horn / horn_double      a small car's horn
+  pigeons      a flock flushing
+  birds_a / birds_b       sparrow chirps, a whistled phrase (day)
+  siren_far / dog_far     the night's rare distant events
+"""
+import array
+import cmath
+import math
+import os
+import random
+import struct
+import sys
+import wave
+
+RATE = 22050
+TAU = math.tau
+
+
+# --- filters --------------------------------------------------------------------
+
+def biquad(x, kind, f, q=0.707, loop=False):
+    """RBJ biquad: 'lp', 'hp' or 'bp' (constant 0 dB peak). loop=True runs it over the
+    signal three times and keeps the last pass (the periodic steady state)."""
+    f = min(f, RATE * 0.45)
+    w = TAU * f / RATE
+    cw = math.cos(w)
+    alpha = math.sin(w) / (2.0 * q)
+    if kind == "lp":
+        b0, b1, b2 = (1 - cw) / 2, 1 - cw, (1 - cw) / 2
+    elif kind == "hp":
+        b0, b1, b2 = (1 + cw) / 2, -(1 + cw), (1 + cw) / 2
+    else:
+        b0, b1, b2 = alpha, 0.0, -alpha
+    a0 = 1 + alpha
+    a1 = -2 * cw / a0
+    a2 = (1 - alpha) / a0
+    b0 /= a0
+    b1 /= a0
+    b2 /= a0
+    n = len(x)
+    y = array.array("d", bytes(8 * n))
+    x1 = x2 = y1 = y2 = 0.0
+    for _ in range(3 if loop else 1):
+        for i in range(n):
+            xi = x[i]
+            yi = b0 * xi + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2
+            x2 = x1
+            x1 = xi
+            y2 = y1
+            y1 = yi
+            y[i] = yi
+    return y
+
+
+def onepole(x, f, loop=False):
+    k = 1.0 - math.exp(-TAU * f / RATE)
+    n = len(x)
+    y = array.array("d", bytes(8 * n))
+    s = 0.0
+    for _ in range(3 if loop else 1):
+        for i in range(n):
+            s += (x[i] - s) * k
+            y[i] = s
+    return y
+
+
+def mix(*parts):
+    """Sum of (weight, signal) pairs, all the same length."""
+    n = len(parts[0][1])
+    out = array.array("d", bytes(8 * n))
+    for w, sig in parts:
+        for i in range(n):
+            out[i] += w * sig[i]
+    return out
+
+
+def zeros(n):
+    return array.array("d", bytes(8 * n))
+
+
+def noise(n, rnd):
+    return array.array("d", (rnd.uniform(-1.0, 1.0) for _ in range(n)))
+
+
+def saturate(x, drive):
+    k = math.tanh(drive)
+    return array.array("d", (math.tanh(drive * v) / k for v in x))
+
+
+def echo(x, taps, extra):
+    """Sparse echoes (delay s, gain) for one-shots: a far, open-street feel."""
+    out = array.array("d", list(x) + [0.0] * int(extra * RATE))
+    for d, g in taps:
+        k = int(d * RATE)
+        for i in range(len(x)):
+            if i + k < len(out):
+                out[i + k] += g * x[i]
+    return out
+
+
+def fade(x, attack, release):
+    n = len(x)
+    a = max(1, int(attack * RATE))
+    r = max(1, int(release * RATE))
+    for i in range(min(a, n)):
+        x[i] *= i / a
+    for i in range(min(r, n)):
+        x[n - 1 - i] *= i / r
+    return x
+
+
+def place(out, sig, at, gain=1.0):
+    """Adds `sig` into `out` from sample `at`, wrapping round (loops) or clipped."""
+    n = len(out)
+    for i, v in enumerate(sig):
+        out[(at + i) % n] += gain * v
+
+
+def bell(n, partials, strike_noise=0.0, rnd=None):
+    """Sum of decaying sines: (freq, amp, decay seconds)."""
+    out = zeros(n)
+    for f, amp, dec in partials:
+        k = math.exp(-1.0 / (dec * RATE))
+        e = amp
+        w = TAU * f / RATE
+        for i in range(n):
+            out[i] += e * math.sin(w * i)
+            e *= k
+    if strike_noise and rnd:
+        m = int(0.004 * RATE)
+        for i in range(m):
+            out[i] += strike_noise * rnd.uniform(-1, 1) * (1 - i / m)
+    return out
+
+
+# --- engine ---------------------------------------------------------------------
+
+def engine(rpm, load, seconds, seed):
+    """A small, slightly tired four-cylinder: two firings per revolution."""
+    rnd = random.Random(seed)
+    period = round(RATE / (rpm / 30.0))
+    rpm = RATE / period * 30.0
+    cycle = 4 * period
+    n = cycle * max(1, round(seconds * RATE / cycle))
+    cyl = [1.0, 0.93, 1.0, 0.8]           # cylinder four is a little weak
+    pulse = zeros(n)
+    rasp = zeros(n)
+    tick = zeros(n)
+    # narrow pulses: harmonics up into the phone speaker's range (it has no bass)
+    width = max(3, min(period // 6, 34))
+    hiss = noise(n, rnd)
+    firings = n // period
+    for k in range(firings):
+        a = cyl[k % 4] * (1.0 + rnd.uniform(-0.07, 0.07))
+        at = k * period + rnd.randint(-1, 1)
+        for i in range(width):
+            pulse[(at + i) % n] += a * math.sin(math.pi * i / width) ** 2
+        # exhaust rasp: a burst of noise after every firing, louder under load
+        burst = period // 2
+        for i in range(burst):
+            rasp[(at + i) % n] += hiss[(at + i) % n] * a * (1 - i / burst) ** 2
+        # valve train: a tiny tick between firings
+        tick[(at + period // 2) % n] += 0.6 + 0.3 * rnd.random()
+    f_fire = rpm / 30.0
+    body = mix(
+        (0.6, biquad(pulse, "lp", max(8.0 * f_fire, 500.0), 0.8, True)),
+        (0.7, biquad(pulse, "bp", 170.0, 2.5, True)),      # exhaust pipe
+        (1.1, biquad(pulse, "bp", 430.0, 2.0, True)),      # small muffler
+        (0.7, biquad(pulse, "bp", 680.0, 2.5, True)),      # a tinny back box
+        (0.3, biquad(pulse, "bp", 1050.0, 3.0, True)),     # body panels
+    )
+    roar = biquad(biquad(rasp, "bp", 420.0 + 0.08 * rpm, 0.9, True), "lp", 1600.0, 0.7, True)
+    clatter = biquad(tick, "bp", 1650.0, 6.0, True)
+    # the cambelt, alternator and fan never stop: a soft continuous whirr between firings
+    whirr = biquad(hiss, "bp", 880.0 + 0.1 * rpm, 1.4, True)
+    out = mix((1.0, body), (0.5 + 1.0 * load, roar), (0.08, clatter), (0.05, whirr))
+    out = saturate(out, 1.6)
+    out = biquad(biquad(out, "lp", 2100.0, 0.7, True), "hp", 32.0, 0.7, True)
+    return out, rpm
+
+
+# --- tyres, rotor ---------------------------------------------------------------
+
+def tyre_roll(seconds, seed):
+    rnd = random.Random(seed)
+    n = int(seconds * RATE)
+    w = noise(n, rnd)
+    low = biquad(biquad(w, "lp", 260.0, 0.6, True), "lp", 340.0, 0.6, True)
+    body = biquad(w, "bp", 110.0, 1.2, True)
+    grain = biquad(w, "bp", 900.0, 0.8, True)
+    hum = biquad(w, "bp", 520.0, 1.0, True)        # the tread on the asphalt
+    out = mix((1.0, low), (0.5, body), (0.45, hum), (0.08, grain))
+    # a slow surface texture: the road isn't perfectly even (whole cycles per loop)
+    for i in range(n):
+        t = i / n
+        out[i] *= 1.0 + 0.12 * math.sin(TAU * 3 * t + 0.4) + 0.07 * math.sin(TAU * 7 * t + 1.9)
+    return biquad(out, "hp", 30.0, 0.7, True)
+
+
+def tyre_wet(seconds, seed):
+    rnd = random.Random(seed)
+    n = int(seconds * RATE)
+    w = noise(n, rnd)
+    hiss = biquad(biquad(w, "hp", 1300.0, 0.7, True), "lp", 6500.0, 0.7, True)
+    spray = biquad(w, "bp", 2600.0, 0.9, True)
+    out = mix((1.0, hiss), (0.6, spray))
+    for i in range(n):
+        t = i / n
+        out[i] *= 1.0 + 0.18 * math.sin(TAU * 5 * t) + 0.1 * math.sin(TAU * 11 * t + 2.0)
+    return out
+
+
+def tyre_squeal(seconds, seed):
+    rnd = random.Random(seed)
+    n = int(seconds * RATE)
+    # whole cycles of the base tone per loop, so the phase closes
+    cycles = round(1180.0 * n / RATE)
+    f0 = cycles * RATE / n
+    ph = 0.0
+    out = zeros(n)
+    wob = [(2, 0.035, rnd.random()), (5, 0.02, rnd.random()), (13, 0.012, rnd.random())]
+    for i in range(n):
+        t = i / n
+        dev = sum(a * math.sin(TAU * (c * t + p)) for c, a, p in wob)
+        ph += f0 * (1.0 + dev) / RATE
+        s = math.sin(TAU * ph) + 0.35 * math.sin(TAU * 2 * ph + 0.3) + 0.12 * math.sin(TAU * 3 * ph + 1.1)
+        out[i] = s * (0.8 + 0.2 * math.sin(TAU * (9 * t + 0.2)))
+    # FM is a sum of whole-cycle sines, so its integral over the loop is zero: the
+    # phase ends where it began. Add a little rubber noise.
+    grit = biquad(noise(n, rnd), "bp", 1500.0, 1.5, True)
+    out = mix((1.0, out), (0.25, grit))
+    return biquad(out, "lp", 4200.0, 0.7, True)
+
+
+def rotor(seconds, seed):
+    rnd = random.Random(seed)
+    blade = 1225                      # 18 Hz: four blades at 4.5 rev/s
+    n = blade * round(seconds * RATE / blade)
+    slap = zeros(n)
+    thump = zeros(n)
+    w = noise(n, rnd)
+    for k in range(n // blade):
+        at = k * blade
+        a = 1.0 if k % 4 else 1.12     # one blade a touch out of track
+        m = blade // 3
+        for i in range(m):
+            env = (i / 40.0 if i < 40 else 1.0) * (1 - i / m) ** 3
+            slap[(at + i) % n] += a * w[(at + i) % n] * env
+        for i in range(60):
+            thump[(at + i) % n] += a * math.sin(math.pi * i / 60)
+    tail = zeros(n)
+    tp = 450                          # 49 Hz tail rotor
+    for k in range(n // tp):
+        for i in range(20):
+            tail[(k * tp + i) % n] += math.sin(math.pi * i / 20)
+    whine = zeros(n)
+    for i in range(n):
+        t = i / n
+        c = round(1520.0 * n / RATE)
+        whine[i] = math.sin(TAU * c * t) + 0.3 * math.sin(TAU * 2 * c * t)
+    out = mix(
+        (1.0, biquad(slap, "bp", 480.0, 0.8, True)),
+        (0.9, biquad(thump, "bp", 72.0, 1.4, True)),
+        (0.25, biquad(tail, "bp", 300.0, 1.0, True)),
+        (0.25, biquad(w, "bp", 140.0, 1.0, True)),
+        (0.03, whine),
+    )
+    return biquad(saturate(out, 1.2), "lp", 3500.0, 0.7, True)
+
+
+# --- beds -------------------------------------------------------------------------
+
+def swells(n, rnd, count, width, shared=None):
+    """A periodic envelope: soft bumps at random places (wrapped), 0..1."""
+    env = zeros(n)
+    times = shared if shared is not None else [rnd.random() for _ in range(count)]
+    for c in times:
+        for i in range(n):
+            d = (i / n - c + 0.5) % 1.0 - 0.5
+            env[i] += math.exp(-(d / width) ** 2)
+    return env, times
+
+
+def city(seconds, seed, night):
+    rnd = random.Random(seed)
+    n = int(seconds * RATE)
+    shared = None
+    chans = []
+    for ch in range(2):
+        w = noise(n, rnd)
+        rumble = biquad(biquad(w, "lp", 150.0 if night else 220.0, 0.6, True), "lp", 260.0, 0.6, True)
+        mid = biquad(w, "bp", 520.0, 0.6, True)
+        air = biquad(w, "hp", 3200.0, 0.7, True)
+        env, shared = swells(n, rnd, 5 if night else 9, 0.035, shared)
+        # the other channel hears the same passing cars, a little later
+        if ch == 1:
+            env = array.array("d", (env[(i - int(0.05 * RATE)) % n] for i in range(n)))
+        out = zeros(n)
+        for i in range(n):
+            t = i / n
+            slow = 0.75 + 0.15 * math.sin(TAU * (t + 0.1 * ch)) + 0.1 * math.sin(TAU * (3 * t + 0.4))
+            out[i] = rumble[i] * slow * (0.8 if night else 1.0) + mid[i] * (0.07 + 0.24 * env[i]) * (0.7 if night else 1.0) \
+                + air[i] * (0.004 if night else 0.008)
+        chans.append(biquad(out, "hp", 28.0, 0.7, True))
+    return chans
+
+
+def rain(seconds, seed):
+    rnd = random.Random(seed)
+    n = int(seconds * RATE)
+    chans = []
+    for ch in range(2):
+        w = noise(n, rnd)
+        wash = biquad(biquad(w, "hp", 500.0, 0.6, True), "lp", 7000.0, 0.6, True)
+        patter = biquad(w, "bp", 1100.0, 0.5, True)
+        drops = zeros(n)
+        for _ in range(int(140 * seconds)):
+            at = rnd.randrange(n)
+            f = rnd.uniform(1800.0, 5200.0)
+            a = rnd.uniform(0.2, 1.0) ** 2
+            length = int(RATE * rnd.uniform(0.002, 0.006))
+            for i in range(length):
+                drops[(at + i) % n] += a * math.sin(TAU * f * i / RATE) * (1 - i / length) ** 2
+        heavy = zeros(n)
+        for _ in range(int(9 * seconds)):  # a few fat drops on metal and puddles
+            at = rnd.randrange(n)
+            sig = bell(int(0.05 * RATE), [(rnd.uniform(700, 1300), 1.0, 0.012), (rnd.uniform(2000, 3000), 0.5, 0.008)])
+            place(heavy, sig, at, rnd.uniform(0.2, 0.5))
+        out = mix((0.55, wash), (0.35, patter), (0.5, drops), (0.35, heavy))
+        for i in range(n):
+            t = i / n
+            out[i] *= 1.0 + 0.08 * math.sin(TAU * (2 * t + 0.3 * ch))
+        chans.append(biquad(out, "hp", 120.0, 0.7, True))
+    return chans
+
+
+# --- one-shots ------------------------------------------------------------------------
+
+def thump(seconds, seed, hard):
+    rnd = random.Random(seed)
+    n = int(seconds * RATE)
+    exc = zeros(n)
+    for i in range(int(0.006 * RATE)):
+        exc[i] = rnd.uniform(-1, 1) + (1.0 if i < 30 else 0.0)
+    body = mix((0.45, biquad(exc, "bp", 82.0, 3.0)), (0.6, biquad(exc, "bp", 165.0, 3.0)),
+               (0.9, biquad(exc, "bp", 330.0, 3.0)), (0.8, biquad(exc, "bp", 520.0, 4.0)),
+               (0.5, biquad(exc, "bp", 790.0, 5.0)))         # door and wing panels
+    out = biquad(body, "lp", 1600.0, 0.7)
+    if hard:
+        crunch = zeros(n)
+        w = noise(n, rnd)
+        m = int(0.07 * RATE)
+        for i in range(m):
+            crunch[i] = w[i] * (1 - i / m) ** 1.5
+        for _ in range(6):  # bits of trim rattling
+            at = rnd.randrange(int(0.03 * RATE), int(0.25 * RATE))
+            sig = bell(int(0.06 * RATE), [(rnd.uniform(900, 2400), 1.0, 0.02)])
+            place(crunch, sig, at, rnd.uniform(0.1, 0.3))
+        metal = mix((1.0, biquad(crunch, "bp", 950.0, 4.0)), (0.7, biquad(crunch, "bp", 1630.0, 5.0)),
+                    (0.4, biquad(crunch, "bp", 2650.0, 6.0)), (0.3, crunch))
+        out = mix((1.0, out), (0.45, metal))
+    return fade(saturate(out, 1.4), 0.0, 0.05)
+
+
+def crash(seed):
+    rnd = random.Random(seed)
+    a = thump(1.1, seed, True)
+    b = thump(1.1, seed + 1, True)
+    out = zeros(len(a))
+    place(out, a, 0, 1.0)
+    place(out, b[: len(a) - int(0.07 * RATE)], int(0.07 * RATE), 0.7)
+    debris = zeros(len(a))
+    for _ in range(14):
+        at = rnd.randrange(int(0.1 * RATE), int(0.85 * RATE))
+        sig = bell(int(0.08 * RATE), [(rnd.uniform(1200, 3600), 1.0, 0.015), (rnd.uniform(3000, 5000), 0.4, 0.01)])
+        place(debris, sig, at, rnd.uniform(0.05, 0.2))
+    out = mix((1.0, out), (1.0, debris))
+    return fade(out, 0.0, 0.08)
+
+
+def clang(seed):
+    rnd = random.Random(seed)
+    n = int(1.3 * RATE)
+    ring = bell(n, [(282.0, 1.0, 0.45), (761.0, 0.7, 0.32), (1392.0, 0.45, 0.22), (2207.0, 0.25, 0.15),
+                    (3290.0, 0.12, 0.09)], 0.6, rnd)
+    hit = thump(1.3, seed, False)
+    out = mix((0.75, ring), (0.8, hit))
+    return fade(out, 0.0, 0.1)
+
+
+def jar_clink(seed):
+    rnd = random.Random(seed)
+    n = int(0.45 * RATE)
+    out = zeros(n)
+    for k, at in enumerate((0.0, 0.085, 0.19)):
+        f = rnd.uniform(2200, 2700)
+        sig = bell(int(0.2 * RATE), [(f, 1.0, 0.06), (f * 1.53, 0.5, 0.04), (f * 2.31, 0.25, 0.025)], 0.3, rnd)
+        place(out, sig[: n - int(at * RATE)], int(at * RATE), 1.0 / (k + 1))
+    return fade(out, 0.0, 0.04)
+
+
+def jar_break(seed):
+    rnd = random.Random(seed)
+    n = int(0.9 * RATE)
+    out = zeros(n)
+    w = noise(n, rnd)
+    m = int(0.05 * RATE)
+    for i in range(m):
+        out[i] += 0.7 * w[i] * (1 - i / m) ** 2
+    out = biquad(out, "hp", 1500.0, 0.7)
+    for _ in range(30):
+        at = rnd.randrange(0, int(0.6 * RATE))
+        f = rnd.uniform(2000, 6500)
+        sig = bell(int(0.1 * RATE), [(f, 1.0, 0.02), (f * 1.47, 0.5, 0.012)])
+        place(out, sig[: n - at], at, rnd.uniform(0.08, 0.35) * (1 - at / n))
+    thud = thump(0.9, seed, False)
+    return fade(mix((1.0, out), (0.35, thud)), 0.0, 0.06)
+
+
+def tram_bell(seed):
+    rnd = random.Random(seed)
+    n = int(1.4 * RATE)
+    out = zeros(n)
+    for at, f, g in ((0.0, 1175.0, 1.0), (0.17, 932.0, 0.9)):
+        sig = bell(n - int(at * RATE), [(f, 1.0, 0.5), (f * 2.32, 0.35, 0.25), (f * 3.86, 0.15, 0.12),
+                                        (f * 0.5, 0.2, 0.6)], 0.3, rnd)
+        place(out, sig, int(at * RATE), g)
+    return fade(out, 0.0, 0.1)
+
+
+def horn(double):
+    n = int((0.62 if double else 0.5) * RATE)
+    out = zeros(n)
+    toots = [(0.0, 0.16), (0.24, 0.36)] if double else [(0.0, 0.46)]
+    for start, end in toots:
+        for f in (415.0, 523.0):
+            ph = 0.0
+            for i in range(int(start * RATE), int(end * RATE)):
+                ph += f / RATE
+                sq = 1.0 if ph % 1.0 < 0.42 else -1.0
+                t = (i - start * RATE) / RATE
+                env = min(1.0, t / 0.012) * min(1.0, ((end - start) - t) / 0.03)
+                out[i] += 0.5 * sq * env
+    out = mix((0.5, biquad(out, "lp", 1800.0, 0.7)), (0.8, biquad(out, "bp", 1150.0, 2.0)))
+    return saturate(out, 1.3)
+
+
+def pigeons(seed):
+    rnd = random.Random(seed)
+    n = int(1.7 * RATE)
+    out = zeros(n)
+    w = noise(n, rnd)
+    for bird in range(6):
+        t = rnd.uniform(0.0, 0.18)
+        rate = rnd.uniform(10.0, 13.0)
+        amp = rnd.uniform(0.5, 1.0)
+        while t < 1.5:
+            at = int(t * RATE)
+            m = int(0.022 * RATE)
+            for i in range(m):
+                if at + i < n:
+                    out[at + i] += amp * w[(at + i * 7 + bird * 991) % n] * math.sin(math.pi * i / m)
+            t += 1.0 / rate
+            rate = max(5.0, rate * 0.965)
+            amp *= 0.955
+    out = mix((1.0, biquad(out, "bp", 1300.0, 0.8)), (0.5, biquad(out, "bp", 3200.0, 1.0)))
+    return fade(out, 0.005, 0.2)
+
+
+def chirp(f0, f1, length, harm=0.15):
+    n = int(length * RATE)
+    out = zeros(n)
+    ph = 0.0
+    for i in range(n):
+        t = i / n
+        f = f0 + (f1 - f0) * t
+        ph += f / RATE
+        env = math.sin(math.pi * t) ** 1.5
+        out[i] = env * (math.sin(TAU * ph) + harm * math.sin(TAU * 2 * ph))
+    return out
+
+
+def birds(seed, kind):
+    rnd = random.Random(seed)
+    n = int(2.4 * RATE)
+    out = zeros(n)
+    t = 0.05
+    if kind == "a":       # sparrows: short downward chirps in clumps
+        while t < 2.1:
+            for _ in range(rnd.randint(2, 4)):
+                sig = chirp(rnd.uniform(4300, 5200), rnd.uniform(3000, 3600), rnd.uniform(0.04, 0.07))
+                place(out, sig[: n - int(t * RATE)], int(t * RATE), rnd.uniform(0.4, 1.0))
+                t += rnd.uniform(0.08, 0.13)
+            t += rnd.uniform(0.25, 0.5)
+    else:                 # a whistled phrase, a pause, an answer
+        for _ in range(2):
+            for f0, f1, length in ((2300, 2900, 0.12), (2900, 2500, 0.09), (2200, 3300, 0.16), (3300, 2600, 0.2)):
+                f0 *= rnd.uniform(0.95, 1.05)
+                f1 *= rnd.uniform(0.95, 1.05)
+                sig = chirp(f0, f1, length, 0.05)
+                place(out, sig[: max(0, n - int(t * RATE))], int(t * RATE), 0.8)
+                t += length + 0.03
+            t += 0.45
+    out = biquad(out, "lp", 6000.0, 0.7)
+    return echo(out, [(0.09, 0.2), (0.23, 0.08)], 0.3)
+
+
+def siren_far(seed):
+    n = int(7.0 * RATE)
+    out = zeros(n)
+    ph = 0.0
+    for i in range(n):
+        t = i / RATE
+        f = 950.0 + 320.0 * math.sin(TAU * t / 3.2 - 1.2)
+        ph += f / RATE
+        s = math.sin(TAU * ph) + 0.33 * math.sin(TAU * 3 * ph) + 0.2 * math.sin(TAU * 5 * ph)
+        out[i] = s * min(1.0, t / 2.2) * min(1.0, (7.0 - t) / 2.6)
+    out = biquad(biquad(out, "lp", 1300.0, 0.7), "lp", 1600.0, 0.7)
+    return echo(out, [(0.12, 0.35), (0.26, 0.2), (0.41, 0.12)], 0.5)
+
+
+def dog_far(seed):
+    rnd = random.Random(seed)
+    n = int(2.4 * RATE)
+    out = zeros(n)
+    for at in (0.0, 0.33, 1.25):
+        m = int(rnd.uniform(0.11, 0.15) * RATE)
+        bark = zeros(m)
+        ph = 0.0
+        for i in range(m):
+            t = i / m
+            f = 430.0 - 140.0 * t
+            ph += f / RATE
+            glottal = (ph % 1.0) ** 3
+            bark[i] = (glottal - 0.25 + 0.3 * rnd.uniform(-1, 1)) * math.sin(math.pi * t) ** 0.6
+        voiced = mix((1.0, biquad(bark, "bp", 560.0, 4.0)), (0.7, biquad(bark, "bp", 1250.0, 5.0)),
+                     (0.3, biquad(bark, "bp", 2300.0, 6.0)))
+        place(out, voiced[: n - int(at * RATE)], int(at * RATE), rnd.uniform(0.8, 1.0))
+    out = biquad(out, "lp", 1700.0, 0.7)
+    return echo(out, [(0.14, 0.3), (0.31, 0.15)], 0.4)
+
+
+# --- output and checks ------------------------------------------------------------
+
+def normalise(chans, peak_db):
+    peak = max(max(abs(v) for v in c) for c in chans)
+    g = 10 ** (peak_db / 20.0) / max(peak, 1e-9)
+    return [array.array("d", (v * g for v in c)) for c in chans]
+
+
+def write(path, chans):
+    n = len(chans[0])
+    frames = bytearray()
+    for i in range(n):
+        for c in chans:
+            frames += struct.pack("<h", int(round(max(-1.0, min(1.0, c[i])) * 32767)))
+    with wave.open(path, "wb") as w:
+        w.setnchannels(len(chans))
+        w.setsampwidth(2)
+        w.setframerate(RATE)
+        w.writeframes(bytes(frames))
+
+
+def read(path):
+    with wave.open(path, "rb") as w:
+        ch = w.getnchannels()
+        rate = w.getframerate()
+        raw = w.readframes(w.getnframes())
+    vals = array.array("h", raw)
+    return [array.array("d", (v / 32768.0 for v in vals[c::ch])) for c in range(ch)], rate
+
+
+def fft(a):
+    n = len(a)
+    a = list(a)
+    j = 0
+    for i in range(1, n):
+        bit = n >> 1
+        while j & bit:
+            j ^= bit
+            bit >>= 1
+        j |= bit
+        if i < j:
+            a[i], a[j] = a[j], a[i]
+    size = 2
+    while size <= n:
+        w = cmath.exp(-2j * math.pi / size)
+        for start in range(0, n, size):
+            wk = 1.0
+            for k in range(size // 2):
+                u = a[start + k]
+                v = a[start + k + size // 2] * wk
+                a[start + k] = u + v
+                a[start + k + size // 2] = u - v
+                wk *= w
+        size *= 2
+    return a
+
+
+def spectrum(x, rate):
+    """Share of energy below 2 kHz and the 85% roll-off, from Hann-windowed 4096-point
+    frames averaged over the file."""
+    size = 4096
+    power = [0.0] * (size // 2)
+    frames = 0
+    step = max(size, (len(x) - size) // 8)
+    for start in range(0, max(1, len(x) - size + 1), step):
+        seg = x[start:start + size]
+        if len(seg) < size:
+            seg = list(seg) + [0.0] * (size - len(seg))
+        win = [seg[i] * (0.5 - 0.5 * math.cos(TAU * i / size)) for i in range(size)]
+        f = fft(win)
+        for k in range(size // 2):
+            power[k] += abs(f[k]) ** 2
+        frames += 1
+    total = sum(power) or 1e-12
+    below = sum(p for k, p in enumerate(power) if k * rate / size < 2000.0) / total
+    acc = 0.0
+    roll = 0.0
+    for k, p in enumerate(power):
+        acc += p
+        if acc >= 0.85 * total:
+            roll = k * rate / size
+            break
+    return below, roll
+
+
+def db(v):
+    return 20.0 * math.log10(max(v, 1e-9))
+
+
+def check(path, loop):
+    chans, rate = read(path)
+    peak = max(max(abs(v) for v in c) for c in chans)
+    rms = math.sqrt(sum(sum(v * v for v in c) for c in chans) / sum(len(c) for c in chans))
+    line = {"file": os.path.basename(path), "ch": len(chans), "s": len(chans[0]) / rate,
+            "kb": os.path.getsize(path) // 1024, "peak": db(peak), "rms": db(rms)}
+    if loop:
+        worst_step = worst_slope = 0.0
+        ok = True
+        for c in chans:
+            steps = sorted(abs(c[i] - c[i - 1]) for i in range(1, len(c)))
+            slopes = sorted(abs(c[i + 1] - 2 * c[i] + c[i - 1]) for i in range(1, len(c) - 1))
+            p_step = steps[int(len(steps) * 0.999)]
+            p_slope = slopes[int(len(slopes) * 0.999)]
+            seam = abs(c[0] - c[-1])
+            curve = abs(c[1] - 2 * c[0] + c[-1])
+            worst_step = max(worst_step, seam / max(p_step, 1e-9))
+            worst_slope = max(worst_slope, curve / max(p_slope, 1e-9))
+            ok = ok and seam <= p_step and curve <= p_slope
+        line["seam"] = "%.2f / %.2f %s" % (worst_step, worst_slope, "ok" if ok else "CLICK")
+    else:
+        line["seam"] = "one-shot"
+    mono = chans[0] if len(chans) == 1 else array.array("d", ((a + b) * 0.5 for a, b in zip(chans[0], chans[1])))
+    below, roll = spectrum(mono, rate)
+    line["below2k"] = below
+    line["rolloff"] = roll
+    return line
+
+
+LOOPS = ["engine_idle", "engine_mid", "engine_high", "tyre_roll", "tyre_wet", "tyre_squeal", "rotor",
+         "city_day", "city_night", "rain"]
+
+
+def main(out_dir, radio_dir=None):
+    os.makedirs(out_dir, exist_ok=True)
+    made = {}
+    idle, idle_rpm = engine(850.0, 0.1, 2.0, 11)
+    mid, mid_rpm = engine(2400.0, 0.55, 1.6, 12)
+    high, high_rpm = engine(4500.0, 0.9, 1.4, 13)
+    print("engine loops recorded at %.0f, %.0f and %.0f rpm (scripts/sfx.gd ENGINE_RPM)" % (idle_rpm, mid_rpm, high_rpm))
+    made["engine_idle"] = [idle]
+    made["engine_mid"] = [mid]
+    made["engine_high"] = [high]
+    made["tyre_roll"] = [tyre_roll(2.0, 21)]
+    made["tyre_wet"] = [tyre_wet(2.0, 22)]
+    made["tyre_squeal"] = [tyre_squeal(1.0, 23)]
+    made["rotor"] = [rotor(2.0, 24)]
+    made["city_day"] = city(12.0, 31, False)
+    made["city_night"] = city(12.0, 32, True)
+    made["rain"] = rain(6.0, 33)
+    made["thump_soft"] = [thump(0.4, 41, False)]
+    made["thump_hard"] = [thump(0.7, 42, True)]
+    made["crash"] = [crash(43)]
+    made["clang"] = [clang(44)]
+    made["jar_clink"] = [jar_clink(45)]
+    made["jar_break"] = [jar_break(46)]
+    made["tram_bell"] = [tram_bell(47)]
+    made["horn"] = [horn(False)]
+    made["horn_double"] = [horn(True)]
+    made["pigeons"] = [pigeons(48)]
+    made["birds_a"] = [birds(49, "a")]
+    made["birds_b"] = [birds(50, "b")]
+    made["siren_far"] = [siren_far(51)]
+    made["dog_far"] = [dog_far(52)]
+    rows = []
+    for name, chans in made.items():
+        path = os.path.join(out_dir, name + ".wav")
+        # Every file peaks at -3 dBFS: headroom for QOA, and the mix is set by the
+        # players and buses in sfx.gd, not by the files.
+        write(path, normalise(chans, -3.0))
+        rows.append(check(path, name in LOOPS))
+    print()
+    print("| file | ch | s | KB | peak dBFS | RMS dBFS | loop seam step / slope (x p99.9) | energy < 2 kHz | 85% roll-off |")
+    print("| --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+    for r in rows:
+        print("| %s | %d | %.2f | %d | %.1f | %.1f | %s | %.0f%% | %.0f Hz |" % (
+            r["file"], r["ch"], r["s"], r["kb"], r["peak"], r["rms"], r["seam"], r["below2k"] * 100, r["rolloff"]))
+    if radio_dir:
+        print()
+        for f in sorted(os.listdir(radio_dir)):
+            if f.endswith(".wav"):
+                r = check(os.path.join(radio_dir, f), True)
+                print("radio %s: peak %.1f dBFS, RMS %.1f dBFS, seam %s" % (f, r["peak"], r["rms"], r["seam"]))
+
+
+if __name__ == "__main__":
+    main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
