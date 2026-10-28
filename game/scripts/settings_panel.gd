@@ -11,8 +11,9 @@ extends Control
 ##     "Kamera za autem · Camera follows the car" On / Off (the old CAM button, now with its
 ##     state in view; Point with the camera off is the Fixed camera scheme);
 ##   Świat · World: Time of day (the old TIME button), Weather (RAIN), Traffic;
-##   Obraz · Picture: Style (STYLE), Quality, VHS tape (VHS), Frame rate, the performance
-##     overlay and the TEST bench;
+##   Obraz · Picture: Style (STYLE), Quality (loop G1: Auto, the default, then Low, Medium,
+##     High, Ultra; Auto's English line names the level it picked here), VHS tape (VHS), Frame
+##     rate, the performance overlay and the TEST bench;
 ##   Dźwięk · Sound: volume, radio, effects (− and + in tenths, or drag along the bar).
 
 signal changed(key: String, value: Variant)
@@ -46,7 +47,8 @@ const TIME := [["Dzień", "Day"], ["Zmierzch", "Dusk"], ["Noc", "Night"], ["Na �
 const WEATHER := [["Pogodnie", "Clear"], ["Deszcz", "Rain"]]
 const TRAFFIC := [["Pustawo", "Almost empty"], ["Mało", "Low"], ["Normalnie", "Normal"], ["Tłoczno", "Busy"]]
 const STYLE := [["Ostry", "Sharp"], ["Drobny", "Fine"], ["Czysty", "Clean"], ["Toporny", "Chunky"]]
-const QUALITY := [["Niska", "Low"], ["Średnia", "Medium"], ["Wysoka", "High"]]
+## Loop G1: index 0 is Auto (settings.gd AUTO), then the levels (tiers.gd LOW..ULTRA) one up.
+const QUALITY := [["Auto", "auto"], ["Niska", "Low"], ["Średnia", "Medium"], ["Wysoka", "High"], ["Ultra", "Ultra"]]
 const ON_OFF := [["Wył.", "Off"], ["Wł.", "On"]]
 ## Loop 2b: frames per second (settings.gd FPS: 60, 30) and the benchmark button.
 const FPS := [["60", "płynnie · smooth"], ["30", "bateria · battery"]]
@@ -67,6 +69,9 @@ var _tabs: Array[Button] = []
 var _pages: Array[Control] = []
 var _tab := 0
 var _built := false
+## Loop G1: the level Auto picked on this device (the state's "auto", in English), shown under
+## the Auto button.
+var _auto_name := "High"
 
 
 func _ready() -> void:
@@ -158,20 +163,23 @@ func _build() -> void:
 	_segments(world[0], "weather", WEATHER)
 	_heading(world[0], "Ruch uliczny", "Traffic")
 	_segments(world[0], "traffic", TRAFFIC)
-	# Obraz · Picture.
-	var picture := _page(body, 2)
+	# Obraz · Picture. Loop G1: in three rows (Quality's five choices made the two columns too
+	# wide for the SE): Style and VHS; Quality; Frame rate and the overlay with TEST.
+	var picture := _rows(body, [2, 1, 2])
 	_heading(picture[0], "Styl obrazu", "Style")
 	_segments(picture[0], "style", STYLE)
-	_heading(picture[0], "Jakość obrazu", "Quality")
-	_segments(picture[0], "quality", QUALITY)
-	_heading(picture[0], "Kaseta VHS", "VHS tape")
-	_segments(picture[0], "vhs", ON_OFF)
-	_heading(picture[1], "Klatki na sekundę", "Frame rate")
-	_segments(picture[1], "fps", FPS)
-	_heading(picture[1], "Licznik wydajności", "Performance overlay")
+	_heading(picture[1], "Kaseta VHS", "VHS tape")
+	_segments(picture[1], "vhs", ON_OFF)
+	_heading(picture[2], "Jakość obrazu", "Quality")
+	var quality := QUALITY.duplicate(true)
+	quality[0][1] = "auto · %s" % _auto_name
+	_segments(picture[2], "quality", quality)
+	_heading(picture[3], "Klatki na sekundę", "Frame rate")
+	_segments(picture[3], "fps", FPS)
+	_heading(picture[4], "Licznik wydajności", "Performance overlay")
 	var perf_row := HBoxContainer.new()
 	perf_row.add_theme_constant_override("separation", _px(6))
-	picture[1].add_child(perf_row)
+	picture[4].add_child(perf_row)
 	_segments(perf_row, "perf", ON_OFF)
 	# Loop 2b: a minute on the bench route, then a result card to copy (main.gd).
 	var bench := _word_button("TEST", "bench · 1 min")
@@ -211,6 +219,28 @@ func _page(parent: Control, columns: int) -> Array[VBoxContainer]:
 	return out
 
 
+## Loop G1: a page of rows, row i with `cells[i]` cells side by side (the columns' spacing);
+## returns the cells in order.
+func _rows(parent: Control, cells: Array[int]) -> Array[VBoxContainer]:
+	var page := VBoxContainer.new()
+	page.add_theme_constant_override("separation", _px(6))
+	page.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(page)
+	_pages.append(page)
+	var out: Array[VBoxContainer] = []
+	for n in cells:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", _px(24))
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		page.add_child(row)
+		for i in n:
+			var cell := VBoxContainer.new()
+			cell.add_theme_constant_override("separation", _px(6))
+			row.add_child(cell)
+			out.append(cell)
+	return out
+
+
 ## Shows tab `i` (0 Driving, 1 World, 2 Picture, 3 Sound).
 func set_tab(i: int) -> void:
 	_tab = clampi(i, 0, TABS.size() - 1)
@@ -221,10 +251,12 @@ func set_tab(i: int) -> void:
 		_tabs[k].set_pressed_no_signal(k == _tab)
 
 
-## Shows the panel with the current values: {controls (the scheme), follow, traffic, quality,
-## master, music, effects, perf, fps, style, vhs, weather, time}.
+## Shows the panel with the current values: {controls (the scheme), follow, traffic, quality
+## (0 Auto, 1-4 Low..Ultra), auto (the level Auto picked, by name), master, music, effects,
+## perf, fps, style, vhs, weather, time}.
 func open(state: Dictionary) -> void:
 	if not _built:
+		_auto_name = str(state.get("auto", _auto_name))
 		_build()
 	sync(state)
 	visible = true

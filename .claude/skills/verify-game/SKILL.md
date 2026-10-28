@@ -69,7 +69,9 @@ whole map, ~4 s; any rule FAILs (loop 3b; until then C4, C5, C9, C10 were a WARN
 row), `check_drape.gd` (loop 3b-2: `drape`, the bare ground poking through the water, grass,
 plazas and sand, from the builder's own meshes; ~10 s), `check_drive.gd` (loop 3b: `drive` and `drive-prebuilt`: a car and a bus along every lane
 against the colliders, the autopilot over 20 routes across bridges and tunnels; ~10 s and ~2 s),
-`check_steering.gd`, `check_settings.gd`,
+`check_steering.gd`, `check_settings.gd`, `check_tiers.gd` and `check_governor.gd` (loop G1:
+`tiers`, model id → quality level and the pixel image's size at the phones' screens against loop
+2b's rule; `governor`, the frame governor's rules on scripted frames; ~1 s each),
 `check_hud.gd` (loop 2e: `hud`, the HUD at four screen sizes: 44 pt controls, 11 / 13 pt text,
 the safe area, no overlaps; it lists the passing panels that waited for room),
 `check_landmarks.gd`, `check_sfx.gd`, `check_radio_loops.gd`, `check_water.gd` (loop 10a:
