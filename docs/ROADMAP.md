@@ -229,6 +229,11 @@ holds the rules the user agreed):
   iPhone 11 renders Sharp at ×1 (1792×828, 1.57× the Pro Max's pixels), so every loop adds
   1792×828 shots; a draw call costs ≤ 1.2 µs on the A18 Pro without Xcode's validation; the
   iPhone 11 is probably limited by its main thread, so 2c/2d must be measured there.
+  **First iPhone 11 bench (2026-10-28, main at 87736b8, bench route, day, Normal traffic):**
+  High (image 1792×828, ×1): 58.2 fps average but 1 % low 25.1 fps, worst frame 44 ms, 23 % of
+  frames late, main thread draw-wait 13.7 ms, scripts 2.7 ms, 116 draw calls; Medium (896×414):
+  60.0 fps, 1 % low 53.3, worst 19 ms. So the iPhone 11 is limited by fill at ×1, not by draw
+  calls or scripts: G1 should give it High's effects with a ×2 image (and keep ×1 as an option).
 - **A retro / pixel vibe** (later, its own loop): the user keeps today's smoother 2× pixels for
   now (A/B shots in `shots/ab_pixel/`).
 - The user asked to keep agents working until the whole backlog is done
