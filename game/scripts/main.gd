@@ -659,9 +659,11 @@ func _build_world() -> void:
 		_blip.stream = load("res://audio/ui/blip.wav")
 	add_child(_blip)
 	# Camera loop: a following camera starts behind the vehicle (it used to start on the 45°
-	# diagonal and, in Classic, swung ~155° round at up to 182°/s as soon as the car moved). The
-	# bench and the probe keep the 45° start: their views are the performance budgets' reference.
-	if follow and not _flag_yaw and not bench and not probe:
+	# diagonal and, in Classic, swung ~155° round at up to 182°/s as soon as the car moved).
+	# Screenshots, the bench and the probe keep the 45° start: their views are the reference
+	# pictures (tools/shots.sh) and the performance budgets' (--cinematic screenshots start as a
+	# normal launch does).
+	if follow and not _flag_yaw and (shots.is_empty() or _flag_cinematic != "") and not bench and not probe:
 		var start_yaw := rad_to_deg((heli if flying else car).rotation.y)
 		cam_yaw = start_yaw
 		cam_yaw_target = start_yaw

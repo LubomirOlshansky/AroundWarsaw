@@ -9,11 +9,11 @@ extends RefCounted
 ##   faster than MAX_TURN (Nesky's comfort limit, docs/DEMO.md 1.1). Classic turns with the car;
 ##   Point and the helicopter hold still while the finger (or a key) is down and HOLD_DELAY after
 ##   it lifts, then come round, easing in over RETURN_EASE: a held direction must not turn with the
-##   view (loop 2a's steering fix, tools/check_steering.gd). Standing still it holds still;
-##   heading wiggles under YAW_DEAD don't turn it.
+##   view (loop 2a's steering fix, tools/check_steering.gd). A standing car's camera holds still
+##   (the hovering helicopter's comes round); heading wiggles under YAW_DEAD don't turn it.
 ## - Look-ahead: the view's centre leads the car along the way it goes (Classic: along the
-##   camera's forward, which keeps the car still on screen while the camera turns) by LEAD_TIME of its speed
-##   (more at speed: LEAD_TIME_FAST more at top speed), at most LEAD_MAX of the view, turning and
+##   camera's forward, which keeps the car still on screen while the camera turns) by LEAD_TIME
+##   of its speed (LEAD_TIME_FAST more at top speed), at most LEAD_MAX of the view, turning and
 ##   growing smoothly (LEAD_TAU) and never faster than LEAD_RATE of the view a second (the car
 ##   drifts across the screen at most that fast when the way it goes turns); braking, it shrinks
 ##   by at most LEAD_KEEP of the car's own speed, so the view never slides back past the car: it
@@ -26,8 +26,8 @@ extends RefCounted
 ##   +, a pinch) follow at ZOOM_OUT_RATE both ways. The shadow's sphere doesn't change with the
 ##   speed zoom (main.gd _camera_far).
 ## Before the camera loop the turn was a first-order lerp (up to 108°/s in Classic, 135°/s from
-## the helicopter 0.6 s after a release), the lead shrank with the speed (the view slid back
-## ~50 px after a hard stop) and the speed zoom came back in at once.
+## the helicopter 0.6 s after a release), the lead shrank with the speed (the view slid 8 m back
+## after a hard stop from 90 km/h) and the speed zoom came back in at once.
 
 ## The default view height in metres while driving (was 110 before loop 2a): the car is
 ## ~58 px long side-on on an iPhone's 1170 lines; still ~3 s of road ahead at 90 km/h.

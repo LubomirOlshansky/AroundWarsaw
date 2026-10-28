@@ -1062,9 +1062,9 @@ interpolation on, as here).
   (critically damped: no overshoot), never over **64°/s**; heading wiggles under 1° don't turn
   it. Point and the helicopter hold still while the stick (or a key) is held and 0.6 s after.
   Standing still Classic and Point hold still; the hovering helicopter's camera comes round (it
-  stops within a second of a release). A following camera starts behind the vehicle (the bench
-  and `--probe` keep the 45° start: their views are the budgets' reference); a tow turns it behind
-  the car at once (not while Point's finger is down).
+  stops within a second of a release). A following camera starts behind the vehicle (`--shots`,
+  `--bench` and `--probe` keep the 45° start: their views are the reference screenshots and the
+  budgets'); a tow turns it behind the car at once (not while Point's finger is down).
 - **Look-ahead**: along the way the car goes, 0.40 s of its speed + 0.25 s more at top speed
   (15 m at 90 km/h, 12.5 before; 7 m at 50, as before), at most a fifth of the view, eased over
   0.7 s and never faster than 3.5 % of the view a second (2.8 m/s at 80 m, ≤ ~40 px/s on 1170
