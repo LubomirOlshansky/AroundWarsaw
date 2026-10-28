@@ -4,9 +4,10 @@
 // main.gd sets the same values on all three materials every frame.
 //
 // The region: an ellipse round the vehicle on screen (wider than tall, lifted a little,
-// its upper half stretched up a little), a core where the ghost is thinnest and a wide
-// soft rim. Only what stands on the camera's side of the vehicle (more than a metre
-// nearer, measured along the ground) is ghosted; the rest of the city stays whole.
+// its upper half stretched up a little), a core where the ghost is thinnest and a dithered
+// rim (narrower since the look loop). Only what stands on the camera's side of the vehicle
+// (more than a metre nearer, measured along the ground) is ghosted; the rest of the city
+// stays whole.
 
 // The vehicle's ground point (x, z) and the camera's horizontal forward (x, z).
 uniform vec4 occluder = vec4(0.0, 0.0, 0.0, -1.0);
@@ -21,6 +22,20 @@ uniform float occlusion_lift = 0.2;
 // hole), while the skyline above stays whole.
 uniform float occlusion_up = 1.35;
 
+// The ellipse on screen alone (no matter which side of the vehicle): 1 in the core, 0
+// outside, soft over the rim. The look loop (2026-10-28) tightened the rim from 0.55-1.0
+// of the radius to 0.65-0.9 (the same middle, 0.775): the wide soft dither speckled roofs
+// that don't hide the car.
+float ghost_region(vec2 view_xy) {
+	if (occlusion_radius <= 0.0) {
+		return 0.0;
+	}
+	vec2 dv = (view_xy - car_view.xy) / occlusion_radius - vec2(0.0, occlusion_lift);
+	dv.x *= 0.78;
+	float r = length(vec2(dv.x, dv.y > 0.0 ? dv.y / occlusion_up : dv.y));
+	return 1.0 - smoothstep(0.65, 0.9, r);
+}
+
 // 0 outside the ghost, 1 in its core, soft in between (the dithered rim). `view_xy` is the
 // fragment's view-space x, y; `world_xz` its map position.
 float ghost_fade(vec2 view_xy, vec2 world_xz) {
@@ -31,8 +46,5 @@ float ghost_fade(vec2 view_xy, vec2 world_xz) {
 	if (side > -1.0) {
 		return 0.0;
 	}
-	vec2 dv = (view_xy - car_view.xy) / occlusion_radius - vec2(0.0, occlusion_lift);
-	dv.x *= 0.78;
-	float r = length(vec2(dv.x, dv.y > 0.0 ? dv.y / occlusion_up : dv.y));
-	return (1.0 - smoothstep(0.55, 1.0, r)) * smoothstep(1.0, 4.0, -side);
+	return ghost_region(view_xy) * smoothstep(1.0, 4.0, -side);
 }

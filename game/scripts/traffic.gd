@@ -21,10 +21,13 @@ enum Kind { CAR, TAXI, VAN, BUS, NODE }
 const POOL := [112, 16, 16, 8]
 const LENGTH := [4.2, 4.2, 5.2, 12.0]
 const SIZE := [Vector3(1.8, 1.5, 4.2), Vector3(1.8, 1.7, 4.2), Vector3(2.0, 2.6, 5.2), Vector3(2.5, 3.2, 12.0)]
-## The parked cars' palette (map_builder.gd), so traffic and parked cars match.
-const CAR_PAINT := ["#e9e9e6", "#b8bcc0", "#6f7378", "#2b2c2f", "#2f4566", "#a83a2e", "#24324a", "#cdbb9a", "#4c6650", "#f2f2ee"]
+## The parked cars' palette (map_builder.gd), so traffic and parked cars match. The look
+## loop (2026-10-28): red is the player's (and orange the jobs'), so the red paint "#a83a2e"
+## became a slate blue-grey; foliage.gdshader repaints the parked cars' red the same way
+## until map_builder.gd's palette changes with the next city bake.
+const CAR_PAINT := ["#e9e9e6", "#b8bcc0", "#6f7378", "#2b2c2f", "#2f4566", "#6a7487", "#24324a", "#cdbb9a", "#4c6650", "#f2f2ee"]
 const TAXI_PAINT := ["#232428", "#e9e9e6", "#b8bcc0", "#2b2c2f"]
-const VAN_PAINT := ["#f2f2ee", "#e9e9e6", "#d8d2c2", "#f3c72b", "#b8bcc0", "#2f4566", "#a83a2e"]
+const VAN_PAINT := ["#f2f2ee", "#e9e9e6", "#d8d2c2", "#f3c72b", "#b8bcc0", "#2f4566", "#6a7487"]
 ## Cars per lane-metre in view, by road class (main, tertiary, residential, living street).
 const DENSITY := [1.0 / 20.0, 1.0 / 34.0, 1.0 / 90.0, 1.0 / 180.0]
 const MAX_CARS := 140

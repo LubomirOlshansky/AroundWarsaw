@@ -24,6 +24,10 @@ uniform float outline_strength = 0.55;
 uniform float depth_threshold = 1.5;
 uniform float levels = 0.0;
 uniform float saturation = 1.05;
+// How much of the style's saturation boost applies (time_of_day.gd): the look loop
+// (2026-10-28) keeps 1.0 by day (the boost made the lime grass, the coral cycle lanes and
+// the azure river louder than the car) and the style's own at dusk and night.
+uniform float saturation_share = 1.0;
 uniform float vignette = 0.14;
 uniform vec3 grade = vec3(1.025, 1.0, 0.97); // a touch warm
 // Split tone (linear multipliers): 0 leaves the image alone (daytime).
@@ -144,7 +148,9 @@ void fragment() {
 			float pm = value_noise(world.xz * 0.16 + 11.3) * 0.6 + value_noise(world.xz * 0.53 + 2.1) * 0.4;
 			puddle = smoothstep(0.64, 0.69, pm) * smoothstep(0.35, 0.9, wetness);
 		}
-		float strength = water * mix(0.38, 0.85, lights_on)
+		// By day the water's mirror is half as strong as in loop 1 (the look loop: the deck's
+		// shade on the water, tinted to it, halved); at night as before.
+		float strength = water * mix(0.19, 0.85, lights_on)
 				+ wetness * (road * 0.3 + paving * 0.18) + puddle * (road + paving) * 0.4;
 		if (abs(n.y) > 0.92 && strength > 0.01) {
 			// The mirrored view ray: into the screen and up. In view space it climbs the
@@ -193,7 +199,7 @@ void fragment() {
 	col = mix(col, col * 0.32, edge * outline_strength);
 
 	float luma = dot(col, vec3(0.299, 0.587, 0.114));
-	col = max(mix(vec3(luma), col, saturation), vec3(0.0)) * grade;
+	col = max(mix(vec3(luma), col, mix(1.0, saturation, saturation_share)), vec3(0.0)) * grade;
 	if (tone_amount > 0.0) {
 		vec3 tint = mix(tone_shadow, tone_light, smoothstep(0.015, 0.45, luma));
 		col = mix(col, col * tint, tone_amount);

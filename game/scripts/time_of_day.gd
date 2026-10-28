@@ -30,6 +30,8 @@ const LON := 21.01
 const LIVE_PITCH := Vector2(20.0, 55.0)
 
 ## Each look. Colours are sRGB except the post-pass values (linear multipliers).
+## saturation_share (the look loop, 2026-10-28): how much of the visual style's saturation
+## boost the post pass applies: none by day (calmer day colours), all of it at dusk and night.
 const LOOKS := [
 	{
 		"background": Color("#a8cde6"), "ambient": Color("#b6c6db"), "ambient_energy": 0.7,
@@ -37,7 +39,7 @@ const LOOKS := [
 		"lights_on": 0.0, "daylight": 1.0, "sky_colour": Vector3(0.66, 0.8, 0.91),
 		"tone_amount": 0.0, "tone_shadow": Vector3(1, 1, 1), "tone_light": Vector3(1, 1, 1),
 		"sky_amount": 0.0, "sky_top": Color("#a8cde6"), "sky_bottom": Color("#a8cde6"), "stars": 0.0,
-		"glow": 0.0,
+		"glow": 0.0, "saturation_share": 0.0,
 	},
 	{
 		"background": Color("#3a2466"), "ambient": Color("#7464b4"), "ambient_energy": 0.5,
@@ -46,7 +48,7 @@ const LOOKS := [
 		"tone_amount": 0.7, "tone_shadow": Vector3(0.82, 0.7, 1.25), "tone_light": Vector3(1.1, 0.96, 0.9),
 		"sky_amount": 1.0, "sky_top": Color("#24174f"), "sky_bottom": Color("#ff7d7a"), "stars": 0.25,
 		# No glow while the sun still casts shadows: the two together doubled the GPU time.
-		"glow": 0.0,
+		"glow": 0.0, "saturation_share": 1.0,
 	},
 	{
 		"background": Color("#0a0b22"), "ambient": Color("#33378a"), "ambient_energy": 0.44,
@@ -54,7 +56,7 @@ const LOOKS := [
 		"lights_on": 1.0, "daylight": 0.0, "sky_colour": Vector3(0.12, 0.13, 0.32),
 		"tone_amount": 0.85, "tone_shadow": Vector3(0.8, 0.92, 1.3), "tone_light": Vector3(1.08, 0.94, 0.98),
 		"sky_amount": 1.0, "sky_top": Color("#04051a"), "sky_bottom": Color("#2c1658"), "stars": 1.0,
-		"glow": 0.75,
+		"glow": 0.75, "saturation_share": 1.0,
 	},
 ]
 
@@ -272,6 +274,7 @@ func _apply(look: Dictionary) -> void:
 	post.set_shader_parameter("sky_top", _linear3(look["sky_top"]))
 	post.set_shader_parameter("sky_bottom", _linear3(look["sky_bottom"]))
 	post.set_shader_parameter("stars", look["stars"])
+	post.set_shader_parameter("saturation_share", look["saturation_share"])
 	var glow: float = look["glow"]
 	env.glow_enabled = glow > 0.01 and glow_allowed
 	if env.glow_enabled:
