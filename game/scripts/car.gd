@@ -72,6 +72,11 @@ const UNSTICK_TIME := 1.5
 ## ~6 m) and settles this far (m) into it.
 const WATER_DRAG := 4.0
 const SINK := 0.45
+## The look loop (2026-10-28): how strongly the paint and the roof and bonnet stripes light
+## from within at night (actor.gdshader's hero part; share of their own colour), so the
+## car reads at least 30 luma over the road under it (it was 20-50 darker).
+const HERO_PAINT := 1.4
+const HERO_STRIPE := 0.3
 
 ## Inputs, set every frame by the game. steer > 0 turns left. throttle 0..1 is the
 ## share of top speed to drive at (1: flat out).
@@ -155,7 +160,8 @@ func _ready() -> void:
 	_beams = _make_beams()
 	_body.add_child(_beams)
 	_night_beams = MeshInstance3D.new()
-	_night_beams.mesh = Models.headlight_pools(2.05, 0.58, 15.0)
+	# The look loop: the player's cone a little stronger and longer than traffic's.
+	_night_beams.mesh = Models.headlight_pools(2.05, 0.58, 17.0, true, 0.52)
 	_night_beams.material_override = Models.glow_material()
 	_night_beams.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_body.add_child(_night_beams)
@@ -500,38 +506,42 @@ func _make_body() -> Node3D:
 	# A small retro hatchback with twin racing stripes, built from boxes so it
 	# reads clearly at pixel scale. The front is -Z. Loop 2b: the boxes are one mesh with
 	# vertex colours (one draw call; it was 14 boxes, 14 materials) and each lamp pair one
-	# more (their glow), shaded as before (sRGB colours, roughness 0.8).
+	# more (their glow). The look loop (2026-10-28): the body is drawn with the actors'
+	# material (actor.gdshader, no new shader) as its hero part: at night the paint and the
+	# stripes light from within (HERO_PAINT, HERO_STRIPE), so the car is never darker than
+	# the road; the stripes are a game pixel wider (0.18 -> 0.3 m) and the tail lamps wrap
+	# over the rear deck, so the camera above sees them.
 	var root := Node3D.new()
 	var paint := Color("#d8432f")
 	var stripe := Color("#f4efe4")
 	var glass := Color("#2f3f52")
 	var trim := Color("#3a3b3f")
+	var hero := Vector2(Models.HERO, HERO_PAINT)
+	var bright := Vector2(Models.HERO, HERO_STRIPE)
 	var body := SurfaceTool.new()
 	body.begin(Mesh.PRIMITIVE_TRIANGLES)
-	_box(body, Vector3(1.8, 0.55, 4.0), Vector3(0, 0.6, 0), paint)               # body
-	_box(body, Vector3(1.74, 0.14, 1.05), Vector3(0, 0.93, -1.45), paint)        # bonnet
-	_box(body, Vector3(1.6, 0.52, 2.15), Vector3(0, 1.12, 0.25), glass)          # cabin glass
-	_box(body, Vector3(1.64, 0.09, 1.95), Vector3(0, 1.42, 0.3), paint)          # roof
-	for x in [-0.22, 0.22]:
-		_box(body, Vector3(0.18, 0.02, 1.06), Vector3(x, 1.01, -1.45), stripe)  # bonnet stripes
-		_box(body, Vector3(0.18, 0.02, 1.96), Vector3(x, 1.475, 0.3), stripe)   # roof stripes
+	_box(body, Vector3(1.8, 0.55, 4.0), Vector3(0, 0.6, 0), paint, hero)                # body
+	_box(body, Vector3(1.74, 0.14, 1.05), Vector3(0, 0.93, -1.45), paint, hero)         # bonnet
+	_box(body, Vector3(1.6, 0.52, 2.15), Vector3(0, 1.12, 0.25), glass)                 # cabin glass
+	_box(body, Vector3(1.64, 0.09, 1.95), Vector3(0, 1.42, 0.3), paint, hero)           # roof
+	for x in [-0.25, 0.25]:
+		_box(body, Vector3(0.3, 0.02, 1.06), Vector3(x, 1.01, -1.45), stripe, bright)  # bonnet stripes
+		_box(body, Vector3(0.3, 0.02, 1.96), Vector3(x, 1.475, 0.3), stripe, bright)   # roof stripes
 	for z in [-2.03, 2.03]:
-		_box(body, Vector3(1.84, 0.18, 0.12), Vector3(0, 0.38, z), trim)        # bumpers
+		_box(body, Vector3(1.84, 0.18, 0.12), Vector3(0, 0.38, z), trim)               # bumpers
 	for x in [-0.86, 0.86]:
 		for z in [-1.25, 1.3]:
 			_box(body, Vector3(0.32, 0.62, 0.66), Vector3(x, 0.31, z), Color("#1f1f21"))
-	var mat := StandardMaterial3D.new()
-	mat.vertex_color_use_as_albedo = true
-	mat.vertex_color_is_srgb = true
-	mat.roughness = 0.8
-	_part(root, body, mat, true)
+	_part(root, body, Models.material(), true)
 	var heads := SurfaceTool.new()
 	heads.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var tails := SurfaceTool.new()
 	tails.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for x in [-0.58, 0.58]:
 		_box(heads, Vector3(0.34, 0.16, 0.06), Vector3(x, 0.72, -2.01), Color.WHITE)
-		_box(tails, Vector3(0.34, 0.14, 0.06), Vector3(x, 0.74, 2.01), Color.WHITE)
+		# Tail lamps: taller on the back, and over the edge of the rear deck.
+		_box(tails, Vector3(0.4, 0.22, 0.06), Vector3(x, 0.74, 2.01), Color.WHITE)
+		_box(tails, Vector3(0.4, 0.03, 0.2), Vector3(x, 0.885, 1.92), Color.WHITE)
 	var lamp := StandardMaterial3D.new()
 	lamp.albedo_color = Color("#fff3c4")
 	lamp.roughness = 0.8
@@ -580,8 +590,9 @@ func _make_beams() -> Node3D:
 	return root
 
 
-## A box of `size` centred on `pos`, flat-shaded, into a SurfaceTool (loop 2b).
-func _box(st: SurfaceTool, size: Vector3, pos: Vector3, colour: Color) -> void:
+## A box of `size` centred on `pos`, flat-shaded, into a SurfaceTool (loop 2b). `uv` tells
+## actor.gdshader how to colour it (the look loop: Models.FIXED, or Models.HERO and its glow).
+func _box(st: SurfaceTool, size: Vector3, pos: Vector3, colour: Color, uv := Vector2(Models.FIXED, 0.0)) -> void:
 	var h := size * 0.5
 	for axis in 3:
 		for sgn in [-1.0, 1.0]:
@@ -601,6 +612,7 @@ func _box(st: SurfaceTool, size: Vector3, pos: Vector3, colour: Color) -> void:
 			for k in order:
 				st.set_color(colour)
 				st.set_normal(n)
+				st.set_uv(uv)
 				st.add_vertex(quad[k])
 
 

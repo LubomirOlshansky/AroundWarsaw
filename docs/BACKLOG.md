@@ -267,3 +267,36 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - Windowed `--prebuilt --shots=` runs sometimes end with "8 ObjectDB instances were leaked at
   exit" / "4 resources still in use" (seen on the code before this loop too; not in headless
   runs).
+
+## From the first-minute look (2026-10-28, after the art review)
+- The gold wall the review saw "inside the cut tower" at the Palace by night is the shaft's
+  own floodlit north-west face beyond the car (a debug render: front faces past the car, not
+  back faces); the cut's real inner faces (back faces) are now unlit and flat. Dimming walls
+  beyond the car inside the ghost would need to know that something is ghosted there (else a
+  dark hole would follow the car along every street at night): main.gd could pass it.
+- The neon sign quads (`neon.gdshader`, 361 signs) are not ghosted (they never were): a sign on
+  a ghosted wall stays lit, mirrored, over the ghost. Feeding them the ghost's uniforms is one
+  more material in main.gd `_update_ghost` (outside this loop's main.gd scope).
+- Parked cars: map_builder.gd `CAR_PAINT` still has the red "#a83a2e"; `foliage.gdshader`
+  repaints it (body and cabin) slate on both city paths. Change the palette at the next city
+  bake (map side) and drop the remap.
+- The pale jagged band south of Most Poniatowskiego by day is geometry (it stays with the
+  mirror off, `--quality=low`): an area polygon on the water, map side with the sandbars
+  (loop 3b), not the deck's reflection (which by day is a darker band, now half as strong).
+- On a lamp-lit bridge deck the car's paint reads ~20 luma under the lit deck: a saturated red
+  tops out at ~110-130 luma, and the value ladder puts lit ground above the car. It stands out
+  there by chroma (paint saturation ~0.85 against ~0.35). A brighter hero would have to turn
+  orange (the jobs' colour) or pink.
+- Inside-out LoD2 walls (the few the building shader is double-sided for) that fall inside
+  the ghost's region on screen go flat and dark like a cut building's inner faces.
+- The pools' bands are concentric rings; on big lawns (the Rondo's islands) they read as
+  targets. Judge on the phone (options: three bands, or less contrast between them).
+- Lumpy crowns are shader lumps on the 12-vertex icosahedron: irregular crowns, not 2-3
+  separate blobs; real blobs need a new crown mesh (map side, with the crown sizes near roads).
+  Conifers share the material and get gentle lumps too.
+- Cycle lanes under sodium at night still read red (dimmer, tinted, not added), under the car.
+- The minimap still shows the azure water and lime parks (HUD side).
+- Buses and trams keep their Warsaw red-and-yellow livery and the rivals their looks (Słoik's
+  red stripe and his orange name tag): street-level Warsaw is on the review's protect list.
+- Half the LoD2 walls now run the facade code instead of the roof grain: the bench numbers are
+  in README (The first-minute look); the phone's 60 fps is the orchestrator's to confirm.

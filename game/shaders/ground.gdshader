@@ -45,6 +45,15 @@ varying vec3 world_pos;
 varying vec2 street;
 varying float layer;
 
+// The look loop (2026-10-28), calmer day colours (the overcast rain-day look as the guide):
+// grass less yellow (a multiplier on its linear colour) and with less chroma (the share
+// kept), cycle lanes in brick red (sRGB), the river by day a grey-green-blue lowland river
+// (sRGB, the colour its depth shading starts from; at night it keeps the old one).
+const vec3 GRASS_TINT = vec3(0.86, 1.0, 1.2);
+const float GRASS_CHROMA = 0.88;
+const vec3 BRICK = vec3(0.6, 0.31, 0.28);
+const vec3 DAY_WATER = vec3(0.41, 0.6, 0.6);
+
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	street = UV2;
@@ -103,11 +112,17 @@ void fragment() {
 		float patch = smoothstep(0.63, 0.7, value_noise(wp * 0.11 + 3.7));
 		shade = 0.95 + 0.07 * grain - 0.06 * patch + 0.04 * n1;
 	} else if (id == 1) {
-		// Grass: soft lighter and darker patches with a slight hue drift.
+		// Grass: soft lighter and darker patches with a slight hue drift. The look loop:
+		// calmer, the lime read louder than the car: less yellow, and less chroma.
 		float g = value_noise(wp * 0.35) * 0.6 + value_noise(wp * 1.7) * 0.4;
 		base *= mix(vec3(0.88, 0.94, 0.84), vec3(1.08, 1.05, 0.9), g);
+		base *= GRASS_TINT;
+		base = mix(vec3(dot(base, LUMA)), base, GRASS_CHROMA);
 		shade = 0.97 + 0.06 * hash12(floor(wp * 4.0));
 	} else if (id == 5) {
+		// Cycle lanes and crossings: Warsaw brick red (the look loop; the mapped coral read
+		// louder than the player's red car).
+		base = srgb_to_linear(BRICK);
 		shade = 0.94 + 0.08 * hash12(floor(wp * 5.0));
 	} else if (id == 7) {
 		shade = 0.88 + 0.12 * value_noise(wp * 1.3); // worn paint
@@ -164,19 +179,24 @@ void fragment() {
 		// mid-river. Loop 1: a slow lowland river, not the open sea: a touch deeper and
 		// greyer, the flow a low-contrast drift (calmer still after dark), few glints.
 		float deep = smoothstep(1.5, flowing ? 42.0 : 14.0, d);
+		// The look loop: by day the depth shading starts from a grey-green-blue (the mapped
+		// azure read as an open sea); at night from the old colour, so night is unchanged.
+		base = mix(base, srgb_to_linear(DAY_WATER), daylight);
 		base = mix(base * vec3(1.02, 1.1, 0.98) + vec3(0.0, 0.02, 0.012), base * vec3(0.38, 0.56, 0.86), deep);
 		base = mix(vec3(dot(base, vec3(0.3, 0.59, 0.11))), base, mix(0.75, 0.9, daylight));
 		float calm = mix(0.5, 1.0, daylight);
 		base *= 1.0 + (smoothstep(0.3, 0.75, ripple) - 0.5) * 0.16 * calm;
 		vec3 glint = mix(srgb_to_linear(sky_colour) * 0.7, srgb_to_linear(vec3(0.74, 0.86, 0.93)), daylight);
-		base = mix(base, glint, smoothstep(0.68, 0.86, ripple) * 0.24 * calm);
+		// The pale crests: a third as strong by day (they read as white streaks), as before at night.
+		base = mix(base, glint, smoothstep(0.68, 0.86, ripple) * 0.24 * calm * mix(1.0, 0.33, daylight));
 		// Shore foam: a broken band that laps in and out (thin round ponds and fountains).
 		float lap = 0.5 + 0.5 * sin(TIME * 1.2 + value_noise(wp * 0.25) * 6.0);
 		float band = flowing ? 1.4 + 1.0 * lap : 0.5 + 0.3 * lap;
 		float foam = (1.0 - smoothstep(0.3, band, d)) * step(0.42, value_noise(wp * 1.7 + vec2(TIME * 0.25, 0.0)));
 		base = mix(base, vec3(0.8, 0.86, 0.88), foam * (surf.b > 0.5 ? 0.6 : 0.0));
-		// Sun sparkles: a rare pixel on the highest crests flickers (day only).
-		float spark = step(0.9975, hash12(floor(wp * 3.4) + floor(TIME * 3.0) * 17.0)) * smoothstep(0.66, 0.82, ripple);
+		// Sun sparkles: a rare pixel on the highest crests flickers (day only). The look loop:
+		// a quarter as many (1 cell in 1,600 was 1 in 400), each a 0.3 m cell, 1-2 px.
+		float spark = step(0.999375, hash12(floor(wp * 3.4) + floor(TIME * 3.0) * 17.0)) * smoothstep(0.66, 0.82, ripple);
 		base += vec3(1.0, 0.96, 0.85) * spark * daylight * (1.0 - 0.8 * rain) * 0.7;
 		if (under_deck) {
 			base *= 0.6; // in the bridge's shade
@@ -224,12 +244,14 @@ void fragment() {
 		// read orange.) On the water, the lamps reflect instead: broken columns of light
 		// towards the viewer, shimmering, on dark, calm water (loop 1: the pink and cyan
 		// glints that washed over half the river went; the mirror carries the neon).
-		vec3 lamp = lamp_light(wp) * (under_deck ? 0.05 : 1.0);
+		// The look loop: the pools are banded pixel light, capped under the lit windows'
+		// brightness, and tint grass, cycle lanes and flowerbeds instead of adding to them.
 		vec3 glow;
 		if (id == 3) {
 			glow = lamp_reflection(wp, away, 2.6, 1.6) * 0.7 * (under_deck ? 0.3 : 1.0);
 		} else {
-			glow = (base * shade + 0.03) * mix(1.0, ao, 0.6) * lamp * 2.2;
+			vec4 pool = lamp_pool(wp, FRAGCOORD.xy);
+			glow = pool_glow(base * shade * mix(1.0, ao, 0.6), pool, id == 1 || id == 5 || id == 11) * (under_deck ? 0.05 : 1.0);
 			if (sheen > 0.0) {
 				glow += lamp_reflection(wp, away, 1.4, 0.4) * min(sheen * 2.2, 1.0) * 0.8;
 			}

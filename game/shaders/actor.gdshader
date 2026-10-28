@@ -5,8 +5,10 @@ shader_type spatial;
 // small palette picked by INSTANCE_CUSTOM.a, and its own colour that glows when the
 // city's lights are on: 3 = headlamp, 4 = tail lamp, 5 = a lit window (bus, tram),
 // 6 = a lit sign (taxi), 7 = an amber lamp that blinks (roadworks, loop 1; all in one
-// beat with their halos, glow.gdshader). UV.y = +1 / -1 marks the left / right leg of a pedestrian,
-// which swing as they walk. Under the street lamps (night.gdshaderinc; main.gd
+// beat with their halos, glow.gdshader); 8 = the player's car (car.gd, the look loop): its own
+// colour, lit from within at night by UV.y (a hero material: never darker than the road
+// under it), a little brighter on the faces that look up. UV.y = +1 / -1 marks the left /
+// right leg of a pedestrian, which swing as they walk. Under the street lamps (night.gdshaderinc; main.gd
 // hands this material the baked light map) they catch the light at night.
 
 #include "res://shaders/common.gdshaderinc"
@@ -42,6 +44,11 @@ void vertex() {
 	} else if (part == 7) {
 		glow = c * 4.0;
 		blink = 1.0;
+	} else if (part == 8) {
+		// A touch more orange than the paint: a saturated red tops out at a low luma, so
+		// the glow needs some green to climb clear of the road (kept red-orange, hue ~13
+		// degrees: the jobs' beacon is orange, 24).
+		glow = (c + vec3(0.0, 0.028, 0.008)) * UV.y * (0.75 + 0.25 * max(NORMAL.y, 0.0));
 	}
 	tint = c;
 	if (walk > 0.0 && abs(UV.y) > 0.5) {

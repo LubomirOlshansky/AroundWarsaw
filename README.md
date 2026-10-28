@@ -47,6 +47,15 @@ helicopter won't land on the water, and a car that still gets in splashes, settl
 towed back to a lane on dry land a second later with a line from the tow crew (see Loop 10a:
 the river is off-limits).
 
+The first-minute look (after the art review: in the first minute the eye found lime grass,
+coral cycle lanes and an azure river before the player's car, which at night was darker than
+the road) lights the red car from within at night and keeps red for it alone in traffic, calms
+the day (no saturation boost by day, quieter grass, brick-red cycle lanes, a grey-green-blue
+river with fewer glints), lets nothing glow inside the occlusion ghost, turns the lamp pools
+into banded pixel light under the lit windows' brightness, gives half the LoD2 walls back their
+windows (a sign test drew them as blank roofs) and makes the trees lumpier with rust and olive
+autumn colours (see The first-minute look).
+
 ## Run it on your iPhone
 
 1. `tools/export_ios.sh` (only needed after changing the game).
@@ -111,7 +120,8 @@ sit left of the top buttons, or in a second row under them on a narrow (iPad) sc
 
 ## Night and vaporwave
 
-- **Day** is the original look, untouched. **Dusk**: a low orange sun from the south-west
+- **Day** is the original look, calmed in the look loop (no saturation boost by day, quieter
+  grass, brick-red cycle lanes, a grey-green-blue river; see The first-minute look). **Dusk**: a low orange sun from the south-west
   with long shadows, a violet fill light, a pink-purple sky behind the diorama, glass towers
   reflecting it, and the first windows and lamps on. **Night**: deep navy-violet ambient, a
   cold moon (no shadows, which pays for the glow), stars, and the lit city. A switch blends
@@ -128,7 +138,15 @@ sit left of the top buttons, or in a second row under them on a narrow (iPad) sc
   has none in OpenStreetMap) light the ground from a baked light map (`tools/bake_lights.py`,
   no real lights): warm sodium pools, cold white LED in parks, along footpaths and on about a
   quarter of the streets; pools stop at walls. The same map lights the lower facades, the tree
-  crowns from below, parked cars and traffic. Lamp heads glow and wear a soft halo.
+  crowns from below, parked cars and traffic. Lamp heads glow and wear a soft halo. The look
+  loop made the pools on the ground pixel light: four hard bands with a one-pixel checker
+  dither along each step (`night.gdshaderinc` `lamp_pool`, `pool_glow`), never brighter than
+  ~80 % of a lit window (pale paving included), and on grass and cycle lanes the lamp tints
+  the surface's own colour (sodium on grass reads warm olive, not chartreuse).
+- **The player's car** (the look loop) lights from within at night (`actor.gdshader`'s hero
+  part, `car.gd` `HERO_PAINT`): its red-orange paint and white stripes read over the dark road
+  (it was 30-60 luma darker than the road), with tail lamps that wrap over the rear deck so the
+  camera sees them, and a stronger, longer headlight cone than traffic's.
 - **Vehicles**: head and tail lamps glow on every car, van, bus, tram and rival, with soft light
   on the road ahead and a red glow behind; bus and tram windows and taxi signs light up; Seba's
   underglow spills onto the road. The player's car also has one real spotlight. Signal lamps
@@ -400,10 +418,13 @@ of the car (more than a metre nearer the camera, measured along the ground, full
 inside a region round the car on screen (an ellipse 0.22 x the view's height, wider than tall,
 lifted a little, its upper half stretched 1.35 times so a tower's top fades out instead of
 ending at a cut) turns into a thin ghost: in the core only 3 pixels in 16 stay
-(`ghost_keep` 0.19), and a wide soft rim dithers out to the whole wall. Every fragment goes,
-near walls, far walls and roofs alike, and looking into a cut building its inner faces go too.
-What the ghost keeps has no outlines (the post pass outlined every kept pixel, which turned
-the ghost into a dark stipple) and its lit windows are dimmed at night. Under the ghost the
+(`ghost_keep` 0.19), and a dithered rim (0.65-0.9 of the radius since the look loop; it was
+0.55-1.0 and speckled roofs that don't hide the car) runs out to the whole wall. Every fragment
+goes, near walls, far walls and roofs alike, and looking into a cut building its inner faces go
+too. What the ghost keeps has no outlines (the post pass outlined every kept pixel, which turned
+the ghost into a dark stipple) and nothing in it glows (the look loop: its windows, shop fronts
+and neon tubes lose all their light with the ghost's fade; loop 1 kept 30 %); the inner faces
+of a cut building seen through it are unlit and flat, a step darker than the street. Under the ghost the
 ground lifts the buildings' baked shade (the AO map's buildings channel; the trees' and
 parked cars' shade stays) and, inside a ghosted footprint, which its own building always
 shades, gives back the sunlight (all of it with a sun above 40 degrees, none below 15: the
@@ -519,10 +540,13 @@ reflects (paving, road, still water, the river) and the height of any bridge dec
   along the river; ponds and fountains are still. Shore foam laps in a broken band (thin
   round ponds and fountains); a rare sun glint flickers on the highest crests by day.
   Loop 1 calmed it to a slow lowland river: a touch deeper and greyer, the flow a
-  low-contrast drift (half that again at night), the glints fewer and smaller.
+  low-contrast drift (half that again at night), the glints fewer and smaller. The look loop:
+  by day the depth shading starts from a grey-green-blue (`DAY_WATER`; the mapped azure read
+  as an open sea), the pale crests a third as strong and the sun sparkles a quarter as many
+  (1-2 px each); at night the water is as before.
 - Bridges: by day a bridge shows on the water beside it as a darker shaded band (loop 1; the
-  pale mirrored copy of the concrete read as a wake), the water under the deck in its shade;
-  at dusk and night the mirror carries the lamps and lights.
+  pale mirrored copy of the concrete read as a wake; half as strong since the look loop), the
+  water under the deck in its shade; at dusk and night the mirror carries the lamps and lights.
 - At night the water gets no lamp pools any more: the bridge lamps and the boulevard lights
   reflect as shimmering columns of broken light, and the mirror catches their heads, the
   cars' lights and the lit windows. Loop 1: the pink and cyan glints that washed over half
@@ -999,6 +1023,125 @@ the boulevard splashed at 62 km/h and was towed 1.01 s later onto a lane 51 m aw
 kebab job still on; standing on that boulevard (`--probe --at=1015,-85 --heading=45`): 60 fps
 (the cap), 1 % low 55.3, worst frame 18.6 ms, 141 draw calls, car physics 0.15 ms.
 
+## The first-minute look (2026-10-28)
+
+After the art review of the day's screenshots: night had its own look, day didn't yet; in the
+first minute the eye found lime grass, coral cycle lanes, an azure river and grey buttons
+before the player's car, and at night the car was darker than the road. The user agreed:
+calmer day colours; the car stays red, with red reserved for it; lumpier trees with rust and
+olive autumn colours; today's smoother 2× pixel size kept (a retro look is a later loop). The
+rules are in the art bible (`.claude/skills/screenshot-review/art-bible.md`). All measured on
+the shots at 2532×1170 (luma 0-255 of the PNG, saturation = HSV), before from the code before
+this loop, after from this one, same flags.
+
+**What changed.**
+
+1. **The player's car** (`car.gd`, `actor.gdshader`, `models.gd`): the body now uses the
+   actors' material (no new shader, still one draw call) as a new *hero* part (UV.x 8): at night
+   the paint and the stripes light from within (`HERO_PAINT` 1.4, `HERO_STRIPE` 0.3 of their own
+   colour, a little brighter on faces that look up, the paint's glow a touch more orange so a
+   saturated red can climb in luma: red-orange, hue ~13° at night, the jobs' beacon is 24°);
+   the roof and bonnet stripes are a game pixel wider (0.18 → 0.3 m); the tail lamps are taller
+   and wrap over the rear deck (the camera above never saw the 0.14 m lamps on the back); the
+   night cone is stronger (peak 0.42 → 0.52) and longer (15 → 17 m) than traffic's. Traffic's
+   red paint (`#a83a2e`, cars and vans) became slate `#6a7487`; the parked cars' red
+   (map_builder.gd's palette, baked into `city.scn`) is repainted the same in `foliage.gdshader`
+   on both city paths until the next bake.
+2. **Calmer day ground**: the post pass's saturation boost now follows the time of day
+   (`time_of_day.gd` `saturation_share`, `post.gdshader`): none by day (1.0), the style's own at
+   dusk and night (Sharp 1.15), blended with the rest of the look. Grass less yellow and with
+   less chroma (`ground.gdshader` `GRASS_TINT`, `GRASS_CHROMA`); cycle lanes and crossings brick
+   red (`BRICK`).
+3. **The river by day** starts its depth shading from a grey-green-blue (`DAY_WATER`) instead
+   of the mapped azure; the pale crests a third as strong and the sun sparkles a quarter as many
+   (1-2 px each); the water's mirror half as strong by day (the deck's shade band). Night water
+   is untouched (the same colour path when `daylight` is 0). The pale jagged band south of Most
+   Poniatowskiego that the review took for the deck's reflection stays with the mirror off
+   (`--quality=low`): it is an area polygon on the water, map side (sandbars, loop 3b).
+4. **The ghost** (`building.gdshader`, `ghost.gdshaderinc`): nothing it keeps glows (emission
+   × (1 − fade); loop 1 kept 30 %); a cut building's inner faces (back faces inside the ghost's
+   region) are unlit and flat, a step darker than the street (`INNER_DAY`, `INNER_NIGHT`); the
+   dithered rim is narrower (0.65-0.9 of the radius, was 0.55-1.0: the same middle, so the
+   ghost is the same size, with less speckle over roofs that don't hide the car). The gold wall
+   the review saw "inside the cut tower" at the Palace by night is the shaft's own floodlit face
+   beyond the car (a debug render: front faces past the car), not the cut's inner faces; it
+   stays lit (see BACKLOG).
+5. **Lamp pools as pixel light** (`night.gdshaderinc` `lamp_pool`, `pool_glow`; ground only):
+   the baked pool strength is cut at 0.1 / 0.3 / 0.55 / 0.8 of one lamp into four hard bands
+   (levels 0.07 / 0.27 / 0.52 / 0.85, the outermost a faint skirt) with a one-pixel checker
+   dither along each step (the step's width from `fwidth`), every surface's top band capped at
+   `POOL_CAP` (linear luma 0.3 of emission, so pale paving under an LED lamp no longer clips);
+   sodium on the ground a touch more amber (dimmed, the full sodium red read pink on pale
+   paving); grass, cycle lanes and flowerbeds tinted by a half-desaturated lamp colour instead
+   of having it added (warm olive, not chartreuse). Facades, trees and vehicles keep the smooth
+   light map.
+6. **No blank walls** (`building.gdshader`): the bake writes a LoD2 wall's UV.x as its position
+   along the wall's tangent in map metres (`tools/bake_gugik.py`), negative for 47,515 of the
+   94,645 wall triangles (50.2 %), and the shader's wall test was `UV.x >= 0`, so half the LoD2
+   walls were drawn as blank roofs: no windows, no shop band, solid navy at night (a debug
+   render with UV as colour showed it). Roofs and windowless solids carry UV (−1, −1); the test
+   is now `UV.x >= 0 || UV.y > −0.5`, and those walls get their window grid, the ground-floor
+   shop band (lit at night), the lamp light on their lower floors and the Palace floodlight.
+7. **Trees** (`foliage.gdshader`, shader side only): each crown is pushed out and in by three
+   soft lobes seeded by where it stands (±20 % of its radius), with its facets' normals taken
+   from the pixels so the light follows the new shape; a two-tone dapple of darker leaves in
+   0.45 m cells; saturated orange crowns (hue 12-50°) turn rust, ochre or olive by their hue.
+
+**Measured** (the review's measurements re-taken on the same shots; the car = the median luma
+of its paint, the pixels in a 56×46 px box round it that are saturated red; the road = the
+median of a 30 px ring round that box, lamp pools and the car's own cone included; a pool
+cell = the brightest 24-px square of ground in a pool; lit windows = the median of the window
+pixels over 140 in a lit facade of the same shot):
+
+| | Before | After |
+| --- | --- | --- |
+| Car / road at night: the spawn (prebuilt) | 38 / 71 (−33) | 127 / 67 (+60) |
+| … Marszałkowska | 38 / 97 (−58) | 126 / 90 (+36) |
+| … the Praga beach (on the sand) | 38 / 76 (−38) | 115 / 76 (+39) |
+| … the Palace from the north-west | 40 / 89 (−50) | 128 / 87 (+41) |
+| … Rondo Dmowskiego in the rain | 30 / 30 (−1) | 126 / 27 (+100) |
+| … Most Poniatowskiego (on the lamp-lit deck) | 64 / 151 (−86) | 125 / 127 (−2) |
+| Car paint by day (spawn) | `#dc3002`, sat 0.99 | `#cf3e2a`, sat 0.79 (the most saturated thing near it) |
+| Grass by day (two lawns at the spawn) | `#96c13c` 0.69, `#87ba2a` 0.77 (hue 79-81°) | `#98bd6b` 0.44, `#89b55d` 0.48 (hue 87-90°) |
+| Cycle lane by day | `#e66d4c` 0.67 | `#ab5447` 0.58 (the review asked ~`#a9544a`) |
+| The river by day (two stretches) | `#428acc` 0.68, luma 124, glints to 255 | `#517c8c` 0.42, luma 113, glints to 133 |
+| Pool cells at night: the LED plaza by the spawn | 255 (clipped) | 169 (brightest pixel 172) |
+| … sodium on the car park / the lawn and cycle lane | 168 / 163 | 145 / 150 |
+| … Marszałkowska's pavement (two) | 207 / 117 | 157 / 87 |
+| … Rondo Dmowskiego's paving ring / lawn, in the rain | 192 / 133 | 159 / 119 (brightest pixel 206 → 166) |
+| … Most Poniatowskiego's deck | 200 | 153 |
+| … the plaza east of the Palace | 221 | 171 (brightest pixel 233 → 176) |
+| Lit windows (spawn / Marszałkowska / Rondo) | 226 / 220 / 241 | the same |
+
+So at night every pool cell measured is under its shot's lit windows (most under 80 % of
+them) and the brightest cells of the night shots are windows, lamp heads and neon, not
+ground; the car is 36-100 over the road everywhere except on the lamp-lit bridge deck, where
+lit ground sits above it on the value ladder and the paint stands out by colour (saturation
+0.82 against the deck's ~0.35; a saturated red tops out at ~110-130 luma). LoD2 walls drawn
+as roofs: 47,515 of 94,645 wall triangles → 0.
+
+Shots: `shots/look_final/` (the core set before and after at 2532×1170 and 2868×1320, both
+city paths; spawn_day_prebuilt, the night spots, dusk, the rain-day guide, the Ogród Saski
+park), `shots/look_before/` (the extras before); `shots/look_probe/` (the debug renders: walls'
+UVs as colour, back faces and faces past the car at the Palace, the river with the mirror off).
+
+**Cost** (Mac M4 Pro, busy with other agents' runs; the code before this loop run alongside
+from a copy, interleaved): the bench route on Vulkan Mobile at 1920×1080, uncapped, medians of
+5: GPU 0.79 → 0.85 ms by day, 0.76 → 0.76 at night (B's first night run, 3.25 ms, was the new
+shaders compiling once; the median leaves it out); frame 1.54 → 1.56 / 1.48 → 1.54 ms; scripts
+0.54 → 0.53 / 0.52 → 0.53 ms. The zoomed-out view (220 m, Vulkan at 2868×1320, medians of 3):
+GPU 1.38 → 1.39 ms by day, 1.27 → 1.30 at night. Draw calls at the budget's four views
+(Metal, 2868×1320): 153 / 124 / 191 / 245, unchanged (main 53 / 35 / 66 / 100, shadow 35 / 24 /
+60 / 86): the car's body changed material, not count (still 3 draw calls), and nothing new is a
+shader of its own. Triangles: the car +24 (the tail lamps' deck pieces); the city's meshes
+unchanged (6,100,768 vertices). The extra GPU by day is half the LoD2 walls running the facade
+code instead of the roof grain, and the crowns' dapple and pixel normals.
+
+**On the phone** (not run this loop): the frame rate at the default view and zoomed out (the
+orchestrator's run), and the look at phone size: does the car read first at night and by day,
+do the banded pools read as pixel light or as targets on the big lawns, is the river calm,
+are the lumpy crowns better than the gumdrops.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -1163,15 +1306,16 @@ flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
   and people) and `shaders/actor.gdshader` (per-instance paint, walking legs).
 - `game/shaders/`: `common.gdshaderinc` (sRGB, noise, cloud shadows); `night.gdshaderinc` (the
   time-of-day globals `lights_on`, `daylight`, `sky_colour` from project.godot's shader globals,
-  and the lamp light map); `building` (per-building window rhythm from UV2, shop fronts, cornices,
+  and the lamp light map; the look loop: the banded, capped lamp pools on the ground); `building` (per-building window rhythm from UV2, shop fronts, cornices,
   curtain walls, roof grain, see-through hole around the car, lit windows, neon tubes, floodlit
   Palace); `ground` (layer id in UV.y: paving slabs, asphalt, grass, worn paint, baked AO; depth
-  bias in UV.x; lamp pools); `foliage` (sway, see-through, lamp light); `actor` (vehicles and
-  people; lamps and lit windows by UV.x); `fixture` (lamp posts with glowing heads); `neon`
+  bias in UV.x; lamp pools); `foliage` (sway, see-through, lamp light; the look loop: lumpy
+  crowns, dapple, rust/olive autumn, the parked cars' red repainted); `actor` (vehicles and
+  people; lamps and lit windows by UV.x; the player's car as the hero part); `fixture` (lamp posts with glowing heads); `neon`
   (signs); `glow` (additive light on the road, halos, the searchlight; drawn after the post
   pass); `post` (outlines, posterize, grading, vignette, split-tone, sky); `vhs`, `title`,
   `chrome` (the overlay and the title screen).
-- `time_of_day.gd` (the three looks, the blend and Live), `radio.gd`, `title.gd`, `neon_signs.gd`.
+- `time_of_day.gd` (the three looks, the blend and Live; the post pass's saturation share), `radio.gd`, `title.gd`, `neon_signs.gd`.
 - Loop 2b: `bench.gd` (what a frame costs: frame times, the main thread's phases from the
   engine's frame signals, draw calls / objects / triangles by pass, the scripts by system,
   memory; for `--bench`, `--probe`, the BENCH button and the overlay), the minimap as one mesh

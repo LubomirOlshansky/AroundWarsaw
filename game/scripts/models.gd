@@ -4,7 +4,8 @@ extends RefCounted
 ## player's car. Vertex UV.x picks how actor.gdshader colours a part: PAINT takes
 ## the instance paint, FIXED keeps the vertex colour, TROUSERS uses the palette;
 ## HEAD_LAMP, TAIL_LAMP, LIT_WINDOW and LIT_SIGN keep their colour and glow when the
-## city's lights are on; BLINK (loop 1: the roadwork lamps) glows and blinks.
+## city's lights are on; BLINK (loop 1: the roadwork lamps) glows and blinks; HERO (the look
+## loop: the player's car, car.gd) keeps its colour and lights from within at night by UV.y.
 ## headlight_pools() is the light the lamps throw on the road.
 
 const PAINT := 0.0
@@ -15,6 +16,7 @@ const TAIL_LAMP := 4.0
 const LIT_WINDOW := 5.0
 const LIT_SIGN := 6.0
 const BLINK := 7.0
+const HERO := 8.0
 
 const GLASS := Color("#34404e")
 const TYRE := Color("#1c1c1e")
@@ -89,9 +91,9 @@ static func glow_material() -> ShaderMaterial:
 ## ahead of its origin (fronts face -Z): one soft fan the width of the car that
 ## widens and fades over `reach` metres, brightest a few metres ahead and dark at
 ## its edges; and a faint red glow behind. A grid of vertices carries the falloff
-## in their colour's alpha. Flat, a little above the road; the shader lifts it
-## over the road layers.
-static func headlight_pools(half_length: float, spread := 0.6, reach := 13.0, tail := true) -> ArrayMesh:
+## in their colour's alpha (`peak` at its brightest; the look loop gives the player's car a
+## stronger one). Flat, a little above the road; the shader lifts it over the road layers.
+static func headlight_pools(half_length: float, spread := 0.6, reach := 13.0, tail := true, peak := 0.42) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var warm := Color(1.0, 0.84, 0.58)
@@ -108,7 +110,7 @@ static func headlight_pools(half_length: float, spread := 0.6, reach := 13.0, ta
 			var p := Vector3(u * half_w, y, -half_length - 0.2 - t * reach)
 			var along := smoothstep(0.0, 0.18, t) * pow(1.0 - t, 1.6)
 			var across := 1.0 - u * u
-			row.append([p, 0.42 * along * across * across])
+			row.append([p, peak * along * across * across])
 		grid.append(row)
 	for i in rings:
 		for j in cols:

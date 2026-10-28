@@ -50,6 +50,10 @@ const vec3 WARM_PALE = vec3(1.0, 0.72, 0.42);
 const vec3 COOL = vec3(0.62, 0.78, 1.0);
 const vec3 TV = vec3(0.22, 0.36, 1.0);
 const vec3 NEON[3] = vec3[3](vec3(1.0, 0.08, 0.5), vec3(0.05, 0.85, 1.0), vec3(0.55, 0.16, 1.0));
+// The inner faces of a building the ghost cuts (sRGB, unlit): a step darker than the
+// street seen beside them, by day and at night (the look loop).
+const vec3 INNER_DAY = vec3(0.3, 0.31, 0.34);
+const vec3 INNER_NIGHT = vec3(0.15, 0.15, 0.24);
 
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
@@ -364,7 +368,11 @@ vec3 floodlight(vec3 col, float h, float top) {
 void fragment() {
 	vec3 col = srgb_to_linear(COLOR.rgb);
 	vec3 glow = vec3(0.0);
-	bool walls = UV.x >= 0.0;
+	// Roofs and windowless solids carry UV (-1, -1). The look loop (2026-10-28): a LoD2 wall's
+	// UV.x is its position along the wall's tangent in map metres (tools/bake_gugik.py), which
+	// is negative for about half of them, so `UV.x >= 0` alone drew those walls as blank
+	// roofs (no windows, no shop band, solid navy at night); their UV.y (metres up) never is.
+	bool walls = UV.x >= 0.0 || UV.y > -0.5;
 	int mode = style.x >= 2.0 ? int(style.x) : 0;
 	if (mode > 0) {
 		bool cut;
@@ -444,7 +452,16 @@ void fragment() {
 		} else if (threshold < fade * (1.0 - ghost_keep)) {
 			discard;
 		}
-		// What the ghost keeps is dimmed at night: its lit windows were a sparkle over the street.
-		EMISSION *= 1.0 - 0.7 * fade;
+		// Nothing glows inside the ghost (the look loop; loop 1 kept 30 % of it): the lit
+		// windows, shop fronts and neon tubes of the pixels it keeps sparkled round the car.
+		EMISSION *= 1.0 - fade;
+		if (!FRONT_FACING && ghost_debug == 0 && ghost_region(VERTEX.xy) > 0.01) {
+			// Looking into a cut building: its inner faces are unlit, flat, a step darker than
+			// the street (they were lit with flipped normals, windows and floodlights: the
+			// Palace's cut tower glowed gold inside at night).
+			ALBEDO = vec3(0.0);
+			SPECULAR = 0.0;
+			EMISSION = srgb_to_linear(mix(INNER_NIGHT, INNER_DAY, daylight));
+		}
 	}
 }
