@@ -39,6 +39,14 @@ BENCH button with a result card to copy, real Medium and Low steps, a fix for th
 being "pinned" while the player flies, and the performance budgets for the next rounds (see
 Loop 2b: frame rate on the iPhone, and Performance budgets).
 
+Loop 10a (the user drove onto the Vistula, and across it at 91 km/h) makes the water
+off-limits: a new whole-map check found 807 m of the water's edge open in 45 places (under
+all four bridges, round all the fountains) and a helicopter that landed on the river and left
+the car there; now a low granite edge runs round the river, the ponds and the fountains, the
+helicopter won't land on the water, and a car that still gets in splashes, settles and is
+towed back to a lane on dry land a second later with a line from the tow crew (see Loop 10a:
+the river is off-limits).
+
 ## Run it on your iPhone
 
 1. `tools/export_ios.sh` (only needed after changing the game).
@@ -321,8 +329,8 @@ Roads are most of the screen while driving, so they follow the real streets
   (its OSM 3D model, `man_made=bridge` building parts, is skipped: `br` on those buildings).
 - **Guard rails**: a steel beam on posts along the carriageway's edges on every bridge and along
   the mapped `barrier=guard_rail` ways (9.6 km), solid for the car.
-- **The river's edge** is solid too: the car stops at the water (not under bridges, not where a
-  road runs along the bank).
+- **The river's edge** is solid too: the car stops at the water. Loop 10a: a low granite edge
+  you can see, under the bridges too and round the fountains (see Loop 10a).
 
 Check against the aerial photo: `python3 tools/overlay_ortho.py OUT.png X Z HALF` draws the
 road areas (red), kerbs (cyan), lines, and the lane graph's lanes (magenta) over the GUGiK
@@ -887,6 +895,110 @@ code before this round) at `spawn`, `marszalkowska`, `palace`, `river`, `rondo`,
 `_night`; `quality_high|medium|low` (with the overlay); `bench_card` (the result card on the
 Mac).
 
+## Loop 10a: the river is off-limits (2026-10-28)
+
+After the user's play on the iPhone: "the car can drive on water, why so" (the hatchback at
+0 km/h in the middle of the Vistula, and crossing it at 91 km/h). Over the river the terrain is
+the water's flat surface, so a car that got onto it drove anywhere on it at full speed.
+
+**How it got there, measured** (`game/tools/check_water.gd`, the whole map, before → after):
+
+| | before | after |
+| --- | --- | --- |
+| The water's edge a car drives through at ground level (every 2 m round every water body, the car's box driven at it from the land, straight and 40° either side) | 807 m open in 45 places | 0 |
+| ... under or beside a bridge: the bake leaves the shore wall open within 6 m of any deck, so from the boulevard under a bridge the car rolled into the river (Most Świętokrzyski west 15 m and 8 m by the map's rim; the railway bridge 32 m west, 35 m east and 65 m round the pond under it; Most Poniatowskiego 12 m west, 43 m east) | 9 places, 209 m | 0 |
+| ... fountains (no edge at all) | 35 of 40, 586 m | 0 |
+| ... a road ending at a canal (1343, 763), a seam between two baked runs (1140, 105) | 8 m, 4 m | 0 |
+| The real car (`car.gd`) at 91 km/h flat out at the edge every 10 m, after 1.5 s | 11 of 631 in the river (all at bridges; no wall was tunnelled through) | 0 of 631 |
+| Off a bridge deck's side or end onto the water (1,353 probes) | 0 | 0 |
+| Helicopter: landing to take the car back allowed over the water (every 20 m; only a roof stopped it) | at 1,251 of 1,256 points | 0 (refused at all 1,256; allowed on the 39 deck points over it) |
+| The car's free spot next to a landed helicopter or a tow, round the water's edge | in the water for 1,252 of 2,478 (and mid-river: the spot itself) | 0 |
+| Lane-graph lanes / tram tracks at ground level in the water | 0 / 0 (1 lane point at Świętokrzyski's end past the edge walls) | the same |
+| Footways people walk into the water | 10 footways (24 points; ponds, fountains, a beach path) | 0 (5 end a metre short of it, 9 nobody walks) |
+| Anything that took the car out of the water | nothing | the tow, from every point (0 of 634 tows off a lane or wet) |
+
+So the user's car most likely came down with the helicopter onto the river (the car is put next
+to it), or rolled in under a bridge from the boulevard, and then drove the river's flat surface.
+
+**What changed.**
+
+- **The edge** (`map_builder.gd` `_build_shore_stone`, `_build_shore`): a low granite edge
+  (0.45 m over the ground, 0.5 m wide, on the water's side of the line) round the river, the
+  ponds and the 40 fountains, 9.4 km, laid on the ground like the kerbs: in the ground's mesh,
+  so no new draw call and no shadow. Its collider stands on the line, 3 m up, under any deck
+  above it, in 2 m pieces with the ground's height at each end. Along the bake's `shore` runs
+  plus the stretches the bake left open by bridges wherever the deck is at least 3.2 m up (under
+  all four bridges and beside them), the canal's slipway and the seam. The map's rim stays open
+  (the edge walls close it).
+- **The water test** (`map_builder.shore_distance`, `in_water`): the surface map's shore
+  distance (water.bin's R channel), kept on the CPU and stored zstd-packed in `city.scn`, read
+  bilinearly; a vehicle is in the water 2.5 m past the edge (so a car stopped by the stone, its
+  centre a metre or two inland, never counts) and down at the water's level (a bridge deck
+  over the river is not the water). One call per physics frame for the player's car: 0.8 µs on
+  the Mac.
+- **In the water** (`car.gd`): the car splashes once (`splashed`), takes no gas or steering,
+  loses speed at 4/s (from 91 km/h it stops within ~6 m), settles 0.45 m nose first and bobs.
+  A car with its collision off (the testing autopilots, the bench's ghost) or parked never
+  splashes.
+- **The splash** (`splash.gd`): 56 droplets thrown up and forward and a ring of 22 foam pieces
+  spreading on the water, 1.3 s, boxes in one MultiMesh with the actors' material (no new
+  shader; one draw call while it plays, none after, no shadow); the sound (`sfx.gd` `splash`)
+  is the hard knock pitched down and a 0.9 s wash of the rain bed's noise: no new file; a buzz.
+- **The tow** (`main.gd` `_tow_out_of_water`): 1.0 s after the splash the car is put on the
+  nearest lane on the level it came from (where it last stood on dry land or a deck), else the
+  lane nearest to the nearest dry land, else the nearest junction; on the free spot there, never
+  in the water. A toast from the tow crew, Polish over English (`dialogue.json` `water_tow`,
+  `river` / `pond`; the HUD's toast now takes an English gloss under its line): "Wisła nie jest
+  drogą krajową." / "The Vistula is not a national road." No money is taken and nothing
+  fails: a rescue, a delivery or a race carries on (`splash` in `tools/verify.sh`: a kebab
+  delivery running, towed after 1.00 s to a lane 51 m away, the job still on, the wallet
+  unchanged).
+- **The helicopter** won't come down to give the car back over the water ("Tu nie wylądujesz:
+  to woda. Szukaj brzegu." / "No landing on the water: find the bank."); it still flies over
+  it, and lands on a bridge deck over it. The car's free spot next to a landed helicopter or a
+  tow (`_free_car_spot`) is on the level of the spot (it was the top deck over each candidate:
+  a tow under a bridge put the car up on the bridge) and never in the water; the stuck tow's
+  "its level" is now the ground for a car on the ground (any lane on the terrain) or within 4 m
+  on a deck.
+- **People** (`pedestrians.gd`): a footway that runs into the water at an end stops a metre
+  short of it (people turn back there); one that crosses water in between isn't walked. Worked
+  out the first time someone could walk it (every 0.5 m).
+
+**Checks.** `godot --headless --path game --script res://tools/check_water.gd` (~17 s; `--
+--prebuilt` checks the exported game's `city.scn`, its colliders and stored water map, ~10 s;
+`--verbose`, `--list=OUT.txt` for every gap sample, `--debug=X,Z` for every probe step near a
+point) prints the five parts above and `check_water: OK`; both are steps in `tools/verify.sh`
+(`water`, `water-prebuilt`), with the game run `splash` (`--drive-into-water=1015,-85
+--kebab=0`: into the river from the boulevard by Most Poniatowskiego; PASS needs the tow within
+2 s, on dry land by a lane, the job still on). Godot's `cast_motion` misses some of the concave
+collision shape's thin walls, so the probe steps the box 0.5 m at a time and tests for overlap.
+
+**Cost** (README's commands; Mac): the bench route (day, medians of 3) 8.33 → 8.33 ms a frame
+(120 Hz display cap), scripts 1.66 → 1.66 ms, draw calls 134 → 134 (the bench's ghost car has
+its collision off, so the water test doesn't run there); the probe at the four views (Metal,
+2868×1320): spawn 152 → 153, default view over the river 124 → 124, zoomed out 189 → 191 (the
+3D and shadow passes equal; the HUD's 2D pass 63 → 65), helicopter 245 → 245; car physics at
+the river 0.05 → 0.05 ms; main-pass triangles at the river 0.19 → 0.20 M; the city's meshes
+3,697,284 → 3,742,512 vertices (+1.2 %); `city.scn` 35.9 → 36.3 MB.
+
+**Known issues.** The splash and the tow were judged on the Mac (screenshots, logs); how they
+feel on the phone, and whether the splash reads at the default view, is the user's to say (the
+sound was not heard: headless runs have no audio). The stone is the same granite edge
+everywhere, the Praga beach included. A car that rolls in at a few km/h can stop with its
+centre less than 2.5 m past the edge (the shallow first metres) and sit there until it drives
+out; the stone makes that hard to reach. The minimap is unchanged (no lane is on the water).
+
+Screenshots: `shots/loop10a_*.png` at 2532×1170: the shore at Most Poniatowskiego's west
+boulevard (`poni`), the Praga beach by the stadium (`beach`) and Most Świętokrzyski (`swieto`),
+`_day`, `_night` and `_day_prebuilt`, with `_before_*_day` from the code before this loop; the
+splash (`splash`, `splash_night_prebuilt`), the tow's toast (`tow_toast`) and a fountain pool's
+new edge (`fountains_day`, at -1075, 170).
+
+**On the iPhone** (16 Pro Max, launched with `devicectl`, prebuilt city): the water test from
+the boulevard splashed at 62 km/h and was towed 1.01 s later onto a lane 51 m away, dry, the
+kebab job still on; standing on that boulevard (`--probe --at=1015,-85 --heading=45`): 60 fps
+(the cap), 1 % low 55.3, worst frame 18.6 ms, 141 draw calls, car physics 0.15 ms.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -1010,7 +1122,7 @@ solved from what they cross (see Real roads).
 
 **One-command checks.** `tools/verify.sh` runs the verification set and prints one
 PASS/WARN/FAIL table: the map-data invariants (`tools/check_map_data.py`), the check scripts
-(steering, settings, landmarks, sfx, radio loops) and seven headless game runs, each with
+(steering, settings, landmarks, sfx, radio loops, the water on both city paths) and eight headless game runs, each with
 `--nosave` (`--quick` for a short set, `--ios` adds the export and the unsigned Xcode build,
 `--only=` picks steps). `tools/shots.sh` renders standard screenshots at a phone's size
 (`--list` names them). `tools/device_run.sh` builds, installs and launches the game on a
@@ -1028,10 +1140,12 @@ flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
   carriageway areas, kerbs, raised islands and medians, turn arrows / BUS / bikes (pixel shapes),
   bridge decks (`ground_height`, `drive_height`, `deck_height`) with slabs, parapets and piers,
   guard rails, LoD2 + OSM buildings, trees, lamps, traffic lights, parked cars, collision (walls,
-  guard rails, bridge parapets, the water's edge). Flat layers are laid on the terrain (or their
+  guard rails, bridge parapets, the water's edge and its stone), the water test (`shore_distance`,
+  `in_water`, `nearest_dry`, loop 10a). Flat layers are laid on the terrain (or their
   deck) in pieces no longer than the 10 m terrain grid. Everything is split
   into 128 m tiles (`chunked_surface.gd`) so off-screen tiles are culled.
-- `game/scripts/skids.gd`: tyre marks. The minimap lives in `hud.gd`.
+- `game/scripts/skids.gd`: tyre marks. The minimap lives in `hud.gd`. `splash.gd` (loop 10a): the
+  car's splash in the water.
 - `game/scripts/car.gd`: arcade car. `heli.gd`: helicopter (flight, rotor, blob shadow; it reads
   `map_builder.gd`'s 4 m grid of roof heights, so buildings are solid without physics queries).
   `missions.gd`: rescue calls, beacons (`beacon.gd`), timer and score. `hud.gd`: touch controls,
@@ -1142,6 +1256,7 @@ Command-line options (after `--`):
 | `--bench-button` | loop 2b: press TEST · BENCH at frame 60 (the phone's run, at the current settings and cap) |
 | `--fps=N` | loop 2b: cap the frame rate for this run (0: none; else the setting, 60 or 30). `--bench` and `--probe` run uncapped, headless runs too |
 | `--exp=a,b` | loop 2b, for ranking costs: switch one off: `nohud`, `nominimap`, `nobubbles`, `noshadow`, `nopost`, `notrees`, `noprops`, `nosmallcasters` (no shadows from instanced things), `nocasters`, `shadowsize=N` |
+| `--drive-into-water=X,Z` | loop 10a: start at X,Z and drive flat out at the nearest water (within 120 m), the collision off until 3 m past the edge as if the car had jumped it; prints `water test:`, `water: splash at …` and `water: towed after … s …` (where to, how far from a lane, dry or not, the job / rescue / race / wallet), each with its frame. With `--kebab=0` a delivery is running (`tools/verify.sh` step `splash`) |
 
 Godot's own `--time-scale 3` (before `--`) speeds a mission or race up for screenshots, and
 `--fixed-fps 60` makes runs repeatable frame by frame.

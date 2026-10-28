@@ -86,6 +86,13 @@ var data: Dictionary
 ## flow, what reflects, bridge-deck heights; the ground shader and the post pass read it.
 @export_storage var water_texture: ImageTexture
 @export_storage var water_rect := Vector4(0, 0, 1, 1)
+## Loop 10a: the surface map's shore distance (its R channel: a quarter metre per step inside
+## water, 0 on dry land), one byte per texel, kept on the CPU for the car's water test
+## (`shore_distance`); stored zstd-packed so the prebuilt city carries it too (the export
+## leaves water.bin out), unpacked on first use.
+@export_storage var _shore_zip := PackedByteArray()
+@export_storage var _shore_size := Vector2i.ZERO
+var _shore := PackedByteArray()
 var _light_image: Image
 ## Lamps the light bake added where OpenStreetMap maps none (the bridges): x, z, yaw.
 var _extra_lamps := PackedFloat32Array()
@@ -175,6 +182,7 @@ func build(path: String, building_mat: ShaderMaterial, flat_mat: ShaderMaterial)
 	_build_medians(flat)
 	_drape_bias = 0.36
 	_build_kerbs(flat)
+	_build_shore_stone(flat)
 	_drape_bias = 0.38
 	_build_markings(flat)
 	_build_symbols(flat)
@@ -261,6 +269,12 @@ func _load_water(material: Material) -> void:
 	var image := Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, bytes.slice(20, 20 + w * h * 4))
 	water_texture = ImageTexture.create_from_image(image)
 	water_rect = Vector4(x0, z0, w * px, h * px)
+	# Loop 10a: the R channel alone, for the car's water test (the convert keeps red).
+	var red := image.duplicate() as Image
+	red.convert(Image.FORMAT_R8)
+	_shore = red.get_data()
+	_shore_size = Vector2i(w, h)
+	_shore_zip = _shore.compress(FileAccess.COMPRESSION_ZSTD)
 	if material is ShaderMaterial:
 		(material as ShaderMaterial).set_shader_parameter("surface_map", water_texture)
 		(material as ShaderMaterial).set_shader_parameter("surface_rect", water_rect)
@@ -360,6 +374,67 @@ func drive_height(x: float, z: float, near_y: float) -> float:
 	for d in _decks_at(x, z):
 		if d <= near_y + 1.2 and d > best:
 			best = d
+	return best
+
+
+## Loop 10a: how far into the water (river, pond or fountain) a point lies, in metres from
+## the nearest dry texel, interpolated between the 2 m texels' centres; 0 on dry land and
+## off the map. Four byte reads: cheap enough for the car every frame.
+func shore_distance(x: float, z: float) -> float:
+	if _shore.is_empty():
+		if _shore_zip.is_empty():
+			return 0.0
+		_shore = _shore_zip.decompress(_shore_size.x * _shore_size.y, FileAccess.COMPRESSION_ZSTD)
+	var px := water_rect.z / maxf(_shore_size.x, 1)
+	var fx := (x - water_rect.x) / px - 0.5
+	var fz := (z - water_rect.y) / px - 0.5
+	var i := floori(fx)
+	var j := floori(fz)
+	if i < 0 or j < 0 or i >= _shore_size.x - 1 or j >= _shore_size.y - 1:
+		return 0.0
+	var k := j * _shore_size.x + i
+	var u := fx - i
+	var near := lerpf(_shore[k], _shore[k + 1], u)
+	var far := lerpf(_shore[k + _shore_size.x], _shore[k + _shore_size.x + 1], u)
+	return lerpf(near, far, fz - j) * 0.25
+
+
+## Loop 10a: how far past the water's edge a vehicle's centre must be to count as in the water
+## (metres, from shore_distance). The first water texel's centre lies 0-2 m past the mapped
+## edge, so this is ~1-2.5 m in: a car stopped by the shore edge (its centre a metre or two
+## inland) never counts, a car that rolled in does.
+const WET := 2.5
+
+
+## Loop 10a: a vehicle at height y over (x, z) is in the water: well past the water's edge
+## and down at the water's level (a bridge deck over the river is not the water).
+func in_water(x: float, z: float, y: float) -> bool:
+	return shore_distance(x, z) >= WET and y < terrain_height(x, z) + 0.5
+
+
+## Loop 10a: the nearest dry point to (x, z) inside the edge walls (the point itself when it
+## is dry): 72 rays out, each jumping ahead by the water's own distance to the shore (shore
+## distance is a distance field: a few hundred lookups even from mid-river).
+func nearest_dry(x: float, z: float) -> Vector2:
+	var p := Vector2(x, z)
+	if shore_distance(x, z) == 0.0:
+		return p
+	var inner := bounds.grow(-6.0)
+	var best := p
+	var best_r := 800.0
+	for k in 72:
+		var d := Vector2.from_angle(TAU * k / 72.0)
+		var r := 0.0
+		while r < best_r:
+			var q := p + d * r
+			if not inner.has_point(q):
+				break
+			var w := shore_distance(q.x, q.y)
+			if w == 0.0:
+				best_r = r
+				best = q
+				break
+			r += maxf(w - 2.0, 1.0)
 	return best
 
 
@@ -1293,18 +1368,232 @@ func _build_guard_rails(st) -> void:
 	_uv2 = Vector2.ZERO
 
 
-## The river's and ponds' edges stop the car (bridges and roads along the water are
-## left open by the bake).
-func _build_shore() -> void:
+## Loop 10a: the water's edge, a low granite edge the car can see and can't cross (until
+## loop 10a it was an invisible wall along the bake's runs only).
+## Where: the bake's `shore` runs (the river's and ponds' edges); the stretches the bake left
+## open within 6 m of a bridge deck, wherever the deck over them is at least SHORE_CLEAR up (a
+## car on the boulevard under a bridge drove straight into the river there: 9 places, ~210 m),
+## plus two short gaps (a road ending at a canal, a seam between two runs); and round every
+## fountain (they had no edge at all: 35 places a car drove into). The map's rim stays open:
+## the edge walls close it.
+## How: the stone is drawn like the kerbs, into the ground's mesh (its material and tiles: no
+## draw call, no shadow; under a metre tall), SHORE_UP over the ground on the water's side of
+## the line, so the car's bumper meets its face, laid on the ground like the kerbs. The
+## collider stands on the line, SHORE_WALL over the ground (under any deck above it), in pieces
+## of at most SHORE_PIECE with the ground's height at each end.
+const SHORE_W := 0.5
+const SHORE_UP := 0.45
+const SHORE_WALL := 3.0
+const SHORE_PIECE := 2.0
+const SHORE_CLEAR := 3.2
+const SHORE_TOP := Color("#c9c4b8")
+const SHORE_FACE := Color("#8d8a83")
+## The runs, each [polyline, water side (+1 left, -1 right)], found once for the stone and the
+## collider.
+var _shore_lines: Array = []
+
+
+## The runs of the water's edge (see above): the stone goes into the ground's mesh `st`.
+func _build_shore_stone(st) -> void:
+	_shore_lines.clear()
+	var runs: Array[PackedVector2Array] = []
 	for sh in data.get("shore", []):
-		var poly := _pts(sh["p"])
+		runs.append(_pts(sh["p"]))
+	var baked := runs.size()
+	runs.append_array(_shore_under_decks(runs))
+	for poly in runs:
+		_shore_lines.append([poly, _water_side(poly)])
+	var fountains := 0
+	for s in data.get("surfaces", []):
+		if s["k"] != "fountain":
+			continue
+		var ring := _pts(s["p"])
+		if ring.size() < 3:
+			continue
+		ring.append(ring[0])
+		# The water is inside the ring: on the left of its way round if it runs anticlockwise
+		# (a positive area here).
+		_shore_lines.append([ring, 1.0 if _ring_area(ring) > 0.0 else -1.0])
+		fountains += 1
+	var length := 0.0
+	var layer := _layer
+	_layer = L_ISLAND
+	for line in _shore_lines:
+		length += _shore_edge(st, line[0], line[1])
+	_layer = layer
+	print("shore: %d baked runs, %d more by bridges, %d fountains, %.1f km of edge" % [baked, runs.size() - baked,
+			fountains, length / 1000.0])
+
+
+## The colliders along the runs _build_shore_stone found.
+func _build_shore() -> void:
+	for line in _shore_lines:
+		var poly: PackedVector2Array = line[0]
 		for i in poly.size() - 1:
 			var a := poly[i]
 			var b := poly[i + 1]
-			var ga := terrain_height(a.x, a.y)
-			var gb := terrain_height(b.x, b.y)
-			_wall_faces.append_array([Vector3(a.x, ga - 1.0, a.y), Vector3(b.x, gb - 1.0, b.y), Vector3(b.x, gb + 3.0, b.y),
-					Vector3(a.x, ga - 1.0, a.y), Vector3(b.x, gb + 3.0, b.y), Vector3(a.x, ga + 3.0, a.y)])
+			var pieces := maxi(1, ceili(a.distance_to(b) / SHORE_PIECE))
+			for k in pieces:
+				var p0 := a.lerp(b, float(k) / pieces)
+				var p1 := a.lerp(b, float(k + 1) / pieces)
+				var g0 := terrain_height(p0.x, p0.y)
+				var g1 := terrain_height(p1.x, p1.y)
+				var h0 := _shore_wall_top(p0, g0)
+				var h1 := _shore_wall_top(p1, g1)
+				_wall_faces.append_array([Vector3(p0.x, g0 - 1.0, p0.y), Vector3(p1.x, g1 - 1.0, p1.y), Vector3(p1.x, h1, p1.y),
+						Vector3(p0.x, g0 - 1.0, p0.y), Vector3(p1.x, h1, p1.y), Vector3(p0.x, h0, p0.y)])
+
+
+## Which side of a run the water is on: +1 left (the side Vector2(-d.y, d.x) points to), -1
+## right; by the surface map a metre and a half either side of each segment.
+func _water_side(poly: PackedVector2Array) -> float:
+	var vote := 0.0
+	for i in poly.size() - 1:
+		var d := poly[i + 1] - poly[i]
+		if d.length() < 0.05:
+			continue
+		var m := (poly[i] + poly[i + 1]) * 0.5
+		var left := Vector2(-d.y, d.x).normalized() * 1.5
+		vote += (shore_distance(m.x + left.x, m.y + left.y) - shore_distance(m.x - left.x, m.y - left.y)) * d.length()
+	return 1.0 if vote >= 0.0 else -1.0
+
+
+## The edge stone along one run, draped on the ground (the caller sets the drape bias and the
+## layer); returns its length.
+func _shore_edge(st, poly: PackedVector2Array, side: float) -> float:
+	var n := poly.size()
+	if n < 2:
+		return 0.0
+	# Mitred offsets towards the water at every point, so the stone keeps its width round bends.
+	var off := PackedVector2Array()
+	off.resize(n)
+	var closed := poly[0].distance_to(poly[n - 1]) < 0.05
+	for i in n:
+		var prev := i - 1 if i > 0 else (n - 2 if closed else -1)
+		var next := i + 1 if i < n - 1 else (1 if closed else -1)
+		var na := Vector2.ZERO
+		var nb := Vector2.ZERO
+		if prev >= 0 and poly[i].distance_to(poly[prev]) > 0.01:
+			var d := (poly[i] - poly[prev]).normalized()
+			na = Vector2(-d.y, d.x)
+		if next >= 0 and poly[next].distance_to(poly[i]) > 0.01:
+			var d := (poly[next] - poly[i]).normalized()
+			nb = Vector2(-d.y, d.x)
+		var m := na + nb
+		if m.length() < 0.01:
+			m = na if na != Vector2.ZERO else nb
+		m = m.normalized()
+		var cos_half := maxf(m.dot(nb if nb != Vector2.ZERO else na), 0.4)
+		off[i] = m * (SHORE_W * side / cos_half)
+	var length := 0.0
+	for i in n - 1:
+		var a := poly[i]
+		var b := poly[i + 1]
+		var seg := a.distance_to(b)
+		if seg < 0.05:
+			continue
+		length += seg
+		var dir := (b - a) / seg
+		var land := Vector2(-dir.y, dir.x) * -side
+		# One piece per segment: the drape lays it on the ground in pieces of the terrain grid.
+		var qa := a + off[i]
+		var qb := b + off[i + 1]
+		_quad(st, Vector3(a.x, SHORE_UP, a.y), Vector3(b.x, SHORE_UP, b.y), Vector3(qb.x, SHORE_UP, qb.y),
+				Vector3(qa.x, SHORE_UP, qa.y), Vector3.UP, SHORE_TOP)
+		_draped_wall(st, a, b, 0.0, SHORE_UP, land, SHORE_FACE)
+		_draped_wall(st, qa, qb, 0.0, SHORE_UP, -land, SHORE_FACE.darkened(0.12))
+		if i == 0 and not closed:
+			_draped_wall(st, a, a + off[0], 0.0, SHORE_UP, -dir, SHORE_FACE)
+		if i == n - 2 and not closed:
+			_draped_wall(st, b, b + off[n - 1], 0.0, SHORE_UP, dir, SHORE_FACE)
+	return length
+
+
+## The shore collider's top at a point: SHORE_WALL over the ground, or under the lowest deck
+## over it (a car on the deck must never touch it).
+func _shore_wall_top(p: Vector2, g: float) -> float:
+	var top := g + SHORE_WALL
+	for d in _decks_at(p.x, p.y):
+		if d > g:
+			top = minf(top, d - 1.4)
+	return maxf(top, g + 1.6)
+
+
+## The water's edge the bake left open near bridge decks (and in a few short gaps), where the
+## deck over it is high enough to drive under: runs of points a metre apart, each run reaching
+## a metre into the baked edge on both ends. Not at the map's rim (the edge walls close it).
+func _shore_under_decks(baked: Array[PackedVector2Array]) -> Array[PackedVector2Array]:
+	const CELL := 8.0
+	var grid := {}
+	for poly in baked:
+		for i in poly.size() - 1:
+			var lo := poly[i].min(poly[i + 1]) - Vector2.ONE
+			var hi := poly[i].max(poly[i + 1]) + Vector2.ONE
+			for cz in range(floori(lo.y / CELL), floori(hi.y / CELL) + 1):
+				for cx in range(floori(lo.x / CELL), floori(hi.x / CELL) + 1):
+					var key := Vector2i(cx, cz)
+					var list: PackedVector2Array = grid.get(key, PackedVector2Array())
+					list.append_array(PackedVector2Array([poly[i], poly[i + 1]]))
+					grid[key] = list
+	var inner := bounds.grow(-1.0)
+	var out: Array[PackedVector2Array] = []
+	for a in data["areas"]:
+		if a["k"] != "water":
+			continue
+		var ring := _pts(a["p"])
+		var samples := PackedVector2Array()
+		for i in ring.size():
+			var p := ring[i]
+			var q := ring[(i + 1) % ring.size()]
+			var steps := maxi(1, ceili(p.distance_to(q)))
+			for k in steps:
+				samples.append(p.lerp(q, float(k) / steps))
+		# open[k]: wall this sample (not covered, not the rim, nothing low overhead).
+		var open := PackedByteArray()
+		open.resize(samples.size())
+		var start := -1
+		for k in samples.size():
+			var p := samples[k]
+			var want := inner.has_point(p) and not _near_segments(grid, CELL, p, 0.75)
+			if want:
+				var g := terrain_height(p.x, p.y)
+				for d in _decks_at(p.x, p.y):
+					if d > g - 0.5 and d < g + SHORE_CLEAR:
+						want = false
+			open[k] = 1 if want else 0
+			if not want and start < 0:
+				start = k
+		if start < 0:
+			# Nothing baked round this water at all: the whole ring.
+			ring.append(ring[0])
+			out.append(ring)
+			continue
+		var run := PackedVector2Array()
+		var count := samples.size()
+		for j in count + 1:
+			var k := (start + j) % count
+			if open[k] == 1:
+				if run.is_empty():
+					run.append(samples[(k - 1 + count) % count])
+				run.append(samples[k])
+			elif not run.is_empty():
+				run.append(samples[k])
+				if run.size() >= 3:
+					out.append(run)
+				run = PackedVector2Array()
+	return out
+
+
+static func _near_segments(grid: Dictionary, cell: float, p: Vector2, reach: float) -> bool:
+	var segs: PackedVector2Array = grid.get(Vector2i(floori(p.x / cell), floori(p.y / cell)), PackedVector2Array())
+	for i in range(0, segs.size(), 2):
+		var a := segs[i]
+		var ab := segs[i + 1] - a
+		var l2 := ab.length_squared()
+		var t := clampf((p - a).dot(ab) / l2, 0.0, 1.0) if l2 > 0.000001 else 0.0
+		if p.distance_to(a + ab * t) < reach:
+			return true
+	return false
 
 
 func _box_oriented(st, centre: Vector3, basis: Basis, size: Vector3, col: Color) -> void:

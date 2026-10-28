@@ -87,6 +87,8 @@ var _overlay: Control
 var _pill: Button
 var _toast: Label
 var _toast_left := 0.0
+## Loop 10a: a toast's English gloss, smaller, under its Polish line.
+var _toast_gloss: Label
 ## TIME / RADIO / VHS, and the main top bar they sit beside.
 var _bar: HBoxContainer
 var _extras: HBoxContainer
@@ -268,6 +270,14 @@ func _ready() -> void:
 	_toast.position.y -= 34 * ui
 	_toast.visible = false
 	add_child(_toast)
+	_toast_gloss = _label(13, Color("#c9c2d8"))
+	_toast_gloss.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_toast_gloss.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_toast_gloss.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_toast_gloss.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_toast_gloss.position.y -= 34 * ui
+	_toast_gloss.visible = false
+	add_child(_toast_gloss)
 	_build_ticker()
 	_build_mission_panels()
 	_build_wallet()
@@ -776,10 +786,16 @@ func set_minimap_dots(points: PackedVector2Array, colours: PackedColorArray) -> 
 
 
 ## A short message near the bottom of the screen that fades after a few seconds.
-func toast(text: String) -> void:
+## A short line at the bottom for 3 s. Loop 10a: with `gloss`, the Polish line sits above its
+## English gloss (smaller, the sub-text colour).
+func toast(text: String, gloss := "") -> void:
 	_toast.text = text
 	_toast.visible = true
 	_toast_left = 3.0
+	_toast_gloss.text = gloss
+	_toast_gloss.visible = gloss != ""
+	_toast.offset_bottom = _toast_gloss.offset_bottom - (_toast_gloss.get_combined_minimum_size().y if gloss != "" else 0.0)
+	_toast.offset_top = _toast.offset_bottom - _toast.get_combined_minimum_size().y
 
 
 func _process(dt: float) -> void:
@@ -793,6 +809,8 @@ func _frame(dt: float) -> void:
 		_toast_left -= dt
 		_toast.modulate.a = clampf(_toast_left / 0.6, 0.0, 1.0)
 		_toast.visible = _toast_left > 0.0
+		_toast_gloss.modulate.a = _toast.modulate.a
+		_toast_gloss.visible = _toast.visible and _toast_gloss.text != ""
 	if _ticker_left > 0.0:
 		_ticker_left -= dt
 		# Slide in over the first 0.3 s, out over the last 0.4 s.

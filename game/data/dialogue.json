@@ -1,5 +1,5 @@
 {
-  "_about": "Original lines for Nocna Warszawa: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters.",
+  "_about": "Original lines for Nocna Warszawa: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters.",
   "radio_host": [
     [
       "Radio Nocna Warszawa, 87,3. Na Marszałkowskiej znowu remont. Czyli wszystko po staremu.",
@@ -467,6 +467,34 @@
     [
       "Barierka pozdrawia. Zostaje z nami do 2031.",
       "The barrier says hi. It's staying with us until 2031."
+    ]
+  ],
+  "water_tow": [
+    [
+      "Wisła nie jest drogą krajową.",
+      "The Vistula is not a national road.",
+      {
+        "only": "river"
+      }
+    ],
+    [
+      "Pomoc drogowa, nie wodna. Ale dla ciebie zrobimy wyjątek.",
+      "Roadside assistance, not riverside. But for you we'll make an exception."
+    ],
+    [
+      "Mycie podwozia gratis. Holowanie też.",
+      "Free underbody wash. The tow is on us too."
+    ],
+    [
+      "Ryby złożyły skargę na hałas.",
+      "The fish have filed a noise complaint."
+    ],
+    [
+      "Kaczki mówią, że tu nie ma miejsc parkingowych.",
+      "The ducks say there is no parking here.",
+      {
+        "only": "pond"
+      }
     ]
   ],
   "column_posters": [

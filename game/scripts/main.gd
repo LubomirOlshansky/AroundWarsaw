@@ -26,6 +26,8 @@ extends Node
 ## normal|busy (or 0-3), --settings opens the settings panel, --stick=X,Y holds the stick at
 ## that deflection and --pedal=gas|brake a pedal (screenshots, replays in the real city),
 ## --clicks=X:Y:F,... clicks and --drag=X:Y:F:DX:DY:F2 drags a finger through the real input path.
+## Loop 10a: --drive-into-water=X,Z starts the car there and drives it flat out into the nearest
+## water as if it had jumped the edge (the splash and the tow, printed as `water:` lines).
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
@@ -52,6 +54,7 @@ const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
 const Settings := preload("res://scripts/settings.gd")
 const BenchStats := preload("res://scripts/bench.gd")
+const Splash := preload("res://scripts/splash.gd")
 const MAP_PATH := "res://map/centrum.json"
 const CITY_SCENE := "res://map/city.scn"
 
@@ -255,6 +258,26 @@ var _clock_minute := -1
 var sound_check := false
 var _meters := {"Master": 0.0, "Music": 0.0, "SFX": 0.0, "Ambience": 0.0}
 var _meter_top := {"Master": -200.0, "Music": -200.0, "SFX": -200.0, "Ambience": -200.0}
+## Loop 10a: the river is off-limits. The car that still gets into the water (a glitch, a gap
+## nobody found) splashes, settles, and after TOW_DELAY s the tow puts it back on the nearest
+## lane on dry land, with a line from dialogue.json's water_tow; no money taken, whatever was
+## running (a rescue, a delivery, a race) carries on.
+const TOW_DELAY := 1.0
+var splash: Splash
+## Seconds left until the tow (< 0: no tow waiting); when the car went in (the clock, s).
+var _tow_wait := -1.0
+var _splash_at := 0.0
+var _clock := 0.0
+## Where the car last was on dry land or a deck (the tow goes back to that level), INF: never.
+var _last_dry := Vector3.INF
+var _last_dry_yaw := 0.0
+## --drive-into-water=X,Z (testing aid): 0 off, 1 driving at the water with its collision off
+## (as if it had jumped the edge), 2 collision back on past the edge, 3 splashed, 4 towed.
+var water_test := 0
+var _water_test_at := Vector2.INF
+## The river's outlines (water bodies of 20,000 m² or more, as tools/bake_water.py counts it):
+## which tow lines fit.
+var _rivers: Array[PackedVector2Array] = []
 
 
 func _ready() -> void:
@@ -382,15 +405,28 @@ func _build_world() -> void:
 		building_mat = map.building_material
 		flat_mat = map.flat_material
 		data = JSON.parse_string(FileAccess.get_file_as_string(MAP_PATH))
+		# Loop 10a: the map's rectangle isn't stored in the scene (the water tow's searches use it).
+		var mb: Array = data["bounds"]
+		map.bounds = Rect2(mb[0], mb[1], mb[2] - mb[0], mb[3] - mb[1])
 	else:
 		map = MapBuilder.new()
 		world.add_child(map)
 		data = map.build(MAP_PATH, building_mat, flat_mat)
 
+	for a in data["areas"]:
+		if a["k"] == "water":
+			var ring := PackedVector2Array()
+			var flat: Array = a["p"]
+			for k in range(0, flat.size() - 1, 2):
+				ring.append(Vector2(flat[k], flat[k + 1]))
+			if absf(MapBuilder._ring_area(ring)) >= 20000.0:
+				_rivers.append(ring)
 	car = Car.new()
 	car.ground_height = map.drive_height
 	world.add_child(car)
 	car.stuck.connect(_on_car_stuck)
+	car.water_at = map.in_water
+	car.splashed.connect(_on_car_splashed)
 	var spawn: Dictionary = data["spawn"]
 	car.global_position = Vector3(spawn["x"], 0.0, spawn["z"])
 	car.rotation.y = spawn["yaw"]
@@ -407,6 +443,8 @@ func _build_world() -> void:
 	skids.ground_height = func(x: float, z: float) -> float: return map.drive_height(x, z, car.global_position.y)
 	skids.material_override = flat_mat
 	world.add_child(skids)
+	splash = Splash.new()
+	world.add_child(splash)
 
 	heli = Heli.new()
 	heli.ground_height = map.ground_height
@@ -522,6 +560,8 @@ func _build_world() -> void:
 		elif autopilot:
 			rivals.tail = i
 
+	if _water_test_at != Vector2.INF:
+		_start_water_test()
 	_build_sound(data, world)
 	_set_quality(quality)
 	get_tree().root.size_changed.connect(_apply_style)
@@ -993,13 +1033,17 @@ func _parse_args() -> void:
 				d.append(int(v))
 			if d.size() == 6:
 				drags.append(d)
+		elif arg.begins_with("--drive-into-water="):
+			var wz := arg.trim_prefix("--drive-into-water=").split(",")
+			_water_test_at = Vector2(float(wz[0]), float(wz[1]))
 		elif arg.begins_with("--clicks="):
 			for c in arg.trim_prefix("--clicks=").split(","):
 				var xyf := c.split(":")
 				clicks.append(Vector3i(int(xyf[0]), int(xyf[1]), int(xyf[2])))
 	# Test runs go straight to the city (--title brings the title screen back).
 	if demo or not shots.is_empty() or autopilot or start_race > 0 or start_mission > 0 or start_rival > 0 or bench or probe \
-			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or hold_stick != Vector2.INF or bench_button:
+			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or hold_stick != Vector2.INF or bench_button \
+			or _water_test_at != Vector2.INF:
 		show_title = false
 	if force_title:
 		show_title = true
@@ -1187,28 +1231,15 @@ func _on_setting(key: String, value: Variant) -> void:
 ## Loop 2a: the car was pinned against something twice in a few seconds (car.gd): put it on
 ## the nearest free spot.
 func _on_car_stuck() -> void:
-	if flying or autopilot:
+	if flying or autopilot or car.in_water:
 		return
 	# Back onto the nearest lane, facing its way (else just the nearest free spot).
 	var at := car.global_position
 	var yaw := car.rotation.y
-	if graph != null:
-		var p := Vector2(at.x, at.z)
-		# A lane the car's way first, then any; on the car's level (not a deck overhead or a
-		# road under the bridge it is on).
-		for heading in [Vector2(-sin(yaw), -cos(yaw)), Vector2.ZERO]:
-			var hit := graph.snap(p, 80.0, heading)
-			if hit.is_empty():
-				continue
-			var e: int = hit[0]
-			var lane_s: float = hit[2]
-			if absf(graph.height(e, lane_s) - at.y) > 4.0:
-				continue
-			var q := graph.point_at(e, lane_s, graph.lane_offset(e, hit[1]))
-			var d := graph.direction(e, lane_s)
-			at = Vector3(q.x, graph.height(e, lane_s), q.y)
-			yaw = atan2(-d.x, -d.y)
-			break
+	var lane := _lane_spot(at, yaw)
+	if not lane.is_empty():
+		at = lane[0]
+		yaw = lane[1]
 	var spot := _free_car_spot(at, yaw)
 	car.global_position = spot
 	car.rotation.y = yaw
@@ -1217,6 +1248,200 @@ func _on_car_stuck() -> void:
 	car.reset_physics_interpolation()
 	hud.toast("Pomoc drogowa: wyciągnięci! · Towed free")
 	print("car stuck: moved to %.1f, %.1f" % [spot.x, spot.z])
+
+
+## The nearest lane to `at` on its level (not a deck overhead, nor a road under the bridge it is
+## on), a lane the car's way first, then any: [position, yaw], or [] when there is none within
+## the lane graph's reach. Loop 2a's tow; loop 10a shares it with the tow out of the water,
+## never gives a lane point in the water, and takes "its level" as the ground (any lane on the
+## terrain: the river's bank is metres below the roads above it) or, on a deck, within 4 m.
+func _lane_spot(at: Vector3, yaw: float) -> Array:
+	if graph == null:
+		return []
+	var p := Vector2(at.x, at.z)
+	for heading in [Vector2(-sin(yaw), -cos(yaw)), Vector2.ZERO]:
+		var hit := graph.snap(p, 80.0, heading)
+		if hit.is_empty():
+			continue
+		var e: int = hit[0]
+		var lane_s: float = hit[2]
+		var h := graph.height(e, lane_s)
+		var q := graph.point_at(e, lane_s, graph.lane_offset(e, hit[1]))
+		if not _same_level(at, q, h) or map.in_water(q.x, q.y, h):
+			continue
+		var d := graph.direction(e, lane_s)
+		return [Vector3(q.x, h, q.y), atan2(-d.x, -d.y)]
+	return []
+
+
+## Loop 10a: the lane nearest to `at` anywhere on the map, on its level and inside the edge
+## walls, from the lane graph's junctions (the start of each lane out of one): [position, yaw],
+## or [] (no graph). For a tow from far out in the water or a wide beach, where no lane is
+## within the lane graph's snapping reach.
+func _node_spot(at: Vector3) -> Array:
+	if graph == null:
+		return []
+	var inner: Rect2 = map.bounds.grow(-12.0)
+	var best: Array = []
+	var best_d := INF
+	for n in graph.node_pos.size():
+		var d := graph.node_pos[n].distance_squared_to(Vector2(at.x, at.z))
+		if d >= best_d or graph.node_scc[n] == 0:
+			continue
+		for e in graph.node_out[n]:
+			var s := graph.e_s0[e]
+			var q := graph.point_at(e, s, graph.lane_offset(e, 0))
+			var h := graph.height(e, s)
+			if not inner.has_point(q) or not _same_level(at, q, h) or map.in_water(q.x, q.y, h):
+				continue
+			var dir := graph.direction(e, s)
+			best = [Vector3(q.x, h, q.y), atan2(-dir.x, -dir.y)]
+			best_d = d
+			break
+	return best
+
+
+## Loop 10a: a lane point q at height h is on the level of `at`: both on the ground (the
+## terrain, however high), or within 4 m of each other on a deck.
+func _same_level(at: Vector3, q: Vector2, h: float) -> bool:
+	if at.y < map.terrain_height(at.x, at.z) + 0.5:
+		return h < map.terrain_height(q.x, q.y) + 1.0
+	return absf(h - at.y) <= 4.0
+
+
+## Loop 10a: keeps where the car last stood on dry land or a deck (the tow goes back to that
+## level), and tows it out TOW_DELAY s after a splash.
+func _water_frame(dt: float) -> void:
+	_clock += dt
+	if car.in_water:
+		if _tow_wait > 0.0:
+			_tow_wait -= dt
+			if _tow_wait <= 0.0:
+				_tow_out_of_water()
+	elif not flying and car.collision_mask != 0:
+		_last_dry = car.global_position
+		_last_dry_yaw = car.rotation.y
+
+
+## Loop 10a: the car rolled into the water (car.splashed): the splash, its sound and a buzz,
+## and the tow on its way.
+func _on_car_splashed(speed: float) -> void:
+	var p := car.global_position
+	splash.burst(p, speed, car.vel)
+	if sfx != null:
+		sfx.splash(speed)
+	Input.vibrate_handheld(80, clampf(speed / 15.0, 0.4, 1.0))
+	_tow_wait = TOW_DELAY
+	_splash_at = _clock
+	if water_test == 2:
+		water_test = 3
+	print("water: splash at %.1f, %.1f at %d km/h (%s), frame %d" % [p.x, p.z, roundi(speed * 3.6), _water_kind(p), frame])
+
+
+## Loop 10a: the tow lifts the car out of the water onto the nearest lane on dry land (back
+## on the level it came from), with a line from the tow crew. Nothing else changes: no money,
+## no fail; a rescue, a delivery or a race carries on.
+func _tow_out_of_water() -> void:
+	_tow_wait = -1.0
+	var at := car.global_position
+	var spot := _water_tow_spot(at, _last_dry, _last_dry_yaw)
+	var where: Vector3 = spot[0]
+	car.global_position = where
+	car.rotation.y = spot[1]
+	car.leave_water()
+	car.reset_physics_interpolation()
+	cam_focus = where
+	controls.reset_lead(car.vel)
+	var kind := _water_kind(at)
+	var l: Array = dialogue.line("water_tow", kind) if dialogue != null else []
+	if l.size() < 2:
+		l = ["Pomoc drogowa: wyciągnięci z wody!", "Roadside assistance: out of the water!"]
+	hud.toast(l[0], l[1])
+	var lane_off := -1.0
+	if graph != null:
+		var hit := graph.snap(Vector2(where.x, where.z), 8.0)
+		if not hit.is_empty():
+			lane_off = graph.point_at(hit[0], hit[2], graph.lane_offset(hit[0], hit[1])).distance_to(Vector2(where.x, where.z))
+	print("water: towed after %.2f s from %.0f, %.0f to %.1f, %.1f, %.0f m away, %s from a lane, %s; %s, frame %d · %s" % [
+			_clock - _splash_at, at.x, at.z, where.x, where.z, Vector2(at.x, at.z).distance_to(Vector2(where.x, where.z)),
+			("%.1f m" % lane_off) if lane_off >= 0.0 else "far", "dry" if map.shore_distance(where.x, where.z) == 0.0 else "WET",
+			_activity(), frame, l[0]])
+	if water_test == 3:
+		water_test = 4
+
+
+## Loop 10a: where the tow puts a car that is in the water at `at`: the nearest lane to where it
+## last was on dry land or a deck (`from`, on that level), else the lane nearest to the nearest
+## dry land, else the nearest junction; then the free spot there (never in the water).
+## [position, yaw].
+func _water_tow_spot(at: Vector3, from: Vector3, yaw: float) -> Array:
+	var ref := from
+	if ref == Vector3.INF or Vector2(ref.x, ref.z).distance_to(Vector2(at.x, at.z)) > 150.0:
+		var dry: Vector2 = map.nearest_dry(at.x, at.z)
+		ref = Vector3(dry.x, map.terrain_height(dry.x, dry.y), dry.y)
+	var spot := _lane_spot(ref, yaw)
+	if spot.is_empty():
+		spot = _node_spot(ref)
+	if spot.is_empty():
+		spot = [ref, yaw]
+	return [_free_car_spot(spot[0], spot[1]), spot[1]]
+
+
+## Loop 10a: "river" or "pond" (which tow lines fit).
+func _water_kind(p: Vector3) -> String:
+	for r in _rivers:
+		if Geometry2D.is_point_in_polygon(Vector2(p.x, p.z), r):
+			return "river"
+	return "pond"
+
+
+## Loop 10a: what is running, for the water test's lines.
+func _activity() -> String:
+	return "job %s, rescue %s, race %s, wallet %d zł" % ["on" if jobs != null and jobs.busy() else "none",
+			"on" if missions.has_target() else "none", "on" if rivals != null and rivals.racing() else "none", wallet.zl]
+
+
+## Loop 10a, --drive-into-water=X,Z: the car at X,Z, facing the nearest water at least 4 m past
+## its edge (within 120 m), flat out, its collision off as if it had jumped the edge (a ramp, a
+## glitch); the collision comes back on 3 m past the edge, and the splash and the tow follow.
+func _start_water_test() -> void:
+	var p := _water_test_at
+	var best := Vector2.ZERO
+	var best_r := 120.0
+	for k in 72:
+		var d := Vector2.from_angle(TAU * k / 72.0)
+		var r := 2.0
+		while r < best_r:
+			var q := p + d * r
+			if map.shore_distance(q.x, q.y) >= 4.0:
+				best_r = r
+				best = d
+				break
+			r += 1.0
+	if best == Vector2.ZERO:
+		print("water test: no water within 120 m of %.0f, %.0f" % [p.x, p.y])
+		return
+	car.global_position = Vector3(p.x, map.drive_height(p.x, p.y, map.terrain_height(p.x, p.y)), p.y)
+	car.rotation.y = atan2(-best.x, -best.y)
+	car.vel = Vector3.ZERO
+	car.reset_physics_interpolation()
+	car.collision_mask = 0
+	cam_focus = car.global_position
+	water_test = 1
+	print("water test: from %.0f, %.0f towards the water %.0f m away (heading %03.0f°); %s" % [p.x, p.y, best_r,
+			fposmod(rad_to_deg(atan2(best.x, -best.y)), 360.0), _activity()])
+
+
+## Loop 10a: the water test drives flat out, straight on; collision back on past the edge.
+func _water_test_frame() -> void:
+	car.target_dir = Vector3.ZERO
+	car.steer = 0.0
+	car.throttle = 1.0
+	car.braking = false
+	var p := car.global_position
+	if water_test == 1 and map.shore_distance(p.x, p.z) >= 3.0:
+		car.collision_mask = 1
+		water_test = 2
 
 
 ## While the game is paused (settings) main.gd doesn't process: the frame count and the
@@ -1288,6 +1513,7 @@ func _process(dt: float) -> void:
 	if bench or probe:
 		_bench_frame()
 	_read_input(dt)
+	_water_frame(dt)
 	if autopilot or _bench_ghost != null:
 		_autopilot(dt)
 	_update_camera(dt)
@@ -1710,6 +1936,8 @@ func _read_input(dt: float) -> void:
 		car.target_dir = Vector3.ZERO
 		car.throttle = 0.8
 		car.steer = 0.0 if frame < 200 else 0.5 * sin(frame * 0.02)
+	if water_test == 1 or water_test == 2:
+		_water_test_frame()
 
 
 ## The stick and W A S D both point in screen space (W is up the screen); Space /
@@ -1799,6 +2027,8 @@ func _toggle_vehicle() -> void:
 	if jobs != null and jobs.busy() and not flying:
 		hud.toast("Finish the job first: it rides in the car")
 		return
+	if not flying and car.in_water:
+		return  # loop 10a: the tow is on its way
 	if not flying:
 		_take_off(Heli.CRUISE)
 		hud.toast("Helicopter: steer with the stick, ▲ ▼ (Space / Shift) for height")
@@ -1807,12 +2037,24 @@ func _toggle_vehicle() -> void:
 		heli.landing = false
 		hud.toast("Landing cancelled")
 		return
-	var p: Vector3 = heli.global_position
-	if map.top_height(p.x, p.z, Heli.RADIUS) > map.ground_height(p.x, p.z) + 1.0:
-		hud.toast("Land on open ground to take the car")
+	var why := _landing_problem(heli.global_position)
+	if not why.is_empty():
+		hud.toast(why[0], why[1])
 		return
 	heli.landing = true
 	hud.toast("Landing…")
+
+
+## Why the helicopter can't come down at `p` to give the car back: [] if it can, else the toast
+## [text, gloss]. Over a roof (v0.5), or, loop 10a, over the water (the car would come back in
+## the river; a bridge deck over it is fine, and so is the shallow first metres by the bank:
+## the car is put on dry ground next to it).
+func _landing_problem(p: Vector3) -> Array:
+	if map.top_height(p.x, p.z, Heli.RADIUS) > map.ground_height(p.x, p.z) + 1.0:
+		return ["Land on open ground to take the car", ""]
+	if map.in_water(p.x, p.z, map.ground_height(p.x, p.z)):
+		return ["Tu nie wylądujesz: to woda. Szukaj brzegu.", "No landing on the water: find the bank."]
+	return []
 
 
 ## The helicopter starts just above the car and rises to `height` above the ground.
@@ -1846,7 +2088,9 @@ func _set_flying(on: bool) -> void:
 
 
 ## The nearest spot to `p` where the car's box touches no wall, parked car or
-## prop: rings of candidates 4 m apart, checked with one shape query each.
+## prop: rings of candidates 4 m apart, checked with one shape query each. Loop 10a: on the
+## level of `p` (it was the top deck over each candidate: a tow under a bridge put the car up
+## on it), and never in the water.
 func _free_car_spot(p: Vector3, yaw: float) -> Vector3:
 	var space := car.get_world_3d().direct_space_state
 	var query := PhysicsShapeQueryParameters3D.new()
@@ -1861,12 +2105,18 @@ func _free_car_spot(p: Vector3, yaw: float) -> Vector3:
 			var a := TAU * k / steps
 			var x := p.x + cos(a) * r
 			var z := p.z + sin(a) * r
-			var y: float = map.ground_height(x, z)
+			var y: float = map.drive_height(x, z, p.y + 0.5)
+			if map.in_water(x, z, y):
+				continue
 			query.transform = Transform3D(Basis(Vector3.UP, yaw), Vector3(x, y + 0.9, z))
 			if space.intersect_shape(query, 1).is_empty():
 				return Vector3(x, y, z)
 		r += 4.0
-	return Vector3(p.x, map.ground_height(p.x, p.z), p.z)
+	# Nothing free and dry within 24 m (out in the water): once more round the nearest dry ground.
+	var dry: Vector2 = map.nearest_dry(p.x, p.z)
+	if dry != Vector2(p.x, p.z):
+		return _free_car_spot(Vector3(dry.x, map.terrain_height(dry.x, dry.y), dry.y), yaw)
+	return Vector3(p.x, map.drive_height(p.x, p.z, p.y + 0.5), p.z)
 
 
 ## v0.8: a tap (or click) on a landmark shows its info card. The ray from the tapped

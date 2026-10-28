@@ -776,6 +776,45 @@ should list them when the user accepts this plan.
 
 ---
 
+## 9. Beyond the demo: how big the app gets (estimate, 2026-10-28)
+
+The user asked what the app would weigh with the inner districts, or all of Warsaw (517 km²;
+GUGiK and OSM hold about 198,000 buildings and 1.9 million trees for the city). Measured
+today (after loop 2b): the game's data pack is **45 MB for 6.3 km²**, about **7 MB per km²** of
+city centre (36 MB of it the ready-made 3D city), and the engine binary is 103 MB in a debug
+build (a release build is roughly half that, and the App Store compresses it further).
+Outside the centre a km² holds fewer and simpler buildings (houses, blocks), forests and
+fields, so it costs about half as much. Anchor: GUGiK's LoD2 package for **all of Warsaw** is
+112 MB zipped.
+
+| Area | km² | Data pack at today's formats | With compact formats (estimate) | App download, roughly |
+| --- | --- | --- | --- | --- |
+| Today's map | 6.3 | 45 MB | — | ~100 MB |
+| The demo (this plan) | ~31 | ~220 MB | 120–170 MB | 180–280 MB |
+| Inner districts: Śródmieście, Wola, Ochota, Mokotów, Żoliborz, Praga-Północ, Praga-Południe | ~122 | ~600 MB | 300–400 MB | 350–650 MB |
+| All of Warsaw (18 districts) | 517 | 1.6–2.0 GB (3.6 GB at centre density) | 0.8–1.2 GB | 0.9–2 GB |
+
+"Compact formats": store the sources (footprints, heights, roof shapes, tree points) and build
+each 512 m sector on the phone as you drive towards it instead of shipping a ready-made mesh;
+ship the baked ground shade, street-light and water maps compressed and at 2–4 m outside the
+centre; quantise vertices. Trees are cheap either way (1.9 M trees × ~16 bytes ≈ 31 MB).
+
+What this means:
+- **Memory and frame rate don't grow with the map.** The sector streaming in 2.4 keeps only the
+  3×3 sectors round the camera in full detail, so the phone's memory and draw calls stay as
+  today wherever you are; only storage grows.
+- **App Store:** the limit is 4 GB, so even all of Warsaw fits. Over **200 MB** the iPhone asks
+  before downloading on mobile data. A good shape: the app ships the demo area (~200 MB) and
+  downloads more districts after install as background asset packs (Apple's Background Assets);
+  check Apple's current limits and hosting options when that loop starts.
+- **Work, not size, is the real cost:** every district needs its roads and overpasses correct
+  (S8, Trasa Toruńska, Wisłostrada, Trasa Siekierkowska…), its landmarks, its lanes and its
+  content. Plan: the demo first, then the inner districts as an update, then the rest.
+- **Raw data to bake all of Warsaw** (not shipped): OSM ~0.5 GB, the whole 3D-tree package
+  ~8.6 GB, orthophoto ~2 GB at today's resolution, LoD2 already on disk.
+
+---
+
 ## Sources
 
 Research for section 1 (read 2026-10-28):

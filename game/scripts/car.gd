@@ -17,6 +17,10 @@ extends CharacterBody3D
 ## little, and if it is pinned (touching something fixed, getting nowhere, with the gas or
 ## brake on) for 1.5 s it is turned out of the wall; pinned again soon after, `stuck` asks
 ## the game to put it on a free spot. Queued against a traffic car is not pinned.
+##
+## Loop 10a: in the water (the river, a pond: `water_at`, the map's test) it splashes once
+## (`splashed`), takes no gas or steering, slows hard and settles a little, bobbing, until the
+## game tows it out (`leave_water`).
 
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
@@ -30,6 +34,8 @@ signal bumped(collider: Object, speed: float)
 signal impact(collider: Object, speed: float)
 ## Loop 2a: pinned twice within a few seconds; the game moves the car to a free spot.
 signal stuck
+## Loop 10a: rolled into the water, at `speed` m/s (once; the game splashes and tows it out).
+signal splashed(speed: float)
 
 @export var max_speed := 30.0        # m/s, about 108 km/h
 @export var accel := 15.0
@@ -62,6 +68,10 @@ const SCRAPE := 1.2
 const WALL_TURN := 3.0
 const WALL_PUSH := 0.12
 const UNSTICK_TIME := 1.5
+## Loop 10a: in the water it loses speed at this rate (1/s: from 91 km/h it stops within
+## ~6 m) and settles this far (m) into it.
+const WATER_DRAG := 4.0
+const SINK := 0.45
 
 ## Inputs, set every frame by the game. steer > 0 turns left. throttle 0..1 is the
 ## share of top speed to drive at (1: flat out).
@@ -82,6 +92,13 @@ var steer_now := 0.0
 var yaw_rate := 0.0
 ## How many times it has been turned out of a wall (check_steering.gd counts them).
 var unsticks := 0
+## Loop 10a: whether a car at (x, z, height) is in the water (the game sets map.in_water). A
+## car with its collision off (the testing autopilots glide through walls) or parked never
+## splashes.
+var water_at: Callable = func(_x: float, _z: float, _y: float) -> bool: return false
+## Loop 10a: in the water, waiting for the tow; how long it has been in.
+var in_water := false
+var _sink := 0.0
 
 ## Height of the road surface under a point for a car at height y; set by the game
 ## (terrain and bridge decks: a deck overhead is not the road).
@@ -192,6 +209,9 @@ func _physics_process(dt: float) -> void:
 
 func _step(dt: float) -> void:
 	_clock += dt
+	if in_water:
+		_float(dt)
+		return
 	var fwd := _forward()
 	var speed := vel.dot(fwd)
 	var gas := clampf(throttle, 0.0, 1.0)
@@ -346,6 +366,12 @@ func _step(dt: float) -> void:
 	global_position.y = ground_height.call(global_position.x, global_position.z, global_position.y)
 	forward_speed = vel.dot(_forward())
 	_fixed_contact -= dt
+	if not parked and collision_mask != 0 and water_at.call(global_position.x, global_position.z, global_position.y):
+		in_water = true
+		_sink = 0.0
+		_pinned = 0.0
+		splashed.emit(vel.length())
+		return
 
 	# Pinned: touching something fixed with the gas or the brake on, and getting nowhere (under
 	# a metre from where it was pinned, however much it jiggles between a wall and a car).
@@ -374,6 +400,42 @@ func _step(dt: float) -> void:
 	_body.rotation.z = lerpf(_body.rotation.z, lean, 1.0 - exp(-10.0 * dt))
 	var pitch := 0.03 if brake_now and speed > 1.0 else (-0.02 if gas > 0.0 else 0.0)
 	_body.rotation.x = lerpf(_body.rotation.x, pitch, 1.0 - exp(-8.0 * dt))
+
+
+## Loop 10a: in the water: no engine, no grip, no steering; it glides to a stop, settles
+## SINK metres nose first and bobs.
+func _float(dt: float) -> void:
+	vel *= exp(-WATER_DRAG * dt)
+	vel.y = 0.0
+	velocity = vel
+	move_and_slide()
+	vel = Vector3(velocity.x, 0.0, velocity.z)
+	global_position.y = ground_height.call(global_position.x, global_position.z, global_position.y)
+	forward_speed = vel.dot(_forward())
+	slip = 0.0
+	brakes_on = false
+	steer_now = 0.0
+	yaw_rate = 0.0
+	_sink += dt
+	var settle := SINK * (1.0 - exp(-5.0 * _sink))
+	_body.position.y = -settle + sin(_sink * 7.0) * 0.04 * minf(_sink * 2.0, 1.0)
+	_body.rotation.x = lerpf(_body.rotation.x, -0.09, 1.0 - exp(-6.0 * dt))
+	_body.rotation.z = lerpf(_body.rotation.z, sin(_sink * 4.5) * 0.03, 1.0 - exp(-6.0 * dt))
+
+
+## Loop 10a: the tow has put the car back on dry land (the game moves it first).
+func leave_water() -> void:
+	in_water = false
+	_sink = 0.0
+	_body.position.y = 0.0
+	_body.rotation = Vector3.ZERO
+	vel = Vector3.ZERO
+	forward_speed = 0.0
+	steer_now = 0.0
+	_pinned = 0.0
+	_contact = 0.0
+	_fixed_contact = 0.0
+	_wall_normals.clear()
 
 
 ## The most the car turns (rad/s) at `v` m/s: turn_cap when slow, turn_pull / v + turn_floor

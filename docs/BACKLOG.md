@@ -230,3 +230,40 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - The once-only `ERROR: Mouse is not supported by this display server.` at start on iOS comes
   from the engine before any script runs (loop 2b); harmless, but it keeps the device log from
   being clean.
+
+## From loop 10a (the river is off-limits)
+- The splash, the tow and the stone's look were judged on the Mac (screenshots, logs); the feel
+  on the phone (does the splash read at the default view, is 1 s the right wait, is the toast
+  readable) is the user's to say. The splash's sound (the hard knock pitched down + the rain
+  bed's noise) was never heard: headless runs have no audio.
+- The stone is the same granite edge everywhere, the Praga beaches included; a natural bank
+  might read better with a lower timber or riprap edge (a look call for the art director).
+- The bake still leaves the shore open within 6 m of every bridge deck (`tools/bake_roads.py`
+  `bake_shore`); the map builder fills those stretches at build time where the deck is at
+  least 3.2 m up (`_shore_under_decks`). Moving the rule into the bake (map-engineer) would
+  make `shore` in centrum.json say what the game builds.
+- Godot's `cast_motion` misses some thin walls of the city's one big concave collision shape
+  (`check_water.gd` steps an overlap test every 0.5 m instead). The car's own `move_and_slide`
+  holds (0 of 631 cars through at 91 km/h), but any future check that sweeps shapes should
+  step too.
+- A car that gets less than 2.5 m past the edge (the shallow first metres; only reachable past
+  the stone through a glitch) doesn't count as in the water, so it isn't towed until it rolls
+  further in.
+- The tow goes to the nearest lane to where the car last stood on dry land; from the middle of
+  a wide beach that can be a junction ~100-200 m inland (the check's worst case, from mid-river
+  with no bank known, is 491 m).
+- The last ~2 m of Most Świętokrzyski's lanes at the map's rim (past the edge walls) are at the
+  water's level: traffic leaving the map there dips onto the river for a moment, out of reach.
+- A beach path's paving still draws past the stone into the water where OpenStreetMap maps it
+  so; people now turn back a metre short of the water.
+- The helicopter's roof toast ("Land on open ground to take the car") is still English only;
+  the new water one is Polish over English.
+- `map_builder.bounds` isn't stored in `city.scn` (the prebuilt path had a zero rectangle);
+  main.gd now sets it from the map data. Other code reading `map.bounds` on the prebuilt path
+  was getting zeros before.
+- The bench route's ghost car drives with its collision off, so the water test never runs on
+  the bench; it was measured with the probe (car physics 0.05 → 0.05 ms at the river) and a
+  micro-benchmark (0.8 µs a call, one call per physics frame).
+- Windowed `--prebuilt --shots=` runs sometimes end with "8 ObjectDB instances were leaked at
+  exit" / "4 resources still in use" (seen on the code before this loop too; not in headless
+  runs).

@@ -65,6 +65,12 @@ A loop that adds a check (docs/DEMO.md plans `tools/check_roads.py` and
 its OK line, and lists it in this skill. A check that only exists outside the script gets
 forgotten.
 
+In the set now: `check_map_data.py` (map), `check_steering.gd`, `check_settings.gd`,
+`check_landmarks.gd`, `check_sfx.gd`, `check_radio_loops.gd`, `check_water.gd` (loop 10a:
+`water` and `water-prebuilt`, where a car can get into the water, ~17 s and ~10 s) and the
+game runs, among them `splash` (loop 10a: `--drive-into-water=1015,-85 --kebab=0`, the tow
+within 2 s with a job running).
+
 ## 7. Report
 
 Paste the final table and the `RESULT:` line, the extra checks from section 4 you ran (with

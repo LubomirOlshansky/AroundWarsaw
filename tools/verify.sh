@@ -25,7 +25,7 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map steering settings landmarks sfx radio plain heli race kebab rain prebuilt classic)
+STEPS_ALL=(map steering settings landmarks sfx radio water water-prebuilt plain heli race kebab splash rain prebuilt classic)
 STEPS_QUICK=(map steering settings landmarks sfx radio plain prebuilt)
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
 STEP_LIMIT=${NW_STEP_LIMIT:-900}
@@ -185,10 +185,17 @@ for s in $want; do
 		landmarks) check landmarks '^landmark check:' --script res://tools/check_landmarks.gd ;;
 		sfx) check sfx '^sfx:' --script res://tools/check_sfx.gd ;;
 		radio) check radio '^radio loops:' --script res://tools/check_radio_loops.gd ;;
+		# Loop 10a: where a car can get into the water (whole map), and the game's tow decisions.
+		water) check water '^check_water:' --script res://tools/check_water.gd ;;
+		water-prebuilt) check water-prebuilt '^check_water:' --script res://tools/check_water.gd -- --prebuilt ;;
 		plain) game plain 600 "" ;;
 		heli) game heli 6000 '^rescue (done|failed):' --mission=1 --heli --autopilot ;;
 		race) game race 8000 '^race (won|lost):' --race=0 --autopilot ;;
 		kebab) game kebab 9000 '^kebab delivered:' --kebab=0 --autopilot ;;
+		# Loop 10a: into the river from the boulevard by Most Poniatowskiego with a delivery on:
+		# the splash, then the tow onto a lane on dry land within 2 s, the job still running.
+		splash) game splash 420 '^water: towed after [01][.][0-9]+ s .* m from a lane, dry; job on' \
+			--drive-into-water=1015,-85 --kebab=0 ;;
 		rain) game rain-night 600 "" --weather=rain --time=night ;;
 		prebuilt) game prebuilt-night 600 "" --prebuilt --time=night ;;
 		classic) game classic 600 "" --controls=classic ;;

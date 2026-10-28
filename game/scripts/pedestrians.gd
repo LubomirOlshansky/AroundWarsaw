@@ -35,6 +35,14 @@ const DECK_STEP := 4.0
 var _joins_start: Array[PackedInt32Array] = []
 var _joins_end: Array[PackedInt32Array] = []
 var _grid := {}
+## Loop 10a: the stretch of each footway people walk, `_lo` to `_hi` metres along it: a
+## footway that runs into the water at an end (a beach path down to the river) stops a metre
+## short of it and people turn back there; one that crosses water in between (a pond, a
+## fountain) nobody walks (`_hi` < 0). Worked out the first time someone could walk it
+## (`_looked`; every half metre along it: too slow for all 5,000 at the start).
+var _lo := PackedFloat32Array()
+var _hi := PackedFloat32Array()
+var _looked := PackedByteArray()
 
 ## Walkers, struct of arrays.
 var _path := PackedInt32Array()
@@ -112,6 +120,10 @@ func setup(map_node: Node3D, camera: Camera3D, traffic_node: Node3D, data: Dicti
 			for b in list:
 				if a / 2 != b / 2:
 					(_joins_start if a % 2 == 0 else _joins_end)[a / 2].append(b)
+	_lo.resize(_first.size())
+	_hi.resize(_first.size())
+	_looked.resize(_first.size())
+	_looked.fill(0)
 	_path.resize(MAX)
 	_s.resize(MAX)
 	_dir.resize(MAX)
@@ -136,6 +148,57 @@ func setup(map_node: Node3D, camera: Camera3D, traffic_node: Node3D, data: Dicti
 	mmi.material_override = mat
 	mmi.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	add_child(mmi)
+
+
+## Loop 10a: nobody walks footway i: it crosses the water at ground level between its ends,
+## or what is left of it out of the water is under 4 m (a point a metre or more past the
+## water's edge counts as water: map_builder.shore_distance).
+func is_wet(i: int) -> bool:
+	_look(i)
+	return _hi[i] < 0.0
+
+
+## Loop 10a: works out footway i's walkable stretch [_lo, _hi] (see `_lo`).
+func _look(i: int) -> void:
+	if _looked[i] == 1:
+		return
+	_looked[i] = 1
+	_lo[i] = 0.0
+	_hi[i] = _len[i]
+	if _deck[i] >= 0:
+		return
+	var first := -1.0
+	var last := -1.0
+	var dry_between := false
+	var s := 0.0
+	while s <= _len[i] + 0.25:
+		var q := _at(i, minf(s, _len[i]))
+		if map.shore_distance(q.x, q.y) >= 1.0:
+			if first < 0.0:
+				first = s
+			elif s - last > 0.75:
+				dry_between = true
+			last = s
+		s += 0.5
+	if first < 0.0:
+		return
+	var head := first <= 0.25
+	var tail := last >= _len[i] - 0.25
+	if dry_between or (head and tail) or (not head and not tail):
+		_hi[i] = -1.0  # through the water, or in it at both ends
+		return
+	if head:
+		_lo[i] = last + 1.0
+	else:
+		_hi[i] = first - 1.0
+	if _hi[i] - _lo[i] < 4.0:
+		_hi[i] = -1.0
+
+
+## Loop 10a: someone can step onto footway i at its start (or end): that end is walkable.
+func _enterable(i: int, at_start: bool) -> bool:
+	_look(i)
+	return _hi[i] >= 0.0 and (_lo[i] <= 0.0 if at_start else _hi[i] >= _len[i])
 
 
 func _poly(flat: Array) -> PackedVector2Array:
@@ -222,7 +285,9 @@ func _try_spawn(centre: Vector2, right: Vector2, ahead: Vector2, half: Vector2, 
 	if list == null:
 		return
 	var i: int = list[_rng.randi() % list.size()]
-	var s := _rng.randf_range(0.0, _len[i])
+	if is_wet(i):
+		return
+	var s := _rng.randf_range(_lo[i], _hi[i])
 	var off := _rng.randf_range(-0.3, 0.3) * _width[i]
 	var q := _at(i, s, off)
 	var y := _height(i, s, q)
@@ -261,18 +326,20 @@ func _kill(n: int) -> void:
 func _walk(n: int, dt: float) -> void:
 	var i := _path[n]
 	var s := _s[n] + _dir[n] * _speed[n] * dt
-	if s < 0.0 or s > _len[i]:
-		# Carry on into a footway that joins here, else turn back.
-		var joins := _joins_start[i] if s < 0.0 else _joins_end[i]
-		if not joins.is_empty():
-			var j := joins[_rng.randi() % joins.size()]
+	if s < _lo[i] or s > _hi[i]:
+		# Carry on into a footway that joins here, else turn back (loop 10a: also a metre
+		# short of the water).
+		var end := (s < _lo[i] and _lo[i] <= 0.0) or (s > _hi[i] and _hi[i] >= _len[i])
+		var joins := (_joins_start[i] if s < _lo[i] else _joins_end[i]) if end else PackedInt32Array()
+		var j := joins[_rng.randi() % joins.size()] if not joins.is_empty() else -1
+		if j >= 0 and _enterable(j / 2, j % 2 == 0):
 			i = j / 2
 			_path[n] = i
 			_dir[n] = 1.0 if j % 2 == 0 else -1.0
 			s = 0.0 if j % 2 == 0 else _len[i]
 		else:
 			_dir[n] = -_dir[n]
-			s = clampf(s, 0.0, _len[i])
+			s = clampf(s, _lo[i], _hi[i])
 	_s[n] = s
 	var q := _at(i, s, _off[n])
 	_phase[n] += dt * 9.0

@@ -80,6 +80,10 @@ var _event_wait := 12.0
 var _t := 0.0
 var _duck := 0.0
 var _rng := RandomNumberGenerator.new()
+## Loop 10a: the splash's wash of water (the rain bed's noise, faded out over WASH s).
+const WASH := 0.9
+var _wash: AudioStreamPlayer
+var _wash_t := 0.0
 ## Guard rails on a 4 m grid (data["guards"]): a hit there clangs.
 var _rails := {}
 
@@ -155,6 +159,10 @@ func setup(data: Dictionary) -> void:
 	_listener = AudioListener3D.new()
 	add_child(_listener)
 	_listener.make_current()
+	_wash = AudioStreamPlayer.new()
+	_wash.stream = _streams.get("rain")
+	_wash.bus = &"SFX"
+	add_child(_wash)
 
 
 func _exit_tree() -> void:
@@ -194,6 +202,11 @@ func _process(dt: float) -> void:
 	if not _silent:
 		AudioServer.set_bus_volume_db(AudioServer.get_bus_index(&"Ambience"), BUSES["Ambience"] + _duck + user_db["Ambience"])
 	_events(dt, daylight, raining)
+	if _wash_t > 0.0:
+		_wash_t -= dt
+		_wash.volume_db = -4.0 + linear_to_db(maxf(_wash_t / WASH, 0.001))
+		if _wash_t <= 0.0:
+			_wash.stop()
 	last_usec = Time.get_ticks_usec() - t0
 
 
@@ -303,6 +316,24 @@ func _near_rail(p: Vector3) -> bool:
 	return false
 
 
+## Loop 10a: the car went into the water at `speed` m/s: a deep plunge (the hard knock pitched
+## down) and a short wash of water (the rain bed's noise, fading out); no new sound file.
+func splash(speed: float) -> void:
+	if _silent:
+		return
+	var gain := linear_to_db(clampf(speed / 14.0, 0.4, 1.0))
+	var p := _pool2[_next2]
+	_next2 = (_next2 + 1) % _pool2.size()
+	p.stream = _streams.get("thump_hard")
+	p.bus = &"SFX"
+	p.volume_db = SHOTS["thump_hard"] + gain
+	p.pitch_scale = 0.6
+	p.play()
+	_wash.volume_db = -4.0 + gain
+	_wash.play(_rng.randf() * 2.0)
+	_wash_t = WASH
+
+
 ## The słoiki run: 0 = the jars clink (a bump, a warning), 1 = one broke.
 func jars(kind: int) -> void:
 	if _jar_wait > 0.0 and kind == 0:
@@ -336,6 +367,7 @@ func _play2(n: String, gain_db: float, bus := &"SFX") -> void:
 	p.stream = _streams[n]
 	p.bus = bus
 	p.volume_db = SHOTS.get(n, -10.0) + gain_db
+	p.pitch_scale = 1.0
 	p.play()
 
 
