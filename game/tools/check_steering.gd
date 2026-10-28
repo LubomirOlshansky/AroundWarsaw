@@ -6,12 +6,17 @@ extends SceneTree
 ## direction (does it get there, circle or oscillate), the turn radius at 20/50/90 km/h,
 ## a 90° turn from those speeds and from a standstill, pointing straight back, letting go
 ## (the camera coming round), the Mac keys, Classic's self-centring, sliding along a wall,
-## a head-on wall, and getting out of an inside corner. Exits 1 on a problem.
+## a head-on wall, and getting out of an inside corner. Camera loop: the camera is the game's
+## own (follow_camera.gd), and three camera tests join: braking from 90 km/h (does the view
+## slide back?), a small steering wiggle in Classic (does the view shake?), and the camera's
+## turn rate in every test (never over 64°/s; never while Point's finger is down). Exits 1 on a
+## problem.
 ##
 ##   godot --headless --path game --fixed-fps 60 --script res://tools/check_steering.gd
 ##   -- --legacy     the car, input mapping and camera before loop 2a (the "before" numbers;
 ##                   tools/steering_legacy_car.gd is the car script as it was)
-##   -- --verbose    also print every test's log, one line per 0.5 s
+##   -- --camera=2a  today's car and controls with loop 2a's camera (the camera loop's "before")
+##   -- --verbose    also print every test's log, one line per 0.5 s (--every=N: per N frames)
 ##   -- --only=NAME  run only the tests whose name starts with NAME
 ##
 ## Screen positions are in pixels on an iPhone's landscape screen (2532 x 1170) at the
@@ -20,6 +25,7 @@ extends SceneTree
 const LegacyCar := preload("res://tools/steering_legacy_car.gd")
 const Car := preload("res://scripts/car.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
+const FollowCamera := preload("res://scripts/follow_camera.gd")
 
 const PITCH := -30.0
 const SCREEN := Vector2(2532, 1170)
@@ -28,8 +34,11 @@ const KMH := 1.0 / 3.6
 const LEGACY_SIZE := 110.0
 
 var legacy := false
+## --camera=2a: loop 2a's camera (before the camera loop) with today's car and controls.
+var camera_2a := false
 var verbose := false
 var only := ""
+var _every := 30
 var _tests: Array[Dictionary] = []
 var _i := -1
 var _test: Dictionary
@@ -41,6 +50,8 @@ var _ctl: RefCounted
 var _cam := {}
 var _rows: Array[Dictionary] = []
 var _held_dir := Vector3.ZERO
+var _fc: RefCounted
+var _lead_vel_2a := Vector3.ZERO
 var _results: Array[String] = []
 var _problems := 0
 
@@ -49,13 +60,18 @@ func _initialize() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a == "--legacy":
 			legacy = true
+		elif a == "--camera=2a":
+			camera_2a = true
 		elif a == "--verbose":
 			verbose = true
+		elif a.begins_with("--every="):
+			_every = maxi(1, int(a.trim_prefix("--every=")))
 		elif a.begins_with("--only="):
 			only = a.trim_prefix("--only=")
 	_plan()
 	print("check_steering: %s, %d runs" % ["BEFORE loop 2a (legacy car, mapping and camera)" if legacy
-			else "loop 2a car and controls", _tests.size()])
+			else "loop 2a car and controls, loop 2a camera (before the camera loop)" if camera_2a
+			else "loop 2a car and controls, the camera loop's camera", _tests.size()])
 
 
 func _plan() -> void:
@@ -90,6 +106,14 @@ func _plan() -> void:
 		_add({"name": "corner", "schemes": [s], "v0": 15 * KMH, "dur": 6.0, "kind": "wall", "heading": 45.0, "out_at": 3.0,
 				"walls": [[Vector3(-20, 2, -14.5), Vector3(40, 4, 1)], [Vector3(0.5, 2, 5), Vector3(1, 4, 40)]],
 				"start": Vector3(-9, 0, -4)})
+	if legacy:
+		return
+	# Camera loop: straight on at about 90 km/h for 2.5 s (the look-ahead settles), then the brake
+	# to a stop: does the view slide back towards the car?
+	for s in ["classic", point_schemes[0]]:
+		_add({"name": "brake_90", "schemes": [s], "v0": 90 * KMH, "dur": 6.0, "kind": "brake", "brake_at": 2.5})
+	# A thumb that can't keep still: Classic at 50 km/h, the strip wobbling ±0.35 at 1.2 Hz.
+	_add({"name": "wiggle", "schemes": ["classic"], "v0": 50 * KMH, "dur": 8.0, "kind": "wiggle"})
 
 
 func _add(t: Dictionary) -> void:
@@ -147,13 +171,20 @@ func _start_test() -> void:
 	var follow: bool = _scheme in ["follow", "point", "classic", "car"]
 	# The camera starts settled: behind the car when following, on the 45° diagonal when fixed.
 	var yaw := rad_to_deg(_car.rotation.y) if follow else 45.0
-	var size := LEGACY_SIZE if legacy else Controls.DEFAULT_SIZE
+	var size := LEGACY_SIZE if legacy else FollowCamera.DEFAULT_SIZE
 	_cam = {"yaw": yaw, "yaw_target": yaw, "follow": follow, "focus": _car.global_position, "size": size, "base": size}
 	_held_dir = Vector3.ZERO
+	_fc = FollowCamera.new()
+	_lead_vel_2a = Vector3.ZERO
+	if not legacy:
+		# Camera loop: the view starts settled too (loop 2a's numbers in README started it at the
+		# car with no look-ahead: the car slid across the screen as it caught up, which a car that
+		# speeds up gradually never shows, and that slide was most of those tests' px/s).
+		_warm_camera()
 
 
 func _finish_test() -> void:
-	var line := _measure()
+	var line := _measure() + _camera_rules()
 	_results.append(line)
 	print(line)
 	if verbose:
@@ -206,6 +237,24 @@ func _input() -> Dictionary:
 			inp["stick"] = Vector2(clampf(err / 25.0, -1.0, 1.0), 0.0)
 		else:
 			inp["stick"] = _stick_for(90.0)
+		return inp
+	if kind == "brake":
+		var braking: bool = _t >= float(_test["brake_at"])
+		var kmh: float = _car.vel.length() * 3.6
+		if _scheme == "classic":
+			inp["gas"] = not braking and kmh < 90.0
+		elif not braking:
+			# Point: pushed far enough for 90 km/h (a target speed), straight up the screen.
+			var push: float = Controls.DEAD + 90.0 / 3.6 / _car.max_speed * (Controls.FULL - Controls.DEAD)
+			inp["stick"] = _stick_for(0.0) * push
+		# Held on at a standstill the brake would reverse: let go once stopped.
+		inp["brake"] = braking and (kmh > 0.5 or not _test.has("stopped"))
+		if braking and kmh <= 0.5:
+			_test["stopped"] = true
+		return inp
+	if kind == "wiggle":
+		inp["gas"] = _car.vel.length() * 3.6 < 50.0
+		inp["stick"] = Vector2(0.35 * sin(TAU * 1.2 * _t), 0.0)
 		return inp
 	if kind == "wall":
 		# Keep going the way the car started (into the wall).
@@ -286,7 +335,7 @@ func _legacy_camera(dt: float) -> void:
 	_cam["size"] = lerpf(_cam["size"], size, 1.0 - exp(-2.5 * dt))
 
 
-# --- the loop 2a controls and camera (drive_controls.gd, as main.gd uses it) -------------------
+# --- the loop 2a controls (drive_controls.gd) and the camera (follow_camera.gd), as main.gd uses them ---
 
 func _new_controls(inp: Dictionary, dt: float) -> void:
 	if inp["direct"]:
@@ -306,15 +355,63 @@ func _new_controls(inp: Dictionary, dt: float) -> void:
 
 
 func _new_camera(dt: float) -> void:
-	var speed: float = absf(_car.forward_speed)
+	_camera_step(_car.global_position, _car.vel, rad_to_deg(_car.rotation.y), absf(_car.forward_speed), dt)
+
+
+## One step of the camera for a car at `pos` going `vel` (heading in degrees, rotation.y).
+func _camera_step(pos: Vector3, vel: Vector3, heading: float, speed: float, dt: float) -> void:
+	if camera_2a:
+		_camera_2a(pos, vel, heading, speed, dt)
+		return
+	# The game's follow camera (main.gd _update_camera with follow_camera.gd), without the
+	# pixel-grid snap.
 	if _cam["follow"]:
-		_cam["yaw"] = _ctl.follow_yaw(_cam["yaw"], rad_to_deg(_car.rotation.y), speed, dt) if _ctl != null \
-				else _cam["yaw"]
+		var waits: bool = _ctl.scheme != Controls.CLASSIC
+		_cam["yaw"] = _fc.follow_yaw(_cam["yaw"], heading, speed, waits, _ctl.held, _ctl.since_release,
+				FollowCamera.FULL_SPEED_POINT if waits else FollowCamera.FULL_SPEED, dt)
+	else:
+		_fc.stop_turning()
+		_cam["yaw"] = lerpf(_cam["yaw"], _cam["yaw_target"], 1.0 - exp(-8.0 * dt))
+	var basis := Basis.from_euler(Vector3(deg_to_rad(PITCH), deg_to_rad(_cam["yaw"]), 0.0))
+	var base: float = _cam["base"]
+	var zoom: float = base * FollowCamera.SPEED_ZOOM * clampf(speed / _car.max_speed, 0.0, 1.0)
+	_cam["size"] = _fc.zoom_step(_cam["size"], base, zoom, dt)
+	var forward := Vector3(-basis.z.x, 0.0, -basis.z.z).normalized() if _cam["follow"] and _ctl.scheme == Controls.CLASSIC \
+			else Vector3.ZERO
+	var lead: Vector3 = _fc.lead_step(vel, _car.max_speed, _cam["size"], dt, forward)
+	_cam["focus"] = _fc.focus_step(_cam["focus"], pos + lead, basis, _cam["size"], FollowCamera.FOCUS_RATE, dt)
+
+
+## Camera loop: the camera starts settled, as if the car had been going `vel` straight on for
+## 4 s (its centre, look-ahead, lag and speed zoom all steady), in either camera.
+func _warm_camera() -> void:
+	var p := _car.global_position
+	var v := Vector3(_car.vel.x, 0.0, _car.vel.z)
+	var heading := rad_to_deg(_car.rotation.y)
+	_cam["focus"] = p - v * 4.0
+	for k in 240:
+		_camera_step(p - v * (4.0 - (k + 1) / 60.0), v, heading, v.length(), 1.0 / 60.0)
+
+
+## Loop 2a's camera, as drive_controls.gd and main.gd had it before the camera loop: the follow
+## yaw as a first-order lerp (Classic 2.2/s; Point 1.0/s eased in over 0.8 s after the 0.6 s
+## hold), the lead as 0.5 s of the velocity smoothed over 0.7 s (at most a fifth of the view),
+## the centre and the speed zoom as plain lerps.
+func _camera_2a(pos: Vector3, vel: Vector3, heading: float, speed: float, dt: float) -> void:
+	if _cam["follow"]:
+		var rate := 2.2 * clampf(speed / 8.0, 0.0, 1.0)
+		var turn := true
+		if _ctl.scheme != Controls.CLASSIC:
+			turn = not (_ctl.held or _ctl.since_release < 0.6)
+			rate = 1.0 * smoothstep(0.6, 1.4, _ctl.since_release) * clampf(speed / 3.0, 0.0, 1.0)
+		if turn:
+			_cam["yaw"] = rad_to_deg(lerp_angle(deg_to_rad(_cam["yaw"]), deg_to_rad(heading), 1.0 - exp(-rate * dt)))
 	else:
 		_cam["yaw"] = lerpf(_cam["yaw"], _cam["yaw_target"], 1.0 - exp(-8.0 * dt))
-	var size: float = _cam["base"] * (1.0 + Controls.SPEED_ZOOM * clampf(speed / _car.max_speed, 0.0, 1.0))
-	var lead: Vector3 = _ctl.lead(_car.vel, _cam["size"], dt) if _ctl != null else Vector3.ZERO
-	_cam["focus"] = (_cam["focus"] as Vector3).lerp(_car.global_position + lead, 1.0 - exp(-Controls.FOCUS_RATE * dt))
+	var size: float = _cam["base"] * (1.0 + 0.25 * clampf(speed / _car.max_speed, 0.0, 1.0))
+	_lead_vel_2a = _lead_vel_2a.lerp(Vector3(vel.x, 0.0, vel.z), 1.0 - exp(-dt / 0.7))
+	var lead: Vector3 = (_lead_vel_2a * 0.5).limit_length(float(_cam["size"]) * 0.2)
+	_cam["focus"] = (_cam["focus"] as Vector3).lerp(pos + lead, 1.0 - exp(-6.0 * dt))
 	_cam["size"] = lerpf(_cam["size"], size, 1.0 - exp(-2.5 * dt))
 
 
@@ -334,7 +431,8 @@ func _record(inp: Dictionary) -> void:
 			"speed": _car.vel.length(), "moved": moved, "fs": _car.forward_speed, "cam": -float(_cam["yaw"]),
 			"sx": sx, "sy": sy, "contact": _car.get_slide_collision_count() > 0,
 			"braking": _car.get("brakes_on") if _car.get("brakes_on") != null else _car.braking,
-			"held": _held_dir, "size": size})
+			"held": _held_dir, "size": size, "fx": (_cam["focus"] as Vector3).x, "fz": (_cam["focus"] as Vector3).z,
+			"finger": inp["stick"] != Vector2.ZERO or inp.has("keys") and _t < float(_test.get("until", INF))})
 
 
 func _body_heading() -> float:
@@ -381,6 +479,10 @@ func _measure() -> String:
 			return name + _m_turn90()
 		"wall":
 			return name + _m_wall()
+		"brake":
+			return name + _m_brake()
+		"wiggle":
+			return name + _m_wiggle()
 	return name
 
 
@@ -595,10 +697,113 @@ func _m_wall() -> String:
 			"" if ok or legacy else "  <-- PROBLEM"]
 
 
+## Camera loop, every test with the camera loop's camera: never faster than 64°/s, and (Point,
+## Fixed) never while the finger is down.
+func _camera_rules() -> String:
+	if legacy or camera_2a:
+		return ""
+	var fastest := 0.0
+	var while_held := 0.0
+	for k in range(1, _rows.size()):
+		var rate := absf(_wrap(_rows[k]["cam"] - _rows[k - 1]["cam"])) * 60.0
+		fastest = maxf(fastest, rate)
+		if _scheme != "classic" and _rows[k]["finger"] and _rows[k - 1]["finger"]:
+			while_held = maxf(while_held, rate)
+	var out := ""
+	if fastest > FollowCamera.MAX_TURN + 0.5:
+		out += "  <-- PROBLEM: the camera turned at %.0f°/s (over %.0f)" % [fastest, FollowCamera.MAX_TURN]
+		_problems += 1
+	if while_held > 0.01:
+		out += "  <-- PROBLEM: the camera turned at %.1f°/s while the finger was down" % while_held
+		_problems += 1
+	return out
+
+
+## Camera loop, braking from ~90 km/h: how far the view's centre slides back (against the way the
+## car went) after its furthest point, and how fast; how fast the car moves on screen after the
+## brake; the speed zoom coming back in; the car's place on screen at the end.
+func _m_brake() -> String:
+	var k0 := int(float(_test["brake_at"]) * 60.0)
+	var dir := Vector2(_rows[k0]["x"] - _rows[k0 - 30]["x"], _rows[k0]["z"] - _rows[k0 - 30]["z"]).normalized()
+	var v0: float = _rows[k0]["speed"]
+	var furthest := -INF
+	var back := 0.0
+	var back_rate := 0.0
+	var stop_t := -1.0
+	var px_rate := 0.0
+	for k in range(k0, _rows.size()):
+		var along := Vector2(_rows[k]["fx"], _rows[k]["fz"]).dot(dir)
+		furthest = maxf(furthest, along)
+		back = maxf(back, furthest - along)
+		if k > k0:
+			var prev := Vector2(_rows[k - 1]["fx"], _rows[k - 1]["fz"]).dot(dir)
+			back_rate = maxf(back_rate, (prev - along) * 60.0)
+			var s := Vector2(_rows[k]["sx"], _rows[k]["sy"])
+			px_rate = maxf(px_rate, s.distance_to(Vector2(_rows[k - 1]["sx"], _rows[k - 1]["sy"])) * 60.0)
+		if stop_t < 0.0 and float(_rows[k]["speed"]) < 0.5:
+			stop_t = _rows[k]["t"] - float(_test["brake_at"])
+	var end: Dictionary = _rows.back()
+	# The road ahead at the brake: from the car up to the screen's top edge (the camera behind it),
+	# on the ground (the 30° view shows ground depth at half scale), and in seconds at that speed.
+	var ahead := float(_rows[k0]["sy"]) / (SCREEN.y / float(_rows[k0]["size"])) / sin(deg_to_rad(-PITCH))
+	var ok := back <= 0.5
+	if not ok and not camera_2a:
+		_problems += 1
+	return "%3.0f m of road ahead (%.1f s) | brake at %3.0f km/h, stopped %.2f s later | view slides back %4.1f m (at most %4.1f m/s) | car on screen at most %3.0f px/s | view %5.1f → %5.1f m | car at %4.0f,%4.0f px at the end%s" % [
+			ahead, ahead / maxf(v0, 0.1), v0 * 3.6, stop_t, back, back_rate, px_rate, _rows[k0]["size"], end["size"], end["sx"], end["sy"],
+			"" if ok or camera_2a else "  <-- PROBLEM"]
+
+
+## Camera loop, a wobbling thumb in Classic at 50 km/h: from 2 s on, how much the camera's turn and
+## the view's centre (across the screen, its straight-line drift taken out) wobble, in degrees and
+## in pixels, and how much the car's heading wobbles.
+func _m_wiggle() -> String:
+	var k0 := 120
+	var right := Vector2(cos(deg_to_rad(-float(_rows[k0]["cam"]))), sin(deg_to_rad(-float(_rows[k0]["cam"]))))
+	right = Vector2(right.x, -right.y)
+	var n := _rows.size() - k0
+	# The straight-line fit of the centre's sideways place over time, taken out.
+	var st := 0.0
+	var sy := 0.0
+	var stt := 0.0
+	var sty := 0.0
+	for k in range(k0, _rows.size()):
+		var t: float = _rows[k]["t"]
+		var y := Vector2(_rows[k]["fx"], _rows[k]["fz"]).dot(right)
+		st += t
+		sy += y
+		stt += t * t
+		sty += t * y
+	var slope := (n * sty - st * sy) / maxf(n * stt - st * st, 0.0001)
+	var icpt := (sy - slope * st) / n
+	var lo := INF
+	var hi := -INF
+	var cam_lo := INF
+	var cam_hi := -INF
+	var car_lo := INF
+	var car_hi := -INF
+	for k in range(k0, _rows.size()):
+		var t: float = _rows[k]["t"]
+		var y := Vector2(_rows[k]["fx"], _rows[k]["fz"]).dot(right) - (icpt + slope * t)
+		lo = minf(lo, y)
+		hi = maxf(hi, y)
+		var c := _wrap(float(_rows[k]["cam"]) - float(_rows[k0]["cam"]))
+		cam_lo = minf(cam_lo, c)
+		cam_hi = maxf(cam_hi, c)
+		var h := _wrap(float(_rows[k]["heading"]) - float(_rows[k0]["heading"]))
+		car_lo = minf(car_lo, h)
+		car_hi = maxf(car_hi, h)
+	var px_per_m := SCREEN.y / float(_rows.back()["size"])
+	# A turn of the view by d degrees moves the screen's side edge by half its width × d.
+	var edge := deg_to_rad(cam_hi - cam_lo) * 0.5 * SCREEN.x
+	return "car's heading wobbles %4.1f° | camera turn wobbles %4.2f° (the screen's side edge %3.0f px) | view centre wobbles %4.2f m (%3.0f px) across" % [
+			car_hi - car_lo, cam_hi - cam_lo, edge, hi - lo, (hi - lo) * px_per_m]
+
+
 func _print_log() -> void:
 	for r in _rows:
 		var k := int(round(float(r["t"]) * 60.0))
-		if k % 30 != 0:
+		if k % _every != 0:
 			continue
 		print("    t %4.1f  heading %03.0f  going %03.0f  %3.0f km/h  camera %03.0f  screen %4.0f,%4.0f%s" % [
 				r["t"], r["heading"], r["go"], r["speed"] * 3.6, fposmod(r["cam"], 360.0), r["sx"], r["sy"],
@@ -606,9 +811,9 @@ func _print_log() -> void:
 
 
 func _summary() -> void:
-	var car_len := 4.0 * SCREEN.y / (LEGACY_SIZE if legacy else Controls.DEFAULT_SIZE)
+	var car_len := 4.0 * SCREEN.y / (LEGACY_SIZE if legacy else FollowCamera.DEFAULT_SIZE)
 	print("car on screen at the default view (%.0f m): %.0f px long side-on, %.0f px nose-up, of 1170 lines" % [
-			LEGACY_SIZE if legacy else Controls.DEFAULT_SIZE, car_len, car_len * (0.5 + 1.5 / 4.0 * 0.87)])
+			LEGACY_SIZE if legacy else FollowCamera.DEFAULT_SIZE, car_len, car_len * (0.5 + 1.5 / 4.0 * 0.87)])
 	if legacy:
 		print("check_steering: legacy run (numbers only)")
 	else:

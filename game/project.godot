@@ -11,6 +11,10 @@ config/icon="res://icon.svg"
 boot_splash/bg_color=Color(0.659, 0.804, 0.902, 1)
 boot_splash/show_image=false
 
+[autoload]
+
+PhantomCameraManager="*res://addons/phantom_camera/scripts/managers/phantom_camera_manager.gd"
+
 [display]
 
 window/size/viewport_width=1280

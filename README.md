@@ -47,6 +47,16 @@ helicopter won't land on the water, and a car that still gets in splashes, settl
 towed back to a lane on dry land a second later with a line from the tow crew (see Loop 10a:
 the river is off-limits).
 
+The camera loop (the user: "the follow camera is not working"; their phone had Classic with the
+following switched off by CAM, so that part was the setting) rebuilds the follow camera on
+measured laws (`follow_camera.gd`): it never turns faster than 64°/s (Classic turned at up to
+108°/s, the helicopter's camera at 135°/s, and a Classic game began with a ~155° swing at
+182°/s), eases in and out with no overshoot, still waits while Point's finger is down, starts
+behind the car, looks further ahead at speed, no longer slides back when you brake (8 m before)
+and ignores tiny wiggles. With Phantom Camera (Ramokz, MIT, the first add-on) it adds a fly-in
+from over the city when the title screen goes and a short look at a new rescue or delivery
+target and back, both skipped by any touch (see Camera loop: the follow camera).
+
 ## Run it on your iPhone
 
 1. `tools/export_ios.sh` (only needed after changing the game).
@@ -96,6 +106,18 @@ the river is off-limits).
 | Job card: GO! / NOT NOW, then OK | the card's buttons (or just drive off: that is GO) | M / K |
 | Give up a race, a rescue or a job | ✕ on the status panel | |
 | A landmark's info card | tap it (a short tap; a drag still steers) | click it |
+
+**The camera** in each scheme (camera loop; `follow_camera.gd`): in **Point** it holds still
+while your finger is on the stick (so the direction you point stays put), then 0.6 s after you
+let go eases round behind the car (in ~3 s, at most 64°/s); in **Classic** with CAM on it turns
+with the car, easing in and out, at most 64°/s (CAM off: it doesn't turn); in **Fixed** it never
+turns by itself (`<` `>` turn it 90°). In every scheme the view looks ahead the way you go (more
+at speed, about 4 s of road at 90 km/h), never slides back when you brake, ignores tiny wiggles,
+and widens a quarter at top speed (back in slowly). The helicopter's camera waits while its
+stick is held, then comes round the same way. A following camera starts behind the car. When
+the title screen goes, the camera flies in from over the city (2.6 s); a new rescue call or
+delivery address gets a short look (out ~1.2 s, a moment on the target, back ~1 s) when you
+are slow and not touching the controls. Any touch, click or key skips either.
 
 The helicopter takes off above the car and rises to 45 m; the car waits, parked. It holds its
 height above the ground, never goes below the ground or through a building (roofs are solid:
@@ -999,6 +1021,109 @@ the boulevard splashed at 62 km/h and was towed 1.01 s later onto a lane 51 m aw
 kebab job still on; standing on that boulevard (`--probe --at=1015,-85 --heading=45`): 60 fps
 (the cap), 1 % low 55.3, worst frame 18.6 ms, 141 draw calls, car physics 0.15 ms.
 
+## Camera loop: the follow camera (2026-10-28)
+
+After the user's play on the iPhone: "now the follow camera is not working", and the wish for
+the cinematic camera add-on (Phantom Camera). The phone's saved settings were Classic with
+`classic_follow=false`: CAM had switched the following off, so the camera didn't turn by design
+(making that setting explicit is the HUD loop's). Measured beyond the setting with a new camera
+log (`--cam-log`) and scripted moments in the real city (`--cam-test=`), through the real touch
+path (`--drag`, `--pedal`) on the Mac: **Point** held still while the finger was down (0°/s) and
+came round 0.6 s after the release (3.2 s, at most 64°/s); **Fixed** never turned; but
+
+- **Classic** started every game on the 45° diagonal: the first metres swung the camera ~155°
+  round behind the car at up to **182°/s**; and it turned with the car at up to **108°/s** (a
+  90° turn from a standstill; 91 at 20 km/h, 76 in the city at 50);
+- **the helicopter's** camera waited while the stick was held, then 0.6 s later snapped round at
+  up to **135°/s** (no ease, no limit);
+- **braking** from 90 km/h, the view slid **8.0 m back** (7.5 m/s) as the look-ahead shrank with
+  the speed, and the speed zoom came straight back in.
+
+Docs/DEMO.md's comfort limit (Nesky) is 64°/s. All of that is fixed below; the rest is new.
+
+**Phantom Camera** (Marcus Skov / Ramokz, MIT, 0.11.0.3 from the Godot Asset Store, 0.85 MB;
+GDScript only, its C# files are optional wrappers a non-.NET Godot ignores) is in
+`game/addons/phantom_camera/` without its examples folder; its manager is an autoload in
+`project.godot`. The editor plugin is not switched on (it adds a dock and checks GitHub for
+updates on every editor start, the headless exports included); switch it on in Project Settings
+→ Plugins to see its nodes and gizmos. The follow camera itself is not a Phantom Camera follow
+mode: none of them can hold still while Point's finger is down, cap the turn rate, snap to the
+pixel grid, or keep the shadow's sphere through the speed zoom (`_camera_far`); it is the
+game's own (`follow_camera.gd`), and Phantom Camera does the cinematic moments
+(`camera_shots.gd`): its host runs in MANUAL mode under the camera, only while a moment plays,
+and tweens between three of its cameras (the follow view, the target's, and a wider one
+halfway). It sets `Engine.physics_jitter_fix = 0` when it starts (ignored with physics
+interpolation on, as here).
+
+**The follow camera** (`follow_camera.gd`, shared by `main.gd` and `tools/check_steering.gd`):
+
+- **Turning**: the turn rate is the error × a gain (Classic 2.2/s as before; Point and the
+  helicopter 1.1/s after a release, eased in over 0.8 s), the rate itself easing towards that
+  (critically damped: no overshoot), never over **64°/s**; heading wiggles under 1° don't turn
+  it. Point and the helicopter hold still while the stick (or a key) is held and 0.6 s after.
+  Standing still Classic and Point hold still; the hovering helicopter's camera comes round (it
+  stops within a second of a release). A following camera starts behind the vehicle (the bench
+  and `--probe` keep the 45° start: their views are the budgets' reference); a tow turns it behind
+  the car at once (not while Point's finger is down).
+- **Look-ahead**: along the way the car goes, 0.40 s of its speed + 0.25 s more at top speed
+  (15 m at 90 km/h, 12.5 before; 7 m at 50, as before), at most a fifth of the view, eased over
+  0.7 s and never faster than 3.5 % of the view a second (2.8 m/s at 80 m, ≤ ~40 px/s on 1170
+  lines), so the car drifts across the screen slowly when the way it goes turns. In Classic it
+  lies along the camera's forward instead, so the car keeps its place on screen while the camera
+  turns (along the car's way it swept the car round the middle by the camera's lag). **Braking**,
+  it gives back at most half the car's own speed, so the view never moves back: it glides to rest
+  ahead of the car and stays while the car stands.
+- **Dead zone**: the view's centre follows a window 0.5 % of the view wide (0.4 m at 80 m, ~7 px
+  on 1320 lines), then eases as before (6/s).
+- **Speed zoom**: still a quarter wider at top speed and the 80 m default; out at 2.5/s, back in at
+  0.8/s (it snapped in when braking); the zoom buttons and pinch at 2.5/s both ways. The shadow's
+  sphere doesn't change through the speed zoom (unchanged, loop 2b).
+
+**The cinematic moments** (normal launches only: never with `--notitle`, `--shots`, `--bench`,
+`--probe` or the other testing flags; `--cinematic[=flyin|look]` forces them):
+
+- **Fly-in** when the title screen goes: from a 200 m view 90 m along the car's way (the title
+  still covers the cut) down to the follow view in 2.6 s (cubic in-out), turned like the follow
+  camera all along, so the stick means the same on screen.
+- **A look at a new target** (a rescue call's place, a delivery address; not a race's
+  checkpoints) when the vehicle is under 30 km/h, nothing is held and the target is over 40 m
+  away: both in one view if they fit in 220 m, else over a 220 m view halfway (out 0.6 + 0.6 s,
+  0.7 s on the target, back 0.5 + 0.5 s). Not during another moment, the title or a BENCH run
+  (which stops a moment at once).
+- **Any touch, click or key** skips a moment: back to the car in 0.3 s (not in the first 0.25 s:
+  the tap that dismissed the title arrives twice, as a touch and as Godot's mouse click).
+
+**Numbers** (`tools/check_steering.gd`; its new `--camera=2a` runs loop 2a's camera with today's
+car, and every test now starts with the camera settled for the starting speed: loop 2a's px/s
+above started it at the car, which counted the look-ahead catching up; 2532×1170, 80 m):
+
+| | Loop 2a camera | Camera loop |
+| --- | --- | --- |
+| Camera's fastest turn: Classic 90° turn from 0 / 20 / 50 / 90 km/h | 108 / 91 / 65 / 52°/s | 64 / 64 / 64 / 54°/s, 0° overshoot |
+| Point, held 90° right at 50 km/h | settles in 1.2 s, 0° overshoot, camera 0°/s | the same (the car's law) |
+| Point, let go after 2.5 s | camera behind the car 3.2 s later, at most 64°/s | 2.9 s, at most 60°/s |
+| Braking from 90 km/h (Classic, Point) | view slides back 8.0 m (7.5 m/s); car on screen ≤ 47 px/s | 0.0 m; ≤ 27 px/s; zoom 96.7 → 81.5 m 2.5 s on (80.0 before) |
+| Road ahead at a steady 90 km/h (to the top edge) | 105 m, 4.2 s | 107 m, 4.3 s |
+| Classic, the thumb wobbling ±0.35 at 1.2 Hz at 50 km/h (car ±1.5°) | camera wobbles 0.90° (the screen's side edge 20 px) | 0.29° (6 px) |
+| Car's fastest move on screen in the 90° turns, Point / Fixed / Classic (0, 20, 50, 90 km/h) | 42 43 58 73 / 40 28 36 47 / 43 42 57 66 px/s | 41 41 40 34 / 43 31 26 22 / 47 43 52 61 px/s |
+
+Run in the real city with `--cam-test` at 2868×1320 (`shots/loopcam/`: `before_*` from the code
+before this loop, `after_*`, and `sheet_*` strips every 0.25 s; `cam:` lines in each `log.txt`):
+the Classic turn at 50 km/h turns the view at most 64°/s (76 before; it lags up to 41° behind the
+car, 33 before), the car at most 28 px off the middle sideways (37 before); the Point release
+comes round in 2.9 s (3.2), at most 60°/s (64), the car at most 83 px from the middle (115); the
+stop from 90 km/h leaves the car 46 px below the middle and still (before, the view slid back
+until it was in the middle, from 51 px); `after_flyin` (200 → 80 m over Rondo Dmowskiego and
+Marszałkowska) and `after_look` (`--mission=1`: a rescue 843 m away, over the city and back).
+
+**Cost**: the follow camera's math +1.1 µs a frame on the Mac (0.33 → 1.39 µs, a micro-benchmark
+of the two); a moment playing 8.7 µs a frame (Phantom Camera's host), 0.2 µs idle; no node
+processes between moments. Bench (`--controls=fixed`, the same view both ways, 3 interleaved
+runs): scripts 0.55–0.56 → 0.56–0.61 ms, game loop 0.05 → 0.05–0.06 ms, draw calls 148 → 148.
+`--probe` at 2868×1320: spawn 153 → 153 draw calls, over the river 124 → 124, helicopter 245 →
+245. The fly-in's first view (200 m) draws 217 and the look's widest (220 m) 219, for a second or
+two (the zoomed-out budget view draws 190–215).
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -1172,13 +1297,20 @@ flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
   pass); `post` (outlines, posterize, grading, vignette, split-tone, sky); `vhs`, `title`,
   `chrome` (the overlay and the title screen).
 - `time_of_day.gd` (the three looks, the blend and Live), `radio.gd`, `title.gd`, `neon_signs.gd`.
+- Camera loop: `follow_camera.gd` (the follow camera's laws: the turn, the look-ahead, the dead
+  zone, the speed zoom; shared with `tools/check_steering.gd`), `camera_shots.gd` (the fly-in and
+  the look at a target on Phantom Camera), `game/addons/phantom_camera/` (Phantom Camera 0.11.0.3,
+  MIT, its autoload `PhantomCameraManager` in `project.godot`; the editor plugin is not switched
+  on), the `--cam-log` / `--cam-test` / `--cinematic` aids and the camera's frame in `main.gd`
+  (`_update_camera`, `_snap_to_pixels`, `_new_target`).
 - Loop 2b: `bench.gd` (what a frame costs: frame times, the main thread's phases from the
   engine's frame signals, draw calls / objects / triangles by pass, the scripts by system,
   memory; for `--bench`, `--probe`, the BENCH button and the overlay), the minimap as one mesh
   in `hud.gd`, the camera's far plane (`_camera_far`), the fine-detail and small-caster groups,
   the frame-rate cap and the BENCH run in `main.gd`, `chunked_surface.gd`'s `add_arrays`.
 - Loop 2a: `drive_controls.gd` (the control schemes: stick, keys and pedals to the car's
-  controls, the follow camera's hold and return, the view's lead; shared with the replay test),
+  controls and the finger's hold; the follow camera itself moved to `follow_camera.gd` in the
+  camera loop; shared with the replay test),
   `settings.gd` (`user://settings.cfg`, the traffic levels), `settings_panel.gd` (the panel in
   the HUD), the car's turning and wall model in `car.gd`, the gear and Classic's pedals in
   `hud.gd`, `tools/check_steering.gd` (+ `tools/steering_legacy_car.gd`, the car before loop
@@ -1256,6 +1388,9 @@ Command-line options (after `--`):
 | `--bench-button` | loop 2b: press TEST · BENCH at frame 60 (the phone's run, at the current settings and cap) |
 | `--fps=N` | loop 2b: cap the frame rate for this run (0: none; else the setting, 60 or 30). `--bench` and `--probe` run uncapped, headless runs too |
 | `--exp=a,b` | loop 2b, for ranking costs: switch one off: `nohud`, `nominimap`, `nobubbles`, `noshadow`, `nopost`, `notrees`, `noprops`, `nosmallcasters` (no shadows from instanced things), `nocasters`, `shadowsize=N` |
+| `--cam-log` | camera loop: print the camera every 0.25 s (`cam:` lines: scheme, finger, speed, the car's and the camera's compass headings, the camera's fastest turn since the last line, the car's place on screen, the view's height) |
+| `--cam-test=classic_turn\|point_release\|brake` | camera loop: drive one camera moment in the real city (scripted inputs through the scheme's mapping, the car ghosting through walls, no traffic, 1 s parked first; implies `--cam-log`): Classic following, a 90° right turn at 50 km/h; Point, the stick held 90° right at 50 km/h for 2.5 s then let go; Classic following, flat out to 90 km/h then braking to a stop. Frame strips: add `--shots=` every 15 frames (`--at=-1113.2,-263.4 --heading=160` is Marszałkowska) |
+| `--cinematic` / `--cinematic=flyin\|look` | camera loop: the cinematic moments in a test run too (they play only in a normal launch: never with `--notitle`, `--shots`, `--bench`, `--probe`, `--demo` or the other testing flags). With `--notitle` the fly-in starts at once; `--mission=1 --cinematic=look` shows the look at a rescue target |
 | `--drive-into-water=X,Z` | loop 10a: start at X,Z and drive flat out at the nearest water (within 120 m), the collision off until 3 m past the edge as if the car had jumped it; prints `water test:`, `water: splash at …` and `water: towed after … s …` (where to, how far from a lane, dry or not, the job / rescue / race / wallet), each with its frame. With `--kebab=0` a delivery is running (`tools/verify.sh` step `splash`) |
 
 Godot's own `--time-scale 3` (before `--`) speeds a mission or race up for screenshots, and
