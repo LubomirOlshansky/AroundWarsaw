@@ -527,6 +527,7 @@ func _build_world() -> void:
 	_xray.setup(car)
 	car.stuck.connect(_on_car_stuck)
 	car.water_at = map.in_water
+	car.kerb_feel = map.kerb_feel  # loop 3b-2: kerbs, islands and medians the car feels
 	car.splashed.connect(_on_car_splashed)
 	var spawn: Dictionary = data["spawn"]
 	car.global_position = Vector3(spawn["x"], 0.0, spawn["z"])

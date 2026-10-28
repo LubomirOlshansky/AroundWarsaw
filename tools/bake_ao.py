@@ -103,8 +103,10 @@ def main(map_dir):
         disc = [(cx + math.cos(a * math.pi / 4) * r, cz + math.sin(a * math.pi / 4) * r) for a in range(8)]
         fill_polygon(small, w, h, x0, z0, disc, 0.5)
     real = osm.get("trees3d", [])  # GUGiK trees: shade under most of the real crown
+    crowns = osm.get("trees3d_crown", [])  # loop 3b-2: the crown's drawn scale (hundredths)
     for i in range(0, len(real) - 5, 6):
-        cx, cz, r = real[i], real[i + 1], min(real[i + 3], 7.0) * 0.75
+        f = crowns[i // 6] / 100.0 if i // 6 < len(crowns) else 1.0
+        cx, cz, r = real[i], real[i + 1], min(real[i + 3] * f, 7.0) * 0.75
         disc = [(cx + math.cos(a * math.pi / 4) * r, cz + math.sin(a * math.pi / 4) * r) for a in range(8)]
         fill_polygon(small, w, h, x0, z0, disc, 0.45)
 

@@ -12,7 +12,8 @@
 # `roads` runs tools/check_roads.py (loop 3a): the road and deck rules C1-C10 over the whole
 # map; any finding not in tools/check_roads_allow.json FAILs (loop 3b; C4, C5, C9, C10 were a
 # WARN before). `drive` runs game/tools/check_drive.gd (loop 3b): a car and a bus along every
-# lane against the colliders, the autopilot over the bridges and tunnels.
+# lane against the colliders, the autopilot over the bridges and tunnels. `drape` runs
+# game/tools/check_drape.gd (loop 3b-2): the ground poking through the water, grass and plazas.
 # Every game run is headless, passes --nosave and quits by itself (--quit-after; Godot also
 # gets --fixed-fps 60 so a run covers the same game time on any Mac and its outcome repeats).
 # A run passes when Godot exits 0 and prints no ERROR / WARNING lines; autopilot runs also
@@ -29,8 +30,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads drive drive-prebuilt steering settings hud landmarks sfx radio water water-prebuilt plain heli race kebab splash rain prebuilt classic)
-STEPS_QUICK=(map roads drive steering settings hud landmarks sfx radio plain prebuilt)
+STEPS_ALL=(map roads drape drive drive-prebuilt steering settings hud landmarks sfx radio water water-prebuilt plain heli race kebab splash rain prebuilt classic)
+STEPS_QUICK=(map roads drape drive steering settings hud landmarks sfx radio plain prebuilt)
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
 STEP_LIMIT=${NW_STEP_LIMIT:-900}
 
@@ -197,6 +198,8 @@ for s in $want; do
 				0) row PASS "roads" $secs "check_roads: OK · not allowed/found: $counts" ;;
 				*) row FAIL "roads" $secs "$(grep -m1 '^check_roads:' $logs/roads.log) · $counts ($logs/roads.log)" ;;
 			esac ;;
+		# Loop 3b-2: the bare ground poking through the areas laid on it (water, grass, plazas, sand).
+		drape) check drape '^check_drape:' --script res://tools/check_drape.gd ;;
 		# Loop 3b: every lane for a car and a bus against the colliders; the autopilot over the
 		# bridges and tunnels (height jumps). The runtime city (the prebuilt one: --prebuilt).
 		drive) check drive '^check_drive:' --script res://tools/check_drive.gd ;;

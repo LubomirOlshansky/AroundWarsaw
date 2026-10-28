@@ -43,20 +43,16 @@ Small problems that agents reported or that showed up in screenshots. They are f
   the rest of the city out there): route planning and the autopilot (which jumps it) use it, but
   the player has to drive in the wrong way down a one-way street or across the lot at the west
   end of Jakubowska. A real in-map way in needs a design call (a drawn link road?).
-- Kerbs are visual only: the car drives over islands, medians and kerbs as if flat.
 - The terrain grid stops ~9 m short of the map's south edge and ~5 m short of the east edge;
   carriageway areas and kerbs are cut there, but road strips, footways and areas (as before)
   run on to the map's edge and hang over the diorama's earth wall.
-- Turn arrows are small pixel shapes; combined arrows (left + through + right) are cramped at the
-  default zoom, and arrows on a roundabout ring follow the ring's `turn:lanes`.
-- Rondo Dmowskiego's ring gets straight lane lines, not the real spiral markings.
 - Bus lanes only where the lanes are tagged per lane or counted on one-way roads; AI traffic
   doesn't keep the bus lanes free.
-- Hatched chevrons point along the area's long side, not with the traffic.
 - Medians are found only between pairs of one-way roads; a two-way road with a median mapped
-  as one line gets none.
-- Where two deck pieces of one bridge are more than ~3 m apart (road, tram bed, footway on Most
-  Poniatowskiego) each gets its own parapet and the gap shows the river below.
+  as one line gets none. Loop 3b-2 counted the class: 0 on today's map (no `divider`, no kerb,
+  barrier or hedge line along a two-way road's centre; the 3 gaps between a two-way road's
+  carriageway areas, on Ludna and Czerniakowska, are not medians). Build it when the bigger map
+  (loop 3d) brings one.
 - Most Świętokrzyski is cut by the map's edge mid-river: its deck ends in the air at the rim.
 - 13 signal controllers still run as lone crossing lights; they look like real mid-block
   crossings, but a few (Emilii Plater, Świętokrzyska by Mazowiecka) may be unmapped junction
@@ -233,8 +229,6 @@ Small problems that agents reported or that showed up in screenshots. They are f
   on the phone (does the splash read at the default view, is 1 s the right wait, is the toast
   readable) is the user's to say. The splash's sound (the hard knock pitched down + the rain
   bed's noise) was never heard: headless runs have no audio.
-- The stone is the same granite edge everywhere, the Praga beaches included; a natural bank
-  might read better with a lower timber or riprap edge (a look call for the art director).
 - The bake still leaves the shore open within 6 m of every bridge deck (`tools/bake_roads.py`
   `bake_shore`); the map builder fills those stretches at build time where the deck is at
   least 3.2 m up (`_shore_under_decks`). Moving the rule into the bake (map-engineer) would
@@ -346,13 +340,6 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - The neon sign quads (`neon.gdshader`, 361 signs) are not ghosted (they never were): a sign on
   a ghosted wall stays lit, mirrored, over the ghost. Feeding them the ghost's uniforms is one
   more material in main.gd `_update_ghost` (outside this loop's main.gd scope).
-- Parked cars: loop 2c moved the palette to `models.gd` `PARKED_PAINT` (no red; map_builder.gd
-  uses it), so the runtime city has no red parked cars; the prebuilt city.scn still carries the
-  old instance colours until the next city bake (map side), and `foliage.gdshader` repaints its
-  red (body and cabin) slate until then. Drop the remap after that bake.
-- The pale jagged band south of Most Poniatowskiego by day is geometry (it stays with the
-  mirror off, `--quality=low`): an area polygon on the water, map side with the sandbars
-  (loop 3b), not the deck's reflection (which by day is a darker band, now half as strong).
 - On a lamp-lit bridge deck the car's paint reads ~20 luma under the lit deck: a saturated red
   tops out at ~110-130 luma, and the value ladder puts lit ground above the car. It stands out
   there by chroma (paint saturation ~0.85 against ~0.35). A brighter hero would have to turn
@@ -433,10 +420,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   pins or approaches (the 10 m grid keeps the joints with the ordinary streets exact).
 - Aprons blend the ground at 15 structure ends; a fill's (approach's or pit's) own ends were
   tried and dropped (their side edges made new steps).
-- Not done in loop 3b (the triage's 3b row and item 9, for loop 3b-2): kerbs, islands and medians
-  flat to the car; cramped turn arrows, Rondo Dmowskiego's spiral, chevrons, medians on two-way
-  roads, deck pieces > 3 m apart showing the river; natural river banks, sandbars, tree crowns by
-  roads.
+- Not done in loop 3b (the triage's 3b row and item 9): done in loop 3b-2 (README "Loop 3b-2"),
+  except medians on two-way roads (none mapped on today's map, under "From v0.75").
 
 ## From loop 2c (car models)
 - **Parked cars are one shape** (a small saloon, `models.gd` `parked_mesh()`, 40 triangles): the
@@ -444,10 +429,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   per pass) or `foliage.gdshader` (outside this loop) learning the actors' shape morph. The three
   512 m tiles round the spawn hold ~550 of them, so they stay cheap. Default: one shape, the
   traffic's paints.
-- **The prebuilt city.scn still holds the old parked boxes**; `main.gd` replaces the shared mesh
-  in place when it loads (`Models.renew_parked`, both paths look the same). The next city bake
-  (map side; this loop didn't re-bake) makes it native; the swap is harmless afterwards. The
-  verify `map data` WARN about city.scn's age is that (and checkout times).
+- **The prebuilt city.scn held the old parked boxes** until loop 3b-2 re-baked it (now native,
+  no red; `foliage.gdshader`'s red remap removed). `main.gd`'s `Models.renew_parked` swap is
+  harmless now and can go in a main.gd loop.
 - **Police and guards** (`Models.police_mesh()`, for loop 3g): one family, shape 0 the patrol
   estate (paint `POLICE_WHITE`), shape 1 the guards' car at 0.88 (paint `GUARD_MUSTARD`), so 3g's
   POLICE kind can draw both in one MultiMesh. The light bar's lamps use BLINK (alternating by
@@ -471,3 +455,39 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - A traffic car's shape is picked by its own random stream, so where and which kind of car
   spawns is as before; its size (and the gap it keeps) is now the shape's.
 
+## From loop 3b-2 (map art and road details)
+- **The main checkout's Godot class cache had lost Phantom Camera's classes**
+  (`game/.godot/global_script_class_cache.cfg` held only DebugDraw3D, dated before this loop):
+  every Godot step of `verify.sh` failed with "Could not find type PhantomCameraHost" until
+  `godot --headless --path game --import` rebuilt it. Worth a line in the verify-game skill (or a
+  check in verify.sh) if it recurs after merges.
+- The natural/built split is OpenStreetMap's: a stretch of the west bank south of Most
+  Poniatowskiego reads natural (no promenade or wall mapped along it), the park ponds with grass
+  banks get a dark-earth band; `bake_banks.py` prints the km and `shots/loop3b2/ov_banks_overview.png`
+  shows them over the photo. If the art director wants a third kind (riprap, timber), the
+  classifier has the place for it.
+- The beaches are only sand where OpenStreetMap maps sand (Poniatówka, Plaża Saska, the shoals);
+  elsewhere the bank is the bare ground's colour with the wet bands.
+- Sandbars stay river for the car and the helicopter (water.bin unchanged): a car can't reach
+  one and the helicopter won't put the car down on one. The sandbar rescue's place (a sandbar
+  outside the drawn river, the POI bake) is unchanged.
+- Kerbs are felt at street level only (not on decks or in tunnels), and pavements are not raised
+  (only the kerb's hop); the player's car only (traffic and rivals follow their lanes).
+- Joined deck gaps keep the parapet's collider on each piece's edge (with a low kerb drawn there),
+  so the car can't drive across from the road deck to the tram bed on Most Poniatowskiego; the
+  gap's slab is drawn, not driveable.
+- The spiral rule (3+ lanes, radius 25 m+) also caught the 4-lane ring by Centralna at
+  (-1505, 695); Warsaw paints its big rondos that way, but it wasn't checked against the photo.
+- 8 mapped pavements by Centralna and the Jana Pawła II viaduct lie under road decks (not on a
+  footway deck) and stay on the ground; they look right in the shots, not checked one by one.
+- The runtime city build is ~2.4 s slower (8.3 → ~10.7 s: the areas, footways, cycle paths and
+  steps clipped to the grid's cells, in GDScript); the prebuilt city (the phone) is unchanged at
+  0.9 s. A faster clip (whole runs of cells along a strip) is possible if the Mac's build time
+  matters.
+- The sand gap fills (`bake_banks.sand_gaps`, up to 6 m) also bridge a few gaps that are real:
+  a path mapped only as a line between two beach polygons now has sand under it (its own strip
+  is drawn on top). check_drape's footway part allows 2 m2: one footbridge ramp at (-18, -281)
+  ends 0.46 m under the park it lands in (the deck solver's end, not the drape's).
+- The chevrons' direction (points towards the oncoming traffic) follows the Polish P-21 drawings
+  as remembered; if they should point the other way it is one sign in `bake_roads._hatch_flow`'s
+  caller (`flow < 0` flips).

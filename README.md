@@ -378,11 +378,15 @@ Roads are most of the screen while driving, so they follow the real streets
   `psv:lanes` / `lanes:psv` (a wide solid line and BUS every 60 m), painted cycle lanes
   (`cycleway*=lane`: a line, red surface and a bike every 40 m), hatched areas
   (`area:highway=emergency/prohibited`: an outline and stripes, chevrons in long thin ones).
+  Loop 3b-2: spiral lane lines on Rondo Dmowskiego, no arrows on roundabout rings, chevrons
+  pointing at the oncoming traffic, wider-celled combined arrows (see Loop 3b-2).
 - **Kerbs**: a 14 cm granite kerb (light top, darker face) wherever the carriageway meets
   something that isn't road: pavements, medians, tram beds, islands (121 km). Traffic islands
   are raised to kerb height with a kerb all round. Dual carriageways (two one-way roads running
   opposite ways side by side) get their median: raised grass, or paving at road level where
-  trams run in it (mapped grass, islands and hatching stay as mapped).
+  trams run in it (mapped grass, islands and hatching stay as mapped). Loop 3b-2: the car feels
+  them (lifted onto islands and grass medians, a jolt over a kerb), and the tram bed is a
+  concrete track slab.
 - **Bridges**: a deck solver gives every bridge road a height profile that clears what runs
   under it (5 m over roads, rails and tram tracks, 7.5 m over the river), ramps at 6 % and meets
   the roads at its ends (12 % at most); bridge footways, tram tracks and rails take the height of
@@ -399,7 +403,8 @@ Roads are most of the screen while driving, so they follow the real streets
 - **Guard rails**: a steel beam on posts along the carriageway's edges on every bridge and along
   the mapped `barrier=guard_rail` ways (9.6 km), solid for the car.
 - **The river's edge** is solid too: the car stops at the water. Loop 10a: a low granite edge
-  you can see, under the bridges too and round the fountains (see Loop 10a).
+  you can see, under the bridges too and round the fountains (see Loop 10a). Loop 3b-2: granite
+  only where the bank is built; natural banks get wet sand and a foam line (see Loop 3b-2).
 
 Check against the aerial photo: `python3 tools/overlay_ortho.py OUT.png X Z HALF` draws the
 road areas (red), kerbs (cyan), lines, and the lane graph's lanes (magenta) over the GUGiK
@@ -1730,6 +1735,146 @@ the marker helps), whether the shapes read at the iPhone 11's 2× pixel (585-lin
 police lettering's legibility, and the frame at the zoomed-out and helicopter views with many
 cars in view (the model has more triangles, the frame draws fewer).
 
+## Loop 3b-2: map art and road details (2026-10-28)
+
+The map side of the art review (items 4, 8, 9 and the tram-bed note) and the road details loop 3b
+left (the triage's 3b row). New bake step `tools/bake_banks.py` (run by `bake_osm.py`), new check
+`game/tools/check_drape.gd` (verify step `drape`).
+
+**The class behind the "torn paper" sandbars and the beige patches, measured first.** The flat
+areas (water, grass, parks, plazas) were laid on the ground in pieces up to 12 m whose planes
+cut under the 10 m terrain grid's folds; where the bare-earth grid rises (the river's real
+sandbars and a ridge along Most Poniatowskiego's piers in the GUGiK grid, lumps in the parks)
+the ground poked through as jagged beige patches. `check_drape.gd` samples every area triangle
+against the drawn ground: before **85,624 m² of grass and parks, 9,893 m² of plazas and 2,813 m²
+of water** under the ground by more than 0.1 m; after **0 / 0 / 0** (and 0 of 57,354 m² of
+sand). The areas are now laid on the grid's own triangles (`map_builder._fill_on_grid`: whole
+cells where the outline doesn't cross, the cells it crosses clipped), never under the drawn
+ground. Exact on the ground, they need almost no depth bias (0.05 → 0.01; their few millimetres
+of height order them).
+
+**The same class the other way round** (found in the orchestrator's review of the first beach
+shots: the Praga beach's footpath came out dashed once the beach was sand): a footway is a
+strip of 10 m pieces, each a plane through terrain points, that sags under the grid's folds;
+where it sagged further than its depth bias lifted it over the area under it, the area hid it.
+`check_drape.gd` part 2 samples every footway, cycle path, step, wet band, rim and foam strip
+against the area triangles under it: with the areas at 0.05 **3,035 m² of footways and paving,
+172 m² of cycle paths, 562 m² of steps and 22 m² of wet bands** were hidden; now **2 / 0 / 0 /
+0 m²** (the 2: one footbridge's ramp ending 0.46 m under the park it lands in, the deck solver's,
+allowed). Footways, cycle paths and steps on the ground are now laid on the grid's triangles too
+(`_strip`, depth bias up to 0.12), and the areas' bias is 0.01.
+
+**The pale band south of Most Poniatowskiego** was neither a reflection nor a sandbar: the
+bridge's two pavements (`area:highway=footway`) and its tram bed (`landuse=railway`) are mapped
+as areas, mostly without a layer, and were drawn on the ground, that is on the river under the
+bridge (a pale and a grey band). `bake_roads.level_surfaces` puts a mapped surface on a deck
+when most of it lies in the corridor of that deck's pieces of its own kind (paving on a footway
+piece, ballast on a tram or rail piece) standing 2 m over the ground: 3 surfaces (all on Most
+Poniatowskiego); what lies under a bridge (a pitch, Centralna's platforms, the pier shoals)
+matches no such piece and stays on the ground.
+
+1. **Natural banks.** `bake_banks.classify_shore` splits the water's edge (bake_roads' shore runs)
+   into built and natural stretches every 2 m from OpenStreetMap: built where a footway or
+   cycleway runs along the edge within 9 m (the Bulwary), a road within 10 m, paving or a plaza
+   on the land side, a wall or embankment along it within 4 m, or a bridge deck within 20 m (the
+   abutments); a sand, beach, shoal, wetland, scrub or wood polygon on the land side beats a
+   promenade; stretches under 14 m take their neighbours' kind. **2.68 km built, 4.99 km
+   natural** (the Praga bank, the beaches, the reeds north of the railway bridge, the west bank's
+   natural stretch south of the bridge; park ponds with grass banks). Built stretches keep the
+   granite edge (4.2 km with the bridges' and the fountains'); a natural one gets a wet band and
+   a damper one (0.9 m each, sand, or dark earth on a green bank) inland from the waterline and a
+   1-px foam line (0.22 m) on the water; `n` on the shore run (1 sandy, 2 green). **The car**
+   is held back on a natural bank by the same collider on the waterline as before (invisible
+   there): it stops at the foam, on the wet sand; nothing changed for the splash and tow
+   (`check_water` 0 everywhere). The bake also dropped the seam between the Vistula's two
+   multipolygons, which had put a granite edge and a wall across the river at z ~820. Sand
+   (natural=beach / sand / shoal / shingle, 74 polygons, `sand` in `centrum.json`) is drawn as
+   sand under the water, so nothing of it shows past the edge; the beige patches in the water
+   were the ground poking through (above). OpenStreetMap leaves thin strips between its sand
+   polygons (a beach cut round a groyne, a shingle bank mapped a few metres off the beach, two
+   beaches split under the bridge); bare ground while the beach was bare ground, they showed as
+   straight pale bands on the sand. `bake_banks.sand_gaps` fills the gaps up to 6 m wide in a
+   group of sand polygons of 400 m² or more (closed by 3 m, less anything mapped there: grass,
+   parks, plazas, paving), 103 fills, 1,885 m² (`f` on `sand`, drawn just under the sand). **At night** sand and the wet bands are 0.6× (the
+   beach's luma 76 → 58 at night; by day 182 → 183), the foam 0.32×.
+2. **Sandbars** (`sandbars`, 15, 5,874 m²): the sand polygons' part on the river, rasterised at
+   0.5 m, opened by 1 m (nothing narrower than 2 m survives), traced, smoothed (Chaikin ×3) and
+   simplified (0.12 m), pieces under 6 m² dropped; drawn over the water on the grid's triangles
+   with a darker wet rim (1.1 m) inside the outline and a foam line round it; gravel shoals
+   (surface=gravel: the rubble round Most Poniatowskiego's piers, `g`) in grey.
+   For the car and the helicopter they stay river (water.bin is unchanged).
+3. **Tree crowns by the roads.** `bake_osm.crown_scales` writes one scale per scanned tree
+   (`trees3d_crown`, hundredths; `trees3d` keeps its 75,324 values): 0.75 within 12 m of a
+   drivable road's edge, rising to full size at 20 m (parks, courtyards). 5,443 of 12,554 trees
+   are at 0.75, 7,044 scaled at all. `map_builder` shrinks the crown's radius and depth (its base
+   stays, so it still clears a bus), `bake_ao.py` its shade.
+4. **Kerbs you feel.** `map_builder.drive_height` lifts the car 0.14 m onto a traffic island or a
+   grass median at street level; `kerb_feel` (cells of the islands, medians and kerb lines, kept
+   in `city.scn` for the prebuilt city) tells `car.gd` when a move crossed a kerb (the car keeps
+   92 % of its speed and the body bounces 7 cm) and when it rolls on the raised ground (0.6/s
+   drag). Driven at 40 km/h onto 30 islands: 35.3 km/h after 1.5 s (38.4 without), 0.14 m up.
+   Not for a car with its collision off (the autopilots) or parked, not on decks; traffic keeps
+   to its lanes and never feels them (`check_drive` 0 collisions, 0 height jumps).
+5. **Markings.**
+   - **Rondo Dmowskiego's spiral** (and the 4-lane ring by Centralna, the only other ring with 3+
+     lanes and a 25 m radius): between two exits each lane line holds its lane for the first
+     35 % of the way, then sweeps out by a lane into the exit; the outermost line meets the outer
+     edge at the exit and a new one starts at the island (`bake_roads._spiral_rings`,
+     `_paint_spiral`). The ring's own lane lines and **its turn arrows** (the arrow confetti from
+     the ring's `turn:lanes`) are gone: arrows 491 → 442, none on any roundabout ring.
+   - **Chevrons with the traffic**: 53 long hatched areas with the traffic going one way on both
+     sides get chevrons whose points face the oncoming traffic (26 were turned round); 14 between
+     opposite flows (or with no road alongside) get plain diagonals.
+   - **Deck gaps**: two pieces of one bridge up to 6 m apart (road, tram bed, footway) no longer
+     each get a parapet with the river showing between them: the slabs meet half way across the
+     gap, and a low kerb marks each piece's edge (2,087 m of deck edges; the parapet's collider
+     stays where there is a drop, so the car can't drive into the gap).
+   - **Turn arrows**: the combined arrows (left + right, left + through + right) 9 cells wide
+     (were 11) and the cells up to 0.3 m, so strokes and gaps stay whole at the default view.
+   - **The tram bed** (a median with trams): a concrete track slab (`#8c887f`, a joint across it
+     every 3 m, layer 19), darker than the pavements; tram rails thinner (0.16 m) and closer to
+     it in tone: no longer pale pavement with a barcode on it.
+   - **Medians on two-way roads**: no two-way road on today's map has its median mapped as a line
+     (no `divider`, no barrier or kerb line along a two-way road's centre; the 3 gaps between a
+     two-way road's carriageway areas are not medians), so nothing was built (BACKLOG).
+6. **Parked cars' red**: city.scn is re-baked with `models.gd` `PARKED_PAINT` (no red), and the
+   red-paint remap in `foliage.gdshader` is gone (the constants and two branches in its vertex
+   function); `Models.renew_parked` in main.gd is harmless now.
+
+**Shaders** (exactly): `ground.gdshader` layers 16 (sand: grain and soft drifts, 0.6× at night),
+17 (wet bands and rims: vertex colour, grain, 0.6× at night), 18 (foam line: a slow shimmer,
+0.32× at night), 19 (tram bed slabs, wet in the rain like the islands); `foliage.gdshader` the
+parked-car red remap removed. The water shader (the water branch of `ground.gdshader`) is
+unchanged.
+
+**Checks.** `check_drape.gd` (above, both parts; verify step `drape`, ~11 s). `check_roads` C1-C10 unchanged
+(all allowed as before), `check_drive` 0 / 0, `check_water` 0 on both city paths, the splash run
+towed in 1.00 s. `check_map_data.py` expects `trees3d_crown` (12,554).
+
+**Cost** (`--probe` at 2868×1320, Metal, Mobile, `--controls=classic`, High, Normal traffic, day;
+the code before this loop from a copy): draw calls, all passes, spawn 135 → 134 (main 53 → 52,
+shadow 35 → 35), the default view over the river 106 → 105, zoomed out 169 → 169, helicopter
+223 → 223; main-pass triangles 0.23 → 0.23 M at the spawn, 0.18 → 0.18 M over the river, 0.36 →
+0.37 M zoomed out. No new material, mesh or draw call: everything new is in the ground's tile
+meshes. Vertices 6,111,678 → 6,119,007 (+0.1 %: meshes 3,766,836 → 3,774,165; the areas on the
+grid's triangles took ~370 k off, the footways, cycle paths and steps on them put it back;
+instances unchanged). `city.scn` 36.4 → 37.1 MB. The runtime city build 8.2-8.4 → ~10.7 s (the
+clipping to the grid), the prebuilt city (the phone) loads in 0.9 s as before. Scripts: one
+`kerb_feel` call per physics frame for the player's car (a cell lookup and a few segment tests).
+
+Shots: `shots/loop3b2/` (gitignored), `*_before_*` from the code before this loop and
+`*_after_*`, at 2868×1320 and 1792×828: the Praga beach by day and night (`beach_*`, and
+prebuilt; `*_v1regressed_*` the first version with the pale bands and the dashed footpath), a
+park footway on the grid's folds by the Bulwary (`footway_bulwary_after`), the Bulwary by day and night (`bulwary_*`, night prebuilt), the sandbars by Most
+Poniatowskiego (`poni_river_day*`, and prebuilt), Marszałkowska (trees, tram bed), Rondo
+Dmowskiego (`rondo_day*`, `rondo_top*`, and prebuilt), a chevron area (`chevron_day`), a kerbed
+island (`island_day`), the bridge deck close up (`deckgap_*`); overlays `ov_banks_overview.png`
+(built red, sandy yellow, green lime, sandbars pink), `ov_rondo_markings_after.png`.
+
+What only the phone can tell: whether the kerb bump reads (and is not annoying) under a finger,
+whether the 1-px foam line survives the 2× pixel on the iPhone 11, and whether the spiral reads
+at the default view.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -1825,6 +1970,11 @@ expensive kind.
    measured decks (R2). Then `godot --headless --path game --script res://tools/check_drive.gd`.
    Laser-scan records that are not trees are left out (`GUGIK_NOT_TREES`: the Palm, written
    as `palm`). After a re-bake run steps 3-5 again.
+   Loop 3b-2: `tools/bake_banks.py` (after the shore runs) marks natural banks on `shore` (`n`)
+   and writes `sand` and `sandbars` (`g`: gravel); `crown_scales` writes `trees3d_crown` (one
+   crown scale per scanned tree, 12,554 values, checked by `check_map_data.py`);
+   `level_surfaces` puts a bridge's mapped pavements and tram bed on its deck (`dk` on
+   `surfaces`). See Loop 3b-2.
    For the side jobs and easter eggs the same bake writes more `pois`: `kebab` (the mapped
    kebab places, `amenity=fast_food` with cuisine or name kebab, by position only, never their
    names, plus the extra corners in `EXTRA_KEBAB`; each with the road point a car pulls up at),
@@ -1868,7 +2018,7 @@ PASS/WARN/FAIL table: the map-data invariants (`tools/check_map_data.py`), the r
 (`tools/check_roads.py`, loop 3a), the check scripts
 (steering, settings, the HUD at phone size, landmarks, sfx, radio loops, the water on both city paths) and eight headless game runs, each with
 
-(the drive check on both city paths (loop 3b), steering, settings, landmarks, sfx, radio loops,
+(the drape check (loop 3b-2), the drive check on both city paths (loop 3b), steering, settings, landmarks, sfx, radio loops,
 the water on both city paths) and eight headless game runs, each with
 `--nosave` (`--quick` for a short set, `--ios` adds the export and the unsigned Xcode build,
 `--only=` picks steps). `tools/shots.sh` renders standard screenshots at a phone's size

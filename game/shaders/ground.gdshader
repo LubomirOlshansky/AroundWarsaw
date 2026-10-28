@@ -23,6 +23,10 @@ shader_type spatial;
 // and trees' shade in green stays) and, inside the footprint, which its own building
 // always shades, the sunlight it would get is given back (ghost_sun), so the street
 // round the car reads as bright as the street outside the ghost.
+//
+// Loop 3b-2: layers 16 (sand), 17 (a natural bank's wet bands, a sandbar's rim), 18 (the
+// foam line on a natural waterline) and 19 (the tram bed's slabs), map_builder.gd L_SAND,
+// L_WET, L_FOAM, L_TRAMBED.
 
 #include "res://shaders/common.gdshaderinc"
 #include "res://shaders/night.gdshaderinc"
@@ -153,6 +157,24 @@ void fragment() {
 		base = srgb_to_linear(rubber[int(hash12(tile) * 30.0) % 3]);
 	} else if (id == 14) {
 		shade = 0.95 + 0.06 * hash12(floor(wp * 4.0)); // traffic island concrete
+	} else if (id == 19) {
+		// Loop 3b-2: the tram bed: concrete track slabs, a joint across it every 3 m.
+		vec2 slab = floor(street / vec2(3.0, 2.0));
+		shade = 0.95 + 0.06 * hash12(slab) - 0.1 * step(fract(street.x / 3.0), 0.05);
+	} else if (id == 16 || id == 17) {
+		// Loop 3b-2: sand (beaches, sandbars) and the wet bands of a natural bank or a
+		// sandbar's rim (their colour, sand or earth, from the vertex): a fine grain, soft
+		// drifts on the dry sand; darker after dark (the beach read as a pale lavender plane).
+		shade = 0.95 + 0.06 * hash12(floor(wp * 4.5));
+		if (id == 16) {
+			shade += 0.06 * (value_noise(wp * 0.45) - 0.5);
+		}
+		base *= mix(0.6, 1.0, daylight);
+	} else if (id == 18) {
+		// Loop 3b-2: the foam line on a natural waterline: a 1-px line that breathes a little,
+		// dim after dark (night water stays calm and dark).
+		shade = 0.9 + 0.1 * value_noise(wp * 0.8 + vec2(TIME * 0.15, 0.0));
+		base *= mix(0.32, 1.0, daylight);
 	} else if (id == 3) {
 		// Water. The river (B = 1 in the surface map) flows along its baked direction;
 		// ponds and fountains are still.
@@ -205,7 +227,7 @@ void fragment() {
 		base *= mix(vec3(0.22, 0.2, 0.3), vec3(1.0), daylight);
 	}
 	// Rain: wet asphalt and paving darken, puddles lie darker still and mirror the sky.
-	if (wetness > 0.001 && (id == 6 || id == 2 || id == 4 || id == 5 || id == 7 || id == 14)) {
+	if (wetness > 0.001 && (id == 6 || id == 2 || id == 4 || id == 5 || id == 7 || id == 14 || id == 19)) {
 		base *= mix(1.0, id == 6 ? 0.62 : (id == 7 ? 0.82 : 0.74), wetness);
 		if (id == 6 || id == 2 || id == 4) {
 			float pm = value_noise(wp * 0.16 + 11.3) * 0.6 + value_noise(wp * 0.53 + 2.1) * 0.4;

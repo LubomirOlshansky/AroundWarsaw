@@ -29,7 +29,9 @@ If they disagree, README wins: fix this file.
    writes `graph`, the lane graph with each edge's `dk` / `tn`, and `pois`; loop 3b: then
    `tools/bake_structures.py` on the finished data: piers, retaining walls, tunnel walls and
    portals, garage doors, the Poniatowski towers' seats, buildings cut under decks, aprons,
-   solid things cleared out of the lanes) → `game/map/centrum.json`. It reads
+   solid things cleared out of the lanes; loop 3b-2: `tools/bake_banks.py`, built and natural
+   banks on `shore`, `sand`, `sandbars`, and `trees3d_crown`, the crowns' scale by the roads)
+   → `game/map/centrum.json`. It reads
    `game/map/terrain.json` for the decks and `game/map/lod2.*` for the cuts (bake GUGiK
    first). Loop 3b (R2): the deck solver follows the decks measured in the 0.5 m surface model
    (`data/raw/demo/gugik/nmpt05`, `nmt1`: float32 GeoTIFF, read by `tools/geotiff.py`) when
@@ -47,7 +49,7 @@ If they disagree, README wins: fix this file.
 ## Invariants after a re-bake
 
 ```zsh
-python3 -I tools/check_map_data.py      # trees3d 75324 values, pois 1020, graph, palm, city.scn fresh
+python3 -I tools/check_map_data.py      # trees3d 75324 values, trees3d_crown 12554, pois 1020, graph, palm, city.scn fresh
 godot --path game --resolution 320x180 --script res://tools/count_vertices.gd   # vertex budget
 ```
 

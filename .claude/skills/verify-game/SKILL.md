@@ -66,7 +66,8 @@ forgotten.
 
 In the set now: `check_map_data.py` (map), `check_roads.py` (roads, loop 3a: C1-C10 over the
 whole map, ~4 s; any rule FAILs (loop 3b; until then C4, C5, C9, C10 were a WARN); the counts in the
-row), `check_drive.gd` (loop 3b: `drive` and `drive-prebuilt`: a car and a bus along every lane
+row), `check_drape.gd` (loop 3b-2: `drape`, the bare ground poking through the water, grass,
+plazas and sand, from the builder's own meshes; ~10 s), `check_drive.gd` (loop 3b: `drive` and `drive-prebuilt`: a car and a bus along every lane
 against the colliders, the autopilot over 20 routes across bridges and tunnels; ~10 s and ~2 s),
 `check_steering.gd`, `check_settings.gd`,
 `check_hud.gd` (loop 2e: `hud`, the HUD at four screen sizes: 44 pt controls, 11 / 13 pt text,
