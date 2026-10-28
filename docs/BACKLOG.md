@@ -346,9 +346,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - The neon sign quads (`neon.gdshader`, 361 signs) are not ghosted (they never were): a sign on
   a ghosted wall stays lit, mirrored, over the ghost. Feeding them the ghost's uniforms is one
   more material in main.gd `_update_ghost` (outside this loop's main.gd scope).
-- Parked cars: map_builder.gd `CAR_PAINT` still has the red "#a83a2e"; `foliage.gdshader`
-  repaints it (body and cabin) slate on both city paths. Change the palette at the next city
-  bake (map side) and drop the remap.
+- Parked cars: loop 2c moved the palette to `models.gd` `PARKED_PAINT` (no red; map_builder.gd
+  uses it), so the runtime city has no red parked cars; the prebuilt city.scn still carries the
+  old instance colours until the next city bake (map side), and `foliage.gdshader` repaints its
+  red (body and cabin) slate until then. Drop the remap after that bake.
 - The pale jagged band south of Most Poniatowskiego by day is geometry (it stays with the
   mirror off, `--quality=low`): an area polygon on the water, map side with the sandbars
   (loop 3b), not the deck's reflection (which by day is a darker band, now half as strong).
@@ -365,8 +366,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Conifers share the material and get gentle lumps too.
 - Cycle lanes under sodium at night still read red (dimmer, tinted, not added), under the car.
 - The minimap still shows the azure water and lime parks (HUD side).
-- Buses and trams keep their Warsaw red-and-yellow livery and the rivals their looks (Słoik's
-  red stripe and his orange name tag): street-level Warsaw is on the review's protect list.
+- Buses and trams keep their Warsaw red-and-yellow livery and the rivals their looks (loop 2c:
+  Słoik's stripe is pickle green now; his orange name tag stays): street-level Warsaw is on the
+  review's protect list.
 - Half the LoD2 walls now run the facade code instead of the roof grain: the bench numbers are
   in README (The first-minute look); the phone's 60 fps is the orchestrator's to confirm.
 
@@ -435,3 +437,37 @@ Small problems that agents reported or that showed up in screenshots. They are f
   flat to the car; cramped turn arrows, Rondo Dmowskiego's spiral, chevrons, medians on two-way
   roads, deck pieces > 3 m apart showing the river; natural river banks, sandbars, tree crowns by
   roads.
+
+## From loop 2c (car models)
+- **Parked cars are one shape** (a small saloon, `models.gd` `parked_mesh()`, 40 triangles): the
+  traffic's kinds would need a MultiMesh per kind per 512 m tile (+1 draw call per tile in view,
+  per pass) or `foliage.gdshader` (outside this loop) learning the actors' shape morph. The three
+  512 m tiles round the spawn hold ~550 of them, so they stay cheap. Default: one shape, the
+  traffic's paints.
+- **The prebuilt city.scn still holds the old parked boxes**; `main.gd` replaces the shared mesh
+  in place when it loads (`Models.renew_parked`, both paths look the same). The next city bake
+  (map side; this loop didn't re-bake) makes it native; the swap is harmless afterwards. The
+  verify `map data` WARN about city.scn's age is that (and checkout times).
+- **Police and guards** (`Models.police_mesh()`, for loop 3g): one family, shape 0 the patrol
+  estate (paint `POLICE_WHITE`), shape 1 the guards' car at 0.88 (paint `GUARD_MUSTARD`), so 3g's
+  POLICE kind can draw both in one MultiMesh. The light bar's lamps use BLINK (alternating by
+  UV.y): they glow and blink only when the city's lights are on; a daytime chase needs police.md's
+  SIREN part, whose code must be **9** (8 is the player's HERO since the look loop), driven by the
+  instance's custom data, not by UV.y. "POLICJA" reads from ~6–15 m views only (5 cm pixels).
+- **Podwózka shares the TAXI MultiMesh** (pool 16) with the city taxi, half each (~5 % of cars
+  each on main and secondary roads): parodies.md planned a kind of its own (pool 12, +2 draw
+  calls) for loop 2d; as a shape it costs nothing. 2d's GPS moments can key on `shape == 1`.
+- **Mirrors were left out** (one image pixel at the 80 m view); the player's car has round head
+  lamps, a spoiler and hub caps instead, which read zoomed in.
+- `check_water.gd` 5a counted every roof refusal as "refused on dry land" (5517) after sweep 1
+  gave that refusal an English line; it now tells the water's by its words. `verify.sh --quick`
+  doesn't run the water steps, which is how it slipped through.
+- DEMO.md row 10 asks "≤ +20 % vertices for vehicles": a model grew more than that (a traffic
+  car 144 → 194 triangles, a van 144 → 228, the player's 240 → 292), but the pools now draw only
+  the cars in use, so the frame's triangles fell at the default view (README "Loop 2c");
+  README's per-model caps (≤ 800, ≤ 3,000) were followed.
+- The bus has doors on its right only; the tram cars on both sides (Warsaw's newer trams are
+  two-sided).
+- A traffic car's shape is picked by its own random stream, so where and which kind of car
+  spawns is as before; its size (and the gap it keeps) is now the shape's.
+

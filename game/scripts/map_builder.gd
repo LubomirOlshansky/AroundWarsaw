@@ -10,6 +10,8 @@ const CLOCKWISE_FRONT := true
 const Chunked := preload("res://scripts/chunked_surface.gd")
 const Neon := preload("res://scripts/neon_signs.gd")
 const Landmarks := preload("res://scripts/landmarks.gd")
+## Loop 2c: the parked cars' mesh and paints come from the vehicles' models (one source).
+const Models := preload("res://scripts/models.gd")
 ## Tile size for instanced things (trees, lamps, parked cars). Loop 2b: 512 m (was 256): one
 ## MultiMesh is one draw call, and the iPhone pays per draw call, not per instance.
 const INSTANCE_TILE := 512.0
@@ -2828,7 +2830,8 @@ func _conifer_mesh() -> ArrayMesh:
 	return st.commit()
 
 
-const CAR_PAINT := ["#e9e9e6", "#b8bcc0", "#6f7378", "#2b2c2f", "#2f4566", "#a83a2e", "#24324a", "#cdbb9a", "#4c6650", "#f2f2ee"]
+## The parked cars' paints, picked by the bake's index (loop 2c: models.gd, the red one slate).
+const CAR_PAINT := Models.PARKED_PAINT
 
 
 func _box(st, centre: Vector3, size: Vector3, col: Color) -> void:
@@ -2896,11 +2899,8 @@ func _build_street_furniture() -> void:
 	for mmi in _tree_multimesh(signal_mesh.commit(), metal, spots, none):
 		mmi.add_to_group(SMALL_CASTERS, true)
 
-	# Parked cars: white body and dark glass, tinted per car by the instance colour.
-	var parked := SurfaceTool.new()
-	parked.begin(Mesh.PRIMITIVE_TRIANGLES)
-	_box(parked, Vector3(0, 0.6, 0), Vector3(1.75, 0.62, 4.2), Color.WHITE)
-	_box(parked, Vector3(0, 1.12, 0.2), Vector3(1.5, 0.46, 2.1), Color("#5b6573"))
+	# Parked cars: white body and dark glass, tinted per car by the instance colour (loop 2c:
+	# the shape is models.gd's parked_mesh(), a small saloon like the traffic's).
 	spots = []
 	var paints: Array[Color] = []
 	list = data.get("parked", [])
@@ -2912,7 +2912,7 @@ func _build_street_furniture() -> void:
 	var car_paint := leaf_material.duplicate() as ShaderMaterial
 	car_paint.set_shader_parameter("sway", 0.0)
 	fade_materials.append(car_paint)
-	for mmi in _tree_multimesh(parked.commit(), car_paint, spots, paints):
+	for mmi in _tree_multimesh(Models.parked_mesh(), car_paint, spots, paints):
 		mmi.add_to_group(SMALL_CASTERS, true)
 	# Parked cars are obstacles too.
 	var footprint := [Vector3(-0.9, 0, -2.1), Vector3(0.9, 0, -2.1), Vector3(0.9, 0, 2.1), Vector3(-0.9, 0, 2.1)]

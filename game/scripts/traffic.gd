@@ -9,6 +9,12 @@ extends Node3D
 ## camera can't see them, so the count stays near a target set by how much road
 ## is in view. Near the player a small pool of kinematic bodies gives the closest
 ## cars collision; a car the player hits stops for a moment.
+##
+## Loop 2c (car models): each kind's MultiMesh draws a family of shapes (models.gd TRAFFIC and
+## traffic_mesh(): cars are hatches, saloons, estates and SUVs; taxis the city taxi and
+## Podwózka, the app taxi; vans panel and box vans), the shape picked per car and written in
+## the instance's custom alpha, with its own size and paints. Each MultiMesh draws only up to
+## its highest slot in use (visible_instance_count), not its whole pool.
 
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
@@ -19,15 +25,9 @@ const MapBuilder := preload("res://scripts/map_builder.gd")
 
 enum Kind { CAR, TAXI, VAN, BUS, NODE }
 const POOL := [112, 16, 16, 8]
-const LENGTH := [4.2, 4.2, 5.2, 12.0]
-const SIZE := [Vector3(1.8, 1.5, 4.2), Vector3(1.8, 1.7, 4.2), Vector3(2.0, 2.6, 5.2), Vector3(2.5, 3.2, 12.0)]
-## The parked cars' palette (map_builder.gd), so traffic and parked cars match. The look
-## loop (2026-10-28): red is the player's (and orange the jobs'), so the red paint "#a83a2e"
-## became a slate blue-grey; foliage.gdshader repaints the parked cars' red the same way
-## until map_builder.gd's palette changes with the next city bake.
-const CAR_PAINT := ["#e9e9e6", "#b8bcc0", "#6f7378", "#2b2c2f", "#2f4566", "#6a7487", "#24324a", "#cdbb9a", "#4c6650", "#f2f2ee"]
-const TAXI_PAINT := ["#232428", "#e9e9e6", "#b8bcc0", "#2b2c2f"]
-const VAN_PAINT := ["#f2f2ee", "#e9e9e6", "#d8d2c2", "#f3c72b", "#b8bcc0", "#2f4566", "#6a7487"]
+## Each kind's longest shape (m), for the headlight pools. The shapes, their sizes and paints
+## are models.gd TRAFFIC (loop 2c; red stays the player's, orange the jobs': the look loop).
+const LENGTH := [4.65, 4.6, 5.4, 12.0]
 ## Cars per lane-metre in view, by road class (main, tertiary, residential, living street).
 const DENSITY := [1.0 / 20.0, 1.0 / 34.0, 1.0 / 90.0, 1.0 / 180.0]
 const MAX_CARS := 140
@@ -62,6 +62,8 @@ class Driver:
 	var length := 4.2
 	var size := Vector3(1.8, 1.5, 4.2)
 	var paint := Color.WHITE
+	## Loop 2c: which of its kind's shapes it is (models.gd TRAFFIC; the instance's custom alpha).
+	var shape := 0
 	var edge := -1
 	var lane := 0
 	var s := 0.0
@@ -147,9 +149,14 @@ var _beam_mmi: Array[MultiMeshInstance3D] = []
 var _buf: Array[PackedFloat32Array] = []
 var _free_slots: Array[PackedInt32Array] = []
 var _counts := PackedInt32Array([0, 0, 0, 0])
+## Loop 2c: instances each MultiMesh draws (its highest slot in use + 1), and this frame's.
+var _drawn := PackedInt32Array([0, 0, 0, 0])
+var _top := PackedInt32Array([0, 0, 0, 0])
 var _bodies: Array[AnimatableBody3D] = []
 var _body_driver: Array = []
 var _rng := RandomNumberGenerator.new()
+## Loop 2c: picks the shapes, apart from _rng so where and what kind of car spawns is as before.
+var _looks := RandomNumberGenerator.new()
 var _tick := 0
 ## Cars in or near a junction box this frame (see _junction_conflicts); the
 ## trams read it too.
@@ -185,18 +192,19 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 	map = map_node
 	cam = camera
 	_rng.seed = 2026
+	_looks.seed = 2027
 	_lane_cars.resize(graph.lane_count)
 	for i in graph.lane_count:
 		_lane_cars[i] = []
 	for i in MAX_CARS + 8:
 		_free.append(Driver.new())
-	var meshes := [Models.car_mesh(), Models.car_mesh(true), Models.van_mesh(), Models.bus_mesh()]
 	for k in 4:
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.use_custom_data = true
-		mm.mesh = meshes[k]
+		mm.mesh = Models.traffic_mesh(k)
 		mm.instance_count = POOL[k]
+		mm.visible_instance_count = 0
 		# Instances move all over the map; never cull the whole set.
 		mm.custom_aabb = AABB(Vector3(-2500, -200, -1500), Vector3(5000, 600, 3000))
 		var buf := PackedFloat32Array()
@@ -215,6 +223,7 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 		beam.use_custom_data = true
 		beam.mesh = Models.headlight_pools(LENGTH[k] * 0.5, 0.85 if k == Kind.BUS else 0.6, 15.0 if k == Kind.BUS else 13.0)
 		beam.instance_count = POOL[k]
+		beam.visible_instance_count = 0
 		beam.custom_aabb = mm.custom_aabb
 		beam.buffer = buf
 		var bmi := MultiMeshInstance3D.new()
@@ -445,11 +454,19 @@ func _try_spawn(anywhere: bool) -> bool:
 		if _free_slots[kind].is_empty():
 			return false
 	var y := graph.height(e, s)
-	if not anywhere and on_screen(Vector3(q.x, y, q.y), SIZE[kind].y):
+	var shapes: Array = Models.TRAFFIC[kind]
+	var shape := 0
+	var pick := _looks.randf()
+	while shape < shapes.size() - 1 and pick >= float(shapes[shape]["share"]):
+		pick -= float(shapes[shape]["share"])
+		shape += 1
+	var look: Dictionary = shapes[shape]
+	var size: Vector3 = look["size"]
+	if not anywhere and on_screen(Vector3(q.x, y, q.y), size.y):
 		return false
 	var lane_id: int = graph.e_lane0[e] + lane
 	for o in _lane_cars[lane_id]:
-		if absf((o as Driver).ls - s) < LENGTH[kind] + 12.0:
+		if absf((o as Driver).ls - s) < size.z + 12.0:
 			return false
 	if Vector2(player_pos.x, player_pos.z).distance_to(q) < 14.0:
 		return false
@@ -462,15 +479,11 @@ func _try_spawn(anywhere: bool) -> bool:
 	d.slot = _free_slots[kind][_free_slots[kind].size() - 1]
 	_free_slots[kind].resize(_free_slots[kind].size() - 1)
 	_counts[kind] += 1
-	d.size = SIZE[kind]
-	d.length = LENGTH[kind]
-	match kind:
-		Kind.TAXI:
-			d.paint = Color(TAXI_PAINT[_rng.randi() % TAXI_PAINT.size()])
-		Kind.VAN:
-			d.paint = Color(VAN_PAINT[_rng.randi() % VAN_PAINT.size()])
-		_:
-			d.paint = Color(CAR_PAINT[_rng.randi() % CAR_PAINT.size()])
+	d.size = size
+	d.length = size.z
+	d.shape = shape
+	var paints: Array = look["paint"]
+	d.paint = Color(paints[_rng.randi() % paints.size()])
 	d.speed_factor = _rng.randf_range(0.85, 1.08) * (0.85 if kind == Kind.BUS else 1.0)
 	d.accel_factor = 0.7 if kind == Kind.BUS else _rng.randf_range(0.85, 1.15)
 	d.persistent = false
@@ -1027,8 +1040,16 @@ func _write() -> void:
 		buf[b + 12] = d.paint.r
 		buf[b + 13] = d.paint.g
 		buf[b + 14] = d.paint.b
-		buf[b + 15] = 0.0
+		buf[b + 15] = float(d.shape)
+		_top[d.kind] = maxi(_top[d.kind], d.slot + 1)
 	for k in 4:
+		# Loop 2c: draw only up to the highest slot in use (a freed slot is the next one taken,
+		# so this stays near the most cars of the kind at once; the pools are 112 / 16 / 16 / 8).
+		if _top[k] != _drawn[k]:
+			_drawn[k] = _top[k]
+			_mm[k].visible_instance_count = _top[k]
+			_beam_mm[k].visible_instance_count = _top[k]
+		_top[k] = 0
 		RenderingServer.multimesh_set_buffer(_mm[k].get_rid(), _buf[k])
 		if _beam_mmi[k].visible:
 			RenderingServer.multimesh_set_buffer(_beam_mm[k].get_rid(), _buf[k])
