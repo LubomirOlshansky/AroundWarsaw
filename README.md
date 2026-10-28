@@ -1518,7 +1518,8 @@ app taxis) must stay inside them and report the same numbers before and after.
 
 **How to measure** (on the Mac, at the iPhone's 2868×1320, Metal; the counters are the ones
 the phone's overlay shows and match it):
-`godot --path game --rendering-driver metal --resolution 2868x1320 --fixed-fps 60 -- --probe --nosave --controls=classic [view]`
+`godot --path game --rendering-driver metal --rendering-method mobile --resolution 2868x1320 --fixed-fps 60 -- --probe --nosave --controls=classic [view]`
+(without `--rendering-method mobile` Godot picks Forward+ on the Mac, not the phone's Mobile renderer)
 for the four views below (the `draw calls` and `main pass` lines), the bench
 (`cd game && godot --path . --disable-vsync -- --bench --nosave`, also `--time=night` and
 `--weather=rain --time=night`; Vulkan with `--rendering-driver vulkan --rendering-method mobile
@@ -1645,8 +1646,8 @@ connected iPhone and copies its log back. A guard hook (`tools/hooks/guard_godot
 `.claude/settings.json`) stops Claude Code from running the game without `--nosave` or a quit
 flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
 
-- `tools/bake_osm.py`: turns the Overpass exports in `data/raw/` (map + mapped trees) into `game/map/centrum.json`:
-  `python3 -I tools/bake_osm.py data/raw/osm_centrum.json data/raw/osm_trees.json game/map/centrum.json`.
+- `tools/bake_osm.py`: turns the Overpass export in `data/raw/` into `game/map/centrum.json`
+  (the command is in "Map data", step 1).
   It reads `game/map/terrain.json` (for the bridge decks) and hands the road surface to
   `tools/bake_roads.py`: `carriage` (road and hatched areas), `kerbs`, `medians`, `guards`,
   `symbols` (turn arrows, BUS, bikes), `decks`, `shore` (the water's edge), the extra

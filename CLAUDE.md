@@ -114,8 +114,9 @@ add-ons under MIT or CC0; a native GDExtension needs iOS binaries (most don't sh
 check it on the phone before relying on it. Each goes in `game/addons/<name>/` with its
 licence file kept, gets a CREDITS.md line (name, author, licence, URL, version), and must keep
 the performance budgets. **Installed:** Debug Draw (HardPixel, v1.1.0, loop 3a; GDScript only,
-loaded only with `--debug-roads`). **Approved by the user (2026-10-28), not installed yet:**
-Phantom Camera (Ramokz; the camera loop is adding it), Dialogue Manager (Nathan Hoad) and
+loaded only with `--debug-roads`); Phantom Camera (Ramokz, v0.11.0.3, the camera loop; it runs
+the fly-in and target-look tweens only, the follow camera is `follow_camera.gd`; its editor plugin
+is off). **Approved by the user (2026-10-28), not installed yet:** Dialogue Manager (Nathan Hoad) and
 beehave (bitbrain) at the start of the police loop. Still need their own
 yes: Folder Import Rules, Lente photo mode, the In-app Review and Share plugins.
 

@@ -5,6 +5,7 @@ cd "${0:A:h}/../game"
 # Not --headless: the headless renderer discards MultiMesh and texture data, which would
 # leave the prebuilt city without trees, cars or AO. This opens a window for a moment.
 godot --path . --resolution 320x180 --script res://tools/bake_city.gd
+mkdir -p ../build/ios
 godot --headless --path . --export-debug "iOS" ../build/ios/NocnaWarszawa.ipa
 # Loop 2b: Xcode's Run button attaches the debugger and, by default, Metal API validation and
 # GPU frame capture, which make every draw call several times slower on the phone. Switch both

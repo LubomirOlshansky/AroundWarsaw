@@ -2345,7 +2345,7 @@ func _toggle_vehicle() -> void:
 ## the car is put on dry ground next to it).
 func _landing_problem(p: Vector3) -> Array:
 	if map.top_height(p.x, p.z, Heli.RADIUS) > map.ground_height(p.x, p.z) + 1.0:
-		return ["Land on open ground to take the car", ""]
+		return ["Wyląduj na otwartym terenie, żeby wziąć auto.", "Land on open ground to take the car."]
 	if map.in_water(p.x, p.z, map.ground_height(p.x, p.z)):
 		return ["Tu nie wylądujesz: to woda. Szukaj brzegu.", "No landing on the water: find the bank."]
 	return []

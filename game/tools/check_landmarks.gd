@@ -22,11 +22,12 @@ func _physics_process(_delta: float) -> bool:
 	_frames += 1
 	if _frames < 3:
 		return false
-	_check()
+	# Exit 1 on a failure, so tools/verify.sh and CI see it without reading the line.
+	quit(0 if _check() == 0 else 1)
 	return true
 
 
-func _check() -> void:
+func _check() -> int:
 	var space: PhysicsDirectSpaceState3D = map.get_world_3d().direct_space_state
 	var missions: Node = load("res://scripts/missions.gd").new()
 	missions.map = map
@@ -119,6 +120,7 @@ func _check() -> void:
 			meta.store_string(JSON.stringify({"x0": map._roof_x0, "z0": map._roof_z0, "cell": map.ROOF_CELL, "landmarks": names}))
 			print("grid written to ", arg.trim_prefix("--grid="))
 	print("landmark check: %s" % ("OK" if failures == 0 else "%d FAILED" % failures))
+	return failures
 
 
 ## The helicopter (heli.gd, stepped by hand at 60 Hz) flies at 45 m straight at each
