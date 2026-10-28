@@ -75,7 +75,7 @@ loop 2b was cutting the frame cost. Phone budgets refer to README's "Performance
 | # | The bar | Measured by | Today |
 | --- | --- | --- | --- |
 | **First minute** | | | |
-| A1 | Cold launch to the title in ≤ 4 s and title to driving in ≤ 2 s on an iPhone 13 | Device stopwatch, BENCH log | Unmeasured |
+| A1 | Cold launch to the title in ≤ 4 s and title to driving in ≤ 2 s on an iPhone 11 | Device stopwatch, BENCH log | Unmeasured |
 | A2 | Nothing between the first tap and driving: no card, prompt, tour or "prototype" label | Screenshot at +1 s | ✗ (RESCUE CALLS card, label) |
 | A3 | A goal is on screen or at the minimap's edge within 15 s of the first touch | Replay of the first minute (`--autopilot` off, scripted `--drag`) | Partly (kebab stand nearby) |
 | A4 | First reward (money pop, line and sound) within 90 s; first joke within 60 s | Same replay, event log | ✗ |
@@ -105,7 +105,7 @@ loop 2b was cutting the frame cost. Phone budgets refer to README's "Performance
 | G2 | Every tier-A landmark has a card and something to do (finish line, egg or job) | List | Partly |
 | G3 | District completion shows on the map | Screenshot | ✗ |
 | **Performance and stability** | | | |
-| H1 | Loop 2b's budgets at every view: 60 fps at the default view on an iPhone 13 at the default quality; ≥ 30 fps at the worst view; no frame over 50 ms in a 10-minute drive outside a load | BENCH on the phone | ✗ (13 to 16 fps) |
+| H1 | Loop 2b's budgets at every view: 60 fps at the default view on an iPhone 11 at the default quality; ≥ 30 fps at the worst view; no frame over 50 ms in a 10-minute drive outside a load | BENCH on the phone | ✗ (13 to 16 fps) |
 | H2 | Memory ≤ 1.2 GB (roadmap ceiling 1.5) | Perf overlay | 0.67 GB on today's map |
 | H3 | 20 minutes of play without thermal throttling (the 30 fps cap from 2b allowed) | Xcode energy gauge | Unmeasured |
 | H4 | Zero script errors in a 30-minute autopilot soak; the save survives a kill | Soak log | Unmeasured |
@@ -316,6 +316,8 @@ quadratic, for example deck grouping and footway-to-deck matching; give them a s
 
 ### 4.1 How heights work today
 
+*(Before loop 3a. What loop 3a changed is in 4.7.)*
+
 - The terrain is GUGiK's bare-earth model sampled every **10 m** (`terrain.json`). Bridges and
   viaducts are not in it, but abutments, embankments and the open ramps of tunnels are.
 - Every OSM way tagged `bridge=*` becomes a **deck piece**. Its height is the larger of two
@@ -385,6 +387,10 @@ Found clean: shared road joints (0 jumps over 0.3 m, because ends are pinned), l
 (0 of 2,084 samples fall off a deck), carriageway areas on decks (0 floating).
 
 ### 4.4 Root causes and the fixes
+
+Loop 3a status: **R1, R3, R4, R8, R9 done in the bakes** (see 4.7); R2 has its hook and waits for
+the surface model (the fallback, the chain solver alone, is what runs); R5, R6, R7, buildings
+under decks and the rim's walls are loop 3b.
 
 | Root cause | Classes | Fix | Where |
 | --- | --- | --- | --- |
@@ -474,9 +480,42 @@ these:
   drivable for the player (section 5) but not for traffic, so keep them out of the lane graph via
   `access`, `motor_vehicle` and `highway=pedestrian`.
 
+### 4.7 Done in loop 3a (2026-10-28)
+
+- `tools/check_roads.py` (C1-C10 above, allowlist `tools/check_roads_allow.json`, image
+  `shots/check_roads.png`, `tools/verify.sh` step `roads`). Its baseline on today's map differs
+  from the survey's numbers in 4.3 by the rules' thresholds, which 4.5 sets tighter or wider
+  than the survey used: C1 85 roads (12 % / service 20 %, not 15 % for both), C3 249 samples in 17
+  places (adds trams, rails and footways, < 4.7 m), C4 31 of 161 piers (the pier's footprint
+  within 1 m of the road's edge), C5 46 (lanes, LoD2 heights, landmarks), C6 4 + 6 at the rim (over
+  1 m, not 2), C7 9 (the survey's 3 + 5, and a 7 m tunnel on Warecka), C8 19 edges + 12 nodes
+  (0.5 m and 0.2 m), C9 58 (LoD2 heights and the 48 mapped pillars under the Jana Pawła II
+  viaduct, which the survey didn't read), C10 1.
+- After: C1, C3, C8 only allowlisted findings (each with its reason and source), C2, C6, C7 at 0;
+  C4 31, C5 50, C9 57, C10 1 left for loop 3b. README "Loop 3a" has the table.
+- R1 as **structure chains** solved as one graph per family (rails, roads, tracks, footways):
+  bridge ways plus the ways between two bridges within 150 m, embankments, and the approaches
+  whose terrain within 40 m is steeper than 12 % (the grid's blur). The approaches are **fills**
+  (the ground corrected under their corridor), not decks. Pins only where a structure meets an
+  ordinary way, at the 10 m grid's value (so the joints stay exact; the 1 m NMT's robust value
+  needs the surface model).
+- R3 as hard lower bounds; no underpass dip was needed on today's map; a cutting under a deck
+  (the WKD) is skipped and logged.
+- R4: tunnels kept as tunnel pieces (`tunnels`: pieces, roads with `tn`, portals); cuttings kept
+  as roads. Not drawn or driven yet: loop 3b (the lane graph has the edges but keeps them out of
+  routing until then).
+- R8: graph edges carry `dk` / `tn`; lane heights come from that piece only.
+- R9: 27 service ways end at a garage ramp's top; `garages` marks the doors for loop 3b.
+- Also: the 10 m grid's narrow pits under streets are filled (98 stretches).
+
 ---
 
 ## 5. Police
+
+**Superseded by `docs/design/police.md`** (2026-10-28, game-designer) for the gentler police the
+user chose: warnings and jokes, no fines or respect taken, short chases that end by themselves,
+city guards in the Old Town, escorts on rescues; beehave, Dialogue Manager and Phantom Camera
+as the approved add-ons. The text below is the first draft, kept for its research.
 
 ### 5.1 Who they are
 
@@ -682,10 +721,13 @@ unlocked.
 | The 24h corner shop chain | **Rechotka 24** ("rechot" is a frog's croak and a belly laugh): frog green with a cartoon frog of our own |
 | App-taxi | **Podwózka**, with a star bar and a phone-shaped roof sign |
 | Couriers | **Pędzik**: magenta square backpacks |
-| E-scooters | **Hulajka**: purple, lying in odd places |
-| Kebab | Stand names in pixel letters: "Kebab u Zdzicha", "Nocny Marek" (Polish for a night owl) |
+| E-scooters | ~~Hulajka~~ → **Leżak** (deckchair): violet, lying in odd places ("Hulaj" was a real Polish scooter-sharing brand) |
+| Kebab | Stand names in pixel letters: "U Zdzicha", "Na cienkim" (~~"Nocny Marek"~~: one letter from Warsaw's "Nocny Market") |
 
-These are working names. Loop 2d checks that no real company trades under them before they ship.
+**Superseded by `docs/design/parodies.md`** (2026-10-28, game-designer): the final names
+(Rechotka 24 with a lily-pad sign and no frog figure, Podwózka, Pędzik, Leżak, U Zdzicha, Na
+cienkim) after a web and domain check; a trademark-register search (UPRP/EUIPO) belongs to
+loop 3k's brand audit.
 
 ---
 
@@ -694,7 +736,7 @@ These are working names. Loop 2d checks that no real company trades under them b
 **Provisional budget P** (it applies until README's "Performance budgets" from loop 2b lands;
 where they differ, loop 2b's numbers win):
 
-- 60 fps (≤ 16.7 ms) at the default view on an iPhone 13-class phone at the default quality.
+- 60 fps (≤ 16.7 ms) at the default view on an iPhone 11-class phone (A13) at the default quality.
 - ≥ 30 fps at the worst view (the helicopter over the centre).
 - ≤ 800 draw calls (all passes) at the default view and ≤ 1,200 at the worst; ≤ 1.0 M triangles
   drawn (1.5 M at the worst).
@@ -725,7 +767,7 @@ adds content. One agent at a time, as in ROADMAP's "How the work is run".
 | 12 | **Loop 2d: Warsaw jokes and side jobs** | Rechotka shops, app-taxi with stars, couriers, scooters, more kebab, 10 billboards, 15 eggs | Counts in 6.3; every new prop instanced; lines original and brand-free | Props in MultiMeshes per sector (≤ +4 draw calls per sector) |
 | 13 | **Loop 3h: The demo loop** | 6.2 and 6.3: the first-10-minutes script, rival ladder and final race, Syrenki and cassettes, the garage, district cards, the end card, save v2 | A scripted replay hits every 6.2 beat on time; checklist A1 to A5, F1 to F4, G1 to G3 and I1 to I2 green | Scripts ≤ +0.2 ms |
 | 14 | **Loop 3i: Juice, sound and night pass** | Sparks and dust, money pops, scrape loop, district ambiences, siren, the night look in the new districts, Reduce Motion, left-handed layout | B3, D1, D3 and J3 green; the night render spots | Particles ≤ 1 draw call, ≤ 64 alive |
-| 15 | **Loop 3j: Device pass and TestFlight** (10b folded in) | Real numbers on an iPhone 13 and the user's 16 Pro Max; debug flags stripped; an archive ready | H1 to H4 green on device; a 30-minute soak; the credits and licences screen (ODbL, GUGiK, CC BY for the trees); a privacy statement of no data collection. The user signs and uploads to TestFlight | Meets P on device |
+| 15 | **Loop 3j: Device pass and TestFlight** (10b folded in) | Real numbers on the user's iPhone 11 and 16 Pro Max; debug flags stripped; an archive ready | H1 to H4 green on device; a 30-minute soak; the credits and licences screen (ODbL, GUGiK, CC BY for the trees); a privacy statement of no data collection. The user signs and uploads to TestFlight | Meets P on device |
 | 16 | **Loop 3k: Open-source publication** (any time after loop 3d) | A public repo | Licence chosen (MIT, done 2026-10-28; first commit after loop 2b); the raw data replaced by fetch scripts; the derived map database offered under ODbL (its share-alike applies to `centrum.json`); README for contributors; a brand audit (no real names or logos in game content) | n/a |
 
 Rows 3 to 8 are map and engine work, all before the content (row 9 onward). Loop 2e (the HUD,

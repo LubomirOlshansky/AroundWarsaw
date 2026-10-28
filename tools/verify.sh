@@ -9,6 +9,8 @@
 #   tools/verify.sh --only=steering,plain   just those steps (--list prints the names)
 #   tools/verify.sh --logs=DIR              keep the logs there (default build/verify/<time>)
 #
+# `roads` runs tools/check_roads.py (loop 3a): the road and deck rules C1-C10 over the whole
+# map; until loop 3b its C4, C5, C9, C10 findings are a WARN, the others FAIL.
 # Every game run is headless, passes --nosave and quits by itself (--quit-after; Godot also
 # gets --fixed-fps 60 so a run covers the same game time on any Mac and its outcome repeats).
 # A run passes when Godot exits 0 and prints no ERROR / WARNING lines; autopilot runs also
@@ -25,8 +27,11 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map steering settings hud landmarks sfx radio water water-prebuilt plain heli race kebab splash rain prebuilt classic)
-STEPS_QUICK=(map steering settings hud landmarks sfx radio plain prebuilt)
+STEPS_ALL=(map roads steering settings hud landmarks sfx radio water water-prebuilt plain heli race kebab splash rain prebuilt classic)
+STEPS_QUICK=(map roads steering settings hud landmarks sfx radio plain prebuilt)
+# Loop 3a: tools/check_roads.py's rules that loop 3b fixes (piers, solids, buildings through
+# decks, landmarks): their findings show as WARN until then; the others FAIL.
+ROADS_LATER=C4,C5,C9,C10
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
 STEP_LIMIT=${NW_STEP_LIMIT:-900}
 
@@ -180,6 +185,20 @@ for s in $want; do
 			else
 				row PASS "map data" $secs "trees3d, pois, graph, palm as expected; city.scn up to date"
 			fi ;;
+		# Loop 3a: roads, decks, tunnels and the lane graph over the whole map (C1-C10, docs/DEMO.md 4.5).
+		roads)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/check_roads.py --later=$ROADS_LATER --png=$logs/check_roads.png \
+				--json=$logs/check_roads.json > $logs/roads.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			counts=$(grep -m1 '^check_roads counts:' $logs/roads.log)
+			counts=${counts#check_roads counts: }
+			case $code in
+				0) row PASS "roads" $secs "check_roads: OK · not allowed/found: $counts" ;;
+				3) row WARN "roads" $secs "C1-C3, C6-C8 OK; left for loop 3b ($ROADS_LATER) · $counts ($logs/roads.log)" ;;
+				*) row FAIL "roads" $secs "$(grep -m1 '^check_roads:' $logs/roads.log) · $counts ($logs/roads.log)" ;;
+			esac ;;
 		steering) check steering 'check_steering:' --fixed-fps 60 --script res://tools/check_steering.gd ;;
 		settings) check settings '^settings:' --script res://tools/check_settings.gd ;;
 		# Loop 2e: the HUD at phone size: 44 pt controls, 11 / 13 pt text, the safe area, no overlaps.

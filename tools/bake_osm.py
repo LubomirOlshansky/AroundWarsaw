@@ -140,6 +140,7 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
         return any(i in nodes and in_bbox(*nodes[i]) for i in ids)
 
     roads, paths, trams, areas, buildings = [], [], [], [], []
+    tunnel_roads = []  # loop 3a (R4): drivable tunnels, baked as tunnel pieces
 
     for w in ways.values():
         t = w.get("tags", {})
@@ -152,10 +153,15 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
 
         bridge = t.get("bridge") not in (None, "no")
         layer = num(t.get("layer")) or (1 if bridge else 0)
-        if hw in DRIVABLE and not underground and t.get("area") != "yes":
+        # Loop 3a (R4): a drivable tunnel is kept as a tunnel road (not drawn on the surface;
+        # loop 3b builds it), a way below ground that is no tunnel (layer < 0: a cutting) is an
+        # ordinary road. Building passages and service tunnels (garage interiors, R9) stay out.
+        tunnel = t.get("tunnel") == "yes" and hw in DRIVABLE and hw != "service" and t.get("area") != "yes"
+        cutting = t.get("tunnel") in (None, "no") and num(t.get("layer")) is not None and num(t.get("layer")) < 0
+        if hw in DRIVABLE and (not underground or cutting or tunnel) and t.get("area") != "yes":
             width = bake_roads.road_width(t)[0]
             lanes = num(t.get("lanes"))
-            roads.append({
+            (tunnel_roads if tunnel else roads).append({
                 "p": flat(coords(ids)), "w": round(width, 1), "k": hw,
                 "oneway": t.get("oneway") == "yes", "lanes": int(lanes or 0),
                 "name": t.get("name", ""),
@@ -220,6 +226,8 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     sw, ne = project(BBOX[0], BBOX[1]), project(BBOX[2], BBOX[3])
     rect = (sw[0], ne[1], ne[0], sw[1])  # x0, z0, x1, z1
     roads = clip_lines(roads, rect)
+    tunnel_roads = clip_lines(tunnel_roads, rect)
+    roads, garages = garage_ramps(roads, os.path.join(os.path.dirname(os.path.abspath(dst)), "terrain.json"))
     paths = clip_lines(paths, rect)
     trams = clip_lines(trams, rect)
     areas = [dict(a, p=flat(c)) for a in areas
@@ -238,6 +246,8 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
                              os.path.join(os.path.dirname(os.path.abspath(dst)), "terrain.json"),
                              roads, paths, trams, details, areas)
     bed.solve_decks()
+    bed.solve_tunnels(tunnel_roads)
+    bed.fill_pits()
     bed.assign_levels()
     bed.measure()
     bed.finish_roads()
@@ -252,7 +262,13 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
 
     extras = bake_extras(extras_src, roads, rect) if extras_src else {}
     pois = bake_pois(els, nodes, ways, roads, paths, areas, rect)
-    graph = bake_graph(els, nodes, ways, rect, extras_src, extras.get("signals", []), bed)
+    levels = {}   # loop 3a (R8): way id -> ("dk", deck group) or ("tn", tunnel)
+    for r in roads:
+        if r.get("dk", -1) >= 0:
+            levels.setdefault(r["_id"], ("dk", r["dk"]))
+    for r in tunnel_roads:
+        levels.setdefault(r["_id"], ("tn", r["tn"]))
+    graph = bake_graph(els, nodes, ways, rect, extras_src, extras.get("signals", []), bed, levels)
     bed.bake_lane_marks(graph["edges"])
     for e in graph["edges"]:
         for k in [k for k in e if k.startswith("_")]:
@@ -262,6 +278,8 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     for item in roads + paths + trams + details.get("rails", []) + details.get("islands", []):
         if item.get("dk", -1) < 0:
             item.pop("dk", None)
+    for r in tunnel_roads:
+        r["w"] = round(r["w"], 2)
     for r in roads:
         r["w"] = round(r["w"], 2)
         if r.get("c") == 0:
@@ -282,6 +300,12 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
         "guards": [_lv({"p": g["p"]}, g["dk"]) for g in bed.guards],
         "symbols": [_lv({k: v for k, v in m.items() if k != "dk"}, m["dk"]) for m in bed.symbols],
         "decks": bed.deck_json(),
+        "fills": bed.fill_json(),
+        "tunnels": bed.tunnel_json(tunnel_roads),
+        "garages": garages,
+        # Loop 3a (R3): underpass dips the deck solver asked for (none on today's map); the
+        # builder doesn't lower the ground for them yet (loop 3b), so check_roads C3 still sees them.
+        "dips": [{"x": round(d["x"], 1), "z": round(d["z"], 1), "d": d["d"], "name": d["name"]} for d in bed.dips],
         "shore": bed.shore,
         "attribution": "© OpenStreetMap contributors, ODbL" + ("; trees © GUGiK, CC BY 4.0" if trees3d else ""),
     }
@@ -294,8 +318,74 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     _strip_private(out)
     with open(dst, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
+    print(f"tunnels: {len(tunnel_roads)} tunnel roads, {len(out['tunnels']['pieces'])} pieces, "
+          f"{len(out['tunnels']['portals'])} portals; garages: {len(garages)} doors (R9)")
     print(f"roads {len(roads)} paths {len(paths)} trams {len(trams)} areas {len(areas)} "
           f"trees {len(trees) // 4} + GUGiK {len(trees3d) // 6} buildings {len(kept)} (dropped {len(buildings) - len(kept)} outlines with parts) spawn {spawn}")
+
+
+GARAGE_DROP = 2.0    # R9: a service way whose terrain falls this far below its start...
+GARAGE_REACH = 30.0  # ...within this many metres...
+GARAGE_GRADE = 0.20  # ...somewhere steeper than this, is diving into a garage
+
+
+def garage_ramps(roads, terrain_path):
+    """Loop 3a (R9): a service way that dives into an underground garage follows the
+    terrain grid down its ramp (C1 found 78 of them at 15-86 %). Walking a service way from
+    its end that meets another road (the higher end, if neither does) towards a dead end,
+    the first point from which the terrain falls GARAGE_DROP below it within GARAGE_REACH,
+    somewhere steeper than GARAGE_GRADE, is the ramp's top: the way ends there and the rest
+    is left out; a garage door [x, z, dx, dz] (the way in) is written there for loop 3b to
+    draw. A way that meets roads at both ends is left as it is."""
+    t = bake_roads.Terrain(terrain_path)
+    verts = {}
+    for r in roads:
+        for q in zip(r["p"][0::2], r["p"][1::2]):
+            k = (round(q[0] * 2), round(q[1] * 2))
+            verts[k] = verts.get(k, 0) + 1
+    out, doors = [], []
+    for r in roads:
+        pts = list(zip(r["p"][0::2], r["p"][1::2]))
+        if r["k"] != "service" or len(pts) < 2:
+            out.append(r)
+            continue
+        c0 = verts.get((round(pts[0][0] * 2), round(pts[0][1] * 2)), 0) >= 2
+        c1 = verts.get((round(pts[-1][0] * 2), round(pts[-1][1] * 2)), 0) >= 2
+        if c0 and c1:
+            out.append(r)
+            continue
+        forward = c0 if c0 != c1 else t.h(*pts[0]) >= t.h(*pts[-1])
+        ps = bake_roads.resample(pts if forward else pts[::-1], 2.0)
+        cum = [0.0]
+        for a, b in zip(ps, ps[1:]):
+            cum.append(cum[-1] + math.dist(a, b))
+        hs = [t.h(*q) for q in ps]
+        cut = None
+        for k in range(len(ps) - 1):
+            steep = False
+            for j in range(k + 1, len(ps)):
+                if cum[j] - cum[k] > GARAGE_REACH:
+                    break
+                if (hs[j - 1] - hs[j]) / max(cum[j] - cum[j - 1], 1e-3) > GARAGE_GRADE:
+                    steep = True
+                if hs[j] < hs[k] - GARAGE_DROP and steep:
+                    top = max(q for q in range(k, j + 1) if hs[q] >= hs[k] - 0.5)
+                    cut = top
+                    break
+            if cut is not None:
+                break
+        if cut is None:
+            out.append(r)
+            continue
+        keep = ps[:cut + 1]
+        if len(keep) >= 2 and cum[cut] >= 2.0:
+            out.append(dict(r, p=flat(keep if forward else keep[::-1])))
+        door, down = ps[cut], ps[cut + 1]
+        d = math.dist(door, down) or 1.0
+        doors.append([round(door[0], 1), round(door[1], 1), round((down[0] - door[0]) / d, 3),
+                      round((down[1] - door[1]) / d, 3)])
+    print(f"garages: {len(doors)} service ways end at a garage ramp (R9)")
+    return out, doors
 
 
 def _lv(item, level):
@@ -1040,7 +1130,7 @@ PAIR_REACH = 35.0     # lone stop lines this close together are one crossing
 PORTAL_REACH = 260.0  # roads leaving the map join roads coming back within this, off the map
 
 
-def bake_graph(els, nodes, ways, rect, signal_src, poles, bed=None):
+def bake_graph(els, nodes, ways, rect, signal_src, poles, bed=None, levels=None):
     """The lane graph the AI traffic and the rivals drive on.
 
     Drivable ways (no service roads, tunnels or private roads) are split wherever
@@ -1056,13 +1146,15 @@ def bake_graph(els, nodes, ways, rect, signal_src, poles, bed=None):
     crossing axes); each edge gets the stop lines it passes. The signal poles drawn by
     the game get the controller and group whose colour they show.
     """
+    levels = levels or {}
     picked = []
     for w in ways.values():
         t = w.get("tags", {})
         if t.get("highway") not in TRAFFIC_SPEED or t.get("area") == "yes":
             continue
-        layer = num(t.get("layer"))
-        if t.get("tunnel") in ("yes", "building_passage") or (layer is not None and layer < 0):
+        # Loop 3a (R4): tunnels (baked as tunnel pieces) and cuttings are in the graph;
+        # building passages are not.
+        if t.get("tunnel") == "building_passage" or (t.get("tunnel") == "yes" and levels.get(w["id"], ("",))[0] != "tn"):
             continue
         if t.get("access") in ("no", "private") or t.get("motor_vehicle") in ("no", "private"):
             continue
@@ -1190,6 +1282,7 @@ def bake_graph(els, nodes, ways, rect, signal_src, poles, bed=None):
                           "lw": round(lw, 2), "o": round(right - (n - 0.5) * lw, 2),
                           "v": round(speed, 1), "s0": round(s0, 2), "s1": round(s1, 2),
                           "name": t.get("name", ""), "br": 1 if t.get("bridge") not in (None, "no") else 0,
+                          **({levels[t["_wid"]][0]: levels[t["_wid"]][1]} if t["_wid"] in levels else {}),
                           "_len": length, "_turn": turn_codes(turn) if turn else None, "_last": last,
                           "_bus": bus_lanes(t, suffix, n),
                           "_rb": t.get("junction") in ("roundabout", "circular")})
@@ -1214,6 +1307,8 @@ def bake_graph(els, nodes, ways, rect, signal_src, poles, bed=None):
         ins_of.setdefault(e["b"], []).append(i)
     exits, entries = [], []
     for i, e in enumerate(edges):
+        if "tn" in e:
+            continue  # loop 3a: no off-map links through a tunnel (not driven yet)
         if rim_side(node_xz[e["b"]]) >= 0 and not [f for f in outs_of.get(e["b"], []) if edges[f]["b"] != e["a"]]:
             exits.append(i)
         if rim_side(node_xz[e["a"]]) >= 0 and not [f for f in ins_of.get(e["a"], []) if edges[f]["a"] != e["b"]]:
@@ -1237,7 +1332,8 @@ def bake_graph(els, nodes, ways, rect, signal_src, poles, bed=None):
     # other, so rivals cruising and racing inside it never get stuck.
     out_edges = {}
     for i, e in enumerate(edges):
-        out_edges.setdefault(e["a"], []).append(e["b"])
+        if "tn" not in e:  # loop 3a: tunnels are not driven yet (lane_graph.gd TUNNELS_DRIVEN)
+            out_edges.setdefault(e["a"], []).append(e["b"])
     for i, j, _ in portals:
         out_edges.setdefault(edges[i]["b"], []).append(edges[j]["a"])
     order, low, on_stack, stack, comps, counter = {}, {}, set(), [], [], [0]

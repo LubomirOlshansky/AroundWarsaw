@@ -159,6 +159,9 @@ var lines_override := 0
 var hide_hud := false
 var sun_pitch := -50.0
 var debug_ao := false
+## Loop 3a: --debug-roads draws the decks, approaches, tunnels, lane heights and piers round
+## the car (debug_roads.gd, with the Debug Draw add-on).
+var debug_roads := false
 ## Loop 1: --ghost-debug=N paints the occlusion ghost for measuring (1: the ghosted
 ## fragments magenta and every other building green; 2: the ghost cut fully, no dither)
 ## and prints the ghost's ellipse in screen pixels with every screenshot.
@@ -540,6 +543,10 @@ func _build_world() -> void:
 	wallet.changed.connect(hud.set_wallet)
 	if data.has("graph"):
 		graph = LaneGraph.new(data["graph"], map)
+	if debug_roads:
+		var dr: Node3D = load("res://scripts/debug_roads.gd").new()
+		world.add_child(dr)
+		dr.setup(map, graph, _vehicle_position)
 	if not no_traffic and graph != null:
 		_build_life(data, world)
 	if graph != null:
@@ -927,6 +934,8 @@ func _parse_args() -> void:
 			sun_pitch = float(arg.trim_prefix("--sun="))
 		elif arg == "--debug-ao":
 			debug_ao = true
+		elif arg == "--debug-roads":
+			debug_roads = true
 		elif arg.begins_with("--lift="):
 			cam_lift = float(arg.trim_prefix("--lift="))
 		elif arg.begins_with("--ghost-debug="):

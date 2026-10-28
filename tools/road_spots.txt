@@ -1,0 +1,12 @@
+# Road render spots (docs/DEMO.md 4.5) on today's map: a name, then the game flags.
+# Render them before and after a road loop with `tools/shots.sh --set=roads` (each shot
+# also gets --no-traffic --fixed --size=70 and is taken at frame 90); add --game=DIR to
+# render an older copy of the game (e.g. game_before/) and --tag=before / --tag=after.
+poniatowski_west     --at=905,-128
+poniatowski_east     --at=1445,-301
+viaduct_west_end     --at=190,110
+wislostrada_portal   --at=637,-554
+rail_solec           --at=540,-175
+rail_kruczkowskiego  --at=420,-60
+jp2_viaduct          --at=-1500,700
+swietokrzyski        --at=500,-730

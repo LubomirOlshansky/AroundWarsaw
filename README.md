@@ -338,6 +338,9 @@ Roads are most of the screen while driving, so they follow the real streets
   (`map_builder.drive_height`: a deck 5 m overhead is not the road), traffic, trams and
   pedestrians use their own deck. The Jana Pawła II viaduct now rises over Al. Jerozolimskie
   (its OSM 3D model, `man_made=bridge` building parts, is skipped: `br` on those buildings).
+  Loop 3a replaced the deck solver: structures are solved with their approaches as chains, the
+  clearance is a hard minimum, approaches correct the ground (`fills`), tunnels are kept (see
+  Loop 3a).
 - **Guard rails**: a steel beam on posts along the carriageway's edges on every bridge and along
   the mapped `barrier=guard_rail` ways (9.6 km), solid for the car.
 - **The river's edge** is solid too: the car stops at the water. Loop 10a: a low granite edge
@@ -1010,6 +1013,122 @@ the boulevard splashed at 62 km/h and was towed 1.01 s later onto a lane 51 m aw
 kebab job still on; standing on that boulevard (`--probe --at=1015,-85 --heading=45`): 60 fps
 (the cap), 1 % low 55.3, worst frame 18.6 ms, 141 draw calls, car physics 0.15 ms.
 
+## Loop 3a: roads I, the check and the bake (2026-10-28)
+
+After the user's play on the iPhone: "I see huge problems with the estakady and roads in some
+places". Their screenshot was Most Poniatowskiego's east end: Wybrzeże Szczecińskie passed
+under the deck with 1.3 m to spare. docs/DEMO.md section 4 lists the classes of defect and their
+causes (R1-R9); this loop built the whole-map check and fixed the causes that live in the bakes
+(the builder's side, R5-R7 and buildings under decks, is loop 3b).
+
+**The check** (`tools/check_roads.py`, standard library, ~4 s for the whole map): rules C1-C10
+of DEMO.md 4.5, mirroring the game's height rules (the terrain's triangles and the approaches'
+fills, `deck_height`, `drive_height`, the tunnels, lane_graph.gd's lane heights). Each finding
+prints with map coordinates and its `--at=`; allowed ones are listed with a reason and a source
+in `tools/check_roads_allow.json`; it writes `shots/check_roads.json` and
+`shots/check_roads.png` (the findings over the orthophoto) and exits 1 on a finding not
+allowed (3 when the only ones left are in the `--later` rules). `tools/verify.sh` step `roads`:
+FAIL on C1-C3 and C6-C8, WARN on C4, C5, C9, C10 until loop 3b; it prints the counts.
+
+| Rule (DEMO.md 4.5) | Today's map before | After | |
+| --- | --- | --- | --- |
+| C1 grade (> 12 % over 6 m, service 20 %) | 85 roads | 32, all allowed | Oboźna (the escarpment, real); 5 pits at junctions; 21 minor service ways |
+| C2 joints (> 0.15 m at a shared vertex) | 0 | 0 | |
+| C3 clearance under a deck (< 4.7 m; footways < 2.5 m) | 249 samples in 17 places | 54 in 7, all allowed | footbridges mapped schematically (Centralna, the science centre's roof), a footway along the viaduct ramp, the WKD cutting |
+| C4 piers on a road, tram or rail | 31 of 161 piers | 31 of 171 | loop 3b (R5) |
+| C5 roads and lanes through solids | 46 | 50 | loop 3b (the Arkada and the viaduct's LoD2 arcades, palace courtyards' service roads) |
+| C6 deck ends in the air (> 1 m) | 4 (+6 at the rim) | 0 (+5 at the rim) | |
+| C7 drivable tunnels and cuttings dropped | 9 | 0 | |
+| C8 lane steps (> 0.5 m in 4 m) / edges meeting apart (> 0.2 m) | 19 edges / 12 nodes | 5 / 0, all allowed | Złota, Salezego, Oboźna |
+| C9 buildings through a deck | 58 | 57 | loop 3b (mapped pillars under the Jana Pawła II viaduct, the Poniatowski viaduct's LoD2 arcades) |
+| C10 landmark colliders by a lane | 1 | 1 | loop 3b (R7: a Poniatowski tower 0.3 m from lane 2) |
+
+**What changed in the bake** (`tools/bake_roads.py`, `tools/bake_osm.py`):
+
+- **Structure chains (R1).** A bridge is solved together with the ways that belong to it: the
+  non-bridge ways between two bridge ways within 150 m (the abutments), embankments
+  (`embankment=yes`, or 2 m above the terrain 15-25 m to both sides over most of the way: the
+  railway across Powiśle) and the ways onto a bridge whose terrain within 40 m is steeper than
+  12 % (the 10 m grid blurs the abutment's wall into a slope). Each family (rails, roads, then
+  tram tracks and footways) is one graph of nodes every 6 m, solved by projected
+  over-relaxation: smooth, never under the terrain, pinned only where a structure meets an
+  ordinary way, the approaches pulled onto their terrain beyond 30 m from a bridge. Most
+  Poniatowskiego's deck now runs at the abutments' level, -4.6 m at the west end to -5.7 m at the
+  east (it dipped to -13.5 m at the ends), the viaduct climbs evenly to the escarpment, the
+  railway runs on its embankment at -5 m over Kruczkowskiego and Solec. 26 bridge roads, 24
+  approach roads, 39 rail ways.
+- **Approaches are fills, not decks.** A structure way that is not a bridge corrects the ground
+  under its corridor (`fills` in `centrum.json`: 80 pieces): `map_builder.terrain_height` is the
+  higher of the terrain grid and a fill there, so the road, its kerbs, markings, carriageway
+  areas, the lanes and the car all sit on the solved profile, and the bridges' decks meet them
+  exactly. Where a fill stands above the grid (the blur at an abutment) a plain concrete face
+  runs down each side (loop 3b turns these into retaining walls).
+- **Pits.** The same fills bridge narrow pits of the bare-earth grid a street crosses at grade
+  (underground stairwells, garage and construction pits): each road's terrain profile is closed
+  over 20 m and filled where it stands 0.4 m or more above the grid, except where another way
+  enters (98 stretches).
+- **Hard clearance (R3).** 5 m over roads, rails and trams, 7.5 m over the river, 2.6 m for a
+  footbridge over a footway, as lower bounds the solver never crosses; where one can't be met
+  within 12 % of a pin the road under it dips (at most 2 m, 8 % ramps: written as `dips` for
+  loop 3b to lower the ground; none was needed on today's map) and anything more fails the bake
+  with the list of places. Ways in a cutting (`layer` < 0, the WKD
+  by Centralna) are skipped and logged; footbridges and tram tracks that fall short are logged
+  (C3 judges them).
+- **Tunnels (R4).** `tunnel=yes` drivable ways are kept as tunnel pieces (`tunnels` in
+  `centrum.json`: `pieces`, the `roads` with their `tn`, and the `portals` where a tunnel meets
+  open road): 6 m under the terrain, ramps of at most 8 % from the portals. The Wisłostrada
+  tunnel (both carriageways from the portal at 637, -554 to the map's north edge), the link under
+  Most Poniatowskiego's west abutment and a short tunnel on Warecka. Ways below ground that are
+  no tunnel (`layer` < 0: cuttings) are ordinary roads now. The game doesn't draw or drive the
+  tunnels yet (loop 3b): their lane-graph edges have their heights but stay out of the
+  adjacency, routing, spawning and snapping (`lane_graph.gd` `TUNNELS_DRIVEN`), so the trench at
+  the portal is still a dead end, now marked.
+- **Lanes know their deck (R8).** Every lane-graph edge on a bridge carries its deck group
+  (`dk`), in a tunnel its tunnel (`tn`); `lane_graph.gd` takes its heights from that piece only
+  (`surface`), never "the highest deck over the point"; the side jobs' road height uses it too.
+  The lane height's last 8 m knot is now at the edge's end (edges met a few tenths apart on
+  slopes).
+- **Garage ramps (R9).** A service way that dives into a garage (from its end that meets a road,
+  the terrain falls 2 m within 30 m, somewhere steeper than 20 %) ends at the ramp's top; a
+  garage door is written there (`garages`: x, z and the way in, 27 of them) for loop 3b.
+- **R2 hook.** `bake_roads.SurfaceModel` reads the 0.5 m surface model and 1 m terrain (DEMO.md
+  4.4) as ASCII grids once `data/raw/demo/MANIFEST.md` is there; until then the chain solver
+  works alone (the plan's fallback). The corridors now arriving are GeoTIFF, which it doesn't
+  read yet.
+
+**Testing aids.** `--debug-roads` draws the decks' corridors at their height (orange roads,
+yellow footways, red tracks), the approaches (green), the tunnels (magenta), every lane at the
+height traffic uses (blue) and the piers (cyan boxes) round the car, with the Debug Draw add-on
+(`game/addons/debug_draw`, HardPixel, MIT; CREDITS.md); `tools/road_spots.txt` lists the road
+render spots and `tools/shots.sh --set=roads [--game=DIR] [--tag=...]` renders them (frame 90,
+`--no-traffic --fixed --size=70`). `NW_DECK_DEBUG=X,Z,R` makes the bake print the solver's nodes
+(height / terrain / lower bound) near a point.
+
+**Cost** (Mac, README's commands, the code before this loop run alongside from a copy). Other
+agents' Godot runs overlapped the bench, so its frame times spread 1.6-7 ms on both sides and
+say nothing; the counts do. The probe (Metal, 2868×1320), draw calls before → after: spawn 151 →
+154 (3D 53 → 53, shadow 35 → 35, the HUD's 2D pass 63 → 66), the default view over the river
+126 → 126, zoomed out 191 → 190, the helicopter 245 → 242, Most Poniatowskiego's east end 126 →
+126; main-pass triangles unchanged (0.25 / 0.19 / 0.36 → 0.37 / 0.31 M). Scripts on the bench
+route (medians of 3, interleaved): 0.67 → 0.67 ms by day, 0.73 → 0.60 at night, 0.68 → 0.62 in
+the rain at night (lane heights are still sampled once per edge). Vertices 6,115,198 →
+6,144,280 (+0.5 %; meshes 3,742,512 → 3,771,594: the approaches' side faces and the new deck
+slabs). `centrum.json` 4.96 → 5.04 MB, `city.scn` 36.3 → 36.5 MB. The runtime city build 7.0 →
+7.8 s (`terrain_height` looks the fills up for every draped vertex); the prebuilt city loads in
+0.84 s as before.
+
+**Known issues** (BACKLOG "From loop 3a"): decks still too low where something mapped stands
+under them (C9: the Jana Pawła II viaduct's pillars, the Poniatowski viaduct's arcades), which
+the surface model (R2, arriving as GeoTIFF) or the pillars as lower bounds would fix; the
+approaches' sides are plain faces until loop 3b's walls; tunnels and garage doors are data only;
+21 minor service ways and 5 junction pits keep a steep bit of the 10 m grid (allowed).
+
+Screenshots: `shots/loop3a/*_before_2532x1170.png` and `*_after_2532x1170.png` at the eight
+road spots (`tools/road_spots.txt`), `poniatowski_{west,east}_{before,after}_prebuilt_*` on
+the prebuilt path, `poniatowski_east_debug_roads_*` (`--debug-roads`);
+`shots/check_roads_baseline.png` and `shots/check_roads.png` (the findings over the orthophoto,
+before and after).
+
 ## Loop 2e: the HUD at phone size (2026-10-28)
 
 Loop 2a found that, outside the settings panel, the HUD was sized in 720-line units: on the
@@ -1203,6 +1322,9 @@ expensive kind.
    traffic lights, car parks, street furniture), then
    `W=data/raw/osm_wide.json && python3 -I tools/bake_osm.py $W $W game/map/centrum.json $W $W`.
    The public Overpass server is often busy (HTTP 502/504): retry with a back-off.
+   Loop 3a: the bake also writes `fills` (approaches and pits: the ground corrected under a
+   road), `tunnels` and `garages`, and the graph's `dk` / `tn`; check the result with
+   `python3 -I tools/check_roads.py` (C1-C10, see Loop 3a).
    Laser-scan records that are not trees are left out (`GUGIK_NOT_TREES`: the Palm, written
    as `palm`). After a re-bake run steps 3-5 again.
    For the side jobs and easter eggs the same bake writes more `pois`: `kebab` (the mapped
@@ -1244,7 +1366,8 @@ solved from what they cross (see Real roads).
 ## Layout
 
 **One-command checks.** `tools/verify.sh` runs the verification set and prints one
-PASS/WARN/FAIL table: the map-data invariants (`tools/check_map_data.py`), the check scripts
+PASS/WARN/FAIL table: the map-data invariants (`tools/check_map_data.py`), the road check
+(`tools/check_roads.py`, loop 3a), the check scripts
 (steering, settings, the HUD at phone size, landmarks, sfx, radio loops, the water on both city paths) and eight headless game runs, each with
 `--nosave` (`--quick` for a short set, `--ios` adds the export and the unsigned Xcode build,
 `--only=` picks steps). `tools/shots.sh` renders standard screenshots at a phone's size
@@ -1267,6 +1390,10 @@ flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
   `in_water`, `nearest_dry`, loop 10a). Flat layers are laid on the terrain (or their
   deck) in pieces no longer than the 10 m terrain grid. Everything is split
   into 128 m tiles (`chunked_surface.gd`) so off-screen tiles are culled.
+- Loop 3a: `tools/check_roads.py` (+ `check_roads_allow.json`; the road rules C1-C10),
+  `tools/road_spots.txt` (the road render spots for `tools/shots.sh --set=roads`),
+  `game/scripts/debug_roads.gd` (`--debug-roads`), `game/addons/debug_draw/` (the Debug Draw
+  add-on, HardPixel, MIT).
 - `game/scripts/skids.gd`: tyre marks. The minimap lives in `hud.gd`. `splash.gd` (loop 10a): the
   car's splash in the water.
 - `game/scripts/car.gd`: arcade car. `heli.gd`: helicopter (flight, rotor, blob shadow; it reads
@@ -1385,6 +1512,7 @@ Command-line options (after `--`):
 | `--bench-button` | loop 2b: press TEST · BENCH at frame 60 (the phone's run, at the current settings and cap) |
 | `--fps=N` | loop 2b: cap the frame rate for this run (0: none; else the setting, 60 or 30). `--bench` and `--probe` run uncapped, headless runs too |
 | `--exp=a,b` | loop 2b, for ranking costs: switch one off: `nohud`, `nominimap`, `nobubbles`, `noshadow`, `nopost`, `notrees`, `noprops`, `nosmallcasters` (no shadows from instanced things), `nocasters`, `shadowsize=N` |
+| `--debug-roads` | loop 3a: draw the bridge decks, approaches, tunnels, lane heights and piers round the car (Debug Draw add-on) |
 | `--drive-into-water=X,Z` | loop 10a: start at X,Z and drive flat out at the nearest water (within 120 m), the collision off until 3 m past the edge as if the car had jumped it; prints `water test:`, `water: splash at …` and `water: towed after … s …` (where to, how far from a lane, dry or not, the job / rescue / race / wallet), each with its frame. With `--kebab=0` a delivery is running (`tools/verify.sh` step `splash`) |
 
 Godot's own `--time-scale 3` (before `--`) speeds a mission or race up for screenshots, and

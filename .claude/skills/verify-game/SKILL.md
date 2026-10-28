@@ -60,12 +60,13 @@ window opens): use it only when your task may change the city or at a loop's end
 
 ## 6. Keep the set complete
 
-A loop that adds a check (docs/DEMO.md plans `tools/check_roads.py` and
-`game/tools/check_drive.gd`) adds it as a step in `tools/verify.sh` in the same change, with
+A loop that adds a check (docs/DEMO.md plans `game/tools/check_drive.gd` for loop 3b) adds it as a step in `tools/verify.sh` in the same change, with
 its OK line, and lists it in this skill. A check that only exists outside the script gets
 forgotten.
 
-In the set now: `check_map_data.py` (map), `check_steering.gd`, `check_settings.gd`,
+In the set now: `check_map_data.py` (map), `check_roads.py` (roads, loop 3a: C1-C10 over the
+whole map, ~4 s; C1-C3 and C6-C8 FAIL, C4, C5, C9, C10 WARN until loop 3b; the counts in the
+row), `check_steering.gd`, `check_settings.gd`,
 `check_hud.gd` (loop 2e: `hud`, the HUD at four screen sizes: 44 pt controls, 11 / 13 pt text,
 the safe area, no overlaps; it lists the passing panels that waited for room),
 `check_landmarks.gd`, `check_sfx.gd`, `check_radio_loops.gd`, `check_water.gd` (loop 10a:

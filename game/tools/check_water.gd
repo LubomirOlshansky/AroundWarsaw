@@ -378,6 +378,8 @@ func _check_walkers() -> void:
 	var rim := 0
 	var lane_where := {}
 	for e in graph.e_a.size():
+		if graph.e_tn[e] >= 0:
+			continue  # loop 3a: a tunnel's lanes run under the ground (and the water), not on it
 		var s := 0.0
 		while s <= graph.e_len[e]:
 			var y := graph.height(e, s)
