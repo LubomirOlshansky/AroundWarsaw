@@ -47,6 +47,15 @@ helicopter won't land on the water, and a car that still gets in splashes, settl
 towed back to a lane on dry land a second later with a line from the tow crew (see Loop 10a:
 the river is off-limits).
 
+Loop 2e (the HUD was sized for a 720-line window: ~24 pt buttons and ~8 pt text on the phone,
+and a crowded top row) sizes the whole HUD in points (every control at least 44 pt, text 11 pt
+and up, inside the safe area), thins the first screen to the gear, the speed, RADIO and
+HELI / AUTO (plus a WEZWANIE button when a rescue call comes in; no call card and no
+"prototype" label at the start), moves time of day, rain, VHS, the picture style and the camera
+into a tabbed Settings panel, lays out every passing panel so none covers another (the kebab
+bubble no longer hides under the radio ticker), puts every surface on one dark card recipe with
+Polish above English, and adds `check_hud.gd` (see Loop 2e: the HUD at phone size).
+
 ## Run it on your iPhone
 
 1. `tools/export_ios.sh` (only needed after changing the game).
@@ -69,31 +78,32 @@ the river is off-limits).
 | | iPhone | Mac |
 | --- | --- | --- |
 | Start (title screen) | Tap anywhere | any key / click |
-| Settings (controls, traffic, quality, sound, overlay; the game pauses) | the gear, top left | Esc |
+| Settings (driving, camera, time of day, weather, traffic, picture style, quality, VHS, frame rate, overlay, TEST, sound; the game pauses) | the gear, top left | Esc |
 | Drive, **Point** (the default) | Drag anywhere on the left side: the car heads where you point, gas by how far you push; the camera waits while your finger is down | W A S D / arrows point in screen directions |
 | Drive, **Classic** | Drag left / right on the left side to steer; GAS bottom right, BRAKE beside it (slide your thumb between them) | A / D steer, W gas, S brake |
 | Drive, **Fixed camera** | As Point, the camera never turns | as Point |
 | Brake, reverse when stopped | BRAKE button | Space (Classic: S too) |
-| Camera follows the car / fixed diagonal (in Point and Fixed it switches between the two schemes) | CAM | C |
-| Rotate the camera 90° (switches to fixed) | `<` `>` | Q / E |
-| Zoom out / in (30–320 m view, default 80 m; 110 before loop 2a) | `−` `+`, or pinch with two fingers on the right | mouse wheel, `-` `=` |
-| Switch visual style | STYLE | T |
-| Time of day: Day → Dusk → Night → Live (the real sun now) (1.5 s blend) | TIME | N |
-| Radio: next station → … → Off | RADIO | R |
-| VHS tape overlay on / off | VHS | V |
-| Rain on / off (it sets in over 4 s; the streets dry slower) | RAIN | O |
-| Performance overlay on / off | three fingers down at once, or Settings | P |
-| Frame rate: 60 (default) or 30 (battery saver), loop 2b | Settings → Klatki na sekundę · Frame rate | Settings (Esc) |
-| Benchmark: a minute on the bench route, then a result card to copy (loop 2b) | Settings → TEST, or TEST · BENCH on the overlay | the same (or `--bench-button`) |
-| Quality: High → Low → Medium → High | QUALITY (on the performance overlay), or Settings | U |
-| Car ↔ helicopter | HELI / CAR | H |
+| Camera follows the car / stays put (in Point and Fixed it switches between the two schemes; a toast says which, loop 2e) | Settings → Jazda → Kamera za autem · Camera follows the car: Wł. / Wył. (On / Off) | C |
+| Rotate the camera 90° (the fixed camera) | a two-finger twist (loop 2e; with the camera following it does nothing) | Q / E (switches to fixed) |
+| Zoom out / in (30–320 m view, default 80 m; 110 before loop 2a) | pinch with two fingers on the right | mouse wheel, `-` `=` |
+| Switch visual style (Ostry · Sharp, Drobny · Fine, Czysty · Clean, Toporny · Chunky; saved) | Settings → Obraz → Styl obrazu | T |
+| Time of day: Day → Dusk → Night → Live (the real sun now) (1.5 s blend) | Settings → Świat → Pora dnia | N |
+| Radio: next station → … → Off | RADIO, top right (the station under the word) | R |
+| VHS tape overlay on / off (saved) | Settings → Obraz → Kaseta VHS | V |
+| Rain on / off (it sets in over 4 s; the streets dry slower) | Settings → Świat → Pogoda | O |
+| Performance overlay on / off | three fingers down at once, or Settings → Obraz | P |
+| Frame rate: 60 (default) or 30 (battery saver), loop 2b | Settings → Obraz → Klatki na sekundę · Frame rate | Settings (Esc) |
+| Benchmark: a minute on the bench route, then a result card to copy (loop 2b) | Settings → Obraz → TEST | the same (or `--bench-button`) |
+| Quality: High → Low → Medium → High | Settings → Obraz → Jakość obrazu | U |
+| Car ↔ helicopter (from the start) | HELI / AUTO, top right | H |
 | Fly (helicopter) | Drag on the left side: it flies where you point | W A S D / arrows (screen directions) |
-| Climb / sink (helicopter) | ▲ ▼ pads (where BRAKE is) | Space / Shift (or F) |
-| Accept a rescue call / next call | ACCEPT, NEXT CALL | M |
-| Skip a call | SKIP | K |
-| Challenge the rival in front to a race | FLASH LIGHTS | L |
+| Climb / sink (helicopter) | ▲ ▼ pads (where HAMULEC · brake is) | Space / Shift (or F) |
+| Open a rescue call that came in (loop 2e: 60 s into play, then 90 s after each one) | WEZWANIE · rescue call, top centre | M |
+| Accept a rescue call / next call | PRZYJMIJ · Accept, NASTĘPNE · Next call | M |
+| Skip a call | POMIŃ · Skip | K |
+| Challenge the rival in front to a race | MRUGNIJ ŚWIATŁAMI · flash your lights | L |
 | Take a side job | drive slowly (under ~30 km/h) into the dashed ring by a kebab stand or at Dworzec Centralny | |
-| Job card: GO! / NOT NOW, then OK | the card's buttons (or just drive off: that is GO) | M / K |
+| Job card: JEDZIEMY! · Go! / NIE TERAZ · Not now, then OK | the card's buttons (or just drive off: that is GO) | M / K |
 | Give up a race, a rescue or a job | ✕ on the status panel | |
 | A landmark's info card | tap it (a short tap; a drag still steers) | click it |
 
@@ -106,8 +116,9 @@ Styles: **Sharp** (480-line pixel image, the default), **Fine** (360), **Clean**
 **Chunky** (170 lines, fewer colours).
 
 Keys changed in v0.7: N now switches the time of day (skip a call moved to K), and R tunes
-the radio (the helicopter climbs with Space and sinks with Shift or F). TIME, RADIO and VHS
-sit left of the top buttons, or in a second row under them on a narrow (iPad) screen.
+the radio (the helicopter climbs with Space and sinks with Shift or F). Loop 2e: the top row
+holds only the gear and the speed (left), WEZWANIE when a call came in (centre), RADIO and
+HELI / AUTO (right); the keys are unchanged.
 
 ## Night and vaporwave
 
@@ -999,6 +1010,118 @@ the boulevard splashed at 62 km/h and was towed 1.01 s later onto a lane 51 m aw
 kebab job still on; standing on that boulevard (`--probe --at=1015,-85 --heading=45`): 60 fps
 (the cap), 1 % low 55.3, worst frame 18.6 ms, 141 draw calls, car physics 0.15 ms.
 
+## Loop 2e: the HUD at phone size (2026-10-28)
+
+Loop 2a found that, outside the settings panel, the HUD was sized in 720-line units: on the
+user's iPhone 16 Pro Max its top buttons were 27 pt tall and its text 9 pt (24 pt and 8 pt on a
+6.1" phone; Apple's smallest comfortable tap is 44 pt), and the top row held TIME, RADIO, VHS,
+RAIN, HELI, STYLE, CAM, `<` `>` `−` `+` and a RESCUE CALLS card at the start.
+
+**In points.** `screen_points.gd` gives the screen in points (3 px each on these iPhones) and
+its safe area (the Dynamic Island or notch, the rounded corners, the home indicator). On a
+computer a window the size of a known iPhone gets that phone's points and insets (2868×1320 is
+the Pro Max: 956×440 pt, 62 pt each side, 21 at the bottom; 2532×1170 the 6.1": 844×390 pt,
+47 and 21); any other window is taken as a phone 390 pt tall with no insets. iOS insets both
+sides alike in landscape, so the layout holds turned either way. Every tappable control is at
+least 44 pt; the text is on one scale (`hud.gd` `T_*`): 44 pt the race banner, 22 the status
+clock, 17 titles and toasts, 15 body, 13 secondary and English lines (body text never below
+13), 11 labels.
+
+| On the phone (Pro Max / 6.1") | before | after |
+| --- | --- | --- |
+| Top-row buttons | 27 / 24 pt tall | 44 pt (the gear 44×44) |
+| Text | 9 / 8 pt (top buttons), 6–10 pt elsewhere (cards, ticker, bubbles, the credit line) | 11–17 pt (44 the banner) |
+| Settings panel text | 8.6–16 / 7.6–14 pt | 11–22 pt |
+| Minimap | 88 / 78 pt across | 96 pt |
+| BRAKE (Point) | 71 / 63 pt across, a 1-px ring | 72 pt on a plate (touch 92 pt) |
+| Stick reach | 43 / 38 pt | 42 pt |
+
+**The first screen** (docs/DEMO.md 6.1): the gear and the speed top left; WEZWANIE · rescue
+call in the middle of the top row, only when a call has come in; RADIO (the station under it)
+and HELI / AUTO top right; the minimap and the wallet under the gear; HAMULEC · brake (Classic:
+GAZ · gas, HAMULEC and the steering strip's place) bottom right; the credit line bottom left.
+No "prototype" label and no call card at the start: the first call comes in 60 s into play
+(`--call-in=S`), the next 90 s after each one ends or is put off (`missions.gd` `FIRST_CALL`,
+`NEXT_CALL`, first guesses), with a toast and a buzz. The helicopter is there from the start
+(the user's decision, 2026-10-28).
+
+**Moved into Settings** (four tabs, so the panel fits a phone 390 pt tall without shrinking):
+Jazda · Driving: Controls (Point / Classic, with a line on what the scheme does) and "Kamera za
+autem · Camera follows the car" On / Off (the old CAM button, now with its state in view: the
+user had switched Classic's following off without noticing; Point with it off is the Fixed
+camera scheme; C still toggles it and a toast says which way); Świat · World: time of day
+(TIME), weather (RAIN), traffic; Obraz · Picture: style (STYLE), quality, VHS tape (VHS), frame
+rate, the performance overlay and TEST; Dźwięk · Sound. Style and VHS are saved
+(`display/style`, `display/vhs`); the time of day and the weather are the world's and start by
+day and dry. Every key is unchanged. Zoom is a pinch (the `−` `+` buttons are gone); with the
+fixed camera a two-finger twist turns the view 90° (the `<` `>` buttons are gone; Q / E stay).
+
+**Nothing overlaps.** `hud.gd` `_layout` places the panels that come and go in order of
+priority (the status, the call or job card, FLASH LIGHTS, the race banner, the toast, the
+performance overlay, the note and landmark cards, the radio ticker), each at its spot or giving
+way along its column (down from the top row, up from the bottom), clear of the fixed controls
+(the top row, the minimap and wallet, the pedals' plates, the credit line) and of each other;
+the passing ones also keep out of a 110×84 pt box in the middle of the screen, where the car
+is. When there is no room even so (a 390-pt screen with a card, a status and the radio host
+talking), the ticker, the note and landmark cards, a speech bubble and the overlay wait (their
+time on screen starts when they show; a bubble is dropped after 6 s) rather than cover
+something; the overlay first shrinks to its first two lines. Speech bubbles keep clear of every
+HUD rect (the radio ticker too: the kebab stand's bubble used to hide under it), trying above
+and below their speaker, beside what is in the way, and narrower or wider.
+
+**One card recipe** (from the art director's review): every HUD surface is the settings panel's
+near-black violet at 94 % with ink `#fbf7ee`, sub-text `#c9c2d8` and the accent `#ffd23f`
+(nothing takes its colour from the street behind it); the radio ticker keeps its station's
+colour as its left edge only; toasts (the tow crew's too) and the speed and wallet sit on
+cards; speech bubbles are dark cards with the speaker's name in their colour; BRAKE, GAS, the
+helicopter's pads and Classic's steering strip sit on solid plates (held: the accent); the
+minimap takes a night palette as the lamps come on (light streets on a dark ground; it was the
+brightest thing on a night screen).
+
+**Polish above English** on the HUD: the top row, the cards' titles, text and buttons
+(PRZYJMIJ · Accept, POMIŃ · Skip, JEDZIEMY! · Go! ...), the status panels' hints, the toasts, the
+pedals, the egg note, the loading card and the title's call to action (DOTKNIJ, BY JECHAĆ over
+"tap to drive"). The English under a card is a short gloss, not a second copy of the place
+names, so a card fits a 390-pt screen.
+
+**The performance overlay** is four 11-pt lines (fps, frame time, worst frame, cap · CPU process
++ physics + draw, GPU, memory · draw calls by pass · objects and triangles). Its QUALITY and
+TEST · BENCH buttons are gone (Settings → Obraz has both; U still cycles the quality).
+
+**Check.** `godot --headless --path game --script res://tools/check_hud.gd` (`tools/verify.sh`
+step `hud`; `-- --verbose` prints every rect): builds the HUD at 2868×1320, 2532×1170, a
+1280×720 window and the SE's 1334×750, walks it through 24 states each (the first screen in
+Point, Classic and the helicopter, a call coming in, the call card, a payment, a rescue with the
+radio host and an egg, a kebab offer with the stand talking, a delivery with the customer and
+the stand talking where the ticker sits, a race, a rival to challenge, a landmark card, the tow
+toast, six of them again with the performance overlay on), every settings tab and the bench
+card, and fails on a control under 44 pt or outside the safe area, text under 11 pt (13 for
+body text), words wider than their button, two HUD rects overlapping (speech bubbles
+included), a passing panel over the car's spot, a panel with no room (the passing ones may
+wait: it lists them), or the settings panel or bench card shrunk to fit.
+
+**Cost** (probe, Metal, 2868×1320, Classic, traffic Normal, day; the code before loop 2e run
+from a copy in the same session; draw calls are exact, frame times noisy):
+
+| View | draw calls before → after | 2D pass before → after |
+| --- | --- | --- |
+| Spawn | 153 → 133 | 65 → 45 |
+| Default view over the river | 124 → 105 | 65 → 46 |
+| Zoomed out | 191 → 172 | 65 → 46 |
+| Helicopter | 245 → 224 | 59 → 38 |
+
+The HUD and minimap script stays at 0.06 ms a frame; the layout runs only when a panel comes,
+goes or changes size. With a job card, a bubble, the ticker and the overlay all up the 2D pass
+reads 53 (budget 80).
+
+Screenshots: `shots/loop2e_*.png` at 2868×1320 and 2532×1170: the first screen before and after
+(`first_day_before`, `first_day_after`) and at night (`first_night`), Point with the stick held
+(`point_stick`), Classic (`classic`, `classic_steer`), the settings tabs (`settings_driving`,
+`settings_world`, `settings_picture`, `settings_sound`), a call coming in (`call_ringing`), the
+call card (`rescue_card`), a kebab offer with the stand talking and the ticker (`kebab_offer`),
+a delivery (`kebab_delivery`), the tow toast (`tow_toast`), the overlay (`perf_overlay`), the
+helicopter (`heli`).
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -1122,7 +1245,7 @@ solved from what they cross (see Real roads).
 
 **One-command checks.** `tools/verify.sh` runs the verification set and prints one
 PASS/WARN/FAIL table: the map-data invariants (`tools/check_map_data.py`), the check scripts
-(steering, settings, landmarks, sfx, radio loops, the water on both city paths) and eight headless game runs, each with
+(steering, settings, the HUD at phone size, landmarks, sfx, radio loops, the water on both city paths) and eight headless game runs, each with
 `--nosave` (`--quick` for a short set, `--ios` adds the export and the unsigned Xcode build,
 `--only=` picks steps). `tools/shots.sh` renders standard screenshots at a phone's size
 (`--list` names them). `tools/device_run.sh` builds, installs and launches the game on a
@@ -1172,6 +1295,10 @@ flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
   pass); `post` (outlines, posterize, grading, vignette, split-tone, sky); `vhs`, `title`,
   `chrome` (the overlay and the title screen).
 - `time_of_day.gd` (the three looks, the blend and Live), `radio.gd`, `title.gd`, `neon_signs.gd`.
+- Loop 2e: `screen_points.gd` (the screen in points and its safe area; a known iPhone's on a
+  computer), the HUD in points with its layout of passing panels (`hud.gd` `_layout`,
+  `panel_rects`), the tabbed `settings_panel.gd`, bubbles clear of the HUD (`bubbles.gd`),
+  rescue calls that come in during play (`missions.gd`), `tools/check_hud.gd`.
 - Loop 2b: `bench.gd` (what a frame costs: frame times, the main thread's phases from the
   engine's frame signals, draw calls / objects / triangles by pass, the scripts by system,
   memory; for `--bench`, `--probe`, the BENCH button and the overlay), the minimap as one mesh
@@ -1211,7 +1338,7 @@ Command-line options (after `--`):
 | --- | --- |
 | `--demo` | the car drives by itself; with `--heli` the helicopter flies a slow circle |
 | `--shots=60,240` / `--out=DIR` | save screenshots at those frames (counted from when the city is built), then quit |
-| `--style=N` / `--lines=N` | visual style 0–3 / override the pixel image's line count |
+| `--style=N` / `--lines=N` | visual style 0–3 (loop 2e: wins over the saved style for this run) / override the pixel image's line count |
 | `--size=M` / `--yaw=deg` / `--fixed` | view height in metres (default 80) / camera turn / fixed camera (in Point: the Fixed camera scheme) |
 | `--at=x,z` | start at map coordinates (metres, +x east, +z south), on top of a bridge deck if there is one |
 | `--heading=deg` | the car's heading at the start (0 north, 90 east), for testing: with `--demo` it drives off that way |
@@ -1226,7 +1353,7 @@ Command-line options (after `--`):
 | `--rival=N` | put rival N just ahead of you (with `--autopilot` you tail them, so the FLASH LIGHTS prompt shows) |
 | `--bench` | drive a route through the traffic and print the average frame time over 600 frames, the scripts' cost and the 3D view's GPU time; loop 2b: also the bench's lines (see Loop 2b), a 30 s cap, the result in `user://bench_result.txt` |
 | `--time=day\|dusk\|night` | start at that time of day (default day) |
-| `--vhs` | VHS overlay on |
+| `--vhs` | VHS overlay on (for this run; Settings saves it since loop 2e) |
 | `--radio=N` | radio station 1–3, or 0 / `off` (default 1) |
 | `--notitle` | skip the title screen (the testing flags `--demo --shots --autopilot --race --mission --rival --bench` skip it anyway) |
 | `--title` | show the title screen even with those flags (for screenshots) |
@@ -1235,19 +1362,21 @@ Command-line options (after `--`):
 | `--heat=X` | the kebab's starting heat, 0–1 (for a cold-arrival screenshot) |
 | `--host-in=S` | the radio host's first line after S seconds |
 | `--barriers=YYYYMMDD` | place the roadworks for that day |
-| `--free` | free roam: no rescue call card at the start |
+| `--free` | free roam: no call (loop 2e: there's no call card at the start anyway; with `--free` the first call comes in 90 s into play instead of 60) |
 | `--tap=X,Y` | tap that screen pixel at frame 60 (a landmark's info card) |
 | `--reset-save` / `--nosave` | wipe the wallet and record / neither read nor write `user://save.cfg` (nor, since loop 2a, `user://settings.cfg`) |
 | `--time=live` | v0.9: the real sun for the device's clock (TIME's fourth mode) |
 | `--clock=HH:MM` / `--date=YYYYMMDD` | start Live's clock at that Warsaw time (and date; default today) |
 | `--weather=clear\|rain` | start dry or in the rain (default clear) |
-| `--perf` | show the performance overlay |
+| `--perf` | show the performance overlay (loop 2e: four lines: fps, frame time, worst, cap · CPU process + physics + draw, GPU, memory · draw calls by pass · objects, triangles) |
 | `--quality=low\|medium\|high` | the quality setting (default high) |
 | `--sound-check` | play every sound once and print the bus meters, then quit (needs an audio device) |
 | `--ghost-debug=1\|2` | loop 1: paint the occlusion ghost (1: ghosted magenta, other buildings green) or cut it fully (2), and print its ellipse in screen pixels with each screenshot |
 | `--controls=point\|classic\|fixed` | loop 2a: the control scheme for this run (not saved) |
 | `--traffic=empty\|low\|normal\|busy` (or 0-3) | loop 2a: the traffic level for this run (not saved) |
 | `--settings` | loop 2a: open the settings panel at the start (screenshots) |
+| `--settings-tab=N` | loop 2e: open the settings panel at tab N (0 Jazda · Driving, 1 Świat · World, 2 Obraz · Picture, 3 Dźwięk · Sound) |
+| `--call-in=S` | loop 2e: the first rescue call comes in after S seconds of play (default 60) |
 | `--stick=X,Y` / `--pedal=gas\|brake` | loop 2a: hold the stick at that deflection (-1..1, y down; Classic uses X) / a pedal, as if a finger were on it (screenshots, replays in the real city) |
 | `--clicks=X:Y:F,...` / `--drag=X:Y:F:DX:DY:F2` | loop 2a testing aids: a click at screen pixel X,Y on frame F; a finger down at X,Y on frame F, moved by DX,DY over ten frames, lifted on frame F2 (through the real input path) |
 | `--lift=M` | loop 1: aim the camera M metres above the vehicle (close-ups of tall landmarks: `--at=-1206,244 --lift=156 --yaw=110 --size=24 --lines=1080` looks at the Palace clock's east dial) |

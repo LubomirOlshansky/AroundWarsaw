@@ -1,7 +1,8 @@
 extends SceneTree
 ## Loop 2a: settings.gd round trip. Saves every setting to a scratch file in user://, loads
 ## it into a fresh copy and compares; a missing file gives the defaults (Point, Normal
-## traffic, High, full volumes, overlay off, 60 fps); with persistent = false (--nosave) nothing
+## traffic, High, full volumes, overlay off, 60 fps; loop 2e: Classic's camera following, the
+## Sharp style, no VHS); with persistent = false (--nosave) nothing
 ## is written. The real user://settings.cfg is never touched. Deletes its scratch files.
 ##   godot --headless --path game --script res://tools/check_settings.gd
 
@@ -17,7 +18,7 @@ func _initialize() -> void:
 	fresh.load_file()
 	var defaults := fresh.controls == 0 and fresh.traffic == Settings.NORMAL_TRAFFIC and fresh.quality == 2 \
 			and fresh.master == 1.0 and fresh.music == 1.0 and fresh.effects == 1.0 and not fresh.perf and fresh.classic_follow \
-			and fresh.fps == 60
+			and fresh.fps == 60 and fresh.style == 0 and not fresh.vhs
 	print("defaults from a missing file: %s (%s)" % ["OK" if defaults else "WRONG", fresh.summary()])
 	ok = ok and defaults
 
@@ -32,6 +33,8 @@ func _initialize() -> void:
 	a.effects = 0.0
 	a.perf = true
 	a.fps = 30
+	a.style = 3
+	a.vhs = true
 	a.save()
 	var b := Settings.new()
 	b.path = SCRATCH

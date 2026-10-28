@@ -2,9 +2,11 @@ extends RefCounted
 ## Loop 2a: the player's settings, kept between sessions in user://settings.cfg (a
 ## ConfigFile beside the wallet's save.cfg, which wallet.gd rewrites whole): the control
 ## scheme and (for Classic) the camera, the traffic level, quality, three volumes and the
-## performance overlay; loop 2b: the frame rate (60, or 30 to save the battery). `--nosave` neither reads nor writes it; command-line flags
-## (`--controls= --traffic= --quality= --fixed --perf`) win for that run and are not saved
-## unless the player then changes the setting.
+## performance overlay; loop 2b: the frame rate (60, or 30 to save the battery); loop 2e: the
+## picture style and the VHS tape (they moved off the driving screen into Settings; the time of
+## day and the rain are the world's state and start by day and dry). `--nosave` neither reads
+## nor writes it; command-line flags (`--controls= --traffic= --quality= --fixed --perf
+## --style= --vhs`) win for that run and are not saved unless the player then changes the setting.
 
 const PATH := "user://settings.cfg"
 ## Traffic levels: traffic.gd's density (Busy = 1.0, the level before loop 2a) and the
@@ -35,6 +37,9 @@ var perf := false
 ## warm up) or 30 (battery saver).
 const FPS := [60, 30]
 var fps := 60
+## Loop 2e: main.gd STYLES (Sharp, Fine, Clean, Chunky) and the VHS overlay.
+var style := 0
+var vhs := false
 ## False with --nosave: nothing is read or written.
 var persistent := true
 ## Where it is kept (tools/check_settings.gd points it at a scratch file).
@@ -58,6 +63,8 @@ func load_file() -> void:
 	fps = int(cfg.get_value("display", "fps", fps))
 	if not fps in FPS:
 		fps = FPS[0]
+	style = clampi(int(cfg.get_value("display", "style", style)), 0, 3)
+	vhs = bool(cfg.get_value("display", "vhs", vhs))
 
 
 func save() -> void:
@@ -73,13 +80,15 @@ func save() -> void:
 	cfg.set_value("sound", "effects", snappedf(effects, 0.01))
 	cfg.set_value("debug", "perf", perf)
 	cfg.set_value("display", "fps", fps)
+	cfg.set_value("display", "style", style)
+	cfg.set_value("display", "vhs", vhs)
 	cfg.save(path)
 
 
 func summary() -> String:
-	return "controls %d, classic camera %s, traffic %s, quality %d, volume %.0f/%.0f/%.0f %%, perf %s, %d fps" % [
+	return "controls %d, classic camera %s, traffic %s, quality %d, volume %.0f/%.0f/%.0f %%, perf %s, %d fps, style %d, vhs %s" % [
 			controls, "follow" if classic_follow else "fixed", TRAFFIC_NAMES[traffic], quality,
-			master * 100.0, music * 100.0, effects * 100.0, perf, fps]
+			master * 100.0, music * 100.0, effects * 100.0, perf, fps, style, vhs]
 
 
 static func parse_traffic(v: String) -> int:

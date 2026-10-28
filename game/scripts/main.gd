@@ -28,6 +28,8 @@ extends Node
 ## --clicks=X:Y:F,... clicks and --drag=X:Y:F:DX:DY:F2 drags a finger through the real input path.
 ## Loop 10a: --drive-into-water=X,Z starts the car there and drives it flat out into the nearest
 ## water as if it had jumped the edge (the splash and the tow, printed as `water:` lines).
+## Loop 2e: --call-in=S brings the first rescue call after S seconds of play, --settings-tab=N
+## opens the settings panel at tab N.
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
@@ -54,6 +56,7 @@ const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
 const Settings := preload("res://scripts/settings.gd")
 const BenchStats := preload("res://scripts/bench.gd")
+const ScreenPoints := preload("res://scripts/screen_points.gd")
 const Splash := preload("res://scripts/splash.gd")
 const MAP_PATH := "res://map/centrum.json"
 const CITY_SCENE := "res://map/city.scn"
@@ -200,8 +203,17 @@ var host_in := -1.0
 var barrier_day := 0
 var reset_save := false
 var no_save := false
-## --free: free roam, no rescue call card at the start (for screenshots).
+## --free: free roam (loop 2e: no call card at the start anyway; the first call then comes in
+## 90 s into play instead of 60).
 var free_roam := false
+## Loop 2e: the first rescue call comes in after this many seconds of play (--call-in=S;
+## missions.gd FIRST_CALL by default); --style= and --vhs win over the saved settings.
+var call_in := -1.0
+## Loop 2e: --settings-tab=N opens the settings panel at that tab (0 Driving, 1 World, 2 Picture,
+## 3 Sound) for screenshots.
+var settings_tab := 0
+var _flag_style := -1
+var _flag_vhs := false
 ## --tap=X,Y: tap that screen pixel at frame 60, as if a finger did (landmark cards).
 var tap_at := Vector2.INF
 ## v0.9: sound, weather (RAIN / O / --weather=), the Live clock (--clock= --date=), the
@@ -252,7 +264,6 @@ var drags: Array[PackedInt32Array] = []
 var _heli_held := false
 var _heli_release := 99.0
 var _perf_wait := 0.0
-var _live_minute := -1
 var _clock_minute := -1
 ## --sound-check: play every sound once and print the bus meters (sfx.gd).
 var sound_check := false
@@ -358,15 +369,16 @@ func _loading_card() -> CanvasLayer:
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	layer.add_child(bg)
 	var label := Label.new()
-	label.text = "NOCNA WARSZAWA\nbuilding the city…"
+	label.text = "NOCNA WARSZAWA\nbudujemy miasto…\nbuilding the city…"
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.set_anchors_preset(Control.PRESET_FULL_RECT)
-	var ui := clampf(get_viewport().get_visible_rect().size.y / 720.0, 1.0, 3.0)
-	label.add_theme_font_size_override("font_size", int(26 * ui))
+	# Loop 2e: in points like the HUD (screen_points.gd), Polish above English.
+	var pt: float = ScreenPoints.measure(get_viewport().get_visible_rect().size)["pt"]
+	label.add_theme_font_size_override("font_size", roundi(20.0 * pt))
 	label.add_theme_color_override("font_color", Color("#fbf7ee"))
 	label.add_theme_color_override("font_outline_color", Color("#2a2622"))
-	label.add_theme_constant_override("outline_size", int(6 * ui))
+	label.add_theme_constant_override("outline_size", roundi(4.0 * pt))
 	layer.add_child(label)
 	add_child(layer)
 	return layer
@@ -486,24 +498,19 @@ func _build_world() -> void:
 	hud.settings_pressed.connect(_open_settings)
 	hud.settings_panel.changed.connect(_on_setting)
 	hud.settings_panel.closed.connect(_close_settings)
-	hud.style_pressed.connect(_next_style)
-	hud.time_pressed.connect(func(): _blip_sound(); tod.next())
+	# Loop 2e: TIME, VHS, RAIN, STYLE, CAM, QUALITY and the rotate and zoom buttons left the
+	# driving screen (Settings has them; the keys stay; zoom is a pinch, a twist turns a fixed
+	# camera).
 	hud.radio_pressed.connect(radio.next)
-	hud.vhs_pressed.connect(func(): _blip_sound(); _set_vhs(not vhs))
-	hud.weather_pressed.connect(func(): _blip_sound(); weather.toggle())
-	hud.quality_pressed.connect(func(): _blip_sound(); _set_quality(quality + 1))
 	hud.perf_gesture.connect(func(): _set_perf(not show_perf); settings.perf = show_perf; settings.save())
-	tod.changed.connect(_on_time_changed)
-	weather.changed.connect(func(s: int): hud.set_weather(s == Weather.RAIN))
 	radio.station_changed.connect(func(_i: int, _s: Dictionary): hud.set_radio_name(radio.label()))
 	radio.ticker.connect(hud.ticker)
 	hud.set_radio_name(radio.label())
 	hud.visible = not hide_hud
-	hud.rotate_pressed.connect(_rotate_camera)
-	hud.camera_pressed.connect(_toggle_follow)
-	hud.zoom_pressed.connect(func(d: int): _zoom(1.3 if d > 0 else 1.0 / 1.3))
+	hud.rotate_pressed.connect(func(d: int):
+		if not follow:
+			_rotate_camera(d))
 	hud.pinched.connect(func(ratio: float): _zoom(1.0 / ratio))
-	hud.set_camera_name("Follow" if follow else "Fixed")
 	hud.setup_minimap(data)
 	hud.vehicle_pressed.connect(_toggle_vehicle)
 	hud.tapped.connect(_on_tap)
@@ -515,7 +522,7 @@ func _build_world() -> void:
 	missions.player = car.global_position
 	# Speech bubbles (anyone can talk) and everybody's lines.
 	bubbles = Bubbles.new()
-	bubbles.ui = hud.ui
+	bubbles.pt = hud.pt
 	bubbles.project = func(p: Vector3) -> Vector2: return cam.unproject_position(p) * float(view.stretch_shrink)
 	hud.add_child(bubbles)
 	hud.move_child(bubbles, 1)
@@ -539,12 +546,13 @@ func _build_world() -> void:
 		_build_side_jobs(data, world)
 	if start_flying:
 		_take_off(Heli.CRUISE)
+	# Loop 2e: no call card at the start (docs/DEMO.md 6.1): calls come in during play.
 	if start_mission > 0:
 		missions.start(start_mission)
 	elif demo or start_race > 0 or start_rival > 0 or bench or start_kebab >= 0 or start_sloik >= 0 or free_roam:
 		missions.close()
 	else:
-		missions.offer(1)
+		missions.quiet_start(call_in)
 	if jobs != null and start_kebab >= 0:
 		jobs.start_kebab(start_kebab)
 		cam_focus = car.global_position
@@ -588,12 +596,12 @@ func _build_world() -> void:
 	if hold_pedal != "":
 		hud.hold_pedal(hold_pedal)
 	if open_settings_at_start:
+		hud.settings_panel.set_tab(settings_tab)
 		_open_settings.call_deferred()
 	_stats = _make_stats()
 	_stats.hook(get_tree())
 	_apply_experiments()
 	_apply_fps()
-	hud.bench_pressed.connect(_start_phone_bench)
 	_bench_t0 = Time.get_ticks_msec()
 	if bench or probe:
 		# The macOS driver may keep vsync on anyway (the frame rate then tops out at
@@ -664,12 +672,7 @@ func _build_sound(data: Dictionary, world: Node3D) -> void:
 		sfx.sound_check()
 
 
-func _on_time_changed(m: int) -> void:
-	_live_minute = -1
-	hud.set_time_name(tod.live_label() if m == TimeOfDay.LIVE else TimeOfDay.NAMES[m])
-
-
-## Quality: Low, Medium or High (U, the overlay's QUALITY button, --quality=).
+## Quality: Low, Medium or High (U, Settings, --quality=).
 func _set_quality(q: int) -> void:
 	quality = posmod(q, QUALITY.size())
 	if settings.quality != quality and _started:
@@ -687,7 +690,6 @@ func _set_quality(q: int) -> void:
 	post_mat.set_shader_parameter("reflect_steps", qs["reflect"])
 	_apply_traffic()
 	if hud != null:
-		hud.set_quality_name(qs["name"])
 		_apply_style()
 
 
@@ -723,16 +725,14 @@ func _update_perf(dt: float) -> void:
 	var live := _stats.take_live()
 	var p := _stats.passes()
 	var gpu := RenderingServer.viewport_get_measured_render_time_gpu(sv.get_viewport_rid())
+	# Loop 2e: four short lines (11 pt on the phone) so the overlay fits beside the HUD's
+	# panels; the time of day and the weather are on screen anyway, memory is in the BENCH card.
 	var lines := PackedStringArray([
-		"%.0f fps · %.1f ms · worst %.1f ms" % [1000.0 / maxf(live["ms"], 0.01), live["ms"], live["worst"]],
-		"CPU: process %.1f · physics %.1f · draw %.1f ms" % [live["process"], live["physics"], live["draw"]],
-		"GPU 3D: %s" % ("%.2f ms" % gpu if gpu > 0.0 else "n/a (Metal)"),
-		"draw calls %d = 3D %d + shadow %d + 2D %d" % [p["all_draws"], p["main_draws"], p["shadow_draws"], p["canvas_draws"]],
-		"objects %d · triangles %.2f M (shadow %.2f M)" % [p["all_objects"], p["all_tris"] / 1e6, p["shadow_tris"] / 1e6],
-		"memory %.0f MB · video %.0f MB" % [Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
-				Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0],
-		"image %dx%d · %s · %s · cap %s · voices %d" % [sv.size.x, sv.size.y, TimeOfDay.NAMES[tod.mode],
-				Weather.NAMES[weather.state], _cap_name(), sfx.voices() if sfx != null else 0],
+		"%.0f fps · %.1f ms · worst %.1f · cap %s" % [1000.0 / maxf(live["ms"], 0.01), live["ms"], live["worst"], _cap_name()],
+		"CPU %.1f + %.1f + %.1f ms · GPU %s · %.0f MB" % [live["process"], live["physics"], live["draw"],
+				"%.2f" % gpu if gpu > 0.0 else "n/a", Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0],
+		"draws %d = %d + %d + %d (3D, shadow, 2D)" % [p["all_draws"], p["main_draws"], p["shadow_draws"], p["canvas_draws"]],
+		"%d objects · %.2f M tris (%.2f M shadow)" % [p["all_objects"], p["all_tris"] / 1e6, p["shadow_tris"] / 1e6],
 	])
 	hud.set_perf("\n".join(lines))
 
@@ -841,7 +841,7 @@ func _phone_bench_frame() -> void:
 		_stats.sample()
 	if now >= _phone_next_toast:
 		_phone_next_toast += 1000
-		hud.toast("TEST %d s · nie dotykaj, proszę · hands off" % ceili(PHONE_SETTLE + _phone_seconds - elapsed))
+		hud.toast("TEST %d s · nie dotykaj, proszę" % ceili(PHONE_SETTLE + _phone_seconds - elapsed), "hands off")
 	if elapsed >= PHONE_SETTLE + _phone_seconds:
 		_end_phone_bench(true)
 
@@ -868,7 +868,7 @@ func _end_phone_bench(done: bool) -> void:
 	hud.set_wallet(wallet.zl, wallet.respect)
 	_set_perf(show_perf)
 	if not done or _measure_t0 == 0:
-		hud.toast("Test przerwany · Bench cancelled")
+		hud.toast("Test przerwany", "Bench cancelled")
 		print("bench: BENCH cancelled")
 		return
 	var r := _stats.report(1000.0 / (_cap if _cap > 0 else 60))
@@ -913,7 +913,7 @@ func _parse_args() -> void:
 		elif arg.begins_with("--out="):
 			out_dir = arg.trim_prefix("--out=")
 		elif arg.begins_with("--style="):
-			style_index = int(arg.trim_prefix("--style=")) % STYLES.size()
+			_flag_style = posmod(int(arg.trim_prefix("--style=")), STYLES.size())
 		elif arg.begins_with("--at="):
 			var xz := arg.trim_prefix("--at=").split(",")
 			start_at = Vector3(float(xz[0]), 0.0, float(xz[1]))
@@ -975,7 +975,9 @@ func _parse_args() -> void:
 		elif arg.begins_with("--time="):
 			start_time = TimeOfDay.parse(arg.trim_prefix("--time="))
 		elif arg == "--vhs":
-			vhs = true
+			_flag_vhs = true
+		elif arg.begins_with("--call-in="):
+			call_in = maxf(0.0, float(arg.trim_prefix("--call-in=")))
 		elif arg.begins_with("--radio="):
 			var v := arg.trim_prefix("--radio=")
 			start_station = 0 if v == "off" else clampi(int(v), 0, Radio.STATIONS.size())
@@ -1021,6 +1023,9 @@ func _parse_args() -> void:
 			_flag_traffic = Settings.parse_traffic(arg.trim_prefix("--traffic="))
 		elif arg == "--settings":
 			open_settings_at_start = true
+		elif arg.begins_with("--settings-tab="):
+			open_settings_at_start = true
+			settings_tab = int(arg.trim_prefix("--settings-tab="))
 		elif arg.begins_with("--stick="):
 			var sv2 := arg.trim_prefix("--stick=").split(",")
 			hold_stick = Vector2(float(sv2[0]), float(sv2[1])).limit_length(1.0)
@@ -1061,6 +1066,8 @@ func _load_settings() -> void:
 		scheme = Controls.FIXED
 	controls.scheme = scheme
 	follow = scheme == Controls.POINT or (scheme == Controls.CLASSIC and settings.classic_follow and not _flag_fixed)
+	style_index = _flag_style if _flag_style >= 0 else settings.style
+	vhs = _flag_vhs or settings.vhs
 	print("settings: %s (%s)" % [settings.summary(), ProjectSettings.globalize_path(Settings.PATH) if not no_save else "not saved"])
 
 
@@ -1137,8 +1144,6 @@ func _set_vhs(on: bool) -> void:
 		view.material = _vhs_mat
 	else:
 		view.material = null
-	if hud != null:
-		hud.set_vhs(on)
 
 
 func _blip_sound() -> void:
@@ -1153,8 +1158,11 @@ func _rotate_camera(direction: int) -> void:
 	cam_yaw_target = 45.0 + 90.0 * roundf((cam_yaw - 45.0) / 90.0) + 90.0 * direction
 
 
+## C (and Settings → Kamera za autem): the camera follows the car or stays put. Loop 2e: a toast
+## says which, so it never switches off unnoticed (it did with the old CAM button).
 func _toggle_follow() -> void:
 	_set_follow(not follow)
+	hud.toast("Kamera: za autem" if follow else "Kamera: stała", "Camera: follows the car" if follow else "Camera: fixed")
 	# Loop 2a: in the point schemes the camera is the scheme (Point follows, Fixed doesn't).
 	if controls.scheme != Controls.CLASSIC:
 		_set_scheme(Controls.POINT if follow else Controls.FIXED, false)
@@ -1167,7 +1175,6 @@ func _set_follow(on: bool) -> void:
 	follow = on
 	if not follow:
 		cam_yaw_target = 45.0 + 90.0 * roundf((cam_yaw - 45.0) / 90.0)
-	hud.set_camera_name("Follow" if follow else "Fixed")
 
 
 ## Loop 2a: a control scheme (drive_controls.gd); Point turns the follow camera on, Fixed off,
@@ -1190,9 +1197,15 @@ func _open_settings() -> void:
 	print("settings panel: open (paused)")
 	_blip_sound()
 	get_tree().paused = true
-	hud.open_settings({"controls": controls.scheme, "traffic": traffic_level, "quality": quality,
+	hud.open_settings(_settings_state())
+
+
+## What the settings panel shows (loop 2e: also the camera, time of day, weather, style, VHS).
+func _settings_state() -> Dictionary:
+	return {"controls": controls.scheme, "follow": follow, "traffic": traffic_level, "quality": quality,
 			"master": settings.master, "music": settings.music, "effects": settings.effects, "perf": int(show_perf),
-			"fps": maxi(0, Settings.FPS.find(settings.fps))})
+			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
+			"weather": weather.state, "time": tod.mode}
 
 
 func _close_settings() -> void:
@@ -1206,6 +1219,28 @@ func _on_setting(key: String, value: Variant) -> void:
 	match key:
 		"controls":
 			_set_scheme(int(value))
+		"drive":
+			# Loop 2e: Point or Classic; Point keeps the camera row's choice (off: Fixed camera).
+			if int(value) == 1:
+				_set_scheme(Controls.CLASSIC)
+			else:
+				_set_scheme(Controls.POINT if controls.scheme == Controls.POINT or (controls.scheme == Controls.CLASSIC and follow) else Controls.FIXED)
+			hud.settings_panel.sync(_settings_state())
+		"camera":
+			if (int(value) == 0) != follow:
+				_toggle_follow()
+			hud.settings_panel.sync(_settings_state())
+		"style":
+			style_index = clampi(int(value), 0, STYLES.size() - 1)
+			settings.style = style_index
+			_apply_style()
+		"vhs":
+			_set_vhs(int(value) == 1)
+			settings.vhs = vhs
+		"weather":
+			weather.set_state(int(value))
+		"time":
+			tod.set_mode(int(value))
 		"traffic":
 			traffic_level = int(value)
 			settings.traffic = traffic_level
@@ -1246,7 +1281,7 @@ func _on_car_stuck() -> void:
 	car.vel = Vector3.ZERO
 	car.forward_speed = 0.0
 	car.reset_physics_interpolation()
-	hud.toast("Pomoc drogowa: wyciągnięci! · Towed free")
+	hud.toast("Pomoc drogowa: wyciągnięci!", "Towed free")
 	print("car stuck: moved to %.1f, %.1f" % [spot.x, spot.z])
 
 
@@ -1492,6 +1527,8 @@ func _inject_clicks() -> void:
 
 func _next_style() -> void:
 	style_index = (style_index + 1) % STYLES.size()
+	settings.style = style_index
+	settings.save()
 	_apply_style()
 
 
@@ -1503,7 +1540,6 @@ func _apply_style() -> void:
 	post_mat.set_shader_parameter("outline_strength", style["outline"])
 	post_mat.set_shader_parameter("levels", style["levels"])
 	post_mat.set_shader_parameter("saturation", style["saturation"])
-	hud.set_style_name(style["name"])
 
 
 func _process(dt: float) -> void:
@@ -1541,19 +1577,18 @@ func _process(dt: float) -> void:
 	if minute != _clock_minute:
 		_clock_minute = minute
 		_set_palace_clock()
-	if tod.mode == TimeOfDay.LIVE:
-		if minute != _live_minute:
-			_live_minute = minute
-			hud.set_time_name(tod.live_label())
+	# Loop 2e: the minimap's night palette follows the lamps (dusk is half way).
+	hud.set_night(tod.lights_on)
 	if _phone_bench:
 		_phone_bench_frame()
 	if show_perf:
 		_update_perf(dt)
+	# Loop 2e: the speed beside the gear (the "prototype" label is gone).
 	if flying:
-		hud.set_info("NOCNA WARSZAWA · prototype\n%d km/h · %d m up" % [roundi(heli.speed() * 3.6), roundi(heli.height_above)])
+		hud.set_speed(roundi(heli.speed() * 3.6), roundi(heli.height_above))
 		missions.tick(dt, pos, heli.speed(), true)
 	else:
-		hud.set_info("NOCNA WARSZAWA · prototype\n%d km/h" % roundi(absf(car.forward_speed) * 3.6))
+		hud.set_speed(roundi(absf(car.forward_speed) * 3.6))
 		missions.tick(dt, pos, car.vel.length(), false)
 	_show_target()
 	var heading: float = heli.rotation.y if flying else car.rotation.y
@@ -2022,27 +2057,27 @@ func _toggle_vehicle() -> void:
 	if _phone_bench:
 		return
 	if rivals != null and rivals.racing():
-		hud.toast("Finish the race first")
+		hud.toast("Najpierw dokończ wyścig", "Finish the race first")
 		return
 	if jobs != null and jobs.busy() and not flying:
-		hud.toast("Finish the job first: it rides in the car")
+		hud.toast("Najpierw dokończ kurs: zamówienie jedzie autem", "Finish the job first: it rides in the car")
 		return
 	if not flying and car.in_water:
 		return  # loop 10a: the tow is on its way
 	if not flying:
 		_take_off(Heli.CRUISE)
-		hud.toast("Helicopter: steer with the stick, ▲ ▼ (Space / Shift) for height")
+		hud.toast("Helikopter: kieruj palcem, ▲ ▼ to wysokość", "Helicopter: steer with the stick, ▲ ▼ (Space / Shift) for height")
 		return
 	if heli.landing:
 		heli.landing = false
-		hud.toast("Landing cancelled")
+		hud.toast("Lądowanie odwołane", "Landing cancelled")
 		return
 	var why := _landing_problem(heli.global_position)
 	if not why.is_empty():
 		hud.toast(why[0], why[1])
 		return
 	heli.landing = true
-	hud.toast("Landing…")
+	hud.toast("Lądujemy…", "Landing…")
 
 
 ## Why the helicopter can't come down at `p` to give the car back: [] if it can, else the toast
@@ -2179,6 +2214,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			KEY_V:
 				_blip_sound()
 				_set_vhs(not vhs)
+				settings.vhs = vhs
+				settings.save()
 			KEY_O:
 				_blip_sound()
 				weather.toggle()

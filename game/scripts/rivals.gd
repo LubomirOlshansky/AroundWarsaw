@@ -360,7 +360,7 @@ func start_race(i: int) -> void:
 	var r: Dictionary = RIVALS[i]
 	var line: Array = r["challenge"][_rng.randi() % 2]
 	_say(i, String(line[0]).format(_finish), String(line[1]).format(_finish), 3.0)
-	hud.show_banner("RACE " + String(_finish["en"]).to_upper(), RACE_COLOUR)
+	hud.show_banner("WYŚCIG " + String(_finish["pl"]).to_upper(), RACE_COLOUR)
 
 
 ## A finish 600-1800 m away by road (one-way streets can make a near place a long
@@ -422,7 +422,7 @@ func _frame(dt: float) -> void:
 					_start_ghost()
 		State.COUNTDOWN:
 			var n := 3 - int(_t)
-			hud.show_banner(str(n) if n > 0 else "GO!", Color.WHITE if n > 0 else WIN_COLOUR)
+			hud.show_banner(str(n) if n > 0 else "START!", Color.WHITE if n > 0 else WIN_COLOUR)
 			_show_status()
 			if _t >= 3.0:
 				_go()
@@ -442,7 +442,7 @@ func _look_for_challenge() -> void:
 			state = State.PROMPT
 			_lost_sight = 0.0
 			var r: Dictionary = RIVALS[i]
-			hud.show_challenge("FLASH LIGHTS · RACE %s  (L)" % r["name"].to_upper(), r["colour"])
+			hud.show_challenge("MRUGNIJ ŚWIATŁAMI · %s" % r["name"].to_upper(), r["colour"], "flash your lights to race (L)")
 			if _t - _said[i] > 40.0:
 				_say(i, r["approach"][0], r["approach"][1], 3.5)
 			return
@@ -516,11 +516,12 @@ func _show_status() -> void:
 	var gap := absf(_rival_left - _player_left)
 	var at := car.global_position
 	var metres := roundi(Vector2(at.x, at.z).distance_to(Vector2(_finish["pos"].x, _finish["pos"].z)))
-	var hint := "Get ready…"
+	var hint := ["Uwaga…", "Get ready…"]
 	if state == State.RACE:
-		hint = "%s is %d m %s" % [r["name"], roundi(gap), "behind" if first else "ahead"]
-	hud.show_status("RACE vs %s → %s" % [r["name"], _finish["name"]], _clock(_race_time), "%d m" % metres,
-			hint, 0.0, RACE_COLOUR, ("1ST" if first else "2ND") if state == State.RACE else "")
+		hint = ["%s: %d m %s" % [r["name"], roundi(gap), "za tobą" if first else "przed tobą"],
+				"%s is %d m %s" % [r["name"], roundi(gap), "behind" if first else "ahead"]]
+	hud.show_status("WYŚCIG · %s → %s" % [r["name"], _finish["name"]], _clock(_race_time), "%d m" % metres,
+			hint[0], 0.0, RACE_COLOUR, ("1ST" if first else "2ND") if state == State.RACE else "", {}, hint[1])
 
 
 func _finish_race(won: bool, why: String) -> void:
@@ -554,16 +555,22 @@ func _finish_race(won: bool, why: String) -> void:
 			else:
 				record = " · best %s" % _clock(best)
 			wallet.pay(stake, 100, "race")
-		var total := ("\nWallet %s · respect %d" % [_money(wallet.zl), wallet.respect]) if wallet != null else ""
-		hud.show_card("WIN · 1ST", "You beat %s to %s in %s%s.\n„%s”\n%s\n+%d zł (the stake) · respect +100%s" % [
-				who, _finish["name"], _clock(_race_time), record, line[0], line[1], stake, total],
-				PackedStringArray(["OK"]), WIN_COLOUR)
+		var total := (" · wallet %s · respect %d" % [_money(wallet.zl), wallet.respect]) if wallet != null else ""
+		var total_pl := (" · w portfelu %s · szacunek %d" % [_money(wallet.zl), wallet.respect]) if wallet != null else ""
+		var record_pl := record.replace("new best!", "nowy rekord!").replace("best", "rekord")
+		hud.show_card("WYGRANA · 1. MIEJSCE", "Meta: %s, czas %s%s. %s za tobą.\n„%s”\n+%d zł (stawka) · szacunek +100%s" % [
+				_finish["name"], _clock(_race_time), record_pl, who, line[0], stake, total_pl],
+				PackedStringArray(["OK"]), WIN_COLOUR, false, "Win · 1st",
+				"You beat %s to %s in %s%s. %s +%d zł (the stake) · respect +100%s" % [
+				who, _finish["name"], _clock(_race_time), record, line[1], stake, total])
 		Input.vibrate_handheld(150, 0.9)
 	else:
 		var short := roundi(_player_remaining())
 		var reason := why if why != "" else "%s got to %s first. You were %d m short after %s." % [who, _finish["name"], short, _clock(_race_time)]
-		hud.show_card("LOSE · 2ND", "%s\n„%s”\n%s" % [reason, line[0], line[1]],
-				PackedStringArray(["OK"]), LOSE_COLOUR)
+		var reason_pl := "Poddałeś wyścig." if why != "" else "%s pierwszy na mecie: %s. Zabrakło ci %d m, czas %s." % [
+				who, _finish["name"], short, _clock(_race_time)]
+		hud.show_card("PRZEGRANA · 2. MIEJSCE", "%s\n„%s”" % [reason_pl, line[0]],
+				PackedStringArray(["OK"]), LOSE_COLOUR, false, "Lose · 2nd", "%s %s" % [reason, line[1]])
 
 
 func _on_card(_index: int) -> void:

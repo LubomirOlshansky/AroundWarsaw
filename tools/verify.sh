@@ -25,8 +25,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map steering settings landmarks sfx radio water water-prebuilt plain heli race kebab splash rain prebuilt classic)
-STEPS_QUICK=(map steering settings landmarks sfx radio plain prebuilt)
+STEPS_ALL=(map steering settings hud landmarks sfx radio water water-prebuilt plain heli race kebab splash rain prebuilt classic)
+STEPS_QUICK=(map steering settings hud landmarks sfx radio plain prebuilt)
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
 STEP_LIMIT=${NW_STEP_LIMIT:-900}
 
@@ -182,6 +182,8 @@ for s in $want; do
 			fi ;;
 		steering) check steering 'check_steering:' --fixed-fps 60 --script res://tools/check_steering.gd ;;
 		settings) check settings '^settings:' --script res://tools/check_settings.gd ;;
+		# Loop 2e: the HUD at phone size: 44 pt controls, 11 / 13 pt text, the safe area, no overlaps.
+		hud) check hud '^check_hud:' --script res://tools/check_hud.gd ;;
 		landmarks) check landmarks '^landmark check:' --script res://tools/check_landmarks.gd ;;
 		sfx) check sfx '^sfx:' --script res://tools/check_sfx.gd ;;
 		radio) check radio '^radio loops:' --script res://tools/check_radio_loops.gd ;;

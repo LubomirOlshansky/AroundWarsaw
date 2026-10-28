@@ -28,8 +28,10 @@ view height in metres, `--yaw=`, `--lift=`, `--nohud`, `--tap=X,Y`, `--settings`
   delete it afterwards).
 - Both city paths: anything the map builder makes needs a `--prebuilt` shot too.
 - Night, dusk and rain are separate looks (`--time=`, `--weather=rain`): check the one you touched.
-- Phone sizes: 2532x1170 (6.1" iPhone 12-15), 2868x1320 (6.9" Pro Max). The HUD's points are
-  read from the window as a phone's 390-pt-tall screen, so these shots show real HUD sizes.
+- Phone sizes: 2532x1170 (6.1" iPhone 12-15), 2868x1320 (6.9" Pro Max). Loop 2e: a window the
+  size of a known iPhone gets that phone's points and safe area (`game/scripts/screen_points.gd`;
+  2868x1320 is 956x440 pt), any other window is taken as a phone 390 pt tall, so these shots
+  show real HUD sizes. `game/tools/check_hud.gd` measures them (44 pt, 11 pt, overlaps).
 
 ## Look at them (open every PNG with Read; never judge a shot you didn't look at)
 

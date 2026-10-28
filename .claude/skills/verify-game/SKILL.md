@@ -66,6 +66,8 @@ its OK line, and lists it in this skill. A check that only exists outside the sc
 forgotten.
 
 In the set now: `check_map_data.py` (map), `check_steering.gd`, `check_settings.gd`,
+`check_hud.gd` (loop 2e: `hud`, the HUD at four screen sizes: 44 pt controls, 11 / 13 pt text,
+the safe area, no overlaps; it lists the passing panels that waited for room),
 `check_landmarks.gd`, `check_sfx.gd`, `check_radio_loops.gd`, `check_water.gd` (loop 10a:
 `water` and `water-prebuilt`, where a car can get into the water, ~17 s and ~10 s) and the
 game runs, among them `splash` (loop 10a: `--drive-into-water=1015,-85 --kebab=0`, the tow

@@ -490,7 +490,7 @@ func _pick_address(e: int, s: float, from: Vector2, lo: float, hi: float, rng: R
 func _begin_kebab(i: int, n: int) -> void:
 	var o := _make_kebab_order(i, n)
 	if o.is_empty():
-		hud.toast("No orders right now")
+		hud.toast("Brak zamówień", "No orders right now")
 		_stands[i]["cool"] = true
 		return
 	_orders += 1
@@ -503,11 +503,14 @@ func _begin_kebab(i: int, n: int) -> void:
 	var stand: Node3D = _stands[i]["node"]
 	dialogue.say(stand, "Kebab 24h", "kebab_vendor", "", 2.4, KEBAB_COLOUR, 5.2)
 	var where := "%s, %s" % [o["customer"], o["name"]]
-	var extra := " Across the river: \"basically the centre\"." if o["across"] else ""
+	var extra := " Across the river (\"basically the centre\")." if o["across"] else ""
 	var night := " Night pays ×%.1f." % NIGHT_BONUS if _night() else ""
-	hud.show_card("KEBAB ORDER · %d m" % roundi(o["road"]),
-			"Deliver to %s.%s\nIt cools on the way: the hotter it arrives, the bigger the tip.%s" % [where, extra, night],
-			PackedStringArray(["GO!", "NOT NOW"]), KEBAB_COLOUR, true)
+	var extra_pl := " Za rzeką: „w sumie to centrum”." if o["across"] else ""
+	var night_pl := (" Nocą ×%s." % ("%.1f" % NIGHT_BONUS).replace(".", ",")) if _night() else ""
+	hud.show_card("ZAMÓWIENIE · KEBAB · %d m" % roundi(o["road"]),
+			"Dla: %s.%s Im cieplejszy dojedzie, tym większy napiwek.%s" % [where, extra_pl, night_pl],
+			PackedStringArray(["GO!", "NOT NOW"]), KEBAB_COLOUR, true, "Kebab order · %d m" % roundi(o["road"]),
+			"It cools on the way: the hotter, the bigger the tip.%s%s" % [extra, night])
 	print("kebab order %d: stand %d -> %s (%s), %d m by road%s" % [n, i, o["name"], o["customer"], roundi(o["road"]),
 			", across the river" if o["across"] else ""])
 
@@ -537,7 +540,7 @@ func _go() -> void:
 	if job == Job.KEBAB:
 		_heat = start_heat
 		_beacon.recolour(KEBAB_COLOUR)
-		hud.toast("Go! %s is waiting" % _order["customer"])
+		hud.toast("Jedziemy! %s czeka" % _order["customer"], "Go! %s is waiting" % _order["customer"])
 	else:
 		_jars = JARS - clampi(start_broken, 0, JARS)
 		_stress = 0.0
@@ -548,7 +551,7 @@ func _go() -> void:
 		_beacon.recolour(SLOIK_COLOUR)
 		# Nobody waits at the flat: the passenger rides with you.
 		_beacon.place(ring, ARRIVE - 0.5, true, false)
-		hud.toast("Drive smoothly: hard bumps, braking and fast corners break jars")
+		hud.toast("Jedź płynnie, bo słoiki się tłuką", "Drive smoothly: hard bumps, braking and fast corners break jars")
 	_slide = false
 
 
@@ -563,28 +566,30 @@ func _deliver_tick(dt: float) -> void:
 	if d < ARRIVE and speed < ARRIVE_SPEED and not flying:
 		_arrive()
 		return
-	var hint := ""
+	# Loop 2e: [Polish, English].
+	var hint := ["", ""]
 	if flying:
-		hint = "Land and take the car: the order rides in the car"
+		hint = ["Wyląduj i weź auto: zamówienie jedzie autem", "Land and take the car: the order rides in the car"]
 	elif d > 40.0:
-		hint = "Head for the %s beacon" % ("orange" if job == Job.KEBAB else "teal")
+		hint = ["Jedź do pomarańczowego światła", "Head for the orange beacon"] if job == Job.KEBAB \
+				else ["Jedź do turkusowego światła", "Head for the teal beacon"]
 	elif d < ARRIVE:
-		hint = "Stop at the door"
+		hint = ["Stań pod drzwiami", "Stop at the door"]
 	else:
-		hint = "Pull up inside the ring"
+		hint = ["Stań w kręgu", "Pull up inside the ring"]
 	if job == Job.KEBAB:
-		var word := "HOT" if _heat >= 0.7 else ("WARM" if _heat >= 0.4 else "COLD")
+		var word := "GORĄCY" if _heat >= 0.7 else ("CIEPŁY" if _heat >= 0.4 else "ZIMNY")
 		hud.show_status("KEBAB → %s" % _order["name"], "%s %d%%" % [word, roundi(_heat * 100.0)], "%d m" % roundi(d),
-				hint, 0.0, KEBAB_COLOUR, "", {"heat": _heat})
+				hint[0], 0.0, KEBAB_COLOUR, "", {"heat": _heat}, hint[1])
 	else:
 		_chat_t -= dt
 		if _chat_t <= 0.0 and not bubbles.is_talking(car):
 			_chat_t = _rng.randf_range(20.0, 32.0)
 			dialogue.say(car, _order["customer"], "passenger", "", 4.5, SLOIK_COLOUR, 2.4)
 		if _stress > 0.55 and d > ARRIVE:
-			hint = "Easy! The jars are rattling"
+			hint = ["Spokojnie! Słoiki dzwonią", "Easy! The jars are rattling"]
 		hud.show_status("SŁOIKI → %s" % _order["name"], _clock_text(_clock), "%d m" % roundi(d),
-				hint, _stress, SLOIK_COLOUR, "", {"jars": [_jars, JARS], "shake": clampf(_stress, 0.0, 1.0)})
+				hint[0], _stress, SLOIK_COLOUR, "", {"jars": [_jars, JARS], "shake": clampf(_stress, 0.0, 1.0)}, hint[1])
 
 
 func _arrive() -> void:
@@ -617,14 +622,21 @@ func _kebab_result() -> void:
 	var record: bool = wallet.record(key, _clock)
 	var l: Array = dialogue.say(_beacon, _order["customer"], "kebab_hot" if hot else "kebab_cold", "", 5.0,
 			KEBAB_COLOUR if hot else Color("#7fb8de"), 3.6)
-	var quote := "„%s”\n%s\n" % [l[0], l[1]] if not l.is_empty() else ""
+	var quote := "„%s”\n" % l[0] if not l.is_empty() else ""
+	var quote_en := "%s\n" % l[1] if not l.is_empty() else ""
 	var money := "Fare %d zł + tip %d zł%s = %d zł · wallet %s" % [fare, tip,
 			(" · night ×%.1f" % NIGHT_BONUS) if bonus > 1.0 else "", total, _money(wallet.zl)]
+	var money_pl := "Kurs %d zł + napiwek %d zł%s = %d zł · w portfelu %s" % [fare, tip,
+			(" · noc ×%s" % ("%.1f" % NIGHT_BONUS).replace(".", ",")) if bonus > 1.0 else "", total, _money(wallet.zl)]
 	var times := "%s at %d%% heat%s" % [_clock_text(_clock), roundi(_heat * 100.0),
 			" · new best!" if record and best > 0.0 else (" · best %s" % _clock_text(best) if best > 0.0 else "")]
-	hud.show_card("DELIVERED · " + ("STILL HOT" if _heat >= 0.7 else ("WARM" if hot else "COLD")),
-			"%s%s, %s: %s\n%s" % [quote, _order["customer"], _order["name"], times, money],
-			PackedStringArray(["OK"]), KEBAB_COLOUR if hot else Color("#7fb8de"), true)
+	var times_pl := "%s, ciepło %d%%%s" % [_clock_text(_clock), roundi(_heat * 100.0),
+			" · nowy rekord!" if record and best > 0.0 else (" · rekord %s" % _clock_text(best) if best > 0.0 else "")]
+	hud.show_card("DOWIEZIONE · " + ("WCIĄŻ GORĄCY" if _heat >= 0.7 else ("CIEPŁY" if hot else "ZIMNY")),
+			"%s%s, %s: %s\n%s" % [quote, _order["customer"], _order["name"], times_pl, money_pl],
+			PackedStringArray(["OK"]), KEBAB_COLOUR if hot else Color("#7fb8de"), true,
+			"Delivered · " + ("still hot" if _heat >= 0.7 else ("warm" if hot else "cold")),
+			"%s%s · %s" % [quote_en, times, money])
 	print("kebab delivered: %s in %.1f s, heat %d%%, %s, paid %d zł (wallet %d zł)" % [_order["name"], _clock,
 			roundi(_heat * 100.0), "hot" if hot else "cold", total, wallet.zl])
 
@@ -638,7 +650,7 @@ func _begin_sloik(n: int) -> void:
 	var pick := _pick_address(_station["edge"], _station["s"], from, 1000.0, 2400.0, rng, func(a: Dictionary) -> bool:
 		return a["d"] == "powisle" and not a["office"])
 	if pick.is_empty():
-		hud.toast("Nobody needs a lift right now")
+		hud.toast("Nikt nie potrzebuje podwózki", "Nobody needs a lift right now")
 		_station["cool"] = true
 		return
 	_orders += 1
@@ -650,10 +662,11 @@ func _begin_sloik(n: int) -> void:
 	_claim()
 	var person: Node3D = _station["person"]
 	dialogue.say(person, _order["customer"], "sloik_start", "", 4.0, SLOIK_COLOUR, 2.9)
-	hud.show_card("SŁOIKI RUN · SUNDAY EVENING",
-			"%s is back from home with %d of mum's jars. Take them to the rented flat at %s, Powiśle (%d m by road).\nHard bumps, heavy braking and fast corners break jars." % [
+	hud.show_card("SŁOIKI · NIEDZIELNY WIECZÓR",
+			"%s wraca od mamy z %d słoikami. Cel: %s, Powiśle (%d m). Dziury, hamowanie i szybkie zakręty tłuką słoiki." % [
 			_order["customer"], JARS, _order["name"], roundi(_order["road"])],
-			PackedStringArray(["GO!", "NOT NOW"]), SLOIK_COLOUR, true)
+			PackedStringArray(["GO!", "NOT NOW"]), SLOIK_COLOUR, true, "The słoiki run · Sunday evening",
+			"Back from home with %d of mum's jars, to a rented flat in Powiśle. Bumps, braking and fast corners break jars." % JARS)
 	print("słoiki run %d: %s to %s, %d m by road" % [n, _order["customer"], _order["name"], roundi(_order["road"])])
 
 
@@ -717,7 +730,7 @@ func _check_jars() -> void:
 		jars.emit(1)
 		Input.vibrate_handheld(90, 0.9)
 		dialogue.say(car, _order["customer"], "sloik_crash", "", 3.5, FAIL_COLOUR, 2.4)
-		hud.toast("Crash! A jar broke · %d of %d left" % [_jars, JARS])
+		hud.toast("Trzask! Pękł słoik · zostało %d z %d" % [_jars, JARS], "Crash! A jar broke · %d of %d left" % [_jars, JARS])
 		_warn_wait = 3.0
 		_chat_t = maxf(_chat_t, 8.0)
 	elif _stress > 0.6 and _warn_wait <= 0.0 and _jars > 0:
@@ -736,16 +749,21 @@ func _sloik_result() -> void:
 	var record: bool = intact == JARS and wallet.record("sloik", _clock)
 	var l: Array = dialogue.say(_beacon, _order["customer"], group, "all" if intact == JARS else "some", 5.0,
 			SLOIK_COLOUR if intact >= 3 else FAIL_COLOUR, 3.6)
-	var quote := "„%s”\n%s\n" % [l[0], l[1]] if not l.is_empty() else ""
+	var quote := "„%s”\n" % l[0] if not l.is_empty() else ""
+	var quote_en := "%s\n" % l[1] if not l.is_empty() else ""
 	var times := _clock_text(_clock)
+	var times_pl := times
 	if record and best > 0.0:
 		times += " · new best!"
+		times_pl += " · nowy rekord!"
 	elif best > 0.0:
 		times += " · best with every jar %s" % _clock_text(best)
-	hud.show_card("DELIVERED · %d/%d JARS" % [intact, JARS],
-			"%s%s, %s: %s\nFare 50 zł + %d jars × 35 zł = %d zł · wallet %s" % [quote, _order["customer"], _order["name"],
-			times, intact, pay, _money(wallet.zl)],
-			PackedStringArray(["OK"]), SLOIK_COLOUR if intact >= 3 else FAIL_COLOUR, true)
+		times_pl += " · rekord z kompletem %s" % _clock_text(best)
+	hud.show_card("DOWIEZIONE · %d/%d SŁOIKÓW" % [intact, JARS],
+			"%s%s, %s: %s\nKurs 50 zł + %d × 35 zł za słoiki = %d zł · w portfelu %s" % [quote, _order["customer"], _order["name"],
+			times_pl, intact, pay, _money(wallet.zl)],
+			PackedStringArray(["OK"]), SLOIK_COLOUR if intact >= 3 else FAIL_COLOUR, true, "Delivered · %d/%d jars" % [intact, JARS],
+			"%s%s · fare 50 zł + %d jars × 35 zł = %d zł" % [quote_en, times, intact, pay])
 	print("słoiki delivered: %s in %.1f s, %d/%d jars, paid %d zł (wallet %d zł)" % [_order["name"], _clock, intact, JARS,
 			pay, wallet.zl])
 
@@ -791,11 +809,13 @@ func _abandon() -> void:
 	_beacon.visible = false
 	_remove_ghost()
 	if job == Job.KEBAB:
-		hud.show_card("ORDER DROPPED", "%s at %s will never know. The pigeons on Plac Defilad had a feast." % [
-				_order["customer"], _order["name"]], PackedStringArray(["OK"]), FAIL_COLOUR, true)
+		hud.show_card("ZAMÓWIENIE PRZEPADŁO", "%s (%s) się nie dowie. Gołębie z placu Defilad miały ucztę." % [
+				_order["customer"], _order["name"]], PackedStringArray(["OK"]), FAIL_COLOUR, true, "Order dropped",
+				"%s at %s will never know. The pigeons on Plac Defilad had a feast." % [_order["customer"], _order["name"]])
 	else:
-		hud.show_card("RUN ABANDONED", "%s took a taxi. With the jars. Mum has been told." % _order["customer"],
-				PackedStringArray(["OK"]), FAIL_COLOUR, true)
+		hud.show_card("KURS PRZERWANY", "%s: taksówka. Ze słoikami. Mama już wie." % _order["customer"],
+				PackedStringArray(["OK"]), FAIL_COLOUR, true, "Run abandoned",
+				"%s took a taxi. With the jars. Mum has been told." % _order["customer"])
 
 
 # --- testing aids --------------------------------------------------------------------------

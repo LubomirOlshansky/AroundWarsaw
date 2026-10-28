@@ -163,9 +163,6 @@ Small problems that agents reported or that showed up in screenshots. They are f
   and full gas from three quarters out on the stick (70 HUD units, ~38 pt radius on an iPhone
   13), the 80 m default view, and whether the 44 pt panel controls feel right. Touch was emulated from the mouse and driven by
   `--clicks` / `--drag` / `--stick` on the Mac; nothing ran on a device.
-- The rest of the HUD is still sized in 720-line units: on an iPhone 13 its buttons are about
-  24 pt tall and its text ~8 pt (only the new settings panel is sized in points). Worth a
-  look in the device pass.
 - Point with a finger that never lifts behaves like a fixed camera at whatever angle the
   camera had (it only comes round after a release). The zoom (− + / pinch) is not saved.
 - In a dense spot the car can be pinned between a wall and a stopped traffic car that waits for
@@ -267,3 +264,41 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - Windowed `--prebuilt --shots=` runs sometimes end with "8 ObjectDB instances were leaked at
   exit" / "4 resources still in use" (seen on the code before this loop too; not in headless
   runs).
+
+## From loop 2e (the HUD at phone size)
+- Everything was judged on the Mac at the phones' sizes (the window stands in for the phone:
+  `screen_points.gd` gives 2868×1320 the Pro Max's points and insets); nothing ran on a device.
+  The safe area on the phone comes from iOS (`get_display_safe_area`): if a model's landscape
+  insets differ from the table, the phone wins and the Mac shots differ.
+- On a 390-pt-tall phone (the 6.1" class) the screen is full when a card, a status and the
+  radio host's long line coincide: the ticker, a note or landmark card, a speech bubble or the
+  performance overlay then waits for room (`check_hud.gd` lists 26 such waits over its 96
+  states, none on the Pro Max without the overlay). A waiting bubble is dropped after 6 s;
+  the vendor's line at a kebab stand usually waits until the job card goes.
+- The passing panels keep out of a 110×84 pt box in the middle of the screen; at speed the view
+  leads and the car can sit outside it (up to a fifth of the view off centre), so a toast can
+  still cover a fast car for a moment. Cards and the status may cover the car on a 390-pt phone.
+- First rescue call 60 s into play, then 90 s after each (`missions.gd` `FIRST_CALL`,
+  `NEXT_CALL`): first guesses; DEMO.md 6.2's scripted first ten minutes put it at 4:00.
+- The two-finger twist (40° for a 90° turn) works only with the fixed camera; with following
+  on it does nothing (an accidental twist while pinching would otherwise switch the saved
+  scheme). Not tried on glass.
+- The stick's reach is 42 pt everywhere (it was 43 pt on the Pro Max, 38 on a 6.1"): the
+  6.1" gets 11 % more travel for full lock and full gas.
+- The DEMO.md loop-2e row asked for ≤ 30 2D draw calls; the 2D pass is 38–46 at the four probe
+  views (README's budget: 80). The bubbles, the minimap's overlay and the labels are most of it.
+- Most mission, job and race text now has Polish over an English gloss written in this loop
+  (not yet reviewed by the game designer); the radio host's lines, the rivals' and customers'
+  lines come from `dialogue.json` as before. The egg note's Polish names are in `eggs.gd`
+  `EGGS_PL`. A few toasts still carry both languages on one line ("Najpierw wyląduj · Land
+  first").
+- `tools/export_ios.sh` doesn't create `build/ios/`: in a fresh checkout or worktree
+  `tools/verify.sh --ios` fails with "Target folder does not exist" until `mkdir -p build/ios`
+  (a one-line fix in the script, left for its owner). It also re-bakes `game/map/city.scn` on
+  every run, so a loop that must not touch the map puts the committed city.scn back afterwards.
+- The TWIST, the 6 s bubble wait and the 110×84 pt car box are first guesses (`hud.gd`
+  `TWIST`, `CAR_ZONE`; `bubbles.gd` `MAX_WAIT`).
+- The art bible's "Phone sizes" line still says the HUD is in 720-line units (left as is: the
+  art bible changes only with the user's yes).
+- The landmark info card and the egg note use 13 pt for both languages; the speech bubbles 15 /
+  13 / 11 pt. A "Text size" setting (Small / Normal / Large) was not built.

@@ -927,9 +927,16 @@ func _process(dt: float) -> void:
 	last_usec = Time.get_ticks_usec() - t0
 
 
+## Loop 2e: the eggs' names in Polish, for the note card (wallet.gd EGGS has the English).
+const EGGS_PL := {"palma": "Palma na rondzie de Gaulle'a", "pigeons": "Gołębie na placu Defilad",
+		"barriers": "Wędrujące roboty drogowe", "patelnia": "Patelnia przy metrze Centrum",
+		"syrenka": "Syrenka na bulwarze"}
+
+
 ## Counts an egg the first time it is ever found, with a small card.
 func _found(id: String) -> void:
 	if wallet == null or not wallet.find_egg(id):
 		return
-	hud.show_note("EASTER EGG %d/%d" % [wallet.eggs_found(), Wallet.EGGS.size()], Wallet.EGGS[id], EGG_COLOUR)
+	hud.show_note("SEKRET %d/%d · EASTER EGG" % [wallet.eggs_found(), Wallet.EGGS.size()],
+			"%s\n%s" % [EGGS_PL.get(id, ""), Wallet.EGGS[id]], EGG_COLOUR)
 	print("easter egg found: %s (%d/%d)" % [id, wallet.eggs_found(), Wallet.EGGS.size()])

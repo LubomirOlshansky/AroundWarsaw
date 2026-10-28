@@ -5,7 +5,9 @@ extends Node
 ## brings them to a real hospital before the clock runs out. Every place comes
 ## from the baked map data (landmarks, roads and pois in centrum.json). The person
 ## says a line when picked up, the crew another at the hospital (dialogue.gd), and
-## a rescue pays złoty and respect (wallet.gd).
+## a rescue pays złoty and respect (wallet.gd). Loop 2e: no card at the start: a call comes in
+## during play (FIRST_CALL seconds in, then NEXT_CALL after each one ends or is put off) and
+## waits as the HUD's context button, WEZWANIE, until the player opens it.
 
 const Beacon := preload("res://scripts/beacon.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
@@ -25,7 +27,13 @@ enum Kind { STREET, ROOF, RIVER, PARK }
 ## Mission n is of kind ORDER[(n - 1) % 4], so --mission=2 is always a roof.
 const ORDER := [Kind.STREET, Kind.ROOF, Kind.RIVER, Kind.PARK]
 const TITLES := ["STREET RESCUE", "ROOF RESCUE", "RIVER RESCUE", "PARK RESCUE"]
-enum State { IDLE, OFFER, CLOSED, PICKUP, DROPOFF, RESULT }
+## Loop 2e: the cards, the status and the toasts in Polish, the English under it.
+const TITLES_PL := ["RATUNEK NA ULICY", "RATUNEK NA DACHU", "RATUNEK NAD WISŁĄ", "RATUNEK W PARKU"]
+enum State { IDLE, OFFER, CLOSED, PICKUP, DROPOFF, RESULT, RINGING }
+## Loop 2e: seconds of play before the first call comes in, and between calls (first guesses;
+## docs/DEMO.md 6.2 puts the first rescue at 4:00 in the scripted first ten minutes).
+const FIRST_CALL := 60.0
+const NEXT_CALL := 90.0
 
 var map: Node3D
 var hud: CanvasLayer
@@ -57,6 +65,8 @@ var _road_points := PackedVector2Array()
 var _road_names := PackedStringArray()
 var _pickup: Node3D
 var _dropoff: Node3D
+## Loop 2e: seconds until the next call comes in (counted only while nothing else runs).
+var _call_in := -1.0
 
 
 func setup(map_node: Node3D, data: Dictionary, world: Node3D, hud_layer: CanvasLayer) -> void:
@@ -86,7 +96,7 @@ func setup(map_node: Node3D, data: Dictionary, world: Node3D, hud_layer: CanvasL
 	hud.pill_pressed.connect(func(): offer(number + 1))
 	hud.abort_pressed.connect(func():
 		if has_target():
-			_finish(false, "You called the rescue off."))
+			_finish(false, ["Akcja odwołana.", "You called the rescue off."]))
 
 
 # --- the flow -------------------------------------------------------------------
@@ -103,9 +113,11 @@ func offer(n: int) -> void:
 	hud.hide_status()
 	hud.hide_pill()
 	var limit := _limit_for(_mission)
-	hud.show_card("CALL %d · %s" % [n, TITLES[_mission["kind"]]],
-			"%s\nTake them to %s.\nTime limit %s." % [_mission["text"], _mission["hospital"]["name"], _clock(limit)],
-			PackedStringArray(["ACCEPT", "SKIP", "LATER"]), PICKUP_COLOUR)
+	hud.show_card("WEZWANIE %d · %s" % [n, TITLES_PL[_mission["kind"]]],
+			"%s\nSzpital: %s · czas %s" % [_mission["text_pl"], _mission["hospital"]["name"], _clock(limit)],
+			PackedStringArray(["ACCEPT", "SKIP", "LATER"]), PICKUP_COLOUR, false,
+			"Call %d · %s" % [n, TITLES[_mission["kind"]].to_lower()],
+			"%s Get them to the hospital in %s." % [_mission["gloss"], _clock(limit)])
 
 
 ## Offers mission n and accepts it at once (the --mission flag).
@@ -126,17 +138,38 @@ func accept() -> void:
 	_dropoff.visible = false
 	_pickup.waving = true
 	_pickup.place(_mission["pos"], HELI_REACH if _mission["heli"] else CAR_REACH)
-	hud.toast("Go! " + ("Take the helicopter." if _mission["heli"] else "Car or helicopter."))
+	hud.toast("Jedziemy! " + ("Tylko helikopterem." if _mission["heli"] else "Autem albo helikopterem."),
+			"Go! " + ("Take the helicopter." if _mission["heli"] else "Car or helicopter."))
 
 
-## Hides the card; a small RESCUE CALLS button brings the next call.
+## Hides the card; the next call comes in NEXT_CALL seconds later (loop 2e: it was a RESCUE
+## CALLS button waiting on screen).
 func close() -> void:
 	state = State.CLOSED
+	_call_in = NEXT_CALL
 	_pickup.visible = false
 	_dropoff.visible = false
 	hud.hide_card()
 	hud.hide_status()
-	hud.show_pill("RESCUE CALLS")
+	hud.hide_pill()
+
+
+## Loop 2e: the game starts with nothing on screen; the first call comes in `first` seconds
+## later (FIRST_CALL by default, --call-in=S).
+func quiet_start(first := -1.0) -> void:
+	close()
+	_call_in = first if first >= 0.0 else FIRST_CALL
+
+
+## Loop 2e: a call came in: the context button (WEZWANIE · rescue call) waits until pressed.
+func _ring() -> void:
+	if _hospitals.is_empty():
+		return
+	state = State.RINGING
+	hud.show_pill("WEZWANIE", "rescue call")
+	hud.toast("Wezwanie ratunkowe!", "A rescue call came in: tap WEZWANIE")
+	Input.vibrate_handheld(40, 0.5)
+	print("rescue call ringing")
 
 
 ## Keyboard: M answers the card's first button (or opens the next call).
@@ -146,7 +179,7 @@ func primary() -> void:
 	match state:
 		State.OFFER, State.RESULT:
 			_on_card(0)
-		State.CLOSED:
+		State.CLOSED, State.RINGING:
 			offer(number + 1)
 
 
@@ -203,37 +236,42 @@ func needs_heli() -> bool:
 ## (the bottom of the skids for the helicopter), `speed` its speed in m/s.
 func tick(dt: float, pos: Vector3, speed: float, flying: bool) -> void:
 	player = pos
+	if state == State.CLOSED and not paused and _call_in >= 0.0:
+		_call_in -= dt
+		if _call_in < 0.0:
+			_ring()
 	if not has_target():
 		return
 	_time_left -= dt
 	if _time_left <= 0.0:
-		_finish(false, "Out of time. Another crew took over.")
+		_finish(false, ["Czas minął. Przejęła inna załoga.", "Out of time. Another crew took over."])
 		return
 	var target := target_position()
 	var d := Vector2(pos.x - target.x, pos.z - target.z).length()
 	var dy := pos.y - target.y
 	var picking := state == State.PICKUP
 	var ok := false
-	var hint := ""
+	var hint := ["", ""]
 	if picking and _mission["heli"] and not flying:
-		hint = "Only the helicopter gets there: press HELI (H)"
+		hint = ["Tam dotrze tylko helikopter: HELI (H)", "Only the helicopter gets there: press HELI (H)"]
 	elif d > 40.0:
-		hint = "Head for the yellow beacon" if picking else "Patient on board: head for the green beacon"
+		hint = ["Jedź do żółtego światła", "Head for the yellow beacon"] if picking \
+				else ["Pacjent na pokładzie: do zielonego światła", "Patient on board: head for the green beacon"]
 	elif flying:
 		ok = d <= HELI_REACH and dy < HELI_LOW and dy > -1.0
 		if dy >= HELI_LOW:
-			hint = "Go down: within 4 m of them (▼ / F)"
+			hint = ["Niżej: do 4 m nad nimi (▼ / F)", "Go down: within 4 m of them (▼ / F)"]
 		elif d > HELI_REACH:
-			hint = "Move over the ring"
+			hint = ["Leć nad krąg", "Move over the ring"]
 	else:
 		ok = d <= CAR_REACH and speed < CAR_STOPPED and absf(dy) < 2.5
 		if d > CAR_REACH:
-			hint = "Stop inside the ring"
+			hint = ["Stań w kręgu", "Stop inside the ring"]
 		elif speed >= CAR_STOPPED:
-			hint = "Stop to " + ("pick them up" if picking else "hand them over")
+			hint = ["Stań, żeby ich zabrać", "Stop to pick them up"] if picking else ["Stań, żeby ich przekazać", "Stop to hand them over"]
 	if ok:
 		_hold += dt
-		hint = "Hold still… " + ("picking up" if picking else "handing over")
+		hint = ["Nie ruszaj się… zabieramy", "Hold still… picking up"] if picking else ["Nie ruszaj się… przekazujemy", "Hold still… handing over"]
 	else:
 		_hold = 0.0
 	if _hold >= HOLD_TIME:
@@ -241,11 +279,11 @@ func tick(dt: float, pos: Vector3, speed: float, flying: bool) -> void:
 		if picking:
 			_picked_up()
 		else:
-			_finish(true, "")
+			_finish(true, [])
 		return
-	var where: String = _mission["short"] if picking else _mission["hospital"]["name"]
-	hud.show_status(("PICK UP · " if picking else "DELIVER · ") + where, _clock(_time_left), "%d m" % roundi(d),
-			hint, _hold / HOLD_TIME, target_colour())
+	var where: String = _mission["short_pl"] if picking else _mission["hospital"]["name"]
+	hud.show_status(("ODBIÓR · " if picking else "DO SZPITALA · ") + where, _clock(_time_left), "%d m" % roundi(d),
+			hint[0], _hold / HOLD_TIME, target_colour(), "", {}, hint[1])
 
 
 func _picked_up() -> void:
@@ -253,7 +291,7 @@ func _picked_up() -> void:
 	_pickup.visible = false
 	var h: Dictionary = _mission["hospital"]
 	_dropoff.place(h["pos"], CAR_REACH + 2.0)
-	hud.toast("Picked up! Now to " + h["name"])
+	hud.toast("Zabrani! Teraz: " + h["name"], "Picked up! Now to " + h["name"])
 	Input.vibrate_handheld(60, 0.6)
 	if dialogue != null and vehicle_anchor.is_valid():
 		dialogue.say(vehicle_anchor, _mission["who"], "rescue_person", _tag(), 4.5, PICKUP_COLOUR, 0.0)
@@ -271,7 +309,8 @@ func _tag() -> String:
 	return "street"
 
 
-func _finish(success: bool, why: String) -> void:
+## `why`: [Polish, English] (a failure's reason).
+func _finish(success: bool, why: Array) -> void:
 	_success = success
 	state = State.RESULT
 	print("rescue %s: %s, %s left" % ["done" if success else "failed", _mission["short"], _clock(_time_left)])
@@ -288,17 +327,19 @@ func _finish(success: bool, why: String) -> void:
 		_dropoff.place(at, CAR_REACH + 2.0, false, true)
 		_pickup.waving = false
 		_pickup.place(at + Vector3(1.6, 0, 0.8), HELI_REACH, false, true)
-		hud.show_card("RESCUED", "Safe and sound at %s.\nTime %s of %s.\nScore +%d · total %d · +%d zł" % [
+		hud.show_card("URATOWANI", "Cali i zdrowi: %s.\nCzas %s z %s · punkty +%d (razem %d) · +%d zł" % [
 				_mission["hospital"]["name"], _clock(_limit - _time_left), _clock(_limit), score, total_score, pay],
-				PackedStringArray(["NEXT CALL", "FREE ROAM"]), DROPOFF_COLOUR)
+				PackedStringArray(["NEXT CALL", "FREE ROAM"]), DROPOFF_COLOUR, false, "Rescued",
+				"Safe and sound at the hospital: time, score and pay above.")
 		Input.vibrate_handheld(120, 0.8)
 		if dialogue != null:
 			dialogue.say(_dropoff, "Ratownik", "rescue_done", "", 5.0, DROPOFF_COLOUR, 3.6)
 	else:
 		_pickup.visible = false
 		_dropoff.visible = false
-		hud.show_card("TOO LATE", "%s\nScore total %d" % [why, total_score],
-				PackedStringArray(["TRY AGAIN", "NEXT CALL", "FREE ROAM"]), FAIL_COLOUR)
+		hud.show_card("ZA PÓŹNO", "%s Punkty razem: %d." % [why[0], total_score],
+				PackedStringArray(["TRY AGAIN", "NEXT CALL", "FREE ROAM"]), FAIL_COLOUR, false, "Too late",
+				"%s Score total %d." % [why[1], total_score])
 
 
 ## The call for mission n: a place of its kind a short trip from the player
@@ -356,7 +397,9 @@ func _find_roofs(landmarks: Array) -> void:
 			continue
 		var up := roundi(spot.y - map.ground_height(spot.x, spot.z))
 		best[name] = {"kind": Kind.ROOF, "name": name, "short": "roof of " + name, "pos": spot, "heli": true, "child": false,
-				"text": "Someone is stranded on the roof of %s, %d m up. Only the helicopter can reach them." % [name, up]}
+				"short_pl": "dach: " + name, "gloss": "Someone is stuck on a roof %d m up: helicopter only." % up,
+				"text": "Someone is stranded on the roof of %s, %d m up. Only the helicopter can reach them." % [name, up],
+				"text_pl": "Ktoś utknął na dachu: %s, %d m nad ulicą. Dotrze tylko helikopter." % [name, up]}
 	_places[Kind.ROOF].append_array(best.values())
 
 
@@ -424,8 +467,9 @@ func _find_streets(roads: Array) -> void:
 	for name in best:
 		var at := "at" if name.begins_with("Plac") or name.begins_with("Rondo") else "on"
 		_places[Kind.STREET].append({"kind": Kind.STREET, "name": name, "short": name, "pos": best[name][1],
-				"heli": false, "child": false,
-				"text": "A cyclist is hurt %s %s. The car or the helicopter will do." % [at, name]})
+				"heli": false, "child": false, "short_pl": name, "gloss": "A cyclist is hurt: the car or the helicopter will do.",
+				"text": "A cyclist is hurt %s %s. The car or the helicopter will do." % [at, name],
+				"text_pl": "Ranny rowerzysta: %s. Wystarczy auto albo helikopter." % name})
 
 
 func _find_pois(pois: Array) -> void:
@@ -452,28 +496,46 @@ func _find_pois(pois: Array) -> void:
 				place["kind"] = Kind.RIVER
 				if name != "":
 					place["short"] = name + " beach"
+					place["short_pl"] = "plaża " + name
+					place["gloss"] = "A swimmer is in trouble on a Vistula beach."
 					place["text"] = "A swimmer is in trouble at %s, the beach on the Vistula." % name
+					place["text_pl"] = "Pływak w tarapatach: plaża %s nad Wisłą." % name
 				else:
 					place["short"] = "Vistula beach"
+					place["short_pl"] = "plaża nad Wisłą"
+					place["gloss"] = "A swimmer is in trouble on a Vistula beach."
 					place["text"] = "A swimmer is in trouble on a Vistula beach near %s." % _nearest_road(x, z)
+					place["text_pl"] = "Pływak w tarapatach na plaży nad Wisłą (okolice: %s)." % _nearest_road(x, z)
 			"shore":
 				place["kind"] = Kind.RIVER
 				place["short"] = "Vistula shore"
+				place["short_pl"] = "brzeg Wisły"
+				place["gloss"] = "Someone slipped on the Vistula shore: car or helicopter."
 				place["text"] = "Someone slipped on the Vistula shore near %s. The car or the helicopter will do." % _nearest_road(x, z)
+				place["text_pl"] = "Ktoś poślizgnął się na brzegu Wisły (okolice: %s). Wystarczy auto albo helikopter." % _nearest_road(x, z)
 			"sandbar":
 				place["kind"] = Kind.RIVER
 				place["heli"] = true
 				place["short"] = "Vistula sandbar"
+				place["short_pl"] = "łacha na Wiśle"
+				place["gloss"] = "Someone is stranded on a Vistula sandbar: helicopter only."
 				place["text"] = "Someone is stranded on a sandbar in the Vistula near %s. Only the helicopter can reach them." % _nearest_road(x, z)
+				place["text_pl"] = "Ktoś utknął na łasze na Wiśle (okolice: %s). Dotrze tylko helikopter." % _nearest_road(x, z)
 			"park":
 				place["kind"] = Kind.PARK
 				place["child"] = true
 				place["short"] = name
+				place["short_pl"] = name
 				place["text"] = "A child fell off a climbing frame in %s." % name
+				place["text_pl"] = "Dziecko spadło z drabinek: %s." % name
+				place["gloss"] = "A child fell off a climbing frame."
 			"square":
 				place["kind"] = Kind.PARK
 				place["short"] = name
+				place["short_pl"] = name
 				place["text"] = "A tourist fainted at %s." % name
+				place["text_pl"] = "Turystka zemdlała: %s." % name
+				place["gloss"] = "A tourist fainted."
 			_:
 				continue
 		_places[place["kind"]].append(place)

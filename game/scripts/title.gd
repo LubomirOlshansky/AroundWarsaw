@@ -123,13 +123,14 @@ func _layout() -> void:
 	_palm.queue_redraw()
 
 
+## Loop 2e: Polish above English (the big upper line is Polish, the small one under it English).
 func _set_prompt() -> void:
 	if ready_to_drive:
-		_prompt.text = "TAP TO DRIVE"
-		_prompt_pl.text = "DOTKNIJ, BY JECHAĆ"
+		_prompt.text = "DOTKNIJ, BY JECHAĆ"
+		_prompt_pl.text = "tap to drive"
 	else:
-		_prompt.text = "building the city…"
-		_prompt_pl.text = "budujemy miasto…"
+		_prompt.text = "budujemy miasto…"
+		_prompt_pl.text = "building the city…"
 
 
 ## The city is built: the prompt changes and a tap or a key starts the game.
