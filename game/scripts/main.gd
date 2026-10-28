@@ -308,6 +308,9 @@ var _last_dry_yaw := 0.0
 ## (as if it had jumped the edge), 2 collision back on past the edge, 3 splashed, 4 towed.
 var water_test := 0
 var _water_test_at := Vector2.INF
+## Loop 2c, --lineup (testing aid): every vehicle model standing round the car, no traffic, for
+## close-up screenshots (with --size=25 or so).
+var lineup := false
 ## The river's outlines (water bodies of 20,000 m² or more, as tools/bake_water.py counts it):
 ## which tow lines fit.
 var _rivers: Array[PackedVector2Array] = []
@@ -490,6 +493,8 @@ func _build_world() -> void:
 		# Exported game: the city was built on the Mac (tools/bake_city.gd).
 		map = (load(CITY_SCENE) as PackedScene).instantiate()
 		world.add_child(map)
+		# Loop 2c: the parked cars take models.gd's shape (a city.scn baked before it has boxes).
+		Models.renew_parked(get_tree().get_nodes_in_group(MapBuilder.SMALL_CASTERS))
 		building_mat = map.building_material
 		flat_mat = map.flat_material
 		data = JSON.parse_string(FileAccess.get_file_as_string(MAP_PATH))
@@ -629,6 +634,8 @@ func _build_world() -> void:
 		_build_life(data, world)
 	if graph != null:
 		_build_side_jobs(data, world)
+	if lineup:
+		_build_lineup(world)
 	if start_flying:
 		_take_off(Heli.CRUISE)
 	# Loop 2e: no call card at the start (docs/DEMO.md 6.1): calls come in during play.
@@ -1056,6 +1063,10 @@ func _parse_args() -> void:
 			autopilot = true
 		elif arg == "--no-traffic":
 			no_traffic = true
+		elif arg == "--lineup":
+			lineup = true
+			no_traffic = true
+			free_roam = true
 		elif arg.begins_with("--race="):
 			start_race = maxi(1, int(arg.trim_prefix("--race=")))
 		elif arg.begins_with("--rival="):
@@ -1550,6 +1561,80 @@ func _water_kind(p: Vector3) -> String:
 func _activity() -> String:
 	return "job %s, rescue %s, race %s, wallet %d zł" % ["on" if jobs != null and jobs.busy() else "none",
 			"on" if missions.has_target() else "none", "on" if rivals != null and rivals.racing() else "none", wallet.zl]
+
+
+## Loop 2c, --lineup: every vehicle model standing round the car, all facing its way: beside it
+## the taxi, Podwózka, the police car, the guards' car and the two vans; a row ahead the cars'
+## four shapes; a row behind the six rivals; further back the bus and a tram cab car.
+## Family shapes go through a MultiMesh with the shape in the custom alpha, as traffic draws
+## them. Prints each model's triangles.
+func _build_lineup(parent: Node3D) -> void:
+	var b := car.global_transform.basis
+	var right := Vector3(b.x.x, 0.0, b.x.z).normalized()
+	var ahead := Vector3(-b.z.x, 0.0, -b.z.z).normalized()
+	var origin := car.global_position
+	var yaw := car.rotation.y
+	var spot := func(x: float, z: float, turn: float) -> Transform3D:
+		var q := origin + right * x + ahead * z
+		q.y = map.ground_height(q.x, q.z)
+		return Transform3D(Basis(Vector3.UP, yaw + turn), q)
+	var cars := Models.traffic_mesh(0)
+	var taxis := Models.traffic_mesh(1)
+	var vans := Models.traffic_mesh(2)
+	var police := Models.police_mesh()
+	# [mesh, shape, paint, x, z, turn, name]
+	var rows := [
+		[taxis, 0, "#f2f2ee", -10.0, 0.0, 0.0, "taxi"], [taxis, 1, "#2b2c2f", -6.6, 0.0, 0.0, "podwozka"],
+		[police, 0, Models.POLICE_WHITE.to_html(false), -3.3, 0.0, 0.0, "police"],
+		[police, 1, Models.GUARD_MUSTARD.to_html(false), 3.3, 0.0, 0.0, "guard"],
+		[vans, 0, "#e9e9e6", 6.7, 0.0, 0.0, "panel van"], [vans, 1, "#d8d2c2", 10.3, 0.0, 0.0, "box van"],
+		[cars, 0, "#b8bcc0", -4.8, 7.5, 0.0, "hatch"], [cars, 1, "#24324a", -1.6, 7.5, 0.0, "saloon"],
+		[cars, 2, "#4c6650", 1.6, 7.5, 0.0, "estate"], [cars, 3, "#2b2c2f", 4.8, 7.5, 0.0, "suv"],
+		[Models.traffic_mesh(3), 0, "#ffffff", -4.0, -17.5, 0.0, "bus"],
+	]
+	for r: Array in rows:
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.use_custom_data = true
+		mm.mesh = r[0]
+		mm.instance_count = 1
+		mm.set_instance_transform(0, spot.call(r[3], r[4], r[5]))
+		var paint := Color(r[2])
+		mm.set_instance_custom_data(0, Color(paint.r, paint.g, paint.b, float(r[1])))
+		var mmi := MultiMeshInstance3D.new()
+		mmi.multimesh = mm
+		mmi.material_override = Models.material()
+		parent.add_child(mmi)
+		print("lineup: %s %d triangles" % [r[6], _triangles(r[0])])
+	for i in Rivals.RIVALS.size():
+		var mi := MeshInstance3D.new()
+		mi.mesh = Models.rival_mesh(Rivals.RIVALS[i]["style"])
+		mi.material_override = Models.material()
+		mi.transform = spot.call(-8.0 + i * 3.2, -8.0, 0.0)
+		parent.add_child(mi)
+		print("lineup: rival %s %d triangles" % [Rivals.RIVALS[i]["name"], _triangles(mi.mesh)])
+	var tram := MeshInstance3D.new()
+	tram.mesh = Models.tram_mesh(true)
+	tram.material_override = Models.material()
+	tram.transform = spot.call(4.0, -17.0, 0.0)
+	parent.add_child(tram)
+	print("lineup: tram cab car %d triangles" % _triangles(tram.mesh))
+	var own := 0
+	for c in car.get_children():
+		for m in c.get_children():
+			if m is MeshInstance3D and (m as MeshInstance3D).mesh is ArrayMesh \
+					and (m as MeshInstance3D).material_override != Models.glow_material():
+				own += _triangles((m as MeshInstance3D).mesh)
+	print("lineup: the player's car %d triangles" % own)
+
+
+static func _triangles(mesh: Mesh) -> int:
+	var n := 0
+	for k in mesh.get_surface_count():
+		var arrays := mesh.surface_get_arrays(k)
+		var idx: PackedInt32Array = arrays[Mesh.ARRAY_INDEX] if arrays[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+		n += (idx.size() if not idx.is_empty() else (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()) / 3
+	return n
 
 
 ## Loop 10a, --drive-into-water=X,Z: the car at X,Z, facing the nearest water at least 4 m past

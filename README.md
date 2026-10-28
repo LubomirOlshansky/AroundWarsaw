@@ -75,6 +75,18 @@ and ignores tiny wiggles. With Phantom Camera (Ramokz, MIT, the first add-on) it
 from over the city when the title screen goes and a short look at a new rescue or delivery
 target and back, both skipped by any touch (see Camera loop: the follow camera).
 
+Loop 2c (the user asked for nicer car models) rebuilds every vehicle from shaped pieces instead
+of boxes (`models.gd`): a body lofted from its side profile with a sloped bonnet, a glasshouse
+narrower at the roof with side windows and pillars, wheels in dark arches with hub caps,
+bumpers, plates and lamps. The player's red hatch is the one retro hot hatch in town (white
+stripes over the nose, bonnet, roof and tailgate, round lamps, a roof spoiler); traffic shows
+hatches, saloons, estates, SUVs, a city taxi in an invented livery, Podwózka's app taxi with a
+phone on the roof, panel and box vans and the bus, with no red or orange paint; the police
+estate and the city guards' car are built for loop 3g; the rivals, the trams and the parked
+cars get the new shapes too. Still one MultiMesh per kind: each draws several shapes, picked
+per car in the vertex shader, and draws only the cars in use, so the frame costs the same draw
+calls and fewer triangles at the default view (see Loop 2c: car models).
+
 ## Run it on your iPhone
 
 1. `tools/export_ios.sh` (only needed after changing the game).
@@ -226,8 +238,10 @@ at the hospital. Out of time: TRY AGAIN, NEXT CALL or FREE ROAM.
 
 ## A living city
 
-- **Traffic**: cars, taxis (roof sign, chequered band), delivery vans and red-and-yellow city
-  buses (main roads only) drive on a lane graph baked from OpenStreetMap (`graph` in
+- **Traffic**: cars (hatches, saloons, estates, SUVs), taxis (the city taxi: a white saloon
+  with a lit roof sign and a band of dark squares; Podwózka, the app taxi: a hatch with a phone
+  on the roof), delivery vans (panel and box vans) and red-and-yellow city
+  buses (main roads only; loop 2c: the shapes) drive on a lane graph baked from OpenStreetMap (`graph` in
   `centrum.json`): right-hand traffic, the lane counts and one-way rules of the real streets,
   free-flow speed from `maxspeed` (or the road class), curves across each junction box. They keep
   their distance (an intelligent-driver model), give way to cars already crossing a junction and
@@ -323,7 +337,7 @@ Six made-up rivals cruise the city in their own cars (dots in their colours on t
 name tags up close): **Seba z Pragi** (lowered purple coupe with a neon underglow), **Mordor Mike** (grey
 company estate with a roof box, an office guy from Domaniewska), **Pani Halina** (tiny mint
 hatch with a basket on the roof, a pensioner late for the bazaar), **Słoik z Radomia** (white
-van with a spoiler and mum's jars on the rack), **Taksiarz Zbyszek** (black taxi, every shortcut
+van with a pickle-green stripe and mum's jars on the rack), **Taksiarz Zbyszek** (black taxi, every shortcut
 since '87) and **Bulwar Bartek** (neon-green hatch with a speaker on the roof). Seba always
 starts near you.
 
@@ -1510,6 +1524,123 @@ runs): scripts 0.55–0.56 → 0.56–0.61 ms, game loop 0.05 → 0.05–0.06 ms
 245. The fly-in's first view (200 m) draws 217 and the look's widest (220 m) 219, for a second or
 two (the zoomed-out budget view draws 190–215).
 
+## Loop 2c: car models (2026-10-28)
+
+The user asked for nicer car models; the art review and the user had decided that red belongs
+to the player's car (red-orange, white roof stripes, the hero material at night), that traffic
+has no saturated red or orange (Warsaw's buses and trams keep their livery), that the police are
+white with a blue band and a blue/red light bar, and the city guards mustard and dark red.
+Every vehicle was built from boxes (`models.gd`, the player's in `car.gd`).
+
+**The kit** (`models.gd` `Shape`, flat-shaded, vertex colours, the actors' material): a body
+lofted from its side profile (front, nose, a sloped bonnet up to the windscreen's foot, the
+waist, the rear deck or hatch, the rear), a glasshouse lofted on it and narrower at the roof
+(a raked windscreen, the roof, the rear window), glass panes laid on it with pillars between
+them (two side windows a side, the B pillar between), six-sided wheels (eight on the player's)
+with a flat bottom and hub caps, standing in dark arches cut into the sides, black bumpers,
+number plates, a grille, head and tail lamps. One table of measurements per body (`spec()`):
+hatch, saloon, estate, SUV, panel van, box van, the player's hatch, a coupé and a city car.
+
+**A family per traffic kind.** Traffic keeps one MultiMesh per kind (cars, taxis, vans, the
+bus; same count as before). Each kind's mesh is a family of shapes with the same parts in the
+same order (`family()`): the first shape is the mesh itself, up to three more ride in each
+vertex's CUSTOM0..2 (position, and the normal packed into one float), and the vertex shader
+(`actor.gdshader`, UV.x + 16 marks such a vertex) takes the shape the instance's custom alpha
+names. A part one shape lacks shrinks to a point in that shape. So:
+
+| Kind (MultiMesh, pool) | Shapes (share) | Triangles | Paints |
+| --- | --- | --- | --- |
+| CAR (112) | hatch 36 %, saloon 26 %, estate 22 % (roof rails), SUV 16 % (tall, high sill, rails) | 194 | greys, white, black, navy, slate, beige, green, olive, steel blue, plum |
+| TAXI (16) | the city taxi 50 % (a white saloon, our own livery: a yellow band of dark squares on the doors, a lit yellow roof sign), Podwózka 50 % (parodies.md: a hatch in greys, black or navy with a phone on the roof, its screen lit, five dark stars) | 268 | |
+| VAN (16) | panel van 60 % (a high roof, glass in the cab only), box van 40 % (a short cab under a box that reaches over it) | 228 | whites, greys, navy, slate, green |
+| BUS (8) | the city bus: red below, yellow above, a window band with pillars (lit at night), a destination display, three doors on the right, the roof's air-conditioning box | 198 | fixed |
+
+Each car's shape comes from its own random stream (`_looks`), so where and which kind of car
+spawns is as before; its size (the gap it keeps, its body near the player) is the shape's
+(`models.gd` `TRAFFIC`). Each MultiMesh now draws only up to its highest slot in use
+(`visible_instance_count`; a freed slot is the next one taken), not its whole pool, so the
+frame's triangles fell even though each model has more.
+
+**The player's car** (`Models.player_meshes()`, still body + head lamps + tail lamps = 3 draw
+calls): the same kit with shorter overhangs, a lower roof with more rake and a wider stance,
+the twin white stripes over the nose, the bonnet, the roof and the tailgate, black bumpers, a
+roof spoiler, round head lamps, light hub caps; the hero material, the tail lamps over the rear
+deck and the lean and squat as before. 292 triangles (240 before). No mirrors: at the 80 m
+view they would be one image pixel.
+
+**The police and the city guards** (`Models.police_mesh()`, for loop 3g, not in traffic): one
+family, so 3g's POLICE kind can draw both in one MultiMesh. Shape 0 is the patrol estate (4.7 m,
+paint `POLICE_WHITE`): a blue band on the doors with "POLICJA" in the game's 5×7 pixel font
+(5 cm pixels, white; it reads from views of ~15 m and closer, at 80 m it is a white streak), a
+light bar with a blue and a red lamp that blink in turns (BLINK, UV.y shifts the beat; they
+glow at night). Shape 1 is the guards' car, the same estate at 0.88 (paint `GUARD_MUSTARD`)
+with a dark red band and two amber lamps. 636 triangles.
+
+**The rivals** (their own meshes, all colours fixed, no saturated red): Seba's lowered purple
+coupé with pink bonnet stripes and a big wing, Mordor Mike's grey estate with dark glass and a
+roof box, Pani Halina's tiny mint city car with a cream roof and a basket (a cabbage and a loaf),
+Słoik's white panel van with a pickle-green stripe (it was red) and the jars on a rack, Zbyszek's
+long black saloon with a yellow sign and chequers, Bartek's neon-green hatch with a magenta wing
+and the speaker. 204–288 triangles each.
+
+**Trams**: the same kit, Warsaw's yellow over red kept: the cab's big windscreen leans back over
+a rounded nose with a destination display above, two doors a side, the window band lit at
+night, dark gangways where the cars join, an air-conditioning box on the cab cars and the
+pantograph on the middle car. 98 triangles a cab car (120 before).
+
+**Parked cars**: `map_builder.gd` now takes their mesh (`parked_mesh()`: a small saloon, 40
+triangles, was 24) and their paints (`PARKED_PAINT`, no red) from `models.gd`. city.scn was not
+re-baked (the map side's): when it loads, `main.gd` replaces its parked cars' shared mesh in
+place (`Models.renew_parked`), so both city paths look the same; the old red instance colours
+in the bake stay repainted slate by `foliage.gdshader` until the next bake. They stay one shape:
+more kinds would cost a MultiMesh per kind per 512 m tile (BACKLOG).
+
+**The actors' shader** (`actor.gdshader`, no new shader or material): the family shapes (a
+vertex with UV.x ≥ 16 reads CUSTOM0..2 when INSTANCE_CUSTOM.a is 1..3), and BLINK (7) shifts its
+beat by UV.y (0 for the roadwork lamps: unchanged).
+
+**Testing aid**: `--lineup` puts every model round the car (the flags table), and prints each
+one's triangles.
+
+**Cost** (`--probe` at 2868×1320, Metal, Mobile, `--controls=classic`, High, Normal traffic,
+day; the code before this loop from a copy, interleaved):
+
+| View | Draw calls, all passes (main / shadow) | Main pass triangles | Shadow pass triangles | Ceiling after 2c |
+| --- | --- | --- | --- | --- |
+| Spawn | 134 → 132 (53 / 35 → 53 / 35) | 0.25 → 0.24 M | 0.14 → 0.13 M | 165, 0.32 M / 0.18 M |
+| Default view over the river | 105 → 105 (35 / 24 → 35 / 24) | 0.19 → 0.17 M | 0.12 → 0.10 M | 140 |
+| Zoomed out (`--size=220`) | 171 → 171 (64 / 60 → 64 / 60) | 0.37 → 0.37 M | 0.27 → 0.28 M | 215, 0.50 M / 0.35 M |
+| Helicopter | 222 → 222 (98 / 86 → 98 / 86) | 0.32 → 0.32 M | 0.22 → 0.23 M | 270 |
+| Bench route, day / night | 113 → 113 / 82 → 82 | 0.18 → 0.17 M | 0.15 → 0.14 M | |
+
+(The 2D pass, the HUD, draws 44 or 46 from one run to the next, before and after alike.)
+
+Triangles a model (before → after): a traffic car 144 → 194 (each of the four shapes), the taxi
+300 → 268 (and Podwózka), a van 144 → 228, the bus 156 → 198, the player's car 240 → 292 (≤ 3,000),
+the police and guards' car 636 (≤ 800), the rivals 144–336 → 204–288, a tram cab / middle car
+120 / 108 → 98 / 102, a parked car 24 → 40.
+
+Bench (Metal, 1280×720; 3 runs each, interleaved with the code before, medians): scripts
+0.73 → 0.75 ms (traffic 0.28 → 0.29), draw calls 113 → 113; night (1 run each) 82 → 82 draw
+calls, scripts 1.34 → 1.21 ms. Vulkan GPU at 1920×1080: 3.03 → 1.88 ms, but another agent's
+Godot ran beside these runs (loop 2b measured 0.80–0.87 ms on a quiet Mac), so read it only as
+"not worse".
+
+Vertices of the city (`count_vertices.gd`): 6,144,280 → 6,200,700 (+0.9 %: the parked cars,
+72 → 86 vertices each). The Metal frame times can't be compared this time (the runs were held
+at the display's 120 Hz, 8.33 ms, and other agents ran Godot): the draw calls, triangles and
+script times are the comparison.
+
+Shots: `shots/loop2c/` (gitignored): `*_before_*` from the code before this loop, `*_after_*`,
+at 2532×1170, 2868×1320 and 1792×828 (the iPhone 11): the spawn by day and at night (prebuilt
+city), Marszałkowska in Busy traffic, the line-up at 25 m and 14 m (`after_lineup*`, and at night),
+rival race starts (Seba, Zbyszek), the parked cars by the spawn.
+
+What only the phone can tell: whether the hatch is found first in Busy traffic at 80 m (bar C1;
+the marker helps), whether the shapes read at the iPhone 11's 2× pixel (585-line image), the
+police lettering's legibility, and the frame at the zoomed-out and helicopter views with many
+cars in view (the model has more triangles, the frame draws fewer).
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -1541,6 +1672,8 @@ home screen).
 | GPU, Vulkan zoomed out at 2868×1320 (`--gpu-profile`) | 1.65 ms | 1.9 ms | 2.2 ms |
 | iPhone TEST · BENCH at High, 60 fps cap | 60 fps, 1 % low ≥ 56 | 60, 1 % low ≥ 55 | 60, 1 % low ≥ 55 |
 
+Loop 2c spent none of it: +0 draw calls at every view, and the triangles at the default view
+went down (the traffic pools draw only the cars in use); its numbers are in Loop 2c: car models.
 What 2c may spend: ~15–25 draw calls (a few traffic kinds' MultiMeshes in the main and shadow
 passes, the player's lamps), 70 k triangles at the default view (150 k zoomed out), 0.1 ms of
 script. What 2d may spend: ~65–90 draw calls (about six new kinds of things, each one MultiMesh
@@ -1679,8 +1812,10 @@ flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
   `lane_graph.gd` (lanes, junction curves, light timing, Dijkstra), `traffic.gd` (AI cars in
   MultiMeshes, spawning band, car following, lights, junction give-way, collision bodies near the
   player, signal lamps), `trams.gd`, `pedestrians.gd`, `rivals.gd` (rivals, races, their lines),
-  `bubbles.gd` (speech bubbles and name tags in the HUD layer), `models.gd` (box-built vehicles
-  and people) and `shaders/actor.gdshader` (per-instance paint, walking legs).
+  `bubbles.gd` (speech bubbles and name tags in the HUD layer), `models.gd` (vehicles and people;
+  loop 2c: the shape kit, the traffic families and their table `TRAFFIC`, the player's,
+  rivals', police, parked and tram models) and `shaders/actor.gdshader` (per-instance paint,
+  walking legs; loop 2c: the family shapes and the BLINK beat).
 - `game/shaders/`: `common.gdshaderinc` (sRGB, noise, cloud shadows); `night.gdshaderinc` (the
   time-of-day globals `lights_on`, `daylight`, `sky_colour` from project.godot's shader globals,
   and the lamp light map; the look loop: the banded, capped lamp pools on the ground); `building` (per-building window rhythm from UV2, shop fronts, cornices,
@@ -1756,6 +1891,7 @@ Command-line options (after `--`):
 | `--mission=N` | start rescue call N at once (N = 1, 5, 9… streets, 2, 6… roofs, 3, 7… river, 4, 8… parks) |
 | `--autopilot` | testing aid: fly (or, ghosting through walls, drive) to each mission target; in a race or a side job, drive the route; with `--rival`, tail the rival |
 | `--no-traffic` | no traffic, trams, pedestrians or rivals |
+| `--lineup` | loop 2c: every vehicle model standing round the car, all facing its way (beside it the taxi, Podwózka, the police and guard cars and the two vans; a row ahead the cars' four shapes; behind, the six rivals, then the bus and a tram cab car), no traffic, and each model's triangles printed (`lineup:` lines). Close-ups: `--at=-1113.2,-263.4 --heading=160 --size=14 --nohud` (Marszałkowska) |
 | `--race=N` | race rival N (1–6) at once: they are put just ahead of you |
 | `--rival=N` | put rival N just ahead of you (with `--autopilot` you tail them, so the FLASH LIGHTS prompt shows) |
 | `--bench` | drive a route through the traffic and print the average frame time over 600 frames, the scripts' cost and the 3D view's GPU time; loop 2b: also the bench's lines (see Loop 2b), a 30 s cap, the result in `user://bench_result.txt` |

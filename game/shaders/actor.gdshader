@@ -10,6 +10,12 @@ shader_type spatial;
 // under it), a little brighter on the faces that look up. UV.y = +1 / -1 marks the left /
 // right leg of a pedestrian, which swing as they walk. Under the street lamps (night.gdshaderinc; main.gd
 // hands this material the baked light map) they catch the light at night.
+//
+// Loop 2c (car models): a traffic family's mesh (models.gd family()) holds up to four shapes of
+// the same parts, a hatch, a saloon, an estate and an SUV in one MultiMesh: its vertices have
+// UV.x + 16, CUSTOM0..2 hold their position (xyz) and packed normal (w) in shapes 1..3, and
+// INSTANCE_CUSTOM.a picks the shape (0: the mesh's own). For a BLINK lamp (7) UV.y shifts the
+// beat by that share of a blink (the police light bar's two lamps take turns; 0 for roadworks).
 
 #include "res://shaders/common.gdshaderinc"
 #include "res://shaders/night.gdshaderinc"
@@ -24,9 +30,30 @@ varying float blink;
 
 const vec3 TROUSERS[4] = vec3[](vec3(0.18, 0.22, 0.33), vec3(0.12, 0.12, 0.13), vec3(0.42, 0.40, 0.37), vec3(0.55, 0.45, 0.32));
 
+// A unit normal packed by models.gd _pack_normal(): octahedral, 12 bits a coordinate.
+vec3 unpack_normal(float f) {
+	float hi = floor(f / 4096.0);
+	vec2 e = vec2(hi, f - hi * 4096.0) / 4095.0 * 2.0 - 1.0;
+	vec3 n = vec3(e, 1.0 - abs(e.x) - abs(e.y));
+	if (n.z < 0.0) {
+		n.xy = (1.0 - abs(n.yx)) * vec2(n.x >= 0.0 ? 1.0 : -1.0, n.y >= 0.0 ? 1.0 : -1.0);
+	}
+	return normalize(n);
+}
+
 void vertex() {
+	float code = UV.x;
+	if (code > 15.5) {
+		code -= 16.0;
+		int shape = int(INSTANCE_CUSTOM.a + 0.5);
+		if (shape > 0) {
+			vec4 m = shape == 1 ? CUSTOM0 : (shape == 2 ? CUSTOM1 : CUSTOM2);
+			VERTEX = m.xyz;
+			NORMAL = unpack_normal(m.w);
+		}
+	}
 	vec3 c = srgb_to_linear(COLOR.rgb);
-	int part = int(UV.x + 0.5);
+	int part = int(code + 0.5);
 	glow = vec3(0.0);
 	blink = 0.0;
 	if (part == 0) {
@@ -43,7 +70,7 @@ void vertex() {
 		glow = c * 1.6;
 	} else if (part == 7) {
 		glow = c * 4.0;
-		blink = 1.0;
+		blink = 1.0 + UV.y;
 	} else if (part == 8) {
 		// A touch more orange than the paint: a saturated red tops out at a low luma, so
 		// the glow needs some green to climb clear of the road (kept red-orange, hue ~13
@@ -66,7 +93,7 @@ void fragment() {
 		vec3 g = glow;
 		if (blink > 0.5) {
 			// On a little over half the time, about once a second.
-			g *= step(0.42, fract(TIME * 1.15));
+			g *= step(0.42, fract(TIME * 1.15 + blink - 1.0));
 		}
 		EMISSION = (g + tint * lamp_light(world_pos.xz) * 1.4) * lights_on;
 	}
