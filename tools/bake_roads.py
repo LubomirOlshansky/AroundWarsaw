@@ -48,9 +48,33 @@ HATCH_KINDS = {"emergency", "prohibited"}
 
 CLEAR_ROAD = 5.0     # deck clearance over roads, rails and trams
 CLEAR_WATER = 7.5    # and over the river
+CLEAR_FOOT = 2.6     # a footbridge over a footway (loop 3a)
 GRADE = 0.06         # ramps up to a clearance
 END_GRADE = 0.12     # the steepest a deck may leave the road it starts from
 DECK_STEP = 6.0      # deck heights every this many metres
+
+# Loop 3a (docs/DEMO.md 4.4): structure chains (R1), hard clearance (R3).
+CHAIN_JOIN = 150.0   # R1 (a): non-bridge ways linking two bridge ways within this are the structure's
+EMBANK = 2.0         # R1 (c): a way standing this much above the terrain...
+EMBANK_SIDE = (15.0, 20.0, 25.0)   # ...this far to both sides...
+EMBANK_SHARE = 0.6   # ...over this share of its length is an embankment
+BLUR_REACH = 40.0    # R1 (d): a way steeper than END_GRADE this close to a structure is its approach
+NODE_STEP = DECK_STEP  # profile nodes at most this far apart
+TARGET_W = 0.01      # how hard an approach way is pulled onto its own terrain (per metre)
+SOLVE_ITER = 6000    # projected over-relaxation: sweeps at most...
+SOLVE_TOL = 0.001    # ...until no node moves more than this
+SOR_W = 1.8
+DIP_MAX = 2.0        # R3: the most a road under a deck may dip to get its clearance...
+DIP_GRADE = 0.08     # ...with ramps this steep
+PIT_SPAN = 20.0      # a dip in a road's terrain narrower than this is a pit to bridge...
+PIT_MIN = 0.4        # ...when it is at least this deep
+TUNNEL_COVER = 6.0   # R4: a tunnel runs this far under the terrain...
+TUNNEL_GRADE = 0.08  # ...its portal ramps no steeper than this
+BLUR_FREE = 30.0     # within this of a bridge way the terrain only bounds an approach from below
+BESIDE_REACH = 6.0   # a footway or tram track this far past a road deck's edge is held to its height
+STAIR_GRADE = 0.5    # a footbridge meets the ground by stairs: its ends may be this steep
+TARGET_DECK = 0.5    # R2: how hard a measured deck height pulls (per node)
+SURFACE_BASE = 100.0  # R2: the surface model's heights minus this are the map's (bake_gugik BASE_HEIGHT)
 
 KERB_W = 0.3         # granite kerb, metres across...
 EDGE_INSET = 0.35    # ...and the edge line this far inside the carriageway
@@ -445,194 +469,112 @@ class Roadbed:
     # -- bridge decks ----------------------------------------------------------------
 
     def solve_decks(self):
-        """Height profiles for every bridge road, then decks for what else is on a bridge."""
+        """Loop 3a (R1, R3): height profiles for every structure, solved as chains.
+
+        A structure is its bridge ways plus the non-bridge ways that belong to it
+        (`_members`: the abutments between two bridges, embankments, and the approach
+        ways where the 10 m terrain grid blurs the abutment into a dip). Each family
+        (rails, then roads) is solved as one graph of nodes every 6 m (`_solve`): smooth,
+        never under the terrain, pinned only where a structure meets an ordinary way,
+        the approaches pulled onto their own terrain, and the clearance over what runs
+        under (5 m over roads, rails and trams, 7.5 m over water) a hard minimum. Where
+        the clearance can't be met within END_GRADE of a pin, the road underneath dips
+        (`dips`, up to DIP_MAX at DIP_GRADE, logged); anything beyond that fails the bake.
+        Footways and tram tracks on a structure take the height of the road deck beside
+        them; those with no road beside them (footbridges) are solved like the roads."""
         T = self.terrain
         roads = self.roads
-        x0, z0, x1, z1 = self.rect
+        self.surface_model = SurfaceModel.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "raw", "demo", "gugik"))
 
-        def on_rim(p):
-            return min(abs(p[0] - x0), abs(p[0] - x1), abs(p[1] - z0), abs(p[1] - z1)) < 0.5
-
-        def key(p):
-            return (round(p[0] * 2), round(p[1] * 2))
-
-        ground_vertices = set()
-        for r in roads:
-            if not r["bridge"]:
-                for p in pairs(r["p"]):
-                    ground_vertices.add(key(p))
-        bridges = [i for i, r in enumerate(roads) if r["bridge"]]
-        ends = {}
-        for i in bridges:
-            pts = pairs(roads[i]["p"])
-            for e, p in ((0, pts[0]), (1, pts[-1])):
-                ends.setdefault(key(p), []).append((i, e))
-
-        # What runs under: ground roads, trams and rails, and lower bridge roads.
+        # What runs under: ground roads, trams and rails, and the structures below.
         under = Grid(32.0)
         for r in roads:
             for a, b in zip(pairs(r["p"]), pairs(r["p"])[1:]):
                 under.add((a, b, r["w"] * 0.5, "road", r), min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1]))
         for t in self.trams:
-            if not t.get("_br"):
-                for a, b in zip(pairs(t["p"]), pairs(t["p"])[1:]):
-                    under.add((a, b, 1.5, "rail", None), min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1]))
+            for a, b in zip(pairs(t["p"]), pairs(t["p"])[1:]):
+                under.add((a, b, 1.5, "tram", t), min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1]))
         for t in self.details.get("rails", []):
-            if not t.get("_br"):
+            for a, b in zip(pairs(t["p"]), pairs(t["p"])[1:]):
+                under.add((a, b, 2.0, "rail", t), min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1]))
+        self.under = under
+        # Footways run under footbridges too (2.6 m: check_roads C3 wants 2.5).
+        self.under_foot = Grid(32.0)
+        for t in self.paths:
+            if t["k"] in ("foot", "cycle"):
                 for a, b in zip(pairs(t["p"]), pairs(t["p"])[1:]):
-                    under.add((a, b, 2.0, "rail", None), min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1]))
+                    self.under_foot.add((a, b, float(t.get("w", 2.0)) * 0.5, "footway", t),
+                                        min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1]))
 
-        profile = {}  # road index -> (pts, cum, heights)
-        order = sorted(bridges, key=lambda i: roads[i].get("_ly", 1))
-        info = {}
-        for i in order:
-            r = roads[i]
-            pts = pairs(r["p"])
-            cum = [0.0]
-            for a, b in zip(pts, pts[1:]):
-                cum.append(cum[-1] + math.dist(a, b))
-            length = cum[-1]
-            cons = []  # (s, height, half)
-            n = max(2, int(length / 3.0) + 1)
-            for k in range(n + 1):
-                s = length * k / n
-                x, z = _at(pts, cum, s)
-                if self.water.hit(x, z) >= 0:
-                    cons.append((s, T.h(x, z) + CLEAR_WATER, 1.5))
-            for a, b, half, kind, other in under.box(min(p[0] for p in pts), min(p[1] for p in pts),
-                                                     max(p[0] for p in pts), max(p[1] for p in pts)):
-                if other is r:
-                    continue
-                lower = 0.0
-                if other is not None and other["bridge"]:
-                    if other.get("_ly", 1) >= r.get("_ly", 1) or id(other) not in profile:
-                        continue
-                for k in range(len(pts) - 1):
-                    hit = seg_cross(pts[k], pts[k + 1], a, b)
-                    if hit is None:
-                        continue
-                    s = cum[k] + hit[0] * (cum[k + 1] - cum[k])
-                    if s < 1.0 or s > length - 1.0:
-                        continue  # a road meeting the bridge at its end, not passing under
-                    px = a[0] + (b[0] - a[0]) * hit[1]
-                    pz = a[1] + (b[1] - a[1]) * hit[1]
-                    if other is not None and other["bridge"]:
-                        opts, ocum, oh = profile[id(other)]
-                        so = project_onto(opts, ocum, px, pz)[0]
-                        lower = _interp(ocum, oh, so)
-                    else:
-                        lower = T.h(px, pz)
-                    d1 = _unit(pts[k], pts[k + 1])
-                    d2 = _unit(a, b)
-                    sin = abs(d1[0] * d2[1] - d1[1] * d2[0]) if d1 and d2 else 1.0
-                    cons.append((s, lower + CLEAR_ROAD, half / max(sin, 0.25) + 1.5))
-            info[i] = {"pts": pts, "cum": cum, "len": length, "cons": cons}
-
-        def envelope(inf, s, extra):
-            best = -1e9
-            for cs, ch, half in inf["cons"] + extra:
-                best = max(best, ch - GRADE * max(0.0, abs(s - cs) - half))
-            return best
-
-        # Ends: pinned to the ground road they meet, free at a joint between bridge
-        # roads (it takes the higher envelope of both), free at the map's edge.
-        end_h = {}
-        joint_extra = {i: [] for i in bridges}
-        for _ in range(4):
-            for k, members in ends.items():
-                p = (k[0] / 2.0, k[1] / 2.0)
-                pinned = k in ground_vertices or (len(members) == 1 and not on_rim(p))
-                if pinned:
-                    h = T.h(*p)
-                else:
-                    h = T.h(*p)
-                    for i, e in members:
-                        inf = info[i]
-                        h = max(h, envelope(inf, 0.0 if e == 0 else inf["len"], joint_extra[i]))
-                end_h[k] = (h, pinned)
-            for i in bridges:
-                inf = info[i]
-                joint_extra[i] = []
-                for e in (0, 1):
-                    h, pinned = end_h[key(inf["pts"][0 if e == 0 else -1])]
-                    if not pinned:
-                        joint_extra[i].append((0.0 if e == 0 else inf["len"], h, 0.0))
-
-        self.pieces = []   # {"pts", "cum", "h", "l", "r", "ly", "g", "kind"}
+        rails = self.details.get("rails", [])
+        road_mem = self._members(roads, lambda r: r["bridge"], "road")
+        rail_mem = self._members(rails, lambda t: t.get("_br"), "rail")
+        tram_mem = self._members(self.trams, lambda t: t.get("_br"), "tram")
+        path_ok = [p["k"] in ("foot", "cycle") for p in self.paths]
+        path_mem = self._members(self.paths, lambda p: p.get("_br"), "path", usable=path_ok)
+        for items, mem in ((roads, road_mem), (rails, rail_mem), (self.trams, tram_mem), (self.paths, path_mem)):
+            for it, why in zip(items, mem):
+                if why:
+                    it["_on"] = why   # "bridge", or why a non-bridge way is part of a structure
+        self.dips = []
+        self.profiles = {}   # id(item) -> (pts, cum, heights) once solved
+        self.pieces = []     # {"pts", "cum", "h", "l", "r", "ly", "g", "kind", "a"}
         self.road_piece = {}
-        for i in order:
-            r = roads[i]
-            inf = info[i]
-            pts = resample(inf["pts"], DECK_STEP)
-            cum = [0.0]
-            for a, b in zip(pts, pts[1:]):
-                cum.append(cum[-1] + math.dist(a, b))
-            h0, pin0 = end_h[key(inf["pts"][0])]
-            h1, pin1 = end_h[key(inf["pts"][-1])]
-            length = cum[-1]
-            hs = []
-            for s, p in zip(cum, pts):
-                h = max(h0 + (h1 - h0) * (s / length if length > 0 else 0.0), envelope(inf, s, joint_extra[i]))
-                if pin0:
-                    h = min(h, h0 + END_GRADE * s)
-                if pin1:
-                    h = min(h, h1 + END_GRADE * (length - s))
-                hs.append(max(h, T.h(*p)))
-            piece = {"pts": pts, "cum": cum, "h": hs, "l": r["w"] * 0.5 + 0.5, "r": r["w"] * 0.5 + 0.5,
-                     "ly": r.get("_ly", 1), "kind": "road", "road": i}
-            profile[id(r)] = (pts, cum, hs)
-            self.road_piece[i] = len(self.pieces)
-            self.pieces.append(piece)
+        self._solve(rails, rail_mem, "rail", 2.2)
+        self._solve(roads, road_mem, "road", None)
+        for i, r in enumerate(roads):
+            if road_mem[i]:
+                pts, cum, hs = self.profiles[id(r)]
+                self.road_piece[i] = len(self.pieces)
+                self.pieces.append({"pts": pts, "cum": cum, "h": hs, "l": r["w"] * 0.5 + 0.5, "r": r["w"] * 0.5 + 0.5,
+                                    "ly": r["_sly"], "kind": "road", "road": i, "a": road_mem[i] != "bridge"})
+        for i, t in enumerate(rails):
+            if rail_mem[i]:
+                pts, cum, hs = self.profiles[id(t)]
+                t["_piece"] = len(self.pieces)
+                self.pieces.append({"pts": pts, "cum": cum, "h": hs, "l": 2.2, "r": 2.2, "ly": t["_sly"], "kind": "rail",
+                                    "item": t, "a": rail_mem[i] != "bridge"})
 
-        # Footways, tram tracks and rails on a bridge: the height of the deck beside
-        # them; a bridge with no road on it (a railway, a footbridge) solves its own.
-        road_pieces = list(self.pieces)
-        lonely = []
-        for kind, items, half in (("path", self.paths, None), ("tram", self.trams, 1.6),
-                                  ("rail", self.details.get("rails", []), 2.2)):
-            for it in items:
-                if not it.get("_br"):
-                    continue
-                pts = resample(pairs(it["p"]), DECK_STEP)
-                if len(pts) < 2:
-                    continue
-                cum = [0.0]
-                for a, b in zip(pts, pts[1:]):
-                    cum.append(cum[-1] + math.dist(a, b))
-                hs = []
-                found = 0
-                for p in pts:
-                    best = None
-                    for pc in road_pieces:
-                        if abs(pc["ly"] - it.get("_ly", 1)) > 0 and kind != "tram":
-                            continue
-                        pr = project_onto(pc["pts"], pc["cum"], p[0], p[1])
-                        if pr and pr[2] < 40.0 ** 2 and (best is None or pr[2] < best[0]):
-                            best = (pr[2], _interp(pc["cum"], pc["h"], pr[0]))
-                    if best is not None:
-                        found += 1
-                        hs.append(best[1])
-                    else:
-                        hs.append(None)
-                hw = half if half is not None else float(it.get("w", 2.0)) * 0.5 + 0.3
-                if found >= 0.6 * len(pts):
-                    # Fill the gaps (past the deck's ends) from the neighbours.
-                    known = [k for k, h in enumerate(hs) if h is not None]
-                    for k in range(len(hs)):
-                        if hs[k] is None:
-                            j = min(known, key=lambda q: abs(q - k))
-                            hs[k] = hs[j]
-                    piece = {"pts": pts, "cum": cum, "h": hs, "l": hw, "r": hw, "ly": it.get("_ly", 1), "kind": kind, "item": it}
+        # Footways and tram tracks on a structure: held to the road deck beside them where
+        # there is one, solved like the roads elsewhere (footbridges, ramps down to the street).
+        road_pieces = [pc for pc in self.pieces if pc["kind"] == "road"]
+        # A short footbridge with no road deck near it (a park's little bridge over a pond)
+        # stays on the ground, as before loop 3a: a deck there would open the pond's edge.
+        near_road = Grid(32.0)
+        for pc in road_pieces:
+            xs = [p[0] for p in pc["pts"]]
+            zs = [p[1] for p in pc["pts"]]
+            near_road.add(1, min(xs) - 12, min(zs) - 12, max(xs) + 12, max(zs) + 12)
+        for i, it in enumerate(self.paths):
+            if path_mem[i] == "bridge" and polyline_length(pairs(it["p"])) <= 30.0 and \
+                    not any(near_road.at(*q) for q in pairs(it["p"])):
+                path_mem[i] = ""
+                it.pop("_on", None)
+        for kind, items, mem, half in (("tram", self.trams, tram_mem, 1.6), ("path", self.paths, path_mem, None)):
+            self._solve(items, mem, kind, half, beside=road_pieces)
+            for idx, it in enumerate(items):
+                if mem[idx]:
+                    pts, cum, hs = self.profiles[id(it)]
+                    hw = half if half is not None else float(it.get("w", 2.0)) * 0.5 + 0.3
                     it["_piece"] = len(self.pieces)
-                    self.pieces.append(piece)
-                elif kind != "path" or polyline_length(pts) > 30.0:
-                    lonely.append((kind, it, pts, cum, hw))
-        for kind, it, pts, cum, hw in lonely:
-            hs = self._lonely_profile(pts, cum, under)
-            it["_piece"] = len(self.pieces)
-            self.pieces.append({"pts": pts, "cum": cum, "h": hs, "l": hw, "r": hw, "ly": it.get("_ly", 1), "kind": kind, "item": it})
+                    self.pieces.append({"pts": pts, "cum": cum, "h": hs, "l": hw, "r": hw, "ly": it["_sly"], "kind": kind,
+                                        "item": it, "a": mem[idx] != "bridge"})
 
-        # Groups: the pieces of one structure (same layer, within 30 m of each other).
+        # An approach (a structure way not tagged bridge: an abutment, an embankment, the way
+        # onto a bridge across the grid's blur) is no deck: it corrects the ground under its
+        # corridor (`fills`), so whatever lies on the ground there (the road, its kerbs and
+        # markings, the carriageway areas, the lanes, the car) sees the right height. Only the
+        # bridges are decks.
+        self.fills = [pc for pc in self.pieces if pc["a"]]
+        self.pieces = [pc for pc in self.pieces if not pc["a"]]
+        self.road_piece = {pc["road"]: k for k, pc in enumerate(self.pieces) if "road" in pc}
+        self.road_fill = {pc["road"]: pc for pc in self.fills if "road" in pc}
+        for it_list in (self.paths, self.trams, self.details.get("rails", [])):
+            for it in it_list:
+                it.pop("_piece", None)
+
+        # Groups: the pieces of one structure on one level (same layer, within 30 m of
+        # each other); a piece that runs under another stays out of its group.
         parent = list(range(len(self.pieces)))
 
         def find(a):
@@ -646,16 +588,15 @@ class Roadbed:
                 pa, pb = self.pieces[a], self.pieces[b]
                 if pa["ly"] != pb["ly"] and "tram" not in (pa["kind"], pb["kind"]):
                     continue
-                if _near(pa, pb, 30.0):
+                if _near(pa, pb, 30.0) and not _stacked(pa, pb):
                     parent[find(a)] = find(b)
         roots = {}
         for k, pc in enumerate(self.pieces):
             pc["g"] = roots.setdefault(find(k), len(roots))
         self.groups = len(roots)
-        for it_list in (self.paths, self.trams, self.details.get("rails", [])):
-            for it in it_list:
-                if "_piece" in it:
-                    it["dk"] = self.pieces[it.pop("_piece")]["g"]
+        for pc in self.pieces:
+            if "item" in pc:
+                pc["item"]["dk"] = pc["g"]
         for i, k in self.road_piece.items():
             roads[i]["dk"] = self.pieces[k]["g"]
         self.piece_grid = Grid(32.0)
@@ -664,42 +605,660 @@ class Roadbed:
             zs = [p[1] for p in pc["pts"]]
             self.piece_grid.add(k, min(xs) - 25, min(zs) - 25, max(xs) + 25, max(zs) + 25)
         tall = max((max(h - T.h(*p) for p, h in zip(pc["pts"], pc["h"])) for pc in self.pieces), default=0.0)
-        print(f"decks: {len(self.pieces)} pieces in {self.groups} structures ({len(road_pieces)} bridge roads, "
-              f"{len(lonely)} without a road), highest {tall:.1f} m over the ground")
+        n_br = sum(1 for m in road_mem if m == "bridge")
+        whys = {}
+        for mem in (road_mem, rail_mem, tram_mem, path_mem):
+            for m in mem:
+                if m and m != "bridge":
+                    whys[m] = whys.get(m, 0) + 1
+        print(f"decks: {len(self.pieces)} pieces in {self.groups} structures ({n_br} bridge roads), highest "
+              f"{tall:.1f} m over the ground; {len(self.fills)} approaches on the ground (fills: "
+              f"{len(self.road_fill)} roads, {sum(1 for f in self.fills if f['kind'] == 'rail')} rail ways); "
+              f"profile solve {self.solve_sweeps} sweeps")
+        print("decks: structure members not tagged bridge: " + ", ".join(f"{k} {v}" for k, v in sorted(whys.items())))
+        for d in self.dips:
+            print(f"decks: underpass dip {d['d']:.2f} m on {d['name']} at ({d['x']:.0f}, {d['z']:.0f}) under {d['over']}")
+        if self.surface_model is None:
+            print("decks: no surface model (data/raw/demo/gugik/nmpt05 + nmt1): chain solver alone (R2 fallback)")
 
-    def _lonely_profile(self, pts, cum, under):
-        """A footbridge or railway bridge on its own: ends on the ground, clears what's under."""
+    # -- pits (loop 3a, C1) ----------------------------------------------------------------
+
+    def fill_pits(self):
+        """Loop 3a: the bare-earth grid holds narrow pits a street crosses at grade (stairwells
+        to an underpass or the metro, garage and construction pits, a ditch): following them,
+        a road dips 1-3 m in a few metres (C1 found Złota at 30 %, Rondo Dmowskiego at 13 %).
+        Along every road on the ground, the profile is closed over PIT_SPAN (the dips narrower
+        than that bridged, the humps kept); where it stands PIT_MIN or more above the grid,
+        that stretch becomes a fill like an approach's."""
         T = self.terrain
-        length = cum[-1]
-        cons = []
-        for s, p in zip(cum, pts):
-            if self.water.hit(*p) >= 0:
-                cons.append((s, T.h(*p) + CLEAR_WATER, 1.5))
-        for a, b, half, kind, other in under.box(min(p[0] for p in pts), min(p[1] for p in pts),
-                                                 max(p[0] for p in pts), max(p[1] for p in pts)):
-            if other is not None and other["bridge"]:
+        on_structure = set(self.road_piece) | set(self.road_fill)
+        n0 = len(self.fills)
+        half = PIT_SPAN * 0.5
+        # A fill corrects the ground under its corridor only: where another way enters it (a
+        # junction, a structure's end) that way would step onto it, so pits there stay.
+        others = Grid(16.0)
+        for i, r in enumerate(self.roads):
+            for a, b in zip(pairs(r["p"]), pairs(r["p"])[1:]):
+                others.add((a, b, i), min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1]))
+        for pc in self.pieces + self.fills:
+            for a, b in zip(pc["pts"], pc["pts"][1:]):
+                others.add((a, b, -1), min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1]))
+
+        def crowded(pts, i, reach):
+            for p in pts:
+                for dx in (-reach, 0.0, reach):
+                    for dz in (-reach, 0.0, reach):
+                        for a, b, o in others.at(p[0] + dx, p[1] + dz):
+                            if o != i and seg_dist(p[0], p[1], a, b) < reach:
+                                return True
+            return False
+        for i, r in enumerate(self.roads):
+            if i in on_structure:
                 continue
-            for k in range(len(pts) - 1):
-                hit = seg_cross(pts[k], pts[k + 1], a, b)
-                if hit and 2.0 < cum[k] + hit[0] * (cum[k + 1] - cum[k]) < length - 2.0:
+            pts = resample(pairs(r["p"]), 2.0)
+            if len(pts) < 4:
+                continue
+            cum = _cum(pts)
+            hs = [T.h(*p) for p in pts]
+            n = len(pts)
+            up = [max(hs[j] for j in range(n) if abs(cum[j] - cum[k]) <= half) for k in range(n)]
+            closed = [min(up[j] for j in range(n) if abs(cum[j] - cum[k]) <= half) for k in range(n)]
+            k = 0
+            while k < n:
+                if closed[k] - hs[k] < PIT_MIN:
+                    k += 1
+                    continue
+                a = k
+                while a > 0 and closed[a - 1] - hs[a - 1] > 0.02:
+                    a -= 1
+                b = k
+                while b < n - 1 and closed[b + 1] - hs[b + 1] > 0.02:
+                    b += 1
+                a, b = max(a - 1, 0), min(b + 1, n - 1)
+                if b > a and not crowded(pts[a:b + 1], i, r["w"] * 0.5 + 2.5):
+                    self.fills.append({"pts": pts[a:b + 1], "cum": _cum(pts[a:b + 1]), "h": [max(c, h) for c, h in
+                                       zip(closed[a:b + 1], hs[a:b + 1])], "l": r["w"] * 0.5 + 0.5,
+                                       "r": r["w"] * 0.5 + 0.5, "kind": "road", "road": i, "a": True, "pit": True})
+                k = b + 1
+        print(f"pits: {len(self.fills) - n0} stretches of road across a pit in the terrain grid filled")
+
+    # -- tunnels (R4) -------------------------------------------------------------------
+
+    def solve_tunnels(self, tunnel_roads):
+        """Loop 3a (R4): drivable tunnels as tunnel pieces. A tunnel lies TUNNEL_COVER under
+        the terrain, its ramps no steeper than TUNNEL_GRADE from the portals (where it meets an
+        open road: pinned there); a tunnel crossing the map's edge is free there. One group
+        per connected tunnel ("tn" on the tunnel roads and the lane graph's edges); the
+        portals are written for loop 3b (which builds the tunnels and their look)."""
+        T = self.terrain
+        x0, z0, x1, z1 = self.rect
+        open_v = set()
+        for r in self.roads:
+            for q in pairs(r["p"]):
+                open_v.add(_key(q))
+        verts = {}
+        for i, r in enumerate(tunnel_roads):
+            for q in pairs(r["p"]):
+                verts.setdefault(_key(q), set()).add(i)
+        # Connected tunnels: one group each.
+        parent = list(range(len(tunnel_roads)))
+
+        def find(a):
+            while parent[a] != a:
+                parent[a] = parent[parent[a]]
+                a = parent[a]
+            return a
+        for vs in verts.values():
+            vs = sorted(vs)
+            for o in vs[1:]:
+                parent[find(o)] = find(vs[0])
+        groups = {}
+        for i in range(len(tunnel_roads)):
+            groups.setdefault(find(i), []).append(i)
+        self.tunnel_pieces = []
+        self.portals = []
+        for g, members in enumerate(groups.values()):
+            # Nodes every NODE_STEP, portal pins, then the deepest the ramps allow.
+            nodes, nbr, pins = {}, {}, {}
+            per_item = {}
+            for i in members:
+                pts = resample(pairs(tunnel_roads[i]["p"]), NODE_STEP)
+                ids = []
+                for k, q in enumerate(pts):
+                    key = _key(q)
+                    nodes.setdefault(key, q)
+                    ids.append(key)
+                for a, b in zip(ids, ids[1:]):
+                    d = math.dist(nodes[a], nodes[b])
+                    nbr.setdefault(a, []).append((b, d))
+                    nbr.setdefault(b, []).append((a, d))
+                per_item[i] = (pts, ids)
+                for key in (ids[0], ids[-1]):
+                    q = nodes[key]
+                    if key in open_v:
+                        pins[key] = T.h(*q)
+                        self.portals.append([round(q[0], 1), round(q[1], 1), g])
+            import heapq
+            ramp = {key: -1e9 for key in nodes}
+            heap = [(-h, key) for key, h in pins.items()]
+            for key, h in pins.items():
+                ramp[key] = h
+            heapq.heapify(heap)
+            while heap:
+                nh, key = heapq.heappop(heap)
+                h = -nh
+                if h < ramp[key]:
+                    continue
+                for o, d in nbr.get(key, ()):
+                    v = h - TUNNEL_GRADE * d
+                    if v > ramp[o]:
+                        ramp[o] = v
+                        heapq.heappush(heap, (-v, o))
+            for i, (pts, ids) in per_item.items():
+                hs = []
+                for q, key in zip(pts, ids):
+                    deep = T.h(*q) - TUNNEL_COVER
+                    hs.append(pins[key] if key in pins else max(deep, ramp[key]) if ramp[key] > -1e8 else deep)
+                r = tunnel_roads[i]
+                r["tn"] = g
+                self.tunnel_pieces.append({"pts": pts, "h": hs, "l": r["w"] * 0.5 + 0.5, "r": r["w"] * 0.5 + 0.5, "g": g})
+        if tunnel_roads:
+            print(f"tunnels: {len(tunnel_roads)} ways in {len(groups)} tunnels, {len(self.portals)} portals; deepest "
+                  f"{max(T.h(*q) - h for pc in self.tunnel_pieces for q, h in zip(pc['pts'], pc['h'])):.1f} m under the terrain")
+
+    def tunnel_json(self, tunnel_roads):
+        pieces = [{"p": flat(pc["pts"]), "h": [round(h, 2) for h in pc["h"]], "l": round(pc["l"], 2),
+                   "r": round(pc["r"], 2), "g": pc["g"], "k": "road"} for pc in getattr(self, "tunnel_pieces", [])]
+        roads = [{k: v for k, v in r.items() if not k.startswith("_")} for r in tunnel_roads]
+        return {"pieces": pieces, "roads": roads, "portals": getattr(self, "portals", [])}
+
+    # -- structure membership (R1) ----------------------------------------------------
+
+    def _members(self, items, is_bridge, family, usable=None):
+        """Per item: "bridge", the reason a non-bridge way belongs to a structure, or "".
+
+        R1: a non-bridge way joins a structure when it (a) links two bridge ways within
+        CHAIN_JOIN (the abutment between a viaduct and a river span), (b) is tagged
+        embankment=yes, (c) stands EMBANK above the terrain 15-25 m to both sides over most
+        of its length (an embankment the terrain grid shows), or (d) touches the structure
+        where its own terrain, within BLUR_REACH, is steeper than END_GRADE: the 10 m grid
+        blurs the abutment's wall into a slope, so the way's real level is the structure's."""
+        T = self.terrain
+        n = len(items)
+        usable = usable or [True] * n
+        pts_of = [pairs(it["p"]) for it in items]
+        length = [polyline_length(p) for p in pts_of]
+        ends, verts = {}, {}
+        for i, p in enumerate(pts_of):
+            if not usable[i] or len(p) < 2:
+                continue
+            for q in p:
+                verts.setdefault(_key(q), set()).add(i)
+            ends.setdefault(_key(p[0]), []).append((i, 0))
+            ends.setdefault(_key(p[-1]), []).append((i, 1))
+        bridge = [bool(usable[i] and is_bridge(it)) for i, it in enumerate(items)]
+        why = ["bridge" if b else "" for b in bridge]
+        if not any(bridge):
+            return why
+        # (a) between two bridge ways.
+        for i in range(n):
+            if not bridge[i]:
+                continue
+            for p in (pts_of[i][0], pts_of[i][-1]):
+                stack = [(_key(p), 0.0, [])]
+                while stack:
+                    v, dist, path = stack.pop()
+                    for j, ej in ends.get(v, ()):
+                        if bridge[j] or j in path:
+                            continue
+                        d2 = dist + length[j]
+                        if d2 > CHAIN_JOIN:
+                            continue
+                        other = _key(pts_of[j][-1] if ej == 0 else pts_of[j][0])
+                        if any(bridge[b] and b != i for b in verts.get(other, ())):
+                            for q in path + [j]:
+                                why[q] = why[q] or "between two bridges"
+                        elif len(path) < 5:
+                            stack.append((other, d2, path + [j]))
+        # (b) tagged.
+        for i, it in enumerate(items):
+            if usable[i] and not why[i] and it.get("_t", {}).get("embankment") == "yes":
+                why[i] = "embankment=yes"
+        # (c), (d): grow from the structures.
+        for _ in range(12):
+            grew = False
+            for j in range(n):
+                if why[j] or not usable[j] or len(pts_of[j]) < 2:
+                    continue
+                touch = [q for q in pts_of[j] if any(why[o] and o != j for o in verts.get(_key(q), ()))]
+                if not touch:
+                    continue
+                if self._embankment(pts_of[j]):
+                    why[j] = "embankment"
+                elif self._blurred(pts_of[j], touch):
+                    why[j] = "blurred abutment"
+                else:
+                    continue
+                grew = True
+            if not grew:
+                break
+        return why
+
+    def _embankment(self, pts):
+        T = self.terrain
+        ps = resample(pts, 6.0)
+        if polyline_length(pts) < 8.0:
+            return False
+        high = total = 0
+        for k in range(len(ps)):
+            a, b = ps[max(k - 1, 0)], ps[min(k + 1, len(ps) - 1)]
+            d = _unit(a, b)
+            if d is None:
+                continue
+            x, z = ps[k]
+            nx, nz = -d[1], d[0]
+            left = min(T.h(x + nx * o, z + nz * o) for o in EMBANK_SIDE)
+            right = min(T.h(x - nx * o, z - nz * o) for o in EMBANK_SIDE)
+            total += 1
+            if T.h(x, z) - max(left, right) > EMBANK:
+                high += 1
+        return total > 0 and high >= EMBANK_SHARE * total
+
+    def _blurred(self, pts, touch):
+        T = self.terrain
+        ps = resample(pts, 2.0)
+        cum = _cum(ps)
+        hs = [T.h(*p) for p in ps]
+        for t in touch:
+            s0 = project_onto(ps, cum, *t)[0]
+            for k in range(len(ps)):
+                if abs(cum[k] - s0) > BLUR_REACH:
+                    continue
+                j = k
+                while j < len(ps) - 1 and cum[j] - cum[k] < 6.0:
+                    j += 1
+                run = cum[j] - cum[k]
+                if run >= 5.5 and abs(cum[j] - s0) <= BLUR_REACH and abs(hs[j] - hs[k]) / run > END_GRADE:
+                    return True
+        return False
+
+    # -- the profile solver (R1, R3) -----------------------------------------------------
+
+    def _solve(self, items, member, family, half_w, beside=None):
+        """Heights for the member items of one family, as one graph per family: nodes
+        every NODE_STEP metres (and at every crossing), smoothness between neighbours,
+        approach ways pulled onto their terrain (TARGET_W), hard lower bounds (the terrain,
+        the clearance over what runs under, the water), pins where a structure meets an
+        ordinary way of its family. Projected over-relaxation, then the R3 check."""
+        T = self.terrain
+        x0, z0, x1, z1 = self.rect
+        idx = [i for i, m in enumerate(member) if m]
+        if not idx:
+            return
+        verts = {}
+        for i, it in enumerate(items):
+            for q in pairs(it["p"]):
+                verts.setdefault(_key(q), set()).add(i)
+        # The structure's layer (for grouping): its bridge ways' layer, given to its approaches.
+        comp = {i: i for i in idx}
+
+        def cfind(a):
+            while comp[a] != a:
+                comp[a] = comp[comp[a]]
+                a = comp[a]
+            return a
+        for i in idx:
+            for q in pairs(items[i]["p"]):
+                for o in verts.get(_key(q), ()):
+                    if o in comp and o != i:
+                        comp[cfind(o)] = cfind(i)
+        comp_ly = {}
+        for i in idx:
+            if member[i] == "bridge":
+                c = cfind(i)
+                comp_ly[c] = min(comp_ly.get(c, 99), items[i].get("_ly", 1) or 1)
+        for i in idx:
+            items[i]["_sly"] = comp_ly.get(cfind(i), 1) if member[i] != "bridge" else (items[i].get("_ly", 1) or 1)
+
+        # Crossings with what runs under (positions along each member item).
+        cross = {i: [] for i in idx}
+        for i in idx:
+            it = items[i]
+            pts = pairs(it["p"])
+            cum = _cum(pts)
+            ly = it.get("_ly", 1 if member[i] == "bridge" else 0)
+            xs = [p[0] for p in pts]
+            zs = [p[1] for p in pts]
+            unders = self.under.box(min(xs), min(zs), max(xs), max(zs))
+            if family == "path":
+                unders = unders + self.under_foot.box(min(xs), min(zs), max(xs), max(zs))
+            for a, b, half, kind, other in unders:
+                if other is it:
+                    continue
+                if (other.get("_ly") or 0) >= ly:
+                    continue  # level with it (an at-grade crossing) or over it: not under
+                if (other.get("_ly") or 0) < 0:
+                    # A cutting (layer < 0, e.g. the WKD line by Centralna): its real level is
+                    # below what the 10 m terrain grid shows, so its clearance can't be judged
+                    # here (logged; check_roads C3 lists it, the allowlist says why).
+                    self.cuttings_under = getattr(self, "cuttings_under", 0) + 1
+                    continue
+                for k in range(len(pts) - 1):
+                    hit = seg_cross(pts[k], pts[k + 1], a, b)
+                    if hit is None:
+                        continue
+                    s = cum[k] + hit[0] * (cum[k + 1] - cum[k])
+                    if s < 1.0 or s > cum[-1] - 1.0:
+                        continue  # meeting at the end, not passing under
                     px = a[0] + (b[0] - a[0]) * hit[1]
                     pz = a[1] + (b[1] - a[1]) * hit[1]
-                    cons.append((cum[k] + hit[0] * (cum[k + 1] - cum[k]), T.h(px, pz) + CLEAR_ROAD, half + 1.0))
-        h0, h1 = T.h(*pts[0]), T.h(*pts[-1])
-        x0, z0, x1, z1 = self.rect
-        rim0 = min(abs(pts[0][0] - x0), abs(pts[0][0] - x1), abs(pts[0][1] - z0), abs(pts[0][1] - z1)) < 0.5
-        rim1 = min(abs(pts[-1][0] - x0), abs(pts[-1][0] - x1), abs(pts[-1][1] - z0), abs(pts[-1][1] - z1)) < 0.5
+                    d1 = _unit(pts[k], pts[k + 1])
+                    d2 = _unit(a, b)
+                    sin = abs(d1[0] * d2[1] - d1[1] * d2[0]) if d1 and d2 else 1.0
+                    reach = half / max(sin, 0.25) + 1.5
+                    cross[i].append({"s": s, "reach": reach, "x": px, "z": pz, "other": other, "kind": kind,
+                                     "clear": CLEAR_FOOT if kind == "footway" else CLEAR_ROAD})
+
+        # Nodes.
+        node_of = {}
+        X, Z, TH, LB, PIN, W = [], [], [], [], [], []
+        nbr = []
+        coupled = []   # node -> [(other node, clearance)] (a structure under a structure)
+        item_nodes = {}
+
+        def node(p, key):
+            if key in node_of:
+                return node_of[key]
+            k = len(X)
+            node_of[key] = k
+            X.append(p[0])
+            Z.append(p[1])
+            h = T.h(*p)
+            TH.append(h)
+            LB.append(h)
+            PIN.append(None)
+            W.append(0.0)
+            nbr.append([])
+            coupled.append([])
+            return k
+
+        for i in idx:
+            pts = pairs(items[i]["p"])
+            cum = _cum(pts)
+            extra = sorted({c["s"] + d for c in cross[i] for d in (-c["reach"], 0.0, c["reach"])
+                            if 0.5 < c["s"] + d < cum[-1] - 0.5})
+            ps, ss, keys = [], [], []
+            orig = {_key(q) for q in pts}
+            for k in range(len(pts) - 1):
+                seg = cum[k + 1] - cum[k]
+                marks = [cum[k]] + [s for s in extra if cum[k] < s < cum[k + 1]]
+                n = max(1, int(math.ceil(seg / NODE_STEP)))
+                marks += [cum[k] + seg * q / n for q in range(1, n)]
+                for s in sorted(set(round(m, 3) for m in marks)):
+                    if ss and s - ss[-1] < 0.3:
+                        continue
+                    ps.append(_at(pts, cum, s))
+                    ss.append(s)
+            ps.append(pts[-1])
+            ss.append(cum[-1])
+            ids = []
+            for k, (p, s) in enumerate(zip(ps, ss)):
+                kk = _key(p)
+                ids.append(node(p, kk if kk in orig else (i, k)))
+            item_nodes[i] = (ps, ss, ids)
+            approach = member[i] != "bridge"
+            for k in range(len(ids) - 1):
+                a, b = ids[k], ids[k + 1]
+                if a == b:
+                    continue
+                d = max(ss[k + 1] - ss[k], 0.3)
+                nbr[a].append((b, 1.0 / d))
+                nbr[b].append((a, 1.0 / d))
+                if approach:
+                    W[a] += TARGET_W * d * 0.5
+                    W[b] += TARGET_W * d * 0.5
+        # The terrain is no guide near a bridge's end (the grid blurs the abutment): no pull
+        # onto it within BLUR_FREE of a bridge way, only the lower bound.
+        import heapq
+        near = [1e9] * len(X)
+        heap = []
+        for i in idx:
+            if member[i] == "bridge":
+                for k in item_nodes[i][2]:
+                    near[k] = 0.0
+                    heap.append((0.0, k))
+        heapq.heapify(heap)
+        while heap:
+            d, k = heapq.heappop(heap)
+            if d > near[k] or d > BLUR_FREE:
+                continue
+            for o, w in nbr[k]:
+                nd = d + 1.0 / w
+                if nd < near[o]:
+                    near[o] = nd
+                    heapq.heappush(heap, (nd, o))
+        for k in range(len(X)):
+            if near[k] <= BLUR_FREE:
+                W[k] = 0.0
+        # Lower bounds: water, clearance; targets: the surface model (R2) where it has the deck.
+        member_ids = {id(items[i]): i for i in idx}
+        sm = self.surface_model
+        for i in idx:
+            if sm is not None and member[i] == "bridge":
+                ps, ss, ids = item_nodes[i]
+                seen = sm.deck_level(ps, ss, (half_w or items[i].get("w", 4.0) * 0.5))
+                for s_obs, h_obs in seen:
+                    k = ids[min(range(len(ss)), key=lambda q: abs(ss[q] - s_obs))]
+                    TH[k] = h_obs - SURFACE_BASE   # the solver follows the measured deck there
+                    W[k] += TARGET_DECK
+        for i in idx:
+            ps, ss, ids = item_nodes[i]
+            for p, k in zip(ps, ids):
+                if self.water.hit(*p) >= 0:
+                    LB[k] = max(LB[k], TH[k] + CLEAR_WATER)
+            for c in cross[i]:
+                other = c["other"]
+                if id(other) in self.profiles:
+                    opts, ocum, oh = self.profiles[id(other)]
+                    lower = _interp(ocum, oh, project_onto(opts, ocum, c["x"], c["z"])[0])
+                    onode = None
+                elif id(other) in member_ids and family == "path":
+                    continue  # footbridges over footbridges (the science centre's roof ramps): left as mapped
+                elif id(other) in member_ids:
+                    lower = None
+                    ops, oss, oids = item_nodes[member_ids[id(other)]]
+                    onode = min(oids, key=lambda q: (X[q] - c["x"]) ** 2 + (Z[q] - c["z"]) ** 2)
+                else:
+                    lower = T.h(c["x"], c["z"])
+                    onode = None
+                for s, k in zip(ss, ids):
+                    if abs(s - c["s"]) <= c["reach"] + 0.01:
+                        if onode is not None:
+                            coupled[k].append((onode, c["clear"]))
+                        else:
+                            LB[k] = max(LB[k], lower + c["clear"])
+                            c.setdefault("nodes", []).append(k)
+                c["lower"] = lower
+        # Pins: where a member meets an ordinary way of its family; lone ends; not the rim.
+        for i in idx:
+            ps, ss, ids = item_nodes[i]
+            pts = pairs(items[i]["p"])
+            for q in pts:
+                k = node_of[_key(q)]
+                others = verts.get(_key(q), set()) - {i}
+                for o in others:
+                    if member[o]:
+                        continue
+                    if id(items[o]) in self.profiles:   # a way already on a deck: meet it there
+                        opts, ocum, oh = self.profiles[id(items[o])]
+                        PIN[k] = _interp(ocum, oh, project_onto(opts, ocum, q[0], q[1])[0])
+                    else:
+                        PIN[k] = T.h(*q)
+            for q in (pts[0], pts[-1]):
+                k = node_of[_key(q)]
+                others = verts.get(_key(q), set()) - {i}
+                rim = min(abs(q[0] - x0), abs(q[0] - x1), abs(q[1] - z0), abs(q[1] - z1)) < 0.5
+                stairs = family == "path" and any(math.dist(q, v) < 1.5 for v in self._stair_ends(q))
+                if not others and not rim and not stairs:
+                    PIN[k] = TH[k]
+        # Beside a road deck (footways, tram tracks): held to its height; the layer is the deck's.
+        if beside:
+            grid = Grid(32.0)
+            for q, pc in enumerate(beside):
+                xs = [p[0] for p in pc["pts"]]
+                zs = [p[1] for p in pc["pts"]]
+                grid.add(q, min(xs) - BESIDE_REACH - pc["l"], min(zs) - BESIDE_REACH - pc["l"],
+                         max(xs) + BESIDE_REACH + pc["r"], max(zs) + BESIDE_REACH + pc["r"])
+            for i in idx:
+                ps, ss, ids = item_nodes[i]
+                lys = {}
+                for p, k in zip(ps, ids):
+                    best = None
+                    for q in grid.at(*p):
+                        pc = beside[q]
+                        if member[i] == "bridge" and family != "tram" and pc["ly"] != (items[i].get("_ly") or 1):
+                            continue
+                        pr = project_onto(pc["pts"], pc["cum"], p[0], p[1])
+                        if pr is None or pr[0] <= 0.01 or pr[0] >= pc["cum"][-1] - 0.01:
+                            continue
+                        if abs(pr[1]) <= (pc["r"] if pr[1] > 0 else pc["l"]) + BESIDE_REACH and (best is None or pr[2] < best[0]):
+                            best = (pr[2], _interp(pc["cum"], pc["h"], pr[0]), pc["ly"])
+                    if best is not None:
+                        PIN[k] = best[1]
+                        lys[best[2]] = lys.get(best[2], 0) + 1
+                if lys:
+                    items[i]["_sly"] = max(lys, key=lys.get)
+        # A pin that is itself under a clearance (the ways meet right under a deck) can't move.
+        n_nodes = len(X)
+        H = self._relax(X, Z, TH, LB, PIN, W, nbr, coupled, item_nodes, member)
+
+        # R3: the clearance must hold within END_GRADE of every pin; where it can't, the
+        # way underneath dips (up to DIP_MAX, DIP_GRADE ramps), else the bake fails.
+        reach_up = self._pin_reach(PIN, nbr, n_nodes, STAIR_GRADE if family == "path" else END_GRADE)
+        bad = []
+        for i in idx:
+            for c in cross[i]:
+                for k in c.get("nodes", []):
+                    if LB[k] > reach_up[k] + 0.05:
+                        bad.append((LB[k] - reach_up[k], c, k))
+        if bad:
+            fixed = {}
+            fails = []
+            for need, c, k in sorted(bad, key=lambda b: -b[0]):
+                key = (id(c["other"]), round(c["x"]), round(c["z"]))
+                if key in fixed:
+                    continue
+                fixed[key] = True
+                over = next((items[i] for i in idx if k in item_nodes[i][2]), {})
+                what = (f"({c['x']:.0f}, {c['z']:.0f}): {family} {over.get('name') or over.get('k', '')} "
+                        f"[{member[next(i for i in idx if k in item_nodes[i][2])]}] over {c['kind']} "
+                        f"{c['other'].get('name') or c['other'].get('k', '')} needs {need:.1f} m more than "
+                        f"{(STAIR_GRADE if family == 'path' else END_GRADE) * 100:.0f} % from its pins allows")
+                if family in ("path", "tram"):
+                    # A footbridge in OpenStreetMap often ends schematically at a building or a
+                    # stair; its clearance is reported (check_roads C3), not dipped or failed.
+                    print(f"decks: warning: {'footbridge' if family == 'path' else 'tram'} clearance short at {what}")
+                    continue
+                if need > DIP_MAX:
+                    fails.append(what)
+                    continue
+                self.dips.append({"x": c["x"], "z": c["z"], "d": round(need + 0.1, 2), "other": c["other"],
+                                  "name": c["other"].get("name") or c["kind"], "over": family})
+            if fails:
+                raise SystemExit("bake_roads: R3 clearance cannot be met (more than a "
+                                 f"{DIP_MAX:.0f} m underpass dip):\n  " + "\n  ".join(fails))
+            for need, c, k in bad:
+                LB[k] = min(LB[k], reach_up[k])
+            H = self._relax(X, Z, TH, LB, PIN, W, nbr, coupled, item_nodes, member)
+        for i in idx:
+            ps, ss, ids = item_nodes[i]
+            hs = [max(H[k], T.h(*p)) for p, k in zip(ps, ids)]
+            self.profiles[id(items[i])] = (ps, ss, hs)
+        dbg = os.environ.get("NW_DECK_DEBUG")
+        if dbg:
+            dx, dz, dr = (float(v) for v in dbg.split(","))
+            print(f"debug {family}: {len(X)} nodes, {self.solve_sweeps} sweeps")
+            for i in idx:
+                ps, ss, ids = item_nodes[i]
+                if any(math.hypot(p[0] - dx, p[1] - dz) < dr for p in ps):
+                    it = items[i]
+                    print(f"  {family} {it.get('name') or it.get('k', '')} [{member[i]}] ly {it.get('_ly')} "
+                          f"({ps[0][0]:.0f},{ps[0][1]:.0f})->({ps[-1][0]:.0f},{ps[-1][1]:.0f})")
+                    print("     " + " ".join(f"{s:.0f}:{H[k]:.1f}/{TH[k]:.1f}/{LB[k]:.1f}{'P' if PIN[k] is not None else ''}"
+                                          for s, k in zip(ss, ids)))
+
+    def _stair_ends(self, p):
+        """The vertices of the mapped steps near a point (a footbridge's stairs)."""
+        if not hasattr(self, "_stairs"):
+            self._stairs = Grid(16.0)
+            for st in self.details.get("steps", []):
+                for v in pairs(st["p"]):
+                    self._stairs.add(v, v[0], v[1], v[0], v[1])
         out = []
-        for s, p in zip(cum, pts):
-            h = h0 + (h1 - h0) * (s / length if length > 0 else 0.0)
-            for cs, ch, half in cons:
-                h = max(h, ch - GRADE * max(0.0, abs(s - cs) - half))
-            if not rim0:
-                h = min(h, h0 + END_GRADE * s)
-            if not rim1:
-                h = min(h, h1 + END_GRADE * (length - s))
-            out.append(max(h, T.h(*p)))
+        for dx in (-16.0, 0.0, 16.0):
+            for dz in (-16.0, 0.0, 16.0):
+                out += self._stairs.at(p[0] + dx, p[1] + dz)
         return out
+
+    def _relax(self, X, Z, TH, LB, PIN, W, nbr, coupled, item_nodes, member):
+        """Projected successive over-relaxation of the profile energy."""
+        n = len(X)
+        H = [max(LB[k], TH[k]) if PIN[k] is None else PIN[k] for k in range(n)]
+        # A better start for the bridges: straight between their ends.
+        for i, (ps, ss, ids) in item_nodes.items():
+            if member[i] != "bridge" or len(ids) < 3:
+                continue
+            h0, h1 = H[ids[0]], H[ids[-1]]
+            for s, k in zip(ss, ids):
+                if PIN[k] is None:
+                    H[k] = max(H[k], h0 + (h1 - h0) * s / max(ss[-1], 1e-3))
+        free = [k for k in range(n) if PIN[k] is None]
+        for it in range(SOLVE_ITER):
+            worst = 0.0
+            for k in free:
+                num = W[k] * TH[k]
+                den = W[k]
+                for o, w in nbr[k]:
+                    num += H[o] * w
+                    den += w
+                if den <= 0:
+                    continue
+                target = num / den
+                h = H[k] + SOR_W * (target - H[k])
+                lb = LB[k]
+                for o, c in coupled[k]:
+                    lb = max(lb, H[o] + c)
+                if h < lb:
+                    h = lb
+                dh = abs(h - H[k])
+                if dh > worst:
+                    worst = dh
+                H[k] = h
+            if worst < SOLVE_TOL:
+                break
+        self.solve_sweeps = max(getattr(self, "solve_sweeps", 0), it + 1)
+        return H
+
+    def _pin_reach(self, PIN, nbr, n, grade):
+        """Per node, the highest it can be while staying within `grade` of every pin."""
+        import heapq
+        best = [1e9] * n
+        heap = []
+        for k in range(n):
+            if PIN[k] is not None:
+                best[k] = PIN[k]
+                heap.append((PIN[k], k))
+        heapq.heapify(heap)
+        while heap:
+            h, k = heapq.heappop(heap)
+            if h > best[k]:
+                continue
+            for o, w in nbr[k]:
+                nh = h + grade / w
+                if nh < best[o]:
+                    best[o] = nh
+                    heapq.heappush(heap, (nh, o))
+        return best
 
     def deck_height(self, g, x, z):
         """Height of deck group g at a point: the nearest of its pieces, projected."""
@@ -719,11 +1278,14 @@ class Roadbed:
                         best = (pr[2], _interp(pc["cum"], pc["h"], pr[0]))
         return best[1] if best else self.terrain.h(x, z)
 
-    def on_deck(self, x, z, pad=0.0):
-        """The deck group whose corridor holds the point, or -1 (the highest one)."""
+    def on_deck(self, x, z, pad=0.0, bridges_only=False):
+        """The deck group whose corridor holds the point, or -1 (the highest one).
+        `bridges_only` leaves out the approaches (loop 3a: structure ways not tagged bridge)."""
         best = (-1, -1e9)
         for k in self.piece_grid.at(x, z):
             pc = self.pieces[k]
+            if bridges_only and pc.get("a"):
+                continue
             pr = project_onto(pc["pts"], pc["cum"], x, z)
             if pr is None or pr[0] <= 0.01 or pr[0] >= pc["cum"][-1] - 0.01:
                 continue
@@ -1403,9 +1965,15 @@ class Roadbed:
         for k in self.kerbs:
             if k["dk"] < 0:
                 continue
-            pts = offset_line(pairs(k["p"]), 0.2)
-            if polyline_length(pts) >= 4.0:
-                out.append({"p": flat(pts), "dk": k["dk"]})
+            # Loop 3a: only where the kerb is on a bridge, not along an approach on the ground.
+            run = []
+            for p in resample(offset_line(pairs(k["p"]), 0.2), 2.0) + [None]:
+                if p is not None and self._on_bridge_piece(p[0], p[1], k["dk"]):
+                    run.append(p)
+                    continue
+                if len(run) >= 2 and polyline_length(run) >= 4.0:
+                    out.append({"p": flat(simplify(run, 0.05)), "dk": k["dk"]})
+                run = []
         mapped = []
         for w in self.ways.values():
             t = w.get("tags", {})
@@ -1425,6 +1993,17 @@ class Roadbed:
         self.guards = out
         print(f"roadbed: guard rails {len(out)} runs ({len(mapped)} mapped), "
               f"{sum(polyline_length(pairs(g['p'])) for g in out) / 1000:.2f} km")
+
+    def _on_bridge_piece(self, x, z, g):
+        """The point lies on (or within a metre of) a bridge piece of group g, not an approach."""
+        for k in self.piece_grid.at(x, z):
+            pc = self.pieces[k]
+            if pc["g"] != g or pc.get("a"):
+                continue
+            pr = project_onto(pc["pts"], pc["cum"], x, z)
+            if pr and 0.0 < pr[0] < pc["cum"][-1] and -pc["l"] - 1.0 <= pr[1] <= pc["r"] + 1.0:
+                return True
+        return False
 
     def bake_shore(self):
         """Where the car would roll into the water: the river's (and ponds') edges, not
@@ -1469,17 +2048,23 @@ class Roadbed:
                     if self.on_deck(x, z, 0.0) != pc["g"]:
                         bits |= bit
                 outer.append(bits)
-            pieces.append({"p": flat(pc["pts"]), "h": [round(h, 2) for h in pc["h"]], "l": round(pc["l"], 2),
-                           "r": round(pc["r"], 2), "g": pc["g"], "k": pc["kind"], "o": outer})
+            piece = {"p": flat(pc["pts"]), "h": [round(h, 2) for h in pc["h"]], "l": round(pc["l"], 2),
+                     "r": round(pc["r"], 2), "g": pc["g"], "k": pc["kind"], "o": outer}
+            pieces.append(piece)
         return {"pieces": pieces, "groups": self.groups}
 
     def set_corridors(self):
-        """Deck corridors from the measured road widths (a deck holds its road's strip)."""
-        for i, k in self.road_piece.items():
+        """Deck (and fill) corridors from the measured road widths (a deck holds its road's strip)."""
+        pits = [(pc["road"], pc) for pc in self.fills if pc.get("pit")]
+        for i, pc in list((i, self.pieces[k]) for i, k in self.road_piece.items()) + list(self.road_fill.items()) + pits:
             r = self.roads[i]
-            pc = self.pieces[k]
             pc["l"] = max(0.5, r["w"] * 0.5 - r["c"] + 0.4)
             pc["r"] = max(0.5, r["w"] * 0.5 + r["c"] + 0.4)
+
+    def fill_json(self):
+        """Loop 3a: the approaches, the ground corrected under their corridors."""
+        return [{"p": flat(pc["pts"]), "h": [round(h, 2) for h in pc["h"]], "l": round(pc["l"], 2),
+                 "r": round(pc["r"], 2), "k": pc["kind"]} for pc in self.fills]
 
 
 def _range(a, b, step):
@@ -1560,3 +2145,129 @@ def _near(pa, pb, reach):
         if pr and pr[2] < reach * reach:
             return True
     return False
+
+
+def _key(p):
+    return (round(p[0] * 2), round(p[1] * 2))
+
+
+def _cum(pts):
+    c = [0.0]
+    for a, b in zip(pts, pts[1:]):
+        c.append(c[-1] + math.dist(a, b))
+    return c
+
+
+def _stacked(pa, pb):
+    """One piece passes over the other (their lines cross more than 2.5 m apart in height)."""
+    for k in range(len(pa["pts"]) - 1):
+        for q in range(len(pb["pts"]) - 1):
+            hit = seg_cross(pa["pts"][k], pa["pts"][k + 1], pb["pts"][q], pb["pts"][q + 1])
+            if hit is None:
+                continue
+            ha = pa["h"][k] + (pa["h"][k + 1] - pa["h"][k]) * hit[0]
+            hb = pb["h"][q] + (pb["h"][q + 1] - pb["h"][q]) * hit[1]
+            if abs(ha - hb) > 2.5:
+                return True
+    return False
+
+
+class SurfaceModel:
+    """R2 hook (docs/DEMO.md 4.4): GUGiK's 0.5 m surface model (NMPT, `nmpt05/`) and 1 m
+    bare earth (NMT, `nmt1/`) for the bridge corridors, read from ESRI ASCII grids (.asc,
+    PL-1992 coordinates). `load` returns None until both are there; then
+    `deck_level(pts, cum, half)` gives the deck's true height every 2 m along a deck (the
+    30th percentile over the carriageway's width, cells with no structure or with trees
+    rejected) for the solver to follow, and `ground(x, z)` a robust ground value for pins
+    (the median of the 1 m NMT in a 6 m disc). Untested on real data: the files hadn't
+    arrived when loop 3a was built."""
+
+    def __init__(self, surface, ground):
+        self.surface = surface
+        self.ground_grid = ground
+
+    @staticmethod
+    def load(folder):
+        nmpt, nmt = os.path.join(folder, "nmpt05"), os.path.join(folder, "nmt1")
+        if not (os.path.isdir(nmpt) and os.path.isdir(nmt)):
+            return None
+        grids = []
+        for sub in (nmpt, nmt):
+            files = [os.path.join(sub, f) for f in sorted(os.listdir(sub)) if f.lower().endswith(".asc")]
+            if not files:
+                print(f"decks: data/raw/demo/gugik/{os.path.basename(sub)} has no ASCII grids (.asc; GeoTIFF is "
+                      f"not read yet): R2 skipped")
+                return None
+        if not os.path.exists(os.path.join(folder, "..", "MANIFEST.md")):
+            print("decks: the surface model is still being fetched (no data/raw/demo/MANIFEST.md): R2 skipped")
+            return None
+            grids.append([_AscGrid(f) for f in files])
+        print(f"decks: surface model {len(grids[0])} + {len(grids[1])} grids")
+        return SurfaceModel(grids[0], grids[1])
+
+    @staticmethod
+    def _sample(grids, x, z):
+        for g in grids:
+            h = g.at(x, z)
+            if h is not None:
+                return h
+        return None
+
+    def ground(self, x, z):
+        vals = [self._sample(self.ground_grid, x + dx, z + dz) for dx in range(-3, 4) for dz in range(-3, 4)
+                if dx * dx + dz * dz <= 9]
+        vals = sorted(v for v in vals if v is not None)
+        return vals[len(vals) // 2] if vals else None
+
+    def deck_level(self, pts, cum, half, trees=()):
+        out = []
+        s = 0.0
+        while s <= cum[-1]:
+            x, z = _at(pts, cum, s)
+            d = _unit(pts[0], pts[-1]) or (1.0, 0.0)
+            vals = []
+            o = -half
+            while o <= half:
+                px, pz = x - d[1] * o, z + d[0] * o
+                top = self._sample(self.surface, px, pz)
+                bare = self._sample(self.ground_grid, px, pz)
+                if top is not None and bare is not None and top - bare > 2.0 and not any(
+                        (px - tx) ** 2 + (pz - tz) ** 2 < tr * tr for tx, tz, tr in trees):
+                    vals.append(top)
+                o += 0.5
+            if len(vals) >= 3:
+                vals.sort()
+                out.append((s, vals[int(len(vals) * 0.3)]))
+            s += 2.0
+        return out
+
+
+class _AscGrid:
+    """One ESRI ASCII grid in PL-1992 (GUGiK: x = northing, y = easting), in map metres."""
+
+    def __init__(self, path):
+        import pl1992  # noqa: F401  (the grid's corner, to the map's frame)
+        head = {}
+        with open(path) as f:
+            for _ in range(6):
+                k, v = f.readline().split()
+                head[k.lower()] = float(v)
+            self.vals = [float(v) for line in f for v in line.split()]
+        self.nc, self.nr = int(head["ncols"]), int(head["nrows"])
+        self.cell = head["cellsize"]
+        self.east0 = head.get("xllcorner", head.get("xllcenter", 0.0))
+        self.north0 = head.get("yllcorner", head.get("yllcenter", 0.0))
+        self.nodata = head.get("nodata_value", -9999.0)
+
+    def at(self, x, z):
+        import bake_osm
+        import pl1992
+        lat = bake_osm.LAT0 - z / bake_osm.M_PER_DEG_LAT
+        lon = bake_osm.LON0 + x / bake_osm.M_PER_DEG_LON
+        north, east = pl1992.to_pl1992(lat, lon)
+        c = int((east - self.east0) / self.cell)
+        r = self.nr - 1 - int((north - self.north0) / self.cell)
+        if 0 <= c < self.nc and 0 <= r < self.nr:
+            v = self.vals[r * self.nc + c]
+            return None if v == self.nodata else v
+        return None

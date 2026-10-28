@@ -11,6 +11,9 @@
 #                                      2868x1320 is a 6.9" Pro Max)
 #   tools/shots.sh --out=DIR --tag=after   where, and a suffix on each name (before / after)
 #   tools/shots.sh --set=spawn_day -- --style=2 --quality=low   extra game flags for every shot
+#   tools/shots.sh --set=roads         the road spots in tools/road_spots.txt (loop 3a): frame 90,
+#                                      --no-traffic --fixed --size=70
+#   tools/shots.sh --game=DIR          render another copy of the game (a before copy)
 #
 # Prints one line per shot (the PNG's path, or MISSING with the log's last error).
 
@@ -39,6 +42,15 @@ SHOT[classic_controls]="--controls=classic --pedal=gas"
 CORE=(spawn_day spawn_night_prebuilt marszalkowska_day palace_day river_day river_night rondo_rain_night heli_day settings_panel)
 QUICK=(spawn_day spawn_night_prebuilt)
 
+# Loop 3a: the road spots (docs/DEMO.md 4.5), one per line of tools/road_spots.txt.
+ROADS=()
+while read -r rname rflags; do
+	[[ -z $rname || $rname == \#* ]] && continue
+	SHOT[$rname]="$rflags --no-traffic --fixed --size=70"
+	ROADS+=($rname)
+done < $ROOT/tools/road_spots.txt
+GAME=$ROOT/game
+
 set_names=($CORE)
 size=2532x1170
 out=""
@@ -48,6 +60,8 @@ while (( $# )); do
 	case $1 in
 		--set=core) set_names=($CORE) ;;
 		--set=quick) set_names=($QUICK) ;;
+		--set=roads) set_names=($ROADS); FRAME=90 ;;
+		--game=*) GAME=${1#--game=}; [[ $GAME == /* ]] || GAME=$ROOT/$GAME ;;
 		--set=*) set_names=(${(s:,:)${1#--set=}}) ;;
 		--size=*) size=${1#--size=} ;;
 		--out=*) out=${1#--out=} ;;
@@ -64,6 +78,7 @@ for n in $set_names; do
 done
 [[ $size == <->x<-> ]] || { print -r -- "--size must look like 2532x1170"; exit 2; }
 [[ -z $out ]] && out=$ROOT/shots/review_$(strftime %Y%m%d-%H%M%S $EPOCHSECONDS)
+[[ $out == /* ]] || out=$PWD/$out  # Godot runs in the game folder: the path must be absolute
 mkdir -p $out || exit 1
 (( $(pgrep -x Godot | wc -l) > 0 )) && print -r -- "note: another Godot is running; a bench beside this is disturbed"
 
@@ -71,7 +86,7 @@ for n in $set_names; do
 	tmp=$out/.tmp_$n
 	mkdir -p $tmp
 	# 900 s is a safety stop only (macOS has no `timeout`): a shot takes ~10-30 s.
-	( cd $ROOT/game && perl -e 'alarm shift; exec @ARGV or die "cannot run $ARGV[0]: $!\n"' 900 \
+	( cd $GAME && perl -e 'alarm shift; exec @ARGV or die "cannot run $ARGV[0]: $!\n"' 900 \
 		$GODOT --path . --resolution $size --fixed-fps 60 --quit-after $(( FRAME + 600 )) \
 		-- --nosave --free --shots=$FRAME --out=$tmp ${=SHOT[$n]} $extra ) > $tmp/log.txt 2>&1
 	png=$(printf '%s/shot_%04d.png' $tmp $FRAME)

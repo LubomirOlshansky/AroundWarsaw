@@ -252,8 +252,6 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - The tow goes to the nearest lane to where the car last stood on dry land; from the middle of
   a wide beach that can be a junction ~100-200 m inland (the check's worst case, from mid-river
   with no bank known, is 491 m).
-- The last ~2 m of Most Świętokrzyski's lanes at the map's rim (past the edge walls) are at the
-  water's level: traffic leaving the map there dips onto the river for a moment, out of reach.
 - A beach path's paving still draws past the stone into the water where OpenStreetMap maps it
   so; people now turn back a metre short of the water.
 - The helicopter's roof toast ("Land on open ground to take the car") is still English only;
@@ -267,3 +265,33 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - Windowed `--prebuilt --shots=` runs sometimes end with "8 ObjectDB instances were leaked at
   exit" / "4 resources still in use" (seen on the code before this loop too; not in headless
   runs).
+
+## From loop 3a (roads I: the check and the bake)
+- **R2 is waiting for its data.** `bake_roads.SurfaceModel` reads the 0.5 m surface model and the
+  1 m terrain as ASCII grids once `data/raw/demo/MANIFEST.md` exists; the corridors arriving in
+  `data/raw/demo/gugik/nmpt05/` and `nmt1/` are GeoTIFF, which it doesn't read yet (a small
+  stdlib TIFF reader, or a one-off conversion to .asc in the fetch). Untested on real data.
+- **Decks still too low where something stands under them** (C9 57, C5 50): the Jana Pawła II
+  viaduct's 48 mapped pillars (OSM buildings 4 m high) poke through its ramps, so the real
+  viaduct is level further out; the Poniatowski viaduct over Powiśle sits ~5 m over the streets
+  while the Arkada (7.6 m) and the LoD2 arcades under it are taller. Either the surface model
+  (R2) or mapped pillars as lower bounds in the solver; then loop 3b's building cut.
+- The approaches' sides where they stand above the 10 m grid are plain concrete faces (no
+  collider): loop 3b's retaining walls (R6). The sidewalks beside an approach stay on the grid,
+  so at an abutment's blur they sit lower than the road.
+- Tunnels are data only: not drawn, not driven, not on the minimap; their lane-graph edges stay
+  out of routing and traffic (`lane_graph.gd` `TUNNELS_DRIVEN`). The Wisłostrada trench at
+  (637, -554) is still a dead end for the car (marked: `tunnels.portals`). The tunnel on
+  Warecka (OSM `tunnel=yes`, 7 m under a building) may be a gate, not a tunnel.
+- Garage doors (`garages`, 27) are written but not drawn: the service way just ends at the ramp's
+  top. 21 minor service ways still have a steep bit of the 10 m grid (C1, allowed with one shared
+  reason, not looked at one by one); 5 pits at junctions too (the pit fill stops where another
+  way enters a road's corridor). Both want the 1 m terrain.
+- Footbridges mapped schematically keep short clearance (Centralna's access=no footbridge over a
+  covered aisle, the science centre's roof-garden ramps, one footbridge whose stairs don't touch
+  it); the WKD cutting by Centralna has no known depth (C3 allowlist).
+- check_roads' C10 knows Most Poniatowskiego's towers' colliders exactly; the other landmarks'
+  colliders are approximated by their outlines.
+- The runtime city build is ~0.5 s slower (7.3 → 7.8 s on the Mac): every draped vertex asks
+  `terrain_height`, which now looks the fills up; the prebuilt path doesn't build.
+- CLAUDE.md still says no add-on is installed: Debug Draw is (game/addons/debug_draw, CREDITS.md).

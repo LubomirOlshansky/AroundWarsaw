@@ -287,10 +287,10 @@ func _marker(colour: Color, radius: float) -> Node3D:
 	return root
 
 
-## The road surface at a point beside lane graph edge e: its bridge deck if it is a
-## bridge, else the ground (a street under a bridge stays on the ground).
+## The road surface at a point beside lane graph edge e: its own deck (loop 3a, R8: never
+## another deck over it) or the ground (a street under a bridge stays on the ground).
 func _road_y(p: Vector2, e: int) -> float:
-	return map.ground_height(p.x, p.y) if graph.e_bridge[e] == 1 else map.terrain_height(p.x, p.y)
+	return graph.surface(e, p)
 
 
 ## The district of the address nearest a point ("praga" across the river).

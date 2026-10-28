@@ -119,6 +119,18 @@ var _uv2 := Vector2.ZERO
 ## k (road, path, tram, rail), o (per point: 1 = left side outer, 2 = right side outer),
 ## box (bounds, for quick rejection).
 @export_storage var _decks: Array[Dictionary] = []
+## Loop 3a (R1): the approaches of the bridges (tools/bake_roads.py `fills`: abutments,
+## embankments, the ways onto a bridge where the 10 m terrain grid blurs the abutment into a
+## slope): pieces like the decks' (pts, cum, h, l, r) that correct the ground under their
+## corridor, so the road, its markings, the lanes and the car there sit on the solved
+## profile instead of the blur. `terrain_height` includes them; the ground mesh does not.
+@export_storage var _fills: Array[Dictionary] = []
+## Fill segments per FILL_CELL cell (cell key -> piece << 12 | segment), built on load.
+@export_storage var _fill_cells := {}
+const FILL_CELL := 16.0
+## Loop 3a (R4): tunnel pieces (tools/bake_roads.py `tunnels`): pts, h, g (one tunnel each).
+## Only their heights are used so far (the lane graph's tunnel edges); loop 3b builds them.
+@export_storage var _tunnels: Array[Dictionary] = []
 ## While a flat layer is built: the deck group it lies on (-1: the terrain).
 var _dk := -1
 var _has_lod2 := false
@@ -160,7 +172,9 @@ func build(path: String, building_mat: ShaderMaterial, flat_mat: ShaderMaterial)
 		_terrain = JSON.parse_string(FileAccess.get_file_as_string("res://map/terrain.json"))
 		_t_h = PackedFloat32Array(_terrain["h"])
 
+	_load_fills()
 	_load_decks()
+	_load_tunnels()
 	var flat := Chunked.new()
 	_build_ground(flat)
 	# Wide gaps between the depth biases: two layers that fit a slope with different
@@ -208,6 +222,7 @@ func build(path: String, building_mat: ShaderMaterial, flat_mat: ShaderMaterial)
 	_build_platforms(walls)
 	_build_barriers(walls)
 	_build_bridge_structures(walls)
+	_build_fill_sides(walls)
 	_build_guard_rails(walls)
 	_build_shore()
 	_add_mesh(walls, building_material, true)
@@ -337,6 +352,37 @@ func _set_floodlit(material: Material) -> void:
 # --- heights ------------------------------------------------------------------
 
 func terrain_height(x: float, z: float) -> float:
+	var h := _grid_height(x, z)
+	if _fill_cells.is_empty():
+		return h
+	var codes: PackedInt32Array = _fill_cells.get((floori(x / FILL_CELL) + 1024) * 4096 + floori(z / FILL_CELL) + 1024,
+			PackedInt32Array())
+	if codes.is_empty():
+		return h
+	# Loop 3a: inside an approach's corridor the ground is its profile (never lower).
+	var p := Vector2(x, z)
+	for code in codes:
+		var d: Dictionary = _fills[code >> 12]
+		var k := code & 4095
+		var pts: PackedVector2Array = d["pts"]
+		var a := pts[k]
+		var ab := pts[k + 1] - a
+		var l2 := ab.length_squared()
+		if l2 < 0.000001:
+			continue
+		var u := (p - a).dot(ab) / l2
+		if (u < 0.0 and k > 0) or (u > 1.0 and k < pts.size() - 2) or u < -0.05 or u > 1.05:
+			continue
+		var t := clampf(u, 0.0, 1.0)
+		var lat := ab.cross(p - a) / sqrt(l2)
+		if lat >= -float(d["l"]) and lat <= float(d["r"]):
+			var hs: PackedFloat32Array = d["h"]
+			h = maxf(h, lerpf(hs[k], hs[k + 1], t))
+	return h
+
+
+## The GUGiK terrain grid alone (the two triangles per cell `_build_ground` draws).
+func _grid_height(x: float, z: float) -> float:
 	if _t_h.is_empty():
 		return 0.0
 	var step := float(_terrain["step"])
@@ -588,6 +634,84 @@ func _load_decks() -> void:
 		_decks.append({"pts": pts, "cum": cum, "h": PackedFloat32Array(piece["h"]), "l": float(piece["l"]),
 				"r": float(piece["r"]), "g": int(piece["g"]), "k": String(piece["k"]),
 				"o": PackedByteArray(piece.get("o", [])), "box": box.grow(reach)})
+
+
+## Loop 3a (R1): the approaches' pieces and their cell index (`terrain_height` reads them).
+func _load_fills() -> void:
+	_fills.clear()
+	_fill_cells.clear()
+	for piece in data.get("fills", []):
+		var pts := _pts(piece["p"])
+		var i := _fills.size()
+		_fills.append({"pts": pts, "h": PackedFloat32Array(piece["h"]), "l": float(piece["l"]), "r": float(piece["r"])})
+		var reach := maxf(float(piece["l"]), float(piece["r"])) + 0.5
+		for k in pts.size() - 1:
+			var lo := pts[k].min(pts[k + 1]) - Vector2.ONE * reach
+			var hi := pts[k].max(pts[k + 1]) + Vector2.ONE * reach
+			for cz in range(floori(lo.y / FILL_CELL), floori(hi.y / FILL_CELL) + 1):
+				for cx in range(floori(lo.x / FILL_CELL), floori(hi.x / FILL_CELL) + 1):
+					var key := (cx + 1024) * 4096 + cz + 1024
+					var list: PackedInt32Array = _fill_cells.get(key, PackedInt32Array())
+					list.append((i << 12) | k)
+					_fill_cells[key] = list
+
+
+## Loop 3a: where an approach stands above the terrain grid (the grid's blur at an abutment),
+## a plain concrete face down each side of its corridor, so it doesn't float (loop 3b turns
+## these into proper retaining walls with the abutments).
+func _build_fill_sides(st) -> void:
+	_uv2 = Vector2(0.5, -1.0)
+	var concrete := Color("#b8b2a7").darkened(0.1)
+	for d in _fills:
+		var pts: PackedVector2Array = d["pts"]
+		var hs: PackedFloat32Array = d["h"]
+		for i in pts.size() - 1:
+			var a := pts[i]
+			var b := pts[i + 1]
+			var length := a.distance_to(b)
+			if length < 0.05:
+				continue
+			var right := Vector2(-(b - a).y, (b - a).x) / length
+			for side in [-1.0, 1.0]:
+				var off := float(d["r"]) if side > 0.0 else float(d["l"])
+				var p0: Vector2 = a + right * side * off
+				var p1: Vector2 = b + right * side * off
+				var g0 := _grid_height(p0.x, p0.y)
+				var g1 := _grid_height(p1.x, p1.y)
+				if hs[i] - g0 < 0.35 and hs[i + 1] - g1 < 0.35:
+					continue
+				var n := Vector3(right.x * side, 0.0, right.y * side)
+				_quad(st, Vector3(p0.x, minf(g0, hs[i]) - 0.3, p0.y), Vector3(p1.x, minf(g1, hs[i + 1]) - 0.3, p1.y),
+						Vector3(p1.x, hs[i + 1] - 0.02, p1.y), Vector3(p0.x, hs[i] - 0.02, p0.y), n, concrete)
+	_uv2 = Vector2.ZERO
+
+
+## Loop 3a (R4): the tunnel pieces, for their heights (`tunnel_height`).
+func _load_tunnels() -> void:
+	_tunnels.clear()
+	for piece in data.get("tunnels", {}).get("pieces", []):
+		var pts := _pts(piece["p"])
+		var cum := PackedFloat32Array([0.0])
+		for k in range(1, pts.size()):
+			cum.append(cum[k - 1] + pts[k].distance_to(pts[k - 1]))
+		_tunnels.append({"pts": pts, "cum": cum, "h": PackedFloat32Array(piece["h"]), "l": float(piece["l"]),
+				"r": float(piece["r"]), "g": int(piece["g"])})
+
+
+## Loop 3a (R4): the height of tunnel t at a point (its nearest piece, projected), or the
+## terrain if there is no such tunnel. The lane graph's tunnel edges use it (once per edge).
+func tunnel_height(t: int, x: float, z: float) -> float:
+	var p := Vector2(x, z)
+	var best := INF
+	var h := terrain_height(x, z)
+	for d in _tunnels:
+		if int(d["g"]) != t:
+			continue
+		var hit := _deck_hit(d, p)
+		if hit.y < best:
+			best = hit.y
+			h = hit.x
+	return h
 
 
 ## The highest roof over the grid cell holding a point, or NO_ROOF in the open.

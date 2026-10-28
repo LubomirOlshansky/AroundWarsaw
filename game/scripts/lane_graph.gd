@@ -11,6 +11,10 @@ extends RefCounted
 const CELL := 64.0
 ## Heights along an edge are sampled this far apart (the terrain grid is 10 m).
 const HEIGHT_STEP := 8.0
+## Loop 3a (R4): tunnel edges are in the data with their heights, but nothing drives,
+## routes, spawns or snaps on them until loop 3b builds the tunnels (the car can't follow
+## underground yet); they stay out of the adjacency and the spatial grid.
+const TUNNELS_DRIVEN := false
 ## Light states.
 const GREEN := 0
 const AMBER := 1
@@ -45,6 +49,11 @@ var e_speed := PackedFloat32Array()
 ## 0 primary/secondary, 1 tertiary and links, 2 residential, 3 living street.
 var e_class := PackedInt32Array()
 var e_bridge := PackedByteArray()
+## Loop 3a (R8): the deck group (tools/bake_roads.py) or the tunnel each edge lies on, -1 for
+## the ground; its lanes take their heights from that piece only (never "the highest deck
+## over the point", which is wrong where structures stack).
+var e_dk := PackedInt32Array()
+var e_tn := PackedInt32Array()
 var e_name := PackedStringArray()
 ## The same road the other way (for U-turns at dead ends), or -1.
 var e_reverse := PackedInt32Array()
@@ -103,8 +112,11 @@ func _init(graph: Dictionary, map: Node3D) -> void:
 		var b := int(e["b"])
 		e_a.append(a)
 		e_b.append(b)
-		node_out[a].append(i)
-		node_in[b].append(i)
+		e_dk.append(int(e.get("dk", -1)))
+		e_tn.append(int(e.get("tn", -1)))
+		if TUNNELS_DRIVEN or e_tn[i] < 0:
+			node_out[a].append(i)
+			node_in[b].append(i)
 		var p: Array = e["p"]
 		e_first.append(pts.size())
 		e_count.append(p.size() / 2)
@@ -202,6 +214,8 @@ func _seg_dir(i: int) -> Vector2:
 
 func _build_grid() -> void:
 	for e in e_a.size():
+		if e_tn[e] >= 0 and not TUNNELS_DRIVEN:
+			continue
 		var seen := {}
 		var i0 := e_first[e]
 		for k in e_count[e] - 1:
@@ -275,30 +289,43 @@ func project(e: int, p: Vector2) -> float:
 	return best
 
 
-## The road surface under the centreline at s (bridge decks included).
+## The road surface under the centreline at s (bridge decks included). Loop 3a: the last
+## knot sits at the edge's end (it used to be taken as if 8 m on, so edges meeting at a
+## node on a slope disagreed by a few tenths of a metre).
 func height(e: int, s: float) -> float:
 	var h := _heights[e]
 	if h.is_empty():
 		h = _sample_heights(e)
-	var f := clampf(s / HEIGHT_STEP, 0.0, h.size() - 1.0001)
-	var k := int(f)
-	return lerpf(h[k], h[k + 1], f - k)
+	var k := clampi(int(s / HEIGHT_STEP), 0, h.size() - 2)
+	var s0 := k * HEIGHT_STEP
+	var seg := minf(HEIGHT_STEP, e_len[e] - s0)
+	return lerpf(h[k], h[k + 1], clampf((s - s0) / seg, 0.0, 1.0) if seg > 0.001 else 0.0)
 
 
-## Sampled the first time a car uses the edge. Only bridge edges ask for the deck
-## (ground_height loops over every bridge); a road under a bridge stays on the terrain.
+## Sampled the first time a car uses the edge. Loop 3a (R8): from the edge's own deck
+## or tunnel (a road under a bridge stays on the terrain, a lane on a stacked deck on its own).
 func _sample_heights(e: int) -> PackedFloat32Array:
 	var h := PackedFloat32Array()
-	var n := maxi(2, ceili(e_len[e] / HEIGHT_STEP) + 2)
+	var n := maxi(2, ceili(e_len[e] / HEIGHT_STEP - 0.001) + 1)
 	h.resize(n)
 	var i := e_first[e]
 	for k in n:
 		var s := minf(k * HEIGHT_STEP, e_len[e])
 		i = seek(e, s, i)
 		var p := point(e, s, 0.0, i)
-		h[k] = _map.ground_height(p.x, p.y) if e_bridge[e] == 1 else _map.terrain_height(p.x, p.y)
+		h[k] = surface(e, p)
 	_heights[e] = h
 	return h
+
+
+## Loop 3a (R8): the road surface of edge e at a point beside it: its tunnel, its deck or
+## the terrain.
+func surface(e: int, p: Vector2) -> float:
+	if e_tn[e] >= 0:
+		return _map.tunnel_height(e_tn[e], p.x, p.y)
+	if e_dk[e] >= 0:
+		return _map.deck_height(e_dk[e], p.x, p.y)
+	return _map.terrain_height(p.x, p.y)
 
 
 ## The lane point nearest to p within `reach` metres among edges whose direction

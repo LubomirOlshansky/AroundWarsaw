@@ -113,9 +113,10 @@ Installed only with the user's approval, one at a time, free only. Prefer GDScri
 add-ons under MIT or CC0; a native GDExtension needs iOS binaries (most don't ship them), so
 check it on the phone before relying on it. Each goes in `game/addons/<name>/` with its
 licence file kept, gets a CREDITS.md line (name, author, licence, URL, version), and must keep
-the performance budgets. **Approved by the user (2026-10-28), none installed yet:** Debug Draw
-(HardPixel) at the start of the road/overpass loop; Dialogue Manager (Nathan Hoad), Phantom
-Camera (Ramokz) and beehave (bitbrain) at the start of the police loop. Still need their own
+the performance budgets. **Installed:** Debug Draw (HardPixel, v1.1.0, loop 3a; GDScript only,
+loaded only with `--debug-roads`). **Approved by the user (2026-10-28), not installed yet:**
+Phantom Camera (Ramokz; the camera loop is adding it), Dialogue Manager (Nathan Hoad) and
+beehave (bitbrain) at the start of the police loop. Still need their own
 yes: Folder Import Rules, Lente photo mode, the In-app Review and Share plugins.
 
 ## Commands

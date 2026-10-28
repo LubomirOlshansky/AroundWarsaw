@@ -25,6 +25,9 @@ game_*/
 # Session handoff notes (device IDs, local paths): local only
 .handoff/
 
+# Claude Code agents' isolated git worktrees (each on its own branch; merged, never added)
+.claude/worktrees/
+
 # Never commit keys: MCP server keys (PixelLab and others) stay in the user's Claude Code
 # config, never in a project .mcp.json
 .mcp.json

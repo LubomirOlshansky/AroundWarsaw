@@ -29,6 +29,13 @@ better at the default view on a 1170-line phone.
   pixel-scale, nearest-filtered.
 - Walls between the camera and the car become the thin dithered **occlusion ghost**; the
   street seen through it keeps its own brightness.
+- Inside the ghost nothing glows: ghosted windows and signs go dark, and the inner faces of
+  a cut building are unlit, a step darker than the street. In the ghost's core the car is
+  the brightest thing.
+- Every building face wider than a few metres has its window grid; no blank slabs.
+- **Pixel size on phones (the user, 2026-10-28):** keep today's smoother look (Sharp scales
+  by 2 whole pixels on both iPhones: 585 / 660 lines). A stronger retro / pixel vibe is a
+  later loop of its own, not part of any other loop.
 
 ## Light and colour
 
@@ -42,6 +49,36 @@ better at the default view on a 1170-line phone.
 - Neon: pink `#ff1a8c`, cyan `#1ae6ff`, violet `#9e40ff`; word colours for pharmacy green,
   exchange amber, hotel red. Street lamps: warm sodium, cold white LED in parks.
 - The river is a slow lowland river: low contrast, few small glints, never an open sea.
+- **Value ladder at night**, brightest first: lamp heads and neon > lit windows > lit ground
+  > the player's car > roads > roofs and walls > water. A lamp pool's brightest pixel stays
+  under ~80 % of a lit window's luma on every surface, pale paving included. Test: no 24-px
+  area of ground is brighter than the lit windows in the same shot.
+- **Lamp pools are pixel light**: 3–4 hard bands with a 1-px dither between them, never a
+  smooth radial gradient. Sodium on grass reads warm olive, never chartreuse.
+- **Day chroma** (the user agreed, 2026-10-28): the ground (grass, paving, bike lanes, water,
+  sand) is quieter than what you drive or tap; the player's car, job beacons and police are
+  the most saturated things in their neighbourhood. Bike lanes are Warsaw brick red, not
+  coral. The overcast rain-day look is the guide.
+- **The river by day** is low in chroma (grey-green-blue), never brighter than its banks,
+  with few 1–2 px glints. Sandbars have smooth outlines, no slivers, and a darker wet rim.
+- **Banks**: granite or concrete only where the bank is built (the Bulwary, embankments);
+  natural banks get a wet-sand band and a 1-px foam line, no wall.
+- **Trees** (the user agreed): crowns about 3/4 of the scanned size within ~12 m of a road
+  (real size in parks), lumpy 2–3-blob crowns with a two-tone pixel dapple, autumn colours
+  towards rust and olive (pure orange is the jobs' colour).
+
+## Reserved colours
+
+| Who | Colour | Nobody else uses |
+| --- | --- | --- |
+| The player's car (the user chose: keep it red) | red-orange body, white roof stripes | saturated red or orange on traffic |
+| Jobs | orange beacon, teal | saturated orange on trees, signs, ground |
+| Police | blue and red light bars | |
+| Collectibles | gold | |
+| The marker over the car | HUD yellow `#ffd23f` | |
+
+- **The player's car at night** is never darker than the road under it (luma at least +30
+  over the road's), with tail-light pixels and a headlight cone.
 
 ## Text and HUD
 
@@ -52,6 +89,12 @@ better at the default view on a 1170-line phone.
 - Phone sizes: touch targets at least 44 pt, text at least ~11 pt, sized in points (the
   settings panel does this; the rest of the HUD is still in 720-line units, a known gap).
 - Labels, bubbles and cards keep clear of each other and of the controls.
+- **One card recipe** for every HUD surface (top bar, job card, toasts, bubbles, buttons):
+  ≥ 90 % opaque near-black violet, ink `#fbf7ee`, sub-text `#c9c2d8`, yellow accent; pink
+  only as the radio's edge. No surface takes its colour from the world behind it. Buttons
+  sit on a plate (BRAKE and GAS in one family). The minimap follows the time of day.
+- Polish above English everywhere, the title's call to action included. Developer toggles
+  live in Settings, not on the driving screen.
 
 ## 2D art (portraits, icons, signs, posters, UI)
 
