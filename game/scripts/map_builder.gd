@@ -127,12 +127,23 @@ var _uv2 := Vector2.ZERO
 @export_storage var _fills: Array[Dictionary] = []
 ## Fill segments per FILL_CELL cell (cell key -> piece << 12 | segment), built on load.
 @export_storage var _fill_cells := {}
+## Loop 3b: the aprons (tools/bake_structures.py `aprons`: where a deck's or tunnel's end meets
+## the ground, the ground blends from the end's flat height to the terrain): per apron x0, z0,
+## the unit direction, the length, the end's height, left and right reach, the inside part's
+## length; and per cell.
+@export_storage var _aprons: Array[PackedFloat32Array] = []
+## An apron (of a map baked without `i`) starts this far inside the structure's end (the ground
+## held under it there).
+const APRON_IN := 4.0
+@export_storage var _apron_cells := {}
 const FILL_CELL := 16.0
 ## Loop 3a (R4): tunnel pieces (tools/bake_roads.py `tunnels`): pts, h, g (one tunnel each).
 ## Only their heights are used so far (the lane graph's tunnel edges); loop 3b builds them.
 @export_storage var _tunnels: Array[Dictionary] = []
 ## While a flat layer is built: the deck group it lies on (-1: the terrain).
 var _dk := -1
+## Loop 3b: ...or the tunnel it lies in (-1: none).
+var _tn := -1
 var _has_lod2 := false
 ## Building tops on a grid of ROOF_CELL squares (NO_ROOF in the open), so the
 ## helicopter can treat buildings as solid without a physics query per frame.
@@ -173,6 +184,7 @@ func build(path: String, building_mat: ShaderMaterial, flat_mat: ShaderMaterial)
 		_t_h = PackedFloat32Array(_terrain["h"])
 
 	_load_fills()
+	_load_aprons()
 	_load_decks()
 	_load_tunnels()
 	var flat := Chunked.new()
@@ -190,6 +202,7 @@ func build(path: String, building_mat: ShaderMaterial, flat_mat: ShaderMaterial)
 	_build_rail_beds(flat)
 	_drape_bias = 0.3
 	_build_roads(flat)
+	_build_tunnel_roads(flat)
 	_build_carriageways(flat)
 	_drape_bias = 0.34
 	_build_islands(flat)
@@ -222,7 +235,9 @@ func build(path: String, building_mat: ShaderMaterial, flat_mat: ShaderMaterial)
 	_build_platforms(walls)
 	_build_barriers(walls)
 	_build_bridge_structures(walls)
-	_build_fill_sides(walls)
+	_build_walls(walls)
+	_build_portals(walls)
+	_build_garage_doors(walls)
 	_build_guard_rails(walls)
 	_build_shore()
 	_add_mesh(walls, building_material, true)
@@ -352,6 +367,26 @@ func _set_floodlit(material: Material) -> void:
 # --- heights ------------------------------------------------------------------
 
 func terrain_height(x: float, z: float) -> float:
+	var h := _fill_height(x, z)
+	if _apron_cells.is_empty():
+		return h
+	# Loop 3b: an apron where a structure's end meets the ground: under its last APRON_IN metres
+	# the ground is held under the end's height, then it blends from that height (flat across,
+	# as the deck or tunnel is) to the terrain.
+	var list: PackedInt32Array = _apron_cells.get((floori(x / FILL_CELL) + 1024) * 4096 + floori(z / FILL_CELL) + 1024,
+			PackedInt32Array())
+	for k in list:
+		var a: PackedFloat32Array = _aprons[k]
+		var along := (x - a[0]) * a[2] + (z - a[1]) * a[3]
+		var lat := (z - a[1]) * a[2] - (x - a[0]) * a[3]
+		if along >= 0.0 and along <= a[4] and lat >= -a[6] and lat <= a[7]:
+			h = minf(h, a[5]) if along < a[8] else lerpf(a[5], h, (along - a[8]) / (a[4] - a[8]))
+	return h
+
+
+## The grid raised to any approach whose corridor holds the point (terrain_height before the
+## aprons).
+func _fill_height(x: float, z: float) -> float:
 	var h := _grid_height(x, z)
 	if _fill_cells.is_empty():
 		return h
@@ -420,7 +455,45 @@ func drive_height(x: float, z: float, near_y: float) -> float:
 	for d in _decks_at(x, z):
 		if d <= near_y + 1.2 and d > best:
 			best = d
+	# Loop 3b: in a tunnel's corridor, a vehicle down at its floor drives the floor.
+	var t := tunnel_floor(x, z, near_y)
+	if not is_nan(t):
+		return t
 	return best
+
+
+## Loop 3b: the floor of the tunnel whose corridor holds (x, z), for a vehicle at height
+## near_y that is at it (within 1.2 m); NAN otherwise (on the street over a tunnel, the
+## street; at the portal the floor meets the open road's height).
+func tunnel_floor(x: float, z: float, near_y: float) -> float:
+	if _tunnels.is_empty():
+		return NAN
+	var p := Vector2(x, z)
+	for d in _tunnels:
+		if not (d["box"] as Rect2).has_point(p):
+			continue
+		var hit := _deck_hit(d, p)
+		if hit.z > 0.0 and near_y <= hit.x + 1.2 and near_y >= hit.x - 1.2:
+			return hit.x
+	return NAN
+
+
+## Loop 3b: the floor of a tunnel whose corridor holds (x, z), whatever the height (NAN when
+## none): main.gd's --tunnel start.
+func tunnel_floor_under(x: float, z: float) -> float:
+	for d in _tunnels:
+		if (d["box"] as Rect2).has_point(Vector2(x, z)):
+			var hit := _deck_hit(d, Vector2(x, z))
+			if hit.z > 0.0:
+				return hit.x
+	return NAN
+
+
+## Loop 3b: a vehicle at (x, y, z) is inside a tunnel (on its floor, more than 2 m under the
+## ground): main.gd shows the car through the ground then (its x-ray).
+func in_tunnel(x: float, z: float, y: float) -> bool:
+	var t := tunnel_floor(x, z, y)
+	return not is_nan(t) and terrain_height(x, z) - t > 2.0
 
 
 ## Loop 10a: how far into the water (river, pond or fountain) a point lies, in metres from
@@ -656,9 +729,160 @@ func _load_fills() -> void:
 					_fill_cells[key] = list
 
 
+## Loop 3b (R6): retaining walls where an approach (a fill) stands above the ground beside it
+## (tools/bake_structures.py `walls`): a stone face (roads; concrete under tracks) from the
+## ground outside to the fill's top, a light coping, and on roads where the drop is a metre or
+## more a parapet with its inner face; solid where the bake says so (not where a way joins the
+## approach). Into the walls' tile meshes, like the slabs. The same runs line the tunnels
+## (kind "tunnel": dark, from the floor up, solid only inside) and their open ramps (kind
+## "concrete", facing the road in its trench). Loop 3a drew plain faces
+## (`_build_fill_sides`, still used for a map baked without `walls`).
+const WALL_STONE := Color("#a69d8f")
+const WALL_CONCRETE := Color("#a59f95")
+const WALL_COPING := Color("#c9c4b8")
+const WALL_TUNNEL := Color("#6e6a63")
+const WALL_PARAPET := 0.9
+
+
+func _build_walls(st) -> void:
+	if not data.has("walls"):
+		_build_fill_sides(st)
+		return
+	_uv2 = Vector2(0.5, -1.0)
+	for w: Dictionary in data["walls"]:
+		var pts := _pts(w["p"])
+		var tops: Array = w["t"]
+		var lows: Array = w["b"]
+		var flags: Array = w["f"]
+		var tunnel: bool = w["k"] == "tunnel"
+		var face := WALL_STONE if w["k"] == "stone" else (WALL_TUNNEL if tunnel else WALL_CONCRETE)
+		for i in pts.size() - 1:
+			var a := pts[i]
+			var b := pts[i + 1]
+			var length := a.distance_to(b)
+			if length < 0.05:
+				continue
+			var dir := (b - a) / length
+			var out := Vector2(-dir.y, dir.x)
+			var n := Vector3(out.x, 0.0, out.y)
+			var flag := int(flags[i])
+			var ta := float(tops[i]) - (0.2 if tunnel else 0.0)
+			var tb := float(tops[i + 1]) - (0.2 if tunnel else 0.0)
+			var lift := WALL_PARAPET if flag & 2 else 0.0
+			# Blocks: every other stretch a shade lighter, so a long wall reads as masonry.
+			var col := face.lightened(0.04) if i % 2 == 0 else face.darkened(0.03)
+			_quad(st, Vector3(a.x, float(lows[i]) - 0.3, a.y), Vector3(b.x, float(lows[i + 1]) - 0.3, b.y),
+					Vector3(b.x, tb + lift, b.y), Vector3(a.x, ta + lift, a.y), n, col)
+			# The coping (and the parapet's top), WALL_OUT wide back to the fill's corridor.
+			var ai := a - out * 0.3
+			var bi := b - out * 0.3
+			if not tunnel:
+				_quad(st, Vector3(a.x, ta + lift, a.y), Vector3(b.x, tb + lift, b.y), Vector3(bi.x, tb + lift, bi.y),
+						Vector3(ai.x, ta + lift, ai.y), Vector3.UP, WALL_COPING)
+			if lift > 0.0:
+				_quad(st, Vector3(ai.x, ta - 0.05, ai.y), Vector3(bi.x, tb - 0.05, bi.y), Vector3(bi.x, tb + lift, bi.y),
+						Vector3(ai.x, ta + lift, ai.y), -n, face.lightened(0.08))
+			if flag & 4:
+				# Inside a tunnel: solid from its floor to over a bus, not up to the street above.
+				var fa := float(lows[i])
+				var fb := float(lows[i + 1])
+				_wall_faces.append_array([Vector3(a.x, fa - 1.0, a.y), Vector3(b.x, fb - 1.0, b.y), Vector3(b.x, fb + 4.5, b.y),
+						Vector3(a.x, fa - 1.0, a.y), Vector3(b.x, fb + 4.5, b.y), Vector3(a.x, fa + 4.5, a.y)])
+			elif flag & 1:
+				var y0a := float(lows[i]) - 1.0
+				var y0b := float(lows[i + 1]) - 1.0
+				_wall_faces.append_array([Vector3(a.x, y0a, a.y), Vector3(b.x, y0b, b.y), Vector3(b.x, tb + 1.6, b.y),
+						Vector3(a.x, y0a, a.y), Vector3(b.x, tb + 1.6, b.y), Vector3(a.x, ta + 1.6, a.y)])
+	_uv2 = Vector2.ZERO
+
+
+## Loop 3b: a frame at each tunnel portal (`tunnels.frames`, tools/bake_structures.py): a
+## concrete headwall over the mouth up to the ground above it, two posts and a dark mouth a
+## little inside (the tunnel's road and walls show in it); the headwall and posts are solid.
+const PORTAL_CONCRETE := Color("#b3ada3")
+const PORTAL_DARK := Color("#1f1d22")
+const PORTAL_MOUTH := 4.8
+
+
+func _build_portals(st) -> void:
+	_uv2 = Vector2(0.5, -1.0)
+	for f: Dictionary in data.get("tunnels", {}).get("frames", []):
+		var c := Vector2(float(f["c"][0]), float(f["c"][1]))
+		var d := Vector2(float(f["d"][0]), float(f["d"][1]))
+		var side := Vector2(-d.y, d.x)
+		var w := float(f["w"])
+		var y := float(f["y"])
+		var top := maxf(float(f["top"]), y + PORTAL_MOUTH + 0.8) + 0.6
+		var basis := Basis(Vector3.UP, atan2(-d.x, -d.y))
+		var head := c + d * 0.5
+		# The headwall over the mouth, the posts either side, the mouth's dark back.
+		_box_oriented(st, Vector3(head.x, (y + PORTAL_MOUTH + top) * 0.5, head.y), basis,
+				Vector3(w + 2.4, top - y - PORTAL_MOUTH, 1.0), PORTAL_CONCRETE)
+		for sgn in [-1.0, 1.0]:
+			var p: Vector2 = head + side * sgn * (w * 0.5 + 0.6)
+			_box_oriented(st, Vector3(p.x, (y - 0.5 + y + PORTAL_MOUTH) * 0.5, p.y), basis,
+					Vector3(1.2, PORTAL_MOUTH + 0.5, 1.0), PORTAL_CONCRETE.darkened(0.06))
+		var back := c + d * 3.0
+		var l0 := back - side * w * 0.5
+		var r0 := back + side * w * 0.5
+		_quad(st, Vector3(l0.x, y - 0.2, l0.y), Vector3(r0.x, y - 0.2, r0.y), Vector3(r0.x, y + PORTAL_MOUTH, r0.y),
+				Vector3(l0.x, y + PORTAL_MOUTH, l0.y), Vector3(-d.x, 0.0, -d.y), PORTAL_DARK)
+		# The headwall's front face is solid (the street above can't drive off into the ramp).
+		var a := head - d * 0.5 - side * (w * 0.5 + 1.2)
+		var b := head - d * 0.5 + side * (w * 0.5 + 1.2)
+		_wall_faces.append_array([Vector3(a.x, y + PORTAL_MOUTH, a.y), Vector3(b.x, y + PORTAL_MOUTH, b.y), Vector3(b.x, top + 1.6, b.y),
+				Vector3(a.x, y + PORTAL_MOUTH, a.y), Vector3(b.x, top + 1.6, b.y), Vector3(a.x, top + 1.6, a.y)])
+	_uv2 = Vector2.ZERO
+
+
+## Loop 3b: a garage door at each ramp top where R9 ended a service way (`garage_doors`): a
+## concrete frame and a grey roller shutter across the way, solid.
+func _build_garage_doors(st) -> void:
+	_uv2 = Vector2(0.5, -1.0)
+	for g: Dictionary in data.get("garage_doors", []):
+		var c := Vector2(float(g["c"][0]), float(g["c"][1]))
+		var d := Vector2(float(g["d"][0]), float(g["d"][1])).normalized()
+		var side := Vector2(-d.y, d.x)
+		var w := float(g["w"])
+		var y := float(g["y"])
+		var basis := Basis(Vector3.UP, atan2(-d.x, -d.y))
+		var at := c + d * 0.6
+		_box_oriented(st, Vector3(at.x, y + 1.2, at.y), basis, Vector3(w, 2.4, 0.15), Color("#8e9196"))
+		_box_oriented(st, Vector3(at.x, y + 2.65, at.y), basis, Vector3(w + 0.8, 0.5, 0.4), PORTAL_CONCRETE)
+		for sgn in [-1.0, 1.0]:
+			var p: Vector2 = at + side * sgn * (w * 0.5 + 0.2)
+			_box_oriented(st, Vector3(p.x, y + 1.2, p.y), basis, Vector3(0.4, 2.4, 0.4), PORTAL_CONCRETE)
+		var a := at - side * (w * 0.5 + 0.4)
+		var b := at + side * (w * 0.5 + 0.4)
+		_wall_faces.append_array([Vector3(a.x, y - 0.5, a.y), Vector3(b.x, y - 0.5, b.y), Vector3(b.x, y + 2.9, b.y),
+				Vector3(a.x, y - 0.5, a.y), Vector3(b.x, y + 2.9, b.y), Vector3(a.x, y + 2.9, a.y)])
+	_uv2 = Vector2.ZERO
+
+
+## Loop 3b: the aprons and their cell index (`terrain_height` reads them).
+func _load_aprons() -> void:
+	_aprons.clear()
+	_apron_cells.clear()
+	for a in data.get("aprons", []):
+		var p: Array = a["p"]
+		var d := Vector2(float(p[2]) - float(p[0]), float(p[3]) - float(p[1]))
+		var length := maxf(d.length(), 0.01)
+		d /= length
+		var k := _aprons.size()
+		_aprons.append(PackedFloat32Array([float(p[0]), float(p[1]), d.x, d.y, length, float(a["h"]), float(a["l"]),
+				float(a["r"]), float(a.get("i", APRON_IN))]))
+		var reach := maxf(float(a["l"]), float(a["r"])) + length
+		for cz in range(floori((float(p[1]) - reach) / FILL_CELL), floori((float(p[1]) + reach) / FILL_CELL) + 1):
+			for cx in range(floori((float(p[0]) - reach) / FILL_CELL), floori((float(p[0]) + reach) / FILL_CELL) + 1):
+				var key := (cx + 1024) * 4096 + cz + 1024
+				var list: PackedInt32Array = _apron_cells.get(key, PackedInt32Array())
+				list.append(k)
+				_apron_cells[key] = list
+
+
 ## Loop 3a: where an approach stands above the terrain grid (the grid's blur at an abutment),
-## a plain concrete face down each side of its corridor, so it doesn't float (loop 3b turns
-## these into proper retaining walls with the abutments).
+## a plain concrete face down each side of its corridor, so it doesn't float (a map baked
+## before loop 3b; `_build_walls` draws the retaining walls instead).
 func _build_fill_sides(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
 	var concrete := Color("#b8b2a7").darkened(0.1)
@@ -694,8 +918,11 @@ func _load_tunnels() -> void:
 		var cum := PackedFloat32Array([0.0])
 		for k in range(1, pts.size()):
 			cum.append(cum[k - 1] + pts[k].distance_to(pts[k - 1]))
+		var box := Rect2(pts[0], Vector2.ZERO)
+		for q in pts:
+			box = box.expand(q)
 		_tunnels.append({"pts": pts, "cum": cum, "h": PackedFloat32Array(piece["h"]), "l": float(piece["l"]),
-				"r": float(piece["r"]), "g": int(piece["g"])})
+				"r": float(piece["r"]), "g": int(piece["g"]), "box": box.grow(maxf(float(piece["l"]), float(piece["r"])) + 1.0)})
 
 
 ## Loop 3a (R4): the height of tunnel t at a point (its nearest piece, projected), or the
@@ -830,6 +1057,8 @@ func _roof_polygon(poly: PackedVector2Array, top: float) -> void:
 
 ## The surface a flat layer is laid on: the terrain, or the deck it was baked onto.
 func _surface_height(x: float, z: float) -> float:
+	if _tn >= 0:
+		return tunnel_height(_tn, x, z)
 	return deck_height(_dk, x, z) if _dk >= 0 else terrain_height(x, z)
 
 
@@ -1082,6 +1311,23 @@ func _build_roads(st) -> void:
 				if bend > 0.12:
 					_disc(st, poly[i], w * 0.5, y, col)
 	_dk = -1
+	_layer = L_GROUND
+
+
+## Loop 3b: the tunnels' roads (`tunnels.roads`), on their tunnel's floor, with a centre line;
+## under the ground, so seen only in the portals' mouths (and the car's x-ray inside).
+func _build_tunnel_roads(st) -> void:
+	_layer = L_ROAD
+	for r in data.get("tunnels", {}).get("roads", []):
+		_tn = int(r.get("tn", -1))
+		if _tn < 0:
+			continue
+		var poly := _pts(r["p"])
+		_strip(st, poly, float(r["w"]), Y_ROAD, COL["road"], true)
+		_layer = L_MARK
+		_dashes(st, poly, 0.0, 3.0, 6.0, 0.15)
+		_layer = L_ROAD
+	_tn = -1
 	_layer = L_GROUND
 
 
@@ -1379,14 +1625,17 @@ func _build_barriers(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
 	for l in data.get("lines", []):
 		var style: Array = BARRIER_STYLE.get(l["k"], ["#999999", 0.3, 1.0])
-		_wall_along(st, _pts(l["p"]), float(style[1]), float(style[2]), Color(style[0]), true)
+		# Loop 3b: a stop's platform is kerb height (0.25 m), not a wall: like the kerbs and
+		# islands, the car drives over it (check_drive.gd found buses brushing them).
+		_wall_along(st, _pts(l["p"]), float(style[1]), float(style[2]), Color(style[0]), l["k"] != "platform")
 	_uv2 = Vector2.ZERO
 
 
-## Under every deck piece: its slab (concrete top, underside), a parapet girder on
-## the sides that face out of the structure, and piers down to the ground wherever the
-## deck clears it by more than a couple of metres (only under roads and railways).
-## Sides that face another piece of the same bridge reach over to meet it.
+## Under every deck piece: its slab (concrete top, underside) and a parapet girder on the
+## sides that face out of the structure; sides that face another piece of the same bridge
+## reach over to meet it. Loop 3b (R5): the piers are the bake's (`decks.piers`,
+## tools/bake_structures.py: slid along the deck clear of the roads, tracks and kerbs under
+## it, portal legs where nothing else fits), drawn into the same tile meshes and solid.
 func _build_bridge_structures(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
 	var concrete := Color("#b8b2a7")
@@ -1397,8 +1646,6 @@ func _build_bridge_structures(st) -> void:
 		var piers: bool = d["k"] in ["road", "rail"]
 		var l := float(d["l"]) + 0.2
 		var r := float(d["r"]) + 0.2
-		var run := 0.0
-		var next_pier := 20.0
 		for i in pts.size() - 1:
 			var a := pts[i]
 			var b := pts[i + 1]
@@ -1435,21 +1682,40 @@ func _build_bridge_structures(st) -> void:
 							Vector3(q0.x, ya + top, q0.y), Vector3.UP, concrete.lightened(0.1))
 					_quad(st, Vector3(q0.x, ya, q0.y), Vector3(q1.x, yb, q1.y), Vector3(q1.x, yb + top, q1.y),
 							Vector3(q0.x, ya + top, q0.y), -n, concrete.darkened(0.05))
-					if piers or d["k"] == "path":
+					# Solid where there is a drop beside it (loop 3b: where the deck runs within a
+					# metre of the ground beside it, as at its ends, the parapet is a kerb to the car).
+					var drop := maxf(ya - terrain_height(p0.x, p0.y), yb - terrain_height(p1.x, p1.y))
+					if (piers or d["k"] == "path") and drop > 1.0:
 						_wall_faces.append_array([Vector3(p0.x, ya - 0.2, p0.y), Vector3(p1.x, yb - 0.2, p1.y), Vector3(p1.x, yb + 1.6, p1.y),
 								Vector3(p0.x, ya - 0.2, p0.y), Vector3(p1.x, yb + 1.6, p1.y), Vector3(p0.x, ya + 1.6, p0.y)])
-			while piers and next_pier < run + length:
-				var p := a + dir * (next_pier - run)
-				var deck_y := lerpf(hs[i], hs[i + 1], (next_pier - run) / length)
-				var ground := terrain_height(p.x, p.y)
-				if deck_y - ground > 2.5:
-					var mid := Vector3(p.x, (deck_y - 1.3 + ground - 0.5) * 0.5, p.y)
-					var basis := Basis(Vector3.UP, atan2(-dir.x, -dir.y))
-					var size := Vector3((l + r) * 0.6, deck_y - 1.3 - ground + 0.5, 1.6)
-					_box_oriented(st, mid, basis, size, concrete.darkened(0.1))
-				next_pier += 38.0
-			run += length
+	for p: Dictionary in data.get("decks", {}).get("piers", []):
+		_pier(st, p, concrete.darkened(0.1))
 	_uv2 = Vector2.ZERO
+
+
+## Loop 3b (R5): one of the bake's pier boxes (a pier, a portal leg or its cap beam): drawn
+## and, for the ones that reach the ground, solid from the ground up (one concave shape,
+## like the walls).
+func _pier(st, p: Dictionary, col: Color) -> void:
+	var c := Vector2(float(p["c"][0]), float(p["c"][1]))
+	var dir := Vector2(float(p["d"][0]), float(p["d"][1]))
+	var y0 := float(p["y"][0])
+	var y1 := float(p["y"][1])
+	var across := float(p["s"][0])
+	var along := float(p["s"][1])
+	_box_oriented(st, Vector3(c.x, (y0 + y1) * 0.5, c.y), Basis(Vector3.UP, atan2(-dir.x, -dir.y)),
+			Vector3(across, y1 - y0, along), col if p["k"] != "cap" else col.lightened(0.06))
+	if p["k"] == "cap":
+		return
+	var right := Vector2(-dir.y, dir.x)
+	var corners: Array[Vector2] = []
+	for uv in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
+		corners.append(c + dir * uv.x * along * 0.5 + right * uv.y * across * 0.5)
+	for k in 4:
+		var a := corners[k]
+		var b := corners[(k + 1) % 4]
+		_wall_faces.append_array([Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, y1, b.y),
+				Vector3(a.x, y0, a.y), Vector3(b.x, y1, b.y), Vector3(a.x, y1, a.y)])
 
 
 ## Guard rails (bridge edges and mapped barrier=guard_rail): a steel beam on posts,
@@ -1967,8 +2233,8 @@ func _build_buildings(st, keep: Array, marks) -> void:
 	var drawn: Array[int] = []
 	for index in (keep if _has_lod2 else range(list.size())):
 		var bld: Dictionary = list[int(index)]
-		if (bld["p"] as Array).size() < 6 or bld.has("br"):
-			continue  # a 3D-mapped bridge: the bridge decks draw it
+		if (bld["p"] as Array).size() < 6 or bld.has("br") or bld.has("cutd"):
+			continue  # a 3D-mapped bridge (the decks draw it), or left out under a deck (loop 3b)
 		if not marks.keeps_building(bld):
 			continue  # a landmark (landmarks.gd) stands here
 		if float(bld["h"]) <= float(bld["mh"]):
@@ -1985,6 +2251,12 @@ func _build_buildings(st, keep: Array, marks) -> void:
 		var ground := INF
 		for q in poly:
 			ground = minf(ground, terrain_height(q.x, q.y))
+		if bld.has("pil"):
+			# Loop 3b: a viaduct's mapped pillar, fitted to the slab it carries.
+			h = float(bld["cut"]) - ground
+		elif bld.has("cut"):
+			# Loop 3b: under a deck, cut to the slab's bottom - 0.5 m (tools/bake_structures.py).
+			h = minf(h, float(bld["cut"]) - ground)
 		var hsh := absi(int(poly[0].x * 73.0 + poly[0].y * 31.0))
 		var glass := h > 55.0
 		var wall := _osm_colour(bld["c"], Color(GLASS[hsh % GLASS.size()] if glass else FACADES[hsh % FACADES.size()]))
@@ -2020,7 +2292,8 @@ func _build_buildings(st, keep: Array, marks) -> void:
 			run += length
 			if mh < 2.0:
 				var g0 := ground - 1.0
-				var g1 := ground + 5.0
+				# Loop 3b: never over the building's own top (a viaduct's pillar ends under its slab).
+				var g1 := ground + minf(5.0, h)
 				_wall_faces.append_array([Vector3(a.x, g0, a.y), Vector3(b.x, g0, b.y), Vector3(b.x, g1, b.y),
 						Vector3(a.x, g0, a.y), Vector3(b.x, g1, b.y), Vector3(a.x, g1, a.y)])
 		_uv2 = Vector2(_uv2.x, -1.0)
@@ -2218,6 +2491,17 @@ func _build_lod2(walls, marks) -> Array:
 		col[i] = Color(f[c], f[c + 1], f[c + 2], f[c + 3])
 		uv[i] = Vector2(f[o_u + i * 2], f[o_u + i * 2 + 1])
 		uv2[i] = Vector2(f[o_u2 + i * 2], f[o_u2 + i * 2 + 1])
+	# Loop 3b: LoD2 buildings under a bridge deck, cut to the slab's bottom - 0.5 m or left
+	# out (tools/bake_structures.py `lod2_cuts`; the Poniatowski viaduct's arcades).
+	var cuts: Array = data.get("lod2_cuts", [])
+	if not cuts.is_empty():
+		var clipped := _clip_lod2(pos, nrm, col, uv, uv2, cuts)
+		pos = clipped[0]
+		nrm = clipped[1]
+		col = clipped[2]
+		uv = clipped[3]
+		uv2 = clipped[4]
+		count = pos.size()
 	# v0.8: whole LoD2 buildings that stand where a landmark is built are left out. The
 	# bake writes each building's triangles in one run sharing its style seed (UV2.x).
 	var dropped := PackedByteArray()
@@ -2267,15 +2551,100 @@ func _build_lod2(walls, marks) -> Array:
 		arrays[Mesh.ARRAY_TEX_UV2] = PackedVector2Array(tile[4])
 		walls.add_arrays(key, arrays)
 	# Walls are what the car bumps into; roofs (and wall tops) are what the helicopter can't fly through.
+	# Loop 3b: not where a wall stands in a lane (`lod2_open`, tools/bake_structures.py).
+	var open: Array = data.get("lod2_open", [])
 	for t in range(0, count, 3):
 		if dropped[t / 3]:
 			continue
 		var flat_ish := absf(nrm[t].y) >= 0.3
 		if not flat_ish:
-			_wall_faces.append_array([pos[t], pos[t + 1], pos[t + 2]])
+			var solid := true
+			if not open.is_empty():
+				var c := (pos[t] + pos[t + 1] + pos[t + 2]) / 3.0
+				for o: Array in open:
+					if absf(c.x - float(o[0])) < float(o[2]) and absf(c.z - float(o[1])) < float(o[2]):
+						solid = false
+						break
+			if solid:
+				_wall_faces.append_array([pos[t], pos[t + 1], pos[t + 2]])
 		_roof_triangle(pos[t], pos[t + 1], pos[t + 2], flat_ish)
 	_has_lod2 = true
 	return meta["keep_osm"]
+
+
+## Loop 3b: the LoD2 triangles with the cut buildings clipped. A building is a run of
+## triangles sharing its style seed (as `_build_lod2` finds them); a run whose box centre is a
+## cut's ([x, z, top, left out]) loses everything over the top: walls are clipped at it, roof
+## triangles over it are laid flat at it (they cover the footprint, so the cut is closed).
+func _clip_lod2(pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedColorArray, uv: PackedVector2Array,
+		uv2: PackedVector2Array, cuts: Array) -> Array:
+	var o_pos := PackedVector3Array()
+	var o_nrm := PackedVector3Array()
+	var o_col := PackedColorArray()
+	var o_uv := PackedVector2Array()
+	var o_uv2 := PackedVector2Array()
+	var count := pos.size()
+	var t0 := 0
+	var n_cut := 0
+	while t0 < count:
+		var seed := uv2[t0].x
+		var first := Vector2(pos[t0].x, pos[t0].z)
+		var lo := first
+		var hi := first
+		var t1 := t0
+		while t1 < count and uv2[t1].x == seed and Vector2(pos[t1].x, pos[t1].z).distance_to(first) < 300.0:
+			for k in 3:
+				var q := Vector2(pos[t1 + k].x, pos[t1 + k].z)
+				lo = lo.min(q)
+				hi = hi.max(q)
+			t1 += 3
+		var centre := (lo + hi) * 0.5
+		var cut := INF
+		var drop := false
+		for c: Array in cuts:
+			if absf(float(c[0]) - centre.x) < 0.3 and absf(float(c[1]) - centre.y) < 0.3:
+				cut = float(c[2])
+				drop = int(c[3]) == 1
+				break
+		if drop:
+			n_cut += 1
+		elif cut == INF:
+			o_pos.append_array(pos.slice(t0, t1))
+			o_nrm.append_array(nrm.slice(t0, t1))
+			o_col.append_array(col.slice(t0, t1))
+			o_uv.append_array(uv.slice(t0, t1))
+			o_uv2.append_array(uv2.slice(t0, t1))
+		else:
+			n_cut += 1
+			for t in range(t0, t1, 3):
+				var roof := nrm[t].y >= 0.3
+				var below: Array = []   # [pos, colour, uv] corners of the part under the cut
+				var above: Array = []
+				for k in 3:
+					var a := t + k
+					var b := t + (k + 1) % 3
+					var a_up := pos[a].y > cut
+					var b_up := pos[b].y > cut
+					(above if a_up else below).append([pos[a], col[a], uv[a]])
+					if a_up != b_up:
+						var f := (cut - pos[a].y) / (pos[b].y - pos[a].y)
+						var corner := [pos[a].lerp(pos[b], f), col[a].lerp(col[b], f), uv[a].lerp(uv[b], f)]
+						below.append(corner)
+						above.append(corner)
+				for pi in (2 if roof else 1):
+					var part: Array = below if pi == 0 else above
+					var flat := pi == 1
+					for k in range(1, part.size() - 1):
+						for v: Array in [part[0], part[k], part[k + 1]]:
+							var p: Vector3 = v[0]
+							o_pos.append(Vector3(p.x, cut, p.z) if flat else p)
+							o_nrm.append(Vector3.UP if flat else nrm[t])
+							o_col.append(v[1])
+							o_uv.append(v[2])
+							o_uv2.append(uv2[t])
+		t0 = t1
+	print("lod2: %d buildings cut under a deck (loop 3b)" % n_cut)
+	return [o_pos, o_nrm, o_col, o_uv, o_uv2]
 
 
 ## Like _tri, but with a colour per corner (walls darken towards the ground).

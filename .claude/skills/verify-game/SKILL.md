@@ -60,13 +60,15 @@ window opens): use it only when your task may change the city or at a loop's end
 
 ## 6. Keep the set complete
 
-A loop that adds a check (docs/DEMO.md plans `game/tools/check_drive.gd` for loop 3b) adds it as a step in `tools/verify.sh` in the same change, with
+A loop that adds a check (loop 3b added `game/tools/check_drive.gd`) adds it as a step in `tools/verify.sh` in the same change, with
 its OK line, and lists it in this skill. A check that only exists outside the script gets
 forgotten.
 
 In the set now: `check_map_data.py` (map), `check_roads.py` (roads, loop 3a: C1-C10 over the
-whole map, ~4 s; C1-C3 and C6-C8 FAIL, C4, C5, C9, C10 WARN until loop 3b; the counts in the
-row), `check_steering.gd`, `check_settings.gd`,
+whole map, ~4 s; any rule FAILs (loop 3b; until then C4, C5, C9, C10 were a WARN); the counts in the
+row), `check_drive.gd` (loop 3b: `drive` and `drive-prebuilt`: a car and a bus along every lane
+against the colliders, the autopilot over 20 routes across bridges and tunnels; ~10 s and ~2 s),
+`check_steering.gd`, `check_settings.gd`,
 `check_landmarks.gd`, `check_sfx.gd`, `check_radio_loops.gd`, `check_water.gd` (loop 10a:
 `water` and `water-prebuilt`, where a car can get into the water, ~17 s and ~10 s) and the
 game runs, among them `splash` (loop 10a: `--drive-into-water=1015,-85 --kebab=0`, the tow

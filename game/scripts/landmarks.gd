@@ -231,8 +231,20 @@ func _find_centralna() -> void:
 
 
 ## Most Poniatowskiego's four towers, two at each end of the river span: OpenStreetMap
-## maps their outlines (no heights), each twice.
+## maps their outlines (no heights), each twice. Loop 3b (R7): the bake seats them
+## (tools/bake_structures.py `towers`: the outline by the deck, trimmed clear of the road
+## corridors and lanes, base at the boulevard, deck height from the solved profile, and a
+## zone of both outlines grown 6 m, so the second outline is no longer drawn as a building
+## fused into the tower); the search below is the fallback for a map baked before that.
 func _find_towers() -> void:
+	var seated: Array = data.get("towers", [])
+	if seated.size() == 4:
+		var zones: Array = []
+		for t: Dictionary in seated:
+			zones.append(_pts(t["zone"]))
+		_add_site("poniatowski", zones)
+		sites[-1]["towers"] = seated
+		return
 	var found: Array[PackedVector2Array] = []
 	for area in [Rect2(910, -165, 40, 60), Rect2(1398, -332, 45, 65)]:
 		for bld in data["buildings"]:
@@ -573,6 +585,15 @@ func _collide(ring: PackedVector2Array) -> void:
 		var gb: float = map.terrain_height(b.x, b.y) - 1.0
 		map._wall_faces.append_array([Vector3(a.x, ga, a.y), Vector3(b.x, gb, b.y), Vector3(b.x, gb + 6.0, b.y),
 				Vector3(a.x, ga, a.y), Vector3(b.x, gb + 6.0, b.y), Vector3(a.x, ga + 6.0, a.y)])
+
+
+## Loop 3b: car collision along a ring between two heights.
+func _collide_span(ring: PackedVector2Array, y0: float, y1: float) -> void:
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		map._wall_faces.append_array([Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, y1, b.y),
+				Vector3(a.x, y0, a.y), Vector3(b.x, y1, b.y), Vector3(a.x, y1, a.y)])
 
 
 func _ground_under(poly: PackedVector2Array) -> float:
@@ -1361,31 +1382,48 @@ func _build_centralna(site: Dictionary) -> void:
 func _build_towers(site: Dictionary) -> void:
 	var stone := Color("#cbbfa6")
 	var dark := Color("#3a3640")
-	for f: PackedVector2Array in site["zone"]:
-		var poly: PackedVector2Array = Geometry2D.offset_polygon(f, -3.0)[0]
-		var c := _centre(poly)
-		# The tower's own axes, from its longest edge.
-		var best := 0.0
-		for i in poly.size():
-			var e := poly[(i + 1) % poly.size()] - poly[i]
-			if e.length() > best:
-				best = e.length()
-				_a = e.normalized()
-		_b = Vector2(-_a.y, _a.x)
-		_o = c
+	var seats: Array = site.get("towers", [])
+	for n in (seats.size() if not seats.is_empty() else (site["zone"] as Array).size()):
+		var c: Vector2
 		var hu := 0.0
 		var hv := 0.0
-		for q in poly:
-			var l := _local(q)
-			hu = maxf(hu, absf(l.x))
-			hv = maxf(hv, absf(l.y))
-		hu = minf(hu, 8.0)
-		hv = minf(hv, 6.0)
-		_g = map.terrain_height(c.x, c.y)
-		var deck := _g
-		for d in [Vector2(14, 0), Vector2(-14, 0), Vector2(0, 14), Vector2(0, -14)]:
-			deck = maxf(deck, map.ground_height(c.x + d.x, c.y + d.y))
-		var g := _g
+		var deck := 0.0
+		var g := 0.0
+		if not seats.is_empty():
+			# Loop 3b (R7): the bake's seat.
+			var t: Dictionary = seats[n]
+			c = Vector2(float(t["c"][0]), float(t["c"][1]))
+			_a = Vector2(float(t["a"][0]), float(t["a"][1]))
+			_b = Vector2(-_a.y, _a.x)
+			_o = c
+			hu = float(t["hu"])
+			hv = float(t["hv"])
+			g = float(t["base"])
+			deck = float(t["deck"])
+			_g = g
+		else:
+			var poly: PackedVector2Array = Geometry2D.offset_polygon(site["zone"][n], -3.0)[0]
+			c = _centre(poly)
+			# The tower's own axes, from its longest edge.
+			var best := 0.0
+			for i in poly.size():
+				var e := poly[(i + 1) % poly.size()] - poly[i]
+				if e.length() > best:
+					best = e.length()
+					_a = e.normalized()
+			_b = Vector2(-_a.y, _a.x)
+			_o = c
+			for q in poly:
+				var l := _local(q)
+				hu = maxf(hu, absf(l.x))
+				hv = maxf(hv, absf(l.y))
+			hu = minf(hu, 8.0)
+			hv = minf(hv, 6.0)
+			_g = map.terrain_height(c.x, c.y)
+			deck = _g
+			for d in [Vector2(14, 0), Vector2(-14, 0), Vector2(0, 14), Vector2(0, -14)]:
+				deck = maxf(deck, map.ground_height(c.x + d.x, c.y + d.y))
+			g = _g
 		var top := deck + 15.0
 		_lbox(0.0, 0.0, hu + 0.6, hv + 0.6, g - 0.5, deck + 1.2, stone.darkened(0.12), M_STONE)
 		_lbox(0.0, 0.0, hu, hv, deck + 1.2, top - 4.5, stone, M_STONE)
@@ -1410,4 +1448,8 @@ func _build_towers(site: Dictionary) -> void:
 		_mode = M_STONE
 		_pyramid(_rect(0.0, 0.0, hu - 0.8, hv - 0.8), top, top + 6.0, Color("#6f7d78"))
 		_prism(_rect(0.0, 0.0, 0.35, 0.35), top + 5.5, top + 8.5, GOLD, GOLD, M_GOLD, M_GOLD)
-		_collide(_rect(0.0, 0.0, hu + 0.6, hv + 0.6))
+		if seats.is_empty():
+			_collide(_rect(0.0, 0.0, hu + 0.6, hv + 0.6))
+		else:
+			# Solid from the boulevard to over the deck (a car on either level stops at it).
+			_collide_span(_rect(0.0, 0.0, hu + 0.6, hv + 0.6), g - 1.0, deck + 6.0)

@@ -26,8 +26,14 @@ If they disagree, README wins: fix this file.
 1. Trees (optional): `tools/bake_trees_gugik.py` → `data/raw/gugik/trees_area.json`.
 2. OpenStreetMap: `tools/bake_osm.py` (imports `tools/bake_roads.py`: carriageways, kerbs,
    medians, markings, bridge decks, approaches and pits (`fills`), tunnels, garage doors;
-   writes `graph`, the lane graph with each edge's `dk` / `tn`, and `pois`) →
-   `game/map/centrum.json`. It reads `game/map/terrain.json` for the decks.
+   writes `graph`, the lane graph with each edge's `dk` / `tn`, and `pois`; loop 3b: then
+   `tools/bake_structures.py` on the finished data: piers, retaining walls, tunnel walls and
+   portals, garage doors, the Poniatowski towers' seats, buildings cut under decks, aprons,
+   solid things cleared out of the lanes) → `game/map/centrum.json`. It reads
+   `game/map/terrain.json` for the decks and `game/map/lod2.*` for the cuts (bake GUGiK
+   first). Loop 3b (R2): the deck solver follows the decks measured in the 0.5 m surface model
+   (`data/raw/demo/gugik/nmpt05`, `nmt1`: float32 GeoTIFF, read by `tools/geotiff.py`) when
+   it is there; without it the chain solver runs alone.
 3. GUGiK buildings and terrain: `tools/fetch_gugik.py` (downloads: ask), `tools/bake_gugik.py`
    → `lod2.bin`, `lod2.json`, `terrain.json`.
 4. `tools/bake_ao.py game/map` → `ao.bin` (after 2 and 3).
@@ -58,7 +64,7 @@ in the report what changed and why.
   (over the orthophoto) and exits 1 on a finding that `tools/check_roads_allow.json` doesn't
   allow (every allowed entry: rule, at, r, reason, source). `--map=DIR` checks a bake written
   elsewhere (bake into a scratch folder with `terrain.json`, `lod2.*` copied in), `--rules=`,
-  `--all`. It is the `roads` step of `tools/verify.sh` (C4, C5, C9, C10 WARN until loop 3b). Run
+  `--all`. It is the `roads` step of `tools/verify.sh` (every rule FAILs since loop 3b). Run
   it before and after any change to the bakes or the height rules, and record the counts.
 - The deck solver (bake_roads.py `solve_decks`, `_solve`) works on structure chains; its rules
   and constants (CHAIN_JOIN, EMBANK, BLUR_REACH, BLUR_FREE, TARGET_W, the clearances, DIP_MAX)
@@ -82,6 +88,13 @@ in the report what changed and why.
   through solid geometry, or a height jump where a ramp meets the ground, is a bake or
   deck-solver defect: find the class of defect and fix it for the whole map, with a check
   that counts it over the whole map before and after (not just the spot the user saw).
+- **The drive check** (loop 3b): `godot --headless --path game --script res://tools/check_drive.gd`
+  (`-- --prebuilt`, `--verbose`, `--dump=FILE`, `--debug=X,Z`) sweeps a car and a bus box along
+  every lane against the colliders and drives the autopilot over 20 routes across the bridges
+  and tunnels (height jumps > 0.3 m a frame); ~10 s. Steps `drive` and `drive-prebuilt` of
+  `tools/verify.sh`. A collision is usually something OpenStreetMap puts in a carriageway (a
+  fence across a gate, a kiosk, a parked car) or a lane wider than the road's width estimate:
+  fix the class in `tools/bake_structures.py`, not the spot.
 - Then `tools/verify.sh` (the traffic, race and job runs use the lane graph).
 
 ## Report

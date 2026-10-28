@@ -11,10 +11,13 @@ extends RefCounted
 const CELL := 64.0
 ## Heights along an edge are sampled this far apart (the terrain grid is 10 m).
 const HEIGHT_STEP := 8.0
-## Loop 3a (R4): tunnel edges are in the data with their heights, but nothing drives,
-## routes, spawns or snaps on them until loop 3b builds the tunnels (the car can't follow
-## underground yet); they stay out of the adjacency and the spatial grid.
-const TUNNELS_DRIVEN := false
+## Loop 3a (R4): tunnel edges are in the data with their heights. Loop 3b builds the tunnels
+## (portals, walls, the floor the car drives: map_builder.gd `tunnel_floor`), so they are in
+## the adjacency and the spatial grid: traffic routes, spawns and snaps through them (and is
+## hidden deeper inside than TUNNEL_HIDE, traffic.gd). False keeps them out (loop 3a).
+const TUNNELS_DRIVEN := true
+## Loop 3b: how far into a tunnel (from a portal) traffic stays drawn.
+const TUNNEL_HIDE := 15.0
 ## Light states.
 const GREEN := 0
 const AMBER := 1
@@ -54,6 +57,8 @@ var e_bridge := PackedByteArray()
 ## over the point", which is wrong where structures stack).
 var e_dk := PackedInt32Array()
 var e_tn := PackedInt32Array()
+## Loop 3b: which ends of a tunnel edge are portals (1 its start, 2 its end; bake `po`).
+var e_po := PackedByteArray()
 var e_name := PackedStringArray()
 ## The same road the other way (for U-turns at dead ends), or -1.
 var e_reverse := PackedInt32Array()
@@ -114,6 +119,7 @@ func _init(graph: Dictionary, map: Node3D) -> void:
 		e_b.append(b)
 		e_dk.append(int(e.get("dk", -1)))
 		e_tn.append(int(e.get("tn", -1)))
+		e_po.append(int(e.get("po", 0)))
 		if TUNNELS_DRIVEN or e_tn[i] < 0:
 			node_out[a].append(i)
 			node_in[b].append(i)
@@ -316,6 +322,19 @@ func _sample_heights(e: int) -> PackedFloat32Array:
 		h[k] = surface(e, p)
 	_heights[e] = h
 	return h
+
+
+## Loop 3b: how far inside its tunnel a point s along tunnel edge e lies, from the nearest
+## portal end (INF when neither end is a portal; 0 for an edge in the open).
+func tunnel_depth(e: int, s: float) -> float:
+	if e_tn[e] < 0:
+		return 0.0
+	var depth := INF
+	if e_po[e] & 1:
+		depth = s
+	if e_po[e] & 2:
+		depth = minf(depth, e_len[e] - s)
+	return depth
 
 
 ## Loop 3a (R8): the road surface of edge e at a point beside it: its tunnel, its deck or
