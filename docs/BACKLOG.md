@@ -363,3 +363,29 @@ Small problems that agents reported or that showed up in screenshots. They are f
   red stripe and his orange name tag): street-level Warsaw is on the review's protect list.
 - Half the LoD2 walls now run the facade code instead of the roof grain: the bench numbers are
   in README (The first-minute look); the phone's 60 fps is the orchestrator's to confirm.
+
+## From the camera loop (follow camera, Phantom Camera)
+- Only the phone can tell the feel: the 64°/s Classic camera (it lags up to ~40° behind the car
+  in a 90° turn at 50 km/h, more in a full-lock circle), Point's 2.9 s return, the look-ahead
+  that builds up over ~4–5 s from a standing start to 90 km/h (capped at 3.5 % of the view a
+  second, so the car never slides fast across the screen), the car resting ~46 px below the
+  middle after a hard stop, and the cinematic moments.
+- Classic's camera rests up to 1° off the car's heading after a turn (the yaw dead zone).
+- The Fixed camera's 90° turns (`<` `>`, Q / E, switching CAM off) are still a quick 8/s lerp
+  (up to ~360°/s at the start), as before: they are the player's own command.
+- The look at a target only plays under 30 km/h with nothing held; a target that appears while
+  driving fast or steering gets none (the minimap and the arrow show it as before). A rescue's
+  timer runs during the ~2.9 s look.
+- The moments' widest views draw ~217–219 draw calls for a second or two at the spawn (the
+  zoomed-out budget view is 190–215); the shadow's texels change size during them (the view's
+  height changes), and benches, bins and racks pop in as the fly-in passes 153 m.
+- Phantom Camera's editor plugin is not switched on (it checks GitHub for updates whenever the
+  editor starts, headless exports included). The add-on's two Nunito fonts crashed Godot 4.7.2
+  once in this worktree's first headless import after the copy (a threaded font import touching
+  the scene tree); a second `--import` finished, and a later re-import of just the fonts was fine.
+- Phantom Camera's manager sets `Engine.physics_jitter_fix = 0` when it starts (no effect with
+  physics interpolation on).
+- `--cam-test` ghosts the car through walls; on Marszałkowska (the README's spot) the Point
+  release drives through buildings, so its frames show the occlusion ghost.
+- `check_steering.gd`'s px/s numbers changed meaning: every test now starts with the camera
+  settled for the starting speed (loop 2a's README numbers started it at the car).

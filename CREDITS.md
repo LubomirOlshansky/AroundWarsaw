@@ -48,3 +48,12 @@ scripts (`tools/make_music.py`, `tools/make_sfx.py`, `tools/make_ui_sounds.py`).
 signs, posters and jokes are original to this project; brands in the game are parodies. All of
 these are MIT, like the code. The interface uses the device's system font. The game is made
 with Godot Engine (MIT, <https://godotengine.org/license>).
+
+## Godot add-ons
+
+Each add-on lives in `game/addons/<name>/` with its own licence file, unchanged.
+
+- **Phantom Camera** by Marcus Skov (Ramokz), version 0.11.0.3, MIT licence
+  (`game/addons/phantom_camera/LICENSE`), <https://store.godotengine.org/asset/ramokz/phantom-camera/>
+  (source: <https://github.com/ramokz/phantom-camera>). It moves the camera in the cinematic
+  moments (`game/scripts/camera_shots.gd`); installed without its examples folder.

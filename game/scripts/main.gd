@@ -30,6 +30,8 @@ extends Node
 ## water as if it had jumped the edge (the splash and the tow, printed as `water:` lines).
 ## Loop 2e: --call-in=S brings the first rescue call after S seconds of play, --settings-tab=N
 ## opens the settings panel at tab N.
+## Camera loop: --cam-log prints the camera every 0.25 s (`cam:` lines), --cam-test=classic_turn|
+## point_release|brake drives one camera moment in the real city (frame strips).
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
@@ -54,6 +56,8 @@ const Eggs := preload("res://scripts/eggs.gd")
 const Sfx := preload("res://scripts/sfx.gd")
 const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
+const FollowCamera := preload("res://scripts/follow_camera.gd")
+const CameraShots := preload("res://scripts/camera_shots.gd")
 const Settings := preload("res://scripts/settings.gd")
 const BenchStats := preload("res://scripts/bench.gd")
 const ScreenPoints := preload("res://scripts/screen_points.gd")
@@ -71,9 +75,9 @@ const STYLES := [
 var camera_pitch := -30.0
 const CAMERA_DISTANCE := 500.0
 ## Height of the view in metres (orthographic size): wide enough to read the city.
-var base_size := Controls.DEFAULT_SIZE
+var base_size := FollowCamera.DEFAULT_SIZE
 ## The helicopter's view is this much wider than the car's (as before loop 2a: 1.3 × 110 m).
-const HELI_VIEW := 1.3 * 110.0 / Controls.DEFAULT_SIZE
+const HELI_VIEW := 1.3 * 110.0 / FollowCamera.DEFAULT_SIZE
 const MIN_SIZE := 30.0
 const MAX_SIZE := 320.0
 
@@ -145,6 +149,21 @@ var map: Node3D
 var style_index := 0
 var cam_yaw := 45.0
 var cam_yaw_target := 45.0
+## --yaw= was given (the follow camera then doesn't start behind the vehicle).
+var _flag_yaw := false
+## Camera loop: the follow camera's laws (follow_camera.gd: the turn, the look-ahead, the dead
+## zone, the speed zoom), its view height (cam.size is the host's during a cinematic moment), and
+## the cinematic moments on Phantom Camera (camera_shots.gd): the fly-in when the title screen
+## goes and a look at a new rescue or delivery target, on in a normal launch, off in test runs
+## (show_title false: --notitle and every testing flag), forced on by --cinematic[=flyin|look].
+var fcam := FollowCamera.new()
+var _view_size := FollowCamera.DEFAULT_SIZE
+var moments: CameraShots
+var cinematic_flyin := false
+var cinematic_look := false
+var _flag_cinematic := ""
+var _last_target_source := ""
+var _last_target := Vector3.INF
 ## Follow: the camera turns to stay behind the car. Fixed: it turns only with the rotate buttons.
 var follow := true
 var cam_focus := Vector3.ZERO
@@ -292,6 +311,26 @@ var _water_test_at := Vector2.INF
 ## The river's outlines (water bodies of 20,000 m² or more, as tools/bake_water.py counts it):
 ## which tow lines fit.
 var _rivers: Array[PackedVector2Array] = []
+## Camera loop testing aids. --cam-log prints the camera's state every CAM_LOG_EVERY frames
+## (`cam:` lines: scheme, finger, speed, the car's and the camera's compass headings, the
+## camera's turn rate (the fastest since the last line), the car's place on screen, the view).
+## --cam-test=NAME drives one camera moment in the real city with scripted inputs through the
+## scheme's own mapping (drive_controls.gd), the car ghosting through walls, no traffic, after
+## CAM_TEST_SETTLE s parked with the camera behind it (it implies --cam-log; frame strips are
+## --shots= every 15 frames): `classic_turn` (Classic with the camera following: up to 50 km/h,
+## a 90° right turn held near 50, then straight on), `point_release` (Point: up to 50 km/h,
+## the stick held 90° right for 2.5 s, then let go), `brake` (Classic following: flat out to
+## 90 km/h, then braking to a stop).
+const CAM_LOG_EVERY := 15
+const CAM_TEST_SETTLE := 1.0
+var cam_log := false
+var cam_test := ""
+var _cam_t := 0.0
+var _cam_phase := 0
+var _cam_phase_t := 0.0
+var _cam_aim := 0.0
+var _cam_last_yaw := INF
+var _cam_turn_max := 0.0
 
 
 func _ready() -> void:
@@ -346,6 +385,40 @@ func _on_title_dismissed() -> void:
 	dialogue.host_on = true
 	title = null
 	radio.now_playing()
+	if cinematic_flyin:
+		_fly_in()
+
+
+## Camera loop: the fly-in from over the city down to the car (camera_shots.gd).
+func _fly_in() -> void:
+	var vehicle: Node3D = heli if flying else car
+	var ahead := -vehicle.global_transform.basis.z
+	moments.fly_in(vehicle.global_position, ahead, cam_yaw, camera_pitch, _view_size)
+
+
+## Camera loop: the car was put somewhere else (a tow): the view goes there at once, and a
+## following camera turns behind it at once (not while Point's finger is down: the held direction
+## would turn with it).
+func _cut_camera() -> void:
+	cam_focus = car.global_position
+	fcam.reset_lead()
+	if follow and not controls.held:
+		cam_yaw = rad_to_deg(car.rotation.y)
+		cam_yaw_target = cam_yaw
+		fcam.stop_turning()
+
+
+## Camera loop: any touch, click or key skips a cinematic moment.
+func _input(event: InputEvent) -> void:
+	if moments == null or not moments.playing():
+		return
+	var go := false
+	if event is InputEventScreenTouch or event is InputEventMouseButton:
+		go = event.is_pressed()
+	elif event is InputEventKey:
+		go = event.is_pressed() and not event.is_echo()
+	if go:
+		moments.skip()
 
 
 func _scene_stats() -> String:
@@ -477,6 +550,11 @@ func _build_world() -> void:
 	cam.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	world.add_child(cam)
 	_add_post_pass()
+	# After the post pass's quad (the camera's first child, --exp=nopost hides it).
+	_view_size = base_size
+	moments = CameraShots.new()
+	add_child(moments)
+	moments.setup(cam, world)
 
 	if map.water_texture != null:
 		post_mat.set_shader_parameter("surface_map", map.water_texture)
@@ -577,6 +655,8 @@ func _build_world() -> void:
 
 	if _water_test_at != Vector2.INF:
 		_start_water_test()
+	if cam_test != "":
+		_start_cam_test()
 	_build_sound(data, world)
 	_set_quality(quality)
 	get_tree().root.size_changed.connect(_apply_style)
@@ -593,8 +673,19 @@ func _build_world() -> void:
 	if ResourceLoader.exists("res://audio/ui/blip.wav"):
 		_blip.stream = load("res://audio/ui/blip.wav")
 	add_child(_blip)
-	controls.reset_lead(car.vel)
+	# Camera loop: a following camera starts behind the vehicle (it used to start on the 45°
+	# diagonal and, in Classic, swung ~155° round at up to 182°/s as soon as the car moved).
+	# Screenshots, the bench and the probe keep the 45° start: their views are the reference
+	# pictures (tools/shots.sh) and the performance budgets' (--cinematic screenshots start as a
+	# normal launch does).
+	if follow and not _flag_yaw and (shots.is_empty() or _flag_cinematic != "") and not bench and not probe:
+		var start_yaw := rad_to_deg((heli if flying else car).rotation.y)
+		cam_yaw = start_yaw
+		cam_yaw_target = start_yaw
+	fcam.reset_lead()
 	_update_camera(1.0)
+	if cinematic_flyin and title == null and cam_test == "":
+		_fly_in()
 	# Loop 2a: the frame count and screenshots go on while the game is paused (settings).
 	get_tree().process_frame.connect(_paused_frame)
 	if hold_stick != Vector2.INF:
@@ -821,7 +912,8 @@ func _start_phone_bench() -> void:
 					wallet.eggs.duplicate(true)], "persistent": wallet.persistent}
 	wallet.persistent = false
 	hud.hide_bench_card()
-	base_size = Controls.DEFAULT_SIZE
+	moments.stop()
+	base_size = FollowCamera.DEFAULT_SIZE
 	car.global_transform = _spawn
 	car.vel = Vector3.ZERO
 	car.forward_speed = 0.0
@@ -953,6 +1045,9 @@ func _parse_args() -> void:
 		elif arg.begins_with("--yaw="):
 			cam_yaw = float(arg.trim_prefix("--yaw="))
 			cam_yaw_target = cam_yaw
+			_flag_yaw = true
+		elif arg == "--cinematic" or arg.begins_with("--cinematic="):
+			_flag_cinematic = arg.trim_prefix("--cinematic=") if arg.contains("=") else "all"
 		elif arg == "--heli":
 			start_flying = true
 		elif arg.begins_with("--mission="):
@@ -1050,6 +1145,13 @@ func _parse_args() -> void:
 		elif arg.begins_with("--drive-into-water="):
 			var wz := arg.trim_prefix("--drive-into-water=").split(",")
 			_water_test_at = Vector2(float(wz[0]), float(wz[1]))
+		elif arg == "--cam-log":
+			cam_log = true
+		elif arg.begins_with("--cam-test="):
+			cam_test = arg.trim_prefix("--cam-test=")
+			cam_log = true
+			no_traffic = true
+			free_roam = true
 		elif arg.begins_with("--clicks="):
 			for c in arg.trim_prefix("--clicks=").split(","):
 				var xyf := c.split(":")
@@ -1057,10 +1159,14 @@ func _parse_args() -> void:
 	# Test runs go straight to the city (--title brings the title screen back).
 	if demo or not shots.is_empty() or autopilot or start_race > 0 or start_mission > 0 or start_rival > 0 or bench or probe \
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or hold_stick != Vector2.INF or bench_button \
-			or _water_test_at != Vector2.INF:
+			or _water_test_at != Vector2.INF or cam_test != "":
 		show_title = false
 	if force_title:
 		show_title = true
+	# Camera loop: the cinematic moments in a normal launch only (never with screenshots or a bench).
+	var normal := show_title and shots.is_empty() and not bench and not probe and not bench_button and not demo
+	cinematic_flyin = normal or _flag_cinematic in ["all", "flyin"]
+	cinematic_look = normal or _flag_cinematic in ["all", "look"]
 
 
 ## Loop 2a: the saved settings (not with --nosave), then the command-line flags over them.
@@ -1291,6 +1397,7 @@ func _on_car_stuck() -> void:
 	car.forward_speed = 0.0
 	car.reset_physics_interpolation()
 	hud.toast("Pomoc drogowa: wyciągnięci!", "Towed free")
+	_cut_camera()
 	print("car stuck: moved to %.1f, %.1f" % [spot.x, spot.z])
 
 
@@ -1395,7 +1502,7 @@ func _tow_out_of_water() -> void:
 	car.leave_water()
 	car.reset_physics_interpolation()
 	cam_focus = where
-	controls.reset_lead(car.vel)
+	_cut_camera()
 	var kind := _water_kind(at)
 	var l: Array = dialogue.line("water_tow", kind) if dialogue != null else []
 	if l.size() < 2:
@@ -1488,6 +1595,114 @@ func _water_test_frame() -> void:
 		water_test = 2
 
 
+## Camera loop, --cam-test=NAME: the scheme, the camera behind the car, the car ghosting through
+## walls (the camera is what is tested; a building in the way would end the moment early).
+func _start_cam_test() -> void:
+	if not cam_test in ["classic_turn", "point_release", "brake"]:
+		print("cam test: unknown test '%s' (classic_turn, point_release, brake)" % cam_test)
+		cam_test = ""
+		return
+	controls.scheme = Controls.POINT if cam_test == "point_release" else Controls.CLASSIC
+	hud.set_scheme(controls.scheme)
+	_set_follow(true)
+	car.collision_mask = 0
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	cam_yaw = rad_to_deg(car.rotation.y)
+	cam_yaw_target = cam_yaw
+	cam_focus = car.global_position
+	print("cam test: %s, %s, from %.0f, %.0f heading %03.0f°, %.1f s parked first" % [cam_test,
+			Controls.NAMES[controls.scheme], car.global_position.x, car.global_position.z, _compass_yaw(car.rotation.y),
+			CAM_TEST_SETTLE])
+
+
+## The camera test's inputs for this frame, through the scheme's own mapping (as a finger on the
+## stick or the pedals would give them).
+func _cam_test_frame(dt: float) -> void:
+	_cam_t += dt
+	_cam_phase_t += dt
+	var stick := Vector2.ZERO
+	var gas := false
+	var brake := false
+	var kmh := absf(car.forward_speed) * 3.6
+	var heading := _compass_yaw(car.rotation.y)
+	if _cam_t < CAM_TEST_SETTLE:
+		controls.drive(car, stick, false, {}, false, false, cam_yaw, dt)
+		return
+	var phase := _cam_phase
+	match cam_test:
+		"classic_turn":
+			# Up to 50 km/h straight on, then a 90° right turn (a driver's hands: full lock until
+			# 25° short, easing back to the middle), the gas keeping it near 50.
+			gas = kmh < 50.0
+			if _cam_phase == 0 and kmh >= 50.0:
+				_cam_phase = 1
+				_cam_aim = heading + 90.0
+			if _cam_phase >= 1:
+				var err := wrapf(_cam_aim - heading, -180.0, 180.0)
+				stick = Vector2(clampf(err / 25.0, -1.0, 1.0), 0.0)
+				if _cam_phase == 1 and absf(err) < 3.0:
+					_cam_phase = 2
+		"point_release":
+			# Up to 50 km/h pointing straight up the screen, then the stick held to the screen's right
+			# (90° right of the car: the camera is behind it) for 2.5 s, then let go.
+			if _cam_phase == 0:
+				stick = Vector2(0.0, -1.0)
+				if kmh >= 50.0:
+					_cam_phase = 1
+			if _cam_phase == 1:
+				stick = Vector2(1.0, 0.0)
+				if _cam_phase_t >= 2.5:
+					_cam_phase = 2
+		"brake":
+			# Flat out to 90 km/h, then the brake to a stop.
+			if _cam_phase == 0:
+				gas = true
+				if kmh >= 90.0:
+					_cam_phase = 1
+			if _cam_phase == 1:
+				# (Held on at a standstill the brake would reverse: let go once stopped.)
+				brake = true
+				if kmh < 0.5:
+					_cam_phase = 2
+					brake = false
+	if _cam_phase != phase:
+		_cam_phase_t = 0.0
+		print("cam test: phase %d at %.2f s (frame %d), %.0f km/h, heading %03.0f°" % [_cam_phase, _cam_t - CAM_TEST_SETTLE,
+				frame, kmh, heading])
+	controls.drive(car, stick, stick != Vector2.ZERO, {}, gas, brake, cam_yaw, dt)
+
+
+## Camera loop, --cam-log: one `cam:` line every CAM_LOG_EVERY frames (the turn rate is the
+## fastest since the last line).
+func _cam_log_frame(dt: float) -> void:
+	if _cam_last_yaw != INF and dt > 0.0:
+		_cam_turn_max = maxf(_cam_turn_max, absf(wrapf(cam_yaw - _cam_last_yaw, -180.0, 180.0)) / dt)
+	_cam_last_yaw = cam_yaw
+	# This frame's number as the screenshots count it (frame is counted up after the camera).
+	var f := frame + 1
+	if f % CAM_LOG_EVERY != 0:
+		return
+	var vehicle: Node3D = heli if flying else car
+	var pos := vehicle.get_global_transform_interpolated().origin
+	var screen := get_viewport().get_visible_rect().size
+	var on := cam.unproject_position(pos) * float(view.stretch_shrink)
+	var kmh: float = (heli.speed() if flying else absf(car.forward_speed)) * 3.6
+	var held: bool = _heli_held if flying else controls.held or hud.stick_active()
+	print("cam: frame %d %s %s%s finger %s | %3.0f km/h heading %05.1f° camera %05.1f° (off %+5.1f°) turning %3.0f°/s | car on screen %4.0f,%4.0f px (%+4.0f,%+4.0f from the middle) | view %5.1f m" % [
+			f, "heli" if flying else Controls.KEYS[controls.scheme], "follow" if follow else "fixed",
+			" test %s/%d" % [cam_test, _cam_phase] if cam_test != "" else "", "down" if held else "up", kmh,
+			_compass_yaw(vehicle.rotation.y), _compass_yaw(deg_to_rad(cam_yaw)),
+			wrapf(_compass_yaw(deg_to_rad(cam_yaw)) - _compass_yaw(vehicle.rotation.y), -180.0, 180.0), _cam_turn_max,
+			on.x, on.y, on.x - screen.x * 0.5, on.y - screen.y * 0.5, cam.size])
+	_cam_turn_max = 0.0
+
+
+## A yaw (radians, rotation.y) as a compass heading in degrees (0 north, 90 east).
+static func _compass_yaw(yaw: float) -> float:
+	return fposmod(-rad_to_deg(yaw), 360.0)
+
+
 ## While the game is paused (settings) main.gd doesn't process: the frame count and the
 ## screenshots carry on here.
 func _paused_frame() -> void:
@@ -1562,6 +1777,8 @@ func _process(dt: float) -> void:
 	if autopilot or _bench_ghost != null:
 		_autopilot(dt)
 	_update_camera(dt)
+	if cam_log:
+		_cam_log_frame(dt)
 	var pos := _vehicle_position()
 	_feed_life(pos)
 	if jobs != null:
@@ -1895,6 +2112,7 @@ func _show_target() -> void:
 		var on := cam.unproject_position(f + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on, "%d m" % m, rivals.target_colour(), m > 12)
 		hud.set_minimap_target(Vector2(f.x, f.z), rivals.target_colour())
+		_new_target("race", f)
 		return
 	if jobs != null and jobs.has_target():
 		var j: Vector3 = jobs.target_position()
@@ -1903,10 +2121,12 @@ func _show_target() -> void:
 		var on_j := cam.unproject_position(j + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on_j, "%d m" % mj, jobs.target_colour(), mj > 12)
 		hud.set_minimap_target(Vector2(j.x, j.z), jobs.target_colour())
+		_new_target("job", j)
 		return
 	if not missions.has_target():
 		hud.set_target(Vector2.ZERO, "", Color.WHITE, false)
 		hud.set_minimap_target(Vector2.INF, Color.WHITE)
+		_last_target_source = ""
 		return
 	var t: Vector3 = missions.target_position()
 	var colour: Color = missions.target_colour()
@@ -1916,6 +2136,33 @@ func _show_target() -> void:
 	# Up close the ring says enough, and the pointer would sit on the vehicle's own marker.
 	hud.set_target(at, "%d m" % metres, colour, metres > 12)
 	hud.set_minimap_target(Vector2(t.x, t.z), colour)
+	_new_target("rescue", t)
+
+
+## Camera loop: a new rescue or delivery target (not a race's: they come one after another) gets a
+## short look and back (camera_shots.gd), when the vehicle is slow (under LOOK_SPEED) and no
+## finger or pedal is down (a held stick keeps the camera on the car), and not straight after
+## the fly-in or another look.
+const LOOK_SPEED := 30.0 / 3.6
+
+
+func _new_target(source: String, t: Vector3) -> void:
+	var fresh := source != _last_target_source or _last_target == Vector3.INF \
+			or Vector2(t.x - _last_target.x, t.z - _last_target.z).length() > 30.0
+	_last_target_source = source
+	_last_target = t
+	if not fresh or not cinematic_look or source == "race" or moments == null or moments.playing():
+		return
+	if title != null or _phone_bench or cam_test != "":
+		return
+	var p := _vehicle_position()
+	var speed: float = heli.speed() if flying else absf(car.forward_speed)
+	var busy: bool = hud.stick_active() or controls.held or hud.gas or hud.brake or _heli_held
+	if speed > LOOK_SPEED or busy or Vector2(t.x - p.x, t.z - p.z).length() < CameraShots.NEAR:
+		return
+	var ground := Vector3(p.x, map.ground_height(p.x, p.z), p.z) if flying else p
+	var screen := get_viewport().get_visible_rect().size
+	moments.look_at_target(ground, t, cam_yaw, camera_pitch, _view_size, screen.x / maxf(screen.y, 1.0))
 
 
 ## Loop 2b: benches, bins and bike racks (map_builder.gd FINE_GROUP) hide in a view wider than
@@ -1971,6 +2218,9 @@ func _read_input(dt: float) -> void:
 		_read_heli_input(left, right, gas, down, dt)
 		return
 
+	if cam_test != "":
+		_cam_test_frame(dt)
+		return
 	# Loop 2a: the scheme maps the stick, keys and pedals (drive_controls.gd): Point / Fixed
 	# point in screen space (the camera waits while held), Classic steers car-relative.
 	var keys := {"left": left, "right": right, "up": gas, "down": down, "brake": space}
@@ -2258,51 +2508,64 @@ func _update_camera(dt: float) -> void:
 	var vehicle: Node3D = heli if flying else car
 	var speed: float = heli.speed() if flying else absf(car.forward_speed)
 	if follow:
+		# Camera loop (follow_camera.gd): Point and the helicopter wait while the stick is held and
+		# 0.6 s after, then ease round; Classic turns with the car; never faster than 64°/s.
 		var heading := rad_to_deg(vehicle.rotation.y)
 		if flying:
-			# Turn towards the heading, faster the faster it goes; hold still when parked, and
-			# (loop 2a) while the stick is held and 0.6 s after.
-			if not _heli_held and _heli_release >= Controls.HOLD_DELAY:
-				var rate := 2.2 * clampf(speed / 8.0, 0.0, 1.0)
-				cam_yaw = rad_to_deg(lerp_angle(deg_to_rad(cam_yaw), deg_to_rad(heading), 1.0 - exp(-rate * dt)))
+			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, true, _heli_held, _heli_release,
+					FollowCamera.FULL_SPEED_HELI, dt)
 		else:
-			# Loop 2a (drive_controls.gd): Point waits while the stick is held, then eases round;
-			# Classic turns with the car.
-			cam_yaw = controls.follow_yaw(cam_yaw, heading, speed, dt)
+			var waits := controls.scheme != Controls.CLASSIC
+			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, waits, controls.held, controls.since_release,
+					FollowCamera.FULL_SPEED_POINT if waits else FollowCamera.FULL_SPEED, dt)
 		cam_yaw_target = cam_yaw
 	else:
+		fcam.stop_turning()
 		cam_yaw = lerpf(cam_yaw, cam_yaw_target, 1.0 - exp(-8.0 * dt))
+	var basis := Basis.from_euler(Vector3(deg_to_rad(camera_pitch), deg_to_rad(cam_yaw), 0.0))
 	var focus := vehicle.get_global_transform_interpolated().origin
 	focus.y += cam_lift
-	var lead: Vector3
 	var size: float
-	var focus_rate := Controls.FOCUS_RATE
+	var focus_rate := FollowCamera.FOCUS_RATE
 	if flying:
-		lead = heli.vel * 0.6
-		if lead.length() > 22.0:
-			lead = lead.normalized() * 22.0
 		# Aim halfway down to the shadow so both stay in view, and widen the view
 		# a little, more when flying above the usual height.
 		focus.y -= heli.height_above * 0.5
-		size = base_size * HELI_VIEW * (1.0 + 0.2 * clampf(speed / Heli.MAX_SPEED, 0.0, 1.0)) \
-				+ maxf(heli.height_above - Heli.CRUISE, 0.0) * 0.8
+		var heli_view := base_size * HELI_VIEW + maxf(heli.height_above - Heli.CRUISE, 0.0) * 0.8
+		var heli_zoom := base_size * HELI_VIEW * 0.2 * clampf(speed / Heli.MAX_SPEED, 0.0, 1.0)
+		size = heli_view + heli_zoom
+		_view_size = fcam.zoom_step(_view_size, heli_view, heli_zoom, dt)
 		focus_rate = 3.5
 	else:
-		# Loop 2a: the lead turns with the car gently (smoothed velocity), at most a fifth of the view.
-		lead = controls.lead(car.vel, cam.size, dt)
-		size = base_size * (1.0 + Controls.SPEED_ZOOM * clampf(speed / car.max_speed, 0.0, 1.0))
-	cam_focus = cam_focus.lerp(focus + lead, 1.0 - exp(-focus_rate * dt))
-	cam.size = lerpf(cam.size, size, 1.0 - exp(-2.5 * dt))
+		var zoom := base_size * FollowCamera.SPEED_ZOOM * clampf(speed / car.max_speed, 0.0, 1.0)
+		size = base_size + zoom
+		_view_size = fcam.zoom_step(_view_size, base_size, zoom, dt)
+	# The look-ahead along the way it goes, and the dead zone's window (follow_camera.gd).
+	var forward := Vector3(-basis.z.x, 0.0, -basis.z.z).normalized() \
+			if follow and not flying and controls.scheme == Controls.CLASSIC else Vector3.ZERO
+	var lead := fcam.lead_step(heli.vel if flying else car.vel, Heli.MAX_SPEED if flying else car.max_speed,
+			_view_size, dt, forward)
+	cam_focus = fcam.focus_step(cam_focus, focus + lead, basis, _view_size, focus_rate, dt)
 
-	var basis := Basis.from_euler(Vector3(deg_to_rad(camera_pitch), deg_to_rad(cam_yaw), 0.0))
-	# Snap the focus to the pixel grid so the city doesn't shimmer while the camera moves.
-	var texel := cam.size / float(maxi(sv.size.y, 1))
-	var r := cam_focus.dot(basis.x)
-	var u := cam_focus.dot(basis.y)
-	var snapped := cam_focus - basis.x * (r - snappedf(r, texel)) - basis.y * (u - snappedf(u, texel))
-	var distance := maxf(CAMERA_DISTANCE, cam.size * 1.6)
-	cam.far = _camera_far(distance, size)
-	cam.global_transform = Transform3D(basis, snapped + basis.z * distance)
+	var distance := maxf(CAMERA_DISTANCE, _view_size * 1.6)
+	var view_xf := Transform3D(basis, _snap_to_pixels(cam_focus, basis, _view_size) + basis.z * distance)
+	if moments != null and moments.frame(view_xf, _view_size, dt):
+		# A cinematic moment (camera_shots.gd) placed the camera: snap where it put it.
+		var b := cam.global_transform.basis
+		cam.global_transform = Transform3D(b, _snap_to_pixels(cam.global_transform.origin, b, cam.size))
+	else:
+		cam.size = _view_size
+		cam.global_transform = view_xf
+	cam.far = _camera_far(maxf(CAMERA_DISTANCE, cam.size * 1.6), size)
+
+
+## A point moved onto the pixel grid of a view `size` m tall turned `basis` (across and up the
+## screen), so the city doesn't shimmer while the camera moves.
+func _snap_to_pixels(p: Vector3, basis: Basis, size: float) -> Vector3:
+	var texel := size / float(maxi(sv.size.y, 1))
+	var r := p.dot(basis.x)
+	var u := p.dot(basis.y)
+	return p - basis.x * (r - snappedf(r, texel)) - basis.y * (u - snappedf(u, texel))
 
 
 ## Loop 2b: the camera's far plane, just past the lowest ground the view can show (the
@@ -2321,7 +2584,7 @@ func _camera_far(distance: float, size: float) -> float:
 	var aspect := float(sv.size.x) / float(maxi(sv.size.y, 1))
 	var low: float = FAR_MARGIN + (heli.height_above if flying else 0.0)
 	# The widest this zoom gets: the car's view at top speed, the helicopter's as it is.
-	var widest := maxf(cam.size, size if flying else base_size * (1.0 + Controls.SPEED_ZOOM))
+	var widest := maxf(cam.size, size if flying else base_size * (1.0 + FollowCamera.SPEED_ZOOM))
 	var reach: float = maxf(CAMERA_DISTANCE, widest * 1.6) + 0.5 * widest * t + low
 	var diagonal := reach * reach + widest * widest * (aspect * aspect + 1.0)
 	var need: float = distance + 0.5 * cam.size * t + low
