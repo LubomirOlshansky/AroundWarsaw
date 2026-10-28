@@ -67,13 +67,26 @@ SOR_W = 1.8
 DIP_MAX = 2.0        # R3: the most a road under a deck may dip to get its clearance...
 DIP_GRADE = 0.08     # ...with ramps this steep
 PIT_SPAN = 20.0      # a dip in a road's terrain narrower than this is a pit to bridge...
-PIT_MIN = 0.4        # ...when it is at least this deep
+PIT_MIN = 0.4        # ...when it is at least this deep...
+PIT_PORTAL = 80.0    # ...and not this close to a tunnel's portal (loop 3b: its open ramp's trench)
 TUNNEL_COVER = 6.0   # R4: a tunnel runs this far under the terrain...
 TUNNEL_GRADE = 0.08  # ...its portal ramps no steeper than this
 BLUR_FREE = 30.0     # within this of a bridge way the terrain only bounds an approach from below
 BESIDE_REACH = 6.0   # a footway or tram track this far past a road deck's edge is held to its height
 STAIR_GRADE = 0.5    # a footbridge meets the ground by stairs: its ends may be this steep
 TARGET_DECK = 0.5    # R2: how hard a measured deck height pulls (per node)
+DECK_OBS = 2.0       # R2 (loop 3b): the surface model sampled every this many metres along a deck...
+DECK_PCT = 0.3       # ...this percentile across the carriageway (the deck is the low envelope)...
+DECK_STRUCT = 2.0    # ...from cells this far over the bare earth (a structure)...
+DECK_GRADE = 0.06    # ...smoothed to this grade...
+DECK_BAND = 1.0      # ...within this of the measured heights
+R2_FAMILIES = ("road", "rail")   # R2: measured where these are solved (footbridges and tram tracks
+                                 # follow the road deck beside them; the surface model over a footbridge
+                                 # often sees the viaduct above it)
+PIN_FADE = 40.0      # R2: the measured deck pulls in full this far from a pin, less nearer (squared)
+DECK_OPEN = 6.0      # R2: spikes narrower than twice this (a pylon, a gantry) are opened away
+PILLAR_AREA = 12.0   # R2: a mapped building this small under a road deck is one of its pillars...
+PILLAR_SLAB = 1.3 + 0.08 + 0.05   # ...and the deck's surface stands this far over its top (the slab)
 SURFACE_BASE = 100.0  # R2: the surface model's heights minus this are the map's (bake_gugik BASE_HEIGHT)
 
 KERB_W = 0.3         # granite kerb, metres across...
@@ -466,6 +479,34 @@ class Roadbed:
             (self.hatch if kind in HATCH_KINDS else self.carriage).append(item)
         print(f"roadbed: {len(self.carriage)} carriageway areas, {len(self.hatch)} hatched areas")
 
+    # -- R2 inputs (loop 3b) ------------------------------------------------------------
+
+    def set_trees(self, trees3d):
+        """The scanned trees (trees3d: x, z, top, radius, base, kind per tree), for the
+        surface model: a deck sample under a crown is a tree, not the deck."""
+        self.crowns = Grid(16.0)
+        for k in range(0, len(trees3d) - 5, 6):
+            x, z, r = trees3d[k], trees3d[k + 1], trees3d[k + 3]
+            self.crowns.add((x, z, r), x - r, z - r, x + r, z + r)
+
+    def under_crown(self, x, z):
+        for tx, tz, r in getattr(self, "crowns", Grid()).at(x, z):
+            if (x - tx) ** 2 + (z - tz) ** 2 < r * r:
+                return True
+        return False
+
+    def set_pillars(self, buildings):
+        """R2: small mapped buildings (under PILLAR_AREA m2) with a height: a deck over one
+        rests on it (`_solve` takes its top + the slab as the deck's lower bound there)."""
+        self.pillars = Grid(32.0)
+        for b in buildings:
+            q = pairs(b["p"])
+            if len(q) < 3 or b.get("br") or b["h"] <= b["mh"] or abs(ring_area(q)) > PILLAR_AREA:
+                continue
+            g = min(self.terrain.h(x, z) for x, z in q)
+            cx, cz = sum(p[0] for p in q) / len(q), sum(p[1] for p in q) / len(q)
+            self.pillars.add((cx, cz, g + b["h"]), cx, cz, cx, cz)
+
     # -- bridge decks ----------------------------------------------------------------
 
     def solve_decks(self):
@@ -620,6 +661,9 @@ class Roadbed:
             print(f"decks: underpass dip {d['d']:.2f} m on {d['name']} at ({d['x']:.0f}, {d['z']:.0f}) under {d['over']}")
         if self.surface_model is None:
             print("decks: no surface model (data/raw/demo/gugik/nmpt05 + nmt1): chain solver alone (R2 fallback)")
+        else:
+            print("decks: R2 measured decks followed: " + ", ".join(f"{k} {v}" for k, v in sorted(getattr(self, "measured", {}).items()))
+                  + f"; {getattr(self, 'pillar_bounds', 0)} mapped pillars under road decks (lower bounds where not measured)")
 
     # -- pits (loop 3a, C1) ----------------------------------------------------------------
 
@@ -675,7 +719,10 @@ class Roadbed:
                 while b < n - 1 and closed[b + 1] - hs[b + 1] > 0.02:
                     b += 1
                 a, b = max(a - 1, 0), min(b + 1, n - 1)
-                if b > a and not crowded(pts[a:b + 1], i, r["w"] * 0.5 + 2.5):
+                # Loop 3b: not in a tunnel's open ramp (the trench before a portal is real).
+                near_portal = any(math.hypot(q[0] - po[0], q[1] - po[1]) < PIT_PORTAL
+                                  for q in pts[a:b + 1] for po in getattr(self, "portals", []))
+                if b > a and not near_portal and not crowded(pts[a:b + 1], i, r["w"] * 0.5 + 2.5):
                     self.fills.append({"pts": pts[a:b + 1], "cum": _cum(pts[a:b + 1]), "h": [max(c, h) for c, h in
                                        zip(closed[a:b + 1], hs[a:b + 1])], "l": r["w"] * 0.5 + 0.5,
                                        "r": r["w"] * 0.5 + 0.5, "kind": "road", "road": i, "a": True, "pit": True})
@@ -1043,19 +1090,76 @@ class Roadbed:
         # Lower bounds: water, clearance; targets: the surface model (R2) where it has the deck.
         member_ids = {id(items[i]): i for i in idx}
         sm = self.surface_model
-        for i in idx:
-            if sm is not None and member[i] == "bridge":
+        measured = getattr(self, "measured", {})
+        self.measured = measured
+        # How far each node is from a pin along the structure (the measured deck is faded in
+        # over PIN_FADE from a pin: pins stay at the 10 m grid's value so the joints with the
+        # ordinary streets stay exact, and a ramp, not a step, takes the deck to its height).
+        pin_dist = [1e9] * len(X)
+        if sm is not None and family in R2_FAMILIES:
+            heap = []
+            for i in idx:
                 ps, ss, ids = item_nodes[i]
-                seen = sm.deck_level(ps, ss, (half_w or items[i].get("w", 4.0) * 0.5))
-                for s_obs, h_obs in seen:
-                    k = ids[min(range(len(ss)), key=lambda q: abs(ss[q] - s_obs))]
-                    TH[k] = h_obs - SURFACE_BASE   # the solver follows the measured deck there
-                    W[k] += TARGET_DECK
+                for q in pairs(items[i]["p"]):
+                    others = verts.get(_key(q), set()) - {i}
+                    if any(not member[o] for o in others) or not others:
+                        k = node_of[_key(q)]
+                        pin_dist[k] = 0.0
+                        heap.append((0.0, k))
+            heapq.heapify(heap)
+            while heap:
+                dd, k = heapq.heappop(heap)
+                if dd > pin_dist[k] or dd > PIN_FADE:
+                    continue
+                for o, w in nbr[k]:
+                    nd = dd + 1.0 / w
+                    if nd < pin_dist[o]:
+                        pin_dist[o] = nd
+                        heapq.heappush(heap, (nd, o))
+        seen_nodes = set()
+        for i in idx:
+            if sm is not None and member[i] == "bridge" and family in R2_FAMILIES:
+                # R2 (loop 3b): each node follows the deck measured along it (TARGET_DECK), where seen.
+                ps, ss, ids = item_nodes[i]
+                prof = sm.deck_profile(pairs(items[i]["p"]), _cum(pairs(items[i]["p"])),
+                                       half_w or items[i].get("w", 4.0) * 0.5, self.under_crown)
+                if prof:
+                    measured[family] = measured.get(family, 0) + 1
+                    obs_s = [q[0] for q in prof]
+                    for s_node, k in zip(ss, ids):
+                        j = min(range(len(obs_s)), key=lambda q: abs(obs_s[q] - s_node))
+                        if abs(obs_s[j] - s_node) > DECK_OBS * 1.5:
+                            continue
+                        TH[k] = _interp(obs_s, [q[1] for q in prof], s_node) - SURFACE_BASE
+                        W[k] = max(W[k], 0.0) + TARGET_DECK * min(1.0, pin_dist[k] / PIN_FADE) ** 2
+                        seen_nodes.add(k)
+        # R2 (loop 3b): a road deck stands on its mapped pillars (the Jana Pawła II viaduct's
+        # 48: small OpenStreetMap buildings under it): its slab never lower than their tops,
+        # where the surface model hasn't measured it (where it has, the measurement wins and
+        # bake_structures.py fits the pillars to the slab).
+        if family == "road" and getattr(self, "pillars", None):
+            for i in idx:
+                if member[i] != "bridge":
+                    continue
+                ps, ss, ids = item_nodes[i]
+                half = items[i].get("w", 4.0) * 0.5 + 1.0
+                for px, pz, top in self.pillars.box(*_bbox(ps, half)):
+                    best = None
+                    for p, k in zip(ps, ids):
+                        dd = math.hypot(p[0] - px, p[1] - pz)
+                        if best is None or dd < best[0]:
+                            best = (dd, k)
+                    if best is not None and best[0] <= max(half, NODE_STEP * 0.6):
+                        # The nodes over the pillar and one step either side (a level bearing, not a kink).
+                        for p, k in zip(ps, ids):
+                            if math.hypot(p[0] - px, p[1] - pz) <= NODE_STEP * 1.1 and k not in seen_nodes:
+                                LB[k] = max(LB[k], top + PILLAR_SLAB)
+                        self.pillar_bounds = getattr(self, "pillar_bounds", 0) + 1
         for i in idx:
             ps, ss, ids = item_nodes[i]
             for p, k in zip(ps, ids):
                 if self.water.hit(*p) >= 0:
-                    LB[k] = max(LB[k], TH[k] + CLEAR_WATER)
+                    LB[k] = max(LB[k], T.h(*p) + CLEAR_WATER)
             for c in cross[i]:
                 other = c["other"]
                 if id(other) in self.profiles:
@@ -2088,6 +2192,12 @@ def _edge_point(pts, cum, s, off):
     return pts[-1]
 
 
+def _bbox(pts, pad):
+    xs = [p[0] for p in pts]
+    zs = [p[1] for p in pts]
+    return min(xs) - pad, min(zs) - pad, max(xs) + pad, max(zs) + pad
+
+
 def _edge_dir(pts, cum, s):
     for k in range(len(pts) - 1):
         if s <= cum[k + 1] or k == len(pts) - 2:
@@ -2173,14 +2283,18 @@ def _stacked(pa, pb):
 
 
 class SurfaceModel:
-    """R2 hook (docs/DEMO.md 4.4): GUGiK's 0.5 m surface model (NMPT, `nmpt05/`) and 1 m
-    bare earth (NMT, `nmt1/`) for the bridge corridors, read from ESRI ASCII grids (.asc,
-    PL-1992 coordinates). `load` returns None until both are there; then
-    `deck_level(pts, cum, half)` gives the deck's true height every 2 m along a deck (the
-    30th percentile over the carriageway's width, cells with no structure or with trees
-    rejected) for the solver to follow, and `ground(x, z)` a robust ground value for pins
-    (the median of the 1 m NMT in a 6 m disc). Untested on real data: the files hadn't
-    arrived when loop 3a was built."""
+    """R2 (docs/DEMO.md 4.4; loop 3b): GUGiK's 0.5 m surface model (NMPT, `nmpt05/`) and 1 m
+    bare earth (NMT, `nmt1/`) for the structure corridors, from data/raw/demo/gugik (float32
+    GeoTIFF, PL-1992, EVRF2007: tools/geotiff.py; ESRI ASCII grids read too). `load` returns
+    None until both folders and data/raw/demo/MANIFEST.md are there. `deck_profile(pts, cum,
+    half)` gives a deck's measured height along it: every DECK_OBS metres the DECK_PCT
+    percentile of the surface over the carriageway's width (the deck is the low envelope: cars,
+    lamps, parapets stand above it), cells rejected where the surface is
+    within DECK_STRUCT of the bare earth (no structure there, or the NMT kept the deck) or under
+    a scanned tree's crown; then smoothed to DECK_GRADE within
+    DECK_BAND of what was measured (after an opening that drops anything narrower than 12 m
+    standing on it). `ground(x, z)` is a robust bare-earth value (the median of
+    the 1 m NMT in a 6 m disc)."""
 
     def __init__(self, surface, ground):
         self.surface = surface
@@ -2191,19 +2305,23 @@ class SurfaceModel:
         nmpt, nmt = os.path.join(folder, "nmpt05"), os.path.join(folder, "nmt1")
         if not (os.path.isdir(nmpt) and os.path.isdir(nmt)):
             return None
-        grids = []
-        for sub in (nmpt, nmt):
-            files = [os.path.join(sub, f) for f in sorted(os.listdir(sub)) if f.lower().endswith(".asc")]
-            if not files:
-                print(f"decks: data/raw/demo/gugik/{os.path.basename(sub)} has no ASCII grids (.asc; GeoTIFF is "
-                      f"not read yet): R2 skipped")
-                return None
         if not os.path.exists(os.path.join(folder, "..", "MANIFEST.md")):
             print("decks: the surface model is still being fetched (no data/raw/demo/MANIFEST.md): R2 skipped")
             return None
-            grids.append([_AscGrid(f) for f in files])
-        print(f"decks: surface model {len(grids[0])} + {len(grids[1])} grids")
-        return SurfaceModel(grids[0], grids[1])
+        grids = []
+        for sub in (nmpt, nmt):
+            files = [os.path.join(sub, f) for f in sorted(os.listdir(sub)) if f.lower().endswith((".tif", ".tiff", ".asc"))]
+            if not files:
+                print(f"decks: data/raw/demo/gugik/{os.path.basename(sub)} has no grids: R2 skipped")
+                return None
+            grids.append([_TifGrid(f) if not f.lower().endswith(".asc") else _AscGrid(f) for f in files])
+        # Only the windows that reach into this map.
+        import bake_osm
+        sw, ne = bake_osm.project(bake_osm.BBOX[0], bake_osm.BBOX[1]), bake_osm.project(bake_osm.BBOX[2], bake_osm.BBOX[3])
+        rect = (sw[0], ne[1], ne[0], sw[1])
+        grids = [[g for g in gl if g.touches(rect)] for gl in grids]
+        print(f"decks: surface model (R2): {len(grids[0])} surface + {len(grids[1])} bare-earth windows in this map")
+        return SurfaceModel(grids[0], grids[1]) if grids[0] and grids[1] else None
 
     @staticmethod
     def _sample(grids, x, z):
@@ -2219,27 +2337,91 @@ class SurfaceModel:
         vals = sorted(v for v in vals if v is not None)
         return vals[len(vals) // 2] if vals else None
 
-    def deck_level(self, pts, cum, half, trees=()):
-        out = []
+    def deck_profile(self, pts, cum, half, trees=None):
+        """[(s, measured deck height)] along a deck piece (absolute heights; empty where no
+        structure was seen). `trees`: a function (x, z) -> True under a scanned crown."""
+        raw = []
         s = 0.0
-        while s <= cum[-1]:
+        while s <= cum[-1] + 1e-6:
             x, z = _at(pts, cum, s)
-            d = _unit(pts[0], pts[-1]) or (1.0, 0.0)
+            d = _edge_dir(pts, cum, s)
             vals = []
             o = -half
-            while o <= half:
+            while o <= half + 1e-6:
                 px, pz = x - d[1] * o, z + d[0] * o
                 top = self._sample(self.surface, px, pz)
                 bare = self._sample(self.ground_grid, px, pz)
-                if top is not None and bare is not None and top - bare > 2.0 and not any(
-                        (px - tx) ** 2 + (pz - tz) ** 2 < tr * tr for tx, tz, tr in trees):
+                if top is not None and bare is not None and top - bare > DECK_STRUCT and not (trees and trees(px, pz)):
                     vals.append(top)
                 o += 0.5
-            if len(vals) >= 3:
+            if len(vals) >= max(3, int(half * 2 / 0.5 * 0.4)):
                 vals.sort()
-                out.append((s, vals[int(len(vals) * 0.3)]))
-            s += 2.0
-        return out
+                raw.append((s, vals[int(len(vals) * DECK_PCT)]))
+            s += DECK_OBS
+        if len(raw) < 3:
+            return []
+        # An opening (the lowest within DECK_OPEN, then the highest of those within DECK_OPEN):
+        # anything narrower than 2 x DECK_OPEN standing on the deck (a pylon, a sign gantry, a
+        # bus) goes, a slope stays; then within DECK_BAND of that, no steeper than DECK_GRADE
+        # (forward and backward passes).
+        ero = [min(h for ss, h in raw if abs(ss - raw[k][0]) <= DECK_OPEN) for k in range(len(raw))]
+        med = [max(ero[j] for j in range(len(raw)) if abs(raw[j][0] - raw[k][0]) <= DECK_OPEN) for k in range(len(raw))]
+        h = list(med)
+        for _ in range(50):
+            moved = 0.0
+            for k in range(1, len(h)):
+                lim = DECK_GRADE * (raw[k][0] - raw[k - 1][0])
+                v = min(max(h[k], h[k - 1] - lim), h[k - 1] + lim)
+                moved, h[k] = max(moved, abs(v - h[k])), v
+            for k in range(len(h) - 2, -1, -1):
+                lim = DECK_GRADE * (raw[k + 1][0] - raw[k][0])
+                v = min(max(h[k], h[k + 1] - lim), h[k + 1] + lim)
+                moved, h[k] = max(moved, abs(v - h[k])), v
+            for k in range(len(h)):
+                v = min(max(h[k], med[k] - DECK_BAND), med[k] + DECK_BAND)
+                moved, h[k] = max(moved, abs(v - h[k])), v
+            if moved < 0.01:
+                break
+        return [(raw[k][0], h[k]) for k in range(len(h))]
+
+
+class _TifGrid:
+    """One GeoTIFF window (tools/geotiff.py) in map metres: map (x, z) -> PL-1992 (easting,
+    northing) by an affine fit at the window's corners (the projections differ by under a
+    centimetre across a window), nearest cell."""
+
+    def __init__(self, path):
+        import geotiff
+        import bake_osm
+        import pl1992
+        self.g = geotiff.read(path)
+        x0, y0, x1, y1 = self.g.bounds()
+        corners = []
+        for e, n in ((x0, y1), (x1, y1), (x0, y0)):
+            lat, lon = pl1992.from_pl1992(n, e)
+            corners.append((bake_osm.project(lat, lon), (e, n)))
+        (ma, ea), (mb, eb), (mc, ec) = corners
+        # Solve [e n] = A [x z 1] from the three corners.
+        det = (mb[0] - ma[0]) * (mc[1] - ma[1]) - (mc[0] - ma[0]) * (mb[1] - ma[1])
+        self.A = []
+        for k in (0, 1):
+            dxv, dzv = eb[k] - ea[k], ec[k] - ea[k]
+            a = (dxv * (mc[1] - ma[1]) - dzv * (mb[1] - ma[1])) / det
+            b = (dzv * (mb[0] - ma[0]) - dxv * (mc[0] - ma[0])) / det
+            self.A.append((a, b, ea[k] - a * ma[0] - b * ma[1]))
+        xs = [c[0][0] for c in corners] + [mb[0] + mc[0] - ma[0]]
+        zs = [c[0][1] for c in corners] + [mb[1] + mc[1] - ma[1]]
+        self.box = (min(xs), min(zs), max(xs), max(zs))
+
+    def touches(self, rect):
+        return not (self.box[2] < rect[0] or self.box[0] > rect[2] or self.box[3] < rect[1] or self.box[1] > rect[3])
+
+    def at(self, x, z):
+        if not (self.box[0] <= x <= self.box[2] and self.box[1] <= z <= self.box[3]):
+            return None
+        e = self.A[0][0] * x + self.A[0][1] * z + self.A[0][2]
+        n = self.A[1][0] * x + self.A[1][1] * z + self.A[1][2]
+        return self.g.at(e, n)
 
 
 class _AscGrid:
@@ -2258,6 +2440,9 @@ class _AscGrid:
         self.east0 = head.get("xllcorner", head.get("xllcenter", 0.0))
         self.north0 = head.get("yllcorner", head.get("yllcenter", 0.0))
         self.nodata = head.get("nodata_value", -9999.0)
+
+    def touches(self, rect):
+        return True
 
     def at(self, x, z):
         import bake_osm

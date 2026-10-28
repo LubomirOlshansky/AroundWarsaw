@@ -525,7 +525,8 @@ func _check_game() -> int:
 			var g: float = map.ground_height(x, z)
 			var why: Array = game._landing_problem(Vector3(x, g, z)) if landing_test \
 					else ([] if map.top_height(x, z, 3.0) <= g + 1.0 else ["roof", ""])
-			var water_msg: bool = not why.is_empty() and why[1] != ""
+			# The third item names the reason (sweep 1 gave the roof toast a gloss too).
+			var water_msg: bool = not why.is_empty() and (why[2] == "water" if why.size() > 2 else why[1] != "")
 			if map.in_water(x, z, g):
 				if water_msg or not why.is_empty():
 					refused += 1  # the water, or a roof over it first (the stadium's)

@@ -3,14 +3,12 @@ extends Node3D
 ## Draw add-on (HardPixel, MIT, game/addons/debug_draw): the bridge decks' corridors at their
 ## height (orange roads, yellow footways, red tracks), the approaches that correct the ground
 ## (green), the tunnels (magenta), every lane at the height the traffic uses (blue; violet in a
-## tunnel) and the piers map_builder.gd stands under the decks (cyan boxes). A testing aid
+## tunnel) and the piers under the decks (cyan boxes; loop 3b: the bake's `decks.piers`). A testing aid
 ## only: nothing loads the add-on without the flag.
 
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const REACH := 140.0
 const REFRESH := 30.0
-const PIER_STEP := 38.0
-const PIER_FIRST := 20.0
 
 var map: Node3D
 var graph: LaneGraph
@@ -21,10 +19,13 @@ var _centre := Vector2(INF, INF)
 ## [Vector3 centre, Quaternion, Vector3 size].
 var _strips: Array = []
 var _boxes: Array = []
+## Loop 3b: the bake's pier boxes (`decks.piers`; the prebuilt city keeps no map data).
+var _pier_list: Array = []
 
 
-func setup(map_node: Node3D, lane_graph: LaneGraph, focus_fn: Callable) -> void:
+func setup(map_node: Node3D, lane_graph: LaneGraph, focus_fn: Callable, map_data := {}) -> void:
 	map = map_node
+	_pier_list = map_data.get("decks", {}).get("piers", [])
 	graph = lane_graph
 	focus = focus_fn
 	_draw = (load("res://addons/debug_draw/debug_draw_3d.tscn") as PackedScene).instantiate()
@@ -65,8 +66,7 @@ func _collect() -> void:
 			"tram", "rail":
 				col = Color(1.0, 0.25, 0.25)
 		_edges(pts, d["h"], float(d["l"]), float(d["r"]), 0.1, col)
-		if String(d["k"]) in ["road", "rail"]:
-			_piers(d)
+	_piers(area)
 	var fills := 0
 	for d: Dictionary in map._fills:
 		if _touches(d["pts"], area):
@@ -123,29 +123,14 @@ func _edges(pts: PackedVector2Array, hs: PackedFloat32Array, l: float, r: float,
 		_strips.append([line, col])
 
 
-## Where map_builder.gd `_build_bridge_structures` stands a pier: every 38 m from 20 m along
-## a road or rail piece, where the deck is more than 2.5 m over the ground.
-func _piers(d: Dictionary) -> void:
-	var pts: PackedVector2Array = d["pts"]
-	var hs: PackedFloat32Array = d["h"]
-	var l := float(d["l"]) + 0.2
-	var r := float(d["r"]) + 0.2
-	var run := 0.0
-	var next_pier := PIER_FIRST
-	for i in pts.size() - 1:
-		var a := pts[i]
-		var b := pts[i + 1]
-		var length := a.distance_to(b)
-		if length < 0.05:
+## Loop 3b: the bake's piers, portal legs and cap beams (`decks.piers`) inside the area.
+func _piers(area: Rect2) -> void:
+	for p: Dictionary in _pier_list:
+		var c := Vector2(float(p["c"][0]), float(p["c"][1]))
+		if not area.has_point(c):
 			continue
-		var dir := (b - a) / length
-		while next_pier < run + length:
-			var p := a + dir * (next_pier - run)
-			var deck_y := lerpf(hs[i], hs[i + 1], (next_pier - run) / length)
-			var ground: float = map.terrain_height(p.x, p.y)
-			if deck_y - ground > 2.5:
-				var h := deck_y - 1.3 - ground + 0.5
-				_boxes.append([Vector3(p.x, ground - 0.5 + h * 0.5, p.y), Quaternion(Vector3.UP, atan2(-dir.x, -dir.y)),
-						Vector3((l + r) * 0.6, h, 1.6)])
-			next_pier += PIER_STEP
-		run += length
+		var dir := Vector2(float(p["d"][0]), float(p["d"][1]))
+		var y0 := float(p["y"][0])
+		var y1 := float(p["y"][1])
+		_boxes.append([Vector3(c.x, (y0 + y1) * 0.5, c.y), Quaternion(Vector3.UP, atan2(-dir.x, -dir.y)),
+				Vector3(float(p["s"][0]), y1 - y0, float(p["s"][1]))])

@@ -264,7 +264,13 @@ Small problems that agents reported or that showed up in screenshots. They are f
   runs).
 
 ## From loop 3a (roads I: the check and the bake)
-- **R2 is waiting for its data.** `bake_roads.SurfaceModel` reads the 0.5 m surface model and the
+- Fixed in loop 3b: R2 (the GeoTIFF corridors are read), decks too low over the Jana Pawła II
+  viaduct's pillars and the Poniatowski viaduct's arcades, the approaches' plain faces (retaining
+  walls), tunnels and garage doors data only (drawn and driven), C4/C5/C9/C10. Kept below for
+  the record; still open: the minor service ways' and junction pits' steep bits (C1 allowlist),
+  the schematic footbridges (C3 allowlist), C10's other landmarks by their outlines, the runtime
+  build's time.
+- ~~**R2 is waiting for its data.**~~ `bake_roads.SurfaceModel` reads the 0.5 m surface model and the
   1 m terrain as ASCII grids once `data/raw/demo/MANIFEST.md` exists; the corridors arriving in
   `data/raw/demo/gugik/nmpt05/` and `nmt1/` are GeoTIFF, which it doesn't read yet (a small
   stdlib TIFF reader, or a one-off conversion to .asc in the fetch). Untested on real data.
@@ -389,3 +395,43 @@ Small problems that agents reported or that showed up in screenshots. They are f
   release drives through buildings, so its frames show the occlusion ghost.
 - `check_steering.gd`'s px/s numbers changed meaning: every test now starts with the camera
   settled for the starting speed (loop 2a's README numbers started it at the car).
+
+## From loop 3b (roads II: the builder)
+- **The minimap doesn't draw the tunnels yet** (DEMO 4.4: dashed). It is `hud.gd`
+  `_minimap_mesh` (the HUD agent's file): after the roads loop, the `tunnels.roads` as 8 m
+  dashes in the road colour. The snippet is in the loop 3b report.
+- **The car in a tunnel is a silhouette, not the plan's dithered ghost.** `tunnel_xray.gd` draws
+  the car's meshes once more with an unshaded material that ignores depth (after the post pass);
+  the ground over the tunnel stays whole. A dither in `ground.gdshader` would need `discard` in
+  the ground's shader (a cost on the phone's tile GPU for the whole ground); the look is the
+  user's to judge on the phone.
+- The portal frames are simple (a headwall, two posts, a dark mouth 3 m in); the 10 m grid's
+  slope over the first metres of a tunnel covers part of the mouth. The open ramp's walls stand
+  on the grid's blurred trench sides.
+- Tunnel 2 (the link under Most Poniatowskiego's west abutment) is shallow (30 m long, ramps of
+  8 % from both portals, ~1.5 m under the grid): it passes under the abutment's approach fill,
+  whose retaining walls open over it (the wall's foot at the mouth's top).
+- Most Poniatowskiego's towers keep their guessed heights (top 15 m over the deck); their
+  footprints come from the outline by the deck (16 x 3.5-5 m), thinner than the photo suggests.
+  The rounded second outline (a stair annex down to the boulevard) is no longer drawn.
+- The bus is swept on main roads and links only (lane classes 0-1): traffic sends a bus into a
+  residential or living street with a 5 % weight (`traffic.gd _choose_next`), where a rigid
+  12 m box at OpenStreetMap's square corners hits walls. For gameplay-dev: keep buses to classes
+  0-1 when there is a choice.
+- check_drive's routes cover every deck and tunnel edge (17 routes) plus 3 outer-lane repeats;
+  20 distinct structures don't exist on today's map.
+- Clearing the lanes left out 169 benches, racks, columns and shelters, 408 parked cars, 34
+  kiosks (< 30 m2) and cut 2.2 km of fences, walls, hedges and mapped guard rails where they
+  stood in a carriageway or a lane (OpenStreetMap's fences across gates, a car park mapped over a
+  street's edge). Some may be real (a gate's fence); the lane graph wins.
+- LoD2 walls a metre into a lane (17 places, `lod2_open`) are drawn but not solid there; the car
+  drives through the corner of the building (the lane is where OpenStreetMap's road is).
+- R2 uses the surface model for road and rail decks only; footbridges keep the chain solver.
+  The surface model also gives the 1 m bare earth (`SurfaceModel.ground`), not used yet for
+  pins or approaches (the 10 m grid keeps the joints with the ordinary streets exact).
+- Aprons blend the ground at 15 structure ends; a fill's (approach's or pit's) own ends were
+  tried and dropped (their side edges made new steps).
+- Not done in loop 3b (the triage's 3b row and item 9, for loop 3b-2): kerbs, islands and medians
+  flat to the car; cramped turn arrows, Rondo Dmowskiego's spiral, chevrons, medians on two-way
+  roads, deck pieces > 3 m apart showing the river; natural river banks, sandbars, tree crowns by
+  roads.

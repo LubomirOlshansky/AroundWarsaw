@@ -1404,6 +1404,28 @@ func _minimap_mesh(data: Dictionary) -> ArrayMesh:
 			continue
 		var minor: bool = r["k"] in ["service", "living_street"]
 		strip.call(pts, Color("#8d8f94") if minor else Color("#5b5e64"), maxf(1.0, float(r["w"]) * s))
+	# Loop 3b: tunnels, dashed (8 m drawn, 8 m left out) so they read as under the ground.
+	for r in data.get("tunnels", {}).get("roads", []):
+		var flat: Array = r["p"]
+		var tp := PackedVector2Array()
+		for i in range(0, flat.size() - 1, 2):
+			tp.append(Vector2(flat[i], flat[i + 1]))
+		var run := 0.0
+		for i in tp.size() - 1:
+			var a := tp[i]
+			var c := tp[i + 1]
+			var ln := a.distance_to(c)
+			var t := 0.0
+			while t < ln:
+				var phase := fmod(run + t, 16.0)
+				if phase < 8.0:
+					var t1 := minf(t + 8.0 - phase, ln)
+					strip.call(PackedVector2Array([a.lerp(c, t / ln) * s, a.lerp(c, t1 / ln) * s]),
+							Color("#5b5e64"), maxf(1.0, float(r["w"]) * s))
+					t = t1
+				else:
+					t += 16.0 - phase
+			run += ln
 	var b: Array = data["bounds"]
 	var lo := Vector2(b[0], b[1]) * s
 	var hi := Vector2(b[2], b[3]) * s

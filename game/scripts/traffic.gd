@@ -987,6 +987,8 @@ func _place(d: Driver) -> void:
 			var dir := graph.direction(e, length)
 			p += dir * (d.s - length)
 			d.clip = clampf((length - d.s + d.length * 0.5) / d.length, 0.0, 1.0)
+		if graph.e_tn[e] >= 0 and graph.tunnel_depth(e, s) > LaneGraph.TUNNEL_HIDE:
+			d.clip = 0.0  # loop 3b: deep in a tunnel (simulated, not drawn)
 	var moved := Vector2(p.x - d.pos.x, p.y - d.pos.z)
 	if moved.length_squared() > 0.000001:
 		d.yaw = lerp_angle(d.yaw, atan2(-moved.x, -moved.y), 0.35)

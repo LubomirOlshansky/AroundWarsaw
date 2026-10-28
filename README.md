@@ -1510,6 +1510,95 @@ runs): scripts 0.55–0.56 → 0.56–0.61 ms, game loop 0.05 → 0.05–0.06 ms
 245. The fly-in's first view (200 m) draws 217 and the look's widest (220 m) 219, for a second or
 two (the zoomed-out budget view draws 190–215).
 
+## Loop 3b: roads II, the builder (2026-10-28)
+
+The builder's side of docs/DEMO.md section 4 (R2, R5-R7, buildings under decks, the tunnels),
+so that **every rule C1-C10 passes over the whole map** (allowlist entries only with a reason and
+a source) and **a car and a bus drive every lane without hitting anything**. The structures are
+placed in the bake, on the finished map data (`tools/bake_structures.py`, run at the end of
+`bake_osm.py`): the game draws what the data says, and `check_roads.py` and the new
+`check_drive.gd` check the same data.
+
+| Rule (DEMO.md 4.5) | Before (loop 3a) | After | Allowed, why |
+| --- | --- | --- | --- |
+| C1 grade | 32, all allowed | 32, all allowed | as loop 3a |
+| C2 joints | 0 | 0 | |
+| C3 clearance | 54 in 7 places, allowed | 36 in 6, allowed | the decks rose (R2); schematic footbridges, the WKD cutting |
+| C4 piers | 31 of 171 | 0 of 174 (8 portal legs) | |
+| C5 solids | 50 | 18 in 14 places, allowed | courtyard driveways ending at a gate (each with its OSM way) |
+| C6 deck ends in the air | 0 (+5 rim) | 0 (+5 rim) | |
+| C7 dropped ways | 0 | 0 | Warecka's 7 m `tunnel=yes` counts as a gate now |
+| C8 lanes | 5, allowed | 5, allowed | as loop 3a |
+| C9 through decks | 57 | 4 in 3 places, allowed | a footway deck grazing buildings (2-8 % of a footprint), the science centre's roof ramps |
+| C10 landmarks | 1 | 0 | |
+
+`check_drive.gd`: 2,276 lanes, 36,177 spots every 4 m, 0 car and 0 bus boxes in collision (the
+first run on this loop's bake: 407 car + 1,171 bus boxes in 341 places); the autopilot over 20
+routes (every deck and tunnel edge, both ways, 3 outer-lane repeats), 45,067 frames, 0 height
+jumps over 0.3 m (first run: 3 on 10 routes).
+
+**What changed** (DEMO.md 4.8 has the numbers per item):
+
+- **Piers (R5)** are the bake's (`decks.piers`): a candidate every 38 m slides up to 12 m along
+  its deck to a footprint 1.1 m clear of what runs under it (roads at half their width, trams,
+  rail beds, kerbs, carriageway areas, lower decks, every lane's drive corridor); else a portal
+  frame (two legs outside the road, the slab as the cross-head, a cap beam out to a leg past the
+  deck's edge); else none. Solid. `--debug-roads` shows them.
+- **Retaining walls (R6)** (`walls`): where an approach stands 0.35 m or more over the ground
+  beside it, along its sides and across an end: stone (roads) or concrete (tracks), a light
+  coping, a 0.9 m parapet from a 1 m drop, solid from 0.6 m, open where a way joins the approach
+  or a tunnel passes under it. The same runs line the tunnels and their open ramps.
+- **Most Poniatowskiego's towers (R7)** (`towers`, landmarks.gd): the outline by the deck, its
+  footprint trimmed clear of the road decks, approaches, roads and lanes, base at the boulevard,
+  shaft from the solved deck + 1.2 m; the zone grown 6 m, so the stair annex OpenStreetMap maps
+  ~6 m out is no longer drawn as a building fused into the tower. Solid from the boulevard to
+  over the deck.
+- **Buildings under decks** (`cut`, `cutd`, `pil`, `lod2_cuts`): cut to the slab's bottom - 0.5 m
+  under a road, rail or tram structure (the Poniatowski viaduct's LoD2 arcades and the Arkada;
+  `_build_lod2` clips the LoD2 triangles and lays the roofs over the cut flat); a viaduct's
+  mapped pillars fitted to the slab; a building only grazed (under 20 % of it) isn't cut.
+- **True deck heights (R2)**: `tools/geotiff.py` reads the demo fetch's GeoTIFF corridors
+  (`data/raw/demo/gugik/nmpt05`, `nmt1`; 17 windows reach this map) and `bake_roads.SurfaceModel`
+  gives the solver the measured deck. Most Poniatowskiego's river span now has its camber (-5.6 /
+  -4.5 m at the ends, -3.2 m mid-river; the solver alone had it nearly level), the Jana Pawła II
+  viaduct rose 1-2 m onto its pillars, the viaduct over Powiśle stays within 0.3 m of loop 3a's.
+- **Tunnels** are drawn and driven: the floor's road, dark walls (solid inside), portal frames,
+  walls along the open ramps; `drive_height` drives a tunnel's floor (`map_builder.tunnel_floor`),
+  traffic routes through them and is hidden deeper than 15 m from a portal; the car shows
+  through the ground as a warm silhouette (`tunnel_xray.gd`); `--tunnel` starts inside one.
+  Garage doors at the 27 ramp tops.
+- **Clearing the lanes** (what `check_drive` found, by class): tram-stop platforms are kerb
+  height and not solid any more; fences, walls, hedges and mapped guard rails are cut out of
+  carriageways and lanes; benches, racks, shelters, parked cars and kiosks standing in one are
+  left out; building colliders end at the building's top; deck parapets are solid only over a
+  1 m drop; road decks narrowed (at most 0.4 m) beside a ground lane; LoD2 walls a metre into a
+  lane not solid there; approaches widened to hold their lanes; `aprons` blend the ground at
+  structure ends (the 10 m grid's cross slope made a car step 0.3-0.4 m off a deck or out of a
+  tunnel); no pit fill in a tunnel's open ramp.
+- `tools/verify.sh`: `roads` FAILs on any rule; new steps `drive` and `drive-prebuilt`.
+
+**Cost** (Mac, README's commands; the loop 3a code and data in a copy, `game_before/`, run
+alongside). Draw calls, probe at 2868x1320, before → after: spawn 153 → 154 (3D 53 → 53, shadow
+35 → 35, 2D 65 → 66), the default view over the river 124 → 125, zoomed out 190 → 186, the
+helicopter 242 → 245, Most Poniatowskiego's east end 123 → 122, the Wisłostrada portal 135 →
+135, the Jana Pawła II viaduct 137 → 136; main-pass triangles unchanged (0.25 → 0.24 M at the
+spawn, 0.37 → 0.36 M zoomed out). Every new piece (piers, walls, portals, garage doors) goes into
+the existing tile meshes: no new material or draw call; the tunnel silhouette costs a draw call
+per car mesh only while the car is in a tunnel. Vertices 6,144,280 → 6,060,970 (-1.4 %; meshes
+3,771,594 → 3,766,836, instances 2,372,686 → 2,294,134: the parked cars and props cleared out of
+the lanes). Scripts on the bench route (5 interleaved runs, medians): traffic + trams + people
+0.65 → 0.63 ms, all 0.93 → 0.91 ms; the frame is capped at the display's 120 Hz on this Mac
+(8.33 ms both), and other agents' Godot runs overlapped, so frame times say nothing. The runtime
+city build 7.7 → 8.4 s (the LoD2 cut, the walls, the aprons in `terrain_height`); the prebuilt
+city loads in 0.8 s as before. `centrum.json` 5.04 → 5.14 MB, `city.scn` 36.5 → 36.4 MB.
+
+**Not done** (BACKLOG "From loop 3b"): the minimap's dashed tunnels (hud.gd), the art items
+(natural banks, sandbars, tree crowns by roads) and the triage's 3b row (kerbs solid, markings);
+loop 3b-2.
+
+Screenshots: `shots/loop3b/` (the road spots before and after on both city paths, the tunnel
+portal and the car in the tunnel, the towers, a pier beside a road; `c9_spots.png`).
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -1595,6 +1684,12 @@ expensive kind.
    Loop 3a: the bake also writes `fills` (approaches and pits: the ground corrected under a
    road), `tunnels` and `garages`, and the graph's `dk` / `tn`; check the result with
    `python3 -I tools/check_roads.py` (C1-C10, see Loop 3a).
+   Loop 3b: it ends with `tools/bake_structures.py` (`decks.piers`, `walls`, `towers`, `cut` /
+   `cutd` / `pil` on buildings, `lod2_cuts`, `lod2_open`, `aprons`, `tunnels.frames`,
+   `garage_doors`, the graph edges' `po`; it reads `game/map/lod2.*`, so bake GUGiK first), and
+   when `data/raw/demo/gugik/nmpt05` and `nmt1` are there (the demo fetch's 0.5 m surface model
+   and 1 m terrain, float32 GeoTIFF; `data/raw/demo/MANIFEST.md`) the deck solver follows the
+   measured decks (R2). Then `godot --headless --path game --script res://tools/check_drive.gd`.
    Laser-scan records that are not trees are left out (`GUGIK_NOT_TREES`: the Palm, written
    as `palm`). After a re-bake run steps 3-5 again.
    For the side jobs and easter eggs the same bake writes more `pois`: `kebab` (the mapped
@@ -1639,6 +1734,9 @@ solved from what they cross (see Real roads).
 PASS/WARN/FAIL table: the map-data invariants (`tools/check_map_data.py`), the road check
 (`tools/check_roads.py`, loop 3a), the check scripts
 (steering, settings, the HUD at phone size, landmarks, sfx, radio loops, the water on both city paths) and eight headless game runs, each with
+
+(the drive check on both city paths (loop 3b), steering, settings, landmarks, sfx, radio loops,
+the water on both city paths) and eight headless game runs, each with
 `--nosave` (`--quick` for a short set, `--ios` adds the export and the unsigned Xcode build,
 `--only=` picks steps). `tools/shots.sh` renders standard screenshots at a phone's size
 (`--list` names them). `tools/device_run.sh` builds, installs and launches the game on a
@@ -1796,6 +1894,8 @@ Command-line options (after `--`):
 | `--cam-log` | camera loop: print the camera every 0.25 s (`cam:` lines: scheme, finger, speed, the car's and the camera's compass headings, the camera's fastest turn since the last line, the car's place on screen, the view's height) |
 | `--cam-test=classic_turn\|point_release\|brake` | camera loop: drive one camera moment in the real city (scripted inputs through the scheme's mapping, the car ghosting through walls, no traffic, 1 s parked first; implies `--cam-log`): Classic following, a 90° right turn at 50 km/h; Point, the stick held 90° right at 50 km/h for 2.5 s then let go; Classic following, flat out to 90 km/h then braking to a stop. Frame strips: add `--shots=` every 15 frames (`--at=-1113.2,-263.4 --heading=160` is Marszałkowska) |
 | `--cinematic` / `--cinematic=flyin\|look` | camera loop: the cinematic moments in a test run too (they play only in a normal launch: never with `--notitle`, `--shots`, `--bench`, `--probe`, `--demo` or the other testing flags). With `--notitle` the fly-in starts at once; `--mission=1 --cinematic=look` shows the look at a rescue target |
+| `--debug-roads` | loop 3a: draw the bridge decks, approaches, tunnels, lane heights and piers round the car (Debug Draw add-on); loop 3b: the piers, portal legs and cap beams the bake placed |
+| `--tunnel` | loop 3b: with `--at`, start on the floor of the tunnel under that point (the car shows through the ground as a silhouette) |
 | `--drive-into-water=X,Z` | loop 10a: start at X,Z and drive flat out at the nearest water (within 120 m), the collision off until 3 m past the edge as if the car had jumped it; prints `water test:`, `water: splash at …` and `water: towed after … s …` (where to, how far from a lane, dry or not, the job / rescue / race / wallet), each with its frame. With `--kebab=0` a delivery is running (`tools/verify.sh` step `splash`) |
 
 Godot's own `--time-scale 3` (before `--`) speeds a mission or race up for screenshots, and

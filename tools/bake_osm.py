@@ -157,6 +157,8 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
         # loop 3b builds it), a way below ground that is no tunnel (layer < 0: a cutting) is an
         # ordinary road. Building passages and service tunnels (garage interiors, R9) stay out.
         tunnel = t.get("tunnel") == "yes" and hw in DRIVABLE and hw != "service" and t.get("area") != "yes"
+        if tunnel and is_passage(coords(ids)):
+            continue  # loop 3b: a short "tunnel" under a building is a gate (a building passage)
         cutting = t.get("tunnel") in (None, "no") and num(t.get("layer")) is not None and num(t.get("layer")) < 0
         if hw in DRIVABLE and (not underground or cutting or tunnel) and t.get("area") != "yes":
             width = bake_roads.road_width(t)[0]
@@ -245,6 +247,10 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     bed = bake_roads.Roadbed(ways, nodes, project, in_bbox, clip_polygon, rect,
                              os.path.join(os.path.dirname(os.path.abspath(dst)), "terrain.json"),
                              roads, paths, trams, details, areas)
+    # Loop 3b (R2): the scanned trees' crowns (the surface model sees them, not the deck) and
+    # the small mapped buildings that are a viaduct's pillars.
+    bed.set_trees(trees3d)
+    bed.set_pillars(kept)
     bed.solve_decks()
     bed.solve_tunnels(tunnel_roads)
     bed.fill_pits()
@@ -269,6 +275,17 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     for r in tunnel_roads:
         levels.setdefault(r["_id"], ("tn", r["tn"]))
     graph = bake_graph(els, nodes, ways, rect, extras_src, extras.get("signals", []), bed, levels)
+    # Loop 3b: a tunnel edge's ends that are portals (`po`: 1 its start, 2 its end): traffic
+    # deeper inside than 15 m from a portal is hidden (traffic.gd).
+    portals = bed.tunnel_json(tunnel_roads)["portals"]
+    for e in graph["edges"]:
+        if "tn" in e:
+            ps = e["p"]
+            po = 0
+            for bit, (x, z) in ((1, (ps[0], ps[1])), (2, (ps[-2], ps[-1]))):
+                if any(math.hypot(x - px, z - pz) < 12.0 for px, pz, _ in portals):
+                    po |= bit
+            e["po"] = po
     bed.bake_lane_marks(graph["edges"])
     for e in graph["edges"]:
         for k in [k for k in e if k.startswith("_")]:
@@ -316,6 +333,11 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     for key in ("markings",):
         out[key] = [_lv({k: v for k, v in m.items() if k != "dk"}, m.get("dk", -1)) for m in out[key]]
     _strip_private(out)
+    # Loop 3b: the builder's structures (piers, retaining walls, building cuts, the
+    # Poniatowski towers' seats), placed on the finished map data (tools/bake_structures.py).
+    import bake_structures
+    map_dir = os.path.dirname(os.path.abspath(dst))
+    bake_structures.add_structures(out, map_dir, json.load(open(os.path.join(map_dir, "terrain.json"))))
     with open(dst, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
     print(f"tunnels: {len(tunnel_roads)} tunnel roads, {len(out['tunnels']['pieces'])} pieces, "
@@ -327,6 +349,16 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
 GARAGE_DROP = 2.0    # R9: a service way whose terrain falls this far below its start...
 GARAGE_REACH = 30.0  # ...within this many metres...
 GARAGE_GRADE = 0.20  # ...somewhere steeper than this, is diving into a garage
+
+
+PASSAGE_MAX = 15.0   # loop 3b: a drivable tunnel=yes way no longer than this is a gate under a building
+
+
+def is_passage(pts):
+    """Loop 3b: a drivable `tunnel=yes` way this short (Warecka's 7 m under a building) is a
+    gate through a building, not a tunnel: like `tunnel=building_passage` it is left out
+    (check_roads C7 counts it under the building passages)."""
+    return sum(math.dist(a, b) for a, b in zip(pts, pts[1:])) <= PASSAGE_MAX
 
 
 def garage_ramps(roads, terrain_path):
@@ -1155,7 +1187,7 @@ def bake_graph(els, nodes, ways, rect, signal_src, poles, bed=None, levels=None)
         # Loop 3a (R4): tunnels (baked as tunnel pieces) and cuttings are in the graph;
         # building passages are not.
         if t.get("tunnel") == "building_passage" or (t.get("tunnel") == "yes" and levels.get(w["id"], ("",))[0] != "tn"):
-            continue
+            continue  # (loop 3b: short tunnels under a building, `is_passage`, are gates too)
         if t.get("access") in ("no", "private") or t.get("motor_vehicle") in ("no", "private"):
             continue
         ids = [i for i in w.get("nodes", []) if i in nodes]
@@ -1307,8 +1339,6 @@ def bake_graph(els, nodes, ways, rect, signal_src, poles, bed=None, levels=None)
         ins_of.setdefault(e["b"], []).append(i)
     exits, entries = [], []
     for i, e in enumerate(edges):
-        if "tn" in e:
-            continue  # loop 3a: no off-map links through a tunnel (not driven yet)
         if rim_side(node_xz[e["b"]]) >= 0 and not [f for f in outs_of.get(e["b"], []) if edges[f]["b"] != e["a"]]:
             exits.append(i)
         if rim_side(node_xz[e["a"]]) >= 0 and not [f for f in ins_of.get(e["a"], []) if edges[f]["a"] != e["b"]]:
@@ -1332,8 +1362,7 @@ def bake_graph(els, nodes, ways, rect, signal_src, poles, bed=None, levels=None)
     # other, so rivals cruising and racing inside it never get stuck.
     out_edges = {}
     for i, e in enumerate(edges):
-        if "tn" not in e:  # loop 3a: tunnels are not driven yet (lane_graph.gd TUNNELS_DRIVEN)
-            out_edges.setdefault(e["a"], []).append(e["b"])
+        out_edges.setdefault(e["a"], []).append(e["b"])   # loop 3b: tunnels are driven too
     for i, j, _ in portals:
         out_edges.setdefault(edges[i]["b"], []).append(edges[j]["a"])
     order, low, on_stack, stack, comps, counter = {}, {}, set(), [], [], [0]

@@ -14,7 +14,7 @@ and the raw OpenStreetMap export (for C7 only; skipped when it isn't there).
 | C1  grade      | a drivable road's own surface rises > 12 % over any 6 m (service roads 20 %) |
 | C2  joints     | roads sharing a vertex differ by > 0.15 m in surface height there |
 | C3  clearance  | a ground road, tram or rail under a deck with 0.3 m < clearance < 4.7 m (footways < 2.5 m) |
-| C4  piers      | a pier footprint within 1 m of a road (half-width), tram or rail under it |
+| C4  piers      | a pier footprint (the bake's `decks.piers`, loop 3b) within 1 m of a road (half-width), tram or rail under it |
 | C5  solids     | a road or lane runs >= 4 m inside a building / landmark footprint around its height |
 | C6  deck ends  | a deck piece ends > 1 m above the terrain with nothing continuing (the map's rim allowed) |
 | C7  dropped    | the raw OSM has a drivable tunnel or cutting the map file doesn't |
@@ -27,8 +27,11 @@ tools/check_roads_allow.json (each entry: rule, at, r, reason, source; optional 
 allowed. Writes a JSON report and an image of the findings over the orthophoto
 (data/raw/gugik/ortho.bmp; standard library only: a BMP reader and a PNG writer below).
 Exit 0 when every finding is allowed, 1 otherwise, 2 for a usage or data error; 3 when the
-only findings not allowed are in the `--later` rules (a later loop's: tools/verify.sh passes
-C4,C5,C9,C10 until loop 3b and shows that as WARN).
+only findings not allowed are in the `--later` rules (loop 3a's verify step used it for C4, C5,
+C9, C10; since loop 3b every rule FAILs in tools/verify.sh).
+Loop 3b: the builder's structures are the bake's (tools/bake_structures.py): C4 checks the
+placed piers, C5/C9 see the buildings cut under decks (`cut`, `lod2_cuts`), C10 the seated
+Poniatowski towers (`towers`), the terrain includes the `aprons` at structure ends.
 """
 import array
 import json
@@ -62,6 +65,7 @@ LANE_HALF = 1.2
 TRAM_HALF, RAIL_HALF = 1.5, 2.0
 HEIGHT_STEP = 8.0         # lane_graph.gd
 DECK_CELL = 16.0          # map_builder.gd
+APRON_IN = 4.0            # tools/bake_structures.py: an apron starts this far inside a structure's end (its `i`)
 
 RULES = [("C1", "grade"), ("C2", "joints"), ("C3", "clearance"), ("C4", "piers"), ("C5", "solids"),
          ("C6", "deck ends in the air"), ("C7", "dropped ways"), ("C8", "lanes"), ("C9", "through decks"),
@@ -241,9 +245,20 @@ class Pieces:
 
 class Map:
     def __init__(self, map_dir):
+        self._setup(map_dir, json.load(open(os.path.join(map_dir, "centrum.json"), encoding="utf-8")),
+                    json.load(open(os.path.join(map_dir, "terrain.json"))))
+
+    @classmethod
+    def from_data(cls, map_dir, d, terrain):
+        """Loop 3b: the map as the game will see it, from a map file still being baked
+        (tools/bake_structures.py places the piers, walls and cuts with these lookups)."""
+        m = cls.__new__(cls)
+        m._setup(map_dir, d, terrain)
+        return m
+
+    def _setup(self, map_dir, d, t):
         self.dir = map_dir
-        self.d = json.load(open(os.path.join(map_dir, "centrum.json"), encoding="utf-8"))
-        t = json.load(open(os.path.join(map_dir, "terrain.json")))
+        self.d = d
         self.tx0, self.tz0, self.step, self.nx, self.nz = t["x0"], t["z0"], t["step"], t["nx"], t["nz"]
         self.th = list(t["h"])
         # Loop 3a: underpass dips cut into the terrain (`cuts` in centrum.json), as map_builder applies them.
@@ -265,6 +280,18 @@ class Map:
                         self.fill_cells[(cx, cz)].append((i, k))
         self.decks = Pieces(self.d.get("decks", {}).get("pieces", []))
         self.tunnels = Pieces(self.d.get("tunnels", {}).get("pieces", []))
+        # Loop 3b: aprons where a structure's end meets the ground (map_builder terrain_height).
+        self.aprons = []
+        for a in self.d.get("aprons", []):
+            x0, z0, x1, z1 = a["p"]
+            ln = math.hypot(x1 - x0, z1 - z0) or 1.0
+            self.aprons.append((x0, z0, (x1 - x0) / ln, (z1 - z0) / ln, ln, a["h"], a["l"], a["r"], a.get("i", APRON_IN)))
+        self.apron_cells = defaultdict(list)
+        for k, (x0, z0, ux, uz, ln, h, l, r, inner) in enumerate(self.aprons):
+            reach = max(l, r) + ln
+            for cz in range(math.floor((z0 - reach) / 16.0), math.floor((z0 + reach) / 16.0) + 1):
+                for cx in range(math.floor((x0 - reach) / 16.0), math.floor((x0 + reach) / 16.0) + 1):
+                    self.apron_cells[(cx, cz)].append(k)
 
     def terrain(self, x, z):
         """map_builder terrain_height: the grid, raised to any approach whose corridor holds the point."""
@@ -283,6 +310,12 @@ class Map:
             if -d["l"] <= lat <= d["r"]:
                 t = min(max(u, 0.0), 1.0)
                 h = max(h, d["h"][k] + (d["h"][k + 1] - d["h"][k]) * t)
+        for k in self.apron_cells.get((math.floor(x / 16.0), math.floor(z / 16.0)), ()):
+            x0, z0, ux, uz, ln, ha, l, r, inner = self.aprons[k]
+            along = (x - x0) * ux + (z - z0) * uz
+            lat = (z - z0) * ux - (x - x0) * uz
+            if 0.0 <= along <= ln and -l <= lat <= r:
+                h = min(h, ha) if along < inner else ha + (h - ha) * ((along - inner) / (ln - inner))
         return h
 
     def grid(self, x, z):
@@ -382,7 +415,24 @@ class Landmarks:
             return (cen[0] + a[0] * u + bvec[0] * v, cen[1] + a[1] * u + bvec[1] * v)
         self.zones.append(("centralna", [[frame(u, v) for u, v in ((-73, -45.5), (73, -45.5), (73, 46.5), (-73, 46.5))]], []))
         self.colliders.append(("centralna", [frame(-1.9 + u, 0.4 + v) for u, v in ((-35.5, -25.6), (35.5, -25.6), (35.5, 25.6), (-35.5, 25.6))]))
-        # Most Poniatowskiego's towers (landmarks.gd _find_towers / _build_towers).
+        # Most Poniatowskiego's towers. Loop 3b (R7): the bake's seats (`towers`,
+        # tools/bake_structures.py), as landmarks.gd builds them: the plinth (0.6 m round the
+        # shaft) is the collider, the zone is the one the bake wrote.
+        seats = d.get("towers", [])
+        if len(seats) == 4:
+            self.towers = []
+            zone = []
+            for t in seats:
+                cx, cz = t["c"]
+                ax = t["a"]
+                bv = (-ax[1], ax[0])
+                hu, hv = t["hu"] + 0.6, t["hv"] + 0.6
+                rect = [(cx + ax[0] * u + bv[0] * v, cz + ax[1] * u + bv[1] * v) for u, v in ((-hu, -hv), (hu, -hv), (hu, hv), (-hu, hv))]
+                self.towers.append(rect)
+                self.colliders.append(("poniatowski tower", rect))
+                zone.append(pairs(t["zone"]))
+            self.zones.append(("poniatowski", zone, []))
+            return
         found = []
         for area in ((910, -165, 40, 60), (1398, -332, 45, 65)):
             for b in blds:
@@ -440,8 +490,13 @@ class Solids:
     (heights from lod2.bin) and the landmarks."""
 
     def __init__(self, m, marks):
-        self.items = []   # (poly, base, top, label, bbox)
+        self.items = []   # (poly, base, top, label, bbox, key)
         d = m.d
+        # Loop 3b: buildings cut under a deck (tools/bake_structures.py): an OpenStreetMap
+        # building's `cut` (its new top; `cutd` 1 = left out; `pil` 1 = a viaduct's pillar,
+        # cut or lengthened to the slab), a LoD2 building's by its
+        # triangle run's centre (`lod2_cuts`: [x, z, top, left out]).
+        self.lod2_cuts = {(round(c[0], 1), round(c[1], 1)): (c[2], c[3]) for c in d.get("lod2_cuts", [])}
         lod_json = os.path.join(m.dir, "lod2.json")
         keep = None
         if os.path.exists(lod_json) and os.path.exists(os.path.join(m.dir, "lod2.bin")):
@@ -452,24 +507,25 @@ class Solids:
             if keep is not None and i not in keep:
                 continue
             q = pairs(b["p"])
-            if len(q) < 3 or b.get("br") or b["h"] <= b["mh"]:
+            if len(q) < 3 or b.get("br") or b["h"] <= b["mh"] or b.get("cutd"):
                 continue
             c = (sum(p[0] for p in q) / len(q), sum(p[1] for p in q) / len(q))
             if marks.replaces(*c):
                 continue
             ground = min(m.terrain(x, z) for x, z in q)
             base = ground + b["mh"] - (0.4 if b["mh"] < 0.5 else 0.0)
-            self._add(q, base, ground + b["h"], "building " + (b.get("name") or b.get("kind") or ""))
+            top = b["cut"] if b.get("pil") else min(ground + b["h"], b.get("cut", 1e9))
+            self._add(q, base, top, "building " + (b.get("name") or b.get("kind") or ""), ("osm", i))
         for key, q in marks.colliders:
             g = min(m.terrain(x, z) for x, z in q)
-            self._add(q, g - 1.0, g + 30.0, "landmark " + key)
+            self._add(q, g - 1.0, g + 30.0, "landmark " + key, ("landmark", key))
         self.grid = Grid(16.0)
         for k, it in enumerate(self.items):
             self.grid.add(k, *it[4])
 
-    def _add(self, q, base, top, label):
+    def _add(self, q, base, top, label, key=None):
         xs, zs = [p[0] for p in q], [p[1] for p in q]
-        self.items.append((q, base, top, label, (min(xs), min(zs), max(xs), max(zs))))
+        self.items.append((q, base, top, label, (min(xs), min(zs), max(xs), max(zs)), key))
 
     def _lod2(self, m, footprints, marks):
         raw = open(os.path.join(m.dir, "lod2.bin"), "rb").read()
@@ -495,7 +551,10 @@ class Solids:
                     y0, y1 = min(y0, y), max(y1, y)
                 t1 += 3
             if not marks.replaces((x0 + x1) * 0.5, (z0 + z1) * 0.5):
-                runs.append((x0, z0, x1, z1, y0, y1))
+                key = (round((x0 + x1) * 0.5, 1), round((z0 + z1) * 0.5, 1))
+                cut = self.lod2_cuts.get(key)
+                if cut is None or not cut[1]:
+                    runs.append((x0, z0, x1, z1, y0, y1 if cut is None else min(y1, cut[0]), key))
             t0 = t1
         grid = Grid(32.0)
         for r in runs:
@@ -523,11 +582,11 @@ class Solids:
             # The run that matches the footprint best (one building, several footprints:
             # each overlaps its own run's box more than a neighbour's).
             if best is not None and best[0] > 0.2:
-                self._add(q, best[1][4], best[1][5], "LoD2 building")
+                self._add(q, best[1][4], best[1][5], "LoD2 building", ("lod2", best[1][6]))
 
     def at(self, x, z):
         for k in self.grid.at(x, z):
-            q, base, top, label, bb = self.items[k]
+            q, base, top, label, bb, _ = self.items[k]
             if bb[0] <= x <= bb[2] and bb[1] <= z <= bb[3] and point_in_poly(x, z, q):
                 yield self.items[k]
 
@@ -663,49 +722,51 @@ class Check:
             put(t, TRAM_HALF, "tram")
         for t in m.d.get("rails", []):
             put(t, RAIL_HALF, "rail")
-        total = 0
-        for d in m.decks.p:
-            if d["k"] not in ("road", "rail"):
+        # Loop 3b (R5): the piers, portal legs and cap beams the bake placed (`decks.piers`,
+        # tools/bake_structures.py), as the game builds and collides them; each footprint
+        # against what runs under it (anything not on the pier's own deck and lower than
+        # its top by a metre).
+        total = legs = 0
+        for p in m.d.get("decks", {}).get("piers", []):
+            if p["k"] == "cap":
                 continue
-            pts, hs = d["pts"], d["h"]
-            l, r = d["l"] + 0.2, d["r"] + 0.2
-            run, nxt = 0.0, 20.0
-            for i in range(len(pts) - 1):
-                a, b = pts[i], pts[i + 1]
-                ln = math.dist(a, b)
-                if ln < 0.05:
-                    continue
-                while nxt < run + ln:
-                    t = (nxt - run) / ln
-                    x, z = a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t
-                    dy = hs[i] + (hs[i + 1] - hs[i]) * t
-                    ground = m.terrain(x, z)
-                    if dy - ground > 2.5:
-                        total += 1
-                        ux, uz = (b[0] - a[0]) / ln, (b[1] - a[1]) / ln
-                        across, along = (l + r) * 0.3, 0.8
-                        rect = [(x + ux * u - uz * v, z + uz * u + ux * v) for u, v in
-                                ((-along, -across), (along, -across), (along, across), (-along, across))]
-                        seen = set()
-                        for cell in {(math.floor(px / 16), math.floor(pz / 16)) for px, pz in rect}:
-                            for sa, sb, half, label, it in under.cells.get(cell, ()):
-                                if id(it) in seen or it.get("dk") == d["g"]:
-                                    continue
-                                if it.get("dk") is not None and m.surface(it, x, z) > dy - 1.0:
-                                    continue
-                                dist = min(seg_seg_dist(rect[q], rect[(q + 1) % 4], sa, sb) for q in range(4))
-                                if point_in_poly(sa[0], sa[1], rect):
-                                    dist = 0.0
-                                if dist < half + PIER_PAD:
-                                    seen.add(id(it))
-                                    self.add("C4", x, z, f"pier of deck {d['g']} ({d['k']}) {dist - half:+.1f} m from the edge of {label}",
-                                             label, dist - half)
-                                    break
-                            if seen:
-                                break
-                    nxt += 38.0
-                run += ln
+            total += 1
+            legs += p["k"] == "leg"
+            x, z = p["c"]
+            ux, uz = p["d"]
+            across, along = p["s"][0] * 0.5, p["s"][1] * 0.5
+            dy = p["y"][1] + 1.3
+            rect = [(x + ux * u - uz * v, z + uz * u + ux * v) for u, v in
+                    ((-along, -across), (along, -across), (along, across), (-along, across))]
+            own = self.pier_deck(x, z, dy)
+            seen = set()
+            for cell in {(math.floor(px / 16), math.floor(pz / 16)) for px, pz in rect}:
+                for sa, sb, half, label, it in under.cells.get(cell, ()):
+                    if id(it) in seen or (own is not None and it.get("dk") == own):
+                        continue
+                    if it.get("dk") is not None and m.surface(it, x, z) > dy - 1.0:
+                        continue
+                    dist = min(seg_seg_dist(rect[q], rect[(q + 1) % 4], sa, sb) for q in range(4))
+                    if point_in_poly(sa[0], sa[1], rect):
+                        dist = 0.0
+                    if dist < half + PIER_PAD:
+                        seen.add(id(it))
+                        self.add("C4", x, z, f"{p['k']} of deck {own} {dist - half:+.1f} m from the edge of {label}",
+                                 label, dist - half)
+                        break
+                if seen:
+                    break
         self.notes.setdefault("C4", {})["piers"] = total
+        self.notes["C4"]["portal legs"] = legs
+
+    def pier_deck(self, x, z, top):
+        """The deck group a pier at (x, z) carries: the one over it at `top` (or nearest)."""
+        best = None
+        for hd, g, i in self.m.decks.at(x, z) + [hit for dx, dz in ((4, 0), (-4, 0), (0, 4), (0, -4))
+                                                  for hit in self.m.decks.at(x + dx, z + dz)]:
+            if best is None or abs(hd - top) < best[0]:
+                best = (abs(hd - top), g)
+        return best[1] if best is not None and best[0] < 1.0 else None
 
     # C5: roads and lanes inside solid footprints.
     def c5(self):
@@ -718,7 +779,7 @@ class Check:
             run, first = 0, None
             for x, z, y in (pts if height is None else ((x, z, height(x, z)) for x, z in sample(pts, 2.0))):
                 hit = None
-                for q, base, top, lab, _ in sol.at(x, z):
+                for q, base, top, lab, _, _ in sol.at(x, z):
                     if base < y + SOLID_ABOVE and top > y:
                         hit = lab
                         break
@@ -856,11 +917,12 @@ class Check:
             ids = [i for i in w.get("nodes", []) if i in nodes]
             if len(ids) < 2 or not any(bake_osm.in_bbox(*nodes[i]) for i in ids):
                 continue
-            if tunnel == "building_passage":
-                ruled_out["building passages (gates through a building, never drawn)"] += 1
-                continue
             if tunnel == "yes" and hw == "service":
                 ruled_out["service tunnels (garage interiors; R9)"] += 1
+                continue
+            if tunnel == "building_passage" or (tunnel == "yes" and bake_osm.is_passage(
+                    [bake_osm.project(*nodes[i]) for i in ids])):
+                ruled_out["building passages (gates through a building, never drawn)"] += 1
                 continue
             pts = [bake_osm.project(*nodes[i]) for i in ids]
             covered = total = 0
@@ -922,7 +984,7 @@ class Check:
         m = self.m
         sol = self.solids
         hit = set()
-        for k, (q, base, top, label, bb) in enumerate(sol.items):
+        for k, (q, base, top, label, bb, _) in enumerate(sol.items):
             if label.startswith("landmark"):
                 continue
             pts = list(q)

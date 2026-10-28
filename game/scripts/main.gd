@@ -35,6 +35,7 @@ extends Node
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
+const TunnelXray := preload("res://scripts/tunnel_xray.gd")
 const Heli := preload("res://scripts/heli.gd")
 const Hud := preload("res://scripts/hud.gd")
 const Missions := preload("res://scripts/missions.gd")
@@ -85,6 +86,8 @@ var view: SubViewportContainer
 var sv: SubViewport
 var cam: Camera3D
 var car: CharacterBody3D
+## Loop 3b: the car seen through the ground inside a tunnel (tunnel_xray.gd).
+var _xray: Node3D
 var heli: Node3D
 var missions: Node
 var hud: CanvasLayer
@@ -181,6 +184,8 @@ var debug_ao := false
 ## Loop 3a: --debug-roads draws the decks, approaches, tunnels, lane heights and piers round
 ## the car (debug_roads.gd, with the Debug Draw add-on).
 var debug_roads := false
+## Loop 3b: --tunnel starts the car (with --at) on the floor of a tunnel under that point.
+var start_in_tunnel := false
 ## Loop 1: --ghost-debug=N paints the occlusion ghost for measuring (1: the ghosted
 ## fragments magenta and every other building green; 2: the ghost cut fully, no dither)
 ## and prints the ghost's ellipse in screen pixels with every screenshot.
@@ -512,6 +517,9 @@ func _build_world() -> void:
 	car = Car.new()
 	car.ground_height = map.drive_height
 	world.add_child(car)
+	_xray = TunnelXray.new()
+	world.add_child(_xray)
+	_xray.setup(car)
 	car.stuck.connect(_on_car_stuck)
 	car.water_at = map.in_water
 	car.splashed.connect(_on_car_splashed)
@@ -522,6 +530,8 @@ func _build_world() -> void:
 	if start_at != Vector3.INF:
 		car.global_position = start_at
 		car.global_position.y = map.ground_height(start_at.x, start_at.z)
+		if start_in_tunnel and not is_nan(map.tunnel_floor_under(start_at.x, start_at.z)):
+			car.global_position.y = map.tunnel_floor_under(start_at.x, start_at.z)
 	if start_heading != INF:
 		car.rotation.y = -deg_to_rad(start_heading)
 	cam_focus = car.global_position
@@ -624,7 +634,7 @@ func _build_world() -> void:
 	if debug_roads:
 		var dr: Node3D = load("res://scripts/debug_roads.gd").new()
 		world.add_child(dr)
-		dr.setup(map, graph, _vehicle_position)
+		dr.setup(map, graph, _vehicle_position, data)
 	if not no_traffic and graph != null:
 		_build_life(data, world)
 	if graph != null:
@@ -1026,6 +1036,8 @@ func _parse_args() -> void:
 			sun_pitch = float(arg.trim_prefix("--sun="))
 		elif arg == "--debug-ao":
 			debug_ao = true
+		elif arg == "--tunnel":
+			start_in_tunnel = true
 		elif arg == "--debug-roads":
 			debug_roads = true
 		elif arg.begins_with("--lift="):
@@ -1780,6 +1792,7 @@ func _process(dt: float) -> void:
 	if cam_log:
 		_cam_log_frame(dt)
 	var pos := _vehicle_position()
+	_xray.show_through(not flying and map.in_tunnel(pos.x, pos.z, pos.y))
 	_feed_life(pos)
 	if jobs != null:
 		# Loop 2b: no side job starts on the bench route (the ghost stops at red lights).
@@ -2340,14 +2353,14 @@ func _toggle_vehicle() -> void:
 
 
 ## Why the helicopter can't come down at `p` to give the car back: [] if it can, else the toast
-## [text, gloss]. Over a roof (v0.5), or, loop 10a, over the water (the car would come back in
+## [text, gloss, "roof" | "water"]. Over a roof (v0.5), or, loop 10a, over the water (the car would come back in
 ## the river; a bridge deck over it is fine, and so is the shallow first metres by the bank:
 ## the car is put on dry ground next to it).
 func _landing_problem(p: Vector3) -> Array:
 	if map.top_height(p.x, p.z, Heli.RADIUS) > map.ground_height(p.x, p.z) + 1.0:
-		return ["Wyląduj na otwartym terenie, żeby wziąć auto.", "Land on open ground to take the car."]
+		return ["Wyląduj na otwartym terenie, żeby wziąć auto.", "Land on open ground to take the car.", "roof"]
 	if map.in_water(p.x, p.z, map.ground_height(p.x, p.z)):
-		return ["Tu nie wylądujesz: to woda. Szukaj brzegu.", "No landing on the water: find the bank."]
+		return ["Tu nie wylądujesz: to woda. Szukaj brzegu.", "No landing on the water: find the bank.", "water"]
 	return []
 
 

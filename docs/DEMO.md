@@ -388,9 +388,9 @@ Found clean: shared road joints (0 jumps over 0.3 m, because ends are pinned), l
 
 ### 4.4 Root causes and the fixes
 
-Loop 3a status: **R1, R3, R4, R8, R9 done in the bakes** (see 4.7); R2 has its hook and waits for
-the surface model (the fallback, the chain solver alone, is what runs); R5, R6, R7, buildings
-under decks and the rim's walls are loop 3b.
+Loop 3a status: **R1, R3, R4, R8, R9 done in the bakes** (see 4.7). Loop 3b: **R2, R5, R6, R7,
+buildings under decks and the tunnels done** (see 4.8); the rim's walls wait for the bigger map
+(no bridge crosses the new box's rim).
 
 | Root cause | Classes | Fix | Where |
 | --- | --- | --- | --- |
@@ -507,6 +507,59 @@ these:
 - R8: graph edges carry `dk` / `tn`; lane heights come from that piece only.
 - R9: 27 service ways end at a garage ramp's top; `garages` marks the doors for loop 3b.
 - Also: the 10 m grid's narrow pits under streets are filled (98 stretches).
+
+### 4.8 Done in loop 3b (2026-10-28)
+
+The builder's side, placed in the bake (`tools/bake_structures.py`, run at the end of
+`bake_osm.py`) so the game, `check_roads.py` and `check_drive.gd` read the same data.
+
+- **R5 piers** (`decks.piers`): 171 places under the road and rail decks: 131 in place, 35 slid
+  up to 12 m along the deck to a footprint 1.1 m clear of every road, tram and rail bed, kerb,
+  carriageway area, lower deck and lane's drive corridor, 4 portal frames (two legs outside the
+  road, the slab as the cross-head, a cap beam out to a leg past the deck's edge), 1 left out.
+  Solid. C4 31 → 0.
+- **R6 retaining walls** (`walls`): 3.3 km along the approaches' sides and across their ends
+  where they stand over the ground beside them (stone on roads, concrete on tracks; a parapet
+  from 1 m up; solid from 0.6 m, not where a way joins the approach).
+- **R7 towers** (`towers`): per tower the outline by the deck (the other one, a rounded stair
+  annex, was drawn as a 14 m building fused into the tower: now inside the zone, grown 6 m),
+  trimmed 0-1.2 m to stand 0.5 m clear of the road decks, approaches, roads and lanes (not the
+  footways: the pavements pass through the towers), base at the boulevard (-12.4 to -14.1 m),
+  shaft from the solved deck + 1.2 m. C10 1 → 0.
+- **Buildings under decks** (`cut` / `cutd` / `pil`, `lod2_cuts`): cut to the slab's bottom -
+  0.5 m where a road, rail or tram structure stands over at least 20 % of the footprint (the
+  Poniatowski viaduct's LoD2 arcades and the Arkada: 4 LoD2 + 2 OSM buildings); the Jana Pawła II
+  viaduct's 46 mapped pillars fitted to the slab they carry (10 that stood in a lane under it left
+  out).
+  Footbridge-only structures cut nothing. C9 57 → 4, all allowed (a footway deck grazing two
+  buildings at the viaduct's west end and one beside the viaduct, the science centre's roof
+  ramps); C5 50 → 18, all allowed (courtyard driveways ending in a gate, each with its way id).
+- **R2 true deck heights**: `tools/geotiff.py` (standard library: strips or tiles, none / Deflate
+  / LZW, predictors) reads the 17 corridor windows in this map; the deck solver follows the
+  measured deck (the 30th percentile across the carriageway every 2 m, no-structure and tree
+  cells out, an opening against pylons and gantries, smoothed to 6 % within 1 m), faded in over
+  40 m from the pins; mapped pillars are lower bounds where nothing was measured. Road and rail
+  families only (a footbridge's measurement often sees the viaduct over it). The Jana Pawła II
+  viaduct rose 1-2 m onto its pillars: C9 there 48 → 0; Most Poniatowskiego's river span got its
+  camber (+2 m mid-river).
+- **Tunnels**: drawn (the floor's road and centre line, dark side walls solid inside, a portal
+  frame at the 4 portals, concrete walls along the open ramps, 369 m); driven
+  (`lane_graph.gd TUNNELS_DRIVEN = true`, the graph's off-map links and connected part include
+  them; `map_builder.drive_height` drives a tunnel's floor when the car is at it); traffic
+  simulated through them and hidden more than 15 m from a portal (graph edges' `po`); the car
+  shows through the ground as a silhouette (`tunnel_xray.gd`; the plan's dithered ghost would
+  need `discard` in the ground shader); the Wisłostrada trench at (637, -554) is its portal.
+  Warecka's 7 m `tunnel=yes` is a gate (left out like the building passages). 27 garage doors
+  drawn and solid. The minimap's dashed tunnels are a hud.gd change left for the HUD's owner.
+- **`game/tools/check_drive.gd`** (4.5) and the `roads` step FAILing on any rule. What the sweep
+  found and how the class was fixed: tram-stop platforms solid (now kerb-height, not solid),
+  fences, walls, hedges and mapped guard rails across lanes (cut out of carriageways and lanes,
+  2.2 km), benches, racks, shelters, parked cars and kiosks in lanes (left out: 169 + 408 + 34),
+  pillars' colliders reaching over their tops, deck parapets solid at grade (solid only over a
+  1 m drop), a viaduct ramp's slab in the lane beside it (6 deck sides narrowed ≤ 0.4 m), LoD2
+  walls a metre into a lane (not solid there, 17 places), lanes wider than their approach (21
+  fill sides widened), structure ends on the grid's cross slope (15 aprons), a pit fill in the
+  Wisłostrada's open ramp (none within 80 m of a portal).
 
 ---
 
