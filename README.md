@@ -179,7 +179,9 @@ HELI / AUTO (right); the keys are unchanged.
 - **Neon shop signs** (`neon_signs.gd`, `neon.gdshader`): 361 signs in a 5×7 pixel font with
   generic Polish shop words only (KEBAB 24H, BAR MLECZNY, APTEKA, KWIATY, HOTEL, KANTOR, PIZZA,
   KLUB, NOCNY), on the street side of a third of the buildings, some on a dark plate, a few
-  with a tired, flickering tube. Readable from about 70 m zoom in.
+  with a tired, flickering tube. Readable from about 70 m zoom in. Sweep 2: ghosted with
+  their wall (they never were: a sign on a ghosted wall floated over the ghost, lit and
+  mirrored); in the ghost's core a sign goes altogether, over its rim it is dithered.
 - **Street lamps**: the 1,822 mapped lamps plus 224 added along the bridges (Most Poniatowskiego
   has none in OpenStreetMap) light the ground from a baked light map (`tools/bake_lights.py`,
   no real lights): warm sodium pools, cold white LED in parks, along footpaths and on about a
@@ -467,6 +469,10 @@ the Palace now a 28 m roof: the tiers are crowned by attics and pinnacles).
 `hud.tapped`; the game walks the ray from that pixel through the roof grid (1 m steps) and, if
 the first thing standing is a landmark, shows its card in the note card's place for 8 s: name,
 one or two Polish lines, the English under them. `--tap=X,Y` taps a screen pixel at frame 60.
+Sweep 2: the walk steps on through whatever the occlusion ghost has made see-through (half its
+pixels or more gone, ghost.gdshaderinc's test on the frame's values, main.gd
+`_pick_unghosted`), so a tap on the cut-away part of a tower in front of the car picks what
+shows through the cut (a landmark, or nothing on the street), not the tower.
 
 **Occlusion ghost** (reworked in loop 1, `shaders/ghost.gdshaderinc`): besides the small
 see-through hole round the car (which opens fully), everything standing on the camera's side
@@ -1236,7 +1242,10 @@ GAZ · gas, HAMULEC and the steering strip's place) bottom right; the credit lin
 No "prototype" label and no call card at the start: the first call comes in 60 s into play
 (`--call-in=S`), the next 90 s after each one ends or is put off (`missions.gd` `FIRST_CALL`,
 `NEXT_CALL`, first guesses), with a toast and a buzz. The helicopter is there from the start
-(the user's decision, 2026-10-28).
+(the user's decision, 2026-10-28). Sweep 2: the haptic engine is built while the city loads
+and started 2 s before each call (`missions.gd` `warm_haptics`): on iOS the first buzz built
+and started Core Haptics' engine inside the call's frame (the call's 61–117 ms hitch on the
+phones; the log's `haptics:` line at load, and `rescue call ringing (buzz N ms)`).
 
 **Moved into Settings** (four tabs, so the panel fits a phone 390 pt tall without shrinking):
 Jazda · Driving: Controls (Point / Classic, with a line on what the scheme does) and "Kamera za
@@ -2256,7 +2265,7 @@ Command-line options (after `--`):
 | Option | Effect |
 | --- | --- |
 | `--demo` | the car drives by itself; with `--heli` the helicopter flies a slow circle |
-| `--shots=60,240` / `--out=DIR` | save screenshots at those frames (counted from when the city is built), then quit |
+| `--shots=60,240` / `--out=DIR` | save screenshots at those frames (counted from when the city is built), then quit (sweep 2: the sounds are stopped 0.15 s before, so a windowed run no longer ends with leaked audio streams) |
 | `--style=N` / `--lines=N` | visual style 0–3 (loop 2e: wins over the saved style for this run) / override the pixel image's line count |
 | `--size=M` / `--yaw=deg` / `--fixed` | view height in metres (default 80) / camera turn / fixed camera (in Point: the Fixed camera scheme) |
 | `--at=x,z` | start at map coordinates (metres, +x east, +z south), on top of a bridge deck if there is one |

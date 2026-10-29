@@ -84,6 +84,10 @@ func setup(map_node: Node3D, data: Dictionary, world: Node3D, hud_layer: CanvasL
 	print("missions: %d roofs, %d streets, %d riverside, %d parks, %d hospitals in %d ms" % [
 			_places[Kind.ROOF].size(), _places[Kind.STREET].size(), _places[Kind.RIVER].size(),
 			_places[Kind.PARK].size(), _hospitals.size(), Time.get_ticks_msec() - t0])
+	# Sweep 2: the haptic engine is built now, while the city loads, not at the first call.
+	var t1 := Time.get_ticks_usec()
+	if warm_haptics():
+		print("haptics: engine built and starting in %.1f ms (sweep 2)" % ((Time.get_ticks_usec() - t1) / 1000.0))
 
 	_pickup = Beacon.new()
 	world.add_child(_pickup)
@@ -161,6 +165,33 @@ func quiet_start(first := -1.0) -> void:
 	_call_in = first if first >= 0.0 else FIRST_CALL
 
 
+# --- sweep 2: the first call's hitch --------------------------------------------------------
+## The first rescue call's hitch (61 ms on the iPhone 11, 100-117 ms on the Pro Max) is its
+## buzz, as far as the Mac can tell: there the call costs 0.3 ms of script, compiles no
+## pipeline and its frame is an ordinary one, and the buzz is the only part that does
+## anything different on the phone. On iOS the first Input.vibrate_handheld builds Core
+## Haptics' engine (CHHapticEngine init, a synchronous handshake with the system's haptic
+## server) and starts it inside that frame; the engine shuts itself down when idle, so a
+## later buzz starts it again. The engine is built at load instead (behind the loading
+## screen) and started without waiting (startWithCompletionHandler), and started again
+## HAPTICS_LEAD seconds before each call rings. Every other buzz (bumps, jobs, races) finds
+## the engine built too.
+const HAPTICS_LEAD := 2.0
+
+
+## Builds the haptic engine if it isn't yet and starts it without waiting (the engine's
+## singleton exists on iPhone builds only; elsewhere this does nothing). True when it ran.
+static func warm_haptics() -> bool:
+	for n: String in ["AppleEmbedded", "iOS"]:
+		if Engine.has_singleton(n):
+			var ios := Engine.get_singleton(n)
+			if ios.has_method("start_haptic_engine"):
+				ios.call("start_haptic_engine")
+				return true
+	return false
+# --- end sweep 2 ---------------------------------------------------------------------------
+
+
 ## Loop 2e: a call came in: the context button (WEZWANIE · rescue call) waits until pressed.
 func _ring() -> void:
 	if _hospitals.is_empty():
@@ -168,8 +199,11 @@ func _ring() -> void:
 	state = State.RINGING
 	hud.show_pill("WEZWANIE", "rescue call")
 	hud.toast("Wezwanie ratunkowe!", "A rescue call came in: tap WEZWANIE")
+	# Sweep 2: the buzz is timed so the phone's log shows the call's hitch is gone (it was
+	# the haptic engine starting inside this frame: warm_haptics()).
+	var t0 := Time.get_ticks_usec()
 	Input.vibrate_handheld(40, 0.5)
-	print("rescue call ringing")
+	print("rescue call ringing (buzz %.1f ms)" % ((Time.get_ticks_usec() - t0) / 1000.0))
 
 
 ## Keyboard: M answers the card's first button (or opens the next call).
@@ -237,6 +271,9 @@ func needs_heli() -> bool:
 func tick(dt: float, pos: Vector3, speed: float, flying: bool) -> void:
 	player = pos
 	if state == State.CLOSED and not paused and _call_in >= 0.0:
+		# Sweep 2: start the haptic engine a moment before the call (it stops itself when idle).
+		if _call_in >= HAPTICS_LEAD and _call_in - dt < HAPTICS_LEAD:
+			warm_haptics()
 		_call_in -= dt
 		if _call_in < 0.0:
 			_ring()
