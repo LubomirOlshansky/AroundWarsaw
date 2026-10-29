@@ -980,6 +980,17 @@ not textures. If an explore wins and needs `create_image_pro` (10–25), that ne
 
 ## 10. Open questions (each with the default this file uses)
 
+**The user's answers (2026-10-29); where they differ from a default below, the answer wins:**
+1 yes, (a) as written. 2 APTECZKA goes "in some centre": the Pawilony courtyards off Nowy Świat
+stand. 3 **from 2010 on**: the then-and-now set (KASETA) covers 2010 to today only (the M2 dig,
+Euro 2012 and the stadium build, Plac Defilad's changes, the riverside boulevards' rebuild, the
+viral spots' turnover); the 1990s–2000s items and the three older ones move to "later". 4 yes,
+always Friday. 5 yes, always a summer evening. 6 skip the host's voice for now (text only). 7 the
+orchestrator's call: Miasto stays the default, Spacer offered once at the first pause. 8 the
+orchestrator's call: reuse the existing ghost dither; a new shader only if it costs no draw call
+and the art director signs it off. 9 yes, our own drawing. 10 and 11 the defaults. 12 yes, keep
+the poster.
+
 1. **How much night-scene content.** The clubs, queues and dawn crowd are a big part of this
    direction. Options: (a) as written (three clubs with queues, a tower club, Mazowiecka, the dawn
    crowd); (b) lighter: queues only at Lusterko and Smoła, no dawn crowd; (c) heavier: a full
