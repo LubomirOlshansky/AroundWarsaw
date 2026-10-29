@@ -890,11 +890,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
   started on Android: touch, haptics (`Input.vibrate_handheld`), the save path, the frame rate,
   the governor's tiers (`tiers.gd` knows iPhone model ids only, so an Android phone gets its
   default level) and the HUD's safe area round a camera cutout are all unseen.
-- **Vulkan is "not required" in the manifest** (Godot's default), so Play offers the game to
-  phones with only OpenGL ES 3, where the Mobile renderer can't start. Options: require Vulkan
-  (`android.hardware.vulkan.level` required, through a custom manifest or Play's device catalogue
-  exclusions), or turn on `rendering/rendering_device/fallback_to_opengl3` and check the look
-  on the Compatibility renderer.
+- ~~**Vulkan is "not required" in the manifest**~~ **Decided and done (code 2)**: the user chose
+  to require Vulkan; `game/addons/nw_android_export` marks both Vulkan uses-features required and
+  `tools/export_android.sh` checks it (README, "Android (Google Play)"). `fallback_to_opengl3`
+  stays off. The version is Godot 4.7's own, 0x401000 (Vulkan 1.1.0), not 1.0.3: on a Godot
+  upgrade, match the plugin's `VERSION` to what Godot writes (the script fails until it does).
+  Whether a phone with Vulkan 1.1 but a weak driver runs the game well is still unseen.
 - **The export prints Dialogue Manager's C# errors** (`No loader found for resource:
   ...DialogueLabel.cs`, `ExampleBalloon.tscn` parse errors): the add-on's C# example and label
   files can't load in a non-.NET Godot. Harmless (the game uses its own balloon); the iOS

@@ -117,7 +117,7 @@ tools/export_android.sh --skip-city  # the AAB only (the tracked prebuilt sector
 tools/export_android.sh --apk        # a debug APK for `adb install` on a test phone
 ```
 
-It writes `build/android/nocnawarszawa-<version name>-<version code>.aab` (0.1 and 1 now; ~68 MB:
+It writes `build/android/nocnawarszawa-<version name>-<version code>.aab` (0.1 and 2 now; ~68 MB:
 the arm64 engine library ~71 MB uncompressed and the game's files ~45 MB, the same files as the
 iOS `.pck`) and prints its size, package and version. The version lives in the **Android** preset
 in `game/export_presets.cfg` (`version/name`, `version/code`): raise the code for every upload,
@@ -130,6 +130,20 @@ SDK 24, target SDK 36, sensor landscape (from the project's orientation; Godot w
 `userLandscape`, which follows the phone's rotation lock), the VIBRATE permission only (the
 haptics; no INTERNET: the game makes no network calls), app backup off, the project icon
 (`game/icon.svg`) as the launcher icon.
+
+**Vulkan is required** (the user's choice, 2026-10-29): the Mobile renderer needs Vulkan, and
+`rendering/rendering_device/fallback_to_opengl3` stays off, so Google Play must not offer the
+game to phones with only OpenGL ES. Godot writes `android.hardware.vulkan.level` (1) and
+`android.hardware.vulkan.version` (0x401000, Vulkan 1.1.0 in Godot 4.7) as *not required*; the
+project's own editor plugin `game/addons/nw_android_export` (on in `project.godot`, editor only,
+excluded from both exports) writes a build-variant manifest
+(`android/build/src/standardRelease/` or `standardDebug/`) on every Android export that marks
+both required, and Gradle's manifest merger ranks it above Godot's. It is tracked code, so a
+fresh `--install-android-build-template` keeps the rule. `tools/export_android.sh` refuses an AAB
+whose merged manifest doesn't have both required at the Vulkan version Godot asks for (after a
+Godot upgrade that raises it, change `VERSION` in the plugin). **Expect Play Console's device
+catalogue to list fewer supported devices** than before: the OpenGL-only phones (mostly old or
+very cheap ones, and some with Vulkan 1.0 only) drop out. That is the point, not a fault.
 
 **The upload key** is `~/.android-keys/nocnawarszawa-upload.jks` (alias `upload`, RSA 2048,
 10,000 days), outside every repo. Its password is only in the macOS login keychain (service

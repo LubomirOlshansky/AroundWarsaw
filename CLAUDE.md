@@ -122,7 +122,9 @@ is off); beehave (bitbrain, v2.9.3, loop 3g-1; the police units' behaviour trees
 hand at 5 Hz; editor plugin off, no autoloads: `police/police_tree.gd` has a lean `_ready`; one
 local line in `debug/debugger_messages.gd`, no messages without a debugger); Dialogue Manager
 (Nathan Hoad, v4.1.0, loop 3g-1; the pull-over's flow, `dialogue/police.dialogue` compiled at
-runtime by `police.gd`; editor plugin off, so no import plugin and no autoload). Still need their
+runtime by `police.gd`; editor plugin off, so no import plugin and no autoload). **Our own, not an add-on:**
+`addons/nw_android_export/` (an editor plugin, on; it only marks Vulkan required in the Android
+export's manifest; README "Android (Google Play)"). Still need their
 own yes: Folder Import Rules, Lente photo mode, the In-app Review and Share plugins.
 
 ## Commands
