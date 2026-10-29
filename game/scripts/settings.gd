@@ -7,7 +7,11 @@ extends RefCounted
 ## day and the rain are the world's state and start by day and dry). `--nosave` neither reads
 ## nor writes it; command-line flags (`--controls= --traffic= --quality= --fixed --perf
 ## --style= --vhs`) win for that run and are not saved unless the player then changes the setting.
+## Loop G1b: Auto's sharp image and its fallback (`[auto_image]`, tiers.gd SHARP_*), written only
+## by a normal launch's own sessions (main.gd: never by --nosave, test runs, benches or
+## --last-session=); a file without it (from before G1b) starts sharp.
 
+const Tiers := preload("res://scripts/tiers.gd")
 const PATH := "user://settings.cfg"
 ## Traffic levels: traffic.gd's density (Busy = 1.0, the level before loop 2a) and the
 ## share of the pedestrians. Busy's target is more than the spawner can place in the band
@@ -45,6 +49,8 @@ var fps := 60
 ## Loop 2e: main.gd STYLES (Sharp, Fine, Clean, Chunky) and the VHS overlay.
 var style := 0
 var vhs := false
+## Loop G1b: Auto's sharp-image state (tiers.gd sharp_state: fallback, calm, wait, trial, why).
+var auto_image := Tiers.sharp_state()
 ## False with --nosave: nothing is read or written.
 var persistent := true
 ## Where it is kept (tools/check_settings.gd points it at a scratch file).
@@ -72,6 +78,10 @@ func load_file() -> void:
 		fps = FPS[0]
 	style = clampi(int(cfg.get_value("display", "style", style)), 0, 3)
 	vhs = bool(cfg.get_value("display", "vhs", vhs))
+	var image := {}
+	for key in auto_image:
+		image[key] = cfg.get_value("auto_image", key, auto_image[key])
+	auto_image = Tiers.sharp_clean(image)
 
 
 func save() -> void:
@@ -90,13 +100,25 @@ func save() -> void:
 	cfg.set_value("display", "fps", fps)
 	cfg.set_value("display", "style", style)
 	cfg.set_value("display", "vhs", vhs)
+	for key in auto_image:
+		cfg.set_value("auto_image", key, auto_image[key])
 	cfg.save(path)
 
 
 func summary() -> String:
-	return "controls %d, classic camera %s, traffic %s, quality %s, volume %.0f/%.0f/%.0f %%, perf %s, %d fps, style %d, vhs %s" % [
+	return "controls %d, classic camera %s, traffic %s, quality %s, volume %.0f/%.0f/%.0f %%, perf %s, %d fps, style %d, vhs %s, auto image %s" % [
 			controls, "follow" if classic_follow else "fixed", TRAFFIC_NAMES[traffic], "auto" if quality == AUTO else str(quality),
-			master * 100.0, music * 100.0, effects * 100.0, perf, fps, style, vhs]
+			master * 100.0, music * 100.0, effects * 100.0, perf, fps, style, vhs, image_summary()]
+
+
+## Loop G1b: "sharp", "sharp, on trial 1/4" or "fallback, calm 1/2 (GPU extras down 74 s)".
+func image_summary() -> String:
+	var s := auto_image
+	if s["fallback"]:
+		return "fallback, calm %d/%d (%s)" % [s["calm"], s["wait"], s["why"]]
+	if int(s["trial"]) >= 0:
+		return "sharp, on trial %d/%d" % [s["trial"], s["wait"]]
+	return "sharp"
 
 
 static func parse_traffic(v: String) -> int:

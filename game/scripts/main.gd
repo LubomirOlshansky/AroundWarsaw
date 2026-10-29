@@ -35,6 +35,8 @@ extends Node
 ## Loop G1: --quality=auto|low|medium|high|ultra (Auto: the level for this device, tiers.gd),
 ## --model=ID picks as if on that device (iPhone12,1), --governor=on|off, --stress=cpu:N|wait:N
 ## with --stress-from=S --stress-to=S (load that makes the governor step down and back up).
+## Loop G1b: --last-session=struggled|calm starts Auto as if the last session at the sharp image
+## struggled (the ×2 fallback) or was calm (the sharp image), and writes nothing of it.
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
@@ -278,6 +280,19 @@ var quality_choice := Tiers.AUTO
 var auto_quality := Tiers.HIGH
 var model_name := ""
 var _flag_model := ""
+# --- Loop G1b: Auto's sharp image and its fallback (tiers.gd SHARP_*, governor.gd tally) ---
+## The back-off state as this launch started it (Tiers.sharp_launch of the saved one), whether
+## this launch draws the sharp image where the budget binds, what this session has recorded
+## ("", "calm", "struggled": once each, struggled last), whether it may write it (not with
+## --last-session=, and settings.gd writes nothing with --nosave), and the quality line last
+## printed (the `quality:` line comes again only when it changes).
+var auto_image := Tiers.sharp_state()
+var auto_sharp := true
+var _image_verdict := ""
+var _image_write := true
+var _flag_last_session := ""
+var _quality_line := ""
+# --- end loop G1b ---
 ## Loop G1: the frame governor (governor.gd) and the fixed view rule: in a view wider than
 ## WIDE_VIEW metres (back under 0.9 of it) or flying, the small things' sun shadows are off
 ## (lamps, signals, parked cars, columns, shelters: a pixel or two wide there, and a shadow-pass
@@ -903,11 +918,58 @@ func _govern() -> void:
 	if line != "":
 		print("%s · at %.1f s" % [line, now - _stress_t0 / 1000.0])
 		_apply_extras()
+	# Loop G1b: the session's verdict on Auto's image (cheap until one is due); with
+	# --governor=log the tally's minutes too.
+	if governor.track and _image_verdict != "struggled" and (governor.struggled()
+			or (_image_verdict == "" and governor.calm())):
+		_image_session_verdict()
+	if governor.minute_line != "":
+		if _governor_log:
+			print("governor %s · at %.1f s" % [governor.minute_line, now - _stress_t0 / 1000.0])
+		governor.minute_line = ""
 	if _governor_log and now >= _governor_log_next:
 		_governor_log_next = now + GOVERNOR_LOG_EVERY
-		print("governor status: %s · %.1f%% of refreshes missed in the last %.0f s · at %.1f s%s%s" % [governor.state(),
+		print("governor status: %s · %.1f%% of refreshes missed in the last %.0f s · at %.1f s%s%s%s" % [governor.state(),
 				governor.late_share * 100.0, Governor.WINDOW, now - _stress_t0 / 1000.0, " · held" if governor.held else "",
-				" · stress on" if _stressing() else ""])
+				" · stress on" if _stressing() else "", " · " + governor.tally() if governor.track else ""])
+
+
+# --- Loop G1b: Auto's sharp image and its fallback ---------------------------------------------
+## "sharp" or "fallback" where Auto's rule decides the image (Auto, the level's budget binds at
+## this screen and style, no --lines=), else "".
+func _image_mode() -> String:
+	if quality_choice != Tiers.AUTO or lines_override > 0:
+		return ""
+	var screen := get_viewport().get_visible_rect().size
+	if not Tiers.budget_binds(screen, STYLES[style_index]["lines"], quality):
+		return ""
+	return "sharp" if auto_sharp else "fallback"
+
+
+## The session struggled or was calm at Auto's image: the state the next launch starts from
+## (computed from this launch's own, so a struggle after a calm verdict replaces it), written
+## when this run may (a normal launch without --nosave or --last-session=), and a `quality:` line.
+func _image_session_verdict() -> void:
+	var sharp := auto_sharp
+	var next: Dictionary
+	var what := ""
+	if governor.struggled():
+		_image_verdict = "struggled"
+		what = "struggled (%s)" % governor.struggle()
+		next = Tiers.sharp_struggled(auto_image, sharp, governor.struggle())
+	else:
+		_image_verdict = "calm"
+		what = "was calm"
+		next = Tiers.sharp_calm(auto_image, sharp)
+	var saved := _image_write and settings.persistent
+	if saved:
+		settings.auto_image = next
+		settings.save()
+	print("quality: this session at %s ×%d %s %s · %s · the next launch: %s%s" % [QUALITY[quality]["name"],
+			view.stretch_shrink, "sharp" if sharp else "fallback", what, governor.tally(),
+			"sharp" if not Tiers.sharp_launch(next)["fallback"] else "fallback (calm %d of %d before the sharp image again)" % [
+			next["calm"], next["wait"]], "" if saved else " (not saved: %s)" % ("--nosave" if not settings.persistent else "a test run or --last-session=")])
+# --- end loop G1b --------------------------------------------------------------------------------
 
 
 ## Loop G1, --stress: inside the load's time window (seconds after the city is up).
@@ -960,7 +1022,9 @@ func _update_perf(dt: float) -> void:
 				"%.2f" % gpu if gpu > 0.0 else "n/a", Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0],
 		"draws %d = %d + %d + %d · %.2f M tris" % [p["all_draws"], p["main_draws"], p["shadow_draws"], p["canvas_draws"],
 				p["all_tris"] / 1e6],
-		"%s ×%d · gov %s%s" % [QUALITY[quality]["name"], view.stretch_shrink, governor.state(), " · wide" if _wide else ""],
+		# Loop G1b: "High ×1 sharp" / "High ×2 fallback" where Auto's rule decides the image.
+		"%s ×%d%s · gov %s%s" % [QUALITY[quality]["name"], view.stretch_shrink, (" " + _image_mode()).rstrip(" "),
+				governor.state(), " · wide" if _wide else ""],
 	])
 	hud.set_perf("\n".join(lines))
 
@@ -998,7 +1062,7 @@ func _bench_header(kind: String) -> PackedStringArray:
 				RenderingServer.get_current_rendering_method(), OS.get_processor_name()],
 		"screen %dx%d @ %.0f Hz · image %dx%d (×%d) · view %.0f m · quality %s · traffic %s · %s · %s · cap %s · %s" % [
 				screen.x, screen.y, hz, sv.size.x, sv.size.y, view.stretch_shrink, base_size,
-				Tiers.describe(quality_choice, quality, model_name),
+				Tiers.describe(quality_choice, quality, model_name, 0, _image_mode()),
 				Settings.TRAFFIC_NAMES[traffic_level], TimeOfDay.NAMES[tod.mode], Weather.NAMES[weather.state],
 				_cap_name(), Controls.NAMES[controls.scheme]],
 		"thermal state: not readable from Godot; a phone that warms up shows it as falling fps per 10 s",
@@ -1336,6 +1400,9 @@ func _parse_args() -> void:
 			_flag_quality = Tiers.parse(arg.trim_prefix("--quality="))
 		elif arg.begins_with("--model="):
 			_flag_model = arg.trim_prefix("--model=")
+		elif arg.begins_with("--last-session="):
+			# Loop G1b: Auto as if the last session at the sharp image struggled or was calm.
+			_flag_last_session = arg.trim_prefix("--last-session=")
 		elif arg.begins_with("--governor="):
 			_flag_governor = 0 if arg.trim_prefix("--governor=") in ["off", "0", "no"] else 1
 			_governor_log = arg == "--governor=log"
@@ -1400,6 +1467,9 @@ func _parse_args() -> void:
 	var test_run := DisplayServer.get_name() == "headless" or not shots.is_empty() or bench or probe or autopilot \
 			or demo or cam_test != "" or _water_test_at != Vector2.INF
 	_governor_on = _flag_governor == 1 if _flag_governor >= 0 else not test_run
+	# Loop G1b: test runs (and --last-session=) never write Auto's image state, even with the
+	# governor on and without --nosave.
+	_image_write = not test_run and _flag_last_session == ""
 
 
 ## Loop 2a: the saved settings (not with --nosave), then the command-line flags over them.
@@ -1413,6 +1483,18 @@ func _load_settings() -> void:
 	quality = auto_quality if quality_choice == Tiers.AUTO else quality_choice
 	print("quality: %s · Auto picks %s for %s" % [Tiers.describe(quality_choice, quality, model_name),
 			Tiers.NAMES[auto_quality], model_name])
+	# Loop G1b: Auto's sharp image or its fallback, from the saved state (or --last-session=).
+	var image := settings.auto_image
+	if _flag_last_session == "struggled":
+		image = Tiers.sharp_struggled(Tiers.sharp_state(), true, "--last-session=struggled")
+	elif _flag_last_session == "calm":
+		image = Tiers.sharp_state()
+	elif _flag_last_session != "":
+		push_warning("--last-session=%s: struggled or calm" % _flag_last_session)
+	auto_image = Tiers.sharp_launch(image)
+	auto_sharp = not auto_image["fallback"]
+	print("quality: Auto's image state (where the budget binds) %s → this launch %s%s" % [settings.image_summary(), "sharp" if auto_sharp else "fallback",
+			" (%s)" % ("--last-session=" + _flag_last_session) if _flag_last_session != "" else ""])
 	traffic_level = _flag_traffic if _flag_traffic >= 0 else settings.traffic
 	show_perf = _flag_perf or settings.perf
 	var scheme := _flag_controls if _flag_controls >= 0 else settings.controls
@@ -1557,8 +1639,14 @@ func _open_settings() -> void:
 ## What the settings panel shows (loop 2e: also the camera, time of day, weather, style, VHS).
 func _settings_state() -> Dictionary:
 	# Loop G1: the panel's quality row is Auto, then Low..Ultra (the choice + 1).
+	# Loop G1b: what Auto draws here: "High ostry" (the sharp image), "High ×2" (the fallback)
+	# where its budget binds, else the level.
+	var auto_name: String = Tiers.NAMES[auto_quality]
+	if lines_override <= 0 and Tiers.budget_binds(get_viewport().get_visible_rect().size, STYLES[style_index]["lines"], auto_quality):
+		auto_name += " ostry" if auto_sharp else " ×%d" % Tiers.image_scale(get_viewport().get_visible_rect().size,
+				STYLES[style_index]["lines"], auto_quality)
 	return {"controls": controls.scheme, "follow": follow, "traffic": traffic_level, "quality": quality_choice + 1,
-			"auto": Tiers.NAMES[auto_quality],
+			"auto": auto_name,
 			"master": settings.master, "music": settings.music, "effects": settings.effects, "perf": int(show_perf),
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
 			"weather": weather.state, "time": tod.mode}
@@ -1590,6 +1678,8 @@ func _on_setting(key: String, value: Variant) -> void:
 			style_index = clampi(int(value), 0, STYLES.size() - 1)
 			settings.style = style_index
 			_apply_style()
+			# Loop G1b: Auto's button says what it draws with this style.
+			hud.settings_panel.sync(_settings_state())
 		"vhs":
 			_set_vhs(int(value) == 1)
 			settings.vhs = vhs
@@ -2077,11 +2167,28 @@ func _apply_style() -> void:
 	# Loop G1: the quality's step and budget (tiers.gd image_scale); --lines= is exact.
 	if lines_override > 0:
 		view.stretch_shrink = maxi(1, floori(screen.y / lines_override))
+	elif quality_choice == Tiers.AUTO:
+		# Loop G1b: Auto draws the style's own scale where the budget binds, unless this launch
+		# is the fallback.
+		view.stretch_shrink = Tiers.auto_scale(screen, style["lines"], quality, auto_sharp)
 	else:
 		view.stretch_shrink = Tiers.image_scale(screen, style["lines"], quality)
 	post_mat.set_shader_parameter("outline_strength", style["outline"])
 	post_mat.set_shader_parameter("levels", style["levels"])
 	post_mat.set_shader_parameter("saturation", style["saturation"])
+	# Loop G1b: the governor's tally counts only at Auto's image; the `quality:` line when it changes.
+	var mode := _image_mode()
+	governor.track = mode != ""
+	var line := Tiers.describe(quality_choice, quality, model_name, view.stretch_shrink, mode)
+	if mode == "fallback":
+		line = line.replace("(%s)" % model_name, "(last session: %s) · %s · the sharp image again after %d calm sessions (%d so far)" % [
+				auto_image["why"], model_name, auto_image["wait"], auto_image["calm"]])
+	elif mode == "sharp" and int(auto_image["trial"]) >= 0:
+		line += " · on trial: calm %d of %d (a struggle first doubles the wait)" % [auto_image["trial"], auto_image["wait"]]
+	line += " · image %dx%d" % [int(screen.x) / view.stretch_shrink, int(screen.y) / view.stretch_shrink]
+	if line != _quality_line:
+		_quality_line = line
+		print("quality: " + line)
 
 
 func _process(dt: float) -> void:
