@@ -272,6 +272,13 @@ var _trap_marks := PackedVector2Array()
 var _panel_spots := {}
 ## The pedals are away while a pull-over holds the car (its card takes the bottom of the screen).
 var _pedals_hidden := false
+# --- desktop: --no-touch ---------------------------------------------------------------------
+## Desktop: --no-touch (trailer loop, 2026-10-29): the touch-only controls stay off the screen
+## for good (the pedals and brake, the stick's knob and Classic's strip hint, the helicopter's
+## climb and sink pads), and their room goes to the panels; the keys still drive. The top row,
+## the minimap, the wallet, the cards and the bubbles stay. Set once by main.gd.
+var touch_off := false
+# --- end desktop: --no-touch -----------------------------------------------------------------
 ## Minimap: north-up data drawn once, then turned and moved so the camera's view is up.
 ## Loop 2b: every street, park and pond is built once into one 2D mesh, drawn with one call and
 ## cut to the circle by a small shader (it was 6,500 draw calls, the iPhone's 16 fps).
@@ -691,8 +698,8 @@ func _speed_rect() -> Rect2:
 ## touches it covers.)
 func _pedal_rects() -> Array[Rect2]:
 	var out: Array[Rect2] = []
-	if _pedals_hidden and not flying:
-		return out
+	if touch_off or (_pedals_hidden and not flying):
+		return out  # desktop: --no-touch keeps none
 	var disc := func(c: Vector2, r: float) -> Rect2: return Rect2(c - Vector2.ONE * r, Vector2.ONE * r * 2.0)
 	if flying:
 		out.append(disc.call(_climb_centre(1), (PAD_R + 4.0) * pt))
@@ -780,7 +787,9 @@ func touch_targets() -> Dictionary:
 				if (b as Button).is_visible_in_tree():
 					out["%s/%s" % [c.name, b.name]] = (b as Control).get_global_rect()
 	var disc := func(c: Vector2, r: float) -> Rect2: return Rect2(c - Vector2.ONE * r, Vector2.ONE * r * 2.0)
-	if flying:
+	if touch_off:
+		pass  # desktop: --no-touch, no pedals or pads to press
+	elif flying:
 		out["climb"] = disc.call(_climb_centre(1), PAD_R * pt)
 		out["sink"] = disc.call(_climb_centre(-1), PAD_R * pt)
 	else:
@@ -1950,7 +1959,7 @@ func _strip_hint_centre() -> Vector2:
 
 
 func _on_pedals(p: Vector2) -> bool:
-	if flying or _pedals_hidden:
+	if flying or _pedals_hidden or touch_off:
 		return false
 	return p.distance_to(_brake_centre()) < _brake_reach() or (scheme == CLASSIC and p.distance_to(_gas_centre()) < GAS_REACH * pt)
 
@@ -2048,14 +2057,14 @@ func _input(event: InputEvent) -> void:
 		if touch.pressed:
 			if _over_panel(touch.position):
 				pass  # a button takes it
-			elif flying and (touch.position.distance_to(_climb_centre(1)) < PAD_REACH * pt
+			elif not touch_off and flying and (touch.position.distance_to(_climb_centre(1)) < PAD_REACH * pt
 					or touch.position.distance_to(_climb_centre(-1)) < PAD_REACH * pt):
 				_climb_index = touch.index
 				climb = 1.0 if touch.position.distance_to(_climb_centre(1)) < touch.position.distance_to(_climb_centre(-1)) else -1.0
-			elif not flying and scheme == CLASSIC and touch.position.distance_to(_gas_centre()) < GAS_REACH * pt:
+			elif not touch_off and not flying and scheme == CLASSIC and touch.position.distance_to(_gas_centre()) < GAS_REACH * pt:
 				_gas_index = touch.index
 				gas = true
-			elif not flying and touch.position.distance_to(_brake_centre()) < _brake_reach():
+			elif not touch_off and not flying and touch.position.distance_to(_brake_centre()) < _brake_reach():
 				_brake_index = touch.index
 				brake = true
 			elif touch.position.x < size.x * 0.6 and touch.position.y > _row_bottom() and _stick_index == -1:
@@ -2206,6 +2215,8 @@ func _draw_pad() -> void:
 		var outline := PackedVector2Array([m + Vector2(-7.6, -10.0) * pt, m + Vector2(7.6, -10.0) * pt, m + Vector2(0, 2.2) * pt])
 		_pad.draw_colored_polygon(outline, Color("#2a2622"))
 		_pad.draw_colored_polygon(tri, ACCENT)
+	if touch_off:
+		return  # desktop: --no-touch, nothing below is drawn
 	if _stick_index != -1 and scheme == CLASSIC and not flying:
 		# The steering strip on its plate: arrows at the ends and the thumb's knob.
 		var half := STICK_R * pt
@@ -2604,6 +2615,16 @@ func set_pedals_hidden(on: bool) -> void:
 		_gas_index = -1
 		_pad.queue_redraw()
 		_mark()
+
+
+# --- desktop: --no-touch ---------------------------------------------------------------------
+## Desktop: --no-touch (trailer loop): the touch-only controls off the screen and their room
+## free (see `touch_off`); main.gd calls it once after building the HUD.
+func set_touch_off(on: bool) -> void:
+	touch_off = on
+	_pad.queue_redraw()
+	_mark()
+# --- end desktop: --no-touch -----------------------------------------------------------------
 
 
 func show_panel(c: Control, on: bool) -> void:

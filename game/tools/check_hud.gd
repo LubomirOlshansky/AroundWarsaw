@@ -92,15 +92,21 @@ func _check_screen(screen: Vector2i) -> int:
 	# Loop G1: the last line is the quality, its pixel scale and the governor (the longest one;
 	# loop G1b: with "fallback", and the longest level name).
 	var perf_text := "60 fps · 16.7 ms · worst 18.2 · cap 60 fps\nCPU 11.2 + 0.3 + 14.1 ms · GPU n/a · 670 MB\ndraws 153 = 53 + 35 + 65 · 0.45 M tris\nMedium ×3 fallback · gov GPU 2/2 · CPU 2/2 · wide"
-	for perf in [false, true]:
+	# Desktop: --no-touch (trailer loop, 2026-10-29): a third pass with the touch-only controls
+	# away; none may be left to press or take room.
+	for mode in ["", "perf", "no-touch"]:
+		var perf: bool = mode == "perf"
 		for state in ["car, Point", "car, Classic", "helicopter", "call came in", "call card", "rescued, paid",
 				"rescue, host, egg", "kebab offer", "kebab delivery", "race", "rival ahead", "landmark card", "note card", "tow toast",
 				"police chase", "lizak", "pull-over",
 				"ride offer", "ride", "ride result", "ride result, police"]:
 			if perf and not state in ["car, Point", "call card", "rescue, host, egg", "kebab offer", "kebab delivery", "landmark card"]:
 				continue
+			if mode == "no-touch" and not state in ["car, Point", "car, Classic", "helicopter", "kebab offer", "pull-over", "ride offer"]:
+				continue
 			hud.clear_all()
 			bubbles.clear()
+			hud.set_touch_off(mode == "no-touch")
 			hud.set_scheme(1 if state == "car, Classic" else 0)
 			hud.set_flying(state == "helicopter")
 			if state == "helicopter":
@@ -226,18 +232,19 @@ func _check_screen(screen: Vector2i) -> int:
 			await process_frame
 			await process_frame
 			bubbles.layout()
-			_check_state(hud, bubbles, "%s %s%s" % [tag, state, " + perf" if perf else ""])
+			_check_state(hud, bubbles, "%s %s%s" % [tag, state, " + " + mode if mode != "" else ""])
 			# Landmark card fix: with the ticker up and the car parked, a tapped landmark's card
 			# (and a note card) must be on screen at once, not waiting for room, and not over the car.
 			if state in ["landmark card", "note card"]:
 				var card_name := "info" if state == "landmark card" else "note"
 				var rs: Dictionary = hud.named_rects()
-				var who := "%s %s%s" % [tag, state, " + perf" if perf else ""]
+				var who := "%s %s%s" % [tag, state, " + " + mode if mode != "" else ""]
 				if not rs.has(card_name) or card_name in hud.waiting():
 					problems.append("%s: the %s card is not placed (it waits for room)" % [who, card_name])
 				elif (rs[card_name] as Rect2).intersects(hud.car_zone()):
 					problems.append("%s: the %s card %s is over the car's spot" % [who, card_name, _pts(rs[card_name], pt)])
 			count += 1
+	hud.set_touch_off(false)
 	# The settings panel, every tab, and the bench card.
 	hud.clear_all()
 	bubbles.clear()
@@ -297,6 +304,11 @@ func _check_state(hud: CanvasLayer, bubbles: Control, where: String) -> void:
 	for k in targets:
 		_check_touch("%s %s" % [where, k], targets[k], pt, safe)
 	var rects: Dictionary = hud.named_rects()
+	if hud.touch_off:
+		# Desktop: --no-touch: no pedal, brake or climb pad to press, none taking room.
+		for k in targets.keys() + rects.keys():
+			if String(k) in ["brake", "gas", "climb", "sink"] or String(k).begins_with("pedal"):
+				problems.append("%s: %s is on screen with --no-touch" % [where, k])
 	var i := 0
 	for r in bubbles.rects:
 		rects["bubble%d" % i] = r
