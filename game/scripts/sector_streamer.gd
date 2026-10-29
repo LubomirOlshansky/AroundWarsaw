@@ -36,9 +36,15 @@ const KEEP_REACH := LOAD_REACH + 256.0
 ## At the start, the sectors within this much of the start go in at once (what the view there
 ## shows); the rest of the ring streams in over the first seconds.
 const START_REACH := 320.0
-## The view's boxes are grown this much to load, and this much to keep.
+## The view's boxes are grown this much to load, and this much to keep; a sector farther than
+## VIEW_RANGE from the focus is never in view (the camera's far plane, a tower's height).
 const VIEW_GROW := 128.0
 const VIEW_KEEP := 256.0
+const VIEW_RANGE := 1800.0
+## The car's physics needs every sector within this of it in (a wall or parapet across a border).
+const CAR_REACH := 40.0
+## The frames at the start the frame-time numbers leave out (shaders compiling on first sight).
+const WARM_UP := 120
 ## Main-thread time a frame for adding sector nodes (microseconds).
 const BUDGET_USEC := 3000
 
@@ -51,6 +57,8 @@ enum { QUEUED, WANTED, LOADING, ADDING, IN }
 var map: Node3D
 var prebuilt := false
 var load_all := false
+## --sectors=proxies: only the sectors the car needs, the rest as proxies (to look at them).
+var proxies_only := false
 var log := false
 var keys: Array[Vector2i] = []
 var _sectors: Node3D
@@ -67,6 +75,11 @@ var frame := 0
 ## Per frame: the main thread's streaming time (usec) and the frame's own (usec, wall clock).
 var stream_usec := PackedInt32Array()
 var frame_usec := PackedInt32Array()
+## The same, only for the frames that loaded, added or unloaded something (0 for the others).
+var busy_usec := PackedInt32Array()
+var _worked := false
+## What adding a node of each class cost lately (usec, a slowly falling maximum).
+var _add_cost := {}
 var _last_tick := 0
 ## Frames where the car's sector or a sector the view needs wasn't in yet, and the forced loads.
 var missing_frames := 0
@@ -105,10 +118,14 @@ func open(world: Node3D, use_prebuilt: bool, building_mat: ShaderMaterial, flat_
 	_sectors = Node3D.new()
 	_sectors.name = "Sectors"
 	map.add_child(_sectors)
-	if prebuilt and ResourceLoader.exists(PROXY_SCENE):
+	var t_proxies := Time.get_ticks_msec()
+	# The runtime path takes the baked proxies too when there are any (they only show while a
+	# sector loads: an older bake's shapes for a moment do no harm); else it makes them (~1 s).
+	if ResourceLoader.exists(PROXY_SCENE):
 		_proxies = (load(PROXY_SCENE) as PackedScene).instantiate()
 	else:
 		_proxies = Proxies.build_all(map, keys)
+	t_proxies = Time.get_ticks_msec() - t_proxies
 	_proxies.name = "Proxies"
 	map.add_child(_proxies)
 	for c in _proxies.get_children():
@@ -121,14 +138,42 @@ func open(world: Node3D, use_prebuilt: bool, building_mat: ShaderMaterial, flat_
 	var start := 0
 	var t_start := Time.get_ticks_msec()
 	for key in keys:
-		if load_all or _in_reach(key, at, START_REACH):
+		if load_all or (_in_reach(key, at, CAR_REACH if proxies_only else START_REACH) or key == MapBuilder.sector_of(at.x, at.z)):
 			_load_now(key)
 			start += 1
-	print("sectors: %s city, %d sectors of %d m; index %d ms%s, %d sectors in full at the start in %d ms" % [
+	print("sectors: %s city, %d sectors of %d m; index %d ms%s, proxies %d ms, %d sectors in full at the start in %d ms" % [
 			"prebuilt" if prebuilt else "runtime", keys.size(), SECTOR, t_index,
-			("" if prebuilt else ", roof pass %d ms" % t_roofs), start, Time.get_ticks_msec() - t_start])
+			("" if prebuilt else ", roof pass %d ms" % t_roofs), t_proxies, start, Time.get_ticks_msec() - t_start])
 	_last_tick = Time.get_ticks_usec()
 	return map.index_data
+
+
+## The whole streamed city at once, for the checks that sweep the map (check_drive, check_water,
+## check_landmarks): the index and every sector under `parent`, prebuilt (map/index.res and the
+## sector scenes) or built from the files (the runtime path). `data` is set to the game's data.
+static func open_whole(parent: Node, use_prebuilt: bool) -> Node3D:
+	var map: Node3D
+	var keys: Array[Vector2i] = []
+	if use_prebuilt:
+		map = (load(INDEX_SCENE) as PackedScene).instantiate()
+		parent.add_child(map)
+	else:
+		map = MapBuilder.new()
+		parent.add_child(map)
+		map.setup_streamed(JSON.parse_string(FileAccess.get_file_as_string(INDEX_JSON)), ShaderMaterial.new(), ShaderMaterial.new())
+	map.data = map.index_data
+	for k: Array in map.index_data["sectors"]["keys"]:
+		keys.append(Vector2i(int(k[0]), int(k[1])))
+	for key in keys:
+		var root: Node3D
+		if use_prebuilt:
+			root = (load("res://map/sectors/%s.scn" % MapBuilder.sector_name(key)) as PackedScene).instantiate()
+		else:
+			root = map.build_sector(key)
+		map.add_child(root)
+	if not use_prebuilt:
+		map.measure_sectors()
+	return map
 
 
 ## Quitting: the worker's load or build ends before the map it reads goes, and what is not in
@@ -153,31 +198,50 @@ func update(focus: Vector3, car: Vector3, cam: Camera3D) -> void:
 	frame_usec.append(t0 - _last_tick)
 	_last_tick = t0
 	frame += 1
+	_worked = false
 	if load_all:
 		stream_usec.append(0)
+		busy_usec.append(0)
 		return
 	_view_planes = cam.get_frustum() if cam != null else []
 	var car_key := MapBuilder.sector_of(car.x, car.z)
 	var missing := false
-	# The car's own sector must be in: load it now if a jump put the car somewhere new.
-	if _state.has(car_key) and _state[car_key]["s"] != IN:
-		missing = true
-		forced += 1
-		_load_now(car_key)
+	# The car's own sector must be in, and any within CAR_REACH of it (their colliders): load them
+	# now if a jump put the car somewhere new.
+	for key in keys:
+		if _state[key]["s"] != IN and (key == car_key or _in_reach(key, car, CAR_REACH)):
+			missing = true
+			forced += 1
+			_load_now(key)
+	if proxies_only:
+		stream_usec.append(Time.get_ticks_usec() - t0)
+		busy_usec.append(stream_usec[-1] if _worked else 0)
+		return
 	for key in keys:
 		var st: Dictionary = _state[key]
-		var want := _in_reach(key, focus, LOAD_REACH) or _in_view(key, VIEW_GROW)
+		# The view tests from the widest grow in (a sector far off is out of every one).
+		var keep_view := _in_reach(key, focus, VIEW_RANGE) and _in_view(key, VIEW_KEEP)
+		var want_view := keep_view and _in_view(key, VIEW_GROW)
+		var want := want_view or _in_reach(key, focus, LOAD_REACH)
 		if want and st["s"] == QUEUED:
 			_state[key] = {"s": WANTED, "t0": Time.get_ticks_usec(), "ms": 0.0}
-		elif not want and st["s"] != QUEUED and not _in_reach(key, focus, KEEP_REACH) and not _in_view(key, VIEW_KEEP):
+		elif not want and st["s"] != QUEUED and not keep_view and not _in_reach(key, focus, KEEP_REACH):
 			_unload(key)
-		elif want and st["s"] != IN and _in_view(key, 0.0):
+		elif want_view and st["s"] != IN and _in_view(key, 0.0):
 			missing = true
 	if missing:
 		missing_frames += 1
-	_poll_worker(focus)
-	_add_nodes(t0)
-	stream_usec.append(Time.get_ticks_usec() - t0)
+	var t1 := Time.get_ticks_usec()
+	# One step a frame: a finished sector handed over (its state applied, its nodes queued), or
+	# its queued nodes added within the budget.
+	if not _poll_worker(focus):
+		_add_nodes(t0)
+	var t2 := Time.get_ticks_usec()
+	stream_usec.append(t2 - t0)
+	busy_usec.append(t2 - t0 if _worked else 0)
+	if log and t2 - t0 > BUDGET_USEC:
+		print("stream: frame %d took %.2f ms (the tests %.2f, loading and adding %.2f)" % [frame, (t2 - t0) / 1000.0,
+				(t1 - t0) / 1000.0, (t2 - t1) / 1000.0])
 
 
 ## Loads and adds every sector the view needs now (blocking): before a screenshot.
@@ -203,11 +267,22 @@ func loaded() -> Array[Vector2i]:
 func stats() -> Dictionary:
 	var busy := []
 	var worst := 0
+	var worst_frame := -1
+	var slow := 0
+	var slow_busy := 0
 	for i in stream_usec.size():
-		if stream_usec[i] >= 100:
-			busy.append(stream_usec[i])
-			if i + 1 < frame_usec.size():
-				worst = maxi(worst, frame_usec[i + 1])
+		# A frame's own time is measured at the next update; the first WARM_UP frames (the first
+		# sight of every shader) are left out of the frame times.
+		var ft := frame_usec[i + 1] if i + 1 < frame_usec.size() and i >= WARM_UP else 0
+		if ft > 33333:
+			slow += 1
+		if i < busy_usec.size() and busy_usec[i] > 0:
+			busy.append(busy_usec[i])
+			if ft > 33333:
+				slow_busy += 1
+			if ft > worst:
+				worst = ft
+				worst_frame = i + 1
 	busy.sort()
 	var all := Array(stream_usec)
 	all.sort()
@@ -216,44 +291,43 @@ func stats() -> Dictionary:
 			"p99_ms": all[mini(all.size() - 1, int(all.size() * 0.99))] / 1000.0 if not all.is_empty() else 0.0,
 			"busy_frames": busy.size(),
 			"busy_p99_ms": busy[mini(busy.size() - 1, int(busy.size() * 0.99))] / 1000.0 if not busy.is_empty() else 0.0,
-			"slowest_busy_frame_ms": worst / 1000.0, "missing_frames": missing_frames, "forced": forced}
+			"slowest_busy_frame_ms": worst / 1000.0, "slowest_busy_frame": worst_frame,
+			"frames_over_33ms": slow, "frames_over_33ms_streaming": slow_busy,
+			"missing_frames": missing_frames, "forced": forced}
 
 
 ## The streaming numbers for a log line.
 func summary() -> String:
-	var busy := []
-	var worst := 0
-	for i in stream_usec.size():
-		if stream_usec[i] >= 100:
-			busy.append(stream_usec[i])
-			if i + 1 < frame_usec.size():
-				worst = maxi(worst, frame_usec[i + 1])
-	busy.sort()
-	var all := Array(stream_usec)
-	all.sort()
-	var p99: float = all[mini(all.size() - 1, int(all.size() * 0.99))] / 1000.0 if not all.is_empty() else 0.0
-	var busy99: float = busy[mini(busy.size() - 1, int(busy.size() * 0.99))] / 1000.0 if not busy.is_empty() else 0.0
-	var mx: float = all[-1] / 1000.0 if not all.is_empty() else 0.0
-	return "%d frames, %d loads, %d unloads, streaming %.2f ms max, %.2f ms p99 over all frames, %.2f ms p99 over the %d frames that streamed, slowest frame that streamed %.1f ms, %d frames missing a needed sector, %d forced loads" % [
-			frame, loads, unloads, mx, p99, busy99, busy.size(), worst / 1000.0, missing_frames, forced]
+	var st := stats()
+	return "%d frames, %d loads, %d unloads, streaming %.2f ms max, %.2f ms p99 over all frames, %.2f ms p99 over the %d frames that streamed, slowest frame that streamed %.1f ms (frame %d), %d frames over 33 ms (%d of them streaming), %d frames missing a needed sector, %d forced loads" % [
+			st["frames"], st["loads"], st["unloads"], st["max_ms"], st["p99_ms"], st["busy_p99_ms"], st["busy_frames"],
+			st["slowest_busy_frame_ms"], st["slowest_busy_frame"], st["frames_over_33ms"], st["frames_over_33ms_streaming"],
+			st["missing_frames"], st["forced"]]
 
 
 # --- loading -----------------------------------------------------------------------------
 
 ## The worker: hands its finished sector to the adding queue, then starts on the wanted sector
 ## nearest the focus.
-func _poll_worker(focus: Vector3) -> void:
+func _poll_worker(focus: Vector3) -> bool:
+	var handed := false
 	if _thread != null:
 		if _thread.is_alive():
-			return
+			return false
 		_thread.wait_to_finish()
 		_thread = null
 		var root := _task_root
 		_task_root = null
 		if _state[_task_key]["s"] == LOADING and root != null:
 			_start_adding(_task_key, root)
+			handed = true
 		elif root != null:
 			root.free()
+	# The next load starts once every sector handed over is in (the loader's uploads and the main
+	# thread's adds don't then compete for the renderer).
+	for key in keys:
+		if _state[key]["s"] == ADDING:
+			return handed
 	var best := Vector2i.ZERO
 	var best_d := INF
 	for key in keys:
@@ -267,6 +341,7 @@ func _poll_worker(focus: Vector3) -> void:
 		_task_key = best
 		_thread = Thread.new()
 		_thread.start(_make.bind(best), Thread.PRIORITY_LOW)
+	return handed
 
 
 ## On the worker (or the main thread when it can't wait): one sector's root, not in the tree.
@@ -296,6 +371,7 @@ func _drop_task() -> void:
 ## tree.
 func _start_adding(key: Vector2i, root: Node3D) -> void:
 	var t := Time.get_ticks_usec()
+	_worked = true
 	root.visible = false
 	sector_ready.emit(root)
 	var queue: Array[Node] = []
@@ -328,13 +404,24 @@ func _add_nodes(t0: int) -> void:
 			continue
 		var queue: Array = st["queue"]
 		var root: Node3D = st["root"]
+		var added := 0
 		while not queue.is_empty():
-			if Time.get_ticks_usec() - t0 > BUDGET_USEC:
+			var node: Node = queue.front()
+			# The next node goes in only if what that kind cost lately still fits the budget
+			# (a MultiMesh costs far more than a mesh); one always goes in, so nothing waits forever.
+			var expect: int = _add_cost.get(node.get_class(), 200)
+			if added > 0 and Time.get_ticks_usec() - t0 + expect > BUDGET_USEC:
 				return
 			var t := Time.get_ticks_usec()
-			var node: Node = queue.pop_front()
+			queue.pop_front()
+			_worked = true
 			root.add_child(node)
-			var ms := (Time.get_ticks_usec() - t) / 1000.0
+			added += 1
+			var us := Time.get_ticks_usec() - t
+			_add_cost[node.get_class()] = maxi(us, int(_add_cost.get(node.get_class(), 0) * 0.9))
+			var ms := us / 1000.0
+			if log and ms > 1.0:
+				print("stream: frame %d adding %s's %s %s took %.2f ms" % [frame, root.name, node.get_class(), node.name, ms])
 			st["ms"] = float(st["ms"]) + ms
 			if ms > float(st.get("worst", 0.0)):
 				st["worst"] = ms
@@ -365,6 +452,7 @@ func _load_now(key: Vector2i) -> void:
 	if st["s"] == IN:
 		return
 	var t := Time.get_ticks_usec()
+	_worked = true
 	if st["s"] != ADDING:
 		_drop_task()  # the worker's sector (this one or another) goes into its queue
 		if _state[key]["s"] != ADDING:
@@ -394,6 +482,7 @@ func _unload(key: Vector2i) -> void:
 		return
 	var root: Node3D = st.get("root")
 	if root != null:
+		_worked = true
 		for c: Node in st.get("queue", []):
 			c.free()
 		root.queue_free()

@@ -106,7 +106,8 @@ var _light_image: Image
 ## Lamps the light bake added where OpenStreetMap maps none (the bridges): x, z, yaw.
 var _extra_lamps := PackedFloat32Array()
 var _lod2_footprints: Array = []
-var bounds: Rect2
+## Loop 3c: stored, so the prebuilt index (map/index.res) has the map's rectangle too.
+@export_storage var bounds: Rect2
 var _wall_faces := PackedVector3Array()
 
 ## Terrain heights in metres relative to the bake's base height; empty means a flat world.

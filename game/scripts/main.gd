@@ -69,7 +69,6 @@ const Splash := preload("res://scripts/splash.gd")
 const Tiers := preload("res://scripts/tiers.gd")
 const Governor := preload("res://scripts/governor.gd")
 const MAP_PATH := "res://map/centrum.json"
-const CITY_SCENE := "res://map/city.scn"
 
 ## Visual styles to compare on the phone. lines = vertical resolution of the pixel image.
 const STYLES := [
@@ -206,7 +205,8 @@ const GHOST_SUN_HIGH := 40.0
 const GHOST_SUN_SCALE := 1.9
 var _ghost_px := Vector4.ZERO
 var no_ao := false
-## Load map/city.scn like the exported game does (it is only rebuilt by tools/bake_city.gd).
+## Load the prebuilt sectors like the exported game does (loop 3c: map/sectors/*.scn, index.res,
+## proxies.scn; only rebuilt by tools/bake_city.gd), not build them from their files.
 var prebuilt := false
 var _started := false
 ## Time of day (N / TIME / --time=), the radio (R / RADIO / --radio=), the VHS
@@ -529,23 +529,13 @@ func _build_world() -> void:
 	flat_mat.set_shader_parameter("ao_strength", 0.0 if no_ao else 1.0)
 
 	var data: Dictionary
-	# Loop 3c: the city in 512 m sectors, streamed round the camera (sector_streamer.gd);
-	# --monolithic builds it whole from centrum.json as before (the pixel diff's reference).
+	# Loop 3c: the city in 512 m sectors, streamed round the camera (sector_streamer.gd): the
+	# exported game (and --prebuilt) loads the sectors tools/bake_city.gd built on the Mac, the
+	# editor builds them from their files. --monolithic builds the whole city at once from
+	# centrum.json, as before loop 3c (the pixel diff's reference; city.scn is gone).
 	if not monolithic:
 		data = _open_streamed_city(world, flat_mat)
 		flat_mat = map.flat_material
-	elif (prebuilt or not OS.has_feature("editor")) and ResourceLoader.exists(CITY_SCENE):
-		# Exported game: the city was built on the Mac (tools/bake_city.gd).
-		map = (load(CITY_SCENE) as PackedScene).instantiate()
-		world.add_child(map)
-		# Loop 2c: the parked cars take models.gd's shape (a city.scn baked before it has boxes).
-		Models.renew_parked(get_tree().get_nodes_in_group(MapBuilder.SMALL_CASTERS))
-		building_mat = map.building_material
-		flat_mat = map.flat_material
-		data = JSON.parse_string(FileAccess.get_file_as_string(MAP_PATH))
-		# Loop 10a: the map's rectangle isn't stored in the scene (the water tow's searches use it).
-		var mb: Array = data["bounds"]
-		map.bounds = Rect2(mb[0], mb[1], mb[2] - mb[0], mb[3] - mb[1])
 	else:
 		map = MapBuilder.new()
 		world.add_child(map)
@@ -2881,7 +2871,8 @@ func _capture(n: int) -> void:
 # camera every frame, gives new sectors the game's state (the time of day, the quality's
 # shadows, the fine detail, --exp) and runs the streaming test aids: --monolithic (the whole
 # city built at once from centrum.json, as before loop 3c: the pixel diff's reference),
-# --sectors=all (every sector loaded and kept), --stream-log (each load and unload with its
+# --sectors=all (every sector loaded and kept), --sectors=proxies (only the sectors the car stands
+# in, everything else as its proxy, to look at them), --stream-log (each load and unload with its
 # frame and main-thread ms), --spots=X,Z,H/X,Z,H/... with --shots=F1,F2,... (spot k: the car
 # jumps there, heading H degrees, 90 frames before shot k, and the sectors the view needs are
 # finished 30 frames before it; tools/check_streaming.gd), --stream-soak=MINUTES (the car on
@@ -2892,6 +2883,7 @@ const SectorStreamer := preload("res://scripts/sector_streamer.gd")
 var streamer: SectorStreamer
 var monolithic := false
 var _sectors_all := false
+var _sectors_proxies := false
 var _stream_log := false
 var _spots: Array[Vector3] = []
 var _soak_minutes := 0.0
@@ -2906,6 +2898,8 @@ func _parse_stream_args() -> void:
 			monolithic = true
 		elif arg == "--sectors=all":
 			_sectors_all = true
+		elif arg == "--sectors=proxies":
+			_sectors_proxies = true
 		elif arg == "--stream-log":
 			_stream_log = true
 		elif arg.begins_with("--spots="):
@@ -2924,6 +2918,7 @@ func _open_streamed_city(world: Node3D, flat_mat: ShaderMaterial) -> Dictionary:
 	streamer = SectorStreamer.new()
 	streamer.name = "SectorStreamer"
 	streamer.load_all = _sectors_all
+	streamer.proxies_only = _sectors_proxies
 	streamer.log = _stream_log
 	add_child(streamer)
 	streamer.sector_ready.connect(_on_sector_ready)
@@ -2952,11 +2947,12 @@ func _city_nodes() -> Array[Node]:
 
 
 ## A sector's nodes take what the rest of the city has: the night-only ones shown with the
-## lights, small casters' shadows by the quality, fine detail by the view's width, --exp.
+## lights, small casters' shadows as _apply_extras last set them (the quality, the governor's
+## GPU level, the wide view; loop G1), fine detail by the view's width, --exp.
 func _on_sector_ready(root: Node3D) -> void:
 	var lit := tod != null and tod.lights_on > 0.001
-	var cast := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if QUALITY[quality]["small_shadows"] \
-			else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var small: bool = _small_cast == 1 if _small_cast >= 0 else bool(QUALITY[quality]["small_shadows"])
+	var cast := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if small else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	for n in root.find_children("*", "", true, false):
 		if n.is_in_group("night_lights"):
 			(n as Node3D).visible = lit
@@ -2980,7 +2976,13 @@ func _stream_frame(dt: float) -> void:
 	if streamer != null:
 		if _soak_minutes > 0.0:
 			_soak_frame(dt)
+		var forced := streamer.forced
 		streamer.update(cam_focus, _vehicle_position(), cam)
+		# A sector loaded at once (a jump: a tow, a race start) stalls this frame: the governor
+		# (loop G1) counts afresh rather than read it as the frames running late. Streamed loads
+		# stay inside the frame's budget and count as any other work.
+		if streamer.forced > forced:
+			governor.reset(_clock_s())
 	if _spots.is_empty() or shots.is_empty():
 		return
 	var sorted := shots.duplicate()
@@ -2999,6 +3001,9 @@ func _jump_to_spot(s: Vector3) -> void:
 	car.vel = Vector3.ZERO
 	car.reset_physics_interpolation()
 	_cut_camera()
+	# The sectors round the spot in at once, colliders and all, as the whole city has them.
+	if streamer != null:
+		streamer.finish_view(cam_focus, cam)
 	print("spot: %.1f, %.1f heading %.0f at frame %d" % [s.x, s.y, s.z, frame])
 
 
@@ -3030,7 +3035,9 @@ func _soak_frame(dt: float) -> void:
 	_soak_t += dt
 	if _soak_t >= _soak_minutes * 60.0:
 		print("stream soak: %.0f s over %d sectors: %s" % [_soak_t, streamer.keys.size(), streamer.summary()])
-		print("stream soak stats: " + JSON.stringify(streamer.stats()))
+		var numbers := streamer.stats()
+		numbers["governor"] = "%s, %d changes%s" % [governor.state(), governor.changes, ", held" if governor.held else ""]
+		print("stream soak stats: " + JSON.stringify(numbers))
 		_soak_minutes = 0.0
 		get_tree().quit()
 		return

@@ -4,8 +4,9 @@
 #   tools/verify.sh            map data, the check scripts and the headless runs (~1-2 min)
 #   tools/verify.sh --quick    map data, the check scripts, the plain and prebuilt runs (~30 s)
 #   tools/verify.sh --ios      also tools/export_ios.sh and the unsigned xcodebuild. Note:
-#                              export_ios.sh rebuilds game/map/city.scn (with a renderer, so a
-#                              window opens for a moment): only when the loop may change it.
+#                              export_ios.sh splits the map into sectors and rebuilds the
+#                              prebuilt city (game/map/sectors/*.scn, index.res, proxies.scn:
+#                              with a renderer, so a window opens for a moment).
 #   tools/verify.sh --only=steering,plain   just those steps (--list prints the names)
 #   tools/verify.sh --logs=DIR              keep the logs there (default build/verify/<time>)
 #
@@ -15,7 +16,12 @@
 # lane against the colliders, the autopilot over the bridges and tunnels. `drape` runs
 # game/tools/check_drape.gd (loop 3b-2): the ground poking through the water, grass and plazas.
 # `tiers` and `governor` (loop G1): the device tiers and the pixel image's size rule, and the
-# frame governor's rules on scripted frames.
+# frame governor's rules on scripted frames. `streaming` runs game/tools/check_streaming.gd
+# (loop 3c) WITH a renderer (a window opens for a minute or two): every sector built from its
+# file is the whole city, vertex for vertex; 10 spots rendered with --monolithic and with the
+# prebuilt sectors streamed differ in at most 0.5 % of their pixels; a 3-minute soak over every
+# sector misses no sector the car or the view needs (the 15-minute soak: README "Sectors and
+# streaming").
 # Every game run is headless, passes --nosave and quits by itself (--quit-after; Godot also
 # gets --fixed-fps 60 so a run covers the same game time on any Mac and its outcome repeats).
 # A run passes when Godot exits 0 and prints no ERROR / WARNING lines; autopilot runs also
@@ -32,7 +38,7 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads drape drive drive-prebuilt steering settings tiers governor hud landmarks sfx radio water water-prebuilt plain heli race kebab splash rain prebuilt classic)
+STEPS_ALL=(map roads drape drive drive-prebuilt steering settings tiers governor hud landmarks sfx radio water water-prebuilt streaming plain heli race kebab splash rain prebuilt classic)
 STEPS_QUICK=(map roads drape drive steering settings tiers governor hud landmarks sfx radio plain prebuilt)
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
 STEP_LIMIT=${NW_STEP_LIMIT:-900}
@@ -122,6 +128,27 @@ check() {
 	fi
 }
 
+# shown NAME OKLINE GODOTARGS...: like check, with a renderer (loop 3c: pixels and meshes' data).
+shown() {
+	local name=$1 okline=$2; shift 2
+	local logf=$logs/$name.log t0=$EPOCHREALTIME code
+	( cd $GAME && limited $STEP_LIMIT $GODOT --path . --resolution 1280x720 "$@" ) > $logf 2>&1
+	code=$?
+	local secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+	local np=$(problems $logf | wc -l | tr -d ' ')
+	local last=$(grep -E "$okline" $logf | tail -1)
+	if (( code == 142 )); then
+		row FAIL $name $secs "stopped after ${STEP_LIMIT}s: $logf"
+	elif [[ -n $last ]] && grep -qE "${okline}.*OK" <<< $last && (( code == 0 && np == 0 )); then
+		row PASS $name $secs "$last"
+	else
+		local first=$(problems $logf | head -1)
+		[[ -z $first ]] && first=$(grep -m1 'PROBLEM' $logf)
+		[[ -z $first ]] && first=${last:-"no result line"}
+		row FAIL $name $secs "exit $code, $np error/warning lines: ${first[1,140]} ($logf)"
+	fi
+}
+
 # game NAME FRAMES OUTCOME GAMEARGS...: a headless game run with --nosave that quits after
 # FRAMES frames; OUTCOME is a regex for the line that says the activity finished ("" = none).
 game() {
@@ -161,7 +188,7 @@ run_ios() {
 	code=$?
 	local secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
 	if (( code == 0 )) && grep -q 'BUILD SUCCEEDED' $logf; then
-		row PASS "ios export + build" $secs "BUILD SUCCEEDED (unsigned, generic iOS); city.scn rebuilt"
+		row PASS "ios export + build" $secs "BUILD SUCCEEDED (unsigned, generic iOS); sectors rebuilt"
 	else
 		local first=$(grep -m1 -E 'error:|BUILD FAILED|ERROR' $logf)
 		row FAIL "ios export + build" $secs "exit $code: ${${first:-see log}[1,140]} ($logf)"
@@ -185,7 +212,7 @@ for s in $want; do
 			elif [[ -n $stale ]]; then
 				row WARN "map data" $secs "counts OK; ${stale[1,150]}"
 			else
-				row PASS "map data" $secs "trees3d, pois, graph, palm as expected; city.scn up to date"
+				row PASS "map data" $secs "trees3d, pois, graph, palm as expected, over the sectors too; the prebuilt sectors up to date"
 			fi ;;
 		# Loop 3a: roads, decks, tunnels and the lane graph over the whole map (C1-C10, docs/DEMO.md 4.5).
 		roads)
@@ -219,6 +246,8 @@ for s in $want; do
 		# Loop 10a: where a car can get into the water (whole map), and the game's tow decisions.
 		water) check water '^check_water:' --script res://tools/check_water.gd ;;
 		water-prebuilt) check water-prebuilt '^check_water:' --script res://tools/check_water.gd -- --prebuilt ;;
+		# Loop 3c: the sectors are the whole city (meshes, pixels at 10 spots), streaming misses nothing.
+		streaming) shown streaming '^check_streaming:' --script res://tools/check_streaming.gd -- --keep=$logs/streaming ;;
 		plain) game plain 600 "" ;;
 		heli) game heli 6000 '^rescue (done|failed):' --mission=1 --heli --autopilot ;;
 		race) game race 8000 '^race (won|lost):' --race=0 --autopilot ;;

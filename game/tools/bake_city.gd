@@ -16,6 +16,9 @@ const MapBuilder := preload("res://scripts/map_builder.gd")
 const Landmarks := preload("res://scripts/landmarks.gd")
 const Proxies := preload("res://scripts/sector_proxies.gd")
 const SHARED := "res://map/shared/"
+## index.json's keys only the map builder reads (the game's systems never do).
+const BUILDER_ONLY := ["site_parts", "kerbs", "medians", "islands", "shore", "fills", "aprons", "lod2_cuts",
+		"lod2_open", "towers", "garages", "dips"]
 
 
 func _initialize() -> void:
@@ -84,6 +87,12 @@ func _bake() -> Error:
 	if err != OK:
 		map.free()
 		return err
+	# The exported game keeps only the game's part of the index: what the builder alone reads (its
+	# derived grids are in the map node by now) stays in index.json for the runtime path.
+	var game_data: Dictionary = map.index_data.duplicate()
+	for k in BUILDER_ONLY:
+		game_data.erase(k)
+	map.index_data = game_data
 	_own(map, map)
 	var packed_index := PackedScene.new()
 	err = packed_index.pack(map)
