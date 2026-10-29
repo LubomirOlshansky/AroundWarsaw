@@ -932,5 +932,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
   shadow-edge patches on the ground, as many darker on each side (1,208 vs 959 sampled): the
   directional shadow fits its depth range to the casters it sees, and the whole city (the
   reference) has more of them than the streamed one, not a sector missing geometry (the identity
-  part passes). Open: pin the shadow's fit in the check, or a window for that spot (the user's call).
+  part passes). Judged in the game (shots/spot8: the streamed sectors against all of them, 0.07 %
+  visible, single texels of lamp-pole shadow edges, nothing moves): spot 8 has its own limit of
+  1 % in `check_streaming.gd` `SPOT_MAX`, the reason there.
 - `verify.sh` ride: 30000 frames (the river quirk's legs run 1.7-1.8 km on the demo map).

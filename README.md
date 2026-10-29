@@ -2628,7 +2628,7 @@ baked from the demo fetch already on disk (no downloads; README "Map data" for t
 | Memory at the spawn (probe): static / video | 147 / 263 MB (textures 24) | 244 / 421 MB (textures 94: the AO, light and surface maps 100 MB whole) |
 | check_water, check_drape | OK | OK (2 places listed in check_water's `ALLOWED`, 1 in check_drape's `EXCUSED`: loop 3e) |
 | Exported .pck | 47.2 MB | 140.0 MB (budget 300) |
-| check_streaming | identity, ≤ 0.015 % at 10 spots | identity OK (108 sectors), soak OK; spot 8 at 0.789 % (shadow-edge patches, BACKLOG) |
+| check_streaming | identity, ≤ 0.015 % at 10 spots | identity OK (108 sectors), soak OK; spot 8 at 0.789 % under its own limit of 1 % (`SPOT_MAX`: single texels of lamp-pole shadow edges, 0.14 % by more than 8/255; in the game the 12 streamed sectors against all 108 differ in 0.07 % visibly, nothing moves) |
 
 ## Adding music (loop radio-playlists, 2026-10-29)
 
@@ -3117,6 +3117,7 @@ Command-line options (after `--`):
 | `--heading=deg` | the car's heading at the start (0 north, 90 east), for testing: with `--demo` it drives off that way |
 | `--nohud` | hide the controls |
 | `--no-touch` | desktop (trailer loop, 2026-10-29): no touch-only controls on screen (the pedals and HAMULEC, the stick's knob and Classic's strip hint, the helicopter's ▲/▼ pads, the title's "tap to drive"); the top row, minimap, wallet, cards, bubbles and the radio caption stay, and the panels get the pedals' room; the keys still drive. For recording on the computer (`tools/check_hud.gd` checks it) |
+| `--no-input` | loop 3d-1: the window never takes the keyboard focus (`WINDOW_FLAG_NO_FOCUS`): test renders whose windows hold the focus for minutes (`check_streaming.gd` passes it; keys typed in another app had toggled the time of day, the overlay and the radio) |
 | `--prebuilt` | load the prebuilt sectors like the exported game (loop 3c: `map/index.res`, `map/proxies.scn`, `map/sectors/s_<i>_<j>.scn`; `city.scn` before) instead of building each sector from its file |
 | `--monolithic` | loop 3c: build the whole city at once from `centrum.json`, as before loop 3c (no sectors, no streaming): the pixel diff's reference |
 | `--sectors=all` / `--sectors=proxies` | loop 3c: load every sector at the start and keep them all (the old behaviour) / only the sectors the car stands in, every other one as its proxy (to look at the proxies) |

@@ -1373,6 +1373,11 @@ func _parse_args() -> void:
 			hide_hud = true
 		elif arg == "--no-touch":
 			no_touch = true  # desktop: --no-touch
+		elif arg == "--no-input":
+			# Loop 3d-1: a test render ignores every key, click and touch (check_streaming's windows
+			# take the focus for minutes: keys typed elsewhere toggled the time, the overlay, the radio).
+			# The window never takes the focus, so keys typed elsewhere stay there.
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
 		elif arg.begins_with("--size="):
 			base_size = float(arg.trim_prefix("--size="))
 		elif arg == "--fixed":
