@@ -199,8 +199,9 @@ func _words() -> void:
 	var card := Rules.offer_text({"name": "Kasia", "away": 350.0, "road": 1800.0, "their": 4.9,
 			"note": ["Uwagi: „stoję pod Rechotką”.", "Note: \"I'm outside the Rechotka.\""], "night": true, "rain": false,
 			"rating": 4.87})
-	_expect("the request card's first line", String(card[1]).get_slice("\n", 0), "Kasia · 350 m · kurs 1,8 km · ★ 4,9")
-	_expect("the request card's MNOŻNIK line", String(card[1]).get_slice("\n", 2), "MNOŻNIK ×1,5 · NOC")
+	_expect("the request card's first line", String(card[1]).get_slice("\n", 0), "Kasia ★ 4,9 · 350 m · 1,8 km")
+	_expect("the request card's MNOŻNIK (the title)", card[0], "PODWÓZKA · MNOŻNIK ×1,5")
+	_expect("its gloss", card[2], "New ride · surge ×1.5 · night")
 	var data = JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogue.json"))
 	if not data is Dictionary:
 		_expect("dialogue.json parses", false, true)

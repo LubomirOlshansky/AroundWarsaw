@@ -6,7 +6,8 @@ extends SceneTree
 ## call card, a payment, a rescue with the radio host and an easter egg, a kebab offer and a
 ## delivery with the customer talking where the radio ticker sits, a race, a rival to
 ## challenge, a landmark card, the tow toast, the same with the performance overlay on, every
-## tab of the settings panel and the bench card. In each state:
+## tab of the settings panel and the bench card; loop 3g-1: a police chase (the pill, the koguty,
+## a megaphone bubble), the lizak, and the pull-over card (the pedals away). In each state:
 ##   - every control the player can press is at least 44 pt each way and inside the safe area;
 ##   - every text is at least 11 pt, and the body texts (cards, ticker, toasts, hints) 13 pt;
 ##   - every HUD rect (the fixed controls, the panels, the pedals, the speech bubbles) is inside
@@ -19,6 +20,8 @@ extends SceneTree
 
 const Hud := preload("res://scripts/hud.gd")
 const Bubbles := preload("res://scripts/bubbles.gd")
+## Loop 3g-1: the pull-over card (police.gd lays it out with the HUD's panels).
+const PoliceBalloon := preload("res://scripts/police/police_balloon.gd")
 ## Loop 2d-1: Podwózka's card words.
 const RideRules := preload("res://scripts/ride_rules.gd")
 ## Width x height in pixels (landscape): the user's 6.9" Pro Max, the 6.1" class, a computer
@@ -72,6 +75,9 @@ func _check_screen(screen: Vector2i) -> int:
 	bubbles.project = func(p: Vector3) -> Vector2: return Vector2(p.x, p.y)
 	hud.add_child(bubbles)
 	hud.move_child(bubbles, 1)
+	var talk: Control = PoliceBalloon.new()
+	talk.pt = hud.pt
+	hud.add_panel(talk, "bottom")
 	await process_frame
 	var pt: float = hud.pt
 	var safe: Rect2 = hud.safe_rect()
@@ -88,6 +94,7 @@ func _check_screen(screen: Vector2i) -> int:
 	for perf in [false, true]:
 		for state in ["car, Point", "car, Classic", "helicopter", "call came in", "call card", "rescued, paid",
 				"rescue, host, egg", "kebab offer", "kebab delivery", "race", "rival ahead", "landmark card", "tow toast",
+				"police chase", "lizak", "pull-over",
 				"ride offer", "ride", "ride result", "ride result, police"]:
 			if perf and not state in ["car, Point", "call card", "rescue, host, egg", "kebab offer", "kebab delivery", "landmark card"]:
 				continue
@@ -154,13 +161,36 @@ func _check_screen(screen: Vector2i) -> int:
 				"tow toast":
 					hud.toast("Pomoc drogowa: wyciągnięci!", "Towed free")
 					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
+				# Loop 3g-1: a koguty 2 chase (the pill and its countdown, the koguty, a megaphone
+				# bubble, the edge rooster), the lizak's pill, and the pull-over card with two replies.
+				"police chase":
+					hud.set_koguty(2, 1)
+					hud.police_pill("SZUKAJĄ CIĘ · KONIEC ZMIANY ZA 0:27", "SEARCHING · END OF SHIFT IN 0:27")
+					hud.police_fx(1.0, PackedVector2Array([at.call(0.5, 1.3)]), Vector2.INF)
+					_say(bubbles, "Policja", at.call(0.5, 0.72), "Proszę się zatrzymać! Albo chociaż zwolnić, będzie miło.",
+							"Please stop! Or at least slow down, that would be nice.")
+					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
+				"lizak":
+					hud.set_koguty(0, 3)
+					hud.police_pill("ZATRZYMAJ SIĘ PRZY POLICJANCIE", "PULL OVER BY THE OFFICER")
+					hud.police_fx(0.0, PackedVector2Array(), at.call(0.56, 0.36))
+					hud.toast("UCIECZKA!  +15", "ESCAPED!  +15 RESPECT")
+				"pull-over":
+					hud.set_koguty(1, 1)
+					hud.set_pedals_hidden(true)
+					# The longest opener with the longest English (the caution's) and the two widest replies.
+					talk.show_line("Posterunkowy Kacper", "Kontrola drogowa. Wie pan, czemu pana zatrzymałem? Ja tak średnio.",
+							"Consider yourself cautioned. Kacper, put it in the notebook. Neatly, not like last time.",
+							[["Przepraszam, już nie będę.", "Sorry, won't happen again."], ["Suszarka? Mam krótkie włosy.", "Hair dryer? But I've got short hair."]])
+					hud.show_panel(talk, true)
+					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
 				# Loop 2d-1: Podwózka at its longest: the longest note, the MNOŻNIK for night and rain,
 				# the longest destination; the result with every star note and a streak.
 				"ride offer":
 					var offer := RideRules.offer_text({"name": "Krzysiek", "away": 588.0, "road": 2496.0, "their": 4.9,
 							"note": ["Uwagi: „jestem tam, gdzie pinezka, tylko po drugiej stronie”.",
 							"Note: \"I'm where the pin is, just on the other side.\""], "night": true, "rain": true, "rating": 4.87})
-					hud.show_card(offer[0], offer[1], PackedStringArray(["ACCEPT", "SKIP"]), Color("#4fd8c4"), true, offer[2], offer[3])
+					hud.show_side_card(offer[0], offer[1], PackedStringArray(["ACCEPT", "SKIP"]), Color("#4fd8c4"), offer[2], offer[3])
 					hud.show_pill("PODWÓZKA", "ride app", "ride")
 					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
 				"ride":
@@ -178,7 +208,7 @@ func _check_screen(screen: Vector2i) -> int:
 					var done := RideRules.result_text({"stars": 5.0, "name": "Krzysiek", "comment": ["Pięć gwiazdek i serduszko. Serduszko jest rzadkie.",
 							"Five stars and a heart. The heart is rare."], "pay": pay, "rating": 4.88,
 							"why": ["jazda −1, przed czasem +½, za aplikacją +½", "driving −1, early +½, followed the app +½"]})
-					hud.show_card(done[0], done[1], PackedStringArray(["OK"]), Color("#4fd8c4"), false, done[2], done[3])
+					hud.show_side_card(done[0], done[1], PackedStringArray(), Color("#4fd8c4"), done[2], done[3])
 					hud.set_wallet(12442, 1259, 97)
 				"ride result, police":
 					# The longest comment (pulled over), with the most a 4-star ride can lose and win back.
@@ -186,7 +216,7 @@ func _check_screen(screen: Vector2i) -> int:
 					var done4 := RideRules.result_text({"stars": 4.0, "name": "Krzysiek", "comment": ["Policja w trakcie kursu? Gwiazdkę zabieram, anegdotę zostawiam.",
 							"Police mid-ride? I'm taking a star, but keeping the anecdote."], "pay": pay4, "rating": 4.83,
 							"why": ["jazda −½, policja −1, za aplikacją +½", "driving −½, police −1, followed the app +½"]})
-					hud.show_card(done4[0], done4[1], PackedStringArray(["OK"]), Color("#4fd8c4"), false, done4[2], done4[3])
+					hud.show_side_card(done4[0], done4[1], PackedStringArray(), Color("#4fd8c4"), done4[2], done4[3])
 			await process_frame
 			await process_frame
 			bubbles.layout()
@@ -264,20 +294,27 @@ func _check_state(hud: CanvasLayer, bubbles: Control, where: String) -> void:
 			var rb: Rect2 = rects[names[b]]
 			if ra.intersection(rb).get_area() > pt * pt:
 				problems.append("%s: %s %s overlaps %s %s" % [where, names[a], _pts(ra, pt), names[b], _pts(rb, pt)])
-	# The passing panels keep clear of the player's car (the middle of the screen).
-	for n in ["ticker", "toast", "note", "info", "perf", "banner"]:
+	# The passing panels keep clear of the player's car (the middle of the screen); loop 2d-1: so
+	# does a Podwózka card (the side card).
+	var keep_clear := ["ticker", "toast", "note", "info", "perf", "banner"]
+	if where.contains(" ride"):
+		keep_clear.append("card")
+	for n in keep_clear:
 		if rects.has(n) and (rects[n] as Rect2).intersects(hud.car_zone()):
 			problems.append("%s: %s %s covers the car's spot %s" % [where, n, _pts(rects[n], pt), _pts(hud.car_zone(), pt)])
 	var unplaced: Array = hud.unplaced()
 	if not unplaced.is_empty():
 		problems.append("%s: no room for %s" % [where, ", ".join(unplaced)])
+		if "card" in unplaced:
+			# Loop 2d-1: how big the card wanted to be, in points.
+			problems.append("%s:   (the card %s pt)" % [where, hud._card.get_combined_minimum_size() / pt])
 	for n in hud.waiting():
 		_waits.append("%s in %s" % [n, where])
 	if bubbles.overlaps > 0:
 		_waits.append("%d speech bubble(s) in %s" % [bubbles.overlaps, where])
 	_check_fonts(hud, where, pt)
 	for body in ["_card_body", "_card_body_en", "_ticker_label", "_ticker_sub", "_toast", "_toast_gloss", "_status_hint",
-			"_status_hint_en", "_info_pl", "_info_en", "_note_body"]:
+			"_status_hint_en", "_info_pl", "_info_en", "_note_body", "_police_pl", "_police_en"]:
 		var l: Label = hud.get(body)
 		if l.is_visible_in_tree() and l.get_theme_font_size("font_size") < MIN_BODY * pt - 0.5:
 			problems.append("%s: %s is %.1f pt (body text needs %.0f)" % [where, body, l.get_theme_font_size("font_size") / pt, MIN_BODY])

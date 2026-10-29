@@ -57,3 +57,14 @@ Each add-on lives in `game/addons/<name>/` with its own licence file, unchanged.
   (`game/addons/phantom_camera/LICENSE`), <https://store.godotengine.org/asset/ramokz/phantom-camera/>
   (source: <https://github.com/ramokz/phantom-camera>). It moves the camera in the cinematic
   moments (`game/scripts/camera_shots.gd`); installed without its examples folder.
+- **beehave** by bitbrain (Kenneth Lorenz) and contributors, version 2.9.3 (2026-08-18, for
+  Godot 4.7), MIT licence (`game/addons/beehave/LICENSE`), <https://github.com/bitbrain/beehave>
+  (the release's source archive, `addons/beehave/` only). The police units' behaviour trees
+  (loop 3g-1, `game/scripts/police/`); the editor plugin is off. One local change, marked in the
+  file: `debug/debugger_messages.gd` sends no debugger messages when no debugger is attached.
+- **Dialogue Manager** by Nathan Hoad and contributors, version 4.1.0 (2026-09-04, for Godot
+  4.6+), MIT licence (`game/addons/dialogue_manager/LICENSE`),
+  <https://github.com/nathanhoad/godot_dialogue_manager> (the release's source archive,
+  `addons/dialogue_manager/` only, unchanged). It runs the pull-over conversation
+  (`game/dialogue/police.dialogue`, loop 3g-1); the editor plugin is off and its C# files are
+  unused.

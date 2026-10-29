@@ -22,6 +22,8 @@ var bubbles: Control
 var radio: Node
 ## The radio host waits while this is false (the title screen).
 var host_on := true
+## Loop 2d-1: a Podwózka card is up: the host's next line waits until it goes (then comes at once).
+var host_hold := false
 ## Seconds to the first host line on a station (--host-in=, for screenshots).
 var host_first := -1.0
 
@@ -146,6 +148,8 @@ func _frame(dt: float) -> void:
 		return
 	_host_t += dt
 	if _host_t >= _host_next:
+		if host_hold:
+			return  # loop 2d-1
 		_host_t = 0.0
 		host_first = -1.0
 		_host_next = _rng.randf_range(HOST_GAP.x, HOST_GAP.y)

@@ -32,6 +32,13 @@ var dialogue: Node
 var log_on := false
 ## --gps-in=S (testing, screenshots): the first moment is looked for S seconds in.
 var first_in := -1.0
+## A Podwózka card is up (rides.gd): no new moment, and a driver's bubble already up is hushed.
+var held := false:
+	set(v):
+		if v and not held and _anchor.is_valid():
+			dialogue.bubbles.hush(_anchor)
+		held = v
+var _anchor := Callable()
 ## How long the last update took, for --bench (µs).
 var last_usec := 0
 ## Moments done this session.
@@ -66,6 +73,8 @@ func _process(dt: float) -> void:
 	_clock += dt
 	if _d != null:
 		_run(dt)
+	elif held:
+		_wait = maxf(_wait, RETRY)
 	else:
 		_wait -= dt
 		if _wait <= 0.0:
@@ -207,7 +216,9 @@ func _say(tag: String) -> void:
 		if not d.active or d.slot != slot or d.kind != APP_KIND:
 			return Vector3.INF
 		return d.pos + Vector3(0, d.size.y + 0.6, 0)
-	dialogue.say(anchor, SPEAKER, "podwozka_driver", tag, 3.2, COLOUR, 2.6, true)
+	_anchor = anchor
+	if not held:
+		dialogue.say(anchor, SPEAKER, "podwozka_driver", tag, 3.2, COLOUR, 2.6, true)
 
 
 ## The nearest car behind d in its lane, within 25 m (or null).

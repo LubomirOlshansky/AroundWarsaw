@@ -45,10 +45,10 @@ const BOARD_HOLD := 1.0
 const ARRIVE := 7.0
 const ARRIVE_SPEED := 2.5
 ## A quirk's waypoint counts as driven within REACH; Nawigacja speaks SAY_AT from it; a believer
-## grumbles once the car is PASSED m nearer the door than the waypoint is, without it.
+## grumbles once the car is within PASSED of the waypoint's distance to the door, without it.
 const REACH := 15.0
 const SAY_AT := 200.0
-const PASSED := 150.0
+const PASSED := 0.5
 ## A quirk's leg is silly, not a tour: at most this much longer than the shortest road.
 const DETOUR_MAX := 1500.0
 const FIRST_OFFER := 120.0
@@ -57,13 +57,21 @@ const OFFER_LIFE := 10.0
 const PILL_DELAY := 1.2
 const CHAT_GAP := Vector2(25.0, 40.0)
 ## The river spots: a waypoint RIVER_INLAND m in from the water's edge, dry for RIVER_DRY m all
-## round, at most RIVER_ROAD m from a road (straight and clear); shore runs sampled every RIVER_STEP.
+## round, at most RIVER_ROAD m from a road (straight and clear). The water's edge comes from the
+## map's global water test (shore_distance), sampled every SCAN m, SCAN_ROWS rows a frame (loop
+## 3c: the streamed city's exported index has no shore runs), then RIVER_BUDGET edge points a frame.
 const RIVER_INLAND := 5.0
 const RIVER_DRY := 3.0
 const RIVER_ROAD := 70.0
-const RIVER_STEP := 12.0
+const SCAN := 8.0
+const SCAN_ROWS := 3
 const RIVER_BUDGET := 24
 const QUIRKS := ["river", "zone", "reroute"]
+## The result card comes this long after the arrival (Nawigacja's line first), and goes by itself
+## RESULT_LIFE s later or once the car is RESULT_OFF m away (no button: M closes it too).
+const RESULT_AFTER := 2.6
+const RESULT_LIFE := 12.0
+const RESULT_OFF := 25.0
 const SHIRTS := ["#3b8f5a", "#2f6fb5", "#7a4fb5", "#c9b458", "#4c6650", "#5d6f8a"]
 
 enum State { IDLE, OFFER, PICKUP, RIDE, RESULT }
@@ -105,6 +113,10 @@ var spent_usec := 0
 var river_spots: Array[Dictionary] = []
 
 var _ride: Dictionary = {}
+## The result card waits RESULT_AFTER s for Nawigacja's arrival line: [text, accent].
+var _result_card: Array = []
+var _result_in := 0.0
+var _result_at := Vector3.ZERO
 var _rules := Rules.new()
 var _session := 0.0
 var _t := 0.0
@@ -133,6 +145,12 @@ var _addresses: Array[Dictionary] = []
 var _parks: Array[Dictionary] = []
 var _spawn_lane: Array = []
 var _river_todo: Array = []
+var _scan_row := 0
+var _scan_rows := 0
+var _scan_cols := 0
+var _scan_origin := Vector2.ZERO
+var _scan_prev := PackedByteArray()
+var _scan_usec := 0
 var _river_raw: Array[Dictionary] = []
 var _river_ready := false
 ## Braking and cornering, smoothed like the słoiki's (jobs.gd).
@@ -173,7 +191,7 @@ func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
 					_parks.append({"name": String(p["name"]), "w": w})
 	var sp: Dictionary = data.get("spawn", {})
 	_spawn_lane = graph.snap(Vector2(float(sp.get("x", 0.0)), float(sp.get("z", 0.0))), 60.0, Vector2.ZERO, true, true)
-	_queue_river(data)
+	_queue_river()
 	_beacon = Beacon.new()
 	world.add_child(_beacon)
 	_beacon.setup(COLOUR, Color(SHIRTS[0]))
@@ -193,8 +211,8 @@ func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
 		moments.log_on = log_on
 		moments.first_in = gps_first
 		add_child(moments)
-	print("rides: %d addresses, %d parks, %d shore samples queued for river spots, in %d ms" % [_addresses.size(),
-			_parks.size(), _river_todo.size(), Time.get_ticks_msec() - t0])
+	print("rides: %d addresses, %d parks in %d ms; the river's edge: %d × %d water samples to scan" % [_addresses.size(),
+			_parks.size(), Time.get_ticks_msec() - t0, _scan_cols, _scan_rows])
 
 
 ## The waiting passenger: a person (one mesh) and a teal "!" over them (one mesh).
@@ -258,7 +276,7 @@ func target_colour() -> Color:
 
 ## Keyboard: M accepts a request or closes the result card, K skips a request.
 func primary() -> bool:
-	if state == State.OFFER or state == State.RESULT:
+	if state == State.OFFER or (state == State.RESULT and _result_in <= 0.0):
 		_on_card(0)
 		return true
 	return false
@@ -351,6 +369,23 @@ func _process(dt: float) -> void:
 			_pickup_tick(dt)
 		State.RIDE:
 			_ride_tick(dt)
+		State.RESULT:
+			if _result_in > 0.0:
+				_result_in -= dt
+				if _result_in <= 0.0:
+					var card: Array = _result_card
+					var text: Array = card[0]
+					hud.show_side_card(text[0], text[1], PackedStringArray(), card[1], text[2], text[3])
+					_result_at = car.global_position
+					_t = 0.0
+			elif _t > RESULT_LIFE or _flat(car.global_position, _result_at) > RESULT_OFF:
+				_release()
+	# One card at a time: while a ride's request or result is up (or about to be), the app-taxis'
+	# GPS bubbles and the radio host wait; they come after.
+	var card_up := state == State.OFFER or state == State.RESULT
+	if moments != null:
+		moments.held = card_up
+	dialogue.host_hold = card_up
 	if _rider.visible:
 		# Waving: a little hop and the "!" bobbing.
 		_bang.position.y = 0.15 * sin(_t * 6.0)
@@ -467,7 +502,8 @@ func _show_offer(r: Dictionary) -> void:
 	_set_pill(false)
 	var text := Rules.offer_text({"name": r["name"], "away": r["away"], "road": r["road"], "their": r["their"],
 			"note": r["note"], "night": r["night"], "rain": r["rain"], "rating": _rating()})
-	hud.show_card(text[0], text[1], PackedStringArray(["ACCEPT", "SKIP"]), COLOUR, true, text[2], text[3])
+	hud.show_side_card(text[0], text[1], PackedStringArray(["ACCEPT", "SKIP"]), COLOUR, text[2], text[3])
+	hud.ticker_out()
 	print("podwózka ride %d: %s (%s) at %s, %d m away, to %s, %d m by road%s" % [r["n"], r["name"], r["type"], r["pin_name"],
 			roundi(r["away"]), r["dest"], roundi(r["road"]), (", quirk " + String(r["quirk"])) if r["quirk"] != "" else ""])
 	_log("offer %d: %s, a %s passenger (★ %.1f), pin at %s %d m away%s, to %s (%d m by road, ETA %d s), quirk %s, surge ×%.1f, your rating %.2f" % [
@@ -499,6 +535,8 @@ func _withdraw() -> void:
 
 
 func _on_card(index: int) -> void:
+	if state == State.RESULT and _result_in > 0.0:
+		return  # the result card isn't up yet
 	match state:
 		State.OFFER:
 			if index == 0:
@@ -839,7 +877,7 @@ func _quirk_tick(p: Vector3) -> void:
 			_star_note(Rules.BONUS, "followed the app", ["za aplikacją", "followed the app"])
 			dialogue.say(car, _ride["name"], "podwozka_passenger", "followed", 3.5, COLOUR, 2.4, true)
 	elif _quirk_done == "" and (_said_quirk or _rules.clock > 20.0) and dw > 2.0 * REACH \
-			and to_door < w.distance_to(ring) - PASSED:
+			and to_door < PASSED * w.distance_to(ring):
 		# Past it: the car is well nearer the door than the waypoint is (it can still go back).
 		_quirk_done = "ignored"
 		_log("quirk %s ignored at %.1f s (%s passenger)" % [quirk, _rules.clock, _ride["type"]])
@@ -909,12 +947,15 @@ func _arrive() -> void:
 	var tag := "police" if _rules.pulled_over else ("5" if final >= 5.0 else ("4" if final >= 4.0 else "low"))
 	_beacon.place(_ride["ring"], ARRIVE - 0.5, false, true)
 	hud.set_minimap_route(PackedVector2Array(), COLOUR)
-	dialogue.say(_gps_anchor, "Nawigacja", "podwozka_gps", "arrive", 3.5, COLOUR, 0.0, true)
+	hud.ticker_out()
+	# Nawigacja's "you have arrived" first; the result card when it has been said (one at a time).
+	dialogue.say(_gps_anchor, "Nawigacja", "podwozka_gps", "arrive", 2.0, COLOUR, 0.0, true)
 	# The passenger's comment is on the card (a bubble too would say it twice).
 	var comment: Array = dialogue.line("podwozka_rating", tag, true)
 	var text := Rules.result_text({"stars": final, "name": _ride["name"], "place": _ride["dest"], "time": _clock_text(_rules.clock),
 			"comment": comment, "pay": pay, "rating": _rating(), "why": _why()})
-	hud.show_card(text[0], text[1], PackedStringArray(["OK"]), COLOUR if final >= 4.0 else FAIL_COLOUR, false, text[2], text[3])
+	_result_card = [text, COLOUR if final >= 4.0 else FAIL_COLOUR]
+	_result_in = RESULT_AFTER
 	Input.vibrate_handheld(120, 0.8)
 	print("podwózka done: %s to %s in %.1f s, %.1f stars, paid %d zł (wallet %d zł)" % [_ride["name"], _ride["dest"],
 			_rules.clock, final, pay["total"], wallet.zl])
@@ -950,12 +991,16 @@ func _why() -> Array:
 func _cancel(by_passenger: bool) -> void:
 	var riding := state == State.RIDE
 	state = State.RESULT
+	_result_in = 0.0
+	_result_at = car.global_position
+	_t = 0.0
 	hud.hide_status()
 	_remove_ghost()
 	bubbles.hush(car)
 	_beacon.visible = false
 	_rider.visible = false
 	hud.set_minimap_route(PackedVector2Array(), COLOUR)
+	hud.ticker_out()
 	var streak := int(wallet.keep.get("podwozka_streak", 0))
 	wallet.keep["podwozka_streak"] = 0
 	wallet.save()
@@ -963,16 +1008,16 @@ func _cancel(by_passenger: bool) -> void:
 	if by_passenger and riding:
 		var l: Array = dialogue.say(car, who, "podwozka_rating", "cancel", 4.5, FAIL_COLOUR, 2.4, true)
 		var quote := "„%s”\n" % l[0] if not l.is_empty() else ""
-		hud.show_card("PASAŻER ANULOWAŁ", quote + "%s wysiada. Bez opłat; seria pięciu gwiazdek przepadła." % who,
-				PackedStringArray(["OK"]), FAIL_COLOUR, true, "The passenger cancelled",
+		hud.show_side_card("PASAŻER ANULOWAŁ", quote + "%s wysiada. Bez opłat; seria pięciu gwiazdek przepadła." % who,
+				PackedStringArray(), FAIL_COLOUR, "The passenger cancelled",
 				("%s\n" % l[1] if not l.is_empty() else "") + "%s gets out. No charge; the 5-star streak is gone." % who)
 	elif by_passenger:
-		hud.show_card("PASAŻER ANULOWAŁ", "%s wybiera inną Podwózkę. Bez opłat; seria przepadła." % who,
-				PackedStringArray(["OK"]), FAIL_COLOUR, true, "The passenger cancelled",
+		hud.show_side_card("PASAŻER ANULOWAŁ", "%s wybiera inną Podwózkę. Bez opłat; seria przepadła." % who,
+				PackedStringArray(), FAIL_COLOUR, "The passenger cancelled",
 				"%s picked another Podwózka. No charge; the streak is gone." % who)
 	else:
-		hud.show_card("KURS ANULOWANY", ("%s wysiada tutaj." if riding else "%s zostaje na chodniku.") % who
-				+ " Bez opłat; seria przepadła.", PackedStringArray(["OK"]), FAIL_COLOUR, true, "Ride cancelled",
+		hud.show_side_card("KURS ANULOWANY", ("%s wysiada tutaj." if riding else "%s zostaje na chodniku.") % who
+				+ " Bez opłat; seria przepadła.", PackedStringArray(), FAIL_COLOUR, "Ride cancelled",
 				("%s gets out here." if riding else "%s stays on the pavement.") % who + " No charge; the streak is gone.")
 	_log("cancelled by the %s %s after %.1f s: no pay, no stars lost, streak %d -> 0" % ["passenger" if by_passenger else "player",
 			"during the ride" if riding else "before the pickup", _rules.clock if riding else _t, streak])
@@ -1102,31 +1147,47 @@ func _car_lane() -> Array:
 
 # --- the river spots ----------------------------------------------------------------------------
 
-## The water's edge every RIVER_STEP m along the baked shore runs, looked at a few a frame.
-func _queue_river(data: Dictionary) -> void:
-	for sh in data.get("shore", []):
-		var flat: Array = sh["p"]
-		var carry := 0.0
-		for k in range(0, flat.size() - 3, 2):
-			var a := Vector2(flat[k], flat[k + 1])
-			var b := Vector2(flat[k + 2], flat[k + 3])
-			var seg := a.distance_to(b)
-			if seg < 0.01:
-				continue
-			var u := carry
-			while u < seg:
-				_river_todo.append([a.lerp(b, u / seg), (b - a) / seg])
-				u += RIVER_STEP
-			carry = u - seg
+## The water test on a SCAN m grid over the map, row by row: each dry-to-wet step between two
+## neighbouring samples is a point on the water's edge, with the way into the water.
+func _queue_river() -> void:
+	var b: Rect2 = map.bounds.grow(-SCAN)
+	_scan_origin = b.position
+	_scan_cols = int(b.size.x / SCAN) + 1
+	_scan_rows = int(b.size.y / SCAN) + 1
+	_scan_row = 0
+
+
+func _scan_line(row: int) -> void:
+	var wet := PackedByteArray()
+	wet.resize(_scan_cols)
+	var z := _scan_origin.y + row * SCAN
+	for c in _scan_cols:
+		var x := _scan_origin.x + c * SCAN
+		var w := 1 if float(map.shore_distance(x, z)) > 0.0 else 0
+		wet[c] = w
+		if c > 0 and w != wet[c - 1]:
+			_river_todo.append([Vector2(x if w == 1 else x - SCAN, z), Vector2(1.0 if w == 1 else -1.0, 0.0)])
+		if row > 0 and w != _scan_prev[c]:
+			_river_todo.append([Vector2(x, z if w == 1 else z - SCAN), Vector2(0.0, 1.0 if w == 1 else -1.0)])
+	_scan_prev = wet
 
 
 func _river_step(budget: int) -> void:
-	while budget > 0 and not _river_todo.is_empty():
-		budget -= 1
-		var item: Array = _river_todo.pop_back()
-		_try_spot(item[0], item[1])
-	if _river_todo.is_empty():
-		_river_ready = true
+	var t0 := Time.get_ticks_usec()
+	var rows := SCAN_ROWS if budget < (1 << 30) else (1 << 30)
+	while rows > 0 and _scan_row < _scan_rows:
+		_scan_line(_scan_row)
+		_scan_row += 1
+		rows -= 1
+	if _scan_row >= _scan_rows:
+		while budget > 0 and not _river_todo.is_empty():
+			budget -= 1
+			var item: Array = _river_todo.pop_back()
+			_try_spot(item[0], item[1])
+		if _river_todo.is_empty():
+			_river_ready = true
+	_scan_usec += Time.get_ticks_usec() - t0
+	if _river_ready:
 		_keep_river_spots()
 
 
@@ -1135,15 +1196,11 @@ func _finish_river_spots() -> void:
 		_river_step(1 << 30)
 
 
-## A spot by the river at edge point s (the water past it, wide; a dry waypoint RIVER_INLAND m in
-## from it; a road within RIVER_ROAD m, the line to it over dry, open ground).
-func _try_spot(edge: Vector2, t: Vector2) -> void:
-	var n := Vector2(-t.y, t.x)
-	var plus: float = map.shore_distance(edge.x + n.x * 4.0, edge.y + n.y * 4.0)
-	var minus: float = map.shore_distance(edge.x - n.x * 4.0, edge.y - n.y * 4.0)
-	if plus == minus:
-		return
-	var into := n if plus > minus else -n
+## A spot by the river at a water's-edge sample (`into`: the way into the water): the water past
+## it wide; a dry waypoint RIVER_INLAND m in from it; a road within RIVER_ROAD m, the line to it
+## over dry, open ground.
+func _try_spot(edge: Vector2, into: Vector2) -> void:
+	var t := Vector2(-into.y, into.x)
 	# The river, not a pond or a fountain: still deep water 60 m out.
 	var deep := edge + into * 60.0
 	if map.shore_distance(deep.x, deep.y) < 40.0:
@@ -1183,8 +1240,8 @@ func _keep_river_spots() -> void:
 			var rev: int = graph.e_reverse[e]
 			if rev >= 0 and not moments.river_edges.has(rev):
 				moments.river_edges[rev] = [graph.project(rev, sp["road"]), float(sp["gap"]) + RIVER_INLAND]
-	print("rides: %d river spots (road within %d m of a dry waypoint %d m in from the edge)" % [river_spots.size(),
-			roundi(RIVER_ROAD), roundi(RIVER_INLAND)])
+	print("rides: %d river spots (road within %d m of a dry waypoint %d m in from the edge), found in %.1f ms over the frames" % [
+			river_spots.size(), roundi(RIVER_ROAD), roundi(RIVER_INLAND), _scan_usec / 1000.0])
 
 
 ## Water within r m of p (or at it).

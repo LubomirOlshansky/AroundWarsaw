@@ -232,39 +232,35 @@ static func km(metres: float, polish := true) -> String:
 
 ## The request card: [title, body, title_en, body_en]. `o`: name, away (m to the pin), road (m of
 ## ride), their (the passenger's stars), note ([pl, en] from podwozka_request), night, rain,
-## rating (the player's).
+## rating (the player's; on the result card, not here). It stands beside the car (hud.gd
+## show_side_card), so it is short: the MNOŻNIK in the title, the numbers once in the Polish,
+## the English a gloss of the note.
 static func offer_text(o: Dictionary) -> Array:
 	var note: Array = o.get("note", [])
 	var surge_pl := surge_text(o["night"], o["rain"], true)
 	var surge_en := surge_text(o["night"], o["rain"], false)
-	var body := "%s · %d m · kurs %s · ★ %s" % [o["name"], roundi(o["away"]), km(o["road"]), num(o["their"])]
+	var mult := multiplier(o["night"], o["rain"])
+	var body := "%s ★ %s · %d m · %s" % [o["name"], num(o["their"]), roundi(o["away"]), km(o["road"])]
 	if not note.is_empty():
 		body += "\n" + String(note[0])
-	if surge_pl != "":
-		body += "\nMNOŻNIK " + surge_pl
-	body += "\nTwoja ocena: " + num(o["rating"], 2)
-	var body_en := "%s, %d m away, a %s ride. %s%sYour rating: %s" % [o["name"], roundi(o["away"]), km(o["road"], false),
-			(String(note[1]) + " ") if not note.is_empty() else "", ("Surge " + surge_en + ". ") if surge_en != "" else "",
-			num(o["rating"], 2, false)]
-	return ["PODWÓZKA · NOWY KURS", body, "New ride", body_en]
+	var body_en := String(note[1]) if not note.is_empty() else ""
+	var title := ("PODWÓZKA · MNOŻNIK ×" + num(mult)) if surge_pl != "" else "PODWÓZKA · NOWY KURS"
+	return [title, body, ("New ride · surge " + surge_en) if surge_en != "" else "New ride", body_en]
 
 
-## The result card: [title, body, title_en, body_en]. `r`: stars, comment ([pl, en] from
+## The result card: [title, body, title_en, body_en]. `r`: stars, name, comment ([pl, en] from
 ## podwozka_rating), pay (from pay()), rating (the player's, after), why ([pl, en]: what moved the
-## stars, may be empty). The wallet under the minimap shows the money; the English is a gloss.
+## stars, may be empty). Short, beside the car; the wallet under the minimap shows the money and
+## the English glosses the comment.
 static func result_text(r: Dictionary) -> Array:
 	var p: Dictionary = r["pay"]
 	var comment: Array = r.get("comment", [])
 	var why: Array = r.get("why", ["", ""])
 	var mult := float(p["mult"])
-	var money_pl := "Kurs %d zł%s + napiwek %d zł%s = %d zł" % [p["fare"],
-			(" (×%s)" % num(mult)) if mult > 1.0 else "", p["tip"], (" + seria %d zł" % p["streak"]) if int(p["streak"]) > 0 else "",
-			p["total"]]
-	var money_en := "Fare %d zł%s + tip %d zł%s = %d zł" % [p["fare"], (" (×%s)" % num(mult, 1, false)) if mult > 1.0 else "",
-			p["tip"], (" + streak %d zł" % p["streak"]) if int(p["streak"]) > 0 else "", p["total"]]
+	var money := "%d zł: kurs %d%s + napiwek %d%s" % [p["total"], p["fare"], (" (×%s)" % num(mult)) if mult > 1.0 else "",
+			p["tip"], (" + seria %d" % p["streak"]) if int(p["streak"]) > 0 else ""]
 	# "Marta: …" (the comments carry their own „quotes”, so none round them).
-	var body := ("%s: %s\n" % [r.get("name", "Pasażer"), comment[0]] if not comment.is_empty() else "") + "%s\nTwoja ocena %s%s" % [money_pl,
+	var body := ("%s: %s\n" % [r.get("name", "Pasażer"), comment[0]] if not comment.is_empty() else "") + "%s\nOcena %s%s" % [money,
 			num(r["rating"], 2), (" · " + String(why[0])) if String(why[0]) != "" else ""]
-	var body_en := ("%s " % comment[1] if not comment.is_empty() else "") + money_en + "."
-	return ["KURS ZAKOŃCZONY · " + stars_text(r["stars"]), body, "Ride done · %s stars" % num(half(r["stars"]), 1, false),
-			body_en]
+	var body_en := ("%s " % comment[1] if not comment.is_empty() else "") + "%d zł." % p["total"]
+	return ["KURS · " + stars_text(r["stars"]), body, "Ride done", body_en]

@@ -4,8 +4,9 @@
 #   tools/verify.sh            map data, the check scripts and the headless runs (~1-2 min)
 #   tools/verify.sh --quick    map data, the check scripts, the plain and prebuilt runs (~30 s)
 #   tools/verify.sh --ios      also tools/export_ios.sh and the unsigned xcodebuild. Note:
-#                              export_ios.sh rebuilds game/map/city.scn (with a renderer, so a
-#                              window opens for a moment): only when the loop may change it.
+#                              export_ios.sh splits the map into sectors and rebuilds the
+#                              prebuilt city (game/map/sectors/*.scn, index.res, proxies.scn:
+#                              with a renderer, so a window opens for a moment).
 #   tools/verify.sh --only=steering,plain   just those steps (--list prints the names)
 #   tools/verify.sh --logs=DIR              keep the logs there (default build/verify/<time>)
 #
@@ -15,7 +16,19 @@
 # lane against the colliders, the autopilot over the bridges and tunnels. `drape` runs
 # game/tools/check_drape.gd (loop 3b-2): the ground poking through the water, grass and plazas.
 # `tiers` and `governor` (loop G1): the device tiers and the pixel image's size rule, and the
-# frame governor's rules on scripted frames.
+# frame governor's rules on scripted frames. `streaming` runs game/tools/check_streaming.gd
+# (loop 3c) WITH a renderer (a window opens for a minute or two): every sector built from its
+# file is the whole city, vertex for vertex; 10 spots rendered with --monolithic and with the
+# prebuilt sectors streamed differ in at most 0.5 % of their pixels; a 3-minute soak over every
+# sector misses no sector the car or the view needs (the 15-minute soak: README "Sectors and
+# streaming").
+# Loop 3g-1 (police, docs/design/police.md section 15): `police` runs game/tools/check_police.gd
+# (P11 lines and flow, P12 the state machine with synthetic inputs); `police-runs` the scripted
+# game runs P1-P7 on the prebuilt city (the lizak, the trap stop, an escape, caught, the three
+# caps, the start grace, the cooldown), each judged by its `police:` lines, the złoty the same
+# before and after; `police-soak` P13, the autopilot roaming Busy traffic with the police on at
+# once (NW_SOAK_MINUTES of play, default 3; the full soak is 10: NW_SOAK_MINUTES=10
+# tools/verify.sh --only=police-soak, ~70 s).
 # Every game run is headless, passes --nosave and quits by itself (--quit-after; Godot also
 # gets --fixed-fps 60 so a run covers the same game time on any Mac and its outcome repeats).
 # A run passes when Godot exits 0 and prints no ERROR / WARNING lines; autopilot runs also
@@ -32,8 +45,10 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads drape drive drive-prebuilt steering settings tiers governor hud rides landmarks sfx radio water water-prebuilt plain heli race kebab ride splash rain prebuilt classic)
-STEPS_QUICK=(map roads drape drive steering settings tiers governor hud rides landmarks sfx radio plain prebuilt)
+STEPS_ALL=(map roads drape drive drive-prebuilt steering settings tiers governor hud rides landmarks sfx radio water water-prebuilt streaming police plain heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
+STEPS_QUICK=(map roads drape drive steering settings tiers governor hud rides landmarks sfx radio police plain prebuilt)
+# Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
+SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
 STEP_LIMIT=${NW_STEP_LIMIT:-900}
 
@@ -122,6 +137,27 @@ check() {
 	fi
 }
 
+# shown NAME OKLINE GODOTARGS...: like check, with a renderer (loop 3c: pixels and meshes' data).
+shown() {
+	local name=$1 okline=$2; shift 2
+	local logf=$logs/$name.log t0=$EPOCHREALTIME code
+	( cd $GAME && limited $STEP_LIMIT $GODOT --path . --resolution 1280x720 "$@" ) > $logf 2>&1
+	code=$?
+	local secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+	local np=$(problems $logf | wc -l | tr -d ' ')
+	local last=$(grep -E "$okline" $logf | tail -1)
+	if (( code == 142 )); then
+		row FAIL $name $secs "stopped after ${STEP_LIMIT}s: $logf"
+	elif [[ -n $last ]] && grep -qE "${okline}.*OK" <<< $last && (( code == 0 && np == 0 )); then
+		row PASS $name $secs "$last"
+	else
+		local first=$(problems $logf | head -1)
+		[[ -z $first ]] && first=$(grep -m1 'PROBLEM' $logf)
+		[[ -z $first ]] && first=${last:-"no result line"}
+		row FAIL $name $secs "exit $code, $np error/warning lines: ${first[1,140]} ($logf)"
+	fi
+}
+
 # game NAME FRAMES OUTCOME GAMEARGS...: a headless game run with --nosave that quits after
 # FRAMES frames; OUTCOME is a regex for the line that says the activity finished ("" = none).
 game() {
@@ -153,6 +189,149 @@ game() {
 	fi
 }
 
+# Loop 3g-1: one police run (prebuilt city, --police-log); its log is $RUN_LOG and the caller
+# judges its lines. P_FAIL collects what went wrong, P_NOTE what each run showed.
+P_FAIL=()
+P_NOTE=()
+police_run() {
+	local tag=$1 frames=$2; shift 2
+	local logf=$logs/police_$tag.log code
+	( cd $GAME && limited $STEP_LIMIT $GODOT --headless --path . --fixed-fps 60 --quit-after $frames \
+		-- --nosave --notitle --prebuilt --police-log "$@" ) > $logf 2>&1
+	code=$?
+	local np=$(problems $logf | wc -l | tr -d ' ')
+	if (( code != 0 || np > 0 )); then
+		P_FAIL+=("$tag: exit $code, $np error/warning lines: $(problems $logf | head -1 | cut -c1-100)")
+	fi
+	# The złoty never change: every "wallet A zł → B zł" line has A = B.
+	local bad=$(grep -E '^police: wallet [0-9]+ zł → [0-9]+ zł' $logf | awk '{ if ($3 != $6) print }' | head -1)
+	[[ -n $bad ]] && P_FAIL+=("$tag: the złoty changed: $bad")
+	RUN_LOG=$logf
+}
+
+# frame_of PATTERN LOG: the frame of the first `police:` line matching PATTERN (-1 if none).
+frame_of() {
+	local line=$(grep -E -m1 "$1" $2)
+	[[ -z $line ]] && { print -- -1; return; }
+	print -- ${${line##*\(frame }%%,*}
+}
+
+# expect TAG PATTERN LOG [NOTE]: the run printed a line matching PATTERN.
+expect() {
+	if grep -qE "$2" $3; then
+		[[ -n $4 ]] && P_NOTE+=("$1 $4")
+	else
+		P_FAIL+=("$1: no line matching '$2' ($3)")
+	fi
+}
+
+police_runs() {
+	local t0=$EPOCHREALTIME f a b l
+	P_FAIL=()
+	P_NOTE=()
+	# P1: the lizak within 0.4 s of the radar's 40 m (≥ 28 m before the officer at ~30 m/s), and
+	# koguty 1 at most 1 s after passing the officer by 30 m (≤ 60 m past).
+	police_run p1 900 --trap=2 --pedal=gas --police-now; f=$RUN_LOG
+	expect P1 '^police: lizak \(trap 2, [0-9]+ km/h in 50, (2[89]|3[0-9]|40)\.[0-9] m before' $f "lizak"
+	expect P1 '^police: L1 \(lizak ignored, [3-5][0-9]\.[0-9] m past' $f "L1"
+	# P2: stopped by the officer: the pull-over (trap), the caution ≤ 10 s later, no chase.
+	police_run p2 1500 --trap=2 --pedal=gas --police-auto=stop --police-now; f=$RUN_LOG
+	expect P2 '^police: stopped 1?[0-9]\.[0-9] m from the officer' $f "stopped"
+	a=$(frame_of '^police: pull-over trap' $f); b=$(frame_of '^police: caution n=1' $f)
+	(( a > 0 && b > a && b - a <= 600 )) && P_NOTE+=("P2 caution $(printf '%.1f' $(( (b - a) / 60.0 )))s") || P_FAIL+=("P2: pull-over at frame $a, caution at $b ($f)")
+	grep -qE '^police: L1' $f && P_FAIL+=("P2: a chase started ($f)")
+	# P3: an escape ≤ 30 s after the start, +15 respect.
+	police_run p3 2400 --police=1 --police-auto=escape; f=$RUN_LOG
+	expect P3 '^police: escaped after ([0-9]|[12][0-9]|30)\.[0-9] s' $f "escaped"
+	expect P3 '^wallet: \+15 respect' $f "+15"
+	# P4: stopped by the chaser: the pull-over ≤ 2.5 s later, the caution ≤ 10 s after it.
+	police_run p4 1300 --police=1 --police-auto=stop; f=$RUN_LOG
+	a=$(frame_of '^police: stopped by unit' $f); b=$(frame_of '^police: pull-over' $f); l=$(frame_of '^police: caution' $f)
+	(( a > 0 && b >= a && b - a <= 150 && l > b && l - b <= 600 )) && P_NOTE+=("P4 pull-over $(printf '%.1f' $(( (b - a) / 60.0 )))s, caution $(printf '%.1f' $(( (l - b) / 60.0 )))s") \
+		|| P_FAIL+=("P4: stopped at frame $a, pull-over $b, caution $l ($f)")
+	# P5: the caps, 30 / 40 / 45 s ± 0.5 s (no other traffic: no second unit raises the level).
+	police_run p5_1 2100 --police=1 --police-auto=hold --traffic=empty; f=$RUN_LOG
+	expect P5 '^police: end of shift after (29\.[5-9]|30\.[0-5]) s \(L1\)' $f "30s"
+	police_run p5_2 2700 --police=2 --police-auto=hold --traffic=empty; f=$RUN_LOG
+	expect P5 '^police: end of shift after (39\.[5-9]|40\.[0-5]) s \(L2\)' $f "40s"
+	police_run p5_3 3000 --police=3 --police-auto=hold --traffic=empty; f=$RUN_LOG
+	expect P5 '^police: end of shift after (44\.[5-9]|45\.[0-5]) s \(L3\)' $f "45s"
+	# P6: the start grace: speeding through the trap gives nothing (before 60 s), never a chase.
+	police_run p6 900 --trap=2 --pedal=gas; f=$RUN_LOG
+	expect P6 '^police: trap 2: .*\(grace\)' $f "grace"
+	grep -qE '^police: (L1|lizak)' $f && P_FAIL+=("P6: a lizak or a chase in the grace ($f)")
+	# P7: after a chase (caught), two offences 60 s apart warn in the cooldown; a ram chases.
+	police_run p7 7800 --police=1 --police-auto=stop --police-offence=4000:speed,7600:speed,7700:ram; f=$RUN_LOG
+	a=$(grep -cE '^police: warn speed \(cooldown\)' $f)
+	(( a == 2 )) && P_NOTE+=("P7 2 warnings") || P_FAIL+=("P7: $a 'warn speed (cooldown)' lines, want 2 ($f)")
+	expect P7 '^police: L1 \(ram\)' $f "ram→L1"
+	local secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+	if (( ${#P_FAIL} == 0 )); then
+		row PASS "run: police P1-P7" $secs "0 errors · ${(j:, :)P_NOTE}"
+	else
+		row FAIL "run: police P1-P7" $secs "${P_FAIL[1][1,150]} (+$(( ${#P_FAIL} - 1 )) more)"
+		print -rl -- "  ${^P_FAIL}"
+	fi
+}
+
+# Loop 3g-1, P13: the autopilot roams Busy traffic with the police on from the start (runtime
+# city). Passes with no errors, every chase that started ended (one may still run at the end),
+# the złoty unchanged, the car never within 20 % of a screen edge in a chase (B4), the police
+# cars within 1.5 m of a lane.
+police_soak() {
+	local t0=$EPOCHREALTIME frames=$(( SOAK_MINUTES * 3600 )) logf=$logs/run_police-soak.log code
+	( cd $GAME && limited $STEP_LIMIT $GODOT --headless --path . --fixed-fps 60 --quit-after $frames \
+		-- --nosave --notitle --autopilot --traffic=busy --police-now --police-log ) > $logf 2>&1
+	code=$?
+	local secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+	local np=$(problems $logf | wc -l | tr -d ' ')
+	local end=$(grep -m1 -E '^police: wallet [0-9]+ zł → [0-9]+ zł \(end' $logf)
+	local label="run: police soak ${SOAK_MINUTES} min"
+	if (( code != 0 || np > 0 )); then
+		row FAIL "$label" $secs "exit $code, $np error/warning lines: $(problems $logf | head -1 | cut -c1-100) ($logf)"
+		return
+	fi
+	if [[ -z $end ]]; then
+		row FAIL "$label" $secs "no end line ($logf)"
+		return
+	fi
+	local zl0=${${end#police: wallet }%% zł*} zl1=${${end#*→ }%% zł*}
+	local started=${${end#*chases }%% started*} ended=${${end#*started, }%% ended*}
+	local running=0
+	[[ $end == *"1 running"* ]] && running=1
+	local b4=${${end#*edge }%%;*} lanes=${${end#*lanes worst }%% m*}
+	if (( zl0 != zl1 )); then
+		row FAIL "$label" $secs "the złoty changed: $zl0 → $zl1 ($logf)"
+	elif (( started != ended + running )); then
+		row FAIL "$label" $secs "$started chases started, $ended ended ($logf)"
+	elif (( b4 < 0.2 )); then
+		row FAIL "$label" $secs "B4: the car came within $b4 of a screen edge in a chase ($logf)"
+	elif (( lanes > 1.5 )); then
+		row FAIL "$label" $secs "a police car $lanes m off its lane ($logf)"
+	else
+		row PASS "$label" $secs "0 errors · $started chases ($ended ended), wallet $zl0 zł → $zl1 zł, B4 ≥ $b4, lanes ≤ $lanes m"
+	fi
+}
+
+# Loop 2d-1 x 3g-1: ride 8 with a pull-over at frame 1500; passes with no errors, exactly one
+# `ride: stars 4.0 (police −1.0)` line and the pull-over done.
+ride_police() {
+	local logf=$logs/run_ride-police.log t0=$EPOCHREALTIME code
+	( cd $GAME && limited $STEP_LIMIT $GODOT --headless --path . --fixed-fps 60 --quit-after 2400 \
+		-- --nosave --notitle --prebuilt --ride=8 --passenger=believer --ride-quirk=river --autopilot --parody-log \
+		--police-log --pullover=generic --pullover-frame=1500 ) > $logf 2>&1
+	code=$?
+	local secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+	local np=$(problems $logf | wc -l | tr -d ' ')
+	local stars=$(grep -c -- '(police −' $logf)
+	local one=$(grep -m1 '^ride: stars 4\.0 (police −1\.0)' $logf)
+	if (( code == 0 && np == 0 && stars == 1 )) && [[ -n $one ]] && grep -q '^police: pull-over done' $logf; then
+		row PASS "run: ride-police" $secs "0 errors · $one, once"
+	else
+		row FAIL "run: ride-police" $secs "exit $code, $np error lines, $stars police star lines, '${one:-none}' ($logf)"
+	fi
+}
+
 run_ios() {
 	local t0=$EPOCHREALTIME logf=$logs/ios.log code
 	( limited $STEP_LIMIT $ROOT/tools/export_ios.sh && cd $ROOT && limited $STEP_LIMIT xcodebuild \
@@ -161,7 +340,7 @@ run_ios() {
 	code=$?
 	local secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
 	if (( code == 0 )) && grep -q 'BUILD SUCCEEDED' $logf; then
-		row PASS "ios export + build" $secs "BUILD SUCCEEDED (unsigned, generic iOS); city.scn rebuilt"
+		row PASS "ios export + build" $secs "BUILD SUCCEEDED (unsigned, generic iOS); sectors rebuilt"
 	else
 		local first=$(grep -m1 -E 'error:|BUILD FAILED|ERROR' $logf)
 		row FAIL "ios export + build" $secs "exit $code: ${${first:-see log}[1,140]} ($logf)"
@@ -185,7 +364,7 @@ for s in $want; do
 			elif [[ -n $stale ]]; then
 				row WARN "map data" $secs "counts OK; ${stale[1,150]}"
 			else
-				row PASS "map data" $secs "trees3d, pois, graph, palm as expected; city.scn up to date"
+				row PASS "map data" $secs "trees3d, pois, graph, palm as expected, over the sectors too; the prebuilt sectors up to date"
 			fi ;;
 		# Loop 3a: roads, decks, tunnels and the lane graph over the whole map (C1-C10, docs/DEMO.md 4.5).
 		roads)
@@ -221,14 +400,23 @@ for s in $want; do
 		# Loop 10a: where a car can get into the water (whole map), and the game's tow decisions.
 		water) check water '^check_water:' --script res://tools/check_water.gd ;;
 		water-prebuilt) check water-prebuilt '^check_water:' --script res://tools/check_water.gd -- --prebuilt ;;
+		# Loop 3c: the sectors are the whole city (meshes, pixels at 10 spots), streaming misses nothing.
+		streaming) shown streaming '^check_streaming:' --script res://tools/check_streaming.gd -- --keep=$logs/streaming ;;
+		# Loop 3g-1: the police's lines, flow and state machine (P11, P12), the runs P1-P7, the soak P13.
+		police) check police '^check_police:' --script res://tools/check_police.gd ;;
+		police-runs) police_runs ;;
+		police-soak) police_soak ;;
 		plain) game plain 600 "" ;;
 		heli) game heli 6000 '^rescue (done|failed):' --mission=1 --heli --autopilot ;;
 		race) game race 8000 '^race (won|lost):' --race=0 --autopilot ;;
 		kebab) game kebab 9000 '^kebab delivered:' --kebab=0 --autopilot ;;
-		# Loop 2d-1: a Podwózka ride by the app's route: a passenger 54 m off the pin, a GPS believer,
+		# Loop 2d-1: a Podwózka ride by the app's route: a passenger 34 m off the pin, a GPS believer,
 		# the river quirk (its waypoint on dry land, the `ride: quirk river` line says how far from
 		# the water), the stars and the pay (`ride: pay`, the wallet before and after).
-		ride) game ride 20000 '^ride: pay' --ride=19 --passenger=believer --ride-quirk=river --autopilot --parody-log ;;
+		ride) game ride 20000 '^ride: pay' --ride=8 --passenger=believer --ride-quirk=river --autopilot --parody-log ;;
+		# Loop 2d-1 x 3g-1: a pull-over 25 s into that ride takes exactly one star (police.gd calls
+		# rides.on_pulled_over() when the conversation ends), on the prebuilt city.
+		ride-police) ride_police ;;
 		# Loop 10a: into the river from the boulevard by Most Poniatowskiego with a delivery on:
 		# the splash, then the tow onto a lane on dry land within 2 s, the job still running.
 		splash) game splash 420 '^water: towed after [01][.][0-9]+ s .* m from a lane, dry; job on' \

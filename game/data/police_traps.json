@@ -1,0 +1,23 @@
+{
+  "_about": "Loop 3g-1: the speed traps of docs/design/police.md section 2, found by road name in today's lane graph (game/map/centrum.json `graph`; the `graph_edge` is only where they were measured). Each trap: the patrol car parked on the kerb side (`car`, map metres; 1.5 m past the outer lane's edge, facing the traffic: `car_heading`, compass degrees, 0 north, 90 east), the traffic it measures (`direction`, a unit vector on the map, x east, z south; `measured`), the officer 3 m upstream at the kerb (`officer`), where --trap=N starts the car, 150 m before the officer heading into the radar (`start`, `start_heading`), the speed limit there and the radio host's phrases (Polish, English). Spots 5-7 lie in the demo area (loop 3d): no spot yet, so the game skips them. Loop 3d moves these into the bake as `pois` kind `trap` (police.md section 13) and this file goes.",
+  "traps": [
+    {"id": 1, "road": "Aleje Jerozolimskie", "where": "by the National Museum", "measured": "eastbound", "limit_kmh": 50,
+      "car": [141.5, 138.6], "car_heading": 250.9, "direction": [0.945, -0.3272], "officer": [138.4, 138.8],
+      "start": [-5.0, 183.4], "start_heading": 71.2, "radio": ["w Alejach Jerozolimskich", "on Aleje Jerozolimskie"], "graph_edge": 631},
+    {"id": 2, "road": "Wybrzeże Kościuszkowskie", "where": "the Wisłostrada", "measured": "northbound", "limit_kmh": 50,
+      "car": [710.0, -472.9], "car_heading": 141.5, "direction": [-0.6231, -0.7822], "officer": [711.3, -470.0],
+      "start": [800.1, -349.0], "start_heading": 322.1, "radio": ["na Wisłostradzie", "on the Wisłostrada"], "graph_edge": 502},
+    {"id": 3, "road": "Aleja Jana Pawła II", "where": "south of Rondo ONZ", "measured": "southbound", "limit_kmh": 50,
+      "car": [-1689.9, 287.2], "car_heading": 337.9, "direction": [0.3762, 0.9265], "officer": [-1690.3, 284.1],
+      "start": [-1754.7, 149.9], "start_heading": 140.2, "radio": ["na Jana Pawła", "on Jana Pawła II"], "graph_edge": 428},
+    {"id": 4, "road": "Wybrzeże Szczecińskie", "where": "the Praga bank", "measured": "southbound", "limit_kmh": 60,
+      "car": [1249.3, -534.1], "car_heading": 329.7, "direction": [0.505, 0.8631], "officer": [1248.5, -537.1],
+      "start": [1177.6, -669.4], "start_heading": 150.1, "radio": ["na Wybrzeżu Szczecińskim", "on Wybrzeże Szczecińskie"], "graph_edge": 411},
+    {"id": 5, "road": "Aleja „Solidarności”", "where": "between Plac Bankowy and the W-Z bridge", "measured": "eastbound", "limit_kmh": 50,
+      "radio": ["na Solidarności", "on Solidarności"]},
+    {"id": 6, "road": "Trasa Łazienkowska", "where": "west of Most Łazienkowski", "measured": "eastbound", "limit_kmh": 50,
+      "radio": ["na Trasie Łazienkowskiej", "on Trasa Łazienkowska"]},
+    {"id": 7, "road": "Aleje Ujazdowskie", "where": "between Plac Na Rozdrożu and Plac Trzech Krzyży", "measured": "northbound", "limit_kmh": 50,
+      "radio": ["w Alejach Ujazdowskich", "on Aleje Ujazdowskie"]}
+  ]
+}

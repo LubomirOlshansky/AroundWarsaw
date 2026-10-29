@@ -79,8 +79,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   design): behind the Palace the car's surroundings stay in its shade (ghost/ring 0.83 there,
   loop 1). Worth a device look: on an iPhone screen the 4 x 4 dither may want a coarser
   pattern.
-- Tapping walks the roof grid, so a tap on the cut-away part of a tower in front of the car picks
-  that tower, not what shows through the cut.
+- ~~Tapping walks the roof grid, so a tap on the cut-away part of a tower in front of the car picks
+  that tower, not what shows through the cut.~~ Done in sweep 2: the walk steps on through what
+  the ghost has made see-through (main.gd `_pick_unghosted`; behind the Palace, a tap on the
+  street seen through its cut tower picked the Palace, now nothing).
 - The Palace's roof rescue now lands on a 28 m annex roof: every tier is crowned by attics and
   pinnacles, so no 3 x 3 cells are flat up the tower. A rescue from the 30th-floor terrace would
   need a landing spot designed in.
@@ -172,8 +174,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - The like-with-like GPU reading (110 m, Busy, Classic) was 2.43 ms by day against 2.27 before
   (night 2.20 vs 2.21): within the run-to-run spread (2.06-2.90 ms for one code), and the 3D
   view's GPU time can't include the HUD; the new defaults read 2.24 / 2.01.
-- The keyboard in Point points in screen directions: on the diagonal opening view, W turns the
-  car off the road's line (it goes up the screen). Classic keeps the old car-relative keys.
+- ~~The keyboard in Point points in screen directions: on the diagonal opening view, W turns the
+  car off the road's line (it goes up the screen). Classic keeps the old car-relative keys.~~
+  Sweep 2: already fixed by the camera loop, which starts a following camera behind the car
+  (`--cam-log` at a normal start: heading 159.7°, camera 159.7°, so W is straight ahead along
+  the road). The 45° view stays only where it is meant to: the Fixed scheme (following off,
+  W up the screen by design) and the test views (`--shots`, `--bench`, `--probe`, `--yaw=`).
 - The old `--fixed` flag now picks the Fixed camera scheme in Point (as CAM does).
 
 ## From loop 2b (frame rate on the iPhone)
@@ -253,9 +259,13 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - The bench route's ghost car drives with its collision off, so the water test never runs on
   the bench; it was measured with the probe (car physics 0.05 → 0.05 ms at the river) and a
   micro-benchmark (0.8 µs a call, one call per physics frame).
-- Windowed `--prebuilt --shots=` runs sometimes end with "8 ObjectDB instances were leaked at
+- ~~Windowed `--prebuilt --shots=` runs sometimes end with "8 ObjectDB instances were leaked at
   exit" / "4 resources still in use" (seen on the code before this loop too; not in headless
-  runs).
+  runs).~~ Done in sweep 2: `--verbose` named them, the four sounds playing at the quit (the
+  radio's station, the engine's idle and mid loops, the city bed: an AudioStreamWAV and its
+  playback each), still held by the audio server when the tree went (1 run in 4 before); a
+  shots run now stops its sounds and quits 0.15 s later (main.gd `_quit_quietly`; 0 in 6).
+  The bench's and `--quit-after`'s quits are unchanged (they may show the same race).
 
 ## From loop 3a (roads I: the check and the bake)
 - Fixed in loop 3b: R2 (the GeoTIFF corridors are read), decks too low over the Jana Pawła II
@@ -337,9 +347,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   back faces); the cut's real inner faces (back faces) are now unlit and flat. Dimming walls
   beyond the car inside the ghost would need to know that something is ghosted there (else a
   dark hole would follow the car along every street at night): main.gd could pass it.
-- The neon sign quads (`neon.gdshader`, 361 signs) are not ghosted (they never were): a sign on
+- ~~The neon sign quads (`neon.gdshader`, 361 signs) are not ghosted (they never were): a sign on
   a ghosted wall stays lit, mirrored, over the ghost. Feeding them the ghost's uniforms is one
-  more material in main.gd `_update_ghost` (outside this loop's main.gd scope).
+  more material in main.gd `_update_ghost` (outside this loop's main.gd scope).~~ Done in sweep
+  2: neon.gdshader includes ghost.gdshaderinc and `_update_ghost` feeds it (a mirrored BAR
+  MLECZNY over the ghost is gone, both city paths; draw calls unchanged).
 - On a lamp-lit bridge deck the car's paint reads ~20 luma under the lit deck: a saturated red
   tops out at ~110-130 luma, and the value ladder puts lit ground above the car. It stands out
   there by chroma (paint saturation ~0.85 against ~0.35). A brighter hero would have to turn
@@ -493,11 +505,21 @@ Small problems that agents reported or that showed up in screenshots. They are f
   caller (`flow < 0` flips).
 
 ## From loop G1 (device tiers and the frame governor)
-- **The first rescue call's arrival is a hitch**: 61 ms on the iPhone 11, 100–117 ms on the Pro
+- ~~**The first rescue call's arrival is a hitch**~~: 61 ms on the iPhone 11, 100–117 ms on the Pro
   Max (one frame, 3–6 refreshes), 60 s into play (`missions.gd` `_ring`, the context button and
   what comes with it; the BENCH minute's "3 pipeline compilations" may be it). The BENCH minute
   now holds the call clock, so cards don't show it; play does. Gameplay lane: warm the call's
   pieces up at the start, or build them a frame or two before they show.
+  Sweep 2: on the Mac the call is 0.3 ms of script (pill 0.02-0.06, toast 0.27-0.37 ms), no
+  pipeline compiles (85 before and after) and an ordinary frame (8.3-8.8 ms against medians of
+  8.35-8.39, uncapped, Mobile, 2868×1320); the only part that differs on the phone is the buzz:
+  Godot's iOS template builds CHHapticEngine on the first `vibrate_handheld` (initAndReturnError,
+  auto-shutdown on) and starts it inside that player's startAtTime. Fixed at that cause, unproven
+  on the phone: missions.gd `warm_haptics` builds and starts the engine (without waiting) at
+  load and 2 s before each call; the log shows `haptics: engine built and starting in N ms` and
+  `rescue call ringing (buzz N ms)`. If the call still hitches on the phone with a buzz under
+  a millisecond, the buzz wasn't it: time `_ring`'s pieces there. Other buzzes (bumps) after a
+  long quiet may still restart the engine inside their frame (auto-shutdown).
 - **The iPhone's frame pacing has two modes per launch**: the main thread waits for the display
   inside "draw" (11.6 ms of it, frames jittering 1–8 ms either way, 1.6–16 % of frames over
   17.7 ms with every refresh still drawn) or outside the frame's phases ("draw" 1.1–1.9 ms, no
@@ -538,6 +560,112 @@ Small problems that agents reported or that showed up in screenshots. They are f
   both); a raise needs under 0.5 % missed over 30 s.
 - The BENCH minute holds the governor (the card is the level's own cost) and the rescue calls;
   `--governor=on` lets the governor act during a bench or probe.
+
+## From loop 3g-1 (the police, part one)
+
+- **Part two (loop 3g-2)**: the city guards on foot and the guard car's behaviour (the mesh's
+  shape 1 and SIREN's amber 1.5 Hz beat are ready; `police_unit.gd` takes a branch each), the
+  pedestrian-zone cap and the clamp, the escort on rescues (accepting a rescue in a chase should
+  end it), the race and side-job ties (the race marked +20 % for an escape, the kebab's heat
+  frozen during the card), Phantom Camera's chase framing (11.3), the sounds in `make_sfx.py`
+  (the siren, whoop, megaphone chirp, whistle, stamp: placeholders now from the far siren, the
+  tram bell and the soft knock), the scripted first contact after the first race (the `routine`
+  conversation exists: `--pullover=routine`), the escort and guard lines (`police_escort`,
+  `guard` from police.md section 6, not merged yet).
+- **PixelLab assets for part two** (police.md section 9, ≤ 38 generations): the three 64 px
+  portraits (Sierżant Bogdan, Posterunkowy Kacper, Strażnik Henio; the card draws simple faces
+  now), the 24 px rooster icon lit and outlined (the koguty draw light-bar domes now), the 24 px
+  lizak (drawn as discs now), the 16 px hair-dryer minimap icon (a small blue mark now).
+- **Trap spots in the bake** (loop 3d): `pois` kind `trap` replaces `game/data/police_traps.json`;
+  spots 5-7 come with the demo area. The Wisłostrada trap sits on `graph` edge 502 at the
+  carriageway named Wybrzeże Kościuszkowskie, east of police.md's guessed x 400-650 (that stretch
+  is the tunnel), and 40 m north of the cross-city rail bridge, which hid the officer.
+- **The parked trap car's kerb offset** (outer lane's edge + 1.5 m) is from the lane graph; where
+  the drawn carriageway is narrower than its lanes the car stands half on the road, where a cycle
+  lane runs by the kerb (Wybrzeże Szczecińskie) it stands on the cycle lane. Loop 3d's `trap` POI
+  should carry a spot checked against the kerbs.
+- **The officer's legs swing** like a walker's (the people's shader swings every instance's legs;
+  the swing is about one image pixel at 80 m). A standing pose would need a constant in
+  `actor.gdshader` (part two, with the guards).
+- **The trap's car turns round when it pulls out** (it parks facing the traffic, as police.md
+  asks, and joins its lane the traffic's way; the turn takes ~10 frames behind the passing car).
+- **The 2D pass**: the minimap's marks are now one triangle array (they were a draw call each);
+  the rival dots, side-job places and target look the same. The pill (a panel and two labels) is
+  three 2D draw calls while shown.
+- **Memory**: Dialogue Manager's scripts are ~4 MB of static memory, loaded at the start (on first
+  use they were a ~70 ms hitch on the Mac, likely ~0.3 s on the phone, as the card opened).
+- **The soak's B4 check** logs the car's place on screen each second during a chase; the camera
+  follows the car, so it stays near the middle (closest to an edge 0.46 of the screen in the soaks).
+
+## Decided in loop 3g-1 (gameplay-dev defaults; the user may still change them)
+
+- police.md section 17's open questions went with the spec's defaults (the brief): +15 respect
+  for an escape; the helicopter allowed mid-chase and ending it; guard colours mustard and dark
+  red; no roof marking; seven trap spots.
+- **The start grace ends once the police have met the player** (a chase or a pull-over), so a
+  scripted chase isn't followed by 3 minutes in which a ram can't start one. police.md says only
+  "in the first 180 s of a session".
+- **A second unit raises the level only after the level has held 5 s** (*guess*): a patrol that
+  happens to be near when a chase starts would otherwise make it koguty 2 at once.
+- **Patrol pacing**: 90-180 s after a patrol you met leaves the band, 10 s after one you never met
+  (police.md gives only the count per Traffic level; with the band alone, two patrols would be
+  in view all the time at Normal). They spawn ahead of a moving player.
+- **The pedals step aside during the pull-over** (the car is held; the card needs the bottom of a
+  375 pt tall screen).
+- **Megaphone lines** keep the 20 s per unit of police.md, so the "every 10 to 12 s" chase lines
+  come every ~20 s from one chaser.
+- **The halos** are 5 m pools, blue at full and red at 0.8 brightness (4 m at half read too faint
+  at night in the shots).
+
+## From loop 3c (sector streaming on today's map)
+- **Adding a MultiMesh node costs the main thread 0.1–4 ms** on the Mac, whatever its instance
+  count (a fixed cost when its instance enters the scenario; it grows with how busy the machine
+  is: 0.13 ms quiet, 2–4 ms beside two other Godot processes at 100 %). The streamer adds one
+  node a frame at least, so a loading frame's streaming p99 was 4.7 ms in the 15-minute soak on
+  a busy Mac (budget 3 ms); meshes and colliders cost ~0. The phone must measure it (README
+  "Sectors and streaming"). If it stays over 3 ms there: merge each sector's 11–13 MultiMeshes
+  into fewer nodes, keep a pool of MultiMesh nodes per sector slot and swap their `multimesh`,
+  or try the Separate render-thread model (a project-wide change: its own loop).
+- **The AO, lamp-light and surface maps stay one texture each** (24 MB of video memory today,
+  ~150 MB at the demo's 6 × 6 km). Per-sector slices can't be per-sector material uniforms:
+  the post pass's water reflections and the moving vehicles sample the light and surface maps
+  anywhere on screen. Loop 3d: a resident window texture (e.g. 2048 m at 1 m, ~20 MB for the
+  three) composed from per-sector slices on a worker thread when the focus moves half a sector,
+  uploaded one map a frame, the rects updated with it; or a texture array with a slot per loaded
+  sector and an instance uniform (a shader change in ground, building, foliage, actor, poster,
+  post).
+- **Resident memory at the spawn**: video 336 → 263 MB (−22 %), the city's own buffers 158 →
+  86 MB; static 140 → 140 MB (the index's game data, 32 proxies and the per-sector nodes and
+  colliders cost what the whole city's unloaded part saved; `--sectors=all` is 165 MB static).
+  The brief's "≥ 30 % lower" holds for the city's own share (~155 → ~85 MB), not the process.
+  Loop 3d: the index's game data (roads, paths, areas, trees3d as Variant arrays of floats, ~20
+  MB) should move into the sectors or packed arrays; the minimap into the pre-rendered image.
+- **The runtime path's start** (5.7–6.0 s, was 10.9): ~2 s is the roof pass over every
+  sector's file (missions, eggs and the helicopter read the roof grid over the whole map at the
+  start). A cached roof grid (written by bake_city, checked against its inputs) or a lazy one
+  would make it ~3.8 s; at the demo's 144 sectors the pass alone would be ~9 s.
+- **Residual pixel differences** (≤ 0.2 %, at most 0.015 % at 2868×1320): the minimap's random
+  markers (job offers), and a few sun-shadow edge pixels where fewer sectors are loaded (the
+  directional shadow fits its depth range to the casters it sees).
+- **Proxies** are a lag cover (shown only while a sector loads, or with `--sectors=proxies`):
+  one wall and one roof colour, landmarks tinted. With the view test counting each sector's
+  tallest roof, the far view loads sectors in full rather than showing proxies; at the demo's
+  size the helicopter may need a cheaper far tier (proxies in view past ~1 km).
+- The streamer's worker is a `Thread` per sector, not WorkerThreadPool: a GDScript callable run
+  on a pool thread leaves one RefCounted per pool thread at exit (`ObjectDB instances were
+  leaked`), which `tools/verify.sh` reads as a failure; a joined `Thread` doesn't.
+- The sector files (`sectors/*.json`, 9.2 MB, ~1.7× centrum.json's per-sector part) and the
+  prebuilt sectors (28.8 MB + 6 MB shared, against city.scn's 37 MB) are committed like
+  centrum.json and city.scn were, so a fresh clone runs both paths without baking.
+
+## Decided in loop 3c (map-engineer defaults; the user may still change them)
+- The split is a new `tools/bake_sectors.py` after the chain (bake_osm.py is unchanged); the
+  margins are 48 m for ways, areas and buildings (a road's reach), 8 m for point things, plus a
+  floating part's supports and each building's shop-sign surroundings.
+- The view needs a sector when its box up to its tallest roof meets the frustum, grown by 128 m
+  (DEMO 2.4 said the ground footprint): no proxy ever stands where the whole city had detail.
+- `--monolithic` keeps the whole-city build as the reference; `city.scn` is removed.
+- The minimap stays one global mesh (brief item 7).
 
 ## From loop 2d-1 (Podwózka, the app-taxi side job)
 - **Loop 3g-2 wires the pull-over**: `police.gd` calls `rides.on_pulled_over()` (main.gd's

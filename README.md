@@ -87,6 +87,15 @@ cars get the new shapes too. Still one MultiMesh per kind: each draws several sh
 per car in the vertex shader, and draws only the cars in use, so the frame costs the same draw
 calls and fewer triangles at the default view (see Loop 2c: car models).
 
+Loop 3g-1 (the police, part one, after docs/design/police.md and the user's choice of the
+gentler police) puts patrol cars in the traffic and three speed traps ("suszarki") on the day's
+roads, with an officer who waves the lizak at a speeder. A slip is a joke over a megaphone; two
+in 45 s, a ram or an ignored lizak start a chase (koguty 1 to 3, with a blocker and a roadblock)
+that always ends by itself ("Koniec zmiany!" at 30 / 40 / 45 s), or when you lose them (+15
+respect), or when you stop and get a funny talking-to ending in a caution in the joke notebook.
+Never a fine: nothing ever touches the złoty. Two new add-ons run it, beehave and Dialogue
+Manager (see Loop 3g-1: the police, part one).
+
 ## Run it on your iPhone
 
 1. `tools/export_ios.sh` (only needed after changing the game).
@@ -179,7 +188,9 @@ HELI / AUTO (right); the keys are unchanged.
 - **Neon shop signs** (`neon_signs.gd`, `neon.gdshader`): 361 signs in a 5×7 pixel font with
   generic Polish shop words only (KEBAB 24H, BAR MLECZNY, APTEKA, KWIATY, HOTEL, KANTOR, PIZZA,
   KLUB, NOCNY), on the street side of a third of the buildings, some on a dark plate, a few
-  with a tired, flickering tube. Readable from about 70 m zoom in.
+  with a tired, flickering tube. Readable from about 70 m zoom in. Sweep 2: ghosted with
+  their wall (they never were: a sign on a ghosted wall floated over the ghost, lit and
+  mirrored); in the ghost's core a sign goes altogether, over its rim it is dithered.
 - **Street lamps**: the 1,822 mapped lamps plus 224 added along the bridges (Most Poniatowskiego
   has none in OpenStreetMap) light the ground from a baked light map (`tools/bake_lights.py`,
   no real lights): warm sodium pools, cold white LED in parks, along footpaths and on about a
@@ -467,6 +478,10 @@ the Palace now a 28 m roof: the tiers are crowned by attics and pinnacles).
 `hud.tapped`; the game walks the ray from that pixel through the roof grid (1 m steps) and, if
 the first thing standing is a landmark, shows its card in the note card's place for 8 s: name,
 one or two Polish lines, the English under them. `--tap=X,Y` taps a screen pixel at frame 60.
+Sweep 2: the walk steps on through whatever the occlusion ghost has made see-through (half its
+pixels or more gone, ghost.gdshaderinc's test on the frame's values, main.gd
+`_pick_unghosted`), so a tap on the cut-away part of a tower in front of the car picks what
+shows through the cut (a landmark, or nothing on the street), not the tower.
 
 **Occlusion ghost** (reworked in loop 1, `shaders/ghost.gdshaderinc`): besides the small
 see-through hole round the car (which opens fully), everything standing on the camera's side
@@ -1236,7 +1251,10 @@ GAZ · gas, HAMULEC and the steering strip's place) bottom right; the credit lin
 No "prototype" label and no call card at the start: the first call comes in 60 s into play
 (`--call-in=S`), the next 90 s after each one ends or is put off (`missions.gd` `FIRST_CALL`,
 `NEXT_CALL`, first guesses), with a toast and a buzz. The helicopter is there from the start
-(the user's decision, 2026-10-28).
+(the user's decision, 2026-10-28). Sweep 2: the haptic engine is built while the city loads
+and started 2 s before each call (`missions.gd` `warm_haptics`): on iOS the first buzz built
+and started Core Haptics' engine inside the call's frame (the call's 61–117 ms hitch on the
+phones; the log's `haptics:` line at load, and `rescue call ringing (buzz N ms)`).
 
 **Moved into Settings** (four tabs, so the panel fits a phone 390 pt tall without shrinking):
 Jazda · Driving: Controls (Point / Classic, with a line on what the scheme does) and "Kamera za
@@ -1993,6 +2011,205 @@ Screenshots: `shots/g1/` (1792×828 before / after Auto, 2868×1320 before / Hig
 2532×1170 before / after, day, night, the river at night, the helicopter; the Obraz tab at
 1792×828 and on the SE; the overlay).
 
+## Loop 3g-1: the police, part one (2026-10-28)
+
+The design is docs/design/police.md (the user chose the gentler police: warnings and jokes,
+**never a fine, nothing taken from the wallet**, nobody arrested, nothing rammed, short chases
+that end by themselves). Part one builds the patrol cars, the speed traps, the chases and the
+pull-over; part two (loop 3g-2) the city guards, the guard car, the pedestrian-zone cap, the
+clamp, the escort on rescues, the race and side-job ties, the chase framing (Phantom Camera),
+the synthesised sounds and the PixelLab portraits.
+
+**Who.** Patrol cars ("radiowóz": the white estate with the blue band and POLICJA from loop 2c)
+drive in the traffic, main and secondary roads only, at most 0 / 1 / 2 / 3 at a time for the
+Traffic levels Empty / Low / Normal / Busy (`traffic.gd`'s new POLICE kind). After one you met
+leaves, the next comes 90-180 s later (*guess*: a 10-minute drive should meet two to four), after
+one you never met 10 s later, and never within 200 m of you in a cooldown. **Speed traps**: the
+seven spots of police.md, four of them in today's map (`game/data/police_traps.json`, found by
+road name on the lane graph: Aleje Jerozolimskie by the National Museum, the Wisłostrada north
+of the cross-city rail bridge, Jana Pawła II south of Rondo ONZ, Wybrzeże Szczecińskie); three
+are out each day, picked by the date like the roadworks (`--barriers=YYYYMMDD` picks that day's).
+A trap is a patrol car parked on the kerb facing the traffic, lights off, with an officer in
+lemon hi-vis 3 m upstream (a pedestrian instance: +0 draw calls). Loop 3d moves the spots into
+the bake.
+
+**What they see** (`police.gd`, 5 times a second, every unit in one pass): distance, a 180° cone
+in front of a patrol car, and sight along the roof grid (no raycasts); your lane, its speed limit
+and the stop lines you cross from the lane graph. Offences: speeding past a patrol car (limit +
+25 km/h within 40 m, in its cone), a red light within 60 m in sight, 3 s the wrong way up a
+one-way street, bumping a police car (2-6 m/s); a ram (> 6 m/s) counts double. The helicopter is
+never an offence; a rescue in pickup or drop-off is never seen.
+
+**What happens** (police.md section 4):
+
+| | Numbers |
+| --- | --- |
+| A warning | a megaphone bubble ("Policja"), a whoop, the first rooster's outline blinks 2 s, one strike; one fades every 45 s; at most one line every 8 s in the city and 20 s a unit |
+| Koguty 1 | two strikes within 45 s, an ignored lizak, or a ram; one chaser, lights and siren on; cap 30 s |
+| Koguty 2 / 3 | a ram (once in 10 s) or a second unit seeing you within 60 m (once the level has held 5 s, *guess*): + a blocker parked across the far lane at a junction 250-400 m ahead / + a two-car roadblock in a V at the next junction (a gap in the middle) and, at night, a searchlight; caps 40 / 45 s from the chase's start; no level rises in a cap's last 10 s |
+| Chasers | the player's top speed × 0.92, 1.2 × traffic's acceleration, at least 10 m behind you (they never ram; they stop when you stop), through reds at 30 km/h, on the lane graph only (re-planned once a second, one unit a frame, `distances_to(…, 800 m)`; beyond that, the way whose end lies nearest you); cars ahead give way (the kerb lane, 5 m/s for 3 s) |
+| Search | 120 m from every chaser, or 4 s out of sight: they drive to where they saw you, then round there; 8 s later (4 s under a bridge deck or in a tunnel) you escaped: +15 respect (`wallet.add_respect`), the toast *UCIECZKA! · ESCAPED!*; seen again within 50 m: back to the chase |
+| End of shift | the cap: *KONIEC ZMIANY · END OF SHIFT*, nothing won or lost; taking off in the helicopter ends it too (its own line) |
+| Lizak | over the limit + 20 km/h in a trap's 40 m: the officer turns and waves the paddle, two whistles, the pill *ZATRZYMAJ SIĘ PRZY POLICJANCIE*; stop within 20 m of the officer under 8 km/h: the pull-over; 30 m past the officer: koguty 1, the trap's car pulling out; the trap re-arms after 60 s |
+| Pull-over | under 1 m/s with a chaser within 15 m (bumper to bumper) for 1.5 s, or the lizak stop: the car is held, the chaser stops behind with its lights on, the radio ducks 6 dB, the pedals step aside for the card; the conversation ends in a caution, one more in the **Zeszyt pouczeń** (the joke notebook in the save, counted per day; the fifth of a day has its own line) |
+| Cooldown | 180 s after any of them: warnings still, no chase but for a ram |
+| Start grace | no chase in the first 180 s of a session (no warnings at all in the first 60 s), unless the police have already met you |
+
+**The pull-over** is a Dialogue Manager conversation (`game/dialogue/police.dialogue`: only the
+flow, compiled at runtime; the words are in `dialogue.json`, picked by `police/police_talk.gd`):
+the opener (Sierżant Bogdan, or Posterunkowy Kacper at a trap; tagged for the first contact, a
+kebab or słoiki run, a trap, or generic), one or two reply buttons (the first is picked after
+5 s), the caution. Every beat can be tapped through; about 7.5 s in all. The card
+(`police/police_balloon.gd`) is the HUD's one card recipe: Polish over English, a police-blue
+edge, the speaker's face from simple shapes (the PixelLab portraits come in part two).
+
+**On screen** (`hud.gd`): the koguty (three light-bar domes beside the wallet: lit blue and red
+in a chase, grey and blinking while searching), the pill with the end-of-shift countdown
+(*POŚCIG · KONIEC ZMIANY ZA 0:27*), the edge breath (blue and red at the screen's edges, 10 % at
+most, once a second), a rooster at the screen's edge for a chaser out of sight, the lizak paddle
+over the officer, chasers and the known traps (after the radio host read them, or once you passed
+one) on the minimap. The light bars flash in `actor.gdshader` (SIREN: off, the lenses dim; on,
+blue and red in turns at 2.5 Hz, glowing by day too); at night their blue and red pools on the
+road and the koguty-3 searchlight are one glow MultiMesh, shown only while a light bar flashes.
+The sounds are placeholders from the ones already here (the far siren on one positional voice of
+the six; the whoop, whistle and stamp pitched from the siren, the tram bell and the soft knock).
+
+**The add-ons.** beehave (bitbrain, 2.9.3) gives each police unit a behaviour tree
+(`police/police_unit.gd`: pull-over, roadblock, blocker, search, chase, trap, patrol), ticked by
+hand at 5 Hz right after the perception pass; escalation stays in `police.gd`, the trees only
+move their car through the traffic API. Dialogue Manager (Nathan Hoad, 4.1.0) runs the
+conversation. Both editor plugins are off: the trees use a lean `police/police_tree.gd` (no
+debugger registration, no autoloads); `police.gd` creates Dialogue Manager and has it compile the
+`.dialogue` text (~70 ms on the Mac, done while the city builds), and clears a reference cycle
+Dialogue Manager 4.1.0 leaves in its resource (it leaked at exit). One local line in beehave: no
+debugger messages without a debugger (headless runs printed an ERROR at every tree interrupt).
+
+**Cost** (`--probe` at 2868×1320, Metal, Mobile, Classic, High, Normal traffic; before = the code
+at `6d4629a`; "koguty 3" = `--police=3 --police-auto=still`, the chaser standing behind, the
+blocker and the roadblock out of sight):
+
+| View | Draw calls, all passes: before → after → koguty 3 | Main / shadow / 2D in koguty 3 (before) |
+| --- | --- | --- |
+| Spawn | 133 → 133 → 135 | 54 / 36 / 45 (53 / 35 / 45) |
+| Default view over the river | 106 → 104 → 109 | 37 / 25 / 47 (36 / 24 / 46) |
+| Zoomed out (`--size=220`) | 169 → 167 → 170 | 65 / 60 / 45 (64 / 59 / 46) |
+| Helicopter | 223 → 222 → 225 | 100 / 87 / 37 (99 / 86 / 38) |
+| Night: spawn / river | 110 / 91 → 107 / 88 → 112 / 94 | the halos +1 while a light bar flashes |
+
+The POLICE MultiMesh is +1 in the main and +1 in the shadow pass (a small caster: none on Medium),
+the halos +1 at night while lights flash: at most +3 at every view. The HUD's police shapes are
+drawn as one triangle array a surface, and so are the minimap's marks now (they were a draw call
+each: the 2D pass fell by 3-4 at every view, which pays for the pill). Triangles: 636 a police
+car, at most five drawn in a koguty 3 chase (≤ +3.2 k a pass). Scripts (bench, Mac, three runs
+each interleaved, capped at 120 Hz): police 0.03 ms calm, 0.07-0.08 ms in a koguty 3 chase, the
+HUD +0.04 ms then; traffic unchanged (0.62-0.65 ms). Memory: +2 MB static, +4 MB more for
+Dialogue Manager's scripts (loaded at the start). No new shader.
+
+**Testing aids** (flags in the table below; the log with `--police-log`: `police: warn speed
+(unit 2)`, `police: L1 (lizak ignored, 30.4 m past the officer)`, `police: escaped after 16.7 s`,
+`police: caution n=1 today`, `police: wallet 0 zł → 0 zł`). `game/tools/check_police.gd`
+(verify step `police`): P11, every group and tag in `dialogue.json` with Polish and English and
+the lengths (bubbles ≤ 70 characters, replies ≤ 28), the flow compiles; P12, the state machine on
+a synthetic road with a stand-in car, traffic, HUD and a wallet that fails on any write but
+respect and the notebook (19 cases: grace, strikes, caps, the last-10-s rule, escape, hiding,
+seen again, pull-over, cooldown, ram, helicopter, the złoty, starts = ends), and a scan of the
+police's code for anything writing the złoty. `police-runs` (P1-P7 on the prebuilt city, each
+judged by its `police:` lines and the wallet line) and `police-soak` (P13: the autopilot roaming
+Busy traffic at twice the limit with the police on at once; 3 minutes in the verify set, the full
+10: `NW_SOAK_MINUTES=10 tools/verify.sh --only=police-soak`, ~70 s).
+
+**The frame governor** (loop G1) lowers the traffic's density when frames are CPU-bound; a police
+car is never thinned out for it (`traffic.gd`), and a unit in a chase, a trap or a block is kept
+until `police.gd` lets it go. The officers stand in the people's MultiMesh after the walkers'
+slots, which the people's limit doesn't touch.
+
+What only the phone can tell: the siren against the radio (a placeholder), how a chase feels at
+60 fps (the chasers' 0.92 speed, the 30 km/h at reds, the 10 m gap), whether the edge breath is
+too much or too little, whether the light bar reads by day at 80 m on the 2× pixel, and whether
+the card's tap-through feels right.
+
+Shots: `shots/loop3g1/` (gitignored), at 2868×1320 and 1792×828: a koguty 2 chase with the HUD by
+day and at night (and close: the lenses taking turns, the blue pool at night), the four trap
+spots close up, a trap at night, the lizak over the officer, the pull-over card (at a trap, and
+the first contact).
+
+## Sectors and streaming (loop 3c, 2026-10-29)
+
+The city is built and loaded in 512 m sectors (docs/DEMO.md 2.4), keyed `floor(x / 512),
+floor(z / 512)` from the map's origin: today's map is 8 × 4 = 32 of them (i −4..3, j −2..1).
+The demo's bigger box (loop 3d) only adds sectors.
+
+- **The split** (`tools/bake_sectors.py`, after the bake chain, ~1 s): `game/map/index.json` holds
+  what the whole map needs at once (the lane graph, decks, approaches, aprons and tunnels, the
+  water's edge, the kerbs and islands the car feels, the points of interest and addresses, the
+  landmark outlines and `site_parts`, and what traffic, trams, people, missions, the minimap and
+  the easter eggs read: roads, paths, areas, trams, platforms, signals, guard rails, columns,
+  parked cars, scanned trees), and `sectors/<i>_<j>.json` each sector's features in
+  centrum.json's shape: every way, area or building within 48 m of the sector, with its full
+  geometry (a way crossing a border is in both), every point thing within 8 m, a floating
+  part's supports, each building's surroundings for its shop sign (roads within 40 m, roofs
+  within 8 m), the LoD2 buildings near it (`lod2_runs`: vertex ranges of `lod2.bin`). The AO,
+  lamp-light and surface maps stay whole, one texture each shared by every sector (see below).
+- **One sector** (`map_builder.gd` `build_sector`) runs the same stages as the whole city over its
+  file and keeps only the triangles (by their centre, so each 256 m tile is in exactly one
+  sector), MultiMesh instances (by position, 512 m tiles = sectors) and collider faces (by centre)
+  that lie in it, and its cells of the roof and picking grids. `build` (the whole city at once,
+  `--monolithic`) is unchanged. **The sectors together are the whole city exactly**:
+  `game/tools/check_streaming.gd` compares every tile mesh's vertices, every MultiMesh's instances,
+  every collider face, the roof and picking grids and the landmark cards (559 meshes and
+  MultiMeshes, 232,521 faces: identical).
+- **The prebuilt city** (`tools/bake_city.gd`, with a renderer, ~16 s): `sectors/s_<i>_<j>.scn`
+  (28.8 MB for 32), `proxies.scn` (2.7 MB), `index.res` (2.3 MB: the map node with its heights,
+  decks, tunnels, water test, roof and picking grids, kerbs, sector heights and the game's part of
+  the index) and `shared/*.res` (6 MB: the materials, textures and meshes every sector shares,
+  saved once so all sectors use one copy and the per-frame uniforms reach them all).
+- **Proxies** (`sector_proxies.gd`): one mesh and one material per sector from the index alone:
+  the ground as a 32 m grid coloured by what covers it, the main roads as strips, the buildings
+  and landmarks as a skyline of boxes from the roof grid (8 m, merged along rows), trees as blobs
+  per 24 m; at most 14,724 triangles and 84 KB a sector, no shadows, visibility range 2,400 m with
+  fade Disabled. A sector's proxy shows only while the sector is not in full detail
+  (`--sectors=proxies` to see them).
+- **The streamer** (`sector_streamer.gd`): full detail for the 3 × 3 round the camera's focus,
+  the next row once the focus is within 192 m of its sector's edge (a square of 704 m round the
+  focus), and every sector the view needs (its box from its lowest ground to its tallest roof,
+  grown by 128 m, meets the camera's frustum: a tower two sectors off can stand in the view);
+  out again 256 m past that (and out of the view grown by 256 m). One sector at a time, a
+  thread loads and instantiates its scene (runtime path: builds it from its file); the main thread
+  adds its nodes under a hidden root a few a frame (each kind's recent cost must still fit the
+  frame's 3 ms), colliders first, and shows it (hiding the proxy) once all are in; the next load
+  starts after that. The car's own sector and any within 40 m of it load at once if a jump put
+  the car somewhere new (`forced`; the governor counts afresh after one). At the start the
+  sectors within 320 m of the start go in at once, the rest of the ring streams in.
+- **Both city paths**: the exported game and `--prebuilt` load the prebuilt sectors; the editor
+  (runtime) path sets up the index from `index.json`, runs a roof pass over every sector's file
+  (missions, eggs and the helicopter read the roof grid over the whole map at the start) and
+  builds the sectors round the start, then the rest on a thread as the camera moves.
+- **What the game's systems see**: the map node is the same object as before (heights,
+  `drive_height`, the water test, `top_height`, the pick grid are global); traffic, rivals and
+  missions live on the global lane graph; new sectors get the time of day, the quality's and the
+  governor's small-caster shadows, the fine detail and `--exp` from main.gd (`_on_sector_ready`).
+  The minimap stays one global mesh (today's map is small; loop 3d's pre-rendered image waits).
+- **The AO, lamp-light and surface maps** stay one texture each (24 MB of video memory today):
+  the post pass (water reflections) and the moving vehicles sample the light and surface maps
+  anywhere on screen, so per-sector slices need a resident window texture, which on today's
+  3.5 × 1.8 km map would be bigger than the whole maps. Loop 3d (6 × 6 km: ~150 MB as whole
+  textures) needs that window: see docs/BACKLOG.md.
+
+| Loop 3c numbers (Mac, Metal, mobile renderer) | Before (monolithic `city.scn`) | After (streamed) |
+| --- | --- | --- |
+| Pixel diff, 10 spots at 2868×1320 (5 on borders), `--monolithic` vs prebuilt streamed | | at most 0.015 % of the pixels (the minimap's random markers); 3D view identical |
+| Draw calls at the four probe views (3D + shadow): spawn, river, zoomed out, helicopter | 89, 61, 109, 175 | 87, 59, 108, 174 |
+| Memory at the spawn (probe): static / video | 140 / 336 MB | 140 / 263 MB (−22 % video; the city's own buffers 158 → 86 MB) |
+| Start, runtime path (`city built`, 3 runs) | 11.0, 10.9, 10.9 s | 5.99, 5.73, 5.75 s (2.0 s of it the roof pass over every sector) |
+| Start, prebuilt path (3 runs) | 1.07, 1.07, 1.04 s | 0.61, 0.57, 0.58 s |
+| Exported .pck | 47.3 MB (city.scn 37.1 + centrum.json 5.3) | 46.5 MB (sectors 28.8, shared 6.0, proxies 2.7, index 2.3; no JSON); 47.2 MB with loop 3g-1 merged |
+
+Commands: `tools/verify.sh --only=streaming` (the identity, the pixels at 10 spots and a
+3-minute soak, ~2-4 min, a window opens); the 15-minute soak:
+`godot --path game --resolution 1280x720 --script res://tools/check_streaming.gd -- --only=soak --soak=15`.
+On the phone: `tools/device_run.sh --bench` (the BENCH card's frame times while driving through
+sector loads) and a normal launch with `--stream-log` in the log (each load's main-thread ms).
+
 ## Loop 2d-1: Podwózka, the app-taxi side job (2026-10-29)
 
 *Podwózka* ("a lift") is the game's own app-taxi (docs/design/parodies.md section 3; no real app,
@@ -2115,8 +2332,16 @@ home screen).
 | GPU, Vulkan bench (Mac, 1920×1080) | 0.80–0.87 ms | 1.0 ms | 1.2 ms |
 | GPU, Vulkan zoomed out at 2868×1320 (`--gpu-profile`) | 1.65 ms | 1.9 ms | 2.2 ms |
 | iPhone TEST · BENCH at High, 60 fps cap | 60 fps, 1 % low ≥ 56 | 60, 1 % low ≥ 55 | 60, 1 % low ≥ 55 |
+| Loop 3c: streaming, main thread a frame (Mac, `check_streaming.gd` soak, p99 of the frames that load) | | ≤ 3 ms | ≤ 3 ms |
+| Loop 3c: a frame that loads a sector | | ≤ 33 ms | ≤ 33 ms |
 | Loop G1: TEST · BENCH at Auto on the iPhone 11 (High, 896×414) and the Pro Max (Ultra, 1434×660), 60 fps cap | 60 fps, 1 % low 56.6 / 57.3, 0 missed refreshes | 60, 0 missed refreshes, 1 % low ≥ 55 | 60, 0 missed refreshes, 1 % low ≥ 55 |
 
+Loop 3g-1 (the police; police.md section 12 allowed ≤ +3 draw calls at any view, ≤ +8 k
+triangles, ≤ 0.15 ms of script, ≤ +2 MB) spent, in a koguty 3 chase: +1 to +3 draw calls at the
+four views and at night (the POLICE MultiMesh in the main and shadow passes, the halos at night;
+the HUD's 2D pass no higher than before, the minimap now drawing its marks in one call), ≤ +3.2 k
+triangles a pass, 0.07-0.08 ms of police script plus 0.04 ms of HUD, and +2 MB (+4 MB more for
+Dialogue Manager's scripts); see Loop 3g-1: the police, part one.
 Loop 2c spent none of it: +0 draw calls at every view, and the triangles at the default view
 went down (the traffic pools draw only the cars in use); its numbers are in Loop 2c: car models.
 What 2c may spend: ~15–25 draw calls (a few traffic kinds' MultiMeshes in the main and shadow
@@ -2214,12 +2439,23 @@ System Trace: the iPhone 11 at ×2 holds 60 at its lowest GPU clock, Loop G1 abo
    only the first); the map builder still loads an old one-byte map.
 4. `python3 -I tools/bake_lights.py game/map` → `lights.bin`, the street-lamp light map for
    the night (1 m per pixel, sodium and LED, cut off by buildings) and the lamps it adds on
-   bridges. Run it after the bakes above. Like `ao.bin` it ends up inside `city.scn` (the map
-   builder puts it in the materials), so the export leaves the raw file out.
+   bridges. Run it after the bakes above. Like `ao.bin` it ends up in the prebuilt city (the map
+   builder puts it in the materials, saved as `map/shared/light_map.res`), so the export leaves
+   the raw file out.
 
 5. `python3 -I tools/bake_water.py game/map` → `water.bin`, the surface map (v0.9: shore distance,
    the river's flow, what reflects, bridge-deck heights); a second or two. Only needs
-   `centrum.json`; like `lights.bin` it ends up inside `city.scn`, and the export leaves it out.
+   `centrum.json`; like `lights.bin` it ends up in the prebuilt city (`map/shared/surface_map.res`
+   and the index's water test), and the export leaves it out.
+
+6. Loop 3c: `python3 -I tools/bake_sectors.py` → `index.json` and `sectors/<i>_<j>.json`, the map
+   in 512 m sectors (about a second; see "Sectors and streaming"). After any of the steps above.
+7. Loop 3c: the prebuilt city, **with a renderer** (`--headless` drops MultiMesh and texture
+   data): `godot --path game --resolution 320x180 --script res://tools/bake_city.gd` →
+   `sectors/s_<i>_<j>.scn` (32), `proxies.scn`, `index.res` and `shared/*.res` (~16 s; it checks
+   the landmark sites found from the index against the whole map's). Also needed after any
+   change to `map_builder.gd`, `chunked_surface.gd`, `landmarks.gd`, `neon_signs.gd`,
+   `sector_proxies.gd`; `tools/export_ios.sh` runs 6 and 7. `city.scn` is gone (loop 3c).
 
 Audio: `python3 -I tools/make_sfx.py game/audio/sfx game/audio/radio` (v0.9: every sound effect
 and bed, with the numbers; loops imported like the radio's, Forward, loop end = the full length,
@@ -2262,6 +2498,12 @@ flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
   `in_water`, `nearest_dry`, loop 10a). Flat layers are laid on the terrain (or their
   deck) in pieces no longer than the 10 m terrain grid. Everything is split
   into 128 m tiles (`chunked_surface.gd`) so off-screen tiles are culled.
+- Loop 3c: `tools/bake_sectors.py` (the map split into 512 m sectors: `index.json`,
+  `sectors/<i>_<j>.json`), `map_builder.gd` `setup_streamed` / `build_sector`,
+  `game/scripts/sector_streamer.gd` (loads the sectors round the camera, both city paths),
+  `game/scripts/sector_proxies.gd` (one low-detail mesh per sector), `game/tools/bake_city.gd`
+  (the prebuilt sectors, proxies, index and shared resources), `game/tools/check_streaming.gd`
+  (step `streaming`); see "Sectors and streaming".
 - Loop 3a: `tools/check_roads.py` (+ `check_roads_allow.json`; the road rules C1-C10),
   `tools/road_spots.txt` (the road render spots for `tools/shots.sh --set=roads`),
   `game/scripts/debug_roads.gd` (`--debug-roads`), `game/addons/debug_draw/` (the Debug Draw
@@ -2303,6 +2545,12 @@ flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
   rescue calls that come in during play (`missions.gd`), `tools/check_hud.gd`.
 
 - `time_of_day.gd` (the three looks, the blend and Live), `radio.gd`, `title.gd`, `neon_signs.gd`.
+- Loop 3g-1: `police.gd` (perception, strikes, the chase's state machine, the traps and the lizak,
+  the pull-over, the HUD and halos, the test drivers), `police/police_unit.gd` (a unit and its
+  beehave tree), `police/police_tree.gd`, `police/bt/` (the trees' leaves), `police/police_talk.gd`
+  (the conversation's `talk`), `police/police_balloon.gd` (the card); `data/police_traps.json`,
+  `dialogue/police.dialogue`; `tools/check_police.gd`; add-ons `addons/beehave/`,
+  `addons/dialogue_manager/`.
 - Camera loop: `follow_camera.gd` (the follow camera's laws: the turn, the look-ahead, the dead
   zone, the speed zoom; shared with `tools/check_steering.gd`), `camera_shots.gd` (the fly-in and
   the look at a target on Phantom Camera), `game/addons/phantom_camera/` (Phantom Camera 0.11.0.3,
@@ -2348,13 +2596,18 @@ Command-line options (after `--`):
 | Option | Effect |
 | --- | --- |
 | `--demo` | the car drives by itself; with `--heli` the helicopter flies a slow circle |
-| `--shots=60,240` / `--out=DIR` | save screenshots at those frames (counted from when the city is built), then quit |
+| `--shots=60,240` / `--out=DIR` | save screenshots at those frames (counted from when the city is built), then quit (sweep 2: the sounds are stopped 0.15 s before, so a windowed run no longer ends with leaked audio streams) |
 | `--style=N` / `--lines=N` | visual style 0–3 (loop 2e: wins over the saved style for this run) / override the pixel image's line count |
 | `--size=M` / `--yaw=deg` / `--fixed` | view height in metres (default 80) / camera turn / fixed camera (in Point: the Fixed camera scheme) |
 | `--at=x,z` | start at map coordinates (metres, +x east, +z south), on top of a bridge deck if there is one |
 | `--heading=deg` | the car's heading at the start (0 north, 90 east), for testing: with `--demo` it drives off that way |
 | `--nohud` | hide the controls |
-| `--prebuilt` | load `map/city.scn` like the exported game |
+| `--prebuilt` | load the prebuilt sectors like the exported game (loop 3c: `map/index.res`, `map/proxies.scn`, `map/sectors/s_<i>_<j>.scn`; `city.scn` before) instead of building each sector from its file |
+| `--monolithic` | loop 3c: build the whole city at once from `centrum.json`, as before loop 3c (no sectors, no streaming): the pixel diff's reference |
+| `--sectors=all` / `--sectors=proxies` | loop 3c: load every sector at the start and keep them all (the old behaviour) / only the sectors the car stands in, every other one as its proxy (to look at the proxies) |
+| `--stream-log` | loop 3c: print every sector load (`stream: frame N in s_i_j, X ms on the main thread ...`), unload, any frame whose streaming went over 3 ms and any node that took over 1 ms to add |
+| `--spots=X,Z,H/X,Z,H/...` | loop 3c, with `--shots=F1,F2,...`: the car jumps to spot k (heading H) 90 frames before shot k, the sectors the view needs are finished 30 frames before it (`tools/check_streaming.gd`) |
+| `--stream-soak=MIN` | loop 3c: the car on autopilot over every sector's middle (row by row, through buildings), the view 80 m then 220 m every 20 s, the helicopter for the last third; then `stream soak:` lines and the game quits (no traffic) |
 | `--debug-ao` / `--no-ao` | show / switch off the baked ground shadows |
 | `--heli` | start in the helicopter |
 | `--mission=N` | start rescue call N at once (N = 1, 5, 9… streets, 2, 6… roofs, 3, 7… river, 4, 8… parks) |
@@ -2414,6 +2667,14 @@ Command-line options (after `--`):
 | `--debug-roads` | loop 3a: draw the bridge decks, approaches, tunnels, lane heights and piers round the car (Debug Draw add-on); loop 3b: the piers, portal legs and cap beams the bake placed |
 | `--tunnel` | loop 3b: with `--at`, start on the floor of the tunnel under that point (the car shows through the ground as a silhouette) |
 | `--drive-into-water=X,Z` | loop 10a: start at X,Z and drive flat out at the nearest water (within 120 m), the collision off until 3 m past the edge as if the car had jumped it; prints `water test:`, `water: splash at …` and `water: towed after … s …` (where to, how far from a lane, dry or not, the job / rescue / race / wallet), each with its frame. With `--kebab=0` a delivery is running (`tools/verify.sh` step `splash`) |
+| `--no-police` | loop 3g-1: no police, traps or patrol cars |
+| `--police=1\|2\|3` | loop 3g-1: a chase at that level at frame 60, the chaser 40 m behind on your lane (and the blocker / the roadblock for 2 / 3) |
+| `--trap=N` | loop 3g-1: start 150 m before speed trap N (1-4 in today's map), heading into it, and make it one of the day's; with `--pedal=gas` the car drives flat out along the road into the radar (through the traffic) |
+| `--pullover=routine\|trap\|kebab\|sloik\|generic` | loop 3g-1: open that conversation at frame 60 with a patrol car stopped behind (screenshots; `--clicks` for the replies) |
+| `--police-auto=escape\|stop\|hold\|still` | loop 3g-1: in a chase the car drives away flat out on the lane graph / stops at once (with a lizak waving: stops by the officer) / creeps along without escaping (cap tests) / stands without being pulled over (probes) |
+| `--police-now` | loop 3g-1: no start grace, no cooldown (tests; with `--autopilot` the car roams at twice the limit: the soak) |
+| `--police-log` | loop 3g-1: print every police state change with its frame (`police: …` lines; in a chase the car's place on screen each second, `police: b4 x … y …`) |
+| `--police-offence=F:kind,…` | loop 3g-1: an offence at frame F (`speed`, `red`, `oneway`, `bump`, `ram`), seen by the nearest unit (the cooldown test P7) |
 
 Godot's own `--time-scale 3` (before `--`) speeds a mission or race up for screenshots, and
 `--fixed-fps 60` makes runs repeatable frame by frame.

@@ -1,7 +1,7 @@
 extends SceneTree
 ## Loop 3b (docs/DEMO.md 4.5): can traffic and the player drive every lane without hitting
-## anything? The city is built by the real map builder (or loaded from map/city.scn with
-## --prebuilt), the lanes are the real lane graph's.
+## anything? The city is every sector (loop 3c) built by the real map builder (or the prebuilt
+## sector scenes with --prebuilt), the lanes are the real lane graph's.
 ##
 ##  1. Every lane of every lane-graph edge (between the junctions' trims, where cars drive
 ##     the lane itself; a metre short of a dead end), every STEP metres at the lane's own height
@@ -29,6 +29,7 @@ extends SceneTree
 ## --debug prints the autopilot's frames near a point.
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
+const SectorStreamer := preload("res://scripts/sector_streamer.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const MAP_PATH := "res://map/centrum.json"
 
@@ -77,20 +78,13 @@ func _initialize() -> void:
 			var xz := a.trim_prefix("--debug=").split(",")
 			debug_at = Vector2(float(xz[0]), float(xz[1]))
 	_t0 = Time.get_ticks_msec()
-	if prebuilt:
-		map = (load("res://map/city.scn") as PackedScene).instantiate()
-		root.add_child(map)
-		map.data = JSON.parse_string(FileAccess.get_file_as_string(MAP_PATH))
-		var b: Array = map.data["bounds"]
-		map.bounds = Rect2(b[0], b[1], b[2] - b[0], b[3] - b[1])
-	else:
-		map = MapBuilder.new()
-		root.add_child(map)
-		map.build(MAP_PATH, ShaderMaterial.new(), ShaderMaterial.new())
+	# Loop 3c: the streamed city, every sector: the prebuilt sector scenes (--prebuilt) or the
+	# sectors built from their files (the runtime path).
+	map = SectorStreamer.open_whole(root, prebuilt)
 	graph = LaneGraph.new(map.data["graph"], map)
 	_query_car = _query(CAR)
 	_query_bus = _query(BUS)
-	print("check_drive: %s in %d ms" % ["map/city.scn loaded" if prebuilt else "city built", Time.get_ticks_msec() - _t0])
+	print("check_drive: %s in %d ms" % ["the prebuilt sectors loaded" if prebuilt else "the sectors built", Time.get_ticks_msec() - _t0])
 
 
 func _query(size: Vector3) -> PhysicsShapeQueryParameters3D:
