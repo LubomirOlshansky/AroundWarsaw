@@ -47,7 +47,7 @@ if (( full )); then
 	fi
 	mkdir -p $ROOT/build
 	print -r -- "setup_map: the GUGiK part (terrain, LoD2)"
-	( cd $ROOT && python3 tools/prepare_demo.py terrain sheets ortho && python3 -I tools/bake_terrain.py \
+	( cd $ROOT && python3 tools/prepare_demo.py osm terrain sheets ortho && python3 -I tools/bake_terrain.py \
 		&& python3 -I tools/bake_gugik.py data/work/demo game/map ) > $ROOT/build/setup_gugik.log 2>&1 \
 		|| { tail -5 $ROOT/build/setup_gugik.log; print -r -- "setup_map: the GUGiK part failed ($ROOT/build/setup_gugik.log)"; exit 1 }
 	grep -E '^(terrain|LoD2)' $ROOT/build/setup_gugik.log
