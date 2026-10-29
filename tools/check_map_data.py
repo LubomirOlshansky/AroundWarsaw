@@ -37,10 +37,10 @@ MAP = os.path.join(ROOT, "game", "map")
 # tree (12,554 trees), pois are hospitals, beaches, parks, kebab stands, addresses, etc.
 # Loop 3b-2: trees3d_crown, one crown scale per scanned tree (12,554: 75 by the roads, up to
 # 100 in the parks; bake_osm.py crown_scales).
-# Loop 3d-1: the demo box (18.6 km², README "Map data"): 38,570 scanned trees (the GUGiK sheets
-# cover the whole box, so no OSM trees are left), 3,069 pois (2,863 addresses, 42 kebab stands,
-# 11 hospitals, 74 squares...). Before: 75324 / 1020 / 12554 on the first box.
-EXPECTED = {"trees3d": 231420, "pois": 3069, "trees3d_crown": 38570}
+# Loop 3d-1: the demo box (20.1 km² with the east edge at 21.056, README "Map data"): 42,578
+# scanned trees (the GUGiK sheets cover the whole box, so no OSM trees are left), 3,548 pois.
+# Before: 75324 / 1020 / 12554 on the first box; 231420 / 3069 / 38570 with the east edge at 21.050.
+EXPECTED = {"trees3d": 255468, "pois": 3548, "trees3d_crown": 42578}
 # docs/DEMO.md 7 row 7: the lane graph's strongly connected share at least this.
 SCC_SHARE = 0.95
 
@@ -54,6 +54,9 @@ CITY_INPUTS = ["map/lod2.bin", "map/terrain.json", "map/ao.bin", "map/lights.bin
                "scripts/landmarks.gd", "scripts/sector_proxies.gd", "scripts/models.gd",
                "scripts/pixel_font.gd", "tools/bake_city.gd"]
 SETUP = "run tools/setup_map.sh"
+# Loop 3d-1 (the user's decision): from GUGiK's data alone, derived like the split: tools/setup_map.sh
+# --full rebuilds them from data/raw (tools/fetch_demo.py's downloads and the LoD2 package).
+GUGIK_DERIVED = ["lod2.bin", "lod2.json", "terrain.json"]
 
 
 def main() -> int:
@@ -106,6 +109,9 @@ def main() -> int:
     else:
         report("FAIL", "palm", "missing (bake_osm.py writes it from GUGIK_NOT_TREES)")
 
+    if gugik_missing():
+        report("WARN", "GUGiK outputs", "missing: %s: run tools/setup_map.sh --full (it needs GUGiK's raw data in "
+               "data/raw: tools/fetch_demo.py, README \"Map data\")" % ", ".join(gugik_missing()))
     sectors(data, expected, report)
     print("map data: " + ("OK" if failures == 0 else f"{failures} FAILED"))
     return 0 if failures == 0 else 1
@@ -166,8 +172,15 @@ def city_state(keys, split_digest):
     return "OK", "%d sector scenes, index.res and proxies.scn built from today's split, maps and scripts" % len(keys)
 
 
+def gugik_missing():
+    """Loop 3d-1: the GUGiK-only bake outputs (derived, not committed) that aren't there."""
+    return [f for f in GUGIK_DERIVED if not os.path.exists(os.path.join(MAP, f))]
+
+
 def freshness():
-    """--fresh: the split, then the prebuilt sectors."""
+    """--fresh: the GUGiK outputs, the split, then the prebuilt sectors."""
+    if gugik_missing():
+        return "MISSING", "missing: %s: run tools/setup_map.sh --full (it needs GUGiK's raw data)" % ", ".join(gugik_missing())
     state, detail, digest = split_state()
     if state != "OK":
         return state, detail

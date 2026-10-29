@@ -16,9 +16,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bake_roads  # noqa: E402  (v0.75: carriageways, decks, markings, kerbs)
 
 # Loop 3d-1: the demo box (docs/DEMO.md 2.1, the user's decision 2026-10-29): Rondo Daszyńskiego
-# to the stadium, MDM to just past the Barbakan, 4,909 × 3,782 m = 18.6 km². Until loop 3c it was
+# to past the stadium and Most Łazienkowski, MDM to just past the Barbakan, 5,318 × 3,782 m =
+# 20.1 km² (the east edge 21.050 → 21.056, the user's yes, loop 3d-1). Until loop 3c it was
 # (52.2260, 20.9980, 52.2420, 21.0500), Śródmieście to the stadium.
-BBOX = (52.2183, 20.9780, 52.2525, 21.0500)  # south, west, north, east
+BBOX = (52.2183, 20.9780, 52.2525, 21.0560)  # south, west, north, east (loop 3d-1: east 21.050 -> 21.056, the user's yes: Most Łazienkowski whole)
 # The origin is no longer the box's centre: it stays where the first box had it, so every
 # hard-coded map coordinate (GUGIK_NOT_TREES, EXTRA_KEBAB, the allowlists, landmark search boxes,
 # police traps, test spots, README) keeps meaning the same place. The flat projection's error at
