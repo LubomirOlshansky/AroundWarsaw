@@ -86,7 +86,11 @@ the safe area, no overlaps; it lists the passing panels that waited for room),
 `check_landmarks.gd`, `check_sfx.gd`, `check_radio_loops.gd`, `check_water.gd` (loop 10a:
 `water` and `water-prebuilt`, where a car can get into the water, ~17 s and ~10 s) and the
 game runs, among them `splash` (loop 10a: `--drive-into-water=1015,-85 --kebab=0`, the tow
-within 2 s with a job running).
+within 2 s with a job running). Loop 3g-1: `police` (`check_police.gd`: the police's lines and
+the conversation's flow, P11; the state machine on synthetic inputs, P12; ~1 s), `police-runs`
+(P1-P7 as nine game runs on the prebuilt city, each judged by its `police:` lines and the wallet
+line; ~30 s) and `police-soak` (P13, the autopilot in Busy traffic with the police on at once;
+`NW_SOAK_MINUTES`, default 3, ~20 s; the full 10 minutes ~70 s).
 
 ## 7. Report
 

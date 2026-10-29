@@ -68,6 +68,8 @@ const ScreenPoints := preload("res://scripts/screen_points.gd")
 const Splash := preload("res://scripts/splash.gd")
 const Tiers := preload("res://scripts/tiers.gd")
 const Governor := preload("res://scripts/governor.gd")
+## Loop 3g-1: the police (police.gd; its block below, "loop 3g-1: the police").
+const Police := preload("res://scripts/police.gd")
 const MAP_PATH := "res://map/centrum.json"
 
 ## Visual styles to compare on the phone. lines = vertical resolution of the pixel image.
@@ -102,6 +104,9 @@ var traffic: Traffic
 var trams: Trams
 var walkers: Pedestrians
 var rivals: Rivals
+## Loop 3g-1: the police (null with --no-police or no traffic) and their flags.
+var police: Police
+var police_opts := {}
 var bubbles: Bubbles
 var no_traffic := false
 var start_race := 0
@@ -706,6 +711,9 @@ func _build_world() -> void:
 	if cam_test != "":
 		_start_cam_test()
 	_build_sound(data, world)
+	# Loop 3g-1: the police, on the traffic's lane graph (none with --no-police).
+	if traffic != null and not police_opts.get("off", false):
+		_build_police(data, world)
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
 	_apply_style()
@@ -745,6 +753,9 @@ func _build_world() -> void:
 		hud.settings_panel.set_tab(settings_tab)
 		_open_settings.call_deferred()
 	_stats = _make_stats()
+	# Loop 3g-1: the police's script time among the bench's lines.
+	if police != null:
+		_stats.systems["police"] = [police, "spent_usec", true]
 	_stats.hook(get_tree())
 	# Loop G1, --stress=wait:N: after bench.gd's own frame_pre_draw, so it counts as "draw".
 	_stress_t0 = Time.get_ticks_msec()
@@ -1142,6 +1153,57 @@ func _build_side_jobs(data: Dictionary, world: Node3D) -> void:
 	eggs.setup(nodes, data)
 
 
+# --- loop 3g-1: the police ---------------------------------------------------------------------
+
+## The police (police.gd, docs/design/police.md): patrol cars in the traffic, the day's speed
+## traps, chases that end by themselves and the pull-over. Built after the sound.
+func _build_police(data: Dictionary, world: Node3D) -> void:
+	police = Police.new()
+	police_opts["traffic_level"] = traffic_level
+	# --barriers=YYYYMMDD places the day's speed traps too (like the roadworks).
+	police_opts["day"] = barrier_day
+	var nodes := {"map": map, "graph": graph, "traffic": traffic, "car": car, "cam": cam, "hud": hud,
+			"bubbles": bubbles, "dialogue": dialogue, "wallet": wallet, "walkers": walkers, "radio": radio, "sfx": sfx,
+			"jobs": jobs, "missions": missions, "tod": tod, "opts": police_opts, "pedal": hold_pedal, "autopilot": autopilot,
+			"level_now": func() -> int: return traffic_level,
+			"project": func(p: Vector3) -> Vector2: return cam.unproject_position(p) * float(view.stretch_shrink)}
+	add_child(police)
+	police.setup(nodes, data, world)
+
+
+## The police's testing flags (README's flags table): --no-police, --police=1|2|3, --trap=N,
+## --pullover=routine|trap|kebab|sloik|generic, --police-auto=escape|stop|hold, --police-now,
+## --police-log, --police-offence=FRAME:kind,...
+func _police_flag(arg: String) -> void:
+	if arg == "--no-police":
+		police_opts["off"] = true
+	elif arg == "--police-now":
+		police_opts["now"] = true
+	elif arg == "--police-log":
+		police_opts["log"] = true
+	elif arg.begins_with("--police-auto="):
+		police_opts["auto"] = arg.trim_prefix("--police-auto=")
+	elif arg.begins_with("--police-offence="):
+		police_opts["offences"] = arg.trim_prefix("--police-offence=")
+	elif arg.begins_with("--police="):
+		police_opts["level"] = clampi(int(arg.trim_prefix("--police=")), 1, 3)
+		show_title = false
+		free_roam = true
+	elif arg.begins_with("--trap="):
+		var n := int(arg.trim_prefix("--trap="))
+		police_opts["trap"] = n
+		var start := Police.trap_start(n)
+		if not start.is_empty():
+			start_at = start[0]
+			start_heading = start[1]
+		show_title = false
+		free_roam = true
+	elif arg.begins_with("--pullover="):
+		police_opts["pullover"] = arg.trim_prefix("--pullover=")
+		show_title = false
+		free_roam = true
+
+
 func _parse_args() -> void:
 	start_station = 1
 	# Loop 2b: a launcher can swallow the "--" (devicectl on an iPhone): then the game's
@@ -1320,6 +1382,9 @@ func _parse_args() -> void:
 			for c in arg.trim_prefix("--clicks=").split(","):
 				var xyf := c.split(":")
 				clicks.append(Vector3i(int(xyf[0]), int(xyf[1]), int(xyf[2])))
+		# Loop 3g-1: the police's flags (_police_flag, below).
+		elif arg == "--no-police" or arg.begins_with("--police") or arg.begins_with("--trap=") or arg.begins_with("--pullover="):
+			_police_flag(arg)
 	# Test runs go straight to the city (--title brings the title screen back).
 	if demo or not shots.is_empty() or autopilot or start_race > 0 or start_mission > 0 or start_rival > 0 or bench or probe \
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or hold_stick != Vector2.INF or bench_button \
@@ -2036,6 +2101,8 @@ func _process(dt: float) -> void:
 	var pos := _vehicle_position()
 	_xray.show_through(not flying and map.in_tunnel(pos.x, pos.z, pos.y))
 	_feed_life(pos)
+	if police != null:
+		police.flying = flying  # loop 3g-1: the police ignore the helicopter
 	if jobs != null:
 		# Loop 2b: no side job starts on the bench route (the ghost stops at red lights).
 		jobs.flying = flying or _bench_ghost != null
@@ -2486,6 +2553,10 @@ func _read_input(dt: float) -> void:
 	# point in screen space (the camera waits while held), Classic steers car-relative.
 	var keys := {"left": left, "right": right, "up": gas, "down": down, "brake": space}
 	controls.drive(car, hud.stick, hud.stick_active(), keys, hud.gas, hud.brake, cam_yaw, dt)
+	# Loop 3g-1: a pull-over holds the car; the police's test drivers (--police-auto, --trap with
+	# --pedal=gas, the soak's roaming autopilot) drive it.
+	if police != null and police.control_car(car, dt):
+		return
 
 	if demo:
 		car.target_dir = Vector3.ZERO
