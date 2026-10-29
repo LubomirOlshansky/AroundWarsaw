@@ -125,7 +125,7 @@ calls and fewer triangles at the default view (see Loop 2c: car models).
 | Performance overlay on / off | three fingers down at once, or Settings → Obraz | P |
 | Frame rate: 60 (default) or 30 (battery saver), loop 2b | Settings → Obraz → Klatki na sekundę · Frame rate | Settings (Esc) |
 | Benchmark: a minute on the bench route, then a result card to copy (loop 2b) | Settings → Obraz → TEST | the same (or `--bench-button`) |
-| Quality: High → Low → Medium → High | Settings → Obraz → Jakość obrazu | U |
+| Quality: Auto → Low → Medium → High → Ultra → Auto (loop G1; Auto, the default, picks a level for the device) | Settings → Obraz → Jakość obrazu | U |
 | Car ↔ helicopter (from the start) | HELI / AUTO, top right | H |
 | Fly (helicopter) | Drag on the left side: it flies where you point | W A S D / arrows (screen directions) |
 | Climb / sink (helicopter) | ▲ ▼ pads (where HAMULEC · brake is) | Space / Shift (or F) |
@@ -632,24 +632,32 @@ the pixel image's size, time of day, weather, the frame-rate cap and sound voice
 **QUALITY** and **TEST · BENCH**. It costs a timestamp per frame phase and one label update
 every half second. (Godot's own "process" monitor, which the overlay showed before, is the
 slowest whole frame of the last second, rendering included: on the iPhone it read 60 ms because
-the frame did.)
+the frame did.) Loop 2e cut it to four lines; loop G1 made the last one the quality, its pixel
+scale and the governor (`High ×2 · gov GPU 2/2 · CPU 2/2 · wide`); objects and the shadow pass's
+triangles are on the BENCH card.
 
-**Quality** (QUALITY, U, Settings, `--quality=low|medium|high`, default High; saved since loop 2a;
-loop 2b made Medium and Low real steps):
+**Quality** (QUALITY, U, Settings, `--quality=auto|low|medium|high|ultra`; saved since loop 2a;
+loop 2b made Medium and Low real steps; loop G1 added **Auto**, the default, and **Ultra**,
+`tiers.gd`):
 
-| | High | Medium | Low |
-| --- | --- | --- | --- |
-| Pixel size (whole screen pixels per image pixel) | Sharp's 480 lines or more: 2 on an iPhone (660 lines on 1320, 585 on 1170) | one coarser (3: 440 / 390 lines) | as Medium |
-| Sun shadows | 2048 map, everything over a metre tall | 1024 map, buildings and trees only | off |
-| Night glow | on | on | off |
-| Rain streaks | all | 70% | 40% |
-| Mirror reflections (steps per pixel) | 10 | 6 | off |
-| Traffic (share of the usual, × the Traffic setting) | 100% | 80% | 55% |
-| Pedestrians (most at once, × the Traffic setting's share) | 60 | 40 | 24 |
-| Draw calls at the default view (river, iPhone 16 Pro Max, loop 2b) | 124 | 118 | 99 |
+| | Ultra | High | Medium | Low |
+| --- | --- | --- | --- | --- |
+| Auto picks it on (model id, `OS.get_model_name()`) | 15 Pro and newer: `iPhone16,x`, `iPhone17,1`–`4`, `iPhone18,x` and up | 11 to 15, SE 2 / 3, 16e (`iPhone12,x`–`15,x`, `17,5`); iPads, Macs, anything unknown | XS / XR (`iPhone11,x`) | 8 / X (`iPhone10,x`) |
+| Pixel size (whole screen pixels per image pixel): the style's own scale (Sharp: the most that keep 480 lines), Low and Medium one coarser, then coarser until the image fits the budget | budget 1.6 MP: the iPhone 11 at 1 (1792×828), the Pro Max at 2 (1434×660) | budget 0.96 MP (the Pro Max's 1434×660): 2 on every iPhone, the iPhone 11 and SE included (896×414, 667×375) | one coarser, budget 0.5 MP (956×440 / 844×390 / 896×414) | as Medium |
+| Sun shadows | **4096** map, everything over a metre tall | 2048 map, everything over a metre tall | 1024 map, buildings and trees only | off |
+| Night glow | on | on | on | off |
+| Rain streaks | all | all | 70% | 40% |
+| Mirror reflections (steps per pixel) | **16** | 10 | 6 | off |
+| Traffic (share of the usual, × the Traffic setting) | 100% | 100% | 80% | 55% |
+| Pedestrians (most at once, × the Traffic setting's share) | 60 | 60 | 40 | 24 |
+| Draw calls at the default view (river, iPhone 16 Pro Max, loop 2b) | as High | 124 | 118 | 99 |
 
 Before loop 2b Medium's 0.85 render scale gave High's image on a 1170-line phone and Low's on a
-1320-line one, and its shadow map was 2048 against High's 4096 over a 2 km slab.
+1320-line one, and its shadow map was 2048 against High's 4096 over a 2 km slab. Before loop G1
+High was the default and drew the iPhone 11's 828 lines at 1 (1792×828, 1.48 MP, the most pixels
+of any phone); a settings file saved before G1 that says High loads as Auto, once (High was the
+default then, not a choice). The **frame governor** and the **view rule** (loop G1, below) take
+extras away when frames are missed and in wide views, never the pixel size or the shadow map.
 
 ## Loop 1 (polish, 2026-10-28)
 
@@ -1875,6 +1883,116 @@ What only the phone can tell: whether the kerb bump reads (and is not annoying) 
 whether the 1-px foam line survives the 2× pixel on the iPhone 11, and whether the spiral reads
 at the default view.
 
+## Loop G1: device tiers and the frame governor (2026-10-28)
+
+The iPhone 11 (`iPhone12,1`, A13, 1792×828, 60 Hz) is the minimum target. Sharp's whole-pixel
+rule (`floor(828 / 480)` = 1) gave it the biggest pixel image of any phone, 1792×828 (1.48 MP,
+against the Pro Max's 1434×660, 0.95 MP, with about half its GPU), and the orchestrator's first
+bench there read 58.2 fps, 1 % low 25.1, worst frame 44 ms (docs/design/graphics.md predicted
+it). What changed (`tiers.gd`, `governor.gd`, `main.gd`, `bench.gd`, `settings.gd`,
+`settings_panel.gd`):
+
+1. **The pixel image is a budget per level** (`Tiers.image_scale`): the style's own scale, Low
+   and Medium one step coarser (as in loop 2b), then coarser until the image fits the level's
+   megapixels: High 0.96 (the Pro Max's own image), Medium and Low 0.5, Ultra 1.6. So the iPhone
+   11 at High draws 896×414 with High's shadows and effects (and the SE 2 / 3 667×375); every
+   phone that already scaled by 2 or more is unchanged (the Pro Max 1434×660, the 6.1" 1266×585),
+   and so are all four styles and Low and Medium everywhere (`check_tiers.gd` compares 48 sizes ×
+   styles × levels with loop 2b's rule).
+2. **Auto and Ultra** (the Quality table above): Auto, the default, picks the level from the model
+   id at launch (`Tiers.for_model`); the settings panel's Obraz tab shows Auto (with the level it
+   picked under it), Niska, Średnia, Wysoka, Ultra, now in three rows so five choices fit the SE.
+   Ultra is High plus the 4096 shadow map and 16 reflection steps, with a budget that keeps a ×1
+   image where a phone had one (the iPhone 11's look before G1, for anyone who picks it).
+3. **The frame governor** (`governor.gd`, docs/design/graphics.md 4.3): it counts **missed
+   refreshes** (each frame's time against the display's clock: a 61 ms frame misses 3, steady
+   20 ms frames one in six, a 20 ms frame followed by a 13 ms one none) and, when more than 5 %
+   of the refreshes in the last 3 s (and the last half second) were missed, drops one level of
+   extras: the CPU's (traffic 100 → 80 → 60 %, pedestrians 100 → 70 → 50 %) when the late
+   frames' own CPU work was over 12.5 ms, else the GPU's (reflection steps × 0.6, then the small
+   things' sun shadows); it raises the last one back after 30 s with under 0.5 % missed, never
+   in a wide view, at most one change every 10 s, the wait doubling (to 240 s) when a drop
+   follows a raise within it. It never touches the pixel size, the shadow map, glow, the
+   landmarks, the ghost, the river or the night lights. It runs in a normal launch; the bench,
+   the probe, the BENCH minute and test runs hold it (`--governor=on|off|log`). Every change is a
+   `governor:` line in the log; the overlay's last line shows its levels.
+4. **The view rule** (fixed, not adaptive): in a view over 150 m (back under 135 m) or flying,
+   the small things' sun shadows are off (lamps, signals, parked cars, columns, shelters: one or
+   two pixels wide there): shadow pass −15 draw calls zoomed out (220 m), −11 from the helicopter.
+5. **The BENCH card** shows the image and its scale, the quality as `Auto→High (iPhone12,1)`,
+   frames **late** more than 1 ms past the frame interval, the **missed refreshes**, and the
+   governor's state on the fps-per-10-s line; the log adds loop 2b's measure (0.5 ms past) and
+   the late frames by how late, with the slowest and when they came. No rescue call comes in
+   during the minute any more: the first call (60 s into play) landed in it and was every card's
+   worst frame (61 ms on the iPhone 11, 100–117 ms on the Pro Max).
+
+**On the phones** (started with `devicectl`, no debugger; the bench route's minute, day, traffic
+Normal, Point; the iPhone 11 at room temperature, thermal state nominal; before = main at
+`6d4629a`):
+
+| Phone, build, quality | Image | fps | 1 % low | Worst frame | Late (> 17.7 ms) | Missed refreshes | > 17.2 ms (loop 2b's measure) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| iPhone 11, before, High (3 runs) | 1792×828 ×1 | 59.9 / 60.0 / 60.0 | 49.6 / 49.4 / 51.3 | 79.4 / 61.0 / 61.6 ms | | (the call's 61 ms frame: ~3) | 6.8 / 13.0 / 6.0 % |
+| iPhone 11, after, Auto → High (3 runs) | 896×414 ×2 | 60.0 | 50.3 / 50.2 / 50.2 | 60.8 / 61.5 / 61.1 ms | 1.4 / 1.6 / 1.7 % | 3 (the call) | 7.0 / 7.6 / 7.0 % |
+| iPhone 11, after, Auto, call held (final build) | 896×414 ×2 | 60.0 | **56.6** | **18.7 ms** | 0.4 % | **0** | 2.2 % |
+| iPhone 11, after, High at ×1 (`--lines=480`, 2 runs) | 1792×828 ×1 | 59.9 | 48.9 / 53.1 | 61.1 / 66.6 ms | 6.3 / 0.1 % | 3 (the call) | 14.7 / 1.0 % |
+| iPhone 11, after, High at ×1, 3 minutes, call held | 1792×828 ×1 | 60.0 | 57.2 | 18.0 ms | 0.1 % | 0 | 3.2 % |
+| iPhone 11, after, Medium | 896×414 ×2 | 59.9 | 49.4 | 77.7 ms | 2.2 % | 4 (the call) | 3.1 % |
+| iPhone 11, after, Ultra | 1792×828 ×1 | 59.9 | 53.0 | 66.7 ms | 0.0 % | 3 (the call) | 1.2 % |
+| Pro Max, before, High | 1434×660 ×2 | 59.9 | 47.5 | 117.4 ms | | | 10.0 % |
+| Pro Max, after, High | 1434×660 ×2 | 59.9 | 48.7 | 115.8 ms | 0.0 % | 6 (the call) | 5.9 % |
+| Pro Max, after, Auto → Ultra | 1434×660 ×2 | 59.9 | 50.1 | 100.6 ms | 0.1 % | 5 (the call) | 2.2 % |
+| Pro Max, after, Auto → Ultra, call held (final build) | 1434×660 ×2 | 60.0 | **57.3** | **18.1 ms** | 0.2 % | **0** | 1.5 % |
+
+Probes on the iPhone 11 (30 s standing): helicopter (150 m) before ×1 60.0 fps, 1 % low 58.7,
+222 draw calls (shadow 85); after Auto ×2 60.0, 52.9, 0 missed, 211 (shadow 74); zoomed out
+(220 m) after 60.0, 58.8, 0 missed, 145 (shadow 45). Video memory: Ultra 360 MB on the Pro Max
+against High's 336 (the 4096 map, +24 MB).
+
+**What the numbers say.** A cool iPhone 11 no longer stutters at ×1 on the bench route (the
+orchestrator's 25 fps 1 % low didn't come back in nine runs): the 1 % low and the worst frame on
+the cards were the first rescue call's hitch and the display's pacing, not the frame. The GPU's
+own time says why ×1 is still the wrong default: a Metal System Trace (`xcrun xctrace record
+--template 'Metal System Trace' --device ID --all-processes`, 6 s at the spawn) shows the A13
+busy **88 % of the time at ×1 (14.5 ms a frame: fragment 12.8, vertex 3.1), in its Medium GPU
+performance state 95 % of the time**, and frames spanning 16.25 ms (p90 17.2, worst 21.4) on the
+GPU; at ×2 it **sits in its Minimum state 99.9 % of the time** (78 % busy at that clock, frames
+spanning 15.1 ms, worst 16.5). So ×1 holds 60 only by clocking the GPU up, with no room left for
+heat (the A13 keeps ~76 % of its peak in UL's 20-minute stress test), the content loops (2d,
+police) or the G2 per-pixel pack; ×2 holds it at the GPU's lowest clock. On the Pro Max the trace
+reads High at the Minimum state 100 % of the time and Ultra 86 % (Medium 14 %): Ultra costs GPU
+the Pro Max has. The trace's start stalls the app for ~11 s on iOS 27 (the trace windows were
+2–3 s there); attaching by name or pid fails on both phones.
+
+**Pacing modes.** A launch on the iPhone runs in one of two modes: the main thread waits for
+the display inside "draw" (11.6 ms of it), and then 1.6–16 % of frames come 1–8 ms late with the
+next as much early (every refresh still drawn: 59.95 fps over the minute), or it waits outside
+the frame's phases (draw 1.1–1.9 ms) with almost no such jitter. Which one varies by launch at
+either image size; ×1 jitters four times as often as ×2 in the first mode. That is why the card
+counts missed refreshes and the governor reads only those: a governor on "frames over 17.7 ms"
+would read 1.6 % late at ×2 and never come back up (it raises under 0.5 %).
+
+**The governor on the phone** (`--notitle --free --governor=log --stress=wait:40
+--stress-from=15 --stress-to=35`: 20 ms of waiting in the draw phase from 15 to 35 s): dropped
+the GPU's level 0.8 s after the load began (7.1 % missed) and again 10 s later (25 %), none once
+the load ended, then raised them back at 64.9 s and 95.0 s (0.28 % and 0.17 % missed over 30 s).
+On the Mac the same. In ten minutes of calm frames, or of the display's jitter, it changes
+nothing (`check_governor.gd`).
+
+**On the Mac** (M4 Pro, Metal Mobile, the four budget views at 2868×1320, before → after, High):
+draw calls spawn 3D 53 / shadow 35, river 36 / 24 unchanged (the 2D pass moves ±5 with what the
+HUD shows); zoomed out shadow 59 → 44, helicopter 87 → 76 (the view rule). Bench (three
+interleaved runs each, uncapped): traffic + trams + people 0.48 / 0.50 / 0.55 → 0.45 / 0.51 /
+0.45 ms, the game loop (the governor's per-frame work is inside it) 0.08 / 0.08 / 0.07 → 0.06 /
+0.09 / 0.06 ms. At High the Pro Max's image is pixel for pixel the same (0.00–0.01 % of pixels
+differ at the spawn by day, by night and over the river at night); from the helicopter 0.39 %
+(the small things' shadows). Ultra against High: 2.5 % by day, all on shadow edges (the 4096
+map's finer texels), 0.23 % over the river at night (16 reflection steps), 0.01 % at night.
+
+Screenshots: `shots/g1/` (1792×828 before / after Auto, 2868×1320 before / High / Auto→Ultra and
+2532×1170 before / after, day, night, the river at night, the helicopter; the Obraz tab at
+1792×828 and on the SE; the overlay).
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -1905,6 +2023,7 @@ home screen).
 | GPU, Vulkan bench (Mac, 1920×1080) | 0.80–0.87 ms | 1.0 ms | 1.2 ms |
 | GPU, Vulkan zoomed out at 2868×1320 (`--gpu-profile`) | 1.65 ms | 1.9 ms | 2.2 ms |
 | iPhone TEST · BENCH at High, 60 fps cap | 60 fps, 1 % low ≥ 56 | 60, 1 % low ≥ 55 | 60, 1 % low ≥ 55 |
+| Loop G1: TEST · BENCH at Auto on the iPhone 11 (High, 896×414) and the Pro Max (Ultra, 1434×660), 60 fps cap | 60 fps, 1 % low 56.6 / 57.3, 0 missed refreshes | 60, 0 missed refreshes, 1 % low ≥ 55 | 60, 0 missed refreshes, 1 % low ≥ 55 |
 
 Loop 2c spent none of it: +0 draw calls at every view, and the triangles at the default view
 went down (the traffic pools draw only the cars in use); its numbers are in Loop 2c: car models.
@@ -1915,7 +2034,9 @@ per 512 m tile, in the main pass and, if over a metre tall, the shadow pass), 13
 the default view, 0.3 ms of script. The phone has more GPU room at the default view than when
 zoomed out or flying (there the main thread already waits ~11 ms of the 16.7 for the GPU), so
 anything seen from far away (roof clutter, more trees, more cars when zoomed out) is the
-expensive kind.
+expensive kind. (Loop G1: the ~11 ms is mostly waiting for the display, not the GPU: the same
+"draw" reads 1–2 ms in another launch at the same view. The GPU's own time comes from a Metal
+System Trace: the iPhone 11 at ×2 holds 60 at its lowest GPU clock, Loop G1 above.)
 
 **Rules.**
 
@@ -1940,10 +2061,18 @@ expensive kind.
    mesh once and draw it with one call, like the minimap); the 2D pass stays under 80 draw calls.
 7. No new full-screen passes at screen resolution; image effects go in the post pass at the
    pixel image's size.
-8. Don't push `cam.far` out (it sizes the sun's shadow: `_camera_far`), the shadow map back up,
-   or the tiles (`chunked_surface.gd` 256 m, instances 512 m) back down.
+8. Don't push `cam.far` out (it sizes the sun's shadow: `_camera_far`), the shadow map back up
+   (Ultra's 4096 is loop G1's, measured on the Pro Max: 0 missed refreshes, +24 MB), or the
+   tiles (`chunked_surface.gd` 256 m, instances 512 m) back down.
 9. Report before and after: the `draw calls` / `main pass` lines at the four views above, the
-   bench medians, and a TEST · BENCH card from the phone.
+   bench medians, and a TEST · BENCH card from the phone: since loop G1 from **both phones at
+   Auto** (the iPhone 11 at High, the Pro Max at Ultra), with its missed refreshes.
+10. Loop G1: the pixel image belongs to `tiers.gd` (the level's budget): don't make it finer for a
+   look. A new extra that only the stronger phones can pay for is a level's (a `tiers.gd`
+   QUALITY field, a uniform, not a shader define); one the governor may take away when frames
+   are missed goes into `governor.gd`'s levels; a per-object one that can't be seen in a view
+   over 150 m goes under the view rule (`main.gd` `_apply_extras`, WIDE_VIEW). Never the
+   landmarks, the ghost, the river or the night lights.
 
 ## Map data
 
@@ -2160,7 +2289,10 @@ Command-line options (after `--`):
 | `--clock=HH:MM` / `--date=YYYYMMDD` | start Live's clock at that Warsaw time (and date; default today) |
 | `--weather=clear\|rain` | start dry or in the rain (default clear) |
 | `--perf` | show the performance overlay (loop 2e: four lines: fps, frame time, worst, cap · CPU process + physics + draw, GPU, memory · draw calls by pass · objects, triangles) |
-| `--quality=low\|medium\|high` | the quality setting (default high) |
+| `--quality=auto\|low\|medium\|high\|ultra` | the quality for this run (not saved; loop G1: default Auto, the level `tiers.gd` picks for the device; 0–3 are Low–Ultra) |
+| `--model=ID` | loop G1: pick Auto's level as if on that device (`--model=iPhone12,1` is the iPhone 11: High, 896×414 at 1792×828; `iPhone17,2` the Pro Max: Ultra) |
+| `--governor=on\|off\|log` | loop G1: the frame governor on or off for this run (default: on in a normal launch, held in test runs, the bench, the probe and the BENCH minute; `on` lets it act in those too); `log` is on plus a `governor status:` line every 5 s |
+| `--stress=cpu:N\|wait:N`, `--stress-from=S`, `--stress-to=S` | loop G1 testing aid: N × 0.5 ms of busy work a frame from S to S2 seconds after the city is up, in the game loop (`cpu`: the CPU's extras go first) or in the draw phase (`wait`: how waiting for the GPU looks to the main thread, the GPU's go first), to watch the governor drop and come back |
 | `--sound-check` | play every sound once and print the bus meters, then quit (needs an audio device) |
 | `--ghost-debug=1\|2` | loop 1: paint the occlusion ghost (1: ghosted magenta, other buildings green) or cut it fully (2), and print its ellipse in screen pixels with each screenshot |
 | `--controls=point\|classic\|fixed` | loop 2a: the control scheme for this run (not saved) |
