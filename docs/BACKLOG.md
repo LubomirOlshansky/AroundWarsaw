@@ -805,3 +805,24 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - `podwozka_driver`'s two untagged lines are tagged `arrive` and `reroute` so each moment says
   its own; the offset pickup line ("the pin was a bit off") is tagged `offset`; "No widzisz,
   aplikacja wie" (the design's table) is a `followed` line.
+
+## From map round 2 (2026-10-29)
+- Done: D5 (the drawn ground follows the aprons; `check_roads` C11), the 14 tram-stop shelters
+  beside their tracks (13; 1 with no clear spot), L3 (lamps on the main streets' unlit
+  stretches), D6 (deck lamps light their deck only), D7 (the abutments lit). README "Map round 2".
+- **Mapped lamps change colour along one street**: a mapped lamp whose nearest road is an unnamed
+  way (a ramp, a service road) is LED by `bake_lights`' name rule even on a sodium street (seen on
+  Al. Poniatowskiego by the towers). Fix: take the kind from the nearest *named* street within 14 m.
+- **L1** (review B): lines inside junctions mapped as one carriageway area without `junction=yes`
+  (Plac Trzech Krzyży, the Poniatowski ramps, Wał Miedzeszyński); orthophoto overlays drawn
+  (`shots/review_structures/round2/ov_p3k.png`, `ov_ponir.png`, `ov_walm.png`), not judged or fixed.
+- **D8** rail track ends at different heights (Solec 1.2 m, Kruczkowskiego), **D9** the Tamka
+  footbridge's dip, **D10** the Praga ramp joint's sliver, **L4**, **L5**, **L2** (review B):
+  not done this round; specs in `.handoff/review/structures_2026-10-29.md` and B's report.
+- **The Podwózka river spots** (loop 2d-1 `rides.gd`, not merged): a waypoint 5 m in from the
+  water, a straight line to a lane within 70 m over dry ground with no building. Not checked
+  against the colliders yet: the line can cross a retaining wall, a shore stone, a fence or a
+  boulevard's 3-5 m drop (the Bulwary below Wybrzeże Kościuszkowskie). Spec: a `drivable_bank`
+  list in the index (bake_structures: dry points 3-8 m from the water whose straight line to the
+  nearest lane crosses no solid wall, barrier line or shore stone and no height step over 0.5 m
+  in 2 m), that `rides.gd` reads instead of scanning `shore_distance`.

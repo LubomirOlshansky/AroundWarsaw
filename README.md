@@ -2475,6 +2475,46 @@ name or logo). The joke is the app and its GPS, never the driver or the passenge
   (`pro2`, `i112`; after the merge, beside the car: `end_i11`, `end_pro`), a GPS moment by the
   spawn (`gps_*`).
 
+## Map round 2: the ground under structure ends, the night streets (2026-10-29)
+
+What reviews A and B left, by rule (the demo box comes later, loop 3d):
+
+- **D5, the road under the drawn ground** at structure ends. An apron holds `terrain_height`
+  under a deck's or tunnel's end below the 10 m grid, but `_build_ground` drew the raw grid, so
+  the road, its carriageway area, kerbs and rail beds lay under bare ground: the beige wedge at
+  the viaduct's west end (0.65 m), the Wisłostrada portal (1 m), the abutment link's portals,
+  the Kruczkowskiego rail viaduct, two ramps' feet. Now (`map_builder.gd`, the "map round 2
+  (D5)" block) the grid cells an apron reaches are drawn as 1 m sub-cells at
+  `min(grid, terrain_height)` (`_drawn_height`), the areas and footways laid on the grid use the
+  same sub-cells, and an apron fades out over `APRON_TAPER` 3 m past its corridor's sides
+  instead of a step inside a carriageway wider than the deck. **`check_roads` C11** (new): a
+  road's, carriageway's, tram's or rail's surface on the ground more than 0.1 m under the drawn
+  ground (`Map.drawn` mirrors the builder); 43 in 7 places → 0. `check_drape.gd` compares with the
+  drawn ground too.
+- **Tram-stop shelters**: the 14 that review A took off the rails are put beside their track
+  (`bake_structures` `TRAM_SIDE`: 2.4-4.5 m out, clear of tracks, carriageways and lanes): 13
+  placed, 1 left out (no clear spot). OpenStreetMap maps them on the stop position and none has a
+  platform mapped within 25 m.
+- **The night streets** (`bake_lights.street_lamps`): where OpenStreetMap maps no street lamps
+  (Al. Jerozolimskie east of Rondo Dmowskiego, Nowy Świat at (-331, 18)), a lamp every 34 m at the
+  kerb of every primary, secondary and tertiary street and of the named residential through
+  streets (600 m or longer) wherever none stands within 22 m (not in a building, on a
+  carriageway, a tram track or under a deck); Most Poniatowskiego's abutments between the towers
+  (road `fills` meeting a deck's end, D7) get one every 20 m: 404 lamps in all. Sodium or LED by the
+  street's name, as its mapped lamps; `map_builder` reads each added lamp's kind back from the
+  light map. Lit map 13.7 → 16.8 %.
+- **D6, deck lamps' pools on the river**: a lamp on a deck (2 m or more over the ground) lights
+  only its deck's corridors (the pools fell on Most Poniatowskiego's gravel shoals); a bridge lamp
+  just off a narrowed deck (the Jana Pawła II viaduct) moves in onto it instead of standing in the
+  road under the viaduct. `check_streets` S1 now also checks the added lamps (14 on asphalt in the
+  first try → 0).
+
+Checks: `check_roads` C1-C11 all allowed or 0; `check_streets` S1 0, S2 0, S4 0; `check_drive` 0 / 0;
+`check_drape` 0. Draw calls at the four probe views: the 3D passes +0 / +0 / +2 / +1 (lamp
+MultiMeshes in a few more tiles); vertices 6,106,458 → 6,249,198 (+2.3 %: the subdivided cells
+under the aprons, 404 lamps and their halos). Left (BACKLOG "From map round 2"): L1, D8-D10,
+L4, L5, L2 and the Podwózka river spots.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer

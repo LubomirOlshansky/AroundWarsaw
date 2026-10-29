@@ -934,8 +934,7 @@ def clear_carriageways(m):
     # shelters mapped on the track's stop position: one at the Poniatowski viaduct's east end,
     # 14 over the map): one whose centre lies in the track's swept width (TRAM_HALF either side
     # of the rails' centreline), where the track runs at the ground's height (on the ground, or
-    # a deck's end at grade), is left out. (Placing it on the stop's platform instead is a
-    # follow-up.)
+    # a deck's end at grade), moves beside the track (below).
     track = cr.Grid(16.0)
     for t in d.get("trams", []):
         ps = cr.pairs(t["p"])
@@ -947,19 +946,56 @@ def clear_carriageways(m):
 
     def on_track(x, z):
         return any(cr.seg_dist2(x, z, a, b) < TRAM_HALF ** 2 for a, b in track.at(x, z))
+
+    def nearest_track(x, z):
+        best = None
+        for a, b in track.at(x, z):
+            d2 = cr.seg_dist2(x, z, a, b)
+            if best is None or d2 < best[0]:
+                best = (d2, a, b)
+        return best
+
+    # Map round 2 (2026-10-29): such a prop goes beside the track, where its stop's platform is
+    # (OpenStreetMap maps the shelter on the stop position; none of the 14 has a platform mapped
+    # within 25 m): the first of TRAM_SIDE either side, along the track, whose footprint is clear
+    # of every tram track's swept width, carriageway and lane; else it is left out.
     for key in list(PROP_SOLID) + ["bins"]:
         v = d.get(key, [])
         keep = []
+        r = PROP_SOLID.get(key, 0.6) * 0.5
         for i in range(0, len(v) - 2, 3):
-            if on_track(v[i], v[i + 1]):
-                notes["on tram tracks"] = notes.get("on tram tracks", 0) + 1
+            x, z, yaw = v[i], v[i + 1], v[i + 2]
+            if not on_track(x, z):
+                keep += v[i:i + 3]
                 continue
-            keep += v[i:i + 3]
+            near = nearest_track(x, z)
+            placed = None
+            if near is not None:
+                _, a, b = near
+                ln = math.dist(a, b) or 1.0
+                ux, uz = (b[0] - a[0]) / ln, (b[1] - a[1]) / ln
+                along_yaw = math.atan2(-uz, ux)   # map_builder _props: Basis(UP, yaw) turns +X to (cos, -sin)
+                c, s = math.cos(along_yaw), math.sin(along_yaw)
+                for off in TRAM_SIDE:
+                    for sgn in (1.0, -1.0):
+                        px, pz = x - uz * off * sgn, z + ux * off * sgn
+                        corners = [(px + c * u + s * w, pz - s * u + c * w) for u in (-r, r) for w in (-0.5, 0.5)]
+                        if not any(on_track(qx, qz) or inside(qx, qz, 0.0) for qx, qz in corners + [(px, pz)]):
+                            placed = (px, pz, along_yaw)
+                            break
+                    if placed:
+                        break
+            if placed:
+                keep += [round(placed[0], 1), round(placed[1], 1), round(placed[2], 2)]
+                notes["moved off tram tracks"] = notes.get("moved off tram tracks", 0) + 1
+            else:
+                notes["on tram tracks"] = notes.get("on tram tracks", 0) + 1
         d[key] = keep
     return notes
 
 
 TRAM_HALF = 1.2        # map review A: a tram's half width (2.4 m) about its track's centreline
+TRAM_SIDE = (2.4, 3.0, 3.6, 4.5)   # map round 2: a stop's shelter moved beside its track this far from it
 CROWN_CLEAR = 0.3      # map review A: a crown beside a deck stays this far under its slab...
 CROWN_HEAD = {"road": 3.5, "rail": 3.5, "tram": 3.5, "path": 2.5}   # ...unless its base is this far over the deck
 CROWN_MIN = 40         # ...shrinking its scale (hundredths) no further than this
@@ -1244,7 +1280,8 @@ def add_structures(out, map_dir, terrain):
     print(f"carriageways (check_drive): {cc['barrier m cut']:.0f} m of fences, walls, hedges and mapped guard rails "
           f"inside a carriageway or a lane cut out; left out there: {cc['props']} solid props, "
           f"{cc.get('parked', 0)} parked cars, {cc.get('pillars', 0)} viaduct pillars, {cc.get('small buildings', 0)} kiosks; "
-          f"{cc.get('on tram tracks', 0)} props on a tram track left out (map review A)")
+          f"{cc.get('moved off tram tracks', 0)} props on a tram track moved beside it, "
+          f"{cc.get('on tram tracks', 0)} left out (map review A, round 2)")
     ct, cl = trim_crowns(m)
     print(f"trees (map review A): {ct} scanned crowns beside a deck shrunk to clear its slab ({cl} still reach it)")
     walls, wst = place_walls(m)

@@ -94,7 +94,7 @@ func _initialize() -> void:
 				else:
 					strips[id] = float(strips.get(id, 0.0)) + area
 				for p: Vector3 in [centre, (centre + a) * 0.5, (centre + b) * 0.5, (centre + cc) * 0.5]:
-					var ground: float = map._grid_height(p.x, p.z)
+					var ground: float = map._drawn_height(p.x, p.z)  # map round 2: the drawn ground (it follows the aprons)
 					if area_pass:
 						var depth := ground - p.y
 						if depth > POKE:

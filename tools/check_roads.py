@@ -21,6 +21,7 @@ and the raw OpenStreetMap export (for C7 only; skipped when it isn't there).
 | C8  lanes      | a lane's height steps > 0.5 m within 4 m, or edges meeting at a node differ by > 0.2 m |
 | C9  thru decks | a building's top is above a deck's slab bottom inside the deck's corridor; or (map review A) a scanned tree's crown reaches into a deck between its slab's bottom and the head room over it |
 | C10 landmarks  | a landmark collider within 0.5 m of a lane corridor (lane offset +- 1.2 m) |
+| C11 under      | (map round 2) a road's, carriageway's, tram's or rail's surface on the ground lies more than 0.1 m under the drawn ground (map_builder `_build_ground`'s mesh) |
 
 Each finding prints with map coordinates and a ready `--at=` view. Findings listed in
 tools/check_roads_allow.json (each entry: rule, at, r, reason, source; optional name) are
@@ -63,18 +64,20 @@ LANE_STEP, LANE_JUMP, LANE_NODE = 4.0, 0.5, 0.2   # C8
 SLAB = 1.3 + 0.08         # C9: the slab under every deck (map_builder _build_bridge_structures)
 TREE_HEAD = {"road": 3.5, "rail": 3.5, "tram": 3.5, "path": 2.5}   # C9 (map review A): bake_structures CROWN_HEAD
 LANDMARK_PAD = 0.5        # C10
+UNDER_MAX = 0.10          # C11 (map round 2): a surface this far under the drawn ground is hidden (the rail beds' 0.2 m depth bias holds 0.1 m at the 30 degree view; roads 0.3 m hold 0.15 m)
 LANE_HALF = 1.2
 TRAM_HALF, RAIL_HALF = 1.5, 2.0
 HEIGHT_STEP = 8.0         # lane_graph.gd
 DECK_CELL = 16.0          # map_builder.gd
+APRON_TAPER = 3.0         # map_builder.gd APRON_TAPER (map round 2): an apron fades out past its sides
 APRON_IN = 4.0            # tools/bake_structures.py: an apron starts this far inside a structure's end (its `i`)
 
 RULES = [("C1", "grade"), ("C2", "joints"), ("C3", "clearance"), ("C4", "piers"), ("C5", "solids"),
          ("C6", "deck ends in the air"), ("C7", "dropped ways"), ("C8", "lanes"), ("C9", "through decks"),
-         ("C10", "landmarks")]
+         ("C10", "landmarks"), ("C11", "under the ground")]
 COLOURS = {"C1": (255, 60, 60), "C2": (255, 140, 0), "C3": (255, 230, 0), "C4": (0, 220, 255),
            "C5": (255, 80, 255), "C6": (120, 255, 120), "C7": (255, 255, 255), "C8": (80, 140, 255),
-           "C9": (190, 120, 255), "C10": (255, 170, 170)}
+           "C9": (190, 120, 255), "C10": (255, 170, 170), "C11": (255, 255, 120)}
 
 
 def pairs(f):
@@ -288,9 +291,10 @@ class Map:
             x0, z0, x1, z1 = a["p"]
             ln = math.hypot(x1 - x0, z1 - z0) or 1.0
             self.aprons.append((x0, z0, (x1 - x0) / ln, (z1 - z0) / ln, ln, a["h"], a["l"], a["r"], a.get("i", APRON_IN)))
+        self.fine = None   # C11: the grid cells the drawn ground subdivides (built on first use)
         self.apron_cells = defaultdict(list)
         for k, (x0, z0, ux, uz, ln, h, l, r, inner) in enumerate(self.aprons):
-            reach = max(l, r) + ln
+            reach = max(l, r) + APRON_TAPER + ln
             for cz in range(math.floor((z0 - reach) / 16.0), math.floor((z0 + reach) / 16.0) + 1):
                 for cx in range(math.floor((x0 - reach) / 16.0), math.floor((x0 + reach) / 16.0) + 1):
                     self.apron_cells[(cx, cz)].append(k)
@@ -316,8 +320,10 @@ class Map:
             x0, z0, ux, uz, ln, ha, l, r, inner = self.aprons[k]
             along = (x - x0) * ux + (z - z0) * uz
             lat = (z - z0) * ux - (x - x0) * uz
-            if 0.0 <= along <= ln and -l <= lat <= r:
-                h = min(h, ha) if along < inner else ha + (h - ha) * ((along - inner) / (ln - inner))
+            out = max(-l - lat, lat - r)   # map round 2: the apron fades out past its sides
+            if 0.0 <= along <= ln and out < APRON_TAPER:
+                target = min(h, ha) if along < inner else ha + (h - ha) * ((along - inner) / (ln - inner))
+                h = target if out <= 0.0 else target + (h - target) * (out / APRON_TAPER)
         return h
 
     def grid(self, x, z):
@@ -328,6 +334,46 @@ class Map:
         nx, h = self.nx, self.th
         h00, h10 = h[j * nx + i], h[j * nx + i + 1]
         h01, h11 = h[(j + 1) * nx + i], h[(j + 1) * nx + i + 1]
+        if u >= v:
+            return h00 + (h10 - h00) * u + (h11 - h10) * v
+        return h00 + (h11 - h01) * u + (h01 - h00) * v
+
+    GROUND_SUB = 10   # map_builder GROUND_SUB
+
+    def drawn(self, x, z):
+        """C11 (map round 2): the drawn ground mesh's height (map_builder `_drawn_height`): the
+        10 m grid's two triangles per cell, and in the cells an apron reaches GROUND_SUB x
+        GROUND_SUB sub-cells at min(grid, terrain)."""
+        if self.fine is None:
+            self.fine = set()
+            for x0, z0, ux, uz, ln, h, l, r, inner in self.aprons:
+                xs, zs = [], []
+                for along in (0.0, ln):
+                    for lat in (-l - APRON_TAPER, r + APRON_TAPER):
+                        xs.append(x0 + ux * along - uz * lat)
+                        zs.append(z0 + uz * along + ux * lat)
+                for j in range(min(max(math.floor((min(zs) - self.tz0) / self.step), 0), self.nz - 2),
+                               min(max(math.floor((max(zs) - self.tz0) / self.step), 0), self.nz - 2) + 1):
+                    for i in range(min(max(math.floor((min(xs) - self.tx0) / self.step), 0), self.nx - 2),
+                                   min(max(math.floor((max(xs) - self.tx0) / self.step), 0), self.nx - 2) + 1):
+                        self.fine.add((i, j))
+        fx = min(max((x - self.tx0) / self.step, 0.0), self.nx - 1.0001)
+        fz = min(max((z - self.tz0) / self.step, 0.0), self.nz - 1.0001)
+        i, j = int(fx), int(fz)
+        if (i, j) not in self.fine:
+            return self.grid(x, z)
+        n = self.GROUND_SUB
+        sub = self.step / n
+        si = min(max(int((fx - i) * n), 0), n - 1)
+        sj = min(max(int((fz - j) * n), 0), n - 1)
+        x0 = self.tx0 + i * self.step + si * sub
+        z0 = self.tz0 + j * self.step + sj * sub
+        u = min(max((x - x0) / sub, 0.0), 1.0)
+        v = min(max((z - z0) / sub, 0.0), 1.0)
+
+        def c(px, pz):
+            return min(self.grid(px, pz), self.terrain(px, pz))
+        h00, h10, h01, h11 = c(x0, z0), c(x0 + sub, z0), c(x0, z0 + sub), c(x0 + sub, z0 + sub)
         if u >= v:
             return h00 + (h10 - h00) * u + (h11 - h10) * v
         return h00 + (h11 - h01) * u + (h01 - h00) * v
@@ -1090,6 +1136,52 @@ class Check:
                          f"{worst[0] - LANE_HALF:+.1f} m from the lane corridor", worst[3], worst[0])
 
 
+    # C11 (map round 2, 2026-10-29): what is drawn on the ground (roads, carriageway areas, tram and
+    # rail beds) at `terrain()` must not lie under the drawn ground mesh (`drawn()`): loop 3b's
+    # aprons held the ground under a structure's end below the 10 m grid, and the road there
+    # vanished under a beige wedge of bare ground (the viaduct's west end, 0.65 m).
+    def c11(self):
+        m = self.m
+        samples = 0
+
+        def probe(x, z, label, name):
+            nonlocal samples
+            samples += 1
+            d = m.drawn(x, z) - m.terrain(x, z)
+            if d > UNDER_MAX:
+                self.add("C11", x, z, f"{label} {d:.2f} m under the drawn ground", name, d)
+                return True
+            return False
+        for r in m.d["roads"]:
+            if r.get("dk") is not None or r.get("tn") is not None:
+                continue
+            ps = sample(pairs(r["p"]), 2.0)
+            half = max(r["w"] * 0.5 - 0.3, 0.0)
+            for k, (x, z) in enumerate(ps):
+                a, b = ps[max(k - 1, 0)], ps[min(k + 1, len(ps) - 1)]
+                ln = math.dist(a, b) or 1.0
+                nx, nz = -(b[1] - a[1]) / ln, (b[0] - a[0]) / ln
+                for o in (-half, 0.0, half):
+                    if probe(x + nx * o, z + nz * o, f"road {self.name(r)}", self.name(r)):
+                        break
+        for c in m.d.get("carriage", []):
+            if c.get("dk") is not None:
+                continue
+            q = pairs(c["p"])
+            xs, zs = [p[0] for p in q], [p[1] for p in q]
+            for x in _frange(min(xs), max(xs), 2.0):
+                for z in _frange(min(zs), max(zs), 2.0):
+                    if point_in_poly(x, z, q):
+                        probe(x, z, f"carriageway area ({c.get('k')})", c.get("k", ""))
+        for key, label in (("trams", "tram bed"), ("rails", "rail bed")):
+            for t in m.d.get(key, []):
+                if t.get("dk") is not None:
+                    continue
+                for x, z in sample(pairs(t["p"]), 2.0):
+                    probe(x, z, label, label)
+        self.notes["C11"] = {"samples": samples}
+
+
 def _cells3(x, z, c):
     i, j = math.floor(x / c), math.floor(z / c)
     return [(i + dx, j + dz) for dx in (-1, 0, 1) for dz in (-1, 0, 1)]
@@ -1140,7 +1232,7 @@ def places(findings, reach):
     return out
 
 
-REACH = {"C1": 30.0, "C2": 20.0, "C3": 40.0, "C4": 20.0, "C5": 25.0, "C6": 10.0, "C7": 50.0, "C8": 30.0, "C9": 30.0, "C10": 20.0}
+REACH = {"C1": 30.0, "C2": 20.0, "C3": 40.0, "C4": 20.0, "C5": 25.0, "C6": 10.0, "C7": 50.0, "C8": 30.0, "C9": 30.0, "C10": 20.0, "C11": 20.0}
 
 
 def load_allow(path):
