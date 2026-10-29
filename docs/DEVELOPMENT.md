@@ -1,3 +1,5 @@
+> **Development notes**, moved here from `README.md` on 2026-10-30 and otherwise unchanged: how every part of the game works, loop by loop. Where other docs, scripts and comments say "README", they mean this file; paths in it are from the repo root.
+
 # Nocna Warszawa (prototype)
 
 Arcade driving and flying through the real Warsaw, isometric pixel art, built in Godot 4.7.2
