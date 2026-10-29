@@ -15,11 +15,21 @@ var spent_usec := 0
 const PATH := "res://data/dialogue.json"
 const SHOUT_GAP := 9.0          # seconds between two drivers' shouts
 const HOST_GAP := Vector2(60.0, 120.0)
+## Loop radio-playlists: the chance the host speaks between two songs, and how long after the
+## new title's caption (it holds 4.5 s) he does.
+const HOST_BETWEEN := 0.5
+const HOST_AFTER_TITLE := 5.0
 const DRIVERS := ["Kierowca", "Taksówkarz", "Dostawca", "Kierowca autobusu"]
 
 var lines := {}
 var bubbles: Control
-var radio: Node
+## Loop radio-playlists: a setter, so the host hears the radio's track changes without main.gd
+## having to wire them (the radio check's fake radios have no such signal).
+var radio: Node:
+	set(value):
+		radio = value
+		if radio != null and radio.has_signal("track_changed") and not radio.track_changed.is_connected(on_track_changed):
+			radio.track_changed.connect(on_track_changed)
 ## The radio host waits while this is false (the title screen).
 var host_on := true
 ## Loop 2d-1: a Podwózka card is up: the host's next line waits until it goes (then comes at once).
@@ -134,6 +144,14 @@ func on_station_changed(_index: int, _station: Dictionary) -> void:
 	_host_t = 0.0
 	if host_first < 0.0:
 		_host_next = _rng.randf_range(HOST_GAP.x, HOST_GAP.y)
+
+
+## Loop radio-playlists: between two songs (one ran out on its own: `natural`) the host
+## sometimes speaks, a few seconds after the new title's caption, through the same timer, so
+## host_hold (a Podwózka card) and the title screen still keep him quiet.
+func on_track_changed(_info: Dictionary, _track: Dictionary, natural: bool) -> void:
+	if natural and host_first < 0.0 and _rng.randf() < HOST_BETWEEN:
+		_host_t = maxf(_host_t, _host_next - HOST_AFTER_TITLE)
 
 
 func _process(dt: float) -> void:

@@ -1,0 +1,55 @@
+{
+  "stations": [
+    {
+      "id": "nocna_fm",
+      "name": "NOCNA FM",
+      "freq": "87,3",
+      "colour": "#ff5fc8",
+      "tracks": [
+        {
+          "file": "res://audio/radio/nocna_fm/palma_de_gaulle.ogg",
+          "title": "Palma de Gaulle'a",
+          "artist": "Nocna Warszawa",
+          "seconds": 53.33,
+          "gain_db": -0.1,
+          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "source": "palma_de_gaulle.wav"
+        }
+      ]
+    },
+    {
+      "id": "rondo_fm",
+      "name": "RONDO FM",
+      "freq": "86,6",
+      "colour": "#4ff0ff",
+      "tracks": [
+        {
+          "file": "res://audio/radio/rondo_fm/rondo_3am.ogg",
+          "title": "Rondo Dmowskiego 3 A.M.",
+          "artist": "Nocna Warszawa",
+          "seconds": 48.0,
+          "gain_db": -0.15,
+          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "source": "rondo_3am.wav"
+        }
+      ]
+    },
+    {
+      "id": "mordor_fm",
+      "name": "MORDOR FM",
+      "freq": "108,8",
+      "colour": "#b98cff",
+      "tracks": [
+        {
+          "file": "res://audio/radio/mordor_fm/mordor_mall.ogg",
+          "title": "Mordor Mall Muzak",
+          "artist": "Nocna Warszawa",
+          "seconds": 41.74,
+          "gain_db": -0.8,
+          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "source": "mordor_mall.wav"
+        }
+      ]
+    }
+  ]
+}

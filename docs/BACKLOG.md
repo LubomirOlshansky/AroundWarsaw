@@ -844,3 +844,23 @@ Small problems that agents reported or that showed up in screenshots. They are f
   `check_drive` 0); spec as in review B.
 - **D8** rail track ends 1.2 m apart (Solec) and **D10** the Praga ramp joint's sliver: as in map
   review A's specs.
+
+## From the radio playlists loop (2026-10-29)
+- Done: radio.json, shuffled playlists, `tools/add_music.py`, the radio check, README "Adding music",
+  CREDITS "Music".
+- **No libvorbis in this Mac's ffmpeg** (Homebrew's build lacks it): `add_music.py` falls back to
+  ffmpeg's built-in `vorbis` encoder, which ignores the bitrate and writes about 185 kb/s (4.1 MB
+  for a 3-minute song instead of 2 MB). Fix: an ffmpeg with libvorbis (the brief's `-c:a libvorbis
+  -b:a 96k` is already what the tool uses when it finds one), or `oggenc`; nothing else changes.
+- **Licences before a release**: any track whose licence is `unknown` (a WARN in the radio check)
+  must be cleared; AI music tools' free plans may not allow a published game.
+- **No skip button**: `radio.next_track()` exists, but hud.gd and main.gd (not touched in this loop)
+  have no control for it; a tap on the ticker, or a key, would do.
+- **`--radio=N`** clamps to the built-in three stations (`Radio.STATIONS.size()` in main.gd): a
+  fourth station added to radio.json is reached with R, not by the flag.
+- **A station's order restarts a track on re-tune**: tuning away and back starts the track it was
+  on from its beginning (a looping single track still joins in the middle). A real radio would
+  have moved on; a decision for the user if it grates.
+- **The three original loops exist only as Ogg now**: their raw WAVs were in the repo and are gone;
+  `tools/make_music.py data/raw/music/<station_id> shots` regenerates them, then
+  `add_music.py --force`. The Ogg files are lossy copies of the lossless loops.
