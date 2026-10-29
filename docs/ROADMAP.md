@@ -263,6 +263,36 @@ holds the rules the user agreed):
 - The user asked to keep agents working until the whole backlog is done
   (`docs/BACKLOG-TRIAGE.md` maps every fix to a loop).
 
+### The road to the 1.0 demo (the user's order, 2026-10-30)
+
+After comparing the other Warsaw projects (`docs/design/isometric-warsaw-comparison.md`,
+`docs/design/slop-cities-research.md`): **we don't compete on area or photo-realism.** Our edge
+is a street-level *game* with a Warsaw soul (`docs/design/vision.md`), on the phone, offline,
+open source. The rule: **map first, soul second, breadth last**; every round passes the full
+verify, a look at every before/after and the phone budget; locals get it early.
+
+| # | Round | What it delivers | Est. Claude hours |
+| --- | --- | --- | --- |
+| 1 | **3d-1 merge** (on its last check) | The 20.1 km² demo map (Rondo Daszyńskiego → stadium, MDM → Barbakan, Most Łazienkowski), 1 m terrain, derived files out of git; then the iPhone 11 pass and the first Play internal testers | 1 |
+| 2 | **3d-2, map engine** | Ground cut back under roads + coarser ground on flat land; far levels with low buildings painted flat; look-ahead streaming; the one-frame-per-load hitch split in the bake | 5–8 |
+| 3 | **3e, structures** | The W-Z tunnel, Most Śląsko-Dąbrowski, Trasa Łazienkowska, the Wybrzeże trench, Wiadukt Markiewicza, the rail cutting | 4–7 |
+| 4 | **3f, landmark factory + facades** | A builder kit; tier A (10) + tier B (~30) + churches by rule, each capped, with a real LOD1, baked into the sectors, a card and a pin, chosen by the user from a gallery; facade families and glass on ordinary buildings | 15–22 |
+| 5 | **MW-0 – MW-2, Moja Warszawa I** (2d-2 folded in) | places.json and the lines; the MOJA WARSZAWA notebook; shop fronts with the near-miss parodies, metro entrances, Rechotka, kebab stands, billboards | 10–14 |
+| 6 | **MW-3 + 3g-2, night, river, police II** | Club queues, the door, the dawn crowd, the river steps; city guards in the Old Town, the clamp, escorts, chase framing | 8–12 |
+| 7 | **MW-4 – MW-6, Moja Warszawa II** | Everyday life and trends (pets, bikes, runners, Wiralek), PÓŁNOC FM with the user's songs, Fotka, Spacer, KASETA (2010→), the 40 eggs | 10–15 |
+| 8 | **3h + 3i + 3j, polish and ship** | The first 10 minutes tuned, races and pay; juice, sound, night pass; store graphics, the PixelLab art (a new session), the device pass; TestFlight + a Play closed test with Warsaw locals | 12–18 |
+| — | Sweeps, regressions, art reviews, the user's feedback rounds | ~20 % on top of the above | 13–20 |
+| | **Total to the 1.0 demo** | | **≈ 78–117** |
+
+How the estimate was made: the last two days ran about 20 rounds of this size; one round took
+1–3 h of agent time plus 0.5–1 h of the orchestrator's merging and checking, and about one in
+three needed a second pass. At 2–3 agents in parallel and the account's usage limits (a pause
+every few hours of heavy work), that is roughly **2–3 weeks of daily sessions**. Not counted:
+the user's own time (phone tests, decisions, the songs, Play/App Store accounts and forms).
+
+After the demo: a web build (Godot Compatibility renderer, a small centre map) for the Slop Cities
+list and sharing; ZTM timetable trams; the calendar and the Vistula level; more districts.
+
 **The order from here** is `docs/DEMO.md` section 7 (loops 3a–3k, with 2c, 2d and 2e folded
 in). Gaps the orchestrator added on 2026-10-28, so nothing found so far falls through:
 - **Moja Warszawa** (the user, 2026-10-29): the city as the main character, "my vision of Warsaw
