@@ -116,9 +116,12 @@ licence file kept, gets a CREDITS.md line (name, author, licence, URL, version),
 the performance budgets. **Installed:** Debug Draw (HardPixel, v1.1.0, loop 3a; GDScript only,
 loaded only with `--debug-roads`); Phantom Camera (Ramokz, v0.11.0.3, the camera loop; it runs
 the fly-in and target-look tweens only, the follow camera is `follow_camera.gd`; its editor plugin
-is off). **Approved by the user (2026-10-28), not installed yet:** Dialogue Manager (Nathan Hoad) and
-beehave (bitbrain) at the start of the police loop. Still need their own
-yes: Folder Import Rules, Lente photo mode, the In-app Review and Share plugins.
+is off); beehave (bitbrain, v2.9.3, loop 3g-1; the police units' behaviour trees, ticked by
+hand at 5 Hz; editor plugin off, no autoloads: `police/police_tree.gd` has a lean `_ready`; one
+local line in `debug/debugger_messages.gd`, no messages without a debugger); Dialogue Manager
+(Nathan Hoad, v4.1.0, loop 3g-1; the pull-over's flow, `dialogue/police.dialogue` compiled at
+runtime by `police.gd`; editor plugin off, so no import plugin and no autoload). Still need their
+own yes: Folder Import Rules, Lente photo mode, the In-app Review and Share plugins.
 
 ## Commands
 

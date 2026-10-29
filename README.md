@@ -87,6 +87,15 @@ cars get the new shapes too. Still one MultiMesh per kind: each draws several sh
 per car in the vertex shader, and draws only the cars in use, so the frame costs the same draw
 calls and fewer triangles at the default view (see Loop 2c: car models).
 
+Loop 3g-1 (the police, part one, after docs/design/police.md and the user's choice of the
+gentler police) puts patrol cars in the traffic and three speed traps ("suszarki") on the day's
+roads, with an officer who waves the lizak at a speeder. A slip is a joke over a megaphone; two
+in 45 s, a ram or an ignored lizak start a chase (koguty 1 to 3, with a blocker and a roadblock)
+that always ends by itself ("Koniec zmiany!" at 30 / 40 / 45 s), or when you lose them (+15
+respect), or when you stop and get a funny talking-to ending in a caution in the joke notebook.
+Never a fine: nothing ever touches the złoty. Two new add-ons run it, beehave and Dialogue
+Manager (see Loop 3g-1: the police, part one).
+
 ## Run it on your iPhone
 
 1. `tools/export_ios.sh` (only needed after changing the game).
@@ -1993,6 +2002,129 @@ Screenshots: `shots/g1/` (1792×828 before / after Auto, 2868×1320 before / Hig
 2532×1170 before / after, day, night, the river at night, the helicopter; the Obraz tab at
 1792×828 and on the SE; the overlay).
 
+## Loop 3g-1: the police, part one (2026-10-28)
+
+The design is docs/design/police.md (the user chose the gentler police: warnings and jokes,
+**never a fine, nothing taken from the wallet**, nobody arrested, nothing rammed, short chases
+that end by themselves). Part one builds the patrol cars, the speed traps, the chases and the
+pull-over; part two (loop 3g-2) the city guards, the guard car, the pedestrian-zone cap, the
+clamp, the escort on rescues, the race and side-job ties, the chase framing (Phantom Camera),
+the synthesised sounds and the PixelLab portraits.
+
+**Who.** Patrol cars ("radiowóz": the white estate with the blue band and POLICJA from loop 2c)
+drive in the traffic, main and secondary roads only, at most 0 / 1 / 2 / 3 at a time for the
+Traffic levels Empty / Low / Normal / Busy (`traffic.gd`'s new POLICE kind). After one you met
+leaves, the next comes 90-180 s later (*guess*: a 10-minute drive should meet two to four), after
+one you never met 10 s later, and never within 200 m of you in a cooldown. **Speed traps**: the
+seven spots of police.md, four of them in today's map (`game/data/police_traps.json`, found by
+road name on the lane graph: Aleje Jerozolimskie by the National Museum, the Wisłostrada north
+of the cross-city rail bridge, Jana Pawła II south of Rondo ONZ, Wybrzeże Szczecińskie); three
+are out each day, picked by the date like the roadworks (`--barriers=YYYYMMDD` picks that day's).
+A trap is a patrol car parked on the kerb facing the traffic, lights off, with an officer in
+lemon hi-vis 3 m upstream (a pedestrian instance: +0 draw calls). Loop 3d moves the spots into
+the bake.
+
+**What they see** (`police.gd`, 5 times a second, every unit in one pass): distance, a 180° cone
+in front of a patrol car, and sight along the roof grid (no raycasts); your lane, its speed limit
+and the stop lines you cross from the lane graph. Offences: speeding past a patrol car (limit +
+25 km/h within 40 m, in its cone), a red light within 60 m in sight, 3 s the wrong way up a
+one-way street, bumping a police car (2-6 m/s); a ram (> 6 m/s) counts double. The helicopter is
+never an offence; a rescue in pickup or drop-off is never seen.
+
+**What happens** (police.md section 4):
+
+| | Numbers |
+| --- | --- |
+| A warning | a megaphone bubble ("Policja"), a whoop, the first rooster's outline blinks 2 s, one strike; one fades every 45 s; at most one line every 8 s in the city and 20 s a unit |
+| Koguty 1 | two strikes within 45 s, an ignored lizak, or a ram; one chaser, lights and siren on; cap 30 s |
+| Koguty 2 / 3 | a ram (once in 10 s) or a second unit seeing you within 60 m (once the level has held 5 s, *guess*): + a blocker parked across the far lane at a junction 250-400 m ahead / + a two-car roadblock in a V at the next junction (a gap in the middle) and, at night, a searchlight; caps 40 / 45 s from the chase's start; no level rises in a cap's last 10 s |
+| Chasers | the player's top speed × 0.92, 1.2 × traffic's acceleration, at least 10 m behind you (they never ram; they stop when you stop), through reds at 30 km/h, on the lane graph only (re-planned once a second, one unit a frame, `distances_to(…, 800 m)`; beyond that, the way whose end lies nearest you); cars ahead give way (the kerb lane, 5 m/s for 3 s) |
+| Search | 120 m from every chaser, or 4 s out of sight: they drive to where they saw you, then round there; 8 s later (4 s under a bridge deck or in a tunnel) you escaped: +15 respect (`wallet.add_respect`), the toast *UCIECZKA! · ESCAPED!*; seen again within 50 m: back to the chase |
+| End of shift | the cap: *KONIEC ZMIANY · END OF SHIFT*, nothing won or lost; taking off in the helicopter ends it too (its own line) |
+| Lizak | over the limit + 20 km/h in a trap's 40 m: the officer turns and waves the paddle, two whistles, the pill *ZATRZYMAJ SIĘ PRZY POLICJANCIE*; stop within 20 m of the officer under 8 km/h: the pull-over; 30 m past the officer: koguty 1, the trap's car pulling out; the trap re-arms after 60 s |
+| Pull-over | under 1 m/s with a chaser within 15 m (bumper to bumper) for 1.5 s, or the lizak stop: the car is held, the chaser stops behind with its lights on, the radio ducks 6 dB, the pedals step aside for the card; the conversation ends in a caution, one more in the **Zeszyt pouczeń** (the joke notebook in the save, counted per day; the fifth of a day has its own line) |
+| Cooldown | 180 s after any of them: warnings still, no chase but for a ram |
+| Start grace | no chase in the first 180 s of a session (no warnings at all in the first 60 s), unless the police have already met you |
+
+**The pull-over** is a Dialogue Manager conversation (`game/dialogue/police.dialogue`: only the
+flow, compiled at runtime; the words are in `dialogue.json`, picked by `police/police_talk.gd`):
+the opener (Sierżant Bogdan, or Posterunkowy Kacper at a trap; tagged for the first contact, a
+kebab or słoiki run, a trap, or generic), one or two reply buttons (the first is picked after
+5 s), the caution. Every beat can be tapped through; about 7.5 s in all. The card
+(`police/police_balloon.gd`) is the HUD's one card recipe: Polish over English, a police-blue
+edge, the speaker's face from simple shapes (the PixelLab portraits come in part two).
+
+**On screen** (`hud.gd`): the koguty (three light-bar domes beside the wallet: lit blue and red
+in a chase, grey and blinking while searching), the pill with the end-of-shift countdown
+(*POŚCIG · KONIEC ZMIANY ZA 0:27*), the edge breath (blue and red at the screen's edges, 10 % at
+most, once a second), a rooster at the screen's edge for a chaser out of sight, the lizak paddle
+over the officer, chasers and the known traps (after the radio host read them, or once you passed
+one) on the minimap. The light bars flash in `actor.gdshader` (SIREN: off, the lenses dim; on,
+blue and red in turns at 2.5 Hz, glowing by day too); at night their blue and red pools on the
+road and the koguty-3 searchlight are one glow MultiMesh, shown only while a light bar flashes.
+The sounds are placeholders from the ones already here (the far siren on one positional voice of
+the six; the whoop, whistle and stamp pitched from the siren, the tram bell and the soft knock).
+
+**The add-ons.** beehave (bitbrain, 2.9.3) gives each police unit a behaviour tree
+(`police/police_unit.gd`: pull-over, roadblock, blocker, search, chase, trap, patrol), ticked by
+hand at 5 Hz right after the perception pass; escalation stays in `police.gd`, the trees only
+move their car through the traffic API. Dialogue Manager (Nathan Hoad, 4.1.0) runs the
+conversation. Both editor plugins are off: the trees use a lean `police/police_tree.gd` (no
+debugger registration, no autoloads); `police.gd` creates Dialogue Manager and has it compile the
+`.dialogue` text (~70 ms on the Mac, done while the city builds), and clears a reference cycle
+Dialogue Manager 4.1.0 leaves in its resource (it leaked at exit). One local line in beehave: no
+debugger messages without a debugger (headless runs printed an ERROR at every tree interrupt).
+
+**Cost** (`--probe` at 2868×1320, Metal, Mobile, Classic, High, Normal traffic; before = the code
+at `6d4629a`; "koguty 3" = `--police=3 --police-auto=still`, the chaser standing behind, the
+blocker and the roadblock out of sight):
+
+| View | Draw calls, all passes: before → after → koguty 3 | Main / shadow / 2D in koguty 3 (before) |
+| --- | --- | --- |
+| Spawn | 133 → 133 → 135 | 54 / 36 / 45 (53 / 35 / 45) |
+| Default view over the river | 106 → 104 → 109 | 37 / 25 / 47 (36 / 24 / 46) |
+| Zoomed out (`--size=220`) | 169 → 167 → 170 | 65 / 60 / 45 (64 / 59 / 46) |
+| Helicopter | 223 → 222 → 225 | 100 / 87 / 37 (99 / 86 / 38) |
+| Night: spawn / river | 110 / 91 → 107 / 88 → 112 / 94 | the halos +1 while a light bar flashes |
+
+The POLICE MultiMesh is +1 in the main and +1 in the shadow pass (a small caster: none on Medium),
+the halos +1 at night while lights flash: at most +3 at every view. The HUD's police shapes are
+drawn as one triangle array a surface, and so are the minimap's marks now (they were a draw call
+each: the 2D pass fell by 3-4 at every view, which pays for the pill). Triangles: 636 a police
+car, at most five drawn in a koguty 3 chase (≤ +3.2 k a pass). Scripts (bench, Mac, three runs
+each interleaved, capped at 120 Hz): police 0.03 ms calm, 0.07-0.08 ms in a koguty 3 chase, the
+HUD +0.04 ms then; traffic unchanged (0.62-0.65 ms). Memory: +2 MB static, +4 MB more for
+Dialogue Manager's scripts (loaded at the start). No new shader.
+
+**Testing aids** (flags in the table below; the log with `--police-log`: `police: warn speed
+(unit 2)`, `police: L1 (lizak ignored, 30.4 m past the officer)`, `police: escaped after 16.7 s`,
+`police: caution n=1 today`, `police: wallet 0 zł → 0 zł`). `game/tools/check_police.gd`
+(verify step `police`): P11, every group and tag in `dialogue.json` with Polish and English and
+the lengths (bubbles ≤ 70 characters, replies ≤ 28), the flow compiles; P12, the state machine on
+a synthetic road with a stand-in car, traffic, HUD and a wallet that fails on any write but
+respect and the notebook (19 cases: grace, strikes, caps, the last-10-s rule, escape, hiding,
+seen again, pull-over, cooldown, ram, helicopter, the złoty, starts = ends), and a scan of the
+police's code for anything writing the złoty. `police-runs` (P1-P7 on the prebuilt city, each
+judged by its `police:` lines and the wallet line) and `police-soak` (P13: the autopilot roaming
+Busy traffic at twice the limit with the police on at once; 3 minutes in the verify set, the full
+10: `NW_SOAK_MINUTES=10 tools/verify.sh --only=police-soak`, ~70 s).
+
+**The frame governor** (loop G1) lowers the traffic's density when frames are CPU-bound; a police
+car is never thinned out for it (`traffic.gd`), and a unit in a chase, a trap or a block is kept
+until `police.gd` lets it go. The officers stand in the people's MultiMesh after the walkers'
+slots, which the people's limit doesn't touch.
+
+What only the phone can tell: the siren against the radio (a placeholder), how a chase feels at
+60 fps (the chasers' 0.92 speed, the 30 km/h at reds, the 10 m gap), whether the edge breath is
+too much or too little, whether the light bar reads by day at 80 m on the 2× pixel, and whether
+the card's tap-through feels right.
+
+Shots: `shots/loop3g1/` (gitignored), at 2868×1320 and 1792×828: a koguty 2 chase with the HUD by
+day and at night (and close: the lenses taking turns, the blue pool at night), the four trap
+spots close up, a trap at night, the lizak over the officer, the pull-over card (at a trap, and
+the first contact).
+
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -2025,6 +2157,12 @@ home screen).
 | iPhone TEST · BENCH at High, 60 fps cap | 60 fps, 1 % low ≥ 56 | 60, 1 % low ≥ 55 | 60, 1 % low ≥ 55 |
 | Loop G1: TEST · BENCH at Auto on the iPhone 11 (High, 896×414) and the Pro Max (Ultra, 1434×660), 60 fps cap | 60 fps, 1 % low 56.6 / 57.3, 0 missed refreshes | 60, 0 missed refreshes, 1 % low ≥ 55 | 60, 0 missed refreshes, 1 % low ≥ 55 |
 
+Loop 3g-1 (the police; police.md section 12 allowed ≤ +3 draw calls at any view, ≤ +8 k
+triangles, ≤ 0.15 ms of script, ≤ +2 MB) spent, in a koguty 3 chase: +1 to +3 draw calls at the
+four views and at night (the POLICE MultiMesh in the main and shadow passes, the halos at night;
+the HUD's 2D pass no higher than before, the minimap now drawing its marks in one call), ≤ +3.2 k
+triangles a pass, 0.07-0.08 ms of police script plus 0.04 ms of HUD, and +2 MB (+4 MB more for
+Dialogue Manager's scripts); see Loop 3g-1: the police, part one.
 Loop 2c spent none of it: +0 draw calls at every view, and the triangles at the default view
 went down (the traffic pools draw only the cars in use); its numbers are in Loop 2c: car models.
 What 2c may spend: ~15–25 draw calls (a few traffic kinds' MultiMeshes in the main and shadow
@@ -2211,6 +2349,12 @@ flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
   rescue calls that come in during play (`missions.gd`), `tools/check_hud.gd`.
 
 - `time_of_day.gd` (the three looks, the blend and Live), `radio.gd`, `title.gd`, `neon_signs.gd`.
+- Loop 3g-1: `police.gd` (perception, strikes, the chase's state machine, the traps and the lizak,
+  the pull-over, the HUD and halos, the test drivers), `police/police_unit.gd` (a unit and its
+  beehave tree), `police/police_tree.gd`, `police/bt/` (the trees' leaves), `police/police_talk.gd`
+  (the conversation's `talk`), `police/police_balloon.gd` (the card); `data/police_traps.json`,
+  `dialogue/police.dialogue`; `tools/check_police.gd`; add-ons `addons/beehave/`,
+  `addons/dialogue_manager/`.
 - Camera loop: `follow_camera.gd` (the follow camera's laws: the turn, the look-ahead, the dead
   zone, the speed zoom; shared with `tools/check_steering.gd`), `camera_shots.gd` (the fly-in and
   the look at a target on Phantom Camera), `game/addons/phantom_camera/` (Phantom Camera 0.11.0.3,
@@ -2315,6 +2459,14 @@ Command-line options (after `--`):
 | `--debug-roads` | loop 3a: draw the bridge decks, approaches, tunnels, lane heights and piers round the car (Debug Draw add-on); loop 3b: the piers, portal legs and cap beams the bake placed |
 | `--tunnel` | loop 3b: with `--at`, start on the floor of the tunnel under that point (the car shows through the ground as a silhouette) |
 | `--drive-into-water=X,Z` | loop 10a: start at X,Z and drive flat out at the nearest water (within 120 m), the collision off until 3 m past the edge as if the car had jumped it; prints `water test:`, `water: splash at …` and `water: towed after … s …` (where to, how far from a lane, dry or not, the job / rescue / race / wallet), each with its frame. With `--kebab=0` a delivery is running (`tools/verify.sh` step `splash`) |
+| `--no-police` | loop 3g-1: no police, traps or patrol cars |
+| `--police=1\|2\|3` | loop 3g-1: a chase at that level at frame 60, the chaser 40 m behind on your lane (and the blocker / the roadblock for 2 / 3) |
+| `--trap=N` | loop 3g-1: start 150 m before speed trap N (1-4 in today's map), heading into it, and make it one of the day's; with `--pedal=gas` the car drives flat out along the road into the radar (through the traffic) |
+| `--pullover=routine\|trap\|kebab\|sloik\|generic` | loop 3g-1: open that conversation at frame 60 with a patrol car stopped behind (screenshots; `--clicks` for the replies) |
+| `--police-auto=escape\|stop\|hold\|still` | loop 3g-1: in a chase the car drives away flat out on the lane graph / stops at once (with a lizak waving: stops by the officer) / creeps along without escaping (cap tests) / stands without being pulled over (probes) |
+| `--police-now` | loop 3g-1: no start grace, no cooldown (tests; with `--autopilot` the car roams at twice the limit: the soak) |
+| `--police-log` | loop 3g-1: print every police state change with its frame (`police: …` lines; in a chase the car's place on screen each second, `police: b4 x … y …`) |
+| `--police-offence=F:kind,…` | loop 3g-1: an offence at frame F (`speed`, `red`, `oneway`, `bump`, `ram`), seen by the nearest unit (the cooldown test P7) |
 
 Godot's own `--time-scale 3` (before `--`) speeds a mission or race up for screenshots, and
 `--fixed-fps 60` makes runs repeatable frame by frame.

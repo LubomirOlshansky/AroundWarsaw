@@ -440,8 +440,10 @@ func _manage() -> void:
 			continue
 		var l := _local(Vector2(d.pos.x, d.pos.z))
 		var gone := absf(l.x) > far.x or absf(l.y) > far.y
-		# Too many (zoomed in): thin out the cars just outside the view first.
-		if not gone and _counts_total() > _target + 6:
+		# Too many (zoomed in, or the frame governor's CPU step lowered the density): thin out the
+		# cars just outside the view first. Loop 3g-1: never a police car (they have their own
+		# count; a chaser, a trap's car, a blocker are persistent anyway).
+		if not gone and _counts_total() > _target + 6 and d.kind != Kind.POLICE:
 			gone = absf(l.x) > view_half.x + 12.0 or absf(l.y) > view_half.y + 12.0
 		# Stuck out of sight for a long time (a jam that will never clear).
 		if gone or d.still > 45.0:
