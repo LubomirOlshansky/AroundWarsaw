@@ -87,8 +87,9 @@ func _check_screen(screen: Vector2i) -> int:
 	# The longest call the map gives (the longest hospital name), Polish over English as in missions.gd.
 	var call_pl := "Ranny rowerzysta: Aleksandra Krywulta. Wystarczy auto albo helikopter.\nSzpital: Samodzielny Szpital Kliniczny im. prof. Witolda Orłowskiego · czas 3:40"
 	var call_en := "A cyclist is hurt: the car or the helicopter will do. Get them to the hospital in 3:40."
-	# Loop G1: the last line is the quality, its pixel scale and the governor (the longest one).
-	var perf_text := "60 fps · 16.7 ms · worst 18.2 · cap 60 fps\nCPU 11.2 + 0.3 + 14.1 ms · GPU n/a · 670 MB\ndraws 153 = 53 + 35 + 65 · 0.45 M tris\nMedium ×3 · gov GPU 2/2 · CPU 2/2 · wide"
+	# Loop G1: the last line is the quality, its pixel scale and the governor (the longest one;
+	# loop G1b: with "fallback", and the longest level name).
+	var perf_text := "60 fps · 16.7 ms · worst 18.2 · cap 60 fps\nCPU 11.2 + 0.3 + 14.1 ms · GPU n/a · 670 MB\ndraws 153 = 53 + 35 + 65 · 0.45 M tris\nMedium ×3 fallback · gov GPU 2/2 · CPU 2/2 · wide"
 	for perf in [false, true]:
 		for state in ["car, Point", "car, Classic", "helicopter", "call came in", "call card", "rescued, paid",
 				"rescue, host, egg", "kebab offer", "kebab delivery", "race", "rival ahead", "landmark card", "tow toast",
@@ -189,7 +190,7 @@ func _check_screen(screen: Vector2i) -> int:
 	# The settings panel, every tab, and the bench card.
 	hud.clear_all()
 	bubbles.clear()
-	hud.open_settings({"controls": 1, "follow": false, "traffic": 2, "quality": 0, "auto": "Medium", "master": 1.0, "music": 0.5,
+	hud.open_settings({"controls": 1, "follow": false, "traffic": 2, "quality": 0, "auto": "Medium ostry", "master": 1.0, "music": 0.5,
 			"effects": 1.0, "perf": 0, "fps": 0, "style": 0, "vhs": 0, "weather": 0, "time": 0})
 	var panel: Control = hud.settings_panel
 	for t in 4:
@@ -210,7 +211,7 @@ func _check_screen(screen: Vector2i) -> int:
 			print("  %s: %d buttons, panel %s" % [where, buttons.size(), _pts(card, pt)])
 		count += 1
 	panel.close()
-	var bench := "NOCNA WARSZAWA bench (loop 2b) · BENCH · 2026-10-28 16:42:59\ndevice iPhone17,2 · iOS 26.0 · Apple A18 Pro GPU (metal, mobile) · Apple A18 Pro\nscreen 2868x1320 @ 120 Hz · image 1434x660 (×2) · view 80 m · quality Auto→Ultra (iPhone17,2) · traffic Normal · Day · Clear · cap 60 fps · Point\nthermal state: not readable from Godot; a phone that warms up shows it as falling fps per 10 s\nfps 59.9 avg · 1% low 55.3 · worst frame 25.0 ms · late 0.4% (over 17.7 ms) · missed refreshes 12 (0.4%) · 3300 frames in 55 s\nfps per 10 s: 60 60 60 60 60 60 · governor held: GPU 2/2 · CPU 2/2, wide, 12 changes\nframe 16.69 ms · main thread: process 2.10, physics 0.40, draw 13.90 · 3D view: render CPU 0.60, GPU n/a (Metal)\ndraw calls 141 · objects 410 · triangles 0.42 M (all passes, as the overlay counts them)\nmain pass: 50 draws, 50 objects, 0.24 M tris · shadow pass: 33 draws, 33 objects, 0.13 M tris · 2D: 58 draws\nscripts 1.90 ms: traffic 0.70 · traffic bodies 0.05 · trams 0.25 · people 0.30 · rivals 0.05 · jobs+eggs 0.10\n  jobs physics 0.01 · sound 0.04 · hud+minimap 0.20 · bubbles 0.05 · dialogue 0.01\ncars on screen 15 · driving 31 · people 48\nmemory: static 640 MB · video 310 MB (textures 120, buffers 150) · 3 pipeline compilations"
+	var bench := "NOCNA WARSZAWA bench (loop 2b) · BENCH · 2026-10-28 16:42:59\ndevice iPhone17,2 · iOS 26.0 · Apple A18 Pro GPU (metal, mobile) · Apple A18 Pro\nscreen 2868x1320 @ 120 Hz · image 1434x660 (×2) · view 80 m · quality Auto→High fallback (iPhone17,2) · traffic Normal · Day · Clear · cap 60 fps · Point\nthermal state: not readable from Godot; a phone that warms up shows it as falling fps per 10 s\nfps 59.9 avg · 1% low 55.3 · worst frame 25.0 ms · late 0.4% (over 17.7 ms) · missed refreshes 12 (0.4%) · 3300 frames in 55 s\nfps per 10 s: 60 60 60 60 60 60 · governor held: GPU 2/2 · CPU 2/2, wide, 12 changes\nframe 16.69 ms · main thread: process 2.10, physics 0.40, draw 13.90 · 3D view: render CPU 0.60, GPU n/a (Metal)\ndraw calls 141 · objects 410 · triangles 0.42 M (all passes, as the overlay counts them)\nmain pass: 50 draws, 50 objects, 0.24 M tris · shadow pass: 33 draws, 33 objects, 0.13 M tris · 2D: 58 draws\nscripts 1.90 ms: traffic 0.70 · traffic bodies 0.05 · trams 0.25 · people 0.30 · rivals 0.05 · jobs+eggs 0.10\n  jobs physics 0.01 · sound 0.04 · hud+minimap 0.20 · bubbles 0.05 · dialogue 0.01\ncars on screen 15 · driving 31 · people 48\nmemory: static 640 MB · video 310 MB (textures 120, buffers 150) · 3 pipeline compilations"
 	hud.show_bench_card(bench)
 	await process_frame
 	await process_frame

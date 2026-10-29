@@ -658,7 +658,7 @@ loop 2b made Medium and Low real steps; loop G1 added **Auto**, the default, and
 | | Ultra | High | Medium | Low |
 | --- | --- | --- | --- | --- |
 | Auto picks it on (model id, `OS.get_model_name()`) | 15 Pro and newer: `iPhone16,x`, `iPhone17,1`–`4`, `iPhone18,x` and up | 11 to 15, SE 2 / 3, 16e (`iPhone12,x`–`15,x`, `17,5`); iPads, Macs, anything unknown | XS / XR (`iPhone11,x`) | 8 / X (`iPhone10,x`) |
-| Pixel size (whole screen pixels per image pixel): the style's own scale (Sharp: the most that keep 480 lines), Low and Medium one coarser, then coarser until the image fits the budget | budget 1.6 MP: the iPhone 11 at 1 (1792×828), the Pro Max at 2 (1434×660) | budget 0.96 MP (the Pro Max's 1434×660): 2 on every iPhone, the iPhone 11 and SE included (896×414, 667×375) | one coarser, budget 0.5 MP (956×440 / 844×390 / 896×414) | as Medium |
+| Pixel size (whole screen pixels per image pixel): the style's own scale (Sharp: the most that keep 480 lines), Low and Medium one coarser, then coarser until the image fits the budget | budget 1.6 MP: the iPhone 11 at 1 (1792×828), the Pro Max at 2 (1434×660) | budget 0.96 MP (the Pro Max's 1434×660): 2 on every iPhone, the iPhone 11 and SE included (896×414, 667×375). **Under Auto (loop G1b)** the iPhone 11 and the SE 2 / 3 draw Sharp at 1 (1792×828, 1334×750) with High's effects, and at 2 for the next launches after a session there struggled (the fallback, below) | one coarser, budget 0.5 MP (956×440 / 844×390 / 896×414) | as Medium |
 | Sun shadows | **4096** map, everything over a metre tall | 2048 map, everything over a metre tall | 1024 map, buildings and trees only | off |
 | Night glow | on | on | on | off |
 | Rain streaks | all | all | 70% | 40% |
@@ -673,6 +673,16 @@ High was the default and drew the iPhone 11's 828 lines at 1 (1792×828, 1.48 MP
 of any phone); a settings file saved before G1 that says High loads as Auto, once (High was the
 default then, not a choice). The **frame governor** and the **view rule** (loop G1, below) take
 extras away when frames are missed and in wide views, never the pixel size or the shadow map.
+Loop G1b: **Auto starts sharp, with a fallback** (section "Loop G1b" below): where High's budget
+would make Sharp coarser than its own scale (only the iPhone 11 and the SE 2 / 3, and Mac windows
+under 960 lines over 0.96 MP), Auto draws the style's own scale with High's effects (not Ultra's);
+if a session there struggled (the governor's GPU extras down a minute and a tenth of the play, or
+3 minutes in a row missing over 2 % of refreshes GPU-bound), the next launches draw the budget's
+×2, and the sharp image comes back after 2 calm sessions, the wait doubling (to 16) each time it
+struggles again on trial. The manual levels keep G1's rule (Wysoka ×2 on the iPhone 11, Ultra ×1).
+Settings → Obraz's Auto button says what it draws: `auto · High ostry` (sharp), `auto · High ×2`
+(the fallback), `auto · High` (where the budget doesn't bind); the overlay's last line
+`High ×1 sharp` / `High ×2 fallback`; the BENCH card `Auto→High sharp (iPhone12,1)`.
 
 ## Loop 1 (polish, 2026-10-28)
 
@@ -2011,6 +2021,84 @@ Screenshots: `shots/g1/` (1792×828 before / after Auto, 2868×1320 before / Hig
 2532×1170 before / after, day, night, the river at night, the helicopter; the Obraz tab at
 1792×828 and on the SE; the overlay).
 
+## Loop G1b: a sharp picture with a fallback (2026-10-29)
+
+The user's decision after the iPhone 11 before/after crops: the iPhone 11 gets the **sharp**
+picture by default, with a fallback. G1 gave it High's 0.96 MP budget, so Sharp's ×1 (1792×828)
+became ×2 (896×414); a cool iPhone 11 holds ×1 (G1's 3 minutes: 0 missed refreshes) but with the
+A13 88 % busy in its Medium GPU state, and the governor never changes the pixel size live. What
+changed (`tiers.gd`, `governor.gd`, `settings.gd`, `main.gd`'s quality and image code,
+`settings_panel.gd`; docs/design/graphics.md 4.5):
+
+1. **Auto starts sharp** (`Tiers.budget_binds`, `auto_scale`): under Auto, where the level's
+   budget makes the image coarser than the style's own scale, Auto draws the style's own scale
+   with that level's effects ("High ×1": not Ultra's 4096 shadows or 16 reflection steps). On
+   the phones that is only High with Sharp on the iPhone 11 (`iPhone12,1`, 1792×828) and the SE
+   2 / 3 (`iPhone12,8`, `iPhone14,6`, 1334×750); the iPhone 8 and the XR have those screens but
+   Low / Medium (already ×2 by their step); every other phone and style has one scale either way
+   (`check_tiers.gd` walks all 40 iPhone ids × 4 styles). Mac windows under 960 lines over
+   0.96 MP (1366×768, 1440×900, the shots' 1792×828) are sharp too. Manual levels keep G1's rule
+   (Wysoka ×2 on the iPhone 11, Ultra ×1); the Pro Max is Auto→Ultra ×2 as before.
+2. **Struggled**, from the governor's own data (`governor.gd`'s session **tally**, counted only at
+   Auto's image, past the 5 s settle after a start, a load or a pause, outside wide views and
+   the helicopter): the GPU's extras dropped by a **GPU-bound** load for 60 s in all and a tenth
+   of the counted play (one drop that a calm half minute undoes is 30 s, a passing load; a
+   second, or one that didn't calm the frames, is the image; a 15-minute drive needs 90 s), or
+   **3 counted minutes in a row** missing over 2 % of their refreshes GPU-bound (a steady loss
+   under the governor's 5 % drop line). CPU-bound misses don't count, nor a GPU drop a CPU-bound
+   load made once the CPU's extras were gone. **Calm**: 3 minutes counted without that. The
+   verdict is written the moment it is known (iOS kills a backgrounded app without notice).
+3. **The fallback and coming back** (`Tiers.sharp_*`, kept in `settings.cfg` `[auto_image]`):
+   after a struggle the next launches draw the level's budget (×2); 2 calm sessions there bring
+   the sharp image back on trial; a struggle on trial doubles the wait (2 → 4 → 8 → 16, capped),
+   a passed trial (as many calm sessions as the wait) puts it back to 2, a struggle at the
+   fallback restarts its count. A phone that struggled on one hot day is sharp again a day or
+   two later; one that can't hold ×1 spends one launch in 17 on it once capped, with the governor
+   guarding that one. The switch is per launch, never live.
+4. **Never written** by `--nosave`, test runs (bench, probe, autopilot, shots) or
+   `--last-session=struggled|calm` (start as if the last session struggled / was calm). The log's
+   `quality:` lines say what Auto picked and why (`quality: Auto→High ×1 sharp (iPhone12,1) ·
+   image 1792x828`; `quality: Auto→High ×2 fallback (last session: GPU extras down 74 s of 410) ·
+   iPhone12,1 · the sharp image again after 2 calm sessions (0 so far) · image 896x414`) and the
+   session's verdict (`quality: this session at High ×1 sharp was calm · tally …`).
+   `--governor=log` adds the tally to its status lines and a `governor minute N:` line a minute.
+5. **Where the player sees it**: Settings → Obraz's Auto button `auto · High ostry` / `auto · High
+   ×2` (`auto · High` where the budget doesn't bind, e.g. the Fine style), kept up to date when the
+   style changes; the overlay's last line `High ×1 sharp · gov …` / `High ×2 fallback · gov …`; the
+   BENCH card `quality Auto→High sharp (iPhone12,1)` / `Auto→High fallback (iPhone12,1)` beside
+   its `image 1792x828 (×1)`. No toast (optional in the brief; BACKLOG).
+6. **Thermal state**: still not readable from Godot 4.7.2 (no OS, DisplayServer, Engine,
+   RenderingServer or Performance method), so it isn't part of the rule.
+
+**On the iPhone 11** (iOS 26.5, started with `devicectl`, no debugger, day, traffic Normal, Point,
+`--nosave`: the phone's own settings and save untouched; in run order):
+
+| Run | Image | fps | 1 % low | Worst frame | Late (> 17.7 ms) | Missed refreshes | Governor |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| BENCH minute at Auto (`--bench-button`), phone cool | 1792×828 ×1 sharp | 60.0 | 54.4 | 19.0 ms | 3.7 % | **0** | held |
+| 15-minute drive, Auto, `--autopilot --governor=log` (17.7 min, 1062 s counted) | 1792×828 ×1 sharp | **60.0 every minute** (17 of 17) | | | | **5 of 63,728** (all in minute 1; 1 GPU-bound) | on: **0 changes**; calm at 180 s; the struggle rule never close (0 s down, no bad minute) |
+| BENCH minute, `--last-session=struggled` (forced), after the drive | 896×414 ×2 fallback | 60.0 | 56.9 | 18.6 ms | 0.3 % | 0 | held |
+| BENCH minute at Auto, final build, after both (phone warm) | 1792×828 ×1 sharp | 60.0 | 58.7 | 17.1 ms | 0.0 % | 0 | held |
+
+The drive's per-minute lines (fps, missed refreshes, GPU-bound, GPU extras down) are 60.0 / 0 / 0
+/ 0 s in every minute from 2 to 17 (minute 1: 5 missed, the arrival). Draw calls on the BENCH
+cards 124 / 125 (main 45, shadow 41), as in G1; video memory 307 MB at ×1 against 276 at ×2. So
+a room-temperature iPhone 11 drives 17 minutes of day traffic at ×1 without the governor
+stepping in: the first data point for graphics.md's G0 soak (still to do: night, rain at night,
+the 20-minute H3 bar, a warm room). The 1 % low and "late" on the first card are the display's
+pacing mode (late frames with no refresh missed, Loop G1 "Pacing modes"), not the frame.
+
+**On the Mac** (M4 Pro, Metal Mobile, `--bench` at 2868×1320, 3 runs each, before = `613ff38`):
+the change adds no geometry, materials or draw calls (116–120 before, 116–118 after: traffic
+varies); scripts 0.86 / 0.85 / 0.92 → 0.95 / 0.84 / 0.84 ms, the game loop (the governor and
+the tally inside it) 0.11 / 0.11 / 0.14 → 0.16 / 0.12 / 0.13 ms, within the runs' spread (the
+before runs came after the after runs, not interleaved). Per frame the tally adds a comparison
+in `frame()` and a few additions in `tick()`; the verdict check is two booleans until a verdict
+is due; a `minute` line is built once a minute.
+
+Screenshots: `shots/g1b/` (the Obraz tab at 1792×828 at Auto sharp, `auto · High ostry`, and in
+the forced fallback, `auto · High ×2`, with the ×2 city behind it).
+
 ## Loop 3g-1: the police, part one (2026-10-28)
 
 The design is docs/design/police.md (the user chose the gentler police: warnings and jokes,
@@ -2243,6 +2331,7 @@ home screen).
 | Loop 3c: streaming, main thread a frame (Mac, `check_streaming.gd` soak, p99 of the frames that load) | | ≤ 3 ms | ≤ 3 ms |
 | Loop 3c: a frame that loads a sector | | ≤ 33 ms | ≤ 33 ms |
 | Loop G1: TEST · BENCH at Auto on the iPhone 11 (High, 896×414) and the Pro Max (Ultra, 1434×660), 60 fps cap | 60 fps, 1 % low 56.6 / 57.3, 0 missed refreshes | 60, 0 missed refreshes, 1 % low ≥ 55 | 60, 0 missed refreshes, 1 % low ≥ 55 |
+| Loop G1b: the iPhone 11 at Auto, now High ×1 sharp (1792×828): BENCH minute, and a 15-minute day drive with the governor on (missed refreshes, governor changes) | BENCH 60 fps, 0 missed, 1 % low 54.4 / 58.7 (cool / warm); drive 60.0 every minute, 5 missed in 17.7 min, 0 governor changes | 60, 0 missed refreshes, 1 % low ≥ 55; the drive with no struggle verdict | 60, 0 missed refreshes, 1 % low ≥ 55; the drive with no struggle verdict (else the content costs the iPhone 11 its sharp default) |
 
 Loop 3g-1 (the police; police.md section 12 allowed ≤ +3 draw calls at any view, ≤ +8 k
 triangles, ≤ 0.15 ms of script, ≤ +2 MB) spent, in a koguty 3 chase: +1 to +3 draw calls at the
@@ -2543,8 +2632,9 @@ Command-line options (after `--`):
 | `--weather=clear\|rain` | start dry or in the rain (default clear) |
 | `--perf` | show the performance overlay (loop 2e: four lines: fps, frame time, worst, cap · CPU process + physics + draw, GPU, memory · draw calls by pass · objects, triangles) |
 | `--quality=auto\|low\|medium\|high\|ultra` | the quality for this run (not saved; loop G1: default Auto, the level `tiers.gd` picks for the device; 0–3 are Low–Ultra) |
-| `--model=ID` | loop G1: pick Auto's level as if on that device (`--model=iPhone12,1` is the iPhone 11: High, 896×414 at 1792×828; `iPhone17,2` the Pro Max: Ultra) |
-| `--governor=on\|off\|log` | loop G1: the frame governor on or off for this run (default: on in a normal launch, held in test runs, the bench, the probe and the BENCH minute; `on` lets it act in those too); `log` is on plus a `governor status:` line every 5 s |
+| `--model=ID` | loop G1: pick Auto's level as if on that device (`--model=iPhone12,1` is the iPhone 11: High; since loop G1b Auto draws it sharp, 1792×828 ×1, and 896×414 ×2 in the fallback; `iPhone17,2` the Pro Max: Ultra) |
+| `--last-session=struggled\|calm` | loop G1b: start Auto as if the last session at the sharp image struggled (this launch is the ×2 fallback) or was calm (the sharp image), whatever the settings file says; nothing of it is written. The `quality:` lines say what Auto picked and why (`quality: Auto→High ×1 sharp (iPhone12,1) · image 1792x828`, `quality: Auto→High ×2 fallback (last session: GPU extras down 74 s of 410) · …`) |
+| `--governor=on\|off\|log` | loop G1: the frame governor on or off for this run (default: on in a normal launch, held in test runs, the bench, the probe and the BENCH minute; `on` lets it act in those too); `log` is on plus a `governor status:` line every 5 s (loop G1b: with the session's tally where Auto's sharp rule applies) and a `governor minute N:` line per counted minute (fps, missed refreshes, GPU-bound ones, GPU extras down) |
 | `--stress=cpu:N\|wait:N`, `--stress-from=S`, `--stress-to=S` | loop G1 testing aid: N × 0.5 ms of busy work a frame from S to S2 seconds after the city is up, in the game loop (`cpu`: the CPU's extras go first) or in the draw phase (`wait`: how waiting for the GPU looks to the main thread, the GPU's go first), to watch the governor drop and come back |
 | `--sound-check` | play every sound once and print the bus meters, then quit (needs an audio device) |
 | `--ghost-debug=1\|2` | loop 1: paint the occlusion ghost (1: ghosted magenta, other buildings green) or cut it fully (2), and print its ellipse in screen pixels with each screenshot |

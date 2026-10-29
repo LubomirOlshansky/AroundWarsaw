@@ -10,8 +10,9 @@ This is a plan. It changes nothing by itself. The loops in section 5 do the work
 replaces them with device measurements. Every other number comes from a log or a run named
 beside it.
 
-**Status.** **G1 is done (2026-10-28; README "Loop G1", ROADMAP row).** What it changed from
-this plan:
+**Status.** **G1 is done (2026-10-28; README "Loop G1", ROADMAP row); G1b (2026-10-29, §4.5):
+Auto draws the iPhone 11 (and the SE 2 / 3) sharp at ×1 with High's effects, with a ×2 fallback
+for the next launches after a session that struggled.** What G1 changed from this plan:
 - The pixel image is a **budget per level** (`tiers.gd`): High 0.96 MP, so the iPhone 11 at High
   draws 896×414 (×2), not ×1 (§6 Q1 answered by the loop's brief); Ultra's 1.6 MP keeps ×1 there
   for whoever picks it. Every phone that scaled by 2 or more is unchanged.
@@ -414,7 +415,7 @@ XS/XR (A12); the iPhone 11 is `iPhone12,1`.** The export allows iOS 16 and iPads
 
 | | Low | Medium | **High** (A13–A16) | **Ultra** (A17 Pro+) |
 | --- | --- | --- | --- | --- |
-| Pixel image | one step coarser (budget 0.5 MP) | one step coarser (budget 0.5 MP) | Sharp, budget 0.96 MP: ×2 on the iPhone 11 (G1) | Sharp, budget 1.6 MP: ×1 on the iPhone 11 |
+| Pixel image | one step coarser (budget 0.5 MP) | one step coarser (budget 0.5 MP) | Sharp, budget 0.96 MP: ×2 on the iPhone 11 (G1); under Auto ×1 there, ×2 as the fallback (G1b, §4.5) | Sharp, budget 1.6 MP: ×1 on the iPhone 11 |
 | Sun shadows | off | 1024, buildings + trees | 2048, all over 1 m | **4096**, all over 1 m |
 | Per-pixel pack (items 2, 3, 5, 6; 1 if approved) | off | on | on | on |
 | Surface tiles (13), haze (15) | off | on | on | on |
@@ -483,6 +484,46 @@ Tests:
 - **Record battery health** on every device run (§2.4). An old battery changes the result
   more than any shader.
 
+### 4.5 Auto's sharp image and its fallback (loop G1b)
+
+The user's call after the iPhone 11 before/after crops (2026-10-29): the iPhone 11 gets the
+**sharp** picture by default, with a fallback. G1 had measured that a cool iPhone 11 holds ×1
+at High (3 minutes, 0 missed refreshes) but with the A13 88 % busy in its Medium GPU state, so ×1
+has little margin for heat or the content still coming, and the governor never changes the
+pixel size live. So the pixel size is decided per launch, from the sessions before
+(`tiers.gd` `SHARP_*`, `governor.gd` tally, `settings.gd` `[auto_image]`):
+
+1. **Where.** Under Auto, where the level's budget makes the image coarser than the style's
+   own scale (`Tiers.budget_binds`): on the phones only High with Sharp on the iPhone 11
+   (`iPhone12,1`, 1792×828) and the SE 2 / 3 (`iPhone12,8`, `iPhone14,6`, 1334×750; the iPhone 8
+   and the XR have the same screens but Low / Medium, whose own step already makes ×2); Mac
+   windows under 960 lines over 0.96 MP (1366×768, 1440×900, 1792×828). Every other phone,
+   style and level has one scale either way (`check_tiers.gd` walks all 40 iPhone ids × 4
+   styles). Auto draws the style's own scale there with that level's effects ("High ×1": not
+   Ultra's 4096 shadows or 16 reflection steps). Manual levels keep G1's rule.
+2. **Struggled** (the session's tally, counted only at that image, past the governor's settle
+   after a start, a load or a pause, and outside wide views and the helicopter, where no raise
+   can come): the GPU's extras were dropped by a **GPU-bound** load for 60 s in all **and** a
+   tenth of the counted play (one drop that a calm half minute undoes is 30 s: a passing load;
+   a second, or one that didn't calm the frames, is the image; the tenth keeps two passing
+   loads in a long drive from counting), or **3 counted minutes in a row** missed over 2 % of
+   their refreshes GPU-bound (a steady loss under the governor's 5 % that never drops a level).
+   CPU-bound misses and drops don't count (a coarser image doesn't help the CPU), nor a GPU drop
+   a CPU-bound load made once the CPU's extras were gone. **Calm**: 3 minutes counted without
+   that. The verdict is written the moment it is known (iOS kills a backgrounded app without
+   notice), a struggle replacing an earlier calm verdict in the same session.
+3. **Coming back.** After a struggle the next launches are the fallback; 2 calm sessions there
+   bring the sharp image back **on trial**; a struggle before it has had as many calm sessions
+   as the wait doubles the wait (2, 4, 8, 16, capped), and a passed trial puts it back to 2. A
+   struggle at the fallback starts its count again. So a phone that struggled on one hot day is
+   sharp again a day or two later, and one that can't hold ×1 spends one launch in 17 trying it
+   once capped (the governor guarding that one): the governor's own raise-wait law, a level up.
+4. **Never written** by `--nosave`, test runs (the bench, the probe, the autopilot, shots),
+   `--last-session=struggled|calm` (which starts as if the last session struggled or was calm);
+   the `quality:` lines say what Auto picked and why.
+5. **Thermal state**: still not readable from Godot 4.7.2 (no OS / DisplayServer / Engine method
+   for it); 4.4's plugin would add it to the struggle rule.
+
 ---
 
 ## 5. Loops, in order
@@ -500,6 +541,7 @@ PASS, docs and shots, every loop must pass:
 | --- | --- | --- | --- |
 | **G0 Headroom** (first) | perf-engineer, Opus; device-gated, both phones | §2.2 instruments. Fix README's Metal command (`--rendering-method mobile`). Update the skill's draw-call cost. Measure `--render-thread separate`. Run the §2.3 protocol | Stress off = bench unchanged. Ladders repeat within one step. The headroom table (4 views + 2 rain-night) and trace GPU ms for both phones in README. SOAK at High on both. Content budgets restated per phone (§1.4 warning) |
 | **G1 Tiers and governor** — **done 2026-10-28** | perf-engineer, Opus (Settings row after 2e) | §4.1–4.3, with Ultra as High + 4096 shadows + 16 reflection steps; the image as a budget per level | `check_tiers` and `check_governor` OK (in verify.sh). Auto picks High on the iPhone 11 and Ultra on the Pro Max. A forced overload (`--stress=wait:40`) dropped within 0.8 s on the iPhone 11 and came back 30 s after it ended; `check_governor` runs 15 minutes of a pulsing load without swinging. BENCH at Auto 56.6 (iPhone 11) / 57.3 (Pro Max), 0 missed refreshes; the probes 52.9–58.8 |
+| **G1b Sharp with a fallback** — **done 2026-10-29** | perf-engineer, Opus; the iPhone 11 | §4.5: Auto ×1 with High's effects where the budget binds, the ×2 fallback after a session that struggled, the doubling wait back | `check_tiers`, `check_governor`, `check_settings` OK. The iPhone 11's BENCH at Auto ×1 and a 15-minute drive (README "Loop G1b"; the first G0 soak data point) |
 | **G2 Per-pixel pack** | gameplay-dev, Opus; art-director review | Items 2, 3, 5, 6 and item 4 (smooth scrolling) | +0 draw calls. Mac Vulkan GPU ≤ +0.15 ms at the Pro Max image (medians of 5, interleaved). The iPhone 11 loses ≤ its budget in steps. The protect list unchanged |
 | **G3 Edge light** (only with your yes) | gameplay-dev, Opus | Item 1; A/B shots first | As G2. Art-bible line updated by you |
 | **G4 FX sprites** | gameplay-dev, Opus; game-designer for the PixelLab atlas (≤ 50 generations) | Items 7, 8; the system 3i reuses | ≤ 2 draw calls for all effects, none in the shadow pass. Scripts ≤ +0.05 ms on the Mac. iPhone 11 rain-night BENCH ≥ 56. iPhone 11 SOAK in rain-night |
@@ -520,7 +562,9 @@ haptics plugin is built.
    any phone, at 1.57× the Pro Max's pixels)? Or switch to ×2 (414 lines: coarser than Sharp's
    480, and about 60 % less fill)? *Default: keep ×1. It holds 60, and it is what you saw.*
    **G1:** ×2 at High (and so at Auto), as the loop's brief asked after the first iPhone 11
-   bench; ×1 is Ultra on that phone.
+   bench; ×1 is Ultra on that phone. **G1b (the user, 2026-10-29):** Auto draws ×1 with High's
+   effects, falling back to ×2 for the next launches after a session that struggled (§4.5);
+   Wysoka stays ×2.
 2. **Edge light** (crease and sun-side lines). Allow this second line style in the art
    bible? *Default: not until you've seen G3's A/B shots.*
 3. **Ultra for everyone?** *Default: Auto picks Ultra on A17 Pro and newer; anyone can
