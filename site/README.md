@@ -1,66 +1,72 @@
 # aroundwarsaw.app
 
-The game's landing page: plain HTML and CSS in `public/`, no build step, no JavaScript, no
-cookies, no analytics. Polish first with English under it, as in the game.
+The game's landing page. English at `/` (the default), Polish at `/pl/`, the privacy policy at
+`/privacy/`. Static files, self-hosted fonts, one small script for the form, no cookies, no
+analytics.
 
 | File | What |
 | --- | --- |
-| `public/index.html` | the landing: hero, features, screenshots, the beta section |
-| `public/privacy/index.html` | the privacy policy, generated from `docs/privacy.md` by `python3 -I tools/site_privacy.py` (never edit it by hand); the stores link here |
-| `public/styles.css` | all styles; colours are tokens on `:root` |
-| `public/img/` | screenshots (WebP, 1600 px wide, cropped from `shots/` without the HUD), `og.jpg` (1200×630 link preview), icons from `game/icon.svg` |
-| `public/_headers` | security headers and image caching |
+| `src/index.html` | the landing's template, `{{key}}` placeholders |
+| `src/strings.json` | all the copy in `en` and `pl`, the hero shot, the screenshot reel (image, size, caption, alt text), the list of things to do, the form's topics |
+| `public/index.html`, `public/pl/index.html`, `public/privacy/index.html` | **built**, never edited by hand: `python3 -I tools/site_build.py` (the privacy page comes from `docs/privacy.md`) |
+| `public/styles.css` | all styles; colours and fonts are tokens on `:root` |
+| `public/site.js` | the beta and feedback form: checks the fields, posts to Formspree in place, says how it went (without JavaScript the form still posts) |
+| `public/img/game/` | screenshots, `<name>.webp` (1920 px wide) and `<name>-960.webp` for phones; `img/og.jpg` is the 1200×630 link preview |
+| `public/fonts/` | Pixelify Sans (display) and Manrope (text), WOFF2, OFL licences beside them |
+| `public/_headers` | security headers (a CSP that allows only this site and Formspree), caching |
 | `wrangler.jsonc` | the Cloudflare Worker that serves `public/` and owns the custom domains |
 
-## Look at it locally
+Design notes: the world is the game's night city (sodium lamps, one pink neon, the car radio).
+One moving part: the Kebab FM ticker, still under reduced motion. No eyebrow labels, no
+icon-card grids. Changes went through the impeccable design skill's craft floor (contrast,
+type measure, focus and selection colours, form states).
 
-```zsh
-cd site/public && python3 -m http.server 8765   # then open http://localhost:8765
-```
+## Change the copy or the screenshots
+
+1. Edit `src/strings.json` (both languages) or `src/index.html`.
+2. `python3 -I tools/site_build.py`
+3. Look at it: `cd site/public && python3 -m http.server 8765`, then http://localhost:8765 and
+   http://localhost:8765/pl/ at phone and desktop width.
+
+New screenshots: render them with `--nohud` at 2868×1320 (`tools/shots.sh`, README "flags"),
+save each as WebP at 1920 px and 960 px wide (quality about 82), put them in
+`public/img/game/` and list them in `strings.json` `reel` (or set `hero`).
+
+## The form
+
+It posts to Formspree form `mykaeqjp` (the same form as Stillplace's contact page), with the
+subject `Around Warsaw: <topic>` and `source: aroundwarsaw.app (en|pl)`, so the messages are
+easy to filter. Topics: beta invite (email required), feedback, something broke, an idea; the
+phone type rides along. To give the site its own form, create one in Formspree and change the
+`action` in `src/index.html`. If the Formspree form is restricted to certain domains, add
+`aroundwarsaw.app`.
 
 ## Deploy
 
-The site is a Cloudflare Worker with static assets only (no script). `wrangler deploy` uploads
-`public/` and attaches `aroundwarsaw.app` and `www.aroundwarsaw.app` as custom domains, which
-works because the domain's zone is in the same Cloudflare account. Cloudflare creates the DNS
-records and the certificate itself.
+The site is a Cloudflare Worker with static assets only. `wrangler deploy` uploads `public/`
+and attaches `aroundwarsaw.app` and `www.aroundwarsaw.app` as custom domains (the zone is in
+the same Cloudflare account; Cloudflare makes the DNS records and the certificate).
 
-**By hand, from the Mac** (the first deploy):
+**By hand, from the Mac:**
 
 ```zsh
 cd site
-npx wrangler@4 login     # opens the browser once to sign in to Cloudflare
-npx wrangler@4 deploy
+npx wrangler@4 deploy        # npx wrangler@4 login first if it asks
+npx wrangler@4 rollback      # back to the previous version if something is wrong
 ```
 
-If the deploy says a DNS record already exists for the domain (an old parking page or A
-record), delete that record in Cloudflare → aroundwarsaw.app → DNS and deploy again.
-
-**Automatically, from GitHub**: `.github/workflows/site.yml` deploys on every push to `main`
-that touches the site, once the repository has two secrets (Settings → Secrets and variables →
-Actions):
+**Automatically, from GitHub**: `.github/workflows/site.yml` checks that the built pages match
+`site/src` and `docs/privacy.md`, and deploys on every push to `main` that touches the site,
+once the repository has two secrets (Settings → Secrets and variables → Actions):
 
 - `CLOUDFLARE_API_TOKEN`: Cloudflare → My Profile → API Tokens → Create Token → template
   "Edit Cloudflare Workers"; under Zone Resources include the `aroundwarsaw.app` zone.
 - `CLOUDFLARE_ACCOUNT_ID`: shown on the Cloudflare dashboard's Workers & Pages overview.
 
-Without them the workflow only checks that the privacy page matches `docs/privacy.md`.
+## When the betas have public links
 
-## When the betas open
-
-In `public/index.html` there are four beta links (`beta-ios`, `beta-ios-2`, `beta-android`,
-`beta-android-2`). For each: set `href` to the public link, remove the `soon` class and change
-"wkrótce · soon" to "Dołącz · Join".
-
-- iPhone: the TestFlight **public link** (App Store Connect → TestFlight → External Testing →
-  a group → Public Link), `https://testflight.apple.com/join/...`.
-- Android: the closed test's opt-in link,
-  `https://play.google.com/apps/testing/com.olshanskysoft.nocnawarszawa`. A Google Group as
-  the testers list lets anyone join without you adding emails by hand; Play needs 12 testers
-  for 14 days in a closed test before production (docs/store/play-console.md).
-
-## Screenshots
-
-The images come from the prototype's shot sets (loop 1, 2b, 3a, 10a). To refresh them, crop
-new `tools/shots.sh` shots inside the HUD (about 15 % off each side), save as WebP at 1600 px
-and quality 80, and keep the page under about 1.5 MB in total.
+The page collects emails for invites, so it works without public links. When the TestFlight
+public link or the Play closed test's opt-in link
+(`https://play.google.com/apps/testing/com.olshanskysoft.nocnawarszawa`) should be on the page,
+add them to the beta section in `src/index.html` and rebuild. Play needs 12 testers for 14 days
+in a closed test before production (docs/store/play-console.md).

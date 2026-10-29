@@ -910,11 +910,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
   lists what each needs.
 
 ## From the website (aroundwarsaw.app, 2026-10-29)
-- The four beta links in `site/public/index.html` say "wkrótce · soon" until the TestFlight
-  public link and the Play closed test's opt-in link exist (`site/README.md`, "When the betas
-  open").
+- ~~The four beta links say "soon"~~ (website v2: the form collects emails for invites; add the
+  public TestFlight and Play links to the beta section when they exist).
+- The site's form posts to the Stillplace Formspree form (`mykaeqjp`); give Around Warsaw its own
+  form, and check the form isn't restricted to stillplace.app.
+- The game still calls its station NOCNA FM (`radio.gd`); the site says Kebab FM, as the user
+  asked on 2026-10-29.
 - The screenshots are from the prototype (loops 1, 2b, 3a, 10a); refresh them from a current
   `tools/shots.sh` set when the look loop lands. The Palace shot shows the occlusion dither as a
   hole in the tower, which reads as a glitch to someone who hasn't played.
-- No email sign-up on purpose (the site keeps no data). If one is wanted, a Google Group as the
-  Play testers list is the no-backend way.
