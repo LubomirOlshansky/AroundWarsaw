@@ -353,6 +353,16 @@ print -r -- "Nocna Warszawa verify · $(strftime '%Y-%m-%d %H:%M' $EPOCHSECONDS)
 (( others > 0 )) && print -r -- "note: $others other Godot process(es) running: timings here are slower, and a bench running beside this is disturbed"
 print -r -- ""
 
+# Loop 3d-1: the sector split and the prebuilt sectors are derived and not committed (a fresh
+# clone has none): make them first when they are missing (tools/setup_map.sh, ~20 s, a window
+# opens). Stale ones (made from other inputs) stay a WARN of the map step, as before.
+if ! python3 -I $ROOT/tools/check_map_data.py --fresh > $logs/setup_map.log 2>&1 && grep -q 'missing' $logs/setup_map.log; then
+	print -r -- "note: $(head -1 $logs/setup_map.log); running tools/setup_map.sh (a window opens)"
+	if ! $ROOT/tools/setup_map.sh >> $logs/setup_map.log 2>&1; then
+		print -r -- "note: tools/setup_map.sh failed ($logs/setup_map.log): the game runs below will fail"
+	fi
+fi
+
 for s in $want; do
 	case $s in
 		map)

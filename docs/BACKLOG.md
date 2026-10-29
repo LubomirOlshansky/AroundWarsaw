@@ -692,9 +692,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - The streamer's worker is a `Thread` per sector, not WorkerThreadPool: a GDScript callable run
   on a pool thread leaves one RefCounted per pool thread at exit (`ObjectDB instances were
   leaked`), which `tools/verify.sh` reads as a failure; a joined `Thread` doesn't.
-- The sector files (`sectors/*.json`, 9.2 MB, ~1.7× centrum.json's per-sector part) and the
-  prebuilt sectors (28.8 MB + 6 MB shared, against city.scn's 37 MB) are committed like
-  centrum.json and city.scn were, so a fresh clone runs both paths without baking.
+- ~~The sector files and the prebuilt sectors are committed~~ Loop 3d-1 (the user's decision,
+  2026-10-29): no longer committed (the pack grew 194 → 340 MB in a day of re-bakes); a fresh
+  clone runs `tools/setup_map.sh` once, freshness is by content (README "Map data").
 
 ## Decided in loop 3c (map-engineer defaults; the user may still change them)
 - The split is a new `tools/bake_sectors.py` after the chain (bake_osm.py is unchanged); the

@@ -34,3 +34,12 @@ game_*/
 .env
 *.env
 .claude/settings.local.json
+
+# Loop 3d-1 (the user's decision, 2026-10-29): the sector split and the prebuilt city are derived
+# from the committed map (centrum.json and the .bin maps) and never committed: re-bakes grew the
+# pack 194 → 340 MB in a day. A fresh clone makes them once with tools/setup_map.sh (~20 s).
+game/map/sectors/
+game/map/index.json
+game/map/index.res
+game/map/proxies.scn
+game/map/shared/

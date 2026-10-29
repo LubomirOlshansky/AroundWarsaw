@@ -438,6 +438,13 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
+	var no_map := _missing_map()
+	if no_map != "":
+		# Loop 3d-1: the split and the prebuilt sectors are not committed; a fresh clone makes
+		# them once with tools/setup_map.sh. Say so plainly instead of failing deep in the builder.
+		push_error(no_map)
+		get_tree().quit(1)
+		return
 	_build_world()
 	print("city built in %d ms, %s" % [Time.get_ticks_msec() - t0, _scene_stats()])
 	if loading != null:
@@ -3257,6 +3264,19 @@ func _parse_stream_args() -> void:
 			no_traffic = true
 			free_roam = true
 			show_title = false
+
+
+## Loop 3d-1: "" when the city this run needs is there, else what is missing and how to make it
+## (the sector split and the prebuilt sectors are derived, not committed: tools/setup_map.sh).
+func _missing_map() -> String:
+	if monolithic:
+		return "" if FileAccess.file_exists(MAP_PATH) else "map: no %s (the committed map data)" % MAP_PATH
+	var use_prebuilt := prebuilt or not OS.has_feature("editor")
+	if use_prebuilt and not ResourceLoader.exists("res://map/index.res"):
+		return "map: the prebuilt sectors are missing (map/index.res, sectors/*.scn): run tools/setup_map.sh once (README \"Map data\")"
+	if not use_prebuilt and not FileAccess.file_exists("res://map/index.json"):
+		return "map: the sector split is missing (map/index.json, sectors/*.json): run tools/setup_map.sh once (README \"Map data\")"
+	return ""
 
 
 func _open_streamed_city(world: Node3D, flat_mat: ShaderMaterial) -> Dictionary:

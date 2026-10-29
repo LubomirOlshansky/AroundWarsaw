@@ -2689,12 +2689,27 @@ System Trace: the iPhone 11 at ×2 holds 60 at its lowest GPU clock, Loop G1 abo
 
 6. Loop 3c: `python3 -I tools/bake_sectors.py` → `index.json` and `sectors/<i>_<j>.json`, the map
    in 512 m sectors (about a second; see "Sectors and streaming"). After any of the steps above.
+   Loop 3d-1: it also writes `sectors/split.stamp` (the SHA-256 of centrum.json, lod2.* and itself).
 7. Loop 3c: the prebuilt city, **with a renderer** (`--headless` drops MultiMesh and texture
    data): `godot --path game --resolution 320x180 --script res://tools/bake_city.gd` →
    `sectors/s_<i>_<j>.scn` (32), `proxies.scn`, `index.res` and `shared/*.res` (~16 s; it checks
    the landmark sites found from the index against the whole map's). Also needed after any
    change to `map_builder.gd`, `chunked_surface.gd`, `landmarks.gd`, `neon_signs.gd`,
    `sector_proxies.gd`; `tools/export_ios.sh` runs 6 and 7. `city.scn` is gone (loop 3c).
+   Loop 3d-1: it ends by writing `sectors/city.stamp` (the split's digest and the SHA-256 of the
+   maps and scripts it builds from: `bake_city.gd` / `check_map_data.py` `CITY_INPUTS`).
+
+**What is committed (loop 3d-1, the user's decision 2026-10-29).** The bake chain's output is:
+`centrum.json`, `lod2.bin`, `lod2.json`, `terrain.json`, `ao.bin`, `lights.bin`, `water.bin`
+(the derived database under ODbL). Steps 6 and 7's files (`index.json`, `index.res`,
+`proxies.scn`, `sectors/`, `shared/`) are gitignored: re-bakes grew the pack 194 → 340 MB in a
+day. **A fresh clone runs `tools/setup_map.sh` once** (steps 6 and 7, then the check; ~20 s, a
+small window opens; it imports the project first if Godot never opened it); `--if-needed` does
+nothing when they are there and match their inputs. `tools/verify.sh` runs it when they are
+missing, `tools/export_ios.sh` rebuilds them every time, and the game says "run
+tools/setup_map.sh" instead of starting without a city. `check_map_data.py` reports missing ones
+as a WARN ("missing: run tools/setup_map.sh") and stale ones by content: a stamp whose hashes
+don't match today's inputs (a checkout scrambles file times, so they aren't used).
 
 Audio: `python3 -I tools/make_sfx.py game/audio/sfx game/audio/radio` (v0.9: every sound effect
 and bed, with the numbers; loops imported like the radio's, Forward, loop end = the full length,
