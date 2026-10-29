@@ -78,3 +78,23 @@ Ranked by fit with the Moja Warszawa vision and the phone budget:
 1. A Slop Cities entry (text and screenshot ready; the PR only on the user's yes).
 2. Loop "web build" after 3f: the Compatibility renderer, a small web map, GitHub Pages.
 3. Fold ideas 1–6 into vision.md's MW loops when they're briefed.
+
+## Tiny Warsaw's engine notes (tinywarsaw.app/preview/engine/, read 2026-10-30)
+
+Tiny Warsaw (Dominik Roszkowski; three.js/WebGL; 332 km² in 924 cells of 600 m, 141,617
+buildings, 2.14 M trees, GUGiK 0.5 m surface/terrain and 2025 orthophotos; 1,000+ AI-written
+landmark programs) published how it stays loadable on a phone. Their numbers are desktop and
+emulated-phone runs. What maps onto our work:
+
+| Their technique | Their result | For us |
+| --- | --- | --- |
+| Prebuilt **far levels**: 2.4 km regions + one whole-map overview; low buildings painted into the ground texture (roof colour + a dark edge as shadow), buildings over 25 m as blocks, landmarks as LOD1; KTX2 textures | whole-map view on the phone 4.58 M → 0.36 M triangles, 761 → 12 draw calls, 309 → 23 MB GPU | Our sector proxies are the same idea; paint the low buildings into the proxy's ground instead of boxes, keep towers as blocks: the helicopter view (217 draw calls today) and the 20 km² box. Loop 3d-2 |
+| Level swaps hidden in the haze with a **dithered cross-fade** (each pixel one level) | no pop, no transparency cost | We swap proxies with fade Disabled; borrow the dither (our ghost already dithers). 3d-2 |
+| **Speed-aware loading**: look ahead along the velocity; detail follows the view, not the vehicle | frames with an unbuilt cell in view: plane 26 → 0, helicopter 20 → 0 | Our streamer loads the ring + the frustum; add a velocity look-ahead for the car and helicopter. 3d-2 |
+| **Ground cleaned at pack time**: survey pits and bumps removed (rail corridors and landmark footprints keep true heights); **coarser mesh on flat land** | fill triangles 17.5 M → 7.3 M | Our ground is a regular 10 m grid + 1 m cells under aprons: adaptive simplification on flat cells would cut a large share of our 19.5 M vertices. 3d-2 |
+| **No ground under roads**: the mesh is cut back from road surfaces and closed with skirts, baked into the cells | faces over roads 32,736 → 2,323; device fill 66 → 12 ms a cell | We lay roads over the ground with depth offsets (check_drape, C11); cutting the ground under roads removes the class at its root and saves overdraw. 3d-2 / map round 3 |
+| Their biggest open cost: **landmarks are 60 % of the start view's triangles**, LOD1 "hardly simplified", built from code on the device | start view ~3.5 M triangles, 16–19 s to settle | Lesson for our landmark factory: every landmark gets a vertex cap and a real LOD1 from day one, and its geometry is **baked into the prebuilt sectors** (we already prebuild), never built on the phone |
+| Trees: 34 M triangles; canopy as shaders/impostors next | — | Our 42,578 trees are MultiMesh; watch the helicopter view in the bigger box |
+| OSM from a **Geofabrik extract cut with osmium** per region, not one big Overpass query | faster, repeatable | For the next map growth (after the demo) |
+| Tried and dropped: WebGPU (slower than WebGL on desktop and a Galaxy S23), a panorama ring, pre-rendered "flight cards" | — | For our web build: stay on WebGL (Godot's Compatibility renderer) |
+| Hosting on Cloudflare Workers, a /preview Worker for test builds | 328 MB in 2,542 files | A model for the web build's hosting |
