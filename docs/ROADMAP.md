@@ -265,6 +265,11 @@ holds the rules the user agreed):
 
 **The order from here** is `docs/DEMO.md` section 7 (loops 3a–3k, with 2c, 2d and 2e folded
 in). Gaps the orchestrator added on 2026-10-28, so nothing found so far falls through:
+- **Moja Warszawa** (the user, 2026-10-29): the city as the main character, "my vision of Warsaw
+  over ten years". Design in `docs/design/vision.md`. Loops MW-0 (data and lines) → MW-1 (notebook)
+  → MW-2 (storefronts + parodies, = 2d-2) → MW-3 (night and river, after 3g-2) → MW-4 (everyday life
+  and trends) → MW-5 (PÓŁNOC FM) → MW-6 (Fotka, Spacer, KASETA, eggs), all after loops 3d/3e/3f and
+  before 3h.
 - **Loop 3c, sector streaming on today's map: done 2026-10-29** (progress log): loop 3d bakes
   the bigger box into it.
 - **Backlog sweeps.** BACKLOG.md holds 100 open entries (33 fixes, 20 decisions, 47 notes);
