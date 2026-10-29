@@ -16,8 +16,9 @@ If they disagree, README wins: fix this file.
 - Python tools run with `python3 -I` and use the standard library; the orthophoto overlays need
   Pillow (they run without `-I`). Don't install anything without asking.
 - Loop 3d-1: the split and the prebuilt sectors (`index.json`, `index.res`, `proxies.scn`,
-  `sectors/`, `shared/`) are derived and gitignored; commit `centrum.json`, `lod2.*`,
-  `terrain.json` and the `.bin` maps only. A fresh clone runs `tools/setup_map.sh` once; steps 7
+  `sectors/`, `shared/`) are derived and gitignored, and so are `lod2.*` and `terrain.json`
+  (GUGiK's data alone; `tools/setup_map.sh --full` rebuilds them from `data/raw`); commit
+  `centrum.json` and the `.bin` maps only. A fresh clone runs `tools/setup_map.sh` once; steps 7
   and 8 below write `sectors/split.stamp` and `sectors/city.stamp` (their inputs' SHA-256), which
   `check_map_data.py` compares to tell stale files by content.
 - Never hand-edit generated files (`centrum.json`, `*.bin`, `index.json`, `sectors/*`, `index.res`,

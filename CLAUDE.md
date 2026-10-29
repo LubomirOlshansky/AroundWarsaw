@@ -17,7 +17,7 @@ a high-quality demo of central Warsaw on the iPhone (docs/DEMO.md). The repo is 
 | `docs/DEMO.md` | the demo plan: area, quality bar, road defects, police, milestones |
 | `CREDITS.md`, `LICENSE` | data licences (ODbL, GUGiK, CC BY 4.0) and MIT |
 | `data/raw/`, `build/`, `shots/`, `game_*/` | raw downloads, builds, screenshots, temp copies: gitignored, never committed |
-| `game/map/index.*`, `sectors/`, `proxies.scn`, `shared/` | derived from the committed map (loop 3d-1): gitignored; a fresh clone runs `tools/setup_map.sh` once (~20 s, a window opens) |
+| `game/map/index.*`, `sectors/`, `proxies.scn`, `shared/`, `lod2.*`, `terrain.json` | derived (loop 3d-1): gitignored; a fresh clone runs `tools/setup_map.sh` once (~2 min, a window opens; `lod2.*` and `terrain.json` need GUGiK's raw data, `--full`) |
 
 ## Your role: orchestrator
 
@@ -94,7 +94,7 @@ default. Route by the **kind** of work, not its size:
   the prebuilt sectors WITH a renderer: `godot --path game --resolution 320x180 --script
   res://tools/bake_city.gd`, never `--headless`. Check looks on both (`--prebuilt`).
 - **Derived map files are never committed** (loop 3d-1): the split and the prebuilt sectors
-  come from `centrum.json` and the `.bin` maps; `tools/setup_map.sh` makes them (`--if-needed`:
+  come from `centrum.json` and the `.bin` maps, `lod2.*` and `terrain.json` from GUGiK's raw data; `tools/setup_map.sh` makes them (`--if-needed`:
   only when missing or made from other inputs; `check_map_data.py` compares their stamps'
   SHA-256, not file times).
 - **Map data.** After any centrum.json re-bake, run the whole chain and
