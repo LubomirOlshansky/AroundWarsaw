@@ -12,14 +12,14 @@ and the raw OpenStreetMap export (for C7 only; skipped when it isn't there).
 
 | Rule | A finding |
 | C1  grade      | a drivable road's own surface rises > 12 % over any 6 m (service roads 20 %) |
-| C2  joints     | roads sharing a vertex differ by > 0.15 m in surface height there |
+| C2  joints     | roads sharing a vertex differ by > 0.15 m in surface height there; or (map review A) a kerb or edge line runs across the road at a deck's joint with the ground (3 m or more within 4 m of the end) |
 | C3  clearance  | a ground road, tram or rail under a deck with 0.3 m < clearance < 4.7 m (footways < 2.5 m) |
 | C4  piers      | a pier footprint (the bake's `decks.piers`, loop 3b) within 1 m of a road (half-width), tram or rail under it |
 | C5  solids     | a road or lane runs >= 4 m inside a building / landmark footprint around its height |
 | C6  deck ends  | a deck piece ends > 1 m above the terrain with nothing continuing (the map's rim allowed) |
 | C7  dropped    | the raw OSM has a drivable tunnel or cutting the map file doesn't |
 | C8  lanes      | a lane's height steps > 0.5 m within 4 m, or edges meeting at a node differ by > 0.2 m |
-| C9  thru decks | a building's top is above a deck's slab bottom inside the deck's corridor |
+| C9  thru decks | a building's top is above a deck's slab bottom inside the deck's corridor; or (map review A) a scanned tree's crown reaches into a deck between its slab's bottom and the head room over it |
 | C10 landmarks  | a landmark collider within 0.5 m of a lane corridor (lane offset +- 1.2 m) |
 
 Each finding prints with map coordinates and a ready `--at=` view. Findings listed in
@@ -53,6 +53,7 @@ GRADE_MAX = 0.12          # C1
 GRADE_MAX_SERVICE = 0.20
 GRADE_RUN = 6.0
 JOINT_MAX = 0.15          # C2
+JOINT_ALONG, JOINT_RUN = 4.0, 3.0   # C2 (map review A): kerbs / edge lines across a deck's joint
 CLEAR_MIN, CLEAR_MAX, CLEAR_FOOT = 0.3, 4.7, 2.5   # C3
 PIER_PAD = 1.0            # C4
 SOLID_RUN = 4.0           # C5
@@ -60,6 +61,7 @@ SOLID_ABOVE = 3.0
 AIR_MAX = 1.0             # C6
 LANE_STEP, LANE_JUMP, LANE_NODE = 4.0, 0.5, 0.2   # C8
 SLAB = 1.3 + 0.08         # C9: the slab under every deck (map_builder _build_bridge_structures)
+TREE_HEAD = {"road": 3.5, "rail": 3.5, "tram": 3.5, "path": 2.5}   # C9 (map review A): bake_structures CROWN_HEAD
 LANDMARK_PAD = 0.5        # C10
 LANE_HALF = 1.2
 TRAM_HALF, RAIL_HALF = 1.5, 2.0
@@ -678,6 +680,45 @@ class Check:
             if max(hs) - min(hs) > JOINT_MAX:
                 txt = ", ".join(f"{self.name(r)}{self.level(r)} {h:.2f}" for r, h in lst)
                 self.add("C2", kx / 2, kz / 2, f"{max(hs) - min(hs):.2f} m apart: {txt}", self.name(lst[0][0]), max(hs) - min(hs))
+        # Map review A (2026-10-29): a kerb or an edge line across the road where a road or tram
+        # deck's end meets the ground (bake_roads bake_edges JOINT_*: it read as a stop line, and
+        # the car felt the ground side's kerb). Per end: the kerb or edge-line segments within
+        # JOINT_ALONG of it, inside its corridor + 2 m, running across it (> 50 degrees).
+        ends = []
+        for dp in m.decks.p:
+            if dp["k"] not in ("road", "tram") or len(dp["pts"]) < 2:
+                continue
+            for e, f, h in ((dp["pts"][0], dp["pts"][1], dp["h"][0]), (dp["pts"][-1], dp["pts"][-2], dp["h"][-1])):
+                ln = math.dist(e, f)
+                if ln < 1e-6 or abs(h - m.terrain(*e)) > 0.5:
+                    continue
+                ends.append((e, ((f[0] - e[0]) / ln, (f[1] - e[1]) / ln), max(dp["l"], dp["r"]) + 2.0, dp["g"]))
+        grid = Grid(16.0)
+        for k, (e, u, half, g) in enumerate(ends):
+            r = half + JOINT_ALONG
+            grid.add(k, e[0] - r, e[1] - r, e[0] + r, e[1] + r)
+        lines = [("kerb", kb["p"]) for kb in m.d.get("kerbs", [])]
+        lines += [("edge line", mk["p"]) for mk in m.d.get("markings", []) if mk.get("k") == "edge"]
+        run = defaultdict(float)
+        for label, flat in lines:
+            ps = pairs(flat)
+            for a, b in zip(ps, ps[1:]):
+                ln = math.dist(a, b)
+                if ln < 0.3:
+                    continue
+                mx, mz = (a[0] + b[0]) * 0.5, (a[1] + b[1]) * 0.5
+                for k in grid.at(mx, mz):
+                    e, u, half, g = ends[k]
+                    if abs((mx - e[0]) * u[0] + (mz - e[1]) * u[1]) > JOINT_ALONG or math.hypot(mx - e[0], mz - e[1]) > half:
+                        continue
+                    if abs((b[0] - a[0]) * u[0] + (b[1] - a[1]) * u[1]) / ln < math.cos(math.radians(50)):
+                        run[(k, label)] += ln
+                        break
+        for (k, label), ln in sorted(run.items()):
+            if ln >= JOINT_RUN:
+                e, u, half, g = ends[k]
+                self.add("C2", e[0], e[1], f"{ln:.1f} m of {label} across the road at deck {g}'s joint with the ground",
+                         label, ln)
 
     # C3: what runs under a deck too close to its slab.
     def c3(self):
@@ -1002,6 +1043,30 @@ class Check:
                         break
                 if k in hit:
                     break
+        # Map review A (2026-10-29): a scanned tree's crown (map_builder _build_trees: its base
+        # and top over the ground, the radius and the top scaled by `trees3d_crown`) reaching into
+        # a deck beside it, between the slab's bottom and the head room over the deck
+        # (bake_structures trim_crowns shrinks them); a crown over a deck higher than that stays.
+        real, crowns = m.d.get("trees3d", []), m.d.get("trees3d_crown", [])
+        for t, i in enumerate(range(0, len(real) - 5, 6)):
+            x, z, height, radius, crown_base = real[i:i + 5]
+            f = crowns[t] / 100.0 if t < len(crowns) else 1.0
+            base = min(crown_base, height - 1.5)
+            top = base + (height - base) * f
+            ground = m.terrain(x, z) - 0.2
+            rr = radius * f * 0.8
+            found = None
+            for dx, dz in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1), (0.7, 0.7), (-0.7, 0.7), (0.7, -0.7), (-0.7, -0.7)):
+                for hd, g, pi in m.decks.at(x + dx * rr, z + dz * rr):
+                    kind = m.decks.p[pi]["k"]
+                    if hd > ground + 0.6 and ground + base < hd + TREE_HEAD.get(kind, 3.5) and ground + top > hd - SLAB + 0.05:
+                        found = (g, kind, ground + top - (hd - SLAB))
+                        break
+                if found:
+                    break
+            if found:
+                self.add("C9", x, z, f"scanned tree (crown {base:.1f}-{top:.1f} m over the ground, scale {f:.2f}) into deck "
+                         f"{found[0]} ({found[1]}) by {found[2]:.1f} m", "tree", found[2])
 
     # C10: landmark colliders crowding a lane.
     def c10(self):

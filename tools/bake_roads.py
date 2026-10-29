@@ -52,6 +52,9 @@ CLEAR_FOOT = 2.6     # a footbridge over a footway (loop 3a)
 GRADE = 0.06         # ramps up to a clearance
 END_GRADE = 0.12     # the steepest a deck may leave the road it starts from
 DECK_STEP = 6.0      # deck heights every this many metres
+UNDER_END = 15.0     # map review A: a lower footbridge crossing a road deck this near its end stays on the ground
+JOINT_ALONG = 4.0    # map review A: a carriageway boundary this far along from a deck piece's end...
+JOINT_SIDE = 3.0     # ...and within its half width + this, facing carriageway on another level, is a joint
 
 # Loop 3a (docs/DEMO.md 4.4): structure chains (R1), hard clearance (R3).
 CHAIN_JOIN = 150.0   # R1 (a): non-bridge ways linking two bridge ways within this are the structure's
@@ -596,6 +599,37 @@ class Roadbed:
                     not any(near_road.at(*q) for q in pairs(it["p"])):
                 path_mem[i] = ""
                 it.pop("_on", None)
+        # Map review A (2026-10-29): a footbridge mapped on a lower layer than a road deck it
+        # crosses within UNDER_END of that deck's end (where the deck is pinned to the ground,
+        # so nothing passes under it here) stays on the ground, where the road hides it. Solved
+        # as a deck it was held up to the road's height by a link to the deck's own footway and
+        # lay across the carriageway: the paving strip, parapet stubs and their shadow across
+        # Al. Jerozolimskie at the viaduct's west end (OSM 1172263249, 29 m, layer 0).
+        self.under_end = []
+        for i, it in enumerate(self.paths):
+            if path_mem[i] != "bridge":
+                continue
+            ly = it.get("_ly") or 0
+            ps = pairs(it["p"])
+            for pc in road_pieces:
+                if pc["ly"] <= ly:
+                    continue
+                hit = None
+                for a, b in zip(ps, ps[1:]):
+                    for k in range(len(pc["pts"]) - 1):
+                        c = seg_cross(a, b, pc["pts"][k], pc["pts"][k + 1])
+                        if c is not None:
+                            s = pc["cum"][k] + c[1] * (pc["cum"][k + 1] - pc["cum"][k])
+                            if s < UNDER_END or s > pc["cum"][-1] - UNDER_END:
+                                hit = (a[0] + (b[0] - a[0]) * c[0], a[1] + (b[1] - a[1]) * c[0])
+                                break
+                    if hit:
+                        break
+                if hit:
+                    path_mem[i] = ""
+                    it.pop("_on", None)
+                    self.under_end.append((round(hit[0]), round(hit[1]), round(polyline_length(ps))))
+                    break
         for kind, items, mem, half in (("tram", self.trams, tram_mem, 1.6), ("path", self.paths, path_mem, None)):
             self._solve(items, mem, kind, half, beside=road_pieces)
             for idx, it in enumerate(items):
@@ -662,6 +696,9 @@ class Roadbed:
               f"{len(self.road_fill)} roads, {sum(1 for f in self.fills if f['kind'] == 'rail')} rail ways); "
               f"profile solve {self.solve_sweeps} sweeps")
         print("decks: structure members not tagged bridge: " + ", ".join(f"{k} {v}" for k, v in sorted(whys.items())))
+        if self.under_end:
+            print(f"decks: {len(self.under_end)} footbridges on a lower layer cross under a road deck's pinned end: "
+                  f"left on the ground (x, z, metres): {self.under_end}")
         for d in self.dips:
             print(f"decks: underpass dip {d['d']:.2f} m on {d['name']} at ({d['x']:.0f}, {d['z']:.0f}) under {d['over']}")
         if self.surface_model is None:
@@ -1724,6 +1761,37 @@ class Roadbed:
         kerb rings it)."""
         kerbs, lines = [], []
 
+        # Map review A (2026-10-29): a deck's carriageway meets the next one (the approach's on
+        # the ground, or another deck's) across its pinned end. That boundary is a joint, not an
+        # edge, but each side saw only its own level's road beyond it and ran a kerb and an edge
+        # line across the road there: 9 kerb runs (49 m) at both ends of Most Poniatowskiego's
+        # river span, its Praga ramps, the viaduct's west end and the Jana Pawła II viaduct, read
+        # as a stop line at the default view, and the ground side's kerb (kerb_feel) jolted the
+        # car onto the bridge. Within JOINT_ALONG of a road or tram deck piece's end, a boundary
+        # whose outside is carriageway on another level (one of the two being that deck) is open.
+        joint_ends = Grid(16.0)
+        for pc in self.pieces:
+            if pc["kind"] not in ("road", "tram"):
+                continue
+            for e, f in ((pc["pts"][0], pc["pts"][1]), (pc["pts"][-1], pc["pts"][-2])):
+                u = _unit(e, f)
+                if u is None:
+                    continue
+                reach = max(pc["l"], pc["r"]) + JOINT_SIDE + JOINT_ALONG
+                joint_ends.add((e, u, max(pc["l"], pc["r"]) + JOINT_SIDE, pc["g"]),
+                               e[0] - reach, e[1] - reach, e[0] + reach, e[1] + reach)
+        levels = sorted(set(self.cpolys) | set(self.caps))
+        self.joints_open = 0.0
+
+        def joint(lv, x, z):
+            for e, u, half, g in joint_ends.at(x, z):
+                if abs((x - e[0]) * u[0] + (z - e[1]) * u[1]) > JOINT_ALONG or math.hypot(x - e[0], z - e[1]) > half + JOINT_ALONG:
+                    continue
+                for lv2 in levels:
+                    if lv2 != lv and g in (lv, lv2) and self.road_at(lv2, x, z):
+                        return True
+            return False
+
         def walk(points, lv, main, outward_right):
             # points: the boundary in order, outward on the right (or left).
             run_k, run_l = [], []
@@ -1744,6 +1812,9 @@ class Roadbed:
                         kind = None  # past the terrain's edge
                     if kind == "kerb" and self.tram_caps.hit(x, z) is not None:
                         kind = "track"   # a tram track leaves the road here: no kerb across it
+                    if kind == "kerb" and joint(lv, x + ox * 0.45, z + oz * 0.45):
+                        kind = None      # map review A: a deck's joint with the next carriageway
+                        self.joints_open += ln / n
                     is_k = kind == "kerb"
                     is_l = kind is not None and main
                     for flag, run, out in ((is_k, run_k, out_k), (is_l, run_l, out_l)):
@@ -1809,7 +1880,7 @@ class Roadbed:
         self.kerbs = kerbs
         self.edge_lines = lines
         print(f"roadbed: kerbs {len(kerbs)} runs, {sum(polyline_length(pairs(k['p'])) for k in kerbs) / 1000:.1f} km; "
-              f"edge lines {len(lines)}")
+              f"edge lines {len(lines)}; {self.joints_open:.0f} m of deck joints left open (no kerb or edge across the road)")
 
     # -- medians --------------------------------------------------------------------------
 

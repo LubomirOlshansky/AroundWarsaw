@@ -538,3 +538,42 @@ Small problems that agents reported or that showed up in screenshots. They are f
   both); a raise needs under 0.5 % missed over 30 s.
 - The BENCH minute holds the governor (the card is the level's own cost) and the rescue calls;
   `--governor=on` lets the governor act during a bench or probe.
+
+## From map review A (bridges, flyovers and tunnels, 2026-10-29)
+- **Aprons sink the road under the drawn ground** at structure ends where the 10 m grid stands
+  above the end's height: `terrain_height` lowers the ground there (`min` under an apron), but
+  `_build_ground` draws the raw grid, so the road, its carriageway area, kerbs and rail beds lie
+  under the ground mesh: the viaduct's west end (road 52 m², up to 0.65 m, the beige wedge on the
+  westbound carriageway at `--at=188,104`; tram 28 m²), the west abutment's north ramp foot (991, -2: 52 m²,
+  0.25 m), the Kruczkowskiego rail viaduct's west end (394, -55: 45 m², 0.45 m), and the four
+  tunnel portals (20-89 m², hidden by the trench walls as far as the shots show). Fix (bake, the
+  default): the chain solver's lower bound at a deck's end = the highest grid value across its
+  carriageway, so the end stands at or above the ground across its width and no apron has to
+  lower it; or (builder, after loop 3c) subdivide the grid cells an apron touches with
+  `min(grid, terrain_height)`, with the draped areas and footways in them following. A check:
+  a drawn road or rail corridor more than 0.05 m under the raw grid.
+- **Lamp pools under and beside decks at night**: `lights.bin` is 2D, so a deck lamp's pool also
+  lands on the water and shoals beside and under the bridge (orange arcs on Most Poniatowskiego's
+  gravel shoals). Fix (shader, after loop 3c): scale the lamp light by whether the fragment is
+  within ~2 m of the deck height `water.bin` already holds for that pixel.
+- **Most Poniatowskiego's approaches are unlit at night**: `bake_lights.bridge_lamps` lights only
+  `bridge=*` roads of 40 m or more; the abutments between the towers are approaches (`fills`).
+  Fix: give the fill JSON the structure membership (`blurred abutment`, `between two bridges`)
+  and light those too.
+- **Rail tracks ending at different heights**: at the Solec viaduct's west end one track's deck
+  starts 1.2 m under its neighbours (piece of OSM 1480623763), at Kruczkowskiego 0.5 m (each
+  track's measured R2 profile). Fix: hold the parallel tracks of one deck group to a common
+  profile at their ends.
+- **The Tamka footbridge dips 2.2 m** 4 m from its north end (`--at=-20,-288`): an interior node
+  shared with the footway under it is pinned to the ground. Fix: in the path family a node where
+  a lower way passes under is a crossing, not a pin.
+- **The Praga ramp's joint** (1493, -301): the ground strip and the ramp's strip meet at an angle
+  and leave a ~3 m² sliver outlined by edge lines (C2 allowed). Fix: strips meeting at a deck
+  joint share one end line.
+- **Tram stop shelters** left out where mapped on the rails (14): place them on the stop's
+  platform instead (the nearest `platforms` edge on the track's side).
+- **River piers** (art): Most Poniatowskiego (an arch bridge on masonry piers) and Most
+  Średnicowy stand on the same thin concrete posts as the viaducts; a river-pier style (wider,
+  stone, cutwaters) would read more like Warsaw. A design call.
+- Most Świętokrzyski, the Jana Pawła II viaduct and the Wisłostrada tunnel end at the map's rim
+  (the diorama's void beyond): the bigger map moves the rim past them (known, DEMO.md 4.4).

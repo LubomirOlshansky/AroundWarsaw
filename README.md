@@ -1993,6 +1993,44 @@ Screenshots: `shots/g1/` (1792×828 before / after Auto, 2868×1320 before / Hig
 2532×1170 before / after, day, night, the river at night, the helicopter; the Obraz tab at
 1792×828 and on the SE; the overlay).
 
+## Map review A: the bridges, flyovers and tunnels (2026-10-29)
+
+Every deck group (19: 73 pieces, 174 piers), the 3 tunnel roads and their 4 portals looked at
+one by one at 1792×828 by day (both ends, the span from the side, from above), the lit ones by
+night, and driven. What was wrong and is fixed, all in the bakes (no builder change):
+
+- **A kerb and an edge line across the road at a deck's joint** (`bake_roads.bake_edges`, new
+  `JOINT_ALONG` / `JOINT_SIDE`): where a deck's carriageway meets the next one across its pinned
+  end, each side saw only its own level's road beyond it and ran a kerb and an edge line across
+  the carriageway (Most Poniatowskiego's east end on both carriageways, its Praga ramps, the
+  viaduct's west end, the Jana Pawła II viaduct's north end: 9 kerb runs, 49 m). It read as a
+  stop line, and the ground side's kerb was in `kerb_feel`'s lines, so the car took a kerb's
+  bump driving onto the bridge. Now open (135 m of joint).
+- **A footbridge lying across Al. Jerozolimskie** at the viaduct's west end (`UNDER_END` in
+  `solve_decks`): a footway bridge mapped on a lower layer (OSM 1172263249, layer 0) crossing
+  a road deck within 15 m of its pinned end was held up to the road's height and drawn across
+  the carriageway (a paving strip, parapet stubs and their shadow). It stays on the ground,
+  where the road hides it.
+- **Tram stop shelters on the tracks** (`bake_structures.clear_carriageways`): 14 shelters
+  mapped at a stop's position on the rails (one on the viaduct's tram deck at its east end) are
+  left out where the track runs at the ground's height.
+- **Tree crowns through a deck's edge** (`bake_structures.trim_crowns`): 7 scanned trees beside
+  the viaduct, Most Poniatowskiego and Most Średnicowy reached 2-11 m up through the deck's edge;
+  their crown scale (`trees3d_crown`) shrinks until they clear the slab (floor 40 %; one 24 m
+  tree on the Praga bank still brushes the footway, allowed). A crown over a deck higher than
+  the head room (3.5 m, footways 2.5 m) stays.
+
+`check_roads.py`: **C2** also finds a kerb or edge line across the road at a deck's joint with
+the ground (3 m or more within 4 m of the end; 12 before, 1 allowed sliver after), **C9** a
+scanned crown into a deck (7 before, 1 allowed after); a C3 entry allows the passage under the
+viaduct's west end (0.8-2.2 m under the decks' first metres). `check_drive` 0 / 0,
+`check_drape` 0. Draw calls at the four views unchanged in the 3D passes (spawn 132 → 134, the
+2 in the HUD's 2D pass; river 105 → 105, zoomed out 152 → 154 (2D), helicopter 212 → 212);
+vertices 6,119,007 → 6,115,605. Left for later (BACKLOG "From map review A"): aprons that sink
+the road under the drawn 10 m ground at five structure ends (the beige wedge at the viaduct's
+west end), the night's lamp pools on the ground beside and under decks, Most Poniatowskiego's
+unlit approaches, rail tracks ending at different heights, the Tamka footbridge's dip.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
