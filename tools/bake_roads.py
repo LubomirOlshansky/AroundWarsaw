@@ -52,6 +52,7 @@ CLEAR_FOOT = 2.6     # a footbridge over a footway (loop 3a)
 GRADE = 0.06         # ramps up to a clearance
 END_GRADE = 0.12     # the steepest a deck may leave the road it starts from
 DECK_STEP = 6.0      # deck heights every this many metres
+STUB_MAX = 8.0       # map round 2b (D9): a bridge footway this short off a footbridge's middle with a free end is a stub
 UNDER_END = 15.0     # map review A: a lower footbridge crossing a road deck this near its end stays on the ground
 JOINT_ALONG = 4.0    # map review A: a carriageway boundary this far along from a deck piece's end...
 JOINT_SIDE = 3.0     # ...and within its half width + this, facing carriageway on another level, is a joint
@@ -559,6 +560,29 @@ class Roadbed:
         road_mem = self._members(roads, lambda r: r["bridge"], "road")
         rail_mem = self._members(rails, lambda t: t.get("_br"), "rail")
         tram_mem = self._members(self.trams, lambda t: t.get("_br"), "tram")
+        # Map round 2b (D9): a stub footbridge (a bridge footway of STUB_MAX or less) branching off
+        # another footbridge's middle with its other end free is where OpenStreetMap left the
+        # stairs out: solved, its free end was pinned to the ground and pulled the footbridge
+        # down 2.2 m (Tamka, OSM 541067979 off 278847159). It is left out.
+        ends_of, mids_of = {}, {}
+        for i, p in enumerate(self.paths):
+            q = pairs(p["p"])
+            for k, v in enumerate(q):
+                (ends_of if k in (0, len(q) - 1) else mids_of).setdefault(_key(v), set()).add(i)
+        road_verts = {_key(v) for r in roads for v in pairs(r["p"])}
+        stubs = set()
+        for i, p in enumerate(self.paths):
+            q = pairs(p["p"])
+            if not p.get("_br") or len(q) < 2 or polyline_length(q) > STUB_MAX:
+                continue
+            for a, b in ((q[0], q[-1]), (q[-1], q[0])):
+                on_bridge = any(self.paths[j].get("_br") for j in mids_of.get(_key(a), ()) if j != i)
+                free = (ends_of.get(_key(b), set()) | mids_of.get(_key(b), set())) <= {i} and _key(b) not in road_verts
+                if on_bridge and free:
+                    stubs.add(i)
+        if stubs:
+            print(f"decks: {len(stubs)} stub footbridges off a footbridge's middle with a free end left out (map round 2b)")
+            self.paths[:] = [p for i, p in enumerate(self.paths) if i not in stubs]
         path_ok = [p["k"] in ("foot", "cycle") for p in self.paths]
         path_mem = self._members(self.paths, lambda p: p.get("_br"), "path", usable=path_ok)
         for items, mem in ((roads, road_mem), (rails, rail_mem), (self.trams, tram_mem), (self.paths, path_mem)):
@@ -1892,6 +1916,11 @@ class Roadbed:
         opposite ways side by side): raised, its edges kerbed by bake_edges; grass, or
         paving where trams run in it. Mapped grass, islands and hatching stay as they are."""
         out = []
+        # Map round 2b (L5): a median piece on the mapped tram bed (`landuse=railway`, the
+        # ballast surface) is the tram bed, paved like it, even where the tracks themselves bend
+        # away from it across a junction (the green rectangle on the tracks by Jerozolimskie x
+        # Krucza).
+        ballast = Polys([pairs(sf["p"]) for sf in self.details.get("surfaces", []) if sf.get("k") == "ballast"])
         for r in self.roads:
             t = r["_t"]
             ow = oneway_of(t)
@@ -1919,6 +1948,7 @@ class Roadbed:
                     # raised grass with rails on it (check_streets S4: 78 cross-sections).
                     tram = any(self.tram_caps.hit(p[0] + (q[0] - p[0]) * f, p[1] + (q[1] - p[1]) * f) is not None
                                for p, q in strip for f in (0.2, 0.5, 0.8))
+                    tram = tram or ballast.hit(mx, mz) >= 0
                     if abs(ring_area(near + far[::-1])) > 4.0 and self.green.hit(mx, mz) < 0:
                         out.append({"s": flat([v for pq in strip for v in pq]), "k": "paving" if tram else "grass", "dk": lv})
                 strip.clear()
