@@ -71,6 +71,10 @@
       {
         "only": "traps"
       }
+    ],
+    [
+      "Podwózka: przyjedziemy tam, gdzie pokaże pinezka. Mniej więcej.",
+      "Podwózka: we'll come wherever the pin says. More or less."
     ]
   ],
   "kebab_order": [
@@ -278,6 +282,197 @@
     [
       "Za rok też będę mówić, że jestem stąd.",
       "In a year I'll be saying I'm from here too."
+    ]
+  ],
+  "podwozka_request": [
+    [
+      "Uwagi: „stoję pod Rechotką”.",
+      "Note: \"I'm outside the Rechotka.\""
+    ],
+    [
+      "Uwagi: „jestem tam, gdzie pinezka, tylko po drugiej stronie”.",
+      "Note: \"I'm where the pin is, just on the other side.\""
+    ],
+    [
+      "Uwagi: „mam walizkę i optymizm”.",
+      "Note: \"I've got a suitcase and optimism.\""
+    ],
+    [
+      "Uwagi: „proszę nie dzwonić, machnę”.",
+      "Note: \"please don't call, I'll wave.\""
+    ]
+  ],
+  "podwozka_pickup": [
+    [
+      "Dzień dobry! Pinezka trochę się pomyliła, ja nie.",
+      "Hi! The pin was a bit off. I wasn't.",
+      {
+        "only": "offset"
+      }
+    ],
+    [
+      "Pięć gwiazdek, jeśli zdążymy. Sześć, jeśli bez trąbienia.",
+      "Five stars if we make it. Six if there's no honking."
+    ],
+    [
+      "To pan od Podwózki? Bo tu czeka jeszcze trzech.",
+      "Are you my Podwózka? Because three more are waiting here."
+    ]
+  ],
+  "podwozka_gps": [
+    [
+      "Za dwieście metrów skręć w prawo. W Wisłę.",
+      "In two hundred metres, turn right. Into the Vistula.",
+      {
+        "only": "river"
+      }
+    ],
+    [
+      "Skręć przy Rechotce. Nie tej. Tej drugiej. Nie, tej.",
+      "Turn at the Rechotka. Not that one. The other one. No, that one.",
+      {
+        "only": "rechotka"
+      }
+    ],
+    [
+      "Przeliczam trasę… Gotowe. Zawróć, gdzie możesz. I gdzie nie możesz.",
+      "Recalculating… Done. Make a U-turn where you can. And where you can't.",
+      {
+        "only": "reroute"
+      }
+    ],
+    [
+      "Jedź prosto przez Rynek. Dorożki jakoś dają radę.",
+      "Go straight across the Market Square. The horse carriages seem to manage.",
+      {
+        "only": "oldtown"
+      }
+    ],
+    [
+      "Skrót przez park. Mapa twierdzi, że ścieżka to droga.",
+      "Shortcut through the park. The map insists the path is a road.",
+      {
+        "only": "zone"
+      }
+    ],
+    [
+      "Jesteś na miejscu. Cel znajduje się po lewej. Albo nad tobą.",
+      "You have arrived. Your destination is on the left. Or above you.",
+      {
+        "only": "arrive"
+      }
+    ]
+  ],
+  "podwozka_passenger": [
+    [
+      "Ale aplikacja mówi w lewo! Aplikacja się nie myli. Prawie.",
+      "But the app says left! The app is never wrong. Almost.",
+      {
+        "only": "believer"
+      }
+    ],
+    [
+      "GPS mówi przez Wisłę. Może jest prom? Nie ma promu?",
+      "The GPS says across the Vistula. Maybe there's a ferry? No ferry?",
+      {
+        "only": "believer"
+      }
+    ],
+    [
+      "No widzisz, aplikacja wie.",
+      "See? The app knows.",
+      {
+        "only": "followed"
+      }
+    ],
+    [
+      "Możemy stanąć przy Rechotce? Wybór jest, delikatnie mówiąc, duży.",
+      "Can we stop at a Rechotka? The choice is, to put it mildly, wide.",
+      {
+        "only": "detour"
+      }
+    ],
+    [
+      "Może pan ściszyć radio? Żartuję, proszę podgłośnić.",
+      "Could you turn the radio down? Kidding, turn it up."
+    ],
+    [
+      "Pan zna skróty? Bo aplikacja zna tylko proste.",
+      "Do you know the shortcuts? The app only knows straight lines."
+    ],
+    [
+      "Spieszę się na pociąg. Pociąg też się spieszy.",
+      "I'm rushing for a train. The train's rushing too.",
+      {
+        "only": "hurry"
+      }
+    ]
+  ],
+  "podwozka_rating": [
+    [
+      "Pięć gwiazdek. W komentarzu: „lepszy niż GPS”.",
+      "Five stars. Comment: \"better than the GPS\".",
+      {
+        "only": "5"
+      }
+    ],
+    [
+      "Pięć gwiazdek i serduszko. Serduszko jest rzadkie.",
+      "Five stars and a heart. The heart is rare.",
+      {
+        "only": "5"
+      }
+    ],
+    [
+      "Cztery gwiazdki. Piąta za mniej hamowania.",
+      "Four stars. The fifth would need less braking.",
+      {
+        "only": "4"
+      }
+    ],
+    [
+      "Gwiazdek mało, ale radio było super.",
+      "Not many stars, but the radio was great.",
+      {
+        "only": "low"
+      }
+    ],
+    [
+      "Policja w trakcie kursu? Gwiazdkę zabieram, anegdotę zostawiam.",
+      "Police mid-ride? I'm taking a star, but keeping the anecdote.",
+      {
+        "only": "police"
+      }
+    ],
+    [
+      "Anulowane. Wysiadam przy Rechotce, i tak tu jest jedna.",
+      "Cancelled. I'll get out at the Rechotka, there's one right here anyway.",
+      {
+        "only": "cancel"
+      }
+    ]
+  ],
+  "podwozka_driver": [
+    [
+      "GPS kazał tu stanąć. Kim jestem, żeby się kłócić?",
+      "The GPS said to stop here. Who am I to argue?",
+      {
+        "only": "arrive"
+      }
+    ],
+    [
+      "Przeliczam! Proszę nie trąbić, przeliczam!",
+      "Recalculating! Please don't honk, I'm recalculating!",
+      {
+        "only": "reroute"
+      }
+    ],
+    [
+      "Mapa pokazuje most. Most chyba nie wie.",
+      "The map shows a bridge. The bridge doesn't seem to know.",
+      {
+        "only": "river"
+      }
     ]
   ],
   "traffic": [

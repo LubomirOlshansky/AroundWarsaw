@@ -756,3 +756,52 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - `check_streets` S3 also counts real median noses at a junction's edge (Świętokrzyska by Mariańska,
   18 cross-sections): reported, not failed.
 
+## From loop 2d-1 (Podwózka, the app-taxi side job)
+- **The pull-over is wired** (merge with 3g-1): `police.gd` `_talk_done` calls
+  `rides.on_pulled_over()`; one star, verify step `ride-police`. 3g-2 may want its own opener for
+  a pull-over with a passenger on board (police.gd `_opener` knows kebab and słoiki only).
+- **The request card lost "your rating"** to fit beside the car on 390-pt phones (five lines of
+  text above the pedals); the rating is on the result card. A request could show it on the
+  PODWÓZKA button instead.
+- **Loop 2d-2 (after 3c's streaming)**: the `rechotka` quirk joins the random pool once the
+  Rechotka shops exist (today it is flag-only and names a shop nobody can see), and the `detour`
+  passenger (a stop at any Rechotka, +½) needs them too; Pędzik, Leżak, the kebab stands and the
+  billboards are 2d-2's; the `signs` and `column_posters` Podwózka lines (parodies.md 7) wait for
+  the billboards. `oldtown` falls back to a park until the map has the Old Town square.
+- **PixelLab (not in this session)**: the Podwózka pickup icon (16 px), the "Nawigacja" avatar
+  (32 px, it speaks as a plain bubble now), a believer and a student passenger portrait, the
+  Podwózka billboard (parodies.md 9). The passenger figure is `props.gd`'s person with a hop and
+  a bobbing "!" (2 draw calls), no waving arm.
+- **River spots are few** (10, along Wybrzeże Kościuszkowskie and by Most Poniatowskiego): the
+  river quirk only happens on rides from Powiśle and Solec (it must add at most 1.5 km). The
+  waypoints are 30–70 m off the road across the boulevard; whether a player can actually drive
+  there (steps, walls, benches) is unchecked: the autopilot ghosts through. Worth a look in the
+  device pass; the map engineer could flag drivable promenade.
+- **The ETA (road / 9 m/s + 20 s) is tight** with the lights: the test drive at 1.3× traffic
+  speed took 178–190 s of a 195 s ETA. A careful player may often be late (−½ per 15 s). Tune on
+  the phone with how long a ride feels.
+- **Rivals' Centrum Nauki Kopernik finish lies on the map's north edge** (the landmark's
+  centroid at 324,-879; the nearest node 328,-885): rides skip it; the race finish is probably
+  odd too.
+- **GPS moments on today's map are mostly "you have arrived"**: around the spawn the app-taxis
+  drive dual carriageways (no U-turn), and the river moment needs the view by the river. A
+  5-minute busy run at the spawn: 4 moments, all stops.
+- **Driving penalties aren't measured under `--autopilot`** (the ghost's turns are steps, not
+  driving); the rules are covered by `check_rides.gd`, the measuring copies the słoiki's.
+- `hud.gd`'s context button is shared now (`pill_owner`: "call" or "ride"); a third owner
+  (police?) should use the same `show_pill(pl, en, owner)` and `context_pressed`.
+
+## Decided in loop 2d-1 (gameplay-dev defaults; the user may still change them)
+- A rescue call ringing (WEZWANIE on the button) doesn't stop a ride request card; taking the
+  ride puts the call off (90 s), as any job does. An ignored call would otherwise block rides
+  for the whole session.
+- A 4½-star ride keeps the 5-star streak (the spec: "below 4.5 or a cancel ends it").
+- The tip is a share of the fare after the MNOŻNIK.
+- Your rating counts the rides a save hasn't driven as 4,87, so one perfect ride makes 4,88,
+  twenty make 5,00.
+- The passenger gives up after 3 × the ETA in the pickup (the pickup's own ETA) and in the ride.
+- The request card sits at the bottom, the result card top centre (the longest result didn't fit
+  beside the pedals on a 390-pt screen).
+- `podwozka_driver`'s two untagged lines are tagged `arrive` and `reroute` so each moment says
+  its own; the offset pickup line ("the pin was a bit off") is tagged `offset`; "No widzisz,
+  aplikacja wie" (the design's table) is a `followed` line.

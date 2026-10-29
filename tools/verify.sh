@@ -47,8 +47,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets drape drive drive-prebuilt steering settings tiers governor hud landmarks sfx radio water water-prebuilt streaming police plain heli race kebab splash rain prebuilt classic police-runs police-soak)
-STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud landmarks sfx radio police plain prebuilt)
+STEPS_ALL=(map roads streets drape drive drive-prebuilt steering settings tiers governor hud rides landmarks sfx radio water water-prebuilt streaming police plain heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
+STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud rides landmarks sfx radio police plain prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -315,6 +315,25 @@ police_soak() {
 	fi
 }
 
+# Loop 2d-1 x 3g-1: ride 8 with a pull-over at frame 1500; passes with no errors, exactly one
+# `ride: stars 4.0 (police −1.0)` line and the pull-over done.
+ride_police() {
+	local logf=$logs/run_ride-police.log t0=$EPOCHREALTIME code
+	( cd $GAME && limited $STEP_LIMIT $GODOT --headless --path . --fixed-fps 60 --quit-after 2400 \
+		-- --nosave --notitle --prebuilt --ride=8 --passenger=believer --ride-quirk=river --autopilot --parody-log \
+		--police-log --pullover=generic --pullover-frame=1500 ) > $logf 2>&1
+	code=$?
+	local secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+	local np=$(problems $logf | wc -l | tr -d ' ')
+	local stars=$(grep -c -- '(police −' $logf)
+	local one=$(grep -m1 '^ride: stars 4\.0 (police −1\.0)' $logf)
+	if (( code == 0 && np == 0 && stars == 1 )) && [[ -n $one ]] && grep -q '^police: pull-over done' $logf; then
+		row PASS "run: ride-police" $secs "0 errors · $one, once"
+	else
+		row FAIL "run: ride-police" $secs "exit $code, $np error lines, $stars police star lines, '${one:-none}' ($logf)"
+	fi
+}
+
 run_ios() {
 	local t0=$EPOCHREALTIME logf=$logs/ios.log code
 	( limited $STEP_LIMIT $ROOT/tools/export_ios.sh && cd $ROOT && limited $STEP_LIMIT xcodebuild \
@@ -388,6 +407,8 @@ for s in $want; do
 		governor) check governor '^check_governor:' --script res://tools/check_governor.gd ;;
 		# Loop 2e: the HUD at phone size: 44 pt controls, 11 / 13 pt text, the safe area, no overlaps.
 		hud) check hud '^check_hud:' --script res://tools/check_hud.gd ;;
+		# Loop 2d-1: Podwózka's star and pay tables, the streak and the cancel rules, its lines.
+		rides) check rides '^check_rides:' --script res://tools/check_rides.gd ;;
 		landmarks) check landmarks '^landmark check:' --script res://tools/check_landmarks.gd ;;
 		sfx) check sfx '^sfx:' --script res://tools/check_sfx.gd ;;
 		radio) check radio '^radio loops:' --script res://tools/check_radio_loops.gd ;;
@@ -404,6 +425,13 @@ for s in $want; do
 		heli) game heli 6000 '^rescue (done|failed):' --mission=1 --heli --autopilot ;;
 		race) game race 8000 '^race (won|lost):' --race=0 --autopilot ;;
 		kebab) game kebab 9000 '^kebab delivered:' --kebab=0 --autopilot ;;
+		# Loop 2d-1: a Podwózka ride by the app's route: a passenger 34 m off the pin, a GPS believer,
+		# the river quirk (its waypoint on dry land, the `ride: quirk river` line says how far from
+		# the water), the stars and the pay (`ride: pay`, the wallet before and after).
+		ride) game ride 20000 '^ride: pay' --ride=8 --passenger=believer --ride-quirk=river --autopilot --parody-log ;;
+		# Loop 2d-1 x 3g-1: a pull-over 25 s into that ride takes exactly one star (police.gd calls
+		# rides.on_pulled_over() when the conversation ends), on the prebuilt city.
+		ride-police) ride_police ;;
 		# Loop 10a: into the river from the boulevard by Most Poniatowskiego with a delivery on:
 		# the splash, then the tow onto a lane on dry land within 2 s, the job still running.
 		splash) game splash 420 '^water: towed after [01][.][0-9]+ s .* m from a lane, dry; job on' \
