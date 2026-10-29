@@ -883,3 +883,27 @@ Small problems that agents reported or that showed up in screenshots. They are f
   sun's shadow at night should be off from the first frame. Not looked into.
 - The streamer's `(unload)` time is only the call to `queue_free()`; freeing a sector's nodes
   happens at the end of that frame and isn't in the streaming numbers (no slow frame showed it).
+
+## From the first Android build (2026-10-29)
+
+- **Nothing has run on an Android phone.** The AAB is built and signed, but the game has never
+  started on Android: touch, haptics (`Input.vibrate_handheld`), the save path, the frame rate,
+  the governor's tiers (`tiers.gd` knows iPhone model ids only, so an Android phone gets its
+  default level) and the HUD's safe area round a camera cutout are all unseen.
+- **Vulkan is "not required" in the manifest** (Godot's default), so Play offers the game to
+  phones with only OpenGL ES 3, where the Mobile renderer can't start. Options: require Vulkan
+  (`android.hardware.vulkan.level` required, through a custom manifest or Play's device catalogue
+  exclusions), or turn on `rendering/rendering_device/fallback_to_opengl3` and check the look
+  on the Compatibility renderer.
+- **The export prints Dialogue Manager's C# errors** (`No loader found for resource:
+  ...DialogueLabel.cs`, `ExampleBalloon.tscn` parse errors): the add-on's C# example and label
+  files can't load in a non-.NET Godot. Harmless (the game uses its own balloon); the iOS
+  export prints the same 11 lines (checked in this loop's `verify.sh --only=ios`). An exclude
+  filter for `addons/dialogue_manager/example_balloon/*` and the `.cs` files would quiet it.
+- **The city step rewrites 34 tracked files with byte noise** (`bake_city.gd` isn't
+  byte-deterministic: the sector `.scn` files differ by a few bytes each run with no map
+  change), in both export scripts. `--skip-city` avoids it for Android; a deterministic bake or
+  a "bake only when the map changed" check would fix it for both.
+- **Store graphics are not made yet**: the 512 px icon, the 1024 × 500 feature graphic and
+  1920 × 1080 screenshots (Play's 2:1 limit rules out 2532 × 1170); `docs/store/play-console.md`
+  lists what each needs.

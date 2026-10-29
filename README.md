@@ -109,6 +109,58 @@ Manager (see Loop 3g-1: the police, part one).
    draw call several times slower. Then Settings (the gear) → TEST, or the TEST · BENCH button
    on the performance overlay, and paste the card's text (KOPIUJ · COPY) into the chat.
 
+## Android (Google Play)
+
+```zsh
+tools/export_android.sh              # split the map, prebuild the sectors, then the signed AAB
+tools/export_android.sh --skip-city  # the AAB only (the tracked prebuilt sectors as they are)
+tools/export_android.sh --apk        # a debug APK for `adb install` on a test phone
+```
+
+It writes `build/android/nocnawarszawa-<version name>-<version code>.aab` (0.1 and 1 now; ~68 MB:
+the arm64 engine library ~71 MB uncompressed and the game's files ~45 MB, the same files as the
+iOS `.pck`) and prints its size, package and version. The version lives in the **Android** preset
+in `game/export_presets.cfg` (`version/name`, `version/code`): raise the code for every upload,
+Play refuses a code it has seen. The city step is the same as `tools/export_ios.sh`'s and
+rewrites the tracked `game/map/sectors/*.scn`, `index.res` and `proxies.scn` with a few bytes of
+noise each; use `--skip-city` when the map hasn't changed.
+
+The preset: package `com.olshanskysoft.nocnawarszawa`, Gradle build, AAB, arm64-v8a only, min
+SDK 24, target SDK 36, sensor landscape (from the project's orientation; Godot writes
+`userLandscape`, which follows the phone's rotation lock), the VIBRATE permission only (the
+haptics; no INTERNET: the game makes no network calls), app backup off, the project icon
+(`game/icon.svg`) as the launcher icon.
+
+**The upload key** is `~/.android-keys/nocnawarszawa-upload.jks` (alias `upload`, RSA 2048,
+10,000 days), outside every repo. Its password is only in the macOS login keychain (service
+`nocnawarszawa-android-upload`, account `upload`; Keychain Access shows it). The script reads it
+into `GODOT_ANDROID_KEYSTORE_RELEASE_PATH`, `_USER` and `_PASSWORD`, which Godot reads at export:
+no key, user or password is ever in `export_presets.cfg`. Play App Signing holds the key that
+signs what users install; this one only proves an upload is yours. **Back it up**: copy the
+`.jks` and its password (from Keychain Access) to a password manager or an encrypted disk.
+If it is lost, Play can reset the upload key (Play Console → Test and release → App integrity),
+but that takes a support request and a few days.
+
+**One-time setup on a new Mac** (already done on this one):
+1. Godot 4.7.2's official export templates (github.com/godotengine/godot/releases, tag
+   `4.7.2-stable`, `Godot_v4.7.2-stable_export_templates.tpz`, ~1.3 GB, checked against the
+   release's `SHA512-SUMS.txt`): only `android_debug.apk`, `android_release.apk` and
+   `android_source.zip` are needed, in `~/Library/Application Support/Godot/export_templates/4.7.2.stable/`.
+2. The Android SDK (platform android-36, build-tools, platform-tools; no NDK or cmdline-tools
+   needed) and a JDK 17 or 21, set in Godot's editor settings as `export/android/android_sdk_path`
+   and `export/android/java_sdk_path`. Godot makes its own debug keystore the first time.
+3. The Gradle build template: the script's first run passes `--install-android-build-template`,
+   which puts it in `game/android/build/` (gitignored, kept out of the project by its own
+   `.gdignore`). Gradle downloads itself and its libraries on the first build (a few hundred MB,
+   cached in `~/.gradle`).
+4. The upload key, as above (`keytool -genkeypair -keystore ~/.android-keys/nocnawarszawa-upload.jks
+   -alias upload -keyalg RSA -keysize 2048 -validity 10000`, the password into the keychain with
+   `security add-generic-password -a upload -s nocnawarszawa-android-upload -w`).
+
+Play Console's forms (app details, content rating, target audience, data safety, the store
+text) have ready answers in `docs/store/play-console.md`; the privacy policy is
+`docs/privacy.md`. Nothing has run on an Android phone yet (see that file's checklist).
+
 ## Run it on the Mac
 
 `godot --path game` (or open `game/project.godot` in the Godot editor and press F5).
