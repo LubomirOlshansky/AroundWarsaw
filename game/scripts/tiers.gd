@@ -14,6 +14,12 @@ extends RefCounted
 ##   High's budget (the Pro Max's own 1434×660, 0.95 MP, the most a phone has held 60 fps with
 ##   at High) gives it 2 → 896×414 with High's shadows and effects, and leaves every phone
 ##   that already scaled by 2 or more as it was.
+## - Loop G1b: **Auto starts sharp.** Where a level's budget makes the image coarser than the
+##   style's own scale (budget_binds: High with Sharp on the iPhone 11 and the SE 2 / 3), Auto
+##   draws the style's own scale with that level's effects (High ×1, not Ultra's extras), and
+##   falls back to the budget for the next launches when a session there struggled (the
+##   governor's GPU extras down a minute, governor.gd `struggle`), coming back after calm
+##   sessions with a doubling wait (SHARP_*). Manual levels keep G1's rule.
 
 enum { LOW, MEDIUM, HIGH, ULTRA }
 ## The player's choice that follows the device (settings.gd quality).
@@ -71,11 +77,105 @@ static func for_model(model: String) -> int:
 ## fits the level's budget.
 static func image_scale(size: Vector2, lines: float, quality: int) -> int:
 	var q: Dictionary = QUALITY[clampi(quality, 0, QUALITY.size() - 1)]
-	var k := maxi(1, floori(size.y / lines)) + int(q["step"])
+	var k := own_scale(size, lines, quality)
 	var budget := float(q["budget"]) * 1e6
 	while k < 64 and floorf(size.x / k) * floorf(size.y / k) > budget:
 		k += 1
 	return k
+
+
+## Loop G1b: the style's own scale at a level, before the budget: the most whole screen pixels
+## that keep the style's lines (at least 1), the level's step coarser.
+static func own_scale(size: Vector2, lines: float, quality: int) -> int:
+	var q: Dictionary = QUALITY[clampi(quality, 0, QUALITY.size() - 1)]
+	return maxi(1, floori(size.y / lines)) + int(q["step"])
+
+
+## Loop G1b: whether the level's budget makes this image coarser than the style's own scale (on
+## the phones only High with Sharp on the iPhone 11's 1792×828 and the SE 2 / 3's 1334×750):
+## there Auto draws the style's own scale, with the fallback below.
+static func budget_binds(size: Vector2, lines: float, quality: int) -> bool:
+	return image_scale(size, lines, quality) > own_scale(size, lines, quality)
+
+
+## Loop G1b: the scale Auto draws: the style's own where `sharp`, else the level's budget's
+## (image_scale; they differ only where budget_binds). Manual levels always use image_scale.
+static func auto_scale(size: Vector2, lines: float, quality: int, sharp: bool) -> int:
+	return own_scale(size, lines, quality) if sharp else image_scale(size, lines, quality)
+
+
+## Loop G1b: Auto's sharp image and its fallback (docs/design/graphics.md 4.5), a state kept in
+## settings.gd between launches:
+## - `fallback`: the next launches draw the level's budget (×2 on the iPhone 11);
+## - `calm`: calm sessions at the fallback so far; `wait`: how many it takes before the sharp
+##   image is tried again;
+## - `trial`: -1, or the calm sessions at the sharp image since it came back: a struggle before
+##   `wait` of them doubles the wait (up to SHARP_WAIT_MAX), `wait` of them pass the trial and
+##   the wait is back to SHARP_WAIT;
+## - `why`: what the struggle was, for the log.
+## The governor's raise-wait law one level up: a retry that fails soon waits twice as long next
+## time, so the image can't swing launch after launch. 2 calm sessions: a day or two of play
+## after a hot session (the heat is the session's: sun, charging, a case, not the phone's for
+## good); doubling to 16: a phone that can't hold the sharp image spends one session in 17 on
+## it (the governor guarding that one), about a fortnight of daily play between tries.
+const SHARP_WAIT := 2
+const SHARP_WAIT_MAX := 16
+
+
+## A fresh state: the sharp image, no fallback.
+static func sharp_state() -> Dictionary:
+	return {"fallback": false, "calm": 0, "wait": SHARP_WAIT, "trial": -1, "why": ""}
+
+
+## The state a launch starts from: a fallback that has had `wait` calm sessions tries the sharp
+## image again, on trial. The launch is sharp when the result's `fallback` is false.
+static func sharp_launch(state: Dictionary) -> Dictionary:
+	var s := sharp_clean(state)
+	if s["fallback"] and int(s["calm"]) >= int(s["wait"]):
+		s["fallback"] = false
+		s["calm"] = 0
+		s["trial"] = 0
+	return s
+
+
+## After a session that struggled (`launched`: the state its launch started from; `sharp`: it
+## drew the sharp image). At the sharp image: the fallback from the next launch on, the wait
+## doubled if the sharp image was on trial, else SHARP_WAIT. At the fallback: its calm count
+## starts again (the phone is under strain, so the sharp image waits longer).
+static func sharp_struggled(launched: Dictionary, sharp: bool, why: String) -> Dictionary:
+	var s := sharp_clean(launched)
+	if sharp:
+		s["wait"] = mini(int(s["wait"]) * 2, SHARP_WAIT_MAX) if int(s["trial"]) >= 0 else SHARP_WAIT
+		s["fallback"] = true
+		s["trial"] = -1
+		s["why"] = why
+	s["calm"] = 0
+	return s
+
+
+## After a calm session: at the fallback one more towards the sharp image; at the sharp image on
+## trial one more towards passing it.
+static func sharp_calm(launched: Dictionary, sharp: bool) -> Dictionary:
+	var s := sharp_clean(launched)
+	if not sharp:
+		s["calm"] = int(s["calm"]) + 1
+	elif int(s["trial"]) >= 0:
+		s["trial"] = int(s["trial"]) + 1
+		if int(s["trial"]) >= int(s["wait"]):
+			s["trial"] = -1
+			s["wait"] = SHARP_WAIT
+	return s
+
+
+## A copy with every key present and in range (a missing, old or hand-edited settings file).
+static func sharp_clean(state: Dictionary) -> Dictionary:
+	var s := sharp_state()
+	s["fallback"] = bool(state.get("fallback", false))
+	s["wait"] = clampi(int(state.get("wait", SHARP_WAIT)), SHARP_WAIT, SHARP_WAIT_MAX)
+	s["calm"] = clampi(int(state.get("calm", 0)), 0, SHARP_WAIT_MAX)
+	s["trial"] = clampi(int(state.get("trial", -1)), -1, SHARP_WAIT_MAX)
+	s["why"] = str(state.get("why", ""))
+	return s
 
 
 ## A choice (AUTO or a level) by name or number for --quality= (-2: not one).
@@ -89,8 +189,12 @@ static func parse(text: String) -> int:
 	return -2
 
 
-## "Auto→High (iPhone12,1)" or "Medium": the choice for the bench card.
-static func describe(choice: int, level: int, model: String) -> String:
+## "Auto→High (iPhone12,1)" or "Medium": the choice for the bench card. Loop G1b: with the
+## image's `scale` (0: left out) and Auto's `mode` ("sharp", "fallback" or "": the budget
+## doesn't bind): "Auto→High ×1 sharp (iPhone12,1)", "Auto→High ×2 fallback (iPhone12,1)",
+## "Auto→Ultra ×2 (iPhone17,2)", "High ×2".
+static func describe(choice: int, level: int, model: String, scale := 0, mode := "") -> String:
+	var tail := (" ×%d" % scale if scale > 0 else "") + (" " + mode if mode != "" else "")
 	if choice == AUTO:
-		return "Auto→%s (%s)" % [NAMES[level], model]
-	return NAMES[clampi(choice, LOW, ULTRA)]
+		return "Auto→%s%s (%s)" % [NAMES[level], tail, model]
+	return NAMES[clampi(choice, LOW, ULTRA)] + tail

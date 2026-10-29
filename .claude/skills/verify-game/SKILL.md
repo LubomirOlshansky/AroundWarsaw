@@ -87,8 +87,9 @@ the safe area, no overlaps; it lists the passing panels that waited for room),
 rules and its dialogue groups on synthetic events; under a second), `check_landmarks.gd`, `check_sfx.gd`, `check_radio_loops.gd`, `check_water.gd` (loop 10a:
 `water` and `water-prebuilt`, where a car can get into the water, ~17 s and ~10 s) and the
 game runs, among them `splash` (loop 10a: `--drive-into-water=1015,-85 --kebab=0`, the tow
-within 2 s with a job running) and `ride` (loop 2d-1: `--ride=19 --passenger=believer
---ride-quirk=river --autopilot --parody-log`, a Podwózka ride to its `ride: pay` line). Loop 3g-1: `police` (`check_police.gd`: the police's lines and
+within 2 s with a job running) and `ride` (loop 2d-1: `--ride=8 --passenger=believer
+--ride-quirk=river --autopilot --parody-log`, a Podwózka ride to its `ride: pay` line), `ride-police`
+(the same ride with a pull-over at frame 1500: exactly one star). Loop 3g-1: `police` (`check_police.gd`: the police's lines and
 the conversation's flow, P11; the state machine on synthetic inputs, P12; ~1 s), `police-runs`
 (P1-P7 as nine game runs on the prebuilt city, each judged by its `police:` lines and the wallet
 line; ~30 s) and `police-soak` (P13, the autopilot in Busy traffic with the police on at once;

@@ -658,7 +658,7 @@ loop 2b made Medium and Low real steps; loop G1 added **Auto**, the default, and
 | | Ultra | High | Medium | Low |
 | --- | --- | --- | --- | --- |
 | Auto picks it on (model id, `OS.get_model_name()`) | 15 Pro and newer: `iPhone16,x`, `iPhone17,1`–`4`, `iPhone18,x` and up | 11 to 15, SE 2 / 3, 16e (`iPhone12,x`–`15,x`, `17,5`); iPads, Macs, anything unknown | XS / XR (`iPhone11,x`) | 8 / X (`iPhone10,x`) |
-| Pixel size (whole screen pixels per image pixel): the style's own scale (Sharp: the most that keep 480 lines), Low and Medium one coarser, then coarser until the image fits the budget | budget 1.6 MP: the iPhone 11 at 1 (1792×828), the Pro Max at 2 (1434×660) | budget 0.96 MP (the Pro Max's 1434×660): 2 on every iPhone, the iPhone 11 and SE included (896×414, 667×375) | one coarser, budget 0.5 MP (956×440 / 844×390 / 896×414) | as Medium |
+| Pixel size (whole screen pixels per image pixel): the style's own scale (Sharp: the most that keep 480 lines), Low and Medium one coarser, then coarser until the image fits the budget | budget 1.6 MP: the iPhone 11 at 1 (1792×828), the Pro Max at 2 (1434×660) | budget 0.96 MP (the Pro Max's 1434×660): 2 on every iPhone, the iPhone 11 and SE included (896×414, 667×375). **Under Auto (loop G1b)** the iPhone 11 and the SE 2 / 3 draw Sharp at 1 (1792×828, 1334×750) with High's effects, and at 2 for the next launches after a session there struggled (the fallback, below) | one coarser, budget 0.5 MP (956×440 / 844×390 / 896×414) | as Medium |
 | Sun shadows | **4096** map, everything over a metre tall | 2048 map, everything over a metre tall | 1024 map, buildings and trees only | off |
 | Night glow | on | on | on | off |
 | Rain streaks | all | all | 70% | 40% |
@@ -673,6 +673,16 @@ High was the default and drew the iPhone 11's 828 lines at 1 (1792×828, 1.48 MP
 of any phone); a settings file saved before G1 that says High loads as Auto, once (High was the
 default then, not a choice). The **frame governor** and the **view rule** (loop G1, below) take
 extras away when frames are missed and in wide views, never the pixel size or the shadow map.
+Loop G1b: **Auto starts sharp, with a fallback** (section "Loop G1b" below): where High's budget
+would make Sharp coarser than its own scale (only the iPhone 11 and the SE 2 / 3, and Mac windows
+under 960 lines over 0.96 MP), Auto draws the style's own scale with High's effects (not Ultra's);
+if a session there struggled (the governor's GPU extras down a minute and a tenth of the play, or
+3 minutes in a row missing over 2 % of refreshes GPU-bound), the next launches draw the budget's
+×2, and the sharp image comes back after 2 calm sessions, the wait doubling (to 16) each time it
+struggles again on trial. The manual levels keep G1's rule (Wysoka ×2 on the iPhone 11, Ultra ×1).
+Settings → Obraz's Auto button says what it draws: `auto · High ostry` (sharp), `auto · High ×2`
+(the fallback), `auto · High` (where the budget doesn't bind); the overlay's last line
+`High ×1 sharp` / `High ×2 fallback`; the BENCH card `Auto→High sharp (iPhone12,1)`.
 
 ## Loop 1 (polish, 2026-10-28)
 
@@ -2011,6 +2021,84 @@ Screenshots: `shots/g1/` (1792×828 before / after Auto, 2868×1320 before / Hig
 2532×1170 before / after, day, night, the river at night, the helicopter; the Obraz tab at
 1792×828 and on the SE; the overlay).
 
+## Loop G1b: a sharp picture with a fallback (2026-10-29)
+
+The user's decision after the iPhone 11 before/after crops: the iPhone 11 gets the **sharp**
+picture by default, with a fallback. G1 gave it High's 0.96 MP budget, so Sharp's ×1 (1792×828)
+became ×2 (896×414); a cool iPhone 11 holds ×1 (G1's 3 minutes: 0 missed refreshes) but with the
+A13 88 % busy in its Medium GPU state, and the governor never changes the pixel size live. What
+changed (`tiers.gd`, `governor.gd`, `settings.gd`, `main.gd`'s quality and image code,
+`settings_panel.gd`; docs/design/graphics.md 4.5):
+
+1. **Auto starts sharp** (`Tiers.budget_binds`, `auto_scale`): under Auto, where the level's
+   budget makes the image coarser than the style's own scale, Auto draws the style's own scale
+   with that level's effects ("High ×1": not Ultra's 4096 shadows or 16 reflection steps). On
+   the phones that is only High with Sharp on the iPhone 11 (`iPhone12,1`, 1792×828) and the SE
+   2 / 3 (`iPhone12,8`, `iPhone14,6`, 1334×750); the iPhone 8 and the XR have those screens but
+   Low / Medium (already ×2 by their step); every other phone and style has one scale either way
+   (`check_tiers.gd` walks all 40 iPhone ids × 4 styles). Mac windows under 960 lines over
+   0.96 MP (1366×768, 1440×900, the shots' 1792×828) are sharp too. Manual levels keep G1's rule
+   (Wysoka ×2 on the iPhone 11, Ultra ×1); the Pro Max is Auto→Ultra ×2 as before.
+2. **Struggled**, from the governor's own data (`governor.gd`'s session **tally**, counted only at
+   Auto's image, past the 5 s settle after a start, a load or a pause, outside wide views and
+   the helicopter): the GPU's extras dropped by a **GPU-bound** load for 60 s in all and a tenth
+   of the counted play (one drop that a calm half minute undoes is 30 s, a passing load; a
+   second, or one that didn't calm the frames, is the image; a 15-minute drive needs 90 s), or
+   **3 counted minutes in a row** missing over 2 % of their refreshes GPU-bound (a steady loss
+   under the governor's 5 % drop line). CPU-bound misses don't count, nor a GPU drop a CPU-bound
+   load made once the CPU's extras were gone. **Calm**: 3 minutes counted without that. The
+   verdict is written the moment it is known (iOS kills a backgrounded app without notice).
+3. **The fallback and coming back** (`Tiers.sharp_*`, kept in `settings.cfg` `[auto_image]`):
+   after a struggle the next launches draw the level's budget (×2); 2 calm sessions there bring
+   the sharp image back on trial; a struggle on trial doubles the wait (2 → 4 → 8 → 16, capped),
+   a passed trial (as many calm sessions as the wait) puts it back to 2, a struggle at the
+   fallback restarts its count. A phone that struggled on one hot day is sharp again a day or
+   two later; one that can't hold ×1 spends one launch in 17 on it once capped, with the governor
+   guarding that one. The switch is per launch, never live.
+4. **Never written** by `--nosave`, test runs (bench, probe, autopilot, shots) or
+   `--last-session=struggled|calm` (start as if the last session struggled / was calm). The log's
+   `quality:` lines say what Auto picked and why (`quality: Auto→High ×1 sharp (iPhone12,1) ·
+   image 1792x828`; `quality: Auto→High ×2 fallback (last session: GPU extras down 74 s of 410) ·
+   iPhone12,1 · the sharp image again after 2 calm sessions (0 so far) · image 896x414`) and the
+   session's verdict (`quality: this session at High ×1 sharp was calm · tally …`).
+   `--governor=log` adds the tally to its status lines and a `governor minute N:` line a minute.
+5. **Where the player sees it**: Settings → Obraz's Auto button `auto · High ostry` / `auto · High
+   ×2` (`auto · High` where the budget doesn't bind, e.g. the Fine style), kept up to date when the
+   style changes; the overlay's last line `High ×1 sharp · gov …` / `High ×2 fallback · gov …`; the
+   BENCH card `quality Auto→High sharp (iPhone12,1)` / `Auto→High fallback (iPhone12,1)` beside
+   its `image 1792x828 (×1)`. No toast (optional in the brief; BACKLOG).
+6. **Thermal state**: still not readable from Godot 4.7.2 (no OS, DisplayServer, Engine,
+   RenderingServer or Performance method), so it isn't part of the rule.
+
+**On the iPhone 11** (iOS 26.5, started with `devicectl`, no debugger, day, traffic Normal, Point,
+`--nosave`: the phone's own settings and save untouched; in run order):
+
+| Run | Image | fps | 1 % low | Worst frame | Late (> 17.7 ms) | Missed refreshes | Governor |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| BENCH minute at Auto (`--bench-button`), phone cool | 1792×828 ×1 sharp | 60.0 | 54.4 | 19.0 ms | 3.7 % | **0** | held |
+| 15-minute drive, Auto, `--autopilot --governor=log` (17.7 min, 1062 s counted) | 1792×828 ×1 sharp | **60.0 every minute** (17 of 17) | | | | **5 of 63,728** (all in minute 1; 1 GPU-bound) | on: **0 changes**; calm at 180 s; the struggle rule never close (0 s down, no bad minute) |
+| BENCH minute, `--last-session=struggled` (forced), after the drive | 896×414 ×2 fallback | 60.0 | 56.9 | 18.6 ms | 0.3 % | 0 | held |
+| BENCH minute at Auto, final build, after both (phone warm) | 1792×828 ×1 sharp | 60.0 | 58.7 | 17.1 ms | 0.0 % | 0 | held |
+
+The drive's per-minute lines (fps, missed refreshes, GPU-bound, GPU extras down) are 60.0 / 0 / 0
+/ 0 s in every minute from 2 to 17 (minute 1: 5 missed, the arrival). Draw calls on the BENCH
+cards 124 / 125 (main 45, shadow 41), as in G1; video memory 307 MB at ×1 against 276 at ×2. So
+a room-temperature iPhone 11 drives 17 minutes of day traffic at ×1 without the governor
+stepping in: the first data point for graphics.md's G0 soak (still to do: night, rain at night,
+the 20-minute H3 bar, a warm room). The 1 % low and "late" on the first card are the display's
+pacing mode (late frames with no refresh missed, Loop G1 "Pacing modes"), not the frame.
+
+**On the Mac** (M4 Pro, Metal Mobile, `--bench` at 2868×1320, 3 runs each, before = `613ff38`):
+the change adds no geometry, materials or draw calls (116–120 before, 116–118 after: traffic
+varies); scripts 0.86 / 0.85 / 0.92 → 0.95 / 0.84 / 0.84 ms, the game loop (the governor and
+the tally inside it) 0.11 / 0.11 / 0.14 → 0.16 / 0.12 / 0.13 ms, within the runs' spread (the
+before runs came after the after runs, not interleaved). Per frame the tally adds a comparison
+in `frame()` and a few additions in `tick()`; the verdict check is two booleans until a verdict
+is due; a `minute` line is built once a minute.
+
+Screenshots: `shots/g1b/` (the Obraz tab at 1792×828 at Auto sharp, `auto · High ostry`, and in
+the forced fallback, `auto · High ×2`, with the ×2 city behind it).
+
 ## Loop 3g-1: the police, part one (2026-10-28)
 
 The design is docs/design/police.md (the user chose the gentler police: warnings and jokes,
@@ -2219,14 +2307,17 @@ name or logo). The joke is the app and its GPS, never the driver or the passenge
 
 - **How it's offered**: in the car with nothing else on (one activity at a time, like the kebab
   and słoiki jobs), never in the first 2 minutes of a session (the title screen doesn't count).
-  A request card at the bottom every 75–120 s (not modal; it goes after 10 s), or the top row's
+  A request card every 75–120 s (not modal; it goes after 10 s), or the top row's
   context button reads **PODWÓZKA · ride app** and a tap brings a request within 2 s. A rescue
   call ringing keeps the button (WEZWANIE) but not the card; taking a ride puts the call off, as
   any job does. Never during a race, a rescue or from the helicopter.
-- **The request card**: `PODWÓZKA · NOWY KURS`, the passenger's first name, how far the pin is,
-  the ride's length and the passenger's own stars (`Kasia · 350 m · kurs 1,8 km · ★ 4,9`), their
-  note (`podwozka_request`), `MNOŻNIK ×1,5 · NOC` at night (×1,2 in the rain, ×1,8 both), your
-  rating; PRZYJMIJ · Accept, POMIŃ · Skip (M / K).
+- **The request card** stands beside the car, never over it (`hud.gd` `show_side_card`: the
+  right-hand column under the top row, as wide as the room right of the car's spot): `PODWÓZKA ·
+  NOWY KURS` (at night `PODWÓZKA · MNOŻNIK ×1,5`, ×1,2 in the rain, ×1,8 both; the English in
+  the title row says why), the passenger and their own stars, how far the pin is and the ride's
+  length (`Kasia ★ 4,9 · 350 m · 1,8 km`), their note (`podwozka_request`) with its English;
+  PRZYJMIJ · Accept, POMIŃ · Skip (M / K). Your rating is on the result card (on a 390-pt phone
+  the request card has room for five lines of text beside the car).
 - **Pickup**: the app's pin (a teal ring and column, the minimap dot and a dotted teal line) at a
   real address door 150–600 m by road. Half the time the passenger isn't there: they wait 30–60 m
   away along the street or across it, waving under a teal "!" (one mesh each), and say a
@@ -2240,12 +2331,14 @@ name or logo). The joke is the app and its GPS, never the driver or the passenge
   and the arrow always point at the real door.
 - **The app's route** is the minimap's dotted teal line: the shortest road, except that 35 %
   of rides get one quirk, which "Nawigacja" announces 200 m before it (`podwozka_gps`):
-  - `river`: out to the Vistula's edge and back. River spots are found from the baked shore
-    runs (every 12 m, a few a frame after the city is built): the water past the edge still deep
-    60 m out (the river, not a pond or a fountain), a waypoint 5 m in from the edge with no
-    water within 3 m and no roof over it, a road within 70 m in a straight line over dry, open
-    ground; one spot per road edge, both carriageways (10 on today's map, by Most Poniatowskiego
-    and along Wybrzeże Kościuszkowskie). The ride takes the spot that adds least, at most 1.5 km.
+  - `river`: out to the Vistula's edge and back. River spots come from the map's global water
+    test (loop 3c: the streamed city's exported index has no shore runs): `shore_distance` on an
+    8 m grid over the map, 3 rows a frame after the city is built (~48 ms in all), each dry-to-wet
+    step a point on the edge; the water past it still deep 60 m out (the river, not a pond or a
+    fountain), a waypoint 5 m in from the edge with no water within 3 m and no roof over it, a
+    road within 70 m in a straight line over dry, open ground; one spot per road edge, both
+    carriageways (9 on today's map, by Most Poniatowskiego and along Wybrzeże Kościuszkowskie,
+    the same on both city paths). The ride takes the spot that adds least, at most 1.5 km.
   - `zone`: through a park's middle (in from the road on the passenger's side, out on the
     destination's; the city guards' reaction is loop 3g's). `oldtown` falls back to it: today's
     map has no Old Town square.
@@ -2267,14 +2360,19 @@ name or logo). The joke is the app and its GPS, never the driver or the passenge
   31 + 12 = 43 zł. **Your rating** is the average of the last 20 rides, the ones a new save
   hasn't driven counted as 4,87 (nobody has a 5.0); it and the streak are kept in
   `user://save.cfg` (`[keep]`, `wallet.gd`).
-- **The end**: at the door (7 m, under 2.5 m/s) Nawigacja's "you have arrived" line and the
-  result card (top centre): the stars, the passenger's `podwozka_rating` comment (5, 4, low, or
-  police if pulled over), the fare with the MNOŻNIK, the tip and the streak, your rating and what
-  moved the stars. **Cancel**: the ✕ on the status panel any time, or the passenger gives up after
+- **The end**: at the door (7 m, under 2.5 m/s) Nawigacja's "you have arrived" line, then 2.6 s
+  later the result card beside the car (one thing at a time): the stars, the passenger's
+  `podwozka_rating` comment (5, 4, low, or police if pulled over), the pay (the fare with the
+  MNOŻNIK, the tip, the streak), your rating and what moved the stars. It has no button: it goes
+  after 12 s or once the car is 25 m off (M closes it). While a ride's request or result card is
+  up, the app-taxis' GPS bubbles and the radio host's next line wait (a caption already up slides
+  out); they come after. **Cancel**: the ✕ on the status panel any time, or the passenger gives up after
   3 × the ETA (pickup and ride each): no pay, no stars lost, the streak ends.
-- **The police hook**: `rides.on_pulled_over()` takes exactly one star from a running ride.
-  Loop 3g-2 calls it from `police.gd` where a pull-over completes (the player stopped for the
-  car, police.md 8.3), not when a chase is escaped.
+- **The police**: `police.gd` calls `rides.on_pulled_over()` when a pull-over's conversation ends
+  (police.md 8.3): exactly one star from a running ride (none while picking up), and the result's
+  comment becomes the `police` one. Escaping a chase costs nothing. Verify step `ride-police`:
+  ride 8 with `--pullover=generic --pullover-frame=1500` on the prebuilt city prints
+  `ride: stars 4.0 (police −1.0)` once.
 - **GPS moments in traffic** (`gps_moments.gd`, parodies.md 3.2): every 45–90 s one Podwózka car
   (the hatch with the phone on its roof, loop 2c) on screen within 80 m of the view's centre (and not behind a building)
   stops dead for 4 s ("you have arrived": the cars behind wait, one may shout), takes the way back
@@ -2284,12 +2382,12 @@ name or logo). The joke is the app and its GPS, never the driver or the passenge
 - **Checks**: `game/tools/check_rides.gd` (verify step `rides`, under a second) feeds the rules
   synthetic events: the star table, the pay table (with the design's 43 zł), the streak, the
   cancel rules and the rating, and every dialogue group and tag the code asks for (Polish and
-  English, bubbles ≤ 70 characters, buttons ≤ 28). The verify step `ride` drives ride 19 (a
-  believer waiting 54 m from the pin, the river quirk) with the autopilot and `--parody-log`.
+  English, bubbles ≤ 70 characters, buttons ≤ 28). The verify step `ride` drives ride 8 (a
+  believer waiting 34 m from the pin, the river quirk) with the autopilot and `--parody-log`.
   `check_hud.gd` lays out the request card, the ride's status and two result cards at their
-  longest.
+  longest, and fails a ride card that covers the car's spot.
 - **Cost** (probe, Metal, 2868×1320, Classic, traffic Normal, day; before = 613ff38 from a copy
-  in the same session): the spawn view 134 draw calls (main 52, shadow 35, 2D 46) before and
+  in the same session, measured before the 3c streaming merge): the spawn view 134 draw calls (main 52, shadow 35, 2D 46) before and
   after, side jobs + eggs 0.039 → 0.044 ms. During a ride (ride 19 on the autopilot, Powiśle):
   126 draw calls (37 / 30 / 60), side jobs + eggs 0.088 ms; a kebab delivery measured the same
   way: 140 (46 / 29 / 65), 0.068 ms. Nothing new in the 3D passes but the ride's pin (the job
@@ -2300,7 +2398,8 @@ name or logo). The joke is the app and its GPS, never the driver or the passenge
 - **Screenshots**: `shots/loop2d1/` at 2868×1320 and 1792×828: the request card (`pro`, `i11`
   frame 60), the pickup with the passenger under the "!" (`pickup_*`), the ride mid-way with the
   app's dotted route and Nawigacja's river line (`pro`, `i11` 1500 and 3000), the result card
-  (`pro2`, `i112`), a GPS moment by the spawn (`gps_*`).
+  (`pro2`, `i112`; after the merge, beside the car: `end_i11`, `end_pro`), a GPS moment by the
+  spawn (`gps_*`).
 
 ## Performance budgets
 
@@ -2335,6 +2434,7 @@ home screen).
 | Loop 3c: streaming, main thread a frame (Mac, `check_streaming.gd` soak, p99 of the frames that load) | | ≤ 3 ms | ≤ 3 ms |
 | Loop 3c: a frame that loads a sector | | ≤ 33 ms | ≤ 33 ms |
 | Loop G1: TEST · BENCH at Auto on the iPhone 11 (High, 896×414) and the Pro Max (Ultra, 1434×660), 60 fps cap | 60 fps, 1 % low 56.6 / 57.3, 0 missed refreshes | 60, 0 missed refreshes, 1 % low ≥ 55 | 60, 0 missed refreshes, 1 % low ≥ 55 |
+| Loop G1b: the iPhone 11 at Auto, now High ×1 sharp (1792×828): BENCH minute, and a 15-minute day drive with the governor on (missed refreshes, governor changes) | BENCH 60 fps, 0 missed, 1 % low 54.4 / 58.7 (cool / warm); drive 60.0 every minute, 5 missed in 17.7 min, 0 governor changes | 60, 0 missed refreshes, 1 % low ≥ 55; the drive with no struggle verdict | 60, 0 missed refreshes, 1 % low ≥ 55; the drive with no struggle verdict (else the content costs the iPhone 11 its sharp default) |
 
 Loop 3g-1 (the police; police.md section 12 allowed ≤ +3 draw calls at any view, ≤ +8 k
 triangles, ≤ 0.15 ms of script, ≤ +2 MB) spent, in a koguty 3 chase: +1 to +3 draw calls at the
@@ -2631,6 +2731,7 @@ Command-line options (after `--`):
 | `--ignore-app` | loop 2d-1: the autopilot drives the shortest road to the door, not the app's route |
 | `--parody-log` | loop 2d-1: print `ride:` lines (the offer, the pickup, the quirk and its waypoint, every star change and why, the arrival, the pay with the wallet before and after, cancels, the autopilot's legs) and `gps:` lines (each GPS moment in traffic) |
 | `--gps-in=S` | loop 2d-1: the app-taxis' first GPS moment is looked for S seconds in (screenshots) |
+| `--pullover-frame=N` | loop 2d-1: the `--pullover=TAG` conversation at frame N instead of 60 (e.g. during a `--ride`) |
 | `--heat=X` | the kebab's starting heat, 0–1 (for a cold-arrival screenshot) |
 | `--host-in=S` | the radio host's first line after S seconds |
 | `--barriers=YYYYMMDD` | place the roadworks for that day |
@@ -2642,8 +2743,9 @@ Command-line options (after `--`):
 | `--weather=clear\|rain` | start dry or in the rain (default clear) |
 | `--perf` | show the performance overlay (loop 2e: four lines: fps, frame time, worst, cap · CPU process + physics + draw, GPU, memory · draw calls by pass · objects, triangles) |
 | `--quality=auto\|low\|medium\|high\|ultra` | the quality for this run (not saved; loop G1: default Auto, the level `tiers.gd` picks for the device; 0–3 are Low–Ultra) |
-| `--model=ID` | loop G1: pick Auto's level as if on that device (`--model=iPhone12,1` is the iPhone 11: High, 896×414 at 1792×828; `iPhone17,2` the Pro Max: Ultra) |
-| `--governor=on\|off\|log` | loop G1: the frame governor on or off for this run (default: on in a normal launch, held in test runs, the bench, the probe and the BENCH minute; `on` lets it act in those too); `log` is on plus a `governor status:` line every 5 s |
+| `--model=ID` | loop G1: pick Auto's level as if on that device (`--model=iPhone12,1` is the iPhone 11: High; since loop G1b Auto draws it sharp, 1792×828 ×1, and 896×414 ×2 in the fallback; `iPhone17,2` the Pro Max: Ultra) |
+| `--last-session=struggled\|calm` | loop G1b: start Auto as if the last session at the sharp image struggled (this launch is the ×2 fallback) or was calm (the sharp image), whatever the settings file says; nothing of it is written. The `quality:` lines say what Auto picked and why (`quality: Auto→High ×1 sharp (iPhone12,1) · image 1792x828`, `quality: Auto→High ×2 fallback (last session: GPU extras down 74 s of 410) · …`) |
+| `--governor=on\|off\|log` | loop G1: the frame governor on or off for this run (default: on in a normal launch, held in test runs, the bench, the probe and the BENCH minute; `on` lets it act in those too); `log` is on plus a `governor status:` line every 5 s (loop G1b: with the session's tally where Auto's sharp rule applies) and a `governor minute N:` line per counted minute (fps, missed refreshes, GPU-bound ones, GPU extras down) |
 | `--stress=cpu:N\|wait:N`, `--stress-from=S`, `--stress-to=S` | loop G1 testing aid: N × 0.5 ms of busy work a frame from S to S2 seconds after the city is up, in the game loop (`cpu`: the CPU's extras go first) or in the draw phase (`wait`: how waiting for the GPU looks to the main thread, the GPU's go first), to watch the governor drop and come back |
 | `--sound-check` | play every sound once and print the bus meters, then quit (needs an audio device) |
 | `--ghost-debug=1\|2` | loop 1: paint the occlusion ghost (1: ghosted magenta, other buildings green) or cut it fully (2), and print its ellipse in screen pixels with each screenshot |

@@ -257,10 +257,10 @@ static func result_text(r: Dictionary) -> Array:
 	var comment: Array = r.get("comment", [])
 	var why: Array = r.get("why", ["", ""])
 	var mult := float(p["mult"])
-	var money := "%d zł: kurs %d%s + napiwek %d%s" % [p["total"], p["fare"], (" (×%s)" % num(mult)) if mult > 1.0 else "",
+	var money := "%d zł: kurs %d%s + napiwek %d%s" % [p["total"], p["fare"], (" (×%s)" % num(mult)) if mult > 1.0 else "",
 			p["tip"], (" + seria %d" % p["streak"]) if int(p["streak"]) > 0 else ""]
 	# "Marta: …" (the comments carry their own „quotes”, so none round them).
 	var body := ("%s: %s\n" % [r.get("name", "Pasażer"), comment[0]] if not comment.is_empty() else "") + "%s\nOcena %s%s" % [money,
 			num(r["rating"], 2), (" · " + String(why[0])) if String(why[0]) != "" else ""]
-	var body_en := ("%s " % comment[1] if not comment.is_empty() else "") + "%d zł." % p["total"]
+	var body_en := ("%s " % comment[1] if not comment.is_empty() else "") + "%d zł." % p["total"]
 	return ["KURS · " + stars_text(r["stars"]), body, "Ride done", body_en]

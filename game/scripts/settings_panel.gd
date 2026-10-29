@@ -272,6 +272,8 @@ func sync(state: Dictionary) -> void:
 	var values := state.duplicate()
 	values["drive"] = 1 if scheme == 1 else 0
 	values["camera"] = 0 if follow else 1
+	# Loop G1b: what Auto draws can change with the style ("High ostry" / "High ×2" / "High").
+	_set_auto_name(str(state.get("auto", _auto_name)))
 	for key in _groups:
 		_select(key, int(values.get(key, 0)))
 	for key in _bars:
@@ -400,13 +402,32 @@ func _word_button(pl: String, en: String) -> Button:
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		words.add_child(l)
 	b.add_child(words)
-	# The words set the button's width (a Button doesn't size to its children); measured with the
-	# font itself (a label outside the tree can under-measure).
+	_fit_words(b, pl, en)
+	return b
+
+
+## The words set the button's width (a Button doesn't size to its children); measured with the
+## font itself (a label outside the tree can under-measure).
+func _fit_words(b: Button, pl: String, en: String) -> void:
 	var font := ThemeDB.fallback_font
 	var w := maxf(font.get_string_size(pl, HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_BODY)).x,
 			font.get_string_size(en, HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_LABEL)).x) + 24.0 * pt
-	b.custom_minimum_size.x = maxf(b.custom_minimum_size.x, w)
-	return b
+	b.custom_minimum_size.x = maxf(touch * 1.45, w)
+
+
+## Loop G1b: the Auto button's English line, "auto · High ostry" (the sharp image), "auto · High
+## ×2" (its fallback) or "auto · High", kept up to date while the panel is open.
+func _set_auto_name(name: String) -> void:
+	if name == _auto_name and _built:
+		return
+	_auto_name = name
+	if not _groups.has("quality"):
+		return
+	var b: Button = _groups["quality"][0]
+	var low: Label = b.get_child(0).get_child(1)
+	low.text = "auto · %s" % name
+	_fit_words(b, QUALITY[0][0], low.text)
+	_fit()
 
 
 ## A row of options (one chosen), each a button with the Polish word over the English.

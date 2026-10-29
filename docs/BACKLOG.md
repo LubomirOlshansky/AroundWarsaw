@@ -551,7 +551,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## Decided in loop G1 (perf-engineer defaults; the user may still change them)
 - The iPhone 11 at High (and so at Auto) draws 896×414 (×2), as the brief asked; ×1 (1792×828)
-  is Ultra on that phone (it held 60 on a cool phone, at a higher GPU clock).
+  is Ultra on that phone (it held 60 on a cool phone, at a higher GPU clock). **Loop G1b:** the
+  user chose ×1 under Auto (High's effects) with a ×2 fallback; Wysoka stays ×2.
 - Ultra is High + the 4096 shadow map + 16 reflection steps; Auto picks it on A17 Pro and newer
   (and the 16 / 16 Plus, A18), the 16e stays High (4-core GPU). The iPhone 17e's id isn't in the
   table (unknown → treated by its family: `iPhone18,x` → Ultra).
@@ -560,6 +561,43 @@ Small problems that agents reported or that showed up in screenshots. They are f
   both); a raise needs under 0.5 % missed over 30 s.
 - The BENCH minute holds the governor (the card is the level's own cost) and the rescue calls;
   `--governor=on` lets the governor act during a bench or probe.
+
+## From loop G1b (Auto's sharp image with a fallback)
+- **The ×1 drive was by day only**: 17.7 minutes of autopilot, traffic Normal, at room
+  temperature, 60.0 fps every minute, 5 missed refreshes, no governor change. Night, rain at
+  night (the river's reflections, glow), Busy traffic and the helicopter at ×1 are unmeasured,
+  and so is a warm room; G0's 20-minute SOAK (DEMO H3) should now run at Auto = ×1 on the
+  iPhone 11, since that is the default. Every content loop (2d, police, 3c streaming, G2) now
+  costs the iPhone 11 its sharp default if it pushes the A13 over: its bench at Auto ×1 is the
+  number to watch.
+- **Nobody has run the SE 2 / 3 at Auto**: since G1b they draw 1334×750 at ×1 (1.0 MP, the A13 /
+  A15 with fewer pixels than the iPhone 11's 1.48 MP), with the same fallback. The iPhone 11 is
+  the only phone measured at ×1.
+- **The fallback is per launch, never live**: a session that struggles keeps its sharp image
+  until the next launch (the governor's extras guard it meanwhile), since switching the pixel
+  size mid-drive is a visible pop and reallocates the image. If a long first session on a hot
+  phone turns out to look bad, a live switch at a natural cut (a load, the settings panel, the
+  helicopter) is the next step.
+- **No toast** says the fallback came in (the brief made it optional): the Obraz tab's
+  `auto · High ×2` and the `quality:` log line say it. A one-time toast ("Obraz prostszy, bo
+  telefon się grzał · A coarser picture: the phone was struggling") is a game-designer call.
+- **Thermal state** is still not readable from Godot 4.7.2 (checked: no OS, DisplayServer, Engine,
+  RenderingServer or Performance method); graphics.md 4.4's plugin would add it to the struggle
+  rule as a third signal.
+- The Mac counts too: a window under 960 lines over 0.96 MP (1366×768, 1440×900, the shots'
+  1792×828) draws Sharp at ×1 under Auto since G1b (screenshots at 1792×828 show the iPhone 11's
+  sharp look; `--last-session=struggled` shows its fallback).
+
+## Decided in loop G1b (perf-engineer defaults; the user may still change them)
+- **Struggled** = GPU extras down (GPU-bound drops only, outside wide views) for 60 s and a tenth
+  of the counted play, or 3 counted minutes in a row over 2 % of refreshes missed GPU-bound.
+  **Calm** = 3 counted minutes without that. Counted only at Auto's sharp image or its fallback,
+  past the settle, outside loads, pauses and wide views.
+- **Back-off**: 2 calm sessions at the fallback, then the sharp image on trial; a struggle on
+  trial doubles the wait (to 16); a passed trial (as many calm sessions as the wait) resets it
+  to 2; a struggle at the fallback restarts its count.
+- The Auto button's English line reads `auto · High ostry` (the brief's wording; "ostry" is the
+  Sharp style's Polish name, on the row above) and `auto · High ×2`.
 
 ## From loop 3g-1 (the police, part one)
 
@@ -668,9 +706,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - The minimap stays one global mesh (brief item 7).
 
 ## From loop 2d-1 (Podwózka, the app-taxi side job)
-- **Loop 3g-2 wires the pull-over**: `police.gd` calls `rides.on_pulled_over()` (main.gd's
-  `rides`) when a pull-over completes with a ride on (police.md 8.3), not when a chase is
-  escaped; it takes exactly one star and the result's comment becomes the `police` one.
+- **The pull-over is wired** (merge with 3g-1): `police.gd` `_talk_done` calls
+  `rides.on_pulled_over()`; one star, verify step `ride-police`. 3g-2 may want its own opener for
+  a pull-over with a passenger on board (police.gd `_opener` knows kebab and słoiki only).
+- **The request card lost "your rating"** to fit beside the car on 390-pt phones (five lines of
+  text above the pedals); the rating is on the result card. A request could show it on the
+  PODWÓZKA button instead.
 - **Loop 2d-2 (after 3c's streaming)**: the `rechotka` quirk joins the random pool once the
   Rechotka shops exist (today it is flag-only and names a shop nobody can see), and the `detour`
   passenger (a stop at any Rechotka, +½) needs them too; Pędzik, Leżak, the kebab stands and the
