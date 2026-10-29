@@ -41,7 +41,7 @@ not cleared for a release.
 
 | Station | Track | Artist | Licence |
 | --- | --- | --- | --- |
-| 87,3 NOCNA FM | Palma de Gaulle'a | Around Warsaw | own: synthesised by `tools/make_music.py` (MIT) |
+| 87,3 KEBAB FM | Palma de Gaulle'a | Around Warsaw | own: synthesised by `tools/make_music.py` (MIT) |
 | 86,6 RONDO FM | Rondo Dmowskiego 3 A.M. | Around Warsaw | own: synthesised by `tools/make_music.py` (MIT) |
 | 108,8 MORDOR FM | Mordor Mall Muzak | Around Warsaw | own: synthesised by `tools/make_music.py` (MIT) |
 

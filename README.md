@@ -22,7 +22,7 @@ and Warsaw humour in Polish with English, on iPhone and Android, fully offline.
 - **A living city.** Traffic that keeps to its lights, trams, pedestrians and pigeons in no hurry.
 - **Day, dusk, night and rain**, or Live time with the real sun over Warsaw: neon, lamp light,
   wet streets and an optional VHS tape.
-- **A car radio** (NOCNA FM, RONDO FM, MORDOR FM) and a city that talks back, Polish above
+- **A car radio** (KEBAB FM, RONDO FM, MORDOR FM) and a city that talks back, Polish above
   English. Brands appear only as parodies.
 - **Made for the phone.** 60 fps on an iPhone 11, three touch control schemes, no ads, no
   purchases, no network, no data collected.
