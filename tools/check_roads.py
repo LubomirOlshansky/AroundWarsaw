@@ -769,7 +769,8 @@ class Check:
     # C3: what runs under a deck too close to its slab.
     def c3(self):
         m = self.m
-        items = [(r, self.name(r), CLEAR_MAX) for r in self.roads]
+        # Loop 3d-1: a service way (garage driveway, parking aisle; no traffic) needs a car's height.
+        items = [(r, self.name(r), CLEAR_FOOT if r.get("k") == "service" else CLEAR_MAX) for r in self.roads]
         items += [(t, "tram", CLEAR_MAX) for t in m.d.get("trams", [])]
         items += [(t, "rail", CLEAR_MAX) for t in m.d.get("rails", [])]
         items += [(p, "footway" if p["k"] == "foot" else p["k"], CLEAR_FOOT) for p in m.d.get("paths", [])

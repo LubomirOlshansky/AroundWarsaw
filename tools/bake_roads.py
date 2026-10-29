@@ -49,6 +49,8 @@ HATCH_KINDS = {"emergency", "prohibited"}
 CLEAR_ROAD = 5.0     # deck clearance over roads, rails and trams
 CLEAR_WATER = 7.5    # and over the river
 CLEAR_FOOT = 2.6     # a footbridge over a footway (loop 3a)
+CLEAR_SERVICE = 2.6  # loop 3d-1: a deck over a service way (a garage driveway, a parking aisle: no
+                     # traffic, a car's height; the 1 m terrain shows the ramps they sink in)
 GRADE = 0.06         # ramps up to a clearance
 END_GRADE = 0.12     # the steepest a deck may leave the road it starts from
 DECK_STEP = 6.0      # deck heights every this many metres
@@ -1095,7 +1097,8 @@ class Roadbed:
                         self.decks_kept = getattr(self, "decks_kept", 0) + 1
                         continue
                     cross[i].append({"s": s, "reach": reach, "x": px, "z": pz, "other": other, "kind": kind,
-                                     "clear": CLEAR_FOOT if kind == "footway" else CLEAR_ROAD})
+                                     "clear": CLEAR_FOOT if kind == "footway" else
+                                     (CLEAR_SERVICE if other.get("k") == "service" else CLEAR_ROAD)})
 
         # Nodes.
         node_of = {}

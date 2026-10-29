@@ -1509,6 +1509,57 @@ def cmd_corridors(a):
     return 0
 
 
+# Loop 3d-1 (the user's yes, 2026-10-29): the 1 m bare earth (NMT, EVRF2007) for the whole demo box,
+# the box bake_osm.BBOX bakes (east edge 21.056), in tiles of at most NMT1_TILE m a side (the ASCII
+# replies stay ~15 MB each), into gugik/nmt1_box/r<i>c<j>.tif. Resumable; stops over NMT1_MAX_MB.
+NMT1_BOX = (52.2183, 20.9780, 52.2525, 21.0560)
+NMT1_TILE = 1400.0
+NMT1_MAX_MB = 250.0
+
+
+def cmd_nmt1box(a):
+    out = a.out
+    box = NMT1_BOX
+    corners = [to_en(lat, lon) for lat in (box[0], box[2]) for lon in (box[1], box[3])]
+    e0, e1 = min(c[0] for c in corners) - 20, max(c[0] for c in corners) + 20
+    n0, n1 = min(c[1] for c in corners) - 20, max(c[1] for c in corners) + 20
+    nx, ny = math.ceil((e1 - e0) / NMT1_TILE), math.ceil((n1 - n0) / NMT1_TILE)
+    folder = os.path.join(out, "gugik", "nmt1_box")
+    os.makedirs(folder, exist_ok=True)
+    est = (e1 - e0) * (n1 - n0) * 4 / 1e6
+    log(f"nmt1box: {nx} x {ny} tiles over {(e1 - e0) / 1000:.2f} x {(n1 - n0) / 1000:.2f} km, ~{est:.0f} MB as float32")
+    if est > NMT1_MAX_MB:
+        raise SystemExit(f"nmt1box: {est:.0f} MB is over {NMT1_MAX_MB:.0f} MB: stopped")
+    if a.dry_run:
+        return 0
+    t_all, done = time.time(), []
+    for j in range(ny):
+        for i in range(nx):
+            path = os.path.join(folder, f"r{j}c{i}.tif")
+            win = snap_window(e0 + i * (e1 - e0) / nx, n0 + j * (n1 - n0) / ny,
+                              e0 + (i + 1) * (e1 - e0) / nx, n0 + (j + 1) * (n1 - n0) / ny)
+            if not os.path.exists(path):
+                t0 = time.time()
+                ncols, nrows, e_ul, n_ul, csz, vals = wcs_window(NMT_WCS, NMT_COVERAGE, win, 1.0, f"nmt1box r{j}c{i}")
+                write_geotiff_f32(path, ncols, nrows, e_ul, n_ul, csz, vals)
+                log(f"nmt1box r{j}c{i}: {ncols}x{nrows} {human(os.path.getsize(path))} in {time.time() - t0:.0f} s")
+                time.sleep(1)
+            done.append({"file": f"gugik/nmt1_box/r{j}c{i}.tif", "window_en": win, "size": os.path.getsize(path)})
+    total = sum(d["size"] for d in done)
+    meta_update(out, "nmt1box", box=list(box), tiles=done, bytes=total,
+                source=NMT_WCS + "?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&COVERAGEID=" + NMT_COVERAGE,
+                format="Arc/Info ASCII Grid from the WCS (image/x-aaigrid), stored as float32 GeoTIFF, EPSG:2180, EVRF2007")
+    lines = ["", "## 1 m bare earth for the whole box (loop 3d-1, " + today() + ")", "",
+             f"`gugik/nmt1_box/r<row>c<col>.tif`: {len(done)} tiles, {human(total)}, the box S {box[0]} W {box[1]} N {box[2]} "
+             f"E {box[3]} (+20 m), GUGiK NMT WCS `{NMT_COVERAGE}` (EVRF2007), 1 m cells on the official cell edges, float32 "
+             "GeoTIFF EPSG:2180; licence as D2-D5 (GUGiK open data, free use). Fetched by `tools/fetch_demo.py nmt1box` with "
+             f"the user's yes (loop 3d-1) in {time.time() - t_all:.0f} s. `tools/prepare_demo.py` builds the bake's terrain from it.", ""]
+    with open(os.path.join(out, "MANIFEST.md"), "a", encoding="utf-8") as fh:
+        fh.write("\n".join(lines))
+    log(f"nmt1box: {len(done)} tiles, {human(total)}")
+    return 0
+
+
 def pct(sorted_vals, q):
     return sorted_vals[min(len(sorted_vals) - 1, int(len(sorted_vals) * q))]
 

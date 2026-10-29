@@ -125,14 +125,155 @@ def terrain():
     i1 = min(math.ceil((ne[0] - x0) / step - 1e-6), nx - 1)
     j0 = max(math.floor((ne[1] - z0) / step + 1e-6), 0)
     j1 = min(math.ceil((sw[1] - z0) / step - 1e-6), nz - 1)
+    # Loop 3d-1: the box's east edge (21.056) lies past the 10 m fetch's last column; the 1 m
+    # grid covers it, so the lattice goes on there.
+    i1 = math.ceil((ne[0] - x0) / step - 1e-6)
+    j1 = math.ceil((sw[1] - z0) / step - 1e-6)
     h = d["h"]
-    cut = [h[j * nx + i] for j in range(j0, j1 + 1) for i in range(i0, i1 + 1)]
+    nmt1 = Mosaic(os.path.join(RAW, "demo", "gugik", "nmt1_box"))
+    roads = RoadCells(os.path.join(WORK, "osm_demo.json")) if nmt1.ok else None
+    cut, stats = [], {"10 m grid": 0, "1 m ground": 0, "1 m road": 0}
+    for j in range(j0, j1 + 1):
+        jac = None
+        for i in range(i0, i1 + 1):
+            x, z = x0 + i * step, z0 + j * step
+            v = nmt1.node(x, z, roads, (i - i0) % 32 == 0) if nmt1.ok else None
+            if v is None:
+                v = h[min(j, nz - 1) * nx + min(i, nx - 1)]
+                stats["10 m grid"] += 1
+            else:
+                v, kind = v
+                stats[kind] += 1
+            cut.append(round(v, 2))
     out = {"x0": round(x0 + i0 * step, 2), "z0": round(z0 + j0 * step, 2), "step": step,
            "nx": i1 - i0 + 1, "nz": j1 - j0 + 1, "h": cut, "origin": [bake_osm.LAT0, bake_osm.LON0],
-           "heights": d.get("heights", "EVRF2007")}
+           "heights": "EVRF2007; loop 3d-1: from the 1 m NMT (" + NODE_RULE + ")" if nmt1.ok else d.get("heights", "EVRF2007")}
     with open(os.path.join(WORK, "terrain_10m.json"), "w") as fh:
         json.dump(out, fh, separators=(",", ":"))
-    print("terrain: %d x %d of %d x %d points, x0 %.2f z0 %.2f" % (out["nx"], out["nz"], nx, nz, out["x0"], out["z0"]))
+    print("terrain: %d x %d points, x0 %.2f z0 %.2f; %s" % (out["nx"], out["nz"], out["x0"], out["z0"],
+          ", ".join("%s %d" % kv for kv in stats.items())))
+
+
+# Loop 3d-1 (the 1 m NMT of the whole box, the user's yes): a 10 m node is what the ground does over
+# its 10 m cell, not one point of it. Point samples at the demo fetch's nodes (3.5 m east, 5 m south
+# of the first box's) read an embankment's top or its foot by chance (up to 3 m apart; Wybrzeże
+# Kościuszkowskie by Tamka stepped 2.4 m in 6 m). Each node takes the 1 m cells within 5 m of it:
+# where ROAD_MIN or more of them lie on a drivable road at grade (OpenStreetMap's way and width
+# estimate), the ROAD_PCT percentile of those (the road's own level, under any deck or footbridge
+# the bare earth keeps); else the median of all of them.
+NODE_RULE = "a node: the median of the 1 m cells within 5 m, or the median of its road cells"
+NODE_R = 5.0
+ROAD_MIN = 12
+ROAD_PCT = 0.5
+
+
+class Mosaic:
+    """The 1 m tiles of gugik/nmt1_box/ as one grid (they share the WCS cell edges)."""
+
+    def __init__(self, folder):
+        import array
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import geotiff
+        from pl1992 import to_pl1992
+        self._to = to_pl1992
+        paths = sorted(glob.glob(os.path.join(folder, "*.tif")))
+        self.ok = bool(paths)
+        if not self.ok:
+            return
+        grids = [geotiff.read(q) for q in paths]
+        self.e0 = min(g.x0 for g in grids)
+        self.n0 = max(g.y0 for g in grids)
+        self.w = round(max(g.x0 + g.ncols for g in grids) - self.e0)
+        self.h = round(self.n0 - min(g.y0 - g.nrows for g in grids))
+        self.v = array.array("f", [float("nan")]) * (self.w * self.h)
+        for g in grids:
+            c0, r0 = round(g.x0 - self.e0), round(self.n0 - g.y0)
+            for r in range(g.nrows):
+                self.v[(r0 + r) * self.w + c0:(r0 + r) * self.w + c0 + g.ncols] = g.values[r * g.ncols:(r + 1) * g.ncols]
+        self._jac = None
+        offs = []
+        k = int(NODE_R)
+        for dz in range(-k, k + 1):
+            for dx in range(-k, k + 1):
+                if dx * dx + dz * dz <= NODE_R * NODE_R:
+                    offs.append((dx, dz))
+        self.offs = offs
+
+    def en(self, x, z):
+        lat = bake_osm.LAT0 - z / bake_osm.M_PER_DEG_LAT
+        lon = bake_osm.LON0 + x / bake_osm.M_PER_DEG_LON
+        n, e = self._to(lat, lon)
+        return e, n
+
+    def node(self, x, z, roads, fresh):
+        e, n = self.en(x, z)
+        if fresh or self._jac is None:
+            ex, nx_ = self.en(x + 1.0, z)
+            ez, nz_ = self.en(x, z + 1.0)
+            self._jac = (ex - e, ez - e, nx_ - n, nz_ - n)
+        a, b, c, d = self._jac
+        near = roads.near(x, z) if roads is not None else []
+        allv, roadv = [], []
+        w, v = self.w, self.v
+        for dx, dz in self.offs:
+            col = int(e + a * dx + b * dz - self.e0)
+            row = int(self.n0 - (n + c * dx + d * dz))
+            if not (0 <= col < w and 0 <= row < self.h):
+                return None
+            hv = v[row * w + col]
+            if hv != hv:
+                return None
+            hv -= 0.0
+            allv.append(hv)
+            if near and roads.on(x + dx, z + dz, near):
+                roadv.append(hv)
+        if len(roadv) >= ROAD_MIN:
+            roadv.sort()
+            return roadv[int(len(roadv) * ROAD_PCT)], "1 m road"
+        allv.sort()
+        return allv[len(allv) // 2], "1 m ground"
+
+
+class RoadCells:
+    """Drivable OpenStreetMap ways on the ground (no bridge, no tunnel), as segments with half
+    widths in 16 m cells, from the cut export."""
+
+    def __init__(self, path):
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import bake_roads
+        els = json.load(open(path, encoding="utf-8"))["elements"]
+        nodes = {e["id"]: (e["lat"], e["lon"]) for e in els if e["type"] == "node"}
+        self.cells = {}
+        for w in els:
+            t = w.get("tags", {})
+            if w["type"] != "way" or t.get("highway") not in bake_osm.DRIVABLE or t.get("area") == "yes":
+                continue
+            if t.get("bridge") not in (None, "no") or t.get("tunnel") not in (None, "no"):
+                continue
+            half = bake_roads.road_width(t)[0] * 0.5
+            pts = [bake_osm.project(*nodes[i]) for i in w.get("nodes", []) if i in nodes]
+            for p, q in zip(pts, pts[1:]):
+                for ci in range(int((min(p[0], q[0]) - half) // 16), int((max(p[0], q[0]) + half) // 16) + 1):
+                    for cj in range(int((min(p[1], q[1]) - half) // 16), int((max(p[1], q[1]) + half) // 16) + 1):
+                        self.cells.setdefault((ci, cj), []).append((p, q, half))
+
+    def near(self, x, z):
+        out = []
+        for ci in (int((x - 6) // 16), int((x + 6) // 16)):
+            for cj in (int((z - 6) // 16), int((z + 6) // 16)):
+                out.extend(self.cells.get((ci, cj), ()))
+        return out
+
+    @staticmethod
+    def on(x, z, segs):
+        for (ax, az), (bx, bz), half in segs:
+            dx, dz = bx - ax, bz - az
+            l2 = dx * dx + dz * dz
+            t = max(0.0, min(1.0, ((x - ax) * dx + (z - az) * dz) / l2)) if l2 > 0 else 0.0
+            px, pz = ax + dx * t - x, az + dz * t - z
+            if px * px + pz * pz <= half * half:
+                return True
+        return False
 
 
 def envelope_latlon(path):
