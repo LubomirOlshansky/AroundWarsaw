@@ -30,6 +30,8 @@ extends RefCounted
 ##   app in the background, a load).
 ## - `held` (the bench, the probe, the BENCH button, test runs): it counts but never changes.
 ## Every change returns a `governor:` line for the log.
+## - Loop G1b: the session's **tally** for Auto's sharp image (below, `track`), which says whether
+##   the session struggled (`struggle`) or was calm (`calm`).
 
 ## The top level (what the quality sets); 0 is the floor.
 const TOP := 2
@@ -54,6 +56,34 @@ const SMALL_SHADOWS := [false, true, true]
 const TRAFFIC := [0.6, 0.8, 1.0]
 const PEOPLE := [0.5, 0.7, 1.0]
 
+## Loop G1b: the session's tally for Auto's sharp image and its fallback (tiers.gd SHARP_*,
+## main.gd). It counts while `track` (Auto, where the level's budget binds), not held, past
+## SETTLE since a (re)start or a gap (loads, pauses, the background) and not in a wide view (no
+## raise can come there, so a drop would sit out the flight): the seconds counted (`played_s`),
+## those with the GPU's extras dropped by a GPU-bound load while it counted (`gpu_down_s`; not
+## the GPU's taken by a CPU-bound load once the CPU's were gone, nor a drop in a wide view or
+## before it counted), the refreshes, the missed ones, and those missed by frames whose own CPU
+## work was under CPU_SHARE of the interval (`gpu_missed`: the GPU-bound ones; a CPU-bound miss
+## can't be helped by a coarser image and doesn't count); and by counted minute (`minutes`), the
+## minutes with over STRUGGLE_SHARE of their refreshes missed GPU-bound (`bad_minutes`).
+## - **Struggled** (latched for the session) when the GPU's extras were down STRUGGLE_DOWN s in
+##   all and at least STRUGGLE_PART of the counted play: one drop that a calm half minute undoes
+##   is 30 s (a passing load); a second one, or one that didn't make the frames calm, is the image
+##   itself; the share keeps a long session's two or three passing loads from counting (a
+##   15-minute drive needs 90 s down). Or when STRUGGLE_MINUTES counted minutes in a row missed
+##   over STRUGGLE_SHARE of their refreshes GPU-bound: a steady loss under the governor's 5 %
+##   that never drops a level (2 %: a refresh missed every 0.8 s; a cool iPhone 11 at ×1 missed
+##   0 in 3 minutes); minutes in a row, so passing bursts (one 10-second burst marks one or two
+##   minutes) can't add up to it.
+## - **Calm** after CALM_AFTER s counted without that (3 minutes: the G1 soak's length; shorter
+##   sessions say nothing either way).
+## restart() (the quality changed) starts the tally afresh.
+const STRUGGLE_DOWN := 60.0
+const STRUGGLE_PART := 0.1
+const STRUGGLE_SHARE := 0.02
+const STRUGGLE_MINUTES := 3
+const CALM_AFTER := 180.0
+
 var gpu := TOP
 var cpu := TOP
 var held := false
@@ -66,7 +96,33 @@ var raise_after := RAISE_AFTER
 ## (0..1) and the late frames' CPU work (ms, averaged by the refreshes they missed; 0: none).
 var late_share := 0.0
 var cpu_ms := 0.0
+## Loop G1b: the tally (above).
+var track := false
+var played_s := 0.0
+var gpu_down_s := 0.0
+var refreshes := 0
+var missed := 0
+var gpu_missed := 0
+var minutes := 0
+var bad_minutes := 0
+## The last counted minute, for the log (main.gd prints it with --governor=log and clears it):
+## "minute 3: 59.9 fps, missed 2 (GPU-bound 2), GPU extras down 0 s, GPU 2/2 · CPU 2/2".
+var minute_line := ""
+var _gpu_late_n := 0
+## Why the session struggled ("": it hasn't), latched; and whether it has been calm long enough.
+var _struggle := ""
+var _calm := false
+## Bad minutes in a row.
+var _bad_run := 0
+## The minute being counted: seconds, refreshes, missed, GPU-bound missed, GPU extras down.
+var _m := [0.0, 0, 0, 0, 0.0]
+## Loop G1b: the GPU drops in force that count for the tally: GPU-bound and made while it counts.
+## Not one a CPU-bound load made (it takes the GPU's extras once the CPU's are gone) or one made
+## in a wide view (it would count in the narrow view after it until it is raised back).
+var _gpu_bound := 0
 
+## The drops in force, oldest first: "gpu", "cpu", or (loop G1b) "gpu-x", a GPU drop that doesn't
+## count for the tally.
 var _drops: Array[String] = []
 var _start := 0.0
 var _last_tick := -1.0
@@ -108,6 +164,20 @@ func restart(now: float) -> void:
 	raise_after = RAISE_AFTER
 	_last_change = -1e9
 	_last_raise = -1e9
+	# Loop G1b: the tally too.
+	_gpu_bound = 0
+	played_s = 0.0
+	gpu_down_s = 0.0
+	refreshes = 0
+	missed = 0
+	gpu_missed = 0
+	minutes = 0
+	bad_minutes = 0
+	minute_line = ""
+	_struggle = ""
+	_calm = false
+	_bad_run = 0
+	_m = [0.0, 0, 0, 0, 0.0]
 	reset(now)
 
 
@@ -118,6 +188,7 @@ func reset(now: float) -> void:
 	_cpu.clear()
 	_n = 0
 	_late_n = 0
+	_gpu_late_n = 0
 	_cpu_sum = 0.0
 	_debt = 0.0
 	_start = now
@@ -133,6 +204,9 @@ func frame(ms: float, work_ms: float) -> void:
 	_n += 1 + m
 	_late_n += m
 	_cpu_sum += work_ms * m
+	# Loop G1b: the GPU-bound ones, for the tally.
+	if m > 0 and work_ms <= CPU_SHARE * interval_ms:
+		_gpu_late_n += m
 
 
 ## Call every frame with the clock (s) and whether the view is wide (or flying); returns a
@@ -141,10 +215,28 @@ func tick(now: float, wide: bool) -> String:
 	if _last_tick < 0.0 or now - _last_tick > GAP:
 		reset(now)
 		return ""
+	# Loop G1b: the tally counts the time since the last tick, and the refreshes by the bucket.
+	var counting := track and not held and not wide and now - _start >= SETTLE
+	if counting:
+		var dt := now - _last_tick
+		played_s += dt
+		_m[0] += dt
+		if _gpu_bound > 0:
+			gpu_down_s += dt
+			_m[4] += dt
 	_last_tick = now
 	if now - _bucket_t < EVERY:
 		return ""
 	_bucket_t = now
+	if counting:
+		refreshes += _n
+		missed += _late_n
+		gpu_missed += _gpu_late_n
+		_m[1] += _n
+		_m[2] += _late_n
+		_m[3] += _gpu_late_n
+		_tally_bucket()
+	_gpu_late_n = 0
 	_frames.append(_n)
 	_late.append(_late_n)
 	_cpu.append(_cpu_sum)
@@ -178,9 +270,14 @@ func tick(now: float, wide: bool) -> String:
 			raise_after = minf(raise_after * 2.0, RAISE_AFTER_MAX)
 		if which == "cpu":
 			cpu -= 1
+			_drops.append("cpu")
+		elif cpu_bound or not counting:
+			gpu -= 1
+			_drops.append("gpu-x")
 		else:
 			gpu -= 1
-		_drops.append(which)
+			_drops.append("gpu")
+			_gpu_bound += 1
 		_last_change = now
 		changes += 1
 		return "governor: drop %s → %s · %.1f%% of refreshes missed in the last %.0f s, the late frames' CPU work %.1f ms%s" % [
@@ -195,16 +292,64 @@ func tick(now: float, wide: bool) -> String:
 		cpu += 1
 	else:
 		gpu += 1
+		if up == "gpu":
+			_gpu_bound -= 1
 	_last_change = now
 	_last_raise = now
 	changes += 1
-	return "governor: raise %s → %s · %.2f%% of refreshes missed in the last %.0f s" % [up.to_upper(), state(),
-			100.0 * r[1] / r[0], raise_after]
+	return "governor: raise %s → %s · %.2f%% of refreshes missed in the last %.0f s" % ["CPU" if up == "cpu" else "GPU",
+			state(), 100.0 * r[1] / r[0], raise_after]
 
 
 ## "GPU 2/2 · CPU 2/2".
 func state() -> String:
 	return "GPU %d/%d · CPU %d/%d" % [gpu, TOP, cpu, TOP]
+
+
+## Loop G1b: after a counted bucket: the minute closes every 60 s counted, and the struggle rule.
+func _tally_bucket() -> void:
+	if _m[0] >= 60.0:
+		minutes += 1
+		var bad: bool = _m[3] > STRUGGLE_SHARE * _m[1]
+		if bad:
+			bad_minutes += 1
+			_bad_run += 1
+		else:
+			_bad_run = 0
+		minute_line = "minute %d: %.1f fps, missed %d of %d (GPU-bound %d%s), GPU extras down %.0f s, %s" % [minutes,
+				(_m[1] - _m[2]) / _m[0], _m[2], _m[1], _m[3], ", over %.0f %%" % (STRUGGLE_SHARE * 100.0) if bad else "",
+				_m[4], state()]
+		_m = [0.0, 0, 0, 0, 0.0]
+	if _struggle != "":
+		return
+	if gpu_down_s >= maxf(STRUGGLE_DOWN, STRUGGLE_PART * played_s):
+		_struggle = "GPU extras down %.0f s of %.0f" % [gpu_down_s, played_s]
+	elif _bad_run >= STRUGGLE_MINUTES:
+		_struggle = "%d minutes in a row missed over %.0f%% of refreshes, GPU-bound" % [_bad_run, STRUGGLE_SHARE * 100.0]
+	elif played_s >= CALM_AFTER:
+		_calm = true
+
+
+## Loop G1b: whether the session struggled (latched; cheap, main.gd asks every frame).
+func struggled() -> bool:
+	return _struggle != ""
+
+
+## Loop G1b: why it struggled ("GPU extras down 74 s of 410", "3 of 5 minutes missed over 2% of
+## refreshes, GPU-bound"), or "".
+func struggle() -> String:
+	return _struggle
+
+
+## Loop G1b: the session was calm (CALM_AFTER s counted, no struggle; a struggle after it wins).
+func calm() -> bool:
+	return _calm and _struggle == ""
+
+
+## Loop G1b: the tally for the log: "tally 912 s, GPU extras down 0 s, missed 3 of 54720 (GPU-bound 3)".
+func tally() -> String:
+	return "tally %.0f s, GPU extras down %.0f s, missed %d of %d (GPU-bound %d)" % [played_s, gpu_down_s, missed,
+			refreshes, gpu_missed]
 
 
 ## The last `seconds` of buckets: [refreshes, missed, the late frames' CPU ms, seconds covered].

@@ -13,6 +13,14 @@ extends SceneTree
 ##   - held (the bench), nothing changes; after a gap (a pause) nothing changes for 5 s;
 ##   - a load that comes back every minute (20 s on, 40 s off) for 15 minutes: the waits grow
 ##     after each raise the load undoes, and the last 5 minutes have no raise (no swinging).
+## Loop G1b, the session's tally for Auto's sharp image (tracked sessions from 0 s): 15 calm
+## minutes are calm at 185 s and never struggle; a GPU-bound overload struggles a minute after
+## its first drop (GPU extras down 60 s); a CPU-bound one never (not even when it takes the GPU's
+## extras); one passing 10-second load is calm; two 18 minutes apart are calm (under a tenth of
+## the play), two within 3 minutes struggle; a phone that warms up after 8 calm minutes
+## struggles a minute after its drop; a steady 2.9 % of refreshes missed GPU-bound (no drop)
+## struggles after 3 minutes in a row, 1 % never, CPU-bound never; drops in a wide view don't
+## count; gaps and the settle aren't counted; untracked or held, nothing is; restart() clears it.
 ## Prints `check_governor: OK` (exit 0) or the problems (exit 1).
 ##   godot --headless --path game --script res://tools/check_governor.gd
 
@@ -165,9 +173,106 @@ func _initialize() -> void:
 	_expect(g.raise_after > Governor.RAISE_AFTER, "the wait grew (%.0f s)" % g.raise_after)
 	_expect(ch.size() <= 12, "at most 12 changes in 15 minutes (%d)" % ch.size())
 
+	_check_tally(calm, gpu_over, cpu_over)
+
 	if problems.is_empty():
 		print("check_governor: OK")
 		quit(0)
 	else:
 		print("check_governor: %d problems" % problems.size())
 		quit(1)
+
+
+## Loop G1b: a tracked session from 0 s: [the parts [seconds, frame_fn, wide] run in turn], with
+## a gap of `gap` seconds before part `gap_at` (-1: none); returns [the governor, when it first
+## said struggled (-1: never), when it first said calm (-1: never)].
+func _session(parts: Array, gap_at := -1, gap := 0.0) -> Array:
+	var g := Governor.new()
+	g.track = true
+	g.restart(0.0)
+	var t := 0.0
+	var first_struggle := -1.0
+	var first_calm := -1.0
+	var i := 0
+	for p in parts.size():
+		if p == gap_at:
+			t += gap
+		var part: Array = parts[p]
+		var end: float = t + part[0]
+		while t < end:
+			var f: Array = (part[1] as Callable).call(t, i)
+			t += f[0] / 1000.0
+			i += 1
+			g.frame(f[0], f[1])
+			g.tick(t, part[2])
+			if first_struggle < 0.0 and g.struggled():
+				first_struggle = t
+			if first_calm < 0.0 and g.calm():
+				first_calm = t
+	return [g, first_struggle, first_calm]
+
+
+func _check_tally(calm: Callable, gpu_over: Callable, cpu_over: Callable) -> void:
+	print("the session's tally (loop G1b):")
+	var r := _session([[900.0, calm, false]])
+	var g: Governor = r[0]
+	_expect(r[1] < 0.0 and absf(r[2] - (Governor.SETTLE + Governor.CALM_AFTER)) < 1.0 and absf(g.played_s - 895.0) < 1.0,
+			"15 min calm: never struggled, calm at %.1f s (%.0f + %.0f), %.0f s counted" % [r[2], Governor.SETTLE, Governor.CALM_AFTER, g.played_s])
+	r = _session([[20.0, calm, false], [300.0, gpu_over, false]])
+	g = r[0]
+	_expect(r[1] > 0.0 and r[1] - 20.0 <= 3.0 + Governor.STRUGGLE_DOWN + 1.0 and g.struggle().begins_with("GPU extras down"),
+			"a GPU-bound overload from 20 s: struggled at %.1f s (%s)" % [r[1], g.struggle()])
+	r = _session([[20.0, calm, false], [300.0, cpu_over, false]])
+	g = r[0]
+	_expect(r[1] < 0.0 and g.gpu_down_s == 0.0 and g.gpu_missed == 0 and g.missed > 0 and g.gpu == 0,
+			"a CPU-bound overload (it takes the GPU's extras too): no struggle (%s, %s)" % [g.tally(), g.state()])
+	r = _session([[20.0, calm, false], [9.8, gpu_over, false], [600.0, calm, false]])
+	g = r[0]
+	_expect(r[1] < 0.0 and r[2] > 0.0 and g.gpu_down_s >= 29.0 and g.gpu_down_s < Governor.STRUGGLE_DOWN and g.gpu == Governor.TOP
+			and g.bad_minutes == 1,
+			"a passing GPU load (9.8 s: one drop, raised after 30 s, one bad minute): calm, not struggled (%s)" % g.tally())
+	r = _session([[120.0, calm, false], [9.8, gpu_over, false], [1080.0, calm, false], [9.8, gpu_over, false], [300.0, calm, false]])
+	g = r[0]
+	_expect(r[1] < 0.0 and r[2] > 0.0 and g.gpu_down_s >= Governor.STRUGGLE_DOWN,
+			"two passing loads 18 minutes apart (%.0f s down, under a tenth of the play): calm, not struggled" % g.gpu_down_s)
+	r = _session([[60.0, calm, false], [9.8, gpu_over, false], [120.0, calm, false], [9.8, gpu_over, false], [300.0, calm, false]])
+	_expect(r[1] > 0.0, "two within 3 minutes (the image near its edge): struggled at %.0f s (%s)" % [r[1], (r[0] as Governor).struggle()])
+	r = _session([[480.0, calm, false], [300.0, gpu_over, false]])
+	_expect(r[1] > 480.0 and r[1] < 480.0 + 3.0 + Governor.STRUGGLE_DOWN + 1.0 and r[2] > 0.0,
+			"a phone that warms up: calm at %.0f s, then a GPU-bound overload from 480 s struggles at %.1f s (%s)" % [r[2], r[1],
+			(r[0] as Governor).struggle()])
+	var every := func(n: int) -> Callable:
+		return func(_t: float, i: int) -> Array: return [MISS if i % n == 0 else CALM, 4.0]
+	r = _session([[300.0, every.call(34), false]])
+	g = r[0]
+	_expect(g.changes == 0 and r[1] > 0.0 and absf(r[1] - (Governor.SETTLE + 60.0 * Governor.STRUGGLE_MINUTES)) < 1.0
+			and g.struggle().contains("GPU-bound") and r[2] < 0.0,
+			"2.9 %% of refreshes missed GPU-bound (under the 5 %% drop): no drop, struggled at %.1f s, never calm (%s)" % [r[1], g.struggle()])
+	r = _session([[900.0, every.call(100), false]])
+	g = r[0]
+	_expect(r[1] < 0.0 and r[2] > 0.0, "1 %% of refreshes missed: calm (%s)" % g.tally())
+	var cpu_every := func(_t: float, i: int) -> Array: return [MISS if i % 34 == 0 else CALM, 14.0]
+	r = _session([[300.0, cpu_every, false]])
+	_expect(r[1] < 0.0, "2.9 %% missed, CPU-bound: no struggle (%s)" % (r[0] as Governor).tally())
+	r = _session([[20.0, calm, false], [180.0, gpu_over, true], [300.0, calm, false]])
+	g = r[0]
+	_expect(r[1] < 0.0 and g.gpu_down_s == 0.0 and g.gpu == Governor.TOP,
+			"a GPU overload in a wide view, then calm narrow: the wide drops don't count (%s)" % g.tally())
+	r = _session([[100.0, calm, false], [100.0, calm, false]], 1, 20.0)
+	g = r[0]
+	_expect(absf(g.played_s - (200.0 - 2.0 * Governor.SETTLE)) < 1.0, "a 20 s gap: not counted, settled again (%.1f s)" % g.played_s)
+	g = Governor.new()
+	g.restart(0.0)
+	_run(g, 0.0, 300.0, gpu_over)
+	_expect(g.played_s == 0.0 and g.refreshes == 0, "not tracked: nothing counted (%s)" % g.tally())
+	g = Governor.new()
+	g.track = true
+	g.held = true
+	g.restart(0.0)
+	_run(g, 0.0, 300.0, gpu_over)
+	_expect(g.played_s == 0.0 and not g.struggled(), "held: nothing counted (%s)" % g.tally())
+	g.held = false
+	var t: float = _run(g, 400.0, 100.0, gpu_over)[0]
+	_expect(g.struggled(), "then overloaded: struggled (%s)" % g.tally())
+	g.restart(t)
+	_expect(g.played_s == 0.0 and g.gpu_down_s == 0.0 and not g.struggled(), "restart (the quality changed): the tally afresh")

@@ -4,11 +4,14 @@ extends SceneTree
 ## traffic, High, full volumes, overlay off, 60 fps; loop 2e: Classic's camera following, the
 ## Sharp style, no VHS; loop G1: quality Auto instead of High); with persistent = false (--nosave)
 ## nothing is written. Loop G1: a file saved before G1 (no `tiers` key) that says High loads as
-## Auto, once (a file saved since keeps High, Medium stays Medium, Ultra round-trips). The real
-## user://settings.cfg is never touched. Deletes its scratch files.
+## Auto, once (a file saved since keeps High, Medium stays Medium, Ultra round-trips). Loop G1b:
+## Auto's image state (`[auto_image]`) round-trips, a file without it starts sharp, hand-edited
+## values are cleaned, and --nosave writes none of it either. The real user://settings.cfg is
+## never touched. Deletes its scratch files.
 ##   godot --headless --path game --script res://tools/check_settings.gd
 
 const Settings := preload("res://scripts/settings.gd")
+const Tiers := preload("res://scripts/tiers.gd")
 const SCRATCH := "user://settings_check.cfg"
 const SCRATCH_OFF := "user://settings_check_nosave.cfg"
 const SCRATCH_OLD := "user://settings_check_old.cfg"
@@ -80,10 +83,41 @@ func _initialize() -> void:
 	print("round trip: %s\n  saved  %s\n  loaded %s" % ["OK" if same else "DIFFERENT", a.summary(), b.summary()])
 	ok = ok and same
 
+	# Loop G1b: Auto's image state round-trips; a file without it (from before G1b) or with
+	# hand-edited values starts sharp / is cleaned.
+	var img := Settings.new()
+	img.path = SCRATCH
+	img.auto_image = {"fallback": true, "calm": 1, "wait": 4, "trial": -1, "why": "GPU extras down 74 s of 410"}
+	img.save()
+	var img_back := Settings.new()
+	img_back.path = SCRATCH
+	img_back.load_file()
+	var cfg_pre := ConfigFile.new()
+	cfg_pre.set_value("world", "quality", -1)
+	cfg_pre.set_value("world", "tiers", 1)
+	cfg_pre.save(SCRATCH_OLD)
+	var pre := Settings.new()
+	pre.path = SCRATCH_OLD
+	pre.load_file()
+	var cfg_odd := ConfigFile.new()
+	cfg_odd.set_value("auto_image", "fallback", true)
+	cfg_odd.set_value("auto_image", "wait", 500)
+	cfg_odd.set_value("auto_image", "calm", -2)
+	cfg_odd.save(SCRATCH_OLD)
+	var odd := Settings.new()
+	odd.path = SCRATCH_OLD
+	odd.load_file()
+	var image_ok: bool = img_back.auto_image == img.auto_image and pre.auto_image == Tiers.sharp_state() \
+			and odd.auto_image["fallback"] and int(odd.auto_image["wait"]) == Tiers.SHARP_WAIT_MAX and int(odd.auto_image["calm"]) == 0
+	print("Auto's image state: %s (round trip: %s; a file from before G1b: %s; hand-edited: %s)" % ["OK" if image_ok else "WRONG",
+			img_back.image_summary(), pre.image_summary(), odd.image_summary()])
+	ok = ok and image_ok
+
 	var off := Settings.new()
 	off.path = SCRATCH_OFF
 	off.persistent = false
 	off.traffic = 3
+	off.auto_image = Tiers.sharp_struggled(Tiers.sharp_state(), true, "nosave")
 	off.save()
 	var wrote := FileAccess.file_exists(SCRATCH_OFF)
 	print("--nosave writes nothing: %s" % ("OK" if not wrote else "WROTE A FILE"))
