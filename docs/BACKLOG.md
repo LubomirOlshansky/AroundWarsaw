@@ -883,7 +883,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **Scanned crowns into decks** (C9, 4 places: by Most Świętokrzyski's pylon one 15 m tree
   reaches 8.9 m into the slab at the 0.40 floor of trim_crowns): leave such a tree out, or let the
   floor go lower.
-- **For gameplay-dev: police P3 on the demo map** (`verify.sh` police-runs): `--police=1
-  --police-auto=escape` now escapes after 34.2 s (the check wants ≤ 30 s, koguty 1's cap); the
-  flight route over the bigger lane graph is longer. The cap or the check's window: gameplay's call.
+- **Police P3 on the demo map** (fixed): the test escape's random turns looped back past the
+  chaser's side, a traffic patrol saw it within 60 m at 20 s (the second-unit rule: L2, cap 40 s)
+  and the escape came at 34.2 s. The test autopilot (`--police-auto=escape`) now rides a route to a
+  node ~900 m away from the chaser (`police.gd` `_escape_route`): escaped after 23.2 s at L1.
 - `verify.sh` kebab: 15000 frames (order 0 goes 1,023 m on the demo map, delivered at 219.8 s).
