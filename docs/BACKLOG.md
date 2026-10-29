@@ -538,3 +538,16 @@ Small problems that agents reported or that showed up in screenshots. They are f
   both); a raise needs under 0.5 % missed over 30 s.
 - The BENCH minute holds the governor (the card is the level's own cost) and the rescue calls;
   `--governor=on` lets the governor act during a bench or probe.
+
+## From map review B (the streets, 2026-10-29)
+- Lines inside junctions mapped without a junction-box area: ~1.6 km of edge line and 0.4 km of
+  lane line lie inside the clusters of junction nodes (most at Plac Trzech Krzyży (-77, 670), the
+  Poniatowski ramps (1381, -344), Wał Miedzeszyński (1514, -147)); measured, not yet checked
+  against the photo one by one (many are a real edge line along a wide junction's side).
+- At night Al. Jerozolimskie at (-615, 394) and Nowy Świat at (-331, 18) read much darker than
+  Marszałkowska and Świętokrzyska, though lamps are mapped along them (one per 42 m and 22 m of
+  way): not judged in review B (the pools in `lights.bin` there, sodium or LED, cut by the
+  buildings?); shots `shots/review_roads/after/n2_*`, `n4_*` (local).
+- `check_streets` S3 also counts real median noses at a junction's edge (Świętokrzyska by Mariańska,
+  18 cross-sections): reported, not failed.
+

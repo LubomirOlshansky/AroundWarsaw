@@ -14,6 +14,8 @@
 # WARN before). `drive` runs game/tools/check_drive.gd (loop 3b): a car and a bus along every
 # lane against the colliders, the autopilot over the bridges and tunnels. `drape` runs
 # game/tools/check_drape.gd (loop 3b-2): the ground poking through the water, grass and plazas.
+# `streets` runs tools/check_streets.py (map review B): poles on the asphalt, zebras off it,
+# grass medians on tram tracks (S1, S2, S4 FAIL; S3, medians in a junction, is reported).
 # `tiers` and `governor` (loop G1): the device tiers and the pixel image's size rule, and the
 # frame governor's rules on scripted frames.
 # Every game run is headless, passes --nosave and quits by itself (--quit-after; Godot also
@@ -32,8 +34,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads drape drive drive-prebuilt steering settings tiers governor hud landmarks sfx radio water water-prebuilt plain heli race kebab splash rain prebuilt classic)
-STEPS_QUICK=(map roads drape drive steering settings tiers governor hud landmarks sfx radio plain prebuilt)
+STEPS_ALL=(map roads streets drape drive drive-prebuilt steering settings tiers governor hud landmarks sfx radio water water-prebuilt plain heli race kebab splash rain prebuilt classic)
+STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud landmarks sfx radio plain prebuilt)
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
 STEP_LIMIT=${NW_STEP_LIMIT:-900}
 
@@ -199,6 +201,19 @@ for s in $want; do
 			case $code in
 				0) row PASS "roads" $secs "check_roads: OK · not allowed/found: $counts" ;;
 				*) row FAIL "roads" $secs "$(grep -m1 '^check_roads:' $logs/roads.log) · $counts ($logs/roads.log)" ;;
+			esac ;;
+		# Map review B (2026-10-29): the streets at grade (poles on the asphalt, zebras off it,
+		# grass medians on tram tracks; tools/check_streets.py S1-S4).
+		streets)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/check_streets.py > $logs/streets.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			counts=$(grep -m1 '^check_streets counts:' $logs/streets.log)
+			counts=${counts#check_streets counts: }
+			case $code in
+				0) row PASS "streets" $secs "check_streets: OK · $counts" ;;
+				*) row FAIL "streets" $secs "$(grep -m1 '^check_streets:' $logs/streets.log) · $counts ($logs/streets.log)" ;;
 			esac ;;
 		# Loop 3b-2: the bare ground poking through the areas laid on it (water, grass, plazas, sand).
 		drape) check drape '^check_drape:' --script res://tools/check_drape.gd ;;
