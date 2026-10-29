@@ -841,3 +841,42 @@ Small problems that agents reported or that showed up in screenshots. They are f
   `check_drive` 0); spec as in review B.
 - **D8** rail track ends 1.2 m apart (Solec) and **D10** the Praga ramp joint's sliver: as in map
   review A's specs.
+
+## From loop 3d-1 (the demo map, the 18.6 km² box, 2026-10-29)
+- **Loop 3e's structures, all allowlisted with place and reason** (`tools/check_roads_allow.json`,
+  `tools/check_drive_allow.json`, README "Loop 3d-1"): Trasa W-Z's tunnel and portals (Aleja
+  Solidarności, Grodzka, Nowy Zjazd, the tram's abutment), Trasa Łazienkowska's trench at Plac Na
+  Rozdrożu (its ways are layer -1 with no tunnel tag: a cutting the grid doesn't show; 0.3-0.8 m
+  height steps a frame in its tunnels) and its interchange with Czerniakowska, the Wisłostrada
+  tunnel's north portal under the Copernicus Science Centre, Most Śląsko-Dąbrowski's Praga end,
+  Wiadukt Markiewicza, the railway cutting west of Centralna (Żelazna, Towarowa, Kasprzaka and
+  their footbridges, whose stairs aren't mapped), the Praga viaducts by the zoo (0.1-0.7 m short of
+  the clearance).
+- **The new 10 m grid moved the old map's ground** (the demo fetch samples the NMT 3.5 m east and
+  5 m south of the old grid's nodes; ±0.7 m at p1/p99, up to 3 m on embankments): 27 allowlist
+  entries no longer matched and went, new ones came, and two main-road spots now step: Wybrzeże
+  Kościuszkowskie by Tamka (625, −453) 2.4 m in 6 m and (642, −548). A rule for a road's end on a
+  hump of the grid, or the 1 m NMT along the river (one download, ~125 MB for the whole box,
+  DEMO 3.1's optional line), would fix the class.
+- **The AO, lamp-light and surface maps** are 37 + 37 + 19 MB (93 MB of video memory as whole
+  textures; the probe's textures 24 → 87 MB). Over the brief's 60 MB, but a window kept in RAM
+  saves nothing on the iPhone's shared memory: it needs per-sector slices read from disk as the
+  focus moves (the streamer's job, where the perf loop works now). Loop 3d-2.
+- **Static memory at the spawn 147 → ~220-315 MB** (the index's game data: roads, paths, areas,
+  trees3d as Variant arrays, now 3× bigger; index.json 9.6 MB): packed arrays or per-sector game
+  data (3c's note). Loop 3d-2.
+- **The runtime path's start**: the roof pass over 88 sector files (3c measured 2 s for 32) and the
+  monolithic build (`count_vertices.gd` 36 s): a cached roof grid. Loop 3d-2.
+- **Most Łazienkowski is cut by the east edge** (x 1,773 mid-river): its deck ends in the air at the
+  rim like Most Świętokrzyski's did on the first box. DEMO 2.1 said no bridge is cut; that held
+  for the 30 km² box only. Move the east edge to ~21.056 (the fetch reaches it) or accept.
+- **Speed traps 5-7** (`tools/bake_traps.py`): Warsaw's blocks give straight runs of 157-195 m
+  (police.md asks 250 m with no junction within 80 m: the officer stands mid-run, the junctions
+  78-98 m away); trap 6's road is named Aleja Armii Ludowej in OSM (radio phrase unchanged),
+  its graph speed 79 km/h. police.md 13 wants them as `pois` kind `trap` in the bake.
+- **Pedestrian zones**: `ped_zones` (83 polygons, the Old Town box) and the 20 km/h cap are in;
+  the pill, guards, clamp and the guard car (police.md 5.6) are loop 3g-2's; Łazienki and the
+  boulevards (police.md 13) are outside the box or need their own `PED_ZONES` line.
+- **Scanned crowns into decks** (C9, 4 places: by Most Świętokrzyski's pylon one 15 m tree
+  reaches 8.9 m into the slab at the 0.40 floor of trim_crowns): leave such a tree out, or let the
+  floor go lower.

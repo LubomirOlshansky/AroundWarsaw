@@ -2540,6 +2540,62 @@ L4, L5, L2 and the Podwózka river spots.
   dashes through such junctions: kept. **L4** (Emilii Plater's weaving median walls), **L2**,
   **D8**, **D10**: not changed (BACKLOG).
 
+## Loop 3d-1: the demo map, the 18.6 km² box (2026-10-29)
+
+The map is docs/DEMO.md 2.1's box (south 52.2183, west 20.9780, north 52.2525, east 21.0500),
+baked from the demo fetch already on disk (no downloads; README "Map data" for the chain,
+`tools/bake_all.sh` to run it). The origin stays at 52.2340 N 21.0240 E (`bake_osm.py`
+`ORIGIN`), so every coordinate written before means the same place.
+
+- **Committed vs derived** (item 0, the user's decision): the split and the prebuilt sectors are
+  no longer committed; a fresh clone runs `tools/setup_map.sh` once ("Map data").
+- **New steps**: `tools/prepare_demo.py` (the raw downloads cut to the box into `data/work/demo/`;
+  `data/raw` is only read), `tools/bake_terrain.py` (the terrain on its own, first),
+  `tools/bake_traps.py` (police traps 5-7 placed on the new graph by the first four's rules:
+  Aleja „Solidarności” at (−778, −1390), Aleja Armii Ludowej (Trasa Łazienkowska) at (673, 1399),
+  Aleje Ujazdowskie at (57, 1404); the blocks give 157-825 m runs, not police.md's 250 m).
+  `bake_osm.py` runs twice (its structures read the box's LoD2). Its two quadratic loops (outlines
+  holding parts, props facing their road) got grids: 240 s → 110 s for the whole bake.
+- **Pedestrian zones** (police.md 5.6, 13): `bake_osm.py` `PED_ZONES` (the Old Town box, one
+  small commented list) writes `ped_zones` (83 polygons: the `highway=pedestrian` ways as strips,
+  the squares and pedestrian areas: the Old Town and New Town, Plac Zamkowy, Krakowskie
+  Przedmieście's north end); traffic never enters (pedestrian ways are not in the lane graph);
+  `game/scripts/ped_zones.gd` and `car.gd` `zone_cap` hold the player's car to 20 km/h there
+  (`zone:` log lines). The pill, the guards and the clamp are loop 3g-2's.
+- **Classes fixed over the whole map** (each counted before → after): a vertex within 0.3 m of the
+  one before it got no node in the deck solver (a crash on the box's rails: 1 → 0); a rail way with
+  no layer between cutting tracks is in the cutting (Żelazna's crossover, an R3 failure that
+  stopped the bake: 1 → 0); poles on the asphalt (S1 15 → 0: a lamp with no spot off the asphalt
+  is left out, a signal looks 16 m out, the added lamps and a last pass use S1's own test); a deck
+  lookup past a piece's end at a joint with the next piece (Most Świętokrzyski dropped the car
+  7.6 m at its pylon: check_drive jumps there 2 → 0); building walls standing in a lane open by
+  their triangles' edges, not centres, and for OpenStreetMap buildings too (lod2_open 92 → 140
+  places; check_drive lane collisions outside the structures 6 → 1, a pillar, allowed).
+- **What the checks found** in the new area (all listed in the allowlists with place and reason,
+  `tools/check_roads_allow.json` and the new `tools/check_drive_allow.json`; 27 entries of the
+  first box no longer matched and were dropped): the structures of DEMO 4.6, loop 3e's work: Trasa
+  W-Z's tunnel and portals, Trasa Łazienkowska's trench at Plac Na Rozdrożu and its interchange,
+  the Wisłostrada tunnel's north portal under the Copernicus Science Centre, Most Świętokrzyski's
+  pylon, Most Śląsko-Dąbrowski's Praga end, Wiadukt Markiewicza, the railway cutting west of
+  Centralna under Żelazna, Towarowa and Kasprzaka, the Praga viaducts by the zoo; and two classes
+  of the 10 m grid: service ways and steep escarpment streets as before, and (new) roads whose
+  ends meet a hump or pit of the new grid, which samples the NMT 3.5 m east and 5 m south of the
+  old grid's nodes (Wybrzeże Kościuszkowskie by Tamka steps 2.4 m in 6 m: an open question).
+
+| Loop 3d-1 numbers | First box (loop 3c) | Demo box |
+| --- | --- | --- |
+| Area, sectors | 3,545 × 1,769 m = 6.3 km², 32 | 4,909 × 3,782 m = 18.6 km², 88 (i −7..3, j −4..3) |
+| centrum.json, lod2.bin, ao / lights / water.bin | 5.0, 26, 12 / 12 / 6 MB | 15.5, 82, 37 / 37 / 19 MB |
+| Roads, paths, buildings (OSM kept / LoD2) | | 7,389, 18,738, 11,721 (4,437 kept / 5,403 LoD2, 1.46 M vertices) |
+| Scanned trees, pois, addresses | 12,554, 1,020, 973 | 38,570 (every OSM tree replaced), 3,069, 2,863 |
+| Lane graph | 966 nodes (96.3 % strongly connected), 1,497 edges | 2,570 nodes (2,471: 96.1 %), 4,195 edges, 173 signal controllers |
+| Vertices (`count_vertices.gd`) | 6.25 M | 18.19 M (the same 0.98 M a km²) |
+| Sector files / index.json | 9.2 / 3.3 MB | 27.3 / 9.6 MB |
+| Prebuilt: sectors, index.res, proxies.scn, shared | 29.3, 2.3, 2.7, 6 MB | 83.9, 6.7, 7.9, 20 MB |
+| check_roads findings (all allowed) | C1 32, C2 1, C3 40, C5 18, C8 5, C9 5 | C1 84, C2 1, C3 131, C5 70, C6 4, C8 32, C9 12 |
+| check_drive (both paths) | 0 | 0 not allowed (214 allowed, all at loop 3e's structures but one pillar) |
+| check_streets | S1 0, S3 18 | S1 0, S3 40 |
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -2632,6 +2688,32 @@ System Trace: the iPhone 11 at ×2 holds 60 at its lowest GPU clock, Loop G1 abo
 
 ## Map data
 
+**Loop 3d-1: the demo box.** The map is the box of docs/DEMO.md 2.1: south 52.2183, west
+20.9780, north 52.2525, east 21.0500 (map metres x −3,136 to +1,773, z −2,046 to +1,736;
+4,909 × 3,782 m = 18.6 km², 11 × 8 = 88 sectors). `bake_osm.py` `BBOX` is the box and `ORIGIN`
+(52.2340 N 21.0240 E) the origin, no longer the box's centre, so every coordinate written down
+before (allowlists, `GUGIK_NOT_TREES`, `EXTRA_KEBAB`, landmark search boxes, police traps, test
+spots, this README) still means the same place. Everything comes from the demo fetch already on
+disk (`data/raw/demo/MANIFEST.md`; nothing downloaded since) and `data/raw` is only read:
+`tools/bake_all.sh` runs the whole chain (~10 min), in this order:
+
+1. `python3 tools/prepare_demo.py` (Pillow, for the photo) → `data/work/demo/` (gitignored):
+   the Overpass export cut to the box (`osm_demo.json`: nodes within 0.003° of it, the ways and
+   multipolygons that reach it with all their nodes, no route relations: 76 MB of 187), the
+   aerial photo's four tiles joined and cut (`ortho.bmp`, 5,642 × 4,346 px), the 10 m grid cut
+   (`terrain_10m.json`), links to the 9 LoD2 and 30 tree sheets that meet the box.
+2. `python3 -I tools/bake_terrain.py` → `game/map/terrain.json` (its own step now: bake_osm
+   reads it for the decks, and bake_gugik reads centrum.json, a circle once the box grew).
+3. `python3 -I tools/bake_trees_gugik.py data/work/demo/trees data/work/demo/trees_area.json` (~5 min).
+4. `W=data/work/demo/osm_demo.json && python3 -I tools/bake_osm.py $W $W game/map/centrum.json $W $W`.
+5. `python3 -I tools/bake_gugik.py data/work/demo game/map` → `lod2.bin`, `lod2.json`.
+6. Step 4 again: its structures read `lod2.*` (the outlines bake_gugik keeps LoD2 by don't change).
+7. `bake_ao.py`, `bake_lights.py`, `bake_water.py` (below), then `tools/setup_map.sh` (the split
+   and the prebuilt sectors).
+
+The steps below are the chain as it was for the first box; their order and what each writes
+still hold, with the paths above.
+
 0. Trees (optional, before step 1): the GUGiK 3D tree models, LoD1 2023, CC BY 4.0
    (`opendata.geoportal.gov.pl/InneDane/Drzewa3D/LOD1/2023/14/1465.zip`, 8.6 GB, no resume;
    stream it through `tar` keeping only the map's sheets into `data/raw/gugik/trees/1465/`), then
@@ -2657,7 +2739,7 @@ System Trace: the iPhone 11 at ×2 holds 60 at its lowest GPU clock, Loop G1 abo
    as `palm`). After a re-bake run steps 3-5 again.
    Loop 3b-2: `tools/bake_banks.py` (after the shore runs) marks natural banks on `shore` (`n`)
    and writes `sand` and `sandbars` (`g`: gravel); `crown_scales` writes `trees3d_crown` (one
-   crown scale per scanned tree, 12,554 values, checked by `check_map_data.py`);
+   crown scale per scanned tree, 12,554 values on the first box, 38,570 since loop 3d-1, checked by `check_map_data.py`);
    `level_surfaces` puts a bridge's mapped pavements and tram bed on its deck (`dk` on
    `surfaces`). See Loop 3b-2.
    For the side jobs and easter eggs the same bake writes more `pois`: `kebab` (the mapped

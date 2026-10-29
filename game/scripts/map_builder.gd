@@ -132,6 +132,10 @@ var _uv2 := Vector2.ZERO
 ## k (road, path, tram, rail), o (per point: 1 = left side outer, 2 = right side outer),
 ## box (bounds, for quick rejection).
 @export_storage var _decks: Array[Dictionary] = []
+## Loop 3d-1: per deck piece, 1 if its start meets another piece's end of the same deck, 2 its
+## end (a joint: _decks_at lets a point DECK_JOINT_SLACK past it count); made with the cells.
+var _deck_joints := PackedByteArray()
+const DECK_JOINT_SLACK := 1.5
 ## Loop 3a (R1): the approaches of the bridges (tools/bake_roads.py `fills`: abutments,
 ## embankments, the ways onto a bridge where the 10 m terrain grid blurs the abutment into a
 ## slope): pieces like the decks' (pts, cum, h, l, r) that correct the ground under their
@@ -933,7 +937,13 @@ func _decks_at(x: float, z: float) -> PackedFloat32Array:
 		var u: float = near[i][2]
 		var pts: PackedVector2Array = d["pts"]
 		if (k == 0 and u < 0.0) or (k == pts.size() - 2 and u > 1.0):
-			continue  # past the deck's end
+			# Past the deck's end, unless the end is a joint with the next piece of its deck: on
+			# the outside of a bend a point can be past one piece's end and before the next one's
+			# start (loop 3d-1: Most Świętokrzyski's pylon joint dropped the car 7.6 m to the river).
+			var joint := (_deck_joints[i] & (1 if k == 0 else 2)) != 0
+			var past := (-u if k == 0 else u - 1.0) * (pts[k + 1] - pts[k]).length()
+			if not joint or past > DECK_JOINT_SLACK:
+				continue
 		var ab := pts[k + 1] - pts[k]
 		var lat := ab.cross(p - pts[k]) / maxf(ab.length(), 0.001)
 		if lat >= -float(d["l"]) and lat <= float(d["r"]):
@@ -989,6 +999,20 @@ var _deck_any := {}
 
 
 func _index_decks() -> void:
+	# Loop 3d-1: which piece ends meet another piece's end of the same deck (a joint).
+	_deck_joints.resize(_decks.size())
+	_deck_joints.fill(0)
+	for i in _decks.size():
+		var pi: PackedVector2Array = _decks[i]["pts"]
+		for j in _decks.size():
+			if j == i or int(_decks[j]["g"]) != int(_decks[i]["g"]):
+				continue
+			var pj: PackedVector2Array = _decks[j]["pts"]
+			for e in [pj[0], pj[pj.size() - 1]]:
+				if pi[0].distance_to(e) < 0.6:
+					_deck_joints[i] |= 1
+				if pi[pi.size() - 1].distance_to(e) < 0.6:
+					_deck_joints[i] |= 2
 	for i in _decks.size():
 		var d: Dictionary = _decks[i]
 		var pts: PackedVector2Array = d["pts"]
@@ -3224,8 +3248,18 @@ func _build_trams(st) -> void:
 	_dk = -1
 
 
+## Loop 3d-1: whether a wall at p stands in one of `lod2_open`'s boxes (a wall in a lane's
+## corridor, tools/bake_structures.py open_lod2: LoD2 and, since loop 3d-1, OSM buildings).
+func _open_wall(p: Vector2, open: Array) -> bool:
+	for o: Array in open:
+		if absf(p.x - float(o[0])) < float(o[2]) and absf(p.y - float(o[1])) < float(o[2]):
+			return true
+	return false
+
+
 func _build_buildings(st, keep: Array, marks) -> void:
 	var list: Array = data["buildings"]
+	var open: Array = data.get("lod2_open", [])
 	var drawn: Array[int] = []
 	for index in (keep if _has_lod2 else range(list.size())):
 		var bld: Dictionary = list[int(index)]
@@ -3286,7 +3320,7 @@ func _build_buildings(st, keep: Array, marks) -> void:
 			_tri_shaded(st, p0, p1, p2, n, base_col, base_col, wall, u0, u1, u2)
 			_tri_shaded(st, p0, p2, p3, n, base_col, wall, wall, u0, u2, u3)
 			run += length
-			if mh < 2.0:
+			if mh < 2.0 and not _open_wall((a + b) * 0.5, open):
 				var g0 := ground - 1.0
 				# Loop 3b: never over the building's own top (a viaduct's pillar ends under its slab).
 				var g1 := ground + minf(5.0, h)
@@ -3583,9 +3617,17 @@ func _build_lod2(walls, marks) -> Array:
 		if not flat_ish:
 			var solid := true
 			if not open.is_empty():
-				var c := (pos[t] + pos[t + 1] + pos[t + 2]) / 3.0
+				# Loop 3d-1: the triangle's edges, not its centre (a long wall's triangle reaches
+				# into the lane with its centre metres away: 5 lanes in the demo box).
+				var ta := Vector2(pos[t].x, pos[t].z)
+				var tb := Vector2(pos[t + 1].x, pos[t + 1].z)
+				var tc := Vector2(pos[t + 2].x, pos[t + 2].z)
 				for o: Array in open:
-					if absf(c.x - float(o[0])) < float(o[2]) and absf(c.z - float(o[1])) < float(o[2]):
+					var oc := Vector2(float(o[0]), float(o[1]))
+					var r := float(o[2])
+					if Geometry2D.get_closest_point_to_segment(oc, ta, tb).distance_to(oc) < r \
+							or Geometry2D.get_closest_point_to_segment(oc, tb, tc).distance_to(oc) < r \
+							or Geometry2D.get_closest_point_to_segment(oc, tc, ta).distance_to(oc) < r:
 						solid = false
 						break
 			if solid:

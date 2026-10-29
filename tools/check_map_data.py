@@ -37,7 +37,12 @@ MAP = os.path.join(ROOT, "game", "map")
 # tree (12,554 trees), pois are hospitals, beaches, parks, kebab stands, addresses, etc.
 # Loop 3b-2: trees3d_crown, one crown scale per scanned tree (12,554: 75 by the roads, up to
 # 100 in the parks; bake_osm.py crown_scales).
-EXPECTED = {"trees3d": 75324, "pois": 1020, "trees3d_crown": 12554}
+# Loop 3d-1: the demo box (18.6 km², README "Map data"): 38,570 scanned trees (the GUGiK sheets
+# cover the whole box, so no OSM trees are left), 3,069 pois (2,863 addresses, 42 kebab stands,
+# 11 hospitals, 74 squares...). Before: 75324 / 1020 / 12554 on the first box.
+EXPECTED = {"trees3d": 231420, "pois": 3069, "trees3d_crown": 38570}
+# docs/DEMO.md 7 row 7: the lane graph's strongly connected share at least this.
+SCC_SHARE = 0.95
 
 # Loop 3d-1: what tools/bake_sectors.py reads to split the map (map-dir files, and the script
 # itself; the same names as its SPLIT_INPUTS), and what tools/bake_city.gd builds the prebuilt
@@ -86,8 +91,11 @@ def main() -> int:
 
     graph = data.get("graph")
     if isinstance(graph, dict) and graph.get("edges"):
-        report("OK", "graph", "present: %d nodes in the connected part, %d directed edges, "
-               "%d signal controllers, %d portals" % (len(graph.get("scc", [])), len(graph["edges"]),
+        scc = graph.get("scc", [])
+        share = sum(scc) / max(len(scc), 1)
+        report("OK" if share >= SCC_SHARE else "FAIL", "graph",
+               "%d of %d nodes strongly connected (%.1f %%, at least %.0f %%), %d directed edges, "
+               "%d signal controllers, %d portals" % (sum(scc), len(scc), share * 100, SCC_SHARE * 100, len(graph["edges"]),
                                                       len(graph.get("ctrl", [])), len(graph.get("portals", []))))
     else:
         report("FAIL", "graph", "missing or empty (the lane graph: traffic, races and jobs need it)")

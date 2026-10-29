@@ -29,6 +29,13 @@ If they disagree, README wins: fix this file.
 
 ## Order (re-run everything below the step you changed)
 
+Loop 3d-1 (the demo box, README "Map data"): `tools/bake_all.sh` runs the whole chain (~10 min).
+It starts with `python3 tools/prepare_demo.py` (the raw downloads cut to `bake_osm.BBOX` into
+`data/work/demo/`; `data/raw` is read-only) and `python3 -I tools/bake_terrain.py` (the terrain,
+first: bake_osm reads it), runs bake_osm.py before and again after bake_gugik.py (the structures
+read the box's LoD2), and the inputs below are `data/work/demo/*` (trees, OSM, ortho, sheets).
+`tools/bake_traps.py` places police traps the graph gains. The steps below keep their order.
+
 1. Trees (optional): `tools/bake_trees_gugik.py` → `data/raw/gugik/trees_area.json`.
 2. OpenStreetMap: `tools/bake_osm.py` (imports `tools/bake_roads.py`: carriageways, kerbs,
    medians, markings, bridge decks, approaches and pits (`fills`), tunnels, garage doors;
@@ -64,7 +71,7 @@ If they disagree, README wins: fix this file.
 ## Invariants after a re-bake
 
 ```zsh
-python3 -I tools/check_map_data.py      # trees3d 75324 values, trees3d_crown 12554, pois 1020, graph, palm (in centrum.json and over the sectors), sector files and prebuilt sectors fresh
+python3 -I tools/check_map_data.py      # trees3d 231420 values, trees3d_crown 38570, pois 3069, graph ≥ 95 % connected, palm (in centrum.json and over the sectors), sector files and prebuilt sectors fresh
 godot --path game --resolution 320x180 --script res://tools/count_vertices.gd   # vertex budget
 ```
 

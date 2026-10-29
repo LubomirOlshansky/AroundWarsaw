@@ -4,45 +4,12 @@
   {
    "rule": "C1",
    "at": [
-    -114,
-    -617
-   ],
-   "r": 12,
-   "name": "Oboźna",
-   "reason": "the street climbs the Vistula escarpment (Skarpa Warszawska): about 13 % over 50 m in the grid, steepest 17 % over 7 m; a real steep street",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py; OSM highway=residential on the escarpment"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    431,
-    -90
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
     73,
     481
    ],
    "r": 10,
    "name": "service",
    "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    652,
-    -244
-   ],
-   "r": 12,
-   "name": "Świętego Franciszka Salezego",
-   "reason": "the street's end meets the railway embankment's foot: the grid rises 0.8 m in the last 6 m at the junction; a junction, so no pit fill (see above)",
    "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
   },
   {
@@ -59,56 +26,12 @@
   {
    "rule": "C1",
    "at": [
-    -1668,
-    460
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    -819,
-    489
-   ],
-   "r": 12,
-   "name": "Rondo Romana Dmowskiego",
-   "reason": "the stairwells to the metro and the underpass at Rondo Dmowskiego are pits in the bare-earth grid (0.7 m dip); at the roundabout's junctions, so no pit fill",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    1290,
-    -662
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
     1627,
     -690
    ],
    "r": 10,
    "name": "service",
    "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    851,
-    -159
-   ],
-   "r": 10,
-   "name": "secondary_link",
-   "reason": "12.4 % over 7 m on the ramp from Wybrzeże Kościuszkowskie up towards Most Poniatowskiego's west abutment: the grid's slope, at the limit",
    "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
   },
   {
@@ -145,193 +68,6 @@
    "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
   },
   {
-   "rule": "C1",
-   "at": [
-    -1587,
-    670
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    -1622,
-    684
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    -1709,
-    720
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    78,
-    19
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    -1728,
-    -151
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    2,
-    -515
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    -85,
-    258
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    341,
-    802
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    -678,
-    690
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    -200,
-    558
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    -87,
-    -628
-   ],
-   "r": 12,
-   "name": "Oboźna",
-   "reason": "the street climbs the Vistula escarpment (Skarpa Warszawska): about 13 % over 50 m in the grid, steepest 17 % over 7 m; a real steep street",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py; OSM highway=residential on the escarpment"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    -826,
-    122
-   ],
-   "r": 12,
-   "name": "Złota",
-   "reason": "a pit in the terrain grid where Złota crosses a stairwell or garage entrance by Złote Tarasy (the grid dips 2-3 m in 10 m and recovers); at a junction, so loop 3a's pit fill leaves it (a fill would step the crossing way); the 1 m terrain (R2) or loop 3b's junction-aware fill",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    -32,
-    -289
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    -28,
-    -538
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    -1312,
-    735
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    -815,
-    118
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C1",
-   "at": [
-    555,
-    -447
-   ],
-   "r": 10,
-   "name": "service",
-   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
    "rule": "C8",
    "at": [
     -184,
@@ -345,17 +81,6 @@
   {
    "rule": "C8",
    "at": [
-    651,
-    -245
-   ],
-   "r": 12,
-   "name": "Świętego Franciszka Salezego",
-   "reason": "the street's end meets the railway embankment's foot: the grid rises 0.8 m in the last 6 m at the junction; a junction, so no pit fill (see above)",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
-  },
-  {
-   "rule": "C8",
-   "at": [
     -90,
     -626
    ],
@@ -363,17 +88,6 @@
    "name": "Oboźna",
    "reason": "the street climbs the Vistula escarpment (Skarpa Warszawska): about 13 % over 50 m in the grid, steepest 17 % over 7 m; a real steep street",
    "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py; OSM highway=residential on the escarpment"
-  },
-  {
-   "rule": "C8",
-   "at": [
-    -828,
-    122
-   ],
-   "r": 12,
-   "name": "Złota",
-   "reason": "a pit in the terrain grid where Złota crosses a stairwell or garage entrance by Złote Tarasy (the grid dips 2-3 m in 10 m and recovers); at a junction, so loop 3a's pit fill leaves it (a fill would step the crossing way); the 1 m terrain (R2) or loop 3b's junction-aware fill",
-   "source": "GUGiK NMT 10 m grid (game/map/terrain.json) profile along the way, tools/check_roads.py"
   },
   {
    "rule": "C3",
@@ -417,17 +131,6 @@
    "r": 40,
    "name": "footway",
    "reason": "the Copernicus Science Centre's roof garden: three mapped ring ramps (footways on bridges) cross each other; left as mapped (footbridges over footbridges are not solved)",
-   "source": "OSM footway bridges at the Centrum Nauki Kopernik roof garden"
-  },
-  {
-   "rule": "C3",
-   "at": [
-    384,
-    -805
-   ],
-   "r": 40,
-   "name": "footway",
-   "reason": "the Copernicus Science Centre's roof garden ramps over a footway (as above)",
    "source": "OSM footway bridges at the Centrum Nauki Kopernik roof garden"
   },
   {
@@ -649,6 +352,1766 @@
    "name": "LoD2 building",
    "reason": "the science centre's roof garden: its ramps are mapped as bridge footways across the building's roof (C3 allows them too); a footbridge-only structure cuts nothing",
    "source": "OpenStreetMap footways (bridge=yes) over Centrum Nauki Kopernik, GUGiK LoD2, orthophoto (shots/loop3b/c9_spots.png, right)"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    153,
+    -1056
+   ],
+   "r": 12,
+   "name": "Wybrzeże Kościuszkowskie",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre and the centre's roof garden ramps (footbridges over footbridges, left as mapped; C3/C9 allowed them on the first box): the tunnel runs under the building, the portal frame and the building's underside are structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    1334,
+    1008
+   ],
+   "r": 6,
+   "name": "primary_link",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's interchange with Czerniakowska and the Wisłostrada and Most Łazienkowski's west end (the bridge itself is cut by the box's east edge at x 1773): structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    1071,
+    1380
+   ],
+   "r": 16,
+   "name": "service",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's interchange with Czerniakowska and the Wisłostrada and Most Łazienkowski's west end (the bridge itself is cut by the box's east edge at x 1773): structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    924,
+    1324
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's interchange with Czerniakowska and the Wisłostrada and Most Łazienkowski's west end (the bridge itself is cut by the box's east edge at x 1773): structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    1091,
+    -1707
+   ],
+   "r": 8,
+   "name": "living_street",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the road viaducts on the Praga bank by the zoo (decks 12 and 13) over two service ways: 4.0-4.6 m of the 4.7 m clearance after a 1.05 m underpass dip (R3); the bare earth there is the 10 m grid's",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    1058,
+    -1668
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the road viaducts on the Praga bank by the zoo (decks 12 and 13) over two service ways: 4.0-4.6 m of the 4.7 m clearance after a 1.05 m underpass dip (R3); the bare earth there is the 10 m grid's",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    34,
+    1636
+   ],
+   "r": 23,
+   "name": "Aleja Armii Ludowej",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's trench at Plac Na Rozdrożu (Aleja Armii Ludowej's ways have layer -1 and no tunnel, so they are a cutting the 10 m grid doesn't show: 3-4 m steps where the trench meets the grid) and the ramps and footbridges over it",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    122,
+    1601
+   ],
+   "r": 21,
+   "name": "Aleja Armii Ludowej",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's trench at Plac Na Rozdrożu (Aleja Armii Ludowej's ways have layer -1 and no tunnel, so they are a cutting the 10 m grid doesn't show: 3-4 m steps where the trench meets the grid) and the ramps and footbridges over it",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -52,
+    1731
+   ],
+   "r": 6,
+   "name": "Aleja Armii Ludowej",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's trench at Plac Na Rozdrożu (Aleja Armii Ludowej's ways have layer -1 and no tunnel, so they are a cutting the 10 m grid doesn't show: 3-4 m steps where the trench meets the grid) and the ramps and footbridges over it",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    149,
+    1555
+   ],
+   "r": 6,
+   "name": "Aleja Armii Ludowej",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's trench at Plac Na Rozdrożu (Aleja Armii Ludowej's ways have layer -1 and no tunnel, so they are a cutting the 10 m grid doesn't show: 3-4 m steps where the trench meets the grid) and the ramps and footbridges over it",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    192,
+    1607
+   ],
+   "r": 6,
+   "name": "Aleja Armii Ludowej",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's trench at Plac Na Rozdrożu (Aleja Armii Ludowej's ways have layer -1 and no tunnel, so they are a cutting the 10 m grid doesn't show: 3-4 m steps where the trench meets the grid) and the ramps and footbridges over it",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    59,
+    1676
+   ],
+   "r": 6,
+   "name": "Aleja Jana Chrystiana Szucha",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's trench at Plac Na Rozdrożu (Aleja Armii Ludowej's ways have layer -1 and no tunnel, so they are a cutting the 10 m grid doesn't show: 3-4 m steps where the trench meets the grid) and the ramps and footbridges over it",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    119,
+    1637
+   ],
+   "r": 6,
+   "name": "primary_link",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's trench at Plac Na Rozdrożu (Aleja Armii Ludowej's ways have layer -1 and no tunnel, so they are a cutting the 10 m grid doesn't show: 3-4 m steps where the trench meets the grid) and the ramps and footbridges over it",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    60,
+    1706
+   ],
+   "r": 6,
+   "name": "primary_link",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's trench at Plac Na Rozdrożu (Aleja Armii Ludowej's ways have layer -1 and no tunnel, so they are a cutting the 10 m grid doesn't show: 3-4 m steps where the trench meets the grid) and the ramps and footbridges over it",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -673,
+    -1407
+   ],
+   "r": 6,
+   "name": "Aleja „Solidarności”",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -865,
+    -1384
+   ],
+   "r": 6,
+   "name": "Aleja „Solidarności”",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -512,
+    -1450
+   ],
+   "r": 6,
+   "name": "Grodzka",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -674,
+    -1409
+   ],
+   "r": 6,
+   "name": "Grodzka",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -950,
+    -1400
+   ],
+   "r": 6,
+   "name": "Kapucyńska",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -680,
+    -1406
+   ],
+   "r": 6,
+   "name": "Nowy Zjazd",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -414,
+    -1468
+   ],
+   "r": 6,
+   "name": "Nowy Zjazd",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -376,
+    -1502
+   ],
+   "r": 6,
+   "name": "Nowy Zjazd",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -622,
+    -1665
+   ],
+   "r": 6,
+   "name": "Piotra Antoniego Steinkellera",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -351,
+    -1559
+   ],
+   "r": 6,
+   "name": "Wybrzeże Gdańskie",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -240,
+    -1464
+   ],
+   "r": 6,
+   "name": "living_street",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -422,
+    -1513
+   ],
+   "r": 6,
+   "name": "secondary",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -606,
+    -1440
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -881,
+    -1470
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -376,
+    -1493
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -2932,
+    -807
+   ],
+   "r": 6,
+   "name": "Kacza",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    223,
+    -1913
+   ],
+   "r": 6,
+   "name": "Olszowa",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    119,
+    -1832
+   ],
+   "r": 6,
+   "name": "Olszowa",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    625,
+    -453
+   ],
+   "r": 6,
+   "name": "Wybrzeże Kościuszkowskie",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    642,
+    -548
+   ],
+   "r": 6,
+   "name": "Wybrzeże Kościuszkowskie",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -800,
+    97
+   ],
+   "r": 6,
+   "name": "Złota",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -1983,
+    -1277
+   ],
+   "r": 6,
+   "name": "living_street",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    835,
+    -133
+   ],
+   "r": 6,
+   "name": "primary_link",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -2,
+    -156
+   ],
+   "r": 6,
+   "name": "Szczygla",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    439,
+    -98
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -382,
+    -1023
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    22,
+    -170
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -2327,
+    -1099
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -2143,
+    -1278
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -2072,
+    746
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    1312,
+    -657
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -1144,
+    -994
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -1761,
+    -1424
+   ],
+   "r": 7,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    0,
+    -1004
+   ],
+   "r": 9,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -1617,
+    684
+   ],
+   "r": 25,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -1048,
+    -1662
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -442,
+    -1093
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -2391,
+    -105
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    523,
+    -1520
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -1738,
+    256
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -134,
+    1072
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -76,
+    265
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -377,
+    -518
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    584,
+    -1543
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    1438,
+    -406
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -2875,
+    714
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -3021,
+    -866
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "a service way (a courtyard, parking or garage access) on a dip, ramp or bump of the terrain grid that R9 does not take for a garage ramp (a through way, or a drop under 2 m); minor ways no traffic uses; to be judged on the 1 m terrain (R2)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -584,
+    -1197
+   ],
+   "r": 6,
+   "name": "Bednarska",
+   "reason": "the street climbs the Vistula escarpment (Skarpa Warszawska) or a bank, steep on the 10 m grid; a real steep street",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -799,
+    -1992
+   ],
+   "r": 6,
+   "name": "Boleść",
+   "reason": "the street climbs the Vistula escarpment (Skarpa Warszawska) or a bank, steep on the 10 m grid; a real steep street",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    550,
+    1034
+   ],
+   "r": 6,
+   "name": "Górnośląska",
+   "reason": "the street climbs the Vistula escarpment (Skarpa Warszawska) or a bank, steep on the 10 m grid; a real steep street",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -114,
+    -617
+   ],
+   "r": 20,
+   "name": "Oboźna",
+   "reason": "the street climbs the Vistula escarpment (Skarpa Warszawska) or a bank, steep on the 10 m grid; a real steep street",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C1",
+   "at": [
+    -4,
+    -436
+   ],
+   "r": 6,
+   "name": "Zajęcza",
+   "reason": "the street climbs the Vistula escarpment (Skarpa Warszawska) or a bank, steep on the 10 m grid; a real steep street",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    326,
+    -942
+   ],
+   "r": 24,
+   "name": "footway",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre and the centre's roof garden ramps (footbridges over footbridges, left as mapped; C3/C9 allowed them on the first box): the tunnel runs under the building, the portal frame and the building's underside are structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    257,
+    -890
+   ],
+   "r": 6,
+   "name": "footway",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre and the centre's roof garden ramps (footbridges over footbridges, left as mapped; C3/C9 allowed them on the first box): the tunnel runs under the building, the portal frame and the building's underside are structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    303,
+    -924
+   ],
+   "r": 13,
+   "name": "footway",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre and the centre's roof garden ramps (footbridges over footbridges, left as mapped; C3/C9 allowed them on the first box): the tunnel runs under the building, the portal frame and the building's underside are structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    1306,
+    1189
+   ],
+   "r": 15,
+   "name": "footway",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's interchange with Czerniakowska and the Wisłostrada and Most Łazienkowski's west end (the bridge itself is cut by the box's east edge at x 1773): structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    1049,
+    -1676
+   ],
+   "r": 16,
+   "name": "service",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the road viaducts on the Praga bank by the zoo (decks 12 and 13) over two service ways: 4.0-4.6 m of the 4.7 m clearance after a 1.05 m underpass dip (R3); the bare earth there is the 10 m grid's",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    1090,
+    -1708
+   ],
+   "r": 6,
+   "name": "service",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the road viaducts on the Praga bank by the zoo (decks 12 and 13) over two service ways: 4.0-4.6 m of the 4.7 m clearance after a 1.05 m underpass dip (R3); the bare earth there is the 10 m grid's",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    304,
+    -1554
+   ],
+   "r": 6,
+   "name": "cycle",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Most Śląsko-Dąbrowski's Praga end (deck 16 ends where its ramp's ways stop being bridges; Wybrzeże Szczecińskie under it): structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    817,
+    -971
+   ],
+   "r": 6,
+   "name": "cycle",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Most Świętokrzyski's pylon and its Praga abutment (whole in the map since loop 3d-1): the cycle ramp under the deck and the scanned crowns on the bank by the pylon (shrunk to 0.40, still under the slab's edge)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    -2400,
+    972
+   ],
+   "r": 30,
+   "name": "footway",
+   "reason": "the railway west of Centralna (Linia średnicowa, WKD) runs in a cutting (OSM layer=-1) under Żelazna, Towarowa, Kasprzaka and their footbridges; the 10 m grid doesn't show the cutting, so its level isn't known and the clearance can't be judged (as the WKD by Centralna on the first box); the footbridges' stairs are not mapped (their ends stand 1.6-2.4 m over the grid): loop 3e (docs/DEMO.md 4.6):",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    -2777,
+    1035
+   ],
+   "r": 18,
+   "name": "footway",
+   "reason": "the railway west of Centralna (Linia średnicowa, WKD) runs in a cutting (OSM layer=-1) under Żelazna, Towarowa, Kasprzaka and their footbridges; the 10 m grid doesn't show the cutting, so its level isn't known and the clearance can't be judged (as the WKD by Centralna on the first box); the footbridges' stairs are not mapped (their ends stand 1.6-2.4 m over the grid): loop 3e (docs/DEMO.md 4.6):",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    -1941,
+    817
+   ],
+   "r": 6,
+   "name": "footway",
+   "reason": "the railway west of Centralna (Linia średnicowa, WKD) runs in a cutting (OSM layer=-1) under Żelazna, Towarowa, Kasprzaka and their footbridges; the 10 m grid doesn't show the cutting, so its level isn't known and the clearance can't be judged (as the WKD by Centralna on the first box); the footbridges' stairs are not mapped (their ends stand 1.6-2.4 m over the grid): loop 3e (docs/DEMO.md 4.6):",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    -2327,
+    924
+   ],
+   "r": 17,
+   "name": "rail",
+   "reason": "the railway west of Centralna (Linia średnicowa, WKD) runs in a cutting (OSM layer=-1) under Żelazna, Towarowa, Kasprzaka and their footbridges; the 10 m grid doesn't show the cutting, so its level isn't known and the clearance can't be judged (as the WKD by Centralna on the first box); the footbridges' stairs are not mapped (their ends stand 1.6-2.4 m over the grid): loop 3e (docs/DEMO.md 4.6):",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    -1942,
+    808
+   ],
+   "r": 12,
+   "name": "rail",
+   "reason": "the railway west of Centralna (Linia średnicowa, WKD) runs in a cutting (OSM layer=-1) under Żelazna, Towarowa, Kasprzaka and their footbridges; the 10 m grid doesn't show the cutting, so its level isn't known and the clearance can't be judged (as the WKD by Centralna on the first box); the footbridges' stairs are not mapped (their ends stand 1.6-2.4 m over the grid): loop 3e (docs/DEMO.md 4.6):",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    -2396,
+    966
+   ],
+   "r": 26,
+   "name": "rail",
+   "reason": "the railway west of Centralna (Linia średnicowa, WKD) runs in a cutting (OSM layer=-1) under Żelazna, Towarowa, Kasprzaka and their footbridges; the 10 m grid doesn't show the cutting, so its level isn't known and the clearance can't be judged (as the WKD by Centralna on the first box); the footbridges' stairs are not mapped (their ends stand 1.6-2.4 m over the grid): loop 3e (docs/DEMO.md 4.6):",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    -2422,
+    979
+   ],
+   "r": 11,
+   "name": "rail",
+   "reason": "the railway west of Centralna (Linia średnicowa, WKD) runs in a cutting (OSM layer=-1) under Żelazna, Towarowa, Kasprzaka and their footbridges; the 10 m grid doesn't show the cutting, so its level isn't known and the clearance can't be judged (as the WKD by Centralna on the first box); the footbridges' stairs are not mapped (their ends stand 1.6-2.4 m over the grid): loop 3e (docs/DEMO.md 4.6):",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    -2776,
+    1035
+   ],
+   "r": 22,
+   "name": "rail",
+   "reason": "the railway west of Centralna (Linia średnicowa, WKD) runs in a cutting (OSM layer=-1) under Żelazna, Towarowa, Kasprzaka and their footbridges; the 10 m grid doesn't show the cutting, so its level isn't known and the clearance can't be judged (as the WKD by Centralna on the first box); the footbridges' stairs are not mapped (their ends stand 1.6-2.4 m over the grid): loop 3e (docs/DEMO.md 4.6):",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    -2175,
+    874
+   ],
+   "r": 19,
+   "name": "rail",
+   "reason": "the railway west of Centralna (Linia średnicowa, WKD) runs in a cutting (OSM layer=-1) under Żelazna, Towarowa, Kasprzaka and their footbridges; the 10 m grid doesn't show the cutting, so its level isn't known and the clearance can't be judged (as the WKD by Centralna on the first box); the footbridges' stairs are not mapped (their ends stand 1.6-2.4 m over the grid): loop 3e (docs/DEMO.md 4.6):",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    -2398,
+    974
+   ],
+   "r": 6,
+   "name": "tram",
+   "reason": "the railway west of Centralna (Linia średnicowa, WKD) runs in a cutting (OSM layer=-1) under Żelazna, Towarowa, Kasprzaka and their footbridges; the 10 m grid doesn't show the cutting, so its level isn't known and the clearance can't be judged (as the WKD by Centralna on the first box); the footbridges' stairs are not mapped (their ends stand 1.6-2.4 m over the grid): loop 3e (docs/DEMO.md 4.6):",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    342,
+    -880
+   ],
+   "r": 15,
+   "name": "Tunel Wisłostrady [primary]",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre and the centre's roof garden ramps (footbridges over footbridges, left as mapped; C3/C9 allowed them on the first box): the tunnel runs under the building, the portal frame and the building's underside are structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    297,
+    -916
+   ],
+   "r": 6,
+   "name": "Tunel Wisłostrady [primary]",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre and the centre's roof garden ramps (footbridges over footbridges, left as mapped; C3/C9 allowed them on the first box): the tunnel runs under the building, the portal frame and the building's underside are structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    350,
+    -880
+   ],
+   "r": 6,
+   "name": "Tunel Wisłostrady lane 0",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre and the centre's roof garden ramps (footbridges over footbridges, left as mapped; C3/C9 allowed them on the first box): the tunnel runs under the building, the portal frame and the building's underside are structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    299,
+    -918
+   ],
+   "r": 6,
+   "name": "Tunel Wisłostrady lane 0",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre and the centre's roof garden ramps (footbridges over footbridges, left as mapped; C3/C9 allowed them on the first box): the tunnel runs under the building, the portal frame and the building's underside are structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    343,
+    -886
+   ],
+   "r": 17,
+   "name": "Tunel Wisłostrady lane 1",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre and the centre's roof garden ramps (footbridges over footbridges, left as mapped; C3/C9 allowed them on the first box): the tunnel runs under the building, the portal frame and the building's underside are structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    297,
+    -916
+   ],
+   "r": 6,
+   "name": "Tunel Wisłostrady lane 1",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre and the centre's roof garden ramps (footbridges over footbridges, left as mapped; C3/C9 allowed them on the first box): the tunnel runs under the building, the portal frame and the building's underside are structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    295,
+    -914
+   ],
+   "r": 6,
+   "name": "Tunel Wisłostrady lane 2",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre and the centre's roof garden ramps (footbridges over footbridges, left as mapped; C3/C9 allowed them on the first box): the tunnel runs under the building, the portal frame and the building's underside are structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    363,
+    -909
+   ],
+   "r": 6,
+   "name": "living_street [living_street]",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre and the centre's roof garden ramps (footbridges over footbridges, left as mapped; C3/C9 allowed them on the first box): the tunnel runs under the building, the portal frame and the building's underside are structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -832,
+    -1391
+   ],
+   "r": 6,
+   "name": "Aleja „Solidarności” lane 0",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -830,
+    -1395
+   ],
+   "r": 6,
+   "name": "Aleja „Solidarności” lane 1",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -2409,
+    864
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "the railway west of Centralna (Linia średnicowa, WKD) runs in a cutting (OSM layer=-1) under Żelazna, Towarowa, Kasprzaka and their footbridges; the 10 m grid doesn't show the cutting, so its level isn't known and the clearance can't be judged (as the WKD by Centralna on the first box); the footbridges' stairs are not mapped (their ends stand 1.6-2.4 m over the grid): loop 3e (docs/DEMO.md 4.6):",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    1389,
+    -1891
+   ],
+   "r": 6,
+   "name": "Bronisława Wieczorkiewicza [residential]",
+   "reason": "a LoD2 outline (2018) a metre into the lane's corridor where OpenStreetMap's way and the survey disagree; bake_structures lod2_open makes the wall not solid there (check_drive sees no collision)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    1390,
+    -1890
+   ],
+   "r": 6,
+   "name": "Bronisława Wieczorkiewicza lane 0",
+   "reason": "a LoD2 outline (2018) a metre into the lane's corridor where OpenStreetMap's way and the survey disagree; bake_structures lod2_open makes the wall not solid there (check_drive sees no collision)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    1388,
+    -1892
+   ],
+   "r": 6,
+   "name": "Bronisława Wieczorkiewicza lane 1",
+   "reason": "a LoD2 outline (2018) a metre into the lane's corridor where OpenStreetMap's way and the survey disagree; bake_structures lod2_open makes the wall not solid there (check_drive sees no collision)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -1770,
+    1047
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -1165,
+    1328
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -1729,
+    -1368
+   ],
+   "r": 17,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -1705,
+    -1329
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -2177,
+    -675
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -1541,
+    -1295
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -966,
+    1437
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -1042,
+    1590
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -862,
+    -1090
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -1912,
+    46
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -1555,
+    1283
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    1287,
+    -1624
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -2123,
+    -709
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -3075,
+    12
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -2712,
+    -1927
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -2019,
+    -141
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -1175,
+    -1722
+   ],
+   "r": 20,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -2788,
+    527
+   ],
+   "r": 9,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -992,
+    1476
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -2267,
+    -281
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -1725,
+    978
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -2525,
+    -93
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -1883,
+    542
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    1322,
+    -1914
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    1283,
+    -1957
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -2984,
+    47
+   ],
+   "r": 17,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -2416,
+    178
+   ],
+   "r": 8,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -2388,
+    217
+   ],
+   "r": 6,
+   "name": "service [service]",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C6",
+   "at": [
+    304,
+    -1554
+   ],
+   "r": 6,
+   "name": "road",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Most Śląsko-Dąbrowski's Praga end (deck 16 ends where its ramp's ways stop being bridges; Wybrzeże Szczecińskie under it): structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C6",
+   "at": [
+    -2414,
+    980
+   ],
+   "r": 14,
+   "name": "path",
+   "reason": "the railway west of Centralna (Linia średnicowa, WKD) runs in a cutting (OSM layer=-1) under Żelazna, Towarowa, Kasprzaka and their footbridges; the 10 m grid doesn't show the cutting, so its level isn't known and the clearance can't be judged (as the WKD by Centralna on the first box); the footbridges' stairs are not mapped (their ends stand 1.6-2.4 m over the grid): loop 3e (docs/DEMO.md 4.6):",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C6",
+   "at": [
+    -1941,
+    817
+   ],
+   "r": 6,
+   "name": "path",
+   "reason": "the railway west of Centralna (Linia średnicowa, WKD) runs in a cutting (OSM layer=-1) under Żelazna, Towarowa, Kasprzaka and their footbridges; the 10 m grid doesn't show the cutting, so its level isn't known and the clearance can't be judged (as the WKD by Centralna on the first box); the footbridges' stairs are not mapped (their ends stand 1.6-2.4 m over the grid): loop 3e (docs/DEMO.md 4.6):",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    155,
+    -1054
+   ],
+   "r": 12,
+   "name": "Wybrzeże Kościuszkowskie",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre and the centre's roof garden ramps (footbridges over footbridges, left as mapped; C3/C9 allowed them on the first box): the tunnel runs under the building, the portal frame and the building's underside are structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    1334,
+    1008
+   ],
+   "r": 6,
+   "name": "primary_link",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's interchange with Czerniakowska and the Wisłostrada and Most Łazienkowski's west end (the bridge itself is cut by the box's east edge at x 1773): structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    37,
+    1635
+   ],
+   "r": 22,
+   "name": "Aleja Armii Ludowej",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's trench at Plac Na Rozdrożu (Aleja Armii Ludowej's ways have layer -1 and no tunnel, so they are a cutting the 10 m grid doesn't show: 3-4 m steps where the trench meets the grid) and the ramps and footbridges over it",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    123,
+    1618
+   ],
+   "r": 21,
+   "name": "Aleja Armii Ludowej",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's trench at Plac Na Rozdrożu (Aleja Armii Ludowej's ways have layer -1 and no tunnel, so they are a cutting the 10 m grid doesn't show: 3-4 m steps where the trench meets the grid) and the ramps and footbridges over it",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    59,
+    1677
+   ],
+   "r": 6,
+   "name": "Aleja Jana Chrystiana Szucha",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's trench at Plac Na Rozdrożu (Aleja Armii Ludowej's ways have layer -1 and no tunnel, so they are a cutting the 10 m grid doesn't show: 3-4 m steps where the trench meets the grid) and the ramps and footbridges over it",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    119,
+    1637
+   ],
+   "r": 6,
+   "name": "primary_link",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's trench at Plac Na Rozdrożu (Aleja Armii Ludowej's ways have layer -1 and no tunnel, so they are a cutting the 10 m grid doesn't show: 3-4 m steps where the trench meets the grid) and the ramps and footbridges over it",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    60,
+    1706
+   ],
+   "r": 6,
+   "name": "primary_link",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's trench at Plac Na Rozdrożu (Aleja Armii Ludowej's ways have layer -1 and no tunnel, so they are a cutting the 10 m grid doesn't show: 3-4 m steps where the trench meets the grid) and the ramps and footbridges over it",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    -677,
+    -1406
+   ],
+   "r": 6,
+   "name": "Aleja „Solidarności”",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    -514,
+    -1449
+   ],
+   "r": 6,
+   "name": "Grodzka",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    -676,
+    -1408
+   ],
+   "r": 6,
+   "name": "Grodzka",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    -680,
+    -1406
+   ],
+   "r": 6,
+   "name": "Nowy Zjazd",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    -383,
+    -1496
+   ],
+   "r": 6,
+   "name": "Nowy Zjazd",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    -349,
+    -1557
+   ],
+   "r": 6,
+   "name": "Wybrzeże Gdańskie",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z: the tunnel under Plac Zamkowy (Aleja Solidarności, tunnel 9), its portals and ramps (Grodzka, Nowy Zjazd, Kapucyńska), the tram's abutment over them and the viaduct over Wybrzeże Gdańskie onto Most Śląsko-Dąbrowski: structure work, not a bake rule",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    -2933,
+    -803
+   ],
+   "r": 6,
+   "name": "Kacza",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    224,
+    -1913
+   ],
+   "r": 6,
+   "name": "Olszowa",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    120,
+    -1833
+   ],
+   "r": 6,
+   "name": "Olszowa",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    625,
+    -453
+   ],
+   "r": 6,
+   "name": "Wybrzeże Kościuszkowskie",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    643,
+    -547
+   ],
+   "r": 6,
+   "name": "Wybrzeże Kościuszkowskie",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    -800,
+    97
+   ],
+   "r": 6,
+   "name": "Złota",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    -1982,
+    -1277
+   ],
+   "r": 6,
+   "name": "living_street",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    835,
+    -132
+   ],
+   "r": 6,
+   "name": "primary_link",
+   "reason": "loop 3d-1: the demo fetch's 10 m grid samples the NMT 3.5 m east and 5 m south of the first box's nodes, so on embankments and at junctions the bare earth reads up to ±3 m differently and some roads' ends now meet a hump or a pit of the grid (no pit fill at a junction); to be judged on the 1 m terrain (an open question)",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    -804,
+    -1875
+   ],
+   "r": 6,
+   "name": "Brzozowa",
+   "reason": "the street climbs the Vistula escarpment (Skarpa Warszawska) or a bank, steep on the 10 m grid; a real steep street",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    559,
+    1032
+   ],
+   "r": 6,
+   "name": "Górnośląska",
+   "reason": "the street climbs the Vistula escarpment (Skarpa Warszawska) or a bank, steep on the 10 m grid; a real steep street",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C8",
+   "at": [
+    -104,
+    -620
+   ],
+   "r": 6,
+   "name": "Oboźna",
+   "reason": "the street climbs the Vistula escarpment (Skarpa Warszawska) or a bank, steep on the 10 m grid; a real steep street",
+   "source": "GUGiK NMT 10 m grid of the demo fetch (data/raw/demo/gugik/nmt10, game/map/terrain.json); tools/check_roads.py"
+  },
+  {
+   "rule": "C9",
+   "at": [
+    46,
+    -934
+   ],
+   "r": 6,
+   "name": "building yes",
+   "reason": "the University Library's roof garden (BUW): its footbridges are mapped across the building's roof, as the science centre's are (C3/C9 allowed those on the first box); the green roof is a tier-B landmark (loop 3f)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C9",
+   "at": [
+    332,
+    -946
+   ],
+   "r": 6,
+   "name": "LoD2 building",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre and the centre's roof garden ramps (footbridges over footbridges, left as mapped; C3/C9 allowed them on the first box): the tunnel runs under the building, the portal frame and the building's underside are structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C9",
+   "at": [
+    1503,
+    921
+   ],
+   "r": 6,
+   "name": "building yes",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's interchange with Czerniakowska and the Wisłostrada and Most Łazienkowski's west end (the bridge itself is cut by the box's east edge at x 1773): structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C9",
+   "at": [
+    1464,
+    1215
+   ],
+   "r": 6,
+   "name": "tree",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's interchange with Czerniakowska and the Wisłostrada and Most Łazienkowski's west end (the bridge itself is cut by the box's east edge at x 1773): structure work",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C9",
+   "at": [
+    882,
+    -980
+   ],
+   "r": 6,
+   "name": "tree",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Most Świętokrzyski's pylon and its Praga abutment (whole in the map since loop 3d-1): the cycle ramp under the deck and the scanned crowns on the bank by the pylon (shrunk to 0.40, still under the slab's edge)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C9",
+   "at": [
+    821,
+    -938
+   ],
+   "r": 6,
+   "name": "tree",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Most Świętokrzyski's pylon and its Praga abutment (whole in the map since loop 3d-1): the cycle ramp under the deck and the scanned crowns on the bank by the pylon (shrunk to 0.40, still under the slab's edge)",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
+  },
+  {
+   "rule": "C9",
+   "at": [
+    -1945,
+    807
+   ],
+   "r": 6,
+   "name": "tree",
+   "reason": "the railway west of Centralna (Linia średnicowa, WKD) runs in a cutting (OSM layer=-1) under Żelazna, Towarowa, Kasprzaka and their footbridges; the 10 m grid doesn't show the cutting, so its level isn't known and the clearance can't be judged (as the WKD by Centralna on the first box); the footbridges' stairs are not mapped (their ends stand 1.6-2.4 m over the grid): loop 3e (docs/DEMO.md 4.6):",
+   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
   }
  ]
 }

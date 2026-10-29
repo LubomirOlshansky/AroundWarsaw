@@ -5,7 +5,7 @@ Usage: python3 -I tools/bake_osm.py data/raw/osm_centrum.json data/raw/osm_trees
 Everything is clipped to the bounding box, so the map ends in a clean edge.
 
 Coordinates are metres on a local flat projection: +x east, +z south
-(Godot's -Z is north), origin at the centre of the bounding box.
+(Godot's -Z is north), origin at ORIGIN (52.2340 N 21.0240 E; loop 3d-1: no longer the box's centre).
 """
 import json
 import math
@@ -15,14 +15,33 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bake_roads  # noqa: E402  (v0.75: carriageways, decks, markings, kerbs)
 
-BBOX = (52.2260, 20.9980, 52.2420, 21.0500)  # south, west, north, east: Śródmieście to the stadium
-LAT0 = (BBOX[0] + BBOX[2]) / 2
-LON0 = (BBOX[1] + BBOX[3]) / 2
+# Loop 3d-1: the demo box (docs/DEMO.md 2.1, the user's decision 2026-10-29): Rondo Daszyńskiego
+# to the stadium, MDM to just past the Barbakan, 4,909 × 3,782 m = 18.6 km². Until loop 3c it was
+# (52.2260, 20.9980, 52.2420, 21.0500), Śródmieście to the stadium.
+BBOX = (52.2183, 20.9780, 52.2525, 21.0500)  # south, west, north, east
+# The origin is no longer the box's centre: it stays where the first box had it, so every
+# hard-coded map coordinate (GUGIK_NOT_TREES, EXTRA_KEBAB, the allowlists, landmark search boxes,
+# police traps, test spots, README) keeps meaning the same place. The flat projection's error at
+# the far corners is under 2 m.
+ORIGIN = (52.2340, 21.0240)
+LAT0, LON0 = ORIGIN
 M_PER_DEG_LAT = 110574.0
 M_PER_DEG_LON = 111320.0 * math.cos(math.radians(LAT0))
 
+# Loop 3d-1: the demo box's inputs, prepared from data/raw (read-only) by tools/prepare_demo.py:
+# the OSM export cut to the box, the aerial photo joined and cut, the 10 m grid cut, links to the
+# LoD2 and tree sheets that meet the box, and bake_trees_gugik.py's output.
+WORK = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "work", "demo"))
+OSM_SRC = os.path.join(WORK, "osm_demo.json")
+ORTHO = os.path.join(WORK, "ortho.bmp")
 # Real trees from the GUGiK 2023 laser scan (tools/bake_trees_gugik.py), used where present.
-GUGIK_TREES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "raw", "gugik", "trees_area.json")
+GUGIK_TREES = os.path.join(WORK, "trees_area.json")
+
+
+def ortho_box():
+    """The aerial photo's own box (south, west, north, east): ortho.json, cut at whole pixels."""
+    meta = os.path.join(WORK, "ortho.json")
+    return tuple(json.load(open(meta))["bbox"]) if os.path.exists(meta) else BBOX
 
 # Laser-scan records that are not trees (loop 1): (x, z in map metres as trees_area.json has
 # them, height, what it is). They are left out of trees3d; one marked "palm" is where the
@@ -31,6 +50,17 @@ GUGIK_NOT_TREES = [
     (-213.9, 238.5, 14.5, "palm",
      "the artificial palm on Rondo de Gaulle'a (Palma, about 15 m): scanned as a 14.5 m tree, crown 4 m"),
 ]
+
+# Loop 3d-1 (docs/design/police.md 5.6 and 13): the pedestrian zones, where the player's car is
+# capped at 20 km/h and the city guards keep watch (traffic never enters: highway=pedestrian is
+# not in the lane graph). (id, x0, z0, x1, z1 in map metres, what it covers): inside each box
+# every highway=pedestrian way (as a strip its width + PED_ZONE_PAD each side) and area, and
+# every place=square, becomes a `ped_zones` polygon with that id.
+PED_ZONES = [
+    ("oldtown", -1180.0, -2046.0, -380.0, -1380.0,
+     "the Old Town, the New Town's market and Freta, Plac Zamkowy, Krakowskie Przedmieście's car-free north end"),
+]
+PED_ZONE_PAD = 1.5
 
 # Where the car starts: Marszałkowska, east of the Palace of Culture.
 SPAWN_LATLON = (52.2312, 21.0094)
@@ -216,9 +246,24 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     # A building outline that holds mapped parts is drawn through its parts instead.
     parts = [b for b in buildings if b["part"]]
     part_centres = [centroid(b["_pts"]) for b in parts]
+    # Loop 3d-1: the part centres in 50 m cells (this was every outline against every part:
+    # 100 s on the demo box).
+    part_cells = {}
+    for k, (cx, cz) in enumerate(part_centres):
+        part_cells.setdefault((int(cx // 50), int(cz // 50)), []).append(k)
+
+    def holds_part(pts):
+        xs, zs = [q[0] for q in pts], [q[1] for q in pts]
+        for gi in range(int(min(xs) // 50), int(max(xs) // 50) + 1):
+            for gj in range(int(min(zs) // 50), int(max(zs) // 50) + 1):
+                for k in part_cells.get((gi, gj), ()):
+                    if point_in_poly(part_centres[k][0], part_centres[k][1], pts):
+                        return True
+        return False
+
     kept = []
     for b in buildings:
-        if not b["part"] and any(point_in_poly(cx, cz, b["_pts"]) for cx, cz in part_centres):
+        if not b["part"] and holds_part(b["_pts"]):
             continue
         kept.append(b)
     for b in kept:
@@ -278,6 +323,7 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     extras = bake_extras(extras_src, roads, rect) if extras_src else {}
     bed.clear_poles(extras)   # map review B (2026-10-29): lamps and signal poles off the asphalt
     pois = bake_pois(els, nodes, ways, roads, paths, areas, rect)
+    ped_zones = bake_ped_zones(ways, nodes, rect)
     levels = {}   # loop 3a (R8): way id -> ("dk", deck group) or ("tn", tunnel)
     for r in roads:
         if r.get("dk", -1) >= 0:
@@ -337,6 +383,7 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
         "sand": banks["sand"],
         "sandbars": banks["sandbars"],
         "trees3d_crown": crowns,
+        "ped_zones": ped_zones,
         "attribution": "© OpenStreetMap contributors, ODbL" + ("; trees © GUGiK, CC BY 4.0" if trees3d else ""),
     }
     if palm is not None:
@@ -346,6 +393,7 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     for key in ("markings",):
         out[key] = [_lv({k: v for k, v in m.items() if k != "dk"}, m.get("dk", -1)) for m in out[key]]
     _strip_private(out)
+    final_poles(out)
     # Loop 3b: the builder's structures (piers, retaining walls, building cuts, the
     # Poniatowski towers' seats), placed on the finished map data (tools/bake_structures.py).
     import bake_structures
@@ -707,6 +755,7 @@ def bake_details(els, nodes, ways, more_src, roads, rect):
         return [project(*nodes[i]) for i in ids if i in nodes]
 
     out = {k: [] for k in ("rails", "platforms", "islands", "lines", "surfaces", "steps")}
+    rail_ends = []   # loop 3d-1: (first node, last node, has no layer of its own, all nodes) per rail
     for w in all_ways.values():
         t = w.get("tags", {})
         ids = w.get("nodes", [])
@@ -717,6 +766,7 @@ def bake_details(els, nodes, ways, more_src, roads, rect):
         if t.get("railway") in ("rail", "light_rail", "narrow_gauge"):
             br = t.get("bridge") not in (None, "no")
             out["rails"].append({"p": flat(pts), "_br": br, "_ly": num(t.get("layer")) or (1 if br else 0)})
+            rail_ends.append((ids[0], ids[-1], t.get("layer") is None and not br, set(ids)))
         elif t.get("railway") == "platform" or t.get("public_transport") == "platform" or t.get("highway") == "platform":
             if closed:
                 out["platforms"].append({"p": flat(pts[:-1]), "h": 0.9 if t.get("railway") == "platform" else 0.25})
@@ -738,6 +788,24 @@ def bake_details(els, nodes, ways, more_src, roads, rect):
             kind = {"brownfield": "construction", "railway": "ballast", "planter": "flowerbed"}.get(kind, kind)
             out["surfaces"].append({"k": kind, "p": flat(pts[:-1])})
 
+    # Loop 3d-1: a rail way with no layer of its own whose both ends meet only cutting tracks
+    # (layer < 0) is in the cutting too (a crossover by Żelazna is mapped so): it takes their
+    # layer, so a deck over it is judged like one over the cutting (bake_roads `cuttings_under`).
+    grade_nodes, cut_nodes = {}, {}   # node -> how many tracks at grade hold it; node -> cutting layer
+    for (a, b, bare, allids), r in zip(rail_ends, out["rails"]):
+        for i in allids:
+            if r["_ly"] < 0:
+                cut_nodes[i] = r["_ly"]
+            else:
+                grade_nodes[i] = grade_nodes.get(i, 0) + 1
+    sunk = 0
+    for (a, b, bare, allids), r in zip(rail_ends, out["rails"]):
+        if bare and r["_ly"] == 0:
+            if a in cut_nodes and b in cut_nodes and grade_nodes.get(a, 0) <= 1 and grade_nodes.get(b, 0) <= 1:
+                r["_ly"] = max(cut_nodes[a], cut_nodes[b])
+                sunk += 1
+    if sunk:
+        print(f"rails: {sunk} tracks with no layer between cutting tracks put in the cutting (loop 3d-1)")
     out["rails"] = clip_lines(out["rails"], rect)
     out["steps"] = clip_lines(out["steps"], rect)
     out["lines"] = clip_lines(out["lines"], rect)
@@ -751,9 +819,20 @@ def bake_details(els, nodes, ways, more_src, roads, rect):
         p = list(zip(r["p"][0::2], r["p"][1::2]))
         segs += list(zip(p, p[1:]))
 
+    # Loop 3d-1: the segments by their ends' x in 10 m bins (every prop against every road
+    # segment took 100 s on the demo box); the same segments, in the same order, as before.
+    seg_bins = {}
+    for k, (a, b) in enumerate(segs):
+        for bx in {int(a[0] // 10), int(b[0] // 10)}:
+            seg_bins.setdefault(bx, []).append(k)
+
     def road_yaw(x, z):
         best = None
-        for a, b in segs:
+        near = set()
+        for bx in range(int((x - 40) // 10), int((x + 40) // 10) + 1):
+            near.update(seg_bins.get(bx, ()))
+        for k in sorted(near):
+            a, b = segs[k]
             if abs(a[0] - x) > 40 and abs(b[0] - x) > 40:
                 continue
             dx, dz = b[0] - a[0], b[1] - a[1]
@@ -1203,6 +1282,74 @@ JOIN_REACH = 60.0     # a lone stop line this close before a signalled junction 
 JOIN_NEAR = 25.0      # ...or this close to one of its nodes, either side
 PAIR_REACH = 35.0     # lone stop lines this close together are one crossing
 PORTAL_REACH = 260.0  # roads leaving the map join roads coming back within this, off the map
+
+
+def final_poles(out):
+    """Loop 3d-1: the last word on poles, with check_streets S1's own test on the finished data
+    (bake_roads clear_poles works on the roadbed before the carriageway strips are final): a
+    lamp or signal pole still on the ground's asphalt moves to the nearest spot within
+    bake_roads.POLE_FAR that S1 sees as off it; a lamp with none is left out."""
+    import check_streets
+    asphalt, raised = check_streets.pole_tests(out)
+
+    def bad(x, z):
+        return asphalt(x, z) and not raised(x, z)
+    moved = dropped = 0
+    for key, stride in (("lamps", 2), ("signals", 3)):
+        v = out.get(key, [])
+        keep = []
+        for k in range(0, len(v) - stride + 1, stride):
+            x, z = v[k], v[k + 1]
+            if bad(x, z):
+                spot = None
+                r = 0.5
+                while spot is None and r <= bake_roads.POLE_FAR:
+                    for a in range(24):
+                        px, pz = x + math.cos(a * math.pi / 12) * r, z + math.sin(a * math.pi / 12) * r
+                        if not bad(px, pz) and not any(bad(px + math.cos(b * math.pi / 4) * bake_roads.POLE_CLEAR,
+                                                           pz + math.sin(b * math.pi / 4) * bake_roads.POLE_CLEAR) for b in range(8)):
+                            spot = (round(px, 1), round(pz, 1))
+                            break
+                    r += 0.5
+                if spot is None and key == "lamps":
+                    dropped += 1
+                    continue
+                if spot is not None:
+                    v[k], v[k + 1] = spot
+                    moved += 1
+            keep.extend(v[k:k + stride])
+        out[key] = keep
+    print(f"poles (loop 3d-1): {moved} more moved off the asphalt as check_streets sees it, {dropped} lamps left out")
+
+
+def bake_ped_zones(ways, nodes, rect):
+    """Loop 3d-1: the pedestrian zones' polygons (PED_ZONES): [{"z": id, "p": flat ring}]."""
+    out = []
+    for zid, x0, z0, x1, z1, _ in PED_ZONES:
+        for w in ways.values():
+            t = w.get("tags", {})
+            if t.get("highway") != "pedestrian" and t.get("area:highway") != "pedestrian" and t.get("place") != "square":
+                continue
+            ids = w.get("nodes", [])
+            pts = [project(*nodes[i]) for i in ids if i in nodes]
+            if len(pts) < 2:
+                continue
+            cx, cz = centroid(pts)
+            if not (x0 <= cx <= x1 and z0 <= cz <= z1):
+                continue
+            closed = ids[0] == ids[-1] and len(pts) >= 4
+            if closed and (t.get("area") == "yes" or t.get("place") == "square" or "area:highway" in t):
+                ring = pts[:-1]
+            elif t.get("highway") == "pedestrian":
+                half = (num(t.get("width")) or PATHS["pedestrian"]) / 2 + PED_ZONE_PAD
+                ring = bake_roads.offset_line(pts, half) + bake_roads.offset_line(pts, -half)[::-1]
+            else:
+                continue
+            ring = clip_polygon(ring, rect)
+            if len(ring) >= 3:
+                out.append({"z": zid, "p": flat(ring)})
+    print("ped_zones: " + ", ".join("%s %d polygons" % (z[0], sum(1 for o in out if o["z"] == z[0])) for z in PED_ZONES))
+    return out
 
 
 def bake_graph(els, nodes, ways, rect, signal_src, poles, bed=None, levels=None):

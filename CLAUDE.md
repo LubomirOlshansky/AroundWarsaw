@@ -98,7 +98,7 @@ default. Route by the **kind** of work, not its size:
   only when missing or made from other inputs; `check_map_data.py` compares their stamps'
   SHA-256, not file times).
 - **Map data.** After any centrum.json re-bake, run the whole chain and
-  `python3 -I tools/check_map_data.py` (trees3d 75324 values, pois 1020, graph, palm; new
+  `python3 -I tools/check_map_data.py` (loop 3d-1: trees3d 231420 values, pois 3069, graph ≥ 95 % strongly connected, palm; new
   counts only on purpose, recorded in that script and README together).
 - **Performance is a gate.** The phone's frame grows with draw calls, not triangles. Keep
   README "Performance budgets"; report bench before/after for anything that runs per frame

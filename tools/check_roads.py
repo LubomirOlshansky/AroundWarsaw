@@ -1,7 +1,7 @@
 """Whole-map check of the roads, bridge decks, tunnels and the lane graph (loop 3a; the
 rules C1-C10 of docs/DEMO.md section 4.5).
 
-Usage: python3 -I tools/check_roads.py [--map=game/map] [--osm=data/raw/osm_wide.json]
+Usage: python3 -I tools/check_roads.py [--map=game/map] [--osm=data/work/demo/osm_demo.json]
            [--rules=C1,C3] [--later=C4,C5] [--json=shots/check_roads.json]
            [--png=shots/check_roads.png | --no-png] [--allow=tools/check_roads_allow.json] [--all] [--quiet]
 
@@ -1264,7 +1264,7 @@ VIEW = "--at={x:.0f},{z:.0f}"
 
 
 def main(argv):
-    opts = {"map": os.path.join(ROOT, "game", "map"), "osm": os.path.join(ROOT, "data", "raw", "osm_wide.json"),
+    opts = {"map": os.path.join(ROOT, "game", "map"), "osm": bake_osm.OSM_SRC,
             "json": os.path.join(ROOT, "shots", "check_roads.json"), "png": os.path.join(ROOT, "shots", "check_roads.png"),
             "allow": os.path.join(TOOLS, "check_roads_allow.json"), "rules": ",".join(r for r, _ in RULES),
             "later": ""}
@@ -1368,7 +1368,7 @@ FONT = {  # 3x5 pixel glyphs, rows top to bottom, bits left to right
 
 
 def draw_png(m, findings, path, rules):
-    bmp = os.path.join(ROOT, "data", "raw", "gugik", "ortho.bmp")
+    bmp = bake_osm.ORTHO
     raw = open(bmp, "rb").read()
     off = struct.unpack_from("<I", raw, 10)[0]
     w, h = struct.unpack_from("<ii", raw, 18)
@@ -1388,7 +1388,7 @@ def draw_png(m, findings, path, rules):
         line[1::3] = row[1::3 * k]
         line[2::3] = row[0::3 * k]
         img[y * ow * 3:(y + 1) * ow * 3] = line.translate(dark)
-    s, wl, n, e = bake_osm.BBOX
+    s, wl, n, e = bake_osm.ortho_box()
     x0, z0 = bake_osm.project(n, wl)
     x1, z1 = bake_osm.project(s, e)
 

@@ -41,6 +41,7 @@ extends Node
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
 const TunnelXray := preload("res://scripts/tunnel_xray.gd")
+const PedZones := preload("res://scripts/ped_zones.gd")
 const Heli := preload("res://scripts/heli.gd")
 const Hud := preload("res://scripts/hud.gd")
 const Missions := preload("res://scripts/missions.gd")
@@ -96,6 +97,9 @@ var view: SubViewportContainer
 var sv: SubViewport
 var cam: Camera3D
 var car: CharacterBody3D
+## Loop 3d-1: the pedestrian zones (ped_zones.gd), where the car is capped at 20 km/h.
+var ped_zones: RefCounted
+var _zone := ""
 ## Loop 3b: the car seen through the ground inside a tunnel (tunnel_xray.gd).
 var _xray: Node3D
 var heli: Node3D
@@ -592,6 +596,7 @@ func _build_world() -> void:
 				ring.append(Vector2(flat[k], flat[k + 1]))
 			if absf(MapBuilder._ring_area(ring)) >= 20000.0:
 				_rivers.append(ring)
+	ped_zones = PedZones.new(data.get("ped_zones", []))
 	car = Car.new()
 	car.ground_height = map.drive_height
 	world.add_child(car)
@@ -2269,6 +2274,12 @@ func _process(dt: float) -> void:
 		_cam_log_frame(dt)
 	var pos := _vehicle_position()
 	_xray.show_through(not flying and map.in_tunnel(pos.x, pos.z, pos.y))
+	# Loop 3d-1: the pedestrian zones cap the player's car (police.md 5.6); the log says when.
+	var zone: String = ped_zones.at(car.global_position.x, car.global_position.z) if ped_zones != null and not flying else ""
+	car.zone_cap = PedZones.CAP if zone != "" else INF
+	if zone != _zone:
+		print("zone: %s at %.0f km/h" % [(zone + " (20 km/h)") if zone != "" else "left " + _zone, absf(car.forward_speed) * 3.6])
+		_zone = zone
 	_feed_life(pos)
 	if police != null:
 		police.flying = flying  # loop 3g-1: the police ignore the helicopter

@@ -345,7 +345,15 @@ def main(map_dir):
     # Map round 2: the main streets' unlit stretches (street_lamps); sodium or LED by the street
     # as the mapped lamps are (map_builder reads the kind back from this map at the lamp's head).
     carriage = CarriageIndex(osm.get("carriage", []))
-    streets = street_lamps(osm["roads"], lamps, blocked, added, decks, osm.get("trams", []),
+    # Loop 3d-1: never on the ground's asphalt as check_streets S1 sees it (the carriageway areas
+    # and the roads' drawn strips; an island or a median is fine, a deck is a deck lamp's): the
+    # strips catch the streets with no mapped carriageway area (5 lamps stood in lanes).
+    import check_streets
+    on_asphalt, raised = check_streets.pole_tests(osm)
+
+    def lamp_blocked(x, z):
+        return blocked(x, z) or (on_asphalt(x, z) and not raised(x, z) and not decks.at(x, z))
+    streets = street_lamps(osm["roads"], lamps, lamp_blocked, added, decks, osm.get("trams", []),
                            lambda x, z: (-1.0,) if carriage.hit(x, z) else roads.nearest(x, z))
     # Map round 2 (D7): a structure's approaches on the ground (road `fills` that meet a deck's end:
     # Most Poniatowskiego's abutments between its towers) are lit like the deck, every
@@ -360,7 +368,7 @@ def main(map_dir):
         if any(math.hypot(ex - q[0], ez - q[1]) < 3.0 for ex, ez in ends for q in (fp[0], fp[-1])):
             approaches.append({"p": f["p"], "w": float(f["l"]) + float(f["r"]), "c": (float(f["r"]) - float(f["l"])) * 0.5,
                                "k": "secondary", "name": "", "oneway": False})
-    abut = street_lamps(approaches, lamps, blocked, added + streets, decks, osm.get("trams", []),
+    abut = street_lamps(approaches, lamps, lamp_blocked, added + streets, decks, osm.get("trams", []),
                         lambda x, z: (-1.0,) if carriage.hit(x, z) else None, APPROACH_SPACING, 12.0, 12.0)
     # The street's own kind (as its mapped lamps: LED_STREETS by its name), not the nearest
     # road's at the lamp (an unnamed ramp beside it made every other lamp LED).
