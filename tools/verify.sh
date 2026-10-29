@@ -446,7 +446,9 @@ for s in $want; do
 		# Loop 2d-1: a Podwózka ride by the app's route: a passenger 34 m off the pin, a GPS believer,
 		# the river quirk (its waypoint on dry land, the `ride: quirk river` line says how far from
 		# the water), the stars and the pay (`ride: pay`, the wallet before and after).
-		ride) game ride 20000 '^ride: pay' --ride=8 --passenger=believer --ride-quirk=river --autopilot --parody-log ;;
+		# Loop 3d-1: 30000 frames: on the demo map (east edge 21.056) the river quirk's legs run
+		# 1.7-1.8 km by road and the pay came after 20000 frames (333 s of play).
+		ride) game ride 30000 '^ride: pay' --ride=8 --passenger=believer --ride-quirk=river --autopilot --parody-log ;;
 		# Loop 2d-1 x 3g-1: a pull-over 25 s into that ride takes exactly one star (police.gd calls
 		# rides.on_pulled_over() when the conversation ends), on the prebuilt city.
 		ride-police) ride_police ;;

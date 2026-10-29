@@ -927,3 +927,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   sun's shadow at night should be off from the first frame. Not looked into.
 - The streamer's `(unload)` time is only the call to `queue_free()`; freeing a sector's nodes
   happens at the end of that frame and isn't in the streaming numbers (no slow frame showed it).
+- **check_streaming spot 8 (512, −740) at 0.789 % of its pixels** (the limit is 0.5 %; 0.472 % with
+  the east edge at 21.050 and the 10 m terrain). Deterministic. The differing pixels are ragged
+  shadow-edge patches on the ground, as many darker on each side (1,208 vs 959 sampled): the
+  directional shadow fits its depth range to the casters it sees, and the whole city (the
+  reference) has more of them than the streamed one, not a sector missing geometry (the identity
+  part passes). Open: pin the shadow's fit in the check, or a window for that spot (the user's call).
+- `verify.sh` ride: 30000 frames (the river quirk's legs run 1.7-1.8 km on the demo map).

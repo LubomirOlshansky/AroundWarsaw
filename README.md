@@ -2627,6 +2627,8 @@ baked from the demo fetch already on disk (no downloads; README "Map data" for t
 | Probe draw calls (spawn, river, zoomed out, helicopter) | 132, 103, 153, 211 | 134, 103, 148, 217 |
 | Memory at the spawn (probe): static / video | 147 / 263 MB (textures 24) | 244 / 421 MB (textures 94: the AO, light and surface maps 100 MB whole) |
 | check_water, check_drape | OK | OK (2 places listed in check_water's `ALLOWED`, 1 in check_drape's `EXCUSED`: loop 3e) |
+| Exported .pck | 47.2 MB | 140.0 MB (budget 300) |
+| check_streaming | identity, ≤ 0.015 % at 10 spots | identity OK (108 sectors), soak OK; spot 8 at 0.789 % (shadow-edge patches, BACKLOG) |
 
 ## Adding music (loop radio-playlists, 2026-10-29)
 
