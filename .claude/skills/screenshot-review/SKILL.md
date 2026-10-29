@@ -1,6 +1,6 @@
 ---
 name: screenshot-review
-description: Takes Nocna Warszawa screenshots at real phone sizes with tools/shots.sh (spawn, Marszałkowska, the Palace, the river, Rondo Dmowskiego, helicopter, settings; day, night, rain; runtime and prebuilt city) and judges them against the art bible for readability, consistency and defects. Use after any visible change, for before/after pairs, when reviewing 2D art in the game, and when asked "how does it look?" or "what looks worst?".
+description: Takes Around Warsaw screenshots at real phone sizes with tools/shots.sh (spawn, Marszałkowska, the Palace, the river, Rondo Dmowskiego, helicopter, settings; day, night, rain; runtime and prebuilt city) and judges them against the art bible for readability, consistency and defects. Use after any visible change, for before/after pairs, when reviewing 2D art in the game, and when asked "how does it look?" or "what looks worst?".
 argument-hint: "[--set=core|quick|name,name] [--size=2532x1170] [--tag=before|after]"
 ---
 
@@ -20,7 +20,7 @@ Each shot opens a window for ~10-30 s (it needs a renderer), runs with `--nosave
 quits by itself. Shots go to `shots/` (gitignored); give files a loop prefix when they are
 evidence for a report (`shots/loop3_*.png`). For a spot not in the list:
 `cd game && godot --path . --resolution 2532x1170 --fixed-fps 60 -- --nosave --free --at=X,Z
---heading=DEG --shots=240 --out=$PWD/../shots/NAME` (README lists every flag: `--size=`
+--heading=DEG --shots=240 --out=$PWD/../shots/NAME` (DEVELOPMENT.md lists every flag: `--size=`
 view height in metres, `--yaw=`, `--lift=`, `--nohud`, `--tap=X,Y`, `--settings`, ...).
 
 - Before/after: same spot, same flags, same size; render the "before" from a copy of the old

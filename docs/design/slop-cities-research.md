@@ -18,7 +18,7 @@ pages and file lists; no code was copied.
   York plus 15 New York remixes and other games, on five continents. **Warsaw already has three:**
   *Tiny Warsaw* (tinywarsaw.app: low-poly central Warsaw, browse, ride and fly, the Palace of
   Culture), *Isometric Warsaw* (see `isometric-warsaw-comparison.md`) and *Szczęśliwe Bielany*
-  (Bielany along M1, golden autumn, source only). Nocna Warszawa isn't on it.
+  (Bielany along M1, golden autumn, source only). Around Warsaw isn't on it.
 
 ## How we can use them
 

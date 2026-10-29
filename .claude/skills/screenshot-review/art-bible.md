@@ -1,6 +1,6 @@
-# Nocna Warszawa art bible (short and living)
+# Around Warsaw art bible (short and living)
 
-Written from what the game already decided (README.md, docs/ROADMAP.md, the shaders and the
+Written from what the game already decided (docs/DEVELOPMENT.md, docs/ROADMAP.md, the shaders and the
 HUD code). It changes only when the user agrees: propose changes in a report, with shots.
 
 **The one rule:** *a toy-sized, real Warsaw you can read at a glance on a phone, by day bright
