@@ -8,6 +8,9 @@ extends CanvasLayer
 signal dismissed
 
 var ready_to_drive := false
+## Desktop: --no-touch (trailer loop, 2026-10-29): no "tap to drive" prompt once the city is
+## built (a key still starts the game).
+var touch_off := false
 var _root: Control
 var _backdrop: ColorRect
 var _palm: Control
@@ -125,7 +128,10 @@ func _layout() -> void:
 
 ## Loop 2e: Polish above English (the big upper line is Polish, the small one under it English).
 func _set_prompt() -> void:
-	if ready_to_drive:
+	if ready_to_drive and touch_off:
+		_prompt.text = ""  # desktop: --no-touch
+		_prompt_pl.text = ""
+	elif ready_to_drive:
 		_prompt.text = "DOTKNIJ, BY JECHAĆ"
 		_prompt_pl.text = "tap to drive"
 	else:

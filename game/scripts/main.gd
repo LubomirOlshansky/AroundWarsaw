@@ -192,6 +192,10 @@ var start_at := Vector3.INF
 var start_heading := INF
 var lines_override := 0
 var hide_hud := false
+## Desktop: --no-touch (trailer loop, 2026-10-29): the HUD without its touch-only controls (the
+## pedals, the stick, the helicopter's pads) and the title without its "tap to drive" prompt,
+## for recording on the computer (hud.gd `set_touch_off`, title.gd `touch_off`).
+var no_touch := false
 var sun_pitch := -50.0
 var debug_ao := false
 ## Loop 3a: --debug-roads draws the decks, approaches, tunnels, lane heights and piers round
@@ -421,6 +425,7 @@ func _ready() -> void:
 	var loading: CanvasLayer = null
 	if show_title:
 		title = Title.new()
+		title.touch_off = no_touch  # desktop: --no-touch
 		add_child(title)
 	else:
 		loading = _loading_card()
@@ -658,6 +663,7 @@ func _build_world() -> void:
 	hud.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(hud)
 	hud.set_scheme(controls.scheme)
+	hud.set_touch_off(no_touch)  # desktop: --no-touch
 	hud.settings_pressed.connect(_open_settings)
 	hud.settings_panel.changed.connect(_on_setting)
 	hud.settings_panel.closed.connect(_close_settings)
@@ -1349,6 +1355,8 @@ func _parse_args() -> void:
 			no_ao = true
 		elif arg == "--nohud":
 			hide_hud = true
+		elif arg == "--no-touch":
+			no_touch = true  # desktop: --no-touch
 		elif arg.begins_with("--size="):
 			base_size = float(arg.trim_prefix("--size="))
 		elif arg == "--fixed":
