@@ -218,12 +218,22 @@ HELI / AUTO (right); the keys are unchanged.
 - **Title screen** (`title.gd`): chrome NOCNA WARSZAWA over a striped setting sun with the
   Palace of Culture in silhouette (drawn from the v0.8 model's tiers, in metres), the skyline, the palm from Rondo de Gaulle'a and a neon grid;
   the city builds behind it, then TAP TO DRIVE / DOTKNIJ, BY JECHAĆ. Test runs skip it.
-- **Radio** (`radio.gd`, R): 87,3 NOCNA FM (*Palma de Gaulle'a*), 86,6 RONDO FM (*Rondo
-  Dmowskiego 3 A.M.*), 108,8 MORDOR FM (*Mordor Mall Muzak*), then Off; on by default at a
-  moderate level. A burst of tuning static covers the switch and a now-playing ticker slides in
-  at the bottom left. Hook for the v0.65 radio host: `radio.announce(text)` puts any line on the
-  ticker, and `radio.station_changed(index, station)` fires on every change. Silent in headless
-  runs (no audio device).
+- **Radio** (`radio.gd`, R): 87,3 NOCNA FM, 86,6 RONDO FM, 108,8 MORDOR FM, then Off; on by
+  default at a moderate level. The stations and their tracks are in `game/data/radio.json`
+  (loop radio-playlists; the built-in names are the fallback when the file is missing). A
+  station with one track loops it (today each of the three: *Palma de Gaulle'a*, *Rondo
+  Dmowskiego 3 A.M.*, *Mordor Mall Muzak*); a station with several plays them in an order
+  shuffled by the date and the station (a day has its own, every run of it the same), each to
+  its end, then the next, round and round. Tracks are Ogg Vorbis, decoded as they play (never a
+  whole song in memory). A burst of tuning static covers a station change; a now-playing ticker
+  at the bottom left shows "87,3 NOCNA FM · Title (Artist)" on a tune and at every new track.
+  Between two songs the host (`dialogue.gd`, `radio_host` lines) speaks with a one in two
+  chance, 5 s after the title's caption, through the same timer, so a Podwózka card still keeps
+  him quiet. Hooks: `radio.announce(text)` puts any line on the ticker,
+  `radio.station_changed(index, station)` fires on every change and
+  `radio.track_changed(info, track, natural)` on every new track (`natural`: the last one ran
+  out); `radio.next_track()` skips (no button yet). Silent in headless runs (no audio device).
+  Adding songs: "Adding music" below.
 - Synth UI sounds (`tools/make_ui_sounds.py`): a blip for TIME and VHS, the tuning static, a
   rising chord when the title is dismissed.
 
@@ -573,10 +583,9 @@ no samples). Buses: Master, **Music** (the radio, player at -9 dB), **SFX** (-3 
 - iOS: the audio session is **Ambient** (`audio/general/ios/session_category=0` in
   project.godot): the phone's silent switch mutes the game, and your own music keeps
   playing under it.
-- Checks: `python3 -I tools/make_sfx.py game/audio/sfx game/audio/radio` prints peak, RMS,
+- Checks: `python3 -I tools/make_sfx.py game/audio/sfx` prints peak, RMS,
   the loop seam (step and slope across the loop point against the 99.9th percentile
-  elsewhere), the share of energy under 2 kHz and the roll-off for every file, and the radio
-  loops' levels; `godot --headless --path game --script res://tools/check_sfx.gd` checks the
+  elsewhere), the share of energy under 2 kHz and the roll-off for every file; `godot --headless --path game --script res://tools/check_sfx.gd` checks the
   imports (Forward loops, QOA) and decodes across each loop point; `godot --path game --
   --sound-check` (with an audio device) plays every one-shot and prints each bus's peak;
   the bench prints the buses' peaks while driving.
@@ -2540,6 +2549,53 @@ L4, L5, L2 and the Podwózka river spots.
   dashes through such junctions: kept. **L4** (Emilii Plater's weaving median walls), **L2**,
   **D8**, **D10**: not changed (BACKLOG).
 
+## Adding music (loop radio-playlists, 2026-10-29)
+
+The radio plays songs you make yourself (a synth, or an AI music tool such as Suno). Three steps:
+
+1. **Make the song** and export a WAV or MP3 (flac, m4a and aiff work too).
+2. **Put it in `data/raw/music/<station>/`**, where `<station>` is a station's `id` in
+   `game/data/radio.json`: `nocna_fm`, `rondo_fm` or `mordor_fm` (the folder is ignored by
+   version control: raw music is never committed). The song's file name is its title on the
+   radio: `Night_on_Smolna.wav` shows as "Night on Smolna". To say more, put a text file with
+   the same name next to it, `Night_on_Smolna.txt`, with one line (the licence), or lines
+   starting `licence:`, `title:` and `artist:`:
+   ```
+   licence: Suno Pro plan, owned
+   title: Noc na Smolnej
+   artist: Lubomir
+   ```
+3. **Run `python3 -I tools/add_music.py`** (needs `ffmpeg`). Then `tools/verify.sh --only=radio`,
+   and commit `game/audio/radio/`, `game/data/radio.json` and the new `.import` files.
+
+What the tool does to each new song (the docstring of `tools/add_music.py` has the details):
+decodes to 44.1 kHz stereo, trims silence at both ends (below -50 dBFS, 0.2 s kept), measures
+the loudness (EBU R128) and applies **one static gain** so the song sits at the radio's level,
+**-14.0 LUFS** (the mean of the three original loops: -14.6, -14.2 and -13.2), lowered further
+if its true peak would pass -1 dBTP. No limiter, compressor or loudnorm: they flatten music. It
+encodes Ogg Vorbis to `game/audio/radio/<station>/<name>.ogg` and appends the track to
+`radio.json` (file, title, artist, seconds, gain_db, licence, source). `--station=<id>` limits it
+to one station, `--force` converts every file again, `--dry-run` says what it would do, `--list`
+prints the stations and tracks with their sizes, `--licence="..."` sets the licence of this
+run's files. A folder in `data/raw/music/` that is not a station in radio.json is not turned
+into one: the tool prints the line to add to radio.json (id, name, frequency, colour).
+
+A station with one song loops it; with two or more it plays them in a shuffled order (the date
+seeds it), each to its end, with the host's lines between songs now and then.
+
+**Sizes.** At 96 kbps a 3-minute song is about 2 MB. The three original loops (2.4 minutes
+together) were 12.6 MB as WAV and are 3.2 MB as Ogg. The Homebrew ffmpeg on the Mac has no
+libvorbis (`ffmpeg -encoders | grep vorbis` lists only ffmpeg's own `vorbis`), and that
+encoder ignores the bitrate: it writes about 185 kb/s, 4.1 MB for 3 minutes. The tool falls
+back to it and says so; with a libvorbis ffmpeg the files are the 96 kbps ones and nothing
+else changes.
+
+**Licences.** A song whose licence is not given stays `unknown`; the radio check
+(`tools/verify.sh`, step `radio`) lists those as a WARN. **Check every `unknown` track before a
+release**: an AI music tool's free plan may not allow its songs in a published game (paid plans
+usually do, by the tool's current terms: keep the plan's receipt or the song's page). CREDITS.md
+lists every track and its licence line; update it when you add songs.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -2696,12 +2752,13 @@ System Trace: the iPhone 11 at ×2 holds 60 at its lowest GPU clock, Loop G1 abo
    change to `map_builder.gd`, `chunked_surface.gd`, `landmarks.gd`, `neon_signs.gd`,
    `sector_proxies.gd`; `tools/export_ios.sh` runs 6 and 7. `city.scn` is gone (loop 3c).
 
-Audio: `python3 -I tools/make_sfx.py game/audio/sfx game/audio/radio` (v0.9: every sound effect
-and bed, with the numbers; loops imported like the radio's, Forward, loop end = the full length,
-QOA; `res://tools/check_sfx.gd` checks them); `python3 -I tools/make_music.py game/audio/radio shots` (the radio loops; import them
-with loop mode Forward, loop end = the full length, QOA; `godot --headless --path game --script
-res://tools/check_radio_loops.gd` checks the import and decodes across each loop point) and
-`python3 -I tools/make_ui_sounds.py game/audio/ui`.
+Audio: `python3 -I tools/make_sfx.py game/audio/sfx` (v0.9: every sound effect
+and bed, with the numbers; loops imported Forward, loop end = the full length, QOA;
+`res://tools/check_sfx.gd` checks them); `python3 -I tools/make_music.py data/raw/music/<station_id> shots`
+(the three original radio loops, as WAV; they are not in the game as WAV any more: put them
+through `tools/add_music.py`, "Adding music"; `godot --headless --path game --script
+res://tools/check_radio.gd` checks radio.json, the Ogg files, the playlists and each looping
+station's loop point) and `python3 -I tools/make_ui_sounds.py game/audio/ui`.
 
 LoD2 is from 2018, so newer towers (Varso and others) come from OpenStreetMap; LoD2 buildings
 no longer on the map are dropped. The terrain is bare earth, so bridges and viaducts get decks
@@ -2712,9 +2769,9 @@ solved from what they cross (see Real roads).
 **One-command checks.** `tools/verify.sh` runs the verification set and prints one
 PASS/WARN/FAIL table: the map-data invariants (`tools/check_map_data.py`), the road check
 (`tools/check_roads.py`, loop 3a), the check scripts
-(steering, settings, the HUD at phone size, landmarks, sfx, radio loops, the water on both city paths) and eight headless game runs, each with
+(steering, settings, the HUD at phone size, landmarks, sfx, radio, the water on both city paths) and eight headless game runs, each with
 
-(the drape check (loop 3b-2), the drive check on both city paths (loop 3b), steering, settings, landmarks, sfx, radio loops,
+(the drape check (loop 3b-2), the drive check on both city paths (loop 3b), steering, settings, landmarks, sfx, radio,
 the water on both city paths) and eight headless game runs, each with
 `--nosave` (`--quick` for a short set, `--ios` adds the export and the unsigned Xcode build,
 `--only=` picks steps). `tools/shots.sh` renders standard screenshots at a phone's size

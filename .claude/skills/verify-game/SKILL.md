@@ -84,7 +84,7 @@ against the colliders, the autopilot over 20 routes across bridges and tunnels; 
 `check_hud.gd` (loop 2e: `hud`, the HUD at four screen sizes: 44 pt controls, 11 / 13 pt text,
 the safe area, no overlaps; it lists the passing panels that waited for room),
 `check_rides.gd` (loop 2d-1: `rides`, Podwózka's star and pay tables, the streak, the cancel
-rules and its dialogue groups on synthetic events; under a second), `check_landmarks.gd`, `check_sfx.gd`, `check_radio_loops.gd`, `check_water.gd` (loop 10a:
+rules and its dialogue groups on synthetic events; under a second), `check_landmarks.gd`, `check_sfx.gd`, `check_radio.gd` (radio-playlists loop: `radio`, radio.json, the Ogg tracks, the playlists, each looping station's loop point; an unknown licence is a WARN), `check_water.gd` (loop 10a:
 `water` and `water-prebuilt`, where a car can get into the water, ~17 s and ~10 s) and the
 game runs, among them `splash` (loop 10a: `--drive-into-water=1015,-85 --kebab=0`, the tow
 within 2 s with a job running) and `ride` (loop 2d-1: `--ride=8 --passenger=believer

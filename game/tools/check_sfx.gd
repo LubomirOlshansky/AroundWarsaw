@@ -2,7 +2,7 @@ extends SceneTree
 ## Checks the sound effects from tools/make_sfx.py as imported: the loops are seamless
 ## Forward loops (begin 0, end = the full length) with no jump in the decoded audio
 ## across the loop point (the step at the seam against the typical step elsewhere,
-## like check_radio_loops.gd), and the one-shots don't loop. Also prints each file's
+## like check_radio.gd), and the one-shots don't loop. Also prints each file's
 ## import format and length.
 ##   godot --headless --path game --script res://tools/check_sfx.gd
 
