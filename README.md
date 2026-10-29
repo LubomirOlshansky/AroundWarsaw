@@ -2295,8 +2295,9 @@ The demo's bigger box (loop 3d) only adds sectors.
 Commands: `tools/verify.sh --only=streaming` (the identity, the pixels at 10 spots and a
 3-minute soak, ~2-4 min, a window opens); the 15-minute soak:
 `godot --path game --resolution 1280x720 --script res://tools/check_streaming.gd -- --only=soak --soak=15`.
-On the phone: `tools/device_run.sh --bench` (the BENCH card's frame times while driving through
-sector loads) and a normal launch with `--stream-log` in the log (each load's main-thread ms).
+On the phone (loop G0+): `tools/device_run.sh --label=stream_soak --wait=600 --done='^stream soak
+stats:' -- --notitle --prebuilt --stream-soak=6 --stream-log` (each load's main-thread ms and the
+soak's numbers; see Loop G0+ for the phone's).
 
 ## Map review A: the bridges, flyovers and tunnels (2026-10-29)
 
@@ -2654,7 +2655,9 @@ the water on both city paths) and eight headless game runs, each with
 `--nosave` (`--quick` for a short set, `--ios` adds the export and the unsigned Xcode build,
 `--only=` picks steps). `tools/shots.sh` renders standard screenshots at a phone's size
 (`--list` names them). `tools/device_run.sh` builds, installs and launches the game on a
-connected iPhone and copies its log back. A guard hook (`tools/hooks/guard_godot.py`, on in
+connected iPhone and copies its log back (loop G0+: each run's own copy,
+`build/device/<label>/<label>_<date-time>.log`, with the bench's and the streaming soak's result
+files beside it; it exits 3 when the `--done` line never came). A guard hook (`tools/hooks/guard_godot.py`, on in
 `.claude/settings.json`) stops Claude Code from running the game without `--nosave` or a quit
 flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
 
@@ -2779,9 +2782,9 @@ Command-line options (after `--`):
 | `--prebuilt` | load the prebuilt sectors like the exported game (loop 3c: `map/index.res`, `map/proxies.scn`, `map/sectors/s_<i>_<j>.scn`; `city.scn` before) instead of building each sector from its file |
 | `--monolithic` | loop 3c: build the whole city at once from `centrum.json`, as before loop 3c (no sectors, no streaming): the pixel diff's reference |
 | `--sectors=all` / `--sectors=proxies` | loop 3c: load every sector at the start and keep them all (the old behaviour) / only the sectors the car stands in, every other one as its proxy (to look at the proxies) |
-| `--stream-log` | loop 3c: print every sector load (`stream: frame N in s_i_j, X ms on the main thread ...`), unload, any frame whose streaming went over 3 ms and any node that took over 1 ms to add |
+| `--stream-log` | loop 3c: print every sector load (`stream: frame N in s_i_j, X ms on the main thread ...`), unload, any frame whose streaming went over 3 ms and any node that took over 1 ms to add; loop G0+: each worker load (`stream: frame N worker s_i_j: load X ms, instantiate Y ms, K frames; slowest frame Z ms (overlapping the load end + instantiate; process after …, draw …, to physics …, physics …, process before …)`) |
 | `--spots=X,Z,H/X,Z,H/...` | loop 3c, with `--shots=F1,F2,...`: the car jumps to spot k (heading H) 90 frames before shot k, the sectors the view needs are finished 30 frames before it (`tools/check_streaming.gd`) |
-| `--stream-soak=MIN` | loop 3c: the car on autopilot over every sector's middle (row by row, through buildings), the view 80 m then 220 m every 20 s, the helicopter for the last third; then `stream soak:` lines and the game quits (no traffic) |
+| `--stream-soak=MIN` | loop 3c: the car on autopilot over every sector's middle (row by row, through buildings), the view 80 m then 220 m every 20 s, the helicopter for the last third; then `stream soak:` lines and the game quits (no traffic); loop G0+: the same two lines also go to `user://stream_soak_result.txt` (`tools/device_run.sh` copies it back), and `stream soak stats:` adds `frames_over_budget` (frames whose streaming took over 3 ms), `slow_frames` (each frame over 33 ms past the warm-up: frame, ms, the streaming ms in it), `sector_ms` (median, p99, max of a streamed sector's main-thread ms) and `kinds` (per node class added, the hand-over, the finish and the unload: count, total and worst ms) |
 | `--debug-ao` / `--no-ao` | show / switch off the baked ground shadows |
 | `--heli` | start in the helicopter |
 | `--mission=N` | start rescue call N at once (N = 1, 5, 9… streets, 2, 6… roofs, 3, 7… river, 4, 8… parks) |
