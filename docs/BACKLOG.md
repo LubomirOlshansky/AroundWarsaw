@@ -313,6 +313,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   performance overlay then waits for room (`check_hud.gd` lists 26 such waits over its 96
   states, none on the Pro Max without the overlay). A waiting bubble is dropped after 6 s;
   the vendor's line at a kebab stand usually waits until the job card goes.
+  Landmark card fix (2026-10-29): the note and landmark cards now take the right-hand column
+  first, so a tapped landmark's card shows beside the car with the ticker up (`check_hud.gd`
+  checks it on all four screens); they no longer count among the waits above.
 - The passing panels keep out of a 110×84 pt box in the middle of the screen; at speed the view
   leads and the car can sit outside it (up to a fifth of the view off centre), so a toast can
   still cover a fast car for a moment. Cards and the status may cover the car on a 390-pt phone.

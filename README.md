@@ -477,7 +477,11 @@ the Palace now a 28 m roof: the tiers are crowned by attics and pinnacles).
 **Info cards**: a short tap (under 0.35 s and 16 px, not on a control, not a pinch) goes out as
 `hud.tapped`; the game walks the ray from that pixel through the roof grid (1 m steps) and, if
 the first thing standing is a landmark, shows its card in the note card's place for 8 s: name,
-one or two Polish lines, the English under them. `--tap=X,Y` taps a screen pixel at frame 60.
+one or two Polish lines, the English under them. Landmark card fix: the note and landmark cards
+stand first in the right-hand column under the top row, beside the car (the status panel's and
+the ride card's column), at most 236 pt wide and no wider than the room right of the car's spot
+(`side_card_width()`); on a 375-pt phone they used to find no room and never showed.
+`--tap=X,Y` taps a screen pixel at frame 60.
 Sweep 2: the walk steps on through whatever the occlusion ghost has made see-through (half its
 pixels or more gone, ghost.gdshaderinc's test on the frame's values, main.gd
 `_pick_unghosted`), so a tap on the cut-away part of a tower in front of the car picks what
