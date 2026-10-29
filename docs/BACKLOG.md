@@ -826,3 +826,18 @@ Small problems that agents reported or that showed up in screenshots. They are f
   list in the index (bake_structures: dry points 3-8 m from the water whose straight line to the
   nearest lane crosses no solid wall, barrier line or shore stone and no height step over 0.5 m
   in 2 m), that `rides.gd` reads instead of scanning `shore_distance`.
+
+## From map round 2b (2026-10-29)
+- Done: the Podwózka river spots from the bake (`drivable_bank`, 19), the lamp colour along a
+  street from a bridge, D9 (Tamka), L5 (Krucza), L1 judged and kept. README "Map round 2b".
+- **Only 19 river spots** (most lines to a lane cross a guard rail along the Wisłostrada and
+  Wybrzeże Szczecińskie, a retaining wall or a boulevard's drop): river rides cluster by Most
+  Poniatowskiego's west abutment and south of it. More need a way in (service roads to the
+  beaches) or a passenger who walks the last metres.
+- **L4** Emilii Plater's three mapped median walls (`barrier=wall`, 41 barrier pairs over the map
+  cross each other twice or more) still weave as dark lines; the orthophoto can't show low walls.
+  Spec: draw a `barrier=wall` inside a median as a 0.4 m planter edge, or leave weaving walls out.
+- **L2** kerbs within 0.9 m of a lane centre: not judged (kerbs are not solid for traffic,
+  `check_drive` 0); spec as in review B.
+- **D8** rail track ends 1.2 m apart (Solec) and **D10** the Praga ramp joint's sliver: as in map
+  review A's specs.

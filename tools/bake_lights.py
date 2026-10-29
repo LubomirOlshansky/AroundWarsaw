@@ -91,13 +91,15 @@ class RoadIndex:
                     key = (int(math.floor(x / self.CELL)), int(math.floor(z / self.CELL)))
                     self.cells.setdefault(key, []).append((x, z, half, name, r["k"]))
 
-    def nearest(self, x, z):
-        """(distance to the kerb, name, kind) of the closest street, or None."""
+    def nearest(self, x, z, named=False):
+        """(distance to the kerb, name, kind) of the closest street (`named`: with a name), or None."""
         ci, cj = int(math.floor(x / self.CELL)), int(math.floor(z / self.CELL))
         best = None
         for dj in (-1, 0, 1):
             for di in (-1, 0, 1):
                 for (px, pz, half, name, kind) in self.cells.get((ci + di, cj + dj), ()):
+                    if named and not name:
+                        continue
                     d = math.hypot(px - x, pz - z) - half
                     if best is None or d < best[0]:
                         best = (d, name, kind)
@@ -298,6 +300,21 @@ def main(map_dir):
         return solid[j * w + i] != 0
 
     roads = RoadIndex(osm["roads"])
+    # Map round 2b: a street that carries on from a bridge (a ground road sharing an end with a
+    # bridge road: Al. Poniatowskiego past the towers) is lit like its bridge, sodium; its name's
+    # hash made it LED, and the colour changed at the towers.
+    bridge_ends = [q for r in osm["roads"] if r.get("bridge")
+                   for q in ((r["p"][0], r["p"][1]), (r["p"][-2], r["p"][-1]))]
+    from_bridge = set()
+    for r in osm["roads"]:
+        if r.get("bridge") or not r.get("name"):
+            continue
+        for q in ((r["p"][0], r["p"][1]), (r["p"][-2], r["p"][-1])):
+            if any(abs(q[0] - b[0]) < 2.0 and abs(q[1] - b[1]) < 2.0 for b in bridge_ends):
+                from_bridge.add(r["name"])
+
+    def street_is_led(name):
+        return bool(name) and name not in from_bridge and name_hash(name) < LED_STREETS
     warm = [0.0] * (w * h)
     cold = [0.0] * (w * h)
     lamps = osm.get("lamps", [])
@@ -348,7 +365,7 @@ def main(map_dir):
     # The street's own kind (as its mapped lamps: LED_STREETS by its name), not the nearest
     # road's at the lamp (an unnamed ramp beside it made every other lamp LED).
     for (px, pz, a, name) in streets:
-        todo.append((px, pz, a, "led" if name and name_hash(name) < LED_STREETS else "sodium"))
+        todo.append((px, pz, a, "led" if street_is_led(name) else "sodium"))
     for (px, pz, a, name) in abut:
         todo.append((px, pz, a, "sodium"))
     streets = [q[:3] for q in streets + abut]
@@ -363,10 +380,11 @@ def main(map_dir):
             kind = fixed
         elif near is None or near[0] > 14.0:
             kind = "led"
-        elif near[1] and name_hash(near[1]) < LED_STREETS:
-            kind = "led"
         else:
-            kind = "sodium"
+            # Map round 2b: the kind of the named street the lamp lights (an unnamed ramp or
+            # service way nearer to it doesn't decide), sodium on a street that carries a bridge.
+            named = near if near[1] else roads.nearest(px, pz, named=True)
+            kind = "led" if street_is_led(named[1] if named is not None and named[0] <= 14.0 else "") else "sodium"
         counts[kind] += 1
         radius = RADIUS[kind]
         peak = PEAK[kind]

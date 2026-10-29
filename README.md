@@ -2515,6 +2515,31 @@ MultiMeshes in a few more tiles); vertices 6,106,458 → 6,249,198 (+2.3 %: the 
 under the aprons, 404 lamps and their halos). Left (BACKLOG "From map round 2"): L1, D8-D10,
 L4, L5, L2 and the Podwózka river spots.
 
+## Map round 2b: river spots you can drive, the reviews' last items (2026-10-29)
+
+- **The Podwózka river spots** (`bake_structures.place_bank`, index `drivable_bank`): loop 2d-1's
+  `rides.gd` found a dry waypoint 5 m in from the river with a straight line to a lane over dry
+  ground with no building (9 spots), but never tested whether a car can drive that line. The bake
+  walks each of 832 candidates' lines to its nearest lane points (up to 10) every 0.5 m against
+  retaining walls, fence, wall and hedge lines, guard rails, steps, piers, solid props, buildings,
+  decks overhead and steps in the ground over 0.6 m in 2 m: 19 lines drive (blocked first by
+  guard rails 51, steps in the ground 32, walls 32, decks 12, steps 10). `rides.gd` reads them
+  (the "map round 2b" block, `_bank_spots`; a map without the list keeps the scan).
+- **Lamp colour along a street**: a street that carries on from a bridge (a ground road sharing
+  an end with a bridge road) is lit sodium like its bridge (Al. Poniatowskiego changed from the
+  bridge's sodium to LED at the towers); a mapped lamp takes its kind from the nearest named
+  street within 14 m (`bake_lights` `street_is_led`). 16 lamps LED → sodium.
+- **D9** (`bake_roads`, `STUB_MAX`): a bridge footway of 8 m or less off another footbridge's
+  middle with a free end (OpenStreetMap's stairs left out) is left out: its free end was pinned
+  to the ground and pulled the Tamka footbridge down 2.2 m. 1 stub; the footbridge is level.
+- **L5** (`bake_medians`): a median piece on the mapped tram bed (`landuse=railway`) is paved like
+  it: the green rectangle on the tracks by Jerozolimskie × Krucza.
+- **L1** judged: the lines in the three junction areas (Plac Trzech Krzyży, the Poniatowski
+  ramps, Wał Miedzeszyński) are dashed lane guides through the junction and edge lines along its
+  sides; the orthophoto (about 0.5 m a pixel) can't show painted lines, and Warsaw paints guide
+  dashes through such junctions: kept. **L4** (Emilii Plater's weaving median walls), **L2**,
+  **D8**, **D10**: not changed (BACKLOG).
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
