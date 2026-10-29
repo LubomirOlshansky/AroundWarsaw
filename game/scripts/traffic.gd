@@ -15,6 +15,15 @@ extends Node3D
 ## Podwózka, the app taxi; vans panel and box vans), the shape picked per car and written in
 ## the instance's custom alpha, with its own size and paints. Each MultiMesh draws only up to
 ## its highest slot in use (visible_instance_count), not its whole pool.
+##
+## Loop 3g-1 (police, part one; docs/design/police.md sections 2, 4, 9, 12): a fifth kind,
+## POLICE (pool 8, its own MultiMesh in the main and shadow passes, no headlight pools: the
+## light bar's halos light the road instead, police.gd): the patrol estate and the guards' car
+## from models.gd police_mesh(). Patrol cars spawn in the band like the rest (`police_target`:
+## 0 / 1 / 2 / 3 by the Traffic level, main and secondary roads only, a pause between one
+## leaving and the next); police.gd turns them into chasers, blockers and roadblocks, parks the
+## speed traps' cars on the shoulder, and switches their light bars (SIREN, actor.gdshader).
+## Traffic gives way to a car with its lights on.
 
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
@@ -23,11 +32,15 @@ const LaneGraph := preload("res://scripts/lane_graph.gd")
 const Models := preload("res://scripts/models.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 
-enum Kind { CAR, TAXI, VAN, BUS, NODE }
-const POOL := [112, 16, 16, 8]
+enum Kind { CAR, TAXI, VAN, BUS, POLICE, NODE }
+## Loop 3g-1: POLICE's pool is 8 (patrols, the traps' cars, the blocker and the roadblock).
+const POOL := [112, 16, 16, 8, 8]
+## The kinds the band fills by its density (POLICE is spawned by its own count) and that throw
+## headlight pools at night.
+const TRAFFIC_KINDS := 4
 ## Each kind's longest shape (m), for the headlight pools. The shapes, their sizes and paints
 ## are models.gd TRAFFIC (loop 2c; red stays the player's, orange the jobs': the look loop).
-const LENGTH := [4.65, 4.6, 5.4, 12.0]
+const LENGTH := [4.65, 4.6, 5.4, 12.0, 4.7]
 ## Cars per lane-metre in view, by road class (main, tertiary, residential, living street).
 const DENSITY := [1.0 / 20.0, 1.0 / 34.0, 1.0 / 90.0, 1.0 / 180.0]
 const MAX_CARS := 140
@@ -42,6 +55,13 @@ const MIN_GAP := 2.2
 ## Kinematic bodies for the cars nearest the player.
 const BODIES := 12
 const BODY_RANGE := 40.0
+## Loop 3g-1: a car giving way to a police car with its lights on slows to this (m/s), and a
+## chaser crosses a red (or a roundabout) no faster than SIREN_SLOW (30 km/h).
+const YIELD_SPEED := 5.0
+const SIREN_SLOW := 8.3
+## Cars this far ahead of a police car with its lights on (same way) give way, for this long.
+const YIELD_REACH := 30.0
+const YIELD_TIME := 3.0
 ## Pole lamps: red, amber, green.
 const LAMP_ON := [Color("#ff3b2f"), Color("#ffb21e"), Color("#43ff6e")]
 const LAMP_OFF := Color("#2a2c2e")
@@ -114,11 +134,32 @@ class Driver:
 	var cross_ignore := 0.0
 	## A tram is in its path (it waits; the tram doesn't wait for it).
 	var sees_tram := false
+	## Loop 3g-1, police cars: the light bar flashing (SIREN), a roaming patrol (spawned by the
+	## band), parked off the lane (a speed trap's car, a blocker, a roadblock: not driven, not
+	## in any lane, `off` metres right of the centreline, `park_yaw` its heading), chasing (its
+	## own top speed `v_cap`, slows to SIREN_SLOW at reds and runs them, never arrives),
+	## `keep_gap` metres it keeps behind the player's car, and `goal`: where it heads at a
+	## junction its route doesn't reach (distances_to's max_cost).
+	var lights := false
+	var patrol := false
+	var parked := false
+	var park_yaw := 0.0
+	var chase := false
+	var v_cap := 0.0
+	var keep_gap := 2.4
+	var goal := Vector2.INF
+	## Any car: giving way to a police car with its lights on (seconds left: the kerb lane, slow).
+	var yield_t := 0.0
 
 
 signal bumped_driver(d: Driver)
 ## A car has been held up behind the player's stopped car for a while (it may shout).
 signal blocked_by_player(d: Driver)
+## Loop 3g-1: the player's car hit a police car at `speed` m/s (police.gd: a warning or a ram).
+signal bumped_police(d: Driver, speed: float)
+## Loop 3g-1: a police car came into the band (a patrol) or left it (any police car).
+signal police_spawned(d: Driver)
+signal police_released(d: Driver)
 
 var graph: LaneGraph
 var map: Node3D
@@ -138,6 +179,14 @@ var player_on_road := true
 ## How long the last update took, for --bench.
 var last_usec := 0
 var visible_count := 0
+## Loop 3g-1: roaming patrol cars to keep in the band (police.gd sets it from the Traffic level;
+## 0 = none), how far from the player a new one may appear (the chase cooldown: 200 m), and the
+## seconds before the next may come (police.gd sets it when one leaves the band).
+var police_target := 0
+var police_min_dist := 0.0
+var patrol_wait := 20.0
+## Police cars with their lights on this frame (traffic ahead gives way to them).
+var _sirens: Array[Driver] = []
 
 var _active: Array[Driver] = []
 var _free: Array[Driver] = []
@@ -148,10 +197,10 @@ var _beam_mm: Array[MultiMesh] = []
 var _beam_mmi: Array[MultiMeshInstance3D] = []
 var _buf: Array[PackedFloat32Array] = []
 var _free_slots: Array[PackedInt32Array] = []
-var _counts := PackedInt32Array([0, 0, 0, 0])
+var _counts := PackedInt32Array([0, 0, 0, 0, 0])
 ## Loop 2c: instances each MultiMesh draws (its highest slot in use + 1), and this frame's.
-var _drawn := PackedInt32Array([0, 0, 0, 0])
-var _top := PackedInt32Array([0, 0, 0, 0])
+var _drawn := PackedInt32Array([0, 0, 0, 0, 0])
+var _top := PackedInt32Array([0, 0, 0, 0, 0])
 var _bodies: Array[AnimatableBody3D] = []
 var _body_driver: Array = []
 var _rng := RandomNumberGenerator.new()
@@ -198,11 +247,12 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 		_lane_cars[i] = []
 	for i in MAX_CARS + 8:
 		_free.append(Driver.new())
-	for k in 4:
+	for k in POOL.size():
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.use_custom_data = true
-		mm.mesh = Models.traffic_mesh(k)
+		# Loop 3g-1: POLICE draws the patrol estate and the guards' car (shapes 0 and 1).
+		mm.mesh = Models.police_mesh() if k == Kind.POLICE else Models.traffic_mesh(k)
 		mm.instance_count = POOL[k]
 		mm.visible_instance_count = 0
 		# Instances move all over the map; never cull the whole set.
@@ -218,6 +268,15 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 		add_child(mmi)
 		_mm.append(mm)
 		_buf.append(buf)
+		var slots := PackedInt32Array()
+		for i in range(POOL[k] - 1, -1, -1):
+			slots.append(i)
+		_free_slots.append(slots)
+		if k == Kind.POLICE:
+			# Loop 3g-1 (police.md section 12): a small caster (no shadow on Medium), and no
+			# headlight pools of its own: the light bar's halos light the road at night.
+			mmi.add_to_group(MapBuilder.SMALL_CASTERS, true)
+			continue
 		var beam := MultiMesh.new()
 		beam.transform_format = MultiMesh.TRANSFORM_3D
 		beam.use_custom_data = true
@@ -236,10 +295,6 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 		add_child(bmi)
 		_beam_mm.append(beam)
 		_beam_mmi.append(bmi)
-		var slots := PackedInt32Array()
-		for i in range(POOL[k] - 1, -1, -1):
-			slots.append(i)
-		_free_slots.append(slots)
 	for i in BODIES:
 		var body := AnimatableBody3D.new()
 		body.sync_to_physics = false
@@ -265,7 +320,13 @@ func _process(dt: float) -> void:
 	_update_view()
 	if spawning:
 		_manage()
+		# Loop 3g-1: patrol cars, by their own count.
+		patrol_wait -= dt
+		if police_target > 0:
+			_manage_police()
 	_junction_conflicts()
+	if not _sirens.is_empty():
+		_give_way_to_sirens()
 	var i := 0
 	visible_count = 0
 	_tick += 1
@@ -327,6 +388,12 @@ func on_player_bump(collider: Object, _speed := 0.0) -> void:
 	var k := _bodies.find(collider)
 	if k >= 0 and _body_driver[k] != null:
 		var d: Driver = _body_driver[k]
+		if d.kind == Kind.POLICE:
+			# Loop 3g-1: police.gd decides (a warning, a ram); a parked one doesn't budge.
+			if not d.parked:
+				d.stun = 1.5
+			bumped_police.emit(d, _speed)
+			return
 		d.stun = 2.5
 		bumped_driver.emit(d)
 
@@ -390,6 +457,7 @@ func _manage() -> void:
 	_filled = true
 
 
+## The traffic kinds' cars (loop 3g-1: not the police, which have their own count).
 func _counts_total() -> int:
 	return _counts[0] + _counts[1] + _counts[2] + _counts[3]
 
@@ -511,6 +579,7 @@ func _start(d: Driver, e: int, lane: int, s: float) -> void:
 	d.route = PackedFloat32Array()
 	d.finish = -1
 	d.run_red = false
+	d.yield_t = 0.0
 	_enter_edge(d, e, lane, s)
 	var p := graph.point_at(e, s, d.off)
 	d.pos = Vector3(p.x, graph.height(e, s), p.y)
@@ -532,6 +601,10 @@ func _release(d: Driver) -> void:
 		_free_slots[d.kind].append(d.slot)
 		_counts[d.kind] -= 1
 		d.slot = -1
+		if d.kind == Kind.POLICE:
+			# Loop 3g-1: police.gd sets the pause before the next patrol (patrol_wait).
+			police_released.emit(d)
+			_police_reset(d)
 	var at := _active.find(d)
 	if at >= 0:
 		_active[at] = _active[_active.size() - 1]
@@ -578,7 +651,12 @@ func remove(d: Driver) -> void:
 
 ## Moves a driver to a lane position at once (and its node, if any).
 func teleport(d: Driver, e: int, lane: int, s: float) -> void:
-	if d.active:
+	if d.active and d.kind < Kind.NODE:
+		# Loop 3g-1: a pooled car (a chasing police car off the map's edge) keeps its slot.
+		if d.reg >= 0:
+			_lane_cars[d.reg].erase(d)
+		_active.erase(d)
+	elif d.active:
 		_release(d)
 	_start(d, e, lane, s)
 	d.v = 0.0
@@ -616,6 +694,207 @@ func drivers() -> Array[Driver]:
 	return _active
 
 
+# --- loop 3g-1: the police ----------------------------------------------------------------
+
+## Patrol cars come and go with the band like the rest, but by their own count: below
+## `police_target` and once the pause after the last one is over, one appears out of sight on a
+## main or secondary road (never within `police_min_dist` of the player).
+func _manage_police() -> void:
+	if patrol_wait > 0.0 or _free_slots[Kind.POLICE].is_empty():
+		return
+	var roaming := 0
+	for d in _active:
+		if d.kind == Kind.POLICE and d.patrol:
+			roaming += 1
+	if roaming >= police_target:
+		return
+	for attempt in 6:
+		var d := _try_spawn_police()
+		if d != null:
+			police_spawned.emit(d)
+			return
+
+
+func _try_spawn_police() -> Driver:
+	if _slot_e.is_empty() or _free.is_empty():
+		return null
+	var k := mini(_slot_sum.bsearch(_rng.randf() * _slot_sum[_slot_sum.size() - 1]), _slot_e.size() - 1)
+	var e := _slot_e[k]
+	if graph.e_class[e] > 1:
+		return null  # main and secondary roads only (police.md section 2)
+	var lane := _rng.randi() % graph.e_lanes[e]
+	var s := clampf(_slot_s[k], graph.e_s0[e] + 4.0, graph.e_s1[e] - 6.0)
+	var q := graph.point_at(e, s, graph.lane_offset(e, lane))
+	if on_screen(Vector3(q.x, graph.height(e, s), q.y), 1.6):
+		return null
+	var me := Vector2(player_pos.x, player_pos.z)
+	if me.distance_to(q) < maxf(police_min_dist, 14.0):
+		return null
+	# Ahead of a moving player (one behind would leave the band before it is met).
+	var going := Vector2(player_vel.x, player_vel.z)
+	if going.length() > 3.0 and (q - me).dot(going) < 0.0:
+		return null
+	if not _lane_clear(e, lane, s, 16.0, q):
+		return null
+	var d := _take_police(0)
+	d.patrol = true
+	d.persistent = false
+	_start(d, e, lane, s)
+	d.v = graph.e_speed[e] * 0.6
+	return d
+
+
+## True if lane (e, lane) has nobody within `room` metres of s, and nobody stands near q.
+func _lane_clear(e: int, lane: int, s: float, room: float, q: Vector2) -> bool:
+	for o in _lane_cars[graph.e_lane0[e] + lane]:
+		if absf((o as Driver).ls - s) < room:
+			return false
+	for o in _active:
+		if Vector2(o.pos.x, o.pos.z).distance_squared_to(q) < 49.0 + o.length * o.length:
+			return false
+	return true
+
+
+## A police driver from the pool (shape 0 the patrol estate, 1 the guards' car), not yet placed.
+func _take_police(shape: int) -> Driver:
+	var d: Driver = _free.pop_back()
+	d.kind = Kind.POLICE
+	d.slot = _free_slots[Kind.POLICE][_free_slots[Kind.POLICE].size() - 1]
+	_free_slots[Kind.POLICE].resize(_free_slots[Kind.POLICE].size() - 1)
+	_counts[Kind.POLICE] += 1
+	var look: Dictionary = {"size": Vector3(1.85, 1.62, 4.7)} if shape == 0 else {"size": Vector3(1.63, 1.43, 4.14)}
+	d.size = look["size"]
+	d.length = d.size.z
+	d.shape = shape
+	d.paint = Models.POLICE_WHITE if shape == 0 else Models.GUARD_MUSTARD
+	d.speed_factor = 0.95
+	d.accel_factor = 1.0
+	d.ghost = false
+	d.node = null
+	d.core_only = true
+	_police_reset(d)
+	return d
+
+
+## Clears a police car's state (on taking it and on releasing it).
+func _police_reset(d: Driver) -> void:
+	d.lights = false
+	d.patrol = false
+	d.parked = false
+	d.chase = false
+	d.v_cap = 0.0
+	d.keep_gap = 2.4
+	d.goal = Vector2.INF
+	d.persistent = false
+	_sirens.erase(d)
+
+
+## Loop 3g-1, for police.gd: a police car on lane (e, lane) at s (a blocker, the roadblock, a
+## test's chaser), kept until remove(); null if the pool is empty.
+func add_police(e: int, lane: int, s: float, shape := 0) -> Driver:
+	if _free_slots[Kind.POLICE].is_empty() or _free.is_empty():
+		return null
+	var d := _take_police(shape)
+	d.persistent = true
+	_start(d, e, lane, s)
+	d.v = 0.0
+	return d
+
+
+## Loop 3g-1: parks a police car at `at`, heading `yaw` (a speed trap's car on the kerb facing
+## the traffic, a blocker across a lane), by s along edge e (where it pulls out from). It is
+## never driven and keeps its body near the player (it is solid). It leaves every lane, or with
+## `block_lane` (a lane of e) stands in that one at s, so the traffic there stops behind it.
+func park(d: Driver, e: int, s: float, at: Vector3, yaw: float, block_lane := -1) -> void:
+	if d.reg >= 0:
+		_lane_cars[d.reg].erase(d)
+	d.reg = -1
+	d.next_reg = -1
+	if block_lane >= 0:
+		_register(d, graph.e_lane0[e] + block_lane)
+		d.lane = block_lane
+	d.ls = s
+	d.parked = true
+	d.edge = e
+	d.s = s
+	d.in_conn = false
+	d.v = 0.0
+	d.route = PackedFloat32Array()
+	d.pos = at
+	d.yaw = yaw
+	d.park_yaw = yaw
+	d.clip = 1.0
+	d.visible = on_screen(d.pos, d.size.y)
+
+
+## Loop 3g-1: a parked police car pulls out onto lane (e, lane) at s, the traffic's way.
+func unpark(d: Driver, e: int, lane: int, s: float) -> void:
+	d.parked = false
+	_enter_edge(d, e, lane, s)
+	d.v = 0.0
+	_place(d)
+
+
+## Loop 3g-1: a police car's light bar on or off (SIREN in actor.gdshader; traffic gives way).
+func set_lights(d: Driver, on: bool) -> void:
+	d.lights = on
+	if on and not d in _sirens:
+		_sirens.append(d)
+	elif not on:
+		_sirens.erase(d)
+
+
+## Loop 3g-1: the police cars out now (patrols, traps, chasers).
+func police() -> Array[Driver]:
+	var out: Array[Driver] = []
+	for d in _active:
+		if d.kind == Kind.POLICE:
+			out.append(d)
+	return out
+
+
+## Cars up to YIELD_REACH ahead of a police car with its lights on, in its lane or the next
+## one it turns into, give way: the kerb lane and YIELD_SPEED for YIELD_TIME (police.md 4).
+func _give_way_to_sirens() -> void:
+	for p in _sirens:
+		if not p.active or p.parked or p.reg < 0:
+			continue
+		for o in _lane_cars[p.reg]:
+			if o != p and o.kind < Kind.POLICE and o.ls > p.ls and o.ls - p.ls < YIELD_REACH:
+				o.yield_t = YIELD_TIME
+		if not p.in_conn and p.next_reg >= 0 and graph.e_s1[p.edge] - p.s < YIELD_REACH:
+			for o in _lane_cars[p.next_reg]:
+				if o.kind < Kind.POLICE and o.ls - graph.e_s0[p.next_edge] < YIELD_REACH - (graph.e_s1[p.edge] - p.s):
+					o.yield_t = YIELD_TIME
+
+
+## Loop 3g-1: moves to lane `k` of its road if it is free alongside (giving way).
+func _change_lane_to(d: Driver, k: int) -> void:
+	var e := d.edge
+	if graph.e_s1[e] - d.s < 18.0:
+		return
+	for o in _lane_cars[graph.e_lane0[e] + k]:
+		if o != d and absf(o.ls - d.ls) < (o.length + d.length) * 0.5 + 3.0:
+			return
+	d.lane = k
+	_register(d, graph.e_lane0[e] + k)
+	d.off_target = graph.lane_offset(e, k)
+	_choose_next(d)
+
+
+## Loop 3g-1: gap to the first stop line ahead showing red or amber, whatever the driver runs.
+func _red_gap(d: Driver) -> float:
+	var stops := graph.e_stops[d.edge]
+	var front := d.s + d.length * 0.5
+	for k in range(0, stops.size(), 3):
+		if stops[k] < front - 0.2:
+			continue
+		if graph.light(int(stops[k + 1]), int(stops[k + 2])) == LaneGraph.GREEN:
+			return INF
+		return stops[k] - front
+	return INF
+
+
 # --- driving ------------------------------------------------------------------------
 
 ## Lanes keep cars apart along a lane, but junction curves from different
@@ -628,7 +907,7 @@ func _junction_conflicts() -> void:
 	for d in _active:
 		d.cross_gap = INF
 		d.sees_tram = false
-		if not d.ghost and (d.in_conn or graph.e_s1[d.edge] - d.s < 14.0):
+		if not d.ghost and not d.parked and (d.in_conn or graph.e_s1[d.edge] - d.s < 14.0):
 			junction_cars.append(d)
 	if trams != null:
 		_give_way_to_trams()
@@ -698,6 +977,14 @@ func _choose_next(d: Driver) -> void:
 			if cost < best_d:
 				best_d = cost
 				best = f
+		if best < 0 and d.goal != Vector2.INF:
+			# Loop 3g-1: beyond the route's reach (distances_to's max_cost): the way whose end
+			# lies nearest the goal; back the way it came only at a dead end.
+			for f in outs:
+				var cost: float = graph.node_pos[graph.e_b[f]].distance_to(d.goal) + (1000.0 if f == rev else 0.0)
+				if cost < best_d:
+					best_d = cost
+					best = f
 	else:
 		var total := 0.0
 		var weights := PackedFloat32Array()
@@ -738,12 +1025,24 @@ func _choose_next(d: Driver) -> void:
 
 
 func _drive(d: Driver, dt: float) -> void:
+	if d.parked:
+		# Loop 3g-1: a police car parked off the lane (a trap, a blocker, a roadblock).
+		d.visible = on_screen(d.pos, d.size.y)
+		return
 	var e := d.edge
 	var v0 := graph.e_speed[e] * d.speed_factor
+	if d.v_cap > 0.0:
+		v0 = d.v_cap  # loop 3g-1: a chaser's own top speed
+	if d.yield_t > 0.0:
+		# Loop 3g-1: giving way to a police car with its lights on.
+		d.yield_t -= dt
+		v0 = minf(v0, YIELD_SPEED)
 	if d.in_conn:
 		v0 = minf(v0, d.v_turn)
 	elif d.next_edge >= 0:
 		v0 = minf(v0, sqrt(d.v_turn * d.v_turn + 2.0 * DECEL * 0.6 * maxf(graph.e_s1[e] - d.s, 0.0)))
+	if d.chase and not d.in_conn and _red_gap(d) < 30.0:
+		v0 = minf(v0, SIREN_SLOW)  # loop 3g-1: through a red, slowly, with the siren
 	var gap := INF
 	var lead_v := 0.0
 	# The lane it is in (or curving into); the ghost reads lanes without being in them.
@@ -777,11 +1076,12 @@ func _drive(d: Driver, dt: float) -> void:
 				lead_v = 0.0
 		if player_on_road:
 			var rel := Vector2(player_pos.x - d.pos.x, player_pos.z - d.pos.z)
-			if rel.length_squared() < 900.0:
+			if rel.length_squared() < (1600.0 if d.chase else 900.0):
 				var fwd := Vector2(-sin(d.yaw), -cos(d.yaw))
 				var along := rel.dot(fwd)
-				if along > 0.0 and absf(rel.cross(fwd)) < 2.3:
-					var g := along - d.length * 0.5 - 2.4
+				# Loop 3g-1: a chaser looks wider and keeps `keep_gap` behind (it never rams).
+				if along > 0.0 and absf(rel.cross(fwd)) < (4.0 if d.chase else 2.3):
+					var g := along - d.length * 0.5 - d.keep_gap
 					player_gap = g
 					if g < gap:
 						gap = g
@@ -801,10 +1101,13 @@ func _drive(d: Driver, dt: float) -> void:
 		var was := d.blocked
 		d.blocked += dt
 		# Held up for 2 s, and every 10 s after that: the driver loses patience.
-		if floori((d.blocked + 8.0) / 10.0) != floori((was + 8.0) / 10.0):
+		if floori((d.blocked + 8.0) / 10.0) != floori((was + 8.0) / 10.0) and d.kind != Kind.POLICE:
 			blocked_by_player.emit(d)
 		if d.blocked > 2.5 and _change_lane(d, 14.0):
 			d.blocked = 0.0
+	if d.yield_t > 0.0 and d.route.is_empty() and not d.in_conn and d.lane < graph.e_lanes[e] - 1:
+		# Loop 3g-1: over to the kerb lane for the police car behind.
+		_change_lane_to(d, graph.e_lanes[e] - 1)
 	d.off = move_toward(d.off, d.off_target, 2.5 * dt)
 	if d.held or d.stun > 0.0 or d.arrived:
 		gap = minf(gap, 0.0)
@@ -834,7 +1137,7 @@ func _drive(d: Driver, dt: float) -> void:
 	else:
 		d.s += step
 		# Checked before the junction curve: a fast car can cross the last metres in a frame.
-		if not d.route.is_empty() and graph.e_b[e] == d.finish and d.s >= graph.e_s1[e] - 3.0:
+		if not d.route.is_empty() and graph.e_b[e] == d.finish and d.s >= graph.e_s1[e] - 3.0 and not d.chase:
 			d.arrived = true
 		if d.s >= graph.e_s1[e]:
 			if d.next_edge >= 0:
@@ -969,7 +1272,8 @@ func _red_ahead(d: Driver) -> float:
 		if at < front - 0.2:
 			continue
 		var state := graph.light(int(stops[k + 1]), int(stops[k + 2]))
-		if state == LaneGraph.GREEN or d.run_red:
+		# Loop 3g-1: a chaser goes through (slowly: SIREN_SLOW, in _drive).
+		if state == LaneGraph.GREEN or d.run_red or d.chase:
 			return INF
 		var g := at - front - 0.5
 		if state == LaneGraph.AMBER and g < d.v * d.v / (2.0 * DECEL):
@@ -1040,18 +1344,23 @@ func _write() -> void:
 		buf[b + 12] = d.paint.r
 		buf[b + 13] = d.paint.g
 		buf[b + 14] = d.paint.b
-		buf[b + 15] = float(d.shape)
+		# Loop 3g-1: a police car's custom alpha also says its light bar's state (actor.gdshader
+		# SIREN: + 4 lights off, + 8 flashing).
+		buf[b + 15] = float(d.shape) + (0.0 if d.kind != Kind.POLICE else (8.0 if d.lights else 4.0))
 		_top[d.kind] = maxi(_top[d.kind], d.slot + 1)
-	for k in 4:
+	for k in POOL.size():
 		# Loop 2c: draw only up to the highest slot in use (a freed slot is the next one taken,
 		# so this stays near the most cars of the kind at once; the pools are 112 / 16 / 16 / 8).
 		if _top[k] != _drawn[k]:
 			_drawn[k] = _top[k]
 			_mm[k].visible_instance_count = _top[k]
-			_beam_mm[k].visible_instance_count = _top[k]
+			if k < TRAFFIC_KINDS:
+				_beam_mm[k].visible_instance_count = _top[k]
 		_top[k] = 0
+		if k == Kind.POLICE and _drawn[k] == 0:
+			continue  # loop 3g-1: no police car out, nothing to send
 		RenderingServer.multimesh_set_buffer(_mm[k].get_rid(), _buf[k])
-		if _beam_mmi[k].visible:
+		if k < TRAFFIC_KINDS and _beam_mmi[k].visible:
 			RenderingServer.multimesh_set_buffer(_beam_mm[k].get_rid(), _buf[k])
 
 

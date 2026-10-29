@@ -6,7 +6,8 @@ extends SceneTree
 ## call card, a payment, a rescue with the radio host and an easter egg, a kebab offer and a
 ## delivery with the customer talking where the radio ticker sits, a race, a rival to
 ## challenge, a landmark card, the tow toast, the same with the performance overlay on, every
-## tab of the settings panel and the bench card. In each state:
+## tab of the settings panel and the bench card; loop 3g-1: a police chase (the pill, the koguty,
+## a megaphone bubble), the lizak, and the pull-over card (the pedals away). In each state:
 ##   - every control the player can press is at least 44 pt each way and inside the safe area;
 ##   - every text is at least 11 pt, and the body texts (cards, ticker, toasts, hints) 13 pt;
 ##   - every HUD rect (the fixed controls, the panels, the pedals, the speech bubbles) is inside
@@ -19,6 +20,8 @@ extends SceneTree
 
 const Hud := preload("res://scripts/hud.gd")
 const Bubbles := preload("res://scripts/bubbles.gd")
+## Loop 3g-1: the pull-over card (police.gd lays it out with the HUD's panels).
+const PoliceBalloon := preload("res://scripts/police/police_balloon.gd")
 ## Width x height in pixels (landscape): the user's 6.9" Pro Max, the 6.1" class, a computer
 ## window (taken as a phone 390 pt tall), the SE (375 pt tall, no insets).
 const SCREENS := [Vector2i(2868, 1320), Vector2i(2532, 1170), Vector2i(1280, 720), Vector2i(1334, 750)]
@@ -70,6 +73,9 @@ func _check_screen(screen: Vector2i) -> int:
 	bubbles.project = func(p: Vector3) -> Vector2: return Vector2(p.x, p.y)
 	hud.add_child(bubbles)
 	hud.move_child(bubbles, 1)
+	var talk: Control = PoliceBalloon.new()
+	talk.pt = hud.pt
+	hud.add_panel(talk, "bottom")
 	await process_frame
 	var pt: float = hud.pt
 	var safe: Rect2 = hud.safe_rect()
@@ -84,7 +90,8 @@ func _check_screen(screen: Vector2i) -> int:
 	var perf_text := "60 fps · 16.7 ms · worst 18.2 · cap 60\nCPU 1.2 + 0.3 + 14.1 ms · GPU n/a · 670 MB\ndraws 153 = 53 + 35 + 65 (3D, shadow, 2D)\n423 objects · 0.45 M tris (0.14 M shadow)"
 	for perf in [false, true]:
 		for state in ["car, Point", "car, Classic", "helicopter", "call came in", "call card", "rescued, paid",
-				"rescue, host, egg", "kebab offer", "kebab delivery", "race", "rival ahead", "landmark card", "tow toast"]:
+				"rescue, host, egg", "kebab offer", "kebab delivery", "race", "rival ahead", "landmark card", "tow toast",
+				"police chase", "lizak", "pull-over"]:
 			if perf and not state in ["car, Point", "call card", "rescue, host, egg", "kebab offer", "kebab delivery", "landmark card"]:
 				continue
 			hud.clear_all()
@@ -149,6 +156,29 @@ func _check_screen(screen: Vector2i) -> int:
 							"You can see the Palace from everywhere. That's why we like it.")
 				"tow toast":
 					hud.toast("Pomoc drogowa: wyciągnięci!", "Towed free")
+					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
+				# Loop 3g-1: a koguty 2 chase (the pill and its countdown, the koguty, a megaphone
+				# bubble, the edge rooster), the lizak's pill, and the pull-over card with two replies.
+				"police chase":
+					hud.set_koguty(2, 1)
+					hud.police_pill("SZUKAJĄ CIĘ · KONIEC ZMIANY ZA 0:27", "SEARCHING · END OF SHIFT IN 0:27")
+					hud.police_fx(1.0, PackedVector2Array([at.call(0.5, 1.3)]), Vector2.INF)
+					_say(bubbles, "Policja", at.call(0.5, 0.72), "Proszę się zatrzymać! Albo chociaż zwolnić, będzie miło.",
+							"Please stop! Or at least slow down, that would be nice.")
+					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
+				"lizak":
+					hud.set_koguty(0, 3)
+					hud.police_pill("ZATRZYMAJ SIĘ PRZY POLICJANCIE", "PULL OVER BY THE OFFICER")
+					hud.police_fx(0.0, PackedVector2Array(), at.call(0.56, 0.36))
+					hud.toast("UCIECZKA!  +15", "ESCAPED!  +15 RESPECT")
+				"pull-over":
+					hud.set_koguty(1, 1)
+					hud.set_pedals_hidden(true)
+					# The longest opener with the longest English (the caution's) and the two widest replies.
+					talk.show_line("Posterunkowy Kacper", "Kontrola drogowa. Wie pan, czemu pana zatrzymałem? Ja tak średnio.",
+							"Consider yourself cautioned. Kacper, put it in the notebook. Neatly, not like last time.",
+							[["Przepraszam, już nie będę.", "Sorry, won't happen again."], ["Suszarka? Mam krótkie włosy.", "Hair dryer? But I've got short hair."]])
+					hud.show_panel(talk, true)
 					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
 			await process_frame
 			await process_frame
@@ -240,7 +270,7 @@ func _check_state(hud: CanvasLayer, bubbles: Control, where: String) -> void:
 		_waits.append("%d speech bubble(s) in %s" % [bubbles.overlaps, where])
 	_check_fonts(hud, where, pt)
 	for body in ["_card_body", "_card_body_en", "_ticker_label", "_ticker_sub", "_toast", "_toast_gloss", "_status_hint",
-			"_status_hint_en", "_info_pl", "_info_en", "_note_body"]:
+			"_status_hint_en", "_info_pl", "_info_en", "_note_body", "_police_pl", "_police_en"]:
 		var l: Label = hud.get(body)
 		if l.is_visible_in_tree() and l.get_theme_font_size("font_size") < MIN_BODY * pt - 0.5:
 			problems.append("%s: %s is %.1f pt (body text needs %.0f)" % [where, body, l.get_theme_font_size("font_size") / pt, MIN_BODY])
