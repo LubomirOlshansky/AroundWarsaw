@@ -54,6 +54,13 @@ SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
 STEP_LIMIT=${NW_STEP_LIMIT:-900}
 
+# A fresh clone or worktree has no game/.godot class cache yet: every script step then fails
+# with "Could not find type PhantomCameraHost" (or hangs). Import once first (~3 s).
+if [[ ! -f $GAME/.godot/global_script_class_cache.cfg ]]; then
+	print "verify: importing the project first (no game/.godot yet)"
+	$GODOT --headless --path $GAME --import > /dev/null 2>&1
+fi
+
 want=()
 quick=0
 ios=0
