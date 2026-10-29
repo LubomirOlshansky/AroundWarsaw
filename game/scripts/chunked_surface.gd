@@ -8,8 +8,16 @@ extends RefCounted
 ## triangles, set the frame time: a quarter as many tiles costs a few more triangles off
 ## screen, which the phone's GPU doesn't notice. `add_arrays` files ready-made triangles
 ## (the LoD2 buildings) into a tile, so they share its mesh and draw call.
+##
+## Loop 3c: while one 512 m sector is built (map_builder.gd build_sector), `only` holds its
+## 2 x 2 tiles and every triangle filed elsewhere is dropped: a feature crossing a border is
+## built whole in both sectors, and each keeps the triangles whose centre lies in it.
 
 const TILE := 256.0
+
+## Loop 3c: the tile keys kept (empty: all of them); `none` keeps nothing (the roof pass).
+var only := Rect2i()
+var none := false
 
 var _tools := {}  # Vector2i -> SurfaceTool
 var _extra := {}  # Vector2i -> Array of mesh arrays added whole
@@ -47,7 +55,6 @@ func set_uv2(uv2: Vector2) -> void:
 
 
 func add_vertex(vertex: Vector3) -> void:
-	vertex_count += 1
 	_v[_count] = vertex
 	_c[_count] = _colour
 	_n[_count] = _normal
@@ -59,6 +66,9 @@ func add_vertex(vertex: Vector3) -> void:
 	_count = 0
 	var centre := (_v[0] + _v[1] + _v[2]) / 3.0
 	var key := Vector2i(floori(centre.x / TILE), floori(centre.z / TILE))
+	if none or (only.has_area() and not only.has_point(key)):
+		return
+	vertex_count += 3
 	var st: SurfaceTool = _tools.get(key)
 	if st == null:
 		st = SurfaceTool.new()
@@ -75,6 +85,8 @@ func add_vertex(vertex: Vector3) -> void:
 ## Non-indexed triangles with the same attributes this tool writes (vertex, normal, colour,
 ## UV, UV2), for the tile `key`.
 func add_arrays(key: Vector2i, arrays: Array) -> void:
+	if none or (only.has_area() and not only.has_point(key)):
+		return
 	vertex_count += (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
 	if not _extra.has(key):
 		_extra[key] = []
