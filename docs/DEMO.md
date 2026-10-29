@@ -123,6 +123,23 @@ loop 2b was cutting the frame cost. Phone budgets refer to README's "Performance
 
 ### 2.1 The box
 
+**Decision (the user, 2026-10-29): a smaller demo at higher quality.** The demo box is
+**south 52.2183, west 20.9780, north 52.2450, east 21.0500**: map metres (today's origin)
+x −3,136 to +1,773, z −1,216 (north) to +1,736 (south), **4,909 × 2,952 m = 14.5 km²** (2.3×
+today, half the 30 km² below), about 60 sectors of 512 m. It is today's map grown west to Rondo
+Daszyńskiego (its towers, Warsaw Spire, the Uprising Museum, Hala Mirowska), south to MDM
+(Plac Konstytucji, Hala Koszyki, Plac Zbawiciela, the Sejm) and ~330 m north (Centrum Nauki
+Kopernik, the boulevards' steps, the university library and the whole of Most Świętokrzyski,
+which today ends at the rim); the east edge stays at 21.050 with the stadium. All of it lies
+inside the data already downloaded for the box below (no new downloads). **Tier A** becomes:
+Warsaw Spire, MDM's Plac Konstytucji, St Alexander's at Plac Trzech Krzyży, Kopernik and its
+planetarium, Most Świętokrzyski's pylon, the Sejm. **After the demo** (section 9): the Old Town
+(the castle, the Market Square, the Barbakan), Łazienki, Arkadia, Most Śląsko-Dąbrowski and the
+W-Z tunnel, Most Łazienkowski and Trasa Łazienkowska, the zoo. The police spec's city guards
+(police.md 2, 5.6) patrol the walking streets inside the box (Krakowskie Przedmieście's south
+end, Nowy Świat) until the Old Town comes. The table and notes below are the earlier 30 km²
+plan, kept for its research; where they differ, this paragraph wins.
+
 | | South | West | North | East |
 | --- | --- | --- | --- | --- |
 | Latitude / longitude | 52.2085 | 20.9780 | 52.2595 | 21.0560 |
