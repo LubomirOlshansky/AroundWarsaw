@@ -7,6 +7,9 @@ extends Node3D
 const Models := preload("res://scripts/models.gd")
 
 const MAX := 60
+## Loop 3g-1: people who stand still at a spot (the speed traps' officers; part two the city
+## guards), in the same MultiMesh after the walkers (police.md section 12: +0 draw calls).
+const FIXED := 4
 const CELL := 48.0
 const MARGIN := 20.0
 const SHIRTS := ["#d8432f", "#2f6fb5", "#e0b23a", "#3b8f5a", "#f2efe8", "#7a4fa8", "#e57aa0", "#2b2c2f", "#c96b2c", "#5aa9c9", "#9c2f3a", "#e8e4d8"]
@@ -137,9 +140,9 @@ func setup(map_node: Node3D, camera: Camera3D, traffic_node: Node3D, data: Dicti
 	_mm.transform_format = MultiMesh.TRANSFORM_3D
 	_mm.use_custom_data = true
 	_mm.mesh = Models.person_mesh()
-	_mm.instance_count = MAX
+	_mm.instance_count = MAX + FIXED
 	_mm.custom_aabb = AABB(Vector3(-2500, -200, -1500), Vector3(5000, 600, 3000))
-	_buf.resize(MAX * 16)
+	_buf.resize((MAX + FIXED) * 16)
 	_buf.fill(0.0)
 	var mat := Models.material().duplicate() as ShaderMaterial
 	mat.set_shader_parameter("walk", 0.16)
@@ -227,6 +230,35 @@ func _at(i: int, s: float, off := 0.0) -> Vector2:
 ## Loop 2b: how many people walk now (the bench).
 func alive_count() -> int:
 	return _alive_count
+
+
+## Loop 3g-1: puts fixed person `i` (0..FIXED-1) at `at` facing `yaw` (radians, like a car's),
+## in a `shirt` and trousers from the palette (`trousers` 0..1: actor.gdshader TROUSERS).
+func set_fixed(i: int, at: Vector3, yaw: float, shirt: Color, trousers: float) -> void:
+	var b := (MAX + i) * 16
+	var c := cos(yaw)
+	var s := sin(yaw)
+	_buf[b] = c
+	_buf[b + 1] = 0.0
+	_buf[b + 2] = s
+	_buf[b + 3] = at.x
+	_buf[b + 4] = 0.0
+	_buf[b + 5] = 1.0
+	_buf[b + 6] = 0.0
+	_buf[b + 7] = at.y
+	_buf[b + 8] = -s
+	_buf[b + 9] = 0.0
+	_buf[b + 10] = c
+	_buf[b + 11] = at.z
+	_buf[b + 12] = shirt.r
+	_buf[b + 13] = shirt.g
+	_buf[b + 14] = shirt.b
+	_buf[b + 15] = trousers
+
+
+func clear_fixed(i: int) -> void:
+	for k in 12:
+		_buf[(MAX + i) * 16 + k] = 0.0
 
 
 func _process(dt: float) -> void:

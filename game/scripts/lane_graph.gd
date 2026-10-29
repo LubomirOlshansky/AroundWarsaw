@@ -453,8 +453,11 @@ func light(c: int, group: int) -> int:
 # --- routing ----------------------------------------------------------------------
 
 ## Shortest driving distance from every node to `target` (INF where it can't be
-## reached): Dijkstra over the reversed edges with a small binary heap.
-func distances_to(target: int) -> PackedFloat32Array:
+## reached): Dijkstra over the reversed edges with a small binary heap. Loop 3g-1: with
+## `max_cost` the search stops there (a police chaser's 800 m: a few hundred nodes, not the
+## whole graph); nodes further away are INF or an upper bound, and the driver heads for its
+## `goal` at junctions the route doesn't reach (traffic.gd _choose_next).
+func distances_to(target: int, max_cost := INF) -> PackedFloat32Array:
 	var dist := PackedFloat32Array()
 	dist.resize(node_pos.size())
 	dist.fill(INF)
@@ -467,6 +470,8 @@ func distances_to(target: int) -> PackedFloat32Array:
 		_heap_pop(heap_d, heap_n)
 		if d > dist[n]:
 			continue
+		if d > max_cost:
+			break
 		for e in node_in[n]:
 			var m := e_a[e]
 			var nd := d + e_len[e]

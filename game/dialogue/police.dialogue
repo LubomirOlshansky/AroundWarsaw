@@ -1,0 +1,20 @@
+# Loop 3g-1 (police, part one): the pull-over conversation (docs/design/police.md section 7).
+# Only the flow lives here; every word is in game/data/dialogue.json, picked by `talk.say(group,
+# tag)` (game/scripts/police/police_talk.gd), which returns the Polish line and keeps its English
+# for the balloon. Compiled at runtime by Dialogue Manager 4 (its editor plugin stays off).
+# `guard_stop` comes with the city guards in part two (loop 3g-2).
+
+~ pull_over
+if talk.first_contact
+	Sierżant Bogdan: {{talk.say("police_stop", talk.opener)}}
+	Sierżant Bogdan: {{talk.say("police_stop", "roosters")}}
+	$> talk.done_routine()
+	=> END
+Sierżant Bogdan: {{talk.say("police_stop", talk.opener)}}
+- {{talk.say("police_reply", "")}} => caution
+- {{talk.say("police_reply", talk.opener)}} [if talk.has_reply /] => caution
+
+~ caution
+Sierżant Bogdan: {{talk.say("police_caution", talk.caution_tag)}}
+$> talk.done_caution()
+=> END

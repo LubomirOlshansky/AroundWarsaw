@@ -538,3 +538,59 @@ Small problems that agents reported or that showed up in screenshots. They are f
   both); a raise needs under 0.5 % missed over 30 s.
 - The BENCH minute holds the governor (the card is the level's own cost) and the rescue calls;
   `--governor=on` lets the governor act during a bench or probe.
+
+## From loop 3g-1 (the police, part one)
+
+- **Part two (loop 3g-2)**: the city guards on foot and the guard car's behaviour (the mesh's
+  shape 1 and SIREN's amber 1.5 Hz beat are ready; `police_unit.gd` takes a branch each), the
+  pedestrian-zone cap and the clamp, the escort on rescues (accepting a rescue in a chase should
+  end it), the race and side-job ties (the race marked +20 % for an escape, the kebab's heat
+  frozen during the card), Phantom Camera's chase framing (11.3), the sounds in `make_sfx.py`
+  (the siren, whoop, megaphone chirp, whistle, stamp: placeholders now from the far siren, the
+  tram bell and the soft knock), the scripted first contact after the first race (the `routine`
+  conversation exists: `--pullover=routine`), the escort and guard lines (`police_escort`,
+  `guard` from police.md section 6, not merged yet).
+- **PixelLab assets for part two** (police.md section 9, ≤ 38 generations): the three 64 px
+  portraits (Sierżant Bogdan, Posterunkowy Kacper, Strażnik Henio; the card draws simple faces
+  now), the 24 px rooster icon lit and outlined (the koguty draw light-bar domes now), the 24 px
+  lizak (drawn as discs now), the 16 px hair-dryer minimap icon (a small blue mark now).
+- **Trap spots in the bake** (loop 3d): `pois` kind `trap` replaces `game/data/police_traps.json`;
+  spots 5-7 come with the demo area. The Wisłostrada trap sits on `graph` edge 502 at the
+  carriageway named Wybrzeże Kościuszkowskie, east of police.md's guessed x 400-650 (that stretch
+  is the tunnel), and 40 m north of the cross-city rail bridge, which hid the officer.
+- **The parked trap car's kerb offset** (outer lane's edge + 1.5 m) is from the lane graph; where
+  the drawn carriageway is narrower than its lanes the car stands half on the road, where a cycle
+  lane runs by the kerb (Wybrzeże Szczecińskie) it stands on the cycle lane. Loop 3d's `trap` POI
+  should carry a spot checked against the kerbs.
+- **The officer's legs swing** like a walker's (the people's shader swings every instance's legs;
+  the swing is about one image pixel at 80 m). A standing pose would need a constant in
+  `actor.gdshader` (part two, with the guards).
+- **The trap's car turns round when it pulls out** (it parks facing the traffic, as police.md
+  asks, and joins its lane the traffic's way; the turn takes ~10 frames behind the passing car).
+- **The 2D pass**: the minimap's marks are now one triangle array (they were a draw call each);
+  the rival dots, side-job places and target look the same. The pill (a panel and two labels) is
+  three 2D draw calls while shown.
+- **Memory**: Dialogue Manager's scripts are ~4 MB of static memory, loaded at the start (on first
+  use they were a ~70 ms hitch on the Mac, likely ~0.3 s on the phone, as the card opened).
+- **The soak's B4 check** logs the car's place on screen each second during a chase; the camera
+  follows the car, so it stays near the middle (closest to an edge 0.46 of the screen in the soaks).
+
+## Decided in loop 3g-1 (gameplay-dev defaults; the user may still change them)
+
+- police.md section 17's open questions went with the spec's defaults (the brief): +15 respect
+  for an escape; the helicopter allowed mid-chase and ending it; guard colours mustard and dark
+  red; no roof marking; seven trap spots.
+- **The start grace ends once the police have met the player** (a chase or a pull-over), so a
+  scripted chase isn't followed by 3 minutes in which a ram can't start one. police.md says only
+  "in the first 180 s of a session".
+- **A second unit raises the level only after the level has held 5 s** (*guess*): a patrol that
+  happens to be near when a chase starts would otherwise make it koguty 2 at once.
+- **Patrol pacing**: 90-180 s after a patrol you met leaves the band, 10 s after one you never met
+  (police.md gives only the count per Traffic level; with the band alone, two patrols would be
+  in view all the time at Normal). They spawn ahead of a moving player.
+- **The pedals step aside during the pull-over** (the car is held; the card needs the bottom of a
+  375 pt tall screen).
+- **Megaphone lines** keep the 20 s per unit of police.md, so the "every 10 to 12 s" chase lines
+  come every ~20 s from one chaser.
+- **The halos** are 5 m pools, blue at full and red at 0.8 brightness (4 m at half read too faint
+  at night in the shots).

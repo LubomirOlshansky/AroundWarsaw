@@ -16,6 +16,12 @@ shader_type spatial;
 // UV.x + 16, CUSTOM0..2 hold their position (xyz) and packed normal (w) in shapes 1..3, and
 // INSTANCE_CUSTOM.a picks the shape (0: the mesh's own). For a BLINK lamp (7) UV.y shifts the
 // beat by that share of a blink (the police light bar's two lamps take turns; 0 for roadworks).
+//
+// Loop 3g-1 (police, docs/design/police.md section 9): SIREN. On a family mesh INSTANCE_CUSTOM.a
+// is the shape plus 4 x a mode (traffic.gd POLICE): 0 the old BLINK lamps, 1 a police light bar
+// switched off (its lenses dim, still two-tone), 2 flashing: the patrol car's blue and red lenses
+// in turns, 0.2 s each (2.5 Hz, UV.y shifts the beat), the guards' amber pair together at 1.5 Hz;
+// a lit lens glows by day too, more at night.
 
 #include "res://shaders/common.gdshaderinc"
 #include "res://shaders/night.gdshaderinc"
@@ -27,6 +33,8 @@ varying vec3 world_pos;
 varying vec3 tint;
 varying vec3 glow;
 varying float blink;
+// Loop 3g-1 SIREN: x 0 none, 1 off, 2 flashing; y the beat's shift; z flashes a second.
+varying vec3 siren;
 
 const vec3 TROUSERS[4] = vec3[](vec3(0.18, 0.22, 0.33), vec3(0.12, 0.12, 0.13), vec3(0.42, 0.40, 0.37), vec3(0.55, 0.45, 0.32));
 
@@ -43,9 +51,12 @@ vec3 unpack_normal(float f) {
 
 void vertex() {
 	float code = UV.x;
+	float siren_mode = 0.0;
+	int shape = 0;
 	if (code > 15.5) {
 		code -= 16.0;
-		int shape = int(INSTANCE_CUSTOM.a + 0.5);
+		siren_mode = floor((INSTANCE_CUSTOM.a + 0.5) / 4.0);
+		shape = int(INSTANCE_CUSTOM.a - siren_mode * 4.0 + 0.5);
 		if (shape > 0) {
 			vec4 m = shape == 1 ? CUSTOM0 : (shape == 2 ? CUSTOM1 : CUSTOM2);
 			VERTEX = m.xyz;
@@ -56,6 +67,7 @@ void vertex() {
 	int part = int(code + 0.5);
 	glow = vec3(0.0);
 	blink = 0.0;
+	siren = vec3(0.0);
 	if (part == 0) {
 		c *= srgb_to_linear(INSTANCE_CUSTOM.rgb);
 	} else if (part == 2) {
@@ -68,6 +80,8 @@ void vertex() {
 		glow = vec3(1.0, 0.82, 0.55) * 0.75;
 	} else if (part == 6) {
 		glow = c * 1.6;
+	} else if (part == 7 && siren_mode > 0.5) {
+		siren = vec3(siren_mode, UV.y, shape == 1 ? 1.5 : 2.5);
 	} else if (part == 7) {
 		glow = c * 4.0;
 		blink = 1.0 + UV.y;
@@ -89,12 +103,20 @@ void fragment() {
 	ALBEDO = tint * (1.0 - clouds * daylight * cloud_shadow(world_pos.xz, TIME));
 	ROUGHNESS = 0.7;
 	SPECULAR = 0.3;
+	vec3 em = vec3(0.0);
 	if (lights_on > 0.001) {
 		vec3 g = glow;
 		if (blink > 0.5) {
 			// On a little over half the time, about once a second.
 			g *= step(0.42, fract(TIME * 1.15 + blink - 1.0));
 		}
-		EMISSION = (g + tint * lamp_light(world_pos.xz) * 1.4) * lights_on;
+		em = (g + tint * lamp_light(world_pos.xz) * 1.4) * lights_on;
 	}
+	if (siren.x > 0.5) {
+		// Loop 3g-1 SIREN: a lit lens glows (by day too); an unlit one is dim but keeps its hue.
+		float lit = siren.x > 1.5 ? step(0.5, fract(TIME * siren.z + siren.y)) : 0.0;
+		ALBEDO = tint * mix(0.3, 1.0, lit);
+		em += tint * lit * (1.2 + 2.8 * lights_on);
+	}
+	EMISSION = em;
 }

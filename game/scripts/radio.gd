@@ -23,6 +23,12 @@ const VOLUME_DB := -9.0
 
 ## -1 = off, else an index into STATIONS.
 var station := -1
+## Loop 3g-1: dB under the station's level while a conversation is on (the pull-over: -6).
+var duck_db := 0.0:
+	set(value):
+		duck_db = value
+		if _player != null:
+			_player.volume_db = VOLUME_DB + duck_db
 var _player: AudioStreamPlayer
 var _static: AudioStreamPlayer
 var _streams: Array[AudioStream] = []

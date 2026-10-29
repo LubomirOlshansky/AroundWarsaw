@@ -20,6 +20,12 @@ var jobs := {}
 var best := {}
 ## Egg id -> true once found.
 var eggs := {}
+## Loop 3g-1 (police.md section 8.4): the joke notebook ("Zeszyt pouczeń"): cautions written
+## today and the day they belong to (yyyymmdd; a new day starts it again), and escapes ever (for
+## a later achievement). Never money: nothing the police do takes złoty or respect.
+var cautions_today := 0
+var cautions_day := 0
+var escapes_total := 0
 ## False with --nosave: nothing is read or written.
 var persistent := true
 
@@ -43,6 +49,9 @@ func load_save() -> void:
 	for key in (cfg.get_section_keys("eggs") if cfg.has_section("eggs") else PackedStringArray()):
 		if bool(cfg.get_value("eggs", key, false)):
 			eggs[key] = true
+	cautions_today = int(cfg.get_value("police", "cautions_today", 0))
+	cautions_day = int(cfg.get_value("police", "cautions_day", 0))
+	escapes_total = int(cfg.get_value("police", "escapes_total", 0))
 
 
 func save() -> void:
@@ -57,6 +66,9 @@ func save() -> void:
 		cfg.set_value("best", key, best[key])
 	for key in eggs:
 		cfg.set_value("eggs", key, true)
+	cfg.set_value("police", "cautions_today", cautions_today)
+	cfg.set_value("police", "cautions_day", cautions_day)
+	cfg.set_value("police", "escapes_total", escapes_total)
 	cfg.save(PATH)
 
 
@@ -67,6 +79,9 @@ func reset() -> void:
 	jobs.clear()
 	best.clear()
 	eggs.clear()
+	cautions_today = 0
+	cautions_day = 0
+	escapes_total = 0
 	save()
 	changed.emit(zl, respect, 0)
 
@@ -81,6 +96,35 @@ func pay(amount: int, gain := 0, kind := "") -> void:
 	save()
 	changed.emit(zl, respect, amount)
 	print("wallet: +%d zł, +%d respect (%s) -> %d zł, respect %d" % [amount, gain, kind if kind != "" else "-", zl, respect])
+
+
+## Loop 3g-1: respect only (an escape from the police, +15); the złoty are never touched.
+func add_respect(gain: int) -> void:
+	respect += gain
+	save()
+	changed.emit(zl, respect, 0)
+	print("wallet: +%d respect (police) -> %d zł, respect %d" % [gain, zl, respect])
+
+
+## Loop 3g-1: a caution in the joke notebook on day `today` (yyyymmdd); returns today's count.
+func add_caution(today: int) -> int:
+	if cautions_day != today:
+		cautions_day = today
+		cautions_today = 0
+	cautions_today += 1
+	save()
+	return cautions_today
+
+
+## Loop 3g-1: the notebook's count for `today` (0 if the last caution was on another day).
+func cautions_on(today: int) -> int:
+	return cautions_today if cautions_day == today else 0
+
+
+## Loop 3g-1: an escape counted (never money).
+func add_escape() -> void:
+	escapes_total += 1
+	save()
 
 
 ## Records a time under `key`; true if it beats the best (or is the first).
