@@ -131,7 +131,13 @@ check() {
 	if (( code == 142 )); then
 		row FAIL $name $secs "stopped after ${STEP_LIMIT}s: $logf"
 	elif [[ -n $last ]] && grep -qE "${okline}.*OK" <<< $last && (( code == 0 && np == 0 )); then
-		row PASS $name $secs "$last"
+		# Loop radio-playlists: a "<name>: WARN ..." line before the OK line makes the row a WARN.
+		local warn=$(grep -m1 -E "^${name}: WARN" $logf)
+		if [[ -n $warn ]]; then
+			row WARN $name $secs "${warn[1,140]}"
+		else
+			row PASS $name $secs "$last"
+		fi
 	else
 		local first=$(problems $logf | head -1)
 		[[ -z $first ]] && first=${last:-"no result line"}
@@ -421,7 +427,7 @@ for s in $want; do
 		rides) check rides '^check_rides:' --script res://tools/check_rides.gd ;;
 		landmarks) check landmarks '^landmark check:' --script res://tools/check_landmarks.gd ;;
 		sfx) check sfx '^sfx:' --script res://tools/check_sfx.gd ;;
-		radio) check radio '^radio loops:' --script res://tools/check_radio_loops.gd ;;
+		radio) check radio '^radio:' --script res://tools/check_radio.gd ;;
 		# Loop 10a: where a car can get into the water (whole map), and the game's tow decisions.
 		water) check water '^check_water:' --script res://tools/check_water.gd ;;
 		water-prebuilt) check water-prebuilt '^check_water:' --script res://tools/check_water.gd -- --prebuilt ;;

@@ -196,6 +196,10 @@ var start_at := Vector3.INF
 var start_heading := INF
 var lines_override := 0
 var hide_hud := false
+## Desktop: --no-touch (trailer loop, 2026-10-29): the HUD without its touch-only controls (the
+## pedals, the stick, the helicopter's pads) and the title without its "tap to drive" prompt,
+## for recording on the computer (hud.gd `set_touch_off`, title.gd `touch_off`).
+var no_touch := false
 var sun_pitch := -50.0
 var debug_ao := false
 ## Loop 3a: --debug-roads draws the decks, approaches, tunnels, lane heights and piers round
@@ -425,6 +429,7 @@ func _ready() -> void:
 	var loading: CanvasLayer = null
 	if show_title:
 		title = Title.new()
+		title.touch_off = no_touch  # desktop: --no-touch
 		add_child(title)
 	else:
 		loading = _loading_card()
@@ -670,6 +675,7 @@ func _build_world() -> void:
 	hud.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(hud)
 	hud.set_scheme(controls.scheme)
+	hud.set_touch_off(no_touch)  # desktop: --no-touch
 	hud.settings_pressed.connect(_open_settings)
 	hud.settings_panel.changed.connect(_on_setting)
 	hud.settings_panel.closed.connect(_close_settings)
@@ -1317,14 +1323,18 @@ func _police_flag(arg: String) -> void:
 		police_opts["pullover_frame"] = maxi(1, int(arg.trim_prefix("--pullover-frame=")))
 
 
+## The game's own options. Loop 2b: a launcher can swallow the "--" (devicectl on an iPhone):
+## then they arrive among the engine's own; ours never share a name with those. Every parser of
+## game flags reads this (loop G0+: the streaming flags read only the user args, so on the phone
+## --stream-soak and --stream-log did nothing and the soak never ran).
+static func game_args() -> PackedStringArray:
+	var args := OS.get_cmdline_user_args()
+	return args if not args.is_empty() else OS.get_cmdline_args()
+
+
 func _parse_args() -> void:
 	start_station = 1
-	# Loop 2b: a launcher can swallow the "--" (devicectl on an iPhone): then the game's
-	# options arrive among the engine's own; ours never share a name with those.
-	var args := OS.get_cmdline_user_args()
-	if args.is_empty():
-		args = OS.get_cmdline_args()
-	for arg in args:
+	for arg in game_args():
 		if arg == "--demo":
 			demo = true
 		elif arg.begins_with("--shots="):
@@ -1361,6 +1371,8 @@ func _parse_args() -> void:
 			no_ao = true
 		elif arg == "--nohud":
 			hide_hud = true
+		elif arg == "--no-touch":
+			no_touch = true  # desktop: --no-touch
 		elif arg.begins_with("--size="):
 			base_size = float(arg.trim_prefix("--size="))
 		elif arg == "--fixed":
@@ -3256,7 +3268,7 @@ var _soak_t := 0.0
 
 
 func _parse_stream_args() -> void:
-	for arg in OS.get_cmdline_user_args():
+	for arg in game_args():
 		if arg == "--monolithic":
 			monolithic = true
 		elif arg == "--sectors=all":
@@ -3307,6 +3319,7 @@ func _open_streamed_city(world: Node3D, flat_mat: ShaderMaterial) -> Dictionary:
 	map.flat_material.set_shader_parameter("ao_strength", 0.0 if no_ao else 1.0)
 	if _soak_minutes > 0.0:
 		_soak_route = _soak_tour(data)
+		DirAccess.remove_absolute(ProjectSettings.globalize_path("user://stream_soak_result.txt"))
 	return data
 
 
@@ -3423,6 +3436,14 @@ func _soak_frame(dt: float) -> void:
 		var numbers := streamer.stats()
 		numbers["governor"] = "%s, %d changes%s" % [governor.state(), governor.changes, ", held" if governor.held else ""]
 		print("stream soak stats: " + JSON.stringify(numbers))
+		# Loop G0+: the numbers also go to a file (as the bench's card does), written and closed
+		# here: on the iPhone get_tree().quit() does nothing and the app is stopped from outside,
+		# so the log's tail is never certain; tools/device_run.sh copies this file back.
+		var f := FileAccess.open("user://stream_soak_result.txt", FileAccess.WRITE)
+		if f != null:
+			f.store_string("stream soak: %.0f s over %d sectors: %s\nstream soak stats: %s\n" % [
+					_soak_t, streamer.keys.size(), streamer.summary(), JSON.stringify(numbers)])
+			f.close()
 		_soak_minutes = 0.0
 		get_tree().quit()
 		return

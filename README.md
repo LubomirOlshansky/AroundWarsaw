@@ -218,12 +218,22 @@ HELI / AUTO (right); the keys are unchanged.
 - **Title screen** (`title.gd`): chrome NOCNA WARSZAWA over a striped setting sun with the
   Palace of Culture in silhouette (drawn from the v0.8 model's tiers, in metres), the skyline, the palm from Rondo de Gaulle'a and a neon grid;
   the city builds behind it, then TAP TO DRIVE / DOTKNIJ, BY JECHAĆ. Test runs skip it.
-- **Radio** (`radio.gd`, R): 87,3 NOCNA FM (*Palma de Gaulle'a*), 86,6 RONDO FM (*Rondo
-  Dmowskiego 3 A.M.*), 108,8 MORDOR FM (*Mordor Mall Muzak*), then Off; on by default at a
-  moderate level. A burst of tuning static covers the switch and a now-playing ticker slides in
-  at the bottom left. Hook for the v0.65 radio host: `radio.announce(text)` puts any line on the
-  ticker, and `radio.station_changed(index, station)` fires on every change. Silent in headless
-  runs (no audio device).
+- **Radio** (`radio.gd`, R): 87,3 NOCNA FM, 86,6 RONDO FM, 108,8 MORDOR FM, then Off; on by
+  default at a moderate level. The stations and their tracks are in `game/data/radio.json`
+  (loop radio-playlists; the built-in names are the fallback when the file is missing). A
+  station with one track loops it (today each of the three: *Palma de Gaulle'a*, *Rondo
+  Dmowskiego 3 A.M.*, *Mordor Mall Muzak*); a station with several plays them in an order
+  shuffled by the date and the station (a day has its own, every run of it the same), each to
+  its end, then the next, round and round. Tracks are Ogg Vorbis, decoded as they play (never a
+  whole song in memory). A burst of tuning static covers a station change; a now-playing ticker
+  at the bottom left shows "87,3 NOCNA FM · Title (Artist)" on a tune and at every new track.
+  Between two songs the host (`dialogue.gd`, `radio_host` lines) speaks with a one in two
+  chance, 5 s after the title's caption, through the same timer, so a Podwózka card still keeps
+  him quiet. Hooks: `radio.announce(text)` puts any line on the ticker,
+  `radio.station_changed(index, station)` fires on every change and
+  `radio.track_changed(info, track, natural)` on every new track (`natural`: the last one ran
+  out); `radio.next_track()` skips (no button yet). Silent in headless runs (no audio device).
+  Adding songs: "Adding music" below.
 - Synth UI sounds (`tools/make_ui_sounds.py`): a blip for TIME and VHS, the tuning static, a
   rising chord when the title is dismissed.
 
@@ -577,10 +587,9 @@ no samples). Buses: Master, **Music** (the radio, player at -9 dB), **SFX** (-3 
 - iOS: the audio session is **Ambient** (`audio/general/ios/session_category=0` in
   project.godot): the phone's silent switch mutes the game, and your own music keeps
   playing under it.
-- Checks: `python3 -I tools/make_sfx.py game/audio/sfx game/audio/radio` prints peak, RMS,
+- Checks: `python3 -I tools/make_sfx.py game/audio/sfx` prints peak, RMS,
   the loop seam (step and slope across the loop point against the 99.9th percentile
-  elsewhere), the share of energy under 2 kHz and the roll-off for every file, and the radio
-  loops' levels; `godot --headless --path game --script res://tools/check_sfx.gd` checks the
+  elsewhere), the share of energy under 2 kHz and the roll-off for every file; `godot --headless --path game --script res://tools/check_sfx.gd` checks the
   imports (Forward loops, QOA) and decodes across each loop point; `godot --path game --
   --sound-check` (with an audio device) plays every one-shot and prints each bus's peak;
   the bench prints the buses' peaks while driving.
@@ -2299,8 +2308,9 @@ The demo's bigger box (loop 3d) only adds sectors.
 Commands: `tools/verify.sh --only=streaming` (the identity, the pixels at 10 spots and a
 3-minute soak, ~2-4 min, a window opens); the 15-minute soak:
 `godot --path game --resolution 1280x720 --script res://tools/check_streaming.gd -- --only=soak --soak=15`.
-On the phone: `tools/device_run.sh --bench` (the BENCH card's frame times while driving through
-sector loads) and a normal launch with `--stream-log` in the log (each load's main-thread ms).
+On the phone (loop G0+): `tools/device_run.sh --label=stream_soak --wait=600 --done='^stream soak
+stats:' -- --notitle --prebuilt --stream-soak=6 --stream-log` (each load's main-thread ms and the
+soak's numbers; see Loop G0+ for the phone's).
 
 ## Map review A: the bridges, flyovers and tunnels (2026-10-29)
 
@@ -2609,6 +2619,138 @@ baked from the demo fetch already on disk (no downloads; README "Map data" for t
 | Memory at the spawn (probe): static / video | 147 / 263 MB (textures 24) | 235 / 397 MB (textures 87: the AO, light and surface maps 93 MB whole) |
 | check_water, check_drape | OK | OK (2 places listed in check_water's `ALLOWED`, 1 in check_drape's `EXCUSED`: loop 3e) |
 
+## Adding music (loop radio-playlists, 2026-10-29)
+
+The radio plays songs you make yourself (a synth, or an AI music tool such as Suno). Three steps:
+
+1. **Make the song** and export a WAV or MP3 (flac, m4a and aiff work too).
+2. **Put it in `data/raw/music/<station>/`**, where `<station>` is a station's `id` in
+   `game/data/radio.json`: `nocna_fm`, `rondo_fm` or `mordor_fm` (the folder is ignored by
+   version control: raw music is never committed). The song's file name is its title on the
+   radio: `Night_on_Smolna.wav` shows as "Night on Smolna". To say more, put a text file with
+   the same name next to it, `Night_on_Smolna.txt`, with one line (the licence), or lines
+   starting `licence:`, `title:` and `artist:`:
+   ```
+   licence: Suno Pro plan, owned
+   title: Noc na Smolnej
+   artist: Lubomir
+   ```
+3. **Run `python3 -I tools/add_music.py`** (needs `ffmpeg`). Then `tools/verify.sh --only=radio`,
+   and commit `game/audio/radio/`, `game/data/radio.json` and the new `.import` files.
+
+What the tool does to each new song (the docstring of `tools/add_music.py` has the details):
+decodes to 44.1 kHz stereo, trims silence at both ends (below -50 dBFS, 0.2 s kept), measures
+the loudness (EBU R128) and applies **one static gain** so the song sits at the radio's level,
+**-14.0 LUFS** (the mean of the three original loops: -14.6, -14.2 and -13.2), lowered further
+if its true peak would pass -1 dBTP. No limiter, compressor or loudnorm: they flatten music. It
+encodes Ogg Vorbis to `game/audio/radio/<station>/<name>.ogg` and appends the track to
+`radio.json` (file, title, artist, seconds, gain_db, licence, source). `--station=<id>` limits it
+to one station, `--force` converts every file again, `--dry-run` says what it would do, `--list`
+prints the stations and tracks with their sizes, `--licence="..."` sets the licence of this
+run's files. A folder in `data/raw/music/` that is not a station in radio.json is not turned
+into one: the tool prints the line to add to radio.json (id, name, frequency, colour).
+
+A station with one song loops it; with two or more it plays them in a shuffled order (the date
+seeds it), each to its end, with the host's lines between songs now and then.
+
+**Sizes.** At 96 kbps a 3-minute song is about 2 MB. The three original loops (2.4 minutes
+together) were 12.6 MB as WAV and are 3.2 MB as Ogg. The Homebrew ffmpeg on the Mac has no
+libvorbis (`ffmpeg -encoders | grep vorbis` lists only ffmpeg's own `vorbis`), and that
+encoder ignores the bitrate: it writes about 185 kb/s, 4.1 MB for 3 minutes. The tool falls
+back to it and says so; with a libvorbis ffmpeg the files are the 96 kbps ones and nothing
+else changes.
+
+**Licences.** A song whose licence is not given stays `unknown`; the radio check
+(`tools/verify.sh`, step `radio`) lists those as a WARN. **Check every `unknown` track before a
+release**: an AI music tool's free plan may not allow its songs in a published game (paid plans
+usually do, by the tool's current terms: keep the plan's receipt or the song's page). CREDITS.md
+lists every track and its licence line; update it when you add songs.
+
+## Loop G0+: streaming and heat on the iPhone 11 (2026-10-29)
+
+Loop 3c's streaming and G1b's sharp ×1 picture, measured on the iPhone 11 (`iPhone12,1`, iOS
+26.5, started with `devicectl`, no debugger, Auto = High ×1 sharp 1792×828, `--nosave`: the
+phone's own settings and save untouched).
+
+1. **Why the phone's log had no streaming lines.** devicectl swallows the `--`, so on the phone
+   the game's flags arrive among the engine's own. `main.gd`'s `_parse_args` fell back to those
+   (loop 2b); `_parse_stream_args` read only the user args, so `--stream-soak` and
+   `--stream-log` did nothing: the game just played (traffic, a rescue call) until
+   `device_run.sh` stopped it, and the log held only its start-up lines (the governor's lines
+   in the first run came from that play). Now both parsers read one `game_args()`. The soak also
+   writes `user://stream_soak_result.txt` (on the iPhone `get_tree().quit()` does nothing and the
+   app is stopped from outside), `print` flushes the log file
+   (`application/run/flush_stdout_on_print`), and `tools/device_run.sh` keeps each run's log as
+   `<label>_<date-time>.log`, never lets a short copy replace a longer one, copies once more 3 s
+   after the done line, copies the soak's result file, and exits 3 when the done line never came.
+2. **Sector adds were 60× over the budget on the phone; the cause was physics interpolation.**
+   The project has it on (for the cars); the sectors inherited it, and adding a MultiMesh node
+   under an interpolated parent cost the main thread 14 ms on average (37 ms at worst; the Mac
+   1.4 ms, which loop 3c read as "a busy Mac"), a sector 188 ms spread over its load frames, and
+   the 6-minute soak's CPU-bound misses walked the governor down to GPU 0/2 · CPU 0/2.
+   `sector_streamer.gd` now sets `Sectors` and `Proxies` to `PHYSICS_INTERPOLATION_MODE_OFF`
+   (nothing in them moves on the physics tick; the people, pigeons and police halos already had
+   it off): 0.002 ms a MultiMesh, 0.35 ms a sector, 0 frames over 3 ms.
+3. **What is left: one slow frame per load** (19-22 in a 6-minute soak, 25-65 ms, none with any
+   of the streamer's own work in it). `--stream-log`'s new `worker` lines show it is the render
+   server creating the sector's meshes and MultiMeshes (~1-1.6 MB of GPU buffers) on the main
+   thread as the worker's load ends: the stall lands wherever the main thread next touches the
+   render server (after the streamer's process, in the draw, before the next physics frame);
+   with `--render-thread separate` it moves into the draw (the main thread waits for the render
+   thread), 16-58 ms: no better. A fix needs the sector's resources in pieces the worker can load
+   one a frame (a `bake_city.gd` change; BACKLOG "From loop G0+").
+
+| Streaming soak, 6 min (`--stream-soak=6 --stream-log --prebuilt`, governor on) | Before (A1 / A2) | After (B1 / B2) |
+| --- | --- | --- |
+| A streamed sector's main-thread ms (43 of 49 loads): median / p99 / max | 188 / 247 / 247 · 182 / 235 / 235 | 0.35 / 0.55 / 0.55 · 0.34 / 0.53 / 0.53 |
+| Streaming ms a frame: p99 over all frames / max | 16.4 / 37.1 · 16.5 / 32.4 | 0.82 / 1.17 · 0.82 / 1.45 |
+| Frames whose streaming took over 3 ms | 493 · 485 | **0 · 0** |
+| Adding a node, mean / worst ms: MultiMesh (428 adds), Node3D (83), mesh (298), collider (43) | 14.4 / 36.9, 16.0 / 29.1, 0.009 / 0.05, 0.018 / 0.03 | 0.002 / 0.02, 0.003 / 0.01, 0.002 / 0.01, 0.018 / 0.04 |
+| Frames over 33 ms past the warm-up (of them with streaming work) | 78 (47) · 87 (59) | 22 (0) · 19 (0): the load hitch above |
+| Frames missing a needed sector, forced loads | 0, 0 | 0, 0 |
+| Governor | 10 changes, ended GPU 0/2 · CPU 0/2 (CPU-bound drops from 6 s) | **0 changes**, GPU 2/2 · CPU 2/2 |
+| Start: 6 sectors in full / `city built in` | 242, 225 ms / 865, 832 ms | 189, 187 ms / 797, 871 ms |
+
+| BENCH at Auto (`--bench`, 600 frames; the phone cool, before then after) | Before | After |
+| --- | --- | --- |
+| fps · 1 % low · worst · late · missed refreshes | 60.0 · 57.1 · 17.8 ms · 0.3 % · 0 | 60.0 · 58.7 · 17.1 ms · 0.0 % · 0 |
+| Draw calls (main / shadow / 2D) · objects · triangles | 131 (52 / 45 / 34) · 310 · 0.40 M | 130 (51 / 45 / 34) · 305 · 0.40 M |
+| Scripts · traffic · memory static / video | 4.28 · 1.68 ms · 132 / 233 MB | 4.17 · 1.56 ms · 134 / 233 MB |
+| Start (the bench's launch): 6 sectors / `city built in` | 221 / 1079 ms | 185 / 1044 ms |
+
+**G0's 20-minute soaks** (graphics.md §2.3 item 9; G1b asked for them): `--autopilot
+--governor=log`, traffic Normal, governor on, Auto ×1 sharp, the build after the fix; each after
+8 minutes of rest with the app stopped (day after the two benches), in this order:
+
+| 20 min at Auto ×1 | fps every minute | Missed refreshes (GPU-bound) | Worst minute | Governor | G1b's rule |
+| --- | --- | --- | --- | --- | --- |
+| Day | 59.9–60.5 (60.0 in 16 of 20) | 23 of 72,308 (9): 0.03 % | minute 4: 6 missed | 0 changes | calm at 180 s; never close (GPU extras down 0 s, no minute over 2 %) |
+| Night | 59.9–60.3 (60.0 in 17 of 20) | 18 of 72,206 (5): 0.025 % | minute 4: 7 missed | 0 changes | calm at 180 s; never close |
+| Rain at night | 59.9–60.5 (60.0 in 17 of 20) | 20 of 72,283 (8): 0.028 % | minute 4: 7 missed | 0 changes | calm at 180 s; never close |
+
+The first rain run was cut off at minute 18 (the session stopped and the app ran on its own for
+2.5 hours before it was stopped); its 18 minutes read the same (11 missed of 65,102). The rain
+row above is a second run after 15 minutes of rest. The soaks ran on the map before map round
+2 (merged afterwards: +0.8 % vertices, the same 32 sectors).
+
+Godot 4.7.2 can't read the thermal state, so how warm the phone got is the user's to feel; the
+logs show no throttling (fps by minute flat, the governor never stepping in, the misses not
+growing with time).
+
+**On the Mac** (M4 Pro, Metal Mobile, `--bench`, before = the same code without the two
+interpolation lines, interleaved, medians of 5 day / 3 night / 3 rain-night runs, uncapped):
+frame 6.40 → 6.47 ms, 6.90 → 6.90, 8.33 → 8.33; scripts 1.25 → 1.20, 1.21 → 1.21, 1.40 →
+1.43 ms; draw calls 114 → 114, 82 → 82 (the typical night run), 81 → 81; Vulkan GPU (1920×1080,
+3 each) 1.11 → 1.14 ms. Draw calls, scripts and GPU unchanged; the phone's per-load main-thread
+time is the change. Shots (`shots/g0/`, 2532×1170: spawn, Marszałkowska, the Palace, the river
+by day and night, Rondo Dmowskiego in rain at night, the helicopter; runtime and prebuilt, day
+and night): the 3D view identical before and after, only the minimap's random job markers differ
+(≤ 0.019 % of the pixels); `check_streaming` pixels ≤ 0.015 % as in loop 3c.
+
+Why it matters more on the phone than the Mac: the add's cost was main-thread work the A13 does
+~10× slower (14 ms against the Mac's 1.4 ms), and the governor reads CPU-bound misses as a
+reason to drop the extras; on the Mac the same frames fit inside 16.7 ms and nothing showed.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -2640,7 +2782,10 @@ home screen).
 | GPU, Vulkan zoomed out at 2868×1320 (`--gpu-profile`) | 1.65 ms | 1.9 ms | 2.2 ms |
 | iPhone TEST · BENCH at High, 60 fps cap | 60 fps, 1 % low ≥ 56 | 60, 1 % low ≥ 55 | 60, 1 % low ≥ 55 |
 | Loop 3c: streaming, main thread a frame (Mac, `check_streaming.gd` soak, p99 of the frames that load) | | ≤ 3 ms | ≤ 3 ms |
+| Loop G0+: the same on the iPhone 11 (6-minute `--stream-soak`, max of any frame) | 1.2–1.5 ms (was 32–37) | ≤ 3 ms | ≤ 3 ms |
 | Loop 3c: a frame that loads a sector | | ≤ 33 ms | ≤ 33 ms |
+| Loop G0+: the same on the iPhone 11 | **over**: 19–22 frames of 25–65 ms in 6 minutes, one per load (the render server building the sector's GPU buffers; BACKLOG) | ≤ 33 ms | ≤ 33 ms |
+| Loop G0+: the iPhone 11 at Auto ×1, 20 minutes each by day, night and rain at night (`--autopilot --governor=log`) | 60.0 fps every minute (59.9 at worst), 18–23 missed refreshes of ~72,000, 0 governor changes, calm | no struggle verdict | no struggle verdict |
 | Loop G1: TEST · BENCH at Auto on the iPhone 11 (High, 896×414) and the Pro Max (Ultra, 1434×660), 60 fps cap | 60 fps, 1 % low 56.6 / 57.3, 0 missed refreshes | 60, 0 missed refreshes, 1 % low ≥ 55 | 60, 0 missed refreshes, 1 % low ≥ 55 |
 | Loop G1b: the iPhone 11 at Auto, now High ×1 sharp (1792×828): BENCH minute, and a 15-minute day drive with the governor on (missed refreshes, governor changes) | BENCH 60 fps, 0 missed, 1 % low 54.4 / 58.7 (cool / warm); drive 60.0 every minute, 5 missed in 17.7 min, 0 governor changes | 60, 0 missed refreshes, 1 % low ≥ 55; the drive with no struggle verdict | 60, 0 missed refreshes, 1 % low ≥ 55; the drive with no struggle verdict (else the content costs the iPhone 11 its sharp default) |
 
@@ -2806,12 +2951,13 @@ tools/setup_map.sh" instead of starting without a city. `check_map_data.py` repo
 as a WARN ("missing: run tools/setup_map.sh") and stale ones by content: a stamp whose hashes
 don't match today's inputs (a checkout scrambles file times, so they aren't used).
 
-Audio: `python3 -I tools/make_sfx.py game/audio/sfx game/audio/radio` (v0.9: every sound effect
-and bed, with the numbers; loops imported like the radio's, Forward, loop end = the full length,
-QOA; `res://tools/check_sfx.gd` checks them); `python3 -I tools/make_music.py game/audio/radio shots` (the radio loops; import them
-with loop mode Forward, loop end = the full length, QOA; `godot --headless --path game --script
-res://tools/check_radio_loops.gd` checks the import and decodes across each loop point) and
-`python3 -I tools/make_ui_sounds.py game/audio/ui`.
+Audio: `python3 -I tools/make_sfx.py game/audio/sfx` (v0.9: every sound effect
+and bed, with the numbers; loops imported Forward, loop end = the full length, QOA;
+`res://tools/check_sfx.gd` checks them); `python3 -I tools/make_music.py data/raw/music/<station_id> shots`
+(the three original radio loops, as WAV; they are not in the game as WAV any more: put them
+through `tools/add_music.py`, "Adding music"; `godot --headless --path game --script
+res://tools/check_radio.gd` checks radio.json, the Ogg files, the playlists and each looping
+station's loop point) and `python3 -I tools/make_ui_sounds.py game/audio/ui`.
 
 LoD2 is from 2018, so newer towers (Varso and others) come from OpenStreetMap; LoD2 buildings
 no longer on the map are dropped. The terrain is bare earth, so bridges and viaducts get decks
@@ -2822,14 +2968,16 @@ solved from what they cross (see Real roads).
 **One-command checks.** `tools/verify.sh` runs the verification set and prints one
 PASS/WARN/FAIL table: the map-data invariants (`tools/check_map_data.py`), the road check
 (`tools/check_roads.py`, loop 3a), the check scripts
-(steering, settings, the HUD at phone size, landmarks, sfx, radio loops, the water on both city paths) and eight headless game runs, each with
+(steering, settings, the HUD at phone size, landmarks, sfx, radio, the water on both city paths) and eight headless game runs, each with
 
-(the drape check (loop 3b-2), the drive check on both city paths (loop 3b), steering, settings, landmarks, sfx, radio loops,
+(the drape check (loop 3b-2), the drive check on both city paths (loop 3b), steering, settings, landmarks, sfx, radio,
 the water on both city paths) and eight headless game runs, each with
 `--nosave` (`--quick` for a short set, `--ios` adds the export and the unsigned Xcode build,
 `--only=` picks steps). `tools/shots.sh` renders standard screenshots at a phone's size
 (`--list` names them). `tools/device_run.sh` builds, installs and launches the game on a
-connected iPhone and copies its log back. A guard hook (`tools/hooks/guard_godot.py`, on in
+connected iPhone and copies its log back (loop G0+: each run's own copy,
+`build/device/<label>/<label>_<date-time>.log`, with the bench's and the streaming soak's result
+files beside it; it exits 3 when the `--done` line never came). A guard hook (`tools/hooks/guard_godot.py`, on in
 `.claude/settings.json`) stops Claude Code from running the game without `--nosave` or a quit
 flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
 
@@ -2951,12 +3099,13 @@ Command-line options (after `--`):
 | `--at=x,z` | start at map coordinates (metres, +x east, +z south), on top of a bridge deck if there is one |
 | `--heading=deg` | the car's heading at the start (0 north, 90 east), for testing: with `--demo` it drives off that way |
 | `--nohud` | hide the controls |
+| `--no-touch` | desktop (trailer loop, 2026-10-29): no touch-only controls on screen (the pedals and HAMULEC, the stick's knob and Classic's strip hint, the helicopter's ▲/▼ pads, the title's "tap to drive"); the top row, minimap, wallet, cards, bubbles and the radio caption stay, and the panels get the pedals' room; the keys still drive. For recording on the computer (`tools/check_hud.gd` checks it) |
 | `--prebuilt` | load the prebuilt sectors like the exported game (loop 3c: `map/index.res`, `map/proxies.scn`, `map/sectors/s_<i>_<j>.scn`; `city.scn` before) instead of building each sector from its file |
 | `--monolithic` | loop 3c: build the whole city at once from `centrum.json`, as before loop 3c (no sectors, no streaming): the pixel diff's reference |
 | `--sectors=all` / `--sectors=proxies` | loop 3c: load every sector at the start and keep them all (the old behaviour) / only the sectors the car stands in, every other one as its proxy (to look at the proxies) |
-| `--stream-log` | loop 3c: print every sector load (`stream: frame N in s_i_j, X ms on the main thread ...`), unload, any frame whose streaming went over 3 ms and any node that took over 1 ms to add |
+| `--stream-log` | loop 3c: print every sector load (`stream: frame N in s_i_j, X ms on the main thread ...`), unload, any frame whose streaming went over 3 ms and any node that took over 1 ms to add; loop G0+: each worker load (`stream: frame N worker s_i_j: load X ms, instantiate Y ms, K frames; slowest frame Z ms (overlapping the load end + instantiate; process after …, draw …, to physics …, physics …, process before …)`) |
 | `--spots=X,Z,H/X,Z,H/...` | loop 3c, with `--shots=F1,F2,...`: the car jumps to spot k (heading H) 90 frames before shot k, the sectors the view needs are finished 30 frames before it (`tools/check_streaming.gd`) |
-| `--stream-soak=MIN` | loop 3c: the car on autopilot over every sector's middle (row by row, through buildings), the view 80 m then 220 m every 20 s, the helicopter for the last third; then `stream soak:` lines and the game quits (no traffic) |
+| `--stream-soak=MIN` | loop 3c: the car on autopilot over every sector's middle (row by row, through buildings), the view 80 m then 220 m every 20 s, the helicopter for the last third; then `stream soak:` lines and the game quits (no traffic); loop G0+: the same two lines also go to `user://stream_soak_result.txt` (`tools/device_run.sh` copies it back), and `stream soak stats:` adds `frames_over_budget` (frames whose streaming took over 3 ms), `slow_frames` (each frame over 33 ms past the warm-up: frame, ms, the streaming ms in it), `sector_ms` (median, p99, max of a streamed sector's main-thread ms) and `kinds` (per node class added, the hand-over, the finish and the unload: count, total and worst ms) |
 | `--debug-ao` / `--no-ao` | show / switch off the baked ground shadows |
 | `--heli` | start in the helicopter |
 | `--mission=N` | start rescue call N at once (N = 1, 5, 9… streets, 2, 6… roofs, 3, 7… river, 4, 8… parks) |

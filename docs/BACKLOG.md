@@ -659,14 +659,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
   at night in the shots).
 
 ## From loop 3c (sector streaming on today's map)
-- **Adding a MultiMesh node costs the main thread 0.1–4 ms** on the Mac, whatever its instance
-  count (a fixed cost when its instance enters the scenario; it grows with how busy the machine
-  is: 0.13 ms quiet, 2–4 ms beside two other Godot processes at 100 %). The streamer adds one
-  node a frame at least, so a loading frame's streaming p99 was 4.7 ms in the 15-minute soak on
-  a busy Mac (budget 3 ms); meshes and colliders cost ~0. The phone must measure it (README
-  "Sectors and streaming"). If it stays over 3 ms there: merge each sector's 11–13 MultiMeshes
-  into fewer nodes, keep a pool of MultiMesh nodes per sector slot and swap their `multimesh`,
-  or try the Separate render-thread model (a project-wide change: its own loop).
+- ~~**Adding a MultiMesh node costs the main thread 0.1–4 ms** on the Mac, whatever its instance
+  count~~ Fixed in loop G0+: the cost was **physics interpolation** (on project-wide; the sectors
+  inherited it). On the iPhone 11 a MultiMesh add cost 14 ms on average (37 ms at worst), a
+  sector 188 ms, 490 frames of a 6-minute soak over the 3 ms budget and the governor dropped to
+  GPU 0/2 · CPU 0/2; with `Sectors` and `Proxies` set to `PHYSICS_INTERPOLATION_MODE_OFF`,
+  0.002 ms and 0.35 ms, 0 frames over budget, 0 governor changes (README "Loop G0+").
 - **The AO, lamp-light and surface maps stay one texture each** (24 MB of video memory today,
   ~150 MB at the demo's 6 × 6 km). Per-sector slices can't be per-sector material uniforms:
   the post pass's water reflections and the moving vehicles sample the light and surface maps
@@ -888,3 +886,44 @@ Small problems that agents reported or that showed up in screenshots. They are f
   and the escape came at 34.2 s. The test autopilot (`--police-auto=escape`) now rides a route to a
   node ~900 m away from the chaser (`police.gd` `_escape_route`): escaped after 23.2 s at L1.
 - `verify.sh` kebab: 15000 frames (order 0 goes 1,023 m on the demo map, delivered at 219.8 s).
+
+## From the radio playlists loop (2026-10-29)
+- Done: radio.json, shuffled playlists, `tools/add_music.py`, the radio check, README "Adding music",
+  CREDITS "Music".
+- **No libvorbis in this Mac's ffmpeg** (Homebrew's build lacks it): `add_music.py` falls back to
+  ffmpeg's built-in `vorbis` encoder, which ignores the bitrate and writes about 185 kb/s (4.1 MB
+  for a 3-minute song instead of 2 MB). Fix: an ffmpeg with libvorbis (the brief's `-c:a libvorbis
+  -b:a 96k` is already what the tool uses when it finds one), or `oggenc`; nothing else changes.
+- **Licences before a release**: any track whose licence is `unknown` (a WARN in the radio check)
+  must be cleared; AI music tools' free plans may not allow a published game.
+- **No skip button**: `radio.next_track()` exists, but hud.gd and main.gd (not touched in this loop)
+  have no control for it; a tap on the ticker, or a key, would do.
+- **`--radio=N`** clamps to the built-in three stations (`Radio.STATIONS.size()` in main.gd): a
+  fourth station added to radio.json is reached with R, not by the flag.
+- **A station's order restarts a track on re-tune**: tuning away and back starts the track it was
+  on from its beginning (a looping single track still joins in the middle). A real radio would
+  have moved on; a decision for the user if it grates.
+- **The three original loops exist only as Ogg now**: their raw WAVs were in the repo and are gone;
+  `tools/make_music.py data/raw/music/<station_id> shots` regenerates them, then
+  `add_music.py --force`. The Ogg files are lossy copies of the lossless loops.
+
+## From loop G0+ (streaming and heat on the iPhone 11)
+- **A sector's load still makes one slow frame on the iPhone 11** (19-22 frames over 33 ms in a
+  6-minute soak, 25-65 ms each, none with any of the streamer's own work in it): the render
+  server creates the sector's meshes and MultiMeshes (its GPU buffers) on the main thread when the
+  worker's load ends (with `--render-thread separate` the same time moves into the frame's draw,
+  the main thread waiting for the render thread: no better). A frame-sized piece would need the
+  sector's resources split so the worker can load them one a frame: each tile mesh and
+  MultiMesh of `s_<i>_<j>.scn` as its own resource (or the sector as four 256 m scenes), a
+  `bake_city.gd` change (map-engineer; loop G0+ didn't touch the bakes). Other options: keep the
+  last few unloaded sectors' roots (not freed, out of the tree) so a sector seen again minutes
+  later comes back without a load (memory against hitches), or load further ahead so the hitch
+  falls while the view is calm (it doesn't remove it).
+- **`tools/device_run.sh` copies `Documents/bench_result.txt` from any earlier bench** when the
+  run made none (the bench doesn't clear it at the start, as the streaming soak now does): read
+  the card's date line.
+- **The night bench sometimes has a sun-shadow pass** (on the Mac, 2 of 6 `--time=night` benches:
+  57-69 shadow draws where the others have 0; before and after loop G0+'s change alike): the
+  sun's shadow at night should be off from the first frame. Not looked into.
+- The streamer's `(unload)` time is only the call to `queue_free()`; freeing a sector's nodes
+  happens at the end of that frame and isn't in the streaming numbers (no slow frame showed it).

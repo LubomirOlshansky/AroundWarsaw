@@ -839,6 +839,11 @@ unlocked.
 cienkim) after a web and domain check; a trademark-register search (UPRP/EUIPO) belongs to
 loop 3k's brand audit.
 
+**Direction "Moja Warszawa"** (the user, 2026-10-29, `docs/design/vision.md`): the city as the main
+character. It adds a notebook of 72 places and 40 eggs, the night and techno scene, the river steps,
+viral spots, metro and buses, then-and-now spots (KASETA), PÓŁNOC FM, Fotka and Spacer. Jobs, police
+and races stay as flavour. Its loops MW-0 to MW-6 come after 3d/3e/3f, and loop 2d-2 is folded into MW-2.
+
 ---
 
 ## 7. Milestones
