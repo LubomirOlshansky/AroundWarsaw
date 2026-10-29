@@ -2184,7 +2184,7 @@ func _update_ghost(pos: Vector3, car_view: Vector3) -> void:
 	var ahead_xz := Vector2(ahead.x, ahead.z).normalized()
 	var occ := Vector4(pos.x, pos.z, ahead_xz.x, ahead_xz.y)
 	var ghost_r := clampf(cam.size * 0.22, 14.0, 50.0) * (0.6 if flying else 1.0)
-	for m: ShaderMaterial in [building_mat, map.flat_material, post_mat]:
+	for m: ShaderMaterial in [building_mat, map.flat_material, post_mat] + _neon_materials():  # sweep 2: + neon
 		m.set_shader_parameter("car_view", car_view)
 		m.set_shader_parameter("occluder", occ)
 		m.set_shader_parameter("occlusion_radius", ghost_r)
@@ -2204,6 +2204,27 @@ func _update_ghost(pos: Vector3, car_view: Vector3) -> void:
 		var ppm := float(sv.size.y) / cam.size * float(view.stretch_shrink)
 		var c := cam.unproject_position(pos + Vector3(0, 3.5 if flying else 1.0, 0)) * float(view.stretch_shrink)
 		_ghost_px = Vector4(c.x, c.y - 0.2 * ghost_r * ppm, ghost_r / 0.78 * ppm, ghost_r * ppm)
+
+
+# --- sweep 2: the neon signs are ghosted too ------------------------------------------------
+## The neon signs' material (neon.gdshader, shared by the map node "Neon"'s tiles), found on
+## the first ghost update on either city path; empty when the map has no signs.
+var _neon_mats: Array[ShaderMaterial] = []
+var _neon_found := false
+
+
+func _neon_materials() -> Array[ShaderMaterial]:
+	if not _neon_found:
+		_neon_found = true
+		var holder := map.get_node_or_null("Neon")
+		if holder != null:
+			for c in holder.get_children():
+				var g := c as GeometryInstance3D
+				var m := g.material_override as ShaderMaterial if g != null else null
+				if m != null and not _neon_mats.has(m):
+					_neon_mats.append(m)
+	return _neon_mats
+# --- end sweep 2 ---------------------------------------------------------------------------
 
 
 ## Loop 1: the Palace of Culture's four dials show the time in Warsaw (the device's clock,
@@ -2755,12 +2776,63 @@ func _on_tap(at: Vector2) -> void:
 	if not _started or title != null:
 		return
 	var p := at / float(view.stretch_shrink)
-	var k: int = map.pick_landmark(cam.project_ray_origin(p), cam.project_ray_normal(p))
+	var k: int = _pick_unghosted(cam.project_ray_origin(p), cam.project_ray_normal(p))  # sweep 2
 	if k < 0 or k >= map.landmark_info.size():
 		return
 	print("landmark tapped: ", map.landmark_info[k]["name"])
 	var card: Dictionary = map.landmark_info[k]
 	hud.show_info(card["name"], card["pl"], card["en"])
+
+
+# --- sweep 2: a tap sees through the ghost --------------------------------------------------
+## A roof-grid cell counts as see-through for a tap where the ghost takes at least this share
+## of its pixels (building.gdshader keeps ghost_keep, 19 %, in the core).
+const GHOST_PICK := 0.5
+
+
+## Sweep 2: map_builder.pick_landmark's walk (1 m steps against the roof grid and the
+## ground), stepping on through whatever the occlusion ghost has made see-through, so a tap
+## on the cut-away part of a tower in front of the car picks what shows through the cut, not
+## the tower. The ghost's test is ghost.gdshaderinc's, on the values _update_ghost gave
+## building_mat; the camera is orthographic, so every point of the ray has the tapped
+## pixel's view x, y and only the side of the car changes along it.
+func _pick_unghosted(origin: Vector3, dir: Vector3) -> int:
+	var radius := float(_shader_value(building_mat, "occlusion_radius", 0.0))
+	var region := 0.0
+	if radius > 0.0:
+		var v := cam.global_transform.affine_inverse() * origin
+		var car_v: Vector3 = _shader_value(building_mat, "car_view", Vector3(0, 0, -100000))
+		var dv := (Vector2(v.x, v.y) - Vector2(car_v.x, car_v.y)) / radius \
+				- Vector2(0.0, float(_shader_value(building_mat, "occlusion_lift", 0.2)))
+		dv.x *= 0.78
+		if dv.y > 0.0:
+			dv.y /= float(_shader_value(building_mat, "occlusion_up", 1.35))
+		region = 1.0 - smoothstep(0.65, 0.9, dv.length())
+	if region < GHOST_PICK or dir.y > -0.01:
+		return map.pick_landmark(origin, dir)
+	var occ: Vector4 = _shader_value(building_mat, "occluder", Vector4(0, 0, 0, -1))
+	var t := maxf(0.0, (origin.y - 340.0) / -dir.y)
+	var end := t + 2600.0
+	while t < end:
+		var q := origin + dir * t
+		var top: float = map.roof_height(q.x, q.z)
+		if top != MapBuilder.NO_ROOF and q.y <= top:
+			var side := (Vector2(q.x, q.z) - Vector2(occ.x, occ.y)).dot(Vector2(occ.z, occ.w))
+			if region * smoothstep(1.0, 4.0, -side) < GHOST_PICK:
+				return map.landmark_at(q.x, q.z)
+		if q.y < map.terrain_height(q.x, q.z) - 0.5:
+			return -1
+		t += 1.0
+	return -1
+
+
+## A shader parameter's value on a material, or its shader's default when it was never set.
+static func _shader_value(m: ShaderMaterial, key: String, fallback: Variant) -> Variant:
+	var v: Variant = m.get_shader_parameter(key)
+	if v == null and m.shader != null:
+		v = RenderingServer.shader_get_parameter_default(m.shader.get_rid(), key)
+	return fallback if v == null else v
+# --- end sweep 2 ---------------------------------------------------------------------------
 
 
 func _zoom(factor: float) -> void:
@@ -2935,4 +3007,28 @@ func _capture(n: int) -> void:
 	var img := get_viewport().get_texture().get_image()
 	img.save_png(out_dir.path_join("shot_%04d.png" % n))
 	if n == shots.max():
-		get_tree().quit()
+		_quit_quietly()  # sweep 2: was get_tree().quit()
+
+
+# --- sweep 2: a shots run quits without leaking its sounds ---------------------------------
+## Real milliseconds the audio server gets to let the stopped sounds go before the quit.
+const QUIET_QUIT_MS := 150
+
+
+## Sweep 2: windowed `--shots` runs sometimes ended with "8 ObjectDB instances were leaked at
+## exit" / "4 resources still in use": the sounds playing at the quit (an AudioStreamWAV and
+## its playback each: the radio's station, the engine's idle and mid loops, the city bed),
+## still held by the audio server because the tree went before its mixing thread let them
+## go (headless runs have no audio device, so they never showed it). The game stops updating
+## (sfx.gd would start a loop again), every player is stopped, and the server gets
+## QUIET_QUIT_MS of real time before the quit.
+func _quit_quietly() -> void:
+	process_mode = Node.PROCESS_MODE_DISABLED
+	for kind: String in ["AudioStreamPlayer", "AudioStreamPlayer2D", "AudioStreamPlayer3D"]:
+		for p: Node in get_tree().root.find_children("*", kind, true, false):
+			p.call("stop")
+	var until := Time.get_ticks_msec() + QUIET_QUIT_MS
+	while Time.get_ticks_msec() < until:
+		await get_tree().process_frame
+	get_tree().quit()
+# --- end sweep 2 ---------------------------------------------------------------------------
