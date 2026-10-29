@@ -378,6 +378,17 @@
   {
    "rule": "C3",
    "at": [
+    190,
+    109
+   ],
+   "r": 8,
+   "name": "footway",
+   "reason": "map review A (2026-10-29): the passage under the Poniatowski viaduct's west end at the escarpment (OSM 1172263249, bridge=yes, layer=0) is on the ground now (bake_roads UNDER_END: solved as a deck it lay across Al. Jerozolimskie at the road's height); the tram deck is pinned at the escarpment's top 2 m away, so the road and tram decks' slabs clear the footway by 0.8-2.2 m over their first metres (hidden under them); the real first span is higher than the 10 m grid's blurred top",
+   "source": "OSM way 1172263249 under ways 4941149/4941150 and the tram ways 1319301088/1319301089 (layer 2); shots/review_structures/vwest_along*.png"
+  },
+  {
+   "rule": "C3",
+   "at": [
     -1356,
     754
    ],
@@ -594,6 +605,28 @@
    "name": "service",
    "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway's last metres end inside the building's outline; a minor way no traffic uses, and the building's wall stops the car at the gate",
    "source": "OpenStreetMap way 1452725100 (highway=service, driveway, access=private, covered=yes); loop 3b"
+  },
+  {
+   "rule": "C2",
+   "at": [
+    1493,
+    -301
+   ],
+   "r": 6,
+   "name": "edge line",
+   "reason": "map review A (2026-10-29): the joint of the Praga ramp's left branch (OSM 489121618) with the ground: no carriageway areas here, the two road strips meet at an angle and leave a sliver of about 3 m2 whose outline is painted (1.2-1.5 m pieces); the full-width kerb and edge line across the joint are gone (bake_roads JOINT_ALONG). Strips meeting at a deck joint sharing their end line is a follow-up",
+   "source": "OSM ways 489121618 (bridge=viaduct) and the ground secondary_link it continues; shots/review_structures/joint_praga_*.png"
+  },
+  {
+   "rule": "C9",
+   "at": [
+    1357,
+    -294
+   ],
+   "r": 4,
+   "name": "tree",
+   "reason": "map review A (2026-10-29): a 24 m scanned tree on the Praga bank 1-2 m from Most Poniatowskiego's south footway; bake_structures trim_crowns shrank its crown to the floor (CROWN_MIN, 40 %), which still brushes the footway deck's edge by 3 m; trees by the bridge stay (the scan's trees are kept as counted)",
+   "source": "GUGiK laser-scanned trees (trees3d), shots/review_structures/poni_ebank_trees.png"
   },
   {
    "rule": "C9",

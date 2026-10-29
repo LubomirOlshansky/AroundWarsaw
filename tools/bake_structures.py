@@ -23,6 +23,9 @@ What it adds to the map file:
   fills widened to hold their lanes (`widen_fills`), road decks narrowed beside a ground lane
   (`narrow_decks`), LoD2 walls in a lane not solid
   (`lod2_open`), and `aprons` where a structure's end meets the ground (`place_aprons`).
+- Map review A (2026-10-29): street furniture standing on a tram track left out
+  (`clear_carriageways`), and `trees3d_crown` shrunk for scanned crowns through a deck's edge
+  (`trim_crowns`).
 """
 import math
 import os
@@ -927,7 +930,80 @@ def clear_carriageways(m):
                 continue
             keep += [x, z, yaw]
         d[key] = keep
+    # Map review A (2026-10-29): street furniture standing on a tram track (tram stops'
+    # shelters mapped on the track's stop position: one at the Poniatowski viaduct's east end,
+    # 14 over the map): one whose centre lies in the track's swept width (TRAM_HALF either side
+    # of the rails' centreline), where the track runs at the ground's height (on the ground, or
+    # a deck's end at grade), is left out. (Placing it on the stop's platform instead is a
+    # follow-up.)
+    track = cr.Grid(16.0)
+    for t in d.get("trams", []):
+        ps = cr.pairs(t["p"])
+        for a, b in zip(ps, ps[1:]):
+            if max(m.surface(t, *a) - m.terrain(*a), m.surface(t, *b) - m.terrain(*b)) > 1.0:
+                continue
+            track.add((a, b), min(a[0], b[0]) - TRAM_HALF, min(a[1], b[1]) - TRAM_HALF,
+                      max(a[0], b[0]) + TRAM_HALF, max(a[1], b[1]) + TRAM_HALF)
+
+    def on_track(x, z):
+        return any(cr.seg_dist2(x, z, a, b) < TRAM_HALF ** 2 for a, b in track.at(x, z))
+    for key in list(PROP_SOLID) + ["bins"]:
+        v = d.get(key, [])
+        keep = []
+        for i in range(0, len(v) - 2, 3):
+            if on_track(v[i], v[i + 1]):
+                notes["on tram tracks"] = notes.get("on tram tracks", 0) + 1
+                continue
+            keep += v[i:i + 3]
+        d[key] = keep
     return notes
+
+
+TRAM_HALF = 1.2        # map review A: a tram's half width (2.4 m) about its track's centreline
+CROWN_CLEAR = 0.3      # map review A: a crown beside a deck stays this far under its slab...
+CROWN_HEAD = {"road": 3.5, "rail": 3.5, "tram": 3.5, "path": 2.5}   # ...unless its base is this far over the deck
+CROWN_MIN = 40         # ...shrinking its scale (hundredths) no further than this
+
+
+def trim_crowns(m):
+    """Map review A (2026-10-29): a scanned tree beside a deck whose crown reaches over the
+    deck's corridor between its slab's bottom and the head room over the deck (a tree's crown
+    through Most Poniatowskiego's or the viaduct's edge, 9-11 m above the slab beside the
+    viaduct's west end) gets a smaller crown (`trees3d_crown`, bake_osm.crown_scales' scale:
+    the base stays, the radius and the top shrink with it) until it clears, down to CROWN_MIN.
+    A crown that hangs over a deck higher than the head room (a park's footbridge under a
+    tree) stays. Edits `trees3d_crown` in place; returns (trimmed, left)."""
+    d = m.d
+    real, crowns = d.get("trees3d", []), d.get("trees3d_crown", [])
+    kinds = [pc["k"] for pc in m.decks.p]
+
+    def conflict(x, z, ground, base, top, radius):
+        for dx, dz in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1), (0.7, 0.7), (-0.7, 0.7), (0.7, -0.7), (-0.7, -0.7)):
+            for h, g, i in m.decks.at(x + dx * radius * 0.8, z + dz * radius * 0.8):
+                if h > ground + 0.6 and ground + base < h + CROWN_HEAD.get(kinds[i], 3.5) and \
+                        ground + top > h - SLAB - 0.08 - CROWN_CLEAR:
+                    return True
+        return False
+    trimmed, left = 0, 0
+    for k, i in enumerate(range(0, len(real) - 5, 6)):
+        if k >= len(crowns):
+            break
+        x, z, height, radius, crown_base = real[i], real[i + 1], real[i + 2], real[i + 3], real[i + 4]
+        base = min(crown_base, height - 1.5)    # as map_builder.gd _build_trees
+        ground = m.terrain(x, z) - 0.2
+
+        def fits(f):
+            return not conflict(x, z, ground, base, base + (height - base) * f / 100.0, radius * f / 100.0)
+        f = int(crowns[k])
+        if fits(f):
+            continue
+        while f > CROWN_MIN and not fits(f):
+            f -= 5
+        f = max(f, CROWN_MIN)
+        crowns[k] = f
+        trimmed += 1
+        left += 0 if fits(f) else 1
+    return trimmed, left
 
 
 def _simplify(run):
@@ -1167,7 +1243,10 @@ def add_structures(out, map_dir, terrain):
     cc = clear_carriageways(m)
     print(f"carriageways (check_drive): {cc['barrier m cut']:.0f} m of fences, walls, hedges and mapped guard rails "
           f"inside a carriageway or a lane cut out; left out there: {cc['props']} solid props, "
-          f"{cc.get('parked', 0)} parked cars, {cc.get('pillars', 0)} viaduct pillars, {cc.get('small buildings', 0)} kiosks")
+          f"{cc.get('parked', 0)} parked cars, {cc.get('pillars', 0)} viaduct pillars, {cc.get('small buildings', 0)} kiosks; "
+          f"{cc.get('on tram tracks', 0)} props on a tram track left out (map review A)")
+    ct, cl = trim_crowns(m)
+    print(f"trees (map review A): {ct} scanned crowns beside a deck shrunk to clear its slab ({cl} still reach it)")
     walls, wst = place_walls(m)
     frames, twalls, tst = place_tunnels(m)
     out["walls"] = walls + twalls

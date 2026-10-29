@@ -52,6 +52,9 @@ CLEAR_FOOT = 2.6     # a footbridge over a footway (loop 3a)
 GRADE = 0.06         # ramps up to a clearance
 END_GRADE = 0.12     # the steepest a deck may leave the road it starts from
 DECK_STEP = 6.0      # deck heights every this many metres
+UNDER_END = 15.0     # map review A: a lower footbridge crossing a road deck this near its end stays on the ground
+JOINT_ALONG = 4.0    # map review A: a carriageway boundary this far along from a deck piece's end...
+JOINT_SIDE = 3.0     # ...and within its half width + this, facing carriageway on another level, is a joint
 
 # Loop 3a (docs/DEMO.md 4.4): structure chains (R1), hard clearance (R3).
 CHAIN_JOIN = 150.0   # R1 (a): non-bridge ways linking two bridge ways within this are the structure's
@@ -596,6 +599,37 @@ class Roadbed:
                     not any(near_road.at(*q) for q in pairs(it["p"])):
                 path_mem[i] = ""
                 it.pop("_on", None)
+        # Map review A (2026-10-29): a footbridge mapped on a lower layer than a road deck it
+        # crosses within UNDER_END of that deck's end (where the deck is pinned to the ground,
+        # so nothing passes under it here) stays on the ground, where the road hides it. Solved
+        # as a deck it was held up to the road's height by a link to the deck's own footway and
+        # lay across the carriageway: the paving strip, parapet stubs and their shadow across
+        # Al. Jerozolimskie at the viaduct's west end (OSM 1172263249, 29 m, layer 0).
+        self.under_end = []
+        for i, it in enumerate(self.paths):
+            if path_mem[i] != "bridge":
+                continue
+            ly = it.get("_ly") or 0
+            ps = pairs(it["p"])
+            for pc in road_pieces:
+                if pc["ly"] <= ly:
+                    continue
+                hit = None
+                for a, b in zip(ps, ps[1:]):
+                    for k in range(len(pc["pts"]) - 1):
+                        c = seg_cross(a, b, pc["pts"][k], pc["pts"][k + 1])
+                        if c is not None:
+                            s = pc["cum"][k] + c[1] * (pc["cum"][k + 1] - pc["cum"][k])
+                            if s < UNDER_END or s > pc["cum"][-1] - UNDER_END:
+                                hit = (a[0] + (b[0] - a[0]) * c[0], a[1] + (b[1] - a[1]) * c[0])
+                                break
+                    if hit:
+                        break
+                if hit:
+                    path_mem[i] = ""
+                    it.pop("_on", None)
+                    self.under_end.append((round(hit[0]), round(hit[1]), round(polyline_length(ps))))
+                    break
         for kind, items, mem, half in (("tram", self.trams, tram_mem, 1.6), ("path", self.paths, path_mem, None)):
             self._solve(items, mem, kind, half, beside=road_pieces)
             for idx, it in enumerate(items):
@@ -662,6 +696,9 @@ class Roadbed:
               f"{len(self.road_fill)} roads, {sum(1 for f in self.fills if f['kind'] == 'rail')} rail ways); "
               f"profile solve {self.solve_sweeps} sweeps")
         print("decks: structure members not tagged bridge: " + ", ".join(f"{k} {v}" for k, v in sorted(whys.items())))
+        if self.under_end:
+            print(f"decks: {len(self.under_end)} footbridges on a lower layer cross under a road deck's pinned end: "
+                  f"left on the ground (x, z, metres): {self.under_end}")
         for d in self.dips:
             print(f"decks: underpass dip {d['d']:.2f} m on {d['name']} at ({d['x']:.0f}, {d['z']:.0f}) under {d['over']}")
         if self.surface_model is None:
@@ -1666,6 +1703,9 @@ class Roadbed:
     # -- "is this carriageway" ------------------------------------------------------------
 
     def build_region(self):
+        # Map review B (2026-10-29): the unmapped middle of dual-carriageway junctions becomes a
+        # junction box before anything asks "is this carriageway" (medians, kerbs, lane lines).
+        self._junction_boxes()
         self.caps = {}    # level -> Capsules of drawn road strips (tag: road)
         self.allcaps = {}  # level -> every road's strip, drawn or under an area (for cuts)
         for r in self.roads:
@@ -1724,6 +1764,37 @@ class Roadbed:
         kerb rings it)."""
         kerbs, lines = [], []
 
+        # Map review A (2026-10-29): a deck's carriageway meets the next one (the approach's on
+        # the ground, or another deck's) across its pinned end. That boundary is a joint, not an
+        # edge, but each side saw only its own level's road beyond it and ran a kerb and an edge
+        # line across the road there: 9 kerb runs (49 m) at both ends of Most Poniatowskiego's
+        # river span, its Praga ramps, the viaduct's west end and the Jana Pawła II viaduct, read
+        # as a stop line at the default view, and the ground side's kerb (kerb_feel) jolted the
+        # car onto the bridge. Within JOINT_ALONG of a road or tram deck piece's end, a boundary
+        # whose outside is carriageway on another level (one of the two being that deck) is open.
+        joint_ends = Grid(16.0)
+        for pc in self.pieces:
+            if pc["kind"] not in ("road", "tram"):
+                continue
+            for e, f in ((pc["pts"][0], pc["pts"][1]), (pc["pts"][-1], pc["pts"][-2])):
+                u = _unit(e, f)
+                if u is None:
+                    continue
+                reach = max(pc["l"], pc["r"]) + JOINT_SIDE + JOINT_ALONG
+                joint_ends.add((e, u, max(pc["l"], pc["r"]) + JOINT_SIDE, pc["g"]),
+                               e[0] - reach, e[1] - reach, e[0] + reach, e[1] + reach)
+        levels = sorted(set(self.cpolys) | set(self.caps))
+        self.joints_open = 0.0
+
+        def joint(lv, x, z):
+            for e, u, half, g in joint_ends.at(x, z):
+                if abs((x - e[0]) * u[0] + (z - e[1]) * u[1]) > JOINT_ALONG or math.hypot(x - e[0], z - e[1]) > half + JOINT_ALONG:
+                    continue
+                for lv2 in levels:
+                    if lv2 != lv and g in (lv, lv2) and self.road_at(lv2, x, z):
+                        return True
+            return False
+
         def walk(points, lv, main, outward_right):
             # points: the boundary in order, outward on the right (or left).
             run_k, run_l = [], []
@@ -1744,6 +1815,9 @@ class Roadbed:
                         kind = None  # past the terrain's edge
                     if kind == "kerb" and self.tram_caps.hit(x, z) is not None:
                         kind = "track"   # a tram track leaves the road here: no kerb across it
+                    if kind == "kerb" and joint(lv, x + ox * 0.45, z + oz * 0.45):
+                        kind = None      # map review A: a deck's joint with the next carriageway
+                        self.joints_open += ln / n
                     is_k = kind == "kerb"
                     is_l = kind is not None and main
                     for flag, run, out in ((is_k, run_k, out_k), (is_l, run_l, out_l)):
@@ -1809,7 +1883,7 @@ class Roadbed:
         self.kerbs = kerbs
         self.edge_lines = lines
         print(f"roadbed: kerbs {len(kerbs)} runs, {sum(polyline_length(pairs(k['p'])) for k in kerbs) / 1000:.1f} km; "
-              f"edge lines {len(lines)}")
+              f"edge lines {len(lines)}; {self.joints_open:.0f} m of deck joints left open (no kerb or edge across the road)")
 
     # -- medians --------------------------------------------------------------------------
 
@@ -1839,7 +1913,12 @@ class Roadbed:
                     mid = strip[len(strip) // 2]
                     mx = (mid[0][0] + mid[1][0]) * 0.5
                     mz = (mid[0][1] + mid[1][1]) * 0.5
-                    tram = any(self.tram_caps.hit((p[0] + q[0]) * 0.5, (p[1] + q[1]) * 0.5) is not None for p, q in strip)
+                    # Map review B (2026-10-29): look for the tracks across the whole strip, not
+                    # only at its middle: a double track lies 1.7 m either side of the middle,
+                    # past the tracks' 1.3 m reach, so Al. Poniatowskiego's tram bed came out as
+                    # raised grass with rails on it (check_streets S4: 78 cross-sections).
+                    tram = any(self.tram_caps.hit(p[0] + (q[0] - p[0]) * f, p[1] + (q[1] - p[1]) * f) is not None
+                               for p, q in strip for f in (0.2, 0.5, 0.8))
                     if abs(ring_area(near + far[::-1])) > 4.0 and self.green.hit(mx, mz) < 0:
                         out.append({"s": flat([v for pq in strip for v in pq]), "k": "paving" if tram else "grass", "dk": lv})
                 strip.clear()
@@ -2292,6 +2371,200 @@ class Roadbed:
             return 0
         return 1 if vote > 0 else -1
 
+    # -- Map review B (2026-10-29): junction boxes, crossings, poles ------------------------
+    # tools/check_streets.py counts each class over the whole map (rules S1-S4).
+
+    def _junction_boxes(self):
+        """Where two dual carriageways cross (or one crosses a pair of one-way roads),
+        OpenStreetMap maps the four halves and leaves the middle of the junction between them
+        unmapped: nothing paved it, so bake_medians laid the median's tram bed (or grass) across
+        the junction with a kerb round it, and the halves' short pieces inside the junction got
+        lane lines (Jerozolimskie x Emilii Plater and x Krucza, Świętokrzyska x Emilii Plater,
+        Marszałkowska x Królewska). The quadrilateral through the four points where the halves
+        cross becomes a junction box: a carriageway area with `jn`, which _crossed keeps
+        unpainted, bake_medians and bake_edges read as road. Ground level only."""
+        lv = -1
+        roads = [r for r in self.roads if r["k"] not in MINOR and r.get("dk", -1) == lv]
+        at = {}
+        for r in roads:
+            for j, p in enumerate(pairs(r["p"])):
+                at.setdefault((round(p[0], 2), round(p[1], 2)), []).append((r, j))
+
+        def dirs(r, j):
+            q = pairs(r["p"])
+            return [d for d in (_unit(q[j], q[k]) for k in (j - 1, j + 1) if 0 <= k < len(q)) if d is not None]
+
+        def crossers(r, j):
+            p = pairs(r["p"])[j]
+            mine = dirs(r, j)
+            out = []
+            for o, k in at.get((round(p[0], 2), round(p[1], 2)), []):
+                if o is r or o["_id"] == r["_id"] or oneway_of(o["_t"]) == 0 or not o["name"] or o["name"] == r["name"]:
+                    continue
+                if any(all(abs(a[0] * m[0] + a[1] * m[1]) < JBOX_ANGLE for m in mine) for a in dirs(o, k)):
+                    out.append((o, k))
+            return out
+
+        def twin_point(x, k, r):
+            """Along crosser x from its vertex k, within JBOX_REACH: a vertex where a one-way
+            road parallel to r and running against it crosses (the other half of r's street)."""
+            q = pairs(x["p"])
+            ow = oneway_of(r["_t"])
+            rd = None
+            for step in (-1, 1):
+                s = 0.0
+                i = k
+                while 0 <= i + step < len(q):
+                    s += math.dist(q[i], q[i + step])
+                    i += step
+                    if s > JBOX_REACH:
+                        break
+                    for t, j in at.get((round(q[i][0], 2), round(q[i][1], 2)), []):
+                        if t is r or t is x or t["_id"] in (r["_id"], x["_id"]) or oneway_of(t["_t"]) == 0:
+                            continue
+                        td = _road_dir(t, q[i][0], q[i][1])
+                        rd = rd or _road_dir(r, q[k][0], q[k][1])
+                        if td is None or rd is None:
+                            continue
+                        dot = (td[0] * oneway_of(t["_t"])) * (rd[0] * ow) + (td[1] * oneway_of(t["_t"])) * (rd[1] * ow)
+                        if dot < -JBOX_PARALLEL:
+                            return q[i]
+            return None
+
+        polys = self.cpolys.get(lv)
+        boxes = []
+        for r in roads:
+            if oneway_of(r["_t"]) == 0:
+                continue
+            q = pairs(r["p"])
+            for j in range(len(q) - 1):
+                if math.dist(q[j], q[j + 1]) > JBOX_PIECE:
+                    continue
+                xa, xb = crossers(r, j), crossers(r, j + 1)
+                names = {o["name"] for o, _ in xa} & {o["name"] for o, _ in xb}
+                if not names:
+                    continue
+                pa = next((p for o, k in xa if o["name"] in names for p in [twin_point(o, k, r)] if p), None)
+                pb = next((p for o, k in xb if o["name"] in names for p in [twin_point(o, k, r)] if p), None)
+                if pa is None or pb is None:
+                    continue
+                hull = _hull([q[j], q[j + 1], pa, pb])
+                area = abs(ring_area(hull))
+                if len(hull) < 3 or not JBOX_AREA[0] <= area <= JBOX_AREA[1] \
+                        or max(math.dist(a, b) for a, b in zip(hull, hull[1:] + hull[:1])) > JBOX_SIDE:
+                    continue
+                cx = sum(p[0] for p in hull) / len(hull)
+                cz = sum(p[1] for p in hull) / len(hull)
+                if any(point_in_poly(cx, cz, b) for b in boxes):
+                    continue  # the same junction, found from another of its halves
+                if polys is not None and polys.hit(cx, cz) >= 0:
+                    continue  # mapped already (area:highway covers the middle)
+                boxes.append(hull)
+        for hull in boxes:
+            self.carriage.append({"p": hull, "k": "secondary", "jn": True, "ly": 0, "dk": lv})
+        if boxes:
+            self.cpolys[lv] = Polys([c["p"] for c in self.carriage if c["dk"] == lv])
+            self.cjunction[lv] = [c["jn"] for c in self.carriage if c["dk"] == lv]
+        self.junction_boxes = boxes
+        print(f"roadbed: {len(boxes)} junction boxes between dual carriageways (map review B)")
+
+    def clip_crossings(self):
+        """Zebra crossings painted only on the asphalt: OpenStreetMap's crossing ways often run
+        from pavement to pavement, and the road's drawn width is an estimate, so the stripes ran
+        on over the kerb and the pavement (1.0 m an end on average, 514 of 1,256 ends more than
+        0.75 m), across tram beds and medians, and 44 crossings lay off the road altogether.
+        Kept: the stretches on a carriageway (not on an island or a hatched area) or across a
+        cycle path (Warsaw paints zebras over its red paths), each at least CROSS_MIN long."""
+        cyc = {}
+        for p in self.paths:
+            if p["k"] == "cycle":
+                for a, b in zip(pairs(p["p"]), pairs(p["p"])[1:]):
+                    cyc.setdefault(p.get("dk", -1), Capsules()).add(a, b, p["w"] * 0.5, 1)
+        out = []
+        before = after = 0.0
+        for p in self.paths:
+            if p["k"] != "zebra":
+                out.append(p)
+                continue
+            lv = p.get("dk", -1)
+            pts = resample(pairs(p["p"]), 0.25)
+            before += polyline_length(pts)
+            run = []
+            runs = []
+            for x, z in pts:
+                ok = self.paintable(lv, x, z) or (lv in cyc and cyc[lv].hit(x, z) is not None)
+                if ok:
+                    run.append((x, z))
+                else:
+                    if len(run) >= 2:
+                        runs.append(run)
+                    run = []
+            if len(run) >= 2:
+                runs.append(run)
+            for run in runs:
+                if polyline_length(run) >= CROSS_MIN:
+                    q = dict(p, p=flat(simplify(run, 0.05)))
+                    after += polyline_length(run)
+                    out.append(q)
+        self.paths[:] = out
+        print(f"roadbed: zebra crossings clipped to the asphalt: {before:.0f} -> {after:.0f} m (map review B)")
+
+    def clear_poles(self, extras):
+        """Street lamps and signal poles off the carriageway. A lamp OpenStreetMap maps in a
+        median the bake doesn't draw stands in a lane, and a signal pole is put beside the kerb
+        of the nearest way's width estimate, which can land in the next carriageway or the
+        middle of a junction (32 poles stood in a lane, 37 more on the asphalt). Each pole on
+        the ground's asphalt (not on an island or a median) moves to the nearest spot within
+        POLE_REACH that is off the asphalt by POLE_CLEAR (the pavement, an island, a median),
+        clear of tram tracks; else it stays. Signals keep their order (the lane graph's `poles`
+        refer to them by index)."""
+        lv = -1
+        meds = Polys([q for m in self.medians if m["dk"] == lv
+                      for s4 in [m["s"]] for i in range(0, len(s4) - 7, 4)
+                      for q in [[(s4[i], s4[i + 1]), (s4[i + 2], s4[i + 3]), (s4[i + 6], s4[i + 7]), (s4[i + 4], s4[i + 5])]]])
+        ip = self.ipolys.get(lv)
+
+        def raised(x, z):
+            return (ip is not None and ip.hit(x, z) >= 0) or meds.hit(x, z) >= 0
+
+        def free(x, z):
+            if self.tram_caps.hit(x, z) is not None or self.water.hit(x, z) >= 0:
+                return False
+            if raised(x, z):
+                return True
+            return not self.road_at(lv, x, z) and not any(
+                self.road_at(lv, x + math.cos(a) * POLE_CLEAR, z + math.sin(a) * POLE_CLEAR)
+                for a in (k * math.pi / 4 for k in range(8)))
+
+        def place(x, z):
+            # The game stands every lamp and signal pole on the ground (terrain_height), under a
+            # deck too, so the ground's carriageway is the one to keep them off.
+            if raised(x, z) or not self.road_at(lv, x, z):
+                return None
+            r = 0.5
+            while r <= POLE_REACH:
+                for k in range(24):
+                    a = k * math.pi / 12
+                    px, pz = x + math.cos(a) * r, z + math.sin(a) * r
+                    if free(px, pz):
+                        return (round(px, 1), round(pz, 1))
+                r += 0.5
+            return (x, z)
+
+        moved = stuck = 0
+        for key, stride in (("lamps", 2), ("signals", 3)):
+            v = extras.get(key, [])
+            for k in range(0, len(v) - stride + 1, stride):
+                p = place(v[k], v[k + 1])
+                if p is None:
+                    continue
+                if p == (v[k], v[k + 1]):
+                    stuck += 1
+                else:
+                    v[k], v[k + 1] = p
+                    moved += 1
+        print(f"roadbed: {moved} lamps and signal poles moved off the asphalt, {stuck} left (map review B)")
+
     # -- guard rails and the river's edge --------------------------------------------------
 
     def bake_guards(self, clip_lines):
@@ -2407,6 +2680,39 @@ class Roadbed:
         """Loop 3a: the approaches, the ground corrected under their corridors."""
         return [{"p": flat(pc["pts"]), "h": [round(h, 2) for h in pc["h"]], "l": round(pc["l"], 2),
                  "r": round(pc["r"], 2), "k": pc["kind"]} for pc in self.fills]
+
+
+# Map review B (2026-10-29): junction boxes, crossings and poles (Roadbed._junction_boxes,
+# clip_crossings, clear_poles).
+JBOX_PIECE = 40.0     # a one-way road's piece this short between two crossing halves...
+JBOX_ANGLE = 0.87     # ...crossing it at an angle (|cos| under this)...
+JBOX_REACH = 35.0     # ...whose other half crosses the same halves within this...
+JBOX_PARALLEL = 0.85  # ...running against it (|cos| over this): the four points make the box
+JBOX_AREA = (30.0, 1500.0)  # m2: a junction box's sane size...
+JBOX_SIDE = 45.0      # ...and longest side
+CROSS_MIN = 1.5       # a zebra's stretch on the asphalt shorter than this is left out
+POLE_REACH = 6.0      # a pole on the asphalt moves at most this far...
+POLE_CLEAR = 0.5      # ...to a spot this far off the asphalt's edge
+
+
+def _hull(pts):
+    """Convex hull of points (counter-clockwise in x, z), no repeats."""
+    pts = sorted(set((round(p[0], 2), round(p[1], 2)) for p in pts))
+    if len(pts) < 3:
+        return pts
+
+    def cross(o, a, b):
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+    lo, hi = [], []
+    for p in pts:
+        while len(lo) >= 2 and cross(lo[-2], lo[-1], p) <= 0:
+            lo.pop()
+        lo.append(p)
+    for p in reversed(pts):
+        while len(hi) >= 2 and cross(hi[-2], hi[-1], p) <= 0:
+            hi.pop()
+        hi.append(p)
+    return lo[:-1] + hi[:-1]
 
 
 def _area_samples(pts):

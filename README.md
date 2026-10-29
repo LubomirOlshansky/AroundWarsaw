@@ -2298,6 +2298,80 @@ Commands: `tools/verify.sh --only=streaming` (the identity, the pixels at 10 spo
 On the phone: `tools/device_run.sh --bench` (the BENCH card's frame times while driving through
 sector loads) and a normal launch with `--stream-log` in the log (each load's main-thread ms).
 
+## Map review A: the bridges, flyovers and tunnels (2026-10-29)
+
+Every deck group (19: 73 pieces, 174 piers), the 3 tunnel roads and their 4 portals looked at
+one by one at 1792×828 by day (both ends, the span from the side, from above), the lit ones by
+night, and driven. What was wrong and is fixed, all in the bakes (no builder change):
+
+- **A kerb and an edge line across the road at a deck's joint** (`bake_roads.bake_edges`, new
+  `JOINT_ALONG` / `JOINT_SIDE`): where a deck's carriageway meets the next one across its pinned
+  end, each side saw only its own level's road beyond it and ran a kerb and an edge line across
+  the carriageway (Most Poniatowskiego's east end on both carriageways, its Praga ramps, the
+  viaduct's west end, the Jana Pawła II viaduct's north end: 9 kerb runs, 49 m). It read as a
+  stop line, and the ground side's kerb was in `kerb_feel`'s lines, so the car took a kerb's
+  bump driving onto the bridge. Now open (135 m of joint).
+- **A footbridge lying across Al. Jerozolimskie** at the viaduct's west end (`UNDER_END` in
+  `solve_decks`): a footway bridge mapped on a lower layer (OSM 1172263249, layer 0) crossing
+  a road deck within 15 m of its pinned end was held up to the road's height and drawn across
+  the carriageway (a paving strip, parapet stubs and their shadow). It stays on the ground,
+  where the road hides it.
+- **Tram stop shelters on the tracks** (`bake_structures.clear_carriageways`): 14 shelters
+  mapped at a stop's position on the rails (one on the viaduct's tram deck at its east end) are
+  left out where the track runs at the ground's height.
+- **Tree crowns through a deck's edge** (`bake_structures.trim_crowns`): 7 scanned trees beside
+  the viaduct, Most Poniatowskiego and Most Średnicowy reached 2-11 m up through the deck's edge;
+  their crown scale (`trees3d_crown`) shrinks until they clear the slab (floor 40 %; one 24 m
+  tree on the Praga bank still brushes the footway, allowed). A crown over a deck higher than
+  the head room (3.5 m, footways 2.5 m) stays.
+
+`check_roads.py`: **C2** also finds a kerb or edge line across the road at a deck's joint with
+the ground (3 m or more within 4 m of the end; 12 before, 1 allowed sliver after), **C9** a
+scanned crown into a deck (7 before, 1 allowed after); a C3 entry allows the passage under the
+viaduct's west end (0.8-2.2 m under the decks' first metres). `check_drive` 0 / 0,
+`check_drape` 0. Draw calls at the four views unchanged in the 3D passes (spawn 132 → 134, the
+2 in the HUD's 2D pass; river 105 → 105, zoomed out 152 → 154 (2D), helicopter 212 → 212);
+vertices 6,119,007 → 6,115,605. Left for later (BACKLOG "From map review A"): aprons that sink
+the road under the drawn 10 m ground at five structure ends (the beige wedge at the viaduct's
+west end), the night's lamp pools on the ground beside and under decks, Most Poniatowskiego's
+unlit approaches, rail tracks ending at different heights, the Tamka footbridge's dip.
+
+## Map review B: the streets (2026-10-29)
+
+Every street at grade, junction and roundabout looked at one by one (the bridges, flyovers, ramps
+and tunnels are map review A's). The report with the shots is local (`.handoff/review/`); what
+changed in the bake (`tools/bake_roads.py`, street-level functions in a commented block, run by
+`bake_osm.py`), each counted over the whole map by the new `tools/check_streets.py` (verify step
+`streets`; rules S1-S4, before → after):
+
+- **Junction boxes between dual carriageways** (`Roadbed._junction_boxes`). Where two dual
+  carriageways cross, OpenStreetMap maps the halves and leaves the junction's middle unmapped:
+  `bake_medians` laid the tram bed (or grass) and its kerb across the junction, and the halves'
+  short pieces inside it got lane lines. The quadrilateral where the halves cross is now a
+  junction box (a carriageway area with `jn`: no median, no kerb, no lane lines in it): 3 on
+  today's map (Al. Jerozolimskie × Emilii Plater, Marszałkowska × Królewska, Świętokrzyska ×
+  Emilii Plater). S3 (medians inside a junction, reported only: it also counts real median noses
+  at a junction's edge) 20 → 18.
+- **Tram beds, not grass** (`bake_medians`): a median is the tram bed when a track runs anywhere
+  across it (it looked only at the strip's middle, which a double track straddles): Al.
+  Poniatowskiego's tram bed was raised grass with rails on it. S4 (grass medians on tram tracks)
+  78 cross-sections → 0; median strips 137 → 134 (48 → 54 with trams).
+- **Zebras on the asphalt only** (`clip_crossings`): crossing ways run from pavement to pavement
+  and the road's width is an estimate, so the stripes ran on over the kerb, the pavement, tram
+  beds and medians (1.0 m an end on average). The stripes are now cut to the carriageway (a red
+  cycle path across the road keeps them), pieces under 1.5 m left out: 5,371 → 3,654 m of zebra.
+  S2 (zebras with 0.75 m or more off the asphalt) 457 → 0.
+- **Poles off the asphalt** (`clear_poles`): a street lamp mapped in a median the bake doesn't
+  draw, or a signal pole placed beside the kerb of a width estimate, stood in a lane or a
+  junction; each one on the ground's asphalt moves to the nearest spot within 6 m that is 0.5 m
+  off it (pavement, island, median, clear of the tracks). 60 moved (the signals keep their order:
+  the lane graph's `poles` refer to them by index). S1 58 → 0.
+
+Unchanged: `check_roads` C1-C10, `check_drive`, `check_drape`, the lane graph, stop lines, arrows
+and the counts `check_map_data.py` checks. Draw calls at the four probe views unchanged in the 3D
+passes (spawn 52 + 35, river 35 + 24, zoomed out 65 + 44, helicopter 100 + 76; the 2D pass moves
+by ±4 between runs of the same code), vertices 6,119,007 → 6,109,860 (-0.1 %: shorter zebras).
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
