@@ -477,7 +477,11 @@ the Palace now a 28 m roof: the tiers are crowned by attics and pinnacles).
 **Info cards**: a short tap (under 0.35 s and 16 px, not on a control, not a pinch) goes out as
 `hud.tapped`; the game walks the ray from that pixel through the roof grid (1 m steps) and, if
 the first thing standing is a landmark, shows its card in the note card's place for 8 s: name,
-one or two Polish lines, the English under them. `--tap=X,Y` taps a screen pixel at frame 60.
+one or two Polish lines, the English under them. Landmark card fix: the note and landmark cards
+stand first in the right-hand column under the top row, beside the car (the status panel's and
+the ride card's column), at most 236 pt wide and no wider than the room right of the car's spot
+(`side_card_width()`); on a 375-pt phone they used to find no room and never showed.
+`--tap=X,Y` taps a screen pixel at frame 60.
 Sweep 2: the walk steps on through whatever the occlusion ghost has made see-through (half its
 pixels or more gone, ghost.gdshaderinc's test on the frame's values, main.gd
 `_pick_unghosted`), so a tap on the cut-away part of a tower in front of the car picks what
@@ -2475,6 +2479,71 @@ name or logo). The joke is the app and its GPS, never the driver or the passenge
   app's dotted route and Nawigacja's river line (`pro`, `i11` 1500 and 3000), the result card
   (`pro2`, `i112`; after the merge, beside the car: `end_i11`, `end_pro`), a GPS moment by the
   spawn (`gps_*`).
+
+## Map round 2: the ground under structure ends, the night streets (2026-10-29)
+
+What reviews A and B left, by rule (the demo box comes later, loop 3d):
+
+- **D5, the road under the drawn ground** at structure ends. An apron holds `terrain_height`
+  under a deck's or tunnel's end below the 10 m grid, but `_build_ground` drew the raw grid, so
+  the road, its carriageway area, kerbs and rail beds lay under bare ground: the beige wedge at
+  the viaduct's west end (0.65 m), the Wisłostrada portal (1 m), the abutment link's portals,
+  the Kruczkowskiego rail viaduct, two ramps' feet. Now (`map_builder.gd`, the "map round 2
+  (D5)" block) the grid cells an apron reaches are drawn as 1 m sub-cells at
+  `min(grid, terrain_height)` (`_drawn_height`), the areas and footways laid on the grid use the
+  same sub-cells, and an apron fades out over `APRON_TAPER` 3 m past its corridor's sides
+  instead of a step inside a carriageway wider than the deck. **`check_roads` C11** (new): a
+  road's, carriageway's, tram's or rail's surface on the ground more than 0.1 m under the drawn
+  ground (`Map.drawn` mirrors the builder); 43 in 7 places → 0. `check_drape.gd` compares with the
+  drawn ground too.
+- **Tram-stop shelters**: the 14 that review A took off the rails are put beside their track
+  (`bake_structures` `TRAM_SIDE`: 2.4-4.5 m out, clear of tracks, carriageways and lanes): 13
+  placed, 1 left out (no clear spot). OpenStreetMap maps them on the stop position and none has a
+  platform mapped within 25 m.
+- **The night streets** (`bake_lights.street_lamps`): where OpenStreetMap maps no street lamps
+  (Al. Jerozolimskie east of Rondo Dmowskiego, Nowy Świat at (-331, 18)), a lamp every 34 m at the
+  kerb of every primary, secondary and tertiary street and of the named residential through
+  streets (600 m or longer) wherever none stands within 22 m (not in a building, on a
+  carriageway, a tram track or under a deck); Most Poniatowskiego's abutments between the towers
+  (road `fills` meeting a deck's end, D7) get one every 20 m: 404 lamps in all. Sodium or LED by the
+  street's name, as its mapped lamps; `map_builder` reads each added lamp's kind back from the
+  light map. Lit map 13.7 → 16.8 %.
+- **D6, deck lamps' pools on the river**: a lamp on a deck (2 m or more over the ground) lights
+  only its deck's corridors (the pools fell on Most Poniatowskiego's gravel shoals); a bridge lamp
+  just off a narrowed deck (the Jana Pawła II viaduct) moves in onto it instead of standing in the
+  road under the viaduct. `check_streets` S1 now also checks the added lamps (14 on asphalt in the
+  first try → 0).
+
+Checks: `check_roads` C1-C11 all allowed or 0; `check_streets` S1 0, S2 0, S4 0; `check_drive` 0 / 0;
+`check_drape` 0. Draw calls at the four probe views: the 3D passes +0 / +0 / +2 / +1 (lamp
+MultiMeshes in a few more tiles); vertices 6,106,458 → 6,249,198 (+2.3 %: the subdivided cells
+under the aprons, 404 lamps and their halos). Left (BACKLOG "From map round 2"): L1, D8-D10,
+L4, L5, L2 and the Podwózka river spots.
+
+## Map round 2b: river spots you can drive, the reviews' last items (2026-10-29)
+
+- **The Podwózka river spots** (`bake_structures.place_bank`, index `drivable_bank`): loop 2d-1's
+  `rides.gd` found a dry waypoint 5 m in from the river with a straight line to a lane over dry
+  ground with no building (9 spots), but never tested whether a car can drive that line. The bake
+  walks each of 832 candidates' lines to its nearest lane points (up to 10) every 0.5 m against
+  retaining walls, fence, wall and hedge lines, guard rails, steps, piers, solid props, buildings,
+  decks overhead and steps in the ground over 0.6 m in 2 m: 19 lines drive (blocked first by
+  guard rails 51, steps in the ground 32, walls 32, decks 12, steps 10). `rides.gd` reads them
+  (the "map round 2b" block, `_bank_spots`; a map without the list keeps the scan).
+- **Lamp colour along a street**: a street that carries on from a bridge (a ground road sharing
+  an end with a bridge road) is lit sodium like its bridge (Al. Poniatowskiego changed from the
+  bridge's sodium to LED at the towers); a mapped lamp takes its kind from the nearest named
+  street within 14 m (`bake_lights` `street_is_led`). 16 lamps LED → sodium.
+- **D9** (`bake_roads`, `STUB_MAX`): a bridge footway of 8 m or less off another footbridge's
+  middle with a free end (OpenStreetMap's stairs left out) is left out: its free end was pinned
+  to the ground and pulled the Tamka footbridge down 2.2 m. 1 stub; the footbridge is level.
+- **L5** (`bake_medians`): a median piece on the mapped tram bed (`landuse=railway`) is paved like
+  it: the green rectangle on the tracks by Jerozolimskie × Krucza.
+- **L1** judged: the lines in the three junction areas (Plac Trzech Krzyży, the Poniatowski
+  ramps, Wał Miedzeszyński) are dashed lane guides through the junction and edge lines along its
+  sides; the orthophoto (about 0.5 m a pixel) can't show painted lines, and Warsaw paints guide
+  dashes through such junctions: kept. **L4** (Emilii Plater's weaving median walls), **L2**,
+  **D8**, **D10**: not changed (BACKLOG).
 
 ## Performance budgets
 

@@ -411,17 +411,6 @@
   {
    "rule": "C3",
    "at": [
-    -20,
-    -288
-   ],
-   "r": 12,
-   "name": "footway",
-   "reason": "a footbridge whose stairs (OSM highway=steps) start 4-5 m from its ends without sharing a node, so its ends sit on the ground and it clears the footway under it by 2.0 m",
-   "source": "OSM steps near the bridge's ends (check: steps within 6 m)"
-  },
-  {
-   "rule": "C3",
-   "at": [
     343,
     -789
    ],

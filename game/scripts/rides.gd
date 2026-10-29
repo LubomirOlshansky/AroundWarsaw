@@ -191,7 +191,8 @@ func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
 					_parks.append({"name": String(p["name"]), "w": w})
 	var sp: Dictionary = data.get("spawn", {})
 	_spawn_lane = graph.snap(Vector2(float(sp.get("x", 0.0)), float(sp.get("z", 0.0))), 60.0, Vector2.ZERO, true, true)
-	_queue_river()
+	if not _bank_spots(data):  # map round 2b: the bake's drivable river spots, else the scan
+		_queue_river()
 	_beacon = Beacon.new()
 	world.add_child(_beacon)
 	_beacon.setup(COLOUR, Color(SHIRTS[0]))
@@ -1149,6 +1150,43 @@ func _car_lane() -> Array:
 
 ## The water test on a SCAN m grid over the map, row by row: each dry-to-wet step between two
 ## neighbouring samples is a point on the water's edge, with the way into the water.
+# --- Map round 2b (2026-10-29): the river spots from the bake --------------------------------
+# The scan below found a dry waypoint 5 m in from the water and a straight line to a lane over
+# dry ground with no building, but never asked whether a car can drive it: on today's map every
+# one of its lines crossed a guard rail, a retaining wall, steps or a boulevard's drop (the car
+# only got there because the autopilot ghosts). tools/bake_structures.py `place_bank` walks each
+# candidate's line against those and writes the drivable ones to the index as `drivable_bank`
+# ([wx, wz, rx, rz]: the waypoint and the lane point it was checked from). Here they become the
+# spots (snapped to the lane graph at their lane point); a map without the list keeps the scan.
+
+## The lane point of a baked spot is this close to the lane graph's.
+const BANK_SNAP := 2.5
+
+
+## River spots from the index's `drivable_bank`; false when the map has none (an older bake).
+func _bank_spots(data: Dictionary) -> bool:
+	var bank: Array = data.get("drivable_bank", [])
+	if bank.is_empty():
+		return false
+	var t0 := Time.get_ticks_usec()
+	for b: Array in bank:
+		var w := Vector2(float(b[0]), float(b[1]))
+		var hit := graph.snap(Vector2(float(b[2]), float(b[3])), BANK_SNAP, Vector2.ZERO, true, true)
+		if hit.is_empty():
+			continue
+		var e: int = hit[0]
+		var s: float = hit[2]
+		if graph.tunnel_depth(e, s) > 0.5:
+			continue
+		var r := graph.point_at(e, s)
+		_river_raw.append({"e": e, "s": s, "road": r, "w": w, "gap": r.distance_to(w)})
+	_scan_usec = Time.get_ticks_usec() - t0
+	_river_ready = true
+	_keep_river_spots()
+	return true
+# --- end of map round 2b ---------------------------------------------------------------------
+
+
 func _queue_river() -> void:
 	var b: Rect2 = map.bounds.grow(-SCAN)
 	_scan_origin = b.position

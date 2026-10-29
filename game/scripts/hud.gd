@@ -642,7 +642,10 @@ func _spots(c: Control, s: Vector2) -> Array:
 	if c == _perf:
 		return [[top, DOWN], [beside, DOWN], [Vector2(col, _col_y), DOWN], [bottom, UP], [beside_low, UP]]
 	if c == _note or c == _info_card:
-		return [[Vector2(col, _col_y), DOWN], [beside, DOWN], [top, DOWN], [bottom, UP], [beside_low, UP]]
+		# Landmark card fix: the right-hand column under the top row first (beside the car, as
+		# the status panel and the ride's side card stand); the old spots stay as fallbacks.
+		return [[Vector2(_safe.end.x - EDGE * pt - s.x, _top_y), DOWN], [Vector2(col, _col_y), DOWN],
+				[beside, DOWN], [top, DOWN], [bottom, UP], [beside_low, UP]]
 	if c == _ticker:
 		return [[Vector2(col, _bottom_y - s.y), UP], [bottom, UP], [beside_low, UP], [top, DOWN], [beside, DOWN]]
 	return []
@@ -1813,6 +1816,7 @@ static func _money(amount: int) -> String:
 
 ## A small card under the wallet for a few seconds (an easter egg found).
 func show_note(title: String, body: String, colour: Color) -> void:
+	_set_note_width()  # landmark card fix
 	_note_title.text = title
 	_note_title.add_theme_color_override("font_color", colour.lerp(Color.WHITE, 0.2))
 	_note_body.text = body
@@ -1828,6 +1832,7 @@ func show_note(title: String, body: String, colour: Color) -> void:
 ## v0.8: a landmark's info card (it was tapped): the name, a Polish line or two and the
 ## English under it. It takes the note card's place for eight seconds.
 func show_info(title: String, polish: String, english: String) -> void:
+	_set_note_width()  # landmark card fix
 	_info_title.text = title
 	_info_pl.text = polish
 	_info_en.text = english
@@ -1838,6 +1843,19 @@ func show_info(title: String, polish: String, english: String) -> void:
 	_info_card.modulate.a = 0.0
 	_info_left = 8.0
 	_mark()
+
+
+# --- landmark card fix ---------------------------------------------------------------------
+
+## The note and landmark cards are NOTE_W points wide, or narrower when the room right of the
+## car's spot (the side card's rule, side_card_width()) is less, so they fit in the right-hand
+## column beside the car on a short phone. Their labels wrap to that width.
+func _set_note_width() -> void:
+	var w := minf(NOTE_W, side_card_width())
+	for l: Label in [_note_title, _note_body, _info_title, _info_pl, _info_en]:
+		_wrap(l, w - 20.0)
+	_note.reset_size()
+	_info_card.reset_size()
 
 
 # --- the status panel's pictures --------------------------------------------------------------

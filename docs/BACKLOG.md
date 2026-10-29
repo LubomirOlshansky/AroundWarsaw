@@ -313,6 +313,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   performance overlay then waits for room (`check_hud.gd` lists 26 such waits over its 96
   states, none on the Pro Max without the overlay). A waiting bubble is dropped after 6 s;
   the vendor's line at a kebab stand usually waits until the job card goes.
+  Landmark card fix (2026-10-29): the note and landmark cards now take the right-hand column
+  first, so a tapped landmark's card shows beside the car with the ticker up (`check_hud.gd`
+  checks it on all four screens); they no longer count among the waits above.
 - The passing panels keep out of a 110×84 pt box in the middle of the screen; at speed the view
   leads and the car can sit outside it (up to a fifth of the view off centre), so a toast can
   still cover a fast car for a moment. Cards and the status may cover the car on a 390-pt phone.
@@ -803,6 +806,42 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - `podwozka_driver`'s two untagged lines are tagged `arrive` and `reroute` so each moment says
   its own; the offset pickup line ("the pin was a bit off") is tagged `offset`; "No widzisz,
   aplikacja wie" (the design's table) is a `followed` line.
+
+## From map round 2 (2026-10-29)
+- Done: D5 (the drawn ground follows the aprons; `check_roads` C11), the 14 tram-stop shelters
+  beside their tracks (13; 1 with no clear spot), L3 (lamps on the main streets' unlit
+  stretches), D6 (deck lamps light their deck only), D7 (the abutments lit). README "Map round 2".
+- **Mapped lamps change colour along one street**: a mapped lamp whose nearest road is an unnamed
+  way (a ramp, a service road) is LED by `bake_lights`' name rule even on a sodium street (seen on
+  Al. Poniatowskiego by the towers). Fix: take the kind from the nearest *named* street within 14 m.
+- **L1** (review B): lines inside junctions mapped as one carriageway area without `junction=yes`
+  (Plac Trzech Krzyży, the Poniatowski ramps, Wał Miedzeszyński); orthophoto overlays drawn
+  (`shots/review_structures/round2/ov_p3k.png`, `ov_ponir.png`, `ov_walm.png`), not judged or fixed.
+- **D8** rail track ends at different heights (Solec 1.2 m, Kruczkowskiego), **D9** the Tamka
+  footbridge's dip, **D10** the Praga ramp joint's sliver, **L4**, **L5**, **L2** (review B):
+  not done this round; specs in `.handoff/review/structures_2026-10-29.md` and B's report.
+- **The Podwózka river spots** (loop 2d-1 `rides.gd`, not merged): a waypoint 5 m in from the
+  water, a straight line to a lane within 70 m over dry ground with no building. Not checked
+  against the colliders yet: the line can cross a retaining wall, a shore stone, a fence or a
+  boulevard's 3-5 m drop (the Bulwary below Wybrzeże Kościuszkowskie). Spec: a `drivable_bank`
+  list in the index (bake_structures: dry points 3-8 m from the water whose straight line to the
+  nearest lane crosses no solid wall, barrier line or shore stone and no height step over 0.5 m
+  in 2 m), that `rides.gd` reads instead of scanning `shore_distance`.
+
+## From map round 2b (2026-10-29)
+- Done: the Podwózka river spots from the bake (`drivable_bank`, 19), the lamp colour along a
+  street from a bridge, D9 (Tamka), L5 (Krucza), L1 judged and kept. README "Map round 2b".
+- **Only 19 river spots** (most lines to a lane cross a guard rail along the Wisłostrada and
+  Wybrzeże Szczecińskie, a retaining wall or a boulevard's drop): river rides cluster by Most
+  Poniatowskiego's west abutment and south of it. More need a way in (service roads to the
+  beaches) or a passenger who walks the last metres.
+- **L4** Emilii Plater's three mapped median walls (`barrier=wall`, 41 barrier pairs over the map
+  cross each other twice or more) still weave as dark lines; the orthophoto can't show low walls.
+  Spec: draw a `barrier=wall` inside a median as a 0.4 m planter edge, or leave weaving walls out.
+- **L2** kerbs within 0.9 m of a lane centre: not judged (kerbs are not solid for traffic,
+  `check_drive` 0); spec as in review B.
+- **D8** rail track ends 1.2 m apart (Solec) and **D10** the Praga ramp joint's sliver: as in map
+  review A's specs.
 
 ## From loop G0+ (streaming and heat on the iPhone 11)
 - **A sector's load still makes one slow frame on the iPhone 11** (19-22 frames over 33 ms in a

@@ -934,8 +934,7 @@ def clear_carriageways(m):
     # shelters mapped on the track's stop position: one at the Poniatowski viaduct's east end,
     # 14 over the map): one whose centre lies in the track's swept width (TRAM_HALF either side
     # of the rails' centreline), where the track runs at the ground's height (on the ground, or
-    # a deck's end at grade), is left out. (Placing it on the stop's platform instead is a
-    # follow-up.)
+    # a deck's end at grade), moves beside the track (below).
     track = cr.Grid(16.0)
     for t in d.get("trams", []):
         ps = cr.pairs(t["p"])
@@ -947,19 +946,56 @@ def clear_carriageways(m):
 
     def on_track(x, z):
         return any(cr.seg_dist2(x, z, a, b) < TRAM_HALF ** 2 for a, b in track.at(x, z))
+
+    def nearest_track(x, z):
+        best = None
+        for a, b in track.at(x, z):
+            d2 = cr.seg_dist2(x, z, a, b)
+            if best is None or d2 < best[0]:
+                best = (d2, a, b)
+        return best
+
+    # Map round 2 (2026-10-29): such a prop goes beside the track, where its stop's platform is
+    # (OpenStreetMap maps the shelter on the stop position; none of the 14 has a platform mapped
+    # within 25 m): the first of TRAM_SIDE either side, along the track, whose footprint is clear
+    # of every tram track's swept width, carriageway and lane; else it is left out.
     for key in list(PROP_SOLID) + ["bins"]:
         v = d.get(key, [])
         keep = []
+        r = PROP_SOLID.get(key, 0.6) * 0.5
         for i in range(0, len(v) - 2, 3):
-            if on_track(v[i], v[i + 1]):
-                notes["on tram tracks"] = notes.get("on tram tracks", 0) + 1
+            x, z, yaw = v[i], v[i + 1], v[i + 2]
+            if not on_track(x, z):
+                keep += v[i:i + 3]
                 continue
-            keep += v[i:i + 3]
+            near = nearest_track(x, z)
+            placed = None
+            if near is not None:
+                _, a, b = near
+                ln = math.dist(a, b) or 1.0
+                ux, uz = (b[0] - a[0]) / ln, (b[1] - a[1]) / ln
+                along_yaw = math.atan2(-uz, ux)   # map_builder _props: Basis(UP, yaw) turns +X to (cos, -sin)
+                c, s = math.cos(along_yaw), math.sin(along_yaw)
+                for off in TRAM_SIDE:
+                    for sgn in (1.0, -1.0):
+                        px, pz = x - uz * off * sgn, z + ux * off * sgn
+                        corners = [(px + c * u + s * w, pz - s * u + c * w) for u in (-r, r) for w in (-0.5, 0.5)]
+                        if not any(on_track(qx, qz) or inside(qx, qz, 0.0) for qx, qz in corners + [(px, pz)]):
+                            placed = (px, pz, along_yaw)
+                            break
+                    if placed:
+                        break
+            if placed:
+                keep += [round(placed[0], 1), round(placed[1], 1), round(placed[2], 2)]
+                notes["moved off tram tracks"] = notes.get("moved off tram tracks", 0) + 1
+            else:
+                notes["on tram tracks"] = notes.get("on tram tracks", 0) + 1
         d[key] = keep
     return notes
 
 
 TRAM_HALF = 1.2        # map review A: a tram's half width (2.4 m) about its track's centreline
+TRAM_SIDE = (2.4, 3.0, 3.6, 4.5)   # map round 2: a stop's shelter moved beside its track this far from it
 CROWN_CLEAR = 0.3      # map review A: a crown beside a deck stays this far under its slab...
 CROWN_HEAD = {"road": 3.5, "rail": 3.5, "tram": 3.5, "path": 2.5}   # ...unless its base is this far over the deck
 CROWN_MIN = 40         # ...shrinking its scale (hundredths) no further than this
@@ -1215,6 +1251,178 @@ def widen_fills(m):
     return n
 
 
+BANK_STEP = 8.0        # map round 2b: a river spot candidate every this many metres of the river's edge...
+BANK_INLAND = 5.0      # ...this far in from it (rides.gd RIVER_INLAND)...
+BANK_DRY = 3.0         # ...dry this far round (RIVER_DRY)...
+BANK_ROAD = 70.0       # ...with a lane within this (RIVER_ROAD)...
+BANK_RIVER = 50000.0   # ...of a water area this big (the river, not a pond)
+BANK_TRIES = 10        # ...trying the nearest lane points first, up to this many
+BANK_STEP_UP = 0.6     # the line to the lane is no road for the car where the ground steps this much...
+BANK_STEP_RUN = 2.0    # ...within this (a terrace, a boulevard's wall the grid blurs)
+
+
+def place_bank(m):
+    """Map round 2b (2026-10-29): the river spots the Podwózka job drives the car to (loop 2d-1
+    `rides.gd` found them by scanning the water's edge at run time: a dry waypoint BANK_INLAND in
+    from the river, a straight line to a lane within BANK_ROAD over dry ground with no building
+    on it). The line was never tested against what stops a car: a retaining wall, a fence, a
+    wall or hedge line, a guard rail, a flight of steps, a pier, a solid prop, or a step in the
+    ground (the Bulwary lie 3-5 m under Wybrzeże Kościuszkowskie). Here every candidate's line
+    to the nearest lane along the bank each way is walked every 0.5 m against all of them; the
+    ones that pass are `drivable_bank`: [wx, wz, rx, rz] (waypoint, the lane point). Returns
+    (spots, notes)."""
+    import check_roads as cr
+    d = m.d
+    river = []
+    for a in d.get("areas", []):
+        if a.get("k") != "water":
+            continue
+        q = cr.pairs(a["p"])
+        area = abs(sum(p[0] * r[1] - r[0] * p[1] for p, r in zip(q, q[1:] + q[:1]))) * 0.5
+        if area >= BANK_RIVER:
+            river.append(q)
+    water = cr.Grid(32.0)
+    for k, a in enumerate(d.get("areas", [])):
+        if a.get("k") == "water":
+            q = cr.pairs(a["p"])
+            water.add(q, min(p[0] for p in q), min(p[1] for p in q), max(p[0] for p in q), max(p[1] for p in q))
+
+    def wet(x, z):
+        return any(cr.point_in_poly(x, z, q) for q in water.at(x, z))
+    solids = cr.Solids(m, cr.Landmarks(d))
+    segs = cr.Grid(8.0)   # (a, b, what): everything a car can't drive across
+
+    def put(a, b, what, pad=0.3):
+        segs.add((a, b, what, pad), min(a[0], b[0]) - pad, min(a[1], b[1]) - pad, max(a[0], b[0]) + pad, max(a[1], b[1]) + pad)
+    for w in d.get("walls", []):
+        ps = cr.pairs(w["p"])
+        for k in range(len(ps) - 1):
+            if max(w["t"][k] - w["b"][k], w["t"][k + 1] - w["b"][k + 1]) >= WALL_SOLID:
+                put(ps[k], ps[k + 1], "wall")
+    for ln in d.get("lines", []):
+        if ln["k"] in BARRIER_HALF:
+            ps = cr.pairs(ln["p"])
+            for a, b in zip(ps, ps[1:]):
+                put(a, b, ln["k"], BARRIER_HALF[ln["k"]] + 0.3)
+    for g in d.get("guards", []):
+        if g.get("dk") is None:
+            ps = cr.pairs(g["p"])
+            for a, b in zip(ps, ps[1:]):
+                put(a, b, "guard rail")
+    for st in d.get("steps", []):
+        ps = cr.pairs(st["p"])
+        for a, b in zip(ps, ps[1:]):
+            put(a, b, "steps", 1.2)
+    for p in d.get("decks", {}).get("piers", []):
+        if p.get("k") == "cap":
+            continue
+        (cx, cz), (dx, dz), (across, along) = p["c"], p["d"], p["s"]
+        rx, rz = -dz, dx
+        cs = [(cx + dx * u * along * 0.5 + rx * v * across * 0.5, cz + dz * u * along * 0.5 + rz * v * across * 0.5)
+              for u, v in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+        for k in range(4):
+            put(cs[k], cs[(k + 1) % 4], "pier")
+    for key in PROP_SOLID:
+        v = d.get(key, [])
+        for i in range(0, len(v) - 2, 3):
+            put((v[i], v[i + 1]), (v[i], v[i + 1]), key, PROP_SOLID[key] * 0.5 + 0.5)
+    lanes = cr.Grid(32.0)
+    for e in d["graph"]["edges"]:
+        if e.get("dk") is not None or e.get("tn") is not None:
+            continue
+        pts = cr.pairs(e["p"])
+        for k in range(e["n"]):
+            q = cr.offset_line(pts, e["o"] + e["lw"] * k)
+            for a, b in zip(q, q[1:]):
+                lanes.add((a, b), min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1]))
+
+    def blocked(r, w):
+        n = max(1, int(math.dist(r, w) / 0.5))
+        prev = None
+        hs = []
+        for k in range(n + 1):
+            x, z = r[0] + (w[0] - r[0]) * k / n, r[1] + (w[1] - r[1]) * k / n
+            if k > 0 and wet(x, z):
+                return "water"
+            g = m.terrain(x, z)
+            hs.append(g)
+            for q, base, top, label, bb, _ in solids.at(x, z):
+                if base < g + 3.0 and top > g + 0.5:
+                    return "building"
+            if m.decks.at(x, z) and any(abs(hd - g) < 4.5 for hd, _, _ in m.decks.at(x, z)):
+                return "deck"   # under a deck too low to pass, or onto its end
+            if prev is not None:
+                for a, b, what, pad in segs.at(x, z):
+                    if cr.seg_seg_dist(prev, (x, z), a, b) < pad:
+                        return what
+            prev = (x, z)
+        run = max(1, int(BANK_STEP_RUN / 0.5))
+        for k in range(len(hs) - run):
+            if abs(hs[k + run] - hs[k]) > BANK_STEP_UP:
+                return "step"
+        return None
+    out, why = [], {}
+    cands = 0
+    for q in river:
+        ring = q + q[:1]
+        for a, b in zip(ring, ring[1:]):
+            ln = math.dist(a, b)
+            if ln < 0.5:
+                continue
+            ux, uz = (b[0] - a[0]) / ln, (b[1] - a[1]) / ln
+            s = 0.0
+            while s < ln:
+                ex, ez = a[0] + ux * s, a[1] + uz * s
+                s += BANK_STEP
+                # The land side of the edge.
+                for sgn in (1.0, -1.0):
+                    nx, nz = -uz * sgn, ux * sgn
+                    if not wet(ex + nx * 1.0, ez + nz * 1.0):
+                        break
+                else:
+                    continue
+                w = (ex + nx * BANK_INLAND, ez + nz * BANK_INLAND)
+                if not (m.bounds[0] + 10 < w[0] < m.bounds[2] - 10 and m.bounds[1] + 10 < w[1] < m.bounds[3] - 10):
+                    continue
+                if wet(*w) or any(wet(w[0] + math.cos(t) * BANK_DRY * f, w[1] + math.sin(t) * BANK_DRY * f)
+                                  for t in [k * math.tau / 12 for k in range(12)] for f in (0.5, 1.0)):
+                    continue
+                if any(True for _ in solids.at(*w)) or m.decks.at(*w):
+                    continue
+                cands += 1
+                # The lanes within BANK_ROAD, nearest first (one point per lane segment); the
+                # first whose line is drivable is the spot's road point.
+                near, seen = [], set()
+                for ci in range(-3, 4):
+                    for cj in range(-3, 4):
+                        for la, lb in lanes.at(w[0] + ci * 24.0, w[1] + cj * 24.0):
+                            if (la, lb) in seen:
+                                continue
+                            seen.add((la, lb))
+                            sx, sz = lb[0] - la[0], lb[1] - la[1]
+                            l2 = sx * sx + sz * sz
+                            if l2 < 1e-4:
+                                continue
+                            t = min(max(((w[0] - la[0]) * sx + (w[1] - la[1]) * sz) / l2, 0.0), 1.0)
+                            p = (la[0] + sx * t, la[1] + sz * t)
+                            dd = math.dist(p, w)
+                            if dd <= BANK_ROAD:
+                                near.append((dd, p))
+                near.sort()
+                found, first = None, None
+                for dd, p in near[:BANK_TRIES]:
+                    reason = blocked(p, w)
+                    if reason is None:
+                        found = p
+                        break
+                    first = first or reason
+                if found:
+                    out.append([round(w[0], 1), round(w[1], 1), round(found[0], 1), round(found[1], 1)])
+                elif first:
+                    why[first] = why.get(first, 0) + 1
+    return out, {"candidates": cands, "blocked": why}
+
+
 def add_structures(out, map_dir, terrain):
     """Everything this module adds, into the finished map file `out` (bake_osm.py)."""
     import check_roads as cr
@@ -1244,7 +1452,8 @@ def add_structures(out, map_dir, terrain):
     print(f"carriageways (check_drive): {cc['barrier m cut']:.0f} m of fences, walls, hedges and mapped guard rails "
           f"inside a carriageway or a lane cut out; left out there: {cc['props']} solid props, "
           f"{cc.get('parked', 0)} parked cars, {cc.get('pillars', 0)} viaduct pillars, {cc.get('small buildings', 0)} kiosks; "
-          f"{cc.get('on tram tracks', 0)} props on a tram track left out (map review A)")
+          f"{cc.get('moved off tram tracks', 0)} props on a tram track moved beside it, "
+          f"{cc.get('on tram tracks', 0)} left out (map review A, round 2)")
     ct, cl = trim_crowns(m)
     print(f"trees (map review A): {ct} scanned crowns beside a deck shrunk to clear its slab ({cl} still reach it)")
     walls, wst = place_walls(m)
@@ -1258,6 +1467,10 @@ def add_structures(out, map_dir, terrain):
     print(f"piers (R5): {st['candidates']} places under the decks: {st['in place']} in place, {st['slid']} slid "
           f"along the deck to a clear spot, {st['portals']} portal frames, {st['skipped']} left out"
           + (f" (at {', '.join(f'({x}, {z})' for x, z in st['skipped at'][:12])})" if st["skipped"] else ""))
+    bank, bst = place_bank(m)
+    out["drivable_bank"] = bank
+    print(f"river spots (map round 2b): {len(bank)} drivable lines from {bst['candidates']} dry waypoints by the river; "
+          f"blocked: " + ", ".join(f"{k} {v}" for k, v in sorted(bst["blocked"].items())))
 
 
 def main(argv):

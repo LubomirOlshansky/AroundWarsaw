@@ -148,6 +148,8 @@ var _uv2 := Vector2.ZERO
 ## An apron (of a map baked without `i`) starts this far inside the structure's end (the ground
 ## held under it there).
 const APRON_IN := 4.0
+## Map round 2 (D5): an apron fades out over this past its corridor's sides.
+const APRON_TAPER := 3.0
 @export_storage var _apron_cells := {}
 const FILL_CELL := 16.0
 ## Loop 3a (R4): tunnel pieces (tools/bake_roads.py `tunnels`): pts, h, g (one tunnel each).
@@ -608,8 +610,13 @@ func terrain_height(x: float, z: float) -> float:
 		var a: PackedFloat32Array = _aprons[k]
 		var along := (x - a[0]) * a[2] + (z - a[1]) * a[3]
 		var lat := (z - a[1]) * a[2] - (x - a[0]) * a[3]
-		if along >= 0.0 and along <= a[4] and lat >= -a[6] and lat <= a[7]:
-			h = minf(h, a[5]) if along < a[8] else lerpf(a[5], h, (along - a[8]) / (a[4] - a[8]))
+		# Map round 2 (D5): past the corridor's sides the apron fades out over APRON_TAPER (it
+		# stopped at a 0.65 m step inside a carriageway wider than the deck at the viaduct's west
+		# end; the drawn ground follows a slope, not a step).
+		var out := maxf(-a[6] - lat, lat - a[7])
+		if along >= 0.0 and along <= a[4] and out < APRON_TAPER:
+			var target := minf(h, a[5]) if along < a[8] else lerpf(a[5], h, (along - a[8]) / (a[4] - a[8]))
+			h = target if out <= 0.0 else lerpf(target, h, out / APRON_TAPER)
 	return h
 
 
@@ -1210,7 +1217,7 @@ func _load_aprons() -> void:
 		var k := _aprons.size()
 		_aprons.append(PackedFloat32Array([float(p[0]), float(p[1]), d.x, d.y, length, float(a["h"]), float(a["l"]),
 				float(a["r"]), float(a.get("i", APRON_IN))]))
-		var reach := maxf(float(a["l"]), float(a["r"])) + length
+		var reach := maxf(float(a["l"]), float(a["r"])) + APRON_TAPER + length
 		for cz in range(floori((float(p[1]) - reach) / FILL_CELL), floori((float(p[1]) + reach) / FILL_CELL) + 1):
 			for cx in range(floori((float(p[0]) - reach) / FILL_CELL), floori((float(p[0]) + reach) / FILL_CELL) + 1):
 				var key := (cx + 1024) * 4096 + cz + 1024
@@ -1482,8 +1489,9 @@ func _emit_draped(st, a: Vector3, b: Vector3, c: Vector3, col: Color) -> void:
 		var v: Vector3 = p[k]
 		var h := _surface_height(v.x, v.z)
 		if _on_grid and _dk < 0 and _tn < 0:
-			# Never under the drawn ground (an apron can hold the road under the grid).
-			h = maxf(h, _grid_height(v.x, v.z))
+			# Never under the drawn ground (map round 2: the drawn ground, which follows an
+			# apron in its sub-cells).
+			h = maxf(h, _drawn_height(v.x, v.z))
 		p[k] = Vector3(v.x, h + v.y, v.z)
 	if ((p[1] - p[0]).cross(p[2] - p[0]).dot(Vector3.UP) > 0.0) == CLOCKWISE_FRONT:
 		p = [p[0], p[2], p[1]]
@@ -1573,6 +1581,7 @@ func _fill_grid_cells(st, poly: PackedVector2Array, y: float, col: Color) -> voi
 	for k in n:
 		_mark_cells(crossed, (poly[k] - Vector2(gx, gz)) / step - Vector2(i0, j0),
 				(poly[(k + 1) % n] - Vector2(gx, gz)) / step - Vector2(i0, j0), w, h)
+	_fine_index()
 	for j in h:
 		var z := gz + (j0 + j) * step
 		for i in w:
@@ -1581,6 +1590,27 @@ func _fill_grid_cells(st, poly: PackedVector2Array, y: float, col: Color) -> voi
 			var b := Vector2(x + step, z)
 			var c := Vector2(x + step, z + step)
 			var d := Vector2(x, z + step)
+			if _fine_cells.has(Vector2i(i0 + i, j0 + j)):
+				# Map round 2 (D5): a cell an apron reaches is drawn in sub-cells; lay the
+				# polygon on their triangles, each clipped.
+				var s := step / GROUND_SUB
+				for sj in GROUND_SUB:
+					for si in GROUND_SUB:
+						var sa := Vector2(x + si * s, z + sj * s)
+						var sb := sa + Vector2(s, 0)
+						var sc := sa + Vector2(s, s)
+						var sd := sa + Vector2(0, s)
+						for tri in [PackedVector2Array([sa, sb, sc]), PackedVector2Array([sa, sc, sd])]:
+							for piece in Geometry2D.intersect_polygons(tri, poly):
+								var pidx := Geometry2D.triangulate_polygon(piece)
+								for t in range(0, pidx.size(), 3):
+									var p0 := piece[pidx[t]]
+									var p1 := piece[pidx[t + 1]]
+									var p2 := piece[pidx[t + 2]]
+									if absf((p1 - p0).cross(p2 - p0)) < 0.0002:
+										continue
+									_emit_draped(st, Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), Vector3(p2.x, y, p2.y), col)
+				continue
 			if crossed[j * w + i] == 0:
 				if Geometry2D.is_point_in_polygon(Vector2(x + step * 0.5, z + step * 0.5), poly):
 					_emit_draped(st, Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y, c.y), col)
@@ -1734,6 +1764,135 @@ func _ground_normals() -> PackedVector3Array:
 	return _gn
 
 
+# --- Map round 2 (2026-10-29, D5): the drawn ground follows the aprons ------------------------
+# An apron (loop 3b) holds terrain_height under a structure's end below the 10 m grid (the end
+# is flat across, the grid on the cross slope isn't), and everything drawn at terrain_height
+# there (the road, its carriageway area, kerbs, tram and rail beds) lay under the drawn grid:
+# the beige wedge of bare ground across the viaduct's west end (0.65 m), the Wisłostrada and
+# abutment-link portals (up to 1 m), the Kruczkowskiego rail viaduct, two ramps' feet
+# (check_roads C11). The grid cells an apron reaches are drawn as GROUND_SUB x GROUND_SUB
+# sub-cells at min(grid, terrain_height) (`_drawn_height`), with the same diagonal as the grid,
+# so where nothing is lowered they are the grid's own planes; the flat layers laid on the grid
+# (_fill_grid_cells) use the same sub-cells and never go under them. check_roads `Map.drawn`
+# mirrors this.
+
+## The sub-cells per grid cell side under an apron (1 m on the 10 m grid).
+const GROUND_SUB := 10
+## Grid cells (Vector2i(i, j)) an apron's corridor reaches, from `_aprons` (built on first use,
+## the same for the whole city and each sector).
+var _fine_cells := {}
+var _fine_ready := false
+
+
+func _fine_index() -> void:
+	if _fine_ready:
+		return
+	_fine_ready = true
+	_fine_cells.clear()
+	if _t_h.is_empty():
+		return
+	var step := float(_terrain["step"])
+	var gx := float(_terrain["x0"])
+	var gz := float(_terrain["z0"])
+	var nx := int(_terrain["nx"])
+	var nz := int(_terrain["nz"])
+	for a in _aprons:
+		var o := Vector2(a[0], a[1])
+		var u := Vector2(a[2], a[3])
+		var n := Vector2(-u.y, u.x)
+		var lo := Vector2(INF, INF)
+		var hi := Vector2(-INF, -INF)
+		for along in [0.0, a[4]]:
+			for lat in [-a[6] - APRON_TAPER, a[7] + APRON_TAPER]:
+				var p: Vector2 = o + u * float(along) + n * float(lat)
+				lo = lo.min(p)
+				hi = hi.max(p)
+		for j in range(clampi(floori((lo.y - gz) / step), 0, nz - 2), clampi(floori((hi.y - gz) / step), 0, nz - 2) + 1):
+			for i in range(clampi(floori((lo.x - gx) / step), 0, nx - 2), clampi(floori((hi.x - gx) / step), 0, nx - 2) + 1):
+				_fine_cells[Vector2i(i, j)] = true
+
+
+## The drawn ground's height at a sub-cell corner: the grid, or terrain_height where an apron
+## holds the ground under it.
+func _drawn_corner(x: float, z: float) -> float:
+	return minf(_grid_height(x, z), terrain_height(x, z))
+
+
+## The drawn ground's height at a point (the mesh `_build_ground` draws): the grid's two
+## triangles per cell, or in a cell an apron reaches the sub-cells' (GROUND_SUB).
+func _drawn_height(x: float, z: float) -> float:
+	_fine_index()
+	if _fine_cells.is_empty():
+		return _grid_height(x, z)
+	var step := float(_terrain["step"])
+	var fx := clampf((x - float(_terrain["x0"])) / step, 0.0, int(_terrain["nx"]) - 1.0001)
+	var fz := clampf((z - float(_terrain["z0"])) / step, 0.0, int(_terrain["nz"]) - 1.0001)
+	var i := int(fx)
+	var j := int(fz)
+	if not _fine_cells.has(Vector2i(i, j)):
+		return _grid_height(x, z)
+	var s := step / GROUND_SUB
+	var si := clampi(int((fx - i) * GROUND_SUB), 0, GROUND_SUB - 1)
+	var sj := clampi(int((fz - j) * GROUND_SUB), 0, GROUND_SUB - 1)
+	var x0 := float(_terrain["x0"]) + i * step + si * s
+	var z0 := float(_terrain["z0"]) + j * step + sj * s
+	var u := clampf((x - x0) / s, 0.0, 1.0)
+	var v := clampf((z - z0) / s, 0.0, 1.0)
+	var h00 := _drawn_corner(x0, z0)
+	var h10 := _drawn_corner(x0 + s, z0)
+	var h01 := _drawn_corner(x0, z0 + s)
+	var h11 := _drawn_corner(x0 + s, z0 + s)
+	if u >= v:
+		return h00 + (h10 - h00) * u + (h11 - h10) * v
+	return h00 + (h11 - h01) * u + (h01 - h00) * v
+
+
+## One grid cell an apron reaches, as GROUND_SUB x GROUND_SUB sub-cells of the drawn ground.
+func _ground_fine_cell(st, i: int, j: int, normals: PackedVector3Array, colour: Color) -> void:
+	var step := float(_terrain["step"])
+	var nx := int(_terrain["nx"])
+	var cx := float(_terrain["x0"]) + i * step
+	var cz := float(_terrain["z0"]) + j * step
+	var s := step / GROUND_SUB
+	var n00 := normals[j * nx + i]
+	var n10 := normals[j * nx + i + 1]
+	var n01 := normals[(j + 1) * nx + i]
+	var n11 := normals[(j + 1) * nx + i + 1]
+	for sj in GROUND_SUB:
+		for si in GROUND_SUB:
+			var q: Array[Vector3] = []
+			var nq: Array[Vector3] = []
+			for c: Vector2i in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, 1), Vector2i(0, 1)]:
+				var x := cx + (si + c.x) * s
+				var z := cz + (sj + c.y) * s
+				var g := _grid_height(x, z)
+				var h := minf(g, terrain_height(x, z))
+				q.append(Vector3(x, h, z))
+				var fu := float(si + c.x) / GROUND_SUB
+				var fv := float(sj + c.y) / GROUND_SUB
+				var nrm := (n00.lerp(n10, fu)).lerp(n01.lerp(n11, fu), fv).normalized()
+				if g - h > 0.01:
+					# Lowered: the slope of the drawn ground itself.
+					var hx0 := _drawn_corner(x - s, z)
+					var hx1 := _drawn_corner(x + s, z)
+					var hz0 := _drawn_corner(x, z - s)
+					var hz1 := _drawn_corner(x, z + s)
+					nrm = Vector3(hx0 - hx1, 2.0 * s, hz0 - hz1).normalized()
+				nq.append(nrm)
+			for tri in [[0, 1, 2], [0, 2, 3]]:
+				var corners: Array[Vector3] = [q[tri[0]], q[tri[1]], q[tri[2]]]
+				var ns: Array[Vector3] = [nq[tri[0]], nq[tri[1]], nq[tri[2]]]
+				var order := [0, 1, 2]
+				if ((corners[1] - corners[0]).cross(corners[2] - corners[0]).dot(Vector3.UP) > 0.0) == CLOCKWISE_FRONT:
+					order = [0, 2, 1]
+				for o in order:
+					st.set_color(colour)
+					st.set_normal(ns[o])
+					st.set_uv(Vector2(-1, -1))
+					st.add_vertex(corners[o])
+# --- end of map round 2 (D5) ------------------------------------------------------------------
+
+
 func _build_ground(st) -> void:
 	if _t_h.is_empty():
 		var r := bounds
@@ -1756,8 +1915,12 @@ func _build_ground(st) -> void:
 				clampi(floori((_sector_rect.end.x - x0) / step) + 1, 0, nx - 1))
 		cj = Vector2i(clampi(floori((_sector_rect.position.y - z0) / step) - 1, 0, nz - 1),
 				clampi(floori((_sector_rect.end.y - z0) / step) + 1, 0, nz - 1))
+	_fine_index()
 	for j in range(cj.x, cj.y):
 		for i in range(ci.x, ci.y):
+			if _fine_cells.has(Vector2i(i, j)):
+				_ground_fine_cell(st, i, j, normals, colour)  # map round 2 (D5)
+				continue
 			var k00 := j * nx + i
 			var k10 := k00 + 1
 			var k01 := k00 + nx
@@ -3875,12 +4038,15 @@ func _build_street_furniture() -> void:
 		spots.append(t)
 		var head := t * Vector3(1.2, 0.0, 0.0)
 		glows.append(SODIUM_GLOW if _sodium_at(head.x, head.z) else LED_GLOW)
-	# The bake's own lamps (bridges): on the deck, arm over the carriageway.
+	# The bake's own lamps (bridges; map round 2: the streets' unlit stretches too): on the deck or
+	# the kerb, arm over the carriageway, sodium or LED as the light map has them at the head.
 	for i in range(0, _extra_lamps.size() - 2, 3):
 		var x := _extra_lamps[i]
 		var z := _extra_lamps[i + 1]
-		spots.append(Transform3D(Basis(Vector3.UP, _extra_lamps[i + 2]), Vector3(x, ground_height(x, z), z)))
-		glows.append(SODIUM_GLOW)
+		var t := Transform3D(Basis(Vector3.UP, _extra_lamps[i + 2]), Vector3(x, ground_height(x, z), z))
+		spots.append(t)
+		var head := t * Vector3(1.2, 0.0, 0.0)
+		glows.append(SODIUM_GLOW if _sodium_at(head.x, head.z) else LED_GLOW)
 	var none: Array[Color] = []
 	for mmi in _tree_multimesh(_shared["lamp"], _shared["fixture"], spots, none, glows):
 		mmi.add_to_group(SMALL_CASTERS, true)

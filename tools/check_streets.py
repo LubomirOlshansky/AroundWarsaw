@@ -21,6 +21,7 @@ S3 18, S4 0.
 import json
 import math
 import os
+import struct
 import sys
 from collections import defaultdict
 
@@ -205,6 +206,22 @@ def main():
             x, z = v[k], v[k + 1]
             if not raised(x, z) and asphalt(x, z):
                 found["S1"].append((x, z, key[:-1]))
+    # Map round 2: the lamps bake_lights adds (bridges, the streets' unlit stretches), at
+    # lights.bin's end; a bridge lamp on its deck is not on the ground's asphalt.
+    lb = os.path.join(folder, "lights.bin")
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import check_roads
+    decks = check_roads.Pieces(d.get("decks", {}).get("pieces", []))
+    if os.path.exists(lb):
+        raw = open(lb, "rb").read()
+        w, h = struct.unpack_from("<II", raw, 0)
+        off = 20 + w * h * 2
+        if len(raw) >= off + 4:
+            n = struct.unpack_from("<I", raw, off)[0]
+            for k in range(n):
+                x, z, _ = struct.unpack_from("<fff", raw, off + 4 + 12 * k)
+                if not raised(x, z) and asphalt(x, z) and not decks.at(x, z):
+                    found["S1"].append((round(x, 1), round(z, 1), "added lamp"))
 
     # S2: zebras off the asphalt.
     for p in d["paths"]:
