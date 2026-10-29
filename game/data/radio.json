@@ -9,7 +9,7 @@
         {
           "file": "res://audio/radio/nocna_fm/palma_de_gaulle.ogg",
           "title": "Palma de Gaulle'a",
-          "artist": "Nocna Warszawa",
+          "artist": "Around Warsaw",
           "seconds": 53.33,
           "gain_db": -0.1,
           "licence": "own: synthesised by tools/make_music.py (MIT)",
@@ -26,7 +26,7 @@
         {
           "file": "res://audio/radio/rondo_fm/rondo_3am.ogg",
           "title": "Rondo Dmowskiego 3 A.M.",
-          "artist": "Nocna Warszawa",
+          "artist": "Around Warsaw",
           "seconds": 48.0,
           "gain_db": -0.45,
           "licence": "own: synthesised by tools/make_music.py (MIT)",
@@ -43,7 +43,7 @@
         {
           "file": "res://audio/radio/mordor_fm/mordor_mall.ogg",
           "title": "Mordor Mall Muzak",
-          "artist": "Nocna Warszawa",
+          "artist": "Around Warsaw",
           "seconds": 41.74,
           "gain_db": -0.8,
           "licence": "own: synthesised by tools/make_music.py (MIT)",

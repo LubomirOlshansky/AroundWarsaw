@@ -1,11 +1,11 @@
 ---
 name: godot-mobile-perf
-description: Godot 4 Mobile-renderer performance rules for Nocna Warszawa on the iPhone (Metal, tile-based GPU) and how to measure and cut frame cost (bench, probe, the phone's BENCH card, draw calls, shadow pass, MultiMesh, culling, fill rate, script time). Use before adding anything to the city (props, vehicles, signs, lights, shaders, per-frame scripts), for any FPS or heat question, and when a change must stay inside README's "Performance budgets".
+description: Godot 4 Mobile-renderer performance rules for Around Warsaw on the iPhone (Metal, tile-based GPU) and how to measure and cut frame cost (bench, probe, the phone's BENCH card, draw calls, shadow pass, MultiMesh, culling, fill rate, script time). Use before adding anything to the city (props, vehicles, signs, lights, shaders, per-frame scripts), for any FPS or heat question, and when a change must stay inside DEVELOPMENT.md's "Performance budgets".
 ---
 
 # Frame cost on the phone
 
-The budgets live in README.md, **"Performance budgets"** (draw calls, triangles in the main
+The budgets live in docs/DEVELOPMENT.md, **"Performance budgets"** (draw calls, triangles in the main
 and shadow passes, script ms, frame ms, and what each loop may add). Read them first. If that
 section is missing, use "Provisional budget P" in docs/DEMO.md "Milestones" and the latest
 loop 2b row in docs/ROADMAP.md, and say so in your report.
@@ -39,11 +39,11 @@ loop 2b row in docs/ROADMAP.md, and say so in your report.
   ends: a 25-60 ms frame on the iPhone 11 per load, outside the streamer's own time (loop G0+,
   `--stream-log`'s `worker` lines). The likely fix (untested): smaller sector resources, one loaded a frame.
 - Quality levels and the pixel image's budget live in `tiers.gd`; the governor (`governor.gd`)
-  takes extras away when refreshes are missed. Bench both phones at Auto (README "Loop G1").
+  takes extras away when refreshes are missed. Bench both phones at Auto (DEVELOPMENT.md "Loop G1").
 
 ## Measure first (Godot's own advice: profile, cut the biggest cost, profile again)
 
-| Tool | Command (from `game/`; README lists every flag) |
+| Tool | Command (from `game/`; DEVELOPMENT.md lists every flag) |
 | --- | --- |
 | Bench route | `godot --path . --disable-vsync -- --bench --nosave` (+ `--time=night`, `--weather=rain --time=night`) |
 | One view, standing still | `godot --path . --resolution 2532x1170 --fixed-fps 60 -- --probe --nosave --at=X,Z --heading=DEG` |

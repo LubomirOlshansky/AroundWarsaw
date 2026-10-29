@@ -2,7 +2,7 @@ class_name BeehaveDebuggerMessages
 
 
 static func can_send_message() -> bool:
-	# Nocna Warszawa local patch (loop 3g-1): also needs a debugger to talk to. The game's
+	# Around Warsaw local patch (loop 3g-1): also needs a debugger to talk to. The game's
 	# headless test runs use the editor binary without one, and every interrupt printed
 	# "Can't send message. No active debugger" (an ERROR line fails tools/verify.sh).
 	return not Engine.is_editor_hint() and OS.has_feature("editor") and EngineDebugger.is_active()

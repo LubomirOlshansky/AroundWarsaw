@@ -62,7 +62,7 @@ def problem(args: list[str]) -> str:
     if not any(a.startswith(ENDS_RUN) for a in args):
         missing.append("a way to quit (--quit-after N before --, or --shots= / --bench after it)")
     if missing:
-        return "Nocna Warszawa test runs need " + " and ".join(missing) + " (CLAUDE.md, Hard rules)."
+        return "Around Warsaw test runs need " + " and ".join(missing) + " (CLAUDE.md, Hard rules)."
     return ""
 
 

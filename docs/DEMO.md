@@ -1,4 +1,4 @@
-# Nocna Warszawa: the demo plan
+# Around Warsaw: the demo plan
 
 Written 2026-10-28, after the user played on an iPhone 16 Pro Max and asked for "the top indie
 game", starting with a really good demo of the centre: **from Rondo Daszyńskiego to Stadion

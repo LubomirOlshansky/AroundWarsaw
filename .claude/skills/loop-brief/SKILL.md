@@ -1,6 +1,6 @@
 ---
 name: loop-brief
-description: Writes the brief for one Nocna Warszawa work loop (goal, read-first list, prioritised items, budget, hard constraints, acceptance checks, report format with Open Questions), hands it to the right subagent and model, and verifies the result before accepting it. Use when starting any task bigger than a one-file fix, when delegating to a subagent, and when a subagent's report comes back.
+description: Writes the brief for one Around Warsaw work loop (goal, read-first list, prioritised items, budget, hard constraints, acceptance checks, report format with Open Questions), hands it to the right subagent and model, and verifies the result before accepting it. Use when starting any task bigger than a one-file fix, when delegating to a subagent, and when a subagent's report comes back.
 ---
 
 # A loop: brief, delegate, verify, report
@@ -26,7 +26,7 @@ Rules for a good brief:
   to start from), so the agent doesn't rediscover the project.
 - **Items** are concrete and checkable; for a suspected cause write "confirm it, don't take it
   on trust" and ask for the measurement that proves it before the change.
-- **Budget** is the frame and vertex growth allowed (from README "Performance budgets"); a
+- **Budget** is the frame and vertex growth allowed (from DEVELOPMENT.md "Performance budgets"); a
   performance loop gets "no growth: the frame must get cheaper".
 - **Constraints** are the block from `template.md`, pasted whole, plus the task's own.
 - **Acceptance** lists the exact commands and outputs that prove each item, the screenshots
@@ -65,7 +65,7 @@ delegating, make a marker for the scope check: `touch <scratch>/loop_start`.
 3. **Look:** open the key screenshots yourself; for a visible change, have `art-director`
    review the set.
 4. **Numbers:** bench before/after against the budget; device numbers if the loop had a run.
-5. **Docs:** README (behaviour, flags), ROADMAP (item marked done, a progress-log row in the
+5. **Docs:** DEVELOPMENT.md (behaviour, flags), ROADMAP (item marked done, a progress-log row in the
    house style), BACKLOG (fixed items removed, found ones added) are updated.
 6. A Sonnet run that fails its gates, overshoots scope or returns Open Questions: re-run the
    whole task on Opus with the answers, don't patch it.

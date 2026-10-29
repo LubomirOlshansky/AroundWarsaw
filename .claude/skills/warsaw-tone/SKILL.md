@@ -1,6 +1,6 @@
 ---
 name: warsaw-tone
-description: The humour, parody and language rules for every word and joke in Nocna Warszawa (dialogue lines, radio host, signs, posters, billboards, job and mission cards, police lines, rival names, HUD labels), in Polish with English, and the format of game/data/dialogue.json. Use whenever writing or reviewing on-screen text, jokes, characters, parody brands or anything that names a real place, business or person.
+description: The humour, parody and language rules for every word and joke in Around Warsaw (dialogue lines, radio host, signs, posters, billboards, job and mission cards, police lines, rival names, HUD labels), in Polish with English, and the format of game/data/dialogue.json. Use whenever writing or reviewing on-screen text, jokes, characters, parody brands or anything that names a real place, business or person.
 ---
 
 # Warsaw tone

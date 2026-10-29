@@ -1,4 +1,4 @@
-# Isometric Warsaw and Nocna Warszawa: what we learn (2026-10-29)
+# Isometric Warsaw and Around Warsaw: what we learn (2026-10-29)
 
 The user asked to study Bedirhan Yıldırım's "Isometric Warsaw" (an article and its screenshots,
 bedirhanyildirim.com/pixel-art-map-of-warsaw/, online 22 October 2026) against our plan and to

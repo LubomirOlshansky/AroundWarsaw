@@ -1,9 +1,9 @@
 ---
 name: pixellab
-description: Make 2D pixel art for Nocna Warszawa with the PixelLab MCP server (tools named mcp__pixellab__*). Use when a task needs character portraits for dialogue (drivers, rivals, police, customers, radio hosts), HUD and UI icons, minimap icons, billboard, poster and parody shop-sign art, neon sign textures, a pixel font, the app icon or store art, or seamless pixel textures. Not for the 3D city, cars or landmarks, which are built in code.
+description: Make 2D pixel art for Around Warsaw with the PixelLab MCP server (tools named mcp__pixellab__*). Use when a task needs character portraits for dialogue (drivers, rivals, police, customers, radio hosts), HUD and UI icons, minimap icons, billboard, poster and parody shop-sign art, neon sign textures, a pixel font, the app icon or store art, or seamless pixel textures. Not for the 3D city, cars or landmarks, which are built in code.
 ---
 
-# PixelLab for Nocna Warszawa
+# PixelLab for Around Warsaw
 
 PixelLab (<https://www.pixellab.ai>) generates pixel art through an MCP server. The game is a 3D
 low-poly city drawn into a low-resolution pixel image, so PixelLab is for the **2D layer**:
@@ -76,7 +76,7 @@ MCP clients truncate.
   commercial use allowed, so these assets are the game's own art under the MIT licence
   (`LICENSE`, `CREDITS.md`). The terms forbid training other models on the outputs.
 - Draw-call budget: each new sign or poster in the city is a material. Pack small art into an
-  atlas and draw repeated signs with MultiMesh (see the performance budgets in README.md).
+  atlas and draw repeated signs with MultiMesh (see the performance budgets in docs/DEVELOPMENT.md).
 
 ## Check before you call it done
 

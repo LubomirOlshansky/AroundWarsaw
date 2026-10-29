@@ -1,6 +1,6 @@
 > **Development notes**, moved here from `README.md` on 2026-10-30 and otherwise unchanged: how every part of the game works, loop by loop. Where other docs, scripts and comments say "README", they mean this file; paths in it are from the repo root.
 
-# Nocna Warszawa (prototype)
+# Around Warsaw (prototype; Nocna Warszawa until 2026-10-30)
 
 Arcade driving and flying through the real Warsaw, isometric pixel art, built in Godot 4.7.2
 from OpenStreetMap and GUGiK open data. This prototype has real road shapes (mapped
@@ -283,7 +283,8 @@ HELI / AUTO (right); the keys are unchanged.
 - **VHS** (`vhs.gdshader`, V): scanlines at screen resolution, red/blue pulled apart, faint
   noise and a tracking wobble that rolls up the picture every few seconds. It runs on the
   container that scales the pixel image up, so the scanlines stay sharp; the HUD stays clean.
-- **Title screen** (`title.gd`): chrome NOCNA WARSZAWA over a striped setting sun with the
+- **Title screen** (`title.gd`): chrome AROUND WARSAW (`WORDMARK`; NOCNA WARSZAWA until
+  2026-10-30) with the tagline under it, Polish above English (`TAGLINE_PL`, `TAGLINE_EN`), over a striped setting sun with the
   Palace of Culture in silhouette (drawn from the v0.8 model's tiers, in metres), the skyline, the palm from Rondo de Gaulle'a and a neon grid;
   the city builds behind it, then TAP TO DRIVE / DOTKNIJ, BY JECHAĆ. Test runs skip it.
 - **Radio** (`radio.gd`, R): 87,3 NOCNA FM, 86,6 RONDO FM, 108,8 MORDOR FM, then Off; on by
@@ -365,7 +366,9 @@ at the hospital. Out of time: TRY AGAIN, NEXT CALL or FREE ROAM.
   payment floats up as "+46 zł"). Races pay the rival's stake (60–300 zł) and +100 respect,
   rescues pay 8% of the score in złoty and +40 respect, side jobs pay fares and tips. Wallet,
   respect, jobs done, best times and easter eggs found are kept in `user://save.cfg` (a
-  ConfigFile; on the Mac `~/Library/Application Support/Godot/app_userdata/Nocna Warszawa/`).
+  ConfigFile; on the Mac `~/Library/Application Support/Godot/app_userdata/Around Warsaw/`;
+  `.../Nocna Warszawa/` before the rename of 2026-10-30, so a Mac's older save stays there; the
+  phones keep theirs, as `user://` follows the unchanged bundle ID).
   No shop yet.
 - **Kebab delivery** (`jobs.gd`): seven stands (a kiosk with a pixel KEBAB board, a striped
   awning and a lit hatch; the board glows pink and gold at night) at the two mapped kebab places
