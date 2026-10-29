@@ -21,7 +21,9 @@ extends Node
 ## in yet (a jump: a tow, a race start) loads at once.
 ##
 ## --sectors=all loads every sector at the start and keeps them (the old behaviour, pixel
-## diffs); --stream-log prints every load and unload with its frame and main-thread ms.
+## diffs); --stream-log prints every load and unload with its frame and main-thread ms, and (loop
+## G0+) each worker load: its load and instantiate ms and the slowest frame while it ran, split
+## into the frame's phases (process after the streamer, draw, to the next physics frame, physics).
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Proxies := preload("res://scripts/sector_proxies.gd")
@@ -71,6 +73,14 @@ var _state := {}
 var _thread: Thread
 var _task_key := Vector2i.ZERO
 var _task_root: Node3D
+## --stream-log (loop G0+): when the worker started, loaded and instantiated (usec), and each
+## update's start in the meantime, to name the slowest frame during a load and what it overlapped.
+var _task_t := PackedInt64Array([0, 0, 0])
+var _task_ticks := PackedInt64Array()
+## The same frames' phases (usec stamps of frame_pre_draw, frame_post_draw, the first physics_frame
+## after it, process_frame): where the time of a slow one went.
+var _task_phases: Array[PackedInt64Array] = []
+var _stamps := PackedInt64Array([0, 0, 0, 0])
 var frame := 0
 ## Per frame: the main thread's streaming time (usec) and the frame's own (usec, wall clock).
 var stream_usec := PackedInt32Array()
@@ -87,6 +97,11 @@ var forced := 0
 var loads := 0
 var unloads := 0
 var _view_planes: Array[Plane] = []
+## Loop G0+: each streamed sector's main-thread ms (the forced and start-up loads apart), and per
+## kind of step (a node class added, the hand-over, the finish, an unload) its count, total and
+## worst usec, for the soak's result.
+var sector_ms := PackedFloat32Array()
+var _kinds := {}
 
 
 ## Opens the city: the index, the proxies and the sectors round `at` (in full, before the first
@@ -117,6 +132,13 @@ func open(world: Node3D, use_prebuilt: bool, building_mat: ShaderMaterial, flat_
 	var t_roofs := Time.get_ticks_msec() - t0 - t_index
 	_sectors = Node3D.new()
 	_sectors.name = "Sectors"
+	# Loop G0+: the city stands still, so its nodes take no physics interpolation (as the people's
+	# and the pigeons' MultiMeshes already didn't). With it on (the project's setting), adding a
+	# MultiMesh node cost the main thread 14 ms on average on the iPhone 11 (37 ms at worst; the
+	# Mac 1.4 ms), a sector 188 ms spread over its frames, every load frame over the 3 ms budget;
+	# off, 0.002 ms and 0.35 ms a sector. Every sector, the proxies and what they hold inherit this;
+	# nothing in them moves on the physics tick.
+	_sectors.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	map.add_child(_sectors)
 	var t_proxies := Time.get_ticks_msec()
 	# The runtime path takes the baked proxies too when there are any (they only show while a
@@ -127,6 +149,7 @@ func open(world: Node3D, use_prebuilt: bool, building_mat: ShaderMaterial, flat_
 		_proxies = Proxies.build_all(map, keys)
 	t_proxies = Time.get_ticks_msec() - t_proxies
 	_proxies.name = "Proxies"
+	_proxies.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	map.add_child(_proxies)
 	for c in _proxies.get_children():
 		_proxy[_key_of(c.name)] = c
@@ -198,6 +221,11 @@ func update(focus: Vector3, car: Vector3, cam: Camera3D) -> void:
 	frame_usec.append(t0 - _last_tick)
 	_last_tick = t0
 	frame += 1
+	if log:
+		if _thread != null:
+			_task_ticks.append(t0)
+			_task_phases.append(_stamps.duplicate())
+		_stamps.fill(0)
 	_worked = false
 	if load_all:
 		stream_usec.append(0)
@@ -286,6 +314,22 @@ func stats() -> Dictionary:
 	busy.sort()
 	var all := Array(stream_usec)
 	all.sort()
+	var over_budget := 0
+	for us in stream_usec:
+		if us > BUDGET_USEC:
+			over_budget += 1
+	# The frames over 33 ms past the warm-up: frame, its ms, the streaming ms in it (0: none).
+	var slow_list := []
+	for i in range(WARM_UP, frame_usec.size() - 1):
+		if frame_usec[i + 1] > 33333 and slow_list.size() < 60:
+			slow_list.append([i + 1, snappedf(frame_usec[i + 1] / 1000.0, 0.1),
+					snappedf(busy_usec[i] / 1000.0, 0.01) if i < busy_usec.size() else 0.0])
+	var per_sector := Array(sector_ms)
+	per_sector.sort()
+	var kinds := {}
+	for k: String in _kinds:
+		var v: Array = _kinds[k]
+		kinds[k] = {"n": v[0], "total_ms": snappedf(v[1] / 1000.0, 0.01), "max_ms": snappedf(v[2] / 1000.0, 0.01)}
 	return {"frames": frame, "loads": loads, "unloads": unloads,
 			"max_ms": all[-1] / 1000.0 if not all.is_empty() else 0.0,
 			"p99_ms": all[mini(all.size() - 1, int(all.size() * 0.99))] / 1000.0 if not all.is_empty() else 0.0,
@@ -293,7 +337,13 @@ func stats() -> Dictionary:
 			"busy_p99_ms": busy[mini(busy.size() - 1, int(busy.size() * 0.99))] / 1000.0 if not busy.is_empty() else 0.0,
 			"slowest_busy_frame_ms": worst / 1000.0, "slowest_busy_frame": worst_frame,
 			"frames_over_33ms": slow, "frames_over_33ms_streaming": slow_busy,
-			"missing_frames": missing_frames, "forced": forced}
+			"missing_frames": missing_frames, "forced": forced,
+			"frames_over_budget": over_budget, "slow_frames": slow_list,
+			"sector_ms": {"n": per_sector.size(),
+				"median": per_sector[per_sector.size() / 2] if not per_sector.is_empty() else 0.0,
+				"p99": per_sector[mini(per_sector.size() - 1, int(per_sector.size() * 0.99))] if not per_sector.is_empty() else 0.0,
+				"max": per_sector[-1] if not per_sector.is_empty() else 0.0},
+			"kinds": kinds}
 
 
 ## The streaming numbers for a log line.
@@ -318,6 +368,8 @@ func _poll_worker(focus: Vector3) -> bool:
 		_thread = null
 		var root := _task_root
 		_task_root = null
+		if log:
+			_log_task()
 		if _state[_task_key]["s"] == LOADING and root != null:
 			_start_adding(_task_key, root)
 			handed = true
@@ -339,6 +391,14 @@ func _poll_worker(focus: Vector3) -> bool:
 	if best_d < INF:
 		_state[best]["s"] = LOADING
 		_task_key = best
+		_task_ticks.clear()
+		_task_ticks.append(Time.get_ticks_usec())
+		_task_phases.clear()
+		if log and not RenderingServer.frame_post_draw.is_connected(_on_post_draw):
+			RenderingServer.frame_pre_draw.connect(_on_pre_draw)
+			RenderingServer.frame_post_draw.connect(_on_post_draw)
+			get_tree().physics_frame.connect(_on_physics_frame)
+			get_tree().process_frame.connect(_on_process_frame)
 		_thread = Thread.new()
 		_thread.start(_make.bind(best), Thread.PRIORITY_LOW)
 	return handed
@@ -346,11 +406,64 @@ func _poll_worker(focus: Vector3) -> bool:
 
 ## On the worker (or the main thread when it can't wait): one sector's root, not in the tree.
 func _make(key: Vector2i) -> void:
+	_task_t[0] = Time.get_ticks_usec()
 	if prebuilt:
 		var scene := ResourceLoader.load(_scene_path(key), "PackedScene", ResourceLoader.CACHE_MODE_IGNORE) as PackedScene
+		_task_t[1] = Time.get_ticks_usec()
 		_task_root = scene.instantiate() as Node3D if scene != null else null
+		_task_t[2] = Time.get_ticks_usec()
 	else:
 		_task_root = map.build_sector(key, false, false)
+
+
+## --stream-log: the worker's load and instantiate times, and the slowest frame (update to update)
+## while it ran: what part of the worker's run it overlapped.
+func _log_task() -> void:
+	var t := _task_ticks
+	t.append(Time.get_ticks_usec())
+	var worst := 0
+	var at := 0
+	for i in range(1, t.size()):
+		if t[i] - t[i - 1] > worst:
+			worst = t[i] - t[i - 1]
+			at = i
+	var part := "-"
+	if at > 0:
+		var a := t[at - 1]
+		var b := t[at]
+		part = "instantiate" if b > _task_t[1] and a < _task_t[2] else ("load" if b > _task_t[0] and a < _task_t[1] else "after")
+		if part == "instantiate" and a < _task_t[1]:
+			part = "load end + instantiate"
+	# The slow interval's phases: the rest of the process after the streamer, the draw, from the draw
+	# to the next physics frame (frame pacing, events), physics, the process up to the streamer.
+	var split := "-"
+	if at > 0 and at - 1 < _task_phases.size():
+		var ph := _task_phases[at - 1]
+		if ph[0] > 0 and ph[1] > 0 and ph[3] > 0:
+			var phys := ph[2] if ph[2] > 0 else ph[3]
+			split = "process after %.1f, draw %.1f, to physics %.1f, physics %.1f, process before %.1f" % [
+					(ph[0] - t[at - 1]) / 1000.0, (ph[1] - ph[0]) / 1000.0, (phys - ph[1]) / 1000.0,
+					(ph[3] - phys) / 1000.0, (t[at] - ph[3]) / 1000.0]
+	print("stream: frame %d worker %s: load %.1f ms, instantiate %.1f ms, %d frames; slowest frame %.1f ms (overlapping the %s; %s)" % [
+			frame, MapBuilder.sector_name(_task_key), (_task_t[1] - _task_t[0]) / 1000.0, (_task_t[2] - _task_t[1]) / 1000.0,
+			t.size() - 1, worst / 1000.0, part, split])
+
+
+func _on_pre_draw() -> void:
+	_stamps[0] = Time.get_ticks_usec()
+
+
+func _on_post_draw() -> void:
+	_stamps[1] = Time.get_ticks_usec()
+
+
+func _on_physics_frame() -> void:
+	if _stamps[2] == 0 and _stamps[1] > 0:
+		_stamps[2] = Time.get_ticks_usec()
+
+
+func _on_process_frame() -> void:
+	_stamps[3] = Time.get_ticks_usec()
 
 
 ## Waits for the worker and keeps what it made when it is still wanted.
@@ -387,6 +500,15 @@ func _start_adding(key: Vector2i, root: Node3D) -> void:
 	st["root"] = root
 	st["queue"] = queue
 	st["ms"] = float(st.get("ms", 0.0)) + (Time.get_ticks_usec() - t) / 1000.0
+	_count_kind("(hand-over)", Time.get_ticks_usec() - t)
+
+
+func _count_kind(kind: String, us: int) -> void:
+	var k: Array = _kinds.get(kind, [0, 0, 0])
+	k[0] += 1
+	k[1] += us
+	k[2] = maxi(k[2], us)
+	_kinds[kind] = k
 
 
 ## A scene's nodes leave their owner (its root) before going back in one by one.
@@ -419,6 +541,7 @@ func _add_nodes(t0: int) -> void:
 			added += 1
 			var us := Time.get_ticks_usec() - t
 			_add_cost[node.get_class()] = maxi(us, int(_add_cost.get(node.get_class(), 0) * 0.9))
+			_count_kind(node.get_class(), us)
 			var ms := us / 1000.0
 			if log and ms > 1.0:
 				print("stream: frame %d adding %s's %s %s took %.2f ms" % [frame, root.name, node.get_class(), node.name, ms])
@@ -428,7 +551,10 @@ func _add_nodes(t0: int) -> void:
 				st["worst_node"] = node.get_class()
 		var t1 := Time.get_ticks_usec()
 		_finish(key)
-		st["ms"] = float(st["ms"]) + (Time.get_ticks_usec() - t1) / 1000.0
+		var fin := Time.get_ticks_usec() - t1
+		_count_kind("(finish)", fin)
+		st["ms"] = float(st["ms"]) + fin / 1000.0
+		sector_ms.append(float(st["ms"]))
 
 
 func _finish(key: Vector2i) -> void:
@@ -483,9 +609,11 @@ func _unload(key: Vector2i) -> void:
 	var root: Node3D = st.get("root")
 	if root != null:
 		_worked = true
+		var t := Time.get_ticks_usec()
 		for c: Node in st.get("queue", []):
 			c.free()
 		root.queue_free()
+		_count_kind("(unload)", Time.get_ticks_usec() - t)
 	_state[key] = {"s": QUEUED}
 	if _proxy.has(key):
 		(_proxy[key] as MeshInstance3D).visible = true

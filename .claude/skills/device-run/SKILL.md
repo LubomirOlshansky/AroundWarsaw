@@ -33,9 +33,18 @@ builds with `-allowProvisioningUpdates` for that device, installs with
 `xcrun devicectl device install app`, launches with
 `devicectl device process launch --terminate-existing <bundle> --log-file user://<label>.log -- <flags>`,
 copies `Documents/<label>.log` back every 8 s until the bench's last lines appear (or
-`--wait=` seconds pass), copies `Documents/bench_result.txt` if there is one, stops the app,
-and prints the key lines. `--dry-run` prints the commands without touching the phone.
+`--wait=` seconds pass), copies `Documents/bench_result.txt` and `Documents/stream_soak_result.txt`
+if there are any, stops the app, and prints the key lines. `--dry-run` prints the commands without
+touching the phone. Loop G0+: each run keeps its own log, `build/device/<label>/<label>_<date-time>.log`
+(`<label>.log` is the latest; a rerun with the same label used to overwrite the first's), a copy
+never replaces a longer one, one last copy is taken 3 s after the done line, and the script exits
+3 when the done line never came. A result file can be an older run's (the bench's is not cleared
+at the start): check its date line.
 
+- **Game flags reach the game among the engine's own** (devicectl swallows the `--`): every
+  parser of game flags must read `main.gd`'s `game_args()`. Loop G0+ found `--stream-soak` and
+  `--stream-log` reading only the user args, so on the phone they did nothing (the soak never
+  ran, the log held only the start-up lines).
 - `--nosave` is added if missing. Without `--bench` (or another flag that ends the run), pass
   `--done=REGEX` for the line that means "finished", or the run lasts `--wait=` seconds.
 - Godot's `print()` never reaches `devicectl --console`, and `log collect --device` needs root:
