@@ -28,7 +28,7 @@
           "title": "Rondo Dmowskiego 3 A.M.",
           "artist": "Nocna Warszawa",
           "seconds": 48.0,
-          "gain_db": -0.15,
+          "gain_db": -0.45,
           "licence": "own: synthesised by tools/make_music.py (MIT)",
           "source": "rondo_3am.wav"
         }

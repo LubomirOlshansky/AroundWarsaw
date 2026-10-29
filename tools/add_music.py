@@ -23,7 +23,7 @@ For each song, with ffmpeg and ffprobe:
   2. measure the integrated loudness (EBU R128) and the true peak;
   3. apply ONE static gain so the song lands at the radio's level (TARGET_LUFS) and its true
      peak stays at -1 dBTP or lower. No limiter, compressor or loudnorm: they flatten music;
-  4. encode Ogg Vorbis to game/audio/radio/<station_id>/<slug>.ogg (96 kbps with libvorbis);
+  4. encode Ogg Vorbis to game/audio/radio/<station_id>/<slug>.ogg (about 96 kbps; see below);
   5. add the track to radio.json (file, title, artist, seconds, gain_db, licence, source).
 It prints each track's size, length and gain, and the radio's total size. A licence that is
 not said stays "unknown": check those before a release (an AI tool's free plan may not allow
@@ -35,15 +35,18 @@ the tool prints the radio.json entry to add.
 TARGET_LUFS is the mean integrated loudness of the three original loops from
 tools/make_music.py (-14.6, -14.2 and -13.2 LUFS = -14.0), so new songs sit next to them.
 
-This ffmpeg may have no libvorbis (Homebrew's stripped build has none): then the tool falls
-back to ffmpeg's own "vorbis" encoder (-strict -2), which ignores the bitrate and writes
-about 185 kb/s (1.4 MB a minute). A libvorbis ffmpeg (brew install ffmpeg from the default
-tap, or a static build) gives the 96 kbps files; nothing else changes.
+The Ogg encoder, in this order: `oggenc` if it is on PATH (brew install vorbis-tools): ffmpeg
+decodes, trims and applies the gain to a temporary 44.1 kHz stereo 16-bit WAV, `oggenc -b 96`
+encodes it, the WAV is deleted; else ffmpeg's `libvorbis` if `ffmpeg -encoders` lists it; else
+ffmpeg's own "vorbis" encoder (-strict -2), which ignores the bitrate and writes about 185 kb/s
+(1.4 MB a minute; Homebrew's stripped ffmpeg has no libvorbis). The tool says which it uses
+when it falls back. Nothing else changes with the encoder.
 """
 import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -62,6 +65,7 @@ PEAK_CEILING = -1.0
 SILENCE_DB = -50
 SILENCE_KEEP = 0.2
 BITRATE = "96k"
+OGGENC_KBPS = "96"
 
 
 def run(cmd):
@@ -72,6 +76,13 @@ def run(cmd):
 def have_libvorbis():
     code, out, _ = run(["ffmpeg", "-hide_banner", "-encoders"])
     return code == 0 and "libvorbis" in out
+
+
+def pick_encoder():
+    """'oggenc' if it is on PATH, else 'libvorbis' if ffmpeg has it, else 'vorbis' (ffmpeg's own)."""
+    if shutil.which("oggenc"):
+        return "oggenc"
+    return "libvorbis" if have_libvorbis() else "vorbis"
 
 
 def slug(text):
@@ -139,17 +150,29 @@ def decode_trimmed(src, dst):
         raise RuntimeError("decode failed: " + err.strip()[-300:])
 
 
-def encode(src, dst, gain_db, vorbis):
-    """Float WAV -> Ogg Vorbis with one static gain (a plain volume filter, nothing else)."""
-    codec = ["-c:a", "libvorbis", "-b:a", BITRATE] if vorbis else ["-c:a", "vorbis", "-strict", "-2"]
-    code, _, err = run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", src,
-                        "-af", "volume=%.2fdB" % gain_db, "-ar", "44100", "-ac", "2",
-                        "-map_metadata", "-1"] + codec + [dst])
+def encode(src, dst, gain_db, encoder):
+    """Float WAV -> Ogg Vorbis with one static gain (a plain volume filter, nothing else).
+    encoder is 'oggenc' (a temporary 16-bit WAV, then oggenc), 'libvorbis' or 'vorbis'."""
+    common = ["-af", "volume=%.2fdB" % gain_db, "-ar", "44100", "-ac", "2", "-map_metadata", "-1"]
+    if encoder == "oggenc":
+        with tempfile.TemporaryDirectory() as tmp:
+            wav16 = os.path.join(tmp, "gain16.wav")
+            code, _, err = run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", src]
+                               + common + ["-c:a", "pcm_s16le", wav16])
+            if code != 0:
+                raise RuntimeError("gain/convert failed: " + err.strip()[-300:])
+            code, _, err = run(["oggenc", "-b", OGGENC_KBPS, "--quiet", "-o", dst, wav16])
+            if code != 0:
+                raise RuntimeError("oggenc failed: " + err.strip()[-300:])
+        return
+    codec = ["-c:a", "libvorbis", "-b:a", BITRATE] if encoder == "libvorbis" else ["-c:a", "vorbis", "-strict", "-2"]
+    code, _, err = run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", src]
+                       + common + codec + [dst])
     if code != 0:
         raise RuntimeError("encode failed: " + err.strip()[-300:])
 
 
-def convert(raw_path, out_path, vorbis):
+def convert(raw_path, out_path, encoder):
     """Returns (seconds, gain_db, lufs, true_peak) of the finished file."""
     with tempfile.TemporaryDirectory() as tmp:
         wav = os.path.join(tmp, "trimmed.wav")
@@ -164,7 +187,7 @@ def convert(raw_path, out_path, vorbis):
         # The lossy encoder can overshoot the true peak a little: check the real file and
         # lower the gain until it is under the ceiling (a gain change, never a limiter).
         for _ in range(4):
-            encode(wav, out_path, gain, vorbis)
+            encode(wav, out_path, gain, encoder)
             out_lufs, out_peak = measure(out_path)
             if out_peak <= PEAK_CEILING + 0.001:
                 break
@@ -261,10 +284,11 @@ def main():
 
     if not os.path.isdir(RAW):
         print("add_music: nothing to do (no data/raw/music/ folder; make data/raw/music/<station_id>/ and put songs in it)")
-    vorbis = have_libvorbis()
-    if not vorbis and not args.dry_run:
-        print("add_music: NOTE this ffmpeg has no libvorbis; using its built-in vorbis encoder, which ignores the\n"
-              "  96 kbps target and writes about 185 kb/s. Files are valid; an ffmpeg with libvorbis makes them smaller.")
+    encoder = pick_encoder()
+    if encoder == "vorbis" and not args.dry_run:
+        print("add_music: NOTE no oggenc on PATH and this ffmpeg has no libvorbis; using ffmpeg's built-in vorbis\n"
+              "  encoder, which ignores the 96 kbps target and writes about 185 kb/s. Files are valid; install\n"
+              "  oggenc (brew install vorbis-tools) for files half the size.")
 
     failed = 0
     done = 0
@@ -299,7 +323,7 @@ def main():
                 continue
             os.makedirs(os.path.dirname(out_path), exist_ok=True)
             try:
-                seconds, gain, lufs, peak = convert(raw_path, out_path, vorbis)
+                seconds, gain, lufs, peak = convert(raw_path, out_path, encoder)
             except RuntimeError as e:
                 print("FAILED %s/%s: %s" % (st["id"], name, e))
                 if os.path.isfile(out_path) and not old:
