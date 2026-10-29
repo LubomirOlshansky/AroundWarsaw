@@ -2191,9 +2191,9 @@ The demo's bigger box (loop 3d) only adds sectors.
 | Pixel diff, 10 spots at 2868×1320 (5 on borders), `--monolithic` vs prebuilt streamed | | at most 0.015 % of the pixels (the minimap's random markers); 3D view identical |
 | Draw calls at the four probe views (3D + shadow): spawn, river, zoomed out, helicopter | 89, 61, 109, 175 | 87, 59, 108, 174 |
 | Memory at the spawn (probe): static / video | 140 / 336 MB | 140 / 263 MB (−22 % video; the city's own buffers 158 → 86 MB) |
-| Start, runtime path (`city built`, 3 runs) | 11.0, 10.9, 10.9 s | 6.97, 6.74, 6.51 s (then ~1 s less: the baked proxies) |
+| Start, runtime path (`city built`, 3 runs) | 11.0, 10.9, 10.9 s | 5.99, 5.73, 5.75 s (2.0 s of it the roof pass over every sector) |
 | Start, prebuilt path (3 runs) | 1.07, 1.07, 1.04 s | 0.61, 0.57, 0.58 s |
-| Exported .pck | 47.3 MB (city.scn 37.1 + centrum.json 5.3) | 46.5 MB (sectors 28.8, shared 6.0, proxies 2.7, index 2.3; no JSON) |
+| Exported .pck | 47.3 MB (city.scn 37.1 + centrum.json 5.3) | 46.5 MB (sectors 28.8, shared 6.0, proxies 2.7, index 2.3; no JSON); 47.2 MB with loop 3g-1 merged |
 
 Commands: `tools/verify.sh --only=streaming` (the identity, the pixels at 10 spots and a
 3-minute soak, ~2-4 min, a window opens); the 15-minute soak:

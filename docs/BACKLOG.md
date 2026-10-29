@@ -618,10 +618,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   The brief's "≥ 30 % lower" holds for the city's own share (~155 → ~85 MB), not the process.
   Loop 3d: the index's game data (roads, paths, areas, trees3d as Variant arrays of floats, ~20
   MB) should move into the sectors or packed arrays; the minimap into the pre-rendered image.
-- **The runtime path's start** (6.5–7.0 s, was 10.9): ~2 s is the roof pass over every
+- **The runtime path's start** (5.7–6.0 s, was 10.9): ~2 s is the roof pass over every
   sector's file (missions, eggs and the helicopter read the roof grid over the whole map at the
   start). A cached roof grid (written by bake_city, checked against its inputs) or a lazy one
-  would make it ~4.5 s; at the demo's 144 sectors the pass alone would be ~9 s.
+  would make it ~3.8 s; at the demo's 144 sectors the pass alone would be ~9 s.
 - **Residual pixel differences** (≤ 0.2 %, at most 0.015 % at 2868×1320): the minimap's random
   markers (job offers), and a few sun-shadow edge pixels where fewer sectors are loaded (the
   directional shadow fits its depth range to the casters it sees).
