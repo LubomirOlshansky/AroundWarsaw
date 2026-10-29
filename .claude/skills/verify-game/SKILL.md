@@ -22,15 +22,23 @@ tools/verify.sh --only=race,kebab # re-run just the steps that failed
 tools/verify.sh --ios             # at the end of a loop: also export + unsigned xcodebuild
 ```
 
-`--ios` runs `tools/export_ios.sh`, which **rebuilds game/map/city.scn** with a renderer (a
-window opens): use it only when your task may change the city or at a loop's end.
+`--ios` runs `tools/export_ios.sh`, which **splits the map and rebuilds the prebuilt sectors**
+(loop 3c: `game/map/sectors/*.scn`, `index.res`, `proxies.scn`) with a renderer (a window
+opens): use it only when your task may change the city or at a loop's end. The `streaming`
+step (loop 3c) also opens a window for a minute or two.
 
 ## 3. Read the table
 
 - **FAIL**: open the log path in the row, read the first `ERROR` / `SCRIPT ERROR` line and
   its `at:` line, fix, re-run that step with `--only=`.
-- **WARN map data / city.scn older than ...**: the prebuilt city is stale. Rebuild it with a
-  renderer (bake-map skill), then check the look on both paths (`--prebuilt`).
+- **WARN map data / sector files or prebuilt sectors older than ...**: run
+  `tools/bake_sectors.py` and/or rebuild the prebuilt sectors with a renderer (bake-map skill),
+  then check the look on both paths (`--prebuilt`).
+- **FAIL streaming**: the log's `PROBLEM` lines: `identity:` names the tile or kind where a sector
+  differs from the whole city (a builder stage reading something outside the sector's file: widen
+  bake_sectors.py's selection for it); `pixels:` the spot (`diff_NN.png`, `pair_NN.png` in the
+  step's `streaming/` log folder); `soak:` missing sectors. Its streaming times are reported,
+  not failed on (the Mac's move with whatever else runs on it).
 - **WARN run: race / kebab / heli, no outcome line**: the autopilot didn't finish in the
   frames given. Look at the log's tail: a stuck autopilot is a bug; a longer route only needs
   more frames (edit the frame count in `tools/verify.sh` and say why).
@@ -64,7 +72,8 @@ A loop that adds a check (loop 3b added `game/tools/check_drive.gd`) adds it as 
 its OK line, and lists it in this skill. A check that only exists outside the script gets
 forgotten.
 
-In the set now: `check_map_data.py` (map), `check_roads.py` (roads, loop 3a: C1-C10 over the
+In the set now: `check_streaming.gd` (loop 3c: `streaming`, with a renderer: the sectors are the
+whole city, pixels at 10 spots, a 3-minute soak; ~2-4 min), `check_map_data.py` (map), `check_roads.py` (roads, loop 3a: C1-C10 over the
 whole map, ~4 s; any rule FAILs (loop 3b; until then C4, C5, C9, C10 were a WARN); the counts in the
 row), `check_drape.gd` (loop 3b-2: `drape`, the bare ground poking through the water, grass,
 plazas and sand, from the builder's own meshes; ~10 s), `check_drive.gd` (loop 3b: `drive` and `drive-prebuilt`: a car and a bus along every lane
@@ -77,7 +86,11 @@ the safe area, no overlaps; it lists the passing panels that waited for room),
 `check_landmarks.gd`, `check_sfx.gd`, `check_radio_loops.gd`, `check_water.gd` (loop 10a:
 `water` and `water-prebuilt`, where a car can get into the water, ~17 s and ~10 s) and the
 game runs, among them `splash` (loop 10a: `--drive-into-water=1015,-85 --kebab=0`, the tow
-within 2 s with a job running).
+within 2 s with a job running). Loop 3g-1: `police` (`check_police.gd`: the police's lines and
+the conversation's flow, P11; the state machine on synthetic inputs, P12; ~1 s), `police-runs`
+(P1-P7 as nine game runs on the prebuilt city, each judged by its `police:` lines and the wallet
+line; ~30 s) and `police-soak` (P13, the autopilot in Busy traffic with the police on at once;
+`NW_SOAK_MINUTES`, default 3, ~20 s; the full 10 minutes ~70 s).
 
 ## 7. Report
 

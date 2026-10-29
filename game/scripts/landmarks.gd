@@ -84,6 +84,12 @@ func _init(builder, map_data: Dictionary) -> void:
 	map = builder
 	data = map_data
 	_find_sites()
+	# Loop 3c: the info cards (and so the picking ids) for every site up front, in site order,
+	# so a sector built alone gives its landmarks the same ids as the whole city.
+	for s in sites:
+		var card: Array = INFO.get(s["key"], [s["key"], "", ""])
+		info.append({"key": s["key"], "name": card[0], "pl": card[1], "en": card[2],
+				"centre": (s["box"] as Rect2).get_center(), "box": s["box"]})
 
 
 ## True when a LoD2 building or an OpenStreetMap outline centred at p is replaced.
@@ -319,14 +325,22 @@ func _find_stadium() -> void:
 
 # --- building -------------------------------------------------------------------------
 
-func build(surface) -> void:
+func build(surface, near := Rect2()) -> void:
 	st = surface
 	_pick.resize(map._roof_nx * map._roof_nz)
 	_pick.fill(0)
 	var t0 := Time.get_ticks_msec()
-	for s in sites:
+	var built := 0
+	for k in sites.size():
+		var s: Dictionary = sites[k]
+		# Loop 3c: building one sector, only the sites that reach `near` (the sector grown by
+		# the split's margin); the builder keeps the triangles that lie in the sector. Every
+		# site sets its own frame, ground and material code, so it builds the same alone.
+		if near.has_area() and not (s["box"] as Rect2).grow(SITE_REACH).intersects(near):
+			continue
 		var key: String = s["key"]
-		_begin(key, s)
+		_id = k + 1
+		built += 1
 		match key:
 			"palace":
 				_build_palace(s)
@@ -343,15 +357,13 @@ func build(surface) -> void:
 			"poniatowski":
 				_build_towers(s)
 	_id = 0
-	print("landmarks: %d built in %d ms" % [info.size(), Time.get_ticks_msec() - t0])
+	if not near.has_area():
+		print("landmarks: %d built in %d ms" % [built, Time.get_ticks_msec() - t0])
 
 
-## Starts a landmark: its id (for picking) and its info card.
-func _begin(key: String, site: Dictionary) -> void:
-	var card: Array = INFO.get(key, [key, "", ""])
-	info.append({"key": key, "name": card[0], "pl": card[1], "en": card[2],
-			"centre": (site["box"] as Rect2).get_center(), "box": site["box"]})
-	_id = info.size()
+## Loop 3c: how far a landmark's model may reach outside its site's box (slack: the models
+## stand inside their zones); a sector builds every site whose box comes this close.
+const SITE_REACH := 24.0
 
 
 ## Which landmark covers a roof-grid cell (0: none), for map_builder.landmark_at.

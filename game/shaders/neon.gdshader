@@ -7,6 +7,13 @@ shader_type spatial;
 
 render_mode unshaded, cull_disabled, shadows_disabled, fog_disabled;
 
+// Sweep 2: ghosted with the wall it hangs on (ghost.gdshaderinc; main.gd _update_ghost sets
+// the values): the art bible's "nothing glows" inside the ghost, so a sign there goes
+// altogether in the core (none of it kept: kept tube pixels sparkled round the car) and is
+// dithered over the rim like building.gdshader.
+#include "res://shaders/ghost.gdshaderinc"
+const float BAYER[16] = float[16](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
+
 global uniform float lights_on;
 
 uniform sampler2D words : filter_nearest, repeat_disable;
@@ -21,6 +28,12 @@ void vertex() {
 }
 
 void fragment() {
+	// Sweep 2: the ghost (see the top).
+	float fade = ghost_fade(VERTEX.xy, (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xz);
+	ivec2 p = ivec2(FRAGCOORD.xy) % 4;
+	if ((BAYER[p.y * 4 + p.x] + 0.5) / 16.0 < fade) {
+		discard;
+	}
 	vec4 t = texture(words, vec2(UV.x * info.y, (info.x + UV.y) / rows));
 	// A tired tube: every so often it drops out for a moment.
 	float on = lights_on;

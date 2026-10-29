@@ -235,6 +235,34 @@ var _marker := Vector2.ZERO
 var _marker_visible := false
 ## Loop 2e: the plate under Classic's steering strip (and its hint).
 var _strip_plate: StyleBoxFlat
+
+## Loop 3g-1 (police, part one; docs/design/police.md sections 5.1 and 9): the police pill (a
+## passing panel at the top centre: the chase and its end-of-shift countdown, the lizak's "pull
+## over"), the koguty (roosters: the light-bar domes, three, beside the wallet; lit, searching
+## or a warning's outline), the overlay under the panels (the blue-red edge breath, an edge
+## rooster for an off-screen chaser, the lizak paddle over a speed trap's officer), the chasers
+## and known traps on the minimap, and panels other scripts lay out here (the pull-over card).
+const POLICE_BLUE := Color("#1f4fd8")
+const LENS_BLUE := Color("#3d7bff")
+const LENS_RED := Color("#ff3b3b")
+var _police_pill: PanelContainer
+var _police_pl: Label
+var _police_en: Label
+var _koguty: Control
+var _koguty_lit := 0
+## 0 hidden, 1 a chase (lit), 2 searching (grey, blinking), 3 a warning (the first outline blinks).
+var _koguty_mode := 0
+var _koguty_t := 0.0
+var _police_fx: Control
+var _breath := 0.0
+var _edge_roosters := PackedVector2Array()
+var _lizak := Vector2.INF
+var _police_marks := PackedVector2Array()
+var _trap_marks := PackedVector2Array()
+## Panels added by other scripts (`add_panel`): their spot, "top" or "bottom".
+var _panel_spots := {}
+## The pedals are away while a pull-over holds the car (its card takes the bottom of the screen).
+var _pedals_hidden := false
 ## Minimap: north-up data drawn once, then turned and moved so the camera's view is up.
 ## Loop 2b: every street, park and pond is built once into one 2D mesh, drawn with one call and
 ## cut to the circle by a small shader (it was 6,500 draw calls, the iPhone's 16 fps).
@@ -300,6 +328,13 @@ func _ready() -> void:
 	_pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_pad.draw.connect(_draw_pad)
 	add_child(_pad)
+	# Loop 3g-1: the police overlay, under every panel.
+	_police_fx = Control.new()
+	_police_fx.name = "police_fx"
+	_police_fx.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_police_fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_police_fx.draw.connect(_draw_police_fx)
+	add_child(_police_fx)
 	_strip_plate = StyleBoxFlat.new()
 	_strip_plate.bg_color = CARD_BG
 	_strip_plate.border_color = Color(1, 1, 1, 0.3)
@@ -341,7 +376,8 @@ func _ready() -> void:
 	_build_toast()
 	_build_wallet()
 	_build_perf()
-	_floating = [_status, _card, _challenge, _banner, _toast_box, _perf, _note, _info_card, _ticker]
+	_build_police()
+	_floating = [_status, _police_pill, _card, _challenge, _banner, _toast_box, _perf, _note, _info_card, _ticker]
 	for c in _floating:
 		_wants[c] = false
 		c.visible = false
@@ -506,6 +542,9 @@ func _layout_fixed() -> void:
 	_top_y = (ROW_Y + ROW_H + GAP) * pt
 	_col_y = _wallet.position.y + _wallet.size.y + GAP * pt
 	_col_right = maxf(_wallet.position.x + _wallet.size.x, below - 6.0 * pt if _minimap == null else _minimap.position.x + _minimap.size.x) + GAP * pt
+	# Loop 3g-1: the koguty beside the wallet, on its row.
+	_koguty.position = Vector2(_wallet.position.x + _wallet.size.x + 6.0 * pt, _wallet.position.y)
+	_koguty.size = Vector2(KOGUTY_W * pt, _wallet.size.y)
 	_bottom_y = _credit.position.y - 6.0 * pt
 	_bounds = Rect2(_safe.position.x + 4.0 * pt, _top_y, _safe.size.x - 8.0 * pt, _safe.end.y - 4.0 * pt - _top_y)
 
@@ -523,14 +562,14 @@ func _layout() -> void:
 	_taken.clear()
 	_placed.clear()
 	_unplaced.clear()
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _minimap, _wallet, _credit]:
+	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _minimap, _wallet, _credit, _koguty]:
 		if c != null and c.visible:
 			_taken.append(Rect2(c.position, c.size))
 	_taken.append(_speed_rect())
 	_taken.append_array(_pedal_rects())
 	var car_zone_added := false
 	for c in _floating:
-		if not car_zone_added and not c in [_status, _card, _challenge]:
+		if not car_zone_added and not c in [_status, _police_pill, _card, _challenge] and not _panel_spots.has(c):
 			_taken.append(car_zone())
 			car_zone_added = true
 		if not bool(_wants.get(c, false)):
@@ -572,6 +611,10 @@ func _spots(c: Control, s: Vector2) -> Array:
 	var beside_low := Vector2(_col_right, _bottom_y - s.y)
 	if c == _status:
 		return [[Vector2(_safe.end.x - EDGE * pt - s.x, _top_y), DOWN]]
+	if c == _police_pill or _panel_spots.get(c, "") == "top":
+		return [[top, DOWN], [beside, DOWN]]
+	if _panel_spots.get(c, "") == "bottom":
+		return [[bottom, UP], [beside_low, UP]]
 	if c == _card:
 		return [[bottom, UP], [beside_low, UP]] if _card_bottom else [[top, DOWN], [beside, DOWN]]
 	if c == _challenge:
@@ -630,6 +673,8 @@ func _speed_rect() -> Rect2:
 ## touches it covers.)
 func _pedal_rects() -> Array[Rect2]:
 	var out: Array[Rect2] = []
+	if _pedals_hidden and not flying:
+		return out
 	var disc := func(c: Vector2, r: float) -> Rect2: return Rect2(c - Vector2.ONE * r, Vector2.ONE * r * 2.0)
 	if flying:
 		out.append(disc.call(_climb_centre(1), (PAD_R + 4.0) * pt))
@@ -697,6 +742,9 @@ func clear_all() -> void:
 	_wallet_flash = 0.0
 	hide_pill()
 	hide_bench_card()
+	set_koguty(0, 0)
+	police_fx(0.0, PackedVector2Array(), Vector2.INF)
+	set_pedals_hidden(false)
 	_mark()
 
 
@@ -708,7 +756,7 @@ func touch_targets() -> Dictionary:
 	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _challenge]:
 		if c.is_visible_in_tree():
 			out[c.name] = c.get_global_rect()
-	for c: Control in [_card, _status, _bench_card]:
+	for c: Control in [_card, _status, _bench_card] + _panel_spots.keys():
 		if c != null and c.is_visible_in_tree():
 			for b in c.find_children("*", "Button", true, false):
 				if (b as Button).is_visible_in_tree():
@@ -729,7 +777,7 @@ func named_rects() -> Dictionary:
 	if _dirty:
 		_layout()
 	var out := {}
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _minimap, _wallet, _credit]:
+	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _minimap, _wallet, _credit, _koguty]:
 		if c != null and c.visible:
 			out[c.name] = Rect2(c.position, c.size)
 	out["speed"] = _speed_rect()
@@ -1258,6 +1306,12 @@ func _frame(dt: float) -> void:
 		_pill.modulate.a = 0.78 + 0.22 * cos(_pill_t * 4.0)
 	if not _icons.is_empty() and _status.visible:
 		_status_icons.queue_redraw()
+	if _koguty_mode >= 2:
+		# Loop 3g-1: the searching roosters and a warning's outline blink.
+		_koguty_t += dt
+		_police_fx.queue_redraw()
+		if _koguty_mode == 3 and _koguty_t > 2.0:
+			set_koguty(0, 0)
 	# A panel whose text grew or shrank since it was placed: lay out again.
 	if not _dirty:
 		for c in _floating:
@@ -1459,6 +1513,9 @@ func _paint_minimap_overlay() -> void:
 	var centre := Vector2.ONE * _mini_radius
 	var o := _mini_overlay
 	var s := _mini_scale
+	# Loop 3g-1: every shape below is gathered as triangles and drawn with one call (each draw_*
+	# was a draw call of its own: ~10-15 for the minimap's marks; the police's added more).
+	_tri_begin()
 	# Side-job places: small blinking squares, pinned to the rim up to 700 m away.
 	var blink := 0.55 + 0.45 * sin(Time.get_ticks_msec() * 0.006)
 	for i in _mini_pois.size():
@@ -1468,26 +1525,45 @@ func _paint_minimap_overlay() -> void:
 		var far := r.length() > _mini_radius - 5.0 * pt
 		r = r.limit_length(_mini_radius - 5.0 * pt)
 		var half := (2.0 if far else 2.8) * pt
-		o.draw_rect(Rect2(centre + r - Vector2.ONE * (half + 1.0 * pt), Vector2.ONE * (half + 1.0 * pt) * 2.0), OUTLINE)
-		o.draw_rect(Rect2(centre + r - Vector2.ONE * half, Vector2.ONE * half * 2.0), Color(_mini_poi_colours[i], blink))
+		_tri_rect(Rect2(centre + r - Vector2.ONE * (half + 1.0 * pt), Vector2.ONE * (half + 1.0 * pt) * 2.0), OUTLINE)
+		_tri_rect(Rect2(centre + r - Vector2.ONE * half, Vector2.ONE * half * 2.0), Color(_mini_poi_colours[i], blink))
 	for i in _mini_dots.size():
 		# Rivals within the minimap's reach; the rest would crowd the rim.
 		var r := ((_mini_dots[i] - _mini_car) * s).rotated(_mini_yaw)
 		if r.length() < _mini_radius - 4.0 * pt:
-			o.draw_circle(centre + r, 2.8 * pt, OUTLINE)
-			o.draw_circle(centre + r, 2.0 * pt, _mini_dot_colours[i])
+			_tri_fan(centre + r, 2.8 * pt, 0.0, TAU, OUTLINE)
+			_tri_fan(centre + r, 2.0 * pt, 0.0, TAU, _mini_dot_colours[i])
+	# Loop 3g-1: known speed traps (a small hair dryer in police blue) and the chasers (blue and
+	# red in turns, a white outline), within the minimap's reach.
+	for q in _trap_marks:
+		var r := ((q - _mini_car) * s).rotated(_mini_yaw)
+		if r.length() < _mini_radius - 5.0 * pt:
+			var at := centre + r
+			_tri_rect(Rect2(at - Vector2(3.6, 2.6) * pt, Vector2(7.2, 5.2) * pt), Color.WHITE)
+			_tri_rect(Rect2(at - Vector2(2.8, 1.8) * pt, Vector2(4.0, 3.6) * pt), POLICE_BLUE)
+			_tri_rect(Rect2(at + Vector2(0.6, -0.4) * pt, Vector2(2.2, 4.0) * pt), POLICE_BLUE)
+	var flip := int(Time.get_ticks_msec() / 200) % 2 == 0
+	for i in _police_marks.size():
+		var r := ((_police_marks[i] - _mini_car) * s).rotated(_mini_yaw)
+		if r.length() < _mini_radius - 4.0 * pt:
+			_tri_fan(centre + r, 3.4 * pt, 0.0, TAU, Color.WHITE)
+			_tri_fan(centre + r, 2.4 * pt, 0.0, TAU, LENS_BLUE if flip == (i % 2 == 0) else LENS_RED)
 	if _mini_target != Vector2.INF:
 		# The mission target, pinned to the rim when it's beyond the map's reach.
 		var t := ((_mini_target - _mini_car) * s).rotated(_mini_yaw)
 		t = t.limit_length(_mini_radius - 5.0 * pt)
-		o.draw_circle(centre + t, 3.8 * pt, OUTLINE)
-		o.draw_circle(centre + t, 2.8 * pt, _mini_target_colour)
+		_tri_fan(centre + t, 3.8 * pt, 0.0, TAU, OUTLINE)
+		_tri_fan(centre + t, 2.8 * pt, 0.0, TAU, _mini_target_colour)
 	var d := _car_dir.normalized()
 	var side := Vector2(-d.y, d.x)
 	var tip := centre + d * 6.0 * pt
-	o.draw_colored_polygon(PackedVector2Array([tip, centre - d * 4.0 * pt + side * 4.0 * pt,
-			centre - d * 2.0 * pt, centre - d * 4.0 * pt - side * 4.0 * pt]), Color("#d8432f"))
-	o.draw_arc(centre, _mini_radius - 1.0 * pt, 0, TAU, 64, Color(0.17, 0.15, 0.13, 0.85).lerp(Color(1, 1, 1, 0.3), _night), 1.8 * pt)
+	var arrow := Color("#d8432f")
+	var notch := centre - d * 2.0 * pt
+	_tri(tip, centre - d * 4.0 * pt + side * 4.0 * pt, notch, arrow, arrow, arrow)
+	_tri(tip, notch, centre - d * 4.0 * pt - side * 4.0 * pt, arrow, arrow, arrow)
+	var rim := Color(0.17, 0.15, 0.13, 0.85).lerp(Color(1, 1, 1, 0.3), _night)
+	_tri_rim(centre, _mini_radius - 1.9 * pt, _mini_radius - 0.1 * pt, rim)
+	_tri_flush(o)
 	var font := ThemeDB.fallback_font
 	var fs := _px(T_LABEL)
 	var n := centre + _north * (_mini_radius - 8.0 * pt)
@@ -1763,7 +1839,7 @@ func _strip_hint_centre() -> Vector2:
 
 
 func _on_pedals(p: Vector2) -> bool:
-	if flying:
+	if flying or _pedals_hidden:
 		return false
 	return p.distance_to(_brake_centre()) < _brake_reach() or (scheme == CLASSIC and p.distance_to(_gas_centre()) < GAS_REACH * pt)
 
@@ -2040,6 +2116,8 @@ func _draw_pad() -> void:
 			var s: float = 9.0 * pt * direction
 			_pad.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -s), c + Vector2(s, s * 0.6), c + Vector2(-s, s * 0.6)]), INK)
 		return
+	if _pedals_hidden:
+		return  # loop 3g-1: the pull-over holds the car
 	var bc := _brake_centre()
 	var br := (CLASSIC_BRAKE_R if scheme == CLASSIC else BRAKE_R) * pt
 	_plate(bc, br, brake)
@@ -2118,3 +2196,307 @@ func _draw_target() -> void:
 	var at := tip - dir * (a + 18.0 * pt) - Vector2(w * 0.5, -fs * 0.35)
 	o.draw_string_outline(font, at, _target_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, outline, OUTLINE)
 	o.draw_string(font, at, _target_label, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, _target_colour)
+
+
+# --- loop 3g-1: the police -----------------------------------------------------------------------
+
+## The koguty plate's width (points): three domes.
+const KOGUTY_W := 74.0
+
+
+func _build_police() -> void:
+	var style := _panel_box(8.0, 6.0)
+	style.content_margin_left = 14.0 * pt
+	style.content_margin_right = 14.0 * pt
+	style.border_color = POLICE_BLUE
+	style.set_border_width_all(0)
+	style.border_width_left = roundi(4.0 * pt)
+	_police_pill = PanelContainer.new()
+	_police_pill.name = "police"
+	_police_pill.add_theme_stylebox_override("panel", style)
+	_police_pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var rows := VBoxContainer.new()
+	rows.add_theme_constant_override("separation", 0)
+	rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_police_pill.add_child(rows)
+	_police_pl = _label(T_BODY, INK)
+	_police_pl.name = "police_pl"
+	_police_pl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rows.add_child(_police_pl)
+	_police_en = _label(T_SUB, SUB)
+	_police_en.name = "police_en"
+	_police_en.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	rows.add_child(_police_en)
+	add_child(_police_pill)
+	# The koguty's place beside the wallet (the layout keeps it); the overlay draws them.
+	_koguty = Control.new()
+	_koguty.name = "koguty"
+	_koguty.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_koguty.visible = false
+	add_child(_koguty)
+
+
+## The roosters: `lit` of three (the chase's level) in `mode` 1 (a chase), 2 (searching: grey,
+## blinking), 3 (a warning: the first one's outline blinks for 2 s), or 0 (hidden).
+func set_koguty(lit: int, mode: int) -> void:
+	if lit == _koguty_lit and mode == _koguty_mode:
+		return
+	if mode != _koguty_mode:
+		_koguty_t = 0.0
+	_koguty_lit = lit
+	_koguty_mode = mode
+	var show := mode != 0
+	if show != _koguty.visible:
+		_koguty.visible = show
+		_mark()
+	_police_fx.queue_redraw()
+
+
+## The koguty, drawn by the overlay (one draw call with it): the plate in the card recipe, three
+## domes (lit blue and red in turns, grey and blinking while searching, an outline otherwise;
+## a warning blinks the first one's outline blue and red).
+func _koguty_tris() -> void:
+	var at := _koguty.position
+	var size := _koguty.size
+	var edge := maxf(1.0, roundf(pt * 0.5))
+	_tri_round_rect(Rect2(at, size), 9.0 * pt, CARD_EDGE)
+	_tri_round_rect(Rect2(at, size).grow(-edge), 9.0 * pt - edge, CARD_BG)
+	var blink_on := fmod(_koguty_t, 0.5) < 0.3
+	var flip := int(Time.get_ticks_msec() / 250) % 2 == 0
+	for k in 3:
+		var c := at + Vector2((14.0 + k * 23.0) * pt, size.y * 0.5 + 5.0 * pt)
+		var r := 8.0 * pt
+		var lit := k < _koguty_lit and _koguty_mode == 1
+		var grey := k < _koguty_lit and _koguty_mode == 2
+		if lit:
+			# Blue and red halves taking turns, like the light bar.
+			_tri_fan(c, r, PI, PI * 1.5, LENS_BLUE if flip else LENS_BLUE.darkened(0.5))
+			_tri_fan(c, r, PI * 1.5, TAU, LENS_RED.darkened(0.5) if flip else LENS_RED)
+		elif grey:
+			_tri_fan(c, r, PI, TAU, Color(0.62, 0.62, 0.66, 0.9 if blink_on else 0.35))
+		else:
+			var outline := Color(1, 1, 1, 0.3)
+			if _koguty_mode == 3 and k == 0:
+				outline = LENS_BLUE if blink_on else LENS_RED
+			_tri_ring(c, r - maxf(1.0, 1.5 * pt), r, PI, TAU, outline)
+		var base := Color(0.75, 0.75, 0.78) if lit or grey else Color(1, 1, 1, 0.25)
+		_tri_rect(Rect2(c + Vector2(-r - 1.5 * pt, 0.0), Vector2(r * 2.0 + 3.0 * pt, 3.0 * pt)), base)
+
+
+## The police pill at the top centre (Polish over English); empty words hide it.
+func police_pill(pl: String, en: String) -> void:
+	if pl == "":
+		_show(_police_pill, false)
+		return
+	if _police_pl.text != pl or _police_en.text != en:
+		_police_pl.text = pl
+		_police_en.text = en
+		_police_pill.reset_size()
+	_show(_police_pill, true)
+
+
+## The overlay: the blue-red edge breath at `breath` (0..1; at most 10 % opacity at the very
+## edge), the chasers' screen points (HUD pixels; one off screen gets a rooster pinned to the
+## edge, towards it), and the lizak paddle over a trap's officer (a screen point, or INF).
+func police_fx(breath: float, chasers: PackedVector2Array, lizak: Vector2) -> void:
+	var was := _breath > 0.0 or not _edge_roosters.is_empty() or _lizak != Vector2.INF
+	_breath = breath
+	_edge_roosters = chasers
+	_lizak = lizak
+	if was or _breath > 0.0 or not chasers.is_empty() or lizak != Vector2.INF:
+		_police_fx.queue_redraw()
+
+
+func _draw_police_fx() -> void:
+	var o := _police_fx
+	var s := _screen
+	_tri_begin()
+	if _breath > 0.0:
+		# A band at each edge, blue on the left and top, red on the right and bottom, breathing in
+		# turns once a second; 10 % at the edge, gone 9 % of the height into the screen.
+		var pulse := 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.001 * TAU)
+		var a := 0.1 * _breath
+		var band := s.y * 0.09
+		var blue := Color(LENS_BLUE, a * pulse)
+		var red := Color(LENS_RED, a * (1.0 - pulse))
+		var clear_b := Color(LENS_BLUE, 0.0)
+		var clear_r := Color(LENS_RED, 0.0)
+		var tl := Vector2.ZERO
+		var tr := Vector2(s.x, 0.0)
+		var br := s
+		var bl := Vector2(0.0, s.y)
+		var itl := Vector2(band, band)
+		var itr := Vector2(s.x - band, band)
+		var ibr := s - Vector2(band, band)
+		var ibl := Vector2(band, s.y - band)
+		_tri_quad(tl, itl, ibl, bl, [blue, clear_b, clear_b, blue])
+		_tri_quad(tl, tr, itr, itl, [blue, blue, clear_b, clear_b])
+		_tri_quad(tr, br, ibr, itr, [red, red, clear_r, clear_r])
+		_tri_quad(bl, ibl, ibr, br, [red, clear_r, clear_r, red])
+	# The koguty over the breath (the layout keeps their place clear of every panel).
+	if _koguty.visible:
+		_koguty_tris()
+	var inside := Rect2(_safe.position.x + 34.0 * pt, _top_y + 20.0 * pt, _safe.size.x - 68.0 * pt, _safe.end.y - 54.0 * pt - _top_y)
+	var flip := int(Time.get_ticks_msec() / 250) % 2 == 0
+	for p in _edge_roosters:
+		if inside.size.x <= 0.0 or inside.size.y <= 0.0 or inside.has_point(p):
+			continue
+		# A chaser off screen: a rooster on a dark disc at the edge, towards it.
+		var centre := inside.get_center()
+		var d := p - centre
+		var k := minf((inside.size.x * 0.5) / maxf(absf(d.x), 0.001), (inside.size.y * 0.5) / maxf(absf(d.y), 0.001))
+		var at := centre + d * k
+		_tri_fan(at, 15.0 * pt, 0.0, TAU, CARD_BG)
+		_tri_ring(at, 13.0 * pt, 15.0 * pt, 0.0, TAU, LENS_BLUE if flip else LENS_RED)
+		_tri_fan(at + Vector2(0, 4.0 * pt), 8.0 * pt, PI, TAU, LENS_BLUE if flip else LENS_RED)
+	if _lizak != Vector2.INF:
+		# The lizak (the round stop paddle) over the officer, bobbing 2 pt at 2 Hz.
+		var bob := sin(Time.get_ticks_msec() * 0.001 * TAU * 2.0) * 2.0 * pt
+		var c := _lizak + Vector2(0, -26.0 * pt + bob)
+		_tri_rect(Rect2(c + Vector2(-1.5, 6.0) * pt, Vector2(3.0, 12.0) * pt), Color("#2a2622"))
+		_tri_fan(c, 9.0 * pt, 0.0, TAU, OUTLINE)
+		_tri_fan(c, 8.0 * pt, 0.0, TAU, LENS_RED)
+		_tri_fan(c, 5.0 * pt, 0.0, TAU, INK)
+	_tri_flush(o)
+	if _breath > 0.0 or not _edge_roosters.is_empty() or _lizak != Vector2.INF or _koguty_mode == 1:
+		o.queue_redraw()
+
+
+## Loop 3g-1: shapes gathered as triangles and drawn with one call a surface (the minimap's marks,
+## the koguty and the police overlay): each draw_* call was a draw call of its own (+33 in the 2D
+## pass in a chase; police.md section 12 allows +4). Kept cheap for GDScript: plain appends, the
+## circle's points from a table, the minimap's rim built once, the index list reused.
+var _tri_pts := PackedVector2Array()
+var _tri_cols := PackedColorArray()
+var _tri_idx := PackedInt32Array()
+## A unit circle in TRI_SEGMENTS steps (screen y down: index 0 points right, a quarter is down).
+const TRI_SEGMENTS := 24
+var _unit := PackedVector2Array()
+var _rim_key := []
+var _rim_pts := PackedVector2Array()
+var _rim_cols := PackedColorArray()
+
+
+func _tri_begin() -> void:
+	_tri_pts.clear()
+	_tri_cols.clear()
+	if _unit.is_empty():
+		for k in TRI_SEGMENTS + 1:
+			_unit.append(Vector2(cos(TAU * k / TRI_SEGMENTS), sin(TAU * k / TRI_SEGMENTS)))
+
+
+func _tri(a: Vector2, b: Vector2, c: Vector2, ca: Color, cb: Color, cc: Color) -> void:
+	_tri_pts.append(a)
+	_tri_pts.append(b)
+	_tri_pts.append(c)
+	_tri_cols.append(ca)
+	_tri_cols.append(cb)
+	_tri_cols.append(cc)
+
+
+## A quad a, b, c, d (in order round it), a colour at each corner.
+func _tri_quad(a: Vector2, b: Vector2, c: Vector2, d: Vector2, cols: Array) -> void:
+	_tri(a, b, c, cols[0], cols[1], cols[2])
+	_tri(a, c, d, cols[0], cols[2], cols[3])
+
+
+func _tri_rect(r: Rect2, col: Color) -> void:
+	var b := Vector2(r.end.x, r.position.y)
+	var d := Vector2(r.position.x, r.end.y)
+	_tri(r.position, b, r.end, col, col, col)
+	_tri(r.position, r.end, d, col, col, col)
+
+
+## A rectangle with round corners of `radius`.
+func _tri_round_rect(r: Rect2, radius: float, col: Color) -> void:
+	var k := minf(radius, minf(r.size.x, r.size.y) * 0.5)
+	_tri_rect(r.grow_individual(0.0, -k, 0.0, -k), col)
+	_tri_rect(Rect2(r.position + Vector2(k, 0.0), Vector2(r.size.x - 2.0 * k, k)), col)
+	_tri_rect(Rect2(Vector2(r.position.x + k, r.end.y - k), Vector2(r.size.x - 2.0 * k, k)), col)
+	_tri_fan(r.position + Vector2(k, k), k, PI, PI * 1.5, col)
+	_tri_fan(Vector2(r.end.x - k, r.position.y + k), k, PI * 1.5, TAU, col)
+	_tri_fan(r.end - Vector2(k, k), k, 0.0, PI * 0.5, col)
+	_tri_fan(Vector2(r.position.x + k, r.end.y - k), k, PI * 0.5, PI, col)
+
+
+## A disc's slice from angle a0 to a1 (radians, multiples of a quarter; screen y down, so PI..TAU
+## is the top half), in the table's steps.
+func _tri_fan(c: Vector2, r: float, a0: float, a1: float, col: Color) -> void:
+	var k0 := roundi(a0 / TAU * TRI_SEGMENTS)
+	var k1 := roundi(a1 / TAU * TRI_SEGMENTS)
+	for k in range(k0, k1):
+		_tri(c, c + _unit[k] * r, c + _unit[k + 1] * r, col, col, col)
+
+
+## A ring between radii r0 and r1 from angle a0 to a1 (as _tri_fan).
+func _tri_ring(c: Vector2, r0: float, r1: float, a0: float, a1: float, col: Color) -> void:
+	var k0 := roundi(a0 / TAU * TRI_SEGMENTS)
+	var k1 := roundi(a1 / TAU * TRI_SEGMENTS)
+	for k in range(k0, k1):
+		var u := _unit[k]
+		var v := _unit[k + 1]
+		_tri(c + u * r0, c + u * r1, c + v * r1, col, col, col)
+		_tri(c + u * r0, c + v * r1, c + v * r0, col, col, col)
+
+
+## The minimap's rim: a smooth ring of 64 steps, built when its size or colour changes.
+func _tri_rim(c: Vector2, r0: float, r1: float, col: Color) -> void:
+	var key := [c, r0, r1, col]
+	if key != _rim_key:
+		_rim_key = key
+		_rim_pts.clear()
+		_rim_cols.clear()
+		for k in 64:
+			var u := Vector2(cos(TAU * k / 64.0), sin(TAU * k / 64.0))
+			var v := Vector2(cos(TAU * (k + 1) / 64.0), sin(TAU * (k + 1) / 64.0))
+			_rim_pts.append_array(PackedVector2Array([c + u * r0, c + u * r1, c + v * r1, c + u * r0, c + v * r1, c + v * r0]))
+		_rim_cols.resize(_rim_pts.size())
+		_rim_cols.fill(col)
+	_tri_pts.append_array(_rim_pts)
+	_tri_cols.append_array(_rim_cols)
+
+
+## Draws what was gathered on `item` with one call.
+func _tri_flush(item: CanvasItem) -> void:
+	var n := _tri_pts.size()
+	if n == 0:
+		return
+	if _tri_idx.size() < n:
+		for i in range(_tri_idx.size(), n + 256):
+			_tri_idx.append(i)
+	RenderingServer.canvas_item_add_triangle_array(item.get_canvas_item(), _tri_idx.slice(0, n), _tri_pts, _tri_cols)
+
+
+## Chasers (map x, z) and the speed traps the player knows of, on the minimap.
+func set_police_marks(chasers: PackedVector2Array, traps: PackedVector2Array) -> void:
+	_police_marks = chasers
+	_trap_marks = traps
+
+
+## Lays out a panel another script made (the pull-over card) like the HUD's own passing panels,
+## at the top or the bottom centre (`spot`); the bubbles keep clear of it.
+func add_panel(c: Control, spot: String) -> void:
+	_panel_spots[c] = spot
+	c.visible = false
+	add_child(c)
+	_floating.push_front(c)
+	_wants[c] = false
+
+
+## Loop 3g-1: the car's pedals off the screen (and their room free) while the car is held.
+func set_pedals_hidden(on: bool) -> void:
+	if on != _pedals_hidden:
+		_pedals_hidden = on
+		brake = false
+		_brake_index = -1
+		gas = false
+		_gas_index = -1
+		_pad.queue_redraw()
+		_mark()
+
+
+func show_panel(c: Control, on: bool) -> void:
+	_show(c, on)
+	if on:
+		c.reset_size()
+		_mark()

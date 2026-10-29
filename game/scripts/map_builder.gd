@@ -51,6 +51,9 @@ const L_TRAMBED := 19.0
 
 const Y_GROUND := 0.0
 const Y_AREA := 0.02
+## Each green kind's height over Y_AREA (merging loop 3c): a fixed order where they overlap,
+## park under grass under pitch, all under the sand (0.006 and up) and over the plazas (0).
+const GREEN_Y := {"park": 0.003, "grass": 0.004, "pitch": 0.005}
 const Y_PATH := 0.04
 const Y_ROAD := 0.06
 const Y_MARK := 0.08
@@ -106,7 +109,8 @@ var _light_image: Image
 ## Lamps the light bake added where OpenStreetMap maps none (the bridges): x, z, yaw.
 var _extra_lamps := PackedFloat32Array()
 var _lod2_footprints: Array = []
-var bounds: Rect2
+## Loop 3c: stored, so the prebuilt index (map/index.res) has the map's rectangle too.
+@export_storage var bounds: Rect2
 var _wall_faces := PackedVector3Array()
 
 ## Terrain heights in metres relative to the bake's base height; empty means a flat world.
@@ -168,12 +172,289 @@ const NO_ROOF := -1000.0
 @export_storage var landmark_info: Array[Dictionary] = []
 @export_storage var _pick := PackedByteArray()
 
+# --- Loop 3c: sectors -------------------------------------------------------------------
+## The city in 512 m sectors (docs/DEMO.md 2.4): tools/bake_sectors.py splits the map data
+## into map/index.json (the whole map's: lane graph, decks, tunnels, points of interest...)
+## and map/sectors/<i>_<j>.json (each sector's features, a border-crossing one in both);
+## `build_sector` builds one sector from its file and keeps only the triangles, instances
+## and collider faces whose centre lies in it, so the sectors together are what `build`
+## makes in one go (tools/check_streaming.gd compares them). sector_streamer.gd loads them.
+const SECTOR := 512.0
+const SECTOR_DIR := "res://map/sectors/"
+## The split's margin (tools/bake_sectors.py MARGIN): a sector's file holds what lies this
+## close to it, so what it builds may reach this far (the landmarks and bridges it builds).
+const SECTOR_MARGIN := 48.0
+## The game's data for the whole map (index.json: what traffic, missions, the minimap read),
+## kept in the prebuilt index (map/index.res) so the exported game needs no JSON.
+@export_storage var index_data: Dictionary = {}
+## Per sector key: Vector2(lowest ground - 15 m, highest roof or treetop), for the streamer's
+## view test (a tall tower in a sector off the view's ground can still stand in the view).
+@export_storage var sector_heights: Dictionary = {}
+## While one sector is built: it, its square, the square grown by the split's margin, its
+## 2 x 2 tiles, and the roof grid its buildings mark (merged into _roof for its own cells).
+var _in_sector := false
+var _sector := Vector2i.ZERO
+var _sector_rect := Rect2()
+var _near := Rect2()
+var _scratch_roof := PackedFloat32Array()
+## The node the builder's meshes and bodies go under: this one, or the sector being built.
+var _out: Node3D
+## Whether a sector's build writes its cells of the roof and picking grids (build_sector).
+var _merge := true
+## The landmark sites, found once from the index (the streamed city).
+var _marks
+## The water's edge runs over the whole map, found once (the streamed city): [poly, side, kind, box].
+var _global_shore: Array = []
+## The terrain grid's smooth normals, found once.
+var _gn := PackedVector3Array()
+## Materials and meshes every sector shares (trees, lamps, signals, parked cars, props,
+## halos, neon), made once: one per city, never one per sector.
+var _shared := {}
+
 
 func build(path: String, building_mat: ShaderMaterial, flat_mat: ShaderMaterial) -> Dictionary:
+	_out = self
+	_setup(JSON.parse_string(FileAccess.get_file_as_string(path)), building_mat, flat_mat)
+	# v0.8: the landmarks replace whatever LoD2 or OpenStreetMap lump stood in their place.
+	var marks := Landmarks.new(self, data)
+	landmark_info = marks.info
+	_build_parts(marks, false)
+	_build_collision()
+	_index_raised()
+	return data
+
+
+## Loop 3c: the streamed city's global part (both city paths): what `build` sets up first,
+## then what every sector build shares: the landmark sites and their info cards (from the
+## index's `site_parts`), the water's edge, the kerbs and islands the car feels, the shared
+## materials and meshes, and the walls at the map's edge.
+func setup_streamed(index: Dictionary, building_mat: ShaderMaterial, flat_mat: ShaderMaterial) -> void:
+	_out = self
+	_setup(index, building_mat, flat_mat)
+	index_data = index
+	_marks = Landmarks.new(self, {"landmarks": index.get("landmarks", []), "towers": index.get("towers", []),
+			"buildings": index.get("site_parts", [])})
+	landmark_info = _marks.info
+	_pick.resize(_roof_nx * _roof_nz)
+	_pick.fill(0)
+	_index_decks()
+	_ground_normals()
+	_global_shore = _find_shore_lines()
+	_index_raised()
+	_make_shared()
+	_build_edge_walls()
+
+
+## Loop 3c: each sector's lowest ground (- 20 m: tunnels, the river bed) and its highest roof
+## or treetop (the terrain + 40 m at least), from the finished roof grid: the streamer loads a
+## sector whose box meets the camera's view (sector_streamer.gd).
+func measure_sectors() -> void:
+	sector_heights.clear()
+	var step := float(_terrain.get("step", 10.0))
+	for k: Array in index_data.get("sectors", {}).get("keys", []):
+		var key := Vector2i(int(k[0]), int(k[1]))
+		var rect := Rect2(Vector2(key) * SECTOR, Vector2(SECTOR, SECTOR)).intersection(bounds)
+		var lo := INF
+		var hi := -INF
+		var z := rect.position.y
+		while z <= rect.end.y:
+			var x := rect.position.x
+			while x <= rect.end.x:
+				var g := _grid_height(x, z)
+				lo = minf(lo, g)
+				hi = maxf(hi, g)
+				x += step
+			z += step
+		var top := hi + 40.0
+		var i0 := clampi(floori((rect.position.x - _roof_x0) / ROOF_CELL), 0, _roof_nx - 1)
+		var i1 := clampi(floori((rect.end.x - _roof_x0) / ROOF_CELL), 0, _roof_nx - 1)
+		var j0 := clampi(floori((rect.position.y - _roof_z0) / ROOF_CELL), 0, _roof_nz - 1)
+		var j1 := clampi(floori((rect.end.y - _roof_z0) / ROOF_CELL), 0, _roof_nz - 1)
+		for j in range(j0, j1 + 1):
+			for i in range(i0, i1 + 1):
+				top = maxf(top, _roof[j * _roof_nx + i])
+		sector_heights[key] = Vector2((lo if lo < INF else 0.0) - 20.0, top + 2.0)
+
+
+## Loop 3c: the key of the sector holding a point.
+static func sector_of(x: float, z: float) -> Vector2i:
+	return Vector2i(floori(x / SECTOR), floori(z / SECTOR))
+
+
+static func sector_name(key: Vector2i) -> String:
+	return "s_%d_%d" % [key.x, key.y]
+
+
+## Loop 3c: one sector from map/sectors/<i>_<j>.json, under a new node (not in the tree):
+## ground, roads and markings, buildings and the landmarks' parts in it, trees, lamps,
+## signals, parked cars and props, and its colliders. Its cells of the roof and picking grids
+## go into the map's. Needs `setup_streamed`. `roofs_only`: no nodes, only those cells (the
+## runtime path's pass over the whole map, which missions, eggs and the helicopter read).
+## `merge` false leaves the map's grids alone (a sector built on a worker thread after that
+## pass: the grids are complete, and the main thread reads them meanwhile).
+func build_sector(key: Vector2i, roofs_only := false, merge := true) -> Node3D:
+	var root := Node3D.new()
+	root.name = sector_name(key)
+	var path := SECTOR_DIR + "%d_%d.json" % [key.x, key.y]
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path)) if FileAccess.file_exists(path) else null
+	if not parsed is Dictionary:
+		push_error("map: no sector file %s (run tools/bake_sectors.py)" % path)
+		return root
+	var whole := data
+	data = parsed
+	_out = root
+	_in_sector = true
+	_sector = key
+	_sector_rect = Rect2(Vector2(key) * SECTOR, Vector2(SECTOR, SECTOR))
+	# What the sector's file reaches (tools/bake_sectors.py: its buildings' surroundings, for
+	# their shop signs): the landmarks and the water's edge in it are built too.
+	var ctx: Array = data.get("context", [])
+	_near = Rect2(ctx[0], ctx[1], ctx[2] - ctx[0], ctx[3] - ctx[1]) if ctx.size() == 4 else _sector_rect.grow(SECTOR_MARGIN)
+	_wall_faces.clear()
+	_scratch_roof.resize(_roof.size())
+	_scratch_roof.fill(NO_ROOF)
+	_merge = merge
+	_build_parts(_marks, roofs_only)
+	if not roofs_only:
+		_build_collision()
+	if merge:
+		_merge_roofs()
+	_merge = true
+	_wall_faces.clear()
+	data = whole
+	_out = self
+	_in_sector = false
+	return root
+
+
+## Loop 3c: everything but the colliders, in build order (one sector or the whole map).
+func _build_parts(marks, roofs_only: bool) -> void:
+	if not roofs_only:
+		var flat := _new_surface()
+		_build_ground(flat)
+		# Wide gaps between the depth biases: two layers that fit a slope with different
+		# triangles can differ by a few centimetres, and must not poke through each other.
+		# Loop 3b-2: the areas lie exactly on the ground's own triangles (_fill_on_grid), so their
+		# few millimetres of height order them over the ground and each other without a depth bias
+		# to speak of (0.05 before); the thin strips laid over them (paths at 0.1) keep a margin for
+		# their pieces' sag over the grid's folds (game/tools/check_drape.gd counts it).
+		_drape_bias = 0.01
+		_build_areas(flat)
+		# The sandbars over the water (fill 0.02, rim 0.07, foam 0.09) and the natural banks' wet
+		# bands and foam (0.07, 0.09), under the paving and the paths.
+		_drape_bias = 0.02
+		_build_sandbars(flat)
+		_drape_bias = 0.07
+		_build_banks(flat)
+		_drape_bias = 0.08
+		_build_surfaces(flat)
+		_drape_bias = 0.1
+		_build_paths(flat)
+		_build_steps(flat)
+		_drape_bias = 0.2
+		_build_rail_beds(flat)
+		_drape_bias = 0.3
+		_build_roads(flat)
+		_build_tunnel_roads(flat)
+		_build_carriageways(flat)
+		_drape_bias = 0.34
+		_build_islands(flat)
+		_build_medians(flat)
+		_drape_bias = 0.36
+		_build_kerbs(flat)
+		_build_shore_stone(flat)
+		_drape_bias = 0.38
+		_build_markings(flat)
+		_build_symbols(flat)
+		_build_crossings(flat)
+		_drape_bias = 0.46
+		_build_trams(flat)
+		_build_rails(flat)
+		_drape_bias = -1.0
+		_dk = -1
+		_add_mesh(flat, flat_material, false)
+
+	var walls := _new_surface()
+	walls.none = roofs_only
+	var keep := _build_lod2(walls, marks)
+	var t_parts := Time.get_ticks_msec()
+	_build_buildings(walls, keep, marks)
+	if not _in_sector:
+		print("buildings: %d floating parts: %d lowered (%d to the ground), %d tiny left out · %d ms" % [floating_parts,
+				floating_parts - floating_dropped, floating_to_ground, floating_dropped, Time.get_ticks_msec() - t_parts])
+	marks.build(walls, _near if _in_sector else Rect2())
+	if not _in_sector:
+		_pick = marks.pick_grid()
+	elif _merge:
+		_merge_pick(marks.pick_grid())
+	if roofs_only:
+		return
+	_build_platforms(walls)
+	_build_barriers(walls)
+	_build_bridge_structures(walls)
+	_build_walls(walls)
+	_build_portals(walls)
+	_build_garage_doors(walls)
+	_build_guard_rails(walls)
+	_build_shore()
+	_add_mesh(walls, building_material, true)
+	_build_neon(keep, marks)
+
+	_build_trees()
+	_build_street_furniture()
+	_build_props()
+
+
+## Loop 3c: a chunked surface keeping only the sector's tiles while one is built.
+func _new_surface() -> Chunked:
+	var st := Chunked.new()
+	if _in_sector:
+		st.only = Rect2i(_sector * 2, Vector2i(2, 2))
+	return st
+
+
+## Loop 3c: the sector's own cells (their centres in it) of the roof grid its build marked.
+func _merge_roofs() -> void:
+	var r := _cell_range()
+	for j in range(r.position.y, r.end.y):
+		for i in range(r.position.x, r.end.x):
+			var k := j * _roof_nx + i
+			if _scratch_roof[k] > _roof[k]:
+				_roof[k] = _scratch_roof[k]
+
+
+## Loop 3c: the sector's own cells of the landmarks' picking grid.
+func _merge_pick(grid: PackedByteArray) -> void:
+	var r := _cell_range()
+	for j in range(r.position.y, r.end.y):
+		for i in range(r.position.x, r.end.x):
+			var k := j * _roof_nx + i
+			_pick[k] = grid[k]
+
+
+## Loop 3c: the roof-grid cells whose centres lie in the sector being built (i, j from, to).
+func _cell_range() -> Rect2i:
+	var i0 := clampi(ceili((_sector_rect.position.x - _roof_x0) / ROOF_CELL - 0.5), 0, _roof_nx)
+	var i1 := clampi(ceili((_sector_rect.end.x - _roof_x0) / ROOF_CELL - 0.5), 0, _roof_nx)
+	var j0 := clampi(ceili((_sector_rect.position.y - _roof_z0) / ROOF_CELL - 0.5), 0, _roof_nz)
+	var j1 := clampi(ceili((_sector_rect.end.y - _roof_z0) / ROOF_CELL - 0.5), 0, _roof_nz)
+	return Rect2i(i0, j0, i1 - i0, j1 - j0)
+
+
+## Loop 3c: whether a triangle (or a piece) can have its centre in the sector being built
+## (its box meets the sector): the drape skips the rest before the costly height lookups.
+func _touches(a: Vector3, b: Vector3, c: Vector3) -> bool:
+	var r := _sector_rect
+	return maxf(a.x, maxf(b.x, c.x)) >= r.position.x - 0.01 and minf(a.x, minf(b.x, c.x)) <= r.end.x + 0.01 \
+			and maxf(a.z, maxf(b.z, c.z)) >= r.position.y - 0.01 and minf(a.z, minf(b.z, c.z)) <= r.end.y + 0.01
+
+
+## Loop 3c: the bounds, roof grid, surface maps, terrain, approaches, aprons, decks and
+## tunnels from a map's data (the whole map's, or the index's).
+func _setup(d: Dictionary, building_mat: ShaderMaterial, flat_mat: ShaderMaterial) -> void:
 	building_material = building_mat
 	flat_material = flat_mat
-	var text := FileAccess.get_file_as_string(path)
-	data = JSON.parse_string(text)
+	data = d
 	var b: Array = data["bounds"]
 	bounds = Rect2(b[0], b[1], b[2] - b[0], b[3] - b[1])
 	_roof_x0 = bounds.position.x
@@ -196,78 +477,6 @@ func build(path: String, building_mat: ShaderMaterial, flat_mat: ShaderMaterial)
 	_load_aprons()
 	_load_decks()
 	_load_tunnels()
-	var flat := Chunked.new()
-	_build_ground(flat)
-	# Wide gaps between the depth biases: two layers that fit a slope with different
-	# triangles can differ by a few centimetres, and must not poke through each other.
-	# Loop 3b-2: the areas lie exactly on the ground's own triangles (_fill_on_grid), so their
-	# few millimetres of height order them over the ground and each other without a depth bias
-	# to speak of (0.05 before); the thin strips laid over them (paths at 0.1) keep a margin for
-	# their pieces' sag over the grid's folds (game/tools/check_drape.gd counts it).
-	_drape_bias = 0.01
-	_build_areas(flat)
-	# The sandbars over the water (fill 0.02, rim 0.07, foam 0.09) and the natural banks' wet
-	# bands and foam (0.07, 0.09), under the paving and the paths.
-	_drape_bias = 0.02
-	_build_sandbars(flat)
-	_drape_bias = 0.07
-	_build_banks(flat)
-	_drape_bias = 0.08
-	_build_surfaces(flat)
-	_drape_bias = 0.1
-	_build_paths(flat)
-	_build_steps(flat)
-	_drape_bias = 0.2
-	_build_rail_beds(flat)
-	_drape_bias = 0.3
-	_build_roads(flat)
-	_build_tunnel_roads(flat)
-	_build_carriageways(flat)
-	_drape_bias = 0.34
-	_build_islands(flat)
-	_build_medians(flat)
-	_drape_bias = 0.36
-	_build_kerbs(flat)
-	_build_shore_stone(flat)
-	_drape_bias = 0.38
-	_build_markings(flat)
-	_build_symbols(flat)
-	_build_crossings(flat)
-	_drape_bias = 0.46
-	_build_trams(flat)
-	_build_rails(flat)
-	_drape_bias = -1.0
-	_dk = -1
-	_add_mesh(flat, flat_material, false)
-
-	# v0.8: the landmarks replace whatever LoD2 or OpenStreetMap lump stood in their place.
-	var marks := Landmarks.new(self, data)
-	var walls := Chunked.new()
-	var keep := _build_lod2(walls, marks)
-	var t_parts := Time.get_ticks_msec()
-	_build_buildings(walls, keep, marks)
-	print("buildings: %d floating parts: %d lowered (%d to the ground), %d tiny left out · %d ms" % [floating_parts,
-			floating_parts - floating_dropped, floating_to_ground, floating_dropped, Time.get_ticks_msec() - t_parts])
-	marks.build(walls)
-	landmark_info = marks.info
-	_pick = marks.pick_grid()
-	_build_platforms(walls)
-	_build_barriers(walls)
-	_build_bridge_structures(walls)
-	_build_walls(walls)
-	_build_portals(walls)
-	_build_garage_doors(walls)
-	_build_guard_rails(walls)
-	_build_shore()
-	_add_mesh(walls, building_material, true)
-	_build_neon(keep, marks)
-
-	_build_trees()
-	_build_street_furniture()
-	_build_props()
-	_build_collision()
-	_index_raised()
-	return data
 
 
 func _add_mesh(st, material: Material, shadows: bool) -> void:
@@ -276,7 +485,7 @@ func _add_mesh(st, material: Material, shadows: bool) -> void:
 		mi.mesh = mesh
 		mi.material_override = material
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadows else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(mi)
+		_out.add_child(mi)
 
 
 ## The baked occlusion map (tools/bake_ao.py) goes to the ground shader: red the
@@ -1080,6 +1289,17 @@ func roof_height(x: float, z: float) -> float:
 	return _roof[j * _roof_nx + i]
 
 
+## Loop 3c: roof_height while the city is built: a sector's own grid during its build.
+func _built_roof(x: float, z: float) -> float:
+	if not _in_sector:
+		return roof_height(x, z)
+	var i := floori((x - _roof_x0) / ROOF_CELL)
+	var j := floori((z - _roof_z0) / ROOF_CELL)
+	if i < 0 or j < 0 or i >= _roof_nx or j >= _roof_nz:
+		return NO_ROOF
+	return _scratch_roof[j * _roof_nx + i]
+
+
 ## The top of whatever stands within `radius` of a point: ground, bridge deck or roof.
 ## Nine samples, so a radius up to one cell can't slip between them.
 func top_height(x: float, z: float, radius := 0.0) -> float:
@@ -1129,7 +1349,13 @@ func landmark_at(x: float, z: float) -> int:
 func _roof_mark(x: float, z: float, y: float) -> void:
 	var i := floori((x - _roof_x0) / ROOF_CELL)
 	var j := floori((z - _roof_z0) / ROOF_CELL)
-	if i >= 0 and j >= 0 and i < _roof_nx and j < _roof_nz and y > _roof[j * _roof_nx + i]:
+	if i < 0 or j < 0 or i >= _roof_nx or j >= _roof_nz:
+		return
+	# Loop 3c: a sector's build marks its own grid (merged into _roof for its cells).
+	if _in_sector:
+		if y > _scratch_roof[j * _roof_nx + i]:
+			_scratch_roof[j * _roof_nx + i] = y
+	elif y > _roof[j * _roof_nx + i]:
 		_roof[j * _roof_nx + i] = y
 
 
@@ -1161,7 +1387,10 @@ func _roof_triangle(a: Vector3, b: Vector3, c: Vector3, is_roof: bool) -> void:
 				continue
 			var y := l1 * a.y + l2 * b.y + l3 * c.y
 			var k := j * _roof_nx + i
-			if y > _roof[k]:
+			if _in_sector:
+				if y > _scratch_roof[k]:
+					_scratch_roof[k] = y
+			elif y > _roof[k]:
 				_roof[k] = y
 
 
@@ -1181,7 +1410,10 @@ func _roof_polygon(poly: PackedVector2Array, top: float) -> void:
 		for i in range(i0, i1 + 1):
 			var p := Vector2(_roof_x0 + (i + 0.5) * ROOF_CELL, _roof_z0 + (j + 0.5) * ROOF_CELL)
 			var k := j * _roof_nx + i
-			if top > _roof[k] and Geometry2D.is_point_in_polygon(p, poly):
+			if _in_sector:
+				if top > _scratch_roof[k] and Geometry2D.is_point_in_polygon(p, poly):
+					_scratch_roof[k] = top
+			elif top > _roof[k] and Geometry2D.is_point_in_polygon(p, poly):
 				_roof[k] = top
 
 
@@ -1218,6 +1450,8 @@ func _tri(st, a: Vector3, b: Vector3, c: Vector3, n: Vector3, col: Color,
 ## A flat-layer triangle laid on the ground: split until no edge is longer than
 ## the terrain grid, then lifted to the surface (its own y is the layer offset).
 func _draped_tri(st, a: Vector3, b: Vector3, c: Vector3, col: Color, depth: int) -> void:
+	if _in_sector and not _touches(a, b, c):
+		return  # loop 3c: no piece of it can lie in the sector being built
 	# Split the longest edge in two until every edge fits the terrain grid; long thin
 	# strips (rails, lane lines) then cost a handful of triangles, not thousands.
 	var ab := Vector2(a.x - b.x, a.z - b.z).length()
@@ -1322,6 +1556,15 @@ func _fill_grid_cells(st, poly: PackedVector2Array, y: float, col: Color) -> voi
 	var i1 := clampi(floori((hi.x - gx) / step), 0, nx - 2)
 	var j0 := clampi(floori((lo.y - gz) / step), 0, nz - 2)
 	var j1 := clampi(floori((hi.y - gz) / step), 0, nz - 2)
+	if _in_sector:
+		# Loop 3c: only the cells that reach into the sector being built (the others' pieces
+		# all have their centres outside it).
+		i0 = maxi(i0, floori((_sector_rect.position.x - gx) / step) - 1)
+		i1 = mini(i1, floori((_sector_rect.end.x - gx) / step) + 1)
+		j0 = maxi(j0, floori((_sector_rect.position.y - gz) / step) - 1)
+		j1 = mini(j1, floori((_sector_rect.end.y - gz) / step) + 1)
+		if i0 > i1 or j0 > j1:
+			return
 	var w := i1 - i0 + 1
 	var h := j1 - j0 + 1
 	var crossed := PackedByteArray()
@@ -1472,6 +1715,25 @@ func _build_edges(st) -> void:
 			_tri_shaded(st, a1, b2, a2, n, soil, deep, deep, none, none, none)
 
 
+## Smooth normals from the height gradient, so slopes shade softly instead of in facets
+## (loop 3c: found once, every sector's ground uses them).
+func _ground_normals() -> PackedVector3Array:
+	if not _gn.is_empty() or _t_h.is_empty():
+		return _gn
+	var step := float(_terrain["step"])
+	var nx := int(_terrain["nx"])
+	var nz := int(_terrain["nz"])
+	_gn.resize(nx * nz)
+	for j in nz:
+		for i in nx:
+			var hl := _t_h[j * nx + maxi(i - 1, 0)]
+			var hr := _t_h[j * nx + mini(i + 1, nx - 1)]
+			var hu := _t_h[maxi(j - 1, 0) * nx + i]
+			var hd := _t_h[mini(j + 1, nz - 1) * nx + i]
+			_gn[j * nx + i] = Vector3(hl - hr, 2.0 * step, hu - hd).normalized()
+	return _gn
+
+
 func _build_ground(st) -> void:
 	if _t_h.is_empty():
 		var r := bounds
@@ -1484,19 +1746,18 @@ func _build_ground(st) -> void:
 	var z0 := float(_terrain["z0"])
 	var nx := int(_terrain["nx"])
 	var nz := int(_terrain["nz"])
-	# Smooth normals from the height gradient, so slopes shade softly instead of in facets.
-	var normals := PackedVector3Array()
-	normals.resize(nx * nz)
-	for j in nz:
-		for i in nx:
-			var hl := _t_h[j * nx + maxi(i - 1, 0)]
-			var hr := _t_h[j * nx + mini(i + 1, nx - 1)]
-			var hu := _t_h[maxi(j - 1, 0) * nx + i]
-			var hd := _t_h[mini(j + 1, nz - 1) * nx + i]
-			normals[j * nx + i] = Vector3(hl - hr, 2.0 * step, hu - hd).normalized()
+	var normals := _ground_normals()
 	var colour: Color = COL["ground"]
-	for j in nz - 1:
-		for i in nx - 1:
+	# Loop 3c: one sector builds only the cells that reach into it.
+	var ci := Vector2i(0, nx - 1)
+	var cj := Vector2i(0, nz - 1)
+	if _in_sector:
+		ci = Vector2i(clampi(floori((_sector_rect.position.x - x0) / step) - 1, 0, nx - 1),
+				clampi(floori((_sector_rect.end.x - x0) / step) + 1, 0, nx - 1))
+		cj = Vector2i(clampi(floori((_sector_rect.position.y - z0) / step) - 1, 0, nz - 1),
+				clampi(floori((_sector_rect.end.y - z0) / step) + 1, 0, nz - 1))
+	for j in range(cj.x, cj.y):
+		for i in range(ci.x, ci.y):
 			var k00 := j * nx + i
 			var k10 := k00 + 1
 			var k01 := k00 + nx
@@ -1534,7 +1795,12 @@ func _build_areas(st) -> void:
 			var group := "plaza" if k == "plaza" else ("water" if k == "water" else "green")
 			if group != pass_kind:
 				continue
-			var y := Y_AREA + (0.005 if group == "green" else 0.0) + (0.01 if group == "water" else 0.0)
+			# Green kinds a millimetre apart (park under grass under pitch), like the sand: laid on
+			# the same grid triangles since loop 3b-2, a lawn inside a park was exactly coplanar
+			# with it, and which colour won depended on the draw order (loop 3c's sectors split
+			# the triangles differently, so the streamed park showed darker triangles).
+			var green_y: float = GREEN_Y.get(k, 0.005)
+			var y := Y_AREA + (green_y if group == "green" else 0.0) + (0.01 if group == "water" else 0.0)
 			_layer = L_GREEN if group == "green" else (L_WATER if group == "water" else L_PLAZA)
 			_fill_on_grid(st, _pts(a["p"]), y, COL[k])
 	_layer = L_GROUND
@@ -1943,6 +2209,8 @@ func _draped_wall(st, a: Vector2, b: Vector2, y0: float, y1: float, facing: Vect
 	for k in n:
 		var p := a.lerp(b, float(k) / n)
 		var q := a.lerp(b, float(k + 1) / n)
+		if _in_sector and not _touches(Vector3(p.x, 0.0, p.y), Vector3(q.x, 0.0, q.y), Vector3(p.x, 0.0, p.y)):
+			continue  # loop 3c
 		var hp := _surface_height(p.x, p.y)
 		var hq := _surface_height(q.x, q.y)
 		var v := [Vector3(p.x, hp + y0, p.y), Vector3(q.x, hq + y0, q.y), Vector3(q.x, hq + y1, q.y), Vector3(p.x, hp + y1, p.y)]
@@ -2114,6 +2382,8 @@ func _build_bridge_structures(st) -> void:
 	var joined := 0.0
 	for di in _decks.size():
 		var d: Dictionary = _decks[di]
+		if _in_sector and not (d["box"] as Rect2).grow(8.0).intersects(_sector_rect):
+			continue  # loop 3c: none of this piece reaches the sector being built
 		var pts: PackedVector2Array = d["pts"]
 		var hs: PackedFloat32Array = d["h"]
 		var outer: PackedByteArray = d["o"]
@@ -2197,7 +2467,8 @@ func _build_bridge_structures(st) -> void:
 	for p: Dictionary in data.get("decks", {}).get("piers", []):
 		_pier(st, p, concrete.darkened(0.1))
 	_uv2 = Vector2.ZERO
-	print("decks: %.0f m of deck edges joined across a gap to the bridge's next piece (loop 3b-2)" % joined)
+	if not _in_sector:
+		print("decks: %.0f m of deck edges joined across a gap to the bridge's next piece (loop 3b-2)" % joined)
 
 
 ## Loop 3b (R5): one of the bake's pier boxes (a pier, a portal leg or its cap beam): drawn
@@ -2299,18 +2570,13 @@ var _shore_fountains := 0
 ## bank the car stops at the foam, on the wet sand.
 func _build_banks(st) -> void:
 	_shore_lines.clear()
-	var runs: Array[PackedVector2Array] = []
-	var kinds: Array[int] = []
-	for sh in data.get("shore", []):
-		runs.append(_pts(sh["p"]))
-		kinds.append(int(sh.get("n", 0)))
-	_shore_baked = runs.size()
-	var extra := _shore_under_decks(runs)
-	runs.append_array(extra)
-	for k in extra.size():
-		kinds.append(0)
-	for i in runs.size():
-		_shore_lines.append([runs[i], _water_side(runs[i]), kinds[i]])
+	if _in_sector:
+		# Loop 3c: the runs found once for the whole map, those near the sector.
+		for line in _global_shore:
+			if (line[3] as Rect2).intersects(_near):
+				_shore_lines.append(line)
+	else:
+		_shore_lines = _find_shore_lines()
 	_shore_fountains = 0
 	for s in data.get("surfaces", []):
 		if s["k"] != "fountain":
@@ -2321,7 +2587,7 @@ func _build_banks(st) -> void:
 		ring.append(ring[0])
 		# The water is inside the ring: on the left of its way round if it runs anticlockwise
 		# (a positive area here).
-		_shore_lines.append([ring, 1.0 if _ring_area(ring) > 0.0 else -1.0, 0])
+		_shore_lines.append([ring, 1.0 if _ring_area(ring) > 0.0 else -1.0, 0, _poly_box(ring).grow(2.0)])
 		_shore_fountains += 1
 	var keep := _drape_bias
 	for line in _shore_lines:
@@ -2340,6 +2606,25 @@ func _build_banks(st) -> void:
 	_layer = L_GROUND
 
 
+## Loop 3c: the water's edge runs (the bake's and the ones by the decks), each [polyline,
+## water side, natural kind, box]: over the whole map, so a sector takes the same runs.
+func _find_shore_lines() -> Array:
+	var lines := []
+	var runs: Array[PackedVector2Array] = []
+	var kinds: Array[int] = []
+	for sh in data.get("shore", []):
+		runs.append(_pts(sh["p"]))
+		kinds.append(int(sh.get("n", 0)))
+	_shore_baked = runs.size()
+	var extra := _shore_under_decks(runs)
+	runs.append_array(extra)
+	for k in extra.size():
+		kinds.append(0)
+	for i in runs.size():
+		lines.append([runs[i], _water_side(runs[i]), kinds[i], _poly_box(runs[i]).grow(2.0)])
+	return lines
+
+
 ## The built runs' granite edge goes into the ground's mesh `st` (see above).
 func _build_shore_stone(st) -> void:
 	var length := 0.0
@@ -2354,7 +2639,8 @@ func _build_shore_stone(st) -> void:
 			continue
 		length += _shore_edge(st, line[0], line[1])
 	_layer = layer
-	print("shore: %d baked runs, %d more by bridges, %d fountains, %.1f km of stone, %.1f km natural bank" % [_shore_baked,
+	if not _in_sector:
+		print("shore: %d baked runs, %d more by bridges, %d fountains, %.1f km of stone, %.1f km natural bank" % [_shore_baked,
 			_shore_lines.size() - _shore_baked - _shore_fountains, _shore_fountains, length / 1000.0, natural / 1000.0])
 
 
@@ -3011,11 +3297,24 @@ static func _grid_add(grid: Dictionary, box: Rect2, index: int) -> void:
 func _build_lod2(walls, marks) -> Array:
 	if not FileAccess.file_exists("res://map/lod2.bin"):
 		return []
-	var meta: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://map/lod2.json"))
-	_lod2_footprints = meta.get("footprints", [])
-	var bytes := FileAccess.get_file_as_bytes("res://map/lod2.bin")
-	var count := bytes.decode_u32(0)
-	var f := bytes.slice(4).to_float32_array()
+	var meta: Dictionary = {}
+	var count := 0
+	var f := PackedFloat32Array()
+	# Loop 3c: one sector reads only its buildings (the split's `lod2_runs`: vertex ranges of
+	# lod2.bin, one per building) and keeps them apart by that table, not by their seeds.
+	var runs := PackedInt32Array()
+	if _in_sector:
+		_lod2_footprints = data.get("lod2_footprints", [])
+		var picked := _read_lod2_runs(data.get("lod2_runs", []))
+		count = picked[0]
+		f = picked[1]
+		runs = picked[2]
+	else:
+		meta = JSON.parse_string(FileAccess.get_file_as_string("res://map/lod2.json"))
+		_lod2_footprints = meta.get("footprints", [])
+		var bytes := FileAccess.get_file_as_bytes("res://map/lod2.bin")
+		count = bytes.decode_u32(0)
+		f = bytes.slice(4).to_float32_array()
 	var pos := PackedVector3Array()
 	var nrm := PackedVector3Array()
 	var col := PackedColorArray()
@@ -3042,37 +3341,51 @@ func _build_lod2(walls, marks) -> Array:
 	# out (tools/bake_structures.py `lod2_cuts`; the Poniatowski viaduct's arcades).
 	var cuts: Array = data.get("lod2_cuts", [])
 	if not cuts.is_empty():
-		var clipped := _clip_lod2(pos, nrm, col, uv, uv2, cuts)
+		var clipped := _clip_lod2(pos, nrm, col, uv, uv2, cuts, runs)
 		pos = clipped[0]
 		nrm = clipped[1]
 		col = clipped[2]
 		uv = clipped[3]
 		uv2 = clipped[4]
+		runs = clipped[5]
 		count = pos.size()
 	# v0.8: whole LoD2 buildings that stand where a landmark is built are left out. The
 	# bake writes each building's triangles in one run sharing its style seed (UV2.x).
 	var dropped := PackedByteArray()
 	dropped.resize(count / 3)
 	var t0 := 0
+	var ri := 0
 	while t0 < count:
 		var seed := uv2[t0].x
 		var first := Vector2(pos[t0].x, pos[t0].z)
 		var lo := first
 		var hi := first
 		var t1 := t0
-		while t1 < count and uv2[t1].x == seed and Vector2(pos[t1].x, pos[t1].z).distance_to(first) < 300.0:
-			for k in 3:
-				var q := Vector2(pos[t1 + k].x, pos[t1 + k].z)
-				lo = lo.min(q)
-				hi = hi.max(q)
-			t1 += 3
+		if not runs.is_empty():
+			var end := t0 + runs[ri]
+			ri += 1
+			while t1 < end:
+				for k in 3:
+					var q := Vector2(pos[t1 + k].x, pos[t1 + k].z)
+					lo = lo.min(q)
+					hi = hi.max(q)
+				t1 += 3
+			if t1 == t0:
+				continue
+		else:
+			while t1 < count and uv2[t1].x == seed and Vector2(pos[t1].x, pos[t1].z).distance_to(first) < 300.0:
+				for k in 3:
+					var q := Vector2(pos[t1 + k].x, pos[t1 + k].z)
+					lo = lo.min(q)
+					hi = hi.max(q)
+				t1 += 3
 		if marks.replaces((lo + hi) * 0.5):
 			for t in range(t0, t1, 3):
 				dropped[t / 3] = 1
 		t0 = t1
-	# Split into tiles by triangle, like the other city meshes.
+	# Split into tiles by triangle, like the other city meshes (not on the roof pass).
 	var tiles := {}
-	for t in range(0, count, 3):
+	for t in range(0, count if not walls.none else 0, 3):
 		if dropped[t / 3]:
 			continue
 		var centre := (pos[t] + pos[t + 1] + pos[t + 2]) / 3.0
@@ -3116,7 +3429,35 @@ func _build_lod2(walls, marks) -> Array:
 				_wall_faces.append_array([pos[t], pos[t + 1], pos[t + 2]])
 		_roof_triangle(pos[t], pos[t + 1], pos[t + 2], flat_ish)
 	_has_lod2 = true
-	return meta["keep_osm"]
+	if not _in_sector:
+		return meta["keep_osm"]
+	# Loop 3c: the split marks the OpenStreetMap buildings LoD2 keeps (`keep`).
+	var keep := []
+	var list: Array = data["buildings"]
+	for i in list.size():
+		if list[i].has("keep"):
+			keep.append(i)
+	return keep
+
+
+## Loop 3c: the LoD2 vertex ranges [t0, t1, ...] read from lod2.bin: [vertex count, the
+## floats in lod2.bin's layout (positions, normals, colours, UV, UV2), each range's count].
+func _read_lod2_runs(ranges: Array) -> Array:
+	var file := FileAccess.open("res://map/lod2.bin", FileAccess.READ)
+	var total := file.get_32()
+	var runs := PackedInt32Array()
+	var count := 0
+	for r in range(0, ranges.size() - 1, 2):
+		runs.append(int(ranges[r + 1]) - int(ranges[r]))
+		count += runs[-1]
+	var bytes := PackedByteArray()
+	for block: Vector2i in [Vector2i(0, 3), Vector2i(total * 3, 3), Vector2i(total * 6, 4), Vector2i(total * 10, 2),
+			Vector2i(total * 12, 2)]:
+		for r in range(0, ranges.size() - 1, 2):
+			var t0 := int(ranges[r])
+			file.seek(4 + (block.x + t0 * block.y) * 4)
+			bytes.append_array(file.get_buffer((int(ranges[r + 1]) - t0) * block.y * 4))
+	return [count, bytes.to_float32_array(), runs]
 
 
 ## Loop 3b: the LoD2 triangles with the cut buildings clipped. A building is a run of
@@ -3124,7 +3465,10 @@ func _build_lod2(walls, marks) -> Array:
 ## cut's ([x, z, top, left out]) loses everything over the top: walls are clipped at it, roof
 ## triangles over it are laid flat at it (they cover the footprint, so the cut is closed).
 func _clip_lod2(pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedColorArray, uv: PackedVector2Array,
-		uv2: PackedVector2Array, cuts: Array) -> Array:
+		uv2: PackedVector2Array, cuts: Array, runs := PackedInt32Array()) -> Array:
+	# Loop 3c: `runs` (a sector's table of buildings) comes back with each one's new count.
+	var o_runs := PackedInt32Array()
+	var ri := 0
 	var o_pos := PackedVector3Array()
 	var o_nrm := PackedVector3Array()
 	var o_col := PackedColorArray()
@@ -3139,12 +3483,23 @@ func _clip_lod2(pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedCol
 		var lo := first
 		var hi := first
 		var t1 := t0
-		while t1 < count and uv2[t1].x == seed and Vector2(pos[t1].x, pos[t1].z).distance_to(first) < 300.0:
-			for k in 3:
-				var q := Vector2(pos[t1 + k].x, pos[t1 + k].z)
-				lo = lo.min(q)
-				hi = hi.max(q)
-			t1 += 3
+		if not runs.is_empty():
+			var end := t0 + runs[ri]
+			ri += 1
+			while t1 < end:
+				for k in 3:
+					var q := Vector2(pos[t1 + k].x, pos[t1 + k].z)
+					lo = lo.min(q)
+					hi = hi.max(q)
+				t1 += 3
+		else:
+			while t1 < count and uv2[t1].x == seed and Vector2(pos[t1].x, pos[t1].z).distance_to(first) < 300.0:
+				for k in 3:
+					var q := Vector2(pos[t1 + k].x, pos[t1 + k].z)
+					lo = lo.min(q)
+					hi = hi.max(q)
+				t1 += 3
+		var before := o_pos.size()
 		var centre := (lo + hi) * 0.5
 		var cut := INF
 		var drop := false
@@ -3189,9 +3544,11 @@ func _clip_lod2(pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedCol
 							o_col.append(v[1])
 							o_uv.append(v[2])
 							o_uv2.append(uv2[t])
+		o_runs.append(o_pos.size() - before)
 		t0 = t1
-	print("lod2: %d buildings cut under a deck (loop 3b)" % n_cut)
-	return [o_pos, o_nrm, o_col, o_uv, o_uv2]
+	if not _in_sector:
+		print("lod2: %d buildings cut under a deck (loop 3b)" % n_cut)
+	return [o_pos, o_nrm, o_col, o_uv, o_uv2, o_runs if not runs.is_empty() else PackedInt32Array()]
 
 
 ## Like _tri, but with a colour per corner (walls darken towards the ground).
@@ -3277,27 +3634,131 @@ func _build_trees() -> void:
 		real_trunks.append(Transform3D(Basis(Vector3.UP, h * TAU).scaled(Vector3(girth, trunk_h / 2.8, girth)),
 				Vector3(x, ground + trunk_h * 0.5, z)))
 
+	_make_shared()
+	var lifted: Array[Transform3D] = []
+	for t in all_spots:
+		lifted.append(Transform3D(t.basis, t.origin + Vector3(0, 1.4 * t.basis.get_scale().y, 0)))
+	lifted.append_array(real_trunks)
+	var no_colours: Array[Color] = []
+	_tree_multimesh(_shared["trunk"], _shared["trunk_mat"], lifted, no_colours)
+	_tree_multimesh(_shared["broadleaf"], leaf_material, broad, broad_col)
+	_tree_multimesh(_shared["conifer"], leaf_material, needle, needle_col)
+
+
+## Loop 3c: the materials and meshes of the trees, lamps, signals, parked cars, props, lamp
+## halos and neon signs, made once for the whole city (every sector's MultiMeshes share them;
+## tools/bake_city.gd saves them once under map/shared/). The leaves and the parked cars'
+## paint are `fade_materials` (the see-through hole round the car).
+func _make_shared() -> void:
+	if not _shared.is_empty():
+		return
 	var trunk := CylinderMesh.new()
 	trunk.top_radius = 0.22
 	trunk.bottom_radius = 0.3
 	trunk.height = 2.8
 	trunk.radial_segments = 5
 	trunk.rings = 1
+	_shared["trunk"] = trunk
 	var trunk_mat := StandardMaterial3D.new()
 	trunk_mat.albedo_color = Color("#5e4636")
-	var lifted: Array[Transform3D] = []
-	for t in all_spots:
-		lifted.append(Transform3D(t.basis, t.origin + Vector3(0, 1.4 * t.basis.get_scale().y, 0)))
-	lifted.append_array(real_trunks)
-	var no_colours: Array[Color] = []
-	_tree_multimesh(trunk, trunk_mat, lifted, no_colours)
-
+	_shared["trunk_mat"] = trunk_mat
 	leaf_material = ShaderMaterial.new()
 	leaf_material.shader = load("res://shaders/foliage.gdshader")
 	_apply_lights(leaf_material)
+	_shared["broadleaf"] = _broadleaf_mesh()
+	_shared["conifer"] = _conifer_mesh()
+
+	var metal := StandardMaterial3D.new()
+	metal.vertex_color_use_as_albedo = true
+	metal.vertex_color_is_srgb = true
+	metal.roughness = 0.7
+	_shared["metal"] = metal
+	var lamp := SurfaceTool.new()
+	lamp.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var grey := Color("#43474c")
+	_box(lamp, Vector3(0, 3.5, 0), Vector3(0.16, 7.0, 0.16), grey)
+	_box(lamp, Vector3(0.6, 6.95, 0), Vector3(1.3, 0.1, 0.12), grey)
+	_box(lamp, Vector3(1.2, 6.85, 0), Vector3(0.55, 0.16, 0.3), LAMP_HEAD)
+	_shared["lamp"] = _mark_head(lamp.commit())
+	var fixture := ShaderMaterial.new()
+	fixture.shader = load("res://shaders/fixture.gdshader")
+	_shared["fixture"] = fixture
+	var signal_mesh := SurfaceTool.new()
+	signal_mesh.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var dark := Color("#26282b")
+	_box(signal_mesh, Vector3(0, 1.8, 0), Vector3(0.14, 3.6, 0.14), dark)
+	_box(signal_mesh, Vector3(0, 3.35, 0.2), Vector3(0.34, 1.0, 0.28), dark)
+	_box(signal_mesh, Vector3(0, 3.65, 0.35), Vector3(0.16, 0.16, 0.04), Color("#c8432f"))
+	_box(signal_mesh, Vector3(0, 3.05, 0.35), Vector3(0.16, 0.16, 0.04), Color("#4f9a52"))
+	_shared["signal"] = signal_mesh.commit()
+	_shared["parked"] = Models.parked_mesh()
+	var car_paint := leaf_material.duplicate() as ShaderMaterial
+	car_paint.set_shader_parameter("sway", 0.0)
+	_shared["car_paint"] = car_paint
+	fade_materials.clear()
 	fade_materials.append(leaf_material)
-	_tree_multimesh(_broadleaf_mesh(), leaf_material, broad, broad_col)
-	_tree_multimesh(_conifer_mesh(), leaf_material, needle, needle_col)
+	fade_materials.append(car_paint)
+
+	var halo := ShaderMaterial.new()
+	halo.shader = load("res://shaders/glow.gdshader")
+	halo.set_shader_parameter("billboard", true)
+	halo.set_shader_parameter("radial", true)
+	halo.set_shader_parameter("lift", 1.5)
+	halo.render_priority = 1
+	_shared["halo"] = halo
+	_shared["halo_quad"] = halo_quad(4.6)
+	var neon := ShaderMaterial.new()
+	neon.shader = load("res://shaders/neon.gdshader")
+	neon.set_shader_parameter("words", Neon.atlas())
+	neon.set_shader_parameter("rows", float(Neon.WORDS.size()))
+	_shared["neon"] = neon
+	_shared["neon_quad"] = Neon.quad()
+
+	var prop_metal := StandardMaterial3D.new()
+	prop_metal.vertex_color_use_as_albedo = true
+	prop_metal.vertex_color_is_srgb = true
+	prop_metal.roughness = 0.75
+	_shared["prop_metal"] = prop_metal
+	var bench := SurfaceTool.new()
+	bench.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var wood := Color("#8b6a48")
+	_box(bench, Vector3(0, 0.45, 0), Vector3(1.7, 0.08, 0.5), wood)
+	_box(bench, Vector3(0, 0.78, 0.22), Vector3(1.7, 0.36, 0.07), wood)
+	for x in [-0.7, 0.7]:
+		_box(bench, Vector3(x, 0.22, 0), Vector3(0.08, 0.44, 0.45), Color("#2e3033"))
+	_shared["bench"] = bench.commit()
+	var bin := SurfaceTool.new()
+	bin.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_box(bin, Vector3(0, 0.45, 0), Vector3(0.45, 0.9, 0.45), Color("#3e5a44"))
+	_box(bin, Vector3(0, 0.92, 0), Vector3(0.5, 0.06, 0.5), Color("#2c2e30"))
+	_shared["bin"] = bin.commit()
+	var rack := SurfaceTool.new()
+	rack.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for z in [-0.9, -0.3, 0.3, 0.9]:
+		_box(rack, Vector3(0, 0.45, z), Vector3(0.7, 0.07, 0.07), Color("#8c9096"))
+		for x in [-0.33, 0.33]:
+			_box(rack, Vector3(x, 0.22, z), Vector3(0.06, 0.45, 0.06), Color("#8c9096"))
+	_shared["rack"] = rack.commit()
+	# Advertising column: green foot and cap, a poster band tinted per column.
+	var column := SurfaceTool.new()
+	column.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var green := Color("#2f5a46")
+	_cylinder(column, Vector3.ZERO, 0.66, 0.5, 10, green)
+	_cylinder(column, Vector3(0, 0.5, 0), 0.6, 2.4, 10, Color.WHITE)
+	_cylinder(column, Vector3(0, 2.9, 0), 0.7, 0.18, 10, green)
+	_cylinder(column, Vector3(0, 3.08, 0), 0.45, 0.35, 8, green)
+	_cylinder(column, Vector3(0, 3.43, 0), 0.12, 0.3, 6, Color("#c9a24a"))
+	_shared["column"] = column.commit()
+	# Bus and tram shelter: dark roof, glass back and ends, two posts.
+	var shelter := SurfaceTool.new()
+	shelter.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var glass := Color("#b8d3df")
+	_box(shelter, Vector3(0, 2.45, 0), Vector3(3.8, 0.12, 1.6), Color("#43474d"))
+	_box(shelter, Vector3(0, 1.3, 0.72), Vector3(3.7, 2.1, 0.05), glass)
+	for x in [-1.85, 1.85]:
+		_box(shelter, Vector3(x, 1.3, 0.2), Vector3(0.05, 2.1, 1.05), glass)
+	_box(shelter, Vector3(0, 0.45, 0.5), Vector3(2.4, 0.07, 0.4), Color("#7c8087"))
+	_shared["shelter"] = shelter.commit()
 
 
 func _tree_multimesh(mesh: Mesh, material: Material, spots: Array[Transform3D], colours: Array[Color],
@@ -3311,7 +3772,10 @@ func _tree_multimesh(mesh: Mesh, material: Material, spots: Array[Transform3D], 
 		if not tiles.has(key):
 			tiles[key] = []
 		(tiles[key] as Array).append(i)
-	for members in tiles.values():
+	for key: Vector2i in tiles:
+		if _in_sector and key != _sector:
+			continue  # loop 3c: another sector's tile
+		var members: Array = tiles[key]
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.use_colors = not colours.is_empty()
@@ -3333,7 +3797,7 @@ func _tree_multimesh(mesh: Mesh, material: Material, spots: Array[Transform3D], 
 		var mmi := MultiMeshInstance3D.new()
 		mmi.multimesh = mm
 		mmi.material_override = material
-		(parent if parent != null else self).add_child(mmi)
+		(parent if parent != null else _out).add_child(mmi)
 		made.append(mmi)
 	return made
 
@@ -3399,17 +3863,8 @@ func _box(st, centre: Vector3, size: Vector3, col: Color) -> void:
 
 
 func _build_street_furniture() -> void:
-	var metal := StandardMaterial3D.new()
-	metal.vertex_color_use_as_albedo = true
-	metal.vertex_color_is_srgb = true
-	metal.roughness = 0.7
-
-	var lamp := SurfaceTool.new()
-	lamp.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var grey := Color("#43474c")
-	_box(lamp, Vector3(0, 3.5, 0), Vector3(0.16, 7.0, 0.16), grey)
-	_box(lamp, Vector3(0.6, 6.95, 0), Vector3(1.3, 0.1, 0.12), grey)
-	_box(lamp, Vector3(1.2, 6.85, 0), Vector3(0.55, 0.16, 0.3), LAMP_HEAD)
+	_make_shared()
+	var metal: Material = _shared["metal"]
 	var spots: Array[Transform3D] = []
 	var glows: Array[Color] = []
 	var list: Array = data.get("lamps", [])
@@ -3427,26 +3882,17 @@ func _build_street_furniture() -> void:
 		spots.append(Transform3D(Basis(Vector3.UP, _extra_lamps[i + 2]), Vector3(x, ground_height(x, z), z)))
 		glows.append(SODIUM_GLOW)
 	var none: Array[Color] = []
-	var fixture := ShaderMaterial.new()
-	fixture.shader = load("res://shaders/fixture.gdshader")
-	for mmi in _tree_multimesh(_mark_head(lamp.commit()), fixture, spots, none, glows):
+	for mmi in _tree_multimesh(_shared["lamp"], _shared["fixture"], spots, none, glows):
 		mmi.add_to_group(SMALL_CASTERS, true)
 	_build_lamp_halos(spots, glows)
 
-	var signal_mesh := SurfaceTool.new()
-	signal_mesh.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var dark := Color("#26282b")
-	_box(signal_mesh, Vector3(0, 1.8, 0), Vector3(0.14, 3.6, 0.14), dark)
-	_box(signal_mesh, Vector3(0, 3.35, 0.2), Vector3(0.34, 1.0, 0.28), dark)
-	_box(signal_mesh, Vector3(0, 3.65, 0.35), Vector3(0.16, 0.16, 0.04), Color("#c8432f"))
-	_box(signal_mesh, Vector3(0, 3.05, 0.35), Vector3(0.16, 0.16, 0.04), Color("#4f9a52"))
 	spots = []
 	list = data.get("signals", [])
 	for i in range(0, list.size() - 2, 3):
 		var x := float(list[i])
 		var z := float(list[i + 1])
 		spots.append(Transform3D(Basis(Vector3.UP, float(list[i + 2])), Vector3(x, terrain_height(x, z), z)))
-	for mmi in _tree_multimesh(signal_mesh.commit(), metal, spots, none):
+	for mmi in _tree_multimesh(_shared["signal"], metal, spots, none):
 		mmi.add_to_group(SMALL_CASTERS, true)
 
 	# Parked cars: white body and dark glass, tinted per car by the instance colour (loop 2c:
@@ -3459,10 +3905,7 @@ func _build_street_furniture() -> void:
 		var z := float(list[i + 1])
 		spots.append(Transform3D(Basis(Vector3.UP, float(list[i + 2])), Vector3(x, terrain_height(x, z), z)))
 		paints.append(Color(CAR_PAINT[int(list[i + 3]) % CAR_PAINT.size()]))
-	var car_paint := leaf_material.duplicate() as ShaderMaterial
-	car_paint.set_shader_parameter("sway", 0.0)
-	fade_materials.append(car_paint)
-	for mmi in _tree_multimesh(Models.parked_mesh(), car_paint, spots, paints):
+	for mmi in _tree_multimesh(_shared["parked"], _shared["car_paint"], spots, paints):
 		mmi.add_to_group(SMALL_CASTERS, true)
 	# Parked cars are obstacles too.
 	var footprint := [Vector3(-0.9, 0, -2.1), Vector3(0.9, 0, -2.1), Vector3(0.9, 0, 2.1), Vector3(-0.9, 0, 2.1)]
@@ -3499,18 +3942,14 @@ func _mark_head(mesh: ArrayMesh) -> ArrayMesh:
 func _build_lamp_halos(spots: Array[Transform3D], glows: Array[Color]) -> void:
 	var holder := Node3D.new()
 	holder.name = "LampHalos"
-	add_child(holder)
-	var mat := ShaderMaterial.new()
-	mat.shader = load("res://shaders/glow.gdshader")
-	mat.set_shader_parameter("billboard", true)
-	mat.set_shader_parameter("radial", true)
-	mat.set_shader_parameter("lift", 1.5)
-	mat.render_priority = 1
+	# Loop 3c: in the group main.gd shows at night, so every sector's halos follow the lights.
+	holder.add_to_group("night_lights", true)
+	_out.add_child(holder)
 	var heads: Array[Transform3D] = []
 	for t in spots:
 		heads.append(Transform3D(Basis(), t * Vector3(1.2, 6.78, 0.0)))
 	var none: Array[Color] = []
-	_tree_multimesh(halo_quad(4.6), mat, heads, glows, none, holder)
+	_tree_multimesh(_shared["halo_quad"], _shared["halo"], heads, glows, none, holder)
 	for c in holder.get_children():
 		(c as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
@@ -3588,11 +4027,11 @@ func _build_neon(keep: Array, marks) -> void:
 			if Geometry2D.is_point_in_polygon(mid + out * 0.3, poly):
 				out = -out
 			var front := mid + out * 4.5
-			if roof_height(front.x, front.y) != NO_ROOF or not _street_ahead(streets, mid, out):
+			if _built_roof(front.x, front.y) != NO_ROOF or not _street_ahead(streets, mid, out):
 				continue
 			var ground := terrain_height(mid.x, mid.y)
 			var inside := mid - out * 2.5
-			if roof_height(inside.x, inside.y) < ground + 6.0:
+			if _built_roof(inside.x, inside.y) < ground + 6.0:
 				continue
 			best = length
 			best_mid = mid
@@ -3617,17 +4056,18 @@ func _build_neon(keep: Array, marks) -> void:
 		custom.append(Color(row, width, plate, fposmod(pick * 71.9, 1.0)))
 	if spots.is_empty():
 		return
+	_make_shared()
 	var holder := Node3D.new()
 	holder.name = "Neon"
-	add_child(holder)
-	var mat := ShaderMaterial.new()
-	mat.shader = load("res://shaders/neon.gdshader")
-	mat.set_shader_parameter("words", Neon.atlas())
-	mat.set_shader_parameter("rows", float(Neon.WORDS.size()))
-	_tree_multimesh(Neon.quad(), mat, spots, colours, custom, holder)
+	holder.add_to_group("night_lights", true)  # loop 3c, as the lamp halos
+	_out.add_child(holder)
+	_tree_multimesh(_shared["neon_quad"], _shared["neon"], spots, colours, custom, holder)
 	for c in holder.get_children():
 		(c as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	print("neon signs: ", spots.size())
+	if holder.get_child_count() == 0:
+		holder.free()  # loop 3c: this sector's signs all stand in its neighbours
+	if not _in_sector:
+		print("neon signs: ", spots.size())
 
 
 ## True when a street's carriageway lies 3–16 m in front of a wall.
@@ -3661,60 +4101,18 @@ func _cylinder(st, centre: Vector3, radius: float, height: float, sides: int, co
 
 ## Benches, bins, bike racks, bus shelters and Warsaw's advertising columns.
 func _build_props() -> void:
-	var metal := StandardMaterial3D.new()
-	metal.vertex_color_use_as_albedo = true
-	metal.vertex_color_is_srgb = true
-	metal.roughness = 0.75
+	_make_shared()
+	var metal: Material = _shared["prop_metal"]
 	var none: Array[Color] = []
-
-	var bench := SurfaceTool.new()
-	bench.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var wood := Color("#8b6a48")
-	_box(bench, Vector3(0, 0.45, 0), Vector3(1.7, 0.08, 0.5), wood)
-	_box(bench, Vector3(0, 0.78, 0.22), Vector3(1.7, 0.36, 0.07), wood)
-	for x in [-0.7, 0.7]:
-		_box(bench, Vector3(x, 0.22, 0), Vector3(0.08, 0.44, 0.45), Color("#2e3033"))
-	_props(bench.commit(), metal, data.get("benches", []), 3.2, none, true)
-
-	var bin := SurfaceTool.new()
-	bin.begin(Mesh.PRIMITIVE_TRIANGLES)
-	_box(bin, Vector3(0, 0.45, 0), Vector3(0.45, 0.9, 0.45), Color("#3e5a44"))
-	_box(bin, Vector3(0, 0.92, 0), Vector3(0.5, 0.06, 0.5), Color("#2c2e30"))
-	_props(bin.commit(), metal, data.get("bins", []), 1.0, none, true)
-
-	var rack := SurfaceTool.new()
-	rack.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for z in [-0.9, -0.3, 0.3, 0.9]:
-		_box(rack, Vector3(0, 0.45, z), Vector3(0.7, 0.07, 0.07), Color("#8c9096"))
-		for x in [-0.33, 0.33]:
-			_box(rack, Vector3(x, 0.22, z), Vector3(0.06, 0.45, 0.06), Color("#8c9096"))
-	_props(rack.commit(), metal, data.get("bikes", []), 3.4, none, true)
-
-	# Advertising column: green foot and cap, a poster band tinted per column.
-	var column := SurfaceTool.new()
-	column.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var green := Color("#2f5a46")
-	_cylinder(column, Vector3.ZERO, 0.66, 0.5, 10, green)
-	_cylinder(column, Vector3(0, 0.5, 0), 0.6, 2.4, 10, Color.WHITE)
-	_cylinder(column, Vector3(0, 2.9, 0), 0.7, 0.18, 10, green)
-	_cylinder(column, Vector3(0, 3.08, 0), 0.45, 0.35, 8, green)
-	_cylinder(column, Vector3(0, 3.43, 0), 0.12, 0.3, 6, Color("#c9a24a"))
+	_props(_shared["bench"], metal, data.get("benches", []), 3.2, none, true)
+	_props(_shared["bin"], metal, data.get("bins", []), 1.0, none, true)
+	_props(_shared["rack"], metal, data.get("bikes", []), 3.4, none, true)
 	var tints: Array[Color] = []
 	var list: Array = data.get("columns", [])
 	for i in range(0, list.size() - 2, 3):
 		tints.append(Color(POSTER[int(absf(float(list[i]) * 7.0 + float(list[i + 1]) * 3.0)) % POSTER.size()]))
-	_props(column.commit(), metal, list, 1.4, tints)
-
-	# Bus and tram shelter: dark roof, glass back and ends, two posts.
-	var shelter := SurfaceTool.new()
-	shelter.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var glass := Color("#b8d3df")
-	_box(shelter, Vector3(0, 2.45, 0), Vector3(3.8, 0.12, 1.6), Color("#43474d"))
-	_box(shelter, Vector3(0, 1.3, 0.72), Vector3(3.7, 2.1, 0.05), glass)
-	for x in [-1.85, 1.85]:
-		_box(shelter, Vector3(x, 1.3, 0.2), Vector3(0.05, 2.1, 1.05), glass)
-	_box(shelter, Vector3(0, 0.45, 0.5), Vector3(2.4, 0.07, 0.4), Color("#7c8087"))
-	_props(shelter.commit(), metal, data.get("shelters", []), 4.0, none)
+	_props(_shared["column"], metal, list, 1.4, tints)
+	_props(_shared["shelter"], metal, data.get("shelters", []), 4.0, none)
 
 
 ## Instances of one prop at (x, z, yaw) triples; props bigger than `solid` metres
@@ -3744,14 +4142,40 @@ func _props(mesh: Mesh, material: Material, list: Array, solid: float, tints: Ar
 
 
 func _build_collision() -> void:
+	var faces := _wall_faces
+	if _in_sector:
+		# Loop 3c: the faces whose centre lies in the sector (each face in exactly one).
+		faces = PackedVector3Array()
+		for i in range(0, _wall_faces.size() - 2, 3):
+			var c := (_wall_faces[i] + _wall_faces[i + 1] + _wall_faces[i + 2]) / 3.0
+			if _sector_rect.has_point(Vector2(c.x, c.z)):
+				faces.append_array([_wall_faces[i], _wall_faces[i + 1], _wall_faces[i + 2]])
+		if faces.is_empty():
+			return
 	var body := StaticBody3D.new()
 	var shape := CollisionShape3D.new()
 	var concave := ConcavePolygonShape3D.new()
 	concave.backface_collision = true
-	concave.set_faces(_wall_faces)
+	concave.set_faces(faces)
 	shape.shape = concave
 	body.add_child(shape)
-	# Invisible walls at the edge of the baked area.
+	if _in_sector:
+		_out.add_child(body)
+		return
+	_add_edge_walls(body)
+	add_child(body)
+
+
+## Loop 3c: the walls at the map's edge on their own body (the streamed city's index).
+func _build_edge_walls() -> void:
+	var body := StaticBody3D.new()
+	body.name = "Edges"
+	_add_edge_walls(body)
+	add_child(body)
+
+
+## Invisible walls at the edge of the baked area.
+func _add_edge_walls(body: StaticBody3D) -> void:
 	var r := bounds.grow(-5.0)
 	var centre := r.get_center()
 	for edge in [[Vector3(centre.x, 50, r.position.y), Vector3(r.size.x, 200, 1)],
@@ -3764,4 +4188,3 @@ func _build_collision() -> void:
 		wall.shape = box
 		wall.position = edge[0]
 		body.add_child(wall)
-	add_child(body)

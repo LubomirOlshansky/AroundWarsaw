@@ -37,7 +37,7 @@ don't start it: say so under Open Questions.
 - Before a long run: `pgrep -lx Godot`. If another Godot is running, say so in the report
   (its numbers and yours are disturbed); for a bench, wait or report that you didn't run it.
 - Don't run `tools/verify.sh --ios` or `tools/export_ios.sh` unless asked: they rebuild
-  `game/map/city.scn`.
+  the prebuilt sectors (`game/map/sectors/*.scn`, loop 3c).
 - Look at every screenshot you report on (open it with Read) and describe what you see;
   judging the art is the art-director's job, spotting defects is yours.
 
