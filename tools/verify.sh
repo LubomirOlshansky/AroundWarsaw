@@ -1,5 +1,5 @@
 #!/bin/zsh
-# The Nocna Warszawa verification set in one run, ending in one PASS / WARN / FAIL table.
+# The Around Warsaw verification set in one run, ending in one PASS / WARN / FAIL table.
 #
 #   tools/verify.sh            map data, the check scripts and the headless runs (~1-2 min)
 #   tools/verify.sh --quick    map data, the check scripts, the plain and prebuilt runs (~30 s)
@@ -53,6 +53,13 @@ STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud 
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
 STEP_LIMIT=${NW_STEP_LIMIT:-900}
+
+# A fresh clone or worktree has no game/.godot class cache yet: every script step then fails
+# with "Could not find type PhantomCameraHost" (or hangs). Import once first (~3 s).
+if [[ ! -f $GAME/.godot/global_script_class_cache.cfg ]]; then
+	print "verify: importing the project first (no game/.godot yet)"
+	$GODOT --headless --path $GAME --import > /dev/null 2>&1
+fi
 
 want=()
 quick=0
@@ -355,7 +362,7 @@ run_ios() {
 	fi
 }
 
-print -r -- "Nocna Warszawa verify · $(strftime '%Y-%m-%d %H:%M' $EPOCHSECONDS) · $($GODOT --version 2>/dev/null | tail -1) · logs $logs"
+print -r -- "Around Warsaw verify · $(strftime '%Y-%m-%d %H:%M' $EPOCHSECONDS) · $($GODOT --version 2>/dev/null | tail -1) · logs $logs"
 (( others > 0 )) && print -r -- "note: $others other Godot process(es) running: timings here are slower, and a bench running beside this is disturbed"
 print -r -- ""
 

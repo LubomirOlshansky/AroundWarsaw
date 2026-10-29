@@ -9,7 +9,7 @@
 # Loop 3d-1 (the user's decision): game/map/lod2.bin, lod2.json and terrain.json come from
 # GUGiK's data alone (the LoD2 sheets, the 1 m and 10 m terrain) and are derived too, not
 # committed. They need the raw downloads (data/raw: tools/fetch_demo.py and the LoD2 package,
-# README "Map data"); --full, or their absence, rebuilds them: tools/prepare_demo.py (terrain,
+# docs/DEVELOPMENT.md "Map data"); --full, or their absence, rebuilds them: tools/prepare_demo.py (terrain,
 # sheets, ortho), tools/bake_terrain.py, tools/bake_gugik.py.
 #
 # The committed map is the bake chain's output (game/map/centrum.json, lod2.*, terrain.json,
@@ -42,7 +42,7 @@ if (( full )); then
 	if [[ ! -d $ROOT/data/raw/demo/gugik/nmt1_box || ! -d $ROOT/data/raw/gugik/sheets || ! -d $ROOT/data/raw/demo/gugik/sheets ]]; then
 		print -r -- "setup_map: game/map/lod2.* and terrain.json are built from GUGiK's raw data, which isn't here:"
 		print -r -- "  data/raw/demo (python3 -I tools/fetch_demo.py nmt10, ortho, sheets, nmt1box; see data/raw/demo/MANIFEST.md)"
-		print -r -- "  data/raw/gugik/1465_gml.zip and sheets/ (README \"Map data\", step 2: the Warsaw LoD2 package)"
+		print -r -- "  data/raw/gugik/1465_gml.zip and sheets/ (docs/DEVELOPMENT.md \"Map data\", step 2: the Warsaw LoD2 package)"
 		exit 1
 	fi
 	mkdir -p $ROOT/build

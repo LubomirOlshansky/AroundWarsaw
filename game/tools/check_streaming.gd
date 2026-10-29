@@ -19,7 +19,7 @@ extends SceneTree
 ##   godot --path game --resolution 1280x720 --script res://tools/check_streaming.gd
 ##       [-- --only=identity,pixels,soak --soak=MINUTES --keep=DIR --size=WxH]
 ## Prints `check_streaming: OK` (exit 0) or the problems (exit 1). --soak=15 is the 15-minute
-## run (README "Sectors and streaming"); tools/verify.sh runs 3 minutes.
+## run (docs/DEVELOPMENT.md "Sectors and streaming"); tools/verify.sh runs 3 minutes.
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
 ## x, z, heading (degrees: the camera looks that way): the spawn, then sector borders.

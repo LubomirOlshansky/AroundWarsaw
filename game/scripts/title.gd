@@ -1,11 +1,19 @@
 extends CanvasLayer
-## The title screen on a normal launch: a chrome "NOCNA WARSZAWA" wordmark over a
-## striped setting sun, the Warsaw skyline (the Palace of Culture against the
+## The title screen on a normal launch: a chrome "AROUND WARSAW" wordmark (WORDMARK) and the
+## tagline under it, over a striped setting sun, the Warsaw skyline (the Palace of Culture against the
 ## sun), a neon perspective grid, and a palm in silhouette (the artificial palm on
 ## Rondo de Gaulle'a). The city builds behind it; once it is ready, a tap or any
 ## key fades the title out ("TAP TO DRIVE / DOTKNIJ, BY JECHAĆ").
 
 signal dismissed
+
+## The game's name as the title shows it (the rename to Around Warsaw, 2026-10-30; it was
+## "NOCNA WARSZAWA"). The one place to change it.
+const WORDMARK := "AROUND WARSAW"
+## The tagline under the wordmark, Polish above English (the rename, 2026-10-30). "Jeźdź" is
+## the standard imperative of "jeździć" (the spoken "jeździj" is the common slip).
+const TAGLINE_PL := "Jeźdź, lataj i odkrywaj prawdziwą Warszawę"
+const TAGLINE_EN := "Drive, fly and discover the real Warsaw"
 
 var ready_to_drive := false
 ## Desktop: --no-touch (trailer loop, 2026-10-29): no "tap to drive" prompt once the city is
@@ -16,6 +24,9 @@ var _backdrop: ColorRect
 var _palm: Control
 var _mark: Label
 var _shadow: Label
+## The tagline's two lines (the rename, 2026-10-30): Polish, and English under it.
+var _tag_pl: Label
+var _tag_en: Label
 var _prompt: Label
 var _prompt_pl: Label
 var _gone := false
@@ -57,6 +68,8 @@ func _ready() -> void:
 	chrome.shader = load("res://shaders/chrome.gdshader")
 	_mark.material = chrome
 
+	_tag_pl = _make_label(ThemeDB.fallback_font)
+	_tag_en = _make_label(ThemeDB.fallback_font)
 	_prompt = _make_label(ThemeDB.fallback_font)
 	_prompt_pl = _make_label(ThemeDB.fallback_font)
 	_start_sound = AudioStreamPlayer.new()
@@ -91,10 +104,10 @@ func _layout() -> void:
 	var h := size.y
 	var fs := int(minf(h * 0.12, _safe.size.x * 0.072))
 	for l in [_mark, _shadow]:
-		l.text = "NOCNA WARSZAWA"
+		l.text = WORDMARK
 		l.add_theme_font_size_override("font_size", fs)
 		l.add_theme_constant_override("outline_size", maxi(4, int(fs * 0.1)))
-		l.position = Vector2(_safe.position.x, h * 0.07)
+		l.position = Vector2(_safe.position.x, h * 0.05)  # 0.07 before the tagline (2026-10-30)
 		l.size = Vector2(_safe.size.x, fs * 1.6)
 	_mark.add_theme_color_override("font_color", Color.WHITE)
 	_mark.add_theme_color_override("font_outline_color", Color("#2a0838"))
@@ -107,6 +120,25 @@ func _layout() -> void:
 	var chrome := _mark.material as ShaderMaterial
 	chrome.set_shader_parameter("top", ascent - fs * 0.74)
 	chrome.set_shader_parameter("bottom", ascent)
+
+	# The tagline under the wordmark, in the prompt's colours: Polish ~14 pt, English ~12 pt
+	# (h / 420 is about a point on the phones), each with a dark outline over the sun.
+	var ts := int(maxf(h * 0.034, 13.0))
+	var tag_top := h * 0.05 + fs * 1.22  # under the caps' pink shadow; both lines clear the Palace's spire
+	_tag_pl.text = TAGLINE_PL
+	_tag_pl.add_theme_font_size_override("font_size", ts)
+	_tag_pl.add_theme_color_override("font_color", Color("#7ff6ff"))
+	_tag_pl.add_theme_color_override("font_outline_color", Color("#14053a"))
+	_tag_pl.add_theme_constant_override("outline_size", maxi(3, int(ts * 0.24)))
+	_tag_pl.position = Vector2(_safe.position.x, tag_top)
+	_tag_pl.size = Vector2(_safe.size.x, ts * 1.4)
+	_tag_en.text = TAGLINE_EN
+	_tag_en.add_theme_font_size_override("font_size", int(ts * 0.84))
+	_tag_en.add_theme_color_override("font_color", Color("#ffb3e6"))
+	_tag_en.add_theme_color_override("font_outline_color", Color("#14053a"))
+	_tag_en.add_theme_constant_override("outline_size", maxi(3, int(ts * 0.2)))
+	_tag_en.position = Vector2(_safe.position.x, tag_top + ts * 1.18)
+	_tag_en.size = Vector2(_safe.size.x, ts * 1.3)
 
 	var ps := int(maxf(h * 0.04, 14.0))
 	_prompt.add_theme_font_size_override("font_size", ps)

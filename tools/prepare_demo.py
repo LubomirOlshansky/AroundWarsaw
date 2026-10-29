@@ -5,7 +5,7 @@
 (Not `-I`-only: the aerial photo step needs Pillow, like tools/overlay_ortho.py; every other
 step is standard library.) Reads data/raw/demo (tools/fetch_demo.py's downloads, MANIFEST.md),
 data/raw/gugik/sheets and data/raw/gugik/trees/1465, and writes data/work/demo/ (gitignored),
-the folder the bake chain reads for the box bake_osm.BBOX (README "Map data"):
+the folder the bake chain reads for the box bake_osm.BBOX (docs/DEVELOPMENT.md "Map data"):
 
   osm_demo.json      the 9-tile Overpass export cut to the box: every node within PAD of it, every
                      way with a node there (with all its nodes), every multipolygon (with all its

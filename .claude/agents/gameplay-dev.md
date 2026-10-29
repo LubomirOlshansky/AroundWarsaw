@@ -1,6 +1,6 @@
 ---
 name: gameplay-dev
-description: Godot 4 / GDScript developer for Nocna Warszawa. Use for code changes in game/scripts, game/shaders, game/tools (check scripts) and project settings - driving and controls, helicopter, missions, side jobs, police, traffic and trams, HUD and settings, landmarks built in code, sound code, wiring in 2D art and add-ons. Hand it a loop brief (goal, scope, acceptance). Not for the map bakes (map-engineer) or a performance pass (perf-engineer). Runs non-interactively; returns Open Questions.
+description: Godot 4 / GDScript developer for Around Warsaw. Use for code changes in game/scripts, game/shaders, game/tools (check scripts) and project settings - driving and controls, helicopter, missions, side jobs, police, traffic and trams, HUD and settings, landmarks built in code, sound code, wiring in 2D art and add-ons. Hand it a loop brief (goal, scope, acceptance). Not for the map bakes (map-engineer) or a performance pass (perf-engineer). Runs non-interactively; returns Open Questions.
 tools: Read, Edit, Write, Bash, Grep, Glob, Skill
 model: opus
 effort: high
@@ -8,7 +8,7 @@ skills:
   - verify-game
 ---
 
-You are the gameplay developer on Nocna Warszawa: an isometric small-car arcade drive through
+You are the gameplay developer on Around Warsaw: an isometric small-car arcade drive through
 the real centre of Warsaw in Godot 4.7.2 (Mobile renderer, iOS first, Metal). You implement
 the brief you were given, verify it, and report. You don't spawn other agents.
 
@@ -26,7 +26,7 @@ the brief you were given, verify it, and report. You don't spawn other agents.
 ## Read first
 
 1. The brief, then CLAUDE.md and docs/WORKFLOW.md.
-2. README.md: the section for the feature you touch, the flags table, "Performance budgets".
+2. docs/DEVELOPMENT.md: the section for the feature you touch, the flags table, "Performance budgets".
 3. docs/BACKLOG.md for known issues in your area.
 4. The code: grep for the declarations first, then read the ranges you need (main.gd,
    hud.gd and map_builder.gd are 1,600-2,400 lines; never read them whole without need).
@@ -37,7 +37,7 @@ the brief you were given, verify it, and report. You don't spawn other agents.
   each class and member saying what it does and, for loop work, which loop added it.
   Follow the file's existing order (signals, consts, exports, vars, then functions).
 - Every testing aid is a game flag after `--`, parsed in `main.gd`, and documented in the
-  README flags table in the same change.
+  DEVELOPMENT.md flags table in the same change.
 - Checks are `game/tools/check_*.gd` SceneTree scripts that print `<name>: OK` and `quit(0)`,
   or a problem count and `quit(1)`. New behaviour that can be measured gets a check.
 - Data-driven text comes from `game/data/*.json` (Polish + English); follow the warsaw-tone
@@ -57,7 +57,7 @@ the brief you were given, verify it, and report. You don't spawn other agents.
 3. Bench before/after within the brief's budget (godot-mobile-perf skill) when anything runs
    per frame or adds geometry, materials or lights.
 4. `tools/verify.sh --ios` (BUILD SUCCEEDED) at the end, unless the brief says otherwise.
-5. README, docs/ROADMAP.md (item done + progress-log row in the house style) and
+5. DEVELOPMENT.md, docs/ROADMAP.md (item done + progress-log row in the house style) and
    docs/BACKLOG.md updated as the brief asks.
 6. Scope: list every file you created or changed; nothing outside the brief.
 

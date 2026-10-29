@@ -15,7 +15,7 @@ shared/) are derived and not committed: when they are missing this says "missing
 tools/setup_map.sh" (a WARN, not a FAIL). Freshness is by content: bake_sectors.py writes
 sectors/split.stamp (the SHA-256 of what it read) and bake_city.gd writes sectors/city.stamp
 (the split's digest and the SHA-256 of the maps and scripts it builds from); a stamp that
-doesn't match today's files is a WARN (stale: re-run, see README "Sectors and streaming").
+doesn't match today's files is a WARN (stale: re-run, see docs/DEVELOPMENT.md "Sectors and streaming").
 
 --fresh: only the derived files, quietly: exit 0 when the split and the prebuilt sectors are
 there and match their inputs, 3 when either is missing or stale (tools/setup_map.sh
@@ -37,7 +37,7 @@ MAP = os.path.join(ROOT, "game", "map")
 # tree (12,554 trees), pois are hospitals, beaches, parks, kebab stands, addresses, etc.
 # Loop 3b-2: trees3d_crown, one crown scale per scanned tree (12,554: 75 by the roads, up to
 # 100 in the parks; bake_osm.py crown_scales).
-# Loop 3d-1: the demo box (20.1 km² with the east edge at 21.056, README "Map data"): 42,578
+# Loop 3d-1: the demo box (20.1 km² with the east edge at 21.056, docs/DEVELOPMENT.md "Map data"): 42,578
 # scanned trees (the GUGiK sheets cover the whole box, so no OSM trees are left), 3,548 pois.
 # Before: 75324 / 1020 / 12554 on the first box; 231420 / 3069 / 38570 with the east edge at 21.050.
 EXPECTED = {"trees3d": 255468, "pois": 3548, "trees3d_crown": 42578}
@@ -111,7 +111,7 @@ def main() -> int:
 
     if gugik_missing():
         report("WARN", "GUGiK outputs", "missing: %s: run tools/setup_map.sh --full (it needs GUGiK's raw data in "
-               "data/raw: tools/fetch_demo.py, README \"Map data\")" % ", ".join(gugik_missing()))
+               "data/raw: tools/fetch_demo.py, docs/DEVELOPMENT.md \"Map data\")" % ", ".join(gugik_missing()))
     sectors(data, expected, report)
     print("map data: " + ("OK" if failures == 0 else f"{failures} FAILED"))
     return 0 if failures == 0 else 1

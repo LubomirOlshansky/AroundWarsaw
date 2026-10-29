@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bake_osm  # noqa: E402  (bounding box and local projection)
 from pl1992 import to_pl1992  # noqa: E402
 
-UA = {"User-Agent": "NocnaWarszawa-prototype/0.1"}
+UA = {"User-Agent": "AroundWarsaw-prototype/0.1"}
 ORTHO_WMS = "https://mapy.geoportal.gov.pl/wss/service/PZGIK/ORTO/WMS/HighResolution"
 ELEVATION = "https://services.gugik.gov.pl/nmt/?request=GetHByPointList&list="
 

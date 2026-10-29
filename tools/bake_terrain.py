@@ -7,7 +7,7 @@ grid to the box; EVRF2007 heights) and writes game/map/terrain.json: the same gr
 relative to BASE_HEIGHT (100 m above sea level is y = 0 in the game). Until loop 3c
 bake_gugik.py wrote it, but bake_osm.py reads it for the decks and bake_gugik.py reads
 centrum.json, which made a circle once the box grew; now the order is bake_terrain, bake_osm,
-bake_gugik (README "Map data").
+bake_gugik (docs/DEVELOPMENT.md "Map data").
 """
 import json
 import os

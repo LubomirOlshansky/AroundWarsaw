@@ -1,4 +1,4 @@
-You are doing <LOOP NAME> on Nocna Warszawa, a free, open-source (MIT) fan game: an isometric
+You are doing <LOOP NAME> on Around Warsaw, a free, open-source (MIT) fan game: an isometric
 small-car arcade drive through the real centre of Warsaw, made in Godot 4.7.2, Mobile
 renderer, iOS first (Metal). The project is the folder that holds this repo's CLAUDE.md (game
 in `game/`, Python bake tools in `tools/`, docs in `docs/`, screenshots in `shots/`).
@@ -23,7 +23,7 @@ godot-mobile-perf, warsaw-tone, pixellab, ...>.
 ## Budget
 Bench before and after: `cd game && godot --path . --disable-vsync -- --bench --nosave` (also
 `--time=night` and `--weather=rain --time=night`), interleaved with a copy of the old code,
-medians. Allowed growth: <from README "Performance budgets", or "none: this loop must make the
+medians. Allowed growth: <from DEVELOPMENT.md "Performance budgets", or "none: this loop must make the
 frame cheaper">.
 
 ## Constraints (hard)
@@ -57,7 +57,7 @@ frame cheaper">.
   where the HUD matters): <before/after pairs and spots; both city paths where the map builder
   changed>.
 - Bench before/after (medians), vertices before/after, within the budget.
-- README.md (behaviour, flags), docs/ROADMAP.md (mark the item done, add a progress-log row in
+- docs/DEVELOPMENT.md (behaviour, flags), docs/ROADMAP.md (mark the item done, add a progress-log row in
   the same style as the others) and docs/BACKLOG.md (remove what you fixed, add what you found)
   updated.
 

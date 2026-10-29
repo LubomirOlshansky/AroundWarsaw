@@ -540,7 +540,7 @@ func _loading_card() -> CanvasLayer:
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	layer.add_child(bg)
 	var label := Label.new()
-	label.text = "NOCNA WARSZAWA\nbudujemy miasto…\nbuilding the city…"
+	label.text = Title.WORDMARK + "\nbudujemy miasto…\nbuilding the city…"
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -1093,7 +1093,7 @@ func _bench_header(kind: String) -> PackedStringArray:
 	var screen := get_viewport().get_visible_rect().size
 	var hz := DisplayServer.screen_get_refresh_rate()
 	return PackedStringArray([
-		"NOCNA WARSZAWA bench (loop 2b) · %s · %s" % [kind, Time.get_datetime_string_from_system(false, true)],
+		"%s bench (loop 2b) · %s · %s" % [Title.WORDMARK, kind, Time.get_datetime_string_from_system(false, true)],
 		"device %s · %s %s · %s (%s, %s) · %s" % [OS.get_model_name(), OS.get_name(), OS.get_version(),
 				RenderingServer.get_video_adapter_name(), RenderingServer.get_current_rendering_driver_name(),
 				RenderingServer.get_current_rendering_method(), OS.get_processor_name()],
@@ -3301,9 +3301,9 @@ func _missing_map() -> String:
 		return "" if FileAccess.file_exists(MAP_PATH) else "map: no %s (the committed map data)" % MAP_PATH
 	var use_prebuilt := prebuilt or not OS.has_feature("editor")
 	if use_prebuilt and not ResourceLoader.exists("res://map/index.res"):
-		return "map: the prebuilt sectors are missing (map/index.res, sectors/*.scn): run tools/setup_map.sh once (README \"Map data\")"
+		return "map: the prebuilt sectors are missing (map/index.res, sectors/*.scn): run tools/setup_map.sh once (docs/DEVELOPMENT.md \"Map data\")"
 	if not use_prebuilt and not FileAccess.file_exists("res://map/index.json"):
-		return "map: the sector split is missing (map/index.json, sectors/*.json): run tools/setup_map.sh once (README \"Map data\")"
+		return "map: the sector split is missing (map/index.json, sectors/*.json): run tools/setup_map.sh once (docs/DEVELOPMENT.md \"Map data\")"
 	return ""
 
 

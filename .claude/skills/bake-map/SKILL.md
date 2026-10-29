@@ -1,12 +1,12 @@
 ---
 name: bake-map
-description: Runs or changes Nocna Warszawa's map-data bake chain (OpenStreetMap and GUGiK raw data in data/raw, the Python bakes in tools/ into game/map/centrum.json, ao.bin, lights.bin, water.bin, then the prebuilt city.scn) and checks its invariants. Use before editing any tools/bake_*.py, map_builder.gd, lane_graph.gd or anything under game/map/; for roads, bridge decks, ramps, the lane graph, trees, POIs; and before any download of map data.
+description: Runs or changes Around Warsaw's map-data bake chain (OpenStreetMap and GUGiK raw data in data/raw, the Python bakes in tools/ into game/map/centrum.json, ao.bin, lights.bin, water.bin, then the prebuilt city.scn) and checks its invariants. Use before editing any tools/bake_*.py, map_builder.gd, lane_graph.gd or anything under game/map/; for roads, bridge decks, ramps, the lane graph, trees, POIs; and before any download of map data.
 ---
 
 # The map-data bake chain
 
-README.md "Map data" holds the exact commands; this is the order, the rules and the checks.
-If they disagree, README wins: fix this file.
+docs/DEVELOPMENT.md "Map data" holds the exact commands; this is the order, the rules and the checks.
+If they disagree, DEVELOPMENT.md wins: fix this file.
 
 ## Rules
 
@@ -30,7 +30,7 @@ If they disagree, README wins: fix this file.
 
 ## Order (re-run everything below the step you changed)
 
-Loop 3d-1 (the demo box, README "Map data"): `tools/bake_all.sh` runs the whole chain (~10 min).
+Loop 3d-1 (the demo box, docs/DEVELOPMENT.md "Map data"): `tools/bake_all.sh` runs the whole chain (~10 min).
 It starts with `python3 tools/prepare_demo.py` (the raw downloads cut to `bake_osm.BBOX` into
 `data/work/demo/`; `data/raw` is read-only) and `python3 -I tools/bake_terrain.py` (the terrain,
 first: bake_osm reads it), runs bake_osm.py before and again after bake_gugik.py (the structures
@@ -56,7 +56,7 @@ read the box's LoD2), and the inputs below are `data/work/demo/*` (trees, OSM, o
 5. `tools/bake_lights.py game/map` → `lights.bin` (after 2 and 3).
 6. `tools/bake_water.py game/map` → `water.bin` (after 2).
 7. Loop 3c: the split into 512 m sectors, `python3 -I tools/bake_sectors.py` → `index.json`,
-   `sectors/<i>_<j>.json` (~1 s; README "Sectors and streaming"). A landmark that searches new
+   `sectors/<i>_<j>.json` (~1 s; DEVELOPMENT.md "Sectors and streaming"). A landmark that searches new
    areas in `landmarks.gd` needs its names or area in `bake_sectors.py` `SITE_NAMES` /
    `SITE_AREAS` (bake_city.gd fails otherwise).
 8. The prebuilt city, **with a renderer** (`--headless` drops MultiMesh and texture data):
@@ -72,12 +72,12 @@ read the box's LoD2), and the inputs below are `data/work/demo/*` (trees, OSM, o
 ## Invariants after a re-bake
 
 ```zsh
-python3 -I tools/check_map_data.py      # trees3d 231420 values, trees3d_crown 38570, pois 3069, graph ≥ 95 % connected, palm (in centrum.json and over the sectors), sector files and prebuilt sectors fresh
+python3 -I tools/check_map_data.py      # trees3d 255468 values, trees3d_crown 42578, pois 3548, graph ≥ 95 % connected, palm (in centrum.json and over the sectors), sector files and prebuilt sectors fresh
 godot --path game --resolution 320x180 --script res://tools/count_vertices.gd   # vertex budget
 ```
 
 If the counts change on purpose (the map grows, a POI kind is added), update `EXPECTED` in
-`tools/check_map_data.py` and the numbers in README "Map data" in the same change, and say
+`tools/check_map_data.py` and the numbers in DEVELOPMENT.md "Map data" in the same change, and say
 in the report what changed and why.
 
 ## Checks for roads, decks and the lane graph

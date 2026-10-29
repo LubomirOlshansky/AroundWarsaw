@@ -1,7 +1,9 @@
-# Nocna Warszawa: project instructions
+# Around Warsaw: project instructions
 
-A free, open-source (MIT) fan game: an isometric small-car arcade drive (and a helicopter)
-through the real centre of Warsaw, built in Godot 4.7.2 (Mobile renderer, iOS first, Metal)
+Around Warsaw (formerly Nocna Warszawa; renamed 2026-10-30; the bundle and package IDs keep
+`com.olshanskysoft.nocnawarszawa` and the build files `NocnaWarszawa`; the NOCNA FM station
+keeps its name). A free, open-source (MIT) fan game: an isometric small-car arcade drive (and a
+helicopter) through the real centre of Warsaw, built in Godot 4.7.2 (Mobile renderer, iOS first, Metal)
 from OpenStreetMap and GUGiK open data. The goal is a top indie game; the next milestone is
 a high-quality demo of central Warsaw on the iPhone (docs/DEMO.md). The repo is public.
 
@@ -11,7 +13,8 @@ a high-quality demo of central Warsaw on the iPhone (docs/DEMO.md). The repo is 
 | --- | --- |
 | `game/` | the Godot project: `scripts/` (GDScript), `shaders/`, `tools/` (check scripts, `bake_city.gd`), `data/` (dialogue), `map/` (baked, generated), `audio/` |
 | `tools/` | Python bakes and helpers; `verify.sh`, `shots.sh`, `device_run.sh`, `check_map_data.py`, `export_ios.sh`, `hooks/guard_godot.py` (the guard hook, on in `.claude/settings.json`: blocks game runs without `--nosave` or a quit flag, and a headless `bake_city.gd`) |
-| `README.md` | how everything works: controls, every flag, map-data chain, bench, **Performance budgets** |
+| `README.md`, `CONTRIBUTING.md` | the public front page and how to contribute: short, for visitors |
+| `docs/DEVELOPMENT.md` | how everything works: controls, every flag, map-data chain, bench, **Performance budgets** (the old README, moved 2026-10-30) |
 | `docs/WORKFLOW.md` | how the work is run: the loop, who owns what, definition of done, milestone gates |
 | `docs/ROADMAP.md` | order of work and the progress log · `docs/BACKLOG.md` found issues and decisions |
 | `docs/DEMO.md` | the demo plan: area, quality bar, road defects, police, milestones |
@@ -89,7 +92,7 @@ default. Route by the **kind** of work, not its size:
   macOS has no `timeout` (`perl -e 'alarm shift; exec @ARGV' 600 cmd...`); never name a zsh loop variable
   `path`; `pgrep -f X` in a wait loop matches the loop itself (use `pgrep -x Godot`).
 - **Both city paths** must work: the runtime build (each 512 m sector built from its file) and
-  the prebuilt sectors (`game/map/sectors/*.scn`, `index.res`, `proxies.scn`; loop 3c, README
+  the prebuilt sectors (`game/map/sectors/*.scn`, `index.res`, `proxies.scn`; loop 3c, DEVELOPMENT.md
   "Sectors and streaming"). After a map change: `python3 -I tools/bake_sectors.py`, then rebuild
   the prebuilt sectors WITH a renderer: `godot --path game --resolution 320x180 --script
   res://tools/bake_city.gd`, never `--headless`. Check looks on both (`--prebuilt`).
@@ -98,10 +101,10 @@ default. Route by the **kind** of work, not its size:
   only when missing or made from other inputs; `check_map_data.py` compares their stamps'
   SHA-256, not file times).
 - **Map data.** After any centrum.json re-bake, run the whole chain and
-  `python3 -I tools/check_map_data.py` (loop 3d-1: trees3d 231420 values, pois 3069, graph ≥ 95 % strongly connected, palm; new
-  counts only on purpose, recorded in that script and README together).
+  `python3 -I tools/check_map_data.py` (loop 3d-1: trees3d 255468 values, pois 3548, graph ≥ 95 % strongly
+  connected, palm; new counts only on purpose, recorded in that script and DEVELOPMENT.md together).
 - **Performance is a gate.** The phone's frame grows with draw calls, not triangles. Keep
-  README "Performance budgets"; report bench before/after for anything that runs per frame
+  DEVELOPMENT.md "Performance budgets"; report bench before/after for anything that runs per frame
   or adds geometry, materials or lights.
 - **Downloads and installs** only with the user's approval: list source, size and time first.
   That includes data, tools and Godot add-ons (rules below).
@@ -127,7 +130,9 @@ is off); beehave (bitbrain, v2.9.3, loop 3g-1; the police units' behaviour trees
 hand at 5 Hz; editor plugin off, no autoloads: `police/police_tree.gd` has a lean `_ready`; one
 local line in `debug/debugger_messages.gd`, no messages without a debugger); Dialogue Manager
 (Nathan Hoad, v4.1.0, loop 3g-1; the pull-over's flow, `dialogue/police.dialogue` compiled at
-runtime by `police.gd`; editor plugin off, so no import plugin and no autoload). Still need their
+runtime by `police.gd`; editor plugin off, so no import plugin and no autoload). **Our own, not an add-on:**
+`addons/nw_android_export/` (an editor plugin, on; it only marks Vulkan required in the Android
+export's manifest; DEVELOPMENT.md "Android (Google Play)"). Still need their
 own yes: Folder Import Rules, Lente photo mode, the In-app Review and Share plugins.
 
 ## Commands
@@ -137,17 +142,18 @@ tools/verify.sh [--quick|--ios|--only=a,b]   # the verification set, one PASS/FA
 tools/shots.sh [--set=core|quick|names] [--size=2532x1170]   # phone-size screenshots
 cd game && godot --path . --disable-vsync -- --bench --nosave  # bench (+ --time=night, --weather=rain --time=night)
 tools/export_ios.sh   # splits the map, prebuilds the sectors, exports build/ios (verify.sh --ios also builds it)
+tools/export_android.sh [--skip-city|--apk]   # the signed Play AAB in build/android (key and setup: DEVELOPMENT.md "Android (Google Play)")
 ```
 
 ## Code conventions
 
 - GDScript: static types (`:=`, typed returns and arrays), tabs, `##` doc comments on classes
   and members saying what and why (and which loop added it); follow the file's existing order.
-- New testing aids are game flags parsed in `main.gd` and documented in README's flags table.
+- New testing aids are game flags parsed in `main.gd` and documented in DEVELOPMENT.md's flags table.
 - Checks are `game/tools/check_*.gd` SceneTree scripts printing `<name>: OK` and exiting 0/1;
   every new check joins `tools/verify.sh` in the same change.
 - Python tools: `python3 -I`, standard library; a docstring with the usage line.
-- When behaviour changes, README, ROADMAP (progress-log row) and BACKLOG change with it.
+- When behaviour changes, DEVELOPMENT.md, ROADMAP (progress-log row) and BACKLOG change with it.
 
 ## Definition of done
 

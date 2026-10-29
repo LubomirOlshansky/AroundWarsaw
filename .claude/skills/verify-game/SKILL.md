@@ -1,10 +1,10 @@
 ---
 name: verify-game
-description: Runs the Nocna Warszawa verification set with tools/verify.sh (map-data invariants, the check scripts, headless game runs with --nosave, optionally the iOS export and unsigned Xcode build) and names what it cannot prove. Use after any change under game/ or tools/, before reporting a loop or task done, and when asked "is it green?", "verify", "run the checks".
+description: Runs the Around Warsaw verification set with tools/verify.sh (map-data invariants, the check scripts, headless game runs with --nosave, optionally the iOS export and unsigned Xcode build) and names what it cannot prove. Use after any change under game/ or tools/, before reporting a loop or task done, and when asked "is it green?", "verify", "run the checks".
 argument-hint: "[--quick | --ios | --only=step,step]"
 ---
 
-# Verify a Nocna Warszawa change
+# Verify a Around Warsaw change
 
 ## 1. Before running
 
@@ -48,14 +48,14 @@ step (loop 3c) also opens a window for a minute or two.
   frames given. Look at the log's tail: a stuck autopilot is a bug; a longer route only needs
   more frames (edit the frame count in `tools/verify.sh` and say why).
 - A **counts FAIL** after a deliberate re-bake: update `EXPECTED` in `tools/check_map_data.py`
-  and the counts in README "Map data" in the same change, and say why they changed.
+  and the counts in DEVELOPMENT.md "Map data" in the same change, and say why they changed.
 
 ## 4. What the script does not prove (do these by hand when they apply)
 
 | When | Do |
 | --- | --- |
 | Anything visible changed | `tools/shots.sh` (screenshot-review skill), then **look** at every shot; runtime and `--prebuilt` paths |
-| Anything that runs per frame, or new geometry, materials, lights | bench before/after (godot-mobile-perf skill), compared with README "Performance budgets" |
+| Anything that runs per frame, or new geometry, materials, lights | bench before/after (godot-mobile-perf skill), compared with DEVELOPMENT.md "Performance budgets" |
 | Controls or the car | `check_steering.gd` is in the set; the feel on the phone is the user's to judge: say what to try |
 | Sound | `check_sfx.gd` checks loops; nobody has heard it on a phone: say so |
 | Device-only behaviour (Metal, thermal, touch, haptics, audio session) | device-run skill, only when the user allowed it |

@@ -3,7 +3,7 @@
     python3 -I tools/bake_sectors.py [MAP_DIR]          (MAP_DIR defaults to game/map)
 
 Run it after the bake chain (bake_osm.py, bake_gugik.py, bake_ao.py, bake_lights.py,
-bake_water.py) and before the prebuilt city (tools/bake_city.gd), as README "Map data"
+bake_water.py) and before the prebuilt city (tools/bake_city.gd), as docs/DEVELOPMENT.md "Map data"
 says. It reads centrum.json, lod2.bin and lod2.json and writes:
 
   index.json             the global index (docs/DEMO.md 2.4): what the whole map needs at
@@ -29,7 +29,7 @@ says. It reads centrum.json, lod2.bin and lod2.json and writes:
 Sector (i, j) covers x in [i * 512, (i + 1) * 512) and z in [j * 512, (j + 1) * 512), from the
 map's origin (bake_osm.py LAT0/LON0; the origin and the box are unchanged by this loop).
 The AO, lamp-light and surface maps stay whole (one texture each, shared by every sector):
-see README "Sectors and streaming" for why, and what loop 3d does instead.
+see docs/DEVELOPMENT.md "Sectors and streaming" for why, and what loop 3d does instead.
 
 Loop 3d-1: these files are derived and not committed (.gitignore); a fresh clone makes them
 with tools/setup_map.sh. It also writes sectors/split.stamp: the SHA-256 of what it read (SPLIT_INPUTS),

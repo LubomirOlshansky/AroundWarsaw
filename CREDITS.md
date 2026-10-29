@@ -1,6 +1,6 @@
 # Credits and data licences
 
-Nocna Warszawa is a free, open-source fan project. Its code and its own sounds, music and art
+Around Warsaw is a free, open-source fan project. Its code and its own sounds, music and art
 are under the MIT licence (`LICENSE`). The city in it is built from open data under the
 licences below; the files in `game/map/` are baked from these sources by the scripts in
 `tools/` (see README.md, "Map data", for every step), and they are not covered by the MIT
@@ -41,9 +41,9 @@ not cleared for a release.
 
 | Station | Track | Artist | Licence |
 | --- | --- | --- | --- |
-| 87,3 NOCNA FM | Palma de Gaulle'a | Nocna Warszawa | own: synthesised by `tools/make_music.py` (MIT) |
-| 86,6 RONDO FM | Rondo Dmowskiego 3 A.M. | Nocna Warszawa | own: synthesised by `tools/make_music.py` (MIT) |
-| 108,8 MORDOR FM | Mordor Mall Muzak | Nocna Warszawa | own: synthesised by `tools/make_music.py` (MIT) |
+| 87,3 NOCNA FM | Palma de Gaulle'a | Around Warsaw | own: synthesised by `tools/make_music.py` (MIT) |
+| 86,6 RONDO FM | Rondo Dmowskiego 3 A.M. | Around Warsaw | own: synthesised by `tools/make_music.py` (MIT) |
+| 108,8 MORDOR FM | Mordor Mall Muzak | Around Warsaw | own: synthesised by `tools/make_music.py` (MIT) |
 
 ## Godot add-ons
 

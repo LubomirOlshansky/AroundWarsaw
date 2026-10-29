@@ -1,6 +1,6 @@
 #!/bin/zsh
 # Loop 3d-1: the whole map-data chain for the demo box, from the raw downloads on disk
-# (README "Map data"; data/raw is only read). About 10 minutes, most of it the tree sheets.
+# (docs/DEVELOPMENT.md "Map data"; data/raw is only read). About 10 minutes, most of it the tree sheets.
 #
 #   tools/bake_all.sh            everything (prepare, terrain, trees, OSM, LoD2, OSM again, AO,
 #                                lights, water, then tools/setup_map.sh: the split and the

@@ -1,6 +1,6 @@
 # How the work is run
 
-Nocna Warszawa is made by one person and a set of AI agents (Claude Code). This page says how
+Around Warsaw is made by one person and a set of AI agents (Claude Code). This page says how
 the work moves from an idea or a complaint from the phone to a change that is verified and
 written down. The rules every session follows are in `CLAUDE.md`; the agents and skills are
 in `.claude/`.
@@ -42,7 +42,7 @@ then checked before it is accepted.
 | --- | --- | --- |
 | Gameplay, controls, HUD, missions, jobs, police, traffic behaviour, landmarks in code, sound code | `gameplay-dev` | `game/scripts`, `game/shaders`, `game/tools`, `project.godot` |
 | Map data, bakes, roads, bridge decks, the lane graph, the demo area's map, city.scn | `map-engineer` | `tools/*.py`, `game/map`, `map_builder.gd`, `chunked_surface.gd` |
-| Frame cost, quality levels, budgets, device benches | `perf-engineer` | any code, for cost only; README "Performance budgets" |
+| Frame cost, quality levels, budgets, device benches | `perf-engineer` | any code, for cost only; DEVELOPMENT.md "Performance budgets" |
 | Design, tuning, jokes, text, 2D art (PixelLab) | `game-designer` | design docs, `game/data`, `game/art` |
 | Look and readability review | `art-director` | none (read-only) |
 | Running checks, shots, device runs | `qa-tester` | none in the project |
@@ -71,7 +71,8 @@ helper asks for one in its report.
 
 | Document | Holds | Updated |
 | --- | --- | --- |
-| `README.md` | how the game works: controls, flags, map data, bench, **Performance budgets** | with every behaviour change |
+| `docs/DEVELOPMENT.md` | how the game works: controls, flags, map data, bench, **Performance budgets** | with every behaviour change |
+| `README.md`, `CONTRIBUTING.md` | the public front page (pitch, run, credits) and the contributor rules | when what a visitor needs changes |
 | `docs/ROADMAP.md` | the order of work ("Agent order") and the progress log, one row per loop | each loop: item done + a row |
 | `docs/BACKLOG.md` | issues found along the way and decisions taken by default | each loop: fixed removed, found added |
 | `docs/DEMO.md` | the demo plan: area, quality bar, road defects, police, milestones | when the plan changes |
@@ -85,9 +86,9 @@ helper asks for one in its report.
 2. **It was seen**: screenshots at phone size (2532x1170; 2868x1320 for HUD work) looked at,
    before and after, on both city paths when the map builder changed; reviewed against the
    art bible for anything visible.
-3. **It fits the phone**: bench before/after within README's budgets; vertices reported.
+3. **It fits the phone**: bench before/after within DEVELOPMENT.md's budgets; vertices reported.
 4. **It ships**: `tools/verify.sh --ios` BUILD SUCCEEDED at the loop's end.
-5. **It is written down**: README, ROADMAP row, BACKLOG; CREDITS for anything new from outside.
+5. **It is written down**: DEVELOPMENT.md, ROADMAP row, BACKLOG; CREDITS for anything new from outside.
 6. **It is honest**: what only the phone can tell (feel, heat, sound, touch) is named, with what
    the user should try; Open Questions list every default taken.
 

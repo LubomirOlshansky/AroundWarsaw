@@ -936,3 +936,29 @@ Small problems that agents reported or that showed up in screenshots. They are f
   visible, single texels of lamp-pole shadow edges, nothing moves): spot 8 has its own limit of
   1 % in `check_streaming.gd` `SPOT_MAX`, the reason there.
 - `verify.sh` ride: 30000 frames (the river quirk's legs run 1.7-1.8 km on the demo map).
+
+
+## From the first Android build (2026-10-29)
+
+- **Nothing has run on an Android phone.** The AAB is built and signed, but the game has never
+  started on Android: touch, haptics (`Input.vibrate_handheld`), the save path, the frame rate,
+  the governor's tiers (`tiers.gd` knows iPhone model ids only, so an Android phone gets its
+  default level) and the HUD's safe area round a camera cutout are all unseen.
+- ~~**Vulkan is "not required" in the manifest**~~ **Decided and done (code 2)**: the user chose
+  to require Vulkan; `game/addons/nw_android_export` marks both Vulkan uses-features required and
+  `tools/export_android.sh` checks it (README, "Android (Google Play)"). `fallback_to_opengl3`
+  stays off. The version is Godot 4.7's own, 0x401000 (Vulkan 1.1.0), not 1.0.3: on a Godot
+  upgrade, match the plugin's `VERSION` to what Godot writes (the script fails until it does).
+  Whether a phone with Vulkan 1.1 but a weak driver runs the game well is still unseen.
+- **The export prints Dialogue Manager's C# errors** (`No loader found for resource:
+  ...DialogueLabel.cs`, `ExampleBalloon.tscn` parse errors): the add-on's C# example and label
+  files can't load in a non-.NET Godot. Harmless (the game uses its own balloon); the iOS
+  export prints the same 11 lines (checked in this loop's `verify.sh --only=ios`). An exclude
+  filter for `addons/dialogue_manager/example_balloon/*` and the `.cs` files would quiet it.
+- **The city step rewrites 34 tracked files with byte noise** (`bake_city.gd` isn't
+  byte-deterministic: the sector `.scn` files differ by a few bytes each run with no map
+  change), in both export scripts. `--skip-city` avoids it for Android; a deterministic bake or
+  a "bake only when the map changed" check would fix it for both.
+- **Store graphics are not made yet**: the 512 px icon, the 1024 × 500 feature graphic and
+  1920 × 1080 screenshots (Play's 2:1 limit rules out 2532 × 1170); `docs/store/play-console.md`
+  lists what each needs.
