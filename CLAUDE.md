@@ -132,6 +132,7 @@ tools/verify.sh [--quick|--ios|--only=a,b]   # the verification set, one PASS/FA
 tools/shots.sh [--set=core|quick|names] [--size=2532x1170]   # phone-size screenshots
 cd game && godot --path . --disable-vsync -- --bench --nosave  # bench (+ --time=night, --weather=rain --time=night)
 tools/export_ios.sh   # splits the map, prebuilds the sectors, exports build/ios (verify.sh --ios also builds it)
+tools/export_android.sh [--skip-city|--apk]   # the signed Play AAB in build/android (key and setup: README "Android (Google Play)")
 ```
 
 ## Code conventions
