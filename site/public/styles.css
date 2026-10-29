@@ -1,0 +1,155 @@
+/* Nocna Warszawa: the landing page. Night palette from the game's dusk and night shots. */
+:root {
+  --night: #0a0e2a;
+  --night-2: #121944;
+  --night-3: #1b2560;
+  --ink: #eef0ff;
+  --ink-2: #b9bfe6;
+  --ink-3: #8a90bd;
+  --neon: #ff4fa3;
+  --amber: #ffb347;
+  --cyan: #6fe3ff;
+  --line: rgba(185, 191, 230, 0.16);
+  --radius: 14px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--night);
+  color: var(--ink);
+  font: 17px/1.55 var(--font);
+  -webkit-font-smoothing: antialiased;
+}
+img { display: block; max-width: 100%; height: auto; }
+a { color: var(--cyan); }
+a:hover { color: var(--ink); }
+
+/* Polish leads, English follows quieter, as on every screen of the game. */
+.en { color: var(--ink-2); }
+h2 .pl, h2 .en { display: block; }
+h2 .en { font-size: 0.55em; font-weight: 500; letter-spacing: 0.02em; margin-top: 0.3em; }
+
+.bar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 12px max(16px, env(safe-area-inset-left)) 12px max(16px, env(safe-area-inset-right));
+  background: rgba(10, 14, 42, 0.82);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font-weight: 800; letter-spacing: 0.02em; }
+.brand img { image-rendering: pixelated; border-radius: 6px; }
+.bar nav { display: flex; gap: 18px; font-size: 15px; }
+.bar nav a { color: var(--ink-2); text-decoration: none; }
+.bar nav a:hover { color: var(--ink); }
+
+/* Hero: the Rotunda at night under a gradient that turns into the page. */
+.hero { position: relative; padding: 0; min-height: min(92vh, 820px); display: flex; align-items: flex-end; overflow: hidden; }
+.hero-bg { display: block; }
+.hero-bg, .hero-bg img { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hero-bg img { object-fit: cover; object-position: 60% 50%; }
+.hero::after {
+  content: ""; position: absolute; inset: 0;
+  background:
+    linear-gradient(180deg, rgba(10,14,42,0.15) 0%, rgba(10,14,42,0.35) 45%, var(--night) 96%),
+    linear-gradient(90deg, rgba(10,14,42,0.75) 0%, rgba(10,14,42,0) 65%);
+}
+.hero-in { position: relative; z-index: 1; width: 100%; max-width: 1120px; margin: 0 auto; padding: 120px 16px 56px; }
+.kicker { margin: 0 0 8px; color: var(--amber); font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; font-size: 13px; }
+h1 {
+  margin: 0; font-size: clamp(54px, 11vw, 120px); line-height: 0.92; font-weight: 900; letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 0 18px rgba(255, 79, 163, 0.75), 0 0 48px rgba(255, 79, 163, 0.45), 3px 3px 0 var(--neon);
+}
+.lead { max-width: 34em; margin: 18px 0 0; font-size: 19px; }
+.lead.en { margin-top: 6px; font-size: 17px; }
+.fine { margin: 18px 0 0; font-size: 14px; color: var(--ink-3); }
+
+.cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.store {
+  display: inline-flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 18px 10px 14px;
+  border-radius: 12px; background: #000; color: #fff; text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.28);
+  transition: transform .15s ease, border-color .15s ease;
+}
+.store:hover { transform: translateY(-1px); border-color: var(--neon); color: #fff; }
+.store svg { width: 26px; height: 26px; fill: currentColor; flex: none; }
+.store span { display: flex; flex-direction: column; font-weight: 700; font-size: 17px; line-height: 1.15; }
+.store small { font-weight: 500; font-size: 12px; color: #c9cbe0; }
+.store.soon { cursor: default; }
+.store.soon:hover { transform: none; border-color: rgba(255,255,255,0.28); }
+
+section { padding: 72px 16px; }
+section > h2, .grid, .two, .gallery { max-width: 1120px; margin-left: auto; margin-right: auto; }
+h2 { font-size: clamp(30px, 5vw, 46px); line-height: 1.1; margin: 0 0 32px; font-weight: 850; }
+h3 { margin: 0 0 8px; font-size: 19px; color: var(--amber); }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.grid article, .card {
+  background: linear-gradient(180deg, var(--night-2), rgba(18,25,68,0.6));
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 22px;
+}
+.grid p, .card p { margin: 0 0 6px; }
+.grid p.en, .card p.en { font-size: 15px; }
+
+.gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; padding-top: 0; }
+.gallery figure { margin: 0; border-radius: var(--radius); overflow: hidden; background: var(--night-2); border: 1px solid var(--line); }
+.gallery figure.wide { grid-column: 1 / -1; }
+.gallery img { width: 100%; aspect-ratio: 16 / 8.5; object-fit: cover; }
+.gallery figure.wide img { aspect-ratio: 16 / 7.5; }
+.gallery figcaption { padding: 10px 14px; font-size: 14px; color: var(--ink-2); }
+.credit { grid-column: 1 / -1; margin: 4px 0 0; font-size: 13px; color: var(--ink-3); }
+
+.beta { background: radial-gradient(1200px 400px at 50% 0%, rgba(255,79,163,0.14), transparent 70%), var(--night); }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.card h3 { font-size: 24px; color: var(--ink); }
+.btn {
+  display: inline-block; margin-top: 12px; padding: 12px 18px; min-height: 44px; border-radius: 10px;
+  background: var(--neon); color: #fff; font-weight: 750; text-decoration: none;
+}
+.btn:hover { color: #fff; filter: brightness(1.1); }
+.btn.soon { background: var(--night-3); color: var(--ink-2); cursor: default; }
+.btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--ink); }
+.note { max-width: 1120px; margin: 28px auto 0; text-align: center; }
+.note .pl, .note .en { display: block; }
+.center { text-align: center; }
+
+.open { border-top: 1px solid var(--line); }
+.wrap { max-width: 1120px; margin: 0 auto; }
+.wrap p { max-width: 46em; }
+.aside { margin-top: 28px; color: var(--amber); font-weight: 700; }
+
+footer { padding: 32px 16px 48px; border-top: 1px solid var(--line); text-align: center; font-size: 14px; color: var(--ink-3); }
+footer p { margin: 6px 0; }
+footer a { color: var(--ink-2); }
+
+/* The privacy page. */
+.prose { max-width: 760px; margin: 0 auto; padding: 40px 16px 64px; }
+.prose h1 { font-size: 34px; text-transform: none; text-shadow: none; line-height: 1.15; margin-bottom: 20px; }
+.prose h2 { font-size: 24px; margin: 36px 0 12px; }
+.prose li { margin-bottom: 8px; }
+.prose hr { border: 0; border-top: 1px solid var(--line); margin: 36px 0; }
+
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  .bar nav a:not(:first-child) { display: none; }
+  /* On a phone the shot sits above the text as a band, so the roundabout stays readable. */
+  .hero { display: block; min-height: 0; }
+  .hero-bg { position: relative; height: 66vw; }
+  .hero-bg img { object-position: 42% 50%; }
+  .hero::after { bottom: auto; height: 66vw; background: linear-gradient(180deg, rgba(10,14,42,0) 55%, var(--night) 100%); }
+  .hero-in { padding: 0 16px 48px; margin-top: -28px; }
+  .lead { font-size: 17px; }
+  .store { flex: 1 1 100%; }
+  section { padding: 56px 16px; }
+  .gallery { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .store { transition: none; }
+}

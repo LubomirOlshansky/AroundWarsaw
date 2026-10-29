@@ -1,0 +1,40 @@
+# Deploys site/ (the aroundwarsaw.app landing page) to Cloudflare when it changes on main.
+# Needs two repository secrets: CLOUDFLARE_API_TOKEN (template "Edit Cloudflare Workers", with
+# the aroundwarsaw.app zone included) and CLOUDFLARE_ACCOUNT_ID. Without them the job skips.
+name: site
+
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", "docs/privacy.md", "tools/site_privacy.py", ".github/workflows/site.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Privacy page is up to date with docs/privacy.md
+        run: |
+          python3 -I tools/site_privacy.py
+          git diff --exit-code -- site/public/privacy/index.html
+      - name: Deploy to Cloudflare
+        if: env.HAS_TOKEN == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: site
+          command: deploy
+      - name: No Cloudflare secrets yet
+        if: env.HAS_TOKEN != 'true'
+        run: echo "CLOUDFLARE_API_TOKEN is not set; skipping the deploy (site/README.md)."

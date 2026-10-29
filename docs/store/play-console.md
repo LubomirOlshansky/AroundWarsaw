@@ -64,7 +64,7 @@ count towards that; plan a closed track when the internal build looks right.
 
 ### Privacy policy
 
-`https://github.com/LubomirOlshansky/AroundWarsaw/blob/main/docs/privacy.md`
+`https://aroundwarsaw.app/privacy/` (the website's copy of `docs/privacy.md`, `site/README.md`; until the site is live, `https://github.com/LubomirOlshansky/AroundWarsaw/blob/main/docs/privacy.md`)
 (it exists once this branch is merged and pushed to `main`; open the link before you submit).
 
 ### App access
@@ -144,7 +144,7 @@ Only `android.permission.VIBRATE` (haptics). No sensitive permission declaration
 | App category | **Racing** (alternative: Arcade) |
 | Tags | Racing, Arcade, Driving, Pixel art, Casual, Offline (Play's own tag list; pick up to five) |
 | Contact email | your support address (not written here: the repo is public) |
-| Website | `https://github.com/LubomirOlshansky/AroundWarsaw` |
+| Website | `https://aroundwarsaw.app` |
 
 ## 5. Main store listing
 

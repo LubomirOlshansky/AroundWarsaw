@@ -908,3 +908,13 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **Store graphics are not made yet**: the 512 px icon, the 1024 × 500 feature graphic and
   1920 × 1080 screenshots (Play's 2:1 limit rules out 2532 × 1170); `docs/store/play-console.md`
   lists what each needs.
+
+## From the website (aroundwarsaw.app, 2026-10-29)
+- The four beta links in `site/public/index.html` say "wkrótce · soon" until the TestFlight
+  public link and the Play closed test's opt-in link exist (`site/README.md`, "When the betas
+  open").
+- The screenshots are from the prototype (loops 1, 2b, 3a, 10a); refresh them from a current
+  `tools/shots.sh` set when the look loop lands. The Palace shot shows the occlusion dither as a
+  hole in the tower, which reads as a glitch to someone who hasn't played.
+- No email sign-up on purpose (the site keeps no data). If one is wanted, a Google Group as the
+  Play testers list is the no-backend way.
