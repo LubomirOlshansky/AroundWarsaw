@@ -22,6 +22,8 @@ const Hud := preload("res://scripts/hud.gd")
 const Bubbles := preload("res://scripts/bubbles.gd")
 ## Loop 3g-1: the pull-over card (police.gd lays it out with the HUD's panels).
 const PoliceBalloon := preload("res://scripts/police/police_balloon.gd")
+## Loop 2d-1: Podwózka's card words.
+const RideRules := preload("res://scripts/ride_rules.gd")
 ## Width x height in pixels (landscape): the user's 6.9" Pro Max, the 6.1" class, a computer
 ## window (taken as a phone 390 pt tall), the SE (375 pt tall, no insets).
 const SCREENS := [Vector2i(2868, 1320), Vector2i(2532, 1170), Vector2i(1280, 720), Vector2i(1334, 750)]
@@ -93,7 +95,8 @@ func _check_screen(screen: Vector2i) -> int:
 	for perf in [false, true]:
 		for state in ["car, Point", "car, Classic", "helicopter", "call came in", "call card", "rescued, paid",
 				"rescue, host, egg", "kebab offer", "kebab delivery", "race", "rival ahead", "landmark card", "tow toast",
-				"police chase", "lizak", "pull-over"]:
+				"police chase", "lizak", "pull-over",
+				"ride offer", "ride", "ride result", "ride result, police"]:
 			if perf and not state in ["car, Point", "call card", "rescue, host, egg", "kebab offer", "kebab delivery", "landmark card"]:
 				continue
 			hud.clear_all()
@@ -182,6 +185,39 @@ func _check_screen(screen: Vector2i) -> int:
 							[["Przepraszam, już nie będę.", "Sorry, won't happen again."], ["Suszarka? Mam krótkie włosy.", "Hair dryer? But I've got short hair."]])
 					hud.show_panel(talk, true)
 					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
+				# Loop 2d-1: Podwózka at its longest: the longest note, the MNOŻNIK for night and rain,
+				# the longest destination; the result with every star note and a streak.
+				"ride offer":
+					var offer := RideRules.offer_text({"name": "Krzysiek", "away": 588.0, "road": 2496.0, "their": 4.9,
+							"note": ["Uwagi: „jestem tam, gdzie pinezka, tylko po drugiej stronie”.",
+							"Note: \"I'm where the pin is, just on the other side.\""], "night": true, "rain": true, "rating": 4.87})
+					hud.show_side_card(offer[0], offer[1], PackedStringArray(["ACCEPT", "SKIP"]), Color("#4fd8c4"), offer[2], offer[3])
+					hud.show_pill("PODWÓZKA", "ride app", "ride")
+					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
+				"ride":
+					hud.show_status("PODWÓZKA → Plac Trzech Krzyży", RideRules.stars_text(4.5), "1840 m",
+							"Cel to turkusowe światło. Kropki to pomysł aplikacji.", 0.4, Color("#4fd8c4"), "", {},
+							"The goal is the teal beacon. The dots are the app's idea.")
+					hud.toast("−½ ★ · hamowanie", "−½ star · harsh braking")
+					_say(bubbles, "Nawigacja", at.call(0.55, 0.42), "Za dwieście metrów skręć w prawo. W Wisłę.",
+							"In two hundred metres, turn right. Into the Vistula.")
+					_say(bubbles, "Krzysiek", at.call(0.2, 0.8), "GPS mówi przez Wisłę. Może jest prom? Nie ma promu?",
+							"The GPS says across the Vistula. Maybe there's a ferry? No ferry?")
+				"ride result":
+					# The longest a 5-star card gets: night and rain, in a hurry, a full streak, three notes.
+					var pay := RideRules.pay(2496.0, 5.0, true, true, true, 5)
+					var done := RideRules.result_text({"stars": 5.0, "name": "Krzysiek", "comment": ["Pięć gwiazdek i serduszko. Serduszko jest rzadkie.",
+							"Five stars and a heart. The heart is rare."], "pay": pay, "rating": 4.88,
+							"why": ["jazda −1, przed czasem +½, za aplikacją +½", "driving −1, early +½, followed the app +½"]})
+					hud.show_side_card(done[0], done[1], PackedStringArray(), Color("#4fd8c4"), done[2], done[3])
+					hud.set_wallet(12442, 1259, 97)
+				"ride result, police":
+					# The longest comment (pulled over), with the most a 4-star ride can lose and win back.
+					var pay4 := RideRules.pay(2496.0, 4.0, true, true, false, 0)
+					var done4 := RideRules.result_text({"stars": 4.0, "name": "Krzysiek", "comment": ["Policja w trakcie kursu? Gwiazdkę zabieram, anegdotę zostawiam.",
+							"Police mid-ride? I'm taking a star, but keeping the anecdote."], "pay": pay4, "rating": 4.83,
+							"why": ["jazda −½, policja −1, za aplikacją +½", "driving −½, police −1, followed the app +½"]})
+					hud.show_side_card(done4[0], done4[1], PackedStringArray(), Color("#4fd8c4"), done4[2], done4[3])
 			await process_frame
 			await process_frame
 			bubbles.layout()
@@ -259,13 +295,20 @@ func _check_state(hud: CanvasLayer, bubbles: Control, where: String) -> void:
 			var rb: Rect2 = rects[names[b]]
 			if ra.intersection(rb).get_area() > pt * pt:
 				problems.append("%s: %s %s overlaps %s %s" % [where, names[a], _pts(ra, pt), names[b], _pts(rb, pt)])
-	# The passing panels keep clear of the player's car (the middle of the screen).
-	for n in ["ticker", "toast", "note", "info", "perf", "banner"]:
+	# The passing panels keep clear of the player's car (the middle of the screen); loop 2d-1: so
+	# does a Podwózka card (the side card).
+	var keep_clear := ["ticker", "toast", "note", "info", "perf", "banner"]
+	if where.contains(" ride"):
+		keep_clear.append("card")
+	for n in keep_clear:
 		if rects.has(n) and (rects[n] as Rect2).intersects(hud.car_zone()):
 			problems.append("%s: %s %s covers the car's spot %s" % [where, n, _pts(rects[n], pt), _pts(hud.car_zone(), pt)])
 	var unplaced: Array = hud.unplaced()
 	if not unplaced.is_empty():
 		problems.append("%s: no room for %s" % [where, ", ".join(unplaced)])
+		if "card" in unplaced:
+			# Loop 2d-1: how big the card wanted to be, in points.
+			problems.append("%s:   (the card %s pt)" % [where, hud._card.get_combined_minimum_size() / pt])
 	for n in hud.waiting():
 		_waits.append("%s in %s" % [n, where])
 	if bubbles.overlaps > 0:

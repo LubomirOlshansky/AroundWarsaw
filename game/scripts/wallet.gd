@@ -26,6 +26,9 @@ var eggs := {}
 var cautions_today := 0
 var cautions_day := 0
 var escapes_total := 0
+## Loop 2d-1: other things kept by name (rides.gd: "podwozka_ratings", the last 20 rides' stars,
+## and "podwozka_streak", the 5-star rides in a row).
+var keep := {}
 ## False with --nosave: nothing is read or written.
 var persistent := true
 
@@ -52,6 +55,8 @@ func load_save() -> void:
 	cautions_today = int(cfg.get_value("police", "cautions_today", 0))
 	cautions_day = int(cfg.get_value("police", "cautions_day", 0))
 	escapes_total = int(cfg.get_value("police", "escapes_total", 0))
+	for key in (cfg.get_section_keys("keep") if cfg.has_section("keep") else PackedStringArray()):
+		keep[key] = cfg.get_value("keep", key)
 
 
 func save() -> void:
@@ -69,6 +74,8 @@ func save() -> void:
 	cfg.set_value("police", "cautions_today", cautions_today)
 	cfg.set_value("police", "cautions_day", cautions_day)
 	cfg.set_value("police", "escapes_total", escapes_total)
+	for key in keep:
+		cfg.set_value("keep", key, keep[key])
 	cfg.save(PATH)
 
 
@@ -82,6 +89,7 @@ func reset() -> void:
 	cautions_today = 0
 	cautions_day = 0
 	escapes_total = 0
+	keep.clear()
 	save()
 	changed.emit(zl, respect, 0)
 

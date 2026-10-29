@@ -1329,6 +1329,12 @@ func _talk_done() -> void:
 	elif _routine:
 		hud.toast("KOGUTY = POLICJA. UCIEKNIJ ALBO STAŃ: NIC NIE TRACISZ",
 				"ROOSTERS = POLICE. ESCAPE OR STOP: YOU LOSE NOTHING.")
+	# --- loop 2d-1: a Podwózka passenger on board takes one star for the pull-over (police.md
+	# 8.3, parodies.md 3.3; rides.gd acts only while a ride runs). An escape costs nothing. ---
+	var rides = jobs.get("rides") if jobs != null else null
+	if rides != null:
+		rides.on_pulled_over()
+	# --- end loop 2d-1 ---
 	_end("pullover")
 
 
@@ -1519,9 +1525,10 @@ func _test_frame() -> void:
 		var lvl := int(opts.get("level", 0))
 		if lvl > 0:
 			_test_chase(clampi(lvl, 1, 3))
-		var po := String(opts.get("pullover", ""))
-		if po != "":
-			_test_pullover(po)
+	# Loop 2d-1: --pullover-frame=N moves the --pullover conversation (default frame 60).
+	var po := String(opts.get("pullover", ""))
+	if po != "" and _frame == int(opts.get("pullover_frame", 60)):
+		_test_pullover(po)
 	for o in _offences:
 		if o[0] == _frame:
 			var u = _nearest_unit()

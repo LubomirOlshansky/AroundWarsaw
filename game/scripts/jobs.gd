@@ -74,6 +74,8 @@ var autopilot := false
 ## Testing: the kebab's starting heat (--heat=), jars already broken (--sloik=K).
 var start_heat := 1.0
 var start_broken := 0
+## Loop 2d-1: the Podwózka job (rides.gd), so the two never run at once.
+var rides: Node
 
 ## Stands: {ring: Vector3, at: Vector3, yaw, heading, node, marker, cool, across}.
 var _stands: Array[Dictionary] = []
@@ -308,6 +310,12 @@ func _district_near(p: Vector2) -> String:
 # --- the flow ---------------------------------------------------------------------------
 
 func busy() -> bool:
+	# Loop 2d-1: a Podwózka ride counts as a job for everything that waits on one.
+	return state != State.IDLE or (rides != null and rides.busy())
+
+
+## Loop 2d-1: a kebab or słoiki job of this script's own is on (rides.gd asks this).
+func own_busy() -> bool:
 	return state != State.IDLE
 
 
@@ -327,6 +335,8 @@ func target_colour() -> Color:
 func _free() -> bool:
 	if flying or missions.has_target():
 		return false
+	if rides != null and rides.busy():
+		return false  # loop 2d-1: one activity at a time
 	return rivals == null or not rivals.busy()
 
 

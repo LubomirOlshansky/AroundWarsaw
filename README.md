@@ -2372,6 +2372,109 @@ and the counts `check_map_data.py` checks. Draw calls at the four probe views un
 passes (spawn 52 + 35, river 35 + 24, zoomed out 65 + 44, helicopter 100 + 76; the 2D pass moves
 by ±4 between runs of the same code), vertices 6,119,007 → 6,109,860 (-0.1 %: shorter zebras).
 
+## Loop 2d-1: Podwózka, the app-taxi side job (2026-10-29)
+
+*Podwózka* ("a lift") is the game's own app-taxi (docs/design/parodies.md section 3; no real app,
+name or logo). The joke is the app and its GPS, never the driver or the passenger. Code:
+`rides.gd` (the job), `ride_rules.gd` (the stars, the pay and the cards' words as plain rules),
+`gps_moments.gd` (the app-taxis in traffic); lines in `data/dialogue.json` (`podwozka_*`).
+
+- **How it's offered**: in the car with nothing else on (one activity at a time, like the kebab
+  and słoiki jobs), never in the first 2 minutes of a session (the title screen doesn't count).
+  A request card every 75–120 s (not modal; it goes after 10 s), or the top row's
+  context button reads **PODWÓZKA · ride app** and a tap brings a request within 2 s. A rescue
+  call ringing keeps the button (WEZWANIE) but not the card; taking a ride puts the call off, as
+  any job does. Never during a race, a rescue or from the helicopter.
+- **The request card** stands beside the car, never over it (`hud.gd` `show_side_card`: the
+  right-hand column under the top row, as wide as the room right of the car's spot): `PODWÓZKA ·
+  NOWY KURS` (at night `PODWÓZKA · MNOŻNIK ×1,5`, ×1,2 in the rain, ×1,8 both; the English in
+  the title row says why), the passenger and their own stars, how far the pin is and the ride's
+  length (`Kasia ★ 4,9 · 350 m · 1,8 km`), their note (`podwozka_request`) with its English;
+  PRZYJMIJ · Accept, POMIŃ · Skip (M / K). Your rating is on the result card (on a 390-pt phone
+  the request card has room for five lines of text beside the car).
+- **Pickup**: the app's pin (a teal ring and column, the minimap dot and a dotted teal line) at a
+  real address door 150–600 m by road. Half the time the passenger isn't there: they wait 30–60 m
+  away along the street or across it, waving under a teal "!" (one mesh each), and say a
+  `podwozka_pickup` line; near the pin the hint says "the pin is here, the passenger isn't" and
+  the arrow turns to them. Stop within 7 m under 2.5 m/s for 1 s.
+- **Passengers** (*guess*): normal 65 %, GPS believer 25 %, in a hurry 10 % (ETA × 0.8, tip ×
+  1.2); first names from the jobs' list; they chat every 25–40 s (`podwozka_passenger`, half the
+  time the słoiki passengers' `passenger` lines).
+- **Where to**: a real address 600–2,500 m by road (west bank), or (30 %) a race finish (not the
+  far end of a bridge, not one on the map's edge: Centrum Nauki Kopernik's lies on it). The beacon
+  and the arrow always point at the real door.
+- **The app's route** is the minimap's dotted teal line: the shortest road, except that 35 %
+  of rides get one quirk, which "Nawigacja" announces 200 m before it (`podwozka_gps`):
+  - `river`: out to the Vistula's edge and back. River spots come from the map's global water
+    test (loop 3c: the streamed city's exported index has no shore runs): `shore_distance` on an
+    8 m grid over the map, 3 rows a frame after the city is built (~48 ms in all), each dry-to-wet
+    step a point on the edge; the water past it still deep 60 m out (the river, not a pond or a
+    fountain), a waypoint 5 m in from the edge with no water within 3 m and no roof over it, a
+    road within 70 m in a straight line over dry, open ground; one spot per road edge, both
+    carriageways (9 on today's map, by Most Poniatowskiego and along Wybrzeże Kościuszkowskie,
+    the same on both city paths). The ride takes the spot that adds least, at most 1.5 km.
+  - `zone`: through a park's middle (in from the road on the passenger's side, out on the
+    destination's; the city guards' reaction is loop 3g's). `oldtown` falls back to it: today's
+    map has no Old Town square.
+  - `reroute`: 40 % of the way in the app recalculates once and draws a new line that first turns
+    back to the junction behind the car.
+  - `rechotka` ("turn at the Rechotka") only by flag until loop 2d-2 places the shops.
+  Ignoring the app is always allowed.
+- **Stars** (live in the status panel, `★★★★½ 4,5`, a short toast for each change): from 5.0,
+  −½ for a hard bump (closing speed over 4 m/s), braking over 18 m/s² or a corner over 15 m/s²
+  (2 s apart, at most −2 in all; the słoiki's limits are 16 and 14), −½ per 15 s past the ETA
+  (road / 9 m/s + 20 s; at most −1½), −1 for a police pull-over, +½ for arriving within 0.8 of
+  the ETA, +½ when a believer's app leg is driven (the waypoint within 15 m; "No widzisz,
+  aplikacja wie"). A believer whose leg you skip only grumbles. The final rating is the nearest
+  half, 1 to 5.
+- **Pay** (*guess*, between kebab and słoiki): fare 15 zł + 9 zł a km of road from the pickup ×
+  the MNOŻNIK; tip 40 % of the fare at 5 ★, 25 % at 4½, 10 % at 4, none below; the 5-star streak
+  pays +10 zł for each 5-star ride in a row before this one (at most +50; a 4½ keeps the streak,
+  below 4½ or a cancel ends it); respect +25 at 5 ★, +10 at 4–4½. A 1.8 km ride by day at 5 ★:
+  31 + 12 = 43 zł. **Your rating** is the average of the last 20 rides, the ones a new save
+  hasn't driven counted as 4,87 (nobody has a 5.0); it and the streak are kept in
+  `user://save.cfg` (`[keep]`, `wallet.gd`).
+- **The end**: at the door (7 m, under 2.5 m/s) Nawigacja's "you have arrived" line, then 2.6 s
+  later the result card beside the car (one thing at a time): the stars, the passenger's
+  `podwozka_rating` comment (5, 4, low, or police if pulled over), the pay (the fare with the
+  MNOŻNIK, the tip, the streak), your rating and what moved the stars. It has no button: it goes
+  after 12 s or once the car is 25 m off (M closes it). While a ride's request or result card is
+  up, the app-taxis' GPS bubbles and the radio host's next line wait (a caption already up slides
+  out); they come after. **Cancel**: the ✕ on the status panel any time, or the passenger gives up after
+  3 × the ETA (pickup and ride each): no pay, no stars lost, the streak ends.
+- **The police**: `police.gd` calls `rides.on_pulled_over()` when a pull-over's conversation ends
+  (police.md 8.3): exactly one star from a running ride (none while picking up), and the result's
+  comment becomes the `police` one. Escaping a chase costs nothing. Verify step `ride-police`:
+  ride 8 with `--pullover=generic --pullover-frame=1500` on the prebuilt city prints
+  `ride: stars 4.0 (police −1.0)` once.
+- **GPS moments in traffic** (`gps_moments.gd`, parodies.md 3.2): every 45–90 s one Podwózka car
+  (the hatch with the phone on its roof, loop 2c) on screen within 80 m of the view's centre (and not behind a building)
+  stops dead for 4 s ("you have arrived": the cars behind wait, one may shout), takes the way back
+  at the next junction where a U-turn is possible (recalculating), or, on a road by the river,
+  pulls up where it comes nearest the water, waits 3 s and turns away; its driver says a
+  `podwozka_driver` line. Never two at once; no new geometry (`traffic.gd` `turn_next`).
+- **Checks**: `game/tools/check_rides.gd` (verify step `rides`, under a second) feeds the rules
+  synthetic events: the star table, the pay table (with the design's 43 zł), the streak, the
+  cancel rules and the rating, and every dialogue group and tag the code asks for (Polish and
+  English, bubbles ≤ 70 characters, buttons ≤ 28). The verify step `ride` drives ride 8 (a
+  believer waiting 34 m from the pin, the river quirk) with the autopilot and `--parody-log`.
+  `check_hud.gd` lays out the request card, the ride's status and two result cards at their
+  longest, and fails a ride card that covers the car's spot.
+- **Cost** (probe, Metal, 2868×1320, Classic, traffic Normal, day; before = 613ff38 from a copy
+  in the same session, measured before the 3c streaming merge): the spawn view 134 draw calls (main 52, shadow 35, 2D 46) before and
+  after, side jobs + eggs 0.039 → 0.044 ms. During a ride (ride 19 on the autopilot, Powiśle):
+  126 draw calls (37 / 30 / 60), side jobs + eggs 0.088 ms; a kebab delivery measured the same
+  way: 140 (46 / 29 / 65), 0.068 ms. Nothing new in the 3D passes but the ride's pin (the job
+  beacon's ring and column), the waiting passenger (one mesh) and the "!" (one mesh), fewer than
+  a kebab customer's beacon person; the minimap's dots draw in its overlay's existing canvas
+  item. The river spots are found a few shore samples a frame after the city is built (683
+  samples, 24 a frame).
+- **Screenshots**: `shots/loop2d1/` at 2868×1320 and 1792×828: the request card (`pro`, `i11`
+  frame 60), the pickup with the passenger under the "!" (`pickup_*`), the ride mid-way with the
+  app's dotted route and Nawigacja's river line (`pro`, `i11` 1500 and 3000), the result card
+  (`pro2`, `i112`; after the merge, beside the car: `end_i11`, `end_pro`), a GPS moment by the
+  spawn (`gps_*`).
+
 ## Map round 2: the ground under structure ends, the night streets (2026-10-29)
 
 What reviews A and B left, by rule (the demo box comes later, loop 3d):
@@ -2735,6 +2838,14 @@ Command-line options (after `--`):
 | `--title` | show the title screen even with those flags (for screenshots) |
 | `--kebab=N` | put the car in a stand's ring and take kebab order N (the same N gives the same order; stand N mod 7) |
 | `--sloik` / `--sloik=K` | start the słoiki run at Dworzec Centralny (K jars already broken) |
+| `--ride=N` | loop 2d-1: Podwózka ride N's request, the car on the road 60 m before its passenger (the same N gives the same ride; with `--ride-quirk=river` or `zone` the passenger is picked near river spot / park N, so the leg fits); with `--autopilot` it is accepted after 2 s and driven |
+| `--ride-quirk=river\|zone\|oldtown\|rechotka\|reroute` | loop 2d-1: force the ride's quirk (`oldtown` becomes `zone` on today's map; `rechotka` only by flag until the shops exist) |
+| `--passenger=normal\|believer\|hurry` | loop 2d-1: force the passenger type |
+| `--stars=X` | loop 2d-1: the live rating starts at X (1–5; for card shots) |
+| `--ignore-app` | loop 2d-1: the autopilot drives the shortest road to the door, not the app's route |
+| `--parody-log` | loop 2d-1: print `ride:` lines (the offer, the pickup, the quirk and its waypoint, every star change and why, the arrival, the pay with the wallet before and after, cancels, the autopilot's legs) and `gps:` lines (each GPS moment in traffic) |
+| `--gps-in=S` | loop 2d-1: the app-taxis' first GPS moment is looked for S seconds in (screenshots) |
+| `--pullover-frame=N` | loop 2d-1: the `--pullover=TAG` conversation at frame N instead of 60 (e.g. during a `--ride`) |
 | `--heat=X` | the kebab's starting heat, 0–1 (for a cold-arrival screenshot) |
 | `--host-in=S` | the radio host's first line after S seconds |
 | `--barriers=YYYYMMDD` | place the roadworks for that day |
