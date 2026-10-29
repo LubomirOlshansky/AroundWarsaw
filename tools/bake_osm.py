@@ -255,6 +255,7 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     bed.solve_tunnels(tunnel_roads)
     bed.fill_pits()
     bed.assign_levels()
+    bed.level_surfaces(details.get("surfaces", []))
     bed.measure()
     bed.finish_roads()
     bed.set_corridors()
@@ -265,6 +266,13 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     bed.bake_hatching()
     bed.bake_guards(clip_lines)
     bed.bake_shore()
+    # Loop 3b-2: which banks are built (the granite edge) and which natural (wet sand, foam),
+    # the sand on land and the sandbars on the river (tools/bake_banks.py).
+    import bake_banks
+    banks = bake_banks.bake(bed, els, nodes, ways, project, in_bbox, clip_polygon, bed.land, stitch,
+                            paths, roads, areas, details)
+    # Loop 3b-2: the scanned crowns a road runs under are drawn at 3/4 of their size.
+    crowns = crown_scales(trees3d, roads)
 
     extras = bake_extras(extras_src, roads, rect) if extras_src else {}
     pois = bake_pois(els, nodes, ways, roads, paths, areas, rect)
@@ -292,7 +300,7 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
             del e[k]
     markings = bed.edge_lines + bed.lane_lines + bed.lane_marks + bed.hatching
     print("markings: " + ", ".join(f"{k} {sum(1 for m in markings if m['k'] == k)}" for k in sorted({m["k"] for m in markings})))
-    for item in roads + paths + trams + details.get("rails", []) + details.get("islands", []):
+    for item in roads + paths + trams + details.get("rails", []) + details.get("islands", []) + details.get("surfaces", []):
         if item.get("dk", -1) < 0:
             item.pop("dk", None)
     for r in tunnel_roads:
@@ -324,6 +332,9 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
         # builder doesn't lower the ground for them yet (loop 3b), so check_roads C3 still sees them.
         "dips": [{"x": round(d["x"], 1), "z": round(d["z"], 1), "d": d["d"], "name": d["name"]} for d in bed.dips],
         "shore": bed.shore,
+        "sand": banks["sand"],
+        "sandbars": banks["sandbars"],
+        "trees3d_crown": crowns,
         "attribution": "© OpenStreetMap contributors, ODbL" + ("; trees © GUGiK, CC BY 4.0" if trees3d else ""),
     }
     if palm is not None:
@@ -344,6 +355,36 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
           f"{len(out['tunnels']['portals'])} portals; garages: {len(garages)} doors (R9)")
     print(f"roads {len(roads)} paths {len(paths)} trams {len(trams)} areas {len(areas)} "
           f"trees {len(trees) // 4} + GUGiK {len(trees3d) // 6} buildings {len(kept)} (dropped {len(buildings) - len(kept)} outlines with parts) spawn {spawn}")
+
+
+CROWN_NEAR = 12.0    # loop 3b-2: a scanned tree this close to a road's edge (m)...
+CROWN_FAR = 20.0     # ...has its crown drawn at CROWN_SCALE, rising to full size here...
+CROWN_SCALE = 0.75   # ...(the user, 2026-10-28: the scanned crowns read as gumdrops over the streets)
+
+
+def crown_scales(trees3d, roads):
+    """Loop 3b-2: one crown scale per scanned tree, in hundredths: CROWN_SCALE within
+    CROWN_NEAR m of a drivable road's edge, full size from CROWN_FAR m (in parks), a ramp
+    between. map_builder.gd scales the crown's radius and depth by it (its base stays), and
+    bake_ao.py its shade. trees3d itself is unchanged."""
+    grid = bake_roads.Grid(16.0)
+    for r in roads:
+        half = float(r["w"]) * 0.5
+        p = list(zip(r["p"][0::2], r["p"][1::2]))
+        for a, b in zip(p, p[1:]):
+            pad = half + CROWN_FAR
+            grid.add((a, b, half), min(a[0], b[0]) - pad, min(a[1], b[1]) - pad, max(a[0], b[0]) + pad, max(a[1], b[1]) + pad)
+    out = []
+    near = 0
+    for k in range(0, len(trees3d) - 5, 6):
+        x, z = trees3d[k], trees3d[k + 1]
+        d = min((bake_roads.seg_dist(x, z, a, b) - half for a, b, half in grid.at(x, z)), default=1e9)
+        f = CROWN_SCALE + (1.0 - CROWN_SCALE) * min(1.0, max(0.0, (d - CROWN_NEAR) / (CROWN_FAR - CROWN_NEAR)))
+        near += d <= CROWN_NEAR
+        out.append(int(round(f * 100)))
+    print(f"crowns: {near} of {len(out)} scanned trees within {CROWN_NEAR:.0f} m of a road at {CROWN_SCALE:.2f}, "
+          f"{sum(1 for v in out if v < 100)} scaled down")
+    return out
 
 
 GARAGE_DROP = 2.0    # R9: a service way whose terrain falls this far below its start...

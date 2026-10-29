@@ -26,8 +26,13 @@ var controls := 0
 ## Classic only: the camera follows the car (CAM toggles it); Point always follows, Fixed never.
 var classic_follow := true
 var traffic := NORMAL_TRAFFIC
-## main.gd QUALITY: Low, Medium, High.
-var quality := 2
+## tiers.gd: AUTO (-1, the default since loop G1: the level Auto picks for the device) or
+## Low, Medium, High, Ultra (0-3). A file saved before G1 (no `tiers` key) that says High
+## loads as Auto, once: High was the default then, not a choice; the next save marks the file.
+const AUTO := -1
+const HIGH := 2
+const ULTRA := 3
+var quality := AUTO
 ## 0..1 each: everything, the radio (Music bus), the effects (SFX and Ambience buses).
 var master := 1.0
 var music := 1.0
@@ -55,7 +60,9 @@ func load_file() -> void:
 	controls = clampi(int(cfg.get_value("controls", "scheme", controls)), 0, 2)
 	classic_follow = bool(cfg.get_value("controls", "classic_follow", classic_follow))
 	traffic = clampi(int(cfg.get_value("world", "traffic", traffic)), 0, TRAFFIC.size() - 1)
-	quality = clampi(int(cfg.get_value("world", "quality", quality)), 0, 2)
+	quality = clampi(int(cfg.get_value("world", "quality", quality)), AUTO, ULTRA)
+	if quality == HIGH and not cfg.has_section_key("world", "tiers"):
+		quality = AUTO
 	master = clampf(float(cfg.get_value("sound", "master", master)), 0.0, 1.0)
 	music = clampf(float(cfg.get_value("sound", "music", music)), 0.0, 1.0)
 	effects = clampf(float(cfg.get_value("sound", "effects", effects)), 0.0, 1.0)
@@ -75,6 +82,7 @@ func save() -> void:
 	cfg.set_value("controls", "classic_follow", classic_follow)
 	cfg.set_value("world", "traffic", traffic)
 	cfg.set_value("world", "quality", quality)
+	cfg.set_value("world", "tiers", 1)
 	cfg.set_value("sound", "master", snappedf(master, 0.01))
 	cfg.set_value("sound", "music", snappedf(music, 0.01))
 	cfg.set_value("sound", "effects", snappedf(effects, 0.01))
@@ -86,8 +94,8 @@ func save() -> void:
 
 
 func summary() -> String:
-	return "controls %d, classic camera %s, traffic %s, quality %d, volume %.0f/%.0f/%.0f %%, perf %s, %d fps, style %d, vhs %s" % [
-			controls, "follow" if classic_follow else "fixed", TRAFFIC_NAMES[traffic], quality,
+	return "controls %d, classic camera %s, traffic %s, quality %s, volume %.0f/%.0f/%.0f %%, perf %s, %d fps, style %d, vhs %s" % [
+			controls, "follow" if classic_follow else "fixed", TRAFFIC_NAMES[traffic], "auto" if quality == AUTO else str(quality),
 			master * 100.0, music * 100.0, effects * 100.0, perf, fps, style, vhs]
 
 

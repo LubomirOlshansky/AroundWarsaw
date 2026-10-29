@@ -41,6 +41,13 @@ const L_DIRT := 12.0
 const L_PLAY := 13.0
 const L_ISLAND := 14.0
 const L_GRAVEL := 15.0
+## Loop 3b-2: dry sand (beaches, sandbars), the wet band of a natural bank or a sandbar's rim
+## (its colour from the vertex: sand or earth) and the foam line on the waterline.
+const L_SAND := 16.0
+const L_WET := 17.0
+const L_FOAM := 18.0
+## Loop 3b-2: the tram bed's concrete track slabs (joints across it every 3 m).
+const L_TRAMBED := 19.0
 
 const Y_GROUND := 0.0
 const Y_AREA := 0.02
@@ -193,8 +200,18 @@ func build(path: String, building_mat: ShaderMaterial, flat_mat: ShaderMaterial)
 	_build_ground(flat)
 	# Wide gaps between the depth biases: two layers that fit a slope with different
 	# triangles can differ by a few centimetres, and must not poke through each other.
-	_drape_bias = 0.05
+	# Loop 3b-2: the areas lie exactly on the ground's own triangles (_fill_on_grid), so their
+	# few millimetres of height order them over the ground and each other without a depth bias
+	# to speak of (0.05 before); the thin strips laid over them (paths at 0.1) keep a margin for
+	# their pieces' sag over the grid's folds (game/tools/check_drape.gd counts it).
+	_drape_bias = 0.01
 	_build_areas(flat)
+	# The sandbars over the water (fill 0.02, rim 0.07, foam 0.09) and the natural banks' wet
+	# bands and foam (0.07, 0.09), under the paving and the paths.
+	_drape_bias = 0.02
+	_build_sandbars(flat)
+	_drape_bias = 0.07
+	_build_banks(flat)
 	_drape_bias = 0.08
 	_build_surfaces(flat)
 	_drape_bias = 0.1
@@ -249,6 +266,7 @@ func build(path: String, building_mat: ShaderMaterial, flat_mat: ShaderMaterial)
 	_build_street_furniture()
 	_build_props()
 	_build_collision()
+	_index_raised()
 	return data
 
 
@@ -454,14 +472,124 @@ func ground_height(x: float, z: float) -> float:
 ## road stays overhead). The car and the skid marks use it.
 func drive_height(x: float, z: float, near_y: float) -> float:
 	var best := terrain_height(x, z)
+	var on_ground := true
 	for d in _decks_at(x, z):
 		if d <= near_y + 1.2 and d > best:
 			best = d
+			on_ground = false
 	# Loop 3b: in a tunnel's corridor, a vehicle down at its floor drives the floor.
 	var t := tunnel_floor(x, z, near_y)
 	if not is_nan(t):
 		return t
+	# Loop 3b-2: on a traffic island or a grass median the car rides KERB_UP higher.
+	if on_ground and not _raise_cells.is_empty():
+		best += raise_at(x, z)
 	return best
+
+
+## Loop 3b-2: kerbs you feel. The raised ground at street level: traffic islands and grass
+## medians (KERB_UP over the road), and the kerb lines (the bake's kerbs and the islands'
+## outlines), in RAISE_CELL cells; stored in the scene so the prebuilt city has them too.
+## drive_height lifts the car onto an island or a median; the car (car.gd kerb_feel) loses a
+## little speed with a bounce when it hops a kerb line and rolls slower on the raised ground.
+## Traffic keeps to its lanes (lane_graph heights) and never feels them.
+const RAISE_CELL := 8.0
+@export_storage var _raise_polys: Array[PackedVector2Array] = []
+@export_storage var _raise_cells := {}
+@export_storage var _kerb_segs := PackedVector2Array()
+@export_storage var _kerb_cells := {}
+
+
+func _index_raised() -> void:
+	_raise_polys.clear()
+	_raise_cells.clear()
+	_kerb_segs.clear()
+	_kerb_cells.clear()
+	var raised: Array[PackedVector2Array] = []
+	for a in data.get("islands", []):
+		if int(a.get("dk", -1)) < 0:
+			raised.append(_pts(a["p"]))
+	for m in data.get("medians", []):
+		if m["k"] != "grass" or int(m.get("dk", -1)) >= 0:
+			continue
+		var s4: Array = m["s"]
+		for i in range(0, s4.size() - 7, 4):
+			raised.append(PackedVector2Array([Vector2(s4[i], s4[i + 1]), Vector2(s4[i + 2], s4[i + 3]),
+					Vector2(s4[i + 6], s4[i + 7]), Vector2(s4[i + 4], s4[i + 5])]))
+	for poly in raised:
+		if poly.size() < 3:
+			continue
+		var id := _raise_polys.size()
+		_raise_polys.append(poly)
+		var box := Rect2(poly[0], Vector2.ZERO)
+		for q in poly:
+			box = box.expand(q)
+		for cz in range(floori(box.position.y / RAISE_CELL), floori(box.end.y / RAISE_CELL) + 1):
+			for cx in range(floori(box.position.x / RAISE_CELL), floori(box.end.x / RAISE_CELL) + 1):
+				var key := Vector2i(cx, cz)
+				var list: PackedInt32Array = _raise_cells.get(key, PackedInt32Array())
+				list.append(id)
+				_raise_cells[key] = list
+		var ring := PackedVector2Array(poly)
+		ring.append(poly[0])
+		_add_kerb_line(ring)
+	for k in data.get("kerbs", []):
+		if int(k.get("dk", -1)) < 0:
+			_add_kerb_line(_pts(k["p"]))
+
+
+func _add_kerb_line(poly: PackedVector2Array) -> void:
+	for i in poly.size() - 1:
+		var a := poly[i]
+		var b := poly[i + 1]
+		if a.distance_squared_to(b) < 0.0004:
+			continue
+		var id := _kerb_segs.size() / 2
+		_kerb_segs.append(a)
+		_kerb_segs.append(b)
+		var lo := a.min(b)
+		var hi := a.max(b)
+		for cz in range(floori(lo.y / RAISE_CELL), floori(hi.y / RAISE_CELL) + 1):
+			for cx in range(floori(lo.x / RAISE_CELL), floori(hi.x / RAISE_CELL) + 1):
+				var key := Vector2i(cx, cz)
+				var list: PackedInt32Array = _kerb_cells.get(key, PackedInt32Array())
+				list.append(id)
+				_kerb_cells[key] = list
+
+
+## Loop 3b-2: how far the ground at (x, z) stands over the road at street level: KERB_UP on an
+## island or a grass median, else 0.
+func raise_at(x: float, z: float) -> float:
+	var p := Vector2(x, z)
+	for id: int in _raise_cells.get(Vector2i(floori(x / RAISE_CELL), floori(z / RAISE_CELL)), PackedInt32Array()):
+		if Geometry2D.is_point_in_polygon(p, _raise_polys[id]):
+			return KERB_UP
+	return 0.0
+
+
+## Loop 3b-2: for a car that moved from `from` to `to` at height y: x = the raise under `to`
+## (raise_at), y = 1 if the move crossed a kerb line. Nothing on a deck or in a tunnel (the car
+## more than a little over or under the street).
+func kerb_feel(from: Vector2, to: Vector2, y: float) -> Vector2:
+	if _kerb_cells.is_empty() and _raise_cells.is_empty():
+		return Vector2.ZERO
+	var g := terrain_height(to.x, to.y)
+	if y > g + KERB_UP + 0.4 or y < g - 0.4:
+		return Vector2.ZERO
+	var crossed := 0.0
+	var c0 := Vector2i(floori(from.x / RAISE_CELL), floori(from.y / RAISE_CELL))
+	var c1 := Vector2i(floori(to.x / RAISE_CELL), floori(to.y / RAISE_CELL))
+	for cz in range(mini(c0.y, c1.y), maxi(c0.y, c1.y) + 1):
+		for cx in range(mini(c0.x, c1.x), maxi(c0.x, c1.x) + 1):
+			for id: int in _kerb_cells.get(Vector2i(cx, cz), PackedInt32Array()):
+				if Geometry2D.segment_intersects_segment(from, to, _kerb_segs[id * 2], _kerb_segs[id * 2 + 1]) != null:
+					crossed = 1.0
+					break
+			if crossed > 0.0:
+				break
+		if crossed > 0.0:
+			break
+	return Vector2(raise_at(to.x, to.y), crossed)
 
 
 ## Loop 3b: the floor of the tunnel whose corridor holds (x, z), for a vehicle at height
@@ -1109,10 +1237,20 @@ func _draped_tri(st, a: Vector3, b: Vector3, c: Vector3, col: Color, depth: int)
 			_draped_tri(st, a, b, m, col, depth + 1)
 			_draped_tri(st, m, b, c, col, depth + 1)
 		return
+	_emit_draped(st, a, b, c, col)
+
+
+## One flat-layer triangle lifted onto the surface (each corner's own y is the layer offset),
+## wound to face up, with the layer's bias and id and the street axes in the UVs.
+func _emit_draped(st, a: Vector3, b: Vector3, c: Vector3, col: Color) -> void:
 	var p := [a, b, c]
 	for k in 3:
 		var v: Vector3 = p[k]
-		p[k] = Vector3(v.x, _surface_height(v.x, v.z) + v.y, v.z)
+		var h := _surface_height(v.x, v.z)
+		if _on_grid and _dk < 0 and _tn < 0:
+			# Never under the drawn ground (an apron can hold the road under the grid).
+			h = maxf(h, _grid_height(v.x, v.z))
+		p[k] = Vector3(v.x, h + v.y, v.z)
 	if ((p[1] - p[0]).cross(p[2] - p[0]).dot(Vector3.UP) > 0.0) == CLOCKWISE_FRONT:
 		p = [p[0], p[2], p[1]]
 	var axis := _axis if _axis != Vector2.ZERO else CITY_GRID
@@ -1147,6 +1285,108 @@ func _fill(st, poly: PackedVector2Array, y: float, col: Color) -> void:
 		_tri(st, Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y, c.y), Vector3.UP, col)
 
 
+## Loop 3b-2: a polygon laid exactly on the terrain grid's own triangles (the two per cell that
+## _build_ground draws), for the areas (water, grass, parks, plazas, sand) and the sandbars.
+## The drape's pieces (up to 12 m, each a plane through three terrain points) cut under the
+## grid's folds, and there the bare earth poked through as jagged beige patches: the 10 m
+## grid holds the river's sandbars and a ridge along Most Poniatowskiego's piers (the "torn
+## paper" sandbars in the river), lumps in the parks (game/tools/check_drape.gd). Cells the
+## outline doesn't cross go in whole (two triangles), the ones it crosses are clipped. Off
+## the grid (a flat world) or when not draping it is `_fill`.
+func _fill_on_grid(st, poly: PackedVector2Array, y: float, col: Color) -> void:
+	if poly.size() < 3 or _t_h.is_empty() or _drape_bias < 0.0:
+		_fill(st, poly, y, col)
+		return
+	_on_grid = true
+	_fill_grid_cells(st, poly, y, col)
+	_on_grid = false
+
+
+## While _fill_on_grid lays a polygon: its corners never go under the drawn ground.
+var _on_grid := false
+
+
+## _fill_on_grid's work: the grid cells under the polygon's box, whole or clipped.
+func _fill_grid_cells(st, poly: PackedVector2Array, y: float, col: Color) -> void:
+	var step := float(_terrain["step"])
+	var gx := float(_terrain["x0"])
+	var gz := float(_terrain["z0"])
+	var nx := int(_terrain["nx"])
+	var nz := int(_terrain["nz"])
+	var lo := poly[0]
+	var hi := poly[0]
+	for p in poly:
+		lo = lo.min(p)
+		hi = hi.max(p)
+	var i0 := clampi(floori((lo.x - gx) / step), 0, nx - 2)
+	var i1 := clampi(floori((hi.x - gx) / step), 0, nx - 2)
+	var j0 := clampi(floori((lo.y - gz) / step), 0, nz - 2)
+	var j1 := clampi(floori((hi.y - gz) / step), 0, nz - 2)
+	var w := i1 - i0 + 1
+	var h := j1 - j0 + 1
+	var crossed := PackedByteArray()
+	crossed.resize(w * h)
+	var n := poly.size()
+	for k in n:
+		_mark_cells(crossed, (poly[k] - Vector2(gx, gz)) / step - Vector2(i0, j0),
+				(poly[(k + 1) % n] - Vector2(gx, gz)) / step - Vector2(i0, j0), w, h)
+	for j in h:
+		var z := gz + (j0 + j) * step
+		for i in w:
+			var x := gx + (i0 + i) * step
+			var a := Vector2(x, z)
+			var b := Vector2(x + step, z)
+			var c := Vector2(x + step, z + step)
+			var d := Vector2(x, z + step)
+			if crossed[j * w + i] == 0:
+				if Geometry2D.is_point_in_polygon(Vector2(x + step * 0.5, z + step * 0.5), poly):
+					_emit_draped(st, Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y, c.y), col)
+					_emit_draped(st, Vector3(a.x, y, a.y), Vector3(c.x, y, c.y), Vector3(d.x, y, d.y), col)
+				continue
+			# The cell's two triangles (the diagonal _grid_height uses), each clipped.
+			for tri in [PackedVector2Array([a, b, c]), PackedVector2Array([a, c, d])]:
+				for piece in Geometry2D.intersect_polygons(tri, poly):
+					var idx := Geometry2D.triangulate_polygon(piece)
+					for t in range(0, idx.size(), 3):
+						var p0 := piece[idx[t]]
+						var p1 := piece[idx[t + 1]]
+						var p2 := piece[idx[t + 2]]
+						if absf((p1 - p0).cross(p2 - p0)) < 0.0002:
+							continue
+						_emit_draped(st, Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), Vector3(p2.x, y, p2.y), col)
+
+
+## Marks the cells of a w x h grid (cell units, from its corner) that the segment p-q passes
+## through: a grid walk, one cell at a time.
+static func _mark_cells(mask: PackedByteArray, p: Vector2, q: Vector2, w: int, h: int) -> void:
+	var ci := floori(p.x)
+	var cj := floori(p.y)
+	var ei := floori(q.x)
+	var ej := floori(q.y)
+	var d := q - p
+	var si := 1 if d.x > 0.0 else -1
+	var sj := 1 if d.y > 0.0 else -1
+	var tdx := absf(1.0 / d.x) if absf(d.x) > 1e-9 else INF
+	var tdz := absf(1.0 / d.y) if absf(d.y) > 1e-9 else INF
+	var tmx := ((ci + 1 - p.x) if d.x > 0.0 else (p.x - ci)) * tdx if tdx != INF else INF
+	var tmz := ((cj + 1 - p.y) if d.y > 0.0 else (p.y - cj)) * tdz if tdz != INF else INF
+	for guard in 100000:
+		if ci >= 0 and cj >= 0 and ci < w and cj < h:
+			mask[cj * w + ci] = 1
+		if ci == ei and cj == ej:
+			return
+		if tmx < tmz:
+			if tmx > 1.0:
+				return
+			tmx += tdx
+			ci += si
+		else:
+			if tmz > 1.0:
+				return
+			tmz += tdz
+			cj += sj
+
+
 func _disc(st, p: Vector2, r: float, y: float, col: Color, segments := 8) -> void:
 	var centre := Vector3(p.x, y, p.y)
 	for i in segments:
@@ -1154,6 +1394,12 @@ func _disc(st, p: Vector2, r: float, y: float, col: Color, segments := 8) -> voi
 		var a1 := TAU * (i + 1) / segments
 		_tri(st, centre, Vector3(p.x + cos(a0) * r, y, p.y + sin(a0) * r),
 				Vector3(p.x + cos(a1) * r, y, p.y + sin(a1) * r), Vector3.UP, col)
+
+
+## Loop 3b-2: strips laid at this depth bias or less (footways, cycle paths, steps: just over the
+## areas) follow the grid's triangles exactly; the ones higher up (roads 0.3, markings) keep the
+## 10 m pieces, their bias covers any sag.
+const EXACT_STRIP_BIAS := 0.12
 
 
 ## A polyline as a flat band; square caps overlap at the joints.
@@ -1171,6 +1417,14 @@ func _strip(st, poly: PackedVector2Array, width: float, y: float, col: Color, ex
 			a -= dir * hw
 			b += dir * hw
 		var side := Vector2(-dir.y, dir.x) * hw
+		if _drape_bias >= 0.0 and _drape_bias <= EXACT_STRIP_BIAS and _dk < 0 and _tn < 0 and not _t_h.is_empty():
+			# Loop 3b-2: a footway, cycle path or flight of steps on the ground follows the grid's
+			# own triangles (clipped to them, as the areas are), so it never sags under the area
+			# it crosses (the Praga beach's footpath was dashed by its sand; check_drape.gd).
+			_on_grid = true
+			_fill_grid_cells(st, PackedVector2Array([a + side, b + side, b - side, a - side]), y, col)
+			_on_grid = false
+			continue
 		# Draped: cut into pieces no longer than the terrain grid, so a long thin strip
 		# costs two triangles per piece instead of a fan of slivers.
 		var pieces := maxi(1, ceili(a.distance_to(b) / 10.0)) if _drape_bias >= 0.0 else 1
@@ -1262,8 +1516,19 @@ func _build_ground(st) -> void:
 
 
 func _build_areas(st) -> void:
-	# Plazas first so parks and water sit on top of them.
-	for pass_kind in ["plaza", "green", "water"]:
+	# Plazas first so parks, sand and water sit on top of them. Loop 3b-2: laid on the
+	# terrain grid's own triangles (_fill_on_grid), so the bare earth never pokes through;
+	# the beaches' sand (bake_banks.py) goes in under the water, which covers any of it
+	# mapped past the edge.
+	for pass_kind in ["plaza", "green", "sand", "water"]:
+		if pass_kind == "sand":
+			_layer = L_SAND
+			# Gap fills (`f`) under the sand, gravel over it: a millimetre apart, so where they
+			# overlap the nearer one is always the same.
+			for a in data.get("sand", []):
+				var y := Y_AREA + (0.006 if a.has("f") else (0.008 if a.has("g") else 0.007))
+				_fill_on_grid(st, _pts(a["p"]), y, GRAVEL if a.has("g") else SAND)
+			continue
 		for a in data["areas"]:
 			var k: String = a["k"]
 			var group := "plaza" if k == "plaza" else ("water" if k == "water" else "green")
@@ -1271,8 +1536,130 @@ func _build_areas(st) -> void:
 				continue
 			var y := Y_AREA + (0.005 if group == "green" else 0.0) + (0.01 if group == "water" else 0.0)
 			_layer = L_GREEN if group == "green" else (L_WATER if group == "water" else L_PLAZA)
-			_fill(st, _pts(a["p"]), y, COL[k])
+			_fill_on_grid(st, _pts(a["p"]), y, COL[k])
 	_layer = L_GROUND
+
+
+## Loop 3b-2: sand, wet sand and earth, foam (sRGB). Sand is a little warmer and quieter than
+## the bare ground (the art bible's day chroma: the ground is calmer than what you drive).
+const SAND := Color("#c8b995")
+const GRAVEL := Color("#a8a091")
+const WET_GRAVEL := Color("#878071")
+const WET_SAND := Color("#9c8c6d")
+const DAMP_SAND := Color("#b0a07f")
+const WET_EARTH := Color("#5f5f45")
+const DAMP_EARTH := Color("#727253")
+const FOAM := Color("#dce4e2")
+## The natural bank's two wet bands (from the waterline inland) and the foam line (from the
+## waterline out), metres; a sandbar's wet rim inside its outline. Pieces at most BAND_PIECE
+## long, so the thin strips stay on the ground's folds.
+const BAND_W := 0.9
+const FOAM_W := 0.22
+const RIM_W := 1.1
+const BAND_PIECE := 2.0
+## The sandbars' rim and foam depth biases (their fill lies on the grid at the caller's).
+const SANDBAR_RIM_BIAS := 0.07
+const SANDBAR_FOAM_BIAS := 0.09
+var _sandbars: Array[PackedVector2Array] = []
+var _sandbar_boxes: Array[Rect2] = []
+
+
+## Loop 3b-2: the sandbars on the river (bake_banks.py: smoothed, no slivers), over the water:
+## sand on the grid's triangles, a darker wet rim inside the outline and a foam line round it.
+## The water test (water.bin) still counts them as river: the car never gets there.
+func _build_sandbars(st) -> void:
+	_sandbars.clear()
+	_sandbar_boxes.clear()
+	var gravel: Array[bool] = []
+	for b in data.get("sandbars", []):
+		var poly := _pts(b["p"])
+		if poly.size() < 3:
+			continue
+		_sandbars.append(poly)
+		gravel.append(b.has("g"))
+		var box := Rect2(poly[0], Vector2.ZERO)
+		for p in poly:
+			box = box.expand(p)
+		_sandbar_boxes.append(box.grow(0.5))
+	var keep := _drape_bias
+	for k in _sandbars.size():
+		var poly := _sandbars[k]
+		_drape_bias = keep
+		_layer = L_SAND
+		_fill_on_grid(st, poly, Y_AREA + 0.012, GRAVEL if gravel[k] else SAND)
+		var ring := PackedVector2Array(poly)
+		ring.append(poly[0])
+		var inside := _inside_sign(ring)
+		_drape_bias = SANDBAR_RIM_BIAS
+		_layer = L_WET
+		_band(st, ring, inside, 0.0, RIM_W, WET_GRAVEL if gravel[k] else WET_SAND, Y_AREA + 0.03)
+		_drape_bias = SANDBAR_FOAM_BIAS
+		_layer = L_FOAM
+		_band(st, ring, -inside, 0.0, FOAM_W, FOAM, Y_AREA + 0.04)
+	_drape_bias = keep
+	_layer = L_GROUND
+
+
+## Which side of a closed ring its inside is on: +1 the side Vector2(-d.y, d.x) points to.
+func _inside_sign(ring: PackedVector2Array) -> float:
+	return 1.0 if _ring_area(ring) > 0.0 else -1.0
+
+
+## A band along a polyline between `off0` and `off1` metres out on the side `sign` (+1 the side
+## Vector2(-d.y, d.x) points to), mitred at the bends (as the shore stone is), laid on the
+## surface (`y` over it) in pieces of at most BAND_PIECE. `skip` (optional) leaves out the
+## pieces whose middle it says yes to.
+func _band(st, poly: PackedVector2Array, sign: float, off0: float, off1: float, col: Color, y: float, skip := Callable()) -> void:
+	var n := poly.size()
+	if n < 2:
+		return
+	var closed := poly[0].distance_to(poly[n - 1]) < 0.05
+	var mit := PackedVector2Array()
+	mit.resize(n)
+	for i in n:
+		var prev := i - 1 if i > 0 else (n - 2 if closed else -1)
+		var next := i + 1 if i < n - 1 else (1 if closed else -1)
+		var na := Vector2.ZERO
+		var nb := Vector2.ZERO
+		if prev >= 0 and poly[i].distance_to(poly[prev]) > 0.01:
+			var d := (poly[i] - poly[prev]).normalized()
+			na = Vector2(-d.y, d.x)
+		if next >= 0 and poly[next].distance_to(poly[i]) > 0.01:
+			var d := (poly[next] - poly[i]).normalized()
+			nb = Vector2(-d.y, d.x)
+		var m := na + nb
+		if m.length() < 0.01:
+			m = na if na != Vector2.ZERO else nb
+		m = m.normalized()
+		var cos_half := maxf(m.dot(nb if nb != Vector2.ZERO else na), 0.5)
+		mit[i] = m * (sign / cos_half)
+	for i in n - 1:
+		var a := poly[i]
+		var b := poly[i + 1]
+		var seg := a.distance_to(b)
+		if seg < 0.02:
+			continue
+		var pieces := maxi(1, ceili(seg / BAND_PIECE))
+		for k in pieces:
+			var t0 := float(k) / pieces
+			var t1 := float(k + 1) / pieces
+			var p0 := a.lerp(b, t0)
+			var p1 := a.lerp(b, t1)
+			if skip.is_valid() and skip.call((p0 + p1) * 0.5):
+				continue
+			var m0 := mit[i].lerp(mit[i + 1], t0)
+			var m1 := mit[i].lerp(mit[i + 1], t1)
+			_quad(st, Vector3(p0.x + m0.x * off0, y, p0.y + m0.y * off0), Vector3(p1.x + m1.x * off0, y, p1.y + m1.y * off0),
+					Vector3(p1.x + m1.x * off1, y, p1.y + m1.y * off1), Vector3(p0.x + m0.x * off1, y, p0.y + m0.y * off1),
+					Vector3.UP, col)
+
+
+## Whether a point lies on a sandbar (a natural bank's foam stops where a sandbar meets it).
+func _on_sandbar(p: Vector2) -> bool:
+	for k in _sandbars.size():
+		if _sandbar_boxes[k].has_point(p) and Geometry2D.is_point_in_polygon(p, _sandbars[k]):
+			return true
+	return false
 
 
 func _build_paths(st) -> void:
@@ -1423,11 +1810,18 @@ const SURFACE_STYLE := {
 }
 
 
+## Loop 3b-2: a surface the bake put on a bridge deck (`dk`: a bridge's pavement or tram bed,
+## bake_roads.py level_surfaces) is laid on the deck; the rest on the ground's own triangles.
 func _build_surfaces(st) -> void:
 	for a in data.get("surfaces", []):
 		var style: Array = SURFACE_STYLE.get(a["k"], ["#cfc7b5", 0.0])
 		_layer = float(style[1])
-		_fill(st, _pts(a["p"]), Y_AREA + 0.01, Color(style[0]))
+		_dk = int(a.get("dk", -1))
+		if _dk >= 0:
+			_fill(st, _pts(a["p"]), Y_AREA + 0.01, Color(style[0]))
+		else:
+			_fill_on_grid(st, _pts(a["p"]), Y_AREA + 0.01, Color(style[0]))
+	_dk = -1
 	_layer = L_GROUND
 
 
@@ -1455,13 +1849,21 @@ func _build_islands(st) -> void:
 	_layer = L_GROUND
 
 
-## Dual-carriageway medians: raised grass, or paving at road level where trams run.
+## Loop 3b-2: the tram bed (a median with trams) a concrete track slab, darker than the
+## pavements (its pale grey read as pavement, and with dark rails on it as a barcode), and the
+## tram rails thinner and closer to it in tone.
+const TRAM_BED := Color("#8c887f")
+const TRAM_RAIL := Color("#6a6761")
+const TRAM_RAIL_W := 0.16
+
+
+## Dual-carriageway medians: raised grass, or the tram bed at road level where trams run.
 func _build_medians(st) -> void:
 	for m in data.get("medians", []):
 		_dk = int(m.get("dk", -1))
 		var grass: bool = m["k"] == "grass"
-		_layer = L_GREEN if grass else L_ISLAND
-		var col: Color = COL["grass"] if grass else Color("#bdb8ad")
+		_layer = L_GREEN if grass else L_TRAMBED
+		var col: Color = COL["grass"] if grass else TRAM_BED
 		var y := KERB_UP if grass else Y_ROAD + 0.005
 		var s4: Array = m["s"]
 		for i in range(0, s4.size() - 7, 4):
@@ -1469,7 +1871,10 @@ func _build_medians(st) -> void:
 			var b := Vector3(s4[i + 2], y, s4[i + 3])
 			var c := Vector3(s4[i + 6], y, s4[i + 7])
 			var d := Vector3(s4[i + 4], y, s4[i + 5])
+			# The street's axes in UV2 (the slab joints run across the bed).
+			_axis = Vector2(d.x - a.x, d.z - a.z).normalized() if not grass else Vector2.ZERO
 			_quad(st, a, b, c, d, Vector3.UP, col)
+	_axis = Vector2.ZERO
 	_dk = -1
 	_layer = L_GROUND
 
@@ -1638,16 +2043,84 @@ func _build_barriers(st) -> void:
 ## reach over to meet it. Loop 3b (R5): the piers are the bake's (`decks.piers`,
 ## tools/bake_structures.py: slid along the deck clear of the roads, tracks and kerbs under
 ## it, portal legs where nothing else fits), drawn into the same tile meshes and solid.
+## Loop 3b-2: two pieces of one bridge (its road, tram bed and footways) further apart than the
+## bake's 1.2 m look each got an outer parapet and the river showed through the gap between them
+## (Most Poniatowskiego). Up to DECK_JOIN apart, the slabs now meet half way across the gap, the
+## parapets there go and a low kerb marks each piece's edge (the car still can't cross it: the
+## parapet's collider stays where there is a drop under it).
+const DECK_JOIN := 6.0
+
+
+## Per point of deck piece `di`, how far across the gap on each side another piece of its bridge
+## starts (x: left, y: right; -1 none within DECK_JOIN), for the sides the bake made outer.
+func _deck_gaps(di: int) -> PackedVector2Array:
+	var d: Dictionary = _decks[di]
+	var pts: PackedVector2Array = d["pts"]
+	var outer: PackedByteArray = d["o"]
+	var g := int(d["g"])
+	var out := PackedVector2Array()
+	out.resize(pts.size())
+	if _deck_cells.is_empty():
+		_index_decks()
+	for i in pts.size():
+		var dir := (pts[mini(i + 1, pts.size() - 1)] - pts[maxi(i - 1, 0)]).normalized()
+		var right := Vector2(-dir.y, dir.x)
+		var gap := Vector2(-1.0, -1.0)
+		var bits := int(outer[i]) if i < outer.size() else 3
+		for side in [0, 1]:
+			if not (bits & (1 << side)):
+				continue
+			var sgn := -1.0 if side == 0 else 1.0
+			var edge := float(d["l"]) if side == 0 else float(d["r"])
+			var t := 0.5
+			while t <= DECK_JOIN:
+				if _other_piece_at(di, g, pts[i] + right * sgn * (edge + t)):
+					if side == 0:
+						gap.x = t
+					else:
+						gap.y = t
+					break
+				t += 0.5
+		out[i] = gap
+	return out
+
+
+## Whether a piece of deck group g other than `skip` holds the point in its corridor.
+func _other_piece_at(skip: int, g: int, p: Vector2) -> bool:
+	for code: int in _deck_cells.get(Vector3i(floori(p.x / DECK_CELL), floori(p.y / DECK_CELL), g), PackedInt32Array()):
+		var i := code >> 12
+		if i == skip:
+			continue
+		var d: Dictionary = _decks[i]
+		var pts: PackedVector2Array = d["pts"]
+		var k := code & 4095
+		var a := pts[k]
+		var ab := pts[k + 1] - a
+		var l2 := ab.length_squared()
+		if l2 < 0.000001:
+			continue
+		var u := (p - a).dot(ab) / l2
+		if (u < 0.0 and k > 0) or (u > 1.0 and k < pts.size() - 2) or u < -0.02 or u > 1.02:
+			continue
+		var lat := ab.cross(p - a) / sqrt(l2)
+		if lat >= -float(d["l"]) and lat <= float(d["r"]):
+			return true
+	return false
+
+
 func _build_bridge_structures(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
 	var concrete := Color("#b8b2a7")
-	for d in _decks:
+	var joined := 0.0
+	for di in _decks.size():
+		var d: Dictionary = _decks[di]
 		var pts: PackedVector2Array = d["pts"]
 		var hs: PackedFloat32Array = d["h"]
 		var outer: PackedByteArray = d["o"]
 		var piers: bool = d["k"] in ["road", "rail"]
 		var l := float(d["l"]) + 0.2
 		var r := float(d["r"]) + 0.2
+		var gaps := _deck_gaps(di)
 		for i in pts.size() - 1:
 			var a := pts[i]
 			var b := pts[i + 1]
@@ -1659,8 +2132,20 @@ func _build_bridge_structures(st) -> void:
 			var ya := hs[i] - 0.08
 			var yb := hs[i + 1] - 0.08
 			var bits := outer[i] & outer[i + 1] if outer.size() > i + 1 else 3
+			# A side whose gap to its bridge's next piece is bridged at both ends: no parapet,
+			# the slab out to half way across, a kerb at the piece's own edge.
+			var join := 0
 			var lo := l if bits & 1 else l + 1.6
 			var ro := r if bits & 2 else r + 1.6
+			if bits & 1 and gaps[i].x > 0.0 and gaps[i + 1].x > 0.0:
+				join |= 1
+				lo = float(d["l"]) + maxf(gaps[i].x, gaps[i + 1].x) * 0.5 + 0.1
+			if bits & 2 and gaps[i].y > 0.0 and gaps[i + 1].y > 0.0:
+				join |= 2
+				ro = float(d["r"]) + maxf(gaps[i].y, gaps[i + 1].y) * 0.5 + 0.1
+			if join:
+				joined += length * ((join & 1) + (join >> 1))
+			bits &= ~join
 			var al := a - right * lo
 			var bl := b - right * lo
 			var ar := a + right * ro
@@ -1690,9 +2175,29 @@ func _build_bridge_structures(st) -> void:
 					if (piers or d["k"] == "path") and drop > 1.0:
 						_wall_faces.append_array([Vector3(p0.x, ya - 0.2, p0.y), Vector3(p1.x, yb - 0.2, p1.y), Vector3(p1.x, yb + 1.6, p1.y),
 								Vector3(p0.x, ya - 0.2, p0.y), Vector3(p1.x, yb + 1.6, p1.y), Vector3(p0.x, ya + 1.6, p0.y)])
+			for side in [-1.0, 1.0]:
+				if not (join & (1 if side < 0.0 else 2)):
+					continue
+				# The joined side: a low kerb on the piece's own edge, and the parapet's collider
+				# kept where the deck stands over a drop (the gap between is no road).
+				var e := (float(d["l"]) if side < 0.0 else float(d["r"])) + 0.05
+				var k0: Vector2 = a + right * side * e
+				var k1: Vector2 = b + right * side * e
+				var k2: Vector2 = a + right * side * (e + 0.3)
+				var k3: Vector2 = b + right * side * (e + 0.3)
+				var kn := Vector3(right.x * side, 0.0, right.y * side)
+				_quad(st, Vector3(k0.x, ya + 0.08, k0.y), Vector3(k1.x, yb + 0.08, k1.y), Vector3(k3.x, yb + 0.22, k3.y),
+						Vector3(k2.x, ya + 0.22, k2.y), Vector3.UP, concrete.lightened(0.05))
+				_quad(st, Vector3(k0.x, ya, k0.y), Vector3(k1.x, yb, k1.y), Vector3(k1.x, yb + 0.22, k1.y),
+						Vector3(k0.x, ya + 0.22, k0.y), -kn, concrete.darkened(0.08))
+				var drop2 := maxf(ya - terrain_height(k0.x, k0.y), yb - terrain_height(k1.x, k1.y))
+				if (piers or d["k"] == "path" or d["k"] == "tram") and drop2 > 1.0:
+					_wall_faces.append_array([Vector3(k0.x, ya - 0.2, k0.y), Vector3(k1.x, yb - 0.2, k1.y), Vector3(k1.x, yb + 1.6, k1.y),
+							Vector3(k0.x, ya - 0.2, k0.y), Vector3(k1.x, yb + 1.6, k1.y), Vector3(k0.x, ya + 1.6, k0.y)])
 	for p: Dictionary in data.get("decks", {}).get("piers", []):
 		_pier(st, p, concrete.darkened(0.1))
 	_uv2 = Vector2.ZERO
+	print("decks: %.0f m of deck edges joined across a gap to the bridge's next piece (loop 3b-2)" % joined)
 
 
 ## Loop 3b (R5): one of the bake's pier boxes (a pier, a portal leg or its cap beam): drawn
@@ -1780,22 +2285,33 @@ const SHORE_PIECE := 2.0
 const SHORE_CLEAR := 3.2
 const SHORE_TOP := Color("#c9c4b8")
 const SHORE_FACE := Color("#8d8a83")
-## The runs, each [polyline, water side (+1 left, -1 right)], found once for the stone and the
-## collider.
+## The runs, each [polyline, water side (+1 left, -1 right), natural (0 built, 1 a sandy bank,
+## 2 a green one: bake_banks.py)], found once for the stone, the natural banks and the collider.
 var _shore_lines: Array = []
+var _shore_baked := 0
+var _shore_fountains := 0
 
 
-## The runs of the water's edge (see above): the stone goes into the ground's mesh `st`.
-func _build_shore_stone(st) -> void:
+## Loop 3b-2: the runs of the water's edge (see above), and the natural ones drawn: a wet band
+## and a damper one inland from the waterline (sand or earth, by what the bank is), and a
+## 1-px foam line on the water (not where a sandbar meets the bank). Built runs get the stone
+## later (_build_shore_stone). The collider is the same on both (_build_shore): on a natural
+## bank the car stops at the foam, on the wet sand.
+func _build_banks(st) -> void:
 	_shore_lines.clear()
 	var runs: Array[PackedVector2Array] = []
+	var kinds: Array[int] = []
 	for sh in data.get("shore", []):
 		runs.append(_pts(sh["p"]))
-	var baked := runs.size()
-	runs.append_array(_shore_under_decks(runs))
-	for poly in runs:
-		_shore_lines.append([poly, _water_side(poly)])
-	var fountains := 0
+		kinds.append(int(sh.get("n", 0)))
+	_shore_baked = runs.size()
+	var extra := _shore_under_decks(runs)
+	runs.append_array(extra)
+	for k in extra.size():
+		kinds.append(0)
+	for i in runs.size():
+		_shore_lines.append([runs[i], _water_side(runs[i]), kinds[i]])
+	_shore_fountains = 0
 	for s in data.get("surfaces", []):
 		if s["k"] != "fountain":
 			continue
@@ -1805,16 +2321,41 @@ func _build_shore_stone(st) -> void:
 		ring.append(ring[0])
 		# The water is inside the ring: on the left of its way round if it runs anticlockwise
 		# (a positive area here).
-		_shore_lines.append([ring, 1.0 if _ring_area(ring) > 0.0 else -1.0])
-		fountains += 1
+		_shore_lines.append([ring, 1.0 if _ring_area(ring) > 0.0 else -1.0, 0])
+		_shore_fountains += 1
+	var keep := _drape_bias
+	for line in _shore_lines:
+		var kind: int = line[2]
+		if kind == 0:
+			continue
+		var side: float = line[1]
+		_drape_bias = keep
+		_layer = L_WET
+		_band(st, line[0], -side, 0.0, BAND_W, WET_EARTH if kind == 2 else WET_SAND, Y_AREA + 0.02)
+		_band(st, line[0], -side, BAND_W, BAND_W * 2.0, DAMP_EARTH if kind == 2 else DAMP_SAND, Y_AREA + 0.02)
+		_drape_bias = keep + 0.02
+		_layer = L_FOAM
+		_band(st, line[0], side, 0.0, FOAM_W, FOAM, Y_AREA + 0.04, _on_sandbar)
+	_drape_bias = keep
+	_layer = L_GROUND
+
+
+## The built runs' granite edge goes into the ground's mesh `st` (see above).
+func _build_shore_stone(st) -> void:
 	var length := 0.0
+	var natural := 0.0
 	var layer := _layer
 	_layer = L_ISLAND
 	for line in _shore_lines:
+		if int(line[2]) != 0:
+			var poly: PackedVector2Array = line[0]
+			for i in poly.size() - 1:
+				natural += poly[i].distance_to(poly[i + 1])
+			continue
 		length += _shore_edge(st, line[0], line[1])
 	_layer = layer
-	print("shore: %d baked runs, %d more by bridges, %d fountains, %.1f km of edge" % [baked, runs.size() - baked,
-			fountains, length / 1000.0])
+	print("shore: %d baked runs, %d more by bridges, %d fountains, %.1f km of stone, %.1f km natural bank" % [_shore_baked,
+			_shore_lines.size() - _shore_baked - _shore_fountains, _shore_fountains, length / 1000.0, natural / 1000.0])
 
 
 ## The colliders along the runs _build_shore_stone found.
@@ -2105,13 +2646,15 @@ const ARROW_TL := [
 	"......#..", ".....###.", "....#####", "......#..", "..#...#..", ".##...#..", "#######..", ".##...#..",
 	"..#...#..", "......#..",
 ]
+## Loop 3b-2: the combined arrows 9 cells wide (they were 11: at the default view their
+## 0.22 m cells and one-cell gaps ran together), the same width as the others.
 const ARROW_LR := [
-	"..#.....#..", ".##.....##.", "###########", ".##..#..##.", "..#..#..#..", ".....#.....", ".....#.....",
-	".....#.....", ".....#.....", ".....#.....",
+	".#.....#.", "##.....##", "#########", "##..#..##", ".#..#..#.", "....#....", "....#....",
+	"....#....", "....#....", "....#....",
 ]
 const ARROW_LTR := [
-	".....#.....", "....###....", "...#####...", ".....#.....", "..#..#..#..", ".##..#..##.", "###########",
-	".##..#..##.", "..#..#..#..", ".....#.....",
+	"....#....", "...###...", "..#####..", "....#....", ".#..#..#.", "##..#..##", "#########",
+	"##..#..##", ".#..#..#.", "....#....", "....#....",
 ]
 const BIKE := [
 	"....##..", "...#..#.", ".###....", "#..#.##.", "#..##..#", "#.#.#..#", ".#...##.",
@@ -2147,7 +2690,9 @@ func _build_symbols(st) -> void:
 						rows = ARROW_LR
 					"LTR":
 						rows = ARROW_LTR
-				_pixel_shape(st, rows, at, fwd, minf(0.3, 2.4 / String(rows[0]).length()), 0.5, mirror)
+				# Loop 3b-2: cells up to 0.3 m across, the arrow up to 2.7 m wide (a lane is 3+ m),
+				# so a 9-cell arrow keeps whole 0.3 m strokes and gaps (2.4 m made them 0.27).
+				_pixel_shape(st, rows, at, fwd, minf(0.3, 2.7 / String(rows[0]).length()), 0.5, mirror)
 			"bike":
 				_pixel_shape(st, BIKE, at, fwd, 0.16, 0.2, false)
 			"bus":
@@ -2226,7 +2771,7 @@ func _build_trams(st) -> void:
 				else:
 					d = (poly[i] - poly[i - 1]).normalized()
 				rail.append(poly[i] + Vector2(-d.y, d.x) * side)
-			_strip(st, rail, 0.22, Y_MARK + 0.005, COL["rail"])
+			_strip(st, rail, TRAM_RAIL_W, Y_MARK + 0.005, TRAM_RAIL)
 	_dk = -1
 
 
@@ -2700,13 +3245,18 @@ func _build_trees() -> void:
 	# GUGiK trees from the 2023 laser scan: each crown is stretched to the tree's real
 	# radius and spans its real crown base to its top; the trunk fills the gap below.
 	var real: Array = data.get("trees3d", [])
+	# Loop 3b-2: each crown's scale in hundredths (bake_osm.py crown_scales: 75 within 12 m of
+	# a road, full size in the parks); its radius and depth shrink, its base stays (it still
+	# clears a bus).
+	var crowns: Array = data.get("trees3d_crown", [])
 	var real_trunks: Array[Transform3D] = []
 	for i in range(0, real.size() - 5, 6):
 		var x := float(real[i])
 		var z := float(real[i + 1])
-		var top := float(real[i + 2])
-		var radius := float(real[i + 3])
-		var base := minf(float(real[i + 4]), top - 1.5)
+		var f := float(crowns[i / 6]) / 100.0 if i / 6 < crowns.size() else 1.0
+		var base := minf(float(real[i + 4]), float(real[i + 2]) - 1.5)
+		var top := base + (float(real[i + 2]) - base) * f
+		var radius := float(real[i + 3]) * f
 		var is_needle := int(real[i + 5]) == 1
 		var h := fposmod(sin(x * 12.9898 + z * 78.233) * 43758.5453, 1.0)
 		var ground := terrain_height(x, z) - 0.2

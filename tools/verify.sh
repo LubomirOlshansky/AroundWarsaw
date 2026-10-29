@@ -12,7 +12,10 @@
 # `roads` runs tools/check_roads.py (loop 3a): the road and deck rules C1-C10 over the whole
 # map; any finding not in tools/check_roads_allow.json FAILs (loop 3b; C4, C5, C9, C10 were a
 # WARN before). `drive` runs game/tools/check_drive.gd (loop 3b): a car and a bus along every
-# lane against the colliders, the autopilot over the bridges and tunnels.
+# lane against the colliders, the autopilot over the bridges and tunnels. `drape` runs
+# game/tools/check_drape.gd (loop 3b-2): the ground poking through the water, grass and plazas.
+# `tiers` and `governor` (loop G1): the device tiers and the pixel image's size rule, and the
+# frame governor's rules on scripted frames.
 # Loop 3g-1 (police, docs/design/police.md section 15): `police` runs game/tools/check_police.gd
 # (P11 lines and flow, P12 the state machine with synthetic inputs); `police-runs` the scripted
 # game runs P1-P7 on the prebuilt city (the lizak, the trap stop, an escape, caught, the three
@@ -36,8 +39,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads drive drive-prebuilt steering settings hud landmarks sfx radio water water-prebuilt police plain heli race kebab splash rain prebuilt classic police-runs police-soak)
-STEPS_QUICK=(map roads drive steering settings hud landmarks sfx radio police plain prebuilt)
+STEPS_ALL=(map roads drape drive drive-prebuilt steering settings tiers governor hud landmarks sfx radio water water-prebuilt police plain heli race kebab splash rain prebuilt classic police-runs police-soak)
+STEPS_QUICK=(map roads drape drive steering settings tiers governor hud landmarks sfx radio police plain prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -330,12 +333,17 @@ for s in $want; do
 				0) row PASS "roads" $secs "check_roads: OK · not allowed/found: $counts" ;;
 				*) row FAIL "roads" $secs "$(grep -m1 '^check_roads:' $logs/roads.log) · $counts ($logs/roads.log)" ;;
 			esac ;;
+		# Loop 3b-2: the bare ground poking through the areas laid on it (water, grass, plazas, sand).
+		drape) check drape '^check_drape:' --script res://tools/check_drape.gd ;;
 		# Loop 3b: every lane for a car and a bus against the colliders; the autopilot over the
 		# bridges and tunnels (height jumps). The runtime city (the prebuilt one: --prebuilt).
 		drive) check drive '^check_drive:' --script res://tools/check_drive.gd ;;
 		drive-prebuilt) check drive-prebuilt '^check_drive:' --script res://tools/check_drive.gd -- --prebuilt ;;
 		steering) check steering 'check_steering:' --fixed-fps 60 --script res://tools/check_steering.gd ;;
 		settings) check settings '^settings:' --script res://tools/check_settings.gd ;;
+		# Loop G1: model id -> tier, the pixel image at the phones' sizes; the governor's rules.
+		tiers) check tiers '^check_tiers:' --script res://tools/check_tiers.gd ;;
+		governor) check governor '^check_governor:' --script res://tools/check_governor.gd ;;
 		# Loop 2e: the HUD at phone size: 44 pt controls, 11 / 13 pt text, the safe area, no overlaps.
 		hud) check hud '^check_hud:' --script res://tools/check_hud.gd ;;
 		landmarks) check landmarks '^landmark check:' --script res://tools/check_landmarks.gd ;;

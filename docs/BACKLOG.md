@@ -43,20 +43,16 @@ Small problems that agents reported or that showed up in screenshots. They are f
   the rest of the city out there): route planning and the autopilot (which jumps it) use it, but
   the player has to drive in the wrong way down a one-way street or across the lot at the west
   end of Jakubowska. A real in-map way in needs a design call (a drawn link road?).
-- Kerbs are visual only: the car drives over islands, medians and kerbs as if flat.
 - The terrain grid stops ~9 m short of the map's south edge and ~5 m short of the east edge;
   carriageway areas and kerbs are cut there, but road strips, footways and areas (as before)
   run on to the map's edge and hang over the diorama's earth wall.
-- Turn arrows are small pixel shapes; combined arrows (left + through + right) are cramped at the
-  default zoom, and arrows on a roundabout ring follow the ring's `turn:lanes`.
-- Rondo Dmowskiego's ring gets straight lane lines, not the real spiral markings.
 - Bus lanes only where the lanes are tagged per lane or counted on one-way roads; AI traffic
   doesn't keep the bus lanes free.
-- Hatched chevrons point along the area's long side, not with the traffic.
 - Medians are found only between pairs of one-way roads; a two-way road with a median mapped
-  as one line gets none.
-- Where two deck pieces of one bridge are more than ~3 m apart (road, tram bed, footway on Most
-  Poniatowskiego) each gets its own parapet and the gap shows the river below.
+  as one line gets none. Loop 3b-2 counted the class: 0 on today's map (no `divider`, no kerb,
+  barrier or hedge line along a two-way road's centre; the 3 gaps between a two-way road's
+  carriageway areas, on Ludna and Czerniakowska, are not medians). Build it when the bigger map
+  (loop 3d) brings one.
 - Most Świętokrzyski is cut by the map's edge mid-river: its deck ends in the air at the rim.
 - 13 signal controllers still run as lone crossing lights; they look like real mid-block
   crossings, but a few (Emilii Plater, Świętokrzyska by Mazowiecka) may be unmapped junction
@@ -187,7 +183,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - The phone's GPU time can't be read (Metal has no timestamps in Godot 4.7), and at 60 Hz the
   main thread waits for the display inside "draw" (2–12 ms depending on the run), so the headroom
   under 16.7 ms isn't visible. A build that allows 120 Hz would show it as fps above 60 (not made
-  this round; the old build did 64 fps from the helicopter with four times the GPU work).
+  this round; the old build did 64 fps from the helicopter with four times the GPU work). Loop G1: a Metal System Trace reads the GPU (From loop G1).
 - The Mac's worst single frame in the bench reads 17–20 ms after against 9–20 before (the
   averages fell by half): one-off spikes, probably first-sight pipeline compiles (2–3 a run).
 - With the 60 cap on the Mac's 120 Hz display (`Engine.max_fps`) frames alternate unevenly
@@ -208,7 +204,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## Decided in loop 2b (orchestrator-free defaults; the user may still change them)
 - 60 fps is the default cap, 30 the battery saver; no 120 Hz option.
-- High stays the default quality on the phone (60 fps there); Medium is the first step down.
+- ~~High stays the default quality on the phone~~ Loop G1: Auto is the default (the level for the device); Medium is still the first step down from High.
 - The BENCH runs at the current settings and cap (not uncapped) from the spawn at the default
   view, 5 s settle + 55 s measured; the card's numbers are in English (Polish header/buttons).
 - Shadow edges are a little finer than before (0.37 m texels on High instead of 0.49 m).
@@ -233,8 +229,6 @@ Small problems that agents reported or that showed up in screenshots. They are f
   on the phone (does the splash read at the default view, is 1 s the right wait, is the toast
   readable) is the user's to say. The splash's sound (the hard knock pitched down + the rain
   bed's noise) was never heard: headless runs have no audio.
-- The stone is the same granite edge everywhere, the Praga beaches included; a natural bank
-  might read better with a lower timber or riprap edge (a look call for the art director).
 - The bake still leaves the shore open within 6 m of every bridge deck (`tools/bake_roads.py`
   `bake_shore`); the map builder fills those stretches at build time where the deck is at
   least 3.2 m up (`_shore_under_decks`). Moving the rule into the bake (map-engineer) would
@@ -346,13 +340,6 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - The neon sign quads (`neon.gdshader`, 361 signs) are not ghosted (they never were): a sign on
   a ghosted wall stays lit, mirrored, over the ghost. Feeding them the ghost's uniforms is one
   more material in main.gd `_update_ghost` (outside this loop's main.gd scope).
-- Parked cars: loop 2c moved the palette to `models.gd` `PARKED_PAINT` (no red; map_builder.gd
-  uses it), so the runtime city has no red parked cars; the prebuilt city.scn still carries the
-  old instance colours until the next city bake (map side), and `foliage.gdshader` repaints its
-  red (body and cabin) slate until then. Drop the remap after that bake.
-- The pale jagged band south of Most Poniatowskiego by day is geometry (it stays with the
-  mirror off, `--quality=low`): an area polygon on the water, map side with the sandbars
-  (loop 3b), not the deck's reflection (which by day is a darker band, now half as strong).
 - On a lamp-lit bridge deck the car's paint reads ~20 luma under the lit deck: a saturated red
   tops out at ~110-130 luma, and the value ladder puts lit ground above the car. It stands out
   there by chroma (paint saturation ~0.85 against ~0.35). A brighter hero would have to turn
@@ -433,10 +420,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   pins or approaches (the 10 m grid keeps the joints with the ordinary streets exact).
 - Aprons blend the ground at 15 structure ends; a fill's (approach's or pit's) own ends were
   tried and dropped (their side edges made new steps).
-- Not done in loop 3b (the triage's 3b row and item 9, for loop 3b-2): kerbs, islands and medians
-  flat to the car; cramped turn arrows, Rondo Dmowskiego's spiral, chevrons, medians on two-way
-  roads, deck pieces > 3 m apart showing the river; natural river banks, sandbars, tree crowns by
-  roads.
+- Not done in loop 3b (the triage's 3b row and item 9): done in loop 3b-2 (README "Loop 3b-2"),
+  except medians on two-way roads (none mapped on today's map, under "From v0.75").
 
 ## From loop 2c (car models)
 - **Parked cars are one shape** (a small saloon, `models.gd` `parked_mesh()`, 40 triangles): the
@@ -444,10 +429,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   per pass) or `foliage.gdshader` (outside this loop) learning the actors' shape morph. The three
   512 m tiles round the spawn hold ~550 of them, so they stay cheap. Default: one shape, the
   traffic's paints.
-- **The prebuilt city.scn still holds the old parked boxes**; `main.gd` replaces the shared mesh
-  in place when it loads (`Models.renew_parked`, both paths look the same). The next city bake
-  (map side; this loop didn't re-bake) makes it native; the swap is harmless afterwards. The
-  verify `map data` WARN about city.scn's age is that (and checkout times).
+- **The prebuilt city.scn held the old parked boxes** until loop 3b-2 re-baked it (now native,
+  no red; `foliage.gdshader`'s red remap removed). `main.gd`'s `Models.renew_parked` swap is
+  harmless now and can go in a main.gd loop.
 - **Police and guards** (`Models.police_mesh()`, for loop 3g): one family, shape 0 the patrol
   estate (paint `POLICE_WHITE`), shape 1 the guards' car at 0.88 (paint `GUARD_MUSTARD`), so 3g's
   POLICE kind can draw both in one MultiMesh. The light bar's lamps use BLINK (alternating by
@@ -471,3 +455,86 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - A traffic car's shape is picked by its own random stream, so where and which kind of car
   spawns is as before; its size (and the gap it keeps) is now the shape's.
 
+## From loop 3b-2 (map art and road details)
+- **The main checkout's Godot class cache had lost Phantom Camera's classes**
+  (`game/.godot/global_script_class_cache.cfg` held only DebugDraw3D, dated before this loop):
+  every Godot step of `verify.sh` failed with "Could not find type PhantomCameraHost" until
+  `godot --headless --path game --import` rebuilt it. Worth a line in the verify-game skill (or a
+  check in verify.sh) if it recurs after merges.
+- The natural/built split is OpenStreetMap's: a stretch of the west bank south of Most
+  Poniatowskiego reads natural (no promenade or wall mapped along it), the park ponds with grass
+  banks get a dark-earth band; `bake_banks.py` prints the km and `shots/loop3b2/ov_banks_overview.png`
+  shows them over the photo. If the art director wants a third kind (riprap, timber), the
+  classifier has the place for it.
+- The beaches are only sand where OpenStreetMap maps sand (Poniatówka, Plaża Saska, the shoals);
+  elsewhere the bank is the bare ground's colour with the wet bands.
+- Sandbars stay river for the car and the helicopter (water.bin unchanged): a car can't reach
+  one and the helicopter won't put the car down on one. The sandbar rescue's place (a sandbar
+  outside the drawn river, the POI bake) is unchanged.
+- Kerbs are felt at street level only (not on decks or in tunnels), and pavements are not raised
+  (only the kerb's hop); the player's car only (traffic and rivals follow their lanes).
+- Joined deck gaps keep the parapet's collider on each piece's edge (with a low kerb drawn there),
+  so the car can't drive across from the road deck to the tram bed on Most Poniatowskiego; the
+  gap's slab is drawn, not driveable.
+- The spiral rule (3+ lanes, radius 25 m+) also caught the 4-lane ring by Centralna at
+  (-1505, 695); Warsaw paints its big rondos that way, but it wasn't checked against the photo.
+- 8 mapped pavements by Centralna and the Jana Pawła II viaduct lie under road decks (not on a
+  footway deck) and stay on the ground; they look right in the shots, not checked one by one.
+- The runtime city build is ~2.4 s slower (8.3 → ~10.7 s: the areas, footways, cycle paths and
+  steps clipped to the grid's cells, in GDScript); the prebuilt city (the phone) is unchanged at
+  0.9 s. A faster clip (whole runs of cells along a strip) is possible if the Mac's build time
+  matters.
+- The sand gap fills (`bake_banks.sand_gaps`, up to 6 m) also bridge a few gaps that are real:
+  a path mapped only as a line between two beach polygons now has sand under it (its own strip
+  is drawn on top). check_drape's footway part allows 2 m2: one footbridge ramp at (-18, -281)
+  ends 0.46 m under the park it lands in (the deck solver's end, not the drape's).
+- The chevrons' direction (points towards the oncoming traffic) follows the Polish P-21 drawings
+  as remembered; if they should point the other way it is one sign in `bake_roads._hatch_flow`'s
+  caller (`flow < 0` flips).
+
+## From loop G1 (device tiers and the frame governor)
+- **The first rescue call's arrival is a hitch**: 61 ms on the iPhone 11, 100–117 ms on the Pro
+  Max (one frame, 3–6 refreshes), 60 s into play (`missions.gd` `_ring`, the context button and
+  what comes with it; the BENCH minute's "3 pipeline compilations" may be it). The BENCH minute
+  now holds the call clock, so cards don't show it; play does. Gameplay lane: warm the call's
+  pieces up at the start, or build them a frame or two before they show.
+- **The iPhone's frame pacing has two modes per launch**: the main thread waits for the display
+  inside "draw" (11.6 ms of it, frames jittering 1–8 ms either way, 1.6–16 % of frames over
+  17.7 ms with every refresh still drawn) or outside the frame's phases ("draw" 1.1–1.9 ms, no
+  jitter). Which one varies by launch, at either image size. Harmless to the eye as far as the
+  numbers go (no refresh missed); it made "draw" useless as a GPU reading and "% over 16.7 ms"
+  useless as a stutter reading, hence the missed-refresh count.
+- **The orchestrator's 25 fps 1 % low at ×1 didn't come back** in nine runs on a cool iPhone 11
+  (thermal state nominal; ×1 held 60 with 0 missed refreshes for 3 minutes). It was probably a
+  warm phone or the first call's hitch inside the minute. G0's 20-minute SOAK on the iPhone 11 at
+  Auto (High ×2) is what proves the heat margin.
+- **The GPU's time on the phone** comes from `xcrun xctrace record --template 'Metal System
+  Trace' --device ID --all-processes --time-limit 6s` while a `--probe` runs, then `xctrace
+  export --xpath '…/table[@schema="metal-gpu-intervals"]'` and `gpu-performance-state-intervals`
+  (the A13: Medium state 95 % at ×1, Minimum 99.9 % at ×2). Attaching by name or pid fails on
+  both phones, and starting the trace stalls the app ~11 s on iOS 27. G0 should script it.
+- The governor's GPU levels hold only two things today (reflection steps × 0.6, then the small
+  things' shadows); G2–G5's extras (FX count, lamp cones, dusk glow) join them as they land.
+  Glow at night stays out of it (the night lights).
+- The view rule takes the small things' shadows off in views over 150 m and in the helicopter
+  (0.4 % of pixels from the helicopter at 2868×1320; shadow pass −11 to −15 draw calls). A
+  zoom across 150 m switches them at once (no fade), masked by the zoom itself.
+- `--stress=wait:N` busy-waits in the draw phase: on the phone it shows only from N ≈ 40 (20 ms),
+  because the wait for the display shrinks to make room. G0's `--stress=gpu:N` (real GPU work)
+  is still to build.
+- The SE 2 / 3 (1334×750, 1.0 MP at ×1) land at ×2 (667×375) at High, by 4 % over High's
+  budget; nobody has run them. The 11 Pro and 11 Pro Max (A13, ×2 at 0.68 / 0.83 MP) keep their
+  ×2 image at High: the same GPU as the iPhone 11 with twice its ×2 pixels, unmeasured.
+- Mac windows over 0.96 MP at a scale of 1 (e.g. 1366×768) now draw at 2 at High.
+
+## Decided in loop G1 (perf-engineer defaults; the user may still change them)
+- The iPhone 11 at High (and so at Auto) draws 896×414 (×2), as the brief asked; ×1 (1792×828)
+  is Ultra on that phone (it held 60 on a cool phone, at a higher GPU clock).
+- Ultra is High + the 4096 shadow map + 16 reflection steps; Auto picks it on A17 Pro and newer
+  (and the 16 / 16 Plus, A18), the 16e stays High (4-core GPU). The iPhone 17e's id isn't in the
+  table (unknown → treated by its family: `iPhone18,x` → Ultra).
+- A saved "High" from before G1 becomes Auto once (the file then carries `tiers=1`).
+- The governor counts missed refreshes, not frames over the interval + 1 ms (the card shows
+  both); a raise needs under 0.5 % missed over 30 s.
+- The BENCH minute holds the governor (the card is the level's own cost) and the rescue calls;
+  `--governor=on` lets the governor act during a bench or probe.

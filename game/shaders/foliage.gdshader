@@ -7,7 +7,9 @@ shader_type spatial;
 // crown is pushed out and in by a few lumps of its own (seeded by where it stands), with
 // its facets' normals taken from the pixels so the light follows the new shape; a
 // two-tone pixel dapple of darker leaves; autumn crowns towards rust and olive (pure
-// orange is the jobs' colour). Parked cars (sway 0) only lose the red paint (the player's).
+// orange is the jobs' colour). Parked cars (sway 0) keep their paint as it is: loop 3b-2
+// re-baked city.scn with models.gd PARKED_PAINT (no red: red is the player's), so the
+// look loop's repaint of the old red parked cars here is gone.
 
 #include "res://shaders/common.gdshaderinc"
 #include "res://shaders/night.gdshaderinc"
@@ -29,11 +31,6 @@ uniform float fade_radius = 6.0;
 // far the lumps push it out and in (share of the radius).
 const vec3 CROWN_MIDDLE = vec3(0.0, 4.3, 0.0);
 const float LUMPS = 0.2;
-// The parked cars' red ("#a83a2e" in map_builder.gd CAR_PAINT) and the slate that replaces
-// it (traffic.gd CAR_PAINT), both sRGB; the cabin is the glass colour ("#5b6573") times it.
-const vec3 PARKED_RED = vec3(0.659, 0.227, 0.18);
-const vec3 PARKED_SLATE = vec3(0.416, 0.455, 0.529);
-const vec3 PARKED_GLASS = vec3(0.357, 0.396, 0.451);
 // Autumn: an orange crown (hue 12-50 degrees, saturated) turns rust (reddish brown), ochre
 // or olive (yellow-green) depending on its hue, and loses some of its strength.
 const vec3 RUST = vec3(0.58, 0.31, 0.2);
@@ -74,10 +71,6 @@ void vertex() {
 		VERTEX = CROWN_MIDDLE + d * (1.0 + LUMPS * lump / 2.6);
 		world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 		paint = autumn(COLOR.rgb);
-	} else if (distance(COLOR.rgb, PARKED_RED) < 0.02) {
-		paint = PARKED_SLATE;
-	} else if (distance(COLOR.rgb, PARKED_RED * PARKED_GLASS) < 0.02) {
-		paint = PARKED_SLATE * PARKED_GLASS;
 	}
 	float lift = clamp((VERTEX.y - 2.0) / 5.0, 0.0, 1.0);
 	float gust = sin(TIME * 1.3 + world_pos.x * 0.07 + world_pos.z * 0.05);

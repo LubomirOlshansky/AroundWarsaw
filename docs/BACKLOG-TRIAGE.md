@@ -11,7 +11,7 @@ BACKLOG.md at this snapshot; loops that change BACKLOG.md move them, so match by
 | Loop | Item (BACKLOG line) |
 | --- | --- |
 | 3a roads-bake (running) | The shore is left open 6 m beside bridge decks in the bake; move the builder's fill into `bake_shore` (241) |
-| 3b roads-builder | Kerbs, islands and medians are flat to the car (46); cramped turn arrows, roundabout arrows (50); Rondo Dmowskiego's spiral markings (52); chevrons point the wrong way (55); medians only between one-way pairs (56); deck pieces > 3 m apart show the river (58) |
+| 3b roads-builder | Kerbs, islands and medians are flat to the car (46); cramped turn arrows, roundabout arrows (50); Rondo Dmowskiego's spiral markings (52); chevrons point the wrong way (55); medians only between one-way pairs (56); deck pieces > 3 m apart show the river (58). **Done in loop 3b-2** (2026-10-28), except medians on two-way roads: none is mapped on today's map (counted 0; kept in BACKLOG for loop 3d) |
 | 3d demo-bake | The Praga streets join only through an off-map link (42; the bigger box should connect them; else decide a link); the terrain stops 5–9 m short of the edges (48); Most Świętokrzyski ends in the air and its last lanes sit at water level at the rim (60, 255; the new box takes the whole bridge) |
 | 3f landmarks | AO and lamp map use LoD2 footprints (Centralna's canopy, the stadium's skin) (91); the stadium's embankment (97); outlines on a cut building's inner faces (144) |
 | 2d jokes and side jobs | Kebab kiosks drawn over benches and bins (38) |
@@ -27,8 +27,9 @@ BACKLOG.md at this snapshot; loops that change BACKLOG.md move them, so match by
 - Pay rates are first guesses (37) → 3h, from playtests.
 - The Palace roof rescue lands on a 28 m annex; a designed terrace landing? (88) → 3f.
 - The Poniatowski towers' heights are guesses (93) → 3b (re-seated with the deck profile).
-- The beaches get the boulevards' granite edge; timber or riprap instead? (239) → the art
-  review now running.
+- The beaches get the boulevards' granite edge; timber or riprap instead? (239) → decided
+  (art review, the user's default): granite only on built banks, natural banks wet sand and a
+  foam line; **done in loop 3b-2**.
 - Night water may be too plain at the widest zoom (154) → 3i.
 - Rain spray behind cars (114) → 3i, if the budget allows.
 - Tow distance from a wide beach, the 2.5 m water threshold (249, 252) → leave unless the

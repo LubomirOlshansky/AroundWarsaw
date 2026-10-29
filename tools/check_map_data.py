@@ -21,7 +21,9 @@ MAP = os.path.join(ROOT, "game", "map")
 
 # The counts after the last full bake (loop 1, 2026-10-28): trees3d holds 6 values per
 # tree (12,554 trees), pois are hospitals, beaches, parks, kebab stands, addresses, etc.
-EXPECTED = {"trees3d": 75324, "pois": 1020}
+# Loop 3b-2: trees3d_crown, one crown scale per scanned tree (12,554: 75 by the roads, up to
+# 100 in the parks; bake_osm.py crown_scales).
+EXPECTED = {"trees3d": 75324, "pois": 1020, "trees3d_crown": 12554}
 
 # What tools/bake_city.gd reads to build city.scn: the baked map files and the scripts
 # map_builder.gd runs (its preloads). Shaders are referenced by path, so they need no rebuild.
@@ -40,7 +42,7 @@ def main() -> int:
         if key in expected and value.isdigit():
             expected[key] = int(value)
         else:
-            print(f"unknown argument {arg!r}; use --trees3d=N or --pois=N")
+            print(f"unknown argument {arg!r}; use --trees3d=N, --pois=N or --trees3d_crown=N")
             return 2
     failures = 0
 

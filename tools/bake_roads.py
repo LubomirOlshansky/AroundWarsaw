@@ -89,6 +89,11 @@ PILLAR_AREA = 12.0   # R2: a mapped building this small under a road deck is one
 PILLAR_SLAB = 1.3 + 0.08 + 0.05   # ...and the deck's surface stands this far over its top (the slab)
 SURFACE_BASE = 100.0  # R2: the surface model's heights minus this are the map's (bake_gugik BASE_HEIGHT)
 
+SPIRAL_LANES = 3     # loop 3b-2: a roundabout ring with this many lanes or more...
+SPIRAL_RADIUS = 25.0  # ...and at least this big (Rondo Dmowskiego) gets spiral lane lines
+SPIRAL_EXIT_MERGE = 15.0  # exits closer than this along the ring are one
+SPIRAL_HOLD = 0.35   # the share of each gap between exits a lane line keeps its lane before sweeping out
+HATCH_FLOW_REACH = 15.0   # loop 3b-2: roads this close to a hatched area tell its traffic's way
 KERB_W = 0.3         # granite kerb, metres across...
 EDGE_INSET = 0.35    # ...and the edge line this far inside the carriageway
 
@@ -1441,6 +1446,49 @@ class Roadbed:
                     level = decks.pop()
             item["dk"] = level
 
+    # Loop 3b-2: which mapped surfaces lie on a bridge deck. OpenStreetMap maps a bridge's
+    # pavements (area:highway=footway) and its tram bed (landuse=railway) as areas, often
+    # without a layer; they were drawn on the ground, so under Most Poniatowskiego a pale band
+    # of paving and a grey one of ballast lay on the river ("the pale jagged band south of the
+    # bridge"). A surface goes on a deck when most of it lies in the corridor of that deck's
+    # pieces of its own kind (paving: footways, ballast: tram or rail) standing over the
+    # ground; what lies under a bridge (a pitch, a platform, a sandbar) matches no such piece.
+    SURFACE_DECK = {"paving": ("path",), "ballast": ("tram", "rail")}
+
+    def level_surfaces(self, surfaces):
+        moved = 0
+        for item in surfaces:
+            kinds = self.SURFACE_DECK.get(item["k"])
+            if not kinds:
+                continue
+            pts = pairs(item["p"])
+            samples = _area_samples(pts)
+            votes = {}
+            for x, z in samples:
+                g = self._on_kind(x, z, kinds, 1.5)
+                if g >= 0:
+                    votes[g] = votes.get(g, 0) + 1
+            if votes:
+                g, n = max(votes.items(), key=lambda kv: kv[1])
+                if n >= 0.6 * len(samples):
+                    item["dk"] = g
+                    moved += 1
+        print(f"roadbed: {moved} mapped surfaces lie on a bridge deck (drawn on it, not on the ground)")
+
+    def _on_kind(self, x, z, kinds, pad):
+        """The deck group of a bridge piece of one of `kinds` whose corridor (grown by pad)
+        holds the point and stands 2 m or more over the ground, or -1."""
+        for k in self.piece_grid.at(x, z):
+            pc = self.pieces[k]
+            if pc.get("a") or pc.get("kind") not in kinds:
+                continue
+            pr = project_onto(pc["pts"], pc["cum"], x, z)
+            if pr is None or pr[0] <= 0.01 or pr[0] >= pc["cum"][-1] - 0.01:
+                continue
+            if -pc["l"] - pad <= pr[1] <= pc["r"] + pad and _interp(pc["cum"], pc["h"], pr[0]) > self.terrain.h(x, z) + 2.0:
+                return pc["g"]
+        return -1
+
     # -- carriageway extents ------------------------------------------------------------
 
     def measure(self):
@@ -1905,6 +1953,8 @@ class Roadbed:
     def bake_lane_lines(self):
         out = []
         symbols = []
+        spirals = self._spiral_rings()
+        spiral_ids = {id(r) for ring in spirals for r in ring["roads"]}
         for r in self.roads:
             if r["k"] in MINOR:
                 continue
@@ -1914,7 +1964,7 @@ class Roadbed:
             ow, nf, nb = lane_split(t, cl + cr)
             total = nf + nb if ow == 0 else nf
             lw = (cl + cr) / total
-            for k in range(1, total):
+            for k in range(1 if id(r) not in spiral_ids else total, total):
                 off = -cl + k * lw
                 if ow == 0 and k == nb:
                     solid = total >= 4 or r["k"] in ("primary", "secondary", "trunk")
@@ -1935,8 +1985,115 @@ class Roadbed:
                 if side < 0 and ow > 0 and t.get("cycleway:left") == "lane":
                     along = True
                 self._symbols_along(r, lv, centre, "bike", along, 40.0, symbols)
+        for ring in spirals:
+            self._paint_spiral(ring, out)
         self.lane_lines = out
         self.symbols = symbols
+
+    # Loop 3b-2: Rondo Dmowskiego's spiral markings. A big multi-lane roundabout's lane lines
+    # are not circles: each one moves out by a lane between two exits, so the outermost lane
+    # leads out at every exit and a new line starts at the island (a spiral roundabout, as
+    # Warsaw paints its big rondos). Between exits i and i+1 (f from 0 to 1 along the ring: held
+    # at 0 for SPIRAL_HOLD of the gap, then a smoothstep), line k runs at -cl + lw * (k + f) right
+    # of the ring's centreline: continuous across each exit, born at the inner edge, ending at
+    # the outer edge at an exit.
+    def _spiral_rings(self):
+        pieces = []
+        for r in self.roads:
+            t = r["_t"]
+            if t.get("junction") not in ("roundabout", "circular") or r["k"] in MINOR:
+                continue
+            pts = pairs(r["p"])
+            if oneway_of(t) < 0:
+                pts = pts[::-1]
+            if len(pts) >= 2:
+                pieces.append((pts, r))
+        rings = []
+        used = set()
+        for i, (pts, r) in enumerate(pieces):
+            if i in used:
+                continue
+            chain = list(pts)
+            members = [r]
+            used.add(i)
+            while math.dist(chain[-1], chain[0]) > 0.5:
+                nxt = next((j for j, (q, _) in enumerate(pieces) if j not in used and math.dist(q[0], chain[-1]) < 0.5), None)
+                if nxt is None:
+                    break
+                used.add(nxt)
+                chain += pieces[nxt][0][1:]
+                members.append(pieces[nxt][1])
+            if math.dist(chain[-1], chain[0]) > 0.5 or len(chain) < 6:
+                continue
+            first = members[0]
+            left, right, cl, cr, bl, br = first["_ext"]
+            ow, nf, nb = lane_split(first["_t"], cl + cr)
+            cx = sum(p[0] for p in chain) / len(chain)
+            cz = sum(p[1] for p in chain) / len(chain)
+            radius = sum(math.dist(p, (cx, cz)) for p in chain) / len(chain)
+            if nf < SPIRAL_LANES or radius < SPIRAL_RADIUS or len({m.get("dk", -1) for m in members}) != 1:
+                continue
+            ids = {m["_id"] for m in members}
+            cum = _cum(chain)
+            exits = []
+            for o in self.roads:
+                if o["_id"] in ids or o["k"] in MINOR:
+                    continue
+                q = pairs(o["p"])
+                ow2 = oneway_of(o["_t"])
+                ends = [q[0]] if ow2 > 0 else ([q[-1]] if ow2 < 0 else [q[0], q[-1]])
+                for e in ends:
+                    pr = project_onto(chain, cum, e[0], e[1])
+                    if pr and pr[2] < 1.0:
+                        exits.append(pr[0])
+            exits.sort()
+            merged = []
+            for e in exits:
+                if not merged or e - merged[-1] > SPIRAL_EXIT_MERGE:
+                    merged.append(e)
+            if len(merged) > 1 and merged[0] + cum[-1] - merged[-1] <= SPIRAL_EXIT_MERGE:
+                merged.pop()
+            if len(merged) < 2:
+                continue
+            rings.append({"pts": chain, "cum": cum, "roads": members, "lv": first.get("dk", -1), "cl": cl, "cr": cr,
+                          "n": nf, "exits": merged})
+            print(f"roadbed: spiral lane lines on the ring at ({cx:.0f}, {cz:.0f}): {nf} lanes, "
+                  f"radius {radius:.0f} m, {len(merged)} exits")
+        return rings
+
+    def _paint_spiral(self, ring, out):
+        chain, cum, lv = ring["pts"], ring["cum"], ring["lv"]
+        cl, cr, n, exits = ring["cl"], ring["cr"], ring["n"], ring["exits"]
+        lw = (cl + cr) / n
+        length = cum[-1]
+        gaps = [(exits[i], exits[(i + 1) % len(exits)] + (length if i == len(exits) - 1 else 0.0)) for i in range(len(exits))]
+        for s0, s1 in gaps:
+            for k in range(n):
+                run = []
+
+                def flush():
+                    if len(run) >= 2 and polyline_length(run) >= 2.0:
+                        out.append({"k": "lane", "p": flat(simplify(run, 0.05)), "dk": lv})
+                    run.clear()
+
+                steps = max(2, int(math.ceil(s1 - s0)))
+                for j in range(steps + 1):
+                    s = s0 + (s1 - s0) * j / steps
+                    # Concentric for the first part of the gap, then sweeping out into the exit
+                    # (a uniform drift of one lane per quarter read as plain circles).
+                    t = max(0.0, min(1.0, (j / steps - SPIRAL_HOLD) / (1.0 - SPIRAL_HOLD)))
+                    f = t * t * (3.0 - 2.0 * t)
+                    off = -cl + lw * (k + f)
+                    sm = s % length
+                    if off < -cl + 0.35 or off > cr - 0.35:
+                        flush()
+                        continue
+                    x, z = _edge_point(chain, cum, sm, off)
+                    if self.paintable(lv, x, z):
+                        run.append((x, z))
+                    else:
+                        flush()
+                flush()
 
     def _symbols_along(self, r, lv, off, kind, along, spacing, out, start=12.0):
         pts = offset_line(pairs(r["p"]), off)
@@ -1978,7 +2135,7 @@ class Roadbed:
                 out.append({"k": "stop", "p": flat([a, b]), "dk": lv})
             turns = e.get("_turn")
             span = e["s1"] - e["s0"]
-            if turns and e.get("_last") and span > 14.0 and e["s1"] < cum[-1] - 0.5:
+            if turns and e.get("_last") and span > 14.0 and e["s1"] < cum[-1] - 0.5 and not self._on_ring(lv, pts, cum, e):
                 m = len(turns)
                 wide = (right - left) / m
                 spots = [e["s1"] - 7.0] + ([e["s1"] - 38.0] if span > 60.0 else [])
@@ -2012,11 +2169,27 @@ class Roadbed:
               f"{sum(1 for m in sym if m['k'] == 'arrow')} turn arrows, {sum(1 for m in out if m['k'] == 'bus')} bus lane lines, "
               f"{sum(1 for m in sym if m['k'] == 'bus')} BUS, {sum(1 for m in sym if m['k'] == 'bike')} bikes")
 
+    def _on_ring(self, lv, pts, cum, e):
+        """Loop 3b-2: the arrows' spot on edge e lies on a roundabout's ring (the ring's
+        turn:lanes made arrow confetti round Rondo Dmowskiego): no arrows there."""
+        if not hasattr(self, "_ring_caps"):
+            self._ring_caps = Capsules()
+            for r in self.roads:
+                if r["_t"].get("junction") in ("roundabout", "circular"):
+                    for a, b in zip(pairs(r["p"]), pairs(r["p"])[1:]):
+                        self._ring_caps.add(a, b, r["w"] * 0.5, r.get("dk", -1))
+        x, z = _edge_point(pts, cum, e["s1"] - 7.0, e["o"])
+        return self._ring_caps.hit(x, z) is not None
+
     # -- hatched areas ------------------------------------------------------------------
 
     def bake_hatching(self):
-        """Hatched no-drive areas: an outline and white stripes, chevrons in long thin ones."""
+        """Hatched no-drive areas: an outline and white stripes, chevrons in long thin ones.
+        Loop 3b-2: chevrons only where the traffic on both sides goes the same way, their
+        points towards the oncoming traffic (like a bow parting it); between opposite
+        flows, or where the way is unknown, plain diagonals."""
         out = []
+        flips = chevrons = diagonals = 0
         for h in self.hatch:
             pts = h["p"]
             lv = h["dk"]
@@ -2029,6 +2202,21 @@ class Roadbed:
             us = [q[0] for q in uv]
             vs = [q[1] for q in uv]
             chevron = (max(us) - min(us)) > 2.5 * (max(vs) - min(vs))
+            if chevron:
+                flow = self._hatch_flow(pts, (ux, uz), lv)
+                if flow == 0:
+                    chevron = False
+                    diagonals += 1
+                else:
+                    chevrons += 1
+                    if flow < 0:
+                        # The points face -u: make u the way the traffic goes.
+                        flips += 1
+                        ux, uz, vx, vz = -ux, -uz, -vx, -vz
+                        a = b
+                        uv = [((p[0] - a[0]) * ux + (p[1] - a[1]) * uz, (p[0] - a[0]) * vx + (p[1] - a[1]) * vz) for p in pts]
+                        us = [q[0] for q in uv]
+                        vs = [q[1] for q in uv]
             vm = (max(vs) + min(vs)) * 0.5
             edges = list(zip(uv, uv[1:] + uv[:1]))
             spacing = 2.2
@@ -2061,6 +2249,48 @@ class Roadbed:
                         out.append({"k": "stripe", "p": flat([p0, p1]), "dk": lv})
                     c += spacing
         self.hatching = out
+        print(f"roadbed: hatching: {chevrons} chevron areas ({flips} turned to face the traffic), "
+              f"{diagonals} long areas between opposite or unknown flows get diagonals")
+
+    def _hatch_flow(self, pts, u, lv):
+        """Which way the traffic beside a hatched area goes along u: +1 with it, -1 against,
+        0 opposite flows on its two sides (or none known). From the roads alongside within
+        HATCH_FLOW_REACH: a one-way road by its direction; a two-way road by the side of it
+        the area lies on (traffic keeps right), 0 if the area straddles it."""
+        caps = self.allcaps.get(lv)
+        if caps is None:
+            return 0
+        xs = [p[0] for p in pts]
+        zs = [p[1] for p in pts]
+        cx, cz = sum(xs) / len(xs), sum(zs) / len(zs)
+        vote = 0.0
+        seen = set()
+        for a, b, half, r in caps.grid.box(min(xs) - HATCH_FLOW_REACH, min(zs) - HATCH_FLOW_REACH,
+                                           max(xs) + HATCH_FLOW_REACH, max(zs) + HATCH_FLOW_REACH):
+            d = _unit(a, b)
+            if d is None or abs(d[0] * u[0] + d[1] * u[1]) < 0.7 or r["k"] in MINOR:
+                continue
+            dist = min(seg_dist(x, z, a, b) for x, z in pts + [(cx, cz)])
+            if dist > half + HATCH_FLOW_REACH or (id(r), a) in seen:
+                continue
+            seen.add((id(r), a))
+            ow = oneway_of(r["_t"])
+            along = 1.0 if d[0] * u[0] + d[1] * u[1] > 0 else -1.0
+            w = 1.0 / (1.0 + dist)
+            if ow != 0:
+                vote += along * ow * w
+            else:
+                # Right of a two-way road's line (offset_line's right) the traffic goes with it.
+                sides = {1 if (x - a[0]) * (-d[1]) + (z - a[1]) * d[0] > 0.3 else (-1 if (x - a[0]) * (-d[1]) + (z - a[1]) * d[0] < -0.3 else 0)
+                         for x, z in pts}
+                sides.discard(0)
+                if len(sides) == 1:
+                    vote += along * sides.pop() * w
+                elif len(sides) == 2:
+                    return 0
+        if abs(vote) < 0.05:
+            return 0
+        return 1 if vote > 0 else -1
 
     # -- guard rails and the river's edge --------------------------------------------------
 
@@ -2111,11 +2341,14 @@ class Roadbed:
 
     def bake_shore(self):
         """Where the car would roll into the water: the river's (and ponds') edges, not
-        under a bridge, not on the map's rim, not where a road runs."""
+        under a bridge, not on the map's rim, not where a road runs, not inside another
+        water body (loop 3b-2). tools/bake_banks.py then splits the runs into built and
+        natural banks."""
         x0, z0, x1, z1 = self.rect
         out = []
         ground = self.allcaps.get(-1)
-        for poly in self.water.polys:
+        water = self.water
+        for wi, poly in enumerate(water.polys):
             ring = poly + [poly[0]]
             run = []
             for a, b in zip(ring, ring[1:]):
@@ -2125,7 +2358,12 @@ class Roadbed:
                     x = a[0] + (b[0] - a[0]) * k / n
                     z = a[1] + (b[1] - a[1]) * k / n
                     rim = min(abs(x - x0), abs(x - x1), abs(z - z0), abs(z - z1)) < 1.0
-                    bad = rim or self.on_deck(x, z, 6.0) >= 0 or (ground is not None and ground.hit(x, z, 1.0) is not None)
+                    # Loop 3b-2: not where this water body's edge runs through another one (the
+                    # Vistula is mapped as two relations: their seam crossed the river at z ~820
+                    # and got a granite edge and a wall across the water).
+                    seam = any(j != wi and point_in_poly(x, z, water.polys[j]) for j in water.grid.at(x, z)
+                               if water.boxes[j][0] <= x <= water.boxes[j][2] and water.boxes[j][1] <= z <= water.boxes[j][3])
+                    bad = rim or seam or self.on_deck(x, z, 6.0) >= 0 or (ground is not None and ground.hit(x, z, 1.0) is not None)
                     if bad:
                         if len(run) >= 2:
                             out.append(run)
@@ -2169,6 +2407,27 @@ class Roadbed:
         """Loop 3a: the approaches, the ground corrected under their corridors."""
         return [{"p": flat(pc["pts"]), "h": [round(h, 2) for h in pc["h"]], "l": round(pc["l"], 2),
                  "r": round(pc["r"], 2), "k": pc["kind"]} for pc in self.fills]
+
+
+def _area_samples(pts):
+    """A polygon's corners, points along its outline (~60) and a grid of points inside it
+    (at most ~12 x 12): a long thin polygon (a bridge's tram bed) is sampled along its length."""
+    out = list(pts)
+    ring = list(pts) + [pts[0]]
+    per = sum(math.dist(a, b) for a, b in zip(ring, ring[1:]))
+    out += resample(ring, max(1.0, per / 60.0))
+    xs = [p[0] for p in pts]
+    zs = [p[1] for p in pts]
+    step = max(1.0, max(max(xs) - min(xs), max(zs) - min(zs)) / 12)
+    x = min(xs) + step / 2
+    while x < max(xs):
+        z = min(zs) + step / 2
+        while z < max(zs):
+            if point_in_poly(x, z, pts):
+                out.append((x, z))
+            z += step
+        x += step
+    return out
 
 
 def _range(a, b, step):

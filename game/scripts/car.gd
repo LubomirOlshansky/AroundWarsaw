@@ -72,6 +72,12 @@ const UNSTICK_TIME := 1.5
 ## ~6 m) and settles this far (m) into it.
 const WATER_DRAG := 4.0
 const SINK := 0.45
+## Loop 3b-2: kerbs you feel. Hopping a kerb keeps KERB_JOLT of the speed and bounces the body
+## KERB_BOUNCE m; rolling over an island or a grass median loses KERB_DRAG of the speed per
+## second (map_builder.kerb_feel says where; drive_height lifts the car onto them).
+const KERB_JOLT := 0.92
+const KERB_BOUNCE := 0.07
+const KERB_DRAG := 0.6
 ## The look loop (2026-10-28): how strongly the paint and the roof and bonnet stripes light
 ## from within at night (actor.gdshader's hero part; share of their own colour), so the
 ## car reads at least 30 luma over the road under it (it was 20-50 darker).
@@ -101,6 +107,11 @@ var unsticks := 0
 ## car with its collision off (the testing autopilots glide through walls) or parked never
 ## splashes.
 var water_at: Callable = func(_x: float, _z: float, _y: float) -> bool: return false
+## Loop 3b-2: what the ground does to the car on its way from one spot to the next (the game sets
+## map.kerb_feel): x the raise under the new spot (an island, a median), y 1 if it crossed a kerb.
+var kerb_feel: Callable = func(_from: Vector2, _to: Vector2, _y: float) -> Vector2: return Vector2.ZERO
+var _last_xz := Vector2.INF
+var _bounce := 0.0
 ## Loop 10a: in the water, waiting for the tow; how long it has been in.
 var in_water := false
 var _sink := 0.0
@@ -370,6 +381,7 @@ func _step(dt: float) -> void:
 			_wall_side = 0.0
 	vel.y = 0.0
 	global_position.y = ground_height.call(global_position.x, global_position.z, global_position.y)
+	_feel_kerbs(dt)
 	forward_speed = vel.dot(_forward())
 	_fixed_contact -= dt
 	if not parked and collision_mask != 0 and water_at.call(global_position.x, global_position.z, global_position.y):
@@ -408,6 +420,25 @@ func _step(dt: float) -> void:
 	_body.rotation.x = lerpf(_body.rotation.x, pitch, 1.0 - exp(-8.0 * dt))
 
 
+## Loop 3b-2: a kerb hopped takes a little speed and bounces the body; an island or a median
+## under the car drags like rough ground. Not for a car with its collision off (the testing
+## autopilots) or parked.
+func _feel_kerbs(dt: float) -> void:
+	var here := Vector2(global_position.x, global_position.z)
+	# (A jump of more than 5 m is a tow or a landing, not a drive.)
+	if collision_mask != 0 and not parked and _last_xz != Vector2.INF and here != _last_xz and here.distance_to(_last_xz) < 5.0:
+		var feel: Vector2 = kerb_feel.call(_last_xz, here, global_position.y)
+		if feel.y > 0.0 and vel.length() > 1.5:
+			vel *= KERB_JOLT
+			_bounce = KERB_BOUNCE
+		if feel.x > 0.0:
+			vel *= exp(-KERB_DRAG * dt)
+	_last_xz = here
+	if _bounce > 0.0 or _body.position.y != 0.0:
+		_bounce = maxf(_bounce - dt * 0.6, 0.0)
+		_body.position.y = _bounce
+
+
 ## Loop 10a: in the water: no engine, no grip, no steering; it glides to a stop, settles
 ## SINK metres nose first and bobs.
 func _float(dt: float) -> void:
@@ -434,6 +465,8 @@ func leave_water() -> void:
 	in_water = false
 	_sink = 0.0
 	_body.position.y = 0.0
+	_bounce = 0.0
+	_last_xz = Vector2.INF
 	_body.rotation = Vector3.ZERO
 	vel = Vector3.ZERO
 	forward_speed = 0.0

@@ -5,7 +5,8 @@ extends RefCounted
 ## console, the result card and the clipboard).
 ##
 ## Measured: wall-clock frame times (average, 1 % low = the slowest 1 % of frames, worst,
-## frames over the frame budget, fps in 10 s pieces for throttling); the main thread's
+## late frames: loop G1, more than 1 ms over the frame interval; the refreshes missed, what the
+## governor reads; fps in 10 s pieces for throttling); the main thread's
 ## frame split from the engine's own signals: physics (physics_frame -> process_frame:
 ## the scripts' _physics_process and the physics step), process (process_frame ->
 ## frame_pre_draw: every _process, the 2D redraws) and draw (frame_pre_draw ->
@@ -15,6 +16,7 @@ extends RefCounted
 ## image's main pass and its shadow pass and the 2D pass, the scripts' time by system,
 ## memory and the pipeline compilations during the run.
 
+const Governor := preload("res://scripts/governor.gd")
 const MB := 1048576.0
 
 ## The pixel image's viewport (main and shadow pass) and the screen's (the 2D pass).
@@ -27,6 +29,19 @@ var systems := {}
 var counts := {}
 ## Free text for the card's header lines (settings, device).
 var header := PackedStringArray()
+## Loop G1: lines for the card after the frame-time lines (the governor's state).
+var notes := PackedStringArray()
+## Loop G1: the last frame's wall-clock time and the main thread's CPU work in it (physics +
+## process), in ms, for the governor (main.gd reads them once a frame).
+var last_ms := 0.0
+var last_cpu := 0.0
+## Loop G1: a frame is late when it is more than this past the frame interval (loop 2b counted
+## 0.5 ms past it). The card also counts the refreshes the run missed against the display's
+## clock (governor.gd miss_step), what the governor reads: on the iPhone 11 1.6–16 % of frames
+## came 1–8 ms late and the next as much early, with every refresh drawn.
+const LATE_MARGIN := 1.0
+## Loop 2b's measure, still printed beside the new one so old cards compare.
+const OLD_MARGIN := 0.5
 
 var frames := PackedFloat32Array()
 var _last_usec := 0
@@ -92,6 +107,8 @@ func _on_post_draw() -> void:
 			_phase["process"] += proc
 			_phase["draw"] += draw
 		var frame := (post - _last_post) / 1000.0
+		last_ms = frame
+		last_cpu = phys + proc
 		_live["frames"] += 1
 		_live["ms"] += frame
 		_live["worst"] = maxf(_live["worst"], frame)
@@ -211,9 +228,17 @@ func report(budget_ms := 1000.0 / 60.0) -> Dictionary:
 	for i in worst_n:
 		slow += sorted[n - 1 - i] if n > 0 else 0.0
 	var over := 0
+	var old_over := 0
+	var missed := 0
+	var debt := 0.0
 	for f in frames:
-		if f > budget_ms + 0.5:
+		if f > budget_ms + LATE_MARGIN:
 			over += 1
+		if f > budget_ms + OLD_MARGIN:
+			old_over += 1
+		var step := Governor.miss_step(debt, f, budget_ms)
+		debt = step.x
+		missed += int(step.y)
 	_measuring = false
 	r["frames"] = n
 	for k in _phase:
@@ -225,6 +250,9 @@ func report(budget_ms := 1000.0 / 60.0) -> Dictionary:
 	r["worst"] = sorted[n - 1] if n > 0 else 0.0
 	r["budget"] = budget_ms
 	r["over"] = 100.0 * over / maxf(n, 1)
+	r["old_over"] = 100.0 * old_over / maxf(n, 1)
+	r["missed"] = missed
+	r["missed_share"] = 100.0 * missed / maxf(n + missed, 1)
 	# fps in 10 s pieces: a phone that warms up slows down over the run.
 	var pieces := PackedFloat32Array()
 	var acc := 0.0
@@ -253,16 +281,46 @@ func report(budget_ms := 1000.0 / 60.0) -> Dictionary:
 	return r
 
 
+## Loop G1, for the log: the late frames by how late (over the interval + LATE_MARGIN, a second
+## interval, two more) and the slowest ones with when they came (s into the run), so a stutter
+## can be told from a few hitches.
+func late_detail(budget_ms: float) -> String:
+	var edges := [budget_ms + LATE_MARGIN, budget_ms * 1.5, budget_ms * 2.0 + LATE_MARGIN, budget_ms * 3.0 + LATE_MARGIN]
+	var counts := [0, 0, 0, 0]
+	var slow: Array = []
+	var t := 0.0
+	for f in frames:
+		t += f
+		for k in range(edges.size() - 1, -1, -1):
+			if f > edges[k]:
+				counts[k] += 1
+				break
+		if f > budget_ms * 1.5:
+			slow.append([f, t / 1000.0])
+	slow.sort_custom(func(a: Array, b: Array) -> bool: return a[0] > b[0])
+	var worst := PackedStringArray()
+	for s in slow.slice(0, 12):
+		worst.append("%.0f ms at %.1f s" % [s[0], s[1]])
+	return "late frames of %d: %.1f-%.1f ms %d · %.1f-%.1f ms %d · %.1f-%.1f ms %d · over %.1f ms %d · slowest: %s" % [
+			frames.size(), edges[0], edges[1], counts[0], edges[1], edges[2], counts[1], edges[2], edges[3], counts[2],
+			edges[3], counts[3], ", ".join(worst) if not worst.is_empty() else "none"]
+
+
 ## Plain lines: the console, the BENCH card and the clipboard.
 func text(r: Dictionary) -> String:
 	var out := PackedStringArray(header)
-	out.append("fps %.1f avg · 1%% low %.1f · worst frame %.1f ms · %.1f%% of frames over %.1f ms · %d frames in %.0f s" % [
-			r["fps"], r["low1"], r["worst"], r["over"], r["budget"], r["frames"], r["seconds"]])
+	out.append("fps %.1f avg · 1%% low %.1f · worst frame %.1f ms · late %.1f%% (over %.1f ms) · missed refreshes %d (%.1f%%) · %d frames in %.0f s" % [
+			r["fps"], r["low1"], r["worst"], r["over"], r["budget"] + LATE_MARGIN, r["missed"], r["missed_share"],
+			r["frames"], r["seconds"]])
 	var pieces := PackedStringArray()
 	for p in r["pieces"]:
 		pieces.append("%.0f" % p)
+	# Loop G1: the notes (the governor) share the fps-per-10-s line, so the card fits the SE.
+	var tail := " · ".join(notes)
 	if pieces.size() > 1:
-		out.append("fps per 10 s: " + " ".join(pieces))
+		out.append("fps per 10 s: " + " ".join(pieces) + (" · " + tail if tail != "" else ""))
+	elif tail != "":
+		out.append(tail)
 	var gpu := "%.2f ms" % r["gpu"] if r["gpu"] > 0.0 else "n/a (Metal)"
 	out.append("frame %.2f ms · main thread: process %.2f, physics %.2f, draw %.2f · 3D view: render CPU %.2f, GPU %s" % [
 			r["ms"], r["process"], r["physics"], r["draw"], r["render_cpu"], gpu])
