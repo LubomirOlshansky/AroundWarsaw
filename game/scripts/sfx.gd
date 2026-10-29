@@ -441,6 +441,69 @@ func _meter(label: String, seconds: float) -> void:
 	print("  %-26s Master %6.1f  Music %6.1f  SFX %6.1f  Ambience %6.1f" % [label, top["Master"], top["Music"], top["SFX"], top["Ambience"]])
 
 
+# --- loop 3g-1: the police (placeholders) ---------------------------------------------------
+# The police's own sounds (the two-tone siren, the whoop, the megaphone chirp, the whistle, the
+# stamp) come in part two from tools/make_sfx.py (police.md section 10); until then they borrow
+# what is here: the far siren, the tram bell and the soft knock, pitched.
+
+var _siren_voice: AudioStreamPlayer3D
+
+
+## The siren on the nearest chaser: one positional voice of the six (taken like a one-shot's,
+## the farthest busy one if none is free), following `at`; Vector3.INF stops it.
+func police_siren(at: Vector3) -> void:
+	if _silent or _pool3.is_empty():
+		return
+	if at == Vector3.INF:
+		if _siren_voice != null and _siren_voice.stream == _streams.get("siren_far"):
+			_siren_voice.stop()
+		_siren_voice = null
+		return
+	if _siren_voice == null or _siren_voice.stream != _streams.get("siren_far"):
+		var ear := focus + Vector3.UP * LISTENER_UP
+		var far := -1.0
+		for p in _pool3:
+			if not p.playing:
+				_siren_voice = p
+				break
+			var dp := p.global_position.distance_to(ear)
+			if dp > far:
+				far = dp
+				_siren_voice = p
+		_siren_voice.stop()
+		_siren_voice.stream = _streams.get("siren_far")
+		_siren_voice.volume_db = -6.0
+	_siren_voice.global_position = at
+	if not _siren_voice.playing:
+		_siren_voice.play()
+
+
+## A police cue (2D): "whoop" (a unit warns or joins), "whistle" (the lizak), "stamp" (the end
+## of a caution), "chord" (escaped).
+func police_cue(kind: String) -> void:
+	match kind:
+		"whoop":
+			_play2_pitched("siren_far", -2.0, 1.7)
+		"whistle":
+			_play2_pitched("tram_bell", -4.0, 2.3)
+		"stamp":
+			_play2_pitched("thump_soft", 0.0, 0.7)
+		"chord":
+			_play2_pitched("tram_bell", -6.0, 1.5)
+
+
+func _play2_pitched(n: String, gain_db: float, pitch: float) -> void:
+	if _silent or not _streams.has(n):
+		return
+	var p := _pool2[_next2]
+	_next2 = (_next2 + 1) % _pool2.size()
+	p.stream = _streams[n]
+	p.bus = &"SFX"
+	p.volume_db = SHOTS.get(n, -10.0) + gain_db
+	p.pitch_scale = pitch
+	p.play()
+
+
 ## Voices playing now (loops and one-shots), for the perf overlay.
 func voices() -> int:
 	var n := 0

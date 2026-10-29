@@ -1,5 +1,5 @@
 {
-  "_about": "Original lines for Nocna Warszawa: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters.",
+  "_about": "Original lines for Nocna Warszawa: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish.",
   "radio_host": [
     [
       "Radio Nocna Warszawa, 87,3. Na Marszałkowskiej znowu remont. Czyli wszystko po staremu.",
@@ -64,6 +64,13 @@
     [
       "Uwaga, kierowcy: barierki znowu zmieniły adres.",
       "Drivers, note: the barriers have moved house again."
+    ],
+    [
+      "Suszarki dziś: {pl}. Na pozostałych ulicach jedźcie grzecznie z przyzwyczajenia.",
+      "Speed traps today: {en}. Everywhere else, drive nicely out of habit.",
+      {
+        "only": "traps"
+      }
     ]
   ],
   "kebab_order": [
@@ -684,6 +691,164 @@
           "3:00-",
           "-3:05"
         ]
+      }
+    ]
+  ],
+  "police_warn": [
+    [
+      "Pan w małym aucie! Wolniej, bo suszarka się przegrzeje.",
+      "You in the little car! Slow down, the radar gun (the \"hair dryer\") is overheating.",
+      {
+        "only": "speed"
+      }
+    ],
+    [
+      "Czerwone to nie jest „prawie zielone”.",
+      "Red is not \"almost green\".",
+      {
+        "only": "red"
+      }
+    ],
+    [
+      "Proszę nie dotykać radiowozu. Dopiero co był w myjni.",
+      "Please don't touch the patrol car. It's just been through the car wash.",
+      {
+        "only": "bump"
+      }
+    ]
+  ],
+  "police_chase": [
+    [
+      "Kacper, włącz koguty. Nie, te drugie. Dobra, jedziemy.",
+      "Kacper, lights on. No, the other switch. Right, off we go.",
+      {
+        "only": "start"
+      }
+    ],
+    [
+      "Proszę się zatrzymać! Albo chociaż zwolnić, będzie miło.",
+      "Please stop! Or at least slow down, that would be nice."
+    ],
+    [
+      "Proszę zjechać do krawężnika. Któregokolwiek.",
+      "Please pull over to the kerb. Any kerb."
+    ],
+    [
+      "Centrala, prosimy o wsparcie. I o kawę.",
+      "Control, requesting backup. And coffee.",
+      {
+        "only": "backup"
+      }
+    ],
+    [
+      "Blokada ustawiona. Pachołki pożyczone od remontu.",
+      "Roadblock set. Cones borrowed from the roadworks.",
+      {
+        "only": "roadblock"
+      }
+    ]
+  ],
+  "police_lost": [
+    [
+      "Zgubiliśmy cel. Kacper, zapisz: „szybki, ale kulturalny”.",
+      "Target lost. Kacper, write this down: \"fast, but polite\".",
+      {
+        "only": "escaped"
+      }
+    ],
+    [
+      "Koniec zmiany! Pościg dokończymy jutro o ósmej.",
+      "End of shift! We'll finish the chase tomorrow at eight.",
+      {
+        "only": "shift"
+      }
+    ],
+    [
+      "Auto zostało, kierowca odleciał. Tego nie ma w regulaminie.",
+      "The car stayed, the driver flew off. That's not in the rulebook.",
+      {
+        "only": "heli"
+      }
+    ]
+  ],
+  "police_stop": [
+    [
+      "Rutynowa kontrola. Spokojnie, nic pan nie zrobił. Jeszcze.",
+      "Routine check. Relax, you haven't done anything. Yet.",
+      {
+        "only": "routine"
+      }
+    ],
+    [
+      "Koguty na dachu to my. Koguty w lusterku — też my.",
+      "\"Roosters\" (the light bar) on a roof: that's us. Roosters in your mirror: also us.",
+      {
+        "only": "roosters"
+      }
+    ],
+    [
+      "Kontrola drogowa. Wie pan, czemu pana zatrzymałem? Ja tak średnio.",
+      "Traffic check. Do you know why I stopped you? I'm not entirely sure myself."
+    ],
+    [
+      "Wie pan, ile pan jechał? Ja też nie. Suszarka się zawiesiła.",
+      "Do you know how fast you were going? Me neither. The hair dryer froze.",
+      {
+        "only": "trap"
+      }
+    ],
+    [
+      "Czuję czosnkowy. Kontrola potrwa krócej niż stygnięcie.",
+      "I can smell garlic sauce. This check will take less time than the cooling.",
+      {
+        "only": "kebab"
+      }
+    ],
+    [
+      "Kontrola słoików. Ogórki w normie, bigos podejrzanie ciężki.",
+      "Jar inspection. Pickles within limits; the bigos is suspiciously heavy.",
+      {
+        "only": "sloik"
+      }
+    ]
+  ],
+  "police_reply": [
+    [
+      "Przepraszam, już nie będę.",
+      "Sorry, won't happen again."
+    ],
+    [
+      "Suszarka? Mam krótkie włosy.",
+      "Hair dryer? But I've got short hair.",
+      {
+        "only": "trap"
+      }
+    ],
+    [
+      "Kebab stygnie, panie władzo!",
+      "The kebab's getting cold, officer!",
+      {
+        "only": "kebab"
+      }
+    ]
+  ],
+  "police_caution": [
+    [
+      "Pouczenie. Następnym razem mandat. Albo znowu pouczenie, zobaczymy.",
+      "A caution. Next time, a fine. Or another caution, we'll see."
+    ],
+    [
+      "Pouczam pana. Kacper, zapisz w zeszycie. Ładnie, nie jak ostatnio.",
+      "Consider yourself cautioned. Kacper, put it in the notebook. Neatly, not like last time.",
+      {
+        "only": "police"
+      }
+    ],
+    [
+      "Piąte pouczenie dzisiaj. Jeszcze jedno i dostaje pan kubek.",
+      "Fifth caution today. One more and you get a mug.",
+      {
+        "only": "fifth"
       }
     ]
   ]

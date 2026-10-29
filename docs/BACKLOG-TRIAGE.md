@@ -20,7 +20,7 @@ BACKLOG.md at this snapshot; loops that change BACKLOG.md move them, so match by
 | 3i juice, sound, night | Puddles under the lane markings (106); screen-space reflections, Poniatowski's pale slab lines by day (108); haptics fail on the phone (227) |
 | 2e HUD (running) | The HUD in 720-line units (166); bubbles through the WIN/LOSE card (10) |
 | sweep 1 | README's Mac measuring command (`--rendering-driver metal` without `--rendering-method mobile`) runs Forward+, not Mobile (graphics plan); `tools/shots.sh --out=` needs an absolute path (a relative one resolves under `game/`); `check_landmarks.gd` exits 0 on failure (220); README's two `bake_osm.py` commands (222); the helicopter's roof toast is English only (259); a car pinned between a wall and a waiting car (171); Point camera with a finger that never lifts, zoom not saved (169) |
-| sweep 2 | Tapping picks the see-through tower in front (86); windowed `--prebuilt --shots` leak warning (267); Mac keyboard W on the diagonal start view (182; Mac only) |
+| sweep 2 | Tapping picks the see-through tower in front (86); windowed `--prebuilt --shots` leak warning (267); Mac keyboard W on the diagonal start view (182; Mac only). **Done in sweep 2** (2026-10-29), with the first rescue call's hitch (loop G1's note; the haptic engine built at load, phone check pending) and the neon signs ghosted (loop 1's note); the W key was already fixed by the camera loop (the follow camera starts behind the car) |
 
 ## Decisions still open (for the user or the loop that meets them)
 
