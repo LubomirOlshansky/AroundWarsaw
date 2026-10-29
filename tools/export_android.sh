@@ -64,8 +64,25 @@ else
 	export GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD
 	out=../build/android/nocnawarszawa-$vname-$vcode.aab
 	rm -f $out
+	merged=android/build/build/intermediates/merged_manifests/standardRelease/processStandardReleaseManifest/AndroidManifest.xml
+	rm -f $merged
 	godot --headless --path . $template --export-release "Android" $out
 	unset GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD
+	# Play offers the game only to phones with Vulkan (addons/nw_android_export marks Godot's
+	# two Vulkan uses-features required): refuse an AAB whose merged manifest lost that.
+	required=$(perl -0ne 'my @r = /<uses-feature[^>]*?"android\.hardware\.vulkan\.(?:level|version)"[^>]*?android:required="true"/g; print scalar @r' $merged 2>/dev/null)
+	# ...and at the Vulkan version Godot itself asks for (its line in src/release/, required="false").
+	vk_version() { perl -0ne 'print $1 if /<uses-feature[^>]*?"android\.hardware\.vulkan\.version"[^>]*?android:version="([^"]+)"/' $1 2>/dev/null }
+	godot_vk=$(vk_version android/build/src/release/AndroidManifest.xml)
+	merged_vk=$(vk_version $merged)
+	if [[ $required != 2 || -z $godot_vk || $godot_vk != $merged_vk ]]; then
+		rm -f $out
+		echo "export failed: the Vulkan uses-features in $merged are not both required at Godot's"
+		echo "version (required: ${required:-0} of 2; Godot asks for ${godot_vk:-?}, the AAB has ${merged_vk:-?}):"
+		echo "see game/addons/nw_android_export/plugin.gd"
+		exit 1
+	fi
+	echo "vulkan: android.hardware.vulkan.level and .version ($merged_vk) required"
 fi
 
 [[ -f $out ]] || { echo "export failed: no $out"; exit 1; }

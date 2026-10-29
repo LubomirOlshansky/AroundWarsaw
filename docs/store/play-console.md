@@ -1,10 +1,11 @@
 # Google Play Console: ready answers
 
-Answers for Nocna Warszawa's Play Console forms, version 0.1 (code 1), first upload to
-internal testing (October 2026). The build: `tools/export_android.sh` (README, "Android
-(Google Play)"). Field names follow Play Console's English labels; Play may reword them.
-Facts behind the answers: no network code, no INTERNET permission, VIBRATE only, saves in
-`user://` on the device (`settings.gd`, `wallet.gd`), no accounts, ads or purchases.
+Answers for Nocna Warszawa's Play Console forms, version 0.1 (code 1 was the first upload to
+internal testing, October 2026; code 2 requires Vulkan). The build: `tools/export_android.sh`
+(README, "Android (Google Play)"). Field names follow Play Console's English labels; Play may
+reword them. Facts behind the answers: no network code, no INTERNET permission, VIBRATE only,
+saves in `user://` on the device (`settings.gd`, `wallet.gd`), no accounts, ads or purchases;
+Vulkan required (level 1, version 1.1.0).
 
 ## 1. Create app
 
@@ -22,8 +23,8 @@ Facts behind the answers: no network code, no INTERNET permission, VIBRATE only,
 2. **Play App Signing**: accept "Let Google manage and protect your app signing key"
    (recommended). The key in `~/.android-keys/` stays the **upload key**: every later upload
    must be signed with it (`tools/export_android.sh` does).
-3. Drop `build/android/nocnawarszawa-0.1-1.aab`.
-4. Release name: `0.1 (1)`. Release notes, `<pl-PL>` and `<en-US>`:
+3. Drop the newest `build/android/nocnawarszawa-0.1-<code>.aab` (now `nocnawarszawa-0.1-2.aab`).
+4. Release name: `0.1 (<code>)`, e.g. `0.1 (2)`. Release notes, `<pl-PL>` and `<en-US>`:
 
 ```
 <pl-PL>
@@ -39,6 +40,21 @@ The first Android test build. It drives, it lights up, it rains. Tell us what br
 6. Expected warning, safe to ignore for now: "This App Bundle contains native code, and you've
    not uploaded debug symbols" (symbols only make native crash reports readable; Godot's
    official templates don't ship them).
+7. **From code 2 on, fewer supported devices, on purpose.** The AAB requires Vulkan
+   (`android.hardware.vulkan.level` 1 and `android.hardware.vulkan.version` 0x401000, Vulkan
+   1.1.0, both `required="true"`), because the game's Mobile renderer can't start without it.
+   When code 2 replaces code 1, the release summary and Device catalog show a smaller number of
+   supported devices, and Play may say the release "removes support for N devices": that is
+   expected; confirm it. Release notes for code 2:
+
+```
+<pl-PL>
+Gra działa teraz tylko na telefonach z Vulkanem, czyli tam, gdzie naprawdę ruszy.
+</pl-PL>
+<en-US>
+The game now installs only on phones with Vulkan, the ones it can actually run on.
+</en-US>
+```
 
 **Personal developer accounts made after November 2023** must run a *closed* test with at least
 12 testers for 14 days before Play lets them apply for production. Internal testing doesn't
@@ -207,8 +223,10 @@ screen; the listing says "Polish with English" nowhere because Play shows one la
 - [ ] Install from the internal-testing link on a real Android phone; play 10 minutes: does it
       start, hold 60 fps or 30, keep its save after a restart, vibrate?
 - [ ] Rotate the phone both ways (sensor landscape) and check the HUD clears any camera cutout.
-- [ ] Try one phone without Vulkan 1.0 if you have one: the Mobile renderer needs Vulkan, and
-      Play will still offer the game to OpenGL-only phones (Vulkan is listed as *not required*).
+- [ ] Check Play Console's device catalogue (Test and release → Device catalog): from code 2 the
+      AAB **requires Vulkan** (level 1, version 1.1.0), so the count of supported devices drops
+      compared with code 1. That is expected: those phones (OpenGL ES only, or Vulkan 1.0) can't
+      run the Mobile renderer. Don't exclude more by hand.
 - [ ] Paste the BENCH card (Settings → TEST, KOPIUJ · COPY) from the phone into the chat: no
       Android frame number exists yet.
 - [ ] The privacy-policy link opens (after `main` is pushed).
