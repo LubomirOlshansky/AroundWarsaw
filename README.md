@@ -2570,7 +2570,7 @@ The radio plays songs you make yourself (a synth, or an AI music tool such as Su
    title: Noc na Smolnej
    artist: Lubomir
    ```
-3. **Run `python3 -I tools/add_music.py`** (needs `ffmpeg`). Then `tools/verify.sh --only=radio`,
+3. **Run `python3 -I tools/add_music.py`** (needs `ffmpeg`; `oggenc` from vorbis-tools makes the smallest files). Then `tools/verify.sh --only=radio`,
    and commit `game/audio/radio/`, `game/data/radio.json` and the new `.import` files.
 
 What the tool does to each new song (the docstring of `tools/add_music.py` has the details):
@@ -2588,12 +2588,14 @@ into one: the tool prints the line to add to radio.json (id, name, frequency, co
 A station with one song loops it; with two or more it plays them in a shuffled order (the date
 seeds it), each to its end, with the host's lines between songs now and then.
 
-**Sizes.** At 96 kbps a 3-minute song is about 2 MB. The three original loops (2.4 minutes
-together) were 12.6 MB as WAV and are 3.2 MB as Ogg. The Homebrew ffmpeg on the Mac has no
-libvorbis (`ffmpeg -encoders | grep vorbis` lists only ffmpeg's own `vorbis`), and that
-encoder ignores the bitrate: it writes about 185 kb/s, 4.1 MB for 3 minutes. The tool falls
-back to it and says so; with a libvorbis ffmpeg the files are the 96 kbps ones and nothing
-else changes.
+**Sizes.** The tool encodes with `oggenc` (vorbis-tools: `brew install vorbis-tools`) when it
+is on PATH: ffmpeg decodes, trims and applies the gain to a temporary 44.1 kHz stereo 16-bit
+WAV, `oggenc -b 96` writes the Ogg (about 96 kbps on average, about 2 MB for a 3-minute song),
+and the WAV is deleted. Without `oggenc` it uses ffmpeg's `libvorbis` if `ffmpeg -encoders`
+lists it. The Homebrew ffmpeg on the Mac has no libvorbis, and its built-in `vorbis` encoder,
+the last fallback (the tool says so), ignores the bitrate and writes about 185 kb/s, 4.1 MB for
+3 minutes. The three original loops (2.4 minutes together) were 12.6 MB as WAV; encoded with
+`oggenc` they are 1.5 MB as Ogg (0.56, 0.50 and 0.44 MB).
 
 **Licences.** A song whose licence is not given stays `unknown`; the radio check
 (`tools/verify.sh`, step `radio`) lists those as a WARN. **Check every `unknown` track before a
