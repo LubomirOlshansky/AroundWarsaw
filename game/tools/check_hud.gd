@@ -19,6 +19,8 @@ extends SceneTree
 
 const Hud := preload("res://scripts/hud.gd")
 const Bubbles := preload("res://scripts/bubbles.gd")
+## Loop 2d-1: Podwózka's card words.
+const RideRules := preload("res://scripts/ride_rules.gd")
 ## Width x height in pixels (landscape): the user's 6.9" Pro Max, the 6.1" class, a computer
 ## window (taken as a phone 390 pt tall), the SE (375 pt tall, no insets).
 const SCREENS := [Vector2i(2868, 1320), Vector2i(2532, 1170), Vector2i(1280, 720), Vector2i(1334, 750)]
@@ -85,7 +87,8 @@ func _check_screen(screen: Vector2i) -> int:
 	var perf_text := "60 fps · 16.7 ms · worst 18.2 · cap 60 fps\nCPU 11.2 + 0.3 + 14.1 ms · GPU n/a · 670 MB\ndraws 153 = 53 + 35 + 65 · 0.45 M tris\nMedium ×3 · gov GPU 2/2 · CPU 2/2 · wide"
 	for perf in [false, true]:
 		for state in ["car, Point", "car, Classic", "helicopter", "call came in", "call card", "rescued, paid",
-				"rescue, host, egg", "kebab offer", "kebab delivery", "race", "rival ahead", "landmark card", "tow toast"]:
+				"rescue, host, egg", "kebab offer", "kebab delivery", "race", "rival ahead", "landmark card", "tow toast",
+				"ride offer", "ride", "ride result", "ride result, police"]:
 			if perf and not state in ["car, Point", "call card", "rescue, host, egg", "kebab offer", "kebab delivery", "landmark card"]:
 				continue
 			hud.clear_all()
@@ -151,6 +154,39 @@ func _check_screen(screen: Vector2i) -> int:
 				"tow toast":
 					hud.toast("Pomoc drogowa: wyciągnięci!", "Towed free")
 					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
+				# Loop 2d-1: Podwózka at its longest: the longest note, the MNOŻNIK for night and rain,
+				# the longest destination; the result with every star note and a streak.
+				"ride offer":
+					var offer := RideRules.offer_text({"name": "Krzysiek", "away": 588.0, "road": 2496.0, "their": 4.9,
+							"note": ["Uwagi: „jestem tam, gdzie pinezka, tylko po drugiej stronie”.",
+							"Note: \"I'm where the pin is, just on the other side.\""], "night": true, "rain": true, "rating": 4.87})
+					hud.show_card(offer[0], offer[1], PackedStringArray(["ACCEPT", "SKIP"]), Color("#4fd8c4"), true, offer[2], offer[3])
+					hud.show_pill("PODWÓZKA", "ride app", "ride")
+					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
+				"ride":
+					hud.show_status("PODWÓZKA → Plac Trzech Krzyży", RideRules.stars_text(4.5), "1840 m",
+							"Cel to turkusowe światło. Kropki to pomysł aplikacji.", 0.4, Color("#4fd8c4"), "", {},
+							"The goal is the teal beacon. The dots are the app's idea.")
+					hud.toast("−½ ★ · hamowanie", "−½ star · harsh braking")
+					_say(bubbles, "Nawigacja", at.call(0.55, 0.42), "Za dwieście metrów skręć w prawo. W Wisłę.",
+							"In two hundred metres, turn right. Into the Vistula.")
+					_say(bubbles, "Krzysiek", at.call(0.2, 0.8), "GPS mówi przez Wisłę. Może jest prom? Nie ma promu?",
+							"The GPS says across the Vistula. Maybe there's a ferry? No ferry?")
+				"ride result":
+					# The longest a 5-star card gets: night and rain, in a hurry, a full streak, three notes.
+					var pay := RideRules.pay(2496.0, 5.0, true, true, true, 5)
+					var done := RideRules.result_text({"stars": 5.0, "name": "Krzysiek", "comment": ["Pięć gwiazdek i serduszko. Serduszko jest rzadkie.",
+							"Five stars and a heart. The heart is rare."], "pay": pay, "rating": 4.88,
+							"why": ["jazda −1, przed czasem +½, za aplikacją +½", "driving −1, early +½, followed the app +½"]})
+					hud.show_card(done[0], done[1], PackedStringArray(["OK"]), Color("#4fd8c4"), false, done[2], done[3])
+					hud.set_wallet(12442, 1259, 97)
+				"ride result, police":
+					# The longest comment (pulled over), with the most a 4-star ride can lose and win back.
+					var pay4 := RideRules.pay(2496.0, 4.0, true, true, false, 0)
+					var done4 := RideRules.result_text({"stars": 4.0, "name": "Krzysiek", "comment": ["Policja w trakcie kursu? Gwiazdkę zabieram, anegdotę zostawiam.",
+							"Police mid-ride? I'm taking a star, but keeping the anecdote."], "pay": pay4, "rating": 4.83,
+							"why": ["jazda −½, policja −1, za aplikacją +½", "driving −½, police −1, followed the app +½"]})
+					hud.show_card(done4[0], done4[1], PackedStringArray(["OK"]), Color("#4fd8c4"), false, done4[2], done4[3])
 			await process_frame
 			await process_frame
 			bubbles.layout()

@@ -603,6 +603,25 @@ func stop_racing(d: Driver) -> void:
 		_choose_next(d)
 
 
+# --- loop 2d-1: Podwózka's GPS moments (gps_moments.gd) -----------------------------------------
+
+## Sends driver d onto edge f at the junction ahead (a GPS U-turn: f is the way back); false if
+## it is already in the junction or f is not one of the junction's ways out.
+func turn_next(d: Driver, f: int) -> bool:
+	if not d.active or d.in_conn or f < 0 or not f in graph.node_out[graph.e_b[d.edge]]:
+		return false
+	var e := d.edge
+	d.next_edge = f
+	d.next_lane = graph.next_lane(e, d.lane, f)
+	d.conn = graph.connector(e, d.lane, f, d.next_lane)
+	d.conn_len = LaneGraph.bezier_length(d.conn)
+	d.conn_y0 = graph.height(e, graph.e_s1[e])
+	d.conn_y1 = graph.height(f, graph.e_s0[f])
+	d.v_turn = 3.5
+	d.next_reg = graph.e_lane0[f] + d.next_lane
+	return true
+
+
 ## Driving distance left to the race finish.
 func remaining(d: Driver) -> float:
 	if d.route.is_empty():

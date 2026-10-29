@@ -32,8 +32,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads drape drive drive-prebuilt steering settings tiers governor hud landmarks sfx radio water water-prebuilt plain heli race kebab splash rain prebuilt classic)
-STEPS_QUICK=(map roads drape drive steering settings tiers governor hud landmarks sfx radio plain prebuilt)
+STEPS_ALL=(map roads drape drive drive-prebuilt steering settings tiers governor hud rides landmarks sfx radio water water-prebuilt plain heli race kebab ride splash rain prebuilt classic)
+STEPS_QUICK=(map roads drape drive steering settings tiers governor hud rides landmarks sfx radio plain prebuilt)
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
 STEP_LIMIT=${NW_STEP_LIMIT:-900}
 
@@ -213,6 +213,8 @@ for s in $want; do
 		governor) check governor '^check_governor:' --script res://tools/check_governor.gd ;;
 		# Loop 2e: the HUD at phone size: 44 pt controls, 11 / 13 pt text, the safe area, no overlaps.
 		hud) check hud '^check_hud:' --script res://tools/check_hud.gd ;;
+		# Loop 2d-1: Podwózka's star and pay tables, the streak and the cancel rules, its lines.
+		rides) check rides '^check_rides:' --script res://tools/check_rides.gd ;;
 		landmarks) check landmarks '^landmark check:' --script res://tools/check_landmarks.gd ;;
 		sfx) check sfx '^sfx:' --script res://tools/check_sfx.gd ;;
 		radio) check radio '^radio loops:' --script res://tools/check_radio_loops.gd ;;
@@ -223,6 +225,10 @@ for s in $want; do
 		heli) game heli 6000 '^rescue (done|failed):' --mission=1 --heli --autopilot ;;
 		race) game race 8000 '^race (won|lost):' --race=0 --autopilot ;;
 		kebab) game kebab 9000 '^kebab delivered:' --kebab=0 --autopilot ;;
+		# Loop 2d-1: a Podwózka ride by the app's route: a passenger 54 m off the pin, a GPS believer,
+		# the river quirk (its waypoint on dry land, the `ride: quirk river` line says how far from
+		# the water), the stars and the pay (`ride: pay`, the wallet before and after).
+		ride) game ride 20000 '^ride: pay' --ride=19 --passenger=believer --ride-quirk=river --autopilot --parody-log ;;
 		# Loop 10a: into the river from the boulevard by Most Poniatowskiego with a delivery on:
 		# the splash, then the tow onto a lane on dry land within 2 s, the job still running.
 		splash) game splash 420 '^water: towed after [01][.][0-9]+ s .* m from a lane, dry; job on' \

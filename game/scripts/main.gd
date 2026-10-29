@@ -56,6 +56,8 @@ const Title := preload("res://scripts/title.gd")
 const Wallet := preload("res://scripts/wallet.gd")
 const Dialogue := preload("res://scripts/dialogue.gd")
 const Jobs := preload("res://scripts/jobs.gd")
+## Loop 2d-1: Podwózka, the app-taxi side job.
+const Rides := preload("res://scripts/rides.gd")
 const Eggs := preload("res://scripts/eggs.gd")
 const Sfx := preload("res://scripts/sfx.gd")
 const Weather := preload("res://scripts/weather.gd")
@@ -231,6 +233,20 @@ var eggs: Eggs
 var start_kebab := -1
 var start_sloik := -1
 var start_heat := -1.0
+# --- loop 2d-1: Podwózka (rides.gd) and its testing flags ---
+var rides: Rides
+## --ride=N: ride N's request, the car by its passenger; --ride-quirk=, --passenger=, --stars=X
+## (the live rating's start), --ignore-app (the autopilot drives the shortest road, not the
+## app's), --parody-log (`ride:` and `gps:` lines).
+var start_ride := -1
+var ride_quirk := ""
+var ride_passenger := ""
+var ride_stars := -1.0
+var ignore_app := false
+var parody_log := false
+## --gps-in=S: the first GPS moment of the app-taxis in traffic from S seconds in (screenshots).
+var gps_in := -1.0
+# --- end loop 2d-1 ---
 var host_in := -1.0
 var barrier_day := 0
 var reset_save := false
@@ -696,6 +712,9 @@ func _build_world() -> void:
 	elif jobs != null and start_sloik >= 0:
 		jobs.start_sloik(start_sloik)
 		cam_focus = car.global_position
+	elif rides != null and start_ride >= 0:
+		rides.start_ride(start_ride)  # loop 2d-1
+		cam_focus = car.global_position
 	if rivals != null and (start_race > 0 or start_rival > 0):
 		var i := (maxi(start_race, start_rival) - 1) % Rivals.RIVALS.size()
 		rivals.put_ahead(i)
@@ -1140,6 +1159,21 @@ func _build_side_jobs(data: Dictionary, world: Node3D) -> void:
 	jobs.setup(nodes, data, world)
 	if rivals != null:
 		rivals.jobs = jobs
+	# --- loop 2d-1: Podwózka, the app-taxi side job (and the GPS moments of the app-taxis) ---
+	rides = Rides.new()
+	rides.autopilot = autopilot
+	rides.ignore_app = ignore_app
+	rides.log_on = parody_log
+	rides.force_quirk = ride_quirk
+	rides.force_passenger = ride_passenger
+	rides.start_stars = ride_stars
+	rides.gps_first = gps_in
+	add_child(rides)
+	nodes["jobs"] = jobs
+	nodes["weather"] = weather
+	rides.setup(nodes, data, world)
+	jobs.rides = rides
+	# --- end loop 2d-1 ---
 	eggs = Eggs.new()
 	eggs.day = barrier_day
 	world.add_child(eggs)
@@ -1251,6 +1285,22 @@ func _parse_args() -> void:
 			start_sloik = maxi(0, int(arg.trim_prefix("--sloik="))) if arg.contains("=") else 0
 		elif arg.begins_with("--heat="):
 			start_heat = clampf(float(arg.trim_prefix("--heat=")), 0.0, 1.0)
+		# --- loop 2d-1: Podwózka's flags ---
+		elif arg.begins_with("--ride="):
+			start_ride = maxi(0, int(arg.trim_prefix("--ride=")))
+		elif arg.begins_with("--ride-quirk="):
+			ride_quirk = arg.trim_prefix("--ride-quirk=").to_lower()
+		elif arg.begins_with("--passenger="):
+			ride_passenger = arg.trim_prefix("--passenger=").to_lower()
+		elif arg.begins_with("--stars="):
+			ride_stars = clampf(float(arg.trim_prefix("--stars=")), 1.0, 5.0)
+		elif arg == "--ignore-app":
+			ignore_app = true
+		elif arg == "--parody-log":
+			parody_log = true
+		elif arg.begins_with("--gps-in="):
+			gps_in = maxf(0.0, float(arg.trim_prefix("--gps-in=")))
+		# --- end loop 2d-1 ---
 		elif arg.begins_with("--host-in="):
 			host_in = maxf(0.0, float(arg.trim_prefix("--host-in=")))
 		elif arg.begins_with("--barriers="):
@@ -1329,6 +1379,8 @@ func _parse_args() -> void:
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or hold_stick != Vector2.INF or bench_button \
 			or _water_test_at != Vector2.INF or cam_test != "":
 		show_title = false
+	if start_ride >= 0:
+		show_title = false  # loop 2d-1: --ride is a test run too
 	if force_title:
 		show_title = true
 	# Camera loop: the cinematic moments in a normal launch only (never with screenshots or a bench).
@@ -2042,6 +2094,9 @@ func _process(dt: float) -> void:
 	if jobs != null:
 		# Loop 2b: no side job starts on the bench route (the ghost stops at red lights).
 		jobs.flying = flying or _bench_ghost != null
+		# Loop 2d-1: no ride is offered from the helicopter, on the title screen or the bench.
+		rides.flying = flying
+		rides.away = title != null or _bench_ghost != null or _phone_bench
 		eggs.player = pos
 		eggs.player_vel = heli.vel if flying else car.vel
 		eggs.flying = flying
@@ -2227,6 +2282,7 @@ func _make_stats() -> BenchStats:
 	if jobs != null:
 		b.systems["jobs+eggs"] = [self, "_jobs_usec", false]
 		b.systems["jobs physics"] = [jobs, "spent_usec", true]
+		b.systems["rides physics"] = [rides, "spent_usec", true]  # loop 2d-1
 	b.systems["sound"] = [sfx, "last_usec", false]
 	b.systems["hud+minimap"] = [hud, "spent_usec", true]
 	b.systems["bubbles"] = [bubbles, "spent_usec", true]
@@ -2241,7 +2297,7 @@ func _make_stats() -> BenchStats:
 ## jobs.gd and eggs.gd, weather.gd and time_of_day.gd, read as one each.
 var _jobs_usec: int:
 	get:
-		return (jobs.last_usec + eggs.last_usec) if jobs != null else 0
+		return (jobs.last_usec + eggs.last_usec + (rides.last_usec if rides != null else 0)) if jobs != null else 0
 var _sky_usec: int:
 	get:
 		var t: int = weather.spent_usec + tod.spent_usec
@@ -2377,6 +2433,16 @@ func _show_target() -> void:
 		hud.set_target(on, "%d m" % m, rivals.target_colour(), m > 12)
 		hud.set_minimap_target(Vector2(f.x, f.z), rivals.target_colour())
 		_new_target("race", f)
+		return
+	# Loop 2d-1: a Podwózka ride's pin, passenger or door.
+	if rides != null and rides.has_target():
+		var rp: Vector3 = rides.target_position()
+		var at_r := _vehicle_position()
+		var mr := roundi(Vector2(rp.x - at_r.x, rp.z - at_r.z).length())
+		var on_r := cam.unproject_position(rp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
+		hud.set_target(on_r, "%d m" % mr, rides.target_colour(), mr > 12)
+		hud.set_minimap_target(Vector2(rp.x, rp.z), rides.target_colour())
+		_new_target("job", rp)
 		return
 	if jobs != null and jobs.has_target():
 		var j: Vector3 = jobs.target_position()
@@ -2531,6 +2597,8 @@ func _autopilot(dt: float) -> void:
 		return
 	if rivals != null and rivals.drive_player():
 		return
+	if rides != null and rides.drive_player():
+		return  # loop 2d-1
 	if jobs != null and jobs.drive_player():
 		return
 	if not missions.has_target():
@@ -2724,10 +2792,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			KEY_H:
 				_toggle_vehicle()
 			KEY_M:
-				if jobs == null or not jobs.primary():
+				# Loop 2d-1: a Podwózka request or result first.
+				if (rides == null or not rides.primary()) and (jobs == null or not jobs.primary()):
 					missions.primary()
 			KEY_K:
-				if jobs == null or not jobs.secondary():
+				if (rides == null or not rides.secondary()) and (jobs == null or not jobs.secondary()):
 					missions.secondary()
 			KEY_N:
 				_blip_sound()

@@ -101,6 +101,7 @@ signal pinched(ratio: float)          # finger distance now / before
 signal vehicle_pressed
 signal card_pressed(index: int)       # a button on the mission card
 signal pill_pressed                   # the context button: a rescue call that came in
+signal context_pressed(owner: String) # loop 2d-1: the context button, whoever showed it
 signal abort_pressed                  # the ✕ on the mission status
 signal challenge_pressed              # FLASH LIGHTS: challenge the rival in front
 signal radio_pressed                  # RADIO: next station or off
@@ -220,6 +221,11 @@ var _mini_target := Vector2.INF
 var _mini_target_colour := Color.WHITE
 var _mini_dots := PackedVector2Array()
 var _mini_dot_colours := PackedColorArray()
+## Loop 2d-1: whose the context button is ("call" or "ride").
+var pill_owner := "call"
+## Loop 2d-1: the Podwózka app's route on the minimap (map coordinates), drawn dotted.
+var _mini_route := PackedVector2Array()
+var _mini_route_colour := Color.WHITE
 var _mini_car := Vector2.ZERO
 var _mini_yaw := 0.0
 var _stick_index := -1
@@ -325,7 +331,11 @@ func _ready() -> void:
 	_speed.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	add_child(_speed)
 	_pill = _chip(self, "WEZWANIE", "rescue call", ACCENT)
-	_pill.pressed.connect(func(): pill_pressed.emit())
+	# Loop 2d-1: the context button is shared; only a rescue call's press is pill_pressed.
+	_pill.pressed.connect(func():
+		if pill_owner == "call":
+			pill_pressed.emit()
+		context_pressed.emit(pill_owner))
 	_pill.visible = false
 	_radio_button = _chip(self, "RADIO", "wył. · off")
 	_radio_button.pressed.connect(func(): radio_pressed.emit())
@@ -757,12 +767,20 @@ func set_radio_name(station_name: String) -> void:
 
 
 ## The context button: a call came in (Polish, English under it); pressing it emits pill_pressed.
-func show_pill(pl: String, en := "") -> void:
+## Loop 2d-1: `owner` says whose it is ("call", or "ride" for PODWÓZKA · rides.gd); every press
+## also emits context_pressed(owner).
+func show_pill(pl: String, en := "", owner := "call") -> void:
+	pill_owner = owner
 	_set_chip(_pill, pl, en, 96.0)
 	if not _pill.visible:
 		_pill.visible = true
 		_pill_t = 0.0
 		_mark()
+
+
+## Loop 2d-1: the context button is up and `owner`'s.
+func pill_shown(owner: String) -> bool:
+	return _pill.visible and pill_owner == owner
 
 
 func hide_pill() -> void:
@@ -1476,6 +1494,8 @@ func _paint_minimap_overlay() -> void:
 		if r.length() < _mini_radius - 4.0 * pt:
 			o.draw_circle(centre + r, 2.8 * pt, OUTLINE)
 			o.draw_circle(centre + r, 2.0 * pt, _mini_dot_colours[i])
+	if _mini_route.size() >= 2:
+		_paint_minimap_route(centre, s)
 	if _mini_target != Vector2.INF:
 		# The mission target, pinned to the rim when it's beyond the map's reach.
 		var t := ((_mini_target - _mini_car) * s).rotated(_mini_yaw)
@@ -1516,6 +1536,39 @@ func set_car_marker(at: Vector2, show: bool) -> void:
 func set_minimap_pois(points: PackedVector2Array, colours: PackedColorArray) -> void:
 	_mini_pois = points
 	_mini_poi_colours = colours
+
+
+# --- loop 2d-1: the Podwózka app's route (rides.gd) -------------------------------------------
+
+## The app's route as a polyline in map coordinates (empty: none), drawn as dots on the minimap.
+func set_minimap_route(points: PackedVector2Array, colour: Color) -> void:
+	_mini_route = points
+	_mini_route_colour = colour
+
+
+## A small square every 5 pt along the route, fixed to the map (they don't crawl as the car
+## moves), only on the stretches within the minimap's reach.
+func _paint_minimap_route(centre: Vector2, s: float) -> void:
+	var o := _mini_overlay
+	var gap := 5.0 * pt / s
+	var reach := (_mini_radius - 4.0 * pt) / s
+	var half := 1.3 * pt
+	var at := 0.0
+	for i in _mini_route.size() - 1:
+		var a := _mini_route[i]
+		var b := _mini_route[i + 1]
+		var seg := a.distance_to(b)
+		if seg < 0.01:
+			continue
+		if Geometry2D.get_closest_point_to_segment(_mini_car, a, b).distance_to(_mini_car) <= reach:
+			var u := ceilf(at / gap) * gap
+			while u <= at + seg:
+				var r := ((a.lerp(b, (u - at) / seg) - _mini_car) * s).rotated(_mini_yaw)
+				if r.length() < _mini_radius - 4.0 * pt:
+					o.draw_rect(Rect2(centre + r - Vector2.ONE * (half + 0.8 * pt), Vector2.ONE * (half + 0.8 * pt) * 2.0), OUTLINE)
+					o.draw_rect(Rect2(centre + r - Vector2.ONE * half, Vector2.ONE * half * 2.0), _mini_route_colour)
+				u += gap
+		at += seg
 
 
 # --- the wallet and the note card ------------------------------------------------------------

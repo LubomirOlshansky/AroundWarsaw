@@ -20,6 +20,9 @@ var jobs := {}
 var best := {}
 ## Egg id -> true once found.
 var eggs := {}
+## Loop 2d-1: other things kept by name (rides.gd: "podwozka_ratings", the last 20 rides' stars,
+## and "podwozka_streak", the 5-star rides in a row).
+var keep := {}
 ## False with --nosave: nothing is read or written.
 var persistent := true
 
@@ -43,6 +46,8 @@ func load_save() -> void:
 	for key in (cfg.get_section_keys("eggs") if cfg.has_section("eggs") else PackedStringArray()):
 		if bool(cfg.get_value("eggs", key, false)):
 			eggs[key] = true
+	for key in (cfg.get_section_keys("keep") if cfg.has_section("keep") else PackedStringArray()):
+		keep[key] = cfg.get_value("keep", key)
 
 
 func save() -> void:
@@ -57,6 +62,8 @@ func save() -> void:
 		cfg.set_value("best", key, best[key])
 	for key in eggs:
 		cfg.set_value("eggs", key, true)
+	for key in keep:
+		cfg.set_value("keep", key, keep[key])
 	cfg.save(PATH)
 
 
@@ -67,6 +74,7 @@ func reset() -> void:
 	jobs.clear()
 	best.clear()
 	eggs.clear()
+	keep.clear()
 	save()
 	changed.emit(zl, respect, 0)
 
