@@ -264,6 +264,7 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     bed.bake_medians()
     bed.bake_lane_lines()
     bed.bake_hatching()
+    bed.clip_crossings()   # map review B (2026-10-29): zebras only on the asphalt
     bed.bake_guards(clip_lines)
     bed.bake_shore()
     # Loop 3b-2: which banks are built (the granite edge) and which natural (wet sand, foam),
@@ -275,6 +276,7 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     crowns = crown_scales(trees3d, roads)
 
     extras = bake_extras(extras_src, roads, rect) if extras_src else {}
+    bed.clear_poles(extras)   # map review B (2026-10-29): lamps and signal poles off the asphalt
     pois = bake_pois(els, nodes, ways, roads, paths, areas, rect)
     levels = {}   # loop 3a (R8): way id -> ("dk", deck group) or ("tn", tunnel)
     for r in roads:
