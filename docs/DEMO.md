@@ -170,8 +170,8 @@ Notes.
   Świętokrzyski ending in the air at the rim.
 
 **Baked in loop 3d-1 (2026-10-29)** from the data on disk (README "Map data" and "Loop 3d-1: the
-demo map"): `bake_osm.py` `BBOX` is this box and `ORIGIN` the old origin; 88 sectors (i −7..3,
-j −4..3); every check's finding in the new area is fixed by an existing rule or allowlisted with
+demo map"): `bake_osm.py` `BBOX` is this box and `ORIGIN` the old origin; 99 sectors (i −7..3,
+j −5..3; 88 for the box and a sliver row for what reaches past its north edge); every check's finding in the new area is fixed by an existing rule or allowlisted with
 its place and reason (most of them "loop 3e", the structures of 4.6). Most Łazienkowski is cut by
 the east edge (its west end is at x ≈ 1,450, the box ends at 1,773): the paragraph above said no
 bridge is cut, which held for the 30 km² box only.

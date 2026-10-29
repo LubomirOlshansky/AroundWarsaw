@@ -1746,11 +1746,18 @@ func _build_edges(st) -> void:
 	var top_col := Color("#7d6a52")
 	var soil := Color("#6a503b")
 	var deep := Color("#45342a")
+	# Loop 3d-1: the walls stand on the map's edge, not the grid's: the demo box's grid reaches
+	# 4 m past its north edge, past the sector grid too (check_streaming: walls in no sector).
+	# Where the grid ends on the edge (the first box) this is the same as before.
+	var nz0 := maxf(z0, bounds.position.y)
+	var sz0 := minf(z0 + (nz - 1) * step, bounds.end.y)
+	var wx0 := maxf(x0, bounds.position.x)
+	var ex0 := minf(x0 + (nx - 1) * step, bounds.end.x)
 	var sides := [
-		[nx, func(i: int) -> Vector3: return Vector3(x0 + i * step, _t_h[i], z0), Vector3.FORWARD],
-		[nx, func(i: int) -> Vector3: return Vector3(x0 + i * step, _t_h[(nz - 1) * nx + i], z0 + (nz - 1) * step), Vector3.BACK],
-		[nz, func(j: int) -> Vector3: return Vector3(x0, _t_h[j * nx], z0 + j * step), Vector3.LEFT],
-		[nz, func(j: int) -> Vector3: return Vector3(x0 + (nx - 1) * step, _t_h[j * nx + nx - 1], z0 + j * step), Vector3.RIGHT],
+		[nx, func(i: int) -> Vector3: return Vector3(x0 + i * step, _grid_height(x0 + i * step, nz0), nz0), Vector3.FORWARD],
+		[nx, func(i: int) -> Vector3: return Vector3(x0 + i * step, _grid_height(x0 + i * step, sz0), sz0), Vector3.BACK],
+		[nz, func(j: int) -> Vector3: return Vector3(wx0, _grid_height(wx0, z0 + j * step), z0 + j * step), Vector3.LEFT],
+		[nz, func(j: int) -> Vector3: return Vector3(ex0, _grid_height(ex0, z0 + j * step), z0 + j * step), Vector3.RIGHT],
 	]
 	for side in sides:
 		var corner: Callable = side[1]

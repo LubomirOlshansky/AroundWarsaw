@@ -61,6 +61,7 @@ PED_ZONES = [
      "the Old Town, the New Town's market and Freta, Plac Zamkowy, Krakowskie Przedmieście's car-free north end"),
 ]
 PED_ZONE_PAD = 1.5
+MERMAID_RIVER = 150.0   # loop 3d-1: a mapped Mermaid farther than this from the river isn't the egg's
 
 # Where the car starts: Marszałkowska, east of the Palace of Culture.
 SPAWN_LATLON = (52.2312, 21.0094)
@@ -323,6 +324,7 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     extras = bake_extras(extras_src, roads, rect) if extras_src else {}
     bed.clear_poles(extras)   # map review B (2026-10-29): lamps and signal poles off the asphalt
     pois = bake_pois(els, nodes, ways, roads, paths, areas, rect)
+    dry_pois(pois, areas, roads)
     ped_zones = bake_ped_zones(ways, nodes, rect)
     levels = {}   # loop 3a (R8): way id -> ("dk", deck group) or ("tn", tunnel)
     for r in roads:
@@ -1154,6 +1156,11 @@ def bake_job_pois(els, nodes, ways, roads, paths, areas, inner):
             poi["door"] = d[0]
             poi["w"] = d[1]["w"]
         if kind == "syrenka":
+            # Loop 3d-1: the egg is the Mermaid by the river; a mapped one far from it (the demo box
+            # maps a small "Syrenka" artwork 1.5 km inland, at -1453, -555) leaves the boulevard
+            # spot below to stand in for the riverside one, as on the first box.
+            if river and min(math.hypot(poi["x"] - rx, poi["z"] - rz) for rx, rz in river) > MERMAID_RIVER:
+                continue
             mermaid = poi
         out.append(poi)
     if mermaid is None and river:
@@ -1282,6 +1289,28 @@ JOIN_REACH = 60.0     # a lone stop line this close before a signalled junction 
 JOIN_NEAR = 25.0      # ...or this close to one of its nodes, either side
 PAIR_REACH = 35.0     # lone stop lines this close together are one crossing
 PORTAL_REACH = 260.0  # roads leaving the map join roads coming back within this, off the map
+
+
+def dry_pois(pois, areas, roads):
+    """Loop 3d-1: a point of interest the game sends the car to that stands in water (a square's
+    or a park's centre in its fountain: Skwer Hoovera on Krakowskie Przedmieście) moves to the
+    nearest road point (check_water 5d)."""
+    water = []
+    for a in areas:
+        if a["k"] == "water":
+            pts = list(zip(a["p"][0::2], a["p"][1::2]))
+            xs, zs = [q[0] for q in pts], [q[1] for q in pts]
+            water.append((min(xs), min(zs), max(xs), max(zs), pts))
+    moved = []
+    for p in pois:
+        if "x" not in p or "z" not in p:
+            continue
+        x, z = p["x"], p["z"]
+        if any(x0 <= x <= x1 and z0 <= z <= z1 and point_in_poly(x, z, pts) for x0, z0, x1, z1, pts in water):
+            q = nearest_road_point(roads, x, z)
+            p["x"], p["z"] = q["x"], q["z"]
+            moved.append(p.get("name") or p["k"])
+    print(f"pois: {len(moved)} in water moved to the nearest road point (loop 3d-1): {', '.join(moved)}")
 
 
 def final_poles(out):

@@ -13,7 +13,7 @@ the folder the bake chain reads for the box bake_osm.BBOX (README "Map data"):
                      left out (each brings its whole line, from Gdańsk to Kyiv: NOTES.md 5).
   ortho.bmp/.json    the four aerial-photo tiles joined and cut to the box (24-bit BMP, the shape
                      bake_gugik.py, check_roads.py and the overlays read)
-  terrain_10m.json   the 10 m elevation grid (EVRF2007) cut to the box plus one cell
+  terrain_10m.json   the 10 m elevation grid (EVRF2007) cut to the nodes at or just past the box
   sheets/            links to the LoD2 1:5000 sheets (CityGML) that meet the box
   trees/             links to the GUGiK tree sheets (1:2500) that meet the box, for
                      tools/bake_trees_gugik.py data/work/demo/trees data/work/demo/trees_area.json
@@ -22,6 +22,7 @@ Coordinates and the box come from tools/bake_osm.py (ORIGIN, BBOX).
 """
 import glob
 import json
+import math
 import os
 import struct
 import sys
@@ -118,10 +119,12 @@ def terrain():
         raise SystemExit("terrain: the grid's origin %s is not bake_osm.ORIGIN" % o)
     sw, ne = bake_osm.project(bake_osm.BBOX[0], bake_osm.BBOX[1]), bake_osm.project(bake_osm.BBOX[2], bake_osm.BBOX[3])
     x0, z0, step, nx, nz = d["x0"], d["z0"], d["step"], d["nx"], d["nz"]
-    i0 = max(int((sw[0] - x0) // step) - 1, 0)
-    i1 = min(int((ne[0] - x0) // step) + 2, nx - 1)
-    j0 = max(int((ne[1] - z0) // step) - 1, 0)
-    j1 = min(int((sw[1] - z0) // step) + 2, nz - 1)
+    # The nodes at or just past the box's edges, no more: a row beyond them puts ground
+    # triangles past the sector grid (check_streaming's identity: 26 tiles north of j -4).
+    i0 = max(math.floor((sw[0] - x0) / step + 1e-6), 0)
+    i1 = min(math.ceil((ne[0] - x0) / step - 1e-6), nx - 1)
+    j0 = max(math.floor((ne[1] - z0) / step + 1e-6), 0)
+    j1 = min(math.ceil((sw[1] - z0) / step - 1e-6), nz - 1)
     h = d["h"]
     cut = [h[j * nx + i] for j in range(j0, j1 + 1) for i in range(i0, i1 + 1)]
     out = {"x0": round(x0 + i0 * step, 2), "z0": round(z0 + j0 * step, 2), "step": step,

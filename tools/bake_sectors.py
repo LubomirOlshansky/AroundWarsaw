@@ -47,6 +47,7 @@ import sys
 from array import array
 
 SECTOR = 512.0
+BUILDING_SLACK = 6.0   # bake_osm.py keeps buildings hanging this far over the map's edge
 # Loop 3d-1: what the split is made from (map-dir files, and this script), hashed into
 # sectors/split.stamp; tools/check_map_data.py SPLIT_INPUTS reads the same names.
 SPLIT_INPUTS = ["centrum.json", "lod2.bin", "lod2.json"]
@@ -253,10 +254,25 @@ def lod2_runs(f, n):
     return runs, near
 
 
+def reach(bounds, map_dir):
+    """Loop 3d-1: the rectangle the builder may draw in: the map's bounds grown by the 6 m a
+    building may hang over the edge (bake_osm.py) and the terrain grid's extent (the demo box's
+    grid reaches 4 m past its north edge, which lies 2.4 m inside sector row -4: ground and
+    buildings there were in no sector, check_streaming's identity)."""
+    x0, z0, x1, z1 = bounds[0] - BUILDING_SLACK, bounds[1] - BUILDING_SLACK, bounds[2] + BUILDING_SLACK, bounds[3] + BUILDING_SLACK
+    tp = os.path.join(map_dir, "terrain.json")
+    if os.path.exists(tp):
+        with open(tp) as fh:
+            t = json.load(fh)
+        x0, z0 = min(x0, t["x0"]), min(z0, t["z0"])
+        x1, z1 = max(x1, t["x0"] + (t["nx"] - 1) * t["step"]), max(z1, t["z0"] + (t["nz"] - 1) * t["step"])
+    return [x0, z0, x1, z1]
+
+
 def main(map_dir):
     with open(os.path.join(map_dir, "centrum.json"), encoding="utf-8") as fh:
         data = json.load(fh)
-    grid = Grid(data["bounds"])
+    grid = Grid(reach(data["bounds"], map_dir))
     keys = grid.keys()
     sectors = {k: {"sector": list(k)} for k in keys}
     counts = {k: 0 for k in keys}

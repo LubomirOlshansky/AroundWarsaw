@@ -883,3 +883,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **Scanned crowns into decks** (C9, 4 places: by Most Świętokrzyski's pylon one 15 m tree
   reaches 8.9 m into the slab at the 0.40 floor of trim_crowns): leave such a tree out, or let the
   floor go lower.
+- **For gameplay-dev: police P3 on the demo map** (`verify.sh` police-runs): `--police=1
+  --police-auto=escape` now escapes after 34.2 s (the check wants ≤ 30 s, koguty 1's cap); the
+  flight route over the bigger lane graph is longer. The cap or the check's window: gameplay's call.
+- `verify.sh` kebab: 15000 frames (order 0 goes 1,023 m on the demo map, delivered at 219.8 s).

@@ -434,7 +434,9 @@ for s in $want; do
 		plain) game plain 600 "" ;;
 		heli) game heli 6000 '^rescue (done|failed):' --mission=1 --heli --autopilot ;;
 		race) game race 8000 '^race (won|lost):' --race=0 --autopilot ;;
-		kebab) game kebab 9000 '^kebab delivered:' --kebab=0 --autopilot ;;
+		# Loop 3d-1: 15000 frames: on the demo map order 0 goes 1,023 m by road (Oboźna 1) and is
+		# delivered at 219.8 s of play (9000 frames = 150 s ended it on the way).
+		kebab) game kebab 15000 '^kebab delivered:' --kebab=0 --autopilot ;;
 		# Loop 2d-1: a Podwózka ride by the app's route: a passenger 34 m off the pin, a GPS believer,
 		# the river quirk (its waypoint on dry land, the `ride: quirk river` line says how far from
 		# the water), the stars and the pay (`ride: pay`, the wallet before and after).

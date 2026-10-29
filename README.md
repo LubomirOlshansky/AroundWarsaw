@@ -2574,7 +2574,12 @@ baked from the demo fetch already on disk (no downloads; README "Map data" for t
   lookup past a piece's end at a joint with the next piece (Most Świętokrzyski dropped the car
   7.6 m at its pylon: check_drive jumps there 2 → 0); building walls standing in a lane open by
   their triangles' edges, not centres, and for OpenStreetMap buildings too (lod2_open 92 → 140
-  places; check_drive lane collisions outside the structures 6 → 1, a pillar, allowed).
+  places; check_drive lane collisions outside the structures 6 → 1, a pillar, allowed); a point
+  of interest in water moves to the nearest road point (Skwer Hoovera's fountain, check_water 5d:
+  2 moved); a mapped Mermaid 150 m or more from the river isn't the egg's (a small "Syrenka"
+  1.5 km inland had taken the boulevard spot's place); the map's edge walls stand on the map's
+  edge, not the grid's, and the sector grid covers what the builder draws (`bake_sectors.reach`;
+  check_streaming's identity: 26 ground and building tiles in no sector → 0).
 - **What the checks found** in the new area (all listed in the allowlists with place and reason,
   `tools/check_roads_allow.json` and the new `tools/check_drive_allow.json`; 27 entries of the
   first box no longer matched and were dropped): the structures of DEMO 4.6, loop 3e's work: Trasa
@@ -2588,7 +2593,7 @@ baked from the demo fetch already on disk (no downloads; README "Map data" for t
 
 | Loop 3d-1 numbers | First box (loop 3c) | Demo box |
 | --- | --- | --- |
-| Area, sectors | 3,545 × 1,769 m = 6.3 km², 32 | 4,909 × 3,782 m = 18.6 km², 88 (i −7..3, j −4..3) |
+| Area, sectors | 3,545 × 1,769 m = 6.3 km², 32 | 4,909 × 3,782 m = 18.6 km², 99 (i −7..3, j −5..3: the box needs 88, plus a row of 11 slivers north of z −2,048 for the terrain grid and the buildings that reach 4-6 m past the edge) |
 | centrum.json, lod2.bin, ao / lights / water.bin | 5.0, 26, 12 / 12 / 6 MB | 15.5, 82, 37 / 37 / 19 MB |
 | Roads, paths, buildings (OSM kept / LoD2) | | 7,389, 18,738, 11,721 (4,437 kept / 5,403 LoD2, 1.46 M vertices) |
 | Scanned trees, pois, addresses | 12,554, 1,020, 973 | 38,570 (every OSM tree replaced), 3,069, 2,863 |
@@ -2599,6 +2604,10 @@ baked from the demo fetch already on disk (no downloads; README "Map data" for t
 | check_roads findings (all allowed) | C1 32, C2 1, C3 40, C5 18, C8 5, C9 5 | C1 84, C2 1, C3 131, C5 70, C6 4, C8 32, C9 12 |
 | check_drive (both paths) | 0 | 0 not allowed (214 allowed, all at loop 3e's structures but one pillar) |
 | check_streets | S1 0, S3 18 | S1 0, S3 40 |
+| Exported .pck, prebuilt start (Mac, 3 runs, wall) | 47.2 MB, 0.6 s (city) | 128.4 MB, 2.7 s wall (city 1.7 s) |
+| Probe draw calls (spawn, river, zoomed out, helicopter) | 132, 103, 153, 211 | 135, 104, 148, 207 |
+| Memory at the spawn (probe): static / video | 147 / 263 MB (textures 24) | 235 / 397 MB (textures 87: the AO, light and surface maps 93 MB whole) |
+| check_water, check_drape | OK | OK (2 places listed in check_water's `ALLOWED`, 1 in check_drape's `EXCUSED`: loop 3e) |
 
 ## Performance budgets
 
