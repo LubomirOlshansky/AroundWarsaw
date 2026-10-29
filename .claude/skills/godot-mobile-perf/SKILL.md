@@ -29,6 +29,15 @@ loop 2b row in docs/ROADMAP.md, and say so in your report.
 - At the 60 fps cap the phone's frame times jitter (a launch either waits for the display inside
   "draw", 1–8 ms either way with every refresh drawn, or outside the frame): read **missed
   refreshes** on the BENCH card, not "late" frames, the 1 % low or "draw", for stutter (loop G1).
+- **Physics interpolation is on project-wide; static nodes must turn it off**
+  (`physics_interpolation_mode = OFF` on the node or a parent). Adding a MultiMesh node under an
+  interpolated parent cost the iPhone 11's main thread 14 ms (37 at worst; the Mac 1.4); off,
+  0.002 ms (loop G0+: the streamed sectors and proxies; the people, pigeons and police halos
+  already had it off).
+- A sector's GPU data (its meshes and MultiMeshes, ~1-1.6 MB) is created by the render server on
+  the main thread (or the render thread with `--render-thread separate`) when the worker's load
+  ends: a 25-60 ms frame on the iPhone 11 per load, outside the streamer's own time (loop G0+,
+  `--stream-log`'s `worker` lines). The likely fix (untested): smaller sector resources, one loaded a frame.
 - Quality levels and the pixel image's budget live in `tiers.gd`; the governor (`governor.gd`)
   takes extras away when refreshes are missed. Bench both phones at Auto (README "Loop G1").
 

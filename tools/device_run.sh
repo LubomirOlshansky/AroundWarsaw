@@ -19,6 +19,9 @@
 # The game's print() output never reaches `devicectl --console`, and `log collect --device`
 # needs root, so the game writes its log with Godot's --log-file into the app's Documents
 # folder and this script copies it back every few seconds (`devicectl device copy from`).
+# Each run's copy is build/device/NAME/NAME_<date-time>.log (NAME.log: the latest), with the
+# bench's bench_result.txt and the streaming soak's stream_soak_result.txt beside it; the exit
+# status is 3 when the --done line never came.
 # Run tools/export_ios.sh first: the build starts from a snapshot of build/ios, so a later
 # export can't change the project under xcodebuild.
 
@@ -41,7 +44,7 @@ while (( $# )); do
 		--done=*) done_re=${1#--done=} ;;
 		--skip-build) skip_build=1 ;;
 		--dry-run) dry=1 ;;
-		-h|--help) sed -n '2,25p' $0; exit 0 ;;
+		-h|--help) sed -n '2,28p' $0; exit 0 ;;
 		--) shift; flags=("$@"); break ;;
 		*) print -r -- "unknown option $1 (try --help)"; exit 2 ;;
 	esac
@@ -95,25 +98,51 @@ run xcrun devicectl device process launch --device $device --terminate-existing 
 	print -r -- "launch failed: $(tail -3 $work/launch.txt)"; exit 1; }
 (( dry )) && { print -r -- "(dry run: would poll Documents/$label.log every 8 s for up to $wait_s s, then stop the app)"; exit 0; }
 
-log=$work/$label.log
+# Loop G0+: every run keeps its own log (a second run with the same label used to overwrite the
+# first's); $label.log is a copy of the latest. Each poll copies to a temporary file and keeps it
+# only when it is at least as long as the last copy (a copy taken mid-write can come back short).
+stamp=$(strftime %Y%m%d-%H%M%S $EPOCHSECONDS)
+log=$work/${label}_$stamp.log
+tmp=$work/.copy.log
+rm -f $tmp
 t=0
+finished=0
 while (( t < wait_s )); do
 	sleep 8
 	(( t += 8 ))
 	run xcrun devicectl device copy from --device $device --domain-type appDataContainer \
-		--domain-identifier $bundle --source Documents/$label.log --destination $log > /dev/null 2>&1
-	[[ -f $log ]] && grep -qE "$done_re" $log && break
+		--domain-identifier $bundle --source Documents/$label.log --destination $tmp > /dev/null 2>&1
+	if [[ -f $tmp ]] && (( $(wc -c < $tmp) >= $( [[ -f $log ]] && wc -c < $log || print 0) )); then
+		mv -f $tmp $log
+	fi
+	[[ -f $log ]] && grep -qE "$done_re" $log && { finished=1; break; }
 done
-# The bench also writes its card as text: copy it when there is one.
+# One more copy a few seconds after the done line (or the wait), so the lines printed with it
+# are in too; a short copy never replaces a longer one.
+sleep 3
 run xcrun devicectl device copy from --device $device --domain-type appDataContainer \
-	--domain-identifier $bundle --source Documents/bench_result.txt --destination $work/bench_result.txt > /dev/null 2>&1
+	--domain-identifier $bundle --source Documents/$label.log --destination $tmp > /dev/null 2>&1
+if [[ -f $tmp ]] && (( $(wc -c < $tmp) >= $( [[ -f $log ]] && wc -c < $log || print 0) )); then
+	mv -f $tmp $log
+fi
+rm -f $tmp
+[[ -f $log ]] && cp -f $log $work/$label.log
+# The bench writes its card as text, the streaming soak its numbers (loop G0+): copy them when
+# there are any (each run under its own name too).
+for result in bench_result stream_soak_result; do
+	rm -f $work/$result.txt
+	run xcrun devicectl device copy from --device $device --domain-type appDataContainer \
+		--domain-identifier $bundle --source Documents/$result.txt --destination $work/$result.txt > /dev/null 2>&1
+	[[ -f $work/$result.txt ]] && cp -f $work/$result.txt $work/${result}_$stamp.txt
+done
 pid=$(run xcrun devicectl device info processes --device $device 2>/dev/null | grep 'NocnaWarszawa.app' | awk '{print $1}' | head -1)
 [[ -n $pid ]] && run xcrun devicectl device process terminate --device $device --pid $pid > /dev/null 2>&1
 
-print -r -- "== $label after ${t}s: $log"
+print -r -- "== $label after ${t}s ($( (( finished )) && print "done line seen" || print "NO done line: /$done_re/")): $log"
 if [[ -f $log ]]; then
-	# Loop G1: also the quality Auto picked and the governor's changes.
-	grep -E 'Metal|city built|settings:|quality:|save:|ERROR|SCRIPT|bench|governor:' $log | grep -v 'audio peaks' | head -40
+	# Loop G1: also the quality Auto picked and the governor's changes; G0+: the soak's lines.
+	grep -E 'Metal|city built|sectors:|settings:|quality:|save:|ERROR|SCRIPT|bench|governor:|stream soak' $log | grep -v 'audio peaks' | cut -c1-400 | head -40
+	(( finished )) || exit 3
 else
 	print -r -- "no log came back (did the app start? see $work/launch.txt)"
 	exit 1
