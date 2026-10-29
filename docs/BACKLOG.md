@@ -616,3 +616,53 @@ Small problems that agents reported or that showed up in screenshots. They are f
   come every ~20 s from one chaser.
 - **The halos** are 5 m pools, blue at full and red at 0.8 brightness (4 m at half read too faint
   at night in the shots).
+
+## From loop 3c (sector streaming on today's map)
+- **Adding a MultiMesh node costs the main thread 0.1–4 ms** on the Mac, whatever its instance
+  count (a fixed cost when its instance enters the scenario; it grows with how busy the machine
+  is: 0.13 ms quiet, 2–4 ms beside two other Godot processes at 100 %). The streamer adds one
+  node a frame at least, so a loading frame's streaming p99 was 4.7 ms in the 15-minute soak on
+  a busy Mac (budget 3 ms); meshes and colliders cost ~0. The phone must measure it (README
+  "Sectors and streaming"). If it stays over 3 ms there: merge each sector's 11–13 MultiMeshes
+  into fewer nodes, keep a pool of MultiMesh nodes per sector slot and swap their `multimesh`,
+  or try the Separate render-thread model (a project-wide change: its own loop).
+- **The AO, lamp-light and surface maps stay one texture each** (24 MB of video memory today,
+  ~150 MB at the demo's 6 × 6 km). Per-sector slices can't be per-sector material uniforms:
+  the post pass's water reflections and the moving vehicles sample the light and surface maps
+  anywhere on screen. Loop 3d: a resident window texture (e.g. 2048 m at 1 m, ~20 MB for the
+  three) composed from per-sector slices on a worker thread when the focus moves half a sector,
+  uploaded one map a frame, the rects updated with it; or a texture array with a slot per loaded
+  sector and an instance uniform (a shader change in ground, building, foliage, actor, poster,
+  post).
+- **Resident memory at the spawn**: video 336 → 263 MB (−22 %), the city's own buffers 158 →
+  86 MB; static 140 → 140 MB (the index's game data, 32 proxies and the per-sector nodes and
+  colliders cost what the whole city's unloaded part saved; `--sectors=all` is 165 MB static).
+  The brief's "≥ 30 % lower" holds for the city's own share (~155 → ~85 MB), not the process.
+  Loop 3d: the index's game data (roads, paths, areas, trees3d as Variant arrays of floats, ~20
+  MB) should move into the sectors or packed arrays; the minimap into the pre-rendered image.
+- **The runtime path's start** (5.7–6.0 s, was 10.9): ~2 s is the roof pass over every
+  sector's file (missions, eggs and the helicopter read the roof grid over the whole map at the
+  start). A cached roof grid (written by bake_city, checked against its inputs) or a lazy one
+  would make it ~3.8 s; at the demo's 144 sectors the pass alone would be ~9 s.
+- **Residual pixel differences** (≤ 0.2 %, at most 0.015 % at 2868×1320): the minimap's random
+  markers (job offers), and a few sun-shadow edge pixels where fewer sectors are loaded (the
+  directional shadow fits its depth range to the casters it sees).
+- **Proxies** are a lag cover (shown only while a sector loads, or with `--sectors=proxies`):
+  one wall and one roof colour, landmarks tinted. With the view test counting each sector's
+  tallest roof, the far view loads sectors in full rather than showing proxies; at the demo's
+  size the helicopter may need a cheaper far tier (proxies in view past ~1 km).
+- The streamer's worker is a `Thread` per sector, not WorkerThreadPool: a GDScript callable run
+  on a pool thread leaves one RefCounted per pool thread at exit (`ObjectDB instances were
+  leaked`), which `tools/verify.sh` reads as a failure; a joined `Thread` doesn't.
+- The sector files (`sectors/*.json`, 9.2 MB, ~1.7× centrum.json's per-sector part) and the
+  prebuilt sectors (28.8 MB + 6 MB shared, against city.scn's 37 MB) are committed like
+  centrum.json and city.scn were, so a fresh clone runs both paths without baking.
+
+## Decided in loop 3c (map-engineer defaults; the user may still change them)
+- The split is a new `tools/bake_sectors.py` after the chain (bake_osm.py is unchanged); the
+  margins are 48 m for ways, areas and buildings (a road's reach), 8 m for point things, plus a
+  floating part's supports and each building's shop-sign surroundings.
+- The view needs a sector when its box up to its tallest roof meets the frustum, grown by 128 m
+  (DEMO 2.4 said the ground footprint): no proxy ever stands where the whole city had detail.
+- `--monolithic` keeps the whole-city build as the reference; `city.scn` is removed.
+- The minimap stays one global mesh (brief item 7).

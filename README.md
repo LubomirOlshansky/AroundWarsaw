@@ -2133,6 +2133,82 @@ day and at night (and close: the lenses taking turns, the blue pool at night), t
 spots close up, a trap at night, the lizak over the officer, the pull-over card (at a trap, and
 the first contact).
 
+## Sectors and streaming (loop 3c, 2026-10-29)
+
+The city is built and loaded in 512 m sectors (docs/DEMO.md 2.4), keyed `floor(x / 512),
+floor(z / 512)` from the map's origin: today's map is 8 × 4 = 32 of them (i −4..3, j −2..1).
+The demo's bigger box (loop 3d) only adds sectors.
+
+- **The split** (`tools/bake_sectors.py`, after the bake chain, ~1 s): `game/map/index.json` holds
+  what the whole map needs at once (the lane graph, decks, approaches, aprons and tunnels, the
+  water's edge, the kerbs and islands the car feels, the points of interest and addresses, the
+  landmark outlines and `site_parts`, and what traffic, trams, people, missions, the minimap and
+  the easter eggs read: roads, paths, areas, trams, platforms, signals, guard rails, columns,
+  parked cars, scanned trees), and `sectors/<i>_<j>.json` each sector's features in
+  centrum.json's shape: every way, area or building within 48 m of the sector, with its full
+  geometry (a way crossing a border is in both), every point thing within 8 m, a floating
+  part's supports, each building's surroundings for its shop sign (roads within 40 m, roofs
+  within 8 m), the LoD2 buildings near it (`lod2_runs`: vertex ranges of `lod2.bin`). The AO,
+  lamp-light and surface maps stay whole, one texture each shared by every sector (see below).
+- **One sector** (`map_builder.gd` `build_sector`) runs the same stages as the whole city over its
+  file and keeps only the triangles (by their centre, so each 256 m tile is in exactly one
+  sector), MultiMesh instances (by position, 512 m tiles = sectors) and collider faces (by centre)
+  that lie in it, and its cells of the roof and picking grids. `build` (the whole city at once,
+  `--monolithic`) is unchanged. **The sectors together are the whole city exactly**:
+  `game/tools/check_streaming.gd` compares every tile mesh's vertices, every MultiMesh's instances,
+  every collider face, the roof and picking grids and the landmark cards (559 meshes and
+  MultiMeshes, 232,521 faces: identical).
+- **The prebuilt city** (`tools/bake_city.gd`, with a renderer, ~16 s): `sectors/s_<i>_<j>.scn`
+  (28.8 MB for 32), `proxies.scn` (2.7 MB), `index.res` (2.3 MB: the map node with its heights,
+  decks, tunnels, water test, roof and picking grids, kerbs, sector heights and the game's part of
+  the index) and `shared/*.res` (6 MB: the materials, textures and meshes every sector shares,
+  saved once so all sectors use one copy and the per-frame uniforms reach them all).
+- **Proxies** (`sector_proxies.gd`): one mesh and one material per sector from the index alone:
+  the ground as a 32 m grid coloured by what covers it, the main roads as strips, the buildings
+  and landmarks as a skyline of boxes from the roof grid (8 m, merged along rows), trees as blobs
+  per 24 m; at most 14,724 triangles and 84 KB a sector, no shadows, visibility range 2,400 m with
+  fade Disabled. A sector's proxy shows only while the sector is not in full detail
+  (`--sectors=proxies` to see them).
+- **The streamer** (`sector_streamer.gd`): full detail for the 3 × 3 round the camera's focus,
+  the next row once the focus is within 192 m of its sector's edge (a square of 704 m round the
+  focus), and every sector the view needs (its box from its lowest ground to its tallest roof,
+  grown by 128 m, meets the camera's frustum: a tower two sectors off can stand in the view);
+  out again 256 m past that (and out of the view grown by 256 m). One sector at a time, a
+  thread loads and instantiates its scene (runtime path: builds it from its file); the main thread
+  adds its nodes under a hidden root a few a frame (each kind's recent cost must still fit the
+  frame's 3 ms), colliders first, and shows it (hiding the proxy) once all are in; the next load
+  starts after that. The car's own sector and any within 40 m of it load at once if a jump put
+  the car somewhere new (`forced`; the governor counts afresh after one). At the start the
+  sectors within 320 m of the start go in at once, the rest of the ring streams in.
+- **Both city paths**: the exported game and `--prebuilt` load the prebuilt sectors; the editor
+  (runtime) path sets up the index from `index.json`, runs a roof pass over every sector's file
+  (missions, eggs and the helicopter read the roof grid over the whole map at the start) and
+  builds the sectors round the start, then the rest on a thread as the camera moves.
+- **What the game's systems see**: the map node is the same object as before (heights,
+  `drive_height`, the water test, `top_height`, the pick grid are global); traffic, rivals and
+  missions live on the global lane graph; new sectors get the time of day, the quality's and the
+  governor's small-caster shadows, the fine detail and `--exp` from main.gd (`_on_sector_ready`).
+  The minimap stays one global mesh (today's map is small; loop 3d's pre-rendered image waits).
+- **The AO, lamp-light and surface maps** stay one texture each (24 MB of video memory today):
+  the post pass (water reflections) and the moving vehicles sample the light and surface maps
+  anywhere on screen, so per-sector slices need a resident window texture, which on today's
+  3.5 × 1.8 km map would be bigger than the whole maps. Loop 3d (6 × 6 km: ~150 MB as whole
+  textures) needs that window: see docs/BACKLOG.md.
+
+| Loop 3c numbers (Mac, Metal, mobile renderer) | Before (monolithic `city.scn`) | After (streamed) |
+| --- | --- | --- |
+| Pixel diff, 10 spots at 2868×1320 (5 on borders), `--monolithic` vs prebuilt streamed | | at most 0.015 % of the pixels (the minimap's random markers); 3D view identical |
+| Draw calls at the four probe views (3D + shadow): spawn, river, zoomed out, helicopter | 89, 61, 109, 175 | 87, 59, 108, 174 |
+| Memory at the spawn (probe): static / video | 140 / 336 MB | 140 / 263 MB (−22 % video; the city's own buffers 158 → 86 MB) |
+| Start, runtime path (`city built`, 3 runs) | 11.0, 10.9, 10.9 s | 5.99, 5.73, 5.75 s (2.0 s of it the roof pass over every sector) |
+| Start, prebuilt path (3 runs) | 1.07, 1.07, 1.04 s | 0.61, 0.57, 0.58 s |
+| Exported .pck | 47.3 MB (city.scn 37.1 + centrum.json 5.3) | 46.5 MB (sectors 28.8, shared 6.0, proxies 2.7, index 2.3; no JSON); 47.2 MB with loop 3g-1 merged |
+
+Commands: `tools/verify.sh --only=streaming` (the identity, the pixels at 10 spots and a
+3-minute soak, ~2-4 min, a window opens); the 15-minute soak:
+`godot --path game --resolution 1280x720 --script res://tools/check_streaming.gd -- --only=soak --soak=15`.
+On the phone: `tools/device_run.sh --bench` (the BENCH card's frame times while driving through
+sector loads) and a normal launch with `--stream-log` in the log (each load's main-thread ms).
 
 ## Performance budgets
 
@@ -2164,6 +2240,8 @@ home screen).
 | GPU, Vulkan bench (Mac, 1920×1080) | 0.80–0.87 ms | 1.0 ms | 1.2 ms |
 | GPU, Vulkan zoomed out at 2868×1320 (`--gpu-profile`) | 1.65 ms | 1.9 ms | 2.2 ms |
 | iPhone TEST · BENCH at High, 60 fps cap | 60 fps, 1 % low ≥ 56 | 60, 1 % low ≥ 55 | 60, 1 % low ≥ 55 |
+| Loop 3c: streaming, main thread a frame (Mac, `check_streaming.gd` soak, p99 of the frames that load) | | ≤ 3 ms | ≤ 3 ms |
+| Loop 3c: a frame that loads a sector | | ≤ 33 ms | ≤ 33 ms |
 | Loop G1: TEST · BENCH at Auto on the iPhone 11 (High, 896×414) and the Pro Max (Ultra, 1434×660), 60 fps cap | 60 fps, 1 % low 56.6 / 57.3, 0 missed refreshes | 60, 0 missed refreshes, 1 % low ≥ 55 | 60, 0 missed refreshes, 1 % low ≥ 55 |
 
 Loop 3g-1 (the police; police.md section 12 allowed ≤ +3 draw calls at any view, ≤ +8 k
@@ -2269,12 +2347,23 @@ System Trace: the iPhone 11 at ×2 holds 60 at its lowest GPU clock, Loop G1 abo
    only the first); the map builder still loads an old one-byte map.
 4. `python3 -I tools/bake_lights.py game/map` → `lights.bin`, the street-lamp light map for
    the night (1 m per pixel, sodium and LED, cut off by buildings) and the lamps it adds on
-   bridges. Run it after the bakes above. Like `ao.bin` it ends up inside `city.scn` (the map
-   builder puts it in the materials), so the export leaves the raw file out.
+   bridges. Run it after the bakes above. Like `ao.bin` it ends up in the prebuilt city (the map
+   builder puts it in the materials, saved as `map/shared/light_map.res`), so the export leaves
+   the raw file out.
 
 5. `python3 -I tools/bake_water.py game/map` → `water.bin`, the surface map (v0.9: shore distance,
    the river's flow, what reflects, bridge-deck heights); a second or two. Only needs
-   `centrum.json`; like `lights.bin` it ends up inside `city.scn`, and the export leaves it out.
+   `centrum.json`; like `lights.bin` it ends up in the prebuilt city (`map/shared/surface_map.res`
+   and the index's water test), and the export leaves it out.
+
+6. Loop 3c: `python3 -I tools/bake_sectors.py` → `index.json` and `sectors/<i>_<j>.json`, the map
+   in 512 m sectors (about a second; see "Sectors and streaming"). After any of the steps above.
+7. Loop 3c: the prebuilt city, **with a renderer** (`--headless` drops MultiMesh and texture
+   data): `godot --path game --resolution 320x180 --script res://tools/bake_city.gd` →
+   `sectors/s_<i>_<j>.scn` (32), `proxies.scn`, `index.res` and `shared/*.res` (~16 s; it checks
+   the landmark sites found from the index against the whole map's). Also needed after any
+   change to `map_builder.gd`, `chunked_surface.gd`, `landmarks.gd`, `neon_signs.gd`,
+   `sector_proxies.gd`; `tools/export_ios.sh` runs 6 and 7. `city.scn` is gone (loop 3c).
 
 Audio: `python3 -I tools/make_sfx.py game/audio/sfx game/audio/radio` (v0.9: every sound effect
 and bed, with the numbers; loops imported like the radio's, Forward, loop end = the full length,
@@ -2317,6 +2406,12 @@ flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
   `in_water`, `nearest_dry`, loop 10a). Flat layers are laid on the terrain (or their
   deck) in pieces no longer than the 10 m terrain grid. Everything is split
   into 128 m tiles (`chunked_surface.gd`) so off-screen tiles are culled.
+- Loop 3c: `tools/bake_sectors.py` (the map split into 512 m sectors: `index.json`,
+  `sectors/<i>_<j>.json`), `map_builder.gd` `setup_streamed` / `build_sector`,
+  `game/scripts/sector_streamer.gd` (loads the sectors round the camera, both city paths),
+  `game/scripts/sector_proxies.gd` (one low-detail mesh per sector), `game/tools/bake_city.gd`
+  (the prebuilt sectors, proxies, index and shared resources), `game/tools/check_streaming.gd`
+  (step `streaming`); see "Sectors and streaming".
 - Loop 3a: `tools/check_roads.py` (+ `check_roads_allow.json`; the road rules C1-C10),
   `tools/road_spots.txt` (the road render spots for `tools/shots.sh --set=roads`),
   `game/scripts/debug_roads.gd` (`--debug-roads`), `game/addons/debug_draw/` (the Debug Draw
@@ -2415,7 +2510,12 @@ Command-line options (after `--`):
 | `--at=x,z` | start at map coordinates (metres, +x east, +z south), on top of a bridge deck if there is one |
 | `--heading=deg` | the car's heading at the start (0 north, 90 east), for testing: with `--demo` it drives off that way |
 | `--nohud` | hide the controls |
-| `--prebuilt` | load `map/city.scn` like the exported game |
+| `--prebuilt` | load the prebuilt sectors like the exported game (loop 3c: `map/index.res`, `map/proxies.scn`, `map/sectors/s_<i>_<j>.scn`; `city.scn` before) instead of building each sector from its file |
+| `--monolithic` | loop 3c: build the whole city at once from `centrum.json`, as before loop 3c (no sectors, no streaming): the pixel diff's reference |
+| `--sectors=all` / `--sectors=proxies` | loop 3c: load every sector at the start and keep them all (the old behaviour) / only the sectors the car stands in, every other one as its proxy (to look at the proxies) |
+| `--stream-log` | loop 3c: print every sector load (`stream: frame N in s_i_j, X ms on the main thread ...`), unload, any frame whose streaming went over 3 ms and any node that took over 1 ms to add |
+| `--spots=X,Z,H/X,Z,H/...` | loop 3c, with `--shots=F1,F2,...`: the car jumps to spot k (heading H) 90 frames before shot k, the sectors the view needs are finished 30 frames before it (`tools/check_streaming.gd`) |
+| `--stream-soak=MIN` | loop 3c: the car on autopilot over every sector's middle (row by row, through buildings), the view 80 m then 220 m every 20 s, the helicopter for the last third; then `stream soak:` lines and the game quits (no traffic) |
 | `--debug-ao` / `--no-ao` | show / switch off the baked ground shadows |
 | `--heli` | start in the helicopter |
 | `--mission=N` | start rescue call N at once (N = 1, 5, 9… streets, 2, 6… roofs, 3, 7… river, 4, 8… parks) |

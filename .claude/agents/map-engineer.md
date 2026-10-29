@@ -42,7 +42,8 @@ whole map, verify it, and report. You don't spawn other agents.
   and keep the check as a tool.
 - Never hand-edit generated files; keep exclusions as small commented lists in the bake.
 - After a centrum.json re-bake: the whole chain (bake_osm, bake_ao, bake_lights, bake_water),
-  `python3 -I tools/check_map_data.py`, then city.scn rebuilt WITH a renderer
+  `python3 -I tools/check_map_data.py`, `tools/bake_sectors.py`, then the prebuilt sectors
+  rebuilt WITH a renderer
   (`godot --path game --resolution 320x180 --script res://tools/bake_city.gd`, never
   `--headless`). Changed counts are recorded in `tools/check_map_data.py` and README together.
 - The phone's budget holds for any map size: report vertices (`count_vertices.gd`), draw

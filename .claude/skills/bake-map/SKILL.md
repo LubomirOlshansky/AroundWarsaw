@@ -15,7 +15,8 @@ If they disagree, README wins: fix this file.
   The public Overpass server is often busy (HTTP 502/504): retry with a back-off.
 - Python tools run with `python3 -I` and use the standard library; the orthophoto overlays need
   Pillow (they run without `-I`). Don't install anything without asking.
-- Never hand-edit generated files (`centrum.json`, `*.bin`, `city.scn`). Change the bake, and
+- Never hand-edit generated files (`centrum.json`, `*.bin`, `index.json`, `sectors/*`, `index.res`,
+  `proxies.scn`, `shared/*`). Change the bake, and
   keep exclusions as small, commented lists in the bake (like `GUGIK_NOT_TREES`).
 - Licences travel with the data: OpenStreetMap is ODbL (the baked files are derived databases
   under ODbL), GUGiK trees are CC BY 4.0. A new source needs a line in CREDITS.md and the
@@ -41,15 +42,24 @@ If they disagree, README wins: fix this file.
 4. `tools/bake_ao.py game/map` → `ao.bin` (after 2 and 3).
 5. `tools/bake_lights.py game/map` → `lights.bin` (after 2 and 3).
 6. `tools/bake_water.py game/map` → `water.bin` (after 2).
-7. The prebuilt city, **with a renderer** (`--headless` drops MultiMesh and texture data):
-   `godot --path game --resolution 320x180 --script res://tools/bake_city.gd`
+7. Loop 3c: the split into 512 m sectors, `python3 -I tools/bake_sectors.py` → `index.json`,
+   `sectors/<i>_<j>.json` (~1 s; README "Sectors and streaming"). A landmark that searches new
+   areas in `landmarks.gd` needs its names or area in `bake_sectors.py` `SITE_NAMES` /
+   `SITE_AREAS` (bake_city.gd fails otherwise).
+8. The prebuilt city, **with a renderer** (`--headless` drops MultiMesh and texture data):
+   `godot --path game --resolution 320x180 --script res://tools/bake_city.gd` → the 32
+   `sectors/s_<i>_<j>.scn`, `proxies.scn`, `index.res`, `shared/*.res` (~16 s)
    (also needed after any change to `map_builder.gd`, `chunked_surface.gd`, `landmarks.gd`,
-   `neon_signs.gd`; `tools/export_ios.sh` does it too).
+   `neon_signs.gd`, `sector_proxies.gd`; `tools/export_ios.sh` runs 7 and 8). `city.scn` is
+   gone (loop 3c).
+9. `tools/verify.sh --only=streaming` (a window opens): the sectors built from their files are
+   the whole city (`--monolithic`) vertex for vertex, and the streamed city's pixels match it at
+   10 spots.
 
 ## Invariants after a re-bake
 
 ```zsh
-python3 -I tools/check_map_data.py      # trees3d 75324 values, trees3d_crown 12554, pois 1020, graph, palm, city.scn fresh
+python3 -I tools/check_map_data.py      # trees3d 75324 values, trees3d_crown 12554, pois 1020, graph, palm (in centrum.json and over the sectors), sector files and prebuilt sectors fresh
 godot --path game --resolution 320x180 --script res://tools/count_vertices.gd   # vertex budget
 ```
 

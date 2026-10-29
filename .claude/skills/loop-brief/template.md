@@ -39,8 +39,9 @@ frame cheaper">.
   runs never quit by themselves. `check_steering.gd` runs with `--fixed-fps 60`. macOS has no
   `timeout`. `--size=` takes metres. Never name a zsh loop variable `path`. Inside a wait loop
   `pgrep -f X` matches the loop itself.
-- Keep both city paths working (the runtime build and the prebuilt `game/map/city.scn`); if
-  you change what the map builder makes, rebuild city.scn WITH a renderer (`godot --path game
+- Keep both city paths working (the runtime build and the prebuilt sectors, loop 3c); if
+  you change what the map builder makes, run `python3 -I tools/bake_sectors.py` and rebuild the
+  prebuilt sectors WITH a renderer (`godot --path game
   --resolution 320x180 --script res://tools/bake_city.gd`, never `--headless`) and check looks
   on both paths (`--prebuilt`). After any centrum.json re-bake run the whole chain and
   `python3 -I tools/check_map_data.py`.

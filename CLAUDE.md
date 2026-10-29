@@ -87,8 +87,10 @@ default. Route by the **kind** of work, not its size:
   Engine flags go before `--`, game flags after; Godot ignores unknown flags silently.
   macOS has no `timeout` (`perl -e 'alarm shift; exec @ARGV' 600 cmd...`); never name a zsh loop variable
   `path`; `pgrep -f X` in a wait loop matches the loop itself (use `pgrep -x Godot`).
-- **Both city paths** must work: the runtime build and the prebuilt `game/map/city.scn`.
-  Rebuild city.scn WITH a renderer: `godot --path game --resolution 320x180 --script
+- **Both city paths** must work: the runtime build (each 512 m sector built from its file) and
+  the prebuilt sectors (`game/map/sectors/*.scn`, `index.res`, `proxies.scn`; loop 3c, README
+  "Sectors and streaming"). After a map change: `python3 -I tools/bake_sectors.py`, then rebuild
+  the prebuilt sectors WITH a renderer: `godot --path game --resolution 320x180 --script
   res://tools/bake_city.gd`, never `--headless`. Check looks on both (`--prebuilt`).
 - **Map data.** After any centrum.json re-bake, run the whole chain and
   `python3 -I tools/check_map_data.py` (trees3d 75324 values, pois 1020, graph, palm; new
@@ -129,7 +131,7 @@ own yes: Folder Import Rules, Lente photo mode, the In-app Review and Share plug
 tools/verify.sh [--quick|--ios|--only=a,b]   # the verification set, one PASS/FAIL table
 tools/shots.sh [--set=core|quick|names] [--size=2532x1170]   # phone-size screenshots
 cd game && godot --path . --disable-vsync -- --bench --nosave  # bench (+ --time=night, --weather=rain --time=night)
-tools/export_ios.sh   # prebuilds city.scn, exports build/ios (verify.sh --ios also builds it)
+tools/export_ios.sh   # splits the map, prebuilds the sectors, exports build/ios (verify.sh --ios also builds it)
 ```
 
 ## Code conventions

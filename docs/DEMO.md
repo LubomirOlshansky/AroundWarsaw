@@ -259,6 +259,33 @@ today's 0.67 GB. That is the H2 check.
 3. The helicopter at 58 m sees much further than the car: the proxies carry that view; check
    against image 4 of the user's screenshots.
 
+**Done in loop 3c (2026-10-29), on today's map** (README "Sectors and streaming"):
+
+- The split is `tools/bake_sectors.py` (after the chain; bake_osm.py unchanged): `index.json` and
+  32 `sectors/<i>_<j>.json` (ways, areas and buildings within 48 m, point things within 8 m, a
+  floating part's supports and each building's shop-sign surroundings, LoD2 buildings as vertex
+  ranges of `lod2.bin`). The invariants hold over the sectors (`check_map_data.py`).
+- `map_builder.gd` `build_sector` keeps the triangles, instances and collider faces whose centre
+  lies in the sector: the 32 sectors are the whole city vertex for vertex
+  (`game/tools/check_streaming.gd`). Landmarks are built in every sector they reach, triangles
+  filed by tile like the rest (not whole in the sector of their centre), with one global site
+  list and info card ids.
+- `tools/bake_city.gd` writes `sectors/s_<i>_<j>.scn`, `proxies.scn`, `index.res` and
+  `shared/*.res`; `city.scn` is gone; the export carries no JSON map data.
+- Proxies: one mesh, one material per sector, from the index (32 m ground grid, main roads, a
+  roof-grid skyline, tree blobs), ≤ 14.7k triangles and 84 KB.
+- `sector_streamer.gd`: as above, with one change: **the view needs a sector when its box up to
+  its tallest roof (grown by 128 m) meets the frustum**, not only its ground footprint, so a
+  tower two sectors off is in full detail; proxies only cover a sector while it loads.
+- The AO, lamp-light and surface maps are **not** sliced: one texture each, shared (the post
+  pass and the vehicles sample them anywhere on screen). Loop 3d needs the resident window
+  (docs/BACKLOG.md "From loop 3c").
+- The minimap stays one 2D mesh (today's map); the image is loop 3d's.
+- Risks: (1) instancing hitches: on the Mac a MultiMesh node costs 0.1–4 ms to add (by how busy
+  the Mac is), the phone must measure it; (2) seams: 10 spots, 5 on borders, ≤ 0.015 % of the
+  pixels differ at 2868×1320 (the minimap's random markers), ≤ 0.2 % at 1792×828 (a few
+  shadow-edge texels); (3) the helicopter: the view test loads what it sees.
+
 ---
 
 ## 3. The data it needs

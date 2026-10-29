@@ -31,10 +31,11 @@ extends SceneTree
 ##   godot --headless --path game --script res://tools/check_water.gd [-- --verbose --list=OUT.txt --debug=X,Z]
 ## --verbose lists every footway, --list writes every gap sample (x z kind) for an overlay,
 ## --debug prints every step of the edge probes within 2 m of X,Z, --prebuilt checks the city
-## the exported game loads (map/city.scn: its colliders and stored water map) instead of
-## building it.
+## the exported game loads (the prebuilt sectors, loop 3c: their colliders and the stored water
+## map) instead of building every sector from its file.
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
+const SectorStreamer := preload("res://scripts/sector_streamer.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const Car := preload("res://scripts/car.gd")
 const Pedestrians := preload("res://scripts/pedestrians.gd")
@@ -85,23 +86,16 @@ func _initialize() -> void:
 			var xz := a.trim_prefix("--debug=").split(",")
 			debug_at = Vector2(float(xz[0]), float(xz[1]))
 	_t0 = Time.get_ticks_msec()
-	if prebuilt:
-		map = (load("res://map/city.scn") as PackedScene).instantiate()
-		root.add_child(map)
-		map.data = JSON.parse_string(FileAccess.get_file_as_string(MAP_PATH))
-		var b: Array = map.data["bounds"]
-		map.bounds = Rect2(b[0], b[1], b[2] - b[0], b[3] - b[1])
-	else:
-		map = MapBuilder.new()
-		root.add_child(map)
-		map.build(MAP_PATH, ShaderMaterial.new(), ShaderMaterial.new())
+	# Loop 3c: the streamed city, every sector: the prebuilt sector scenes (--prebuilt) or the
+	# sectors built from their files (the runtime path).
+	map = SectorStreamer.open_whole(root, prebuilt)
 	graph = LaneGraph.new(map.data["graph"], map)
 	_query = PhysicsShapeQueryParameters3D.new()
 	var box := BoxShape3D.new()
 	box.size = BOX
 	_query.shape = box
 	_query.collision_mask = 1
-	print("check_water: %s in %d ms" % ["map/city.scn loaded" if prebuilt else "city built", Time.get_ticks_msec() - _t0])
+	print("check_water: %s in %d ms" % ["the prebuilt sectors loaded" if prebuilt else "the sectors built", Time.get_ticks_msec() - _t0])
 
 
 func _physics_process(_delta: float) -> bool:

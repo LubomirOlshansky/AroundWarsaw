@@ -13,9 +13,8 @@ var _frames := 0
 
 
 func _initialize() -> void:
-	map = load("res://scripts/map_builder.gd").new()
-	root.add_child(map)
-	map.build("res://map/centrum.json", ShaderMaterial.new(), ShaderMaterial.new())
+	# Loop 3c: the streamed city, every sector built from its file (the runtime path).
+	map = load("res://scripts/sector_streamer.gd").open_whole(root, "--prebuilt" in OS.get_cmdline_user_args())
 
 
 func _physics_process(_delta: float) -> bool:
