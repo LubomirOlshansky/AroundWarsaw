@@ -94,7 +94,7 @@ func _check_screen(screen: Vector2i) -> int:
 	var perf_text := "60 fps · 16.7 ms · worst 18.2 · cap 60 fps\nCPU 11.2 + 0.3 + 14.1 ms · GPU n/a · 670 MB\ndraws 153 = 53 + 35 + 65 · 0.45 M tris\nMedium ×3 fallback · gov GPU 2/2 · CPU 2/2 · wide"
 	for perf in [false, true]:
 		for state in ["car, Point", "car, Classic", "helicopter", "call came in", "call card", "rescued, paid",
-				"rescue, host, egg", "kebab offer", "kebab delivery", "race", "rival ahead", "landmark card", "tow toast",
+				"rescue, host, egg", "kebab offer", "kebab delivery", "race", "rival ahead", "landmark card", "note card", "tow toast",
 				"police chase", "lizak", "pull-over",
 				"ride offer", "ride", "ride result", "ride result, police"]:
 			if perf and not state in ["car, Point", "call card", "rescue, host, egg", "kebab offer", "kebab delivery", "landmark card"]:
@@ -157,6 +157,11 @@ func _check_screen(screen: Vector2i) -> int:
 				"landmark card":
 					hud.show_info("Pałac Kultury i Nauki", "Najwyższy budynek w Polsce do 2022 roku: 237 m z iglicą.",
 							"Poland's tallest building until 2022: 237 m with the spire.")
+					hud.ticker("87,3 NOCNA FM:  Pałac widać z każdego miejsca. Dlatego go lubimy.", Color("#ff5fc8"),
+							"You can see the Palace from everywhere. That's why we like it.")
+				# Landmark card fix: a note card with the radio ticker up and the car parked.
+				"note card":
+					hud.show_note("SEKRET 2/5 · EASTER EGG", "Gołębie na placu Defilad\nPigeons on Plac Defilad", Color("#ff4fd8"))
 					hud.ticker("87,3 NOCNA FM:  Pałac widać z każdego miejsca. Dlatego go lubimy.", Color("#ff5fc8"),
 							"You can see the Palace from everywhere. That's why we like it.")
 				"tow toast":
@@ -222,6 +227,16 @@ func _check_screen(screen: Vector2i) -> int:
 			await process_frame
 			bubbles.layout()
 			_check_state(hud, bubbles, "%s %s%s" % [tag, state, " + perf" if perf else ""])
+			# Landmark card fix: with the ticker up and the car parked, a tapped landmark's card
+			# (and a note card) must be on screen at once, not waiting for room, and not over the car.
+			if state in ["landmark card", "note card"]:
+				var card_name := "info" if state == "landmark card" else "note"
+				var rs: Dictionary = hud.named_rects()
+				var who := "%s %s%s" % [tag, state, " + perf" if perf else ""]
+				if not rs.has(card_name) or card_name in hud.waiting():
+					problems.append("%s: the %s card is not placed (it waits for room)" % [who, card_name])
+				elif (rs[card_name] as Rect2).intersects(hud.car_zone()):
+					problems.append("%s: the %s card %s is over the car's spot" % [who, card_name, _pts(rs[card_name], pt)])
 			count += 1
 	# The settings panel, every tab, and the bench card.
 	hud.clear_all()
