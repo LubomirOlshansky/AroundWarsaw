@@ -1,0 +1,1895 @@
+{
+  "_about": "Loop MW-0 (docs/design/vision.md 4.1): the 72 places of the MOJA WARSZAWA notebook, 8 in each of the 9 chapters listed in `chapters` (id, name_pl, name_en; the notebook's order). Each place: `id` (snake_case, unique), `chapter`, `name_pl` / `name_en` (the real place name, or the near-miss parody name for a venue: never a real business name, see brand_denylist.json), and its anchor: either `address` (a real street and number, resolved by the bake to the OSM address point) or `osm` (an English description of the anchor and the OSM tags that find it; business anchors by position only, never by name). `near` [lat, lon] is a rough hint (about ±150 m) for the bake's search and for the in-the-box check; the address or anchor wins. `radius` metres (25; 40 for squares, parks, bridges and large sites; `heli_radius` 60 where the helicopter finds it from below 60 m altitude). `fact` [pl, en] is true and checked; `joke` [pl, en] is ours; Polish lines are at most 70 characters. `hours` only for night venues: the game's own opening hours for the parody (PN WT ŚR CZ PT SB ND), not the real venue's. `tags` feed the notebook's filters, the night scene and later loops (`venue` marks a parody business; `then` a then-and-now spot, see then_cards.json; `wiralek_slot` numbers the three trend slots of vision.md 3.4). `guess`: true marks an anchor the user has not confirmed, with `guess_note`. Loop MW-1's bake resolves every anchor to map metres into `pois` kind `place`; `check_places.gd` then checks PL + EN, the 70 characters, inside the demo box (S 52.2183, W 20.9780, N 52.2525, E 21.0500), reachability and the brand denylist.",
+  "chapters": [
+    {
+      "id": "noc",
+      "name_pl": "Noc i techno",
+      "name_en": "Night and techno"
+    },
+    {
+      "id": "bary",
+      "name_pl": "Bary i nowa Warszawa",
+      "name_en": "Bars and new Warsaw"
+    },
+    {
+      "id": "schodki",
+      "name_pl": "Schodki nad Wisłą",
+      "name_en": "The river steps"
+    },
+    {
+      "id": "trendy",
+      "name_pl": "Kolejka po trend",
+      "name_en": "Queueing for the trend"
+    },
+    {
+      "id": "metro",
+      "name_pl": "Metro i nocne",
+      "name_en": "Metro and night buses"
+    },
+    {
+      "id": "jedzenie",
+      "name_pl": "Jedzenie",
+      "name_en": "Food"
+    },
+    {
+      "id": "codziennie",
+      "name_pl": "Na co dzień",
+      "name_en": "Everyday city"
+    },
+    {
+      "id": "retro",
+      "name_pl": "Retro i szyk",
+      "name_en": "Retro and chic"
+    },
+    {
+      "id": "kiedys",
+      "name_pl": "Teraz i kiedyś",
+      "name_en": "Now and then"
+    }
+  ],
+  "places": [
+    {
+      "id": "lusterko",
+      "chapter": "noc",
+      "name_pl": "Lusterko",
+      "name_en": "Lusterko",
+      "address": "Al. Jerozolimskie 6",
+      "near": [
+        52.2316,
+        21.0222
+      ],
+      "radius": 25,
+      "fact": [
+        "Palma przy rondzie de Gaulle'a stoi tu od 2002 roku.",
+        "The palm at Rondo de Gaulle'a has stood here since 2002."
+      ],
+      "joke": [
+        "Otwiera się, gdy inni zamykają. W niedzielę o dziewiątej też.",
+        "It opens when the rest close. At nine on a Sunday, too."
+      ],
+      "hours": "PT–ND 04:00–12:00",
+      "tags": [
+        "venue",
+        "club",
+        "after_hours",
+        "queue",
+        "dawn"
+      ]
+    },
+    {
+      "id": "smola",
+      "chapter": "noc",
+      "name_pl": "Smoła",
+      "name_en": "Smoła",
+      "address": "Smolna 38",
+      "near": [
+        52.2333,
+        21.0268
+      ],
+      "radius": 25,
+      "fact": [
+        "Nazwa Smolnej może pochodzić od dawnych składów smoły.",
+        "Smolna's name may come from the tar stores that once stood here."
+      ],
+      "joke": [
+        "Ulica od smoły, klub od smoły. O piątej rano podłoga też.",
+        "A street named after tar, a club named after tar. By five a.m., the floor too."
+      ],
+      "hours": "PT–SB 23:00–08:00",
+      "tags": [
+        "venue",
+        "club",
+        "queue",
+        "police_club"
+      ]
+    },
+    {
+      "id": "jasna_0",
+      "chapter": "noc",
+      "name_pl": "Jasna 0",
+      "name_en": "Jasna 0",
+      "address": "Jasna 1",
+      "near": [
+        52.2357,
+        21.0112
+      ],
+      "radius": 25,
+      "fact": [
+        "Pod pobliską Świętokrzyską od 2015 roku jeździ metro M2.",
+        "Under nearby Świętokrzyska, the M2 metro has run since 2015."
+      ],
+      "joke": [
+        "Poziom zero: piwnica pod numerem, którego nie ma.",
+        "Level zero: a cellar under a house number that doesn't exist."
+      ],
+      "hours": "PT–SB 23:00–06:00",
+      "tags": [
+        "venue",
+        "club",
+        "queue",
+        "cellar"
+      ]
+    },
+    {
+      "id": "level_26",
+      "chapter": "noc",
+      "name_pl": "Level 26",
+      "name_en": "Level 26",
+      "address": "Al. Jerozolimskie 123A (the top floor)",
+      "near": [
+        52.2246,
+        20.984
+      ],
+      "radius": 25,
+      "fact": [
+        "Wieża przy placu Zawiszy ma 116 metrów i stoi od 1999 roku.",
+        "The tower on Plac Zawiszy is 116 m tall and has stood since 1999."
+      ],
+      "joke": [
+        "Klub na dachu: bramkarz w windzie, kolejka w chmurach.",
+        "A rooftop club: the bouncer's in the lift, the queue's in the clouds."
+      ],
+      "hours": "CZ–SB 22:00–04:00",
+      "tags": [
+        "venue",
+        "club",
+        "tower",
+        "heli"
+      ],
+      "heli_radius": 60
+    },
+    {
+      "id": "lombard",
+      "chapter": "noc",
+      "name_pl": "Lombard",
+      "name_en": "Lombard",
+      "osm": "a club fascia on Mazowiecka between Świętokrzyska and Królewska, by address point (the real club's number), position only",
+      "near": [
+        52.2385,
+        21.013
+      ],
+      "radius": 25,
+      "fact": [
+        "Mazowiecka nosi nazwę od Mazowsza, regionu wokół Warszawy.",
+        "Mazowiecka is named after Mazovia, the region round Warsaw."
+      ],
+      "joke": [
+        "Wejście za zastaw. Zastaw: dobry humor do rana.",
+        "Entry against collateral. The collateral: your good mood till morning."
+      ],
+      "hours": "CZ–SB 22:00–05:00",
+      "tags": [
+        "venue",
+        "club",
+        "mazowiecka"
+      ]
+    },
+    {
+      "id": "milosc_hipoteczna",
+      "chapter": "noc",
+      "name_pl": "Miłość Hipoteczna",
+      "name_en": "Miłość Hipoteczna (Mortgage Love)",
+      "address": "Kredytowa 9",
+      "near": [
+        52.2386,
+        21.011
+      ],
+      "radius": 25,
+      "fact": [
+        "Przy Kredytowej 1 stoi gmach Towarzystwa Kredytowego z XIX wieku.",
+        "Kredytowa 1 is the 19th-century seat of the old Land Credit Society."
+      ],
+      "joke": [
+        "Miłość na trzydzieści lat. Rata co piątek.",
+        "Love on a thirty-year term. Repayments every Friday."
+      ],
+      "hours": "PT–SB 23:00–06:00",
+      "tags": [
+        "venue",
+        "club"
+      ]
+    },
+    {
+      "id": "syreni_szept",
+      "chapter": "noc",
+      "name_pl": "Syreni Szept",
+      "name_en": "Syreni Szept (The Mermaid's Whisper)",
+      "osm": "the low modernist glass pavilion on Rozbrat, Powiśle (closed; position only)",
+      "near": [
+        52.2285,
+        21.0355
+      ],
+      "radius": 25,
+      "fact": [
+        "Rozbrat to ulica na Powiślu, niedaleko Wisły.",
+        "Rozbrat is a street in Powiśle, close to the Vistula."
+      ],
+      "joke": [
+        "Kiedyś szeptało się tu do rana. Dziś pawilon śpi.",
+        "People once whispered here till dawn. Now the pavilion sleeps."
+      ],
+      "tags": [
+        "venue",
+        "club",
+        "closed",
+        "then",
+        "modernism"
+      ]
+    },
+    {
+      "id": "m2_1499",
+      "chapter": "bary",
+      "name_pl": "1499 M2",
+      "name_en": "1499 M2",
+      "address": "Emilii Plater 29",
+      "near": [
+        52.232,
+        21.0045
+      ],
+      "radius": 25,
+      "fact": [
+        "Ulica Emilii Plater biegnie tuż obok Pałacu Kultury.",
+        "Emilii Plater street runs right beside the Palace of Culture."
+      ],
+      "joke": [
+        "Hala na imprezy. Jeden metr oddali na szatnię.",
+        "An event hall. They gave one square metre to the cloakroom."
+      ],
+      "hours": "PT–SB 23:00–06:00",
+      "tags": [
+        "venue",
+        "club",
+        "events"
+      ]
+    },
+    {
+      "id": "hocki_bloki",
+      "chapter": "noc",
+      "name_pl": "Hocki Bloki",
+      "name_en": "Hocki Bloki",
+      "osm": "the riverside venue on the left bank under the west end of Most Poniatowskiego, river side of Wybrzeże Kościuszkowskie",
+      "near": [
+        52.233,
+        21.0405
+      ],
+      "radius": 25,
+      "fact": [
+        "Wisła płynie przez Warszawę z południa na północ.",
+        "The Vistula flows through Warsaw from south to north."
+      ],
+      "joke": [
+        "Raz się przeprowadził. Wisła nawet nie zauważyła.",
+        "It moved house once. The Vistula didn't even notice."
+      ],
+      "hours": "CZ–ND 16:00–02:00",
+      "tags": [
+        "venue",
+        "river",
+        "summer"
+      ]
+    },
+    {
+      "id": "plan_c",
+      "chapter": "bary",
+      "name_pl": "Plan C",
+      "name_en": "Plan C",
+      "address": "al. Wyzwolenia 18 (Plac Zbawiciela)",
+      "near": [
+        52.2193,
+        21.017
+      ],
+      "radius": 25,
+      "fact": [
+        "Plac Zbawiciela nazwano w 1922 roku od kościoła Zbawiciela.",
+        "Plac Zbawiciela was named in 1922 after the Church of the Holiest Saviour."
+      ],
+      "joke": [
+        "Wszyscy wpadają na chwilę. Chwila trwa do drugiej.",
+        "Everyone drops in for a minute. The minute lasts till two."
+      ],
+      "hours": "PN–ND 12:00–02:00",
+      "tags": [
+        "venue",
+        "bar",
+        "crowd",
+        "summer"
+      ]
+    },
+    {
+      "id": "apteczka",
+      "chapter": "bary",
+      "name_pl": "Apteczka",
+      "name_en": "Apteczka (First-aid Kit)",
+      "address": "Nowy Świat 22/28 (a pavilion in the courtyard)",
+      "near": [
+        52.2333,
+        21.0193
+      ],
+      "radius": 25,
+      "fact": [
+        "Nowy Świat to część Traktu Królewskiego.",
+        "Nowy Świat is part of the Royal Route."
+      ],
+      "joke": [
+        "Na receptę: herbata z sokiem. Dawkowanie: do rana.",
+        "On prescription: tea with juice. Dosage: until morning."
+      ],
+      "hours": "PN–ND 16:00–03:00",
+      "tags": [
+        "venue",
+        "bar"
+      ],
+      "guess": true,
+      "guess_note": "The real bar's street is unknown (vision.md Open Question 2). The user's 2026-10-29 answer puts APTECZKA 'in some centre': the Pawilony courtyards. Move it when the user names the street."
+    },
+    {
+      "id": "pawilony",
+      "chapter": "bary",
+      "name_pl": "Pawilony",
+      "name_en": "The Pavilions",
+      "address": "Nowy Świat 22/28 (the gate)",
+      "near": [
+        52.2331,
+        21.0198
+      ],
+      "radius": 25,
+      "fact": [
+        "Za bramą przy Nowym Świecie kryje się dziedziniec pawilonów.",
+        "Behind a gate on Nowy Świat hides a courtyard of tiny pavilions."
+      ],
+      "joke": [
+        "Dwadzieścia barów wielkości kiosku. Wyjścia szuka się do rana.",
+        "Twenty bars the size of a kiosk. People look for the way out till morning."
+      ],
+      "hours": "PN–ND 18:00–04:00",
+      "tags": [
+        "bar",
+        "courtyard",
+        "heli"
+      ]
+    },
+    {
+      "id": "przegryzki_zagryzki",
+      "chapter": "bary",
+      "name_pl": "Przegryzki Zagryzki",
+      "name_en": "Przegryzki Zagryzki (Nibbles and Bites)",
+      "address": "Krakowskie Przedmieście 13",
+      "near": [
+        52.2413,
+        21.0153
+      ],
+      "radius": 25,
+      "fact": [
+        "Gmach pod numerem 13 to XIX-wieczny hotel, otwarty znów w 2018.",
+        "No. 13 is a 19th-century hotel; it reopened after restoration in 2018."
+      ],
+      "joke": [
+        "Ceny okrągłe: 4, 8, 12. Liczyć umie każdy, nawet o drugiej.",
+        "Round prices: 4, 8, 12. Anyone can add up, even at two a.m."
+      ],
+      "hours": "PN–ND 12:00–04:00",
+      "tags": [
+        "venue",
+        "bar",
+        "royal_route"
+      ]
+    },
+    {
+      "id": "kasa_biletowa",
+      "chapter": "bary",
+      "name_pl": "Kasa Biletowa",
+      "name_en": "Kasa Biletowa (The Ticket Office)",
+      "address": "Kruczkowskiego 3B",
+      "near": [
+        52.233,
+        21.0322
+      ],
+      "radius": 25,
+      "fact": [
+        "Pawilon kasowy stacji Powiśle zbudowano w 1963 roku.",
+        "Powiśle station's ticket pavilion was built in 1963."
+      ],
+      "joke": [
+        "Bar w kasie biletowej. Pociąg odjeżdża, a ty siedzisz dalej.",
+        "A bar in a ticket hall. The train leaves; you stay put."
+      ],
+      "hours": "PN–ND 12:00–02:00",
+      "tags": [
+        "venue",
+        "bar",
+        "powisle",
+        "modernism"
+      ]
+    },
+    {
+      "id": "buw_ogrod",
+      "chapter": "bary",
+      "name_pl": "Ogród na dachu BUW",
+      "name_en": "The library roof garden",
+      "address": "Dobra 56/66",
+      "near": [
+        52.2423,
+        21.025
+      ],
+      "radius": 40,
+      "fact": [
+        "Ogród na dachu biblioteki otwarto w 2002 roku.",
+        "The library's roof garden opened in 2002."
+      ],
+      "joke": [
+        "Studenci uczą się na dachu. Tak przynajmniej mówią rodzicom.",
+        "Students study on the roof. At least that's what they tell their parents."
+      ],
+      "tags": [
+        "powisle",
+        "garden",
+        "heli",
+        "students"
+      ],
+      "heli_radius": 60
+    },
+    {
+      "id": "stara_elektrownia",
+      "chapter": "bary",
+      "name_pl": "Stara elektrownia",
+      "name_en": "The old power station",
+      "address": "Dobra 42",
+      "near": [
+        52.238,
+        21.03
+      ],
+      "radius": 40,
+      "fact": [
+        "Elektrownię budowano od 1904 roku; prąd dawała do 2001.",
+        "Built from 1904, the power station made electricity until 2001."
+      ],
+      "joke": [
+        "Kiedyś zasilała miasto. Dziś ładuje telefony.",
+        "It used to power the city. Now it charges phones."
+      ],
+      "tags": [
+        "powisle",
+        "food_hall",
+        "brick"
+      ]
+    },
+    {
+      "id": "schodki_kopernik",
+      "chapter": "schodki",
+      "name_pl": "Schodki przy Koperniku",
+      "name_en": "The steps by Kopernik",
+      "osm": "the wide stone steps down to the water on the left-bank boulevard east of Centrum Nauki Kopernik (highway=steps by the Vistula)",
+      "near": [
+        52.241,
+        21.0315
+      ],
+      "radius": 40,
+      "fact": [
+        "Pierwszy odcinek nowych bulwarów otwarto latem 2015 roku.",
+        "The first stretch of the new boulevards opened in summer 2015."
+      ],
+      "joke": [
+        "Siedzisz na granicie i patrzysz na Pragę. Praga patrzy na ciebie.",
+        "You sit on the granite looking at Praga. Praga looks back."
+      ],
+      "tags": [
+        "river",
+        "crowd",
+        "sunset",
+        "summer"
+      ]
+    },
+    {
+      "id": "bulwary",
+      "chapter": "schodki",
+      "name_pl": "Bulwary nad Wisłą",
+      "name_en": "The Vistula boulevards",
+      "osm": "the left-bank promenade between Most Świętokrzyski and Karowa",
+      "near": [
+        52.2445,
+        21.0255
+      ],
+      "radius": 40,
+      "fact": [
+        "Odcinek od mostu Świętokrzyskiego do Karowej otwarto w 2017.",
+        "The stretch from Most Świętokrzyski to Karowa opened in 2017."
+      ],
+      "joke": [
+        "Biegacze w jedną stronę, hulajnogi w drugą, a ty pośrodku.",
+        "Runners one way, scooters the other, and you in the middle."
+      ],
+      "tags": [
+        "river",
+        "runners",
+        "promenade"
+      ]
+    },
+    {
+      "id": "syrenka",
+      "chapter": "schodki",
+      "name_pl": "Syrenka nad Wisłą",
+      "name_en": "The Mermaid by the river",
+      "osm": "the Mermaid statue on Wybrzeże Kościuszkowskie by Most Świętokrzyski (historic=memorial / artwork)",
+      "near": [
+        52.2397,
+        21.033
+      ],
+      "radius": 25,
+      "fact": [
+        "Syrenka nad Wisłą stoi tu od 1939 roku.",
+        "The Mermaid by the Vistula has stood here since 1939."
+      ],
+      "joke": [
+        "Tarcza i miecz, a i tak wszyscy robią sobie z nią selfie.",
+        "Shield and sword, and everyone still takes a selfie with her."
+      ],
+      "tags": [
+        "river",
+        "statue",
+        "egg"
+      ]
+    },
+    {
+      "id": "poniatowka",
+      "chapter": "schodki",
+      "name_pl": "Plaża Poniatówka",
+      "name_en": "Poniatówka beach",
+      "osm": "the sand beach on the Praga bank just north of Most Poniatowskiego (natural=beach)",
+      "near": [
+        52.2355,
+        21.047
+      ],
+      "radius": 40,
+      "fact": [
+        "Praski brzeg Wisły jest w dużej części dziki i chroniony.",
+        "Much of the Praga bank of the Vistula is wild and protected."
+      ],
+      "joke": [
+        "Plaża po złej stronie rzeki, czyli po dobrej stronie zachodu.",
+        "A beach on the wrong side of the river, so the right side for the sunset."
+      ],
+      "tags": [
+        "river",
+        "beach",
+        "praga",
+        "sunset"
+      ]
+    },
+    {
+      "id": "fontanny_podzamcze",
+      "chapter": "schodki",
+      "name_pl": "Park fontann",
+      "name_en": "The fountain park",
+      "osm": "the Multimedia Fountain Park at Podzamcze, below the Old Town escarpment (amenity=fountain)",
+      "near": [
+        52.251,
+        21.015
+      ],
+      "radius": 40,
+      "fact": [
+        "Park fontann pod Starym Miastem działa od 2011 roku.",
+        "The fountain park below the Old Town has run since 2011."
+      ],
+      "joke": [
+        "Woda tańczy, światło gra, gołębie udają, że nie patrzą.",
+        "The water dances, the lights play, the pigeons pretend not to watch."
+      ],
+      "tags": [
+        "river",
+        "fountains",
+        "summer",
+        "dusk"
+      ]
+    },
+    {
+      "id": "most_swietokrzyski",
+      "chapter": "schodki",
+      "name_pl": "Most Świętokrzyski",
+      "name_en": "Most Świętokrzyski",
+      "osm": "the bridge's west end at Wybrzeże Kościuszkowskie, by the pylon",
+      "near": [
+        52.2405,
+        21.038
+      ],
+      "radius": 40,
+      "fact": [
+        "Most otwarto w 2000 roku. Trzyma go jeden pylon.",
+        "The bridge opened in 2000. A single pylon holds it up."
+      ],
+      "joke": [
+        "Jeden pylon trzyma cały most. Bez urlopu.",
+        "One pylon holds up the whole bridge. No holidays."
+      ],
+      "tags": [
+        "river",
+        "bridge"
+      ]
+    },
+    {
+      "id": "most_slasko_dabrowski",
+      "chapter": "schodki",
+      "name_pl": "Most Śląsko-Dąbrowski",
+      "name_en": "Most Śląsko-Dąbrowski",
+      "osm": "the bridge's west end above Wybrzeże Gdańskie, by the W-Z tunnel",
+      "near": [
+        52.2508,
+        21.02
+      ],
+      "radius": 40,
+      "fact": [
+        "Most stoi na filarach pierwszego stałego mostu z 1864 roku.",
+        "The bridge stands on the piers of Warsaw's first permanent bridge, from 1864."
+      ],
+      "joke": [
+        "Z mostu widać Stare Miasto. Ze Starego Miasta – korek na moście.",
+        "From the bridge you see the Old Town. From the Old Town, the jam on the bridge."
+      ],
+      "tags": [
+        "river",
+        "bridge",
+        "old_town"
+      ]
+    },
+    {
+      "id": "most_poniatowskiego",
+      "chapter": "schodki",
+      "name_pl": "Most Poniatowskiego",
+      "name_en": "Most Poniatowskiego",
+      "osm": "the bridge's west towers above Wybrzeże Kościuszkowskie",
+      "near": [
+        52.2337,
+        21.044
+      ],
+      "radius": 40,
+      "fact": [
+        "Most Poniatowskiego otwarto w 1914 roku.",
+        "Most Poniatowskiego opened in 1914."
+      ],
+      "joke": [
+        "Wieże jak przy zamku, a strażnicy dawno poszli na kebab.",
+        "Towers like a castle's, and the guards left for a kebab long ago."
+      ],
+      "tags": [
+        "river",
+        "bridge",
+        "kadr"
+      ]
+    },
+    {
+      "id": "plac_zbawiciela",
+      "chapter": "trendy",
+      "name_pl": "Plac Zbawiciela",
+      "name_en": "Plac Zbawiciela",
+      "osm": "the round square at Marszałkowska × Mokotowska × al. Wyzwolenia",
+      "near": [
+        52.2196,
+        21.017
+      ],
+      "radius": 40,
+      "fact": [
+        "Kamienice MDM wokół placu zbudowano w latach 1950–1952.",
+        "The MDM blocks round the square were built in 1950–1952."
+      ],
+      "joke": [
+        "Tu przychodzi się zobaczyć, kto przyszedł się pokazać.",
+        "You come here to see who came here to be seen."
+      ],
+      "tags": [
+        "square",
+        "crowd",
+        "mdm"
+      ]
+    },
+    {
+      "id": "wiralek_zbawiciela",
+      "chapter": "trendy",
+      "name_pl": "Wiralek na placu",
+      "name_en": "Wiralek on the square",
+      "osm": "a ground-floor shopfront in the arcades on the square's south side (Wiralek slot 1)",
+      "near": [
+        52.2192,
+        21.0163
+      ],
+      "radius": 25,
+      "fact": [
+        "Kościół Zbawiciela budowano od 1901 do 1927 roku.",
+        "The Church of the Holiest Saviour was built from 1901 to 1927."
+      ],
+      "joke": [
+        "Co tydzień nowość. Kolejka ta sama, tylko w innych okularach.",
+        "Something new every week. Same queue, different sunglasses."
+      ],
+      "tags": [
+        "venue",
+        "wiralek",
+        "queue"
+      ],
+      "wiralek_slot": 1
+    },
+    {
+      "id": "wiralek_chmielna",
+      "chapter": "trendy",
+      "name_pl": "Wiralek na Chmielnej",
+      "name_en": "Wiralek on Chmielna",
+      "osm": "a shopfront on the pedestrian part of Chmielna near Nowy Świat (Wiralek slot 2)",
+      "near": [
+        52.2335,
+        21.015
+      ],
+      "radius": 25,
+      "fact": [
+        "Chmielna ciągnie się od Nowego Światu aż za Dworzec Centralny.",
+        "Chmielna runs from Nowy Świat all the way past Dworzec Centralny."
+      ],
+      "joke": [
+        "Najwęższa kolejka w mieście: zajmuje całą ulicę.",
+        "The narrowest queue in town: it fills the whole street."
+      ],
+      "tags": [
+        "venue",
+        "wiralek",
+        "queue"
+      ],
+      "wiralek_slot": 2
+    },
+    {
+      "id": "wiralek_tamka",
+      "chapter": "trendy",
+      "name_pl": "Wiralek na Tamce",
+      "name_en": "Wiralek on Tamka",
+      "osm": "a shopfront on Tamka, Powiśle, between Kopernika and Topiel (Wiralek slot 3)",
+      "near": [
+        52.2375,
+        21.027
+      ],
+      "radius": 25,
+      "fact": [
+        "Tamka wzięła nazwę od małej tamy na dawnym strumieniu.",
+        "Tamka takes its name from a small dam on a stream that once ran here."
+      ],
+      "joke": [
+        "Kolejka schodzi z górki, więc wydaje się krótsza.",
+        "The queue runs downhill, so it feels shorter."
+      ],
+      "tags": [
+        "venue",
+        "wiralek",
+        "queue",
+        "powisle"
+      ],
+      "wiralek_slot": 3
+    },
+    {
+      "id": "glon_mokotowska",
+      "chapter": "trendy",
+      "name_pl": "Glon",
+      "name_en": "Glon (Algae)",
+      "osm": "a café by position on Mokotowska just north of Plac Zbawiciela (amenity=cafe, position only)",
+      "near": [
+        52.2213,
+        21.0183
+      ],
+      "radius": 25,
+      "fact": [
+        "Matcha to sproszkowane liście zielonej herbaty.",
+        "Matcha is green tea leaves ground to powder."
+      ],
+      "joke": [
+        "Pięć rodzajów matchy i jedna kawa. Dla odważnych.",
+        "Five kinds of matcha and one coffee. For the brave."
+      ],
+      "tags": [
+        "venue",
+        "cafe",
+        "matcha"
+      ]
+    },
+    {
+      "id": "glon_dobra",
+      "chapter": "trendy",
+      "name_pl": "Glon na Powiślu",
+      "name_en": "Glon in Powiśle",
+      "osm": "a café by position on Dobra, Powiśle (amenity=cafe, position only)",
+      "near": [
+        52.2395,
+        21.0262
+      ],
+      "radius": 25,
+      "fact": [
+        "Powiśle leży pod skarpą, między centrum a Wisłą.",
+        "Powiśle lies below the escarpment, between the centre and the river."
+      ],
+      "joke": [
+        "Matcha, laptop i trzy godziny Wi-Fi za jedną kawę.",
+        "A matcha, a laptop and three hours of Wi-Fi for one drink."
+      ],
+      "tags": [
+        "venue",
+        "cafe",
+        "matcha",
+        "powisle",
+        "students"
+      ]
+    },
+    {
+      "id": "lukrownia",
+      "chapter": "trendy",
+      "name_pl": "Lukrownia",
+      "name_en": "Lukrownia (The Icing House)",
+      "osm": "a bakery shopfront on Nowy Świat between Świętokrzyska and Chmielna (shop=pastry, position only)",
+      "near": [
+        52.2343,
+        21.0188
+      ],
+      "radius": 25,
+      "fact": [
+        "Tłusty czwartek to ostatni czwartek przed Wielkim Postem.",
+        "Fat Thursday is the last Thursday before Lent."
+      ],
+      "joke": [
+        "Raz w roku kolejka od świtu. Pączek jest tego wart. Podobno.",
+        "Once a year, a queue from dawn. The doughnut's worth it. Allegedly."
+      ],
+      "tags": [
+        "venue",
+        "bakery",
+        "queue",
+        "fat_thursday"
+      ]
+    },
+    {
+      "id": "nowy_swiat",
+      "chapter": "trendy",
+      "name_pl": "Nowy Świat",
+      "name_en": "Nowy Świat",
+      "osm": "Nowy Świat between Świętokrzyska and Ordynacka (the street's centre line)",
+      "near": [
+        52.235,
+        21.0185
+      ],
+      "radius": 25,
+      "fact": [
+        "Kamienice Nowego Światu odbudowano po wojnie w stylu klasycystycznym.",
+        "Nowy Świat's houses were rebuilt after the war in the classicist style."
+      ],
+      "joke": [
+        "Spacer od placu do placu i trzy nowe kawiarnie po drodze.",
+        "A walk from square to square, and three new cafés on the way."
+      ],
+      "tags": [
+        "street",
+        "royal_route",
+        "cafes"
+      ]
+    },
+    {
+      "id": "ratusz_arsenal",
+      "chapter": "metro",
+      "name_pl": "Metro Ratusz Arsenał",
+      "name_en": "Ratusz Arsenał station",
+      "osm": "the M1 entrances at Plac Bankowy (railway=subway_entrance)",
+      "near": [
+        52.2445,
+        21.0015
+      ],
+      "radius": 25,
+      "fact": [
+        "Arsenał przy stacji zbudowano w XVII wieku; dziś to muzeum.",
+        "The Arsenal by the station is 17th-century; it's a museum now."
+      ],
+      "joke": [
+        "Wysiadasz przy ratuszu. Urząd otwarty, kolejka też.",
+        "You get off by the town hall. The office is open, and so is the queue."
+      ],
+      "tags": [
+        "metro",
+        "m1"
+      ]
+    },
+    {
+      "id": "swietokrzyska_metro",
+      "chapter": "metro",
+      "name_pl": "Metro Świętokrzyska",
+      "name_en": "Świętokrzyska station",
+      "osm": "the entrances at Marszałkowska × Świętokrzyska (railway=subway_entrance)",
+      "near": [
+        52.2353,
+        21.008
+      ],
+      "radius": 25,
+      "fact": [
+        "To jedyna stacja, na której krzyżują się linie M1 i M2.",
+        "It's the only station where lines M1 and M2 cross."
+      ],
+      "joke": [
+        "Przesiadka w trzy minuty, jeśli znasz schody na pamięć.",
+        "A three-minute change, if you know the stairs by heart."
+      ],
+      "tags": [
+        "metro",
+        "m1",
+        "m2",
+        "interchange"
+      ]
+    },
+    {
+      "id": "patelnia",
+      "chapter": "metro",
+      "name_pl": "Patelnia",
+      "name_en": "The Patelnia",
+      "osm": "the sunken square at Metro Centrum's exit, Marszałkowska × Al. Jerozolimskie",
+      "near": [
+        52.2312,
+        21.0105
+      ],
+      "radius": 40,
+      "fact": [
+        "Zagłębiony plac przy wyjściu z metra Centrum to Patelnia.",
+        "The sunken square by Metro Centrum's exit is the Patelnia, the Frying Pan."
+      ],
+      "joke": [
+        "W lipcu nazwa sprawdza się co do stopnia.",
+        "In July the name proves accurate to the degree."
+      ],
+      "tags": [
+        "metro",
+        "m1",
+        "square",
+        "buskers",
+        "egg"
+      ]
+    },
+    {
+      "id": "politechnika",
+      "chapter": "metro",
+      "name_pl": "Metro Politechnika",
+      "name_en": "Politechnika station",
+      "osm": "the M1 entrances on Waryńskiego at Plac Politechniki (railway=subway_entrance)",
+      "near": [
+        52.219,
+        21.0148
+      ],
+      "radius": 25,
+      "fact": [
+        "Stację otwarto w 1995 roku, z pierwszym odcinkiem metra.",
+        "The station opened in 1995, with the metro's first section."
+      ],
+      "joke": [
+        "Studenci wysiadają tu z nadzieją, a wracają z projektem.",
+        "Students get off here with hope and go home with a project."
+      ],
+      "tags": [
+        "metro",
+        "m1",
+        "edge",
+        "students"
+      ]
+    },
+    {
+      "id": "rondo_onz",
+      "chapter": "metro",
+      "name_pl": "Metro Rondo ONZ",
+      "name_en": "Rondo ONZ station",
+      "osm": "the M2 entrances at Rondo ONZ (railway=subway_entrance)",
+      "near": [
+        52.233,
+        20.9985
+      ],
+      "radius": 25,
+      "fact": [
+        "Stacja Rondo ONZ działa od 2015 roku, na linii M2.",
+        "Rondo ONZ station has run since 2015, on line M2."
+      ],
+      "joke": [
+        "Wieże dookoła, wiatr w gratisie.",
+        "Towers all round, and the wind comes free."
+      ],
+      "tags": [
+        "metro",
+        "m2",
+        "towers"
+      ]
+    },
+    {
+      "id": "nowy_swiat_uniwersytet",
+      "chapter": "metro",
+      "name_pl": "Metro Nowy Świat-Uniwersytet",
+      "name_en": "Nowy Świat-Uniwersytet station",
+      "osm": "the M2 entrances at Nowy Świat × Świętokrzyska (railway=subway_entrance)",
+      "near": [
+        52.2365,
+        21.0175
+      ],
+      "radius": 25,
+      "fact": [
+        "Stacja jest kilka kroków od głównego kampusu uniwersytetu.",
+        "The station is a few steps from the university's main campus."
+      ],
+      "joke": [
+        "Dwa wyjścia: na wykład i na kawę. Wybór jest oczywisty.",
+        "Two exits: to the lecture and to coffee. The choice is obvious."
+      ],
+      "tags": [
+        "metro",
+        "m2",
+        "students"
+      ]
+    },
+    {
+      "id": "stadion_metro",
+      "chapter": "metro",
+      "name_pl": "Metro Stadion Narodowy",
+      "name_en": "Stadion Narodowy station",
+      "osm": "the M2 entrances on Al. Zieleniecka by the stadium (railway=subway_entrance)",
+      "near": [
+        52.2385,
+        21.044
+      ],
+      "radius": 25,
+      "fact": [
+        "Stacja Stadion Narodowy działa od 2015 roku, po praskiej stronie.",
+        "Stadion Narodowy station has run since 2015, on the Praga side."
+      ],
+      "joke": [
+        "W dzień meczu peron śpiewa głośniej niż trybuny.",
+        "On match days the platform sings louder than the stands."
+      ],
+      "tags": [
+        "metro",
+        "m2",
+        "praga",
+        "stadium"
+      ]
+    },
+    {
+      "id": "dworzec_centralny",
+      "chapter": "metro",
+      "name_pl": "Dworzec Centralny",
+      "name_en": "Dworzec Centralny (Central Station)",
+      "osm": "the station hall on Al. Jerozolimskie and the night-bus stops in front of it",
+      "near": [
+        52.2285,
+        21.003
+      ],
+      "radius": 40,
+      "fact": [
+        "Dworzec Centralny otwarto w 1975 roku.",
+        "Dworzec Centralny opened in 1975."
+      ],
+      "joke": [
+        "Perony pod ziemią, hala na górze, a ludzie zawsze pośrodku.",
+        "Platforms underground, the hall above, and people always in between."
+      ],
+      "tags": [
+        "rail",
+        "night_bus",
+        "hub"
+      ]
+    },
+    {
+      "id": "bar_pyzowy",
+      "chapter": "jedzenie",
+      "name_pl": "Bar Pyzowy",
+      "name_en": "Bar Pyzowy (The Dumpling Bar)",
+      "osm": "a 1960s glass shopfront on Marszałkowska just north of Plac Konstytucji (position only)",
+      "near": [
+        52.2232,
+        21.0152
+      ],
+      "radius": 25,
+      "fact": [
+        "Pierwszy bar mleczny w Warszawie otwarto w 1896 roku.",
+        "Warsaw's first milk bar opened in 1896."
+      ],
+      "joke": [
+        "O trzynastej w kolejce student, emerytka i prezes. Wszyscy po pyzy.",
+        "At one p.m. the queue holds a student, a pensioner and a CEO. All for dumplings."
+      ],
+      "tags": [
+        "venue",
+        "milk_bar",
+        "lunch",
+        "mdm"
+      ]
+    },
+    {
+      "id": "hala_mirowska",
+      "chapter": "jedzenie",
+      "name_pl": "Hala Mirowska",
+      "name_en": "Hala Mirowska",
+      "address": "Plac Mirowski 1",
+      "near": [
+        52.2405,
+        20.9993
+      ],
+      "radius": 40,
+      "fact": [
+        "Hale budowano od 1899 roku w miejscu koszar Mirowskich.",
+        "The halls went up from 1899 where the Mirów barracks stood."
+      ],
+      "joke": [
+        "Pod jednym dachem kwiaty, ogórki i rozmowa o pogodzie.",
+        "Under one roof: flowers, cucumbers and a chat about the weather."
+      ],
+      "tags": [
+        "market",
+        "hall",
+        "brick"
+      ]
+    },
+    {
+      "id": "hala_gwardii",
+      "chapter": "jedzenie",
+      "name_pl": "Hala Gwardii",
+      "name_en": "Hala Gwardii",
+      "address": "Plac Żelaznej Bramy 1",
+      "near": [
+        52.2392,
+        20.9997
+      ],
+      "radius": 40,
+      "fact": [
+        "Po wojnie trenowali tu bokserzy; w 1953 były mistrzostwa Europy.",
+        "After the war boxers trained here; the 1953 European championships were held here."
+      ],
+      "joke": [
+        "Dawniej ring, dziś stoły. Walczy się o wolne miejsce.",
+        "Once a ring, now tables. People fight for a free seat."
+      ],
+      "tags": [
+        "market",
+        "hall",
+        "food_hall",
+        "brick"
+      ]
+    },
+    {
+      "id": "u_zdzicha",
+      "chapter": "jedzenie",
+      "name_pl": "U Zdzicha",
+      "name_en": "U Zdzicha (At Zdzich's)",
+      "osm": "the kebab stand by Hala Mirowska (parodies.md 6.1, a named stand)",
+      "near": [
+        52.2412,
+        20.9982
+      ],
+      "radius": 25,
+      "fact": [
+        "Mirów wziął nazwę od hal, a hale od dawnych koszar.",
+        "Mirów is named after the halls, and the halls after the old barracks."
+      ],
+      "joke": [
+        "Zdzich pamięta każde zamówienie. Twoje też, niestety.",
+        "Zdzich remembers every order. Yours too, sadly."
+      ],
+      "tags": [
+        "venue",
+        "kebab"
+      ]
+    },
+    {
+      "id": "na_cienkim",
+      "chapter": "jedzenie",
+      "name_pl": "Na cienkim",
+      "name_en": "Na cienkim (Thin Bread)",
+      "osm": "the kebab stand on Plac Zbawiciela (parodies.md 6.1, a named stand)",
+      "near": [
+        52.2199,
+        21.0178
+      ],
+      "radius": 25,
+      "fact": [
+        "Tramwaje przejeżdżają przez plac Zbawiciela po łuku.",
+        "The trams cross Plac Zbawiciela on a curve."
+      ],
+      "joke": [
+        "Na cienkim czy na grubym? O drugiej w nocy każdy jest smakoszem.",
+        "Thin bread or thick? At two a.m. everyone's a connoisseur."
+      ],
+      "tags": [
+        "venue",
+        "kebab",
+        "night"
+      ]
+    },
+    {
+      "id": "kebab_palma",
+      "chapter": "jedzenie",
+      "name_pl": "Kebab pod Palmą",
+      "name_en": "The kebab by the Palm",
+      "osm": "the kebab stand nearest Rondo de Gaulle'a on the dawn crowd's path (parodies.md 6.1)",
+      "near": [
+        52.231,
+        21.0215
+      ],
+      "radius": 25,
+      "fact": [
+        "Przy rondzie de Gaulle'a Nowy Świat krzyżuje się z Alejami.",
+        "At Rondo de Gaulle'a, Nowy Świat crosses Aleje Jerozolimskie."
+      ],
+      "joke": [
+        "O szóstej rano kolejka w okularach. Kebab ją rozumie.",
+        "At six a.m., a queue in sunglasses. The kebab understands."
+      ],
+      "tags": [
+        "kebab",
+        "dawn"
+      ]
+    },
+    {
+      "id": "kebab_zabkowska",
+      "chapter": "jedzenie",
+      "name_pl": "Kebab na Ząbkowskiej",
+      "name_en": "The kebab on Ząbkowska",
+      "osm": "the kebab stand on Ząbkowska near Targowa (parodies.md 6.1)",
+      "near": [
+        52.251,
+        21.039
+      ],
+      "radius": 25,
+      "fact": [
+        "Ząbkowska to jedna z najstarszych ulic Pragi.",
+        "Ząbkowska is one of Praga's oldest streets."
+      ],
+      "joke": [
+        "Po praskiej stronie porcja większa. Tak mówią na Pradze.",
+        "On the Praga side the portions are bigger. So they say in Praga."
+      ],
+      "tags": [
+        "kebab",
+        "praga"
+      ]
+    },
+    {
+      "id": "kebab_stadion",
+      "chapter": "jedzenie",
+      "name_pl": "Kebab przy stadionie",
+      "name_en": "The kebab by the stadium",
+      "osm": "the kebab stand on the stadium's north side (parodies.md 6.1)",
+      "near": [
+        52.2412,
+        21.0452
+      ],
+      "radius": 25,
+      "fact": [
+        "Stadion Narodowy ma dach, który można zasunąć.",
+        "The National Stadium has a roof that can close."
+      ],
+      "joke": [
+        "Po meczu kebab smakuje jak zwycięstwo. Albo jak pocieszenie.",
+        "After a match, kebab tastes like victory. Or like consolation."
+      ],
+      "tags": [
+        "kebab",
+        "stadium",
+        "praga"
+      ]
+    },
+    {
+      "id": "merdak",
+      "chapter": "codziennie",
+      "name_pl": "Merdak",
+      "name_en": "Merdak (Wag)",
+      "osm": "a pet shop by position on Solec, Powiśle (shop=pet, position only)",
+      "near": [
+        52.234,
+        21.036
+      ],
+      "radius": 25,
+      "fact": [
+        "Solec biegnie wzdłuż Wisły, u stóp Powiśla.",
+        "Solec runs along the Vistula, at the foot of Powiśle."
+      ],
+      "joke": [
+        "Psy wchodzą tu jak do siebie. Właściciele płacą.",
+        "The dogs walk in like they own it. The owners pay."
+      ],
+      "tags": [
+        "venue",
+        "pets",
+        "dogs",
+        "powisle"
+      ]
+    },
+    {
+      "id": "rowerilo_dock",
+      "chapter": "codziennie",
+      "name_pl": "Stacja Rowerilo",
+      "name_en": "A Rowerilo dock",
+      "osm": "the city-bike dock by Metro Centrum Nauki Kopernik (amenity=bicycle_rental)",
+      "near": [
+        52.2398,
+        21.0298
+      ],
+      "radius": 25,
+      "fact": [
+        "Rowery miejskie ruszyły w Warszawie 1 sierpnia 2012 roku.",
+        "Warsaw's city bikes started on 1 August 2012."
+      ],
+      "joke": [
+        "Rower jest, kosz jest, dzwonek jest. Siodełko ktoś podniósł.",
+        "Bike, basket, bell. Someone's raised the saddle."
+      ],
+      "tags": [
+        "venue",
+        "bikes"
+      ]
+    },
+    {
+      "id": "kolka_start",
+      "chapter": "codziennie",
+      "name_pl": "Zbiórka Kolki",
+      "name_en": "Where Kolka meets",
+      "osm": "the boulevard at the north side of Centrum Nauki Kopernik, by the river",
+      "near": [
+        52.243,
+        21.029
+      ],
+      "radius": 25,
+      "fact": [
+        "Wybrzeże Kościuszkowskie biegnie wzdłuż lewego brzegu Wisły.",
+        "Wybrzeże Kościuszkowskie runs along the Vistula's left bank."
+      ],
+      "joke": [
+        "Kolka w środę, zakwasy w czwartek, przechwałki w piątek.",
+        "Kolka on Wednesday, sore legs on Thursday, bragging on Friday."
+      ],
+      "tags": [
+        "venue",
+        "runners",
+        "wednesday"
+      ]
+    },
+    {
+      "id": "hyrax_narodowy",
+      "chapter": "codziennie",
+      "name_pl": "Hyrax pod stadionem",
+      "name_en": "Hyrax at the stadium",
+      "osm": "the forecourt on the stadium's north side (Saturday race cordon)",
+      "near": [
+        52.2405,
+        21.0462
+      ],
+      "radius": 40,
+      "fact": [
+        "Stadion Narodowy stoi w misie dawnego stadionu z 1955 roku.",
+        "The National Stadium stands in the bowl of the old 1955 stadium."
+      ],
+      "joke": [
+        "Biegnij, nieś, wchodź po schodach. Medal za udział, ból gratis.",
+        "Run, carry, climb the stairs. A medal for taking part, the pain is free."
+      ],
+      "tags": [
+        "venue",
+        "runners",
+        "saturday",
+        "stadium"
+      ]
+    },
+    {
+      "id": "ogrod_saski",
+      "chapter": "codziennie",
+      "name_pl": "Ogród Saski",
+      "name_en": "The Saxon Garden",
+      "osm": "the garden's central alley east of Marszałkowska (leisure=park)",
+      "near": [
+        52.2405,
+        21.008
+      ],
+      "radius": 40,
+      "fact": [
+        "Ogród Saski udostępniono mieszkańcom w 1727 roku.",
+        "The Saxon Garden opened to the public in 1727."
+      ],
+      "joke": [
+        "Najstarszy park dla wszystkich. Gołębie mają tu staż.",
+        "The oldest park for everyone. The pigeons have seniority here."
+      ],
+      "tags": [
+        "park",
+        "dogs",
+        "runners"
+      ]
+    },
+    {
+      "id": "ogrod_krasinskich",
+      "chapter": "codziennie",
+      "name_pl": "Ogród Krasińskich",
+      "name_en": "The Krasiński Garden",
+      "osm": "the park behind the Krasiński palace, Muranów (leisure=park)",
+      "near": [
+        52.249,
+        21.0012
+      ],
+      "radius": 40,
+      "fact": [
+        "Ogród przy pałacu Krasińskich jest publiczny od XVIII wieku.",
+        "The garden by the Krasiński palace has been public since the 18th century."
+      ],
+      "joke": [
+        "Psy spacerują tu od rana. Ludzie przy okazji.",
+        "The dogs walk here from first light. The people come along."
+      ],
+      "tags": [
+        "park",
+        "dogs",
+        "muranow"
+      ]
+    },
+    {
+      "id": "krakowskie_przedmiescie",
+      "chapter": "codziennie",
+      "name_pl": "Krakowskie Przedmieście",
+      "name_en": "Krakowskie Przedmieście",
+      "osm": "the Copernicus statue on Krakowskie Przedmieście",
+      "near": [
+        52.2405,
+        21.0185
+      ],
+      "radius": 25,
+      "fact": [
+        "Pomnik Kopernika stoi tu od 1830 roku.",
+        "The Copernicus statue has stood here since 1830."
+      ],
+      "joke": [
+        "Kopernik patrzy w niebo, a turyści w telefony.",
+        "Copernicus looks at the sky; the tourists look at their phones."
+      ],
+      "tags": [
+        "street",
+        "royal_route",
+        "statue"
+      ]
+    },
+    {
+      "id": "karowa",
+      "chapter": "codziennie",
+      "name_pl": "Wiadukt na Karowej",
+      "name_en": "The Karowa viaduct",
+      "osm": "the curved viaduct carrying Karowa down the escarpment",
+      "near": [
+        52.244,
+        21.0205
+      ],
+      "radius": 25,
+      "fact": [
+        "Wiadukt na Karowej otwarto w 1905 roku.",
+        "The Karowa viaduct opened in 1905."
+      ],
+      "joke": [
+        "Zakręt, który kierowcy biorą powoli. Z przyjemności.",
+        "A bend that drivers take slowly. For the pleasure of it."
+      ],
+      "tags": [
+        "street",
+        "viaduct",
+        "slow_drive"
+      ]
+    },
+    {
+      "id": "zwir",
+      "chapter": "retro",
+      "name_pl": "Żwir",
+      "name_en": "Żwir (Gravel)",
+      "address": "Kredytowa 9 (upstairs)",
+      "near": [
+        52.2387,
+        21.0108
+      ],
+      "radius": 25,
+      "fact": [
+        "Tuż obok, przy placu Małachowskiego, stoi Zachęta z 1900 roku.",
+        "Right next door, on Plac Małachowskiego, stands the Zachęta gallery of 1900."
+      ],
+      "joke": [
+        "Płyta za dwadzieścia, rozmowa o niej gratis. Długa.",
+        "A record for twenty, the chat about it for free. A long one."
+      ],
+      "tags": [
+        "venue",
+        "records"
+      ]
+    },
+    {
+      "id": "mokotowska",
+      "chapter": "retro",
+      "name_pl": "Mokotowska",
+      "name_en": "Mokotowska",
+      "osm": "Mokotowska between Hoża and Wilcza (the design-shop stretch)",
+      "near": [
+        52.2255,
+        21.0205
+      ],
+      "radius": 25,
+      "fact": [
+        "Mokotowska biegnie od placu Trzech Krzyży do placu Zbawiciela.",
+        "Mokotowska runs from Plac Trzech Krzyży to Plac Zbawiciela."
+      ],
+      "joke": [
+        "Krzesło z PRL-u w witrynie. Cena jak za auto z PRL-u.",
+        "A communist-era chair in the window. Priced like a communist-era car."
+      ],
+      "tags": [
+        "street",
+        "design",
+        "vintage"
+      ]
+    },
+    {
+      "id": "plac_konstytucji",
+      "chapter": "retro",
+      "name_pl": "Plac Konstytucji",
+      "name_en": "Plac Konstytucji",
+      "osm": "the MDM square at Marszałkowska × Piękna × Waryńskiego",
+      "near": [
+        52.2224,
+        21.0158
+      ],
+      "radius": 40,
+      "fact": [
+        "Neon z siatkarką powstał tu w 1961 roku.",
+        "The volleyball-player neon here dates from 1961."
+      ],
+      "joke": [
+        "Piłka w powietrzu od sześćdziesięciu lat. Nikt jej nie odbił.",
+        "The ball's been in the air for sixty years. Nobody has returned it."
+      ],
+      "tags": [
+        "square",
+        "neon",
+        "mdm",
+        "kadr"
+      ]
+    },
+    {
+      "id": "sciana_wschodnia",
+      "chapter": "retro",
+      "name_pl": "Ściana Wschodnia",
+      "name_en": "The Eastern Wall",
+      "osm": "the 1960s east side of Marszałkowska between Świętokrzyska and Al. Jerozolimskie",
+      "near": [
+        52.233,
+        21.0125
+      ],
+      "radius": 25,
+      "fact": [
+        "Ścianę Wschodnią Marszałkowskiej zbudowano w latach 60.",
+        "Marszałkowska's Eastern Wall was built in the 1960s."
+      ],
+      "joke": [
+        "Neony świecą tu dłużej, niż trwa remont. Ledwo.",
+        "The neons have shone here longer than the roadworks have lasted. Barely."
+      ],
+      "tags": [
+        "street",
+        "neon",
+        "modernism"
+      ]
+    },
+    {
+      "id": "wiezowiec_1933",
+      "chapter": "retro",
+      "name_pl": "Pierwszy drapacz chmur",
+      "name_en": "The first skyscraper",
+      "osm": "the stepped 1933 tower on Plac Powstańców Warszawy",
+      "near": [
+        52.2355,
+        21.0095
+      ],
+      "radius": 25,
+      "fact": [
+        "Wieżowiec z 1933 roku ma 66 m; do 1955 był najwyższy w mieście.",
+        "The 1933 tower is 66 m tall; it was the city's tallest until 1955."
+      ],
+      "joke": [
+        "Był najwyższy, zanim to stało się modne.",
+        "It was the tallest before that was trendy."
+      ],
+      "tags": [
+        "tower",
+        "heli",
+        "modernism"
+      ],
+      "heli_radius": 60
+    },
+    {
+      "id": "plac_trzech_krzyzy",
+      "chapter": "retro",
+      "name_pl": "Plac Trzech Krzyży",
+      "name_en": "Plac Trzech Krzyży",
+      "osm": "the square round St Alexander's church at the top of Nowy Świat",
+      "near": [
+        52.2288,
+        21.0222
+      ],
+      "radius": 40,
+      "fact": [
+        "Kościół św. Aleksandra wzorowano na rzymskim Panteonie.",
+        "St Alexander's church was modelled on the Pantheon in Rome."
+      ],
+      "joke": [
+        "O drugiej w nocy najcichsze miejsce w centrum. Słychać neony.",
+        "At two a.m., the quietest spot in the centre. You can hear the neons."
+      ],
+      "tags": [
+        "square",
+        "church",
+        "night",
+        "quiet"
+      ]
+    },
+    {
+      "id": "rynek_starego_miasta",
+      "chapter": "retro",
+      "name_pl": "Rynek Starego Miasta",
+      "name_en": "The Old Town Market Square",
+      "osm": "the Old Town Market Square (place=square)",
+      "near": [
+        52.2497,
+        21.0122
+      ],
+      "radius": 40,
+      "fact": [
+        "Stare Miasto odbudowano po wojnie; od 1980 jest na liście UNESCO.",
+        "The Old Town was rebuilt after the war; it has been on the UNESCO list since 1980."
+      ],
+      "joke": [
+        "Dorożka, gołąb, turysta z mapą. Ten sam układ od lat.",
+        "A carriage, a pigeon, a tourist with a map. The same line-up for years."
+      ],
+      "tags": [
+        "square",
+        "old_town"
+      ]
+    },
+    {
+      "id": "barbakan",
+      "chapter": "retro",
+      "name_pl": "Barbakan",
+      "name_en": "The Barbican",
+      "osm": "the Barbican on the Old Town walls, Nowomiejska",
+      "near": [
+        52.2515,
+        21.0095
+      ],
+      "radius": 25,
+      "fact": [
+        "Barbakan wzniesiono w 1540 roku; odbudowano go w latach 50.",
+        "The Barbican went up in 1540 and was rebuilt in the 1950s."
+      ],
+      "joke": [
+        "Mury bronią miasta. Dziś głównie przed nudą.",
+        "The walls defend the city. These days mostly against boredom."
+      ],
+      "tags": [
+        "old_town",
+        "walls"
+      ]
+    },
+    {
+      "id": "plac_defilad",
+      "chapter": "kiedys",
+      "name_pl": "Plac Defilad",
+      "name_en": "Plac Defilad",
+      "osm": "the square east of the Palace of Culture, by Marszałkowska",
+      "near": [
+        52.231,
+        21.0085
+      ],
+      "radius": 40,
+      "fact": [
+        "Plac Defilad należy do największych placów w Europie.",
+        "Plac Defilad is one of the largest squares in Europe."
+      ],
+      "joke": [
+        "Tyle miejsca, że gołębie urządziły tu sobie stolicę.",
+        "So much space that the pigeons set up their own capital here."
+      ],
+      "tags": [
+        "square",
+        "then",
+        "pigeons"
+      ]
+    },
+    {
+      "id": "muzeum_defilad",
+      "chapter": "kiedys",
+      "name_pl": "Nowe muzeum",
+      "name_en": "The new museum",
+      "osm": "the white museum building at the square's north-east corner, Marszałkowska × Świętokrzyska",
+      "near": [
+        52.2335,
+        21.0088
+      ],
+      "radius": 25,
+      "fact": [
+        "Biały gmach muzeum sztuki otwarto w październiku 2024 roku.",
+        "The white art-museum building opened in October 2024."
+      ],
+      "joke": [
+        "Biały prostopadłościan przy Pałacu. Pałac udaje, że nie widzi.",
+        "A white box beside the Palace. The Palace pretends not to see."
+      ],
+      "tags": [
+        "museum",
+        "then"
+      ]
+    },
+    {
+      "id": "palac_kultury",
+      "chapter": "kiedys",
+      "name_pl": "Pałac Kultury",
+      "name_en": "The Palace of Culture",
+      "osm": "the Palace of Culture and Science (existing landmark)",
+      "near": [
+        52.2318,
+        21.006
+      ],
+      "radius": 40,
+      "fact": [
+        "Pałac ma 237 metrów; był najwyższy w Polsce do 2021 roku.",
+        "The Palace is 237 m tall; it was Poland's tallest until 2021."
+      ],
+      "joke": [
+        "Zegar na wieży widać z pół miasta. Spóźnieni widzą go najlepiej.",
+        "The tower clock shows from half the city. Latecomers see it best."
+      ],
+      "tags": [
+        "landmark",
+        "then",
+        "heli"
+      ],
+      "heli_radius": 60
+    },
+    {
+      "id": "stadion_narodowy",
+      "chapter": "kiedys",
+      "name_pl": "Stadion Narodowy",
+      "name_en": "The National Stadium",
+      "osm": "the National Stadium (existing landmark), its west gate",
+      "near": [
+        52.2395,
+        21.0458
+      ],
+      "radius": 40,
+      "fact": [
+        "Mecz otwarcia Euro 2012 rozegrano tu 8 czerwca 2012 roku.",
+        "Euro 2012's opening match was played here on 8 June 2012."
+      ],
+      "joke": [
+        "Wygląda jak koszyk, a mieści prawie sześćdziesiąt tysięcy kibiców.",
+        "It looks like a basket and holds almost sixty thousand fans."
+      ],
+      "tags": [
+        "landmark",
+        "then",
+        "stadium",
+        "praga"
+      ]
+    },
+    {
+      "id": "rotunda",
+      "chapter": "kiedys",
+      "name_pl": "Rotunda",
+      "name_en": "The Rotunda",
+      "osm": "the round pavilion at Rondo Dmowskiego (existing landmark)",
+      "near": [
+        52.231,
+        21.0115
+      ],
+      "radius": 25,
+      "fact": [
+        "Nową Rotundę, w dawnym kształcie, otwarto w 2019 roku.",
+        "The new Rotunda, in its old shape, opened in 2019."
+      ],
+      "joke": [
+        "Okrągła jak zawsze. Pół miasta umawia się „pod Rotundą”.",
+        "Round as ever. Half the city still says \"meet you at the Rotunda\"."
+      ],
+      "tags": [
+        "landmark",
+        "then",
+        "meeting_point"
+      ]
+    },
+    {
+      "id": "rondo_daszynskiego",
+      "chapter": "kiedys",
+      "name_pl": "Rondo Daszyńskiego",
+      "name_en": "Rondo Daszyńskiego",
+      "osm": "the roundabout at Prosta × Towarowa × Okopowa, its towers",
+      "near": [
+        52.23,
+        20.983
+      ],
+      "radius": 40,
+      "fact": [
+        "Najwyższa wieża przy rondzie ma ze szpicem 220 metrów.",
+        "The tallest tower at the roundabout is 220 m with its spire."
+      ],
+      "joke": [
+        "Nowy Mordor: laptop w plecaku, lunch w pudełku, metro pod nogami.",
+        "New Mordor: laptop in the backpack, lunch in a box, metro underfoot."
+      ],
+      "tags": [
+        "square",
+        "then",
+        "towers",
+        "mordor",
+        "metro"
+      ]
+    },
+    {
+      "id": "centrum_nauki_kopernik",
+      "chapter": "kiedys",
+      "name_pl": "Centrum Nauki Kopernik",
+      "name_en": "The Kopernik science centre",
+      "osm": "the science centre on Wybrzeże Kościuszkowskie (existing landmark), its entrance",
+      "near": [
+        52.2419,
+        21.0285
+      ],
+      "radius": 40,
+      "fact": [
+        "Planetarium przy centrum nauki działa od czerwca 2011 roku.",
+        "The planetarium by the science centre has run since June 2011."
+      ],
+      "joke": [
+        "Wszystko tu wolno dotknąć. Rodzice odkrywają, że też to lubią.",
+        "You may touch everything here. Parents find out they like it too."
+      ],
+      "tags": [
+        "landmark",
+        "then",
+        "river",
+        "science"
+      ]
+    },
+    {
+      "id": "hala_koszyki",
+      "chapter": "kiedys",
+      "name_pl": "Hala Koszyki",
+      "name_en": "Hala Koszyki",
+      "address": "Koszykowa 63",
+      "near": [
+        52.2225,
+        21.011
+      ],
+      "radius": 25,
+      "fact": [
+        "Halę otwarto w 1909 roku; po odbudowie wróciła w 2016.",
+        "The hall opened in 1909; rebuilt, it came back in 2016."
+      ],
+      "joke": [
+        "Kiedyś po ziemniaki, dziś po ramen. Kolejka została.",
+        "Once for potatoes, now for ramen. The queue stayed."
+      ],
+      "tags": [
+        "market",
+        "hall",
+        "then",
+        "food_hall"
+      ]
+    }
+  ]
+}
