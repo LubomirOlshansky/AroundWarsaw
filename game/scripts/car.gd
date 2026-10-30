@@ -16,7 +16,16 @@ extends CharacterBody3D
 ## frame of contact), a glancing hit turns it along the wall, a head-on one pushes it back a
 ## little, and if it is pinned (touching something fixed, getting nowhere, with the gas or
 ## brake on) for 1.5 s it is turned out of the wall; pinned again soon after, `stuck` asks
-## the game to put it on a free spot. Queued against a traffic car is not pinned.
+## the game to put it on a free spot. Queued against a traffic car is not pinned (until the
+## driving-feel loop's CAR_PUSH_TIME, below).
+##
+## The driving-feel loop (2026-10-30, "the car sticks to everything"): a front corner that
+## clips something small (a post, a bench, a parked or traffic car's corner) slips the car
+## sideways past it with most of its speed (`_corner_slip`) instead of stopping it dead; held
+## against a car or tram for CAR_PUSH_TIME with the gas on, it steers round it like a wall (and
+## is turned out after UNSTICK_TIME, never sent to a free spot for it); a kerb takes 3 % of the
+## speed (was 8 %) once per KERB_GAP however many kerb lines it crosses (an island is two), and
+## the raised ground drags at 0.25/s (was 0.6).
 ##
 ## Loop 10a: in the water (the river, a pond: `water_at`, the map's test) it splashes once
 ## (`splashed`), takes no gas or steering, slows hard and settles a little, bobbing, until the
@@ -68,6 +77,16 @@ const SCRAPE := 1.2
 const WALL_TURN := 3.0
 const WALL_PUSH := 0.12
 const UNSTICK_TIME := 1.5
+## The driving-feel loop: corner slip. A touch this near a front corner (m in from the side)
+## sidesteps the car past the thing it clipped at up to SLIP_RATE m/s, keeping SLIP_KEEP of
+## its speed; the bump it reports is SLIP_HIT of a full one (traffic, jars, ride stars).
+const SLIP_REACH := 0.6
+const SLIP_RATE := 7.0
+const SLIP_KEEP := 0.96
+const SLIP_HIT := 0.35
+## Pushing into a car or a tram (not fixed) this long with the gas on and going nowhere: steer
+## round it as round a wall.
+const CAR_PUSH_TIME := 0.35
 ## Loop 10a: in the water it loses speed at this rate (1/s: from 91 km/h it stops within
 ## ~6 m) and settles this far (m) into it.
 const WATER_DRAG := 4.0
@@ -75,9 +94,11 @@ const SINK := 0.45
 ## Loop 3b-2: kerbs you feel. Hopping a kerb keeps KERB_JOLT of the speed and bounces the body
 ## KERB_BOUNCE m; rolling over an island or a grass median loses KERB_DRAG of the speed per
 ## second (map_builder.kerb_feel says where; drive_height lifts the car onto them).
-const KERB_JOLT := 0.92
+const KERB_JOLT := 0.97
 const KERB_BOUNCE := 0.07
-const KERB_DRAG := 0.6
+const KERB_DRAG := 0.25
+## The driving-feel loop: kerbs crossed within this long of the last jolt (s) are felt as one.
+const KERB_GAP := 0.5
 ## The look loop (2026-10-28): how strongly the paint and the roof and bonnet stripes light
 ## from within at night (actor.gdshader's hero part; share of their own colour), so the
 ## car reads at least 30 luma over the road under it (it was 20-50 darker).
@@ -137,6 +158,10 @@ var _wall_normal := Vector3.ZERO
 var _wall_normals := PackedVector3Array()
 ## Which way along a wall it follows when pointed straight into it (+1 / -1; 0: not chosen).
 var _wall_side := 0.0
+## The driving-feel loop: how long it has pushed into a car or tram going nowhere (s).
+var _car_push := 0.0
+## The driving-feel loop: seconds since the last kerb jolt.
+var _kerb_wait := KERB_GAP
 var _pinned := 0.0
 var _pin_at := Vector2.ZERO
 var _last_unstick := -100.0
@@ -246,9 +271,10 @@ func _step(dt: float) -> void:
 		if braking and speed < 0.5:
 			want = -want
 		# Touching a wall and pointing into it: follow the wall the way the stick leans
-		# (straight into it: the way the nose leans) instead of pushing against it. Not a
-		# car or tram: queued behind one, the car stays put.
-		if _contact > 0.0 and _fixed_contact > 0.0 and _wall_normal != Vector3.ZERO:
+		# (straight into it: the way the nose leans) instead of pushing against it. A car or
+		# tram only once the car has pushed into it for CAR_PUSH_TIME (a touch in a queue
+		# doesn't send it round; holding the gas against one does).
+		if _contact > 0.0 and (_fixed_contact > 0.0 or _car_push > CAR_PUSH_TIME) and _wall_normal != Vector3.ZERO:
 			var into_wall := want.dot(_wall_normal)
 			if into_wall < -0.05:
 				var along := want - _wall_normal * into_wall
@@ -317,12 +343,16 @@ func _step(dt: float) -> void:
 	velocity = vel
 	move_and_slide()
 	var hits := get_slide_collision_count()
+	var slipped := hits > 0 and _corner_slip(speed, dt)
 	if hits > 0:
 		var lost := (vel - velocity).length()
 		# Also the closing speed along the contact normal: moving bodies (traffic) push
 		# the car out rather than stop it, so the speed lost alone misses those hits.
 		var hit := get_slide_collision(0)
 		lost = maxf(lost, -vel.dot(hit.get_normal()))
+		if slipped:
+			# A clipped corner is a knock, felt once (it slips past over a few frames).
+			lost = lost * SLIP_HIT if _contact <= 0.0 else 0.0
 		if lost > 2.0:
 			bumped.emit(hit.get_collider(), lost)
 		_bump_cooldown -= dt
@@ -336,9 +366,11 @@ func _step(dt: float) -> void:
 			_bump_cooldown = 0.35
 		var n := Vector3.ZERO
 		var slid := vel
+		var fixed := false
 		for k in hits:
 			if get_slide_collision(k).get_collider() is StaticBody3D:
 				_fixed_contact = 0.25
+				fixed = true
 			var nk := get_slide_collision(k).get_normal()
 			nk.y = 0.0
 			n += nk
@@ -358,8 +390,18 @@ func _step(dt: float) -> void:
 		if n.length() > 0.01:
 			n = n.normalized()
 			_wall_normal = n
+		# Against a car or a tram (nothing fixed), trying to go on and getting nowhere.
+		if not fixed and not parked and (gas > 0.1 or target_dir != Vector3.ZERO) and absf(speed) < 2.0:
+			_car_push += dt
+		elif fixed:
+			_car_push = 0.0
 		# What slides along the wall is kept, less a little scrape (loop 2a; it lost 8 % a frame).
 		vel = slid * exp(-SCRAPE * dt)
+		if slipped:
+			# Slipping past a clipped corner: it keeps its speed (the next frames carry it past).
+			vel = fwd * speed * (SLIP_KEEP if first else 1.0) + lateral
+			n = Vector3.ZERO
+			_wall_normal = Vector3.ZERO
 		if n != Vector3.ZERO:
 			var f := _forward()
 			var into := -f.dot(n)
@@ -379,6 +421,7 @@ func _step(dt: float) -> void:
 		_contact -= dt
 		if _contact <= 0.0:
 			_wall_side = 0.0
+			_car_push = 0.0
 	vel.y = 0.0
 	global_position.y = ground_height.call(global_position.x, global_position.z, global_position.y)
 	_feel_kerbs(dt)
@@ -397,7 +440,7 @@ func _step(dt: float) -> void:
 	# the game has parked (loop 2b) is never "trying".
 	var trying := not parked and (gas > 0.1 or brake_now or target_dir != Vector3.ZERO)
 	var here := Vector2(global_position.x, global_position.z)
-	if _contact > 0.0 and _fixed_contact > 0.0 and trying:
+	if _contact > 0.0 and (_fixed_contact > 0.0 or _car_push > CAR_PUSH_TIME) and trying:
 		if _pinned <= 0.0 or here.distance_to(_pin_at) > 1.0:
 			_pin_at = here
 			_pinned = dt
@@ -425,12 +468,14 @@ func _step(dt: float) -> void:
 ## autopilots) or parked.
 func _feel_kerbs(dt: float) -> void:
 	var here := Vector2(global_position.x, global_position.z)
+	_kerb_wait += dt
 	# (A jump of more than 5 m is a tow or a landing, not a drive.)
 	if collision_mask != 0 and not parked and _last_xz != Vector2.INF and here != _last_xz and here.distance_to(_last_xz) < 5.0:
 		var feel: Vector2 = kerb_feel.call(_last_xz, here, global_position.y)
-		if feel.y > 0.0 and vel.length() > 1.5:
+		if feel.y > 0.0 and vel.length() > 1.5 and _kerb_wait >= KERB_GAP:
 			vel *= KERB_JOLT
 			_bounce = KERB_BOUNCE
+			_kerb_wait = 0.0
 		if feel.x > 0.0:
 			vel *= exp(-KERB_DRAG * dt)
 	_last_xz = here
@@ -475,6 +520,7 @@ func leave_water() -> void:
 	_contact = 0.0
 	_fixed_contact = 0.0
 	_wall_normals.clear()
+	_car_push = 0.0
 
 
 ## The most the car turns (rad/s) at `v` m/s: turn_cap when slow, turn_pull / v + turn_floor
@@ -524,9 +570,46 @@ func _unstick() -> void:
 	steer_now = 0.0
 	print("car: pinned %.1f s, turned out of the wall at %.0f, %.0f (heading %03.0f°)" % [UNSTICK_TIME,
 			global_position.x, global_position.z, fposmod(rad_to_deg(atan2(face.x, -face.z)), 360.0)])
+	# Turned out from between cars (nothing fixed): never sent to a free spot for it.
+	if _fixed_contact <= 0.0:
+		return
 	if _clock - _last_unstick < 5.0:
 		stuck.emit()
 	_last_unstick = _clock
+
+
+## The driving-feel loop: every touch this step is at one front corner (Godot reports the car's
+## own corner) and the way on is open within SLIP_REACH to the other side (`test_move` from the
+## side-stepped spot, the smallest step that clears): step the car sideways that way (at most
+## SLIP_RATE m/s) and say so; the caller keeps its speed. A touch along the flank, both corners
+## at once, a face met at an angle (the glancing hit turns along it) or no way past don't slip.
+func _corner_slip(speed: float, dt: float) -> bool:
+	if speed < 1.0 or parked:
+		return false
+	var f := _forward()
+	var right := f.cross(Vector3.UP)
+	var half := Vector2(0.9, 2.0)  # the collision box's half width and half length
+	var side := 0.0
+	for k in get_slide_collision_count():
+		var hit := get_slide_collision(k)
+		var rel := hit.get_position() - global_position
+		var lat := rel.dot(right)
+		var n := hit.get_normal()
+		# Met nose on (within ~37°): a wall met at an angle is the glancing hit's to turn along.
+		if rel.dot(f) < half.y - 0.8 or absf(lat) < half.x - SLIP_REACH or Vector2(n.x, n.z).normalized().dot(Vector2(f.x, f.z)) > -0.8:
+			return false
+		var s := -signf(lat)
+		if side != 0.0 and s != side:
+			return false
+		side = s
+	if side == 0.0:
+		return false
+	var away := right * side
+	for need: float in [0.15, 0.3, 0.45, SLIP_REACH]:
+		if not test_move(global_transform.translated(away * need), f * 0.6):
+			move_and_collide(away * minf(need, SLIP_RATE * dt))
+			return true
+	return false
 
 
 func _forward() -> Vector3:

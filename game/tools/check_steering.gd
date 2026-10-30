@@ -6,7 +6,9 @@ extends SceneTree
 ## direction (does it get there, circle or oscillate), the turn radius at 20/50/90 km/h,
 ## a 90° turn from those speeds and from a standstill, pointing straight back, letting go
 ## (the camera coming round), the Mac keys, Classic's self-centring, sliding along a wall,
-## a head-on wall, and getting out of an inside corner. Camera loop: the camera is the game's
+## a head-on wall, and getting out of an inside corner. The driving-feel loop (2026-10-30): a
+## bollard clipped by the front corner, a stopped car clipped by it, and a stopped car square
+## ahead (cars are kinematic bodies, like traffic's): the car must get past each. Camera loop: the camera is the game's
 ## own (follow_camera.gd), and three camera tests join: braking from 90 km/h (does the view
 ## slide back?), a small steering wiggle in Classic (does the view shake?), and the camera's
 ## turn rate in every test (never over 64°/s; never while Point's finger is down). Exits 1 on a
@@ -106,6 +108,17 @@ func _plan() -> void:
 		_add({"name": "corner", "schemes": [s], "v0": 15 * KMH, "dur": 6.0, "kind": "wall", "heading": 45.0, "out_at": 3.0,
 				"walls": [[Vector3(-20, 2, -14.5), Vector3(40, 4, 1)], [Vector3(0.5, 2, 5), Vector3(1, 4, 40)]],
 				"start": Vector3(-9, 0, -4)})
+		if not legacy:
+			# The driving-feel loop: a bollard under the right front corner, a stopped car's corner
+			# there, a stopped car square ahead (going round it, not sitting behind it: Point and
+			# Fixed steer round; Classic's straight stick is only turned out, so it isn't asked).
+			_add({"name": "post_clip", "schemes": [s], "v0": 40 * KMH, "dur": 4.0, "kind": "wall", "heading": 0.0,
+					"walls": [[Vector3(0.75, 1, -10), Vector3(0.3, 2, 0.3)]], "past": -12.0})
+			_add({"name": "car_clip", "schemes": [s], "v0": 40 * KMH, "dur": 4.0, "kind": "wall", "heading": 0.0,
+					"cars": [[Vector3(1.3, 0.85, -14), Vector3(1.8, 1.5, 4.2)]], "past": -18.0})
+		if not legacy and s != "classic":
+			_add({"name": "car_behind", "schemes": [s], "v0": 25 * KMH, "dur": 7.0, "kind": "wall", "heading": 0.0,
+					"cars": [[Vector3(0, 0.85, -12), Vector3(1.8, 1.5, 4.2)]], "past": -16.0})
 	if legacy:
 		return
 	# Camera loop: straight on at about 90 km/h for 2.5 s (the look-ahead settles), then the brake
@@ -157,6 +170,17 @@ func _start_test() -> void:
 		body.add_child(shape)
 		body.position = w[0]
 		_world.add_child(body)
+	for c in _test.get("cars", []):
+		# A stopped car, as traffic's (a kinematic body that the car can't move).
+		var car := AnimatableBody3D.new()
+		car.sync_to_physics = false
+		var shape := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		box.size = c[1]
+		shape.shape = box
+		car.add_child(shape)
+		car.position = c[0]
+		_world.add_child(car)
 	_car = LegacyCar.new() if legacy else Car.new()
 	_world.add_child(_car)
 	var heading: float = _test.get("heading", 0.0)
@@ -689,6 +713,15 @@ func _m_wall() -> String:
 		var d := Vector2(float(end["x"]), float(end["z"]) + 14.0).length()
 		out = ", %.1f m from the corner at the end" % d
 	var ok := end_speed >= 2.0 and longest <= 2.0
+	if _test.has("past"):
+		# The driving-feel loop: got past the thing (north of `past`) by the end, and how soon.
+		var past_t := -1.0
+		for r in _rows:
+			if float(r["z"]) < float(_test["past"]):
+				past_t = r["t"]
+				break
+		ok = ok and past_t >= 0.0
+		out += ", past it %s" % (("at %.1f s" % past_t) if past_t >= 0.0 else "NEVER")
 	if not ok and not legacy:
 		_problems += 1
 	return "touch at %3.0f km/h, 1 s later %3.0f km/h (%3.0f%%), %4.1f m covered in 2 s, pinned %.1f s (longest %.1f s)%s, last 0.5 s %3.0f km/h heading %03.0f°%s %s%s" % [
