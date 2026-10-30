@@ -15,6 +15,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | landmarks/models | Landmark and skyscraper models (Złote Tarasy, Złota 44, Varso, PKiN, Spire, Q22, Muzeum Narodowe, Stadion Narodowy), bus stops: BACKLOG "High priority" | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
 | store release | The signed Android AAB for Play internal testing, on today's main | cloud thread "Prepare App Store and Play beta listings" | 2026-10-30 |
 | performance | Profile the 108-sector map on mobile settings (frame time, draw calls, memory); cheap wins outside the map engine (3d-2 is the map lane's) | cloud thread "Prepare App Store and Play beta listings" | 2026-10-30 |
+| content | 3g-2: the police, part two (guards, zone cap and clamp, rescue escort, race and job ties, first contact, sounds; not the chase camera or PixelLab) | cloud thread "Build the Moja Warszawa notebook" | 2026-10-30 |
 
 ## Waiting
 
