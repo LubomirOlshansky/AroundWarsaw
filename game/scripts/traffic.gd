@@ -265,6 +265,17 @@ var _target_at := Vector2.INF
 var _target_size := 0.0
 var _filled := false
 var _view := Rect2()
+## The traffic-cost item (2026-10-30): the orthographic camera's origin, right and up axes and
+## pixels per metre, kept by _update_view(), so on_screen() projects with three dot products
+## instead of two Camera3D.unproject_position calls (the same answer: no h/v offset, KEEP_HEIGHT).
+var _cam_o := Vector3.ZERO
+var _cam_x := Vector3.RIGHT
+var _cam_y := Vector3.UP
+var _cam_k := 1.0
+var _view_mid := Vector2.ZERO
+## ... and the junction cars' ground positions, so the pair test rejects far pairs on a packed
+## array instead of reading two drivers' properties.
+var _jc_at := PackedVector2Array()
 ## The ground in view, kept by _update_view(): centre, right and ahead axes, half size (m).
 var view_centre := Vector2.ZERO
 var view_right := Vector2.RIGHT
@@ -283,6 +294,8 @@ var _lamp_slots := {}
 var _lamp_keys := PackedInt32Array()
 var _lamp_turn := 0
 const LAMP_STRIDE := 6
+## Where along a tram car a crossing car looks for it (centre and both ends, m).
+const TRAM_PROBES: Array[float] = [-4.8, 0.0, 4.8]
 
 
 func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dictionary) -> void:
@@ -492,10 +505,18 @@ func _update_view() -> void:
 	var vp := cam.get_viewport().get_visible_rect().size
 	view_half = Vector2(cam.size * vp.x / maxf(vp.y, 1.0) * 0.5, cam.size * 0.5 / maxf(-f.y, 0.2))
 	_view = Rect2(Vector2.ZERO, vp).grow(vp.y * 0.06)
+	_cam_o = o
+	_cam_x = b.x
+	_cam_y = b.y
+	_cam_k = vp.y / maxf(cam.size, 0.001)
+	_view_mid = vp * 0.5
 
 
 func on_screen(p: Vector3, height: float) -> bool:
-	return _view.has_point(cam.unproject_position(p)) or _view.has_point(cam.unproject_position(p + Vector3(0, height, 0)))
+	var r := p - _cam_o
+	var at := Vector2(_view_mid.x + r.dot(_cam_x) * _cam_k, _view_mid.y - r.dot(_cam_y) * _cam_k)
+	var up := height * _cam_k
+	return _view.has_point(at) or _view.has_point(at + Vector2(_cam_x.y * up, -_cam_y.y * up))
 
 
 ## View coordinates of a ground point: metres right of and ahead of the view centre.
@@ -1014,15 +1035,25 @@ func _junction_conflicts() -> void:
 			junction_cars.append(d)
 	if trams != null:
 		_give_way_to_trams()
-	for a in junction_cars.size():
-		var p := junction_cars[a]
-		var pf := Vector2(-sin(p.yaw), -cos(p.yaw))
-		for b in range(a + 1, junction_cars.size()):
+	var n := junction_cars.size()
+	_jc_at.resize(n)
+	for a in n:
+		_jc_at[a] = Vector2(junction_cars[a].pos.x, junction_cars[a].pos.z)
+	for a in n:
+		var at := _jc_at[a]
+		var p: Driver = null
+		var pf := Vector2.ZERO
+		for b in range(a + 1, n):
+			var rel := _jc_at[b] - at
+			if rel.length_squared() > 196.0:
+				continue
+			if p == null:
+				p = junction_cars[a]
+				pf = Vector2(-sin(p.yaw), -cos(p.yaw))
 			var q := junction_cars[b]
-			var rel := Vector2(q.pos.x - p.pos.x, q.pos.z - p.pos.z)
 			# Followers in one lane keep their gap by the lane; two curves merging into one lane
 			# (two turn lanes into one) are both registered there, side by side: checked here.
-			if rel.length_squared() > 196.0 or (q.reg == p.reg and not (p.in_conn and q.in_conn and p.lane != q.lane)):
+			if q.reg == p.reg and not (p.in_conn and q.in_conn and p.lane != q.lane):
 				continue
 			var qf := Vector2(-sin(q.yaw), -cos(q.yaw))
 			# The traffic loop (2026-10-30): the other car's body and where it goes in the next
@@ -1445,7 +1476,7 @@ func _give_way_to_trams() -> void:
 			var axis := _tram_axis[c]
 			if absf(axis.dot(f)) > 0.8:
 				continue  # running alongside the track, not across it
-			for k in [-4.8, 0.0, 4.8]:
+			for k: float in TRAM_PROBES:
 				var q: Vector2 = rel + axis * k
 				var along := q.dot(f)
 				if along > 0.0 and along < 22.0 and absf(q.cross(f)) < 2.1:
