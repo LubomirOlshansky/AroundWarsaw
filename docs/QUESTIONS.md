@@ -110,6 +110,11 @@ Newest first. One entry per question.
   player about the hold. Options: A: leave it hidden / B: a one-time hint on the ticker
   ("przytrzymaj RADIO: następny utwór · hold RADIO: next track") / C: a separate ⏭ button.
   Default built: A (the ticker shows the new track's name, so a skip explains itself).
+- **2026-10-30 · HUD · fallback toast** — The first launch at Auto's coarser picture (after a
+  session that struggled at the sharp one) now shows once: "Obraz prostszy, żeby było płynnie ·
+  A coarser picture for a smoother ride · Settings → Obraz". It doesn't mention heat, because
+  the struggle is measured frame time, not temperature. Options: A: as built / B: the backlog's
+  "Obraz prostszy, bo telefon się grzał · the phone was struggling" / C: no toast. Default built: A.
 - **YYYY-MM-DD · lane · item** — The question in one line? Options: A / B. Default built: A
   (or "nothing built: waits"). Where: PR #N, BACKLOG "section".
 -->

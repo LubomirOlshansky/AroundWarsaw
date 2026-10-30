@@ -87,7 +87,7 @@ func _initialize() -> void:
 	# hand-edited values starts sharp / is cleaned.
 	var img := Settings.new()
 	img.path = SCRATCH
-	img.auto_image = {"fallback": true, "calm": 1, "wait": 4, "trial": -1, "why": "GPU extras down 74 s of 410"}
+	img.auto_image = {"fallback": true, "calm": 1, "wait": 4, "trial": -1, "why": "GPU extras down 74 s of 410", "told": false}
 	img.save()
 	var img_back := Settings.new()
 	img_back.path = SCRATCH

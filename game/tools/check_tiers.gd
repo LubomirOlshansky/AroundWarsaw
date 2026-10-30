@@ -255,6 +255,14 @@ func _check_back_off() -> void:
 	var calm_then := Tiers.sharp_struggled(trial, true, "later")
 	if trial["fallback"] or int(trial["trial"]) != 0 or not calm_then["fallback"] or int(calm_then["wait"]) != 4:
 		problems.append("back-off, on trial, calm then a struggle: %s (from %s)" % [calm_then, trial])
+	# 2026-10-30: the fallback's toast: a struggle at the sharp image asks for it once (told
+	# false); a struggle or a calm session at the fallback, and the launch, keep what it was.
+	var fell := Tiers.sharp_struggled(Tiers.sharp_state(), true, "x")
+	var told := fell.duplicate()
+	told["told"] = true
+	if fell["told"] or not Tiers.sharp_launch(fell)["fallback"] or Tiers.sharp_launch(fell)["told"] \
+			or not Tiers.sharp_struggled(told, false, "y")["told"] or not Tiers.sharp_calm(told, false)["told"]:
+		problems.append("the fallback's toast: %s / %s" % [fell, Tiers.sharp_struggled(told, false, "y")])
 	# The state from a file: missing keys, out of range.
 	var cleaned := Tiers.sharp_clean({"wait": 999, "calm": -3, "trial": 99, "fallback": 1})
 	if Tiers.sharp_clean({}) != Tiers.sharp_state() or int(cleaned["wait"]) != Tiers.SHARP_WAIT_MAX \
