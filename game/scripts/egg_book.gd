@@ -21,7 +21,9 @@ extends Node
 ##           `max_kmh` on it (faster starts it again);
 ##   between the helicopter within `within` m of the line between two landmarks (`a`, `b`), in
 ##           its middle 70 %, at least `min_alt` m up;
-##   tape    KASETA played at the then card `card` (tape.gd calls `tape_played`).
+##   tape    KASETA played at the then card `card` (tape.gd calls `tape_played`);
+##   event   loop MW-4: a moment another script sees (city_life.gd: the Zając's 600 m, the ball
+##           back to the dog, a trend's life, a Rowerilo rider followed) calls `fire`.
 ## Conditions on any trigger, by the game clock (time_of_day.gd `local_clock`): `night` (22-06),
 ## `after` (that hour to 06), `hours` [from, to] (may wrap midnight), `weekday` (1 Monday .. 7
 ## Sunday), `look` ("Dusk": the Dusk look, or Live with the sun within 6 degrees of the horizon),
@@ -144,6 +146,16 @@ func setup(places: Dictionary, spots: Dictionary, data: Dictionary) -> bool:
 	return true
 
 
+## Loop MW-4: egg `id` sits at `at` instead (city_life.gd: the influencer dog's footway, the
+## Hyrax cordon's middle, off the stadium's roof); the grid follows.
+func move_egg(id: String, at: Vector2) -> void:
+	if not by_id.has(id) or at == Vector2.INF:
+		return
+	eggs[by_id[id]]["at"] = at
+	if ready_ok:
+		_build_grid()
+
+
 ## The point of the named road's centre line nearest `p` (`p` itself if there is no such road).
 static func nearest_on_road(roads: Array, road: String, p: Vector2) -> Vector2:
 	var best := p
@@ -236,7 +248,7 @@ func _build_grid() -> void:
 	for i in eggs.size():
 		var e := eggs[i]
 		var kind := str(e["trigger"].get("kind", ""))
-		if e.has("waits") or kind in ["legacy", "tape", "waits"]:
+		if e.has("waits") or kind in ["legacy", "tape", "waits", "event"]:
 			continue
 		if kind == "street":
 			for p: Vector2 in e.get("pieces", PackedVector2Array()):
@@ -369,7 +381,7 @@ static func conditions(t: Dictionary, s: Dictionary) -> bool:
 static func step(e: Dictionary, s: Dictionary, mem: Dictionary, dt: float) -> bool:
 	var t: Dictionary = e["trigger"]
 	var kind := str(t.get("kind", ""))
-	if e.has("waits") or kind in ["waits", "legacy", "tape", ""]:
+	if e.has("waits") or kind in ["waits", "legacy", "tape", "event", ""]:
 		return false
 	var pos: Vector3 = s["pos"]
 	var p := Vector2(pos.x, pos.z)
@@ -455,6 +467,24 @@ func tape_played(card: String, s: Dictionary) -> void:
 				record(str(e["id"]))
 			elif log_on:
 				print("egg: %s: KASETA at %s, but not its conditions (%s)" % [e["id"], card, describe_state(s)])
+
+
+## Loop MW-4: an `event` egg's moment, seen by another script (city_life.gd), in state `s` (the
+## probe's): it is found if its conditions hold. True on the first find.
+func fire(id: String, s: Dictionary) -> bool:
+	if not by_id.has(id):
+		return false
+	var e := eggs[by_id[id]]
+	var t: Dictionary = e["trigger"]
+	if str(t.get("kind", "")) != "event" or e.has("waits") or is_found(id):
+		return false
+	if not conditions(t, s):
+		if log_on:
+			print("egg: %s: its moment, but not its conditions (%s)" % [id, describe_state(s)])
+		return false
+	if log_on:
+		print("egg: %s trigger event met (%s)" % [id, describe_state(s)])
+	return record(id)
 
 
 ## Fat Thursday (Tłusty Czwartek) of `year` as yyyymmdd: 52 days before Easter Sunday.

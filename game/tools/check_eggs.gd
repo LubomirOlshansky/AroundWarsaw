@@ -20,7 +20,7 @@ const Notebook := preload("res://scripts/notebook.gd")
 const Wallet := preload("res://scripts/wallet.gd")
 const MAX_PL := 70
 const OLD_SPOTS := ["palma", "pigeons", "barriers", "patelnia", "syrenka"]
-const KINDS := ["stop", "pass", "hover", "land", "circle", "lap", "street", "between", "tape", "legacy", "waits"]
+const KINDS := ["stop", "pass", "hover", "land", "circle", "lap", "street", "between", "tape", "legacy", "waits", "event"]
 
 
 ## A stand-in for radio.gd: tracks 1-2 free, the rest locked; records the calls.
@@ -191,6 +191,11 @@ static func want_state(t: Dictionary) -> Dictionary:
 ## The same state with one of the trigger's conditions broken ({} if it has none).
 static func broken_state(t: Dictionary, s: Dictionary) -> Dictionary:
 	var b := s.duplicate()
+	# Loop MW-4: a window alone is broken an hour after it closes (a 9-17 window held 16.5).
+	if t.has("hours") and not bool(t.get("night", false)) and not t.has("after"):
+		b["look"] = "Day"
+		b["hour"] = fmod(float((t["hours"] as Array)[1]) + 1.0, 24.0)
+		return b
 	if bool(t.get("night", false)) or t.has("after") or t.has("hours"):
 		b["look"] = "Day"
 		b["hour"] = 10.0 if not t.has("hours") or float((t["hours"] as Array)[0]) > 11.0 else 16.5
@@ -262,7 +267,7 @@ func _check_triggers(book: EggBook) -> int:
 		var id := str(e["id"])
 		var t: Dictionary = e["trigger"]
 		var kind := str(t.get("kind", ""))
-		if e.has("waits") or kind in ["legacy", "tape", "waits"]:
+		if e.has("waits") or kind in ["legacy", "tape", "waits", "event"]:
 			# Never fires by itself.
 			if EggBook.step(e, want_state(t), {}, 0.5):
 				problems.append("%s: a %s egg fired from step()" % [id, kind if not e.has("waits") else "waiting"])

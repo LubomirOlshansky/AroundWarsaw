@@ -19,6 +19,9 @@ extends Node3D
 ##    rows facing the river (sitters, standers at the water's edge), the guitarist (egg E15);
 ##    without Live the season is summer (vision Open Question 5);
 ##  - **Plac Zbawiciela's summer crowd** (up to 40 standing in groups, Fri/Sat 21:00-02:00);
+##  - loop MW-4 (vision 3.4): **the trend queues** at the three Wiralek slots and Lukrownia
+##    (`TRENDS`): their length and the line's tag come from `trend` (city_life.gd's cycle and Fat
+##    Thursday), bright clothes, no bouncer, a `viral` line now and then;
 ##  - **the police by the clubs** (Fri/Sat 00:00-08:00, Lusterko and Smoła): a parked patrol car
 ##    (police.gd `club_park`, the existing police units, never a chase) and an officer standing by
 ##    it (`police_club` lines).
@@ -72,6 +75,9 @@ const CLUBS := {
 	"lombard": {"max": 16, "curve": "club"},
 	"milosc_hipoteczna": {"max": 16, "curve": "club"},
 }
+## Loop MW-4: the trend queues (places.json ids) and their longest line (vision 3.4: day 1's 30,
+## Fat Thursday's 60 at Lukrownia).
+const TRENDS := {"wiralek_zbawiciela": 30, "wiralek_chmielna": 30, "wiralek_tamka": 30, "lukrownia": 60}
 const ROOF_ID := "level_26"
 const STEPS_ID := "schodki_kopernik"
 const PLAN_C_ID := "plan_c"
@@ -121,6 +127,9 @@ var dialogue: Node
 var police: Node
 ## city_sounds.gd (add_crowd); may be null.
 var sounds: Node
+## Loop MW-4: a trend queue's length now and its line's tag, (id) -> [n, tag] (city_life.gd
+## `trend_queue`); unset: the trend queues stay empty.
+var trend: Callable
 ## --crowd=: 0 none (this node isn't built), 1 normal, 2 double; the Low tier halves it.
 var amount := 1.0
 ## --night-log: queues, rejections, the dawn walkers each minute and every event.
@@ -283,6 +292,9 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 			var c: Dictionary = CLUBS[id]
 			_add_site({"id": id, "kind": "queue", "at": at[id], "max": int(c["max"]), "curve": str(c["curve"]),
 					"police": bool(c.get("police", false)), "dawn": bool(c.get("dawn", false))})
+	for id: String in TRENDS:
+		if at.has(id):
+			_add_site({"id": id, "kind": "trend", "at": at[id], "max": int(TRENDS[id]), "tag": ""})
 	if at.has(ROOF_ID):
 		_add_site({"id": ROOF_ID, "kind": "roof", "at": at[ROOF_ID], "max": ROOF_MAX, "curve": "roof"})
 	if at.has(STEPS_ID):
@@ -426,7 +438,7 @@ func nearest_foot(p: Vector2, reach: float) -> Array:
 func _place_site(s: Dictionary) -> void:
 	var at: Vector2 = s["at"]
 	match str(s["kind"]):
-		"queue":
+		"queue", "trend":
 			var hit := nearest_foot(at, FOOT_REACH)
 			var line := PackedVector2Array()
 			var out := Vector2.RIGHT
@@ -714,6 +726,14 @@ func _figures(s: Dictionary) -> Array:
 				var to := (line[maxi(k - 1, 0)] - line[k + 1]).normalized()
 				out.append([_ground(p), atan2(-to.x, -to.y) + rng.randf_range(-0.4, 0.4), STAND,
 						Color(DARK[rng.randi() % DARK.size()]), rng.randf_range(0.25, 0.5)])
+		"trend":
+			# Loop MW-4: the trend's queue, bright clothes, nobody at the door.
+			var line: PackedVector2Array = s["line"]
+			for k in mini(n, line.size() - 1):
+				var p := line[k] + Vector2(rng.randf_range(-0.12, 0.12), rng.randf_range(-0.12, 0.12))
+				var to := (line[maxi(k - 1, 0)] - line[k + 1]).normalized()
+				out.append([_ground(p), atan2(-to.x, -to.y) + rng.randf_range(-0.5, 0.5), STAND,
+						Color(BRIGHT[rng.randi() % BRIGHT.size()]), rng.randf() * 0.99])
 		"steps":
 			var slots: Array = s["slots"]
 			for k in mini(n, slots.size()):
@@ -833,6 +853,10 @@ func tick(step: float) -> void:
 			"plan_c":
 				plan_lvl = plan_c_level(hour, weekday, month, rain)
 				want = roundi(PLAN_C_MAX * k * plan_lvl)
+			"trend":
+				var q: Array = trend.call(str(s["id"])) if trend.is_valid() else [0, ""]
+				want = mini(roundi(int(q[0]) * k), int(s["max"]) * 2)
+				s["tag"] = str(q[1])
 		s["want"] = want
 		if t >= float(s["next"]):
 			s["next"] = t + _rng.randf_range(REWRITE.x, REWRITE.y)
@@ -857,11 +881,16 @@ func tick(step: float) -> void:
 			_door(s, step, veh)
 		elif near and kind in ["steps", "plan_c"]:
 			_chatter(s, step, veh)
+		elif near and kind == "trend":
+			_trend_talk(s, step)
 	_redraw()
 	_dawn(hour, weekday, live, look, step, eye2)
 	levels = {"dawn": 1.0 if dawn_on and not walkers.is_empty() else 0.0, "police_club": 1.0 if police_on else 0.0,
 			"steps": steps_lvl, "guitar": 1.0 if by_id.has(STEPS_ID) and bool(sites[by_id[STEPS_ID]].get("guitar_on", false)) else 0.0,
 			"plan_c": plan_lvl}
+	for s in sites:
+		if s["kind"] == "trend":
+			levels[str(s["id"])] = float(s["n"]) / float(s["max"])
 	if log_on:
 		_log_t -= step
 		if _log_t <= 0.0:
@@ -961,6 +990,20 @@ func _chatter(s: Dictionary, step: float, veh: Array) -> void:
 		_say(_anchor(s, i), "", "schodki", "sunset", BUBBLE, true)
 	else:
 		_say(_anchor(s, i), "", "schodki", "", BUBBLE)
+
+
+## Loop MW-4: a trend queue's `viral` line every 35-60 s on screen (the tag: day 1 "new", the
+## queue's "queue", the last days' "gone").
+func _trend_talk(s: Dictionary, step: float) -> void:
+	if int(s["n"]) < 1 or str(s["tag"]) == "":
+		return
+	if on_screen.is_valid() and not on_screen.call(_ground(s["door"]), 2.0):
+		return
+	s["chat_t"] = float(s["chat_t"]) - step
+	if float(s["chat_t"]) > 0.0:
+		return
+	s["chat_t"] = _rng.randf_range(CHAT_GAP.x, CHAT_GAP.y)
+	_say(_anchor(s, _rng.randi() % maxi(int(s["n"]), 1)), "", "viral", str(s["tag"]), BUBBLE, true)
 
 
 ## A bubble anchor on figure `i` of site `s` (0: the bouncer at a queue).
