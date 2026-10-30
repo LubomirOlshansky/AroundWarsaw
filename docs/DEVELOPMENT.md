@@ -3893,8 +3893,9 @@ tools/export_web.sh --deploy   # also upload it (the user's yes first: it is pub
 - **The ground's meshes are compressed** (performance lane, 2026-10-30): `map_builder.gd`
   `_add_mesh` stores the ground layer's tiles with `Mesh.ARRAY_FLAG_COMPRESS_ATTRIBUTES` (16-bit
   positions and UVs, octahedral normals), on every build, so both city paths and every preset.
-  The 108 prebuilt sectors 106.7 → 86.9 MB (the phone bundle and the web's sector packs), vertex
-  memory 147 → 120 MB on the Mac's bench, frame time the same. 21 shot pairs (the six views,
+  The 108 prebuilt sectors 95.7 → 75.0 MB (the phone bundle and the web's sector packs; the
+  web's six start sectors 9.3 → 7.1 MB), vertex memory 147 → 120 MB on the Mac's bench, frame
+  time the same, the runtime build ~2 % slower (31.2 s against 30.7 s). 21 shot pairs (the six views,
   the eight road spots, seven close views of dashes, crossings, rails, paving, puddles and the
   shore, day, night and rain) differ only in single pixels along marking and kerb edges. The
   buildings stay uncompressed: their windows come from UVs in metres (BACKLOG).

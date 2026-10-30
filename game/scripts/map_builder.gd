@@ -490,7 +490,7 @@ func _setup(d: Dictionary, building_mat: ShaderMaterial, flat_mat: ShaderMateria
 
 
 ## Performance lane (2026-10-30): the ground's meshes are stored with 16-bit positions and
-## UVs (`flags`, Mesh.ARRAY_FLAG_COMPRESS_ATTRIBUTES): the prebuilt sectors 107 → 87 MB and
+## UVs (`flags`, Mesh.ARRAY_FLAG_COMPRESS_ATTRIBUTES): the prebuilt sectors 95.7 → 75.0 MB and
 ## 27 MB less vertex memory, the shots the same but for single edge pixels. Not the
 ## buildings: building.gdshader draws its windows from UVs in metres, which that moves.
 func _add_mesh(st, material: Material, shadows: bool, flags := 0) -> void:
