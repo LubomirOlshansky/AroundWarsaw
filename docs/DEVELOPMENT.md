@@ -3014,8 +3014,9 @@ solved from what they cross (see Real roads).
 ## The website (aroundwarsaw.app, 2026-10-29)
 
 `site/` is the game's landing page (English at `/`, Polish at `/pl/`) and the privacy policy
-the stores link to (`https://aroundwarsaw.app/privacy/`). All three pages are built by
-`python3 -I tools/site_build.py` from `site/src/` (template and copy) and `docs/privacy.md`.
+and support pages the stores link to (`https://aroundwarsaw.app/privacy/`, `/support/`). All four
+pages are built by `python3 -I tools/site_build.py` from `site/src/` (template and copy),
+`docs/privacy.md` and `docs/support.md`. The store listings: `docs/store/`.
 Plain HTML and CSS, self-hosted fonts, one small script for the beta and feedback form
 (Formspree), no cookies, no analytics. It is a Cloudflare Worker with static assets only
 (`site/wrangler.jsonc`, custom domains `aroundwarsaw.app` and `www.aroundwarsaw.app`);
