@@ -1050,9 +1050,13 @@ Small problems that agents reported or that showed up in screenshots. They are f
   stadium and west/south of Varso, a sunset band at dusk, a dark slab at night, and a brown
   streaked "skirt" south of Varso (`--at=-1602,717 --yaw=0 --size=240`). It matters for any
   wide or marketing camera and for the helicopter high up.
-- `--time=night --nohud` runs quit without writing the shot about one time in three (the log
+- ~~`--time=night --nohud` runs quit without writing the shot about one time in three (the log
   ends after "city built", clean exit); by day, or without `--nohud`, every run wrote it.
-  `tools/shots.sh` would report MISSING.
+  `tools/shots.sh` would report MISSING.~~ Not reproduced on the big map (2026-10-30, 37 runs on
+  the Mac, the landing's own flags included: all saved). Suspected cause: keys typed in another
+  app landing in the freshly focused game window (two renders came out in the helicopter or at
+  dusk). `--shots=` now keeps the window from taking the focus, as `--no-input` does, and a run
+  that ends without a requested shot prints `shots: missing [...]` with the frame and pause state.
 - The occlusion dither cuts a visible hole in towers in stills (Rondo Dmowskiego
   `--at=-806.3,446.4 --heading=335`, Varso with `--yaw=250`, the Palace's wing looking north
   from Emilii Plater).

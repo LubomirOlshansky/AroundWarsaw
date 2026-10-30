@@ -193,6 +193,9 @@ var follow := true
 var cam_focus := Vector3.ZERO
 var demo := false
 var shots: Array[int] = []
+## The shots saved so far: the frames of `shots` that reached their PNG (a run that ends
+## without one says so in _exit_tree).
+var _shots_saved: Array[int] = []
 var out_dir := "user://"
 var frame := 0
 var start_at := Vector3.INF
@@ -504,6 +507,15 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	# A shots run that ends before its last shot (--quit-after, a closed window) says which
+	# frames are missing and where it was, instead of ending quietly after "city built".
+	var missing: Array[int] = []
+	for n in shots:
+		if n not in _shots_saved:
+			missing.append(n)
+	if not missing.is_empty():
+		print("shots: missing %s (game frame %d, engine frame %d, paused %s, started %s)" % [
+				missing, frame, Engine.get_process_frames(), get_tree().paused, _started])
 	if _stats != null:
 		_stats.unhook()
 	if RenderingServer.frame_pre_draw.is_connected(_stress_wait):
@@ -1476,6 +1488,10 @@ func _parse_args() -> void:
 		elif arg.begins_with("--shots="):
 			for s in arg.trim_prefix("--shots=").split(","):
 				shots.append(int(s))
+			# A shots run is a scripted render: its window never takes the keyboard focus, as with
+			# --no-input (night --nohud shots had come out in the helicopter or at dusk: keys typed
+			# in another app landed in the freshly opened game window).
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
 		elif arg.begins_with("--out="):
 			out_dir = arg.trim_prefix("--out=")
 		elif arg.begins_with("--style="):
@@ -3463,6 +3479,7 @@ func _capture(n: int) -> void:
 		print("ghost: frame %d centre %.1f %.1f radii %.1f %.1f (screen px)" % [n, _ghost_px.x, _ghost_px.y, _ghost_px.z, _ghost_px.w])
 	var img := get_viewport().get_texture().get_image()
 	img.save_png(out_dir.path_join("shot_%04d.png" % n))
+	_shots_saved.append(n)
 	if n == shots.max():
 		_quit_quietly()  # sweep 2: was get_tree().quit()
 
