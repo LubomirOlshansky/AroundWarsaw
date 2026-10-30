@@ -30,6 +30,12 @@ const CROWD := 22
 ## The driving-feel loop (2026-10-30): the share of its speed the car keeps knocking a barrier or
 ## a cone away (was 0.85: a run through the roadworks felt like a wall of them).
 const KNOCK_KEEP := 0.95
+## The roadworks loop (2026-10-30): traffic knocks the barriers too (the AI drove through the ones
+## knocked into its lane), and the helicopter under DOWNWASH_HEIGHT m over them blows the ones
+## within DOWNWASH_REACH m outwards at up to DOWNWASH_PUSH m/s.
+const DOWNWASH_HEIGHT := 14.0
+const DOWNWASH_REACH := 9.0
+const DOWNWASH_PUSH := 3.5
 const SHIRTS := ["#d8432f", "#2f6fb5", "#e0b23a", "#3b8f5a", "#f2efe8", "#7a4fa8", "#e57aa0", "#2b2c2f", "#c96b2c", "#5aa9c9"]
 
 var hud: CanvasLayer
@@ -75,6 +81,8 @@ var _knockables: Array[Dictionary] = []
 var _barrier_centre := Vector3.INF
 var _knock_wait := 0.0
 var _car: CharacterBody3D
+## The roadworks loop: the traffic, whose cars near the roadworks knock barriers and cones too.
+var _traffic: Node
 
 # The crowd at Patelnia.
 var _crowd_mm: MultiMesh
@@ -92,6 +100,7 @@ func setup(nodes: Dictionary, data: Dictionary) -> void:
 	map = nodes["map"]
 	graph = nodes["graph"]
 	_car = nodes["car"]
+	_traffic = nodes.get("traffic")
 	_rng.seed = 1955
 	var t0 := Time.get_ticks_msec()
 	_index_obstacles(data)
@@ -553,16 +562,50 @@ func _knockable(mesh: ArrayMesh, at: Vector3, yaw: float) -> MeshInstance3D:
 
 
 ## Light collision: the car shoves barriers and cones out of its way (and keeps KNOCK_KEEP of
-## its speed); they slide, turn and stop. Nothing to do when the car is far.
+## its speed); they slide, turn and stop. The roadworks loop: traffic cars shove them the same
+## way (the AI never brakes for them), and the helicopter's downwash blows them about. Nothing
+## to do when nothing is near.
 func _barriers(dt: float) -> void:
 	if _barrier_centre == Vector3.INF:
 		return
 	var p := _car.global_position
 	_knock_wait = maxf(0.0, _knock_wait - dt)
 	var near := Vector2(p.x - _barrier_centre.x, p.z - _barrier_centre.z).length() < 30.0 and not flying
+	# Traffic near the roadworks: where each moving car is, its heading, speed and half length.
+	var cars: Array[Vector3] = []
+	var car_fwd: Array[Vector3] = []
+	var car_v := PackedFloat32Array()
+	var car_half := PackedFloat32Array()
+	if _traffic != null:
+		for d in _traffic.drivers():
+			if d.ghost or d.v < 0.8 or Vector2(d.pos.x - _barrier_centre.x, d.pos.z - _barrier_centre.z).length() > 30.0:
+				continue
+			cars.append(d.pos)
+			car_fwd.append(Vector3(-sin(d.yaw), 0.0, -cos(d.yaw)))
+			car_v.append(d.v)
+			car_half.append(d.length * 0.5)
+	var blow: bool = flying and Vector2(player.x - _barrier_centre.x, player.z - _barrier_centre.z).length() < 30.0 \
+			and player.y - map.ground_height(player.x, player.z) < DOWNWASH_HEIGHT
 	for k in _knockables:
 		var node: Node3D = k["node"]
 		var v: Vector3 = k["vel"]
+		for c in cars.size():
+			# Under the car's box (its footprint and a little): knocked along and to the side.
+			var rel_c := Vector3(node.global_position.x - cars[c].x, 0.0, node.global_position.z - cars[c].z)
+			var right_c := car_fwd[c].cross(Vector3.UP)
+			if absf(rel_c.dot(car_fwd[c])) < car_half[c] + 0.4 and absf(rel_c.dot(right_c)) < 1.3:
+				var shove: Vector3 = car_fwd[c] * car_v[c] * 0.75 + right_c * signf(rel_c.dot(right_c)) * 1.5
+				if shove.length() > v.length():
+					v = shove
+					k["spin"] = _rng.randf_range(-4.0, 4.0)
+		if blow:
+			var rel_h := Vector3(node.global_position.x - player.x, 0.0, node.global_position.z - player.z)
+			var reach := rel_h.length()
+			if reach < DOWNWASH_REACH and reach > 0.01:
+				var gust := rel_h / reach * DOWNWASH_PUSH * (1.0 - reach / DOWNWASH_REACH)
+				if gust.length() > v.length():
+					v = gust
+					k["spin"] = _rng.randf_range(-2.0, 2.0)
 		if near:
 			var rel := Vector3(node.global_position.x - p.x, 0.0, node.global_position.z - p.z)
 			var speed: float = _car.vel.length()

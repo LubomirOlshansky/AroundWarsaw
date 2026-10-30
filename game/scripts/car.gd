@@ -87,6 +87,9 @@ const SLIP_HIT := 0.35
 ## Pushing into a car or a tram (not fixed) this long with the gas on and going nowhere: steer
 ## round it as round a wall.
 const CAR_PUSH_TIME := 0.35
+## The driving-feel loop (the ram test): the share of the speed going into a car or a tram that
+## is kept for the next frame (it was none: a rear-ended car stopped the player dead).
+const CAR_KEEP := 0.5
 ## Loop 10a: in the water it loses speed at this rate (1/s: from 91 km/h it stops within
 ## ~6 m) and settles this far (m) into it.
 const WATER_DRAG := 4.0
@@ -368,7 +371,9 @@ func _step(dt: float) -> void:
 		var slid := vel
 		var fixed := false
 		for k in hits:
-			if get_slide_collision(k).get_collider() is StaticBody3D:
+			# (An AnimatableBody3D, traffic's and the trams' bodies, is a StaticBody3D too: not fixed.)
+			var other := get_slide_collision(k).get_collider()
+			if other is StaticBody3D and not other is AnimatableBody3D:
 				_fixed_contact = 0.25
 				fixed = true
 			var nk := get_slide_collision(k).get_normal()
@@ -397,6 +402,10 @@ func _step(dt: float) -> void:
 			_car_push = 0.0
 		# What slides along the wall is kept, less a little scrape (loop 2a; it lost 8 % a frame).
 		vel = slid * exp(-SCRAPE * dt)
+		if not fixed and not slipped:
+			# A car or a tram gives way (traffic is shoved): keep CAR_KEEP of what went into it,
+			# not a dead stop; something that doesn't move takes the rest on the next frames.
+			vel += (fwd * speed + lateral - slid) * CAR_KEEP
 		if slipped:
 			# Slipping past a clipped corner: it keeps its speed (the next frames carry it past).
 			vel = fwd * speed * (SLIP_KEEP if first else 1.0) + lateral

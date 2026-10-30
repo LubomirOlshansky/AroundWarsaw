@@ -28,6 +28,8 @@ extends Node
 ## --clicks=X:Y:F,... clicks and --drag=X:Y:F:DX:DY:F2 drags a finger through the real input path.
 ## Loop 10a: --drive-into-water=X,Z starts the car there and drives it flat out into the nearest
 ## water as if it had jumped the edge (the splash and the tow, printed as `water:` lines).
+## The driving-feel loop: --ram-test drives the car into the back of a traffic car and logs the
+## hit, the shove and how soon it gets past (`ram test:` lines).
 ## Loop 2e: --call-in=S brings the first rescue call after S seconds of play, --settings-tab=N
 ## opens the settings panel at tab N.
 ## Camera loop: --cam-log prints the camera every 0.25 s (`cam:` lines), --cam-test=classic_turn|
@@ -385,6 +387,15 @@ var _last_dry_yaw := 0.0
 ## (as if it had jumped the edge), 2 collision back on past the edge, 3 splashed, 4 towed.
 var water_test := 0
 var _water_test_at := Vector2.INF
+## The driving-feel loop, --ram-test (testing aid): 0 off, 1 waiting for a traffic car to pick,
+## 2 driving into the back of it, 3 done. The car rammed, the clock, when it was hit (s, -1: not
+## yet) and the unsticks before the test.
+var ram_test := 0
+var _ram_driver: RefCounted
+var _ram_t := 0.0
+var _ram_hit := -1.0
+var _ram_unsticks := 0
+var _ram_dir := Vector3.ZERO
 ## Loop 2c, --lineup (testing aid): every vehicle model standing round the car, no traffic, for
 ## close-up screenshots (with --size=25 or so).
 var lineup := false
@@ -1503,6 +1514,8 @@ func _parse_args() -> void:
 		elif arg.begins_with("--drive-into-water="):
 			var wz := arg.trim_prefix("--drive-into-water=").split(",")
 			_water_test_at = Vector2(float(wz[0]), float(wz[1]))
+		elif arg == "--ram-test":
+			ram_test = 1
 		elif arg == "--cam-log":
 			cam_log = true
 		elif arg.begins_with("--cam-test="):
@@ -1520,7 +1533,7 @@ func _parse_args() -> void:
 	# Test runs go straight to the city (--title brings the title screen back).
 	if demo or not shots.is_empty() or autopilot or start_race > 0 or start_mission > 0 or start_rival > 0 or bench or probe \
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or hold_stick != Vector2.INF or bench_button \
-			or _water_test_at != Vector2.INF or cam_test != "":
+			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0:
 		show_title = false
 	if start_ride >= 0:
 		show_title = false  # loop 2d-1: --ride is a test run too
@@ -1532,7 +1545,7 @@ func _parse_args() -> void:
 	cinematic_look = normal or _flag_cinematic in ["all", "look"]
 	# Loop G1: the governor runs in a normal launch; test runs hold it so they repeat.
 	var test_run := DisplayServer.get_name() == "headless" or not shots.is_empty() or bench or probe or autopilot \
-			or demo or cam_test != "" or _water_test_at != Vector2.INF
+			or demo or cam_test != "" or _water_test_at != Vector2.INF or ram_test > 0
 	_governor_on = _flag_governor == 1 if _flag_governor >= 0 else not test_run
 	# Loop G1b: test runs (and --last-session=) never write Auto's image state, even with the
 	# governor on and without --nosave.
@@ -2065,6 +2078,68 @@ func _water_test_frame() -> void:
 	if water_test == 1 and map.shore_distance(p.x, p.z) >= 3.0:
 		car.collision_mask = 1
 		water_test = 2
+
+
+## The driving-feel loop, --ram-test: after 2 s of traffic, the moving car (not police, not a bus)
+## with the longest straight run left on its lane gets the player's car put 14 m behind it, going
+## 6 m/s faster; the stick then points along that lane (Point) at 65 km/h. Logs the hit (`traffic`'s
+## daze), the rammed car's speed after the shove and how soon the player's car gets past it (its
+## centre a car's length ahead along the lane), or that it never did in 10 s.
+func _ram_test_frame(dt: float) -> void:
+	_ram_t += dt
+	if ram_test == 1:
+		car.target_dir = Vector3.ZERO
+		car.throttle = 0.0
+		if _ram_t < 2.0 or traffic == null:
+			return
+		var best: Traffic.Driver = null
+		var best_run := 60.0
+		for d in traffic.drivers():
+			if d.ghost or d.in_conn or d.parked or d.kind >= Traffic.Kind.BUS or d.v < 3.0 or d.s < 20.0:
+				continue
+			var run: float = graph.e_len[d.edge] - d.s
+			if run > best_run:
+				best_run = run
+				best = d
+		if best == null:
+			if _ram_t > 12.0:
+				print("ram test: no traffic car with 60 m of lane ahead in 12 s")
+				ram_test = 3
+			return
+		var behind := graph.point_at(best.edge, best.s - 14.0, best.off)
+		car.global_position = Vector3(behind.x, map.drive_height(behind.x, behind.y, best.pos.y), behind.y)
+		car.rotation.y = best.yaw
+		car.reset_physics_interpolation()
+		car.vel = Vector3(-sin(best.yaw), 0.0, -cos(best.yaw)) * (best.v + 6.0)
+		car.forward_speed = best.v + 6.0
+		cam_focus = car.global_position
+		_ram_driver = best
+		_ram_dir = Vector3(-sin(best.yaw), 0.0, -cos(best.yaw))
+		_ram_t = 0.0
+		_ram_unsticks = car.unsticks
+		ram_test = 2
+		print("ram test: behind a traffic car at %.0f, %.0f going %.0f km/h (%.0f m of lane ahead)" % [best.pos.x,
+				best.pos.z, best.v * 3.6, best_run])
+		return
+	var d: Traffic.Driver = _ram_driver
+	# The lane's way at the start (the rammed car's own heading turns as it is shoved aside).
+	var fwd := _ram_dir
+	car.target_dir = fwd
+	car.throttle = 0.6
+	car.steer = 0.0
+	car.braking = false
+	if _ram_hit < 0.0 and d.daze > 0.0:
+		_ram_hit = _ram_t
+		print("ram test: hit at %.0f km/h, the car shoved to %.0f km/h" % [car.vel.length() * 3.6, d.v * 3.6])
+	var ahead := (car.global_position - d.pos).dot(fwd)
+	if _ram_hit >= 0.0 and ahead > d.length:
+		print("ram test: past it %.1f s after the hit, unstuck %d×, the car at %.0f km/h" % [_ram_t - _ram_hit,
+				car.unsticks - _ram_unsticks, car.vel.length() * 3.6])
+		ram_test = 3
+	elif _ram_t > 10.0 or not d.active:
+		print("ram test: %s after 10 s (%.1f m behind, unstuck %d×)" % ["never hit it" if _ram_hit < 0.0 else "NEVER PAST it",
+				-ahead, car.unsticks - _ram_unsticks])
+		ram_test = 3
 
 
 ## Camera loop, --cam-test=NAME: the scheme, the camera behind the car, the car ghosting through
@@ -2773,6 +2848,8 @@ func _read_input(dt: float) -> void:
 		car.steer = 0.0 if frame < 200 else 0.5 * sin(frame * 0.02)
 	if water_test == 1 or water_test == 2:
 		_water_test_frame()
+	if ram_test == 1 or ram_test == 2:
+		_ram_test_frame(dt)
 
 
 ## The stick and W A S D both point in screen space (W is up the screen); Space /

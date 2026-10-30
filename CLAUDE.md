@@ -17,6 +17,7 @@ a high-quality demo of central Warsaw on the iPhone (docs/DEMO.md). The repo is 
 | `docs/DEVELOPMENT.md` | how everything works: controls, every flag, map-data chain, bench, **Performance budgets** (the old README, moved 2026-10-30) |
 | `docs/WORKFLOW.md` | how the work is run: the loop, who owns what, definition of done, milestone gates |
 | `docs/ROADMAP.md` | order of work and the progress log · `docs/BACKLOG.md` found issues and decisions |
+| `docs/QUESTIONS.md` | parked questions for the user (with the default built) and the lanes in progress |
 | `docs/DEMO.md` | the demo plan: area, quality bar, road defects, police, milestones |
 | `CREDITS.md`, `LICENSE` | data licences (ODbL, GUGiK, CC BY 4.0) and MIT |
 | `data/raw/`, `build/`, `shots/`, `game_*/` | raw downloads, builds, screenshots, temp copies: gitignored, never committed |
@@ -26,8 +27,20 @@ a high-quality demo of central Warsaw on the iPhone (docs/DEMO.md). The repo is 
 For anything bigger than a one-file fix: **plan, brief, delegate, verify, report** (the
 loop-brief skill; the cycle in docs/WORKFLOW.md). Give each subagent a self-contained brief:
 it has no memory of this conversation. Accept nothing on a report alone: run the checks and
-look at the shots yourself. Subagents can't ask the user; relay their **Open Questions**,
-then re-delegate with the answers. One agent writes in the project at a time.
+look at the shots yourself. Subagents can't ask the user; park their **Open Questions** in
+`docs/QUESTIONS.md`, and re-delegate with the answers when they come. One agent writes in the
+project at a time.
+
+**Backlog mode (the user's standing rule, 2026-10-30).** The work doesn't stop for a
+question: keep picking the next item by priority and land it, until the backlog is empty
+(the backlog-loop skill). A question that needs the user is parked in `docs/QUESTIONS.md`
+with the default that was built, and the next item starts at once; the user answers in one
+batch. After each finished item you pick the next one yourself, for every agent. Stay in
+your lane: one session per area (driving, map, visuals, content, performance, landing,
+store release); check open PRs, recent main commits and the "In progress" table first.
+A cloud session merges its own PR once every check is green (the user's yes, 2026-10-30).
+Anything else that can't be undone, downloads, device runs and store submissions still wait
+for the user's yes: park them.
 
 ## Agents (`.claude/agents/`)
 
@@ -51,6 +64,7 @@ then re-delegate with the answers. One agent writes in the project at a time.
 | `godot-mobile-perf` | performance rules for the phone and how to measure before/after |
 | `warsaw-tone` | humour, parody and Polish/English rules; `dialogue.json` format |
 | `loop-brief` | the brief template, delegation table, and how to verify a result |
+| `backlog-loop` | backlog mode: pick the next item by priority, park questions, lanes, keep going until the backlog is empty |
 | `device-run` | build, install, launch on the iPhone, copy the log back; the user starts it with `/device-run`, agents read the file only when the user allowed a run this loop |
 | `pixellab` | 2D pixel art via the PixelLab MCP server: portraits, HUD/minimap icons, signs and posters, UI, store art; not for the 3D city |
 
