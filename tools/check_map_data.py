@@ -1,22 +1,30 @@
 #!/usr/bin/env python3
 """Check the baked map data and the prebuilt city without opening Godot.
 
-    python3 -I tools/check_map_data.py [--trees3d=N] [--pois=N]
+    python3 -I tools/check_map_data.py [--trees3d=N] [--pois=N] [--fresh]
 
 Checks game/map/centrum.json against the counts the last full bake produced (a re-bake
 that changes them must say so and update EXPECTED below in the same change), that the
 lane graph and the Palm are present. Loop 3c: the same counts over the sectors
 (tools/bake_sectors.py: index.json and sectors/<i>_<j>.json; a point thing near a border is in
 both sectors' files, so each sector counts the ones standing in its own square), every
-sector's file and prebuilt scene there, and
-warns when the sector files are older than the bake (run tools/bake_sectors.py) or the
-prebuilt sectors (sectors/s_<i>_<j>.scn, index.res, proxies.scn) older than anything they
-are built from (the exported game loads them, so stale ones mean the phone shows yesterday's
-city: rebuild WITH a renderer, see README "Sectors and streaming").
+sector's file and prebuilt scene there.
+
+Loop 3d-1: the split and the prebuilt sectors (index.json, sectors/*, index.res, proxies.scn,
+shared/) are derived and not committed: when they are missing this says "missing: run
+tools/setup_map.sh" (a WARN, not a FAIL). Freshness is by content: bake_sectors.py writes
+sectors/split.stamp (the SHA-256 of what it read) and bake_city.gd writes sectors/city.stamp
+(the split's digest and the SHA-256 of the maps and scripts it builds from); a stamp that
+doesn't match today's files is a WARN (stale: re-run, see docs/DEVELOPMENT.md "Sectors and streaming").
+
+--fresh: only the derived files, quietly: exit 0 when the split and the prebuilt sectors are
+there and match their inputs, 3 when either is missing or stale (tools/setup_map.sh
+--if-needed and tools/verify.sh use it).
 
 Prints one line per check: OK / WARN / FAIL. Exits 1 if any check fails.
 Reads only; writes nothing.
 """
+import hashlib
 import json
 import math
 import os
@@ -29,23 +37,34 @@ MAP = os.path.join(ROOT, "game", "map")
 # tree (12,554 trees), pois are hospitals, beaches, parks, kebab stands, addresses, etc.
 # Loop 3b-2: trees3d_crown, one crown scale per scanned tree (12,554: 75 by the roads, up to
 # 100 in the parks; bake_osm.py crown_scales).
-EXPECTED = {"trees3d": 75324, "pois": 1020, "trees3d_crown": 12554}
+# Loop 3d-1: the demo box (20.1 km² with the east edge at 21.056, docs/DEVELOPMENT.md "Map data"): 42,578
+# scanned trees (the GUGiK sheets cover the whole box, so no OSM trees are left), 3,548 pois.
+# Before: 75324 / 1020 / 12554 on the first box; 231420 / 3069 / 38570 with the east edge at 21.050.
+EXPECTED = {"trees3d": 255468, "pois": 3548, "trees3d_crown": 42578}
+# docs/DEMO.md 7 row 7: the lane graph's strongly connected share at least this.
+SCC_SHARE = 0.95
 
-# What tools/bake_sectors.py reads to split the map, and what tools/bake_city.gd reads to build
-# the prebuilt sectors: the baked map files and the scripts map_builder.gd runs (its preloads).
-# Shaders are referenced by path, so they need no rebuild.
-SPLIT_INPUTS = ["game/map/centrum.json", "game/map/lod2.bin", "game/map/lod2.json", "tools/bake_sectors.py"]
-CITY_INPUTS = [
-    "game/map/index.json", "game/map/lod2.bin", "game/map/terrain.json",
-    "game/map/ao.bin", "game/map/lights.bin", "game/map/water.bin",
-    "game/scripts/map_builder.gd", "game/scripts/chunked_surface.gd",
-    "game/scripts/neon_signs.gd", "game/scripts/landmarks.gd", "game/scripts/sector_proxies.gd",
-    "game/scripts/models.gd",
-]
+# Loop 3d-1: what tools/bake_sectors.py reads to split the map (map-dir files, and the script
+# itself; the same names as its SPLIT_INPUTS), and what tools/bake_city.gd builds the prebuilt
+# sectors from besides the split (res:// paths: its CITY_INPUTS; the split itself is covered by
+# split.stamp's digest). Shaders are referenced by path, so they need no rebuild.
+SPLIT_INPUTS = ["centrum.json", "lod2.bin", "lod2.json"]
+CITY_INPUTS = ["map/lod2.bin", "map/terrain.json", "map/ao.bin", "map/lights.bin", "map/water.bin",
+               "scripts/map_builder.gd", "scripts/chunked_surface.gd", "scripts/neon_signs.gd",
+               "scripts/landmarks.gd", "scripts/sector_proxies.gd", "scripts/models.gd",
+               "scripts/pixel_font.gd", "tools/bake_city.gd"]
+SETUP = "run tools/setup_map.sh"
+# Loop 3d-1 (the user's decision): from GUGiK's data alone, derived like the split: tools/setup_map.sh
+# --full rebuilds them from data/raw (tools/fetch_demo.py's downloads and the LoD2 package).
+GUGIK_DERIVED = ["lod2.bin", "lod2.json", "terrain.json"]
 
 
 def main() -> int:
     expected = dict(EXPECTED)
+    if "--fresh" in sys.argv[1:]:
+        state = freshness()
+        print("derived map files: %s" % state[1])
+        return 0 if state[0] == "OK" else 3
     for arg in sys.argv[1:]:
         key, _, value = arg.lstrip("-").partition("=")
         if key in expected and value.isdigit():
@@ -75,8 +94,11 @@ def main() -> int:
 
     graph = data.get("graph")
     if isinstance(graph, dict) and graph.get("edges"):
-        report("OK", "graph", "present: %d nodes in the connected part, %d directed edges, "
-               "%d signal controllers, %d portals" % (len(graph.get("scc", [])), len(graph["edges"]),
+        scc = graph.get("scc", [])
+        share = sum(scc) / max(len(scc), 1)
+        report("OK" if share >= SCC_SHARE else "FAIL", "graph",
+               "%d of %d nodes strongly connected (%.1f %%, at least %.0f %%), %d directed edges, "
+               "%d signal controllers, %d portals" % (sum(scc), len(scc), share * 100, SCC_SHARE * 100, len(graph["edges"]),
                                                       len(graph.get("ctrl", [])), len(graph.get("portals", []))))
     else:
         report("FAIL", "graph", "missing or empty (the lane graph: traffic, races and jobs need it)")
@@ -87,29 +109,100 @@ def main() -> int:
     else:
         report("FAIL", "palm", "missing (bake_osm.py writes it from GUGIK_NOT_TREES)")
 
+    if gugik_missing():
+        report("WARN", "GUGiK outputs", "missing: %s: run tools/setup_map.sh --full (it needs GUGiK's raw data in "
+               "data/raw: tools/fetch_demo.py, docs/DEVELOPMENT.md \"Map data\")" % ", ".join(gugik_missing()))
     sectors(data, expected, report)
     print("map data: " + ("OK" if failures == 0 else f"{failures} FAILED"))
     return 0 if failures == 0 else 1
 
 
-def newest(paths):
-    """The newest of these repo paths (and the file), or (0, None)."""
-    best = (0.0, None)
-    for p in paths:
-        full = os.path.join(ROOT, p)
-        if os.path.exists(full) and os.path.getmtime(full) > best[0]:
-            best = (os.path.getmtime(full), p)
-    return best
+def sha256_file(path):
+    """The file's SHA-256 (hex), or "" when it isn't there."""
+    if not os.path.exists(path):
+        return ""
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def read_json(path):
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+def split_state():
+    """("OK" | "MISSING" | "STALE", detail, split digest) for index.json and sectors/*.json."""
+    index_path = os.path.join(MAP, "index.json")
+    if not os.path.exists(index_path):
+        return "MISSING", "missing: no game/map/index.json (the sector split): " + SETUP, ""
+    stamp = read_json(os.path.join(MAP, "sectors", "split.stamp"))
+    if not isinstance(stamp, dict):
+        return "STALE", "no sectors/split.stamp (split before loop 3d-1): run python3 -I tools/bake_sectors.py", ""
+    now = {f: sha256_file(os.path.join(MAP, f)) for f in SPLIT_INPUTS}
+    now["bake_sectors.py"] = sha256_file(os.path.join(ROOT, "tools", "bake_sectors.py"))
+    changed = [f for f, h in sorted(now.items()) if stamp.get("inputs", {}).get(f) != h]
+    if changed:
+        return "STALE", "made from another %s: run python3 -I tools/bake_sectors.py" % ", ".join(changed), ""
+    return "OK", "made from today's %s" % ", ".join(sorted(now)), stamp.get("digest", "")
+
+
+def city_state(keys, split_digest):
+    """("OK" | "MISSING" | "STALE", detail) for the prebuilt sectors, index.res, proxies.scn."""
+    scenes = [os.path.join(MAP, "sectors", "s_%d_%d.scn" % k) for k in keys]
+    scenes += [os.path.join(MAP, "index.res"), os.path.join(MAP, "proxies.scn"), os.path.join(MAP, "shared")]
+    absent = [os.path.relpath(p, MAP) for p in scenes if not os.path.exists(p)]
+    if absent:
+        return "MISSING", "missing: %s%s: %s" % (", ".join(absent[:4]), " and %d more" % (len(absent) - 4) if len(absent) > 4 else "", SETUP)
+    rebuild = ("rebuild them with a renderer (godot --path game --resolution 320x180 --script "
+               "res://tools/bake_city.gd, never --headless)")
+    stamp = read_json(os.path.join(MAP, "sectors", "city.stamp"))
+    if not isinstance(stamp, dict):
+        return "STALE", "no sectors/city.stamp (built before loop 3d-1): " + rebuild
+    changed = [p for p in CITY_INPUTS if stamp.get("inputs", {}).get(p) != sha256_file(os.path.join(ROOT, "game", p))]
+    if split_digest and stamp.get("split") != split_digest:
+        changed.insert(0, "the sector split")
+    if changed:
+        return "STALE", "built from another %s: %s" % (", ".join(changed[:4]), rebuild)
+    return "OK", "%d sector scenes, index.res and proxies.scn built from today's split, maps and scripts" % len(keys)
+
+
+def gugik_missing():
+    """Loop 3d-1: the GUGiK-only bake outputs (derived, not committed) that aren't there."""
+    return [f for f in GUGIK_DERIVED if not os.path.exists(os.path.join(MAP, f))]
+
+
+def freshness():
+    """--fresh: the GUGiK outputs, the split, then the prebuilt sectors."""
+    if gugik_missing():
+        return "MISSING", "missing: %s: run tools/setup_map.sh --full (it needs GUGiK's raw data)" % ", ".join(gugik_missing())
+    state, detail, digest = split_state()
+    if state != "OK":
+        return state, detail
+    index = read_json(os.path.join(MAP, "index.json")) or {}
+    keys = [tuple(k) for k in index.get("sectors", {}).get("keys", [])]
+    missing = [k for k in keys if not os.path.exists(os.path.join(MAP, "sectors", "%d_%d.json" % k))]
+    if not keys or missing:
+        return "MISSING", "sector files missing: " + SETUP
+    state, detail = city_state(keys, digest)
+    return state, ("split OK; " if state == "OK" else "") + detail
 
 
 def sectors(data, expected, report):
-    """Loop 3c: the sector split and the prebuilt sectors."""
+    """Loop 3c: the sector split and the prebuilt sectors (loop 3d-1: derived, maybe missing)."""
+    state, detail, digest = split_state()
+    if state == "MISSING":
+        report("WARN", "sector split", detail)
+        return
     index_path = os.path.join(MAP, "index.json")
-    try:
-        with open(index_path, encoding="utf-8") as f:
-            index = json.load(f)
-    except (OSError, ValueError) as e:
-        report("FAIL", "index.json", f"can't read {index_path}: {e} (run python3 -I tools/bake_sectors.py)")
+    index = read_json(index_path)
+    if not isinstance(index, dict):
+        report("FAIL", "index.json", f"can't read {index_path} (run python3 -I tools/bake_sectors.py)")
         return
     keys = [tuple(k) for k in index.get("sectors", {}).get("keys", [])]
     if not keys:
@@ -119,11 +212,8 @@ def sectors(data, expected, report):
     trees, crowns = 0, 0
     files, missing = 0, []
     for k in keys:
-        path = os.path.join(MAP, "sectors", "%d_%d.json" % k)
-        try:
-            with open(path, encoding="utf-8") as f:
-                s = json.load(f)
-        except (OSError, ValueError):
+        s = read_json(os.path.join(MAP, "sectors", "%d_%d.json" % k))
+        if not isinstance(s, dict):
             missing.append("%d_%d.json" % k)
             continue
         files += 1
@@ -134,7 +224,8 @@ def sectors(data, expected, report):
                 trees += 1
                 crowns += 1 if i // 6 < len(crown) else 0
     if missing:
-        report("FAIL", "sectors", "%d sector files missing: %s (run tools/bake_sectors.py)" % (len(missing), ", ".join(missing[:4])))
+        report("WARN", "sectors", "missing: %d sector files (%s): %s" % (len(missing), ", ".join(missing[:4]), SETUP))
+        return
     report("OK" if trees * 6 == expected["trees3d"] else "FAIL", "sectors trees3d",
            f"{trees * 6} values over {files} sectors (expected {expected['trees3d']})")
     report("OK" if crowns == expected["trees3d_crown"] else "FAIL", "sectors trees3d_crown",
@@ -143,26 +234,9 @@ def sectors(data, expected, report):
     report("OK" if pois == expected["pois"] else "FAIL", "index pois", f"{pois} (expected {expected['pois']})")
     report("OK" if index.get("graph", {}).get("edges") and index.get("palm") else "FAIL", "index graph, palm",
            "present" if index.get("graph", {}).get("edges") and index.get("palm") else "missing")
-    split_t, split_by = newest(SPLIT_INPUTS)
-    oldest = min((os.path.getmtime(os.path.join(MAP, "sectors", "%d_%d.json" % k)) for k in keys
-                  if os.path.exists(os.path.join(MAP, "sectors", "%d_%d.json" % k))), default=0.0)
-    if oldest < split_t or os.path.getmtime(index_path) < split_t:
-        report("WARN", "sector files", f"older than {split_by}: run python3 -I tools/bake_sectors.py")
-    else:
-        report("OK", "sector files", "newer than centrum.json and lod2.*")
-    scenes = [os.path.join(MAP, "sectors", "s_%d_%d.scn" % k) for k in keys]
-    scenes += [os.path.join(MAP, "index.res"), os.path.join(MAP, "proxies.scn")]
-    absent = [os.path.relpath(p, MAP) for p in scenes if not os.path.exists(p)]
-    if absent:
-        report("FAIL", "prebuilt sectors", "missing: %s: the exported game has no city there" % ", ".join(absent[:4]))
-        return
-    built = min(os.path.getmtime(p) for p in scenes)
-    city_t, city_by = newest(CITY_INPUTS + ["game/map/sectors/%d_%d.json" % k for k in keys])
-    if city_t > built:
-        report("WARN", "prebuilt sectors", f"older than {city_by}: rebuild them with a renderer "
-               "(godot --path game --resolution 320x180 --script res://tools/bake_city.gd, never --headless)")
-    else:
-        report("OK", "prebuilt sectors", f"{len(keys)} sector scenes, index.res and proxies.scn newer than every input")
+    report("OK" if state == "OK" else "WARN", "sector files", detail)
+    state, detail = city_state(keys, digest)
+    report("OK" if state == "OK" else "WARN", "prebuilt sectors", detail)
 
 
 if __name__ == "__main__":

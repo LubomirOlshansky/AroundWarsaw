@@ -16,7 +16,8 @@ game/android/.build_version
 
 # Raw downloads (about 5 GB, some single files near 300 MB); README.md, "Map data",
 # says where each comes from and how to bake it into game/map/
-data/raw/
+data/raw
+data/work/
 
 # Screenshots from test runs
 shots/
@@ -39,3 +40,18 @@ game_*/
 .env
 *.env
 .claude/settings.local.json
+
+# Loop 3d-1 (the user's decision, 2026-10-29): the sector split and the prebuilt city are derived
+# from the committed map (centrum.json and the .bin maps) and never committed: re-bakes grew the
+# pack 194 → 340 MB in a day. A fresh clone makes them once with tools/setup_map.sh (~20 s).
+game/map/sectors/
+game/map/index.json
+game/map/index.res
+game/map/proxies.scn
+game/map/shared/
+
+# Loop 3d-1 (the user's decision): the GUGiK-only bake outputs are derived too (tools/setup_map.sh
+# --full rebuilds them from data/raw): the LoD2 buildings and the terrain grid
+game/map/lod2.bin
+game/map/lod2.json
+game/map/terrain.json

@@ -49,6 +49,8 @@ HATCH_KINDS = {"emergency", "prohibited"}
 CLEAR_ROAD = 5.0     # deck clearance over roads, rails and trams
 CLEAR_WATER = 7.5    # and over the river
 CLEAR_FOOT = 2.6     # a footbridge over a footway (loop 3a)
+CLEAR_SERVICE = 2.6  # loop 3d-1: a deck over a service way (a garage driveway, a parking aisle: no
+                     # traffic, a car's height; the 1 m terrain shows the ramps they sink in)
 GRADE = 0.06         # ramps up to a clearance
 END_GRADE = 0.12     # the steepest a deck may leave the road it starts from
 DECK_STEP = 6.0      # deck heights every this many metres
@@ -70,6 +72,8 @@ SOLVE_TOL = 0.001    # ...until no node moves more than this
 SOR_W = 1.8
 DIP_MAX = 2.0        # R3: the most a road under a deck may dip to get its clearance...
 DIP_GRADE = 0.08     # ...with ramps this steep
+DECK_KEPT = 3.0      # loop 3d-1: the ground at a crossing this much over the way's own ground...
+KEPT_SIDE = (10.0, 40.0)  # ...this far past the deck's edge on both sides: the grid keeps the deck
 PIT_SPAN = 20.0      # a dip in a road's terrain narrower than this is a pit to bridge...
 PIT_MIN = 0.4        # ...when it is at least this deep...
 PIT_PORTAL = 80.0    # ...and not this close to a tunnel's portal (loop 3b: its open ramp's trench)
@@ -595,6 +599,8 @@ class Roadbed:
         self.road_piece = {}
         self._solve(rails, rail_mem, "rail", 2.2)
         self._solve(roads, road_mem, "road", None)
+        print("decks: crossings not judged: %d over a cutting (layer < 0), %d where the terrain grid keeps the deck "
+              "(loop 3d-1)" % (getattr(self, "cuttings_under", 0), getattr(self, "decks_kept", 0)))
         for i, r in enumerate(roads):
             if road_mem[i]:
                 pts, cum, hs = self.profiles[id(r)]
@@ -957,6 +963,20 @@ class Roadbed:
                 break
         return why
 
+    def _deck_kept(self, x, z, d, reach):
+        """Loop 3d-1: True where the terrain grid keeps the deck over a way that crosses under
+        it: along the way under it, the ground at the crossing stands DECK_KEPT or more above
+        its lowest within KEPT_SIDE past the deck's edge on both sides (a hump exactly the deck's
+        width: the bare earth holds the slab, as at Żelazna over the railway cutting)."""
+        T = self.terrain
+        here = T.h(x, z)
+        sides = []
+        for sign in (-1.0, 1.0):
+            hs = [T.h(x + d[0] * sign * t, z + d[1] * sign * t)
+                  for t in range(int(reach + KEPT_SIDE[0]), int(reach + KEPT_SIDE[1]) + 1, 5)]
+            sides.append(min(hs) if hs else here)
+        return here - max(sides) >= DECK_KEPT
+
     def _embankment(self, pts):
         T = self.terrain
         ps = resample(pts, 6.0)
@@ -1069,8 +1089,16 @@ class Roadbed:
                     d2 = _unit(a, b)
                     sin = abs(d1[0] * d2[1] - d1[1] * d2[0]) if d1 and d2 else 1.0
                     reach = half / max(sin, 0.25) + 1.5
+                    if d2 and self._deck_kept(px, pz, d2, reach):
+                        # Loop 3d-1: the bare earth keeps this deck (the NMT has Żelazna's slab
+                        # over the railway cutting): the terrain here is the deck, not the way
+                        # under it, so like a cutting its clearance can't be judged (logged;
+                        # check_roads C3 lists it, the allowlist says why).
+                        self.decks_kept = getattr(self, "decks_kept", 0) + 1
+                        continue
                     cross[i].append({"s": s, "reach": reach, "x": px, "z": pz, "other": other, "kind": kind,
-                                     "clear": CLEAR_FOOT if kind == "footway" else CLEAR_ROAD})
+                                     "clear": CLEAR_FOOT if kind == "footway" else
+                                     (CLEAR_SERVICE if other.get("k") == "service" else CLEAR_ROAD)})
 
         # Nodes.
         node_of = {}
@@ -1118,6 +1146,12 @@ class Roadbed:
             for k, (p, s) in enumerate(zip(ps, ss)):
                 kk = _key(p)
                 ids.append(node(p, kk if kk in orig else (i, k)))
+            # Loop 3d-1: a vertex within 0.3 m of the sample before it got no node of its own (the
+            # sampling skips it; a rail way in the demo box has one): it is that sample's node.
+            for k, q in enumerate(pts):
+                if _key(q) not in node_of:
+                    j = max(m for m in range(len(ss)) if ss[m] <= cum[k] + 1e-6)
+                    node_of[_key(q)] = ids[j]
             item_nodes[i] = (ps, ss, ids)
             approach = member[i] != "bridge"
             for k in range(len(ids) - 1):
@@ -2566,13 +2600,13 @@ class Roadbed:
                 self.road_at(lv, x + math.cos(a) * POLE_CLEAR, z + math.sin(a) * POLE_CLEAR)
                 for a in (k * math.pi / 4 for k in range(8)))
 
-        def place(x, z):
+        def place(x, z, reach=POLE_REACH):
             # The game stands every lamp and signal pole on the ground (terrain_height), under a
             # deck too, so the ground's carriageway is the one to keep them off.
             if raised(x, z) or not self.road_at(lv, x, z):
                 return None
             r = 0.5
-            while r <= POLE_REACH:
+            while r <= reach:
                 for k in range(24):
                     a = k * math.pi / 12
                     px, pz = x + math.cos(a) * r, z + math.sin(a) * r
@@ -2581,19 +2615,30 @@ class Roadbed:
                 r += 0.5
             return (x, z)
 
-        moved = stuck = 0
+        moved = stuck = dropped = 0
         for key, stride in (("lamps", 2), ("signals", 3)):
             v = extras.get(key, [])
+            keep = []
             for k in range(0, len(v) - stride + 1, stride):
                 p = place(v[k], v[k + 1])
-                if p is None:
-                    continue
-                if p == (v[k], v[k + 1]):
-                    stuck += 1
-                else:
+                if p is not None and p == (v[k], v[k + 1]):
+                    # Loop 3d-1: nothing free within POLE_REACH (a lamp mapped in the middle of a
+                    # wide junction): a signal (the graph's `poles` refer to it by index) looks
+                    # POLE_FAR out; a lamp is left out (in the demo box 9 poles had no spot).
+                    p = place(v[k], v[k + 1], POLE_FAR) if key == "signals" else None
+                    if key == "lamps":
+                        dropped += 1
+                        continue
+                    if p == (v[k], v[k + 1]):
+                        stuck += 1
+                        p = None
+                if p is not None:
                     v[k], v[k + 1] = p
                     moved += 1
-        print(f"roadbed: {moved} lamps and signal poles moved off the asphalt, {stuck} left (map review B)")
+                keep.extend(v[k:k + stride])
+            extras[key] = keep
+        print(f"roadbed: {moved} lamps and signal poles moved off the asphalt, {dropped} lamps with no spot off it "
+              f"left out, {stuck} signal poles left (map review B, loop 3d-1)")
 
     # -- guard rails and the river's edge --------------------------------------------------
 
@@ -2723,6 +2768,7 @@ JBOX_SIDE = 45.0      # ...and longest side
 CROSS_MIN = 1.5       # a zebra's stretch on the asphalt shorter than this is left out
 POLE_REACH = 6.0      # a pole on the asphalt moves at most this far...
 POLE_CLEAR = 0.5      # ...to a spot this far off the asphalt's edge
+POLE_FAR = 16.0       # loop 3d-1: a signal pole with no spot within POLE_REACH looks this far
 
 
 def _hull(pts):

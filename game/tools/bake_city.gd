@@ -11,6 +11,10 @@ extends SceneTree
 ## landmark sites found from the index's `site_parts` against the whole map's (centrum.json).
 ## Run with a real renderer (not --headless, which drops MultiMesh and texture data):
 ##   godot --path game --resolution 320x180 --script res://tools/bake_city.gd
+## Loop 3d-1: everything it writes is derived and not committed (tools/setup_map.sh makes it on a
+## fresh clone). It ends by writing map/sectors/city.stamp: the split's digest (sectors/split.stamp)
+## and the SHA-256 of every input in CITY_INPUTS, so tools/check_map_data.py tells stale prebuilt
+## sectors by content, not by file times.
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Landmarks := preload("res://scripts/landmarks.gd")
@@ -19,6 +23,14 @@ const SHARED := "res://map/shared/"
 ## index.json's keys only the map builder reads (the game's systems never do).
 const BUILDER_ONLY := ["site_parts", "kerbs", "medians", "islands", "shore", "fills", "aprons", "lod2_cuts",
 		"lod2_open", "towers", "garages", "dips"]
+
+## Loop 3d-1: what the prebuilt sectors are built from besides the split (index.json and the
+## sector files, covered by split.stamp's digest): the baked maps and the scripts the builder
+## runs (shaders are referenced by path and need no rebuild). tools/check_map_data.py
+## CITY_INPUTS is the same list.
+const CITY_INPUTS := ["map/lod2.bin", "map/terrain.json", "map/ao.bin", "map/lights.bin", "map/water.bin",
+		"scripts/map_builder.gd", "scripts/chunked_surface.gd", "scripts/neon_signs.gd", "scripts/landmarks.gd",
+		"scripts/sector_proxies.gd", "scripts/models.gd", "scripts/pixel_font.gd", "tools/bake_city.gd"]
 
 
 ## Set at the end of _bake: a script error (a builder that doesn't compile) ends _bake early
@@ -111,8 +123,26 @@ func _bake() -> Error:
 	print("bake_city: %d sector scenes %.1f MB, index.res %.1f MB, proxies.scn %.2f MB (at most %d triangles a sector)" % [
 			keys.size(), total / 1048576.0, FileAccess.get_file_as_bytes("res://map/index.res").size() / 1048576.0,
 			FileAccess.get_file_as_bytes("res://map/proxies.scn").size() / 1048576.0, proxy_tris])
+	if err == OK:
+		err = _write_stamp()
 	_finished = true
 	return err
+
+
+## Loop 3d-1: map/sectors/city.stamp (see CITY_INPUTS).
+func _write_stamp() -> Error:
+	var split: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://map/sectors/split.stamp"))
+	var inputs := {}
+	for p: String in CITY_INPUTS:
+		inputs[p] = FileAccess.get_sha256("res://" + p) if FileAccess.file_exists("res://" + p) else ""
+	var stamp := {"split": (split as Dictionary).get("digest", "") if split is Dictionary else "", "inputs": inputs}
+	var f := FileAccess.open("res://map/sectors/city.stamp", FileAccess.WRITE)
+	if f == null:
+		push_error("bake_city: can't write map/sectors/city.stamp")
+		return FileAccess.get_open_error()
+	f.store_string(JSON.stringify(stamp, " ", true))
+	f.close()
+	return OK
 
 
 ## The landmark sites found from the index's `site_parts` must be the whole map's (a landmark

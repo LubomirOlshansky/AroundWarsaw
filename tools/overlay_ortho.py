@@ -1,6 +1,6 @@
 """Check the baked roads against the aerial photo: draws game/map/centrum.json's road
 surface, kerbs, painted lines and the lane graph's lanes over the GUGiK orthophoto
-(data/raw/gugik/ortho.bmp, fetched by tools/fetch_gugik.py).
+(loop 3d-1: data/work/demo/ortho.bmp, made by tools/prepare_demo.py from the demo fetch).
 
 Usage: python3 tools/overlay_ortho.py OUT.png X Z HALF [PX_PER_M]
   X, Z: map metres (+x east, +z south) of the centre; HALF: half the side in metres.
@@ -26,8 +26,8 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 def main(out, cx, cz, half, scale=None):
     scale = scale or 900.0 / (2 * half)
     c = json.load(open(os.path.join(ROOT, "game", "map", "centrum.json"), encoding="utf-8"))
-    ortho = Image.open(os.path.join(ROOT, "data", "raw", "gugik", "ortho.bmp")).convert("RGB")
-    s, w, n, e = bake_osm.BBOX
+    ortho = Image.open(bake_osm.ORTHO).convert("RGB")
+    s, w, n, e = bake_osm.ortho_box()
     x0, z0 = bake_osm.project(n, w)
     x1, z1 = bake_osm.project(s, e)
 
