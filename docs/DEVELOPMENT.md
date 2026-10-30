@@ -2840,6 +2840,27 @@ and 4 km/h after, never past (0.5 m behind after 10 s); after, 28 km/h after the
 2.6 s after, never unstuck. `check_steering` stays OK (`car_behind` 2.3 → 2.7 s now that the
 stopped car is not followed as a wall until the 0.35 s push).
 
+## The traffic loop: cars overlapping in junctions (2026-10-30)
+
+A new testing aid, `--traffic-overlaps`, has the traffic count, every frame, the pairs of its
+cars whose boxes overlap (a 2D separating-axis test with 0.15 m of slack) and prints one line at
+the end: `traffic overlaps: N car-pair frames in F frames (J with a car on a junction curve),
+S spots; worst W frames at x, z; K knots given up`. Cars in a junction used to look only at the
+other car's centre in a 1.9 m strip ahead, so a car crossing at an angle was seen when its centre
+reached the strip, too late, and two turn lanes merging into one lane were never checked against
+each other (both are registered in the lane they merge into). Now (`traffic.gd` `_path_gap`):
+
+- Each car looks for the other's whole body plus where it goes in the next 0.8 s (`PATH_LOOK`),
+  sampled every metre, in its own corridor (both half widths and `PATH_MARGIN` 0.2 m) from beside
+  its front half to 14 m ahead (`PATH_AHEAD`); the gap is to the nearest such point.
+- Two cars on different junction curves are checked even when both end in the same lane.
+- A car within 6 m of the start of the lane it came out on (`PATH_EXIT`) is still in the box.
+
+Measured with `--traffic=busy --no-police --traffic-overlaps`, 3600 frames at `--fixed-fps 60`,
+car-pair overlap frames before → after: the start 62 → 32, `--at=-918,263` 352 → 156,
+`--at=145,-626` 395 → 27 (809 → 215 in all), no knot given up in either. What is left is mostly
+two cars entering a short (3.5 m) merging curve in the same frame near -940, 210 and -890, 350.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -3229,6 +3250,7 @@ Command-line options (after `--`):
 | `--tunnel` | loop 3b: with `--at`, start on the floor of the tunnel under that point (the car shows through the ground as a silhouette) |
 | `--drive-into-water=X,Z` | loop 10a: start at X,Z and drive flat out at the nearest water (within 120 m), the collision off until 3 m past the edge as if the car had jumped it; prints `water test:`, `water: splash at …` and `water: towed after … s …` (where to, how far from a lane, dry or not, the job / rescue / race / wallet), each with its frame. With `--kebab=0` a delivery is running (`tools/verify.sh` step `splash`) |
 | `--ram-test` | the driving-feel loop: after 2 s, the car is put 14 m behind the moving traffic car with the longest straight lane ahead, 6 m/s faster, and drives on along that lane (Point, 65 km/h); prints `ram test:` lines: the hit (speed, the rammed car shoved to), then `past it N s after the hit` or `NEVER PAST it after 10 s` (`tools/verify.sh` step `ram`, with `--no-police`) |
+| `--traffic-overlaps` | the traffic loop: the traffic counts the pairs of its cars whose boxes overlap each frame and prints `traffic overlaps:` at the end (car-pair frames, how many on a junction curve, the spots and the worst one, knots given up); use with `--traffic=busy --no-police` and an engine `--quit-after` |
 | `--no-police` | loop 3g-1: no police, traps or patrol cars |
 | `--police=1\|2\|3` | loop 3g-1: a chase at that level at frame 60, the chaser 40 m behind on your lane (and the blocker / the roadblock for 2 / 3) |
 | `--trap=N` | loop 3g-1: start 150 m before speed trap N (1-4 in today's map), heading into it, and make it one of the day's; with `--pedal=gas` the car drives flat out along the road into the radar (through the traffic) |

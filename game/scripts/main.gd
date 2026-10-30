@@ -396,6 +396,8 @@ var _ram_t := 0.0
 var _ram_hit := -1.0
 var _ram_unsticks := 0
 var _ram_dir := Vector3.ZERO
+## --traffic-overlaps (testing aid): traffic counts its cars' overlapping boxes, printed at the end.
+var _traffic_overlaps := false
 ## Loop 2c, --lineup (testing aid): every vehicle model standing round the car, no traffic, for
 ## close-up screenshots (with --size=25 or so).
 var lineup := false
@@ -831,6 +833,7 @@ func _build_world() -> void:
 func _build_life(data: Dictionary, world: Node3D) -> void:
 	var t0 := Time.get_ticks_msec()
 	traffic = Traffic.new()
+	traffic.count_overlaps = _traffic_overlaps
 	world.add_child(traffic)
 	traffic.setup(graph, map, cam, data)
 	traffic.player_pos = car.global_position
@@ -1516,6 +1519,8 @@ func _parse_args() -> void:
 			_water_test_at = Vector2(float(wz[0]), float(wz[1]))
 		elif arg == "--ram-test":
 			ram_test = 1
+		elif arg == "--traffic-overlaps":
+			_traffic_overlaps = true
 		elif arg == "--cam-log":
 			cam_log = true
 		elif arg.begins_with("--cam-test="):

@@ -4,8 +4,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 ## From v0.6 (traffic, trams, pedestrians, rivals)
-- Cars can overlap briefly in complex junctions; a racing rival stuck in traffic passes
-  through other cars when off screen.
+- ~~Cars can overlap briefly in complex junctions~~ (fewer by three quarters, the traffic loop
+  2026-10-30: junction cars watch each other's body and path, `--traffic-overlaps` counts them;
+  left: two cars entering a short merging curve in the same frame); a racing rival stuck in
+  traffic passes through other cars when off screen.
 - Trams and crossing cars can touch nose to nose.
 - ~~Name tags and bubbles show faintly through the translucent WIN/LOSE card.~~ Fixed by loop 2e:
   the result card is one of the HUD's floating panels, so it is in `hud.gd` `panel_rects()`, and
