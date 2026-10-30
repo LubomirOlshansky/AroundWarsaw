@@ -32,6 +32,7 @@ const M_LAMP := 10.0      # glows at night
 const M_MEMBRANE := 11.0  # the stadium's roof membrane
 const M_GLASS := 12.0     # curtain wall with mullions (Varso)
 const M_SKIN := 13.0      # a tower's own skin; fraction = style / 16 (S_*, building.gdshader skin())
+const M_GOTHIC := 14.0    # brick Gothic: buttresses and pointed lancets (the Cathedral, the Barbican)
 
 ## The skins (building.gdshader S_*): Złota 44's white exoskeleton, Warsaw Spire's diamonds,
 ## silver floor bands, vertical fins, a white grid, balcony slabs, dark glass, gold glass,
@@ -226,6 +227,9 @@ const INFO := {
 	"mirowska": ["Hala Mirowska",
 			"Ceglana hala targowa.",
 			"A brick market hall."],
+	"metropolitan": ["Metropolitan",
+			"Biurowiec Normana Fostera przy placu Piłsudskiego, z 2003 roku.",
+			"Norman Foster's office building on Plac Piłsudskiego, of 2003."],
 	"sejm": ["Sejm RP",
 			"Przy Wiejskiej.",
 			"On Wiejska."],
@@ -1650,8 +1654,8 @@ const SKINS := [
 	{"key": "kopernik", "osm": "Centrum Nauki Kopernik", "mode": M_STONE, "wall": "#5f5a54", "roof": "#6f9a4c"},
 	{"key": "buw", "osm": "Biblioteka Uniwersytecka", "mode": M_STONE, "wall": "#7f9e8a", "roof": "#6a9a52"},
 	{"key": "zamek", "osm": "Zamek Królewski", "mode": M_MONUMENT, "wall": "#c87560", "roof": "#6e5a4e"},
-	{"key": "barbakan", "osm": "Barbakan", "mode": M_STONE, "wall": "#ab5a42", "roof": "#6b4a3c"},
-	{"key": "archikatedra", "osm": "Archikatedra pw. Świętego Jana Chrzciciela", "mode": M_STONE, "wall": "#a2503c", "roof": "#7a3d30"},
+	{"key": "barbakan", "osm": "Barbakan", "mode": M_GOTHIC, "wall": "#ab5a42", "roof": "#6b4a3c"},
+	{"key": "archikatedra", "osm": "Archikatedra pw. Świętego Jana Chrzciciela", "mode": M_GOTHIC, "wall": "#9a4b38", "roof": "#6e3a2e"},
 	{"key": "sw_anna", "osm": "Kościół pw. Świętej Anny", "mode": M_MONUMENT, "wall": "#e6dcc4", "roof": "#8a5a44"},
 	{"key": "prezydencki", "osm": "Pałac Prezydencki", "mode": M_MONUMENT, "wall": "#ece3cc", "roof": "#6a7a77"},
 	{"key": "sw_krzyz", "osm": "Kościół pw. Świętego Krzyża", "mode": M_MONUMENT, "wall": "#e3d9c0", "roof": "#5d6e64"},
@@ -1660,6 +1664,7 @@ const SKINS := [
 	{"key": "wszystkich", "osm": "Kościół Wszystkich Świętych", "mode": M_MONUMENT, "wall": "#ddcfaa", "roof": "#6e7f6e"},
 	{"key": "aleksander", "osm": "Kościół Świętego Aleksandra", "mode": M_MONUMENT, "wall": "#ebe4d2", "roof": "#7f8f88"},
 	{"key": "mirowska", "osm": "Hala Mirowska", "mode": M_STONE, "wall": "#a85c40", "roof": "#6d7470"},
+	{"key": "metropolitan", "osm": "Metropolitan", "mode": M_SKIN + S_FINS / 16.0, "wall": "#7f8d94", "roof": "#9a9a96"},
 	{"key": "sejm", "osm": "Sejm RP", "mode": M_MONUMENT, "wall": "#e2e0d8", "roof": "#8d8f8c"},
 ]
 
