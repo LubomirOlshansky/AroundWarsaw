@@ -954,9 +954,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   required-reason APIs (file timestamps, system boot time, UserDefaults); Godot's iOS template
   may need one declaring them, with no data collected. Check App Store Connect's email after
   the first upload.
-- The store screenshots show the HUD; they need redoing when the HUD changes . They show the radio
-  button as NOCNA FM: the game's station became Kebab FM (#3) after they were rendered, so
-  re-render them before uploading.
+- The store screenshots show the HUD; they need redoing when the HUD changes  (re-rendered with KEBAB FM
+  on 2026-10-30; shot 07 from the bigger demo map, because on main's map Varso stands about
+  140 m from the edge and every wide framing shows the cliff).
+- The occlusion dither shows as a dark dotted patch in store shots 01 (bottom left) and 07
+  (iPhone and Play, left of Varso); re-take them when the dither is fixed or loop 3d-1 lands.
 - **On a 4:3 screen (iPad) the pull-over's dialogue panel never appears**: the conversation runs
   (`--police-log` shows it, frames 60-349) but nothing is drawn, at 2440×1830, 2200×1650 and
   1600×1200; 16:9 and wider are fine. The iPad's fifth store shot is a Podwózka ride instead.
