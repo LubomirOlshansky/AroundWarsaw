@@ -12,6 +12,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | --- | --- | --- | --- |
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
+| content | MW-5: PÓŁNOC FM (the station, 7 procedural tracks, host Kuba, notebook unlocks) and the city's sounds | cloud thread "Build the Moja Warszawa notebook" | 2026-10-30 |
 
 ## Waiting
 
