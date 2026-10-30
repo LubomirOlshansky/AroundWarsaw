@@ -42,7 +42,13 @@ python3 -I tools/wiki_build.py && cd wiki && npx wrangler@4 deploy
 
 Or run the **wiki** workflow by hand on GitHub (Actions → wiki → Run workflow); it builds and
 deploys with the same Cloudflare secrets as the landing (`CLOUDFLARE_API_TOKEN`,
-`CLOUDFLARE_ACCOUNT_ID`). On every push to main it only checks that the wiki still builds.
+`CLOUDFLARE_ACCOUNT_ID`). On every push to main (and every pull request) that touches the
+data, scripts or docs it rebuilds the wiki, fails if the generator breaks, and keeps the built
+site as a downloadable artifact for 7 days.
+
+**Auto-deploy** (off): set the repository variable `WIKI_AUTO_DEPLOY` to `true` (Settings →
+Secrets and variables → Actions → Variables) and every push to main also deploys, so the live
+wiki always matches main. Turn it on only after the first deploy is approved.
 
 Stronger lock, optional: put the subdomain behind Cloudflare Access (Zero Trust → Access →
 Applications → Self-hosted, `wiki.aroundwarsaw.app`, allow your e-mail; free for up to 50
