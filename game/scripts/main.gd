@@ -476,6 +476,12 @@ func _ready() -> void:
 	await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
 	_place_start()  # loop MW-1: --place=<id>, the sectors round the place
+	# The web loop 2: the web build downloads its sectors (sector_packs.gd), the start's first.
+	if SectorPacks.active() and not monolithic:
+		_packs = SectorPacks.new()
+		_packs.name = "SectorPacks"
+		add_child(_packs)
+		await _packs.fetch_start(start_at, SectorStreamer.START_REACH, SectorStreamer.SECTOR)
 	var no_map := _missing_map()
 	if no_map != "":
 		# Loop 3d-1: the split and the prebuilt sectors are not committed; a fresh clone makes
@@ -886,6 +892,7 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	rivals.setup(graph, traffic, hud, bubbles, missions, map, world, car, data)
 	print("living city: %d lanes, %d trams in %d ms" % [graph.lane_count, trams.trams.size(), Time.get_ticks_msec() - t0])
 	if bench:
+		_clear_bench_result()
 		var p := Vector2(car.global_position.x, car.global_position.z)
 		var hit := graph.snap(p, 60.0, Vector2(-sin(car.rotation.y), -cos(car.rotation.y)), true)
 		if not hit.is_empty():
@@ -1139,6 +1146,13 @@ func _bench_header(kind: String) -> PackedStringArray:
 	])
 
 
+## The performance lane (2026-10-30): a bench starts by removing the last one's result, so a run
+## that ends before its card (a crash, a quit) leaves no file and tools/device_run.sh copies none
+## (it used to copy whatever an earlier bench had left).
+func _clear_bench_result() -> void:
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://bench_result.txt"))
+
+
 ## Loop 2b: the bench's result also goes to user://bench_result.txt (on the iPhone the app's
 ## Documents folder), not the save or the settings.
 func _write_bench_result(text: String) -> void:
@@ -1209,6 +1223,7 @@ func _start_phone_bench() -> void:
 	cam_focus = car.global_position
 	_bench_ghost = traffic.add_ghost(hit[0], hit[1], hit[2])
 	_phone_bench = true
+	_clear_bench_result()
 	_set_perf(show_perf)
 	_stats.header = _bench_header("BENCH button")
 	_bench_t0 = Time.get_ticks_msec()
@@ -1678,6 +1693,10 @@ func _load_settings() -> void:
 	settings.load_file()
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
 	auto_quality = Tiers.for_model(model_name)
+	# The web loop 2: a phone's browser has a fraction of the app's memory and GPU time (Safari
+	# closed the page on an iPhone): Auto picks Low there.
+	if OS.has_feature("web_ios") or OS.has_feature("web_android"):
+		auto_quality = Tiers.LOW
 	quality_choice = _flag_quality if _flag_quality != -2 else settings.quality
 	quality = auto_quality if quality_choice == Tiers.AUTO else quality_choice
 	print("quality: %s · Auto picks %s for %s" % [Tiers.describe(quality_choice, quality, model_name),
@@ -3462,7 +3481,10 @@ func _quit_quietly() -> void:
 # third; then the streaming numbers, and the game quits).
 
 const SectorStreamer := preload("res://scripts/sector_streamer.gd")
+const SectorPacks := preload("res://scripts/sector_packs.gd")
 var streamer: SectorStreamer
+## The web loop 2: the web build's sector downloads (sector_packs.gd); null elsewhere.
+var _packs: SectorPacks
 var monolithic := false
 var _sectors_all := false
 var _sectors_proxies := false
@@ -3515,6 +3537,7 @@ func _open_streamed_city(world: Node3D, flat_mat: ShaderMaterial) -> Dictionary:
 	streamer.load_all = _sectors_all
 	streamer.proxies_only = _sectors_proxies
 	streamer.log = _stream_log
+	streamer.packs = _packs
 	add_child(streamer)
 	streamer.sector_ready.connect(_on_sector_ready)
 	var use_prebuilt := prebuilt or not OS.has_feature("editor")

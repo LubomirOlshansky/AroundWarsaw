@@ -257,19 +257,19 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - Shadow edges are a little finer than before (0.37 m texels on High instead of 0.49 m).
 
 ## From the project setup (agents, skills, checks; 2026-10-28)
-- `check_landmarks.gd` exits 0 even when a check fails; `tools/verify.sh` reads its OK line
-  instead. It should end with `quit(0 if failures == 0 else 1)`.
-- README gives two different `bake_osm.py` command lines ("Map data" step 1 and "Layout").
-- README names the Apple team ID. It isn't a secret (every signed build carries it); keep or
-  drop before the first public commit.
+- ~~`check_landmarks.gd` exits 0 even when a check fails.~~ Fixed: it ends with
+  `quit(0 if _check() == 0 else 1)` (tidied 2026-10-30, checked in the code).
+- ~~README gives two different `bake_osm.py` command lines.~~ Gone: the map chain moved to
+  DEVELOPMENT.md and `tools/setup_map.sh`; README has no bake line (tidied 2026-10-30, checked in the code).
+- ~~README names the Apple team ID.~~ README no longer does; the ID stays in
+  `export_presets.cfg` (not a secret, decided: BACKLOG-TRIAGE "Decided since") (tidied 2026-10-30, checked in the code).
 - Device-run permission in CLAUDE.md stays per loop ("when the user said so for the current
   loop"); the user allowed phone test builds on 2026-10-28.
 - Haptics fail on the phone: `Could not vibrate using haptic engine: (null)` in the device log
   (nine `Input.vibrate_handheld` calls). Rule out Low Power Mode / System Haptics off first;
   else a small iOS plugin with `UIImpactFeedbackGenerator`.
-- The once-only `ERROR: Mouse is not supported by this display server.` at start on iOS comes
-  from the engine before any script runs (loop 2b); harmless, but it keeps the device log from
-  being clean.
+- ~~The once-only `ERROR: Mouse is not supported by this display server.`~~ Duplicate of the
+  loop 2b entry above (tidied 2026-10-30, checked in the code).
 
 ## From loop 10a (the river is off-limits)
 - The splash, the tow and the stone's look were judged on the Mac (screenshots, logs); the feel
@@ -292,11 +292,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   with no bank known, is 491 m).
 - A beach path's paving still draws past the stone into the water where OpenStreetMap maps it
   so; people now turn back a metre short of the water.
-- The helicopter's roof toast ("Land on open ground to take the car") is still English only;
-  the new water one is Polish over English.
-- `map_builder.bounds` isn't stored in `city.scn` (the prebuilt path had a zero rectangle);
-  main.gd now sets it from the map data. Other code reading `map.bounds` on the prebuilt path
-  was getting zeros before.
+- ~~The helicopter's roof toast is still English only.~~ Fixed: "Wyląduj na otwartym terenie,
+  żeby wziąć auto." over the English (`main.gd`) (tidied 2026-10-30, checked in the code).
+- ~~`map_builder.bounds` isn't stored in `city.scn`.~~ Fixed: `bounds` is `@export_storage`
+  in `map_builder.gd`, so the prebuilt index carries it (tidied 2026-10-30, checked in the code).
 - The bench route's ghost car drives with its collision off, so the water test never runs on
   the bench; it was measured with the probe (car physics 0.05 → 0.05 ms at the river) and a
   micro-benchmark (0.8 µs a call, one call per physics frame).
@@ -968,12 +967,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
   last few unloaded sectors' roots (not freed, out of the tree) so a sector seen again minutes
   later comes back without a load (memory against hitches), or load further ahead so the hitch
   falls while the view is calm (it doesn't remove it).
-- **`tools/device_run.sh` copies `Documents/bench_result.txt` from any earlier bench** when the
-  run made none (the bench doesn't clear it at the start, as the streaming soak now does): read
-  the card's date line.
-- **The night bench sometimes has a sun-shadow pass** (on the Mac, 2 of 6 `--time=night` benches:
-  57-69 shadow draws where the others have 0; before and after loop G0+'s change alike): the
-  sun's shadow at night should be off from the first frame. Not looked into.
+- ~~**`tools/device_run.sh` copies `Documents/bench_result.txt` from any earlier bench** when the
+  run made none.~~ Fixed (performance lane, 2026-10-30): a bench (`--bench` or the BENCH
+  button) removes the last result when it starts.
+- ~~**The night bench sometimes has a sun-shadow pass** (on the Mac, 2 of 6 `--time=night`
+  benches: 57-69 shadow draws where the others have 0).~~ Not reproducible on main 81de932
+  (performance lane, 2026-10-30): 12 night benches (runtime and prebuilt, 1920×1080 and the
+  default window) with a watcher on the sun's shadow, every light's shadow and the shadow pass's
+  draws per frame: the sun's shadow off from frame 1, no light casting one, 0 shadow draws in
+  every run. The code path hasn't changed since; those runs likely had other flags or a saved
+  time. If it shows again, the watcher's shape: print `sun.shadow_enabled`, `tod.mode`, `tod._t`
+  and the shadow pass's `VIEWPORT_RENDER_INFO_TYPE_SHADOW` draws per frame.
 - The streamer's `(unload)` time is only the call to `queue_free()`; freeing a sector's nodes
   happens at the end of that frame and isn't in the streaming numbers (no slow frame showed it).
 - **check_streaming spot 8 (512, −740) at 0.789 % of its pixels** (the limit is 0.5 %; 0.472 % with
@@ -1152,9 +1156,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **Try it in a phone's browser** (iOS Safari, Android Chrome): memory with the ~140 MB pack in
   memory, the touch controls for real, the safe area (`OS.has_feature("mobile")` is false on the
   web, so the HUD uses the desktop layout rules), the frame rate.
-- **Smaller download**: ~141 MB, mostly the 108 sector scenes, which barely compress. Options:
-  load sectors over HTTP as the car needs them (a pack per sector with
-  `ProjectSettings.load_resource_pack`), or a web-only lighter city (no far sectors, proxies only).
+- **Smaller download** (web loop 2 did the sectors: 141 → 59 MB at the start). What is left: the
+  pack's 40 MB (shared meshes and textures 20, proxies 8.5, index 7.7), the engine's 10.
+- **A sector the car reaches before its pack** shows its proxy and has no colliders; on a slow
+  link a fast helicopter could outrun the downloads. Not seen in tests.
 - **The Compatibility renderer's look**: compare the web against the phone shot for shot
   (night lights, water, shadows); only the green traffic was fixed.
 - **Prebuilt MultiMeshes with custom data and no colours** would show the same Compatibility bug
