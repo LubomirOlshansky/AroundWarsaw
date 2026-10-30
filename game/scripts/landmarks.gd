@@ -62,8 +62,12 @@ const TOWERS := [
 	{"key": "wtt", "osm": "Warsaw Trade Tower", "style": S_BANDS, "glass": "#3d6a7a", "roof": "#8d979c"},
 	{"key": "skyliner", "osm": "Skyliner", "style": S_FINS, "glass": "#2f6190", "roof": "#9aa6b0"},
 	{"key": "unit", "osm": "Warsaw Unit", "style": S_BANDS, "glass": "#4f87ba", "roof": "#8a96a0"},
-	{"key": "mennica", "osm": "Mennica Legacy Tower", "style": S_FINS, "glass": "#6d95ba", "roof": "#b5c0c9"},
-	{"key": "gpy", "osm": "Generation Park Y", "style": S_DARK, "glass": "#46525e", "roof": "#6c747c"},
+	{"key": "mennica", "osm": "Mennica Legacy Tower", "style": S_FINS, "glass": "#6d95ba", "roof": "#b5c0c9", "crest": "slope"},
+	{"key": "gpy", "osm": "Generation Park Y", "style": S_DARK, "glass": "#46525e", "roof": "#6c747c", "crest": "slope"},
+	# The Warsaw HUB's two 130 m towers (unnamed in OpenStreetMap: found by a point, `at`, in
+	# the tallest building there), white fins on pale glass, their tops cut on a slope.
+	{"key": "hub_b", "at": Vector2(-2677.0, 576.0), "style": S_FINS, "glass": "#8fb2c8", "roof": "#c9d2d8", "crest": "slope"},
+	{"key": "hub_c", "at": Vector2(-2677.0, 633.0), "style": S_FINS, "glass": "#8fb2c8", "roof": "#c9d2d8", "crest": "slope"},
 	{"key": "skysawa", "osm": "Skysawa", "style": S_BANDS, "glass": "#7e93a3", "roof": "#a7b0b6"},
 	{"key": "blekitny", "osm": "Błękitny Wieżowiec", "style": S_GOLD, "glass": "#c9a45c", "roof": "#8e8a80"},
 	{"key": "wcf", "osm": "Warszawskie Centrum Finansowe", "style": S_DARK, "glass": "#4d6862", "roof": "#7d8580"},
@@ -138,6 +142,12 @@ const INFO := {
 	"unit": ["Warsaw Unit",
 			"202 m przy rondzie Daszyńskiego.",
 			"202 m by Rondo Daszyńskiego."],
+	"hub_b": ["The Warsaw HUB",
+			"Dwie wieże po 130 m nad węzłem przesiadkowym przy rondzie Daszyńskiego.",
+			"Two 130 m towers over the interchange at Rondo Daszyńskiego."],
+	"hub_c": ["The Warsaw HUB",
+			"Dwie wieże po 130 m nad węzłem przesiadkowym przy rondzie Daszyńskiego.",
+			"Two 130 m towers over the interchange at Rondo Daszyńskiego."],
 	"mennica": ["Mennica Legacy Tower",
 			"140 m przy Prostej.",
 			"140 m on Prosta."],
@@ -336,6 +346,21 @@ func _centre(poly: PackedVector2Array) -> Vector2:
 	return c / maxf(poly.size(), 1)
 
 
+## The landmarks loop: the outline of the tallest building (or part) standing on `at`, for a
+## tower OpenStreetMap leaves unnamed (The Warsaw HUB).
+func _tallest_at(at: Vector2) -> PackedVector2Array:
+	var best := PackedVector2Array()
+	var top := 0.0
+	for b in data.get("buildings", []):
+		if float(b["h"]) <= top:
+			continue
+		var q := _pts(b["p"])
+		if q.size() >= 3 and Geometry2D.is_point_in_polygon(at, q):
+			best = q
+			top = float(b["h"])
+	return best
+
+
 func _landmark(name: String) -> PackedVector2Array:
 	for l in data.get("landmarks", []):
 		if l["name"] == name:
@@ -412,7 +437,7 @@ func _find_sites() -> void:
 	_find_towers()
 	# The landmarks loop: the skyline's towers, then Muzeum Narodowe.
 	for t: Dictionary in TOWERS:
-		var outline := _landmark(t["osm"])
+		var outline := _landmark(t["osm"]) if t.has("osm") else _tallest_at(t["at"])
 		if outline.size() >= 3:
 			_add_site(t["key"], [outline])
 			if not sites.is_empty() and sites[-1]["key"] == t["key"]:
@@ -1344,7 +1369,7 @@ func _build_tower(site: Dictionary) -> void:
 	var skin := M_SKIN + float(spec["style"]) / 16.0
 	var parts := _parts_in(zone, func(b: Dictionary) -> bool: return float(b["h"]) > float(b["mh"]) + 0.5)
 	if parts.size() > 1:
-		parts = parts.filter(func(b: Dictionary) -> bool: return str(b.get("name", "")) != spec["osm"])
+		parts = parts.filter(func(b: Dictionary) -> bool: return str(b.get("name", "")) != spec.get("osm", ""))
 	var boxes: Array[Rect2] = []
 	var top_h := 0.0
 	for b in parts:
@@ -1607,8 +1632,9 @@ func _sloped(poly: PackedVector2Array, y0: float, hi: float, lo: float, wall: Co
 		var a := poly[idx[i]]
 		var b := poly[idx[i + 1]]
 		var d := poly[idx[i + 2]]
-		_tri(Vector3(a.x, top.call(a), a.y), Vector3(b.x, top.call(b), b.y), Vector3(d.x, top.call(d), d.y), up, roof,
-				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+		# Glazed like the walls: a pale slab tilted to the camera blew out (the landmarks loop).
+		_tri(Vector3(a.x, top.call(a), a.y), Vector3(b.x, top.call(b), b.y), Vector3(d.x, top.call(d), d.y), up,
+				wall.lerp(roof, 0.3), Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
 	_mode = keep
 
 
