@@ -3,7 +3,7 @@
     python3 -I tools/bake_sectors.py [MAP_DIR]          (MAP_DIR defaults to game/map)
 
 Run it after the bake chain (bake_osm.py, bake_gugik.py, bake_ao.py, bake_lights.py,
-bake_water.py) and before the prebuilt city (tools/bake_city.gd), as README "Map data"
+bake_water.py) and before the prebuilt city (tools/bake_city.gd), as docs/DEVELOPMENT.md "Map data"
 says. It reads centrum.json, lod2.bin and lod2.json and writes:
 
   index.json             the global index (docs/DEMO.md 2.4): what the whole map needs at
@@ -29,10 +29,16 @@ says. It reads centrum.json, lod2.bin and lod2.json and writes:
 Sector (i, j) covers x in [i * 512, (i + 1) * 512) and z in [j * 512, (j + 1) * 512), from the
 map's origin (bake_osm.py LAT0/LON0; the origin and the box are unchanged by this loop).
 The AO, lamp-light and surface maps stay whole (one texture each, shared by every sector):
-see README "Sectors and streaming" for why, and what loop 3d does instead.
+see docs/DEVELOPMENT.md "Sectors and streaming" for why, and what loop 3d does instead.
+
+Loop 3d-1: these files are derived and not committed (.gitignore); a fresh clone makes them
+with tools/setup_map.sh. It also writes sectors/split.stamp: the SHA-256 of what it read (SPLIT_INPUTS),
+so tools/check_map_data.py tells a stale split by content, not by file times (a checkout
+scrambles those).
 
 Standard library only; prints what it wrote.
 """
+import hashlib
 import json
 import math
 import os
@@ -41,6 +47,10 @@ import sys
 from array import array
 
 SECTOR = 512.0
+BUILDING_SLACK = 6.0   # bake_osm.py keeps buildings hanging this far over the map's edge
+# Loop 3d-1: what the split is made from (map-dir files, and this script), hashed into
+# sectors/split.stamp; tools/check_map_data.py SPLIT_INPUTS reads the same names.
+SPLIT_INPUTS = ["centrum.json", "lod2.bin", "lod2.json"]
 # Features (ways, areas, buildings) go to every sector within this many metres of their box:
 # their own triangles reach a road's width beyond its line (27.5 m wide, 10 m off its line at
 # most), and the builder looks round them (a shop sign looks up to ~33 m ahead for a street).
@@ -244,10 +254,25 @@ def lod2_runs(f, n):
     return runs, near
 
 
+def reach(bounds, map_dir):
+    """Loop 3d-1: the rectangle the builder may draw in: the map's bounds grown by the 6 m a
+    building may hang over the edge (bake_osm.py) and the terrain grid's extent (the demo box's
+    grid reaches 4 m past its north edge, which lies 2.4 m inside sector row -4: ground and
+    buildings there were in no sector, check_streaming's identity)."""
+    x0, z0, x1, z1 = bounds[0] - BUILDING_SLACK, bounds[1] - BUILDING_SLACK, bounds[2] + BUILDING_SLACK, bounds[3] + BUILDING_SLACK
+    tp = os.path.join(map_dir, "terrain.json")
+    if os.path.exists(tp):
+        with open(tp) as fh:
+            t = json.load(fh)
+        x0, z0 = min(x0, t["x0"]), min(z0, t["z0"])
+        x1, z1 = max(x1, t["x0"] + (t["nx"] - 1) * t["step"]), max(z1, t["z0"] + (t["nz"] - 1) * t["step"])
+    return [x0, z0, x1, z1]
+
+
 def main(map_dir):
     with open(os.path.join(map_dir, "centrum.json"), encoding="utf-8") as fh:
         data = json.load(fh)
-    grid = Grid(data["bounds"])
+    grid = Grid(reach(data["bounds"], map_dir))
     keys = grid.keys()
     sectors = {k: {"sector": list(k)} for k in keys}
     counts = {k: 0 for k in keys}
@@ -407,6 +432,9 @@ def main(map_dir):
     with open(os.path.join(map_dir, "index.json"), "w", encoding="utf-8") as fh:
         json.dump(index, fh, separators=(",", ":"), ensure_ascii=False)
 
+    with open(os.path.join(out_dir, "split.stamp"), "w", encoding="utf-8") as fh:
+        json.dump(split_stamp(map_dir), fh, indent=1, sort_keys=True)
+
     total = sum(sizes.values())
     print("bake_sectors: %d sectors of %d m (i %d..%d, j %d..%d), margin %d m (points %d m)" % (
         len(keys), SECTOR, grid.i0, grid.i1, grid.j0, grid.j1, MARGIN, POINT_MARGIN))
@@ -416,6 +444,26 @@ def main(map_dir):
     for k in keys:
         print("  %-6s %6d features %6.2f MB  %4d LoD2 buildings" % (name(k), counts[k], sizes[k] / 1e6, lod_counts[k]))
     return 0
+
+
+def sha256_file(path):
+    """The file's SHA-256 (hex), or "" when it isn't there."""
+    if not os.path.exists(path):
+        return ""
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def split_stamp(map_dir):
+    """Loop 3d-1: the inputs' hashes and one digest over them (the prebuilt city's stamp
+    records the digest, so a new split makes the prebuilt sectors stale too)."""
+    inputs = {f: sha256_file(os.path.join(map_dir, f)) for f in SPLIT_INPUTS}
+    inputs["bake_sectors.py"] = sha256_file(os.path.abspath(__file__))
+    digest = hashlib.sha256("".join("%s=%s\n" % kv for kv in sorted(inputs.items())).encode()).hexdigest()
+    return {"inputs": inputs, "digest": digest}
 
 
 if __name__ == "__main__":

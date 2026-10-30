@@ -164,8 +164,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   close up, so the passing bubble carries the joke. Lines repeat across the 24 columns
   (16 lines).
 - The AO map is twice the size (two channels: 12.5 MB as a texture); `city.scn` grew 0.8 MB.
-- Night water is a flat deep navy away from the lamps: calm, maybe too plain at the widest
-  zoom; a faint sky sheen could come back if the device pass wants it.
+- ~~Night water is a flat deep navy away from the lamps: calm, maybe too plain at the widest
+  zoom; a faint sky sheen could come back if the device pass wants it.~~ Done 2026-10-30 (loop 3i
+  item, a cloud thread): after dark the river gets a faint sky sheen as light (broad 40-80 m
+  patches along the flow, so it reads at 320 m, plus the slow crests) and a warm city glow within
+  ~40 m of the banks; off above dusk's daylight, so dusk is unchanged. Judge it on the phone.
 - The bench ran uncapped (220-280 fps) for most of loop 1 instead of at the display's 120 Hz:
   frame times and GPU readings are not comparable with earlier sessions' numbers, so loop 1
   ran the v0.9 code alongside for its before/after. Fewer cars fill in over 600 faster frames.
@@ -382,7 +385,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   separate blobs; real blobs need a new crown mesh (map side, with the crown sizes near roads).
   Conifers share the material and get gentle lumps too.
 - Cycle lanes under sodium at night still read red (dimmer, tinted, not added), under the car.
-- The minimap still shows the azure water and lime parks (HUD side).
+- ~~The minimap still shows the azure water and lime parks (HUD side).~~ Done 2026-10-30: the
+  water is the river's grey-green-blue (`#70a0ac`, was azure `#7fb8de`); the parks were measured
+  against the lawns by day (`#a9cf7c` vs `#9fca6a` in sun) and match, so they stay.
 - Buses and trams keep their Warsaw red-and-yellow livery and the rivals their looks (loop 2c:
   Słoik's stripe is pickle green now; his orange name tag stays): street-level Warsaw is on the
   review's protect list.
@@ -708,9 +713,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - The streamer's worker is a `Thread` per sector, not WorkerThreadPool: a GDScript callable run
   on a pool thread leaves one RefCounted per pool thread at exit (`ObjectDB instances were
   leaked`), which `tools/verify.sh` reads as a failure; a joined `Thread` doesn't.
-- The sector files (`sectors/*.json`, 9.2 MB, ~1.7× centrum.json's per-sector part) and the
-  prebuilt sectors (28.8 MB + 6 MB shared, against city.scn's 37 MB) are committed like
-  centrum.json and city.scn were, so a fresh clone runs both paths without baking.
+- ~~The sector files and the prebuilt sectors are committed~~ Loop 3d-1 (the user's decision,
+  2026-10-29): no longer committed (the pack grew 194 → 340 MB in a day of re-bakes); a fresh
+  clone runs `tools/setup_map.sh` once, freshness is by content (README "Map data").
 
 ## Decided in loop 3c (map-engineer defaults; the user may still change them)
 - The split is a new `tools/bake_sectors.py` after the chain (bake_osm.py is unchanged); the
@@ -858,6 +863,56 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **D8** rail track ends 1.2 m apart (Solec) and **D10** the Praga ramp joint's sliver: as in map
   review A's specs.
 
+## From loop 3d-1 (the demo map, the 18.6 km² box, 2026-10-29)
+- **Loop 3e's structures, all allowlisted with place and reason** (`tools/check_roads_allow.json`,
+  `tools/check_drive_allow.json`, README "Loop 3d-1"): Trasa W-Z's tunnel and portals (Aleja
+  Solidarności, Grodzka, Nowy Zjazd, the tram's abutment), Trasa Łazienkowska's trench at Plac Na
+  Rozdrożu (its ways are layer -1 with no tunnel tag: a cutting the grid doesn't show; 0.3-0.8 m
+  height steps a frame in its tunnels) and its interchange with Czerniakowska, the Wisłostrada
+  tunnel's north portal under the Copernicus Science Centre, Most Śląsko-Dąbrowski's Praga end,
+  Wiadukt Markiewicza, the railway cutting west of Centralna (Żelazna, Towarowa, Kasprzaka and
+  their footbridges, whose stairs aren't mapped), the Praga viaducts by the zoo (0.1-0.7 m short of
+  the clearance).
+- **The new 10 m grid moved the old map's ground** (the demo fetch samples the NMT 3.5 m east and
+  5 m south of the old grid's nodes; ±0.7 m at p1/p99, up to 3 m on embankments): 27 allowlist
+  entries no longer matched and went, new ones came, and two main-road spots now step: Wybrzeże
+  Kościuszkowskie by Tamka (625, −453) 2.4 m in 6 m and (642, −548). A rule for a road's end on a
+  hump of the grid, or the 1 m NMT along the river (one download, ~125 MB for the whole box,
+  DEMO 3.1's optional line), would fix the class.
+- **The AO, lamp-light and surface maps** are 37 + 37 + 19 MB (93 MB of video memory as whole
+  textures; the probe's textures 24 → 87 MB). Over the brief's 60 MB, but a window kept in RAM
+  saves nothing on the iPhone's shared memory: it needs per-sector slices read from disk as the
+  focus moves (the streamer's job, where the perf loop works now). Loop 3d-2.
+- **Static memory at the spawn 147 → ~220-315 MB** (the index's game data: roads, paths, areas,
+  trees3d as Variant arrays, now 3× bigger; index.json 9.6 MB): packed arrays or per-sector game
+  data (3c's note). Loop 3d-2.
+- **The runtime path's start**: the roof pass over 88 sector files (3c measured 2 s for 32) and the
+  monolithic build (`count_vertices.gd` 36 s): a cached roof grid. Loop 3d-2.
+- **Most Łazienkowski is cut by the east edge** (x 1,773 mid-river): its deck ends in the air at the
+  rim like Most Świętokrzyski's did on the first box. DEMO 2.1 said no bridge is cut; that held
+  for the 30 km² box only. Move the east edge to ~21.056 (the fetch reaches it) or accept.
+- **Speed traps 5-7** (`tools/bake_traps.py`): Warsaw's blocks give straight runs of 157-195 m
+  (police.md asks 250 m with no junction within 80 m: the officer stands mid-run, the junctions
+  78-98 m away); trap 6's road is named Aleja Armii Ludowej in OSM (radio phrase unchanged),
+  its graph speed 79 km/h. police.md 13 wants them as `pois` kind `trap` in the bake.
+- **Pedestrian zones**: `ped_zones` (83 polygons, the Old Town box) and the 20 km/h cap are in;
+  the pill, guards, clamp and the guard car (police.md 5.6) are loop 3g-2's; Łazienki and the
+  boulevards (police.md 13) are outside the box or need their own `PED_ZONES` line.
+- **Scanned crowns into decks** (C9, 4 places: by Most Świętokrzyski's pylon one 15 m tree
+  reaches 8.9 m into the slab at the 0.40 floor of trim_crowns): leave such a tree out, or let the
+  floor go lower.
+- **Police P3 on the demo map** (fixed): the test escape's random turns looped back past the
+  chaser's side, a traffic patrol saw it within 60 m at 20 s (the second-unit rule: L2, cap 40 s)
+  and the escape came at 34.2 s. The test autopilot (`--police-auto=escape`) now rides a route to a
+  node ~900 m away from the chaser (`police.gd` `_escape_route`): escaped after 23.2 s at L1.
+- `verify.sh` kebab: 15000 frames (order 0 goes 1,023 m on the demo map, delivered at 219.8 s).
+- **CI after the merge (2026-10-30)**: the map is no longer in git (lod2.bin alone is 87 MB), so
+  GitHub's `verify` job runs only the steps that need no map (steering, settings, tiers, governor,
+  hud, rides, sfx, radio, police); the map, road, drape and drive checks and the game runs stay on
+  the Mac. To bring them back: a release asset with the derived pack that CI downloads, or a small
+  test map. `shots.sh`'s `settings_panel` shot is MISSING (the paused game never reaches the shot
+  frame): a shot-script issue, not the map.
+
 ## From the radio playlists loop (2026-10-29)
 - Done: radio.json, shuffled playlists, `tools/add_music.py`, the radio check, README "Adding music",
   CREDITS "Music".
@@ -898,6 +953,16 @@ Small problems that agents reported or that showed up in screenshots. They are f
   sun's shadow at night should be off from the first frame. Not looked into.
 - The streamer's `(unload)` time is only the call to `queue_free()`; freeing a sector's nodes
   happens at the end of that frame and isn't in the streaming numbers (no slow frame showed it).
+- **check_streaming spot 8 (512, −740) at 0.789 % of its pixels** (the limit is 0.5 %; 0.472 % with
+  the east edge at 21.050 and the 10 m terrain). Deterministic. The differing pixels are ragged
+  shadow-edge patches on the ground, as many darker on each side (1,208 vs 959 sampled): the
+  directional shadow fits its depth range to the casters it sees, and the whole city (the
+  reference) has more of them than the streamed one, not a sector missing geometry (the identity
+  part passes). Judged in the game (shots/spot8: the streamed sectors against all of them, 0.07 %
+  visible, single texels of lamp-pole shadow edges, nothing moves): spot 8 has its own limit of
+  1 % in `check_streaming.gd` `SPOT_MAX`, the reason there.
+- `verify.sh` ride: 30000 frames (the river quirk's legs run 1.7-1.8 km on the demo map).
+
 
 ## From the first Android build (2026-10-29)
 
@@ -956,9 +1021,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   required-reason APIs (file timestamps, system boot time, UserDefaults); Godot's iOS template
   may need one declaring them, with no data collected. Check App Store Connect's email after
   the first upload.
-- The store screenshots show the HUD; they need redoing when the HUD changes . They show the radio
-  button as NOCNA FM: the game's station became Kebab FM (#3) after they were rendered, so
-  re-render them before uploading.
+- The store screenshots show the HUD; they need redoing when the HUD changes  (re-rendered with KEBAB FM
+  on 2026-10-30; shot 07 from the bigger demo map, because on main's map Varso stands about
+  140 m from the edge and every wide framing shows the cliff).
+- The occlusion dither shows as a dark dotted patch in store shots 01 (bottom left) and 07
+  (iPhone and Play, left of Varso); re-take them when the dither is fixed or loop 3d-1 lands.
 - **On a 4:3 screen (iPad) the pull-over's dialogue panel never appears**: the conversation runs
   (`--police-log` shows it, frames 60-349) but nothing is drawn, at 2440×1830, 2200×1650 and
   1600×1200; 16:9 and wider are fine. The iPad's fifth store shot is a Podwózka ride instead.
