@@ -10,15 +10,19 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 | Lane | Item | Session | Since |
 | --- | --- | --- | --- |
-| web | The game in the browser at play.aroundwarsaw.app, the "Play online" button | thread "Put the game online" | 2026-10-30 |
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
-| visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks/models | Landmark and skyscraper models (Złote Tarasy, Złota 44, Varso, PKiN, Spire, Q22, Muzeum Narodowe, Stadion Narodowy), bus stops: BACKLOG "High priority" | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
 
 ## Waiting
 
 Newest first. One entry per question.
 
+- **2026-10-30 · performance · phone runs** — May I run the bench and a streaming soak on the
+  iPhone 11 (a test build through Remote Control)? The Mac work is done (PR #27 memory −20 MB,
+  #33 traffic, #35 bench result); what's left needs the phone: static memory on the iPhone 11
+  (BENCH's memory line, before the beta), and whether a sector's load still makes a 25–65 ms
+  frame there. Default built: nothing run on the phone. Where: BACKLOG "From the performance
+  baseline", "From loop G0+".
 - **2026-10-30 · landmarks/models · landmark models** — Do the towers now read as the real
   ones? Look at the before/after shots in the PR. Default built: 18 towers in their own skins
   and colours, Złote Tarasy golden, Muzeum Narodowe in stone, new bus shelters. Say which
