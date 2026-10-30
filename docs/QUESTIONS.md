@@ -14,6 +14,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
 | map | Loop 3d-2b, the map engine part two: far levels with low buildings painted flat, look-ahead streaming, per-sector AO/light/surface maps, the load hitch (3d-1 and 3d-2a landed) | thread "Finish the demo map extension" | 2026-10-30 |
+| content (city life) | MW-4, everyday life and trends: dog walkers, cyclists and Rowerilo docks, runners, Kolka and the Zając, Hyrax Saturdays, the Wiralek cycle and the "Na czasie" job, Fat Thursday (new meshes in its own script; tell landmarks before touching `models.gd`) | cloud thread "Add night and river crowds" | 2026-10-30 |
 
 ## Waiting
 
