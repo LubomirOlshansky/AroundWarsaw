@@ -65,11 +65,13 @@ const BODY_RANGE := 40.0
 ## SHOVE_SLIDE m/s, slowing at SLIDE_DECEL m/s², at most SHOVE_ACROSS m off its line), and is
 ## dazed for DAZE s (DAZE_POLICE for a police car): no gas, braking at DAZE_DECEL m/s² (it was a
 ## dead stop at once), not steering back to its lane.
-const SHOVE_ALONG := 0.7
+const SHOVE_ALONG := 0.4
 const SHOVE_SIDE := 0.4
+## ... and, rammed from behind, swerves away from the player at SHOVE_SWERVE of the closing speed.
+const SHOVE_SWERVE := 0.35
 const SHOVE_SLIDE := 4.0
 const SLIDE_DECEL := 6.0
-const SHOVE_ACROSS := 1.6
+const SHOVE_ACROSS := 2.0
 const DAZE := 2.5
 const DAZE_POLICE := 1.5
 const DAZE_DECEL := 4.0
@@ -430,15 +432,20 @@ func _shove(d: Driver) -> void:
 		return
 	var pv := Vector2(player_vel.x, player_vel.z)
 	var along := pv.dot(Vector2(-sin(d.yaw), -cos(d.yaw)))
+	var closing := maxf(along - d.v, 0.0)
 	if along > d.v:
-		d.v += (along - d.v) * SHOVE_ALONG
+		d.v += closing * SHOVE_ALONG
 	if d.in_conn:
 		return
 	var e := d.edge
 	var s := minf(d.s, graph.e_len[e])
 	var seg := graph.seek(e, s, d.seg)
 	var across := graph.point(e, s, 1.0, seg) - graph.point(e, s, 0.0, seg)
-	var push := clampf(pv.dot(across) * SHOVE_SIDE, -SHOVE_SLIDE, SHOVE_SLIDE)
+	# Rammed from behind it also swerves away from the player's side (a square hit: to the
+	# right), so the player gets past instead of pushing it down the road.
+	var lat := Vector2(player_pos.x - d.pos.x, player_pos.z - d.pos.z).dot(across)
+	var away := -1.0 if lat > 0.0 else 1.0
+	var push := clampf(pv.dot(across) * SHOVE_SIDE + away * closing * SHOVE_SWERVE, -SHOVE_SLIDE, SHOVE_SLIDE)
 	if absf(push) > absf(d.slide):
 		d.slide = push
 
