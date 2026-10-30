@@ -74,6 +74,8 @@ const Fotka := preload("res://scripts/fotka.gd")
 const Sfx := preload("res://scripts/sfx.gd")
 ## Loop MW-5: the city's sounds at the notebook's places.
 const CitySounds := preload("res://scripts/city_sounds.gd")
+## Loop MW-3: the night and the river's crowds.
+const Crowds := preload("res://scripts/crowds.gd")
 const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
 const FollowCamera := preload("res://scripts/follow_camera.gd")
@@ -304,6 +306,15 @@ var radio_log := false
 var unlock_flag := ""
 var radio_picked := false
 var city_sounds: CitySounds
+## Loop MW-3: the crowds (crowds.gd) and their flags: --crowd=0|1|2 (none, normal, double; the
+## Low tier halves them), --night-log (queues, rejections, the dawn walkers each minute, every
+## event), --club=<id|name> (the car at that club's door).
+var crowds: Crowds
+var crowd_flag := 1
+var night_log := false
+var club_flag := ""
+## Live's sunset hour by date (yyyymmdd -> hour), for the steps crowd.
+var _sunsets := {}
 var start_kebab := -1
 var start_sloik := -1
 var start_heat := -1.0
@@ -536,6 +547,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
 	_place_start()  # loop MW-1: --place=<id>, the sectors round the place
+	_club_start()  # loop MW-3: --club=<id>, the same
 	# The web loop 2: the web build downloads its sectors (sector_packs.gd), the start's first.
 	if SectorPacks.active() and not monolithic:
 		_packs = SectorPacks.new()
@@ -882,11 +894,16 @@ func _build_world() -> void:
 	# Loop 3g-1: the police, on the traffic's lane graph (none with --no-police).
 	if traffic != null and not police_opts.get("off", false):
 		_build_police(data, world)
+	_build_crowds(data, world)
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
 	_apply_style()
 	_show_night_nodes(false)
 	tod.set_mode(start_time, true)
+	# Loop MW-3: --clock=HH:MM with a fixed look (--time=night --clock=01:00) starts its clock there.
+	if live_clock != "" and start_time != TimeOfDay.LIVE:
+		var hm := live_clock.split(":")
+		tod.fixed_start = clampf(float(hm[0]) + (float(hm[1]) / 60.0 if hm.size() > 1 else 0.0), 0.0, 23.99)
 	# Loop MW-5: PÓŁNOC FM reads the game clock; the radio follows it until the player picks.
 	radio.clock = func() -> Array:
 		var c := tod.local_clock()
@@ -1033,6 +1050,9 @@ func _set_quality(choice: int) -> void:
 	var qs: Dictionary = QUALITY[quality]
 	tod.shadows_allowed = qs["shadows"]
 	tod.glow_allowed = qs["glow"]
+	if crowds != null:
+		crowds.amount = _crowd_scale()
+		crowds.refresh()
 	RenderingServer.directional_shadow_atlas_set_size(qs["shadow_size"], true)
 	tod.refresh()
 	weather.density = qs["rain"]
@@ -1466,6 +1486,143 @@ func _build_notebook(data: Dictionary) -> void:
 		_put_at_place(place_flag)
 
 
+# --- loop MW-3: the night and the river's crowds --------------------------------------------
+
+## The crowds (crowds.gd) at the notebook's places, after the police (their cars by the clubs)
+## and the city's sounds (the crowds' murmur and the guitar). None with --crowd=0 or without the
+## notebook's places.
+func _build_crowds(data: Dictionary, world: Node3D) -> void:
+	if crowd_flag == 0 or notes == null or not notes.ready_ok:
+		return
+	crowds = Crowds.new()
+	crowds.name = "Crowds"
+	crowds.map = map
+	crowds.dialogue = dialogue
+	crowds.police = police
+	crowds.sounds = city_sounds
+	crowds.log_on = night_log
+	crowds.amount = _crowd_scale()
+	crowds.clock = tod.local_clock
+	crowds.focus = func() -> Vector3: return cam_focus
+	crowds.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	if traffic != null:
+		crowds.on_screen = traffic.on_screen
+	crowds.calendar = _crowd_calendar
+	world.add_child(crowds)
+	crowds.setup(notes.places, data)
+	tod.changed.connect(func(_m: int) -> void: crowds.refresh())
+	# The crowds' sounds: each queue's and the steps' murmur, the guitarist.
+	if city_sounds != null:
+		for st: Dictionary in crowds.sites:
+			var site := st
+			if site["kind"] in ["queue", "steps", "plan_c"]:
+				var at: Vector2 = site["door"]
+				city_sounds.add_crowd(str(site["id"]), "murmur", Vector3(at.x, map.ground_height(at.x, at.y), at.y),
+						func() -> bool: return int(site["n"]) >= 4)
+			if site["kind"] == "steps":
+				var g: Vector2 = site["guitar"]
+				city_sounds.add_crowd(str(site["id"]), "guitar", Vector3(g.x, map.ground_height(g.x, g.y), g.y),
+						func() -> bool: return bool(site.get("guitar_on", false)))
+	# Podwózka at dawn: requests from the club doors.
+	if rides != null:
+		rides.club_doors = func() -> Array:
+			var out: Array = []
+			if crowds.dawn_on:
+				for st: Dictionary in crowds.sites:
+					if bool(st.get("dawn", false)):
+						out.append([st["id"], st["door"]])
+			return out
+	if club_flag != "":
+		_put_at_club(club_flag)
+
+
+## --crowd= × the Low tier's half.
+func _crowd_scale() -> float:
+	return float(crowd_flag) * (0.5 if quality == Tiers.LOW else 1.0)
+
+
+## The crowds' calendar: Live or not, the month and date, the look, rain, and the sunset's hour
+## (Live: of its date, found once a day; the fixed looks: the Dusk look's 19:30).
+func _crowd_calendar() -> Dictionary:
+	var live := tod.mode == TimeOfDay.LIVE
+	var month := 7
+	var ymd := 0
+	var sunset := 19.5
+	if live:
+		var t := tod.now_utc()
+		var off := TimeOfDay.warsaw_offset(t)
+		var d := Time.get_datetime_dict_from_unix_time(int(t) + off)
+		month = int(d["month"])
+		ymd = int(d["year"]) * 10000 + month * 100 + int(d["day"])
+		if not _sunsets.has(ymd):
+			# The first minute after 15:00 (Warsaw) with the sun under the horizon.
+			var noon := t - (float(d["hour"]) * 3600.0 + float(d["minute"]) * 60.0 + float(d["second"]))
+			var h := 15.0
+			while h < 23.0 and TimeOfDay.sun_position(noon + h * 3600.0).x > 0.0:
+				h += 1.0 / 12.0
+			_sunsets[ymd] = h
+		sunset = float(_sunsets[ymd])
+	return {"live": live, "month": month, "date": ymd, "look": TimeOfDay.NAMES[tod.mode], "rain": weather.state != 0,
+			"sunset": sunset}
+
+
+## The places.json id of a club for --club= (an id, or a name: "smoła", "Jasna 0").
+func _club_id(name: String) -> String:
+	var want := Notebook.norm(name)
+	var book := Notebook.new()
+	var id := ""
+	if book.load_places():
+		for p: Dictionary in book.places:
+			if not "club" in p.get("tags", []) and str(p["id"]) != Crowds.ROOF_ID:
+				continue
+			if str(p["id"]) == name or Notebook.norm(str(p["id"])) == want or Notebook.norm(str(p["name_pl"])) == want:
+				id = str(p["id"])
+	book.free()
+	return id
+
+
+## --club=, before the city opens: the sectors round the club first (as --place=).
+func _club_start() -> void:
+	if club_flag == "":
+		return
+	var id := _club_id(club_flag)
+	if id == "":
+		push_warning("--club=%s: no such club in places.json" % club_flag)
+		return
+	club_flag = id
+	var book := Notebook.new()
+	if book.load_places():
+		var near: Array = book.places[book.by_id[id]]["near"]
+		var at := Notebook.project([52.234, 21.024], float(near[0]), float(near[1]))
+		start_at = Vector3(at.x, 0.0, at.y)
+	book.free()
+
+
+## The car on the lane nearest the club's door, facing along it.
+func _put_at_club(id: String) -> void:
+	if crowds == null or not crowds.by_id.has(id):
+		push_warning("--club=%s: no crowd there" % id)
+		return
+	var site: Dictionary = crowds.sites[crowds.by_id[id]]
+	var door: Vector2 = site["door"]
+	var spot := Vector3(door.x, map.ground_height(door.x, door.y), door.y)
+	var yaw := car.rotation.y
+	var lane := _lane_spot(spot, yaw)
+	if not lane.is_empty() and Vector2((lane[0] as Vector3).x, (lane[0] as Vector3).z).distance_to(door) < 60.0:
+		spot = lane[0]
+		yaw = lane[1]
+	car.global_position = spot
+	car.rotation.y = yaw
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.reset_physics_interpolation()
+	cam_focus = car.global_position
+	print("night: --club=%s: the car at %.0f, %.0f, %.0f m from the door" % [id, spot.x, spot.z, Vector2(spot.x, spot.z).distance_to(door)])
+
+
 ## --place=<id>, before the city opens: start where places.json's hint says, so the sectors
 ## round the place are built first (the exact spot comes after, _put_at_place).
 func _place_start() -> void:
@@ -1624,7 +1781,7 @@ func _egg_state() -> Dictionary:
 			"away": title != null or _phone_bench or (fotka != null and fotka.is_open()),
 			"look": TimeOfDay.NAMES[tod.mode], "hour": float(c["hour"]), "weekday": int(c["weekday"]), "month": month,
 			"live": live, "sun": tod.sun_elevation, "rain": weather.state != 0, "station": station, "date": ymd,
-			"roadworks": eggs.barrier_street if eggs != null else ""}
+			"roadworks": eggs.barrier_street if eggs != null else "", "crowds": crowds.levels if crowds != null else {}}
 
 
 ## The time of day's look for a Kadr: Day, Dusk or Night (Live by the sun's height).
@@ -2274,6 +2431,15 @@ func _parse_args() -> void:
 			place_flag = arg.trim_prefix("--place=")
 		elif arg == "--notes-log":
 			notes_log = true
+		elif arg.begins_with("--crowd="):
+			crowd_flag = clampi(int(arg.trim_prefix("--crowd=")), 0, 2)
+		elif arg == "--night-log":
+			night_log = true
+		elif arg.begins_with("--club="):
+			# Loop MW-3: the car at a club's door (places.json id or name), no title.
+			club_flag = arg.trim_prefix("--club=")
+			show_title = false
+			free_roam = true
 		elif arg.begins_with("--egg="):
 			egg_flag = arg.trim_prefix("--egg=")
 		elif arg == "--egg-log":
@@ -3431,6 +3597,8 @@ func _make_stats() -> BenchStats:
 		b.systems["notebook"] = [notes, "spent_usec", true]  # loop MW-1
 	if city_sounds != null:
 		b.systems["city sounds"] = [city_sounds, "spent_usec", true]  # loop MW-5
+	if crowds != null:
+		b.systems["crowds"] = [crowds, "spent_usec", true]  # loop MW-3
 	if egg_book != null:
 		b.systems["eggs+tape+spacer"] = [self, "_moments_usec", false]  # loop MW-6
 	b.systems["sound"] = [sfx, "last_usec", false]

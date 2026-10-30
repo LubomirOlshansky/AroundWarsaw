@@ -31,7 +31,10 @@
 # reachable egg's trigger on synthetic inputs (fires with its conditions, not without), the
 # waiting ones listed; `tape` runs game/tools/check_tape.gd: KASETA's 20 then cards, the ghosts
 # (one draw call, built only within 150 m), the button, the first-play reward and the dither;
-# both read only centrum.json (CI too). `streaming` runs game/tools/check_streaming.gd
+# both read only centrum.json (CI too). Loop MW-3: `crowds` runs game/tools/check_crowds.gd: the
+# city clock and the Dawn look, the queues, the door, the steps, Plan C, the police's hours, the
+# dawn crowd's routes and walkers, the crowd eggs (E03 E04 E10 E14 E15); centrum.json only (CI too).
+# `streaming` runs game/tools/check_streaming.gd
 # (loop 3c) WITH a renderer (a window opens for a minute or two): every sector built from its
 # file is the whole city, vertex for vertex; 10 spots rendered with --monolithic and with the
 # prebuilt sectors streamed differ in at most 0.5 % of their pixels; a 3-minute soak over every
@@ -61,8 +64,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud places eggs tape rides cost landmarks sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
-STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places eggs tape rides cost landmarks sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud places eggs tape crowds rides cost landmarks sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
+STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places eggs tape crowds rides cost landmarks sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -491,6 +494,8 @@ for s in $want; do
 		# Loop MW-6: the egg cards and their triggers; KASETA's then cards and ghosts.
 		eggs) check eggs '^check_eggs:' --script res://tools/check_eggs.gd ;;
 		tape) check tape '^check_tape:' --script res://tools/check_tape.gd ;;
+		# Loop MW-3: the night and the river's crowds, their rules on synthetic clocks, the crowd eggs.
+		crowds) check crowds '^check_crowds:' --script res://tools/check_crowds.gd ;;
 		# Loop 2d-1: Podwózka's star and pay tables, the streak and the cancel rules, its lines.
 		rides) check rides '^check_rides:' --script res://tools/check_rides.gd ;;
 		cost) check cost '^check_cost_cuts:' --script res://tools/check_cost_cuts.gd ;;

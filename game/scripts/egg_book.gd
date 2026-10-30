@@ -27,7 +27,10 @@ extends Node
 ## Sunday), `look` ("Dusk": the Dusk look, or Live with the sun within 6 degrees of the horizon),
 ## `summer` (June-August in Live; always without it: vision Open Question 5), `dry` (no rain),
 ## `date` ("fat_thursday", Live or --date), `station` (the tuned station's id), `roadworks` (the
-## day's roadworks on that street: eggs.gd).
+## day's roadworks on that street: eggs.gd); loop MW-3: `crowd` (a crowd of crowds.gd out now: a
+## name, or [name, at least this level 0..1]: "dawn", "police_club", "steps", "guitar", "plan_c";
+## the probe's `crowds`), and `days` (the trigger met on that many different days, Live's date
+## or the real one, kept in the wallet's `keep` as `egg_days_<id>`; the card on the last).
 ## Checked twice a second over a 200 m grid of the eggs (`CELL`): a check looks at the eggs of
 ## the one cell the vehicle is in; nothing runs per frame but a timer (and the --egg rig).
 
@@ -58,7 +61,8 @@ var radio: Node
 ## tape.gd: stamps a then card (`stamp`).
 var tape: Node
 ## Called at each check: a Dictionary (main.gd `_egg_state`): pos, kmh, flying, alt, roof, away,
-## look, hour, weekday, month, live, sun, rain, station, date, roadworks.
+## look, hour, weekday, month, live, sun, rain, station, date, roadworks; loop MW-3: crowds
+## (crowds.gd `levels`: name -> 0..1).
 var probe: Callable
 var blip: Callable
 ## --egg-log: the trigger and the reward of each find, and the --egg rig's lines.
@@ -279,6 +283,15 @@ func tick(s: Dictionary, dt: float) -> void:
 		if not _mem.has(id):
 			_mem[id] = {}
 		if step(e, s, _mem[id], dt):
+			var days := int(e["trigger"].get("days", 0))
+			if days > 1:
+				var day := int(s.get("date", 0)) if bool(s.get("live", false)) and int(s.get("date", 0)) > 0 else today()
+				var had := days_met(id)
+				var n := count_day(id, day)
+				if log_on and n > had:
+					print("egg: %s trigger %s met on day %d (%d/%d days)" % [id, e["trigger"].get("kind", ""), day, n, days])
+				if n < days:
+					continue
 			if log_on:
 				print("egg: %s trigger %s met (%s)" % [id, e["trigger"].get("kind", ""), describe_state(s)])
 			record(id)
@@ -286,6 +299,26 @@ func tick(s: Dictionary, dt: float) -> void:
 	for id: String in _mem.keys():
 		if not seen.has(id):
 			_mem.erase(id)
+
+
+## Loop MW-3: the days egg `id`'s trigger has been met on (a `days` trigger).
+func days_met(id: String) -> int:
+	if wallet == null:
+		return 0
+	return (wallet.keep.get("egg_days_" + id, []) as Array).size()
+
+
+## Loop MW-3: day `day` (yyyymmdd) counted for egg `id` (once a day; saved): the days met so far.
+func count_day(id: String, day: int) -> int:
+	if wallet == null:
+		return 0
+	var key := "egg_days_" + id
+	var list: Array = (wallet.keep.get(key, []) as Array).duplicate()
+	if not day in list:
+		list.append(day)
+		wallet.keep[key] = list
+		wallet.save()
+	return list.size()
 
 
 ## The game clock's conditions on trigger `t` for state `s`.
@@ -322,6 +355,12 @@ static func conditions(t: Dictionary, s: Dictionary) -> bool:
 		return false
 	if t.has("roadworks") and str(s.get("roadworks", "")) != str(t["roadworks"]):
 		return false
+	if t.has("crowd"):
+		var c: Variant = t["crowd"]
+		var crowd := str(c[0]) if c is Array else str(c)
+		var need := float(c[1]) if c is Array and (c as Array).size() > 1 else 0.001
+		if float((s.get("crowds", {}) as Dictionary).get(crowd, 0.0)) < need:
+			return false
 	return true
 
 

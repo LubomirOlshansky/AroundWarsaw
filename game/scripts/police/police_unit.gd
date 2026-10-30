@@ -16,6 +16,7 @@ extends Node
 ##   ├ SequenceReactive  Search   : IsRole(chaser), IsPhase(search) → search_area
 ##   ├ SequenceReactive  Chase    : IsRole(chaser) → pursue (re-planned 1 Hz by police.gd)
 ##   ├ SequenceReactive  Trap     : IsRole(trap) → stay_parked
+##   ├ SequenceReactive  Club     : IsRole(club) → stay_parked (loop MW-3: parked by a club)
 ##   ├ SequenceReactive  GuardFollow: IsRole(guard_follow) → guard_follow (loop 3g-2: the guards'
 ##   │                              car after the player at 25 km/h, amber beacon; guards.gd routes)
 ##   ├ SequenceReactive  Guard    : IsRole(guard) → drive_as_guard (the guards' car round the zone)
@@ -86,6 +87,8 @@ func build() -> void:
 	top.add_child(_branch("Search", [_role("chaser"), in_search], "search_area"))
 	top.add_child(_branch("Chase", [_role("chaser")], "pursue"))
 	top.add_child(_branch("Trap", [_role("trap")], "stay_parked"))
+	# Loop MW-3: a car parked by a club (police.gd club_park) just stays.
+	top.add_child(_branch("Club", [_role("club")], "stay_parked"))
 	top.add_child(_branch("GuardFollow", [_role("guard_follow")], "guard_follow"))
 	top.add_child(_branch("Guard", [_role("guard")], "drive_as_guard"))
 	top.add_child(_action("drive_as_traffic"))

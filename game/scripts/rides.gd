@@ -106,6 +106,9 @@ var log_on := false
 var force_quirk := ""
 var force_passenger := ""
 var start_stars := -1.0
+## Loop MW-3 (vision.md 4.5, 4.7): at dawn the requests come from the club doors: -> [[club id,
+## door: Vector2], ...] while the dawn crowd is out (crowds.gd), else []. Unset: none.
+var club_doors: Callable
 ## --gps-in=S: the first GPS moment in traffic from S seconds in (gps_moments.gd).
 var gps_first := -1.0
 ## How long the last update took, for --bench (µs), and the physics step's sum.
@@ -559,7 +562,18 @@ func _make_ride(n: int, e: int, s: float, from: Vector2, lo: float, hi: float) -
 	var rng := RandomNumberGenerator.new()
 	rng.seed = n * 9973 + 17
 	var west := func(a: Dictionary) -> bool: return a["d"] != "praga"
-	var pick: Dictionary = jobs._pick_address(e, s, from, lo, hi, rng, west)
+	# Loop MW-3: at dawn, most requests are at an address by a club's door (a `club` passenger).
+	var club := ""
+	var pick: Dictionary = {}
+	var doors: Array = club_doors.call() if club_doors.is_valid() else []
+	if not doors.is_empty() and rng.randf() < 0.7:
+		var door: Array = doors[rng.randi() % doors.size()]
+		var by_door := func(a: Dictionary) -> bool: return a["d"] != "praga" and (a["door"] as Vector2).distance_to(door[1]) < 60.0
+		pick = jobs._pick_address(e, s, from, lo, hi, rng, by_door)
+		if not pick.is_empty():
+			club = str(door[0])
+	if pick.is_empty():
+		pick = jobs._pick_address(e, s, from, lo, hi, rng, west)
 	if pick.is_empty():
 		return {}
 	var r := {"n": n, "pin_name": String(pick["name"]), "pin": pick["ring"], "away": float(pick["road"])}
@@ -625,9 +639,12 @@ func _make_ride(n: int, e: int, s: float, from: Vector2, lo: float, hi: float) -
 	r["name"] = Jobs.CUSTOMERS[rng.randi() % Jobs.CUSTOMERS.size()]
 	var roll := rng.randf()
 	var kind := "believer" if roll < BELIEVER_SHARE else ("hurry" if roll < BELIEVER_SHARE + HURRY_SHARE else "normal")
+	if club != "":
+		kind = "club"
 	if force_passenger != "":
 		kind = force_passenger
 	r["type"] = kind
+	r["club"] = club
 	r["their"] = snappedf(rng.randf_range(4.2, 5.0), 0.1)
 	var quirk := ""
 	if rng.randf() < QUIRK_SHARE:
@@ -639,7 +656,7 @@ func _make_ride(n: int, e: int, s: float, from: Vector2, lo: float, hi: float) -
 	r["night"] = _night()
 	r["rain"] = _rain()
 	r["eta"] = Rules.eta_for(r["road"], kind == "hurry")
-	var l: Array = dialogue.line("podwozka_request")
+	var l: Array = dialogue.line("podwozka_request", "club", true) if kind == "club" else dialogue.line("podwozka_request")
 	r["note"] = [l[0], l[1]] if not l.is_empty() else []
 	return r
 
