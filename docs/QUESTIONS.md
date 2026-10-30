@@ -18,6 +18,16 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-30 · landmarks/models · landmark models** — Do the towers now read as the real
+  ones? Look at the before/after shots in the PR. Default built: 18 towers in their own skins
+  and colours, Złote Tarasy golden, Muzeum Narodowe in stone, new bus shelters. Say which
+  still look wrong and how. Where: PR (landmark models).
+- **2026-10-30 · landmarks/models** — Złota 44's top is cut on a slope, high at its north end.
+  Options: keep / high at the south end / flat. Default built: high at the north end.
+- **2026-10-30 · landmarks/models** — Hotel towers are named by address, not brand (rule:
+  brands only as parodies): InterContinental's card says "Emilii Plater 49"; Westin, Novotel
+  and Hilton keep the generic look and no card. Default built: as said. Options: keep /
+  parody names for the hotels.
 - **2026-10-30 · content · MW-0 (Moja Warszawa data)** — Where is the real "Apteka" bar you
   meant? Options: name the street / keep the default. Default built: APTECZKA in a Nowy Świat
   22/28 courtyard pavilion, marked `guess` in `game/data/places.json`. If the "Apteka" came from

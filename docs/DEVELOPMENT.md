@@ -527,7 +527,8 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   to its mapped height (35 m by the offices, 22 m towards the station), blended where they meet
   (log-sum-exp, 2.6 m) so it rolls instead of creasing, laid on the ground's slope, with glass
   walls round its rim; a diamond lattice by day, glowing gold at night. Lumen and Skylight stay
-  LoD2.
+  LoD2. The landmarks loop: the glass is golden (`#d4b066`, with less sky in it and a whiter
+  lattice; it read as ice before).
 - **Rotunda**: a granite plinth, two storeys of glass lit from inside, a lit band under the
   overhanging white roof, which rises in ribs to a glass oculus.
 - **Varso Tower**: from its mapped parts (the glass slabs, the dark spines at both ends, the glass
@@ -546,10 +547,38 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   turn, so the eaves zigzag), the glass hall under it, the canopy round it to 140 x 86 m.
 - **Most Poniatowskiego**: its four towers at the ends of the river span (mapped outlines, no
   heights): plinth, shaft and cornice to 15 m over the deck, an arcade, a pointed roof, a finial.
+- **The skyline's towers** (the landmarks loop, 2026-10-30; `landmarks.gd` `TOWERS`): Złota 44,
+  Warsaw Spire, Q22, Rondo 1, Emilii Plater 49 (the hotel with the gap), Cosmopolitan, Warsaw
+  Trade Tower, Skyliner, Warsaw Unit, Mennica Legacy Tower, Generation Park Y, Skysawa,
+  Błękitny Wieżowiec, Warszawskie Centrum Finansowe, Centrum LIM, Chałubińskiego 8, Spektrum
+  Tower and The Bridge were all the same blue box. Each is now built from its mapped parts
+  (what else stands in its outline, LoD2 or OpenStreetMap, is dropped; the outline itself is
+  left out when parts are mapped; a part starting in the air with nothing mapped under it
+  stands on the ground; parts under 9 m across are painted steel: masts, rings) in its own
+  glass colour, roof colour and skin (`M_SKIN`, the fraction picks `S_*`, `building.gdshader`
+  `skin()`): Złota 44's white exoskeleton (floor bands and long diagonals) with its top cut on
+  a slope, Warsaw Spire's diamonds, silver floor bands (Q22, WTT, Unit, Skysawa, Spektrum),
+  vertical fins (Rondo 1, Skyliner, Mennica, The Bridge, Chałubińskiego 8's white ribs in their
+  mapped colours), the hotel's white grid, Cosmopolitan's white balcony slabs, dark glass (WCF,
+  LIM, Generation Park Y), gold glass (Błękitny Wieżowiec) and Rondo 1's open crown frame from
+  its roof to 192 m (`S_FRAME`: the panes are cut away). Q22 stood 55 m tall (its LoD2 model
+  predates the tower); it is 155 m now. Each has an info card; the far skyline (proxies) takes
+  each tower's glass colour.
+- **Muzeum Narodowe** (the landmarks loop): kept as LoD2 draws it (one model round its
+  courtyards), but in its pale stone with tall windows between piers (`M_MONUMENT`, `#c9bfa9`):
+  `map_builder` asks `landmarks.skin_at` for every kept LoD2 run and OpenStreetMap building
+  (its centre in the site's outline, or its whole box inside the outline's box). Its outline's
+  cells are on the picking grid for its card.
+- **Bus and tram shelters** (the landmarks loop; `map_builder.gd` `_make_shared`): Warsaw's
+  glass shelter as the game's camera sees it: a pale glass roof in a graphite frame overhanging
+  the kerb, a dark fascia, glass back and end, three posts, a bench, a poster box at the far end
+  whose faces glow at night (`SHELTER_POSTER`, drawn with the street lamps' `fixture.gdshader`,
+  `SHELTER_GLOW` in each instance's custom data) and the stop's blue D-15 sign on its own pole.
+  Still one MultiMesh per tile (the draw calls are unchanged); 288 triangles a shelter (was 48).
 
 Materials (`building.gdshader`): UV2.x >= 2 is a material code (`landmarks.gd` `M_*`: monument
 stone with windows, plain stone, crenellated attic, gold, clock dial, woven skin, glass wave,
-lit glass pavilion, curtain wall, lamp, membrane), its fraction a parameter; UV2.y the wall's
+lit glass pavilion, curtain wall, lamp, membrane, a tower's skin), its fraction a parameter; UV2.y the wall's
 top; UV the metres along and up a wall. Every landmark triangle also goes into the helicopter's
 roof grid (the Palace's spire stands 236 m in its cells, so it can't be flown through; roofs
 can be landed on) and into a grid of which landmark covers each 4 m cell; their walls at street

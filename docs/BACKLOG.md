@@ -9,6 +9,15 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Narodowy), the bus stops, and other weak models. Goal: keep the game's own pixel and
   low-poly style, but with colours, proportions and silhouettes that clearly read as the real
   buildings. Before/after shots at phone size. Lane "landmarks/models" (docs/QUESTIONS.md).
+  **First pass landed (2026-10-30, ROADMAP "landmark models")**: 18 towers in their own
+  colours, skins and crowns (Złota 44's white exoskeleton and sloped top, Warsaw Spire's
+  diamonds, Rondo 1's open crown, Q22 at its real 155 m, Chałubińskiego 8's white ribs and the
+  rest), each with an info card; Złote Tarasy's glass golden; Muzeum Narodowe in its pale stone
+  with tall windows and a card; new bus shelters (glass roof, poster box lit at night, the
+  blue D-15 sign). The Palace and the stadium were already detailed models and keep their look.
+  **Still to do**: the other towers in the generic blue glass (Hilton, Westin, Ilmet, Novotel,
+  PZU Tower, Central Tower, JM Tower, the Platinum Towers, Łucka City, Widok Towers, Vibe), and
+  any model the user names next.
 
 ## From v0.6 (traffic, trams, pedestrians, rivals)
 - ~~Cars can overlap briefly in complex junctions~~ (fewer by three quarters, the traffic loop
