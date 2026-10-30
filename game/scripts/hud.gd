@@ -1459,7 +1459,10 @@ func _minimap_mesh(data: Dictionary) -> ArrayMesh:
 			"park", "grass", "pitch":
 				colour = Color("#a9cf7c")
 			"water":
-				colour = Color("#7fb8de")
+				# The river's grey-green-blue (art bible: low chroma, never azure), a step
+				# lighter than ground.gdshader's DAY_WATER so it reads on the pale card (chroma kept
+				# over 0.2, or MINI_CLIP's night palette would take it for a street).
+				colour = Color("#70a0ac")
 			_:
 				continue
 		var pts := PackedVector2Array()

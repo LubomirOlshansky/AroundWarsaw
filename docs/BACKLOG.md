@@ -382,7 +382,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   separate blobs; real blobs need a new crown mesh (map side, with the crown sizes near roads).
   Conifers share the material and get gentle lumps too.
 - Cycle lanes under sodium at night still read red (dimmer, tinted, not added), under the car.
-- The minimap still shows the azure water and lime parks (HUD side).
+- ~~The minimap still shows the azure water and lime parks (HUD side).~~ Done 2026-10-30: the
+  water is the river's grey-green-blue (`#70a0ac`, was azure `#7fb8de`); the parks were measured
+  against the lawns by day (`#a9cf7c` vs `#9fca6a` in sun) and match, so they stay.
 - Buses and trams keep their Warsaw red-and-yellow livery and the rivals their looks (loop 2c:
   Słoik's stripe is pickle green now; his orange name tag stays): street-level Warsaw is on the
   review's protect list.
