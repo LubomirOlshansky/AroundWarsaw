@@ -967,8 +967,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   -b:a 96k` is already what the tool uses when it finds one), or `oggenc`; nothing else changes.
 - **Licences before a release**: any track whose licence is `unknown` (a WARN in the radio check)
   must be cleared; AI music tools' free plans may not allow a published game.
-- **No skip button**: `radio.next_track()` exists, but hud.gd and main.gd (not touched in this loop)
-  have no control for it; a tap on the ticker, or a key, would do.
+- ~~**No skip button**: `radio.next_track()` exists, but hud.gd and main.gd (not touched in this loop)
+  have no control for it; a tap on the ticker, or a key, would do.~~ Shift+R skips on the desktop
+  (2026-10-30). The phone still has no skip: the ticker sits over the bottom-left driving
+  controls, so a tap there needs the HUD lane's call (a long press on RADIO is another option).
 - ~~**`--radio=N`** clamps to the built-in three stations (`Radio.STATIONS.size()` in main.gd): a
   fourth station added to radio.json is reached with R, not by the flag.~~ Fixed (2026-10-30): the flag
   clamps to radio.json's stations once they are read.
