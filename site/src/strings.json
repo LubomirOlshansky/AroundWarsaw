@@ -1,54 +1,226 @@
 {
-  "hero": "rondo-night",
+  "hero": "hero-palace-dusk",
   "reel": [
-    {"img": "rondo-night", "w": 1600, "h": 750,
-     "en": ["Rondo Dmowskiego, 2 a.m.", "The Rotunda, the towers, and everyone still going somewhere.", "Rondo Dmowskiego at night in the game: the Rotunda, lit office towers and traffic"],
-     "pl": ["Rondo Dmowskiego, druga w nocy", "Rotunda, wieżowce i wszyscy, którzy jeszcze dokądś jadą.", "Rondo Dmowskiego nocą w grze: Rotunda, oświetlone wieżowce i ruch"]},
-    {"img": "river-night", "w": 1600, "h": 750,
-     "en": ["The Vistula at night", "Bridge lamps on the water. Please don't test it with your wheels.", "A bridge over the Vistula at night, its lamps reflected in the river"],
-     "pl": ["Wisła nocą", "Latarnie mostu na wodzie. Prosimy nie sprawdzać jej kołami.", "Most nad Wisłą nocą, latarnie odbite w rzece"]},
-    {"img": "gate-day", "w": 1600, "h": 750,
-     "en": ["Most Poniatowskiego", "The bridge towers in autumn, trams and all.", "The towers of Poniatowski Bridge by day among autumn trees"],
-     "pl": ["Most Poniatowskiego", "Wieże mostu jesienią, z tramwajami.", "Wieże Mostu Poniatowskiego w dzień, jesienne drzewa"]},
-    {"img": "column-night", "w": 1600, "h": 900,
-     "en": ["Night streets", "Street lamps, neon, and a poster column with jokes on it.", "A small car on a lamp-lit street at night beside a poster column"],
-     "pl": ["Nocne ulice", "Latarnie, neony i słup ogłoszeniowy z żartami.", "Małe auto na oświetlonej ulicy nocą obok słupa ogłoszeniowego"]},
-    {"img": "skyline", "w": 1600, "h": 900,
-     "en": ["The whole map", "3.5 × 1.8 km, from Śródmieście to Stadion Narodowy.", "The whole map from above: central Warsaw with its towers and the Palace of Culture"],
-     "pl": ["Cała mapa", "3,5 × 1,8 km, od Śródmieścia po Stadion Narodowy.", "Cała mapa z góry: centrum Warszawy z wieżowcami i Pałacem Kultury"]}
+    {
+      "img": "narodowy-night",
+      "w": 1920,
+      "h": 884,
+      "en": [
+        "Stadion Narodowy",
+        "Red and white, and lit all night. The bridge lamps do the rest.",
+        "Stadion Narodowy at night in the game, the bridge's lamps reflected in the Vistula"
+      ],
+      "pl": [
+        "Stadion Narodowy",
+        "Biało-czerwony i świeci całą noc. Resztę robią latarnie mostu.",
+        "Stadion Narodowy nocą w grze, latarnie mostu odbite w Wiśle"
+      ]
+    },
+    {
+      "img": "rotunda-rain-night",
+      "w": 1920,
+      "h": 884,
+      "en": [
+        "Rondo Dmowskiego, in the rain",
+        "Wet tarmac, the Rotunda glowing, a kebab neon that never closes.",
+        "Rondo Dmowskiego in the rain at night: the glowing Rotunda, headlights on wet tarmac and a kebab neon"
+      ],
+      "pl": [
+        "Rondo Dmowskiego w deszczu",
+        "Mokry asfalt, świecąca Rotunda i neon kebaba, który nigdy nie zamyka.",
+        "Rondo Dmowskiego w deszczu nocą: świecąca Rotunda, reflektory na mokrym asfalcie i neon kebaba"
+      ]
+    },
+    {
+      "img": "palace-night",
+      "w": 1920,
+      "h": 884,
+      "en": [
+        "The Palace at night",
+        "Floodlit, with the clock set to Warsaw time.",
+        "The Palace of Culture floodlit at night, its gold spire above the dark business district"
+      ],
+      "pl": [
+        "Pałac nocą",
+        "W iluminacji, a zegar chodzi według czasu w Warszawie.",
+        "Pałac Kultury nocą w iluminacji, złota iglica nad ciemnym centrum biurowym"
+      ]
+    },
+    {
+      "img": "poniatowski-night",
+      "w": 1920,
+      "h": 884,
+      "en": [
+        "Most Poniatowskiego",
+        "Golden arches on the Vistula. Please don't test the water with your wheels.",
+        "Most Poniatowskiego over the Vistula at night, golden reflections under its arches"
+      ],
+      "pl": [
+        "Most Poniatowskiego",
+        "Złote przęsła na Wiśle. Prosimy nie sprawdzać wody kołami.",
+        "Most Poniatowskiego nad Wisłą nocą, złote odbicia pod przęsłami"
+      ]
+    },
+    {
+      "img": "varso-dusk",
+      "w": 1920,
+      "h": 912,
+      "en": [
+        "Varso and Złote Tarasy",
+        "Sunset on the towers over Aleje Jerozolimskie.",
+        "Varso Tower and Złote Tarasy at sunset above Aleje Jerozolimskie"
+      ],
+      "pl": [
+        "Varso i Złote Tarasy",
+        "Zachód słońca na wieżowcach nad Alejami Jerozolimskimi.",
+        "Varso Tower i Złote Tarasy o zachodzie słońca nad Alejami Jerozolimskimi"
+      ]
+    },
+    {
+      "img": "narodowy-day",
+      "w": 1920,
+      "h": 884,
+      "en": [
+        "Powiśle to Praga",
+        "The stadium, the bridge and the Vistula's sandbanks by day.",
+        "Stadion Narodowy by day, with Most Poniatowskiego and the Vistula's sandbanks behind it"
+      ],
+      "pl": [
+        "Od Powiśla po Pragę",
+        "Stadion, most i łachy Wisły w dzień.",
+        "Stadion Narodowy w dzień, za nim Most Poniatowskiego i łachy Wisły"
+      ]
+    },
+    {
+      "img": "heli-vistula-day",
+      "w": 1920,
+      "h": 884,
+      "en": [
+        "Or take the helicopter",
+        "Rescue calls from above the river. Trams and buses keep running below.",
+        "The rescue helicopter over the Vistula by Most Poniatowskiego, a tram and buses on the bridge"
+      ],
+      "pl": [
+        "Albo helikopter",
+        "Wezwania ratunkowe znad rzeki. Na dole jeżdżą tramwaje i autobusy.",
+        "Śmigłowiec nad Wisłą przy Moście Poniatowskiego, na moście tramwaj i autobusy"
+      ]
+    }
   ],
   "moves": {
     "en": [
-      ["Kebab at 3 a.m.", "Hot when it leaves. Warm if you're quick."],
-      ["Helicopter rescues", "Swap the car for a rotor and land where the call is."],
-      ["Street races", "Seba from Praga is already revving."],
-      ["Podwózka", "Drive for the ride app that trusts its GPS more than it trusts you."],
-      ["The police", "They're here, with a sense of humour. No fines. A little talk, maybe."],
-      ["Kebab FM", "And Rondo FM, and Mordor FM. Pigeons not included."]
+      [
+        "Kebab at 3 a.m.",
+        "Hot when it leaves. Warm if you're quick."
+      ],
+      [
+        "Helicopter rescues",
+        "Swap the car for a rotor and land where the call is."
+      ],
+      [
+        "Street races",
+        "Seba from Praga is already revving."
+      ],
+      [
+        "Podwózka",
+        "Drive for the ride app that trusts its GPS more than it trusts you."
+      ],
+      [
+        "The police",
+        "They're here, with a sense of humour. No fines. A little talk, maybe."
+      ],
+      [
+        "Kebab FM",
+        "And Rondo FM, and Mordor FM. Pigeons not included."
+      ]
     ],
     "pl": [
-      ["Kebab o trzeciej", "Gorący, kiedy wyjeżdża. Ciepły, jeśli się pospieszysz."],
-      ["Akcje helikopterem", "Zamień auto na wirnik i ląduj tam, gdzie wzywają."],
-      ["Wyścigi", "Seba z Pragi już grzeje silnik."],
-      ["Podwózka", "Jeździsz dla aplikacji, która ufa GPS-owi bardziej niż Tobie."],
-      ["Policja", "Jest, ale z humorem. Mandatu nie będzie. Pogadanka owszem."],
-      ["Kebab FM", "I Rondo FM, i Mordor FM. Gołębie w cenie."]
+      [
+        "Kebab o trzeciej",
+        "Gorący, kiedy wyjeżdża. Ciepły, jeśli się pospieszysz."
+      ],
+      [
+        "Akcje helikopterem",
+        "Zamień auto na wirnik i ląduj tam, gdzie wzywają."
+      ],
+      [
+        "Wyścigi",
+        "Seba z Pragi już grzeje silnik."
+      ],
+      [
+        "Podwózka",
+        "Jeździsz dla aplikacji, która ufa GPS-owi bardziej niż Tobie."
+      ],
+      [
+        "Policja",
+        "Jest, ale z humorem. Mandatu nie będzie. Pogadanka owszem."
+      ],
+      [
+        "Kebab FM",
+        "I Rondo FM, i Mordor FM. Gołębie w cenie."
+      ]
     ]
   },
   "topics": {
-    "en": [["Beta invite", "Beta invite"], ["Feedback", "Feedback"], ["Something broke", "Something broke"], ["Idea", "An idea"]],
-    "pl": [["Beta invite", "Zaproszenie do bety"], ["Feedback", "Opinia"], ["Something broke", "Coś nie działa"], ["Idea", "Pomysł"]]
+    "en": [
+      [
+        "Beta invite",
+        "Beta invite"
+      ],
+      [
+        "Feedback",
+        "Feedback"
+      ],
+      [
+        "Something broke",
+        "Something broke"
+      ],
+      [
+        "Idea",
+        "An idea"
+      ]
+    ],
+    "pl": [
+      [
+        "Beta invite",
+        "Zaproszenie do bety"
+      ],
+      [
+        "Feedback",
+        "Opinia"
+      ],
+      [
+        "Something broke",
+        "Coś nie działa"
+      ],
+      [
+        "Idea",
+        "Pomysł"
+      ]
+    ]
   },
   "en": {
-    "lang": "en", "path": "/", "home": "/", "og_locale": "en_GB",
-    "other_lang": "pl", "other_home": "/pl/", "other_lang_short": "PL", "other_lang_name": "Po polsku", "other_lang_label": "Polska wersja",
+    "lang": "en",
+    "path": "/",
+    "home": "/",
+    "og_locale": "en_GB",
+    "other_lang": "pl",
+    "other_home": "/pl/",
+    "other_lang_short": "PL",
+    "other_lang_name": "Po polsku",
+    "other_lang_label": "Polska wersja",
     "title": "Around Warsaw · drive the real centre of Warsaw",
     "description": "An arcade drive through the real centre of Warsaw, built from open map data. Day, night and rain, from the Palace of Culture to Stadion Narodowy. Free beta for iPhone and Android.",
-    "skip": "Skip to content", "brand_label": "Around Warsaw, home", "nav_label": "Main",
-    "nav_city": "The city", "nav_play": "Play", "nav_beta": "Get the beta",
-    "hero_alt": "Rondo Dmowskiego at night in the game: the Rotunda, lit towers and traffic",
+    "skip": "Skip to content",
+    "brand_label": "Around Warsaw, home",
+    "nav_label": "Main",
+    "nav_city": "The city",
+    "nav_play": "Play",
+    "nav_beta": "Get the beta",
+    "hero_alt": "The Palace of Culture at dusk in the game, floodlit, with Złote Tarasy and the towers of Śródmieście",
     "hook": "The real centre of Warsaw, street by street, built from open map data. Take a small car (or a helicopter) through it by day, at night and in the rain.",
-    "cta_beta": "Get the beta", "cta_free": "free, no ads",
+    "cta_beta": "Get the beta",
+    "cta_free": "free, no ads",
     "radio_label": "On the car radio",
     "radio_lines": "Traffic on Marszałkowska: yes, as always <i>·</i> The Palace clock is right, we checked <i>·</i> Pigeons on Plac Defilad report no delays <i>·</i> Seba from Praga is warming up the engine <i>·</i> Next on Mordor FM: Monday <i>·</i> The roadworks continue. You keep driving <i>·</i>",
     "city_title": "The city is the main character",
@@ -61,28 +233,50 @@
     "beta_ios": "iPhone: an invite to TestFlight, Apple's app for betas.",
     "beta_android": "Android: an invite to the test on Google Play. The phone needs Vulkan.",
     "maker": "Made in Warsaw by Lubomir Olshansky. One person, a lot of open data. Say hi:",
-    "f_topic": "What is it about?", "f_platform": "Your phone", "f_platform_none": "Doesn't matter",
-    "f_email": "Email", "f_email_opt": "for the invite or a reply",
-    "f_message": "Message", "f_message_opt": "optional for an invite",
+    "f_topic": "What is it about?",
+    "f_platform": "Your phone",
+    "f_platform_none": "Doesn't matter",
+    "f_email": "Email",
+    "f_email_opt": "for the invite or a reply",
+    "f_message": "Message",
+    "f_message_opt": "optional for an invite",
     "f_send": "Send",
     "f_legal": "Sent through Formspree straight to the developer. Your email is used only for the invite or a reply. <a href=\"/privacy/\">Privacy</a>.",
-    "f_ok": "Thanks! It's on its way.", "f_fail": "That didn't go through. Try again, or write on Telegram.",
-    "f_need_email": "Add your email so the invite has somewhere to go.", "f_bad_email": "That email doesn't look right.",
-    "f_need_msg": "Write a few words first.", "f_sending": "Sending…",
+    "f_ok": "Thanks! It's on its way.",
+    "f_fail": "That didn't go through. Try again, or write on Telegram.",
+    "f_need_email": "Add your email so the invite has somewhere to go.",
+    "f_bad_email": "That email doesn't look right.",
+    "f_need_msg": "Write a few words first.",
+    "f_sending": "Sending…",
     "topic_default": "Beta invite",
-    "foot_tag": "a fan game about Warsaw", "foot_privacy": "Privacy", "foot_credits": "Credits",
-    "foot_note": "Map:", "foot_parody": "Every brand in the game is a parody."
+    "foot_tag": "a fan game about Warsaw",
+    "foot_privacy": "Privacy",
+    "foot_credits": "Credits",
+    "foot_note": "Map:",
+    "foot_parody": "Every brand in the game is a parody."
   },
   "pl": {
-    "lang": "pl", "path": "/pl/", "home": "/pl/", "og_locale": "pl_PL",
-    "other_lang": "en", "other_home": "/", "other_lang_short": "EN", "other_lang_name": "In English", "other_lang_label": "English version",
+    "lang": "pl",
+    "path": "/pl/",
+    "home": "/pl/",
+    "og_locale": "pl_PL",
+    "other_lang": "en",
+    "other_home": "/",
+    "other_lang_short": "EN",
+    "other_lang_name": "In English",
+    "other_lang_label": "English version",
     "title": "Around Warsaw · przejedź prawdziwe centrum Warszawy",
     "description": "Zręcznościowa jazda po prawdziwym centrum Warszawy, zbudowanym z otwartych danych map. Dzień, noc i deszcz, od Pałacu Kultury po Stadion Narodowy. Darmowa beta na iPhone'a i Androida.",
-    "skip": "Przejdź do treści", "brand_label": "Around Warsaw, strona główna", "nav_label": "Menu",
-    "nav_city": "Miasto", "nav_play": "Gra", "nav_beta": "Beta",
-    "hero_alt": "Rondo Dmowskiego nocą w grze: Rotunda, oświetlone wieżowce i ruch",
+    "skip": "Przejdź do treści",
+    "brand_label": "Around Warsaw, strona główna",
+    "nav_label": "Menu",
+    "nav_city": "Miasto",
+    "nav_play": "Gra",
+    "nav_beta": "Beta",
+    "hero_alt": "Pałac Kultury o zmierzchu w grze, podświetlony, obok Złote Tarasy i wieżowce Śródmieścia",
     "hook": "Prawdziwe centrum Warszawy, ulica po ulicy, zbudowane z otwartych danych map. Przejedź je małym autem (albo helikopterem) w dzień, nocą i w deszczu.",
-    "cta_beta": "Zapisz się do bety", "cta_free": "za darmo, bez reklam",
+    "cta_beta": "Zapisz się do bety",
+    "cta_free": "za darmo, bez reklam",
     "radio_label": "W radiu w aucie",
     "radio_lines": "Na Marszałkowskiej korek. Tak, jak zawsze <i>·</i> Zegar na Pałacu chodzi dobrze, sprawdzaliśmy <i>·</i> Gołębie z placu Defilad nie zgłaszają opóźnień <i>·</i> Seba z Pragi grzeje silnik <i>·</i> Za chwilę w Mordor FM: poniedziałek <i>·</i> Remont trwa. Ty jedź <i>·</i>",
     "city_title": "Miasto jest bohaterem",
@@ -95,16 +289,26 @@
     "beta_ios": "iPhone: zaproszenie do TestFlight, aplikacji Apple do bet.",
     "beta_android": "Android: zaproszenie do testu w Google Play. Telefon musi mieć Vulkan.",
     "maker": "Robi to w Warszawie Lubomir Olshansky. Jedna osoba i dużo otwartych danych. Napisz:",
-    "f_topic": "W jakiej sprawie?", "f_platform": "Twój telefon", "f_platform_none": "Obojętnie",
-    "f_email": "E-mail", "f_email_opt": "do zaproszenia albo odpowiedzi",
-    "f_message": "Wiadomość", "f_message_opt": "opcjonalna przy zaproszeniu",
+    "f_topic": "W jakiej sprawie?",
+    "f_platform": "Twój telefon",
+    "f_platform_none": "Obojętnie",
+    "f_email": "E-mail",
+    "f_email_opt": "do zaproszenia albo odpowiedzi",
+    "f_message": "Wiadomość",
+    "f_message_opt": "opcjonalna przy zaproszeniu",
     "f_send": "Wyślij",
     "f_legal": "Wysyłane przez Formspree prosto do autora. E-mail służy tylko do zaproszenia albo odpowiedzi. <a href=\"/privacy/\">Prywatność</a>.",
-    "f_ok": "Dzięki! Już leci.", "f_fail": "Nie udało się wysłać. Spróbuj jeszcze raz albo napisz na Telegramie.",
-    "f_need_email": "Dodaj e-mail, żeby zaproszenie miało dokąd trafić.", "f_bad_email": "Ten e-mail wygląda na niepoprawny.",
-    "f_need_msg": "Napisz najpierw kilka słów.", "f_sending": "Wysyłam…",
+    "f_ok": "Dzięki! Już leci.",
+    "f_fail": "Nie udało się wysłać. Spróbuj jeszcze raz albo napisz na Telegramie.",
+    "f_need_email": "Dodaj e-mail, żeby zaproszenie miało dokąd trafić.",
+    "f_bad_email": "Ten e-mail wygląda na niepoprawny.",
+    "f_need_msg": "Napisz najpierw kilka słów.",
+    "f_sending": "Wysyłam…",
     "topic_default": "Beta invite",
-    "foot_tag": "fanowska gra o Warszawie", "foot_privacy": "Prywatność", "foot_credits": "Autorzy",
-    "foot_note": "Mapa:", "foot_parody": "Wszystkie marki w grze to parodie."
+    "foot_tag": "fanowska gra o Warszawie",
+    "foot_privacy": "Prywatność",
+    "foot_credits": "Autorzy",
+    "foot_note": "Mapa:",
+    "foot_parody": "Wszystkie marki w grze to parodie."
   }
 }

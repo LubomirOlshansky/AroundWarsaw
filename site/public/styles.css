@@ -57,11 +57,13 @@ h3 { margin: 0; }
 /* Hero: one shot, full bleed, the title set into its dark corner. */
 .hero { position: relative; padding: 0; display: grid; min-height: min(88svh, 860px); overflow: hidden; isolation: isolate; }
 .hero-shot { position: absolute; inset: 0; z-index: -1; display: block; }
-.hero-shot img { width: 100%; height: 100%; object-fit: cover; object-position: 62% 50%; }
+.hero-shot img { width: 100%; height: 100%; object-fit: cover; object-position: 20% 50%; }
 .hero::after { content: ""; position: absolute; inset: 0; z-index: -1;
   background: linear-gradient(0deg, var(--night) 0%, rgba(11,13,36,0.6) 28%, rgba(11,13,36,0) 60%),
-              linear-gradient(90deg, rgba(11,13,36,0.82) 0%, rgba(11,13,36,0.35) 42%, rgba(11,13,36,0) 70%); }
+              linear-gradient(270deg, rgba(11,13,36,0.88) 0%, rgba(11,13,36,0.5) 38%, rgba(11,13,36,0) 62%); }
 .hero-in { align-self: end; width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 120px var(--gutter) clamp(40px, 7vh, 72px); }
+/* The hero shot's landmark (the Palace) stands on the left, so the words take the right. */
+.hero-text { max-width: 34rem; margin-left: auto; }
 h1 { margin: 0; font-size: clamp(3.6rem, 10vw, 6rem); line-height: 0.9; font-weight: 700; color: #fff; }
 .hook { max-width: 30em; margin: 20px 0 0; font-size: clamp(18px, 1.9vw, 21px); line-height: 1.5; color: var(--ink); }
 .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; margin-top: 30px; }
@@ -172,9 +174,10 @@ section { padding: clamp(64px, 10vw, 120px) 0; }
   .bar nav .wide { display: none; }
   .hero { display: block; min-height: 0; }
   .hero-shot { position: relative; inset: auto; z-index: auto; }
-  .hero-shot img { aspect-ratio: 4 / 3; object-position: 58% 50%; }
+  .hero-shot img { aspect-ratio: 4 / 3; object-position: 30% 50%; }
   .hero::after { inset: 0 0 auto; height: calc(100vw * 0.75); background: linear-gradient(0deg, var(--night) 0%, rgba(11,13,36,0) 45%); z-index: 0; }
   .hero-in { position: relative; z-index: 1; padding-top: 0; margin-top: -2.2rem; }
+  .hero-text { margin-left: 0; }
   .btn-primary { width: 100%; }
   .radio-tag { padding-left: var(--gutter); }
   .shot, .shot-flip { grid-template-columns: 1fr; gap: 14px; }
