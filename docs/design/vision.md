@@ -32,7 +32,7 @@ the world, the reserved colours of the art bible). Two more rules come from this
 
 ## 1. The vision (one page)
 
-**Nocna Warszawa is a drive through one person's Warsaw.** The person has lived here ten years.
+**Around Warsaw is a drive through one person's Warsaw.** The person has lived here ten years.
 They know which corner has two Rechotkas, where the queue starts on a Friday, which steps catch
 the sunset, which bus meets the others at Centralny at night, and what stood on Plac Defilad
 before the museum. The player gets that knowledge by driving, slowly or fast, with the radio on.

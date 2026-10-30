@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Build Nocna Warszawa for a connected iPhone, install it, launch it with game flags, copy the
+# Build Around Warsaw for a connected iPhone, install it, launch it with game flags, copy the
 # engine log back to the Mac, then stop the app. Only when the user has allowed device runs
 # (see .claude/skills/device-run/SKILL.md) and nobody else is using the phone.
 #

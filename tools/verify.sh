@@ -1,5 +1,5 @@
 #!/bin/zsh
-# The Nocna Warszawa verification set in one run, ending in one PASS / WARN / FAIL table.
+# The Around Warsaw verification set in one run, ending in one PASS / WARN / FAIL table.
 #
 #   tools/verify.sh            map data, the check scripts and the headless runs (~1-2 min)
 #   tools/verify.sh --quick    map data, the check scripts, the plain and prebuilt runs (~30 s)
@@ -362,7 +362,7 @@ run_ios() {
 	fi
 }
 
-print -r -- "Nocna Warszawa verify · $(strftime '%Y-%m-%d %H:%M' $EPOCHSECONDS) · $($GODOT --version 2>/dev/null | tail -1) · logs $logs"
+print -r -- "Around Warsaw verify · $(strftime '%Y-%m-%d %H:%M' $EPOCHSECONDS) · $($GODOT --version 2>/dev/null | tail -1) · logs $logs"
 (( others > 0 )) && print -r -- "note: $others other Godot process(es) running: timings here are slower, and a bench running beside this is disturbed"
 print -r -- ""
 

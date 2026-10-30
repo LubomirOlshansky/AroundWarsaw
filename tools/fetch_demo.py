@@ -1,4 +1,4 @@
-"""Fetch the raw map data for the Nocna Warszawa demo area (a data fetch only: nothing is baked).
+"""Fetch the raw map data for the Around Warsaw demo area (a data fetch only: nothing is baked).
 
 Usage (from the repository root):
     python3 -I tools/fetch_demo.py <command> [--out data/raw/demo] [--box S W N E]
@@ -57,7 +57,7 @@ M_PER_DEG_LAT = 110574.0
 M_PER_DEG_LON = 111320.0 * math.cos(math.radians(LAT0))
 
 # The service firewalls reject a User-Agent that is not in "product/version (comment)" form.
-UA = "NocnaWarszawa-map-fetch/1.0 (open-source game)"
+UA = "AroundWarsaw-map-fetch/1.0 (open-source game)"
 OVERPASS = "https://overpass-api.de/api/interpreter"
 OVERPASS_STATUS = "https://overpass-api.de/api/status"
 ORTHO_WMS = "https://mapy.geoportal.gov.pl/wss/service/PZGIK/ORTO/WMS/HighResolution"

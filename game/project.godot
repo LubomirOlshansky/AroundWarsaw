@@ -4,7 +4,7 @@ config_version=5
 
 [application]
 
-config/name="Nocna Warszawa"
+config/name="Around Warsaw"
 run/main_scene="res://main.tscn"
 run/flush_stdout_on_print=true
 config/features=PackedStringArray("4.7", "Mobile")

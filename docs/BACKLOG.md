@@ -916,9 +916,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
   form, and check the form isn't restricted to stillplace.app.
 - The game still calls its station NOCNA FM (`radio.gd`); the site says Kebab FM, as the user
   asked on 2026-10-29.
-- The screenshots are from the prototype (loops 1, 2b, 3a, 10a); refresh them from a current
-  `tools/shots.sh` set when the look loop lands. The Palace shot shows the occlusion dither as a
-  hole in the tower, which reads as a glitch to someone who hasn't played.
+- ~~The screenshots are from the prototype~~ (website v2: eight new `--nohud` shots, 2026-10-30).
 - From the landing's screenshot session (2026-10-30, runtime city, 2868×1320): the map's edge
   shows in wide views (about `--size=220` and up): a flat light-blue void by day east of the
   stadium and west/south of Varso, a sunset band at dusk, a dark slab at night, and a brown
@@ -932,3 +930,16 @@ Small problems that agents reported or that showed up in screenshots. They are f
   from Emilii Plater).
 - A thin dark crack-like line across the plaza at the Palace's south-east corner at night
   (`--at=-1410,159 --yaw=90 --size=260 --time=night`, visible at full size).
+
+## From the driving-feel loop (less sticky, 2026-10-30)
+
+- Street furniture is still solid and unknockable: benches, bike racks, advertising columns,
+  shelters and parked cars. On today's map 7 benches, 11 bike racks and 3 shelters overlap a
+  carriageway (measured against the roads' half widths); the bake could keep them off the
+  asphalt as map review B did for lamps and signal poles, or they could be knocked about like
+  the roadworks' cones.
+- Corner slip and the shove are tuned on the flat test ground (`check_steering`) and by reading
+  the numbers, not yet on the phone: how a 35 % bump feels, whether 7 m/s of sidestep reads as a
+  jump at 60 fps, and whether shoved traffic overlapping the next lane looks wrong.
+- A shoved car slides off its line only on a lane, not on a junction's curve.
+
