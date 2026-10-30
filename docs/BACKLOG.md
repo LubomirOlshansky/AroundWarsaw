@@ -944,7 +944,16 @@ Small problems that agents reported or that showed up in screenshots. They are f
   required-reason APIs (file timestamps, system boot time, UserDefaults); Godot's iOS template
   may need one declaring them, with no data collected. Check App Store Connect's email after
   the first upload.
-- The store screenshots show the HUD; they need redoing when the HUD changes.
+- The store screenshots show the HUD; they need redoing when the HUD changes (and they show the
+  station as NOCNA FM, as the game does).
+- **On a 4:3 screen (iPad) the pull-over's dialogue panel never appears**: the conversation runs
+  (`--police-log` shows it, frames 60-349) but nothing is drawn, at 2440×1830, 2200×1650 and
+  1600×1200; 16:9 and wider are fine. The iPad's fifth store shot is a Podwózka ride instead.
+- On the ride HUD at 4:3 the distance marker ("1597 m" and its arrow) can sit on the HAMULEC
+  button (`--ride=2`).
+- Varso's crown runs off the top of store shot 7 (all three sizes); most shots show 0 km/h.
+- The iPad set is rendered at 2440×1830 and scaled to 2752×2064 (the Mac can't open a
+  2064-pixel-tall window).
 
 ## From the driving-feel loop (less sticky, 2026-10-30)
 
