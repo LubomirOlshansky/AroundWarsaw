@@ -3881,6 +3881,15 @@ tools/export_web.sh --deploy   # also upload it (the user's yes first: it is pub
   never see any of it (`SectorPacks.active()` needs the `web` feature and the manifest).
   HTTPRequest on the web reads one network chunk a frame, so a background tab (throttled to
   ~1 fps) loads sectors slowly; in a visible tab the start's six took 0.15-0.3 s locally.
+- **The AO and lamp-light maps as zstd streams** (performance lane, 2026-10-30): they were
+  18.8 MB of the pack as RG8 `.res` files (Godot's resource compression works in 4 KB blocks,
+  so they barely shrank). The prebuilt city now attaches them when it opens
+  (`map_builder.gd` `attach_maps`; `bake_city.gd` `_detach_maps` records which materials read
+  each and writes `map/shared/<name>.zst`: u32 width, u32 height, the RG8 texels as one zstd
+  stream). Phones and desktops load the `.res` as before; the Web preset leaves the `.res` out
+  and carries the `.zst` (8.3 + 2.7 MB), unpacked in ~0.3 s: −7.7 MB in the download and in the
+  browser's memory, the texels identical (a desktop run forced to the `.zst` renders
+  pixel-identical shots).
 - **Phones' browsers** (web loop 2): an iPhone's Safari closed the first version's page (the
   whole 140 MB city in memory). Now a sector's pack file is deleted once its scene is loaded
   (fetched again from the browser's cache if the sector comes back), and Auto picks **Low** on a
