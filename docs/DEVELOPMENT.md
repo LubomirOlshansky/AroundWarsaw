@@ -3054,6 +3054,21 @@ ceiling). What 3d-1 really added: +0.5–0.7 ms of main-thread process (1.14 →
 `--no-traffic` it is 0.60), main-pass triangles 0.17 → 0.20 M, static memory 173 → ~330 MB (the
 prebuilt city 241 MB). Draw calls 73–139 at every view measured, well inside.
 
+**Where the memory goes (performance lane, 2026-10-30).** Measured on the Mac at the bench's
+start, the prebuilt path (the phone's): the whole-map index (`map/index.res`, the game's copy of
+index.json: areas, paths, roads, trees, the lane graph) was 103 MB of the 225 MB static at "city
+built"; the six first sectors 16 MB; the game's systems 45 MB (side jobs 17: rides 7.5, jobs and
+eggs 4.8 each; walkers 5.6, the lane graph 3, the HUD 4.5, police 2.9). Video is 381–399 MB, of
+which textures 99 MB: the AO, light and surface maps alone are about 96 MB (5318×3782 RG8 twice
+and 2659×1891 RGBA8, no mipmaps), and buffers 129–147 MB grow with the sectors in view.
+`scripts/index_pack.gd` now turns the index's coordinates (every feature's flat outline `p`,
+the scanned trees, the parked cars, the lane graph) from JSON's one-Variant-per-number Arrays
+into PackedFloat32Arrays, after the builder's set-up has read them and before the prebuilt index
+is saved: static at "city built" 224.7 → 204.8 MB prebuilt (index 103 → 83 MB) and 294 → 267
+MB on the runtime path; at the bench's end 252 → 233 and 357 → 329 MB; index.res 7.7 → 6.8 MB.
+Readers that still declare `var flat: Array = r["p"]` get a converted copy, so nothing else
+changed; the frame is unchanged.
+
 Loop 3g-1 (the police; police.md section 12 allowed ≤ +3 draw calls at any view, ≤ +8 k
 triangles, ≤ 0.15 ms of script, ≤ +2 MB) spent, in a koguty 3 chase: +1 to +3 draw calls at the
 four views and at night (the POLICE MultiMesh in the main and shadow passes, the halos at night;
