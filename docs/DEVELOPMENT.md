@@ -603,6 +603,13 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   pale glass with white fins and a card. Their tops, Mennica Legacy's and Generation Park Y's
   are cut on a slope (`"crest": "slope"`), and every sloped roof is glazed in the walls' glass
   tinted toward the roof colour, since a pale slab tilted to the camera blew out.
+- **Old Town and New Town tenements** (after the user's look, "kind of generic"; map_builder
+  `_tenement_facades`, `HISTORIC`): GUGiK models a whole block as one LoD2 building (Rynek's
+  sides are 49 and 84 OpenStreetMap houses in one model), so a block stood in one colour. In the
+  two historic districts each LoD2 wall takes the colour (OSM `building:colour`, else the
+  `TENEMENTS` palette) and window seed of the OSM house a metre behind it, and each pitched roof
+  is half mixed toward a tile red (`TILES`). Churches keep their own (`NOT_TENEMENTS`). Load time
+  only; the same on both city paths.
 - **Muzeum Narodowe** (the landmarks loop): kept as LoD2 draws it (one model round its
   courtyards), but in its pale stone with tall windows between piers (`M_MONUMENT`, `#c9bfa9`):
   `map_builder` asks `landmarks.skin_at` for every kept LoD2 run and OpenStreetMap building
