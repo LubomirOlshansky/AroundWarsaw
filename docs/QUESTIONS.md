@@ -13,6 +13,8 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks/models | Landmark and skyscraper models (Złote Tarasy, Złota 44, Varso, PKiN, Spire, Q22, Muzeum Narodowe, Stadion Narodowy), bus stops: BACKLOG "High priority" | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
+| store release | The signed Android AAB for Play internal testing, on today's main | cloud thread "Prepare App Store and Play beta listings" | 2026-10-30 |
+| performance | Profile the 108-sector map on mobile settings (frame time, draw calls, memory); cheap wins outside the map engine (3d-2 is the map lane's) | cloud thread "Prepare App Store and Play beta listings" | 2026-10-30 |
 
 ## Waiting
 
