@@ -40,8 +40,8 @@ batch. After each finished item you pick the next one yourself, for every agent.
 your lane: one session per area (driving, map, visuals, content, performance, landing,
 store release); check open PRs, recent main commits and the "In progress" table first.
 A cloud session merges its own PR once every check is green (the user's yes, 2026-10-30).
-Anything else that can't be undone, downloads, device runs and store submissions still wait
-for the user's yes: park them.
+Anything else that can't be undone, paid tools, device runs and store submissions still wait
+for the user's yes: park them (free downloads and add-ons are pre-approved, "Hard rules").
 
 ## Agents (`.claude/agents/`)
 
@@ -120,8 +120,11 @@ default. Route by the **kind** of work, not its size:
 - **Performance is a gate.** The phone's frame grows with draw calls, not triangles. Keep
   DEVELOPMENT.md "Performance budgets"; report bench before/after for anything that runs per frame
   or adds geometry, materials or lights.
-- **Downloads and installs** only with the user's approval: list source, size and time first.
-  That includes data, tools and Godot add-ons (rules below).
+- **Downloads and installs are pre-approved** (the user, 2026-10-30): free dev tools, data
+  downloads and Godot add-ons install without asking. Name each one in the PR or report with
+  its source, size and licence. Still free only, from official sources; an add-on keeps the
+  rules below (licence, CREDITS line, budgets, checked on the phone if native). A paid tool or
+  service still needs the user's yes.
 - **Content.** Original art, music and writing. Real place names are fine; brands only as
   parodies (no real names or logos); affectionate humour, never about real private people;
   on-screen text in Polish with English (warsaw-tone skill).
@@ -133,7 +136,8 @@ default. Route by the **kind** of work, not its size:
 
 ## Godot add-ons
 
-Installed only with the user's approval, one at a time, free only. Prefer GDScript-only
+Pre-approved (the user, 2026-10-30): install without asking, one at a time, free only, and
+name it in the PR. Prefer GDScript-only
 add-ons under MIT or CC0; a native GDExtension needs iOS binaries (most don't ship them), so
 check it on the phone before relying on it. Each goes in `game/addons/<name>/` with its
 licence file kept, gets a CREDITS.md line (name, author, licence, URL, version), and must keep
@@ -146,8 +150,8 @@ local line in `debug/debugger_messages.gd`, no messages without a debugger); Dia
 (Nathan Hoad, v4.1.0, loop 3g-1; the pull-over's flow, `dialogue/police.dialogue` compiled at
 runtime by `police.gd`; editor plugin off, so no import plugin and no autoload). **Our own, not an add-on:**
 `addons/nw_android_export/` (an editor plugin, on; it only marks Vulkan required in the Android
-export's manifest; DEVELOPMENT.md "Android (Google Play)"). Still need their
-own yes: Folder Import Rules, Lente photo mode, the In-app Review and Share plugins.
+export's manifest; DEVELOPMENT.md "Android (Google Play)"). Candidates when a loop
+needs them: Folder Import Rules, Lente photo mode, the In-app Review and Share plugins.
 
 ## Commands
 

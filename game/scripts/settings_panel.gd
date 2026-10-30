@@ -15,6 +15,8 @@ extends Control
 ##     High, Ultra; Auto's English line names the level it picked here), VHS tape (VHS), Frame
 ##     rate, the performance overlay and the TEST bench;
 ##   Dźwięk · Sound: volume, radio, effects (− and + in tenths, or drag along the bar).
+## Loop MW-1: a fifth tab, ZESZYT · notebook: MOJA WARSZAWA, the city notebook
+## (notebook_page.gd); the card's title says MOJA WARSZAWA there, with the count found.
 
 signal changed(key: String, value: Variant)
 signal closed
@@ -30,8 +32,13 @@ const T_HEAD := 22.0
 const T_BODY := 15.0
 const T_SUB := 13.0
 const T_LABEL := 11.0
+## Loop MW-1: the notebook tab's title size (hud.gd T_TITLE).
+const T_NOTES := 17.0
 
-const TABS := [["JAZDA", "driving"], ["ŚWIAT", "world"], ["OBRAZ", "picture"], ["DŹWIĘK", "sound"]]
+const TABS := [["JAZDA", "driving"], ["ŚWIAT", "world"], ["OBRAZ", "picture"], ["DŹWIĘK", "sound"], ["ZESZYT", "notebook"]]
+## Loop MW-1: the notebook's tab.
+const NOTEBOOK_TAB := 4
+const NotebookPage := preload("res://scripts/notebook_page.gd")
 const DRIVE := [["Wskaż", "Point"], ["Klasycznie", "Classic"]]
 ## Loop 2e: the camera choice, explicit (it was the CAM button, easy to switch off unnoticed):
 ## on, it follows the car (Point; Classic's default), off it stays put (Fixed camera; Classic
@@ -72,6 +79,17 @@ var _built := false
 ## Loop G1: the level Auto picked on this device (the state's "auto", in English), shown under
 ## the Auto button.
 var _auto_name := "High"
+## Loop MW-1: the notebook (notebook.gd; set before the panel first opens), its page, the
+## card's title and line under it (they say MOJA WARSZAWA on the notebook's tab), the
+## settings pages' size and a --notebook= target to show.
+var notebook: Node
+var notebook_page: Control
+var _title: Label
+var _subtitle: Label
+var _subtitle_en: Label
+var _settings_size := Vector2.ZERO
+var _body: Control
+var _target := ""
 
 
 func _ready() -> void:
@@ -124,8 +142,16 @@ func _build() -> void:
 	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	titles.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	head.add_child(titles)
-	titles.add_child(_text("USTAWIENIA", T_HEAD, ACCENT))
-	titles.add_child(_text("gra wstrzymana · game paused", T_SUB, SUB))
+	# Loop MW-1: the line under the title in two (Polish over English), and the column as wide as
+	# MOJA WARSZAWA (the notebook tab's title, at T_NOTES): the fifth tab fits a 375 pt phone.
+	_title = _text("USTAWIENIA", T_HEAD, ACCENT)
+	_subtitle = _text("gra wstrzymana", T_SUB, SUB)
+	_subtitle_en = _text("game paused", T_LABEL, SUB)
+	titles.add_child(_title)
+	titles.add_child(_subtitle)
+	titles.add_child(_subtitle_en)
+	titles.custom_minimum_size.x = ThemeDB.fallback_font.get_string_size("MOJA WARSZAWA", HORIZONTAL_ALIGNMENT_LEFT, -1,
+			_px(T_NOTES)).x
 	for i in TABS.size():
 		var b := _word_button(TABS[i][0], TABS[i][1])
 		b.toggle_mode = true
@@ -142,6 +168,7 @@ func _build() -> void:
 	var body := Control.new()
 	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	rows.add_child(body)
+	_body = body
 
 	# Jazda · Driving.
 	var drive := _page(body, 2)
@@ -200,6 +227,17 @@ func _build() -> void:
 	body.custom_minimum_size = biggest
 	for p in _pages:
 		p.size = biggest
+	_settings_size = biggest
+	# Loop MW-1: the notebook's page, sized on its own (the settings tabs keep their size).
+	notebook_page = NotebookPage.new()
+	notebook_page.name = "notebook"
+	notebook_page.pt = pt
+	notebook_page.book = notebook
+	body.add_child(notebook_page)
+	_pages.append(notebook_page)
+	notebook_page.size = notebook_page.custom_minimum_size
+	if _target != "":
+		notebook_page.show_target(_target)
 	set_tab(_tab)
 
 
@@ -249,6 +287,40 @@ func set_tab(i: int) -> void:
 	for k in _pages.size():
 		_pages[k].visible = k == _tab
 		_tabs[k].set_pressed_no_signal(k == _tab)
+	# Loop MW-1: the notebook's tab has its own size and title.
+	var on_notes := _tab == NOTEBOOK_TAB
+	_body.custom_minimum_size = notebook_page.custom_minimum_size if on_notes else _settings_size
+	_title.text = "MOJA WARSZAWA" if on_notes else "USTAWIENIA"
+	_title.add_theme_font_size_override("font_size", _px(T_NOTES if on_notes else T_HEAD))
+	_subtitle.text = _notes_count() if on_notes else "gra wstrzymana"
+	_subtitle_en.text = "the city notebook" if on_notes else "game paused"
+	if on_notes:
+		notebook_page.queue_redraw()
+	_fit()
+
+
+## Loop MW-1: "zeszyt miasta · 12/72" (the line under MOJA WARSZAWA).
+func _notes_count() -> String:
+	if notebook == null or notebook.places.is_empty():
+		return "zeszyt miasta"
+	return "zeszyt miasta · %d/%d" % [notebook.found_total(), notebook.places.size()]
+
+
+## Loop MW-1: opens on the notebook (--notebook=TARGET: a chapter or a place's card).
+func show_notebook(target: String) -> void:
+	_target = target
+	_tab = NOTEBOOK_TAB
+	if _built:
+		notebook_page.show_target(target)
+		set_tab(NOTEBOOK_TAB)
+
+
+## Loop MW-1: the record changed (a new entry) while the panel is built: the page and count follow.
+func refresh_notebook() -> void:
+	if _built:
+		notebook_page.queue_redraw()
+		if _tab == NOTEBOOK_TAB:
+			_subtitle.text = _notes_count()
 
 
 ## Shows the panel with the current values: {controls (the scheme), follow, traffic, quality
@@ -260,6 +332,7 @@ func open(state: Dictionary) -> void:
 		_build()
 	sync(state)
 	visible = true
+	set_tab(_tab)  # loop MW-1: the notebook's count and page as they are now
 	_fit()
 
 
@@ -311,6 +384,9 @@ func button_rects() -> Dictionary:
 		var c := b as Control
 		if c.is_visible_in_tree():
 			out[str(_card.get_path_to(c))] = c.get_global_rect()
+	# Loop MW-1: the notebook page's targets (drawn, not Buttons).
+	if notebook_page != null and notebook_page.is_visible_in_tree():
+		out.merge(notebook_page.hit_rects())
 	return out
 
 
@@ -333,6 +409,11 @@ func _fit() -> void:
 	var k := minf(1.0, minf(room.x / maxf(need.x, 1.0), room.y / maxf(need.y, 1.0)))
 	_card.scale = Vector2(k, k)
 	_card.size = need
+	# Loop MW-1: the notebook's page as wide as the card's inside (the tabs set the card's width).
+	if notebook_page != null:
+		var inner := need.x - 28.0 * pt
+		notebook_page.size = Vector2(maxf(notebook_page.custom_minimum_size.x, inner), notebook_page.custom_minimum_size.y)
+		notebook_page.queue_redraw()
 	_card.position = safe.get_center() - need * k * 0.5
 
 

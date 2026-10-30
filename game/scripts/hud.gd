@@ -211,6 +211,8 @@ var _status_icons: Control
 var _icons := {}
 ## Side-job places on the minimap (kebab stands, the station), blinking.
 var _mini_pois := PackedVector2Array()
+## Loop MW-1: the notebook's places not found yet near the car (map x, z), drawn as "?".
+var _mini_unknown := PackedVector2Array()
 var _mini_poi_colours := PackedColorArray()
 ## Mission target: its point on screen (the arrow) and on the minimap.
 var _target_visible := false
@@ -1459,7 +1461,10 @@ func _minimap_mesh(data: Dictionary) -> ArrayMesh:
 			"park", "grass", "pitch":
 				colour = Color("#a9cf7c")
 			"water":
-				colour = Color("#7fb8de")
+				# The river's grey-green-blue (art bible: low chroma, never azure), a step
+				# lighter than ground.gdshader's DAY_WATER so it reads on the pale card (chroma kept
+				# over 0.2, or MINI_CLIP's night palette would take it for a street).
+				colour = Color("#70a0ac")
 			_:
 				continue
 		var pts := PackedVector2Array()
@@ -1581,6 +1586,11 @@ func _paint_minimap_overlay() -> void:
 			_tri_rect(Rect2(at - Vector2(3.6, 2.6) * pt, Vector2(7.2, 5.2) * pt), Color.WHITE)
 			_tri_rect(Rect2(at - Vector2(2.8, 1.8) * pt, Vector2(4.0, 3.6) * pt), POLICE_BLUE)
 			_tri_rect(Rect2(at + Vector2(0.6, -0.4) * pt, Vector2(2.2, 4.0) * pt), POLICE_BLUE)
+	# Loop MW-1: the notebook's undiscovered places, a gold "?" on a dark plate (never a name).
+	for q in _mini_unknown:
+		var r := ((q - _mini_car) * s).rotated(_mini_yaw)
+		if r.length() < _mini_radius - 6.0 * pt:
+			_tri_question(centre + r)
 	var flip := int(Time.get_ticks_msec() / 200) % 2 == 0
 	for i in _police_marks.size():
 		var r := ((_police_marks[i] - _mini_car) * s).rotated(_mini_yaw)
@@ -1627,6 +1637,51 @@ func set_car_marker(at: Vector2, show: bool) -> void:
 		_marker = at
 		_marker_visible = show
 		_pad.queue_redraw()
+
+
+## Loop MW-1: the notebook's places not found yet (map coordinates), drawn as "?" (notebook.gd
+## sends them twice a second, only when they change).
+func set_minimap_unknown(points: PackedVector2Array) -> void:
+	_mini_unknown = points
+
+
+## Loop MW-1: the notebook's record changed (a new entry): the open notebook page shows it.
+func notebook_changed() -> void:
+	if settings_panel != null and settings_panel.has_method("refresh_notebook"):
+		settings_panel.refresh_notebook()
+
+
+## Loop MW-1: the "?" in pixels of 1.3 pt (3 x 5) on a dark plate, collectibles' gold. Built
+## once as triangles round (0, 0) (`_question_pts`, rebuilt when the point size changes); each
+## mark is that array moved (one Transform2D on the packed array, no per-pixel script work).
+const QUESTION := ["###", "..#", ".##", "...", ".#."]
+const QUESTION_GOLD := Color("#f0b429")
+var _question_pts := PackedVector2Array()
+var _question_cols := PackedColorArray()
+var _question_pt := 0.0
+
+
+func _tri_question(at: Vector2) -> void:
+	if _question_pt != pt:
+		_question_pt = pt
+		var keep_pts := _tri_pts
+		var keep_cols := _tri_cols
+		_tri_pts = PackedVector2Array()
+		_tri_cols = PackedColorArray()
+		var px := 1.3 * pt
+		var origin := -Vector2(1.5, 2.5) * px
+		_tri_rect(Rect2(origin - Vector2.ONE * px, Vector2(5.0, 7.0) * px), OUTLINE)
+		for row in QUESTION.size():
+			var line: String = QUESTION[row]
+			for col in line.length():
+				if line[col] == "#":
+					_tri_rect(Rect2(origin + Vector2(col, row) * px, Vector2(px, px)), QUESTION_GOLD)
+		_question_pts = _tri_pts
+		_question_cols = _tri_cols
+		_tri_pts = keep_pts
+		_tri_cols = keep_cols
+	_tri_pts.append_array(Transform2D(0.0, at) * _question_pts)
+	_tri_cols.append_array(_question_cols)
 
 
 ## Side-job places on the minimap (map coordinates), drawn as blinking squares.

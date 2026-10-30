@@ -5,11 +5,13 @@ extends Node3D
 ## into a footway that joins it, or turn back at a dead end.
 
 const Models := preload("res://scripts/models.gd")
+const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
 
 const MAX := 60
-## Loop 3g-1: people who stand still at a spot (the speed traps' officers; part two the city
-## guards), in the same MultiMesh after the walkers (police.md section 12: +0 draw calls).
-const FIXED := 4
+## Loop 3g-1: people who stand still at a spot (the speed traps' officers), in the same MultiMesh
+## after the walkers (police.md section 12: +0 draw calls). Loop 3g-2: slots 0-2 the day's trap
+## officers, 3 the first contact's officer, 4-11 the city guards (police/guards.gd).
+const FIXED := 12
 const CELL := 48.0
 const MARGIN := 20.0
 const SHIRTS := ["#d8432f", "#2f6fb5", "#e0b23a", "#3b8f5a", "#f2efe8", "#7a4fa8", "#e57aa0", "#2b2c2f", "#c96b2c", "#5aa9c9", "#9c2f3a", "#e8e4d8"]
@@ -139,6 +141,7 @@ func setup(map_node: Node3D, camera: Camera3D, traffic_node: Node3D, data: Dicti
 	_mm = MultiMesh.new()
 	_mm.transform_format = MultiMesh.TRANSFORM_3D
 	_mm.use_custom_data = true
+	InstanceBuffers.prepare(_mm)
 	_mm.mesh = Models.person_mesh()
 	_mm.instance_count = MAX + FIXED
 	_mm.custom_aabb = AABB(Vector3(-2500, -200, -1500), Vector3(5000, 600, 3000))
@@ -256,6 +259,24 @@ func set_fixed(i: int, at: Vector3, yaw: float, shirt: Color, trousers: float) -
 	_buf[b + 15] = trousers
 
 
+## Loop 3g-2 (the clamp, police.md 5.6): a footway runs under `p` (within its half width + 1 m).
+func on_footway(p: Vector2) -> bool:
+	for dx in [-1, 0, 1]:
+		for dz in [-1, 0, 1]:
+			var list = _grid.get(_cell(p + Vector2(dx, dz) * CELL * 0.5))
+			if list == null:
+				continue
+			for i: int in list:
+				var k := _first[i]
+				for j in _count[i] - 1:
+					var a := _pts[k + j]
+					var b := _pts[k + j + 1]
+					var q := Geometry2D.get_closest_point_to_segment(p, a, b)
+					if q.distance_to(p) < _width[i] * 0.5 + 1.0:
+						return true
+	return false
+
+
 func clear_fixed(i: int) -> void:
 	for k in 12:
 		_buf[(MAX + i) * 16 + k] = 0.0
@@ -288,7 +309,7 @@ func _process(dt: float) -> void:
 	for n in MAX:
 		if _alive[n] == 1:
 			_walk(n, dt)
-	RenderingServer.multimesh_set_buffer(_mm.get_rid(), _buf)
+	InstanceBuffers.send(_mm.get_rid(), _buf)
 	last_usec = Time.get_ticks_usec() - t0
 
 

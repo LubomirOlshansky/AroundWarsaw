@@ -1,0 +1,205 @@
+{
+  "_about": "Loop MW-0 (docs/design/vision.md 3.9 and 4.4): the 20 then-and-now cards the KASETA tape plays (loop MW-6). The user's answer of 2026-10-29 (vision.md section 10, answer 3): the set covers 2010 to today only. Each card: `id`, `place` (an id in places.json, where the tape button shows within 40 m), `year` (the year the ghost shows, 2010 or later), `line` [pl, en] (the card text, true history, Polish at most 70 characters), `ghost` (English, for the builder: the few boxes the dithered ghost is made of, at most 24; not on screen). No politics, no mockery, no tragedy as a joke.",
+  "then_cards": [
+    {
+      "id": "t_defilad_2012",
+      "place": "plac_defilad",
+      "year": 2012,
+      "line": [
+        "Czerwiec 2012: strefa kibica i wielki ekran. Cały plac śpiewał.",
+        "June 2012: the fan zone and a giant screen. The whole square sang."
+      ],
+      "ghost": "a big screen on a scaffold frame, a row of white tents, crowd barriers"
+    },
+    {
+      "id": "t_muzeum_2020",
+      "place": "muzeum_defilad",
+      "year": 2020,
+      "line": [
+        "2020: dźwigi przy Pałacu. Od 2024 roku stoi tu białe muzeum.",
+        "2020: cranes beside the Palace. Since 2024 a white museum stands here."
+      ],
+      "ghost": "a fenced building site, two tower cranes, a concrete frame two storeys high"
+    },
+    {
+      "id": "t_palac_2020",
+      "place": "palac_kultury",
+      "year": 2020,
+      "line": [
+        "2020: Pałac wciąż najwyższy. W 2021 przerosła go nowa wieża.",
+        "2020: the Palace is still the tallest. In 2021 a new tower outgrew it."
+      ],
+      "ghost": "the new tower to the west as a bare concrete core with a crane, no spire"
+    },
+    {
+      "id": "t_stadion_2010",
+      "place": "stadion_narodowy",
+      "year": 2010,
+      "line": [
+        "2010: dźwigi w misie starego stadionu. Dwa lata później Euro.",
+        "2010: cranes in the old stadium's bowl. Two years later, the Euro."
+      ],
+      "ghost": "the earth bowl's rim, a half-built ring of steel masts, three cranes"
+    },
+    {
+      "id": "t_stadion_metro_2014",
+      "place": "stadion_metro",
+      "year": 2014,
+      "line": [
+        "2014: na Pragę metrem? Jeszcze nie. W 2015 roku już tak.",
+        "2014: the metro to Praga? Not yet. By 2015, yes."
+      ],
+      "ghost": "a fenced station dig on Al. Zieleniecka, site huts, barriers"
+    },
+    {
+      "id": "t_swietokrzyska_2012",
+      "place": "swietokrzyska_metro",
+      "year": 2012,
+      "line": [
+        "2012: Świętokrzyska rozkopana pod M2. Remont, który się skończył.",
+        "2012: Świętokrzyska dug up for the M2. Roadworks that actually ended."
+      ],
+      "ghost": "the street closed by site fences and a long trench, a crane, site huts"
+    },
+    {
+      "id": "t_rotunda_2017",
+      "place": "rotunda",
+      "year": 2017,
+      "line": [
+        "2017: płot wokół Rotundy. W 2019 wróciła, okrągła jak dawniej.",
+        "2017: a fence round the Rotunda. In 2019 it came back, round as before."
+      ],
+      "ghost": "a ring of site fence round a bare round roof on posts"
+    },
+    {
+      "id": "t_syreni_2016",
+      "place": "syreni_szept",
+      "year": 2016,
+      "line": [
+        "2016: kolejka pod pawilonem do świtu. Rok później zapadła cisza.",
+        "2016: a queue outside the pavilion till dawn. A year later, silence."
+      ],
+      "ghost": "the pavilion lit, a queue of figures along the path, a door lamp"
+    },
+    {
+      "id": "t_daszynskiego_2010",
+      "place": "rondo_daszynskiego",
+      "year": 2010,
+      "line": [
+        "2010: niskie budynki i parkingi. Dziś wieże i orki z laptopami.",
+        "2010: low buildings and car parks. Now towers, and orcs with laptops."
+      ],
+      "ghost": "the towers removed: low boxes and flat car parks round the roundabout"
+    },
+    {
+      "id": "t_centralny_2011",
+      "place": "dworzec_centralny",
+      "year": 2011,
+      "line": [
+        "2011: remont dworca przed Euro. Podróżni szukali wejścia.",
+        "2011: the station renovated before the Euro. Travellers hunted for the door."
+      ],
+      "ghost": "scaffolding on the hall's glass walls, plywood tunnels at the doors"
+    },
+    {
+      "id": "t_cnk_2010",
+      "place": "centrum_nauki_kopernik",
+      "year": 2010,
+      "line": [
+        "Jesień 2010: ostatnie szlify. 5 listopada drzwi się otworzyły.",
+        "Autumn 2010: the final touches. On 5 November the doors opened."
+      ],
+      "ghost": "site fence, one crane, the planetarium's sphere as a bare frame"
+    },
+    {
+      "id": "t_fontanny_2010",
+      "place": "fontanny_podzamcze",
+      "year": 2010,
+      "line": [
+        "2010: zwykły park pod skarpą. Rok później zatańczyła woda.",
+        "2010: a plain park below the escarpment. A year later the water danced."
+      ],
+      "ghost": "grass and paths only, the fountain basins absent, a few benches"
+    },
+    {
+      "id": "t_koszyki_2014",
+      "place": "hala_koszyki",
+      "year": 2014,
+      "line": [
+        "2014: z hali zostały dwa skrzydła i ściana. Reszta jest nowa.",
+        "2014: two wings and one wall were all that was left. The rest is new."
+      ],
+      "ghost": "the two side wings and the north arcade wall standing, a crane between"
+    },
+    {
+      "id": "t_gwardii_2016",
+      "place": "hala_gwardii",
+      "year": 2016,
+      "line": [
+        "2016: hala czekała na nowe życie. Wróciła we wrześniu 2017.",
+        "2016: the hall waited for a new life. It came back in September 2017."
+      ],
+      "ghost": "boarded windows, a fence along the front, an empty forecourt"
+    },
+    {
+      "id": "t_elektrownia_2015",
+      "place": "stara_elektrownia",
+      "year": 2015,
+      "line": [
+        "2015: puste hale i komin. Od 2020 roku sklepy i jedzenie.",
+        "2015: empty halls and a chimney. Since 2020, shops and food."
+      ],
+      "ghost": "the brick halls dark, the yard fenced, no terraces"
+    },
+    {
+      "id": "t_schodki_2014",
+      "place": "schodki_kopernik",
+      "year": 2014,
+      "line": [
+        "2014: brzeg i droga, zero schodków. Bulwary rosły od 2015.",
+        "2014: a bank and a road, no steps at all. The boulevards grew from 2015."
+      ],
+      "ghost": "the steps removed: a grassy bank, bushes, a plain road by the water"
+    },
+    {
+      "id": "t_bulwary_2018",
+      "place": "bulwary",
+      "year": 2018,
+      "line": [
+        "2018: pierwsze hulajnogi na minuty. Od razu się położyły.",
+        "2018: the first rent-by-the-minute scooters. They lay down at once."
+      ],
+      "ghost": "three scooters lying on the promenade in a row"
+    },
+    {
+      "id": "t_rowerilo_2012",
+      "place": "rowerilo_dock",
+      "year": 2012,
+      "line": [
+        "Sierpień 2012: ruszyły rowery miejskie. Kolejka po rower, nie po kawę.",
+        "August 2012: the city bikes started. A queue for a bike, not for coffee."
+      ],
+      "ghost": "a dock of the first season's bikes and three waiting figures"
+    },
+    {
+      "id": "t_wiralek_2024",
+      "place": "wiralek_chmielna",
+      "year": 2024,
+      "line": [
+        "2024: kolejki po czekoladę z pistacją. Tydzień później po coś innego.",
+        "2024: queues for pistachio chocolate. A week later, for something else."
+      ],
+      "ghost": "a long queue down Chmielna, one figure in five holding a phone up"
+    },
+    {
+      "id": "t_glon_2015",
+      "place": "glon_mokotowska",
+      "year": 2015,
+      "line": [
+        "2015: wszyscy piją latte. Dziś wszystko jest zielone.",
+        "2015: everyone drinks lattes. Now everything is green."
+      ],
+      "ghost": "the café's fascia in brown, two tables outside, no green cup sign"
+    }
+  ]
+}

@@ -64,6 +64,8 @@ const Jobs := preload("res://scripts/jobs.gd")
 ## Loop 2d-1: Podwózka, the app-taxi side job.
 const Rides := preload("res://scripts/rides.gd")
 const Eggs := preload("res://scripts/eggs.gd")
+## Loop MW-1: MOJA WARSZAWA, the city notebook.
+const Notebook := preload("res://scripts/notebook.gd")
 const Sfx := preload("res://scripts/sfx.gd")
 const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
@@ -247,6 +249,13 @@ var wallet: Wallet
 var dialogue: Dialogue
 var jobs: Jobs
 var eggs: Eggs
+## Loop MW-1: the notebook and its flags: --notebook[=chapter|place id] (open it; "" none),
+## --found=, --place=<id> (the car at the place), --notes-log.
+var notes: Notebook
+var notebook_open := ""
+var found_spec := ""
+var place_flag := ""
+var notes_log := false
 var start_kebab := -1
 var start_sloik := -1
 var start_heat := -1.0
@@ -400,6 +409,14 @@ var _ram_t := 0.0
 var _ram_hit := -1.0
 var _ram_unsticks := 0
 var _ram_dir := Vector3.ZERO
+## --traffic-overlaps (testing aid): traffic counts its cars' overlapping boxes, printed at the end.
+var _traffic_overlaps := false
+## The traffic loop, --tram-watch=N (testing aid): the car (no collisions, standing still) is put
+## beside tram N, ahead of it, again and again, so the view, the traffic and
+## the tram's cars come with that tram through the city (with --traffic-overlaps: how often a
+## tram and a car touch). -1: off.
+var tram_watch := -1
+var _tram_watch_at := Vector2.INF
 ## Loop 2c, --lineup (testing aid): every vehicle model standing round the car, no traffic, for
 ## close-up screenshots (with --size=25 or so).
 var lineup := false
@@ -458,6 +475,13 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
+	_place_start()  # loop MW-1: --place=<id>, the sectors round the place
+	# The web loop 2: the web build downloads its sectors (sector_packs.gd), the start's first.
+	if SectorPacks.active() and not monolithic:
+		_packs = SectorPacks.new()
+		_packs.name = "SectorPacks"
+		add_child(_packs)
+		await _packs.fetch_start(start_at, SectorStreamer.START_REACH, SectorStreamer.SECTOR)
 	var no_map := _missing_map()
 	if no_map != "":
 		# Loop 3d-1: the split and the prebuilt sectors are not committed; a fresh clone makes
@@ -740,6 +764,7 @@ func _build_world() -> void:
 		_build_life(data, world)
 	if graph != null:
 		_build_side_jobs(data, world)
+	_build_notebook(data)
 	if lineup:
 		_build_lineup(world)
 	if start_flying:
@@ -814,6 +839,8 @@ func _build_world() -> void:
 		hud.hold_pedal(hold_pedal)
 	if open_settings_at_start:
 		hud.settings_panel.set_tab(settings_tab)
+		if settings_tab == 4:
+			hud.settings_panel.show_notebook(notebook_open)
 		_open_settings.call_deferred()
 	_stats = _make_stats()
 	# Loop 3g-1: the police's script time among the bench's lines.
@@ -843,6 +870,7 @@ func _build_world() -> void:
 func _build_life(data: Dictionary, world: Node3D) -> void:
 	var t0 := Time.get_ticks_msec()
 	traffic = Traffic.new()
+	traffic.count_overlaps = _traffic_overlaps
 	world.add_child(traffic)
 	traffic.setup(graph, map, cam, data)
 	traffic.player_pos = car.global_position
@@ -864,6 +892,7 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	rivals.setup(graph, traffic, hud, bubbles, missions, map, world, car, data)
 	print("living city: %d lanes, %d trams in %d ms" % [graph.lane_count, trams.trams.size(), Time.get_ticks_msec() - t0])
 	if bench:
+		_clear_bench_result()
 		var p := Vector2(car.global_position.x, car.global_position.z)
 		var hit := graph.snap(p, 60.0, Vector2(-sin(car.rotation.y), -cos(car.rotation.y)), true)
 		if not hit.is_empty():
@@ -1117,6 +1146,13 @@ func _bench_header(kind: String) -> PackedStringArray:
 	])
 
 
+## The performance lane (2026-10-30): a bench starts by removing the last one's result, so a run
+## that ends before its card (a crash, a quit) leaves no file and tools/device_run.sh copies none
+## (it used to copy whatever an earlier bench had left).
+func _clear_bench_result() -> void:
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://bench_result.txt"))
+
+
 ## Loop 2b: the bench's result also goes to user://bench_result.txt (on the iPhone the app's
 ## Documents folder), not the save or the settings.
 func _write_bench_result(text: String) -> void:
@@ -1187,6 +1223,7 @@ func _start_phone_bench() -> void:
 	cam_focus = car.global_position
 	_bench_ghost = traffic.add_ghost(hit[0], hit[1], hit[2])
 	_phone_bench = true
+	_clear_bench_result()
 	_set_perf(show_perf)
 	_stats.header = _bench_header("BENCH button")
 	_bench_t0 = Time.get_ticks_msec()
@@ -1280,6 +1317,71 @@ func _build_side_jobs(data: Dictionary, world: Node3D) -> void:
 	eggs.setup(nodes, data)
 
 
+# --- loop MW-1: MOJA WARSZAWA, the notebook --------------------------------------------------
+
+## The notebook (notebook.gd): the places put on the map once, found at 2 Hz through `probe`,
+## kept in the wallet's save; its page is the settings card's fifth tab. --found= presets the
+## record (in memory), --place= puts the car at a place.
+func _build_notebook(data: Dictionary) -> void:
+	notes = Notebook.new()
+	notes.name = "Notebook"
+	notes.wallet = wallet
+	notes.hud = hud
+	notes.log_on = notes_log
+	notes.blip = _blip_sound
+	add_child(notes)
+	if not notes.setup(data, notes_log):
+		return
+	hud.settings_panel.notebook = notes
+	if found_spec != "":
+		notes.preset(found_spec)
+	notes.probe = func() -> Array:
+		# Not on the title screen or during TEST · BENCH (its wallet is put back after); --bench's
+		# route does find places, so its scripts' time includes the checks.
+		var away := title != null or _phone_bench
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true, heli.height_above, away]
+		return [car.global_position, car.vel.length() * 3.6, false, 0.0, away]
+	if place_flag != "":
+		_put_at_place(place_flag)
+
+
+## --place=<id>, before the city opens: start where places.json's hint says, so the sectors
+## round the place are built first (the exact spot comes after, _put_at_place).
+func _place_start() -> void:
+	if place_flag == "":
+		return
+	var book := Notebook.new()
+	if book.load_places() and book.by_id.has(place_flag):
+		var near: Array = book.places[book.by_id[place_flag]]["near"]
+		var at := Notebook.project([52.234, 21.024], float(near[0]), float(near[1]))
+		start_at = Vector3(at.x, 0.0, at.y)
+	else:
+		push_warning("--place=%s: no such place in places.json" % place_flag)
+	book.free()
+
+
+## The car on the lane nearest the place when that is inside its radius, else on the place.
+func _put_at_place(id: String) -> void:
+	if not notes.by_id.has(id):
+		return
+	var place: Dictionary = notes.places[notes.by_id[id]]
+	var at: Vector2 = place["at"]
+	var spot := Vector3(at.x, map.ground_height(at.x, at.y), at.y)
+	var yaw := car.rotation.y
+	var lane := _lane_spot(spot, yaw)
+	if not lane.is_empty() and Vector2((lane[0] as Vector3).x, (lane[0] as Vector3).z).distance_to(at) < float(place["radius"]) * 0.8:
+		spot = lane[0]
+		yaw = lane[1]
+	car.global_position = spot
+	car.rotation.y = yaw
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.reset_physics_interpolation()
+	cam_focus = car.global_position
+	print("notes: --place=%s: the car at %.0f, %.0f, %.0f m from the place" % [id, spot.x, spot.z, Vector2(spot.x, spot.z).distance_to(at)])
+
+
 # --- loop 3g-1: the police ---------------------------------------------------------------------
 
 ## The police (police.gd, docs/design/police.md): patrol cars in the traffic, the day's speed
@@ -1292,6 +1394,7 @@ func _build_police(data: Dictionary, world: Node3D) -> void:
 	var nodes := {"map": map, "graph": graph, "traffic": traffic, "car": car, "cam": cam, "hud": hud,
 			"bubbles": bubbles, "dialogue": dialogue, "wallet": wallet, "walkers": walkers, "radio": radio, "sfx": sfx,
 			"jobs": jobs, "missions": missions, "tod": tod, "opts": police_opts, "pedal": hold_pedal, "autopilot": autopilot,
+			"rivals": rivals, "ped_zones": ped_zones,
 			"level_now": func() -> int: return traffic_level,
 			"project": func(p: Vector3) -> Vector2: return cam.unproject_position(p) * float(view.stretch_shrink)}
 	add_child(police)
@@ -1300,10 +1403,32 @@ func _build_police(data: Dictionary, world: Node3D) -> void:
 
 ## The police's testing flags (README's flags table): --no-police, --police=1|2|3, --trap=N,
 ## --pullover=routine|trap|kebab|sloik|generic, --police-auto=escape|stop|hold, --police-now,
-## --police-log, --police-offence=FRAME:kind,...
+## --police-log, --police-offence=FRAME:kind,... Loop 3g-2: --escort, --guards, --clamp[=sorry],
+## --first-contact (police.md 14).
 func _police_flag(arg: String) -> void:
 	if arg == "--no-police":
 		police_opts["off"] = true
+	elif arg == "--escort":
+		police_opts["escort"] = true
+	elif arg == "--first-contact":
+		police_opts["first_contact"] = true
+		show_title = false
+		free_roam = true
+	elif arg == "--guards" or arg == "--guards=talk":
+		# The Krakowskie Przedmieście end of the zone, heading north into it (police.gd drives;
+		# =talk stops by the gate's guards).
+		police_opts["guards"] = "talk" if arg == "--guards=talk" else "drive"
+		start_at = Vector3(-696.0, 0.0, -1279.0)
+		start_heading = 345.0
+		show_title = false
+		free_roam = true
+	elif arg == "--clamp" or arg.begins_with("--clamp="):
+		# Parked on Plac Zamkowy 15 m from a guard; the clamp's countdown starts at frame 60.
+		police_opts["clamp"] = arg.trim_prefix("--clamp=") if arg.begins_with("--clamp=") else "wait"
+		start_at = Vector3(-690.0, 0.0, -1490.0)
+		start_heading = 250.0
+		show_title = false
+		free_roam = true
 	elif arg == "--police-now":
 		police_opts["now"] = true
 	elif arg == "--police-log":
@@ -1513,6 +1638,17 @@ func _parse_args() -> void:
 			_flag_traffic = Settings.parse_traffic(arg.trim_prefix("--traffic="))
 		elif arg == "--settings":
 			open_settings_at_start = true
+		elif arg == "--notebook" or arg.begins_with("--notebook="):
+			# Loop MW-1: the notebook's tab at the start (a chapter, or a place's card).
+			open_settings_at_start = true
+			settings_tab = 4
+			notebook_open = arg.trim_prefix("--notebook").trim_prefix("=")
+		elif arg.begins_with("--found="):
+			found_spec = arg.trim_prefix("--found=")
+		elif arg.begins_with("--place="):
+			place_flag = arg.trim_prefix("--place=")
+		elif arg == "--notes-log":
+			notes_log = true
 		elif arg.begins_with("--settings-tab="):
 			open_settings_at_start = true
 			settings_tab = int(arg.trim_prefix("--settings-tab="))
@@ -1533,6 +1669,10 @@ func _parse_args() -> void:
 			_water_test_at = Vector2(float(wz[0]), float(wz[1]))
 		elif arg == "--ram-test":
 			ram_test = 1
+		elif arg == "--traffic-overlaps":
+			_traffic_overlaps = true
+		elif arg.begins_with("--tram-watch="):
+			tram_watch = int(arg.trim_prefix("--tram-watch="))
 		elif arg == "--cam-log":
 			cam_log = true
 		elif arg.begins_with("--cam-test="):
@@ -1545,15 +1685,16 @@ func _parse_args() -> void:
 				var xyf := c.split(":")
 				clicks.append(Vector3i(int(xyf[0]), int(xyf[1]), int(xyf[2])))
 		# Loop 3g-1: the police's flags (_police_flag, below).
-		elif arg == "--no-police" or arg.begins_with("--police") or arg.begins_with("--trap=") or arg.begins_with("--pullover"):
+		elif arg == "--no-police" or arg.begins_with("--police") or arg.begins_with("--trap=") or arg.begins_with("--pullover") \
+				or arg in ["--escort", "--guards", "--guards=talk", "--first-contact", "--clamp"] or arg.begins_with("--clamp="):
 			_police_flag(arg)
 	# Test runs go straight to the city (--title brings the title screen back).
 	if demo or not shots.is_empty() or autopilot or start_race > 0 or start_mission > 0 or start_rival > 0 or bench or probe \
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or hold_stick != Vector2.INF or bench_button \
-			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0:
+			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0:
 		show_title = false
-	if start_ride >= 0:
-		show_title = false  # loop 2d-1: --ride is a test run too
+	if start_ride >= 0 or place_flag != "":
+		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place)
 	if force_title:
 		show_title = true
 	# Camera loop: the cinematic moments in a normal launch only (never with screenshots or a bench).
@@ -1562,7 +1703,7 @@ func _parse_args() -> void:
 	cinematic_look = normal or _flag_cinematic in ["all", "look"]
 	# Loop G1: the governor runs in a normal launch; test runs hold it so they repeat.
 	var test_run := DisplayServer.get_name() == "headless" or not shots.is_empty() or bench or probe or autopilot \
-			or demo or cam_test != "" or _water_test_at != Vector2.INF or ram_test > 0
+			or demo or cam_test != "" or _water_test_at != Vector2.INF or ram_test > 0 or tram_watch >= 0
 	_governor_on = _flag_governor == 1 if _flag_governor >= 0 else not test_run
 	# Loop G1b: test runs (and --last-session=) never write Auto's image state, even with the
 	# governor on and without --nosave.
@@ -1576,6 +1717,10 @@ func _load_settings() -> void:
 	settings.load_file()
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
 	auto_quality = Tiers.for_model(model_name)
+	# The web loop 2: a phone's browser has a fraction of the app's memory and GPU time (Safari
+	# closed the page on an iPhone): Auto picks Low there.
+	if OS.has_feature("web_ios") or OS.has_feature("web_android"):
+		auto_quality = Tiers.LOW
 	quality_choice = _flag_quality if _flag_quality != -2 else settings.quality
 	quality = auto_quality if quality_choice == Tiers.AUTO else quality_choice
 	print("quality: %s · Auto picks %s for %s" % [Tiers.describe(quality_choice, quality, model_name),
@@ -2159,6 +2304,25 @@ func _ram_test_frame(dt: float) -> void:
 		ram_test = 3
 
 
+## The traffic loop, --tram-watch=N: keeps the car (and so the view) 30 m ahead of tram N and 20 m
+## to its side, moved on as the tram draws level with that spot or gets 60 m from it.
+func _tram_watch_frame() -> void:
+	if trams == null or tram_watch >= trams.trams.size():
+		return
+	var t: Trams.Tram = trams.trams[tram_watch]
+	var head := Vector2(t.pos.x, t.pos.z)
+	if _tram_watch_at == Vector2.INF or head.distance_to(_tram_watch_at) < 22.0 or head.distance_to(_tram_watch_at) > 60.0:
+		_tram_watch_at = head + t.dir * 30.0 + Vector2(-t.dir.y, t.dir.x) * 20.0
+		car.collision_layer = 0
+		car.collision_mask = 0
+	car.global_position = Vector3(_tram_watch_at.x, t.pos.y + 0.5, _tram_watch_at.y)
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.target_dir = Vector3.ZERO
+	car.throttle = 0.0
+	cam_focus = car.global_position
+
+
 ## Camera loop, --cam-test=NAME: the scheme, the camera behind the car, the car ghosting through
 ## walls (the camera is what is tested; a building in the way would end the moment early).
 func _start_cam_test() -> void:
@@ -2375,6 +2539,7 @@ func _process(dt: float) -> void:
 	_feed_life(pos)
 	if police != null:
 		police.flying = flying  # loop 3g-1: the police ignore the helicopter
+		police.zone = zone  # loop 3g-2: the city guards' zone pill and whistle
 	if jobs != null:
 		# Loop 2b: no side job starts on the bench route (the ghost stops at red lights).
 		jobs.flying = flying or _bench_ghost != null
@@ -2588,6 +2753,8 @@ func _make_stats() -> BenchStats:
 		b.systems["jobs+eggs"] = [self, "_jobs_usec", false]
 		b.systems["jobs physics"] = [jobs, "spent_usec", true]
 		b.systems["rides physics"] = [rides, "spent_usec", true]  # loop 2d-1
+	if notes != null:
+		b.systems["notebook"] = [notes, "spent_usec", true]  # loop MW-1
 	b.systems["sound"] = [sfx, "last_usec", false]
 	b.systems["hud+minimap"] = [hud, "spent_usec", true]
 	b.systems["bubbles"] = [bubbles, "spent_usec", true]
@@ -2873,6 +3040,8 @@ func _read_input(dt: float) -> void:
 		_water_test_frame()
 	if ram_test == 1 or ram_test == 2:
 		_ram_test_frame(dt)
+	if tram_watch >= 0:
+		_tram_watch_frame()
 
 
 ## The stick and W A S D both point in screen space (W is up the screen); Space /
@@ -3337,7 +3506,10 @@ func _quit_quietly() -> void:
 # third; then the streaming numbers, and the game quits).
 
 const SectorStreamer := preload("res://scripts/sector_streamer.gd")
+const SectorPacks := preload("res://scripts/sector_packs.gd")
 var streamer: SectorStreamer
+## The web loop 2: the web build's sector downloads (sector_packs.gd); null elsewhere.
+var _packs: SectorPacks
 var monolithic := false
 var _sectors_all := false
 var _sectors_proxies := false
@@ -3390,6 +3562,7 @@ func _open_streamed_city(world: Node3D, flat_mat: ShaderMaterial) -> Dictionary:
 	streamer.load_all = _sectors_all
 	streamer.proxies_only = _sectors_proxies
 	streamer.log = _stream_log
+	streamer.packs = _packs
 	add_child(streamer)
 	streamer.sector_ready.connect(_on_sector_ready)
 	var use_prebuilt := prebuilt or not OS.has_feature("editor")

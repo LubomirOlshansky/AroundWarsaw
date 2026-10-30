@@ -3646,6 +3646,14 @@ func _build_buildings(st, keep: Array, marks) -> void:
 		# Alpha tells the building shader which window pattern to draw.
 		wall.a = 0.5 if glass else 1.0
 		_uv2 = Vector2(fposmod(hsh * 0.6180339887, 1.0), h)
+		var plan := Rect2(poly[0], Vector2.ZERO)
+		for q in poly:
+			plan = plan.expand(q)
+		var skin: Dictionary = marks.skin_at(plan)
+		if not skin.is_empty():
+			wall = skin["wall"]
+			roof = skin["roof"]
+			_uv2.x = skin["mode"]
 
 		var run := 0.0
 		for i in poly.size():
@@ -3929,6 +3937,13 @@ func _build_lod2(walls, marks) -> Array:
 		if marks.replaces((lo + hi) * 0.5):
 			for t in range(t0, t1, 3):
 				dropped[t / 3] = 1
+		else:
+			# The landmarks loop: a kept building in a landmark's own stone (Muzeum Narodowe).
+			var skin: Dictionary = marks.skin_at(Rect2(lo, hi - lo))
+			if not skin.is_empty():
+				for t in range(t0, t1):
+					col[t] = skin["roof"] if nrm[t].y >= 0.7 else skin["wall"]
+					uv2[t].x = skin["mode"]
 		t0 = t1
 	# Split into tiles by triangle, like the other city meshes (not on the roof pass).
 	var tiles := {}
@@ -4304,16 +4319,38 @@ func _make_shared() -> void:
 	_cylinder(column, Vector3(0, 3.08, 0), 0.45, 0.35, 8, green)
 	_cylinder(column, Vector3(0, 3.43, 0), 0.12, 0.3, 6, Color("#c9a24a"))
 	_shared["column"] = column.commit()
-	# Bus and tram shelter: dark roof, glass back and ends, two posts.
+	# Bus and tram shelter. The landmarks loop (2026-10-30): Warsaw's glass shelter, as seen
+	# from the game's camera: a pale glass roof in a graphite frame overhanging the kerb, a
+	# dark fascia, glass back and end, three posts, a bench, a lit poster box at the far end
+	# (its faces glow at night: SHELTER_POSTER, fixture.gdshader) and the stop's blue sign
+	# (D-15) on its own pole. The road is on its -z side.
 	var shelter := SurfaceTool.new()
 	shelter.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var glass := Color("#b8d3df")
-	_box(shelter, Vector3(0, 2.45, 0), Vector3(3.8, 0.12, 1.6), Color("#43474d"))
-	_box(shelter, Vector3(0, 1.3, 0.72), Vector3(3.7, 2.1, 0.05), glass)
-	for x in [-1.85, 1.85]:
-		_box(shelter, Vector3(x, 1.3, 0.2), Vector3(0.05, 2.1, 1.05), glass)
-	_box(shelter, Vector3(0, 0.45, 0.5), Vector3(2.4, 0.07, 0.4), Color("#7c8087"))
-	_shared["shelter"] = shelter.commit()
+	var graphite := Color("#33363b")
+	_box(shelter, Vector3(0, 2.5, 0.08), Vector3(4.3, 0.12, 1.95), graphite)
+	_box(shelter, Vector3(0, 2.57, 0.08), Vector3(4.0, 0.03, 1.7), Color("#a7c2cf"))
+	_box(shelter, Vector3(0, 2.38, -0.86), Vector3(4.3, 0.3, 0.06), Color("#2b2e33"))
+	_box(shelter, Vector3(0, 1.3, 0.75), Vector3(3.85, 2.05, 0.04), glass)
+	_box(shelter, Vector3(0, 0.12, 0.75), Vector3(3.9, 0.1, 0.06), graphite)
+	_box(shelter, Vector3(-1.95, 1.3, 0.17), Vector3(0.04, 2.05, 1.15), glass)
+	for x in [-1.95, 0.0, 1.95]:
+		_box(shelter, Vector3(x, 1.25, 0.78), Vector3(0.09, 2.5, 0.09), graphite)
+	# The poster box: a graphite case, a poster on each face.
+	_box(shelter, Vector3(1.95, 1.2, 0.12), Vector3(0.2, 1.95, 1.3), graphite)
+	for sx in [-0.11, 0.11]:
+		_box(shelter, Vector3(1.95 + sx, 1.5, 0.12), Vector3(0.02, 1.0, 1.12), SHELTER_POSTER[0])
+		_box(shelter, Vector3(1.95 + sx, 0.78, 0.12), Vector3(0.02, 0.44, 1.12), SHELTER_POSTER[1])
+	_box(shelter, Vector3(-0.2, 0.46, 0.5), Vector3(2.2, 0.06, 0.38), Color("#5c6168"))
+	for x in [-1.1, 0.7]:
+		_box(shelter, Vector3(x, 0.22, 0.5), Vector3(0.06, 0.44, 0.3), graphite)
+	# The stop's sign: a grey pole, a blue square with a white bus.
+	_box(shelter, Vector3(-2.45, 1.35, -0.7), Vector3(0.07, 2.7, 0.07), Color("#9aa0a6"))
+	_box(shelter, Vector3(-2.45, 2.45, -0.7), Vector3(0.56, 0.56, 0.05), Color("#1f5fae"))
+	for sz in [-0.03, 0.03]:
+		_box(shelter, Vector3(-2.45, 2.47, -0.7 + sz), Vector3(0.34, 0.2, 0.02), Color("#f2f2ee"))
+		_box(shelter, Vector3(-2.45, 2.34, -0.7 + sz), Vector3(0.3, 0.05, 0.02), Color("#f2f2ee"))
+	_shared["shelter"] = _mark_glow(shelter.commit(), SHELTER_POSTER)
 
 
 func _tree_multimesh(mesh: Mesh, material: Material, spots: Array[Transform3D], colours: Array[Color],
@@ -4477,6 +4514,10 @@ func _build_street_furniture() -> void:
 
 ## Street-lamp heads, and the light they give off at night (linear; alpha = halo brightness).
 const LAMP_HEAD := Color("#d9d4c3")
+## The landmarks loop: the shelter's poster box faces (an orange poster over a cream band),
+## lit at night in SHELTER_GLOW through the street lamps' fixture.gdshader.
+const SHELTER_POSTER := [Color("#e8603f"), Color("#f1e7cf")]
+const SHELTER_GLOW := Color(0.62, 0.66, 0.72)
 const SODIUM_GLOW := Color(1.0, 0.45, 0.12, 0.6)
 const LED_GLOW := Color(0.72, 0.82, 1.0, 0.5)
 
@@ -4484,11 +4525,19 @@ const LED_GLOW := Color(0.72, 0.82, 1.0, 0.5)
 ## Marks the lamp head's vertices (its colour) with UV.x = 1, so fixture.gdshader
 ## knows what glows.
 func _mark_head(mesh: ArrayMesh) -> ArrayMesh:
+	return _mark_glow(mesh, [LAMP_HEAD])
+
+
+## The landmarks loop: _mark_head for any parts, by their colours (the shelter's posters).
+func _mark_glow(mesh: ArrayMesh, glowing: Array) -> ArrayMesh:
 	var arrays := mesh.surface_get_arrays(0)
 	var colours: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
 	var uv: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV]
 	for i in colours.size():
-		uv[i] = Vector2(1.0, 1.0) if colours[i].is_equal_approx(LAMP_HEAD) else Vector2(-1.0, -1.0)
+		var lit := false
+		for c: Color in glowing:
+			lit = lit or colours[i].is_equal_approx(c)
+		uv[i] = Vector2(1.0, 1.0) if lit else Vector2(-1.0, -1.0)
 	arrays[Mesh.ARRAY_TEX_UV] = uv
 	var out := ArrayMesh.new()
 	out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
@@ -4670,18 +4719,23 @@ func _build_props() -> void:
 	for i in range(0, list.size() - 2, 3):
 		tints.append(Color(POSTER[int(absf(float(list[i]) * 7.0 + float(list[i + 1]) * 3.0)) % POSTER.size()]))
 	_props(_shared["column"], metal, list, 1.4, tints)
-	_props(_shared["shelter"], metal, data.get("shelters", []), 4.0, none)
+	var shelters: Array = data.get("shelters", [])
+	var glows: Array[Color] = []
+	glows.resize(shelters.size() / 3)
+	glows.fill(SHELTER_GLOW)
+	_props(_shared["shelter"], _shared["fixture"], shelters, 4.0, none, false, glows)
 
 
 ## Instances of one prop at (x, z, yaw) triples; props bigger than `solid` metres
 ## across become obstacles. `fine`: under a metre tall (loop 2b: no shadow, FINE_GROUP).
-func _props(mesh: Mesh, material: Material, list: Array, solid: float, tints: Array[Color], fine := false) -> void:
+func _props(mesh: Mesh, material: Material, list: Array, solid: float, tints: Array[Color], fine := false,
+		custom: Array[Color] = []) -> void:
 	var spots: Array[Transform3D] = []
 	for i in range(0, list.size() - 2, 3):
 		var x := float(list[i])
 		var z := float(list[i + 1])
 		spots.append(Transform3D(Basis(Vector3.UP, float(list[i + 2])), Vector3(x, terrain_height(x, z), z)))
-	for mmi in _tree_multimesh(mesh, material, spots, tints):
+	for mmi in _tree_multimesh(mesh, material, spots, tints, custom):
 		if fine:
 			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			mmi.add_to_group(FINE_GROUP, true)

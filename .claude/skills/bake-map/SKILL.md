@@ -10,8 +10,8 @@ If they disagree, DEVELOPMENT.md wins: fix this file.
 
 ## Rules
 
-- **No download without the user's yes.** List each one first: source URL, size, time, and
-  which bakes re-run. The raw data (`data/raw/`, ~5 GB) is gitignored and never committed.
+- **Downloads are pre-approved** (the user, 2026-10-30): list each one in the report or PR
+  (source URL, size, time, licence, which bakes re-run). The raw data (`data/raw/`, ~5 GB) is gitignored and never committed.
   The public Overpass server is often busy (HTTP 502/504): retry with a back-off.
 - Python tools run with `python3 -I` and use the standard library; the orthophoto overlays need
   Pillow (they run without `-I`). Don't install anything without asking.
@@ -50,7 +50,7 @@ read the box's LoD2), and the inputs below are `data/work/demo/*` (trees, OSM, o
    first). Loop 3b (R2): the deck solver follows the decks measured in the 0.5 m surface model
    (`data/raw/demo/gugik/nmpt05`, `nmt1`: float32 GeoTIFF, read by `tools/geotiff.py`) when
    it is there; without it the chain solver runs alone.
-3. GUGiK buildings and terrain: `tools/fetch_gugik.py` (downloads: ask), `tools/bake_gugik.py`
+3. GUGiK buildings and terrain: `tools/fetch_gugik.py` (downloads: list them), `tools/bake_gugik.py`
    → `lod2.bin`, `lod2.json`, `terrain.json`.
 4. `tools/bake_ao.py game/map` → `ao.bin` (after 2 and 3).
 5. `tools/bake_lights.py game/map` → `lights.bin` (after 2 and 3).

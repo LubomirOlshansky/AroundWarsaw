@@ -122,6 +122,10 @@ var autopilot := false
 var tail := -1
 ## Set by the game each frame.
 var flying := false
+## Loop 3g-2 (police.md 8.2): the player escaped the police during this race: a win pays the
+## stake x 1.2 (police.gd sets it; start_race clears it).
+var escape_bonus := false
+const ESCAPE_BONUS := 1.2
 
 var _drivers: Array = []
 var _nodes: Array[Node3D] = []
@@ -314,6 +318,17 @@ func racing() -> bool:
 
 
 ## A race or its result card is up (other activities wait).
+## Loop 3g-2: a race is on (past the countdown): the police can see it.
+func in_race() -> bool:
+	return state == State.RACE
+
+
+## Loop 3g-2: a race has been run this session and its card is closed (the first contact waits
+## for it).
+func raced() -> bool:
+	return _races > 0 and state == State.CRUISE
+
+
 func busy() -> bool:
 	return state != State.CRUISE and state != State.PROMPT
 
@@ -349,6 +364,7 @@ func start_race(i: int) -> void:
 	print("race: %s to %s, %d m by road (picked in %.1f ms)" % [RIVALS[i]["name"], _finish["name"],
 			roundi(graph.remaining(_dist, d.edge, d.s)), (Time.get_ticks_usec() - t0) / 1000.0])
 	_races += 1
+	escape_bonus = false
 	state = State.CHALLENGE
 	_t = 0.0
 	hud.hide_challenge()
@@ -546,6 +562,15 @@ func _finish_race(won: bool, why: String) -> void:
 	print("race %s: %s to %s in %.1f s" % ["won" if won else "lost", who, _finish["name"], _race_time])
 	if won:
 		var stake: int = r["stake"]
+		# Loop 3g-2: escaping the police during the race: +20 % on the stake.
+		var bonus_pl := ""
+		var bonus_en := ""
+		if escape_bonus:
+			var base := stake
+			stake = roundi(stake * ESCAPE_BONUS)
+			bonus_pl = " · +20 % ZA UCIECZKĘ"
+			bonus_en = " · +20 % FOR THE ESCAPE"
+			print("race: +20 %% for the escape: %d → %d zł" % [base, stake])
 		var record := ""
 		if wallet != null:
 			var key := "race:%s" % _finish["name"]
@@ -558,11 +583,11 @@ func _finish_race(won: bool, why: String) -> void:
 		var total := (" · wallet %s · respect %d" % [_money(wallet.zl), wallet.respect]) if wallet != null else ""
 		var total_pl := (" · w portfelu %s · szacunek %d" % [_money(wallet.zl), wallet.respect]) if wallet != null else ""
 		var record_pl := record.replace("new best!", "nowy rekord!").replace("best", "rekord")
-		hud.show_card("WYGRANA · 1. MIEJSCE", "Meta: %s, czas %s%s. %s za tobą.\n„%s”\n+%d zł (stawka) · szacunek +100%s" % [
-				_finish["name"], _clock(_race_time), record_pl, who, line[0], stake, total_pl],
+		hud.show_card("WYGRANA · 1. MIEJSCE", "Meta: %s, czas %s%s. %s za tobą.\n„%s”\n+%d zł (stawka%s) · szacunek +100%s" % [
+				_finish["name"], _clock(_race_time), record_pl, who, line[0], stake, bonus_pl, total_pl],
 				PackedStringArray(["OK"]), WIN_COLOUR, false, "Win · 1st",
-				"You beat %s to %s in %s%s. %s +%d zł (the stake) · respect +100%s" % [
-				who, _finish["name"], _clock(_race_time), record, line[1], stake, total])
+				"You beat %s to %s in %s%s. %s +%d zł (the stake%s) · respect +100%s" % [
+				who, _finish["name"], _clock(_race_time), record, line[1], stake, bonus_en, total])
 		Input.vibrate_handheld(150, 0.9)
 	else:
 		var short := roundi(_player_remaining())

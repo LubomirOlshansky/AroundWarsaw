@@ -7,8 +7,10 @@ extends RefCounted
 ## window the size of a known iPhone's screen in landscape gets that iPhone's scale and safe
 ## area (2868x1320 is the 6.9" Pro Max, 956 x 440 pt with 62 pt each side and 21 pt at the
 ## bottom), any other window is taken as a phone 390 pt tall with no insets (the 6.1" class),
-## so screenshots and the HUD check show what the phone would. In landscape iOS insets both
-## sides the same, whichever side the island is on, so the layout holds turned either way.
+## so screenshots and the HUD check show what the phone would (a narrower window, 4:3 say,
+## is taken as 667 pt wide instead; the iPads in the table are known too). In landscape iOS
+## insets both sides the same, whichever side the island is on, so the layout holds turned
+## either way.
 ##
 ##   var s := ScreenPoints.measure(get_viewport().get_visible_rect().size)
 ##   s["pt"]    pixels per point
@@ -28,15 +30,25 @@ const PHONES := {
 	Vector2i(2340, 1080): [3.0, 50.0, 50.0, 0.0, 21.0],   # 12 / 13 mini
 	Vector2i(1792, 828): [2.0, 48.0, 48.0, 0.0, 21.0],    # XR, 11
 	Vector2i(1334, 750): [2.0, 0.0, 0.0, 0.0, 0.0],       # SE (2nd, 3rd)
+	# iPads (store listings, 2026-10-30): the App Store's iPad screenshots are rendered at these
+	# sizes. Landscape, the status bar hidden: only the home indicator's 20 pt at the bottom.
+	Vector2i(2752, 2064): [2.0, 0.0, 0.0, 0.0, 20.0],     # iPad Pro 13" (M4)
+	Vector2i(2732, 2048): [2.0, 0.0, 0.0, 0.0, 20.0],     # iPad Pro 12.9", iPad Air 13"
+	Vector2i(2420, 1668): [2.0, 0.0, 0.0, 0.0, 20.0],     # iPad Pro 11" (M4)
+	Vector2i(2360, 1640): [2.0, 0.0, 0.0, 0.0, 20.0],     # iPad Air 11", iPad (10th)
 }
-## A window that is no known phone is taken as one this many points tall.
+## A window that is no known phone is taken as one this many points tall,
 const DESKTOP_POINTS_TALL := 390.0
+## and at least this many wide: the SE's width, the narrowest screen the HUD is laid out for.
+## Without it a 4:3 window came out 520 pt wide and the pull-over card (about 610 pt) never
+## found room, so it stayed hidden (store screenshots, 2026-10-30).
+const DESKTOP_POINTS_WIDE := 667.0
 
 
 ## {"pt": pixels per point, "safe": Rect2 in pixels, "insets": Vector4 (left, right, top,
 ## bottom) in pixels, "phone": a known iPhone size (or the device)}.
 static func measure(size: Vector2) -> Dictionary:
-	var pt := maxf(size.y / DESKTOP_POINTS_TALL, 0.5)
+	var pt := maxf(minf(size.y / DESKTOP_POINTS_TALL, size.x / DESKTOP_POINTS_WIDE), 0.5)
 	var insets := Vector4.ZERO
 	var phone := false
 	if OS.has_feature("mobile"):

@@ -20,7 +20,10 @@
 # `streets` runs tools/check_streets.py (map review B): poles on the asphalt, zebras off it,
 # grass medians on tram tracks (S1, S2, S4 FAIL; S3, medians in a junction, is reported).
 # `tiers` and `governor` (loop G1): the device tiers and the pixel image's size rule, and the
-# frame governor's rules on scripted frames. `streaming` runs game/tools/check_streaming.gd
+# frame governor's rules on scripted frames.
+# Loop MW-1: `places` runs game/tools/check_places.gd: MOJA WARSZAWA's 72 places (Polish +
+# English, the 70 characters, the demo box, the brand denylist, reachability as a WARN) and the
+# notebook's finding and reward rules on synthetic inputs; it reads only centrum.json (CI too). `streaming` runs game/tools/check_streaming.gd
 # (loop 3c) WITH a renderer (a window opens for a minute or two): every sector built from its
 # file is the whole city, vertex for vertex; 10 spots rendered with --monolithic and with the
 # prebuilt sectors streamed differ in at most 0.5 % of their pixels; a 3-minute soak over every
@@ -30,7 +33,8 @@
 # (P11 lines and flow, P12 the state machine with synthetic inputs); `police-runs` the scripted
 # game runs P1-P7 on the prebuilt city (the lizak, the trap stop, an escape, caught, the three
 # caps, the start grace, the cooldown), each judged by its `police:` lines, the złoty the same
-# before and after; `police-soak` P13, the autopilot roaming Busy traffic with the police on at
+# before and after, then (loop 3g-2) part two's runs: the escort, the guards, the clamp, the
+# first contact, the kebab's frozen heat, a race's escape; `police-soak` P13, the autopilot roaming Busy traffic with the police on at
 # once (NW_SOAK_MINUTES of play, default 3; the full soak is 10: NW_SOAK_MINUTES=10
 # tools/verify.sh --only=police-soak, ~70 s).
 # Every game run is headless, passes --nosave and quits by itself (--quit-after; Godot also
@@ -49,8 +53,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud rides landmarks sfx radio water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
-STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud rides landmarks sfx radio police plain ram prebuilt)
+STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud places rides landmarks sfx radio water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
+STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places rides landmarks sfx radio police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -289,6 +293,47 @@ police_runs() {
 		row FAIL "run: police P1-P7" $secs "${P_FAIL[1][1,150]} (+$(( ${#P_FAIL} - 1 )) more)"
 		print -rl -- "  ${^P_FAIL}"
 	fi
+	police_runs2
+}
+
+# Loop 3g-2 (police, part two): the escort on rescue 9 (joins +10 s, leads 12-26 m ahead), the
+# guards (the whistle and the 3 s run, no chase; the talk on stopping by one), the clamp (on 10 s
+# after the countdown, off 10 s later or at once on Przepraszam), the first contact (the routine
+# check), the kebab's heat frozen on the card, a race's escape marked +20 %. Same judging as P1-P7.
+police_runs2() {
+	local t0=$EPOCHREALTIME f
+	P_FAIL=()
+	P_NOTE=()
+	police_run e1 2400 --mission=9 --escort --police-auto=follow --traffic=empty; f=$RUN_LOG
+	expect E1 '^police: escort joined \(unit [0-9]+, .*rescue clock \+10 s' $f "joined +10s"
+	expect E1 '^police: escort status: lead, (1[2-9]|2[0-6]) m ahead' $f "leads"
+	police_run g1 1500 --guards; f=$RUN_LOG
+	expect G1 '^guard: whistle \(post ' $f "whistle"
+	expect G1 '^guard: gave up ' $f "run 3s"
+	grep -qE '^guard: guard car following' $f && P_NOTE+=("G1 car follows")
+	grep -qE '^police: (L1|L2|L3|warn)' $f && P_FAIL+=("G1: the police reacted to the guards' zone ($f)")
+	police_run g2 1500 --guards=talk; f=$RUN_LOG
+	expect G2 '^police: guard talk done' $f "talk"
+	police_run c1 1500 --clamp; f=$RUN_LOG
+	expect C1 '^guard: clamp on \(10\.0 s' $f "on"
+	expect C1 '^guard: clamp off \(10 s\)' $f "off 10s"
+	police_run c2 900 --clamp=sorry; f=$RUN_LOG
+	expect C2 '^guard: clamp off \(sorry' $f "sorry"
+	police_run f1 1500 --first-contact --pedal=gas --police-auto=stop; f=$RUN_LOG
+	expect F1 '^police: first contact done \(routine check\)' $f "routine"
+	grep -qE '^police: L1' $f && P_FAIL+=("F1: a chase started ($f)")
+	police_run k1 900 --kebab=1 --pullover=kebab --police-auto=stop; f=$RUN_LOG
+	expect K1 '^police: kebab heat frozen' $f "frozen"
+	expect K1 '^police: kebab heat runs again' $f "runs again"
+	police_run r1 2400 --race=1 --police=1 --police-auto=escape; f=$RUN_LOG
+	expect R1 '^police: race marked \+20 %' $f "+20%"
+	local secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+	if (( ${#P_FAIL} == 0 )); then
+		row PASS "run: police part two" $secs "0 errors · ${(j:, :)P_NOTE}"
+	else
+		row FAIL "run: police part two" $secs "${P_FAIL[1][1,150]} (+$(( ${#P_FAIL} - 1 )) more)"
+		print -rl -- "  ${^P_FAIL}"
+	fi
 }
 
 # Loop 3g-1, P13: the autopilot roams Busy traffic with the police on from the start (runtime
@@ -434,6 +479,7 @@ for s in $want; do
 		governor) check governor '^check_governor:' --script res://tools/check_governor.gd ;;
 		# Loop 2e: the HUD at phone size: 44 pt controls, 11 / 13 pt text, the safe area, no overlaps.
 		hud) check hud '^check_hud:' --script res://tools/check_hud.gd ;;
+		places) check places '^check_places:' --script res://tools/check_places.gd ;;
 		# Loop 2d-1: Podwózka's star and pay tables, the streak and the cancel rules, its lines.
 		rides) check rides '^check_rides:' --script res://tools/check_rides.gd ;;
 		landmarks) check landmarks '^landmark check:' --script res://tools/check_landmarks.gd ;;

@@ -5,7 +5,9 @@ extends RefCounted
 ## OpenStreetMap lumps: the Palace of Culture and Science (stepped tower, attics and
 ## pinnacles, clock faces, the gilded spire, the Congress Hall and the wings),
 ## Złote Tarasy's glass wave, the Rotunda, Varso Tower and its spire, Stadion Narodowy,
-## Warszawa Centralna's roof and the gate towers of Most Poniatowskiego.
+## Warszawa Centralna's roof and the gate towers of Most Poniatowskiego. The landmarks loop
+## (2026-10-30) adds the skyline's towers (TOWERS: Złota 44, Warsaw Spire, Q22, Rondo 1 and
+## the rest), each from its mapped parts in its own colour and skin, and Muzeum Narodowe.
 ##
 ## map_builder.gd asks `replaces(p)` for every LoD2 building and OpenStreetMap outline
 ## (whatever stands in a landmark's zone is dropped), then `build(st)` adds the models
@@ -29,6 +31,57 @@ const M_ATTIC := 9.0      # a parapet cut into merlons; fraction = its height / 
 const M_LAMP := 10.0      # glows at night
 const M_MEMBRANE := 11.0  # the stadium's roof membrane
 const M_GLASS := 12.0     # curtain wall with mullions (Varso)
+const M_SKIN := 13.0      # a tower's own skin; fraction = style / 16 (S_*, building.gdshader skin())
+
+## The skins (building.gdshader S_*): Złota 44's white exoskeleton, Warsaw Spire's diamonds,
+## silver floor bands, vertical fins, a white grid, balcony slabs, dark glass, gold glass,
+## and an open frame (its panes cut away).
+const S_SAIL := 0
+const S_DIAMOND := 1
+const S_BANDS := 2
+const S_FINS := 3
+const S_GRID := 4
+const S_RIBBON := 5
+const S_DARK := 6
+const S_GOLD := 7
+const S_FRAME := 8
+
+## The landmarks loop (2026-10-30): the skyline's towers, so each reads as itself and not as one
+## more blue box. Each is built from its mapped building parts (the outline `osm` names; what
+## else stands in it is dropped) in its skin, glass colour and roof colour; `crest` adds its
+## top: "slope" (Złota 44's sail falls away from its high corner), "frame" (Rondo 1's open
+## crown); `mapped` keeps the parts' mapped colours. Colours from photographs, kept a step
+## paler than life for the game's palette.
+const TOWERS := [
+	{"key": "zlota44", "osm": "Złota 44", "style": S_SAIL, "glass": "#b4c8d3", "roof": "#e4e8ea", "crest": "slope"},
+	{"key": "spire", "osm": "Warsaw Spire", "style": S_DIAMOND, "glass": "#5a8fb8", "roof": "#a3b6c4"},
+	{"key": "q22", "osm": "Q22", "style": S_BANDS, "glass": "#8ba2b4", "roof": "#bcc4ca"},
+	{"key": "rondo1", "osm": "Rondo 1", "style": S_FINS, "glass": "#6f8ea4", "roof": "#a9b3b9", "crest": "frame"},
+	{"key": "plater49", "osm": "InterContinental", "style": S_GRID, "glass": "#5f7f9a", "roof": "#c3c7c9"},
+	{"key": "cosmopolitan", "osm": "Cosmopolitan", "style": S_RIBBON, "glass": "#4d6574", "roof": "#dfe2e0"},
+	{"key": "wtt", "osm": "Warsaw Trade Tower", "style": S_BANDS, "glass": "#3d6a7a", "roof": "#8d979c"},
+	{"key": "skyliner", "osm": "Skyliner", "style": S_FINS, "glass": "#2f6190", "roof": "#9aa6b0"},
+	{"key": "unit", "osm": "Warsaw Unit", "style": S_BANDS, "glass": "#4f87ba", "roof": "#8a96a0"},
+	{"key": "mennica", "osm": "Mennica Legacy Tower", "style": S_FINS, "glass": "#6d95ba", "roof": "#b5c0c9"},
+	{"key": "gpy", "osm": "Generation Park Y", "style": S_DARK, "glass": "#46525e", "roof": "#6c747c"},
+	{"key": "skysawa", "osm": "Skysawa", "style": S_BANDS, "glass": "#7e93a3", "roof": "#a7b0b6"},
+	{"key": "blekitny", "osm": "Błękitny Wieżowiec", "style": S_GOLD, "glass": "#c9a45c", "roof": "#8e8a80"},
+	{"key": "wcf", "osm": "Warszawskie Centrum Finansowe", "style": S_DARK, "glass": "#4d6862", "roof": "#7d8580"},
+	{"key": "lim", "osm": "Centrum LIM", "style": S_DARK, "glass": "#6a5442", "roof": "#6e6a66"},
+	{"key": "chalubinskiego8", "osm": "Chałubińskiego 8", "style": S_FINS, "glass": "#2f6f8f", "roof": "#c9cfd2", "mapped": true},
+	{"key": "spektrum", "osm": "Spektrum Tower", "style": S_BANDS, "glass": "#2f5563", "roof": "#7c878c", "mapped": true},
+	{"key": "bridge", "osm": "The Bridge", "style": S_FINS, "glass": "#6d8da6", "roof": "#b0bac2"},
+	# The second pass: the rest of the skyline over 80 m (the hotels by their addresses).
+	{"key": "grzybowska63", "osm": "Hilton Warsaw City", "style": S_BANDS, "glass": "#4d7590", "roof": "#9aa5ad"},
+	{"key": "jp2_21", "osm": "The Westin Warsaw", "style": S_GRID, "glass": "#86aca7", "roof": "#a9b5b3", "mapped": true},
+	{"key": "marszalkowska94", "osm": "Novotel Warszawa Centrum", "style": S_RIBBON, "glass": "#3b4a55", "roof": "#c9c9c2"},
+	{"key": "central", "osm": "Central Tower", "style": S_DARK, "glass": "#3e5c78", "roof": "#6f7d88"},
+	{"key": "ilmet", "osm": "Ilmet", "style": S_BANDS, "glass": "#7d5a48", "roof": "#8c8278"},
+	{"key": "platinum_a", "osm": "Platinum Tower A", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
+	{"key": "platinum_b", "osm": "Platinum Tower B", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
+	{"key": "lucka", "osm": "Łucka City", "style": S_RIBBON, "glass": "#7c8c98", "roof": "#bfc3c3"},
+	{"key": "widok", "osm": "Widok Towers", "style": S_FINS, "glass": "#4f677b", "roof": "#8d969c"},
+]
 
 const SANDSTONE := Color("#d8c49c")   # the Palace (bake_gugik.py LANDMARKS)
 const SANDSTONE_LIGHT := Color("#e6d6b2")
@@ -58,6 +111,72 @@ const INFO := {
 	"poniatowski": ["Most Poniatowskiego",
 			"Most otwarty w 1914 roku. Wieże strzegą wjazdów.",
 			"The bridge opened in 1914. Its towers guard the way on."],
+	"zlota44": ["Złota 44",
+			"192 m. Apartamentowiec Daniela Libeskinda: biały stalowy szkielet jak skrzydło.",
+			"192 m. Daniel Libeskind's apartment tower: a white steel frame like a wing."],
+	"spire": ["Warsaw Spire",
+			"220 m. Szklana tafla w romby. Otwarty w 2016 roku.",
+			"220 m. Glass laid in diamonds. Opened in 2016."],
+	"q22": ["Q22",
+			"155 m. Otwarty w 2016 roku.",
+			"155 m. Opened in 2016."],
+	"rondo1": ["Rondo 1",
+			"192 m razem z ażurową koroną. Otwarty w 2006 roku.",
+			"192 m with its open crown. Opened in 2006."],
+	"plater49": ["Emilii Plater 49",
+			"164 m. Dolne piętra przecina wielki prześwit.",
+			"164 m. A great gap cuts through its lower floors."],
+	"cosmopolitan": ["Cosmopolitan",
+			"160 m. Projekt Helmuta Jahna, białe pasy balkonów.",
+			"160 m. Designed by Helmut Jahn: white bands of balconies."],
+	"wtt": ["Warsaw Trade Tower",
+			"208 m z iglicą. Otwarty w 1999 roku.",
+			"208 m with its spire. Opened in 1999."],
+	"skyliner": ["Skyliner",
+			"195 m przy rondzie Daszyńskiego.",
+			"195 m by Rondo Daszyńskiego."],
+	"unit": ["Warsaw Unit",
+			"202 m przy rondzie Daszyńskiego.",
+			"202 m by Rondo Daszyńskiego."],
+	"mennica": ["Mennica Legacy Tower",
+			"140 m przy Prostej.",
+			"140 m on Prosta."],
+	"gpy": ["Generation Park Y",
+			"140 m przy rondzie Daszyńskiego.",
+			"140 m by Rondo Daszyńskiego."],
+	"skysawa": ["Skysawa",
+			"155 m przy Świętokrzyskiej.",
+			"155 m on Świętokrzyska."],
+	"blekitny": ["Błękitny Wieżowiec",
+			"120 m przy placu Bankowym. Błękitny z nazwy, złoty ze szkła.",
+			"120 m on Plac Bankowy. Blue by name, gold by its glass."],
+	"wcf": ["Warszawskie Centrum Finansowe",
+			"144 m. Otwarte w 1998 roku.",
+			"144 m. Opened in 1998."],
+	"lim": ["Centrum LIM",
+			"140 m przy Alejach Jerozolimskich. Otwarte w 1989 roku.",
+			"140 m on Al. Jerozolimskie. Opened in 1989."],
+	"chalubinskiego8": ["Chałubińskiego 8",
+			"140 m. Białe żebra na niebieskim szkle.",
+			"140 m. White ribs on blue glass."],
+	"spektrum": ["Spektrum Tower",
+			"Ciemne szkło przy Twardej.",
+			"Dark glass on Twarda."],
+	"bridge": ["The Bridge",
+			"174 m przy Grzybowskiej.",
+			"174 m on Grzybowska."],
+	"grzybowska63": ["Grzybowska 63", "Hotel, 94 m.", "A hotel, 94 m."],
+	"jp2_21": ["Jana Pawła II 21", "Hotel, 94 m.", "A hotel, 94 m."],
+	"marszalkowska94": ["Marszałkowska 94/98", "Hotel, 95 m.", "A hotel, 95 m."],
+	"central": ["Central Tower", "115 m przy Alejach Jerozolimskich.", "115 m on Al. Jerozolimskie."],
+	"ilmet": ["Ilmet", "103 m.", "103 m."],
+	"platinum_a": ["Platinum Tower A", "83 m.", "83 m."],
+	"platinum_b": ["Platinum Tower B", "83 m.", "83 m."],
+	"lucka": ["Łucka City", "103 m przy Łuckiej.", "103 m on Łucka."],
+	"widok": ["Widok Towers", "95 m przy Alejach Jerozolimskich.", "95 m on Al. Jerozolimskie."],
+	"muzeum": ["Muzeum Narodowe",
+			"Gmach z lat 1927–1938 przy Alejach Jerozolimskich.",
+			"The museum's building of 1927–1938 on Al. Jerozolimskie."],
 }
 
 var map  # map_builder.gd: terrain, roof grid, wall faces
@@ -95,7 +214,7 @@ func _init(builder, map_data: Dictionary) -> void:
 ## True when a LoD2 building or an OpenStreetMap outline centred at p is replaced.
 func replaces(p: Vector2) -> bool:
 	for s in sites:
-		if not (s["box"] as Rect2).has_point(p):
+		if s.has("skin") or not (s["box"] as Rect2).has_point(p):
 			continue
 		var inside := false
 		for z: PackedVector2Array in s["zone"]:
@@ -111,6 +230,31 @@ func replaces(p: Vector2) -> bool:
 		if inside:
 			return true
 	return false
+
+
+## The landmarks loop: how a kept building whose plan spans `box` is drawn instead of its own
+## look (Muzeum Narodowe's stone): {"mode", "wall", "roof"}, or empty. A building counts when
+## its centre is inside the site's outline, or its whole box inside the outline's box (the
+## museum's LoD2 model is one run round its courtyards: its centre is in one).
+func skin_at(box: Rect2) -> Dictionary:
+	var p := box.get_center()
+	for s in sites:
+		if not s.has("skin") or not (s["box"] as Rect2).has_point(p):
+			continue
+		if (s["box"] as Rect2).encloses(box):
+			return s["skin"]
+		for z: PackedVector2Array in s["zone"]:
+			if Geometry2D.is_point_in_polygon(p, z):
+				return s["skin"]
+	return {}
+
+
+## The landmarks loop: a tower's glass colour for the far skyline (sector_proxies.gd).
+static func tower_colour(key: String, fallback: Color) -> Color:
+	for t: Dictionary in TOWERS:
+		if t["key"] == key:
+			return Color(t["glass"])
+	return fallback
 
 
 ## Whether an OpenStreetMap building of the bake should still be drawn.
@@ -209,6 +353,14 @@ func _find_sites() -> void:
 	_find_stadium()
 	_find_centralna()
 	_find_towers()
+	# The landmarks loop: the skyline's towers, then Muzeum Narodowe.
+	for t: Dictionary in TOWERS:
+		var outline := _landmark(t["osm"])
+		if outline.size() >= 3:
+			_add_site(t["key"], [outline])
+			if not sites.is_empty() and sites[-1]["key"] == t["key"]:
+				sites[-1]["tower"] = t
+	_find_muzeum()
 
 
 ## Warszawa Centralna: OpenStreetMap maps the station in 3D (its outline sits underground):
@@ -356,6 +508,11 @@ func build(surface, near := Rect2()) -> void:
 				_build_centralna(s)
 			"poniatowski":
 				_build_towers(s)
+			_:
+				if s.has("tower"):
+					_build_tower(s)
+				elif s.has("skin"):
+					_mark_zone(s)
 	_id = 0
 	if not near.has_area():
 		print("landmarks: %d built in %d ms" % [built, Time.get_ticks_msec() - t0])
@@ -896,7 +1053,7 @@ func _build_tarasy(site: Dictionary) -> void:
 		lo = lo.min(d[0] - Vector2.ONE * d[1])
 		hi = hi.max(d[0] + Vector2.ONE * d[1])
 	_g = _ground_under(PackedVector2Array([lo, hi, Vector2(lo.x, hi.y), Vector2(hi.x, lo.y)]))
-	var glass := Color("#8fb6c6")
+	var glass := Color("#d4b066")  # the landmarks loop: golden glass (was #8fb6c6, read as ice)
 	var step := 3.0
 	var nx := ceili((hi.x - lo.x) / step)
 	var nz := ceili((hi.y - lo.y) / step)
@@ -964,7 +1121,7 @@ func _build_tarasy(site: Dictionary) -> void:
 				continue
 			var n: Vector2 = (m - (d[0] as Vector2)).normalized()
 			_quad(Vector3(a.x, ga, a.y), Vector3(b.x, gb, b.y), Vector3(b.x, yb, b.y), Vector3(a.x, ya, a.y),
-					Vector3(n.x, 0, n.y), Color("#7d9fb0"), Vector2(0, ga - _g), Vector2(a.distance_to(b), gb - _g),
+					Vector3(n.x, 0, n.y), Color("#a99f7e"), Vector2(0, ga - _g), Vector2(a.distance_to(b), gb - _g),
 					Vector2(a.distance_to(b), yb - _g), Vector2(0, ya - _g), maxf(ya, yb) - _g)
 			map._wall_faces.append_array([Vector3(a.x, ga - 1.0, a.y), Vector3(b.x, gb - 1.0, b.y), Vector3(b.x, gb + 5.0, b.y),
 					Vector3(a.x, ga - 1.0, a.y), Vector3(b.x, gb + 5.0, b.y), Vector3(a.x, ga + 5.0, a.y)])
@@ -1111,6 +1268,153 @@ func _osm(value, fallback: Color) -> Color:
 		return fallback
 	var c := Color.from_string(s, Color(0, 0, 0, 0))
 	return fallback if c.a == 0.0 else c
+
+
+# --- the skyline's towers (the landmarks loop) ------------------------------------------------
+
+## A tower from its mapped parts, in its skin (TOWERS). The outline itself (named like the
+## tower, or the one part that holds all the others) is left out when parts are mapped; a part
+## that starts in the air with nothing mapped under it stands on the ground.
+func _build_tower(site: Dictionary) -> void:
+	var spec: Dictionary = site["tower"]
+	var zone: PackedVector2Array = site["zone"][0]
+	_g = _ground_under(zone)
+	var g := _g
+	var glass := Color(spec["glass"])
+	var roof := Color(spec["roof"])
+	var skin := M_SKIN + float(spec["style"]) / 16.0
+	var parts := _parts_in(zone, func(b: Dictionary) -> bool: return float(b["h"]) > float(b["mh"]) + 0.5)
+	if parts.size() > 1:
+		parts = parts.filter(func(b: Dictionary) -> bool: return str(b.get("name", "")) != spec["osm"])
+	var boxes: Array[Rect2] = []
+	var top_h := 0.0
+	for b in parts:
+		boxes.append(_box_of([_pts(b["p"])]))
+		top_h = maxf(top_h, float(b["h"]))
+	for k in parts.size():
+		var b: Dictionary = parts[k]
+		var poly := _pts(b["p"])
+		var h := float(b["h"])
+		var mh := float(b["mh"])
+		if mh > 0.5:
+			var held := false
+			for j in parts.size():
+				if j != k and float(parts[j]["mh"]) < mh - 0.5 and float(parts[j]["h"]) >= mh - 1.5 \
+						and boxes[j].grow(-0.5).intersects(boxes[k].grow(-0.5)):
+					held = true
+					break
+			if not held:
+				mh = 0.0
+		var small := boxes[k].size.length() < 9.0
+		var base := g + mh - (0.4 if mh < 0.5 else 0.0)
+		if small:
+			# A mast, a spire's piece or a ring: plain painted steel in its mapped colour.
+			var c := _osm(b["c"], roof)
+			_prism(poly, base, g + h, c, c.lightened(0.1), M_STONE, M_STONE)
+			continue
+		var wall := glass
+		if spec.get("mapped", false):
+			wall = _osm(b["c"], glass)  # mapped in its own colours (Chałubińskiego 8's white ribs)
+		elif h < top_h * 0.3 and h < 40.0:
+			# The podium: the tower's glass, a step warmer and darker.
+			wall = glass.darkened(0.12).lerp(Color("#b8a88c"), 0.15)
+		if spec.get("crest", "") == "slope" and h >= top_h - 0.5:
+			_sloped(poly, base, g + h, g + h - 24.0, wall, roof, skin)
+		else:
+			_prism(poly, base, g + h, wall, roof, skin, M_SKIN)
+			if spec.get("crest", "") == "frame" and h >= top_h - 0.5:
+				# Rondo 1: an open frame round the top, from the roof to 192 m.
+				_prism(poly, g + h, g + 192.0, wall, Color(0, 0, 0, 0), M_SKIN + float(S_FRAME) / 16.0)
+		if mh < 2.0:
+			_collide(poly)
+
+
+## A tower's top cut on a slope: the walls rise to `hi` at the outline's far end (its longest
+## axis, towards the north) and fall to `lo` at the other, and a sloping roof closes it.
+func _sloped(poly: PackedVector2Array, y0: float, hi: float, lo: float, wall: Color, roof: Color, skin: float) -> void:
+	var c := _centre(poly)
+	var axis := Vector2.ZERO
+	var reach := 0.0
+	for q in poly:
+		if (q - c).length() > reach:
+			reach = (q - c).length()
+			axis = (q - c).normalized()
+	if axis.y > 0.0:
+		axis = -axis  # the high end towards the north (-z)
+	var lo_d := INF
+	var hi_d := -INF
+	for q in poly:
+		lo_d = minf(lo_d, (q - c).dot(axis))
+		hi_d = maxf(hi_d, (q - c).dot(axis))
+	var top := func(q: Vector2) -> float:
+		return lerpf(lo, hi, inverse_lerp(lo_d, hi_d, (q - c).dot(axis)))
+	var keep := _mode
+	_mode = skin
+	var run := 0.0
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		var length := a.distance_to(b)
+		if length < 0.02:
+			continue
+		var o := _out(poly, a, b)
+		var n := Vector3(o.x, 0.0, o.y).normalized()
+		var ta: float = top.call(a)
+		var tb: float = top.call(b)
+		_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, tb, b.y), Vector3(a.x, ta, a.y), n, wall,
+				Vector2(run, y0 - _g), Vector2(run + length, y0 - _g), Vector2(run + length, tb - _g),
+				Vector2(run, ta - _g), maxf(ta, tb) - _g)
+		run += length
+	_mode = M_SKIN
+	var idx := Geometry2D.triangulate_polygon(poly)
+	if idx.is_empty():
+		idx = Geometry2D.triangulate_delaunay(poly)
+	var up := Vector3(-axis.x * (hi - lo), absf(hi_d - lo_d), -axis.y * (hi - lo)).normalized()
+	for i in range(0, idx.size(), 3):
+		var a := poly[idx[i]]
+		var b := poly[idx[i + 1]]
+		var d := poly[idx[i + 2]]
+		_tri(Vector3(a.x, top.call(a), a.y), Vector3(b.x, top.call(b), b.y), Vector3(d.x, top.call(d), d.y), up, roof,
+				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	_mode = keep
+
+
+# --- Muzeum Narodowe (the landmarks loop) ------------------------------------------------------
+
+## The museum's building (1927-1938) at the east end of Al. Jerozolimskie, mapped as one
+## outline round the courtyards (with the army museum in its wings): kept as the LoD2 or
+## OpenStreetMap model draws it, but in its pale stone with tall windows between piers
+## (map_builder asks `skin_at`), and on the picking grid for its card.
+const MUZEUM := Vector2(24.0, 251.0)  # inside its wings (its outline's centre is a courtyard)
+const MUZEUM_STONE := Color("#c9bfa9")
+const MUZEUM_ROOF := Color("#8f8b84")
+func _find_muzeum() -> void:
+	for bld in data["buildings"]:
+		var q := _pts(bld["p"])
+		if q.size() < 20 or float(bld["h"]) < 10.0 or not _box_of([q]).has_point(MUZEUM):
+			continue
+		if Geometry2D.is_point_in_polygon(MUZEUM, q):
+			_add_site("muzeum", [q])
+			if not sites.is_empty() and sites[-1]["key"] == "muzeum":
+				sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": MUZEUM_STONE, "roof": MUZEUM_ROOF}
+			return
+
+
+## A kept building's site (the museum) on the picking grid: every cell whose centre is inside.
+func _mark_zone(site: Dictionary) -> void:
+	var cell: float = map.ROOF_CELL
+	var box: Rect2 = site["box"]
+	var i0 := maxi(floori((box.position.x - map._roof_x0) / cell), 0)
+	var i1 := mini(floori((box.end.x - map._roof_x0) / cell), map._roof_nx - 1)
+	var j0 := maxi(floori((box.position.y - map._roof_z0) / cell), 0)
+	var j1 := mini(floori((box.end.y - map._roof_z0) / cell), map._roof_nz - 1)
+	for j in range(j0, j1 + 1):
+		for i in range(i0, i1 + 1):
+			var p := Vector2(map._roof_x0 + (i + 0.5) * cell, map._roof_z0 + (j + 0.5) * cell)
+			for z: PackedVector2Array in site["zone"]:
+				if Geometry2D.is_point_in_polygon(p, z):
+					_pick[j * map._roof_nx + i] = _id
+					break
 
 
 # --- Stadion Narodowy -------------------------------------------------------------------------

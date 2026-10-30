@@ -19,6 +19,7 @@ extends Node3D
 
 const Props := preload("res://scripts/props.gd")
 const Models := preload("res://scripts/models.gd")
+const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
 const PixelFont := preload("res://scripts/pixel_font.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const Wallet := preload("res://scripts/wallet.gd")
@@ -346,8 +347,10 @@ func _pigeon_mm(mesh: ArrayMesh) -> MultiMesh:
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_custom_data = true
+	InstanceBuffers.prepare(mm)
 	mm.mesh = mesh
 	mm.instance_count = PIGEONS
+	InstanceBuffers.whiten(mm)
 	mm.custom_aabb = AABB(_flock_centre - Vector3(80, 10, 80), Vector3(160, 80, 160))
 	var mi := MultiMeshInstance3D.new()
 	mi.multimesh = mm
@@ -637,8 +640,10 @@ func _build_crowd(near: Vector2) -> void:
 	_crowd_mm = MultiMesh.new()
 	_crowd_mm.transform_format = MultiMesh.TRANSFORM_3D
 	_crowd_mm.use_custom_data = true
+	InstanceBuffers.prepare(_crowd_mm)
 	_crowd_mm.mesh = Models.person_mesh()
 	_crowd_mm.instance_count = CROWD
+	InstanceBuffers.whiten(_crowd_mm)
 	_crowd_mm.custom_aabb = AABB(_on_ground(centre) - Vector3(40, 10, 40), Vector3(80, 30, 80))
 	var placed := 0
 	var groups := 0

@@ -3,10 +3,32 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## High priority: landmark and skyscraper models (the user, 2026-10-30)
+- **The user dislikes how several models look** (2026-10-30): Złote Tarasy, Złota 44 and the
+  other skyscrapers (Varso, Pałac Kultury, Warsaw Spire, Q22), Muzeum Narodowe (and Stadion
+  Narodowy), the bus stops, and other weak models. Goal: keep the game's own pixel and
+  low-poly style, but with colours, proportions and silhouettes that clearly read as the real
+  buildings. Before/after shots at phone size. Lane "landmarks/models" (docs/QUESTIONS.md).
+  **First pass landed (2026-10-30, ROADMAP "landmark models")**: 18 towers in their own
+  colours, skins and crowns (Złota 44's white exoskeleton and sloped top, Warsaw Spire's
+  diamonds, Rondo 1's open crown, Q22 at its real 155 m, Chałubińskiego 8's white ribs and the
+  rest), each with an info card; Złote Tarasy's glass golden; Muzeum Narodowe in its pale stone
+  with tall windows and a card; new bus shelters (glass roof, poster box lit at night, the
+  blue D-15 sign). The Palace and the stadium were already detailed models and keep their look.
+  **Second pass landed (2026-10-30)**: 9 more (Grzybowska 63, Jana Pawła II 21, Marszałkowska
+  94/98: the hotels by their addresses; Central Tower, Ilmet, the Platinum Towers, Łucka City,
+  Widok Towers): 27 towers in all. **Left**: PZU Tower and JM Tower (oddly mapped) keep the
+  generic glass, and any model the user names next (docs/QUESTIONS.md).
+
 ## From v0.6 (traffic, trams, pedestrians, rivals)
-- Cars can overlap briefly in complex junctions; a racing rival stuck in traffic passes
-  through other cars when off screen.
-- Trams and crossing cars can touch nose to nose.
+- ~~Cars can overlap briefly in complex junctions~~ (fewer by three quarters, the traffic loop
+  2026-10-30: junction cars watch each other's body and path, `--traffic-overlaps` counts them;
+  left: two cars entering a short merging curve in the same frame); a racing rival stuck in
+  traffic passes through other cars when off screen.
+- ~~Trams and crossing cars can touch nose to nose.~~ Down by nine tenths (the traffic loop
+  2026-10-30: trams follow their rails ahead for cars' boxes, cars stop clear at any angle, no
+  spawning beside a tram; `--tram-watch=N` with `--traffic-overlaps`); about 70 tram-car frames in
+  three minutes remain near -1830, -220.
 - ~~Name tags and bubbles show faintly through the translucent WIN/LOSE card.~~ Fixed by loop 2e:
   the result card is one of the HUD's floating panels, so it is in `hud.gd` `panel_rects()`, and
   `bubbles.gd` skips a name tag that touches one and places bubbles clear of them (checked
@@ -164,8 +186,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   close up, so the passing bubble carries the joke. Lines repeat across the 24 columns
   (16 lines).
 - The AO map is twice the size (two channels: 12.5 MB as a texture); `city.scn` grew 0.8 MB.
-- Night water is a flat deep navy away from the lamps: calm, maybe too plain at the widest
-  zoom; a faint sky sheen could come back if the device pass wants it.
+- ~~Night water is a flat deep navy away from the lamps: calm, maybe too plain at the widest
+  zoom; a faint sky sheen could come back if the device pass wants it.~~ Done 2026-10-30 (loop 3i
+  item, a cloud thread): after dark the river gets a faint sky sheen as light (broad 40-80 m
+  patches along the flow, so it reads at 320 m, plus the slow crests) and a warm city glow within
+  ~40 m of the banks; off above dusk's daylight, so dusk is unchanged. Judge it on the phone.
 - The bench ran uncapped (220-280 fps) for most of loop 1 instead of at the display's 120 Hz:
   frame times and GPU readings are not comparable with earlier sessions' numbers, so loop 1
   ran the v0.9 code alongside for its before/after. Fewer cars fill in over 600 faster frames.
@@ -182,7 +207,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   it; the unstick turns it out after 1.5 s, and a second pin within 5 s tows it back onto the
   nearest lane on its level (next to a kerb that can be almost where it was, turned the lane's
   way).
-  Traffic still stops for a player that only brushes it.
+  ~~Traffic still stops for a player that only brushes it.~~ A brush dazes it for 0.4 s, a
+  real hit up to 2.5 s (the traffic loop, 2026-10-30).
 - Busy's traffic target is more than the spawner can place in the band round the view (70 vs
   ~44 at 80 m): the levels are calibrated on real counts. If the spawner changes, re-measure
   (bench `--traffic=`).
@@ -231,19 +257,19 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - Shadow edges are a little finer than before (0.37 m texels on High instead of 0.49 m).
 
 ## From the project setup (agents, skills, checks; 2026-10-28)
-- `check_landmarks.gd` exits 0 even when a check fails; `tools/verify.sh` reads its OK line
-  instead. It should end with `quit(0 if failures == 0 else 1)`.
-- README gives two different `bake_osm.py` command lines ("Map data" step 1 and "Layout").
-- README names the Apple team ID. It isn't a secret (every signed build carries it); keep or
-  drop before the first public commit.
+- ~~`check_landmarks.gd` exits 0 even when a check fails.~~ Fixed: it ends with
+  `quit(0 if _check() == 0 else 1)` (tidied 2026-10-30, checked in the code).
+- ~~README gives two different `bake_osm.py` command lines.~~ Gone: the map chain moved to
+  DEVELOPMENT.md and `tools/setup_map.sh`; README has no bake line (tidied 2026-10-30, checked in the code).
+- ~~README names the Apple team ID.~~ README no longer does; the ID stays in
+  `export_presets.cfg` (not a secret, decided: BACKLOG-TRIAGE "Decided since") (tidied 2026-10-30, checked in the code).
 - Device-run permission in CLAUDE.md stays per loop ("when the user said so for the current
   loop"); the user allowed phone test builds on 2026-10-28.
 - Haptics fail on the phone: `Could not vibrate using haptic engine: (null)` in the device log
   (nine `Input.vibrate_handheld` calls). Rule out Low Power Mode / System Haptics off first;
   else a small iOS plugin with `UIImpactFeedbackGenerator`.
-- The once-only `ERROR: Mouse is not supported by this display server.` at start on iOS comes
-  from the engine before any script runs (loop 2b); harmless, but it keeps the device log from
-  being clean.
+- ~~The once-only `ERROR: Mouse is not supported by this display server.`~~ Duplicate of the
+  loop 2b entry above (tidied 2026-10-30, checked in the code).
 
 ## From loop 10a (the river is off-limits)
 - The splash, the tow and the stone's look were judged on the Mac (screenshots, logs); the feel
@@ -266,11 +292,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   with no bank known, is 491 m).
 - A beach path's paving still draws past the stone into the water where OpenStreetMap maps it
   so; people now turn back a metre short of the water.
-- The helicopter's roof toast ("Land on open ground to take the car") is still English only;
-  the new water one is Polish over English.
-- `map_builder.bounds` isn't stored in `city.scn` (the prebuilt path had a zero rectangle);
-  main.gd now sets it from the map data. Other code reading `map.bounds` on the prebuilt path
-  was getting zeros before.
+- ~~The helicopter's roof toast is still English only.~~ Fixed: "Wyląduj na otwartym terenie,
+  żeby wziąć auto." over the English (`main.gd`) (tidied 2026-10-30, checked in the code).
+- ~~`map_builder.bounds` isn't stored in `city.scn`.~~ Fixed: `bounds` is `@export_storage`
+  in `map_builder.gd`, so the prebuilt index carries it (tidied 2026-10-30, checked in the code).
 - The bench route's ghost car drives with its collision off, so the water test never runs on
   the bench; it was measured with the probe (car physics 0.05 → 0.05 ms at the river) and a
   micro-benchmark (0.8 µs a call, one call per physics frame).
@@ -382,7 +407,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   separate blobs; real blobs need a new crown mesh (map side, with the crown sizes near roads).
   Conifers share the material and get gentle lumps too.
 - Cycle lanes under sodium at night still read red (dimmer, tinted, not added), under the car.
-- The minimap still shows the azure water and lime parks (HUD side).
+- ~~The minimap still shows the azure water and lime parks (HUD side).~~ Done 2026-10-30: the
+  water is the river's grey-green-blue (`#70a0ac`, was azure `#7fb8de`); the parks were measured
+  against the lawns by day (`#a9cf7c` vs `#9fca6a` in sun) and match, so they stay.
 - Buses and trams keep their Warsaw red-and-yellow livery and the rivals their looks (loop 2c:
   Słoik's stripe is pickle green now; his orange name tag stays): street-level Warsaw is on the
   review's protect list.
@@ -619,15 +646,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## From loop 3g-1 (the police, part one)
 
-- **Part two (loop 3g-2)**: the city guards on foot and the guard car's behaviour (the mesh's
-  shape 1 and SIREN's amber 1.5 Hz beat are ready; `police_unit.gd` takes a branch each), the
-  pedestrian-zone cap and the clamp, the escort on rescues (accepting a rescue in a chase should
-  end it), the race and side-job ties (the race marked +20 % for an escape, the kebab's heat
-  frozen during the card), Phantom Camera's chase framing (11.3), the sounds in `make_sfx.py`
-  (the siren, whoop, megaphone chirp, whistle, stamp: placeholders now from the far siren, the
-  tram bell and the soft knock), the scripted first contact after the first race (the `routine`
-  conversation exists: `--pullover=routine`), the escort and guard lines (`police_escort`,
-  `guard` from police.md section 6, not merged yet).
+- ~~**Part two (loop 3g-2)**: the guards, the guard car, the zone cap and the clamp, the escort,
+  the race and side-job ties, the sounds, the first contact, the `police_escort` and `guard`
+  lines.~~ Done in loop 3g-2 (Phantom Camera's chase framing stays: the camera is the driving
+  lane's).
 - **PixelLab assets for part two** (police.md section 9, ≤ 38 generations): the three 64 px
   portraits (Sierżant Bogdan, Posterunkowy Kacper, Strażnik Henio; the card draws simple faces
   now), the 24 px rooster icon lit and outlined (the koguty draw light-bar domes now), the 24 px
@@ -640,7 +662,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
   the drawn carriageway is narrower than its lanes the car stands half on the road, where a cycle
   lane runs by the kerb (Wybrzeże Szczecińskie) it stands on the cycle lane. Loop 3d's `trap` POI
   should carry a spot checked against the kerbs.
-- **The officer's legs swing** like a walker's (the people's shader swings every instance's legs;
+- **The officer's legs swing** (the guards' too, loop 3g-2) like a walker's (the people's shader swings every instance's legs;
   the swing is about one image pixel at 80 m). A standing pose would need a constant in
   `actor.gdshader` (part two, with the guards).
 - **The trap's car turns round when it pulls out** (it parks facing the traffic, as police.md
@@ -652,6 +674,33 @@ Small problems that agents reported or that showed up in screenshots. They are f
   use they were a ~70 ms hitch on the Mac, likely ~0.3 s on the phone, as the card opened).
 - **The soak's B4 check** logs the car's place on screen each second during a chase; the camera
   follows the car, so it stays near the middle (closest to an edge 0.46 of the screen in the soaks).
+
+## From loop 3g-2 (the police, part two)
+
+- **Phantom Camera's chase framing** (police.md 11.3) is still owed: the camera is the driving
+  lane's.
+- **PixelLab assets** (above) still owed: the PixelLab server wasn't connected in the cloud
+  session; Strażnik Henio's face on the card is drawn from shapes (mustard jacket, round glasses).
+- **The guards' trousers** are the people's near-black palette entry: police.md's dark red needs a
+  palette entry in `actor.gdshader` (visuals lane), and so does a standing pose.
+- **The guard posts** live in `game/data/police_guards.json` (four posts, two guards each) until
+  loop 3d's `guard_post` POIs; the Krakowskie Przedmieście zone in today's map is only the
+  pedestrian way's ~8 m strip, so the cap there holds only on that strip.
+- **The escort waits at the hospital's lane-graph node**, which can be 100-200 m short of the
+  hospital's ring when the hospital sits back from the road (rescue 9: ~180 m); it leaves when the
+  rescue ends. A node nearer the door (or the ring's own edge) would bring it to the door.
+- **The escort in Normal traffic** keeps behind the cars ahead like a chaser (it doesn't push
+  through): on a crowded road it can sit at 18 km/h for a minute (rescue 9 failed by the clock in
+  one headless run with traffic; it made it with the road empty). Cars ahead giving way to a light
+  bar (3g-1) is the traffic lane's; check on the phone whether it needs more.
+- **The speech bubble's tail** can't reach a guard right next to the car: the bubble steps aside
+  from the car and its tail points at the bubble's edge (the bubbles are shared with the police).
+- **The clamp box** (a yellow box on the front left wheel, +1 draw call while shown) is a few
+  pixels at the default zoom; the card says it.
+- **Pedestrians stepping aside** from a car in the zone (police.md 5.6) is not built: the walkers
+  are the city lane's.
+- **The first contact** is its own parked car 150 m ahead (not one of the day's traps): the lizak
+  log line names it "trap 0".
 
 ## Decided in loop 3g-1 (gameplay-dev defaults; the user may still change them)
 
@@ -970,12 +1019,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
   last few unloaded sectors' roots (not freed, out of the tree) so a sector seen again minutes
   later comes back without a load (memory against hitches), or load further ahead so the hitch
   falls while the view is calm (it doesn't remove it).
-- **`tools/device_run.sh` copies `Documents/bench_result.txt` from any earlier bench** when the
-  run made none (the bench doesn't clear it at the start, as the streaming soak now does): read
-  the card's date line.
-- **The night bench sometimes has a sun-shadow pass** (on the Mac, 2 of 6 `--time=night` benches:
-  57-69 shadow draws where the others have 0; before and after loop G0+'s change alike): the
-  sun's shadow at night should be off from the first frame. Not looked into.
+- ~~**`tools/device_run.sh` copies `Documents/bench_result.txt` from any earlier bench** when the
+  run made none.~~ Fixed (performance lane, 2026-10-30): a bench (`--bench` or the BENCH
+  button) removes the last result when it starts.
+- ~~**The night bench sometimes has a sun-shadow pass** (on the Mac, 2 of 6 `--time=night`
+  benches: 57-69 shadow draws where the others have 0).~~ Not reproducible on main 81de932
+  (performance lane, 2026-10-30): 12 night benches (runtime and prebuilt, 1920×1080 and the
+  default window) with a watcher on the sun's shadow, every light's shadow and the shadow pass's
+  draws per frame: the sun's shadow off from frame 1, no light casting one, 0 shadow draws in
+  every run. The code path hasn't changed since; those runs likely had other flags or a saved
+  time. If it shows again, the watcher's shape: print `sun.shadow_enabled`, `tod.mode`, `tod._t`
+  and the shadow pass's `VIEWPORT_RENDER_INFO_TYPE_SHADOW` draws per frame.
 - The streamer's `(unload)` time is only the call to `queue_free()`; freeing a sector's nodes
   happens at the end of that frame and isn't in the streaming numbers (no slow frame showed it).
 - **check_streaming spot 8 (512, −740) at 0.789 % of its pixels** (the limit is 0.5 %; 0.472 % with
@@ -1001,18 +1055,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
   stays off. The version is Godot 4.7's own, 0x401000 (Vulkan 1.1.0), not 1.0.3: on a Godot
   upgrade, match the plugin's `VERSION` to what Godot writes (the script fails until it does).
   Whether a phone with Vulkan 1.1 but a weak driver runs the game well is still unseen.
-- **The export prints Dialogue Manager's C# errors** (`No loader found for resource:
-  ...DialogueLabel.cs`, `ExampleBalloon.tscn` parse errors): the add-on's C# example and label
-  files can't load in a non-.NET Godot. Harmless (the game uses its own balloon); the iOS
-  export prints the same 11 lines (checked in this loop's `verify.sh --only=ios`). An exclude
-  filter for `addons/dialogue_manager/example_balloon/*` and the `.cs` files would quiet it.
-- **The city step rewrites 34 tracked files with byte noise** (`bake_city.gd` isn't
-  byte-deterministic: the sector `.scn` files differ by a few bytes each run with no map
-  change), in both export scripts. `--skip-city` avoids it for Android; a deterministic bake or
-  a "bake only when the map changed" check would fix it for both.
-- **Store graphics are not made yet**: the 512 px icon, the 1024 × 500 feature graphic and
-  1920 × 1080 screenshots (Play's 2:1 limit rules out 2532 × 1170); `docs/store/play-console.md`
-  lists what each needs.
+- ~~**The export prints Dialogue Manager's C# errors** (`No loader found for resource:
+  ...DialogueLabel.cs`, `ExampleBalloon.tscn` parse errors).~~ Fixed (store-release lane,
+  2026-10-30): the iOS, Android and Web presets exclude the add-on's `.cs` files, its C#
+  `DialogueLabel.tscn` and `example_balloon/*` (the game uses its own balloon; the add-on's
+  editor plugin, the only reader of the example, is off).
+- ~~**The city step rewrites 34 tracked files with byte noise**~~ Moot since loop 3d-1: the
+  prebuilt sectors are derived and gitignored, and `setup_map.sh --if-needed` rebuilds them
+  only when their inputs' digests change (tidied 2026-10-30).
+- ~~**Store graphics are not made yet**~~ Done 2026-10-30: `docs/store/graphics/` (the 512 px
+  icon, the 1024 × 500 feature graphic) and `docs/store/screenshots/play-phone/` (ROADMAP "play
+  graphics").
 
 ## From the website (aroundwarsaw.app, 2026-10-29)
 - ~~The four beta links say "soon"~~ (website v2: the form collects emails for invites; add the
@@ -1042,21 +1095,45 @@ Small problems that agents reported or that showed up in screenshots. They are f
   with the next deploy; the store forms link to it.
 - iPad: the iOS preset targets iPhone and iPad (`targeted_device_family=2`); keep or drop
   before the first App Store release (QUESTIONS.md). Nobody has played on an iPad yet.
-- The App Store wants a privacy manifest (`PrivacyInfo.xcprivacy`) for apps using
-  required-reason APIs (file timestamps, system boot time, UserDefaults); Godot's iOS template
-  may need one declaring them, with no data collected. Check App Store Connect's email after
-  the first upload.
-- The store screenshots show the HUD; they need redoing when the HUD changes . They show the radio
-  button as NOCNA FM: the game's station became Kebab FM (#3) after they were rendered, so
-  re-render them before uploading.
-- **On a 4:3 screen (iPad) the pull-over's dialogue panel never appears**: the conversation runs
-  (`--police-log` shows it, frames 60-349) but nothing is drawn, at 2440×1830, 2200×1650 and
-  1600×1200; 16:9 and wider are fine. The iPad's fifth store shot is a Podwózka ride instead.
+- ~~The App Store wants a privacy manifest~~ (checked 2026-10-30: Godot's export writes
+  `PrivacyInfo.xcprivacy` with file timestamps, boot time and disk space, no tracking, no
+  collected data; app-store-connect.md section 4). Still read App Store Connect's email after
+  the first upload for an ITMS-91053 warning.
+- The store screenshots show the HUD; they need redoing when the HUD changes  (re-rendered with KEBAB FM
+  on 2026-10-30; shot 07 from the bigger demo map, because on main's map Varso stands about
+  140 m from the edge and every wide framing shows the cliff).
+- The occlusion dither shows as a dark dotted patch in store shots 01 (bottom left) and 07
+  (iPhone and Play, left of Varso); re-take them when the dither is fixed or loop 3d-1 lands.
+- ~~**On a 4:3 screen (iPad) the pull-over's dialogue panel never appears**~~ (fixed
+  2026-10-30: a 4:3 window was taken as a phone 390 pt tall, so only 520 pt wide, and the
+  ~610 pt card found no room; `screen_points.gd` now takes a narrow window as 667 pt wide and
+  knows the iPads. A real iPad, 1376 pt wide, never had it.) The iPad's fifth store shot is the pull-over again.
 - On the ride HUD at 4:3 the distance marker ("1597 m" and its arrow) can sit on the HAMULEC
   button (`--ride=2`).
 - Varso's crown runs off the top of store shot 7 (all three sizes); most shots show 0 km/h.
 - The iPad set is rendered at 2440×1830 and scaled to 2752×2064 (the Mac can't open a
   2064-pixel-tall window).
+
+## From the performance baseline (2026-10-30)
+
+- ~~Loop 3d-1's map left +0.4–0.6 ms of main-thread process on the Mac after the lamp fix
+  (traffic about 0.5 ms): find what in traffic scales with the map.~~ Timed (2026-10-30):
+  nothing does; ~10 µs a car, 0.31 ms on the prebuilt path. Two small cuts landed. Left:
+  `_count_target` and the first spawn fill are rare one-frame spikes (0.4–0.7 and ~1 ms) when
+  the view moves far; spread them over frames if a hitch shows on the phone.
+- Static memory doubled with the bigger map (173 → ~330 MB runtime, 241 MB prebuilt): check
+  it on the iPhone 11 (TEST · BENCH's memory line) before the beta. The index packing cut it
+  by ~20 MB on the phone path (2026-10-30, DEVELOPMENT.md "Performance budgets").
+- Memory still on the table (2026-10-30, measured on the Mac):
+  - The index's dictionaries (83 MB prebuilt after the packing): ~60 k small Dictionaries with
+    a String kind each. Columns per list (one PackedFloat32Array of outlines with offsets, kinds
+    as ints) would cut most of it, but every reader (hud, missions, eggs, pedestrians, rides)
+    changes with it.
+  - The three map-wide textures (~96 MB video): the light map (5318×3782 RG8, 1 m) could go to
+    2 m (lamp pools are 12–15 m wide, but they stop at walls at 1 m), or AO and lights to ASTC
+    4×4 at bake time (half the size, lossy). Both change the look a little: the visual lane's
+    call with shots. The surface map holds data (deck heights, flow angle) and must stay exact.
+  - Side jobs hold 17 MB at start (rides 7.5): look for whole-map tables built from the index.
 
 ## From the driving-feel loop (less sticky, 2026-10-30)
 
@@ -1070,3 +1147,71 @@ Small problems that agents reported or that showed up in screenshots. They are f
   jump at 60 fps, and whether shoved traffic overlapping the next lane looks wrong.
 - A shoved car slides off its line only on a lane, not on a junction's curve.
 
+
+## From loop MW-0 (Moja Warszawa: data and lines, 2026-10-30)
+
+- ~~`game/data/brand_denylist.json` lists real business names for the audits; the export presets'
+  `include_filter` (`data/*.json`) ships it inside the app.~~ Done in MW-0: both presets'
+  `exclude_filter` leave it out of the bundle (the checks read it from the project).
+- Title-collision rule (vision.md): an older `police_warn` line's English gloss says "the patrol
+  car", and "Patrol" is the title of one of the artist's singles. Not changed in MW-0 (existing
+  lines stay); reword the gloss ("the police car") in the next content pass if the rule is read
+  strictly.
+- `places.json` `near` hints are rough (about ±150 m), from memory of the map, not measured: the
+  MW-1 bake resolves each address or anchor and should print the distance from the hint, so a
+  wrong anchor shows at once.
+- The places' `hours` are the game's own hours for the parody venues, not the real ones; MW-3's
+  queues use vision.md 4.5's hour curves, not these strings.
+- Two places share an address with another on purpose (Miłość Hipoteczna and Żwir at Kredytowa 9,
+  Pawilony and Apteczka at Nowy Świat 22/28): the notebook may find both at once. If that reads as
+  one find, MW-1 can offset Żwir to the upstairs door and Apteczka 30 m into the courtyard.
+
+## From loop MW-1 (the MOJA WARSZAWA notebook, 2026-10-30)
+
+- **The real bake resolution (map lane).** The notebook resolves the places at load from the
+  `near` hints (`notebook.gd` `resolve`: the bake's projection, then an address poi, a named
+  square, park or landmark, or the place's own poi kind, within 300-600 m of the hint). The 3d
+  bake should resolve every `address` / `osm` anchor into `pois` kind `place` (with the place id),
+  print the distance from the hint, and `notebook.gd` then take that point first. Today 45 of 72
+  places sit on their rough hint (the 48 `osm` anchors mostly), and the address matches are up to
+  359 m from their hints (Smoła, Smolna 38; Stara elektrownia, Dobra 42), so either the hint or
+  the anchor is wrong there.
+- `check_places` reachability (a lane or footway within radius + 10 m): 70 of 72. Not reached:
+  Most Śląsko-Dąbrowski (65 m, on its hint) and Stadion Narodowy (115 m: the `stadium` poi is the
+  bowl's middle; the helicopter's 60 m doesn't reach either). The bake's point (the west gate)
+  fixes the stadium.
+- **PÓŁNOC FM track unlocks (MW-5).** A chapter complete is recorded in the save
+  (`wallet.chapters_done`, chapter id → yyyymmdd, section `notes_chapters` of `user://save.cfg`)
+  and paid (+50 zł, +30 respect) once; the track it unlocks (7 tracks for 9 chapters, the last
+  two a horn tune and the gold cover) is MW-5's: read `chapters_done` there.
+- The finding rule's "stop inside for 1 s" never decides anything with the car: a car stopped
+  inside the radius is under 30 km/h and found at the next 2 Hz check anyway. Kept as specified
+  (`Notebook.finds`, checked); if the stop is meant for a wider reach (parked at the kerb just
+  outside), it needs a number.
+- The shared addresses: Miłość Hipoteczna and Żwir both sit on their hint today (Kredytowa 9 is not
+  an address point in the map), 18 m apart; Apteczka and Pawilony both matched Nowy Świat 22/28
+  (the same point): one pass finds both, two toasts in a row (the second replaces the first).
+  Not offset in MW-1 (the bake's anchors will separate them).
+- The minimap's "?" shows undiscovered places within 400 m of the car (vision.md: "in a
+  discovered district"; there are no districts yet). Switch to districts when DEMO 6.3's exist.
+- The card shows no district (places.json has none; vision.md's card wants one) and no address
+  for a venue (an address can name the real business: "Jasna 1" on the denylist). A `district`
+  field in places.json (designer) would fill it.
+- Chapter icons are the chapter's number on the notebook's chips until the PixelLab icons
+  (vision.md section 9) exist.
+- The tap-a-place-within-80-m way of finding (vision.md 4.1, the landmark card's tap) is not
+  built: the landmark tap (`main.gd` `_on_tap`) doesn't know the places yet.
+
+## From the web build (2026-10-30)
+
+- **Try it in a phone's browser** (iOS Safari, Android Chrome): memory with the ~140 MB pack in
+  memory, the touch controls for real, the safe area (`OS.has_feature("mobile")` is false on the
+  web, so the HUD uses the desktop layout rules), the frame rate.
+- **Smaller download** (web loop 2 did the sectors: 141 → 59 MB at the start). What is left: the
+  pack's 40 MB (shared meshes and textures 20, proxies 8.5, index 7.7), the engine's 10.
+- **A sector the car reaches before its pack** shows its proxy and has no colliders; on a slow
+  link a fast helicopter could outrun the downloads. Not seen in tests.
+- **The Compatibility renderer's look**: compare the web against the phone shot for shot
+  (night lights, water, shadows); only the green traffic was fixed.
+- **Prebuilt MultiMeshes with custom data and no colours** would show the same Compatibility bug
+  if a shader reads COLOR; none looked wrong in the browser (trees, parked cars).

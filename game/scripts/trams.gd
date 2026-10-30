@@ -21,6 +21,22 @@ const ACCEL := 1.1
 const DECEL := 1.6
 const DWELL := 10.0
 const HEIGHT_STEP := 8.0
+## The traffic loop (2026-10-30): a tram stops for a traffic car whose box reaches into its
+## swept width (half its 2.4 m body + CLEAR m), not only for a car centred on the rails (a car
+## standing across the track with its nose or tail on the rails was driven into), and stops
+## STOP_SHORT m before the first point of the rails that comes that close.
+const HALF_WIDTH := 1.2
+const CLEAR := 0.4
+const STOP_SHORT := 1.5
+## The rails ahead are followed in AHEAD_STEP m steps to AHEAD_REACH m (round the curve, not on
+## the head's straight line: a car waiting inside a curve was missed); SWEEP m more for the
+## straight car bodies cutting inside a curve.
+const AHEAD_STEP := 2.0
+const AHEAD_REACH := 30.0
+const SWEEP := 0.5
+## A car running alongside counts from ON_RAILS m off the tram's side (a lane beside the rails is
+## not in the way; a car on them, or a junction curve slanting across, is).
+const ON_RAILS := 0.3
 
 
 class Tram:
@@ -64,6 +80,9 @@ var _heights: Array[PackedFloat32Array] = []
 ## The bridge deck each track piece lies on (-1: the ground), from the bake.
 var _deck := PackedInt32Array()
 var _rng := RandomNumberGenerator.new()
+## The traffic loop: the rails ahead of the tram being moved, every AHEAD_STEP m (kept, not
+## reallocated each frame).
+var _ahead := PackedVector2Array()
 
 
 func setup(lane_graph: LaneGraph, map_node: Node3D, data: Dictionary) -> void:
@@ -362,16 +381,32 @@ func _move(tram: Tram, dt: float) -> void:
 			var along := rel.dot(fwd)
 			if along > 0.0 and along < 60.0 and absf(rel.cross(fwd)) < 2.0:
 				gap = minf(gap, along - 3.0)
-	if traffic != null:
+	if traffic != null and not traffic.junction_cars.is_empty():
+		_ahead.clear()
+		var a := 0.0
+		while a <= AHEAD_REACH:
+			_ahead.append(_ahead_point(tram, head, a))
+			a += AHEAD_STEP
+		var reach := HALF_WIDTH + CLEAR + SWEEP
 		for d in traffic.junction_cars:
-			if d.sees_tram:
-				continue  # it is waiting for us
-			var rel := Vector2(d.pos.x, d.pos.z) - here
-			var along := rel.dot(fwd)
-			# Only cars crossing the track; ones queueing alongside it don't block.
-			var across := absf(Vector2(-sin(d.yaw), -cos(d.yaw)).dot(fwd)) < 0.75
-			if across and along > 0.0 and along < 30.0 and absf(rel.cross(fwd)) < 2.6:
-				gap = minf(gap, along - 3.0)
+			var at := Vector2(d.pos.x, d.pos.z)
+			if at.distance_squared_to(here) > (AHEAD_REACH + 8.0) * (AHEAD_REACH + 8.0):
+				continue
+			var df := Vector2(-sin(d.yaw), -cos(d.yaw))
+			var dr := Vector2(-df.y, df.x)
+			for k in _ahead.size():
+				var q := _ahead[k] - at
+				# The rails' distance from the car's box.
+				var out := Vector2(maxf(absf(q.dot(dr)) - d.size.x * 0.5, 0.0), maxf(absf(q.dot(df)) - d.length * 0.5, 0.0))
+				if out.length_squared() >= reach * reach:
+					continue
+				# A car alongside the rails (queueing next to them, or on a curve that runs with
+				# them) stops us only if its box is on them; one crossing them, inside the swept width.
+				var way := _ahead[mini(k + 1, _ahead.size() - 1)] - _ahead[maxi(k - 1, 0)]
+				if absf(df.dot(way.normalized())) >= 0.75 and out.length() >= HALF_WIDTH + ON_RAILS:
+					continue
+				gap = minf(gap, k * AHEAD_STEP - STOP_SHORT)
+				break
 	if player_on_road:
 		var rel := Vector2(player_pos.x, player_pos.z) - here
 		var along := rel.dot(fwd)
@@ -432,6 +467,15 @@ func _back_point(tram: Tram, back: float) -> Vector2:
 		k -= 1
 		s += _len[tram.trail[k]]
 	return _point(tram.trail[k], s)
+
+
+## The traffic loop: a point `ahead` m along the rails in front of the tram's head, on to the next
+## piece (or straight on past the end of the last).
+func _ahead_point(tram: Tram, head: int, ahead: float) -> Vector2:
+	var s := tram.s + ahead
+	if s > _len[head] and tram.next >= 0:
+		return _point(tram.next, s - _len[head])
+	return _point(head, s)
 
 
 func _back_height(tram: Tram, back: float) -> float:

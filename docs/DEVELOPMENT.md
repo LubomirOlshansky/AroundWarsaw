@@ -147,6 +147,16 @@ Godot upgrade that raises it, change `VERSION` in the plugin). **Expect Play Con
 catalogue to list fewer supported devices** than before: the OpenGL-only phones (mostly old or
 very cheap ones, and some with Vulkan 1.0 only) drop out. That is the point, not a fault.
 
+**A fresh clone** (loop 3d-1: the map's derived files aren't in git) builds with the same
+command: the script imports the project when Godot never has, makes `lod2.*` and
+`terrain.json` when missing (`tools/setup_map.sh --full`, which needs GUGiK's raw data; or copy
+the three files from a checkout that has them), then splits the map and prebuilds the sectors.
+Checked 2026-10-30: `nocnawarszawa-0.1-2.aab`, 150 MB, upload-key SHA-256 fingerprint
+`29:45:ED:ED:…:87:BF:59:9E`, `jarsigner -verify` "jar verified". Play needs a new
+`version/code` (Android preset) for every upload: raise it before the next export once code 2
+is on Play. A CI build isn't possible today: the map's GUGiK files need the raw downloads, and
+the upload key must stay off GitHub (it would have to be a repository secret).
+
 **The upload key** is `~/.android-keys/nocnawarszawa-upload.jks` (alias `upload`, RSA 2048,
 10,000 days), outside every repo. Its password is only in the macOS login keychain (service
 `nocnawarszawa-android-upload`, account `upload`; Keychain Access shows it). The script reads it
@@ -527,7 +537,8 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   to its mapped height (35 m by the offices, 22 m towards the station), blended where they meet
   (log-sum-exp, 2.6 m) so it rolls instead of creasing, laid on the ground's slope, with glass
   walls round its rim; a diamond lattice by day, glowing gold at night. Lumen and Skylight stay
-  LoD2.
+  LoD2. The landmarks loop: the glass is golden (`#d4b066`, with less sky in it and a whiter
+  lattice; it read as ice before).
 - **Rotunda**: a granite plinth, two storeys of glass lit from inside, a lit band under the
   overhanging white roof, which rises in ribs to a glass oculus.
 - **Varso Tower**: from its mapped parts (the glass slabs, the dark spines at both ends, the glass
@@ -546,10 +557,40 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   turn, so the eaves zigzag), the glass hall under it, the canopy round it to 140 x 86 m.
 - **Most Poniatowskiego**: its four towers at the ends of the river span (mapped outlines, no
   heights): plinth, shaft and cornice to 15 m over the deck, an arcade, a pointed roof, a finial.
+- **The skyline's towers** (the landmarks loop, 2026-10-30; `landmarks.gd` `TOWERS`): Złota 44,
+  Warsaw Spire, Q22, Rondo 1, Emilii Plater 49 (the hotel with the gap), Cosmopolitan, Warsaw
+  Trade Tower, Skyliner, Warsaw Unit, Mennica Legacy Tower, Generation Park Y, Skysawa,
+  Błękitny Wieżowiec, Warszawskie Centrum Finansowe, Centrum LIM, Chałubińskiego 8, Spektrum
+  Tower and The Bridge, and in a second pass Grzybowska 63, Jana Pawła II 21 and Marszałkowska
+  94/98 (hotels, named by their addresses), Central Tower, Ilmet, Platinum Towers A and B, Łucka
+  City and Widok Towers, were all the same blue box. Each is now built from its mapped parts
+  (what else stands in its outline, LoD2 or OpenStreetMap, is dropped; the outline itself is
+  left out when parts are mapped; a part starting in the air with nothing mapped under it
+  stands on the ground; parts under 9 m across are painted steel: masts, rings) in its own
+  glass colour, roof colour and skin (`M_SKIN`, the fraction picks `S_*`, `building.gdshader`
+  `skin()`): Złota 44's white exoskeleton (floor bands and long diagonals) with its top cut on
+  a slope, Warsaw Spire's diamonds, silver floor bands (Q22, WTT, Unit, Skysawa, Spektrum),
+  vertical fins (Rondo 1, Skyliner, Mennica, The Bridge, Chałubińskiego 8's white ribs in their
+  mapped colours), the hotel's white grid, Cosmopolitan's white balcony slabs, dark glass (WCF,
+  LIM, Generation Park Y), gold glass (Błękitny Wieżowiec) and Rondo 1's open crown frame from
+  its roof to 192 m (`S_FRAME`: the panes are cut away). Q22 stood 55 m tall (its LoD2 model
+  predates the tower); it is 155 m now. Each has an info card; the far skyline (proxies) takes
+  each tower's glass colour.
+- **Muzeum Narodowe** (the landmarks loop): kept as LoD2 draws it (one model round its
+  courtyards), but in its pale stone with tall windows between piers (`M_MONUMENT`, `#c9bfa9`):
+  `map_builder` asks `landmarks.skin_at` for every kept LoD2 run and OpenStreetMap building
+  (its centre in the site's outline, or its whole box inside the outline's box). Its outline's
+  cells are on the picking grid for its card.
+- **Bus and tram shelters** (the landmarks loop; `map_builder.gd` `_make_shared`): Warsaw's
+  glass shelter as the game's camera sees it: a pale glass roof in a graphite frame overhanging
+  the kerb, a dark fascia, glass back and end, three posts, a bench, a poster box at the far end
+  whose faces glow at night (`SHELTER_POSTER`, drawn with the street lamps' `fixture.gdshader`,
+  `SHELTER_GLOW` in each instance's custom data) and the stop's blue D-15 sign on its own pole.
+  Still one MultiMesh per tile (the draw calls are unchanged); 288 triangles a shelter (was 48).
 
 Materials (`building.gdshader`): UV2.x >= 2 is a material code (`landmarks.gd` `M_*`: monument
 stone with windows, plain stone, crenellated attic, gold, clock dial, woven skin, glass wave,
-lit glass pavilion, curtain wall, lamp, membrane), its fraction a parameter; UV2.y the wall's
+lit glass pavilion, curtain wall, lamp, membrane, a tower's skin), its fraction a parameter; UV2.y the wall's
 top; UV the metres along and up a wall. Every landmark triangle also goes into the helicopter's
 roof grid (the Palace's spire stands 236 m in its cells, so it can't be flown through; roofs
 can be landed on) and into a grid of which landmark covers each 4 m cell; their walls at street
@@ -1325,7 +1366,9 @@ RAIN, HELI, STYLE, CAM, `<` `>` `−` `+` and a RESCUE CALLS card at the start.
 its safe area (the Dynamic Island or notch, the rounded corners, the home indicator). On a
 computer a window the size of a known iPhone gets that phone's points and insets (2868×1320 is
 the Pro Max: 956×440 pt, 62 pt each side, 21 at the bottom; 2532×1170 the 6.1": 844×390 pt,
-47 and 21); any other window is taken as a phone 390 pt tall with no insets. iOS insets both
+47 and 21); any other window is taken as a phone 390 pt tall with no insets, or 667 pt wide when it is
+narrower than that (a 4:3 window); the iPads the store screenshots use (2752×2064, 2732×2048,
+2420×1668, 2360×1640) are known at 2 px a point with 20 pt at the bottom. iOS insets both
 sides alike in landscape, so the layout holds turned either way. Every tappable control is at
 least 44 pt; the text is on one scale (`hud.gd` `T_*`): 44 pt the race banner, 22 the status
 clock, 17 titles and toasts, 15 body, 13 secondary and English lines (body text never below
@@ -2245,8 +2288,8 @@ over the officer, chasers and the known traps (after the radio host read them, o
 one) on the minimap. The light bars flash in `actor.gdshader` (SIREN: off, the lenses dim; on,
 blue and red in turns at 2.5 Hz, glowing by day too); at night their blue and red pools on the
 road and the koguty-3 searchlight are one glow MultiMesh, shown only while a light bar flashes.
-The sounds are placeholders from the ones already here (the far siren on one positional voice of
-the six; the whoop, whistle and stamp pitched from the siren, the tram bell and the soft knock).
+The sounds were placeholders here (loop 3g-2 replaced them with its own, from `make_sfx.py`);
+the siren plays on one positional voice of the six.
 
 **The add-ons.** beehave (bitbrain, 2.9.3) gives each police unit a behaviour tree
 (`police/police_unit.gd`: pull-over, roadblock, blocker, search, chase, trap, patrol), ticked by
@@ -2306,6 +2349,115 @@ Shots: `shots/loop3g1/` (gitignored), at 2868×1320 and 1792×828: a koguty 2 ch
 day and at night (and close: the lenses taking turns, the blue pool at night), the four trap
 spots close up, a trap at night, the lizak over the officer, the pull-over card (at a trap, and
 the first contact).
+
+## Loop 3g-2: the police, part two (2026-10-30)
+
+Part two of docs/design/police.md (sections 5.6, 8, 10): the rescue escort, the race and side-job
+ties, the city guards with the zone cap and the clamp, the scripted first contact, and the
+synthesised police sounds. The user's rules hold everywhere: never a fine, nothing taken from the
+wallet, chases end by themselves, and the guards never call the police.
+
+**Rescues** (`police.gd`, police.md 8.1). On a rescue's pickup and drop-off the police see
+nothing and start nothing (`police: speed seen, on a rescue (nothing)`); a trap's lizak isn't
+waved. Accepting a rescue during a chase ends the chase (`missions.gd`'s new `accepted` signal):
+the toast *POLICJA ODPUSZCZA: RATUJESZ KOGOŚ · THE POLICE BACK OFF: YOU'RE ON A RESCUE*, then the
+usual 180 s cooldown. **The escort**: once the person is aboard, the nearest patrol car within
+200 m joins, or one is placed out of sight 150-400 m ahead on the way to the hospital (always on a
+session's first rescue, then one rescue in two, *guess*). It adds 10 s to the rescue clock
+(`missions.add_time`; the pill *ESKORTA · +10 S · ESCORT · +10 S*), whoops once, says its
+`police_escort` line and leads with lights and siren along the route (the hospital's lane-graph
+node, its `distances_to` cached by node like the rivals' finishes): 15-25 m ahead of you along the
+route, at 45 km/h (`ESCORT_PACE`, *guess*) or a little over your speed, faster when you close in
+under 15 m, slower when you drop past 25 m; it stops and waits while you are more than 60 m
+behind, and when you overtake it (4 m, held 1 s) it follows behind until you let it lead again.
+It waits at the route's end (it drives like a chaser and never "arrives") and, when the rescue
+ends, turns its lights off and goes back to patrolling (`police: escort left (at the hospital)`).
+No escort in the helicopter (taking off sends it away).
+
+**Races and side jobs** (8.2, 8.3). A race seen by a patrol or a trap's car within 60 m pulls in
+koguty 1 (after the start grace and the cooldown, like any chase). Escaping the police during the
+race marks it (`police: race marked +20 % for the escape`): a win then pays the stake × 1.2
+(`rivals.gd`, `ESCAPE_BONUS`) with *· +20 % ZA UCIECZKĘ · +20 % FOR THE ESCAPE* inside the result
+card's stake line. The kebab's heat stands still while the pull-over card is open (`jobs.gd`'s
+`heat_frozen`; `police: kebab heat frozen at 100 %` / `runs again`); the słoiki are untouched. A
+Podwózka passenger still takes one star for a pull-over (`rides.on_pulled_over()`, wired in 3g-1);
+the first contact's routine check takes none.
+
+**The city guards** (Straż Miejska, 5.6; `police/guards.gd`, `police/guard_unit.gd`, posts in
+`game/data/police_guards.json` until loop 3d's `guard_post` POIs): two guards at each of four posts
+(the car-free end of Krakowskie Przedmieście, Plac Zamkowy, the Rynek, Nowomiejska by the
+Barbakan), in mustard jackets and dark trousers, drawn as fixed people in the pedestrians'
+MultiMesh (`pedestrians.gd` set_fixed, slots 4-11 of `FIXED` 12: **+0 draw calls**). Up to 8 are
+staffed within 300 m of you (out of sight; let go past 360 m), and the 6 nearest within 150 m tick
+their beehave tree at 5 Hz (clamp → walk to the car; run → after the car at 5 m/s; talk → face the
+car; else back to the post at a walk and stand facing the street). Their legs keep the walkers'
+swing (a standing pose needs a new constant and a branch in `actor.gdshader`: the visuals lane).
+- **The zone cap**: inside a pedestrian-zone polygon (`ped_zones.gd`, loop 3d-1) the car's gas is
+  capped at 20 km/h through the existing `car.zone_cap` hook (no change to `car.gd`; a faster car
+  coasts down to it), with the pill *STREFA PIESZA · 20 KM/H · PEDESTRIAN ZONE · 20 KM/H*.
+- **The whistle**: moving in a zone with a guard within 60 m (once a zone a minute): the whistle,
+  the guard's line (`guard`, tagged `oldtown` on the Rynek and Barbakan posts, the deptak line
+  elsewhere), the guard runs after the car for 3 s, gives up with the `run` line. **The guards'
+  car** (one at a time, the police mesh's shape 1, spawned out of sight 150-300 m away near a post)
+  follows a whistle within 400 m at most 25 km/h with its amber beacon for 15 s, then turns away
+  (lights off, the traffic's pace). Guards never start a strike, a chase or a call to the police.
+- **The guard conversation**: stopping (under 1 m/s, 1.5 s) within 10 m of a guard opens the card
+  (`police.dialogue`'s `~ guard_stop`: Strażnik Henio's line, one reply, the caution in the joke
+  notebook); no cooldown after it; that guard waits 60 s before the next talk.
+- **The clamp**: parked (under 0.5 m/s) 20 s on a footway or in a zone within 30 m of a guard: the
+  guard walks over (the `clamp` line, a scribble), the pill *BLOKADA ZA 0:10 · CLAMP IN 0:10*
+  counts down 10 s (driving off drops it), then the clamp goes on (a clank, a yellow box on the
+  front left wheel, +1 draw call while shown) and holds the car 10 s under the card *BLOKADA NA
+  KOLE · ZDEJMUJĘ ZA 0:10 · WHEEL CLAMP ON · OFF IN 0:10* with *Przepraszam · Sorry*, which takes it
+  off at once.
+
+**The first contact** (police.md 7.2): 6 s after the first race of a save ends, a patrol car is
+parked by the kerb 150 m ahead on your road with an officer, who waves the lizak whatever your
+speed: stopping opens the `routine` conversation; driving on starts koguty 1 like a trap. Either
+way it is marked in the save (`wallet.keep["police_first_contact"]`) and never comes again; a
+setup you drive away from (450 m) or that takes over 90 s is tried again 20 s later (4 tries).
+
+**Sounds** (`tools/make_sfx.py`, all procedural, levels matched to the set): `police_siren` (the
+two-tone, a seamless 1 s loop on the positional siren voice), `police_whoop`, `megaphone` (the
+chirp before "Policja"), `whistle` (two short blasts), `scribble`, `stamp`, `clank` (the clamp).
+They replace 3g-1's placeholders; the files already there are byte-identical.
+
+**Cost** (Linux container: headless bench, `--fixed-fps 60`, two runs each interleaved, before =
+the code at `8660ec4`; rendered with the software Vulkan driver at 1280×720, so draw calls only):
+
+| | Before | After |
+| --- | --- | --- |
+| Police scripts, bench route (calm) | 0.06 ms | 0.09-0.10 ms |
+| Police scripts, koguty 3 (`--police=3 --police-auto=still`) | 0.19-0.21 ms | 0.23-0.25 ms |
+| Draw calls, bench route (main / shadow / 2D) | 114 (47 / 34 / 33) | 114 (47 / 35 / 33) |
+| Draw calls, Plac Zamkowy probe (`--probe --at=-700,-1480`) | 106 (45 / 28 / 33) | 109 (46 / 28 / 36) |
+
+The guards are +0 (fixed people in the walkers' MultiMesh: +40 instances in the probe); at Plac
+Zamkowy the zone pill is +3 2D draws (a panel and two labels, as in 3g-1) and the guards' car +1 in
+the main pass (the POLICE MultiMesh, out by then). The clamp box is +1 while shown. The container
+runs 3g-1's scripts at about twice the Mac's times (0.06 here, 0.03 there), so the koguty 3 chase
+should stay near 0.10 ms on the Mac, under police.md 12's 0.15 ms; the per-frame guard work is
+~0.02 ms (the footway lookup runs only for a car stopped by a guard). No new shader or material.
+
+**Testing aids** (flags in the table below; `--police-log` adds `guard: …` lines:
+`guard: whistle (post kp_gate_1, 13 m, 26 km/h)`, `guard: clamp on (10.0 s after the countdown
+began)`, `police: escort joined (unit 8, placed 150 m ahead …; rescue clock +10 s …)`).
+`check_police.gd` adds P14, part two on the synthetic road (25 cases: rescue sees nothing, a
+rescue ends a chase, the escort placed / joining a patrol / lights and route / waiting / leading /
+pace / overtaken / leaving / not in the helicopter, a race seen, +20 %, the kebab's heat frozen, the
+zone pill and cap, the guard's 3 s run, the guard car's 15 s at 25 km/h, guards never chase, the
+clamp's 20 / 10 / 10 s and Przepraszam, the first contact once, the złoty), the new lines and the
+guard cues; it now fails when no case ran. `police-runs` adds a second row, "police part two"
+(the escort on rescue 9, `--guards`, `--guards=talk`, `--clamp`, `--clamp=sorry`, the first
+contact, `--pullover=kebab` with a kebab order, a race's escape).
+
+What only the phone can tell: the siren and whoop against the radio, whether 45 km/h feels like an
+escort or a crawl in Normal traffic, whether the guards read as guards at 80 m (mustard on the 2×
+pixel), whether the clamp box is visible at the default zoom, and how the 20 km/h zone feels.
+
+Shots (scratch, not committed): the escort leading on rescue 9, a guard whistling on the
+Krakowskie Przedmieście deptak with the zone pill, the clamp card on Plac Zamkowy, at 2532×1170
+and 2868×1320.
 
 ## Sectors and streaming (loop 3c, 2026-10-29)
 
@@ -2978,6 +3130,120 @@ the minimap's random markers and single texels; overlays in `shots/loop3d2a_afte
 check_drape, check_roads (C11 1 allowed), check_streaming (identity over 108 sectors, 0.789 % at
 spot 8 as before) unchanged.
 
+## Moja Warszawa notebook (loop MW-1, 2026-10-30)
+
+MOJA WARSZAWA, the city notebook (docs/design/vision.md 4.1): the 72 places of
+`game/data/places.json` (designer-owned; 9 chapters of 8) found by driving or flying past them,
+kept in the save, read in the settings card's fifth tab. Code: `notebook.gd` (places, finding,
+rewards, the minimap's marks), `notebook_page.gd` (the page), small hooks in `main.gd`
+(`_build_notebook`, `_place_start`, `_put_at_place`, the flags), `hud.gd` (`set_minimap_unknown`,
+`notebook_changed`, the "?" in the minimap's triangle array), `wallet.gd` (`notes`,
+`chapters_done`) and `settings_panel.gd` (the ZESZYT tab, `show_notebook`).
+
+- **Where a place is.** No bake resolves the places yet (BACKLOG "From loop MW-1": the map lane's
+  `pois` kind `place`). At load (~35 ms, once) each place's `near` [lat, lon] goes through the
+  bake's flat projection (`tools/bake_osm.py` `project`: the map's `origin`, 110 574 m a degree of
+  latitude, 111 320 · cos(lat0) of longitude), then the first of these within reach of the hint
+  wins: an `address` poi with the same number on a street whose last word matches ("Al.
+  Jerozolimskie 6" finds "Aleje Jerozolimskie 6"; 600 m); a named square, park or landmark with the
+  place's Polish name, or a landmark whose name starts with it ("Pałac Kultury i Nauki"; never a
+  parody venue or a street; 600 m); a poi of the place's own kind (the Mermaid, Patelnia, Plac
+  Defilad, the stadium; the nearest kebab stand for a kebab place; 300 m). Today: 5 by address,
+  16 by name, 6 by poi, 45 on the hint; the furthest from their hints Smoła 359 m, Stara
+  elektrownia 331 m, U Zdzicha 264 m. `--notes-log` prints a `notes: place <id> <source> N m from
+  the hint (x, z)` line for each.
+- **Finding** (`Notebook.finds`): in the car within `radius` (25 m; 40 m for squares, parks,
+  bridges) at ≤ 30 km/h, or stopped inside it for 1 s; in the helicopter within `heli_radius` (60 m
+  when the place has none) below 60 m over the ground. Checked twice a second through a 100 m grid
+  of the places: one cell is looked at, so nothing runs per frame but a timer. Never on the title
+  screen or during TEST · BENCH (its wallet is put back after; `--bench`'s route does find places); the game paused (settings) pauses it.
+- **A new entry**: the save (`[notes]` id = yyyymmdd in `user://save.cfg`; with `--nosave` in
+  memory only), +5 respect through the wallet's `pay`, a toast "NOWY WPIS · <name>" over "NEW
+  ENTRY · <name> · k/8", the UI blip and a short buzz (25 ms). A chapter's eighth card: +50 zł and
+  +30 respect once, a note card ROZDZIAŁ GOTOWY · CHAPTER DONE, and `[notes_chapters]` chapter id =
+  yyyymmdd (MW-5's track unlocks will read it).
+- **On the minimap**: the places not found yet within 400 m of the car as a gold "?" (3 × 5 pixels
+  of 1.3 pt on a dark plate), never a name; drawn in the minimap's one triangle array, so no draw
+  call of its own. (vision.md says "in a discovered district"; districts don't exist yet.)
+- **The page** (Settings → ZESZYT · notebook; the card's title says MOJA WARSZAWA and "zeszyt
+  miasta · k/72"): a row of the 9 chapters (the number stands in for the chapter's icon until
+  PixelLab's; k/8 under it; gold when complete), the chapter's name, then its 8 cards in 4 × 2: a
+  found card shows its name (Polish over English), a night venue's hours and the day found, one
+  not found yet "?" and the chapter. A tap
+  opens a card: name, fact and joke (Polish over English), the address (not for a venue: it could
+  name the real business), the hours of a night venue (`otwarte PT–ND 04:00–12:00` over `open
+  Fri–Sun …`) and the day found; WRÓĆ · back returns to the grid. At least 476 × 254 pt (as wide as
+  the card's inside); every target at
+  least 44 pt; the card fits the SE (633 × 349 pt of 667 × 375) without shrinking (`check_hud`
+  walks the notebook's grid, a found card and an unfound one on all four screens). The settings
+  card's line under its title is now two lines (Polish over English), so the fifth tab fits.
+  The page is drawn by hand: its boxes in one triangle array, its words grouped by size, so it
+  costs a handful of 2D draw calls whatever it shows, and nothing when the panel is closed.
+- **Check**: `game/tools/check_places.gd` (verify step `places`, in the quick set and in CI: it
+  reads only `centrum.json` and `places.json`): Polish and English for every name, fact and joke,
+  Polish ≤ 70 characters (the toast too), 8 places a chapter, the hint inside the demo box and the
+  place inside the map, no denylisted name in anything the notebook shows, reachability (a lane
+  or footway within radius + 10 m: the misses are printed as a `check_places: WARN` line, not
+  failed: 70/72 today), the finding rule on 11 synthetic cases, the 2 Hz tick through the grid
+  (speed, away, distance, the helicopter's height) and a chapter paying once.
+
+## The traffic loop: cars overlapping in junctions (2026-10-30)
+
+A new testing aid, `--traffic-overlaps`, has the traffic count, every frame, the pairs of its
+cars whose boxes overlap (a 2D separating-axis test with 0.15 m of slack) and prints one line at
+the end: `traffic overlaps: N car-pair frames in F frames (J with a car on a junction curve),
+S spots; worst W frames at x, z; K knots given up`. Cars in a junction used to look only at the
+other car's centre in a 1.9 m strip ahead, so a car crossing at an angle was seen when its centre
+reached the strip, too late, and two turn lanes merging into one lane were never checked against
+each other (both are registered in the lane they merge into). Now (`traffic.gd` `_path_gap`):
+
+- Each car looks for the other's whole body plus where it goes in the next 0.8 s (`PATH_LOOK`),
+  sampled every metre, in its own corridor (both half widths and `PATH_MARGIN` 0.2 m) from beside
+  its front half to 14 m ahead (`PATH_AHEAD`); the gap is to the nearest such point.
+- Two cars on different junction curves are checked even when both end in the same lane.
+- A car within 6 m of the start of the lane it came out on (`PATH_EXIT`) is still in the box.
+
+Measured with `--traffic=busy --no-police --traffic-overlaps`, 3600 frames at `--fixed-fps 60`,
+car-pair overlap frames before → after: the start 62 → 32, `--at=-918,263` 352 → 156,
+`--at=145,-626` 395 → 27 (809 → 215 in all), no knot given up in either. What is left is mostly
+two cars entering a short (3.5 m) merging curve in the same frame near -940, 210 and -890, 350.
+
+## The traffic loop: trams and crossing cars (2026-10-30)
+
+`--traffic-overlaps` also prints `traffic tram overlaps: N tram-car frames (M with the tram
+moving), S spots; worst W frames at x, z; trams standing T tram frames`. On the demo map 8 trams
+share 287 pieces of track, so a fixed `--at=` spot rarely sees one; `--tram-watch=N` keeps the car
+(no collisions, standing still) 30 m ahead of tram N and 20 m to its side, moved on as the tram
+draws level, so the view and the traffic ride through the city with that tram. Found and fixed:
+
+- **A car on the rails was ignored** (`trams.gd`): the tram stopped only for a car whose centre
+  was within 2.6 m of the head's straight line, and never for one that was waiting for it. Now it
+  follows its rails ahead every 2 m to 30 m (`AHEAD_STEP`, `AHEAD_REACH`, round the curve) and
+  stops 1.5 m (`STOP_SHORT`) before the first point that comes within its half width + 0.4 m
+  (`CLEAR`) + 0.5 m (`SWEEP`, the straight bodies cutting inside a curve) of a car's box. A car
+  running alongside counts only from 0.3 m (`ON_RAILS`) off its side.
+- **A slanting car stopped with its corner in the way** (`traffic.gd` `_give_way_to_trams`): cars
+  looked at three points of each tram car and stopped by the distance ahead. Now, where the car's
+  way meets each tram car's line, if the body (or the front car's next 1.5 s, `TRAM_LOOK`) is
+  there, the car stops with its box 0.8 m (`TRAM_MARGIN`) from the tram's side at any angle. A car
+  already in front of a tram's nose drives on and clears it (the tram waits; both waiting was a
+  standoff).
+- **Cars were put down beside a passing tram**: `_try_spawn` keeps clear of the tram cars too.
+
+Measured with `--traffic=busy --no-police --traffic-overlaps --tram-watch=0..3`, 10800 frames at
+`--fixed-fps 60`, two rounds each: tram-car frames 1660 → 140 (all with the tram moving), car-pair
+overlaps about the same (19 797 → 19 304), trams standing about the same. The runs are not
+repeatable frame for frame (two runs of the same code differ), so compare totals over several.
+
+## The traffic loop: a brush is not a crash (2026-10-30)
+
+A traffic car the player hits is dazed (it brakes at 4 m/s² and slides off its line) for a time
+that now grows with the hit (`traffic.gd` `on_player_bump`, the closing speed `car.gd` reports):
+0.4 s (`DAZE_BRUSH`) for a knock at 3 m/s (`BRUSH_HIT`, about 11 km/h) or less, up to the whole
+2.5 s (`DAZE`) from 8 m/s (`FULL_HIT`, about 29 km/h). Before, any bump over the car's 2 m/s
+threshold, a clipped corner included, stopped the car dead for 2.5 s. The ram test (a 28 km/h
+hit) is unchanged; police cars keep their own 1.5 s.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -3004,7 +3270,7 @@ home screen).
 | Triangles, main pass (spawn / zoomed out) | 0.25 M / 0.36 M | 0.32 M / 0.50 M | 0.45 M / 0.70 M |
 | Triangles, shadow pass (spawn / zoomed out) | 0.14 M / 0.27 M | 0.18 M / 0.35 M | 0.25 M / 0.45 M |
 | Scripts, all systems (`scripts … ms` at the spawn, Mac) | 0.6–0.9 ms | 1.0 ms | 1.3 ms |
-| Metal frame, bench (Mac, 1280×720, uncapped) | 1.5–1.9 ms | 2.2 ms | 2.6 ms |
+| Metal frame, bench (Mac, uncapped; since 2026-10-30 at `--resolution 1920x1080`, see below) | 1.5–1.9 ms | 2.2 ms | 2.6 ms |
 | GPU, Vulkan bench (Mac, 1920×1080) | 0.80–0.87 ms | 1.0 ms | 1.2 ms |
 | GPU, Vulkan zoomed out at 2868×1320 (`--gpu-profile`) | 1.65 ms | 1.9 ms | 2.2 ms |
 | iPhone TEST · BENCH at High, 60 fps cap | 60 fps, 1 % low ≥ 56 | 60, 1 % low ≥ 55 | 60, 1 % low ≥ 55 |
@@ -3015,6 +3281,42 @@ home screen).
 | Loop G0+: the iPhone 11 at Auto ×1, 20 minutes each by day, night and rain at night (`--autopilot --governor=log`) | 60.0 fps every minute (59.9 at worst), 18–23 missed refreshes of ~72,000, 0 governor changes, calm | no struggle verdict | no struggle verdict |
 | Loop G1: TEST · BENCH at Auto on the iPhone 11 (High, 896×414) and the Pro Max (Ultra, 1434×660), 60 fps cap | 60 fps, 1 % low 56.6 / 57.3, 0 missed refreshes | 60, 0 missed refreshes, 1 % low ≥ 55 | 60, 0 missed refreshes, 1 % low ≥ 55 |
 | Loop G1b: the iPhone 11 at Auto, now High ×1 sharp (1792×828): BENCH minute, and a 15-minute day drive with the governor on (missed refreshes, governor changes) | BENCH 60 fps, 0 missed, 1 % low 54.4 / 58.7 (cool / warm); drive 60.0 every minute, 5 missed in 17.7 min, 0 governor changes | 60, 0 missed refreshes, 1 % low ≥ 55; the drive with no struggle verdict | 60, 0 missed refreshes, 1 % low ≥ 55; the drive with no struggle verdict (else the content costs the iPhone 11 its sharp default) |
+
+**The bench's window (performance lane, 2026-10-30).** On macOS 27 a small window waits about
+4 ms in the draw/present step whatever is drawn: at the default 1280×720 the bench's frame
+reads 5.6–6.3 ms (main-thread "draw" 4.0–4.6 ms) both before and after loop 3d-1, while at
+1920×1080 and up "draw" is 0.6–1.1 ms. It doesn't follow pixels (1920×1080 at ×1 has 4.5× the
+pixels and is 5× faster) or objects (`--size=40` against `200`). So the Metal frame row is now
+measured with `--resolution 1920x1080`: 2.4 ms before loop 3d-1, 2.5–2.7 ms after (at the
+ceiling). What 3d-1 really added: +0.5–0.7 ms of main-thread process (1.14 → 1.64–1.81 ms; with
+`--no-traffic` it is 0.60), main-pass triangles 0.17 → 0.20 M, static memory 173 → ~330 MB (the
+prebuilt city 241 MB). Draw calls 73–139 at every view measured, well inside.
+
+**Where the memory goes (performance lane, 2026-10-30).** Measured on the Mac at the bench's
+start, the prebuilt path (the phone's): the whole-map index (`map/index.res`, the game's copy of
+index.json: areas, paths, roads, trees, the lane graph) was 103 MB of the 225 MB static at "city
+built"; the six first sectors 16 MB; the game's systems 45 MB (side jobs 17: rides 7.5, jobs and
+eggs 4.8 each; walkers 5.6, the lane graph 3, the HUD 4.5, police 2.9). Video is 381–399 MB, of
+which textures 99 MB: the AO, light and surface maps alone are about 96 MB (5318×3782 RG8 twice
+and 2659×1891 RGBA8, no mipmaps), and buffers 129–147 MB grow with the sectors in view.
+`scripts/index_pack.gd` now turns the index's coordinates (every feature's flat outline `p`,
+the scanned trees, the parked cars, the lane graph) from JSON's one-Variant-per-number Arrays
+into PackedFloat32Arrays, after the builder's set-up has read them and before the prebuilt index
+is saved: static at "city built" 224.7 → 204.8 MB prebuilt (index 103 → 83 MB) and 294 → 267
+MB on the runtime path; at the bench's end 252 → 233 and 357 → 329 MB; index.res 7.7 → 6.8 MB.
+Readers that still declare `var flat: Array = r["p"]` get a converted copy, so nothing else
+changed; the frame is unchanged.
+
+**What traffic costs (performance lane, 2026-10-30).** Timed per step on the Mac at 1920×1080
+(the bench's view, ~33 active cars, ~13 of them at junctions): nothing in traffic grows with the
+map itself; it costs about 10 µs a car. On the prebuilt path (the phone's) a frame is ~0.37 ms
+with the timers in, 0.31 ms without: the drive loop 64 % (placing a car 66 µs, the leader search,
+the crossing and red-light checks and the speed model about 35–55 µs each), the junction checks
+18 %, writing the MultiMesh 8 %, the signal lamps 5 %; the runtime path runs the same code
+about 35 % slower (its larger heap). `on_screen` now projects with the orthographic camera's own
+axes (identical answers on 35 k calls) and the junction pairs are rejected on packed positions:
+the junction checks −14 % (66 → 57 µs), too little to show on the bench card. What is left is
+per car; fewer cars in the view band is the lever, a design call.
 
 Loop 3g-1 (the police; police.md section 12 allowed ≤ +3 draw calls at any view, ≤ +8 k
 triangles, ≤ 0.15 ms of script, ≤ +2 MB) spent, in a koguty 3 chase: +1 to +3 draw calls at the
@@ -3369,7 +3671,7 @@ Command-line options (after `--`):
 | `--lineup` | loop 2c: every vehicle model standing round the car, all facing its way (beside it the taxi, Podwózka, the police and guard cars and the two vans; a row ahead the cars' four shapes; behind, the six rivals, then the bus and a tram cab car), no traffic, and each model's triangles printed (`lineup:` lines). Close-ups: `--at=-1113.2,-263.4 --heading=160 --size=14 --nohud` (Marszałkowska) |
 | `--race=N` | race rival N (1–6) at once: they are put just ahead of you |
 | `--rival=N` | put rival N just ahead of you (with `--autopilot` you tail them, so the FLASH LIGHTS prompt shows) |
-| `--bench` | drive a route through the traffic and print the average frame time over 600 frames, the scripts' cost and the 3D view's GPU time; loop 2b: also the bench's lines (see Loop 2b), a 30 s cap, the result in `user://bench_result.txt` |
+| `--bench` | drive a route through the traffic and print the average frame time over 600 frames, the scripts' cost and the 3D view's GPU time; loop 2b: also the bench's lines (see Loop 2b), a 30 s cap, the result in `user://bench_result.txt` (removed when a bench starts, so a run that ends early leaves none) |
 | `--time=day\|dusk\|night` | start at that time of day (default day) |
 | `--vhs` | VHS overlay on (for this run; Settings saves it since loop 2e) |
 | `--radio=N` | radio station 1–3, or 0 / `off` (default 1) |
@@ -3405,7 +3707,11 @@ Command-line options (after `--`):
 | `--controls=point\|classic\|fixed` | loop 2a: the control scheme for this run (not saved) |
 | `--traffic=empty\|low\|normal\|busy` (or 0-3) | loop 2a: the traffic level for this run (not saved) |
 | `--settings` | loop 2a: open the settings panel at the start (screenshots) |
-| `--settings-tab=N` | loop 2e: open the settings panel at tab N (0 Jazda · Driving, 1 Świat · World, 2 Obraz · Picture, 3 Dźwięk · Sound) |
+| `--settings-tab=N` | loop 2e: open the settings panel at tab N (0 Jazda · Driving, 1 Świat · World, 2 Obraz · Picture, 3 Dźwięk · Sound; loop MW-1: 4 Zeszyt · the notebook) |
+| `--notebook` / `--notebook=CHAPTER\|ID` | loop MW-1: open the settings card on MOJA WARSZAWA, the notebook (a chapter by id or number 1-9, or a place's card by its id; screenshots) |
+| `--found=all\|none\|CHAPTER[:K],…` | loop MW-1: the notebook's record for this run, in memory, no rewards (a chapter by id or number, `:K` its first K places; `--found=1:4,9` half of the first chapter and all of the ninth). Use with `--nosave` (a later save would keep it) |
+| `--place=ID` | loop MW-1: start at a notebook place (`places.json` id): the sectors round its hint first, then the car on the nearest lane if that is inside the place's radius, else on the place (found within a second, standing) |
+| `--notes-log` | loop MW-1: print `notes:` lines: each place's resolution at load (`notes: place <id> address\|name\|poi\|near N m from the hint (x, z)`), each find (`notes: found <id> (chapter N, k/8)`) and each chapter completed |
 | `--call-in=S` | loop 2e: the first rescue call comes in after S seconds of play (default 60) |
 | `--stick=X,Y` / `--pedal=gas\|brake` | loop 2a: hold the stick at that deflection (-1..1, y down; Classic uses X) / a pedal, as if a finger were on it (screenshots, replays in the real city) |
 | `--clicks=X:Y:F,...` / `--drag=X:Y:F:DX:DY:F2` | loop 2a testing aids: a click at screen pixel X,Y on frame F; a finger down at X,Y on frame F, moved by DX,DY over ten frames, lifted on frame F2 (through the real input path) |
@@ -3423,6 +3729,8 @@ Command-line options (after `--`):
 | `--tunnel` | loop 3b: with `--at`, start on the floor of the tunnel under that point (the car shows through the ground as a silhouette) |
 | `--drive-into-water=X,Z` | loop 10a: start at X,Z and drive flat out at the nearest water (within 120 m), the collision off until 3 m past the edge as if the car had jumped it; prints `water test:`, `water: splash at …` and `water: towed after … s …` (where to, how far from a lane, dry or not, the job / rescue / race / wallet), each with its frame. With `--kebab=0` a delivery is running (`tools/verify.sh` step `splash`) |
 | `--ram-test` | the driving-feel loop: after 2 s, the car is put 14 m behind the moving traffic car with the longest straight lane ahead, 6 m/s faster, and drives on along that lane (Point, 65 km/h); prints `ram test:` lines: the hit (speed, the rammed car shoved to), then `past it N s after the hit` or `NEVER PAST it after 10 s` (`tools/verify.sh` step `ram`, with `--no-police`) |
+| `--traffic-overlaps` | the traffic loop: the traffic counts the pairs of its cars whose boxes overlap each frame and prints `traffic overlaps:` at the end (car-pair frames, how many on a junction curve, the spots and the worst one, knots given up), then `traffic tram overlaps:` (tram-car frames, with the tram moving, spots, the tram frames standing); use with `--traffic=busy --no-police` and an engine `--quit-after` |
+| `--tram-watch=N` | the traffic loop: the car (no collisions, standing still) is kept 30 m ahead of tram N and 20 m to its side, moved on as the tram draws level, so the view and the traffic go with that tram; with `--traffic-overlaps` |
 | `--no-police` | loop 3g-1: no police, traps or patrol cars |
 | `--police=1\|2\|3` | loop 3g-1: a chase at that level at frame 60, the chaser 40 m behind on your lane (and the blocker / the roadblock for 2 / 3) |
 | `--trap=N` | loop 3g-1: start 150 m before speed trap N (1-4 in today's map), heading into it, and make it one of the day's; with `--pedal=gas` the car drives flat out along the road into the radar (through the traffic) |
@@ -3431,6 +3739,11 @@ Command-line options (after `--`):
 | `--police-now` | loop 3g-1: no start grace, no cooldown (tests; with `--autopilot` the car roams at twice the limit: the soak) |
 | `--police-log` | loop 3g-1: print every police state change with its frame (`police: …` lines; in a chase the car's place on screen each second, `police: b4 x … y …`) |
 | `--police-offence=F:kind,…` | loop 3g-1: an offence at frame F (`speed`, `red`, `oneway`, `bump`, `ram`), seen by the nearest unit (the cooldown test P7) |
+| `--escort` | loop 3g-2: with `--mission=N`, the car is put at the rescue's pickup at frame 30 and the person boards; the escort always comes (as on a session's first rescue) |
+| `--police-auto=follow` | loop 3g-2: the test driver rides along the escort's route behind it (12-22 m back, through the traffic), the last stretch to the hospital's ring straight (the escort run E1) |
+| `--guards[=talk]` | loop 3g-2: start at the south end of Krakowskie Przedmieście's car-free stretch and drive north into the pedestrian zone at 30 km/h (the zone caps it to 20): the whistle, the 3 s run, the guards' car; `=talk` stops by the gate's guards instead (the guard conversation) |
+| `--clamp[=sorry]` | loop 3g-2: start parked on Plac Zamkowy by a guard; the clamp's countdown at frame 60, the clamp 10 s later, off after 10 s (`=sorry`: Przepraszam tapped 1 s after it goes on) |
+| `--first-contact` | loop 3g-2: arm the scripted first contact at frame 60 as if the first race had just ended (with `--pedal=gas`: drive into the officer; add `--police-auto=stop` to stop by him: the routine check) |
 
 Godot's own `--time-scale 3` (before `--`) speeds a mission or race up for screenshots, and
 `--fixed-fps 60` makes runs repeatable frame by frame.
@@ -3480,3 +3793,66 @@ and writes them to `user://bench_result.txt`; with `--fixed-fps 60` the route co
 ground whatever the frame rate (without it, a faster run drives a shorter way in its 600 frames).
 
 Map data © OpenStreetMap contributors, ODbL.
+
+## The web build (2026-10-30)
+
+The game in a browser at **https://play.aroundwarsaw.app** (aroundwarsaw.app/play/ redirects
+there; the landing's "Play online" / "Zagraj online" button links to it). Same game, same
+prebuilt city, desktop keyboard and the phone's touch controls as they are.
+
+```zsh
+tools/export_web.sh            # derived map files when missing, then the export in build/web
+python3 -I tools/web/serve.py  # look at it: http://localhost:8060 (sends the COOP/COEP headers)
+tools/export_web.sh --deploy   # also upload it (the user's yes first: it is public)
+```
+
+- **Preset "Web"** (`export_presets.cfg`): the iOS preset's file filters, threads on (the sector
+  streamer keeps its worker thread), S3TC/BPTC and ETC2/ASTC textures. Godot draws the web with
+  the **Compatibility** renderer (WebGL 2) whatever the project's renderer is, so the look is
+  close to the phone's, not the same.
+- **Threads need cross-origin isolation**: `tools/web/_headers` (copied into the build) sends
+  `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp`.
+  That is why the game has its own origin and Worker: the landing's CSP and Formspree form
+  stay as they are, and the landing's deploys (site/, also from GitHub) never touch the game.
+- **Cloudflare's 25 MiB a file**: the pack is ~140 MB and the engine ~40 MB.
+  `tools/web/split_parts.py` gzips each and cuts it into 20 MiB parts in `parts/` (names carry
+  the contents' hash, so they are cached for a year) with a `<file>.parts.json` manifest;
+  `tools/web/split_loader.js`, in the page's head, wraps `fetch` so Godot's loader gets the
+  parts joined and unzipped as one file with the right size for its loading bar. The download
+  is ~141 MB (the sector scenes barely compress); R2 is not enabled on the account and not needed.
+- **The Worker**: `site/play/wrangler.jsonc`, `aroundwarsaw-play`, static assets from
+  `build/web`, custom domain `play.aroundwarsaw.app` (wrangler makes the DNS record and the
+  certificate on the first deploy).
+- **Compatibility renderer fix** (`scripts/instance_buffers.gd`): Godot 4.7.2's gles3
+  `scene.glsl` multiplies an instanced mesh's vertex COLOR by the instance colour even in a
+  MultiMesh without colours, and `multimesh_set_buffer` leaves the custom data's raw bits in that
+  slot, so traffic, pedestrians and the splash came out bright green. On that renderer those
+  MultiMeshes carry white colours too and their 16-float buffers are widened to 20 floats when
+  sent (traffic, pedestrians, splash); on Mobile (the phones) the helper passes straight through.
+- **Sectors on demand** (web loop 2): the 108 sector scenes (96 MB) are not in the web pack.
+  `game/tools/pack_sectors.gd` (run by the export script) makes each a pack of its own,
+  `sectors/s_<i>_<j>.<hash>.pck` (~0.9 MB), and `res://map/web_sectors.json` lists them with the
+  spawn. On the web `scripts/sector_packs.gd` downloads the sectors within the start's 320 m
+  (6, ~9 MB) while the title shows, then the streamer asks for each wanted sector's pack (nearest
+  first, 3 at a time) and loads it once it is mounted (`ProjectSettings.load_resource_pack`,
+  only while the streamer's worker is idle); a sector not in yet shows its proxy. The first
+  download is ~59 MB (engine 10, pack 40, start sectors 9) instead of ~141 MB. Other builds
+  never see any of it (`SectorPacks.active()` needs the `web` feature and the manifest).
+  HTTPRequest on the web reads one network chunk a frame, so a background tab (throttled to
+  ~1 fps) loads sectors slowly; in a visible tab the start's six took 0.15-0.3 s locally.
+- **Phones' browsers** (web loop 2): an iPhone's Safari closed the first version's page (the
+  whole 140 MB city in memory). Now a sector's pack file is deleted once its scene is loaded
+  (fetched again from the browser's cache if the sector comes back), and Auto picks **Low** on a
+  phone's browser (`web_ios`, `web_android` features; main.gd `_load_settings`). The pigeons'
+  and the meeting point's crowd were green on the Compatibility renderer too (instance-by-
+  instance MultiMeshes): `InstanceBuffers.whiten`.
+- **Loading screen**: `tools/web/loading.css` (night colours, a pink bar, the title) and the
+  loader's label "Ładujemy miasto · Loading the city, N / 50 MB" from the parts' gzipped sizes.
+- **What the browser test covered** (Chrome in the desktop app's browser pane): the title, the
+  fly-in, the prebuilt city, traffic colours, keyboard driving (WASD), the touch stick from
+  synthetic touch events at 844×390. Web loop 2, with Playwright 1.63 on the Mac
+  (`chromium` and `webkit` with the "iPhone 15 Pro landscape" device): the city built 5-6 s
+  after opening locally, tap to start, WASD, the sectors streaming as the car moves, the loading
+  screen on a throttled 40 Mbit/s link. Not covered: a real phone's browser (iOS Safari's memory
+  with a 140 MB pack, the safe area: `OS.has_feature("mobile")` is false on the web), frame rate
+  on a weak laptop, Firefox.
