@@ -1049,3 +1049,21 @@ Small problems that agents reported or that showed up in screenshots. They are f
   jump at 60 fps, and whether shoved traffic overlapping the next lane looks wrong.
 - A shoved car slides off its line only on a lane, not on a junction's curve.
 
+
+## From loop MW-0 (Moja Warszawa: data and lines, 2026-10-30)
+
+- ~~`game/data/brand_denylist.json` lists real business names for the audits; the export presets'
+  `include_filter` (`data/*.json`) ships it inside the app.~~ Done in MW-0: both presets'
+  `exclude_filter` leave it out of the bundle (the checks read it from the project).
+- Title-collision rule (vision.md): an older `police_warn` line's English gloss says "the patrol
+  car", and "Patrol" is the title of one of the artist's singles. Not changed in MW-0 (existing
+  lines stay); reword the gloss ("the police car") in the next content pass if the rule is read
+  strictly.
+- `places.json` `near` hints are rough (about ±150 m), from memory of the map, not measured: the
+  MW-1 bake resolves each address or anchor and should print the distance from the hint, so a
+  wrong anchor shows at once.
+- The places' `hours` are the game's own hours for the parody venues, not the real ones; MW-3's
+  queues use vision.md 4.5's hour curves, not these strings.
+- Two places share an address with another on purpose (Miłość Hipoteczna and Żwir at Kredytowa 9,
+  Pawilony and Apteczka at Nowy Świat 22/28): the notebook may find both at once. If that reads as
+  one find, MW-1 can offset Żwir to the upstairs door and Apteczka 30 m into the courtyard.

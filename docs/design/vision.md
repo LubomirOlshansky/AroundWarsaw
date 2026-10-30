@@ -451,6 +451,18 @@ Each item is a real place in the box, a short fact (Polish card, English below) 
 All T-card lines are ≤ 70 characters in Polish; the English glosses go with them in `then_cards`
 (section 7 shows the pattern; the full set is written in loop MW-6 against these facts).
 
+**Superseded in loop MW-0 (2026-10-30), by the user's answer 3 (section 10): the set covers 2010
+to today.** The 20 cards built are in `game/data/then_cards.json` (one place each from
+`places.json`, a `ghost` description for MW-6): the Euro 2012 fan zone on Plac Defilad, the new
+museum's site (2020), the Palace before the new tower outgrew it (2021), the stadium build (2010),
+no metro to Praga (2014), the M2 dig on Świętokrzyska (2012), the Rotunda's fence (2017; reopened
+2019), Syreni Szept's queue (2016), Rondo Daszyńskiego before the towers (2010), Centralny's Euro
+renovation (2011), Kopernik's last touches (2010), the park before the fountains (2010), Koszyki's
+two wings (2014), Hala Gwardii before its 2017 reopening (2016), the empty power station (2015),
+the bank before the boulevards (2014), the first rent-by-the-minute scooters (2018), the first
+city bikes (2012), the pistachio-chocolate queues (2024) and the latte before matcha (2015).
+T1 (as 2009), T5, T7, T8, T10, T13–T15, T17 and T18 above wait for "later" with the older decades.
+
 ### 3.10 Miejsca z piosenek · Places from the songs
 
 The places below appear in the songs of the Warsaw rapper **Taco Hemingway**, read from the fan
@@ -528,7 +540,11 @@ completion of DEMO 6.3 counts notebook cards.
 
 **Data.** `game/data/places.json` (designer-owned): `id`, `chapter`, `name_pl`, `name_en`,
 `address` or `osm` anchor, `radius`, `fact` [pl, en], `joke` [pl, en], `hours`, `tags`. The bake
-resolves anchors to map metres into `pois` kind `place`.
+resolves anchors to map metres into `pois` kind `place`. *Written in loop MW-0 (2026-10-30)*: the
+file also holds `chapters` (ids `noc`, `bary`, `schodki`, `trendy`, `metro`, `jedzenie`,
+`codziennie`, `retro`, `kiedys`), a rough `near` [lat, lon] hint per place, `heli_radius` where the
+helicopter finds it, `wiralek_slot`, and `guess` + `guess_note` (Apteczka); the brand denylist is
+`game/data/brand_denylist.json`.
 
 **Flags.** `--notebook` (open it), `--found=all|none|<chapter>`, `--place=<id>` (car at the place),
 `--notes-log` (prints `notes: found <id> (chapter 3, 5/8)`).
@@ -774,7 +790,7 @@ announcements, untagged crowd lines with no speaker.
     ["Sześciu chłopaków naraz? Spróbujcie w Lombardzie.", "Six lads at once? Try Lombard.", {"only": "reject"}],
     ["Kolejka idzie. Powoli, ale idzie. Jak remont.", "The queue is moving. Slowly, but it's moving. Like the roadworks.", {"only": "queue"}],
     ["Samochód nie wchodzi. Nawet ładny.", "The car isn't getting in. Not even a nice one.", {"only": "car"}],
-    ["Czerwony hatchback. Dziś dress code: czarny. Sorry.", "A red hatchback. Tonight's dress code is black. Sorry.", {"only": "car"}],
+    ["Czerwony hatchback. Dziś wchodzi tylko czerń. Sorry.", "A red hatchback. Tonight it's black only. Sorry.", {"only": "car"}],
     ["Kierowca? Szacunek. Woda gratis, ale wejść nie wejdziesz.", "The driver? Respect. Free water, but you're still not coming in.", {"only": "car"}],
     ["Czarny lakier. Spokój w oczach. Wjeżdżasz.", "Black paint. Calm eyes. You're in.", {"only": "car_black"}],
     ["Jest dziewiąta rano. Selekcja dalej obowiązuje.", "It's nine in the morning. The door policy still applies.", {"only": "dawn"}]
