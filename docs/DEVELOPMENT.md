@@ -3033,6 +3033,15 @@ Measured with `--traffic=busy --no-police --traffic-overlaps --tram-watch=0..3`,
 overlaps about the same (19 797 → 19 304), trams standing about the same. The runs are not
 repeatable frame for frame (two runs of the same code differ), so compare totals over several.
 
+## The traffic loop: a brush is not a crash (2026-10-30)
+
+A traffic car the player hits is dazed (it brakes at 4 m/s² and slides off its line) for a time
+that now grows with the hit (`traffic.gd` `on_player_bump`, the closing speed `car.gd` reports):
+0.4 s (`DAZE_BRUSH`) for a knock at 3 m/s (`BRUSH_HIT`, about 11 km/h) or less, up to the whole
+2.5 s (`DAZE`) from 8 m/s (`FULL_HIT`, about 29 km/h). Before, any bump over the car's 2 m/s
+threshold, a clipped corner included, stopped the car dead for 2.5 s. The ram test (a 28 km/h
+hit) is unchanged; police cars keep their own 1.5 s.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer

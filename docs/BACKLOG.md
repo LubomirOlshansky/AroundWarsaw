@@ -197,7 +197,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   it; the unstick turns it out after 1.5 s, and a second pin within 5 s tows it back onto the
   nearest lane on its level (next to a kerb that can be almost where it was, turned the lane's
   way).
-  Traffic still stops for a player that only brushes it.
+  ~~Traffic still stops for a player that only brushes it.~~ A brush dazes it for 0.4 s, a
+  real hit up to 2.5 s (the traffic loop, 2026-10-30).
 - Busy's traffic target is more than the spawner can place in the band round the view (70 vs
   ~44 at 80 m): the levels are calibrated on real counts. If the spawner changes, re-measure
   (bench `--traffic=`).
