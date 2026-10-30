@@ -84,20 +84,22 @@ func _run() -> void:
 		print("check_tape: no data/then_cards.json")
 		quit(1)
 		return
+	# No sound in the check: with a real audio driver (the Mac) the rewind's playbacks outlive
+	# the player and leaked a WAV and two playbacks at exit. tape.play() skips a null player.
+	var rewind: AudioStreamPlayer = tape.get("_rewind")
+	tape.set("_rewind", null)
+	rewind.stream = null
+	rewind.free()
 	_check_cards(tape, book)
 	var most := _check_ghosts(tape)
 	var built := _check_reach(tape, data)
 	_check_play(tape, wallet, hud)
 	var n := tape.spots.size()
-	# Stop the rewind sound and let the audio server drop its playback (and the queued ghosts
-	# go) before quitting: quitting in the same frame leaked 3 objects at exit on the Mac.
-	var rewind: AudioStreamPlayer = tape.get("_rewind")
-	if rewind != null:
-		rewind.stop()
 	tape.free()
 	hud.free()
 	wallet.free()
 	book.free()
+	# Let the ghosts queued for deletion go before quitting.
 	for _i in 3:
 		await process_frame
 	if problems.is_empty():
