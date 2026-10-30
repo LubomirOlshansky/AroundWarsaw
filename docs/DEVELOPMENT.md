@@ -570,7 +570,7 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   Trade Tower, Skyliner, Warsaw Unit, Mennica Legacy Tower, Generation Park Y, Skysawa,
   Błękitny Wieżowiec, Warszawskie Centrum Finansowe, Centrum LIM, Chałubińskiego 8, Spektrum
   Tower and The Bridge, and in a second pass Grzybowska 63, Jana Pawła II 21 and Marszałkowska
-  94/98 (hotels, named by their addresses), Central Tower, Ilmet, Platinum Towers A and B, Łucka
+  94/98 (the hotels, under parody names on their cards: Chilton, Westynka, Nowotel), Central Tower, Ilmet, Platinum Towers A and B, Łucka
   City and Widok Towers, were all the same blue box. Each is now built from its mapped parts
   (what else stands in its outline, LoD2 or OpenStreetMap, is dropped; the outline itself is
   left out when parts are mapped; a part starting in the air with nothing mapped under it

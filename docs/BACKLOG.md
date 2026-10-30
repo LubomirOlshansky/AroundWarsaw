@@ -16,7 +16,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
   with tall windows and a card; new bus shelters (glass roof, poster box lit at night, the
   blue D-15 sign). The Palace and the stadium were already detailed models and keep their look.
   **Second pass landed (2026-10-30)**: 9 more (Grzybowska 63, Jana Pawła II 21, Marszałkowska
-  94/98: the hotels by their addresses; Central Tower, Ilmet, the Platinum Towers, Łucka City,
+  94/98: the hotels, now under parody names Chilton, Westynka and Nowotel; Central Tower, Ilmet, the Platinum Towers, Łucka City,
   Widok Towers): 27 towers in all. **Third pass (2026-10-30)**: 15 low-rise landmarks
   (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm, Zachęta…) in their real colours.
   **Street furniture**: historic lanterns on the Royal Route and in the Old Town (2026-10-30). MDM's blocks and
