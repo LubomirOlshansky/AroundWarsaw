@@ -1,5 +1,5 @@
 {
-  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish.",
+  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json.",
   "radio_host": [
     [
       "KEBAB FM, 87,3. Na Marszałkowskiej znowu remont. Czyli wszystko po staremu.",
@@ -75,6 +75,10 @@
     [
       "Podwózka: przyjedziemy tam, gdzie pokaże pinezka. Mniej więcej.",
       "Podwózka: we'll come wherever the pin says. More or less."
+    ],
+    [
+      "W sobotę Hyrax przy Narodowym. Prosimy nie gonić tramwajów.",
+      "Hyrax by the National Stadium on Saturday. Please don't chase the trams."
     ]
   ],
   "kebab_order": [
@@ -300,6 +304,13 @@
     [
       "Uwagi: „proszę nie dzwonić, machnę”.",
       "Note: \"please don't call, I'll wave.\""
+    ],
+    [
+      "Uwagi: „stoję przed klubem, w okularach, jak wszyscy”.",
+      "Note: \"outside the club, in sunglasses, like everyone\".",
+      {
+        "only": "club"
+      }
     ]
   ],
   "podwozka_pickup": [
@@ -405,6 +416,20 @@
       "I'm rushing for a train. The train's rushing too.",
       {
         "only": "hurry"
+      }
+    ],
+    [
+      "Dobrze, że to ty prowadzisz. Ja mam siłę tylko na pas.",
+      "Good thing you're driving. I've only got the strength for the seatbelt.",
+      {
+        "only": "club"
+      }
+    ],
+    [
+      "Można przez most? Chcę zobaczyć Wisłę, zanim zasnę.",
+      "Can we take the bridge? I want to see the Vistula before I fall asleep.",
+      {
+        "only": "club"
       }
     ]
   ],
@@ -529,6 +554,22 @@
     [
       "KEBAB 24H · NAPRAWDĘ 24H",
       "KEBAB 24H · REALLY 24H"
+    ],
+    [
+      "PÓŁNOC FM · 86,0 · MIASTO PO CICHU",
+      "PÓŁNOC FM · 86.0 · THE CITY, QUIETLY"
+    ],
+    [
+      "HYRAX · BIEGNIJ, NIEŚ, WCHODŹ PO SCHODACH",
+      "HYRAX · RUN, CARRY, CLIMB THE STAIRS"
+    ],
+    [
+      "ROWERILO · DZWONEK W CENIE",
+      "ROWERILO · BELL INCLUDED"
+    ],
+    [
+      "WIRALEK · NOWOŚĆ TYGODNIA. ZNOWU.",
+      "WIRALEK · NEW THIS WEEK. AGAIN."
     ]
   ],
   "kebab_vendor": [
@@ -887,6 +928,54 @@
           "-3:05"
         ]
       }
+    ],
+    [
+      "ZGUBIONE OKULARY. CZARNE. KAŻDE.",
+      "Lost: sunglasses. Black. Every pair.",
+      {
+        "poster": [
+          "ZGUBIONE",
+          "OKULARY.",
+          "CZARNE.",
+          "KAŻDE."
+        ]
+      }
+    ],
+    [
+      "KOLKA BIEGA W ŚRODY 19:00",
+      "Kolka runs on Wednesdays at 7 p.m.",
+      {
+        "poster": [
+          "KOLKA",
+          "BIEGA",
+          "W ŚRODY",
+          "19:00"
+        ]
+      }
+    ],
+    [
+      "NOWY TREND OD WTORKU",
+      "New trend from Tuesday",
+      {
+        "poster": [
+          "NOWY",
+          "TREND",
+          "OD",
+          "WTORKU"
+        ]
+      }
+    ],
+    [
+      "PLAN A: DOM. PLAN C: ZOSTAJĘ.",
+      "Plan A: home. Plan C: I'm staying.",
+      {
+        "poster": [
+          "PLAN A:",
+          "DOM.",
+          "PLAN C:",
+          "ZOSTAJĘ."
+        ]
+      }
     ]
   ],
   "police_warn": [
@@ -1044,6 +1133,504 @@
       "Fifth caution today. One more and you get a mug.",
       {
         "only": "fifth"
+      }
+    ]
+  ],
+  "radio_polnoc": [
+    [
+      "Północ FM, 86,0. Miasto ściszone do połowy. My też.",
+      "Północ FM, 86.0. The city's turned down to half. So are we."
+    ],
+    [
+      "Marszałkowska o drugiej wygląda, jakby ktoś ją wynajął na film.",
+      "Marszałkowska at two a.m. looks like someone hired it for a film shoot."
+    ],
+    [
+      "Pałac we mgle. Widać tylko zegar. Która godzina? Późna.",
+      "The Palace in fog. Only the clock shows. What time is it? Late."
+    ],
+    [
+      "Ostatni tramwaj odjechał. Pierwszy jeszcze śpi. Jesteśmy pomiędzy.",
+      "The last tram's gone. The first is still asleep. We're in between."
+    ],
+    [
+      "Pozdrawiam kolejkę na Smolnej. Stoicie pięknie. Prawie jak w PRL-u.",
+      "Hello to the queue on Smolna. Lovely queuing. Almost like the old days."
+    ],
+    [
+      "Wisła płynie w stronę morza, a my w stronę rana. Bez pośpiechu.",
+      "The Vistula flows towards the sea, and we flow towards morning. No rush."
+    ],
+    [
+      "Ktoś na schodkach gra te same trzy chwyty. Pół Powiśla już umie.",
+      "Someone on the steps is playing the same three chords. Half of Powiśle knows them now."
+    ],
+    [
+      "Słuchacz z Woli widzi z biura trzy inne biura. I Pałac. Zawsze Pałac.",
+      "A listener in Wola can see three other offices from his. And the Palace. Always the Palace."
+    ],
+    [
+      "Na Centralnym nocne autobusy zjeżdżają się jak starzy znajomi.",
+      "At Centralny the night buses gather like old friends."
+    ],
+    [
+      "Jest czwarta. Ptaki już wiedzą. Taksówki jeszcze nie.",
+      "It's four. The birds already know. The taxis don't yet."
+    ],
+    [
+      "Lampy sodowe robią z każdej ulicy wspomnienie. Nawet z Kruczej.",
+      "Sodium lamps turn every street into a memory. Even Krucza."
+    ],
+    [
+      "Ten kawałek leci dla wszystkich, którzy jadą do domu, a nie z domu.",
+      "This one's for everyone driving home, not away from it."
+    ],
+    [
+      "Kierowca nie pije. Kierowca wiezie. Reszta niech śpiewa.",
+      "The driver doesn't drink. The driver drives. Everyone else can sing."
+    ],
+    [
+      "Na Zbawiciela nowa kawiarnia. Poprzednia była nowa w czwartek.",
+      "A new café on Plac Zbawiciela. The last one was new on Thursday."
+    ],
+    [
+      "Witamy z powrotem w centrum. Tu nawet cisza ma korek.",
+      "Welcome back to the centre. Even the silence has a traffic jam here.",
+      {
+        "only": "south_gate"
+      }
+    ]
+  ],
+  "club_door": [
+    [
+      "Nie dziś. Ale buty ładne.",
+      "Not tonight. Nice shoes, though.",
+      {
+        "only": "reject"
+      }
+    ],
+    [
+      "Dziś tylko ci, co wiedzą, kto gra. A ty nie wiesz.",
+      "Tonight's only for people who know who's playing. You don't.",
+      {
+        "only": "reject"
+      }
+    ],
+    [
+      "Za kolorowo. Wróć na czarno.",
+      "Too colourful. Come back in black.",
+      {
+        "only": "reject"
+      }
+    ],
+    [
+      "Uśmiechasz się. Tu się nie uśmiechamy. Następny.",
+      "You're smiling. We don't smile here. Next.",
+      {
+        "only": "reject"
+      }
+    ],
+    [
+      "Sześciu chłopaków naraz? Spróbujcie w Lombardzie.",
+      "Six lads at once? Try Lombard.",
+      {
+        "only": "reject"
+      }
+    ],
+    [
+      "Kolejka idzie. Powoli, ale idzie. Jak remont.",
+      "The queue is moving. Slowly, but it's moving. Like the roadworks.",
+      {
+        "only": "queue"
+      }
+    ],
+    [
+      "Samochód nie wchodzi. Nawet ładny.",
+      "The car isn't getting in. Not even a nice one.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Czerwony hatchback. Dziś wchodzi tylko czerń. Sorry.",
+      "A red hatchback. Tonight it's black only. Sorry.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Kierowca? Szacunek. Woda gratis, ale wejść nie wejdziesz.",
+      "The driver? Respect. Free water, but you're still not coming in.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Czarny lakier. Spokój w oczach. Wjeżdżasz.",
+      "Black paint. Calm eyes. You're in.",
+      {
+        "only": "car_black"
+      }
+    ],
+    [
+      "Jest dziewiąta rano. Selekcja dalej obowiązuje.",
+      "It's nine in the morning. The door policy still applies.",
+      {
+        "only": "dawn"
+      }
+    ]
+  ],
+  "clubbers": [
+    [
+      "Stoimy godzinę. Nie wiem, czy chcę wejść, ale już nie odpuszczę.",
+      "We've queued an hour. Not sure I want in, but I'm not giving up now."
+    ],
+    [
+      "Powiedz, że jesteś z Berlina. Nie, nic nie mów. Patrz w dal.",
+      "Say you're from Berlin. No, say nothing. Stare into the distance."
+    ],
+    [
+      "Mam czarną koszulkę, czarne spodnie i stres.",
+      "Black T-shirt, black trousers and stress."
+    ],
+    [
+      "W środku nie wolno robić zdjęć. Więc zrobię jedno w kolejce.",
+      "No photos inside. So I'll take one in the queue."
+    ],
+    [
+      "Jak nie wejdziemy, to kebab i do domu. Plan C.",
+      "If we don't get in, it's a kebab and home. Plan C."
+    ],
+    [
+      "Ten bramkarz pamięta mnie z zeszłego tygodnia. To źle.",
+      "That bouncer remembers me from last week. That's bad."
+    ]
+  ],
+  "dawn_crowd": [
+    [
+      "Okulary? Nie dla stylu. Po prostu słońce jest dziś bezczelne.",
+      "The sunglasses? Not for style. The sun is just rude today."
+    ],
+    [
+      "Wyszliśmy o siódmej. Miasto idzie do pracy, my wracamy.",
+      "We came out at seven. The city's off to work, we're heading home."
+    ],
+    [
+      "Która godzina? Niedziela.",
+      "What time is it? Sunday."
+    ],
+    [
+      "Pierwszy tramwaj, kebab i spać. Rytuał.",
+      "The first tram, a kebab, then bed. A ritual."
+    ],
+    [
+      "Gołębie patrzą na nas z wyższością. Mają rację.",
+      "The pigeons look down on us. They have a point."
+    ],
+    [
+      "Bierzemy Podwózkę. Nikt z nas nie prowadzi, i bardzo dobrze.",
+      "We're getting a Podwózka. None of us is driving, and that's how it should be."
+    ],
+    [
+      "Dzień dobry, Palmo. Ty też całą noc na nogach?",
+      "Good morning, Palm. You've been up all night too?",
+      {
+        "only": "palm"
+      }
+    ]
+  ],
+  "police_club": [
+    [
+      "Selekcja nas też nie wpuściła. Stoimy więc tutaj.",
+      "The door didn't let us in either. So we stand here."
+    ],
+    [
+      "Jesteśmy tu co weekend. Dla wschodu słońca. Ładny stąd.",
+      "We're here every weekend. For the sunrise. Lovely from here."
+    ],
+    [
+      "Kacper pyta, czemu wszyscy w okularach. Bo rano, Kacper.",
+      "Kacper asks why everyone's in sunglasses. Because it's morning, Kacper."
+    ],
+    [
+      "Trzeźwy i za kółkiem? Wzorowo. Proszę jechać.",
+      "Sober and behind the wheel? Exemplary. On you go.",
+      {
+        "only": "sober"
+      }
+    ]
+  ],
+  "schodki": [
+    [
+      "Kto przyniósł głośnik? Przyznać się.",
+      "Who brought the speaker? Own up."
+    ],
+    [
+      "Zachód słońca nad Pragą. Pół miasta udaje, że nie robi zdjęcia.",
+      "Sunset over Praga. Half the city pretending not to take a photo.",
+      {
+        "only": "sunset"
+      }
+    ],
+    [
+      "Siedzimy tu od szóstej. Plan był na godzinę.",
+      "We've been sitting here since six. The plan was an hour."
+    ],
+    [
+      "Najlepsze miejsce w mieście i nikt nie płaci za wstęp.",
+      "The best seat in town, and nobody pays to get in."
+    ],
+    [
+      "Jeszcze jedna piosenka i idziemy. Mówimy tak od dziewiątej.",
+      "One more song and we'll go. We've been saying that since nine.",
+      {
+        "only": "guitar"
+      }
+    ],
+    [
+      "Koc, lemoniada, pies. Weekend kompletny.",
+      "A blanket, lemonade, a dog. Weekend complete."
+    ],
+    [
+      "Wisła dziś leniwa. My też, solidarnie.",
+      "The Vistula's lazy today. So are we, in solidarity."
+    ],
+    [
+      "Czwarty chwyt! Świat się zmienia.",
+      "A fourth chord! The world is changing.",
+      {
+        "only": "fourth"
+      }
+    ]
+  ],
+  "viral": [
+    [
+      "Stoję po rogala, którego nie widziałem. Ale widziałem film.",
+      "Queuing for a croissant I've never seen. But I've seen the video.",
+      {
+        "only": "queue"
+      }
+    ],
+    [
+      "Kolejka jest częścią smaku. Tak mówią.",
+      "The queue is part of the flavour. So they say.",
+      {
+        "only": "queue"
+      }
+    ],
+    [
+      "Zdjęcie jest. Rogal też był. Chyba.",
+      "Got the photo. There was a croissant too. I think.",
+      {
+        "only": "queue"
+      }
+    ],
+    [
+      "Nowe miejsce. Otwarte od jutra, kolejka od dziś.",
+      "New place. Opens tomorrow, queue starts today.",
+      {
+        "only": "new"
+      }
+    ],
+    [
+      "W zeszłym tygodniu kolejka na dwie przecznice. Dziś tylko gołąb.",
+      "Last week the queue went round two blocks. Today, one pigeon.",
+      {
+        "only": "gone"
+      }
+    ],
+    [
+      "Trend minął. Zostało różowe krzesło i wspomnienia.",
+      "The trend's over. A pink chair and the memories remain.",
+      {
+        "only": "gone"
+      }
+    ],
+    [
+      "Glon: zielone, zdrowe i podobno smaczne. Podobno.",
+      "Glon: green, healthy and allegedly tasty. Allegedly.",
+      {
+        "only": "glon"
+      }
+    ],
+    [
+      "To już niemodne. Napiwku nie będzie, sorry.",
+      "That's not trendy any more. No tip, sorry.",
+      {
+        "only": "late"
+      }
+    ]
+  ],
+  "runners": [
+    [
+      "Środa, dziewiętnasta, bulwary. Kolka zawsze punktualnie.",
+      "Wednesday, seven p.m., the boulevards. Kolka is always on time."
+    ],
+    [
+      "Biegniemy dziesięć kilometrów, żeby potem stać w kolejce po kawę.",
+      "We run ten kilometres so we can queue for coffee afterwards."
+    ],
+    [
+      "Zegarek mówi, że żyję. Nogi mają inne zdanie.",
+      "My watch says I'm alive. My legs disagree."
+    ],
+    [
+      "Ej, samochód robi nam za zająca! Trzymaj tempo, auto!",
+      "Hey, the car's pacing us! Keep it steady, car!",
+      {
+        "only": "zajac"
+      }
+    ],
+    [
+      "Hyrax w sobotę. Od tygodnia noszę do pracy worek piasku.",
+      "Hyrax on Saturday. I've carried a sandbag to work all week.",
+      {
+        "only": "hyrax"
+      }
+    ],
+    [
+      "Stacja trzecia: słoiki po schodach. Mama byłaby dumna.",
+      "Station three: carry the jars up the stairs. Mum would be proud.",
+      {
+        "only": "hyrax"
+      }
+    ]
+  ],
+  "dog_walkers": [
+    [
+      "On nie gryzie. On tylko ocenia.",
+      "He doesn't bite. He just judges."
+    ],
+    [
+      "Mamy trzy spacery dziennie. Jeden mój, reszta jego.",
+      "We do three walks a day. One is mine, the rest are his."
+    ],
+    [
+      "Nie, to nie jest jamnik. To jest styl życia.",
+      "No, it isn't a dachshund. It's a lifestyle."
+    ],
+    [
+      "Na Powiślu pies ma więcej znajomych niż ja.",
+      "In Powiśle the dog has more friends than I do."
+    ],
+    [
+      "Pies szczeka na klakson. Ja też bym szczekał.",
+      "The dog barks at horns. So would I.",
+      {
+        "only": "horn"
+      }
+    ],
+    [
+      "Ma więcej obserwujących niż ja. I lepsze światło.",
+      "He's got more followers than me. And better lighting.",
+      {
+        "only": "influencer"
+      }
+    ]
+  ],
+  "cyclists": [
+    [
+      "Ścieżka rowerowa to nie parking. Ale dzięki za zaufanie.",
+      "A bike lane isn't a car park. But thanks for the trust.",
+      {
+        "only": "lane"
+      }
+    ],
+    [
+      "Rowerilo oddany po 19:59. Gratis. Jestem logistykiem.",
+      "Rowerilo docked at 19:59. Free ride. Logistics genius."
+    ],
+    [
+      "Rower cargo, dwoje dzieci, zakupy i pies. I tak jestem szybszy.",
+      "A cargo bike, two kids, the shopping and a dog. Still faster than you."
+    ],
+    [
+      "Mam dzwonek i nie zawaham się go użyć.",
+      "I've got a bell and I'm not afraid to use it."
+    ]
+  ],
+  "metro_announce": [
+    [
+      "Stacja Centrum. Przesiadka na M2 i na życie towarzyskie.",
+      "Centrum. Change here for line M2 and for your social life."
+    ],
+    [
+      "Świętokrzyska: tu M1 spotyka M2. Za każdym razem wzruszające.",
+      "Świętokrzyska: where M1 meets M2. Moving every time."
+    ],
+    [
+      "Stadion Narodowy. W dniu meczu wysiada cały wagon. I sąsiedni.",
+      "Stadion Narodowy. On match days the whole carriage gets off. And the next one."
+    ],
+    [
+      "Kopernik. Wysiądź, jeśli chcesz wiedzieć, czemu wszystko.",
+      "Kopernik. Get off here if you want to know why everything."
+    ],
+    [
+      "Rondo Daszyńskiego. Mordor Zachodni. Proszę zabrać laptopa.",
+      "Rondo Daszyńskiego. Western Mordor. Please take your laptop with you."
+    ],
+    [
+      "Drzwi się zamykają. Ostatni wbiega zawsze ten z kawą.",
+      "The doors are closing. The last one in is always the one with a coffee."
+    ],
+    [
+      "Nowy Świat-Uniwersytet. Wyjście na wykład i na kebab.",
+      "Nowy Świat-Uniwersytet. Exits for lectures and for kebab."
+    ]
+  ],
+  "bus_stop": [
+    [
+      "Rozkład mówi: za dwie minuty. Rozkład jest optymistą.",
+      "The timetable says two minutes. The timetable is an optimist."
+    ],
+    [
+      "Tablica od pięciu minut pokazuje „1 min”.",
+      "The board has said \"1 min\" for five minutes."
+    ],
+    [
+      "Stoję na przystanku na żądanie. Żądam.",
+      "I'm at a request stop. I'm requesting."
+    ],
+    [
+      "Autobus był pełny, więc czekam na następny. Też pełny.",
+      "The bus was full, so I'm waiting for the next. Also full."
+    ],
+    [
+      "Nocny autobus: jedyne miejsce, gdzie wszyscy są szczerzy.",
+      "The night bus: the only place where everyone's honest.",
+      {
+        "only": "night"
+      }
+    ],
+    [
+      "Kierowca nocnego zna wszystkie historie miasta. Nie zdradzi żadnej.",
+      "The night bus driver knows every story in this city. He won't tell one.",
+      {
+        "only": "night"
+      }
+    ]
+  ],
+  "notes": [
+    [
+      "Nowy wpis w notesie.",
+      "New notebook entry.",
+      {
+        "only": "found"
+      }
+    ],
+    [
+      "Rozdział pełny. Miasto mówi: dzięki.",
+      "Chapter complete. The city says thanks.",
+      {
+        "only": "chapter"
+      }
+    ],
+    [
+      "Kadr! Ten widok jest twój.",
+      "Got the shot! This view is yours.",
+      {
+        "only": "kadr"
       }
     ]
   ]

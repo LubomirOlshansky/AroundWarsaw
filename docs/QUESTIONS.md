@@ -16,6 +16,16 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-30 · content · MW-0 (Moja Warszawa data)** — Where is the real "Apteka" bar you
+  meant? Options: name the street / keep the default. Default built: APTECZKA in a Nowy Świat
+  22/28 courtyard pavilion, marked `guess` in `game/data/places.json`. If the "Apteka" came from
+  the song with "apteką" in its title, say so and it gets an invented name instead. Where: PR (MW-0).
+- **2026-10-30 · content · MW-0** — The then-and-now cards start in 2010 (the demo's "time
+  tape"), so vision.md's 2009 blue hall and the 1990s items wait for later. Allow the blue hall
+  as an exception? Default built: 20 cards from 2010 to 2024 (`game/data/then_cards.json`).
+- **2026-10-30 · content · MW-0** — Historic hall names "Hala Koszyki" and "Hala Gwardii" are
+  kept as place names (they are also the halls' trade names); the new tower and museum are
+  never named. Rename the halls descriptively ("Hala na Koszykowej")? Default built: kept.
 - **2026-10-30 · store release · store listings** — Ship the iOS app for iPhone and iPad, or
   iPhone only? Once an iPad version is on the App Store, later versions can't drop iPad.
   Options: iPhone and iPad (needs an iPad device pass) / iPhone only. Default built: nothing
