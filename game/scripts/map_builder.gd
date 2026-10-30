@@ -4873,19 +4873,21 @@ func _cylinder(st, centre: Vector3, radius: float, height: float, sides: int, co
 		_tri(st, centre + up, p1 + up, p0 + up, Vector3.UP, col)
 
 
-## Benches, bins, bike racks, bus shelters and Warsaw's advertising columns.
+## Benches, bins, bike racks, bus shelters and Warsaw's advertising columns. The easy-driving
+## loop (2026-10-30, the user's call): the small ones (benches, bins, bike racks, columns) are not
+## obstacles, the car drives through them like the lamps and signal poles; shelters stay solid.
 func _build_props() -> void:
 	_make_shared()
 	var metal: Material = _shared["prop_metal"]
 	var none: Array[Color] = []
-	_props(_shared["bench"], metal, data.get("benches", []), 3.2, none, true)
-	_props(_shared["bin"], metal, data.get("bins", []), 1.0, none, true)
-	_props(_shared["rack"], metal, data.get("bikes", []), 3.4, none, true)
+	_props(_shared["bench"], metal, data.get("benches", []), 0.0, none, true)
+	_props(_shared["bin"], metal, data.get("bins", []), 0.0, none, true)
+	_props(_shared["rack"], metal, data.get("bikes", []), 0.0, none, true)
 	var tints: Array[Color] = []
 	var list: Array = data.get("columns", [])
 	for i in range(0, list.size() - 2, 3):
 		tints.append(Color(POSTER[int(absf(float(list[i]) * 7.0 + float(list[i + 1]) * 3.0)) % POSTER.size()]))
-	_props(_shared["column"], metal, list, 1.4, tints)
+	_props(_shared["column"], metal, list, 0.0, tints)
 	var shelters: Array = data.get("shelters", [])
 	var glows: Array[Color] = []
 	glows.resize(shelters.size() / 3)
