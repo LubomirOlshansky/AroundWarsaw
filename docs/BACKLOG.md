@@ -116,8 +116,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   knows the deck heights; the water gets reflections instead of pools).
 - The sounds were judged by numbers only (peaks, RMS, loop seams, spectra, bus meters); nobody
   has heard them on a phone. The engine is tuned for a phone speaker (little below 150 Hz).
-- Puddles are a noise mask on the road layer: lane markings and stop lines are drawn over them,
-  so a painted line crosses a puddle unbroken.
+- ~~Puddles are a noise mask on the road layer: lane markings and stop lines are drawn over them,
+  so a painted line crosses a puddle unbroken.~~ Fixed 2026-10-30 (loop 3i item, a cloud thread):
+  the markings layer gets the same puddle mask as the asphalt in `ground.gdshader`, so a line goes
+  dark and mirrors the sky where it crosses a puddle (the post pass already reflected on them).
 - The mirror reflections are screen-space: only what stands on screen above a surface
   reflects (nothing past the top edge), and thin posts reflect as broken dashes. (By day the
   water now shows a bridge as a darker band, loop 1.) The light concrete slab edges of Most
@@ -929,8 +931,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   public TestFlight and Play links to the beta section when they exist).
 - The site's form posts to the Stillplace Formspree form (`mykaeqjp`); give Around Warsaw its own
   form, and check the form isn't restricted to stillplace.app.
-- The game still calls its station NOCNA FM (`radio.gd`); the site says Kebab FM, as the user
-  asked on 2026-10-29.
+- ~~The game still calls its station NOCNA FM (`radio.gd`); the site says Kebab FM, as the user
+  asked on 2026-10-29.~~ Renamed in the game too (KEBAB FM, 2026-10-30).
 - ~~The screenshots are from the prototype~~ (website v2: eight new `--nohud` shots, 2026-10-30).
 - From the landing's screenshot session (2026-10-30, runtime city, 2868×1320): the map's edge
   shows in wide views (about `--size=220` and up): a flat light-blue void by day east of the
@@ -945,6 +947,28 @@ Small problems that agents reported or that showed up in screenshots. They are f
   from Emilii Plater).
 - A thin dark crack-like line across the plaza at the Palace's south-east corner at night
   (`--at=-1410,159 --yaw=90 --size=260 --time=night`, visible at full size).
+
+## From the store listings (2026-10-30)
+
+- `https://aroundwarsaw.app/support/` exists in the repo (`docs/support.md`) but goes live only
+  with the next deploy; the store forms link to it.
+- iPad: the iOS preset targets iPhone and iPad (`targeted_device_family=2`); keep or drop
+  before the first App Store release (QUESTIONS.md). Nobody has played on an iPad yet.
+- The App Store wants a privacy manifest (`PrivacyInfo.xcprivacy`) for apps using
+  required-reason APIs (file timestamps, system boot time, UserDefaults); Godot's iOS template
+  may need one declaring them, with no data collected. Check App Store Connect's email after
+  the first upload.
+- The store screenshots show the HUD; they need redoing when the HUD changes . They show the radio
+  button as NOCNA FM: the game's station became Kebab FM (#3) after they were rendered, so
+  re-render them before uploading.
+- **On a 4:3 screen (iPad) the pull-over's dialogue panel never appears**: the conversation runs
+  (`--police-log` shows it, frames 60-349) but nothing is drawn, at 2440×1830, 2200×1650 and
+  1600×1200; 16:9 and wider are fine. The iPad's fifth store shot is a Podwózka ride instead.
+- On the ride HUD at 4:3 the distance marker ("1597 m" and its arrow) can sit on the HAMULEC
+  button (`--ride=2`).
+- Varso's crown runs off the top of store shot 7 (all three sizes); most shots show 0 km/h.
+- The iPad set is rendered at 2440×1830 and scaled to 2752×2064 (the Mac can't open a
+  2064-pixel-tall window).
 
 ## From the driving-feel loop (less sticky, 2026-10-30)
 
