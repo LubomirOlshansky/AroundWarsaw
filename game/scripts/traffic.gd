@@ -91,6 +91,12 @@ const SHOVE_ACROSS := 2.0
 const DAZE := 2.5
 const DAZE_POLICE := 1.5
 const DAZE_DECEL := 4.0
+## The traffic loop (2026-10-30): a brush is not a crash. A hit at BRUSH_HIT m/s closing speed or
+## less (the car's own bump threshold is 2) dazes the car for DAZE_BRUSH s; a hit at FULL_HIT m/s
+## or more for the whole DAZE (it stopped dead for 2.5 s whatever the knock).
+const DAZE_BRUSH := 0.4
+const BRUSH_HIT := 3.0
+const FULL_HIT := 8.0
 ## Loop 3g-1: a car giving way to a police car with its lights on slows to this (m/s), and a
 ## chaser crosses a red (or a roundabout) no faster than SIREN_SLOW (30 km/h).
 const YIELD_SPEED := 5.0
@@ -454,7 +460,7 @@ func _bodies_step(_dt: float) -> void:
 
 
 ## The player's car hit something; if it was one of ours, that car stops a moment.
-func on_player_bump(collider: Object, _speed := 0.0) -> void:
+func on_player_bump(collider: Object, speed := 0.0) -> void:
 	# Walls, kiosks and statues are static bodies: not one of ours (and a typed
 	# array's find() refuses another type).
 	if not collider is AnimatableBody3D:
@@ -467,9 +473,9 @@ func on_player_bump(collider: Object, _speed := 0.0) -> void:
 			# Loop 3g-1: police.gd decides (a warning, a ram); a parked one doesn't budge.
 			if not d.parked:
 				d.daze = DAZE_POLICE
-			bumped_police.emit(d, _speed)
+			bumped_police.emit(d, speed)
 			return
-		d.daze = DAZE
+		d.daze = maxf(d.daze, lerpf(DAZE_BRUSH, DAZE, clampf((speed - BRUSH_HIT) / (FULL_HIT - BRUSH_HIT), 0.0, 1.0)))
 		bumped_driver.emit(d)
 
 
