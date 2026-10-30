@@ -438,6 +438,7 @@ func _build_parts(marks, roofs_only: bool) -> void:
 	_build_shore()
 	_add_mesh(walls, building_material, true)
 	_build_neon(keep, marks)
+	_build_landmark_signs(marks)
 
 	_build_trees()
 	_build_street_furniture()
@@ -4385,7 +4386,7 @@ func _make_shared() -> void:
 	var neon := ShaderMaterial.new()
 	neon.shader = load("res://shaders/neon.gdshader")
 	neon.set_shader_parameter("words", Neon.atlas())
-	neon.set_shader_parameter("rows", float(Neon.WORDS.size()))
+	neon.set_shader_parameter("rows", float(Neon.all_words().size()))
 	_shared["neon"] = neon
 	_shared["neon_quad"] = Neon.quad()
 
@@ -4745,6 +4746,34 @@ static func halo_quad(size: float) -> ArrayMesh:
 ## Neon shop signs (neon_signs.gd) on the ground floor of about a third of the
 ## buildings with a street in front: on the longest wall facing it, if the word
 ## fits. They go under a "Neon" node the game shows only when the lights are on.
+## The landmarks loop: the landmarks' own big signs (`marks.signs`: word, the middle of its
+## bottom edge, the wall's outward normal, the scale over a shop sign), lit by day and night
+## (INSTANCE_CUSTOM.z = 2), so not under the night lights' holder.
+func _build_landmark_signs(marks) -> void:
+	if marks.signs.is_empty():
+		return
+	_make_shared()
+	var spots: Array[Transform3D] = []
+	var colours: Array[Color] = []
+	var custom: Array[Color] = []
+	var all := Neon.all_words()
+	for sign: Array in marks.signs:
+		var word: String = sign[0]
+		var t := Neon.place(word, sign[1], sign[2])
+		var k: float = sign[3]
+		t.basis = Basis(t.basis.x * k, t.basis.y * k, t.basis.z)
+		t.origin = sign[1] + Vector3.UP * (t.basis.y.length() * 0.5) + (sign[2] as Vector3).normalized() * 0.4
+		spots.append(t)
+		colours.append(sign[4])
+		custom.append(Color(all.find(word), float(Neon.word_width(word) + 2 * Neon.PAD) / Neon.ATLAS_W, 2.0, 0.0))
+	var holder := Node3D.new()
+	holder.name = "LandmarkSigns"
+	_out.add_child(holder)
+	_tree_multimesh(_shared["neon_quad"], _shared["neon"], spots, colours, custom, holder)
+	for c in holder.get_children():
+		(c as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
 func _build_neon(keep: Array, marks) -> void:
 	var streets := {}
 	for r in data["roads"]:

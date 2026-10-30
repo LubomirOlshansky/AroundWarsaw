@@ -36,7 +36,8 @@ void fragment() {
 	}
 	vec4 t = texture(words, vec2(UV.x * info.y, (info.x + UV.y) / rows));
 	// A tired tube: every so often it drops out for a moment.
-	float on = lights_on;
+	// The landmarks loop: a landmark's sign (INSTANCE_CUSTOM.z = 2) is lit by day too, on no plate.
+	float on = info.z > 1.5 ? max(lights_on, 0.7) : lights_on;
 	if (info.w > 0.88) {
 		float n = fract(sin(floor(TIME * 9.0) * 12.9898 + info.w * 78.233) * 43758.5453);
 		on *= n < 0.2 ? 0.12 : 1.0;
@@ -45,8 +46,8 @@ void fragment() {
 	if (t.r > 0.5) {
 		ALBEDO = mix(tube, vec3(1.0), 0.4) * 2.2 * on;
 	} else if (t.g > 0.3) {
-		ALBEDO = tube * t.g * 0.85 * on + plate * info.z;
-	} else if (info.z > 0.5) {
+		ALBEDO = tube * t.g * 0.85 * on + plate * min(info.z, 1.0);
+	} else if (info.z > 0.5 && info.z < 1.5) {
 		ALBEDO = plate;
 	} else {
 		discard;
