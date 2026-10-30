@@ -71,6 +71,9 @@ need) and the orchestrator sends the cheap `scout`.
 Take the safe, reversible default, build it, and list it under Open Questions with the
 alternative; downloads and new data sources always wait for the user.
 
+In backlog mode a block never ends the run: stop that item, say exactly why, and go on to
+the next item in the brief. The orchestrator parks your Open Questions in `docs/QUESTIONS.md`.
+
 ## Report
 
 What changed per item, the defect classes with counts before → after, the bake counts, files

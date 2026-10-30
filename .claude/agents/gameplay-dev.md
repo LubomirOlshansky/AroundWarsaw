@@ -73,6 +73,9 @@ If something is ambiguous: take the safe, reversible default, build it, and list
 Open Questions with the alternative. If you're blocked, stop that item and say exactly why.
 Never claim a check passed that you didn't run; a failed check is reported as failed.
 
+In backlog mode a block never ends the run: stop that item, say exactly why, and go on to
+the next item in the brief. The orchestrator parks your Open Questions in `docs/QUESTIONS.md`.
+
 ## Report
 
 What changed (per item), root causes confirmed (with numbers), files new/changed, screenshots
