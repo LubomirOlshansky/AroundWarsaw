@@ -101,8 +101,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   knows the deck heights; the water gets reflections instead of pools).
 - The sounds were judged by numbers only (peaks, RMS, loop seams, spectra, bus meters); nobody
   has heard them on a phone. The engine is tuned for a phone speaker (little below 150 Hz).
-- Puddles are a noise mask on the road layer: lane markings and stop lines are drawn over them,
-  so a painted line crosses a puddle unbroken.
+- ~~Puddles are a noise mask on the road layer: lane markings and stop lines are drawn over them,
+  so a painted line crosses a puddle unbroken.~~ Fixed 2026-10-30 (loop 3i item, a cloud thread):
+  the markings layer gets the same puddle mask as the asphalt in `ground.gdshader`, so a line goes
+  dark and mirrors the sky where it crosses a puddle (the post pass already reflected on them).
 - The mirror reflections are screen-space: only what stands on screen above a surface
   reflects (nothing past the top edge), and thin posts reflect as broken dashes. (By day the
   water now shows a bridge as a darker band, loop 1.) The light concrete slab edges of Most
