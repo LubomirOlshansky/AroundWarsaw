@@ -9,6 +9,15 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Narodowy), the bus stops, and other weak models. Goal: keep the game's own pixel and
   low-poly style, but with colours, proportions and silhouettes that clearly read as the real
   buildings. Before/after shots at phone size. Lane "landmarks/models" (docs/QUESTIONS.md).
+  **First pass landed (2026-10-30, ROADMAP "landmark models")**: 18 towers in their own
+  colours, skins and crowns (Złota 44's white exoskeleton and sloped top, Warsaw Spire's
+  diamonds, Rondo 1's open crown, Q22 at its real 155 m, Chałubińskiego 8's white ribs and the
+  rest), each with an info card; Złote Tarasy's glass golden; Muzeum Narodowe in its pale stone
+  with tall windows and a card; new bus shelters (glass roof, poster box lit at night, the
+  blue D-15 sign). The Palace and the stadium were already detailed models and keep their look.
+  **Still to do**: the other towers in the generic blue glass (Hilton, Westin, Ilmet, Novotel,
+  PZU Tower, Central Tower, JM Tower, the Platinum Towers, Łucka City, Widok Towers, Vibe), and
+  any model the user names next.
 
 ## From v0.6 (traffic, trams, pedestrians, rivals)
 - ~~Cars can overlap briefly in complex junctions~~ (fewer by three quarters, the traffic loop
@@ -1147,9 +1156,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **Try it in a phone's browser** (iOS Safari, Android Chrome): memory with the ~140 MB pack in
   memory, the touch controls for real, the safe area (`OS.has_feature("mobile")` is false on the
   web, so the HUD uses the desktop layout rules), the frame rate.
-- **Smaller download**: ~141 MB, mostly the 108 sector scenes, which barely compress. Options:
-  load sectors over HTTP as the car needs them (a pack per sector with
-  `ProjectSettings.load_resource_pack`), or a web-only lighter city (no far sectors, proxies only).
+- **Smaller download** (web loop 2 did the sectors: 141 → 59 MB at the start). What is left: the
+  pack's 40 MB (shared meshes and textures 20, proxies 8.5, index 7.7), the engine's 10.
+- **A sector the car reaches before its pack** shows its proxy and has no colliders; on a slow
+  link a fast helicopter could outrun the downloads. Not seen in tests.
 - **The Compatibility renderer's look**: compare the web against the phone shot for shot
   (night lights, water, shadows); only the green traffic was fixed.
 - **Prebuilt MultiMeshes with custom data and no colours** would show the same Compatibility bug

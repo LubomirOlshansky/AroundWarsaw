@@ -537,7 +537,8 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   to its mapped height (35 m by the offices, 22 m towards the station), blended where they meet
   (log-sum-exp, 2.6 m) so it rolls instead of creasing, laid on the ground's slope, with glass
   walls round its rim; a diamond lattice by day, glowing gold at night. Lumen and Skylight stay
-  LoD2.
+  LoD2. The landmarks loop: the glass is golden (`#d4b066`, with less sky in it and a whiter
+  lattice; it read as ice before).
 - **Rotunda**: a granite plinth, two storeys of glass lit from inside, a lit band under the
   overhanging white roof, which rises in ribs to a glass oculus.
 - **Varso Tower**: from its mapped parts (the glass slabs, the dark spines at both ends, the glass
@@ -556,10 +557,38 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   turn, so the eaves zigzag), the glass hall under it, the canopy round it to 140 x 86 m.
 - **Most Poniatowskiego**: its four towers at the ends of the river span (mapped outlines, no
   heights): plinth, shaft and cornice to 15 m over the deck, an arcade, a pointed roof, a finial.
+- **The skyline's towers** (the landmarks loop, 2026-10-30; `landmarks.gd` `TOWERS`): Złota 44,
+  Warsaw Spire, Q22, Rondo 1, Emilii Plater 49 (the hotel with the gap), Cosmopolitan, Warsaw
+  Trade Tower, Skyliner, Warsaw Unit, Mennica Legacy Tower, Generation Park Y, Skysawa,
+  Błękitny Wieżowiec, Warszawskie Centrum Finansowe, Centrum LIM, Chałubińskiego 8, Spektrum
+  Tower and The Bridge were all the same blue box. Each is now built from its mapped parts
+  (what else stands in its outline, LoD2 or OpenStreetMap, is dropped; the outline itself is
+  left out when parts are mapped; a part starting in the air with nothing mapped under it
+  stands on the ground; parts under 9 m across are painted steel: masts, rings) in its own
+  glass colour, roof colour and skin (`M_SKIN`, the fraction picks `S_*`, `building.gdshader`
+  `skin()`): Złota 44's white exoskeleton (floor bands and long diagonals) with its top cut on
+  a slope, Warsaw Spire's diamonds, silver floor bands (Q22, WTT, Unit, Skysawa, Spektrum),
+  vertical fins (Rondo 1, Skyliner, Mennica, The Bridge, Chałubińskiego 8's white ribs in their
+  mapped colours), the hotel's white grid, Cosmopolitan's white balcony slabs, dark glass (WCF,
+  LIM, Generation Park Y), gold glass (Błękitny Wieżowiec) and Rondo 1's open crown frame from
+  its roof to 192 m (`S_FRAME`: the panes are cut away). Q22 stood 55 m tall (its LoD2 model
+  predates the tower); it is 155 m now. Each has an info card; the far skyline (proxies) takes
+  each tower's glass colour.
+- **Muzeum Narodowe** (the landmarks loop): kept as LoD2 draws it (one model round its
+  courtyards), but in its pale stone with tall windows between piers (`M_MONUMENT`, `#c9bfa9`):
+  `map_builder` asks `landmarks.skin_at` for every kept LoD2 run and OpenStreetMap building
+  (its centre in the site's outline, or its whole box inside the outline's box). Its outline's
+  cells are on the picking grid for its card.
+- **Bus and tram shelters** (the landmarks loop; `map_builder.gd` `_make_shared`): Warsaw's
+  glass shelter as the game's camera sees it: a pale glass roof in a graphite frame overhanging
+  the kerb, a dark fascia, glass back and end, three posts, a bench, a poster box at the far end
+  whose faces glow at night (`SHELTER_POSTER`, drawn with the street lamps' `fixture.gdshader`,
+  `SHELTER_GLOW` in each instance's custom data) and the stop's blue D-15 sign on its own pole.
+  Still one MultiMesh per tile (the draw calls are unchanged); 288 triangles a shelter (was 48).
 
 Materials (`building.gdshader`): UV2.x >= 2 is a material code (`landmarks.gd` `M_*`: monument
 stone with windows, plain stone, crenellated attic, gold, clock dial, woven skin, glass wave,
-lit glass pavilion, curtain wall, lamp, membrane), its fraction a parameter; UV2.y the wall's
+lit glass pavilion, curtain wall, lamp, membrane, a tower's skin), its fraction a parameter; UV2.y the wall's
 top; UV the metres along and up a wall. Every landmark triangle also goes into the helicopter's
 roof grid (the Palace's spire stands 236 m in its cells, so it can't be flown through; roofs
 can be landed on) and into a grid of which landmark covers each 4 m cell; their walls at street
@@ -3615,8 +3644,30 @@ tools/export_web.sh --deploy   # also upload it (the user's yes first: it is pub
   slot, so traffic, pedestrians and the splash came out bright green. On that renderer those
   MultiMeshes carry white colours too and their 16-float buffers are widened to 20 floats when
   sent (traffic, pedestrians, splash); on Mobile (the phones) the helper passes straight through.
+- **Sectors on demand** (web loop 2): the 108 sector scenes (96 MB) are not in the web pack.
+  `game/tools/pack_sectors.gd` (run by the export script) makes each a pack of its own,
+  `sectors/s_<i>_<j>.<hash>.pck` (~0.9 MB), and `res://map/web_sectors.json` lists them with the
+  spawn. On the web `scripts/sector_packs.gd` downloads the sectors within the start's 320 m
+  (6, ~9 MB) while the title shows, then the streamer asks for each wanted sector's pack (nearest
+  first, 3 at a time) and loads it once it is mounted (`ProjectSettings.load_resource_pack`,
+  only while the streamer's worker is idle); a sector not in yet shows its proxy. The first
+  download is ~59 MB (engine 10, pack 40, start sectors 9) instead of ~141 MB. Other builds
+  never see any of it (`SectorPacks.active()` needs the `web` feature and the manifest).
+  HTTPRequest on the web reads one network chunk a frame, so a background tab (throttled to
+  ~1 fps) loads sectors slowly; in a visible tab the start's six took 0.15-0.3 s locally.
+- **Phones' browsers** (web loop 2): an iPhone's Safari closed the first version's page (the
+  whole 140 MB city in memory). Now a sector's pack file is deleted once its scene is loaded
+  (fetched again from the browser's cache if the sector comes back), and Auto picks **Low** on a
+  phone's browser (`web_ios`, `web_android` features; main.gd `_load_settings`). The pigeons'
+  and the meeting point's crowd were green on the Compatibility renderer too (instance-by-
+  instance MultiMeshes): `InstanceBuffers.whiten`.
+- **Loading screen**: `tools/web/loading.css` (night colours, a pink bar, the title) and the
+  loader's label "Ładujemy miasto · Loading the city, N / 50 MB" from the parts' gzipped sizes.
 - **What the browser test covered** (Chrome in the desktop app's browser pane): the title, the
   fly-in, the prebuilt city, traffic colours, keyboard driving (WASD), the touch stick from
-  synthetic touch events at 844×390. Not covered: a real phone's browser (iOS Safari's memory
+  synthetic touch events at 844×390. Web loop 2, with Playwright 1.63 on the Mac
+  (`chromium` and `webkit` with the "iPhone 15 Pro landscape" device): the city built 5-6 s
+  after opening locally, tap to start, WASD, the sectors streaming as the car moves, the loading
+  screen on a throttled 40 Mbit/s link. Not covered: a real phone's browser (iOS Safari's memory
   with a 140 MB pack, the safe area: `OS.has_feature("mobile")` is false on the web), frame rate
   on a weak laptop, Firefox.

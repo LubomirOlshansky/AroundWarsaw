@@ -4,7 +4,7 @@ Usage: python3 -I tools/web/split_parts.py <file> [<file> ...]
 
 For each file writes parts/<file>.<hash>.<n> (the gzip stream cut every 20 MiB; the hash, from
 the file's contents, keeps a cached part from an older build out) and <file>.parts.json
-({"size": unzipped bytes, "type": MIME type, "parts": [names]}), then deletes the file.
+({"size": unzipped bytes, "packed": gzipped bytes, "type": MIME type, "parts": [names]}), then deletes the file.
 tools/web/split_loader.js joins them again in the browser (tools/export_web.sh).
 """
 
@@ -31,7 +31,7 @@ def split(path: Path) -> None:
 		name = f"parts/{path.name}.{tag}.{n:03d}"
 		(path.parent / name).write_bytes(packed[at:at + PART])
 		names.append(name)
-	manifest = {"size": len(data), "type": TYPES.get(path.suffix, "application/octet-stream"), "parts": names}
+	manifest = {"size": len(data), "packed": len(packed), "type": TYPES.get(path.suffix, "application/octet-stream"), "parts": names}
 	(path.parent / (path.name + ".parts.json")).write_text(json.dumps(manifest) + "\n")
 	path.unlink()
 	print(f"{path.name}: {len(data) / 1e6:.1f} MB -> {len(packed) / 1e6:.1f} MB gzip in {len(names)} parts")

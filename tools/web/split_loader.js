@@ -7,6 +7,29 @@
 	'use strict';
 	const SPLIT = /(^|\/)index\.(pck|wasm)(\?.*)?$/;
 	const plainFetch = window.fetch.bind(window);
+	// The loading screen's title and label (tools/web/loading.css): megabytes in of the
+	// download's whole (the manifests' gzipped sizes, added up as each one is read).
+	let total = 0;
+	let got = 0;
+	let label = null;
+	function show() {
+		if (label === null) {
+			const status = document.getElementById('status');
+			if (status === null) {
+				return;
+			}
+			const title = document.createElement('div');
+			title.id = 'aw-title';
+			title.textContent = 'AROUND WARSAW';
+			status.insertBefore(title, status.firstChild);
+			label = document.createElement('div');
+			label.id = 'aw-label';
+			status.appendChild(label);
+		}
+		const mb = (n) => (n / 1e6).toFixed(0);
+		label.textContent = 'Ładujemy miasto · Loading the city\n' + mb(got) + ' / ' + mb(total) + ' MB';
+		label.style.whiteSpace = 'pre-line';
+	}
 	window.fetch = function (input, init) {
 		const url = typeof input === 'string' ? input : (input instanceof URL ? input.href : input.url);
 		if (!SPLIT.test(url) || typeof DecompressionStream === 'undefined') {
@@ -18,6 +41,8 @@
 				return plainFetch(input, init); // not split (a local test of the plain export)
 			}
 			return r.json().then(function (m) {
+				total += m.packed || 0;
+				show();
 				const dir = base.slice(0, base.lastIndexOf('/') + 1);
 				let i = 0;
 				let reader = null;
@@ -40,6 +65,8 @@
 								reader = null;
 								continue;
 							}
+							got += step.value.byteLength;
+							show();
 							controller.enqueue(step.value);
 							return;
 						}
