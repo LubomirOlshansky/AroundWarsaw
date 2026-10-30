@@ -3925,6 +3925,22 @@ func _make_shared() -> void:
 	_box(lantern, LANTERN_HEAD + Vector3(0, 0.45, 0), Vector3(0.34, 0.14, 0.34), iron)
 	_box(lantern, LANTERN_HEAD + Vector3(0, 0.62, 0), Vector3(0.06, 0.22, 0.06), iron)
 	_shared["lantern"] = _mark_head(lantern.commit())
+	# Plac Konstytucji's candelabras (MDM, 1952): a stone plinth, a tall iron column and three
+	# lanterns, two on a crossarm and one on top. The pole stands on the spot.
+	var candelabra := SurfaceTool.new()
+	candelabra.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_box(candelabra, Vector3(0, 0.5, 0), Vector3(1.0, 1.0, 1.0), Color("#a59b88"))
+	_box(candelabra, Vector3(0, 1.1, 0), Vector3(0.6, 0.2, 0.6), iron)
+	_box(candelabra, Vector3(0, 4.2, 0), Vector3(0.24, 6.0, 0.24), iron)
+	_box(candelabra, Vector3(0, 7.2, 0), Vector3(2.1, 0.14, 0.16), iron)
+	for x in [-1.0, 1.0]:
+		_box(candelabra, Vector3(x, 7.4, 0), Vector3(0.08, 0.3, 0.08), iron)
+	_box(candelabra, Vector3(0, 7.7, 0), Vector3(0.1, 0.9, 0.1), iron)
+	for c: Vector3 in [Vector3(-1.0, 7.9, 0), Vector3(1.0, 7.9, 0), CANDELABRA_HEAD]:
+		_box(candelabra, c, Vector3(0.5, 0.7, 0.5), LAMP_HEAD)
+		_box(candelabra, c + Vector3(0, 0.4, 0), Vector3(0.62, 0.1, 0.62), iron)
+		_box(candelabra, c + Vector3(0, 0.55, 0), Vector3(0.08, 0.22, 0.08), iron)
+	_shared["candelabra"] = _mark_head(candelabra.commit())
 	var fixture := ShaderMaterial.new()
 	fixture.shader = load("res://shaders/fixture.gdshader")
 	_shared["fixture"] = fixture
@@ -4137,11 +4153,17 @@ func _build_street_furniture() -> void:
 	var lanterns: Array[Transform3D] = []
 	var lantern_glows: Array[Color] = []
 	var royal := _royal_segments()
+	var candelabras: Array[Transform3D] = []
+	var candelabra_glows: Array[Color] = []
 	var list: Array = data.get("lamps", [])
 	for i in range(0, list.size() - 1, 2):
 		var x := float(list[i])
 		var z := float(list[i + 1])
 		var t := Transform3D(Basis(Vector3.UP, fposmod(x * 0.37 + z * 0.11, TAU)), Vector3(x, terrain_height(x, z), z))
+		if Vector2(x, z).distance_to(Vector2(CANDELABRAS.x, CANDELABRAS.y)) < CANDELABRAS.z:
+			candelabras.append(t)
+			candelabra_glows.append(SODIUM_GLOW)
+			continue
 		if _on_royal_route(x, z, royal):
 			lanterns.append(t)
 			lantern_glows.append(SODIUM_GLOW if _sodium_at(x, z) else LED_GLOW)
@@ -4163,12 +4185,17 @@ func _build_street_furniture() -> void:
 		mmi.add_to_group(SMALL_CASTERS, true)
 	for mmi in _tree_multimesh(_shared["lantern"], _shared["fixture"], lanterns, none, lantern_glows):
 		mmi.add_to_group(SMALL_CASTERS, true)
+	for mmi in _tree_multimesh(_shared["candelabra"], _shared["fixture"], candelabras, none, candelabra_glows):
+		mmi.add_to_group(SMALL_CASTERS, true)
 	var heads: Array[Transform3D] = []
 	for t in spots:
 		heads.append(Transform3D(Basis(), t * Vector3(1.2, 6.78, 0.0)))
 	for t in lanterns:
 		heads.append(Transform3D(Basis(), t * LANTERN_HEAD))
+	for t in candelabras:
+		heads.append(Transform3D(Basis(), t * Vector3(0, 7.9, 0)))
 	glows.append_array(lantern_glows)
+	glows.append_array(candelabra_glows)
 	_build_lamp_halos(heads, glows)
 
 	spots = []
@@ -4220,6 +4247,9 @@ const ROYAL_STREETS := ["Krakowskie Przedmieście", "Nowy Świat", "Senatorska",
 		"Kozia", "Brzozowa"]
 const ROYAL_REACH := 8.0
 const OLD_TOWN := Vector3(-760.0, -1680.0, 190.0)
+## Plac Konstytucji (x, z, radius): its lamps are MDM's candelabras, three lanterns each.
+const CANDELABRAS := Vector3(-533.8, 1282.4, 75.0)
+const CANDELABRA_HEAD := Vector3(0, 8.5, 0)
 
 
 ## The named Royal Route streets' segments in this map or sector: [a, b, half width + reach].

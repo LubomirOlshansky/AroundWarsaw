@@ -19,7 +19,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   94/98: the hotels by their addresses; Central Tower, Ilmet, the Platinum Towers, Łucka City,
   Widok Towers): 27 towers in all. **Third pass (2026-10-30)**: 15 low-rise landmarks
   (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm, Zachęta…) in their real colours.
-  **Street furniture**: historic lanterns on the Royal Route and in the Old Town (2026-10-30).
+  **Street furniture**: historic lanterns on the Royal Route and in the Old Town (2026-10-30). MDM's blocks and
+  Plac Konstytucji's candelabras (2026-10-30).
   Next candidates: tram stop platforms, kiosks (not in the baked data yet), Warsaw's green bins. **Left**: PZU Tower and JM Tower (oddly mapped) keep the
   generic glass, and any model the user names next (docs/QUESTIONS.md).
 
