@@ -562,7 +562,7 @@ saved PNG.
   still offers PODWÓZKA, a kebab or a race on a tap);
 - no timers anywhere (rescues started by hand run without a clock);
 - police: speed traps give the caution only, no chases (the gentle joke stays);
-- the radio prefers PÓŁNOC FM at night and NOCNA FM by dusk;
+- the radio prefers PÓŁNOC FM at night and KEBAB FM by dusk;
 - every 3–5 min *guess*, a soft hint: an edge arrow towards the nearest undiscovered notebook
   place, gone after 15 s or when tapped away.
 
@@ -670,7 +670,7 @@ Each chapter of the notebook unlocks one (4.1); tracks 1–2 are free from the s
 | Rivals and races | Unchanged; the final race "Trzy mosty" is a night drive past the steps and the clubs | none |
 | Police | Gentle; static units by two clubs at night; caution-only in Spacer | `police_club` lines, Spacer rule |
 | Eggs | Move into the notebook as cards | 5 existing + 40 here |
-| Radio | NOCNA FM, RONDO FM, MORDOR FM + PÓŁNOC FM | one station |
+| Radio | KEBAB FM, RONDO FM, MORDOR FM + PÓŁNOC FM | one station |
 | Billboards and posters | Carry the parodies' and the night's jokes | 3 billboards, 4 posters (section 7) |
 | Wallet | Notebook and Kadr respect, chapter złoty | rewards above |
 
