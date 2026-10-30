@@ -8,15 +8,18 @@ extends Node
 ## unit, through the traffic API (race_to, stop_racing, park, unpark, held, the light bar).
 ##
 ##   SelectorReactive
+##   ├ SequenceReactive  Escort   : IsRole(escort) → escort_lead (loop 3g-2: lights on, ahead to the
+##   │                              hospital at the pace police.gd asks; waiting for the player)
 ##   ├ SequenceReactive  PullOver : IsPullOver → hold_still (stopped behind the player, lights on)
 ##   ├ SequenceReactive  Roadblock: IsRole(roadblock) → hold_or_leave (parked; 10 s, then goes)
 ##   ├ SequenceReactive  Blocker  : IsRole(blocker) → hold_or_leave
 ##   ├ SequenceReactive  Search   : IsRole(chaser), IsPhase(search) → search_area
 ##   ├ SequenceReactive  Chase    : IsRole(chaser) → pursue (re-planned 1 Hz by police.gd)
 ##   ├ SequenceReactive  Trap     : IsRole(trap) → stay_parked
+##   ├ SequenceReactive  GuardFollow: IsRole(guard_follow) → guard_follow (loop 3g-2: the guards'
+##   │                              car after the player at 25 km/h, amber beacon; guards.gd routes)
+##   ├ SequenceReactive  Guard    : IsRole(guard) → drive_as_guard (the guards' car round the zone)
 ##   └ drive_as_traffic
-##
-## The escort (rescues) and the city guards' car come in part two (loop 3g-2): a branch each.
 
 const PoliceTree := preload("res://scripts/police/police_tree.gd")
 const SelectorReactive := preload("res://addons/beehave/nodes/composites/selector_reactive.gd")
@@ -52,6 +55,9 @@ var met := false
 ## Seconds before its megaphone may speak again, and before it warns again.
 var line_wait := 0.0
 var warn_wait := 0.0
+## Loop 3g-2, the escort: the route to the hospital (distances to its node, police.gd's cache).
+var escort_route := PackedFloat32Array()
+var escort_node := -1
 ## Blocker and roadblock: seconds the chase has been away from it, the player's closest pass.
 var away := 0.0
 var closest := INF
@@ -71,6 +77,7 @@ func build() -> void:
 	var top := SelectorReactive.new()
 	top.name = "Selector"
 	tree.add_child(top)
+	top.add_child(_branch("Escort", [_role("escort")], "escort_lead"))
 	top.add_child(_branch("PullOver", [IsPullOver.new()], "hold_still"))
 	top.add_child(_branch("Roadblock", [_role("roadblock")], "hold_or_leave"))
 	top.add_child(_branch("Blocker", [_role("blocker")], "hold_or_leave"))
@@ -79,6 +86,8 @@ func build() -> void:
 	top.add_child(_branch("Search", [_role("chaser"), in_search], "search_area"))
 	top.add_child(_branch("Chase", [_role("chaser")], "pursue"))
 	top.add_child(_branch("Trap", [_role("trap")], "stay_parked"))
+	top.add_child(_branch("GuardFollow", [_role("guard_follow")], "guard_follow"))
+	top.add_child(_branch("Guard", [_role("guard")], "drive_as_guard"))
 	top.add_child(_action("drive_as_traffic"))
 	add_child(tree)
 
@@ -236,4 +245,60 @@ func hold_or_leave() -> int:
 	closest = minf(closest, dist)
 	if away >= HOLD_LEAVE:
 		police.dismiss(self)
+	return BeehaveNode.RUNNING
+
+
+# --- loop 3g-2: the escort and the guards' car ------------------------------------------------
+
+## Escorting a rescue to the hospital: lights and siren, along the route, at the pace police.gd
+## writes on the blackboard (`escort_v` m/s; `escort_wait`: stopped, waiting for the player).
+## Through reds slowly like a chaser; traffic ahead gives way.
+func escort_lead() -> int:
+	var d = driver
+	if _mode != "escort":
+		_mode = "escort"
+		if d.parked:
+			police.pull_out(self)
+		traffic.set_lights(d, true)
+		d.chase = true
+		d.persistent = true
+		d.accel_factor = CHASE_ACCEL
+		d.keep_gap = 8.0
+		d.goal = Vector2.INF
+		if escort_node >= 0:
+			traffic.race_to(d, escort_node, escort_route)
+	d.held = tree.blackboard.get_value("escort_wait", false)
+	d.v_cap = maxf(float(tree.blackboard.get_value("escort_v", CHASE_TOP)), 2.0)
+	return BeehaveNode.RUNNING
+
+
+## The guards' car round the zone: lights off, the traffic's pace; guards.gd takes it away.
+func drive_as_guard() -> int:
+	if _mode != "guard":
+		_mode = "guard"
+		var d = driver
+		traffic.set_lights(d, false)
+		d.chase = false
+		d.v_cap = 0.0
+		d.keep_gap = 2.4
+		d.goal = Vector2.INF
+		d.accel_factor = 1.0
+		d.held = false
+		if not d.route.is_empty():
+			traffic.stop_racing(d)
+		d.persistent = true
+	return BeehaveNode.RUNNING
+
+
+## The guards' car after the player in a zone: the amber beacon, at most 25 km/h, keeping 8 m
+## (guards.gd routes it to the player's nearest node once a second).
+func guard_follow() -> int:
+	if _mode != "guard_follow":
+		_mode = "guard_follow"
+		var d = driver
+		traffic.set_lights(d, true)
+		d.chase = false
+		d.held = false
+		d.v_cap = 25.0 / 3.6
+		d.keep_gap = 8.0
 	return BeehaveNode.RUNNING

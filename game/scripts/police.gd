@@ -24,9 +24,13 @@ extends Node
 ##   The light bars flash in actor.gdshader (SIREN); at night their halos and the koguty-3
 ##   searchlight are one glow MultiMesh.
 ##
-## Part two (loop 3g-2) adds the city guards, the guard car, the pedestrian-zone cap and the
-## clamp, the escort on rescues, the race and side-job ties, Phantom Camera's chase framing,
-## the synthesised sounds and the PixelLab portraits; the hooks for them are marked.
+## Part two (loop 3g-2; police.md 5.6, 8): a rescue in pickup or drop-off is never seen and
+## accepting one ends a chase; with the person aboard a patrol car escorts the player to the
+## hospital (+10 s on the clock); a race seen pulls in koguty 1 and escaping it marks the race
+## (+20 % on a win, rivals.gd); the kebab's heat stands still during the card; the scripted
+## first contact after the first race (once per save); the city guards (police/guards.gd: the
+## zone pill, the whistle and the run, the guards' car, the guard conversation, the clamp).
+## Phantom Camera's chase framing and the PixelLab portraits are still to come.
 
 ## Time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
@@ -34,6 +38,8 @@ var spent_usec := 0
 const Unit := preload("res://scripts/police/police_unit.gd")
 const Talk := preload("res://scripts/police/police_talk.gd")
 const Balloon := preload("res://scripts/police/police_balloon.gd")
+## Loop 3g-2: the city guards.
+const Guards := preload("res://scripts/police/guards.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const TRAPS_PATH := "res://data/police_traps.json"
@@ -133,6 +139,38 @@ const HALO_RED := Color(1.0, 0.23, 0.23, 0.8)
 const SEARCHLIGHT := 9.0
 ## Test drivers (--police-auto, the soak's roaming autopilot).
 const ESCAPE_TOP := 30.0
+
+## Loop 3g-2, the escort (police.md 8.1, 14): a patrol car within ESCORT_JOIN m joins, else one is
+## placed out of sight ESCORT_AHEAD m (up to ESCORT_FAR m) ahead on the route (always on the
+## session's first rescue, then ESCORT_CHANCE of the time, *guess*); it keeps ESCORT_LEAD m
+## ahead along the route, waits while the player is over ESCORT_WAIT m behind, drops behind once
+## overtaken by ESCORT_PASSED m; +ESCORT_BONUS s on the rescue clock.
+const ESCORT_JOIN := 200.0
+const ESCORT_AHEAD := 150.0
+const ESCORT_FAR := 400.0
+const ESCORT_CHANCE := 0.5
+const ESCORT_LEAD := Vector2(15.0, 25.0)
+const ESCORT_WAIT := 60.0
+const ESCORT_PASSED := 4.0
+const ESCORT_BONUS := 10.0
+## The escort's own pace in the 15-25 m band (m/s, 45 km/h, *guess*).
+const ESCORT_PACE := 12.5
+## It stops this many metres before the route's end (the hospital) and waits for the hand-over.
+const ESCORT_THERE := 20.0
+const ESCORT_SPEAKER := "Sierżant Bogdan"
+## Loop 3g-2, races (police.md 3, 8.2): a race seen within this of a patrol car or a trap.
+const RACE_REACH := 60.0
+## Loop 3g-2, the first contact (police.md 1, 5.2): set up FIRST_DELAY s after the first race,
+## the car parked FIRST_AHEAD m ahead on the player's road; dropped (and set up again
+## FIRST_RETRY s later) if the player goes FIRST_DROP m away or FIRST_LONGEST s pass.
+const FIRST_KEY := "police_first_contact"
+const FIRST_DELAY := 6.0
+const FIRST_AHEAD := 150.0
+const FIRST_DROP := 450.0
+const FIRST_LONGEST := 90.0
+const FIRST_RETRY := 20.0
+const FIRST_TRIES := 4
+const FIRST_SLOT := 3
 const HOLD_SPEED := 1.6
 const ROAM_OVER := 2.0
 
@@ -152,6 +190,12 @@ var sfx: Node3D
 var jobs: Node
 var missions: Node
 var tod: Node
+## Loop 3g-2: the rivals (a race seen), the pedestrian zones (guards.gd) and the zone the car is in
+## now (main.gd sets it every frame).
+var rivals: Node
+var ped_zones: RefCounted
+var zone := ""
+var guards: Guards
 ## World position -> HUD pixels.
 var project: Callable
 ## The player is in the helicopter (main.gd, every frame).
@@ -242,6 +286,34 @@ var _b4_t := 0.0
 var _b4_worst := 1.0
 var _lane_worst := 0.0
 
+## Loop 3g-2, the escort: its unit, the hospital node's route (cached by node), the state ("lead",
+## "behind"), the rescue it belongs to, and the session's rescues so far.
+var _escort = null
+var _escort_routes := {}
+var _escort_state := ""
+var _escort_for := -1
+var _escort_tried := -1
+var _rescues := 0
+var _escort_said := false
+var _escort_flip := 0.0
+var _escort_lead := INF
+## Loop 3g-2: a race seen while no chase could start (logged once a race).
+var _race_noted := false
+## Loop 3g-2: the kebab's heat stood still for the card.
+var _froze_heat := false
+## Loop 3g-2, the first contact: its spot (a trap's dictionary) while set up, the wait before
+## the next set-up (-1: not armed), the tries this session.
+var _first: Dictionary = {}
+var _first_wait := -1.0
+var _first_t := 0.0
+var _first_tries := 0
+## Loop 3g-2: the guard in the conversation (null for a police pull-over).
+var _guard = null
+## Loop 3g-2, test drivers: --guards' waypoints.
+var _waypoints: Array[Vector2] = []
+var _waypoints_done := false
+var _follow_last := false
+
 
 func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
 	for k in nodes:
@@ -278,6 +350,13 @@ func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
 	hud.add_panel(_balloon, "bottom")
 	_balloon.advanced.connect(_on_tap)
 	_balloon.replied.connect(_on_reply)
+	# Loop 3g-2: the city guards; accepting a rescue ends a chase.
+	guards = Guards.new()
+	guards.name = "Guards"
+	add_child(guards)
+	guards.setup(self)
+	if missions != null and missions.has_signal("accepted"):
+		missions.accepted.connect(_on_rescue_accepted)
 	if radio != null:
 		radio.station_changed.connect(_on_station)
 	# Dialogue Manager and the conversation now, while the city builds (~70 ms on the Mac): at the
@@ -342,10 +421,15 @@ func _step(dt: float) -> void:
 	if _tick_t >= TICK:
 		_tick_t -= TICK
 		_perceive()
+		_escort_tick()
+		guards.zone = zone
+		guards.tick()
 		for u in _units:
 			if u.driver != null:
 				u.tree.blackboard.set_value("phase", PHASES[phase])
 				u.tick()
+	guards.frame(dt)
+	_first_frame(dt)
 	match phase:
 		Phase.LIZAK:
 			_lizak_frame(dt)
@@ -493,6 +577,7 @@ func _perceive() -> void:
 			u.met = true
 	if in_car and _may_offend():
 		_offences_seen()
+		_race_seen()
 	if log_on and _frame % 3600 < 12 and _frame > 12:
 		var cars := 0
 		for u in _units:
@@ -544,10 +629,37 @@ func _track_player() -> void:
 func _may_offend() -> bool:
 	if phase == Phase.PULLOVER or phase == Phase.LIZAK:
 		return false
-	# Part two: a rescue in PICKUP or DROPOFF (the escort) perceives nothing.
-	if missions != null and missions.has_target() and missions.state in [3, 4]:
+	# Loop 3g-2: a rescue in PICKUP or DROPOFF (the escort) perceives nothing.
+	if _rescue_on():
 		return false
 	return true
+
+
+## Loop 3g-2 (police.md 8.1): a rescue in PICKUP or DROPOFF: the police see nothing, start nothing.
+func _rescue_on() -> bool:
+	return missions != null and missions.has_target()
+
+
+## Nothing police-side is going on (guards.gd: talks and the clamp wait for it).
+func calm() -> bool:
+	return phase == Phase.CALM
+
+
+## Loop 3g-2 (police.md 3, 8.2): a street race within 60 m of a patrol car or a trap's car, in
+## sight: koguty 1 on the player (the rival keeps racing; rivals don't see the police).
+func _race_seen() -> void:
+	if phase != Phase.CALM or rivals == null or not rivals.in_race():
+		_race_noted = false if rivals == null or not rivals.in_race() else _race_noted
+		return
+	for u in _units:
+		if u.driver == null or not u.role() in ["patrol", "trap"] or not u.sees or u.dist >= RACE_REACH:
+			continue
+		if _may_chase():
+			_start_chase(1, u, "race seen, unit %d %.0f m away" % [u.number, u.dist])
+		elif not _race_noted:
+			_race_noted = true
+			_log("race seen by unit %d (%s)" % [u.number, "cooldown" if cooldown > 0.0 else "grace"])
+		return
 
 
 func _offences_seen() -> void:
@@ -597,6 +709,9 @@ func _hidden(p: Vector3) -> bool:
 
 ## An offence seen by `u` (null for a test's): a warning and a strike, or a chase.
 func _offence(kind: String, u) -> void:
+	if _rescue_on() and not chasing():
+		_log("%s seen, on a rescue (nothing)" % kind)
+		return
 	if chasing():
 		if kind == "ram":
 			_ram_in_chase()
@@ -809,6 +924,16 @@ func _end(how: String) -> void:
 			_say_or_radio(lost, "police_lost", "heli")
 		"pullover":
 			_log("pull-over done")
+		"guard":
+			_log("guard talk done")
+		"rescue":
+			# Loop 3g-2 (police.md 8.1): accepting a rescue ends the chase, straight to the cooldown.
+			_log("chase ended after %.1f s: rescue accepted" % t)
+			hud.toast("POLICJA ODPUSZCZA: RATUJESZ KOGOŚ", "THE POLICE BACK OFF: YOU'RE ON A RESCUE")
+	if how == "escaped" and rivals != null and rivals.in_race() and not rivals.escape_bonus:
+		# Loop 3g-2 (police.md 8.2): escaping during a race marks it: a win pays the stake x 1.2.
+		rivals.escape_bonus = true
+		_log("race marked +20 % for the escape")
 	if _in_chase:
 		_in_chase = false
 		chases_ended += 1
@@ -831,7 +956,9 @@ func _end(how: String) -> void:
 	top_level = 0
 	strikes = 0
 	grace_over = true
-	cooldown = 0.0 if now else COOLDOWN
+	# A guard's talk is not the police's: no cooldown after it.
+	if how != "guard":
+		cooldown = 0.0 if now else COOLDOWN
 	if sfx != null:
 		sfx.police_siren(Vector3.INF)
 	hud.set_koguty(0, 0)
@@ -848,7 +975,8 @@ func _chaser():
 func _nearest_unit():
 	var best = null
 	for u in _units:
-		if u.driver != null and (best == null or u.dist < best.dist):
+		# Loop 3g-2: never the guards' car (guards never call the police) nor the escort.
+		if u.driver != null and not u.role() in ["guard", "guard_follow", "escort"] and (best == null or u.dist < best.dist):
 			best = u
 	return best
 
@@ -1048,6 +1176,9 @@ func _traps_frame() -> void:
 		t["rearm"] = clock + TRAP_REARM
 		if phase != Phase.CALM:
 			continue
+		if _rescue_on():
+			_log("trap %d: %d km/h, on a rescue (nothing)" % [t["id"], roundi(speed * 3.6)])
+			continue
 		if not _may_chase():
 			_log("trap %d: %d km/h in %d, %.1f m before the officer (%s)" % [t["id"], roundi(speed * 3.6),
 					roundi(t["limit"] * 3.6), -along, "cooldown" if cooldown > 0.0 else "grace"])
@@ -1076,7 +1207,7 @@ func _spawn_trap_car(t: Dictionary) -> void:
 func _officer(t: Dictionary, on: bool) -> void:
 	if walkers == null:
 		return
-	var slot := traps.find(t)
+	var slot: int = t["slot"] if int(t.get("slot", -1)) >= 0 else traps.find(t)
 	if slot < 0 or slot >= walkers.FIXED:
 		return
 	if not on:
@@ -1118,12 +1249,17 @@ func _lizak_frame(dt: float) -> void:
 		var u = t["unit"]
 		_log("stopped %.1f m from the officer" % rel.length())
 		_lizak_done("")
-		_pull_over("trap", u)
+		# Loop 3g-2: the scripted first contact's stop is the routine check.
+		_pull_over("routine" if t.get("first", false) else "trap", u)
 		return
 	if along > LIZAK_PAST:
 		var u = t["unit"]
 		_lizak_done("")
-		_start_chase(1, u, "lizak ignored, %.1f m past the officer" % along)
+		if t.get("first", false):
+			_first_done("drove on")
+			_start_chase(1, u, "first contact ignored, %.1f m past the officer" % along)
+		else:
+			_start_chase(1, u, "lizak ignored, %.1f m past the officer" % along)
 		return
 	_lizak_still = _lizak_still + dt if speed < 1.0 else 0.0
 	if _lizak_still >= LIZAK_GIVE_UP or _lizak_t > LIZAK_LONGEST or flying:
@@ -1195,7 +1331,22 @@ func _pull_over(tag: String, u) -> void:
 		radio.duck_db = -6.0
 	# The car is held: its pedals give the card their room.
 	hud.set_pedals_hidden(true)
+	_freeze_heat(true)
 	_start_talk(tag)
+
+
+## Loop 3g-2 (police.md 4, 8.3): the kebab's heat stands still while the card is open.
+func _freeze_heat(on: bool) -> void:
+	if jobs == null or not "heat_frozen" in jobs:
+		return
+	if on and jobs.busy() and jobs.job == 1:
+		jobs.heat_frozen = true
+		_froze_heat = true
+		_log("kebab heat frozen at %d %%" % roundi(jobs.heat() * 100.0))
+	elif not on and _froze_heat:
+		jobs.heat_frozen = false
+		_froze_heat = false
+		_log("kebab heat runs again from %d %%" % roundi(jobs.heat() * 100.0))
 
 
 func _ensure_dm() -> bool:
@@ -1231,6 +1382,13 @@ func _start_talk(tag: String) -> void:
 	talk.caution_tag = "fifth" if wallet.cautions_on(_today) + 1 == 5 else "police"
 	talk.on_caution = _on_caution
 	talk.on_routine = _on_routine
+	# Loop 3g-2: a guard's conversation (police.dialogue guard_stop), the zone's tag.
+	if _guard != null:
+		talk.zone = _guard.tag
+		talk.opener = ""
+		talk.first_contact = false
+		_show_next("guard_stop")
+		return
 	_show_next("pull_over")
 
 
@@ -1284,6 +1442,10 @@ func _talk_frame(dt: float) -> void:
 
 
 func _on_tap() -> void:
+	# Loop 3g-2: the clamp's card: a tap is the "Przepraszam".
+	if guards.clamp == "on":
+		guards.sorry()
+		return
 	if phase != Phase.PULLOVER or _line == null:
 		return
 	if _line.responses.is_empty():
@@ -1293,6 +1455,9 @@ func _on_tap() -> void:
 
 
 func _on_reply(i: int) -> void:
+	if guards.clamp == "on":
+		guards.sorry()
+		return
 	if phase != Phase.PULLOVER or _line == null:
 		return
 	var allowed: Array = _line.responses.filter(func(r) -> bool: return r.is_allowed)
@@ -1314,6 +1479,7 @@ func _on_caution() -> void:
 ## police.dialogue's `done_routine`: the first contact's rules toast.
 func _on_routine() -> void:
 	_log("first contact")
+	_first_done("routine check")
 
 
 func _talk_done() -> void:
@@ -1329,6 +1495,20 @@ func _talk_done() -> void:
 	elif _routine:
 		hud.toast("KOGUTY = POLICJA. UCIEKNIJ ALBO STAŃ: NIC NIE TRACISZ",
 				"ROOSTERS = POLICE. ESCAPE OR STOP: YOU LOSE NOTHING.")
+	_freeze_heat(false)
+	# Loop 3g-2: a guard's talk: back to the post, no star, no cooldown.
+	if _guard != null:
+		var g = _guard
+		_guard = null
+		guards.talk_done(g)
+		_end("guard")
+		return
+	# The first contact's car pulls out and goes.
+	if _routine and _talk_unit != null:
+		var fu = _talk_unit
+		_end("pullover")
+		dismiss(fu)
+		return
 	# --- loop 2d-1: a Podwózka passenger on board takes one star for the pull-over (police.md
 	# 8.3, parodies.md 3.3; rides.gd acts only while a ride runs). An escape costs nothing. ---
 	var rides = jobs.get("rides") if jobs != null else null
@@ -1342,7 +1522,7 @@ func _talk_done() -> void:
 
 ## A megaphone line over unit `u`'s car (at most one every 8 s in the city, 20 s per unit; the
 ## lost lines always), or nothing if there is no unit.
-func _say(u, group: String, tag: String, prefer: bool, always := false) -> void:
+func _say(u, group: String, tag: String, prefer: bool, always := false, speaker := "Policja") -> void:
 	if u == null or u.driver == null or dialogue == null:
 		return
 	if not always and (_megaphone > 0.0 or u.line_wait > 0.0):
@@ -1354,7 +1534,10 @@ func _say(u, group: String, tag: String, prefer: bool, always := false) -> void:
 		if u.driver != d or not d.active:
 			return Vector3.INF
 		return d.pos + Vector3(0, d.size.y + 0.4, 0)
-	var l: Array = dialogue.say(anchor, "Policja", group, tag, 3.5, Color("#8fb0ff"), 2.6, prefer)
+	# Loop 3g-2: the megaphone's chirp before its line (police.md 10).
+	if speaker == "Policja":
+		sfx_cue("megaphone")
+	var l: Array = dialogue.say(anchor, speaker, group, tag, 3.5, Color("#8fb0ff"), 2.6, prefer)
 	if not l.is_empty():
 		_log("line %s/%s: %s" % [group, tag, l[0]])
 
@@ -1398,6 +1581,11 @@ func _hud_frame() -> void:
 		if phase == Phase.CHASE and u.role() == "chaser" and u.dist < siren_d:
 			siren_d = u.dist
 			siren = u.driver.pos
+	# Loop 3g-2: the escort on the minimap, its siren while it leads.
+	if _escort != null and _escort.driver != null:
+		marks.append(_xz(_escort.driver.pos))
+		if phase == Phase.CALM:
+			siren = _escort.driver.pos
 	var known := PackedVector2Array()
 	for t in traps:
 		if t["known"]:
@@ -1417,13 +1605,19 @@ func _hud_frame() -> void:
 				var o: Vector2 = _lizak_trap["officer"]
 				lizak = project.call(Vector3(o.x, map.ground_height(o.x, o.y) + 1.9, o.y))
 		_:
+			# Loop 3g-2: the escort's pill, then the guards' (the clamp's countdown, the zone).
+			var gp: Array = guards.pill()
 			if _pill_note_t > 0.0:
 				hud.police_pill(_pill_note, _pill_note_en)
+			elif _escort != null and _escort.driver != null:
+				hud.police_pill("ESKORTA · +%d S" % int(ESCORT_BONUS), "ESCORT · +%d S" % int(ESCORT_BONUS))
+			elif not gp.is_empty():
+				hud.police_pill(gp[0], gp[1])
 			else:
 				hud.police_pill("", "")
 	var breath := 1.0 if phase == Phase.CHASE else (0.5 if phase == Phase.SEARCH else 0.0)
 	hud.police_fx(breath, pts if chasing() else PackedVector2Array(), lizak)
-	if sfx != null and phase == Phase.CHASE:
+	if sfx != null and (phase == Phase.CHASE or (phase == Phase.CALM and _escort != null)):
 		sfx.police_siren(siren)
 	elif sfx != null and phase == Phase.SEARCH:
 		sfx.police_siren(Vector3.INF)
@@ -1474,7 +1668,8 @@ func _halos_frame() -> void:
 	var left_on := fmod(t * 2.5, 1.0) >= 0.5
 	for u in _units:
 		var d = u.driver
-		if d == null or not d.lights or d.clip < 0.5:
+		# Loop 3g-2: the guards' amber beacon has no blue and red pools.
+		if d == null or not d.lights or d.clip < 0.5 or d.shape == 1:
 			continue
 		var c := cos(d.yaw)
 		var s := sin(d.yaw)
@@ -1517,6 +1712,362 @@ func _halo_put(i: int, at: Vector3, size: float, col: Color) -> void:
 	_halo_buf[b + 15] = col.a
 
 
+# --- loop 3g-2: rescues and the escort (police.md 8.1) -------------------------------------------
+
+## missions.gd `accepted`: a rescue taken during a chase ends it (straight to the cooldown); a
+## lizak waving is let go.
+func _on_rescue_accepted() -> void:
+	_rescues += 1
+	if chasing():
+		_end("rescue")
+	elif phase == Phase.LIZAK:
+		_lizak_done("rescue accepted")
+
+
+## 5 times a second: the escort joins once the person is aboard (in the car), leads, waits, drops
+## behind, and leaves at the hospital (or when the rescue ends or the player takes off).
+func _escort_tick() -> void:
+	if missions == null:
+		return
+	var aboard: bool = missions != null and missions.has_target() and missions.state == 4 and not flying
+	if _escort != null:
+		if _escort.driver == null or _escort.role() != "escort":
+			_escort = null
+			_log("escort lost (its car left)")
+		elif not aboard:
+			_escort_end("at the hospital" if missions != null and missions.state == 5 and missions.get("_success") else ("in the helicopter" if flying else "the rescue ended"))
+		else:
+			_escort_pace()
+		return
+	var key: int = missions.number * 1000 + _rescues
+	if not aboard or _escort_for == key or _escort_tried == key:
+		return
+	# The session's first rescue always gets one; later ones when a patrol is near, or by chance.
+	var forced: bool = opts.get("escort", false) or _rescues <= 1
+	var u = null
+	var best := ESCORT_JOIN
+	for k in _units:
+		if k.driver != null and k.role() == "patrol" and not k.driver.parked and k.dist < best:
+			best = k.dist
+			u = k
+	var how := ""
+	var route := _hospital_route()
+	if route.is_empty():
+		_escort_tried = key
+		_log("escort: no route to the hospital")
+		return
+	if u != null:
+		how = "patrol %d m away" % roundi(best)
+	elif forced or randf() < ESCORT_CHANCE:
+		var spot := _route_spot(route[1], ESCORT_AHEAD, ESCORT_FAR)
+		if spot.is_empty():
+			return  # tried again at the next tick (the player may be off the roads)
+		var d = traffic.add_police(spot[0], 0, spot[1])
+		if d == null:
+			return
+		u = _bind(d, "patrol")
+		if u == null:
+			traffic.remove(d)
+			return
+		var q := graph.point_at(spot[0], spot[1])
+		how = "placed %d m ahead on the route at %d,%d" % [roundi(spot[2]), roundi(q.x), roundi(q.y)]
+	else:
+		_escort_tried = key
+		_log("escort: none this time")
+		return
+	_escort = u
+	_escort_for = key
+	_escort_state = "lead"
+	_escort_said = false
+	u.escort_node = route[0]
+	u.escort_route = route[1]
+	u.tree.blackboard.set_value("escort_wait", false)
+	u.tree.blackboard.set_value("escort_v", Unit.CHASE_TOP)
+	u.set_role("escort")
+	missions.add_time(ESCORT_BONUS)
+	sfx_cue("whoop")
+	_say(u, "police_escort", "", false, true, ESCORT_SPEAKER)
+	var h: Vector3 = missions.target_position()
+	_log("escort joined (unit %d, %s; rescue clock +%d s; the hospital %.0f m by road, %.0f m straight)" % [u.number, how,
+			int(ESCORT_BONUS), _route_left(route[1], _xz(car.global_position)), _xz(car.global_position).distance_to(_xz(h))])
+
+
+## The escort's pace: 15-25 m ahead of the player along the route, stopped while the player is over
+## 60 m behind; once overtaken it follows behind (it never pushes in front of the player again
+## until the player waits for it).
+func _escort_pace() -> void:
+	var u = _escort
+	var d = u.driver
+	if traffic.remaining(d) == INF:
+		return  # its tree hasn't set it on the route yet (the next tick)
+	var lead: float = _route_left(u.escort_route, _xz(car.global_position)) - traffic.remaining(d)
+	var v: float = car.vel.length()
+	var bb: Blackboard = u.tree.blackboard
+	# A change holds for a second first (the player's place on the route jumps at junctions).
+	var flip := (_escort_state == "lead" and lead < -ESCORT_PASSED) or (_escort_state == "behind" and lead > ESCORT_LEAD.x and lead < ESCORT_FAR)
+	_escort_flip = _escort_flip + TICK if flip else 0.0
+	if flip and _escort_flip >= 1.0:
+		_escort_flip = 0.0
+		if _escort_state == "lead":
+			_escort_state = "behind"
+			_log("escort behind (overtaken, %.0f m)" % -lead)
+		else:
+			_escort_state = "lead"
+			_log("escort leads again (%.0f m ahead)" % lead)
+	# Waiting for the player, or there: it stops at the hospital's door (it never "arrives" on its
+	# own: it drives like a chaser) until the hand-over.
+	var there: bool = traffic.remaining(d) < ESCORT_THERE
+	var wait: bool = (_escort_state == "lead" and u.dist > ESCORT_WAIT) or there
+	if wait != bool(bb.get_value("escort_wait", false)):
+		_log("escort %s (%.0f m from the player)" % ["waits" if wait else "goes on", u.dist])
+	bb.set_value("escort_wait", wait)
+	# It sets the pace (ESCORT_PACE, or a little over the player's): slower while the player is more
+	# than 25 m back, faster while closer than 15 m.
+	var pace := Unit.CHASE_TOP
+	if _escort_state == "lead":
+		if lead < ESCORT_LEAD.x:
+			pace = maxf(v + 5.0, ESCORT_PACE + 2.0)
+		elif lead > ESCORT_LEAD.y:
+			pace = maxf(v - 3.0, 3.0)
+		else:
+			pace = maxf(v + 2.0, ESCORT_PACE)
+		pace = clampf(pace, 2.0, Unit.CHASE_TOP)
+	bb.set_value("escort_v", pace)
+	_escort_lead = lead
+	if log_on and _frame % 300 < 12:
+		_log("escort status: %s, %.0f m ahead on the route, %.0f m apart, player %d km/h, escort %d km/h (cap %d)" % [
+				_escort_state, lead, u.dist, roundi(v * 3.6), roundi(d.v * 3.6), roundi(pace * 3.6)])
+
+
+func _escort_end(why: String) -> void:
+	var u = _escort
+	_escort = null
+	_escort_state = ""
+	if u.driver != null:
+		u.tree.blackboard.set_value("escort_wait", false)
+		traffic.set_lights(u.driver, false)
+		u.set_role("patrol")
+	if sfx != null and phase == Phase.CALM:
+		sfx.police_siren(Vector3.INF)
+	_log("escort left (%s)" % why)
+
+
+## [hospital node, distances to it] for the rescue under way (cached by node, like the rivals'
+## finishes), or [].
+func _hospital_route() -> Array:
+	var h: Vector3 = missions.target_position()
+	var hit: Array = graph.snap(Vector2(h.x, h.z), 120.0, Vector2.ZERO, true)
+	if hit.is_empty():
+		return []
+	var e: int = hit[0]
+	var hp := Vector2(h.x, h.z)
+	var node: int = graph.e_b[e]
+	if graph.node_pos[graph.e_a[e]].distance_to(hp) < graph.node_pos[node].distance_to(hp):
+		node = graph.e_a[e]
+	if not _escort_routes.has(node):
+		_escort_routes[node] = graph.distances_to(node)
+	return [node, _escort_routes[node]]
+
+
+## Driving distance left to the route's end from `p` (the nearer of the road's two ways), or the
+## straight line x 1.3 off the roads.
+func _route_left(route: PackedFloat32Array, p: Vector2) -> float:
+	var hit: Array = graph.snap(p, 25.0)
+	if hit.is_empty():
+		return INF
+	var e: int = hit[0]
+	var best := graph.remaining(route, e, hit[2])
+	var rev := graph.e_reverse[e]
+	if rev >= 0:
+		best = minf(best, graph.remaining(route, rev, graph.e_len[e] - hit[2]))
+	return best
+
+
+## The player's place on the route's roads: [edge, lane, s] on the road nearest `p`, the way
+## of it that leads on along the route; [] off the roads.
+func _route_start(route: PackedFloat32Array, p: Vector2) -> Array:
+	var hit: Array = graph.snap(p, 25.0, Vector2.ZERO, true)
+	if hit.is_empty():
+		hit = graph.snap(p, 60.0, Vector2.ZERO, true)
+	if hit.is_empty():
+		return []
+	var e: int = hit[0]
+	var s: float = hit[2]
+	var rev := graph.e_reverse[e]
+	if rev >= 0 and graph.remaining(route, rev, graph.e_len[e] - s) < graph.remaining(route, e, s):
+		return [rev, 0, clampf(graph.e_len[e] - s, graph.e_s0[rev], graph.e_s1[rev])]
+	return hit
+
+
+## A spot on the route ahead of the player between `lo` and `hi` metres, out of sight:
+## [edge, s, metres], or [].
+func _route_spot(route: PackedFloat32Array, lo: float, hi: float) -> Array:
+	var hit := _route_start(route, _xz(car.global_position))
+	if hit.is_empty():
+		return []
+	var e: int = hit[0]
+	var s: float = hit[2]
+	var run := 0.0
+	var guard := 0
+	while run < hi and guard < 60:
+		guard += 1
+		var step := 10.0
+		s += step
+		run += step
+		if s > graph.e_s1[e] - 2.0:
+			var best := -1
+			var best_d := INF
+			for f in graph.node_out[graph.e_b[e]]:
+				var c: float = graph.e_len[f] + route[graph.e_b[f]]
+				if c < best_d:
+					best_d = c
+					best = f
+			if best < 0 or route[graph.e_b[e]] <= 0.0:
+				return []
+			e = best
+			s = graph.e_s0[e] + 2.0
+		if run >= lo:
+			var q := graph.point_at(e, s, graph.lane_offset(e, 0))
+			if not traffic.on_screen(Vector3(q.x, graph.height(e, s), q.y), 2.0):
+				return [e, s, run]
+	return []
+
+
+# --- loop 3g-2: the city guards' conversation --------------------------------------------------
+
+## guards.gd: the car stopped by guard `g`: the guard conversation (police.dialogue guard_stop),
+## the car held like a pull-over, no police, no cooldown after it.
+func guard_talk(g) -> void:
+	phase = Phase.PULLOVER
+	_guard = g
+	_talk_unit = null
+	_talk_tag = "guard"
+	_log("guard talk (post %s, tag \"%s\")" % [g.post, g.tag])
+	if radio != null:
+		radio.duck_db = -6.0
+	hud.set_pedals_hidden(true)
+	_freeze_heat(true)
+	_start_talk("guard")
+
+
+# --- loop 3g-2: the scripted first contact (police.md 1, 5.2) -----------------------------------
+
+func _first_seen() -> bool:
+	return wallet != null and "keep" in wallet and bool(wallet.keep.get(FIRST_KEY, false))
+
+
+## Marks the first contact done in the save (once per save).
+func _first_done(why: String) -> void:
+	if _first_seen():
+		return
+	if wallet != null and "keep" in wallet:
+		wallet.keep[FIRST_KEY] = true
+		if wallet.has_method("save"):
+			wallet.save()
+	_log("first contact done (%s)" % why)
+
+
+## Every frame: armed after the first race (or --first-contact), set up a patrol car parked by the
+## kerb ahead with an officer; the officer waves the lizak at the player whatever the speed.
+func _first_frame(dt: float) -> void:
+	if _first_seen():
+		if not _first.is_empty() and phase != Phase.LIZAK and phase != Phase.PULLOVER:
+			_first_clear()
+		return
+	if _first.is_empty():
+		if _first_wait < 0.0:
+			if rivals != null and rivals.has_method("raced") and rivals.raced():
+				_first_wait = FIRST_DELAY
+				_log("first contact armed (the first race is over)")
+			return
+		_first_wait -= dt
+		if _first_wait <= 0.0:
+			if _first_tries >= FIRST_TRIES:
+				_first_wait = INF
+				return
+			if phase != Phase.CALM or flying or _rescue_on() or (rivals != null and rivals.busy()) or not _place_first():
+				_first_wait = 2.0
+		return
+	var t := _first
+	_first_t += dt
+	if t["unit"] == null:
+		_first_clear()
+		_first_wait = FIRST_RETRY
+		return
+	var p := _xz(car.global_position)
+	if phase == Phase.CALM and (p.distance_to(t["car"]) > FIRST_DROP or _first_t > FIRST_LONGEST):
+		_log("first contact dropped (%s)" % ("the player went elsewhere" if p.distance_to(t["car"]) > FIRST_DROP else "too long"))
+		_first_clear()
+		_first_wait = FIRST_RETRY
+		return
+	if phase != Phase.CALM or flying or _rescue_on() or clock < t["rearm"]:
+		return
+	var rel: Vector2 = p - t["officer"]
+	var along := rel.dot(t["dir"])
+	if along < -RADAR or along > 0.0 or absf(rel.cross(t["dir"])) > 14.0 or _xz(car.vel).dot(t["dir"]) <= 0.0:
+		return
+	t["rearm"] = clock + 10.0
+	_lizak(t, car.vel.length(), -along)
+
+
+## The first contact's patrol car on the player's road FIRST_AHEAD m ahead (straight on at the
+## junctions), parked by the kerb facing the traffic, its officer 3 m upstream. False if no spot.
+func _place_first() -> bool:
+	if _edge < 0:
+		return false
+	_first_tries += 1
+	var e := _edge
+	var s := _s + FIRST_AHEAD
+	var guard := 0
+	while s > graph.e_s1[e] - 8.0 and guard < 30:
+		guard += 1
+		var here := graph.direction(e, graph.e_s1[e])
+		var next := -1
+		var best := 0.8
+		for f in graph.node_out[graph.e_b[e]]:
+			if f == graph.e_reverse[e]:
+				continue
+			var turn := absf(here.angle_to(graph.direction(f, graph.e_s0[f])))
+			if turn < best:
+				best = turn
+				next = f
+		if next < 0:
+			return false
+		s = graph.e_s0[next] + (s - graph.e_s1[e])
+		e = next
+	s = maxf(s, graph.e_s0[e] + 8.0)
+	var n := graph.e_lanes[e]
+	var kerb := graph.lane_offset(e, n - 1) + graph.e_lw[e] * 0.5
+	var car_at := graph.point_at(e, s + 3.0, kerb + 1.5)
+	var officer := graph.point_at(e, s, kerb + 0.9)
+	if traffic.on_screen(_v3(car_at), 2.0):
+		return false
+	var dir := graph.direction(e, s)
+	var t := {"id": 0, "road": graph.e_name[e], "car": car_at, "officer": officer, "dir": dir,
+			"heading": -rad_to_deg(atan2(dir.x, dir.y)), "edge": e, "s": s + 3.0, "limit": graph.e_speed[e],
+			"radio": ["", ""], "rearm": 0.0, "unit": null, "slot": FIRST_SLOT, "known": false, "waving": false, "first": true}
+	_spawn_trap_car(t)
+	if t["unit"] == null:
+		return false
+	_first = t
+	_first_t = 0.0
+	_log("first contact set up (unit %d parked on %s at %d,%d, %.0f m ahead)" % [t["unit"].number, t["road"],
+			roundi(car_at.x), roundi(car_at.y), FIRST_AHEAD])
+	return true
+
+
+func _first_clear() -> void:
+	var t := _first
+	_first = {}
+	if t.is_empty():
+		return
+	if walkers != null:
+		walkers.clear_fixed(FIRST_SLOT)
+	var u = t["unit"]
+	if u != null and u.driver != null and u.role() == "trap":
+		dismiss(u)
+
+
 # --- the test drivers (flags) ----------------------------------------------------------------
 
 ## Frame-counted test starts: --police=N and --pullover=TAG at frame 60, --police-offence.
@@ -1525,6 +2076,24 @@ func _test_frame() -> void:
 		var lvl := int(opts.get("level", 0))
 		if lvl > 0:
 			_test_chase(clampi(lvl, 1, 3))
+	# Loop 3g-2: --escort (the person aboard at once), --guards (drive into the zone), --clamp,
+	# --first-contact (set up the first contact now).
+	if _frame == 30 and opts.get("escort", false) and missions != null and missions.has_method("board") and missions.state == 3:
+		# At the pickup: the car where the person waited, the person aboard.
+		var at: Vector3 = missions.target_position()
+		car.global_position = at + Vector3(0, 0.3, 0)
+		car.vel = Vector3.ZERO
+		if car.has_method("reset_physics_interpolation"):
+			car.reset_physics_interpolation()
+		missions.board()
+	if _frame == 2 and String(opts.get("guards", "")) != "":
+		for w: Array in (GUARDS_TALK_ROUTE if opts["guards"] == "talk" else GUARDS_ROUTE):
+			_waypoints.append(Vector2(w[0], w[1]))
+	if _frame == 60 and String(opts.get("clamp", "")) != "":
+		guards.test_clamp(String(opts["clamp"]) == "sorry")
+	if _frame == 60 and opts.get("first_contact", false) and _first_wait < 0.0 and _first.is_empty():
+		_first_wait = 0.0
+		_log("first contact armed (--first-contact)")
 	# Loop 2d-1: --pullover-frame=N moves the --pullover conversation (default frame 60).
 	var po := String(opts.get("pullover", ""))
 	if po != "" and _frame == int(opts.get("pullover_frame", 60)):
@@ -1594,7 +2163,8 @@ func _car_behind(back: float):
 ## (--police-auto, --trap with --pedal=gas, the soak's roaming autopilot) drive it. True if
 ## the police took the car's controls this frame.
 func control_car(c: CharacterBody3D, _dt: float) -> bool:
-	if phase == Phase.PULLOVER:
+	# Loop 3g-2: the clamp holds the car too.
+	if phase == Phase.PULLOVER or guards.holds():
 		_drop_ghost(c)
 		_brake(c)
 		return true
@@ -1602,13 +2172,17 @@ func control_car(c: CharacterBody3D, _dt: float) -> bool:
 		_drop_ghost(c)
 		return false
 	var mode := ""
+	if auto == "follow" and _escort != null and _escort.driver != null:
+		return _follow_escort(c)
+	if not _waypoints.is_empty():
+		return _drive_waypoints(c)
 	if chasing():
 		mode = auto
 		if mode == "" and autopilot and now:
 			mode = "escape" if _auto_flip % 2 == 0 else "stop"
 	elif phase == Phase.LIZAK and auto == "stop":
 		mode = "officer"
-	elif pedal == "gas" and int(opts.get("trap", 0)) > 0:
+	elif pedal == "gas" and (int(opts.get("trap", 0)) > 0 or not _first.is_empty()):
 		mode = "pedal"
 	elif autopilot and now:
 		mode = "roam"
@@ -1630,6 +2204,86 @@ func control_car(c: CharacterBody3D, _dt: float) -> bool:
 	return false
 
 
+## Loop 3g-2, --guards: from the Krakowskie Przedmieście end north into the zone (map metres),
+## held to 30 km/h before it (the zone's cap holds it to 20 inside), stopping at the last point.
+## (Today's zone there is the pedestrian way's own strip, ~8 m wide: the route keeps to it.)
+## --guards=talk stops by the gate's guards instead (the guard conversation).
+const GUARDS_ROUTE := [[-706.0, -1318.0], [-714.0, -1334.0], [-708.0, -1346.0], [-704.0, -1366.0], [-704.0, -1392.0]]
+const GUARDS_TALK_ROUTE := [[-706.0, -1318.0], [-714.0, -1334.0], [-708.0, -1346.0], [-705.0, -1360.0]]
+const GUARDS_TOP := 30.0 / 3.6
+
+
+func _drive_waypoints(c: CharacterBody3D) -> bool:
+	var p := _xz(c.global_position)
+	while _waypoints.size() > 1 and p.distance_to(_waypoints[0]) < 6.0:
+		_waypoints.pop_front()
+		_log("test drive: at %d,%d, %d km/h, %d points to go" % [roundi(p.x), roundi(p.y), roundi(c.vel.length() * 3.6), _waypoints.size()])
+	var to := _waypoints[0] - p
+	if _waypoints.size() == 1 and to.length() < 4.0:
+		if c.vel.length() < 0.3 and not _waypoints_done:
+			_waypoints_done = true
+			_log("test drive: stopped at %d,%d (top speed in the zone after its first %.0f s: %d km/h)" % [roundi(p.x), roundi(p.y),
+					guards.ZONE_SETTLE, roundi(guards._zone_top * 3.6)])
+		_brake(c)
+		return true
+	c.parked = false
+	c.target_dir = Vector3(to.x, 0.0, to.y).normalized()
+	c.steer = 0.0
+	var v: float = c.vel.length()
+	c.throttle = 1.0 if v < GUARDS_TOP - 0.5 else 0.0
+	c.braking = _waypoints.size() == 1 and to.length() < v * v / (2.0 * 6.0) + 4.0
+	if c.braking:
+		c.throttle = 0.0
+	return true
+
+
+## Loop 3g-2, --police-auto=follow: the car rides a ghost along the escort's route (queueing behind
+## the cars ahead, the escort among them), then the last metres to the hospital's ring straight.
+func _follow_escort(c: CharacterBody3D) -> bool:
+	var u = _escort
+	var h: Vector3 = missions.target_position()
+	var p := _xz(c.global_position)
+	var to := Vector2(h.x, h.z) - p
+	if _follow_last or to.length() < 45.0 or (_ghost != null and (_ghost.arrived or traffic.remaining(_ghost) < 45.0)):
+		_follow_last = true
+		_drop_ghost(c)
+		if _mask < 0:
+			_mask = c.collision_mask
+		c.collision_mask = 0
+		c.vel = Vector3.ZERO
+		c.throttle = 0.0
+		if log_on and _frame % 60 == 0:
+			_log("test drive: %.1f m from the hospital's ring, %.1f m above it, %.1f m/s" % [to.length(), c.global_position.y - h.y, c.vel.length()])
+		if to.length() > 1.0:
+			var step := minf(to.length(), 14.0 * get_process_delta_time())
+			var dir := to.normalized()
+			c.global_position += Vector3(dir.x, 0.0, dir.y) * step
+			c.rotation.y = atan2(-dir.x, -dir.y)
+		return true
+	if _ghost == null:
+		var hit := _route_start(u.escort_route, p)
+		if hit.is_empty():
+			return false
+		_ghost = traffic.add_ghost(hit[0], hit[1], hit[2])
+		_ghost.v = c.vel.length()
+		if _mask < 0:
+			_mask = c.collision_mask
+		traffic.race_to(_ghost, u.escort_node, u.escort_route)
+	# Following, not passing: it keeps 12 m or more behind the escort along the route.
+	var gap: float = _escort_lead if _escort_state == "lead" else INF
+	_ghost.v_cap = 16.0 if gap > 22.0 else (maxf(u.driver.v + 1.0, 1.0) if gap > 12.0 else 0.5)
+	_ghost.accel_factor = 2.0
+	_ghost.squeeze = 0.0
+	c.collision_mask = 0
+	c.global_position = _ghost.pos
+	c.rotation.y = _ghost.yaw
+	c.vel = Vector3(-sin(_ghost.yaw), 0.0, -cos(_ghost.yaw)) * _ghost.v
+	c.throttle = 0.0
+	c.braking = false
+	c.target_dir = Vector3.ZERO
+	return true
+
+
 ## On the brake; stopped, parked (car.gd: a held brake at a standstill would reverse it into the
 ## police car behind).
 func _brake(c: CharacterBody3D) -> void:
@@ -1649,6 +2303,8 @@ func _drive_at_trap(c: CharacterBody3D, stop: bool) -> bool:
 		for k in traps:
 			if k["id"] == int(opts.get("trap", 0)):
 				t = k
+	if t.is_empty() and not _first.is_empty():
+		t = _first
 	if t.is_empty():
 		return false
 	# Through the traffic, like the other test drivers (a car in the lane would stop the run).

@@ -76,6 +76,9 @@ var start_heat := 1.0
 var start_broken := 0
 ## Loop 2d-1: the Podwózka job (rides.gd), so the two never run at once.
 var rides: Node
+## Loop 3g-2 (police.md 8.3): the kebab's heat stands still while a pull-over's card is open
+## (police.gd sets it).
+var heat_frozen := false
 
 ## Stands: {ring: Vector3, at: Vector3, yaw, heading, node, marker, cool, across}.
 var _stands: Array[Dictionary] = []
@@ -308,6 +311,11 @@ func _district_near(p: Vector2) -> String:
 
 
 # --- the flow ---------------------------------------------------------------------------
+
+## Loop 3g-2: the kebab's heat now (0..1; police.gd logs it around a pull-over).
+func heat() -> float:
+	return _heat
+
 
 func busy() -> bool:
 	# Loop 2d-1: a Podwózka ride counts as a job for everything that waits on one.
@@ -571,7 +579,7 @@ func _deliver_tick(dt: float) -> void:
 	var p := car.global_position
 	var d := _flat(p, target)
 	var speed: float = car.vel.length()
-	if job == Job.KEBAB:
+	if job == Job.KEBAB and not heat_frozen:
 		_heat = maxf(0.0, _heat - dt * 0.6 / float(_order["fair"]))
 	if d < ARRIVE and speed < ARRIVE_SPEED and not flying:
 		_arrive()

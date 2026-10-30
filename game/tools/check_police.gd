@@ -18,16 +18,32 @@ extends SceneTree
 ## every case the złoty never change (the stand-in wallet fails on any write but respect and the
 ## notebook) and police.gd's source never writes them; chases started = chases ended.
 ##
+## P14, part two (loop 3g-2, police.md 8 and 5.6), the same stand-ins plus a rescue, a race and a
+## kebab: nothing perceived on a rescue; accepting one ends a chase (the toast, the cooldown); the
+## escort joins (placed ahead out of sight on the first rescue, or the patrol within 200 m), +10 s
+## on the clock, waits while the player is over 60 m behind, sets the pace 15-25 m ahead, drops
+## behind when overtaken, leaves with its lights off at the hospital, none in the helicopter; a race
+## seen pulls in koguty 1 and its escape marks the race (+20 %, rivals.gd's 1.2); the kebab's heat
+## stands still while the pull-over card is open; the guards whistle and run 3 s but never start a
+## chase or a strike, their car follows at most 25 km/h for 15 s, the zone pill and the 20 km/h
+## cap; the clamp counts down after 20 s parked by a guard, goes on 10 s later, holds the car, comes
+## off after 10 s or at once on Przepraszam; the first contact arms after the first race and
+## happens once per save.
+##
 ## Prints a line per case, then `check_police: OK` (exit 0) or the problems (exit 1).
 ##   godot --headless --path game --script res://tools/check_police.gd [-- --verbose]
 
 const Police := preload("res://scripts/police.gd")
+const Rivals := preload("res://scripts/rivals.gd")
+const PedZones := preload("res://scripts/ped_zones.gd")
+const Guards := preload("res://scripts/police/guards.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const Dialogue := preload("res://scripts/dialogue.gd")
 const DIALOGUE_JSON := "res://data/dialogue.json"
 const FLOW := "res://dialogue/police.dialogue"
 const SOURCES := ["res://scripts/police.gd", "res://scripts/police/police_unit.gd", "res://scripts/police/police_talk.gd",
-		"res://scripts/police/police_balloon.gd", "res://scripts/police/police_tree.gd"]
+		"res://scripts/police/police_balloon.gd", "res://scripts/police/police_tree.gd",
+		"res://scripts/police/guards.gd", "res://scripts/police/guard_unit.gd"]
 const BUBBLE := 70
 const REPLY := 28
 const DT := 1.0 / 60.0
@@ -43,6 +59,8 @@ const USED := [
 	["police_reply", "", false], ["police_reply", "trap", true], ["police_reply", "kebab", true],
 	["police_caution", "police", false], ["police_caution", "fifth", true],
 	["radio_host", "traps", true],
+	["police_escort", "", false], ["guard", "", false], ["guard", "oldtown", true], ["guard", "run", true],
+	["guard", "clamp", true],
 ]
 
 var problems: Array[String] = []
@@ -93,8 +111,14 @@ class FakeTraffic extends Node3D:
 	var patrol_wait := 0.0
 	var cars: Array = []
 	var graph
+	## Loop 3g-2: false puts the whole road out of sight (the escort and the guards' car spawn).
+	var screen := true
 	func on_screen(_p: Vector3, _h: float) -> bool:
-		return true
+		return screen
+	func remaining(d) -> float:
+		if d.route.is_empty():
+			return INF
+		return graph.remaining(d.route, d.edge, d.s)
 	func add_police(e: int, lane: int, s: float, _shape := 0):
 		var d := FakeDriver.new()
 		d.edge = e
@@ -195,6 +219,11 @@ class FakeWallet extends Node:
 	var cautions_day := 0
 	var escapes_total := 0
 	var forbidden := 0
+	## Loop 3g-2: the save's kept flags (the first contact) and the saves asked for.
+	var keep := {}
+	var saves := 0
+	func save() -> void:
+		saves += 1
 	func pay(_amount: int, _gain := 0, _kind := "") -> void:
 		forbidden += 1
 	func add_respect(gain: int) -> void:
@@ -209,6 +238,42 @@ class FakeWallet extends Node:
 		return cautions_today if cautions_day == today else 0
 	func add_escape() -> void:
 		escapes_total += 1
+
+
+## Loop 3g-2: a rescue (state 3 PICKUP, 4 DROPOFF, 5 RESULT), the hospital at x 1500.
+class FakeMissions extends Node:
+	signal accepted
+	var state := 0
+	var number := 9
+	var _success := false
+	var added := 0.0
+	func has_target() -> bool:
+		return state == 3 or state == 4
+	func target_position() -> Vector3:
+		return Vector3(1500.0, 0.0, 6.5)
+	func add_time(seconds: float) -> void:
+		added += seconds
+
+
+class FakeRivals extends Node:
+	var racing := false
+	var did_race := false
+	var escape_bonus := false
+	func in_race() -> bool:
+		return racing
+	func raced() -> bool:
+		return did_race
+	func busy() -> bool:
+		return racing
+
+
+class FakeJobs extends Node:
+	var job := 1
+	var heat_frozen := false
+	func busy() -> bool:
+		return true
+	func heat() -> float:
+		return 0.8
 
 
 class FakeRadio extends Node:
@@ -240,8 +305,11 @@ func _run() -> void:
 	_flow()
 	_sources()
 	await _machine()
+	await _part_two()
+	if _cases == 0:
+		problems.append("no cases ran (police.gd didn't load?)")
 	if problems.is_empty():
-		print("check_police: OK (P11 lines and flow, P12 the state machine: %d cases)" % _cases)
+		print("check_police: OK (P11 lines and flow, P12 the state machine, P14 part two: %d cases)" % _cases)
 		quit(0)
 	else:
 		for p in problems:
@@ -261,7 +329,8 @@ func _lines() -> void:
 		if not String(k).begins_with("_"):
 			d.lines[k] = data[k]
 	var count := 0
-	for g: String in ["police_warn", "police_chase", "police_lost", "police_stop", "police_reply", "police_caution"]:
+	for g: String in ["police_warn", "police_chase", "police_lost", "police_stop", "police_reply", "police_caution",
+			"police_escort", "guard"]:
 		for l: Array in d.lines.get(g, []):
 			count += 1
 			if l.size() < 2 or String(l[0]).strip_edges() == "" or String(l[1]).strip_edges() == "":
@@ -284,7 +353,7 @@ func _lines() -> void:
 	if not host.is_empty() and not (String(host[0][0]).contains("{pl}") and String(host[0][1]).contains("{en}")):
 		problems.append("P11 the radio host's traps line lacks {pl} / {en}")
 	d.free()
-	print("P11 lines: %d police lines in 6 groups, %d groups and tags used" % [count, USED.size()])
+	print("P11 lines: %d police lines in 8 groups, %d groups and tags used" % [count, USED.size()])
 
 
 func _flow() -> void:
@@ -293,7 +362,7 @@ func _flow() -> void:
 	if not result.errors.is_empty():
 		for e in result.errors:
 			problems.append("P11 police.dialogue line %d: %s" % [e.line_number + 1, DMConstants.get_error_message(e.error)])
-	for cue in ["pull_over", "caution"]:
+	for cue in ["pull_over", "caution", "guard_stop", "guard_caution"]:
 		if not result.cues.has(cue):
 			problems.append("P11 police.dialogue has no cue ~ %s" % cue)
 	var re := RegEx.create_from_string("talk\\.say\\(\"([a-z_]+)\"")
@@ -330,6 +399,8 @@ var traffic: FakeTraffic
 var wallet: FakeWallet
 var hud: FakeHud
 var map: FakeMap
+var missions: FakeMissions
+var rivals: FakeRivals
 var _log: Array[String] = []
 
 
@@ -367,11 +438,16 @@ func _fresh(now := false) -> void:
 	_world.add_child(radio)
 	var sfx := FakeSfx.new()
 	_world.add_child(sfx)
+	missions = FakeMissions.new()
+	_world.add_child(missions)
+	rivals = FakeRivals.new()
+	_world.add_child(rivals)
 	p = Police.new()
 	p.opts = {"now": now, "traffic_level": 0, "log": false}
 	_world.add_child(p)
 	var nodes := {"map": map, "graph": graph, "traffic": traffic, "car": car, "hud": hud, "bubbles": bubbles,
-			"dialogue": dialogue, "wallet": wallet, "radio": radio, "sfx": sfx, "opts": p.opts}
+			"dialogue": dialogue, "wallet": wallet, "radio": radio, "sfx": sfx, "opts": p.opts,
+			"missions": missions, "rivals": rivals}
 	p.setup(nodes, {}, _world)
 
 
@@ -534,3 +610,208 @@ func _machine() -> void:
 	_case("starts = ends", p.chases_started == p.chases_ended, "%d started, %d ended" % [p.chases_started, p.chases_ended])
 	_world.free()
 	print("P12 state machine: %d cases" % _cases)
+
+
+# --- part two (loop 3g-2) --------------------------------------------------------------------
+
+## The escort's car at x on the car's road (edge 0, eastbound): 2000 - x left on its route.
+func _put(d, x: float) -> void:
+	d.edge = 0
+	d.s = x
+	d.pos = Vector3(x, 0.0, 6.5)
+
+
+## A city guard of the posts file moved to (x, z) by the road, staffed (a fixed slot).
+func _guard_at(x: float, z: float):
+	var g = p.guards.guards[0]
+	g.home = Vector2(x, z)
+	g.pos = g.home
+	g.slot = Guards.SLOT0
+	g.set_role("post")
+	return g
+
+
+func _part_two() -> void:
+	var before := _cases
+	# On a rescue the police see nothing (PICKUP and DROPOFF).
+	for st in [3, 4]:
+		_fresh()
+		missions.state = st
+		var u = _patrol(560.0)
+		p.clock = 200.0
+		p._offence("speed", u)
+		u.warn_wait = 0.0
+		p._offence("red", u)
+		_case("rescue state %d sees nothing" % st, p.strikes == 0 and p.phase == Police.Phase.CALM,
+				"two offences: strikes %d, %s" % [p.strikes, Police.PHASES[p.phase]])
+	# Accepting a rescue in a chase ends it: the toast, the cooldown.
+	_fresh(true)
+	p.now = false
+	var cu = _patrol(470.0)
+	p._start_chase(1, cu, "check")
+	missions.state = 3
+	missions.accepted.emit()
+	var toasted: bool = hud.toasts.any(func(t: Array) -> bool: return String(t[0]).contains("RATUJESZ"))
+	_case("rescue ends the chase", p.phase == Police.Phase.CALM and p.cooldown > 170.0 and toasted
+			and p.chases_started == p.chases_ended, "%s, cooldown %.0f s, toast %s" % [Police.PHASES[p.phase], p.cooldown, toasted])
+	# The escort on the first rescue: none in sight, so one placed 150 m ahead out of sight; +10 s.
+	_fresh()
+	missions.state = 3
+	missions.accepted.emit()
+	missions.state = 4
+	traffic.screen = false
+	await _steps(0.5)
+	traffic.screen = true
+	var es = p._escort
+	_case("escort placed", es != null and es.role() == "escort" and absf(es.driver.s - 650.0) < 15.0 and missions.added == Police.ESCORT_BONUS,
+			"unit %s at s %.0f (150 m ahead of 500), clock +%.0f s" % [es.number if es != null else -1, es.driver.s if es != null else -1.0, missions.added])
+	if es != null:
+		var d = es.driver
+		var bb = es.tree.blackboard
+		await _steps(0.5)
+		_case("escort lights, route", d.lights and d.chase and not d.route.is_empty(), "lights %s, chase %s, on the route %s" % [d.lights, d.chase, not d.route.is_empty()])
+		_case("escort waits", bool(bb.get_value("escort_wait", false)) and d.held, "the player %.0f m behind: wait %s" % [es.dist, bb.get_value("escort_wait", false)])
+		_put(d, 520.0)
+		await _steps(0.5)
+		_case("escort leads", not bool(bb.get_value("escort_wait", true)) and absf(float(bb.get_value("escort_v", 0.0)) - Police.ESCORT_PACE) < 0.01,
+				"20 m ahead: wait %s, pace %.1f m/s (%.1f)" % [bb.get_value("escort_wait", true), bb.get_value("escort_v", 0.0), Police.ESCORT_PACE])
+		_put(d, 508.0)
+		await _steps(0.5)
+		var close: float = bb.get_value("escort_v", 0.0)
+		_put(d, 540.0)
+		await _steps(0.5)
+		var far: float = bb.get_value("escort_v", 0.0)
+		_case("escort pace", close > Police.ESCORT_PACE and far < Police.ESCORT_PACE, "8 m ahead %.1f m/s, 40 m ahead %.1f m/s" % [close, far])
+		_put(d, 490.0)
+		await _steps(1.6)
+		_case("escort overtaken", p._escort_state == "behind", "10 m behind the player for 1.6 s: %s" % p._escort_state)
+		missions.state = 5
+		missions._success = true
+		await _steps(0.5)
+		_case("escort leaves", p._escort == null and not d.lights and es.role() == "patrol", "at the hospital: lights %s, role %s" % [d.lights, es.role()])
+	# A later rescue: the patrol within 200 m joins; none in the helicopter.
+	_fresh()
+	var near = _patrol(620.0)
+	missions.state = 3
+	missions.accepted.emit()
+	missions.accepted.emit()
+	missions.state = 4
+	await _steps(0.5)
+	_case("escort joins a patrol", p._escort == near, "the patrol 120 m away %s" % ("joined" if p._escort == near else "didn't join"))
+	_fresh()
+	p.flying = true
+	missions.state = 3
+	missions.accepted.emit()
+	missions.state = 4
+	traffic.screen = false
+	await _steps(0.5)
+	_case("no escort in the helicopter", p._escort == null, "flying: %s" % ("none" if p._escort == null else "one"))
+	p.flying = false
+	# A race seen by a patrol: koguty 1; escaping marks the race (+20 % on a win, rivals.gd).
+	_fresh(true)
+	p.clock = 200.0
+	rivals.racing = true
+	var ru = _patrol(530.0)
+	await _steps(0.5)
+	_case("race seen", p.phase == Police.Phase.CHASE and p.level == 1, "a patrol 30 m away: %s L%d" % [Police.PHASES[p.phase], p.level])
+	await _steps(9.0, func() -> void:
+		if ru.driver != null:
+			ru.driver.pos = car.global_position - Vector3(130.0, 0.0, 0.0))
+	_case("race +20 %", rivals.escape_bonus and is_equal_approx(Rivals.ESCAPE_BONUS, 1.2) and roundi(50 * Rivals.ESCAPE_BONUS) == 60,
+			"escaped in the race: marked %s, a 50 zł stake pays %d" % [rivals.escape_bonus, roundi(50 * Rivals.ESCAPE_BONUS)])
+	# The kebab's heat stands still while the pull-over card is open.
+	_fresh(true)
+	p.now = false
+	p.grace_over = true
+	var jobs := FakeJobs.new()
+	_world.add_child(jobs)
+	p.jobs = jobs
+	var ku = _patrol(470.0)
+	p._start_chase(1, ku, "check")
+	car.vel = Vector3.ZERO
+	ku.driver.pos = car.global_position - Vector3(17.0, 0.0, 0.0)
+	var heat := {"card": false, "frozen": true}
+	await _steps(12.0, func() -> void:
+		if p.phase == Police.Phase.PULLOVER:
+			heat["card"] = true
+			heat["frozen"] = heat["frozen"] and jobs.heat_frozen)
+	_case("kebab heat frozen", heat["card"] and heat["frozen"] and not jobs.heat_frozen,
+			"the card open: frozen %s; after it: frozen %s" % [heat["frozen"], jobs.heat_frozen])
+	var src := FileAccess.get_file_as_string("res://scripts/jobs.gd")
+	_case("kebab heat in jobs.gd", src.contains("job == Job.KEBAB and not heat_frozen"), "the heat's decay skips while frozen")
+	# The guards: the whistle and a 3 s run; never a strike or a chase; their car at 25 km/h, 15 s.
+	_fresh()
+	p.clock = 200.0
+	var g = _guard_at(520.0, 14.0)
+	traffic.screen = false
+	# The car is placed at a random spot 150-300 m out and retried every 2 s when no road is
+	# found there; wait for it (up to 8 s) so the case doesn't hang on one random draw.
+	for _i in 16:
+		await _steps(0.5)
+		if p.guards._car_unit != null:
+			break
+	traffic.screen = true
+	var gcar = p.guards._car_unit
+	p.zone = "oldtown"
+	car.vel = Vector3(6.0, 0.0, 0.0)
+	await _steps(0.5)
+	var ran: bool = g.role() == "run"
+	var pill: Array = p.guards.pill()
+	_case("zone pill and cap", pill.size() == 2 and String(pill[0]) == "STREFA PIESZA · 20 KM/H" and is_equal_approx(PedZones.CAP, 20.0 / 3.6),
+			"pill %s, cap %.1f km/h" % [pill, PedZones.CAP * 3.6])
+	var follow: bool = gcar != null and gcar.role() == "guard_follow"
+	await _steps(1.0)
+	var capped: bool = gcar != null and gcar.driver != null and gcar.driver.v_cap <= 25.0 / 3.6 + 0.01 and gcar.driver.lights
+	await _steps(2.5)
+	_case("guard runs 3 s", ran and g.role() == "post", "whistled: run %s, 3.5 s later %s" % [ran, g.role()])
+	await _steps(12.0)
+	_case("guard car follows 15 s", follow and capped and gcar.role() == "guard",
+			"following %s, at most 25 km/h with the beacon %s, after 16 s %s" % [follow, capped, gcar.role() if gcar != null else "none"])
+	_case("guards never chase", p.strikes == 0 and p.chases_started == 0 and p.phase == Police.Phase.CALM,
+			"strikes %d, chases %d, %s" % [p.strikes, p.chases_started, Police.PHASES[p.phase]])
+	# The clamp: parked 20 s by a guard on a footway, a 10 s countdown, 10 s on (the car held), or off
+	# at once on Przepraszam.
+	_fresh()
+	p.clock = 200.0
+	g = _guard_at(500.0, 26.0)
+	p.zone = "oldtown"
+	car.vel = Vector3.ZERO
+	var ct := {"count": -1.0, "on": -1.0, "off": -1.0, "t0": p.clock, "held": false}
+	await _steps(42.0, func() -> void:
+		var c: String = p.guards.clamp
+		var t: float = p.clock - ct["t0"]
+		if c == "count" and ct["count"] < 0.0:
+			ct["count"] = t
+		if c == "on" and ct["on"] < 0.0:
+			ct["on"] = t
+			ct["held"] = p.guards.holds()
+		if c == "" and ct["on"] > 0.0 and ct["off"] < 0.0:
+			ct["off"] = t)
+	# (The zone reaches the guards at the first 5 Hz tick: the countdown 20.2 s after the start.)
+	_case("clamp timing", absf(ct["count"] - Guards.CLAMP_PARK) < 0.25 and absf(ct["on"] - ct["count"] - Guards.CLAMP_COUNT) < 0.1
+			and absf(ct["off"] - ct["on"] - Guards.CLAMP_ON) < 0.1 and ct["held"],
+			"countdown at %.2f s, on %.2f s later (held %s), off %.2f s later" % [ct["count"], ct["on"] - ct["count"], ct["held"], ct["off"] - ct["on"]])
+	p.guards.test_clamp(false)
+	await _steps(10.1)
+	var on_again: bool = p.guards.clamp == "on"
+	p.guards.sorry()
+	_case("clamp sorry", on_again and p.guards.clamp == "" and not p.guards.holds(), "Przepraszam: %s" % ("off at once" if p.guards.clamp == "" else p.guards.clamp))
+	_case("clamp no police", p.strikes == 0 and p.chases_started == 0, "strikes %d, chases %d" % [p.strikes, p.chases_started])
+	# The first contact: armed after the first race, once per save.
+	_fresh()
+	rivals.did_race = true
+	await _steps(0.2)
+	var armed: bool = p._first_wait > 0.0
+	p._first_done("check")
+	p._first_done("check again")
+	var saved: bool = wallet.saves == 1 and bool(wallet.keep.get(Police.FIRST_KEY, false))
+	_fresh()
+	wallet.keep[Police.FIRST_KEY] = true
+	rivals.did_race = true
+	await _steps(10.0)
+	_case("first contact once", armed and saved and p._first.is_empty() and p._first_wait < 0.0,
+			"armed after the race %s, saved once %s; with it in the save: armed %s, set up %s" % [armed, saved, p._first_wait >= 0.0, not p._first.is_empty()])
+	_case("wallet part two", wallet.zl == 120 and wallet.forbidden == 0, "%d zł, %d forbidden writes" % [wallet.zl, wallet.forbidden])
+	_world.free()
+	_world = null
+	print("P14 part two: %d cases" % (_cases - before))

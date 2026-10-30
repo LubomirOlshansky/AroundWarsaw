@@ -193,6 +193,9 @@ var follow := true
 var cam_focus := Vector3.ZERO
 var demo := false
 var shots: Array[int] = []
+## The shots saved so far: the frames of `shots` that reached their PNG (a run that ends
+## without one says so in _exit_tree).
+var _shots_saved: Array[int] = []
 var out_dir := "user://"
 var frame := 0
 var start_at := Vector3.INF
@@ -504,6 +507,15 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	# A shots run that ends before its last shot (--quit-after, a closed window) says which
+	# frames are missing and where it was, instead of ending quietly after "city built".
+	var missing: Array[int] = []
+	for n in shots:
+		if n not in _shots_saved:
+			missing.append(n)
+	if not missing.is_empty():
+		print("shots: missing %s (game frame %d, engine frame %d, paused %s, started %s)" % [
+				missing, frame, Engine.get_process_frames(), get_tree().paused, _started])
 	if _stats != null:
 		_stats.unhook()
 	if RenderingServer.frame_pre_draw.is_connected(_stress_wait):
@@ -1394,6 +1406,7 @@ func _build_police(data: Dictionary, world: Node3D) -> void:
 	var nodes := {"map": map, "graph": graph, "traffic": traffic, "car": car, "cam": cam, "hud": hud,
 			"bubbles": bubbles, "dialogue": dialogue, "wallet": wallet, "walkers": walkers, "radio": radio, "sfx": sfx,
 			"jobs": jobs, "missions": missions, "tod": tod, "opts": police_opts, "pedal": hold_pedal, "autopilot": autopilot,
+			"rivals": rivals, "ped_zones": ped_zones,
 			"level_now": func() -> int: return traffic_level,
 			"project": func(p: Vector3) -> Vector2: return cam.unproject_position(p) * float(view.stretch_shrink)}
 	add_child(police)
@@ -1402,10 +1415,32 @@ func _build_police(data: Dictionary, world: Node3D) -> void:
 
 ## The police's testing flags (README's flags table): --no-police, --police=1|2|3, --trap=N,
 ## --pullover=routine|trap|kebab|sloik|generic, --police-auto=escape|stop|hold, --police-now,
-## --police-log, --police-offence=FRAME:kind,...
+## --police-log, --police-offence=FRAME:kind,... Loop 3g-2: --escort, --guards, --clamp[=sorry],
+## --first-contact (police.md 14).
 func _police_flag(arg: String) -> void:
 	if arg == "--no-police":
 		police_opts["off"] = true
+	elif arg == "--escort":
+		police_opts["escort"] = true
+	elif arg == "--first-contact":
+		police_opts["first_contact"] = true
+		show_title = false
+		free_roam = true
+	elif arg == "--guards" or arg == "--guards=talk":
+		# The Krakowskie Przedmieście end of the zone, heading north into it (police.gd drives;
+		# =talk stops by the gate's guards).
+		police_opts["guards"] = "talk" if arg == "--guards=talk" else "drive"
+		start_at = Vector3(-696.0, 0.0, -1279.0)
+		start_heading = 345.0
+		show_title = false
+		free_roam = true
+	elif arg == "--clamp" or arg.begins_with("--clamp="):
+		# Parked on Plac Zamkowy 15 m from a guard; the clamp's countdown starts at frame 60.
+		police_opts["clamp"] = arg.trim_prefix("--clamp=") if arg.begins_with("--clamp=") else "wait"
+		start_at = Vector3(-690.0, 0.0, -1490.0)
+		start_heading = 250.0
+		show_title = false
+		free_roam = true
 	elif arg == "--police-now":
 		police_opts["now"] = true
 	elif arg == "--police-log":
@@ -1453,6 +1488,10 @@ func _parse_args() -> void:
 		elif arg.begins_with("--shots="):
 			for s in arg.trim_prefix("--shots=").split(","):
 				shots.append(int(s))
+			# A shots run is a scripted render: its window never takes the keyboard focus, as with
+			# --no-input (night --nohud shots had come out in the helicopter or at dusk: keys typed
+			# in another app landed in the freshly opened game window).
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
 		elif arg.begins_with("--out="):
 			out_dir = arg.trim_prefix("--out=")
 		elif arg.begins_with("--style="):
@@ -1662,7 +1701,8 @@ func _parse_args() -> void:
 				var xyf := c.split(":")
 				clicks.append(Vector3i(int(xyf[0]), int(xyf[1]), int(xyf[2])))
 		# Loop 3g-1: the police's flags (_police_flag, below).
-		elif arg == "--no-police" or arg.begins_with("--police") or arg.begins_with("--trap=") or arg.begins_with("--pullover"):
+		elif arg == "--no-police" or arg.begins_with("--police") or arg.begins_with("--trap=") or arg.begins_with("--pullover") \
+				or arg in ["--escort", "--guards", "--guards=talk", "--first-contact", "--clamp"] or arg.begins_with("--clamp="):
 			_police_flag(arg)
 	# Test runs go straight to the city (--title brings the title screen back).
 	if demo or not shots.is_empty() or autopilot or start_race > 0 or start_mission > 0 or start_rival > 0 or bench or probe \
@@ -2515,6 +2555,7 @@ func _process(dt: float) -> void:
 	_feed_life(pos)
 	if police != null:
 		police.flying = flying  # loop 3g-1: the police ignore the helicopter
+		police.zone = zone  # loop 3g-2: the city guards' zone pill and whistle
 	if jobs != null:
 		# Loop 2b: no side job starts on the bench route (the ghost stops at red lights).
 		jobs.flying = flying or _bench_ghost != null
@@ -3438,6 +3479,7 @@ func _capture(n: int) -> void:
 		print("ghost: frame %d centre %.1f %.1f radii %.1f %.1f (screen px)" % [n, _ghost_px.x, _ghost_px.y, _ghost_px.z, _ghost_px.w])
 	var img := get_viewport().get_texture().get_image()
 	img.save_png(out_dir.path_join("shot_%04d.png" % n))
+	_shots_saved.append(n)
 	if n == shots.max():
 		_quit_quietly()  # sweep 2: was get_tree().quit()
 

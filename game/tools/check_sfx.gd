@@ -7,7 +7,7 @@ extends SceneTree
 ##   godot --headless --path game --script res://tools/check_sfx.gd
 
 const LOOPS := ["engine_idle", "engine_mid", "engine_high", "tyre_roll", "tyre_wet", "tyre_squeal", "rotor",
-		"city_day", "city_night", "rain"]
+		"city_day", "city_night", "rain", "police_siren"]
 
 
 func _initialize() -> void:
