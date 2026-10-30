@@ -13,7 +13,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
-| map | Loop 3d-2b, the map engine part two: far levels with low buildings painted flat, look-ahead streaming, per-sector AO/light/surface maps, the load hitch (3d-1 and 3d-2a landed) | thread "Finish the demo map extension" | 2026-10-30 |
+| map | Loop 3e, structures: the W-Z tunnel, Most Śląsko-Dąbrowski, Trasa Łazienkowska, the Wybrzeże trench, Wiadukt Markiewicza, the rail cutting (3d-1, 3d-2a and 3d-2b landed) | thread "Finish the demo map extension" | 2026-10-30 |
 | content (city life) | MW-4, everyday life and trends: dog walkers, cyclists and Rowerilo docks, runners, Kolka and the Zając, Hyrax Saturdays, the Wiralek cycle and the "Na czasie" job, Fat Thursday (new meshes in its own script; tell landmarks before touching `models.gd`) | cloud thread "Add night and river crowds" | 2026-10-30 |
 
 ## Waiting
@@ -45,6 +45,16 @@ Newest first. One entry per question.
   as said.
 - **2026-10-30 · content · MW-6** — Spacer (wander mode) is a row in Settings → JAZDA, offered
   once by a toast; FOTKA is a button in Settings → OBRAZ. Default built: there.
+- **2026-10-30 · map · 3d-2b** — A far level by zoom: draw the helicopter's highest views (above
+  ~200 m) as painted proxies? Over the centre ~357 draw calls would drop to a few dozen, but those
+  views lose their 3D detail. Default built: no far level, full detail everywhere (the orthographic
+  camera shows no proxies today). Where: BACKLOG "From loop 3d-2b".
+- **2026-10-30 · map · 3d-2b** — Map slots for the per-sector AO/light maps: keep 24 (32 MB) or
+  raise to 28–32 for headroom (+5–11 MB)? The 3-minute soak reached 24 with no waits. Default: 24.
+- **2026-10-30 · map · 3d-2b** — check_streaming's spot 8 limit (1 %): lower it now that it
+  measures 0.015 %? Default: leave it until more runs agree.
+- **2026-10-30 · map · 3d-2b** — Landmarks in the proxies need a LOD1 model from `landmarks.gd`
+  (landmarks lane). Default: none until round 3f's landmark factory.
 - **2026-10-30 · map · 3d-2a** — Clean the terrain at bake time (snap near-flat 20 m blocks within
   15 cm) so flat ground can merge into bigger quads? It would let ~47 % of cells merge but moves
   driving heights by up to 15 cm and needs a full re-bake. Options: snap / keep exact heights.
