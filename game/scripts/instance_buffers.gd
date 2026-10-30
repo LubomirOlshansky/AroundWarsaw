@@ -18,6 +18,14 @@ static func prepare(mm: MultiMesh) -> void:
 		mm.use_colors = true
 
 
+## After `instance_count` is set, for a MultiMesh written instance by instance
+## (set_instance_custom_data): its colour slots start unset, so they are made white.
+static func whiten(mm: MultiMesh) -> void:
+	if widen:
+		for i in mm.instance_count:
+			mm.set_instance_color(i, Color.WHITE)
+
+
 ## The whole buffer, 16 floats an instance, as the scripts write it.
 static func send(rid: RID, buf: PackedFloat32Array) -> void:
 	if not widen:

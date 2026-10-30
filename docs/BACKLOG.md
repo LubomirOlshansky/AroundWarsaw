@@ -1137,9 +1137,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **Try it in a phone's browser** (iOS Safari, Android Chrome): memory with the ~140 MB pack in
   memory, the touch controls for real, the safe area (`OS.has_feature("mobile")` is false on the
   web, so the HUD uses the desktop layout rules), the frame rate.
-- **Smaller download**: ~141 MB, mostly the 108 sector scenes, which barely compress. Options:
-  load sectors over HTTP as the car needs them (a pack per sector with
-  `ProjectSettings.load_resource_pack`), or a web-only lighter city (no far sectors, proxies only).
+- **Smaller download** (web loop 2 did the sectors: 141 → 59 MB at the start). What is left: the
+  pack's 40 MB (shared meshes and textures 20, proxies 8.5, index 7.7), the engine's 10.
+- **A sector the car reaches before its pack** shows its proxy and has no colliders; on a slow
+  link a fast helicopter could outrun the downloads. Not seen in tests.
 - **The Compatibility renderer's look**: compare the web against the phone shot for shot
   (night lights, water, shadows); only the green traffic was fixed.
 - **Prebuilt MultiMeshes with custom data and no colours** would show the same Compatibility bug

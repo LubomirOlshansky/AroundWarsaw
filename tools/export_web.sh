@@ -17,9 +17,12 @@ cd $ROOT/game
 $ROOT/tools/setup_map.sh --if-needed
 rm -rf $ROOT/build/web
 mkdir -p $ROOT/build/web
+# The web loop 2: the sector scenes as packs of their own, downloaded as the car needs them
+# (scripts/sector_packs.gd); the preset leaves them out of the game's pack.
+$GODOT --headless --path . --script res://tools/pack_sectors.gd -- $ROOT/build/web | grep '^pack_sectors'
 $GODOT --headless --path . --export-release "Web" $ROOT/build/web/index.html > $ROOT/build/export_web.log 2>&1 \
 	|| { tail -20 $ROOT/build/export_web.log; print -r -- "export_web: the export failed ($ROOT/build/export_web.log)"; exit 1 }
-cp $ROOT/tools/web/split_loader.js $ROOT/tools/web/_headers $ROOT/build/web/
+cp $ROOT/tools/web/split_loader.js $ROOT/tools/web/loading.css $ROOT/tools/web/_headers $ROOT/build/web/
 python3 -I $ROOT/tools/web/split_parts.py $ROOT/build/web/index.pck $ROOT/build/web/index.wasm
 print -r -- "export_web: build/web ready (look at it: python3 -I tools/web/serve.py)"
 if [[ $1 == --deploy ]]; then
