@@ -616,6 +616,10 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   6.5 m and tall pointed lancets on walls over 9 m, their stained glass faintly lit at night.
   Foster's Metropolitan on Plac Piłsudskiego wears the towers' fin skin (`S_FINS`) in grey glass,
   with a card.
+- **Kolumna Zygmunta** (`_build_zygmunt`): OpenStreetMap maps the column in a dozen tiny 3D
+  parts that the builder dropped as specks, leaving a dark cube on Plac Zamkowy. It is built
+  as a landmark in a circle zone: three granite steps, the pedestal, the 12 m shaft, the
+  capital and the king in bronze with his cross raised and his sabre, to 22.9 m, with a card.
 - **Muzeum Narodowe** (the landmarks loop): kept as LoD2 draws it (one model round its
   courtyards), but in its pale stone with tall windows between piers (`M_MONUMENT`, `#c9bfa9`):
   `map_builder` asks `landmarks.skin_at` for every kept LoD2 run and OpenStreetMap building

@@ -227,6 +227,9 @@ const INFO := {
 	"mirowska": ["Hala Mirowska",
 			"Ceglana hala targowa.",
 			"A brick market hall."],
+	"zygmunt": ["Kolumna Zygmunta",
+			"Najstarszy świecki pomnik Warszawy, z 1644 roku.",
+			"Warsaw's oldest secular monument, of 1644."],
 	"metropolitan": ["Metropolitan",
 			"Biurowiec Normana Fostera przy placu Piłsudskiego, z 2003 roku.",
 			"Norman Foster's office building on Plac Piłsudskiego, of 2003."],
@@ -449,6 +452,7 @@ func _find_sites() -> void:
 	_find_muzeum()
 	_find_mdm()
 	_find_skins()
+	_find_zygmunt()
 
 
 ## Warszawa Centralna: OpenStreetMap maps the station in 3D (its outline sits underground):
@@ -596,6 +600,8 @@ func build(surface, near := Rect2()) -> void:
 				_build_centralna(s)
 			"poniatowski":
 				_build_towers(s)
+			"zygmunt":
+				_build_zygmunt(s)
 			_:
 				if s.has("tower"):
 					_build_tower(s)
@@ -1730,6 +1736,57 @@ func _find_mdm() -> void:
 	if not sites.is_empty() and sites[-1]["key"] == "mdm":
 		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": MDM_STONE, "roof": MDM_ROOF}
 
+
+# --- Kolumna Zygmunta (the landmarks loop, Old Town) ---------------------------------------------
+
+## Sigismund's Column on Plac Zamkowy (1644, rebuilt 1949): OpenStreetMap maps it in a dozen
+## tiny 3D parts the builder drops as specks, so the square had a dark cube. Built here: the
+## stepped granite base, the pedestal, the 12 m shaft, the capital and the king in bronze with
+## his cross raised and his sabre. A circle zone round it; the same on both city paths.
+const ZYGMUNT := Vector2(-724.2, -1465.4)
+const ZYGMUNT_GRANITE := Color("#8d8a86")
+const ZYGMUNT_STONE := Color("#d2c4ad")
+const ZYGMUNT_BRONZE := Color("#4f4a40")
+func _find_zygmunt() -> void:
+	_add_site("zygmunt", [_circle(ZYGMUNT, 4.0, 16)])
+
+
+## A ring of `n` points round `c`.
+func _circle(c: Vector2, r: float, n: int) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for k in n:
+		out.append(c + Vector2.from_angle(TAU * (k + 0.5) / n) * r)
+	return out
+
+
+func _build_zygmunt(_site: Dictionary) -> void:
+	var c := ZYGMUNT
+	_g = _ground_under(_circle(c, 3.4, 8))
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	# Three octagonal steps, the pedestal (a dark plinth, pale stone, a cornice).
+	for k in 3:
+		_prism(_circle(c, 3.4 - k * 0.4, 8), g - 0.4 + k * 0.4, g + 0.4 + k * 0.4, ZYGMUNT_GRANITE, ZYGMUNT_GRANITE, M_STONE, M_STONE)
+	_prism(_circle(c, 1.75, 4), g + 1.2, g + 2.5, ZYGMUNT_GRANITE, none, M_STONE)
+	_prism(_circle(c, 1.4, 4), g + 2.5, g + 4.8, ZYGMUNT_STONE, none, M_STONE)
+	_prism(_circle(c, 1.6, 4), g + 4.8, g + 5.2, ZYGMUNT_GRANITE, ZYGMUNT_GRANITE, M_STONE, M_STONE)
+	# The shaft, tapering a little, then the capital and the block the king stands on.
+	_mode = M_STONE
+	_frustum(_circle(c, 0.5, 16), g + 5.2, _circle(c, 0.4, 16), g + 17.4, ZYGMUNT_STONE)
+	_prism(_circle(c, 0.75, 4), g + 17.4, g + 18.0, ZYGMUNT_BRONZE, none, M_STONE)
+	_prism(_circle(c, 0.95, 4), g + 18.0, g + 18.6, ZYGMUNT_STONE, ZYGMUNT_STONE, M_STONE, M_STONE)
+	# The king (facing south, down Krakowskie Przedmieście): robe, body, head; the cross held
+	# high in his left hand, the sabre in his right.
+	_prism(_circle(c, 0.42, 8), g + 18.6, g + 19.9, ZYGMUNT_BRONZE, none, M_STONE)
+	_prism(_circle(c, 0.3, 8), g + 19.9, g + 20.9, ZYGMUNT_BRONZE, ZYGMUNT_BRONZE, M_STONE, M_STONE)
+	_prism(_circle(c, 0.16, 6), g + 20.9, g + 21.3, ZYGMUNT_BRONZE, ZYGMUNT_BRONZE, M_STONE, M_STONE)
+	var hand := c + Vector2(0.38, 0.05)
+	_prism(_circle(hand, 0.07, 4), g + 20.2, g + 22.9, ZYGMUNT_BRONZE, ZYGMUNT_BRONZE, M_STONE, M_STONE)
+	var bar := PackedVector2Array([hand + Vector2(-0.36, -0.05), hand + Vector2(0.36, -0.05), hand + Vector2(0.36, 0.05), hand + Vector2(-0.36, 0.05)])
+	_prism(bar, g + 22.25, g + 22.39, ZYGMUNT_BRONZE, ZYGMUNT_BRONZE, M_STONE, M_STONE)
+	var sabre := PackedVector2Array([c + Vector2(-0.34, 0.1), c + Vector2(-0.3, 0.1), c + Vector2(-0.3, 0.95), c + Vector2(-0.34, 0.95)])
+	_prism(sabre, g + 19.55, g + 19.65, ZYGMUNT_BRONZE, ZYGMUNT_BRONZE, M_STONE, M_STONE)
+	_collide(_circle(c, 3.4, 8))
 
 ## A kept building's site (the museum) on the picking grid: every cell whose centre is inside.
 func _mark_zone(site: Dictionary) -> void:
