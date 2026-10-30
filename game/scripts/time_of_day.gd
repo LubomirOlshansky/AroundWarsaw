@@ -1,5 +1,5 @@
 extends Node
-## Day, Dusk and Night: the sun (or moon), the ambient light, the sky behind the
+## Day, Dusk and Night (and loop MW-3's Dawn): the sun (or moon), the ambient light, the sky behind the
 ## diorama, the colour grade and the city's lights, blended over 1.5 s when the
 ## mode changes. The city's shaders read three global uniforms (project.godot
 ## [shader_globals]): lights_on, daylight and sky_colour. Day is the original
@@ -21,13 +21,17 @@ signal changed(mode: int)
 ## The lights went on (lights_on > 0) or off: night-only nodes show or hide.
 signal lights_switched(on: bool)
 
-enum { DAY, DUSK, NIGHT, LIVE }
-const NAMES := ["Day", "Dusk", "Night", "Live"]
+## Loop MW-3: DAWN (Świt) after LIVE, so the saved and the existing indices keep their meaning.
+enum { DAY, DUSK, NIGHT, LIVE, DAWN }
+const NAMES := ["Day", "Dusk", "Night", "Live", "Dawn"]
 const BLEND := 1.5
 const LAT := 52.23
 const LON := 21.01
 ## The sun's pitch in Live (degrees above the horizon), so shadows stay readable.
 const LIVE_PITCH := Vector2(20.0, 55.0)
+## Loop MW-3 (vision.md 4.5): the Dawn look is Dusk's palette with the sun in the east-north-east
+## (azimuth 67.5 degrees: yaw = 180 - azimuth, as in Live), no new shader.
+const DAWN_SUN_YAW := 112.5
 
 ## Each look. Colours are sRGB except the post-pass values (linear multipliers).
 ## saturation_share (the look loop, 2026-10-28): how much of the visual style's saturation
@@ -85,6 +89,9 @@ var _live_wait := 0.0
 var _started_ms := Time.get_ticks_msec()
 ## Loop MW-5: when the current look was set (the fixed looks' clock runs on from there).
 var _look_ms := Time.get_ticks_msec()
+## Loop MW-3: --clock=HH:MM with a fixed look: the hour its clock starts from (-1: the look's own,
+## vision.md 4.5). Cleared when the look changes.
+var fixed_start := -1.0
 
 
 ## `day_pitch` is the day sun's pitch (--sun=).
@@ -94,6 +101,12 @@ func setup(environment: Environment, light: DirectionalLight3D, post_material: S
 	post = post_material
 	_looks = LOOKS.duplicate(true)
 	_looks[DAY]["sun_pitch"] = day_pitch
+	# Loop MW-3: Live has no entry of its own (it blends the three); Dawn is Dusk's with the sun
+	# in the east-north-east.
+	_looks.append({})
+	var dawn: Dictionary = _looks[DUSK].duplicate()
+	dawn["sun_yaw"] = DAWN_SUN_YAW
+	_looks.append(dawn)
 	_to = _looks[mode]
 	_from = _to
 	_apply(_to)
@@ -107,6 +120,7 @@ static func parse(text: String) -> int:
 func set_mode(m: int, instant := false) -> void:
 	mode = m % NAMES.size()
 	_look_ms = Time.get_ticks_msec()
+	fixed_start = -1.0
 	_from = _current()
 	_to = _live_look() if mode == LIVE else _looks[mode]
 	_live_wait = 10.0
@@ -200,7 +214,7 @@ func now_utc() -> float:
 
 ## Loop MW-5: the game clock, {hour: 0..24 (fractional), weekday: 1 Monday .. 7 Sunday}. Live:
 ## the Warsaw clock (the device's, or --clock / --date). The fixed looks have the times of
-## vision.md 4.5 (Day 14:00, Dusk 19:30, Night 01:30; a Dawn look, when MW-3 adds one, 05:45) on
+## vision.md 4.5 (Day 14:00, Dusk 19:30, Night 01:30, loop MW-3's Dawn 05:45; --clock= moves the start) on
 ## "always Friday" (Open Question 4: the night is Friday's, so 01:30 is early Saturday), and run
 ## on in real time from the moment the look was set. PÓŁNOC FM's hours and the city's sounds
 ## (club hours, the bells, the busker, the 02:00 beat) read it.
@@ -211,12 +225,15 @@ func local_clock() -> Dictionary:
 		var wd := int(d["weekday"])
 		return {"hour": float(d["hour"]) + float(d["minute"]) / 60.0 + float(d["second"]) / 3600.0,
 				"weekday": 7 if wd == 0 else wd}
-	return look_clock(NAMES[mode], (Time.get_ticks_msec() - _look_ms) / 3600000.0)
+	return look_clock(NAMES[mode], (Time.get_ticks_msec() - _look_ms) / 3600000.0, fixed_start)
 
 
-## A fixed look's clock `elapsed_h` hours after it was set (see local_clock).
-static func look_clock(look: String, elapsed_h: float) -> Dictionary:
+## A fixed look's clock `elapsed_h` hours after it was set (see local_clock); loop MW-3: `from`
+## (0-24, --clock=) replaces the look's own start hour.
+static func look_clock(look: String, elapsed_h: float, from := -1.0) -> Dictionary:
 	var start: float = {"Day": 14.0, "Dusk": 19.5, "Night": 1.5, "Dawn": 5.75}.get(look, 14.0)
+	if from >= 0.0:
+		start = fmod(from, 24.0)
 	# hours since Friday 00:00: the evening looks are Friday's, the small hours Saturday's
 	var abs_h := (start if start >= 12.0 else start + 24.0) + elapsed_h
 	return {"hour": fmod(abs_h, 24.0), "weekday": (4 + int(floor(abs_h / 24.0))) % 7 + 1}

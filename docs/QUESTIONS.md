@@ -14,11 +14,25 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
 | map | Loop 3d-2b, the map engine part two: far levels with low buildings painted flat, look-ahead streaming, per-sector AO/light/surface maps, the load hitch (3d-1 and 3d-2a landed) | thread "Finish the demo map extension" | 2026-10-30 |
-| content (crowds) | MW-3, the night and the river: the city clock and the Dawn look, club queues and the door, the dawn crowd, the steps crowd, police by the clubs (crowd MultiMesh: visuals and landmarks, tell this row before touching the people's shader or models) | cloud thread "Add autonomous backlog workflow" | 2026-10-30 |
 
 ## Waiting
 
 Newest first. One entry per question.
+
+- **2026-10-30 · content · MW-3 (night and river crowds)** — A real sitting pose? Sitters are
+  squashed standing figures; a real pose needs `actor.gdshader` work (visuals lane) or a second
+  mesh (+1 draw call). Default built: squashed.
+- **2026-10-30 · content · MW-3** — Guessed curves: Plan C's hours, the dawn curve (20 at the
+  window's edges, 40 at 06–07), weekday factors, the guitarist 16:00–01:00, rain 0.1. Tune by eye
+  on the phone. Default built: as listed in DEVELOPMENT "The night and the river".
+- **2026-10-30 · content · MW-3** — Queues stand at the place's point and the nearest footway
+  until MW-2's storefronts exist; Smoła's queue lands in a passage hidden by a block from
+  `--club=smola`. Default built: as said.
+- **2026-10-30 · content · MW-3** — Night buses (E23, E25) need a small bus API in `traffic.gd`
+  (driving lane), e.g. `spawn_bus(route, sign)`. Default built: not built, BACKLOG.
+- **2026-10-30 · content · MW-3** — Dawn is the last entry of Settings → TIME (so saved settings
+  keep their meaning); E15's "three different days" uses the real date without Live. Default
+  built: as said.
 
 - **2026-10-30 · content · MW-6 (eggs, KASETA, Spacer, Fotka)** — Words written in this loop
   need a designer pass: egg lines vision doesn't quote, the English egg names, and the 15 Kadr

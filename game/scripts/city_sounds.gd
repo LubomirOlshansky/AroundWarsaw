@@ -13,8 +13,9 @@ extends Node3D
 ##    02:15, the car within BEAT_RADIUS m: the radio drops to PÓŁNOC FM's host (radio.gd
 ##    host_moment) and the engine sounds softer for BEAT_SECONDS (sfx.gd soften_engine), once a
 ##    night.
-## The steps crowd, the guitarist on the steps and the dog barks wait for MW-3 / MW-4's crowds
-## (BACKLOG "From loop MW-5").
+## Loop MW-3: the crowds (crowds.gd `add_crowd`) add **murmur** (a queue's or the steps' talk,
+## `crowd_murmur`) and the steps' **guitar** (`steps_guitar`, within 20 m), each sounding while
+## its crowd says so (`when`). The dog barks wait for MW-4.
 ## At most MAX_LIVE players sound at once: the nearest emitters that are sounding, each only
 ## within its kind's reach. Everything is decided twice a second (TICK) from the camera's focus
 ## and the game clock (time_of_day.gd local_clock); nothing runs per frame but a timer. Headless
@@ -31,8 +32,10 @@ const KINDS := {
 	"metro": {"file": "metro_chime", "db": -12.0, "unit": 10.0, "reach": 80.0, "up": 0.5},
 	"bells": {"file": "church_bell", "db": -6.0, "unit": 30.0, "reach": 260.0, "up": 20.0},
 	"busker": {"file": "busker", "db": -11.0, "unit": 8.0, "reach": 60.0, "up": 1.2},
+	"murmur": {"file": "crowd_murmur", "db": -13.0, "unit": 10.0, "reach": 55.0, "up": 1.5},
+	"guitar": {"file": "steps_guitar", "db": -12.0, "unit": 4.0, "reach": 25.0, "up": 1.0},
 }
-const LOOPING := ["club", "busker"]
+const LOOPING := ["club", "busker", "murmur", "guitar"]
 ## A train below a metro entrance every 3-4 minutes (vision.md 3.5).
 const METRO_GAP := Vector2(180.0, 240.0)
 ## The Patelnia's busker from 19:00 to 22:00 (vision.md 3.10: "at 19:00").
@@ -111,6 +114,12 @@ func setup(places: Array, ground: Callable) -> void:
 	print("sounds: %d emitters %s, the 02:00 beat %s" % [emitters.size(), counts, "at Plac Trzech Krzyży" if quiet_at != Vector3.INF else "(no quiet place)"])
 
 
+## Loop MW-3: a crowd's sound at `at` (kind "murmur" or "guitar"), sounding while `when` says.
+func add_crowd(id: String, kind: String, at: Vector3, when: Callable) -> void:
+	emitters.append({"id": id, "kind": kind, "at": at + Vector3(0, float(KINDS[kind]["up"]), 0), "hours": {},
+			"player": null, "next": 0.0, "when": when})
+
+
 ## Which sounds a place makes (the Patelnia: the busker and Metro Centrum's chime): see the
 ## class comment.
 static func kinds_of(place: Dictionary) -> Array[String]:
@@ -173,6 +182,8 @@ static func is_open(hours: Dictionary, hour: float, weekday: int) -> bool:
 
 ## The emitter is sounding at `now` (bells only while the hour is being struck).
 func sounding(e: Dictionary, now: Dictionary) -> bool:
+	if e.has("when"):
+		return (e["when"] as Callable).call()
 	match String(e["kind"]):
 		"club":
 			return is_open(e["hours"], float(now["hour"]), int(now["weekday"]))

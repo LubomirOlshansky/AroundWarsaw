@@ -1,10 +1,7 @@
 {
-	"_about": "Loop MW-6 (docs/design/vision.md section 8 and 4.7): the notebook's egg cards, the five eggs of v0.65 and vision's 40 (the Rechotka triple corner and the standing Leżak, parodies.md, come with MW-2's storefronts). Each: `id`, `name` [pl, en] (Polish as vision's table has it; the English is a gloss), `place` (an id in places.json, or one of eggs.gd's spots for the five old ones), `line` [pl, en] or `line_ref` [dialogue.json group, index from 0], `trigger` (`kind`: stop, pass, hover, land, circle, lap, street, between, tape, legacy, or waits; with its numbers and the conditions night, after, hours, weekday, look, summer, dry, date, station, roadworks: egg_book.gd), `reward` (respect; track: a PÓŁNOC FM track; then: a then card stamped; kadr: a Kadr spot unlocked) and, for an egg whose trigger needs something not built yet, `waits` (what: the card is defined, nothing can find it). Lines taken from vision's quotes and the then cards of vision 3.9; the ones vision does not quote were written in MW-6 for the game-designer to review (a Polish line at most 70 characters).",
+	"_about": "Loop MW-6 (docs/design/vision.md section 8 and 4.7): the notebook's egg cards, the five eggs of v0.65 and vision's 40 (the Rechotka triple corner and the standing Leżak, parodies.md, come with MW-2's storefronts). Each: `id`, `name` [pl, en] (Polish as vision's table has it; the English is a gloss), `place` (an id in places.json, or one of eggs.gd's spots for the five old ones), `line` [pl, en] or `line_ref` [dialogue.json group, index from 0], `trigger` (`kind`: stop, pass, hover, land, circle, lap, street, between, tape, legacy, or waits; with its numbers and the conditions night, after, hours, weekday, look, summer, dry, date, station, roadworks, and loop MW-3's crowd and days: egg_book.gd), `reward` (respect; track: a PÓŁNOC FM track; then: a then card stamped; kadr: a Kadr spot unlocked) and, for an egg whose trigger needs something not built yet, `waits` (what: the card is defined, nothing can find it). Lines taken from vision's quotes and the then cards of vision 3.9; the ones vision does not quote were written in MW-6 for the game-designer to review (a Polish line at most 70 characters).",
 	"waits": {
 		"garage": "the garage's paint (no garage yet)",
-		"dawn_crowd": "the dawn crowd and the Dawn look (MW-3)",
-		"club_police": "the patrol cars parked by the clubs (MW-3)",
-		"guitarist": "the guitarist on the steps (MW-3)",
 		"dogs": "the dog walkers (MW-4)",
 		"wiralek": "the Wiralek trend cycle (MW-4)",
 		"night_buses": "the night buses at Centralny (MW-3)",
@@ -165,12 +162,14 @@
 				6
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "stop",
+				"within": 30,
+				"secs": 1,
+				"crowd": "dawn"
 			},
 			"reward": {
 				"respect": 20
-			},
-			"waits": "dawn_crowd"
+			}
 		},
 		{
 			"id": "e04",
@@ -184,12 +183,14 @@
 				0
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "stop",
+				"within": 30,
+				"secs": 2,
+				"crowd": "police_club"
 			},
 			"reward": {
 				"respect": 20
-			},
-			"waits": "club_police"
+			}
 		},
 		{
 			"id": "e05",
@@ -320,7 +321,8 @@
 					18,
 					2
 				],
-				"summer": true
+				"summer": true,
+				"crowd": "plan_c"
 			},
 			"reward": {
 				"respect": 30
@@ -406,7 +408,11 @@
 				"secs": 1,
 				"look": "Dusk",
 				"summer": true,
-				"dry": true
+				"dry": true,
+				"crowd": [
+					"steps",
+					0.8
+				]
 			},
 			"reward": {
 				"respect": 40,
@@ -425,12 +431,15 @@
 				7
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "stop",
+				"within": 20,
+				"secs": 2,
+				"crowd": "guitar",
+				"days": 3
 			},
 			"reward": {
 				"respect": 30
-			},
-			"waits": "guitarist"
+			}
 		},
 		{
 			"id": "e16",

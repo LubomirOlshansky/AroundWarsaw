@@ -48,9 +48,13 @@ levels (if their folder is given) to balance the buses against.
   metro_chime    our own three-note chime for a train below a metro entrance
   church_bell    one toll of a church bell (the hour is struck by repeating it)
   busker         an original street-guitar loop for the Patelnia at 19:00 (9.6 s)
+  crowd_murmur   loop MW-3 (crowds.gd): a crowd talking, fourteen formant-noise voices in
+      syllables and phrases, two soft laughs (an 8 s loop)
+  steps_guitar   the guitarist on the river steps: the same three chords, G, C and D, at
+      92 BPM, nylon-soft (a 15.7 s loop)
 
   --only=club_leak,busker  makes just those (the city's sounds: club_leak, metro_chime,
-  church_bell, busker) and leaves the other files as they are.
+  church_bell, busker, crowd_murmur, steps_guitar) and leaves the other files as they are.
 """
 import array
 import cmath
@@ -794,6 +798,86 @@ def busker(seed):
     return biquad(body, "hp", 70.0, 0.7, True)
 
 
+# --- loop MW-3: the crowds' sounds (docs/design/vision.md 3.1, 3.3) ------------------
+
+def crowd_murmur(seed):
+    """A crowd talking (a club's queue, the river steps): fourteen voices, each a band of
+    noise at a voice's formants switched on and off in syllables (3-6 a second, in phrases
+    with pauses), and two soft laughs; periodic by construction, 8 s, so it loops."""
+    rnd = random.Random(seed)
+    n = int(8.0 * RATE)
+    out = zeros(n)
+    w = noise(n, rnd)
+    for v in range(14):
+        f1 = rnd.uniform(380.0, 820.0)
+        band = mix((1.0, biquad(w, "bp", f1, 2.2, True)), (0.45, biquad(w, "bp", f1 * rnd.uniform(2.2, 3.0), 2.5, True)))
+        env = zeros(n)
+        i = rnd.randrange(n)
+        left = n
+        while left > 0:
+            phrase = int(rnd.uniform(0.8, 2.4) * RATE)
+            rate = rnd.uniform(3.0, 6.0)
+            for k in range(phrase):
+                ph = k / RATE * rate
+                env[(i + k) % n] += max(0.0, math.sin(TAU * ph)) ** 2 * min(1.0, k / 600.0, (phrase - k) / 600.0)
+            gap = int(rnd.uniform(0.4, 1.6) * RATE)
+            i = (i + phrase + gap) % n
+            left -= phrase + gap
+        gain = rnd.uniform(0.4, 1.0)
+        for k in range(n):
+            out[k] += band[k] * env[k] * gain
+    for _ in range(2):
+        at = rnd.randrange(n)
+        f = rnd.uniform(500.0, 700.0)
+        laugh = biquad(noise(int(0.9 * RATE), rnd), "bp", f, 3.0)
+        for k in range(len(laugh)):
+            t = k / RATE
+            laugh[k] *= max(0.0, math.sin(TAU * 5.5 * t)) * math.exp(-t * 2.5) * 1.6
+        place(out, laugh, at, 1.0)
+    # a little distance: the top rolled off, no rumble
+    return biquad(biquad(out, "lp", 2600.0, 0.7, True), "hp", 120.0, 0.7, True)
+
+
+def steps_guitar(seed):
+    """The guitarist on the river steps: the same three chords (G, C, D at 92 BPM), a bar
+    each with a lazy strum, nylon-soft (Karplus-Strong with more damping than the busker's),
+    two rounds that loop."""
+    rnd = random.Random(seed)
+    beat = round(RATE * 60.0 / 92.0)
+    n = beat * 24
+    out = zeros(n)
+    chords = [[43, 47, 50, 55, 59, 67], [48, 52, 55, 60, 64], [50, 57, 62, 66]]
+    strums = [(0.0, 1, 1.0), (1.5, 1, 0.6), (2.0, -1, 0.45), (3.0, 1, 0.7)]
+
+    def string(midi, length):
+        period = RATE / (440.0 * 2 ** ((midi - 69) / 12.0))
+        d = int(period)
+        m = int(length * RATE)
+        buf = [rnd.uniform(-1, 1) for _ in range(d + 1)]
+        sig = zeros(m)
+        p = 0
+        for i in range(m):
+            a = buf[p]
+            b = buf[(p + 1) % (d + 1)]
+            sig[i] = a
+            buf[p] = 0.496 * (a + b)
+            p = (p + 1) % (d + 1)
+        return sig
+
+    cache = {}
+    for bar in range(6):
+        notes = chords[bar % 3]
+        for at, way, vel in strums:
+            order = notes if way > 0 else list(reversed(notes))
+            for j, m in enumerate(order):
+                if m not in cache:
+                    cache[m] = string(m, 1.6)
+                t = int((bar * 4 + at) * beat + j * 0.018 * RATE + rnd.uniform(0, 0.006) * RATE)
+                place(out, cache[m], t, vel * 0.3)
+    body = mix((1.0, biquad(out, "lp", 2400.0, 0.7, True)), (0.5, biquad(out, "bp", 180.0, 1.1, True)))
+    return biquad(body, "hp", 70.0, 0.7, True)
+
+
 # --- output and checks ------------------------------------------------------------
 
 def normalise(chans, peak_db):
@@ -913,12 +997,14 @@ def check(path, loop):
 
 
 LOOPS = ["engine_idle", "engine_mid", "engine_high", "tyre_roll", "tyre_wet", "tyre_squeal", "rotor",
-         "city_day", "city_night", "rain", "police_siren", "club_leak", "busker"]
+         "city_day", "city_night", "rain", "police_siren", "club_leak", "busker", "crowd_murmur", "steps_guitar"]
 
 
 # Loop MW-5: the city's sounds (city_sounds.gd), made on their own with --only=.
 CITY = {"club_leak": lambda: [club_leak(71)], "metro_chime": lambda: [metro_chime(72)],
-        "church_bell": lambda: [church_bell(73)], "busker": lambda: [busker(74)]}
+        "church_bell": lambda: [church_bell(73)], "busker": lambda: [busker(74)],
+        # Loop MW-3: the crowds' (city_sounds.gd add_crowd).
+        "crowd_murmur": lambda: [crowd_murmur(75)], "steps_guitar": lambda: [steps_guitar(76)]}
 
 
 def main(out_dir, radio_dir=None, only=None):

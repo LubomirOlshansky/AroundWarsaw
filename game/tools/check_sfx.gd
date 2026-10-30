@@ -6,9 +6,10 @@ extends SceneTree
 ## import format and length.
 ##   godot --headless --path game --script res://tools/check_sfx.gd
 
-## Loop MW-5: club_leak and busker are the city sounds' loops (city_sounds.gd).
+## Loop MW-5: club_leak and busker are the city sounds' loops (city_sounds.gd); loop MW-3: crowd_murmur and
+## steps_guitar the crowds' (crowds.gd).
 const LOOPS := ["engine_idle", "engine_mid", "engine_high", "tyre_roll", "tyre_wet", "tyre_squeal", "rotor",
-		"city_day", "city_night", "rain", "police_siren", "club_leak", "busker"]
+		"city_day", "city_night", "rain", "police_siren", "club_leak", "busker", "crowd_murmur", "steps_guitar"]
 
 
 func _initialize() -> void:

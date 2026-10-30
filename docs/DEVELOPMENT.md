@@ -3369,10 +3369,11 @@ Data: `data/eggs.json` (45 cards) and `data/kadr.json` (15 spots); the then card
   `egg_book.gd`'s header. The game clock is `time_of_day.gd` `local_clock()`; `summer` is
   June-August in Live and always true in the fixed looks; Fat Thursday is from the computus
   (`fat_thursday(year)`, Live or `--date`). Checked at 2 Hz over a 200 m grid (one cell's eggs a
-  check). **Reachable now: 26** (the 5 legacy, E02 E05-E14 E17 E20 E22 E26 E31-E33 E36-E38).
-  **Waiting: 19**, each with its card as "?" and a `waits` key that names what is missing: E01
-  E21 the garage's paint; E03 the dawn crowd (MW-3); E04 the patrol cars by the clubs (MW-3);
-  E15 the guitarist on the steps; E16 E27 the dog walkers (MW-4); E18 E19 Wiralek's trend cycle
+  check). **Reachable now: 29** (the 5 legacy, E02-E15 E17 E20 E22 E26 E31-E33 E36-E38; E03 E04
+  E15 since MW-3, which also gave E10 and E14 their crowd conditions: the `crowd` and `days`
+  conditions, "The night and the river" below).
+  **Waiting: 16**, each with its card as "?" and a `waits` key that names what is missing: E01
+  E21 the garage's paint; E16 E27 the dog walkers (MW-4); E18 E19 Wiralek's trend cycle
   (MW-4); E23 E25 the night buses; E24 the player's horn and the bus stops; E28 the riders
   (MW-4); E29 E30 Kolka and Hyrax (MW-4); E34 the armchair man (MW-4); E35 KASETA's older
   decades (T1); E39 a tram in old livery; E40 the payphone. Rechotka's two eggs wait for MW-2
@@ -3428,6 +3429,109 @@ Data: `data/eggs.json` (45 cards) and `data/kadr.json` (15 spots); the then card
   draw as many 2D calls as a chapter page (51-52 at 2532x1170 with the card open). Fotka
   closed: 0 (25 2D draws with the HUD either way); open, 23 (the HUD hidden, its own controls).
   The rendered bench (lavapipe, 1280x720): 114 → 113 draw calls (traffic noise).
+
+## The night and the river (loop MW-3, 2026-10-30)
+
+docs/design/vision.md 3.1-3.3, 3.2's Plac Zbawiciela and 4.5. Code: `crowds.gd` (new: every crowd,
+its rules as static functions, its drawing), hooks in `main.gd` (section "loop MW-3"),
+`time_of_day.gd` (the Dawn look, `fixed_start`), `police.gd` (`club_park`, `club_leave`) and
+`police/police_unit.gd` (a `Club` branch), `city_sounds.gd` (`add_crowd`, two loops),
+`egg_book.gd` (`crowd`, `days`), `rides.gd` (`club_doors`), `settings_panel.gd` (Świt · Dawn),
+`tools/make_sfx.py` (two loops). Data: `data/eggs.json` (E03 E04 E15 woken; E10 E14 a crowd
+condition). Lines: the vision's groups already in `dialogue.json` (`club_door`, `clubbers`,
+`dawn_crowd`, `schodki`, `police_club`), unchanged.
+
+- **The clock and Świt · Dawn.** `--time=dawn` (and Settings → TIME's fifth segment, Świt ·
+  Dawn) is Dusk's palette with the sun at 112.5° (east-north-east): an entry in
+  `time_of_day.gd`'s look table, no new shader. Without Live, a night is always Friday's and a
+  dawn always Saturday's (05:45); Live uses the real weekday. `--clock=HH:MM` now also sets the
+  fixed looks' start (`tod.fixed_start`; the clock runs from it as before, the look stays).
+  Eggs see the look as `Dawn`. DAWN is the enum's fifth value, after LIVE, so saved TIME
+  settings keep their meaning.
+- **The queues** (5 clubs of vision 4.5's table, `crowds.gd` `CLUBS`: Lusterko 24 on the
+  after-hours curve, Smoła 24, Jasna 0, Lombard and Miłość Hipoteczna 16): `max × hour curve ×
+  weekday`, rounded (Lusterko's Sunday 09-12 at 0.5), rewritten every 20-40 s (seeded), standing
+  figures 0.7 m apart on the footway nearest the place (within 40 m; no storefronts until MW-2),
+  dark clothes, a broader bouncer at the door. The door: a `club_door` `reject` bubble every
+  30-60 s while a queue of 4 or more is on screen (the one turned away goes to the end, or for
+  a kebab), a `clubbers` line every 35-60 s. The car at the door (under 10 km/h within 8 m):
+  the bouncer's `car` line once per club per night; `car_black` and E01 wait for the garage's
+  paint.
+- **Level 26's roof crowd**: built only where the roof grid has a tower over 40 m at the place
+  (up to 16 figures on a ring at its edge). The roof grid has nothing at level_26's point, so there is
+  no roof crowd yet (BACKLOG).
+- **The dawn crowd** (Sat/Sun 05:00-09:00, Live or the Dawn look): 20-40 walkers (curve 0.5 at
+  05, 1.0 at 06-07, 0.4 at 08) in twos and threes from Lusterko, Smoła and Jasna 0 to the Palm,
+  Metro Nowy Świat-Uniwersytet, the two nearest tram platforms and the two nearest kebab stands
+  (18 routes, 94-1103 m: A* over the footways and crossings in the 128 m cells round the crowds, in a
+  WorkerThreadPool task once a run, the first time the dawn crowd comes out). Each walker is a
+  point moving along its route at 0.9-1.25 m/s (computed from the clock, not stepped), drawn
+  only within 350 m of the view and moved at 10 Hz there; one at a route's end starts again
+  from its club. A `dawn_crowd` bubble once per 25 s while walkers are in view; E03 is the
+  Palm with walkers out. Podwózka at dawn: 70 % of requests come from an address within 60 m of
+  a club door, with a `podwozka_request` `club` note (`rides.gd` `club_doors`).
+- **The steps crowd** by Kopernik (vision 3.3): max 80 × hour (10:00 0.1 → 18:00 0.6 → the
+  sunset's 1.0 → 23:00 0.7 → 01:00 0.3 → 03:00 0.05) × month (Live; the fixed looks are
+  summer) × rain (0.1), in groups of 2-6 sitting in rows facing the river (from the shore) with
+  standers at the water's edge; a guitarist (orange) from 8 people, 16:00-01:00. `schodki`
+  lines every 35-60 s near it. Sounds: `crowd_murmur` (an 8 s loop, -13 dB, reach 55 m) at each
+  queue, the steps and Plan C while 4 or more are out, `steps_guitar` (G C D at 92 BPM, 15.65 s, -12 dB, reach 25 m) with the
+  guitarist, both procedural in `make_sfx.py` (seeds 75, 76) and played by `city_sounds.gd`
+  inside its cap of 8. E14 needs the steps at 0.8 or more; E15 is the guitarist on three
+  different days (the `days` condition: Live's date or the real one, kept in the save).
+- **Plac Zbawiciela** (Plan C): up to 40 standing in groups round the square's footways
+  (Fri/Sat 21:00-02:00, summer; rain 0.1; curve 0.5-1.0-0.7, a guess). E10's lap needs it out.
+- **The police by the clubs** (Fri/Sat 00:00-08:00, Lusterko and Smoła): a patrol car parked on
+  the far lane 8 m from the door (`police.gd` `club_park`: an ordinary police unit in a `club`
+  role, the beehave branch `Club` keeps it parked, never a chase; spawned off screen within the
+  trap band) and an officer in hi-vis standing by it; `police_club` lines to a slow car within
+  15 m, at most every 45 s. When the window ends the car is dismissed. E04 is a stop by them.
+- **Night buses at Centralny** are not built: `traffic.gd` has no way to gather buses or give one
+  an N route without more than a one-line hook (BACKLOG; E23 E25 wait).
+- **The mesh**: every still figure is the pedestrians' mesh and material (`Models.person_mesh`,
+  `actor.gdshader` with `walk = 0`: the legs' swing off), one MultiMesh per 512 m cell with
+  every crowd in it, no sun shadow, its AABB the figures' box; a sitter is a lower, longer
+  instance (y × 0.6, z × 1.35), not a real pose (BACKLOG). The dawn walkers are one more
+  MultiMesh (`walk` 0.16). A crowd further than 350 m from the view's focus has no figures, so
+  a cell with nothing near is hidden. `--crowd=0` builds nothing; `--crowd=2` doubles every
+  crowd (caps too); the Low tier halves them.
+- **Testing aids** (flags table): `--time=dawn`, `--clock=HH:MM` on the fixed looks,
+  `--crowd=0|1|2`, `--night-log` (`night:` lines: the minute's summary
+  `night: 01:00 day 6 · queues lusterko 10, smola 24, … · rejections 1 · car lines 0 · dawn
+  walkers 30 · roof 0, steps 24, plan_c 28 · police on`, every rejection, line, police unit and
+  the dawn routes), `--club=<id>` (the car on the lane nearest that club's door, free roam).
+- **Check**: `check_crowds.gd` (verify step `crowds`, quick set and CI; committed
+  `centrum.json` and `places.json` only, seeded): the clock and the Dawn look, the queue formula
+  on synthetic clocks and weekdays (Lusterko's Sunday, the caps, `--crowd` and Low), the door's
+  timing (6 rejections in 300 s on screen, none off screen or under 4), the car at the door, the
+  steps' curve (sunset, month, rain, the guitarist), Plan C's window, the police window, the
+  dawn window and its walker count (30 at 05:45 Saturday, 40 on a Live Sunday at 06:00, none
+  on a Wednesday or at 09:00), the dawn routes on the real footways (18), A* on a grid, and E03
+  E04 E10 E14 E15 firing on synthetic inputs and not without them (E15 on its third day, paid
+  once). `check_sfx.gd` loops the two new sounds.
+- **Cost**: (Linux container; before = the code at HEAD from a copy; headless bench and probes with
+  `--fixed-fps 60`, two runs each interleaved; draw calls rendered with the software Vulkan
+  driver at 1280×720; `--crowd=0` is the A/B with this code):
+
+  | | Before | After | `--crowd=0` |
+  | --- | --- | --- | --- |
+  | Bench route, day: bench line "crowds" | | 0.01 ms | 0 (not built) |
+  | Bench route, day: scripts in all (noise ±0.2) | 3.37 / 3.55 ms | 3.30 / 3.75 ms | 3.20 / 3.60 ms |
+  | Smolna 01:00 (`--probe --at=-168,104 --time=night --clock=01:00`): "crowds" | | 0.01 ms | 0 |
+  | The Palm at dawn (`--probe --at=-213,250 --time=dawn`, 3000 frames, 30 walkers moving) | | 0.03 ms (0.04 over 600 frames that include the route search's start) | 0 |
+  | The steps at dusk (`--probe --place=schodki_kopernik --time=dusk`): "crowds" | | 0.01 ms | 0 |
+  | Draw calls, bench route, day (main / shadow / 2D) | 114 (46 / 34 / 33) | 114 (46 / 35 / 33) | 114 (45 / 36 / 33) |
+  | Draw calls, Smolna 01:00 | 92 (58 / 0 / 33) | 93 (60 / 0 / 33) | 91 (59 / 0 / 33) |
+  | Draw calls, the Palm at dawn (before: Dusk, no Dawn look) | 180 (82 / 61 / 37) | 202 (83 / 77 / 42) | 197 (82 / 77 / 38) |
+  | Draw calls, the steps at dusk | 129 (48 / 44 / 37) | 130 (49 / 43 / 38) | 128 (48 / 44 / 36) |
+
+  In view the crowds are +1 main-pass draw (a cell's still MultiMesh; +1 more where a second cell
+  or the dawn walkers are in view) and 0 in the shadow pass; the 2D differences are the
+  bubbles on screen at the probe's moment (+1 to +4, a speech bubble's panel and labels). The
+  Palm's before/after gap is the Dawn look's sun (more shadow casters, 61 → 77), not the crowd:
+  compare with `--crowd=0`. Triangles: a figure is the people's mesh; 80 on the steps is +0.01 M
+  in the main pass (0.16 → 0.17 M), under the 25 k budget. Far from every crowd (more than
+  350 m): no figures, the MultiMeshes hidden, the 2 Hz tick only (bench route, 0.01 ms).
 
 ## Performance budgets
 
@@ -3861,7 +3965,7 @@ Command-line options (after `--`):
 | `--race=N` | race rival N (1–6) at once: they are put just ahead of you |
 | `--rival=N` | put rival N just ahead of you (with `--autopilot` you tail them, so the FLASH LIGHTS prompt shows) |
 | `--bench` | drive a route through the traffic and print the average frame time over 600 frames, the scripts' cost and the 3D view's GPU time; loop 2b: also the bench's lines (see Loop 2b), a 30 s cap, the result in `user://bench_result.txt` (removed when a bench starts, so a run that ends early leaves none) |
-| `--time=day\|dusk\|night` | start at that time of day (default day) |
+| `--time=day\|dusk\|night\|dawn` | start at that time of day (default day); `dawn` (loop MW-3): Świt, Dusk's palette with the sun in the east-north-east at 05:45 on a Saturday (a fixed night is Friday's) |
 | `--vhs` | VHS overlay on (for this run; Settings saves it since loop 2e) |
 | `--radio=N` | radio station 1–4 (loop MW-5: any station in radio.json; 4 is PÓŁNOC FM), or 0 / `off` (default 1; the radio then doesn't follow the clock) |
 | `--station=ID` | loop MW-5: a station by id (`polnoc_fm`), short id (`polnoc`), name or number; the radio then doesn't follow the clock |
@@ -3887,7 +3991,7 @@ Command-line options (after `--`):
 | `--tap=X,Y` | tap that screen pixel at frame 60 (a landmark's info card) |
 | `--reset-save` / `--nosave` | wipe the wallet and record / neither read nor write `user://save.cfg` (nor, since loop 2a, `user://settings.cfg`) |
 | `--time=live` | v0.9: the real sun for the device's clock (TIME's fourth mode) |
-| `--clock=HH:MM` / `--date=YYYYMMDD` | start Live's clock at that Warsaw time (and date; default today) |
+| `--clock=HH:MM` / `--date=YYYYMMDD` | start Live's clock at that Warsaw time (and date; default today); loop MW-3: with a fixed look (`--time=night --clock=01:00`) the game clock starts there, the look stays |
 | `--weather=clear\|rain` | start dry or in the rain (default clear) |
 | `--perf` | show the performance overlay (loop 2e: four lines: fps, frame time, worst, cap · CPU process + physics + draw, GPU, memory · draw calls by pass · objects, triangles) |
 | `--quality=auto\|low\|medium\|high\|ultra` | the quality for this run (not saved; loop G1: default Auto, the level `tiers.gd` picks for the device; 0–3 are Low–Ultra) |
@@ -3915,6 +4019,9 @@ Command-line options (after `--`):
 | `--kadr=<n\|id>` | loop MW-6: Fotka open at that Kadr spot (`kadr.json`, 1-15 or `k07`), in its look, aimed at its subject, a photo 2 s later; implies `--photo-log` |
 | `--fotka-shot=S` | loop MW-6: with `--fotka`, take a photo S s after it opens |
 | `--photo-log` | loop MW-6: print `fotka:` lines (open, close, `fotka: saved user://photos/... (WxH)`) and `kadr:` lines (`kadr: n ok (<id> ...)` or `kadr: none (why)`) |
+| `--crowd=0\|1\|2` | loop MW-3: the night and river crowds off (nothing built, no cost), normal (default) or doubled; the Low tier halves them |
+| `--night-log` | loop MW-3: print `night:` lines: the sites at the start, a summary every minute (`night: 01:00 day 6 · queues … smola 24 … · rejections 1 · car lines 0 · dawn walkers 30 · roof 0, steps 24, plan_c 28 · police on`), each rejection, line, police unit and the dawn routes |
+| `--club=<id>` | loop MW-3: start at that club (`lusterko`, `smola`, `jasna_0`, `lombard`, `milosc_hipoteczna`, or its name): the car on the lane nearest its door (within 60 m), free roam, no title |
 | `--notes-log` | loop MW-1: print `notes:` lines: each place's resolution at load (`notes: place <id> address\|name\|poi\|near N m from the hint (x, z)`), each find (`notes: found <id> (chapter N, k/8)`) and each chapter completed |
 | `--call-in=S` | loop 2e: the first rescue call comes in after S seconds of play (default 60) |
 | `--stick=X,Y` / `--pedal=gas\|brake` | loop 2a: hold the stick at that deflection (-1..1, y down; Classic uses X) / a pedal, as if a finger were on it (screenshots, replays in the real city) |
