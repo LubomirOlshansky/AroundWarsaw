@@ -358,7 +358,8 @@ at the hospital. Out of time: TRY AGAIN, NEXT CALL or FREE ROAM.
 - **Pedestrians**: up to 60 tiny people (48 at the Normal traffic level since loop 2a) (shirt, trousers, swinging legs) on the footways near
   the camera (bridge footways included, on the deck), turning into joining footways or back at
   dead ends.
-- Hit a car and it stops for a moment; rivals complain.
+- Hit a car and it is shoved: rear-ended it rolls on, hit from the side it slides off its line,
+  and it coasts to a stop for a moment; rivals complain (the driving-feel loop, below).
 
 ## Side jobs, the wallet and the city's chatter (v0.65)
 
@@ -861,7 +862,8 @@ wall it touches, Point follows the wall the way the stick leans; pinned (touchin
 the gas or brake on, under a metre of progress; nosing into the car ahead in a queue doesn't
 count) for 1.5 s, the car is turned out of everything it touched and sent off at walking pace;
 pinned again within 5 s, it is towed back onto the nearest lane on its level, facing the lane's
-way ("Pomoc drogowa: wyciągnięci! · Towed free"). Point follows only fixed walls, not cars.
+way ("Pomoc drogowa: wyciągnięci! · Towed free"). Point follows only fixed walls, not cars
+(since the driving-feel loop it also goes round a car it has pushed into for 0.35 s).
 
 **The view.** The default view is 80 m high (110 before): the 4 m car is ~58 px long side-on on
 an iPhone's 1170 lines (43 before; ~3.2 mm on the glass instead of 2.3), and there is still
@@ -1932,7 +1934,7 @@ matches no such piece and stays on the ground.
    grass median at street level; `kerb_feel` (cells of the islands, medians and kerb lines, kept
    in `city.scn` for the prebuilt city) tells `car.gd` when a move crossed a kerb (the car keeps
    92 % of its speed and the body bounces 7 cm) and when it rolls on the raised ground (0.6/s
-   drag). Driven at 40 km/h onto 30 islands: 35.3 km/h after 1.5 s (38.4 without), 0.14 m up.
+   drag; the driving-feel loop made it 97 %, once per 0.5 s, and 0.25/s). Driven at 40 km/h onto 30 islands: 35.3 km/h after 1.5 s (38.4 without), 0.14 m up.
    Not for a car with its collision off (the autopilots) or parked, not on decks; traffic keeps
    to its lanes and never feels them (`check_drive` 0 collisions, 0 height jumps).
 5. **Markings.**
@@ -2758,6 +2760,52 @@ and night): the 3D view identical before and after, only the minimap's random jo
 Why it matters more on the phone than the Mac: the add's cost was main-thread work the A13 does
 ~10× slower (14 ms against the Mac's 1.4 ms), and the governor reads CPU-bound misses as a
 reason to drop the extras; on the Mac the same frames fit inside 16.7 ms and nothing showed.
+
+## The driving-feel loop: less sticky (2026-10-30)
+
+The user: "driving is heavy, there are a lot of tiny objects on the road, and the car gets stuck
+each time it hits another car". What did it, in the code:
+
+- **A hit traffic car stopped dead in front of you** for 2.5 s (`traffic.gd` set `stun`, which
+  forces its speed to 0 at once), and the car never steered round a car (Point follows fixed
+  walls only), so rear-ending one was a 2.5 s stop behind it.
+- **Every touch of a front corner was a dead stop**: Godot's slide takes the speed going into the
+  contact out, so a bollard, a bench end or a parked car's corner caught at 40 km/h stopped the
+  car as a wall would.
+- **Kerbs**: each kerb line crossed kept 92 % of the speed, so an island (two kerbs) cost 15 %,
+  and the raised ground dragged at 0.6/s; the roadworks' barriers and cones took 15 % each.
+
+What changed:
+
+1. **Corner slip** (`car.gd` `_corner_slip`): when every contact of a step is at one front corner
+   (within 0.6 m of the side, in the front 1.2 m) and the way beside it is open (`test_move`
+   0.6 m on from the side-stepped spot), the car steps sideways past it at up to 7 m/s and keeps
+   96 % of its speed (100 % on the next frames of the same slip); the bump it reports is 35 % of a
+   full one, once (traffic, the słoiki jars and ride stars read it). A square hit, a touch along
+   the flank, both corners at once and a wall met at an angle don't slip.
+2. **Cars are pushed, not walls** (`traffic.gd` `_shove`): the car it hit takes 70 % of the
+   player's speed it lacks along its lane and slides off its line at 40 % of the player's
+   sideways speed (≤ 4 m/s, slowing at 6 m/s², ≤ 1.6 m off); dazed for 2.5 s (police 1.5 s) it
+   brakes at 4 m/s² instead of stopping at once and stays where it was pushed, then drifts back
+   to its lane. `stun` stays the app taxi's hold (`gps_moments.gd`).
+3. **Going round a car**: pushed into a car or a tram for 0.35 s with the gas on and getting
+   nowhere, Point follows its side as it follows a wall; still pinned 1.5 s, it is turned out,
+   but never towed to a free spot for it (that stays for walls).
+4. **Kerbs and cones lighter**: a kerb keeps 97 % of the speed, once per 0.5 s (an island is one
+   jolt), the raised ground drags at 0.25/s; barriers and cones keep 95 % (`eggs.gd` KNOCK_KEEP).
+
+`check_steering` gains `post_clip`, `car_clip` (every scheme) and `car_behind` (Point, Fixed):
+the car must get past each. Before → after (Point; Classic in brackets):
+
+| Test (from 40 km/h, 25 for car_behind) | Before | After |
+| --- | --- | --- |
+| `post_clip`: a 0.3 m bollard under the right front corner | 36 km/h 1 s after the touch, past at 1.6 s (Classic: stopped, turned out, never past) | 91 km/h, past at 0.8 s (Classic the same) |
+| `car_clip`: a stopped car's corner 0.5 m into the car's path | 32 km/h, past at 2.1 s (Classic: stopped, never past) | 93 km/h, past at 1.2 s (Classic the same) |
+| `car_behind`: a stopped car square ahead | 22 km/h, past at 2.6 s | 26 km/h, past at 2.3 s |
+
+Every older test (holds, turns, walls, the corner, the camera) reads the same as before. Street furniture stays solid (benches, racks, columns, shelters,
+parked cars): on today's map 7 benches, 11 bike racks and 3 shelters overlap a carriageway
+(BACKLOG).
 
 ## Performance budgets
 
