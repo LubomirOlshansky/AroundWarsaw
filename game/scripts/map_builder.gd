@@ -91,8 +91,9 @@ var data: Dictionary
 ## Every material that opens a see-through hole around the car (trees, parked cars).
 @export_storage var fade_materials: Array[ShaderMaterial] = []
 ## The street-lamp light map (tools/bake_lights.py) and the map rectangle it covers;
-## the game hands them to the vehicles' material too.
-@export_storage var light_texture: ImageTexture
+## the game hands them to the vehicles' material too. 2026-10-30: a Texture2D, since the
+## prebuilt city carries the VRAM-compressed import (tools/bake_map_textures.py) instead.
+@export_storage var light_texture: Texture2D
 @export_storage var light_rect := Vector4(0, 0, 1, 1)
 ## v0.9: the surface map (tools/bake_water.py): distance to the shore, the river's
 ## flow, what reflects, bridge-deck heights; the ground shader and the post pass read it.
@@ -106,6 +107,8 @@ var data: Dictionary
 @export_storage var _shore_size := Vector2i.ZERO
 var _shore := PackedByteArray()
 var _light_image: Image
+## Metres per texel of _light_image (light_rect may cover a padded texture: bake_city.gd).
+var _light_px := 1.0
 ## Lamps the light bake added where OpenStreetMap maps none (the bridges): x, z, yaw.
 var _extra_lamps := PackedFloat32Array()
 var _lod2_footprints: Array = []
@@ -558,6 +561,7 @@ func _load_lights() -> void:
 	var px := bytes.decode_float(16)
 	var end := 20 + w * h * 2
 	_light_image = Image.create_from_data(w, h, false, Image.FORMAT_RG8, bytes.slice(20, end))
+	_light_px = px
 	light_texture = ImageTexture.create_from_image(_light_image)
 	light_rect = Vector4(x0, z0, w * px, h * px)
 	if bytes.size() >= end + 4:
@@ -575,8 +579,8 @@ func _apply_lights(material: Material) -> void:
 func _sodium_at(x: float, z: float) -> bool:
 	if _light_image == null:
 		return true
-	var i := clampi(int((x - light_rect.x) / light_rect.z * _light_image.get_width()), 0, _light_image.get_width() - 1)
-	var j := clampi(int((z - light_rect.y) / light_rect.w * _light_image.get_height()), 0, _light_image.get_height() - 1)
+	var i := clampi(int((x - light_rect.x) / _light_px), 0, _light_image.get_width() - 1)
+	var j := clampi(int((z - light_rect.y) / _light_px), 0, _light_image.get_height() - 1)
 	var c := _light_image.get_pixel(i, j)
 	return c.r >= c.g
 

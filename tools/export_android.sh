@@ -49,6 +49,10 @@ else
 	# sector's scene, the proxies and the index. Not --headless: the headless renderer discards
 	# MultiMesh and texture data. This opens a window for a moment.
 	python3 -I ../tools/bake_sectors.py map > /dev/null
+	# 2026-10-30: the AO and lamp-light maps as PNGs, imported VRAM-compressed for bake_city.gd
+	# (tools/bake_map_textures.py; a quick no-op when they haven't changed).
+	python3 -I ../tools/bake_map_textures.py map > /dev/null
+	godot --headless --path . --import > /dev/null 2>&1 || true
 	godot --path . --resolution 320x180 --script res://tools/bake_city.gd
 fi
 

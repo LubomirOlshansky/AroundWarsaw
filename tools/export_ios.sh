@@ -12,6 +12,10 @@ if [[ ! -f map/lod2.bin || ! -f map/lod2.json || ! -f map/terrain.json ]]; then
 	../tools/setup_map.sh --full
 fi
 python3 -I ../tools/bake_sectors.py map > /dev/null
+# 2026-10-30: the AO and lamp-light maps as PNGs, imported VRAM-compressed for bake_city.gd
+# (tools/bake_map_textures.py; a quick no-op when they haven't changed).
+python3 -I ../tools/bake_map_textures.py map > /dev/null
+godot --headless --path . --import > /dev/null 2>&1 || true
 # Not --headless: the headless renderer discards MultiMesh and texture data, which would
 # leave the prebuilt city without trees, cars or AO. This opens a window for a moment.
 godot --path . --resolution 320x180 --script res://tools/bake_city.gd
