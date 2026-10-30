@@ -54,7 +54,9 @@ backlog-loop skill (`.claude/skills/backlog-loop/SKILL.md`).
 - **Merging.** A cloud session merges its own PR once every check is green (the user's yes,
   2026-10-30); never on red, with open review comments, or with a force-push.
 - **Still the user's yes**: anything that can't be undone (store submissions, releases, the
-  live site, purchases), downloads and installs, device runs not allowed for this loop.
+  live site, purchases), paid tools or services, device runs not allowed for this loop. Free
+  dev tools, data downloads and Godot add-ons are pre-approved (the user, 2026-10-30): install
+  them and name each in the PR with its source, size and licence.
 - **The end**: every item done, blocked on a parked question, or in another session's lane;
   then one report with what landed, what to try on the phone and the whole parked list.
 
