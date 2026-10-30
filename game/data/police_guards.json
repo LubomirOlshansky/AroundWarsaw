@@ -1,0 +1,9 @@
+{
+  "_comment": "Loop 3g-2 (docs/design/police.md sections 2, 5.6): the city guards' posts in today's map, two guards each, in map metres (+x east, +z south). heading: the compass way they face (0 north, 90 east). tag: the guard line's tag (oldtown on the Market Square and the lanes, none elsewhere). Checked inside the ped_zones polygons and clear of the buildings; loop 3d's guard_post POIs (police.md 13) replace this file.",
+  "posts": [
+    {"id": "kp_gate", "name": "Krakowskie Przedmieście, the car-free end", "heading": 180, "tag": "", "at": [[-711.5, -1357.5], [-706.5, -1352.0]]},
+    {"id": "zamkowy", "name": "Plac Zamkowy", "heading": 180, "tag": "", "at": [[-704.0, -1497.0], [-714.0, -1503.0]]},
+    {"id": "rynek", "name": "Rynek Starego Miasta", "heading": 0, "tag": "oldtown", "at": [[-806.0, -1748.0], [-816.0, -1757.0]]},
+    {"id": "barbakan", "name": "Nowomiejska by the Barbakan", "heading": 270, "tag": "oldtown", "at": [[-958.0, -1838.0], [-950.0, -1838.0]]}
+  ]
+}

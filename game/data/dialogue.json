@@ -1136,6 +1136,43 @@
       }
     ]
   ],
+  "police_escort": [
+    [
+      "Jedziemy na sygnale, proszę się trzymać!",
+      "Lights and siren on, hold on tight!"
+    ],
+    [
+      "Do szpitala? Za nami! Korek się rozstąpi. Prawie zawsze.",
+      "To the hospital? Follow us! The traffic will part. Almost always."
+    ]
+  ],
+  "guard": [
+    [
+      "Panie, tu jest deptak, a nie Wisłostrada!",
+      "Sir, this is a promenade, not the Wisłostrada!"
+    ],
+    [
+      "Na Rynek autem? Syrenka patrzy i nie jest zachwycona.",
+      "Into the Market Square by car? The Mermaid is watching, and she's not impressed.",
+      {
+        "only": "oldtown"
+      }
+    ],
+    [
+      "Proszę stanąć! Ja dłużej nie pobiegnę.",
+      "Please stop! I can't run any further.",
+      {
+        "only": "run"
+      }
+    ],
+    [
+      "Za dziesięć sekund blokada. Liczę: jeden… dwa… gdzie ja byłem?",
+      "Wheel clamp in ten seconds. Counting: one… two… where was I?",
+      {
+        "only": "clamp"
+      }
+    ]
+  ],
   "radio_polnoc": [
     [
       "Północ FM, 86,0. Miasto ściszone do połowy. My też.",

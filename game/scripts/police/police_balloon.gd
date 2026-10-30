@@ -19,6 +19,9 @@ const CARD_BG := Color(0.07, 0.06, 0.1, 0.94)
 const POLICE_BLUE := Color("#1f4fd8")
 ## The speaker's name: police blue lightened to read on the dark card.
 const NAME_BLUE := Color("#8fb0ff")
+## Loop 3g-2: the city guards' accent (police.md 11.2: mustard) and their name's colour.
+const GUARD_MUSTARD := Color("#e3b33a")
+const NAME_MUSTARD := Color("#f0cc6a")
 const T_BODY := 15.0
 const T_SUB := 13.0
 const T_LABEL := 11.0
@@ -92,6 +95,10 @@ func _label(points: float, colour: Color) -> Label:
 func show_line(speaker: String, polish: String, english: String, replies: Array) -> void:
 	_who = speaker
 	_speaker.text = speaker
+	# Loop 3g-2: a guard's card has the mustard edge.
+	var guard := speaker.begins_with("Strażnik")
+	_style.border_color = GUARD_MUSTARD if guard else POLICE_BLUE
+	_speaker.add_theme_color_override("font_color", NAME_MUSTARD if guard else NAME_BLUE)
 	_pl.text = polish
 	_en.text = english
 	_en.visible = english != ""
@@ -161,6 +168,9 @@ func _draw_face() -> void:
 	plate.set_corner_radius_all(roundi(8.0 * u))
 	c.draw_style_box(plate, Rect2(Vector2.ZERO, s))
 	var mid := s.x * 0.5
+	if _who.begins_with("Strażnik"):
+		_draw_guard(c, mid, u)
+		return
 	# Shoulders, the uniform's dark blue.
 	c.draw_rect(Rect2(Vector2(mid - 22.0 * u, 44.0 * u), Vector2(44.0 * u, 12.0 * u)), Color("#24324a"))
 	# The face.
@@ -177,3 +187,19 @@ func _draw_face() -> void:
 		c.draw_rect(Rect2(Vector2(mid - 7.0 * u, 34.0 * u), Vector2(14.0 * u, 3.5 * u)), Color("#b8b4ac"))
 	else:
 		c.draw_rect(Rect2(Vector2(mid - 3.0 * u, 36.0 * u), Vector2(6.0 * u, 1.5 * u)), Color("#9c6b52"))
+
+
+## Loop 3g-2: Strażnik Henio from simple shapes: the mustard jacket with a dark red collar, round
+## glasses, grey hair, no cap, no badge (the PixelLab portrait comes later).
+func _draw_guard(c: Control, mid: float, u: float) -> void:
+	c.draw_rect(Rect2(Vector2(mid - 22.0 * u, 44.0 * u), Vector2(44.0 * u, 12.0 * u)), GUARD_MUSTARD)
+	c.draw_rect(Rect2(Vector2(mid - 7.0 * u, 42.0 * u), Vector2(14.0 * u, 4.0 * u)), Color("#7a2430"))
+	c.draw_circle(Vector2(mid, 30.0 * u), 13.0 * u, Color("#e2b48c"))
+	# Grey hair over the top of the head.
+	c.draw_rect(Rect2(Vector2(mid - 13.0 * u, 16.0 * u), Vector2(26.0 * u, 6.0 * u)), Color("#b8b4ac"))
+	for side in [-1.0, 1.0]:
+		var eye := Vector2(mid + side * 5.5 * u, 28.5 * u)
+		c.draw_arc(eye, 3.6 * u, 0.0, TAU, 12, Color("#2a2622"), maxf(1.0, 1.2 * u))
+		c.draw_rect(Rect2(eye - Vector2(1.0, 1.0) * u, Vector2(2.0, 2.0) * u), Color("#2a2622"))
+	c.draw_line(Vector2(mid - 2.0 * u, 28.5 * u), Vector2(mid + 2.0 * u, 28.5 * u), Color("#2a2622"), maxf(1.0, 1.0 * u))
+	c.draw_rect(Rect2(Vector2(mid - 4.0 * u, 36.5 * u), Vector2(8.0 * u, 1.5 * u)), Color("#9c6b52"))

@@ -38,7 +38,13 @@ const SHOTS := {
 	"thump_soft": -8.0, "thump_hard": -6.0, "crash": -4.0, "clang": -9.0, "jar_clink": -12.0, "jar_break": -6.0,
 	"tram_bell": -8.0, "horn": -16.0, "horn_double": -16.0, "pigeons": -6.0,
 	"birds_a": -13.0, "birds_b": -15.0, "siren_far": -20.0, "dog_far": -10.0,
+	# Loop 3g-2 (police.md 10, tools/make_sfx.py): the police's and the guards' own sounds, each
+	# set to land where its 3g-1 placeholder sat (by the files' RMS).
+	"police_whoop": -26.0, "megaphone": -14.0, "whistle": -18.0, "scribble": -14.0, "stamp": -17.0, "clank": -9.0,
 }
+## Loop 3g-2: the siren loop (one positional voice) and its level there.
+const SIREN := "police_siren"
+const SIREN_DB := -13.0
 const VOICES_3D := 6
 const VOICES_2D := 4
 ## Positional sounds: full level within UNIT metres of the listener, gone past REACH.
@@ -130,7 +136,7 @@ func setup(data: Dictionary) -> void:
 				var q := a.lerp(b, float(s) / steps)
 				_rails[Vector2i(floori(q.x / 4.0), floori(q.y / 4.0))] = true
 	# By name, not by listing the folder: an exported game holds only the imports.
-	for n in LOOPS.keys() + SHOTS.keys():
+	for n in LOOPS.keys() + SHOTS.keys() + [SIREN]:
 		_streams[n] = load(DIR + n + ".wav")
 	for n in LOOPS:
 		var p := AudioStreamPlayer.new()
@@ -441,10 +447,10 @@ func _meter(label: String, seconds: float) -> void:
 	print("  %-26s Master %6.1f  Music %6.1f  SFX %6.1f  Ambience %6.1f" % [label, top["Master"], top["Music"], top["SFX"], top["Ambience"]])
 
 
-# --- loop 3g-1: the police (placeholders) ---------------------------------------------------
-# The police's own sounds (the two-tone siren, the whoop, the megaphone chirp, the whistle, the
-# stamp) come in part two from tools/make_sfx.py (police.md section 10); until then they borrow
-# what is here: the far siren, the tram bell and the soft knock, pitched.
+# --- loop 3g-1: the police (loop 3g-2: their own sounds) -------------------------------------
+# The two-tone siren, the whoop, the megaphone chirp, the whistle, the stamp, the scribble and
+# the clamp's clank from tools/make_sfx.py (police.md section 10; 3g-1 borrowed the far siren,
+# the tram bell and the soft knock). The escape's chord is still the tram bell, pitched.
 
 var _siren_voice: AudioStreamPlayer3D
 
@@ -455,11 +461,11 @@ func police_siren(at: Vector3) -> void:
 	if _silent or _pool3.is_empty():
 		return
 	if at == Vector3.INF:
-		if _siren_voice != null and _siren_voice.stream == _streams.get("siren_far"):
+		if _siren_voice != null and _siren_voice.stream == _streams.get(SIREN):
 			_siren_voice.stop()
 		_siren_voice = null
 		return
-	if _siren_voice == null or _siren_voice.stream != _streams.get("siren_far"):
+	if _siren_voice == null or _siren_voice.stream != _streams.get(SIREN):
 		var ear := focus + Vector3.UP * LISTENER_UP
 		var far := -1.0
 		for p in _pool3:
@@ -471,23 +477,22 @@ func police_siren(at: Vector3) -> void:
 				far = dp
 				_siren_voice = p
 		_siren_voice.stop()
-		_siren_voice.stream = _streams.get("siren_far")
-		_siren_voice.volume_db = -6.0
+		_siren_voice.stream = _streams.get(SIREN)
+		_siren_voice.volume_db = SIREN_DB
 	_siren_voice.global_position = at
 	if not _siren_voice.playing:
 		_siren_voice.play()
 
 
-## A police cue (2D): "whoop" (a unit warns or joins), "whistle" (the lizak), "stamp" (the end
-## of a caution), "chord" (escaped).
+## A police cue (2D): "whoop" (a unit warns or joins), "megaphone" (before its line), "whistle"
+## (the lizak, a city guard), "stamp" (the end of a caution), "scribble" (the clamp's
+## countdown), "clank" (the clamp on and off), "chord" (escaped).
 func police_cue(kind: String) -> void:
 	match kind:
 		"whoop":
-			_play2_pitched("siren_far", -2.0, 1.7)
-		"whistle":
-			_play2_pitched("tram_bell", -4.0, 2.3)
-		"stamp":
-			_play2_pitched("thump_soft", 0.0, 0.7)
+			_play2_pitched("police_whoop", 0.0, 1.0)
+		"megaphone", "whistle", "stamp", "scribble", "clank":
+			_play2_pitched(kind, 0.0, 1.0)
 		"chord":
 			_play2_pitched("tram_bell", -6.0, 1.5)
 
