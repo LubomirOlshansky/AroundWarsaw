@@ -273,7 +273,12 @@ HELI / AUTO (right); the keys are unchanged.
   has none in OpenStreetMap) light the ground from a baked light map (`tools/bake_lights.py`,
   no real lights): warm sodium pools, cold white LED in parks, along footpaths and on about a
   quarter of the streets; pools stop at walls. The same map lights the lower facades, the tree
-  crowns from below, parked cars and traffic. Lamp heads glow and wear a soft halo. The look
+  crowns from below, parked cars and traffic. Lamp heads glow and wear a soft halo. On the Royal
+  Route (Krakowskie Przedmieście, Nowy Świat, Senatorska, Miodowa, Podwale, Kozia, Brzozowa:
+  within 8 m of the carriageway's edge, `ROYAL_STREETS`) and in the Old Town (`OLD_TOWN`, a
+  190 m circle) the 213 mapped lamps are the historic cast-iron lantern instead (the landmarks
+  loop: a dark green post, a lantern 4.4 m up under a cap and finial; `_shared["lantern"]`):
+  one more MultiMesh in the 9 sectors that have them. The look
   loop made the pools on the ground pixel light: four hard bands with a one-pixel checker
   dither along each step (`night.gdshaderinc` `lamp_pool`, `pool_glow`), never brighter than
   ~80 % of a lit window (pale paving included), and on grass and cycle lanes the lamp tints
