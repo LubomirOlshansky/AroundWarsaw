@@ -1004,8 +1004,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Whether a phone with Vulkan 1.1 but a weak driver runs the game well is still unseen.
 - ~~**The export prints Dialogue Manager's C# errors** (`No loader found for resource:
   ...DialogueLabel.cs`, `ExampleBalloon.tscn` parse errors).~~ Fixed (store-release lane,
-  2026-10-30): the iOS, Android and Web presets exclude `addons/dialogue_manager/*.cs` and
-  `addons/dialogue_manager/example_balloon/*` (the game uses its own balloon; the add-on's
+  2026-10-30): the iOS, Android and Web presets exclude the add-on's `.cs` files, its C#
+  `DialogueLabel.tscn` and `example_balloon/*` (the game uses its own balloon; the add-on's
   editor plugin, the only reader of the example, is off).
 - **The city step rewrites 34 tracked files with byte noise** (`bake_city.gd` isn't
   byte-deterministic: the sector `.scn` files differ by a few bytes each run with no map
