@@ -1217,6 +1217,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## From loop MW-1 (the MOJA WARSZAWA notebook, 2026-10-30)
 
+- **The minimap opens full screen** (F, 2026-10-30): a tap on the minimap opens a full-screen map
+  with the notebook's "?" marks and found places; another tap or the back gesture closes it.
+  HUD, content lane; 0 cost when closed.
 - **The real bake resolution (map lane).** The notebook resolves the places at load from the
   `near` hints (`notebook.gd` `resolve`: the bake's projection, then an address poi, a named
   square, park or landmark, or the place's own poi kind, within 300-600 m of the hint). The 3d
