@@ -10,15 +10,31 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 | Lane | Item | Session | Since |
 | --- | --- | --- | --- |
+| content | MW-2, storefronts and parodies: Frogs shops, Pędzik riders, Leżak scooters, kebab stands, billboards, the venues' neon fascias, metro entrances. Split: this row does shop data, signs, interiors and queues; landmarks does building facades; map does bake placement (tell this row before changing either) | cloud thread "Build notebook and gameplay features" | 2026-10-30 |
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
 | map | Loop 3e, structures: the W-Z tunnel, Most Śląsko-Dąbrowski, Trasa Łazienkowska, the Wybrzeże trench, Wiadukt Markiewicza, the rail cutting (3d-1, 3d-2a and 3d-2b landed) | thread "Finish the demo map extension" | 2026-10-30 |
-| content | F's asks: Rechotka 24 → Frogs, pedestrian slow zones off by default (a Settings switch), the rooftop club at Plac Zawiszy, the full-screen map | cloud thread "Add night and river crowds" | 2026-10-30 |
 
 ## Waiting
 
 Newest first. One entry per question.
+
+- **2026-10-30 · content · F's asks** — LEVEL 26 costs +2 draw calls at night in view (the
+  violet band and the crowd cell with the roof crowd and the door queue) against a +1 target.
+  Default built: both kept; 0 by day and beyond 350 m.
+- **2026-10-30 · content · F's asks** — With the pedestrian slow zones off (the new default),
+  should the guards still whistle as flavour? Default built: no whistle, run or guards' car; the
+  clamp stays.
+- **2026-10-30 · content · F's asks** — The full map shows "?" marks only within 400 m of the
+  car (the minimap's rule) so it doesn't spoil the notebook. Default built: 400 m.
+- **2026-10-30 · content · F's asks** — The shop sign: "FROGS" with the blade disc keeping
+  "24", or "Frogs 24" as the name? Default built: Frogs, the disc says 24.
+- **2026-10-30 · store release · Android back** — `quit_on_go_back` is Godot's default (true):
+  the back gesture may quit the app instead of closing the full map. Check on an Android phone.
+  Default built: unchanged.
+- **2026-10-30 · performance · full map** — The 3D city still renders under the open full map
+  (paused). Stop it while the map is open? Default built: not done.
 
 - **2026-10-30 · content · MW-4 (everyday life and trends)** — How often does a trend move
   without Live? Vision says every third session. Default built: every 4 sessions. Live counts

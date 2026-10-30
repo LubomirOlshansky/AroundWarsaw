@@ -197,7 +197,7 @@ func _words() -> void:
 	_expect("the MNOŻNIK at night", Rules.surge_text(true, false), "×1,5 · NOC")
 	_expect("no MNOŻNIK by day", Rules.surge_text(false, false), "")
 	var card := Rules.offer_text({"name": "Kasia", "away": 350.0, "road": 1800.0, "their": 4.9,
-			"note": ["Uwagi: „stoję pod Rechotką”.", "Note: \"I'm outside the Rechotka.\""], "night": true, "rain": false,
+			"note": ["Uwagi: „stoję pod Frogsem”.", "Note: \"I'm outside the Frogs.\""], "night": true, "rain": false,
 			"rating": 4.87})
 	_expect("the request card's first line", String(card[1]).get_slice("\n", 0), "Kasia ★ 4,9 · 350 m · 1,8 km")
 	_expect("the request card's MNOŻNIK (the title)", card[0], "PODWÓZKA · MNOŻNIK ×1,5")

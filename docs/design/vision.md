@@ -33,7 +33,7 @@ the world, the reserved colours of the art bible). Two more rules come from this
 ## 1. The vision (one page)
 
 **Around Warsaw is a drive through one person's Warsaw.** The person has lived here ten years.
-They know which corner has two Rechotkas, where the queue starts on a Friday, which steps catch
+They know which corner has two Frogs, where the queue starts on a Friday, which steps catch
 the sunset, which bus meets the others at Centralny at night, and what stood on Plac Defilad
 before the museum. The player gets that knowledge by driving, slowly or fast, with the radio on.
 
@@ -127,8 +127,8 @@ re-checks every name before TestFlight.
 | Pet shops | by position | **MERDAK** (from *merdać*, to wag) | invented | Nothing found | **Keep** |
 
 **The existing parodies stay**, each for a reason:
-- **Rechotka 24**: already a wordplay a local reads at once (the little frog's croak). A closer
-  near-miss would come too close to the real chain's name.
+- **Frogs** (was Rechotka 24; the user's pick, 2026-10-30): a plain English word a local reads at
+  once as the frog-green shop. A closer near-miss would come too close to the real chain's name.
 - **Podwózka, Pędzik, Leżak**: each joke is about a kind of app (ride-hailing, delivery, scooters)
   with several real operators. A near-miss of one would point at one company and its workers,
   which `parodies.md` rules out.
@@ -339,7 +339,7 @@ hiss.
 | Place | Parody / what | Look | Joke |
 | --- | --- | --- | --- |
 | Kebab stands (14, `parodies.md` 6.1) | **U ZDZICHA** (Hala Mirowska), **NA CIENKIM** (Plac Zbawiciela), the rest KEBAB | existing stand | Kebab at 3 a.m. is a meal category of its own (exists) |
-| Rechotka 24 (`parodies.md` 2) | the frog-green corner shop | existing spec | Always round the corner |
+| Frogs (`parodies.md` 2; was Rechotka 24) | the frog-green corner shop | existing spec | Always one hop away |
 | Glon (matcha bars, Plac Zbawiciela, Powiśle) | **GLON** | A pale green fascia, a cup-shaped neon | "Green, healthy and allegedly tasty" |
 | Bakeries (by position) | generic PIEKARNIA neon; **LUKROWNIA** on Nowy Świat | Warm window, bread shapes | The Fat Thursday queue |
 | Milk bar on Marszałkowska by Plac Konstytucji | **BAR PYZOWY** | A 1960s glass front, a tray-shaped neon | The 13:00 lunch rush: students, pensioners, office workers in one queue. Warsaw's first milk bar opened on Nowy Świat in 1896 (a then card) |
@@ -352,12 +352,12 @@ the bakery's first customer at 06:00, couriers waiting.
 
 **Sounds.** Kebab grill sizzle, a tray clatter at the milk bar, the bakery's door bell.
 
-**Eggs.** E26 Godzina pyz, E20 Tłusty Czwartek, the Rechotka triple corner (exists in
+**Eggs.** E26 Godzina pyz, E20 Tłusty Czwartek, the Frogs triple corner (exists in
 `parodies.md`).
 
 **OSM tags.** `amenity=fast_food` + `cuisine=kebab`, `amenity=restaurant` + `cuisine=polish`
 (milk bars are often `cuisine=polish` with `name~Bar`; position only), `shop=bakery|pastry`,
-`shop=convenience` (Rechotka), `amenity=food_court`.
+`shop=convenience` (Frogs), `amenity=food_court`.
 
 ### 3.7 Everyday city life
 
@@ -385,7 +385,7 @@ mint, white; never the jobs' orange) run the boulevards to Most Poniatowskiego a
   respect, and the traffic behind honks (existing `traffic` lines). E29.
 - **HYRAX**, the parody fitness race, on **Saturdays 09:00–17:00** *guess* on the forecourt of
   Stadion Narodowy: a cordon of the roadworks barriers, a loop of runners, and our own Warsaw
-  stations (carry the słoiki up the steps, push a Leżak, a Rechotka-basket farmer's walk, the
+  stations (carry the słoiki up the steps, push a Leżak, a Frogs-basket farmer's walk, the
   stadium's stairs). The mascot is a hyrax (*góralek*) on the banner. Podwózka rides tagged
   `hurry` that morning go to the stadium (a late competitor). E30.
 
@@ -698,7 +698,7 @@ Each chapter of the notebook unlocks one (4.1); tracks 1–2 are free from the s
 eggs, 20 then spots, 15 photo spots, 17 named parody venues (3.0), 3 Wiralek slots, one steps
 crowd (by Kopernik) and the Poniatówka beach, ~40 metro entrances at 10 stations, night buses at
 Centralny, Kolka on Wednesdays, Hyrax on Saturdays, PÓŁNOC FM with 7 tracks, Spacer, Fotka,
-KASETA. Plus everything `parodies.md` still owes (Rechotka shops, Pędzik riders, Leżak scooters,
+KASETA. Plus everything `parodies.md` still owes (Frogs shops, Pędzik riders, Leżak scooters,
 kebab to 14, billboards to 10).
 
 **Later (the update districts, DEMO 9):** Mokotów (the tram route continued, Puławska), Żoliborz
@@ -715,7 +715,7 @@ completion. Loop 2d-2 (the unbuilt half of `parodies.md`) is folded into MW-2.
 | --- | --- | --- | --- | --- |
 | 1 | **MW-0: data and lines** (game-designer, now; no code) | `places.json` (72 places), `then_cards`, the section 7 lines merged into `dialogue.json`, the brand denylist for 3k, Apteczka's street | JSON parses; every line PL + EN, ≤ 70 characters, no repeat; the title-collision check done and noted | +0 |
 | 2 | **MW-1: the notebook** (map-engineer bake + gameplay-dev) | `pois` kind `place` and the venue anchors (3.x OSM tags) in the 3d bake; the MOJA WARSZAWA tab, finding, cards, rewards, minimap "?" | `check_places.gd` green; `--place=<id> --notes-log` finds each of 10 sample places; HUD shots at 375/390/440 pt | HUD ≤ +5 2D draw calls when open, 0 closed; scripts ≤ 0.02 ms (2 Hz grid check) |
-| 3 | **MW-2: storefronts and parodies** (= 2d-2 folded) | Rechotka, Pędzik, Leżak, 14 kebab stands, 10 billboards (`parodies.md` 10), and the 17 venues as named neon fascias in `neon_signs.gd`, the metro entrances | `parodies.md` section 10's checks; each venue at its address within 0.3 m of the facade; art-director: no real brand readable | parodies.md 8's ≤ +15/17/20 draw calls; venues +0 (the neon atlas); metro entrances +1 per sector with any |
+| 3 | **MW-2: storefronts and parodies** (= 2d-2 folded) | Frogs, Pędzik, Leżak, 14 kebab stands, 10 billboards (`parodies.md` 10), and the 17 venues as named neon fascias in `neon_signs.gd`, the metro entrances | `parodies.md` section 10's checks; each venue at its address within 0.3 m of the facade; art-director: no real brand readable | parodies.md 8's ≤ +15/17/20 draw calls; venues +0 (the neon atlas); metro entrances +1 per sector with any |
 | 4 | **MW-3: the night and the river** (after 3g-2) | City clock + Dawn look, queues, the door, the dawn crowd, police by the clubs, the steps crowd, Hocki Bloki's lights, Podwózka `club` | 4.5's acceptance; shots at night 01:00 on Smolna, dawn at the Palm, dusk on the steps, at phone size | crowd MultiMesh per sector, 2 poses: ≤ +2 draw calls in view, ≤ 25 k triangles, no sun shadow; scripts ≤ 0.04 ms |
 | 5 | **MW-4: everyday life and trends** | Dog walkers, cyclists and Rowerilo docks, runners, Kolka and the Zając, Hyrax Saturdays, the Wiralek cycle and the "Na czasie" job, Fat Thursday | `--dogs-log`, `--trend-log` (`trend: slot 1 day 3 queue 20`), `--zajac --autopilot` pays once; a 10-minute soak, no dog or rider overlapping the car | dogs: one city MultiMesh, +1 draw call; riders share Pędzik's (+0); scripts ≤ 0.05 ms |
 | 6 | **MW-5: PÓŁNOC FM and the city's sounds** | The station, 7 tracks, the host; the club leak, steps crowd, guitar, barks, bells, metro chime | `--station=polnoc --radio-log`; each sound plays at its place (a headless check of emitters); levels by ear on the phone | audio only; ≤ 8 positional emitters live at once *guess* |
@@ -961,7 +961,7 @@ spot in the right time, weather and weekday; `--egg-log` prints the trigger and 
 | E40 | Karta na 25 impulsów | the old payphone (Plac Konstytucji) | Stop by it | then card T17, +10 |
 
 The five existing eggs (the Palm, pigeons, roadworks, Patelnia, the Mermaid) and `parodies.md`'s
-two (the Rechotka triple corner, the standing Leżak) join the notebook too: 47 egg cards in all.
+two (the Frogs triple corner, the standing Leżak) join the notebook too: 47 egg cards in all.
 
 ---
 

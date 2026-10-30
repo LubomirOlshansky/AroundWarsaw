@@ -19,6 +19,8 @@ extends Control
 ## (notebook_page.gd); the card's title says MOJA WARSZAWA there, with the count found.
 ## Loop MW-6: Jazda gets "Tryb gry · Game mode" (Miasto / Spacer: vision.md 4.3) under the camera,
 ## and Obraz the FOTKA button beside TEST (closes the card and opens the photo mode: fotka.gd).
+## F's asks (2026-10-30): Jazda gets "Strefy piesze 20 km/h · Pedestrian zones 20 km/h" Off / On
+## under the mode (settings.gd `zone_cap`, off by default: key "zones").
 
 signal changed(key: String, value: Variant)
 signal closed
@@ -194,6 +196,8 @@ func _build() -> void:
 	_segments(drive[1], "camera", CAMERA)
 	_heading(drive[1], "Tryb gry", "Game mode")
 	_segments(drive[1], "wander", MODE)
+	_heading(drive[1], "Strefy piesze 20 km/h", "Pedestrian zones 20 km/h")
+	_segments(drive[1], "zones", ON_OFF)
 	# Świat · World.
 	var world := _page(body, 1)
 	_heading(world[0], "Pora dnia", "Time of day")

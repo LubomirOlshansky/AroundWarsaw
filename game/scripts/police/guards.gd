@@ -9,7 +9,8 @@ extends Node
 ##   MultiMesh after the speed traps' officers: +0 draw calls); each has a small beehave tree
 ##   (guard_unit.gd), the six nearest ticked at 5 Hz.
 ## - In a pedestrian zone the car is held to 20 km/h (main.gd, car.gd `zone_cap`: loop 3d-1) and
-##   the pill says so; the nearest guard within 60 m whistles and says a `guard` line (at most once
+##   the pill says so (F's asks, 2026-10-30: only with Settings → JAZDA's zone switch on, off by
+##   default; off, no pill, whistle, run or car following); the nearest guard within 60 m whistles and says a `guard` line (at most once
 ##   a zone a minute), runs after the car at 5 m/s for 3 s, gives up ("run"), walks back. The
 ##   guards' car, if it is out near the Old Town, follows at 25 km/h with its amber beacon for
 ##   15 s, then turns away.
@@ -75,6 +76,10 @@ var police: Node
 var guards: Array = []
 ## The zone the car is in now ("" outside), from main.gd through police.gd.
 var zone := ""
+## F's asks (2026-10-30): the zones' cap is on (Settings → JAZDA, off by default). Off: no zone
+## pill and no whistle, run or guards' car following; the guards still stand at their posts and
+## the clamp keeps its rule (stopped 20 s in a zone or on a footway by a guard).
+var zone_cap := false
 ## The clamp: "" (none), "count" (the countdown), "on".
 var clamp := ""
 var clamp_t := 0.0
@@ -139,7 +144,7 @@ func pill() -> Array:
 	if clamp == "count":
 		var left := maxi(0, ceili(CLAMP_COUNT - clamp_t))
 		return ["BLOKADA ZA 0:%02d" % left, "CLAMP IN 0:%02d" % left]
-	if zone != "" and not police.flying:
+	if zone != "" and zone_cap and not police.flying:
 		return ["STREFA PIESZA · 20 KM/H", "PEDESTRIAN ZONE · 20 KM/H"]
 	return []
 
@@ -235,7 +240,7 @@ func _zone_tick(p: Vector2) -> void:
 		else:
 			_glog("zone %s left (top speed in it after the first %.0f s: %d km/h)" % [_was_zone, ZONE_SETTLE, roundi(_zone_top * 3.6)])
 		_was_zone = z
-	if z == "" or police.car.vel.length() < MOVING or clamp != "":
+	if z == "" or not zone_cap or police.car.vel.length() < MOVING or clamp != "":
 		return
 	if police.clock - float(_whistled.get(z, -1.0e9)) < ZONE_GAP:
 		return

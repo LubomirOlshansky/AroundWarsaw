@@ -31,7 +31,7 @@ TestFlight.
 
 | Joke | Candidate | What the check found | Decision |
 | --- | --- | --- | --- |
-| 24h corner shop | **Rechotka 24** | No shop, chain, retail brand or trademark named Rechotka found. `rechotka.pl` exists and shows only the word "Rechotka" and a "PEGI 13" label (no company, no product described; not retail) | **Keep: Rechotka 24** |
+| 24h corner shop | ~~Rechotka 24~~ → **Frogs** | Rechotka (2026-10-28): no shop, chain, retail brand or trademark named Rechotka found; `rechotka.pl` shows only the word "Rechotka" and a "PEGI 13" label. **"Frogs" is the user's pick (2026-10-30)**: it is an English word, not the real brand's name or logo (no frog figure, no lowercase wordmark, a lily-pad mark of our own) | **Frogs** (the user, 2026-10-30; ids stay `rechotka`, `easter_rechotka`) |
 | App-taxi | **Podwózka** | No taxi, ride-hailing app or transport company named Podwózka found (results were iTaxi and other real apps, none with this name). `podwozka.pl` exists but refused the request (HTTP 403), content unknown | **Keep: Podwózka** |
 | Delivery riders | **Pędzik** | No courier, delivery app or brand named Pędzik found; `pedzik.pl` does not resolve | **Keep: Pędzik** |
 | E-scooters | ~~Hulajka~~ | No brand "Hulajka" found, but **"Hulaj" (hulaj.eu, "HULAJnogi elektryczne na minuty") was a Polish per-minute e-scooter sharing service**; its domain now carries unrelated casino pages. One suffix away, same field. `hulajka.pl` exists (HTTP 403) | **Replace with Leżak** ("deckchair", from *leżeć*, to lie down: the scooters always lie down). No scooter or sharing brand named Leżak found; `lezak.pl` does not resolve |
@@ -41,10 +41,14 @@ TestFlight.
 
 ---
 
-## 2. Rechotka 24: the frog-green corner shop
+## 2. Frogs: the frog-green corner shop
 
-*"Rechot"* is a frog's croak and a belly laugh. The joke is density: there is always one round
-the corner, often two.
+**Frogs** (the user's pick, 2026-10-30; it was Rechotka 24). An English word a Warsaw local reads
+at once as the frog-green shop on every corner. In Polish it declines as a masculine noun: *Frogs,
+do Frogsa, przy Frogsie, pod Frogsem, dwa / trzy Frogsy, pięć Frogsów*. The joke is density and
+the frog's hop: there is always one a hop away, often two, and they multiply like frogs in spring.
+The ids stay `rechotka` (the quirk, `--ride-quirk=rechotka`, the dialogue group) and
+`easter_rechotka`, so saves and flags keep working; only the shown words changed.
 
 ### 2.1 Look at the default view
 
@@ -54,13 +58,13 @@ colours, ≤ 600 triangles (README: a shop front ≤ 1,500), Models.material():
 | Part | Size | Colour | At 80 m (≈ 6 image px per metre) |
 | --- | --- | --- | --- |
 | Fascia over the window | 5.0 × 0.9 m, 0.25 m deep, at 3.2–4.1 m | frog green `#4fae3b` (LIT_SIGN at night) | a 30 × 5 px green bar |
-| "RECHOTKA" on the fascia | pixel font, letter pixel 0.09 m (4.2 × 0.63 m) | cream `#fbf7ee` (LIT_SIGN) | a pale streak; reads as text from a ~35 m view |
+| "FROGS" on the fascia | pixel font, letter pixel 0.12 m: 5 letters × 6 px − 1 = 29 × 7 px = 3.48 × 0.84 m (at RECHOTKA's 0.09 m it would be only 2.6 m of the 4.2 m; 0.84 m fits the 0.9 m fascia) | cream `#fbf7ee` (LIT_SIGN) | a pale streak; reads as text from a ~45 m view |
 | Blade sign, sticking out sideways | a 0.9 m disc (octagon prism), 0.12 m thick, on a bracket at 3.6 m | lily-pad green `#2f6b2a` disc with a notch, "24" in cream on both faces | a dark green dot off the wall, visible down the street |
 | Shop window and door | 4.4 × 2.4 m glass, a 1.0 m door with a dark frame | glass `#cfe8c6` (LIT_WINDOW, bright cool-white at night) | a light panel |
 | Floor strip | 5.0 × 0.12 m | dark `#1f3a22` | — |
 
 **The mark is a lily pad, not a frog.** No frog face, no mascot, no lowercase wordmark: the name
-carries the frog. Sound: stopping in front plays a two-note croak chime ("rech-rech") instead of a
+carries the frog. Sound: stopping in front plays a two-note croak chime ("kum-kum", the Polish frog's call) instead of a
 door bell. At night the fascia and window are among the brightest things on a corner (neon rung of
 the art bible's value ladder), which is the 3 a.m. joke by itself.
 
@@ -75,10 +79,10 @@ facade normal, facade width, district.
 2. Snap to the street-facing facade of that building with ≥ 5.5 m of straight wall and no
    other shop-front or landmark there; the fascia faces the street.
 3. **Density** *guess*: **24 per km²** in the hero districts (DEMO 2.3), **10 per km²** elsewhere,
-   minimum **70 m** between two (except the triple corners). That is about one Rechotka in every
+   minimum **70 m** between two (except the triple corners). That is about one Frogs in every
    second default-view screen in the centre. The centre's OSM shows ~20 convenience shops per km²
    (read from the demo download, tile r1c1), so this is the real city, slightly exaggerated.
-4. **Triple corners** (an egg, `easter_rechotka`): three Rechotkas on three corners of one
+4. **Triple corners** (an egg, id `easter_rechotka`): three Frogs on three corners of one
    junction, spacing rule waived: **Marszałkowska × Świętokrzyska** (today's map, on the route of
    the first kebab order) and **Plac Zbawiciela** (demo area). At most one per district.
 5. **Never** on a tier-A landmark footprint (DEMO 2.2), on the Old Town Market Square frontage,
@@ -89,12 +93,12 @@ one instance in a MultiMesh per 512 m tile (section 8).
 
 ### 2.3 Gameplay hooks
 
-- **Stamp card ("Karta stałego klienta")**: stop within 6 m of any Rechotka's door at < 2 m/s for
-  2 s → croak chime, a `rechotka` line from the till ("Rechotka 24" as the speaker, tag `stamp`),
+- **Stamp card ("Karta stałego klienta")**: stop within 6 m of any Frogs shop's door at < 2 m/s for
+  2 s → croak chime, a `rechotka` line from the till ("Frogs" as the speaker, tag `stamp`),
   +1 stamp. One stamp per shop per in-game day, max 10 a day. The **10th stamp**: a card *HOT DOG
   GRATIS! · FREE HOT DOG!* with the `free` line and +10 respect. Saved. (A discoverable loop that
   costs nothing and teaches that they are everywhere.)
-- **Podwózka's GPS uses them as landmarks** (section 3.4): "turn at the Rechotka", at a triple
+- **Podwózka's GPS uses them as landmarks** (section 3.4): "turn at the Frogs", at a triple
   corner.
 - **Passenger detour**: some app-taxi passengers ask to stop at one (+0.5 ★, section 3.3).
 - **Radio ads**: two `radio_host` lines (the host reads parody ads among the others).
@@ -143,7 +147,7 @@ The card (HUD card recipe, Polish above English):
 ```
 PODWÓZKA · NOWY KURS / NEW RIDE
 Kasia · 350 m · kurs 1,8 km · ★ 4,9
-Uwagi: „stoję pod Rechotką”.            ← a podwozka_request line
+Uwagi: „stoję pod Frogsem”.            ← a podwozka_request line
 MNOŻNIK ×1,5 · NOC / NIGHT              ← only at night or in rain
 Twoja ocena / Your rating: 4,87
 [ PRZYJMIJ · ACCEPT ]   [ POMIŃ · SKIP ]
@@ -172,7 +176,7 @@ that **35 %** *guess* of rides get one **quirk**, shown on the line and said by 
 | --- | --- | --- |
 | `river` | runs to the river's edge on a boulevard road (a waypoint on dry land ≥ 3 m from the granite edge), then on | `river` |
 | `oldtown` / `zone` | cuts across the Old Town Market Square or a park's paths (the player's car is capped at 20 km/h there and the city guards react: docs/design/police.md 5.6) | `oldtown` / `zone` |
-| `rechotka` | tells you to turn "at the Rechotka" at a triple corner | `rechotka` |
+| `rechotka` | tells you to turn "at the Frogs" at a triple corner | `rechotka` |
 | `reroute` | recalculates once mid-ride and draws a new line | `reroute` |
 
 On arrival the GPS says the `arrive` line. Ignoring the app is always allowed.
@@ -185,7 +189,7 @@ On arrival the GPS says the `arrive` line. Ignoring the app is always allowed.
 | Late: ETA = road distance / 9 m/s + 20 s | −0.5 per 15 s over, at most −1.5 |
 | A police pull-over during the ride (police.md 8.3) | −1.0 (escaping a chase: no change) |
 | Arriving at ≤ 0.8 × ETA | +0.5 |
-| A `detour` passenger asks for a Rechotka and you stop at one (stamp rules, any shop) | +0.5 |
+| A `detour` passenger asks for a Frogs and you stop at one (stamp rules, any shop) | +0.5 |
 | A **believer**, and you drive the app's quirk leg (reach the river waypoint within 15 m, or cross the zone) | +0.5 ("No widzisz, aplikacja wie") |
 | A believer, and you ignore the app | no change, only grumbling lines |
 
@@ -285,7 +289,7 @@ Baked (map-engineer) as `pois` kind `scooter` (position, yaw, pose):
 - **Density** *guess*: 30 per km² in hero districts, 12 elsewhere; on footways near junctions,
   bus and tram stops, metro exits, the boulevards, park edges; never on a carriageway, a kerb ramp
   or a crossing.
-- **Odd places** (1 in 15): on the grass, across a bench's front, at a Rechotka's door, half in a
+- **Odd places** (1 in 15): on the grass, across a bench's front, at a Frogs shop's door, half in a
   hedge; **1 in 40 on a bus-shelter roof** (`shelters` data; seen from the helicopter).
 - **Parking zones** (`scooter_zone`, a painted white rectangle 3 × 1.5 m on the pavement), one
   per ~400 m of hero-district street: the joke is that the zone is **empty** and the scooters lie
@@ -333,10 +337,10 @@ letters), all below in section 7.
 
 ## 7. Lines (to merge into game/data/dialogue.json)
 
-60 original lines, Polish then English. New groups: `rechotka`, `easter_rechotka`,
+61 original lines (one added with the Frogs rename, 2026-10-30), Polish then English. New groups: `rechotka`, `easter_rechotka`,
 `podwozka_request`, `podwozka_pickup`, `podwozka_gps`, `podwozka_passenger`, `podwozka_rating`,
 `podwozka_driver`, `pedzik`, `lezak`, `easter_lezak`; additions to `radio_host`, `kebab_vendor`,
-`kebab_order`, `signs`, `column_posters`. Speakers: **"Rechotka 24"** (the till, with the lily-pad
+`kebab_order`, `signs`, `column_posters`. Speakers: **"Frogs"** (the till, with the lily-pad
 icon), **"Nawigacja"** (the app, a phone avatar), the passenger's first name, **"Podwózka"** for
 app-taxi drivers in traffic, **"Pędzik"** for riders, **"Leżak"** for the round-up card (the
 knock line is the game's own aside, no speaker). Polish bubbles ≤ 70 characters. Checked
@@ -349,21 +353,22 @@ becomes *ZAGINĄŁ SYGNAŁ GPS*) and each has a new punchline.
   "rechotka": [
     ["Hot dog, kawa i ładowarka. Zestaw przetrwania do rana.", "A hot dog, a coffee and a charger. The survive-till-morning combo."],
     ["Chleb, bilety, paczki, kawa. Nadzieję trzymamy na zapleczu.", "Bread, tickets, parcels, coffee. We keep hope in the back room."],
-    ["Druga Rechotka jest naprzeciwko. Konkurujemy same ze sobą.", "The other Rechotka is across the street. We compete with ourselves."],
-    ["Między jedną Rechotką a drugą jest dokładnie jedna Rechotka.", "Between one Rechotka and the next, there's exactly one Rechotka."],
+    ["Drugi Frogs jest naprzeciwko. Konkurujemy sami ze sobą.", "The other Frogs is across the street. We compete with ourselves."],
+    ["Między jednym Frogsem a drugim jest dokładnie jeden Frogs.", "Between one Frogs and the next, there's exactly one Frogs."],
+    ["Do następnego Frogsa? Jeden skok. Jesteśmy żabami, nie liczymy metrów.", "The next Frogs? One hop. We're frogs, we don't count metres."],
     ["Otwarte całą dobę. Nawet jak nikt nie wie, która jest godzina.", "Open around the clock. Even when nobody knows what time it is."],
     ["Pieczątka jest. Do darmowego hot doga coraz bliżej.", "Stamped. One step closer to a free hot dog.", {"only": "stamp"}],
     ["Dziesiąta pieczątka! Hot dog gratis. Musztarda też, spokojnie.", "Tenth stamp! A free hot dog. Mustard too, relax.", {"only": "free"}]
   ],
   "easter_rechotka": [
-    ["Trzy Rechotki na jednym skrzyżowaniu. Każda jest „za rogiem”.", "Three Rechotkas on one junction. Each one is \"just round the corner\"."]
+    ["Trzy Frogsy na jednym skrzyżowaniu. Żaby, wiadomo: się mnożą.", "Three Frogs on one junction. Frogs, you know: they multiply."]
   ],
   "radio_host": [
-    ["Rechotka 24. Otwarte dziś, jutro i na wszelki wypadek pojutrze.", "Rechotka 24: open today, tomorrow, and the day after, just in case."],
+    ["Frogs. Otwarte dziś, jutro i na wszelki wypadek pojutrze.", "Frogs: open today, tomorrow, and the day after, just in case."],
     ["Podwózka: przyjedziemy tam, gdzie pokaże pinezka. Mniej więcej.", "Podwózka: we'll come wherever the pin says. More or less."]
   ],
   "podwozka_request": [
-    ["Uwagi: „stoję pod Rechotką”.", "Note: \"I'm outside the Rechotka.\""],
+    ["Uwagi: „stoję pod Frogsem”.", "Note: \"I'm outside the Frogs.\""],
     ["Uwagi: „jestem tam, gdzie pinezka, tylko po drugiej stronie”.", "Note: \"I'm where the pin is, just on the other side.\""],
     ["Uwagi: „mam walizkę i optymizm”.", "Note: \"I've got a suitcase and optimism.\""],
     ["Uwagi: „proszę nie dzwonić, machnę”.", "Note: \"please don't call, I'll wave.\""]
@@ -375,7 +380,7 @@ becomes *ZAGINĄŁ SYGNAŁ GPS*) and each has a new punchline.
   ],
   "podwozka_gps": [
     ["Za dwieście metrów skręć w prawo. W Wisłę.", "In two hundred metres, turn right. Into the Vistula.", {"only": "river"}],
-    ["Skręć przy Rechotce. Nie tej. Tej drugiej. Nie, tej.", "Turn at the Rechotka. Not that one. The other one. No, that one.", {"only": "rechotka"}],
+    ["Skręć przy Frogsie. Nie tym. Tym drugim. Nie, tym.", "Turn at the Frogs. Not that one. The other one. No, that one.", {"only": "rechotka"}],
     ["Przeliczam trasę… Gotowe. Zawróć, gdzie możesz. I gdzie nie możesz.", "Recalculating… Done. Make a U-turn where you can. And where you can't.", {"only": "reroute"}],
     ["Jedź prosto przez Rynek. Dorożki jakoś dają radę.", "Go straight across the Market Square. The horse carriages seem to manage.", {"only": "oldtown"}],
     ["Skrót przez park. Mapa twierdzi, że ścieżka to droga.", "Shortcut through the park. The map insists the path is a road.", {"only": "zone"}],
@@ -384,7 +389,7 @@ becomes *ZAGINĄŁ SYGNAŁ GPS*) and each has a new punchline.
   "podwozka_passenger": [
     ["Ale aplikacja mówi w lewo! Aplikacja się nie myli. Prawie.", "But the app says left! The app is never wrong. Almost.", {"only": "believer"}],
     ["GPS mówi przez Wisłę. Może jest prom? Nie ma promu?", "The GPS says across the Vistula. Maybe there's a ferry? No ferry?", {"only": "believer"}],
-    ["Możemy stanąć przy Rechotce? Wybór jest, delikatnie mówiąc, duży.", "Can we stop at a Rechotka? The choice is, to put it mildly, wide.", {"only": "detour"}],
+    ["Możemy stanąć przy Frogsie? Wybór jest, delikatnie mówiąc, duży.", "Can we stop at one of the Frogs? The choice is, to put it mildly, wide.", {"only": "detour"}],
     ["Może pan ściszyć radio? Żartuję, proszę podgłośnić.", "Could you turn the radio down? Kidding, turn it up."],
     ["Pan zna skróty? Bo aplikacja zna tylko proste.", "Do you know the shortcuts? The app only knows straight lines."],
     ["Spieszę się na pociąg. Pociąg też się spieszy.", "I'm rushing for a train. The train's rushing too.", {"only": "hurry"}]
@@ -395,7 +400,7 @@ becomes *ZAGINĄŁ SYGNAŁ GPS*) and each has a new punchline.
     ["Cztery gwiazdki. Piąta za mniej hamowania.", "Four stars. The fifth would need less braking.", {"only": "4"}],
     ["Gwiazdek mało, ale radio było super.", "Not many stars, but the radio was great.", {"only": "low"}],
     ["Policja w trakcie kursu? Gwiazdkę zabieram, anegdotę zostawiam.", "Police mid-ride? I'm taking a star, but keeping the anecdote.", {"only": "police"}],
-    ["Anulowane. Wysiadam przy Rechotce, i tak tu jest jedna.", "Cancelled. I'll get out at the Rechotka, there's one right here anyway.", {"only": "cancel"}]
+    ["Anulowane. Wysiadam przy Frogsie, i tak tu jest jeden.", "Cancelled. I'll get out at the Frogs, there's one right here anyway.", {"only": "cancel"}]
   ],
   "podwozka_driver": [
     ["GPS kazał tu stanąć. Kim jestem, żeby się kłócić?", "The GPS said to stop here. Who am I to argue?"],
@@ -428,13 +433,13 @@ becomes *ZAGINĄŁ SYGNAŁ GPS*) and each has a new punchline.
     ["Na parking pod galerią: poziom −2, sektor „gdzie ja stałem”.", "To the mall car park: level −2, zone \"where did I park\".", {"only": "mall"}]
   ],
   "signs": [
-    ["RECHOTKA 24 · TU TEŻ", "RECHOTKA 24 · HERE TOO"],
+    ["FROGS · TU TEŻ", "FROGS · HERE TOO"],
     ["PODWÓZKA · GPS WIE LEPIEJ", "PODWÓZKA · THE GPS KNOWS BEST"],
     ["PĘDZIK · PLECAK WIĘKSZY NIŻ KAWALERKA", "PĘDZIK · A BACKPACK BIGGER THAN A STUDIO FLAT"],
     ["LEŻAK · PARKING? JAKI PARKING?", "LEŻAK · PARKING? WHAT PARKING?"]
   ],
   "column_posters": [
-    ["RECHOTKA ZAWSZE ZA ROGIEM", "Rechotka: always round the corner", {"poster": ["RECHOTKA", "ZAWSZE", "ZA", "ROGIEM"]}],
+    ["FROGS: ZAWSZE O JEDEN SKOK", "Frogs: always one hop away", {"poster": ["FROGS:", "ZAWSZE", "O JEDEN", "SKOK"]}],
     ["LEŻAK. LEŻY. PRAWIE WSZĘDZIE.", "Leżak. Lying around. Almost everywhere.", {"poster": ["LEŻAK.", "LEŻY.", "PRAWIE", "WSZĘDZIE"]}],
     ["ZAGINĄŁ SYGNAŁ GPS. PODWÓZKA.", "Missing: one GPS signal. Podwózka.", {"poster": ["ZAGINĄŁ", "SYGNAŁ", "GPS.", "PODWÓZKA"]}]
   ]
@@ -457,7 +462,7 @@ metre), rule 5 (no new shader).
 
 | Kind | MultiMesh | Triangles each | Shadow | Draw calls: default / zoomed out / helicopter |
 | --- | --- | --- | --- | --- |
-| Rechotka shop front | per 512 m tile (static) | ≤ 600 (~430 planned: 8 boxes, the blade disc, ~150 letter quads) | **off** (flat on a wall that already casts) | +1–4 / +4–9 / +6–12 |
+| Frogs shop front | per 512 m tile (static) | ≤ 600 (~430 planned: 8 boxes, the blade disc, ~150 letter quads) | **off** (flat on a wall that already casts) | +1–4 / +4–9 / +6–12 |
 | Leżak scooter (lying or upright) | per tile (static; a knocked one rewrites its tile's buffer once) | ≤ 120 | off (< 1 m), `fine_detail` | +1–4 / 0 / 0 |
 | Podwózka car | traffic kind APP_TAXI (pool 12) + its night headlight beams, like the other kinds | ≤ 330 | small_casters | +2 (+1 at night) at every view |
 | Pędzik rider | one for the city (pool 16) | ≤ 300 | small_casters | +2 at every view |
@@ -486,12 +491,12 @@ medium, `max_colors` 8–16 for icons, ≤ 32 for billboards.
 
 | Asset | Tool, size | Prompt | Item colours | Gens |
 | --- | --- | --- | --- | --- |
-| Rechotka minimap icon | `create_image_pixen`, 16 px, no background | "tiny round lily pad icon with a small notch, flat, bold outline" | `#4fae3b`, `#2f6b2a` | 2 |
+| Frogs minimap icon | `create_image_pixen`, 16 px, no background | "tiny round lily pad icon with a small notch, flat, bold outline" | `#4fae3b`, `#2f6b2a` | 2 |
 | Podwózka pickup icon | same | "tiny smartphone icon with a small star on the screen, flat, bold outline" | `#1f1f22`, `#e8f4ff` | 2 |
 | Pędzik icon | same | "tiny cube delivery backpack icon with a pale band round the middle, flat" | `#c23a7e` | 2 |
 | Leżak icon | same | "tiny electric kick scooter lying on its side, flat icon" | `#8e44d9` | 2 |
 | "Nawigacja" avatar | `create_image_pixen`, 32 px | "a cheerful smartphone with a map pin for a face, simple, front view" | `#1f1f22`, `#e8f4ff`, `#4fd8c4` | 2 |
-| Billboard art: Rechotka | `create_image_pixen`, 128 × 64 | "billboard illustration of a bright corner shop at night on a city street, green shop front, warm light from the window, a lily pad symbol, no text, no people" | `#4fae3b`, `#2f6b2a`, `#cfe8c6` | 2 |
+| Billboard art: Frogs | `create_image_pixen`, 128 × 64 | "billboard illustration of a bright corner shop at night on a city street, green shop front, warm light from the window, a lily pad symbol, no text, no people" | `#4fae3b`, `#2f6b2a`, `#cfe8c6` | 2 |
 | Billboard art: Podwózka | same | "billboard illustration of a small dark car with an upright glowing phone sign on its roof, a curvy dotted route line leading into a river, no text" | `#1f1f22`, `#e8f4ff`, `#4fd8c4` | 2 |
 | Billboard art: Pędzik | same | "billboard illustration of a bicycle courier with an enormous cube backpack bigger than a doorway, speed lines, no text, no logos" | `#c23a7e` | 2 |
 | Billboard art: Leżak | same | "billboard illustration of violet electric kick scooters lying on a pavement around an empty painted parking rectangle, no text" | `#8e44d9` | 2 |
@@ -512,14 +517,14 @@ pixel-font quads, not textures. If a billboard explore wins, its final can be re
 1. `pois` `corner_shop` (2.2 rules), with the two triple corners flagged; `scooter` and
    `scooter_zone` (5.2); 7 more `kebab` (6.1) with their stand tags; the address district tags
    `oldtown`, `mall`. Counts recorded in `check_map_data.py` and README together.
-   *Check:* today's map gets 85–115 Rechotkas, each fascia within 0.3 m of a building edge, none
+   *Check:* today's map gets 85–115 Frogs shops, each fascia within 0.3 m of a building edge, none
    on a landmark footprint, minimum spacing 70 m outside the triple corners.
 
 **gameplay-dev:**
 2. Shop-front, scooter and rider meshes (`props.gd` / `models.gd`), their MultiMeshes per tile /
    per city; APP_TAXI traffic kind with the phone sign; generic kebab stands into a per-tile
    MultiMesh. *Check:* the section 8 table at the four README views, `--no-parodies` A/B.
-3. Rechotka stamps (2.3), the croak chime, the triple-corner egg. *Check:* `--rechotka`
+3. Frogs stamps (2.3), the croak chime, the triple-corner egg. *Check:* `--rechotka`
    (car at the nearest door) logs `rechotka: stamp 1`; `--stamps=9` then one stop shows the free
    hot dog card and +10 respect.
 4. App-taxi GPS moments in traffic (3.2). *Check:* in a 5-minute `--traffic=busy` run at least 3
@@ -538,7 +543,7 @@ pixel-font quads, not textures. If a billboard explore wins, its final can be re
    *Check:* `check_parodies.gd` (headless): every group and tag the code uses exists with ≥ 1
    line, PL + EN present, bubbles ≤ 70 characters, posters ≤ 4 × 8, every world-text character is
    in `pixel_font.gd`.
-10. Shots at 2868×1320 by day and night at 80 m: a Rechotka corner, the triple corner, scooter
+10. Shots at 2868×1320 by day and night at 80 m: a Frogs corner, the triple corner, scooter
     litter and an empty zone, a rider, an app-taxi with its sign, the ride card and result card.
     art-director: nothing reads as a real brand; parody colours less saturated than the police
     and the job beacons; C1 (the player's car found in < 1 s) still holds with the extra props.
@@ -559,11 +564,11 @@ clutter, whether the phone sign reads, the croak chime's charm, and how long a r
    ("nap"; no scooter brand found either), or keep Hulajka. *Default: Leżak.*
 2. **Nocny Marek dropped** (too close to the real Nocny Market). *Default: U Zdzicha and Na
    cienkim, the other stands plain KEBAB.*
-3. **No frog figure** for Rechotka: a lily pad and a croak chime carry it, so the parody never
+3. **No frog figure** for Frogs: a lily pad and a croak chime carry it, so the parody never
    looks like the real chain's frog. Option: an invented frog on posters only. *Default: no frog.*
 4. **Pędzik's magenta** (DEMO's colour) with a cream band. Option: another colour if magenta
    feels too close to a delivery brand the user knows. *Default: magenta `#c23a7e`.*
-5. **Density**: Rechotka 24 per km² in hero districts, scooters 30 per km². *Default: these;
+5. **Density**: Frogs 24 per km² in hero districts, scooters 30 per km². *Default: these;
    tune after the first phone look.*
 6. **The "MNOŻNIK" (surge multiplier) joke** on the ride card. Option: drop it as too close to a
    real app's feature. *Default: keep, night × 1.5 and rain × 1.2 only.*
@@ -576,7 +581,8 @@ clutter, whether the phone sign reads, the croak chime's charm, and how long a r
 10. **Name check depth**: web search and domains only. `podwozka.pl` and `hulajka.pl` exist with
     content we could not see (HTTP 403) and `rechotka.pl` shows only "Rechotka · PEGI 13". A
     search of the Polish Patent Office (UPRP) and EUIPO registers before TestFlight (loop 3k's
-    brand audit) would settle it. *Default: proceed; re-check in 3k.*
+    brand audit) would settle it; it covers **Frogs** (the user's pick, 2026-10-30, a plain
+    English word) too. *Default: proceed; re-check in 3k.*
 
 ## Sources read (for the checks; no content copied)
 

@@ -29,6 +29,7 @@ extends CanvasLayer
 var spent_usec := 0
 
 const SettingsPanel := preload("res://scripts/settings_panel.gd")
+const FullMap := preload("res://scripts/full_map.gd")
 const ScreenPoints := preload("res://scripts/screen_points.gd")
 ## drive_controls.gd's schemes (POINT, CLASSIC, FIXED).
 const CLASSIC := 1
@@ -112,6 +113,7 @@ signal radio_skip_pressed             # RADIO held RADIO_HOLD s: the station's n
 signal tapped(at: Vector2)            # a short tap on the city, not on a control (v0.8: landmarks)
 signal perf_gesture                   # three fingers down at once: the performance overlay
 signal settings_pressed               # loop 2a: the gear
+signal map_pressed                    # F's asks (2026-10-30): a tap on the minimap (the full-screen map)
 
 var stick := Vector2.ZERO   # -1..1 in screen space, x right, y down
 var brake := false
@@ -119,6 +121,12 @@ var brake := false
 var gas := false
 var scheme := 0
 var settings_panel: Control
+## F's asks (2026-10-30): the full-screen map (full_map.gd), made on its first open.
+var full_map: Control
+## The minimap's map in metres (its bounds), for the full map.
+var _map_bounds := Rect2()
+## A finger down on the minimap: [index, where, when] (a tap there opens the full map).
+var _map_tap: Array = []
 ## Helicopter height pads: +1 held climbs, -1 sinks.
 var climb := 0.0
 var flying := false
@@ -434,6 +442,8 @@ func _on_resize() -> void:
 	_screen = get_viewport().get_visible_rect().size
 	_safe = ScreenPoints.measure(_screen)["safe"]
 	settings_panel.safe = _safe
+	if full_map != null:
+		full_map.safe = _safe
 	_mark()
 
 
@@ -1445,6 +1455,8 @@ func setup_minimap(data: Dictionary) -> void:
 			Color(0.93, 0.9, 0.83, 0.94).lerp(CARD_BG, _night)))
 	add_child(_minimap)
 	_mini_mesh = _minimap_mesh(data)
+	var bb: Array = data.get("bounds", [0.0, 0.0, 0.0, 0.0])
+	_map_bounds = Rect2(Vector2(bb[0], bb[1]), Vector2(float(bb[2]) - float(bb[0]), float(bb[3]) - float(bb[1])))
 	_mini_clip = ShaderMaterial.new()
 	_mini_clip.shader = Shader.new()
 	_mini_clip.shader.code = MINI_CLIP
@@ -1693,7 +1705,7 @@ var _question_cols := PackedColorArray()
 var _question_pt := 0.0
 
 
-func _tri_question(at: Vector2) -> void:
+func _tri_question(at: Vector2, k := 1.0) -> void:
 	if _question_pt != pt:
 		_question_pt = pt
 		var keep_pts := _tri_pts
@@ -1712,7 +1724,7 @@ func _tri_question(at: Vector2) -> void:
 		_question_cols = _tri_cols
 		_tri_pts = keep_pts
 		_tri_cols = keep_cols
-	_tri_pts.append_array(Transform2D(0.0, at) * _question_pts)
+	_tri_pts.append_array(Transform2D(0.0, Vector2(k, k), 0.0, at) * _question_pts)
 	_tri_cols.append_array(_question_cols)
 
 
@@ -2114,6 +2126,36 @@ func settings_open() -> bool:
 	return settings_panel != null and settings_panel.is_open()
 
 
+## F's asks (2026-10-30): the full-screen map on the car (map metres, its heading), with the
+## notebook's places found (`found`); the "?" marks and the target are the minimap's. Main pauses.
+func open_full_map(car_xz: Vector2, car_yaw: float, found: PackedVector2Array) -> void:
+	if _minimap == null:
+		return
+	release_all()
+	if full_map == null:
+		full_map = FullMap.new()
+		full_map.name = "full_map"
+		full_map.hud = self
+		full_map.mesh = _mini_mesh
+		full_map.shader = _mini_clip.shader
+		full_map.mini_scale = _mini_scale
+		full_map.bounds = _map_bounds
+		full_map.pt = pt
+		full_map.safe = _safe
+		add_child(full_map)
+	move_child(full_map, -1)
+	full_map.night = _night
+	full_map.unknown = _mini_unknown
+	full_map.found = found
+	full_map.target = _mini_target
+	full_map.target_colour = _mini_target_colour
+	full_map.open(car_xz, car_yaw)
+
+
+func full_map_open() -> bool:
+	return full_map != null and full_map.is_open()
+
+
 const _UP_DOWN := [1, -1]
 
 
@@ -2129,7 +2171,7 @@ func _row_bottom() -> float:
 
 func _input(event: InputEvent) -> void:
 	var size := get_viewport().get_visible_rect().size
-	if settings_open():
+	if settings_open() or full_map_open():
 		return  # the panel's buttons take every touch; nothing steers under it
 	if event is InputEventScreenTouch:
 		var touch := event as InputEventScreenTouch
@@ -2246,6 +2288,16 @@ func _input(event: InputEvent) -> void:
 ## or the climb pads, and not part of a pinch. It goes out as `tapped`; the stick it may have
 ## started never moved, so the car is not steered by it.
 func _track_tap(touch: InputEventScreenTouch) -> void:
+	# F's asks (2026-10-30): a tap on the minimap (down and up on it within 0.35 s and 10 pt).
+	if touch.pressed and _minimap != null and _minimap.get_global_rect().has_point(touch.position) and _map_tap.is_empty():
+		_map_tap = [touch.index, touch.position, Time.get_ticks_msec()]
+	elif not touch.pressed and not _map_tap.is_empty() and touch.index == int(_map_tap[0]):
+		var quick := touch.position.distance_to(_map_tap[1]) <= 10.0 * pt and Time.get_ticks_msec() - int(_map_tap[2]) <= 350
+		_map_tap = []
+		if quick:
+			map_pressed.emit()
+	elif touch.pressed:
+		_map_tap = []  # a second finger
 	if touch.pressed:
 		var p := touch.position
 		var on_control := _over_panel(p) or p.y < _row_bottom() or (_minimap != null and _minimap.get_global_rect().has_point(p)) \

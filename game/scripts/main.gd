@@ -118,6 +118,10 @@ var car: CharacterBody3D
 ## Loop 3d-1: the pedestrian zones (ped_zones.gd), where the car is capped at 20 km/h.
 var ped_zones: RefCounted
 var _zone := ""
+## F's asks (2026-10-30): whether the zones cap the car at all (Settings → JAZDA, off by default:
+## settings.gd `zone_cap`), and --zone-cap / --no-zone-cap for one run (-1: the setting).
+var zone_cap_on := false
+var zone_cap_flag := -1
 ## Loop 3b: the car seen through the ground inside a tunnel (tunnel_xray.gd).
 var _xray: Node3D
 var heli: Node3D
@@ -448,6 +452,8 @@ var _flag_traffic := -1
 var _flag_fixed := false
 var _flag_perf := false
 var open_settings_at_start := false
+## F's asks (2026-10-30): --fullmap opens the full-screen map at the start (screenshots).
+var open_map_at_start := false
 var hold_stick := Vector2.INF
 var hold_pedal := ""
 ## Testing aid (--clicks=X:Y:F,...): a mouse click (a touch, with the project's touch
@@ -817,6 +823,7 @@ func _build_world() -> void:
 	hud.settings_pressed.connect(_open_settings)
 	hud.settings_panel.changed.connect(_on_setting)
 	hud.settings_panel.closed.connect(_close_settings)
+	hud.map_pressed.connect(_open_full_map)  # F's asks: a tap on the minimap
 	# Loop 2e: TIME, VHS, RAIN, STYLE, CAM, QUALITY and the rotate and zoom buttons left the
 	# driving screen (Settings has them; the keys stay; zoom is a pinch, a twist turns a fixed
 	# camera).
@@ -968,6 +975,8 @@ func _build_world() -> void:
 		if settings_tab == 4:
 			hud.settings_panel.show_notebook(notebook_open)
 		_open_settings.call_deferred()
+	elif open_map_at_start:
+		_open_full_map.call_deferred()
 	_stats = _make_stats()
 	# Loop 3g-1: the police's script time among the bench's lines.
 	if police != null:
@@ -2580,6 +2589,8 @@ func _parse_args() -> void:
 			_flag_traffic = Settings.parse_traffic(arg.trim_prefix("--traffic="))
 		elif arg == "--settings":
 			open_settings_at_start = true
+		elif arg == "--fullmap":
+			open_map_at_start = true
 		elif arg == "--notebook" or arg.begins_with("--notebook="):
 			# Loop MW-1: the notebook's tab at the start (a chapter, or a place's card).
 			open_settings_at_start = true
@@ -2633,6 +2644,10 @@ func _parse_args() -> void:
 			spacer_flag = 1
 		elif arg == "--no-spacer":
 			spacer_flag = 0
+		elif arg == "--zone-cap":
+			zone_cap_flag = 1
+		elif arg == "--no-zone-cap":
+			zone_cap_flag = 0
 		elif arg.begins_with("--spacer-hint="):
 			spacer_hint = float(arg.trim_prefix("--spacer-hint="))
 		elif arg == "--fotka" or arg == "--photo":
@@ -2685,7 +2700,7 @@ func _parse_args() -> void:
 			_police_flag(arg)
 	# Test runs go straight to the city (--title brings the title screen back).
 	if demo or not shots.is_empty() or autopilot or start_race > 0 or start_mission > 0 or start_rival > 0 or bench or probe \
-			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or hold_stick != Vector2.INF or bench_button \
+			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or open_map_at_start or hold_stick != Vector2.INF or bench_button \
 			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0:
 		show_title = false
 	if start_ride >= 0 or place_flag != "":
@@ -2754,6 +2769,7 @@ func _load_settings() -> void:
 			" (%s)" % ("--last-session=" + _flag_last_session) if _flag_last_session != "" else ""])
 	traffic_level = _flag_traffic if _flag_traffic >= 0 else settings.traffic
 	show_perf = _flag_perf or settings.perf
+	zone_cap_on = zone_cap_flag == 1 if zone_cap_flag >= 0 else settings.zone_cap
 	var scheme := _flag_controls if _flag_controls >= 0 else settings.controls
 	if _flag_fixed and scheme == Controls.POINT:
 		scheme = Controls.FIXED
@@ -2883,6 +2899,36 @@ func _open_settings() -> void:
 	hud.open_settings(_settings_state())
 
 
+## F's asks (2026-10-30): the full-screen map (hud.gd, full_map.gd) on the car or the helicopter,
+## the notebook's places found on it. The game pauses under it, like the settings card.
+func _open_full_map() -> void:
+	if not _started or title != null or hud.settings_open() or hud.full_map_open():
+		return
+	if _phone_bench:
+		_end_phone_bench(false)
+	var pos := _vehicle_position()
+	var yaw: float = heli.rotation.y if flying else car.rotation.y
+	var found := PackedVector2Array()
+	if notes != null:
+		notes._update_minimap(Vector2(pos.x, pos.z))  # the "?" marks as they are here now
+		for place: Dictionary in notes.places:
+			if notes.is_found(str(place["id"])):
+				found.append(place["at"])
+	hud.set_night(tod.lights_on)  # its palette (the minimap's), even before the first frame
+	print("full map: open (paused), %d places found on it" % found.size())
+	_blip_sound()
+	get_tree().paused = true
+	hud.open_full_map(Vector2(pos.x, pos.z), yaw, found)
+	if not hud.full_map.closed.is_connected(_close_full_map):
+		hud.full_map.closed.connect(_close_full_map)
+
+
+func _close_full_map() -> void:
+	print("full map: closed")
+	get_tree().paused = false
+	_blip_sound()
+
+
 ## What the settings panel shows (loop 2e: also the camera, time of day, weather, style, VHS).
 func _settings_state() -> Dictionary:
 	# Loop G1: the panel's quality row is Auto, then Low..Ultra (the choice + 1).
@@ -2896,7 +2942,7 @@ func _settings_state() -> Dictionary:
 			"auto": auto_name,
 			"master": settings.master, "music": settings.music, "effects": settings.effects, "perf": int(show_perf),
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
-			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on)}
+			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on)}
 
 
 func _close_settings() -> void:
@@ -2961,6 +3007,9 @@ func _on_setting(key: String, value: Variant) -> void:
 			settings.wander = int(value) == 1
 			if spacer != null:
 				spacer.set_on(settings.wander)
+		"zones":
+			settings.zone_cap = int(value) == 1
+			zone_cap_on = settings.zone_cap
 		"master", "music", "effects":
 			settings.set(key, float(value))
 			Sfx.set_levels(settings.master, settings.music, settings.effects)
@@ -3549,15 +3598,18 @@ func _process(dt: float) -> void:
 	var pos := _vehicle_position()
 	_xray.show_through(not flying and map.in_tunnel(pos.x, pos.z, pos.y))
 	# Loop 3d-1: the pedestrian zones cap the player's car (police.md 5.6); the log says when.
+	# F's asks (2026-10-30): only with the Settings switch on (off by default).
 	var zone: String = ped_zones.at(car.global_position.x, car.global_position.z) if ped_zones != null and not flying else ""
-	car.zone_cap = PedZones.CAP if zone != "" else INF
+	car.zone_cap = PedZones.CAP if zone != "" and zone_cap_on else INF
 	if zone != _zone:
-		print("zone: %s at %.0f km/h" % [(zone + " (20 km/h)") if zone != "" else "left " + _zone, absf(car.forward_speed) * 3.6])
+		print("zone: %s at %.0f km/h" % [(zone + (" (20 km/h)" if zone_cap_on else " (no cap)")) if zone != "" else "left " + _zone,
+				absf(car.forward_speed) * 3.6])
 		_zone = zone
 	_feed_life(pos)
 	if police != null:
 		police.flying = flying  # loop 3g-1: the police ignore the helicopter
 		police.zone = zone  # loop 3g-2: the city guards' zone pill and whistle
+		police.zone_cap = zone_cap_on  # F's asks: the pill and the whistle only with the cap on
 	if jobs != null:
 		# Loop 2b: no side job starts on the bench route (the ghost stops at red lights).
 		jobs.flying = flying or _bench_ghost != null

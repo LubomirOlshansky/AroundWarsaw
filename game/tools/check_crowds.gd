@@ -15,7 +15,10 @@ extends SceneTree
 ##      (30 at 05:45 in the Dawn look, none on a Live Wednesday, none at 09:00) on their routes;
 ##   7. the levels the eggs read, and the eggs E03 E04 E10 E14 E15 firing on synthetic inputs
 ##      only with their crowd (E15 on its third different day), each reward once;
-##   8. the tick's cost.
+##   8. the tick's cost;
+##   9. F's asks (2026-10-30): Level 26 stands on the tower (its place inside a building part of
+##      100 m or more in the map data), its door queue on a footway, the roof ring on a synthetic
+##      tower (every ray on the facade or at most a cell outside it, one height).
 ## Prints "check_crowds: OK (...)" or the problems (exit 1).
 ##   godot --headless --path game --script res://tools/check_crowds.gd [-- --verbose]
 
@@ -79,6 +82,7 @@ func _run() -> void:
 	root.add_child(dlg)
 	var c: Crowds = _make(book.places, data, dlg, 1.0)
 	_check_sites(c)
+	_check_level26(c, book, data)
 	_check_door(c, dlg)
 	var cost := _check_dawn(c, data)
 	_check_grid_routes()
@@ -204,10 +208,52 @@ func _check_rules() -> void:
 			and not Crowds.car_at_door(2.0, 0.0, true), "the car at the door: within 8 m under 10 km/h, on the ground")
 
 
+# 9. -------------------------------------------------------------------------------------------
+
+func _check_level26(c: Crowds, book: Notebook, data: Dictionary) -> void:
+	var at := Vector2.INF
+	for p: Dictionary in book.places:
+		if str(p["id"]) == Crowds.ROOF_ID:
+			at = p["at"]
+	var tall := 0.0
+	for b: Dictionary in data.get("buildings", []):
+		var flat: Array = b.get("p", [])
+		var poly := PackedVector2Array()
+		for k in range(0, flat.size() - 1, 2):
+			poly.append(Vector2(float(flat[k]), float(flat[k + 1])))
+		if poly.size() >= 3 and Geometry2D.is_point_in_polygon(at, poly):
+			tall = maxf(tall, float(b.get("h", 0.0)))
+	# The prebuilt index has no buildings (they live in the sectors): then only the rest.
+	if data.has("buildings"):
+		_expect(tall >= 100.0, "Level 26 at %s stands in no building of 100 m or more (tallest %.0f m)" % [at, tall])
+	var door: Dictionary = c.sites[c.by_id[Crowds.ROOF_DOOR_ID]] if c.by_id.has(Crowds.ROOF_DOOR_ID) else {}
+	_expect(not door.is_empty() and door["kind"] == "queue" and int(door["max"]) == Crowds.ROOF_DOOR_MAX
+			and (door["at"] as Vector2) == at, "Level 26's door queue: %s" % door.get("kind", "missing"))
+	# A synthetic tower: a 30 × 20 m box 112 m tall with a 116 m crown, on a 4 m grid.
+	var roof := func(x: float, z: float) -> float:
+		var i := floori(x / 4.0)
+		var j := floori(z / 4.0)
+		if i < -4 or i > 3 or j < -3 or j > 2:
+			return -1000.0
+		return 116.0 if absi(i) <= 1 and absi(j) <= 1 else 112.0
+	var ring := Crowds.roof_ring(Vector2(0.4, 0.3), 116.0, roof, Crowds.RING_RAYS)
+	var bad := 0
+	for e: Array in ring:
+		var p: Vector2 = e[0]
+		# On the box's edge or outside it, never more than a cell (4 m) out.
+		var out := maxf(absf(p.x + 0.0) - 16.0, absf(p.y) - 12.0)
+		if out < -0.01 or out > 4.5 or float(e[2]) < 110.0:
+			bad += 1
+	_expect(ring.size() == Crowds.RING_RAYS and bad == 0, "the roof ring on a synthetic tower: %d rays, %d off the facade" % [ring.size(), bad])
+	if verbose:
+		print("  Level 26 at (%.0f, %.0f) in a %.0f m building part; its door queue from %s; ring %d rays" % [at.x, at.y, tall,
+				door.get("door", Vector2.INF), ring.size()])
+
+
 # 4. -------------------------------------------------------------------------------------------
 
 func _check_sites(c: Crowds) -> void:
-	for id in ["lusterko", "smola", "jasna_0", "lombard", "milosc_hipoteczna", "schodki_kopernik", "plan_c", "level_26"]:
+	for id in ["lusterko", "smola", "jasna_0", "lombard", "milosc_hipoteczna", "schodki_kopernik", "plan_c", "level_26", Crowds.ROOF_DOOR_ID]:
 		_expect(c.by_id.has(id), "no crowd at %s" % id)
 	for s in c.sites:
 		if s["kind"] != "queue":
