@@ -57,6 +57,13 @@ const ACCEL := 2.2
 const DECEL := 3.5
 const HEADWAY := 1.1
 const MIN_GAP := 2.2
+## The traffic loop (2026-10-30): in a junction a car looks for the others' bodies and the next
+## PATH_LOOK s of their way in its corridor (half widths + PATH_MARGIN m) up to PATH_AHEAD m
+## ahead; a car within PATH_EXIT m of the start of the lane it came out on is still in the box.
+const PATH_LOOK := 0.8
+const PATH_MARGIN := 0.2
+const PATH_AHEAD := 14.0
+const PATH_EXIT := 6.0
 ## Kinematic bodies for the cars nearest the player.
 const BODIES := 12
 const BODY_RANGE := 40.0
@@ -235,6 +242,16 @@ var _tick := 0
 ## Cars in or near a junction box this frame (see _junction_conflicts); the
 ## trams read it too.
 var junction_cars: Array[Driver] = []
+## Testing aid (--traffic-overlaps): count the frames where two traffic cars' boxes overlap, and
+## print a summary when the game quits. Frames counted, car-pair frames overlapping (in a
+## junction curve / on lanes), the worst spot.
+var count_overlaps := false
+var _ov_frames := 0
+var _ov_pairs := 0
+var _ov_in_junction := 0
+var _ov_spots := {}
+## ... and how often a car gave up waiting on crossing cars (a knot: 8 s, then it ignores them).
+var _ov_knots := 0
 ## The trams (trams.gd), set by the game: cars give way to them.
 var trams: Node3D
 var _tram_at := PackedVector2Array()
@@ -370,6 +387,8 @@ func _process(dt: float) -> void:
 			visible_count += 1
 		i += 1
 	_write()
+	if count_overlaps:
+		_count_overlaps()
 	last_usec = Time.get_ticks_usec() - t0
 
 
@@ -982,7 +1001,9 @@ func _junction_conflicts() -> void:
 	for d in _active:
 		d.cross_gap = INF
 		d.sees_tram = false
-		if not d.ghost and not d.parked and (d.in_conn or graph.e_s1[d.edge] - d.s < 14.0):
+		# (Also just out of a junction curve: its first metres still lie in the junction box.)
+		if not d.ghost and not d.parked and (d.in_conn or graph.e_s1[d.edge] - d.s < 14.0
+				or d.s - graph.e_s0[d.edge] < PATH_EXIT):
 			junction_cars.append(d)
 	if trams != null:
 		_give_way_to_trams()
@@ -992,11 +1013,18 @@ func _junction_conflicts() -> void:
 		for b in range(a + 1, junction_cars.size()):
 			var q := junction_cars[b]
 			var rel := Vector2(q.pos.x - p.pos.x, q.pos.z - p.pos.z)
-			if rel.length_squared() > 196.0 or q.reg == p.reg:
+			# Followers in one lane keep their gap by the lane; two curves merging into one lane
+			# (two turn lanes into one) are both registered there, side by side: checked here.
+			if rel.length_squared() > 196.0 or (q.reg == p.reg and not (p.in_conn and q.in_conn and p.lane != q.lane)):
 				continue
 			var qf := Vector2(-sin(q.yaw), -cos(q.yaw))
-			var p_sees := rel.dot(pf) > 0.0 and absf(rel.cross(pf)) < 1.9
-			var q_sees := -rel.dot(qf) > 0.0 and absf(rel.cross(qf)) < 1.9
+			# The traffic loop (2026-10-30): the other car's body and where it goes in the next
+			# PATH_LOOK s, not just its centre, against our corridor (cars crossing at an angle
+			# were seen too late, both drove into the box and one went through the other).
+			var p_gap := _path_gap(p, pf, q, qf, rel)
+			var q_gap := _path_gap(q, qf, p, pf, -rel)
+			var p_sees := p_gap < INF
+			var q_sees := q_gap < INF
 			if p_sees and q_sees:
 				# Both in each other's way: the one deeper into the junction goes.
 				if p.in_conn and (not q.in_conn or p.cu / p.conn_len > q.cu / q.conn_len):
@@ -1004,15 +1032,86 @@ func _junction_conflicts() -> void:
 				else:
 					q_sees = false
 			if p_sees:
-				var g := rel.dot(pf) - (p.length + q.length) * 0.5
-				if g < p.cross_gap:
-					p.cross_gap = g
+				if p_gap < p.cross_gap:
+					p.cross_gap = p_gap
 					p.cross_v = maxf(0.0, qf.dot(pf) * q.v)
 			elif q_sees:
-				var g := -rel.dot(qf) - (p.length + q.length) * 0.5
-				if g < q.cross_gap:
-					q.cross_gap = g
+				if q_gap < q.cross_gap:
+					q.cross_gap = q_gap
 					q.cross_v = maxf(0.0, pf.dot(qf) * p.v)
+
+
+## The traffic loop: the gap (m) from p's front to the nearest part of q that is in p's way: q's
+## body from its tail to its nose and on PATH_LOOK s of its own way, in discs of q's half width,
+## against p's corridor (both half widths and PATH_MARGIN), from beside p's front half to
+## PATH_AHEAD m ahead; INF if none is.
+func _path_gap(p: Driver, pf: Vector2, q: Driver, qf: Vector2, rel: Vector2) -> float:
+	var reach := p.size.x * 0.5 + q.size.x * 0.5 + PATH_MARGIN
+	var best := INF
+	var k := -q.length * 0.5
+	var last := q.length * 0.5 + q.v * PATH_LOOK
+	while true:
+		var c := rel + qf * minf(k, last)
+		var along := c.dot(pf) - p.length * 0.5
+		if along > -p.length * 0.5 and along < PATH_AHEAD and absf(c.cross(pf)) < reach:
+			best = minf(best, along - q.size.x * 0.5)
+		if k >= last:
+			break
+		k += 1.0
+	return best
+
+
+## Testing aid: every pair of drawn traffic cars (not ghosts, not parked) whose boxes overlap
+## by more than 0.15 m this frame (2D separating axes on their footprints).
+func _count_overlaps() -> void:
+	_ov_frames += 1
+	var n := _active.size()
+	for a in n:
+		var p := _active[a]
+		if p.ghost or p.parked or p.clip < 1.0:
+			continue
+		for b in range(a + 1, n):
+			var q := _active[b]
+			if q.ghost or q.parked or q.clip < 1.0:
+				continue
+			var rel := Vector2(q.pos.x - p.pos.x, q.pos.z - p.pos.z)
+			var reach := (p.length + q.length) * 0.5 + 1.0
+			if rel.length_squared() > reach * reach or absf(q.pos.y - p.pos.y) > 2.0:
+				continue
+			if _boxes_overlap(p, q, rel):
+				_ov_pairs += 1
+				if p.in_conn or q.in_conn:
+					_ov_in_junction += 1
+				var key := Vector2i(roundi(p.pos.x / 10.0) * 10, roundi(p.pos.z / 10.0) * 10)
+				_ov_spots[key] = int(_ov_spots.get(key, 0)) + 1
+
+
+static func _boxes_overlap(p: Driver, q: Driver, rel: Vector2) -> bool:
+	var axes := [Vector2(-sin(p.yaw), -cos(p.yaw)), Vector2(cos(p.yaw), -sin(p.yaw)),
+			Vector2(-sin(q.yaw), -cos(q.yaw)), Vector2(cos(q.yaw), -sin(q.yaw))]
+	var pf: Vector2 = axes[0]
+	var pr: Vector2 = axes[1]
+	var qf: Vector2 = axes[2]
+	var qr: Vector2 = axes[3]
+	for ax: Vector2 in axes:
+		var rp := absf(pf.dot(ax)) * p.length * 0.5 + absf(pr.dot(ax)) * p.size.x * 0.5
+		var rq := absf(qf.dot(ax)) * q.length * 0.5 + absf(qr.dot(ax)) * q.size.x * 0.5
+		if absf(rel.dot(ax)) > rp + rq - 0.15:
+			return false
+	return true
+
+
+func _exit_tree() -> void:
+	if not count_overlaps:
+		return
+	var worst := Vector2i.ZERO
+	var most := 0
+	for k: Vector2i in _ov_spots:
+		if int(_ov_spots[k]) > most:
+			most = int(_ov_spots[k])
+			worst = k
+	print("traffic overlaps: %d car-pair frames in %d frames (%d with a car on a junction curve), %d spots; worst %d frames at %d, %d; %d knots given up" % [
+			_ov_pairs, _ov_frames, _ov_in_junction, _ov_spots.size(), most, worst.x, worst.y, _ov_knots])
 
 
 func _enter_edge(d: Driver, e: int, lane: int, s: float) -> void:
@@ -1166,6 +1265,7 @@ func _drive(d: Driver, dt: float) -> void:
 			if d.cross_wait > 8.0:
 				d.cross_ignore = 3.0
 				d.cross_wait = 0.0
+				_ov_knots += 1
 		else:
 			d.cross_wait = 0.0
 		d.cross_ignore -= dt
