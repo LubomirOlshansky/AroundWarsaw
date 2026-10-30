@@ -15,9 +15,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   rest), each with an info card; Złote Tarasy's glass golden; Muzeum Narodowe in its pale stone
   with tall windows and a card; new bus shelters (glass roof, poster box lit at night, the
   blue D-15 sign). The Palace and the stadium were already detailed models and keep their look.
-  **Still to do**: the other towers in the generic blue glass (Hilton, Westin, Ilmet, Novotel,
-  PZU Tower, Central Tower, JM Tower, the Platinum Towers, Łucka City, Widok Towers, Vibe), and
-  any model the user names next.
+  **Second pass landed (2026-10-30)**: 9 more (Grzybowska 63, Jana Pawła II 21, Marszałkowska
+  94/98: the hotels by their addresses; Central Tower, Ilmet, the Platinum Towers, Łucka City,
+  Widok Towers): 27 towers in all. **Left**: PZU Tower and JM Tower (oddly mapped) keep the
+  generic glass, and any model the user names next (docs/QUESTIONS.md).
 
 ## From v0.6 (traffic, trams, pedestrians, rivals)
 - ~~Cars can overlap briefly in complex junctions~~ (fewer by three quarters, the traffic loop
