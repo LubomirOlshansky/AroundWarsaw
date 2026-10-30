@@ -174,6 +174,98 @@ const int M_ATTIC = 9;
 const int M_LAMP = 10;
 const int M_MEMBRANE = 11;
 const int M_GLASS = 12;
+const int M_SKIN = 13;
+
+// The towers' own skins (landmarks.gd TOWERS, the landmarks loop): M_SKIN's fraction picks the
+// pattern (style / 16), the vertex colour is the glass. Each reads as its tower from the
+// street and the air: Złota 44's white exoskeleton, Warsaw Spire's diamonds, Q22's silver
+// floor bands, Rondo 1's fins, the hotel's white grid, Cosmopolitan's balcony slabs, dark
+// glass, gold glass, and an open frame (Rondo 1's crown: the panes are cut away).
+const int S_SAIL = 0;
+const int S_DIAMOND = 1;
+const int S_BANDS = 2;
+const int S_FINS = 3;
+const int S_GRID = 4;
+const int S_RIBBON = 5;
+const int S_DARK = 6;
+const int S_GOLD = 7;
+const int S_FRAME = 8;
+
+vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool cut) {
+	glow = vec3(0.0);
+	cut = false;
+	vec3 sky = srgb_to_linear(sky_colour);
+	vec3 white = srgb_to_linear(vec3(0.93, 0.94, 0.95)) * mix(0.3, 1.0, daylight);
+	vec3 silver = srgb_to_linear(vec3(0.74, 0.77, 0.8)) * mix(0.3, 1.0, daylight);
+	float fh = 3.8;
+	// The glass: its own tint, a little sky towards the top (less than the plain curtain walls,
+	// so the tint carries), a slow ripple of reflections.
+	float refl = clamp(h / max(top, 1.0), 0.0, 1.0) * 0.18 + 0.12 * value_noise(vec2(u * 0.05, h * 0.03));
+	vec3 c = mix(col * mix(0.35, 1.0, daylight), sky * mix(0.4, 1.0, daylight), refl);
+	float level = floor(h / fh);
+	bool frame = false;
+	vec3 frame_col = silver;
+	float lit = 0.3;
+	if (s == S_SAIL) {
+		// White steel: floor bands every fourth floor and two families of long diagonals.
+		float d1 = fract((u + h * 0.55) / 22.0);
+		float d2 = fract((u - h * 0.55) / 22.0);
+		frame = d1 < 0.045 || d2 < 0.045 || fract(h / (fh * 4.0)) < 0.07 || fract(u / 1.6) < 0.1;
+		frame_col = white;
+	} else if (s == S_DIAMOND) {
+		float d1 = fract((u + h) / 5.2);
+		float d2 = fract((u - h) / 5.2);
+		frame = d1 < 0.08 || d2 < 0.08;
+		frame_col = mix(silver, white, 0.5);
+		c *= 1.0 + 0.12 * (hash12(vec2(floor((u + h) / 5.2), floor((u - h) / 5.2))) - 0.5);
+	} else if (s == S_BANDS) {
+		frame = fract(h / fh) < 0.3 || fract(u / 1.5) < 0.1;
+		frame_col = silver;
+	} else if (s == S_FINS) {
+		frame = fract(u / 2.4) < 0.22 || fract(h / fh) < 0.06;
+		frame_col = mix(silver, white, 0.4);
+	} else if (s == S_GRID) {
+		frame = fract(u / 1.6) < 0.16 || fract(h / fh) < 0.16;
+		frame_col = white;
+	} else if (s == S_RIBBON) {
+		frame = fract(h / 3.2) < 0.3 || fract(u / 3.0) < 0.05;
+		frame_col = white;
+		lit = 0.45;
+	} else if (s == S_DARK) {
+		frame = fract(u / 1.5) < 0.08 || fract(h / fh) < 0.05;
+		c *= 0.7;
+		frame_col = c * 1.6;
+	} else if (s == S_GOLD) {
+		frame = fract(u / 1.5) < 0.1 || fract(h / fh) < 0.08;
+		frame_col = srgb_to_linear(vec3(0.42, 0.33, 0.2)) * mix(0.3, 1.0, daylight);
+		c = mix(c, col * mix(0.35, 1.0, daylight) * 1.15, 0.6);
+	} else if (s == S_FRAME) {
+		frame = fract(u / 3.2) < 0.14 || fract(h / 4.4) < 0.1 || h > top - 0.9;
+		frame_col = mix(silver, white, 0.5);
+		cut = !frame;
+		return frame_col;
+	}
+	if (frame) {
+		return frame_col;
+	}
+	if (h < 4.5) {
+		// The lobby: tall clear glass, lit warm at night.
+		if (lights_on > 0.001) {
+			glow = WARM_PALE * 0.9;
+			return c * 0.5;
+		}
+		return mix(c, srgb_to_linear(vec3(0.2, 0.24, 0.28)), 0.5);
+	}
+	if (lights_on > 0.001) {
+		float whole = hash12(vec2(level, float(s) * 9.1 + top));
+		float bay = hash12(vec2(floor(u / 4.8), level) + float(s) * 5.3);
+		if (whole < lit * 0.6 * lights_on || bay < lit * 0.4 * lights_on) {
+			glow = (hash12(vec2(level, 3.3)) < 0.75 ? COOL : WARM_PALE) * 1.05;
+			return c * 0.45;
+		}
+	}
+	return c;
+}
 
 // The Palace of Culture's walls: tall windows between stone piers, a pilaster every
 // fourth bay, a plinth and a cornice; a few rooms lit at night.
@@ -271,9 +363,10 @@ vec3 glass_roof(vec3 col, vec2 xz, out vec3 glow) {
 	bool bar = f.x > 0.43 || f.y > 0.43;
 	vec3 sky = srgb_to_linear(sky_colour);
 	float n = value_noise(xz * 0.035);
-	vec3 c = mix(col * mix(0.4, 0.85, daylight), sky, 0.4 + 0.35 * n);
+	// The landmarks loop: a golden tint with only a little sky in it (it read as ice before).
+	vec3 c = mix(col * mix(0.4, 0.95, daylight), sky, 0.12 + 0.2 * n);
 	if (bar) {
-		c = mix(c, srgb_to_linear(vec3(0.82, 0.84, 0.86)), 0.55 * daylight + 0.1);
+		c = mix(c, srgb_to_linear(vec3(0.93, 0.93, 0.9)), 0.7 * daylight + 0.1);
 	} else if (lights_on > 0.001) {
 		glow = mix(WARM_PALE, vec3(1.0, 0.85, 0.55), n) * (0.55 + 0.35 * hash12(floor(d))) ;
 		c *= 0.5;
@@ -342,6 +435,11 @@ vec3 landmark(int mode, float param, vec3 col, vec2 uv, float top, bool wall, ve
 		return c;
 	} else if (mode == M_GLASS) {
 		return wall ? glass_wall(col, uv.x, uv.y, top, 1.5, 4.0, 0.34, glow) : col;
+	} else if (mode == M_SKIN) {
+		if (!wall) {
+			return col * (0.94 + 0.08 * value_noise(wp.xz * 1.7));
+		}
+		return skin(int(param * 16.0 + 0.5), col, uv.x, uv.y, top, glow, cut);
 	} else if (mode == M_LAMP) {
 		if (lights_on > 0.001) {
 			glow = col * 2.4;

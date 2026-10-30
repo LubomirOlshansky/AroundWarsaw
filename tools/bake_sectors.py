@@ -88,13 +88,19 @@ SECTOR_ONLY = {"buildings", "markings", "carriage", "symbols", "sand", "sandbars
 # areas it searches by position (landmarks.gd _find_sites, _find_stadium, _find_centralna,
 # _find_towers, _palace_frame). tools/bake_city.gd checks the sites found from `site_parts`
 # against the whole map's, so a landmark added there without a line here fails the bake.
-SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "Rotunda PKO", "Varso Tower"]
+SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "Rotunda PKO", "Varso Tower",
+              # the skyline's towers (landmarks.gd TOWERS, the landmarks loop)
+              "Złota 44", "Warsaw Spire", "Q22", "Rondo 1", "InterContinental", "Cosmopolitan",
+              "Warsaw Trade Tower", "Skyliner", "Warsaw Unit", "Mennica Legacy Tower", "Generation Park Y",
+              "Skysawa", "Błękitny Wieżowiec", "Warszawskie Centrum Finansowe", "Centrum LIM", "Chałubińskiego 8",
+              "Spektrum Tower", "The Bridge"]
 SITE_PAD = 12.0
 SITE_AREAS = [
     (1250.0, -820.0, 1700.0, -370.0),       # Stadion Narodowy's masts (Rect2(1250, -820, 450, 450))
     (-1520.0, 472.5, -1320.0, 672.5),       # Warszawa Centralna (CENTRALNA ± its 146 x 92 m zone)
     (910.0, -165.0, 950.0, -105.0),         # Most Poniatowskiego's towers (the fallback search)
     (1398.0, -332.0, 1443.0, -267.0),
+    (-7.0, 235.0, 13.0, 255.0),             # Muzeum Narodowe (its outline's centre, by landmarks.gd MUZEUM)
 ]
 
 
