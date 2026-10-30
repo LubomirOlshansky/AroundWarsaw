@@ -3069,9 +3069,9 @@ the car must get past each. Before → after (Point; Classic in brackets):
 | `car_clip`: a stopped car's corner 0.5 m into the car's path | 32 km/h, past at 2.1 s (Classic: stopped, never past) | 93 km/h, past at 1.2 s (Classic the same) |
 | `car_behind`: a stopped car square ahead | 22 km/h, past at 2.6 s | 26 km/h, past at 2.3 s |
 
-Every older test (holds, turns, walls, the corner, the camera) reads the same as before. Street furniture stays solid (benches, racks, columns, shelters,
-parked cars): on today's map 7 benches, 11 bike racks and 3 shelters overlap a carriageway
-(BACKLOG).
+Every older test (holds, turns, walls, the corner, the camera) reads the same as before. Street furniture stayed solid (benches, racks, columns, shelters,
+parked cars): on that day's map 7 benches, 11 bike racks and 3 shelters overlapped a carriageway.
+Since the easy-driving loop (below) only shelters and parked cars are.
 
 ## The roadworks loop: traffic and the helicopter knock the barriers (2026-10-30)
 
@@ -3646,6 +3646,43 @@ condition). Lines: the vision's groups already in `dialogue.json` (`club_door`, 
   compare with `--crowd=0`. Triangles: a figure is the people's mesh; 80 on the steps is +0.01 M
   in the main pass (0.16 → 0.17 M), under the 25 k budget. Far from every crowd (more than
   350 m): no figures, the MultiMeshes hidden, the 2 Hz tick only (bench route, 0.01 ms).
+
+## The easy-driving loop: drive through the small props (2026-10-30)
+
+The user's call: small things don't stop the car. Lamps and signal poles never had colliders;
+now benches, bins, bike racks and advertising columns don't either (`map_builder.gd`
+`_build_props`, their `solid` size 0, so `_props` adds no wall faces). Bus shelters, parked cars,
+fences, walls, hedges, buildings and the landmarks stay solid. The roadworks' barriers and cones
+were already knocked aside (the roadworks loop). The prebuilt sectors carry the colliders, so
+they are rebuilt (`map_builder.gd` is one of `city.stamp`'s inputs: `tools/setup_map.sh
+--if-needed` sees it). `check_drive`'s lane sweep, runtime city: 71 → 69 car and 176 → 168 bus
+boxes in collision.
+
+## The follow-camera loop: Point turns with the car, and a saved zoom (2026-10-30)
+
+From the phone: the camera didn't follow the car while driving, it only swung round once the
+finger lifted. That was loop 2a's design for Point (the default controls): the stick points in
+screen directions, so a camera turning under a held finger turned the held direction with it
+and the car circled (3.8 circles in 10 s, `check_steering --legacy`); the fix was a camera that
+waited for the finger to lift. Now (`drive_controls.gd` `FOLLOW_HELD`, false brings the old
+camera back):
+
+- Point's camera turns with the car all the time, at the gentler `RETURN_GAIN` (Classic keeps
+  `TURN_GAIN`), never over 64°/s, the pixel-grid snap unchanged (`main.gd _update_camera`).
+- A held direction keeps the world direction it meant when it was set: it is read against the
+  camera's yaw at that moment, so the camera coming round doesn't turn it and nothing circles.
+  Moving the finger 20° or more (`REAIM`) sets it again, against the screen as it is then.
+- `check_steering`: the held-stick tests (`hold_right`, `hold_diagonal`, `behind`, `release`,
+  `keys_right`) read exactly as before (same errors, settling, no overshoot); the camera now
+  turns up to 50-60°/s in Point's tests (it was 0), and the car stays nearer the screen's
+  middle. The "never while the finger is down" rule applies to Fixed only.
+
+The zoom: five steps of view height (`follow_camera.gd` `VIEWS`: 50, 65, 80, 100, 125 m; 80 is
+the default). A pinch takes a step each time the fingers' span changes by 1.2× (`PINCH_STEP`),
+the mouse wheel and − / + one step a notch. It is saved (`settings.gd` `view`, `[display]
+view`); `--size=` overrides it. A pinch now works on the left half too: a second finger while the
+stick's finger is still inside the dead zone (`hud.gd` `PINCH_STICK`) turns both into the pinch
+(the first finger always took the stick, so a pinch there drove the car).
 
 ## Performance budgets
 

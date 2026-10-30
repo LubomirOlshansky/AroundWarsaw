@@ -101,10 +101,12 @@ var camera_pitch := -30.0
 const CAMERA_DISTANCE := 500.0
 ## Height of the view in metres (orthographic size): wide enough to read the city.
 var base_size := FollowCamera.DEFAULT_SIZE
+## The follow-camera loop: --size= was given (the saved zoom doesn't apply), and the pinch's span
+## ratio since its last zoom step.
+var _flag_size := false
+var _pinch_run := 1.0
 ## The helicopter's view is this much wider than the car's (as before loop 2a: 1.3 × 110 m).
 const HELI_VIEW := 1.3 * 110.0 / FollowCamera.DEFAULT_SIZE
-const MIN_SIZE := 30.0
-const MAX_SIZE := 320.0
 
 var view: SubViewportContainer
 var sv: SubViewport
@@ -809,7 +811,7 @@ func _build_world() -> void:
 	hud.rotate_pressed.connect(func(d: int):
 		if not follow:
 			_rotate_camera(d))
-	hud.pinched.connect(func(ratio: float): _zoom(1.0 / ratio))
+	hud.pinched.connect(_on_pinch)
 	hud.setup_minimap(data)
 	hud.vehicle_pressed.connect(_toggle_vehicle)
 	hud.tapped.connect(_on_tap)
@@ -2291,6 +2293,7 @@ func _parse_args() -> void:
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
 		elif arg.begins_with("--size="):
 			base_size = float(arg.trim_prefix("--size="))
+			_flag_size = true
 		elif arg == "--fixed":
 			_flag_fixed = true
 		elif arg.begins_with("--yaw="):
@@ -2542,6 +2545,8 @@ func _parse_args() -> void:
 func _load_settings() -> void:
 	settings.persistent = not no_save
 	settings.load_file()
+	if not _flag_size:
+		base_size = settings.view
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
 	auto_quality = Tiers.for_model(model_name)
 	# The web loop 2: a phone's browser has a fraction of the app's memory and GPU time (Safari
@@ -4193,8 +4198,23 @@ static func _shader_value(m: ShaderMaterial, key: String, fallback: Variant) -> 
 # --- end sweep 2 ---------------------------------------------------------------------------
 
 
-func _zoom(factor: float) -> void:
-	base_size = clampf(base_size * factor, MIN_SIZE, MAX_SIZE)
+## The follow-camera loop: the player's zoom, one VIEWS step wider (+1) or closer (-1), saved.
+func _zoom_view(steps: int) -> void:
+	base_size = FollowCamera.view_step(base_size, steps)
+	settings.view = base_size
+	settings.save()
+
+
+## The follow-camera loop: a pinch (`ratio`: the fingers' span now / before) steps the zoom each
+## time the span has changed by PINCH_STEP since the last step.
+func _on_pinch(ratio: float) -> void:
+	_pinch_run *= ratio
+	if _pinch_run >= FollowCamera.PINCH_STEP:
+		_pinch_run = 1.0
+		_zoom_view(-1)
+	elif _pinch_run <= 1.0 / FollowCamera.PINCH_STEP:
+		_pinch_run = 1.0
+		_zoom_view(1)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -4203,9 +4223,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	var wheel := event as InputEventMouseButton
 	if wheel and wheel.pressed:
 		if wheel.button_index == MOUSE_BUTTON_WHEEL_UP:
-			_zoom(1.0 / 1.12)
+			_zoom_view(-1)
 		elif wheel.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			_zoom(1.12)
+			_zoom_view(1)
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -4262,9 +4282,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				if rivals != null:
 					rivals.flash()
 			KEY_MINUS:
-				_zoom(1.3)
+				_zoom_view(1)
 			KEY_EQUAL:
-				_zoom(1.0 / 1.3)
+				_zoom_view(-1)
 
 
 func _screen_to_world(s: Vector2) -> Vector3:
@@ -4279,16 +4299,19 @@ func _update_camera(dt: float) -> void:
 	var vehicle: Node3D = heli if flying else car
 	var speed: float = heli.speed() if flying else absf(car.forward_speed)
 	if follow:
-		# Camera loop (follow_camera.gd): Point and the helicopter wait while the stick is held and
-		# 0.6 s after, then ease round; Classic turns with the car; never faster than 64°/s.
+		# Camera loop (follow_camera.gd): the helicopter waits while the stick is held and 0.6 s
+		# after, then eases round; Classic turns with the car; never faster than 64°/s. The
+		# follow-camera loop: Point turns with the car too, finger down or not, more gently
+		# (drive_controls.gd FOLLOW_HELD keeps a held direction from turning with it).
 		var heading := rad_to_deg(vehicle.rotation.y)
 		if flying:
 			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, true, _heli_held, _heli_release,
 					FollowCamera.FULL_SPEED_HELI, dt)
 		else:
-			var waits := controls.scheme != Controls.CLASSIC
-			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, waits, controls.held, controls.since_release,
-					FollowCamera.FULL_SPEED_POINT if waits else FollowCamera.FULL_SPEED, dt)
+			var classic := controls.scheme == Controls.CLASSIC
+			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, controls.camera_waits(), controls.held,
+					controls.since_release, FollowCamera.FULL_SPEED if classic else FollowCamera.FULL_SPEED_POINT, dt,
+					FollowCamera.TURN_GAIN if classic else FollowCamera.RETURN_GAIN)
 		cam_yaw_target = cam_yaw
 	else:
 		fcam.stop_turning()

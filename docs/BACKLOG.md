@@ -205,8 +205,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   and full gas from three quarters out on the stick (70 HUD units, ~38 pt radius on an iPhone
   13), the 80 m default view, and whether the 44 pt panel controls feel right. Touch was emulated from the mouse and driven by
   `--clicks` / `--drag` / `--stick` on the Mac; nothing ran on a device.
-- Point with a finger that never lifts behaves like a fixed camera at whatever angle the
-  camera had (it only comes round after a release). The zoom (− + / pinch) is not saved.
+- ~~Point with a finger that never lifts behaves like a fixed camera at whatever angle the
+  camera had (it only comes round after a release). The zoom (− + / pinch) is not saved.~~ The
+  follow-camera loop (2026-10-30): Point's camera turns with the car while held, the zoom has five
+  saved steps. Not tested headless: the 20° re-aim, and how it feels on the phone.
 - In a dense spot the car can be pinned between a wall and a stopped traffic car that waits for
   it; the unstick turns it out after 1.5 s, and a second pin within 5 s tows it back onto the
   nearest lane on its level (next to a kerb that can be almost where it was, turned the lane's
@@ -1186,11 +1188,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## From the driving-feel loop (less sticky, 2026-10-30)
 
-- Street furniture is still solid and unknockable: benches, bike racks, advertising columns,
-  shelters and parked cars. On today's map 7 benches, 11 bike racks and 3 shelters overlap a
-  carriageway (measured against the roads' half widths); the bake could keep them off the
-  asphalt as map review B did for lamps and signal poles, or they could be knocked about like
-  the roadworks' cones.
+- ~~Street furniture is still solid and unknockable: benches, bike racks, advertising columns,
+  shelters and parked cars.~~ Benches, bins, bike racks and columns are driven through since the
+  easy-driving loop (2026-10-30); shelters and parked cars stay solid (3 shelters overlapped a
+  carriageway on the old map). Knocking them about like the roadworks' cones is still open.
 - Corner slip and the shove are tuned on the flat test ground (`check_steering`) and by reading
   the numbers, not yet on the phone: how a 35 % bump feels, whether 7 m/s of sidestep reads as a
   jump at 60 fps, and whether shoved traffic overlapping the next lane looks wrong.

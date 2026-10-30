@@ -390,9 +390,10 @@ func _camera_step(pos: Vector3, vel: Vector3, heading: float, speed: float, dt: 
 	# The game's follow camera (main.gd _update_camera with follow_camera.gd), without the
 	# pixel-grid snap.
 	if _cam["follow"]:
-		var waits: bool = _ctl.scheme != Controls.CLASSIC
-		_cam["yaw"] = _fc.follow_yaw(_cam["yaw"], heading, speed, waits, _ctl.held, _ctl.since_release,
-				FollowCamera.FULL_SPEED_POINT if waits else FollowCamera.FULL_SPEED, dt)
+		var classic: bool = _ctl.scheme == Controls.CLASSIC
+		_cam["yaw"] = _fc.follow_yaw(_cam["yaw"], heading, speed, _ctl.camera_waits(), _ctl.held, _ctl.since_release,
+				FollowCamera.FULL_SPEED if classic else FollowCamera.FULL_SPEED_POINT, dt,
+				FollowCamera.TURN_GAIN if classic else FollowCamera.RETURN_GAIN)
 	else:
 		_fc.stop_turning()
 		_cam["yaw"] = lerpf(_cam["yaw"], _cam["yaw_target"], 1.0 - exp(-8.0 * dt))
@@ -730,8 +731,8 @@ func _m_wall() -> String:
 			"" if ok or legacy else "  <-- PROBLEM"]
 
 
-## Camera loop, every test with the camera loop's camera: never faster than 64°/s, and (Point,
-## Fixed) never while the finger is down.
+## Camera loop, every test with the camera loop's camera: never faster than 64°/s, and (Fixed;
+## Point before the follow-camera loop) never while the finger is down.
 func _camera_rules() -> String:
 	if legacy or camera_2a:
 		return ""
@@ -740,7 +741,8 @@ func _camera_rules() -> String:
 	for k in range(1, _rows.size()):
 		var rate := absf(_wrap(_rows[k]["cam"] - _rows[k - 1]["cam"])) * 60.0
 		fastest = maxf(fastest, rate)
-		if _scheme != "classic" and _rows[k]["finger"] and _rows[k - 1]["finger"]:
+		# (Point turns with the car since the follow-camera loop; Fixed never turns.)
+		if _ctl.camera_waits() and _rows[k]["finger"] and _rows[k - 1]["finger"]:
 			while_held = maxf(while_held, rate)
 	var out := ""
 	if fastest > FollowCamera.MAX_TURN + 0.5:
