@@ -171,9 +171,12 @@ func _same_sites(map: Node3D) -> bool:
 func _save_shared(map: Node3D) -> Error:
 	var shared: Dictionary = map.get("_shared")
 	var flat: ShaderMaterial = map.flat_material
+	var ao: Texture2D = flat.get_shader_parameter("ao_map")
+	var light: Texture2D = map.light_texture
+	_detach_maps(map, shared)
 	var items := [
-		["ao_map", flat.get_shader_parameter("ao_map")],
-		["light_map", map.light_texture],
+		["ao_map", ao],
+		["light_map", light],
 		["surface_map", map.water_texture],
 		["ground", flat],
 		["building", map.building_material],
@@ -193,6 +196,44 @@ func _save_shared(map: Node3D) -> Error:
 		# From now on the scenes saved refer to it by this path instead of carrying a copy.
 		res.take_over_path(path)
 	return OK
+
+
+## The web's first download (2026-10-30): the AO and lamp-light maps are put on their materials
+## when the city opens (map_builder.gd attach_maps), not saved inside them, so an export can carry
+## either form: the RG8 .res (phones, desktops) or the same texels as one zstd stream in
+## map/shared/<name>.zst (the web: 11.1 MB instead of 18.8, in the download and in the browser's
+## memory, which holds the whole pack). This records which materials read each map, clears it
+## from them and from the map, and writes the .zst; the .res files are saved as before.
+func _detach_maps(map: Node3D, shared: Dictionary) -> void:
+	var flat: ShaderMaterial = map.flat_material
+	var materials: Array[ShaderMaterial] = [flat]
+	for m: Variant in [map.building_material, map.leaf_material] + shared.values():
+		if m is ShaderMaterial and not materials.has(m):
+			materials.append(m)
+	var maps := {}
+	for pair: Array in [["ao_map", flat.get_shader_parameter("ao_map")], ["light_map", map.light_texture]]:
+		var tex: Texture2D = pair[1]
+		if tex == null:
+			continue
+		var users: Array[ShaderMaterial] = []
+		for m in materials:
+			if m.get_shader_parameter(pair[0]) == tex:
+				users.append(m)
+				m.set_shader_parameter(pair[0], null)
+		maps[pair[0]] = {"materials": users}
+		var img := tex.get_image()
+		img.convert(Image.FORMAT_RG8)
+		var head := PackedByteArray()
+		head.resize(8)
+		head.encode_u32(0, img.get_width())
+		head.encode_u32(4, img.get_height())
+		var f := FileAccess.open(SHARED + String(pair[0]) + ".zst", FileAccess.WRITE)
+		f.store_buffer(head + img.get_data().compress(FileAccess.COMPRESSION_ZSTD))
+		var size := f.get_length()
+		f.close()
+		print("bake_city: %s attached at start (%d materials; %s.zst %.1f MB)" % [pair[0], users.size(), pair[0], size / 1048576.0])
+	map.map_maps = maps
+	map.light_texture = null
 
 
 func _own(node: Node, owner: Node) -> void:

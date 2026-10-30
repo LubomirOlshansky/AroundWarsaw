@@ -8,6 +8,9 @@ extends Node
 ## It also runs the city's chatter: an AI driver the player hits, or holds up for a
 ## while, sometimes shouts a "traffic" line from its car; and the radio host reads
 ## a "radio_host" line on the radio's ticker every minute or two on a station.
+## Loop MW-5: on PÓŁNOC FM the host is Kuba, reading `radio_polnoc` (the station's ident first
+## after a tune), on air only: the radio's host_group() says which group, or "" for silence
+## (the daytime reruns). Never sooner than 60 s after his last line.
 
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
@@ -30,6 +33,8 @@ var radio: Node:
 		radio = value
 		if radio != null and radio.has_signal("track_changed") and not radio.track_changed.is_connected(on_track_changed):
 			radio.track_changed.connect(on_track_changed)
+		if radio != null and radio.has_signal("host_wanted") and not radio.host_wanted.is_connected(speak_now):
+			radio.host_wanted.connect(speak_now)
 ## The radio host waits while this is false (the title screen).
 var host_on := true
 ## Loop 2d-1: a Podwózka card is up: the host's next line waits until it goes (then comes at once).
@@ -43,6 +48,8 @@ var _rng := RandomNumberGenerator.new()
 var _shout_wait := 0.0
 var _host_t := 0.0
 var _host_next := 90.0
+## Loop MW-5: the next PÓŁNOC FM line is the station's ident (after a tune).
+var _ident := true
 
 
 func _ready() -> void:
@@ -142,6 +149,7 @@ func _shout(d) -> void:
 
 func on_station_changed(_index: int, _station: Dictionary) -> void:
 	_host_t = 0.0
+	_ident = true
 	if host_first < 0.0:
 		_host_next = _rng.randf_range(HOST_GAP.x, HOST_GAP.y)
 
@@ -150,7 +158,8 @@ func on_station_changed(_index: int, _station: Dictionary) -> void:
 ## sometimes speaks, a few seconds after the new title's caption, through the same timer, so
 ## host_hold (a Podwózka card) and the title screen still keep him quiet.
 func on_track_changed(_info: Dictionary, _track: Dictionary, natural: bool) -> void:
-	if natural and host_first < 0.0 and _rng.randf() < HOST_BETWEEN:
+	# Loop MW-5: not sooner than HOST_GAP.x after his last line.
+	if natural and host_first < 0.0 and _rng.randf() < HOST_BETWEEN and _host_t >= HOST_GAP.x - HOST_AFTER_TITLE:
 		_host_t = maxf(_host_t, _host_next - HOST_AFTER_TITLE)
 
 
@@ -164,13 +173,49 @@ func _frame(dt: float) -> void:
 	_shout_wait = maxf(0.0, _shout_wait - dt)
 	if radio == null or radio.station < 0 or not host_on:
 		return
+	var group := _host_group()
+	if group == "":
+		_host_t = 0.0  # loop MW-5: the reruns: silent, and a full gap once he is back on air
+		return
 	_host_t += dt
 	if _host_t >= _host_next:
 		if host_hold:
 			return  # loop 2d-1
-		_host_t = 0.0
-		host_first = -1.0
-		_host_next = _rng.randf_range(HOST_GAP.x, HOST_GAP.y)
-		var l := line("radio_host")
-		if not l.is_empty():
-			radio.announce(l[0], l[1])
+		_speak(group)
+
+
+## Loop MW-5: the group the host reads now ("" = silent): the radio's host_group(), or
+## "radio_host" for a radio without one (the checks' fakes).
+func _host_group() -> String:
+	return String(radio.host_group()) if radio.has_method("host_group") else "radio_host"
+
+
+func _speak(group: String) -> void:
+	_host_t = 0.0
+	host_first = -1.0
+	_host_next = _rng.randf_range(HOST_GAP.x, HOST_GAP.y)
+	var l: Array = []
+	if group == "radio_polnoc" and _ident:
+		l = ident()
+	_ident = false
+	if l.is_empty():
+		l = line(group)
+	if not l.is_empty():
+		radio.announce(l[0], l[1])
+
+
+## Loop MW-5: PÓŁNOC FM's ident, the `radio_polnoc` line that names the station ("86,0").
+func ident() -> Array:
+	for l: Array in lines.get("radio_polnoc", []):
+		if String(l[0]).contains("86,0"):
+			return l
+	return []
+
+
+## Loop MW-5: the host speaks at once (the 02:00 beat on Plac Trzech Krzyży), if he is on air.
+func speak_now() -> void:
+	if radio == null or not host_on:
+		return
+	var group := _host_group()
+	if group != "":
+		_speak(group)

@@ -12,10 +12,23 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | --- | --- | --- | --- |
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
+| landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
 
 ## Waiting
 
 Newest first. One entry per question.
+
+- **2026-10-30 · content · MW-5 (PÓŁNOC FM)** — Listen to the 7 new tracks (attached in the
+  thread, or `--unlock=all --station=polnoc`): mood, balance, does the bass reach the phone's
+  speaker? They're 22 kHz, 40 kbps to stay under 4 MB; raise it if you hear artifacts.
+  Default built: as made.
+- **2026-10-30 · content · MW-5** — Chapters 1–5 unlock tracks 3–7; chapters 6–9 unlock nothing
+  yet (vision: a horn tune and the gold cover later). Default built: as said; BACKLOG.
+- **2026-10-30 · content · MW-5** — Until you pick a station, the radio follows the clock:
+  PÓŁNOC FM at night, KEBAB FM otherwise. Keep, or switch only at launch? Default built: follow.
+- **2026-10-30 · content · MW-5** — New words for a designer pass: the day caption "powtórka ·
+  rerun · the host is back at 22:00" and the unlock toast "Kuba ma nową płytę: „…”".
+  Default built: as written.
 
 - **2026-10-30 · content · 3g-2 (police, part two)** — Rescue escort: how often after the first
   rescue, and how fast? Default built: the first rescue always, then one in two; 45 km/h, 15–25 m
@@ -104,6 +117,21 @@ Newest first. One entry per question.
   faint version (`ground.gdshader`, the `0.16 * broad` and `0.1` shore terms).
 
 <!--
+- **2026-10-30 · HUD · radio skip** — On the phone, holding RADIO for 0.5 s skips to the
+  station's next track; a tap changes the station as before. Nothing on screen tells the
+  player about the hold. Options: A: leave it hidden / B: a one-time hint on the ticker
+  ("przytrzymaj RADIO: następny utwór · hold RADIO: next track") / C: a separate ⏭ button.
+  Default built: A (the ticker shows the new track's name, so a skip explains itself).
+- **2026-10-30 · HUD · fallback toast** — The first launch at Auto's coarser picture (after a
+  session that struggled at the sharp one) now shows once: "Obraz prostszy, żeby było płynnie ·
+  A coarser picture for a smoother ride · Settings → Obraz". It doesn't mention heat, because
+  the struggle is measured frame time, not temperature. Options: A: as built / B: the backlog's
+  "Obraz prostszy, bo telefon się grzał · the phone was struggling" / C: no toast. Default built: A.
+- **2026-10-30 · performance · compressed map textures** — May I run one bench on the iPhone
+  with the AO and lamp-light maps VRAM-compressed (BACKLOG "Memory still on the table")? On the
+  Mac they look the same and textures drop 42 MB, but video memory rises 23 MB from a one-time
+  allocation; only the phone shows which way it goes there. Options: A: one device bench, before
+  and after / B: drop it. Default built: nothing landed (the code waits on its branch).
 - **YYYY-MM-DD · lane · item** — The question in one line? Options: A / B. Default built: A
   (or "nothing built: waits"). Where: PR #N, BACKLOG "section".
 -->

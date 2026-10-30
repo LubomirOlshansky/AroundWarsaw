@@ -23,7 +23,10 @@
 # frame governor's rules on scripted frames.
 # Loop MW-1: `places` runs game/tools/check_places.gd: MOJA WARSZAWA's 72 places (Polish +
 # English, the 70 characters, the demo box, the brand denylist, reachability as a WARN) and the
-# notebook's finding and reward rules on synthetic inputs; it reads only centrum.json (CI too). `streaming` runs game/tools/check_streaming.gd
+# notebook's finding and reward rules on synthetic inputs; it reads only centrum.json (CI too).
+# Loop MW-5: `radio` also checks PÓŁNOC FM (its 7 tracks and seams, the hours, reruns, the host,
+# the unlocks); `sounds` runs game/tools/check_city_sounds.gd: the city's sounds at the notebook's
+# places (the emitters, the hours, the cap of 8, the bells, the 02:00 beat); centrum.json only (CI too). `streaming` runs game/tools/check_streaming.gd
 # (loop 3c) WITH a renderer (a window opens for a minute or two): every sector built from its
 # file is the whole city, vertex for vertex; 10 spots rendered with --monolithic and with the
 # prebuilt sectors streamed differ in at most 0.5 % of their pixels; a 3-minute soak over every
@@ -53,8 +56,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud places rides landmarks sfx radio water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
-STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places rides landmarks sfx radio police plain ram prebuilt)
+STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud places rides cost landmarks sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
+STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places rides cost landmarks sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -482,9 +485,11 @@ for s in $want; do
 		places) check places '^check_places:' --script res://tools/check_places.gd ;;
 		# Loop 2d-1: Podwózka's star and pay tables, the streak and the cancel rules, its lines.
 		rides) check rides '^check_rides:' --script res://tools/check_rides.gd ;;
+		cost) check cost '^check_cost_cuts:' --script res://tools/check_cost_cuts.gd ;;
 		landmarks) check landmarks '^landmark check:' --script res://tools/check_landmarks.gd ;;
 		sfx) check sfx '^sfx:' --script res://tools/check_sfx.gd ;;
 		radio) check radio '^radio:' --script res://tools/check_radio.gd ;;
+		sounds) check sounds '^city_sounds:' --script res://tools/check_city_sounds.gd ;;
 		# Loop 10a: where a car can get into the water (whole map), and the game's tow decisions.
 		water) check water '^check_water:' --script res://tools/check_water.gd ;;
 		water-prebuilt) check water-prebuilt '^check_water:' --script res://tools/check_water.gd -- --prebuilt ;;

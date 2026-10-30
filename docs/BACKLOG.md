@@ -17,7 +17,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   blue D-15 sign). The Palace and the stadium were already detailed models and keep their look.
   **Second pass landed (2026-10-30)**: 9 more (Grzybowska 63, Jana Pawła II 21, Marszałkowska
   94/98: the hotels by their addresses; Central Tower, Ilmet, the Platinum Towers, Łucka City,
-  Widok Towers): 27 towers in all. **Left**: PZU Tower and JM Tower (oddly mapped) keep the
+  Widok Towers): 27 towers in all. **Third pass (2026-10-30)**: 15 low-rise landmarks
+  (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm, Zachęta…) in their real colours.
+  **Street furniture**: historic lanterns on the Royal Route and in the Old Town (2026-10-30). MDM's blocks and
+  Plac Konstytucji's candelabras (2026-10-30).
+  Next candidates: tram stop platforms, kiosks (not in the baked data yet), Warsaw's green bins. **Left**: PZU Tower and JM Tower (oddly mapped) keep the
   generic glass, and any model the user names next (docs/QUESTIONS.md).
 
 ## From v0.6 (traffic, trams, pedestrians, rivals)
@@ -623,9 +627,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   size mid-drive is a visible pop and reallocates the image. If a long first session on a hot
   phone turns out to look bad, a live switch at a natural cut (a load, the settings panel, the
   helicopter) is the next step.
-- **No toast** says the fallback came in (the brief made it optional): the Obraz tab's
+- ~~**No toast** says the fallback came in (the brief made it optional): the Obraz tab's
   `auto · High ×2` and the `quality:` log line say it. A one-time toast ("Obraz prostszy, bo
-  telefon się grzał · A coarser picture: the phone was struggling") is a game-designer call.
+  telefon się grzał · A coarser picture: the phone was struggling") is a game-designer call.~~
+  Built (2026-10-30): a one-time toast at the first fallback launch, wording in QUESTIONS.md.
 - **Thermal state** is still not readable from Godot 4.7.2 (checked: no OS, DisplayServer, Engine,
   RenderingServer or Performance method); graphics.md 4.4's plugin would add it to the struggle
   rule as a third signal.
@@ -996,10 +1001,13 @@ Small problems that agents reported or that showed up in screenshots. They are f
   -b:a 96k` is already what the tool uses when it finds one), or `oggenc`; nothing else changes.
 - **Licences before a release**: any track whose licence is `unknown` (a WARN in the radio check)
   must be cleared; AI music tools' free plans may not allow a published game.
-- **No skip button**: `radio.next_track()` exists, but hud.gd and main.gd (not touched in this loop)
-  have no control for it; a tap on the ticker, or a key, would do.
-- **`--radio=N`** clamps to the built-in three stations (`Radio.STATIONS.size()` in main.gd): a
-  fourth station added to radio.json is reached with R, not by the flag.
+- ~~**No skip button**: `radio.next_track()` exists, but hud.gd and main.gd (not touched in this loop)
+  have no control for it; a tap on the ticker, or a key, would do.~~ Shift+R skips on the desktop,
+  and holding RADIO for 0.5 s skips on the phone (2026-10-30; a tap still changes the station;
+  `check_hud.gd` covers it). Nothing on screen says so yet (QUESTIONS.md).
+- ~~**`--radio=N`** clamps to the built-in three stations (`Radio.STATIONS.size()` in main.gd): a
+  fourth station added to radio.json is reached with R, not by the flag.~~ Fixed (2026-10-30): the flag
+  clamps to radio.json's stations once they are read.
 - **A station's order restarts a track on re-tune**: tuning away and back starts the track it was
   on from its beginning (a looping single track still joins in the middle). A real radio would
   have moved on; a decision for the user if it grates.
@@ -1080,9 +1088,13 @@ Small problems that agents reported or that showed up in screenshots. They are f
   stadium and west/south of Varso, a sunset band at dusk, a dark slab at night, and a brown
   streaked "skirt" south of Varso (`--at=-1602,717 --yaw=0 --size=240`). It matters for any
   wide or marketing camera and for the helicopter high up.
-- `--time=night --nohud` runs quit without writing the shot about one time in three (the log
+- ~~`--time=night --nohud` runs quit without writing the shot about one time in three (the log
   ends after "city built", clean exit); by day, or without `--nohud`, every run wrote it.
-  `tools/shots.sh` would report MISSING.
+  `tools/shots.sh` would report MISSING.~~ Not reproduced on the big map (2026-10-30, 37 runs on
+  the Mac, the landing's own flags included: all saved). Suspected cause: keys typed in another
+  app landing in the freshly focused game window (two renders came out in the helicopter or at
+  dusk). `--shots=` now keeps the window from taking the focus, as `--no-input` does, and a run
+  that ends without a requested shot prints `shots: missing [...]` with the frame and pause state.
 - The occlusion dither cuts a visible hole in towers in stills (Rondo Dmowskiego
   `--at=-806.3,446.4 --heading=335`, Varso with `--yaw=250`, the Palace's wing looking north
   from Emilii Plater).
@@ -1133,6 +1145,16 @@ Small problems that agents reported or that showed up in screenshots. They are f
     2 m (lamp pools are 12–15 m wide, but they stop at walls at 1 m), or AO and lights to ASTC
     4×4 at bake time (half the size, lossy). Both change the look a little: the visual lane's
     call with shots. The surface map holds data (deck heights, flow angle) and must stay exact.
+    **Tried 2026-10-30 (performance lane), held back for one phone bench**: AO and lights imported
+    VRAM-compressed (EAC RG11 on the phones, BC5 on desktops, a byte a texel instead of RG8's two),
+    attached when the prebuilt city opens (the phones take the imports, the web keeps the RG8 .res:
+    both formats in its pack would be +62 MB in the browser's memory). The code is on branch
+    `claude/project-thread-ldyr9u` at 70faaca (with f613944), reverted before landing. On the Mac:
+    the look is the same (by day 0 pixels differ by more than 8; at night 0.75 %, one-pixel
+    outlines on the lamp pools' band edges), "textures" 138 → 96 MB, but "video" 393 → 416 MB:
+    the first VRAM-compressed texture brings a one-time +65 MB of other video memory (the same
+    for one map as for two; three runs each, identical). Only the phone's BENCH card can say
+    whether the iPhone pays that too (−42 MB if not, +23 MB if so): QUESTIONS.md.
   - Side jobs hold 17 MB at start (rides 7.5): look for whole-map tables built from the index.
 
 ## From the driving-feel loop (less sticky, 2026-10-30)
@@ -1180,10 +1202,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Most Śląsko-Dąbrowski (65 m, on its hint) and Stadion Narodowy (115 m: the `stadium` poi is the
   bowl's middle; the helicopter's 60 m doesn't reach either). The bake's point (the west gate)
   fixes the stadium.
-- **PÓŁNOC FM track unlocks (MW-5).** A chapter complete is recorded in the save
-  (`wallet.chapters_done`, chapter id → yyyymmdd, section `notes_chapters` of `user://save.cfg`)
-  and paid (+50 zł, +30 respect) once; the track it unlocks (7 tracks for 9 chapters, the last
-  two a horn tune and the gold cover) is MW-5's: read `chapters_done` there.
+- ~~**PÓŁNOC FM track unlocks (MW-5).**~~ Done in loop MW-5: `notebook.gd` emits
+  `chapter_done`, `radio.gd` `sync_chapters` opens the next locked track (saved in `[polnoc]`).
 - The finding rule's "stop inside for 1 s" never decides anything with the car: a car stopped
   inside the radius is under 30 km/h and found at the next 2 Hz check anyway. Kept as specified
   (`Notebook.finds`, checked); if the stop is meant for a wider reach (parked at the kerb just
@@ -1201,6 +1221,37 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (vision.md section 9) exist.
 - The tap-a-place-within-80-m way of finding (vision.md 4.1, the landmark card's tap) is not
   built: the landmark tap (`main.gd` `_on_tap`) doesn't know the places yet.
+
+## From loop MW-5 (PÓŁNOC FM and the city's sounds, 2026-10-30)
+
+- Done: the 7 PÓŁNOC FM tracks (`tools/make_music.py --set=polnoc`, 3.93 MB of Ogg at 22.05 kHz,
+  40 kbps), the station (86,0; on air 22:00-06:00 and in the Night/Dawn looks, reruns at 70 % by
+  day, Kuba's `radio_polnoc` lines every 60-120 s, the ident first), the unlocks (tracks 1-2 free,
+  a chapter opens the next, `radio.unlock_track(n)` for the eggs), the city's sounds
+  (`city_sounds.gd`: club leaks by their hours, the metro chime, the bells at the hour, the
+  Patelnia busker 19:00-22:00, the 02:00 beat on Plac Trzech Krzyży), `check_radio`'s PÓŁNOC FM
+  part, `check_city_sounds` (verify step `sounds`, CI too), `--station=`, `--radio-log`, `--unlock=`.
+- **Judged by numbers only**: no speakers in the container. Loudness -13.8 to -14.0 LUFS, true peak
+  ≤ -1.5 dBTP, seams clean, band energy like the other three loops. The levels of the city's
+  sounds (`city_sounds.gd` KINDS: club -10, metro -12, bells -6, busker -11 dB on SFX) and the
+  70 % rerun level are guesses until heard on the phone. A phone speaker drops most of the club
+  leak's kick and the sub bass: the bass carries harmonics for that, but check by ear.
+- **Chapters 6-9 open nothing yet**: vision 4.1 gives the last two a horn tune and the gold
+  notebook cover (later loops); chapters 6 and 7 have no reward beyond the złoty and respect
+  (7 tracks, 2 free, so 5 chapters open tracks). An egg's track (E14: 5, E31: 2, which is free
+  already) is skipped by the chapters, so then one more chapter opens nothing.
+- **The eggs E14 and E31** only need `radio.unlock_track(5, "egg")` / `(2, ...)` (MW-6); E31's track
+  2 is free from the start, so its reward is a no-op as written: a design question for MW-6.
+- **Skipped (their crowds are MW-3 / MW-4's)**: the steps crowd's murmur, the guitarist on the
+  steps, dog barks at horns, the queue murmur, Jasna 0's grate rumble, dawn birds and the first
+  tram's bell, the metro's ventilation hum, the club door "closing" between admissions.
+- **The fixed looks' clock** (`time_of_day.gd` `local_clock`: Day 14:00, Dusk 19:30, Night 01:30,
+  Friday night) runs on in real time from when the look was set, so the bells strike after an
+  hour of play and the 02:00 beat comes 30 minutes into a Night run. MW-3's city clock should
+  take this over.
+- **The radio follows the clock** (PÓŁNOC FM on air, KEBAB FM by day) until the player presses R or
+  RADIO in the session; a station change by the clock shows the ticker. Not saved between sessions.
+- **The host speaks text only** (vision Open Question 6).
 
 ## From the web build (2026-10-30)
 

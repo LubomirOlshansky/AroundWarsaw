@@ -94,6 +94,10 @@ var data: Dictionary
 ## the game hands them to the vehicles' material too.
 @export_storage var light_texture: ImageTexture
 @export_storage var light_rect := Vector4(0, 0, 1, 1)
+## The web's first download (2026-10-30), the prebuilt city: the maps attach_maps puts on their
+## materials when the city opens, by name ("ao_map", "light_map"): {materials: the
+## ShaderMaterials that read it} (tools/bake_city.gd _detach_maps).
+@export_storage var map_maps := {}
 ## v0.9: the surface map (tools/bake_water.py): distance to the shore, the river's
 ## flow, what reflects, bridge-deck heights; the ground shader and the post pass read it.
 @export_storage var water_texture: ImageTexture
@@ -577,6 +581,34 @@ func _apply_lights(material: Material) -> void:
 	if light_texture != null and material is ShaderMaterial:
 		(material as ShaderMaterial).set_shader_parameter("light_map", light_texture)
 		(material as ShaderMaterial).set_shader_parameter("light_rect", light_rect)
+
+
+## The web's first download (2026-10-30): the prebuilt city's AO and lamp-light maps, put on
+## their materials when it opens. map/shared/<name>.res (an RG8 ImageTexture) where the export
+## has it (the phones, desktops); else map/shared/<name>.zst, the same RG8 texels as one zstd
+## stream (the web: 8.3 + 2.8 MB instead of the .res files' 13.8 + 5.0, whose compression works in
+## 4 KB blocks), unpacked here in ~0.3 s. Header: u32 width, u32 height, then the zstd data.
+func attach_maps() -> void:
+	for name: String in map_maps:
+		var tex: Texture2D = null
+		var res := "res://map/shared/%s.res" % name
+		var zst := "res://map/shared/%s.zst" % name
+		if ResourceLoader.exists(res):
+			tex = load(res)
+		elif FileAccess.file_exists(zst):
+			var bytes := FileAccess.get_file_as_bytes(zst)
+			var w := bytes.decode_u32(0)
+			var h := bytes.decode_u32(4)
+			var texels := bytes.slice(8).decompress(w * h * 2, FileAccess.COMPRESSION_ZSTD)
+			if texels.size() == w * h * 2:
+				tex = ImageTexture.create_from_image(Image.create_from_data(w, h, false, Image.FORMAT_RG8, texels))
+		if tex == null:
+			push_warning("map: no %s (run tools/setup_map.sh)" % name)
+			continue
+		for m: ShaderMaterial in map_maps[name]["materials"]:
+			m.set_shader_parameter(name, tex)
+		if name == "light_map":
+			light_texture = tex as ImageTexture
 
 
 ## Sodium (true) or LED (false) light at a point of the light map.
@@ -4250,6 +4282,40 @@ func _make_shared() -> void:
 	_box(lamp, Vector3(0.6, 6.95, 0), Vector3(1.3, 0.1, 0.12), grey)
 	_box(lamp, Vector3(1.2, 6.85, 0), Vector3(0.55, 0.16, 0.3), LAMP_HEAD)
 	_shared["lamp"] = _mark_head(lamp.commit())
+	# The landmarks loop (street furniture): the Royal Route's and the Old Town's cast-iron
+	# lantern, a dark green post with a fluted foot, a collar and a four-sided lantern under a
+	# cap and finial. The pole stands on the spot; the lantern is LANTERN_HEAD up.
+	var lantern := SurfaceTool.new()
+	lantern.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var iron := Color("#283029")
+	_box(lantern, Vector3(0, 0.3, 0), Vector3(0.42, 0.6, 0.42), iron)
+	_box(lantern, Vector3(0, 0.66, 0), Vector3(0.3, 0.12, 0.3), iron)
+	_box(lantern, Vector3(0, 2.3, 0), Vector3(0.13, 3.2, 0.13), iron)
+	_box(lantern, Vector3(0, 3.92, 0), Vector3(0.3, 0.1, 0.3), iron)
+	_box(lantern, Vector3(0, 4.0, 0), Vector3(0.24, 0.08, 0.24), iron)
+	_box(lantern, LANTERN_HEAD, Vector3(0.44, 0.6, 0.44), LAMP_HEAD)
+	for c in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
+		_box(lantern, LANTERN_HEAD + Vector3(c.x * 0.22, 0, c.y * 0.22), Vector3(0.05, 0.62, 0.05), iron)
+	_box(lantern, LANTERN_HEAD + Vector3(0, 0.34, 0), Vector3(0.58, 0.08, 0.58), iron)
+	_box(lantern, LANTERN_HEAD + Vector3(0, 0.45, 0), Vector3(0.34, 0.14, 0.34), iron)
+	_box(lantern, LANTERN_HEAD + Vector3(0, 0.62, 0), Vector3(0.06, 0.22, 0.06), iron)
+	_shared["lantern"] = _mark_head(lantern.commit())
+	# Plac Konstytucji's candelabras (MDM, 1952): a stone plinth, a tall iron column and three
+	# lanterns, two on a crossarm and one on top. The pole stands on the spot.
+	var candelabra := SurfaceTool.new()
+	candelabra.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_box(candelabra, Vector3(0, 0.5, 0), Vector3(1.0, 1.0, 1.0), Color("#a59b88"))
+	_box(candelabra, Vector3(0, 1.1, 0), Vector3(0.6, 0.2, 0.6), iron)
+	_box(candelabra, Vector3(0, 4.2, 0), Vector3(0.24, 6.0, 0.24), iron)
+	_box(candelabra, Vector3(0, 7.2, 0), Vector3(2.1, 0.14, 0.16), iron)
+	for x in [-1.0, 1.0]:
+		_box(candelabra, Vector3(x, 7.4, 0), Vector3(0.08, 0.3, 0.08), iron)
+	_box(candelabra, Vector3(0, 7.7, 0), Vector3(0.1, 0.9, 0.1), iron)
+	for c: Vector3 in [Vector3(-1.0, 7.9, 0), Vector3(1.0, 7.9, 0), CANDELABRA_HEAD]:
+		_box(candelabra, c, Vector3(0.5, 0.7, 0.5), LAMP_HEAD)
+		_box(candelabra, c + Vector3(0, 0.4, 0), Vector3(0.62, 0.1, 0.62), iron)
+		_box(candelabra, c + Vector3(0, 0.55, 0), Vector3(0.08, 0.22, 0.08), iron)
+	_shared["candelabra"] = _mark_head(candelabra.commit())
 	var fixture := ShaderMaterial.new()
 	fixture.shader = load("res://shaders/fixture.gdshader")
 	_shared["fixture"] = fixture
@@ -4459,11 +4525,24 @@ func _build_street_furniture() -> void:
 	var metal: Material = _shared["metal"]
 	var spots: Array[Transform3D] = []
 	var glows: Array[Color] = []
+	var lanterns: Array[Transform3D] = []
+	var lantern_glows: Array[Color] = []
+	var royal := _royal_segments()
+	var candelabras: Array[Transform3D] = []
+	var candelabra_glows: Array[Color] = []
 	var list: Array = data.get("lamps", [])
 	for i in range(0, list.size() - 1, 2):
 		var x := float(list[i])
 		var z := float(list[i + 1])
 		var t := Transform3D(Basis(Vector3.UP, fposmod(x * 0.37 + z * 0.11, TAU)), Vector3(x, terrain_height(x, z), z))
+		if Vector2(x, z).distance_to(Vector2(CANDELABRAS.x, CANDELABRAS.y)) < CANDELABRAS.z:
+			candelabras.append(t)
+			candelabra_glows.append(SODIUM_GLOW)
+			continue
+		if _on_royal_route(x, z, royal):
+			lanterns.append(t)
+			lantern_glows.append(SODIUM_GLOW if _sodium_at(x, z) else LED_GLOW)
+			continue
 		spots.append(t)
 		var head := t * Vector3(1.2, 0.0, 0.0)
 		glows.append(SODIUM_GLOW if _sodium_at(head.x, head.z) else LED_GLOW)
@@ -4479,7 +4558,20 @@ func _build_street_furniture() -> void:
 	var none: Array[Color] = []
 	for mmi in _tree_multimesh(_shared["lamp"], _shared["fixture"], spots, none, glows):
 		mmi.add_to_group(SMALL_CASTERS, true)
-	_build_lamp_halos(spots, glows)
+	for mmi in _tree_multimesh(_shared["lantern"], _shared["fixture"], lanterns, none, lantern_glows):
+		mmi.add_to_group(SMALL_CASTERS, true)
+	for mmi in _tree_multimesh(_shared["candelabra"], _shared["fixture"], candelabras, none, candelabra_glows):
+		mmi.add_to_group(SMALL_CASTERS, true)
+	var heads: Array[Transform3D] = []
+	for t in spots:
+		heads.append(Transform3D(Basis(), t * Vector3(1.2, 6.78, 0.0)))
+	for t in lanterns:
+		heads.append(Transform3D(Basis(), t * LANTERN_HEAD))
+	for t in candelabras:
+		heads.append(Transform3D(Basis(), t * Vector3(0, 7.9, 0)))
+	glows.append_array(lantern_glows)
+	glows.append_array(candelabra_glows)
+	_build_lamp_halos(heads, glows)
 
 	spots = []
 	list = data.get("signals", [])
@@ -4522,6 +4614,45 @@ const SODIUM_GLOW := Color(1.0, 0.45, 0.12, 0.6)
 const LED_GLOW := Color(0.72, 0.82, 1.0, 0.5)
 
 
+## The landmarks loop (street furniture): the historic lantern's glass centre above its spot.
+const LANTERN_HEAD := Vector3(0, 4.38, 0)
+## Streets whose lamps are the historic lanterns (the Royal Route and round the Old Town),
+## within ROYAL_REACH metres of the carriageway's edge; and the Old Town itself, a circle.
+const ROYAL_STREETS := ["Krakowskie Przedmieście", "Nowy Świat", "Senatorska", "Miodowa", "Podwale",
+		"Kozia", "Brzozowa"]
+const ROYAL_REACH := 8.0
+const OLD_TOWN := Vector3(-760.0, -1680.0, 190.0)
+## Plac Konstytucji (x, z, radius): its lamps are MDM's candelabras, three lanterns each.
+const CANDELABRAS := Vector3(-533.8, 1282.4, 75.0)
+const CANDELABRA_HEAD := Vector3(0, 8.5, 0)
+
+
+## The named Royal Route streets' segments in this map or sector: [a, b, half width + reach].
+func _royal_segments() -> Array:
+	var out := []
+	for r in data.get("roads", []):
+		if not ROYAL_STREETS.has(r.get("name", "")):
+			continue
+		var p: Array = r["p"]
+		var reach := float(r.get("w", 6.0)) * 0.5 + ROYAL_REACH
+		for i in range(0, p.size() - 3, 2):
+			out.append([Vector2(float(p[i]), float(p[i + 1])), Vector2(float(p[i + 2]), float(p[i + 3])), reach])
+	return out
+
+
+## Whether a lamp at (x, z) is one of the historic lanterns.
+func _on_royal_route(x: float, z: float, royal: Array) -> bool:
+	var at := Vector2(x, z)
+	if at.distance_to(Vector2(OLD_TOWN.x, OLD_TOWN.y)) < OLD_TOWN.z:
+		return true
+	for s in royal:
+		if absf(at.x - s[0].x) > 100.0 or absf(at.y - s[0].y) > 100.0:
+			continue
+		if Geometry2D.get_closest_point_to_segment(at, s[0], s[1]).distance_to(at) < float(s[2]):
+			return true
+	return false
+
+
 ## Marks the lamp head's vertices (its colour) with UV.x = 1, so fixture.gdshader
 ## knows what glows.
 func _mark_head(mesh: ArrayMesh) -> ArrayMesh:
@@ -4544,17 +4675,14 @@ func _mark_glow(mesh: ArrayMesh, glowing: Array) -> ArrayMesh:
 	return out
 
 
-## A soft glow round every lamp head (glow.gdshader, billboards), under a "LampHalos"
-## node the game shows only when the lights are on.
-func _build_lamp_halos(spots: Array[Transform3D], glows: Array[Color]) -> void:
+## A soft glow round every lamp head (glow.gdshader, billboards; `heads` in world space),
+## under a "LampHalos" node the game shows only when the lights are on.
+func _build_lamp_halos(heads: Array[Transform3D], glows: Array[Color]) -> void:
 	var holder := Node3D.new()
 	holder.name = "LampHalos"
 	# Loop 3c: in the group main.gd shows at night, so every sector's halos follow the lights.
 	holder.add_to_group("night_lights", true)
 	_out.add_child(holder)
-	var heads: Array[Transform3D] = []
-	for t in spots:
-		heads.append(Transform3D(Basis(), t * Vector3(1.2, 6.78, 0.0)))
 	var none: Array[Color] = []
 	_tree_multimesh(_shared["halo_quad"], _shared["halo"], heads, glows, none, holder)
 	for c in holder.get_children():

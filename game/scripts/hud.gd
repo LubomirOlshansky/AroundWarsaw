@@ -105,6 +105,7 @@ signal context_pressed(owner: String) # loop 2d-1: the context button, whoever s
 signal abort_pressed                  # the ✕ on the mission status
 signal challenge_pressed              # FLASH LIGHTS: challenge the rival in front
 signal radio_pressed                  # RADIO: next station or off
+signal radio_skip_pressed             # RADIO held RADIO_HOLD s: the station's next track
 signal tapped(at: Vector2)            # a short tap on the city, not on a control (v0.8: landmarks)
 signal perf_gesture                   # three fingers down at once: the performance overlay
 signal settings_pressed               # loop 2a: the gear
@@ -129,6 +130,13 @@ var _speed: Label
 var _speed_text := ""
 var _vehicle_button: Button
 var _radio_button: Button
+## Seconds RADIO is held before it skips to the station's next track (2026-10-30: the phone's
+## skip; a tap still changes the station). Long enough that a slow tap isn't a skip.
+const RADIO_HOLD := 0.5
+## When RADIO went down (ticks in ms; -1: up), and whether this press has skipped already (its
+## release is then not a station change).
+var _radio_down_ms := -1
+var _radio_skipped := false
 ## The context button in the middle of the top row (a rescue call that came in).
 var _pill: Button
 var _pill_t := 0.0
@@ -385,7 +393,14 @@ func _ready() -> void:
 		context_pressed.emit(pill_owner))
 	_pill.visible = false
 	_radio_button = _chip(self, "RADIO", "wył. · off")
-	_radio_button.pressed.connect(func(): radio_pressed.emit())
+	_radio_button.button_down.connect(func():
+		_radio_down_ms = Time.get_ticks_msec()
+		_radio_skipped = false)
+	_radio_button.button_up.connect(func(): _radio_down_ms = -1)
+	_radio_button.pressed.connect(func():
+		if not _radio_skipped:
+			radio_pressed.emit()
+		_radio_skipped = false)
 	_vehicle_button = _chip(self, "HELI", "helicopter")
 	_vehicle_button.pressed.connect(func(): vehicle_pressed.emit())
 
@@ -1306,6 +1321,14 @@ func set_minimap_dots(points: PackedVector2Array, colours: PackedColorArray) -> 
 
 # --- every frame -----------------------------------------------------------------------------
 
+## RADIO held RADIO_HOLD s skips once per press (called every frame with the time; a check can
+## call it with its own clock).
+func radio_hold_tick(now_ms: int) -> void:
+	if _radio_down_ms >= 0 and not _radio_skipped and now_ms - _radio_down_ms >= int(RADIO_HOLD * 1000.0):
+		_radio_skipped = true
+		radio_skip_pressed.emit()
+
+
 func _process(dt: float) -> void:
 	var t0 := Time.get_ticks_usec()
 	_frame(dt)
@@ -1313,6 +1336,7 @@ func _process(dt: float) -> void:
 
 
 func _frame(dt: float) -> void:
+	radio_hold_tick(Time.get_ticks_msec())
 	if _toast_left > 0.0:
 		_toast_left -= dt
 		_toast_box.modulate.a = clampf(_toast_left / 0.6, 0.0, 1.0)

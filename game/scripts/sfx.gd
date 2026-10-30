@@ -92,6 +92,10 @@ var _wash: AudioStreamPlayer
 var _wash_t := 0.0
 ## Guard rails on a 4 m grid (data["guards"]): a hit there clangs.
 var _rails := {}
+## Loop MW-5: seconds left of the softer engine (the 02:00 beat on Plac Trzech Krzyży).
+var _soft_t := 0.0
+## Loop MW-5: the engine's level while softened (×0.45, about -7 dB).
+const ENGINE_SOFT := 0.45
 
 
 ## Loop 2a: the player's volumes (Settings → Sound) as dB on top of the bus levels.
@@ -188,6 +192,7 @@ func _process(dt: float) -> void:
 	_hit_wait -= dt
 	_horn_wait -= dt
 	_jar_wait -= dt
+	_soft_t = maxf(0.0, _soft_t - dt)
 	_listener.global_transform = Transform3D(Basis(Vector3.UP, deg_to_rad(yaw)), focus + Vector3.UP * LISTENER_UP)
 	var wet: float = weather.wet if weather != null else 0.0
 	var raining: float = weather.amount if weather != null else 0.0
@@ -242,7 +247,7 @@ func _engine(dt: float, wet: float) -> void:
 	var w_idle := clampf((1500.0 - _rpm) / 650.0, 0.0, 1.0)
 	var w_high := clampf((_rpm - 3100.0) / 1100.0, 0.0, 1.0)
 	var w_mid := clampf(1.0 - w_idle - w_high, 0.0, 1.0)
-	var level := (0.5 + 0.5 * _load) * (0.45 if _dip > 0.0 else 1.0) * float(on)
+	var level := (0.5 + 0.5 * _load) * (0.45 if _dip > 0.0 else 1.0) * float(on) * (ENGINE_SOFT if _soft_t > 0.0 else 1.0)
 	var names := ["engine_idle", "engine_mid", "engine_high"]
 	var weights := [w_idle, w_mid, w_high]
 	for k in 3:
@@ -292,6 +297,15 @@ func _events(dt: float, daylight: float, raining: float) -> void:
 		_event_wait = _rng.randf_range(45.0, 110.0)
 	else:
 		_event_wait = 10.0
+
+
+## Loop MW-5: the engine's sound softer for `seconds` (the 02:00 beat; city_sounds.gd).
+func soften_engine(seconds: float) -> void:
+	_soft_t = maxf(_soft_t, seconds)
+
+
+func engine_softened() -> bool:
+	return _soft_t > 0.0
 
 
 ## The player's car hit something at `speed` m/s (car.gd, where the haptics are).

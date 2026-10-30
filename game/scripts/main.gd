@@ -11,7 +11,7 @@ extends Node
 ## city empty, --race=N races rival N at once, --rival=N puts rival N just ahead,
 ## --bench drives through the traffic and prints the average frame time,
 ## --time=day|dusk|night sets the time of day, --vhs turns the tape overlay on,
-## --radio=0..3 picks the station (0 = off), --notitle skips the title screen and
+## --radio=0..4 picks the station (0 = off; loop MW-5: --station=polnoc by name), --notitle skips the title screen and
 ## --title shows it even with the testing flags. Side jobs and easter eggs (v0.65):
 ## --kebab=N starts kebab order N, --sloik[=K] the słoiki run (K jars already
 ## broken), --heat=X the kebab's starting heat, --host-in=S the radio host's first
@@ -67,6 +67,8 @@ const Eggs := preload("res://scripts/eggs.gd")
 ## Loop MW-1: MOJA WARSZAWA, the city notebook.
 const Notebook := preload("res://scripts/notebook.gd")
 const Sfx := preload("res://scripts/sfx.gd")
+## Loop MW-5: the city's sounds at the notebook's places.
+const CitySounds := preload("res://scripts/city_sounds.gd")
 const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
 const FollowCamera := preload("res://scripts/follow_camera.gd")
@@ -193,6 +195,9 @@ var follow := true
 var cam_focus := Vector3.ZERO
 var demo := false
 var shots: Array[int] = []
+## The shots saved so far: the frames of `shots` that reached their PNG (a run that ends
+## without one says so in _exit_tree).
+var _shots_saved: Array[int] = []
 var out_dir := "user://"
 var frame := 0
 var start_at := Vector3.INF
@@ -256,6 +261,15 @@ var notebook_open := ""
 var found_spec := ""
 var place_flag := ""
 var notes_log := false
+## Loop MW-5: PÓŁNOC FM's flags: --station=<id|name|N> (a station by id, short id or name),
+## --radio-log (the radio's and the city sounds' log), --unlock=all|N[,N] (all tracks for this
+## run, or open track N as an egg would); `radio_picked`: --radio= or --station= was given (the
+## radio then doesn't follow the clock).
+var station_flag := ""
+var radio_log := false
+var unlock_flag := ""
+var radio_picked := false
+var city_sounds: CitySounds
 var start_kebab := -1
 var start_sloik := -1
 var start_heat := -1.0
@@ -465,12 +479,24 @@ func _ready() -> void:
 	# Loop 2a: the radio keeps playing under the settings panel (the game is paused).
 	radio.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(radio)
-	radio.tune(start_station - 1, true)
+	radio.log_on = radio_log
 	wallet = Wallet.new()
 	wallet.persistent = not no_save
 	add_child(wallet)
 	if reset_save:
 		wallet.reset()
+	# Loop MW-5: PÓŁNOC FM's locked tracks read the save; chapters finished before this loop
+	# open their tracks once, quietly. --station= by name; --radio= now reaches every station.
+	radio.wallet = wallet
+	radio.unlock_all = unlock_flag == "all"
+	radio.sync_chapters()
+	radio.picked = radio_picked
+	var start_index := mini(start_station, radio.stations.size()) - 1
+	if station_flag != "":
+		start_index = radio.station_index(station_flag)
+		if start_index < 0:
+			push_warning("--station=%s: no such station in radio.json" % station_flag)
+	radio.tune(start_index, true)
 	print("save: %s (%s)" % [wallet.summary(), ProjectSettings.globalize_path(Wallet.PATH) if not no_save else "not saved"])
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -500,10 +526,20 @@ func _ready() -> void:
 		title.set_ready()
 	else:
 		radio.now_playing()
+		_fallback_toast()
 	_started = true
 
 
 func _exit_tree() -> void:
+	# A shots run that ends before its last shot (--quit-after, a closed window) says which
+	# frames are missing and where it was, instead of ending quietly after "city built".
+	var missing: Array[int] = []
+	for n in shots:
+		if n not in _shots_saved:
+			missing.append(n)
+	if not missing.is_empty():
+		print("shots: missing %s (game frame %d, engine frame %d, paused %s, started %s)" % [
+				missing, frame, Engine.get_process_frames(), get_tree().paused, _started])
 	if _stats != null:
 		_stats.unhook()
 	if RenderingServer.frame_pre_draw.is_connected(_stress_wait):
@@ -515,6 +551,7 @@ func _on_title_dismissed() -> void:
 	dialogue.host_on = true
 	title = null
 	radio.now_playing()
+	_fallback_toast()
 	if cinematic_flyin:
 		_fly_in()
 
@@ -718,6 +755,7 @@ func _build_world() -> void:
 	# driving screen (Settings has them; the keys stay; zoom is a pinch, a twist turns a fixed
 	# camera).
 	hud.radio_pressed.connect(radio.next)
+	hud.radio_skip_pressed.connect(radio.next_track)
 	hud.perf_gesture.connect(func(): _set_perf(not show_perf); settings.perf = show_perf; settings.save())
 	radio.station_changed.connect(func(_i: int, _s: Dictionary): hud.set_radio_name(radio.label()))
 	radio.ticker.connect(hud.ticker)
@@ -765,6 +803,13 @@ func _build_world() -> void:
 	if graph != null:
 		_build_side_jobs(data, world)
 	_build_notebook(data)
+	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
+	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
+		var t := Radio.unlock_toast(String(track["title"]))
+		hud.toast(t[0], t[1]))
+	if unlock_flag != "" and unlock_flag != "all":
+		for n in unlock_flag.split(",", false):
+			radio.unlock_track(int(n), "flag")
 	if lineup:
 		_build_lineup(world)
 	if start_flying:
@@ -807,6 +852,11 @@ func _build_world() -> void:
 	_apply_style()
 	_show_night_nodes(false)
 	tod.set_mode(start_time, true)
+	# Loop MW-5: PÓŁNOC FM reads the game clock; the radio follows it until the player picks.
+	radio.clock = func() -> Array:
+		var c := tod.local_clock()
+		return [TimeOfDay.NAMES[tod.mode], c["hour"]]
+	radio.check_air(true)
 	weather.set_state(start_weather, true)
 	_set_vhs(vhs)
 	_set_perf(show_perf)
@@ -920,6 +970,18 @@ func _build_sound(data: Dictionary, world: Node3D) -> void:
 		eggs.flushed.connect(sfx.pigeons)
 	if jobs != null:
 		jobs.jars.connect(sfx.jars)
+	# Loop MW-5: the city's sounds at the notebook's places (the clubs, the metro, the bells, the
+	# busker, the 02:00 beat), heard by sfx.gd's listener.
+	if notes != null and notes.ready_ok:
+		city_sounds = CitySounds.new()
+		city_sounds.name = "CitySounds"
+		city_sounds.log_on = radio_log
+		city_sounds.radio = radio
+		city_sounds.sfx = sfx
+		world.add_child(city_sounds)
+		city_sounds.setup(notes.places, func(x: float, z: float) -> float: return map.ground_height(x, z))
+		city_sounds.clock = tod.local_clock
+		city_sounds.ear = func() -> Vector3: return cam_focus
 	if sound_check:
 		missions.close()
 		sfx.sound_check()
@@ -1021,6 +1083,25 @@ func _image_mode() -> String:
 	if not Tiers.budget_binds(screen, STYLES[style_index]["lines"], quality):
 		return ""
 	return "sharp" if auto_sharp else "fallback"
+
+
+## 2026-10-30: the first launch at Auto's fallback says so once, with a toast when the city
+## shows (the Obraz tab's `auto · High ×2` and the `quality:` line said it before, nothing on
+## the driving screen). `told` goes into the saved state at once, so the next launch at the
+## fallback stays quiet even if this session never reaches its verdict.
+func _fallback_toast() -> void:
+	if _image_mode() != "fallback" or bool(auto_image["told"]) or not shots.is_empty():
+		return  # screenshots stay clean
+	# Two frames on: the first frame after the build has the build's whole time as its delta,
+	# which would use up the toast's seconds at once.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	hud.toast("Obraz prostszy, żeby było płynnie", "A coarser picture for a smoother ride · Settings → Obraz")
+	print("quality: the fallback's toast shown")
+	auto_image["told"] = true
+	if _image_write and settings.persistent:
+		settings.auto_image["told"] = true
+		settings.save()
 
 
 ## The session struggled or was calm at Auto's image: the state the next launch starts from
@@ -1335,6 +1416,9 @@ func _build_notebook(data: Dictionary) -> void:
 	hud.settings_panel.notebook = notes
 	if found_spec != "":
 		notes.preset(found_spec)
+	# Loop MW-5: a chapter finished opens the next PÓŁNOC FM track (and --found= presets do too).
+	radio.sync_chapters()
+	notes.chapter_done.connect(func(_id: String) -> void: radio.sync_chapters())
 	notes.probe = func() -> Array:
 		# Not on the title screen or during TEST · BENCH (its wallet is put back after); --bench's
 		# route does find places, so its scripts' time includes the checks.
@@ -1476,6 +1560,10 @@ func _parse_args() -> void:
 		elif arg.begins_with("--shots="):
 			for s in arg.trim_prefix("--shots=").split(","):
 				shots.append(int(s))
+			# A shots run is a scripted render: its window never takes the keyboard focus, as with
+			# --no-input (night --nohud shots had come out in the helicopter or at dusk: keys typed
+			# in another app landed in the freshly opened game window).
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
 		elif arg.begins_with("--out="):
 			out_dir = arg.trim_prefix("--out=")
 		elif arg.begins_with("--style="):
@@ -1564,7 +1652,16 @@ func _parse_args() -> void:
 			call_in = maxf(0.0, float(arg.trim_prefix("--call-in=")))
 		elif arg.begins_with("--radio="):
 			var v := arg.trim_prefix("--radio=")
-			start_station = 0 if v == "off" else clampi(int(v), 0, Radio.STATIONS.size())
+			# Loop MW-5: clamped to radio.json's stations when the radio is tuned (_ready).
+			start_station = 0 if v == "off" else clampi(int(v), 0, 99)
+			radio_picked = true
+		elif arg.begins_with("--station="):
+			station_flag = arg.trim_prefix("--station=")
+			radio_picked = true
+		elif arg == "--radio-log":
+			radio_log = true
+		elif arg.begins_with("--unlock="):
+			unlock_flag = arg.trim_prefix("--unlock=")
 		elif arg == "--notitle":
 			show_title = false
 		elif arg == "--title":
@@ -2755,6 +2852,8 @@ func _make_stats() -> BenchStats:
 		b.systems["rides physics"] = [rides, "spent_usec", true]  # loop 2d-1
 	if notes != null:
 		b.systems["notebook"] = [notes, "spent_usec", true]  # loop MW-1
+	if city_sounds != null:
+		b.systems["city sounds"] = [city_sounds, "spent_usec", true]  # loop MW-5
 	b.systems["sound"] = [sfx, "last_usec", false]
 	b.systems["hud+minimap"] = [hud, "spent_usec", true]
 	b.systems["bubbles"] = [bubbles, "spent_usec", true]
@@ -3333,7 +3432,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_blip_sound()
 				tod.next()
 			KEY_R:
-				radio.next()
+				# Shift+R skips to the station's next track (2026-10-30: radio.next_track() had no control).
+				if key.shift_pressed:
+					radio.next_track()
+				else:
+					radio.next()
 			KEY_V:
 				_blip_sound()
 				_set_vhs(not vhs)
@@ -3463,6 +3566,7 @@ func _capture(n: int) -> void:
 		print("ghost: frame %d centre %.1f %.1f radii %.1f %.1f (screen px)" % [n, _ghost_px.x, _ghost_px.y, _ghost_px.z, _ghost_px.w])
 	var img := get_viewport().get_texture().get_image()
 	img.save_png(out_dir.path_join("shot_%04d.png" % n))
+	_shots_saved.append(n)
 	if n == shots.max():
 		_quit_quietly()  # sweep 2: was get_tree().quit()
 

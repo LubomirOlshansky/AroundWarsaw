@@ -115,6 +115,7 @@ func open(world: Node3D, use_prebuilt: bool, building_mat: ShaderMaterial, flat_
 	prebuilt = use_prebuilt and ResourceLoader.exists(INDEX_SCENE)
 	if prebuilt:
 		map = (load(INDEX_SCENE) as PackedScene).instantiate()
+		map.attach_maps()  # the web's first download: the AO and lamp-light maps
 	else:
 		map = MapBuilder.new()
 		var index: Variant = JSON.parse_string(FileAccess.get_file_as_string(INDEX_JSON))
@@ -185,6 +186,7 @@ static func open_whole(parent: Node, use_prebuilt: bool) -> Node3D:
 	var keys: Array[Vector2i] = []
 	if use_prebuilt:
 		map = (load(INDEX_SCENE) as PackedScene).instantiate()
+		map.attach_maps()
 		parent.add_child(map)
 	else:
 		map = MapBuilder.new()

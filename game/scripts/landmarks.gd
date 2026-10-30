@@ -174,9 +174,57 @@ const INFO := {
 	"platinum_b": ["Platinum Tower B", "83 m.", "83 m."],
 	"lucka": ["Łucka City", "103 m przy Łuckiej.", "103 m on Łucka."],
 	"widok": ["Widok Towers", "95 m przy Alejach Jerozolimskich.", "95 m on Al. Jerozolimskie."],
+	"teatr": ["Teatr Wielki",
+			"Opera Narodowa. Gmach Antonia Corazziego z 1833 roku.",
+			"The National Opera. Antonio Corazzi's building of 1833."],
+	"kopernik": ["Centrum Nauki Kopernik",
+			"Centrum nauki otwarte w 2010 roku. Na dachu ogród.",
+			"A science centre, opened in 2010. A garden on its roof."],
+	"buw": ["Biblioteka Uniwersytecka",
+			"Zielona miedź na ścianach, ogród na dachu.",
+			"Green copper on its walls, a garden on its roof."],
+	"zamek": ["Zamek Królewski",
+			"Zniszczony w 1944 roku, odbudowany w latach 1971–1984.",
+			"Destroyed in 1944, rebuilt in 1971–1984."],
+	"barbakan": ["Barbakan",
+			"Ceglana brama dawnych murów miejskich, odbudowana po wojnie.",
+			"A brick gate of the old city walls, rebuilt after the war."],
+	"archikatedra": ["Archikatedra św. Jana",
+			"Gotycki kościół z cegły na Starym Mieście.",
+			"A Gothic brick church in the Old Town."],
+	"sw_anna": ["Kościół Świętej Anny",
+			"Na początku Krakowskiego Przedmieścia.",
+			"Where Krakowskie Przedmieście begins."],
+	"prezydencki": ["Pałac Prezydencki",
+			"Na Krakowskim Przedmieściu.",
+			"On Krakowskie Przedmieście."],
+	"sw_krzyz": ["Kościół Świętego Krzyża",
+			"W filarze kościoła spoczywa serce Chopina.",
+			"Chopin's heart rests in one of its pillars."],
+	"staszic": ["Pałac Staszica",
+			"Przed nim stoi pomnik Kopernika.",
+			"Copernicus's statue stands in front of it."],
+	"zacheta": ["Zachęta",
+			"Galeria sztuki w gmachu z 1900 roku.",
+			"An art gallery in a building of 1900."],
+	"wszystkich": ["Kościół Wszystkich Świętych",
+			"Przy placu Grzybowskim.",
+			"On Plac Grzybowski."],
+	"aleksander": ["Kościół Świętego Aleksandra",
+			"Rotunda na placu Trzech Krzyży.",
+			"The rotunda on Plac Trzech Krzyży."],
+	"mirowska": ["Hala Mirowska",
+			"Ceglana hala targowa.",
+			"A brick market hall."],
+	"sejm": ["Sejm RP",
+			"Przy Wiejskiej.",
+			"On Wiejska."],
 	"muzeum": ["Muzeum Narodowe",
 			"Gmach z lat 1927–1938 przy Alejach Jerozolimskich.",
 			"The museum's building of 1927–1938 on Al. Jerozolimskie."],
+	"mdm": ["MDM",
+			"Marszałkowska Dzielnica Mieszkaniowa, socrealizm z lat 1950–1952.",
+			"The socialist-realist housing district of 1950–1952."],
 }
 
 var map  # map_builder.gd: terrain, roof grid, wall faces
@@ -241,7 +289,9 @@ func skin_at(box: Rect2) -> Dictionary:
 	for s in sites:
 		if not s.has("skin") or not (s["box"] as Rect2).has_point(p):
 			continue
-		if (s["box"] as Rect2).encloses(box):
+		# One outline round courtyards (the museum): anything in its box. A site of many
+		# blocks (MDM): only what has its centre in one of them.
+		if s["zone"].size() == 1 and (s["box"] as Rect2).encloses(box):
 			return s["skin"]
 		for z: PackedVector2Array in s["zone"]:
 			if Geometry2D.is_point_in_polygon(p, z):
@@ -249,11 +299,15 @@ func skin_at(box: Rect2) -> Dictionary:
 	return {}
 
 
-## The landmarks loop: a tower's glass colour for the far skyline (sector_proxies.gd).
+## The landmarks loop: a tower's glass (or a low-rise landmark's wall) for the far skyline
+## (sector_proxies.gd).
 static func tower_colour(key: String, fallback: Color) -> Color:
 	for t: Dictionary in TOWERS:
 		if t["key"] == key:
 			return Color(t["glass"])
+	for t: Dictionary in SKINS:
+		if t["key"] == key:
+			return Color(t["wall"])
 	return fallback
 
 
@@ -361,6 +415,8 @@ func _find_sites() -> void:
 			if not sites.is_empty() and sites[-1]["key"] == t["key"]:
 				sites[-1]["tower"] = t
 	_find_muzeum()
+	_find_mdm()
+	_find_skins()
 
 
 ## Warszawa Centralna: OpenStreetMap maps the station in 3D (its outline sits underground):
@@ -1379,6 +1435,42 @@ func _sloped(poly: PackedVector2Array, y0: float, hi: float, lo: float, wall: Co
 	_mode = keep
 
 
+# --- the low-rise landmarks (the landmarks loop) -----------------------------------------------
+
+## Buildings kept as LoD2 draws them (their real massing) but in their own stone, brick and roof
+## colours (like the museum, `skin_at`), each with a card: what a player passes most, from the
+## theatre and the castle to the churches on the royal route. `mode` M_MONUMENT draws tall
+## windows between piers (plastered and stone fronts), M_STONE a plain wall (brick, the science
+## centre's dark slabs). Colours from photographs, a step paler than life.
+const SKINS := [
+	{"key": "teatr", "osm": "Teatr Wielki", "mode": M_MONUMENT, "wall": "#ddd2b6", "roof": "#7fa894"},
+	{"key": "kopernik", "osm": "Centrum Nauki Kopernik", "mode": M_STONE, "wall": "#5f5a54", "roof": "#6f9a4c"},
+	{"key": "buw", "osm": "Biblioteka Uniwersytecka", "mode": M_STONE, "wall": "#7f9e8a", "roof": "#6a9a52"},
+	{"key": "zamek", "osm": "Zamek Królewski", "mode": M_MONUMENT, "wall": "#c87560", "roof": "#6e5a4e"},
+	{"key": "barbakan", "osm": "Barbakan", "mode": M_STONE, "wall": "#ab5a42", "roof": "#6b4a3c"},
+	{"key": "archikatedra", "osm": "Archikatedra pw. Świętego Jana Chrzciciela", "mode": M_STONE, "wall": "#a2503c", "roof": "#7a3d30"},
+	{"key": "sw_anna", "osm": "Kościół pw. Świętej Anny", "mode": M_MONUMENT, "wall": "#e6dcc4", "roof": "#8a5a44"},
+	{"key": "prezydencki", "osm": "Pałac Prezydencki", "mode": M_MONUMENT, "wall": "#ece3cc", "roof": "#6a7a77"},
+	{"key": "sw_krzyz", "osm": "Kościół pw. Świętego Krzyża", "mode": M_MONUMENT, "wall": "#e3d9c0", "roof": "#5d6e64"},
+	{"key": "staszic", "osm": "Pałac Staszica", "mode": M_MONUMENT, "wall": "#e2d6b8", "roof": "#5f6f6a"},
+	{"key": "zacheta", "osm": "Zachęta", "mode": M_MONUMENT, "wall": "#d9b98c", "roof": "#7d7466"},
+	{"key": "wszystkich", "osm": "Kościół Wszystkich Świętych", "mode": M_MONUMENT, "wall": "#ddcfaa", "roof": "#6e7f6e"},
+	{"key": "aleksander", "osm": "Kościół Świętego Aleksandra", "mode": M_MONUMENT, "wall": "#ebe4d2", "roof": "#7f8f88"},
+	{"key": "mirowska", "osm": "Hala Mirowska", "mode": M_STONE, "wall": "#a85c40", "roof": "#6d7470"},
+	{"key": "sejm", "osm": "Sejm RP", "mode": M_MONUMENT, "wall": "#e2e0d8", "roof": "#8d8f8c"},
+]
+
+
+func _find_skins() -> void:
+	for t: Dictionary in SKINS:
+		var outline := _landmark(t["osm"])
+		if outline.size() < 3:
+			continue
+		_add_site(t["key"], [outline])
+		if not sites.is_empty() and sites[-1]["key"] == t["key"]:
+			sites[-1]["skin"] = {"mode": t["mode"], "wall": Color(t["wall"]), "roof": Color(t["roof"])}
+
+
 # --- Muzeum Narodowe (the landmarks loop) ------------------------------------------------------
 
 ## The museum's building (1927-1938) at the east end of Al. Jerozolimskie, mapped as one
@@ -1398,6 +1490,37 @@ func _find_muzeum() -> void:
 			if not sites.is_empty() and sites[-1]["key"] == "muzeum":
 				sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": MUZEUM_STONE, "roof": MUZEUM_ROOF}
 			return
+
+
+# --- MDM (the landmarks loop, street furniture) --------------------------------------------------
+
+## Marszałkowska Dzielnica Mieszkaniowa: the tall blocks round Plac Konstytucji (MDM_SQUARE,
+## within MDM_SQUARE_R) and along Marszałkowska to Plac Zbawiciela (within MDM_REACH of the
+## axis), kept as LoD2 draws them but in their pale sandstone with tall windows between piers
+## and grey sheet roofs; one card for the lot. The square's candelabras are map_builder's.
+const MDM_SQUARE := Vector2(-533.8, 1282.4)
+const MDM_SOUTH := Vector2(-413.9, 1565.2)
+const MDM_SQUARE_R := 95.0
+const MDM_REACH := 50.0
+const MDM_STONE := Color("#cdbfa3")
+const MDM_ROOF := Color("#7f7b74")
+func _find_mdm() -> void:
+	var zone: Array = []
+	for bld in data["buildings"]:
+		if float(bld["h"]) < 15.0 or str(bld.get("name", "")) != "":
+			continue
+		var q := _pts(bld["p"])
+		if q.size() < 4:
+			continue
+		var c := _box_of([q]).get_center()
+		var axis := Geometry2D.get_closest_point_to_segment(c, MDM_SQUARE, MDM_SOUTH)
+		if c.distance_to(MDM_SQUARE) < MDM_SQUARE_R or c.distance_to(axis) < MDM_REACH:
+			zone.append(q)
+	if zone.is_empty():
+		return
+	_add_site("mdm", zone)
+	if not sites.is_empty() and sites[-1]["key"] == "mdm":
+		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": MDM_STONE, "roof": MDM_ROOF}
 
 
 ## A kept building's site (the museum) on the picking grid: every cell whose centre is inside.
