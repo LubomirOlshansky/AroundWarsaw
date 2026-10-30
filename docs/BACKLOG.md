@@ -17,7 +17,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   blue D-15 sign). The Palace and the stadium were already detailed models and keep their look.
   **Second pass landed (2026-10-30)**: 9 more (Grzybowska 63, Jana Pawła II 21, Marszałkowska
   94/98: the hotels by their addresses; Central Tower, Ilmet, the Platinum Towers, Łucka City,
-  Widok Towers): 27 towers in all. **Left**: PZU Tower and JM Tower (oddly mapped) keep the
+  Widok Towers): 27 towers in all. **Third pass (2026-10-30)**: 15 low-rise landmarks
+  (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm, Zachęta…) in their real colours. **Left**: PZU Tower and JM Tower (oddly mapped) keep the
   generic glass, and any model the user names next (docs/QUESTIONS.md).
 
 ## From v0.6 (traffic, trams, pedestrians, rivals)
