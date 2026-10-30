@@ -901,6 +901,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
   and the escape came at 34.2 s. The test autopilot (`--police-auto=escape`) now rides a route to a
   node ~900 m away from the chaser (`police.gd` `_escape_route`): escaped after 23.2 s at L1.
 - `verify.sh` kebab: 15000 frames (order 0 goes 1,023 m on the demo map, delivered at 219.8 s).
+- **CI after the merge (2026-10-30)**: the map is no longer in git (lod2.bin alone is 87 MB), so
+  GitHub's `verify` job runs only the steps that need no map (steering, settings, tiers, governor,
+  hud, rides, sfx, radio, police); the map, road, drape and drive checks and the game runs stay on
+  the Mac. To bring them back: a release asset with the derived pack that CI downloads, or a small
+  test map. `shots.sh`'s `settings_panel` shot is MISSING (the paused game never reaches the shot
+  frame): a shot-script issue, not the map.
 
 ## From the radio playlists loop (2026-10-29)
 - Done: radio.json, shuffled playlists, `tools/add_music.py`, the radio check, README "Adding music",
