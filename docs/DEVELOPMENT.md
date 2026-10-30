@@ -3709,7 +3709,6 @@ Command-line options (after `--`):
 | `--radio-log` | loop MW-5: print `radio:` lines (tunes, track changes, host lines with the gap since the last, unlocks, PÓŁNOC FM on air / reruns) and the city sounds' `sounds:` lines (emitters on and off, chimes, tolls, the 02:00 beat) |
 | `--unlock=all\|N[,N]` | loop MW-5: every PÓŁNOC FM track for this run (nothing saved), or open track N as an egg would (toast, saved unless `--nosave`) |
 
-| `--radio=N` | radio station 1 to the last in `data/radio.json` (higher picks the last), or 0 / `off` (default 1) |
 | `--notitle` | skip the title screen (the testing flags `--demo --shots --autopilot --race --mission --rival --bench` skip it anyway) |
 | `--title` | show the title screen even with those flags (for screenshots) |
 | `--kebab=N` | put the car in a stand's ring and take kebab order N (the same N gives the same order; stand N mod 7) |
