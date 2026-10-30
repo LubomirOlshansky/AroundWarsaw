@@ -3644,8 +3644,30 @@ tools/export_web.sh --deploy   # also upload it (the user's yes first: it is pub
   slot, so traffic, pedestrians and the splash came out bright green. On that renderer those
   MultiMeshes carry white colours too and their 16-float buffers are widened to 20 floats when
   sent (traffic, pedestrians, splash); on Mobile (the phones) the helper passes straight through.
+- **Sectors on demand** (web loop 2): the 108 sector scenes (96 MB) are not in the web pack.
+  `game/tools/pack_sectors.gd` (run by the export script) makes each a pack of its own,
+  `sectors/s_<i>_<j>.<hash>.pck` (~0.9 MB), and `res://map/web_sectors.json` lists them with the
+  spawn. On the web `scripts/sector_packs.gd` downloads the sectors within the start's 320 m
+  (6, ~9 MB) while the title shows, then the streamer asks for each wanted sector's pack (nearest
+  first, 3 at a time) and loads it once it is mounted (`ProjectSettings.load_resource_pack`,
+  only while the streamer's worker is idle); a sector not in yet shows its proxy. The first
+  download is ~59 MB (engine 10, pack 40, start sectors 9) instead of ~141 MB. Other builds
+  never see any of it (`SectorPacks.active()` needs the `web` feature and the manifest).
+  HTTPRequest on the web reads one network chunk a frame, so a background tab (throttled to
+  ~1 fps) loads sectors slowly; in a visible tab the start's six took 0.15-0.3 s locally.
+- **Phones' browsers** (web loop 2): an iPhone's Safari closed the first version's page (the
+  whole 140 MB city in memory). Now a sector's pack file is deleted once its scene is loaded
+  (fetched again from the browser's cache if the sector comes back), and Auto picks **Low** on a
+  phone's browser (`web_ios`, `web_android` features; main.gd `_load_settings`). The pigeons'
+  and the meeting point's crowd were green on the Compatibility renderer too (instance-by-
+  instance MultiMeshes): `InstanceBuffers.whiten`.
+- **Loading screen**: `tools/web/loading.css` (night colours, a pink bar, the title) and the
+  loader's label "Ładujemy miasto · Loading the city, N / 50 MB" from the parts' gzipped sizes.
 - **What the browser test covered** (Chrome in the desktop app's browser pane): the title, the
   fly-in, the prebuilt city, traffic colours, keyboard driving (WASD), the touch stick from
-  synthetic touch events at 844×390. Not covered: a real phone's browser (iOS Safari's memory
+  synthetic touch events at 844×390. Web loop 2, with Playwright 1.63 on the Mac
+  (`chromium` and `webkit` with the "iPhone 15 Pro landscape" device): the city built 5-6 s
+  after opening locally, tap to start, WASD, the sectors streaming as the car moves, the loading
+  screen on a throttled 40 Mbit/s link. Not covered: a real phone's browser (iOS Safari's memory
   with a 140 MB pack, the safe area: `OS.has_feature("mobile")` is false on the web), frame rate
   on a weak laptop, Firefox.

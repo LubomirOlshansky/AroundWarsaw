@@ -476,6 +476,12 @@ func _ready() -> void:
 	await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
 	_place_start()  # loop MW-1: --place=<id>, the sectors round the place
+	# The web loop 2: the web build downloads its sectors (sector_packs.gd), the start's first.
+	if SectorPacks.active() and not monolithic:
+		_packs = SectorPacks.new()
+		_packs.name = "SectorPacks"
+		add_child(_packs)
+		await _packs.fetch_start(start_at, SectorStreamer.START_REACH, SectorStreamer.SECTOR)
 	var no_map := _missing_map()
 	if no_map != "":
 		# Loop 3d-1: the split and the prebuilt sectors are not committed; a fresh clone makes
@@ -1678,6 +1684,10 @@ func _load_settings() -> void:
 	settings.load_file()
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
 	auto_quality = Tiers.for_model(model_name)
+	# The web loop 2: a phone's browser has a fraction of the app's memory and GPU time (Safari
+	# closed the page on an iPhone): Auto picks Low there.
+	if OS.has_feature("web_ios") or OS.has_feature("web_android"):
+		auto_quality = Tiers.LOW
 	quality_choice = _flag_quality if _flag_quality != -2 else settings.quality
 	quality = auto_quality if quality_choice == Tiers.AUTO else quality_choice
 	print("quality: %s · Auto picks %s for %s" % [Tiers.describe(quality_choice, quality, model_name),
@@ -3462,7 +3472,10 @@ func _quit_quietly() -> void:
 # third; then the streaming numbers, and the game quits).
 
 const SectorStreamer := preload("res://scripts/sector_streamer.gd")
+const SectorPacks := preload("res://scripts/sector_packs.gd")
 var streamer: SectorStreamer
+## The web loop 2: the web build's sector downloads (sector_packs.gd); null elsewhere.
+var _packs: SectorPacks
 var monolithic := false
 var _sectors_all := false
 var _sectors_proxies := false
@@ -3515,6 +3528,7 @@ func _open_streamed_city(world: Node3D, flat_mat: ShaderMaterial) -> Dictionary:
 	streamer.load_all = _sectors_all
 	streamer.proxies_only = _sectors_proxies
 	streamer.log = _stream_log
+	streamer.packs = _packs
 	add_child(streamer)
 	streamer.sector_ready.connect(_on_sector_ready)
 	var use_prebuilt := prebuilt or not OS.has_feature("editor")
