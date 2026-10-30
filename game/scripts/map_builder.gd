@@ -94,6 +94,10 @@ var data: Dictionary
 ## the game hands them to the vehicles' material too.
 @export_storage var light_texture: ImageTexture
 @export_storage var light_rect := Vector4(0, 0, 1, 1)
+## The web's first download (2026-10-30), the prebuilt city: the maps attach_maps puts on their
+## materials when the city opens, by name ("ao_map", "light_map"): {materials: the
+## ShaderMaterials that read it} (tools/bake_city.gd _detach_maps).
+@export_storage var map_maps := {}
 ## v0.9: the surface map (tools/bake_water.py): distance to the shore, the river's
 ## flow, what reflects, bridge-deck heights; the ground shader and the post pass read it.
 @export_storage var water_texture: ImageTexture
@@ -569,6 +573,34 @@ func _apply_lights(material: Material) -> void:
 	if light_texture != null and material is ShaderMaterial:
 		(material as ShaderMaterial).set_shader_parameter("light_map", light_texture)
 		(material as ShaderMaterial).set_shader_parameter("light_rect", light_rect)
+
+
+## The web's first download (2026-10-30): the prebuilt city's AO and lamp-light maps, put on
+## their materials when it opens. map/shared/<name>.res (an RG8 ImageTexture) where the export
+## has it (the phones, desktops); else map/shared/<name>.zst, the same RG8 texels as one zstd
+## stream (the web: 8.3 + 2.8 MB instead of the .res files' 13.8 + 5.0, whose compression works in
+## 4 KB blocks), unpacked here in ~0.3 s. Header: u32 width, u32 height, then the zstd data.
+func attach_maps() -> void:
+	for name: String in map_maps:
+		var tex: Texture2D = null
+		var res := "res://map/shared/%s.res" % name
+		var zst := "res://map/shared/%s.zst" % name
+		if ResourceLoader.exists(res):
+			tex = load(res)
+		elif FileAccess.file_exists(zst):
+			var bytes := FileAccess.get_file_as_bytes(zst)
+			var w := bytes.decode_u32(0)
+			var h := bytes.decode_u32(4)
+			var texels := bytes.slice(8).decompress(w * h * 2, FileAccess.COMPRESSION_ZSTD)
+			if texels.size() == w * h * 2:
+				tex = ImageTexture.create_from_image(Image.create_from_data(w, h, false, Image.FORMAT_RG8, texels))
+		if tex == null:
+			push_warning("map: no %s (run tools/setup_map.sh)" % name)
+			continue
+		for m: ShaderMaterial in map_maps[name]["materials"]:
+			m.set_shader_parameter(name, tex)
+		if name == "light_map":
+			light_texture = tex as ImageTexture
 
 
 ## Sodium (true) or LED (false) light at a point of the light map.

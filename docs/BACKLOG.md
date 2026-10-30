@@ -1115,6 +1115,16 @@ Small problems that agents reported or that showed up in screenshots. They are f
     2 m (lamp pools are 12–15 m wide, but they stop at walls at 1 m), or AO and lights to ASTC
     4×4 at bake time (half the size, lossy). Both change the look a little: the visual lane's
     call with shots. The surface map holds data (deck heights, flow angle) and must stay exact.
+    **Tried 2026-10-30 (performance lane), held back for one phone bench**: AO and lights imported
+    VRAM-compressed (EAC RG11 on the phones, BC5 on desktops, a byte a texel instead of RG8's two),
+    attached when the prebuilt city opens (the phones take the imports, the web keeps the RG8 .res:
+    both formats in its pack would be +62 MB in the browser's memory). The code is on branch
+    `claude/project-thread-ldyr9u` at 70faaca (with f613944), reverted before landing. On the Mac:
+    the look is the same (by day 0 pixels differ by more than 8; at night 0.75 %, one-pixel
+    outlines on the lamp pools' band edges), "textures" 138 → 96 MB, but "video" 393 → 416 MB:
+    the first VRAM-compressed texture brings a one-time +65 MB of other video memory (the same
+    for one map as for two; three runs each, identical). Only the phone's BENCH card can say
+    whether the iPhone pays that too (−42 MB if not, +23 MB if so): QUESTIONS.md.
   - Side jobs hold 17 MB at start (rides 7.5): look for whole-map tables built from the index.
 
 ## From the driving-feel loop (less sticky, 2026-10-30)
