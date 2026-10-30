@@ -65,6 +65,9 @@ need) and the orchestrator sends the cheap `scout`.
 
 Take the safe, reversible default and list it under Open Questions with the alternative.
 
+In backlog mode a block never ends the run: stop that item, say exactly why, and go on to
+the next item in the brief. The orchestrator parks your Open Questions in `docs/QUESTIONS.md`.
+
 ## Report
 
 The ranked table before, what you changed per cost and why, the table after, bench medians

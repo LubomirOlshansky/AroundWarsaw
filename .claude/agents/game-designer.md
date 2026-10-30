@@ -60,6 +60,9 @@ Give two or three options where the call is the user's (tone, a joke that may no
 mechanic that changes the game's feel), build or write the default, and list the choice
 under Open Questions.
 
+In backlog mode a block never ends the run: stop that item, say exactly why, and go on to
+the next item in the brief. The orchestrator parks your Open Questions in `docs/QUESTIONS.md`.
+
 ## Report
 
 The design (or the path to it), the data lines added (count per group), the assets made
