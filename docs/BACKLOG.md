@@ -1052,7 +1052,18 @@ Small problems that agents reported or that showed up in screenshots. They are f
   with the map (the spawn slots' grid walk in `_count_target`, the junction checks) with a
   per-function timer before changing anything.
 - Static memory doubled with the bigger map (173 → ~330 MB runtime, 241 MB prebuilt): check
-  it on the iPhone 11 (TEST · BENCH's memory line) before the beta.
+  it on the iPhone 11 (TEST · BENCH's memory line) before the beta. The index packing cut it
+  by ~20 MB on the phone path (2026-10-30, DEVELOPMENT.md "Performance budgets").
+- Memory still on the table (2026-10-30, measured on the Mac):
+  - The index's dictionaries (83 MB prebuilt after the packing): ~60 k small Dictionaries with
+    a String kind each. Columns per list (one PackedFloat32Array of outlines with offsets, kinds
+    as ints) would cut most of it, but every reader (hud, missions, eggs, pedestrians, rides)
+    changes with it.
+  - The three map-wide textures (~96 MB video): the light map (5318×3782 RG8, 1 m) could go to
+    2 m (lamp pools are 12–15 m wide, but they stop at walls at 1 m), or AO and lights to ASTC
+    4×4 at bake time (half the size, lossy). Both change the look a little: the visual lane's
+    call with shots. The surface map holds data (deck heights, flow angle) and must stay exact.
+  - Side jobs hold 17 MB at start (rides 7.5): look for whole-map tables built from the index.
 
 ## From the driving-feel loop (less sticky, 2026-10-30)
 
