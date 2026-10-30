@@ -95,6 +95,10 @@ var data: Dictionary
 ## prebuilt city carries the VRAM-compressed import (tools/bake_map_textures.py) instead.
 @export_storage var light_texture: Texture2D
 @export_storage var light_rect := Vector4(0, 0, 1, 1)
+## 2026-10-30, the prebuilt city: the maps attach_maps puts on their materials when the city
+## opens, by name ("ao_map", "light_map"): {rect: the rect's parameter, at: its origin, px: metres
+## a texel, materials: the ShaderMaterials that read it} (tools/bake_city.gd _detach_maps).
+@export_storage var map_maps := {}
 ## v0.9: the surface map (tools/bake_water.py): distance to the shore, the river's
 ## flow, what reflects, bridge-deck heights; the ground shader and the post pass read it.
 @export_storage var water_texture: ImageTexture
@@ -573,6 +577,32 @@ func _apply_lights(material: Material) -> void:
 	if light_texture != null and material is ShaderMaterial:
 		(material as ShaderMaterial).set_shader_parameter("light_map", light_texture)
 		(material as ShaderMaterial).set_shader_parameter("light_rect", light_rect)
+
+
+## 2026-10-30: the prebuilt city's AO and lamp-light maps, put on their materials when it opens:
+## the VRAM-compressed import (map/shared/<name>.png: EAC RG11 on the phones, a byte a texel) when
+## the export has it, else the RG8 texture (map/shared/<name>.res: the web and older bakes). The
+## rect covers the texture's own size (the import is padded to a multiple of 4 texels).
+func attach_maps() -> void:
+	for name: String in map_maps:
+		var e: Dictionary = map_maps[name]
+		var tex: Texture2D = null
+		for path: String in ["res://map/shared/%s.png" % name, "res://map/shared/%s.res" % name]:
+			if ResourceLoader.exists(path):
+				tex = load(path)
+				break
+		if tex == null:
+			push_warning("map: no %s (run tools/setup_map.sh)" % name)
+			continue
+		var at: Vector2 = e["at"]
+		var rect := Vector4(at.x, at.y, tex.get_width() * float(e["px"]), tex.get_height() * float(e["px"]))
+		for m: ShaderMaterial in e["materials"]:
+			m.set_shader_parameter(name, tex)
+			m.set_shader_parameter(e["rect"], rect)
+		if name == "light_map":
+			light_texture = tex
+			light_rect = rect
+		print("map: %s %dx%d from %s" % [name, tex.get_width(), tex.get_height(), tex.resource_path.get_file()])
 
 
 ## Sodium (true) or LED (false) light at a point of the light map.
