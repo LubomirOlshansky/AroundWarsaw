@@ -109,6 +109,10 @@ var start_stars := -1.0
 ## Loop MW-3 (vision.md 4.5, 4.7): at dawn the requests come from the club doors: -> [[club id,
 ## door: Vector2], ...] while the dawn crowd is out (crowds.gd), else []. Unset: none.
 var club_doors: Callable
+## Loop MW-4 (vision.md 3.7, 4.7): where a `hurry` passenger goes now, -> Vector2 (Saturday
+## morning: the Hyrax forecourt by the stadium, a late competitor; city_life.gd hurry_target), INF
+## for anywhere. Unset: anywhere.
+var hurry_to: Callable
 ## --gps-in=S: the first GPS moment in traffic from S seconds in (gps_moments.gd).
 var gps_first := -1.0
 ## How long the last update took, for --bench (µs), and the physics step's sum.
@@ -445,8 +449,8 @@ func _on_bump(_collider: Object, speed: float) -> void:
 func _free() -> bool:
 	if flying or away or car.in_water or missions.has_target() or not _calls_quiet():
 		return false
-	if jobs != null and jobs.own_busy():
-		return false
+	if jobs != null and jobs.side_busy():
+		return false  # loop MW-4: the "Na czasie" job too
 	return rivals == null or not rivals.busy()
 
 
@@ -521,7 +525,7 @@ func _show_offer(r: Dictionary) -> void:
 ## The request waits 10 s (the autopilot takes it after 2); a rescue call opened over it, or
 ## anything else starting, takes it away.
 func _offer_tick() -> void:
-	if not _calls_quiet() or (jobs != null and jobs.own_busy()) or (rivals != null and rivals.busy()):
+	if not _calls_quiet() or (jobs != null and jobs.side_busy()) or (rivals != null and rivals.busy()):
 		state = State.IDLE  # their card is up now, not ours
 		return
 	if flying or away:
@@ -645,6 +649,17 @@ func _make_ride(n: int, e: int, s: float, from: Vector2, lo: float, hi: float) -
 		kind = force_passenger
 	r["type"] = kind
 	r["club"] = club
+	# Loop MW-4: on a Hyrax Saturday morning the one in a hurry is a late competitor.
+	var race: Vector2 = hurry_to.call() if kind == "hurry" and hurry_to.is_valid() else Vector2.INF
+	if race != Vector2.INF:
+		var by_race := func(a: Dictionary) -> bool: return (a["door"] as Vector2).distance_to(race) < 350.0
+		var go: Dictionary = jobs._pick_address(r["p_e"], r["p_s"], kerb, RIDE_MIN, 6000.0, rng, by_race)
+		if not go.is_empty():
+			r["dest"] = "Hyrax · %s" % go["name"]
+			r["ring"] = go["ring"]
+			r["road"] = float(go["road"])
+			r["finish"] = int(go["finish"])
+			r["hyrax"] = true
 	r["their"] = snappedf(rng.randf_range(4.2, 5.0), 0.1)
 	var quirk := ""
 	if rng.randf() < QUIRK_SHARE:

@@ -12,6 +12,9 @@ const MAX := 60
 ## after the walkers (police.md section 12: +0 draw calls). Loop 3g-2: slots 0-2 the day's trap
 ## officers, 3 the first contact's officer, 4-11 the city guards (police/guards.gd).
 const FIXED := 12
+## Loop MW-4: guests (city_life.gd: the dog walkers, runners, Kolka, the Hyrax loop, the dog's
+## photographers) after the fixed people, written by their owner (`set_guest`): +0 draw calls.
+const GUESTS := 48
 const CELL := 48.0
 const MARGIN := 20.0
 const SHIRTS := ["#d8432f", "#2f6fb5", "#e0b23a", "#3b8f5a", "#f2efe8", "#7a4fa8", "#e57aa0", "#2b2c2f", "#c96b2c", "#5aa9c9", "#9c2f3a", "#e8e4d8"]
@@ -62,6 +65,9 @@ var _alive_count := 0
 var _filled := false
 var _mm: MultiMesh
 var _buf := PackedFloat32Array()
+## Loop MW-4: the guests handed over by take_guests, merged into _buf before the next send.
+var _guest_buf := PackedFloat32Array()
+var _guests_new := false
 var _rng := RandomNumberGenerator.new()
 
 
@@ -143,9 +149,10 @@ func setup(map_node: Node3D, camera: Camera3D, traffic_node: Node3D, data: Dicti
 	_mm.use_custom_data = true
 	InstanceBuffers.prepare(_mm)
 	_mm.mesh = Models.person_mesh()
-	_mm.instance_count = MAX + FIXED
-	_mm.custom_aabb = AABB(Vector3(-2500, -200, -1500), Vector3(5000, 600, 3000))
-	_buf.resize((MAX + FIXED) * 16)
+	_mm.instance_count = MAX + FIXED + GUESTS
+	# Loop MW-4: the whole demo map (the guests stand at Plac Zbawiciela, z 1600, and beyond).
+	_mm.custom_aabb = AABB(Vector3(-6000, -300, -6000), Vector3(12000, 900, 12000))
+	_buf.resize((MAX + FIXED + GUESTS) * 16)
 	_buf.fill(0.0)
 	var mat := Models.material().duplicate() as ShaderMaterial
 	mat.set_shader_parameter("walk", 0.16)
@@ -282,6 +289,23 @@ func clear_fixed(i: int) -> void:
 		_buf[(MAX + i) * 16 + k] = 0.0
 
 
+## Loop MW-4: guest `i` (0..GUESTS-1) at `at` facing `yaw` (as set_fixed); it walks as the rest
+## do (the legs swing).
+func set_guest(i: int, at: Vector3, yaw: float, shirt: Color, trousers: float) -> void:
+	set_fixed(FIXED + i, at, yaw, shirt, trousers)
+
+
+func clear_guest(i: int) -> void:
+	clear_fixed(FIXED + i)
+
+
+## Loop MW-4 (the cost cut): all the guests at once, `buf` in this buffer's layout (GUESTS × 16
+## floats, as set_fixed writes them), put in before the next send; city_life.gd's writes.
+func take_guests(buf: PackedFloat32Array) -> void:
+	_guest_buf = buf
+	_guests_new = true
+
+
 func _process(dt: float) -> void:
 	if dt <= 0.0 or _first.is_empty():
 		return
@@ -309,6 +333,11 @@ func _process(dt: float) -> void:
 	for n in MAX:
 		if _alive[n] == 1:
 			_walk(n, dt)
+	if _guests_new:
+		# The guests are the buffer's tail: cut it off, append theirs (both native copies).
+		_guests_new = false
+		_buf.resize((MAX + FIXED) * 16)
+		_buf.append_array(_guest_buf)
 	InstanceBuffers.send(_mm.get_rid(), _buf)
 	last_usec = Time.get_ticks_usec() - t0
 

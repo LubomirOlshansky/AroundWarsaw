@@ -76,6 +76,9 @@ const Sfx := preload("res://scripts/sfx.gd")
 const CitySounds := preload("res://scripts/city_sounds.gd")
 ## Loop MW-3: the night and the river's crowds.
 const Crowds := preload("res://scripts/crowds.gd")
+## Loop MW-4: everyday life and trends, and the "Na czasie" job.
+const CityLife := preload("res://scripts/city_life.gd")
+const TrendJob := preload("res://scripts/trend_job.gd")
 const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
 const FollowCamera := preload("res://scripts/follow_camera.gd")
@@ -315,6 +318,22 @@ var night_log := false
 var club_flag := ""
 ## Live's sunset hour by date (yyyymmdd -> hour), for the steps crowd.
 var _sunsets := {}
+## Loop MW-4: everyday life (city_life.gd) and the "Na czasie" job (trend_job.gd), and their flags:
+## --life=0|1|2 (none, normal, double; the Low tier halves it), --dogs-log, --trend-log,
+## --life-log, --life-soak (the car driven at the dogs and riders, overlaps counted), --zajac
+## (Live, Wednesday 28 October 2026 at 18:59, the car by Kolka's start; with --autopilot it paces
+## the club), --trend-day=N (the trend cycle's day number), --trend-job[=slot] (the request at a
+## Wiralek slot, 1-3).
+var life: CityLife
+var trend_job: TrendJob
+var life_flag := 1
+var dogs_log := false
+var trend_log := false
+var life_log := false
+var life_soak := false
+var zajac_flag := false
+var trend_day_flag := -1
+var trend_job_flag := 0
 var start_kebab := -1
 var start_sloik := -1
 var start_heat := -1.0
@@ -895,6 +914,7 @@ func _build_world() -> void:
 	if traffic != null and not police_opts.get("off", false):
 		_build_police(data, world)
 	_build_crowds(data, world)
+	_build_city_life(data, world)
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
 	_apply_style()
@@ -1053,6 +1073,8 @@ func _set_quality(choice: int) -> void:
 	if crowds != null:
 		crowds.amount = _crowd_scale()
 		crowds.refresh()
+	if life != null:
+		life.amount = float(life_flag) * (0.5 if quality == Tiers.LOW else 1.0)
 	RenderingServer.directional_shadow_atlas_set_size(qs["shadow_size"], true)
 	tod.refresh()
 	weather.density = qs["rain"]
@@ -1539,6 +1561,124 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 		_put_at_club(club_flag)
 
 
+# --- loop MW-4: everyday life and trends -------------------------------------------------------
+
+## Everyday life (city_life.gd) at the notebook's places, after the crowds (the trend queues are
+## their sites) and the sound; the "Na czasie" job (trend_job.gd) beside the side jobs. None with
+## --life=0 or without the notebook's places.
+func _build_city_life(data: Dictionary, world: Node3D) -> void:
+	if life_flag == 0 or notes == null or not notes.ready_ok:
+		return
+	life = CityLife.new()
+	life.name = "CityLife"
+	life.map = map
+	life.dialogue = dialogue
+	life.sfx = sfx
+	life.walkers = walkers
+	life.egg_book = egg_book
+	life.wallet = wallet
+	life.hud = hud
+	life.car = car
+	life.amount = float(life_flag) * (0.5 if quality == Tiers.LOW else 1.0)
+	life.dogs_log = dogs_log
+	life.trend_log = trend_log
+	life.life_log = life_log
+	life.soak = life_soak
+	life.zajac_rig = zajac_flag and autopilot
+	life.trend_day_flag = trend_day_flag
+	life.clock = tod.local_clock
+	life.calendar = _crowd_calendar
+	life.focus = func() -> Vector3: return cam_focus
+	life.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true, heli.rotation.y, heli.global_position.y - map.ground_height(heli.global_position.x, heli.global_position.z)]
+		return [car.global_position, car.vel.length() * 3.6, false, car.rotation.y, 0.0, car.vel]
+	life.probe = _egg_state
+	if traffic != null:
+		life.on_screen = traffic.on_screen
+		life.view = traffic  # loop MW-4's cost cut: its view rectangle for who is on screen
+		# The player has no horn yet (BACKLOG): the AI cars' horns at the player make the dogs bark.
+		traffic.blocked_by_player.connect(func(d): life.horn(d.pos))
+		traffic.bumped_driver.connect(func(d): life.horn(d.pos))
+	# Sessions played: the trend cycle's day without Live (saved like the rest of the keep).
+	life.session = int(wallet.keep.get("life_sessions", 0))
+	wallet.keep["life_sessions"] = life.session + 1
+	wallet.save()
+	world.add_child(life)
+	life.setup(notes.places, data)
+	# The Wiralek slots' doors: the trend queues' (crowds.gd), else the places themselves.
+	var at := {}
+	for p: Dictionary in notes.places:
+		at[str(p["id"])] = p["at"]
+	for id: String in CityLife.SLOTS:
+		var door: Vector2 = at.get(id, Vector2.INF)
+		var out := Vector2.DOWN
+		if crowds != null and crowds.by_id.has(id):
+			var site: Dictionary = crowds.sites[crowds.by_id[id]]
+			door = site["door"]
+			out = site["out"]
+		life.slot_doors.append(door)
+		life.slot_out.append(out)
+	if crowds != null:
+		crowds.trend = life.trend_queue
+		if city_sounds != null:
+			for id: String in Crowds.TRENDS:
+				if crowds.by_id.has(id):
+					var site: Dictionary = crowds.sites[crowds.by_id[id]]
+					var d2: Vector2 = site["door"]
+					city_sounds.add_crowd(id, "queue", Vector3(d2.x, map.ground_height(d2.x, d2.y), d2.y),
+							func() -> bool: return int(site["n"]) >= 2)
+	if rides != null:
+		rides.hurry_to = life.hurry_target
+	if jobs != null:
+		trend_job = TrendJob.new()
+		trend_job.name = "TrendJob"
+		trend_job.autopilot = autopilot
+		trend_job.log_on = trend_log
+		add_child(trend_job)
+		trend_job.setup({"hud": hud, "dialogue": dialogue, "wallet": wallet, "missions": missions, "rivals": rivals, "jobs": jobs,
+				"rides": rides, "graph": graph, "map": map, "car": car, "life": life}, at, world)
+		jobs.trend = trend_job
+		if spacer != null:
+			trend_job.quiet = spacer.on
+	if zajac_flag or trend_job_flag > 0:
+		_life_start.call_deferred()
+
+
+## --zajac: the car on the lane nearest Kolka's start; --trend-job=N: by slot N with its request
+## (once the city has its first tick).
+func _life_start() -> void:
+	await get_tree().create_timer(1.5).timeout
+	if zajac_flag and notes != null and notes.by_id.has("kolka_start"):
+		# Where the club gathers (its route's start, on the boulevard), once the index is built.
+		var waited := 0.0
+		while life.kolka_start_at() == Vector2.INF and waited < 20.0:
+			await get_tree().create_timer(0.5).timeout
+			waited += 0.5
+		var at: Vector2 = life.kolka_start_at()
+		if at == Vector2.INF:
+			at = notes.places[notes.by_id["kolka_start"]]["at"]
+		_put_car_near(at, 80.0)
+		print("life: --zajac: the car at %.0f, %.0f (Kolka's start %.0f m away), %s" % [car.global_position.x, car.global_position.z,
+				Vector2(car.global_position.x, car.global_position.z).distance_to(at), life.life_summary()])
+	if trend_job_flag > 0 and trend_job != null:
+		var i := trend_job_flag - 1
+		var door: Vector2 = life.slot_doors[i] if i < life.slot_doors.size() else Vector2.INF
+		if door == Vector2.INF:
+			push_warning("--trend-job=%d: no such slot" % trend_job_flag)
+			return
+		_put_car_near(door, 60.0)
+		life.tick(0.0)
+		if not trend_job.offer(i):
+			print("trend job: --trend-job=%d: no request (the slot is on day %d)" % [trend_job_flag, int(life.slots_now[i]["day"])])
+
+
+## --zajac: is yyyymmdd a Wednesday (Kolka's day)?
+static func _is_wednesday(ymd: int) -> bool:
+	var t := Time.get_unix_time_from_datetime_dict({"year": ymd / 10000, "month": (ymd / 100) % 100, "day": ymd % 100, "hour": 12})
+	return int(Time.get_datetime_dict_from_unix_time(int(t))["weekday"]) == 3
+
+
 ## --crowd= × the Low tier's half.
 func _crowd_scale() -> float:
 	return float(crowd_flag) * (0.5 if quality == Tiers.LOW else 1.0)
@@ -1751,6 +1891,8 @@ func _apply_spacer(on: bool) -> void:
 		missions.calls_off = on
 	if rides != null:
 		rides.quiet = on
+	if trend_job != null:
+		trend_job.quiet = on
 	if rivals != null:
 		rivals.quiet = on
 	if police != null:
@@ -1781,7 +1923,15 @@ func _egg_state() -> Dictionary:
 			"away": title != null or _phone_bench or (fotka != null and fotka.is_open()),
 			"look": TimeOfDay.NAMES[tod.mode], "hour": float(c["hour"]), "weekday": int(c["weekday"]), "month": month,
 			"live": live, "sun": tod.sun_elevation, "rain": weather.state != 0, "station": station, "date": ymd,
-			"roadworks": eggs.barrier_street if eggs != null else "", "crowds": crowds.levels if crowds != null else {}}
+			"roadworks": eggs.barrier_street if eggs != null else "", "crowds": _crowd_levels()}
+
+
+## The crowds' levels for the eggs (crowds.gd's, loop MW-4: and city_life.gd's).
+func _crowd_levels() -> Dictionary:
+	var out: Dictionary = crowds.levels.duplicate() if crowds != null else {}
+	if life != null:
+		out.merge(life.levels, true)
+	return out
 
 
 ## The time of day's look for a Kadr: Day, Dusk or Night (Live by the sun's height).
@@ -2435,6 +2585,25 @@ func _parse_args() -> void:
 			crowd_flag = clampi(int(arg.trim_prefix("--crowd=")), 0, 2)
 		elif arg == "--night-log":
 			night_log = true
+		elif arg.begins_with("--life="):
+			life_flag = clampi(int(arg.trim_prefix("--life=")), 0, 2)
+		elif arg == "--dogs-log":
+			dogs_log = true
+		elif arg == "--trend-log":
+			trend_log = true
+		elif arg == "--life-log":
+			life_log = true
+		elif arg == "--life-soak":
+			life_soak = true
+			life_log = true
+		elif arg == "--zajac":
+			zajac_flag = true
+			life_log = true
+		elif arg.begins_with("--trend-day="):
+			trend_day_flag = maxi(0, int(arg.trim_prefix("--trend-day=")))
+		elif arg == "--trend-job" or arg.begins_with("--trend-job="):
+			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 3)
+			trend_log = true
 		elif arg.begins_with("--club="):
 			# Loop MW-3: the car at a club's door (places.json id or name), no title.
 			club_flag = arg.trim_prefix("--club=")
@@ -2514,6 +2683,20 @@ func _parse_args() -> void:
 	# Loop MW-6: and the eggs', the tape's and Fotka's flags; --egg sets its moment's time.
 	if egg_flag != "" or tape_flag != "" or fotka_flag or spacer_hint >= 0.0:
 		show_title = false
+	# Loop MW-4: --zajac is Kolka's Wednesday evening (Live), --life-soak a Friday dusk.
+	if zajac_flag or life_soak or trend_job_flag > 0:
+		show_title = false
+		free_roam = true
+	if zajac_flag:
+		# Kolka's start (19:00 Wednesday, Live); the car goes to the club once its route is known
+		# (_life_start: the place's own pin is off the boulevard).
+		start_time = TimeOfDay.LIVE
+		if live_clock == "":
+			live_clock = "19:00"
+		if live_date == 0 or not _is_wednesday(live_date):
+			live_date = 20261028
+	elif life_soak and start_time == TimeOfDay.DAY:
+		start_time = TimeOfDay.DUSK
 	_egg_moment()
 	if force_title:
 		show_title = true
@@ -3379,6 +3562,9 @@ func _process(dt: float) -> void:
 		# Loop 2d-1: no ride is offered from the helicopter, on the title screen or the bench.
 		rides.flying = flying
 		rides.away = title != null or _bench_ghost != null or _phone_bench
+		if trend_job != null:
+			trend_job.flying = flying
+			trend_job.away = rides.away
 		eggs.player = pos
 		eggs.player_vel = heli.vel if flying else car.vel
 		eggs.flying = flying
@@ -3599,6 +3785,8 @@ func _make_stats() -> BenchStats:
 		b.systems["city sounds"] = [city_sounds, "spent_usec", true]  # loop MW-5
 	if crowds != null:
 		b.systems["crowds"] = [crowds, "spent_usec", true]  # loop MW-3
+	if life != null:
+		b.systems["city life"] = [life, "spent_usec", true]  # loop MW-4
 	if egg_book != null:
 		b.systems["eggs+tape+spacer"] = [self, "_moments_usec", false]  # loop MW-6
 	b.systems["sound"] = [sfx, "last_usec", false]
@@ -3763,6 +3951,16 @@ func _show_target() -> void:
 		hud.set_target(on, "%d m" % m, rivals.target_colour(), m > 12)
 		hud.set_minimap_target(Vector2(f.x, f.z), rivals.target_colour())
 		_new_target("race", f)
+		return
+	# Loop MW-4: the "Na czasie" job's queue, then its door.
+	if trend_job != null and trend_job.has_target():
+		var tp: Vector3 = trend_job.target_position()
+		var at_t := _vehicle_position()
+		var mt := roundi(Vector2(tp.x - at_t.x, tp.z - at_t.z).length())
+		var on_t := cam.unproject_position(tp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
+		hud.set_target(on_t, "%d m" % mt, trend_job.target_colour(), mt > 12)
+		hud.set_minimap_target(Vector2(tp.x, tp.z), trend_job.target_colour())
+		_new_target("job", tp)
 		return
 	# Loop 2d-1: a Podwózka ride's pin, passenger or door.
 	if rides != null and rides.has_target():
@@ -3958,6 +4156,8 @@ func _autopilot(dt: float) -> void:
 		return
 	if rides != null and rides.drive_player():
 		return  # loop 2d-1
+	if trend_job != null and trend_job.drive_player():
+		return  # loop MW-4
 	if jobs != null and jobs.drive_player():
 		return
 	if not missions.has_target():
@@ -4203,10 +4403,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_toggle_vehicle()
 			KEY_M:
 				# Loop 2d-1: a Podwózka request or result first.
-				if (rides == null or not rides.primary()) and (jobs == null or not jobs.primary()):
+				if (rides == null or not rides.primary()) and (jobs == null or not jobs.primary()) \
+						and (trend_job == null or not trend_job.primary()):
 					missions.primary()
 			KEY_K:
-				if (rides == null or not rides.secondary()) and (jobs == null or not jobs.secondary()):
+				if (rides == null or not rides.secondary()) and (jobs == null or not jobs.secondary()) \
+						and (trend_job == null or not trend_job.secondary()):
 					missions.secondary()
 			KEY_N:
 				_blip_sound()

@@ -52,9 +52,20 @@ levels (if their folder is given) to balance the buses against.
       syllables and phrases, two soft laughs (an 8 s loop)
   steps_guitar   the guitarist on the river steps: the same three chords, G, C and D, at
       92 BPM, nylon-soft (a 15.7 s loop)
+  bark_small / bark_mid / bark_big   loop MW-4 (city_life.gd): a dog's bark at a horn, three
+      sizes (a long low dog, a squat flat-faced one, a big fluffy one): a glottal pulse train
+      through formants, higher and shorter for the small dog, two yaps or one woof
+  bike_bell      a bicycle's thumb bell: two strikes of a small bell, 0.6 s
+  watch_beep     a running watch's double beep at 2.4 kHz as Kolka passes
+  queue_chatter  a trend queue's chatter: six voices, closer and brighter than the murmur (a 6 s
+      loop)
+  phone_shutter  a phone's camera shutter: a click and a short noise slide, 0.15 s
+  cafe_bell      a café door's bell: three little tings, 0.9 s
 
   --only=club_leak,busker  makes just those (the city's sounds: club_leak, metro_chime,
-  church_bell, busker, crowd_murmur, steps_guitar) and leaves the other files as they are.
+  church_bell, busker, crowd_murmur, steps_guitar; loop MW-4's bark_small, bark_mid, bark_big,
+  bike_bell, watch_beep, queue_chatter, phone_shutter, cafe_bell) and leaves the other files as
+  they are.
 """
 import array
 import cmath
@@ -838,6 +849,125 @@ def crowd_murmur(seed):
     return biquad(biquad(out, "lp", 2600.0, 0.7, True), "hp", 120.0, 0.7, True)
 
 
+# --- loop MW-4: everyday life (city_life.gd; docs/design/vision.md 3.4, 3.7) ------------------
+
+def bark(seed, size):
+    """A dog's bark: a glottal pulse train with a falling pitch through three formants. `size`
+    0 small (two quick yaps, high), 1 mid (two barks), 2 big (one deep woof)."""
+    rnd = random.Random(seed)
+    f0, f1, length, formants, times = [
+        (900.0, 640.0, 0.075, (1400.0, 2600.0, 3900.0), (0.0, 0.16)),
+        (560.0, 380.0, 0.12, (900.0, 1700.0, 2800.0), (0.0, 0.24)),
+        (300.0, 190.0, 0.22, (520.0, 1100.0, 2100.0), (0.0,)),
+    ][size]
+    n = int(0.62 * RATE)
+    out = zeros(n)
+    for at in times:
+        m = int(length * rnd.uniform(0.9, 1.1) * RATE)
+        sig = zeros(m)
+        ph = 0.0
+        for i in range(m):
+            t = i / m
+            f = f0 + (f1 - f0) * t
+            ph += f / RATE
+            glottal = (ph % 1.0) ** 3
+            sig[i] = (glottal - 0.25 + 0.25 * rnd.uniform(-1, 1)) * math.sin(math.pi * t) ** 0.5
+        voiced = mix((1.0, biquad(sig, "bp", formants[0], 3.5)), (0.7, biquad(sig, "bp", formants[1], 4.5)),
+                     (0.3, biquad(sig, "bp", formants[2], 5.0)))
+        place(out, voiced[: n - int(at * RATE)], int(at * RATE), rnd.uniform(0.85, 1.0))
+    out = biquad(out, "lp", 4200.0 - 900.0 * size, 0.7)
+    return fade(echo(out, [(0.09, 0.18)], 0.15), 0.0, 0.05)
+
+
+def bike_bell(seed):
+    """A thumb bell: two strikes, partials of a small dome (inharmonic), 0.6 s."""
+    rnd = random.Random(seed)
+    n = int(0.6 * RATE)
+    out = zeros(n)
+    for at in (0.0, 0.16):
+        sig = bell(n - int(at * RATE), [(2480.0, 1.0, 0.22), (3910.0, 0.5, 0.12), (5620.0, 0.25, 0.08),
+                                        (1240.0, 0.15, 0.3)], 0.4, rnd)
+        place(out, sig, int(at * RATE), 1.0 if at == 0.0 else 0.85)
+    return fade(out, 0.0, 0.06)
+
+
+def watch_beep(seed):
+    """A running watch's double beep: two 70 ms tones at 2.4 kHz, a soft square."""
+    n = int(0.3 * RATE)
+    out = zeros(n)
+    for start in (0.0, 0.12):
+        a = int(start * RATE)
+        for i in range(int(0.07 * RATE)):
+            t = i / RATE
+            env = min(1.0, t / 0.004) * min(1.0, (0.07 - t) / 0.006)
+            out[a + i] += soft_square(2400.0 * t, 2.0) * env * 0.6
+    return biquad(out, "lp", 5000.0, 0.7)
+
+
+def queue_chatter(seed):
+    """A trend queue's chatter: six voices in syllables (4-7 a second), brighter and closer than
+    the crowd's murmur, a laugh, over a low murmur bed; periodic by construction, 6 s, so it loops."""
+    rnd = random.Random(seed)
+    n = int(6.0 * RATE)
+    out = zeros(n)
+    w = noise(n, rnd)
+    for v in range(6):
+        f1 = rnd.uniform(480.0, 950.0)
+        band = mix((1.0, biquad(w, "bp", f1, 2.6, True)), (0.5, biquad(w, "bp", f1 * rnd.uniform(2.3, 3.1), 3.0, True)))
+        env = zeros(n)
+        i = rnd.randrange(n)
+        left = n
+        while left > 0:
+            phrase = int(rnd.uniform(0.6, 1.8) * RATE)
+            rate = rnd.uniform(4.0, 7.0)
+            for k in range(phrase):
+                ph = k / RATE * rate
+                env[(i + k) % n] += max(0.0, math.sin(TAU * ph)) ** 2 * min(1.0, k / 500.0, (phrase - k) / 500.0)
+            gap = int(rnd.uniform(0.6, 2.0) * RATE)
+            i = (i + phrase + gap) % n
+            left -= phrase + gap
+        gain = rnd.uniform(0.5, 1.0)
+        for k in range(n):
+            out[k] += band[k] * env[k] * gain
+    at = rnd.randrange(n)
+    laugh = biquad(noise(int(0.7 * RATE), rnd), "bp", rnd.uniform(600.0, 800.0), 3.0)
+    for k in range(len(laugh)):
+        t = k / RATE
+        laugh[k] *= max(0.0, math.sin(TAU * 6.0 * t)) * math.exp(-t * 3.0) * 1.4
+    place(out, laugh, at, 1.0)
+    # a low, steady murmur bed under the voices (the queue never goes silent between phrases)
+    bed = biquad(biquad(noise(n, random.Random(seed + 1000)), "bp", 520.0, 1.2, True), "lp", 1200.0, 0.7, True)
+    for k in range(n):
+        out[k] += bed[k] * 0.25
+    return biquad(biquad(out, "lp", 3600.0, 0.7, True), "hp", 160.0, 0.7, True)
+
+
+def phone_shutter(seed):
+    """A phone's shutter: a sharp click, then a short slide of filtered noise, 0.15 s."""
+    rnd = random.Random(seed)
+    n = int(0.15 * RATE)
+    out = zeros(n)
+    w = noise(n, rnd)
+    for i in range(n):
+        t = i / RATE
+        click = math.exp(-t * 900.0) if t < 0.01 else 0.0
+        slide = math.exp(-((t - 0.05) / 0.025) ** 2) * 0.5
+        out[i] = w[i] * (click + slide)
+    return mix((1.0, biquad(out, "bp", 3200.0, 1.2)), (0.5, biquad(out, "hp", 6000.0, 0.7)))
+
+
+def cafe_bell(seed):
+    """A café door's bell: three little tings on a spring, 0.9 s."""
+    rnd = random.Random(seed)
+    n = int(0.9 * RATE)
+    out = zeros(n)
+    for at, g in ((0.0, 1.0), (0.09, 0.7), (0.21, 0.45)):
+        f = rnd.uniform(3150.0, 3350.0)
+        sig = bell(n - int(at * RATE), [(f, 1.0, 0.3), (f * 1.49, 0.4, 0.18), (f * 2.13, 0.2, 0.1)], 0.2, rnd)
+        place(out, sig, int(at * RATE), g)
+    return fade(out, 0.0, 0.08)
+
+
 def steps_guitar(seed):
     """The guitarist on the river steps: the same three chords (G, C, D at 92 BPM), a bar
     each with a lazy strum, nylon-soft (Karplus-Strong with more damping than the busker's),
@@ -997,14 +1127,20 @@ def check(path, loop):
 
 
 LOOPS = ["engine_idle", "engine_mid", "engine_high", "tyre_roll", "tyre_wet", "tyre_squeal", "rotor",
-         "city_day", "city_night", "rain", "police_siren", "club_leak", "busker", "crowd_murmur", "steps_guitar"]
+         "city_day", "city_night", "rain", "police_siren", "club_leak", "busker", "crowd_murmur", "steps_guitar",
+         "queue_chatter"]
 
 
 # Loop MW-5: the city's sounds (city_sounds.gd), made on their own with --only=.
 CITY = {"club_leak": lambda: [club_leak(71)], "metro_chime": lambda: [metro_chime(72)],
         "church_bell": lambda: [church_bell(73)], "busker": lambda: [busker(74)],
         # Loop MW-3: the crowds' (city_sounds.gd add_crowd).
-        "crowd_murmur": lambda: [crowd_murmur(75)], "steps_guitar": lambda: [steps_guitar(76)]}
+        "crowd_murmur": lambda: [crowd_murmur(75)], "steps_guitar": lambda: [steps_guitar(76)],
+        # Loop MW-4: everyday life's (city_life.gd, the trend queues through city_sounds.gd).
+        "bark_small": lambda: [bark(81, 0)], "bark_mid": lambda: [bark(82, 1)], "bark_big": lambda: [bark(83, 2)],
+        "bike_bell": lambda: [bike_bell(84)], "watch_beep": lambda: [watch_beep(85)],
+        "queue_chatter": lambda: [queue_chatter(86)], "phone_shutter": lambda: [phone_shutter(87)],
+        "cafe_bell": lambda: [cafe_bell(88)]}
 
 
 def main(out_dir, radio_dir=None, only=None):
