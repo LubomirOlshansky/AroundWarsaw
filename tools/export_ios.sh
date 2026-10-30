@@ -2,6 +2,9 @@
 # Prebuild the city, then export the Godot project as an Xcode project in build/ios.
 set -e
 cd "${0:A:h}/../game"
+# A clone Godot has never opened is imported first (tools/export_android.sh: without it the
+# bake can't resolve the add-ons' class names and the export crashes in its first import).
+[[ -d .godot/imported ]] || godot --headless --path . --import
 # Loop 3c: the map split into 512 m sectors (index.json, sectors/<i>_<j>.json), then each
 # sector's scene, the proxies and the index (sectors/s_<i>_<j>.scn, proxies.scn, index.res).
 # Loop 3d-1: the GUGiK outputs (lod2.*, terrain.json) are derived too: made first when missing.

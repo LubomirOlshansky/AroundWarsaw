@@ -12,6 +12,9 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | --- | --- | --- | --- |
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
+| landmarks/models | Landmark and skyscraper models (Złote Tarasy, Złota 44, Varso, PKiN, Spire, Q22, Muzeum Narodowe, Stadion Narodowy), bus stops: BACKLOG "High priority" | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
+| store release | The signed Android AAB for Play internal testing, on today's main | cloud thread "Prepare App Store and Play beta listings" | 2026-10-30 |
+| performance | Profile the 108-sector map on mobile settings (frame time, draw calls, memory); cheap wins outside the map engine (3d-2 is the map lane's) | cloud thread "Prepare App Store and Play beta listings" | 2026-10-30 |
 
 ## Waiting
 
@@ -31,6 +34,14 @@ Newest first. One entry per question.
 - **2026-10-30 · content · MW-1** — Stadion Narodowy (115 m from any road) and Most
   Śląsko-Dąbrowski (65 m) can't be found by car with today's anchors: wider radius, or wait for
   the map lane's bake resolution? Default built: nothing changed; BACKLOG "From loop MW-1".
+- **2026-10-30 · store release · app IDs** — The iOS bundle ID is still
+  `com.olshanskysoft.nocnawarszawa`. Change it to `com.olshanskysoft.aroundwarsaw` before the
+  App Store Connect record exists, or keep it? Nobody ever sees it (the home-screen and store
+  name is "Around Warsaw" on both platforms). The Android package can't change: Play has had
+  version code 1 under `com.olshanskysoft.nocnawarszawa` since October, and a new package
+  would be a new app. Options: keep (both platforms match) / change iOS only. Default built:
+  keep, as the rename of 2026-10-30 decided. Where: `game/export_presets.cfg`, ROADMAP
+  "rename + open source".
 
 - **2026-10-30 · content · MW-0 (Moja Warszawa data)** — Where is the real "Apteka" bar you
   meant? Options: name the street / keep the default. Default built: APTECZKA in a Nowy Świat

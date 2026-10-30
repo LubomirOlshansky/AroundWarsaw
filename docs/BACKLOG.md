@@ -3,9 +3,18 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## High priority: landmark and skyscraper models (the user, 2026-10-30)
+- **The user dislikes how several models look** (2026-10-30): Złote Tarasy, Złota 44 and the
+  other skyscrapers (Varso, Pałac Kultury, Warsaw Spire, Q22), Muzeum Narodowe (and Stadion
+  Narodowy), the bus stops, and other weak models. Goal: keep the game's own pixel and
+  low-poly style, but with colours, proportions and silhouettes that clearly read as the real
+  buildings. Before/after shots at phone size. Lane "landmarks/models" (docs/QUESTIONS.md).
+
 ## From v0.6 (traffic, trams, pedestrians, rivals)
-- Cars can overlap briefly in complex junctions; a racing rival stuck in traffic passes
-  through other cars when off screen.
+- ~~Cars can overlap briefly in complex junctions~~ (fewer by three quarters, the traffic loop
+  2026-10-30: junction cars watch each other's body and path, `--traffic-overlaps` counts them;
+  left: two cars entering a short merging curve in the same frame); a racing rival stuck in
+  traffic passes through other cars when off screen.
 - Trams and crossing cars can touch nose to nose.
 - ~~Name tags and bubbles show faintly through the translucent WIN/LOSE card.~~ Fixed by loop 2e:
   the result card is one of the HUD's floating panels, so it is in `hud.gd` `panel_rects()`, and
@@ -1017,18 +1026,19 @@ Small problems that agents reported or that showed up in screenshots. They are f
   with the next deploy; the store forms link to it.
 - iPad: the iOS preset targets iPhone and iPad (`targeted_device_family=2`); keep or drop
   before the first App Store release (QUESTIONS.md). Nobody has played on an iPad yet.
-- The App Store wants a privacy manifest (`PrivacyInfo.xcprivacy`) for apps using
-  required-reason APIs (file timestamps, system boot time, UserDefaults); Godot's iOS template
-  may need one declaring them, with no data collected. Check App Store Connect's email after
-  the first upload.
+- ~~The App Store wants a privacy manifest~~ (checked 2026-10-30: Godot's export writes
+  `PrivacyInfo.xcprivacy` with file timestamps, boot time and disk space, no tracking, no
+  collected data; app-store-connect.md section 4). Still read App Store Connect's email after
+  the first upload for an ITMS-91053 warning.
 - The store screenshots show the HUD; they need redoing when the HUD changes  (re-rendered with KEBAB FM
   on 2026-10-30; shot 07 from the bigger demo map, because on main's map Varso stands about
   140 m from the edge and every wide framing shows the cliff).
 - The occlusion dither shows as a dark dotted patch in store shots 01 (bottom left) and 07
   (iPhone and Play, left of Varso); re-take them when the dither is fixed or loop 3d-1 lands.
-- **On a 4:3 screen (iPad) the pull-over's dialogue panel never appears**: the conversation runs
-  (`--police-log` shows it, frames 60-349) but nothing is drawn, at 2440×1830, 2200×1650 and
-  1600×1200; 16:9 and wider are fine. The iPad's fifth store shot is a Podwózka ride instead.
+- ~~**On a 4:3 screen (iPad) the pull-over's dialogue panel never appears**~~ (fixed
+  2026-10-30: a 4:3 window was taken as a phone 390 pt tall, so only 520 pt wide, and the
+  ~610 pt card found no room; `screen_points.gd` now takes a narrow window as 667 pt wide and
+  knows the iPads. A real iPad, 1376 pt wide, never had it.) The iPad's fifth store shot is the pull-over again.
 - On the ride HUD at 4:3 the distance marker ("1597 m" and its arrow) can sit on the HAMULEC
   button (`--ride=2`).
 - Varso's crown runs off the top of store shot 7 (all three sizes); most shots show 0 km/h.
