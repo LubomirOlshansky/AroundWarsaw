@@ -633,15 +633,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## From loop 3g-1 (the police, part one)
 
-- **Part two (loop 3g-2)**: the city guards on foot and the guard car's behaviour (the mesh's
-  shape 1 and SIREN's amber 1.5 Hz beat are ready; `police_unit.gd` takes a branch each), the
-  pedestrian-zone cap and the clamp, the escort on rescues (accepting a rescue in a chase should
-  end it), the race and side-job ties (the race marked +20 % for an escape, the kebab's heat
-  frozen during the card), Phantom Camera's chase framing (11.3), the sounds in `make_sfx.py`
-  (the siren, whoop, megaphone chirp, whistle, stamp: placeholders now from the far siren, the
-  tram bell and the soft knock), the scripted first contact after the first race (the `routine`
-  conversation exists: `--pullover=routine`), the escort and guard lines (`police_escort`,
-  `guard` from police.md section 6, not merged yet).
+- ~~**Part two (loop 3g-2)**: the guards, the guard car, the zone cap and the clamp, the escort,
+  the race and side-job ties, the sounds, the first contact, the `police_escort` and `guard`
+  lines.~~ Done in loop 3g-2 (Phantom Camera's chase framing stays: the camera is the driving
+  lane's).
 - **PixelLab assets for part two** (police.md section 9, ≤ 38 generations): the three 64 px
   portraits (Sierżant Bogdan, Posterunkowy Kacper, Strażnik Henio; the card draws simple faces
   now), the 24 px rooster icon lit and outlined (the koguty draw light-bar domes now), the 24 px
@@ -654,7 +649,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
   the drawn carriageway is narrower than its lanes the car stands half on the road, where a cycle
   lane runs by the kerb (Wybrzeże Szczecińskie) it stands on the cycle lane. Loop 3d's `trap` POI
   should carry a spot checked against the kerbs.
-- **The officer's legs swing** like a walker's (the people's shader swings every instance's legs;
+- **The officer's legs swing** (the guards' too, loop 3g-2) like a walker's (the people's shader swings every instance's legs;
   the swing is about one image pixel at 80 m). A standing pose would need a constant in
   `actor.gdshader` (part two, with the guards).
 - **The trap's car turns round when it pulls out** (it parks facing the traffic, as police.md
@@ -666,6 +661,33 @@ Small problems that agents reported or that showed up in screenshots. They are f
   use they were a ~70 ms hitch on the Mac, likely ~0.3 s on the phone, as the card opened).
 - **The soak's B4 check** logs the car's place on screen each second during a chase; the camera
   follows the car, so it stays near the middle (closest to an edge 0.46 of the screen in the soaks).
+
+## From loop 3g-2 (the police, part two)
+
+- **Phantom Camera's chase framing** (police.md 11.3) is still owed: the camera is the driving
+  lane's.
+- **PixelLab assets** (above) still owed: the PixelLab server wasn't connected in the cloud
+  session; Strażnik Henio's face on the card is drawn from shapes (mustard jacket, round glasses).
+- **The guards' trousers** are the people's near-black palette entry: police.md's dark red needs a
+  palette entry in `actor.gdshader` (visuals lane), and so does a standing pose.
+- **The guard posts** live in `game/data/police_guards.json` (four posts, two guards each) until
+  loop 3d's `guard_post` POIs; the Krakowskie Przedmieście zone in today's map is only the
+  pedestrian way's ~8 m strip, so the cap there holds only on that strip.
+- **The escort waits at the hospital's lane-graph node**, which can be 100-200 m short of the
+  hospital's ring when the hospital sits back from the road (rescue 9: ~180 m); it leaves when the
+  rescue ends. A node nearer the door (or the ring's own edge) would bring it to the door.
+- **The escort in Normal traffic** keeps behind the cars ahead like a chaser (it doesn't push
+  through): on a crowded road it can sit at 18 km/h for a minute (rescue 9 failed by the clock in
+  one headless run with traffic; it made it with the road empty). Cars ahead giving way to a light
+  bar (3g-1) is the traffic lane's; check on the phone whether it needs more.
+- **The speech bubble's tail** can't reach a guard right next to the car: the bubble steps aside
+  from the car and its tail points at the bubble's edge (the bubbles are shared with the police).
+- **The clamp box** (a yellow box on the front left wheel, +1 draw call while shown) is a few
+  pixels at the default zoom; the card says it.
+- **Pedestrians stepping aside** from a car in the zone (police.md 5.6) is not built: the walkers
+  are the city lane's.
+- **The first contact** is its own parked car 150 m ahead (not one of the day's traps): the lizak
+  log line names it "trap 0".
 
 ## Decided in loop 3g-1 (gameplay-dev defaults; the user may still change them)
 

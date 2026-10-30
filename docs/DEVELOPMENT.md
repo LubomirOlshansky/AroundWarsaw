@@ -2257,8 +2257,8 @@ over the officer, chasers and the known traps (after the radio host read them, o
 one) on the minimap. The light bars flash in `actor.gdshader` (SIREN: off, the lenses dim; on,
 blue and red in turns at 2.5 Hz, glowing by day too); at night their blue and red pools on the
 road and the koguty-3 searchlight are one glow MultiMesh, shown only while a light bar flashes.
-The sounds are placeholders from the ones already here (the far siren on one positional voice of
-the six; the whoop, whistle and stamp pitched from the siren, the tram bell and the soft knock).
+The sounds were placeholders here (loop 3g-2 replaced them with its own, from `make_sfx.py`);
+the siren plays on one positional voice of the six.
 
 **The add-ons.** beehave (bitbrain, 2.9.3) gives each police unit a behaviour tree
 (`police/police_unit.gd`: pull-over, roadblock, blocker, search, chase, trap, patrol), ticked by
@@ -2318,6 +2318,115 @@ Shots: `shots/loop3g1/` (gitignored), at 2868×1320 and 1792×828: a koguty 2 ch
 day and at night (and close: the lenses taking turns, the blue pool at night), the four trap
 spots close up, a trap at night, the lizak over the officer, the pull-over card (at a trap, and
 the first contact).
+
+## Loop 3g-2: the police, part two (2026-10-30)
+
+Part two of docs/design/police.md (sections 5.6, 8, 10): the rescue escort, the race and side-job
+ties, the city guards with the zone cap and the clamp, the scripted first contact, and the
+synthesised police sounds. The user's rules hold everywhere: never a fine, nothing taken from the
+wallet, chases end by themselves, and the guards never call the police.
+
+**Rescues** (`police.gd`, police.md 8.1). On a rescue's pickup and drop-off the police see
+nothing and start nothing (`police: speed seen, on a rescue (nothing)`); a trap's lizak isn't
+waved. Accepting a rescue during a chase ends the chase (`missions.gd`'s new `accepted` signal):
+the toast *POLICJA ODPUSZCZA: RATUJESZ KOGOŚ · THE POLICE BACK OFF: YOU'RE ON A RESCUE*, then the
+usual 180 s cooldown. **The escort**: once the person is aboard, the nearest patrol car within
+200 m joins, or one is placed out of sight 150-400 m ahead on the way to the hospital (always on a
+session's first rescue, then one rescue in two, *guess*). It adds 10 s to the rescue clock
+(`missions.add_time`; the pill *ESKORTA · +10 S · ESCORT · +10 S*), whoops once, says its
+`police_escort` line and leads with lights and siren along the route (the hospital's lane-graph
+node, its `distances_to` cached by node like the rivals' finishes): 15-25 m ahead of you along the
+route, at 45 km/h (`ESCORT_PACE`, *guess*) or a little over your speed, faster when you close in
+under 15 m, slower when you drop past 25 m; it stops and waits while you are more than 60 m
+behind, and when you overtake it (4 m, held 1 s) it follows behind until you let it lead again.
+It waits at the route's end (it drives like a chaser and never "arrives") and, when the rescue
+ends, turns its lights off and goes back to patrolling (`police: escort left (at the hospital)`).
+No escort in the helicopter (taking off sends it away).
+
+**Races and side jobs** (8.2, 8.3). A race seen by a patrol or a trap's car within 60 m pulls in
+koguty 1 (after the start grace and the cooldown, like any chase). Escaping the police during the
+race marks it (`police: race marked +20 % for the escape`): a win then pays the stake × 1.2
+(`rivals.gd`, `ESCAPE_BONUS`) with *· +20 % ZA UCIECZKĘ · +20 % FOR THE ESCAPE* inside the result
+card's stake line. The kebab's heat stands still while the pull-over card is open (`jobs.gd`'s
+`heat_frozen`; `police: kebab heat frozen at 100 %` / `runs again`); the słoiki are untouched. A
+Podwózka passenger still takes one star for a pull-over (`rides.on_pulled_over()`, wired in 3g-1);
+the first contact's routine check takes none.
+
+**The city guards** (Straż Miejska, 5.6; `police/guards.gd`, `police/guard_unit.gd`, posts in
+`game/data/police_guards.json` until loop 3d's `guard_post` POIs): two guards at each of four posts
+(the car-free end of Krakowskie Przedmieście, Plac Zamkowy, the Rynek, Nowomiejska by the
+Barbakan), in mustard jackets and dark trousers, drawn as fixed people in the pedestrians'
+MultiMesh (`pedestrians.gd` set_fixed, slots 4-11 of `FIXED` 12: **+0 draw calls**). Up to 8 are
+staffed within 300 m of you (out of sight; let go past 360 m), and the 6 nearest within 150 m tick
+their beehave tree at 5 Hz (clamp → walk to the car; run → after the car at 5 m/s; talk → face the
+car; else back to the post at a walk and stand facing the street). Their legs keep the walkers'
+swing (a standing pose needs a new constant and a branch in `actor.gdshader`: the visuals lane).
+- **The zone cap**: inside a pedestrian-zone polygon (`ped_zones.gd`, loop 3d-1) the car's gas is
+  capped at 20 km/h through the existing `car.zone_cap` hook (no change to `car.gd`; a faster car
+  coasts down to it), with the pill *STREFA PIESZA · 20 KM/H · PEDESTRIAN ZONE · 20 KM/H*.
+- **The whistle**: moving in a zone with a guard within 60 m (once a zone a minute): the whistle,
+  the guard's line (`guard`, tagged `oldtown` on the Rynek and Barbakan posts, the deptak line
+  elsewhere), the guard runs after the car for 3 s, gives up with the `run` line. **The guards'
+  car** (one at a time, the police mesh's shape 1, spawned out of sight 150-300 m away near a post)
+  follows a whistle within 400 m at most 25 km/h with its amber beacon for 15 s, then turns away
+  (lights off, the traffic's pace). Guards never start a strike, a chase or a call to the police.
+- **The guard conversation**: stopping (under 1 m/s, 1.5 s) within 10 m of a guard opens the card
+  (`police.dialogue`'s `~ guard_stop`: Strażnik Henio's line, one reply, the caution in the joke
+  notebook); no cooldown after it; that guard waits 60 s before the next talk.
+- **The clamp**: parked (under 0.5 m/s) 20 s on a footway or in a zone within 30 m of a guard: the
+  guard walks over (the `clamp` line, a scribble), the pill *BLOKADA ZA 0:10 · CLAMP IN 0:10*
+  counts down 10 s (driving off drops it), then the clamp goes on (a clank, a yellow box on the
+  front left wheel, +1 draw call while shown) and holds the car 10 s under the card *BLOKADA NA
+  KOLE · ZDEJMUJĘ ZA 0:10 · WHEEL CLAMP ON · OFF IN 0:10* with *Przepraszam · Sorry*, which takes it
+  off at once.
+
+**The first contact** (police.md 7.2): 6 s after the first race of a save ends, a patrol car is
+parked by the kerb 150 m ahead on your road with an officer, who waves the lizak whatever your
+speed: stopping opens the `routine` conversation; driving on starts koguty 1 like a trap. Either
+way it is marked in the save (`wallet.keep["police_first_contact"]`) and never comes again; a
+setup you drive away from (450 m) or that takes over 90 s is tried again 20 s later (4 tries).
+
+**Sounds** (`tools/make_sfx.py`, all procedural, levels matched to the set): `police_siren` (the
+two-tone, a seamless 1 s loop on the positional siren voice), `police_whoop`, `megaphone` (the
+chirp before "Policja"), `whistle` (two short blasts), `scribble`, `stamp`, `clank` (the clamp).
+They replace 3g-1's placeholders; the files already there are byte-identical.
+
+**Cost** (Linux container: headless bench, `--fixed-fps 60`, two runs each interleaved, before =
+the code at `8660ec4`; rendered with the software Vulkan driver at 1280×720, so draw calls only):
+
+| | Before | After |
+| --- | --- | --- |
+| Police scripts, bench route (calm) | 0.06 ms | 0.09-0.10 ms |
+| Police scripts, koguty 3 (`--police=3 --police-auto=still`) | 0.19-0.21 ms | 0.23-0.25 ms |
+| Draw calls, bench route (main / shadow / 2D) | 114 (47 / 34 / 33) | 114 (47 / 35 / 33) |
+| Draw calls, Plac Zamkowy probe (`--probe --at=-700,-1480`) | 106 (45 / 28 / 33) | 109 (46 / 28 / 36) |
+
+The guards are +0 (fixed people in the walkers' MultiMesh: +40 instances in the probe); at Plac
+Zamkowy the zone pill is +3 2D draws (a panel and two labels, as in 3g-1) and the guards' car +1 in
+the main pass (the POLICE MultiMesh, out by then). The clamp box is +1 while shown. The container
+runs 3g-1's scripts at about twice the Mac's times (0.06 here, 0.03 there), so the koguty 3 chase
+should stay near 0.10 ms on the Mac, under police.md 12's 0.15 ms; the per-frame guard work is
+~0.02 ms (the footway lookup runs only for a car stopped by a guard). No new shader or material.
+
+**Testing aids** (flags in the table below; `--police-log` adds `guard: …` lines:
+`guard: whistle (post kp_gate_1, 13 m, 26 km/h)`, `guard: clamp on (10.0 s after the countdown
+began)`, `police: escort joined (unit 8, placed 150 m ahead …; rescue clock +10 s …)`).
+`check_police.gd` adds P14, part two on the synthetic road (25 cases: rescue sees nothing, a
+rescue ends a chase, the escort placed / joining a patrol / lights and route / waiting / leading /
+pace / overtaken / leaving / not in the helicopter, a race seen, +20 %, the kebab's heat frozen, the
+zone pill and cap, the guard's 3 s run, the guard car's 15 s at 25 km/h, guards never chase, the
+clamp's 20 / 10 / 10 s and Przepraszam, the first contact once, the złoty), the new lines and the
+guard cues; it now fails when no case ran. `police-runs` adds a second row, "police part two"
+(the escort on rescue 9, `--guards`, `--guards=talk`, `--clamp`, `--clamp=sorry`, the first
+contact, `--pullover=kebab` with a kebab order, a race's escape).
+
+What only the phone can tell: the siren and whoop against the radio, whether 45 km/h feels like an
+escort or a crawl in Normal traffic, whether the guards read as guards at 80 m (mustard on the 2×
+pixel), whether the clamp box is visible at the default zoom, and how the 20 km/h zone feels.
+
+Shots (scratch, not committed): the escort leading on rescue 9, a guard whistling on the
+Krakowskie Przedmieście deptak with the zone pill, the clamp card on Plac Zamkowy, at 2532×1170
+and 2868×1320.
 
 ## Sectors and streaming (loop 3c, 2026-10-29)
 
@@ -3457,6 +3566,11 @@ Command-line options (after `--`):
 | `--police-now` | loop 3g-1: no start grace, no cooldown (tests; with `--autopilot` the car roams at twice the limit: the soak) |
 | `--police-log` | loop 3g-1: print every police state change with its frame (`police: …` lines; in a chase the car's place on screen each second, `police: b4 x … y …`) |
 | `--police-offence=F:kind,…` | loop 3g-1: an offence at frame F (`speed`, `red`, `oneway`, `bump`, `ram`), seen by the nearest unit (the cooldown test P7) |
+| `--escort` | loop 3g-2: with `--mission=N`, the car is put at the rescue's pickup at frame 30 and the person boards; the escort always comes (as on a session's first rescue) |
+| `--police-auto=follow` | loop 3g-2: the test driver rides along the escort's route behind it (12-22 m back, through the traffic), the last stretch to the hospital's ring straight (the escort run E1) |
+| `--guards[=talk]` | loop 3g-2: start at the south end of Krakowskie Przedmieście's car-free stretch and drive north into the pedestrian zone at 30 km/h (the zone caps it to 20): the whistle, the 3 s run, the guards' car; `=talk` stops by the gate's guards instead (the guard conversation) |
+| `--clamp[=sorry]` | loop 3g-2: start parked on Plac Zamkowy by a guard; the clamp's countdown at frame 60, the clamp 10 s later, off after 10 s (`=sorry`: Przepraszam tapped 1 s after it goes on) |
+| `--first-contact` | loop 3g-2: arm the scripted first contact at frame 60 as if the first race had just ended (with `--pedal=gas`: drive into the officer; add `--police-auto=stop` to stop by him: the routine check) |
 
 Godot's own `--time-scale 3` (before `--`) speeds a mission or race up for screenshots, and
 `--fixed-fps 60` makes runs repeatable frame by frame.

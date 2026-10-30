@@ -2,7 +2,8 @@
 # Only the flow lives here; every word is in game/data/dialogue.json, picked by `talk.say(group,
 # tag)` (game/scripts/police/police_talk.gd), which returns the Polish line and keeps its English
 # for the balloon. Compiled at runtime by Dialogue Manager 4 (its editor plugin stays off).
-# `guard_stop` comes with the city guards in part two (loop 3g-2).
+# Loop 3g-2: `guard_stop`, the city guard's conversation when the car stops by a guard (police.md
+# 5.6): a zone line (talk.zone: "oldtown" on the Market Square and the lanes), one reply, a caution.
 
 ~ pull_over
 if talk.first_contact
@@ -16,5 +17,14 @@ Sierżant Bogdan: {{talk.say("police_stop", talk.opener)}}
 
 ~ caution
 Sierżant Bogdan: {{talk.say("police_caution", talk.caution_tag)}}
+$> talk.done_caution()
+=> END
+
+~ guard_stop
+Strażnik Henio: {{talk.say("guard", talk.zone)}}
+- {{talk.say("police_reply", "")}} => guard_caution
+
+~ guard_caution
+Strażnik Henio: {{talk.say("police_caution", "")}}
 $> talk.done_caution()
 => END

@@ -33,6 +33,16 @@ levels (if their folder is given) to balance the buses against.
   pigeons      a flock flushing
   birds_a / birds_b       sparrow chirps, a whistled phrase (day)
   siren_far / dog_far     the night's rare distant events
+  police_siren   loop 3g-2 (docs/design/police.md 10): the patrol car's two-tone siren,
+      590 / 790 Hz for 0.5 s each, a soft square through a 3 kHz low-pass (a 1 s loop)
+  police_whoop   a 0.35 s sweep 400 -> 1,100 Hz (a unit warns or joins)
+  megaphone      the megaphone's chirp before a line: a 0.12 s band-passed noise burst, a
+      1 kHz click
+  whistle        the city guard's / the officer's whistle: two 0.15 s blasts at 2.9 kHz
+      with a 20 Hz trill
+  scribble       0.8 s of pencil strokes (filtered noise): the clamp's countdown
+  stamp          a 120 Hz thud and a paper slap, 0.25 s: the end of a caution
+  clank          partials at 600 / 1,700 Hz, 0.3 s: the clamp on and off
 """
 import array
 import cmath
@@ -550,6 +560,107 @@ def siren_far(seed):
     return echo(out, [(0.12, 0.35), (0.26, 0.2), (0.41, 0.12)], 0.5)
 
 
+# --- loop 3g-2: the police and the city guards (docs/design/police.md section 10) -----
+
+def soft_square(ph, k=2.6):
+    """A square wave with its corners rounded (tanh of a sine): `ph` in cycles."""
+    return math.tanh(k * math.sin(TAU * ph)) / math.tanh(k)
+
+
+def police_siren(seed):
+    """Two tones, 0.5 s each, a whole number of cycles in each half (295 and 395), so every
+    switch and the loop point fall on a zero crossing."""
+    half = RATE // 2
+    out = zeros(2 * half)
+    for part, f in enumerate((590.0, 790.0)):
+        for i in range(half):
+            out[part * half + i] = soft_square(f * i / RATE)
+    out = biquad(biquad(out, "lp", 3000.0, 0.7, loop=True), "lp", 3000.0, 0.7, loop=True)
+    # A little air of the horn's bell: a second, quieter band round 1.4 kHz.
+    body = biquad(out, "bp", 1400.0, 1.2, loop=True)
+    return mix((1.0, out), (0.35, body))
+
+
+def police_whoop(seed):
+    n = int(0.35 * RATE)
+    out = zeros(n)
+    ph = 0.0
+    for i in range(n):
+        t = i / n
+        f = 400.0 + 700.0 * (t ** 0.7)
+        ph += f / RATE
+        out[i] = soft_square(ph) * min(1.0, t * 12.0) * (1.0 - t) ** 0.6
+    return fade(biquad(out, "lp", 3200.0, 0.7), 0.004, 0.03)
+
+
+def megaphone(seed):
+    rnd = random.Random(seed)
+    n = int(0.16 * RATE)
+    burst = noise(n, rnd)
+    m = int(0.12 * RATE)
+    for i in range(n):
+        burst[i] *= (1.0 - i / m) ** 1.5 if i < m else 0.0
+    burst = biquad(biquad(burst, "bp", 1500.0, 2.5), "bp", 1800.0, 1.5)
+    click = bell(n, [(1000.0, 1.0, 0.012), (3000.0, 0.3, 0.006)])
+    out = mix((1.0, burst), (0.6, click))
+    return fade(saturate(out, 2.0), 0.0, 0.02)
+
+
+def whistle(seed):
+    rnd = random.Random(seed)
+    blast = int(0.15 * RATE)
+    gap = int(0.09 * RATE)
+    n = 2 * blast + gap + int(0.05 * RATE)
+    out = zeros(n)
+    air = biquad(noise(n, rnd), "bp", 2900.0, 3.0)
+    for b in range(2):
+        at = b * (blast + gap)
+        ph = 0.0
+        for i in range(blast):
+            t = i / RATE
+            trill = math.sin(TAU * 20.0 * t)
+            ph += (2900.0 + 90.0 * trill) / RATE
+            env = min(1.0, i / (0.01 * RATE)) * min(1.0, (blast - i) / (0.02 * RATE))
+            out[at + i] += (math.sin(TAU * ph) * (0.8 + 0.2 * trill) + 0.35 * air[at + i]) * env
+    return out
+
+
+def scribble(seed):
+    rnd = random.Random(seed)
+    n = int(0.8 * RATE)
+    out = zeros(n)
+    w = noise(n, rnd)
+    at = 0
+    while at < n - int(0.05 * RATE):
+        stroke = int(rnd.uniform(0.04, 0.11) * RATE)
+        g = rnd.uniform(0.5, 1.0)
+        for i in range(min(stroke, n - at)):
+            env = math.sin(math.pi * i / stroke) ** 2
+            out[at + i] += w[at + i] * env * g
+        at += stroke + int(rnd.uniform(0.0, 0.04) * RATE)
+    out = mix((1.0, biquad(out, "bp", 3800.0, 1.4)), (0.4, biquad(out, "bp", 6500.0, 2.0)))
+    return fade(out, 0.01, 0.05)
+
+
+def stamp(seed):
+    rnd = random.Random(seed)
+    n = int(0.25 * RATE)
+    thud = bell(n, [(120.0, 1.0, 0.05), (240.0, 0.35, 0.03)])
+    slap = noise(n, rnd)
+    m = int(0.03 * RATE)
+    for i in range(n):
+        slap[i] *= (1.0 - i / m) ** 2 if i < m else 0.0
+    slap = biquad(slap, "bp", 2200.0, 1.0)
+    return fade(mix((1.0, thud), (0.55, slap)), 0.0, 0.03)
+
+
+def clank(seed):
+    rnd = random.Random(seed)
+    n = int(0.3 * RATE)
+    out = bell(n, [(600.0, 1.0, 0.08), (1700.0, 0.6, 0.05), (2650.0, 0.25, 0.03)], 0.5, rnd)
+    return fade(out, 0.0, 0.03)
+
+
 def dog_far(seed):
     rnd = random.Random(seed)
     n = int(2.4 * RATE)
@@ -690,7 +801,7 @@ def check(path, loop):
 
 
 LOOPS = ["engine_idle", "engine_mid", "engine_high", "tyre_roll", "tyre_wet", "tyre_squeal", "rotor",
-         "city_day", "city_night", "rain"]
+         "city_day", "city_night", "rain", "police_siren"]
 
 
 def main(out_dir, radio_dir=None):
@@ -724,6 +835,13 @@ def main(out_dir, radio_dir=None):
     made["birds_b"] = [birds(50, "b")]
     made["siren_far"] = [siren_far(51)]
     made["dog_far"] = [dog_far(52)]
+    made["police_siren"] = [police_siren(61)]
+    made["police_whoop"] = [police_whoop(62)]
+    made["megaphone"] = [megaphone(63)]
+    made["whistle"] = [whistle(64)]
+    made["scribble"] = [scribble(65)]
+    made["stamp"] = [stamp(66)]
+    made["clank"] = [clank(67)]
     rows = []
     for name, chans in made.items():
         path = os.path.join(out_dir, name + ".wav")

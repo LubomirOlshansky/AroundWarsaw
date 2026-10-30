@@ -15,11 +15,20 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | landmarks/models | Landmark and skyscraper models (Złote Tarasy, Złota 44, Varso, PKiN, Spire, Q22, Muzeum Narodowe, Stadion Narodowy), bus stops: BACKLOG "High priority" | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
 | store release | The signed Android AAB for Play internal testing, on today's main | cloud thread "Prepare App Store and Play beta listings" | 2026-10-30 |
 | performance | Profile the 108-sector map on mobile settings (frame time, draw calls, memory); cheap wins outside the map engine (3d-2 is the map lane's) | cloud thread "Prepare App Store and Play beta listings" | 2026-10-30 |
-| content | 3g-2: the police, part two (guards, zone cap and clamp, rescue escort, race and job ties, first contact, sounds; not the chase camera or PixelLab) | cloud thread "Build the Moja Warszawa notebook" | 2026-10-30 |
 
 ## Waiting
 
 Newest first. One entry per question.
+
+- **2026-10-30 · content · 3g-2 (police, part two)** — Rescue escort: how often after the first
+  rescue, and how fast? Default built: the first rescue always, then one in two; 45 km/h, 15–25 m
+  ahead. Tell back after a phone run.
+- **2026-10-30 · content · 3g-2** — The pedestrian-zone cap only cuts the gas: a car entering
+  faster coasts down to 20 km/h. Brake it harder? Default built: coast down.
+- **2026-10-30 · content · 3g-2** — Stopping by a guard ends in a caution in the joke notebook.
+  The routine first contact takes no Podwózka star. Keep both? Default built: as said.
+- **2026-10-30 · content · 3g-2** — The clamp card reads BLOKADA NA KOLE · ZDEJMUJĘ ZA 0:10 /
+  WHEEL CLAMP ON · OFF IN 0:10. Wording for a game-designer pass? Default built: as written.
 
 - **2026-10-30 · content · MW-1 (the notebook)** — The minimap shows "?" for undiscovered
   places within 400 m of the car, because districts don't exist yet. Switch to "in a discovered

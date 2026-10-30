@@ -9,6 +9,9 @@ extends Node
 ## during play (FIRST_CALL seconds in, then NEXT_CALL after each one ends or is put off) and
 ## waits as the HUD's context button, WEZWANIE, until the player opens it.
 
+## Loop 3g-2 (police.md 8.1): a call was accepted (police.gd ends a chase).
+signal accepted
+
 const Beacon := preload("res://scripts/beacon.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 
@@ -144,6 +147,20 @@ func accept() -> void:
 	_pickup.place(_mission["pos"], HELI_REACH if _mission["heli"] else CAR_REACH)
 	hud.toast("Jedziemy! " + ("Tylko helikopterem." if _mission["heli"] else "Autem albo helikopterem."),
 			"Go! " + ("Take the helicopter." if _mission["heli"] else "Car or helicopter."))
+	accepted.emit()
+
+
+## Loop 3g-2 (police.md 8.1): seconds added to the rescue clock (the police escort's +10 s).
+func add_time(seconds: float) -> void:
+	if has_target():
+		_time_left += seconds
+		print("rescue clock +%.0f s (%s left)" % [seconds, _clock(_time_left)])
+
+
+## Loop 3g-2, --escort: the person is aboard at once (a pickup's call goes straight to the drop-off).
+func board() -> void:
+	if state == State.PICKUP and not _mission["heli"]:
+		_picked_up()
 
 
 ## Hides the card; the next call comes in NEXT_CALL seconds later (loop 2e: it was a RESCUE
