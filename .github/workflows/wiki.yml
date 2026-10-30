@@ -1,0 +1,43 @@
+# The design wiki (wiki/README.md). On pushes and pull requests it checks that the wiki still
+# builds from the game's data and docs (a changed format shows up here). Deploying is by hand
+# only (Run workflow), with the landing's Cloudflare secrets; the Worker's WIKI_PASSWORD secret is
+# set once with wrangler.
+name: wiki
+
+on:
+  push:
+    branches: [main]
+    paths: ["game/data/**", "game/scripts/**", "docs/**", "wiki/**", "tools/wiki_build.py", ".github/workflows/wiki.yml"]
+  pull_request:
+    paths: ["game/data/**", "game/scripts/**", "docs/**", "wiki/**", "tools/wiki_build.py", ".github/workflows/wiki.yml"]
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: "Deploy to wiki.aroundwarsaw.app"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wiki-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the wiki
+        run: python3 -I tools/wiki_build.py
+      - name: Deploy to Cloudflare
+        if: github.event_name == 'workflow_dispatch' && inputs.deploy && env.HAS_TOKEN == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: wiki
+          command: deploy
