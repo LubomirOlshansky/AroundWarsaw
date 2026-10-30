@@ -597,6 +597,12 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   `map_builder._build_landmark_signs`, `neon_signs.gd` `LANDMARK_WORDS`, never a shop's word),
   drawn with the neon signs' shader but lit by day too (`INSTANCE_CUSTOM.z` = 2) and outside the
   night lights' holder. The two 55 m buildings beside it come from their parts.
+- **Rondo Daszyńskiego** (after the user's look, "too simple with rooftops"): The Warsaw HUB's two
+  130 m towers are landmarks too, found by a point rather than an OSM id (`_tallest_at`: the
+  tallest kept outline holding that point; `bake_sectors.py` `SITE_AREAS` has their box), in
+  pale glass with white fins and a card. Their tops, Mennica Legacy's and Generation Park Y's
+  are cut on a slope (`"crest": "slope"`), and every sloped roof is glazed in the walls' glass
+  tinted toward the roof colour, since a pale slab tilted to the camera blew out.
 - **Muzeum Narodowe** (the landmarks loop): kept as LoD2 draws it (one model round its
   courtyards), but in its pale stone with tall windows between piers (`M_MONUMENT`, `#c9bfa9`):
   `map_builder` asks `landmarks.skin_at` for every kept LoD2 run and OpenStreetMap building
