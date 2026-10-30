@@ -240,7 +240,9 @@ void fragment() {
 	// Rain: wet asphalt and paving darken, puddles lie darker still and mirror the sky.
 	if (wetness > 0.001 && (id == 6 || id == 2 || id == 4 || id == 5 || id == 7 || id == 14 || id == 19)) {
 		base *= mix(1.0, id == 6 ? 0.62 : (id == 7 ? 0.82 : 0.74), wetness);
-		if (id == 6 || id == 2 || id == 4) {
+		// Loop 3i: the markings (7) lie in the same puddles as the asphalt under them, so a
+		// painted line goes dark and mirrors the sky where it crosses one, not over it.
+		if (id == 6 || id == 2 || id == 4 || id == 7) {
 			float pm = value_noise(wp * 0.16 + 11.3) * 0.6 + value_noise(wp * 0.53 + 2.1) * 0.4;
 			puddle = smoothstep(0.64, 0.69, pm) * smoothstep(0.35, 0.9, wetness);
 		}
