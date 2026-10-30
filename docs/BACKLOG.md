@@ -930,8 +930,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   public TestFlight and Play links to the beta section when they exist).
 - The site's form posts to the Stillplace Formspree form (`mykaeqjp`); give Around Warsaw its own
   form, and check the form isn't restricted to stillplace.app.
-- The game still calls its station NOCNA FM (`radio.gd`); the site says Kebab FM, as the user
-  asked on 2026-10-29.
+- ~~The game still calls its station NOCNA FM (`radio.gd`); the site says Kebab FM, as the user
+  asked on 2026-10-29.~~ Renamed in the game too (KEBAB FM, 2026-10-30).
 - ~~The screenshots are from the prototype~~ (website v2: eight new `--nohud` shots, 2026-10-30).
 - From the landing's screenshot session (2026-10-30, runtime city, 2868×1320): the map's edge
   shows in wide views (about `--size=220` and up): a flat light-blue void by day east of the

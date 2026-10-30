@@ -1,8 +1,8 @@
 # Around Warsaw: project instructions
 
 Around Warsaw (formerly Nocna Warszawa; renamed 2026-10-30; the bundle and package IDs keep
-`com.olshanskysoft.nocnawarszawa` and the build files `NocnaWarszawa`; the NOCNA FM station
-keeps its name). A free, open-source (MIT) fan game: an isometric small-car arcade drive (and a
+`com.olshanskysoft.nocnawarszawa` and the build files `NocnaWarszawa`; the radio's 87,3 station
+is KEBAB FM since 2026-10-30, the user's choice; its id and folder stay `nocna_fm`). A free, open-source (MIT) fan game: an isometric small-car arcade drive (and a
 helicopter) through the real centre of Warsaw, built in Godot 4.7.2 (Mobile renderer, iOS first, Metal)
 from OpenStreetMap and GUGiK open data. The goal is a top indie game; the next milestone is
 a high-quality demo of central Warsaw on the iPhone (docs/DEMO.md). The repo is public.
