@@ -205,8 +205,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   and full gas from three quarters out on the stick (70 HUD units, ~38 pt radius on an iPhone
   13), the 80 m default view, and whether the 44 pt panel controls feel right. Touch was emulated from the mouse and driven by
   `--clicks` / `--drag` / `--stick` on the Mac; nothing ran on a device.
-- Point with a finger that never lifts behaves like a fixed camera at whatever angle the
-  camera had (it only comes round after a release). The zoom (− + / pinch) is not saved.
+- ~~Point with a finger that never lifts behaves like a fixed camera at whatever angle the
+  camera had (it only comes round after a release). The zoom (− + / pinch) is not saved.~~ The
+  follow-camera loop (2026-10-30): Point's camera turns with the car while held, the zoom has five
+  saved steps. Not tested headless: the 20° re-aim, and how it feels on the phone.
 - In a dense spot the car can be pinned between a wall and a stopped traffic car that waits for
   it; the unstick turns it out after 1.5 s, and a second pin within 5 s tows it back onto the
   nearest lane on its level (next to a kerb that can be almost where it was, turned the lane's

@@ -3653,6 +3653,32 @@ they are rebuilt (`map_builder.gd` is one of `city.stamp`'s inputs: `tools/setup
 --if-needed` sees it). `check_drive`'s lane sweep, runtime city: 71 → 69 car and 176 → 168 bus
 boxes in collision.
 
+## The follow-camera loop: Point turns with the car, and a saved zoom (2026-10-30)
+
+From the phone: the camera didn't follow the car while driving, it only swung round once the
+finger lifted. That was loop 2a's design for Point (the default controls): the stick points in
+screen directions, so a camera turning under a held finger turned the held direction with it
+and the car circled (3.8 circles in 10 s, `check_steering --legacy`); the fix was a camera that
+waited for the finger to lift. Now (`drive_controls.gd` `FOLLOW_HELD`, false brings the old
+camera back):
+
+- Point's camera turns with the car all the time, at the gentler `RETURN_GAIN` (Classic keeps
+  `TURN_GAIN`), never over 64°/s, the pixel-grid snap unchanged (`main.gd _update_camera`).
+- A held direction keeps the world direction it meant when it was set: it is read against the
+  camera's yaw at that moment, so the camera coming round doesn't turn it and nothing circles.
+  Moving the finger 20° or more (`REAIM`) sets it again, against the screen as it is then.
+- `check_steering`: the held-stick tests (`hold_right`, `hold_diagonal`, `behind`, `release`,
+  `keys_right`) read exactly as before (same errors, settling, no overshoot); the camera now
+  turns up to 50-60°/s in Point's tests (it was 0), and the car stays nearer the screen's
+  middle. The "never while the finger is down" rule applies to Fixed only.
+
+The zoom: five steps of view height (`follow_camera.gd` `VIEWS`: 50, 65, 80, 100, 125 m; 80 is
+the default). A pinch takes a step each time the fingers' span changes by 1.2× (`PINCH_STEP`),
+the mouse wheel and − / + one step a notch. It is saved (`settings.gd` `view`, `[display]
+view`); `--size=` overrides it. A pinch now works on the left half too: a second finger while the
+stick's finger is still inside the dead zone (`hud.gd` `PINCH_STICK`) turns both into the pinch
+(the first finger always took the stick, so a pinch there drove the car).
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
