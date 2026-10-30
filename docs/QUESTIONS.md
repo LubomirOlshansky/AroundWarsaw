@@ -20,6 +20,15 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-30 · store release · app IDs** — The iOS bundle ID is still
+  `com.olshanskysoft.nocnawarszawa`. Change it to `com.olshanskysoft.aroundwarsaw` before the
+  App Store Connect record exists, or keep it? Nobody ever sees it (the home-screen and store
+  name is "Around Warsaw" on both platforms). The Android package can't change: Play has had
+  version code 1 under `com.olshanskysoft.nocnawarszawa` since October, and a new package
+  would be a new app. Options: keep (both platforms match) / change iOS only. Default built:
+  keep, as the rename of 2026-10-30 decided. Where: `game/export_presets.cfg`, ROADMAP
+  "rename + open source".
+
 - **2026-10-30 · content · MW-0 (Moja Warszawa data)** — Where is the real "Apteka" bar you
   meant? Options: name the street / keep the default. Default built: APTECZKA in a Nowy Świat
   22/28 courtyard pavilion, marked `guess` in `game/data/places.json`. If the "Apteka" came from
