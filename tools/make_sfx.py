@@ -1,6 +1,6 @@
 """Generate the game's sound effects and ambience (original, synthesised from scratch).
 
-Usage: python3 -I tools/make_sfx.py game/audio/sfx [game/audio/radio]
+Usage: python3 -I tools/make_sfx.py game/audio/sfx [game/audio/radio] [--only=name,...]
 
 No samples, no downloads: every sound is built here from oscillators, noise and
 filters, in the same pure-Python way as make_music.py and make_ui_sounds.py.
@@ -43,6 +43,14 @@ levels (if their folder is given) to balance the buses against.
   scribble       0.8 s of pencil strokes (filtered noise): the clamp's countdown
   stamp          a 120 Hz thud and a paper slap, 0.25 s: the end of a caution
   clank          partials at 600 / 1,700 Hz, 0.3 s: the clamp on and off
+  club_leak      loop MW-5 (city_sounds.gd): a club's four-on-the-floor through a door,
+      124 BPM, low-passed (a 7.7 s loop)
+  metro_chime    our own three-note chime for a train below a metro entrance
+  church_bell    one toll of a church bell (the hour is struck by repeating it)
+  busker         an original street-guitar loop for the Patelnia at 19:00 (9.6 s)
+
+  --only=club_leak,busker  makes just those (the city's sounds: club_leak, metro_chime,
+  church_bell, busker) and leaves the other files as they are.
 """
 import array
 import cmath
@@ -682,6 +690,110 @@ def dog_far(seed):
     return echo(out, [(0.14, 0.3), (0.31, 0.15)], 0.4)
 
 
+# --- loop MW-5: the city's sounds at the notebook's places (docs/design/vision.md 3.1, 3.5,
+# 3.10) ----------------------------------------------------------------------------------
+
+def club_leak(seed):
+    """A club's bass through a closed door: a four-on-the-floor kick at 124 BPM, a muffled
+    offbeat hat and a low saw riff, all behind a wall (low-passed at ~600 Hz). Four bars,
+    a whole number of samples a beat, so it loops."""
+    rnd = random.Random(seed)
+    beat = round(RATE * 60.0 / 124.0)
+    n = beat * 16
+    out = zeros(n)
+    kick = zeros(int(0.3 * RATE))
+    ph = 0.0
+    for i in range(len(kick)):
+        t = i / RATE
+        ph += (50.0 + 90.0 * math.exp(-t * 35.0)) / RATE
+        kick[i] = math.tanh(2.0 * math.sin(TAU * ph)) * math.exp(-t * 9.0)
+    hat = zeros(int(0.08 * RATE))
+    w = noise(len(hat), rnd)
+    for i in range(len(hat)):
+        hat[i] = w[i] * math.exp(-i / RATE * 40.0)
+    riff = [0, 0, 7, 0, 10, 0, 7, 5]  # semitones over A1, an eighth each, two bars
+    for b in range(16):
+        place(out, kick, b * beat, 1.0)
+        place(out, hat, b * beat + beat // 2, 0.25)
+    for k in range(32):
+        f = 55.0 * 2 ** (riff[k % 8] / 12.0)
+        m = beat // 2
+        note = zeros(m)
+        phs = 0.0
+        for i in range(m):
+            phs += f / RATE
+            note[i] = (2.0 * (phs % 1.0) - 1.0) * math.exp(-i / RATE * 6.0) * min(1.0, i / 60.0) * min(1.0, (m - i) / 60.0)
+        place(out, note, k * m, 0.6)
+    # ~600 Hz: muffled, but the kick's knock and the riff's harmonics still reach a phone's speaker
+    wall = biquad(biquad(out, "lp", 560.0, 0.8, True), "lp", 700.0, 0.6, True)
+    return biquad(wall, "hp", 35.0, 0.7, True)
+
+
+def metro_chime(seed):
+    """Our own three-note chime (not the real one) for a train below: soft bell tones G5, B5,
+    D6 a third of a second apart, in a tiled hall's echo."""
+    rnd = random.Random(seed)
+    n = int(2.2 * RATE)
+    out = zeros(n)
+    for k, f in enumerate((784.0, 988.0, 1175.0)):
+        sig = bell(n - int(k * 0.32 * RATE), [(f, 1.0, 0.7), (f * 2.0, 0.25, 0.3), (f * 3.0, 0.08, 0.12)], 0.05, rnd)
+        place(out, sig, int(k * 0.32 * RATE), 0.9)
+    out = biquad(out, "lp", 3200.0, 0.7)
+    return fade(echo(out, [(0.09, 0.3), (0.21, 0.18), (0.37, 0.1)], 0.5), 0.0, 0.3)
+
+
+def church_bell(seed):
+    """One toll of a church bell: the hum, prime, minor-third tierce, quint and nominal partials,
+    the low ones ringing longest; the hour is struck by repeating it."""
+    rnd = random.Random(seed)
+    n = int(4.5 * RATE)
+    f = 233.0
+    parts = [(f * 0.5, 0.5, 3.2), (f, 0.9, 2.4), (f * 1.19, 0.6, 1.6), (f * 1.5, 0.35, 1.2), (f * 2.0, 0.55, 1.0),
+             (f * 2.52, 0.25, 0.6), (f * 3.0, 0.15, 0.45), (f * 4.07, 0.08, 0.3)]
+    out = bell(n, parts, 0.3, rnd)
+    return fade(echo(biquad(out, "lp", 2800.0, 0.7), [(0.18, 0.25), (0.42, 0.12)], 0.0), 0.002, 0.4)
+
+
+def busker(seed):
+    """An original street-guitar loop for the Patelnia at 19:00: steel strings (Karplus-Strong)
+    strumming Dm, G, C and A7 at 100 BPM, a bar each, down-down-up-up-down; four bars that
+    loop (the last strum rings into the first)."""
+    rnd = random.Random(seed)
+    beat = round(RATE * 0.6)
+    n = beat * 16
+    out = zeros(n)
+    chords = [[50, 57, 62, 65, 69], [43, 50, 55, 59, 62, 67], [48, 52, 55, 60, 64], [45, 52, 55, 61, 64]]
+    strums = [(0.0, 1, 1.0), (1.0, 1, 0.7), (1.5, -1, 0.5), (2.5, -1, 0.5), (3.0, 1, 0.8)]
+
+    def string(midi, length):
+        period = RATE / (440.0 * 2 ** ((midi - 69) / 12.0))
+        d = int(period)
+        m = int(length * RATE)
+        buf = [rnd.uniform(-1, 1) for _ in range(d + 1)]
+        sig = zeros(m)
+        p = 0
+        for i in range(m):
+            a = buf[p]
+            b = buf[(p + 1) % (d + 1)]
+            sig[i] = a
+            buf[p] = 0.4985 * (a + b)
+            p = (p + 1) % (d + 1)
+        return sig
+
+    cache = {}
+    for bar in range(4):
+        notes = chords[bar]
+        for at, way, vel in strums:
+            order = notes if way > 0 else list(reversed(notes))
+            for j, m in enumerate(order):
+                if m not in cache:
+                    cache[m] = string(m, 1.4)
+                t = int((bar * 4 + at) * beat + j * 0.012 * RATE + rnd.uniform(0, 0.004) * RATE)
+                place(out, cache[m], t, vel * 0.3)
+    body = mix((1.0, biquad(out, "lp", 3600.0, 0.7, True)), (0.4, biquad(out, "bp", 210.0, 1.2, True)))
+    return biquad(body, "hp", 70.0, 0.7, True)
+
+
 # --- output and checks ------------------------------------------------------------
 
 def normalise(chans, peak_db):
@@ -801,12 +913,21 @@ def check(path, loop):
 
 
 LOOPS = ["engine_idle", "engine_mid", "engine_high", "tyre_roll", "tyre_wet", "tyre_squeal", "rotor",
-         "city_day", "city_night", "rain", "police_siren"]
+         "city_day", "city_night", "rain", "police_siren", "club_leak", "busker"]
 
 
-def main(out_dir, radio_dir=None):
+# Loop MW-5: the city's sounds (city_sounds.gd), made on their own with --only=.
+CITY = {"club_leak": lambda: [club_leak(71)], "metro_chime": lambda: [metro_chime(72)],
+        "church_bell": lambda: [church_bell(73)], "busker": lambda: [busker(74)]}
+
+
+def main(out_dir, radio_dir=None, only=None):
     os.makedirs(out_dir, exist_ok=True)
     made = {}
+    if only:
+        for name in only:
+            made[name] = CITY[name]()
+        return _write_all(out_dir, made, radio_dir)
     idle, idle_rpm = engine(850.0, 0.1, 2.0, 11)
     mid, mid_rpm = engine(2400.0, 0.55, 1.6, 12)
     high, high_rpm = engine(4500.0, 0.9, 1.4, 13)
@@ -842,6 +963,12 @@ def main(out_dir, radio_dir=None):
     made["scribble"] = [scribble(65)]
     made["stamp"] = [stamp(66)]
     made["clank"] = [clank(67)]
+    for name, make in CITY.items():
+        made[name] = make()
+    return _write_all(out_dir, made, radio_dir)
+
+
+def _write_all(out_dir, made, radio_dir):
     rows = []
     for name, chans in made.items():
         path = os.path.join(out_dir, name + ".wav")
@@ -864,4 +991,6 @@ def main(out_dir, radio_dir=None):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
+    only = [a[len("--only="):] for a in sys.argv[1:] if a.startswith("--only=")]
+    pos = [a for a in sys.argv[1:] if not a.startswith("--")]
+    main(pos[0], pos[1] if len(pos) > 1 else None, only[0].split(",") if only else None)

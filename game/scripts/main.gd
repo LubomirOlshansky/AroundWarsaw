@@ -11,7 +11,7 @@ extends Node
 ## city empty, --race=N races rival N at once, --rival=N puts rival N just ahead,
 ## --bench drives through the traffic and prints the average frame time,
 ## --time=day|dusk|night sets the time of day, --vhs turns the tape overlay on,
-## --radio=0..3 picks the station (0 = off), --notitle skips the title screen and
+## --radio=0..4 picks the station (0 = off; loop MW-5: --station=polnoc by name), --notitle skips the title screen and
 ## --title shows it even with the testing flags. Side jobs and easter eggs (v0.65):
 ## --kebab=N starts kebab order N, --sloik[=K] the słoiki run (K jars already
 ## broken), --heat=X the kebab's starting heat, --host-in=S the radio host's first
@@ -67,6 +67,8 @@ const Eggs := preload("res://scripts/eggs.gd")
 ## Loop MW-1: MOJA WARSZAWA, the city notebook.
 const Notebook := preload("res://scripts/notebook.gd")
 const Sfx := preload("res://scripts/sfx.gd")
+## Loop MW-5: the city's sounds at the notebook's places.
+const CitySounds := preload("res://scripts/city_sounds.gd")
 const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
 const FollowCamera := preload("res://scripts/follow_camera.gd")
@@ -256,6 +258,15 @@ var notebook_open := ""
 var found_spec := ""
 var place_flag := ""
 var notes_log := false
+## Loop MW-5: PÓŁNOC FM's flags: --station=<id|name|N> (a station by id, short id or name),
+## --radio-log (the radio's and the city sounds' log), --unlock=all|N[,N] (all tracks for this
+## run, or open track N as an egg would); `radio_picked`: --radio= or --station= was given (the
+## radio then doesn't follow the clock).
+var station_flag := ""
+var radio_log := false
+var unlock_flag := ""
+var radio_picked := false
+var city_sounds: CitySounds
 var start_kebab := -1
 var start_sloik := -1
 var start_heat := -1.0
@@ -465,12 +476,24 @@ func _ready() -> void:
 	# Loop 2a: the radio keeps playing under the settings panel (the game is paused).
 	radio.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(radio)
-	radio.tune(start_station - 1, true)
+	radio.log_on = radio_log
 	wallet = Wallet.new()
 	wallet.persistent = not no_save
 	add_child(wallet)
 	if reset_save:
 		wallet.reset()
+	# Loop MW-5: PÓŁNOC FM's locked tracks read the save; chapters finished before this loop
+	# open their tracks once, quietly. --station= by name; --radio= now reaches every station.
+	radio.wallet = wallet
+	radio.unlock_all = unlock_flag == "all"
+	radio.sync_chapters()
+	radio.picked = radio_picked
+	var start_index := mini(start_station, radio.stations.size()) - 1
+	if station_flag != "":
+		start_index = radio.station_index(station_flag)
+		if start_index < 0:
+			push_warning("--station=%s: no such station in radio.json" % station_flag)
+	radio.tune(start_index, true)
 	print("save: %s (%s)" % [wallet.summary(), ProjectSettings.globalize_path(Wallet.PATH) if not no_save else "not saved"])
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -765,6 +788,13 @@ func _build_world() -> void:
 	if graph != null:
 		_build_side_jobs(data, world)
 	_build_notebook(data)
+	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
+	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
+		var t := Radio.unlock_toast(String(track["title"]))
+		hud.toast(t[0], t[1]))
+	if unlock_flag != "" and unlock_flag != "all":
+		for n in unlock_flag.split(",", false):
+			radio.unlock_track(int(n), "flag")
 	if lineup:
 		_build_lineup(world)
 	if start_flying:
@@ -807,6 +837,11 @@ func _build_world() -> void:
 	_apply_style()
 	_show_night_nodes(false)
 	tod.set_mode(start_time, true)
+	# Loop MW-5: PÓŁNOC FM reads the game clock; the radio follows it until the player picks.
+	radio.clock = func() -> Array:
+		var c := tod.local_clock()
+		return [TimeOfDay.NAMES[tod.mode], c["hour"]]
+	radio.check_air(true)
 	weather.set_state(start_weather, true)
 	_set_vhs(vhs)
 	_set_perf(show_perf)
@@ -920,6 +955,18 @@ func _build_sound(data: Dictionary, world: Node3D) -> void:
 		eggs.flushed.connect(sfx.pigeons)
 	if jobs != null:
 		jobs.jars.connect(sfx.jars)
+	# Loop MW-5: the city's sounds at the notebook's places (the clubs, the metro, the bells, the
+	# busker, the 02:00 beat), heard by sfx.gd's listener.
+	if notes != null and notes.ready_ok:
+		city_sounds = CitySounds.new()
+		city_sounds.name = "CitySounds"
+		city_sounds.log_on = radio_log
+		city_sounds.radio = radio
+		city_sounds.sfx = sfx
+		world.add_child(city_sounds)
+		city_sounds.setup(notes.places, func(x: float, z: float) -> float: return map.ground_height(x, z))
+		city_sounds.clock = tod.local_clock
+		city_sounds.ear = func() -> Vector3: return cam_focus
 	if sound_check:
 		missions.close()
 		sfx.sound_check()
@@ -1335,6 +1382,9 @@ func _build_notebook(data: Dictionary) -> void:
 	hud.settings_panel.notebook = notes
 	if found_spec != "":
 		notes.preset(found_spec)
+	# Loop MW-5: a chapter finished opens the next PÓŁNOC FM track (and --found= presets do too).
+	radio.sync_chapters()
+	notes.chapter_done.connect(func(_id: String) -> void: radio.sync_chapters())
 	notes.probe = func() -> Array:
 		# Not on the title screen or during TEST · BENCH (its wallet is put back after); --bench's
 		# route does find places, so its scripts' time includes the checks.
@@ -1564,7 +1614,16 @@ func _parse_args() -> void:
 			call_in = maxf(0.0, float(arg.trim_prefix("--call-in=")))
 		elif arg.begins_with("--radio="):
 			var v := arg.trim_prefix("--radio=")
-			start_station = 0 if v == "off" else clampi(int(v), 0, Radio.STATIONS.size())
+			# Loop MW-5: clamped to radio.json's stations when the radio is tuned (_ready).
+			start_station = 0 if v == "off" else clampi(int(v), 0, 99)
+			radio_picked = true
+		elif arg.begins_with("--station="):
+			station_flag = arg.trim_prefix("--station=")
+			radio_picked = true
+		elif arg == "--radio-log":
+			radio_log = true
+		elif arg.begins_with("--unlock="):
+			unlock_flag = arg.trim_prefix("--unlock=")
 		elif arg == "--notitle":
 			show_title = false
 		elif arg == "--title":
@@ -2755,6 +2814,8 @@ func _make_stats() -> BenchStats:
 		b.systems["rides physics"] = [rides, "spent_usec", true]  # loop 2d-1
 	if notes != null:
 		b.systems["notebook"] = [notes, "spent_usec", true]  # loop MW-1
+	if city_sounds != null:
+		b.systems["city sounds"] = [city_sounds, "spent_usec", true]  # loop MW-5
 	b.systems["sound"] = [sfx, "last_usec", false]
 	b.systems["hud+minimap"] = [hud, "spent_usec", true]
 	b.systems["bubbles"] = [bubbles, "spent_usec", true]
