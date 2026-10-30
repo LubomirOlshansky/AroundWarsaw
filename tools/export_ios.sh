@@ -4,6 +4,10 @@ set -e
 cd "${0:A:h}/../game"
 # Loop 3c: the map split into 512 m sectors (index.json, sectors/<i>_<j>.json), then each
 # sector's scene, the proxies and the index (sectors/s_<i>_<j>.scn, proxies.scn, index.res).
+# Loop 3d-1: the GUGiK outputs (lod2.*, terrain.json) are derived too: made first when missing.
+if [[ ! -f map/lod2.bin || ! -f map/lod2.json || ! -f map/terrain.json ]]; then
+	../tools/setup_map.sh --full
+fi
 python3 -I ../tools/bake_sectors.py map > /dev/null
 # Not --headless: the headless renderer discards MultiMesh and texture data, which would
 # leave the prebuilt city without trees, cars or AO. This opens a window for a moment.

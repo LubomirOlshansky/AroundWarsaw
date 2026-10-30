@@ -2627,6 +2627,82 @@ L4, L5, L2 and the Podwózka river spots.
   dashes through such junctions: kept. **L4** (Emilii Plater's weaving median walls), **L2**,
   **D8**, **D10**: not changed (BACKLOG).
 
+## Loop 3d-1: the demo map, the 20.1 km² box (2026-10-29)
+
+The map is docs/DEMO.md 2.1's box (south 52.2183, west 20.9780, north 52.2525, east 21.0560;
+the east edge moved from 21.0500 with the user's yes so Most Łazienkowski is whole),
+baked from the demo fetch already on disk (no downloads; README "Map data" for the chain,
+`tools/bake_all.sh` to run it). The origin stays at 52.2340 N 21.0240 E (`bake_osm.py`
+`ORIGIN`), so every coordinate written before means the same place.
+
+- **Committed vs derived** (item 0, the user's decision): the split and the prebuilt sectors are
+  no longer committed; a fresh clone runs `tools/setup_map.sh` once ("Map data").
+- **The terrain from the 1 m NMT** (the user's yes: `tools/fetch_demo.py nmt1box`, 12 tiles,
+  83 MB, `data/raw/demo/gugik/nmt1_box/`): `tools/prepare_demo.py` builds the 10 m grid's nodes
+  from it: each node the median of the 1 m cells within 5 m, or, where 12 or more of them lie on a
+  drivable road at grade, the median of those road cells (a node no longer reads an embankment's
+  top or foot by chance: the old point samples moved up to 3 m with the demo fetch's lattice).
+  Wybrzeże Kościuszkowskie's 2.4 m step at (625, −453) is real: the 1 m data shows the road in a
+  5-6 m trench meeting the ground over the Wisłostrada tunnel's south portal; it is listed as
+  loop 3e's (the portal's trench). A deck over a service way needs 2.6 m, not 5 m
+  (`bake_roads.CLEAR_SERVICE`, check_roads C3 the same: garage ramps the 1 m data shows).
+- **New steps**: `tools/prepare_demo.py` (the raw downloads cut to the box into `data/work/demo/`;
+  `data/raw` is only read), `tools/bake_terrain.py` (the terrain on its own, first),
+  `tools/bake_traps.py` (police traps 5-7 placed on the new graph by the first four's rules:
+  Aleja „Solidarności” at (−778, −1390), Aleja Armii Ludowej (Trasa Łazienkowska) at (673, 1399),
+  Aleje Ujazdowskie at (57, 1404); the blocks give 157-825 m runs, not police.md's 250 m).
+  `bake_osm.py` runs twice (its structures read the box's LoD2). Its two quadratic loops (outlines
+  holding parts, props facing their road) got grids: 240 s → 110 s for the whole bake.
+- **Pedestrian zones** (police.md 5.6, 13): `bake_osm.py` `PED_ZONES` (the Old Town box, one
+  small commented list) writes `ped_zones` (83 polygons: the `highway=pedestrian` ways as strips,
+  the squares and pedestrian areas: the Old Town and New Town, Plac Zamkowy, Krakowskie
+  Przedmieście's north end); traffic never enters (pedestrian ways are not in the lane graph);
+  `game/scripts/ped_zones.gd` and `car.gd` `zone_cap` hold the player's car to 20 km/h there
+  (`zone:` log lines). The pill, the guards and the clamp are loop 3g-2's.
+- **Classes fixed over the whole map** (each counted before → after): a vertex within 0.3 m of the
+  one before it got no node in the deck solver (a crash on the box's rails: 1 → 0); a rail way with
+  no layer between cutting tracks is in the cutting (Żelazna's crossover, an R3 failure that
+  stopped the bake: 1 → 0); poles on the asphalt (S1 15 → 0: a lamp with no spot off the asphalt
+  is left out, a signal looks 16 m out, the added lamps and a last pass use S1's own test); a deck
+  lookup past a piece's end at a joint with the next piece (Most Świętokrzyski dropped the car
+  7.6 m at its pylon: check_drive jumps there 2 → 0); building walls standing in a lane open by
+  their triangles' edges, not centres, and for OpenStreetMap buildings too (lod2_open 92 → 140
+  places; check_drive lane collisions outside the structures 6 → 1, a pillar, allowed); a point
+  of interest in water moves to the nearest road point (Skwer Hoovera's fountain, check_water 5d:
+  2 moved); a mapped Mermaid 150 m or more from the river isn't the egg's (a small "Syrenka"
+  1.5 km inland had taken the boulevard spot's place); the map's edge walls stand on the map's
+  edge, not the grid's, and the sector grid covers what the builder draws (`bake_sectors.reach`;
+  check_streaming's identity: 26 ground and building tiles in no sector → 0).
+- **What the checks found** in the new area (all listed in the allowlists with place and reason,
+  `tools/check_roads_allow.json` and the new `tools/check_drive_allow.json`; 27 entries of the
+  first box no longer matched and were dropped): the structures of DEMO 4.6, loop 3e's work: Trasa
+  W-Z's tunnel and portals, Trasa Łazienkowska's trench at Plac Na Rozdrożu and its interchange,
+  the Wisłostrada tunnel's north portal under the Copernicus Science Centre, Most Świętokrzyski's
+  pylon, Most Śląsko-Dąbrowski's Praga end, Wiadukt Markiewicza, the railway cutting west of
+  Centralna under Żelazna, Towarowa and Kasprzaka, the Praga viaducts by the zoo; and two classes
+  of the 10 m grid: service ways and steep escarpment streets as before, and (new) roads whose
+  ends meet a hump or pit of the new grid, which samples the NMT 3.5 m east and 5 m south of the
+  old grid's nodes (Wybrzeże Kościuszkowskie by Tamka steps 2.4 m in 6 m: an open question).
+
+| Loop 3d-1 numbers | First box (loop 3c) | Demo box (east edge 21.056, the 1 m terrain) |
+| --- | --- | --- |
+| Area, sectors | 3,545 × 1,769 m = 6.3 km², 32 | 5,318 × 3,782 m = 20.1 km², 108 (i −7..4, j −5..3: 96 for the box and a sliver row of 12 north of z −2,048 for the terrain and the buildings that reach 4-6 m past the edge) |
+| centrum.json; lod2.bin, ao / lights / water.bin | 5.0; 26, 12 / 12 / 6 MB | 16.4; 87 (derived since loop 3d-1), 40 / 40 / 20 MB |
+| Roads, paths, buildings (OSM kept / LoD2) | | 8,038, 19,464, 12,610 (4,667 kept / 6,025 LoD2, 1.55 M vertices) |
+| Scanned trees, pois, addresses | 12,554, 1,020, 973 | 42,578 (every OSM tree replaced), 3,548, 3,332 |
+| Lane graph | 966 nodes (96.3 % strongly connected), 1,497 edges | 2,714 nodes (2,615: 96.4 %), 4,427 edges, 183 signal controllers |
+| Vertices (`count_vertices.gd`) | 6.25 M | 19.49 M (0.97 M a km²) |
+| Sector files / index.json | 9.2 / 3.3 MB | 29.4 / 10.2 MB |
+| Prebuilt: sectors, index.res, proxies.scn | 29.3, 2.3, 2.7 MB | 91.3, 7.7, 8.5 MB |
+| check_roads findings (all allowed) | C1 32, C2 1, C3 40, C5 18, C8 5, C9 5 | C1 81, C2 1, C3 137, C5 72, C6 4, C8 30, C9 12, C11 1 (in the 18.6 km² of the first demo bake: C1 84 → 72, C8 32 → 25 with the 1 m terrain) |
+| check_drive (both paths) | 0 | 0 not allowed (174 allowed, at loop 3e's structures, one pillar and one median fence) |
+| check_streets | S1 0, S3 18 | S1 0, S3 40 |
+| Probe draw calls (spawn, river, zoomed out, helicopter) | 132, 103, 153, 211 | 134, 103, 148, 217 |
+| Memory at the spawn (probe): static / video | 147 / 263 MB (textures 24) | 244 / 421 MB (textures 94: the AO, light and surface maps 100 MB whole) |
+| check_water, check_drape | OK | OK (2 places listed in check_water's `ALLOWED`, 1 in check_drape's `EXCUSED`: loop 3e) |
+| Exported .pck | 47.2 MB | 140.0 MB (budget 300) |
+| check_streaming | identity, ≤ 0.015 % at 10 spots | identity OK (108 sectors), soak OK; spot 8 at 0.789 % under its own limit of 1 % (`SPOT_MAX`: single texels of lamp-pole shadow edges, 0.14 % by more than 8/255; in the game the 12 streamed sectors against all 108 differ in 0.07 % visibly, nothing moves) |
+
 ## Adding music (loop radio-playlists, 2026-10-29)
 
 The radio plays songs you make yourself (a synth, or an AI music tool such as Suno). Three steps:
@@ -2935,6 +3011,33 @@ System Trace: the iPhone 11 at ×2 holds 60 at its lowest GPU clock, Loop G1 abo
 
 ## Map data
 
+**Loop 3d-1: the demo box.** The map is the box of docs/DEMO.md 2.1: south 52.2183, west
+20.9780, north 52.2525, east 21.0560 (map metres x −3,136 to +2,182, z −2,046 to +1,736;
+5,318 × 3,782 m = 20.1 km², 12 × 8 = 96 sectors and a sliver row). `bake_osm.py` `BBOX` is the box and `ORIGIN`
+(52.2340 N 21.0240 E) the origin, no longer the box's centre, so every coordinate written down
+before (allowlists, `GUGIK_NOT_TREES`, `EXTRA_KEBAB`, landmark search boxes, police traps, test
+spots, this README) still means the same place. Everything comes from the demo fetch already on
+disk (`data/raw/demo/MANIFEST.md`; nothing downloaded since) and `data/raw` is only read:
+`tools/bake_all.sh` runs the whole chain (~10 min), in this order:
+
+1. `python3 tools/prepare_demo.py` (Pillow, for the photo) → `data/work/demo/` (gitignored):
+   the Overpass export cut to the box (`osm_demo.json`: nodes within 0.003° of it, the ways and
+   multipolygons that reach it with all their nodes, no route relations: 76 MB of 187), the
+   aerial photo's four tiles joined and cut (`ortho.bmp`, 6,112 × 4,346 px), the terrain
+   (`terrain_10m.json`: the 10 m lattice, each node from the 1 m NMT of `data/raw/demo/gugik/nmt1_box`,
+   see "Loop 3d-1"), links to the 9 LoD2 and 30 tree sheets that meet the box.
+2. `python3 -I tools/bake_terrain.py` → `game/map/terrain.json` (its own step now: bake_osm
+   reads it for the decks, and bake_gugik reads centrum.json, a circle once the box grew).
+3. `python3 -I tools/bake_trees_gugik.py data/work/demo/trees data/work/demo/trees_area.json` (~5 min).
+4. `W=data/work/demo/osm_demo.json && python3 -I tools/bake_osm.py $W $W game/map/centrum.json $W $W`.
+5. `python3 -I tools/bake_gugik.py data/work/demo game/map` → `lod2.bin`, `lod2.json`.
+6. Step 4 again: its structures read `lod2.*` (the outlines bake_gugik keeps LoD2 by don't change).
+7. `bake_ao.py`, `bake_lights.py`, `bake_water.py` (below), then `tools/setup_map.sh` (the split
+   and the prebuilt sectors).
+
+The steps below are the chain as it was for the first box; their order and what each writes
+still hold, with the paths above.
+
 0. Trees (optional, before step 1): the GUGiK 3D tree models, LoD1 2023, CC BY 4.0
    (`opendata.geoportal.gov.pl/InneDane/Drzewa3D/LOD1/2023/14/1465.zip`, 8.6 GB, no resume;
    stream it through `tar` keeping only the map's sheets into `data/raw/gugik/trees/1465/`), then
@@ -2960,7 +3063,7 @@ System Trace: the iPhone 11 at ×2 holds 60 at its lowest GPU clock, Loop G1 abo
    as `palm`). After a re-bake run steps 3-5 again.
    Loop 3b-2: `tools/bake_banks.py` (after the shore runs) marks natural banks on `shore` (`n`)
    and writes `sand` and `sandbars` (`g`: gravel); `crown_scales` writes `trees3d_crown` (one
-   crown scale per scanned tree, 12,554 values, checked by `check_map_data.py`);
+   crown scale per scanned tree, 12,554 values on the first box, 38,570 since loop 3d-1, checked by `check_map_data.py`);
    `level_surfaces` puts a bridge's mapped pavements and tram bed on its deck (`dk` on
    `surfaces`). See Loop 3b-2.
    For the side jobs and easter eggs the same bake writes more `pois`: `kebab` (the mapped
@@ -2992,12 +3095,32 @@ System Trace: the iPhone 11 at ×2 holds 60 at its lowest GPU clock, Loop G1 abo
 
 6. Loop 3c: `python3 -I tools/bake_sectors.py` → `index.json` and `sectors/<i>_<j>.json`, the map
    in 512 m sectors (about a second; see "Sectors and streaming"). After any of the steps above.
+   Loop 3d-1: it also writes `sectors/split.stamp` (the SHA-256 of centrum.json, lod2.* and itself).
 7. Loop 3c: the prebuilt city, **with a renderer** (`--headless` drops MultiMesh and texture
    data): `godot --path game --resolution 320x180 --script res://tools/bake_city.gd` →
    `sectors/s_<i>_<j>.scn` (32), `proxies.scn`, `index.res` and `shared/*.res` (~16 s; it checks
    the landmark sites found from the index against the whole map's). Also needed after any
    change to `map_builder.gd`, `chunked_surface.gd`, `landmarks.gd`, `neon_signs.gd`,
    `sector_proxies.gd`; `tools/export_ios.sh` runs 6 and 7. `city.scn` is gone (loop 3c).
+   Loop 3d-1: it ends by writing `sectors/city.stamp` (the split's digest and the SHA-256 of the
+   maps and scripts it builds from: `bake_city.gd` / `check_map_data.py` `CITY_INPUTS`).
+
+**What is committed (loop 3d-1, the user's decisions 2026-10-29).** The bake chain's output that
+carries OpenStreetMap is committed: `centrum.json`, `ao.bin`, `lights.bin`, `water.bin` (the
+derived database under ODbL; the three maps mix OSM with LoD2, and a clone without raw data
+needs them). What comes from GUGiK's data alone is derived like the sectors: `lod2.bin`,
+`lod2.json` (the LoD2 buildings) and `terrain.json` (the NMT), gitignored; `tools/setup_map.sh
+--full` (or their absence) rebuilds them from `data/raw` (`prepare_demo.py`, `bake_terrain.py`,
+`bake_gugik.py`), and on a clone without the raw data it says what to fetch
+(`tools/fetch_demo.py` for the demo fetch, the Warsaw LoD2 package, `data/raw/demo/MANIFEST.md`). Steps 6 and 7's files (`index.json`, `index.res`,
+`proxies.scn`, `sectors/`, `shared/`) are gitignored: re-bakes grew the pack 194 → 340 MB in a
+day. **A fresh clone runs `tools/setup_map.sh` once** (steps 6 and 7, then the check; ~20 s, a
+small window opens; it imports the project first if Godot never opened it); `--if-needed` does
+nothing when they are there and match their inputs. `tools/verify.sh` runs it when they are
+missing, `tools/export_ios.sh` rebuilds them every time, and the game says "run
+tools/setup_map.sh" instead of starting without a city. `check_map_data.py` reports missing ones
+as a WARN ("missing: run tools/setup_map.sh") and stale ones by content: a stamp whose hashes
+don't match today's inputs (a checkout scrambles file times, so they aren't used).
 
 Audio: `python3 -I tools/make_sfx.py game/audio/sfx` (v0.9: every sound effect
 and bed, with the numbers; loops imported Forward, loop end = the full length, QOA;
@@ -3162,6 +3285,7 @@ Command-line options (after `--`):
 | `--heading=deg` | the car's heading at the start (0 north, 90 east), for testing: with `--demo` it drives off that way |
 | `--nohud` | hide the controls |
 | `--no-touch` | desktop (trailer loop, 2026-10-29): no touch-only controls on screen (the pedals and HAMULEC, the stick's knob and Classic's strip hint, the helicopter's ▲/▼ pads, the title's "tap to drive"); the top row, minimap, wallet, cards, bubbles and the radio caption stay, and the panels get the pedals' room; the keys still drive. For recording on the computer (`tools/check_hud.gd` checks it) |
+| `--no-input` | loop 3d-1: the window never takes the keyboard focus (`WINDOW_FLAG_NO_FOCUS`): test renders whose windows hold the focus for minutes (`check_streaming.gd` passes it; keys typed in another app had toggled the time of day, the overlay and the radio) |
 | `--prebuilt` | load the prebuilt sectors like the exported game (loop 3c: `map/index.res`, `map/proxies.scn`, `map/sectors/s_<i>_<j>.scn`; `city.scn` before) instead of building each sector from its file |
 | `--monolithic` | loop 3c: build the whole city at once from `centrum.json`, as before loop 3c (no sectors, no streaming): the pixel diff's reference |
 | `--sectors=all` / `--sectors=proxies` | loop 3c: load every sector at the start and keep them all (the old behaviour) / only the sectors the car stands in, every other one as its proxy (to look at the proxies) |

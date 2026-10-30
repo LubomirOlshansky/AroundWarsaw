@@ -43,6 +43,7 @@ extends Node
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
 const TunnelXray := preload("res://scripts/tunnel_xray.gd")
+const PedZones := preload("res://scripts/ped_zones.gd")
 const Heli := preload("res://scripts/heli.gd")
 const Hud := preload("res://scripts/hud.gd")
 const Missions := preload("res://scripts/missions.gd")
@@ -98,6 +99,9 @@ var view: SubViewportContainer
 var sv: SubViewport
 var cam: Camera3D
 var car: CharacterBody3D
+## Loop 3d-1: the pedestrian zones (ped_zones.gd), where the car is capped at 20 km/h.
+var ped_zones: RefCounted
+var _zone := ""
 ## Loop 3b: the car seen through the ground inside a tunnel (tunnel_xray.gd).
 var _xray: Node3D
 var heli: Node3D
@@ -454,6 +458,13 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
+	var no_map := _missing_map()
+	if no_map != "":
+		# Loop 3d-1: the split and the prebuilt sectors are not committed; a fresh clone makes
+		# them once with tools/setup_map.sh. Say so plainly instead of failing deep in the builder.
+		push_error(no_map)
+		get_tree().quit(1)
+		return
 	_build_world()
 	print("city built in %d ms, %s" % [Time.get_ticks_msec() - t0, _scene_stats()])
 	if loading != null:
@@ -601,6 +612,7 @@ func _build_world() -> void:
 				ring.append(Vector2(flat[k], flat[k + 1]))
 			if absf(MapBuilder._ring_area(ring)) >= 20000.0:
 				_rivers.append(ring)
+	ped_zones = PedZones.new(data.get("ped_zones", []))
 	car = Car.new()
 	car.ground_height = map.drive_height
 	world.add_child(car)
@@ -1372,6 +1384,11 @@ func _parse_args() -> void:
 			hide_hud = true
 		elif arg == "--no-touch":
 			no_touch = true  # desktop: --no-touch
+		elif arg == "--no-input":
+			# Loop 3d-1: a test render ignores every key, click and touch (check_streaming's windows
+			# take the focus for minutes: keys typed elsewhere toggled the time, the overlay, the radio).
+			# The window never takes the focus, so keys typed elsewhere stay there.
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
 		elif arg.begins_with("--size="):
 			base_size = float(arg.trim_prefix("--size="))
 		elif arg == "--fixed":
@@ -2349,6 +2366,12 @@ func _process(dt: float) -> void:
 		_cam_log_frame(dt)
 	var pos := _vehicle_position()
 	_xray.show_through(not flying and map.in_tunnel(pos.x, pos.z, pos.y))
+	# Loop 3d-1: the pedestrian zones cap the player's car (police.md 5.6); the log says when.
+	var zone: String = ped_zones.at(car.global_position.x, car.global_position.z) if ped_zones != null and not flying else ""
+	car.zone_cap = PedZones.CAP if zone != "" else INF
+	if zone != _zone:
+		print("zone: %s at %.0f km/h" % [(zone + " (20 km/h)") if zone != "" else "left " + _zone, absf(car.forward_speed) * 3.6])
+		_zone = zone
 	_feed_life(pos)
 	if police != null:
 		police.flying = flying  # loop 3g-1: the police ignore the helicopter
@@ -3346,6 +3369,19 @@ func _parse_stream_args() -> void:
 			no_traffic = true
 			free_roam = true
 			show_title = false
+
+
+## Loop 3d-1: "" when the city this run needs is there, else what is missing and how to make it
+## (the sector split and the prebuilt sectors are derived, not committed: tools/setup_map.sh).
+func _missing_map() -> String:
+	if monolithic:
+		return "" if FileAccess.file_exists(MAP_PATH) else "map: no %s (the committed map data)" % MAP_PATH
+	var use_prebuilt := prebuilt or not OS.has_feature("editor")
+	if use_prebuilt and not ResourceLoader.exists("res://map/index.res"):
+		return "map: the prebuilt sectors are missing (map/index.res, sectors/*.scn): run tools/setup_map.sh once (docs/DEVELOPMENT.md \"Map data\")"
+	if not use_prebuilt and not FileAccess.file_exists("res://map/index.json"):
+		return "map: the sector split is missing (map/index.json, sectors/*.json): run tools/setup_map.sh once (docs/DEVELOPMENT.md \"Map data\")"
+	return ""
 
 
 func _open_streamed_city(world: Node3D, flat_mat: ShaderMaterial) -> Dictionary:

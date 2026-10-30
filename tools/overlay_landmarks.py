@@ -22,8 +22,8 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 def main(grid_png, prefix):
     meta = json.load(open(os.path.splitext(grid_png)[0] + ".json"))
     grid = Image.open(grid_png).convert("RGBA")
-    ortho = Image.open(os.path.join(ROOT, "data", "raw", "gugik", "ortho.bmp")).convert("RGB")
-    s, w, n, e = bake_osm.BBOX
+    ortho = Image.open(bake_osm.ORTHO).convert("RGB")
+    s, w, n, e = bake_osm.ortho_box()
     ox0, oz0 = bake_osm.project(n, w)
     ox1, oz1 = bake_osm.project(s, e)
     cell = meta["cell"]

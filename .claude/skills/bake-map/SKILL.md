@@ -15,6 +15,12 @@ If they disagree, DEVELOPMENT.md wins: fix this file.
   The public Overpass server is often busy (HTTP 502/504): retry with a back-off.
 - Python tools run with `python3 -I` and use the standard library; the orthophoto overlays need
   Pillow (they run without `-I`). Don't install anything without asking.
+- Loop 3d-1: the split and the prebuilt sectors (`index.json`, `index.res`, `proxies.scn`,
+  `sectors/`, `shared/`) are derived and gitignored, and so are `lod2.*` and `terrain.json`
+  (GUGiK's data alone; `tools/setup_map.sh --full` rebuilds them from `data/raw`); commit
+  `centrum.json` and the `.bin` maps only. A fresh clone runs `tools/setup_map.sh` once; steps 7
+  and 8 below write `sectors/split.stamp` and `sectors/city.stamp` (their inputs' SHA-256), which
+  `check_map_data.py` compares to tell stale files by content.
 - Never hand-edit generated files (`centrum.json`, `*.bin`, `index.json`, `sectors/*`, `index.res`,
   `proxies.scn`, `shared/*`). Change the bake, and
   keep exclusions as small, commented lists in the bake (like `GUGIK_NOT_TREES`).
@@ -23,6 +29,13 @@ If they disagree, DEVELOPMENT.md wins: fix this file.
   in-game credit; ask the user before adding one.
 
 ## Order (re-run everything below the step you changed)
+
+Loop 3d-1 (the demo box, docs/DEVELOPMENT.md "Map data"): `tools/bake_all.sh` runs the whole chain (~10 min).
+It starts with `python3 tools/prepare_demo.py` (the raw downloads cut to `bake_osm.BBOX` into
+`data/work/demo/`; `data/raw` is read-only) and `python3 -I tools/bake_terrain.py` (the terrain,
+first: bake_osm reads it), runs bake_osm.py before and again after bake_gugik.py (the structures
+read the box's LoD2), and the inputs below are `data/work/demo/*` (trees, OSM, ortho, sheets).
+`tools/bake_traps.py` places police traps the graph gains. The steps below keep their order.
 
 1. Trees (optional): `tools/bake_trees_gugik.py` → `data/raw/gugik/trees_area.json`.
 2. OpenStreetMap: `tools/bake_osm.py` (imports `tools/bake_roads.py`: carriageways, kerbs,
@@ -59,7 +72,7 @@ If they disagree, DEVELOPMENT.md wins: fix this file.
 ## Invariants after a re-bake
 
 ```zsh
-python3 -I tools/check_map_data.py      # trees3d 75324 values, trees3d_crown 12554, pois 1020, graph, palm (in centrum.json and over the sectors), sector files and prebuilt sectors fresh
+python3 -I tools/check_map_data.py      # trees3d 255468 values, trees3d_crown 42578, pois 3548, graph ≥ 95 % connected, palm (in centrum.json and over the sectors), sector files and prebuilt sectors fresh
 godot --path game --resolution 320x180 --script res://tools/count_vertices.gd   # vertex budget
 ```
 
