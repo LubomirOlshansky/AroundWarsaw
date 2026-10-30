@@ -89,10 +89,17 @@ func _run() -> void:
 	var built := _check_reach(tape, data)
 	_check_play(tape, wallet, hud)
 	var n := tape.spots.size()
+	# Stop the rewind sound and let the audio server drop its playback (and the queued ghosts
+	# go) before quitting: quitting in the same frame leaked 3 objects at exit on the Mac.
+	var rewind: AudioStreamPlayer = tape.get("_rewind")
+	if rewind != null:
+		rewind.stop()
 	tape.free()
 	hud.free()
 	wallet.free()
 	book.free()
+	for _i in 3:
+		await process_frame
 	if problems.is_empty():
 		print("check_tape: OK (%d then cards placed, ghosts of 3-%d boxes, one draw call each, built only within %d m: %d points of the grid walk had one)" % [
 				n, most, int(Tape.BUILD_REACH), built])
