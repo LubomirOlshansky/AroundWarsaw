@@ -1065,3 +1065,39 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - Two places share an address with another on purpose (Miłość Hipoteczna and Żwir at Kredytowa 9,
   Pawilony and Apteczka at Nowy Świat 22/28): the notebook may find both at once. If that reads as
   one find, MW-1 can offset Żwir to the upstairs door and Apteczka 30 m into the courtyard.
+
+## From loop MW-1 (the MOJA WARSZAWA notebook, 2026-10-30)
+
+- **The real bake resolution (map lane).** The notebook resolves the places at load from the
+  `near` hints (`notebook.gd` `resolve`: the bake's projection, then an address poi, a named
+  square, park or landmark, or the place's own poi kind, within 300-600 m of the hint). The 3d
+  bake should resolve every `address` / `osm` anchor into `pois` kind `place` (with the place id),
+  print the distance from the hint, and `notebook.gd` then take that point first. Today 45 of 72
+  places sit on their rough hint (the 48 `osm` anchors mostly), and the address matches are up to
+  359 m from their hints (Smoła, Smolna 38; Stara elektrownia, Dobra 42), so either the hint or
+  the anchor is wrong there.
+- `check_places` reachability (a lane or footway within radius + 10 m): 70 of 72. Not reached:
+  Most Śląsko-Dąbrowski (65 m, on its hint) and Stadion Narodowy (115 m: the `stadium` poi is the
+  bowl's middle; the helicopter's 60 m doesn't reach either). The bake's point (the west gate)
+  fixes the stadium.
+- **PÓŁNOC FM track unlocks (MW-5).** A chapter complete is recorded in the save
+  (`wallet.chapters_done`, chapter id → yyyymmdd, section `notes_chapters` of `user://save.cfg`)
+  and paid (+50 zł, +30 respect) once; the track it unlocks (7 tracks for 9 chapters, the last
+  two a horn tune and the gold cover) is MW-5's: read `chapters_done` there.
+- The finding rule's "stop inside for 1 s" never decides anything with the car: a car stopped
+  inside the radius is under 30 km/h and found at the next 2 Hz check anyway. Kept as specified
+  (`Notebook.finds`, checked); if the stop is meant for a wider reach (parked at the kerb just
+  outside), it needs a number.
+- The shared addresses: Miłość Hipoteczna and Żwir both sit on their hint today (Kredytowa 9 is not
+  an address point in the map), 18 m apart; Apteczka and Pawilony both matched Nowy Świat 22/28
+  (the same point): one pass finds both, two toasts in a row (the second replaces the first).
+  Not offset in MW-1 (the bake's anchors will separate them).
+- The minimap's "?" shows undiscovered places within 400 m of the car (vision.md: "in a
+  discovered district"; there are no districts yet). Switch to districts when DEMO 6.3's exist.
+- The card shows no district (places.json has none; vision.md's card wants one) and no address
+  for a venue (an address can name the real business: "Jasna 1" on the denylist). A `district`
+  field in places.json (designer) would fill it.
+- Chapter icons are the chapter's number on the notebook's chips until the PixelLab icons
+  (vision.md section 9) exist.
+- The tap-a-place-within-80-m way of finding (vision.md 4.1, the landmark card's tap) is not
+  built: the landmark tap (`main.gd` `_on_tap`) doesn't know the places yet.

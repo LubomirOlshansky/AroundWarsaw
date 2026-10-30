@@ -64,6 +64,8 @@ const Jobs := preload("res://scripts/jobs.gd")
 ## Loop 2d-1: Podwózka, the app-taxi side job.
 const Rides := preload("res://scripts/rides.gd")
 const Eggs := preload("res://scripts/eggs.gd")
+## Loop MW-1: MOJA WARSZAWA, the city notebook.
+const Notebook := preload("res://scripts/notebook.gd")
 const Sfx := preload("res://scripts/sfx.gd")
 const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
@@ -247,6 +249,13 @@ var wallet: Wallet
 var dialogue: Dialogue
 var jobs: Jobs
 var eggs: Eggs
+## Loop MW-1: the notebook and its flags: --notebook[=chapter|place id] (open it; "" none),
+## --found=, --place=<id> (the car at the place), --notes-log.
+var notes: Notebook
+var notebook_open := ""
+var found_spec := ""
+var place_flag := ""
+var notes_log := false
 var start_kebab := -1
 var start_sloik := -1
 var start_heat := -1.0
@@ -458,6 +467,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
+	_place_start()  # loop MW-1: --place=<id>, the sectors round the place
 	var no_map := _missing_map()
 	if no_map != "":
 		# Loop 3d-1: the split and the prebuilt sectors are not committed; a fresh clone makes
@@ -740,6 +750,7 @@ func _build_world() -> void:
 		_build_life(data, world)
 	if graph != null:
 		_build_side_jobs(data, world)
+	_build_notebook(data)
 	if lineup:
 		_build_lineup(world)
 	if start_flying:
@@ -814,6 +825,8 @@ func _build_world() -> void:
 		hud.hold_pedal(hold_pedal)
 	if open_settings_at_start:
 		hud.settings_panel.set_tab(settings_tab)
+		if settings_tab == 4:
+			hud.settings_panel.show_notebook(notebook_open)
 		_open_settings.call_deferred()
 	_stats = _make_stats()
 	# Loop 3g-1: the police's script time among the bench's lines.
@@ -1280,6 +1293,71 @@ func _build_side_jobs(data: Dictionary, world: Node3D) -> void:
 	eggs.setup(nodes, data)
 
 
+# --- loop MW-1: MOJA WARSZAWA, the notebook --------------------------------------------------
+
+## The notebook (notebook.gd): the places put on the map once, found at 2 Hz through `probe`,
+## kept in the wallet's save; its page is the settings card's fifth tab. --found= presets the
+## record (in memory), --place= puts the car at a place.
+func _build_notebook(data: Dictionary) -> void:
+	notes = Notebook.new()
+	notes.name = "Notebook"
+	notes.wallet = wallet
+	notes.hud = hud
+	notes.log_on = notes_log
+	notes.blip = _blip_sound
+	add_child(notes)
+	if not notes.setup(data, notes_log):
+		return
+	hud.settings_panel.notebook = notes
+	if found_spec != "":
+		notes.preset(found_spec)
+	notes.probe = func() -> Array:
+		# Not on the title screen or during TEST · BENCH (its wallet is put back after); --bench's
+		# route does find places, so its scripts' time includes the checks.
+		var away := title != null or _phone_bench
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true, heli.height_above, away]
+		return [car.global_position, car.vel.length() * 3.6, false, 0.0, away]
+	if place_flag != "":
+		_put_at_place(place_flag)
+
+
+## --place=<id>, before the city opens: start where places.json's hint says, so the sectors
+## round the place are built first (the exact spot comes after, _put_at_place).
+func _place_start() -> void:
+	if place_flag == "":
+		return
+	var book := Notebook.new()
+	if book.load_places() and book.by_id.has(place_flag):
+		var near: Array = book.places[book.by_id[place_flag]]["near"]
+		var at := Notebook.project([52.234, 21.024], float(near[0]), float(near[1]))
+		start_at = Vector3(at.x, 0.0, at.y)
+	else:
+		push_warning("--place=%s: no such place in places.json" % place_flag)
+	book.free()
+
+
+## The car on the lane nearest the place when that is inside its radius, else on the place.
+func _put_at_place(id: String) -> void:
+	if not notes.by_id.has(id):
+		return
+	var place: Dictionary = notes.places[notes.by_id[id]]
+	var at: Vector2 = place["at"]
+	var spot := Vector3(at.x, map.ground_height(at.x, at.y), at.y)
+	var yaw := car.rotation.y
+	var lane := _lane_spot(spot, yaw)
+	if not lane.is_empty() and Vector2((lane[0] as Vector3).x, (lane[0] as Vector3).z).distance_to(at) < float(place["radius"]) * 0.8:
+		spot = lane[0]
+		yaw = lane[1]
+	car.global_position = spot
+	car.rotation.y = yaw
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.reset_physics_interpolation()
+	cam_focus = car.global_position
+	print("notes: --place=%s: the car at %.0f, %.0f, %.0f m from the place" % [id, spot.x, spot.z, Vector2(spot.x, spot.z).distance_to(at)])
+
+
 # --- loop 3g-1: the police ---------------------------------------------------------------------
 
 ## The police (police.gd, docs/design/police.md): patrol cars in the traffic, the day's speed
@@ -1513,6 +1591,17 @@ func _parse_args() -> void:
 			_flag_traffic = Settings.parse_traffic(arg.trim_prefix("--traffic="))
 		elif arg == "--settings":
 			open_settings_at_start = true
+		elif arg == "--notebook" or arg.begins_with("--notebook="):
+			# Loop MW-1: the notebook's tab at the start (a chapter, or a place's card).
+			open_settings_at_start = true
+			settings_tab = 4
+			notebook_open = arg.trim_prefix("--notebook").trim_prefix("=")
+		elif arg.begins_with("--found="):
+			found_spec = arg.trim_prefix("--found=")
+		elif arg.begins_with("--place="):
+			place_flag = arg.trim_prefix("--place=")
+		elif arg == "--notes-log":
+			notes_log = true
 		elif arg.begins_with("--settings-tab="):
 			open_settings_at_start = true
 			settings_tab = int(arg.trim_prefix("--settings-tab="))
@@ -1552,8 +1641,8 @@ func _parse_args() -> void:
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or hold_stick != Vector2.INF or bench_button \
 			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0:
 		show_title = false
-	if start_ride >= 0:
-		show_title = false  # loop 2d-1: --ride is a test run too
+	if start_ride >= 0 or place_flag != "":
+		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place)
 	if force_title:
 		show_title = true
 	# Camera loop: the cinematic moments in a normal launch only (never with screenshots or a bench).
@@ -2588,6 +2677,8 @@ func _make_stats() -> BenchStats:
 		b.systems["jobs+eggs"] = [self, "_jobs_usec", false]
 		b.systems["jobs physics"] = [jobs, "spent_usec", true]
 		b.systems["rides physics"] = [rides, "spent_usec", true]  # loop 2d-1
+	if notes != null:
+		b.systems["notebook"] = [notes, "spent_usec", true]  # loop MW-1
 	b.systems["sound"] = [sfx, "last_usec", false]
 	b.systems["hud+minimap"] = [hud, "spent_usec", true]
 	b.systems["bubbles"] = [bubbles, "spent_usec", true]

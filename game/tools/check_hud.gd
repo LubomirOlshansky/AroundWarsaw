@@ -22,6 +22,9 @@ const Hud := preload("res://scripts/hud.gd")
 const Bubbles := preload("res://scripts/bubbles.gd")
 ## Loop 3g-1: the pull-over card (police.gd lays it out with the HUD's panels).
 const PoliceBalloon := preload("res://scripts/police/police_balloon.gd")
+## Loop MW-1: the notebook (the settings card's fifth tab), with some places found.
+const Notebook := preload("res://scripts/notebook.gd")
+const Wallet := preload("res://scripts/wallet.gd")
 ## Loop 2d-1: Podwózka's card words.
 const RideRules := preload("res://scripts/ride_rules.gd")
 ## Width x height in pixels (landscape): the user's 6.9" Pro Max, the 6.1" class, a computer
@@ -248,14 +251,28 @@ func _check_screen(screen: Vector2i) -> int:
 	# The settings panel, every tab, and the bench card.
 	hud.clear_all()
 	bubbles.clear()
+	# Loop MW-1: the notebook's page needs its places (no map) and a record: chapter 1 half found.
+	var notes_wallet: Wallet = Wallet.new()
+	notes_wallet.persistent = false
+	vp.add_child(notes_wallet)
+	var book: Notebook = Notebook.new()
+	book.wallet = notes_wallet
+	book.load_places()
+	book.preset("1:4")
+	hud.settings_panel.notebook = book
 	hud.open_settings({"controls": 1, "follow": false, "traffic": 2, "quality": 0, "auto": "Medium ostry", "master": 1.0, "music": 0.5,
 			"effects": 1.0, "perf": 0, "fps": 0, "style": 0, "vhs": 0, "weather": 0, "time": 0})
 	var panel: Control = hud.settings_panel
-	for t in 4:
-		panel.set_tab(t)
+	# Loop MW-1: the five tabs, then the notebook with a found card open and one not found yet.
+	var views := [0, 1, 2, 3, 4, "lusterko", "milosc_hipoteczna"]
+	for t in views:
+		if t is String:
+			panel.show_notebook(t)
+		else:
+			panel.set_tab(t)
 		await process_frame
 		await process_frame
-		var where := "%s settings tab %d" % [tag, t]
+		var where := "%s settings tab %s" % [tag, t]
 		if not is_equal_approx(panel.card_scale(), 1.0):
 			problems.append("%s: the panel is shrunk to %.2f to fit" % [where, panel.card_scale()])
 		var card: Rect2 = panel.card_rect()
@@ -269,6 +286,8 @@ func _check_screen(screen: Vector2i) -> int:
 			print("  %s: %d buttons, panel %s" % [where, buttons.size(), _pts(card, pt)])
 		count += 1
 	panel.close()
+	book.free()
+	notes_wallet.free()
 	var bench := "AROUND WARSAW bench (loop 2b) · BENCH · 2026-10-28 16:42:59\ndevice iPhone17,2 · iOS 26.0 · Apple A18 Pro GPU (metal, mobile) · Apple A18 Pro\nscreen 2868x1320 @ 120 Hz · image 1434x660 (×2) · view 80 m · quality Auto→High fallback (iPhone17,2) · traffic Normal · Day · Clear · cap 60 fps · Point\nthermal state: not readable from Godot; a phone that warms up shows it as falling fps per 10 s\nfps 59.9 avg · 1% low 55.3 · worst frame 25.0 ms · late 0.4% (over 17.7 ms) · missed refreshes 12 (0.4%) · 3300 frames in 55 s\nfps per 10 s: 60 60 60 60 60 60 · governor held: GPU 2/2 · CPU 2/2, wide, 12 changes\nframe 16.69 ms · main thread: process 2.10, physics 0.40, draw 13.90 · 3D view: render CPU 0.60, GPU n/a (Metal)\ndraw calls 141 · objects 410 · triangles 0.42 M (all passes, as the overlay counts them)\nmain pass: 50 draws, 50 objects, 0.24 M tris · shadow pass: 33 draws, 33 objects, 0.13 M tris · 2D: 58 draws\nscripts 1.90 ms: traffic 0.70 · traffic bodies 0.05 · trams 0.25 · people 0.30 · rivals 0.05 · jobs+eggs 0.10\n  jobs physics 0.01 · sound 0.04 · hud+minimap 0.20 · bubbles 0.05 · dialogue 0.01\ncars on screen 15 · driving 31 · people 48\nmemory: static 640 MB · video 310 MB (textures 120, buffers 150) · 3 pipeline compilations"
 	hud.show_bench_card(bench)
 	await process_frame
