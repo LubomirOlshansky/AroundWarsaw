@@ -1003,11 +1003,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   stays off. The version is Godot 4.7's own, 0x401000 (Vulkan 1.1.0), not 1.0.3: on a Godot
   upgrade, match the plugin's `VERSION` to what Godot writes (the script fails until it does).
   Whether a phone with Vulkan 1.1 but a weak driver runs the game well is still unseen.
-- **The export prints Dialogue Manager's C# errors** (`No loader found for resource:
-  ...DialogueLabel.cs`, `ExampleBalloon.tscn` parse errors): the add-on's C# example and label
-  files can't load in a non-.NET Godot. Harmless (the game uses its own balloon); the iOS
-  export prints the same 11 lines (checked in this loop's `verify.sh --only=ios`). An exclude
-  filter for `addons/dialogue_manager/example_balloon/*` and the `.cs` files would quiet it.
+- ~~**The export prints Dialogue Manager's C# errors** (`No loader found for resource:
+  ...DialogueLabel.cs`, `ExampleBalloon.tscn` parse errors).~~ Fixed (store-release lane,
+  2026-10-30): the iOS, Android and Web presets exclude the add-on's `.cs` files, its C#
+  `DialogueLabel.tscn` and `example_balloon/*` (the game uses its own balloon; the add-on's
+  editor plugin, the only reader of the example, is off).
 - **The city step rewrites 34 tracked files with byte noise** (`bake_city.gd` isn't
   byte-deterministic: the sector `.scn` files differ by a few bytes each run with no map
   change), in both export scripts. `--skip-city` avoids it for Android; a deterministic bake or
