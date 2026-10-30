@@ -94,6 +94,10 @@ var data: Dictionary
 ## the game hands them to the vehicles' material too.
 @export_storage var light_texture: ImageTexture
 @export_storage var light_rect := Vector4(0, 0, 1, 1)
+## The web's first download (2026-10-30), the prebuilt city: the maps attach_maps puts on their
+## materials when the city opens, by name ("ao_map", "light_map"): {materials: the
+## ShaderMaterials that read it} (tools/bake_city.gd _detach_maps).
+@export_storage var map_maps := {}
 ## v0.9: the surface map (tools/bake_water.py): distance to the shore, the river's
 ## flow, what reflects, bridge-deck heights; the ground shader and the post pass read it.
 @export_storage var water_texture: ImageTexture
@@ -337,7 +341,9 @@ func build_sector(key: Vector2i, roofs_only := false, merge := true) -> Node3D:
 func _build_parts(marks, roofs_only: bool) -> void:
 	if not roofs_only:
 		var flat := _new_surface()
-		_build_ground(flat)
+		# Loop 3d-2a: the ground is built last, so it can leave out what the flat layers on it
+		# cover whole (`_cover_on`: they note their outlines while they are laid).
+		_cover_reset()
 		# Wide gaps between the depth biases: two layers that fit a slope with different
 		# triangles can differ by a few centimetres, and must not poke through each other.
 		# Loop 3b-2: the areas lie exactly on the ground's own triangles (_fill_on_grid), so their
@@ -345,13 +351,16 @@ func _build_parts(marks, roofs_only: bool) -> void:
 		# to speak of (0.05 before); the thin strips laid over them (paths at 0.1) keep a margin for
 		# their pieces' sag over the grid's folds (game/tools/check_drape.gd counts it).
 		_drape_bias = 0.01
+		_cover_on = true
 		_build_areas(flat)
+		_cover_on = false
 		# The sandbars over the water (fill 0.02, rim 0.07, foam 0.09) and the natural banks' wet
 		# bands and foam (0.07, 0.09), under the paving and the paths.
 		_drape_bias = 0.02
 		_build_sandbars(flat)
 		_drape_bias = 0.07
 		_build_banks(flat)
+		_cover_on = true
 		_drape_bias = 0.08
 		_build_surfaces(flat)
 		_drape_bias = 0.1
@@ -363,6 +372,7 @@ func _build_parts(marks, roofs_only: bool) -> void:
 		_build_roads(flat)
 		_build_tunnel_roads(flat)
 		_build_carriageways(flat)
+		_cover_on = false
 		_drape_bias = 0.34
 		_build_islands(flat)
 		_build_medians(flat)
@@ -378,6 +388,8 @@ func _build_parts(marks, roofs_only: bool) -> void:
 		_build_rails(flat)
 		_drape_bias = -1.0
 		_dk = -1
+		_build_ground(flat)
+		_cover_reset()
 		_add_mesh(flat, flat_material, false)
 
 	var walls := _new_surface()
@@ -449,10 +461,10 @@ func _cell_range() -> Rect2i:
 
 ## Loop 3c: whether a triangle (or a piece) can have its centre in the sector being built
 ## (its box meets the sector): the drape skips the rest before the costly height lookups.
-func _touches(a: Vector3, b: Vector3, c: Vector3) -> bool:
+func _touches(a: Vector3, b: Vector3, c: Vector3, pad := 0.01) -> bool:
 	var r := _sector_rect
-	return maxf(a.x, maxf(b.x, c.x)) >= r.position.x - 0.01 and minf(a.x, minf(b.x, c.x)) <= r.end.x + 0.01 \
-			and maxf(a.z, maxf(b.z, c.z)) >= r.position.y - 0.01 and minf(a.z, minf(b.z, c.z)) <= r.end.y + 0.01
+	return maxf(a.x, maxf(b.x, c.x)) >= r.position.x - pad and minf(a.x, minf(b.x, c.x)) <= r.end.x + pad \
+			and maxf(a.z, maxf(b.z, c.z)) >= r.position.y - pad and minf(a.z, minf(b.z, c.z)) <= r.end.y + pad
 
 
 ## Loop 3c: the bounds, roof grid, surface maps, terrain, approaches, aprons, decks and
@@ -569,6 +581,34 @@ func _apply_lights(material: Material) -> void:
 	if light_texture != null and material is ShaderMaterial:
 		(material as ShaderMaterial).set_shader_parameter("light_map", light_texture)
 		(material as ShaderMaterial).set_shader_parameter("light_rect", light_rect)
+
+
+## The web's first download (2026-10-30): the prebuilt city's AO and lamp-light maps, put on
+## their materials when it opens. map/shared/<name>.res (an RG8 ImageTexture) where the export
+## has it (the phones, desktops); else map/shared/<name>.zst, the same RG8 texels as one zstd
+## stream (the web: 8.3 + 2.8 MB instead of the .res files' 13.8 + 5.0, whose compression works in
+## 4 KB blocks), unpacked here in ~0.3 s. Header: u32 width, u32 height, then the zstd data.
+func attach_maps() -> void:
+	for name: String in map_maps:
+		var tex: Texture2D = null
+		var res := "res://map/shared/%s.res" % name
+		var zst := "res://map/shared/%s.zst" % name
+		if ResourceLoader.exists(res):
+			tex = load(res)
+		elif FileAccess.file_exists(zst):
+			var bytes := FileAccess.get_file_as_bytes(zst)
+			var w := bytes.decode_u32(0)
+			var h := bytes.decode_u32(4)
+			var texels := bytes.slice(8).decompress(w * h * 2, FileAccess.COMPRESSION_ZSTD)
+			if texels.size() == w * h * 2:
+				tex = ImageTexture.create_from_image(Image.create_from_data(w, h, false, Image.FORMAT_RG8, texels))
+		if tex == null:
+			push_warning("map: no %s (run tools/setup_map.sh)" % name)
+			continue
+		for m: ShaderMaterial in map_maps[name]["materials"]:
+			m.set_shader_parameter(name, tex)
+		if name == "light_map":
+			light_texture = tex as ImageTexture
 
 
 ## Sodium (true) or LED (false) light at a point of the light map.
@@ -1481,7 +1521,7 @@ func _tri(st, a: Vector3, b: Vector3, c: Vector3, n: Vector3, col: Color,
 ## A flat-layer triangle laid on the ground: split until no edge is longer than
 ## the terrain grid, then lifted to the surface (its own y is the layer offset).
 func _draped_tri(st, a: Vector3, b: Vector3, c: Vector3, col: Color, depth: int) -> void:
-	if _in_sector and not _touches(a, b, c):
+	if _in_sector and not _touches(a, b, c, COVER_REACH if _cover_on else 0.01):
 		return  # loop 3c: no piece of it can lie in the sector being built
 	# Split the longest edge in two until every edge fits the terrain grid; long thin
 	# strips (rails, lane lines) then cost a handful of triangles, not thousands.
@@ -1506,8 +1546,9 @@ func _draped_tri(st, a: Vector3, b: Vector3, c: Vector3, col: Color, depth: int)
 
 
 ## One flat-layer triangle lifted onto the surface (each corner's own y is the layer offset),
-## wound to face up, with the layer's bias and id and the street axes in the UVs.
-func _emit_draped(st, a: Vector3, b: Vector3, c: Vector3, col: Color) -> void:
+## wound to face up, with the layer's bias and id and the street axes in the UVs. Loop 3d-2a: true
+## when it was noted as covering the ground (`_cover_on`).
+func _emit_draped(st, a: Vector3, b: Vector3, c: Vector3, col: Color) -> bool:
 	var p := [a, b, c]
 	for k in 3:
 		var v: Vector3 = p[k]
@@ -1519,6 +1560,15 @@ func _emit_draped(st, a: Vector3, b: Vector3, c: Vector3, col: Color) -> void:
 		p[k] = Vector3(v.x, h + v.y, v.z)
 	if ((p[1] - p[0]).cross(p[2] - p[0]).dot(Vector3.UP) > 0.0) == CLOCKWISE_FRONT:
 		p = [p[0], p[2], p[1]]
+	var noted := false
+	if _cover_on and _dk < 0 and _tn < 0:
+		# Loop 3d-2a: a triangle of a layer that hides the ground, noted if it lies at the ground's
+		# height (game/tools/check_ground.gd reads the meshes by the same rule).
+		var mid: Vector3 = (p[0] + p[1] + p[2]) / 3.0
+		var dy := mid.y - _grid_height(mid.x, mid.z)
+		if dy >= COVER_GRADE.x and dy <= COVER_GRADE.y:
+			_cover_add(PackedVector2Array([Vector2(p[0].x, p[0].z), Vector2(p[1].x, p[1].z), Vector2(p[2].x, p[2].z)]))
+			noted = true
 	var axis := _axis if _axis != Vector2.ZERO else CITY_GRID
 	for v in p:
 		st.set_color(col)
@@ -1526,6 +1576,7 @@ func _emit_draped(st, a: Vector3, b: Vector3, c: Vector3, col: Color) -> void:
 		st.set_uv(Vector2(_drape_bias, _layer))
 		st.set_uv2(Vector2(v.x * axis.x + v.z * axis.y, -v.x * axis.y + v.z * axis.x))
 		st.add_vertex(v)
+	return noted
 
 
 func _quad(st, a: Vector3, b: Vector3, c: Vector3, d: Vector3, n: Vector3, col: Color) -> void:
@@ -1637,8 +1688,10 @@ func _fill_grid_cells(st, poly: PackedVector2Array, y: float, col: Color) -> voi
 				continue
 			if crossed[j * w + i] == 0:
 				if Geometry2D.is_point_in_polygon(Vector2(x + step * 0.5, z + step * 0.5), poly):
-					_emit_draped(st, Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y, c.y), col)
-					_emit_draped(st, Vector3(a.x, y, a.y), Vector3(c.x, y, c.y), Vector3(d.x, y, d.y), col)
+					var upper := _emit_draped(st, Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y, c.y), col)
+					var lower := _emit_draped(st, Vector3(a.x, y, a.y), Vector3(c.x, y, c.y), Vector3(d.x, y, d.y), col)
+					if upper and lower:
+						_cover_whole[Vector2i(i0 + i, j0 + j)] = true  # loop 3d-2a
 				continue
 			# The cell's two triangles (the diagonal _grid_height uses), each clipped.
 			for tri in [PackedVector2Array([a, b, c]), PackedVector2Array([a, c, d])]:
@@ -1878,7 +1931,12 @@ func _drawn_height(x: float, z: float) -> float:
 	return h00 + (h11 - h01) * u + (h01 - h00) * v
 
 
-## One grid cell an apron reaches, as GROUND_SUB x GROUND_SUB sub-cells of the drawn ground.
+## One grid cell an apron reaches. Map round 2 drew it as GROUND_SUB x GROUND_SUB sub-cells of
+## the drawn ground; loop 3d-2a keeps the 1 m sub-cells only where they touch a lowered point (the
+## ground under an apron, below the grid by over a millimetre) and draws the rest of each half of
+## the cell (the grid's two triangles) in runs along the sub-rows, which lie on the half's own
+## plane: a half with no lowered point is the grid's triangle itself. The heights are the same
+## (`_drawn_height`, check_roads `Map.drawn`); 339 apron cells, 67,697 triangles before.
 func _ground_fine_cell(st, i: int, j: int, normals: PackedVector3Array, colour: Color) -> void:
 	var step := float(_terrain["step"])
 	var nx := int(_terrain["nx"])
@@ -1889,39 +1947,346 @@ func _ground_fine_cell(st, i: int, j: int, normals: PackedVector3Array, colour: 
 	var n10 := normals[j * nx + i + 1]
 	var n01 := normals[(j + 1) * nx + i]
 	var n11 := normals[(j + 1) * nx + i + 1]
-	for sj in GROUND_SUB:
-		for si in GROUND_SUB:
-			var q: Array[Vector3] = []
-			var nq: Array[Vector3] = []
-			for c: Vector2i in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(1, 1), Vector2i(0, 1)]:
-				var x := cx + (si + c.x) * s
-				var z := cz + (sj + c.y) * s
-				var g := _grid_height(x, z)
-				var h := minf(g, terrain_height(x, z))
-				q.append(Vector3(x, h, z))
-				var fu := float(si + c.x) / GROUND_SUB
-				var fv := float(sj + c.y) / GROUND_SUB
-				var nrm := (n00.lerp(n10, fu)).lerp(n01.lerp(n11, fu), fv).normalized()
-				if g - h > 0.01:
-					# Lowered: the slope of the drawn ground itself.
-					var hx0 := _drawn_corner(x - s, z)
-					var hx1 := _drawn_corner(x + s, z)
-					var hz0 := _drawn_corner(x, z - s)
-					var hz1 := _drawn_corner(x, z + s)
-					nrm = Vector3(hx0 - hx1, 2.0 * s, hz0 - hz1).normalized()
-				nq.append(nrm)
-			for tri in [[0, 1, 2], [0, 2, 3]]:
-				var corners: Array[Vector3] = [q[tri[0]], q[tri[1]], q[tri[2]]]
-				var ns: Array[Vector3] = [nq[tri[0]], nq[tri[1]], nq[tri[2]]]
-				var order := [0, 1, 2]
-				if ((corners[1] - corners[0]).cross(corners[2] - corners[0]).dot(Vector3.UP) > 0.0) == CLOCKWISE_FRONT:
-					order = [0, 2, 1]
-				for o in order:
-					st.set_color(colour)
-					st.set_normal(ns[o])
-					st.set_uv(Vector2(-1, -1))
-					st.add_vertex(corners[o])
+	var side := GROUND_SUB + 1
+	# The lattice: each point's height, normal and whether an apron lowers it.
+	var pos := PackedVector3Array()
+	var nrm := PackedVector3Array()
+	var low := PackedByteArray()
+	pos.resize(side * side)
+	nrm.resize(side * side)
+	low.resize(side * side)
+	for b in side:
+		for a in side:
+			var x := cx + a * s
+			var z := cz + b * s
+			var g := _grid_height(x, z)
+			var h := minf(g, terrain_height(x, z))
+			var k := b * side + a
+			pos[k] = Vector3(x, h, z)
+			low[k] = 1 if g - h > 0.001 or not ground_lean else 0
+			var fu := float(a) / GROUND_SUB
+			var fv := float(b) / GROUND_SUB
+			var n := (n00.lerp(n10, fu)).lerp(n01.lerp(n11, fu), fv).normalized()
+			if g - h > 0.01:
+				# Lowered: the slope of the drawn ground itself.
+				n = Vector3(_drawn_corner(x - s, z) - _drawn_corner(x + s, z), 2.0 * s,
+						_drawn_corner(x, z - s) - _drawn_corner(x, z + s)).normalized()
+			nrm[k] = n
+	for half in 2:
+		# Half 0 is the grid's triangle (0,0)-(1,0)-(1,1) (u >= v), half 1 (0,0)-(1,1)-(0,1).
+		var lowered := false
+		for b in side:
+			for a in side:
+				if low[b * side + a] == 1 and ((a >= b) if half == 0 else (a <= b)):
+					lowered = true
+		if not lowered:
+			var far := Vector2i(GROUND_SUB, 0) if half == 0 else Vector2i(0, GROUND_SUB)
+			_ground_lattice_tri(st, pos, nrm, side, [Vector2i(0, 0), far, Vector2i(GROUND_SUB, GROUND_SUB)], colour)
+			continue
+		for sj in GROUND_SUB:
+			var run := -1
+			for si in GROUND_SUB + 1:
+				var inside := si < GROUND_SUB and ((si >= sj) if half == 0 else (si <= sj))
+				var sub_low := inside and (low[sj * side + si] == 1 or low[sj * side + si + 1] == 1
+						or low[(sj + 1) * side + si] == 1 or low[(sj + 1) * side + si + 1] == 1)
+				if inside and not sub_low:
+					if run < 0:
+						run = si
+					continue
+				if run >= 0:
+					_ground_run(st, pos, nrm, side, half, sj, run, si - 1, colour)
+					run = -1
+				if sub_low:
+					# The sub-cell's part of this half at 1 m (both triangles off the diagonal).
+					var c00 := Vector2i(si, sj)
+					var c10 := Vector2i(si + 1, sj)
+					var c11 := Vector2i(si + 1, sj + 1)
+					var c01 := Vector2i(si, sj + 1)
+					if half == 0 or si != sj:
+						_ground_lattice_tri(st, pos, nrm, side, [c00, c10, c11], colour)
+					if half == 1 or si != sj:
+						_ground_lattice_tri(st, pos, nrm, side, [c00, c11, c01], colour)
+
+
+## Loop 3d-2a: a run of unlowered sub-cells si0..si1 in sub-row sj of one half of an apron cell,
+## as one quad (or a triangle at the diagonal) on the half's plane.
+func _ground_run(st, pos: PackedVector3Array, nrm: PackedVector3Array, side: int, half: int, sj: int,
+		si0: int, si1: int, colour: Color) -> void:
+	var lb := Vector2i(si0, sj)
+	var lt := Vector2i(si0, sj + 1)
+	var rb := Vector2i(si1 + 1, sj)
+	var rt := Vector2i(si1 + 1, sj + 1)
+	if half == 0 and si0 == sj:
+		lt = Vector2i(sj + 1, sj + 1)  # starts with the diagonal sub-cell's upper triangle
+	if half == 1 and si1 == sj:
+		rb = Vector2i(sj, sj)  # ends with the diagonal sub-cell's lower triangle
+	if lb != rb and rb != rt:
+		_ground_lattice_tri(st, pos, nrm, side, [lb, rb, rt], colour)
+	if lt != rt and lb != lt:
+		_ground_lattice_tri(st, pos, nrm, side, [lb, rt, lt], colour)
+
+
+## Loop 3d-2a: one ground triangle between three lattice points of an apron cell, wound to face up.
+func _ground_lattice_tri(st, pos: PackedVector3Array, nrm: PackedVector3Array, side: int, pts: Array,
+		colour: Color) -> void:
+	var ks: Array[int] = []
+	for p: Vector2i in pts:
+		ks.append(p.y * side + p.x)
+	var order := [0, 1, 2]
+	if ((pos[ks[1]] - pos[ks[0]]).cross(pos[ks[2]] - pos[ks[0]]).dot(Vector3.UP) > 0.0) == CLOCKWISE_FRONT:
+		order = [0, 2, 1]
+	for o in order:
+		st.set_color(colour)
+		st.set_normal(nrm[ks[o]])
+		st.set_uv(Vector2(-1, -1))
+		st.add_vertex(pos[ks[o]])
 # --- end of map round 2 (D5) ------------------------------------------------------------------
+
+
+## Loop 3d-2a: whether the pieces (flat polygons) together cover `poly` whole, to COVER_EPS m2:
+## `poly` minus each piece in turn (Clipper). A piece that would cut a hole in what is left (it
+## lies inside without touching its edge) is tried again after the others; the answer doesn't
+## depend on the pieces' order. game/tools/check_ground.gd uses it too.
+const COVER_EPS := 0.01
+const COVER_SLIVER := 0.0001
+## Loop 3d-2a: whether Clipper's results hold a hole: wound against the biggest one (an outline
+## and the hole a piece lying wholly inside it cuts). Slivers under COVER_SLIVER m2 are dropped
+## first: their windings and middles say nothing.
+static func _has_hole(out: Array[PackedVector2Array]) -> bool:
+	if out.size() < 2:
+		return false
+	var big := 0.0
+	for o in out:
+		var a := _poly_area(o)
+		if absf(a) > absf(big):
+			big = a
+	for o in out:
+		if _poly_area(o) * big < 0.0:
+			return true
+	return false
+
+
+## Loop 3d-2a: how far past a ground triangle the flat layers must reach for it to be left out:
+## a layer lies up to ~0.3 m over the drawn ground (a road's pieces over the grid's folds), and
+## at the camera's 30 degree pitch a sight line under its edge reaches 1.7 times that inwards.
+const COVER_MARGIN := 0.5
+## Loop 3d-2a: a covering triangle counts when its centre lies this far under / over the grid: a
+## road sunk under the ground (a hump the grid has and its pieces cut through) or standing over it
+## (an approach) leaves a gap a sight line can reach, so the ground stays there.
+const COVER_GRADE := Vector2(-0.25, 0.3)
+## Loop 3d-2a: a sector lays the covering layers' pieces this far past its edge too (the ground
+## triangles reaching out of it need them), and drops what lies outside by their tiles as before.
+const COVER_REACH := 12.0
+static func covers(poly: PackedVector2Array, pieces: Array[PackedVector2Array], area_test := true) -> bool:
+	if area_test:
+		var need := absf(_poly_area(poly)) - COVER_EPS
+		var have := 0.0
+		for p in pieces:
+			have += absf(_poly_area(p))
+		if have < need:
+			return false
+	var left: Array[PackedVector2Array] = [poly]
+	var todo := pieces.duplicate()
+	# Once no piece is left that cuts without a hole (`loose`), the rest are taken by their
+	# outlines alone: what is left can only be overstated, never a gap missed.
+	var loose := false
+	while not todo.is_empty():
+		var later: Array[PackedVector2Array] = []
+		for piece: PackedVector2Array in todo:
+			var next: Array[PackedVector2Array] = []
+			var holed := false
+			for r in left:
+				var res := Geometry2D.clip_polygons(r, piece)
+				if res.size() < 2:
+					next.append_array(res)
+					continue
+				var out: Array[PackedVector2Array] = []
+				for o in res:
+					if absf(_poly_area(o)) > COVER_SLIVER:
+						out.append(o)
+				if not _has_hole(out):
+					next.append_array(out)
+				elif loose:
+					next.append_array(_outlines(out))
+				else:
+					holed = true  # an outline and a hole: keep r whole for now
+					next.append(r)
+			left = next
+			if left.is_empty():
+				return true
+			if holed:
+				later.append(piece)
+		if _area_of(left) < COVER_EPS:
+			return true
+		if later.size() == todo.size():
+			loose = true
+		todo = later
+	return _area_of(left) < COVER_EPS
+
+
+static func _area_of(list: Array[PackedVector2Array]) -> float:
+	var s := 0.0
+	for r in list:
+		s += absf(_poly_area(r))
+	return s
+
+
+## Loop 3d-2a: Clipper's results without their holes (wound like the biggest).
+static func _outlines(out: Array[PackedVector2Array]) -> Array[PackedVector2Array]:
+	var big := 0.0
+	for o in out:
+		var a := _poly_area(o)
+		if absf(a) > absf(big):
+			big = a
+	var keep: Array[PackedVector2Array] = []
+	for o in out:
+		if _poly_area(o) * big > 0.0:
+			keep.append(o)
+	return keep
+
+
+# --- Loop 3d-2a (2026-10-30): no ground under what covers it ----------------------------------
+# The flat layers laid on the ground (the areas: water, grass, parks, plazas, sand; paving,
+# footways, steps, rail beds, roads and carriageway areas) are opaque and lie on or over the
+# drawn ground, so a ground triangle one of them covers whole is drawn for nothing (Slop New
+# York's "no ground under roads"). While those layers are laid (`_cover_on`) they note their
+# outlines in plan per 10 m cell of the grid; the ground, built after them, leaves out a 10 m
+# triangle they cover whole grown by COVER_MARGIN, so no sight line under a layer's edge reaches
+# the gap. Not left out: the apron cells (their own drawing), the cells near an approach or an
+# apron (the road there stands over the grid), the grid's outer row (the map's edge walls).
+# Only at grade: a layer on a deck or in a tunnel notes nothing. game/tools/check_ground.gd
+# counts what is still hidden and that nothing is left open.
+
+## Ground triangles left out by the last build (a sector's, or the whole city's).
+var ground_hidden := 0
+## False: the ground as before loop 3d-2a (nothing left out, every apron sub-cell drawn), for
+## check_ground.gd's before count (`--whole`).
+var ground_lean := true
+var _cover_on := false
+var _cover: Array[PackedVector2Array] = []
+var _cover_box: Array[Rect2] = []
+## Grid cell (Vector2i) -> indices into _cover of the outlines whose boxes (grown by COVER_MARGIN)
+## meet it.
+var _cover_cells := {}
+## Grid cells an area covers whole (its two triangles laid as they are).
+var _cover_whole := {}
+## Grid cell -> the summed area of the outlines filed under it (a quick "can't be covered").
+var _cover_area := {}
+
+
+func _cover_reset() -> void:
+	_cover.clear()
+	_cover_box.clear()
+	_cover_cells.clear()
+	_cover_whole.clear()
+	_cover_area.clear()
+
+
+## One outline (plan) of a flat layer on the ground, filed under the grid cells its box meets.
+func _cover_add(poly: PackedVector2Array) -> void:
+	if _t_h.is_empty() or poly.size() < 3:
+		return
+	var lo := poly[0]
+	var hi := poly[0]
+	for p in poly:
+		lo = lo.min(p)
+		hi = hi.max(p)
+	if _in_sector:
+		# A sector tests the ground triangles in it: what lies over 24 m off can't cover them.
+		var r := _sector_rect.grow(24.0)
+		if hi.x < r.position.x or lo.x > r.end.x or hi.y < r.position.y or lo.y > r.end.y:
+			return
+	var step := float(_terrain["step"])
+	var gx := float(_terrain["x0"])
+	var gz := float(_terrain["z0"])
+	var k := _cover.size()
+	_cover.append(poly)
+	_cover_box.append(Rect2(lo, hi - lo))
+	var area := absf(_poly_area(poly))
+	# Filed under every cell its box grown by COVER_MARGIN meets (and a little: the grown outline's
+	# square corners reach 0.6 m): a ground triangle's grown outline lies in its cell grown the
+	# same, so its cell's list holds all that can cover it.
+	var pad := COVER_MARGIN + 0.25
+	for j in range(floori((lo.y - pad - gz) / step), floori((hi.y + pad - gz) / step) + 1):
+		for i in range(floori((lo.x - pad - gx) / step), floori((hi.x + pad - gx) / step) + 1):
+			var key := Vector2i(i, j)
+			var list: PackedInt32Array = _cover_cells.get(key, PackedInt32Array())
+			list.append(k)
+			_cover_cells[key] = list
+			_cover_area[key] = float(_cover_area.get(key, 0.0)) + area
+
+
+## Whether the ground of the 10 m cell (i, j) stays whatever covers it: the grid's outer row (the
+## map's edge walls meet it) and the cells near an approach or an apron (the road there stands
+## over or under the grid; the apron cells are drawn on their own). check_ground.gd asks too.
+func ground_kept(i: int, j: int) -> bool:
+	var nx := int(_terrain["nx"])
+	var nz := int(_terrain["nz"])
+	if i <= 0 or j <= 0 or i >= nx - 2 or j >= nz - 2:
+		return true
+	var step := float(_terrain["step"])
+	var x := float(_terrain["x0"]) + i * step
+	var z := float(_terrain["z0"]) + j * step
+	for cz in range(floori((z - COVER_MARGIN) / FILL_CELL), floori((z + step + COVER_MARGIN) / FILL_CELL) + 1):
+		for cx in range(floori((x - COVER_MARGIN) / FILL_CELL), floori((x + step + COVER_MARGIN) / FILL_CELL) + 1):
+			var key := (cx + 1024) * 4096 + cz + 1024
+			if _fill_cells.has(key) or _apron_cells.has(key):
+				return true
+	return false
+
+
+## Whether the flat layers cover the 10 m cell (i, j)'s triangle whole, grown by COVER_MARGIN
+## (`upper`: the u >= v one, (0,0)-(1,0)-(1,1)).
+func _ground_hidden(i: int, j: int, upper: bool) -> bool:
+	var step := float(_terrain["step"])
+	var key := Vector2i(i, j)
+	# What lies over the triangle is filed under its cell: less than its area can't cover it.
+	if float(_cover_area.get(key, 0.0)) < step * step * 0.5 - COVER_EPS or ground_kept(i, j):
+		return false
+	# Inside an area (the river, a park): the cell and the eight round it covered whole.
+	var whole := true
+	for dj in range(-1, 2):
+		for di in range(-1, 2):
+			if whole and not _cover_whole.has(key + Vector2i(di, dj)):
+				whole = false
+	if whole:
+		return true
+	var x := float(_terrain["x0"]) + i * step
+	var z := float(_terrain["z0"]) + j * step
+	var tri := PackedVector2Array([Vector2(x, z), Vector2(x + step, z), Vector2(x + step, z + step)]) if upper \
+			else PackedVector2Array([Vector2(x, z), Vector2(x + step, z + step), Vector2(x, z + step)])
+	var list: PackedInt32Array = _cover_cells[key]
+	# Quick no: the triangle's middle (nudged off the lines where pieces meet) under no piece.
+	var mid := (tri[0] + tri[1] + tri[2]) / 3.0
+	if not _cover_point(mid + Vector2(0.0011, 0.0007), list):
+		return false
+	var grown: PackedVector2Array = Geometry2D.offset_polygon(tri, COVER_MARGIN, Geometry2D.JOIN_SQUARE)[0]
+	var lo := grown[0]
+	var hi := grown[0]
+	for p in grown:
+		lo = lo.min(p)
+		hi = hi.max(p)
+	var pieces: Array[PackedVector2Array] = []
+	for k: int in list:
+		var box := _cover_box[k]
+		if box.position.x < hi.x and box.end.x > lo.x and box.position.y < hi.y and box.end.y > lo.y:
+			pieces.append(_cover[k])
+	# ...then its grown corners and the middles of its sides.
+	var n := grown.size()
+	for s in n:
+		for p: Vector2 in [grown[s], (grown[s] + grown[(s + 1) % n]) * 0.5]:
+			if not _cover_point(p.lerp(mid, 0.013) + Vector2(0.0011, 0.0007), list):
+				return false
+	return covers(grown, pieces, false)
+
+
+## Loop 3d-2a: whether a point lies under one of the listed outlines.
+func _cover_point(p: Vector2, list: PackedInt32Array) -> bool:
+	for k in list:
+		if _cover_box[k].has_point(p) and Geometry2D.is_point_in_polygon(p, _cover[k]):
+			return true
+	return false
+# --- end of loop 3d-2a ------------------------------------------------------------------------
 
 
 func _build_ground(st) -> void:
@@ -1947,16 +2312,24 @@ func _build_ground(st) -> void:
 		cj = Vector2i(clampi(floori((_sector_rect.position.y - z0) / step) - 1, 0, nz - 1),
 				clampi(floori((_sector_rect.end.y - z0) / step) + 1, 0, nz - 1))
 	_fine_index()
+	var hidden := 0
 	for j in range(cj.x, cj.y):
 		for i in range(ci.x, ci.y):
 			if _fine_cells.has(Vector2i(i, j)):
-				_ground_fine_cell(st, i, j, normals, colour)  # map round 2 (D5)
+				_ground_fine_cell(st, i, j, normals, colour)  # map round 2 (D5), loop 3d-2a
 				continue
 			var k00 := j * nx + i
 			var k10 := k00 + 1
 			var k01 := k00 + nx
 			var k11 := k01 + 1
 			for tri in [[k00, k10, k11], [k00, k11, k01]]:
+				# Loop 3d-2a: not under a flat layer that covers it whole (a sector tests only its own:
+				# the rest is dropped by its tile anyway).
+				var mid := Vector2(x0 + (i + (0.6667 if tri[1] == k10 else 0.3333)) * step,
+						z0 + (j + (0.3333 if tri[1] == k10 else 0.6667)) * step)
+				if ground_lean and (not _in_sector or _sector_rect.has_point(mid)) and _ground_hidden(i, j, tri[1] == k10):
+					hidden += 1
+					continue
 				var corners: Array[Vector3] = []
 				for k in tri:
 					corners.append(Vector3(x0 + (int(k) % nx) * step, _t_h[k], z0 + (int(k) / nx) * step))
@@ -1968,6 +2341,8 @@ func _build_ground(st) -> void:
 					st.set_normal(normals[tri[o]])
 					st.set_uv(Vector2(-1, -1))
 					st.add_vertex(corners[o])
+
+	ground_hidden += hidden
 
 
 func _build_areas(st) -> void:
@@ -3925,6 +4300,22 @@ func _make_shared() -> void:
 	_box(lantern, LANTERN_HEAD + Vector3(0, 0.45, 0), Vector3(0.34, 0.14, 0.34), iron)
 	_box(lantern, LANTERN_HEAD + Vector3(0, 0.62, 0), Vector3(0.06, 0.22, 0.06), iron)
 	_shared["lantern"] = _mark_head(lantern.commit())
+	# Plac Konstytucji's candelabras (MDM, 1952): a stone plinth, a tall iron column and three
+	# lanterns, two on a crossarm and one on top. The pole stands on the spot.
+	var candelabra := SurfaceTool.new()
+	candelabra.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_box(candelabra, Vector3(0, 0.5, 0), Vector3(1.0, 1.0, 1.0), Color("#a59b88"))
+	_box(candelabra, Vector3(0, 1.1, 0), Vector3(0.6, 0.2, 0.6), iron)
+	_box(candelabra, Vector3(0, 4.2, 0), Vector3(0.24, 6.0, 0.24), iron)
+	_box(candelabra, Vector3(0, 7.2, 0), Vector3(2.1, 0.14, 0.16), iron)
+	for x in [-1.0, 1.0]:
+		_box(candelabra, Vector3(x, 7.4, 0), Vector3(0.08, 0.3, 0.08), iron)
+	_box(candelabra, Vector3(0, 7.7, 0), Vector3(0.1, 0.9, 0.1), iron)
+	for c: Vector3 in [Vector3(-1.0, 7.9, 0), Vector3(1.0, 7.9, 0), CANDELABRA_HEAD]:
+		_box(candelabra, c, Vector3(0.5, 0.7, 0.5), LAMP_HEAD)
+		_box(candelabra, c + Vector3(0, 0.4, 0), Vector3(0.62, 0.1, 0.62), iron)
+		_box(candelabra, c + Vector3(0, 0.55, 0), Vector3(0.08, 0.22, 0.08), iron)
+	_shared["candelabra"] = _mark_head(candelabra.commit())
 	var fixture := ShaderMaterial.new()
 	fixture.shader = load("res://shaders/fixture.gdshader")
 	_shared["fixture"] = fixture
@@ -4137,11 +4528,17 @@ func _build_street_furniture() -> void:
 	var lanterns: Array[Transform3D] = []
 	var lantern_glows: Array[Color] = []
 	var royal := _royal_segments()
+	var candelabras: Array[Transform3D] = []
+	var candelabra_glows: Array[Color] = []
 	var list: Array = data.get("lamps", [])
 	for i in range(0, list.size() - 1, 2):
 		var x := float(list[i])
 		var z := float(list[i + 1])
 		var t := Transform3D(Basis(Vector3.UP, fposmod(x * 0.37 + z * 0.11, TAU)), Vector3(x, terrain_height(x, z), z))
+		if Vector2(x, z).distance_to(Vector2(CANDELABRAS.x, CANDELABRAS.y)) < CANDELABRAS.z:
+			candelabras.append(t)
+			candelabra_glows.append(SODIUM_GLOW)
+			continue
 		if _on_royal_route(x, z, royal):
 			lanterns.append(t)
 			lantern_glows.append(SODIUM_GLOW if _sodium_at(x, z) else LED_GLOW)
@@ -4163,12 +4560,17 @@ func _build_street_furniture() -> void:
 		mmi.add_to_group(SMALL_CASTERS, true)
 	for mmi in _tree_multimesh(_shared["lantern"], _shared["fixture"], lanterns, none, lantern_glows):
 		mmi.add_to_group(SMALL_CASTERS, true)
+	for mmi in _tree_multimesh(_shared["candelabra"], _shared["fixture"], candelabras, none, candelabra_glows):
+		mmi.add_to_group(SMALL_CASTERS, true)
 	var heads: Array[Transform3D] = []
 	for t in spots:
 		heads.append(Transform3D(Basis(), t * Vector3(1.2, 6.78, 0.0)))
 	for t in lanterns:
 		heads.append(Transform3D(Basis(), t * LANTERN_HEAD))
+	for t in candelabras:
+		heads.append(Transform3D(Basis(), t * Vector3(0, 7.9, 0)))
 	glows.append_array(lantern_glows)
+	glows.append_array(candelabra_glows)
 	_build_lamp_halos(heads, glows)
 
 	spots = []
@@ -4220,6 +4622,9 @@ const ROYAL_STREETS := ["Krakowskie Przedmieście", "Nowy Świat", "Senatorska",
 		"Kozia", "Brzozowa"]
 const ROYAL_REACH := 8.0
 const OLD_TOWN := Vector3(-760.0, -1680.0, 190.0)
+## Plac Konstytucji (x, z, radius): its lamps are MDM's candelabras, three lanterns each.
+const CANDELABRAS := Vector3(-533.8, 1282.4, 75.0)
+const CANDELABRA_HEAD := Vector3(0, 8.5, 0)
 
 
 ## The named Royal Route streets' segments in this map or sector: [a, b, half width + reach].

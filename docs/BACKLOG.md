@@ -19,7 +19,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   94/98: the hotels by their addresses; Central Tower, Ilmet, the Platinum Towers, Łucka City,
   Widok Towers): 27 towers in all. **Third pass (2026-10-30)**: 15 low-rise landmarks
   (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm, Zachęta…) in their real colours.
-  **Street furniture**: historic lanterns on the Royal Route and in the Old Town (2026-10-30).
+  **Street furniture**: historic lanterns on the Royal Route and in the Old Town (2026-10-30). MDM's blocks and
+  Plac Konstytucji's candelabras (2026-10-30).
   Next candidates: tram stop platforms, kiosks (not in the baked data yet), Warsaw's green bins. **Left**: PZU Tower and JM Tower (oddly mapped) keep the
   generic glass, and any model the user names next (docs/QUESTIONS.md).
 
@@ -961,6 +962,36 @@ Small problems that agents reported or that showed up in screenshots. They are f
   test map. `shots.sh`'s `settings_panel` shot is MISSING (the paused game never reaches the shot
   frame): a shot-script issue, not the map.
 
+## From loop 3d-2a (the ground, part one, 2026-10-30)
+- **The full cut under roads** (clip the ground along the road surface, close it with skirts) is
+  not built: of the ground under roads only whole 10 m triangles go (1,109 under the road surface
+  alone, the rest under areas). Cutting the partly covered cells adds triangles on every one of them
+  to save overdraw the iPhone's tile GPU mostly hides already (the flat mesh is opaque, one draw
+  call a tile). Worth it only if a Metal System Trace on the phone shows the ground's fill under
+  the streets: measure first (perf-engineer), then `_build_ground` can clip by the same cover lists.
+- **Coarser ground needs the terrain cleaned** (Slop New York's "survey pits and bumps removed"):
+  the 10 m grid has almost no flat blocks within the 2 cm that keeps the heights (1.9 % of the
+  cells in 20 m blocks), but 47 % within 15 cm. Snapping near-planar blocks in `bake_terrain.py`
+  changes the driving heights by up to that, so the whole chain re-bakes (decks, lanes, check_roads
+  allowlists). A decision for the user (docs/QUESTIONS.md); it would also merge the areas laid on
+  the grid.
+- **The flat mesh's big layers now**: footways and paving 1.88 M vertices (exact strips clipped to
+  every grid triangle since loop 3b-2), grass and parks 1.39 M, roads 1.21 M, islands and kerbs
+  0.80 M, markings 0.68 M; the ground 0.99 M. The footways are the next one to look at (10 m
+  pieces where the grid under them is flat, as roads are laid).
+- **Build time**: the cover tests cost the monolithic build 44 → 58 s and bake_city 75 → 90 s
+  (~0.13 s a sector on the runtime path's streaming thread). A per-sector cover cache in the split,
+  or Clipper on a cell's union once, would win it back.
+- `check_ground` leaves 6 triangles it calls covered (a test point on a seam between two pieces;
+  `HIDDEN_MAX` 30).
+- Fixed on the way: `bake_city.gd` printed 12 `ERROR`s counting the empty proxies of sectors with
+  nothing to show (since loop 3d-1).
+- The brief's 18.19 M vertices was the 18.6 km² box; the demo box since Q3's re-bake counts
+  19,488,688 (now 19,052,803).
+- `shots.sh`'s `settings_panel` shot (3d-1: MISSING) came out in 8 of 9 runs this loop, one MISSING
+  then fine on a rerun: flaky, not broken. Three prebuilt spot shots with `--time=day` once came out
+  at night while other Godot runs were going; fine on a rerun.
+
 ## From the radio playlists loop (2026-10-29)
 - Done: radio.json, shuffled playlists, `tools/add_music.py`, the radio check, README "Adding music",
   CREDITS "Music".
@@ -1114,6 +1145,16 @@ Small problems that agents reported or that showed up in screenshots. They are f
     2 m (lamp pools are 12–15 m wide, but they stop at walls at 1 m), or AO and lights to ASTC
     4×4 at bake time (half the size, lossy). Both change the look a little: the visual lane's
     call with shots. The surface map holds data (deck heights, flow angle) and must stay exact.
+    **Tried 2026-10-30 (performance lane), held back for one phone bench**: AO and lights imported
+    VRAM-compressed (EAC RG11 on the phones, BC5 on desktops, a byte a texel instead of RG8's two),
+    attached when the prebuilt city opens (the phones take the imports, the web keeps the RG8 .res:
+    both formats in its pack would be +62 MB in the browser's memory). The code is on branch
+    `claude/project-thread-ldyr9u` at 70faaca (with f613944), reverted before landing. On the Mac:
+    the look is the same (by day 0 pixels differ by more than 8; at night 0.75 %, one-pixel
+    outlines on the lamp pools' band edges), "textures" 138 → 96 MB, but "video" 393 → 416 MB:
+    the first VRAM-compressed texture brings a one-time +65 MB of other video memory (the same
+    for one map as for two; three runs each, identical). Only the phone's BENCH card can say
+    whether the iPhone pays that too (−42 MB if not, +23 MB if so): QUESTIONS.md.
   - Side jobs hold 17 MB at start (rides 7.5): look for whole-map tables built from the index.
 
 ## From the driving-feel loop (less sticky, 2026-10-30)

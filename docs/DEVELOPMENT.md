@@ -279,7 +279,9 @@ HELI / AUTO (right); the keys are unchanged.
   within 8 m of the carriageway's edge, `ROYAL_STREETS`) and in the Old Town (`OLD_TOWN`, a
   190 m circle) the 213 mapped lamps are the historic cast-iron lantern instead (the landmarks
   loop: a dark green post, a lantern 4.4 m up under a cap and finial; `_shared["lantern"]`):
-  one more MultiMesh in the 9 sectors that have them. The look
+  one more MultiMesh in the 9 sectors that have them. Plac Konstytucji's lamps (`CANDELABRAS`, 75 m round the
+  square) are MDM's candelabras: a stone plinth, a tall iron column and three lanterns (one more
+  MultiMesh in its sector). The look
   loop made the pools on the ground pixel light: four hard bands with a one-pixel checker
   dither along each step (`night.gdshaderinc` `lamp_pool`, `pool_glow`), never brighter than
   ~80 % of a lit window (pale paving included), and on grass and cycle lanes the lamp tints
@@ -596,6 +598,11 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   Zachęta, the Mirowska halls and the Sejm. Each has an info card; the far skyline takes each
   wall colour. The Planetarium, the Tomb of the Unknown Soldier and the Church of the Saviour
   stay as they were (their outlines carry no roof the helicopter check accepts).
+- **MDM** (`landmarks.gd` `_find_mdm`): the unnamed blocks over 15 m round Plac Konstytucji
+  (95 m) and along Marszałkowska to Plac Zbawiciela (50 m from the axis) in pale sandstone with
+  tall windows (`M_MONUMENT`, `#cdbfa3`) and grey roofs, one card. `skin_at` takes a whole box
+  only for a site of one outline (the museum); for MDM's many blocks a model's centre must be
+  in one of them. `bake_sectors.py` `SITE_AREAS` carries its parts.
 - **Bus and tram shelters** (the landmarks loop; `map_builder.gd` `_make_shared`): Warsaw's
   glass shelter as the game's camera sees it: a pale glass roof in a graphite frame overhanging
   the kerb, a dark fascia, glass back and end, three posts, a bench, a poster box at the far end
@@ -3093,6 +3100,68 @@ and 4 km/h after, never past (0.5 m behind after 10 s); after, 28 km/h after the
 2.6 s after, never unstuck. `check_steering` stays OK (`car_behind` 2.3 → 2.7 s now that the
 stopped car is not followed as a wall until the 0.35 s push).
 
+## Loop 3d-2a: the ground, part one (2026-10-30)
+
+The map engine's ground half (ROADMAP "The road to the 1.0 demo", row 3d-2; the model is Slop New
+York's "no ground under roads" and "coarser mesh on flat land", docs/design/slop-cities-research.md).
+Measured first, with the new `game/tools/check_ground.gd` (verify step `ground`, ~2 min; `--whole`
+builds the old ground for the before count, `--sectors` per sector, `--dump=FILE` for
+`tools/overlay_ground.py`, the ground's wireframe over the aerial photo).
+
+| Before (demo map) | |
+| --- | --- |
+| Ground | 470,275 triangles, 1.41 M vertices (7.2 % of the city's 19.49 M; the flat mesh is 8.36 M): 402,578 in the 10 m cells' halves, 67,697 in the 1 m sub-cells of 339 apron cells (14 % of the ground in 0.17 % of the cells), 7,391 edge-wall triangles; a full 512 m sector 5,202-5,305, sectors with aprons up to 12,139 |
+| Ground under what covers it whole (grown 0.5 m) | 92,618 triangles (20 %): the river and ponds, parks and lawns, plazas; **1,109 under the road surface alone** (a 10 m triangle is rarely inside a carriageway with half a metre to spare: Marszałkowska, Aleje Jerozolimskie, the big junctions) |
+| Flat 10 m cells | 44.4 % have four corners within 0.02 m of a plane, 89.9 % within 0.15 m; but blocks of them are not: within 1 cm (what keeps the heights within 2 cm) 1.9 % of the cells lie in planar 20 m blocks, 0.4 % in 40 m ones, 0 in 80 m; within 15 cm 47 % / 9.6 % / 2 % |
+
+**Coarser ground (item 2), as measured.** The 1 m NMT's medians carry real relief of a few
+centimetres (cambers, kerbs, lawns), so merging the 10 m grid into big quads within the 2 cm that
+keeps every height rule saves about 2 % of the ground: not built. The coarsening that keeps the
+heights exactly is under the aprons: `_ground_fine_cell` keeps the 1 m sub-cells only where they
+touch a point an apron lowers (`min(grid, terrain_height)` more than 1 mm under the grid: 4,773 of
+33,900 sub-cells, in 199 of the 339 cells), draws the rest of each half of the cell in runs along
+the sub-rows on the half's own plane, and a half with no lowered point as the grid's own triangle:
+67,697 → 15,001 triangles. `_fine_cells`, `_drawn_height`, the areas laid on the grid and
+check_roads' `Map.drawn` are unchanged (the heights are the same to 1 mm).
+
+**No ground under what covers it (item 3).** The ground is built after the flat layers now. The
+layers that lie on the ground and hide it (the areas: water, grass, parks, plazas, sand; paving,
+footways, steps, rail beds, roads, carriageway areas; not on a deck or in a tunnel) note each
+triangle they draw whose centre lies within `COVER_GRADE` (-0.25 to +0.3 m) of the grid, per 10 m
+cell; a 10 m triangle they cover whole grown by `COVER_MARGIN` 0.5 m (a layer stands up to ~0.3 m
+over the ground, and at the 30 degree pitch a sight line under its edge reaches 1.7 times that) is
+left out. Kept whatever covers them: the apron cells, the cells near an approach or an apron
+(`ground_kept`: the road stands over or under the grid there), the grid's outer row (the edge
+walls). The test (`_ground_hidden`): a cell's summed cover area, a cell and its eight neighbours
+covered whole by one area, the triangle's middle and grown corners and sides under some piece,
+then Clipper (`covers`: the triangle minus each piece; a piece that would cut a hole waits for the
+others; it doesn't depend on the order). No new edges: the full cut (clipping the ground along the
+road's outline, with skirts) would add triangles on every partly covered cell to save overdraw the
+iPhone's tile GPU mostly removes anyway (opaque, one draw call).
+
+| Loop 3d-2a | Before | After |
+| --- | --- | --- |
+| Ground triangles / vertices | 470,275 / 1,410,825 | 324,967 / 974,901 (-31 %) |
+| 10 m halves left out | 0 | 92,612 (the river 2_0 -76 %, sectors 0_3, 0_-3, 1_-2 -70 %; the dense centre -2 to -3 %) |
+| Apron sub-cell triangles | 67,697 | 15,001 |
+| Hidden ground (check_ground, the class) | 92,618 (1,109 under roads alone) | 6 (0) (a test point on a seam between two pieces; allowed up to 30) |
+| Holes (left out, not covered) | 0 | 0 |
+| Ground off the height rule | 0.001 m | 0.001 m |
+| City vertices (`count_vertices.gd`) | 19,488,688 | 19,052,803 (-435,885) |
+| Flat-mesh vertices | 8,359,221 | 7,923,297 |
+| Prebuilt sectors | 91.3 MB | 89.1 MB |
+| Monolithic build (`count_vertices.gd`) / bake_city | 44 / 75 s | 58 / 90 s (the cover tests) |
+| Probe draw calls, all passes (spawn, river, zoomed out, helicopter) | 134, 103, 148, 217 | 134, 101, 148, 217 |
+| Probe main-pass triangles (same views) | 0.28, 0.21, 0.45, 0.48 M | 0.28, 0.20, 0.44, 0.47 M |
+| Bench (Mac, Metal, 1280x720; medians of 3, interleaved with a copy of the old code): frame, draw calls, video buffers | day 8.36 ms, 107, 126 MB; night 8.35, 80, 125; rain at night 8.36, 80, 125 | day 8.36 ms, 107, 118 MB; night 8.35, 80, 117; rain at night 8.36, 80, 117 (the Mac holds its 120 Hz display in every run: frame time unchanged; 1 % low 70-96 either way, noise) |
+
+Screenshots (`shots/loop3d2a_before`, `_after`: the core set at 2532x1170 and 1792x828 on both
+paths, five ground-meets-road spots on slopes: Tamka by Wybrzeże Kościuszkowskie, both ends of
+Most Poniatowskiego, Plac Na Rozdrożu, the Old Town's escarpment): 0.01-0.09 % of the pixels differ,
+the minimap's random markers and single texels; overlays in `shots/loop3d2a_after/overlays/`.
+check_drape, check_roads (C11 1 allowed), check_streaming (identity over 108 sectors, 0.789 % at
+spot 8 as before) unchanged.
+
 ## Moja Warszawa notebook (loop MW-1, 2026-10-30)
 
 MOJA WARSZAWA, the city notebook (docs/design/vision.md 4.1): the 72 places of
@@ -3614,6 +3683,13 @@ through `tools/add_music.py`, "Adding music"; `godot --headless --path game --sc
 res://tools/check_radio.gd` checks radio.json, the Ogg files, the playlists and each looping
 station's loop point) and `python3 -I tools/make_ui_sounds.py game/audio/ui`.
 
+**The ground mesh** (loop 3d-2a, `map_builder.gd` `_build_ground`): the 10 m grid's two triangles
+per cell, built after the flat layers and leaving out what they cover whole (the water, parks,
+plazas, wide roads: 92,612 halves); the cells an apron reaches in 1 m sub-cells only where the apron
+lowers the ground. The heights (`_grid_height`, `_drawn_height`, check_roads `Map.drawn`) are those of
+the grid as before; `game/tools/check_ground.gd` checks the mesh against them, and that nothing is
+left open ("Loop 3d-2a").
+
 LoD2 is from 2018, so newer towers (Varso and others) come from OpenStreetMap; LoD2 buildings
 no longer on the map are dropped. The terrain is bare earth, so bridges and viaducts get decks
 solved from what they cross (see Real roads).
@@ -3968,6 +4044,15 @@ tools/export_web.sh --deploy   # also upload it (the user's yes first: it is pub
   never see any of it (`SectorPacks.active()` needs the `web` feature and the manifest).
   HTTPRequest on the web reads one network chunk a frame, so a background tab (throttled to
   ~1 fps) loads sectors slowly; in a visible tab the start's six took 0.15-0.3 s locally.
+- **The AO and lamp-light maps as zstd streams** (performance lane, 2026-10-30): they were
+  18.8 MB of the pack as RG8 `.res` files (Godot's resource compression works in 4 KB blocks,
+  so they barely shrank). The prebuilt city now attaches them when it opens
+  (`map_builder.gd` `attach_maps`; `bake_city.gd` `_detach_maps` records which materials read
+  each and writes `map/shared/<name>.zst`: u32 width, u32 height, the RG8 texels as one zstd
+  stream). Phones and desktops load the `.res` as before; the Web preset leaves the `.res` out
+  and carries the `.zst` (8.3 + 2.7 MB), unpacked in ~0.3 s: −7.7 MB in the download and in the
+  browser's memory, the texels identical (a desktop run forced to the `.zst` renders
+  pixel-identical shots).
 - **Phones' browsers** (web loop 2): an iPhone's Safari closed the first version's page (the
   whole 140 MB city in memory). Now a sector's pack file is deleted once its scene is loaded
   (fetched again from the browser's cache if the sector comes back), and Auto picks **Low** on a

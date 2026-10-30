@@ -13,7 +13,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
-| performance | The map textures (AO, lamp light and surface maps, ~96 MB of video memory on the phone), then the web build's first download (~59 MB) | cloud thread "Build landing and beta listings" | 2026-10-30 |
+| map | Loop 3d-2b, the map engine part two: far levels with low buildings painted flat, look-ahead streaming, per-sector AO/light/surface maps, the load hitch (3d-1 and 3d-2a landed) | thread "Finish the demo map extension" | 2026-10-30 |
 
 ## Waiting
 
@@ -29,6 +29,15 @@ Newest first. One entry per question.
   as said.
 - **2026-10-30 · content · MW-6** — Spacer (wander mode) is a row in Settings → JAZDA, offered
   once by a toast; FOTKA is a button in Settings → OBRAZ. Default built: there.
+- **2026-10-30 · map · 3d-2a** — Clean the terrain at bake time (snap near-flat 20 m blocks within
+  15 cm) so flat ground can merge into bigger quads? It would let ~47 % of cells merge but moves
+  driving heights by up to 15 cm and needs a full re-bake. Options: snap / keep exact heights.
+  Default built: keep exact heights. Where: BACKLOG "From loop 3d-2a".
+- **2026-10-30 · map · 3d-2a** — Cut the ground along road edges (with skirts) rather than only
+  dropping 10 m triangles fully under a cover? Default built: only whole covered triangles go;
+  the full cut waits for a phone Metal trace showing ground fill under streets costs something.
+- **2026-10-30 · map · 3d-2a** — Next flat-mesh target: footways (1.88 M vertices), grass (1.39 M),
+  roads (1.21 M), kerbs (0.80 M). Default: footways first, after 3d-2b.
 
 - **2026-10-30 · content · MW-5 (PÓŁNOC FM)** — Listen to the 7 new tracks (attached in the
   thread, or `--unlock=all --station=polnoc`): mood, balance, does the bass reach the phone's
@@ -139,6 +148,11 @@ Newest first. One entry per question.
   A coarser picture for a smoother ride · Settings → Obraz". It doesn't mention heat, because
   the struggle is measured frame time, not temperature. Options: A: as built / B: the backlog's
   "Obraz prostszy, bo telefon się grzał · the phone was struggling" / C: no toast. Default built: A.
+- **2026-10-30 · performance · compressed map textures** — May I run one bench on the iPhone
+  with the AO and lamp-light maps VRAM-compressed (BACKLOG "Memory still on the table")? On the
+  Mac they look the same and textures drop 42 MB, but video memory rises 23 MB from a one-time
+  allocation; only the phone shows which way it goes there. Options: A: one device bench, before
+  and after / B: drop it. Default built: nothing landed (the code waits on its branch).
 - **YYYY-MM-DD · lane · item** — The question in one line? Options: A / B. Default built: A
   (or "nothing built: waits"). Where: PR #N, BACKLOG "section".
 -->

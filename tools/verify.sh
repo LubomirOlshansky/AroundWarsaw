@@ -15,6 +15,8 @@
 # WARN before). `drive` runs game/tools/check_drive.gd (loop 3b): a car and a bus along every
 # lane against the colliders, the autopilot over the bridges and tunnels. `drape` runs
 # game/tools/check_drape.gd (loop 3b-2): the ground poking through the water, grass and plazas.
+# `ground` runs game/tools/check_ground.gd (loop 3d-2a, ~2 min, not in --quick): no ground left
+# under what covers it whole, no hole where it was left out, the ground on the height rule.
 # `streets` runs tools/check_streets.py (map review B): poles on the asphalt, zebras off it,
 # grass medians on tram tracks (S1, S2, S4 FAIL; S3, medians in a junction, is reported).
 # `tiers` and `governor` (loop G1): the device tiers and the pixel image's size rule, and the
@@ -59,7 +61,7 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets drape drive drive-prebuilt steering settings tiers governor hud places eggs tape rides cost landmarks sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
+STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud places eggs tape rides cost landmarks sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
 STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places eggs tape rides cost landmarks sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
@@ -472,6 +474,8 @@ for s in $want; do
 			esac ;;
 		# Loop 3b-2: the bare ground poking through the areas laid on it (water, grass, plazas, sand).
 		drape) check drape '^check_drape:' --script res://tools/check_drape.gd ;;
+		# Loop 3d-2a: the ground left out under the layers that cover it, no holes, on the heights.
+		ground) check ground '^check_ground:' --script res://tools/check_ground.gd ;;
 		# Loop 3b: every lane for a car and a bus against the colliders; the autopilot over the
 		# bridges and tunnels (height jumps). The runtime city (the prebuilt one: --prebuilt).
 		drive) check drive '^check_drive:' --script res://tools/check_drive.gd ;;
