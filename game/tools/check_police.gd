@@ -744,7 +744,12 @@ func _part_two() -> void:
 	p.clock = 200.0
 	var g = _guard_at(520.0, 14.0)
 	traffic.screen = false
-	await _steps(0.5)
+	# The car is placed at a random spot 150-300 m out and retried every 2 s when no road is
+	# found there; wait for it (up to 8 s) so the case doesn't hang on one random draw.
+	for _i in 16:
+		await _steps(0.5)
+		if p.guards._car_unit != null:
+			break
 	traffic.screen = true
 	var gcar = p.guards._car_unit
 	p.zone = "oldtown"
