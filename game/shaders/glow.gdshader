@@ -38,6 +38,14 @@ void fragment() {
 		float r = length(UV - 0.5) * 2.0;
 		a *= pow(clamp(1.0 - r, 0.0, 1.0), 2.2);
 	}
+	if (!billboard && !radial) {
+		// Loop 3i (art bible: light on the ground is pixel light, never a smooth gradient):
+		// the light on the road (headlight fans, tail glows, the searchlight's pool) in three
+		// hard bands like the lamp pools, with a one-pixel checker where two bands meet.
+		float d = mod(floor(FRAGCOORD.x) + floor(FRAGCOORD.y), 2.0) * 0.024 - 0.012;
+		float b = a + d;
+		a = b > 0.22 ? 0.46 : (b > 0.11 ? 0.27 : (b > 0.035 ? 0.11 : 0.0));
+	}
 	if (blink) {
 		a *= step(0.42, fract(TIME * 1.15));
 	}
