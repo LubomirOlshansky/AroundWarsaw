@@ -1,8 +1,9 @@
 # Google Play Console: ready answers
 
-Answers for Nocna Warszawa's Play Console forms, version 0.1 (code 1 was the first upload to
+Answers for Around Warsaw's Play Console forms (and, in section 7, its App Store name, subtitle
+and keywords), version 0.1 (code 1 was the first upload to
 internal testing, October 2026; code 2 requires Vulkan). The build: `tools/export_android.sh`
-(README, "Android (Google Play)"). Field names follow Play Console's English labels; Play may
+(docs/DEVELOPMENT.md, "Android (Google Play)"). Field names follow Play Console's English labels; Play may
 reword them. Facts behind the answers: no network code, no INTERNET permission, VIBRATE only,
 saves in `user://` on the device (`settings.gd`, `wallet.gd`), no accounts, ads or purchases;
 Vulkan required (level 1, version 1.1.0).
@@ -11,7 +12,7 @@ Vulkan required (level 1, version 1.1.0).
 
 | Field | Answer |
 | --- | --- |
-| App name | Nocna Warszawa |
+| App name | Around Warsaw: City Drive (the game was Nocna Warszawa until 2026-10-30) |
 | Default language | Polish (pl-PL); add English (en-US) as a translation of the listing |
 | App or game | Game |
 | Free or paid | Free (this can't be changed to paid later) |
@@ -148,7 +149,7 @@ Only `android.permission.VIBRATE` (haptics). No sensitive permission declaration
 
 ## 5. Main store listing
 
-App name (30 characters at most): **Nocna Warszawa**
+App name (30 characters at most; this is 25): **Around Warsaw: City Drive**
 
 ### Polish (pl-PL)
 
@@ -161,7 +162,7 @@ Prawdziwe centrum Warszawy w pikselach. Kebab o trzeciej, korki, gołębie.
 Full description:
 
 ```
-Nocna Warszawa to zręcznościowa jazda małym autem (i helikopterem) po prawdziwym centrum miasta, zbudowanym z otwartych danych map, w pikselowej izometrii.
+Around Warsaw to zręcznościowa jazda małym autem (i helikopterem) po prawdziwym centrum miasta, zbudowanym z otwartych danych map, w pikselowej izometrii.
 
 Od Śródmieścia po Stadion: Pałac Kultury, Marszałkowska, Rondo Dmowskiego, Most Poniatowskiego i Wisła, której lepiej nie sprawdzać kołami.
 
@@ -188,7 +189,7 @@ Arcade drive through the real centre of Warsaw. Kebab at 3 a.m., jams, pigeons.
 Full description:
 
 ```
-Nocna Warszawa (Warsaw by Night) is an arcade drive in a small car (and a helicopter) through the real centre of Warsaw, built from open map data, in isometric pixel art.
+Around Warsaw is an arcade drive in a small car (and a helicopter) through the real centre of Warsaw, built from open map data, in isometric pixel art.
 
 From Śródmieście to the Stadium: the Palace of Culture, Marszałkowska, Rondo Dmowskiego, Poniatowski Bridge and the Vistula, which you'd better not test with your wheels.
 
@@ -230,3 +231,15 @@ screen; the listing says "Polish with English" nowhere because Play shows one la
 - [ ] Paste the BENCH card (Settings → TEST, KOPIUJ · COPY) from the phone into the chat: no
       Android frame number exists yet.
 - [ ] The privacy-policy link opens (after `main` is pushed).
+
+## 7. App Store (for the iOS release; the same descriptions as section 5)
+
+| Field | Answer |
+| --- | --- |
+| Name (30 characters at most) | **Around Warsaw** (13) |
+| Subtitle (30 at most) | **Warszawa · real city drive** (26) |
+| Keywords (100 at most, commas, no spaces) | `wawa,warszawa,warsaw,drive,taxi,police,kebab,polska,city,car` (60) |
+| Bundle ID | `com.olshanskysoft.nocnawarszawa` (unchanged by the rename; players never see it) |
+
+The home-screen name under the icon is the project's name, `Around Warsaw` (`game/project.godot`
+`config/name` on iOS, the Android preset's `package/name` on Android).
