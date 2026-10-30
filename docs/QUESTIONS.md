@@ -128,6 +128,11 @@ Newest first. One entry per question.
   A coarser picture for a smoother ride · Settings → Obraz". It doesn't mention heat, because
   the struggle is measured frame time, not temperature. Options: A: as built / B: the backlog's
   "Obraz prostszy, bo telefon się grzał · the phone was struggling" / C: no toast. Default built: A.
+- **2026-10-30 · performance · compressed map textures** — May I run one bench on the iPhone
+  with the AO and lamp-light maps VRAM-compressed (BACKLOG "Memory still on the table")? On the
+  Mac they look the same and textures drop 42 MB, but video memory rises 23 MB from a one-time
+  allocation; only the phone shows which way it goes there. Options: A: one device bench, before
+  and after / B: drop it. Default built: nothing landed (the code waits on its branch).
 - **YYYY-MM-DD · lane · item** — The question in one line? Options: A / B. Default built: A
   (or "nothing built: waits"). Where: PR #N, BACKLOG "section".
 -->
