@@ -19,6 +19,16 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-30 · content · MW-6 (eggs, KASETA, Spacer, Fotka)** — Words written in this loop
+  need a designer pass: egg lines vision doesn't quote, the English egg names, and the 15 Kadr
+  photo spots (`game/data/eggs.json`, `kadr.json`). Default built: as written.
+- **2026-10-30 · content · MW-6** — The KASETA ghost is faint (dithered, reusing the building
+  shader) and dim at night. Brighter needs a visuals-lane shader uniform. Default built: faint.
+- **2026-10-30 · content · MW-6** — E31's reward was track 2, which is free from the start: it
+  opens the next locked track instead. The 5 old eggs now pay +10 respect each. Default built:
+  as said.
+- **2026-10-30 · content · MW-6** — Spacer (wander mode) is a row in Settings → JAZDA, offered
+  once by a toast; FOTKA is a button in Settings → OBRAZ. Default built: there.
 - **2026-10-30 · map · 3d-2a** — Clean the terrain at bake time (snap near-flat 20 m blocks within
   15 cm) so flat ground can merge into bigger quads? It would let ~47 % of cells merge but moves
   driving heights by up to 15 cm and needs a full re-bake. Options: snap / keep exact heights.

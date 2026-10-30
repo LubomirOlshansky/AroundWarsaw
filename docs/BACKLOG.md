@@ -1240,8 +1240,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   notebook cover (later loops); chapters 6 and 7 have no reward beyond the złoty and respect
   (7 tracks, 2 free, so 5 chapters open tracks). An egg's track (E14: 5, E31: 2, which is free
   already) is skipped by the chapters, so then one more chapter opens nothing.
-- **The eggs E14 and E31** only need `radio.unlock_track(5, "egg")` / `(2, ...)` (MW-6); E31's track
-  2 is free from the start, so its reward is a no-op as written: a design question for MW-6.
+- ~~**The eggs E14 and E31** only need `radio.unlock_track(5, "egg")` / `(2, ...)` (MW-6); E31's track
+  2 is free from the start, so its reward is a no-op as written: a design question for MW-6.~~
+  Done in loop MW-6: E14 opens track 5; E31 opens the next locked track when its own is free
+  (the default built; an Open Question of the loop).
 - **Skipped (their crowds are MW-3 / MW-4's)**: the steps crowd's murmur, the guitarist on the
   steps, dog barks at horns, the queue murmur, Jasna 0's grate rumble, dawn birds and the first
   tram's bell, the metro's ventilation hum, the club door "closing" between admissions.
@@ -1252,6 +1254,42 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **The radio follows the clock** (PÓŁNOC FM on air, KEBAB FM by day) until the player presses R or
   RADIO in the session; a station change by the clock shows the ticker. Not saved between sessions.
 - **The host speaks text only** (vision Open Question 6).
+
+## From loop MW-6 (Fotka, Spacer, KASETA and the eggs, 2026-10-30)
+
+- Done: the 45 egg cards (`data/eggs.json`, `egg_book.gd`; 26 reachable, 19 waiting), KASETA
+  (`tape.gd`, the 20 then cards with a dithered ghost each), Spacer (`spacer.gd`), Fotka
+  (`fotka.gd`, `data/kadr.json`'s 15 Kadr spots), the notebook's SEKRETY / KASETA / KADR pages,
+  `check_eggs` and `check_tape` (verify steps `eggs`, `tape`; quick set and CI), `check_hud`'s
+  new pages and Fotka's controls, the flags (DEVELOPMENT.md "Fotka, Spacer, KASETA and the eggs").
+- **The 19 waiting eggs** and what wakes each: E01 E21 the garage's paint; E03 the dawn crowd
+  and the Dawn look (MW-3); E04 the patrol cars parked by the clubs (MW-3); E15 the guitarist
+  on the steps (MW-3); E16 E27 the dog walkers (MW-4); E18 E19 Wiralek's trend cycle (MW-4); E23
+  E25 the night buses at Centralny (MW-3); E24 the player's horn and buses pulling in at stops;
+  E28 the Rowerilo riders (MW-4); E29 E30 Kolka and Hyrax (MW-4); E34 the armchair man (MW-4);
+  E35 KASETA's older decades (T1); E39 a tram in old livery; E40 the payphone prop (with T17).
+  Each needs only its trigger in `eggs.json` (drop `waits`) once its piece exists.
+  Rechotka's two eggs are not cards yet (MW-2).
+- **Words to review (designer)**: the egg lines vision's table doesn't quote and every English
+  name are this loop's (marked in the generator); the 15 Kadr spots (`kadr.json`: names, places,
+  looks) are this loop's picks; the KASETA ghosts are boxes from the then cards' ghost notes.
+- **The ghost is dim at night**: it reuses `building.gdshader` (no new shader), whose emission
+  is scaled by the same dither fade, so the then-building glows less than the city around it.
+  A visuals-lane tweak (a `ghost_glow` uniform) would fix it; until then KASETA reads best by day.
+- **E09's place** (`most_poniatowskiego`) resolves 330 m south of the bridge, in the river (its
+  `near` hint, 52.2337, 21.044). The egg anchors on the bridge's road instead (`road` in its
+  trigger); the notebook's own card still sits on the hint: map lane (the bake's anchors).
+- **E10 (Plac Zbawiciela)**: vision's "a crowd outside" became hours 18-02 in summer (no crowds
+  yet); MW-3/MW-4's crowd can join the condition.
+- **Hocki Bloki's music rise (E09) and the fountain show (E17)** are not built: the egg finds
+  and pays, the show itself is a later visual.
+- **Kadr k06 wants a morning**: the fixed looks have no morning (Day is 14:00); it takes Day
+  until MW-3's Dawn look.
+- **Sharing a photo** waits for the Share plugin (its own yes); the photos stay in `user://photos/`
+  (no cap on their number yet: a cap or a gallery is a later item).
+- **Spacer's hint arrow** reuses the job target arrow; while a job's or rescue's arrow shows, that arrow wins and the hint's 15 s run out unseen.
+- **The --egg rig** teleports the vehicle along its path (laps, streets, circles) at 90 % of the
+  limit: it proves the trigger, not that a player can drive it in traffic. Phone check.
 
 ## From the web build (2026-10-30)
 

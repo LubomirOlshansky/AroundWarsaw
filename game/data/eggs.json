@@ -1,0 +1,946 @@
+{
+	"_about": "Loop MW-6 (docs/design/vision.md section 8 and 4.7): the notebook's egg cards, the five eggs of v0.65 and vision's 40 (the Rechotka triple corner and the standing Leżak, parodies.md, come with MW-2's storefronts). Each: `id`, `name` [pl, en] (Polish as vision's table has it; the English is a gloss), `place` (an id in places.json, or one of eggs.gd's spots for the five old ones), `line` [pl, en] or `line_ref` [dialogue.json group, index from 0], `trigger` (`kind`: stop, pass, hover, land, circle, lap, street, between, tape, legacy, or waits; with its numbers and the conditions night, after, hours, weekday, look, summer, dry, date, station, roadworks: egg_book.gd), `reward` (respect; track: a PÓŁNOC FM track; then: a then card stamped; kadr: a Kadr spot unlocked) and, for an egg whose trigger needs something not built yet, `waits` (what: the card is defined, nothing can find it). Lines taken from vision's quotes and the then cards of vision 3.9; the ones vision does not quote were written in MW-6 for the game-designer to review (a Polish line at most 70 characters).",
+	"waits": {
+		"garage": "the garage's paint (no garage yet)",
+		"dawn_crowd": "the dawn crowd and the Dawn look (MW-3)",
+		"club_police": "the patrol cars parked by the clubs (MW-3)",
+		"guitarist": "the guitarist on the steps (MW-3)",
+		"dogs": "the dog walkers (MW-4)",
+		"wiralek": "the Wiralek trend cycle (MW-4)",
+		"night_buses": "the night buses at Centralny (MW-3)",
+		"bus_stops": "the player's horn and the buses pulling in at stops",
+		"cyclists": "the Rowerilo riders (MW-4)",
+		"runners": "Kolka and Hyrax (MW-4)",
+		"armchair": "the man with the armchair (MW-4)",
+		"older_tapes": "KASETA's older decades (T1, 'later': the user's answer 3)",
+		"old_tram": "a tram in old livery (trams)",
+		"payphone": "the payphone prop and T17 (older decades)"
+	},
+	"eggs": [
+		{
+			"id": "palma",
+			"name": [
+				"Palma na rondzie de Gaulle'a",
+				"The Palm on Rondo de Gaulle'a"
+			],
+			"place": "palma",
+			"line_ref": [
+				"easter_palma",
+				1
+			],
+			"trigger": {
+				"kind": "legacy"
+			},
+			"reward": {
+				"respect": 10
+			}
+		},
+		{
+			"id": "pigeons",
+			"name": [
+				"Gołębie na placu Defilad",
+				"Pigeons on Plac Defilad"
+			],
+			"place": "pigeons",
+			"line_ref": [
+				"easter_pigeons",
+				0
+			],
+			"trigger": {
+				"kind": "legacy"
+			},
+			"reward": {
+				"respect": 10
+			}
+		},
+		{
+			"id": "barriers",
+			"name": [
+				"Wędrujące roboty drogowe",
+				"The wandering roadworks"
+			],
+			"place": "barriers",
+			"line_ref": [
+				"easter_barriers",
+				1
+			],
+			"trigger": {
+				"kind": "legacy"
+			},
+			"reward": {
+				"respect": 10
+			}
+		},
+		{
+			"id": "patelnia",
+			"name": [
+				"Patelnia przy metrze Centrum",
+				"Patelnia by Metro Centrum"
+			],
+			"place": "patelnia",
+			"line": [
+				"Tu umawia się pół miasta. Druga połowa: pod Rotundą.",
+				"Half the city meets here. The other half: by the Rotunda."
+			],
+			"trigger": {
+				"kind": "legacy"
+			},
+			"reward": {
+				"respect": 10
+			}
+		},
+		{
+			"id": "syrenka",
+			"name": [
+				"Syrenka na bulwarze",
+				"The Mermaid on the boulevard"
+			],
+			"place": "syrenka",
+			"line_ref": [
+				"easter_syrenka",
+				0
+			],
+			"trigger": {
+				"kind": "legacy"
+			},
+			"reward": {
+				"respect": 10
+			}
+		},
+		{
+			"id": "e01",
+			"name": [
+				"Czarny lakier",
+				"Black paint"
+			],
+			"place": "lusterko",
+			"line_ref": [
+				"club_door",
+				9
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 50
+			},
+			"waits": "garage"
+		},
+		{
+			"id": "e02",
+			"name": [
+				"Niedziela o dziewiątej",
+				"Sunday at nine"
+			],
+			"place": "lusterko",
+			"line_ref": [
+				"club_door",
+				10
+			],
+			"trigger": {
+				"kind": "stop",
+				"within": 25,
+				"secs": 3,
+				"weekday": [
+					7
+				],
+				"hours": [
+					8,
+					11
+				]
+			},
+			"reward": {
+				"respect": 30
+			}
+		},
+		{
+			"id": "e03",
+			"name": [
+				"Dzień dobry, Palmo",
+				"Good morning, Palm"
+			],
+			"place": "palma",
+			"line_ref": [
+				"dawn_crowd",
+				6
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 20
+			},
+			"waits": "dawn_crowd"
+		},
+		{
+			"id": "e04",
+			"name": [
+				"Selekcja policji",
+				"The police door policy"
+			],
+			"place": "smola",
+			"line_ref": [
+				"police_club",
+				0
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 20
+			},
+			"waits": "club_police"
+		},
+		{
+			"id": "e05",
+			"name": [
+				"Level 26 na 28. piętrze",
+				"Level 26 on the 28th floor"
+			],
+			"place": "level_26",
+			"line": [
+				"Winda wie.",
+				"The lift knows."
+			],
+			"trigger": {
+				"kind": "hover",
+				"within": 45,
+				"min_alt": 60,
+				"secs": 3,
+				"night": true
+			},
+			"reward": {
+				"respect": 40
+			}
+		},
+		{
+			"id": "e06",
+			"name": [
+				"Mazowiecka slow",
+				"Mazowiecka, slowly"
+			],
+			"place": "lombard",
+			"line_ref": [
+				"club_door",
+				8
+			],
+			"trigger": {
+				"kind": "street",
+				"street": "Mazowiecka",
+				"max_kmh": 20,
+				"share": 0.85,
+				"after": 23
+			},
+			"reward": {
+				"respect": 30
+			}
+		},
+		{
+			"id": "e07",
+			"name": [
+				"Kredyt na miłość",
+				"Love on credit"
+			],
+			"place": "milosc_hipoteczna",
+			"line": [
+				"Miłość na 30 lat, oprocentowanie zmienne",
+				"Love over 30 years, variable rate"
+			],
+			"trigger": {
+				"kind": "stop",
+				"within": 25,
+				"secs": 2,
+				"night": true
+			},
+			"reward": {
+				"respect": 20
+			}
+		},
+		{
+			"id": "e08",
+			"name": [
+				"O metr mniej",
+				"One metre less"
+			],
+			"place": "m2_1499",
+			"line": [
+				"Teraz o metr mniej. Czynsz ten sam.",
+				"One metre less now. Same rent."
+			],
+			"trigger": {
+				"kind": "pass",
+				"within": 20
+			},
+			"reward": {
+				"respect": 15
+			}
+		},
+		{
+			"id": "e09",
+			"name": [
+				"Hocki Bloki z mostu",
+				"Hocki Bloki from the bridge"
+			],
+			"place": "most_poniatowskiego",
+			"line": [
+				"Z mostu słychać Hocki Bloki. Lato ma basy.",
+				"From the bridge you can hear Hocki Bloki. Summer has bass."
+			],
+			"trigger": {
+				"kind": "stop",
+				"within": 45,
+				"secs": 3,
+				"after": 22,
+				"summer": true,
+				"road": "Most Księcia Józefa Poniatowskiego"
+			},
+			"reward": {
+				"respect": 20
+			}
+		},
+		{
+			"id": "e10",
+			"name": [
+				"Plac C",
+				"Plac C"
+			],
+			"place": "plac_zbawiciela",
+			"line_ref": [
+				"clubbers",
+				4
+			],
+			"trigger": {
+				"kind": "lap",
+				"r": [
+					12,
+					75
+				],
+				"max_kmh": 20,
+				"hours": [
+					18,
+					2
+				],
+				"summer": true
+			},
+			"reward": {
+				"respect": 30
+			}
+		},
+		{
+			"id": "e11",
+			"name": [
+				"Labirynt Pawilonów",
+				"The Pavilions' maze"
+			],
+			"place": "pawilony",
+			"line": [
+				"Mapa labiryntu: wejście jest. Wyjście podobno też.",
+				"A map of the maze: there's a way in. A way out too, they say."
+			],
+			"trigger": {
+				"kind": "hover",
+				"within": 40,
+				"min_alt": 0,
+				"secs": 3,
+				"night": true
+			},
+			"reward": {
+				"respect": 20
+			}
+		},
+		{
+			"id": "e12",
+			"name": [
+				"Jeden normalny do Powiśla",
+				"One full fare to Powiśle"
+			],
+			"place": "kasa_biletowa",
+			"line": [
+				"Bilet w jedną stronę: na leżak",
+				"A one-way ticket: to a deckchair"
+			],
+			"trigger": {
+				"kind": "stop",
+				"within": 25,
+				"secs": 1
+			},
+			"reward": {
+				"respect": 15
+			}
+		},
+		{
+			"id": "e13",
+			"name": [
+				"Ogród na dachu",
+				"The roof garden"
+			],
+			"place": "buw_ogrod",
+			"line": [
+				"Lądowanie na trawie, na dachu biblioteki. Ciszej!",
+				"A landing on the grass, on the library's roof. Shh!"
+			],
+			"trigger": {
+				"kind": "land",
+				"within": 50,
+				"roof": 4
+			},
+			"reward": {
+				"respect": 40,
+				"kadr": "k10"
+			}
+		},
+		{
+			"id": "e14",
+			"name": [
+				"Brawa dla słońca",
+				"Applause for the sun"
+			],
+			"place": "schodki_kopernik",
+			"line_ref": [
+				"schodki",
+				1
+			],
+			"trigger": {
+				"kind": "stop",
+				"within": 40,
+				"secs": 1,
+				"look": "Dusk",
+				"summer": true,
+				"dry": true
+			},
+			"reward": {
+				"respect": 40,
+				"track": 5
+			}
+		},
+		{
+			"id": "e15",
+			"name": [
+				"Czwarty chwyt",
+				"The fourth chord"
+			],
+			"place": "schodki_kopernik",
+			"line_ref": [
+				"schodki",
+				7
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 30
+			},
+			"waits": "guitarist"
+		},
+		{
+			"id": "e16",
+			"name": [
+				"Aport",
+				"Fetch"
+			],
+			"place": "centrum_nauki_kopernik",
+			"line": [
+				"Piłka z dachu wróciła do psa. Pies nie był zdziwiony.",
+				"The ball came back off the roof. The dog wasn't surprised."
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 40
+			},
+			"waits": "dogs"
+		},
+		{
+			"id": "e17",
+			"name": [
+				"Pokaz fontann",
+				"The fountain show"
+			],
+			"place": "fontanny_podzamcze",
+			"line": [
+				"Woda i światło o zmierzchu. Fontanny tańczą w weekend.",
+				"Water and light at dusk. The fountains dance at weekends."
+			],
+			"trigger": {
+				"kind": "stop",
+				"within": 40,
+				"secs": 5,
+				"look": "Dusk",
+				"weekday": [
+					5,
+					6
+				],
+				"summer": true
+			},
+			"reward": {
+				"respect": 20
+			}
+		},
+		{
+			"id": "e18",
+			"name": [
+				"Cykl życia trendu",
+				"A trend's life cycle"
+			],
+			"place": "wiralek_zbawiciela",
+			"line": [
+				"Kolejka, fotka, następne miejsce",
+				"A queue, a photo, the next place"
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 40
+			},
+			"waits": "wiralek"
+		},
+		{
+			"id": "e19",
+			"name": [
+				"Trzy kolejki naraz",
+				"Three queues at once"
+			],
+			"place": "wiralek_chmielna",
+			"line": [
+				"Trzy kolejki naraz. Miasto wstrzymało oddech.",
+				"Three queues at once. The city held its breath."
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 50
+			},
+			"waits": "wiralek"
+		},
+		{
+			"id": "e20",
+			"name": [
+				"Tłusty Czwartek",
+				"Fat Thursday"
+			],
+			"place": "lukrownia",
+			"line": [
+				"Pączek za darmo. Kolejka nie.",
+				"A free pączek. The queue isn't."
+			],
+			"trigger": {
+				"kind": "pass",
+				"within": 25,
+				"date": "fat_thursday"
+			},
+			"reward": {
+				"respect": 30
+			}
+		},
+		{
+			"id": "e21",
+			"name": [
+				"Pasujesz do menu",
+				"You match the menu"
+			],
+			"place": "glon_mokotowska",
+			"line_ref": [
+				"viral",
+				6
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 15
+			},
+			"waits": "garage"
+		},
+		{
+			"id": "e22",
+			"name": [
+				"Tu się krzyżują",
+				"They cross here"
+			],
+			"place": "swietokrzyska_metro",
+			"line_ref": [
+				"metro_announce",
+				1
+			],
+			"trigger": {
+				"kind": "stop",
+				"within": 30,
+				"secs": 5,
+				"night": true
+			},
+			"reward": {
+				"respect": 20
+			}
+		},
+		{
+			"id": "e23",
+			"name": [
+				"Nocny węzeł",
+				"The night hub"
+			],
+			"place": "dworzec_centralny",
+			"line_ref": [
+				"bus_stop",
+				4
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 30
+			},
+			"waits": "night_buses"
+		},
+		{
+			"id": "e24",
+			"name": [
+				"Na żądanie",
+				"On request"
+			],
+			"place": "dworzec_centralny",
+			"line_ref": [
+				"bus_stop",
+				2
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 15
+			},
+			"waits": "bus_stops"
+		},
+		{
+			"id": "e25",
+			"name": [
+				"Wyścig z nocnym",
+				"Racing the night bus"
+			],
+			"place": "dworzec_centralny",
+			"line": [
+				"Szybciej niż nocny. I bez suszarki.",
+				"Faster than the night bus. And past no radar gun."
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 30
+			},
+			"waits": "night_buses"
+		},
+		{
+			"id": "e26",
+			"name": [
+				"Godzina pyz",
+				"Dumpling hour"
+			],
+			"place": "bar_pyzowy",
+			"line": [
+				"Pierogi starsze niż tramwaj elektryczny.",
+				"Dumplings older than the electric tram."
+			],
+			"trigger": {
+				"kind": "stop",
+				"within": 25,
+				"secs": 2,
+				"weekday": [
+					1,
+					2,
+					3,
+					4,
+					5
+				],
+				"hours": [
+					13,
+					14
+				]
+			},
+			"reward": {
+				"respect": 15
+			}
+		},
+		{
+			"id": "e27",
+			"name": [
+				"Pies influencer",
+				"The influencer dog"
+			],
+			"place": "plac_zbawiciela",
+			"line_ref": [
+				"dog_walkers",
+				5
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 15
+			},
+			"waits": "dogs"
+		},
+		{
+			"id": "e28",
+			"name": [
+				"19:59",
+				"19:59"
+			],
+			"place": "rowerilo_dock",
+			"line_ref": [
+				"cyclists",
+				1
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 20
+			},
+			"waits": "cyclists"
+		},
+		{
+			"id": "e29",
+			"name": [
+				"Zając",
+				"The pacer"
+			],
+			"place": "kolka_start",
+			"line_ref": [
+				"runners",
+				3
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 40
+			},
+			"waits": "runners"
+		},
+		{
+			"id": "e30",
+			"name": [
+				"Meta Hyraxa",
+				"Hyrax's finish"
+			],
+			"place": "hyrax_narodowy",
+			"line_ref": [
+				"runners",
+				4
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 30
+			},
+			"waits": "runners"
+		},
+		{
+			"id": "e31",
+			"name": [
+				"Na winylu będzie?",
+				"Out on vinyl?"
+			],
+			"place": "zwir",
+			"line": [
+				"Kuba z PÓŁNOC FM ma tu swoją półkę.",
+				"Kuba from PÓŁNOC FM has a shelf of his own here."
+			],
+			"trigger": {
+				"kind": "stop",
+				"within": 25,
+				"secs": 2,
+				"station": "polnoc_fm"
+			},
+			"reward": {
+				"respect": 20,
+				"track": 2
+			}
+		},
+		{
+			"id": "e32",
+			"name": [
+				"Piłka spada od 1961",
+				"The ball's been falling since 1961"
+			],
+			"place": "plac_konstytucji",
+			"line": [
+				"Piłka spada od 1961 roku. Jeszcze nie spadła.",
+				"The ball has been falling since 1961. It hasn't landed yet."
+			],
+			"trigger": {
+				"kind": "stop",
+				"within": 40,
+				"secs": 3,
+				"night": true
+			},
+			"reward": {
+				"respect": 20
+			}
+		},
+		{
+			"id": "e33",
+			"name": [
+				"Pierwszy drapacz",
+				"The first skyscraper"
+			],
+			"place": "wiezowiec_1933",
+			"line": [
+				"Rok 1933: pierwszy drapacz chmur. Chmury przeżyły.",
+				"1933: the first skyscraper. The clouds survived."
+			],
+			"trigger": {
+				"kind": "circle",
+				"r": [
+					20,
+					160
+				]
+			},
+			"reward": {
+				"respect": 20
+			}
+		},
+		{
+			"id": "e34",
+			"name": [
+				"Fotel z PRL",
+				"The PRL armchair"
+			],
+			"place": "mokotowska",
+			"line": [
+				"Pan niesie fotel z lat 60. Fotel ma się dobrze.",
+				"A man carries a 1960s armchair. The armchair is fine."
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 20
+			},
+			"waits": "armchair"
+		},
+		{
+			"id": "e35",
+			"name": [
+				"Blaszak",
+				"The tin hall"
+			],
+			"place": "plac_defilad",
+			"line": [
+				"Tu był blaszak. Wszystko za 5 zł, poza parkingiem.",
+				"The tin hall stood here. Everything 5 zł, except the parking."
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 15
+			},
+			"waits": "older_tapes"
+		},
+		{
+			"id": "e36",
+			"name": [
+				"Bazar na Stadionie Dziesięciolecia",
+				"The bazaar at the old stadium"
+			],
+			"place": "stadion_narodowy",
+			"line": [
+				"Dawniej tu kupowało się wszystko. Dziś kibicuje się wszystkiemu.",
+				"Once you bought everything here. Now you cheer for everything."
+			],
+			"trigger": {
+				"kind": "tape",
+				"card": "t_stadion_2010"
+			},
+			"reward": {
+				"respect": 15
+			}
+		},
+		{
+			"id": "e37",
+			"name": [
+				"Najdłuższy remont",
+				"The longest roadworks"
+			],
+			"place": "swietokrzyska_metro",
+			"line": [
+				"Najdłuższy remont świata. Do następnego.",
+				"The longest roadworks in the world. Until the next one."
+			],
+			"trigger": {
+				"kind": "tape",
+				"card": "t_swietokrzyska_2012",
+				"roadworks": "Świętokrzyska"
+			},
+			"reward": {
+				"respect": 40
+			}
+		},
+		{
+			"id": "e38",
+			"name": [
+				"Pałac się nie przejmuje",
+				"The Palace doesn't mind"
+			],
+			"place": "palac_kultury",
+			"line": [
+				"Pałac już nie najwyższy. Pałac się nie przejmuje.",
+				"The Palace isn't the tallest any more. The Palace doesn't mind."
+			],
+			"trigger": {
+				"kind": "between",
+				"a": "Pałac Kultury i Nauki",
+				"b": "Varso Tower",
+				"within": 30,
+				"min_alt": 60
+			},
+			"reward": {
+				"respect": 20,
+				"then": "t_palac_2020"
+			}
+		},
+		{
+			"id": "e39",
+			"name": [
+				"Zabytkowy tramwaj",
+				"The vintage tram"
+			],
+			"place": "sciana_wschodnia",
+			"line": [
+				"Kiedyś skrzypiało. Teraz szumi. Tęsknimy za skrzypieniem.",
+				"It used to creak. Now it hums. We miss the creak."
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 30
+			},
+			"waits": "old_tram"
+		},
+		{
+			"id": "e40",
+			"name": [
+				"Karta na 25 impulsów",
+				"The 25-unit phonecard"
+			],
+			"place": "plac_konstytucji",
+			"line": [
+				"Karta na 25 impulsów. Wystarczało na trzy rozmowy i plotkę.",
+				"A 25-unit card. Enough for three calls and some gossip."
+			],
+			"trigger": {
+				"kind": "waits"
+			},
+			"reward": {
+				"respect": 10
+			},
+			"waits": "payphone"
+		}
+	]
+}

@@ -51,6 +51,12 @@ var player_vel := Vector3.ZERO
 var flying := false
 ## Testing: the day the barriers are placed for (yyyymmdd); 0 = today.
 var day := 0
+## Loop MW-6: the street today's roadworks are on (E37's condition: egg_book.gd), and a street
+## they must go on (`--egg=e37`: the egg's own street, so its run needs no rare date).
+var barrier_street := ""
+var force_street := ""
+## Loop MW-6: the notebook's egg cards (egg_book.gd): a find goes there, with its reward and card.
+var book: Node
 ## Where the eggs are, for screenshots and the log.
 var spots := {}
 ## How long the last update took, for --bench.
@@ -476,6 +482,8 @@ func _build_barriers(data: Dictionary) -> void:
 		for i in range(0, flat.size() - 3, 2):
 			var a := Vector2(flat[i], flat[i + 1])
 			var c := Vector2(flat[i + 2], flat[i + 3])
+			if force_street != "" and String(r["name"]) != force_street:
+				continue
 			if a.distance_to(c) >= 26.0 and inner.has_point(a) and inner.has_point(c):
 				segs.append([a, c, float(r["w"]), String(r["name"])])
 	for attempt in 300:
@@ -504,6 +512,7 @@ func _build_barriers(data: Dictionary) -> void:
 func _place_barriers(centre: Vector2, dir: Vector2, side: Vector2, street: String) -> void:
 	var at := _on_ground(centre)
 	_barrier_centre = at
+	barrier_street = street
 	var yaw := atan2(-dir.x, -dir.y)
 	var basis := Basis(Vector3.UP, yaw)
 	var dig := MeshInstance3D.new()
@@ -984,8 +993,12 @@ const EGGS_PL := {"palma": "Palma na rondzie de Gaulle'a", "pigeons": "Gołębie
 		"syrenka": "Syrenka na bulwarze"}
 
 
-## Counts an egg the first time it is ever found, with a small card.
+## Counts an egg the first time it is ever found, with a small card. Loop MW-6: the notebook's
+## egg cards take it (egg_book.gd: the card, its reward, the note); the old card without them.
 func _found(id: String) -> void:
+	if book != null:
+		book.record(id)
+		return
 	if wallet == null or not wallet.find_egg(id):
 		return
 	hud.show_note("SEKRET %d/%d · EASTER EGG" % [wallet.eggs_found(), Wallet.EGGS.size()],

@@ -70,6 +70,8 @@ var _pickup: Node3D
 var _dropoff: Node3D
 ## Loop 2e: seconds until the next call comes in (counted only while nothing else runs).
 var _call_in := -1.0
+## Loop MW-6: Spacer (spacer.gd): no call comes in by itself, and a rescue runs without its clock.
+var calls_off := false
 
 
 func setup(map_node: Node3D, data: Dictionary, world: Node3D, hud_layer: CanvasLayer) -> void:
@@ -287,7 +289,7 @@ func needs_heli() -> bool:
 ## (the bottom of the skids for the helicopter), `speed` its speed in m/s.
 func tick(dt: float, pos: Vector3, speed: float, flying: bool) -> void:
 	player = pos
-	if state == State.CLOSED and not paused and _call_in >= 0.0:
+	if state == State.CLOSED and not paused and _call_in >= 0.0 and not calls_off:
 		# Sweep 2: start the haptic engine a moment before the call (it stops itself when idle).
 		if _call_in >= HAPTICS_LEAD and _call_in - dt < HAPTICS_LEAD:
 			warm_haptics()
@@ -296,7 +298,8 @@ func tick(dt: float, pos: Vector3, speed: float, flying: bool) -> void:
 			_ring()
 	if not has_target():
 		return
-	_time_left -= dt
+	if not calls_off:
+		_time_left -= dt
 	if _time_left <= 0.0:
 		_finish(false, ["Czas minął. Przejęła inna załoga.", "Out of time. Another crew took over."])
 		return

@@ -17,6 +17,8 @@ extends Control
 ##   Dźwięk · Sound: volume, radio, effects (− and + in tenths, or drag along the bar).
 ## Loop MW-1: a fifth tab, ZESZYT · notebook: MOJA WARSZAWA, the city notebook
 ## (notebook_page.gd); the card's title says MOJA WARSZAWA there, with the count found.
+## Loop MW-6: Jazda gets "Tryb gry · Game mode" (Miasto / Spacer: vision.md 4.3) under the camera,
+## and Obraz the FOTKA button beside TEST (closes the card and opens the photo mode: fotka.gd).
 
 signal changed(key: String, value: Variant)
 signal closed
@@ -59,6 +61,8 @@ const QUALITY := [["Auto", "auto"], ["Niska", "Low"], ["Średnia", "Medium"], ["
 const ON_OFF := [["Wył.", "Off"], ["Wł.", "On"]]
 ## Loop 2b: frames per second (settings.gd FPS: 60, 30) and the benchmark button.
 const FPS := [["60", "płynnie · smooth"], ["30", "bateria · battery"]]
+## Loop MW-6: the game's mode (settings.gd `wander`).
+const MODE := [["Miasto", "City"], ["Spacer", "Wander"]]
 const LEVELS := [["master", "Głośność", "Volume"], ["music", "Radio", "Radio"], ["effects", "Efekty", "Effects"]]
 
 ## Loop 2e: pixels per point and the safe area in pixels (from the HUD, screen_points.gd).
@@ -84,6 +88,11 @@ var _auto_name := "High"
 ## settings pages' size and a --notebook= target to show.
 var notebook: Node
 var notebook_page: Control
+## Loop MW-6: the notebook page's extra sections (egg_book.gd, tape.gd, fotka.gd), set before the
+## panel first opens.
+var notebook_eggs: Node
+var notebook_tape: Node
+var notebook_kadr: Node
 var _title: Label
 var _subtitle: Label
 var _subtitle_en: Label
@@ -182,6 +191,8 @@ func _build() -> void:
 		drive[0].add_child(l)
 	_heading(drive[1], "Kamera za autem", "Camera follows the car")
 	_segments(drive[1], "camera", CAMERA)
+	_heading(drive[1], "Tryb gry", "Game mode")
+	_segments(drive[1], "wander", MODE)
 	# Świat · World.
 	var world := _page(body, 1)
 	_heading(world[0], "Pora dnia", "Time of day")
@@ -215,6 +226,13 @@ func _build() -> void:
 		close()
 		changed.emit("bench", 1))
 	perf_row.add_child(bench)
+	# Loop MW-6: the photo mode (fotka.gd), from the pause card.
+	var photo := _word_button("FOTKA", "photo mode")
+	photo.name = "fotka"
+	photo.pressed.connect(func():
+		close()
+		changed.emit("fotka", 1))
+	perf_row.add_child(photo)
 	# Dźwięk · Sound.
 	var sound := _page(body, 1)
 	for l in LEVELS:
@@ -233,6 +251,9 @@ func _build() -> void:
 	notebook_page.name = "notebook"
 	notebook_page.pt = pt
 	notebook_page.book = notebook
+	notebook_page.eggs = notebook_eggs
+	notebook_page.tape = notebook_tape
+	notebook_page.kadr = notebook_kadr
 	body.add_child(notebook_page)
 	_pages.append(notebook_page)
 	notebook_page.size = notebook_page.custom_minimum_size

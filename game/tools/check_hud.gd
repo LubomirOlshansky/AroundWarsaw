@@ -7,7 +7,9 @@ extends SceneTree
 ## delivery with the customer talking where the radio ticker sits, a race, a rival to
 ## challenge, a landmark card, the tow toast, the same with the performance overlay on, every
 ## tab of the settings panel and the bench card; loop 3g-1: a police chase (the pill, the koguty,
-## a megaphone bubble), the lizak, and the pull-over card (the pedals away). In each state:
+## a megaphone bubble), the lizak, and the pull-over card (the pedals away); loop MW-6: the
+## notebook's egg, tape and Kadr pages (a found card, one not found, the next page) and Fotka's
+## photo-mode controls (fotka.gd, its own layer with the HUD hidden). In each state:
 ##   - every control the player can press is at least 44 pt each way and inside the safe area;
 ##   - every text is at least 11 pt, and the body texts (cards, ticker, toasts, hints) 13 pt;
 ##   - every HUD rect (the fixed controls, the panels, the pedals, the speech bubbles) is inside
@@ -25,6 +27,10 @@ const PoliceBalloon := preload("res://scripts/police/police_balloon.gd")
 ## Loop MW-1: the notebook (the settings card's fifth tab), with some places found.
 const Notebook := preload("res://scripts/notebook.gd")
 const Wallet := preload("res://scripts/wallet.gd")
+## Loop MW-6: the notebook's extra sections (eggs, then cards, Kadr spots) and Fotka's controls.
+const EggBook := preload("res://scripts/egg_book.gd")
+const Tape := preload("res://scripts/tape.gd")
+const Fotka := preload("res://scripts/fotka.gd")
 ## Loop 2d-1: Podwózka's card words.
 const RideRules := preload("res://scripts/ride_rules.gd")
 ## Width x height in pixels (landscape): the user's 6.9" Pro Max, the 6.1" class, a computer
@@ -262,11 +268,26 @@ func _check_screen(screen: Vector2i) -> int:
 	book.load_places()
 	book.preset("1:4")
 	hud.settings_panel.notebook = book
+	# Loop MW-6: the extra sections, with a few found (and stamped on a date).
+	var egg_book: EggBook = EggBook.new()
+	egg_book.load_eggs()
+	var tape: Tape = Tape.new()
+	tape.load_cards()
+	var kadr: Fotka = Fotka.new()
+	kadr.load_spots()
+	for id: String in ["palma", "e07", "e13", "e20"]:
+		notes_wallet.find_egg(id, 20261030)
+	notes_wallet.tapes["t_defilad_2012"] = 20261030
+	notes_wallet.kadr["k01"] = 20261030
+	hud.settings_panel.notebook_eggs = egg_book
+	hud.settings_panel.notebook_tape = tape
+	hud.settings_panel.notebook_kadr = kadr
 	hud.open_settings({"controls": 1, "follow": false, "traffic": 2, "quality": 0, "auto": "Medium ostry", "master": 1.0, "music": 0.5,
 			"effects": 1.0, "perf": 0, "fps": 0, "style": 0, "vhs": 0, "weather": 0, "time": 0})
 	var panel: Control = hud.settings_panel
 	# Loop MW-1: the five tabs, then the notebook with a found card open and one not found yet.
-	var views := [0, 1, 2, 3, 4, "lusterko", "milosc_hipoteczna"]
+	var views := [0, 1, 2, 3, 4, "lusterko", "milosc_hipoteczna", "eggs", "e07", "e03", "e40", "tape", "t_defilad_2012",
+			"t_stadion_2010", "kadr", "k01", "k10"]
 	for t in views:
 		if t is String:
 			panel.show_notebook(t)
@@ -289,7 +310,11 @@ func _check_screen(screen: Vector2i) -> int:
 		count += 1
 	panel.close()
 	book.free()
+	egg_book.free()
+	tape.free()
+	kadr.free()
 	notes_wallet.free()
+	count += await _check_fotka(vp, hud, tag)
 	var bench := "AROUND WARSAW bench (loop 2b) · BENCH · 2026-10-28 16:42:59\ndevice iPhone17,2 · iOS 26.0 · Apple A18 Pro GPU (metal, mobile) · Apple A18 Pro\nscreen 2868x1320 @ 120 Hz · image 1434x660 (×2) · view 80 m · quality Auto→High fallback (iPhone17,2) · traffic Normal · Day · Clear · cap 60 fps · Point\nthermal state: not readable from Godot; a phone that warms up shows it as falling fps per 10 s\nfps 59.9 avg · 1% low 55.3 · worst frame 25.0 ms · late 0.4% (over 17.7 ms) · missed refreshes 12 (0.4%) · 3300 frames in 55 s\nfps per 10 s: 60 60 60 60 60 60 · governor held: GPU 2/2 · CPU 2/2, wide, 12 changes\nframe 16.69 ms · main thread: process 2.10, physics 0.40, draw 13.90 · 3D view: render CPU 0.60, GPU n/a (Metal)\ndraw calls 141 · objects 410 · triangles 0.42 M (all passes, as the overlay counts them)\nmain pass: 50 draws, 50 objects, 0.24 M tris · shadow pass: 33 draws, 33 objects, 0.13 M tris · 2D: 58 draws\nscripts 1.90 ms: traffic 0.70 · traffic bodies 0.05 · trams 0.25 · people 0.30 · rivals 0.05 · jobs+eggs 0.10\n  jobs physics 0.01 · sound 0.04 · hud+minimap 0.20 · bubbles 0.05 · dialogue 0.01\ncars on screen 15 · driving 31 · people 48\nmemory: static 640 MB · video 310 MB (textures 120, buffers 150) · 3 pipeline compilations"
 	hud.show_bench_card(bench)
 	await process_frame
@@ -311,6 +336,50 @@ func _check_screen(screen: Vector2i) -> int:
 	vp.queue_free()
 	await process_frame
 	return count
+
+
+## Loop MW-6: Fotka open (the HUD hidden): its buttons 44 pt and inside the safe area, nothing
+## overlapping, the texts big enough; closed, nothing of it shows and the HUD is back.
+func _check_fotka(vp: SubViewport, hud: CanvasLayer, tag: String) -> int:
+	var pt: float = hud.pt
+	var safe: Rect2 = hud.safe_rect()
+	var f: Fotka = Fotka.new()
+	f.hud = hud
+	f.pt = pt
+	f.safe = safe
+	vp.add_child(f)
+	f.open(Vector3.ZERO, 45.0, 40.0, 110.0)
+	await process_frame
+	await process_frame
+	var where := "%s fotka" % tag
+	if hud.visible:
+		problems.append("%s: the HUD still shows" % where)
+	var rects: Dictionary = f.ui_rects()
+	for k: String in ["fotka_close", "fotka_shutter", "fotka_zoom_in", "fotka_zoom_out", "fotka_hint"]:
+		if not rects.has(k):
+			problems.append("%s: no %s" % [where, k])
+	var names := rects.keys()
+	for a in names.size():
+		var ra: Rect2 = rects[names[a]]
+		if str(names[a]) != "fotka_hint":
+			_check_touch("%s %s" % [where, names[a]], ra, pt, safe)
+		elif not safe.grow(0.5).encloses(ra):
+			problems.append("%s: the hint %s is outside the safe area" % [where, _pts(ra, pt)])
+		for b in range(a + 1, names.size()):
+			var rb: Rect2 = rects[names[b]]
+			if ra.intersection(rb).get_area() > pt * pt:
+				problems.append("%s: %s %s overlaps %s %s" % [where, names[a], _pts(ra, pt), names[b], _pts(rb, pt)])
+	_check_fonts(f.layer, where, pt)
+	if verbose:
+		var parts := PackedStringArray()
+		for k in rects:
+			parts.append("%s %s" % [k, _pts(rects[k], pt)])
+		print("  %s: %s" % [where, " · ".join(parts)])
+	f.close()
+	if f.layer.visible or not hud.visible:
+		problems.append("%s: closing left its layer up or the HUD hidden" % where)
+	f.queue_free()
+	return 1
 
 
 ## 2026-10-30: RADIO tapped changes the station; held RADIO_HOLD s it skips the track once and
