@@ -35,6 +35,7 @@ var spent_usec := 0
 
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const Models := preload("res://scripts/models.gd")
+const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 
 enum Kind { CAR, TAXI, VAN, BUS, POLICE, NODE }
@@ -64,6 +65,14 @@ const PATH_LOOK := 0.8
 const PATH_MARGIN := 0.2
 const PATH_AHEAD := 14.0
 const PATH_EXIT := 6.0
+## The traffic loop: a car gives way to a tram's body (TRAM_CAR m cars, TRAM_HALF m half width,
+## as trams.gd) and the front car's next TRAM_LOOK s, with TRAM_MARGIN m to spare (it looked at
+## three points of each tram car, missed the body between them, and stopped by its centre, so a
+## car crossing at a slant stopped with its corner in the tram's way).
+const TRAM_CAR := 10.5
+const TRAM_HALF := 1.2
+const TRAM_MARGIN := 0.8
+const TRAM_LOOK := 1.5
 ## Kinematic bodies for the cars nearest the player.
 const BODIES := 12
 const BODY_RANGE := 40.0
@@ -252,10 +261,22 @@ var _ov_in_junction := 0
 var _ov_spots := {}
 ## ... and how often a car gave up waiting on crossing cars (a knot: 8 s, then it ignores them).
 var _ov_knots := 0
+## Testing aid: tram car and traffic car pairs overlapping, frames (and how many with the car on
+## a junction curve or about to enter one, and how many with the tram moving).
+var _ov_tram := 0
+var _ov_tram_moving := 0
+var _ov_tram_spots := {}
+var _ov_tram_still := 0
 ## The trams (trams.gd), set by the game: cars give way to them.
 var trams: Node3D
 var _tram_at := PackedVector2Array()
 var _tram_axis := PackedVector2Array()
+## The traffic loop (2026-10-30): how far ahead of each gathered tram car (m) it is looked for:
+## the front car's next TRAM_LOOK s at its speed, 0 for the others.
+var _tram_ahead := PackedFloat32Array()
+## The traffic loop: whether each gathered tram car is the front one (a car already in front of a
+## tram's nose drives on and clears it; the tram waits).
+var _tram_front := PackedByteArray()
 ## Spawn slots around the view: edge, position, running total of their weight.
 var _slot_e := PackedInt32Array()
 var _slot_s := PackedFloat32Array()
@@ -276,6 +297,13 @@ var _halos: MultiMesh
 var _lamp_state := PackedInt32Array()
 ## Controller*2+group -> lamp instance indices (first of three per pole).
 var _lamp_slots := {}
+## The performance lane (2026-10-30): `_lamp_slots`' keys, checked LAMP_STRIDE frames apart in
+## turn. Loop 3d-1's bigger map has every signal of 18.6 km² in here, and asking each one's
+## light every frame grew with the map; a lamp now changes at most LAMP_STRIDE frames (0.1 s
+## at 60 fps) after its controller does. The cars read `graph.light` themselves, unaffected.
+var _lamp_keys := PackedInt32Array()
+var _lamp_turn := 0
+const LAMP_STRIDE := 6
 
 
 func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dictionary) -> void:
@@ -293,6 +321,7 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.use_custom_data = true
+		InstanceBuffers.prepare(mm)
 		# Loop 3g-1: POLICE draws the patrol estate and the guards' car (shapes 0 and 1).
 		mm.mesh = Models.police_mesh() if k == Kind.POLICE else Models.traffic_mesh(k)
 		mm.instance_count = POOL[k]
@@ -302,7 +331,7 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 		var buf := PackedFloat32Array()
 		buf.resize(POOL[k] * 16)
 		buf.fill(0.0)
-		mm.buffer = buf
+		InstanceBuffers.send(mm.get_rid(), buf)
 		var mmi := MultiMeshInstance3D.new()
 		mmi.multimesh = mm
 		mmi.material_override = Models.material()
@@ -322,11 +351,12 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 		var beam := MultiMesh.new()
 		beam.transform_format = MultiMesh.TRANSFORM_3D
 		beam.use_custom_data = true
+		InstanceBuffers.prepare(beam)
 		beam.mesh = Models.headlight_pools(LENGTH[k] * 0.5, 0.85 if k == Kind.BUS else 0.6, 15.0 if k == Kind.BUS else 13.0)
 		beam.instance_count = POOL[k]
 		beam.visible_instance_count = 0
 		beam.custom_aabb = mm.custom_aabb
-		beam.buffer = buf
+		InstanceBuffers.send(beam.get_rid(), buf)
 		var bmi := MultiMeshInstance3D.new()
 		bmi.multimesh = beam
 		bmi.material_override = Models.glow_material()
@@ -614,6 +644,14 @@ func _try_spawn(anywhere: bool) -> bool:
 	# Lanes of different roads meet at junctions: keep clear of every car, not just this lane's.
 	for o in _active:
 		if Vector2(o.pos.x, o.pos.z).distance_squared_to(q) < 100.0 + o.length * o.length:
+			return false
+	# The traffic loop: and of the trams (a car was put down beside the rails, under a passing
+	# tram's side; the tram cars gathered by _give_way_to_trams last frame).
+	for c in _tram_at.size():
+		var rel := q - _tram_at[c]
+		var along := rel.dot(_tram_axis[c])
+		if along > -TRAM_CAR * 0.5 - 6.0 and along < TRAM_CAR * 0.5 + _tram_ahead[c] + 12.0 \
+				and absf(rel.cross(_tram_axis[c])) < TRAM_HALF + 4.0:
 			return false
 	var d: Driver = _free.pop_back()
 	d.kind = kind
@@ -1084,6 +1122,41 @@ func _count_overlaps() -> void:
 					_ov_in_junction += 1
 				var key := Vector2i(roundi(p.pos.x / 10.0) * 10, roundi(p.pos.z / 10.0) * 10)
 				_ov_spots[key] = int(_ov_spots.get(key, 0)) + 1
+	if trams == null:
+		return
+	for tram in trams.trams:
+		if tram.v < 0.3:
+			_ov_tram_still += 1
+		for body in tram.cars:
+			if not body.visible:
+				continue
+			var t: Transform3D = body.global_transform
+			var tc := Vector2(t.origin.x, t.origin.z)
+			var tf := -Vector2(t.basis.z.x, t.basis.z.z).normalized()
+			for d in _active:
+				if d.ghost or d.parked or d.clip < 1.0 or absf(d.pos.y - t.origin.y) > 2.5:
+					continue
+				var rel := Vector2(d.pos.x, d.pos.z) - tc
+				if rel.length_squared() > 64.0:
+					continue
+				if _sat(tf, 10.5, 2.4, Vector2(-sin(d.yaw), -cos(d.yaw)), d.length, d.size.x, rel):
+					_ov_tram += 1
+					if tram.v > 0.3:
+						_ov_tram_moving += 1
+					var key := Vector2i(roundi(d.pos.x / 10.0) * 10, roundi(d.pos.z / 10.0) * 10)
+					_ov_tram_spots[key] = int(_ov_tram_spots.get(key, 0)) + 1
+
+
+## Two boxes (forward axis, length, width) overlap by more than 0.15 m, the second at rel.
+static func _sat(pf: Vector2, pl: float, pw: float, qf: Vector2, ql: float, qw: float, rel: Vector2) -> bool:
+	var pr := Vector2(-pf.y, pf.x)
+	var qr := Vector2(-qf.y, qf.x)
+	for ax: Vector2 in [pf, pr, qf, qr]:
+		var rp := absf(pf.dot(ax)) * pl * 0.5 + absf(pr.dot(ax)) * pw * 0.5
+		var rq := absf(qf.dot(ax)) * ql * 0.5 + absf(qr.dot(ax)) * qw * 0.5
+		if absf(rel.dot(ax)) > rp + rq - 0.15:
+			return false
+	return true
 
 
 static func _boxes_overlap(p: Driver, q: Driver, rel: Vector2) -> bool:
@@ -1112,6 +1185,17 @@ func _exit_tree() -> void:
 			worst = k
 	print("traffic overlaps: %d car-pair frames in %d frames (%d with a car on a junction curve), %d spots; worst %d frames at %d, %d; %d knots given up" % [
 			_ov_pairs, _ov_frames, _ov_in_junction, _ov_spots.size(), most, worst.x, worst.y, _ov_knots])
+	worst = Vector2i.ZERO
+	most = 0
+	for k: Vector2i in _ov_tram_spots:
+		if int(_ov_tram_spots[k]) > most:
+			most = int(_ov_tram_spots[k])
+			worst = k
+	print("traffic tram overlaps: %d tram-car frames (%d with the tram moving), %d spots; worst %d frames at %d, %d; trams standing %d tram frames" % [
+			_ov_tram, _ov_tram_moving, _ov_tram_spots.size(), most, worst.x, worst.y, _ov_tram_still])
+	if OS.is_stdout_verbose():
+		for k: Vector2i in _ov_tram_spots:
+			print("  tram overlap spot %d, %d: %d" % [k.x, k.y, int(_ov_tram_spots[k])])
 
 
 func _enter_edge(d: Driver, e: int, lane: int, s: float) -> void:
@@ -1415,19 +1499,26 @@ func _change_lane(d: Driver, room_needed: float) -> bool:
 	return true
 
 
-## Cars at a junction give way to a tram in their path: each tram car is checked
-## at its front, middle and back.
+## Cars at a junction give way to a tram in their path: where the car's way meets each tram car's
+## line, if the tram car's body (or the front car's next TRAM_LOOK s) is there, the car stops with
+## its box TRAM_MARGIN m from the tram's side, whatever the angle it crosses at.
 func _give_way_to_trams() -> void:
 	# Each visible tram car once: centre and axis (gathered first; reading node
 	# transforms inside the loop below would cost far more than the maths).
 	_tram_at.clear()
 	_tram_axis.clear()
+	_tram_ahead.clear()
+	_tram_front.clear()
 	for tram in trams.trams:
-		for body in tram.cars:
+		for k in tram.cars.size():
+			var body: AnimatableBody3D = tram.cars[k]
 			if body.visible:
 				var t: Transform3D = body.global_transform
 				_tram_at.append(Vector2(t.origin.x, t.origin.z))
-				_tram_axis.append(Vector2(t.basis.z.x, t.basis.z.z).normalized())
+				# Forward: the cars' -Z faces the way the tram goes.
+				_tram_axis.append(-Vector2(t.basis.z.x, t.basis.z.z).normalized())
+				_tram_ahead.append(tram.v * TRAM_LOOK if k == 0 else 0.0)
+				_tram_front.append(1 if k == 0 else 0)
 	for d in junction_cars:
 		var f := Vector2(-sin(d.yaw), -cos(d.yaw))
 		var at := Vector2(d.pos.x, d.pos.z)
@@ -1436,17 +1527,38 @@ func _give_way_to_trams() -> void:
 			if rel.length_squared() > 900.0:
 				continue
 			var axis := _tram_axis[c]
-			if absf(axis.dot(f)) > 0.8:
+			if absf(axis.dot(f)) > 0.9:
 				continue  # running alongside the track, not across it
-			for k in [-4.8, 0.0, 4.8]:
-				var q: Vector2 = rel + axis * k
-				var along := q.dot(f)
-				if along > 0.0 and along < 22.0 and absf(q.cross(f)) < 2.1:
-					var g := along - d.length * 0.5 - 1.6
-					if g < d.cross_gap:
-						d.cross_gap = g
-						d.cross_v = 0.0
-					d.sees_tram = true
+			# Across the track: the car's centre is `side` m from the tram car's line and
+			# closes on it at `fn` m per metre driven (only if it is heading towards it).
+			var n := Vector2(-axis.y, axis.x)
+			var side := rel.dot(n)
+			var fn := f.dot(n)
+			if side * fn <= 0.0:
+				continue  # past the line, driving away from it
+			fn = absf(fn)
+			var fa := absf(f.dot(axis))
+			# How far the car's box reaches towards the line, and along it.
+			var ext_n := fn * d.length * 0.5 + fa * d.size.x * 0.5
+			var ext_a := fa * d.length * 0.5 + fn * d.size.x * 0.5
+			var to_line := absf(side) / fn
+			if to_line > 22.0:
+				continue
+			# Where the car's path meets the line, from the tram car's centre along its axis:
+			# in the way if the tram car's body (or the front car's next metres) is there.
+			var t := (f * to_line - rel).dot(axis)
+			if t < -TRAM_CAR * 0.5 - ext_a - TRAM_MARGIN or t > TRAM_CAR * 0.5 + _tram_ahead[c] + ext_a + TRAM_MARGIN:
+				continue
+			# The gap along the car's way until its box is TRAM_MARGIN from the tram's side.
+			var g := (absf(side) - ext_n - TRAM_HALF - TRAM_MARGIN) / fn
+			# Already in the way in front of the tram's nose: drive on and clear it (it waits;
+			# waiting here too stopped both for good).
+			if g < 0.0 and _tram_front[c] == 1 and t > TRAM_CAR * 0.5:
+				continue
+			if g < d.cross_gap:
+				d.cross_gap = g
+				d.cross_v = 0.0
+			d.sees_tram = true
 
 
 ## Gap to the first stop line ahead that shows red (or amber the car can stop for).
@@ -1545,9 +1657,9 @@ func _write() -> void:
 		_top[k] = 0
 		if k == Kind.POLICE and _drawn[k] == 0:
 			continue  # loop 3g-1: no police car out, nothing to send
-		RenderingServer.multimesh_set_buffer(_mm[k].get_rid(), _buf[k])
+		InstanceBuffers.send(_mm[k].get_rid(), _buf[k])
 		if k < TRAFFIC_KINDS and _beam_mmi[k].visible:
-			RenderingServer.multimesh_set_buffer(_beam_mm[k].get_rid(), _buf[k])
+			InstanceBuffers.send(_beam_mm[k].get_rid(), _buf[k])
 
 
 # --- traffic-light lamps --------------------------------------------------------------
@@ -1618,10 +1730,13 @@ func _build_lamps(signals: Array) -> void:
 	add_child(hmi)
 	_lamp_state.resize(graph.ctrl_pos.size() * 2)
 	_lamp_state.fill(-1)
+	_lamp_keys = PackedInt32Array(_lamp_slots.keys())
 
 
 func _update_lamps() -> void:
-	for key in _lamp_slots:
+	_lamp_turn = (_lamp_turn + 1) % LAMP_STRIDE
+	for n in range(_lamp_turn, _lamp_keys.size(), LAMP_STRIDE):
+		var key := _lamp_keys[n]
 		var state := graph.light(key / 2, key % 2)
 		if state == _lamp_state[key]:
 			continue
