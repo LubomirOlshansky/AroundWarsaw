@@ -207,6 +207,7 @@ text) have ready answers in `docs/store/play-console.md`; the privacy policy is
 | Switch visual style (Ostry · Sharp, Drobny · Fine, Czysty · Clean, Toporny · Chunky; saved) | Settings → Obraz → Styl obrazu | T |
 | Time of day: Day → Dusk → Night → Live (the real sun now) (1.5 s blend) | Settings → Świat → Pora dnia | N |
 | Radio: next station → … → Off | RADIO, top right (the station under the word) | R |
+| Radio: the station's next track | hold RADIO for 0.5 s (a tap still changes the station) | Shift+R |
 | VHS tape overlay on / off (saved) | Settings → Obraz → Kaseta VHS | V |
 | Rain on / off (it sets in over 4 s; the streets dry slower) | Settings → Świat → Pogoda | O |
 | Performance overlay on / off | three fingers down at once, or Settings → Obraz | P |
@@ -2209,7 +2210,11 @@ changed (`tiers.gd`, `governor.gd`, `settings.gd`, `main.gd`'s quality and image
    ×2` (`auto · High` where the budget doesn't bind, e.g. the Fine style), kept up to date when the
    style changes; the overlay's last line `High ×1 sharp · gov …` / `High ×2 fallback · gov …`; the
    BENCH card `quality Auto→High sharp (iPhone12,1)` / `Auto→High fallback (iPhone12,1)` beside
-   its `image 1792x828 (×1)`. No toast (optional in the brief; BACKLOG).
+   its `image 1792x828 (×1)`. Since 2026-10-30 the first launch at the fallback after a struggle
+   at the sharp image also shows a toast once, when the city shows: `Obraz prostszy, żeby było
+   płynnie` · `A coarser picture for a smoother ride · Settings → Obraz` (`main.gd`
+   `_fallback_toast`; the state's `told` key, false after that struggle, true once shown and
+   saved at once; never in `--shots=` runs; the log says `quality: the fallback's toast shown`).
 6. **Thermal state**: still not readable from Godot 4.7.2 (no OS, DisplayServer, Engine,
    RenderingServer or Performance method), so it isn't part of the rule.
 
@@ -3257,7 +3262,9 @@ into PackedFloat32Arrays, after the builder's set-up has read them and before th
 is saved: static at "city built" 224.7 → 204.8 MB prebuilt (index 103 → 83 MB) and 294 → 267
 MB on the runtime path; at the bench's end 252 → 233 and 357 → 329 MB; index.res 7.7 → 6.8 MB.
 Readers that still declare `var flat: Array = r["p"]` get a converted copy, so nothing else
-changed; the frame is unchanged.
+changed; the frame is unchanged. `game/tools/check_cost_cuts.gd` (verify step `cost`, under a
+second) checks the packing on a synthetic index: the numbers kept within float32, other keys
+left alone, packing twice a no-op.
 
 **What traffic costs (performance lane, 2026-10-30).** Timed per step on the Mac at 1920×1080
 (the bench's view, ~33 active cars, ~13 of them at junctions): nothing in traffic grows with the
@@ -3268,7 +3275,9 @@ the crossing and red-light checks and the speed model about 35–55 µs each), t
 about 35 % slower (its larger heap). `on_screen` now projects with the orthographic camera's own
 axes (identical answers on 35 k calls) and the junction pairs are rejected on packed positions:
 the junction checks −14 % (66 → 57 µs), too little to show on the bench card. What is left is
-per car; fewer cars in the view band is the lever, a design call.
+per car; fewer cars in the view band is the lever, a design call. `check_cost_cuts.gd` also
+holds `on_screen` to `Camera3D.unproject_position` (5 orthographic views, 10 000 points, a
+point and the one `height` above it).
 
 Loop 3g-1 (the police; police.md section 12 allowed ≤ +3 draw calls at any view, ≤ +8 k
 triangles, ≤ 0.15 ms of script, ≤ +2 MB) spent, in a koguty 3 chase: +1 to +3 draw calls at the

@@ -504,6 +504,7 @@ func _ready() -> void:
 		title.set_ready()
 	else:
 		radio.now_playing()
+		_fallback_toast()
 	_started = true
 
 
@@ -528,6 +529,7 @@ func _on_title_dismissed() -> void:
 	dialogue.host_on = true
 	title = null
 	radio.now_playing()
+	_fallback_toast()
 	if cinematic_flyin:
 		_fly_in()
 
@@ -731,6 +733,7 @@ func _build_world() -> void:
 	# driving screen (Settings has them; the keys stay; zoom is a pinch, a twist turns a fixed
 	# camera).
 	hud.radio_pressed.connect(radio.next)
+	hud.radio_skip_pressed.connect(radio.next_track)
 	hud.perf_gesture.connect(func(): _set_perf(not show_perf); settings.perf = show_perf; settings.save())
 	radio.station_changed.connect(func(_i: int, _s: Dictionary): hud.set_radio_name(radio.label()))
 	radio.ticker.connect(hud.ticker)
@@ -1034,6 +1037,25 @@ func _image_mode() -> String:
 	if not Tiers.budget_binds(screen, STYLES[style_index]["lines"], quality):
 		return ""
 	return "sharp" if auto_sharp else "fallback"
+
+
+## 2026-10-30: the first launch at Auto's fallback says so once, with a toast when the city
+## shows (the Obraz tab's `auto · High ×2` and the `quality:` line said it before, nothing on
+## the driving screen). `told` goes into the saved state at once, so the next launch at the
+## fallback stays quiet even if this session never reaches its verdict.
+func _fallback_toast() -> void:
+	if _image_mode() != "fallback" or bool(auto_image["told"]) or not shots.is_empty():
+		return  # screenshots stay clean
+	# Two frames on: the first frame after the build has the build's whole time as its delta,
+	# which would use up the toast's seconds at once.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	hud.toast("Obraz prostszy, żeby było płynnie", "A coarser picture for a smoother ride · Settings → Obraz")
+	print("quality: the fallback's toast shown")
+	auto_image["told"] = true
+	if _image_write and settings.persistent:
+		settings.auto_image["told"] = true
+		settings.save()
 
 
 ## The session struggled or was calm at Auto's image: the state the next launch starts from
@@ -3350,7 +3372,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_blip_sound()
 				tod.next()
 			KEY_R:
-				radio.next()
+				# Shift+R skips to the station's next track (2026-10-30: radio.next_track() had no control).
+				if key.shift_pressed:
+					radio.next_track()
+				else:
+					radio.next()
 			KEY_V:
 				_blip_sound()
 				_set_vhs(not vhs)

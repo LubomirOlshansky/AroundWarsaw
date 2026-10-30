@@ -626,9 +626,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   size mid-drive is a visible pop and reallocates the image. If a long first session on a hot
   phone turns out to look bad, a live switch at a natural cut (a load, the settings panel, the
   helicopter) is the next step.
-- **No toast** says the fallback came in (the brief made it optional): the Obraz tab's
+- ~~**No toast** says the fallback came in (the brief made it optional): the Obraz tab's
   `auto · High ×2` and the `quality:` log line say it. A one-time toast ("Obraz prostszy, bo
-  telefon się grzał · A coarser picture: the phone was struggling") is a game-designer call.
+  telefon się grzał · A coarser picture: the phone was struggling") is a game-designer call.~~
+  Built (2026-10-30): a one-time toast at the first fallback launch, wording in QUESTIONS.md.
 - **Thermal state** is still not readable from Godot 4.7.2 (checked: no OS, DisplayServer, Engine,
   RenderingServer or Performance method); graphics.md 4.4's plugin would add it to the struggle
   rule as a third signal.
@@ -969,8 +970,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   -b:a 96k` is already what the tool uses when it finds one), or `oggenc`; nothing else changes.
 - **Licences before a release**: any track whose licence is `unknown` (a WARN in the radio check)
   must be cleared; AI music tools' free plans may not allow a published game.
-- **No skip button**: `radio.next_track()` exists, but hud.gd and main.gd (not touched in this loop)
-  have no control for it; a tap on the ticker, or a key, would do.
+- ~~**No skip button**: `radio.next_track()` exists, but hud.gd and main.gd (not touched in this loop)
+  have no control for it; a tap on the ticker, or a key, would do.~~ Shift+R skips on the desktop,
+  and holding RADIO for 0.5 s skips on the phone (2026-10-30; a tap still changes the station;
+  `check_hud.gd` covers it). Nothing on screen says so yet (QUESTIONS.md).
 - ~~**`--radio=N`** clamps to the built-in three stations (`Radio.STATIONS.size()` in main.gd): a
   fourth station added to radio.json is reached with R, not by the flag.~~ Fixed (2026-10-30): the flag
   clamps to radio.json's stations once they are read.
