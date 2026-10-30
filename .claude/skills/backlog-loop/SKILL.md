@@ -84,7 +84,8 @@ Park instead of asking whenever a question needs the user. Always park:
 - a design or taste call the docs don't settle (a feel, a joke, a layout, a mechanic);
 - anything that can't be undone: a store submission, a release, a purchase, production
   (the landing's live site), deleting a remote branch or history;
-- a download or install (CLAUDE.md: source, size and time first), a new data source, an add-on;
+- a paid tool or service (free dev tools, data downloads and Godot add-ons are pre-approved:
+  install them and name each in the PR with its source, size and licence);
 - a device run the user hasn't allowed for this loop, and phone-only checks;
 - PixelLab generations beyond 50 in a loop.
 
