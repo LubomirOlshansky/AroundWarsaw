@@ -3006,6 +3006,33 @@ car-pair overlap frames before → after: the start 62 → 32, `--at=-918,263` 3
 `--at=145,-626` 395 → 27 (809 → 215 in all), no knot given up in either. What is left is mostly
 two cars entering a short (3.5 m) merging curve in the same frame near -940, 210 and -890, 350.
 
+## The traffic loop: trams and crossing cars (2026-10-30)
+
+`--traffic-overlaps` also prints `traffic tram overlaps: N tram-car frames (M with the tram
+moving), S spots; worst W frames at x, z; trams standing T tram frames`. On the demo map 8 trams
+share 287 pieces of track, so a fixed `--at=` spot rarely sees one; `--tram-watch=N` keeps the car
+(no collisions, standing still) 30 m ahead of tram N and 20 m to its side, moved on as the tram
+draws level, so the view and the traffic ride through the city with that tram. Found and fixed:
+
+- **A car on the rails was ignored** (`trams.gd`): the tram stopped only for a car whose centre
+  was within 2.6 m of the head's straight line, and never for one that was waiting for it. Now it
+  follows its rails ahead every 2 m to 30 m (`AHEAD_STEP`, `AHEAD_REACH`, round the curve) and
+  stops 1.5 m (`STOP_SHORT`) before the first point that comes within its half width + 0.4 m
+  (`CLEAR`) + 0.5 m (`SWEEP`, the straight bodies cutting inside a curve) of a car's box. A car
+  running alongside counts only from 0.3 m (`ON_RAILS`) off its side.
+- **A slanting car stopped with its corner in the way** (`traffic.gd` `_give_way_to_trams`): cars
+  looked at three points of each tram car and stopped by the distance ahead. Now, where the car's
+  way meets each tram car's line, if the body (or the front car's next 1.5 s, `TRAM_LOOK`) is
+  there, the car stops with its box 0.8 m (`TRAM_MARGIN`) from the tram's side at any angle. A car
+  already in front of a tram's nose drives on and clears it (the tram waits; both waiting was a
+  standoff).
+- **Cars were put down beside a passing tram**: `_try_spawn` keeps clear of the tram cars too.
+
+Measured with `--traffic=busy --no-police --traffic-overlaps --tram-watch=0..3`, 10800 frames at
+`--fixed-fps 60`, two rounds each: tram-car frames 1660 → 140 (all with the tram moving), car-pair
+overlaps about the same (19 797 → 19 304), trams standing about the same. The runs are not
+repeatable frame for frame (two runs of the same code differ), so compare totals over several.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -3473,7 +3500,8 @@ Command-line options (after `--`):
 | `--tunnel` | loop 3b: with `--at`, start on the floor of the tunnel under that point (the car shows through the ground as a silhouette) |
 | `--drive-into-water=X,Z` | loop 10a: start at X,Z and drive flat out at the nearest water (within 120 m), the collision off until 3 m past the edge as if the car had jumped it; prints `water test:`, `water: splash at …` and `water: towed after … s …` (where to, how far from a lane, dry or not, the job / rescue / race / wallet), each with its frame. With `--kebab=0` a delivery is running (`tools/verify.sh` step `splash`) |
 | `--ram-test` | the driving-feel loop: after 2 s, the car is put 14 m behind the moving traffic car with the longest straight lane ahead, 6 m/s faster, and drives on along that lane (Point, 65 km/h); prints `ram test:` lines: the hit (speed, the rammed car shoved to), then `past it N s after the hit` or `NEVER PAST it after 10 s` (`tools/verify.sh` step `ram`, with `--no-police`) |
-| `--traffic-overlaps` | the traffic loop: the traffic counts the pairs of its cars whose boxes overlap each frame and prints `traffic overlaps:` at the end (car-pair frames, how many on a junction curve, the spots and the worst one, knots given up); use with `--traffic=busy --no-police` and an engine `--quit-after` |
+| `--traffic-overlaps` | the traffic loop: the traffic counts the pairs of its cars whose boxes overlap each frame and prints `traffic overlaps:` at the end (car-pair frames, how many on a junction curve, the spots and the worst one, knots given up), then `traffic tram overlaps:` (tram-car frames, with the tram moving, spots, the tram frames standing); use with `--traffic=busy --no-police` and an engine `--quit-after` |
+| `--tram-watch=N` | the traffic loop: the car (no collisions, standing still) is kept 30 m ahead of tram N and 20 m to its side, moved on as the tram draws level, so the view and the traffic go with that tram; with `--traffic-overlaps` |
 | `--no-police` | loop 3g-1: no police, traps or patrol cars |
 | `--police=1\|2\|3` | loop 3g-1: a chase at that level at frame 60, the chaser 40 m behind on your lane (and the blocker / the roadblock for 2 / 3) |
 | `--trap=N` | loop 3g-1: start 150 m before speed trap N (1-4 in today's map), heading into it, and make it one of the day's; with `--pedal=gas` the car drives flat out along the road into the radar (through the traffic) |
