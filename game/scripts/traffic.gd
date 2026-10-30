@@ -10,6 +10,11 @@ extends Node3D
 ## is in view. Near the player a small pool of kinematic bodies gives the closest
 ## cars collision; a car the player hits stops for a moment.
 ##
+## The driving-feel loop (2026-10-30): a car the player hits is shoved, not stopped dead in
+## front of it (`_shove`): rear-ended it rolls on with part of the player's speed, hit from the
+## side it slides off its line, and while dazed it coasts to a stop and stays where it was
+## pushed, then drifts back into its lane.
+##
 ## Loop 2c (car models): each kind's MultiMesh draws a family of shapes (models.gd TRAFFIC and
 ## traffic_mesh(): cars are hatches, saloons, estates and SUVs; taxis the city taxi and
 ## Podwózka, the app taxi; vans panel and box vans), the shape picked per car and written in
@@ -55,6 +60,19 @@ const MIN_GAP := 2.2
 ## Kinematic bodies for the cars nearest the player.
 const BODIES := 12
 const BODY_RANGE := 40.0
+## The driving-feel loop: a hit car takes SHOVE_ALONG of the player's speed beyond its own along
+## its lane and slides sideways at SHOVE_SIDE of the player's speed across it (at most
+## SHOVE_SLIDE m/s, slowing at SLIDE_DECEL m/s², at most SHOVE_ACROSS m off its line), and is
+## dazed for DAZE s (DAZE_POLICE for a police car): no gas, braking at DAZE_DECEL m/s² (it was a
+## dead stop at once), not steering back to its lane.
+const SHOVE_ALONG := 0.7
+const SHOVE_SIDE := 0.4
+const SHOVE_SLIDE := 4.0
+const SLIDE_DECEL := 6.0
+const SHOVE_ACROSS := 1.6
+const DAZE := 2.5
+const DAZE_POLICE := 1.5
+const DAZE_DECEL := 4.0
 ## Loop 3g-1: a car giving way to a police car with its lights on slows to this (m/s), and a
 ## chaser crosses a red (or a roundabout) no faster than SIREN_SLOW (30 km/h).
 const YIELD_SPEED := 5.0
@@ -106,7 +124,12 @@ class Driver:
 	var v := 0.0
 	var speed_factor := 1.0
 	var accel_factor := 1.0
+	## Held still for this long (gps_moments.gd's app taxi).
 	var stun := 0.0
+	## The driving-feel loop: seconds left of the daze after the player hit it (coasting, shoved).
+	var daze := 0.0
+	## The driving-feel loop: sliding sideways off its line after a hit (m/s, + towards + off).
+	var slide := 0.0
 	var held := false
 	var still := 0.0
 	## Seconds stuck behind the player's car.
@@ -388,14 +411,36 @@ func on_player_bump(collider: Object, _speed := 0.0) -> void:
 	var k := _bodies.find(collider)
 	if k >= 0 and _body_driver[k] != null:
 		var d: Driver = _body_driver[k]
+		_shove(d)
 		if d.kind == Kind.POLICE:
 			# Loop 3g-1: police.gd decides (a warning, a ram); a parked one doesn't budge.
 			if not d.parked:
-				d.stun = 1.5
+				d.daze = DAZE_POLICE
 			bumped_police.emit(d, _speed)
 			return
-		d.stun = 2.5
+		d.daze = DAZE
 		bumped_driver.emit(d)
+
+
+## The driving-feel loop: the player's car (going `player_vel`, the speed before the hit) pushes
+## the car it hit: along its lane up to SHOVE_ALONG of the speed it lacks, across it off its
+## line (not on a junction's curve, which has no line to leave). A parked police car stays put.
+func _shove(d: Driver) -> void:
+	if d.parked or d.ghost:
+		return
+	var pv := Vector2(player_vel.x, player_vel.z)
+	var along := pv.dot(Vector2(-sin(d.yaw), -cos(d.yaw)))
+	if along > d.v:
+		d.v += (along - d.v) * SHOVE_ALONG
+	if d.in_conn:
+		return
+	var e := d.edge
+	var s := minf(d.s, graph.e_len[e])
+	var seg := graph.seek(e, s, d.seg)
+	var across := graph.point(e, s, 1.0, seg) - graph.point(e, s, 0.0, seg)
+	var push := clampf(pv.dot(across) * SHOVE_SIDE, -SHOVE_SLIDE, SHOVE_SLIDE)
+	if absf(push) > absf(d.slide):
+		d.slide = push
 
 
 # --- spawning ---------------------------------------------------------------------
@@ -571,6 +616,8 @@ func _start(d: Driver, e: int, lane: int, s: float) -> void:
 	d.reg = -1
 	d.next_reg = -1
 	d.stun = 0.0
+	d.daze = 0.0
+	d.slide = 0.0
 	d.held = false
 	d.still = 0.0
 	d.blocked = 0.0
@@ -1129,7 +1176,16 @@ func _drive(d: Driver, dt: float) -> void:
 	if d.yield_t > 0.0 and d.route.is_empty() and not d.in_conn and d.lane < graph.e_lanes[e] - 1:
 		# Loop 3g-1: over to the kerb lane for the police car behind.
 		_change_lane_to(d, graph.e_lanes[e] - 1)
-	d.off = move_toward(d.off, d.off_target, 2.5 * dt)
+	var dazed := d.daze > 0.0
+	if dazed:
+		# Shoved off its line: it slides on a little and stays there until it comes round.
+		d.daze -= dt
+		if d.slide != 0.0 and not d.in_conn:
+			d.off = clampf(d.off + d.slide * dt, d.off_target - SHOVE_ACROSS, d.off_target + SHOVE_ACROSS)
+		d.slide = move_toward(d.slide, 0.0, SLIDE_DECEL * dt)
+	else:
+		d.slide = 0.0
+		d.off = move_toward(d.off, d.off_target, 2.5 * dt)
 	if d.held or d.stun > 0.0 or d.arrived:
 		gap = minf(gap, 0.0)
 		lead_v = 0.0
@@ -1141,6 +1197,8 @@ func _drive(d: Driver, dt: float) -> void:
 		var star := MIN_GAP + maxf(0.0, d.v * HEADWAY + d.v * (d.v - lead_v) / (2.0 * sqrt(ACCEL * DECEL)))
 		var q := star / maxf(gap, 0.05)
 		a -= ACCEL * q * q
+	if dazed:
+		a = minf(a, -DAZE_DECEL)
 	d.v = maxf(0.0, d.v + maxf(a, -10.0) * dt)
 	if gap < 0.2:
 		d.v = minf(d.v, lead_v * 0.5)

@@ -83,6 +83,8 @@ helper asks for one in its report.
 ## Definition of done (a loop item)
 
 1. **It works**: `tools/verify.sh` RESULT: PASS; the item's own checks pass, with numbers.
+   GitHub runs `tools/verify.sh --quick` on Linux for every push to main and every pull request
+   (`.github/workflows/verify.yml`): a red **verify** check on main is fixed before new work.
 2. **It was seen**: screenshots at phone size (2532x1170; 2868x1320 for HUD work) looked at,
    before and after, on both city paths when the map builder changed; reviewed against the
    art bible for anything visible.
