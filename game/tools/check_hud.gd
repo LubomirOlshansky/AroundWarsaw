@@ -306,9 +306,33 @@ func _check_screen(screen: Vector2i) -> int:
 			_check_touch(bw + " " + k, targets[k], pt, safe)
 	_check_fonts(bcard, bw, pt)
 	count += 1
+	if screen == SCREENS[0]:
+		_check_radio_hold(hud)
 	vp.queue_free()
 	await process_frame
 	return count
+
+
+## 2026-10-30: RADIO tapped changes the station; held RADIO_HOLD s it skips the track once and
+## its release changes nothing (radio_hold_tick is given its own clock).
+func _check_radio_hold(hud: CanvasLayer) -> void:
+	var got: Array[String] = []
+	hud.radio_pressed.connect(func(): got.append("station"))
+	hud.radio_skip_pressed.connect(func(): got.append("skip"))
+	var b: Button = hud.get("_radio_button")
+	var hold_ms := int(hud.RADIO_HOLD * 1000.0)
+	for held: int in [100, hold_ms + 50]:
+		got.clear()
+		b.button_down.emit()
+		var t0: int = hud.get("_radio_down_ms")
+		hud.radio_hold_tick(t0 + held / 2)
+		hud.radio_hold_tick(t0 + held)
+		hud.radio_hold_tick(t0 + held + 300)  # still down a while: one skip only
+		b.pressed.emit()  # the release
+		b.button_up.emit()
+		var want := "station" if held < hold_ms else "skip"
+		if got != [want]:
+			problems.append("radio held %d ms: %s, want [%s]" % [held, got, want])
 
 
 ## A speech bubble from a speaker standing at screen point `p`.
