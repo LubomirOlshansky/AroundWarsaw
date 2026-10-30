@@ -1019,10 +1019,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   with the next deploy; the store forms link to it.
 - iPad: the iOS preset targets iPhone and iPad (`targeted_device_family=2`); keep or drop
   before the first App Store release (QUESTIONS.md). Nobody has played on an iPad yet.
-- The App Store wants a privacy manifest (`PrivacyInfo.xcprivacy`) for apps using
-  required-reason APIs (file timestamps, system boot time, UserDefaults); Godot's iOS template
-  may need one declaring them, with no data collected. Check App Store Connect's email after
-  the first upload.
+- ~~The App Store wants a privacy manifest~~ (checked 2026-10-30: Godot's export writes
+  `PrivacyInfo.xcprivacy` with file timestamps, boot time and disk space, no tracking, no
+  collected data; app-store-connect.md section 4). Still read App Store Connect's email after
+  the first upload for an ITMS-91053 warning.
 - The store screenshots show the HUD; they need redoing when the HUD changes  (re-rendered with KEBAB FM
   on 2026-10-30; shot 07 from the bigger demo map, because on main's map Varso stands about
   140 m from the edge and every wide framing shows the cliff).
