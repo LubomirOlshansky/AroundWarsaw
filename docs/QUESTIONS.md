@@ -17,6 +17,11 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-30 · landing · beta form** — The aroundwarsaw.app sign-up form still posts to
+  Stillplace's Formspree form (`mykaeqjp`), so beta sign-ups land in that inbox. Make a form
+  for Around Warsaw on your Formspree account (free) and send its id, or keep the shared one?
+  Default built: shared form, nothing changed. The id is one string in `site/src/index.html`
+  (and the Polish page); then a redeploy. Where: BACKLOG "From the website".
 - **2026-10-30 · performance · phone runs** — May I run the bench and a streaming soak on the
   iPhone 11 (a test build through Remote Control)? The Mac work is done (PR #27 memory −20 MB,
   #33 traffic, #35 bench result); what's left needs the phone: static memory on the iPhone 11
