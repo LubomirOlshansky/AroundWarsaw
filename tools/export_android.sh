@@ -34,6 +34,10 @@ vname=$(print -r -- $opts | sed -n 's/^version\/name="\(.*\)"/\1/p')
 vcode=$(print -r -- $opts | sed -n 's/^version\/code=\([0-9]*\)/\1/p')
 package=$(print -r -- $opts | sed -n 's/^package\/unique_name="\(.*\)"/\1/p')
 
+# A clone Godot has never opened must be imported first: bake_city.gd on an unimported project
+# can't resolve the add-ons' class names (PhantomCameraHost) and the export then crashes in its
+# own first import (seen 2026-10-30 in a fresh clone).
+[[ -d .godot/imported ]] || godot --headless --path . --import
 # Loop 3d-1: the GUGiK outputs (lod2.*, terrain.json) are derived too: made first when missing.
 if [[ ! -f map/lod2.bin || ! -f map/lod2.json || ! -f map/terrain.json ]]; then
 	../tools/setup_map.sh --full

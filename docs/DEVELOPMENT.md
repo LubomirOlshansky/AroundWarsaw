@@ -147,6 +147,16 @@ Godot upgrade that raises it, change `VERSION` in the plugin). **Expect Play Con
 catalogue to list fewer supported devices** than before: the OpenGL-only phones (mostly old or
 very cheap ones, and some with Vulkan 1.0 only) drop out. That is the point, not a fault.
 
+**A fresh clone** (loop 3d-1: the map's derived files aren't in git) builds with the same
+command: the script imports the project when Godot never has, makes `lod2.*` and
+`terrain.json` when missing (`tools/setup_map.sh --full`, which needs GUGiK's raw data; or copy
+the three files from a checkout that has them), then splits the map and prebuilds the sectors.
+Checked 2026-10-30: `nocnawarszawa-0.1-2.aab`, 150 MB, upload-key SHA-256 fingerprint
+`29:45:ED:ED:…:87:BF:59:9E`, `jarsigner -verify` "jar verified". Play needs a new
+`version/code` (Android preset) for every upload: raise it before the next export once code 2
+is on Play. A CI build isn't possible today: the map's GUGiK files need the raw downloads, and
+the upload key must stay off GitHub (it would have to be a repository secret).
+
 **The upload key** is `~/.android-keys/nocnawarszawa-upload.jks` (alias `upload`, RSA 2048,
 10,000 days), outside every repo. Its password is only in the macOS login keychain (service
 `nocnawarszawa-android-upload`, account `upload`; Keychain Access shows it). The script reads it
