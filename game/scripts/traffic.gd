@@ -35,6 +35,7 @@ var spent_usec := 0
 
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const Models := preload("res://scripts/models.gd")
+const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 
 enum Kind { CAR, TAXI, VAN, BUS, POLICE, NODE }
@@ -300,6 +301,7 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.use_custom_data = true
+		InstanceBuffers.prepare(mm)
 		# Loop 3g-1: POLICE draws the patrol estate and the guards' car (shapes 0 and 1).
 		mm.mesh = Models.police_mesh() if k == Kind.POLICE else Models.traffic_mesh(k)
 		mm.instance_count = POOL[k]
@@ -309,7 +311,7 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 		var buf := PackedFloat32Array()
 		buf.resize(POOL[k] * 16)
 		buf.fill(0.0)
-		mm.buffer = buf
+		InstanceBuffers.send(mm.get_rid(), buf)
 		var mmi := MultiMeshInstance3D.new()
 		mmi.multimesh = mm
 		mmi.material_override = Models.material()
@@ -329,11 +331,12 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 		var beam := MultiMesh.new()
 		beam.transform_format = MultiMesh.TRANSFORM_3D
 		beam.use_custom_data = true
+		InstanceBuffers.prepare(beam)
 		beam.mesh = Models.headlight_pools(LENGTH[k] * 0.5, 0.85 if k == Kind.BUS else 0.6, 15.0 if k == Kind.BUS else 13.0)
 		beam.instance_count = POOL[k]
 		beam.visible_instance_count = 0
 		beam.custom_aabb = mm.custom_aabb
-		beam.buffer = buf
+		InstanceBuffers.send(beam.get_rid(), buf)
 		var bmi := MultiMeshInstance3D.new()
 		bmi.multimesh = beam
 		bmi.material_override = Models.glow_material()
@@ -1552,9 +1555,9 @@ func _write() -> void:
 		_top[k] = 0
 		if k == Kind.POLICE and _drawn[k] == 0:
 			continue  # loop 3g-1: no police car out, nothing to send
-		RenderingServer.multimesh_set_buffer(_mm[k].get_rid(), _buf[k])
+		InstanceBuffers.send(_mm[k].get_rid(), _buf[k])
 		if k < TRAFFIC_KINDS and _beam_mmi[k].visible:
-			RenderingServer.multimesh_set_buffer(_beam_mm[k].get_rid(), _buf[k])
+			InstanceBuffers.send(_beam_mm[k].get_rid(), _buf[k])
 
 
 # --- traffic-light lamps --------------------------------------------------------------

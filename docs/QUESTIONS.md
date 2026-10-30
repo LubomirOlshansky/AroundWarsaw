@@ -10,6 +10,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 | Lane | Item | Session | Since |
 | --- | --- | --- | --- |
+| web | The game in the browser at play.aroundwarsaw.app, the "Play online" button | thread "Put the game online" | 2026-10-30 |
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks/models | Landmark and skyscraper models (Złote Tarasy, Złota 44, Varso, PKiN, Spire, Q22, Muzeum Narodowe, Stadion Narodowy), bus stops: BACKLOG "High priority" | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
@@ -18,6 +19,12 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-30 · web · deploy** — May I deploy the web build? It creates the Worker
+  `aroundwarsaw-play` with the custom domain play.aroundwarsaw.app (a new DNS record in the
+  aroundwarsaw.app zone) and uploads build/web (~141 MB), then redeploys the landing so the
+  "Play online" button and the /play/ redirect go live. Both are public; `wrangler rollback` and
+  deleting the Worker undo them. Default built: everything ready and tried locally; nothing
+  deployed. Where: docs/DEVELOPMENT.md "The web build".
 - **2026-10-30 · content · MW-1 (the notebook)** — The minimap shows "?" for undiscovered
   places within 400 m of the car, because districts don't exist yet. Switch to "in a discovered
   district" once DEMO 6.3's districts land? Default built: 400 m.

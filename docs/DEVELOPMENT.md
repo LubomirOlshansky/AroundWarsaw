@@ -3531,3 +3531,44 @@ and writes them to `user://bench_result.txt`; with `--fixed-fps 60` the route co
 ground whatever the frame rate (without it, a faster run drives a shorter way in its 600 frames).
 
 Map data © OpenStreetMap contributors, ODbL.
+
+## The web build (2026-10-30)
+
+The game in a browser at **https://play.aroundwarsaw.app** (aroundwarsaw.app/play/ redirects
+there; the landing's "Play online" / "Zagraj online" button links to it). Same game, same
+prebuilt city, desktop keyboard and the phone's touch controls as they are.
+
+```zsh
+tools/export_web.sh            # derived map files when missing, then the export in build/web
+python3 -I tools/web/serve.py  # look at it: http://localhost:8060 (sends the COOP/COEP headers)
+tools/export_web.sh --deploy   # also upload it (the user's yes first: it is public)
+```
+
+- **Preset "Web"** (`export_presets.cfg`): the iOS preset's file filters, threads on (the sector
+  streamer keeps its worker thread), S3TC/BPTC and ETC2/ASTC textures. Godot draws the web with
+  the **Compatibility** renderer (WebGL 2) whatever the project's renderer is, so the look is
+  close to the phone's, not the same.
+- **Threads need cross-origin isolation**: `tools/web/_headers` (copied into the build) sends
+  `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp`.
+  That is why the game has its own origin and Worker: the landing's CSP and Formspree form
+  stay as they are, and the landing's deploys (site/, also from GitHub) never touch the game.
+- **Cloudflare's 25 MiB a file**: the pack is ~140 MB and the engine ~40 MB.
+  `tools/web/split_parts.py` gzips each and cuts it into 20 MiB parts in `parts/` (names carry
+  the contents' hash, so they are cached for a year) with a `<file>.parts.json` manifest;
+  `tools/web/split_loader.js`, in the page's head, wraps `fetch` so Godot's loader gets the
+  parts joined and unzipped as one file with the right size for its loading bar. The download
+  is ~141 MB (the sector scenes barely compress); R2 is not enabled on the account and not needed.
+- **The Worker**: `site/play/wrangler.jsonc`, `aroundwarsaw-play`, static assets from
+  `build/web`, custom domain `play.aroundwarsaw.app` (wrangler makes the DNS record and the
+  certificate on the first deploy).
+- **Compatibility renderer fix** (`scripts/instance_buffers.gd`): Godot 4.7.2's gles3
+  `scene.glsl` multiplies an instanced mesh's vertex COLOR by the instance colour even in a
+  MultiMesh without colours, and `multimesh_set_buffer` leaves the custom data's raw bits in that
+  slot, so traffic, pedestrians and the splash came out bright green. On that renderer those
+  MultiMeshes carry white colours too and their 16-float buffers are widened to 20 floats when
+  sent (traffic, pedestrians, splash); on Mobile (the phones) the helper passes straight through.
+- **What the browser test covered** (Chrome in the desktop app's browser pane): the title, the
+  fly-in, the prebuilt city, traffic colours, keyboard driving (WASD), the touch stick from
+  synthetic touch events at 844×390. Not covered: a real phone's browser (iOS Safari's memory
+  with a 140 MB pack, the safe area: `OS.has_feature("mobile")` is false on the web), frame rate
+  on a weak laptop, Firefox.
