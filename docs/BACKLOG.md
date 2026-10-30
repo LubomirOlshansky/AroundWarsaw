@@ -3,6 +3,13 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## High priority: landmark and skyscraper models (the user, 2026-10-30)
+- **The user dislikes how several models look** (2026-10-30): Złote Tarasy, Złota 44 and the
+  other skyscrapers (Varso, Pałac Kultury, Warsaw Spire, Q22), Muzeum Narodowe (and Stadion
+  Narodowy), the bus stops, and other weak models. Goal: keep the game's own pixel and
+  low-poly style, but with colours, proportions and silhouettes that clearly read as the real
+  buildings. Before/after shots at phone size. Lane "landmarks/models" (docs/QUESTIONS.md).
+
 ## From v0.6 (traffic, trams, pedestrians, rivals)
 - ~~Cars can overlap briefly in complex junctions~~ (fewer by three quarters, the traffic loop
   2026-10-30: junction cars watch each other's body and path, `--traffic-overlaps` counts them;
