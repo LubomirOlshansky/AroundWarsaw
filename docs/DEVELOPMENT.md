@@ -610,6 +610,12 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   `TENEMENTS` palette) and window seed of the OSM house a metre behind it, and each pitched roof
   is half mixed toward a tile red (`TILES`). Churches keep their own (`NOT_TENEMENTS`). Load time
   only; the same on both city paths.
+- **Brick Gothic and the Metropolitan** (after the user's look, "churches look like default
+  buildings"): the Cathedral and the Barbican are drawn in brick Gothic (`M_GOTHIC`,
+  `building.gdshader` `gothic()`): brick in slow patches, a stone plinth, a buttress every
+  6.5 m and tall pointed lancets on walls over 9 m, their stained glass faintly lit at night.
+  Foster's Metropolitan on Plac Piłsudskiego wears the towers' fin skin (`S_FINS`) in grey glass,
+  with a card.
 - **Muzeum Narodowe** (the landmarks loop): kept as LoD2 draws it (one model round its
   courtyards), but in its pale stone with tall windows between piers (`M_MONUMENT`, `#c9bfa9`):
   `map_builder` asks `landmarks.skin_at` for every kept LoD2 run and OpenStreetMap building

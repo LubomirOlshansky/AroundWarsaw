@@ -175,6 +175,7 @@ const int M_LAMP = 10;
 const int M_MEMBRANE = 11;
 const int M_GLASS = 12;
 const int M_SKIN = 13;
+const int M_GOTHIC = 14;
 
 // The towers' own skins (landmarks.gd TOWERS, the landmarks loop): M_SKIN's fraction picks the
 // pattern (style / 16), the vertex colour is the glass. Each reads as its tower from the
@@ -382,6 +383,38 @@ float clock_hand(vec2 q, float a, float len, float w) {
 	return step(length(q - d * t), w);
 }
 
+// Brick Gothic (the landmarks loop, Old Town): the Cathedral's and the Barbican's walls. Brick
+// in slow patches, a stone plinth, a buttress every bay, and tall pointed lancets on walls
+// over 9 m (stained glass, faintly lit at night).
+vec3 gothic(vec3 col, float u, float h, float top, vec3 wp, out vec3 glow) {
+	glow = vec3(0.0);
+	vec3 c = col * (0.9 + 0.16 * value_noise(vec2(u * 0.7, h * 1.6) + wp.xz * 0.05));
+	if (h < 1.0) {
+		return srgb_to_linear(vec3(0.62, 0.6, 0.56)) * mix(0.35, 1.0, daylight);
+	}
+	float bay = 6.5;
+	float fx = fract(u / bay);
+	if (fx < 0.14) {
+		return c * (h > top - 0.6 ? 1.0 : 0.84); // the buttress's shadowed face
+	}
+	if (top > 9.0) {
+		float hw = 0.75;
+		float top_w = top - 2.8;
+		float dx = abs(fx - 0.57) * bay;
+		float y = h - (top_w - hw * 1.6);
+		// A lancet: straight sides, then two arcs meeting in a point.
+		bool in_arch = y < 0.0 || dx < hw * (1.0 - (y / (hw * 1.6)) * (y / (hw * 1.6)));
+		if (h > 2.6 && h < top_w && dx < hw && in_arch) {
+			vec3 pane = mix(srgb_to_linear(vec3(0.16, 0.17, 0.22)), srgb_to_linear(vec3(0.3, 0.33, 0.42)), fract(h * 0.71));
+			if (lights_on > 0.001) {
+				glow = mix(WARM, srgb_to_linear(vec3(0.5, 0.35, 0.8)), step(0.5, fract(h * 0.37))) * 0.35 * lights_on;
+			}
+			return pane * mix(0.4, 1.0, daylight);
+		}
+	}
+	return c;
+}
+
 vec3 landmark(int mode, float param, vec3 col, vec2 uv, float top, bool wall, vec3 wp, out vec3 glow, out bool cut) {
 	glow = vec3(0.0);
 	cut = false;
@@ -435,6 +468,8 @@ vec3 landmark(int mode, float param, vec3 col, vec2 uv, float top, bool wall, ve
 		return c;
 	} else if (mode == M_GLASS) {
 		return wall ? glass_wall(col, uv.x, uv.y, top, 1.5, 4.0, 0.34, glow) : col;
+	} else if (mode == M_GOTHIC) {
+		return wall ? gothic(col, uv.x, uv.y, top, wp, glow) : col * (0.92 + 0.1 * value_noise(wp.xz * 1.3));
 	} else if (mode == M_SKIN) {
 		if (!wall) {
 			return col * (0.94 + 0.08 * value_noise(wp.xz * 1.7));
