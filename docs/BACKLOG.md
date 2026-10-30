@@ -164,8 +164,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   close up, so the passing bubble carries the joke. Lines repeat across the 24 columns
   (16 lines).
 - The AO map is twice the size (two channels: 12.5 MB as a texture); `city.scn` grew 0.8 MB.
-- Night water is a flat deep navy away from the lamps: calm, maybe too plain at the widest
-  zoom; a faint sky sheen could come back if the device pass wants it.
+- ~~Night water is a flat deep navy away from the lamps: calm, maybe too plain at the widest
+  zoom; a faint sky sheen could come back if the device pass wants it.~~ Done 2026-10-30 (loop 3i
+  item, a cloud thread): after dark the river gets a faint sky sheen as light (broad 40-80 m
+  patches along the flow, so it reads at 320 m, plus the slow crests) and a warm city glow within
+  ~40 m of the banks; off above dusk's daylight, so dusk is unchanged. Judge it on the phone.
 - The bench ran uncapped (220-280 fps) for most of loop 1 instead of at the display's 120 Hz:
   frame times and GPU readings are not comparable with earlier sessions' numbers, so loop 1
   ran the v0.9 code alongside for its before/after. Fewer cars fill in over 600 faster frames.

@@ -225,6 +225,17 @@ void fragment() {
 		}
 		// After dark the river goes deep and inky.
 		base *= mix(vec3(0.22, 0.2, 0.3), vec3(1.0), daylight);
+		// Loop 3i (BACKLOG "night water too plain at the widest zoom"): after dark a faint
+		// sheen of the night sky comes back as light, strongest on the slow crests, and the
+		// city's glow warms the water near the banks. Low contrast, so the lamps' reflections
+		// still carry the river; only below dusk's daylight (0.45), so dusk keeps its own colour.
+		float night = smoothstep(0.35, 0.0, daylight) * (under_deck ? 0.3 : 1.0) * (1.0 - 0.6 * rain);
+		// Broad slow patches (40-80 m) so the sheen still reads at the widest zoom, where the
+		// ripple is finer than a pixel.
+		float crest = smoothstep(0.5, 0.85, ripple);
+		float broad = smoothstep(0.3, 0.8, value_noise(vec2(dot(wp, AX) * 0.012, dot(wp, AY) * 0.03) + vec2(TIME * 0.004, 0.0)));
+		emit += srgb_to_linear(sky_colour) * night * (0.05 + 0.16 * broad + 0.1 * crest) * mix(1.0, 0.75, deep);
+		emit += srgb_to_linear(vec3(0.55, 0.32, 0.42)) * night * 0.1 * (1.0 - smoothstep(2.0, 40.0, d));
 	}
 	// Rain: wet asphalt and paving darken, puddles lie darker still and mirror the sky.
 	if (wetness > 0.001 && (id == 6 || id == 2 || id == 4 || id == 5 || id == 7 || id == 14 || id == 19)) {

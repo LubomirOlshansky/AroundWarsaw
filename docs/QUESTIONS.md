@@ -11,6 +11,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | Lane | Item | Session | Since |
 | --- | --- | --- | --- |
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
+| visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 
 ## Waiting
 
@@ -27,6 +28,9 @@ Newest first. One entry per question.
   (not written in the public repo), upload the first builds, invite testers. And a yes to
   redeploy aroundwarsaw.app so `/support/` goes live (the store forms link to it). Default
   built: everything written; nothing submitted.
+- **2026-10-30 · visuals · night water (PR #11)** — Is the river's new night sheen right on the
+  phone's OLED: too faint, right, too strong? Options: keep / stronger / fainter. Default built: the
+  faint version (`ground.gdshader`, the `0.16 * broad` and `0.1` shore terms).
 
 <!--
 - **YYYY-MM-DD · lane · item** — The question in one line? Options: A / B. Default built: A
