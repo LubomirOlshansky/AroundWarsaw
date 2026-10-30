@@ -908,6 +908,36 @@ Small problems that agents reported or that showed up in screenshots. They are f
   test map. `shots.sh`'s `settings_panel` shot is MISSING (the paused game never reaches the shot
   frame): a shot-script issue, not the map.
 
+## From loop 3d-2a (the ground, part one, 2026-10-30)
+- **The full cut under roads** (clip the ground along the road surface, close it with skirts) is
+  not built: of the ground under roads only whole 10 m triangles go (1,109 under the road surface
+  alone, the rest under areas). Cutting the partly covered cells adds triangles on every one of them
+  to save overdraw the iPhone's tile GPU mostly hides already (the flat mesh is opaque, one draw
+  call a tile). Worth it only if a Metal System Trace on the phone shows the ground's fill under
+  the streets: measure first (perf-engineer), then `_build_ground` can clip by the same cover lists.
+- **Coarser ground needs the terrain cleaned** (Slop New York's "survey pits and bumps removed"):
+  the 10 m grid has almost no flat blocks within the 2 cm that keeps the heights (1.9 % of the
+  cells in 20 m blocks), but 47 % within 15 cm. Snapping near-planar blocks in `bake_terrain.py`
+  changes the driving heights by up to that, so the whole chain re-bakes (decks, lanes, check_roads
+  allowlists). A decision for the user (docs/QUESTIONS.md); it would also merge the areas laid on
+  the grid.
+- **The flat mesh's big layers now**: footways and paving 1.88 M vertices (exact strips clipped to
+  every grid triangle since loop 3b-2), grass and parks 1.39 M, roads 1.21 M, islands and kerbs
+  0.80 M, markings 0.68 M; the ground 0.99 M. The footways are the next one to look at (10 m
+  pieces where the grid under them is flat, as roads are laid).
+- **Build time**: the cover tests cost the monolithic build 44 → 58 s and bake_city 75 → 90 s
+  (~0.13 s a sector on the runtime path's streaming thread). A per-sector cover cache in the split,
+  or Clipper on a cell's union once, would win it back.
+- `check_ground` leaves 6 triangles it calls covered (a test point on a seam between two pieces;
+  `HIDDEN_MAX` 30).
+- Fixed on the way: `bake_city.gd` printed 12 `ERROR`s counting the empty proxies of sectors with
+  nothing to show (since loop 3d-1).
+- The brief's 18.19 M vertices was the 18.6 km² box; the demo box since Q3's re-bake counts
+  19,488,688 (now 19,052,803).
+- `shots.sh`'s `settings_panel` shot (3d-1: MISSING) came out in 8 of 9 runs this loop, one MISSING
+  then fine on a rerun: flaky, not broken. Three prebuilt spot shots with `--time=day` once came out
+  at night while other Godot runs were going; fine on a rerun.
+
 ## From the radio playlists loop (2026-10-29)
 - Done: radio.json, shuffled playlists, `tools/add_music.py`, the radio check, README "Adding music",
   CREDITS "Music".

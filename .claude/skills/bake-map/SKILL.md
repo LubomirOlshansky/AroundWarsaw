@@ -95,6 +95,12 @@ in the report what changed and why.
   and constants (CHAIN_JOIN, EMBANK, BLUR_REACH, BLUR_FREE, TARGET_W, the clearances, DIP_MAX)
   are at the top of the file. `NW_DECK_DEBUG=X,Z,R` prints its nodes near a point
   (height/terrain/lower bound, P = pinned). An R3 failure stops the bake with the list of places.
+- **The ground mesh** (loop 3d-2a): `godot --headless --path game --script res://tools/check_ground.gd`
+  (`-- --whole` the old ground for a before count, `--sectors`, `--verbose`, `--dump=FILE` for
+  `python3 tools/overlay_ground.py FILE OUT.png X Z HALF`, the ground's wireframe over the photo):
+  the ground left out under the flat layers that cover it whole, no holes, the mesh on the height
+  rule. Anything that changes what lies on the ground (a layer's depth bias or height, a new flat
+  layer) must keep it OK; a new opaque layer on the ground can join `_cover_on` in `_build_parts`.
 - Approaches and pits are `fills`: the ground corrected under a road's corridor; anything that
   reads heights (`map_builder.terrain_height`, check_roads' `Map.terrain`) must include them.
 - In the game: `--debug-roads` draws decks, approaches, tunnels, lane heights and piers round

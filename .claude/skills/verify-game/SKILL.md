@@ -81,7 +81,9 @@ In the set now: `check_streaming.gd` (loop 3c: `streaming`, with a renderer: the
 whole city, pixels at 10 spots, a 3-minute soak; ~2-4 min), `check_map_data.py` (map), `check_roads.py` (roads, loop 3a: C1-C10 over the
 whole map, ~4 s; any rule FAILs (loop 3b; until then C4, C5, C9, C10 were a WARN); the counts in the
 row), `check_drape.gd` (loop 3b-2: `drape`, the bare ground poking through the water, grass,
-plazas and sand, from the builder's own meshes; ~10 s), `check_drive.gd` (loop 3b: `drive` and `drive-prebuilt`: a car and a bus along every lane
+plazas and sand, from the builder's own meshes; ~10 s), `check_ground.gd` (loop 3d-2a: `ground`,
+not in `--quick`: no ground left under what covers it whole, no hole where it was left out, the
+ground mesh on the height rule; ~2 min), `check_drive.gd` (loop 3b: `drive` and `drive-prebuilt`: a car and a bus along every lane
 against the colliders, the autopilot over 20 routes across bridges and tunnels; ~10 s and ~2 s),
 `check_steering.gd`, `check_settings.gd`, `check_tiers.gd` and `check_governor.gd` (loop G1:
 `tiers`, model id → quality level and the pixel image's size at the phones' screens against loop
