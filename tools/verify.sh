@@ -18,7 +18,10 @@
 # `streets` runs tools/check_streets.py (map review B): poles on the asphalt, zebras off it,
 # grass medians on tram tracks (S1, S2, S4 FAIL; S3, medians in a junction, is reported).
 # `tiers` and `governor` (loop G1): the device tiers and the pixel image's size rule, and the
-# frame governor's rules on scripted frames. `streaming` runs game/tools/check_streaming.gd
+# frame governor's rules on scripted frames.
+# Loop MW-1: `places` runs game/tools/check_places.gd: MOJA WARSZAWA's 72 places (Polish +
+# English, the 70 characters, the demo box, the brand denylist, reachability as a WARN) and the
+# notebook's finding and reward rules on synthetic inputs; it reads only centrum.json (CI too). `streaming` runs game/tools/check_streaming.gd
 # (loop 3c) WITH a renderer (a window opens for a minute or two): every sector built from its
 # file is the whole city, vertex for vertex; 10 spots rendered with --monolithic and with the
 # prebuilt sectors streamed differ in at most 0.5 % of their pixels; a 3-minute soak over every
@@ -47,8 +50,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets drape drive drive-prebuilt steering settings tiers governor hud rides landmarks sfx radio water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
-STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud rides landmarks sfx radio police plain ram prebuilt)
+STEPS_ALL=(map roads streets drape drive drive-prebuilt steering settings tiers governor hud places rides landmarks sfx radio water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
+STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places rides landmarks sfx radio police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -430,6 +433,7 @@ for s in $want; do
 		governor) check governor '^check_governor:' --script res://tools/check_governor.gd ;;
 		# Loop 2e: the HUD at phone size: 44 pt controls, 11 / 13 pt text, the safe area, no overlaps.
 		hud) check hud '^check_hud:' --script res://tools/check_hud.gd ;;
+		places) check places '^check_places:' --script res://tools/check_places.gd ;;
 		# Loop 2d-1: Podwózka's star and pay tables, the streak and the cancel rules, its lines.
 		rides) check rides '^check_rides:' --script res://tools/check_rides.gd ;;
 		landmarks) check landmarks '^landmark check:' --script res://tools/check_landmarks.gd ;;

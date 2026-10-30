@@ -29,6 +29,11 @@ var escapes_total := 0
 ## Loop 2d-1: other things kept by name (rides.gd: "podwozka_ratings", the last 20 rides' stars,
 ## and "podwozka_streak", the 5-star rides in a row).
 var keep := {}
+## Loop MW-1: the MOJA WARSZAWA notebook (notebook.gd): place id -> the day it was first found
+## (yyyymmdd), and chapter id -> the day it was completed (its reward paid; MW-5's track unlock
+## reads it).
+var notes := {}
+var chapters_done := {}
 ## False with --nosave: nothing is read or written.
 var persistent := true
 
@@ -57,6 +62,10 @@ func load_save() -> void:
 	escapes_total = int(cfg.get_value("police", "escapes_total", 0))
 	for key in (cfg.get_section_keys("keep") if cfg.has_section("keep") else PackedStringArray()):
 		keep[key] = cfg.get_value("keep", key)
+	for key in (cfg.get_section_keys("notes") if cfg.has_section("notes") else PackedStringArray()):
+		notes[key] = int(cfg.get_value("notes", key, 0))
+	for key in (cfg.get_section_keys("notes_chapters") if cfg.has_section("notes_chapters") else PackedStringArray()):
+		chapters_done[key] = int(cfg.get_value("notes_chapters", key, 0))
 
 
 func save() -> void:
@@ -76,6 +85,10 @@ func save() -> void:
 	cfg.set_value("police", "escapes_total", escapes_total)
 	for key in keep:
 		cfg.set_value("keep", key, keep[key])
+	for key in notes:
+		cfg.set_value("notes", key, notes[key])
+	for key in chapters_done:
+		cfg.set_value("notes_chapters", key, chapters_done[key])
 	cfg.save(PATH)
 
 
@@ -90,6 +103,8 @@ func reset() -> void:
 	cautions_day = 0
 	escapes_total = 0
 	keep.clear()
+	notes.clear()
+	chapters_done.clear()
 	save()
 	changed.emit(zl, respect, 0)
 
@@ -166,7 +181,7 @@ func eggs_found() -> int:
 
 
 func summary() -> String:
-	return "%d zł, respect %d, jobs %s, best %s, eggs %d/%d" % [zl, respect, jobs, best, eggs_found(), EGGS.size()]
+	return "%d zł, respect %d, jobs %s, best %s, eggs %d/%d, notebook %d" % [zl, respect, jobs, best, eggs_found(), EGGS.size(), notes.size()]
 
 
 ## "1 240 zł": thousands apart with a space, the Polish way.
