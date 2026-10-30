@@ -1325,7 +1325,9 @@ RAIN, HELI, STYLE, CAM, `<` `>` `−` `+` and a RESCUE CALLS card at the start.
 its safe area (the Dynamic Island or notch, the rounded corners, the home indicator). On a
 computer a window the size of a known iPhone gets that phone's points and insets (2868×1320 is
 the Pro Max: 956×440 pt, 62 pt each side, 21 at the bottom; 2532×1170 the 6.1": 844×390 pt,
-47 and 21); any other window is taken as a phone 390 pt tall with no insets. iOS insets both
+47 and 21); any other window is taken as a phone 390 pt tall with no insets, or 667 pt wide when it is
+narrower than that (a 4:3 window); the iPads the store screenshots use (2752×2064, 2732×2048,
+2420×1668, 2360×1640) are known at 2 px a point with 20 pt at the bottom. iOS insets both
 sides alike in landscape, so the layout holds turned either way. Every tappable control is at
 least 44 pt; the text is on one scale (`hud.gd` `T_*`): 44 pt the race banner, 22 the status
 clock, 17 titles and toasts, 15 body, 13 secondary and English lines (body text never below

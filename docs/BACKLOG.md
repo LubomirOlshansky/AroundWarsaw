@@ -1026,9 +1026,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   140 m from the edge and every wide framing shows the cliff).
 - The occlusion dither shows as a dark dotted patch in store shots 01 (bottom left) and 07
   (iPhone and Play, left of Varso); re-take them when the dither is fixed or loop 3d-1 lands.
-- **On a 4:3 screen (iPad) the pull-over's dialogue panel never appears**: the conversation runs
-  (`--police-log` shows it, frames 60-349) but nothing is drawn, at 2440×1830, 2200×1650 and
-  1600×1200; 16:9 and wider are fine. The iPad's fifth store shot is a Podwózka ride instead.
+- ~~**On a 4:3 screen (iPad) the pull-over's dialogue panel never appears**~~ (fixed
+  2026-10-30: a 4:3 window was taken as a phone 390 pt tall, so only 520 pt wide, and the
+  ~610 pt card found no room; `screen_points.gd` now takes a narrow window as 667 pt wide and
+  knows the iPads. A real iPad, 1376 pt wide, never had it.) The iPad's fifth store shot is the pull-over again.
 - On the ride HUD at 4:3 the distance marker ("1597 m" and its arrow) can sit on the HAMULEC
   button (`--ride=2`).
 - Varso's crown runs off the top of store shot 7 (all three sizes); most shots show 0 km/h.
