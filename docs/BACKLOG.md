@@ -1186,11 +1186,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## From the driving-feel loop (less sticky, 2026-10-30)
 
-- Street furniture is still solid and unknockable: benches, bike racks, advertising columns,
-  shelters and parked cars. On today's map 7 benches, 11 bike racks and 3 shelters overlap a
-  carriageway (measured against the roads' half widths); the bake could keep them off the
-  asphalt as map review B did for lamps and signal poles, or they could be knocked about like
-  the roadworks' cones.
+- ~~Street furniture is still solid and unknockable: benches, bike racks, advertising columns,
+  shelters and parked cars.~~ Benches, bins, bike racks and columns are driven through since the
+  easy-driving loop (2026-10-30); shelters and parked cars stay solid (3 shelters overlapped a
+  carriageway on the old map). Knocking them about like the roadworks' cones is still open.
 - Corner slip and the shove are tuned on the flat test ground (`check_steering`) and by reading
   the numbers, not yet on the phone: how a 35 % bump feels, whether 7 m/s of sidestep reads as a
   jump at 60 fps, and whether shoved traffic overlapping the next lane looks wrong.
