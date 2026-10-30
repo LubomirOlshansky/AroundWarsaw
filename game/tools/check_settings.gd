@@ -6,8 +6,9 @@ extends SceneTree
 ## nothing is written. Loop G1: a file saved before G1 (no `tiers` key) that says High loads as
 ## Auto, once (a file saved since keeps High, Medium stays Medium, Ultra round-trips). Loop G1b:
 ## Auto's image state (`[auto_image]`) round-trips, a file without it starts sharp, hand-edited
-## values are cleaned, and --nosave writes none of it either. The real user://settings.cfg is
-## never touched. Deletes its scratch files.
+## values are cleaned, and --nosave writes none of it either. F's asks (2026-10-30): the
+## pedestrian zones' cap (`zone_cap`) is off in a missing file and round-trips on. The real
+## user://settings.cfg is never touched. Deletes its scratch files.
 ##   godot --headless --path game --script res://tools/check_settings.gd
 
 const Settings := preload("res://scripts/settings.gd")
@@ -24,7 +25,7 @@ func _initialize() -> void:
 	fresh.load_file()
 	var defaults := fresh.controls == 0 and fresh.traffic == Settings.NORMAL_TRAFFIC and fresh.quality == Settings.AUTO \
 			and fresh.master == 1.0 and fresh.music == 1.0 and fresh.effects == 1.0 and not fresh.perf and fresh.classic_follow \
-			and fresh.fps == 60 and fresh.style == 0 and not fresh.vhs
+			and fresh.fps == 60 and fresh.style == 0 and not fresh.vhs and not fresh.zone_cap
 	print("defaults from a missing file: %s (%s)" % ["OK" if defaults else "WRONG", fresh.summary()])
 	ok = ok and defaults
 
@@ -75,6 +76,7 @@ func _initialize() -> void:
 	a.fps = 30
 	a.style = 3
 	a.vhs = true
+	a.zone_cap = true
 	a.save()
 	var b := Settings.new()
 	b.path = SCRATCH
