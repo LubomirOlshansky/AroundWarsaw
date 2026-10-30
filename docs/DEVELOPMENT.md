@@ -207,7 +207,7 @@ text) have ready answers in `docs/store/play-console.md`; the privacy policy is
 | Switch visual style (Ostry · Sharp, Drobny · Fine, Czysty · Clean, Toporny · Chunky; saved) | Settings → Obraz → Styl obrazu | T |
 | Time of day: Day → Dusk → Night → Live (the real sun now) (1.5 s blend) | Settings → Świat → Pora dnia | N |
 | Radio: next station → … → Off | RADIO, top right (the station under the word) | R |
-| Radio: the station's next track | none yet | Shift+R |
+| Radio: the station's next track | hold RADIO for 0.5 s (a tap still changes the station) | Shift+R |
 | VHS tape overlay on / off (saved) | Settings → Obraz → Kaseta VHS | V |
 | Rain on / off (it sets in over 4 s; the streets dry slower) | Settings → Świat → Pogoda | O |
 | Performance overlay on / off | three fingers down at once, or Settings → Obraz | P |

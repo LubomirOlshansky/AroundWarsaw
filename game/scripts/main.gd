@@ -731,6 +731,7 @@ func _build_world() -> void:
 	# driving screen (Settings has them; the keys stay; zoom is a pinch, a twist turns a fixed
 	# camera).
 	hud.radio_pressed.connect(radio.next)
+	hud.radio_skip_pressed.connect(radio.next_track)
 	hud.perf_gesture.connect(func(): _set_perf(not show_perf); settings.perf = show_perf; settings.save())
 	radio.station_changed.connect(func(_i: int, _s: Dictionary): hud.set_radio_name(radio.label()))
 	radio.ticker.connect(hud.ticker)
