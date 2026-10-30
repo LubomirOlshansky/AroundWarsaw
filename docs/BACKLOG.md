@@ -1008,13 +1008,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
   2026-10-30): the iOS, Android and Web presets exclude the add-on's `.cs` files, its C#
   `DialogueLabel.tscn` and `example_balloon/*` (the game uses its own balloon; the add-on's
   editor plugin, the only reader of the example, is off).
-- **The city step rewrites 34 tracked files with byte noise** (`bake_city.gd` isn't
-  byte-deterministic: the sector `.scn` files differ by a few bytes each run with no map
-  change), in both export scripts. `--skip-city` avoids it for Android; a deterministic bake or
-  a "bake only when the map changed" check would fix it for both.
-- **Store graphics are not made yet**: the 512 px icon, the 1024 × 500 feature graphic and
-  1920 × 1080 screenshots (Play's 2:1 limit rules out 2532 × 1170); `docs/store/play-console.md`
-  lists what each needs.
+- ~~**The city step rewrites 34 tracked files with byte noise**~~ Moot since loop 3d-1: the
+  prebuilt sectors are derived and gitignored, and `setup_map.sh --if-needed` rebuilds them
+  only when their inputs' digests change (tidied 2026-10-30).
+- ~~**Store graphics are not made yet**~~ Done 2026-10-30: `docs/store/graphics/` (the 512 px
+  icon, the 1024 × 500 feature graphic) and `docs/store/screenshots/play-phone/` (ROADMAP "play
+  graphics").
 
 ## From the website (aroundwarsaw.app, 2026-10-29)
 - ~~The four beta links say "soon"~~ (website v2: the form collects emails for invites; add the
