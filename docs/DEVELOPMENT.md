@@ -3105,6 +3105,17 @@ MB on the runtime path; at the bench's end 252 → 233 and 357 → 329 MB; index
 Readers that still declare `var flat: Array = r["p"]` get a converted copy, so nothing else
 changed; the frame is unchanged.
 
+**What traffic costs (performance lane, 2026-10-30).** Timed per step on the Mac at 1920×1080
+(the bench's view, ~33 active cars, ~13 of them at junctions): nothing in traffic grows with the
+map itself; it costs about 10 µs a car. On the prebuilt path (the phone's) a frame is ~0.37 ms
+with the timers in, 0.31 ms without: the drive loop 64 % (placing a car 66 µs, the leader search,
+the crossing and red-light checks and the speed model about 35–55 µs each), the junction checks
+18 %, writing the MultiMesh 8 %, the signal lamps 5 %; the runtime path runs the same code
+about 35 % slower (its larger heap). `on_screen` now projects with the orthographic camera's own
+axes (identical answers on 35 k calls) and the junction pairs are rejected on packed positions:
+the junction checks −14 % (66 → 57 µs), too little to show on the bench card. What is left is
+per car; fewer cars in the view band is the lever, a design call.
+
 Loop 3g-1 (the police; police.md section 12 allowed ≤ +3 draw calls at any view, ≤ +8 k
 triangles, ≤ 0.15 ms of script, ≤ +2 MB) spent, in a koguty 3 chase: +1 to +3 draw calls at the
 four views and at night (the POLICE MultiMesh in the main and shadow passes, the halos at night;

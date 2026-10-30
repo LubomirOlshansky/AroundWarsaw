@@ -1051,10 +1051,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## From the performance baseline (2026-10-30)
 
-- Loop 3d-1's map left +0.4–0.6 ms of main-thread process on the Mac after the lamp fix
-  (traffic about 0.5 ms; `--no-traffic` drops process to 0.60): find what in traffic scales
-  with the map (the spawn slots' grid walk in `_count_target`, the junction checks) with a
-  per-function timer before changing anything.
+- ~~Loop 3d-1's map left +0.4–0.6 ms of main-thread process on the Mac after the lamp fix
+  (traffic about 0.5 ms): find what in traffic scales with the map.~~ Timed (2026-10-30):
+  nothing does; ~10 µs a car, 0.31 ms on the prebuilt path. Two small cuts landed. Left:
+  `_count_target` and the first spawn fill are rare one-frame spikes (0.4–0.7 and ~1 ms) when
+  the view moves far; spread them over frames if a hitch shows on the phone.
 - Static memory doubled with the bigger map (173 → ~330 MB runtime, 241 MB prebuilt): check
   it on the iPhone 11 (TEST · BENCH's memory line) before the beta. The index packing cut it
   by ~20 MB on the phone path (2026-10-30, DEVELOPMENT.md "Performance budgets").
