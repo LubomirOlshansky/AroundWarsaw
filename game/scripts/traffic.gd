@@ -315,8 +315,6 @@ var _lamp_slots := {}
 var _lamp_keys := PackedInt32Array()
 var _lamp_turn := 0
 const LAMP_STRIDE := 6
-## Where along a tram car a crossing car looks for it (centre and both ends, m).
-const TRAM_PROBES: Array[float] = [-4.8, 0.0, 4.8]
 
 
 func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dictionary) -> void:
@@ -1560,17 +1558,6 @@ func _give_way_to_trams() -> void:
 			var axis := _tram_axis[c]
 			if absf(axis.dot(f)) > 0.9:
 				continue  # running alongside the track, not across it
-<<<<<<< HEAD
-			for k: float in TRAM_PROBES:
-				var q: Vector2 = rel + axis * k
-				var along := q.dot(f)
-				if along > 0.0 and along < 22.0 and absf(q.cross(f)) < 2.1:
-					var g := along - d.length * 0.5 - 1.6
-					if g < d.cross_gap:
-						d.cross_gap = g
-						d.cross_v = 0.0
-					d.sees_tram = true
-=======
 			# Across the track: the car's centre is `side` m from the tram car's line and
 			# closes on it at `fn` m per metre driven (only if it is heading towards it).
 			var n := Vector2(-axis.y, axis.x)
@@ -1601,7 +1588,6 @@ func _give_way_to_trams() -> void:
 				d.cross_gap = g
 				d.cross_v = 0.0
 			d.sees_tram = true
->>>>>>> origin/main
 
 
 ## Gap to the first stop line ahead that shows red (or amber the car can stop for).
