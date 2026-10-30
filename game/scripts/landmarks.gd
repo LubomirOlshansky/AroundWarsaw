@@ -222,6 +222,9 @@ const INFO := {
 	"muzeum": ["Muzeum Narodowe",
 			"Gmach z lat 1927–1938 przy Alejach Jerozolimskich.",
 			"The museum's building of 1927–1938 on Al. Jerozolimskie."],
+	"mdm": ["MDM",
+			"Marszałkowska Dzielnica Mieszkaniowa, socrealizm z lat 1950–1952.",
+			"The socialist-realist housing district of 1950–1952."],
 }
 
 var map  # map_builder.gd: terrain, roof grid, wall faces
@@ -286,7 +289,9 @@ func skin_at(box: Rect2) -> Dictionary:
 	for s in sites:
 		if not s.has("skin") or not (s["box"] as Rect2).has_point(p):
 			continue
-		if (s["box"] as Rect2).encloses(box):
+		# One outline round courtyards (the museum): anything in its box. A site of many
+		# blocks (MDM): only what has its centre in one of them.
+		if s["zone"].size() == 1 and (s["box"] as Rect2).encloses(box):
 			return s["skin"]
 		for z: PackedVector2Array in s["zone"]:
 			if Geometry2D.is_point_in_polygon(p, z):
@@ -410,6 +415,7 @@ func _find_sites() -> void:
 			if not sites.is_empty() and sites[-1]["key"] == t["key"]:
 				sites[-1]["tower"] = t
 	_find_muzeum()
+	_find_mdm()
 	_find_skins()
 
 
@@ -1484,6 +1490,37 @@ func _find_muzeum() -> void:
 			if not sites.is_empty() and sites[-1]["key"] == "muzeum":
 				sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": MUZEUM_STONE, "roof": MUZEUM_ROOF}
 			return
+
+
+# --- MDM (the landmarks loop, street furniture) --------------------------------------------------
+
+## Marszałkowska Dzielnica Mieszkaniowa: the tall blocks round Plac Konstytucji (MDM_SQUARE,
+## within MDM_SQUARE_R) and along Marszałkowska to Plac Zbawiciela (within MDM_REACH of the
+## axis), kept as LoD2 draws them but in their pale sandstone with tall windows between piers
+## and grey sheet roofs; one card for the lot. The square's candelabras are map_builder's.
+const MDM_SQUARE := Vector2(-533.8, 1282.4)
+const MDM_SOUTH := Vector2(-413.9, 1565.2)
+const MDM_SQUARE_R := 95.0
+const MDM_REACH := 50.0
+const MDM_STONE := Color("#cdbfa3")
+const MDM_ROOF := Color("#7f7b74")
+func _find_mdm() -> void:
+	var zone: Array = []
+	for bld in data["buildings"]:
+		if float(bld["h"]) < 15.0 or str(bld.get("name", "")) != "":
+			continue
+		var q := _pts(bld["p"])
+		if q.size() < 4:
+			continue
+		var c := _box_of([q]).get_center()
+		var axis := Geometry2D.get_closest_point_to_segment(c, MDM_SQUARE, MDM_SOUTH)
+		if c.distance_to(MDM_SQUARE) < MDM_SQUARE_R or c.distance_to(axis) < MDM_REACH:
+			zone.append(q)
+	if zone.is_empty():
+		return
+	_add_site("mdm", zone)
+	if not sites.is_empty() and sites[-1]["key"] == "mdm":
+		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": MDM_STONE, "roof": MDM_ROOF}
 
 
 ## A kept building's site (the museum) on the picking grid: every cell whose centre is inside.

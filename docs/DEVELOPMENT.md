@@ -279,7 +279,9 @@ HELI / AUTO (right); the keys are unchanged.
   within 8 m of the carriageway's edge, `ROYAL_STREETS`) and in the Old Town (`OLD_TOWN`, a
   190 m circle) the 213 mapped lamps are the historic cast-iron lantern instead (the landmarks
   loop: a dark green post, a lantern 4.4 m up under a cap and finial; `_shared["lantern"]`):
-  one more MultiMesh in the 9 sectors that have them. The look
+  one more MultiMesh in the 9 sectors that have them. Plac Konstytucji's lamps (`CANDELABRAS`, 75 m round the
+  square) are MDM's candelabras: a stone plinth, a tall iron column and three lanterns (one more
+  MultiMesh in its sector). The look
   loop made the pools on the ground pixel light: four hard bands with a one-pixel checker
   dither along each step (`night.gdshaderinc` `lamp_pool`, `pool_glow`), never brighter than
   ~80 % of a lit window (pale paving included), and on grass and cycle lanes the lamp tints
@@ -596,6 +598,11 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   Zachęta, the Mirowska halls and the Sejm. Each has an info card; the far skyline takes each
   wall colour. The Planetarium, the Tomb of the Unknown Soldier and the Church of the Saviour
   stay as they were (their outlines carry no roof the helicopter check accepts).
+- **MDM** (`landmarks.gd` `_find_mdm`): the unnamed blocks over 15 m round Plac Konstytucji
+  (95 m) and along Marszałkowska to Plac Zbawiciela (50 m from the axis) in pale sandstone with
+  tall windows (`M_MONUMENT`, `#cdbfa3`) and grey roofs, one card. `skin_at` takes a whole box
+  only for a site of one outline (the museum); for MDM's many blocks a model's centre must be
+  in one of them. `bake_sectors.py` `SITE_AREAS` carries its parts.
 - **Bus and tram shelters** (the landmarks loop; `map_builder.gd` `_make_shared`): Warsaw's
   glass shelter as the game's camera sees it: a pale glass roof in a graphite frame overhanging
   the kerb, a dark fascia, glass back and end, three posts, a bench, a poster box at the far end
