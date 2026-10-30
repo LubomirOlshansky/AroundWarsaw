@@ -323,7 +323,7 @@ police_runs2() {
 	police_run e1 2400 --mission=9 --escort --police-auto=follow --traffic=empty; f=$RUN_LOG
 	expect E1 '^police: escort joined \(unit [0-9]+, .*rescue clock \+10 s' $f "joined +10s"
 	expect E1 '^police: escort status: lead, (1[2-9]|2[0-6]) m ahead' $f "leads"
-	police_run g1 1500 --guards; f=$RUN_LOG
+	police_run g1 1500 --guards --zone-cap; f=$RUN_LOG
 	expect G1 '^guard: whistle \(post ' $f "whistle"
 	expect G1 '^guard: gave up ' $f "run 3s"
 	grep -qE '^guard: guard car following' $f && P_NOTE+=("G1 car follows")

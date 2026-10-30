@@ -26,7 +26,8 @@ extends SceneTree
 ## seen pulls in koguty 1 and its escape marks the race (+20 %, rivals.gd's 1.2); the kebab's heat
 ## stands still while the pull-over card is open; the guards whistle and run 3 s but never start a
 ## chase or a strike, their car follows at most 25 km/h for 15 s, the zone pill and the 20 km/h
-## cap; the clamp counts down after 20 s parked by a guard, goes on 10 s later, holds the car, comes
+## cap (F's asks, 2026-10-30: with Settings → JAZDA's zone switch on; off by default: no cap, no
+## pill, no whistle, the guards still at their posts); the clamp counts down after 20 s parked by a guard, goes on 10 s later, holds the car, comes
 ## off after 10 s or at once on Przepraszam; the first contact arms after the first race and
 ## happens once per save.
 ##
@@ -38,6 +39,7 @@ const Rivals := preload("res://scripts/rivals.gd")
 const PedZones := preload("res://scripts/ped_zones.gd")
 const Guards := preload("res://scripts/police/guards.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
+const Settings := preload("res://scripts/settings.gd")
 const Dialogue := preload("res://scripts/dialogue.gd")
 const DIALOGUE_JSON := "res://data/dialogue.json"
 const FLOW := "res://dialogue/police.dialogue"
@@ -739,7 +741,22 @@ func _part_two() -> void:
 			"the card open: frozen %s; after it: frozen %s" % [heat["frozen"], jobs.heat_frozen])
 	var src := FileAccess.get_file_as_string("res://scripts/jobs.gd")
 	_case("kebab heat in jobs.gd", src.contains("job == Job.KEBAB and not heat_frozen"), "the heat's decay skips while frozen")
+	# F's asks (2026-10-30): the zones' cap is off by default: no pill, no whistle, the guard
+	# stays at the post; main.gd caps the car only with the switch on.
+	_fresh()
+	p.clock = 200.0
+	var g0 = _guard_at(520.0, 14.0)
+	p.zone = "oldtown"
+	car.vel = Vector3(6.0, 0.0, 0.0)
+	await _steps(1.0)
+	var main_src := FileAccess.get_file_as_string("res://scripts/main.gd")
+	_case("zone cap off by default", not Settings.new().zone_cap and not p.zone_cap and p.guards.pill().is_empty()
+			and g0.role() == "post" and p.guards._whistled.is_empty() and g0.slot >= 0
+			and main_src.contains("car.zone_cap = PedZones.CAP if zone != \"\" and zone_cap_on else INF"),
+			"setting %s, pill %s, guard %s (shown %s), whistles %d" % [Settings.new().zone_cap, p.guards.pill(), g0.role(),
+			g0.slot >= 0, p.guards._whistled.size()])
 	# The guards: the whistle and a 3 s run; never a strike or a chase; their car at 25 km/h, 15 s.
+	# (With the zone switch on.)
 	_fresh()
 	p.clock = 200.0
 	var g = _guard_at(520.0, 14.0)
@@ -753,6 +770,7 @@ func _part_two() -> void:
 	traffic.screen = true
 	var gcar = p.guards._car_unit
 	p.zone = "oldtown"
+	p.zone_cap = true
 	car.vel = Vector3(6.0, 0.0, 0.0)
 	await _steps(0.5)
 	var ran: bool = g.role() == "run"

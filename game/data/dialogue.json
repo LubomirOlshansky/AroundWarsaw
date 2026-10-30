@@ -290,8 +290,8 @@
   ],
   "podwozka_request": [
     [
-      "Uwagi: „stoję pod Rechotką”.",
-      "Note: \"I'm outside the Rechotka.\""
+      "Uwagi: „stoję pod Frogsem”.",
+      "Note: \"I'm outside the Frogs.\""
     ],
     [
       "Uwagi: „jestem tam, gdzie pinezka, tylko po drugiej stronie”.",
@@ -339,8 +339,8 @@
       }
     ],
     [
-      "Skręć przy Rechotce. Nie tej. Tej drugiej. Nie, tej.",
-      "Turn at the Rechotka. Not that one. The other one. No, that one.",
+      "Skręć przy Frogsie. Nie tym. Tym drugim. Nie, tym.",
+      "Turn at the Frogs. Not that one. The other one. No, that one.",
       {
         "only": "rechotka"
       }
@@ -397,8 +397,8 @@
       }
     ],
     [
-      "Możemy stanąć przy Rechotce? Wybór jest, delikatnie mówiąc, duży.",
-      "Can we stop at a Rechotka? The choice is, to put it mildly, wide.",
+      "Możemy stanąć przy Frogsie? Wybór jest, delikatnie mówiąc, duży.",
+      "Can we stop at one of the Frogs? The choice is, to put it mildly, wide.",
       {
         "only": "detour"
       }
@@ -470,8 +470,8 @@
       }
     ],
     [
-      "Anulowane. Wysiadam przy Rechotce, i tak tu jest jedna.",
-      "Cancelled. I'll get out at the Rechotka, there's one right here anyway.",
+      "Anulowane. Wysiadam przy Frogsie, i tak tu jest jeden.",
+      "Cancelled. I'll get out at the Frogs, there's one right here anyway.",
       {
         "only": "cancel"
       }

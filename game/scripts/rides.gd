@@ -11,7 +11,7 @@ extends Node
 ## to a real address 600-2,500 m by road or one of the race finishes; the beacon and the arrow
 ## always point at the real door, the minimap's dotted line is the app's idea, and 35 % of
 ## rides get one quirk (the river's edge, a park's paths, a recalculation; the Old Town square
-## and the Rechotka turn by flag only for now), said by "Nawigacja" 200 m before it. Stars live
+## and the Frogs turn (quirk id `rechotka`) by flag only for now), said by "Nawigacja" 200 m before it. Stars live
 ## in the status panel; at the door a result card with the passenger's comment and the pay.
 ## Cancel: the ✕ any time, or the passenger after 3 × the ETA: no pay, the streak ends. The
 ## police loop calls on_pulled_over() (one star).
@@ -1113,8 +1113,9 @@ func _zone_plan(a_e: int, a_s: float, dist_a: PackedFloat32Array, dist_b: Packed
 	return best
 
 
-## The Rechotka turn (flag only until the shops are placed, loop 2d-2): the first junction on the
-## shortest road, 250 m or more in, where the way turns; Nawigacja names the shop there.
+## The Frogs turn (quirk id `rechotka`: the shop was Rechotka 24 until 2026-10-30; flag only
+## until the shops are placed, loop 2d-2): the first junction on the shortest road, 250 m or
+## more in, where the way turns; Nawigacja names the shop there.
 func _rechotka_plan(a_e: int, a_s: float, dist_b: PackedFloat32Array) -> Dictionary:
 	var path := PackedVector2Array()
 	_road_path(a_e, a_s, _ride["finish"], dist_b, path)

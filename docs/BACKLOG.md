@@ -838,8 +838,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   text above the pedals); the rating is on the result card. A request could show it on the
   PODWÓZKA button instead.
 - **Loop 2d-2 (after 3c's streaming)**: the `rechotka` quirk joins the random pool once the
-  Rechotka shops exist (today it is flag-only and names a shop nobody can see), and the `detour`
-  passenger (a stop at any Rechotka, +½) needs them too; Pędzik, Leżak, the kebab stands and the
+  Frogs shops exist (was Rechotka 24; renamed 2026-10-30) (today it is flag-only and names a shop nobody can see), and the `detour`
+  passenger (a stop at any Frogs, +½) needs them too; Pędzik, Leżak, the kebab stands and the
   billboards are 2d-2's; the `signs` and `column_posters` Podwózka lines (parodies.md 7) wait for
   the billboards. `oldtown` falls back to a park until the map has the Old Town square.
 - **PixelLab (not in this session)**: the Podwózka pickup icon (16 px), the "Nawigacja" avatar
@@ -1218,9 +1218,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## From loop MW-1 (the MOJA WARSZAWA notebook, 2026-10-30)
 
-- **The minimap opens full screen** (F, 2026-10-30): a tap on the minimap opens a full-screen map
+- ~~**The minimap opens full screen** (F, 2026-10-30): a tap on the minimap opens a full-screen map
   with the notebook's "?" marks and found places; another tap or the back gesture closes it.
-  HUD, content lane; 0 cost when closed.
+  HUD, content lane; 0 cost when closed.~~ Done (F's asks, 2026-10-30: `full_map.gd`).
 - **The real bake resolution (map lane).** The notebook resolves the places at load from the
   `near` hints (`notebook.gd` `resolve`: the bake's projection, then an address poi, a named
   square, park or landmark, or the place's own poi kind, within 300-600 m of the hint). The 3d
@@ -1305,7 +1305,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
   now); E34 the armchair man (MW-4 skipped it: "From loop MW-4");
   E35 KASETA's older decades (T1); E39 a tram in old livery; E40 the payphone prop (with T17).
   Each needs only its trigger in `eggs.json` (drop `waits`) once its piece exists.
-  Rechotka's two eggs are not cards yet (MW-2).
+  The Frogs shop's two eggs are not cards yet (MW-2).
 - **Words to review (designer)**: the egg lines vision's table doesn't quote and every English
   name are this loop's (marked in the generator); the 15 Kadr spots (`kadr.json`: names, places,
   looks) are this loop's picks; the KASETA ghosts are boxes from the then cards' ghost notes.
@@ -1344,10 +1344,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   then E23 and E25 only need their triggers (drop `waits`).
 - **E01 and `car_black`** wait for the garage's paint (the car line fires; the black car's line
   and the egg need a paint the player chose).
-- **Level 26's roof crowd**: the roof grid (`map.roof_height`) has nothing over 40 m at
-  level_26's resolved point, so no roof crowd is built (the code is there: a ring at the roof's
-  edge, the roof curve). Either the place's point is off the tower (map lane: the bake's anchors)
-  or the tower isn't in the roof grid. Fix the anchor and it appears.
+- ~~**Level 26's roof crowd**: the roof grid (`map.roof_height`) has nothing over 40 m at
+  level_26's resolved point, so no roof crowd is built.~~ Done (F's asks, 2026-10-30): the hint
+  was 520 m west of the tower; `near` now on it.
 - **A real sitting pose**: sitters are a lower, longer instance of the standing figure (y × 0.6,
   z × 1.35), legs still. A bent-knees pose needs `actor.gdshader` (visuals lane) or a second mesh
   (+1 draw call at the steps). Open Question of the loop.
@@ -1445,3 +1444,26 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (night lights, water, shadows); only the green traffic was fixed.
 - **Prebuilt MultiMeshes with custom data and no colours** would show the same Compatibility bug
   if a shader reads COLOR; none looked wrong in the browser (trees, parked cars).
+
+## From F's asks (2026-10-30: Frogs, the zones' switch, LEVEL 26, the full-screen map)
+
+- **Frogs' shops** are still words only (MW-2 builds them): the fascia spec is FROGS at a 0.12 m
+  letter pixel (parodies.md 2.1); the ids stay `rechotka` / `easter_rechotka`.
+- **The zones' switch off** also silences the guards' whistle, run and car (only the pill and the
+  cap were asked about); the clamp keeps its "in a zone or on a footway" rule. If F wants the
+  whistle as flavour with no cap, it is one condition in `guards.gd` `_zone_tick`.
+- **LEVEL 26's band** follows the roof grid's 4 m cells (smoothed over five rays, put 0.5 m out),
+  so it sits on the facade or up to a few metres out of it; the parapet figures stand 4.6 m in
+  from the grid's edge. A tower-top outline from the map lane (the top floor's footprint as a poi
+  or in `landmarks`) would put both exactly on the glass. The figures are dark on a dark roof and
+  hard to see from the helicopter; a light shirt or two would read better (art direction).
+- **LEVEL 26's cost** in view at night is +2 draw calls: the band (+1) and the crowd MultiMesh of
+  its 512 m cell (+1, the roof crowd and the door queue; before, the roof crowd was never built
+  and the cell stayed hidden). 0 by day and beyond 350 m.
+- **The full-screen map** shows the "?" marks the minimap shows (unfound places within 400 m of
+  the car), not every unfound place (that would spoil the finding). The 3D view still renders
+  under it while open (the game is paused); stopping the view's updates while the map is open
+  would save the phone's GPU (performance lane).
+- **Android's back gesture**: `full_map.gd` closes on `NOTIFICATION_WM_GO_BACK_REQUEST`, but
+  `application/config/quit_on_go_back` is Godot's default (true): check on a phone whether the
+  back gesture quits the app first (store-release lane).
