@@ -46,6 +46,9 @@ var perf := false
 ## warm up) or 30 (battery saver).
 const FPS := [60, 30]
 var fps := 60
+## The follow-camera loop (2026-10-30): the driving view's height in metres, the player's zoom
+## (follow_camera.gd VIEWS; 80 is DEFAULT_SIZE).
+var view := 80.0
 ## Loop 2e: main.gd STYLES (Sharp, Fine, Clean, Chunky) and the VHS overlay.
 var style := 0
 var vhs := false
@@ -83,6 +86,7 @@ func load_file() -> void:
 		fps = FPS[0]
 	style = clampi(int(cfg.get_value("display", "style", style)), 0, 3)
 	vhs = bool(cfg.get_value("display", "vhs", vhs))
+	view = clampf(float(cfg.get_value("display", "view", view)), 50.0, 125.0)
 	wander = bool(cfg.get_value("game", "wander", wander))
 	wander_offered = bool(cfg.get_value("game", "wander_offered", wander_offered))
 	var image := {}
@@ -107,6 +111,7 @@ func save() -> void:
 	cfg.set_value("display", "fps", fps)
 	cfg.set_value("display", "style", style)
 	cfg.set_value("display", "vhs", vhs)
+	cfg.set_value("display", "view", view)
 	cfg.set_value("game", "wander", wander)
 	cfg.set_value("game", "wander_offered", wander_offered)
 	for key in auto_image:

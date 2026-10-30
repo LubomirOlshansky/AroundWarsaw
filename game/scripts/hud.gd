@@ -98,6 +98,9 @@ enum { DOWN = 1, UP = -1 }
 ## Loop 2e: a two-finger twist with the fixed camera (+1 clockwise on screen).
 signal rotate_pressed(direction: int)
 signal pinched(ratio: float)          # finger distance now / before
+## The follow-camera loop: a second finger turns the stick's finger into a pinch while the stick is
+## pushed less than this (a share of its radius: inside its dead zone).
+const PINCH_STICK := 0.15
 signal vehicle_pressed
 signal card_pressed(index: int)       # a button on the mission card
 signal pill_pressed                   # the context button: a rescue call that came in
@@ -2157,6 +2160,13 @@ func _input(event: InputEvent) -> void:
 				_stick_point = touch.position
 				stick = Vector2.ZERO
 			elif touch.position.y > _row_bottom():
+				# The follow-camera loop: a second finger while the stick's finger has hardly moved
+				# is a pinch (the first finger always took the stick, so a pinch on the left half
+				# drove the car instead of zooming).
+				if _stick_index != -1 and stick.length() < PINCH_STICK:
+					_free_touches[_stick_index] = _stick_point
+					_stick_index = -1
+					stick = Vector2.ZERO
 				_free_touches[touch.index] = touch.position
 				_pinch_distance = _pinch_span()
 				_twist_angle = _pinch_angle()

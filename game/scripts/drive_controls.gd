@@ -3,11 +3,14 @@ extends RefCounted
 ## (tools/check_steering.gd), so the test drives exactly what the player drives.
 ##
 ## Three schemes (Settings → Controls, `--controls=`):
-## - POINT (the default): point where you want to go. The stick points in screen space; the
-##   follow camera holds still while the finger is down (or a direction key is held), so a
-##   held direction stays put on screen and in the world, then eases round behind the car
-##   0.6 s after the finger lifts (the camera itself: follow_camera.gd, camera loop). Gas comes from how far the stick is pushed (full from
-##   three quarters out). Pointing well behind brakes, then turns (car.gd).
+## - POINT (the default): point where you want to go. The stick points in screen space. Since
+##   the follow-camera loop (FOLLOW_HELD) the camera turns with the car while the finger is down
+##   too; a held direction keeps the world direction it meant when it was set (the screen as it
+##   was then), and pointing somewhere new (REAIM° or more from it) means the screen as it is now.
+##   Before, the camera held still while the finger was down and eased round behind the car 0.6 s
+##   after it lifted (follow_camera.gd): the view only swung round once you let go. Gas comes
+##   from how far the stick is pushed (full from three quarters out). Pointing well behind
+##   brakes, then turns (car.gd).
 ## - CLASSIC: steer + pedals. The stick's left / right steers (car-relative), GAS and
 ##   BRAKE / REVERSE are buttons on the right; the camera turns with the car.
 ## - FIXED: point where you want to go with the camera never turning (the v0.4 scheme).
@@ -29,12 +32,22 @@ const DEAD := 0.15
 const FULL := 0.75
 ## CLASSIC: the left / right dead zone.
 const STEER_DEAD := 0.08
+## The follow-camera loop (2026-10-30, the user's call from the phone): POINT's camera turns with
+## the car while the finger is down (false: loop 2a's camera, which waited for the finger to lift).
+const FOLLOW_HELD := true
+## POINT with FOLLOW_HELD: a held direction is read against the camera's yaw when it was set, so
+## the camera coming round doesn't turn it (which made a held stick circle the car, loop 2a);
+## moving the finger this many degrees or more sets it again, against the screen as it is now.
+const REAIM := 20.0
 
 var scheme := POINT
 ## True while the stick's finger is down or a direction key is held (POINT: the camera waits).
 var held := false
 ## Seconds since `held` last was true (the camera loop's follow_camera.gd reads it).
 var since_release := 99.0
+## POINT with FOLLOW_HELD: the held direction (screen) and the camera's yaw when it was set.
+var _set_aim := Vector2.ZERO
+var _set_yaw := 0.0
 
 
 ## Sets the car's controls from the stick (screen space, -1..1, y down; `stick_on` while its
@@ -70,7 +83,16 @@ func drive(car: Node, stick: Vector2, stick_on: bool, keys: Dictionary, gas: boo
 			if k != Vector2.ZERO:
 				aim = k.normalized()
 				amount = 1.0
-		car.target_dir = screen_to_world(aim, cam_yaw) if aim != Vector2.ZERO else Vector3.ZERO
+		var yaw := cam_yaw
+		if scheme == POINT and FOLLOW_HELD:
+			if aim == Vector2.ZERO:
+				_set_aim = Vector2.ZERO
+			else:
+				if _set_aim == Vector2.ZERO or absf(rad_to_deg(aim.angle_to(_set_aim))) >= REAIM:
+					_set_aim = aim
+					_set_yaw = cam_yaw
+				yaw = _set_yaw
+		car.target_dir = screen_to_world(aim, yaw) if aim != Vector2.ZERO else Vector3.ZERO
 		car.throttle = amount
 		car.steer = 0.0
 		car.braking = brake or brake_key
@@ -81,6 +103,13 @@ func drive(car: Node, stick: Vector2, stick_on: bool, keys: Dictionary, gas: boo
 ## Nothing held (the title screen, the helicopter, an autopilot): the camera may follow.
 func release() -> void:
 	held = false
+	_set_aim = Vector2.ZERO
+
+
+## Whether the follow camera waits for the finger to lift before it comes round (follow_camera.gd
+## follow_yaw's `waits`): FIXED never turns, POINT waits only without FOLLOW_HELD, CLASSIC never.
+func camera_waits() -> bool:
+	return scheme == FIXED or (scheme == POINT and not FOLLOW_HELD)
 
 
 ## A screen direction (x right, y down) as a world direction on the ground for a camera
