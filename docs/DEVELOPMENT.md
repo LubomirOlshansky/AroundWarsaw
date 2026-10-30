@@ -2205,7 +2205,11 @@ changed (`tiers.gd`, `governor.gd`, `settings.gd`, `main.gd`'s quality and image
    ×2` (`auto · High` where the budget doesn't bind, e.g. the Fine style), kept up to date when the
    style changes; the overlay's last line `High ×1 sharp · gov …` / `High ×2 fallback · gov …`; the
    BENCH card `quality Auto→High sharp (iPhone12,1)` / `Auto→High fallback (iPhone12,1)` beside
-   its `image 1792x828 (×1)`. No toast (optional in the brief; BACKLOG).
+   its `image 1792x828 (×1)`. Since 2026-10-30 the first launch at the fallback after a struggle
+   at the sharp image also shows a toast once, when the city shows: `Obraz prostszy, żeby było
+   płynnie` · `A coarser picture for a smoother ride · Settings → Obraz` (`main.gd`
+   `_fallback_toast`; the state's `told` key, false after that struggle, true once shown and
+   saved at once; never in `--shots=` runs; the log says `quality: the fallback's toast shown`).
 6. **Thermal state**: still not readable from Godot 4.7.2 (no OS, DisplayServer, Engine,
    RenderingServer or Performance method), so it isn't part of the rule.
 
