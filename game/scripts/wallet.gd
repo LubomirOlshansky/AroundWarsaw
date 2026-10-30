@@ -34,8 +34,15 @@ var keep := {}
 ## reads it).
 var notes := {}
 var chapters_done := {}
+## Loop MW-5: PÓŁNOC FM's unlocked tracks (radio.gd): track number (1 = the first) -> the day it
+## opened (yyyymmdd; the free ones are not listed), and how many finished chapters have been
+## turned into tracks already (radio.gd `sync_chapters`).
+var tracks := {}
+var track_chapters := 0
 ## False with --nosave: nothing is read or written.
 var persistent := true
+## Loop MW-5: the save's file (check_radio.gd points it at a scratch file of its own).
+var path := PATH
 
 
 func _ready() -> void:
@@ -46,7 +53,7 @@ func load_save() -> void:
 	if not persistent:
 		return
 	var cfg := ConfigFile.new()
-	if cfg.load(PATH) != OK:
+	if cfg.load(path) != OK:
 		return
 	zl = int(cfg.get_value("wallet", "zl", 0))
 	respect = int(cfg.get_value("wallet", "respect", 0))
@@ -66,6 +73,10 @@ func load_save() -> void:
 		notes[key] = int(cfg.get_value("notes", key, 0))
 	for key in (cfg.get_section_keys("notes_chapters") if cfg.has_section("notes_chapters") else PackedStringArray()):
 		chapters_done[key] = int(cfg.get_value("notes_chapters", key, 0))
+	for key in (cfg.get_section_keys("polnoc") if cfg.has_section("polnoc") else PackedStringArray()):
+		if key.begins_with("track_"):
+			tracks[int(key.trim_prefix("track_"))] = int(cfg.get_value("polnoc", key, 0))
+	track_chapters = int(cfg.get_value("polnoc", "chapters", 0))
 
 
 func save() -> void:
@@ -89,7 +100,10 @@ func save() -> void:
 		cfg.set_value("notes", key, notes[key])
 	for key in chapters_done:
 		cfg.set_value("notes_chapters", key, chapters_done[key])
-	cfg.save(PATH)
+	for n in tracks:
+		cfg.set_value("polnoc", "track_%d" % n, tracks[n])
+	cfg.set_value("polnoc", "chapters", track_chapters)
+	cfg.save(path)
 
 
 ## Wipes the record (--reset-save).
@@ -105,6 +119,8 @@ func reset() -> void:
 	keep.clear()
 	notes.clear()
 	chapters_done.clear()
+	tracks.clear()
+	track_chapters = 0
 	save()
 	changed.emit(zl, respect, 0)
 

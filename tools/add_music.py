@@ -41,6 +41,10 @@ encodes it, the WAV is deleted; else ffmpeg's `libvorbis` if `ffmpeg -encoders` 
 ffmpeg's own "vorbis" encoder (-strict -2), which ignores the bitrate and writes about 185 kb/s
 (1.4 MB a minute; Homebrew's stripped ffmpeg has no libvorbis). The tool says which it uses
 when it falls back. Nothing else changes with the encoder.
+
+Loop MW-5: a station in radio.json may carry "encode": {"rate": 22050, "kbps": 40}: its files
+are encoded at that sample rate and bitrate instead of 44.1 kHz and 96 kbps (PÓŁNOC FM: seven
+lo-fi tracks synthesised at 22.05 kHz by tools/make_music.py --set=polnoc, 3.6 MB together).
 """
 import argparse
 import json
@@ -64,7 +68,6 @@ TARGET_LUFS = -14.0
 PEAK_CEILING = -1.0
 SILENCE_DB = -50
 SILENCE_KEEP = 0.2
-BITRATE = "96k"
 OGGENC_KBPS = "96"
 
 
@@ -150,10 +153,11 @@ def decode_trimmed(src, dst):
         raise RuntimeError("decode failed: " + err.strip()[-300:])
 
 
-def encode(src, dst, gain_db, encoder):
+def encode(src, dst, gain_db, encoder, rate=44100, kbps=96):
     """Float WAV -> Ogg Vorbis with one static gain (a plain volume filter, nothing else).
-    encoder is 'oggenc' (a temporary 16-bit WAV, then oggenc), 'libvorbis' or 'vorbis'."""
-    common = ["-af", "volume=%.2fdB" % gain_db, "-ar", "44100", "-ac", "2", "-map_metadata", "-1"]
+    encoder is 'oggenc' (a temporary 16-bit WAV, then oggenc), 'libvorbis' or 'vorbis'.
+    `rate` and `kbps` come from the station's "encode" entry (loop MW-5), else 44.1 kHz, 96."""
+    common = ["-af", "volume=%.2fdB" % gain_db, "-ar", str(rate), "-ac", "2", "-map_metadata", "-1"]
     if encoder == "oggenc":
         with tempfile.TemporaryDirectory() as tmp:
             wav16 = os.path.join(tmp, "gain16.wav")
@@ -161,18 +165,18 @@ def encode(src, dst, gain_db, encoder):
                                + common + ["-c:a", "pcm_s16le", wav16])
             if code != 0:
                 raise RuntimeError("gain/convert failed: " + err.strip()[-300:])
-            code, _, err = run(["oggenc", "-b", OGGENC_KBPS, "--quiet", "-o", dst, wav16])
+            code, _, err = run(["oggenc", "-b", str(kbps), "--quiet", "-o", dst, wav16])
             if code != 0:
                 raise RuntimeError("oggenc failed: " + err.strip()[-300:])
         return
-    codec = ["-c:a", "libvorbis", "-b:a", BITRATE] if encoder == "libvorbis" else ["-c:a", "vorbis", "-strict", "-2"]
+    codec = ["-c:a", "libvorbis", "-b:a", "%dk" % kbps] if encoder == "libvorbis" else ["-c:a", "vorbis", "-strict", "-2"]
     code, _, err = run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", src]
                        + common + codec + [dst])
     if code != 0:
         raise RuntimeError("encode failed: " + err.strip()[-300:])
 
 
-def convert(raw_path, out_path, encoder):
+def convert(raw_path, out_path, encoder, rate=44100, kbps=96):
     """Returns (seconds, gain_db, lufs, true_peak) of the finished file."""
     with tempfile.TemporaryDirectory() as tmp:
         wav = os.path.join(tmp, "trimmed.wav")
@@ -187,7 +191,7 @@ def convert(raw_path, out_path, encoder):
         # The lossy encoder can overshoot the true peak a little: check the real file and
         # lower the gain until it is under the ceiling (a gain change, never a limiter).
         for _ in range(4):
-            encode(wav, out_path, gain, encoder)
+            encode(wav, out_path, gain, encoder, rate, kbps)
             out_lufs, out_peak = measure(out_path)
             if out_peak <= PEAK_CEILING + 0.001:
                 break
@@ -296,6 +300,11 @@ def main():
         if args.station and st["id"] != args.station:
             continue
         known = {t["source"]: i for i, t in enumerate(st["tracks"])}
+        # Loop MW-5: a station may set its own encoding ("encode": {"rate": Hz, "kbps": N}), e.g.
+        # PÓŁNOC FM's lo-fi tracks, made at 22.05 kHz, at 22.05 kHz and 40 kbps.
+        enc = st.get("encode", {})
+        rate = int(enc.get("rate", 44100))
+        kbps = int(enc.get("kbps", int(OGGENC_KBPS)))
         for name in raw_files(st["id"]):
             if name in known and not args.force:
                 continue
@@ -323,7 +332,7 @@ def main():
                 continue
             os.makedirs(os.path.dirname(out_path), exist_ok=True)
             try:
-                seconds, gain, lufs, peak = convert(raw_path, out_path, encoder)
+                seconds, gain, lufs, peak = convert(raw_path, out_path, encoder, rate, kbps)
             except RuntimeError as e:
                 print("FAILED %s/%s: %s" % (st["id"], name, e))
                 if os.path.isfile(out_path) and not old:
