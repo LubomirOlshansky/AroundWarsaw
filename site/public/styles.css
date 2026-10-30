@@ -72,6 +72,8 @@ h1 { margin: 0; font-size: clamp(3.6rem, 10vw, 6rem); line-height: 0.9; font-wei
 .btn-primary:hover { background: var(--neon-deep); color: #fff; transform: translateY(-1px); box-shadow: 0 12px 28px -10px rgba(255, 79, 163, 0.7); }
 .btn-primary svg { transition: transform .25s var(--ease); }
 .btn-primary:hover svg { transform: translateX(3px); }
+.btn-ghost { background: rgba(11, 13, 36, 0.55); color: var(--ink); border: 1px solid rgba(191, 194, 234, 0.42); }
+.btn-ghost:hover { color: #fff; border-color: var(--ink); transform: translateY(-1px); }
 .platforms { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; color: var(--ink-2); font-size: 15px; }
 
 /* The car radio: the page's one moving part. */
@@ -178,7 +180,7 @@ section { padding: clamp(64px, 10vw, 120px) 0; }
   .hero::after { inset: 0 0 auto; height: calc(100vw * 0.75); background: linear-gradient(0deg, var(--night) 0%, rgba(11,13,36,0) 45%); z-index: 0; }
   .hero-in { position: relative; z-index: 1; padding-top: 0; margin-top: -2.2rem; }
   .hero-text { margin-left: 0; }
-  .btn-primary { width: 100%; }
+  .btn-primary, .btn-ghost { width: 100%; }
   .radio-tag { padding-left: var(--gutter); }
   .shot, .shot-flip { grid-template-columns: 1fr; gap: 14px; }
   .shot-flip picture { order: 0; }
