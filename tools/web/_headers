@@ -1,0 +1,14 @@
+# The web build's headers (copied into build/web by tools/export_web.sh). Godot's threaded web
+# build needs SharedArrayBuffer, which browsers give only to a cross-origin isolated page.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Resource-Policy: same-origin
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Cache-Control: no-cache
+
+# The parts' names carry their contents' hash: a new build has new names.
+/parts/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable

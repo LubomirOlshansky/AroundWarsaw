@@ -9,13 +9,26 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Narodowy), the bus stops, and other weak models. Goal: keep the game's own pixel and
   low-poly style, but with colours, proportions and silhouettes that clearly read as the real
   buildings. Before/after shots at phone size. Lane "landmarks/models" (docs/QUESTIONS.md).
+  **First pass landed (2026-10-30, ROADMAP "landmark models")**: 18 towers in their own
+  colours, skins and crowns (Złota 44's white exoskeleton and sloped top, Warsaw Spire's
+  diamonds, Rondo 1's open crown, Q22 at its real 155 m, Chałubińskiego 8's white ribs and the
+  rest), each with an info card; Złote Tarasy's glass golden; Muzeum Narodowe in its pale stone
+  with tall windows and a card; new bus shelters (glass roof, poster box lit at night, the
+  blue D-15 sign). The Palace and the stadium were already detailed models and keep their look.
+  **Second pass landed (2026-10-30)**: 9 more (Grzybowska 63, Jana Pawła II 21, Marszałkowska
+  94/98: the hotels by their addresses; Central Tower, Ilmet, the Platinum Towers, Łucka City,
+  Widok Towers): 27 towers in all. **Left**: PZU Tower and JM Tower (oddly mapped) keep the
+  generic glass, and any model the user names next (docs/QUESTIONS.md).
 
 ## From v0.6 (traffic, trams, pedestrians, rivals)
 - ~~Cars can overlap briefly in complex junctions~~ (fewer by three quarters, the traffic loop
   2026-10-30: junction cars watch each other's body and path, `--traffic-overlaps` counts them;
   left: two cars entering a short merging curve in the same frame); a racing rival stuck in
   traffic passes through other cars when off screen.
-- Trams and crossing cars can touch nose to nose.
+- ~~Trams and crossing cars can touch nose to nose.~~ Down by nine tenths (the traffic loop
+  2026-10-30: trams follow their rails ahead for cars' boxes, cars stop clear at any angle, no
+  spawning beside a tram; `--tram-watch=N` with `--traffic-overlaps`); about 70 tram-car frames in
+  three minutes remain near -1830, -220.
 - ~~Name tags and bubbles show faintly through the translucent WIN/LOSE card.~~ Fixed by loop 2e:
   the result card is one of the HUD's floating panels, so it is in `hud.gd` `panel_rects()`, and
   `bubbles.gd` skips a name tag that touches one and places bubbles clear of them (checked
@@ -194,7 +207,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   it; the unstick turns it out after 1.5 s, and a second pin within 5 s tows it back onto the
   nearest lane on its level (next to a kerb that can be almost where it was, turned the lane's
   way).
-  Traffic still stops for a player that only brushes it.
+  ~~Traffic still stops for a player that only brushes it.~~ A brush dazes it for 0.4 s, a
+  real hit up to 2.5 s (the traffic loop, 2026-10-30).
 - Busy's traffic target is more than the spawner can place in the band round the view (70 vs
   ~44 at 80 m): the levels are calibrated on real counts. If the spawner changes, re-measure
   (bench `--traffic=`).
@@ -243,19 +257,19 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - Shadow edges are a little finer than before (0.37 m texels on High instead of 0.49 m).
 
 ## From the project setup (agents, skills, checks; 2026-10-28)
-- `check_landmarks.gd` exits 0 even when a check fails; `tools/verify.sh` reads its OK line
-  instead. It should end with `quit(0 if failures == 0 else 1)`.
-- README gives two different `bake_osm.py` command lines ("Map data" step 1 and "Layout").
-- README names the Apple team ID. It isn't a secret (every signed build carries it); keep or
-  drop before the first public commit.
+- ~~`check_landmarks.gd` exits 0 even when a check fails.~~ Fixed: it ends with
+  `quit(0 if _check() == 0 else 1)` (tidied 2026-10-30, checked in the code).
+- ~~README gives two different `bake_osm.py` command lines.~~ Gone: the map chain moved to
+  DEVELOPMENT.md and `tools/setup_map.sh`; README has no bake line (tidied 2026-10-30, checked in the code).
+- ~~README names the Apple team ID.~~ README no longer does; the ID stays in
+  `export_presets.cfg` (not a secret, decided: BACKLOG-TRIAGE "Decided since") (tidied 2026-10-30, checked in the code).
 - Device-run permission in CLAUDE.md stays per loop ("when the user said so for the current
   loop"); the user allowed phone test builds on 2026-10-28.
 - Haptics fail on the phone: `Could not vibrate using haptic engine: (null)` in the device log
   (nine `Input.vibrate_handheld` calls). Rule out Low Power Mode / System Haptics off first;
   else a small iOS plugin with `UIImpactFeedbackGenerator`.
-- The once-only `ERROR: Mouse is not supported by this display server.` at start on iOS comes
-  from the engine before any script runs (loop 2b); harmless, but it keeps the device log from
-  being clean.
+- ~~The once-only `ERROR: Mouse is not supported by this display server.`~~ Duplicate of the
+  loop 2b entry above (tidied 2026-10-30, checked in the code).
 
 ## From loop 10a (the river is off-limits)
 - The splash, the tow and the stone's look were judged on the Mac (screenshots, logs); the feel
@@ -278,11 +292,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   with no bank known, is 491 m).
 - A beach path's paving still draws past the stone into the water where OpenStreetMap maps it
   so; people now turn back a metre short of the water.
-- The helicopter's roof toast ("Land on open ground to take the car") is still English only;
-  the new water one is Polish over English.
-- `map_builder.bounds` isn't stored in `city.scn` (the prebuilt path had a zero rectangle);
-  main.gd now sets it from the map data. Other code reading `map.bounds` on the prebuilt path
-  was getting zeros before.
+- ~~The helicopter's roof toast is still English only.~~ Fixed: "Wyląduj na otwartym terenie,
+  żeby wziąć auto." over the English (`main.gd`) (tidied 2026-10-30, checked in the code).
+- ~~`map_builder.bounds` isn't stored in `city.scn`.~~ Fixed: `bounds` is `@export_storage`
+  in `map_builder.gd`, so the prebuilt index carries it (tidied 2026-10-30, checked in the code).
 - The bench route's ghost car drives with its collision off, so the water test never runs on
   the bench; it was measured with the probe (car physics 0.05 → 0.05 ms at the river) and a
   micro-benchmark (0.8 µs a call, one call per physics frame).
@@ -976,12 +989,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
   last few unloaded sectors' roots (not freed, out of the tree) so a sector seen again minutes
   later comes back without a load (memory against hitches), or load further ahead so the hitch
   falls while the view is calm (it doesn't remove it).
-- **`tools/device_run.sh` copies `Documents/bench_result.txt` from any earlier bench** when the
-  run made none (the bench doesn't clear it at the start, as the streaming soak now does): read
-  the card's date line.
-- **The night bench sometimes has a sun-shadow pass** (on the Mac, 2 of 6 `--time=night` benches:
-  57-69 shadow draws where the others have 0; before and after loop G0+'s change alike): the
-  sun's shadow at night should be off from the first frame. Not looked into.
+- ~~**`tools/device_run.sh` copies `Documents/bench_result.txt` from any earlier bench** when the
+  run made none.~~ Fixed (performance lane, 2026-10-30): a bench (`--bench` or the BENCH
+  button) removes the last result when it starts.
+- ~~**The night bench sometimes has a sun-shadow pass** (on the Mac, 2 of 6 `--time=night`
+  benches: 57-69 shadow draws where the others have 0).~~ Not reproducible on main 81de932
+  (performance lane, 2026-10-30): 12 night benches (runtime and prebuilt, 1920×1080 and the
+  default window) with a watcher on the sun's shadow, every light's shadow and the shadow pass's
+  draws per frame: the sun's shadow off from frame 1, no light casting one, 0 shadow draws in
+  every run. The code path hasn't changed since; those runs likely had other flags or a saved
+  time. If it shows again, the watcher's shape: print `sun.shadow_enabled`, `tod.mode`, `tod._t`
+  and the shadow pass's `VIEWPORT_RENDER_INFO_TYPE_SHADOW` draws per frame.
 - The streamer's `(unload)` time is only the call to `queue_free()`; freeing a sector's nodes
   happens at the end of that frame and isn't in the streaming numbers (no slow frame showed it).
 - **check_streaming spot 8 (512, −740) at 0.789 % of its pixels** (the limit is 0.5 %; 0.472 % with
@@ -1007,18 +1025,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
   stays off. The version is Godot 4.7's own, 0x401000 (Vulkan 1.1.0), not 1.0.3: on a Godot
   upgrade, match the plugin's `VERSION` to what Godot writes (the script fails until it does).
   Whether a phone with Vulkan 1.1 but a weak driver runs the game well is still unseen.
-- **The export prints Dialogue Manager's C# errors** (`No loader found for resource:
-  ...DialogueLabel.cs`, `ExampleBalloon.tscn` parse errors): the add-on's C# example and label
-  files can't load in a non-.NET Godot. Harmless (the game uses its own balloon); the iOS
-  export prints the same 11 lines (checked in this loop's `verify.sh --only=ios`). An exclude
-  filter for `addons/dialogue_manager/example_balloon/*` and the `.cs` files would quiet it.
-- **The city step rewrites 34 tracked files with byte noise** (`bake_city.gd` isn't
-  byte-deterministic: the sector `.scn` files differ by a few bytes each run with no map
-  change), in both export scripts. `--skip-city` avoids it for Android; a deterministic bake or
-  a "bake only when the map changed" check would fix it for both.
-- **Store graphics are not made yet**: the 512 px icon, the 1024 × 500 feature graphic and
-  1920 × 1080 screenshots (Play's 2:1 limit rules out 2532 × 1170); `docs/store/play-console.md`
-  lists what each needs.
+- ~~**The export prints Dialogue Manager's C# errors** (`No loader found for resource:
+  ...DialogueLabel.cs`, `ExampleBalloon.tscn` parse errors).~~ Fixed (store-release lane,
+  2026-10-30): the iOS, Android and Web presets exclude the add-on's `.cs` files, its C#
+  `DialogueLabel.tscn` and `example_balloon/*` (the game uses its own balloon; the add-on's
+  editor plugin, the only reader of the example, is off).
+- ~~**The city step rewrites 34 tracked files with byte noise**~~ Moot since loop 3d-1: the
+  prebuilt sectors are derived and gitignored, and `setup_map.sh --if-needed` rebuilds them
+  only when their inputs' digests change (tidied 2026-10-30).
+- ~~**Store graphics are not made yet**~~ Done 2026-10-30: `docs/store/graphics/` (the 512 px
+  icon, the 1024 × 500 feature graphic) and `docs/store/screenshots/play-phone/` (ROADMAP "play
+  graphics").
 
 ## From the website (aroundwarsaw.app, 2026-10-29)
 - ~~The four beta links say "soon"~~ (website v2: the form collects emails for invites; add the
@@ -1066,6 +1083,27 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - Varso's crown runs off the top of store shot 7 (all three sizes); most shots show 0 km/h.
 - The iPad set is rendered at 2440×1830 and scaled to 2752×2064 (the Mac can't open a
   2064-pixel-tall window).
+
+## From the performance baseline (2026-10-30)
+
+- ~~Loop 3d-1's map left +0.4–0.6 ms of main-thread process on the Mac after the lamp fix
+  (traffic about 0.5 ms): find what in traffic scales with the map.~~ Timed (2026-10-30):
+  nothing does; ~10 µs a car, 0.31 ms on the prebuilt path. Two small cuts landed. Left:
+  `_count_target` and the first spawn fill are rare one-frame spikes (0.4–0.7 and ~1 ms) when
+  the view moves far; spread them over frames if a hitch shows on the phone.
+- Static memory doubled with the bigger map (173 → ~330 MB runtime, 241 MB prebuilt): check
+  it on the iPhone 11 (TEST · BENCH's memory line) before the beta. The index packing cut it
+  by ~20 MB on the phone path (2026-10-30, DEVELOPMENT.md "Performance budgets").
+- Memory still on the table (2026-10-30, measured on the Mac):
+  - The index's dictionaries (83 MB prebuilt after the packing): ~60 k small Dictionaries with
+    a String kind each. Columns per list (one PackedFloat32Array of outlines with offsets, kinds
+    as ints) would cut most of it, but every reader (hud, missions, eggs, pedestrians, rides)
+    changes with it.
+  - The three map-wide textures (~96 MB video): the light map (5318×3782 RG8, 1 m) could go to
+    2 m (lamp pools are 12–15 m wide, but they stop at walls at 1 m), or AO and lights to ASTC
+    4×4 at bake time (half the size, lossy). Both change the look a little: the visual lane's
+    call with shots. The surface map holds data (deck heights, flow angle) and must stay exact.
+  - Side jobs hold 17 MB at start (rides 7.5): look for whole-map tables built from the index.
 
 ## From the driving-feel loop (less sticky, 2026-10-30)
 
@@ -1133,3 +1171,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (vision.md section 9) exist.
 - The tap-a-place-within-80-m way of finding (vision.md 4.1, the landmark card's tap) is not
   built: the landmark tap (`main.gd` `_on_tap`) doesn't know the places yet.
+
+## From the web build (2026-10-30)
+
+- **Try it in a phone's browser** (iOS Safari, Android Chrome): memory with the ~140 MB pack in
+  memory, the touch controls for real, the safe area (`OS.has_feature("mobile")` is false on the
+  web, so the HUD uses the desktop layout rules), the frame rate.
+- **Smaller download** (web loop 2 did the sectors: 141 → 59 MB at the start). What is left: the
+  pack's 40 MB (shared meshes and textures 20, proxies 8.5, index 7.7), the engine's 10.
+- **A sector the car reaches before its pack** shows its proxy and has no colliders; on a slow
+  link a fast helicopter could outrun the downloads. Not seen in tests.
+- **The Compatibility renderer's look**: compare the web against the phone shot for shot
+  (night lights, water, shadows); only the green traffic was fixed.
+- **Prebuilt MultiMeshes with custom data and no colours** would show the same Compatibility bug
+  if a shader reads COLOR; none looked wrong in the browser (trees, parked cars).

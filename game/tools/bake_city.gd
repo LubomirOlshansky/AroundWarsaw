@@ -19,6 +19,7 @@ extends SceneTree
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Landmarks := preload("res://scripts/landmarks.gd")
 const Proxies := preload("res://scripts/sector_proxies.gd")
+const IndexPack := preload("res://scripts/index_pack.gd")
 const SHARED := "res://map/shared/"
 ## index.json's keys only the map builder reads (the game's systems never do).
 const BUILDER_ONLY := ["site_parts", "kerbs", "medians", "islands", "shore", "fills", "aprons", "lod2_cuts",
@@ -30,7 +31,8 @@ const BUILDER_ONLY := ["site_parts", "kerbs", "medians", "islands", "shore", "fi
 ## CITY_INPUTS is the same list.
 const CITY_INPUTS := ["map/lod2.bin", "map/terrain.json", "map/ao.bin", "map/lights.bin", "map/water.bin",
 		"scripts/map_builder.gd", "scripts/chunked_surface.gd", "scripts/neon_signs.gd", "scripts/landmarks.gd",
-		"scripts/sector_proxies.gd", "scripts/models.gd", "scripts/pixel_font.gd", "tools/bake_city.gd"]
+		"scripts/sector_proxies.gd", "scripts/models.gd", "scripts/pixel_font.gd", "scripts/index_pack.gd",
+		"tools/bake_city.gd"]
 
 
 ## Set at the end of _bake: a script error (a builder that doesn't compile) ends _bake early
@@ -113,6 +115,8 @@ func _bake() -> Error:
 	var game_data: Dictionary = map.index_data.duplicate()
 	for k in BUILDER_ONLY:
 		game_data.erase(k)
+	# The memory loop: saved with its coordinates packed (scripts/index_pack.gd).
+	IndexPack.pack(game_data)
 	map.index_data = game_data
 	_own(map, map)
 	var packed_index := PackedScene.new()

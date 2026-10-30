@@ -12,9 +12,6 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | --- | --- | --- | --- |
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
-| landmarks/models | Landmark and skyscraper models (Złote Tarasy, Złota 44, Varso, PKiN, Spire, Q22, Muzeum Narodowe, Stadion Narodowy), bus stops: BACKLOG "High priority" | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
-| store release | The signed Android AAB for Play internal testing, on today's main | cloud thread "Prepare App Store and Play beta listings" | 2026-10-30 |
-| performance | Profile the 108-sector map on mobile settings (frame time, draw calls, memory); cheap wins outside the map engine (3d-2 is the map lane's) | cloud thread "Prepare App Store and Play beta listings" | 2026-10-30 |
 
 ## Waiting
 
@@ -30,6 +27,34 @@ Newest first. One entry per question.
 - **2026-10-30 · content · 3g-2** — The clamp card reads BLOKADA NA KOLE · ZDEJMUJĘ ZA 0:10 /
   WHEEL CLAMP ON · OFF IN 0:10. Wording for a game-designer pass? Default built: as written.
 
+- **2026-10-30 · landing · beta form** — The aroundwarsaw.app sign-up form still posts to
+  Stillplace's Formspree form (`mykaeqjp`), so beta sign-ups land in that inbox. Make a form
+  for Around Warsaw on your Formspree account (free) and send its id, or keep the shared one?
+  Default built: shared form, nothing changed. The id is one string in `site/src/index.html`
+  (and the Polish page); then a redeploy. Where: BACKLOG "From the website".
+- **2026-10-30 · performance · phone runs** — May I run the bench and a streaming soak on the
+  iPhone 11 (a test build through Remote Control)? The Mac work is done (PR #27 memory −20 MB,
+  #33 traffic, #35 bench result); what's left needs the phone: static memory on the iPhone 11
+  (BENCH's memory line, before the beta), and whether a sector's load still makes a 25–65 ms
+  frame there. Default built: nothing run on the phone. Where: BACKLOG "From the performance
+  baseline", "From loop G0+".
+- **2026-10-30 · landmarks/models · landmark models** — Do the towers now read as the real
+  ones? Look at the before/after shots in the PR. Default built: 18 towers in their own skins
+  and colours, Złote Tarasy golden, Muzeum Narodowe in stone, new bus shelters. Say which
+  still look wrong and how. Where: PR (landmark models).
+- **2026-10-30 · landmarks/models** — Złota 44's top is cut on a slope, high at its north end.
+  Options: keep / high at the south end / flat. Default built: high at the north end.
+- **2026-10-30 · landmarks/models** — Hotel towers are named by address, not brand (rule:
+  brands only as parodies): the InterContinental's card says "Emilii Plater 49", the Hilton's
+  "Grzybowska 63", the Westin's "Jana Pawła II 21", the Novotel's "Marszałkowska 94/98".
+  Default built: as said. Options: keep /
+  parody names for the hotels.
+- **2026-10-30 · web · deploy** — May I deploy the web build? It creates the Worker
+  `aroundwarsaw-play` with the custom domain play.aroundwarsaw.app (a new DNS record in the
+  aroundwarsaw.app zone) and uploads build/web (~141 MB), then redeploys the landing so the
+  "Play online" button and the /play/ redirect go live. Both are public; `wrangler rollback` and
+  deleting the Worker undo them. Default built: everything ready and tried locally; nothing
+  deployed. Where: docs/DEVELOPMENT.md "The web build".
 - **2026-10-30 · content · MW-1 (the notebook)** — The minimap shows "?" for undiscovered
   places within 400 m of the car, because districts don't exist yet. Switch to "in a discovered
   district" once DEMO 6.3's districts land? Default built: 400 m.

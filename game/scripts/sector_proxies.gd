@@ -11,6 +11,7 @@ extends RefCounted
 ## which the Mobile renderer pays for) only drop it past the camera's farthest view.
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
+const Landmarks := preload("res://scripts/landmarks.gd")
 const CELL := 32.0
 const SKY := 8.0
 const BLOB := 24.0
@@ -24,7 +25,7 @@ const ROAD := Color("#4f535a")
 ## Landmarks' skyline colours by landmarks.gd site key.
 const LANDMARK := {"palace": Color("#d8c49c"), "tarasy": Color("#8fb4cb"), "rotunda": Color("#9cc4d4"),
 		"varso": Color("#5f7f9f"), "stadium": Color("#c9473b"), "centralna": Color("#a9adb0"),
-		"poniatowski": Color("#b9b09a")}
+		"poniatowski": Color("#b9b09a"), "muzeum": Color("#c9bfa9")}
 ## Past this many metres from the camera a proxy is dropped (beyond the farthest view).
 const RANGE_END := 2400.0
 
@@ -238,7 +239,8 @@ static func _box(st: SurfaceTool, map, r: Rect2, top: float, id: int) -> void:
 	var wall := WALL
 	var roof := ROOF
 	if id > 0 and id <= map.landmark_info.size():
-		wall = LANDMARK.get(String(map.landmark_info[id - 1]["key"]), WALL)
+		var key := String(map.landmark_info[id - 1]["key"])
+		wall = LANDMARK.get(key, Landmarks.tower_colour(key, WALL))
 		roof = wall.darkened(0.15)
 	var x0 := r.position.x
 	var x1 := r.end.x

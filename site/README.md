@@ -15,6 +15,8 @@ analytics.
 | `public/fonts/` | Pixelify Sans (display) and Manrope (text), WOFF2, OFL licences beside them |
 | `public/_headers` | security headers (a CSP that allows only this site and Formspree), caching |
 | `wrangler.jsonc` | the Cloudflare Worker that serves `public/` and owns the custom domains |
+| `public/_redirects` | `/play/` → https://play.aroundwarsaw.app, the game in the browser |
+| `play/wrangler.jsonc` | that game's own Worker (`aroundwarsaw-play`), serving `build/web` from `tools/export_web.sh`; docs/DEVELOPMENT.md "The web build" |
 
 Design notes: the world is the game's night city (sodium lamps, one pink neon, the car radio).
 One moving part: the Kebab FM ticker, still under reduced motion. No eyebrow labels, no
@@ -70,3 +72,9 @@ public link or the Play closed test's opt-in link
 (`https://play.google.com/apps/testing/com.olshanskysoft.nocnawarszawa`) should be on the page,
 add them to the beta section in `src/index.html` and rebuild. Play needs 12 testers for 14 days
 in a closed test before production (docs/store/play-console.md).
+
+## The game in the browser
+
+The "Play online" button goes to https://play.aroundwarsaw.app, a separate Worker so this
+page's deploys never touch it: `tools/export_web.sh --deploy` builds and uploads it
+(docs/DEVELOPMENT.md "The web build").

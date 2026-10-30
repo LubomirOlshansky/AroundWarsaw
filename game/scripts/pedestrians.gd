@@ -5,6 +5,7 @@ extends Node3D
 ## into a footway that joins it, or turn back at a dead end.
 
 const Models := preload("res://scripts/models.gd")
+const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
 
 const MAX := 60
 ## Loop 3g-1: people who stand still at a spot (the speed traps' officers), in the same MultiMesh
@@ -140,6 +141,7 @@ func setup(map_node: Node3D, camera: Camera3D, traffic_node: Node3D, data: Dicti
 	_mm = MultiMesh.new()
 	_mm.transform_format = MultiMesh.TRANSFORM_3D
 	_mm.use_custom_data = true
+	InstanceBuffers.prepare(_mm)
 	_mm.mesh = Models.person_mesh()
 	_mm.instance_count = MAX + FIXED
 	_mm.custom_aabb = AABB(Vector3(-2500, -200, -1500), Vector3(5000, 600, 3000))
@@ -307,7 +309,7 @@ func _process(dt: float) -> void:
 	for n in MAX:
 		if _alive[n] == 1:
 			_walk(n, dt)
-	RenderingServer.multimesh_set_buffer(_mm.get_rid(), _buf)
+	InstanceBuffers.send(_mm.get_rid(), _buf)
 	last_usec = Time.get_ticks_usec() - t0
 
 

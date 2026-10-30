@@ -411,6 +411,12 @@ var _ram_unsticks := 0
 var _ram_dir := Vector3.ZERO
 ## --traffic-overlaps (testing aid): traffic counts its cars' overlapping boxes, printed at the end.
 var _traffic_overlaps := false
+## The traffic loop, --tram-watch=N (testing aid): the car (no collisions, standing still) is put
+## beside tram N, ahead of it, again and again, so the view, the traffic and
+## the tram's cars come with that tram through the city (with --traffic-overlaps: how often a
+## tram and a car touch). -1: off.
+var tram_watch := -1
+var _tram_watch_at := Vector2.INF
 ## Loop 2c, --lineup (testing aid): every vehicle model standing round the car, no traffic, for
 ## close-up screenshots (with --size=25 or so).
 var lineup := false
@@ -470,6 +476,12 @@ func _ready() -> void:
 	await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
 	_place_start()  # loop MW-1: --place=<id>, the sectors round the place
+	# The web loop 2: the web build downloads its sectors (sector_packs.gd), the start's first.
+	if SectorPacks.active() and not monolithic:
+		_packs = SectorPacks.new()
+		_packs.name = "SectorPacks"
+		add_child(_packs)
+		await _packs.fetch_start(start_at, SectorStreamer.START_REACH, SectorStreamer.SECTOR)
 	var no_map := _missing_map()
 	if no_map != "":
 		# Loop 3d-1: the split and the prebuilt sectors are not committed; a fresh clone makes
@@ -880,6 +892,7 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	rivals.setup(graph, traffic, hud, bubbles, missions, map, world, car, data)
 	print("living city: %d lanes, %d trams in %d ms" % [graph.lane_count, trams.trams.size(), Time.get_ticks_msec() - t0])
 	if bench:
+		_clear_bench_result()
 		var p := Vector2(car.global_position.x, car.global_position.z)
 		var hit := graph.snap(p, 60.0, Vector2(-sin(car.rotation.y), -cos(car.rotation.y)), true)
 		if not hit.is_empty():
@@ -1133,6 +1146,13 @@ func _bench_header(kind: String) -> PackedStringArray:
 	])
 
 
+## The performance lane (2026-10-30): a bench starts by removing the last one's result, so a run
+## that ends before its card (a crash, a quit) leaves no file and tools/device_run.sh copies none
+## (it used to copy whatever an earlier bench had left).
+func _clear_bench_result() -> void:
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://bench_result.txt"))
+
+
 ## Loop 2b: the bench's result also goes to user://bench_result.txt (on the iPhone the app's
 ## Documents folder), not the save or the settings.
 func _write_bench_result(text: String) -> void:
@@ -1203,6 +1223,7 @@ func _start_phone_bench() -> void:
 	cam_focus = car.global_position
 	_bench_ghost = traffic.add_ghost(hit[0], hit[1], hit[2])
 	_phone_bench = true
+	_clear_bench_result()
 	_set_perf(show_perf)
 	_stats.header = _bench_header("BENCH button")
 	_bench_t0 = Time.get_ticks_msec()
@@ -1650,6 +1671,8 @@ func _parse_args() -> void:
 			ram_test = 1
 		elif arg == "--traffic-overlaps":
 			_traffic_overlaps = true
+		elif arg.begins_with("--tram-watch="):
+			tram_watch = int(arg.trim_prefix("--tram-watch="))
 		elif arg == "--cam-log":
 			cam_log = true
 		elif arg.begins_with("--cam-test="):
@@ -1668,7 +1691,7 @@ func _parse_args() -> void:
 	# Test runs go straight to the city (--title brings the title screen back).
 	if demo or not shots.is_empty() or autopilot or start_race > 0 or start_mission > 0 or start_rival > 0 or bench or probe \
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or hold_stick != Vector2.INF or bench_button \
-			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0:
+			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0:
 		show_title = false
 	if start_ride >= 0 or place_flag != "":
 		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place)
@@ -1680,7 +1703,7 @@ func _parse_args() -> void:
 	cinematic_look = normal or _flag_cinematic in ["all", "look"]
 	# Loop G1: the governor runs in a normal launch; test runs hold it so they repeat.
 	var test_run := DisplayServer.get_name() == "headless" or not shots.is_empty() or bench or probe or autopilot \
-			or demo or cam_test != "" or _water_test_at != Vector2.INF or ram_test > 0
+			or demo or cam_test != "" or _water_test_at != Vector2.INF or ram_test > 0 or tram_watch >= 0
 	_governor_on = _flag_governor == 1 if _flag_governor >= 0 else not test_run
 	# Loop G1b: test runs (and --last-session=) never write Auto's image state, even with the
 	# governor on and without --nosave.
@@ -1694,6 +1717,10 @@ func _load_settings() -> void:
 	settings.load_file()
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
 	auto_quality = Tiers.for_model(model_name)
+	# The web loop 2: a phone's browser has a fraction of the app's memory and GPU time (Safari
+	# closed the page on an iPhone): Auto picks Low there.
+	if OS.has_feature("web_ios") or OS.has_feature("web_android"):
+		auto_quality = Tiers.LOW
 	quality_choice = _flag_quality if _flag_quality != -2 else settings.quality
 	quality = auto_quality if quality_choice == Tiers.AUTO else quality_choice
 	print("quality: %s · Auto picks %s for %s" % [Tiers.describe(quality_choice, quality, model_name),
@@ -2275,6 +2302,25 @@ func _ram_test_frame(dt: float) -> void:
 		print("ram test: %s after 10 s (%.1f m behind, unstuck %d×)" % ["never hit it" if _ram_hit < 0.0 else "NEVER PAST it",
 				-ahead, car.unsticks - _ram_unsticks])
 		ram_test = 3
+
+
+## The traffic loop, --tram-watch=N: keeps the car (and so the view) 30 m ahead of tram N and 20 m
+## to its side, moved on as the tram draws level with that spot or gets 60 m from it.
+func _tram_watch_frame() -> void:
+	if trams == null or tram_watch >= trams.trams.size():
+		return
+	var t: Trams.Tram = trams.trams[tram_watch]
+	var head := Vector2(t.pos.x, t.pos.z)
+	if _tram_watch_at == Vector2.INF or head.distance_to(_tram_watch_at) < 22.0 or head.distance_to(_tram_watch_at) > 60.0:
+		_tram_watch_at = head + t.dir * 30.0 + Vector2(-t.dir.y, t.dir.x) * 20.0
+		car.collision_layer = 0
+		car.collision_mask = 0
+	car.global_position = Vector3(_tram_watch_at.x, t.pos.y + 0.5, _tram_watch_at.y)
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.target_dir = Vector3.ZERO
+	car.throttle = 0.0
+	cam_focus = car.global_position
 
 
 ## Camera loop, --cam-test=NAME: the scheme, the camera behind the car, the car ghosting through
@@ -2994,6 +3040,8 @@ func _read_input(dt: float) -> void:
 		_water_test_frame()
 	if ram_test == 1 or ram_test == 2:
 		_ram_test_frame(dt)
+	if tram_watch >= 0:
+		_tram_watch_frame()
 
 
 ## The stick and W A S D both point in screen space (W is up the screen); Space /
@@ -3458,7 +3506,10 @@ func _quit_quietly() -> void:
 # third; then the streaming numbers, and the game quits).
 
 const SectorStreamer := preload("res://scripts/sector_streamer.gd")
+const SectorPacks := preload("res://scripts/sector_packs.gd")
 var streamer: SectorStreamer
+## The web loop 2: the web build's sector downloads (sector_packs.gd); null elsewhere.
+var _packs: SectorPacks
 var monolithic := false
 var _sectors_all := false
 var _sectors_proxies := false
@@ -3511,6 +3562,7 @@ func _open_streamed_city(world: Node3D, flat_mat: ShaderMaterial) -> Dictionary:
 	streamer.load_all = _sectors_all
 	streamer.proxies_only = _sectors_proxies
 	streamer.log = _stream_log
+	streamer.packs = _packs
 	add_child(streamer)
 	streamer.sector_ready.connect(_on_sector_ready)
 	var use_prebuilt := prebuilt or not OS.has_feature("editor")
