@@ -4150,6 +4150,21 @@ Plain HTML and CSS, self-hosted fonts, one small script for the beta and feedbac
 email through the form. Deploying by hand, the secrets and where the
 beta links go: `site/README.md`.
 
+## The design wiki (wiki.aroundwarsaw.app, 2026-10-30)
+
+A private website for designing the game without reading code: every activity (with its lines
+and tuning), the 53 landmarks with their cards, looks and pictures, the 72 notebook places, the
+eggs, Fotka spots and KASETA cards, the radio, every line of dialogue, the parody names, each
+script's description and constants, the settings, flags and budgets, the open questions, the
+design docs, and a Progress page (the road to the 1.0 demo, the lanes, the backlog by area, the
+log). `python3 -I tools/wiki_build.py` writes it to `build/wiki/` from the repo alone, so it
+never needs hand-editing; each item links to its file and line on GitHub. Pictures:
+`wiki/media.json` and `wiki/img/`. It is its own Worker (`wiki/wrangler.jsonc`,
+`aroundwarsaw-wiki`, the subdomain `wiki.aroundwarsaw.app`) behind a password (`wiki/worker.js`,
+the secret `WIKI_PASSWORD`), `noindex` everywhere and unlinked from the landing: it is spoilers
+and plans. `.github/workflows/wiki.yml` checks the build on every change to the data, scripts or
+docs and deploys only when run by hand. Details: `wiki/README.md`.
+
 ## Layout
 
 **One-command checks.** `tools/verify.sh` runs the verification set and prints one
