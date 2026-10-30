@@ -1120,3 +1120,16 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (vision.md section 9) exist.
 - The tap-a-place-within-80-m way of finding (vision.md 4.1, the landmark card's tap) is not
   built: the landmark tap (`main.gd` `_on_tap`) doesn't know the places yet.
+
+## From the web build (2026-10-30)
+
+- **Try it in a phone's browser** (iOS Safari, Android Chrome): memory with the ~140 MB pack in
+  memory, the touch controls for real, the safe area (`OS.has_feature("mobile")` is false on the
+  web, so the HUD uses the desktop layout rules), the frame rate.
+- **Smaller download**: ~141 MB, mostly the 108 sector scenes, which barely compress. Options:
+  load sectors over HTTP as the car needs them (a pack per sector with
+  `ProjectSettings.load_resource_pack`), or a web-only lighter city (no far sectors, proxies only).
+- **The Compatibility renderer's look**: compare the web against the phone shot for shot
+  (night lights, water, shadows); only the green traffic was fixed.
+- **Prebuilt MultiMeshes with custom data and no colours** would show the same Compatibility bug
+  if a shader reads COLOR; none looked wrong in the browser (trees, parked cars).
