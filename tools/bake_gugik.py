@@ -1,7 +1,7 @@
 """Bake GUGiK LoD2 buildings, aerial-photo roof colours and terrain for the game.
 
 Usage:
-  python3 -I tools/bake_gugik.py data/raw/gugik game/map
+  python3 -I tools/bake_gugik.py data/work/demo game/map     (loop 3d-1: tools/prepare_demo.py's folder)
 
 Reads   data/raw/gugik/sheets/*.gml   LoD2 CityGML (easting, northing, height; PL-KRON86-NH)
         data/raw/gugik/ortho.bmp      aerial photo of the map's lat/lon box (ortho.json)
@@ -9,7 +9,7 @@ Reads   data/raw/gugik/sheets/*.gml   LoD2 CityGML (easting, northing, height; P
         game/map/centrum.json         the OpenStreetMap bake (buildings decide what to keep)
 Writes  game/map/lod2.bin   float32 arrays: positions, normals, colours, UVs (one vertex per corner)
         game/map/lod2.json  counts, and which OpenStreetMap buildings still need drawing
-        game/map/terrain.json  the elevation grid, heights relative to BASE_HEIGHT
+        (loop 3d-1: terrain.json is written by tools/bake_terrain.py, which runs first)
 
 A LoD2 building is kept when it stands inside a mapped OSM building (so buildings
 demolished since the 2018 survey drop out); an OSM building is kept only where
@@ -555,10 +555,7 @@ def main(raw, out_dir):
     with open(os.path.join(out_dir, "lod2.json"), "w") as f:
         json.dump({"vertices": count, "buildings": len(kept), "keep_osm": keep_osm, "footprints": footprints_out,
                    "source": "GUGiK LoD2 3D building models (2018), aerial photo, NMT"}, f)
-    t = {"x0": terrain.x0, "z0": terrain.z0, "step": terrain.step, "nx": terrain.nx, "nz": terrain.nz,
-         "h": [round(v - BASE_HEIGHT, 2) for v in terrain.h]}
-    with open(os.path.join(out_dir, "terrain.json"), "w") as f:
-        json.dump(t, f, separators=(",", ":"))
+    # Loop 3d-1: terrain.json is tools/bake_terrain.py's now (it runs first, from the same grid).
     print(f"LoD2 buildings {len(kept)} ({stats['roof']} roof and {stats['wall']} wall polygons), "
           f"{count} vertices; OSM buildings kept {len(keep_osm)} of {len(osm_polys)}")
 

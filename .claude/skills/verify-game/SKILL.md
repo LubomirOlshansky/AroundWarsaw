@@ -31,7 +31,12 @@ step (loop 3c) also opens a window for a minute or two.
 
 - **FAIL**: open the log path in the row, read the first `ERROR` / `SCRIPT ERROR` line and
   its `at:` line, fix, re-run that step with `--only=`.
-- **WARN map data / sector files or prebuilt sectors older than ...**: run
+- **WARN map data / sector split missing**: a fresh clone (loop 3d-1: the derived files aren't
+  committed); verify.sh runs `tools/setup_map.sh` itself when they are missing, or run it once.
+  **WARN GUGiK outputs missing** (`lod2.*`, `terrain.json`): `tools/setup_map.sh --full`, which needs
+  GUGiK's raw data in `data/raw` (it says what to fetch when it isn't there).
+- **WARN map data / sector files or prebuilt sectors made from another ...** (their stamps' hashes
+  don't match today's inputs): run
   `tools/bake_sectors.py` and/or rebuild the prebuilt sectors with a renderer (bake-map skill),
   then check the look on both paths (`--prebuilt`).
 - **FAIL streaming**: the log's `PROBLEM` lines: `identity:` names the tile or kind where a sector

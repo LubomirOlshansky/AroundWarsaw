@@ -1132,7 +1132,16 @@ def open_lod2(m):
     if not os.path.exists(lod_json):
         return out
     import json
-    for fp in json.load(open(lod_json))["footprints"]:
+    meta = json.load(open(lod_json))
+    rings = list(meta["footprints"])
+    # Loop 3d-1: the OpenStreetMap buildings drawn where LoD2 has none (keep_osm) too: in the demo
+    # box five lanes ran into one's corner (a garage, an outbuilding, a block a courtyard lane
+    # passes under with no building_passage mapped); map_builder.gd leaves those walls open too.
+    blds = d.get("buildings", [])
+    for k in meta.get("keep_osm", []):
+        if k < len(blds) and float(blds[k].get("mh", 0.0)) < 2.0:
+            rings.append(blds[k]["p"])
+    for fp in rings:
         q = cr.pairs(fp)
         for a, b in zip(q, q[1:] + q[:1]):
             n = max(1, math.ceil(math.dist(a, b) / 0.5))

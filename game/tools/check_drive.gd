@@ -64,6 +64,10 @@ var dump_path := ""
 ## --debug=X,Z: print every autopilot frame within 6 m of that point (terrain, decks, height).
 var debug_at := Vector2.INF
 var _dump: PackedStringArray = []
+## Loop 3d-1: tools/check_drive_allow.json, the places a finding is allowed (each with its reason:
+## structures loop 3e builds, docs/DEMO.md 4.6): [kind ("lane" or "jump"), centre, radius].
+var _allow: Array = []
+var allowed := 0
 
 
 func _initialize() -> void:
@@ -78,6 +82,11 @@ func _initialize() -> void:
 			var xz := a.trim_prefix("--debug=").split(",")
 			debug_at = Vector2(float(xz[0]), float(xz[1]))
 	_t0 = Time.get_ticks_msec()
+	var allow_path := ProjectSettings.globalize_path("res://").path_join("../tools/check_drive_allow.json")
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(allow_path)) if FileAccess.file_exists(allow_path) else null
+	if parsed is Dictionary:
+		for a: Dictionary in parsed.get("allow", []):
+			_allow.append([String(a["kind"]), Vector2(a["at"][0], a["at"][1]), float(a["r"])])
 	# Loop 3c: the streamed city, every sector: the prebuilt sector scenes (--prebuilt) or the
 	# sectors built from their files (the runtime path).
 	map = SectorStreamer.open_whole(root, prebuilt)
@@ -113,9 +122,19 @@ func _physics_process(_delta: float) -> bool:
 			f.store_string("\n".join(_dump) + "\n")
 			f.close()
 		var bad := sweep + jumps
+		if allowed > 0:
+			print("check_drive: %d findings allowed (tools/check_drive_allow.json)" % allowed)
 		print("check_drive: %s" % ("OK" if bad == 0 else "%d FAILED (%d lane spots in collision, %d height jumps)" % [bad, sweep, jumps]))
 		map.free()
 		quit(0 if bad == 0 else 1)
+	return false
+
+
+## Loop 3d-1: whether a finding of this kind at p is in an allowed place.
+func _allowed(kind: String, p: Vector2) -> bool:
+	for a: Array in _allow:
+		if a[0] == kind and p.distance_to(a[1]) <= float(a[2]):
+			return true
 	return false
 
 
@@ -166,6 +185,9 @@ func _sweep() -> int:
 						((q.shape as BoxShape3D)).size = Vector3(size.x, size.y, length)
 						q.transform = Transform3D(Basis(Vector3.UP, atan2(-dir.x, -dir.y)), Vector3(centre.x, y + LIFT + size.y * 0.5, centre.y))
 						if not space.intersect_shape(q, 1).is_empty():
+							if _allowed("lane", p):
+								allowed += 1
+								continue
 							(hits[kind] as Array).append([p, e, k, s])
 							if not dump_path.is_empty():
 								for c in space.collide_shape(q, 4):
@@ -290,6 +312,13 @@ func _routes() -> int:
 		var r := _drive(path, lanes.get(key, 0))
 		routes += 1
 		frames += r[0]
+		var kept: Array = []
+		for j: Array in r[1]:
+			if _allowed("jump", j[0]):
+				allowed += 1
+			else:
+				kept.append(j)
+		r[1] = kept
 		jumps += (r[1] as Array).size()
 		if verbose:
 			print("  route %d (%s): %d edges, %d frames, %d jumps" % [routes, key, path.size(), r[0], (r[1] as Array).size()])

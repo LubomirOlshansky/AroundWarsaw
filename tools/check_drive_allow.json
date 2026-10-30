@@ -1,0 +1,170 @@
+{
+ "about": "Loop 3d-1: places where game/tools/check_drive.gd's findings are allowed. Every entry: kind (lane: a lane spot in collision; jump: an autopilot height jump), at (map metres), r (metres), name, why, source. Each is a structure of the demo box that loop 3e builds (docs/DEMO.md 4.6); remove an entry when its structure is built (check_drive counts what it allowed).",
+ "allow": [
+  {
+   "kind": "lane",
+   "at": [
+    330,
+    -900
+   ],
+   "r": 50,
+   "name": "Tunel Wisłostrady, north portal",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre: the tunnel's lanes meet the building's underside and the portal's walls (the tunnel was cut by the first box's rim at z -885)",
+   "source": "OpenStreetMap (Tunel Wisłostrady), GUGiK LoD2; check_drive.gd on the loop 3d-1 bake"
+  },
+  {
+   "kind": "lane",
+   "at": [
+    187,
+    -1033
+   ],
+   "r": 12,
+   "name": "Tunel Wisłostrady, north ramp",
+   "reason": "loop 3e: the same tunnel's north ramp (Wybrzeże Kościuszkowskie meets the portal frame)",
+   "source": "check_drive.gd on the loop 3d-1 bake"
+  },
+  {
+   "kind": "jump",
+   "at": [
+    154,
+    -1060
+   ],
+   "r": 8,
+   "name": "Tunel Wisłostrady, north portal ramp",
+   "reason": "loop 3e: the tunnel's portal ramp meets the 10 m grid in 0.3 m steps",
+   "source": "check_drive.gd on the loop 3d-1 bake"
+  },
+  {
+   "kind": "lane",
+   "at": [
+    75,
+    1620
+   ],
+   "r": 50,
+   "name": "Plac Na Rozdrożu (Trasa Łazienkowska)",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's trench and tunnels under Plac Na Rozdrożu: the trench's ways (layer -1, no tunnel tag) run as a cutting the 10 m grid doesn't show, beside the tunnels' walls",
+   "source": "OpenStreetMap; check_drive.gd on the loop 3d-1 bake"
+  },
+  {
+   "kind": "jump",
+   "at": [
+    75,
+    1625
+   ],
+   "r": 70,
+   "name": "Trasa Łazienkowska tunnels, east",
+   "reason": "loop 3e: the tunnels under Plac Na Rozdrożu: their floors follow the grid's trench in 0.3-0.4 m steps a frame",
+   "source": "check_drive.gd on the loop 3d-1 bake"
+  },
+  {
+   "kind": "jump",
+   "at": [
+    -115,
+    1700
+   ],
+   "r": 60,
+   "name": "Trasa Łazienkowska tunnels, west",
+   "reason": "loop 3e: as above, by Aleje Ujazdowskie (0.4-0.8 m a frame where the tunnel floor meets the trench)",
+   "source": "check_drive.gd on the loop 3d-1 bake"
+  },
+  {
+   "kind": "lane",
+   "at": [
+    -835,
+    -1393
+   ],
+   "r": 25,
+   "name": "Aleja Solidarności, W-Z tunnel west portal",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z's tunnel under Plac Zamkowy: a bus box meets the portal's LoD2 building over the lane",
+   "source": "check_drive.gd on the loop 3d-1 bake"
+  },
+  {
+   "kind": "jump",
+   "at": [
+    -674,
+    -1408
+   ],
+   "r": 6,
+   "name": "Trasa W-Z, east portal",
+   "reason": "loop 3e: the W-Z tunnel's east portal ramp (0.3 m a frame)",
+   "source": "check_drive.gd on the loop 3d-1 bake"
+  },
+  {
+   "kind": "lane",
+   "at": [
+    1327,
+    1073
+   ],
+   "r": 65,
+   "name": "Trasa Łazienkowska interchange",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the stacked interchange of Trasa Łazienkowska with Czerniakowska and the Wisłostrada: buses under its decks meet piers and slabs (R8)",
+   "source": "check_drive.gd on the loop 3d-1 bake"
+  },
+  {
+   "kind": "lane",
+   "at": [
+    418,
+    -1519
+   ],
+   "r": 14,
+   "name": "Wybrzeże Szczecińskie under Most Śląsko-Dąbrowski",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Most Śląsko-Dąbrowski's Praga end over Wybrzeże Szczecińskie (deck 16 ends where its ramp's ways stop being bridges)",
+   "source": "check_drive.gd on the loop 3d-1 bake"
+  },
+  {
+   "kind": "lane",
+   "at": [
+    -328,
+    -916
+   ],
+   "r": 8,
+   "name": "Karowa, Wiadukt Markiewicza",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Wiadukt Markiewicza on Karowa, down the escarpment (its arches and walls)",
+   "source": "check_drive.gd on the loop 3d-1 bake"
+  },
+  {
+   "kind": "lane",
+   "at": [
+    -1814,
+    36
+   ],
+   "r": 4,
+   "name": "the courtyard lane under Wise Point",
+   "reason": "a 1 m round pillar of Wise Point's overhang (OpenStreetMap building, 14 m, the overhang is a floating part from 13 m) beside the courtyard living street that passes under it; the lane's corridor grazes it (a minor way no traffic uses much)",
+   "source": "OpenStreetMap; check_drive.gd on the loop 3d-1 bake"
+  },
+  {
+   "kind": "lane",
+   "at": [
+    -362,
+    -1462
+   ],
+   "r": 55,
+   "name": "Nowy Zjazd (Trasa W-Z)",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Nowy Zjazd's viaduct and ramps down to Most Śląsko-Dąbrowski: on the 1 m terrain its lanes meet the viaduct's walls and slab",
+   "source": "check_drive.gd on the loop 3d-1 bake (the 1 m terrain, east edge 21.056)"
+  },
+  {
+   "kind": "lane",
+   "at": [
+    2045,
+    815
+   ],
+   "r": 110,
+   "name": "Most Łazienkowski, the Praga end",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Most Łazienkowski's Praga end and its interchange with Wał Miedzeszyński (in the map since the east edge moved to 21.056): buses under and beside its decks meet piers and slabs",
+   "source": "check_drive.gd on the loop 3d-1 bake (the 1 m terrain, east edge 21.056)"
+  },
+  {
+   "kind": "lane",
+   "at": [
+    1988,
+    -217
+   ],
+   "r": 5,
+   "name": "Francuska by Rondo Waszyngtona",
+   "reason": "a fence on Francuska's grass median: the bus box grazes it where the lane runs wider than the road's width estimate (check_drive's known class)",
+   "source": "check_drive.gd on the loop 3d-1 bake (the 1 m terrain, east edge 21.056)"
+  }
+ ]
+}

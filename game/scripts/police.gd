@@ -1691,6 +1691,8 @@ func _ghost_drive(c: CharacterBody3D, top: float) -> bool:
 			_mask = c.collision_mask
 		if chasing():
 			_auto_flip += 1
+			if top == ESCAPE_TOP:
+				_escape_route()
 	_ghost.v_cap = top
 	_ghost.accel_factor = 5.0
 	_ghost.squeeze = 1.0
@@ -1702,6 +1704,35 @@ func _ghost_drive(c: CharacterBody3D, top: float) -> bool:
 	c.braking = false
 	c.target_dir = Vector3.ZERO
 	return true
+
+
+## Loop 3d-1 (the test autopilot only, --police-auto=escape): the escape rides a route to a node
+## ESCAPE_REACH m out on the side away from the chaser, not random turns. On the demo map's bigger
+## lane graph the random turns from the spawn went south, east, then back north-west past the
+## chaser's side, where a traffic patrol saw the car within 60 m at 20 s (police.md's second-unit
+## rule: L2, cap 40 s) and P3's L1 escape came at 34.2 s. Nothing the player meets changes.
+const ESCAPE_REACH := 900.0
+func _escape_route() -> void:
+	var u = _chaser()
+	var p := Vector2(_ghost.pos.x, _ghost.pos.z)
+	var away := Vector2(_ghost.pos.x, _ghost.pos.z) - Vector2(u.driver.pos.x, u.driver.pos.z) if u != null else Vector2.ZERO
+	away = away.normalized() if away.length() > 1.0 else Vector2(-sin(_ghost.yaw), -cos(_ghost.yaw))
+	var best := -1
+	var best_score := -INF
+	for n in graph.node_pos.size():
+		if graph.node_scc[n] == 0:
+			continue
+		var q := graph.node_pos[n] - p
+		var d := q.length()
+		if d < ESCAPE_REACH * 0.6 or d > ESCAPE_REACH * 1.4:
+			continue
+		var score := q.dot(away) / d - absf(d - ESCAPE_REACH) / ESCAPE_REACH
+		if score > best_score:
+			best_score = score
+			best = n
+	if best >= 0:
+		traffic.race_to(_ghost, best, graph.distances_to(best))
+		_log("escape route to node %d at %s (test autopilot)" % [best, graph.node_pos[best].round()])
 
 
 func _drop_ghost(c: CharacterBody3D) -> void:
