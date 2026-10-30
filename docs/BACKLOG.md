@@ -7,7 +7,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - Cars can overlap briefly in complex junctions; a racing rival stuck in traffic passes
   through other cars when off screen.
 - Trams and crossing cars can touch nose to nose.
-- Name tags and bubbles show faintly through the translucent WIN/LOSE card.
+- ~~Name tags and bubbles show faintly through the translucent WIN/LOSE card.~~ Fixed by loop 2e:
+  the result card is one of the HUD's floating panels, so it is in `hud.gd` `panel_rects()`, and
+  `bubbles.gd` skips a name tag that touches one and places bubbles clear of them (checked
+  2026-10-30 in the code; `check_hud` covers the layout).
 - From the spawn point only two race finishes (the Palace, Złote Tarasy) fall inside the
   600–1800 m road window; add more finish places or widen the window by rival.
 - The race and tail autopilots leave the car's collision off (like the mission autopilot);
@@ -16,7 +19,14 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Fixed in v0.65: races pay the rival's stake into the saved wallet.
 
 ## From earlier versions
-- Rescue mission time limits are untuned.
+- Rescue mission time limits are untuned. **Measured 2026-10-30** (a cloud thread, Linux headless,
+  `--mission=N --autopilot --fixed-fps 60` from the spawn, calls 1-12): the car autopilot used
+  31-39 % of the limit (call 4 Autonomia 50 of 145 s, call 3 Vistula shore 128 of 325 s), the
+  helicopter 41-51 % on the roofs (call 6 Sheraton 59 of 135 s, call 2 Nowogrodzka Square 120 of
+  235 s) and 31 % on street calls. The autopilot ghosts through traffic and drives the best line, so
+  a player at 1.5-2x its time still lands at 50-80 %: the car's limits are generous, the roofs
+  fair. Left as they are until the 3h playtests say a call feels slack (then tighten the car's
+  9.5 m/s pace in `missions.gd` `_limit_for` first; the helicopter's 17 m/s has the least slack).
 - ~~iPhone frame time is unmeasured~~: measured in loop 2b on an iPhone 16 Pro Max: 60 fps (the
   cap) at the default, zoomed-out and helicopter views; GDScript there takes 4–5× the Mac's time
   at 60 Hz (iOS runs the CPU slower when there is time to spare).
