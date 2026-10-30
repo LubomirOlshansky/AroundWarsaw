@@ -11,7 +11,7 @@ extends Node
 ## city empty, --race=N races rival N at once, --rival=N puts rival N just ahead,
 ## --bench drives through the traffic and prints the average frame time,
 ## --time=day|dusk|night sets the time of day, --vhs turns the tape overlay on,
-## --radio=0..3 picks the station (0 = off), --notitle skips the title screen and
+## --radio=N picks the station (0 = off), --notitle skips the title screen and
 ## --title shows it even with the testing flags. Side jobs and easter eggs (v0.65):
 ## --kebab=N starts kebab order N, --sloik[=K] the słoiki run (K jars already
 ## broken), --heat=X the kebab's starting heat, --host-in=S the radio host's first
@@ -468,7 +468,8 @@ func _ready() -> void:
 	# Loop 2a: the radio keeps playing under the settings panel (the game is paused).
 	radio.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(radio)
-	radio.tune(start_station - 1, true)
+	# --radio=N reaches every station in radio.json (a fourth one too); past the last, the last.
+	radio.tune(mini(start_station, radio.stations.size()) - 1, true)
 	wallet = Wallet.new()
 	wallet.persistent = not no_save
 	add_child(wallet)
@@ -1580,7 +1581,7 @@ func _parse_args() -> void:
 			call_in = maxf(0.0, float(arg.trim_prefix("--call-in=")))
 		elif arg.begins_with("--radio="):
 			var v := arg.trim_prefix("--radio=")
-			start_station = 0 if v == "off" else clampi(int(v), 0, Radio.STATIONS.size())
+			start_station = 0 if v == "off" else maxi(int(v), 0)
 		elif arg == "--notitle":
 			show_title = false
 		elif arg == "--title":
