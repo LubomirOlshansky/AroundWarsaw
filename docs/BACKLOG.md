@@ -1161,10 +1161,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Most Śląsko-Dąbrowski (65 m, on its hint) and Stadion Narodowy (115 m: the `stadium` poi is the
   bowl's middle; the helicopter's 60 m doesn't reach either). The bake's point (the west gate)
   fixes the stadium.
-- **PÓŁNOC FM track unlocks (MW-5).** A chapter complete is recorded in the save
-  (`wallet.chapters_done`, chapter id → yyyymmdd, section `notes_chapters` of `user://save.cfg`)
-  and paid (+50 zł, +30 respect) once; the track it unlocks (7 tracks for 9 chapters, the last
-  two a horn tune and the gold cover) is MW-5's: read `chapters_done` there.
+- ~~**PÓŁNOC FM track unlocks (MW-5).**~~ Done in loop MW-5: `notebook.gd` emits
+  `chapter_done`, `radio.gd` `sync_chapters` opens the next locked track (saved in `[polnoc]`).
 - The finding rule's "stop inside for 1 s" never decides anything with the car: a car stopped
   inside the radius is under 30 km/h and found at the next 2 Hz check anyway. Kept as specified
   (`Notebook.finds`, checked); if the stop is meant for a wider reach (parked at the kerb just
@@ -1182,6 +1180,37 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (vision.md section 9) exist.
 - The tap-a-place-within-80-m way of finding (vision.md 4.1, the landmark card's tap) is not
   built: the landmark tap (`main.gd` `_on_tap`) doesn't know the places yet.
+
+## From loop MW-5 (PÓŁNOC FM and the city's sounds, 2026-10-30)
+
+- Done: the 7 PÓŁNOC FM tracks (`tools/make_music.py --set=polnoc`, 3.93 MB of Ogg at 22.05 kHz,
+  40 kbps), the station (86,0; on air 22:00-06:00 and in the Night/Dawn looks, reruns at 70 % by
+  day, Kuba's `radio_polnoc` lines every 60-120 s, the ident first), the unlocks (tracks 1-2 free,
+  a chapter opens the next, `radio.unlock_track(n)` for the eggs), the city's sounds
+  (`city_sounds.gd`: club leaks by their hours, the metro chime, the bells at the hour, the
+  Patelnia busker 19:00-22:00, the 02:00 beat on Plac Trzech Krzyży), `check_radio`'s PÓŁNOC FM
+  part, `check_city_sounds` (verify step `sounds`, CI too), `--station=`, `--radio-log`, `--unlock=`.
+- **Judged by numbers only**: no speakers in the container. Loudness -13.8 to -14.0 LUFS, true peak
+  ≤ -1.5 dBTP, seams clean, band energy like the other three loops. The levels of the city's
+  sounds (`city_sounds.gd` KINDS: club -10, metro -12, bells -6, busker -11 dB on SFX) and the
+  70 % rerun level are guesses until heard on the phone. A phone speaker drops most of the club
+  leak's kick and the sub bass: the bass carries harmonics for that, but check by ear.
+- **Chapters 6-9 open nothing yet**: vision 4.1 gives the last two a horn tune and the gold
+  notebook cover (later loops); chapters 6 and 7 have no reward beyond the złoty and respect
+  (7 tracks, 2 free, so 5 chapters open tracks). An egg's track (E14: 5, E31: 2, which is free
+  already) is skipped by the chapters, so then one more chapter opens nothing.
+- **The eggs E14 and E31** only need `radio.unlock_track(5, "egg")` / `(2, ...)` (MW-6); E31's track
+  2 is free from the start, so its reward is a no-op as written: a design question for MW-6.
+- **Skipped (their crowds are MW-3 / MW-4's)**: the steps crowd's murmur, the guitarist on the
+  steps, dog barks at horns, the queue murmur, Jasna 0's grate rumble, dawn birds and the first
+  tram's bell, the metro's ventilation hum, the club door "closing" between admissions.
+- **The fixed looks' clock** (`time_of_day.gd` `local_clock`: Day 14:00, Dusk 19:30, Night 01:30,
+  Friday night) runs on in real time from when the look was set, so the bells strike after an
+  hour of play and the 02:00 beat comes 30 minutes into a Night run. MW-3's city clock should
+  take this over.
+- **The radio follows the clock** (PÓŁNOC FM on air, KEBAB FM by day) until the player presses R or
+  RADIO in the session; a station change by the clock shows the ticker. Not saved between sessions.
+- **The host speaks text only** (vision Open Question 6).
 
 ## From the web build (2026-10-30)
 

@@ -10,12 +10,25 @@ extends SceneTree
 ##      caption reads "freq NAME · title (artist)";
 ##   3. a single-track station's loop has no jump or gap across its loop point (decoded);
 ##   4. a track whose licence is "unknown" is a WARN line (check them before a release, README
-##      "Adding music"), not a failure. The total radio size is printed.
+##      "Adding music"), not a failure. The total radio size is printed;
+##   5. loop MW-5, PÓŁNOC FM (_check_polnoc): its 7 tracks (titles as vision.md 4.6, 90-120 s,
+##      no jump or gap across each one's loop point), the hours rule on synthetic times (and the
+##      looks' clock), reruns at 70 % and the host silent by day, the host every 60-120 s at
+##      night (the ident first), the radio following the clock until the player picks, the
+##      unlock order (chapters in order, an egg's track skipped, nothing past track 7) and its
+##      save, locked tracks never chosen, the unlock toast ≤ 70 characters.
 ## The last line is "radio: OK (counts and size)" or "radio: PROBLEM"; a WARN line comes before it
 ## (tools/verify.sh turns a "radio: WARN" line into a WARN row).
 ##   godot --headless --path game --script res://tools/check_radio.gd
 
 const Radio := preload("res://scripts/radio.gd")
+const Dialogue := preload("res://scripts/dialogue.gd")
+const Wallet := preload("res://scripts/wallet.gd")
+const TimeOfDay := preload("res://scripts/time_of_day.gd")
+## Loop MW-5: PÓŁNOC FM's tracks, exactly as vision.md 4.6's briefs.
+const POLNOC_TITLES := ["Sód", "Wiadukt", "Nocna przesiadka", "Szkło na Woli", "Bulwar, 23:40",
+		"Mgła nad Pałacem", "Świt na Smolnej"]
+const SCRATCH_SAVE := "user://check_radio_save.cfg"
 const FIELDS := ["file", "title", "artist", "seconds", "gain_db", "licence", "source"]
 
 
@@ -78,6 +91,7 @@ func _initialize() -> void:
 				unknown.append("%s (%s)" % [t.get("title", "?"), id])
 
 	await _check_radio(problems)
+	await _check_polnoc(problems)
 	var summary := "%d stations, %d tracks, %.2f MB of Ogg in game/audio/radio" % [
 			(data["stations"] as Array).size(), tracks, total_bytes / 1048576.0]
 	print("radio: ", summary)
@@ -121,21 +135,28 @@ func _check_radio(problems: Array[String]) -> void:
 			problems.append("next() from station %d went to %d" % [i - 1, radio.station])
 			break
 		var info: Dictionary = radio.stations[i]
-		var n: int = info["tracks"].size()
+		# Loop MW-5: a station with locked tracks plays only its unlocked ones (here, with no
+		# save, PÓŁNOC FM's two free tracks).
+		var n: int = radio.unlocked_count(i)
 		var label := String(info["name"])
 		if radio.label() != label:
 			problems.append("%s: label() says '%s'" % [label, radio.label()])
 		var order := radio.playlist()
-		print("    %s: %d track(s), today's order %s" % [label, n, order])
+		print("    %s: %d track(s) playing of %d, today's order %s" % [label, n, info["tracks"].size(), order])
 		var sorted := order.duplicate()
 		sorted.sort()
 		var want: Array[int] = []
-		for k in n:
-			want.append(k)
+		for k in info["tracks"].size():
+			if radio.is_unlocked(i, k):
+				want.append(k)
 		if sorted != want:
-			problems.append("%s: the playlist %s is not a permutation of its %d tracks" % [label, order, n])
-		if radio._shuffled(n, i) != order:
-			problems.append("%s: the same day shuffled twice gave two orders (%s, %s)" % [label, order, radio._shuffled(n, i)])
+			problems.append("%s: the playlist %s is not a permutation of its %d unlocked tracks" % [label, order, n])
+		var again: Array[int] = []
+		for k: int in radio._shuffled(info["tracks"].size(), i):
+			if radio.is_unlocked(i, k):
+				again.append(k)
+		if again != order:
+			problems.append("%s: the same day shuffled twice gave two orders (%s, %s)" % [label, order, again])
 		if n == 0:
 			if not radio.current_track().is_empty():
 				problems.append("%s: no tracks but a current track" % label)
@@ -205,3 +226,202 @@ func _check_seam(track: Dictionary, label: String, problems: Array[String]) -> v
 			label, near, p99, silent, pb.get_loop_count()])
 	if near > p99 * 1.5 + 0.01 or silent > 64:
 		problems.append("%s: the loop point jumps or has a gap" % label)
+
+
+# --- loop MW-5: PÓŁNOC FM ---------------------------------------------------------------------
+
+func _check_polnoc(problems: Array[String]) -> void:
+	var radio := Radio.new()
+	root.add_child(radio)
+	await process_frame
+	var si := radio.polnoc_index()
+	if si < 0:
+		problems.append("PÓŁNOC FM: no station '%s' in radio.json" % Radio.POLNOC)
+		radio.queue_free()
+		return
+	var st: Dictionary = radio.stations[si]
+	# 1. the data: the station, its 7 tracks as the briefs, their lengths and loop seams
+	if st["name"] != "PÓŁNOC FM" or st["freq"] != "86,0" or int(st["free"]) != 2:
+		problems.append("PÓŁNOC FM: name '%s', freq '%s', free %d (expected PÓŁNOC FM, 86,0, 2)" % [st["name"], st["freq"], st["free"]])
+	var titles: Array = []
+	for t: Dictionary in st["tracks"]:
+		titles.append(t["title"])
+	if titles != POLNOC_TITLES:
+		problems.append("PÓŁNOC FM: tracks %s, the briefs say %s" % [titles, POLNOC_TITLES])
+	for t: Dictionary in st["tracks"]:
+		var length: float = (load(t["file"]) as AudioStream).get_length()
+		if length < 90.0 or length > 120.5:
+			problems.append("PÓŁNOC FM: %s is %.1f s (the briefs: 90-120 s loops)" % [t["title"], length])
+		_check_seam(t, "PÓŁNOC FM / %s" % t["title"], problems)
+	# 2. the hours rule on synthetic times, and the fixed looks' clock (time_of_day.gd)
+	var cases := [["Day", 14.0, false], ["Dusk", 19.5, false], ["Night", 1.5, true], ["Night", 14.0, true],
+			["Dawn", 5.75, true], ["Live", 21.99, false], ["Live", 22.0, true], ["Live", 0.0, true],
+			["Live", 3.5, true], ["Live", 5.99, true], ["Live", 6.0, false], ["Live", 12.0, false]]
+	for c: Array in cases:
+		if Radio.on_air_at(c[0], c[1]) != c[2]:
+			problems.append("PÓŁNOC FM: on air at %s %.2f should be %s" % [c[0], c[1], c[2]])
+	var clocks := [["Day", 0.0, 14.0, 5], ["Dusk", 0.0, 19.5, 5], ["Night", 0.0, 1.5, 6], ["Dusk", 5.0, 0.5, 6],
+			["Night", 1.0, 2.5, 6], ["Day", 10.5, 0.5, 6]]
+	for c: Array in clocks:
+		var lc := TimeOfDay.look_clock(c[0], c[1])
+		if absf(float(lc["hour"]) - float(c[2])) > 0.001 or int(lc["weekday"]) != int(c[3]):
+			problems.append("look_clock(%s, +%.1f h) = %s (expected %.2f, weekday %d)" % [c[0], c[1], lc, c[2], c[3]])
+	# 3. reruns by day at 70 %, the host silent; on air at night, the host's group (the clock
+	# lambda holds this array, so the cases change its contents)
+	var look := ["Day", 14.0]
+	radio.clock = func() -> Array: return look
+	radio.picked = true
+	radio.tune(si, true)
+	radio.check_air(true)
+	if not radio.is_rerun() or absf(radio.level_db() - (Radio.VOLUME_DB + Radio.RERUN_DB)) > 0.01 or radio.host_group() != "":
+		problems.append("PÓŁNOC FM by day: rerun %s, level %.1f dB (want %.1f), host '%s' (want silent)" % [
+				radio.is_rerun(), radio.level_db(), Radio.VOLUME_DB + Radio.RERUN_DB, radio.host_group()])
+	if not radio.caption().contains("powtórka") or radio.caption_sub() == "":
+		problems.append("PÓŁNOC FM by day: the caption '%s' / '%s' doesn't say rerun" % [radio.caption(), radio.caption_sub()])
+	look.assign(["Night", 1.5])
+	radio.check_air()
+	if radio.is_rerun() or absf(radio.level_db() - Radio.VOLUME_DB) > 0.01 or radio.host_group() != "radio_polnoc":
+		problems.append("PÓŁNOC FM at night: rerun %s, level %.1f dB, host '%s' (want radio_polnoc)" % [
+				radio.is_rerun(), radio.level_db(), radio.host_group()])
+	radio.tune(radio.station_index(Radio.DAY_DEFAULT), true)
+	if radio.host_group() != "radio_host":
+		problems.append("KEBAB FM's host group is '%s' (want radio_host)" % radio.host_group())
+	# 4. following the clock until the player picks a station
+	radio.picked = false
+	radio.check_air(true)
+	var night_station := radio.station
+	look.assign(["Live", 14.0])
+	radio.check_air()
+	var day_station := radio.station
+	radio.next()
+	var after_pick := radio.station
+	look.assign(["Live", 23.0])
+	radio.check_air()
+	if night_station != si or day_station != radio.station_index(Radio.DAY_DEFAULT) or radio.station != after_pick or not radio.picked:
+		problems.append("following the clock: night %d (want %d), day %d (want %d), after a pick %d stayed %d" % [
+				night_station, si, day_station, radio.station_index(Radio.DAY_DEFAULT), after_pick, radio.station])
+	# 5. the host through dialogue.gd: at night every 60-120 s (the ident first), by day never
+	var heard := _host_run(radio, si, ["Night", 1.5], 900.0)
+	var gaps: Array = []
+	for k in range(1, heard.size()):
+		gaps.append(snappedf(float(heard[k][0]) - float(heard[k - 1][0]), 0.1))
+	print("    PÓŁNOC FM host at night: %d lines in 900 s, gaps %s s" % [heard.size(), gaps])
+	if heard.size() < 7 or not String(heard[0][1]).contains("86,0"):
+		problems.append("PÓŁNOC FM at night: %d host lines in 900 s (want ≥ 7, the ident first: '%s')" % [heard.size(), heard[0][1] if not heard.is_empty() else ""])
+	for g: float in gaps:
+		if g < 59.9 or g > 120.6:
+			problems.append("PÓŁNOC FM at night: a host gap of %.1f s (want 60-120)" % g)
+	var by_day := _host_run(radio, si, ["Day", 14.0], 600.0)
+	print("    PÓŁNOC FM host by day: %d lines in 600 s" % by_day.size())
+	if not by_day.is_empty():
+		problems.append("PÓŁNOC FM by day: the host spoke %d times (want silent)" % by_day.size())
+	# 6. the unlocks: chapters in order, saved; an egg's track is skipped by the chapters
+	var opened: Array = []
+	radio.track_unlocked.connect(func(n: int, _t: Dictionary, _why: String) -> void: opened.append(n))
+	var w := _wallet()
+	w.path = SCRATCH_SAVE
+	w.persistent = true
+	radio.wallet = w
+	var steps: Array = []
+	w.chapters_done["noc"] = 1
+	steps.append(radio.sync_chapters())
+	for id: String in ["bary", "schodki", "trendy", "metro"]:
+		w.chapters_done[id] = 1
+	steps.append(radio.sync_chapters())
+	for id: String in ["jedzenie", "codziennie", "retro", "kiedys"]:
+		w.chapters_done[id] = 1
+	steps.append(radio.sync_chapters())
+	steps.append(radio.sync_chapters())
+	if str(steps) != str([[3], [4, 5, 6, 7], [], []]) or w.track_chapters != 9 or str(opened) != str([3, 4, 5, 6, 7]):
+		problems.append("unlocks by chapter: %s (want [[3], [4, 5, 6, 7], [], []]), %d chapters counted, signals %s" % [steps, w.track_chapters, opened])
+	var back := _wallet()
+	back.path = SCRATCH_SAVE
+	back.persistent = true
+	back.load_save()
+	var keys: Array = back.tracks.keys()
+	keys.sort()
+	if str(keys) != str([3, 4, 5, 6, 7]) or back.track_chapters != 9:
+		problems.append("the unlocks' save read back as %s, %d chapters (want [3..7], 9)" % [keys, back.track_chapters])
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(SCRATCH_SAVE))
+	var egg := _wallet()
+	radio.wallet = egg
+	var e1 := radio.unlock_track(5, "egg")
+	var e2 := radio.unlock_track(5, "egg")
+	var e3 := radio.unlock_track(1, "egg")
+	for id: String in ["noc", "bary", "schodki", "trendy", "metro"]:
+		egg.chapters_done[id] = 1
+	var after_egg := radio.sync_chapters()
+	if not e1 or e2 or e3 or str(after_egg) != str([3, 4, 6, 7]):
+		problems.append("an egg's track: first %s, again %s, a free one %s, then 5 chapters opened %s (want [3, 4, 6, 7])" % [e1, e2, e3, after_egg])
+	# 7. locked tracks never play
+	var fresh := _wallet()
+	radio.wallet = fresh
+	radio.picked = true
+	radio.tune(si, true)
+	var played := {}
+	for k in 40:
+		played[radio.track_number()] = true
+		if radio.current_track().is_empty():
+			problems.append("PÓŁNOC FM with 2 open tracks: no current track after %d skips" % k)
+			break
+		radio.next_track()
+	var nums: Array = played.keys()
+	nums.sort()
+	if str(nums) != str([1, 2]) or radio.playlist().size() != 2:
+		problems.append("PÓŁNOC FM with only the free tracks played %s, playlist %s (want [1, 2])" % [nums, radio.playlist()])
+	radio.unlock_track(3, "check")
+	played.clear()
+	for k in 6:
+		radio.next_track()
+		played[radio.track_number()] = true
+	if not played.has(3):
+		problems.append("PÓŁNOC FM: track 3 opened but never played in 6 skips (%s)" % [played.keys()])
+	radio.unlock_all = true
+	if radio.playlist().size() != 7:
+		problems.append("--unlock=all: the playlist has %d tracks" % radio.playlist().size())
+	radio.unlock_all = false
+	# 8. the toast
+	for t: String in POLNOC_TITLES:
+		for l: String in Radio.unlock_toast(t):
+			if l.length() > 70:
+				problems.append("the unlock toast is %d characters: '%s'" % [l.length(), l])
+	print("    PÓŁNOC FM: %d tracks, free %d, unlocks by chapter %s, after an egg's 5: %s" % [titles.size(), st["free"], steps, after_egg])
+	for n in [w, back, egg, fresh]:
+		n.queue_free()
+	radio.queue_free()
+
+
+## A wallet that never reads or writes the player's save.
+func _wallet() -> Node:
+	var w := Wallet.new()
+	w.persistent = false
+	root.add_child(w)
+	return w
+
+
+## dialogue.gd's host on `radio` tuned to station `si` at `look` for `seconds` of play (2 Hz
+## steps, a fixed seed): [[time, Polish line]] of what he said.
+func _host_run(radio: Node, si: int, look: Array, seconds: float) -> Array:
+	radio.clock = func() -> Array: return look
+	radio.picked = true
+	radio.tune(si, true)
+	radio.check_air(true)
+	var d := Dialogue.new()
+	root.add_child(d)
+	d._rng.seed = 5
+	d._host_next = d._rng.randf_range(Dialogue.HOST_GAP.x, Dialogue.HOST_GAP.y)
+	d.radio = radio
+	var heard: Array = []
+	var now := [0.0]
+	var take := func(text: String, _c: Color, _s: String) -> void:
+		heard.append([now[0], text.get_slice(":  ", 1)])
+	radio.ticker.connect(take)
+	d.on_station_changed(si, radio.stations[si])
+	var t := 0.0
+	while t < seconds:
+		t += 0.5
+		now[0] = t
+		d._frame(0.5)
+	radio.ticker.disconnect(take)
+	d.free()
+	return heard
