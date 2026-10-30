@@ -2975,7 +2975,7 @@ home screen).
 | Triangles, main pass (spawn / zoomed out) | 0.25 M / 0.36 M | 0.32 M / 0.50 M | 0.45 M / 0.70 M |
 | Triangles, shadow pass (spawn / zoomed out) | 0.14 M / 0.27 M | 0.18 M / 0.35 M | 0.25 M / 0.45 M |
 | Scripts, all systems (`scripts … ms` at the spawn, Mac) | 0.6–0.9 ms | 1.0 ms | 1.3 ms |
-| Metal frame, bench (Mac, 1280×720, uncapped) | 1.5–1.9 ms | 2.2 ms | 2.6 ms |
+| Metal frame, bench (Mac, uncapped; since 2026-10-30 at `--resolution 1920x1080`, see below) | 1.5–1.9 ms | 2.2 ms | 2.6 ms |
 | GPU, Vulkan bench (Mac, 1920×1080) | 0.80–0.87 ms | 1.0 ms | 1.2 ms |
 | GPU, Vulkan zoomed out at 2868×1320 (`--gpu-profile`) | 1.65 ms | 1.9 ms | 2.2 ms |
 | iPhone TEST · BENCH at High, 60 fps cap | 60 fps, 1 % low ≥ 56 | 60, 1 % low ≥ 55 | 60, 1 % low ≥ 55 |
@@ -2986,6 +2986,16 @@ home screen).
 | Loop G0+: the iPhone 11 at Auto ×1, 20 minutes each by day, night and rain at night (`--autopilot --governor=log`) | 60.0 fps every minute (59.9 at worst), 18–23 missed refreshes of ~72,000, 0 governor changes, calm | no struggle verdict | no struggle verdict |
 | Loop G1: TEST · BENCH at Auto on the iPhone 11 (High, 896×414) and the Pro Max (Ultra, 1434×660), 60 fps cap | 60 fps, 1 % low 56.6 / 57.3, 0 missed refreshes | 60, 0 missed refreshes, 1 % low ≥ 55 | 60, 0 missed refreshes, 1 % low ≥ 55 |
 | Loop G1b: the iPhone 11 at Auto, now High ×1 sharp (1792×828): BENCH minute, and a 15-minute day drive with the governor on (missed refreshes, governor changes) | BENCH 60 fps, 0 missed, 1 % low 54.4 / 58.7 (cool / warm); drive 60.0 every minute, 5 missed in 17.7 min, 0 governor changes | 60, 0 missed refreshes, 1 % low ≥ 55; the drive with no struggle verdict | 60, 0 missed refreshes, 1 % low ≥ 55; the drive with no struggle verdict (else the content costs the iPhone 11 its sharp default) |
+
+**The bench's window (performance lane, 2026-10-30).** On macOS 27 a small window waits about
+4 ms in the draw/present step whatever is drawn: at the default 1280×720 the bench's frame
+reads 5.6–6.3 ms (main-thread "draw" 4.0–4.6 ms) both before and after loop 3d-1, while at
+1920×1080 and up "draw" is 0.6–1.1 ms. It doesn't follow pixels (1920×1080 at ×1 has 4.5× the
+pixels and is 5× faster) or objects (`--size=40` against `200`). So the Metal frame row is now
+measured with `--resolution 1920x1080`: 2.4 ms before loop 3d-1, 2.5–2.7 ms after (at the
+ceiling). What 3d-1 really added: +0.5–0.7 ms of main-thread process (1.14 → 1.64–1.81 ms; with
+`--no-traffic` it is 0.60), main-pass triangles 0.17 → 0.20 M, static memory 173 → ~330 MB (the
+prebuilt city 241 MB). Draw calls 73–139 at every view measured, well inside.
 
 Loop 3g-1 (the police; police.md section 12 allowed ≤ +3 draw calls at any view, ≤ +8 k
 triangles, ≤ 0.15 ms of script, ≤ +2 MB) spent, in a koguty 3 chase: +1 to +3 draw calls at the

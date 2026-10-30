@@ -276,6 +276,13 @@ var _halos: MultiMesh
 var _lamp_state := PackedInt32Array()
 ## Controller*2+group -> lamp instance indices (first of three per pole).
 var _lamp_slots := {}
+## The performance lane (2026-10-30): `_lamp_slots`' keys, checked LAMP_STRIDE frames apart in
+## turn. Loop 3d-1's bigger map has every signal of 18.6 km² in here, and asking each one's
+## light every frame grew with the map; a lamp now changes at most LAMP_STRIDE frames (0.1 s
+## at 60 fps) after its controller does. The cars read `graph.light` themselves, unaffected.
+var _lamp_keys := PackedInt32Array()
+var _lamp_turn := 0
+const LAMP_STRIDE := 6
 
 
 func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dictionary) -> void:
@@ -1618,10 +1625,13 @@ func _build_lamps(signals: Array) -> void:
 	add_child(hmi)
 	_lamp_state.resize(graph.ctrl_pos.size() * 2)
 	_lamp_state.fill(-1)
+	_lamp_keys = PackedInt32Array(_lamp_slots.keys())
 
 
 func _update_lamps() -> void:
-	for key in _lamp_slots:
+	_lamp_turn = (_lamp_turn + 1) % LAMP_STRIDE
+	for n in range(_lamp_turn, _lamp_keys.size(), LAMP_STRIDE):
+		var key := _lamp_keys[n]
 		var state := graph.light(key / 2, key % 2)
 		if state == _lamp_state[key]:
 			continue
