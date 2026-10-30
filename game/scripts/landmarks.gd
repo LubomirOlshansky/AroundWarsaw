@@ -71,6 +71,16 @@ const TOWERS := [
 	{"key": "chalubinskiego8", "osm": "Chałubińskiego 8", "style": S_FINS, "glass": "#2f6f8f", "roof": "#c9cfd2", "mapped": true},
 	{"key": "spektrum", "osm": "Spektrum Tower", "style": S_BANDS, "glass": "#2f5563", "roof": "#7c878c", "mapped": true},
 	{"key": "bridge", "osm": "The Bridge", "style": S_FINS, "glass": "#6d8da6", "roof": "#b0bac2"},
+	# The second pass: the rest of the skyline over 80 m (the hotels by their addresses).
+	{"key": "grzybowska63", "osm": "Hilton Warsaw City", "style": S_BANDS, "glass": "#4d7590", "roof": "#9aa5ad"},
+	{"key": "jp2_21", "osm": "The Westin Warsaw", "style": S_GRID, "glass": "#86aca7", "roof": "#a9b5b3", "mapped": true},
+	{"key": "marszalkowska94", "osm": "Novotel Warszawa Centrum", "style": S_RIBBON, "glass": "#3b4a55", "roof": "#c9c9c2"},
+	{"key": "central", "osm": "Central Tower", "style": S_DARK, "glass": "#3e5c78", "roof": "#6f7d88"},
+	{"key": "ilmet", "osm": "Ilmet", "style": S_BANDS, "glass": "#7d5a48", "roof": "#8c8278"},
+	{"key": "platinum_a", "osm": "Platinum Tower A", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
+	{"key": "platinum_b", "osm": "Platinum Tower B", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
+	{"key": "lucka", "osm": "Łucka City", "style": S_RIBBON, "glass": "#7c8c98", "roof": "#bfc3c3"},
+	{"key": "widok", "osm": "Widok Towers", "style": S_FINS, "glass": "#4f677b", "roof": "#8d969c"},
 ]
 
 const SANDSTONE := Color("#d8c49c")   # the Palace (bake_gugik.py LANDMARKS)
@@ -155,6 +165,15 @@ const INFO := {
 	"bridge": ["The Bridge",
 			"174 m przy Grzybowskiej.",
 			"174 m on Grzybowska."],
+	"grzybowska63": ["Grzybowska 63", "Hotel, 94 m.", "A hotel, 94 m."],
+	"jp2_21": ["Jana Pawła II 21", "Hotel, 94 m.", "A hotel, 94 m."],
+	"marszalkowska94": ["Marszałkowska 94/98", "Hotel, 95 m.", "A hotel, 95 m."],
+	"central": ["Central Tower", "115 m przy Alejach Jerozolimskich.", "115 m on Al. Jerozolimskie."],
+	"ilmet": ["Ilmet", "103 m.", "103 m."],
+	"platinum_a": ["Platinum Tower A", "83 m.", "83 m."],
+	"platinum_b": ["Platinum Tower B", "83 m.", "83 m."],
+	"lucka": ["Łucka City", "103 m przy Łuckiej.", "103 m on Łucka."],
+	"widok": ["Widok Towers", "95 m przy Alejach Jerozolimskich.", "95 m on Al. Jerozolimskie."],
 	"muzeum": ["Muzeum Narodowe",
 			"Gmach z lat 1927–1938 przy Alejach Jerozolimskich.",
 			"The museum's building of 1927–1938 on Al. Jerozolimskie."],
