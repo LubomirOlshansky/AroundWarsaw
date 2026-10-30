@@ -17,8 +17,7 @@
 #   1. python3 -I tools/bake_sectors.py → game/map/index.json, sectors/<i>_<j>.json, sectors/split.stamp
 #   2. godot --path game --resolution 320x180 --script res://tools/bake_city.gd (WITH a renderer:
 #      --headless drops MultiMesh and texture data) → sectors/s_<i>_<j>.scn, proxies.scn,
-#      index.res, shared/*.res, sectors/city.stamp (2026-10-30: before it, tools/bake_map_textures.py
-#      writes shared/ao_map.png and light_map.png and Godot imports them VRAM-compressed)
+#      index.res, shared/*.res, sectors/city.stamp
 # then checks them (tools/check_map_data.py). On a clone Godot has never opened, it imports the
 # project first (.godot/ is missing; a minute or so). tools/verify.sh runs this with --if-needed
 # when the files are missing; tools/export_ios.sh runs steps 1 and 2 every time.
@@ -65,10 +64,6 @@ mkdir -p $ROOT/build
 log=$ROOT/build/setup_map.log
 python3 -I ../tools/bake_sectors.py map > $log
 head -2 $log
-# 2026-10-30: the AO and lamp-light maps as PNGs, imported VRAM-compressed for bake_city.gd
-# (tools/bake_map_textures.py; the import is a quick no-op when they haven't changed).
-python3 -I ../tools/bake_map_textures.py map >> $log
-$GODOT --headless --path . --import >> $log 2>&1 || true
 # Not --headless (see above): this opens a small window for a few seconds.
 if ! $GODOT --path . --resolution 320x180 --script res://tools/bake_city.gd >> $log 2>&1; then
 	grep -E 'ERROR|error' $log | head -5

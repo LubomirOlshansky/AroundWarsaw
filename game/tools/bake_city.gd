@@ -170,7 +170,6 @@ func _same_sites(map: Node3D) -> bool:
 func _save_shared(map: Node3D) -> Error:
 	var shared: Dictionary = map.get("_shared")
 	var flat: ShaderMaterial = map.flat_material
-	_use_imported(map, shared)
 	var items := [
 		["ao_map", flat.get_shader_parameter("ao_map")],
 		["light_map", map.light_texture],
@@ -183,8 +182,8 @@ func _save_shared(map: Node3D) -> Error:
 		items.append([name, shared[name]])
 	for item: Array in items:
 		var res: Resource = item[1]
-		if res == null or res.resource_path.ends_with(".png"):
-			continue  # the imported maps are referred to by their own path
+		if res == null:
+			continue
 		var path: String = SHARED + String(item[0]) + ".res"
 		var err := ResourceSaver.save(res, path, ResourceSaver.FLAG_COMPRESS)
 		if err != OK:
@@ -193,46 +192,6 @@ func _save_shared(map: Node3D) -> Error:
 		# From now on the scenes saved refer to it by this path instead of carrying a copy.
 		res.take_over_path(path)
 	return OK
-
-
-## 2026-10-30: the AO and lamp-light maps go in VRAM-compressed (EAC RG11 on the phones, BC5 on
-## desktops, a byte a texel instead of two: -40 MB of video memory on the phone, and smaller in
-## the web download) when tools/bake_map_textures.py and Godot's import have made them
-## (map/shared/ao_map.png, light_map.png; tools/setup_map.sh). Every material holding the RG8
-## texture built from the .bin gets the import instead, and its rect is scaled to the import's
-## padding (a multiple of 4 texels) so each texel stays where it was. Without the import the
-## RG8 textures are saved as before.
-func _use_imported(map: Node3D, shared: Dictionary) -> void:
-	var flat: ShaderMaterial = map.flat_material
-	var materials: Array[ShaderMaterial] = [flat]
-	for m: Variant in [map.building_material, map.leaf_material] + shared.values():
-		if m is ShaderMaterial and not materials.has(m):
-			materials.append(m)
-	for pair: Array in [["ao_map", "ao_rect", flat.get_shader_parameter("ao_map")], ["light_map", "light_rect", map.light_texture]]:
-		var png := SHARED + String(pair[0]) + ".png"
-		var old: Texture2D = pair[2]
-		if old == null or not ResourceLoader.exists(png):
-			print("bake_city: %s stays RG8 (no imported %s: tools/setup_map.sh makes it)" % [pair[0], png])
-			continue
-		var tex: Texture2D = load(png)
-		if tex.get_width() < old.get_width() or tex.get_height() < old.get_height():
-			push_error("bake_city: %s is %dx%d, smaller than the map's %dx%d: stale, run tools/setup_map.sh" % [png,
-					tex.get_width(), tex.get_height(), old.get_width(), old.get_height()])
-			continue
-		var grow := Vector2(float(tex.get_width()) / old.get_width(), float(tex.get_height()) / old.get_height())
-		var n := 0
-		for m in materials:
-			if m.get_shader_parameter(pair[0]) == old:
-				var r: Vector4 = m.get_shader_parameter(pair[1])
-				m.set_shader_parameter(pair[0], tex)
-				m.set_shader_parameter(pair[1], Vector4(r.x, r.y, r.z * grow.x, r.w * grow.y))
-				n += 1
-		if pair[0] == "light_map":
-			map.light_texture = tex
-			map.light_rect = Vector4(map.light_rect.x, map.light_rect.y, map.light_rect.z * grow.x, map.light_rect.w * grow.y)
-		# An RG8 copy from an earlier bake would only take room.
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(SHARED + String(pair[0]) + ".res"))
-		print("bake_city: %s VRAM-compressed (%dx%d, %d materials)" % [pair[0], tex.get_width(), tex.get_height(), n])
 
 
 func _own(node: Node, owner: Node) -> void:
