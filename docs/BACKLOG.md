@@ -919,3 +919,16 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - The screenshots are from the prototype (loops 1, 2b, 3a, 10a); refresh them from a current
   `tools/shots.sh` set when the look loop lands. The Palace shot shows the occlusion dither as a
   hole in the tower, which reads as a glitch to someone who hasn't played.
+- From the landing's screenshot session (2026-10-30, runtime city, 2868×1320): the map's edge
+  shows in wide views (about `--size=220` and up): a flat light-blue void by day east of the
+  stadium and west/south of Varso, a sunset band at dusk, a dark slab at night, and a brown
+  streaked "skirt" south of Varso (`--at=-1602,717 --yaw=0 --size=240`). It matters for any
+  wide or marketing camera and for the helicopter high up.
+- `--time=night --nohud` runs quit without writing the shot about one time in three (the log
+  ends after "city built", clean exit); by day, or without `--nohud`, every run wrote it.
+  `tools/shots.sh` would report MISSING.
+- The occlusion dither cuts a visible hole in towers in stills (Rondo Dmowskiego
+  `--at=-806.3,446.4 --heading=335`, Varso with `--yaw=250`, the Palace's wing looking north
+  from Emilii Plater).
+- A thin dark crack-like line across the plaza at the Palace's south-east corner at night
+  (`--at=-1410,159 --yaw=90 --size=260 --time=night`, visible at full size).
