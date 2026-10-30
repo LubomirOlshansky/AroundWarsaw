@@ -934,6 +934,18 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - A thin dark crack-like line across the plaza at the Palace's south-east corner at night
   (`--at=-1410,159 --yaw=90 --size=260 --time=night`, visible at full size).
 
+## From the store listings (2026-10-30)
+
+- `https://aroundwarsaw.app/support/` exists in the repo (`docs/support.md`) but goes live only
+  with the next deploy; the store forms link to it.
+- iPad: the iOS preset targets iPhone and iPad (`targeted_device_family=2`); keep or drop
+  before the first App Store release (QUESTIONS.md). Nobody has played on an iPad yet.
+- The App Store wants a privacy manifest (`PrivacyInfo.xcprivacy`) for apps using
+  required-reason APIs (file timestamps, system boot time, UserDefaults); Godot's iOS template
+  may need one declaring them, with no data collected. Check App Store Connect's email after
+  the first upload.
+- The store screenshots show the HUD; they need redoing when the HUD changes.
+
 ## From the driving-feel loop (less sticky, 2026-10-30)
 
 - Street furniture is still solid and unknockable: benches, bike racks, advertising columns,

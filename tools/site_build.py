@@ -1,4 +1,4 @@
-"""Build the website's pages: the landing in English and Polish, and the privacy page.
+"""Build the website's pages: the landing in English and Polish, the privacy and support pages.
 
 Usage: python3 -I tools/site_build.py
 
@@ -6,8 +6,10 @@ Writes site/public/index.html (English, the default) and site/public/pl/index.ht
 template site/src/index.html and the copy in site/src/strings.json ({{key}} placeholders;
 the screenshot reel, the list of things to do and the form's topics are built here), and
 site/public/privacy/index.html from docs/privacy.md, so the policy the stores link to
-(https://aroundwarsaw.app/privacy/) always says what that file says. The Markdown converter
-knows only what docs/privacy.md uses: #/## headings, paragraphs, "- " lists, **bold**, "---".
+(https://aroundwarsaw.app/privacy/) always says what that file says, and
+site/public/support/index.html from docs/support.md (the stores' support URL). The Markdown
+converter knows only what those files use: #/## headings, paragraphs, "- " lists, **bold**,
+[links](url), "---".
 """
 
 import html
@@ -17,8 +19,6 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "docs" / "privacy.md"
-OUT = ROOT / "site" / "public" / "privacy" / "index.html"
 SITE = ROOT / "site"
 # Copy that carries its own markup (links, separators); everything else is escaped.
 RAW_KEYS = {"f_legal", "radio_lines"}
@@ -28,8 +28,8 @@ PAGE = """<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Privacy · Around Warsaw</title>
-<meta name="description" content="Around Warsaw collects no personal data. Privacy policy for the game and this website.">
+<title>{title} · Around Warsaw</title>
+<meta name="description" content="{description}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/styles.css">
 </head>
@@ -37,7 +37,14 @@ PAGE = """<!doctype html>
 <header class="bar"><div class="bar-in"><a class="brand" href="/"><img src="/favicon.svg" alt="" width="28" height="28">Around Warsaw</a></div></header>
 <main class="prose">
 {body}
-<h2>This website · Ta strona</h2>
+{extra}<p><a href="https://github.com/LubomirOlshansky/AroundWarsaw/issues">GitHub issues</a> · <a href="/">← aroundwarsaw.app</a></p>
+</main>
+</body>
+</html>
+"""
+
+# The privacy page's part about the site itself (docs/privacy.md is about the game).
+PRIVACY_SITE = """<h2>This website · Ta strona</h2>
 <p>aroundwarsaw.app sets no cookies and runs no analytics or trackers. It is served by
 Cloudflare, which handles ordinary request data (such as IP addresses) only to deliver and
 protect the site. The beta and feedback form sends what you type (your email, phone type and
@@ -50,21 +57,18 @@ Formularz bety i opinii wysyła to, co wpiszesz (e-mail, rodzaj telefonu, wiadom
 Formspree do skrzynki autora. E-mail służy tylko do wysłania zaproszenia do bety albo
 odpowiedzi i zostanie usunięty na prośbę (napisz na Telegramie, @olshansky93, albo przez ten
 sam formularz).</p>
-<p><a href="https://github.com/LubomirOlshansky/AroundWarsaw/issues">GitHub issues</a> · <a href="/">← aroundwarsaw.app</a></p>
-</main>
-</body>
-</html>
 """
 
 
 def inline(text: str) -> str:
-    """Escapes text and turns **bold** into <strong>."""
+    """Escapes text and turns **bold** into <strong> and [text](url) into a link."""
     text = html.escape(text, quote=False)
+    text = re.sub(r"\[(.+?)\]\((\S+?)\)", r'<a href="\2">\1</a>', text)
     return re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
 
 
 def convert(md: str) -> str:
-    """Converts the small Markdown subset docs/privacy.md uses into HTML."""
+    """Converts the small Markdown subset docs/privacy.md and docs/support.md use into HTML."""
     out: list[str] = []
     para: list[str] = []
     items: list[str] = []
@@ -142,7 +146,14 @@ def main() -> int:
     pages = {
         SITE / "public" / "index.html": landing(strings, "en"),
         SITE / "public" / "pl" / "index.html": landing(strings, "pl"),
-        OUT: PAGE.format(body=convert(SRC.read_text(encoding="utf-8"))),
+        SITE / "public" / "privacy" / "index.html": PAGE.format(
+            title="Privacy", extra=PRIVACY_SITE,
+            description="Around Warsaw collects no personal data. Privacy policy for the game and this website.",
+            body=convert((ROOT / "docs" / "privacy.md").read_text(encoding="utf-8"))),
+        SITE / "public" / "support" / "index.html": PAGE.format(
+            title="Support · Pomoc", extra="",
+            description="Help with Around Warsaw and its beta: contact, TestFlight and Google Play testing, common questions.",
+            body=convert((ROOT / "docs" / "support.md").read_text(encoding="utf-8"))),
     }
     for path, text in pages.items():
         path.parent.mkdir(parents=True, exist_ok=True)
