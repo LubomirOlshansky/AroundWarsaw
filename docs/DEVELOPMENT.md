@@ -207,6 +207,7 @@ text) have ready answers in `docs/store/play-console.md`; the privacy policy is
 | Switch visual style (Ostry · Sharp, Drobny · Fine, Czysty · Clean, Toporny · Chunky; saved) | Settings → Obraz → Styl obrazu | T |
 | Time of day: Day → Dusk → Night → Live (the real sun now) (1.5 s blend) | Settings → Świat → Pora dnia | N |
 | Radio: next station → … → Off | RADIO, top right (the station under the word) | R |
+| Radio: the station's next track | hold RADIO for 0.5 s (a tap still changes the station) | Shift+R |
 | VHS tape overlay on / off (saved) | Settings → Obraz → Kaseta VHS | V |
 | Rain on / off (it sets in over 4 s; the streets dry slower) | Settings → Świat → Pogoda | O |
 | Performance overlay on / off | three fingers down at once, or Settings → Obraz | P |
@@ -273,7 +274,12 @@ HELI / AUTO (right); the keys are unchanged.
   has none in OpenStreetMap) light the ground from a baked light map (`tools/bake_lights.py`,
   no real lights): warm sodium pools, cold white LED in parks, along footpaths and on about a
   quarter of the streets; pools stop at walls. The same map lights the lower facades, the tree
-  crowns from below, parked cars and traffic. Lamp heads glow and wear a soft halo. The look
+  crowns from below, parked cars and traffic. Lamp heads glow and wear a soft halo. On the Royal
+  Route (Krakowskie Przedmieście, Nowy Świat, Senatorska, Miodowa, Podwale, Kozia, Brzozowa:
+  within 8 m of the carriageway's edge, `ROYAL_STREETS`) and in the Old Town (`OLD_TOWN`, a
+  190 m circle) the 213 mapped lamps are the historic cast-iron lantern instead (the landmarks
+  loop: a dark green post, a lantern 4.4 m up under a cap and finial; `_shared["lantern"]`):
+  one more MultiMesh in the 9 sectors that have them. The look
   loop made the pools on the ground pixel light: four hard bands with a one-pixel checker
   dither along each step (`night.gdshaderinc` `lamp_pool`, `pool_glow`), never brighter than
   ~80 % of a lit window (pale paving included), and on grass and cycle lanes the lamp tints
@@ -581,6 +587,15 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   `map_builder` asks `landmarks.skin_at` for every kept LoD2 run and OpenStreetMap building
   (its centre in the site's outline, or its whole box inside the outline's box). Its outline's
   cells are on the picking grid for its card.
+- **Low-rise landmarks** (`landmarks.gd` `SKINS`, the third pass): 15 buildings players pass
+  every few minutes keep their LoD2 or OpenStreetMap shapes but take their real stone, brick
+  and roof colours through `skin_at`, the way Muzeum Narodowe does: Teatr Wielki's pale stone
+  and green copper, Zamek Królewski's brick red, Barbakan's and the Archikatedra's brick,
+  Centrum Nauki Kopernik's dark grey with a green roof, the Library's green roof, St Anne's,
+  the Holy Cross, All Saints' and St Alexander's, the Presidential Palace, Staszic Palace,
+  Zachęta, the Mirowska halls and the Sejm. Each has an info card; the far skyline takes each
+  wall colour. The Planetarium, the Tomb of the Unknown Soldier and the Church of the Saviour
+  stay as they were (their outlines carry no roof the helicopter check accepts).
 - **Bus and tram shelters** (the landmarks loop; `map_builder.gd` `_make_shared`): Warsaw's
   glass shelter as the game's camera sees it: a pale glass roof in a graphite frame overhanging
   the kerb, a dark fascia, glass back and end, three posts, a bench, a poster box at the far end
@@ -2195,7 +2210,11 @@ changed (`tiers.gd`, `governor.gd`, `settings.gd`, `main.gd`'s quality and image
    ×2` (`auto · High` where the budget doesn't bind, e.g. the Fine style), kept up to date when the
    style changes; the overlay's last line `High ×1 sharp · gov …` / `High ×2 fallback · gov …`; the
    BENCH card `quality Auto→High sharp (iPhone12,1)` / `Auto→High fallback (iPhone12,1)` beside
-   its `image 1792x828 (×1)`. No toast (optional in the brief; BACKLOG).
+   its `image 1792x828 (×1)`. Since 2026-10-30 the first launch at the fallback after a struggle
+   at the sharp image also shows a toast once, when the city shows: `Obraz prostszy, żeby było
+   płynnie` · `A coarser picture for a smoother ride · Settings → Obraz` (`main.gd`
+   `_fallback_toast`; the state's `told` key, false after that struggle, true once shown and
+   saved at once; never in `--shots=` runs; the log says `quality: the fallback's toast shown`).
 6. **Thermal state**: still not readable from Godot 4.7.2 (no OS, DisplayServer, Engine,
    RenderingServer or Performance method), so it isn't part of the rule.
 
@@ -3319,7 +3338,9 @@ into PackedFloat32Arrays, after the builder's set-up has read them and before th
 is saved: static at "city built" 224.7 → 204.8 MB prebuilt (index 103 → 83 MB) and 294 → 267
 MB on the runtime path; at the bench's end 252 → 233 and 357 → 329 MB; index.res 7.7 → 6.8 MB.
 Readers that still declare `var flat: Array = r["p"]` get a converted copy, so nothing else
-changed; the frame is unchanged.
+changed; the frame is unchanged. `game/tools/check_cost_cuts.gd` (verify step `cost`, under a
+second) checks the packing on a synthetic index: the numbers kept within float32, other keys
+left alone, packing twice a no-op.
 
 **What traffic costs (performance lane, 2026-10-30).** Timed per step on the Mac at 1920×1080
 (the bench's view, ~33 active cars, ~13 of them at junctions): nothing in traffic grows with the
@@ -3330,7 +3351,9 @@ the crossing and red-light checks and the speed model about 35–55 µs each), t
 about 35 % slower (its larger heap). `on_screen` now projects with the orthographic camera's own
 axes (identical answers on 35 k calls) and the junction pairs are rejected on packed positions:
 the junction checks −14 % (66 → 57 µs), too little to show on the bench card. What is left is
-per car; fewer cars in the view band is the lever, a design call.
+per car; fewer cars in the view band is the lever, a design call. `check_cost_cuts.gd` also
+holds `on_screen` to `Camera3D.unproject_position` (5 orthographic views, 10 000 points, a
+point and the one `height` above it).
 
 Loop 3g-1 (the police; police.md section 12 allowed ≤ +3 draw calls at any view, ≤ +8 k
 triangles, ≤ 0.15 ms of script, ≤ +2 MB) spent, in a koguty 3 chase: +1 to +3 draw calls at the
@@ -3656,7 +3679,7 @@ Command-line options (after `--`):
 | Option | Effect |
 | --- | --- |
 | `--demo` | the car drives by itself; with `--heli` the helicopter flies a slow circle |
-| `--shots=60,240` / `--out=DIR` | save screenshots at those frames (counted from when the city is built), then quit (sweep 2: the sounds are stopped 0.15 s before, so a windowed run no longer ends with leaked audio streams) |
+| `--shots=60,240` / `--out=DIR` | save screenshots at those frames (counted from when the city is built), then quit (sweep 2: the sounds are stopped 0.15 s before, so a windowed run no longer ends with leaked audio streams). The window never takes the keyboard focus, as with `--no-input`, and a run that ends before a shot prints `shots: missing [frames]` with the game and engine frame and the pause state (2026-10-30) |
 | `--style=N` / `--lines=N` | visual style 0–3 (loop 2e: wins over the saved style for this run) / override the pixel image's line count |
 | `--size=M` / `--yaw=deg` / `--fixed` | view height in metres (default 80) / camera turn / fixed camera (in Point: the Fixed camera scheme) |
 | `--at=x,z` | start at map coordinates (metres, +x east, +z south), on top of a bridge deck if there is one |
@@ -3685,6 +3708,8 @@ Command-line options (after `--`):
 | `--station=ID` | loop MW-5: a station by id (`polnoc_fm`), short id (`polnoc`), name or number; the radio then doesn't follow the clock |
 | `--radio-log` | loop MW-5: print `radio:` lines (tunes, track changes, host lines with the gap since the last, unlocks, PÓŁNOC FM on air / reruns) and the city sounds' `sounds:` lines (emitters on and off, chimes, tolls, the 02:00 beat) |
 | `--unlock=all\|N[,N]` | loop MW-5: every PÓŁNOC FM track for this run (nothing saved), or open track N as an egg would (toast, saved unless `--nosave`) |
+
+| `--radio=N` | radio station 1 to the last in `data/radio.json` (higher picks the last), or 0 / `off` (default 1) |
 | `--notitle` | skip the title screen (the testing flags `--demo --shots --autopilot --race --mission --rival --bench` skip it anyway) |
 | `--title` | show the title screen even with those flags (for screenshots) |
 | `--kebab=N` | put the car in a stand's ring and take kebab order N (the same N gives the same order; stand N mod 7) |

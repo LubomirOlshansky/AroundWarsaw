@@ -124,7 +124,7 @@ const SHARP_WAIT_MAX := 16
 
 ## A fresh state: the sharp image, no fallback.
 static func sharp_state() -> Dictionary:
-	return {"fallback": false, "calm": 0, "wait": SHARP_WAIT, "trial": -1, "why": ""}
+	return {"fallback": false, "calm": 0, "wait": SHARP_WAIT, "trial": -1, "why": "", "told": true}
 
 
 ## The state a launch starts from: a fallback that has had `wait` calm sessions tries the sharp
@@ -149,6 +149,8 @@ static func sharp_struggled(launched: Dictionary, sharp: bool, why: String) -> D
 		s["fallback"] = true
 		s["trial"] = -1
 		s["why"] = why
+		# 2026-10-30: the first launch at the fallback says so once (main.gd _fallback_toast).
+		s["told"] = false
 	s["calm"] = 0
 	return s
 
@@ -175,6 +177,7 @@ static func sharp_clean(state: Dictionary) -> Dictionary:
 	s["calm"] = clampi(int(state.get("calm", 0)), 0, SHARP_WAIT_MAX)
 	s["trial"] = clampi(int(state.get("trial", -1)), -1, SHARP_WAIT_MAX)
 	s["why"] = str(state.get("why", ""))
+	s["told"] = bool(state.get("told", true))
 	return s
 
 

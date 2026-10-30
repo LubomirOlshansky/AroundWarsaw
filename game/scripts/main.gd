@@ -195,6 +195,9 @@ var follow := true
 var cam_focus := Vector3.ZERO
 var demo := false
 var shots: Array[int] = []
+## The shots saved so far: the frames of `shots` that reached their PNG (a run that ends
+## without one says so in _exit_tree).
+var _shots_saved: Array[int] = []
 var out_dir := "user://"
 var frame := 0
 var start_at := Vector3.INF
@@ -523,10 +526,20 @@ func _ready() -> void:
 		title.set_ready()
 	else:
 		radio.now_playing()
+		_fallback_toast()
 	_started = true
 
 
 func _exit_tree() -> void:
+	# A shots run that ends before its last shot (--quit-after, a closed window) says which
+	# frames are missing and where it was, instead of ending quietly after "city built".
+	var missing: Array[int] = []
+	for n in shots:
+		if n not in _shots_saved:
+			missing.append(n)
+	if not missing.is_empty():
+		print("shots: missing %s (game frame %d, engine frame %d, paused %s, started %s)" % [
+				missing, frame, Engine.get_process_frames(), get_tree().paused, _started])
 	if _stats != null:
 		_stats.unhook()
 	if RenderingServer.frame_pre_draw.is_connected(_stress_wait):
@@ -538,6 +551,7 @@ func _on_title_dismissed() -> void:
 	dialogue.host_on = true
 	title = null
 	radio.now_playing()
+	_fallback_toast()
 	if cinematic_flyin:
 		_fly_in()
 
@@ -741,6 +755,7 @@ func _build_world() -> void:
 	# driving screen (Settings has them; the keys stay; zoom is a pinch, a twist turns a fixed
 	# camera).
 	hud.radio_pressed.connect(radio.next)
+	hud.radio_skip_pressed.connect(radio.next_track)
 	hud.perf_gesture.connect(func(): _set_perf(not show_perf); settings.perf = show_perf; settings.save())
 	radio.station_changed.connect(func(_i: int, _s: Dictionary): hud.set_radio_name(radio.label()))
 	radio.ticker.connect(hud.ticker)
@@ -1068,6 +1083,25 @@ func _image_mode() -> String:
 	if not Tiers.budget_binds(screen, STYLES[style_index]["lines"], quality):
 		return ""
 	return "sharp" if auto_sharp else "fallback"
+
+
+## 2026-10-30: the first launch at Auto's fallback says so once, with a toast when the city
+## shows (the Obraz tab's `auto · High ×2` and the `quality:` line said it before, nothing on
+## the driving screen). `told` goes into the saved state at once, so the next launch at the
+## fallback stays quiet even if this session never reaches its verdict.
+func _fallback_toast() -> void:
+	if _image_mode() != "fallback" or bool(auto_image["told"]) or not shots.is_empty():
+		return  # screenshots stay clean
+	# Two frames on: the first frame after the build has the build's whole time as its delta,
+	# which would use up the toast's seconds at once.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	hud.toast("Obraz prostszy, żeby było płynnie", "A coarser picture for a smoother ride · Settings → Obraz")
+	print("quality: the fallback's toast shown")
+	auto_image["told"] = true
+	if _image_write and settings.persistent:
+		settings.auto_image["told"] = true
+		settings.save()
 
 
 ## The session struggled or was calm at Auto's image: the state the next launch starts from
@@ -1526,6 +1560,10 @@ func _parse_args() -> void:
 		elif arg.begins_with("--shots="):
 			for s in arg.trim_prefix("--shots=").split(","):
 				shots.append(int(s))
+			# A shots run is a scripted render: its window never takes the keyboard focus, as with
+			# --no-input (night --nohud shots had come out in the helicopter or at dusk: keys typed
+			# in another app landed in the freshly opened game window).
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
 		elif arg.begins_with("--out="):
 			out_dir = arg.trim_prefix("--out=")
 		elif arg.begins_with("--style="):
@@ -3394,7 +3432,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_blip_sound()
 				tod.next()
 			KEY_R:
-				radio.next()
+				# Shift+R skips to the station's next track (2026-10-30: radio.next_track() had no control).
+				if key.shift_pressed:
+					radio.next_track()
+				else:
+					radio.next()
 			KEY_V:
 				_blip_sound()
 				_set_vhs(not vhs)
@@ -3524,6 +3566,7 @@ func _capture(n: int) -> void:
 		print("ghost: frame %d centre %.1f %.1f radii %.1f %.1f (screen px)" % [n, _ghost_px.x, _ghost_px.y, _ghost_px.z, _ghost_px.w])
 	var img := get_viewport().get_texture().get_image()
 	img.save_png(out_dir.path_join("shot_%04d.png" % n))
+	_shots_saved.append(n)
 	if n == shots.max():
 		_quit_quietly()  # sweep 2: was get_tree().quit()
 
