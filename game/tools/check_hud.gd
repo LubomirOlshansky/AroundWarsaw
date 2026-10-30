@@ -25,8 +25,10 @@ const PoliceBalloon := preload("res://scripts/police/police_balloon.gd")
 ## Loop 2d-1: Podwózka's card words.
 const RideRules := preload("res://scripts/ride_rules.gd")
 ## Width x height in pixels (landscape): the user's 6.9" Pro Max, the 6.1" class, a computer
-## window (taken as a phone 390 pt tall), the SE (375 pt tall, no insets).
-const SCREENS := [Vector2i(2868, 1320), Vector2i(2532, 1170), Vector2i(1280, 720), Vector2i(1334, 750)]
+## window (taken as a phone 390 pt tall), the SE (375 pt tall, no insets), the 13" iPad (the
+## store's iPad screenshots) and a 4:3 window (taken as 667 pt wide).
+const SCREENS := [Vector2i(2868, 1320), Vector2i(2532, 1170), Vector2i(1280, 720), Vector2i(1334, 750),
+		Vector2i(2752, 2064), Vector2i(1600, 1200)]
 const MIN_TOUCH := 44.0
 const MIN_LABEL := 11.0
 const MIN_BODY := 13.0
