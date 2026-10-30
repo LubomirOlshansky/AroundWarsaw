@@ -20,6 +20,20 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-30 · content · MW-1 (the notebook)** — The minimap shows "?" for undiscovered
+  places within 400 m of the car, because districts don't exist yet. Switch to "in a discovered
+  district" once DEMO 6.3's districts land? Default built: 400 m.
+- **2026-10-30 · content · MW-1** — Venue cards hide the street address (a venue's real address
+  can name the real club, e.g. "Jasna 1" is on the denylist). Add a designer-written "safe to
+  show" address per place? Default built: no address on venue cards.
+- **2026-10-30 · content · MW-1** — The settings tab is ZESZYT · notebook, and the card's title
+  becomes MOJA WARSZAWA on that tab (the full name doesn't fit as a fifth tab on the iPhone SE).
+  Keep? Default built: ZESZYT.
+- **2026-10-30 · content · MW-1** — The chapter-complete card reads ROZDZIAŁ GOTOWY · CHAPTER
+  DONE with "+50 zł, +30 ★". Wording for a game-designer pass? Default built: as written.
+- **2026-10-30 · content · MW-1** — Stadion Narodowy (115 m from any road) and Most
+  Śląsko-Dąbrowski (65 m) can't be found by car with today's anchors: wider radius, or wait for
+  the map lane's bake resolution? Default built: nothing changed; BACKLOG "From loop MW-1".
 - **2026-10-30 · store release · app IDs** — The iOS bundle ID is still
   `com.olshanskysoft.nocnawarszawa`. Change it to `com.olshanskysoft.aroundwarsaw` before the
   App Store Connect record exists, or keep it? Nobody ever sees it (the home-screen and store

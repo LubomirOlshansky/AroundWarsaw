@@ -2928,6 +2928,63 @@ and 4 km/h after, never past (0.5 m behind after 10 s); after, 28 km/h after the
 2.6 s after, never unstuck. `check_steering` stays OK (`car_behind` 2.3 → 2.7 s now that the
 stopped car is not followed as a wall until the 0.35 s push).
 
+## Moja Warszawa notebook (loop MW-1, 2026-10-30)
+
+MOJA WARSZAWA, the city notebook (docs/design/vision.md 4.1): the 72 places of
+`game/data/places.json` (designer-owned; 9 chapters of 8) found by driving or flying past them,
+kept in the save, read in the settings card's fifth tab. Code: `notebook.gd` (places, finding,
+rewards, the minimap's marks), `notebook_page.gd` (the page), small hooks in `main.gd`
+(`_build_notebook`, `_place_start`, `_put_at_place`, the flags), `hud.gd` (`set_minimap_unknown`,
+`notebook_changed`, the "?" in the minimap's triangle array), `wallet.gd` (`notes`,
+`chapters_done`) and `settings_panel.gd` (the ZESZYT tab, `show_notebook`).
+
+- **Where a place is.** No bake resolves the places yet (BACKLOG "From loop MW-1": the map lane's
+  `pois` kind `place`). At load (~35 ms, once) each place's `near` [lat, lon] goes through the
+  bake's flat projection (`tools/bake_osm.py` `project`: the map's `origin`, 110 574 m a degree of
+  latitude, 111 320 · cos(lat0) of longitude), then the first of these within reach of the hint
+  wins: an `address` poi with the same number on a street whose last word matches ("Al.
+  Jerozolimskie 6" finds "Aleje Jerozolimskie 6"; 600 m); a named square, park or landmark with the
+  place's Polish name, or a landmark whose name starts with it ("Pałac Kultury i Nauki"; never a
+  parody venue or a street; 600 m); a poi of the place's own kind (the Mermaid, Patelnia, Plac
+  Defilad, the stadium; the nearest kebab stand for a kebab place; 300 m). Today: 5 by address,
+  16 by name, 6 by poi, 45 on the hint; the furthest from their hints Smoła 359 m, Stara
+  elektrownia 331 m, U Zdzicha 264 m. `--notes-log` prints a `notes: place <id> <source> N m from
+  the hint (x, z)` line for each.
+- **Finding** (`Notebook.finds`): in the car within `radius` (25 m; 40 m for squares, parks,
+  bridges) at ≤ 30 km/h, or stopped inside it for 1 s; in the helicopter within `heli_radius` (60 m
+  when the place has none) below 60 m over the ground. Checked twice a second through a 100 m grid
+  of the places: one cell is looked at, so nothing runs per frame but a timer. Never on the title
+  screen or during TEST · BENCH (its wallet is put back after; `--bench`'s route does find places); the game paused (settings) pauses it.
+- **A new entry**: the save (`[notes]` id = yyyymmdd in `user://save.cfg`; with `--nosave` in
+  memory only), +5 respect through the wallet's `pay`, a toast "NOWY WPIS · <name>" over "NEW
+  ENTRY · <name> · k/8", the UI blip and a short buzz (25 ms). A chapter's eighth card: +50 zł and
+  +30 respect once, a note card ROZDZIAŁ GOTOWY · CHAPTER DONE, and `[notes_chapters]` chapter id =
+  yyyymmdd (MW-5's track unlocks will read it).
+- **On the minimap**: the places not found yet within 400 m of the car as a gold "?" (3 × 5 pixels
+  of 1.3 pt on a dark plate), never a name; drawn in the minimap's one triangle array, so no draw
+  call of its own. (vision.md says "in a discovered district"; districts don't exist yet.)
+- **The page** (Settings → ZESZYT · notebook; the card's title says MOJA WARSZAWA and "zeszyt
+  miasta · k/72"): a row of the 9 chapters (the number stands in for the chapter's icon until
+  PixelLab's; k/8 under it; gold when complete), the chapter's name, then its 8 cards in 4 × 2: a
+  found card shows its name (Polish over English), a night venue's hours and the day found, one
+  not found yet "?" and the chapter. A tap
+  opens a card: name, fact and joke (Polish over English), the address (not for a venue: it could
+  name the real business), the hours of a night venue (`otwarte PT–ND 04:00–12:00` over `open
+  Fri–Sun …`) and the day found; WRÓĆ · back returns to the grid. At least 476 × 254 pt (as wide as
+  the card's inside); every target at
+  least 44 pt; the card fits the SE (633 × 349 pt of 667 × 375) without shrinking (`check_hud`
+  walks the notebook's grid, a found card and an unfound one on all four screens). The settings
+  card's line under its title is now two lines (Polish over English), so the fifth tab fits.
+  The page is drawn by hand: its boxes in one triangle array, its words grouped by size, so it
+  costs a handful of 2D draw calls whatever it shows, and nothing when the panel is closed.
+- **Check**: `game/tools/check_places.gd` (verify step `places`, in the quick set and in CI: it
+  reads only `centrum.json` and `places.json`): Polish and English for every name, fact and joke,
+  Polish ≤ 70 characters (the toast too), 8 places a chapter, the hint inside the demo box and the
+  place inside the map, no denylisted name in anything the notebook shows, reachability (a lane
+  or footway within radius + 10 m: the misses are printed as a `check_places: WARN` line, not
+  failed: 70/72 today), the finding rule on 11 synthetic cases, the 2 Hz tick through the grid
+  (speed, away, distance, the helicopter's height) and a chapter paying once.
+
 ## The traffic loop: cars overlapping in junctions (2026-10-30)
 
 A new testing aid, `--traffic-overlaps`, has the traffic count, every frame, the pairs of its
@@ -3369,7 +3426,11 @@ Command-line options (after `--`):
 | `--controls=point\|classic\|fixed` | loop 2a: the control scheme for this run (not saved) |
 | `--traffic=empty\|low\|normal\|busy` (or 0-3) | loop 2a: the traffic level for this run (not saved) |
 | `--settings` | loop 2a: open the settings panel at the start (screenshots) |
-| `--settings-tab=N` | loop 2e: open the settings panel at tab N (0 Jazda · Driving, 1 Świat · World, 2 Obraz · Picture, 3 Dźwięk · Sound) |
+| `--settings-tab=N` | loop 2e: open the settings panel at tab N (0 Jazda · Driving, 1 Świat · World, 2 Obraz · Picture, 3 Dźwięk · Sound; loop MW-1: 4 Zeszyt · the notebook) |
+| `--notebook` / `--notebook=CHAPTER\|ID` | loop MW-1: open the settings card on MOJA WARSZAWA, the notebook (a chapter by id or number 1-9, or a place's card by its id; screenshots) |
+| `--found=all\|none\|CHAPTER[:K],…` | loop MW-1: the notebook's record for this run, in memory, no rewards (a chapter by id or number, `:K` its first K places; `--found=1:4,9` half of the first chapter and all of the ninth). Use with `--nosave` (a later save would keep it) |
+| `--place=ID` | loop MW-1: start at a notebook place (`places.json` id): the sectors round its hint first, then the car on the nearest lane if that is inside the place's radius, else on the place (found within a second, standing) |
+| `--notes-log` | loop MW-1: print `notes:` lines: each place's resolution at load (`notes: place <id> address\|name\|poi\|near N m from the hint (x, z)`), each find (`notes: found <id> (chapter N, k/8)`) and each chapter completed |
 | `--call-in=S` | loop 2e: the first rescue call comes in after S seconds of play (default 60) |
 | `--stick=X,Y` / `--pedal=gas\|brake` | loop 2a: hold the stick at that deflection (-1..1, y down; Classic uses X) / a pedal, as if a finger were on it (screenshots, replays in the real city) |
 | `--clicks=X:Y:F,...` / `--drag=X:Y:F:DX:DY:F2` | loop 2a testing aids: a click at screen pixel X,Y on frame F; a finger down at X,Y on frame F, moved by DX,DY over ten frames, lifted on frame F2 (through the real input path) |
