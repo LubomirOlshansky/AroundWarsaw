@@ -2807,6 +2807,18 @@ Every older test (holds, turns, walls, the corner, the camera) reads the same as
 parked cars): on today's map 7 benches, 11 bike racks and 3 shelters overlap a carriageway
 (BACKLOG).
 
+## The roadworks loop: traffic and the helicopter knock the barriers (2026-10-30)
+
+The day's roadworks (barriers and cones round a dig, `eggs.gd`) moved only for the player's car;
+AI cars drove through the ones knocked into their lane, and the helicopter's downwash left them
+standing. Now `_barriers` also takes every moving traffic car within 30 m of the roadworks: a
+barrier or cone under its box (its length plus 0.4 m, 1.3 m either side of its centreline) is
+knocked along at 75 % of the car's speed and 1.5 m/s out to the side. The helicopter under
+14 m over the ground within 30 m blows the ones within 9 m outwards, up to 3.5 m/s at its centre.
+Checked headless at Drewniana (the 2026-10-30 roadworks, `--at=145,-626`): 4 knocks by traffic in
+60 s with the player parked, 14 gusts in 15 s with `--heli`, 0 errors. The cost is one pass over
+the active drivers per frame, only on a day the roadworks are on the map.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer

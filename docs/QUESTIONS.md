@@ -10,6 +10,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 | Lane | Item | Session | Since |
 | --- | --- | --- | --- |
+| driving | The car's feel, traffic and the player, the roadworks (PR #5 landed, PR #8) | cloud thread "Make driving smoother" | 2026-10-30 |
 
 ## Waiting
 

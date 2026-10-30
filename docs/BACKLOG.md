@@ -30,8 +30,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - No Syrenka statue is mapped inside the area: she stands on the Powiśle boulevard by the foot
   of Tamka; the flood wall there is not in the roof grid, so placement relies on a short step
   towards the water.
-- Roadwork barriers are pushed by a distance check, not physics: the helicopter's downwash and
-  traffic don't move them, and AI cars drive through the ones knocked into the lane.
+- ~~Roadwork barriers are pushed by a distance check, not physics: the helicopter's downwash and
+  traffic don't move them, and AI cars drive through the ones knocked into the lane.~~ Fixed in
+  the roadworks loop (2026-10-30): moving traffic knocks the ones under its box (along at 75 %
+  of its speed, out to the side), and the helicopter under 14 m blows the ones within 9 m out.
+  Still a distance check, not physics; the AI still never brakes for them.
 - The kebab/słoiki autopilot (like the race one) ghosts through traffic, so autopilot runs can't
   test jar breaks from real crashes (`--sloik=K` starts with K broken for screenshots).
 - Pay rates (kebab 30–110 zł, słoiki 50–260, races 60–300, rescues ~120–200) are first guesses.
