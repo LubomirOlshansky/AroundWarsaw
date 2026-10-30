@@ -1045,6 +1045,15 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - The iPad set is rendered at 2440×1830 and scaled to 2752×2064 (the Mac can't open a
   2064-pixel-tall window).
 
+## From the performance baseline (2026-10-30)
+
+- Loop 3d-1's map left +0.4–0.6 ms of main-thread process on the Mac after the lamp fix
+  (traffic about 0.5 ms; `--no-traffic` drops process to 0.60): find what in traffic scales
+  with the map (the spawn slots' grid walk in `_count_target`, the junction checks) with a
+  per-function timer before changing anything.
+- Static memory doubled with the bigger map (173 → ~330 MB runtime, 241 MB prebuilt): check
+  it on the iPhone 11 (TEST · BENCH's memory line) before the beta.
+
 ## From the driving-feel loop (less sticky, 2026-10-30)
 
 - Street furniture is still solid and unknockable: benches, bike racks, advertising columns,
