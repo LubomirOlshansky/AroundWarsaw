@@ -8,14 +8,11 @@ web build's first download (the .res files barely compress). This writes them as
 map/shared/ao_map.png and light_map.png (RGB, blue 0) with an .import file that asks for
 "VRAM Compressed" with the channels packed as RG: Godot's import makes EAC RG11 (phones, the
 etc2 variant) and BC5 / RGTC (desktops, s3tc), one byte a texel instead of two. The import pads
-each to a multiple of 4 texels (5320 x 3784), repeating the edge; the maps' rects cover the PNG's
-size, so every texel stays where it was. Measured against the .bin: AO off by at most 12 / 255 (mean
+each to a multiple of 4 texels (5320 x 3784); bake_city.gd scales the maps' rects to match, so
+every texel stays where it was. Measured against the .bin: AO off by at most 12 / 255 (mean
 0.5), the lamp pools at most 31 at their sharpest cut edges (mean 0.15).
 
-tools/setup_map.sh runs this, then `godot --headless --import`, before bake_city.gd. The phones
-use the imports, the web keeps the RG8 .res (both formats in its pack would hold 80 MB more in
-the browser's memory): the export presets leave out one or the other, and map_builder.gd
-attach_maps picks what is there. Derived and
+tools/setup_map.sh runs this, then `godot --headless --import`, before bake_city.gd. Derived and
 not committed (map/shared/ is gitignored). A PNG is only rewritten when its pixels change, so
 an unchanged map isn't imported again. Standard library only.
 """
@@ -46,24 +43,15 @@ detect_3d/compress_to=0
 
 
 def png_bytes(w, h, rg):
-    """An RGB PNG of the RG8 map, padded to a multiple of 4 texels each way by repeating the last
-    column and row (the block size of the VRAM formats: Godot would pad it anyway, but then the
-    GPU texture is wider than the texture says and the map would stretch by up to 3 texels)."""
     def chunk(kind, data):
         return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data) & 0xffffffff)
-    pw, ph = (w + 3) // 4 * 4, (h + 3) // 4 * 4
     rows = []
-    for j in range(ph):
-        jj = min(j, h - 1)
-        row = rg[jj * w * 2:(jj + 1) * w * 2]
-        out = bytearray(pw * 3)
-        out[0:w * 3:3] = row[0::2]
-        out[1:w * 3:3] = row[1::2]
-        for i in range(w, pw):
-            out[i * 3] = row[(w - 1) * 2]
-            out[i * 3 + 1] = row[(w - 1) * 2 + 1]
+    for j in range(h):
+        row = rg[j * w * 2:(j + 1) * w * 2]
+        out = bytearray(w * 3)
+        out[0::3] = row[0::2]
+        out[1::3] = row[1::2]
         rows.append(b"\x00" + bytes(out))
-    w, h = pw, ph
     return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0))
             + chunk(b"IDAT", zlib.compress(b"".join(rows), 6)) + chunk(b"IEND", b""))
 
