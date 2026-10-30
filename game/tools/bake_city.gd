@@ -105,6 +105,8 @@ func _bake() -> Error:
 	var proxy_tris := 0
 	for c in proxies.get_children():
 		var m := (c as MeshInstance3D).mesh
+		if m.get_surface_count() == 0:
+			continue  # an empty sector's proxy has no surface
 		proxy_tris = maxi(proxy_tris, m.surface_get_array_index_len(0) / 3)
 	proxies.free()
 	if err != OK:

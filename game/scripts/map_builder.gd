@@ -382,7 +382,7 @@ func _build_parts(marks, roofs_only: bool) -> void:
 		_build_rails(flat)
 		_drape_bias = -1.0
 		_dk = -1
-		_add_mesh(flat, flat_material, false)
+		_add_mesh(flat, flat_material, false, Mesh.ARRAY_FLAG_COMPRESS_ATTRIBUTES)
 
 	var walls := _new_surface()
 	walls.none = roofs_only
@@ -489,8 +489,12 @@ func _setup(d: Dictionary, building_mat: ShaderMaterial, flat_mat: ShaderMateria
 	_load_tunnels()
 
 
-func _add_mesh(st, material: Material, shadows: bool) -> void:
-	for mesh in st.meshes():
+## Performance lane (2026-10-30): the ground's meshes are stored with 16-bit positions and
+## UVs (`flags`, Mesh.ARRAY_FLAG_COMPRESS_ATTRIBUTES): the prebuilt sectors 107 → 87 MB and
+## 27 MB less vertex memory, the shots the same but for single edge pixels. Not the
+## buildings: building.gdshader draws its windows from UVs in metres, which that moves.
+func _add_mesh(st, material: Material, shadows: bool, flags := 0) -> void:
+	for mesh in st.meshes(flags):
 		var mi := MeshInstance3D.new()
 		mi.mesh = mesh
 		mi.material_override = material

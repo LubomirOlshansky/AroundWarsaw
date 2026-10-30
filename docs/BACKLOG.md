@@ -1126,6 +1126,13 @@ Small problems that agents reported or that showed up in screenshots. They are f
     for one map as for two; three runs each, identical). Only the phone's BENCH card can say
     whether the iPhone pays that too (−42 MB if not, +23 MB if so): QUESTIONS.md.
   - Side jobs hold 17 MB at start (rides 7.5): look for whole-map tables built from the index.
+  - **Vertex compression (performance lane, 2026-10-30)**: the ground's meshes are now stored
+    compressed (DEVELOPMENT.md "The web build"). The buildings' are not: compressing them
+    too would save another ~2 MB on disk and ~14 MB of vertex memory, but building.gdshader
+    draws its windows from UV (metres along and up the wall) and UV2 (style seed, wall top),
+    and 16-bit UVs over a surface's range move the window grid (13.8 % of the Palace shot).
+    Possible later: carry the window coordinates relative to each wall (small numbers) or in a
+    custom channel, then compress; the visual lane's call, with shots.
 
 ## From the driving-feel loop (less sticky, 2026-10-30)
 

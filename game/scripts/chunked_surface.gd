@@ -97,7 +97,9 @@ static func tile_of(p: Vector3) -> Vector2i:
 	return Vector2i(floori(p.x / TILE), floori(p.z / TILE))
 
 
-func meshes() -> Array[ArrayMesh]:
+## The tiles' meshes. `flags` goes to each surface (the ground passes
+## Mesh.ARRAY_FLAG_COMPRESS_ATTRIBUTES, map_builder.gd _add_mesh).
+func meshes(flags := 0) -> Array[ArrayMesh]:
 	var out: Array[ArrayMesh] = []
 	var keys := _tools.keys()
 	for key in _extra:
@@ -114,6 +116,6 @@ func meshes() -> Array[ArrayMesh]:
 			for a in [Mesh.ARRAY_VERTEX, Mesh.ARRAY_NORMAL, Mesh.ARRAY_COLOR, Mesh.ARRAY_TEX_UV, Mesh.ARRAY_TEX_UV2]:
 				arrays[a] = arrays[a] + more[a]
 		var mesh := ArrayMesh.new()
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays, [], {}, flags)
 		out.append(mesh)
 	return out

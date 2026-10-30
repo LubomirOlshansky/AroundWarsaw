@@ -3890,6 +3890,14 @@ tools/export_web.sh --deploy   # also upload it (the user's yes first: it is pub
   and carries the `.zst` (8.3 + 2.7 MB), unpacked in ~0.3 s: −7.7 MB in the download and in the
   browser's memory, the texels identical (a desktop run forced to the `.zst` renders
   pixel-identical shots).
+- **The ground's meshes are compressed** (performance lane, 2026-10-30): `map_builder.gd`
+  `_add_mesh` stores the ground layer's tiles with `Mesh.ARRAY_FLAG_COMPRESS_ATTRIBUTES` (16-bit
+  positions and UVs, octahedral normals), on every build, so both city paths and every preset.
+  The 108 prebuilt sectors 106.7 → 86.9 MB (the phone bundle and the web's sector packs), vertex
+  memory 147 → 120 MB on the Mac's bench, frame time the same. 21 shot pairs (the six views,
+  the eight road spots, seven close views of dashes, crossings, rails, paving, puddles and the
+  shore, day, night and rain) differ only in single pixels along marking and kerb edges. The
+  buildings stay uncompressed: their windows come from UVs in metres (BACKLOG).
 - **Phones' browsers** (web loop 2): an iPhone's Safari closed the first version's page (the
   whole 140 MB city in memory). Now a sector's pack file is deleted once its scene is loaded
   (fetched again from the browser's cache if the sector comes back), and Auto picks **Low** on a
