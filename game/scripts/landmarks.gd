@@ -238,6 +238,9 @@ var info: Array[Dictionary] = []
 
 # Emitter state.
 var _mode := M_STONE
+## The landmarks loop: big signs on the landmarks for map_builder's _build_landmark_signs:
+## [word (neon_signs.gd LANDMARK_WORDS), bottom middle, outward normal, scale, tube colour].
+var signs: Array = []
 var _g := 0.0          # the landmark's ground height
 var _id := 0           # landmark id for the picking grid (0: none)
 var _pick := PackedByteArray()
@@ -1350,12 +1353,16 @@ func _build_tower(site: Dictionary) -> void:
 	if spec["key"] == "zlota44":
 		# Złota 44: the tower is lofted (_zlota_sail); only the podium is built from its parts.
 		_zlota_sail(g, glass, roof, skin)
+	elif spec["key"] == "spire":
+		# Warsaw Spire: the leaf-shaped tower lofted and tapering (_spire); the two lower
+		# office buildings beside it are built from their parts.
+		_spire(zone, g, glass, roof, skin)
 	for k in parts.size():
 		var b: Dictionary = parts[k]
 		var poly := _pts(b["p"])
 		var h := float(b["h"])
 		var mh := float(b["mh"])
-		if spec["key"] == "zlota44" and h > 40.0:
+		if spec["key"] == "zlota44" and h > 40.0 or spec["key"] == "spire" and h > 100.0:
 			continue
 		if mh > 0.5:
 			var held := false
@@ -1490,6 +1497,69 @@ func _zlota_sail(g: float, glass: Color, roof: Color, skin: float) -> void:
 				glass.lerp(roof, 0.3), Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
 	_mode = keep
 	_collide(base)
+
+
+## Warsaw Spire (the landmarks loop, after the user's phone look: "not recognisable at all").
+## OpenStreetMap maps the 180 m tower only as its outline, with the crown and masts as parts
+## floating from 180 m, so it stood as a lump. Here the leaf-shaped outline is lofted through
+## SPIRE_RINGS rings, narrowing to SPIRE_TAPER at 180 m; an open frame of fins carries the
+## crown to 196 m and a mast to 220 m; the brand's parody (SAMSONG, neon_signs.gd) glows on
+## its east and west faces near the top, as the real sign does.
+const SPIRE_TOP := 180.0
+const SPIRE_TAPER := 0.84
+const SPIRE_RINGS := 6
+const SPIRE_BLUE := Color(0.2, 0.42, 1.0)
+func _spire(outline: PackedVector2Array, g: float, glass: Color, roof: Color, skin: float) -> void:
+	var base := PackedVector2Array()
+	for q in outline:
+		if base.is_empty() or (q.distance_to(base[-1]) > 1.2 and q.distance_to(base[0]) > 1.2):
+			base.append(q)
+	if base.size() < 3:
+		return
+	var c := _centre(base)
+	var ring := func(t: float) -> PackedVector2Array:
+		var k := 1.0 - (1.0 - SPIRE_TAPER) * pow(t, 1.5)
+		var out := PackedVector2Array()
+		for q in base:
+			out.append(c + (q - c) * k)
+		return out
+	var y0 := g - 0.4
+	var keep := _mode
+	_mode = skin
+	var cw := Geometry2D.is_polygon_clockwise(base)
+	for k in SPIRE_RINGS:
+		var f0 := float(k) / SPIRE_RINGS
+		var f1 := float(k + 1) / SPIRE_RINGS
+		var r0: PackedVector2Array = ring.call(f0)
+		var r1: PackedVector2Array = ring.call(f1)
+		var ya := lerpf(y0, g + SPIRE_TOP, f0)
+		var yb := lerpf(y0, g + SPIRE_TOP, f1)
+		var run := 0.0
+		for i in base.size():
+			var j := (i + 1) % base.size()
+			var e := (r0[j] - r0[i]).normalized()
+			var o := Vector2(e.y, -e.x) if cw else Vector2(-e.y, e.x)
+			var length := r0[i].distance_to(r0[j])
+			_quad(Vector3(r0[i].x, ya, r0[i].y), Vector3(r0[j].x, ya, r0[j].y), Vector3(r1[j].x, yb, r1[j].y),
+					Vector3(r1[i].x, yb, r1[i].y), Vector3(o.x, 0.0, o.y), glass, Vector2(run, ya - _g),
+					Vector2(run + length, ya - _g), Vector2(run + length, yb - _g), Vector2(run, yb - _g), SPIRE_TOP)
+			run += length
+	_mode = keep
+	var top: PackedVector2Array = ring.call(1.0)
+	_prism(top, g + SPIRE_TOP - 0.5, g + SPIRE_TOP, glass, roof, skin, M_SKIN)
+	_prism(top, g + SPIRE_TOP, g + 196.0, glass, Color(0, 0, 0, 0), M_SKIN + float(S_FRAME) / 16.0)
+	var mast := PackedVector2Array([c + Vector2(-0.8, -0.8), c + Vector2(0.8, -0.8), c + Vector2(0.8, 0.8), c + Vector2(-0.8, 0.8)])
+	_prism(mast, g + SPIRE_TOP, g + 220.0, Color("#d5dade"), Color("#e8ecef"), M_STONE, M_STONE)
+	_collide(base)
+	# The signs, on the wide east and west faces 14 m under the roof.
+	var t := (SPIRE_TOP - 14.0) / SPIRE_TOP
+	var face: PackedVector2Array = ring.call(t)
+	for d: Vector2 in [Vector2(1, 0), Vector2(-1, 0)]:
+		var reach := 0.0
+		for q in face:
+			reach = maxf(reach, (q - c).dot(d))
+		var at := c + d * reach
+		signs.append(["SAMSONG", Vector3(at.x, g + SPIRE_TOP - 18.0, at.y), Vector3(d.x, 0.0, d.y), 2.6, SPIRE_BLUE])
 
 
 ## A tower's top cut on a slope: the walls rise to `hi` at the outline's far end (its longest

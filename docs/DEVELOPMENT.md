@@ -589,6 +589,14 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   soft corners, and the east front a curve that swells as it climbs (4 m out at the foot, 14 m
   at the crown), the crown cut on a slope from 192 m at the north to 158 m and glazed like the
   walls. Only the podium is still built from its OpenStreetMap parts.
+- **Warsaw Spire** (after the user's phone look, "not recognisable at all"; `_spire`):
+  OpenStreetMap has the 180 m tower only as its outline (the crown and masts are parts from
+  180 m up), so it stood as a lump. It is lofted from the outline through 6 rings, narrowing to
+  84 % at 180 m, with an open frame of fins to 196 m and a mast to 220 m. Its brand's parody,
+  SAMSONG, glows on the east and west faces near the top: a landmark sign (`signs`,
+  `map_builder._build_landmark_signs`, `neon_signs.gd` `LANDMARK_WORDS`, never a shop's word),
+  drawn with the neon signs' shader but lit by day too (`INSTANCE_CUSTOM.z` = 2) and outside the
+  night lights' holder. The two 55 m buildings beside it come from their parts.
 - **Muzeum Narodowe** (the landmarks loop): kept as LoD2 draws it (one model round its
   courtyards), but in its pale stone with tall windows between piers (`M_MONUMENT`, `#c9bfa9`):
   `map_builder` asks `landmarks.skin_at` for every kept LoD2 run and OpenStreetMap building
