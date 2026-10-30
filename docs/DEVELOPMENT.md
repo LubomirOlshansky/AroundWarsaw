@@ -2819,6 +2819,27 @@ Checked headless at Drewniana (the 2026-10-30 roadworks, `--at=145,-626`): 4 kno
 60 s with the player parked, 14 gusts in 15 s with `--heli`, 0 errors. The cost is one pass over
 the active drivers per frame, only on a day the roadworks are on the map.
 
+## The ram test: traffic was a wall to the car (2026-10-30)
+
+A new game run, `--ram-test` (verify step `ram`), drives the car into the back of a moving
+traffic car in the real city. On main after the first driving-feel loop it showed the car still
+stopping dead: hit at 65 km/h, 4 km/h a frame later, and never past in 10 s. The cause: Godot's
+`AnimatableBody3D` (traffic's and the trams' bodies) is a `StaticBody3D`, so `car.gd` counted
+every car and tram as a fixed wall (`_fixed_contact`): the slide took all the speed going into
+it, Point followed it as a wall, and pinned against one the car was towed. Now:
+
+- An `AnimatableBody3D` is not fixed. Hitting a car or a tram keeps half of the speed that went
+  into it for the next frame (`CAR_KEEP` 0.5; something that doesn't move takes the rest on the
+  next frames), and towing is for walls only.
+- Rammed from behind, the traffic car also swerves away from the player's side at 0.35 of the
+  closing speed (`SHOVE_SWERVE`), up to 2.0 m off its line (`SHOVE_ACROSS`, was 1.6), and takes
+  40 % of the speed it lacks (`SHOVE_ALONG`, was 70 %: it shot off ahead and was hit again).
+
+Ram test, same car at -918, 263 (23 km/h, the car from 29 km/h, Point at 65 km/h): before, hit
+and 4 km/h after, never past (0.5 m behind after 10 s); after, 28 km/h after the hit, past it
+2.6 s after, never unstuck. `check_steering` stays OK (`car_behind` 2.3 → 2.7 s now that the
+stopped car is not followed as a wall until the 0.35 s push).
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -3208,6 +3229,7 @@ Command-line options (after `--`):
 | `--debug-roads` | loop 3a: draw the bridge decks, approaches, tunnels, lane heights and piers round the car (Debug Draw add-on); loop 3b: the piers, portal legs and cap beams the bake placed |
 | `--tunnel` | loop 3b: with `--at`, start on the floor of the tunnel under that point (the car shows through the ground as a silhouette) |
 | `--drive-into-water=X,Z` | loop 10a: start at X,Z and drive flat out at the nearest water (within 120 m), the collision off until 3 m past the edge as if the car had jumped it; prints `water test:`, `water: splash at …` and `water: towed after … s …` (where to, how far from a lane, dry or not, the job / rescue / race / wallet), each with its frame. With `--kebab=0` a delivery is running (`tools/verify.sh` step `splash`) |
+| `--ram-test` | the driving-feel loop: after 2 s, the car is put 14 m behind the moving traffic car with the longest straight lane ahead, 6 m/s faster, and drives on along that lane (Point, 65 km/h); prints `ram test:` lines: the hit (speed, the rammed car shoved to), then `past it N s after the hit` or `NEVER PAST it after 10 s` (`tools/verify.sh` step `ram`, with `--no-police`) |
 | `--no-police` | loop 3g-1: no police, traps or patrol cars |
 | `--police=1\|2\|3` | loop 3g-1: a chase at that level at frame 60, the chaser 40 m behind on your lane (and the blocker / the roadblock for 2 / 3) |
 | `--trap=N` | loop 3g-1: start 150 m before speed trap N (1-4 in today's map), heading into it, and make it one of the day's; with `--pedal=gas` the car drives flat out along the road into the radar (through the traffic) |
