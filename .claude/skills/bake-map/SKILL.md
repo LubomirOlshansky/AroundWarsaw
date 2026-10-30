@@ -61,7 +61,9 @@ read the box's LoD2), and the inputs below are `data/work/demo/*` (trees, OSM, o
    `SITE_AREAS` (bake_city.gd fails otherwise).
 8. The prebuilt city, **with a renderer** (`--headless` drops MultiMesh and texture data):
    `godot --path game --resolution 320x180 --script res://tools/bake_city.gd` → the 32
-   `sectors/s_<i>_<j>.scn`, `proxies.scn`, `index.res`, `shared/*.res` (~16 s)
+   `sectors/s_<i>_<j>.scn`, `proxies.scn`, `index.res`, `shared/*.res` (~16 s; loop 3d-2b: also
+   each sector's pieces `sectors/s_<i>_<j>/<n>.res`, loaded one a frame, and its slices of the
+   AO, lamp-light and surface maps inside its scene)
    (also needed after any change to `map_builder.gd`, `chunked_surface.gd`, `landmarks.gd`,
    `neon_signs.gd`, `sector_proxies.gd`; `tools/export_ios.sh` runs 7 and 8). `city.scn` is
    gone (loop 3c).

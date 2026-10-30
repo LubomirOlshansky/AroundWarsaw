@@ -84,6 +84,12 @@ func _run() -> void:
 		print("check_tape: no data/then_cards.json")
 		quit(1)
 		return
+	# No sound in the check: with a real audio driver (the Mac) the rewind's playbacks outlive
+	# the player and leaked a WAV and two playbacks at exit. tape.play() skips a null player.
+	var rewind: AudioStreamPlayer = tape.get("_rewind")
+	tape.set("_rewind", null)
+	rewind.stream = null
+	rewind.free()
 	_check_cards(tape, book)
 	var most := _check_ghosts(tape)
 	var built := _check_reach(tape, data)
@@ -93,6 +99,9 @@ func _run() -> void:
 	hud.free()
 	wallet.free()
 	book.free()
+	# Let the ghosts queued for deletion go before quitting.
+	for _i in 3:
+		await process_frame
 	if problems.is_empty():
 		print("check_tape: OK (%d then cards placed, ghosts of 3-%d boxes, one draw call each, built only within %d m: %d points of the grid walk had one)" % [
 				n, most, int(Tape.BUILD_REACH), built])

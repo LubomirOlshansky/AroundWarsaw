@@ -43,7 +43,8 @@
 # file is the whole city, vertex for vertex; 10 spots rendered with --monolithic and with the
 # prebuilt sectors streamed differ in at most 0.5 % of their pixels; a 3-minute soak over every
 # sector misses no sector the car or the view needs (the 15-minute soak: README "Sectors and
-# streaming").
+# streaming"); loop 3d-2b: and two fast passes (the helicopter at its highest, the car at 45 m/s)
+# miss none either (~8 min in all).
 # Loop 3g-1 (police, docs/design/police.md section 15): `police` runs game/tools/check_police.gd
 # (P11 lines and flow, P12 the state machine with synthetic inputs); `police-runs` the scripted
 # game runs P1-P7 on the prebuilt city (the lizak, the trap stop, an escape, caught, the three

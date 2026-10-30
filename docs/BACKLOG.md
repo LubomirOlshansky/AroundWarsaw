@@ -16,7 +16,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
   with tall windows and a card; new bus shelters (glass roof, poster box lit at night, the
   blue D-15 sign). The Palace and the stadium were already detailed models and keep their look.
   **Second pass landed (2026-10-30)**: 9 more (Grzybowska 63, Jana Pawła II 21, Marszałkowska
-  94/98: the hotels by their addresses; Central Tower, Ilmet, the Platinum Towers, Łucka City,
+  94/98: the hotels, now under parody names Chilton, Westynka and Nowotel; Central Tower, Ilmet, the Platinum Towers, Łucka City,
   Widok Towers): 27 towers in all. **Third pass (2026-10-30)**: 15 low-rise landmarks
   (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm, Zachęta…) in their real colours.
   **Street furniture**: historic lanterns on the Royal Route and in the Old Town (2026-10-30). MDM's blocks and
@@ -205,8 +205,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   and full gas from three quarters out on the stick (70 HUD units, ~38 pt radius on an iPhone
   13), the 80 m default view, and whether the 44 pt panel controls feel right. Touch was emulated from the mouse and driven by
   `--clicks` / `--drag` / `--stick` on the Mac; nothing ran on a device.
-- Point with a finger that never lifts behaves like a fixed camera at whatever angle the
-  camera had (it only comes round after a release). The zoom (− + / pinch) is not saved.
+- ~~Point with a finger that never lifts behaves like a fixed camera at whatever angle the
+  camera had (it only comes round after a release). The zoom (− + / pinch) is not saved.~~ The
+  follow-camera loop (2026-10-30): Point's camera turns with the car while held, the zoom has five
+  saved steps. Not tested headless: the 20° re-aim, and how it feels on the phone.
 - In a dense spot the car can be pinned between a wall and a stopped traffic car that waits for
   it; the unstick turns it out after 1.5 s, and a second pin within 5 s tows it back onto the
   nearest lane on its level (next to a kerb that can be almost where it was, turned the lane's
@@ -930,10 +932,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Kościuszkowskie by Tamka (625, −453) 2.4 m in 6 m and (642, −548). A rule for a road's end on a
   hump of the grid, or the 1 m NMT along the river (one download, ~125 MB for the whole box,
   DEMO 3.1's optional line), would fix the class.
-- **The AO, lamp-light and surface maps** are 37 + 37 + 19 MB (93 MB of video memory as whole
+- ~~**The AO, lamp-light and surface maps** are 37 + 37 + 19 MB (93 MB of video memory as whole
   textures; the probe's textures 24 → 87 MB). Over the brief's 60 MB, but a window kept in RAM
   saves nothing on the iPhone's shared memory: it needs per-sector slices read from disk as the
-  focus moves (the streamer's job, where the perf loop works now). Loop 3d-2.
+  focus moves (the streamer's job, where the perf loop works now). Loop 3d-2.~~ Done in loop 3d-2b:
+  per-sector slices in 24 array layers, textures 94 → 38 MB, video at the spawn 406 → 300 MB.
 - **Static memory at the spawn 147 → ~220-315 MB** (the index's game data: roads, paths, areas,
   trees3d as Variant arrays, now 3× bigger; index.json 9.6 MB): packed arrays or per-sector game
   data (3c's note). Loop 3d-2.
@@ -994,6 +997,27 @@ Small problems that agents reported or that showed up in screenshots. They are f
   then fine on a rerun: flaky, not broken. Three prebuilt spot shots with `--time=day` once came out
   at night while other Godot runs were going; fine on a rerun.
 
+## From loop 3d-2b (the map engine, part two, 2026-10-30)
+- **Far levels are not built** (measured: with the orthographic camera every sector drawn has its
+  ground on screen; the proxies show only while a sector loads). A far level by zoom, the
+  helicopter's highest views drawn as painted proxies (357 → a few dozen draw calls over the
+  centre), changes the look of those views: the user's call (docs/QUESTIONS.md). Landmarks would
+  need a LOD1 from `landmarks.gd` (the landmarks lane).
+- **The helicopter is ~33 draw calls a pass** (26 boxes and the lights under its body,
+  `heli.gd`): one mesh with vertex colours (rule 2 of "Performance budgets") would save ~60 draws
+  in every flying view, more than any far level. Gameplay or performance lane.
+- **Map slots**: `CityMaps.SLOTS` 24 (32 MB); the 3-minute soak reached 24 sectors in full at once
+  (the 220 m view with the hysteresis), the passes 15-20; a load with no free slot takes one from a
+  sector kept only by the hysteresis (`evictions`), else waits (`slot_waits`; 0 in every run). A
+  bigger map or wider views may want 28-32.
+- **The runtime path** (the editor) still builds a sector's meshes and colliders on the worker and
+  hands them over at once (its load-end frame keeps the old cost); its start still runs the roof
+  pass over every sector file (23 s on the demo map: BACKLOG "From loop 3d-1"). The phone's path
+  is the prebuilt one.
+- **check_streaming spot 8** came down to 0.015 % (it was 0.789 %, `SPOT_MAX` 1 %); the limit is
+  left until a few more runs agree.
+- `verify.sh` streaming takes ~8 minutes now (the two passes).
+
 ## From the radio playlists loop (2026-10-29)
 - Done: radio.json, shuffled playlists, `tools/add_music.py`, the radio check, README "Adding music",
   CREDITS "Music".
@@ -1018,7 +1042,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   `add_music.py --force`. The Ogg files are lossy copies of the lossless loops.
 
 ## From loop G0+ (streaming and heat on the iPhone 11)
-- **A sector's load still makes one slow frame on the iPhone 11** (19-22 frames over 33 ms in a
+- **A sector's load still makes one slow frame on the iPhone 11** (loop 3d-2b: on the Mac the cause
+  was the collider, built by the physics server on the main thread at once; now 1,000-face patches
+  and every piece one a frame, the slowest load frame 23.8 → 13.0 ms; the phone's numbers are still
+  to measure with a `--stream-soak` device run) (19-22 frames over 33 ms in a
   6-minute soak, 25-65 ms each, none with any of the streamer's own work in it): the render
   server creates the sector's meshes and MultiMeshes (its GPU buffers) on the main thread when the
   worker's load ends (with `--render-thread separate` the same time moves into the frame's draw,
@@ -1161,11 +1188,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## From the driving-feel loop (less sticky, 2026-10-30)
 
-- Street furniture is still solid and unknockable: benches, bike racks, advertising columns,
-  shelters and parked cars. On today's map 7 benches, 11 bike racks and 3 shelters overlap a
-  carriageway (measured against the roads' half widths); the bake could keep them off the
-  asphalt as map review B did for lamps and signal poles, or they could be knocked about like
-  the roadworks' cones.
+- ~~Street furniture is still solid and unknockable: benches, bike racks, advertising columns,
+  shelters and parked cars.~~ Benches, bins, bike racks and columns are driven through since the
+  easy-driving loop (2026-10-30); shelters and parked cars stay solid (3 shelters overlapped a
+  carriageway on the old map). Knocking them about like the roadworks' cones is still open.
 - Corner slip and the shove are tuned on the flat test ground (`check_steering`) and by reading
   the numbers, not yet on the phone: how a 35 % bump feels, whether 7 m/s of sidestep reads as a
   jump at 60 fps, and whether shoved traffic overlapping the next lane looks wrong.
@@ -1192,6 +1218,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## From loop MW-1 (the MOJA WARSZAWA notebook, 2026-10-30)
 
+- **The minimap opens full screen** (F, 2026-10-30): a tap on the minimap opens a full-screen map
+  with the notebook's "?" marks and found places; another tap or the back gesture closes it.
+  HUD, content lane; 0 cost when closed.
 - **The real bake resolution (map lane).** The notebook resolves the places at load from the
   `near` hints (`notebook.gd` `resolve`: the bake's projection, then an address poi, a named
   square, park or landmark, or the place's own poi kind, within 300-600 m of the hint). The 3d

@@ -6,7 +6,8 @@ extends SceneTree
 ##   godot --headless --path game --script res://tools/pack_sectors.gd -- <out dir>
 ##
 ## Writes <out dir>/sectors/s_<i>_<j>.<hash>.pck (the hash, from the scene's bytes, keeps a cached
-## pack from an older build out) and res://map/web_sectors.json ({"packs": {name: path},
+## pack from an older build out; loop 3d-2b: with the sector's pieces, map/sectors/s_<i>_<j>/*.res,
+## its meshes, MultiMeshes and collider patches the scene refers to) and res://map/web_sectors.json ({"packs": {name: path},
 ## "spawn": the map's spawn}), which the web preset puts in the game's pack.
 
 
@@ -30,8 +31,12 @@ func _init() -> void:
 		var name := file.get_basename()
 		var rel := "sectors/%s.%s.pck" % [name, FileAccess.get_sha256(source).substr(0, 10)]
 		var packer := PCKPacker.new()
-		if packer.pck_start(args[0].path_join(rel)) != OK or packer.add_file(res_path, source) != OK \
-				or packer.flush() != OK:
+		var ok := packer.pck_start(args[0].path_join(rel)) == OK and packer.add_file(res_path, source) == OK
+		var pieces := "res://map/sectors/%s/" % name
+		if ok and DirAccess.dir_exists_absolute(pieces):
+			for piece in DirAccess.get_files_at(pieces):
+				ok = ok and packer.add_file(pieces + piece, ProjectSettings.globalize_path(pieces + piece)) == OK
+		if not ok or packer.flush() != OK:
 			printerr("pack_sectors: can't pack %s" % file)
 			quit(1)
 			return

@@ -32,7 +32,7 @@ const BUILDER_ONLY := ["site_parts", "kerbs", "medians", "islands", "shore", "fi
 const CITY_INPUTS := ["map/lod2.bin", "map/terrain.json", "map/ao.bin", "map/lights.bin", "map/water.bin",
 		"scripts/map_builder.gd", "scripts/chunked_surface.gd", "scripts/neon_signs.gd", "scripts/landmarks.gd",
 		"scripts/sector_proxies.gd", "scripts/models.gd", "scripts/pixel_font.gd", "scripts/index_pack.gd",
-		"tools/bake_city.gd"]
+		"scripts/city_maps.gd", "tools/bake_city.gd"]
 
 
 ## Set at the end of _bake: a script error (a builder that doesn't compile) ends _bake early
@@ -74,6 +74,9 @@ func _bake() -> Error:
 	for f in DirAccess.get_files_at("res://map/sectors/"):
 		if f.ends_with(".scn"):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path("res://map/sectors/" + f))
+	for d in DirAccess.get_directories_at("res://map/sectors/"):
+		if d.begins_with("s_"):
+			_remove_dir("res://map/sectors/" + d)
 	var keys: Array[Vector2i] = []
 	for k: Array in index["sectors"]["keys"]:
 		keys.append(Vector2i(int(k[0]), int(k[1])))
@@ -82,14 +85,21 @@ func _bake() -> Error:
 		var t := Time.get_ticks_msec()
 		var root: Node3D = map.build_sector(key)
 		_own(root, root)
+		var pieces := _save_pieces(root, key)
+		if pieces < 0:
+			root.free()
+			map.free()
+			return FAILED
+		map.sector_pieces[key] = pieces
 		var packed := PackedScene.new()
 		err = packed.pack(root)
 		var path := "res://map/sectors/%s.scn" % MapBuilder.sector_name(key)
 		if err == OK:
 			err = ResourceSaver.save(packed, path, ResourceSaver.FLAG_COMPRESS)
 		var size := FileAccess.get_file_as_bytes(path).size() if err == OK else 0
+		size += _dir_bytes("res://map/sectors/%s/" % MapBuilder.sector_name(key))
 		total += size
-		print("  %s: %d nodes, %.2f MB, %d ms" % [path.get_file(), _count(root), size / 1048576.0, Time.get_ticks_msec() - t])
+		print("  %s: %d nodes, %d pieces, %.2f MB, %d ms" % [path.get_file(), _count(root), pieces, size / 1048576.0, Time.get_ticks_msec() - t])
 		root.free()
 		if err != OK:
 			push_error("bake_city: %s: %s" % [path, error_string(err)])
@@ -134,6 +144,51 @@ func _bake() -> Error:
 	return err
 
 
+## Loop 3d-2b: the sector's own meshes, MultiMeshes and collider patches (not the shared ones
+## under map/shared/) saved one per file, map/sectors/s_<i>_<j>/<n>.res, the scene referring to them by path: the
+## streamer's worker loads them one a frame (sector_streamer.gd _make), so the renderer makes
+## their GPU buffers and the physics server their shapes a piece a frame instead of all of them
+## in the frame the sector's load ends (BACKLOG "From loop G0+": 25-65 ms on the iPhone 11, one
+## frame per load; on the Mac the collider, built on the main thread, was most of it). The number
+## saved, or -1 on an error.
+func _save_pieces(root: Node3D, key: Vector2i) -> int:
+	var dir := "res://map/sectors/%s/" % MapBuilder.sector_name(key)
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(dir))
+	var n := 0
+	for node in root.find_children("*", "", true, false):
+		var res: Resource = null
+		if node is MeshInstance3D:
+			res = (node as MeshInstance3D).mesh
+		elif node is MultiMeshInstance3D:
+			res = (node as MultiMeshInstance3D).multimesh
+		elif node is CollisionShape3D:
+			res = (node as CollisionShape3D).shape  # the collider's patches (map_builder.gd COLLIDER_CHUNK)
+		if res == null or res.resource_path != "":
+			continue  # shared (map/shared/) or saved already
+		var path := dir + "%d.res" % n
+		var err := ResourceSaver.save(res, path, ResourceSaver.FLAG_COMPRESS)
+		if err != OK:
+			push_error("bake_city: %s: %s" % [path, error_string(err)])
+			return -1
+		res.take_over_path(path)
+		n += 1
+	return n
+
+
+func _dir_bytes(dir: String) -> int:
+	var total := 0
+	if DirAccess.dir_exists_absolute(dir):
+		for f in DirAccess.get_files_at(dir):
+			total += FileAccess.get_file_as_bytes(dir + f).size()
+	return total
+
+
+func _remove_dir(dir: String) -> void:
+	for f in DirAccess.get_files_at(dir):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(dir.path_join(f)))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(dir))
+
+
 ## Loop 3d-1: map/sectors/city.stamp (see CITY_INPUTS).
 func _write_stamp() -> Error:
 	var split: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://map/sectors/split.stamp"))
@@ -168,17 +223,16 @@ func _same_sites(map: Node3D) -> bool:
 
 ## Saves what the sectors share once under map/shared/, so every sector scene refers to the
 ## same materials, textures and meshes (one copy in memory, per-frame updates reach them all).
+## Loop 3d-2b: the AO, lamp-light and surface maps are not among them any more: each sector
+## scene carries its slices (map_builder.gd map_slices, city_maps.gd); the whole maps' old files
+## go (the web's zstd streams with them: the web's sector packs carry the slices too).
 func _save_shared(map: Node3D) -> Error:
 	var shared: Dictionary = map.get("_shared")
-	var flat: ShaderMaterial = map.flat_material
-	var ao: Texture2D = flat.get_shader_parameter("ao_map")
-	var light: Texture2D = map.light_texture
-	_detach_maps(map, shared)
+	for old in ["ao_map.res", "light_map.res", "surface_map.res", "ao_map.zst", "light_map.zst"]:
+		if FileAccess.file_exists(SHARED + old):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(SHARED + old))
 	var items := [
-		["ao_map", ao],
-		["light_map", light],
-		["surface_map", map.water_texture],
-		["ground", flat],
+		["ground", map.flat_material],
 		["building", map.building_material],
 		["leaves", map.leaf_material],
 	]
@@ -196,44 +250,6 @@ func _save_shared(map: Node3D) -> Error:
 		# From now on the scenes saved refer to it by this path instead of carrying a copy.
 		res.take_over_path(path)
 	return OK
-
-
-## The web's first download (2026-10-30): the AO and lamp-light maps are put on their materials
-## when the city opens (map_builder.gd attach_maps), not saved inside them, so an export can carry
-## either form: the RG8 .res (phones, desktops) or the same texels as one zstd stream in
-## map/shared/<name>.zst (the web: 11.1 MB instead of 18.8, in the download and in the browser's
-## memory, which holds the whole pack). This records which materials read each map, clears it
-## from them and from the map, and writes the .zst; the .res files are saved as before.
-func _detach_maps(map: Node3D, shared: Dictionary) -> void:
-	var flat: ShaderMaterial = map.flat_material
-	var materials: Array[ShaderMaterial] = [flat]
-	for m: Variant in [map.building_material, map.leaf_material] + shared.values():
-		if m is ShaderMaterial and not materials.has(m):
-			materials.append(m)
-	var maps := {}
-	for pair: Array in [["ao_map", flat.get_shader_parameter("ao_map")], ["light_map", map.light_texture]]:
-		var tex: Texture2D = pair[1]
-		if tex == null:
-			continue
-		var users: Array[ShaderMaterial] = []
-		for m in materials:
-			if m.get_shader_parameter(pair[0]) == tex:
-				users.append(m)
-				m.set_shader_parameter(pair[0], null)
-		maps[pair[0]] = {"materials": users}
-		var img := tex.get_image()
-		img.convert(Image.FORMAT_RG8)
-		var head := PackedByteArray()
-		head.resize(8)
-		head.encode_u32(0, img.get_width())
-		head.encode_u32(4, img.get_height())
-		var f := FileAccess.open(SHARED + String(pair[0]) + ".zst", FileAccess.WRITE)
-		f.store_buffer(head + img.get_data().compress(FileAccess.COMPRESSION_ZSTD))
-		var size := f.get_length()
-		f.close()
-		print("bake_city: %s attached at start (%d materials; %s.zst %.1f MB)" % [pair[0], users.size(), pair[0], size / 1048576.0])
-	map.map_maps = maps
-	map.light_texture = null
 
 
 func _own(node: Node, owner: Node) -> void:

@@ -13,12 +13,31 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
-| map | Loop 3d-2b, the map engine part two: far levels with low buildings painted flat, look-ahead streaming, per-sector AO/light/surface maps, the load hitch (3d-1 and 3d-2a landed) | thread "Finish the demo map extension" | 2026-10-30 |
-| content (city life) | MW-4, everyday life and trends: dog walkers, cyclists and Rowerilo docks, runners, Kolka and the Zając, Hyrax Saturdays, the Wiralek cycle and the "Na czasie" job, Fat Thursday (new meshes in its own script; tell landmarks before touching `models.gd`) | cloud thread "Add night and river crowds" | 2026-10-30 |
+| map | Loop 3e, structures: the W-Z tunnel, Most Śląsko-Dąbrowski, Trasa Łazienkowska, the Wybrzeże trench, Wiadukt Markiewicza, the rail cutting (3d-1, 3d-2a and 3d-2b landed) | thread "Finish the demo map extension" | 2026-10-30 |
+| content | F's asks: Rechotka 24 → Frogs, pedestrian slow zones off by default (a Settings switch), the rooftop club at Plac Zawiszy, the full-screen map | cloud thread "Add night and river crowds" | 2026-10-30 |
 
 ## Waiting
 
 Newest first. One entry per question.
+
+- **2026-10-30 · content · MW-4 (everyday life and trends)** — How often does a trend move
+  without Live? Vision says every third session. Default built: every 4 sessions. Live counts
+  8-day cycles from 2026-01-05 rather than the ISO week.
+- **2026-10-30 · content · MW-4** — E28 is built as "follow a Rowerilo rider 400 m" (vision: "to
+  a dock"). The "Na czasie" job pays 51 zł on time, 21 late, no tip on days 6–7; the offer shows
+  within 60 m of a slot, then waits 240 s. Default built: as said.
+- **2026-10-30 · content · MW-4** — Kolka and Hyrax show only in Live (or `--zajac`), plus Hyrax
+  in the fixed Day look before noon. Dogs are drawn 1.35× so they read. Default built: as said.
+- **2026-10-30 · content · MW-4** — The player has no horn signal (car.gd, driving lane), so the
+  AI cars' horns make the dogs bark for now. Default built: AI horns.
+- **2026-10-30 · content · MW-4** — Cost cut: movers within 15 m of the car step at full rate
+  (was 30 m); off-screen ones at 3.75 Hz. Default built: as said.
+
+- **2026-10-30 · content · Podwózka's name** — F is thinking of renaming Podwózka (the lift
+  app) to something like "zUber". Take: a near-Uber name carries trademark risk (the rule is
+  parodies that don't lean on a real name or logo), and Podwózka already reads as a joke in
+  Polish. Options: keep Podwózka / **Hopka** ("hop in") / **Wiozę** ("I'm driving you") /
+  **Szofer** / "zUber" anyway. Default built: Podwózka, nothing renamed until F picks.
 
 - **2026-10-30 · content · MW-3 (night and river crowds)** — A real sitting pose? Sitters are
   squashed standing figures; a real pose needs `actor.gdshader` work (visuals lane) or a second
@@ -26,25 +45,21 @@ Newest first. One entry per question.
 - **2026-10-30 · content · MW-3** — Guessed curves: Plan C's hours, the dawn curve (20 at the
   window's edges, 40 at 06–07), weekday factors, the guitarist 16:00–01:00, rain 0.1. Tune by eye
   on the phone. Default built: as listed in DEVELOPMENT "The night and the river".
-- **2026-10-30 · content · MW-3** — Queues stand at the place's point and the nearest footway
-  until MW-2's storefronts exist; Smoła's queue lands in a passage hidden by a block from
-  `--club=smola`. Default built: as said.
-- **2026-10-30 · content · MW-3** — Night buses (E23, E25) need a small bus API in `traffic.gd`
-  (driving lane), e.g. `spawn_bus(route, sign)`. Default built: not built, BACKLOG.
-- **2026-10-30 · content · MW-3** — Dawn is the last entry of Settings → TIME (so saved settings
-  keep their meaning); E15's "three different days" uses the real date without Live. Default
-  built: as said.
-
 - **2026-10-30 · content · MW-6 (eggs, KASETA, Spacer, Fotka)** — Words written in this loop
   need a designer pass: egg lines vision doesn't quote, the English egg names, and the 15 Kadr
   photo spots (`game/data/eggs.json`, `kadr.json`). Default built: as written.
 - **2026-10-30 · content · MW-6** — The KASETA ghost is faint (dithered, reusing the building
   shader) and dim at night. Brighter needs a visuals-lane shader uniform. Default built: faint.
-- **2026-10-30 · content · MW-6** — E31's reward was track 2, which is free from the start: it
-  opens the next locked track instead. The 5 old eggs now pay +10 respect each. Default built:
-  as said.
-- **2026-10-30 · content · MW-6** — Spacer (wander mode) is a row in Settings → JAZDA, offered
-  once by a toast; FOTKA is a button in Settings → OBRAZ. Default built: there.
+- **2026-10-30 · map · 3d-2b** — A far level by zoom: draw the helicopter's highest views (above
+  ~200 m) as painted proxies? Over the centre ~357 draw calls would drop to a few dozen, but those
+  views lose their 3D detail. Default built: no far level, full detail everywhere (the orthographic
+  camera shows no proxies today). Where: BACKLOG "From loop 3d-2b".
+- **2026-10-30 · map · 3d-2b** — Map slots for the per-sector AO/light maps: keep 24 (32 MB) or
+  raise to 28–32 for headroom (+5–11 MB)? The 3-minute soak reached 24 with no waits. Default: 24.
+- **2026-10-30 · map · 3d-2b** — check_streaming's spot 8 limit (1 %): lower it now that it
+  measures 0.015 %? Default: leave it until more runs agree.
+- **2026-10-30 · map · 3d-2b** — Landmarks in the proxies need a LOD1 model from `landmarks.gd`
+  (landmarks lane). Default: none until round 3f's landmark factory.
 - **2026-10-30 · map · 3d-2a** — Clean the terrain at bake time (snap near-flat 20 m blocks within
   15 cm) so flat ground can merge into bigger quads? It would let ~47 % of cells merge but moves
   driving heights by up to 15 cm and needs a full re-bake. Options: snap / keep exact heights.
@@ -59,10 +74,6 @@ Newest first. One entry per question.
   thread, or `--unlock=all --station=polnoc`): mood, balance, does the bass reach the phone's
   speaker? They're 22 kHz, 40 kbps to stay under 4 MB; raise it if you hear artifacts.
   Default built: as made.
-- **2026-10-30 · content · MW-5** — Chapters 1–5 unlock tracks 3–7; chapters 6–9 unlock nothing
-  yet (vision: a horn tune and the gold cover later). Default built: as said; BACKLOG.
-- **2026-10-30 · content · MW-5** — Until you pick a station, the radio follows the clock:
-  PÓŁNOC FM at night, KEBAB FM otherwise. Keep, or switch only at launch? Default built: follow.
 - **2026-10-30 · content · MW-5** — New words for a designer pass: the day caption "powtórka ·
   rerun · the host is back at 22:00" and the unlock toast "Kuba ma nową płytę: „…”".
   Default built: as written.
@@ -72,8 +83,6 @@ Newest first. One entry per question.
   ahead. Tell back after a phone run.
 - **2026-10-30 · content · 3g-2** — The pedestrian-zone cap only cuts the gas: a car entering
   faster coasts down to 20 km/h. Brake it harder? Default built: coast down.
-- **2026-10-30 · content · 3g-2** — Stopping by a guard ends in a caution in the joke notebook.
-  The routine first contact takes no Podwózka star. Keep both? Default built: as said.
 - **2026-10-30 · content · 3g-2** — The clamp card reads BLOKADA NA KOLE · ZDEJMUJĘ ZA 0:10 /
   WHEEL CLAMP ON · OFF IN 0:10. Wording for a game-designer pass? Default built: as written.
 
@@ -94,31 +103,14 @@ Newest first. One entry per question.
   still look wrong and how. Where: PR (landmark models).
 - **2026-10-30 · landmarks/models** — Złota 44's top is cut on a slope, high at its north end.
   Options: keep / high at the south end / flat. Default built: high at the north end.
-- **2026-10-30 · landmarks/models** — Hotel towers are named by address, not brand (rule:
-  brands only as parodies): the InterContinental's card says "Emilii Plater 49", the Hilton's
-  "Grzybowska 63", the Westin's "Jana Pawła II 21", the Novotel's "Marszałkowska 94/98".
-  Default built: as said. Options: keep /
-  parody names for the hotels.
 - **2026-10-30 · web · deploy** — May I deploy the web build? It creates the Worker
   `aroundwarsaw-play` with the custom domain play.aroundwarsaw.app (a new DNS record in the
   aroundwarsaw.app zone) and uploads build/web (~141 MB), then redeploys the landing so the
   "Play online" button and the /play/ redirect go live. Both are public; `wrangler rollback` and
   deleting the Worker undo them. Default built: everything ready and tried locally; nothing
   deployed. Where: docs/DEVELOPMENT.md "The web build".
-- **2026-10-30 · content · MW-1 (the notebook)** — The minimap shows "?" for undiscovered
-  places within 400 m of the car, because districts don't exist yet. Switch to "in a discovered
-  district" once DEMO 6.3's districts land? Default built: 400 m.
-- **2026-10-30 · content · MW-1** — Venue cards hide the street address (a venue's real address
-  can name the real club, e.g. "Jasna 1" is on the denylist). Add a designer-written "safe to
-  show" address per place? Default built: no address on venue cards.
-- **2026-10-30 · content · MW-1** — The settings tab is ZESZYT · notebook, and the card's title
-  becomes MOJA WARSZAWA on that tab (the full name doesn't fit as a fifth tab on the iPhone SE).
-  Keep? Default built: ZESZYT.
 - **2026-10-30 · content · MW-1** — The chapter-complete card reads ROZDZIAŁ GOTOWY · CHAPTER
   DONE with "+50 zł, +30 ★". Wording for a game-designer pass? Default built: as written.
-- **2026-10-30 · content · MW-1** — Stadion Narodowy (115 m from any road) and Most
-  Śląsko-Dąbrowski (65 m) can't be found by car with today's anchors: wider radius, or wait for
-  the map lane's bake resolution? Default built: nothing changed; BACKLOG "From loop MW-1".
 - **2026-10-30 · store release · app IDs** — The iOS bundle ID is still
   `com.olshanskysoft.nocnawarszawa`. Change it to `com.olshanskysoft.aroundwarsaw` before the
   App Store Connect record exists, or keep it? Nobody ever sees it (the home-screen and store
@@ -128,16 +120,6 @@ Newest first. One entry per question.
   keep, as the rename of 2026-10-30 decided. Where: `game/export_presets.cfg`, ROADMAP
   "rename + open source".
 
-- **2026-10-30 · content · MW-0 (Moja Warszawa data)** — Where is the real "Apteka" bar you
-  meant? Options: name the street / keep the default. Default built: APTECZKA in a Nowy Świat
-  22/28 courtyard pavilion, marked `guess` in `game/data/places.json`. If the "Apteka" came from
-  the song with "apteką" in its title, say so and it gets an invented name instead. Where: PR (MW-0).
-- **2026-10-30 · content · MW-0** — The then-and-now cards start in 2010 (the demo's "time
-  tape"), so vision.md's 2009 blue hall and the 1990s items wait for later. Allow the blue hall
-  as an exception? Default built: 20 cards from 2010 to 2024 (`game/data/then_cards.json`).
-- **2026-10-30 · content · MW-0** — Historic hall names "Hala Koszyki" and "Hala Gwardii" are
-  kept as place names (they are also the halls' trade names); the new tower and museum are
-  never named. Rename the halls descriptively ("Hala na Koszykowej")? Default built: kept.
 - **2026-10-30 · store release · store listings** — Ship the iOS app for iPhone and iPad, or
   iPhone only? Once an iPad version is on the App Store, later versions can't drop iPad.
   Options: iPhone and iPad (needs an iPad device pass) / iPhone only. Default built: nothing
@@ -177,3 +159,66 @@ Newest first. One entry per question.
 
 Move an entry here with the user's answer and the date; its item goes back to the top of the
 backlog. Lasting decisions also go into BACKLOG's "Decided" sections, DEMO.md or ROADMAP.
+
+- **2026-10-30 · content · MW-3** — Queues stand at the place's point and the nearest footway
+  until MW-2's storefronts exist; Smoła's queue lands in a passage hidden by a block from
+  `--club=smola`. Default built: as said.
+  **Answered 2026-10-30 (F):** as said (kept).
+- **2026-10-30 · content · MW-3** — Night buses (E23, E25) need a small bus API in `traffic.gd`
+  (driving lane), e.g. `spawn_bus(route, sign)`. Default built: not built, BACKLOG.
+  **Answered 2026-10-30 (F):** not built, BACKLOG (kept).
+- **2026-10-30 · content · MW-3** — Dawn is the last entry of Settings → TIME (so saved settings
+  keep their meaning); E15's "three different days" uses the real date without Live. Default
+  built: as said.
+  **Answered 2026-10-30 (F):** as said (kept).
+- **2026-10-30 · content · MW-6** — E31's reward was track 2, which is free from the start: it
+  opens the next locked track instead. The 5 old eggs now pay +10 respect each. Default built:
+  as said.
+  **Answered 2026-10-30 (F):** as said (kept).
+- **2026-10-30 · content · MW-6** — Spacer (wander mode) is a row in Settings → JAZDA, offered
+  once by a toast; FOTKA is a button in Settings → OBRAZ. Default built: there.
+  **Answered 2026-10-30 (F):** there (kept).
+- **2026-10-30 · content · MW-5** — Chapters 1–5 unlock tracks 3–7; chapters 6–9 unlock nothing
+  yet (vision: a horn tune and the gold cover later). Default built: as said; BACKLOG.
+  **Answered 2026-10-30 (F):** as said (kept).
+- **2026-10-30 · content · MW-5** — Until you pick a station, the radio follows the clock:
+  PÓŁNOC FM at night, KEBAB FM otherwise. Keep, or switch only at launch? Default built: follow.
+  **Answered 2026-10-30 (F):** follow the clock (kept).
+- **2026-10-30 · content · 3g-2** — Stopping by a guard ends in a caution in the joke notebook.
+  The routine first contact takes no Podwózka star. Keep both? Default built: as said.
+  **Answered 2026-10-30 (F):** kept. F is also thinking of renaming Podwózka (e.g. "zUber"): parked as its own question above.
+- **2026-10-30 · landmarks/models** — Hotel towers are named by address, not brand (rule:
+  brands only as parodies): the InterContinental's card says "Emilii Plater 49", the Hilton's
+  "Grzybowska 63", the Westin's "Jana Pawła II 21", the Novotel's "Marszałkowska 94/98".
+  Default built: as said. Options: keep /
+  parody names for the hotels.
+  **Answered 2026-10-30 (F):** **parody names** for the hotel towers, not addresses (changed; landmarks lane's item).
+- **2026-10-30 · content · MW-1 (the notebook)** — The minimap shows "?" for undiscovered
+  places within 400 m of the car, because districts don't exist yet. Switch to "in a discovered
+  district" once DEMO 6.3's districts land? Default built: 400 m.
+  **Answered 2026-10-30 (F):** 400 m kept. F also wants the minimap to open full screen: BACKLOG "From loop MW-1" (HUD item).
+- **2026-10-30 · content · MW-1** — Venue cards hide the street address (a venue's real address
+  can name the real club, e.g. "Jasna 1" is on the denylist). Add a designer-written "safe to
+  show" address per place? Default built: no address on venue cards.
+  **Answered 2026-10-30 (F):** no address (kept).
+- **2026-10-30 · content · MW-1** — The settings tab is ZESZYT · notebook, and the card's title
+  becomes MOJA WARSZAWA on that tab (the full name doesn't fit as a fifth tab on the iPhone SE).
+  Keep? Default built: ZESZYT.
+  **Answered 2026-10-30 (F):** ZESZYT kept (it means "notebook").
+- **2026-10-30 · content · MW-1** — Stadion Narodowy (115 m from any road) and Most
+  Śląsko-Dąbrowski (65 m) can't be found by car with today's anchors: wider radius, or wait for
+  the map lane's bake resolution? Default built: nothing changed; BACKLOG "From loop MW-1".
+  **Answered 2026-10-30 (F):** wait for the map lane's bake (kept).
+- **2026-10-30 · content · MW-0 (Moja Warszawa data)** — Where is the real "Apteka" bar you
+  meant? Options: name the street / keep the default. Default built: APTECZKA in a Nowy Świat
+  22/28 courtyard pavilion, marked `guess` in `game/data/places.json`. If the "Apteka" came from
+  the song with "apteką" in its title, say so and it gets an invented name instead. Where: PR (MW-0).
+  **Answered 2026-10-30 (F):** APTECZKA in the Nowy Świat courtyard (kept).
+- **2026-10-30 · content · MW-0** — The then-and-now cards start in 2010 (the demo's "time
+  tape"), so vision.md's 2009 blue hall and the 1990s items wait for later. Allow the blue hall
+  as an exception? Default built: 20 cards from 2010 to 2024 (`game/data/then_cards.json`).
+  **Answered 2026-10-30 (F):** from 2010, no blue-hall exception (kept).
+- **2026-10-30 · content · MW-0** — Historic hall names "Hala Koszyki" and "Hala Gwardii" are
+  kept as place names (they are also the halls' trade names); the new tower and museum are
+  never named. Rename the halls descriptively ("Hala na Koszykowej")? Default built: kept.
+  **Answered 2026-10-30 (F):** kept.

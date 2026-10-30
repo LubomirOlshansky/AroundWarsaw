@@ -41,8 +41,7 @@ uniform vec3 sky_top = vec3(0.0);
 uniform vec3 sky_bottom = vec3(0.0);
 uniform float stars = 0.0;
 // Reflections (main.gd sets the map; quality sets the steps) and the rain (weather.gd).
-uniform sampler2D surface_map : filter_linear, repeat_disable, hint_default_black;
-uniform vec4 surface_rect = vec4(0.0, 0.0, 1.0, 1.0);
+#include "res://shaders/city_maps.gdshaderinc"
 uniform int reflect_steps = 10;
 uniform float rain = 0.0;
 uniform vec2 rain_shift = vec2(0.0);
@@ -137,7 +136,7 @@ void fragment() {
 		vec3 n_view = normalize(cross(vr - vl, vu - vd));
 		vec3 n = (INV_VIEW_MATRIX * vec4(n_view, 0.0)).xyz;
 		vec3 world = (INV_VIEW_MATRIX * vec4(vc, 1.0)).xyz;
-		vec4 surf = texture(surface_map, (world.xz - surface_rect.xy) / surface_rect.zw);
+		vec4 surf = city_surface_at(world.xz);  // loop 3d-2b: per sector
 		// Water mirrors always; roads and paving once they're wet (puddles most).
 		float water = smoothstep(0.66, 0.8, surf.b);
 		float road = smoothstep(0.3, 0.45, surf.b) * (1.0 - water);

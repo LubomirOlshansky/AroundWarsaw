@@ -32,6 +32,11 @@ extends RefCounted
 ## The default view height in metres while driving (was 110 before loop 2a): the car is
 ## ~58 px long side-on on an iPhone's 1170 lines; still ~3 s of road ahead at 90 km/h.
 const DEFAULT_SIZE := 80.0
+## The follow-camera loop (2026-10-30): the player's zoom, view heights in metres (pinch, the
+## mouse wheel, − and +; saved in Settings), from close to wide; DEFAULT_SIZE is the middle one.
+const VIEWS: Array[float] = [50.0, 65.0, 80.0, 100.0, 125.0]
+## A pinch takes a step each time the fingers' span changes by this ratio.
+const PINCH_STEP := 1.2
 ## The view widens by this share at top speed.
 const SPEED_ZOOM := 0.25
 ## The fastest the camera ever turns, degrees a second.
@@ -81,9 +86,10 @@ var _extra := 0.0
 ## The follow camera's next yaw (degrees, main.gd's cam_yaw) for a vehicle with `heading`
 ## (degrees, its rotation.y) going `speed` m/s. `waits` (Point, the helicopter): it holds still
 ## while `held` and HOLD_DELAY after `since_release`, then comes round; otherwise (Classic) it turns
-## with the vehicle. `full`: the speed from which it turns in full (0: at any speed).
+## with the vehicle, at `gain` (Classic's TURN_GAIN; Point's RETURN_GAIN since the follow-camera
+## loop). `full`: the speed from which it turns in full (0: at any speed).
 func follow_yaw(yaw: float, heading: float, speed: float, waits: bool, held: bool, since_release: float,
-		full: float, dt: float) -> float:
+		full: float, dt: float, gain := TURN_GAIN) -> float:
 	var share := 1.0 if full <= 0.0 else clampf(speed / full, 0.0, 1.0)
 	if waits:
 		if held or since_release < HOLD_DELAY:
@@ -91,7 +97,7 @@ func follow_yaw(yaw: float, heading: float, speed: float, waits: bool, held: boo
 			return yaw
 		var ease := smoothstep(HOLD_DELAY, HOLD_DELAY + RETURN_EASE, since_release)
 		return turn_towards(yaw, heading, RETURN_GAIN, ease * share, dt)
-	return turn_towards(yaw, heading, TURN_GAIN, share, dt)
+	return turn_towards(yaw, heading, gain, share, dt)
 
 
 ## One step of the turn towards `heading`: the rate `gain` × error (less YAW_DEAD), times `share`
@@ -173,6 +179,16 @@ func focus_step(focus: Vector3, target: Vector3, basis: Basis, size: float, rate
 
 ## The view's next height: `size` towards `base` (the zoom: at ZOOM_OUT_RATE both ways) plus
 ## `extra` (the speed zoom, in metres: out at ZOOM_OUT_RATE, in at ZOOM_IN_RATE).
+## The follow-camera loop: the zoom step `steps` away from `size` (+1 wider, -1 closer), from the
+## VIEWS step nearest to `size`; it stays at either end.
+static func view_step(size: float, steps: int) -> float:
+	var k := 0
+	for i in VIEWS.size():
+		if absf(VIEWS[i] - size) < absf(VIEWS[k] - size):
+			k = i
+	return VIEWS[clampi(k + steps, 0, VIEWS.size() - 1)]
+
+
 func zoom_step(size: float, base: float, extra: float, dt: float) -> float:
 	if _base < 0.0:
 		_base = size

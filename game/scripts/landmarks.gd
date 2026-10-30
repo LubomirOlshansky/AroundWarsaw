@@ -165,9 +165,9 @@ const INFO := {
 	"bridge": ["The Bridge",
 			"174 m przy Grzybowskiej.",
 			"174 m on Grzybowska."],
-	"grzybowska63": ["Grzybowska 63", "Hotel, 94 m.", "A hotel, 94 m."],
-	"jp2_21": ["Jana Pawła II 21", "Hotel, 94 m.", "A hotel, 94 m."],
-	"marszalkowska94": ["Marszałkowska 94/98", "Hotel, 95 m.", "A hotel, 95 m."],
+	"grzybowska63": ["Chilton", "Hotel przy Grzybowskiej 63, 94 m. Na luzie.", "A hotel at Grzybowska 63, 94 m. Chilled."],
+	"jp2_21": ["Westynka", "Hotel przy Jana Pawła II 21, 94 m, z rurą szkła na fasadzie.", "A hotel at Jana Pawła II 21, 94 m, with a glass tube up its front."],
+	"marszalkowska94": ["Nowotel", "Hotel przy Marszałkowskiej 94/98, 95 m. Nowy od 1974 roku.", "A hotel at Marszałkowska 94/98, 95 m. New since 1974."],
 	"central": ["Central Tower", "115 m przy Alejach Jerozolimskich.", "115 m on Al. Jerozolimskie."],
 	"ilmet": ["Ilmet", "103 m.", "103 m."],
 	"platinum_a": ["Platinum Tower A", "83 m.", "83 m."],
@@ -238,6 +238,9 @@ var info: Array[Dictionary] = []
 
 # Emitter state.
 var _mode := M_STONE
+## The landmarks loop: big signs on the landmarks for map_builder's _build_landmark_signs:
+## [word (neon_signs.gd LANDMARK_WORDS), bottom middle, outward normal, scale, tube colour].
+var signs: Array = []
 var _g := 0.0          # the landmark's ground height
 var _id := 0           # landmark id for the picking grid (0: none)
 var _pick := PackedByteArray()
@@ -1347,11 +1350,20 @@ func _build_tower(site: Dictionary) -> void:
 	for b in parts:
 		boxes.append(_box_of([_pts(b["p"])]))
 		top_h = maxf(top_h, float(b["h"]))
+	if spec["key"] == "zlota44":
+		# Złota 44: the tower is lofted (_zlota_sail); only the podium is built from its parts.
+		_zlota_sail(g, glass, roof, skin)
+	elif spec["key"] == "spire":
+		# Warsaw Spire: the leaf-shaped tower lofted and tapering (_spire); the two lower
+		# office buildings beside it are built from their parts.
+		_spire(zone, g, glass, roof, skin)
 	for k in parts.size():
 		var b: Dictionary = parts[k]
 		var poly := _pts(b["p"])
 		var h := float(b["h"])
 		var mh := float(b["mh"])
+		if spec["key"] == "zlota44" and h > 40.0 or spec["key"] == "spire" and h > 100.0:
+			continue
 		if mh > 0.5:
 			var held := false
 			for j in parts.size():
@@ -1383,6 +1395,171 @@ func _build_tower(site: Dictionary) -> void:
 				_prism(poly, g + h, g + 192.0, wall, Color(0, 0, 0, 0), M_SKIN + float(S_FRAME) / 16.0)
 		if mh < 2.0:
 			_collide(poly)
+
+
+## Złota 44 (the landmarks loop, after the user's phone look: "like a rectangle, not curvy").
+## Its plan, from the mapped core: a straight west front, soft corners, and the east front a
+## curve that swells as it climbs (the "sail", 4 m out at the foot, 14 m at the crown), lofted
+## through ZLOTA_RINGS rings so it reads curved from the driving camera; the crown is cut on a
+## slope from ZLOTA_HI at its north end to ZLOTA_LO at the south, under the white exoskeleton
+## skin (S_SAIL).
+const ZLOTA_NE := Vector2(-1469.5, 291.8)
+const ZLOTA_SE := Vector2(-1462.1, 325.6)
+const ZLOTA_SW := Vector2(-1488.5, 334.8)
+const ZLOTA_NW := Vector2(-1501.1, 298.5)
+const ZLOTA_HI := 192.0
+const ZLOTA_LO := 158.0
+const ZLOTA_RINGS := 8
+const ZLOTA_ARC := 12   # segments of the curved east front
+func _zlota_ring(t: float) -> PackedVector2Array:
+	var ring := PackedVector2Array()
+	var bulge := lerpf(4.0, 14.0, pow(t, 1.3))
+	var east := (ZLOTA_SE - ZLOTA_NE).normalized()
+	var out := Vector2(-east.y, east.x)
+	if out.dot(ZLOTA_NE - ZLOTA_NW) < 0.0:
+		out = -out
+	# The east front from north to south, swelling most a little south of its middle.
+	for i in ZLOTA_ARC + 1:
+		var u := float(i) / float(ZLOTA_ARC)
+		var swell := sin(PI * pow(u, 0.85))
+		ring.append(ZLOTA_NE.lerp(ZLOTA_SE, u) + out * bulge * swell)
+	# The soft south-west and north-west corners (three points each), the west front straight.
+	for corner: Array in [[ZLOTA_SE, ZLOTA_SW, ZLOTA_NW], [ZLOTA_SW, ZLOTA_NW, ZLOTA_NE]]:
+		var a: Vector2 = corner[0]
+		var c: Vector2 = corner[1]
+		var b: Vector2 = corner[2]
+		var r := 4.0
+		var p0 := c + (a - c).normalized() * r
+		var p1 := c + (b - c).normalized() * r
+		ring.append(p0)
+		ring.append(p0.lerp(c, 0.5).lerp(p1.lerp(c, 0.5), 0.5))
+		ring.append(p1)
+	return ring
+
+
+func _zlota_sail(g: float, glass: Color, roof: Color, skin: float) -> void:
+	var base := _zlota_ring(0.0)
+	var n := base.size()
+	var axis := Vector2(0, -1)  # the crown highest at the north
+	var lo_d := INF
+	var hi_d := -INF
+	for t in [0.0, 1.0]:
+		for q in _zlota_ring(t):
+			lo_d = minf(lo_d, q.dot(axis))
+			hi_d = maxf(hi_d, q.dot(axis))
+	var top := func(q: Vector2) -> float:
+		return g + lerpf(ZLOTA_LO, ZLOTA_HI, inverse_lerp(lo_d, hi_d, q.dot(axis)))
+	var y0 := g - 0.4
+	var rings: Array[PackedVector2Array] = []
+	for k in ZLOTA_RINGS + 1:
+		rings.append(_zlota_ring(float(k) / float(ZLOTA_RINGS)))
+	var keep := _mode
+	_mode = skin
+	var cw := Geometry2D.is_polygon_clockwise(base)
+	for k in ZLOTA_RINGS:
+		var r0 := rings[k]
+		var r1 := rings[k + 1]
+		var f0 := float(k) / float(ZLOTA_RINGS)
+		var f1 := float(k + 1) / float(ZLOTA_RINGS)
+		var run := 0.0
+		for i in n:
+			var j := (i + 1) % n
+			var a0 := r0[i]
+			var b0 := r0[j]
+			var a1 := r1[i]
+			var b1 := r1[j]
+			var length := a0.distance_to(b0)
+			var e := (b0 - a0).normalized()
+			var o := Vector2(e.y, -e.x)
+			if not cw:
+				o = -o
+			var ya0 := lerpf(y0, top.call(rings[ZLOTA_RINGS][i]), f0)
+			var yb0 := lerpf(y0, top.call(rings[ZLOTA_RINGS][j]), f0)
+			var ya1 := lerpf(y0, top.call(rings[ZLOTA_RINGS][i]), f1)
+			var yb1 := lerpf(y0, top.call(rings[ZLOTA_RINGS][j]), f1)
+			var hi := maxf(top.call(rings[ZLOTA_RINGS][i]), top.call(rings[ZLOTA_RINGS][j])) - _g
+			_quad(Vector3(a0.x, ya0, a0.y), Vector3(b0.x, yb0, b0.y), Vector3(b1.x, yb1, b1.y), Vector3(a1.x, ya1, a1.y),
+					Vector3(o.x, 0.0, o.y), glass, Vector2(run, ya0 - _g), Vector2(run + length, yb0 - _g),
+					Vector2(run + length, yb1 - _g), Vector2(run, ya1 - _g), hi)
+			run += length
+	_mode = M_SKIN
+	var crown := rings[ZLOTA_RINGS]
+	var idx := Geometry2D.triangulate_polygon(crown)
+	if idx.is_empty():
+		idx = Geometry2D.triangulate_delaunay(crown)
+	var up := Vector3(-axis.x * (ZLOTA_HI - ZLOTA_LO), absf(hi_d - lo_d), -axis.y * (ZLOTA_HI - ZLOTA_LO)).normalized()
+	for i in range(0, idx.size(), 3):
+		var a := crown[idx[i]]
+		var b := crown[idx[i + 1]]
+		var d := crown[idx[i + 2]]
+		# The sloped crown is glazed like the walls (a white slab facing the camera blew out).
+		_tri(Vector3(a.x, top.call(a), a.y), Vector3(b.x, top.call(b), b.y), Vector3(d.x, top.call(d), d.y), up,
+				glass.lerp(roof, 0.3), Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	_mode = keep
+	_collide(base)
+
+
+## Warsaw Spire (the landmarks loop, after the user's phone look: "not recognisable at all").
+## OpenStreetMap maps the 180 m tower only as its outline, with the crown and masts as parts
+## floating from 180 m, so it stood as a lump. Here the leaf-shaped outline is lofted through
+## SPIRE_RINGS rings, narrowing to SPIRE_TAPER at 180 m; an open frame of fins carries the
+## crown to 196 m and a mast to 220 m; the brand's parody (SAMSONG, neon_signs.gd) glows on
+## its east and west faces near the top, as the real sign does.
+const SPIRE_TOP := 180.0
+const SPIRE_TAPER := 0.84
+const SPIRE_RINGS := 6
+const SPIRE_BLUE := Color(0.2, 0.42, 1.0)
+func _spire(outline: PackedVector2Array, g: float, glass: Color, roof: Color, skin: float) -> void:
+	var base := PackedVector2Array()
+	for q in outline:
+		if base.is_empty() or (q.distance_to(base[-1]) > 1.2 and q.distance_to(base[0]) > 1.2):
+			base.append(q)
+	if base.size() < 3:
+		return
+	var c := _centre(base)
+	var ring := func(t: float) -> PackedVector2Array:
+		var k := 1.0 - (1.0 - SPIRE_TAPER) * pow(t, 1.5)
+		var out := PackedVector2Array()
+		for q in base:
+			out.append(c + (q - c) * k)
+		return out
+	var y0 := g - 0.4
+	var keep := _mode
+	_mode = skin
+	var cw := Geometry2D.is_polygon_clockwise(base)
+	for k in SPIRE_RINGS:
+		var f0 := float(k) / SPIRE_RINGS
+		var f1 := float(k + 1) / SPIRE_RINGS
+		var r0: PackedVector2Array = ring.call(f0)
+		var r1: PackedVector2Array = ring.call(f1)
+		var ya := lerpf(y0, g + SPIRE_TOP, f0)
+		var yb := lerpf(y0, g + SPIRE_TOP, f1)
+		var run := 0.0
+		for i in base.size():
+			var j := (i + 1) % base.size()
+			var e := (r0[j] - r0[i]).normalized()
+			var o := Vector2(e.y, -e.x) if cw else Vector2(-e.y, e.x)
+			var length := r0[i].distance_to(r0[j])
+			_quad(Vector3(r0[i].x, ya, r0[i].y), Vector3(r0[j].x, ya, r0[j].y), Vector3(r1[j].x, yb, r1[j].y),
+					Vector3(r1[i].x, yb, r1[i].y), Vector3(o.x, 0.0, o.y), glass, Vector2(run, ya - _g),
+					Vector2(run + length, ya - _g), Vector2(run + length, yb - _g), Vector2(run, yb - _g), SPIRE_TOP)
+			run += length
+	_mode = keep
+	var top: PackedVector2Array = ring.call(1.0)
+	_prism(top, g + SPIRE_TOP - 0.5, g + SPIRE_TOP, glass, roof, skin, M_SKIN)
+	_prism(top, g + SPIRE_TOP, g + 196.0, glass, Color(0, 0, 0, 0), M_SKIN + float(S_FRAME) / 16.0)
+	var mast := PackedVector2Array([c + Vector2(-0.8, -0.8), c + Vector2(0.8, -0.8), c + Vector2(0.8, 0.8), c + Vector2(-0.8, 0.8)])
+	_prism(mast, g + SPIRE_TOP, g + 220.0, Color("#d5dade"), Color("#e8ecef"), M_STONE, M_STONE)
+	_collide(base)
+	# The signs, on the wide east and west faces 14 m under the roof.
+	var t := (SPIRE_TOP - 14.0) / SPIRE_TOP
+	var face: PackedVector2Array = ring.call(t)
+	for d: Vector2 in [Vector2(1, 0), Vector2(-1, 0)]:
+		var reach := 0.0
+		for q in face:
+			reach = maxf(reach, (q - c).dot(d))
+		var at := c + d * reach
+		signs.append(["SAMSONG", Vector3(at.x, g + SPIRE_TOP - 18.0, at.y), Vector3(d.x, 0.0, d.y), 2.6, SPIRE_BLUE])
 
 
 ## A tower's top cut on a slope: the walls rise to `hi` at the outline's far end (its longest

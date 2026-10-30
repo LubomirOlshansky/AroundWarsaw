@@ -33,16 +33,12 @@ shader_type spatial;
 #include "res://shaders/ghost.gdshaderinc"
 
 uniform float clouds = 0.18;
-uniform sampler2D ao_map : filter_linear, repeat_disable, hint_default_white;
-uniform vec4 ao_rect = vec4(0.0, 0.0, 1.0, 1.0); // x0, z0, width, depth in metres
 uniform bool debug_ao = false;
 uniform float ao_strength = 1.0;
 // The sun's light (linear colour x energy x how much of it to give back) and the way
 // to it (world space), for ghosted footprints (main.gd).
 uniform vec3 ghost_sun = vec3(0.0);
 uniform vec3 ghost_sun_dir = vec3(0.0, 1.0, 0.0);
-uniform sampler2D surface_map : filter_linear, repeat_disable, hint_default_black;
-uniform vec4 surface_rect = vec4(0.0, 0.0, 1.0, 1.0);
 global uniform float wetness;
 global uniform float rain;
 varying vec3 world_pos;
@@ -98,7 +94,7 @@ void fragment() {
 	float shade = 0.95 + 0.1 * (n1 * 0.6 + n2 * 0.4);
 	float ripple = 0.0;
 	int id = int(round(layer));
-	vec4 surf = texture(surface_map, (wp - surface_rect.xy) / surface_rect.zw);
+	vec4 surf = city_surface_at(wp);  // loop 3d-2b: per sector (city_maps.gdshaderinc)
 	// A bridge deck over this point, and whether this fragment lies under it.
 	float deck_y = surf.a > 0.0 ? surf.a * 255.0 / 4.0 - 32.0 : -1e4;
 	bool under_deck = world_pos.y < deck_y - 1.5;
@@ -257,7 +253,7 @@ void fragment() {
 			sheen += ring * (1.0 - ph) * puddle * rain * 0.6;
 		}
 	}
-	vec2 shade_map = texture(ao_map, (wp - ao_rect.xy) / ao_rect.zw).rg;
+	vec2 shade_map = city_ao_at(wp);
 	float ghost = ghost_fade(VERTEX.xy, wp);
 	float ao = mix(1.0, mix(shade_map.r, 1.0, ghost) * shade_map.g, ao_strength);
 	ALBEDO = base * shade * ao * (1.0 - clouds * daylight * (1.0 - rain) * cloud_shadow(wp, TIME));

@@ -78,7 +78,8 @@ its OK line, and lists it in this skill. A check that only exists outside the sc
 forgotten.
 
 In the set now: `check_streaming.gd` (loop 3c: `streaming`, with a renderer: the sectors are the
-whole city, pixels at 10 spots, a 3-minute soak; ~2-4 min), `check_map_data.py` (map), `check_roads.py` (roads, loop 3a: C1-C10 over the
+whole city, pixels at 10 spots, a 3-minute soak; loop 3d-2b: and a helicopter and a car pass,
+0 frames missing a sector in view; ~8 min), `check_map_data.py` (map), `check_roads.py` (roads, loop 3a: C1-C10 over the
 whole map, ~4 s; any rule FAILs (loop 3b; until then C4, C5, C9, C10 were a WARN); the counts in the
 row), `check_drape.gd` (loop 3b-2: `drape`, the bare ground poking through the water, grass,
 plazas and sand, from the builder's own meshes; ~10 s), `check_ground.gd` (loop 3d-2a: `ground`,
