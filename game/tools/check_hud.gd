@@ -131,7 +131,7 @@ func _check_screen(screen: Vector2i) -> int:
 				"rescue, host, egg":
 					hud.show_status("DO SZPITALA · Samodzielny Szpital Kliniczny im. prof. Witolda Orłowskiego", "2:31", "640 m",
 							"Pacjent na pokładzie: do zielonego światła", 0.3, Color("#ffc23a"), "", {}, "Patient on board: head for the green beacon")
-					hud.ticker("87,3 NOCNA FM:  Jest trzecia w nocy, a Rondo Dmowskiego wciąż stoi. Szacunek.", Color("#ff5fc8"),
+					hud.ticker("87,3 KEBAB FM:  Jest trzecia w nocy, a Rondo Dmowskiego wciąż stoi. Szacunek.", Color("#ff5fc8"),
 							"It's 3 a.m. and Rondo Dmowskiego is still jammed. Respect.")
 					hud.show_note("SEKRET 2/5 · EASTER EGG", "Gołębie na placu Defilad\nPigeons on Plac Defilad", Color("#ff4fd8"))
 					_say(bubbles, "Ania", at.call(0.2, 0.86), "Szybciej, proszę!", "Faster, please!")
@@ -139,7 +139,7 @@ func _check_screen(screen: Vector2i) -> int:
 					hud.show_card("ZAMÓWIENIE · KEBAB · 840 m", "Dla: Kasia, Wspólna 47/49. Za rzeką: „w sumie to centrum”. Im cieplejszy dojedzie, tym większy napiwek. Nocą ×1,5.",
 							PackedStringArray(["GO!", "NOT NOW"]), Color("#ff9a3c"), true, "Kebab order · 840 m",
 							"It cools on the way: the hotter, the bigger the tip. Across the river (\"basically the centre\"). Night pays ×1.5.")
-					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
+					hud.ticker("87,3 KEBAB FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
 					hud.toast("Jedziemy! Kasia czeka", "Go! Kasia is waiting")
 					_say(bubbles, "Marek", at.call(0.12, 0.82), "Z ostrym czy łagodnym?", "Hot sauce or mild?")
 					# The vendor over the stand, mid-right, where shots/loop2e_kebab_offer_* see it.
@@ -148,7 +148,7 @@ func _check_screen(screen: Vector2i) -> int:
 				"kebab delivery":
 					hud.show_status("KEBAB → Wspólna 47/49", "GORĄCY 92%", "410 m", "Jedź do pomarańczowego światła", 0.0, Color("#ff9a3c"),
 							"", {"heat": 0.9}, "Head for the orange beacon")
-					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
+					hud.ticker("87,3 KEBAB FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
 					# The case the user saw: the stand's bubble right where the ticker sits.
 					_say(bubbles, "Kebab 24h", at.call(0.1, 0.9), "KEBAB 24H: najlepszy w mieście!", "The best in town!")
 					_say(bubbles, "Kasia", at.call(0.55, 0.45), "Już jedziesz? Głodna jestem.", "On your way? I'm starving.")
@@ -163,16 +163,16 @@ func _check_screen(screen: Vector2i) -> int:
 				"landmark card":
 					hud.show_info("Pałac Kultury i Nauki", "Najwyższy budynek w Polsce do 2022 roku: 237 m z iglicą.",
 							"Poland's tallest building until 2022: 237 m with the spire.")
-					hud.ticker("87,3 NOCNA FM:  Pałac widać z każdego miejsca. Dlatego go lubimy.", Color("#ff5fc8"),
+					hud.ticker("87,3 KEBAB FM:  Pałac widać z każdego miejsca. Dlatego go lubimy.", Color("#ff5fc8"),
 							"You can see the Palace from everywhere. That's why we like it.")
 				# Landmark card fix: a note card with the radio ticker up and the car parked.
 				"note card":
 					hud.show_note("SEKRET 2/5 · EASTER EGG", "Gołębie na placu Defilad\nPigeons on Plac Defilad", Color("#ff4fd8"))
-					hud.ticker("87,3 NOCNA FM:  Pałac widać z każdego miejsca. Dlatego go lubimy.", Color("#ff5fc8"),
+					hud.ticker("87,3 KEBAB FM:  Pałac widać z każdego miejsca. Dlatego go lubimy.", Color("#ff5fc8"),
 							"You can see the Palace from everywhere. That's why we like it.")
 				"tow toast":
 					hud.toast("Pomoc drogowa: wyciągnięci!", "Towed free")
-					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
+					hud.ticker("87,3 KEBAB FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
 				# Loop 3g-1: a koguty 2 chase (the pill and its countdown, the koguty, a megaphone
 				# bubble, the edge rooster), the lizak's pill, and the pull-over card with two replies.
 				"police chase":
@@ -181,7 +181,7 @@ func _check_screen(screen: Vector2i) -> int:
 					hud.police_fx(1.0, PackedVector2Array([at.call(0.5, 1.3)]), Vector2.INF)
 					_say(bubbles, "Policja", at.call(0.5, 0.72), "Proszę się zatrzymać! Albo chociaż zwolnić, będzie miło.",
 							"Please stop! Or at least slow down, that would be nice.")
-					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
+					hud.ticker("87,3 KEBAB FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
 				"lizak":
 					hud.set_koguty(0, 3)
 					hud.police_pill("ZATRZYMAJ SIĘ PRZY POLICJANCIE", "PULL OVER BY THE OFFICER")
@@ -195,7 +195,7 @@ func _check_screen(screen: Vector2i) -> int:
 							"Consider yourself cautioned. Kacper, put it in the notebook. Neatly, not like last time.",
 							[["Przepraszam, już nie będę.", "Sorry, won't happen again."], ["Suszarka? Mam krótkie włosy.", "Hair dryer? But I've got short hair."]])
 					hud.show_panel(talk, true)
-					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
+					hud.ticker("87,3 KEBAB FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
 				# Loop 2d-1: Podwózka at its longest: the longest note, the MNOŻNIK for night and rain,
 				# the longest destination; the result with every star note and a streak.
 				"ride offer":
@@ -204,7 +204,7 @@ func _check_screen(screen: Vector2i) -> int:
 							"Note: \"I'm where the pin is, just on the other side.\""], "night": true, "rain": true, "rating": 4.87})
 					hud.show_side_card(offer[0], offer[1], PackedStringArray(["ACCEPT", "SKIP"]), Color("#4fd8c4"), offer[2], offer[3])
 					hud.show_pill("PODWÓZKA", "ride app", "ride")
-					hud.ticker("87,3 NOCNA FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
+					hud.ticker("87,3 KEBAB FM  ·  Palma de Gaulle'a", Color("#ff5fc8"))
 				"ride":
 					hud.show_status("PODWÓZKA → Plac Trzech Krzyży", RideRules.stars_text(4.5), "1840 m",
 							"Cel to turkusowe światło. Kropki to pomysł aplikacji.", 0.4, Color("#4fd8c4"), "", {},

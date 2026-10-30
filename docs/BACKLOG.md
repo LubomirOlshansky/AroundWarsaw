@@ -927,8 +927,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   public TestFlight and Play links to the beta section when they exist).
 - The site's form posts to the Stillplace Formspree form (`mykaeqjp`); give Around Warsaw its own
   form, and check the form isn't restricted to stillplace.app.
-- The game still calls its station NOCNA FM (`radio.gd`); the site says Kebab FM, as the user
-  asked on 2026-10-29.
+- ~~The game still calls its station NOCNA FM (`radio.gd`); the site says Kebab FM, as the user
+  asked on 2026-10-29.~~ Renamed in the game too (KEBAB FM, 2026-10-30).
 - ~~The screenshots are from the prototype~~ (website v2: eight new `--nohud` shots, 2026-10-30).
 - From the landing's screenshot session (2026-10-30, runtime city, 2868×1320): the map's edge
   shows in wide views (about `--size=220` and up): a flat light-blue void by day east of the
@@ -954,8 +954,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   required-reason APIs (file timestamps, system boot time, UserDefaults); Godot's iOS template
   may need one declaring them, with no data collected. Check App Store Connect's email after
   the first upload.
-- The store screenshots show the HUD; they need redoing when the HUD changes (and they show the
-  station as NOCNA FM, as the game does).
+- The store screenshots show the HUD; they need redoing when the HUD changes . They show the radio
+  button as NOCNA FM: the game's station became Kebab FM (#3) after they were rendered, so
+  re-render them before uploading.
 - **On a 4:3 screen (iPad) the pull-over's dialogue panel never appears**: the conversation runs
   (`--police-log` shows it, frames 60-349) but nothing is drawn, at 2440×1830, 2200×1650 and
   1600×1200; 16:9 and wider are fine. The iPad's fifth store shot is a Podwózka ride instead.
