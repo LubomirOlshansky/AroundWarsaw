@@ -892,6 +892,7 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	rivals.setup(graph, traffic, hud, bubbles, missions, map, world, car, data)
 	print("living city: %d lanes, %d trams in %d ms" % [graph.lane_count, trams.trams.size(), Time.get_ticks_msec() - t0])
 	if bench:
+		_clear_bench_result()
 		var p := Vector2(car.global_position.x, car.global_position.z)
 		var hit := graph.snap(p, 60.0, Vector2(-sin(car.rotation.y), -cos(car.rotation.y)), true)
 		if not hit.is_empty():
@@ -1145,6 +1146,13 @@ func _bench_header(kind: String) -> PackedStringArray:
 	])
 
 
+## The performance lane (2026-10-30): a bench starts by removing the last one's result, so a run
+## that ends before its card (a crash, a quit) leaves no file and tools/device_run.sh copies none
+## (it used to copy whatever an earlier bench had left).
+func _clear_bench_result() -> void:
+	DirAccess.remove_absolute(ProjectSettings.globalize_path("user://bench_result.txt"))
+
+
 ## Loop 2b: the bench's result also goes to user://bench_result.txt (on the iPhone the app's
 ## Documents folder), not the save or the settings.
 func _write_bench_result(text: String) -> void:
@@ -1215,6 +1223,7 @@ func _start_phone_bench() -> void:
 	cam_focus = car.global_position
 	_bench_ghost = traffic.add_ghost(hit[0], hit[1], hit[2])
 	_phone_bench = true
+	_clear_bench_result()
 	_set_perf(show_perf)
 	_stats.header = _bench_header("BENCH button")
 	_bench_t0 = Time.get_ticks_msec()

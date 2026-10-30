@@ -967,12 +967,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
   last few unloaded sectors' roots (not freed, out of the tree) so a sector seen again minutes
   later comes back without a load (memory against hitches), or load further ahead so the hitch
   falls while the view is calm (it doesn't remove it).
-- **`tools/device_run.sh` copies `Documents/bench_result.txt` from any earlier bench** when the
-  run made none (the bench doesn't clear it at the start, as the streaming soak now does): read
-  the card's date line.
-- **The night bench sometimes has a sun-shadow pass** (on the Mac, 2 of 6 `--time=night` benches:
-  57-69 shadow draws where the others have 0; before and after loop G0+'s change alike): the
-  sun's shadow at night should be off from the first frame. Not looked into.
+- ~~**`tools/device_run.sh` copies `Documents/bench_result.txt` from any earlier bench** when the
+  run made none.~~ Fixed (performance lane, 2026-10-30): a bench (`--bench` or the BENCH
+  button) removes the last result when it starts.
+- ~~**The night bench sometimes has a sun-shadow pass** (on the Mac, 2 of 6 `--time=night`
+  benches: 57-69 shadow draws where the others have 0).~~ Not reproducible on main 81de932
+  (performance lane, 2026-10-30): 12 night benches (runtime and prebuilt, 1920×1080 and the
+  default window) with a watcher on the sun's shadow, every light's shadow and the shadow pass's
+  draws per frame: the sun's shadow off from frame 1, no light casting one, 0 shadow draws in
+  every run. The code path hasn't changed since; those runs likely had other flags or a saved
+  time. If it shows again, the watcher's shape: print `sun.shadow_enabled`, `tod.mode`, `tod._t`
+  and the shadow pass's `VIEWPORT_RENDER_INFO_TYPE_SHADOW` draws per frame.
 - The streamer's `(unload)` time is only the call to `queue_free()`; freeing a sector's nodes
   happens at the end of that frame and isn't in the streaming numbers (no slow frame showed it).
 - **check_streaming spot 8 (512, −740) at 0.789 % of its pixels** (the limit is 0.5 %; 0.472 % with
