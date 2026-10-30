@@ -603,6 +603,23 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   pale glass with white fins and a card. Their tops, Mennica Legacy's and Generation Park Y's
   are cut on a slope (`"crest": "slope"`), and every sloped roof is glazed in the walls' glass
   tinted toward the roof colour, since a pale slab tilted to the camera blew out.
+- **Old Town and New Town tenements** (after the user's look, "kind of generic"; map_builder
+  `_tenement_facades`, `HISTORIC`): GUGiK models a whole block as one LoD2 building (Rynek's
+  sides are 49 and 84 OpenStreetMap houses in one model), so a block stood in one colour. In the
+  two historic districts each LoD2 wall takes the colour (OSM `building:colour`, else the
+  `TENEMENTS` palette) and window seed of the OSM house a metre behind it, and each pitched roof
+  is half mixed toward a tile red (`TILES`). Churches keep their own (`NOT_TENEMENTS`). Load time
+  only; the same on both city paths.
+- **Brick Gothic and the Metropolitan** (after the user's look, "churches look like default
+  buildings"): the Cathedral and the Barbican are drawn in brick Gothic (`M_GOTHIC`,
+  `building.gdshader` `gothic()`): brick in slow patches, a stone plinth, a buttress every
+  6.5 m and tall pointed lancets on walls over 9 m, their stained glass faintly lit at night.
+  Foster's Metropolitan on Plac Piłsudskiego wears the towers' fin skin (`S_FINS`) in grey glass,
+  with a card.
+- **Kolumna Zygmunta** (`_build_zygmunt`): OpenStreetMap maps the column in a dozen tiny 3D
+  parts that the builder dropped as specks, leaving a dark cube on Plac Zamkowy. It is built
+  as a landmark in a circle zone: three granite steps, the pedestal, the 12 m shaft, the
+  capital and the king in bronze with his cross raised and his sabre, to 22.9 m, with a card.
 - **Muzeum Narodowe** (the landmarks loop): kept as LoD2 draws it (one model round its
   courtyards), but in its pale stone with tall windows between piers (`M_MONUMENT`, `#c9bfa9`):
   `map_builder` asks `landmarks.skin_at` for every kept LoD2 run and OpenStreetMap building
@@ -4238,6 +4255,21 @@ Plain HTML and CSS, self-hosted fonts, one small script for the beta and feedbac
 `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets. Beta sign-ups and feedback arrive by
 email through the form. Deploying by hand, the secrets and where the
 beta links go: `site/README.md`.
+
+## The design wiki (wiki.aroundwarsaw.app, 2026-10-30)
+
+A private website for designing the game without reading code: every activity (with its lines
+and tuning), the 53 landmarks with their cards, looks and pictures, the 72 notebook places, the
+eggs, Fotka spots and KASETA cards, the radio, every line of dialogue, the parody names, each
+script's description and constants, the settings, flags and budgets, the open questions, the
+design docs, and a Progress page (the road to the 1.0 demo, the lanes, the backlog by area, the
+log). `python3 -I tools/wiki_build.py` writes it to `build/wiki/` from the repo alone, so it
+never needs hand-editing; each item links to its file and line on GitHub. Pictures:
+`wiki/media.json` and `wiki/img/`. It is its own Worker (`wiki/wrangler.jsonc`,
+`aroundwarsaw-wiki`, the subdomain `wiki.aroundwarsaw.app`) behind a password (`wiki/worker.js`,
+the secret `WIKI_PASSWORD`), `noindex` everywhere and unlinked from the landing: it is spoilers
+and plans. `.github/workflows/wiki.yml` checks the build on every change to the data, scripts or
+docs and deploys only when run by hand. Details: `wiki/README.md`.
 
 ## Layout
 

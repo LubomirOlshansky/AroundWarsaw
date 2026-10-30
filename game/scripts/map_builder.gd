@@ -4018,6 +4018,9 @@ func _build_lod2(walls, marks) -> Array:
 					col[t] = skin["roof"] if nrm[t].y >= 0.7 else skin["wall"]
 					uv2[t].x = skin["mode"]
 		t0 = t1
+	var facades := _tenement_facades(pos, nrm, col, uv2, dropped)
+	col = facades[0]
+	uv2 = facades[1]
 	# Split into tiles by triangle, like the other city meshes (not on the roof pass).
 	var tiles := {}
 	for t in range(0, count if not walls.none else 0, 3):
@@ -4665,6 +4668,86 @@ const OLD_TOWN := Vector3(-760.0, -1680.0, 190.0)
 ## Plac Konstytucji (x, z, radius): its lamps are MDM's candelabras, three lanterns each.
 const CANDELABRAS := Vector3(-533.8, 1282.4, 75.0)
 const CANDELABRA_HEAD := Vector3(0, 8.5, 0)
+
+## The landmarks loop (Old Town): the historic districts (x, z, radius), the Old Town and the
+## New Town, where GUGiK models a whole block of tenements as one building (Rynek's sides are
+## 49 and 84 OpenStreetMap houses in one model), so it stood in one colour like a modern block.
+const HISTORIC := [Vector3(-760.0, -1680.0, 200.0), Vector3(-830.0, -1920.0, 170.0)]
+## Their tenements' own colours where OpenStreetMap has none (ochre, salmon, cream, terracotta,
+## pale yellow, sage, blue-grey, peach, oxblood): the rebuilt Old Town's palette.
+const TENEMENTS := ["#d9a441", "#e1968f", "#ebe1d1", "#c8733f", "#efd9a0", "#a9b98a", "#9fb6cf",
+		"#f0c1ab", "#9c4a43", "#e8c07a", "#cf8c59", "#dcc9a3"]
+## Their pitched roofs' tiles, half mixed into the aerial photo's colour (which reads pale pink).
+const TILES := ["#9c4a35", "#a85a3e", "#8a4434", "#b0603f", "#94503c"]
+## Kinds whose walls keep their own colour there (the churches: a skin or brick of their own).
+const NOT_TENEMENTS := ["church", "cathedral", "chapel", "monastery", "convent", "religious"]
+
+
+## The historic districts: each LoD2 wall in them takes the colour and window seed of the
+## OpenStreetMap house it stands on (its centre a metre inside the wall), so a block reads as
+## a row of tenements, each its own colour and window rhythm, under a tiled roof. Load time only, both city paths
+## (the house's own data, never which sector it came in). Returns [colours, UV2s] (packed
+## arrays are copies).
+func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedColorArray,
+		uv2: PackedVector2Array, dropped: PackedByteArray) -> Array:
+	var cell := 24.0
+	var grid := {}
+	var polys: Array[PackedVector2Array] = []
+	var looks: Array[Color] = []
+	var seeds: Array[float] = []
+	var roofs: Array[Color] = []
+	for bld in data.get("buildings", []):
+		var p: Array = bld["p"]
+		if p.size() < 6 or NOT_TENEMENTS.has(str(bld.get("kind", ""))):
+			continue
+		var poly := _pts(p)
+		var box := Rect2(poly[0], Vector2.ZERO)
+		for q in poly:
+			box = box.expand(q)
+		if not _historic(box.get_center(), 40.0):
+			continue
+		var hsh := absi(int(poly[0].x * 73.0 + poly[0].y * 31.0))
+		var k := polys.size()
+		polys.append(poly)
+		looks.append(_osm_colour(bld["c"], Color(TENEMENTS[hsh % TENEMENTS.size()])))
+		seeds.append(fposmod(hsh * 0.6180339887, 1.0))
+		roofs.append(Color(TILES[hsh % TILES.size()]))
+		for gx in range(floori(box.position.x / cell), floori(box.end.x / cell) + 1):
+			for gz in range(floori(box.position.y / cell), floori(box.end.y / cell) + 1):
+				var key := Vector2i(gx, gz)
+				if not grid.has(key):
+					grid[key] = []
+				(grid[key] as Array).append(k)
+	if polys.is_empty():
+		return [col, uv2]
+	for t in range(0, pos.size(), 3):
+		if dropped[t / 3] or uv2[t].x >= 1.0 or col[t].a < 0.9 or nrm[t].y > 0.95 or nrm[t].y < -0.3:
+			continue  # a landmark's, glass, a flat roof or an underside
+		var pitched := nrm[t].y >= 0.3
+		var c := (pos[t] + pos[t + 1] + pos[t + 2]) / 3.0
+		# A wall's house is a metre behind it; a roof slope's is under its centre.
+		var probe := Vector2(c.x, c.z) if pitched else Vector2(c.x, c.z) - Vector2(nrm[t].x, nrm[t].z).normalized()
+		if not _historic(probe, 0.0):
+			continue
+		var cands: Array = grid.get(Vector2i(floori(probe.x / cell), floori(probe.y / cell)), [])
+		for k in cands:
+			if Geometry2D.is_point_in_polygon(probe, polys[k]):
+				for v in 3:
+					if pitched:
+						col[t + v] = col[t + v].lerp(roofs[k], 0.5)
+					else:
+						col[t + v] = looks[k]
+						uv2[t + v].x = seeds[k]
+				break
+	return [col, uv2]
+
+
+## Whether a point is within `slack` metres of a historic district (HISTORIC).
+func _historic(at: Vector2, slack: float) -> bool:
+	for d in HISTORIC:
+		if at.distance_to(Vector2(d.x, d.y)) < d.z + slack:
+			return true
+	return false
 
 
 ## The named Royal Route streets' segments in this map or sector: [a, b, half width + reach].
