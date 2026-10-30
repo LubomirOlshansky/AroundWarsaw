@@ -69,11 +69,12 @@ website's beta form is the website's, not the app's, and the privacy page descri
 separately.
 
 **Privacy manifest.** Godot's iOS export writes `PrivacyInfo.xcprivacy` from the preset's
-`privacy/` options (the required-reason APIs the engine itself calls: file timestamps, system
-boot time, disk space, user defaults). Our preset leaves them at Godot's defaults. When the
-first archive is uploaded, check the email from App Store Connect: an "ITMS-91053: Missing API
-declaration" warning names any reason to add in the export preset. No tracking, no tracking
-domains, no collected data types.
+`privacy/` options; our preset leaves them at Godot's defaults. Checked in the export of
+2026-10-30 (`build/ios/PrivacyInfo.xcprivacy`): it declares file timestamps (DDA9.1, C617.1),
+system boot time (35F9.1) and disk space (E174.1, 85F4.1), `NSPrivacyTracking` false, no
+tracking domains and no collected data types, which matches "Data Not Collected". When the
+first archive is uploaded, still read App Store Connect's email: an "ITMS-91053: Missing API
+declaration" warning would name a reason to add in the export preset.
 
 ## 5. Export compliance (asked for every build)
 
