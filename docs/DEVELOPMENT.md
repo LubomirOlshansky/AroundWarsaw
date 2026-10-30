@@ -2990,6 +2990,19 @@ LoD2 is from 2018, so newer towers (Varso and others) come from OpenStreetMap; L
 no longer on the map are dropped. The terrain is bare earth, so bridges and viaducts get decks
 solved from what they cross (see Real roads).
 
+## The website (aroundwarsaw.app, 2026-10-29)
+
+`site/` is the game's landing page (English at `/`, Polish at `/pl/`) and the privacy policy
+the stores link to (`https://aroundwarsaw.app/privacy/`). All three pages are built by
+`python3 -I tools/site_build.py` from `site/src/` (template and copy) and `docs/privacy.md`.
+Plain HTML and CSS, self-hosted fonts, one small script for the beta and feedback form
+(Formspree), no cookies, no analytics. It is a Cloudflare Worker with static assets only
+(`site/wrangler.jsonc`, custom domains `aroundwarsaw.app` and `www.aroundwarsaw.app`);
+`.github/workflows/site.yml` deploys it on a push to `main` once the repository has the
+`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets. Beta sign-ups and feedback arrive by
+email through the form. Deploying by hand, the secrets and where the
+beta links go: `site/README.md`.
+
 ## Layout
 
 **One-command checks.** `tools/verify.sh` runs the verification set and prints one

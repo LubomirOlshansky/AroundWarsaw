@@ -8,6 +8,8 @@ Around Warsaw is a small-car arcade drive (and a helicopter) through the real ce
 built in Godot from OpenStreetMap and GUGiK open data. Gentle police, side jobs, a car radio
 and Warsaw humour in Polish with English, on iPhone and Android, fully offline.
 
+Website and beta sign-up: **[aroundwarsaw.app](https://aroundwarsaw.app)**.
+
 ![Driving down Marszałkowska, over the Vistula, and a splash into the river](docs/media/drive.gif)
 
 ## Features

@@ -1,0 +1,155 @@
+"""Build the website's pages: the landing in English and Polish, and the privacy page.
+
+Usage: python3 -I tools/site_build.py
+
+Writes site/public/index.html (English, the default) and site/public/pl/index.html from the
+template site/src/index.html and the copy in site/src/strings.json ({{key}} placeholders;
+the screenshot reel, the list of things to do and the form's topics are built here), and
+site/public/privacy/index.html from docs/privacy.md, so the policy the stores link to
+(https://aroundwarsaw.app/privacy/) always says what that file says. The Markdown converter
+knows only what docs/privacy.md uses: #/## headings, paragraphs, "- " lists, **bold**, "---".
+"""
+
+import html
+import json
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+SRC = ROOT / "docs" / "privacy.md"
+OUT = ROOT / "site" / "public" / "privacy" / "index.html"
+SITE = ROOT / "site"
+# Copy that carries its own markup (links, separators); everything else is escaped.
+RAW_KEYS = {"f_legal", "radio_lines"}
+
+PAGE = """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · Around Warsaw</title>
+<meta name="description" content="Around Warsaw collects no personal data. Privacy policy for the game and this website.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body class="doc">
+<header class="bar"><div class="bar-in"><a class="brand" href="/"><img src="/favicon.svg" alt="" width="28" height="28">Around Warsaw</a></div></header>
+<main class="prose">
+{body}
+<h2>This website · Ta strona</h2>
+<p>aroundwarsaw.app sets no cookies and runs no analytics or trackers. It is served by
+Cloudflare, which handles ordinary request data (such as IP addresses) only to deliver and
+protect the site. The beta and feedback form sends what you type (your email, phone type and
+message) through Formspree to the developer's inbox. The email is used only to send a beta
+invite or to reply, and is deleted on request (write on Telegram, @olshansky93, or through the
+same form).</p>
+<p>aroundwarsaw.app nie używa ciasteczek, analityki ani śledzenia. Stronę serwuje Cloudflare,
+który przetwarza zwykłe dane żądań (np. adresy IP) wyłącznie po to, by ją dostarczyć i chronić.
+Formularz bety i opinii wysyła to, co wpiszesz (e-mail, rodzaj telefonu, wiadomość), przez
+Formspree do skrzynki autora. E-mail służy tylko do wysłania zaproszenia do bety albo
+odpowiedzi i zostanie usunięty na prośbę (napisz na Telegramie, @olshansky93, albo przez ten
+sam formularz).</p>
+<p><a href="https://github.com/LubomirOlshansky/AroundWarsaw/issues">GitHub issues</a> · <a href="/">← aroundwarsaw.app</a></p>
+</main>
+</body>
+</html>
+"""
+
+
+def inline(text: str) -> str:
+    """Escapes text and turns **bold** into <strong>."""
+    text = html.escape(text, quote=False)
+    return re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
+
+
+def convert(md: str) -> str:
+    """Converts the small Markdown subset docs/privacy.md uses into HTML."""
+    out: list[str] = []
+    para: list[str] = []
+    items: list[str] = []
+
+    def flush() -> None:
+        if para:
+            out.append("<p>" + inline(" ".join(para)) + "</p>")
+            para.clear()
+        if items:
+            out.append("<ul>" + "".join("<li>" + inline(i) + "</li>" for i in items) + "</ul>")
+            items.clear()
+
+    for raw in md.splitlines():
+        line = raw.strip()
+        if not line:
+            flush()
+        elif line == "---":
+            flush()
+            out.append("<hr>")
+        elif line.startswith("#"):
+            flush()
+            level = len(line) - len(line.lstrip("#"))
+            title = line[level:].strip()
+            out.append(f"<h{level}>{inline(title)}</h{level}>")
+        elif line.startswith("- "):
+            if para:
+                flush()
+            items.append(line[2:])
+        elif items and raw.startswith("  "):
+            items[-1] += " " + line
+        else:
+            para.append(line)
+    flush()
+    return "\n".join(out)
+
+
+def fill(template: str, values: dict[str, str]) -> str:
+    """Replaces every {{key}}; a key with no value is an error, so no placeholder ships."""
+
+    def one(m: re.Match[str]) -> str:
+        key = m.group(1)
+        if key not in values:
+            raise KeyError(f"site/src/index.html uses {{{{{key}}}}} but strings.json has no value")
+        return values[key]
+
+    return re.sub(r"\{\{(\w+)\}\}", one, template)
+
+
+def landing(strings: dict, lang: str) -> str:
+    """The landing page in one language."""
+    values = {k: (v if k in RAW_KEYS else html.escape(v)) for k, v in strings[lang].items()}
+    values["hero"] = strings["hero"]
+    figs = []
+    for i, shot in enumerate(strings["reel"]):
+        title, line, alt = (html.escape(t) for t in shot[lang])
+        name = shot["img"]
+        figs.append(
+            f'    <figure class="shot{" shot-flip" if i % 2 else ""}">\n'
+            f'      <picture><source media="(max-width: 700px)" srcset="/img/game/{name}-960.webp">'
+            f'<img src="/img/game/{name}.webp" alt="{alt}" width="{shot["w"]}" height="{shot["h"]}" loading="lazy" decoding="async"></picture>\n'
+            f"      <figcaption><h3>{title}</h3><p>{line}</p></figcaption>\n"
+            f"    </figure>")
+    values["reel"] = "\n".join(figs)
+    values["moves"] = "\n".join(
+        f"      <li><h3>{html.escape(a)}</h3><p>{html.escape(b)}</p></li>" for a, b in strings["moves"][lang])
+    values["topics"] = "\n".join(
+        f'        <label><input type="radio" name="topic" value="{html.escape(v)}"{" checked" if i == 0 else ""}>'
+        f"<span>{html.escape(t)}</span></label>"
+        for i, (v, t) in enumerate(strings["topics"][lang]))
+    return fill((SITE / "src" / "index.html").read_text(encoding="utf-8"), values)
+
+
+def main() -> int:
+    strings = json.loads((SITE / "src" / "strings.json").read_text(encoding="utf-8"))
+    pages = {
+        SITE / "public" / "index.html": landing(strings, "en"),
+        SITE / "public" / "pl" / "index.html": landing(strings, "pl"),
+        OUT: PAGE.format(body=convert(SRC.read_text(encoding="utf-8"))),
+    }
+    for path, text in pages.items():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+        print(f"site_build: wrote {path.relative_to(ROOT)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,18 @@
+// The aroundwarsaw.app landing page: a Cloudflare Worker that only serves the static files in
+// public/ (no Worker script). `npx wrangler deploy` from this folder uploads them and attaches
+// the custom domains below (the aroundwarsaw.app zone must be in the same Cloudflare account).
+{
+  "name": "aroundwarsaw",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  },
+  "routes": [
+    { "pattern": "aroundwarsaw.app", "custom_domain": true },
+    { "pattern": "www.aroundwarsaw.app", "custom_domain": true }
+  ],
+  "workers_dev": false,
+  "preview_urls": false
+}

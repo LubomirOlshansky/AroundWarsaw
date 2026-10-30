@@ -36,6 +36,28 @@ then checked before it is accepted.
   what to tell back; those notes become the next loop or BACKLOG lines. From the demo on, add
   outside players: watch them play, don't explain, write down where they hesitate.
 
+## Backlog mode
+
+The user's standing rule (2026-10-30): **the work never stops for a question.** Loops run
+one after another, by priority, until the backlog is empty; the procedure is the
+backlog-loop skill (`.claude/skills/backlog-loop/SKILL.md`).
+
+- **Next item.** When a loop or a subagent's item finishes, the orchestrator picks the next
+  one for that agent at once: the user's latest asks and answered questions, regressions,
+  ROADMAP "The road to the 1.0 demo" in order, BACKLOG-TRIAGE, then BACKLOG.
+- **Park, don't wait.** A question for the user goes into `docs/QUESTIONS.md` "Waiting" with
+  its options and the safe, reversible default that was built; an item with no such default
+  is marked blocked and the next item starts. The user gets the parked list in one batch.
+- **Lanes.** Several sessions can run (the Mac orchestrator, cloud threads); each holds one
+  lane (driving, map, visuals, content, performance, landing, store release), claims it in
+  `docs/QUESTIONS.md` "In progress", and checks open PRs and recent main commits first.
+- **Merging.** A cloud session merges its own PR once every check is green (the user's yes,
+  2026-10-30); never on red, with open review comments, or with a force-push.
+- **Still the user's yes**: anything that can't be undone (store submissions, releases, the
+  live site, purchases), downloads and installs, device runs not allowed for this loop.
+- **The end**: every item done, blocked on a parked question, or in another session's lane;
+  then one report with what landed, what to try on the phone and the whole parked list.
+
 ## Who owns what
 
 | Area | Agent | Files |
@@ -75,6 +97,7 @@ helper asks for one in its report.
 | `README.md`, `CONTRIBUTING.md` | the public front page (pitch, run, credits) and the contributor rules | when what a visitor needs changes |
 | `docs/ROADMAP.md` | the order of work ("Agent order") and the progress log, one row per loop | each loop: item done + a row |
 | `docs/BACKLOG.md` | issues found along the way and decisions taken by default | each loop: fixed removed, found added |
+| `docs/QUESTIONS.md` | parked questions for the user (with the default built) and the lanes in progress | when a question is parked or answered, a lane claimed or freed |
 | `docs/DEMO.md` | the demo plan: area, quality bar, road defects, police, milestones | when the plan changes |
 | `docs/WORKFLOW.md` | this page | when the way of working changes |
 | `CREDITS.md` | data and asset licences, add-ons | with every new source, asset kind or add-on |
@@ -83,6 +106,8 @@ helper asks for one in its report.
 ## Definition of done (a loop item)
 
 1. **It works**: `tools/verify.sh` RESULT: PASS; the item's own checks pass, with numbers.
+   GitHub runs `tools/verify.sh --quick` on Linux for every push to main and every pull request
+   (`.github/workflows/verify.yml`): a red **verify** check on main is fixed before new work.
 2. **It was seen**: screenshots at phone size (2532x1170; 2868x1320 for HUD work) looked at,
    before and after, on both city paths when the map builder changed; reviewed against the
    art bible for anything visible.

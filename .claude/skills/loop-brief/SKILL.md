@@ -9,11 +9,13 @@ The cycle is in docs/WORKFLOW.md. This skill is the procedure.
 
 ## 1. Pick and size the loop
 
-- Source, in this order: what the user just asked or reported from the phone, then
-  docs/DEMO.md milestones, docs/ROADMAP.md "Agent order", docs/BACKLOG.md.
+- Source: the priority order in the backlog-loop skill (the user's latest asks and answered
+  questions, regressions, ROADMAP "The road to the 1.0 demo", BACKLOG-TRIAGE, BACKLOG), in
+  a lane no other session holds.
 - One theme per loop, 3-7 items in priority order. Road and performance work comes before
-  new content. If an item needs a design call you can't make from the docs, ask the user
-  first (or have the game-designer propose options) rather than briefing a guess.
+  new content. If an item needs a design call you can't make from the docs, don't stop:
+  have the game-designer propose options, brief the safe, reversible default, and park the
+  question in `docs/QUESTIONS.md`; with no such default, park it and take the next item.
 
 ## 2. Write the brief
 
@@ -75,4 +77,5 @@ delegating, make a marker for the scope check: `touch <scratch>/loop_start`.
 What changed (per item, with the numbers), which agent and model did each part, what you
 verified yourself and how, what only the
 user can judge on the phone and exactly what to try, what was not done and why, and the Open
-Questions (ask them; each has the default that was built).
+Questions (parked in `docs/QUESTIONS.md`, each with the default that was built). Then pick
+the next item (backlog-loop skill); don't wait for an answer.

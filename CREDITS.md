@@ -81,3 +81,10 @@ Each add-on lives in `game/addons/<name>/` with its own licence file, unchanged.
   `addons/dialogue_manager/` only, unchanged). It runs the pull-over conversation
   (`game/dialogue/police.dialogue`, loop 3g-1); the editor plugin is off and its C# files are
   unused.
+
+## Website fonts (aroundwarsaw.app only, not in the game)
+
+- Pixelify Sans, The Pixelify Sans Project Authors, SIL Open Font License 1.1,
+  https://github.com/eifetx/Pixelify-Sans (Google Fonts v3; `site/public/fonts/`, licence beside it)
+- Manrope, The Manrope Project Authors, SIL Open Font License 1.1,
+  https://github.com/googlefonts/manrope (Google Fonts v23; `site/public/fonts/`, licence beside it)
