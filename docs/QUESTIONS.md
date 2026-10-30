@@ -13,7 +13,6 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | web | The game in the browser at play.aroundwarsaw.app, the "Play online" button | thread "Put the game online" | 2026-10-30 |
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
-| landmarks/models | Landmark and skyscraper models (Złote Tarasy, Złota 44, Varso, PKiN, Spire, Q22, Muzeum Narodowe, Stadion Narodowy), bus stops: BACKLOG "High priority" | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
 
 ## Waiting
 
@@ -26,8 +25,9 @@ Newest first. One entry per question.
 - **2026-10-30 · landmarks/models** — Złota 44's top is cut on a slope, high at its north end.
   Options: keep / high at the south end / flat. Default built: high at the north end.
 - **2026-10-30 · landmarks/models** — Hotel towers are named by address, not brand (rule:
-  brands only as parodies): InterContinental's card says "Emilii Plater 49"; Westin, Novotel
-  and Hilton keep the generic look and no card. Default built: as said. Options: keep /
+  brands only as parodies): the InterContinental's card says "Emilii Plater 49", the Hilton's
+  "Grzybowska 63", the Westin's "Jana Pawła II 21", the Novotel's "Marszałkowska 94/98".
+  Default built: as said. Options: keep /
   parody names for the hotels.
 - **2026-10-30 · web · deploy** — May I deploy the web build? It creates the Worker
   `aroundwarsaw-play` with the custom domain play.aroundwarsaw.app (a new DNS record in the

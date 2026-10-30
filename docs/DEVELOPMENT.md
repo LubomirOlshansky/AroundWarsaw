@@ -561,7 +561,9 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   Warsaw Spire, Q22, Rondo 1, Emilii Plater 49 (the hotel with the gap), Cosmopolitan, Warsaw
   Trade Tower, Skyliner, Warsaw Unit, Mennica Legacy Tower, Generation Park Y, Skysawa,
   Błękitny Wieżowiec, Warszawskie Centrum Finansowe, Centrum LIM, Chałubińskiego 8, Spektrum
-  Tower and The Bridge were all the same blue box. Each is now built from its mapped parts
+  Tower and The Bridge, and in a second pass Grzybowska 63, Jana Pawła II 21 and Marszałkowska
+  94/98 (hotels, named by their addresses), Central Tower, Ilmet, Platinum Towers A and B, Łucka
+  City and Widok Towers, were all the same blue box. Each is now built from its mapped parts
   (what else stands in its outline, LoD2 or OpenStreetMap, is dropped; the outline itself is
   left out when parts are mapped; a part starting in the air with nothing mapped under it
   stands on the ground; parts under 9 m across are painted steel: masts, rings) in its own
