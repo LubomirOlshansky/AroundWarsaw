@@ -865,6 +865,11 @@ func pill_shown(owner: String) -> bool:
 	return _pill.visible and pill_owner == owner
 
 
+## Loop MW-6: nobody's context button is up (KASETA waits for a free one).
+func pill_free() -> bool:
+	return not _pill.visible
+
+
 func hide_pill() -> void:
 	if _pill.visible:
 		_pill.visible = false

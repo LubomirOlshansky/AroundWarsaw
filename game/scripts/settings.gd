@@ -49,6 +49,11 @@ var fps := 60
 ## Loop 2e: main.gd STYLES (Sharp, Fine, Clean, Chunky) and the VHS overlay.
 var style := 0
 var vhs := false
+## Loop MW-6 (vision 4.3, Open Question 7): the game's mode, Miasto (0, jobs and calls come by
+## themselves; the default) or Spacer (1, wander: nothing comes by itself, hints to the notebook's
+## places), and whether Spacer has been offered once (after the first pause).
+var wander := false
+var wander_offered := false
 ## Loop G1b: Auto's sharp-image state (tiers.gd sharp_state: fallback, calm, wait, trial, why).
 var auto_image := Tiers.sharp_state()
 ## False with --nosave: nothing is read or written.
@@ -78,6 +83,8 @@ func load_file() -> void:
 		fps = FPS[0]
 	style = clampi(int(cfg.get_value("display", "style", style)), 0, 3)
 	vhs = bool(cfg.get_value("display", "vhs", vhs))
+	wander = bool(cfg.get_value("game", "wander", wander))
+	wander_offered = bool(cfg.get_value("game", "wander_offered", wander_offered))
 	var image := {}
 	for key in auto_image:
 		image[key] = cfg.get_value("auto_image", key, auto_image[key])
@@ -100,6 +107,8 @@ func save() -> void:
 	cfg.set_value("display", "fps", fps)
 	cfg.set_value("display", "style", style)
 	cfg.set_value("display", "vhs", vhs)
+	cfg.set_value("game", "wander", wander)
+	cfg.set_value("game", "wander_offered", wander_offered)
 	for key in auto_image:
 		cfg.set_value("auto_image", key, auto_image[key])
 	cfg.save(path)

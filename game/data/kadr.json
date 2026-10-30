@@ -1,0 +1,141 @@
+{
+	"_about": "Loop MW-6 (docs/design/vision.md 4.2): Fotka's 15 Kadr spots (vision's list is a guess; the ones it names first, then the notebook's best views). Each: `id`, `name` [pl, en], `place` (an id in places.json, or eggs.gd's palma / syrenka), `look` (the time of day the shot needs: Day, Dusk or Night, or empty for any; Live counts by the sun) and `locked_by` (an egg that opens the spot first). A shot counts with the subject's point inside the frame's central 60 %, the camera's focus within 300 m of it, at the look: KADR!, +20 respect, a notebook stamp (fotka.gd). Names written in MW-6 for the game-designer to review.",
+	"kadr": [
+		{
+			"id": "k01",
+			"name": [
+				"Schodki o zachodzie",
+				"The steps at sunset"
+			],
+			"place": "schodki_kopernik",
+			"look": "Dusk"
+		},
+		{
+			"id": "k02",
+			"name": [
+				"Pałac nocą",
+				"The Palace at night"
+			],
+			"place": "palac_kultury",
+			"look": "Night"
+		},
+		{
+			"id": "k03",
+			"name": [
+				"Most Poniatowskiego nocą",
+				"Most Poniatowskiego at night"
+			],
+			"place": "most_poniatowskiego",
+			"look": "Night"
+		},
+		{
+			"id": "k04",
+			"name": [
+				"Poniatówka o zmierzchu",
+				"Poniatówka at dusk"
+			],
+			"place": "poniatowka",
+			"look": "Dusk"
+		},
+		{
+			"id": "k05",
+			"name": [
+				"Plac Zbawiciela wieczorem",
+				"Plac Zbawiciela in the evening"
+			],
+			"place": "plac_zbawiciela",
+			"look": "Dusk"
+		},
+		{
+			"id": "k06",
+			"name": [
+				"Wieże na Daszyńskiego",
+				"The towers at Rondo Daszyńskiego"
+			],
+			"place": "rondo_daszynskiego",
+			"look": "Day"
+		},
+		{
+			"id": "k07",
+			"name": [
+				"Neon na placu Konstytucji",
+				"The neon on Plac Konstytucji"
+			],
+			"place": "plac_konstytucji",
+			"look": "Night"
+		},
+		{
+			"id": "k08",
+			"name": [
+				"Palma na rondzie",
+				"The Palm on the roundabout"
+			],
+			"place": "palma",
+			"look": ""
+		},
+		{
+			"id": "k09",
+			"name": [
+				"Kolejka na Chmielnej",
+				"The queue on Chmielna"
+			],
+			"place": "wiralek_chmielna",
+			"look": "Day"
+		},
+		{
+			"id": "k10",
+			"name": [
+				"Ogród na dachu biblioteki",
+				"The library's roof garden"
+			],
+			"place": "buw_ogrod",
+			"look": "Day",
+			"locked_by": "e13"
+		},
+		{
+			"id": "k11",
+			"name": [
+				"Stadion nocą",
+				"The stadium at night"
+			],
+			"place": "stadion_narodowy",
+			"look": "Night"
+		},
+		{
+			"id": "k12",
+			"name": [
+				"Syrenka o zmierzchu",
+				"The Mermaid at dusk"
+			],
+			"place": "syrenka",
+			"look": "Dusk"
+		},
+		{
+			"id": "k13",
+			"name": [
+				"Rynek Starego Miasta",
+				"The Old Town Market Square"
+			],
+			"place": "rynek_starego_miasta",
+			"look": "Day"
+		},
+		{
+			"id": "k14",
+			"name": [
+				"Most Świętokrzyski",
+				"Most Świętokrzyski"
+			],
+			"place": "most_swietokrzyski",
+			"look": "Dusk"
+		},
+		{
+			"id": "k15",
+			"name": [
+				"Kopernik nad Wisłą",
+				"Kopernik by the Vistula"
+			],
+			"place": "centrum_nauki_kopernik",
+			"look": "Day"
+		}
+	]
+}

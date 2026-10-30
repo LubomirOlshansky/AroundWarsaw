@@ -66,9 +66,16 @@ const Rides := preload("res://scripts/rides.gd")
 const Eggs := preload("res://scripts/eggs.gd")
 ## Loop MW-1: MOJA WARSZAWA, the city notebook.
 const Notebook := preload("res://scripts/notebook.gd")
+## Loop MW-6: the eggs as notebook cards, KASETA, Spacer and Fotka.
+const EggBook := preload("res://scripts/egg_book.gd")
+const Tape := preload("res://scripts/tape.gd")
+const Spacer := preload("res://scripts/spacer.gd")
+const Fotka := preload("res://scripts/fotka.gd")
 const Sfx := preload("res://scripts/sfx.gd")
 ## Loop MW-5: the city's sounds at the notebook's places.
 const CitySounds := preload("res://scripts/city_sounds.gd")
+## Loop MW-3: the night and the river's crowds.
+const Crowds := preload("res://scripts/crowds.gd")
 const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
 const FollowCamera := preload("res://scripts/follow_camera.gd")
@@ -263,6 +270,35 @@ var notebook_open := ""
 var found_spec := ""
 var place_flag := ""
 var notes_log := false
+## Loop MW-6: the egg cards (egg_book.gd), KASETA (tape.gd), Spacer (spacer.gd), Fotka (fotka.gd),
+## and their flags: --egg=<id> (the vehicle at the egg, in its time, weather and day; a motion
+## trigger driven by the rig, _egg_rig), --egg-log, --found-eggs=, --tape=<id|n> (the car at the
+## then card, the tape played), --tape-log, --spacer (or --wander), --spacer-hint=S (the first
+## hint after S s), --fotka (Fotka open at the start), --kadr=<n|id> (Fotka aimed at a Kadr spot,
+## a photo after 2 s), --fotka-shot=S (a photo S s after --fotka opens), --photo-log.
+var egg_book: EggBook
+var tape: Tape
+var spacer: Spacer
+var fotka: Fotka
+var egg_flag := ""
+var egg_log := false
+var found_eggs := ""
+var tape_flag := ""
+var tape_log := false
+var spacer_flag := -1
+var spacer_hint := -1.0
+var fotka_flag := false
+var kadr_flag := ""
+var fotka_shot := -1.0
+var photo_log := false
+var _egg: Dictionary = {}
+var _rig_t := 0.0
+var _rig_path := PackedVector2Array()
+var _rig_s := 0.0
+var _moment_at := -1.0
+var _vhs_until := -1.0
+## --egg=e37: the street today's roadworks must be on (eggs.gd `force_street`).
+var barrier_force := ""
 ## Loop MW-5: PÓŁNOC FM's flags: --station=<id|name|N> (a station by id, short id or name),
 ## --radio-log (the radio's and the city sounds' log), --unlock=all|N[,N] (all tracks for this
 ## run, or open track N as an egg would); `radio_picked`: --radio= or --station= was given (the
@@ -272,6 +308,15 @@ var radio_log := false
 var unlock_flag := ""
 var radio_picked := false
 var city_sounds: CitySounds
+## Loop MW-3: the crowds (crowds.gd) and their flags: --crowd=0|1|2 (none, normal, double; the
+## Low tier halves them), --night-log (queues, rejections, the dawn walkers each minute, every
+## event), --club=<id|name> (the car at that club's door).
+var crowds: Crowds
+var crowd_flag := 1
+var night_log := false
+var club_flag := ""
+## Live's sunset hour by date (yyyymmdd -> hour), for the steps crowd.
+var _sunsets := {}
 var start_kebab := -1
 var start_sloik := -1
 var start_heat := -1.0
@@ -504,6 +549,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
 	_place_start()  # loop MW-1: --place=<id>, the sectors round the place
+	_club_start()  # loop MW-3: --club=<id>, the same
 	# The web loop 2: the web build downloads its sectors (sector_packs.gd), the start's first.
 	if SectorPacks.active() and not monolithic:
 		_packs = SectorPacks.new()
@@ -802,6 +848,7 @@ func _build_world() -> void:
 	if graph != null:
 		_build_side_jobs(data, world)
 	_build_notebook(data)
+	_build_moments(data, world)
 	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
 	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
 		var t := Radio.unlock_toast(String(track["title"]))
@@ -849,11 +896,16 @@ func _build_world() -> void:
 	# Loop 3g-1: the police, on the traffic's lane graph (none with --no-police).
 	if traffic != null and not police_opts.get("off", false):
 		_build_police(data, world)
+	_build_crowds(data, world)
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
 	_apply_style()
 	_show_night_nodes(false)
 	tod.set_mode(start_time, true)
+	# Loop MW-3: --clock=HH:MM with a fixed look (--time=night --clock=01:00) starts its clock there.
+	if live_clock != "" and start_time != TimeOfDay.LIVE:
+		var hm := live_clock.split(":")
+		tod.fixed_start = clampf(float(hm[0]) + (float(hm[1]) / 60.0 if hm.size() > 1 else 0.0), 0.0, 23.99)
 	# Loop MW-5: PÓŁNOC FM reads the game clock; the radio follows it until the player picks.
 	radio.clock = func() -> Array:
 		var c := tod.local_clock()
@@ -1000,6 +1052,9 @@ func _set_quality(choice: int) -> void:
 	var qs: Dictionary = QUALITY[quality]
 	tod.shadows_allowed = qs["shadows"]
 	tod.glow_allowed = qs["glow"]
+	if crowds != null:
+		crowds.amount = _crowd_scale()
+		crowds.refresh()
 	RenderingServer.directional_shadow_atlas_set_size(qs["shadow_size"], true)
 	tod.refresh()
 	weather.density = qs["rain"]
@@ -1396,6 +1451,7 @@ func _build_side_jobs(data: Dictionary, world: Node3D) -> void:
 	# --- end loop 2d-1 ---
 	eggs = Eggs.new()
 	eggs.day = barrier_day
+	eggs.force_street = barrier_force
 	world.add_child(eggs)
 	eggs.setup(nodes, data)
 
@@ -1432,6 +1488,143 @@ func _build_notebook(data: Dictionary) -> void:
 		_put_at_place(place_flag)
 
 
+# --- loop MW-3: the night and the river's crowds --------------------------------------------
+
+## The crowds (crowds.gd) at the notebook's places, after the police (their cars by the clubs)
+## and the city's sounds (the crowds' murmur and the guitar). None with --crowd=0 or without the
+## notebook's places.
+func _build_crowds(data: Dictionary, world: Node3D) -> void:
+	if crowd_flag == 0 or notes == null or not notes.ready_ok:
+		return
+	crowds = Crowds.new()
+	crowds.name = "Crowds"
+	crowds.map = map
+	crowds.dialogue = dialogue
+	crowds.police = police
+	crowds.sounds = city_sounds
+	crowds.log_on = night_log
+	crowds.amount = _crowd_scale()
+	crowds.clock = tod.local_clock
+	crowds.focus = func() -> Vector3: return cam_focus
+	crowds.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	if traffic != null:
+		crowds.on_screen = traffic.on_screen
+	crowds.calendar = _crowd_calendar
+	world.add_child(crowds)
+	crowds.setup(notes.places, data)
+	tod.changed.connect(func(_m: int) -> void: crowds.refresh())
+	# The crowds' sounds: each queue's and the steps' murmur, the guitarist.
+	if city_sounds != null:
+		for st: Dictionary in crowds.sites:
+			var site := st
+			if site["kind"] in ["queue", "steps", "plan_c"]:
+				var at: Vector2 = site["door"]
+				city_sounds.add_crowd(str(site["id"]), "murmur", Vector3(at.x, map.ground_height(at.x, at.y), at.y),
+						func() -> bool: return int(site["n"]) >= 4)
+			if site["kind"] == "steps":
+				var g: Vector2 = site["guitar"]
+				city_sounds.add_crowd(str(site["id"]), "guitar", Vector3(g.x, map.ground_height(g.x, g.y), g.y),
+						func() -> bool: return bool(site.get("guitar_on", false)))
+	# Podwózka at dawn: requests from the club doors.
+	if rides != null:
+		rides.club_doors = func() -> Array:
+			var out: Array = []
+			if crowds.dawn_on:
+				for st: Dictionary in crowds.sites:
+					if bool(st.get("dawn", false)):
+						out.append([st["id"], st["door"]])
+			return out
+	if club_flag != "":
+		_put_at_club(club_flag)
+
+
+## --crowd= × the Low tier's half.
+func _crowd_scale() -> float:
+	return float(crowd_flag) * (0.5 if quality == Tiers.LOW else 1.0)
+
+
+## The crowds' calendar: Live or not, the month and date, the look, rain, and the sunset's hour
+## (Live: of its date, found once a day; the fixed looks: the Dusk look's 19:30).
+func _crowd_calendar() -> Dictionary:
+	var live := tod.mode == TimeOfDay.LIVE
+	var month := 7
+	var ymd := 0
+	var sunset := 19.5
+	if live:
+		var t := tod.now_utc()
+		var off := TimeOfDay.warsaw_offset(t)
+		var d := Time.get_datetime_dict_from_unix_time(int(t) + off)
+		month = int(d["month"])
+		ymd = int(d["year"]) * 10000 + month * 100 + int(d["day"])
+		if not _sunsets.has(ymd):
+			# The first minute after 15:00 (Warsaw) with the sun under the horizon.
+			var noon := t - (float(d["hour"]) * 3600.0 + float(d["minute"]) * 60.0 + float(d["second"]))
+			var h := 15.0
+			while h < 23.0 and TimeOfDay.sun_position(noon + h * 3600.0).x > 0.0:
+				h += 1.0 / 12.0
+			_sunsets[ymd] = h
+		sunset = float(_sunsets[ymd])
+	return {"live": live, "month": month, "date": ymd, "look": TimeOfDay.NAMES[tod.mode], "rain": weather.state != 0,
+			"sunset": sunset}
+
+
+## The places.json id of a club for --club= (an id, or a name: "smoła", "Jasna 0").
+func _club_id(name: String) -> String:
+	var want := Notebook.norm(name)
+	var book := Notebook.new()
+	var id := ""
+	if book.load_places():
+		for p: Dictionary in book.places:
+			if not "club" in p.get("tags", []) and str(p["id"]) != Crowds.ROOF_ID:
+				continue
+			if str(p["id"]) == name or Notebook.norm(str(p["id"])) == want or Notebook.norm(str(p["name_pl"])) == want:
+				id = str(p["id"])
+	book.free()
+	return id
+
+
+## --club=, before the city opens: the sectors round the club first (as --place=).
+func _club_start() -> void:
+	if club_flag == "":
+		return
+	var id := _club_id(club_flag)
+	if id == "":
+		push_warning("--club=%s: no such club in places.json" % club_flag)
+		return
+	club_flag = id
+	var book := Notebook.new()
+	if book.load_places():
+		var near: Array = book.places[book.by_id[id]]["near"]
+		var at := Notebook.project([52.234, 21.024], float(near[0]), float(near[1]))
+		start_at = Vector3(at.x, 0.0, at.y)
+	book.free()
+
+
+## The car on the lane nearest the club's door, facing along it.
+func _put_at_club(id: String) -> void:
+	if crowds == null or not crowds.by_id.has(id):
+		push_warning("--club=%s: no crowd there" % id)
+		return
+	var site: Dictionary = crowds.sites[crowds.by_id[id]]
+	var door: Vector2 = site["door"]
+	var spot := Vector3(door.x, map.ground_height(door.x, door.y), door.y)
+	var yaw := car.rotation.y
+	var lane := _lane_spot(spot, yaw)
+	if not lane.is_empty() and Vector2((lane[0] as Vector3).x, (lane[0] as Vector3).z).distance_to(door) < 60.0:
+		spot = lane[0]
+		yaw = lane[1]
+	car.global_position = spot
+	car.rotation.y = yaw
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.reset_physics_interpolation()
+	cam_focus = car.global_position
+	print("night: --club=%s: the car at %.0f, %.0f, %.0f m from the door" % [id, spot.x, spot.z, Vector2(spot.x, spot.z).distance_to(door)])
+
+
 ## --place=<id>, before the city opens: start where places.json's hint says, so the sectors
 ## round the place are built first (the exact spot comes after, _put_at_place).
 func _place_start() -> void:
@@ -1466,6 +1659,498 @@ func _put_at_place(id: String) -> void:
 	car.reset_physics_interpolation()
 	cam_focus = car.global_position
 	print("notes: --place=%s: the car at %.0f, %.0f, %.0f m from the place" % [id, spot.x, spot.z, Vector2(spot.x, spot.z).distance_to(at)])
+
+
+# --- loop MW-6: the eggs in the notebook, KASETA, Spacer and Fotka ----------------------------
+
+## The egg cards (egg_book.gd), the time tape (tape.gd), wander mode (spacer.gd) and the photo
+## mode (fotka.gd): built after the notebook (they stand on its places), each checked at 2 Hz;
+## their pages are the notebook's three extra chips.
+func _build_moments(data: Dictionary, world: Node3D) -> void:
+	var places := {}
+	if notes != null:
+		for p: Dictionary in notes.places:
+			places[str(p["id"])] = p["at"]
+	var spots: Dictionary = eggs.spots if eggs != null else {}
+	egg_book = EggBook.new()
+	egg_book.name = "EggBook"
+	egg_book.wallet = wallet
+	egg_book.hud = hud
+	egg_book.radio = radio
+	egg_book.log_on = egg_log
+	egg_book.blip = _blip_sound
+	add_child(egg_book)
+	if egg_book.load_eggs():
+		egg_book.setup(places, spots, data)
+		if eggs != null:
+			eggs.book = egg_book
+		egg_book.probe = _egg_state
+		if found_eggs != "":
+			egg_book.preset(found_eggs)
+	tape = Tape.new()
+	tape.name = "Tape"
+	tape.wallet = wallet
+	tape.hud = hud
+	tape.map = map
+	tape.book = egg_book
+	tape.log_on = tape_log
+	tape.blip = _blip_sound
+	tape.vhs = _vhs_pulse
+	tape.state = _egg_state
+	world.add_child(tape)
+	if tape.setup(places):
+		egg_book.tape = tape
+		tape.probe = func() -> Array:
+			return [_vehicle_position(), (heli.speed() if flying else car.vel.length()) * 3.6, flying,
+					title != null or _phone_bench or (fotka != null and fotka.is_open())]
+		hud.context_pressed.connect(tape.on_context)
+	spacer = Spacer.new()
+	spacer.name = "Spacer"
+	spacer.notebook = notes
+	spacer.probe = func() -> Array: return [_vehicle_position(), title != null or _phone_bench]
+	add_child(spacer)
+	spacer.changed.connect(_apply_spacer)
+	spacer.set_on(spacer_flag == 1 if spacer_flag >= 0 else settings.wander, spacer_hint)
+	_apply_spacer(spacer.on)
+	hud.tapped.connect(func(_at: Vector2) -> void:
+		if spacer.hint_shown():
+			print("spacer: hint to %s tapped away" % spacer.hint_id)
+			spacer.dismiss())
+	fotka = Fotka.new()
+	fotka.name = "Fotka"
+	fotka.wallet = wallet
+	fotka.hud = hud
+	fotka.map = map
+	fotka.world = world
+	fotka.main_cam = cam
+	fotka.log_on = photo_log
+	fotka.blip = _blip_sound
+	fotka.pt = hud.pt
+	fotka.safe = hud.safe_rect()
+	fotka.look = _look_now
+	for c in cam.get_children():
+		if c is MeshInstance3D and (c as MeshInstance3D).material_override == post_mat:
+			fotka.post_quad = c
+	add_child(fotka)
+	fotka.setup(places, spots)
+	fotka.closed.connect(func() -> void: _cut_camera())
+	if hud.settings_panel != null:
+		var page: Control = hud.settings_panel.get("notebook_page")
+		hud.settings_panel.set("notebook_eggs", egg_book)
+		hud.settings_panel.set("notebook_tape", tape)
+		hud.settings_panel.set("notebook_kadr", fotka)
+		if page != null:
+			page.eggs = egg_book
+			page.tape = tape
+			page.kadr = fotka
+	if egg_flag != "" or tape_flag != "" or fotka_flag:
+		_moment_at = 1.0
+
+
+## Spacer on or off: what comes by itself stops (or starts again).
+func _apply_spacer(on: bool) -> void:
+	if missions != null:
+		missions.calls_off = on
+	if rides != null:
+		rides.quiet = on
+	if rivals != null:
+		rivals.quiet = on
+	if police != null:
+		police.gentle = on
+
+
+## The eggs' probe (egg_book.gd `tick`, tape.gd's E36/E37): the vehicle and the game clock.
+func _egg_state() -> Dictionary:
+	var pos := _vehicle_position()
+	var c := tod.local_clock()
+	var live := tod.mode == TimeOfDay.LIVE
+	var ymd := 0
+	var month := 7
+	if live:
+		var t := tod.now_utc()
+		var d := Time.get_datetime_dict_from_unix_time(int(t) + TimeOfDay.warsaw_offset(t))
+		ymd = int(d["year"]) * 10000 + int(d["month"]) * 100 + int(d["day"])
+		month = int(d["month"])
+	var roof := 0.0
+	if flying:
+		roof = heli.surface - map.ground_height(pos.x, pos.z)
+	var station := ""
+	if radio.station >= 0 and radio.station < radio.stations.size():
+		station = str(radio.stations[radio.station]["id"])
+	return {"pos": pos, "kmh": (heli.speed() if flying else car.vel.length()) * 3.6, "flying": flying,
+			"alt": heli.global_position.y - map.ground_height(pos.x, pos.z) if flying else 0.0,
+			"skids": heli.height_above if flying else 0.0, "roof": roof,
+			"away": title != null or _phone_bench or (fotka != null and fotka.is_open()),
+			"look": TimeOfDay.NAMES[tod.mode], "hour": float(c["hour"]), "weekday": int(c["weekday"]), "month": month,
+			"live": live, "sun": tod.sun_elevation, "rain": weather.state != 0, "station": station, "date": ymd,
+			"roadworks": eggs.barrier_street if eggs != null else "", "crowds": crowds.levels if crowds != null else {}}
+
+
+## The time of day's look for a Kadr: Day, Dusk or Night (Live by the sun's height).
+func _look_now() -> String:
+	if tod.mode != TimeOfDay.LIVE:
+		return TimeOfDay.NAMES[tod.mode]
+	if tod.sun_elevation > 6.0:
+		return "Day"
+	return "Dusk" if tod.sun_elevation > -6.0 else "Night"
+
+
+## KASETA: the VHS overlay for `seconds`, then the setting again.
+func _vhs_pulse(seconds: float) -> void:
+	_vhs_until = _clock + seconds
+	var keep := vhs
+	_set_vhs(true)
+	vhs = keep
+
+
+## --egg=<id>: before the city is built, the egg's moment (time of day, clock and date, dry
+## weather, the station; the roadworks' street) and the start near its place.
+func _egg_moment() -> void:
+	if egg_flag == "" and tape_flag == "" and kadr_flag == "":
+		return
+	# Each moment's flag brings its log (the runs read these lines).
+	egg_log = egg_log or egg_flag != ""
+	tape_log = tape_log or tape_flag != ""
+	photo_log = photo_log or kadr_flag != ""
+	var pid := ""
+	if egg_flag != "":
+		var book := EggBook.new()
+		if book.load_eggs() and book.by_id.has(egg_flag):
+			_egg = book.eggs[book.by_id[egg_flag]]
+		book.free()
+		if _egg.is_empty():
+			push_warning("--egg=%s: no such egg in eggs.json" % egg_flag)
+			return
+		pid = str(_egg["place"])
+		var t: Dictionary = _egg["trigger"]
+		if bool(t.get("night", false)) or t.has("after"):
+			start_time = TimeOfDay.NIGHT
+		if str(t.get("look", "")) == "Dusk":
+			start_time = TimeOfDay.DUSK
+		if t.has("hours") and not (t.has("weekday") or t.has("date")):
+			var h: Array = t["hours"]
+			var a := float(h[0])
+			var b := float(h[1])
+			var inside := func(x: float) -> bool: return (x >= a and x < b) if a <= b else (x >= a or x < b)
+			if inside.call(19.5):
+				start_time = TimeOfDay.DUSK
+			elif inside.call(1.5):
+				start_time = TimeOfDay.NIGHT
+			elif inside.call(14.0):
+				start_time = TimeOfDay.DAY
+		if t.has("weekday") or t.has("date"):
+			start_time = TimeOfDay.LIVE
+			var hours: Array = t.get("hours", [12, 13])
+			live_clock = "%02d:15" % int(hours[0])
+			# The week of Monday 26 October 2026, or of Monday 28 June 2027 for a summer egg (Live's
+			# summer is June-August); Fat Thursday by the computus. At dusk: the sun on the horizon.
+			var summer := bool(t.get("summer", false))
+			var monday := 20270628 if summer else 20261026
+			live_date = monday + int((t.get("weekday", [4]) as Array)[0]) - 1
+			if not summer and live_date > 20261031:
+				live_date = 20261101
+			elif summer and live_date > 20270630:
+				live_date = 20270701 + live_date - 20270631
+			if str(t.get("look", "")) == "Dusk":
+				live_clock = "21:00" if summer else "16:25"
+			if str(t.get("date", "")) == "fat_thursday":
+				live_date = EggBook.fat_thursday(2027)
+		if bool(t.get("dry", false)):
+			start_weather = 0
+		if t.has("station"):
+			station_flag = str(t["station"])
+			radio_picked = true
+		if t.has("roadworks"):
+			barrier_force = str(t["roadworks"])
+		if str(t.get("kind", "")) == "tape":
+			tape_flag = str(t["card"])
+		print("egg: --egg=%s %s: %s; the moment: %s%s%s" % [egg_flag, _egg["name"][0], t,
+				TimeOfDay.NAMES[start_time], " %s %d" % [live_clock, live_date] if live_clock != "" else "",
+				", station %s" % station_flag if station_flag != "" else ""])
+	if tape_flag != "" and pid == "":
+		var tp := Tape.new()
+		if tp.load_cards() and tp.index_of(tape_flag) >= 0:
+			pid = str(tp.spots[tp.index_of(tape_flag)]["place"])
+		tp.free()
+	if kadr_flag != "" and pid == "":
+		var f := Fotka.new()
+		if f.load_spots():
+			var i := _kadr_index(f, kadr_flag)
+			if i >= 0:
+				pid = str(f.spots[i]["place"])
+				var want := str(f.spots[i].get("look", ""))
+				if want != "":
+					start_time = TimeOfDay.parse(want.to_lower())
+		f.free()
+	# The sectors round the place first (its hint; eggs.gd's spots come once the city is up).
+	var nb := Notebook.new()
+	if nb.load_places() and nb.by_id.has(pid):
+		var near: Array = nb.places[nb.by_id[pid]]["near"]
+		var at := Notebook.project([52.234, 21.024], float(near[0]), float(near[1]))
+		start_at = Vector3(at.x, 0.0, at.y)
+	nb.free()
+
+
+func _kadr_index(f: Node, key: String) -> int:
+	var spots: Array = f.get("spots")
+	for i in spots.size():
+		if str(spots[i]["id"]) == key:
+			return i
+	if key.is_valid_int() and int(key) >= 1 and int(key) <= spots.size():
+		return int(key) - 1
+	return -1
+
+
+## The --egg, --tape and --fotka moments, a second into the run (the city's time and the radio
+## are set by then), and the --egg rig after.
+func _moment_frame(dt: float) -> void:
+	if _vhs_until >= 0.0 and _clock >= _vhs_until:
+		_vhs_until = -1.0
+		_set_vhs(vhs)
+	if _moment_at >= 0.0:
+		_moment_at -= dt
+		if _moment_at < 0.0:
+			_start_moment()
+	if not _egg.is_empty() and _rig_t >= 0.0:
+		_egg_rig(dt)
+	if fotka != null and fotka.is_open() and fotka_shot >= 0.0:
+		fotka_shot -= dt
+		if fotka_shot < 0.0:
+			fotka.shoot()
+
+
+func _start_moment() -> void:
+	if not _egg.is_empty():
+		_egg_place()
+	# A tape egg (E36, E37) plays its then card here too.
+	if tape_flag != "" and tape != null:
+		var i := tape.index_of(tape_flag)
+		if i >= 0:
+			_put_car_near(tape.spots[i]["at"], 20.0)
+			print("tape: --tape=%s, the car at %.1f, %.1f heading %.0f" % [tape_flag, car.global_position.x, car.global_position.z,
+					fposmod(rad_to_deg(car.rotation.y), 360.0)])
+			tape.play(i)
+		else:
+			push_warning("--tape=%s: no such then card" % tape_flag)
+	if fotka_flag and fotka != null:
+		if kadr_flag != "":
+			var i := _kadr_index(fotka, kadr_flag)
+			if i >= 0:
+				_put_car_near(fotka.spots[i]["at"], 60.0)
+				_open_fotka()
+				fotka.aim_at(i)
+				if fotka_shot < 0.0:
+					fotka_shot = 2.0
+		else:
+			_open_fotka()
+
+
+## Fotka from the settings card (or --fotka): the car stopped, the HUD away.
+func _open_fotka() -> void:
+	if fotka == null or not _started or title != null:
+		return
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	fotka.safe = hud.safe_rect()
+	fotka.pt = hud.pt
+	fotka.open(_vehicle_position(), cam_yaw, camera_pitch, cam.size)
+
+
+## The car on the lane nearest `at` (within `reach` m), else on the point itself.
+func _put_car_near(at: Vector2, reach: float) -> void:
+	if at == Vector2.INF:
+		return
+	var spot := Vector3(at.x, map.ground_height(at.x, at.y), at.y)
+	var yaw := car.rotation.y
+	var lane := _lane_spot(spot, yaw)
+	if not lane.is_empty() and Vector2((lane[0] as Vector3).x, (lane[0] as Vector3).z).distance_to(at) < reach:
+		spot = lane[0]
+		yaw = lane[1]
+	if flying:
+		_set_flying(false)
+	car.global_position = spot
+	car.rotation.y = yaw
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.reset_physics_interpolation()
+	cam_focus = car.global_position
+	_cut_camera()
+	if streamer != null:
+		streamer.finish_view(cam_focus, cam)
+
+
+## --egg: the vehicle at the egg, for its kind of trigger; a motion trigger gets a path the rig
+## drives at its pace (the 2 Hz checks judge it as they would a player).
+func _egg_place() -> void:
+	var t: Dictionary = _egg["trigger"]
+	var kind := str(t.get("kind", ""))
+	var id := str(_egg["id"])
+	var e: Dictionary = egg_book.eggs[egg_book.by_id[id]] if egg_book != null and egg_book.by_id.has(id) else _egg
+	_egg = e
+	var at: Vector2 = e.get("at", Vector2.INF)
+	if e.has("waits"):
+		print("egg: --egg=%s waits for %s: its card is in the notebook, nothing finds it yet" % [id,
+				egg_book.waits.get(str(e["waits"]), e["waits"])])
+		_rig_t = -1.0
+		return
+	match kind:
+		"stop", "pass", "lap", "legacy":
+			# A legacy egg (eggs.gd) fires within 26-30 m of its spot: a lane within 18 m of it, else
+			# 12 m off it (the palm's island, the crowd).
+			var off := Vector2.ZERO
+			if kind == "legacy" and eggs != null and eggs.spots.has(id):
+				var v: Vector3 = eggs.spots[id]
+				at = Vector2(v.x, v.z)
+				off = Vector2(12.0, 0.0)
+			var reach := 18.0 if kind == "legacy" else float(t.get("within", 30.0)) * 0.8
+			if kind == "lap":
+				var r: Array = t["r"]
+				var mid := (float(r[0]) + float(r[1])) * 0.5
+				_rig_path = PackedVector2Array()
+				for k in 73:
+					var a := TAU * k / 72.0
+					_rig_path.append(at + Vector2(cos(a), sin(a)) * mid)
+				_put_car_near(_rig_path[0], 1.0)
+			else:
+				_put_car_near(at, reach)
+				if Vector2(car.global_position.x, car.global_position.z).distance_to(at) > reach:
+					_put_car_near(at + off, 0.0)
+				# A place on a bridge (E09): the lane on the deck, whatever the ground under it.
+				var deck := _egg_deck(at, reach)
+				if not deck.is_empty() and map.in_water(car.global_position.x, car.global_position.z, car.global_position.y):
+					car.global_position = deck[0]
+					car.rotation.y = deck[1]
+					car.reset_physics_interpolation()
+		"street":
+			_rig_path = _street_path(e.get("pieces", PackedVector2Array()))
+			if _rig_path.size() > 1:
+				_put_car_near(_rig_path[0], 1.0)
+		"hover", "land", "between", "circle":
+			if kind == "between" and e.has("a"):
+				at = (e["a"] as Vector2).lerp(e["b"], 0.5)
+			var h := float(t.get("min_alt", 0.0)) + 12.0
+			if kind == "circle":
+				var r2: Array = t["r"]
+				_rig_path = PackedVector2Array()
+				var mid2 := (float(r2[0]) + float(r2[1])) * 0.5
+				for k in 73:
+					var a2 := TAU * k / 72.0
+					_rig_path.append(at + Vector2(cos(a2), sin(a2)) * mid2)
+				at = _rig_path[0]
+				h = 70.0
+			_put_car_near(at, 40.0)
+			_take_off(h)
+			var g: float = map.ground_height(at.x, at.y)
+			if kind == "land":
+				g = map.top_height(at.x, at.y, Heli.RADIUS)
+				h = 6.0
+			heli.place(Vector3(at.x, g + h, at.y), heli.rotation.y, h if kind != "land" else g + h - map.ground_height(at.x, at.y))
+			_cut_camera()
+		"tape":
+			pass  # _start_moment plays the tape (_egg_moment set --tape)
+	# The start point (the place's hint) may have been in the river (E09): no tow once the car
+	# stands on dry land or a deck.
+	var cp := car.global_position
+	if not flying and car.in_water and not map.in_water(cp.x, cp.z, cp.y):
+		car.leave_water()
+		_tow_wait = -1.0
+	_rig_s = 0.0
+	_rig_t = 0.0
+	print("egg: --egg=%s %s at %.0f, %.0f (%s)" % [id, kind, at.x, at.y, egg_book.describe_state(_egg_state())])
+
+
+## --egg: the lane nearest `at` within `reach` m on any level (a bridge's deck over the river),
+## not in the water: [position, yaw], or [] if none.
+func _egg_deck(at: Vector2, reach: float) -> Array:
+	if graph == null:
+		return []
+	var hit := graph.snap(at, reach, Vector2.ZERO)
+	if hit.is_empty():
+		return []
+	var e: int = hit[0]
+	var lane_s: float = hit[2]
+	var h := graph.height(e, lane_s)
+	var q := graph.point_at(e, lane_s, graph.lane_offset(e, hit[1]))
+	if map.in_water(q.x, q.y, h):
+		return []
+	var d := graph.direction(e, lane_s)
+	return [Vector3(q.x, h, q.y), atan2(-d.x, -d.y)]
+
+
+## The named street's pieces in order along it (from one end to the other).
+func _street_path(pieces: PackedVector2Array) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	if pieces.size() < 2:
+		return out
+	# The two pieces furthest apart are the ends; the rest by their distance along that line.
+	var a := pieces[0]
+	var b := pieces[1]
+	var far := -1.0
+	for p in pieces:
+		for q in pieces:
+			var d := p.distance_squared_to(q)
+			if d > far:
+				far = d
+				a = p
+				b = q
+	var dir := (b - a).normalized()
+	var order: Array = []
+	for p in pieces:
+		order.append([(p - a).dot(dir), p])
+	order.sort_custom(func(x: Array, y: Array) -> bool: return x[0] < y[0])
+	for o: Array in order:
+		out.append(o[1])
+	return out
+
+
+## The --egg rig, each frame: a lap or a street driven at 90 % of its speed limit, the
+## helicopter round its circle, sinking onto its roof, or holding still.
+func _egg_rig(dt: float) -> void:
+	_rig_t += dt
+	var t: Dictionary = _egg["trigger"]
+	var kind := str(t.get("kind", ""))
+	if egg_book != null and egg_book.is_found(str(_egg["id"])):
+		if _rig_t < 1e6:
+			print("egg: --egg=%s found %.1f s after the start" % [_egg["id"], _rig_t])
+			_rig_t = 1e7
+		if kind in ["lap", "street", "circle"]:
+			car.vel = Vector3.ZERO
+		return
+	if egg_log and int(_rig_t / 10.0) != int((_rig_t - dt) / 10.0):
+		print("egg: --egg=%s not yet after %.0f s (%s)" % [_egg["id"], _rig_t, egg_book.describe_state(_egg_state())])
+	match kind:
+		"lap", "street", "circle":
+			if _rig_path.size() < 2:
+				return
+			var speed := float(t.get("max_kmh", 72.0)) * 0.9 / 3.6
+			_rig_s += speed * dt
+			var i := 0
+			var left := _rig_s
+			while i < _rig_path.size() - 1 and left > _rig_path[i].distance_to(_rig_path[i + 1]):
+				left -= _rig_path[i].distance_to(_rig_path[i + 1])
+				i += 1
+			if i >= _rig_path.size() - 1:
+				_rig_s = 0.0
+				i = 0
+				left = 0.0
+			var a := _rig_path[i]
+			var b := _rig_path[i + 1]
+			var dir := (b - a).normalized()
+			var p := a + dir * left
+			var v := Vector3(dir.x, 0.0, dir.y) * speed
+			if kind == "circle":
+				heli.global_position = Vector3(p.x, heli.global_position.y, p.y)
+				heli.vel = v
+			else:
+				car.global_position = Vector3(p.x, map.ground_height(p.x, p.y) + 0.05, p.y)
+				car.rotation.y = atan2(-dir.x, -dir.y)
+				car.vel = v
+		"land":
+			heli.climb = -1.0
+		"hover", "between":
+			heli.input_dir = Vector3.ZERO
+		_:
+			car.vel = Vector3.ZERO
 
 
 # --- loop 3g-1: the police ---------------------------------------------------------------------
@@ -1753,6 +2438,40 @@ func _parse_args() -> void:
 			place_flag = arg.trim_prefix("--place=")
 		elif arg == "--notes-log":
 			notes_log = true
+		elif arg.begins_with("--crowd="):
+			crowd_flag = clampi(int(arg.trim_prefix("--crowd=")), 0, 2)
+		elif arg == "--night-log":
+			night_log = true
+		elif arg.begins_with("--club="):
+			# Loop MW-3: the car at a club's door (places.json id or name), no title.
+			club_flag = arg.trim_prefix("--club=")
+			show_title = false
+			free_roam = true
+		elif arg.begins_with("--egg="):
+			egg_flag = arg.trim_prefix("--egg=")
+		elif arg == "--egg-log":
+			egg_log = true
+		elif arg.begins_with("--found-eggs="):
+			found_eggs = arg.trim_prefix("--found-eggs=")
+		elif arg.begins_with("--tape="):
+			tape_flag = arg.trim_prefix("--tape=")
+		elif arg == "--tape-log":
+			tape_log = true
+		elif arg == "--spacer" or arg == "--wander":
+			spacer_flag = 1
+		elif arg == "--no-spacer":
+			spacer_flag = 0
+		elif arg.begins_with("--spacer-hint="):
+			spacer_hint = float(arg.trim_prefix("--spacer-hint="))
+		elif arg == "--fotka" or arg == "--photo":
+			fotka_flag = true
+		elif arg.begins_with("--kadr="):
+			kadr_flag = arg.trim_prefix("--kadr=")
+			fotka_flag = true
+		elif arg.begins_with("--fotka-shot="):
+			fotka_shot = float(arg.trim_prefix("--fotka-shot="))
+		elif arg == "--photo-log":
+			photo_log = true
 		elif arg.begins_with("--settings-tab="):
 			open_settings_at_start = true
 			settings_tab = int(arg.trim_prefix("--settings-tab="))
@@ -1799,6 +2518,10 @@ func _parse_args() -> void:
 		show_title = false
 	if start_ride >= 0 or place_flag != "":
 		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place)
+	# Loop MW-6: and the eggs', the tape's and Fotka's flags; --egg sets its moment's time.
+	if egg_flag != "" or tape_flag != "" or fotka_flag or spacer_hint >= 0.0:
+		show_title = false
+	_egg_moment()
 	if force_title:
 		show_title = true
 	# Camera loop: the cinematic moments in a normal launch only (never with screenshots or a bench).
@@ -1985,13 +2708,18 @@ func _settings_state() -> Dictionary:
 			"auto": auto_name,
 			"master": settings.master, "music": settings.music, "effects": settings.effects, "perf": int(show_perf),
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
-			"weather": weather.state, "time": tod.mode}
+			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on)}
 
 
 func _close_settings() -> void:
 	print("settings panel: closed")
 	get_tree().paused = false
 	_blip_sound()
+	# Loop MW-6 (Open Question 7): Spacer offered once, after the first pause.
+	if not settings.wander_offered and spacer != null and not spacer.on:
+		settings.wander_offered = true
+		settings.save()
+		hud.toast("Spróbuj trybu Spacer: Ustawienia → Jazda", "Try Wander mode: Settings → Driving → Game mode")
 
 
 func _on_setting(key: String, value: Variant) -> void:
@@ -2038,6 +2766,13 @@ func _on_setting(key: String, value: Variant) -> void:
 		"bench":
 			_start_phone_bench.call_deferred()
 			return
+		"fotka":
+			_open_fotka.call_deferred()
+			return
+		"wander":
+			settings.wander = int(value) == 1
+			if spacer != null:
+				spacer.set_on(settings.wander)
 		"master", "music", "effects":
 			settings.set(key, float(value))
 			Sfx.set_levels(settings.master, settings.music, settings.effects)
@@ -2615,6 +3350,7 @@ func _process(dt: float) -> void:
 	if bench or probe:
 		_bench_frame()
 	_read_input(dt)
+	_moment_frame(dt)  # loop MW-6: --egg, --tape, --fotka and the VHS of a tape
 	_water_frame(dt)
 	if autopilot or _bench_ghost != null:
 		_autopilot(dt)
@@ -2684,6 +3420,13 @@ func _process(dt: float) -> void:
 	for m in map.fade_materials:
 		m.set_shader_parameter("car_view", car_view)
 		m.set_shader_parameter("fade_radius", hole * 0.8)
+	# Loop MW-6: Fotka's photo shows the city whole (no see-through hole, no ghost).
+	if fotka != null and fotka.is_open():
+		building_mat.set_shader_parameter("fade_radius", 0.0)
+		for m: ShaderMaterial in [building_mat, map.flat_material, post_mat] + _neon_materials():
+			m.set_shader_parameter("occlusion_radius", 0.0)
+		for m in map.fade_materials:
+			m.set_shader_parameter("fade_radius", 0.0)
 	_rotor_wash()
 	_fine_detail()
 	# A small marker over the vehicle once the view is wide enough to lose it.
@@ -2851,6 +3594,10 @@ func _make_stats() -> BenchStats:
 		b.systems["notebook"] = [notes, "spent_usec", true]  # loop MW-1
 	if city_sounds != null:
 		b.systems["city sounds"] = [city_sounds, "spent_usec", true]  # loop MW-5
+	if crowds != null:
+		b.systems["crowds"] = [crowds, "spent_usec", true]  # loop MW-3
+	if egg_book != null:
+		b.systems["eggs+tape+spacer"] = [self, "_moments_usec", false]  # loop MW-6
 	b.systems["sound"] = [sfx, "last_usec", false]
 	b.systems["hud+minimap"] = [hud, "spent_usec", true]
 	b.systems["bubbles"] = [bubbles, "spent_usec", true]
@@ -2866,6 +3613,18 @@ func _make_stats() -> BenchStats:
 var _jobs_usec: int:
 	get:
 		return (jobs.last_usec + eggs.last_usec + (rides.last_usec if rides != null else 0)) if jobs != null else 0
+## Loop MW-6: egg_book.gd, tape.gd and spacer.gd, read as one (and cleared).
+var _moments_usec: int:
+	get:
+		if egg_book == null:
+			return 0
+		var t: int = egg_book.spent_usec + (tape.spent_usec if tape != null else 0) + (spacer.spent_usec if spacer != null else 0)
+		egg_book.spent_usec = 0
+		if tape != null:
+			tape.spent_usec = 0
+		if spacer != null:
+			spacer.spent_usec = 0
+		return t
 var _sky_usec: int:
 	get:
 		var t: int = weather.spent_usec + tod.spent_usec
@@ -3047,6 +3806,17 @@ func _show_target() -> void:
 		hud.set_minimap_target(Vector2(j.x, j.z), jobs.target_colour())
 		_new_target("job", j)
 		return
+	# Loop MW-6: Spacer's soft hint, the edge arrow to the nearest notebook place not found yet.
+	if not missions.has_target() and spacer != null and spacer.hint_shown():
+		var hp := spacer.hint_at
+		var at_h := _vehicle_position()
+		var mh := roundi(Vector2(hp.x - at_h.x, hp.y - at_h.z).length())
+		var on_h := cam.unproject_position(Vector3(hp.x, map.ground_height(hp.x, hp.y) + 3.5, hp.y)) * float(view.stretch_shrink)
+		hud.set_target(on_h, "? %d m" % mh, Spacer.HINT_COLOUR, mh > 25)
+		hud.set_minimap_target(hp, Spacer.HINT_COLOUR)
+		if notes != null and notes.is_found(spacer.hint_id):
+			spacer.dismiss()
+		return
 	if not missions.has_target():
 		hud.set_target(Vector2.ZERO, "", Color.WHITE, false)
 		hud.set_minimap_target(Vector2.INF, Color.WHITE)
@@ -3122,6 +3892,16 @@ func _read_input(dt: float) -> void:
 		car.braking = true
 		car.parked = true
 		controls.release()
+		return
+	# Loop MW-6: Fotka holds the car (and the helicopter) still; the city goes on.
+	if fotka != null and fotka.is_open():
+		car.target_dir = Vector3.ZERO
+		car.steer = 0.0
+		car.throttle = 0.0
+		car.braking = true
+		controls.release()
+		heli.input_dir = Vector3.ZERO
+		heli.climb = 0.0
 		return
 	car.parked = flying
 	var left := Input.is_physical_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_LEFT)

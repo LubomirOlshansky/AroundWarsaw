@@ -122,6 +122,9 @@ var autopilot := false
 var tail := -1
 ## Set by the game each frame.
 var flying := false
+## Loop MW-6: Spacer (spacer.gd): the rivals don't call out their challenge (the prompt still
+## shows behind one; flashing the lights still starts the race).
+var quiet := false
 ## Loop 3g-2 (police.md 8.2): the player escaped the police during this race: a win pays the
 ## stake x 1.2 (police.gd sets it; start_race clears it).
 var escape_bonus := false
@@ -459,7 +462,7 @@ func _look_for_challenge() -> void:
 			_lost_sight = 0.0
 			var r: Dictionary = RIVALS[i]
 			hud.show_challenge("MRUGNIJ ŚWIATŁAMI · %s" % r["name"].to_upper(), r["colour"], "flash your lights to race (L)")
-			if _t - _said[i] > 40.0:
+			if _t - _said[i] > 40.0 and not quiet:
 				_say(i, r["approach"][0], r["approach"][1], 3.5)
 			return
 

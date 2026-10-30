@@ -200,6 +200,9 @@ var guards: Guards
 var project: Callable
 ## The player is in the helicopter (main.gd, every frame).
 var flying := false
+## Loop MW-6: Spacer (spacer.gd, vision.md 4.3): the speed traps give the warning only, nothing
+## chases (the gentle joke stays: the megaphone line).
+var gentle := false
 ## Flags (main.gd parses them; README's flags table).
 var opts := {}
 var now := false
@@ -310,6 +313,9 @@ var _first_tries := 0
 ## Loop 3g-2: the guard in the conversation (null for a police pull-over).
 var _guard = null
 ## Loop 3g-2, test drivers: --guards' waypoints.
+## Loop MW-3 (vision.md 3.1): the patrol cars parked by the clubs (crowds.gd `club_park`): club id
+## -> {e, s, lane, car: Vector2, yaw, unit}. Role "club": parked, sees nothing, starts nothing.
+var _clubs := {}
 var _waypoints: Array[Vector2] = []
 var _waypoints_done := false
 var _follow_last := false
@@ -424,6 +430,7 @@ func _step(dt: float) -> void:
 		_escort_tick()
 		guards.zone = zone
 		guards.tick()
+		_clubs_tick()
 		for u in _units:
 			if u.driver != null:
 				u.tree.blackboard.set_value("phase", PHASES[phase])
@@ -475,6 +482,9 @@ func _unbind(u) -> void:
 		if t["unit"] == u:
 			t["unit"] = null
 			_officer(t, false)
+	for c: Dictionary in _clubs.values():
+		if c["unit"] == u:
+			c["unit"] = null
 	if _talk_unit == u:
 		_talk_unit = null
 	u.unbind()
@@ -754,7 +764,7 @@ func _start_grace() -> bool:
 
 ## No chase starts now: the start grace or the cooldown after the last one.
 func _may_chase() -> bool:
-	return not _start_grace() and (cooldown <= 0.0 or now)
+	return not gentle and not _start_grace() and (cooldown <= 0.0 or now)
 
 
 func _ram_in_chase() -> void:
@@ -772,6 +782,9 @@ func _on_bumped(d, speed: float) -> void:
 
 
 func _start_chase(lvl: int, u, why: String) -> void:
+	if gentle:
+		_log("no chase in Spacer (%s)" % why)
+		return
 	if u == null:
 		u = _nearest_unit()
 	phase = Phase.CHASE
@@ -976,9 +989,84 @@ func _nearest_unit():
 	var best = null
 	for u in _units:
 		# Loop 3g-2: never the guards' car (guards never call the police) nor the escort.
-		if u.driver != null and not u.role() in ["guard", "guard_follow", "escort"] and (best == null or u.dist < best.dist):
+		if u.driver != null and not u.role() in ["guard", "guard_follow", "escort", "club"] and (best == null or u.dist < best.dist):
 			best = u
 	return best
+
+
+# --- loop MW-3: the police by the clubs ------------------------------------------------------
+
+## A patrol car parked across the street from a club's door (crowds.gd, Fri/Sat nights): the
+## outer lane's kerb of the road nearest the door, on its far side, 8 m along. Returns where its
+## officer stands (on the footway beside it, facing the road) as {officer: Vector3, officer_yaw,
+## car: Vector3}, or {} with no road near. The car itself comes and goes with the player like a
+## trap's (out of sight), as a unit of role "club": it never perceives, warns or chases.
+func club_park(id: String, door: Vector2) -> Dictionary:
+	if graph == null:
+		return {}
+	var hit: Array = graph.snap(door, 45.0, Vector2.ZERO, false, true)
+	if hit.is_empty():
+		return {}
+	var best := {}
+	for e: int in [hit[0], graph.e_reverse[hit[0]]]:
+		if e < 0:
+			continue
+		var s := clampf(graph.project(e, door) + 8.0, graph.e_s0[e] + 3.0, graph.e_s1[e] - 3.0)
+		var lane: int = graph.e_lanes[e] - 1
+		var off := graph.lane_offset(e, lane) + 0.9
+		var c := graph.point_at(e, s, off)
+		if best.is_empty() or c.distance_to(door) > (best["car"] as Vector2).distance_to(door):
+			best = {"e": e, "s": s, "lane": lane, "car": c, "off": off}
+	var e: int = best["e"]
+	var s: float = best["s"]
+	var d := graph.direction(e, s)
+	var nrm := (graph.point_at(e, s, float(best["off"]) + 1.0) - (best["car"] as Vector2)).normalized()
+	var o: Vector2 = (best["car"] as Vector2) + nrm * 2.4 + d * 1.6
+	best["yaw"] = atan2(-d.x, -d.y)
+	best["unit"] = null
+	if _clubs.has(id):
+		club_leave(id)
+	_clubs[id] = best
+	var car3 := _v3(best["car"])
+	_log("club %s: a car parked at %d,%d" % [id, roundi(car3.x), roundi(car3.z)])
+	return {"officer": Vector3(o.x, map.ground_height(o.x, o.y), o.y), "officer_yaw": atan2(nrm.x, nrm.y), "car": car3}
+
+
+## The club's car leaves (pulls out if on screen, else goes).
+func club_leave(id: String) -> void:
+	if not _clubs.has(id):
+		return
+	var u = _clubs[id]["unit"]
+	_clubs.erase(id)
+	if u != null and u.driver != null:
+		dismiss(u)
+
+
+## At 5 Hz: each club's car comes into the street out of sight within TRAP_BAND m of the player
+## (or in the first 3 s), and goes again past TRAP_BAND + 100 m.
+func _clubs_tick() -> void:
+	if _clubs.is_empty():
+		return
+	var p2 := _xz(car.global_position)
+	for id: String in _clubs:
+		var c: Dictionary = _clubs[id]
+		var at := _v3(c["car"])
+		var dist := p2.distance_to(c["car"])
+		var u = c["unit"]
+		if u == null:
+			if dist < TRAP_BAND and (clock < 3.0 or not traffic.on_screen(at, 2.0)):
+				var e: int = c["e"]
+				var d = traffic.add_police(e, int(c["lane"]), clampf(float(c["s"]), graph.e_s0[e] + 1.0, graph.e_s1[e] - 1.0))
+				if d == null:
+					continue
+				u = _bind(d, "club")
+				if u == null:
+					traffic.remove(d)
+					continue
+				traffic.park(d, e, float(c["s"]), at, float(c["yaw"]))
+				c["unit"] = u
+		elif dist > TRAP_BAND + 100.0 and u.driver != null and not traffic.on_screen(u.driver.pos, 2.0):
+			traffic.remove(u.driver)
 
 
 # --- blocker and roadblock -------------------------------------------------------------------

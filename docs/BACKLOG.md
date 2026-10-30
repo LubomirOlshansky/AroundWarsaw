@@ -669,7 +669,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   should carry a spot checked against the kerbs.
 - **The officer's legs swing** (the guards' too, loop 3g-2) like a walker's (the people's shader swings every instance's legs;
   the swing is about one image pixel at 80 m). A standing pose would need a constant in
-  `actor.gdshader` (part two, with the guards).
+  `actor.gdshader` (part two, with the guards). (Loop MW-3's crowds stand still without a shader
+  change: their own copy of the material with `walk = 0`. The trap officer and the guards ride the
+  walkers' MultiMesh and still swing; moving them into a still MultiMesh is +1 draw call.)
 - **The trap's car turns round when it pulls out** (it parks facing the traffic, as police.md
   asks, and joins its lane the traffic's way; the turn takes ~10 frames behind the passing car).
 - **The 2D pass**: the minimap's marks are now one triangle array (they were a draw call each);
@@ -1265,18 +1267,108 @@ Small problems that agents reported or that showed up in screenshots. They are f
   notebook cover (later loops); chapters 6 and 7 have no reward beyond the złoty and respect
   (7 tracks, 2 free, so 5 chapters open tracks). An egg's track (E14: 5, E31: 2, which is free
   already) is skipped by the chapters, so then one more chapter opens nothing.
-- **The eggs E14 and E31** only need `radio.unlock_track(5, "egg")` / `(2, ...)` (MW-6); E31's track
-  2 is free from the start, so its reward is a no-op as written: a design question for MW-6.
-- **Skipped (their crowds are MW-3 / MW-4's)**: the steps crowd's murmur, the guitarist on the
-  steps, dog barks at horns, the queue murmur, Jasna 0's grate rumble, dawn birds and the first
-  tram's bell, the metro's ventilation hum, the club door "closing" between admissions.
+- ~~**The eggs E14 and E31** only need `radio.unlock_track(5, "egg")` / `(2, ...)` (MW-6); E31's track
+  2 is free from the start, so its reward is a no-op as written: a design question for MW-6.~~
+  Done in loop MW-6: E14 opens track 5; E31 opens the next locked track when its own is free
+  (the default built; an Open Question of the loop).
+- **Skipped (their crowds are MW-3 / MW-4's)**: ~~the steps crowd's murmur, the guitarist on the
+  steps, the queue murmur~~ (done in loop MW-3: `crowd_murmur` and `steps_guitar`), dog barks at
+  horns, Jasna 0's grate rumble, dawn birds and the first tram's bell, the metro's ventilation
+  hum, the club door "closing" between admissions.
 - **The fixed looks' clock** (`time_of_day.gd` `local_clock`: Day 14:00, Dusk 19:30, Night 01:30,
   Friday night) runs on in real time from when the look was set, so the bells strike after an
   hour of play and the 02:00 beat comes 30 minutes into a Night run. MW-3's city clock should
-  take this over.
+  take this over. (Loop MW-3: `--clock=HH:MM` now sets a fixed look's start and Dawn is
+  Saturday's 05:45; the clock still runs at real time and the look doesn't follow it: still open,
+  "From loop MW-3".)
 - **The radio follows the clock** (PÓŁNOC FM on air, KEBAB FM by day) until the player presses R or
   RADIO in the session; a station change by the clock shows the ticker. Not saved between sessions.
 - **The host speaks text only** (vision Open Question 6).
+
+## From loop MW-6 (Fotka, Spacer, KASETA and the eggs, 2026-10-30)
+
+- Done: the 45 egg cards (`data/eggs.json`, `egg_book.gd`; 26 reachable, 19 waiting), KASETA
+  (`tape.gd`, the 20 then cards with a dithered ghost each), Spacer (`spacer.gd`), Fotka
+  (`fotka.gd`, `data/kadr.json`'s 15 Kadr spots), the notebook's SEKRETY / KASETA / KADR pages,
+  `check_eggs` and `check_tape` (verify steps `eggs`, `tape`; quick set and CI), `check_hud`'s
+  new pages and Fotka's controls, the flags (DEVELOPMENT.md "Fotka, Spacer, KASETA and the eggs").
+- **The 19 waiting eggs** and what wakes each: E01 E21 the garage's paint; ~~E03 the dawn crowd
+  and the Dawn look (MW-3); E04 the patrol cars parked by the clubs (MW-3); E15 the guitarist
+  on the steps (MW-3)~~ (woken in loop MW-3: 16 wait now); E16 E27 the dog walkers (MW-4); E18 E19
+  Wiralek's trend cycle (MW-4); E23 E25 the night buses at Centralny (MW-3 skipped them: "From
+  loop MW-3"); E24 the player's horn and buses pulling in at stops;
+  E28 the Rowerilo riders (MW-4); E29 E30 Kolka and Hyrax (MW-4); E34 the armchair man (MW-4);
+  E35 KASETA's older decades (T1); E39 a tram in old livery; E40 the payphone prop (with T17).
+  Each needs only its trigger in `eggs.json` (drop `waits`) once its piece exists.
+  Rechotka's two eggs are not cards yet (MW-2).
+- **Words to review (designer)**: the egg lines vision's table doesn't quote and every English
+  name are this loop's (marked in the generator); the 15 Kadr spots (`kadr.json`: names, places,
+  looks) are this loop's picks; the KASETA ghosts are boxes from the then cards' ghost notes.
+- **The ghost is dim at night**: it reuses `building.gdshader` (no new shader), whose emission
+  is scaled by the same dither fade, so the then-building glows less than the city around it.
+  A visuals-lane tweak (a `ghost_glow` uniform) would fix it; until then KASETA reads best by day.
+- **E09's place** (`most_poniatowskiego`) resolves 330 m south of the bridge, in the river (its
+  `near` hint, 52.2337, 21.044). The egg anchors on the bridge's road instead (`road` in its
+  trigger); the notebook's own card still sits on the hint: map lane (the bake's anchors).
+- ~~**E10 (Plac Zbawiciela)**: vision's "a crowd outside" became hours 18-02 in summer (no crowds
+  yet); MW-3/MW-4's crowd can join the condition.~~ Done in loop MW-3: E10 needs Plan C's crowd
+  out (`crowd: plan_c`), E14 the steps at 0.8.
+- **Hocki Bloki's music rise (E09) and the fountain show (E17)** are not built: the egg finds
+  and pays, the show itself is a later visual.
+- **Kadr k06 wants a morning**: the fixed looks have no morning (Day is 14:00); it takes Day
+  until MW-3's Dawn look. (Loop MW-3 built Świt · Dawn; k06's `look` in `kadr.json` is the
+  designer's to switch to `Dawn`: not changed, existing data.)
+- **Sharing a photo** waits for the Share plugin (its own yes); the photos stay in `user://photos/`
+  (no cap on their number yet: a cap or a gallery is a later item).
+- **Spacer's hint arrow** reuses the job target arrow; while a job's or rescue's arrow shows, that arrow wins and the hint's 15 s run out unseen.
+- **The --egg rig** teleports the vehicle along its path (laps, streets, circles) at 90 % of the
+  limit: it proves the trigger, not that a player can drive it in traffic. Phone check.
+
+## From loop MW-3 (the night and the river, 2026-10-30)
+
+- Done: the Dawn look (`--time=dawn`, Settings → TIME's Świt) and `--clock` on the fixed looks;
+  the queues at the five clubs and the door (rejections, the car line); the dawn crowd (20-40
+  walkers on footway routes, the `dawn_crowd` bubble, Podwózka's `club` requests at dawn); the
+  steps crowd and the guitarist with their two sounds; Plac Zbawiciela's summer crowd; the
+  police parked by Lusterko and Smoła; eggs E03 E04 E15 woken, E10 E14 with their crowd
+  conditions (29 reachable, 16 waiting); `check_crowds` (verify step `crowds`, quick and CI);
+  `--crowd=`, `--night-log`, `--club=` (DEVELOPMENT.md "The night and the river").
+- **Night buses at Centralny (vision 3.5) not built**: `traffic.gd` (driving lane) has no way to
+  gather its buses at a stop or give one an N route and sign within a one-line hook. Needs a
+  small traffic API (`spawn_bus(route, sign)` or a bus "layover" mode) from the driving lane;
+  then E23 and E25 only need their triggers (drop `waits`).
+- **E01 and `car_black`** wait for the garage's paint (the car line fires; the black car's line
+  and the egg need a paint the player chose).
+- **Level 26's roof crowd**: the roof grid (`map.roof_height`) has nothing over 40 m at
+  level_26's resolved point, so no roof crowd is built (the code is there: a ring at the roof's
+  edge, the roof curve). Either the place's point is off the tower (map lane: the bake's anchors)
+  or the tower isn't in the roof grid. Fix the anchor and it appears.
+- **A real sitting pose**: sitters are a lower, longer instance of the standing figure (y × 0.6,
+  z × 1.35), legs still. A bent-knees pose needs `actor.gdshader` (visuals lane) or a second mesh
+  (+1 draw call at the steps). Open Question of the loop.
+- **Smoła's queue anchor**: the notebook resolves Smoła at its address 359 m from the places.json
+  hint (MW-1's note), so its queue and door stand at (-156, 156) by the Palm's side of Smolna.
+  The bake's anchors (map lane) settle it; the queue follows the place. There the queue stands in
+  a passage between two blocks: from `--club=smola`'s spot the block hides it (seen through the
+  occlusion dither from the north: `--at=-150,150 --yaw=180 --size=50`).
+- **Not built from vision 4.5**: the bouncer's sunglasses band, the rejected one walking off down
+  the street (they rejoin the queue's end or vanish "for a kebab"), the queue shuffling forward
+  between admissions, the club door's light. Small visuals for a later pass.
+- **The fixed looks' clock still runs in real time** and the look doesn't follow it (MW-5's note):
+  a Night run's queues follow the clock from 01:00 on, but the sky stays Night after 05:00.
+  Making the look follow the clock is the visuals lane's call.
+- **Curves that are guesses**: Plan C's hour curve (vision gives only "up to 40, Fri/Sat
+  21:00-02:00"), the dawn crowd's (20 at the window's edges, 40 at 06-07), the weekday factors,
+  the guitarist's 16:00-01:00 and rain's 0.1 on the steps and Plan C. Tune on the phone.
+- **The steps' rows** face the river along the shore's normal found from the water distance; in
+  the dusk shots the 80 read as a scattered crowd on the boulevard by the water, not as rows on
+  the steps (the map has no steps mesh there yet). Check on the phone; a landmarks-lane steps
+  model would give them seats.
+- **The police by the clubs**: when their window ends at 08:00 the parked car is dismissed (it
+  drives off as a patrol). Their `police_club` lines go to a slow car within 15 m; they never
+  start a chase and the trap's koguty rules don't apply to them.
+- **Phone check**: the queue figures at 80 m are 2-3 image pixels wide; whether a queue of 24
+  reads as a queue (and the dawn walkers as a crowd) only the phone shows.
 
 ## From the web build (2026-10-30)
 

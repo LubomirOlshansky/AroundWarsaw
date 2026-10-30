@@ -6,6 +6,13 @@ extends Control
 ## chapter. Tapping a card opens it: name, fact and joke (Polish over English), the address,
 ## the hours for a night venue and the day it was found; WRÓĆ goes back to the grid.
 ##
+## Loop MW-6: three more chips after the chapters, each with a small pixel icon drawn in the
+## boxes' triangles (no texture): SEKRETY · eggs (egg_book.gd, 45 cards), KASETA · tape (tape.gd,
+## the 20 then cards) and KADR · photo spots (fotka.gd, 15). Their grids are 5 x 3, a page at a
+## time (‹ › in the title row); a card found shows its name, one not found "?" and its number.
+## Opened: an egg's line and reward, a then card's year and line, a Kadr spot's look and the
+## player's own photo of it (a small texture loaded only while that card is open: +1 2D draw call).
+##
 ## Drawn by hand, not as Buttons and Labels: every box is one triangle array (one draw call)
 ## and the words go after it grouped by size (a font size is a texture of its own), so the
 ## open page costs a handful of 2D draw calls whatever it shows (the HUD's rule 6, DEVELOPMENT
@@ -37,15 +44,36 @@ const AREA := 204.0
 const CHIP_GAP := 4.0
 const TITLE_H := 20.0
 const BACK_W := 76.0
+## Loop MW-6: the extra sections' grid (columns x rows a page) and their icons (7 x 5 pixels).
+const XCOLS := 5
+const XROWS := 3
+const PAGE_W := 52.0
+const ICON_PX := 2.2
+const ICONS := {
+	"eggs": ["..###..", ".#####.", "#######", "#######", ".#####."],
+	"tape": ["#######", "#.###.#", "#######", "##...##", "#######"],
+	"kadr": ["..##...", "#######", "###.###", "##...##", "#######"],
+}
+const SECTIONS := [["eggs", "SEKRETY", "easter eggs"], ["tape", "KASETA", "then and now"], ["kadr", "KADR", "photo spots"]]
 ## Polish day names to English ones, for the hours' gloss.
 const DAYS := {"PN": "Mon", "WT": "Tue", "ŚR": "Wed", "CZ": "Thu", "PT": "Fri", "SB": "Sat", "ND": "Sun"}
 
 var pt := 1.0
 ## The notebook (notebook.gd): chapters, places, the record.
 var book: Node
-## The chapter shown (its index) and the card open ("" for the grid).
+## The chapter shown (its index; loop MW-6: past the chapters, the extra sections) and the card
+## open ("" for the grid).
 var chapter := 0
 var card := ""
+## Loop MW-6: the extra sections' sources (null: that chip is left out): egg_book.gd, tape.gd and
+## fotka.gd (its `spots`, `photo_of`), and the page of the section's grid.
+var eggs: Node
+var tape: Node
+var kadr: Node
+var page := 0
+var _photo: ImageTexture
+var _photo_id := ""
+var _photo_rect := Rect2()
 ## The page's width in points (settings_panel.gd sets it to the card's inner width).
 var W := MIN_W
 ## What a tap hits: [Rect2, "chapter" | "card" | "back", value], rebuilt by each draw.
@@ -73,15 +101,87 @@ func show_target(target: String) -> void:
 	if book == null or target == "":
 		queue_redraw()
 		return
+	page = 0
 	if book.by_id.has(target):
 		var place: Dictionary = book.places[book.by_id[target]]
 		chapter = int(place["chapter_i"])
 		card = target
+	elif _section_target(target):
+		pass
 	else:
 		for i in book.chapters.size():
 			if str(book.chapters[i]["id"]) == target or str(i + 1) == target:
 				chapter = i
 	queue_redraw()
+
+
+## Loop MW-6: "eggs" / "tape" / "kadr" (a section), or one of their cards' ids.
+func _section_target(target: String) -> bool:
+	var names := _sections()
+	for k in names.size():
+		var src := _source(names[k])
+		if names[k] == target:
+			chapter = book.chapters.size() + k
+			return true
+		if src != null:
+			var list := _items(names[k])
+			for j in list.size():
+				if str(list[j]["id"]) == target:
+					chapter = book.chapters.size() + k
+					page = j / (XCOLS * XROWS)
+					card = "%s:%s" % [names[k], target]
+					return true
+	return false
+
+
+## The extra sections shown (those whose source is set).
+func _sections() -> Array[String]:
+	var out: Array[String] = []
+	for sec: Array in SECTIONS:
+		if _source(sec[0]) != null:
+			out.append(sec[0])
+	return out
+
+
+func _source(name: String) -> Node:
+	match name:
+		"eggs":
+			return eggs
+		"tape":
+			return tape
+		"kadr":
+			return kadr
+	return null
+
+
+## A section's cards: egg_book `eggs`, tape `spots`, fotka `spots`.
+func _items(name: String) -> Array:
+	var src := _source(name)
+	if src == null:
+		return []
+	return src.get("eggs") if name == "eggs" else src.get("spots")
+
+
+func _item_found(name: String, item: Dictionary) -> int:
+	var w: Node = book.wallet
+	if w == null:
+		return 0
+	var id := str(item["id"])
+	match name:
+		"eggs":
+			return int(w.eggs.get(id, 0))
+		"tape":
+			return int(w.tapes.get(id, 0))
+		"kadr":
+			return int(w.kadr.get(id, 0))
+	return 0
+
+
+func _found_count(name: String) -> int:
+	var n := 0
+	for it: Dictionary in _items(name):
+		n += int(_item_found(name, it) > 0)
+	return n
 
 
 ## The touch targets in global pixels, by name (tools/check_hud.gd: 44 pt each way).
@@ -103,10 +203,13 @@ func _on_input(e: InputEvent) -> void:
 				"chapter":
 					chapter = int(h[2])
 					card = ""
+					page = 0
 				"card":
 					card = str(h[2])
 				"back":
 					card = ""
+				"page":
+					page += int(h[2])
 			accept_event()
 			queue_redraw()
 			return
@@ -124,19 +227,33 @@ func _draw() -> void:
 		_word(Vector2.ZERO, "Zeszyt pusty", T_BODY, SUB)
 		_flush()
 		return
-	chapter = clampi(chapter, 0, book.chapters.size() - 1)
+	var extra := _sections()
+	chapter = clampi(chapter, 0, book.chapters.size() + extra.size() - 1)
 	_chapters_row()
-	if card != "" and book.by_id.has(card):
+	if chapter >= book.chapters.size():
+		var sec: String = extra[chapter - book.chapters.size()]
+		if card.begins_with(sec + ":"):
+			_extra_card(sec, card.trim_prefix(sec + ":"))
+		else:
+			_extra_grid(sec)
+	elif card != "" and book.by_id.has(card):
 		_card_view(book.places[book.by_id[card]])
 	else:
 		_grid_view()
+	if not card.begins_with("kadr:") and _photo != null:
+		_photo = null
+		_photo_id = ""
 	_flush()
 
 
 func _chapters_row() -> void:
-	var n: int = book.chapters.size()
+	var extra := _sections()
+	var n: int = book.chapters.size() + extra.size()
 	var w := (W - CHIP_GAP * (n - 1)) / n
 	for i in n:
+		if i >= book.chapters.size():
+			_section_chip(Rect2(Vector2(i * (w + CHIP_GAP), 0.0) * pt, Vector2(w, ROW) * pt), i, extra[i - book.chapters.size()])
+			continue
 		var r := Rect2(Vector2(i * (w + CHIP_GAP), 0.0) * pt, Vector2(w, ROW) * pt)
 		var k: int = book.found_in(i)
 		var total: int = book.chapter_places(i).size()
@@ -258,6 +375,216 @@ static func meta_lines(place: Dictionary, found: int) -> Array[String]:
 	return [" · ".join(pl), " · ".join(en)]
 
 
+# --- loop MW-6: the eggs, the tape and the photo spots ---------------------------------------
+
+func _section_chip(r: Rect2, i: int, name: String) -> void:
+	var k := _found_count(name)
+	var total := _items(name).size()
+	var done := total > 0 and k >= total
+	_box(r, ON if i == chapter else DIM, ACCENT if i == chapter else EDGE, 1.0 if i == chapter else 0.5)
+	_icon(r.position + Vector2(r.size.x * 0.5, 13.0 * pt), ICONS[name], GOLD if done else INK)
+	_word(r.position + Vector2(0, 24.0 * pt), "%d/%d" % [k, total], T_LABEL, GOLD if done else SUB, r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_hits.append([r, "chapter", i])
+
+
+## A 7 x 5 pixel icon centred on `c`.
+func _icon(c: Vector2, rows: Array, col: Color) -> void:
+	var px := ICON_PX * pt
+	var origin := c - Vector2(3.5, 2.5) * px
+	for y in rows.size():
+		var line: String = rows[y]
+		for x in line.length():
+			if line[x] == "#":
+				_rect(Rect2(origin + Vector2(x, y) * px, Vector2(px, px)), col)
+
+
+func _section_title(name: String) -> Array:
+	for sec: Array in SECTIONS:
+		if sec[0] == name:
+			return [sec[1], sec[2]]
+	return [name, ""]
+
+
+func _extra_grid(name: String) -> void:
+	var list := _items(name)
+	var per := XCOLS * XROWS
+	var pages := maxi(1, ceili(list.size() / float(per)))
+	page = clampi(page, 0, pages - 1)
+	var top := (ROW + GAP) * pt
+	var t := _section_title(name)
+	var font := ThemeDB.fallback_font
+	_word(Vector2(0, top), t[0], T_SUB, ACCENT)
+	var tw := font.get_string_size(t[0], HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_SUB)).x
+	var sub := "%s · %d/%d" % [t[1], _found_count(name), list.size()]
+	if pages > 1:
+		sub += " · str. %d/%d · page %d/%d" % [page + 1, pages, page + 1, pages]
+	_word(Vector2(tw + 8.0 * pt, top + 2.0 * pt), sub, T_LABEL, SUB)
+	var area_top := ROW + GAP + TITLE_H
+	var grid_w := W
+	var ch := (AREA - TITLE_H - GAP) / XROWS
+	if pages > 1:
+		# ‹ over › in a column at the grid's right (each half the grid's height, 52 pt wide).
+		grid_w = W - PAGE_W - GAP
+		var bh := (AREA - TITLE_H - GAP) * 0.5 - GAP * 0.5
+		for k in 2:
+			var pr := Rect2(Vector2(grid_w + GAP, area_top + k * (bh + GAP)) * pt, Vector2(PAGE_W, bh) * pt)
+			var live := (k == 0 and page > 0) or (k == 1 and page < pages - 1)
+			_box(pr, DIM if live else SHUT, EDGE, 0.5)
+			_word(pr.position + Vector2(0, pr.size.y * 0.5 - _line_h(T_BIG) * 0.6), "‹" if k == 0 else "›", T_BIG,
+					INK if live else SUB, pr.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+			if live:
+				_hits.append([pr, "page", -1 if k == 0 else 1])
+	var cw := (grid_w - GAP * (XCOLS - 1)) / XCOLS
+	for j in range(page * per, mini(list.size(), (page + 1) * per)):
+		var k := j - page * per
+		var it: Dictionary = list[j]
+		var at := Vector2((k % XCOLS) * (cw + GAP), area_top + (k / XCOLS) * (ch + GAP * 0.5))
+		var w := cw
+		var r := Rect2(at * pt, Vector2(w, ch - GAP * 0.5) * pt)
+		var id := str(it["id"])
+		_hits.append([r, "card", "%s:%s" % [name, id]])
+		var inner := r.size.x - 10.0 * pt
+		var num := _number(name, it)
+		if _item_found(name, it) > 0:
+			_box(r, DIM, EDGE, 0.5)
+			_word(Vector2(r.position.x + 5.0 * pt, r.position.y + 5.0 * pt), _fit(_item_name(name, it)[0], T_LABEL, inner, 2),
+					T_LABEL, INK, inner, HORIZONTAL_ALIGNMENT_LEFT, 2)
+			_word(Vector2(r.position.x + 5.0 * pt, r.end.y - _line_h(T_LABEL) - 3.0 * pt), num, T_LABEL, GOLD, inner)
+		else:
+			_box(r, SHUT, EDGE, 0.5)
+			_word(Vector2(r.position.x, r.position.y + r.size.y * 0.5 - _line_h(T_BODY) * 0.62), "?", T_BODY, SUB,
+					r.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+			_word(Vector2(r.position.x + 5.0 * pt, r.end.y - _line_h(T_LABEL) - 3.0 * pt), num, T_LABEL, SUB, inner)
+
+
+## A card's number label: "E07", "1/40" for the old eggs' cards, a then card's year, "K03".
+func _number(name: String, it: Dictionary) -> String:
+	var id := str(it["id"])
+	match name:
+		"eggs":
+			return id.to_upper() if id.begins_with("e") and id.length() == 3 else "v0.65"
+		"tape":
+			return str(int(it.get("year", 0)))
+		"kadr":
+			return id.to_upper()
+	return id
+
+
+func _item_name(name: String, it: Dictionary) -> Array:
+	match name:
+		"eggs", "kadr":
+			return it["name"]
+		"tape":
+			var pid := str(it.get("place", ""))
+			if book.by_id.has(pid):
+				var p: Dictionary = book.places[book.by_id[pid]]
+				return [str(p["name_pl"]), str(p["name_en"])]
+			return [pid, pid]
+	return ["", ""]
+
+
+func _extra_card(name: String, id: String) -> void:
+	var list := _items(name)
+	var it: Dictionary = {}
+	for x: Dictionary in list:
+		if str(x["id"]) == id:
+			it = x
+	if it.is_empty():
+		card = ""
+		_extra_grid(name)
+		return
+	var top := (ROW + GAP) * pt
+	var back := Rect2(Vector2(0, top), Vector2(BACK_W, ROW) * pt)
+	_box(back, DIM, EDGE, 0.5)
+	_word(back.position + Vector2(0, 4.0 * pt), "WRÓĆ", T_BODY, INK, back.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_word(back.position + Vector2(0, 24.0 * pt), "back", T_LABEL, SUB, back.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_hits.append([back, "back", 0])
+	var x := (BACK_W + 10.0) * pt
+	var wide := W * pt - x
+	var t := _section_title(name)
+	var found := _item_found(name, it)
+	var nm := _item_name(name, it)
+	var where := "%s · %s · %d/%d" % [_number(name, it), t[0], list.find(it) + 1, list.size()]
+	var full := W * pt
+	var y := top + (ROW + 12.0) * pt
+	if found <= 0:
+		_word(Vector2(x, top + 2.0 * pt), "?" if name == "eggs" else str(nm[0]), T_BODY, ACCENT, wide, HORIZONTAL_ALIGNMENT_LEFT, 1)
+		_word(Vector2(x, top + 24.0 * pt), where, T_LABEL, SUB, wide, HORIZONTAL_ALIGNMENT_LEFT, 1)
+		var hint := _hint(name, it)
+		_word(Vector2(0, y), hint[0], T_SUB, INK, full, HORIZONTAL_ALIGNMENT_LEFT, 2)
+		_word(Vector2(0, y + _lines(hint[0], T_SUB, full, 2) * _line_h(T_SUB)), hint[1], T_LABEL, SUB, full, HORIZONTAL_ALIGNMENT_LEFT, 2)
+		return
+	_word(Vector2(x, top + 2.0 * pt), str(nm[0]), T_BODY, ACCENT, wide, HORIZONTAL_ALIGNMENT_LEFT, 1)
+	_word(Vector2(x, top + 24.0 * pt), (str(nm[1]) + " · " if str(nm[1]) != str(nm[0]) else "") + where, T_LABEL, SUB, wide,
+			HORIZONTAL_ALIGNMENT_LEFT, 1)
+	var line: Array = ["", ""]
+	var meta := ["wpis z %s" % date_of(found), "found %s" % date_of(found)]
+	match name:
+		"eggs":
+			line = eggs.line_of(it)
+			var rw: Array = eggs.reward_text(it)
+			meta = ["%s · %s" % [rw[0], meta[0]], "%s · %s" % [rw[1], meta[1]]]
+		"tape":
+			line = it["line"]
+			meta = ["kaseta z %d · %s" % [int(it["year"]), meta[0]], "the tape of %d · %s" % [int(it["year"]), meta[1]]]
+		"kadr":
+			line = [kadr.look_text(it)[0], kadr.look_text(it)[1]]
+	var text_w := full
+	if name == "kadr":
+		var tex := _photo_for(id)
+		if tex != null:
+			# The player's own photo, at the card's right (16:9, 90 pt high at most).
+			var ph := 90.0 * pt
+			var pw := ph * tex.get_width() / maxf(1.0, tex.get_height())
+			var pr := Rect2(Vector2(full - pw, y), Vector2(pw, ph))
+			_rect(pr.grow(maxf(1.0, pt)), EDGE)
+			_photo_rect = pr
+			text_w = full - pw - 10.0 * pt
+	_word(Vector2(0, y), str(line[0]), T_SUB, INK, text_w, HORIZONTAL_ALIGNMENT_LEFT, 2)
+	y += _lines(str(line[0]), T_SUB, text_w, 2) * _line_h(T_SUB)
+	_word(Vector2(0, y), str(line[1]), T_LABEL, SUB, text_w, HORIZONTAL_ALIGNMENT_LEFT, 2)
+	y += _lines(str(line[1]), T_LABEL, text_w, 2) * _line_h(T_LABEL) + 8.0 * pt
+	_word(Vector2(0, y), meta[0], T_LABEL, ACCENT, text_w, HORIZONTAL_ALIGNMENT_LEFT, 1)
+	_word(Vector2(0, y + _line_h(T_LABEL)), meta[1], T_LABEL, SUB, text_w, HORIZONTAL_ALIGNMENT_LEFT, 1)
+
+
+## What an unfound card says, Polish and English.
+func _hint(name: String, it: Dictionary) -> Array:
+	match name:
+		"eggs":
+			if it.has("waits"):
+				return ["Ten sekret jeszcze śpi. Obudzi się w nowej wersji.", "This secret is still asleep. It wakes up in an update."]
+			return ["Jeszcze nie znaleziony. Miasto ma swoje sekrety.", "Not found yet. The city keeps its secrets."]
+		"tape":
+			var nm := _item_name(name, it)
+			return ["Stań przy: %s i włącz KASETĘ." % nm[0], "Stop by %s and play the TAPE." % nm[1]]
+		"kadr":
+			var lt: Array = kadr.look_text(it)
+			return ["Zrób tu zdjęcie w Fotce. %s" % lt[0], "Take a photo here in Fotka. %s" % lt[1]]
+	return ["", ""]
+
+
+static func date_of(ymd: int) -> String:
+	if ymd <= 1:
+		return "?"
+	return "%02d.%02d.%04d" % [ymd % 100, (ymd / 100) % 100, ymd / 10000]
+
+
+## The Kadr spot's photo, loaded only while its card is open (and dropped with it).
+func _photo_for(id: String) -> ImageTexture:
+	if _photo_id == id:
+		return _photo
+	_photo_id = id
+	_photo = null
+	var path := str(book.wallet.kadr_photos.get(id, "")) if book.wallet != null else ""
+	if path != "" and FileAccess.file_exists(path):
+		var img := Image.load_from_file(path)
+		if img != null and not img.is_empty():
+			img.resize(maxi(1, img.get_width() * 120 / maxi(1, img.get_height())), 120, Image.INTERPOLATE_BILINEAR)
+			_photo = ImageTexture.create_from_image(img)
+	return _photo
+
+
 # --- pieces --------------------------------------------------------------------------------
 
 func _line_h(points: float) -> float:
@@ -271,6 +598,19 @@ func _lines(text: String, points: float, width: float, most: int) -> int:
 	var font := ThemeDB.fallback_font
 	var h := font.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, width, _px(points), most).y
 	return clampi(roundi(h / font.get_height(_px(points))), 1, most)
+
+
+## `text` cut at a word with "…" so it fits `most` lines `width` px wide (a long name on a small
+## card: "Palma na rondzie…").
+func _fit(text: String, points: float, width: float, most: int) -> String:
+	var font := ThemeDB.fallback_font
+	var line := font.get_height(_px(points))
+	var t := text
+	var words := text.split(" ", false)
+	while words.size() > 1 and font.get_multiline_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, width, _px(points)).y > line * most + 0.5:
+		words.remove_at(words.size() - 1)
+		t = " ".join(words) + "…"
+	return t
 
 
 ## Queues words: `at` is the top left of their first line.
@@ -325,6 +665,8 @@ func _flush() -> void:
 			for i in range(_idx.size(), n):
 				_idx.append(i)
 		RenderingServer.canvas_item_add_triangle_array(get_canvas_item(), _idx.slice(0, n), _pts, _cols)
+	if _photo != null and card.begins_with("kadr:"):
+		draw_texture_rect(_photo, _photo_rect, false)
 	var font := ThemeDB.fallback_font
 	for points: float in [T_BIG, T_BODY, T_SUB, T_LABEL]:
 		var fs := _px(points)

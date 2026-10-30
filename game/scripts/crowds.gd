@@ -1,0 +1,1356 @@
+extends Node3D
+## Loop MW-3 (docs/design/vision.md 3.1-3.3, 3.2's Plac Zbawiciela, 4.5): the night and the river's
+## people. Standing and sitting figures in the pedestrians' mesh and material (Models.person_mesh,
+## actor.gdshader: the legs' swing off for the still ones, a lower, longer instance for a sitter;
+## no new shader, no sun shadow):
+##  - **the queues** at the clubs of vision 4.5's table (`CLUBS`, places.json ids): `max_len ×
+##    hour curve × weekday`, rounded, rewritten every 20-40 s, in a line 0.7 m apart on the
+##    footway nearest the place (no storefronts yet: MW-2), dark clothes, the bouncer at the head;
+##    the door turns one away every 30-60 s while a queue of 4 or more is on screen (a `club_door`
+##    `reject` bubble); the car at the door (< 10 km/h within 8 m) gets the bouncer's `car` line
+##    once per club per night (`car_black` and egg E01 wait for the garage's paint);
+##  - **Level 26's roof crowd** on the tower's top at its place (vision's roof curve), when the
+##    roof grid says the tower is there;
+##  - **the dawn crowd** (Sat/Sun 05:00-09:00, Live or the Dawn look): 20-40 walkers in twos and
+##    threes on footway routes from Lusterko, Smoła and Jasna 0 to the Palm, Metro Nowy
+##    Świat-Uniwersytet, the nearest tram platforms and two kebab stands (A* over the footways
+##    and crossings, in a worker thread once); a `dawn_crowd` bubble once per 25 s in view;
+##  - **the steps crowd** by Kopernik (vision 3.3): max 80 × hour × month × rain, groups of 2-6 in
+##    rows facing the river (sitters, standers at the water's edge), the guitarist (egg E15);
+##    without Live the season is summer (vision Open Question 5);
+##  - **Plac Zbawiciela's summer crowd** (up to 40 standing in groups, Fri/Sat 21:00-02:00);
+##  - **the police by the clubs** (Fri/Sat 00:00-08:00, Lusterko and Smoła): a parked patrol car
+##    (police.gd `club_park`, the existing police units, never a chase) and an officer standing by
+##    it (`police_club` lines).
+## Drawing: one MultiMesh per 512 m sector cell for every still figure in it, rewritten only when a
+## crowd in it changes, its AABB the figures' box (so a cell out of view costs nothing), hidden
+## while empty; the dawn walkers one more MultiMesh, moved at 10 Hz while near the view. Crowds
+## more than ACTIVE_R m from the view's focus have no figures at all. The logic ticks at 2 Hz.
+## The rules are static functions (check_crowds.gd runs them on synthetic clocks).
+
+const Models := preload("res://scripts/models.gd")
+const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
+
+## Seconds between two ticks of the logic.
+const TICK := 0.5
+## The sector size: one still crowd MultiMesh per cell.
+const CELL := 512.0
+## A crowd has figures only while the view's focus is this near its place (m).
+const ACTIVE_R := 350.0
+## The walkers move this often (s), while the dawn crowd is near the view.
+const WALK_TICK := 0.1
+const QUEUE_GAP := 0.7
+## Seconds between two rewrites of a crowd's size (vision 4.5: "rewritten every 20-40 s").
+const REWRITE := Vector2(20.0, 40.0)
+## The door: one rejection every 30-60 s with a queue of DOOR_MIN or more on screen.
+const DOOR_GAP := Vector2(30.0, 60.0)
+const DOOR_MIN := 4
+## The car at the door: within CAR_NEAR m under CAR_KMH.
+const CAR_NEAR := 8.0
+const CAR_KMH := 10.0
+## A dawn_crowd bubble once per DAWN_GAP s in view; a clubber's line every CHAT_GAP s.
+const DAWN_GAP := 25.0
+const CHAT_GAP := Vector2(35.0, 60.0)
+## The police by a club: their lines to a slow car within POLICE_NEAR m, at most every POLICE_GAP s.
+const POLICE_NEAR := 15.0
+const POLICE_GAP := 45.0
+## A queue starts on the footway within this of its place.
+const FOOT_REACH := 40.0
+const STEPS_MAX := 80
+const PLAN_C_MAX := 40
+const ROOF_MAX := 16
+const DAWN_MIN := 20
+const DAWN_MAX := 40
+## The night's minute log (--night-log).
+const LOG_EVERY := 60.0
+
+## vision.md 4.5's clubs (places.json ids): max_len, the hour curve, the police and the dawn crowd.
+const CLUBS := {
+	"lusterko": {"max": 24, "curve": "after", "police": true, "dawn": true},
+	"smola": {"max": 24, "curve": "club", "police": true, "dawn": true},
+	"jasna_0": {"max": 16, "curve": "club", "dawn": true},
+	"lombard": {"max": 16, "curve": "club"},
+	"milosc_hipoteczna": {"max": 16, "curve": "club"},
+}
+const ROOF_ID := "level_26"
+const STEPS_ID := "schodki_kopernik"
+const PLAN_C_ID := "plan_c"
+## vision 4.5's hour curves (the hour's whole part; missing hours are 0). Lusterko's 09-12 is 0.5
+## on a Sunday only (`queue_factor`).
+const CURVES := {
+	"club": {22: 0.1, 23: 0.3, 0: 0.6, 1: 1.0, 2: 1.0, 3: 0.7, 4: 0.4, 5: 0.1},
+	"after": {0: 0.2, 1: 0.4, 2: 0.6, 3: 0.9, 4: 1.0, 5: 1.0, 6: 0.8, 7: 0.8, 8: 0.8},
+	"roof": {22: 0.3, 23: 0.6, 0: 1.0, 1: 1.0, 2: 0.8, 3: 0.4},
+	# *guess* (vision gives only "up to 40, Fri/Sat 21:00-02:00")
+	"plan_c": {21: 0.5, 22: 0.8, 23: 1.0, 0: 1.0, 1: 0.7},
+	# *guess*: 20 walkers at the edges of 05-09, 40 at the peak
+	"dawn": {5: 0.5, 6: 1.0, 7: 1.0, 8: 0.4},
+}
+## vision 4.5's weekday factor *guess*, Monday first, by the night's day (01:00 Saturday is
+## Friday's night).
+const WEEKDAY := [0.2, 0.2, 0.2, 0.6, 1.0, 1.0, 0.3]
+## The steps' hour curve (vision 4.5): [hour, level], the sunset's hour in between (`steps_curve`).
+const STEPS_HOURS := [[10.0, 0.1], [14.0, 0.3], [18.0, 0.6], [23.0, 0.7], [25.0, 0.3], [27.0, 0.05]]
+## The queue's and the dawn crowd's blacks; the steps' and the square's colours (pedestrians').
+const DARK := ["#1f1f22", "#2b2c2f", "#33302e", "#25272d", "#3a3b3f", "#1c2230", "#2a2433"]
+const BRIGHT := ["#d8432f", "#2f6fb5", "#e0b23a", "#3b8f5a", "#f2efe8", "#7a4fa8", "#e57aa0", "#c96b2c", "#5aa9c9", "#e8e4d8"]
+const OFFICER_SHIRT := Color("#e8f23a")
+const OFFICER_TROUSERS := 0.1
+const BOUNCER_SHIRT := Color("#141416")
+const GUITAR_SHIRT := Color("#ff9a3c")
+const BUBBLE := Color("#c9a6ff")
+const POLICE_BUBBLE := Color("#8fb0ff")
+
+## The pose of a figure.
+enum { STAND, SIT, BROAD }
+
+## The view's focus (the camera's), -> Vector3.
+var focus: Callable
+## The game clock, -> {hour, weekday} (time_of_day.gd local_clock).
+var clock: Callable
+## The calendar, -> {live: bool, month, date (yyyymmdd or 0), look (TimeOfDay.NAMES), rain: bool,
+## sunset: the hour of sunset (Live's date; the Dusk look's 19.5 without Live)}.
+var calendar: Callable
+## The vehicle, -> [position, km/h, flying].
+var vehicle: Callable
+## Is a world point on screen (traffic.gd on_screen), -> bool; unset: always.
+var on_screen: Callable
+var map: Node3D
+var dialogue: Node
+## police.gd (club_park, club_leave); may be null.
+var police: Node
+## city_sounds.gd (add_crowd); may be null.
+var sounds: Node
+## --crowd=: 0 none (this node isn't built), 1 normal, 2 double; the Low tier halves it.
+var amount := 1.0
+## --night-log: queues, rejections, the dawn walkers each minute and every event.
+var log_on := false
+## Time spent in this script since the bench last read it (µs).
+var spent_usec := 0
+## Counters (the log, the check).
+var rejections := 0
+var car_lines := 0
+var dawn_lines := 0
+## The crowds' sites: {id, kind (queue, roof, steps, plan_c), at, n, want, max, ...}.
+var sites: Array[Dictionary] = []
+var by_id := {}
+## The dawn crowd: its routes (after the worker thread) and walkers.
+var routes: Array[Dictionary] = []
+var walkers: Array[Dictionary] = []
+var dawn_on := false
+var police_on := false
+## The levels for the eggs (egg_book.gd `crowd`): name -> 0..1.
+var levels := {}
+## Seconds of play (the logic's clock).
+var t := 0.0
+
+var _cells := {}
+var _rng := RandomNumberGenerator.new()
+var _tick_t := 0.0
+var _walk_t := 0.0
+var _log_t := 0.0
+var _dawn_bubble := 0.0
+var _mesh: ArrayMesh
+var _still_mat: ShaderMaterial
+var _walk_mat: ShaderMaterial
+var _walk_mm: MultiMesh
+var _walk_mmi: MultiMeshInstance3D
+var _walk_buf := PackedFloat32Array()
+var _walk_box := Rect2()
+## The footways near the crowds: {pts: PackedVector2Array, dk: int, w: float, k: String}.
+var _foot: Array[Dictionary] = []
+var _route_task := -1
+var _route_out: Array = []
+var _route_in := {}
+var _night_key := -1
+var _last_hour := 0.0
+
+
+# --- the rules (static: check_crowds.gd) ---------------------------------------------------
+
+## The weekday whose night `hour` belongs to: before noon, the day before (01:00 on Saturday is
+## Friday's night). 1 Monday .. 7 Sunday.
+static func night_day(hour: float, weekday: int) -> int:
+	return (weekday + 5) % 7 + 1 if hour < 12.0 else weekday
+
+
+## A curve's value at `hour` (its whole hour).
+static func curve_at(curve: String, hour: float) -> float:
+	return float((CURVES[curve] as Dictionary).get(int(floor(fmod(hour + 24.0, 24.0))), 0.0))
+
+
+## A club's queue factor at `hour` on `weekday` (the calendar's): hour curve × weekday factor.
+static func queue_factor(curve: String, hour: float, weekday: int) -> float:
+	var h := curve_at(curve, hour)
+	var w := float(WEEKDAY[night_day(hour, weekday) - 1])
+	if curve == "after":
+		if hour >= 9.0 and hour < 12.0:
+			h = 0.5 if weekday == 7 else 0.0
+		if weekday == 7 and hour < 12.0:
+			w = 1.0  # Lusterko on Sunday morning
+	return h * w
+
+
+## vision 4.5: a club's queue (or the roof crowd) = max_len × hour curve × weekday, rounded.
+static func queue_len(max_len: int, curve: String, hour: float, weekday: int, k := 1.0) -> int:
+	return roundi(max_len * k * queue_factor(curve, hour, weekday))
+
+
+## The steps' hour curve at `hour` with the sun setting at `sunset` (vision 4.5: 10:00 0.1, 14:00
+## 0.3, 18:00 0.6, sunset 1.0, 23:00 0.7, 01:00 0.3, 03:00 0.05), straight lines between.
+static func steps_curve(hour: float, sunset: float) -> float:
+	var pts: Array = [[3.0, 0.05]]
+	var sun := clampf(sunset, 18.25, 22.75)
+	for p: Array in STEPS_HOURS:
+		if float(p[0]) > sun and float(pts[pts.size() - 1][0]) < sun:
+			pts.append([sun, 1.0])
+		pts.append(p)
+	var h := hour if hour >= 3.0 else hour + 24.0
+	for i in pts.size() - 1:
+		var a: Array = pts[i]
+		var b: Array = pts[i + 1]
+		if h >= float(a[0]) and h <= float(b[0]):
+			return lerpf(float(a[1]), float(b[1]), (h - float(a[0])) / maxf(float(b[0]) - float(a[0]), 0.001))
+	return 0.05
+
+
+## The month's factor (vision 4.5: Jun-Aug 1.0, May and Sep 0.7, Apr and Oct 0.3, Nov-Mar 0.05).
+static func month_factor(month: int) -> float:
+	if month in [6, 7, 8]:
+		return 1.0
+	if month in [5, 9]:
+		return 0.7
+	if month in [4, 10]:
+		return 0.3
+	return 0.05
+
+
+## The steps crowd's level 0..1 (hour × month × rain 0.1).
+static func steps_level(hour: float, month: int, rain: bool, sunset: float) -> float:
+	return steps_curve(hour, sunset) * month_factor(month) * (0.1 if rain else 1.0)
+
+
+static func steps_count(hour: float, month: int, rain: bool, sunset: float, k := 1.0) -> int:
+	return roundi(STEPS_MAX * k * steps_level(hour, month, rain, sunset))
+
+
+## The guitarist plays while the steps hold 8 or more, 16:00-01:00 *guess*.
+static func guitar_on(steps_n: int, hour: float) -> bool:
+	return steps_n >= 8 and (hour >= 16.0 or hour < 1.0)
+
+
+## Plac Zbawiciela's summer crowd: Fri/Sat nights 21:00-02:00, summer, dry (rain 0.1 *guess*).
+static func plan_c_level(hour: float, weekday: int, month: int, rain: bool) -> float:
+	if not night_day(hour, weekday) in [5, 6] or not month in [6, 7, 8]:
+		return 0.0
+	return curve_at("plan_c", hour) * (0.1 if rain else 1.0)
+
+
+## The dawn crowd is out: 05:00-09:00 on a Saturday or Sunday in Live, or in the Dawn look.
+static func dawn_time(hour: float, weekday: int, live: bool, look: String) -> bool:
+	if hour < 5.0 or hour >= 9.0:
+		return false
+	return look == "Dawn" or (live and weekday in [6, 7])
+
+
+## How many walk at dawn (20-40, the dawn curve).
+static func dawn_count(hour: float, k := 1.0) -> int:
+	return roundi((DAWN_MIN + (DAWN_MAX - DAWN_MIN) * curve_at("dawn", hour)) * k)
+
+
+## The police by the clubs: Fri/Sat nights, 00:00-08:00.
+static func police_time(hour: float, weekday: int) -> bool:
+	return hour < 8.0 and night_day(hour, weekday) in [5, 6]
+
+
+## The car at the door: near and slow, on the ground.
+static func car_at_door(dist: float, kmh: float, flying: bool) -> bool:
+	return not flying and dist <= CAR_NEAR and kmh < CAR_KMH
+
+
+# --- setup ---------------------------------------------------------------------------------
+
+## The sites at the notebook's resolved places (notebook.gd `places`, each with `at`), the
+## footways near them from the map data (`paths`), the dawn crowd's destinations (`pois` kebab,
+## `platforms`). Builds no figures: they come with the first tick near each crowd.
+func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
+	_rng.seed = seed_value
+	var at := {}
+	for p: Dictionary in places:
+		at[str(p["id"])] = p["at"]
+	for id: String in CLUBS:
+		if at.has(id):
+			var c: Dictionary = CLUBS[id]
+			_add_site({"id": id, "kind": "queue", "at": at[id], "max": int(c["max"]), "curve": str(c["curve"]),
+					"police": bool(c.get("police", false)), "dawn": bool(c.get("dawn", false))})
+	if at.has(ROOF_ID):
+		_add_site({"id": ROOF_ID, "kind": "roof", "at": at[ROOF_ID], "max": ROOF_MAX, "curve": "roof"})
+	if at.has(STEPS_ID):
+		_add_site({"id": STEPS_ID, "kind": "steps", "at": at[STEPS_ID], "max": STEPS_MAX})
+	if at.has(PLAN_C_ID):
+		_add_site({"id": PLAN_C_ID, "kind": "plan_c", "at": at[PLAN_C_ID], "max": PLAN_C_MAX})
+	# The dawn crowd's ends: the palm, the metro, kebab stands and tram platforms near the clubs.
+	var from: Array = []
+	for s in sites:
+		if bool(s.get("dawn", false)):
+			from.append(s)
+	var ends: Array = []
+	# The Palm (the map's own point, as eggs.gd's), then the metro.
+	var palm: Array = data.get("palm", [])
+	if palm.size() >= 2:
+		ends.append(["palma", Vector2(float(palm[0]), float(palm[1]))])
+	elif at.has("palma"):
+		ends.append(["palma", at["palma"]])
+	if at.has("nowy_swiat_uniwersytet"):
+		ends.append(["nowy_swiat_uniwersytet", at["nowy_swiat_uniwersytet"]])
+	var mid := Vector2.ZERO
+	for s in from:
+		mid += s["at"]
+	if not from.is_empty():
+		mid /= float(from.size())
+		var kebabs: Array = []
+		for poi: Dictionary in data.get("pois", []):
+			if str(poi.get("k", "")) == "kebab":
+				var q := Vector2(float(poi["x"]), float(poi["z"]))
+				kebabs.append([q.distance_to(mid), q])
+		kebabs.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+		for k in mini(2, kebabs.size()):
+			ends.append(["kebab_%d" % k, kebabs[k][1]])
+		var plats: Array = []
+		for pl: Dictionary in data.get("platforms", []):
+			var flat: Array = pl.get("p", [])
+			if flat.size() < 4:
+				continue
+			var c := Vector2.ZERO
+			for i in range(0, flat.size() - 1, 2):
+				c += Vector2(float(flat[i]), float(flat[i + 1]))
+			c /= float(flat.size() / 2)
+			plats.append([c.distance_to(mid), c])
+		plats.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+		for k in mini(2, plats.size()):
+			if float(plats[k][0]) < 900.0:
+				ends.append(["tram_%d" % k, plats[k][1]])
+	_route_in = {"from": from.map(func(s: Dictionary) -> Array: return [s["id"], s["at"]]), "to": ends}
+	_scan_paths(data, from, ends)
+	for s in sites:
+		_place_site(s)
+	_build_drawing()
+	var kinds := {}
+	for s in sites:
+		kinds[s["kind"]] = int(kinds.get(s["kind"], 0)) + 1
+	print("crowds: %d sites %s, %d footways near them, the dawn crowd %d clubs → %d ends, amount %.2f" % [
+			sites.size(), kinds, _foot.size(), from.size(), ends.size(), amount])
+
+
+func _add_site(s: Dictionary) -> void:
+	s["n"] = 0
+	s["want"] = 0
+	s["next"] = 0.0
+	s["door_t"] = _rng.randf_range(DOOR_GAP.x, DOOR_GAP.y)
+	s["chat_t"] = _rng.randf_range(CHAT_GAP.x, CHAT_GAP.y)
+	s["active"] = false
+	s["dirty"] = false
+	s["car_night"] = -1
+	s["police_t"] = 0.0
+	s["sober_night"] = -1
+	s["officer"] = Vector3.INF
+	s["inst"] = []
+	s["cell"] = Vector2i(floori(float(s["at"].x) / CELL), floori(float(s["at"].y) / CELL))
+	by_id[str(s["id"])] = sites.size()
+	sites.append(s)
+
+
+## The footways and crossings near the sites (their 128 m cells and the next ones) and over the
+## dawn crowd's box: a path is kept when its first, middle or last point is in one of them.
+func _scan_paths(data: Dictionary, from: Array, ends: Array) -> void:
+	var cells := {}
+	var mark := func(p: Vector2, r: int) -> void:
+		var c := Vector2i(floori(p.x / 128.0), floori(p.y / 128.0))
+		for dx in range(-r, r + 1):
+			for dz in range(-r, r + 1):
+				cells[c + Vector2i(dx, dz)] = true
+	for s in sites:
+		mark.call(s["at"], 1)
+	if not from.is_empty() and not ends.is_empty():
+		var box := Rect2(from[0]["at"], Vector2.ZERO)
+		for s: Dictionary in from:
+			box = box.expand(s["at"])
+		for e: Array in ends:
+			box = box.expand(e[1])
+		box = box.grow(150.0)
+		_walk_box = box
+		for x in range(floori(box.position.x / 128.0), floori(box.end.x / 128.0) + 1):
+			for z in range(floori(box.position.y / 128.0), floori(box.end.y / 128.0) + 1):
+				cells[Vector2i(x, z)] = true
+	for p: Dictionary in data.get("paths", []):
+		var k := str(p.get("k", ""))
+		if k != "foot" and k != "zebra":
+			continue
+		var flat: Array = p["p"]
+		var n := flat.size() / 2
+		if n < 2:
+			continue
+		var hit := false
+		for i in [0, n / 2, n - 1]:
+			if cells.has(Vector2i(floori(float(flat[i * 2]) / 128.0), floori(float(flat[i * 2 + 1]) / 128.0))):
+				hit = true
+				break
+		if not hit:
+			continue
+		var pts := PackedVector2Array()
+		for i in n:
+			pts.append(Vector2(float(flat[i * 2]), float(flat[i * 2 + 1])))
+		_foot.append({"pts": pts, "dk": int(p.get("dk", -1)), "w": float(p.get("w", 2.0)), "k": k})
+
+
+## The footway point nearest `p` within `reach`: [path index, segment, the point], or [].
+func nearest_foot(p: Vector2, reach: float) -> Array:
+	var best: Array = []
+	var best_d := reach
+	for i in _foot.size():
+		var f: Dictionary = _foot[i]
+		if f["k"] != "foot" or int(f["dk"]) >= 0:
+			continue
+		var pts: PackedVector2Array = f["pts"]
+		for j in pts.size() - 1:
+			var q := Geometry2D.get_closest_point_to_segment(p, pts[j], pts[j + 1])
+			var d := q.distance_to(p)
+			if d < best_d:
+				best_d = d
+				best = [i, j, q]
+	return best
+
+
+## Where a site's figures go: a queue's line on its footway, the steps' rows, the square's groups,
+## the roof's ring.
+func _place_site(s: Dictionary) -> void:
+	var at: Vector2 = s["at"]
+	match str(s["kind"]):
+		"queue":
+			var hit := nearest_foot(at, FOOT_REACH)
+			var line := PackedVector2Array()
+			var out := Vector2.RIGHT
+			var door := at
+			if hit.is_empty():
+				# No footway near: the line runs east from the place.
+				for k in 40:
+					line.append(at + Vector2(k * 1.0, 0.0))
+				out = Vector2.DOWN
+			else:
+				var f: Dictionary = _foot[hit[0]]
+				var pts: PackedVector2Array = f["pts"]
+				var j: int = hit[1]
+				var q: Vector2 = hit[2]
+				var along := (pts[j + 1] - pts[j]).normalized()
+				out = Vector2(-along.y, along.x)
+				if (q - at).dot(out) < 0.0:
+					out = -out  # from the facade to the street
+				# Facade side of the footway, then along it the longer way.
+				var w := float(f["w"])
+				door = q - out * maxf(w * 0.5 - 0.45, 0.0)
+				var fwd := _walk(pts, j, q, 1)
+				var back := _walk(pts, j, q, -1)
+				var run := fwd if _run_len(fwd) >= _run_len(back) else back
+				for v in run:
+					line.append(v - out * maxf(w * 0.5 - 0.45, 0.0))
+			s["door"] = door
+			s["out"] = out
+			s["line"] = _resample(line, QUEUE_GAP, int(s["max"]) * 2 + 2)
+		"steps":
+			_place_steps(s)
+		"plan_c":
+			_place_square(s)
+		"roof":
+			_place_roof(s)
+
+
+## The points of a polyline from q (on segment j) one way along it, then straight on past its end.
+static func _walk(pts: PackedVector2Array, j: int, q: Vector2, way: int) -> PackedVector2Array:
+	var out := PackedVector2Array([q])
+	var k := j + 1 if way > 0 else j
+	while k >= 0 and k < pts.size():
+		out.append(pts[k])
+		k += way
+	var last := out[out.size() - 1]
+	var dir := (last - out[out.size() - 2]).normalized() if out.size() > 1 else Vector2.RIGHT
+	out.append(last + dir * 40.0)
+	return out
+
+
+static func _run_len(pts: PackedVector2Array) -> float:
+	var l := 0.0
+	for i in pts.size() - 1:
+		l += pts[i].distance_to(pts[i + 1])
+	return l - 40.0
+
+
+## `count` points every `gap` m along a polyline.
+static func _resample(pts: PackedVector2Array, gap: float, count: int) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	if pts.size() < 2:
+		return out
+	var k := 0
+	var into := 0.0
+	for n in count:
+		var want := n * gap
+		while k < pts.size() - 2 and into + pts[k].distance_to(pts[k + 1]) < want:
+			into += pts[k].distance_to(pts[k + 1])
+			k += 1
+		var seg := pts[k].distance_to(pts[k + 1])
+		out.append(pts[k].lerp(pts[k + 1], clampf((want - into) / maxf(seg, 0.001), 0.0, 1.5)))
+	return out
+
+
+## The steps: the river's direction (the nearest wet ground in 24 directions), rows from the
+## water's edge back, groups of 2-6 along them; each slot a seeded order so a bigger crowd only
+## adds people. Row 0 stands (by the rail), the rest sit; one guitarist.
+func _place_steps(s: Dictionary) -> void:
+	var at: Vector2 = s["at"]
+	var face := Vector2.RIGHT
+	var reach := 120.0
+	if map != null:
+		var best := INF
+		for a in 24:
+			var dir := Vector2.from_angle(a * TAU / 24.0)
+			var r := 4.0
+			while r < 300.0:
+				if map.shore_distance(at.x + dir.x * r, at.y + dir.y * r) > 0.5:
+					if r < best:
+						best = r
+						face = dir
+					break
+				r += 4.0
+		reach = best if best < INF else 30.0
+	var side := Vector2(-face.y, face.x)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 3303
+	var slots: Array = []
+	for row in 8:
+		var back := maxf(reach - 3.0 - row * 1.3, -20.0)
+		var x := -28.0
+		while x < 28.0:
+			var g := rng.randi_range(2, 6)
+			for i in g:
+				var p := at + face * back + side * (x + i * 0.75) + Vector2(rng.randf_range(-0.15, 0.15), rng.randf_range(-0.15, 0.15))
+				if map == null or map.shore_distance(p.x, p.y) <= 0.0:
+					slots.append({"p": p, "pose": STAND if row == 0 else SIT, "yaw": atan2(-face.x, -face.y) + rng.randf_range(-0.35, 0.35),
+							"key": rng.randf(), "shirt": BRIGHT[rng.randi() % BRIGHT.size()]})
+			x += g * 0.75 + rng.randf_range(1.0, 2.6)
+	slots.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["key"] < b["key"])
+	s["slots"] = slots
+	s["face"] = face
+	# The guitarist: the middle of the third row, sitting, in orange.
+	var g_at := at + face * maxf(reach - 3.0 - 2.0 * 1.3, -20.0)
+	s["guitar"] = g_at
+	s["door"] = at + face * maxf(reach - 6.0, 0.0)
+
+
+## Plac Zbawiciela: groups of 2-5 standing round points on the footways within 30 m, facing their
+## group's middle.
+func _place_square(s: Dictionary) -> void:
+	var at: Vector2 = s["at"]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2203
+	var spots: Array = []
+	for f in _foot:
+		if f["k"] != "foot":
+			continue
+		var pts: PackedVector2Array = f["pts"]
+		for j in pts.size() - 1:
+			var l := pts[j].distance_to(pts[j + 1])
+			var u := 0.0
+			while u < l:
+				var p := pts[j].lerp(pts[j + 1], u / maxf(l, 0.001))
+				if p.distance_to(at) < 36.0:
+					spots.append([rng.randf(), p])
+				u += 2.5
+	spots.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+	var slots: Array = []
+	for sp: Array in spots:
+		if slots.size() >= PLAN_C_MAX * 2:
+			break
+		var mid: Vector2 = sp[1]
+		var g := rng.randi_range(2, 5)
+		for i in g:
+			var a := TAU * i / g + rng.randf_range(-0.3, 0.3)
+			var p := mid + Vector2.from_angle(a) * 0.55
+			slots.append({"p": p, "pose": STAND, "yaw": atan2(-(mid - p).x, -(mid - p).y), "shirt": BRIGHT[rng.randi() % BRIGHT.size()]})
+	if slots.is_empty():
+		for i in PLAN_C_MAX:
+			var p := at + Vector2.from_angle(i * 2.4) * (2.0 + i * 0.3)
+			slots.append({"p": p, "pose": STAND, "yaw": i * 1.3, "shirt": BRIGHT[i % BRIGHT.size()]})
+	s["slots"] = slots
+	s["door"] = at
+
+
+## Level 26: the roof's edge round the place, 12 directions (the roof grid's height drops by 10 m
+## or more), figures a metre inside it. Without a tall roof there (under 40 m): no crowd.
+func _place_roof(s: Dictionary) -> void:
+	var at: Vector2 = s["at"]
+	s["slots"] = []
+	s["door"] = at
+	if map == null:
+		return
+	var top: float = map.roof_height(at.x, at.y)
+	var ground: float = map.ground_height(at.x, at.y)
+	if top - ground < 40.0:
+		print("crowds: no tall roof at %s (%.0f m over the ground): no roof crowd" % [s["id"], top - ground])
+		return
+	var slots: Array = []
+	for a in 12:
+		var dir := Vector2.from_angle(a * TAU / 12.0)
+		var r := 1.0
+		while r < 40.0 and map.roof_height(at.x + dir.x * r, at.y + dir.y * r) > top - 10.0:
+			r += 1.0
+		for k in 2:
+			var p := at + dir * maxf(r - 1.5 - k * 0.8, 0.5) + Vector2(-dir.y, dir.x) * (k * 0.6 - 0.3)
+			slots.append({"p": p, "pose": STAND, "yaw": atan2(-dir.x, -dir.y), "shirt": DARK[(a + k) % DARK.size()], "y": top})
+	s["slots"] = slots
+	s["top"] = top
+
+
+# --- drawing -------------------------------------------------------------------------------
+
+func _build_drawing() -> void:
+	_mesh = Models.person_mesh()
+	_still_mat = Models.material().duplicate() as ShaderMaterial
+	_still_mat.set_shader_parameter("walk", 0.0)
+	_walk_mat = Models.material().duplicate() as ShaderMaterial
+	_walk_mat.set_shader_parameter("walk", 0.16)
+	var cap := {}
+	for s in sites:
+		var c: Vector2i = s["cell"]
+		cap[c] = int(cap.get(c, 0)) + ceili(int(s["max"]) * maxf(amount, 1.0)) + 3
+	for c: Vector2i in cap:
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.use_custom_data = true
+		InstanceBuffers.prepare(mm)
+		mm.mesh = _mesh
+		mm.instance_count = int(cap[c])
+		mm.visible_instance_count = 0
+		var mmi := MultiMeshInstance3D.new()
+		mmi.name = "Crowd_%d_%d" % [c.x, c.y]
+		mmi.multimesh = mm
+		mmi.material_override = _still_mat
+		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mmi.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+		mmi.visible = false
+		add_child(mmi)
+		var buf := PackedFloat32Array()
+		buf.resize(int(cap[c]) * 16)
+		buf.fill(0.0)
+		_cells[c] = {"mmi": mmi, "mm": mm, "buf": buf, "cap": int(cap[c]), "dirty": false}
+	var wcap := ceili(DAWN_MAX * maxf(amount, 1.0)) + 4
+	_walk_mm = MultiMesh.new()
+	_walk_mm.transform_format = MultiMesh.TRANSFORM_3D
+	_walk_mm.use_custom_data = true
+	InstanceBuffers.prepare(_walk_mm)
+	_walk_mm.mesh = _mesh
+	_walk_mm.instance_count = wcap
+	_walk_mm.visible_instance_count = 0
+	_walk_buf.resize(wcap * 16)
+	_walk_buf.fill(0.0)
+	_walk_mmi = MultiMeshInstance3D.new()
+	_walk_mmi.name = "DawnCrowd"
+	_walk_mmi.multimesh = _walk_mm
+	_walk_mmi.material_override = _walk_mat
+	_walk_mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_walk_mmi.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	_walk_mmi.visible = false
+	add_child(_walk_mmi)
+
+
+## Writes one figure into `buf` at instance `i`: standing, sitting (lower and longer) or broad.
+static func put(buf: PackedFloat32Array, i: int, at: Vector3, yaw: float, pose: int, shirt: Color, trousers: float) -> void:
+	var b := i * 16
+	var c := cos(yaw)
+	var s := sin(yaw)
+	var sx := 1.0
+	var sy := 1.0
+	var sz := 1.0
+	if pose == SIT:
+		sy = 0.6
+		sz = 1.35
+	elif pose == BROAD:
+		sx = 1.3
+		sz = 1.15
+		sy = 1.06
+	buf[b] = c * sx
+	buf[b + 1] = 0.0
+	buf[b + 2] = s * sz
+	buf[b + 3] = at.x
+	buf[b + 4] = 0.0
+	buf[b + 5] = sy
+	buf[b + 6] = 0.0
+	buf[b + 7] = at.y
+	buf[b + 8] = -s * sx
+	buf[b + 9] = 0.0
+	buf[b + 10] = c * sz
+	buf[b + 11] = at.z
+	buf[b + 12] = shirt.r
+	buf[b + 13] = shirt.g
+	buf[b + 14] = shirt.b
+	buf[b + 15] = trousers
+
+
+## A site's figures now: [position, yaw, pose, shirt, trousers] each.
+func _figures(s: Dictionary) -> Array:
+	var out: Array = []
+	var n := int(s["n"])
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(str(s["id"]))
+	match str(s["kind"]):
+		"queue":
+			var line: PackedVector2Array = s["line"]
+			var out_v: Vector2 = s["out"]
+			var door: Vector2 = s["door"]
+			if n > 0:
+				var head := door - out_v * 0.0
+				var bp := head + (line[1] - line[0]).normalized() * -0.9 + out_v * 0.3 if line.size() > 1 else head
+				out.append([_ground(bp), atan2(-out_v.x, -out_v.y), BROAD, BOUNCER_SHIRT, 0.3])
+			for k in mini(n, line.size() - 1):
+				var p := line[k] + Vector2(rng.randf_range(-0.12, 0.12), rng.randf_range(-0.12, 0.12))
+				var to := (line[maxi(k - 1, 0)] - line[k + 1]).normalized()
+				out.append([_ground(p), atan2(-to.x, -to.y) + rng.randf_range(-0.4, 0.4), STAND,
+						Color(DARK[rng.randi() % DARK.size()]), rng.randf_range(0.25, 0.5)])
+		"steps":
+			var slots: Array = s["slots"]
+			for k in mini(n, slots.size()):
+				var sl: Dictionary = slots[k]
+				out.append([_ground(sl["p"]), sl["yaw"], sl["pose"], Color(sl["shirt"]), rng.randf() * 0.99])
+			if bool(s.get("guitar_on", false)):
+				var face: Vector2 = s["face"]
+				out.append([_ground(s["guitar"]), atan2(-face.x, -face.y), SIT, GUITAR_SHIRT, 0.0])
+		"plan_c", "roof":
+			var slots: Array = s["slots"]
+			for k in mini(n, slots.size()):
+				var sl: Dictionary = slots[k]
+				var p: Vector2 = sl["p"]
+				var y := float(sl["y"]) if sl.has("y") else _ground(p).y
+				out.append([Vector3(p.x, y, p.y), sl["yaw"], STAND, Color(sl["shirt"]), rng.randf() * 0.99])
+	if s.get("officer", Vector3.INF) != Vector3.INF:
+		out.append([s["officer"], float(s.get("officer_yaw", 0.0)), STAND, OFFICER_SHIRT, OFFICER_TROUSERS])
+	return out
+
+
+func _ground(p: Vector2) -> Vector3:
+	return Vector3(p.x, map.deck_height(-1, p.x, p.y) if map != null else 0.0, p.y)
+
+
+## Rewrites the cells whose crowds changed: each figure of each active site in the cell.
+func _redraw() -> void:
+	for c: Vector2i in _cells:
+		var cell: Dictionary = _cells[c]
+		if not bool(cell["dirty"]):
+			continue
+		cell["dirty"] = false
+		var buf: PackedFloat32Array = cell["buf"]
+		var n := 0
+		var box := AABB()
+		for s in sites:
+			if s["cell"] != c or not bool(s["active"]):
+				continue
+			for f: Array in s["inst"]:
+				if n >= int(cell["cap"]):
+					break
+				put(buf, n, f[0], f[1], f[2], f[3], f[4])
+				box = AABB(f[0], Vector3.ZERO) if n == 0 else box.expand(f[0])
+				n += 1
+		var mm: MultiMesh = cell["mm"]
+		if n > 0:
+			InstanceBuffers.send(mm.get_rid(), buf)
+			mm.custom_aabb = box.grow(1.0).expand(box.end + Vector3(0, 2.5, 0))
+		mm.visible_instance_count = n
+		(cell["mmi"] as MultiMeshInstance3D).visible = n > 0
+
+
+# --- the logic -----------------------------------------------------------------------------
+
+## Every crowd takes its size at the next tick (the look or the clock changed).
+func refresh() -> void:
+	for s in sites:
+		s["next"] = 0.0
+
+
+func _process(dt: float) -> void:
+	if dt <= 0.0 or not clock.is_valid():
+		return
+	var t0 := Time.get_ticks_usec()
+	t += dt
+	_tick_t += dt
+	if _route_task >= 0 and WorkerThreadPool.is_task_completed(_route_task):
+		WorkerThreadPool.wait_for_task_completion(_route_task)
+		_route_task = -1
+		_finish_routes()
+	if _tick_t >= TICK:
+		var step := _tick_t
+		_tick_t = 0.0
+		tick(step)
+	if dawn_on and not walkers.is_empty():
+		_walk_t += dt
+		if _walk_t >= WALK_TICK:
+			_walk_t = 0.0
+			_move_walkers()
+	spent_usec += Time.get_ticks_usec() - t0
+
+
+## One tick of the logic, `step` seconds after the last.
+func tick(step: float) -> void:
+	var now: Dictionary = clock.call()
+	var cal: Dictionary = calendar.call() if calendar.is_valid() else {}
+	var hour := float(now["hour"])
+	var weekday := int(now["weekday"])
+	var live := bool(cal.get("live", false))
+	var month := int(cal.get("month", 7)) if live else 7
+	var rain := bool(cal.get("rain", false))
+	var look := str(cal.get("look", "Day"))
+	var sunset := float(cal.get("sunset", 19.5))
+	var eye: Vector3 = focus.call() if focus.is_valid() else Vector3.ZERO
+	var eye2 := Vector2(eye.x, eye.z)
+	var veh: Array = vehicle.call() if vehicle.is_valid() else [Vector3.INF, 0.0, false]
+	var night := night_day(hour, weekday) * 100 + (0 if hour >= 12.0 else 1)
+	if night != _night_key:
+		_night_key = night
+	_last_hour = hour
+	var k := amount
+	police_on = police_time(hour, weekday)
+	var steps_lvl := 0.0
+	var plan_lvl := 0.0
+	for s in sites:
+		var kind := str(s["kind"])
+		var want := 0
+		match kind:
+			"queue", "roof":
+				# A roof without its ring (no tall roof found) stays empty.
+				if kind == "roof" and (s["slots"] as Array).is_empty():
+					want = 0
+				else:
+					want = queue_len(int(s["max"]), str(s["curve"]), hour, weekday, k)
+			"steps":
+				steps_lvl = steps_level(hour, month, rain, sunset)
+				want = roundi(STEPS_MAX * k * steps_lvl)
+			"plan_c":
+				plan_lvl = plan_c_level(hour, weekday, month, rain)
+				want = roundi(PLAN_C_MAX * k * plan_lvl)
+		s["want"] = want
+		if t >= float(s["next"]):
+			s["next"] = t + _rng.randf_range(REWRITE.x, REWRITE.y)
+			if int(s["n"]) != want:
+				s["n"] = want
+				s["dirty"] = true
+		if kind == "steps":
+			var g := guitar_on(int(s["n"]), hour)
+			if g != bool(s.get("guitar_on", false)):
+				s["guitar_on"] = g
+				s["dirty"] = true
+		var near := eye2.distance_to(s["at"]) <= ACTIVE_R
+		if near != bool(s["active"]):
+			s["active"] = near
+			s["dirty"] = true
+		_police_site(s, eye2)
+		if bool(s["dirty"]):
+			s["dirty"] = false
+			s["inst"] = _figures(s) if near else []
+			(_cells[s["cell"]] as Dictionary)["dirty"] = true
+		if near and kind == "queue":
+			_door(s, step, veh)
+		elif near and kind in ["steps", "plan_c"]:
+			_chatter(s, step, veh)
+	_redraw()
+	_dawn(hour, weekday, live, look, step, eye2)
+	levels = {"dawn": 1.0 if dawn_on and not walkers.is_empty() else 0.0, "police_club": 1.0 if police_on else 0.0,
+			"steps": steps_lvl, "guitar": 1.0 if by_id.has(STEPS_ID) and bool(sites[by_id[STEPS_ID]].get("guitar_on", false)) else 0.0,
+			"plan_c": plan_lvl}
+	if log_on:
+		_log_t -= step
+		if _log_t <= 0.0:
+			_log_t = LOG_EVERY
+			print("night: %s" % summary(hour, weekday))
+
+
+## "02:00 day 6 · queues smola 24, ... · rejections 1 · dawn walkers 30 · steps 19 · plan_c 0 · police on".
+func summary(hour: float, weekday: int) -> String:
+	var q := PackedStringArray()
+	var other := PackedStringArray()
+	for s in sites:
+		if s["kind"] == "queue":
+			q.append("%s %d" % [s["id"], s["n"]])
+		else:
+			other.append("%s %d" % [s["kind"], s["n"]])
+	return "%02d:%02d day %d · queues %s · rejections %d · car lines %d · dawn walkers %d%s · %s · police %s" % [
+			int(hour), int(fmod(hour, 1.0) * 60.0), weekday, ", ".join(q), rejections, car_lines, walkers.size(),
+			"" if routes.size() > 0 or not dawn_on else " (routes %s)" % ("being found" if _route_task >= 0 else "none"),
+			", ".join(other), "on" if police_on else "off"]
+
+
+## The door: a rejection every 30-60 s while the queue (4+) is on screen; the car at the door.
+func _door(s: Dictionary, step: float, veh: Array) -> void:
+	var door: Vector2 = s["door"]
+	var door3 := _ground(door)
+	var seen: bool = on_screen.call(door3, 2.0) if on_screen.is_valid() else true
+	if int(s["n"]) >= DOOR_MIN and seen:
+		s["door_t"] = float(s["door_t"]) - step
+		if float(s["door_t"]) <= 0.0:
+			s["door_t"] = _rng.randf_range(DOOR_GAP.x, DOOR_GAP.y)
+			reject(s)
+		s["chat_t"] = float(s["chat_t"]) - step
+		if float(s["chat_t"]) <= 0.0:
+			s["chat_t"] = _rng.randf_range(CHAT_GAP.x, CHAT_GAP.y)
+			_say_from_queue(s)
+	var p: Vector3 = veh[0]
+	if p != Vector3.INF and int(s["car_night"]) != _night_key and int(s["n"]) > 0 \
+			and car_at_door(Vector2(p.x, p.z).distance_to(door), float(veh[1]), bool(veh[2])):
+		s["car_night"] = _night_key
+		car_lines += 1
+		# Black paint (car_black, egg E01) waits for the garage: always the `car` line for now.
+		_say(_anchor(s, 0), "Bramka", "club_door", "car", BUBBLE)
+		if log_on:
+			print("night: the car at %s's door (%.0f km/h): the bouncer's car line" % [s["id"], float(veh[1])])
+
+
+## The door turns the head of the queue away: the bouncer's `reject` line; half of them rejoin the
+## end ("try again"), half go (to the kebab).
+func reject(s: Dictionary) -> void:
+	rejections += 1
+	s["rejected"] = int(s.get("rejected", 0)) + 1
+	var gone := _rng.randf() < 0.5
+	if gone and int(s["n"]) > 0:
+		s["n"] = int(s["n"]) - 1
+		s["inst"] = _figures(s) if bool(s["active"]) else []
+		(_cells[s["cell"]] as Dictionary)["dirty"] = true
+	_say(_anchor(s, 0), "Bramka", "club_door", "reject", BUBBLE)
+	if log_on:
+		print("night: rejection at %s (%s; queue %d)" % [s["id"], "goes for a kebab" if gone else "back to the end", int(s["n"])])
+
+
+## A queue member's line now and then (a clubber, or the bouncer on the queue; at Lusterko after
+## 08:00 the morning's door line).
+func _say_from_queue(s: Dictionary) -> void:
+	var n := int(s["n"])
+	if n < 2:
+		return
+	var i := 1 + _rng.randi() % mini(n, 8)
+	if str(s["id"]) == "lusterko" and _last_hour >= 8.0 and _last_hour < 12.0:
+		_say(_anchor(s, 0), "Bramka", "club_door", "dawn", BUBBLE)
+	elif _rng.randf() < 0.25:
+		_say(_anchor(s, 0), "Bramka", "club_door", "queue", BUBBLE)
+	else:
+		_say(_anchor(s, i), "", "clubbers", "", BUBBLE)
+
+
+## The steps and the square talk too: `schodki` (the guitarist's, the sunset's), `clubbers` Plan C.
+func _chatter(s: Dictionary, step: float, veh: Array) -> void:
+	if int(s["n"]) < 4:
+		return
+	var at3 := _ground(s["door"])
+	if on_screen.is_valid() and not on_screen.call(at3, 2.0):
+		return
+	s["chat_t"] = float(s["chat_t"]) - step
+	if float(s["chat_t"]) > 0.0:
+		return
+	s["chat_t"] = _rng.randf_range(CHAT_GAP.x, CHAT_GAP.y)
+	var i := _rng.randi() % maxi(int(s["n"]), 1)
+	if s["kind"] == "plan_c":
+		_say(_anchor(s, i), "", "clubbers", "", BUBBLE)
+		return
+	var p: Vector3 = veh[0]
+	if bool(s.get("guitar_on", false)) and p != Vector3.INF and Vector2(p.x, p.z).distance_to(s["guitar"]) < 25.0:
+		_say(func() -> Vector3: return _ground(s["guitar"]) + Vector3(0, 1.6, 0), "", "schodki", "guitar", BUBBLE, true)
+	elif str(calendar.call().get("look", "")) == "Dusk" if calendar.is_valid() else false:
+		_say(_anchor(s, i), "", "schodki", "sunset", BUBBLE, true)
+	else:
+		_say(_anchor(s, i), "", "schodki", "", BUBBLE)
+
+
+## A bubble anchor on figure `i` of site `s` (0: the bouncer at a queue).
+func _anchor(s: Dictionary, i: int) -> Callable:
+	return func() -> Vector3:
+		var inst: Array = s["inst"]
+		if inst.is_empty():
+			return Vector3.INF
+		var f: Array = inst[clampi(i, 0, inst.size() - 1)]
+		return (f[0] as Vector3) + Vector3(0, 2.0, 0)
+
+
+func _say(anchor: Callable, speaker: String, group: String, tag: String, accent: Color, prefer := false) -> void:
+	if dialogue == null:
+		return
+	var l: Array = dialogue.say(anchor, speaker, group, tag, 4.0, accent, 2.2, prefer or tag != "")
+	if log_on and not l.is_empty():
+		print("night: line %s/%s: %s" % [group, tag, l[0]])
+
+
+## The police by a club (Lusterko, Smoła), Fri/Sat 00:00-08:00: the parked car through police.gd,
+## the officer standing by it in this crowd; their lines to a slow car.
+func _police_site(s: Dictionary, eye2: Vector2) -> void:
+	if not bool(s.get("police", false)):
+		return
+	var want := police_on and eye2.distance_to(s["at"]) <= ACTIVE_R
+	var has: bool = s["officer"] != Vector3.INF
+	if want and not has:
+		var spot := {}
+		if police != null and police.has_method("club_park"):
+			spot = police.club_park(str(s["id"]), s["door"])
+		if spot.is_empty():
+			# No police (or no lane): the officer stands across the footway from the door.
+			var o: Vector2 = (s["door"] as Vector2) + (s["out"] as Vector2) * 4.0 + (s["line"][1] - s["line"][0]).normalized() * 6.0
+			spot = {"officer": _ground(o), "officer_yaw": atan2((s["out"] as Vector2).x, (s["out"] as Vector2).y)}
+		s["officer"] = spot["officer"]
+		s["officer_yaw"] = spot["officer_yaw"]
+		s["dirty"] = true
+		if log_on:
+			print("night: police by %s (%s)" % [s["id"], "a parked patrol car and an officer" if spot.has("car") else "an officer"])
+	elif not want and has:
+		s["officer"] = Vector3.INF
+		if police != null and police.has_method("club_leave"):
+			police.club_leave(str(s["id"]))
+		s["dirty"] = true
+	if not want:
+		return
+	s["police_t"] = float(s["police_t"]) - TICK
+	var veh: Array = vehicle.call() if vehicle.is_valid() else [Vector3.INF, 0.0, false]
+	var p: Vector3 = veh[0]
+	if p == Vector3.INF or bool(veh[2]):
+		return
+	var o3: Vector3 = s["officer"]
+	var d := Vector2(p.x, p.z).distance_to(Vector2(o3.x, o3.z))
+	if d > POLICE_NEAR or float(veh[1]) >= CAR_KMH:
+		return
+	var anchor := func() -> Vector3: return (s["officer"] as Vector3) + Vector3(0, 2.0, 0) if s["officer"] != Vector3.INF else Vector3.INF
+	if float(veh[1]) < 1.0 and int(s["sober_night"]) != _night_key:
+		s["sober_night"] = _night_key
+		s["police_t"] = POLICE_GAP
+		_say(anchor, "Sierżant Bogdan", "police_club", "sober", POLICE_BUBBLE, true)
+	elif float(s["police_t"]) <= 0.0:
+		s["police_t"] = POLICE_GAP
+		_say(anchor, "Sierżant Bogdan", "police_club", "", POLICE_BUBBLE)
+
+
+# --- the dawn crowd ------------------------------------------------------------------------
+
+func _dawn(hour: float, weekday: int, live: bool, look: String, step: float, eye2: Vector2) -> void:
+	var on: bool = dawn_time(hour, weekday, live, look) and not (_route_in.get("to", []) as Array).is_empty()
+	if on != dawn_on:
+		dawn_on = on
+		if log_on:
+			print("night: the dawn crowd %s" % ("comes out" if on else "goes home"))
+		if not on:
+			walkers.clear()
+			_walk_mm.visible_instance_count = 0
+			_walk_mmi.visible = false
+	if not on:
+		return
+	if routes.is_empty():
+		if _route_task < 0 and _route_out.is_empty():
+			_start_routes()
+		return
+	var want := dawn_count(hour, amount)
+	while walkers.size() < want:
+		_spawn_walkers(want - walkers.size(), true)
+	while walkers.size() > want:
+		walkers.pop_back()
+	# Each walker at its end starts again at a club.
+	for w in walkers:
+		if float(w["s"]) + float(w["v"]) * (t - float(w["t"])) >= float(routes[int(w["r"])]["len"]):
+			_restart(w)
+	_dawn_bubble -= step
+	var near := _walk_box.grow(100.0).has_point(eye2)
+	if near and _dawn_bubble <= 0.0:
+		for i in walkers.size():
+			var p := walker_pos(i)
+			if on_screen.is_valid() and not on_screen.call(p, 2.0):
+				continue
+			_dawn_bubble = DAWN_GAP
+			dawn_lines += 1
+			var at_palm := str(routes[int(walkers[i]["r"])]["to"]) == "palma" and Vector2(p.x, p.z).distance_to(routes[int(walkers[i]["r"])]["end"]) < 40.0
+			_say(func() -> Vector3: return walker_pos(i) + Vector3(0, 2.0, 0) if i < walkers.size() else Vector3.INF,
+					"", "dawn_crowd", "palm" if at_palm else "", BUBBLE, at_palm)
+			break
+
+
+## The routes, found once in a worker thread (pure data: the footways near the clubs).
+func _start_routes() -> void:
+	var paths: Array = []
+	for f in _foot:
+		paths.append([f["pts"], int(f["dk"])])
+	var from: Array = _route_in["from"]
+	var to: Array = _route_in["to"]
+	_route_out = [null]
+	var out := _route_out
+	_route_task = WorkerThreadPool.add_task(func() -> void: out[0] = build_routes(paths, from, to), false, "crowd routes")
+	if log_on:
+		print("night: finding the dawn crowd's routes (%d footways, %d clubs → %d ends)" % [paths.size(), from.size(), to.size()])
+
+
+## Heights (the ground under each corner, or its deck) and lengths for the thread's routes.
+func _finish_routes() -> void:
+	var found: Variant = _route_out[0] if not _route_out.is_empty() else null
+	var raw: Array = found if found is Array else []
+	routes.clear()
+	for r: Dictionary in raw:
+		var pts: PackedVector2Array = r["pts"]
+		var dk: PackedInt32Array = r["dk"]
+		var h := PackedFloat32Array()
+		var cum := PackedFloat32Array()
+		var run := 0.0
+		for i in pts.size():
+			if i > 0:
+				run += pts[i].distance_to(pts[i - 1])
+			cum.append(run)
+			h.append(map.deck_height(dk[i], pts[i].x, pts[i].y) if map != null else 0.0)
+		routes.append({"pts": pts, "h": h, "cum": cum, "len": run, "from": r["from"], "to": r["to"], "end": pts[pts.size() - 1]})
+	if log_on:
+		var lens := PackedStringArray()
+		for r in routes:
+			lens.append("%s→%s %.0f m" % [r["from"], r["to"], r["len"]])
+		print("night: %d dawn routes: %s" % [routes.size(), ", ".join(lens)])
+	if routes.is_empty():
+		_route_in["to"] = []  # nothing to walk: the dawn crowd stays home
+
+
+func _spawn_walkers(count: int, spread: bool) -> void:
+	var left := count
+	while left > 0:
+		var g := mini(_rng.randi_range(1, 3), left)
+		var r := _rng.randi() % routes.size()
+		var s0 := _rng.randf_range(0.0, float(routes[r]["len"]) * 0.9) if spread else 0.0
+		var v := _rng.randf_range(0.9, 1.25)
+		for i in g:
+			walkers.append({"r": r, "s": s0 - i * 0.9, "t": t, "v": v, "off": (i - (g - 1) * 0.5) * 0.7 + _rng.randf_range(-0.1, 0.1),
+					"k": 0, "shirt": Color(DARK[_rng.randi() % DARK.size()] if _rng.randf() < 0.7 else BRIGHT[_rng.randi() % BRIGHT.size()]),
+					"tr": _rng.randf() * 0.99})
+		left -= g
+
+
+func _restart(w: Dictionary) -> void:
+	w["r"] = _rng.randi() % routes.size()
+	w["s"] = -_rng.randf_range(0.0, 3.0)
+	w["t"] = t
+	w["k"] = 0
+
+
+## Where walker `i` is now (its route, its distance along it, its side offset).
+func walker_pos(i: int) -> Vector3:
+	var w: Dictionary = walkers[i]
+	var r: Dictionary = routes[int(w["r"])]
+	var s := clampf(float(w["s"]) + float(w["v"]) * (t - float(w["t"])), 0.0, float(r["len"]))
+	var cum: PackedFloat32Array = r["cum"]
+	var pts: PackedVector2Array = r["pts"]
+	var h: PackedFloat32Array = r["h"]
+	var k := int(w["k"])
+	while k < cum.size() - 2 and cum[k + 1] < s:
+		k += 1
+	w["k"] = k
+	var seg := maxf(cum[k + 1] - cum[k], 0.001)
+	var f := clampf((s - cum[k]) / seg, 0.0, 1.0)
+	var dir := (pts[k + 1] - pts[k]) / seg
+	var q := pts[k].lerp(pts[k + 1], f) + Vector2(-dir.y, dir.x) * float(w["off"])
+	return Vector3(q.x, lerpf(h[k], h[k + 1], f), q.y)
+
+
+## The walkers' figures, 10 times a second while the view is near their box.
+func _move_walkers() -> void:
+	var eye: Vector3 = focus.call() if focus.is_valid() else Vector3.ZERO
+	if not _walk_box.grow(ACTIVE_R).has_point(Vector2(eye.x, eye.z)):
+		if _walk_mmi.visible:
+			_walk_mmi.visible = false
+		return
+	var n := mini(walkers.size(), _walk_mm.instance_count)
+	var box := AABB()
+	for i in n:
+		var w: Dictionary = walkers[i]
+		var p := walker_pos(i)
+		var r: Dictionary = routes[int(w["r"])]
+		var k := int(w["k"])
+		var dir: Vector2 = (r["pts"][k + 1] - r["pts"][k]).normalized()
+		put(_walk_buf, i, p, atan2(-dir.x, -dir.y), STAND, w["shirt"], float(w["tr"]))
+		box = AABB(p, Vector3.ZERO) if i == 0 else box.expand(p)
+	_walk_mm.visible_instance_count = n
+	if n > 0:
+		InstanceBuffers.send(_walk_mm.get_rid(), _walk_buf)
+		_walk_mm.custom_aabb = box.grow(1.0).expand(box.end + Vector3(0, 2.5, 0))
+	_walk_mmi.visible = n > 0
+
+
+## The dawn crowd's routes: A* over the footways and crossings (`paths`: [PackedVector2Array,
+## deck], their corners joined where they meet, ends within 3 m of another path joined too) from
+## each club door (`from`: [id, Vector2]) to each end (`to`: [name, Vector2]). Pure (a worker
+## thread runs it; check_crowds.gd runs it on a grid): [{pts, dk, from, to}].
+static func build_routes(paths: Array, from: Array, to: Array) -> Array:
+	var key_of := {}
+	var pos := PackedVector2Array()
+	var dks := PackedInt32Array()
+	var adj: Array[PackedInt32Array] = []
+	var node := func(p: Vector2, dk: int) -> int:
+		var key := Vector2i(roundi(p.x * 2.0), roundi(p.y * 2.0))
+		if key_of.has(key):
+			return key_of[key]
+		key_of[key] = pos.size()
+		pos.append(p)
+		dks.append(dk)
+		adj.append(PackedInt32Array())
+		return pos.size() - 1
+	var ends: Array[int] = []
+	for path: Array in paths:
+		var pts: PackedVector2Array = path[0]
+		var prev := -1
+		for i in pts.size():
+			var n: int = node.call(pts[i], int(path[1]))
+			if prev >= 0 and prev != n:
+				adj[prev].append(n)
+				adj[n].append(prev)
+			if i == 0 or i == pts.size() - 1:
+				ends.append(n)
+			prev = n
+	# Loose ends within 3 m of another node: joined (a crossing drawn a little short).
+	var grid := {}
+	for i in pos.size():
+		var c := Vector2i(floori(pos[i].x / 4.0), floori(pos[i].y / 4.0))
+		if not grid.has(c):
+			grid[c] = PackedInt32Array()
+		grid[c].append(i)
+	for a in ends:
+		if adj[a].size() > 1:
+			continue
+		var c := Vector2i(floori(pos[a].x / 4.0), floori(pos[a].y / 4.0))
+		var best := -1
+		var best_d := 3.0
+		for dx in [-1, 0, 1]:
+			for dz in [-1, 0, 1]:
+				for b: int in grid.get(c + Vector2i(dx, dz), PackedInt32Array()):
+					if b != a and not b in adj[a] and pos[a].distance_to(pos[b]) < best_d:
+						best_d = pos[a].distance_to(pos[b])
+						best = b
+		if best >= 0:
+			adj[a].append(best)
+			adj[best].append(a)
+	# The nodes within 80 m of a point, nearest first (up to 6: the nearest can be on a little island
+	# of footway, a crossing or a courtyard, joined to nothing).
+	var nearest := func(p: Vector2) -> Array:
+		var near: Array = []
+		for i in pos.size():
+			var d := pos[i].distance_to(p)
+			if d < 80.0 and adj[i].size() > 0:
+				near.append([d, i])
+		near.sort_custom(func(x: Array, y: Array) -> bool: return x[0] < y[0])
+		return near.slice(0, 6).map(func(x: Array) -> int: return x[1])
+	var out: Array = []
+	for f: Array in from:
+		var starts: Array = nearest.call(f[1])
+		for e: Array in to:
+			var goals: Array = nearest.call(e[1])
+			var route := PackedInt32Array()
+			for a: int in starts:
+				for b: int in goals:
+					if a != b:
+						route = _astar(pos, adj, a, b)
+					if route.size() >= 2:
+						break
+				if route.size() >= 2:
+					break
+			if route.size() < 2:
+				continue
+			var pts := PackedVector2Array()
+			var dk := PackedInt32Array()
+			for n in route:
+				pts.append(pos[n])
+				dk.append(dks[n])
+			out.append({"pts": pts, "dk": dk, "from": str(f[0]), "to": str(e[0])})
+	return out
+
+
+## A* from node a to node b over `adj` (straight-line distances): the nodes, or [] if none.
+static func _astar(pos: PackedVector2Array, adj: Array[PackedInt32Array], a: int, b: int) -> PackedInt32Array:
+	var n := pos.size()
+	var g := PackedFloat32Array()
+	g.resize(n)
+	g.fill(INF)
+	var came := PackedInt32Array()
+	came.resize(n)
+	came.fill(-1)
+	var done := PackedByteArray()
+	done.resize(n)
+	done.fill(0)
+	var heap_f := PackedFloat32Array()
+	var heap_n := PackedInt32Array()
+	g[a] = 0.0
+	_push(heap_f, heap_n, pos[a].distance_to(pos[b]), a)
+	var goal := pos[b]
+	var pops := 0
+	while not heap_n.is_empty():
+		var u := _pop(heap_f, heap_n)
+		if done[u] == 1:
+			continue
+		done[u] = 1
+		pops += 1
+		if u == b or pops > 60000:
+			break
+		for v in adj[u]:
+			if done[v] == 1:
+				continue
+			var nd := g[u] + pos[u].distance_to(pos[v])
+			if nd < g[v]:
+				g[v] = nd
+				came[v] = u
+				_push(heap_f, heap_n, nd + pos[v].distance_to(goal), v)
+	var out := PackedInt32Array()
+	if came[b] < 0:
+		return out
+	var c := b
+	while c >= 0:
+		out.append(c)
+		c = came[c]
+	out.reverse()
+	return out
+
+
+static func _push(hf: PackedFloat32Array, hn: PackedInt32Array, f: float, n: int) -> void:
+	hf.append(f)
+	hn.append(n)
+	var i := hf.size() - 1
+	while i > 0:
+		var p := (i - 1) / 2
+		if hf[p] <= hf[i]:
+			break
+		var tf := hf[p]
+		hf[p] = hf[i]
+		hf[i] = tf
+		var tn := hn[p]
+		hn[p] = hn[i]
+		hn[i] = tn
+		i = p
+
+
+static func _pop(hf: PackedFloat32Array, hn: PackedInt32Array) -> int:
+	var top := hn[0]
+	var last := hf.size() - 1
+	hf[0] = hf[last]
+	hn[0] = hn[last]
+	hf.resize(last)
+	hn.resize(last)
+	var i := 0
+	while true:
+		var l := i * 2 + 1
+		var r := l + 1
+		var m := i
+		if l < last and hf[l] < hf[m]:
+			m = l
+		if r < last and hf[r] < hf[m]:
+			m = r
+		if m == i:
+			break
+		var tf := hf[m]
+		hf[m] = hf[i]
+		hf[i] = tf
+		var tn := hn[m]
+		hn[m] = hn[i]
+		hn[i] = tn
+		i = m
+	return top
+
+
+func _exit_tree() -> void:
+	if _route_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_route_task)
+		_route_task = -1
