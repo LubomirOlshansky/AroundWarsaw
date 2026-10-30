@@ -584,6 +584,11 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   its roof to 192 m (`S_FRAME`: the panes are cut away). Q22 stood 55 m tall (its LoD2 model
   predates the tower); it is 155 m now. Each has an info card; the far skyline (proxies) takes
   each tower's glass colour.
+- **Złota 44's sail** (after the user's phone look, "a rectangle, not curvy"; `_zlota_sail`):
+  the tower is lofted through 8 rings from the mapped core's corners: a straight west front,
+  soft corners, and the east front a curve that swells as it climbs (4 m out at the foot, 14 m
+  at the crown), the crown cut on a slope from 192 m at the north to 158 m and glazed like the
+  walls. Only the podium is still built from its OpenStreetMap parts.
 - **Muzeum Narodowe** (the landmarks loop): kept as LoD2 draws it (one model round its
   courtyards), but in its pale stone with tall windows between piers (`M_MONUMENT`, `#c9bfa9`):
   `map_builder` asks `landmarks.skin_at` for every kept LoD2 run and OpenStreetMap building
