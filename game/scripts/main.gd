@@ -165,6 +165,8 @@ const PERF_EVERY := 0.5
 ## In the helicopter; the car waits, parked, where it was left.
 var flying := false
 var start_flying := false
+## Loop 3d-2b, --heli-alt=M: the height over the ground the helicopter starts at (0: the usual take-off).
+var _start_alt := 0.0
 var start_mission := 0
 var autopilot := false
 var _wash_on := false
@@ -664,6 +666,7 @@ func _build_world() -> void:
 		map = MapBuilder.new()
 		world.add_child(map)
 		data = map.build(MAP_PATH, building_mat, flat_mat)
+		map.open_maps_whole()  # loop 3d-2b: every sector's map slices on the GPU at once
 
 	for a in data["areas"]:
 		if a["k"] == "water":
@@ -727,16 +730,12 @@ func _build_world() -> void:
 	add_child(moments)
 	moments.setup(cam, world)
 
-	if map.water_texture != null:
-		post_mat.set_shader_parameter("surface_map", map.water_texture)
-		post_mat.set_shader_parameter("surface_rect", map.water_rect)
 	tod = TimeOfDay.new()
 	add_child(tod)
 	if live_clock != "":
 		tod.clock_start = TimeOfDay.warsaw_to_utc(live_clock, live_date)
 	tod.setup(env, sun, post_mat, sun_pitch)
 	tod.lights_switched.connect(_show_night_nodes)
-	_share_lights()
 	weather = Weather.new()
 	weather.tod = tod
 	weather.post = post_mat
@@ -814,6 +813,9 @@ func _build_world() -> void:
 		_build_lineup(world)
 	if start_flying:
 		_take_off(Heli.CRUISE)
+		if _start_alt > 0.0:
+			var p := heli.global_position
+			heli.place(Vector3(p.x, map.ground_height(p.x, p.z) + _start_alt, p.z), heli.rotation.y, _start_alt)
 	# Loop 2e: no call card at the start (docs/DEMO.md 6.1): calls come in during play.
 	if start_mission > 0:
 		missions.start(start_mission)
@@ -1614,6 +1616,11 @@ func _parse_args() -> void:
 			_flag_cinematic = arg.trim_prefix("--cinematic=") if arg.contains("=") else "all"
 		elif arg == "--heli":
 			start_flying = true
+		elif arg.begins_with("--heli-alt="):
+			# Loop 3d-2b: start flying this high over the ground, placed there at once (the
+			# helicopter at its highest, Heli.MAX_HEIGHT 360, for the memory and far-level probes).
+			start_flying = true
+			_start_alt = clampf(float(arg.trim_prefix("--heli-alt=")), 6.0, Heli.MAX_HEIGHT)
 		elif arg.begins_with("--mission="):
 			start_mission = maxi(1, int(arg.trim_prefix("--mission=")))
 		elif arg == "--autopilot":
@@ -1894,16 +1901,6 @@ func _show_night_nodes(on: bool) -> void:
 		if n != null:
 			n.visible = on
 	get_tree().call_group("night_lights", "set_visible", on)
-
-
-## The vehicles' shader lights them under the street lamps too: it needs the map's
-## baked lamp pools.
-func _share_lights() -> void:
-	if map.light_texture == null:
-		return
-	var m := Models.material()
-	m.set_shader_parameter("light_map", map.light_texture)
-	m.set_shader_parameter("light_rect", map.light_rect)
 
 
 ## The VHS overlay runs on the container that scales the pixel image up to the
@@ -2927,6 +2924,10 @@ func _view_census() -> String:
 	var casters := 0
 	var caster_instances := 0
 	var kinds := {}
+	var proxy_n := 0
+	var proxy_tris := 0
+	var tower_only := 0
+	var tower_keys := {}
 	var stack: Array[Node] = [sv]
 	while not stack.is_empty():
 		var n: Node = stack.pop_back()
@@ -2949,9 +2950,27 @@ func _view_census() -> String:
 				break
 		if not inside:
 			continue
+		# Loop 3d-2b: a node past its visibility range isn't drawn.
+		if g.visibility_range_end > 0.0 and cam.global_position.distance_to(box.get_center()) > g.visibility_range_end:
+			continue
 		nodes += 1
 		var count := 1
 		var mesh: Mesh = (g as MeshInstance3D).mesh if g is MeshInstance3D else null
+		# Loop 3d-2b: what a far level could take: draws of sectors in view only by their towers.
+		var sector_root := g.get_parent()
+		while sector_root != null and sector_root.get_parent() != null and sector_root.get_parent().name != "Sectors":
+			sector_root = sector_root.get_parent()
+		if streamer != null and sector_root != null and sector_root.get_parent() != null and sector_root.get_parent().name == "Sectors":
+			var parts := String(sector_root.name).trim_prefix("s_").split("_")
+			var key := Vector2i(int(parts[0]), int(parts[1]))
+			if not streamer.ground_in_view(key, 0.0, 25.0, planes):
+				tower_only += 1
+				tower_keys[key] = true
+		# Loop 3d-2b: the far level (the sectors' proxies) on its own line.
+		if g.get_parent().name == "Proxies" and mesh != null and mesh.get_surface_count() > 0:
+			proxy_n += 1
+			for k in mesh.get_surface_count():
+				proxy_tris += mesh.surface_get_array_index_len(k) / 3
 		if g is MultiMeshInstance3D:
 			var mm := (g as MultiMeshInstance3D).multimesh
 			count = mm.visible_instance_count if mm.visible_instance_count >= 0 else mm.instance_count
@@ -2985,9 +3004,13 @@ func _view_census() -> String:
 	var parts := PackedStringArray()
 	for k in kinds:
 		parts.append("%s ×%d" % [k, kinds[k]])
-	return "%d nodes (%d instances) in view, %d shadow-casting nodes (%d instances), %d materials, %d shaders: %s\nprobe kinds: %s" % [
+	var far := ""
+	if streamer != null:
+		far = "\nprobe far level: %d proxies in view, %d triangles; %d sectors in full detail; %d nodes in view from %d sectors whose ground and low buildings are out of it" % [proxy_n, proxy_tris,
+				streamer.loaded().size(), tower_only, tower_keys.size()]
+	return "%d nodes (%d instances) in view, %d shadow-casting nodes (%d instances), %d materials, %d shaders: %s\nprobe kinds: %s%s" % [
 			nodes, instances, casters, caster_instances, mats.size(), shaders.size(), ", ".join(PackedStringArray(shaders.keys())),
-			" | ".join(parts)]
+			" | ".join(parts), far]
 
 
 func _vehicle_position() -> Vector3:
@@ -3618,11 +3641,22 @@ var monolithic := false
 var _sectors_all := false
 var _sectors_proxies := false
 var _stream_log := false
+## Loop 3d-2b: --stream-ahead=0, --stream-slow=MS (sector_streamer.gd look_ahead, slow_ms).
+var _stream_ahead := true
+var _stream_slow := 0
+var _stream_gate := true
 var _spots: Array[Vector3] = []
 var _soak_minutes := 0.0
 var _soak_route: Array[Vector2] = []
 var _soak_leg := 0
 var _soak_t := 0.0
+## Loop 3d-2b, --stream-pass=heli|car: one fast pass across the map instead of the soak's tour
+## (the helicopter at its highest and fastest, or the car at PASS_CAR_SPEED in its widest view).
+var _pass_kind := ""
+const PASS_CAR_SPEED := 45.0
+## Frames since the pass put the vehicle at its start (-1 once the pass runs: the numbers count
+## from the first frame at least 180 frames on with nothing left to load).
+var _pass_frames := 0
 
 
 func _parse_stream_args() -> void:
@@ -3635,6 +3669,12 @@ func _parse_stream_args() -> void:
 			_sectors_proxies = true
 		elif arg == "--stream-log":
 			_stream_log = true
+		elif arg == "--stream-gate=0":
+			_stream_gate = false  # loop 3d-2b: a sector's pieces with its scene at once (the before)
+		elif arg == "--stream-ahead=0":
+			_stream_ahead = false  # loop 3d-2b: no look-ahead (the before of a before/after)
+		elif arg.begins_with("--stream-slow="):
+			_stream_slow = int(arg.trim_prefix("--stream-slow="))  # loop 3d-2b: a phone's slower loads
 		elif arg.begins_with("--spots="):
 			for s in arg.trim_prefix("--spots=").split("/"):
 				var v := s.split(",")
@@ -3645,6 +3685,15 @@ func _parse_stream_args() -> void:
 			no_traffic = true
 			free_roam = true
 			show_title = false
+		elif arg.begins_with("--stream-pass="):
+			_pass_kind = arg.trim_prefix("--stream-pass=")
+			_soak_minutes = 30.0  # the pass ends at its route's end
+			no_traffic = true
+			free_roam = true
+			show_title = false
+			if _pass_kind == "heli":
+				start_flying = true
+				_start_alt = Heli.MAX_HEIGHT
 
 
 ## Loop 3d-1: "" when the city this run needs is there, else what is missing and how to make it
@@ -3666,6 +3715,9 @@ func _open_streamed_city(world: Node3D, flat_mat: ShaderMaterial) -> Dictionary:
 	streamer.load_all = _sectors_all
 	streamer.proxies_only = _sectors_proxies
 	streamer.log = _stream_log
+	streamer.look_ahead = _stream_ahead
+	streamer.slow_ms = _stream_slow
+	streamer.gate_pieces = _stream_gate
 	streamer.packs = _packs
 	add_child(streamer)
 	streamer.sector_ready.connect(_on_sector_ready)
@@ -3676,7 +3728,10 @@ func _open_streamed_city(world: Node3D, flat_mat: ShaderMaterial) -> Dictionary:
 	# The ground's AO flags (--debug-ao, --no-ao) on either path's material.
 	map.flat_material.set_shader_parameter("debug_ao", debug_ao)
 	map.flat_material.set_shader_parameter("ao_strength", 0.0 if no_ao else 1.0)
-	if _soak_minutes > 0.0:
+	if _pass_kind != "":
+		_soak_route = _pass_route(data)
+		DirAccess.remove_absolute(ProjectSettings.globalize_path("user://stream_soak_result.txt"))
+	elif _soak_minutes > 0.0:
 		_soak_route = _soak_tour(data)
 		DirAccess.remove_absolute(ProjectSettings.globalize_path("user://stream_soak_result.txt"))
 	return data
@@ -3786,10 +3841,22 @@ func _soak_tour(data: Dictionary) -> Array[Vector2]:
 	return route
 
 
+## Loop 3d-2b, --stream-pass: the helicopter west to east across the map's middle north of the
+## centre (the Palace, the river, Praga); the car east to west south of it.
+func _pass_route(data: Dictionary) -> Array[Vector2]:
+	var b: Array = data["bounds"]
+	var inner := Rect2(b[0], b[1], b[2] - b[0], b[3] - b[1]).grow(-120.0)
+	if _pass_kind == "heli":
+		return [Vector2(inner.position.x, -300.0), Vector2(inner.end.x, -300.0)]
+	return [Vector2(inner.end.x, 250.0), Vector2(inner.position.x, 250.0)]
+
+
 ## --stream-soak, each frame: the car (then the helicopter) along the tour at 22 m/s, through
 ## buildings like the mission autopilot; the view 1x, then wide (220 m), every 20 s.
 func _soak_frame(dt: float) -> void:
 	_soak_t += dt
+	if _pass_kind != "" and _soak_leg >= _soak_route.size():
+		_soak_minutes = _soak_t / 60.0  # the pass is over: report as the soak does
 	if _soak_t >= _soak_minutes * 60.0:
 		print("stream soak: %.0f s over %d sectors: %s" % [_soak_t, streamer.keys.size(), streamer.summary()])
 		var numbers := streamer.stats()
@@ -3808,9 +3875,44 @@ func _soak_frame(dt: float) -> void:
 		return
 	if _soak_route.is_empty():
 		return
-	base_size = FollowCamera.DEFAULT_SIZE if int(_soak_t / 20.0) % 2 == 0 else 220.0
-	if not flying and _soak_t > _soak_minutes * 40.0:
-		_take_off(Heli.CRUISE)
+	if _pass_kind != "" and _pass_frames >= 0:
+		# The pass starts at its route's start: the vehicle put there, the view finished once the
+		# camera has caught up (its zoom too) and the streamer has nothing left to load, and the
+		# numbers counted from then on.
+		_pass_frames += 1
+		var s0: Vector2 = _soak_route[0]
+		if _pass_frames == 1:
+			# Facing along the route, so the camera has turned there before the numbers count.
+			var d: Vector2 = _soak_route[1] - s0
+			var yaw := atan2(-d.x, -d.y)
+			car.rotation.y = yaw
+			if flying:
+				heli.place(Vector3(s0.x, map.ground_height(s0.x, s0.y) + Heli.MAX_HEIGHT, s0.y), yaw, Heli.MAX_HEIGHT)
+			else:
+				car.collision_mask = 0
+				car.global_position = Vector3(s0.x, map.drive_height(s0.x, s0.y, 0.0), s0.y)
+				car.reset_physics_interpolation()
+			_cut_camera()
+			if flying:
+				cam_focus = heli.global_position
+			_soak_leg = 1
+		elif _pass_frames >= 180 and (streamer.idle() or _pass_frames >= 1200):
+			streamer.finish_view(cam_focus, cam)
+			streamer.reset_stats()
+			_soak_t = 0.0
+			_pass_frames = -1
+		return
+	if _pass_kind == "car":
+		base_size = FollowCamera.DEFAULT_SIZE * (1.0 + FollowCamera.SPEED_ZOOM)  # the view at top speed
+	elif _pass_kind == "heli":
+		base_size = FollowCamera.DEFAULT_SIZE
+		heli.alt_target = Heli.MAX_HEIGHT
+	else:
+		base_size = FollowCamera.DEFAULT_SIZE if int(_soak_t / 20.0) % 2 == 0 else 220.0
+		if not flying and _soak_t > _soak_minutes * 40.0:
+			_take_off(Heli.CRUISE)
+	if _pass_kind != "" and _soak_leg >= _soak_route.size():
+		return
 	var target: Vector2 = _soak_route[_soak_leg % _soak_route.size()]
 	var pos := _vehicle_position()
 	var to := Vector2(target.x - pos.x, target.y - pos.z)
@@ -3821,7 +3923,7 @@ func _soak_frame(dt: float) -> void:
 		heli.input_dir = Vector3(to.x, 0.0, to.y).normalized()
 		heli.climb = 1.0 if heli.blocked else 0.0
 		return
-	var step := to.normalized() * 22.0 * dt
+	var step := to.normalized() * (PASS_CAR_SPEED if _pass_kind == "car" else 22.0) * dt
 	car.collision_mask = 0
 	car.vel = Vector3.ZERO
 	car.global_position = Vector3(pos.x + step.x, map.drive_height(pos.x + step.x, pos.z + step.y, pos.y), pos.z + step.y)

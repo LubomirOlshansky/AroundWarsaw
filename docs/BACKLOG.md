@@ -928,10 +928,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Kościuszkowskie by Tamka (625, −453) 2.4 m in 6 m and (642, −548). A rule for a road's end on a
   hump of the grid, or the 1 m NMT along the river (one download, ~125 MB for the whole box,
   DEMO 3.1's optional line), would fix the class.
-- **The AO, lamp-light and surface maps** are 37 + 37 + 19 MB (93 MB of video memory as whole
+- ~~**The AO, lamp-light and surface maps** are 37 + 37 + 19 MB (93 MB of video memory as whole
   textures; the probe's textures 24 → 87 MB). Over the brief's 60 MB, but a window kept in RAM
   saves nothing on the iPhone's shared memory: it needs per-sector slices read from disk as the
-  focus moves (the streamer's job, where the perf loop works now). Loop 3d-2.
+  focus moves (the streamer's job, where the perf loop works now). Loop 3d-2.~~ Done in loop 3d-2b:
+  per-sector slices in 24 array layers, textures 94 → 38 MB, video at the spawn 406 → 300 MB.
 - **Static memory at the spawn 147 → ~220-315 MB** (the index's game data: roads, paths, areas,
   trees3d as Variant arrays, now 3× bigger; index.json 9.6 MB): packed arrays or per-sector game
   data (3c's note). Loop 3d-2.
@@ -992,6 +993,27 @@ Small problems that agents reported or that showed up in screenshots. They are f
   then fine on a rerun: flaky, not broken. Three prebuilt spot shots with `--time=day` once came out
   at night while other Godot runs were going; fine on a rerun.
 
+## From loop 3d-2b (the map engine, part two, 2026-10-30)
+- **Far levels are not built** (measured: with the orthographic camera every sector drawn has its
+  ground on screen; the proxies show only while a sector loads). A far level by zoom, the
+  helicopter's highest views drawn as painted proxies (357 → a few dozen draw calls over the
+  centre), changes the look of those views: the user's call (docs/QUESTIONS.md). Landmarks would
+  need a LOD1 from `landmarks.gd` (the landmarks lane).
+- **The helicopter is ~33 draw calls a pass** (26 boxes and the lights under its body,
+  `heli.gd`): one mesh with vertex colours (rule 2 of "Performance budgets") would save ~60 draws
+  in every flying view, more than any far level. Gameplay or performance lane.
+- **Map slots**: `CityMaps.SLOTS` 24 (32 MB); the 3-minute soak reached 24 sectors in full at once
+  (the 220 m view with the hysteresis), the passes 15-20; a load with no free slot takes one from a
+  sector kept only by the hysteresis (`evictions`), else waits (`slot_waits`; 0 in every run). A
+  bigger map or wider views may want 28-32.
+- **The runtime path** (the editor) still builds a sector's meshes and colliders on the worker and
+  hands them over at once (its load-end frame keeps the old cost); its start still runs the roof
+  pass over every sector file (23 s on the demo map: BACKLOG "From loop 3d-1"). The phone's path
+  is the prebuilt one.
+- **check_streaming spot 8** came down to 0.015 % (it was 0.789 %, `SPOT_MAX` 1 %); the limit is
+  left until a few more runs agree.
+- `verify.sh` streaming takes ~8 minutes now (the two passes).
+
 ## From the radio playlists loop (2026-10-29)
 - Done: radio.json, shuffled playlists, `tools/add_music.py`, the radio check, README "Adding music",
   CREDITS "Music".
@@ -1016,7 +1038,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   `add_music.py --force`. The Ogg files are lossy copies of the lossless loops.
 
 ## From loop G0+ (streaming and heat on the iPhone 11)
-- **A sector's load still makes one slow frame on the iPhone 11** (19-22 frames over 33 ms in a
+- **A sector's load still makes one slow frame on the iPhone 11** (loop 3d-2b: on the Mac the cause
+  was the collider, built by the physics server on the main thread at once; now 1,000-face patches
+  and every piece one a frame, the slowest load frame 23.8 → 13.0 ms; the phone's numbers are still
+  to measure with a `--stream-soak` device run) (19-22 frames over 33 ms in a
   6-minute soak, 25-65 ms each, none with any of the streamer's own work in it): the render
   server creates the sector's meshes and MultiMeshes (its GPU buffers) on the main thread when the
   worker's load ends (with `--render-thread separate` the same time moves into the frame's draw,

@@ -20,6 +20,13 @@ extends Node
 ## shows (and the proxy hides) once every node is in. A sector the car stands in that isn't
 ## in yet (a jump: a tow, a race start) loads at once.
 ##
+## Loop 3d-2b: the look-ahead wants the sectors the focus will need LOOK_AHEAD seconds on (its
+## square and the view moved along its velocity), a sector in the view first; a prebuilt sector's
+## pieces (its meshes, MultiMeshes and collider patches, one file each) load one a frame on the
+## worker, so no frame takes a whole sector's GPU buffers and physics shapes (the one slow frame
+## per load); each sector brings its slices of the AO, lamp-light and surface maps into a slot of
+## city_maps.gd's arrays (at most CityMaps.SLOTS sectors in full detail at once).
+##
 ## --sectors=all loads every sector at the start and keeps them (the old behaviour, pixel
 ## diffs); --stream-log prints every load and unload with its frame and main-thread ms, and (loop
 ## G0+) each worker load: its load and instantiate ms and the slowest frame while it ran, split
@@ -28,6 +35,7 @@ extends Node
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Proxies := preload("res://scripts/sector_proxies.gd")
 const IndexPack := preload("res://scripts/index_pack.gd")
+const CityMaps := preload("res://scripts/city_maps.gd")
 const INDEX_SCENE := "res://map/index.res"
 const INDEX_JSON := "res://map/index.json"
 const PROXY_SCENE := "res://map/proxies.scn"
@@ -50,6 +58,15 @@ const CAR_REACH := 40.0
 const WARM_UP := 120
 ## Main-thread time a frame for adding sector nodes (microseconds).
 const BUDGET_USEC := 3000
+## Loop 3d-2b: the look-ahead. The sectors the focus will need this many seconds on (its square
+## and the view moved along the focus's velocity) are wanted now, nearest the view first; at
+## most LOOK_AHEAD_MAX metres ahead. A focus that moves more than JUMP metres a frame jumped
+## (a tow, a race start): no velocity from that.
+const LOOK_AHEAD := 4.0
+const LOOK_AHEAD_MAX := 400.0
+const JUMP := 60.0
+## The look-ahead's tests run for a sector every this many frames (a share of them each frame).
+const AHEAD_EVERY := 4
 
 ## A sector's root got its nodes (before they go into the tree, and again once all are in):
 ## main.gd gives them the time of day, the quality's shadows, the fine detail and --exp.
@@ -63,6 +80,12 @@ var load_all := false
 ## --sectors=proxies: only the sectors the car needs, the rest as proxies (to look at them).
 var proxies_only := false
 var log := false
+## Loop 3d-2b: --stream-ahead=0 switches the look-ahead off (a before/after on one build);
+## --stream-slow=MS makes every worker load MS ms longer (a phone's slower loads on the Mac).
+var look_ahead := true
+var slow_ms := 0
+## Loop 3d-2b: --stream-gate=0 loads a sector's pieces with its scene at once (the old way).
+var gate_pieces := true
 var keys: Array[Vector2i] = []
 ## The web loop 2: on the web, where the sector scenes come from (sector_packs.gd; main.gd sets
 ## it). A sector loads once its pack is in; null on every other build.
@@ -77,6 +100,25 @@ var _state := {}
 var _thread: Thread
 var _task_key := Vector2i.ZERO
 var _task_root: Node3D
+## Loop 3d-2b: the worker loads a prebuilt sector's pieces (its meshes, MultiMeshes and collider
+## patches, saved one per file by tools/bake_city.gd) one a frame: after each it waits at this gate, which the main
+## thread opens once a frame (update), so the renderer makes a piece's GPU buffers a frame instead
+## of the whole sector's in one (BACKLOG "From loop G0+": 25-65 ms frames on the iPhone 11).
+var _gate := Semaphore.new()
+var _gate_lock := Mutex.new()
+var _gate_waiting := false
+var _quitting := false
+## The main thread waits for the worker (a sector needed at once): no more gates.
+var _rush := false
+## Pieces the worker loads before it waits at the gate: 1, or URGENT_PIECES while a sector in the
+## view isn't in yet (its proxy shows: better a busier frame than a longer gap).
+var _pieces_per_frame := 1
+const URGENT_PIECES := 4
+## Loop 3d-2b: the slowest frame (usec) while the sector now loading was loaded and added, and
+## per streamed sector that slowest frame (ms): what a load costs the frame, wherever it lands.
+var _window_max := 0
+var _window_on := false
+var load_frame_ms := PackedFloat32Array()
 ## --stream-log (loop G0+): when the worker started, loaded and instantiated (usec), and each
 ## update's start in the meantime, to name the slowest frame during a load and what it overlapped.
 var _task_t := PackedInt64Array([0, 0, 0])
@@ -100,7 +142,20 @@ var missing_frames := 0
 var forced := 0
 var loads := 0
 var unloads := 0
+## Loop 3d-2b: the most sectors in full detail (or being added) at once, and the loads that waited
+## for a map slot (or took one from a sector kept only by the hysteresis).
+var max_loaded := 0
+## Loop 3d-2b: the first frames that missed a sector in view: frame, sector, its state.
+var missing_log: Array[String] = []
+var slot_waits := 0
+var evictions := 0
 var _view_planes: Array[Plane] = []
+## Loop 3d-2b: the view's planes moved along the look-ahead, the focus's velocity (m/s, smoothed)
+## and where it was the frame before.
+var _ahead_planes: Array[Plane] = []
+var _focus_vel := Vector3.ZERO
+var _last_focus := Vector3.INF
+var ahead := Vector3.ZERO
 ## Loop G0+: each streamed sector's main-thread ms (the forced and start-up loads apart), and per
 ## kind of step (a node class added, the hand-over, the finish, an unload) its count, total and
 ## worst usec, for the soak's result.
@@ -115,7 +170,6 @@ func open(world: Node3D, use_prebuilt: bool, building_mat: ShaderMaterial, flat_
 	prebuilt = use_prebuilt and ResourceLoader.exists(INDEX_SCENE)
 	if prebuilt:
 		map = (load(INDEX_SCENE) as PackedScene).instantiate()
-		map.attach_maps()  # the web's first download: the AO and lamp-light maps
 	else:
 		map = MapBuilder.new()
 		var index: Variant = JSON.parse_string(FileAccess.get_file_as_string(INDEX_JSON))
@@ -127,6 +181,8 @@ func open(world: Node3D, use_prebuilt: bool, building_mat: ShaderMaterial, flat_
 	world.add_child(map)
 	for k: Array in map.index_data["sectors"]["keys"]:
 		keys.append(Vector2i(int(k[0]), int(k[1])))
+	# Loop 3d-2b: the baked maps' slots, one per sector in full detail (all of them with --sectors=all).
+	map.open_maps(keys, keys.size() if load_all else CityMaps.SLOTS)
 	var t_index := Time.get_ticks_msec() - t0
 	if not prebuilt:
 		# The runtime path: every sector's cells of the roof and picking grids first (missions,
@@ -186,7 +242,6 @@ static func open_whole(parent: Node, use_prebuilt: bool) -> Node3D:
 	var keys: Array[Vector2i] = []
 	if use_prebuilt:
 		map = (load(INDEX_SCENE) as PackedScene).instantiate()
-		map.attach_maps()
 		parent.add_child(map)
 	else:
 		map = MapBuilder.new()
@@ -211,6 +266,12 @@ static func open_whole(parent: Node, use_prebuilt: bool) -> Node3D:
 ## Quitting: the worker's load or build ends before the map it reads goes, and what is not in
 ## the tree (its result, the nodes still queued) is freed.
 func _exit_tree() -> void:
+	_gate_lock.lock()
+	_quitting = true
+	if _gate_waiting:
+		_gate_waiting = false
+		_gate.post()
+	_gate_lock.unlock()
 	if _thread != null:
 		_thread.wait_to_finish()
 		_thread = null
@@ -230,6 +291,9 @@ func update(focus: Vector3, car: Vector3, cam: Camera3D) -> void:
 	frame_usec.append(t0 - _last_tick)
 	_last_tick = t0
 	frame += 1
+	_open_gate()
+	if _window_on and frame > WARM_UP:
+		_window_max = maxi(_window_max, frame_usec[-1])
 	if log:
 		if _thread != null:
 			_task_ticks.append(t0)
@@ -241,6 +305,8 @@ func update(focus: Vector3, car: Vector3, cam: Camera3D) -> void:
 		busy_usec.append(0)
 		return
 	_view_planes = cam.get_frustum() if cam != null else []
+	_look_ahead(focus)
+	var focus2 := focus + ahead
 	var car_key := MapBuilder.sector_of(car.x, car.z)
 	var missing := false
 	# The car's own sector must be in, and any within CAR_REACH of it (their colliders): load them
@@ -254,20 +320,54 @@ func update(focus: Vector3, car: Vector3, cam: Camera3D) -> void:
 		stream_usec.append(Time.get_ticks_usec() - t0)
 		busy_usec.append(stream_usec[-1] if _worked else 0)
 		return
-	for key in keys:
+	var in_full := 0
+	for ki in keys.size():
+		var key := keys[ki]
 		var st: Dictionary = _state[key]
-		# The view tests from the widest grow in (a sector far off is out of every one).
-		var keep_view := _in_reach(key, focus, VIEW_RANGE) and _in_view(key, VIEW_KEEP)
-		var want_view := keep_view and _in_view(key, VIEW_GROW)
-		var want := want_view or _in_reach(key, focus, LOAD_REACH)
+		if st["s"] == IN or st["s"] == ADDING:
+			in_full += 1
+		# Loop 3d-2b: the cheap square tests first, the view's only where they don't decide (the
+		# view tests were most of the streamer's frame once the look-ahead doubled them).
+		var near := _in_reach(key, focus, LOAD_REACH)
+		var want := near
+		var keep := near or _in_reach(key, focus, KEEP_REACH)
+		var seen := false
+		if _in_reach(key, focus, VIEW_RANGE):
+			if not want and _in_view(key, VIEW_GROW):
+				want = true
+			if not keep and (want or _in_view(key, VIEW_KEEP)):
+				keep = true
+			seen = want and st["s"] != IN and _in_view(key, 0.0)  # in the view itself: it shows its proxy
+		# And where the focus will be: its square, the view moved there. A quarter of the sectors a
+		# frame (the answer is seconds ahead; a frame's delay is nothing), kept in between.
+		var later: int = st.get("ahead", 0)
+		if ahead == Vector3.ZERO:
+			later = 0
+		elif (ki + frame) % AHEAD_EVERY == 0:
+			var ahead_range := _in_reach(key, focus2, VIEW_RANGE)
+			later = 0
+			if _in_reach(key, focus2, LOAD_REACH) or (ahead_range and _in_view(key, VIEW_GROW, _ahead_planes)):
+				later = 2
+			elif _in_reach(key, focus2, KEEP_REACH) or (ahead_range and _in_view(key, VIEW_KEEP, _ahead_planes)):
+				later = 1
+		st["ahead"] = later
+		want = want or later == 2
+		keep = keep or want or later >= 1
+		st["want"] = want
+		# Which wanted sector loads first: one in the view now, then the nearest the focus ahead.
+		st["prio"] = 0.0 if seen else 1.0 + (Vector2(key) + Vector2(0.5, 0.5)).distance_squared_to(Vector2(focus2.x, focus2.z) / SECTOR)
 		if want and st["s"] == QUEUED:
-			_state[key] = {"s": WANTED, "t0": Time.get_ticks_usec(), "ms": 0.0}
-		elif not want and st["s"] != QUEUED and not keep_view and not _in_reach(key, focus, KEEP_REACH):
+			_state[key] = {"s": WANTED, "t0": Time.get_ticks_usec(), "ms": 0.0, "want": true, "prio": st["prio"], "ahead": later}
+		elif not keep and st["s"] != QUEUED:
 			_unload(key)
-		elif want_view and st["s"] != IN and _in_view(key, 0.0):
+		elif seen and st["s"] != IN:
 			missing = true
+			if missing_log.size() < 40:
+				missing_log.append("%d %s %s" % [frame, MapBuilder.sector_name(key), ["queued", "wanted", "loading", "adding", "in"][int(st["s"])]])
 	if missing:
 		missing_frames += 1
+	_pieces_per_frame = URGENT_PIECES if missing else 1
+	max_loaded = maxi(max_loaded, in_full)
 	var t1 := Time.get_ticks_usec()
 	# One step a frame: a finished sector handed over (its state applied, its nodes queued), or
 	# its queued nodes added within the budget.
@@ -276,9 +376,58 @@ func update(focus: Vector3, car: Vector3, cam: Camera3D) -> void:
 	var t2 := Time.get_ticks_usec()
 	stream_usec.append(t2 - t0)
 	busy_usec.append(t2 - t0 if _worked else 0)
+	_window_on = _thread != null or _any_adding()
 	if log and t2 - t0 > BUDGET_USEC:
 		print("stream: frame %d took %.2f ms (the tests %.2f, loading and adding %.2f)" % [frame, (t2 - t0) / 1000.0,
 				(t1 - t0) / 1000.0, (t2 - t1) / 1000.0])
+
+
+## Loop 3d-2b: lets the worker load its next piece (once a frame, when it waits for it).
+func _open_gate() -> void:
+	_gate_lock.lock()
+	if _gate_waiting:
+		_gate_waiting = false
+		_gate.post()
+	_gate_lock.unlock()
+
+
+## Loop 3d-2b, on the worker: waits for the main thread's next frame.
+func _wait_gate() -> void:
+	_gate_lock.lock()
+	if _rush or _quitting:
+		_gate_lock.unlock()
+		return
+	_gate_waiting = true
+	_gate_lock.unlock()
+	_gate.wait()
+
+
+func _any_adding() -> bool:
+	for key in keys:
+		if _state[key]["s"] == ADDING:
+			return true
+	return false
+
+
+## Loop 3d-2b: the focus's velocity (smoothed over a quarter second; a jump resets it) and the
+## look-ahead from it: `ahead` and the view's planes moved by it.
+func _look_ahead(focus: Vector3) -> void:
+	var dt := maxf(get_process_delta_time(), 1e-3)
+	if _last_focus == Vector3.INF or Vector2(focus.x - _last_focus.x, focus.z - _last_focus.z).length() > JUMP:
+		_focus_vel = Vector3.ZERO
+	else:
+		var v := Vector3(focus.x - _last_focus.x, 0.0, focus.z - _last_focus.z) / dt
+		_focus_vel = _focus_vel.lerp(v, 1.0 - exp(-dt * 4.0))
+	_last_focus = focus
+	ahead = Vector3.ZERO
+	_ahead_planes.clear()
+	if not look_ahead or _focus_vel.length() < 2.0:
+		return
+	ahead = _focus_vel * LOOK_AHEAD
+	if ahead.length() > LOOK_AHEAD_MAX:
+		ahead = ahead.normalized() * LOOK_AHEAD_MAX
+	for pl in _view_planes:
+		_ahead_planes.append(Plane(pl.normal, pl.d + pl.normal.dot(ahead)))
 
 
 ## Loads and adds every sector the view needs now (blocking): before a screenshot.
@@ -287,6 +436,38 @@ func finish_view(focus: Vector3, cam: Camera3D) -> void:
 	for key in keys:
 		if _state[key]["s"] != IN and (_in_reach(key, focus, LOAD_REACH) or _in_view(key, VIEW_GROW)):
 			_load_now(key)
+
+
+## Loop 3d-2b: the numbers start over (a scripted pass, once its start is loaded).
+func reset_stats() -> void:
+	stream_usec.clear()
+	frame_usec.clear()
+	busy_usec.clear()
+	sector_ms.clear()
+	load_frame_ms.clear()
+	_window_max = 0
+	_kinds.clear()
+	missing_frames = 0
+	forced = 0
+	loads = 0
+	unloads = 0
+	max_loaded = 0
+	missing_log.clear()
+	slot_waits = 0
+	evictions = 0
+	frame = 0
+	_last_tick = Time.get_ticks_usec()
+
+
+## Loop 3d-2b: nothing wanted, loading or being added.
+func idle() -> bool:
+	if _thread != null:
+		return false
+	for key in keys:
+		var s: int = _state[key]["s"]
+		if s == WANTED or s == LOADING or s == ADDING:
+			return false
+	return true
 
 
 ## Sectors in full detail now.
@@ -335,6 +516,12 @@ func stats() -> Dictionary:
 					snappedf(busy_usec[i] / 1000.0, 0.01) if i < busy_usec.size() else 0.0])
 	var per_sector := Array(sector_ms)
 	per_sector.sort()
+	var windows := Array(load_frame_ms)
+	windows.sort()
+	var plain := []
+	for i in range(WARM_UP, frame_usec.size()):
+		plain.append(frame_usec[i] / 1000.0)
+	plain.sort()
 	var kinds := {}
 	for k: String in _kinds:
 		var v: Array = _kinds[k]
@@ -346,13 +533,19 @@ func stats() -> Dictionary:
 			"busy_p99_ms": busy[mini(busy.size() - 1, int(busy.size() * 0.99))] / 1000.0 if not busy.is_empty() else 0.0,
 			"slowest_busy_frame_ms": worst / 1000.0, "slowest_busy_frame": worst_frame,
 			"frames_over_33ms": slow, "frames_over_33ms_streaming": slow_busy,
-			"missing_frames": missing_frames, "forced": forced,
+			"missing_frames": missing_frames, "forced": forced, "max_loaded": max_loaded,
+			"slot_waits": slot_waits, "evictions": evictions, "missing_log": missing_log,
 			"frames_over_budget": over_budget, "slow_frames": slow_list,
 			"sector_ms": {"n": per_sector.size(),
 				"median": per_sector[per_sector.size() / 2] if not per_sector.is_empty() else 0.0,
 				"p99": per_sector[mini(per_sector.size() - 1, int(per_sector.size() * 0.99))] if not per_sector.is_empty() else 0.0,
 				"max": per_sector[-1] if not per_sector.is_empty() else 0.0},
-			"kinds": kinds}
+			"kinds": kinds,
+			"frame_median_ms": plain[plain.size() / 2] if not plain.is_empty() else 0.0,
+			"load_frame_ms": {"n": windows.size(),
+				"median": windows[windows.size() / 2] if not windows.is_empty() else 0.0,
+				"p90": windows[mini(windows.size() - 1, int(windows.size() * 0.9))] if not windows.is_empty() else 0.0,
+				"max": windows[-1] if not windows.is_empty() else 0.0}}
 
 
 ## The streaming numbers for a log line.
@@ -395,7 +588,7 @@ func _poll_worker(focus: Vector3) -> bool:
 	var best_d := INF
 	for key in keys:
 		if _state[key]["s"] == WANTED:
-			var d := (Vector2(key) + Vector2(0.5, 0.5)).distance_squared_to(Vector2(focus.x, focus.z) / SECTOR)
+			var d: float = _state[key].get("prio", (Vector2(key) + Vector2(0.5, 0.5)).distance_squared_to(Vector2(focus.x, focus.z) / SECTOR))
 			if packs != null and not packs.is_ready(key):
 				packs.want(key, d)
 				continue
@@ -403,6 +596,11 @@ func _poll_worker(focus: Vector3) -> bool:
 				best_d = d
 				best = key
 	if best_d < INF:
+		# Loop 3d-2b: a map slot for it first (a sector kept only by the hysteresis gives its up);
+		# with none, it waits (its proxy shows).
+		if not _make_room(focus, false):
+			slot_waits += 1
+			return handed
 		_state[best]["s"] = LOADING
 		_task_key = best
 		_task_ticks.clear()
@@ -421,7 +619,19 @@ func _poll_worker(focus: Vector3) -> bool:
 ## On the worker (or the main thread when it can't wait): one sector's root, not in the tree.
 func _make(key: Vector2i) -> void:
 	_task_t[0] = Time.get_ticks_usec()
+	if slow_ms > 0 and _thread != null and OS.get_thread_caller_id() != OS.get_main_thread_id():
+		OS.delay_msec(slow_ms)
 	if prebuilt:
+		# Loop 3d-2b: on the worker, the sector's pieces first, one a frame (held here until the
+		# scene, which refers to them by path, has them from the cache).
+		var held: Array[Resource] = []
+		if gate_pieces and OS.get_thread_caller_id() != OS.get_main_thread_id():
+			for n in int(map.sector_pieces.get(key, 0)):
+				if _quitting:
+					break
+				held.append(ResourceLoader.load(_piece_path(key, n)))
+				if (n + 1) % _pieces_per_frame == 0:
+					_wait_gate()
 		var scene := ResourceLoader.load(_scene_path(key), "PackedScene", ResourceLoader.CACHE_MODE_IGNORE) as PackedScene
 		_task_t[1] = Time.get_ticks_usec()
 		_task_root = scene.instantiate() as Node3D if scene != null else null
@@ -484,7 +694,14 @@ func _on_process_frame() -> void:
 func _drop_task() -> void:
 	if _thread == null:
 		return
+	_gate_lock.lock()
+	_rush = true
+	if _gate_waiting:
+		_gate_waiting = false
+		_gate.post()
+	_gate_lock.unlock()
 	_thread.wait_to_finish()
+	_rush = false
 	_thread = null
 	if _task_root != null:
 		if _state.has(_task_key) and _state[_task_key]["s"] == LOADING:
@@ -503,6 +720,10 @@ func _start_adding(key: Vector2i, root: Node3D) -> void:
 		packs.release(key)  # the web loop 2: loaded; its pack's megabyte goes (fetched again if wanted again)
 	root.visible = false
 	sector_ready.emit(root)
+	# Loop 3d-2b: its slices of the baked maps go into a map slot first, one map a step.
+	var slices: Array = root.get_meta("map_slices", [])
+	if root.has_meta("map_slices"):
+		root.remove_meta("map_slices")
 	var queue: Array[Node] = []
 	for c in root.get_children():
 		root.remove_child(c)
@@ -515,6 +736,8 @@ func _start_adding(key: Vector2i, root: Node3D) -> void:
 	st["s"] = ADDING
 	st["root"] = root
 	st["queue"] = queue
+	st["maps"] = slices
+	st["map_part"] = 0
 	st["ms"] = float(st.get("ms", 0.0)) + (Time.get_ticks_usec() - t) / 1000.0
 	_count_kind("(hand-over)", Time.get_ticks_usec() - t)
 
@@ -543,6 +766,26 @@ func _add_nodes(t0: int) -> void:
 		var queue: Array = st["queue"]
 		var root: Node3D = st["root"]
 		var added := 0
+		var slices: Array = st.get("maps", [])
+		while not slices.is_empty() and int(st["map_part"]) < 3:
+			# Loop 3d-2b: one map's slice a step, as a node is (~0.5 MB to the GPU each).
+			var expect_map: int = _add_cost.get("(maps)", 300)
+			if added > 0 and Time.get_ticks_usec() - t0 + expect_map > BUDGET_USEC:
+				return
+			var tm := Time.get_ticks_usec()
+			if not map.city_maps.attach(key, slices, int(st["map_part"])):
+				push_warning("sectors: no map slot for %s" % MapBuilder.sector_name(key))
+				st["map_part"] = 3
+				break
+			st["map_part"] = int(st["map_part"]) + 1
+			_worked = true
+			added += 1
+			var um := Time.get_ticks_usec() - tm
+			_add_cost["(maps)"] = maxi(um, int(_add_cost.get("(maps)", 0) * 0.9))
+			_count_kind("(maps)", um)
+			st["ms"] = float(st["ms"]) + um / 1000.0
+		if int(st.get("map_part", 3)) >= 3:
+			st["maps"] = []
 		while not queue.is_empty():
 			var node: Node = queue.front()
 			# The next node goes in only if what that kind cost lately still fits the budget
@@ -577,10 +820,14 @@ func _finish(key: Vector2i) -> void:
 	var st: Dictionary = _state[key]
 	var root: Node3D = st["root"]
 	root.visible = true
+	map.city_maps.show(key)  # loop 3d-2b: the shaders read its map slices from now on
 	if _proxy.has(key):
 		(_proxy[key] as MeshInstance3D).visible = false
 	st["s"] = IN
 	loads += 1
+	if _window_max > 0:
+		load_frame_ms.append(_window_max / 1000.0)
+	_window_max = 0
 	sector_ready.emit(root)
 	if log:
 		print("stream: frame %d in %s, %.2f ms on the main thread (slowest node %.2f: %s), %.0f ms after it was wanted" % [
@@ -612,10 +859,45 @@ func _load_now(key: Vector2i) -> void:
 			_start_adding(key, root)
 	var queue: Array = _state[key]["queue"]
 	var parent: Node3D = _state[key]["root"]
+	var slices: Array = _state[key].get("maps", [])
+	if not slices.is_empty() and int(_state[key].get("map_part", 0)) < 3:
+		if not map.city_maps.has(key):
+			_make_room(Vector3((key.x + 0.5) * SECTOR, 0.0, (key.y + 0.5) * SECTOR), true, key)
+		if not map.city_maps.attach(key, slices):
+			push_warning("sectors: no map slot for %s" % MapBuilder.sector_name(key))
+		_state[key]["maps"] = []
+		_state[key]["map_part"] = 3
 	while not queue.is_empty():
 		parent.add_child(queue.pop_front())
 	_state[key]["ms"] = (Time.get_ticks_usec() - t) / 1000.0
 	_finish(key)
+
+
+## Loop 3d-2b: a free map slot (city_maps.gd SLOTS) for a sector about to load. Takes one from
+## the farthest sector in full detail that is no longer wanted (kept only by the hysteresis);
+## with `force` (a sector needed at once) from the farthest one not round the car's either.
+## False when there is none to take.
+func _make_room(focus: Vector3, force: bool, keep := Vector2i(1 << 20, 0)) -> bool:
+	if map.city_maps.free_slots() > 0:
+		return true
+	var best := Vector2i.ZERO
+	var best_d := -1.0
+	for pass_force in ([false, true] if force else [false]):
+		for key in keys:
+			var st: Dictionary = _state[key]
+			if st["s"] != IN or key == keep or (not pass_force and bool(st.get("want", false))):
+				continue
+			var d := (Vector2(key) + Vector2(0.5, 0.5)).distance_squared_to(Vector2(focus.x, focus.z) / SECTOR)
+			if d > best_d:
+				best_d = d
+				best = key
+		if best_d >= 0.0:
+			break
+	if best_d < 0.0:
+		return false
+	_unload(best)
+	evictions += 1
+	return map.city_maps.free_slots() > 0
 
 
 func _unload(key: Vector2i) -> void:
@@ -633,6 +915,7 @@ func _unload(key: Vector2i) -> void:
 			c.free()
 		root.queue_free()
 		_count_kind("(unload)", Time.get_ticks_usec() - t)
+	map.city_maps.detach(key)  # loop 3d-2b: its map slot is free again
 	_state[key] = {"s": QUEUED}
 	if _proxy.has(key):
 		(_proxy[key] as MeshInstance3D).visible = true
@@ -652,26 +935,43 @@ func _in_reach(key: Vector2i, p: Vector3, reach: float) -> bool:
 
 ## Whether the sector's box (its ground to its tallest roof, grown by `grow` metres round)
 ## meets the camera's frustum.
-func _in_view(key: Vector2i, grow: float) -> bool:
-	if _view_planes.is_empty():
+func _in_view(key: Vector2i, grow: float, planes: Array[Plane] = _view_planes) -> bool:
+	if planes.is_empty():
 		return false
 	var h: Vector2 = map.sector_heights.get(key, Vector2(-30.0, 120.0))
 	var lo := Vector3(key.x * SECTOR - grow, h.x, key.y * SECTOR - grow)
 	var hi := Vector3((key.x + 1) * SECTOR + grow, h.y, (key.y + 1) * SECTOR + grow)
-	for plane in _view_planes:
-		var out := true
-		for c in 8:
-			var p := Vector3(hi.x if c & 1 else lo.x, hi.y if c & 2 else lo.y, hi.z if c & 4 else lo.z)
-			if not plane.is_point_over(p):
-				out = false
-				break
-		if out:
+	# Loop 3d-2b: the box is out when its corner deepest inside a plane (the frustum's planes face
+	# out) is still over it: one corner a plane, not eight (the look-ahead doubled these tests).
+	for plane in planes:
+		var n := plane.normal
+		var inner := Vector3(hi.x if n.x < 0.0 else lo.x, hi.y if n.y < 0.0 else lo.y, hi.z if n.z < 0.0 else lo.z)
+		if n.dot(inner) > plane.d:
+			return false
+	return true
+
+
+## Loop 3d-2b: whether the sector's ground and low buildings (its lowest ground to its highest
+## ground + `tall` metres, grown by `grow`) meet the camera's view: a sector in view with only its
+## towers is the far level's.
+func ground_in_view(key: Vector2i, grow: float, tall: float, planes: Array[Plane]) -> bool:
+	var h: Vector2 = map.sector_heights.get(key, Vector2(-30.0, 120.0))
+	var top: float = float(map.sector_ground.get(key, h.y)) + tall
+	var lo := Vector3(key.x * SECTOR - grow, h.x, key.y * SECTOR - grow)
+	var hi := Vector3((key.x + 1) * SECTOR + grow, top, (key.y + 1) * SECTOR + grow)
+	for plane in planes:
+		var n := plane.normal
+		if n.dot(Vector3(hi.x if n.x < 0.0 else lo.x, hi.y if n.y < 0.0 else lo.y, hi.z if n.z < 0.0 else lo.z)) > plane.d:
 			return false
 	return true
 
 
 func _scene_path(key: Vector2i) -> String:
 	return "res://map/sectors/%s.scn" % MapBuilder.sector_name(key)
+
+
+func _piece_path(key: Vector2i, n: int) -> String:
+	return "res://map/sectors/%s/%d.res" % [MapBuilder.sector_name(key), n]
 
 
 static func _key_of(node_name: String) -> Vector2i:

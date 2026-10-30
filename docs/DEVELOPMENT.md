@@ -2500,8 +2500,8 @@ The demo's bigger box (loop 3d) only adds sectors.
   centrum.json's shape: every way, area or building within 48 m of the sector, with its full
   geometry (a way crossing a border is in both), every point thing within 8 m, a floating
   part's supports, each building's surroundings for its shop sign (roads within 40 m, roofs
-  within 8 m), the LoD2 buildings near it (`lod2_runs`: vertex ranges of `lod2.bin`). The AO,
-  lamp-light and surface maps stay whole, one texture each shared by every sector (see below).
+  within 8 m), the LoD2 buildings near it (`lod2_runs`: vertex ranges of `lod2.bin`). Loop 3d-2b:
+  the AO, lamp-light and surface maps travel with the sectors as slices (see below).
 - **One sector** (`map_builder.gd` `build_sector`) runs the same stages as the whole city over its
   file and keeps only the triangles (by their centre, so each 256 m tile is in exactly one
   sector), MultiMesh instances (by position, 512 m tiles = sectors) and collider faces (by centre)
@@ -2541,11 +2541,12 @@ The demo's bigger box (loop 3d) only adds sectors.
   missions live on the global lane graph; new sectors get the time of day, the quality's and the
   governor's small-caster shadows, the fine detail and `--exp` from main.gd (`_on_sector_ready`).
   The minimap stays one global mesh (today's map is small; loop 3d's pre-rendered image waits).
-- **The AO, lamp-light and surface maps** stay one texture each (24 MB of video memory today):
-  the post pass (water reflections) and the moving vehicles sample the light and surface maps
-  anywhere on screen, so per-sector slices need a resident window texture, which on today's
-  3.5 × 1.8 km map would be bigger than the whole maps. Loop 3d (6 × 6 km: ~150 MB as whole
-  textures) needs that window: see docs/BACKLOG.md.
+- **The AO, lamp-light and surface maps** (loop 3d-2b, "Loop 3d-2b" below): each sector carries
+  its slices (the whole map's texels over the sector and 2 round it) and puts them into a slot of
+  three texture arrays when it comes in (`city_maps.gd`); every shader reads them by world
+  position through a one-texel-per-sector table (`city_maps.gdshaderinc`), the vehicles and the
+  post pass included. Before, they were one texture each over the whole map (93 MB on the demo
+  map).
 
 | Loop 3c numbers (Mac, Metal, mobile renderer) | Before (monolithic `city.scn`) | After (streamed) |
 | --- | --- | --- |
@@ -3162,6 +3163,114 @@ the minimap's random markers and single texels; overlays in `shots/loop3d2a_afte
 check_drape, check_roads (C11 1 allowed), check_streaming (identity over 108 sectors, 0.789 % at
 spot 8 as before) unchanged.
 
+## Loop 3d-2b: the map engine, part two: maps per sector, look-ahead, the load hitch (2026-10-30)
+
+ROADMAP "The road to the 1.0 demo" row 3d-2's second half (far levels, look-ahead streaming, the
+one-frame-per-load hitch) and BACKLOG "From loop 3d-1"'s AO, lamp-light and surface maps.
+
+**Measured first** (new probe line `probe far level:`: the proxies in the view and their triangles,
+the sectors in full detail, and the nodes in view from sectors whose ground and low buildings are
+out of the view; new `--heli-alt=M`; new `--stream-pass=heli|car` with `--stream-ahead=0`,
+`--stream-slow=MS`, `--stream-gate=0`; new soak numbers `load_frame_ms`, `max_loaded`,
+`missing_log`): the table below, before → after.
+
+| Probe (2868×1320, Metal mobile, prebuilt) | Draw calls, all passes | Main-pass triangles | Static / video MB (textures) before | after | Sectors in full | Proxies in view |
+| --- | --- | --- | --- | --- | --- | --- |
+| Spawn | 135 → 135 | 0.28 → 0.28 M | 227 / 406 (94) | 228 / **300 (38)** | 12 | 0 |
+| River (`--at=1135.7,-198.1 --heading=72`) | 103 → 103 | 0.21 → 0.21 M | 215 / 407 (94) | 216 / 286 (38) | 12 | 0 |
+| Zoomed out (+ `--size=220`) | 148 → 148 | 0.44 → 0.44 M | 217 / 398 (94) | 217 / 291 (38) | 13 | 0 |
+| Helicopter (`--at=1300,-420 --heading=60 --heli --size=150`) | 217 → 217 | 0.47 → 0.47 M | 221 / 398 (93) | 222 / 293 (37) | 16 | 0 |
+| Helicopter at its highest over the centre (`--at=-800,100 --heli-alt=360`) | 359 → 357 | 0.67 → 0.67 M | 244 / 450 (93) | 245 / 344 (37) | 19 | 0 |
+| Helicopter at its highest over Praga (`--at=1500,-500 --heli-alt=360`) | 272 → 272 | 0.54 → 0.54 M | 222 / 401 (93) | 223 / 293 (37) | 18 | 0 |
+
+**1. The AO, lamp-light and surface maps per sector** (`scripts/city_maps.gd`,
+`shaders/city_maps.gdshaderinc`). Each sector carries its slice of each map: the whole map's own
+texels over the sector and `CityMaps.MARGIN` (2) round it, the map's edge repeated past its end
+(`map_builder.gd` `map_slices`; 516² RG8 for the AO and light maps, 260² RGBA8 for the surface
+map, 1.33 MB a sector). The prebuilt sector keeps them in its scene (`map_slices` metadata); the
+runtime path reads them from the `.bin` files' rows as it builds a sector (the lamp-light map from
+the image it keeps for the lamp heads); `--monolithic` puts every sector's in at once. When a sector is added the streamer puts its slices into a free layer of three
+`Texture2DArray`s (one map a step within the frame's budget: 0.04 ms mean, 0.24 ms worst on the
+Mac) and a table of one texel per sector (the layer + 1) says where; it gives the layer back when
+the sector goes. Every shader reads the maps by world position through global uniforms
+(`project.godot` `[shader_globals]` `city_*`): the ground (AO, surface), every `night.gdshaderinc`
+user (lamp light: buildings, trees, props, the vehicles) and the post pass (surface): no per-material
+maps any more, `map_maps`/`attach_maps`/`light_texture`/`water_texture` are gone. A slice's texels
+are the whole map's at the same places, so sectors meet without a seam and the look is the same
+(the 10 spots at night in rain against the old code: 0.003-0.10 % of the pixels differ, the
+minimap's random markers and single depth-edge texels, as two runs of the old code differ;
+check_streaming's 10 spots now 0.011-0.059 %, spot 8 0.015 % where it was 0.789 %). Where no
+sector is in (a proxy) the maps read empty. The arrays have `CityMaps.SLOTS` = 24 layers (the
+3-minute soak's most sectors in full at once: 23-24, the passes 15-20); a load that finds none free
+takes the one of the farthest sector kept only by the hysteresis, and with none waits (proxy).
+**Textures 94 → 38 MB, video at the spawn 406 → 300 MB**, at the highest view over the centre 450
+→ 344 MB. The web loses its `.zst` first download (the slices travel in the sector packs).
+
+**2. Look-ahead** (`sector_streamer.gd` `_look_ahead`): the focus's velocity (smoothed over a
+quarter second; a jump of over 60 m resets it) × `LOOK_AHEAD` 4 s, at most 400 m: the sectors in the
+square round that point and in the view moved there (its planes shifted) are wanted too (tested
+for a quarter of the sectors each frame), and the next load is the wanted sector in the view first,
+then the nearest the point ahead. The view tests take one corner a plane, not eight. With the
+phone's slower loads played on the Mac (`--stream-slow=400`), the helicopter pass missed a sector
+in view in **337 frames without the look-ahead, 0 with it**; the car pass 0 and 0. Streaming ms a
+frame, p99 over all frames, helicopter pass: 0.56 before the loop, 0.62 with the look-ahead off,
+0.72 on (max 1.24, budget 3).
+
+**3. The load hitch, root cause and fix.** The slow frame came at the end of a sector's load, in
+the frame's "to physics" phase. Loading a sector's pieces on the worker cost the main thread
+nothing; loading its scene did (13-20 ms frames on the Mac against 9 for the plain frame), and of
+the scene only its collider: the physics server builds a shape made on another thread on the main
+thread, at once (a `set_faces` of 15,000 faces took 0.1 ms on the worker and stalled the main
+thread 10-20 ms; in 2,000-face pieces, one a frame, no frame went over 10 ms). So: a sector's
+collider faces are now patches of at most `COLLIDER_CHUNK` 1,000 faces, sorted by 64 m cell
+(`map_builder.gd` `_collider_chunks`; the same faces, `check_streaming` identity unchanged), and
+`bake_city.gd` saves every sector's own meshes, MultiMeshes and collider patches as files of their
+own (`sectors/s_<i>_<j>/<n>.res`, 1,762, ~20 a sector), which the worker loads one a frame through a
+gate the main thread opens each frame (four a frame while a sector in the view is missing:
+`URGENT_PIECES`), before the scene that refers to them. The renderer then makes a piece's GPU
+buffers a frame, and the physics server a patch a frame. Helicopter pass, the slowest frame
+between a sector's load start and its last node: **median 16.9 → 10.3 ms, p90 23.0 → 11.6, max
+23.8 → 13.0** (the frames' median 8.3-8.5 ms, the Mac's 120 Hz display). The web's sector packs
+carry the pieces (`pack_sectors.gd`; the Web preset leaves `map/sectors/s_*/*` out of its pack).
+
+**4. Far levels: measured, not built.** The camera is orthographic: every metre on screen is the
+same size, so nothing in the view is far. In every probe view the sectors drawn have their ground
+on screen (0 proxies in view; at the highest view over the centre 2 of 173 main-pass draws come
+from a sector seen only by its towers), and the proxies show only while a sector loads. Painting
+low buildings flat into the proxies would change what the player sees at full size; a far level by
+zoom (the helicopter's highest views as proxies) is a look decision (docs/QUESTIONS.md). Where the
+helicopter views' draw calls go: the helicopter itself is ~33 meshes (26 boxes) in the main and the
+shadow pass (`heli.gd`, the gameplay lane: one mesh with vertex colours would save ~60 draws in
+every flying view), the sectors' ground, building tiles and per-sector MultiMeshes the rest.
+`landmarks.gd` exposes no LOD1 (a proxy needs one per landmark).
+
+| Streaming (Mac, 1280×720, `--fixed-fps 60`, prebuilt) | Before | After |
+| --- | --- | --- |
+| 3-minute soak: loads, frames missing a sector, forced loads | 47, 0, 0 | 47, 0, 0 (at most 24 sectors in full) |
+| Helicopter pass at 360 m and 35 m/s / car pass at 45 m/s: loads, missing | 30, 0 / 27, 0 | 27, 0 / 27, 0 |
+| The same with `--stream-slow=400`, look-ahead off → on: frames missing a sector in view | | heli 337 → 0, car 0 → 0 |
+| Slowest frame while a sector loaded, heli pass: median / p90 / max | 16.9 / 23.0 / 23.8 ms | 10.3 / 11.6 / 13.0 ms |
+| Streaming ms a frame, heli pass: p99 over all frames / max | 0.56 / 0.75 | 0.72 / 1.24 |
+| Map slices to the GPU, a map | | 0.04 ms mean, 0.24 ms worst |
+| Prebuilt city (the phone's pack): sector scenes + pieces, shared | 89.0 + 19.7 MB | 109.5 + 0.1 MB |
+
+| Bench (Mac, Metal, the default window, runtime path, medians of 3 interleaved with a copy of the old code) | Before | After |
+| --- | --- | --- |
+| Day: frame, draw calls, scripts, video (textures) | 8.35 ms, 107, 1.53 ms, 367 MB (138) | 8.33 ms, 107, 1.57 ms, 253 MB (82) |
+| Night | 8.36 ms, 80, 1.55 ms, 357 MB (130) | 8.33 ms, 80, 1.59 ms, 244 MB (74) |
+| Rain at night | 8.36 ms, 80, 1.59 ms, 357 MB (130) | 8.33 ms, 80, 1.70 ms, 240 MB (74) |
+| Static memory, day | 318 MB | 304 MB (the runtime path reads a sector's AO and surface slices from the files' rows; the whole maps never sit in memory) |
+
+The frame is the Mac's 120 Hz display either way; scripts +0.04 to +0.11 ms (the look-ahead's view
+tests, a quarter of the sectors a frame; the run-to-run spread is ±0.1).
+
+check_streaming has the two passes as its part (d) (verify step `streaming`, ~8 min now): no frame
+may miss a sector the view needs, none load at once; the slowest frame while a sector loads is
+printed, over 33 ms a NOTE. What only the phone can show: the iPhone 11's load frames (G0+: 25-65
+ms, one per load) with the pieces one a frame; `tools/device_run.sh --label=stream_soak --wait=600
+--done='^stream soak stats:' -- --notitle --prebuilt --stream-soak=6 --stream-log` reads it
+(`load_frame_ms`).
+
 ## Moja Warszawa notebook (loop MW-1, 2026-10-30)
 
 MOJA WARSZAWA, the city notebook (docs/design/vision.md 4.1): the 72 places of
@@ -3379,7 +3488,8 @@ home screen).
 | Loop 3c: streaming, main thread a frame (Mac, `check_streaming.gd` soak, p99 of the frames that load) | | ≤ 3 ms | ≤ 3 ms |
 | Loop G0+: the same on the iPhone 11 (6-minute `--stream-soak`, max of any frame) | 1.2–1.5 ms (was 32–37) | ≤ 3 ms | ≤ 3 ms |
 | Loop 3c: a frame that loads a sector | | ≤ 33 ms | ≤ 33 ms |
-| Loop G0+: the same on the iPhone 11 | **over**: 19–22 frames of 25–65 ms in 6 minutes, one per load (the render server building the sector's GPU buffers; BACKLOG) | ≤ 33 ms | ≤ 33 ms |
+| Loop G0+: the same on the iPhone 11 | **over**: 19–22 frames of 25–65 ms in 6 minutes, one per load (the render server building the sector's GPU buffers; BACKLOG); loop 3d-2b: the collider was most of it on the Mac (built on the main thread), now a sector's pieces load one a frame (Mac: the slowest load frame 23.8 → 13.0 ms); the phone's to measure | ≤ 33 ms | ≤ 33 ms |
+| Loop 3d-2b: video memory at the spawn (probe, prebuilt) | 300 MB (textures 38: the baked maps' 24 slots, 32 MB) | no growth | no growth |
 | Loop G0+: the iPhone 11 at Auto ×1, 20 minutes each by day, night and rain at night (`--autopilot --governor=log`) | 60.0 fps every minute (59.9 at worst), 18–23 missed refreshes of ~72,000, 0 governor changes, calm | no struggle verdict | no struggle verdict |
 | Loop G1: TEST · BENCH at Auto on the iPhone 11 (High, 896×414) and the Pro Max (Ultra, 1434×660), 60 fps cap | 60 fps, 1 % low 56.6 / 57.3, 0 missed refreshes | 60, 0 missed refreshes, 1 % low ≥ 55 | 60, 0 missed refreshes, 1 % low ≥ 55 |
 | Loop G1b: the iPhone 11 at Auto, now High ×1 sharp (1792×828): BENCH minute, and a 15-minute day drive with the governor on (missed refreshes, governor changes) | BENCH 60 fps, 0 missed, 1 % low 54.4 / 58.7 (cool / warm); drive 60.0 every minute, 5 missed in 17.7 min, 0 governor changes | 60, 0 missed refreshes, 1 % low ≥ 55; the drive with no struggle verdict | 60, 0 missed refreshes, 1 % low ≥ 55; the drive with no struggle verdict (else the content costs the iPhone 11 its sharp default) |
@@ -3554,14 +3664,14 @@ still hold, with the paths above.
    only the first); the map builder still loads an old one-byte map.
 4. `python3 -I tools/bake_lights.py game/map` → `lights.bin`, the street-lamp light map for
    the night (1 m per pixel, sodium and LED, cut off by buildings) and the lamps it adds on
-   bridges. Run it after the bakes above. Like `ao.bin` it ends up in the prebuilt city (the map
-   builder puts it in the materials, saved as `map/shared/light_map.res`), so the export leaves
-   the raw file out.
+   bridges. Run it after the bakes above. Like `ao.bin` it ends up in the prebuilt city (loop
+   3d-2b: as each sector scene's slice, `map_builder.gd` `map_slices`), so the export leaves the
+   raw file out. Its grid must be `ao.bin`'s (the two share a slot grid; the builder says so if not).
 
 5. `python3 -I tools/bake_water.py game/map` → `water.bin`, the surface map (v0.9: shore distance,
    the river's flow, what reflects, bridge-deck heights); a second or two. Only needs
-   `centrum.json`; like `lights.bin` it ends up in the prebuilt city (`map/shared/surface_map.res`
-   and the index's water test), and the export leaves it out.
+   `centrum.json`; like `lights.bin` it ends up in the prebuilt city (the sectors' slices and the
+   index's water test), and the export leaves it out.
 
 6. Loop 3c: `python3 -I tools/bake_sectors.py` → `index.json` and `sectors/<i>_<j>.json`, the map
    in 512 m sectors (about a second; see "Sectors and streaming"). After any of the steps above.
@@ -3569,7 +3679,9 @@ still hold, with the paths above.
 7. Loop 3c: the prebuilt city, **with a renderer** (`--headless` drops MultiMesh and texture
    data): `godot --path game --resolution 320x180 --script res://tools/bake_city.gd` →
    `sectors/s_<i>_<j>.scn` (32), `proxies.scn`, `index.res` and `shared/*.res` (~16 s; it checks
-   the landmark sites found from the index against the whole map's). Also needed after any
+   the landmark sites found from the index against the whole map's). Loop 3d-2b: each sector's own
+   meshes, MultiMeshes and collider patches as files of their own, `sectors/s_<i>_<j>/<n>.res`
+   (1,762 on the demo map, ~20 a sector), and its map slices inside its scene. Also needed after any
    change to `map_builder.gd`, `chunked_surface.gd`, `landmarks.gd`, `neon_signs.gd`,
    `sector_proxies.gd`; `tools/export_ios.sh` runs 6 and 7. `city.scn` is gone (loop 3c).
    Loop 3d-1: it ends by writing `sectors/city.stamp` (the split's digest and the SHA-256 of the
@@ -3768,9 +3880,14 @@ Command-line options (after `--`):
 | `--sectors=all` / `--sectors=proxies` | loop 3c: load every sector at the start and keep them all (the old behaviour) / only the sectors the car stands in, every other one as its proxy (to look at the proxies) |
 | `--stream-log` | loop 3c: print every sector load (`stream: frame N in s_i_j, X ms on the main thread ...`), unload, any frame whose streaming went over 3 ms and any node that took over 1 ms to add; loop G0+: each worker load (`stream: frame N worker s_i_j: load X ms, instantiate Y ms, K frames; slowest frame Z ms (overlapping the load end + instantiate; process after …, draw …, to physics …, physics …, process before …)`) |
 | `--spots=X,Z,H/X,Z,H/...` | loop 3c, with `--shots=F1,F2,...`: the car jumps to spot k (heading H) 90 frames before shot k, the sectors the view needs are finished 30 frames before it (`tools/check_streaming.gd`) |
-| `--stream-soak=MIN` | loop 3c: the car on autopilot over every sector's middle (row by row, through buildings), the view 80 m then 220 m every 20 s, the helicopter for the last third; then `stream soak:` lines and the game quits (no traffic); loop G0+: the same two lines also go to `user://stream_soak_result.txt` (`tools/device_run.sh` copies it back), and `stream soak stats:` adds `frames_over_budget` (frames whose streaming took over 3 ms), `slow_frames` (each frame over 33 ms past the warm-up: frame, ms, the streaming ms in it), `sector_ms` (median, p99, max of a streamed sector's main-thread ms) and `kinds` (per node class added, the hand-over, the finish and the unload: count, total and worst ms) |
+| `--stream-soak=MIN` | loop 3c: the car on autopilot over every sector's middle (row by row, through buildings), the view 80 m then 220 m every 20 s, the helicopter for the last third; then `stream soak:` lines and the game quits (no traffic); loop G0+: the same two lines also go to `user://stream_soak_result.txt` (`tools/device_run.sh` copies it back), and `stream soak stats:` adds `frames_over_budget` (frames whose streaming took over 3 ms), `slow_frames` (each frame over 33 ms past the warm-up: frame, ms, the streaming ms in it), `sector_ms` (median, p99, max of a streamed sector's main-thread ms) and `kinds` (per node class added, the hand-over, the finish and the unload: count, total and worst ms); loop 3d-2b: `stream soak stats:` adds `max_loaded` (most sectors in full at once), `slot_waits` and `evictions` (map slots), `missing_log` (the first frames that missed a sector in view: frame, sector, its state), `frame_median_ms` and `load_frame_ms` (per streamed sector the slowest frame from its worker's start to its last node: median, p90, max) |
+| `--stream-pass=heli` / `--stream-pass=car` | loop 3d-2b: one fast pass instead of the soak's tour: the helicopter at its highest (360 m) and fastest west to east along z −300 (the Palace's north, the river, Praga), or the car at 45 m/s in its top-speed view east to west along z 250; it starts at the route's start facing along it, counts once nothing is left to load, then prints the soak's two lines and quits (no traffic) |
+| `--stream-ahead=0` | loop 3d-2b: no look-ahead (the streamer as before, for a before/after on one build) |
+| `--stream-slow=MS` | loop 3d-2b: every worker load takes MS ms longer (the phone's slower loads on the Mac: `--stream-slow=400` with the look-ahead off misses 337 frames in the helicopter pass, with it 0) |
+| `--stream-gate=0` | loop 3d-2b: a prebuilt sector's pieces load with its scene at once (the old one-frame load end), not one a frame |
 | `--debug-ao` / `--no-ao` | show / switch off the baked ground shadows |
 | `--heli` | start in the helicopter |
+| `--heli-alt=M` | loop 3d-2b: start in the helicopter M metres over the ground, placed there at once (360 = its highest; the memory and far-level probes) |
 | `--mission=N` | start rescue call N at once (N = 1, 5, 9… streets, 2, 6… roofs, 3, 7… river, 4, 8… parks) |
 | `--autopilot` | testing aid: fly (or, ghosting through walls, drive) to each mission target; in a race or a side job, drive the route; with `--rival`, tail the rival |
 | `--no-traffic` | no traffic, trams, pedestrians or rivals |
@@ -3950,7 +4067,9 @@ tools/export_web.sh --deploy   # also upload it (the user's yes first: it is pub
   never see any of it (`SectorPacks.active()` needs the `web` feature and the manifest).
   HTTPRequest on the web reads one network chunk a frame, so a background tab (throttled to
   ~1 fps) loads sectors slowly; in a visible tab the start's six took 0.15-0.3 s locally.
-- **The AO and lamp-light maps as zstd streams** (performance lane, 2026-10-30): they were
+- **The AO and lamp-light maps as zstd streams** (performance lane, 2026-10-30; superseded by
+  loop 3d-2b: the maps are per-sector slices inside the sector scenes, so the web's sector packs
+  carry them and the `.zst` files and `attach_maps` are gone): they were
   18.8 MB of the pack as RG8 `.res` files (Godot's resource compression works in 4 KB blocks,
   so they barely shrank). The prebuilt city now attaches them when it opens
   (`map_builder.gd` `attach_maps`; `bake_city.gd` `_detach_maps` records which materials read

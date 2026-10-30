@@ -10,6 +10,7 @@ const CLOCKWISE_FRONT := true
 const Chunked := preload("res://scripts/chunked_surface.gd")
 const Neon := preload("res://scripts/neon_signs.gd")
 const Landmarks := preload("res://scripts/landmarks.gd")
+const CityMaps := preload("res://scripts/city_maps.gd")
 ## Loop 2c: the parked cars' mesh and paints come from the vehicles' models (one source).
 const Models := preload("res://scripts/models.gd")
 ## Tile size for instanced things (trees, lamps, parked cars). Loop 2b: 512 m (was 256): one
@@ -90,18 +91,29 @@ var data: Dictionary
 @export_storage var flat_material: ShaderMaterial
 ## Every material that opens a see-through hole around the car (trees, parked cars).
 @export_storage var fade_materials: Array[ShaderMaterial] = []
-## The street-lamp light map (tools/bake_lights.py) and the map rectangle it covers;
-## the game hands them to the vehicles' material too.
-@export_storage var light_texture: ImageTexture
+## The street-lamp light map's rectangle (tools/bake_lights.py; _sodium_at reads it).
 @export_storage var light_rect := Vector4(0, 0, 1, 1)
-## The web's first download (2026-10-30), the prebuilt city: the maps attach_maps puts on their
-## materials when the city opens, by name ("ao_map", "light_map"): {materials: the
-## ShaderMaterials that read it} (tools/bake_city.gd _detach_maps).
-@export_storage var map_maps := {}
-## v0.9: the surface map (tools/bake_water.py): distance to the shore, the river's
-## flow, what reflects, bridge-deck heights; the ground shader and the post pass read it.
-@export_storage var water_texture: ImageTexture
+## v0.9: the surface map's rectangle (tools/bake_water.py: distance to the shore, the river's
+## flow, what reflects, bridge-deck heights; the ground shader and the post pass read it).
 @export_storage var water_rect := Vector4(0, 0, 1, 1)
+## Loop 3d-2b: the AO, lamp-light and surface maps reach the GPU per sector (city_maps.gd): their
+## grids, "fine" (the AO and lamp-light maps) and "surface", each x0, z0, metres a texel, 0. The
+## whole images stay on the CPU only while sectors are built (map_slices), never in index.res.
+@export_storage var map_grids := {}
+## Loop 3d-2b: per sector key, how many of its meshes and MultiMeshes tools/bake_city.gd saved as
+## files of their own (map/sectors/s_<i>_<j>/<n>.res): the streamer's worker loads them one a
+## frame before the sector's scene, so the GPU buffers they make reach the renderer a few a frame.
+@export_storage var sector_pieces := {}
+## Loop 3d-2b: the loaded sectors' map slices on the GPU (sector_streamer.gd, or main.gd for
+## --monolithic: every sector's).
+var city_maps: CityMaps
+## Loop 3d-2b: the AO and surface maps' files and sizes: a sector's slices are read from them
+## (rows of the file), so the whole maps never sit in memory (the lamp-light map's image does,
+## for the lamp heads' colours).
+var _ao_file := ""
+var _ao_size := Vector2i.ZERO
+var _water_file := ""
+var _water_size := Vector2i.ZERO
 ## Loop 10a: the surface map's shore distance (its R channel: a quarter metre per step inside
 ## water, 0 on dry land), one byte per texel, kept on the CPU for the car's water test
 ## (`shore_distance`); stored zstd-packed so the prebuilt city carries it too (the export
@@ -200,6 +212,9 @@ const SECTOR_MARGIN := 48.0
 ## Per sector key: Vector2(lowest ground - 15 m, highest roof or treetop), for the streamer's
 ## view test (a tall tower in a sector off the view's ground can still stand in the view).
 @export_storage var sector_heights: Dictionary = {}
+## Loop 3d-2b: per sector key, its highest ground (the far level: a sector whose ground and low
+## buildings are out of the view, only its towers in it).
+@export_storage var sector_ground: Dictionary = {}
 ## While one sector is built: it, its square, the square grown by the split's margin, its
 ## 2 x 2 tiles, and the roof grid its buildings mark (merged into _roof for its own cells).
 var _in_sector := false
@@ -260,6 +275,7 @@ func setup_streamed(index: Dictionary, building_mat: ShaderMaterial, flat_mat: S
 ## sector whose box meets the camera's view (sector_streamer.gd).
 func measure_sectors() -> void:
 	sector_heights.clear()
+	sector_ground.clear()
 	var step := float(_terrain.get("step", 10.0))
 	for k: Array in index_data.get("sectors", {}).get("keys", []):
 		var key := Vector2i(int(k[0]), int(k[1]))
@@ -284,6 +300,7 @@ func measure_sectors() -> void:
 			for i in range(i0, i1 + 1):
 				top = maxf(top, _roof[j * _roof_nx + i])
 		sector_heights[key] = Vector2((lo if lo < INF else 0.0) - 20.0, top + 2.0)
+		sector_ground[key] = hi if hi > -INF else 0.0
 
 
 ## Loop 3c: the key of the sector holding a point.
@@ -327,6 +344,10 @@ func build_sector(key: Vector2i, roofs_only := false, merge := true) -> Node3D:
 	_build_parts(_marks, roofs_only)
 	if not roofs_only:
 		_build_collision()
+		# Loop 3d-2b: the sector's slices of the baked maps travel with it (saved in its scene).
+		var slices := map_slices(key)
+		if not slices.is_empty():
+			root.set_meta("map_slices", slices)
 	if merge:
 		_merge_roofs()
 	_merge = true
@@ -481,11 +502,10 @@ func _setup(d: Dictionary, building_mat: ShaderMaterial, flat_mat: ShaderMateria
 	_roof_nz = ceili(bounds.size.y / ROOF_CELL)
 	_roof.resize(_roof_nx * _roof_nz)
 	_roof.fill(NO_ROOF)
-	_load_ao(flat_material)
-	_load_water(flat_material)
+	map_grids.clear()
+	_load_ao()
+	_load_water()
 	_load_lights()
-	_apply_lights(flat_material)
-	_apply_lights(building_material)
 	_set_floodlit(building_material)
 	if FileAccess.file_exists("res://map/terrain.json"):
 		_terrain = JSON.parse_string(FileAccess.get_file_as_string("res://map/terrain.json"))
@@ -506,10 +526,11 @@ func _add_mesh(st, material: Material, shadows: bool) -> void:
 		_out.add_child(mi)
 
 
-## The baked occlusion map (tools/bake_ao.py) goes to the ground shader: red the
-## buildings' shade (the occlusion ghost lifts it), green the parked cars' and trees'.
-func _load_ao(material: Material) -> void:
-	if not FileAccess.file_exists("res://map/ao.bin") or not (material is ShaderMaterial):
+## The baked occlusion map (tools/bake_ao.py): red the buildings' shade (the occlusion ghost
+## lifts it), green the parked cars' and trees'. Loop 3d-2b: kept as an image for the sectors'
+## slices (map_slices); the ground shader reads them per sector (city_maps.gdshaderinc).
+func _load_ao() -> void:
+	if not FileAccess.file_exists("res://map/ao.bin"):
 		return
 	var bytes := FileAccess.get_file_as_bytes("res://map/ao.bin")
 	var w := bytes.decode_u32(0)
@@ -517,24 +538,18 @@ func _load_ao(material: Material) -> void:
 	var x0 := bytes.decode_float(8)
 	var z0 := bytes.decode_float(12)
 	var px := bytes.decode_float(16)
-	# Loop 1: two bytes per metre (the buildings' shade, then the parked cars' and trees');
-	# an older one-byte map still loads (as both).
-	var two := bytes.size() >= 20 + w * h * 2
-	var image := Image.create_from_data(w, h, false, Image.FORMAT_RG8 if two else Image.FORMAT_L8,
-			bytes.slice(20, 20 + w * h * (2 if two else 1)))
-	if not two:
-		image.convert(Image.FORMAT_RG8)
-		var grey := image.get_data()
-		for k in range(1, grey.size(), 2):
-			grey[k] = 255
-		image = Image.create_from_data(w, h, false, Image.FORMAT_RG8, grey)
-	var m := material as ShaderMaterial
-	m.set_shader_parameter("ao_map", ImageTexture.create_from_image(image))
-	m.set_shader_parameter("ao_rect", Vector4(x0, z0, w * px, h * px))
+	# Loop 1: two bytes per metre (the buildings' shade, then the parked cars' and trees').
+	if bytes.size() < 20 + w * h * 2:
+		push_error("map: ao.bin is a one-byte map (re-run tools/bake_ao.py)")
+		return
+	_ao_file = "res://map/ao.bin"
+	_ao_size = Vector2i(w, h)
+	map_grids["fine"] = Vector4(x0, z0, px, 0.0)
 
 
-## The surface map (tools/bake_water.py): RGBA per 2 m, linear filtering.
-func _load_water(material: Material) -> void:
+## The surface map (tools/bake_water.py): RGBA per 2 m. Loop 3d-2b: kept as an image for the
+## sectors' slices; the ground shader and the post pass read them per sector.
+func _load_water() -> void:
 	if not FileAccess.file_exists("res://map/water.bin"):
 		return
 	var bytes := FileAccess.get_file_as_bytes("res://map/water.bin")
@@ -544,21 +559,21 @@ func _load_water(material: Material) -> void:
 	var z0 := bytes.decode_float(12)
 	var px := bytes.decode_float(16)
 	var image := Image.create_from_data(w, h, false, Image.FORMAT_RGBA8, bytes.slice(20, 20 + w * h * 4))
-	water_texture = ImageTexture.create_from_image(image)
+	_water_file = "res://map/water.bin"
+	_water_size = Vector2i(w, h)
 	water_rect = Vector4(x0, z0, w * px, h * px)
+	map_grids["surface"] = Vector4(x0, z0, px, 0.0)
 	# Loop 10a: the R channel alone, for the car's water test (the convert keeps red).
 	var red := image.duplicate() as Image
 	red.convert(Image.FORMAT_R8)
 	_shore = red.get_data()
 	_shore_size = Vector2i(w, h)
 	_shore_zip = _shore.compress(FileAccess.COMPRESSION_ZSTD)
-	if material is ShaderMaterial:
-		(material as ShaderMaterial).set_shader_parameter("surface_map", water_texture)
-		(material as ShaderMaterial).set_shader_parameter("surface_rect", water_rect)
 
 
 ## The baked street-lamp pools (tools/bake_lights.py): two bytes per metre, sodium
-## and LED. Kept as an image too, so each lamp's head can glow in its pool's colour.
+## and LED. Kept as an image: each lamp's head glows in its pool's colour, and (loop 3d-2b)
+## the sectors' slices come from it. Its grid is the AO map's.
 func _load_lights() -> void:
 	if not FileAccess.file_exists("res://map/lights.bin"):
 		return
@@ -570,45 +585,70 @@ func _load_lights() -> void:
 	var px := bytes.decode_float(16)
 	var end := 20 + w * h * 2
 	_light_image = Image.create_from_data(w, h, false, Image.FORMAT_RG8, bytes.slice(20, end))
-	light_texture = ImageTexture.create_from_image(_light_image)
 	light_rect = Vector4(x0, z0, w * px, h * px)
+	if map_grids.has("fine") and not Vector4(x0, z0, px, 0.0).is_equal_approx(map_grids["fine"]):
+		push_error("map: lights.bin's grid differs from ao.bin's (one slice grid for both: re-run tools/bake_lights.py)")
 	if bytes.size() >= end + 4:
 		var n := bytes.decode_u32(end)
 		_extra_lamps = bytes.slice(end + 4, end + 4 + n * 12).to_float32_array()
 
 
-func _apply_lights(material: Material) -> void:
-	if light_texture != null and material is ShaderMaterial:
-		(material as ShaderMaterial).set_shader_parameter("light_map", light_texture)
-		(material as ShaderMaterial).set_shader_parameter("light_rect", light_rect)
+## Loop 3d-2b: a sector's slices of the AO, lamp-light and surface maps ([ao, light, surface],
+## city_maps.gd cut), or [] when the whole maps aren't loaded (the prebuilt index: its sectors
+## carry their slices).
+func map_slices(key: Vector2i) -> Array:
+	if _ao_file == "" or _light_image == null or _water_file == "":
+		return []
+	var fine: Vector4 = map_grids["fine"]
+	var ao := _slice_from_file(_ao_file, _ao_size, 2, Image.FORMAT_RG8, fine, key)
+	var water := _slice_from_file(_water_file, _water_size, 4, Image.FORMAT_RGBA8, map_grids["surface"], key)
+	if ao == null or water == null:
+		return []
+	return [ao, CityMaps.cut(_light_image, fine, key), water]
 
 
-## The web's first download (2026-10-30): the prebuilt city's AO and lamp-light maps, put on
-## their materials when it opens. map/shared/<name>.res (an RG8 ImageTexture) where the export
-## has it (the phones, desktops); else map/shared/<name>.zst, the same RG8 texels as one zstd
-## stream (the web: 8.3 + 2.8 MB instead of the .res files' 13.8 + 5.0, whose compression works in
-## 4 KB blocks), unpacked here in ~0.3 s. Header: u32 width, u32 height, then the zstd data.
-func attach_maps() -> void:
-	for name: String in map_maps:
-		var tex: Texture2D = null
-		var res := "res://map/shared/%s.res" % name
-		var zst := "res://map/shared/%s.zst" % name
-		if ResourceLoader.exists(res):
-			tex = load(res)
-		elif FileAccess.file_exists(zst):
-			var bytes := FileAccess.get_file_as_bytes(zst)
-			var w := bytes.decode_u32(0)
-			var h := bytes.decode_u32(4)
-			var texels := bytes.slice(8).decompress(w * h * 2, FileAccess.COMPRESSION_ZSTD)
-			if texels.size() == w * h * 2:
-				tex = ImageTexture.create_from_image(Image.create_from_data(w, h, false, Image.FORMAT_RG8, texels))
-		if tex == null:
-			push_warning("map: no %s (run tools/setup_map.sh)" % name)
-			continue
-		for m: ShaderMaterial in map_maps[name]["materials"]:
-			m.set_shader_parameter(name, tex)
-		if name == "light_map":
-			light_texture = tex as ImageTexture
+## Loop 3d-2b: a sector's slice of a baked map file (20-byte header, then `bpp` bytes a texel, row
+## by row): only the rows and columns the slice reaches inside the map are read, then cut as from
+## the whole image (city_maps.gd cut, the map's edge repeated past it).
+func _slice_from_file(path: String, size: Vector2i, bpp: int, format: Image.Format, grid: Vector4, key: Vector2i) -> Image:
+	var n := CityMaps.slice_texels(grid.z)
+	var tx := CityMaps.slice_start(key.x * SECTOR, grid.x, grid.z)
+	var tz := CityMaps.slice_start(key.y * SECTOR, grid.y, grid.z)
+	var x0 := clampi(tx, 0, size.x - 1)
+	var x1 := clampi(tx + n, x0 + 1, size.x)
+	var z0 := clampi(tz, 0, size.y - 1)
+	var z1 := clampi(tz + n, z0 + 1, size.y)
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		return null
+	var data := PackedByteArray()
+	for z in range(z0, z1):
+		f.seek(20 + (z * size.x + x0) * bpp)
+		data.append_array(f.get_buffer((x1 - x0) * bpp))
+	var part := Image.create_from_data(x1 - x0, z1 - z0, false, format, data)
+	# The part as if it were the whole map: its grid starts at its first texel.
+	return CityMaps.cut(part, Vector4(grid.x + x0 * grid.z, grid.y + z0 * grid.z, grid.z, 0.0), key)
+
+
+## Loop 3d-2b: the slices on the GPU for `keys` (every sector of the whole city when `all`, for
+## --monolithic), the arrays sized for `count` sectors (city_maps.gd).
+func open_maps(keys: Array[Vector2i], count: int) -> void:
+	city_maps = CityMaps.new()
+	city_maps.setup(keys, map_grids.get("fine", Vector4(0, 0, 1, 0)), map_grids.get("surface", Vector4(0, 0, 2, 0)), count)
+
+
+## Loop 3d-2b, --monolithic: the whole city's sectors' slices all on the GPU at once.
+func open_maps_whole() -> void:
+	var keys: Array[Vector2i] = []
+	var a := sector_of(bounds.position.x - SECTOR_MARGIN, bounds.position.y - SECTOR_MARGIN)
+	var b := sector_of(bounds.end.x + SECTOR_MARGIN, bounds.end.y + SECTOR_MARGIN)
+	for j in range(a.y, b.y + 1):
+		for i in range(a.x, b.x + 1):
+			keys.append(Vector2i(i, j))
+	open_maps(keys, keys.size())
+	for key in keys:
+		city_maps.attach(key, map_slices(key))
+		city_maps.show(key)
 
 
 ## Sodium (true) or LED (false) light at a point of the light map.
@@ -4266,7 +4306,6 @@ func _make_shared() -> void:
 	_shared["trunk_mat"] = trunk_mat
 	leaf_material = ShaderMaterial.new()
 	leaf_material.shader = load("res://shaders/foliage.gdshader")
-	_apply_lights(leaf_material)
 	_shared["broadleaf"] = _broadleaf_mesh()
 	_shared["conifer"] = _conifer_mesh()
 
@@ -4893,17 +4932,54 @@ func _build_collision() -> void:
 		if faces.is_empty():
 			return
 	var body := StaticBody3D.new()
+	if _in_sector:
+		# Loop 3d-2b: a sector's faces in shapes of at most COLLIDER_CHUNK faces, sorted by 64 m
+		# cell (each shape a compact patch). The physics server builds a shape made on the
+		# streamer's worker on the main thread, at once: a sector's 7,000-19,000 faces as one shape
+		# stalled the frame its load ended 5-20 ms on the Mac; the prebuilt sector's worker loads
+		# these one a frame (tools/bake_city.gd saves each as a piece). The faces are the same.
+		for part in _collider_chunks(faces):
+			var cs := CollisionShape3D.new()
+			var piece := ConcavePolygonShape3D.new()
+			piece.backface_collision = true
+			piece.set_faces(part)
+			cs.shape = piece
+			body.add_child(cs)
+		_out.add_child(body)
+		return
 	var shape := CollisionShape3D.new()
 	var concave := ConcavePolygonShape3D.new()
 	concave.backface_collision = true
 	concave.set_faces(faces)
 	shape.shape = concave
 	body.add_child(shape)
-	if _in_sector:
-		_out.add_child(body)
-		return
 	_add_edge_walls(body)
 	add_child(body)
+
+
+## Loop 3d-2b: a sector's collider faces, at most this many to a shape (_build_collision).
+const COLLIDER_CHUNK := 1000
+
+
+## Loop 3d-2b: the faces (three vertices each) in runs of at most COLLIDER_CHUNK, sorted by the
+## 64 m cell of each face's centre (row by row), so each run is a compact patch.
+func _collider_chunks(faces: PackedVector3Array) -> Array[PackedVector3Array]:
+	var order := []
+	for i in range(0, faces.size() - 2, 3):
+		var c := (faces[i] + faces[i + 1] + faces[i + 2]) / 3.0
+		order.append([floori(c.z / 64.0) * 4096 + floori(c.x / 64.0), i])
+	order.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0] or (a[0] == b[0] and a[1] < b[1]))
+	var out: Array[PackedVector3Array] = []
+	var part := PackedVector3Array()
+	for o: Array in order:
+		var i: int = o[1]
+		part.append_array([faces[i], faces[i + 1], faces[i + 2]])
+		if part.size() >= COLLIDER_CHUNK * 3:
+			out.append(part)
+			part = PackedVector3Array()
+	if not part.is_empty():
+		out.append(part)
+	return out
 
 
 ## Loop 3c: the walls at the map's edge on their own body (the streamed city's index).

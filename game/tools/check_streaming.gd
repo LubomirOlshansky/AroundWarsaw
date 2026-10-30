@@ -15,9 +15,13 @@ extends SceneTree
 ##     miss the car's sector or a sector the view needs, the main thread's streaming time a
 ##     frame (99th percentile of the frames that streamed) at most BUDGET_MS, and no frame that
 ##     streamed over 33 ms. Prints the numbers.
+## (d) passes (loop 3d-2b): the helicopter at its highest and fastest west to east across the map,
+##     and the car at 45 m/s (162 km/h) in its widest view east to west (--stream-pass): no frame may
+##     miss a sector the view needs (the look-ahead's job), none load at once; prints the slowest
+##     frame while a sector loaded (the pieces one a frame: no load-end hitch) against the median.
 ## Needs a renderer (the pixels, and the meshes' data): a window opens.
 ##   godot --path game --resolution 1280x720 --script res://tools/check_streaming.gd
-##       [-- --only=identity,pixels,soak --soak=MINUTES --keep=DIR --size=WxH]
+##       [-- --only=identity,pixels,soak,pass --soak=MINUTES --keep=DIR --size=WxH]
 ## Prints `check_streaming: OK` (exit 0) or the problems (exit 1). --soak=15 is the 15-minute
 ## run (docs/DEVELOPMENT.md "Sectors and streaming"); tools/verify.sh runs 3 minutes.
 
@@ -50,7 +54,7 @@ const SPOT_FRAMES := 150
 var problems: Array[String] = []
 ## What the OK line says (each part's result).
 var notes: Array[String] = []
-var only: PackedStringArray = ["identity", "pixels", "soak"]
+var only: PackedStringArray = ["identity", "pixels", "soak", "pass"]
 var soak_minutes := 3.0
 var keep := ""
 var size := Vector2i(2868, 1320)
@@ -78,6 +82,9 @@ func _run() -> void:
 		_pixels()
 	if "soak" in only:
 		_soak()
+	if "pass" in only:
+		for kind in ["heli", "car"]:
+			_pass(kind)
 	if problems.is_empty():
 		print("check_streaming: OK (%s)" % "; ".join(notes))
 		quit(0)
@@ -301,16 +308,9 @@ func _changed(a: Image, b: Image, mask: String) -> Vector2i:
 # --- (b) soak --------------------------------------------------------------------------------
 
 func _soak() -> void:
-	var frames := int(soak_minutes * 3600.0) + 600
-	var args := ["--path", ProjectSettings.globalize_path("res://"), "--rendering-method", "mobile",
-			"--resolution", "1280x720", "--fixed-fps", "60", "--quit-after", str(frames), "--",
-			"--nosave", "--notitle", "--prebuilt", "--stream-soak=%s" % soak_minutes]
-	var output := []
-	var t := Time.get_ticks_msec()
-	var code := OS.execute(OS.get_executable_path(), args, output, true)
-	var text := "".join(output)
-	if keep != "":
-		FileAccess.open(keep.path_join("soak.log"), FileAccess.WRITE).store_string(text)
+	var text := _run_stream("soak", ["--stream-soak=%s" % soak_minutes], int(soak_minutes * 3600.0) + 600)
+	var t: int = _run_t
+	var code: int = _run_code
 	var line := ""
 	var stats: Variant = null
 	for l in text.split("\n"):
@@ -322,6 +322,7 @@ func _soak() -> void:
 		problems.append("soak: exit %d, no 'stream soak:' lines" % code)
 		return
 	print("soak: %s (%d s)" % [line.trim_prefix("stream soak: "), (Time.get_ticks_msec() - t) / 1000])
+	_judge_load_frames("soak", stats)
 	var missing := int(stats["missing_frames"])
 	var forced := int(stats["forced"])
 	var busy99 := float(stats["busy_p99_ms"])
@@ -332,11 +333,67 @@ func _soak() -> void:
 		problems.append("soak: %d sectors had to be loaded at once" % forced)
 	# The times are the Mac's and move with whatever else runs on it (other Godot processes): they
 	# are reported against the budget, not failed on; the phone's are the ones that count.
-	notes.append("soak %.0f min: 0 missing, %d loads, streaming %.2f ms p99 / %.2f ms max a frame that streamed%s, slowest such frame %.1f ms%s, governor %s" % [
+	var lf: Dictionary = stats.get("load_frame_ms", {})
+	notes.append("soak %.0f min: 0 missing, %d loads, streaming %.2f ms p99 / %.2f ms max a frame that streamed%s, slowest such frame %.1f ms%s, slowest frame while a sector loaded %.1f ms (median %.1f), at most %d sectors in full, governor %s" % [
 			soak_minutes, int(stats["loads"]), busy99, float(stats["max_ms"]),
 			" (over the %.0f ms budget)" % BUDGET_MS if busy99 > BUDGET_MS else "", worst,
-			" (over 33 ms)" if worst > 33.0 else "", stats.get("governor", "-")])
+			" (over 33 ms)" if worst > 33.0 else "", float(lf.get("max", 0.0)), float(lf.get("median", 0.0)),
+			int(stats.get("max_loaded", 0)), stats.get("governor", "-")])
 	for l in text.split("\n"):
 		if l.begins_with("ERROR") or l.begins_with("SCRIPT ERROR") or l.begins_with("WARNING"):
 			problems.append("soak: " + l.substr(0, 160))
 
+
+var _run_t := 0
+var _run_code := 0
+
+
+## Loop 3d-2b: a streaming run of the prebuilt game (the soak or a pass), its output.
+func _run_stream(name: String, flags: Array, frames: int) -> String:
+	var args := ["--path", ProjectSettings.globalize_path("res://"), "--rendering-method", "mobile",
+			"--resolution", "1280x720", "--fixed-fps", "60", "--quit-after", str(frames), "--",
+			"--nosave", "--notitle", "--prebuilt"]
+	args.append_array(flags)
+	var output := []
+	_run_t = Time.get_ticks_msec()
+	_run_code = OS.execute(OS.get_executable_path(), args, output, true)
+	var text := "".join(output)
+	if keep != "":
+		FileAccess.open(keep.path_join(name + ".log"), FileAccess.WRITE).store_string(text)
+	return text
+
+
+## Loop 3d-2b (d): one pass (heli or car), judged on its missing frames and forced loads.
+func _pass(kind: String) -> void:
+	var text := _run_stream("pass_" + kind, ["--stream-pass=" + kind], 30000)
+	var stats: Variant = null
+	for l in text.split("\n"):
+		if l.begins_with("stream soak stats: "):
+			stats = JSON.parse_string(l.trim_prefix("stream soak stats: "))
+	if _run_code != 0 or not stats is Dictionary:
+		problems.append("pass %s: exit %d, no 'stream soak stats:' line" % [kind, _run_code])
+		return
+	var missing := int(stats["missing_frames"])
+	if missing > 0:
+		problems.append("pass %s: %d frames missed a sector the view needs (first: %s)" % [kind, missing,
+				", ".join(PackedStringArray(stats.get("missing_log", []).slice(0, 3)))])
+	if int(stats["forced"]) > 0:
+		problems.append("pass %s: %d sectors had to be loaded at once" % [kind, int(stats["forced"])])
+	var lf: Dictionary = stats.get("load_frame_ms", {})
+	print("pass %s: %d loads, %d missing, %d forced, at most %d sectors in full, slowest frame while a sector loaded %.1f ms (median %.1f; frames' median %.1f) (%d s)" % [
+			kind, int(stats["loads"]), missing, int(stats["forced"]), int(stats.get("max_loaded", 0)),
+			float(lf.get("max", 0.0)), float(lf.get("median", 0.0)), float(stats.get("frame_median_ms", 0.0)),
+			(Time.get_ticks_msec() - _run_t) / 1000])
+	notes.append("%s pass: 0 missing, %d loads, slowest load frame %.1f ms" % [kind, int(stats["loads"]), float(lf.get("max", 0.0))])
+	_judge_load_frames("pass " + kind, stats)
+	for l in text.split("\n"):
+		if l.begins_with("ERROR") or l.begins_with("SCRIPT ERROR") or l.begins_with("WARNING"):
+			problems.append("pass %s: %s" % [kind, l.substr(0, 160)])
+
+
+## Loop 3d-2b: a frame while a sector loads over 33 ms is reported (the Mac's times move with
+## whatever else runs on it; the phone's are the ones that count), not failed on.
+func _judge_load_frames(name: String, stats: Dictionary) -> void:
+	var lf: Dictionary = stats.get("load_frame_ms", {})
+	if float(lf.get("max", 0.0)) > 33.0:
+		print("%s: NOTE a frame while a sector loaded took %.1f ms (over 33)" % [name, float(lf["max"])])

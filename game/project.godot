@@ -68,3 +68,31 @@ rain={
 "type": "float",
 "value": 0.0
 }
+city_ao={
+"type": "sampler2DArray",
+"value": ""
+}
+city_light={
+"type": "sampler2DArray",
+"value": ""
+}
+city_surface={
+"type": "sampler2DArray",
+"value": ""
+}
+city_slots={
+"type": "sampler2D",
+"value": ""
+}
+city_slots_grid={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+city_fine_map={
+"type": "vec4",
+"value": Vector4(0, 0, 1, 1)
+}
+city_surface_map={
+"type": "vec4",
+"value": Vector4(0, 0, 1, 1)
+}
