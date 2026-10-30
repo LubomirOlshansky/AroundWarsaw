@@ -10,7 +10,6 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 | Lane | Item | Session | Since |
 | --- | --- | --- | --- |
-| content | MW-2, storefronts and parodies: Frogs shops, Pędzik riders, Leżak scooters, kebab stands, billboards, the venues' neon fascias, metro entrances. Split: this row does shop data, signs, interiors and queues; landmarks does building facades; map does bake placement (tell this row before changing either) | cloud thread "Build notebook and gameplay features" | 2026-10-30 |
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
@@ -19,6 +18,20 @@ One session per lane. Add a row when you start an item, remove it when the item 
 ## Waiting
 
 Newest first. One entry per question.
+
+- **2026-10-30 · content · MW-2 (storefronts and parodies)** — The Frogs stamp card reaches 8 m
+  from the door (parodies.md says 6 m), and 15 % of Podwózka passengers are `detour` (ask for a
+  Frogs). Default built: 8 m, 15 %.
+- **2026-10-30 · content · MW-2** — Pędzik couriers have their own MultiMesh (+1 draw call in view)
+  rather than sharing the bikes'. The courier race and the Leżak round-up job aren't built (not
+  cheap; BACKLOG). Default built: as said.
+- **2026-10-30 · content · MW-2** — Billboards are text only until PixelLab pictograms can be
+  made; the metro sign is a generic cream M on navy (no operator logo). Default built: as said.
+- **2026-10-30 · content · MW-2** — `easter_lezak`'s English is trimmed to fit 70 characters: "A
+  Leżak standing up. In its own zone. Someone should report this." Default built: trimmed.
+- **2026-10-30 · map · MW-2's asks** — The bake should add `shop=convenience`,
+  `railway=subway_entrance`, `amenity=bicycle_rental` and scooter-zone pois, and an address for
+  Kruczkowskiego 3B; the shops find their walls at runtime today. Default: runtime placement.
 
 - **2026-10-30 · content · F's asks** — LEVEL 26 costs +2 draw calls at night in view (the
   violet band and the crowd cell with the roof crowd and the door queue) against a +1 target.

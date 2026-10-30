@@ -52,6 +52,8 @@ var police := 0.0
 var bonus := 0.0
 var pulled_over := false
 var followed := false
+## Loop MW-2 (parodies.md 3.3): a `detour` passenger's Frogs stop (+0.5 once).
+var detoured := false
 var early := false
 var _drive_at := -INF
 
@@ -67,6 +69,7 @@ func begin(eta_seconds: float, from := START) -> void:
 	bonus = 0.0
 	pulled_over = false
 	followed = false
+	detoured = false
 	early = false
 	_drive_at = -INF
 
@@ -104,6 +107,15 @@ func follow() -> bool:
 	if followed:
 		return false
 	followed = true
+	bonus += BONUS
+	return true
+
+
+## Loop MW-2: a `detour` passenger asked for a Frogs and the car stopped at one: half a star, once.
+func detour() -> bool:
+	if detoured:
+		return false
+	detoured = true
 	bonus += BONUS
 	return true
 

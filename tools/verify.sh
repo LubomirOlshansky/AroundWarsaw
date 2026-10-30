@@ -27,13 +27,17 @@
 # Loop MW-5: `radio` also checks PÓŁNOC FM (its 7 tracks and seams, the hours, reruns, the host,
 # the unlocks); `sounds` runs game/tools/check_city_sounds.gd: the city's sounds at the notebook's
 # places (the emitters, the hours, the cap of 8, the bells, the 02:00 beat); centrum.json only (CI too).
-# Loop MW-6: `eggs` runs game/tools/check_eggs.gd: the 45 egg cards (words, places, rewards), each
+# Loop MW-6: `eggs` runs game/tools/check_eggs.gd: the 47 egg cards (words, places, rewards), each
 # reachable egg's trigger on synthetic inputs (fires with its conditions, not without), the
 # waiting ones listed; `tape` runs game/tools/check_tape.gd: KASETA's 20 then cards, the ghosts
 # (one draw call, built only within 150 m), the button, the first-play reward and the dither;
 # both read only centrum.json (CI too). Loop MW-3: `crowds` runs game/tools/check_crowds.gd: the
 # city clock and the Dawn look, the queues, the door, the steps, Plan C, the police's hours, the
 # dawn crowd's routes and walkers, the crowd eggs (E03 E04 E10 E14 E15); centrum.json only (CI too).
+# Loop MW-2: `parodies` runs game/tools/check_parodies.gd: the stamp card, the detour, the couriers'
+# counts, the Frogs' and venues' picks and walls (2D), the Leżaks and metro entrances off the
+# lanes, no real brand, the lines and the font, the wall ray on a synthetic facade, the stamps,
+# the knock and the two Frogs/Leżak eggs once, the cost; centrum.json only (CI too).
 # Loop MW-4: `life` runs game/tools/check_city_life.gd: the dogs' hours and caps, the horn's rate
 # limits, the Wiralek cycle on synthetic dates, the "Na czasie" pay, the Zając, Fat Thursday, the
 # life eggs, the meshes and the tick's cost; centrum.json only (CI too). `life-soak` (not in
@@ -69,8 +73,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud places eggs tape crowds life rides cost landmarks sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places eggs tape crowds life rides cost landmarks sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud places eggs tape crowds life parodies rides cost landmarks sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places eggs tape crowds life parodies rides cost landmarks sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -527,6 +531,8 @@ for s in $want; do
 		tape) check tape '^check_tape:' --script res://tools/check_tape.gd ;;
 		# Loop MW-3: the night and the river's crowds, their rules on synthetic clocks, the crowd eggs.
 		crowds) check crowds '^check_crowds:' --script res://tools/check_crowds.gd ;;
+		# Loop MW-2: the storefronts and parodies (Frogs, venues, Leżaks, metro, stamps, eggs).
+		parodies) check parodies '^check_parodies:' --script res://tools/check_parodies.gd ;;
 		# Loop MW-4: everyday life and trends: dogs, riders, runners, Kolka, the Wiralek cycle, the
 		# "Na czasie" pay, the Zając, Fat Thursday, the life eggs (E16 E18-E20 E27-E30).
 		life) check life '^check_city_life:' --script res://tools/check_city_life.gd ;;

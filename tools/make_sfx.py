@@ -61,10 +61,13 @@ levels (if their folder is given) to balance the buses against.
       loop)
   phone_shutter  a phone's camera shutter: a click and a short noise slide, 0.15 s
   cafe_bell      a café door's bell: three little tings, 0.9 s
+  frog_chime     loop MW-2: the Frogs shop's door, a two-note croak "kum-kum" and a ting, 0.8 s
+  scooter_clatter loop MW-2: a Leżak knocked over: a clank, a thud, a rattle, 0.7 s
 
   --only=club_leak,busker  makes just those (the city's sounds: club_leak, metro_chime,
   church_bell, busker, crowd_murmur, steps_guitar; loop MW-4's bark_small, bark_mid, bark_big,
-  bike_bell, watch_beep, queue_chatter, phone_shutter, cafe_bell) and leaves the other files as
+  bike_bell, watch_beep, queue_chatter, phone_shutter, cafe_bell; loop MW-2's frog_chime,
+  scooter_clatter) and leaves the other files as
   they are.
 """
 import array
@@ -968,6 +971,49 @@ def cafe_bell(seed):
     return fade(out, 0.0, 0.08)
 
 
+def frog_chime(seed):
+    """Loop MW-2: the Frogs shop's door chime, a two-note croak ("kum-kum"): two low-mid tones
+    pulsed at a frog's 28 Hz, the second a fourth under, a soft ting over the first, 0.8 s."""
+    rnd = random.Random(seed)
+    n = int(0.8 * RATE)
+    out = zeros(n)
+    for at, f, g in ((0.0, 392.0, 1.0), (0.26, 294.0, 0.85)):
+        m = int(0.24 * RATE)
+        sig = zeros(m)
+        for i in range(m):
+            t = i / RATE
+            env = math.sin(math.pi * min(1.0, t / 0.24)) ** 0.7
+            pulse = 0.5 + 0.5 * math.sin(2.0 * math.pi * 28.0 * t)
+            ph = 2.0 * math.pi * f * t
+            sig[i] = env * pulse * (math.sin(ph) + 0.45 * math.sin(2.0 * ph) + 0.2 * math.sin(3.0 * ph))
+        place(out, biquad(sig, "lp", 1800.0), int(at * RATE), g)
+    ting = bell(n, [(2640.0, 0.25, 0.25), (3960.0, 0.08, 0.12)], 0.05, rnd)
+    place(out, ting, 0, 1.0)
+    return fade(out, 0.002, 0.1)
+
+
+def scooter_clatter(seed):
+    """Loop MW-2: a Leżak knocked over: its stem's clank, the deck's thud and a plastic rattle
+    as it settles, 0.7 s."""
+    rnd = random.Random(seed)
+    n = int(0.7 * RATE)
+    out = zeros(n)
+    for at, g in ((0.0, 1.0), (0.11, 0.55), (0.19, 0.3)):
+        f = rnd.uniform(820.0, 980.0)
+        sig = bell(n - int(at * RATE), [(f, 1.0, 0.09), (f * 2.76, 0.5, 0.05), (f * 5.4, 0.25, 0.03)], 0.6, rnd)
+        place(out, sig, int(at * RATE), g)
+    thud = zeros(int(0.15 * RATE))
+    for i in range(len(thud)):
+        t = i / RATE
+        thud[i] = math.exp(-t * 30.0) * math.sin(2.0 * math.pi * (90.0 - 200.0 * t) * t)
+    place(out, thud, int(0.1 * RATE), 1.4)
+    w = noise(n, rnd)
+    for i in range(n):
+        t = i / RATE
+        w[i] *= 0.25 * math.exp(-((t - 0.3) / 0.12) ** 2) * (0.5 + 0.5 * math.sin(2.0 * math.pi * 45.0 * t))
+    return fade(mix((1.0, out), (1.0, biquad(w, "bp", 2400.0, 1.0))), 0.0, 0.08)
+
+
 def steps_guitar(seed):
     """The guitarist on the river steps: the same three chords (G, C, D at 92 BPM), a bar
     each with a lazy strum, nylon-soft (Karplus-Strong with more damping than the busker's),
@@ -1140,7 +1186,9 @@ CITY = {"club_leak": lambda: [club_leak(71)], "metro_chime": lambda: [metro_chim
         "bark_small": lambda: [bark(81, 0)], "bark_mid": lambda: [bark(82, 1)], "bark_big": lambda: [bark(83, 2)],
         "bike_bell": lambda: [bike_bell(84)], "watch_beep": lambda: [watch_beep(85)],
         "queue_chatter": lambda: [queue_chatter(86)], "phone_shutter": lambda: [phone_shutter(87)],
-        "cafe_bell": lambda: [cafe_bell(88)]}
+        "cafe_bell": lambda: [cafe_bell(88)],
+        # Loop MW-2 (storefronts.gd): the Frogs door's croak chime, a Leżak knocked over.
+        "frog_chime": lambda: [frog_chime(89)], "scooter_clatter": lambda: [scooter_clatter(90)]}
 
 
 def main(out_dir, radio_dir=None, only=None):

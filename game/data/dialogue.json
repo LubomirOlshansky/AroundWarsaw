@@ -79,6 +79,10 @@
     [
       "W sobotę Hyrax przy Narodowym. Prosimy nie gonić tramwajów.",
       "Hyrax by the National Stadium on Saturday. Please don't chase the trams."
+    ],
+    [
+      "Frogs. Otwarte dziś, jutro i na wszelki wypadek pojutrze.",
+      "Frogs: open today, tomorrow, and the day after, just in case."
     ]
   ],
   "kebab_order": [
@@ -139,6 +143,20 @@
       "Powiśle, a walk-up. The customer asks: \"no honking, the neighbours\".",
       {
         "only": "powisle"
+      }
+    ],
+    [
+      "Zamówienie na Starówkę: „pod pomnikiem, tym z mieczem”.",
+      "Order to the Old Town: \"by the statue, the one with the sword\".",
+      {
+        "only": "oldtown"
+      }
+    ],
+    [
+      "Na parking pod galerią: poziom −2, sektor „gdzie ja stałem”.",
+      "To the mall car park: level −2, zone \"where did I park\".",
+      {
+        "only": "mall"
       }
     ]
   ],
@@ -570,6 +588,22 @@
     [
       "WIRALEK · NOWOŚĆ TYGODNIA. ZNOWU.",
       "WIRALEK · NEW THIS WEEK. AGAIN."
+    ],
+    [
+      "FROGS · TU TEŻ",
+      "FROGS · HERE TOO"
+    ],
+    [
+      "PODWÓZKA · GPS WIE LEPIEJ",
+      "PODWÓZKA · THE GPS KNOWS BEST"
+    ],
+    [
+      "PĘDZIK · PLECAK WIĘKSZY NIŻ KAWALERKA",
+      "PĘDZIK · A BACKPACK BIGGER THAN A STUDIO FLAT"
+    ],
+    [
+      "LEŻAK · PARKING? JAKI PARKING?",
+      "LEŻAK · PARKING? WHAT PARKING?"
     ]
   ],
   "kebab_vendor": [
@@ -588,6 +622,34 @@
     [
       "Mięso z rożna, sos z serca. Dowieź, zanim wystygnie.",
       "Meat off the spit, sauce from the heart. Get it there before it cools."
+    ],
+    [
+      "Kebab dla kibica spod Narodowego. Wygrali czy przegrali, sos ten sam.",
+      "A kebab for a fan by the National Stadium. Won or lost, same sauce.",
+      {
+        "only": "stadium"
+      }
+    ],
+    [
+      "U Zdzicha od zawsze: sos czosnkowy, ostry i sos „nie pytaj”.",
+      "Zdzich's, since forever: garlic sauce, hot sauce and \"don't ask\" sauce.",
+      {
+        "only": "zdzich"
+      }
+    ],
+    [
+      "Na cienkim, jak sama nazwa wskazuje. Grube są tylko korki.",
+      "On thin bread, as the name says. The only thick thing round here is the traffic.",
+      {
+        "only": "cienkim"
+      }
+    ],
+    [
+      "Tu był targ i dalej jest targ. Ja tu nowy, od dwudziestu lat.",
+      "There was a market here, and there still is. I'm the new guy: twenty years now.",
+      {
+        "only": "hala"
+      }
     ]
   ],
   "rescue_person": [
@@ -974,6 +1036,42 @@
           "DOM.",
           "PLAN C:",
           "ZOSTAJĘ."
+        ]
+      }
+    ],
+    [
+      "FROGS: ZAWSZE O JEDEN SKOK",
+      "Frogs: always one hop away",
+      {
+        "poster": [
+          "FROGS:",
+          "ZAWSZE",
+          "O JEDEN",
+          "SKOK"
+        ]
+      }
+    ],
+    [
+      "LEŻAK. LEŻY. PRAWIE WSZĘDZIE.",
+      "Leżak. Lying around. Almost everywhere.",
+      {
+        "poster": [
+          "LEŻAK.",
+          "LEŻY.",
+          "PRAWIE",
+          "WSZĘDZIE"
+        ]
+      }
+    ],
+    [
+      "ZAGINĄŁ SYGNAŁ GPS. PODWÓZKA.",
+      "Missing: one GPS signal. Podwózka.",
+      {
+        "poster": [
+          "ZAGINĄŁ",
+          "SYGNAŁ",
+          "GPS.",
+          "PODWÓZKA"
         ]
       }
     ]
@@ -1669,6 +1767,112 @@
       {
         "only": "kadr"
       }
+    ]
+  ],
+  "rechotka": [
+    [
+      "Hot dog, kawa i ładowarka. Zestaw przetrwania do rana.",
+      "A hot dog, a coffee and a charger. The survive-till-morning combo."
+    ],
+    [
+      "Chleb, bilety, paczki, kawa. Nadzieję trzymamy na zapleczu.",
+      "Bread, tickets, parcels, coffee. We keep hope in the back room."
+    ],
+    [
+      "Drugi Frogs jest naprzeciwko. Konkurujemy sami ze sobą.",
+      "The other Frogs is across the street. We compete with ourselves."
+    ],
+    [
+      "Między jednym Frogsem a drugim jest dokładnie jeden Frogs.",
+      "Between one Frogs and the next, there's exactly one Frogs."
+    ],
+    [
+      "Do następnego Frogsa? Jeden skok. Jesteśmy żabami, nie liczymy metrów.",
+      "The next Frogs? One hop. We're frogs, we don't count metres."
+    ],
+    [
+      "Otwarte całą dobę. Nawet jak nikt nie wie, która jest godzina.",
+      "Open around the clock. Even when nobody knows what time it is."
+    ],
+    [
+      "Pieczątka jest. Do darmowego hot doga coraz bliżej.",
+      "Stamped. One step closer to a free hot dog.",
+      {
+        "only": "stamp"
+      }
+    ],
+    [
+      "Dziesiąta pieczątka! Hot dog gratis. Musztarda też, spokojnie.",
+      "Tenth stamp! A free hot dog. Mustard too, relax.",
+      {
+        "only": "free"
+      }
+    ]
+  ],
+  "easter_rechotka": [
+    [
+      "Trzy Frogsy na jednym skrzyżowaniu. Żaby, wiadomo: się mnożą.",
+      "Three Frogs on one junction. Frogs, you know: they multiply."
+    ]
+  ],
+  "pedzik": [
+    [
+      "Uwaga, plecak! Plecak ma pierwszeństwo.",
+      "Mind the backpack! The backpack has right of way."
+    ],
+    [
+      "Skrót przez park! Wy macie ulice, my mamy całą resztę.",
+      "Shortcut through the park! You've got the streets, we've got everything else."
+    ],
+    [
+      "Ścigamy się do drzwi? Ja mam rower, ty masz korki.",
+      "Race you to the door? I've got a bike, you've got traffic.",
+      {
+        "only": "challenge"
+      }
+    ],
+    [
+      "Dowiezione. Zupa nawet się nie rozlała.",
+      "Delivered. The soup didn't even spill.",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Auto szybsze od roweru? W centrum? Zapiszę to w kalendarzu.",
+      "A car faster than a bike? In the centre? That's going in my diary.",
+      {
+        "only": "lose"
+      }
+    ]
+  ],
+  "lezak": [
+    [
+      "Leżak się nie przewrócił. Leżak zawsze tak leży.",
+      "The Leżak didn't fall over. Leżaks always lie like that.",
+      {
+        "only": "knock"
+      }
+    ],
+    [
+      "Dziesięć Leżaków do zebrania. Podobno jeden stoi. Nie wierzę.",
+      "Ten Leżaks to round up. Rumour says one of them is standing. I don't believe it.",
+      {
+        "only": "start"
+      }
+    ],
+    [
+      "Wszystkie zebrane. Jutro rano znowu będą leżeć. Krąg życia.",
+      "All collected. By morning they'll be lying around again. The circle of life.",
+      {
+        "only": "done"
+      }
+    ]
+  ],
+  "easter_lezak": [
+    [
+      "Leżak, który stoi. W swojej strefie. Ktoś powinien to zgłosić.",
+      "A Leżak standing up. In its own parking zone. Somebody should report this."
     ]
   ]
 }

@@ -837,11 +837,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **The request card lost "your rating"** to fit beside the car on 390-pt phones (five lines of
   text above the pedals); the rating is on the result card. A request could show it on the
   PODWÓZKA button instead.
-- **Loop 2d-2 (after 3c's streaming)**: the `rechotka` quirk joins the random pool once the
+- ~~**Loop 2d-2 (after 3c's streaming)**: the `rechotka` quirk joins the random pool once the
   Frogs shops exist (was Rechotka 24; renamed 2026-10-30) (today it is flag-only and names a shop nobody can see), and the `detour`
   passenger (a stop at any Frogs, +½) needs them too; Pędzik, Leżak, the kebab stands and the
   billboards are 2d-2's; the `signs` and `column_posters` Podwózka lines (parodies.md 7) wait for
-  the billboards. `oldtown` falls back to a park until the map has the Old Town square.
+  the billboards.~~ Done in loop MW-2 (2d-2 folded in; "From loop MW-2"). `oldtown` falls back
+  to a park until the map has the Old Town square.
 - **PixelLab (not in this session)**: the Podwózka pickup icon (16 px), the "Nawigacja" avatar
   (32 px, it speaks as a plain bubble now), a believer and a student passenger portrait, the
   Podwózka billboard (parodies.md 9). The passenger figure is `props.gd`'s person with a hop and
@@ -1305,7 +1306,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   now); E34 the armchair man (MW-4 skipped it: "From loop MW-4");
   E35 KASETA's older decades (T1); E39 a tram in old livery; E40 the payphone prop (with T17).
   Each needs only its trigger in `eggs.json` (drop `waits`) once its piece exists.
-  The Frogs shop's two eggs are not cards yet (MW-2).
+  ~~The Frogs shop's two eggs are not cards yet (MW-2).~~ Done in MW-2: `easter_rechotka`,
+  `easter_lezak`.
 - **Words to review (designer)**: the egg lines vision's table doesn't quote and every English
   name are this loop's (marked in the generator); the 15 Kadr spots (`kadr.json`: names, places,
   looks) are this loop's picks; the KASETA ghosts are boxes from the then cards' ghost notes.
@@ -1393,9 +1395,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   `bike_dock`) and `city_life.gd` `_place_fixed` can put a row at each.
 - **E28's "to a dock"** is simplified to "follow a Rowerilo rider 400 m" (the rider then docks
   off screen): with docks in the data the rider could ride to the nearest one. Open Question.
-- **No rider MultiMesh to share** (MW-2's Pędzik riders aren't built): the bikes are their own
+- ~~**No rider MultiMesh to share** (MW-2's Pędzik riders aren't built): the bikes are their own
   MultiMesh (+1 draw call in view). When Pędzik lands, its riders can join it (a fourth bike
-  shape) or the reverse.
+  shape) or the reverse.~~ MW-2: the bike family already holds its four morph shapes (commuter,
+  Rowerilo, cargo, parked), so Pędzik has its own MultiMesh (+1 in view, "From loop MW-2").
 - **PixelLab pictograms on the Wiralek fascias** (vision 3.4's table: a croissant cube, a cracked
   chocolate bar, …): PixelLab wasn't available this loop; the fascia shows the word only. Eight
   pictograms, then a textured quad beside the word (+0 draws if in the fascia's mesh).
@@ -1447,8 +1450,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## From F's asks (2026-10-30: Frogs, the zones' switch, LEVEL 26, the full-screen map)
 
-- **Frogs' shops** are still words only (MW-2 builds them): the fascia spec is FROGS at a 0.12 m
-  letter pixel (parodies.md 2.1); the ids stay `rechotka` / `easter_rechotka`.
+- ~~**Frogs' shops** are still words only (MW-2 builds them): the fascia spec is FROGS at a 0.12 m
+  letter pixel (parodies.md 2.1); the ids stay `rechotka` / `easter_rechotka`.~~ Built in MW-2.
 - **The zones' switch off** also silences the guards' whistle, run and car (only the pill and the
   cap were asked about); the clamp keeps its "in a zone or on a footway" rule. If F wants the
   whistle as flavour with no cap, it is one condition in `guards.gd` `_zone_tick`.
@@ -1467,3 +1470,44 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **Android's back gesture**: `full_map.gd` closes on `NOTIFICATION_WM_GO_BACK_REQUEST`, but
   `application/config/quit_on_go_back` is Godot's default (true): check on a phone whether the
   back gesture quits the app first (store-release lane).
+
+## From loop MW-2 (storefronts and parodies, 2026-10-30)
+
+- **What the map lane should bake** (none of it is in `centrum.json`; MW-2 places from addresses
+  and the lane graph at runtime, DEVELOPMENT.md "Storefronts and parodies"): `shop=convenience`
+  (the Frogs could stand where real corner shops are), `railway=subway_entrance` (the metro
+  entrances are put on the pavement round nine station places, not at the real stairs: at
+  Centrum one canopy stands over the map's own sunken stairs), `amenity=bicycle_rental` (the
+  docks), the `scooter` / `scooter_zone` pois of parodies.md 5.2 (the odd places: grass, bench
+  fronts, hedges, 1 in 40 on a shelter roof), and an address for **Kruczkowskiego 3B** (Kasa
+  Biletowa resolves to Aleja 3 Maja 7A, the nearest address within 140 m). An outline per
+  facade with its street side would replace the sector-load wall rays.
+- **What the landmarks lane could add**: nothing blocks. The venue neon sits 0.14 m off the
+  collider's face; on a LoD2 facade (no `lod2.*` in this container) the rays meet the LoD2
+  walls, untested here. A real shop front (door recess, glass) on the Frogs' walls would beat
+  our 5 m fascia box.
+- **Wall rays at sector load**: 248 Frogs picked, ~200 find a straight 5.2 m wall with a 5 m
+  roof (the rest are skipped: a Frogs needs a wall). The rays run once per sector on the main
+  thread (`storefronts.gd` `_physics_process`, ~1-3 ms a sector in the headless run); the phone
+  should be checked for a hitch at sector load.
+- **Setup** costs ~230 ms at the city's start (headless, desktop): the address and venue lists,
+  the shop picks, the Leżak and metro picks, the neon atlas. Could move to a worker thread.
+- **Not built (cheap later)**: Pędzik on the road's kerb edge (they ride the cycle paths and
+  footways only), the 1-2 couriers waiting at each kebab stand at night, the hop over a car,
+  **the courier race** (parodies.md 4.3), **the Leżak round-up** (5.3: depot, pins, boot of 5),
+  Leżaks on shelter roofs. The `pedzik` `challenge` / `win` / `lose` and the `lezak` `start` /
+  `done` lines wait for them.
+- **PixelLab pictograms** (parodies.md 6.2 / 9): the ten billboards are text only (the five new
+  ones: FROGS · TU TEŻ, PODWÓZKA · GPS WIE LEPIEJ, PĘDZIK, LEŻAK, WIRALEK); a frog, a pin, a
+  backpack, a scooter and a phone pictogram each would be a textured quad beside the word.
+- **Two older `kebab_order` lines** are over the Polish bubbles' 70 characters (72 and 75:
+  "Zamówienie dla pana Krzysztofa…", "Powiśle, kamienica bez windy…"); `check_parodies` lists them
+  as known. A designer's trim.
+- **An older column poster** "CISZA NOCNA 3:00–3:05" has an en dash the pixel font lacks (it
+  draws a gap); a `–` glyph in `pixel_font.gd` or a hyphen in the line.
+- **Stamp reach** is 8 m from the door point (parodies.md 2.4 says 6): the door point is 1 m out
+  from the wall and a car on the near lane stops a pavement's width plus half a lane away
+  (`--rechotka` stops 6.4 m from Krucza 51's door). Open Question in the MW-2 report.
+- **The metro M** is a cream M on a navy square: generic, no operator's logo; at the default
+  view it is a few pixels. The art director may want it bigger or red.
+

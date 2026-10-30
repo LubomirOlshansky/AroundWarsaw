@@ -45,6 +45,8 @@ const SHOTS := {
 	# running watch, the phone's shutter and the café's door bell.
 	"bark_small": -12.0, "bark_mid": -11.0, "bark_big": -10.0, "bike_bell": -13.0, "watch_beep": -20.0,
 	"phone_shutter": -17.0, "cafe_bell": -15.0,
+	# Loop MW-2 (storefronts.gd): the Frogs door's croak chime, a Leżak knocked over.
+	"frog_chime": -15.0, "scooter_clatter": -12.0,
 }
 ## Loop 3g-2: the siren loop (one positional voice) and its level there.
 const SIREN := "police_siren"

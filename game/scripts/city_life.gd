@@ -25,7 +25,9 @@ extends Node3D
 ## Drawing: the walkers, runners, Kolka, the Hyrax loop and the photographers are pedestrians.gd's
 ## guests (+0 draw calls); the dogs, the cordon's barriers and the ball one city MultiMesh of a
 ## four-shape family (+1 in view); the riders and the parked bikes one more (+1: there is no
-## rider MultiMesh to share yet, MW-2's Pędzik riders aren't built); the fascias and the banner a
+## rider MultiMesh to share yet); loop MW-2's Pędzik couriers (parodies.md 4: 4 by day, 6 at
+## night, on the cycle paths and the footways, magenta, the square backpack) one more of their own
+## (+1 in view: one shape, no morph, so not in the bike family's four); the fascias and the banner a
 ## mesh each, near them. No sun shadow. The logic ticks at 2 Hz; the movers step at 15 Hz
 ## (walkers, runners and far riders at 7.5 Hz) only while something is near the view; far from
 ## all of it nothing but the tick runs. The rules are static functions (check_city_life.gd runs them on synthetic clocks and dates).
@@ -36,6 +38,7 @@ const PixelFont := preload("res://scripts/pixel_font.gd")
 const Crowds := preload("res://scripts/crowds.gd")
 const EggBook := preload("res://scripts/egg_book.gd")
 const Pedestrians := preload("res://scripts/pedestrians.gd")
+const Props := preload("res://scripts/props.gd")
 
 ## Seconds between two ticks of the logic, and between two moves of the movers.
 const TICK := 0.5
@@ -55,6 +58,8 @@ const VIS_MARGIN := 8.0
 const DOG_K := 0
 const RIDER_K := 1
 const RUNNER_K := 2
+## Loop MW-2: a Pędzik courier (a rider in its own MultiMesh).
+const PEDZIK_K := 3
 ## Movers live within NEAR_R m of the view's focus; they start SPAWN_R m from it.
 const NEAR_R := 200.0
 const SPAWN_R := Vector2(25.0, 150.0)
@@ -88,6 +93,15 @@ enum { LONG, SQUAT, FLUFFY, BARRIER }
 
 ## Cyclists (vision 3.7).
 const RIDERS_MAX := 12
+## Loop MW-2 (parodies.md 4.2): Pędzik couriers round the view, by day and at night (× 1.5), the
+## pool, their speed (m/s), the near miss (m) and its bubble's gap (s); half ride the footways.
+const PEDZIK_DAY := 4
+const PEDZIK_NIGHT := 6
+const PEDZIK_CAP := 16
+const PEDZIK_V := Vector2(5.0, 7.0)
+const PEDZIK_MISS := 4.0
+const PEDZIK_GAP := 30.0
+const PEDZIK_FOOT := 0.5
 const RIDER_BASE := 4
 const RIDE_HOURS := [6.0, 22.0]
 const RUSH := [[7.0, 9.5], [16.0, 19.0]]
@@ -247,6 +261,8 @@ var on_screen: Callable
 var probe: Callable
 ## --life=: 0 none (this node isn't built), 1 normal, 2 double; the Low tier halves it.
 var amount := 1.0
+## Loop MW-2: the Pędzik couriers (main.gd's --no-parodies turns them off).
+var pedzik_on := true
 ## --dogs-log, --trend-log, --life-log (the riders, runners, Kolka, Hyrax, the soak).
 var dogs_log := false
 var trend_log := false
@@ -273,6 +289,9 @@ var overlaps := 0
 var closest := INF
 var met_dogs := 0
 var met_riders := 0
+## Loop MW-2: Pędzik couriers met (within 10 m) and their near-miss bubbles.
+var met_pedzik := 0
+var pedzik_lines := 0
 ## The slots' state now: {day, trend, cycle, queue, word} each (slot_state).
 var slots_now: Array[Dictionary] = []
 ## The slots' doors and their facade's outward side (from crowds.gd's sites), Vector2 each.
@@ -304,6 +323,7 @@ var _heights := {}
 var _stops := {}
 var _dogs: Array[Mover] = []
 var _riders: Array[Mover] = []
+var _pedziks: Array[Mover] = []
 var _runners: Array[Mover] = []
 var _docks: Array[Dictionary] = []
 var _zones: Array[Vector2] = []
@@ -328,6 +348,12 @@ var _dog_mmi: MultiMeshInstance3D
 var _dog_buf := PackedFloat32Array()
 var _bike_mm: MultiMesh
 var _bike_mmi: MultiMeshInstance3D
+var _ped_mm: MultiMesh
+var _ped_mmi: MultiMeshInstance3D
+var _ped_buf := PackedFloat32Array()
+var _ped_box := AABB()
+var _peds_moved := false
+var _pedzik_t := -INF
 var _bike_buf := PackedFloat32Array()
 var _fascias: Array[MeshInstance3D] = []
 var _fascia_key: Array[String] = []
@@ -440,6 +466,12 @@ static func rider_count(hour: float, k := 1.0) -> int:
 ## A rider's kind from a roll 0..1: 55 % commuters, 30 % Rowerilo, 15 % cargo *guess*.
 static func rider_kind(roll: float) -> int:
 	return COMMUTER if roll < 0.55 else (ROWERILO if roll < 0.85 else CARGO)
+
+
+## Loop MW-2: Pędzik couriers round the view at `hour` (parodies.md 4.2: × 1.5 at night, 21-06).
+static func pedzik_count(hour: float, k := 1.0) -> int:
+	var night := hour >= 21.0 or hour < 6.0
+	return mini(roundi((PEDZIK_NIGHT if night else PEDZIK_DAY) * k), PEDZIK_CAP)
 
 
 static func runner_count(hour: float, near_zone: bool, k := 1.0) -> int:
@@ -1035,6 +1067,10 @@ func _build_drawing() -> void:
 	_bike_buf.resize(BIKE_CAP * 16)
 	_bike_buf.fill(0.0)
 	_bike_mmi = _new_mmi(_bike_mm, "Bikes")
+	_ped_mm = _new_mm(Props.pedzik_rider(), PEDZIK_CAP)
+	_ped_buf.resize(PEDZIK_CAP * 16)
+	_ped_buf.fill(0.0)
+	_ped_mmi = _new_mmi(_ped_mm, "Pedzik")
 	_gbuf.resize(Pedestrians.GUESTS * 16)
 	_gbuf.fill(0.0)
 
@@ -1280,6 +1316,7 @@ func tick(step: float) -> void:
 	var car2 := p2 if vp != Vector3.INF and not bool(veh[2]) else Vector2.INF
 	_keep(_dogs, dog_count(_hour, zone, amount), "dog", eye, car2)
 	_keep(_riders, rider_count(_hour, amount), "rider", eye, car2)
+	_keep(_pedziks, pedzik_count(_hour, amount) if pedzik_on else 0, "pedzik", eye, car2)
 	_keep(_runners, runner_count(_hour, run_zone, amount), "runner", eye, car2)
 	_shown_now = _shown_bits(eye)
 	# Who is on screen, for the step's rate: inside the view's ground rectangle and VIS_MARGIN
@@ -1294,7 +1331,7 @@ func tick(step: float) -> void:
 		vr = view.view_right
 		va = view.view_ahead
 		vh = (view.view_half as Vector2) + Vector2.ONE * VIS_MARGIN
-	for list: Array[Mover] in [_dogs, _riders, _runners]:
+	for list: Array[Mover] in [_dogs, _riders, _runners, _pedziks]:
 		for m in list:
 			if view != null:
 				var q := m.p2 - vc
@@ -1320,11 +1357,12 @@ func tick(step: float) -> void:
 	if _banner != null:
 		_banner.visible = hyrax and eye.distance_to(_hyrax["at"]) < FASCIA_R
 	var was := _active
-	_active = not _dogs.is_empty() or not _riders.is_empty() or not _runners.is_empty() or near_fixed or kolka_near
+	_active = not _dogs.is_empty() or not _riders.is_empty() or not _runners.is_empty() or not _pedziks.is_empty() or near_fixed or kolka_near
 	if was and not _active:
 		_hide_all()
 	if not veh[2] and vp != Vector3.INF:
 		_bell_tick(p2, float(veh[1]), step)
+		_pedzik_tick(p2, float(veh[1]))
 		_follow_tick(p2, float(veh[1]), step)
 	if kphase == "run" and not _kolka.is_empty():
 		_zajac_tick(vp, float(veh[1]), bool(veh[2]), step)
@@ -1384,6 +1422,8 @@ func _hide_all() -> void:
 	_dog_mmi.visible = false
 	_bike_mm.visible_instance_count = 0
 	_bike_mmi.visible = false
+	_ped_mm.visible_instance_count = 0
+	_ped_mmi.visible = false
 	_gbuf.fill(0.0)
 	if walkers != null:
 		walkers.take_guests(_gbuf)
@@ -1421,7 +1461,7 @@ func _seen(m: Mover) -> bool:
 
 ## A new mover on a footway (a dog walker, a runner) or a cycle path (a rider) SPAWN_R from `eye`.
 func _spawn(kind: String, eye: Vector2) -> Mover:
-	var pset := "cyc" if kind == "rider" else "foot"
+	var pset := "cyc" if kind == "rider" or (kind == "pedzik" and _rng.randf() >= PEDZIK_FOOT) else "foot"
 	var grid: Dictionary = _foot_grid if pset == "foot" else _cyc_grid
 	var list: Array[PackedVector2Array] = _foot if pset == "foot" else _cyc
 	var a := _rng.randf() * TAU
@@ -1439,7 +1479,7 @@ func _spawn(kind: String, eye: Vector2) -> Mover:
 		return null
 	var m := Mover.new()
 	m.kind = kind
-	m.kd = DOG_K if kind == "dog" else (RIDER_K if kind == "rider" else RUNNER_K)
+	m.kd = DOG_K if kind == "dog" else (RIDER_K if kind == "rider" else (PEDZIK_K if kind == "pedzik" else RUNNER_K))
 	m.pset = pset
 	m.i = i
 	m.s = _rng.randf_range(0.0, length)
@@ -1463,6 +1503,9 @@ func _spawn(kind: String, eye: Vector2) -> Mover:
 			m.off = _rng.randf_range(-0.3, 0.3)
 			m.shape = rider_kind(_rng.randf())
 			m.shirt = Color(SHIRTS[_rng.randi() % SHIRTS.size()])
+		"pedzik":
+			m.v = _rng.randf_range(PEDZIK_V.x, PEDZIK_V.y)
+			m.off = _rng.randf_range(-0.3, 0.3)
 		"runner":
 			m.v = _rng.randf_range(2.7, 3.3)
 			m.off = _rng.randf_range(-0.5, 0.5)
@@ -1659,6 +1702,7 @@ func _move(dt: float) -> void:
 	_step_dogs(dt, eye, car2, ahead, full)
 	_step_list(_riders, RIDER_K, dt, eye, car2, ahead, full)
 	_step_list(_runners, RUNNER_K, dt, eye, car2, ahead, full)
+	_step_list(_pedziks, PEDZIK_K, dt, eye, car2, ahead, full)
 	if full:
 		_write_all(eye, car2)
 		return
@@ -1732,8 +1776,9 @@ func _step_dogs(dt: float, eye: Vector2, car2: Vector2, ahead: Vector2, full: bo
 ## The riders' or the runners' step: along the path (the next path at its end), out of the car's
 ## way, the instance into its slot (a rider's bike, a runner's guest).
 func _step_list(list: Array[Mover], kd: int, dt: float, eye: Vector2, car2: Vector2, ahead: Vector2, full: bool) -> void:
-	var rider := kd == RIDER_K
-	var slot0 := _dock_n if rider else _dogs.size()
+	var rider := kd == RIDER_K or kd == PEDZIK_K
+	var ped := kd == PEDZIK_K
+	var slot0 := 0 if ped else (_dock_n if rider else _dogs.size())
 	var moved := false
 	var has_car := car2 != Vector2.INF
 	var car_r2 := FAR_CAR * FAR_CAR
@@ -1773,14 +1818,19 @@ func _step_list(list: Array[Mover], kd: int, dt: float, eye: Vector2, car2: Vect
 		if near:
 			_clear_mover(m, kd, car2, ahead)
 		if not full:
-			if rider:
+			if ped:
+				put(_ped_buf, idx, m.p3, m.yaw, Vector3.ONE, Color.WHITE, 0.0)
+				_ped_box = _ped_box.expand(m.p3)
+			elif rider:
 				put(_bike_buf, slot0 + idx, m.p3, m.yaw, Vector3.ONE, m.shirt, m.shape)
 				_bbox = _bbox.expand(m.p3)
 			else:
 				put(_gbuf, slot0 + idx, m.p3, m.yaw, Vector3.ONE, m.shirt, m.tr)
 			moved = true
 	if moved:
-		if rider:
+		if ped:
+			_peds_moved = true
+		elif rider:
 			_bikes_moved = true
 		else:
 			_gdirty = true
@@ -1823,6 +1873,8 @@ func _clear_mover(m: Mover, kd: int, car2: Vector2, ahead: Vector2, count := tru
 			met_dogs += 1
 		elif kd == RIDER_K:
 			met_riders += 1
+		elif kd == PEDZIK_K:
+			met_pedzik += 1
 
 
 ## What is shown besides the movers (the tick's, as bits): the Hyrax cordon, the influencer, the
@@ -1858,6 +1910,10 @@ func _write_moved(car2: Vector2) -> void:
 		_bikes_moved = false
 		InstanceBuffers.send(_bike_mm.get_rid(), _bike_buf)
 		_bike_mm.custom_aabb = _bbox.grow(1.5).expand(_bbox.end + Vector3(0, 2.0, 0))
+	if _peds_moved:
+		_peds_moved = false
+		InstanceBuffers.send(_ped_mm.get_rid(), _ped_buf)
+		_ped_mm.custom_aabb = _ped_box.grow(1.5).expand(_ped_box.end + Vector3(0, 2.2, 0))
 	if _kolka_slot >= 0:
 		_kolka_step(car2)
 	if _hyrax_slot >= 0 and _shown & 1:
@@ -1948,6 +2004,19 @@ func _write_all(eye: Vector2, car2: Vector2) -> void:
 		InstanceBuffers.send(_bike_mm.get_rid(), _bike_buf)
 		_bike_mm.custom_aabb = bbox.grow(1.5).expand(bbox.end + Vector3(0, 2.0, 0))
 	_bike_mmi.visible = n > 0
+	# Loop MW-2: the Pędzik couriers, their own MultiMesh.
+	var pn := mini(_pedziks.size(), PEDZIK_CAP)
+	var pbox := AABB()
+	for k in pn:
+		var r: Mover = _pedziks[k]
+		put(_ped_buf, k, r.p3, r.yaw, Vector3.ONE, Color.WHITE, 0.0)
+		pbox = AABB(r.p3, Vector3.ZERO) if k == 0 else pbox.expand(r.p3)
+	_ped_box = pbox
+	_ped_mm.visible_instance_count = pn
+	if pn > 0:
+		InstanceBuffers.send(_ped_mm.get_rid(), _ped_buf)
+		_ped_mm.custom_aabb = pbox.grow(1.5).expand(pbox.end + Vector3(0, 2.2, 0))
+	_ped_mmi.visible = pn > 0
 	_write_guests(eye, car2, hyrax, infl, aport_near)
 
 
@@ -2417,6 +2486,23 @@ func _bell_tick(p: Vector2, kmh: float, step: float) -> void:
 		print("life: the car parked on a cycle path at %.0f, %.0f for %.0f s: the bell" % [p.x, p.y, _bell_hold])
 
 
+## Loop MW-2: a Pędzik courier within PEDZIK_MISS of the moving car (it swerved: _clear_mover)
+## says a `pedzik` line, once per PEDZIK_GAP s.
+func _pedzik_tick(p: Vector2, kmh: float) -> void:
+	if kmh < 10.0 or t - _pedzik_t < PEDZIK_GAP:
+		return
+	for r in _pedziks:
+		if r.p2.distance_to(p) <= PEDZIK_MISS:
+			_pedzik_t = t
+			pedzik_lines += 1
+			if dialogue != null:
+				var at := r.p3
+				dialogue.say(func() -> Vector3: return at + Vector3(0, 2.2, 0), "Pędzik", "pedzik", "", 4.0, Color("#c23a7e"), 2.2)
+			if life_log:
+				print("life: a Pędzik courier's near miss at %.0f, %.0f" % [r.p2.x, r.p2.y])
+			return
+
+
 func _on_cycle_path(p: Vector2) -> bool:
 	var c := Vector2i(floori(p.x / CELL), floori(p.y / CELL))
 	for i: int in _cyc_grid.get(c, PackedInt32Array()):
@@ -2486,7 +2572,7 @@ func _soak_frame(dt: float) -> void:
 		return
 	var cp := Vector2(car.global_position.x, car.global_position.z)
 	var yaw: float = car.rotation.y
-	for list: Array[Mover] in [_dogs, _riders, _runners]:
+	for list: Array[Mover] in [_dogs, _riders, _runners, _pedziks]:
 		for m in list:
 			for key in (["p2", "d2"] if m["kind"] == "dog" else ["p2"]):
 				var q: Vector2 = m[key]

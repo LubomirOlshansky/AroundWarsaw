@@ -363,3 +363,207 @@ static func glow_material(billboard: bool, lift := 1.5) -> ShaderMaterial:
 	m.set_shader_parameter("lift", lift)
 	m.render_priority = 1
 	return m
+
+
+# --- loop MW-2: storefronts and parodies (docs/design/parodies.md 2, 4, 5, 6.1; vision.md 3.5) --
+
+## One triangle facing `n` (Godot's front faces are clockwise: swapped when needed).
+static func tri(st: SurfaceTool, a: Vector3, b: Vector3, c: Vector3, n: Vector3, colour: Color, part := FIXED) -> void:
+	var q := [a, b, c]
+	if (b - a).cross(c - a).dot(n) > 0.0:
+		q = [a, c, b]
+	for v in q:
+		st.set_color(colour)
+		st.set_normal(n)
+		st.set_uv(Vector2(part, 0.0))
+		st.add_vertex(v)
+
+
+## A Frogs shop front (parodies.md 2.1), on a wall: x along the wall (to the reader's right), y
+## up, z out of the wall (the wall's plane z = 0, the pavement y = 0). The frog-green fascia
+## 5.0 × 0.9 m, 0.25 m deep at 3.2-4.1 m with FROGS in cream at a 0.12 m letter pixel (3.48 ×
+## 0.84 m), the lily-pad blade sign (a 0.9 m octagon disc with a notch, "24" on both faces) on
+## a bracket at 3.65 m, the 4.4 × 2.4 m window (LIT_WINDOW), a 1.0 m door with a dark frame and
+## the floor strip. No frog figure: the lily pad is the mark (Open Question 3). ~430 triangles.
+static func frogs_shop() -> ArrayMesh:
+	var st := _begin()
+	var green := Color("#4fae3b")
+	var pad := Color("#2f6b2a")
+	var cream := Color("#fbf7ee")
+	var dark := Color("#1f3a22")
+	var glass := Color("#cfe8c6")
+	# The fascia and its text.
+	box(st, Vector3(0, 3.65, 0.125), Vector3(5.0, 0.9, 0.25), green, LIT_SIGN)
+	var px := 0.12
+	var w := PixelFont.width("FROGS") * px
+	var top := 3.65 + (PixelFont.BODY + 3.5) * px
+	PixelFont.add_quads(st, "FROGS", Vector3(-w * 0.5, top, 0.252), Vector3.RIGHT, Vector3.DOWN, px, cream, LIT_SIGN)
+	# The window, the door and the frame round them.
+	box(st, Vector3(-0.55, 1.5, 0.03), Vector3(3.3, 2.4, 0.06), glass, LIT_WINDOW)
+	box(st, Vector3(1.75, 1.2, 0.035), Vector3(0.9, 2.2, 0.07), glass, LIT_WINDOW)
+	box(st, Vector3(1.75, 2.36, 0.06), Vector3(1.1, 0.12, 0.12), dark)
+	for x in [-2.45, 1.2, 2.3, 2.45]:
+		box(st, Vector3(x, 1.6, 0.06), Vector3(0.1, 3.2 if absf(x) > 2.4 else 2.4, 0.12), dark)
+	box(st, Vector3(0, 2.97, 0.05), Vector3(5.0, 0.14, 0.1), dark)
+	box(st, Vector3(0, 0.06, 0.1), Vector3(5.0, 0.12, 0.2), dark)
+	# The blade sign: a bracket out from the fascia, the disc across it (faces ±x), "24" on both.
+	var c := Vector3(2.2, 3.65, 0.85)
+	box(st, Vector3(2.2, 4.06, 0.55), Vector3(0.05, 0.05, 0.6), Color("#3a3b3f"))
+	var r := 0.45
+	var half := 0.06
+	var pts: Array[Vector3] = []
+	for k in 8:
+		var a := TAU * (k + 0.5) / 8.0
+		pts.append(Vector3(0.0, sin(a) * r, cos(a) * r))
+	for side in [-1.0, 1.0]:
+		var n := Vector3(side, 0, 0)
+		for k in 8:
+			if k == 1:
+				continue  # the notch: a lily pad, not a coin
+			tri(st, c + n * half, c + pts[k] + n * half, c + pts[(k + 1) % 8] + n * half, n, pad, LIT_SIGN)
+	for k in 8:
+		if k == 1:
+			continue
+		var a: Vector3 = c + pts[k]
+		var b: Vector3 = c + pts[(k + 1) % 8]
+		var n := ((a + b) * 0.5 - c).normalized()
+		tri(st, a + Vector3(-half, 0, 0), b + Vector3(-half, 0, 0), b + Vector3(half, 0, 0), n, pad)
+		tri(st, a + Vector3(-half, 0, 0), b + Vector3(half, 0, 0), a + Vector3(half, 0, 0), n, pad)
+	var dpx := 0.06
+	var dw := PixelFont.width("24") * dpx
+	var dtop := c.y + (PixelFont.BODY + 3.5) * dpx
+	# A reader on the +x side (looking -x) has -z on the right; on the -x side, +z.
+	PixelFont.add_quads(st, "24", Vector3(c.x + half + 0.002, dtop, c.z + dw * 0.5), Vector3.FORWARD, Vector3.DOWN, dpx, cream, LIT_SIGN)
+	PixelFont.add_quads(st, "24", Vector3(c.x - half - 0.002, dtop, c.z - dw * 0.5), Vector3.BACK, Vector3.DOWN, dpx, cream, LIT_SIGN)
+	return st.commit()
+
+
+## A Leżak (parodies.md 5.1): a dumped e-scooter, ≤ 120 triangles, standing, its length along
+## z: the violet deck 1.1 × 0.06 × 0.18 m, the dark stem 0.95 m and handlebar, two small
+## wheels, a white front lamp. Lying on its side is the same mesh turned 90° about z.
+static func lezak() -> ArrayMesh:
+	var st := _begin()
+	var violet := Color("#8e44d9")
+	var dark := Color("#3a3b3f")
+	box(st, Vector3(0, 0.12, 0), Vector3(0.18, 0.06, 1.1), violet)
+	box(st, Vector3(0, 0.6, -0.5), Vector3(0.06, 0.95, 0.06), dark)
+	box(st, Vector3(0, 1.06, -0.5), Vector3(0.5, 0.04, 0.05), dark)
+	for z in [-0.48, 0.5]:
+		box(st, Vector3(0, 0.1, z), Vector3(0.05, 0.2, 0.2), Models.TYRE)
+	box(st, Vector3(0, 0.9, -0.54), Vector3(0.06, 0.05, 0.03), Color("#fbf7ee"), HEAD_LAMP)
+	return st.commit()
+
+
+## A Leżak parking zone (parodies.md 5.2): a painted white rectangle 3 × 1.5 m on the pavement
+## (an outline 0.1 m wide, 2 cm up), centred on the origin, long along x.
+static func add_scooter_zone(st: SurfaceTool, xf: Transform3D) -> void:
+	var white := Color("#f2efe6")
+	for b: Array in [[Vector3(0, 0.02, -0.7), Vector3(3.0, 0.02, 0.1)], [Vector3(0, 0.02, 0.7), Vector3(3.0, 0.02, 0.1)],
+			[Vector3(-1.45, 0.02, 0), Vector3(0.1, 0.02, 1.5)], [Vector3(1.45, 0.02, 0), Vector3(0.1, 0.02, 1.5)]]:
+		_xbox(st, xf, b[0], b[1], white)
+
+
+## A box through a transform (for the combined street-prop mesh of a sector).
+static func _xbox(st: SurfaceTool, xf: Transform3D, centre: Vector3, size: Vector3, colour: Color, part := FIXED) -> void:
+	obox(st, xf * centre, xf.basis.orthonormalized(), size, colour, part)
+
+
+## A metro entrance (vision.md 3.5): a low glass-and-steel canopy over a stair opening and a post
+## with a plain pixel-font M in a square (our own shape, not the operator's mark: cream on navy,
+## lit at night), into the sector's street-prop mesh at `xf` (the stairs go down along -z; the
+## post stands at the front right). ~250 triangles.
+static func add_metro_entrance(st: SurfaceTool, xf: Transform3D) -> void:
+	var steel := Color("#5b5f66")
+	var glass := Color("#a8cde6")
+	var navy := Color("#24324a")
+	var cream := Color("#fbf7ee")
+	# The opening (dark), its kerb and the canopy on four posts.
+	_xbox(st, xf, Vector3(0, 0.02, 0), Vector3(2.2, 0.03, 4.0), Color("#1d1f24"))
+	for x in [-1.2, 1.2]:
+		_xbox(st, xf, Vector3(x, 0.5, 0.0), Vector3(0.1, 1.0, 4.2), steel)
+	_xbox(st, xf, Vector3(0, 0.5, 2.05), Vector3(2.5, 1.0, 0.1), steel)
+	for x in [-1.2, 1.2]:
+		for z in [-1.9, 1.9]:
+			_xbox(st, xf, Vector3(x, 1.45, z), Vector3(0.08, 0.9, 0.08), steel)
+	_xbox(st, xf, Vector3(0, 1.95, 0), Vector3(2.6, 0.08, 4.2), glass, LIT_WINDOW)
+	_xbox(st, xf, Vector3(0, 2.02, 0), Vector3(2.7, 0.06, 0.1), steel)
+	# The M post: a 2.8 m pole, a 0.8 m navy square with a cream M on both faces.
+	var post := Vector3(1.7, 0, -2.2)
+	_xbox(st, xf, post + Vector3(0, 1.4, 0), Vector3(0.1, 2.8, 0.1), steel)
+	_xbox(st, xf, post + Vector3(0, 2.75, 0), Vector3(0.8, 0.8, 0.08), navy, LIT_SIGN)
+	var px := 0.085
+	var w := PixelFont.width("M") * px
+	var top := 2.75 + (PixelFont.BODY + 3.5) * px
+	var basis := xf.basis.orthonormalized()
+	# side 1: the face towards -z (its reader looks +z, -x on the right); side -1 the back.
+	for side in [-1.0, 1.0]:
+		var right := basis * Vector3(-side, 0, 0)
+		var origin := xf * (post + Vector3(side * w * 0.5, top, -side * 0.045))
+		PixelFont.add_quads(st, "M", origin, right, Vector3.DOWN, px, cream, LIT_SIGN)
+
+
+## A Pędzik rider (parodies.md 4.1), ≤ 300 triangles, facing -z: a dark bike (boxes), the rider
+## in a white helmet, a magenta jacket and dark trousers, and the 0.45 m cube backpack in magenta
+## with a cream band round its middle and our own mark (a wheel with three speed lines) on the
+## sides in vertex-coloured pixels. No sun shadow (small_casters' rule: its own MultiMesh).
+static func pedzik_rider() -> ArrayMesh:
+	var st := _begin()
+	var dark := Color("#3a3b3f")
+	var magenta := Color("#c23a7e")
+	var cream := Color("#fbf7ee")
+	for z in [-0.52, 0.52]:
+		box(st, Vector3(0, 0.33, z), Vector3(0.05, 0.64, 0.64), Models.TYRE)
+	box(st, Vector3(0, 0.62, 0), Vector3(0.05, 0.06, 0.98), dark)
+	box(st, Vector3(0, 1.0, -0.46), Vector3(0.5, 0.04, 0.04), dark)
+	box(st, Vector3(0, 0.88, 0.25), Vector3(0.12, 0.05, 0.2), dark)
+	# The rider.
+	box(st, Vector3(-0.1, 0.62, 0.0), Vector3(0.14, 0.56, 0.16), Color("#2d3442"))
+	box(st, Vector3(0.1, 0.62, 0.0), Vector3(0.14, 0.56, 0.16), Color("#2d3442"))
+	box(st, Vector3(0, 1.22, 0.1), Vector3(0.42, 0.55, 0.26), magenta)
+	box(st, Vector3(0, 1.1, -0.2), Vector3(0.52, 0.1, 0.42), magenta)
+	box(st, Vector3(0, 1.62, 0.02), Vector3(0.24, 0.24, 0.24), Color("#e2b48c"))
+	box(st, Vector3(0, 1.76, 0.03), Vector3(0.28, 0.1, 0.3), Color("#f4f4f0"))
+	# The backpack and its band.
+	box(st, Vector3(0, 1.38, 0.45), Vector3(0.45, 0.45, 0.45), magenta)
+	box(st, Vector3(0, 1.38, 0.45), Vector3(0.47, 0.08, 0.47), cream)
+	# The mark on both sides: a wheel (a ring of 8 pixels) and three speed lines.
+	var mark := [Vector2(1, 0), Vector2(2, 0), Vector2(0, 1), Vector2(3, 1), Vector2(0, 2), Vector2(3, 2), Vector2(1, 3), Vector2(2, 3)]
+	var px := 0.035
+	# One-sided quads (2 triangles a pixel, not a box's 12: the rider's ≤ 300).
+	for side in [-1.0, 1.0]:
+		var n := Vector3(side, 0, 0)
+		for m: Vector2 in mark:
+			_face(st, Vector3(0.227 * side, 1.56 - m.y * px, 0.5 - m.x * px), Vector3(0, 0, px * 0.5), Vector3(0, px * 0.5, 0), n, cream)
+		for k in 3:
+			_face(st, Vector3(0.227 * side, 1.56 - k * px * 1.4, 0.61), Vector3(0, 0, px), Vector3(0, px * 0.3, 0), n, cream)
+	return st.commit()
+
+
+## One quad facing `n`: `u` and `v` its half sides.
+static func _face(st: SurfaceTool, c: Vector3, u: Vector3, v: Vector3, n: Vector3, colour: Color, part := FIXED) -> void:
+	var q := [c - u - v, c + u - v, c + u + v, c - u + v]
+	if ((q[1] as Vector3) - q[0]).cross((q[2] as Vector3) - q[0]).dot(n) > 0.0:
+		q = [q[0], q[3], q[2], q[1]]
+	for k in [0, 1, 2, 0, 2, 3]:
+		st.set_color(colour)
+		st.set_normal(n)
+		st.set_uv(Vector2(part, 0.0))
+		st.add_vertex(q[k])
+
+
+## A kebab stand with its name on a smaller board under KEBAB (parodies.md 6.1: U ZDZICHA at
+## Hala Mirowska, NA CIENKIM on Plac Zbawiciela), facing -z like kebab_stand().
+static func named_kebab_stand(name: String) -> ArrayMesh:
+	var st := _begin()
+	var base := kebab_stand()
+	st.append_from(base, 0, Transform3D.IDENTITY)
+	var px := 0.045
+	var w := PixelFont.width(name) * px
+	var bw := w + 0.3
+	var y := 2.85
+	box(st, Vector3(0, y, 0), Vector3(bw, 0.56, 0.14), Color("#2b2730"))
+	var gold := Color("#ffd23f")
+	var top := y + (PixelFont.BODY + 3.5) * px
+	PixelFont.add_quads(st, name, Vector3(w * 0.5, top, -0.075), Vector3.LEFT, Vector3.DOWN, px, gold, LIT_SIGN)
+	PixelFont.add_quads(st, name, Vector3(-w * 0.5, top, 0.075), Vector3.RIGHT, Vector3.DOWN, px, gold, LIT_SIGN)
+	return st.commit()

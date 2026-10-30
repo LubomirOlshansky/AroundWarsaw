@@ -975,6 +975,46 @@
 				"respect": 10
 			},
 			"waits": "payphone"
+		},
+		{
+			"id": "easter_rechotka",
+			"name": [
+				"Trzy Frogsy",
+				"Three Frogs"
+			],
+			"place": "swietokrzyska_metro",
+			"line_ref": [
+				"easter_rechotka",
+				0
+			],
+			"trigger": {
+				"kind": "stop",
+				"within": 30,
+				"secs": 2
+			},
+			"reward": {
+				"respect": 20
+			}
+		},
+		{
+			"id": "easter_lezak",
+			"name": [
+				"Leżak, który stoi",
+				"The Leżak that stands"
+			],
+			"place": "nowy_swiat_uniwersytet",
+			"line": [
+				"Leżak, który stoi. W swojej strefie. Ktoś powinien to zgłosić.",
+				"A Leżak standing up. In its own zone. Someone should report this."
+			],
+			"trigger": {
+				"kind": "stop",
+				"within": 12,
+				"secs": 2
+			},
+			"reward": {
+				"respect": 20
+			}
 		}
 	]
 }

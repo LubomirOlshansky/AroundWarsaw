@@ -1,7 +1,7 @@
 extends Node
-## Loop MW-6 (docs/design/vision.md section 8 and 4.7): the easter eggs as notebook cards. The 45
-## cards of `data/eggs.json`: the five eggs of v0.65 (eggs.gd finds them, as before: `legacy`) and
-## vision's 40. Each has a place (a notebook place, or one of eggs.gd's spots), a trigger, a line
+## Loop MW-6 (docs/design/vision.md section 8 and 4.7): the easter eggs as notebook cards. The 47
+## cards of `data/eggs.json`: the five eggs of v0.65 (eggs.gd finds them, as before: `legacy`),
+## vision's 40 and loop MW-2's two (easter_rechotka, easter_lezak: storefronts.gd moves them). Each has a place (a notebook place, or one of eggs.gd's spots), a trigger, a line
 ## and a reward; the first find puts the card in the notebook (wallet.gd `eggs`: id -> the day),
 ## pays its respect, opens its PÓŁNOC FM track (radio.gd `unlock_track`), stamps its then card
 ## (tape.gd) and shows the note card. An egg whose trigger needs something not built yet (the

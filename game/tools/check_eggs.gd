@@ -4,7 +4,8 @@ extends SceneTree
 ##   - every card has its name and line in Polish and English (a `line_ref` resolving to a
 ##     dialogue.json line), each at most 70 characters, a reward (respect), a trigger kind, a
 ##     place that exists (places.json, or eggs.gd's five spots); a waiting egg names what it
-##     waits for; unique ids; 45 cards (5 of v0.65 + vision's 40);
+##     waits for; unique ids; 47 cards (5 of v0.65 + vision's 40 + loop MW-2's two: the Frogs
+##     triple corner and the standing Leżak);
 ##   - every reachable egg fires on synthetic inputs of its kind (the vehicle at its place, its
 ##     time, day and weather; a lap, a street, a circle driven), and an egg with a condition does
 ##     not fire without it (by day, too fast, in the rain, another station);
@@ -98,8 +99,8 @@ func _run() -> void:
 
 
 func _check_data(book: EggBook, nb: Notebook) -> void:
-	if book.eggs.size() != 45:
-		problems.append("%d cards, want 45 (5 of v0.65 + vision's 40)" % book.eggs.size())
+	if book.eggs.size() != 47:
+		problems.append("%d cards, want 47 (5 of v0.65 + vision's 40 + MW-2's two)" % book.eggs.size())
 	var ids := {}
 	for e in book.eggs:
 		var id := str(e["id"])
