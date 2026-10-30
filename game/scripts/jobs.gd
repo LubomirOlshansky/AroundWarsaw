@@ -76,6 +76,8 @@ var start_heat := 1.0
 var start_broken := 0
 ## Loop 2d-1: the Podwózka job (rides.gd), so the two never run at once.
 var rides: Node
+## Loop MW-4: the "Na czasie" job (trend_job.gd), likewise.
+var trend: Node
 ## Loop 3g-2 (police.md 8.3): the kebab's heat stands still while a pull-over's card is open
 ## (police.gd sets it).
 var heat_frozen := false
@@ -319,12 +321,18 @@ func heat() -> float:
 
 func busy() -> bool:
 	# Loop 2d-1: a Podwózka ride counts as a job for everything that waits on one.
-	return state != State.IDLE or (rides != null and rides.busy())
+	return state != State.IDLE or (rides != null and rides.busy()) or (trend != null and trend.busy())
 
 
 ## Loop 2d-1: a kebab or słoiki job of this script's own is on (rides.gd asks this).
 func own_busy() -> bool:
 	return state != State.IDLE
+
+
+## Loop MW-4: this script's own job or the "Na czasie" one (its card included) is on: rides.gd
+## offers nothing then.
+func side_busy() -> bool:
+	return own_busy() or (trend != null and trend.state != 0)
 
 
 func has_target() -> bool:
@@ -345,6 +353,8 @@ func _free() -> bool:
 		return false
 	if rides != null and rides.busy():
 		return false  # loop 2d-1: one activity at a time
+	if trend != null and trend.busy():
+		return false  # loop MW-4
 	return rivals == null or not rivals.busy()
 
 

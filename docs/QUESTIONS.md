@@ -14,11 +14,24 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
 | map | Loop 3e, structures: the W-Z tunnel, Most Śląsko-Dąbrowski, Trasa Łazienkowska, the Wybrzeże trench, Wiadukt Markiewicza, the rail cutting (3d-1, 3d-2a and 3d-2b landed) | thread "Finish the demo map extension" | 2026-10-30 |
-| content (city life) | MW-4, everyday life and trends: dog walkers, cyclists and Rowerilo docks, runners, Kolka and the Zając, Hyrax Saturdays, the Wiralek cycle and the "Na czasie" job, Fat Thursday (new meshes in its own script; tell landmarks before touching `models.gd`) | cloud thread "Add night and river crowds" | 2026-10-30 |
+| content | F's asks: Rechotka 24 → Frogs, pedestrian slow zones off by default (a Settings switch), the rooftop club at Plac Zawiszy, the full-screen map | cloud thread "Add night and river crowds" | 2026-10-30 |
 
 ## Waiting
 
 Newest first. One entry per question.
+
+- **2026-10-30 · content · MW-4 (everyday life and trends)** — How often does a trend move
+  without Live? Vision says every third session. Default built: every 4 sessions. Live counts
+  8-day cycles from 2026-01-05 rather than the ISO week.
+- **2026-10-30 · content · MW-4** — E28 is built as "follow a Rowerilo rider 400 m" (vision: "to
+  a dock"). The "Na czasie" job pays 51 zł on time, 21 late, no tip on days 6–7; the offer shows
+  within 60 m of a slot, then waits 240 s. Default built: as said.
+- **2026-10-30 · content · MW-4** — Kolka and Hyrax show only in Live (or `--zajac`), plus Hyrax
+  in the fixed Day look before noon. Dogs are drawn 1.35× so they read. Default built: as said.
+- **2026-10-30 · content · MW-4** — The player has no horn signal (car.gd, driving lane), so the
+  AI cars' horns make the dogs bark for now. Default built: AI horns.
+- **2026-10-30 · content · MW-4** — Cost cut: movers within 15 m of the car step at full rate
+  (was 30 m); off-screen ones at 3.75 Hz. Default built: as said.
 
 - **2026-10-30 · content · Podwózka's name** — F is thinking of renaming Podwózka (the lift
   app) to something like "zUber". Take: a near-Uber name carries trademark risk (the rule is

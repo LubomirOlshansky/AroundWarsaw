@@ -1276,8 +1276,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Done in loop MW-6: E14 opens track 5; E31 opens the next locked track when its own is free
   (the default built; an Open Question of the loop).
 - **Skipped (their crowds are MW-3 / MW-4's)**: ~~the steps crowd's murmur, the guitarist on the
-  steps, the queue murmur~~ (done in loop MW-3: `crowd_murmur` and `steps_guitar`), dog barks at
-  horns, Jasna 0's grate rumble, dawn birds and the first tram's bell, the metro's ventilation
+  steps, the queue murmur~~ (done in loop MW-3: `crowd_murmur` and `steps_guitar`), ~~dog barks at
+  horns~~ (done in loop MW-4: three barks at the AI cars' horns), Jasna 0's grate rumble, dawn birds and the first tram's bell, the metro's ventilation
   hum, the club door "closing" between admissions.
 - **The fixed looks' clock** (`time_of_day.gd` `local_clock`: Day 14:00, Dusk 19:30, Night 01:30,
   Friday night) runs on in real time from when the look was set, so the bells strike after an
@@ -1298,10 +1298,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   new pages and Fotka's controls, the flags (DEVELOPMENT.md "Fotka, Spacer, KASETA and the eggs").
 - **The 19 waiting eggs** and what wakes each: E01 E21 the garage's paint; ~~E03 the dawn crowd
   and the Dawn look (MW-3); E04 the patrol cars parked by the clubs (MW-3); E15 the guitarist
-  on the steps (MW-3)~~ (woken in loop MW-3: 16 wait now); E16 E27 the dog walkers (MW-4); E18 E19
-  Wiralek's trend cycle (MW-4); E23 E25 the night buses at Centralny (MW-3 skipped them: "From
+  on the steps (MW-3)~~ (woken in loop MW-3: 16 wait now); ~~E16 E27 the dog walkers (MW-4); E18 E19
+  Wiralek's trend cycle (MW-4)~~; E23 E25 the night buses at Centralny (MW-3 skipped them: "From
   loop MW-3"); E24 the player's horn and buses pulling in at stops;
-  E28 the Rowerilo riders (MW-4); E29 E30 Kolka and Hyrax (MW-4); E34 the armchair man (MW-4);
+  ~~E28 the Rowerilo riders (MW-4); E29 E30 Kolka and Hyrax (MW-4)~~ (woken in loop MW-4: 9 wait
+  now); E34 the armchair man (MW-4 skipped it: "From loop MW-4");
   E35 KASETA's older decades (T1); E39 a tram in old livery; E40 the payphone prop (with T17).
   Each needs only its trigger in `eggs.json` (drop `waits`) once its piece exists.
   Rechotka's two eggs are not cards yet (MW-2).
@@ -1373,6 +1374,63 @@ Small problems that agents reported or that showed up in screenshots. They are f
   start a chase and the trap's koguty rules don't apply to them.
 - **Phone check**: the queue figures at 80 m are 2-3 image pixels wide; whether a queue of 24
   reads as a queue (and the dawn walkers as a crowd) only the phone shows.
+
+## From loop MW-4 (everyday life and trends, 2026-10-30)
+
+- Done: dog walkers (three dogs, the trees, the horn's bark and line), the influencer dog and
+  E16's ball; cyclists (commuters, Rowerilo, cargo) on the cycle paths, the dock, the bell at a
+  car parked on a cycle path; runners, KOLKA on Wednesdays and the Zając; Hyrax on Saturdays
+  and Podwózka's `hurry` riders; the Wiralek cycle (three slots, queues, fascias), the "Na
+  czasie" job, Fat Thursday's queue; eight procedural sounds; eggs E16 E18 E19 E27 E28 E29 E30
+  woken (the `event` kind), E20 with the `lukrownia` crowd (36 reachable, 9 waiting);
+  `check_city_life` (verify `life`, quick and CI) and the `life-soak` run; `--life=`,
+  `--dogs-log`, `--trend-log`, `--life-log`, `--zajac`, `--trend-day=`, `--trend-job`,
+  `--life-soak` (DEVELOPMENT.md "Everyday life and trends").
+- **The player has no horn** (vision's horn reactions, E24): the dogs bark at the AI cars' horns
+  (`traffic.gd` signals, connected in `main.gd`). A horn button (the driving lane: a HUD
+  control and `car.gd` / `sfx.horn`) then needs one line: `life.horn(car.global_position)`.
+- **No Rowerilo docks in the map data**: the bake has no `amenity=bicycle_rental` POIs, so the
+  only dock is the `rowerilo_dock` place (9 bikes). Map lane: bake the docks as POIs (kind
+  `bike_dock`) and `city_life.gd` `_place_fixed` can put a row at each.
+- **E28's "to a dock"** is simplified to "follow a Rowerilo rider 400 m" (the rider then docks
+  off screen): with docks in the data the rider could ride to the nearest one. Open Question.
+- **No rider MultiMesh to share** (MW-2's Pędzik riders aren't built): the bikes are their own
+  MultiMesh (+1 draw call in view). When Pędzik lands, its riders can join it (a fourth bike
+  shape) or the reverse.
+- **PixelLab pictograms on the Wiralek fascias** (vision 3.4's table: a croissant cube, a cracked
+  chocolate bar, …): PixelLab wasn't available this loop; the fascia shows the word only. Eight
+  pictograms, then a textured quad beside the word (+0 draws if in the fascia's mesh).
+- **The armchair man (E34)** isn't built: the dogs' MultiMesh has no spare shape and a chair
+  prop on a guest needs a fifth shape or its own mesh. Small; MW-2 or a later life pass.
+- **No running stride**: runners, Kolka and Hyrax use the walking legs (`actor.gdshader`'s `walk`;
+  visuals lane). Waiting walkers and the still photographers swing their legs too (guests share
+  the walkers' material); a `walk` per instance would need the shader.
+- **Not built from vision 3.4 / 3.7**: one queuer in five holding a phone up (a pose), the pigeon
+  on days 6-7, the influencer at the window, the courier with the square backpack, MERDAK pet
+  shops (no `shop=pet` anchors in places.json), scooters (Leżak, MW-2), the cargo bike's child
+  laughing and the Hyrax finish's whistle (sounds), the traffic behind honking at the Zając
+  (one car horn plays instead).
+- **Kolka's start**: the `kolka_start` place's pin resolves about 490 m from the boulevard (by
+  the projection; in the water by the tow's test) and the footway A* from it detours north; the
+  club gathers at the route's last point within 500 m of the pin (on the boulevard), 1,261 m
+  from Most Poniatowskiego. Map lane: the bake's anchors (like E09's bridge pin).
+- **The clock is the wall clock** (MW-3/MW-5's note): in a headless run with `--fixed-fps` the
+  game runs faster than the clock, so Kolka (and every clocked thing) moves at real time while
+  the car moves at game time. `--zajac --autopilot` therefore needs about 4 minutes of real time
+  to pay. A game-time clock is the visuals/time lane's call.
+- **Hyrax and Kolka need Live** (or `--zajac`): a fixed look is always Friday (Saturday before
+  noon), so Kolka never runs and Hyrax only before 12:00 in a fixed Day look started in the
+  morning (`--clock=10:00`). Open Question.
+- **Guesses to tune on the phone**: the dog and rider counts, the rider mix, 3 m/s runners,
+  the Hyrax ring (26 m, 24 barriers), the fascia's size, the job's tip and late rule, the 240 s
+  per-slot offer cooldown.
+- ~~**Script cost over budget at the busiest spots**: "city life" 0.08-0.10 ms against 0.05.~~
+  Done in the MW-4 cost cut (DEVELOPMENT "Everyday life and trends", Cost): 0.04 ms at Plac
+  Zbawiciela 07:30, 0.03-0.04 with Kolka running, 0.02 on the bench route. Left: the phone's
+  own number (the performance lane's device bench); full packed arrays for the movers would cut
+  the step again if the phone needs it.
+- **Phone check**: whether a 120-triangle dog reads at 80 m (2-3 image pixels), the bikes' cream
+  and basket, the fascia's word at phone size, the bark and bell levels in the mix.
 
 ## From the web build (2026-10-30)
 

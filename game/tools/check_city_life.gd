@@ -1,0 +1,492 @@
+extends SceneTree
+## Loop MW-4 (docs/design/vision.md 3.4, 3.7): everyday life and trends (scripts/city_life.gd,
+## scripts/trend_job.gd), headless, from the committed map data (map/centrum.json) and
+## data/places.json; seeded, no clock of its own (every hour and date is synthetic):
+##   1. the dogs' hours and caps, the riders' and runners' hours, Kolka's evening and size;
+##   2. the horn: a bark at most every 2 s per dog, the walker's line at most once a minute (a
+##      horn every 0.5 s for 300 s near a real dog walker);
+##   3. the Wiralek cycle on synthetic dates: days 1-8, the queue by day, the three slots' offsets,
+##      the shop's hours, the sync (E19) once every 12 cycles, the sessions without Live;
+##   4. the "Na czasie" job's pay: base + per km, the tip, late at half, days 6-7 no tip (and its
+##      "to już niemodne" line);
+##   5. the Zając: 600 m beside the club at 9-14 km/h pays once; too fast, too far or a long gap
+##      starts again;
+##   6. Fat Thursday from Easter (2026, 2027, 2028) and Lukrownia's queue on it only;
+##   7. the eggs E16 E18 E19 E20 E27 E28 E29 E30 on synthetic inputs, each only with its conditions,
+##      each reward once;
+##   8. the meshes (each dog ≤ 120 triangles), the car's clearance, and the real city: walkers at
+##      Plac Zbawiciela at 07:30, none at 11:00, the dock, Kolka's route, the tick's cost.
+## Prints "check_city_life: OK (...)" or the problems (exit 1).
+##   godot --headless --path game --script res://tools/check_city_life.gd [-- --verbose]
+
+const CityLife := preload("res://scripts/city_life.gd")
+const TrendJob := preload("res://scripts/trend_job.gd")
+const Notebook := preload("res://scripts/notebook.gd")
+const EggBook := preload("res://scripts/egg_book.gd")
+const Wallet := preload("res://scripts/wallet.gd")
+
+
+## A stand-in for dialogue.gd: records each line asked for.
+class FakeDialogue extends Node:
+	var said: Array = []
+
+	func say(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false) -> Array:
+		said.append([speaker, group, tag])
+		return ["…", "…"]
+
+	func count(group: String, tag: String) -> int:
+		var n := 0
+		for l: Array in said:
+			n += int(l[1] == group and l[2] == tag)
+		return n
+
+
+var problems: Array[String] = []
+var verbose := false
+var now := {"hour": 7.5, "weekday": 5}
+var cal := {"live": false, "month": 7, "date": 0, "look": "Day", "rain": false}
+var eye := Vector3.ZERO
+var veh: Array = [Vector3.INF, 0.0, false, 0.0, 0.0]
+var _summary := {}
+
+
+func _initialize() -> void:
+	verbose = "--verbose" in OS.get_cmdline_user_args()
+	_run()
+
+
+func _expect(ok: bool, what: String) -> void:
+	if not ok:
+		problems.append(what)
+
+
+func _run() -> void:
+	await process_frame
+	_check_rules()
+	_check_trends()
+	_check_pay()
+	_check_zajac()
+	_check_fat_thursday()
+	_check_meshes()
+	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://map/centrum.json"))
+	var book: Notebook = Notebook.new()
+	root.add_child(book)
+	if not data is Dictionary or not book.setup(data):
+		print("check_city_life: PROBLEM (no map data or places.json)")
+		quit(1)
+		return
+	_check_eggs(book)
+	await _check_city(book, data)
+	book.queue_free()
+	await process_frame
+	if problems.is_empty():
+		print("check_city_life: OK (dog hours and caps, riders, runners, Kolka; horn %s; trend cycle on synthetic dates, sync every %d cycles; pay %s; Zając once; Fat Thursday %s; eggs E16 E18 E19 E20 E27 E28 E29 E30 once each; dogs %d tris; city %s)" % [
+				_summary.get("horn", "?"), CityLife.SYNC_EVERY, _summary.get("pay", "?"), _summary.get("fat", "?"),
+				_summary.get("tris", 0), _summary.get("city", "?")])
+		quit(0)
+	else:
+		for p in problems:
+			print("  problem: ", p)
+		print("check_city_life: %d problems" % problems.size())
+		quit(1)
+
+
+# 1. -------------------------------------------------------------------------------------------
+
+func _check_rules() -> void:
+	# [hour, zone, want walkers]
+	for row: Array in [[5.0, false, 0], [6.4, true, 0], [6.5, false, 5], [7.5, true, 10], [8.99, false, 5], [9.0, true, 0],
+			[13.0, true, 0], [18.9, false, 0], [19.0, false, 5], [22.4, true, 10], [22.5, true, 0], [2.0, true, 0]]:
+		var n := CityLife.dog_count(row[0], row[1])
+		_expect(n == int(row[2]), "dog walkers at %.2f (zone %s): %d (want %d)" % [row[0], row[1], n, row[2]])
+	_expect(CityLife.dog_count(7.5, true, 0.5) == 5, "the Low tier halves the walkers: %d" % CityLife.dog_count(7.5, true, 0.5))
+	_expect(CityLife.dog_count(7.5, true, 2.0) <= CityLife.DOGS_MAX * 2 and CityLife.DOGS_MAX * 2 + 3 <= CityLife.DOG_CAP,
+			"--life=2: %d walkers, the cap %d (+3 for the barriers' and the ball's room)" % [CityLife.dog_count(7.5, true, 2.0), CityLife.DOG_CAP])
+	_expect(CityLife.dog_count(7.5, false, 0.0) == 0, "--life=0 still has walkers")
+	# Riders: 06-22, twice at rush hours.
+	for row: Array in [[5.5, 0], [6.5, 4], [8.0, 8], [12.0, 4], [17.0, 8], [21.9, 4], [22.0, 0]]:
+		var n := CityLife.rider_count(row[0])
+		_expect(n == int(row[1]), "riders at %.1f: %d (want %d)" % [row[0], n, row[1]])
+	_expect(CityLife.rider_count(8.0, 2.0) <= CityLife.BIKE_CAP, "riders at --life=2 over the cap")
+	var kinds := [0, 0, 0, 0]
+	for i in 100:
+		kinds[CityLife.rider_kind(i / 100.0)] += 1
+	_expect(kinds[CityLife.ROWERILO] == 30 and kinds[CityLife.CARGO] == 15, "rider kinds %s (want 55/30/15)" % [kinds])
+	# Runners: by the boulevards and parks only, 06-08 and 18-21.
+	for row: Array in [[7.0, true, 6], [7.0, false, 0], [9.0, true, 0], [18.5, true, 6], [21.0, true, 0]]:
+		_expect(CityLife.runner_count(row[0], row[1]) == int(row[2]), "runners at %.1f (zone %s): %d" % [row[0], row[1], CityLife.runner_count(row[0], row[1])])
+	# Kolka: Wednesdays, 18:45 gather, 19:00 run, 19:45 home.
+	for row: Array in [[18.5, 3, ""], [18.8, 3, "gather"], [19.2, 3, "run"], [19.75, 3, ""], [19.2, 4, ""], [19.2, 6, ""]]:
+		_expect(CityLife.kolka_phase(row[0], row[1]) == str(row[2]), "Kolka at %.2f day %d: '%s' (want '%s')" % [row[0], row[1], CityLife.kolka_phase(row[0], row[1]), row[2]])
+	for d in [20261028, 20261104, 20261111, 20261118]:
+		var n := CityLife.kolka_size(d)
+		_expect(n >= 12 and n <= 20 and n == CityLife.kolka_size(d), "Kolka's size on %d: %d (want 12-20, the same all evening)" % [d, n])
+	_expect(is_equal_approx(CityLife.kolka_run(19.25, 4000.0), 900.0 * CityLife.KOLKA_V) and CityLife.kolka_run(18.9, 4000.0) == 0.0,
+			"Kolka's leader at 19:15: %.0f m (want %.0f)" % [CityLife.kolka_run(19.25, 4000.0), 900.0 * CityLife.KOLKA_V])
+	_expect(CityLife.kolka_run(21.0, 1000.0) == 2000.0, "Kolka home by the end")
+	# Hyrax: Saturday 09-17; the hurry riders 07-10 that morning.
+	_expect(CityLife.hyrax_on(10.0, 6) and not CityLife.hyrax_on(10.0, 5) and not CityLife.hyrax_on(17.0, 6) and not CityLife.hyrax_on(8.9, 6),
+			"Hyrax's hours")
+	_expect(CityLife.hurry_to_stadium(8.0, 6) and not CityLife.hurry_to_stadium(8.0, 5) and not CityLife.hurry_to_stadium(10.0, 6),
+			"the hurry rides' window")
+	# The car's room: a body inside the box (grown by its radius) overlaps; clear_of_car is CLEAR away.
+	_expect(CityLife.overlaps_car(Vector2(0.5, 1.5), Vector2.ZERO, 0.0) and not CityLife.overlaps_car(Vector2(1.5, 0.0), Vector2.ZERO, 0.0),
+			"the car's box at yaw 0")
+	_expect(CityLife.overlaps_car(Vector2(1.5, 0.0), Vector2.ZERO, PI / 2.0) and not CityLife.overlaps_car(Vector2(0.0, 1.5), Vector2.ZERO, PI / 2.0),
+			"the car's box turned a quarter")
+	for a in 16:
+		for yaw in [0.0, 0.7, 2.1]:
+			var q := CityLife.clear_of_car(Vector2.from_angle(a * TAU / 16.0) * 0.4, Vector2.ZERO)
+			_expect(not CityLife.overlaps_car(q, Vector2.ZERO, yaw), "a body pushed clear still overlaps at %s yaw %.1f" % [q, yaw])
+
+
+# 2. (in _check_city: a real walker) -----------------------------------------------------------
+
+func _check_horn(life: Node, dlg: FakeDialogue) -> void:
+	var dogs: Array = life.get("_dogs")
+	if dogs.is_empty():
+		problems.append("no walkers to honk at")
+		return
+	var at: Vector2 = dogs[0].d2  # a CityLife.Mover
+	var lines0 := dlg.count("dog_walkers", "horn")
+	var barks0: int = life.barks
+	var t0: float = life.t
+	# A horn every 0.5 s for 300 s, 5 m from the dog (it stays put: the walkers aren't moved here).
+	for i in 600:
+		life.t = t0 + i * 0.5
+		life.horn(Vector3(at.x + 5.0, 0.0, at.y))
+	var lines: int = dlg.count("dog_walkers", "horn") - lines0
+	var barks: int = life.barks - barks0
+	var dogs_near := 0
+	for x in dogs:
+		dogs_near += int((x.d2 as Vector2).distance_to(at + Vector2(5.0, 0.0)) <= CityLife.HORN_R)
+	_expect(lines == 5, "horn lines in 300 s: %d (want 5: once a minute)" % lines)
+	_expect(barks == 150 * dogs_near, "barks in 300 s: %d for %d dogs (want 150 each: once per 2 s)" % [barks, dogs_near])
+	# Far away: nothing.
+	life.t = t0 + 1000.0
+	life.horn(Vector3(at.x + 40.0, 0.0, at.y))
+	_expect(life.barks - barks0 == barks, "a dog barked at a horn 40 m away")
+	_summary["horn"] = "%d lines and %d barks in 300 s" % [lines, barks]
+
+
+# 3. -------------------------------------------------------------------------------------------
+
+func _check_trends() -> void:
+	_expect(CityLife.day_number(20260105) == 0 and CityLife.day_number(20260108) == 3 and CityLife.day_number(20270105) == 365,
+			"day numbers: %d %d %d" % [CityLife.day_number(20260105), CityLife.day_number(20260108), CityLife.day_number(20270105)])
+	# The brief's line: day 2 since the epoch, slot 1 is on day 3 with a queue of 20.
+	var s := CityLife.slot_state(2, 0)
+	_expect(int(s["day"]) == 3 and int(s["queue"]) == 20, "trend: slot 1 day %d queue %d (want day 3 queue 20)" % [s["day"], s["queue"]])
+	# Each slot runs days 1-8 in turn, the queue by day, the word until WKRÓTCE.
+	for slot in 3:
+		var last_trend := -1
+		for days in range(0, 8 * 11):
+			var st := CityLife.slot_state(days, slot)
+			var want := posmod(days + int(CityLife.SLOT_OFFSET[slot]), CityLife.CYCLE) + 1
+			_expect(int(st["day"]) == want, "slot %d on day number %d: day %d (want %d)" % [slot + 1, days, st["day"], want])
+			_expect(int(st["queue"]) == int(CityLife.QUEUE_BY_DAY[want - 1]), "slot %d day %d: queue %d" % [slot + 1, want, st["queue"]])
+			if want == CityLife.CYCLE:
+				_expect(str(st["word"]).begins_with("WKRÓTCE") and str(st["tag"]) == "", "slot %d's day 8: '%s'" % [slot + 1, st["word"]])
+			else:
+				_expect(str(st["word"]) == str(CityLife.TRENDS[int(st["trend"])][0]), "slot %d's word" % [slot + 1])
+			if want == 1:
+				_expect(int(st["trend"]) != last_trend, "slot %d kept its trend into a new cycle" % [slot + 1])
+				last_trend = int(st["trend"])
+			_expect(str(st["tag"]) == ("new" if want == 1 else ("queue" if want <= 5 else ("gone" if want < 8 else ""))), "slot %d day %d's tag '%s'" % [slot + 1, want, st["tag"]])
+	# The shop's hours.
+	var q1 := CityLife.slot_state(0, 0)
+	_expect(CityLife.slot_queue(q1, 7.9) == 0 and CityLife.slot_queue(q1, 8.0) == 30 and CityLife.slot_queue(q1, 20.0) == 0 and CityLife.slot_queue(q1, 12.0, 0.5) == 15,
+			"slot queue by hour and amount")
+	# The three slots differ (offsets 0, 2, 4) except in the sync cycle, where all are on day 1 (E19).
+	var syncs: Array[int] = []
+	for days in range(0, 8 * 30):
+		if CityLife.all_new(days):
+			syncs.append(days)
+	_expect(syncs.size() == 2 and syncs[0] == 8 * (CityLife.SYNC_EVERY - 1) and syncs[1] == 8 * (2 * CityLife.SYNC_EVERY - 1),
+			"all three new on days %s (want one day every %d cycles)" % [syncs, CityLife.SYNC_EVERY])
+	# Without Live: a trend lives four sessions (days 1, 4, 6, 8), then the next one.
+	var seen: Array[int] = []
+	for n in 8:
+		seen.append(int(CityLife.slot_state(CityLife.session_days(n), 0)["day"]))
+	_expect(seen == [1, 4, 6, 8, 1, 4, 6, 8], "slot 1's days over eight sessions: %s" % [seen])
+	_expect(int(CityLife.slot_state(CityLife.session_days(4), 0)["trend"]) != int(CityLife.slot_state(CityLife.session_days(0), 0)["trend"]),
+			"the fifth session kept the trend")
+	# The job is offered on days 1-7 in the shop's hours only.
+	_expect(TrendJob.offers(CityLife.slot_state(0, 0), 12.0) and not TrendJob.offers(CityLife.slot_state(7, 0), 12.0)
+			and not TrendJob.offers(CityLife.slot_state(0, 0), 21.0), "the job's offers")
+
+
+# 4. -------------------------------------------------------------------------------------------
+
+func _check_pay() -> void:
+	var a := TrendJob.pay(2000.0, 3, true)
+	_expect(int(a["base"]) == 41 and int(a["tip"]) == 10 and int(a["zl"]) == 51 and int(a["respect"]) == 15 and not bool(a["out"]),
+			"pay 2 km on day 3: %s (want 41 + 10 tip, 15 respect)" % a)
+	var b := TrendJob.pay(2000.0, 3, false)
+	_expect(int(b["zl"]) == 21 and int(b["tip"]) == 0 and int(b["respect"]) == 0, "late: %s (want half of 41, no tip)" % b)
+	for day in [6, 7]:
+		var c := TrendJob.pay(2000.0, day, true)
+		_expect(int(c["tip"]) == 0 and int(c["zl"]) == 41 and bool(c["out"]), "day %d: %s (want no tip: to już niemodne)" % [day, c])
+	var d := TrendJob.pay(500.0, 1, true)
+	_expect(int(d["zl"]) == 25 + 4 + 10, "pay 500 m: %s" % d)
+	# The day-6 joke is a `viral` line for `late`.
+	var lines: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/dialogue.json"))
+	var found := false
+	if lines is Dictionary:
+		for l: Array in (lines as Dictionary).get("viral", []):
+			if l.size() > 2 and str((l[2] as Dictionary).get("only", "")) == "late" and "niemodne" in str(l[0]):
+				found = true
+	_expect(found, "no `viral` line for `late` (to już niemodne)")
+	_summary["pay"] = "%d zł on time, %d late, %d on day 6" % [int(a["zl"]), int(b["zl"]), int(TrendJob.pay(2000.0, 6, true)["zl"])]
+
+
+# 5. -------------------------------------------------------------------------------------------
+
+func _check_zajac() -> void:
+	# Beside the club at 12 km/h (3.33 m/s), steps of 0.5 s: 600 m in 360 steps.
+	var mem := {}
+	var fired := -1
+	for i in 400:
+		if CityLife.zajac_step(mem, 10.0, 12.0, 12.0 / 3.6 * 0.5, 0.5):
+			fired = i
+			break
+	_expect(fired >= 355 and fired <= 361, "the Zając at 12 km/h fired at step %d (want ~360: 600 m)" % fired)
+	for row: Array in [[10.0, 20.0, "too fast"], [10.0, 6.0, "too slow"], [30.0, 12.0, "too far"]]:
+		var m := {}
+		var any := false
+		for i in 800:
+			any = any or CityLife.zajac_step(m, row[0], row[1], row[1] / 3.6 * 0.5, 0.5)
+		_expect(not any, "the Zając fired %s" % row[2])
+	# A short gap (a lamp post, 1.5 s) keeps the metres; a long one (3 s) starts again.
+	var g := {}
+	for i in 200:
+		CityLife.zajac_step(g, 10.0, 12.0, 1.67, 0.5)
+	for i in 3:
+		CityLife.zajac_step(g, 40.0, 12.0, 1.67, 0.5)
+	_expect(float(g["m"]) > 300.0, "a 1.5 s gap lost the metres: %.0f" % float(g["m"]))
+	for i in 7:
+		CityLife.zajac_step(g, 40.0, 12.0, 1.67, 0.5)
+	_expect(float(g["m"]) == 0.0, "a 3.5 s gap kept the metres: %.0f" % float(g["m"]))
+
+
+# 6. -------------------------------------------------------------------------------------------
+
+func _check_fat_thursday() -> void:
+	# Easter 2026-04-05, 2027-03-28, 2028-04-16: Fat Thursday 52 days before.
+	for row: Array in [[2026, 20260212], [2027, 20270204], [2028, 20280224]]:
+		_expect(EggBook.fat_thursday(row[0]) == int(row[1]), "Fat Thursday %d: %d (want %d)" % [row[0], EggBook.fat_thursday(row[0]), row[1]])
+	_expect(CityLife.fat_queue(true, 20260212, 10.0) == CityLife.FAT_QUEUE, "Lukrownia's queue on Fat Thursday")
+	_expect(CityLife.fat_queue(true, 20260212, 19.0) == 0 and CityLife.fat_queue(true, 20260212, 5.0) == 0, "Lukrownia's queue out of hours")
+	_expect(CityLife.fat_queue(true, 20260213, 10.0) == 0 and CityLife.fat_queue(false, 20260212, 10.0) == 0 and CityLife.fat_queue(true, 0, 10.0) == 0,
+			"Lukrownia's queue on another day or without Live / --date")
+	_summary["fat"] = "2026-02-12, 2027-02-04, 2028-02-24"
+
+
+# 7. -------------------------------------------------------------------------------------------
+
+func _state(at: Vector2, extra: Dictionary) -> Dictionary:
+	var s := {"pos": Vector3(at.x + 3.0, 0.0, at.y), "kmh": 0.0, "flying": false, "alt": 0.0, "roof": 0.0, "look": "Day",
+			"hour": 14.0, "weekday": 5, "month": 7, "live": false, "sun": 30.0, "rain": false, "station": "", "date": 0,
+			"roadworks": "", "crowds": {}}
+	for k in extra:
+		s[k] = extra[k]
+	return s
+
+
+func _check_eggs(nb: Notebook) -> void:
+	var wallet: Wallet = Wallet.new()
+	wallet.persistent = false
+	root.add_child(wallet)
+	var book: EggBook = EggBook.new()
+	book.wallet = wallet
+	root.add_child(book)
+	if not book.load_eggs():
+		problems.append("no eggs.json")
+		return
+	var places := {}
+	for p: Dictionary in nb.places:
+		places[str(p["id"])] = p["at"]
+	book.setup(places, {}, {})
+	for id in ["e16", "e18", "e19", "e20", "e27", "e28", "e29", "e30"]:
+		_expect(book.by_id.has(id) and not book.eggs[book.by_id[id]].has("waits"), "%s still waits" % id)
+	_expect(book.eggs[book.by_id["e34"]].has("waits"), "e34 (the armchair) should still wait")
+	# Events: [id, a state that misses, a state that meets].
+	var ev: Array = [
+		["e16", {"hour": 22.0}, {"hour": 10.0}],
+		["e28", {"hour": 23.0}, {"hour": 8.0}],
+		["e29", {"hour": 19.2, "weekday": 4}, {"hour": 19.2, "weekday": 3}],
+		["e18", {}, {}],
+		["e19", {}, {}],
+	]
+	for row: Array in ev:
+		var id: String = row[0]
+		var at: Vector2 = book.eggs[book.by_id[id]]["at"]
+		var before := wallet.respect
+		var want := int((book.eggs[book.by_id[id]].get("reward", {}) as Dictionary).get("respect", 0))
+		if not (row[1] as Dictionary).is_empty():
+			_expect(not book.fire(id, _state(at, row[1])), "%s fired without its conditions" % id)
+		# step() never fires an event egg, wherever the car is.
+		var mem := {}
+		for i in 20:
+			_expect(not EggBook.step(book.eggs[book.by_id[id]], _state(at, row[2]), mem, 0.5), "%s fired from step()" % id)
+		_expect(book.fire(id, _state(at, row[2])), "%s didn't fire on its moment" % id)
+		_expect(not book.fire(id, _state(at, row[2])) and wallet.respect - before == want, "%s: +%d respect (want %d, once)" % [id, wallet.respect - before, want])
+	# Crowd eggs through step(): [id, extra state, the crowd level, a level that isn't enough].
+	var cases: Array = [
+		["e27", {"hour": 10.0}, {"influencer": 1.0}, {"influencer": 0.0}],
+		["e30", {"hour": 10.0, "weekday": 6}, {"hyrax": 1.0}, {}],
+		["e20", {"hour": 10.0, "weekday": 4, "live": true, "date": 20270204, "month": 2}, {"lukrownia": 1.0}, {}],
+	]
+	for row: Array in cases:
+		var e: Dictionary = book.eggs[book.by_id[row[0]]]
+		var at: Vector2 = e["at"]
+		var t: Dictionary = e["trigger"]
+		var path := func(s: Dictionary, i: int) -> Dictionary:
+			var out := s.duplicate()
+			if str(t["kind"]) == "lap":
+				var r: Array = t["r"]
+				var mid := (float(r[0]) + float(r[1])) * 0.5
+				var p := at + Vector2(cos(i * 0.12), sin(i * 0.12)) * mid
+				out["pos"] = Vector3(p.x, 0.0, p.y)
+				out["kmh"] = 15.0
+			elif str(t["kind"]) == "pass":
+				out["kmh"] = 30.0
+			return out
+		var bad: Dictionary = _state(at, row[1])
+		bad["crowds"] = row[3]
+		var mem := {}
+		var fired_bad := false
+		for i in 300:
+			fired_bad = fired_bad or EggBook.step(e, path.call(bad, i), mem, 0.5)
+		_expect(not fired_bad, "%s fired without its crowd" % row[0])
+		var good: Dictionary = _state(at, row[1])
+		good["crowds"] = row[2]
+		var fired := false
+		mem = {}
+		for i in 300:
+			if EggBook.step(e, path.call(good, i), mem, 0.5):
+				fired = true
+				break
+		_expect(fired, "%s never fired with its crowd" % row[0])
+		var before := wallet.respect
+		_expect(book.record(row[0]) and not book.record(row[0]), "%s recorded twice" % row[0])
+		_expect(wallet.respect - before == int((e.get("reward", {}) as Dictionary).get("respect", 0)), "%s's reward" % row[0])
+	# The rules behind the events: E18 (day 1, 4 and WKRÓTCE of one trend), E16's ball.
+	var m18 := {}
+	var hits: Array[int] = []
+	for days in range(0, 24):
+		if CityLife.e18_step(m18, CityLife.slot_state(days, 0)) and hits.is_empty():
+			hits.append(days)
+	_expect(hits == [7], "E18 on slot 1 seen every day: fired on day number %s (want 7: its WKRÓTCE)" % [hits])
+	var m18b := {}
+	var skip := false
+	for days in [0, 1, 2, 7, 8, 10, 15]:
+		skip = skip or CityLife.e18_step(m18b, CityLife.slot_state(days, 0))
+	_expect(not skip, "E18 fired without day 4 of one trend")
+	var mb := {}
+	var ball := Vector3(0, 30, 0)
+	var dog := Vector3(200, 0, 0)
+	_expect(not CityLife.aport_step(mb, Vector3(200, 10, 0), 10.0, ball, dog), "E16 without the ball")
+	_expect(not CityLife.aport_step(mb, Vector3(1, 31, 0), 31.0, ball, dog) and str(mb["state"]) == "carried", "E16: the ball picked up")
+	_expect(not CityLife.aport_step(mb, Vector3(203, 40, 0), 40.0, ball, dog), "E16: dropped from 40 m")
+	_expect(CityLife.aport_step(mb, Vector3(203, 12, 0), 12.0, ball, dog) and str(mb["state"]) == "home", "E16: the ball brought to the dog")
+	_expect(not CityLife.aport_step(mb, Vector3(203, 12, 0), 12.0, ball, dog), "E16 twice")
+	book.queue_free()
+	wallet.queue_free()
+
+
+# 8. -------------------------------------------------------------------------------------------
+
+func _check_meshes() -> void:
+	var dm := CityLife.dog_mesh()
+	var tris := dm.surface_get_array_index_len(0) / 3 if dm.surface_get_array_index_len(0) > 0 else dm.surface_get_array_len(0) / 3
+	_expect(tris <= 120, "a dog has %d triangles (want ≤ 120)" % tris)
+	var bm := CityLife.bike_mesh()
+	var btris := bm.surface_get_array_index_len(0) / 3 if bm.surface_get_array_index_len(0) > 0 else bm.surface_get_array_len(0) / 3
+	_expect(btris <= 200, "a bike has %d triangles" % btris)
+	_expect(dm.get_surface_count() == 1 and bm.get_surface_count() == 1, "a mesh with more than one surface (a draw call each)")
+	_summary["tris"] = tris
+
+
+func _check_city(nb: Notebook, data: Dictionary) -> void:
+	var dlg := FakeDialogue.new()
+	root.add_child(dlg)
+	var life: Node3D = CityLife.new()
+	life.dialogue = dlg
+	life.clock = func() -> Dictionary: return now
+	life.calendar = func() -> Dictionary: return cal
+	life.focus = func() -> Vector3: return eye
+	life.vehicle = func() -> Array: return veh
+	life.trend_day_flag = 0
+	root.add_child(life)
+	life.set_process(false)
+	life.setup(nb.places, data)
+	var plac: Vector2 = Vector2.INF
+	for p: Dictionary in nb.places:
+		if str(p["id"]) == "plac_zbawiciela":
+			plac = p["at"]
+	eye = Vector3(plac.x, 0.0, plac.y)
+	# The index is built in a worker thread: wait for it (no clock: by the condition).
+	var waited := 0
+	while life.get("_index_task") >= 0 and waited < 6000:
+		if WorkerThreadPool.is_task_completed(life.get("_index_task")):
+			break
+		await process_frame
+		waited += 1
+	life._process(0.001)
+	_expect(bool(life.get("_ready")), "the index never finished")
+	var kolka: Dictionary = life.get("_kolka")
+	_expect(not kolka.is_empty() and float(kolka["len"]) > 800.0, "Kolka has no route to Most Poniatowskiego")
+	_expect(not (life.get("_docks") as Array).is_empty(), "no Rowerilo dock placed")
+	if verbose and not kolka.is_empty():
+		var kp: PackedVector2Array = kolka["pts"]
+		var line := PackedStringArray()
+		for i in range(0, kp.size(), maxi(1, kp.size() / 24)):
+			line.append("%.0f,%.0f" % [kp[i].x, kp[i].y])
+		print("  Kolka's route (%d points): %s" % [kp.size(), " ".join(line)])
+	# 07:30 on a Friday at Plac Zbawiciela: the zone's walkers.
+	now = {"hour": 7.5, "weekday": 5}
+	for i in 20:
+		life.tick(0.5)
+	var dogs: Array = life.get("_dogs")
+	var n_dogs := dogs.size()
+	_expect(dogs.size() == CityLife.dog_count(7.5, true), "walkers at Plac Zbawiciela at 07:30: %d (want %d)" % [dogs.size(), CityLife.dog_count(7.5, true)])
+	for d in dogs:
+		_expect((d.p2 as Vector2).distance_to(plac) <= CityLife.NEAR_R, "a walker %.0f m from the view" % (d.p2 as Vector2).distance_to(plac))
+	_check_horn(life, dlg)
+	# The car parked among them: after the movers' steps none overlaps it.
+	if not dogs.is_empty():
+		var d0: Vector2 = dogs[0].d2
+		veh = [Vector3(d0.x, 0.0, d0.y), 0.0, false, 0.0, 0.0]
+		var over := 0
+		for i in 200:
+			life.call("_move", CityLife.MOVE_TICK)
+			for m in life.get("_dogs"):
+				over += int(CityLife.overlaps_car(m.p2, d0, 0.0)) + int(CityLife.overlaps_car(m.d2, d0, 0.0))
+		_expect(over == 0, "walkers overlapped a parked car %d times in 10 s" % over)
+		veh = [Vector3.INF, 0.0, false, 0.0, 0.0]
+	# The tick's cost (20 ticks and 200 moves at the zone's busiest).
+	var t0 := Time.get_ticks_usec()
+	for i in 20:
+		life.tick(0.5)
+		for k in 10:
+			life.call("_move", CityLife.MOVE_TICK)
+	var per_s := (Time.get_ticks_usec() - t0) / 10.0
+	# 11:00: the walkers go home (the ones off screen at once).
+	now = {"hour": 11.0, "weekday": 5}
+	var ftest := func(_p: Vector3, _h: float) -> bool: return false
+	life.on_screen = ftest
+	for i in 4:
+		life.tick(0.5)
+	var left: int = (life.get("_dogs") as Array).size()
+	_expect(left == 0, "walkers at 11:00: %d (want 0)" % left)
+	# Far from everything (the Vistula's far side, 4 km out): nothing active, nothing drawn.
+	eye = Vector3(5000.0, 0.0, 5000.0)
+	now = {"hour": 7.5, "weekday": 5}
+	for i in 4:
+		life.tick(0.5)
+	_expect(not bool(life.get("_active")), "city life active far from everything")
+	_summary["city"] = "%d walkers at Plac Zbawiciela 07:30, Kolka %.0f m, dock %d bikes, %.0f µs per game second" % [
+			n_dogs, float(kolka.get("len", 0.0)), int((life.get("_docks") as Array)[0]["n"]) if not (life.get("_docks") as Array).is_empty() else 0, per_s]
+	life.queue_free()
+	dlg.queue_free()

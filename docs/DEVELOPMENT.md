@@ -3499,7 +3499,10 @@ Data: `data/eggs.json` (45 cards) and `data/kadr.json` (15 spots); the then card
   (MW-4); E23 E25 the night buses; E24 the player's horn and the bus stops; E28 the riders
   (MW-4); E29 E30 Kolka and Hyrax (MW-4); E34 the armchair man (MW-4); E35 KASETA's older
   decades (T1); E39 a tram in old livery; E40 the payphone. Rechotka's two eggs wait for MW-2
-  (not cards yet).
+  (not cards yet). Loop MW-4 woke E16 E18 E19 E27 E28 E29 E30 (a new kind, `event`: the
+  moment is seen by `city_life.gd`, which calls `fire`; E27 E30 keep `stop` / `lap` with a
+  crowd condition) and gave E20 the `lukrownia` crowd: **reachable 36, waiting 9** (E01 E21
+  E23 E24 E25 E34 E35 E39 E40; "Everyday life and trends" below).
 - **KASETA** (`tape.gd`): the 20 then cards at their notebook places. Within 40 m of one, on the
   ground under 12 km/h, the context button reads KASETA · time tape; a tap plays it: the VHS
   overlay for 6 s, a tape-rewind sound (procedural, seeded, no file), a dithered ghost of the
@@ -3654,6 +3657,145 @@ condition). Lines: the vision's groups already in `dialogue.json` (`club_door`, 
   compare with `--crowd=0`. Triangles: a figure is the people's mesh; 80 on the steps is +0.01 M
   in the main pass (0.16 → 0.17 M), under the 25 k budget. Far from every crowd (more than
   350 m): no figures, the MultiMeshes hidden, the 2 Hz tick only (bench route, 0.01 ms).
+
+## Everyday life and trends (loop MW-4, 2026-10-30)
+
+docs/design/vision.md 3.4, 3.7, 4.7 and section 5's MW-4 row. Code: `city_life.gd` (new: the dog
+walkers, riders, runners, Kolka, Hyrax, the Wiralek cycle, the fascias, its rules as static
+functions, its two MultiMeshes), `trend_job.gd` (new: the "Na czasie" job), hooks in `main.gd`
+(section "loop MW-4"), `crowds.gd` (`trend` sites: the slots' and Lukrownia's queues),
+`pedestrians.gd` (48 `guest` instances after the fixed ones; its `custom_aabb` widened to 12 km, since the guests stand anywhere in the city; `take_guests` hands them over as one buffer), `jobs.gd` (`trend`, `side_busy`),
+`rides.gd` (`hurry_to`), `egg_book.gd` (the `event` kind, `fire`, `move_egg`), `sfx.gd`
+(`play_at`, seven one-shots), `city_sounds.gd` (the `queue` kind), `tools/make_sfx.py` (eight
+sounds). Data: `data/eggs.json` (E16 E18 E19 E27-E30 woken; E20 a crowd condition). Lines: the
+vision's groups already in `dialogue.json` (`dog_walkers`, `cyclists`, `runners`, `viral`),
+unchanged.
+
+- **Dog walkers** (06:30-09:00 and 19:00-22:30): 5 near the view, 10 within 450 m of Plac
+  Zbawiciela or a Powiśle place (×`--life`, the Low tier halves them). Each is a walker (a
+  pedestrian guest) on a footway (no deck) with a dog 1.6 m ahead on the lead, 0.9-1.2 m/s,
+  joining the next footway at a path's end. Three dogs (long and low, squat and flat-faced, big
+  and fluffy; 120 triangles at most, one mesh with the four shapes as a morph family, the
+  people's material, no shadow; drawn 1.35× life size so they read at phone distance *guess*), eight
+  coats. The dog stops 3-6 s at each tree within 3.5 m of
+  its footway (12 m apart at least); the walker waits. A horn within 15 m of a dog: it barks
+  (`bark_small` / `_mid` / `_big` by size, at most every 2 s per dog) and one walker says a
+  `dog_walkers` `horn` line, at most once a minute. The player has no horn (BACKLOG): the AI
+  cars' horns at the player stand in (`traffic.gd`'s `blocked_by_player` and `bumped_driver`
+  signals, connected in `main.gd`; no edit in traffic.gd).
+- **The influencer dog** at Plac Zbawiciela (07:00-21:00): a fluffy dog on the footway nearest
+  the square with three photographers round it (guests), a `phone_shutter` every 5-11 s within
+  60 m, the walker's `influencer` line to a slow car. E27 is a 2 s stop within 20 m of it (the
+  egg moved there with `move_egg`; the `influencer` crowd level).
+- **E16, the ball** (07:00-21:00): a ball on the highest roof by Centrum Nauki Kopernik, its dog
+  on the open ground nearest it. Fly the helicopter within 4 m of the ball (it is carried), then
+  within 8 m of the dog under 30 m: the dog's `dog_walkers` line and E16 (+40).
+- **Cyclists** (06:00-22:00; 4 near the view, 8 at 07:00-09:30 and 16:00-19:00): on the 901
+  `cycle` paths of the map at 4-6 m/s, 55 % commuters, 30 % Rowerilo (cream bike, grey
+  basket), 15 % cargo bikes with a child box *guess*. A car stopped on a cycle path (within its
+  half-width + 1 m) for 3 s: a `bike_bell` from the nearest rider and a `cyclists` `lane` line,
+  once per 45 s. **The dock**: a row of 6-10 parked Rowerilo bikes (seeded: 9) by the
+  `rowerilo_dock` place; the map has no `amenity=bicycle_rental` POIs (BACKLOG for the map
+  lane). **E28**: a Rowerilo rider followed 400 m (within 25 m behind, over 8 km/h) "docks"
+  with a `cyclists` line (the vision's "to a dock" is simplified: Open Question).
+- **Runners** (06:00-08:00, 18:00-21:00): up to 6 within 300 m of a boulevard place or a park,
+  3 m/s, a third in Kolka's colours; guests with the walking legs (no running stride yet:
+  BACKLOG). **KOLKA** (Wednesdays; Live, or `--zajac`): 12-20 (by date) gather at 18:45, run at
+  19:00 at 3 m/s in rows of three to Most Poniatowskiego and back (A* over the footways,
+  crossings and cycle paths in the box round both ends, 1,261 m one way; the A* leaves the
+  place by a detour, so the club starts at the route's last point within 500 m of it, on the
+  boulevard), stand at the start until 19:45. A `runners` line every 40-70 s within 80 m, a
+  `watch_beep` as it passes. **The Zając**: the car beside the club's front rows (≤ 25 m
+  lateral) at 9-14 km/h for 600 m (a 2 s grace for a lamp post): the `runners` `zajac` cheer,
+  a car horn behind, and E29 (+40 respect, once: a second pacing cheers but pays nothing).
+- **Hyrax** (Saturdays 09:00-17:00; Live): on the open ground nearest the stadium's forecourt
+  place, a ring of 24 roadworks barriers (the dogs' MultiMesh's fourth shape), 14 runners
+  looping inside, a HYRAX banner (pixel font) on the side away from the stadium, `runners`
+  `hyrax` lines. E30 is a lap round it at ≤ 20 km/h (the `hyrax` crowd level). That morning
+  (07:00-10:00) Podwózka's `hurry` riders go to an address within 350 m of the stadium
+  (`Hyrax · ...`).
+- **The Wiralek cycle**: three slots (Plac Zbawiciela, Chmielna, Tamka), each a trend for 7
+  days and a WKRÓTCE NOWE MIEJSCE day: day 1 NOWOŚĆ and a queue of 30, days 2-3 20, days 4-5 8,
+  days 6-7 2, day 8 none. The slots are 0, 2 and 4 days apart; one cycle in 12 they line up
+  (E19). The day: `--trend-day=N`, Live's date (days since Monday 2026-01-05), or without Live
+  the session's (a trend lives four sessions: days 1, 4, 6 and 8; Open Question). The queue
+  (crowds.gd's queue code, `trend` sites with brighter clothes and no bouncer) stands 08:00-20:00
+  and says `viral` lines by its tag (`new`, `queue`, `gone`); a `queue_chatter` loop at each
+  queue of 2 or more (city_sounds.gd, within its cap of 8). The **fascia** over each slot's door:
+  WIRALEK (· NOWOŚĆ! on day 1) and the trend word in the pixel font, pink (grey on day 8), facing
+  the street, built when the word changes and shown within 320 m. **E18**: one slot seen (within 70 m) on day 1,
+  day 4 and day 8 of one trend (kept in the save's `keep`); **E19**: any slot seen while all
+  three are on day 1. **Fat Thursday** (Live or `--date`, from the computus): Lukrownia's queue
+  of 60, 06:00-18:00; E20 is its `pass` with the `lukrownia` crowd.
+- **"Na czasie" · On trend** (`trend_job.gd`): passing an open slot (within 60 m, 08:00-20:00,
+  days 1-7) with nothing else on: a request card (pink, #ff7ac8) from an office worker at Rondo
+  Daszyńskiego, each slot again after 240 s. Accept: stop 2 s by the queue, then deliver to an
+  address door within 300 m of the roundabout in 6 minutes. Pay 25 zł + 8 zł a km by road, +15
+  respect, a 10 zł tip *guess*; days 6-7: the `viral` `late` line ("To już niemodne. Napiwku nie
+  będzie, sorry.") and no tip; late: half the pay, no tip, no respect *guess*. One activity at
+  a time (`jobs.busy()` and Podwózka's offers see it). `--trend-job[=1|2|3] --autopilot` drives
+  it.
+- **Not built**: one queuer in five holding a phone up (no pose without the shaders' lane), the
+  pigeon on days 6-7, the influencer at the window, MERDAK pet shops (no `shop=pet` anchors in
+  the places), the armchair man (E34 still waits), the PixelLab pictograms on the fascias
+  (BACKLOG).
+- **Testing aids** (flags table): `--life=0|1|2`, `--dogs-log` (`dogs: 07:30 day 5 · 10 walkers
+  (Powiśle / Plac Zbawiciela ×2) · 2 at trees · barks 0 · horn lines 0` every minute, each bark
+  and horn line), `--trend-log` (`trend: slot 1 day 3 queue 20 (WORD, id)` at the start and on
+  every change, the slots seen for E18, the job's lines), `--life-log` (`life:` lines: riders,
+  runners, Kolka, Hyrax, bells, the Zając), `--zajac` (Live, Wednesday 2026-10-28 19:00, the car
+  by Kolka's start; with `--autopilot` the car paces the club 10 m to its side), `--trend-day=N`,
+  `--trend-job[=N]`, `--life-soak`.
+- **Checks**: `check_city_life.gd` (verify step `life`, quick set and CI; committed
+  `centrum.json` and `places.json` only, seeded): the dogs' hours, zones and caps, the riders',
+  runners', Kolka's and Hyrax's windows, the car's footprint and clearance, the horn (5 lines and
+  150 barks for a horn every 0.5 s for 300 s), the Wiralek cycle on synthetic dates (days, queues,
+  tags, words, offsets, the sync every 12 cycles, the sessions), the job's pay (the day-6 no-tip
+  joke), the Zając (600 m at 12 km/h; too fast, too slow, too far, the grace), Fat Thursday
+  2026-2028 and Lukrownia's queue, E16 E18 E19 E20 E27 E28 E29 E30 on synthetic inputs (each only
+  with its conditions, each reward once; E34 still waits), the meshes, and the real city
+  (10 walkers at Plac Zbawiciela at 07:30, none at 11:00, a parked car never overlapped, Kolka's
+  route, the dock, nothing active 4 km out). `life-soak` (verify step, not in `--quick`):
+  `--life-soak` drives the car at the nearest walker or rider at 7 m/s for 10 minutes of play
+  (a Friday dusk) and counts every frame a dog, walker or rider is inside the car's footprint:
+  0. `check_eggs.gd` knows the `event` kind; `check_sfx.gd` loops `queue_chatter`.
+- **Cost**: (Linux container; before = the code at HEAD from a copy; headless `--probe` /
+  `--bench` with `--fixed-fps 60`, two runs each interleaved; draw calls rendered with the
+  software Vulkan driver at 1280×720, one run each):
+
+  | | Before | After |
+  | --- | --- | --- |
+  | Plac Zbawiciela 07:30 (`--probe --place=plac_zbawiciela --time=day --clock=07:30`): bench line "city life" (first cut → the cost cut below) | | 0.08 / 0.08 → 0.04 / 0.04 ms |
+  | The boulevards, Wednesday 19:02, Kolka running (`--probe --time=live --date=20261028 --clock=19:02 --at=1026,-711`): "city life" | | 0.10 / 0.10 → 0.03 / 0.04 ms |
+  | A Wiralek slot (`--probe --place=wiralek_chmielna --time=day --clock=12:00 --trend-day=0`): "city life" | | 0.01 / 0.01 → 0.01 / 0.01 ms |
+  | Bench route, day (`--bench`): "city life" | | 0.03 / 0.03 → 0.02 / 0.02 ms |
+  | Bench route, day: scripts in all (noise ±0.3) | 3.36 / 3.81 ms | 3.21 / 3.60 ms |
+  | "jobs+eggs" (the trend job inside), the four spots | 0.14-0.17 ms | 0.14-0.17 ms |
+  | Draw calls, Plac Zbawiciela 07:30 (main / shadow / 2D) | 124 (52 / 35 / 37) | 126 (54 / 35 / 37) |
+  | Draw calls, the boulevards 19:02 (night: no sun shadow) | 81 (47 / 0 / 34) | 82 (48 / 0 / 34) |
+  | Draw calls, Chmielna's slot 12:00 | 113 (45 / 29 / 39) | 118 (45 / 29 / 44) |
+  | Draw calls, a plain day start (`--probe --time=day`) | 124 (55 / 35 / 34) | 125 (56 / 35 / 34) |
+
+  In view: the dogs' MultiMesh +1 and the bikes' +1 in the main pass (Plac Zbawiciela: both;
+  the boulevards and the plain start: the bikes), 0 in the shadow pass; walkers, runners, Kolka,
+  Hyrax and the queues are guests and crowd cells (+0); a fascia or the banner +1 near it (not
+  in view at the slot's probe point, inside the block; the 2D +5 there are the queue's
+  bubbles). Triangles: +0.01 M at most. Far from all of it: nothing drawn, the 2 Hz tick only.
+  **The cost cut** (same loop, profiled at the two busy spots first; the window's own timer at
+  Plac Zbawiciela ~55 → ~38 µs a frame, Kolka ~50 → ~34): the movers are typed `Mover` objects,
+  not dictionaries; a step inside its path segment slides along it (no re-placing), a dog's
+  tree stop is a binary search and a dog waiting at its tree is not touched; clearing the car
+  shifts the walker and its dog by the shove instead of placing again, and near the car the
+  shoves hold (they fade once the car is past `reach`, ≥ 10.5 m). Instances are written by the
+  step that moved them into the slots of the last full write (a full write only when the lists
+  or what is shown change, at a tick); the guests go to `pedestrians.gd` as one packed buffer
+  (`take_guests`, merged natively before its send) instead of a call per figure. Kolka's members
+  are packed arrays, half of them a step (7.5 Hz each, as the runners), all within `FAR_CAR` of
+  the car. Who is on screen is read from traffic.gd's view rectangle (+8 m) at the tick: a mover
+  off it steps every 4th step (3.75 Hz, time saved up). `FAR_CAR` 30 → 15 m. The tick reads the
+  day number and Fat Thursday only when the date changes, the slots' states only when the day
+  does, the tree stops once per path. A spawned mover is cleared of the car at once (a random
+  point of a path could be under it: the 25-minute soak found one).
 
 ## The easy-driving loop: drive through the small props (2026-10-30)
 
@@ -4188,6 +4330,14 @@ Command-line options (after `--`):
 | `--photo-log` | loop MW-6: print `fotka:` lines (open, close, `fotka: saved user://photos/... (WxH)`) and `kadr:` lines (`kadr: n ok (<id> ...)` or `kadr: none (why)`) |
 | `--crowd=0\|1\|2` | loop MW-3: the night and river crowds off (nothing built, no cost), normal (default) or doubled; the Low tier halves them |
 | `--night-log` | loop MW-3: print `night:` lines: the sites at the start, a summary every minute (`night: 01:00 day 6 · queues … smola 24 … · rejections 1 · car lines 0 · dawn walkers 30 · roof 0, steps 24, plan_c 28 · police on`), each rejection, line, police unit and the dawn routes |
+| `--life=0\|1\|2` | loop MW-4: everyday life (dogs, riders, runners, Kolka, Hyrax, the Wiralek fascias and the "Na czasie" job) off (nothing built), normal (default) or doubled; the Low tier halves it |
+| `--dogs-log` | loop MW-4: print `dogs:` lines: the minute's summary (`dogs: 07:30 day 5 · 10 walkers (Powiśle / Plac Zbawiciela ×2) · 2 at trees · barks 0 · horn lines 0`), each bark and horn line |
+| `--trend-log` | loop MW-4: print `trend:` lines: each slot's day and queue at the start and on every change (`trend: slot 1 day 3 queue 20 (CZEKOLADA Z PUSTYNI, wiralek_zbawiciela)`), Lukrownia on Fat Thursday, the slots seen for E18, and `trend job:` lines |
+| `--life-log` | loop MW-4: print `life:` lines: the index, the minute's summary (riders, runners, Kolka, Hyrax, bells, the Zając), the bell, E28's follow, the Zając |
+| `--zajac` | loop MW-4: Live on Wednesday 2026-10-28 at 19:00 (`--clock=` and a Wednesday `--date=` change them), the car by Kolka's start (free roam, no title); with `--autopilot` the car paces the club 10 m to its side from 19:00 (the Zając: `life: zajac paid +40 respect (E29)`) |
+| `--trend-day=N` | loop MW-4: the Wiralek cycle's day number (0 = slot 1 on day 1, slot 2 on day 3, slot 3 on day 5; 88 = all three on day 1) instead of Live's date or the session's |
+| `--trend-job[=1\|2\|3]` | loop MW-4: start by that Wiralek slot (1 Plac Zbawiciela, 2 Chmielna, 3 Tamka) with its "Na czasie" request offered; with `--autopilot` accepted and driven; implies `--trend-log` |
+| `--life-soak` | loop MW-4: a Friday dusk; the car is driven at the nearest dog walker or rider at 7 m/s, every frame counts a dog, walker or rider inside the car's footprint (`life: soak done … overlaps 0`); verify step `life-soak` |
 | `--club=<id>` | loop MW-3: start at that club (`lusterko`, `smola`, `jasna_0`, `lombard`, `milosc_hipoteczna`, or its name): the car on the lane nearest its door (within 60 m), free roam, no title |
 | `--notes-log` | loop MW-1: print `notes:` lines: each place's resolution at load (`notes: place <id> address\|name\|poi\|near N m from the hint (x, z)`), each find (`notes: found <id> (chapter N, k/8)`) and each chapter completed |
 | `--call-in=S` | loop 2e: the first rescue call comes in after S seconds of play (default 60) |
