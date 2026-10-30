@@ -279,7 +279,9 @@ HELI / AUTO (right); the keys are unchanged.
   within 8 m of the carriageway's edge, `ROYAL_STREETS`) and in the Old Town (`OLD_TOWN`, a
   190 m circle) the 213 mapped lamps are the historic cast-iron lantern instead (the landmarks
   loop: a dark green post, a lantern 4.4 m up under a cap and finial; `_shared["lantern"]`):
-  one more MultiMesh in the 9 sectors that have them. The look
+  one more MultiMesh in the 9 sectors that have them. Plac Konstytucji's lamps (`CANDELABRAS`, 75 m round the
+  square) are MDM's candelabras: a stone plinth, a tall iron column and three lanterns (one more
+  MultiMesh in its sector). The look
   loop made the pools on the ground pixel light: four hard bands with a one-pixel checker
   dither along each step (`night.gdshaderinc` `lamp_pool`, `pool_glow`), never brighter than
   ~80 % of a lit window (pale paving included), and on grass and cycle lanes the lamp tints
@@ -596,6 +598,11 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   Zachęta, the Mirowska halls and the Sejm. Each has an info card; the far skyline takes each
   wall colour. The Planetarium, the Tomb of the Unknown Soldier and the Church of the Saviour
   stay as they were (their outlines carry no roof the helicopter check accepts).
+- **MDM** (`landmarks.gd` `_find_mdm`): the unnamed blocks over 15 m round Plac Konstytucji
+  (95 m) and along Marszałkowska to Plac Zbawiciela (50 m from the axis) in pale sandstone with
+  tall windows (`M_MONUMENT`, `#cdbfa3`) and grey roofs, one card. `skin_at` takes a whole box
+  only for a site of one outline (the museum); for MDM's many blocks a model's centre must be
+  in one of them. `bake_sectors.py` `SITE_AREAS` carries its parts.
 - **Bus and tram shelters** (the landmarks loop; `map_builder.gd` `_make_shared`): Warsaw's
   glass shelter as the game's camera sees it: a pale glass roof in a graphite frame overhanging
   the kerb, a dark fascia, glass back and end, three posts, a bench, a poster box at the far end
@@ -2908,6 +2915,12 @@ into one: the tool prints the line to add to radio.json (id, name, frequency, co
 A station with one song loops it; with two or more it plays them in a shuffled order (the date
 seeds it), each to its end, with the host's lines between songs now and then.
 
+Loop MW-5: a station may set its own encoding in radio.json, `"encode": {"rate": 22050, "kbps":
+40}` (PÓŁNOC FM: lo-fi made at 22.05 kHz), and lock tracks with `"free": N` (its first N play,
+the rest open by notebook chapters or `radio.unlock_track`; track numbers follow radio.json's
+order, which `add_music.py` takes from the file names: name them `01_…`, `02_…`). See "PÓŁNOC FM
+and the city's sounds".
+
 **Sizes.** The tool encodes with `oggenc` (vorbis-tools: `brew install vorbis-tools`) when it
 is on PATH: ffmpeg decodes, trims and applies the gain to a temporary 44.1 kHz stereo 16-bit
 WAV, `oggenc -b 96` writes the Ogg (about 96 kbps on average, about 2 MB for a 3-minute song),
@@ -3200,6 +3213,76 @@ that now grows with the hit (`traffic.gd` `on_player_bump`, the closing speed `c
 2.5 s (`DAZE`) from 8 m/s (`FULL_HIT`, about 29 km/h). Before, any bump over the car's 2 m/s
 threshold, a clipped corner included, stopped the car dead for 2.5 s. The ram test (a 28 km/h
 hit) is unchanged; police cars keep their own 1.5 s.
+
+## PÓŁNOC FM and the city's sounds (loop MW-5, 2026-10-30)
+
+PÓŁNOC FM, 86,0, the late-night station of docs/design/vision.md 4.6, and the city's sounds at
+the notebook's places. Code: `radio.gd` (the station's rules, the locks, the log),
+`dialogue.gd` (Kuba between the songs), `city_sounds.gd` (the emitters), `wallet.gd` (`tracks`,
+`track_chapters`, section `[polnoc]` of the save), `time_of_day.gd` (`local_clock`),
+`notebook.gd` (`chapter_done`), `sfx.gd` (`soften_engine`), hooks in `main.gd`.
+
+- **The tracks** (`tools/make_music.py --set=polnoc`, 22.05 kHz, original and procedural like the
+  other three; each a whole number of bars that loops seamlessly, with four bars of keys before
+  the drums, a four-bar breakdown half way, the lead in the second half):
+
+  | # | Title | BPM | Key | Bars | s | Parts |
+  | --- | --- | --- | --- | --- | --- | --- |
+  | 1 | Sód | 78 | D minor | 32 | 98.5 | dusty boom-bap, FM Rhodes 9th chords, sub bass, heavy crackle |
+  | 2 | Wiadukt | 84 | A minor | 32 | 91.4 | swung hats and rim, muted piano stabs, a low string pad |
+  | 3 | Nocna przesiadka | 80 | F minor | 32 | 96.0 | soft clap, the tram bell's falling third as a vibraphone motif, strong tape wobble |
+  | 4 | Szkło na Woli | 88 | E minor | 40 | 109.1 | crisp kit, glassy FM plucks, a pad opening over each 8 bars |
+  | 5 | Bulwar, 23:40 | 74 | C major 7 | 32 | 103.8 | brushes, nylon strums (Karplus-Strong) on three chords, the river |
+  | 6 | Mgła nad Pałacem | 70 | B♭ minor | 32 | 109.7 | half-time drums, a formant "ah" choir pad, a gliding bass |
+  | 7 | Świt na Smolnej | 90 | G major | 40 | 106.7 | brighter kit, birds, a piano line |
+
+  To remake them: `python3 -I tools/make_music.py data/raw/music/polnoc_fm shots --set=polnoc`
+  (about 2 minutes on 4 cores; it writes the WAVs and their `.txt` sidecars: title, artist,
+  licence), then `python3 -I tools/add_music.py --station=polnoc_fm --force`. The station's
+  `"encode": {"rate": 22050, "kbps": 40}` in radio.json keeps them small (3.93 MB for the seven).
+- **On air** 22:00-06:00 by the game clock, and always in the Night (and a future Dawn) look
+  (`Radio.on_air_at`). The game clock is `time_of_day.gd` `local_clock()`: Live's Warsaw clock,
+  or the fixed looks' times (Day 14:00, Dusk 19:30, Night 01:30 on a Friday night, vision 4.5)
+  running on from when the look was set. By day the station plays **reruns**: the same tracks at
+  70 % (-3.1 dB), the caption "86,0 PÓŁNOC FM · powtórka · title" over "rerun · the host is back
+  at 22:00", and the host silent (`host_group()` is "").
+- **The host**, Kuba: `radio_polnoc` lines on the ticker every 60-120 s on air (the first after a
+  tune is the station's ident, the line with "86,0"); between two songs he may come in early, but
+  never sooner than 60 s after his last line (this rule now holds on every station).
+- **The default station**: until the player presses R or RADIO this session (or passes `--radio=`
+  / `--station=`), the radio follows the clock: PÓŁNOC FM on air, KEBAB FM off air (checked once a
+  second).
+- **Locked tracks**: radio.json's `"free": 2` on the station: tracks 1-2 play from the start; each
+  finished notebook chapter opens the next locked one in order (`sync_chapters`; saves from before
+  this loop catch up quietly at the start), so chapters 1-5 open tracks 3-7 and 6-9 open nothing
+  yet. `radio.unlock_track(n, why)` opens one directly (the eggs E14 and E31 later). A locked
+  track is never chosen (the playlist skips it). An unlock is saved and toasts "Kuba ma nową
+  płytę: „title”" over "PÓŁNOC FM 86.0 · Kuba has a new record: title".
+- **The city's sounds** (`city_sounds.gd`, sounds from `tools/make_sfx.py --only=…`): at every
+  notebook place a sound fits: a club with hours (7) leaks its bass (`club_leak`, a 7.7 s loop at
+  124 BPM behind a wall) while open by the game clock; the metro places (8) chime (`metro_chime`,
+  our own three notes) every 180-240 s; the church and Old Town places (3) strike the hour on a
+  bell (`church_bell`, 1-12 tolls 2.5 s apart); the Patelnia's busker (`busker`, a 9.6 s
+  steel-string loop) plays 19:00-22:00. At most 8 players at once, the nearest sounding
+  emitters within their kind's reach (60-260 m), decided at 2 Hz (about 20 µs a tick). **The
+  02:00 beat**: on Plac Trzech Krzyży (the place tagged `quiet`) between 02:00 and 02:15, once a
+  night, the radio (if on) goes to PÓŁNOC FM with the music 10 dB down while Kuba speaks at once,
+  and the engine sounds at 45 % for 10 s.
+- **Testing aids**: `--station=polnoc`, `--radio-log` (`radio:` lines: tunes, track changes, host
+  lines with the gap since the last, unlocks, on air / reruns; `sounds:` lines: emitters on and
+  off, chimes, tolls, the beat), `--unlock=all|N[,N]`. Headless runs play no audio, so the radio
+  ends each track on its `seconds` there, and a `--fixed-fps 60` run logs game time.
+- **Checks**: `check_radio.gd` (verify step `radio`) covers the station: the 7 files, titles,
+  lengths and seams, the hours rule and the looks' clock on synthetic times, reruns and the
+  silent host by day, the host every 60-120 s at night through `dialogue.gd`, following the clock,
+  the unlock order, an egg's track, the save read back (a scratch file, never the player's save),
+  locked tracks never played, the toast's length. `check_city_sounds.gd` (step `sounds`, quick
+  set and CI): the emitters at their places, the hours, the cap of 8 nearest, reach, the bells,
+  the metro's gaps, the 02:00 beat, the tick's cost.
+- **Cost**: audio only, +0 draw calls; the emitters' tick ~0.001 ms a frame (bench line "city
+  sounds 0.00"); ≤ 8 positional players (`MAX_LIVE`) besides sfx.gd's 6. App size: the radio's
+  Ogg 1.50 → 5.43 MB (+3.93); the four city sounds +1.03 MB of WAV in the repo, about 0.2 MB as
+  imported QOA in the app.
 
 ## Performance budgets
 
@@ -3628,7 +3711,11 @@ Command-line options (after `--`):
 | `--bench` | drive a route through the traffic and print the average frame time over 600 frames, the scripts' cost and the 3D view's GPU time; loop 2b: also the bench's lines (see Loop 2b), a 30 s cap, the result in `user://bench_result.txt` (removed when a bench starts, so a run that ends early leaves none) |
 | `--time=day\|dusk\|night` | start at that time of day (default day) |
 | `--vhs` | VHS overlay on (for this run; Settings saves it since loop 2e) |
-| `--radio=N` | radio station 1 to the last in `data/radio.json` (higher picks the last), or 0 / `off` (default 1) |
+| `--radio=N` | radio station 1–4 (loop MW-5: any station in radio.json; 4 is PÓŁNOC FM), or 0 / `off` (default 1; the radio then doesn't follow the clock) |
+| `--station=ID` | loop MW-5: a station by id (`polnoc_fm`), short id (`polnoc`), name or number; the radio then doesn't follow the clock |
+| `--radio-log` | loop MW-5: print `radio:` lines (tunes, track changes, host lines with the gap since the last, unlocks, PÓŁNOC FM on air / reruns) and the city sounds' `sounds:` lines (emitters on and off, chimes, tolls, the 02:00 beat) |
+| `--unlock=all\|N[,N]` | loop MW-5: every PÓŁNOC FM track for this run (nothing saved), or open track N as an egg would (toast, saved unless `--nosave`) |
+
 | `--notitle` | skip the title screen (the testing flags `--demo --shots --autopilot --race --mission --rival --bench` skip it anyway) |
 | `--title` | show the title screen even with those flags (for screenshots) |
 | `--kebab=N` | put the car in a stand's ring and take kebab order N (the same N gives the same order; stand N mod 7) |

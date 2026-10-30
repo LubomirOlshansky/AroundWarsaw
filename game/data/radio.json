@@ -50,6 +50,82 @@
           "source": "mordor_mall.wav"
         }
       ]
+    },
+    {
+      "id": "polnoc_fm",
+      "name": "PÓŁNOC FM",
+      "freq": "86,0",
+      "colour": "#ffb347",
+      "encode": {
+        "rate": 22050,
+        "kbps": 40
+      },
+      "free": 2,
+      "tracks": [
+        {
+          "file": "res://audio/radio/polnoc_fm/01_sod.ogg",
+          "title": "Sód",
+          "artist": "Around Warsaw",
+          "seconds": 98.46,
+          "gain_db": -2.3,
+          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "source": "01_sod.wav"
+        },
+        {
+          "file": "res://audio/radio/polnoc_fm/02_wiadukt.ogg",
+          "title": "Wiadukt",
+          "artist": "Around Warsaw",
+          "seconds": 91.43,
+          "gain_db": -3.7,
+          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "source": "02_wiadukt.wav"
+        },
+        {
+          "file": "res://audio/radio/polnoc_fm/03_nocna_przesiadka.ogg",
+          "title": "Nocna przesiadka",
+          "artist": "Around Warsaw",
+          "seconds": 96.0,
+          "gain_db": -2.9,
+          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "source": "03_nocna_przesiadka.wav"
+        },
+        {
+          "file": "res://audio/radio/polnoc_fm/04_szklo_na_woli.ogg",
+          "title": "Szkło na Woli",
+          "artist": "Around Warsaw",
+          "seconds": 109.09,
+          "gain_db": -2.6,
+          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "source": "04_szklo_na_woli.wav"
+        },
+        {
+          "file": "res://audio/radio/polnoc_fm/05_bulwar_2340.ogg",
+          "title": "Bulwar, 23:40",
+          "artist": "Around Warsaw",
+          "seconds": 103.78,
+          "gain_db": -2.2,
+          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "source": "05_bulwar_2340.wav"
+        },
+        {
+          "file": "res://audio/radio/polnoc_fm/06_mgla_nad_palacem.ogg",
+          "title": "Mgła nad Pałacem",
+          "artist": "Around Warsaw",
+          "seconds": 109.71,
+          "gain_db": -2.2,
+          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "source": "06_mgla_nad_palacem.wav"
+        },
+        {
+          "file": "res://audio/radio/polnoc_fm/07_swit_na_smolnej.ogg",
+          "title": "Świt na Smolnej",
+          "artist": "Around Warsaw",
+          "seconds": 106.67,
+          "gain_db": -3.3,
+          "licence": "own: synthesised by tools/make_music.py (MIT)",
+          "source": "07_swit_na_smolnej.wav"
+        }
+      ]
     }
   ]
 }

@@ -17,10 +17,14 @@ extends Node
 ##   Checked twice a second over a 100 m grid of the places (`CELL`): a tick looks at the one
 ##   cell the vehicle is in, so nothing runs per frame but a timer.
 ## - **Rewards**: +5 respect a card; a chapter complete +50 zł and +30 respect once (the
-##   wallet's `pay`), recorded in the save (the PÓŁNOC FM track it unlocks is loop MW-5's).
+##   wallet's `pay`), recorded in the save; loop MW-5: `chapter_done` then opens the next
+##   locked PÓŁNOC FM track (radio.gd `sync_chapters`, wired in main.gd).
 ## - **On the minimap**: the places not found yet within MINI_REACH m of the car as "?"
 ##   (hud.gd `set_minimap_unknown`); never their names.
 ## The page in the settings card is notebook_page.gd.
+
+## Loop MW-5: a chapter's last card was found (its id); main.gd opens a PÓŁNOC FM track.
+signal chapter_done(chapter_id: String)
 
 const PLACES_PATH := "res://data/places.json"
 ## The bake's flat projection (tools/bake_osm.py): metres a degree.
@@ -425,6 +429,7 @@ func record(id: String, date := 0) -> bool:
 		if hud != null:
 			hud.show_note("ROZDZIAŁ GOTOWY · CHAPTER DONE", "%s: +%d zł, +%d ★\n%s" % [chapter["name_pl"],
 					CHAPTER_ZL, CHAPTER_RESPECT, chapter["name_en"]], Color("#f0b429"))
+		chapter_done.emit(cid)
 	if hud != null:
 		hud.notebook_changed()
 	return true

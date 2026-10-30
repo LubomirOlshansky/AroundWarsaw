@@ -83,6 +83,8 @@ var _lit := false
 var _rain := 0.0
 var _live_wait := 0.0
 var _started_ms := Time.get_ticks_msec()
+## Loop MW-5: when the current look was set (the fixed looks' clock runs on from there).
+var _look_ms := Time.get_ticks_msec()
 
 
 ## `day_pitch` is the day sun's pitch (--sun=).
@@ -104,6 +106,7 @@ static func parse(text: String) -> int:
 ## Switches to a mode, blending over BLEND seconds unless `instant`.
 func set_mode(m: int, instant := false) -> void:
 	mode = m % NAMES.size()
+	_look_ms = Time.get_ticks_msec()
 	_from = _current()
 	_to = _live_look() if mode == LIVE else _looks[mode]
 	_live_wait = 10.0
@@ -193,6 +196,30 @@ func now_utc() -> float:
 	if clock_start >= 0.0:
 		return clock_start + (Time.get_ticks_msec() - _started_ms) * 0.001
 	return Time.get_unix_time_from_system()
+
+
+## Loop MW-5: the game clock, {hour: 0..24 (fractional), weekday: 1 Monday .. 7 Sunday}. Live:
+## the Warsaw clock (the device's, or --clock / --date). The fixed looks have the times of
+## vision.md 4.5 (Day 14:00, Dusk 19:30, Night 01:30; a Dawn look, when MW-3 adds one, 05:45) on
+## "always Friday" (Open Question 4: the night is Friday's, so 01:30 is early Saturday), and run
+## on in real time from the moment the look was set. PÓŁNOC FM's hours and the city's sounds
+## (club hours, the bells, the busker, the 02:00 beat) read it.
+func local_clock() -> Dictionary:
+	if mode == LIVE:
+		var t := now_utc()
+		var d := Time.get_datetime_dict_from_unix_time(int(t) + warsaw_offset(t))
+		var wd := int(d["weekday"])
+		return {"hour": float(d["hour"]) + float(d["minute"]) / 60.0 + float(d["second"]) / 3600.0,
+				"weekday": 7 if wd == 0 else wd}
+	return look_clock(NAMES[mode], (Time.get_ticks_msec() - _look_ms) / 3600000.0)
+
+
+## A fixed look's clock `elapsed_h` hours after it was set (see local_clock).
+static func look_clock(look: String, elapsed_h: float) -> Dictionary:
+	var start: float = {"Day": 14.0, "Dusk": 19.5, "Night": 1.5, "Dawn": 5.75}.get(look, 14.0)
+	# hours since Friday 00:00: the evening looks are Friday's, the small hours Saturday's
+	var abs_h := (start if start >= 12.0 else start + 24.0) + elapsed_h
+	return {"hour": fmod(abs_h, 24.0), "weekday": (4 + int(floor(abs_h / 24.0))) % 7 + 1}
 
 
 ## "Live 13:05": Warsaw time for the TIME button.

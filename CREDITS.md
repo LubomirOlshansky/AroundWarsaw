@@ -44,6 +44,13 @@ not cleared for a release.
 | 87,3 KEBAB FM | Palma de Gaulle'a | Around Warsaw | own: synthesised by `tools/make_music.py` (MIT) |
 | 86,6 RONDO FM | Rondo Dmowskiego 3 A.M. | Around Warsaw | own: synthesised by `tools/make_music.py` (MIT) |
 | 108,8 MORDOR FM | Mordor Mall Muzak | Around Warsaw | own: synthesised by `tools/make_music.py` (MIT) |
+| 86,0 PÓŁNOC FM | Sód | Around Warsaw | own: synthesised by `tools/make_music.py --set=polnoc` (MIT) |
+| 86,0 PÓŁNOC FM | Wiadukt | Around Warsaw | own: synthesised by `tools/make_music.py --set=polnoc` (MIT) |
+| 86,0 PÓŁNOC FM | Nocna przesiadka | Around Warsaw | own: synthesised by `tools/make_music.py --set=polnoc` (MIT) |
+| 86,0 PÓŁNOC FM | Szkło na Woli | Around Warsaw | own: synthesised by `tools/make_music.py --set=polnoc` (MIT) |
+| 86,0 PÓŁNOC FM | Bulwar, 23:40 | Around Warsaw | own: synthesised by `tools/make_music.py --set=polnoc` (MIT) |
+| 86,0 PÓŁNOC FM | Mgła nad Pałacem | Around Warsaw | own: synthesised by `tools/make_music.py --set=polnoc` (MIT) |
+| 86,0 PÓŁNOC FM | Świt na Smolnej | Around Warsaw | own: synthesised by `tools/make_music.py --set=polnoc` (MIT) |
 
 ## Godot add-ons
 

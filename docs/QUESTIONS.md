@@ -19,6 +19,18 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-30 · content · MW-5 (PÓŁNOC FM)** — Listen to the 7 new tracks (attached in the
+  thread, or `--unlock=all --station=polnoc`): mood, balance, does the bass reach the phone's
+  speaker? They're 22 kHz, 40 kbps to stay under 4 MB; raise it if you hear artifacts.
+  Default built: as made.
+- **2026-10-30 · content · MW-5** — Chapters 1–5 unlock tracks 3–7; chapters 6–9 unlock nothing
+  yet (vision: a horn tune and the gold cover later). Default built: as said; BACKLOG.
+- **2026-10-30 · content · MW-5** — Until you pick a station, the radio follows the clock:
+  PÓŁNOC FM at night, KEBAB FM otherwise. Keep, or switch only at launch? Default built: follow.
+- **2026-10-30 · content · MW-5** — New words for a designer pass: the day caption "powtórka ·
+  rerun · the host is back at 22:00" and the unlock toast "Kuba ma nową płytę: „…”".
+  Default built: as written.
+
 - **2026-10-30 · content · 3g-2 (police, part two)** — Rescue escort: how often after the first
   rescue, and how fast? Default built: the first rescue always, then one in two; 45 km/h, 15–25 m
   ahead. Tell back after a phone run.
