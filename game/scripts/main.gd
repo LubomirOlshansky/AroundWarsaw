@@ -3350,7 +3350,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_blip_sound()
 				tod.next()
 			KEY_R:
-				radio.next()
+				# Shift+R skips to the station's next track (2026-10-30: radio.next_track() had no control).
+				if key.shift_pressed:
+					radio.next_track()
+				else:
+					radio.next()
 			KEY_V:
 				_blip_sound()
 				_set_vhs(not vhs)
