@@ -14,11 +14,21 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
 | performance | The map textures (AO, lamp light and surface maps, ~96 MB of video memory on the phone), then the web build's first download (~59 MB) | cloud thread "Build landing and beta listings" | 2026-10-30 |
-| content | MW-6: Fotka (photo mode), Spacer, KASETA (the time tape), the 40 eggs into the notebook | cloud thread "Build Moja Warszawa content loops" | 2026-10-30 |
 
 ## Waiting
 
 Newest first. One entry per question.
+
+- **2026-10-30 · content · MW-6 (eggs, KASETA, Spacer, Fotka)** — Words written in this loop
+  need a designer pass: egg lines vision doesn't quote, the English egg names, and the 15 Kadr
+  photo spots (`game/data/eggs.json`, `kadr.json`). Default built: as written.
+- **2026-10-30 · content · MW-6** — The KASETA ghost is faint (dithered, reusing the building
+  shader) and dim at night. Brighter needs a visuals-lane shader uniform. Default built: faint.
+- **2026-10-30 · content · MW-6** — E31's reward was track 2, which is free from the start: it
+  opens the next locked track instead. The 5 old eggs now pay +10 respect each. Default built:
+  as said.
+- **2026-10-30 · content · MW-6** — Spacer (wander mode) is a row in Settings → JAZDA, offered
+  once by a toast; FOTKA is a button in Settings → OBRAZ. Default built: there.
 
 - **2026-10-30 · content · MW-5 (PÓŁNOC FM)** — Listen to the 7 new tracks (attached in the
   thread, or `--unlock=all --station=polnoc`): mood, balance, does the bass reach the phone's

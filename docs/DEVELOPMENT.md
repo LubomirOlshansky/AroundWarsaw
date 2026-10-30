@@ -3277,6 +3277,89 @@ the notebook's places. Code: `radio.gd` (the station's rules, the locks, the log
   Ogg 1.50 → 5.43 MB (+3.93); the four city sounds +1.03 MB of WAV in the repo, about 0.2 MB as
   imported QOA in the app.
 
+## Fotka, Spacer, KASETA and the eggs (loop MW-6, 2026-10-30)
+
+docs/design/vision.md 4.2-4.4 and section 8. Code: `egg_book.gd` (the egg cards and their
+triggers), `tape.gd` (KASETA), `spacer.gd` (wander mode), `fotka.gd` (the photo mode),
+`notebook_page.gd` (the three new sections), `wallet.gd` (`eggs` id → day, `tapes`, `kadr`,
+`kadr_photos`; save sections `[tapes]`, `[kadr]`, `[kadr_photos]`), `settings.gd` (`wander`,
+`wander_offered`), `settings_panel.gd` (Tryb gry, FOTKA), quiet switches in `missions.gd`
+(`calls_off`), `rides.gd` / `rivals.gd` (`quiet`), `police.gd` (`gentle`), `eggs.gd`
+(`book`, `barrier_street`, `force_street`), hooks in `main.gd` (section "loop MW-6").
+Data: `data/eggs.json` (45 cards) and `data/kadr.json` (15 spots); the then cards are
+`data/then_cards.json` (unchanged).
+
+- **The eggs** (`egg_book.gd`): the five eggs of v0.65 (eggs.gd still finds them, its spots and
+  lines as before, kind `legacy`, now +10 respect) and vision's E01-E40 as cards. A first find
+  saves the day it was found, pays the card's respect, opens its PÓŁNOC FM track
+  (`radio.unlock_track`; if the track is already free it opens the next locked one: E31),
+  stamps its then card (E38) or opens a Kadr spot (E13 opens k10, BUW), and shows the note
+  "SEKRET k/45 · EASTER EGG" with the card's line. Kinds of trigger: `stop`, `pass`, `hover`,
+  `land`, `circle`, `lap`, `street`, `between`, `tape` and the conditions (`night`, `after`,
+  `hours`, `weekday`, `look`, `summer`, `dry`, `date`, `station`, `roadworks`): the list is
+  `egg_book.gd`'s header. The game clock is `time_of_day.gd` `local_clock()`; `summer` is
+  June-August in Live and always true in the fixed looks; Fat Thursday is from the computus
+  (`fat_thursday(year)`, Live or `--date`). Checked at 2 Hz over a 200 m grid (one cell's eggs a
+  check). **Reachable now: 26** (the 5 legacy, E02 E05-E14 E17 E20 E22 E26 E31-E33 E36-E38).
+  **Waiting: 19**, each with its card as "?" and a `waits` key that names what is missing: E01
+  E21 the garage's paint; E03 the dawn crowd (MW-3); E04 the patrol cars by the clubs (MW-3);
+  E15 the guitarist on the steps; E16 E27 the dog walkers (MW-4); E18 E19 Wiralek's trend cycle
+  (MW-4); E23 E25 the night buses; E24 the player's horn and the bus stops; E28 the riders
+  (MW-4); E29 E30 Kolka and Hyrax (MW-4); E34 the armchair man (MW-4); E35 KASETA's older
+  decades (T1); E39 a tram in old livery; E40 the payphone. Rechotka's two eggs wait for MW-2
+  (not cards yet).
+- **KASETA** (`tape.gd`): the 20 then cards at their notebook places. Within 40 m of one, on the
+  ground under 12 km/h, the context button reads KASETA · time tape; a tap plays it: the VHS
+  overlay for 6 s, a tape-rewind sound (procedural, seeded, no file), a dithered ghost of the
+  place as it was (3-24 boxes from the cards' ghost notes, one mesh, one surface) that fades in
+  over 1.5 s, holds and fades out after 24 s, and the then card as a note "KASETA · year". The
+  first play of a card: +15 respect and its stamp (the day) in the notebook's KASETA page. The
+  ghost uses the buildings' own shader (`building.gdshader`, in a material of its own) with
+  its occlusion dither held on everywhere (the occluder set so the shader's side term is a
+  constant): no new shader. It casts no shadow and has no emission, so at night it is dim.
+- **Spacer** (wander mode; Settings → Jazda → Tryb gry: Miasto / Spacer, saved; offered once
+  by a toast after the first pause): no rescue calls ringing and no clocks on a rescue started
+  by hand, no Podwózka offers unless asked, the rivals don't call out, the speed traps warn
+  and never chase. Every 180-300 s (seeded) a soft hint: the screen-edge arrow (gold, "? N m")
+  points at the nearest notebook place not found yet within 1.5 km, for 15 s.
+- **Fotka** (Settings → Obraz → FOTKA, or `--fotka`): the HUD goes, the car is held, an
+  orthographic Camera3D of its own (`FotkaCamera`; `follow_camera.gd` untouched) orbits the
+  car: one finger turns it (yaw all round, pitch 20-70°), − and + or a pinch zoom (30-250 m).
+  The style and the VHS overlay apply (the post quad moves to Fotka's camera while open). The
+  shutter (FOTKA) hides the controls for two frames and saves the screen as a PNG to
+  `user://photos/fotka_YYYYMMDD_HHMMSS_mmm.png`. A photo with a Kadr spot's subject inside the
+  frame's central 60 %, the focus within 300 m and at the spot's time of day (`look`) is a
+  KADR: +20 respect the first time, the notebook's stamp and the photo (scaled to 120 px tall,
+  loaded only while its card is open) on the spot's card. Sharing waits for the Share plugin.
+  Closed, Fotka costs nothing: its layer is built at the first open, then hidden; its camera
+  is not current; no `_process`.
+- **The notebook**: after the nine chapters, three chips: SEKRETY (eggs, 45), KASETA (20),
+  KADR (15). Each is a 5 × 3 grid of cards (‹ › for the next page); a found card shows its
+  name, its line and the day it was found; one not found shows "?" and a hint (an egg: "not found yet", or
+  "still asleep" for a waiting one; a then card: the place to play it; a Kadr spot: the place
+  and its time of day).
+- **Testing aids**: `--egg=<id>`, `--egg-log`, `--found-eggs=`, `--tape=<id|n>`, `--tape-log`,
+  `--spacer` / `--wander`, `--no-spacer`, `--spacer-hint=S`, `--fotka` / `--photo`,
+  `--kadr=<n|id>`, `--fotka-shot=S`, `--photo-log`, `--notebook=eggs|tape|kadr|<card id>`
+  (flags table).
+- **Checks**: `check_eggs.gd` (verify step `eggs`, quick set and CI): the 45 cards (two
+  languages, ≤ 70 characters, a place that exists, a reward), every reachable egg's trigger on
+  synthetic inputs (it fires with its conditions and not without them), the waiting ones
+  listed, the rewards (respect, a track, a then card, a Kadr spot) once, Fat Thursday.
+  `check_tape.gd` (step `tape`, quick set and CI): the 20 cards, each ghost (3-24 boxes, one
+  surface, 36 vertices a box, no shadow, hidden until played), a grid walk over the map (no
+  ghost built further than 150 m from a spot, kept to 200 m), the button's rules, the first
+  play's reward once, the dither's kept share following the fade. `check_hud.gd` lays out the
+  three sections (a found card, one not found, a later page) and Fotka's controls at its six
+  screens.
+- **Cost**: the eggs, KASETA's check and Spacer tick at 2 Hz: bench line "eggs+tape+spacer" 0.01 ms
+  on the headless bench (budget 0.03). A playing ghost is +1 draw call in the main pass and 0
+  in the shadow pass (probe at Plac Defilad, lavapipe 1280x720: main 46 → 47), only within
+  150 m of a spot and while it shows; elsewhere and before a play, 0. The notebook's new pages
+  draw as many 2D calls as a chapter page (51-52 at 2532x1170 with the card open). Fotka
+  closed: 0 (25 2D draws with the HUD either way); open, 23 (the HUD hidden, its own controls).
+  The rendered bench (lavapipe, 1280x720): 114 → 113 draw calls (traffic noise).
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -3745,6 +3828,17 @@ Command-line options (after `--`):
 | `--notebook` / `--notebook=CHAPTER\|ID` | loop MW-1: open the settings card on MOJA WARSZAWA, the notebook (a chapter by id or number 1-9, or a place's card by its id; screenshots) |
 | `--found=all\|none\|CHAPTER[:K],…` | loop MW-1: the notebook's record for this run, in memory, no rewards (a chapter by id or number, `:K` its first K places; `--found=1:4,9` half of the first chapter and all of the ninth). Use with `--nosave` (a later save would keep it) |
 | `--place=ID` | loop MW-1: start at a notebook place (`places.json` id): the sectors round its hint first, then the car on the nearest lane if that is inside the place's radius, else on the place (found within a second, standing) |
+| `--egg=<id>` | loop MW-6: the vehicle at that egg (`data/eggs.json` id, `e07` or `palma`) in its look, weather and day (`--time`, `--weather`, `--date` set for it), a motion trigger (lap, street, circle) driven along its path at 90 % of its speed limit; prints `egg: --egg=<id> <kind> at x, z (state)`, the find with its reward (`egg: found <id> <name> (k/45): +N respect[, track n][, then card ...][, kadr ... open]`) and `egg: --egg=<id> found S s after the start`; a waiting egg says what it waits for. Implies `--egg-log` |
+| `--egg-log` | loop MW-6: print `egg:` lines: each trigger met (with the state), each find and reward, with `--egg` the state every 10 s until found |
+| `--found-eggs=all\|none\|reachable\|ID,…` | loop MW-6: the egg record for this run, in memory, no rewards (screenshots of the SEKRETY page). Use with `--nosave` |
+| `--tape=<id\|n>` | loop MW-6: the car stopped at that then card (`then_cards.json` id or 1-20), the tape played at once (ghost, sound, card); implies `--tape-log` |
+| `--tape-log` | loop MW-6: print `tape:` lines: the ghost built and dropped, each play (`tape: n <id> ghost ok (k boxes)[, first time: +15 respect]`) |
+| `--spacer` / `--wander`, `--no-spacer` | loop MW-6: Spacer (wander mode) on or off for this run (not saved) |
+| `--spacer-hint=S` | loop MW-6: Spacer's first hint after S s (default 180-300, seeded); `spacer:` lines log each hint (`spacer: hint n -> <place> (name), d m; next in s`) |
+| `--fotka` / `--photo` | loop MW-6: open Fotka at the start (screenshots of the photo mode) |
+| `--kadr=<n\|id>` | loop MW-6: Fotka open at that Kadr spot (`kadr.json`, 1-15 or `k07`), in its look, aimed at its subject, a photo 2 s later; implies `--photo-log` |
+| `--fotka-shot=S` | loop MW-6: with `--fotka`, take a photo S s after it opens |
+| `--photo-log` | loop MW-6: print `fotka:` lines (open, close, `fotka: saved user://photos/... (WxH)`) and `kadr:` lines (`kadr: n ok (<id> ...)` or `kadr: none (why)`) |
 | `--notes-log` | loop MW-1: print `notes:` lines: each place's resolution at load (`notes: place <id> address\|name\|poi\|near N m from the hint (x, z)`), each find (`notes: found <id> (chapter N, k/8)`) and each chapter completed |
 | `--call-in=S` | loop 2e: the first rescue call comes in after S seconds of play (default 60) |
 | `--stick=X,Y` / `--pedal=gas\|brake` | loop 2a: hold the stick at that deflection (-1..1, y down; Classic uses X) / a pedal, as if a finger were on it (screenshots, replays in the real city) |

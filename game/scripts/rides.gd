@@ -95,6 +95,8 @@ var state := State.IDLE
 ## (no offers, and the first 2 minutes wait).
 var flying := false
 var away := false
+## Loop MW-6: Spacer (spacer.gd): a request comes only when the PODWÓZKA button is tapped.
+var quiet := false
 ## Testing: --autopilot drives the app's route (--ignore-app: the shortest one); --parody-log
 ## prints `ride:` lines; --ride-quirk, --passenger and --stars force the quirk, the passenger
 ## type and the live rating's start.
@@ -458,7 +460,7 @@ func _idle_tick(dt: float) -> void:
 	# The context button is the call's while one rings.
 	_set_pill(missions.state == Missions.State.CLOSED)
 	_offer_in -= dt
-	if _offer_in <= 0.0 or (_pill_at >= 0.0 and _t - _pill_at >= PILL_DELAY):
+	if (_offer_in <= 0.0 and not quiet) or (_pill_at >= 0.0 and _t - _pill_at >= PILL_DELAY):
 		_pill_at = -1.0
 		_offer_in = _rng.randf_range(OFFER_GAP.x, OFFER_GAP.y)
 		_offer_here()

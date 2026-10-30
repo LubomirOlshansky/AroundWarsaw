@@ -18,7 +18,8 @@ var respect := 0
 var jobs := {}
 ## Key -> best time in seconds.
 var best := {}
-## Egg id -> true once found.
+## Egg id -> true once found (v0.65); loop MW-6: the day it was found (yyyymmdd), or 1 for a find
+## saved before MW-6 (its day unknown). Every egg card of data/eggs.json (egg_book.gd) counts.
 var eggs := {}
 ## Loop 3g-1 (police.md section 8.4): the joke notebook ("Zeszyt pouczeń"): cautions written
 ## today and the day they belong to (yyyymmdd; a new day starts it again), and escapes ever (for
@@ -39,6 +40,15 @@ var chapters_done := {}
 ## turned into tracks already (radio.gd `sync_chapters`).
 var tracks := {}
 var track_chapters := 0
+## Loop MW-6: KASETA's then cards played (tape.gd): card id -> the day (yyyymmdd); and Fotka's Kadr
+## spots shot (fotka.gd): spot id -> the day, with the photo's file under user://photos/ in
+## `kadr_photos` (spot id -> path).
+var tapes := {}
+var kadr := {}
+var kadr_photos := {}
+## Loop MW-6: the egg cards in all (egg_book.gd sets it from data/eggs.json; the five of v0.65 alone
+## without it).
+var eggs_total := 0
 ## False with --nosave: nothing is read or written.
 var persistent := true
 ## Loop MW-5: the save's file (check_radio.gd points it at a scratch file of its own).
@@ -62,8 +72,11 @@ func load_save() -> void:
 	for key in (cfg.get_section_keys("best") if cfg.has_section("best") else PackedStringArray()):
 		best[key] = float(cfg.get_value("best", key, 0.0))
 	for key in (cfg.get_section_keys("eggs") if cfg.has_section("eggs") else PackedStringArray()):
-		if bool(cfg.get_value("eggs", key, false)):
-			eggs[key] = true
+		var v: Variant = cfg.get_value("eggs", key, false)
+		if v is int and int(v) > 0:
+			eggs[key] = int(v)
+		elif v is bool and v:
+			eggs[key] = 1
 	cautions_today = int(cfg.get_value("police", "cautions_today", 0))
 	cautions_day = int(cfg.get_value("police", "cautions_day", 0))
 	escapes_total = int(cfg.get_value("police", "escapes_total", 0))
@@ -77,6 +90,12 @@ func load_save() -> void:
 		if key.begins_with("track_"):
 			tracks[int(key.trim_prefix("track_"))] = int(cfg.get_value("polnoc", key, 0))
 	track_chapters = int(cfg.get_value("polnoc", "chapters", 0))
+	for key in (cfg.get_section_keys("tapes") if cfg.has_section("tapes") else PackedStringArray()):
+		tapes[key] = int(cfg.get_value("tapes", key, 0))
+	for key in (cfg.get_section_keys("kadr") if cfg.has_section("kadr") else PackedStringArray()):
+		kadr[key] = int(cfg.get_value("kadr", key, 0))
+	for key in (cfg.get_section_keys("kadr_photos") if cfg.has_section("kadr_photos") else PackedStringArray()):
+		kadr_photos[key] = str(cfg.get_value("kadr_photos", key, ""))
 
 
 func save() -> void:
@@ -90,7 +109,7 @@ func save() -> void:
 	for key in best:
 		cfg.set_value("best", key, best[key])
 	for key in eggs:
-		cfg.set_value("eggs", key, true)
+		cfg.set_value("eggs", key, int(eggs[key]))
 	cfg.set_value("police", "cautions_today", cautions_today)
 	cfg.set_value("police", "cautions_day", cautions_day)
 	cfg.set_value("police", "escapes_total", escapes_total)
@@ -103,6 +122,12 @@ func save() -> void:
 	for n in tracks:
 		cfg.set_value("polnoc", "track_%d" % n, tracks[n])
 	cfg.set_value("polnoc", "chapters", track_chapters)
+	for key in tapes:
+		cfg.set_value("tapes", key, tapes[key])
+	for key in kadr:
+		cfg.set_value("kadr", key, kadr[key])
+	for key in kadr_photos:
+		cfg.set_value("kadr_photos", key, kadr_photos[key])
 	cfg.save(path)
 
 
@@ -121,6 +146,9 @@ func reset() -> void:
 	chapters_done.clear()
 	tracks.clear()
 	track_chapters = 0
+	tapes.clear()
+	kadr.clear()
+	kadr_photos.clear()
 	save()
 	changed.emit(zl, respect, 0)
 
@@ -179,25 +207,28 @@ func best_time(key: String) -> float:
 	return float(best.get(key, -1.0))
 
 
-## Marks an easter egg found; true the first time.
-func find_egg(id: String) -> bool:
+## Marks an easter egg found (loop MW-6: on day `date`, yyyymmdd); true the first time.
+func find_egg(id: String, date := 1) -> bool:
 	if eggs.has(id):
 		return false
-	eggs[id] = true
+	eggs[id] = maxi(1, date)
 	save()
 	return true
 
 
+## Loop MW-6: every egg card found (the save's ids; the five of v0.65 are cards too).
 func eggs_found() -> int:
-	var n := 0
-	for id in EGGS:
-		if eggs.has(id):
-			n += 1
-	return n
+	return eggs.size()
+
+
+## Loop MW-6: the egg cards in all (EGGS' five until egg_book.gd says).
+func egg_count() -> int:
+	return eggs_total if eggs_total > 0 else EGGS.size()
 
 
 func summary() -> String:
-	return "%d zł, respect %d, jobs %s, best %s, eggs %d/%d, notebook %d" % [zl, respect, jobs, best, eggs_found(), EGGS.size(), notes.size()]
+	return "%d zł, respect %d, jobs %s, best %s, eggs %d/%d, notebook %d, tapes %d, kadr %d" % [zl, respect, jobs, best,
+			eggs_found(), egg_count(), notes.size(), tapes.size(), kadr.size()]
 
 
 ## "1 240 zł": thousands apart with a space, the Polish way.

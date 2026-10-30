@@ -200,6 +200,9 @@ var guards: Guards
 var project: Callable
 ## The player is in the helicopter (main.gd, every frame).
 var flying := false
+## Loop MW-6: Spacer (spacer.gd, vision.md 4.3): the speed traps give the warning only, nothing
+## chases (the gentle joke stays: the megaphone line).
+var gentle := false
 ## Flags (main.gd parses them; README's flags table).
 var opts := {}
 var now := false
@@ -754,7 +757,7 @@ func _start_grace() -> bool:
 
 ## No chase starts now: the start grace or the cooldown after the last one.
 func _may_chase() -> bool:
-	return not _start_grace() and (cooldown <= 0.0 or now)
+	return not gentle and not _start_grace() and (cooldown <= 0.0 or now)
 
 
 func _ram_in_chase() -> void:
@@ -772,6 +775,9 @@ func _on_bumped(d, speed: float) -> void:
 
 
 func _start_chase(lvl: int, u, why: String) -> void:
+	if gentle:
+		_log("no chase in Spacer (%s)" % why)
+		return
 	if u == null:
 		u = _nearest_unit()
 	phase = Phase.CHASE
