@@ -65,6 +65,14 @@ const PATH_LOOK := 0.8
 const PATH_MARGIN := 0.2
 const PATH_AHEAD := 14.0
 const PATH_EXIT := 6.0
+## The traffic loop: a car gives way to a tram's body (TRAM_CAR m cars, TRAM_HALF m half width,
+## as trams.gd) and the front car's next TRAM_LOOK s, with TRAM_MARGIN m to spare (it looked at
+## three points of each tram car, missed the body between them, and stopped by its centre, so a
+## car crossing at a slant stopped with its corner in the tram's way).
+const TRAM_CAR := 10.5
+const TRAM_HALF := 1.2
+const TRAM_MARGIN := 0.8
+const TRAM_LOOK := 1.5
 ## Kinematic bodies for the cars nearest the player.
 const BODIES := 12
 const BODY_RANGE := 40.0
@@ -83,6 +91,12 @@ const SHOVE_ACROSS := 2.0
 const DAZE := 2.5
 const DAZE_POLICE := 1.5
 const DAZE_DECEL := 4.0
+## The traffic loop (2026-10-30): a brush is not a crash. A hit at BRUSH_HIT m/s closing speed or
+## less (the car's own bump threshold is 2) dazes the car for DAZE_BRUSH s; a hit at FULL_HIT m/s
+## or more for the whole DAZE (it stopped dead for 2.5 s whatever the knock).
+const DAZE_BRUSH := 0.4
+const BRUSH_HIT := 3.0
+const FULL_HIT := 8.0
 ## Loop 3g-1: a car giving way to a police car with its lights on slows to this (m/s), and a
 ## chaser crosses a red (or a roundabout) no faster than SIREN_SLOW (30 km/h).
 const YIELD_SPEED := 5.0
@@ -253,10 +267,22 @@ var _ov_in_junction := 0
 var _ov_spots := {}
 ## ... and how often a car gave up waiting on crossing cars (a knot: 8 s, then it ignores them).
 var _ov_knots := 0
+## Testing aid: tram car and traffic car pairs overlapping, frames (and how many with the car on
+## a junction curve or about to enter one, and how many with the tram moving).
+var _ov_tram := 0
+var _ov_tram_moving := 0
+var _ov_tram_spots := {}
+var _ov_tram_still := 0
 ## The trams (trams.gd), set by the game: cars give way to them.
 var trams: Node3D
 var _tram_at := PackedVector2Array()
 var _tram_axis := PackedVector2Array()
+## The traffic loop (2026-10-30): how far ahead of each gathered tram car (m) it is looked for:
+## the front car's next TRAM_LOOK s at its speed, 0 for the others.
+var _tram_ahead := PackedFloat32Array()
+## The traffic loop: whether each gathered tram car is the front one (a car already in front of a
+## tram's nose drives on and clears it; the tram waits).
+var _tram_front := PackedByteArray()
 ## Spawn slots around the view: edge, position, running total of their weight.
 var _slot_e := PackedInt32Array()
 var _slot_s := PackedFloat32Array()
@@ -266,6 +292,17 @@ var _target_at := Vector2.INF
 var _target_size := 0.0
 var _filled := false
 var _view := Rect2()
+## The traffic-cost item (2026-10-30): the orthographic camera's origin, right and up axes and
+## pixels per metre, kept by _update_view(), so on_screen() projects with three dot products
+## instead of two Camera3D.unproject_position calls (the same answer: no h/v offset, KEEP_HEIGHT).
+var _cam_o := Vector3.ZERO
+var _cam_x := Vector3.RIGHT
+var _cam_y := Vector3.UP
+var _cam_k := 1.0
+var _view_mid := Vector2.ZERO
+## ... and the junction cars' ground positions, so the pair test rejects far pairs on a packed
+## array instead of reading two drivers' properties.
+var _jc_at := PackedVector2Array()
 ## The ground in view, kept by _update_view(): centre, right and ahead axes, half size (m).
 var view_centre := Vector2.ZERO
 var view_right := Vector2.RIGHT
@@ -434,7 +471,7 @@ func _bodies_step(_dt: float) -> void:
 
 
 ## The player's car hit something; if it was one of ours, that car stops a moment.
-func on_player_bump(collider: Object, _speed := 0.0) -> void:
+func on_player_bump(collider: Object, speed := 0.0) -> void:
 	# Walls, kiosks and statues are static bodies: not one of ours (and a typed
 	# array's find() refuses another type).
 	if not collider is AnimatableBody3D:
@@ -447,9 +484,9 @@ func on_player_bump(collider: Object, _speed := 0.0) -> void:
 			# Loop 3g-1: police.gd decides (a warning, a ram); a parked one doesn't budge.
 			if not d.parked:
 				d.daze = DAZE_POLICE
-			bumped_police.emit(d, _speed)
+			bumped_police.emit(d, speed)
 			return
-		d.daze = DAZE
+		d.daze = maxf(d.daze, lerpf(DAZE_BRUSH, DAZE, clampf((speed - BRUSH_HIT) / (FULL_HIT - BRUSH_HIT), 0.0, 1.0)))
 		bumped_driver.emit(d)
 
 
@@ -495,10 +532,18 @@ func _update_view() -> void:
 	var vp := cam.get_viewport().get_visible_rect().size
 	view_half = Vector2(cam.size * vp.x / maxf(vp.y, 1.0) * 0.5, cam.size * 0.5 / maxf(-f.y, 0.2))
 	_view = Rect2(Vector2.ZERO, vp).grow(vp.y * 0.06)
+	_cam_o = o
+	_cam_x = b.x
+	_cam_y = b.y
+	_cam_k = vp.y / maxf(cam.size, 0.001)
+	_view_mid = vp * 0.5
 
 
 func on_screen(p: Vector3, height: float) -> bool:
-	return _view.has_point(cam.unproject_position(p)) or _view.has_point(cam.unproject_position(p + Vector3(0, height, 0)))
+	var r := p - _cam_o
+	var at := Vector2(_view_mid.x + r.dot(_cam_x) * _cam_k, _view_mid.y - r.dot(_cam_y) * _cam_k)
+	var up := height * _cam_k
+	return _view.has_point(at) or _view.has_point(at + Vector2(_cam_x.y * up, -_cam_y.y * up))
 
 
 ## View coordinates of a ground point: metres right of and ahead of the view centre.
@@ -624,6 +669,14 @@ func _try_spawn(anywhere: bool) -> bool:
 	# Lanes of different roads meet at junctions: keep clear of every car, not just this lane's.
 	for o in _active:
 		if Vector2(o.pos.x, o.pos.z).distance_squared_to(q) < 100.0 + o.length * o.length:
+			return false
+	# The traffic loop: and of the trams (a car was put down beside the rails, under a passing
+	# tram's side; the tram cars gathered by _give_way_to_trams last frame).
+	for c in _tram_at.size():
+		var rel := q - _tram_at[c]
+		var along := rel.dot(_tram_axis[c])
+		if along > -TRAM_CAR * 0.5 - 6.0 and along < TRAM_CAR * 0.5 + _tram_ahead[c] + 12.0 \
+				and absf(rel.cross(_tram_axis[c])) < TRAM_HALF + 4.0:
 			return false
 	var d: Driver = _free.pop_back()
 	d.kind = kind
@@ -1017,15 +1070,25 @@ func _junction_conflicts() -> void:
 			junction_cars.append(d)
 	if trams != null:
 		_give_way_to_trams()
-	for a in junction_cars.size():
-		var p := junction_cars[a]
-		var pf := Vector2(-sin(p.yaw), -cos(p.yaw))
-		for b in range(a + 1, junction_cars.size()):
+	var n := junction_cars.size()
+	_jc_at.resize(n)
+	for a in n:
+		_jc_at[a] = Vector2(junction_cars[a].pos.x, junction_cars[a].pos.z)
+	for a in n:
+		var at := _jc_at[a]
+		var p: Driver = null
+		var pf := Vector2.ZERO
+		for b in range(a + 1, n):
+			var rel := _jc_at[b] - at
+			if rel.length_squared() > 196.0:
+				continue
+			if p == null:
+				p = junction_cars[a]
+				pf = Vector2(-sin(p.yaw), -cos(p.yaw))
 			var q := junction_cars[b]
-			var rel := Vector2(q.pos.x - p.pos.x, q.pos.z - p.pos.z)
 			# Followers in one lane keep their gap by the lane; two curves merging into one lane
 			# (two turn lanes into one) are both registered there, side by side: checked here.
-			if rel.length_squared() > 196.0 or (q.reg == p.reg and not (p.in_conn and q.in_conn and p.lane != q.lane)):
+			if q.reg == p.reg and not (p.in_conn and q.in_conn and p.lane != q.lane):
 				continue
 			var qf := Vector2(-sin(q.yaw), -cos(q.yaw))
 			# The traffic loop (2026-10-30): the other car's body and where it goes in the next
@@ -1094,6 +1157,41 @@ func _count_overlaps() -> void:
 					_ov_in_junction += 1
 				var key := Vector2i(roundi(p.pos.x / 10.0) * 10, roundi(p.pos.z / 10.0) * 10)
 				_ov_spots[key] = int(_ov_spots.get(key, 0)) + 1
+	if trams == null:
+		return
+	for tram in trams.trams:
+		if tram.v < 0.3:
+			_ov_tram_still += 1
+		for body in tram.cars:
+			if not body.visible:
+				continue
+			var t: Transform3D = body.global_transform
+			var tc := Vector2(t.origin.x, t.origin.z)
+			var tf := -Vector2(t.basis.z.x, t.basis.z.z).normalized()
+			for d in _active:
+				if d.ghost or d.parked or d.clip < 1.0 or absf(d.pos.y - t.origin.y) > 2.5:
+					continue
+				var rel := Vector2(d.pos.x, d.pos.z) - tc
+				if rel.length_squared() > 64.0:
+					continue
+				if _sat(tf, 10.5, 2.4, Vector2(-sin(d.yaw), -cos(d.yaw)), d.length, d.size.x, rel):
+					_ov_tram += 1
+					if tram.v > 0.3:
+						_ov_tram_moving += 1
+					var key := Vector2i(roundi(d.pos.x / 10.0) * 10, roundi(d.pos.z / 10.0) * 10)
+					_ov_tram_spots[key] = int(_ov_tram_spots.get(key, 0)) + 1
+
+
+## Two boxes (forward axis, length, width) overlap by more than 0.15 m, the second at rel.
+static func _sat(pf: Vector2, pl: float, pw: float, qf: Vector2, ql: float, qw: float, rel: Vector2) -> bool:
+	var pr := Vector2(-pf.y, pf.x)
+	var qr := Vector2(-qf.y, qf.x)
+	for ax: Vector2 in [pf, pr, qf, qr]:
+		var rp := absf(pf.dot(ax)) * pl * 0.5 + absf(pr.dot(ax)) * pw * 0.5
+		var rq := absf(qf.dot(ax)) * ql * 0.5 + absf(qr.dot(ax)) * qw * 0.5
+		if absf(rel.dot(ax)) > rp + rq - 0.15:
+			return false
+	return true
 
 
 static func _boxes_overlap(p: Driver, q: Driver, rel: Vector2) -> bool:
@@ -1122,6 +1220,17 @@ func _exit_tree() -> void:
 			worst = k
 	print("traffic overlaps: %d car-pair frames in %d frames (%d with a car on a junction curve), %d spots; worst %d frames at %d, %d; %d knots given up" % [
 			_ov_pairs, _ov_frames, _ov_in_junction, _ov_spots.size(), most, worst.x, worst.y, _ov_knots])
+	worst = Vector2i.ZERO
+	most = 0
+	for k: Vector2i in _ov_tram_spots:
+		if int(_ov_tram_spots[k]) > most:
+			most = int(_ov_tram_spots[k])
+			worst = k
+	print("traffic tram overlaps: %d tram-car frames (%d with the tram moving), %d spots; worst %d frames at %d, %d; trams standing %d tram frames" % [
+			_ov_tram, _ov_tram_moving, _ov_tram_spots.size(), most, worst.x, worst.y, _ov_tram_still])
+	if OS.is_stdout_verbose():
+		for k: Vector2i in _ov_tram_spots:
+			print("  tram overlap spot %d, %d: %d" % [k.x, k.y, int(_ov_tram_spots[k])])
 
 
 func _enter_edge(d: Driver, e: int, lane: int, s: float) -> void:
@@ -1425,19 +1534,26 @@ func _change_lane(d: Driver, room_needed: float) -> bool:
 	return true
 
 
-## Cars at a junction give way to a tram in their path: each tram car is checked
-## at its front, middle and back.
+## Cars at a junction give way to a tram in their path: where the car's way meets each tram car's
+## line, if the tram car's body (or the front car's next TRAM_LOOK s) is there, the car stops with
+## its box TRAM_MARGIN m from the tram's side, whatever the angle it crosses at.
 func _give_way_to_trams() -> void:
 	# Each visible tram car once: centre and axis (gathered first; reading node
 	# transforms inside the loop below would cost far more than the maths).
 	_tram_at.clear()
 	_tram_axis.clear()
+	_tram_ahead.clear()
+	_tram_front.clear()
 	for tram in trams.trams:
-		for body in tram.cars:
+		for k in tram.cars.size():
+			var body: AnimatableBody3D = tram.cars[k]
 			if body.visible:
 				var t: Transform3D = body.global_transform
 				_tram_at.append(Vector2(t.origin.x, t.origin.z))
-				_tram_axis.append(Vector2(t.basis.z.x, t.basis.z.z).normalized())
+				# Forward: the cars' -Z faces the way the tram goes.
+				_tram_axis.append(-Vector2(t.basis.z.x, t.basis.z.z).normalized())
+				_tram_ahead.append(tram.v * TRAM_LOOK if k == 0 else 0.0)
+				_tram_front.append(1 if k == 0 else 0)
 	for d in junction_cars:
 		var f := Vector2(-sin(d.yaw), -cos(d.yaw))
 		var at := Vector2(d.pos.x, d.pos.z)
@@ -1446,17 +1562,38 @@ func _give_way_to_trams() -> void:
 			if rel.length_squared() > 900.0:
 				continue
 			var axis := _tram_axis[c]
-			if absf(axis.dot(f)) > 0.8:
+			if absf(axis.dot(f)) > 0.9:
 				continue  # running alongside the track, not across it
-			for k in [-4.8, 0.0, 4.8]:
-				var q: Vector2 = rel + axis * k
-				var along := q.dot(f)
-				if along > 0.0 and along < 22.0 and absf(q.cross(f)) < 2.1:
-					var g := along - d.length * 0.5 - 1.6
-					if g < d.cross_gap:
-						d.cross_gap = g
-						d.cross_v = 0.0
-					d.sees_tram = true
+			# Across the track: the car's centre is `side` m from the tram car's line and
+			# closes on it at `fn` m per metre driven (only if it is heading towards it).
+			var n := Vector2(-axis.y, axis.x)
+			var side := rel.dot(n)
+			var fn := f.dot(n)
+			if side * fn <= 0.0:
+				continue  # past the line, driving away from it
+			fn = absf(fn)
+			var fa := absf(f.dot(axis))
+			# How far the car's box reaches towards the line, and along it.
+			var ext_n := fn * d.length * 0.5 + fa * d.size.x * 0.5
+			var ext_a := fa * d.length * 0.5 + fn * d.size.x * 0.5
+			var to_line := absf(side) / fn
+			if to_line > 22.0:
+				continue
+			# Where the car's path meets the line, from the tram car's centre along its axis:
+			# in the way if the tram car's body (or the front car's next metres) is there.
+			var t := (f * to_line - rel).dot(axis)
+			if t < -TRAM_CAR * 0.5 - ext_a - TRAM_MARGIN or t > TRAM_CAR * 0.5 + _tram_ahead[c] + ext_a + TRAM_MARGIN:
+				continue
+			# The gap along the car's way until its box is TRAM_MARGIN from the tram's side.
+			var g := (absf(side) - ext_n - TRAM_HALF - TRAM_MARGIN) / fn
+			# Already in the way in front of the tram's nose: drive on and clear it (it waits;
+			# waiting here too stopped both for good).
+			if g < 0.0 and _tram_front[c] == 1 and t > TRAM_CAR * 0.5:
+				continue
+			if g < d.cross_gap:
+				d.cross_gap = g
+				d.cross_v = 0.0
+			d.sees_tram = true
 
 
 ## Gap to the first stop line ahead that shows red (or amber the car can stop for).

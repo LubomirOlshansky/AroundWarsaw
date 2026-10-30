@@ -411,6 +411,12 @@ var _ram_unsticks := 0
 var _ram_dir := Vector3.ZERO
 ## --traffic-overlaps (testing aid): traffic counts its cars' overlapping boxes, printed at the end.
 var _traffic_overlaps := false
+## The traffic loop, --tram-watch=N (testing aid): the car (no collisions, standing still) is put
+## beside tram N, ahead of it, again and again, so the view, the traffic and
+## the tram's cars come with that tram through the city (with --traffic-overlaps: how often a
+## tram and a car touch). -1: off.
+var tram_watch := -1
+var _tram_watch_at := Vector2.INF
 ## Loop 2c, --lineup (testing aid): every vehicle model standing round the car, no traffic, for
 ## close-up screenshots (with --size=25 or so).
 var lineup := false
@@ -1633,6 +1639,8 @@ func _parse_args() -> void:
 			ram_test = 1
 		elif arg == "--traffic-overlaps":
 			_traffic_overlaps = true
+		elif arg.begins_with("--tram-watch="):
+			tram_watch = int(arg.trim_prefix("--tram-watch="))
 		elif arg == "--cam-log":
 			cam_log = true
 		elif arg.begins_with("--cam-test="):
@@ -1650,7 +1658,7 @@ func _parse_args() -> void:
 	# Test runs go straight to the city (--title brings the title screen back).
 	if demo or not shots.is_empty() or autopilot or start_race > 0 or start_mission > 0 or start_rival > 0 or bench or probe \
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or hold_stick != Vector2.INF or bench_button \
-			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0:
+			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0:
 		show_title = false
 	if start_ride >= 0 or place_flag != "":
 		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place)
@@ -1662,7 +1670,7 @@ func _parse_args() -> void:
 	cinematic_look = normal or _flag_cinematic in ["all", "look"]
 	# Loop G1: the governor runs in a normal launch; test runs hold it so they repeat.
 	var test_run := DisplayServer.get_name() == "headless" or not shots.is_empty() or bench or probe or autopilot \
-			or demo or cam_test != "" or _water_test_at != Vector2.INF or ram_test > 0
+			or demo or cam_test != "" or _water_test_at != Vector2.INF or ram_test > 0 or tram_watch >= 0
 	_governor_on = _flag_governor == 1 if _flag_governor >= 0 else not test_run
 	# Loop G1b: test runs (and --last-session=) never write Auto's image state, even with the
 	# governor on and without --nosave.
@@ -2261,6 +2269,25 @@ func _ram_test_frame(dt: float) -> void:
 		print("ram test: %s after 10 s (%.1f m behind, unstuck %d×)" % ["never hit it" if _ram_hit < 0.0 else "NEVER PAST it",
 				-ahead, car.unsticks - _ram_unsticks])
 		ram_test = 3
+
+
+## The traffic loop, --tram-watch=N: keeps the car (and so the view) 30 m ahead of tram N and 20 m
+## to its side, moved on as the tram draws level with that spot or gets 60 m from it.
+func _tram_watch_frame() -> void:
+	if trams == null or tram_watch >= trams.trams.size():
+		return
+	var t: Trams.Tram = trams.trams[tram_watch]
+	var head := Vector2(t.pos.x, t.pos.z)
+	if _tram_watch_at == Vector2.INF or head.distance_to(_tram_watch_at) < 22.0 or head.distance_to(_tram_watch_at) > 60.0:
+		_tram_watch_at = head + t.dir * 30.0 + Vector2(-t.dir.y, t.dir.x) * 20.0
+		car.collision_layer = 0
+		car.collision_mask = 0
+	car.global_position = Vector3(_tram_watch_at.x, t.pos.y + 0.5, _tram_watch_at.y)
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.target_dir = Vector3.ZERO
+	car.throttle = 0.0
+	cam_focus = car.global_position
 
 
 ## Camera loop, --cam-test=NAME: the scheme, the camera behind the car, the car ghosting through
@@ -2979,6 +3006,8 @@ func _read_input(dt: float) -> void:
 		_water_test_frame()
 	if ram_test == 1 or ram_test == 2:
 		_ram_test_frame(dt)
+	if tram_watch >= 0:
+		_tram_watch_frame()
 
 
 ## The stick and W A S D both point in screen space (W is up the screen); Space /

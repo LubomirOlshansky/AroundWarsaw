@@ -15,7 +15,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   2026-10-30: junction cars watch each other's body and path, `--traffic-overlaps` counts them;
   left: two cars entering a short merging curve in the same frame); a racing rival stuck in
   traffic passes through other cars when off screen.
-- Trams and crossing cars can touch nose to nose.
+- ~~Trams and crossing cars can touch nose to nose.~~ Down by nine tenths (the traffic loop
+  2026-10-30: trams follow their rails ahead for cars' boxes, cars stop clear at any angle, no
+  spawning beside a tram; `--tram-watch=N` with `--traffic-overlaps`); about 70 tram-car frames in
+  three minutes remain near -1830, -220.
 - ~~Name tags and bubbles show faintly through the translucent WIN/LOSE card.~~ Fixed by loop 2e:
   the result card is one of the HUD's floating panels, so it is in `hud.gd` `panel_rects()`, and
   `bubbles.gd` skips a name tag that touches one and places bubbles clear of them (checked
@@ -194,7 +197,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   it; the unstick turns it out after 1.5 s, and a second pin within 5 s tows it back onto the
   nearest lane on its level (next to a kerb that can be almost where it was, turned the lane's
   way).
-  Traffic still stops for a player that only brushes it.
+  ~~Traffic still stops for a player that only brushes it.~~ A brush dazes it for 0.4 s, a
+  real hit up to 2.5 s (the traffic loop, 2026-10-30).
 - Busy's traffic target is more than the spawner can place in the band round the view (70 vs
   ~44 at 80 m): the levels are calibrated on real counts. If the spawner changes, re-measure
   (bench `--traffic=`).
@@ -1047,10 +1051,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## From the performance baseline (2026-10-30)
 
-- Loop 3d-1's map left +0.4–0.6 ms of main-thread process on the Mac after the lamp fix
-  (traffic about 0.5 ms; `--no-traffic` drops process to 0.60): find what in traffic scales
-  with the map (the spawn slots' grid walk in `_count_target`, the junction checks) with a
-  per-function timer before changing anything.
+- ~~Loop 3d-1's map left +0.4–0.6 ms of main-thread process on the Mac after the lamp fix
+  (traffic about 0.5 ms): find what in traffic scales with the map.~~ Timed (2026-10-30):
+  nothing does; ~10 µs a car, 0.31 ms on the prebuilt path. Two small cuts landed. Left:
+  `_count_target` and the first spawn fill are rare one-frame spikes (0.4–0.7 and ~1 ms) when
+  the view moves far; spread them over frames if a hitch shows on the phone.
 - Static memory doubled with the bigger map (173 → ~330 MB runtime, 241 MB prebuilt): check
   it on the iPhone 11 (TEST · BENCH's memory line) before the beta. The index packing cut it
   by ~20 MB on the phone path (2026-10-30, DEVELOPMENT.md "Performance budgets").
