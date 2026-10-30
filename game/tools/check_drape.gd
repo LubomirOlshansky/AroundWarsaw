@@ -29,6 +29,13 @@ const ALLOWED := 1.0
 ## Strips: one footbridge's ramp (deck group 12 at -18, -281, the ramp's end 0.46 m under the park
 ## it lands in: the deck solver's, not the drape's) hides ~2 m2 of itself; anything more fails.
 const ALLOWED_STRIPS := 5.0
+## Loop 3d-1: strips not counted here, each with why (centre, radius in metres).
+const EXCUSED := [
+	# The cycle footbridge over Trasa Łazienkowska's trench by Plac Na Rozdrożu: the deck solver
+	# can't give it its clearance over the trench the 10 m grid doesn't show (the bake warns), so
+	# its ramps end 0.1-0.2 m under the grass they land in: loop 3e's structure (DEMO 4.6).
+	[Vector2(382.0, 1505.0), 45.0],
+]
 const KINDS := {1: "grass and parks", 2: "plazas", 3: "water", 16: "sand"}
 ## The areas' pass: depth biases up to this (the areas 0.01, the sandbars' fill 0.02).
 const AREA_BIAS_MAX := 0.065
@@ -124,6 +131,12 @@ func _initialize() -> void:
 	for n in cand.size():
 		var p := cand[n]
 		var near := p.y * PITCH_SIN + cand_bias[n]
+		var excused := false
+		for ex: Array in EXCUSED:
+			if Vector2(p.x, p.z).distance_to(ex[0]) <= float(ex[1]):
+				excused = true
+		if excused:
+			continue
 		for k: int in cells.get(Vector2i(floori(p.x / CELL), floori(p.z / CELL)), PackedInt32Array()):
 			var a := tris[k * 3]
 			var b := tris[k * 3 + 1]

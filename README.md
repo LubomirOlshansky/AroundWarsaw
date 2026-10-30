@@ -45,8 +45,10 @@ Stadium. Coming on the road to the 1.0 demo ([docs/ROADMAP.md](docs/ROADMAP.md))
 
 1. Install [Godot 4.7.2](https://godotengine.org/download/).
 2. `git clone https://github.com/LubomirOlshansky/AroundWarsaw.git`
-3. `godot --path AroundWarsaw/game`, or open `game/project.godot` in the editor and press F5.
-   The baked map is in the repo, so there is nothing to download or bake.
+3. `AroundWarsaw/tools/setup_map.sh --full` once: it builds the map files the repo doesn't carry
+   (the 3D buildings and the terrain from GUGiK's raw data in `data/raw`, which it tells you how to
+   fetch, then the city's sectors; a few minutes, a window opens).
+4. `godot --path AroundWarsaw/game`, or open `game/project.godot` in the editor and press F5.
 
 | | iPhone / Android | Mac / PC |
 | --- | --- | --- |

@@ -47,6 +47,8 @@ signal stuck
 signal splashed(speed: float)
 
 @export var max_speed := 30.0        # m/s, about 108 km/h
+## Loop 3d-1: the most the gas asks for here (main.gd sets it in a pedestrian zone: 20 km/h).
+var zone_cap := INF
 @export var accel := 15.0
 @export var brake_decel := 30.0
 @export var reverse_speed := 7.0
@@ -261,7 +263,7 @@ func _step(dt: float) -> void:
 	var speed := vel.dot(fwd)
 	var gas := clampf(throttle, 0.0, 1.0)
 	# The speed the gas asks for (a share of top speed); a big point-to-steer turn caps it.
-	var top := max_speed * gas
+	var top := minf(max_speed, zone_cap) * gas
 	var brake_now := braking
 	var turn := max_turn(absf(speed), gas)
 	# Moving backwards the car turns the other way for the same steering.

@@ -155,6 +155,28 @@ def visible(r):
     return runs
 
 
+def pole_tests(d):
+    """Loop 3d-1: S1's two tests on map data `d` (centrum.json's shape), for bake_lights.py too:
+    (asphalt(x, z): on the ground's carriageway, not a hatched area; raised(x, z): on an
+    island or a median)."""
+    ground = lambda item: item.get("dk", -1) < 0  # noqa: E731
+    carr = Polys([pairs(c["p"]) for c in d["carriage"] if ground(c) and c["k"] not in HATCH])
+    hatch = Polys([pairs(c["p"]) for c in d["carriage"] if ground(c) and c["k"] in HATCH])
+    strips = Caps()
+    for r in d["roads"]:
+        if not ground(r):
+            continue
+        for run in visible(r):
+            run = offset(run, r.get("c", 0.0))
+            for a, b in zip(run, run[1:]):
+                strips.add(a, b, r["w"] * 0.5, 1)
+    islands = Polys([pairs(a["p"]) for a in d.get("islands", []) if ground(a)])
+    meds = Polys([[(s4[i], s4[i + 1]), (s4[i + 2], s4[i + 3]), (s4[i + 6], s4[i + 7]), (s4[i + 4], s4[i + 5])]
+                  for m in d.get("medians", []) if ground(m) for s4 in [m["s"]] for i in range(0, len(s4) - 7, 4)])
+    return (lambda x, z: (carr.hit(x, z) >= 0 or strips.hit(x, z) is not None) and hatch.hit(x, z) < 0,
+            lambda x, z: islands.hit(x, z) >= 0 or meds.hit(x, z) >= 0)
+
+
 def main():
     folder = next((a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--map=")), os.path.join(ROOT, "game", "map"))
     show = "--list" in sys.argv
