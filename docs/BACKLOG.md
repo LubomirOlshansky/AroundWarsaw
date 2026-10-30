@@ -968,8 +968,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   must be cleared; AI music tools' free plans may not allow a published game.
 - **No skip button**: `radio.next_track()` exists, but hud.gd and main.gd (not touched in this loop)
   have no control for it; a tap on the ticker, or a key, would do.
-- **`--radio=N`** clamps to the built-in three stations (`Radio.STATIONS.size()` in main.gd): a
-  fourth station added to radio.json is reached with R, not by the flag.
+- ~~**`--radio=N`** clamps to the built-in three stations (`Radio.STATIONS.size()` in main.gd): a
+  fourth station added to radio.json is reached with R, not by the flag.~~ Fixed (2026-10-30): the flag
+  clamps to radio.json's stations once they are read.
 - **A station's order restarts a track on re-tune**: tuning away and back starts the track it was
   on from its beginning (a looping single track still joins in the middle). A real radio would
   have moved on; a decision for the user if it grates.

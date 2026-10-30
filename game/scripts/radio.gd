@@ -22,7 +22,7 @@ signal track_changed(info: Dictionary, track: Dictionary, natural: bool)
 const PATH := "res://data/radio.json"
 ## The built-in stations, used when radio.json is missing or unreadable: names, frequencies
 ## and colours only (the music lives in radio.json, so these have no tracks and play only the
-## tuning static). main.gd's --radio= clamps to this list's size.
+## tuning static).
 const STATIONS := [
 	{"id": "nocna_fm", "name": "KEBAB FM", "freq": "87,3", "colour": Color("#ff5fc8")},
 	{"id": "rondo_fm", "name": "RONDO FM", "freq": "86,6", "colour": Color("#4ff0ff")},

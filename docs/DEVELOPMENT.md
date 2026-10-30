@@ -3605,7 +3605,7 @@ Command-line options (after `--`):
 | `--bench` | drive a route through the traffic and print the average frame time over 600 frames, the scripts' cost and the 3D view's GPU time; loop 2b: also the bench's lines (see Loop 2b), a 30 s cap, the result in `user://bench_result.txt` (removed when a bench starts, so a run that ends early leaves none) |
 | `--time=day\|dusk\|night` | start at that time of day (default day) |
 | `--vhs` | VHS overlay on (for this run; Settings saves it since loop 2e) |
-| `--radio=N` | radio station 1–3, or 0 / `off` (default 1) |
+| `--radio=N` | radio station 1 to the last in `data/radio.json` (higher picks the last), or 0 / `off` (default 1) |
 | `--notitle` | skip the title screen (the testing flags `--demo --shots --autopilot --race --mission --rival --bench` skip it anyway) |
 | `--title` | show the title screen even with those flags (for screenshots) |
 | `--kebab=N` | put the car in a stand's ring and take kebab order N (the same N gives the same order; stand N mod 7) |
