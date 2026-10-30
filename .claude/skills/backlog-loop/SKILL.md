@@ -46,9 +46,10 @@ pick (section 1) ─► claim the lane ─► brief + delegate (loop-brief) ─�
 - **Escalate, don't patch** (CLAUDE.md "Model routing") still holds: a failed Sonnet run is
   re-run on Opus before the item counts as blocked.
 - **Land it**: on the Mac, the orchestrator commits finished loops to main as before; a cloud
-  session works on its branch and opens a PR per item or round (the user merges). Both only
-  when the user allowed commits for this work; otherwise leave it verified and uncommitted
-  and say so.
+  session works on its branch, opens a PR per item or round, and **merges its own PR once
+  every check is green** (the user's yes, 2026-10-30: a PR waiting for a merge must not stall
+  the work). Never merge on red, with unanswered review comments, or with a conflict you
+  resolved by guessing; never force-push. Then start the next item from the new main.
 
 ## 3. Lanes: never two sessions in one area
 

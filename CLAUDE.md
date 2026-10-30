@@ -38,8 +38,9 @@ with the default that was built, and the next item starts at once; the user answ
 batch. After each finished item you pick the next one yourself, for every agent. Stay in
 your lane: one session per area (driving, map, visuals, content, performance, landing,
 store release); check open PRs, recent main commits and the "In progress" table first.
-Anything that can't be undone, downloads, device runs and store submissions still wait for
-the user's yes: park them.
+A cloud session merges its own PR once every check is green (the user's yes, 2026-10-30).
+Anything else that can't be undone, downloads, device runs and store submissions still wait
+for the user's yes: park them.
 
 ## Agents (`.claude/agents/`)
 

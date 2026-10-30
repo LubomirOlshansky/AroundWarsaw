@@ -51,6 +51,8 @@ backlog-loop skill (`.claude/skills/backlog-loop/SKILL.md`).
 - **Lanes.** Several sessions can run (the Mac orchestrator, cloud threads); each holds one
   lane (driving, map, visuals, content, performance, landing, store release), claims it in
   `docs/QUESTIONS.md` "In progress", and checks open PRs and recent main commits first.
+- **Merging.** A cloud session merges its own PR once every check is green (the user's yes,
+  2026-10-30); never on red, with open review comments, or with a force-push.
 - **Still the user's yes**: anything that can't be undone (store submissions, releases, the
   live site, purchases), downloads and installs, device runs not allowed for this loop.
 - **The end**: every item done, blocked on a parked question, or in another session's lane;
