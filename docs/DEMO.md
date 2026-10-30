@@ -821,7 +821,7 @@ through the Old Town, where the city guards meet you.
 - Day first (the user's choice). Night pays ×1.5 for kebab (exists) and is when the final race,
   the scooter round-up and the police helicopter happen.
 - The radio gets the 7 cassette songs, the host's speed-trap and roadworks news, and a night show
-  (NOCNA FM only after dusk).
+  (KEBAB FM only after dusk).
 - Rain stays a button. Rain days by date are an idea for later.
 
 **The end of the demo.** Win "Trzy mosty" and finish 10 jobs. A card ("Dzięki! / Thanks for

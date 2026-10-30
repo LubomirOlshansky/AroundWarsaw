@@ -1,14 +1,14 @@
 # aroundwarsaw.app
 
 The game's landing page. English at `/` (the default), Polish at `/pl/`, the privacy policy at
-`/privacy/`. Static files, self-hosted fonts, one small script for the form, no cookies, no
+`/privacy/`, support (both languages, the stores' support URL) at `/support/`. Static files, self-hosted fonts, one small script for the form, no cookies, no
 analytics.
 
 | File | What |
 | --- | --- |
 | `src/index.html` | the landing's template, `{{key}}` placeholders |
 | `src/strings.json` | all the copy in `en` and `pl`, the hero shot, the screenshot reel (image, size, caption, alt text), the list of things to do, the form's topics |
-| `public/index.html`, `public/pl/index.html`, `public/privacy/index.html` | **built**, never edited by hand: `python3 -I tools/site_build.py` (the privacy page comes from `docs/privacy.md`) |
+| `public/index.html`, `public/pl/index.html`, `public/privacy/index.html`, `public/support/index.html` | **built**, never edited by hand: `python3 -I tools/site_build.py` (the privacy page comes from `docs/privacy.md`, support from `docs/support.md`) |
 | `public/styles.css` | all styles; colours and fonts are tokens on `:root` |
 | `public/site.js` | the beta and feedback form: checks the fields, posts to Formspree in place, says how it went (without JavaScript the form still posts) |
 | `public/img/game/` | screenshots, `<name>.webp` (1920 px wide) and `<name>-960.webp` for phones; `img/og.jpg` is the 1200×630 link preview |
@@ -56,7 +56,7 @@ npx wrangler@4 rollback      # back to the previous version if something is wron
 ```
 
 **Automatically, from GitHub**: `.github/workflows/site.yml` checks that the built pages match
-`site/src` and `docs/privacy.md`, and deploys on every push to `main` that touches the site,
+`site/src`, `docs/privacy.md` and `docs/support.md`, and deploys on every push to `main` that touches the site,
 once the repository has two secrets (Settings → Secrets and variables → Actions):
 
 - `CLOUDFLARE_API_TOKEN`: Cloudflare → My Profile → API Tokens → Create Token → template

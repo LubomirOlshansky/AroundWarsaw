@@ -13,7 +13,7 @@ Vulkan required (level 1, version 1.1.0).
 | Field | Answer |
 | --- | --- |
 | App name | Around Warsaw: City Drive (the game was Nocna Warszawa until 2026-10-30) |
-| Default language | Polish (pl-PL); add English (en-US) as a translation of the listing |
+| Default language | **English (United States) – en-US**; add Polish (pl-PL) as a translation of the listing (the user's call, 2026-10-30: English first, like the website) |
 | App or game | Game |
 | Free or paid | Free (this can't be changed to paid later) |
 | Declarations | Tick the Developer Program Policies and US export laws boxes |
@@ -25,7 +25,8 @@ Vulkan required (level 1, version 1.1.0).
    (recommended). The key in `~/.android-keys/` stays the **upload key**: every later upload
    must be signed with it (`tools/export_android.sh` does).
 3. Drop the newest `build/android/nocnawarszawa-0.1-<code>.aab` (now `nocnawarszawa-0.1-2.aab`).
-4. Release name: `0.1 (<code>)`, e.g. `0.1 (2)`. Release notes, `<pl-PL>` and `<en-US>`:
+4. Release name: `0.1 (<code>)`, e.g. `0.1 (2)`. Release notes, `<en-US>` and `<pl-PL>` (for each
+   later build: the current notes in `docs/store/beta-testing.md`):
 
 ```
 <pl-PL>
@@ -65,8 +66,8 @@ count towards that; plan a closed track when the internal build looks right.
 
 ### Privacy policy
 
-`https://aroundwarsaw.app/privacy/` (the website's copy of `docs/privacy.md`, `site/README.md`; until the site is live, `https://github.com/LubomirOlshansky/AroundWarsaw/blob/main/docs/privacy.md`)
-(it exists once this branch is merged and pushed to `main`; open the link before you submit).
+`https://aroundwarsaw.app/privacy/` (the website's copy of `docs/privacy.md`, `site/README.md`;
+live since 2026-10-29).
 
 ### App access
 
@@ -146,12 +147,13 @@ Only `android.permission.VIBRATE` (haptics). No sensitive permission declaration
 | Tags | Racing, Arcade, Driving, Pixel art, Casual, Offline (Play's own tag list; pick up to five) |
 | Contact email | your support address (not written here: the repo is public) |
 | Website | `https://aroundwarsaw.app` |
+| Support page (in the listing's contact details, optional) | `https://aroundwarsaw.app/support/` (from `docs/support.md`) |
 
 ## 5. Main store listing
 
 App name (30 characters at most; this is 25): **Around Warsaw: City Drive**
 
-### Polish (pl-PL)
+### Polish (pl-PL), the translation
 
 Short description (80 characters at most; this is 73):
 
@@ -178,7 +180,7 @@ Bez reklam, bez zakupów, bez internetu, bez zbierania danych. Darmowa gra open 
 Remont Marszałkowskiej trwa. Ty jedź.
 ```
 
-### English (en-US)
+### English (en-US), the default language
 
 Short description (80 characters at most; this is 79):
 
@@ -210,7 +212,7 @@ the game's own invented app-taxi), invented people only (Seba z Pragi is a type,
 game's rivals), Polish diacritics checked. The game itself is Polish above English on every
 screen; the listing says "Polish with English" nowhere because Play shows one language at a time.
 
-### Graphics (still to make; nothing here is in the repo yet)
+### Graphics (made for the beta: `docs/store/screenshots/README.md`)
 
 | Asset | Requirement | Suggestion |
 | --- | --- | --- |
@@ -232,13 +234,13 @@ screen; the listing says "Polish with English" nowhere because Play shows one la
       Android frame number exists yet.
 - [ ] The privacy-policy link opens (after `main` is pushed).
 
-## 7. App Store (for the iOS release; the same descriptions as section 5)
+## 7. App Store (superseded: the full App Store Connect answers are `docs/store/app-store-connect.md`)
 
 | Field | Answer |
 | --- | --- |
 | Name (30 characters at most) | **Around Warsaw** (13) |
-| Subtitle (30 at most) | **Warszawa · real city drive** (26) |
-| Keywords (100 at most, commas, no spaces) | `wawa,warszawa,warsaw,drive,taxi,police,kebab,polska,city,car` (60) |
+| Subtitle (30 at most) | **Drive and fly the real Warsaw** (29); Polish **Jeźdź i lataj po Warszawie** (26) |
+| Keywords (100 at most, commas, no spaces) | per language in `app-store-connect.md` section 7 |
 | Bundle ID | `com.olshanskysoft.nocnawarszawa` (unchanged by the rename; players never see it) |
 
 The home-screen name under the icon is the project's name, `Around Warsaw` (`game/project.godot`

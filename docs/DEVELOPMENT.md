@@ -287,7 +287,7 @@ HELI / AUTO (right); the keys are unchanged.
   2026-10-30) with the tagline under it, Polish above English (`TAGLINE_PL`, `TAGLINE_EN`), over a striped setting sun with the
   Palace of Culture in silhouette (drawn from the v0.8 model's tiers, in metres), the skyline, the palm from Rondo de Gaulle'a and a neon grid;
   the city builds behind it, then TAP TO DRIVE / DOTKNIJ, BY JECHAĆ. Test runs skip it.
-- **Radio** (`radio.gd`, R): 87,3 NOCNA FM, 86,6 RONDO FM, 108,8 MORDOR FM, then Off; on by
+- **Radio** (`radio.gd`, R): 87,3 KEBAB FM, 86,6 RONDO FM, 108,8 MORDOR FM, then Off; on by
   default at a moderate level. The stations and their tracks are in `game/data/radio.json`
   (loop radio-playlists; the built-in names are the fallback when the file is missing). A
   station with one track loops it (today each of the three: *Palma de Gaulle'a*, *Rondo
@@ -295,7 +295,7 @@ HELI / AUTO (right); the keys are unchanged.
   shuffled by the date and the station (a day has its own, every run of it the same), each to
   its end, then the next, round and round. Tracks are Ogg Vorbis, decoded as they play (never a
   whole song in memory). A burst of tuning static covers a station change; a now-playing ticker
-  at the bottom left shows "87,3 NOCNA FM · Title (Artist)" on a tune and at every new track.
+  at the bottom left shows "87,3 KEBAB FM · Title (Artist)" on a tune and at every new track.
   Between two songs the host (`dialogue.gd`, `radio_host` lines) speaks with a one in two
   chance, 5 s after the title's caption, through the same timer, so a Podwózka card still keeps
   him quiet. Hooks: `radio.announce(text)` puts any line on the ticker,
@@ -3137,8 +3137,9 @@ solved from what they cross (see Real roads).
 ## The website (aroundwarsaw.app, 2026-10-29)
 
 `site/` is the game's landing page (English at `/`, Polish at `/pl/`) and the privacy policy
-the stores link to (`https://aroundwarsaw.app/privacy/`). All three pages are built by
-`python3 -I tools/site_build.py` from `site/src/` (template and copy) and `docs/privacy.md`.
+and support pages the stores link to (`https://aroundwarsaw.app/privacy/`, `/support/`). All four
+pages are built by `python3 -I tools/site_build.py` from `site/src/` (template and copy),
+`docs/privacy.md` and `docs/support.md`. The store listings: `docs/store/`.
 Plain HTML and CSS, self-hosted fonts, one small script for the beta and feedback form
 (Formspree), no cookies, no analytics. It is a Cloudflare Worker with static assets only
 (`site/wrangler.jsonc`, custom domains `aroundwarsaw.app` and `www.aroundwarsaw.app`);
