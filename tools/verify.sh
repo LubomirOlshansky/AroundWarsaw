@@ -47,8 +47,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets drape drive drive-prebuilt steering settings tiers governor hud rides landmarks sfx radio water water-prebuilt streaming police plain heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
-STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud rides landmarks sfx radio police plain prebuilt)
+STEPS_ALL=(map roads streets drape drive drive-prebuilt steering settings tiers governor hud rides landmarks sfx radio water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
+STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud rides landmarks sfx radio police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -449,6 +449,9 @@ for s in $want; do
 		# the splash, then the tow onto a lane on dry land within 2 s, the job still running.
 		splash) game splash 420 '^water: towed after [01][.][0-9]+ s .* m from a lane, dry; job on' \
 			--drive-into-water=1015,-85 --kebab=0 ;;
+		# The driving-feel loop: the car rams the back of a traffic car in the real city and must
+		# get past it within 10 s (the hit, the shove and the time are in the line).
+		ram) game ram 1000 '^ram test: past it' --ram-test --no-police ;;
 		rain) game rain-night 600 "" --weather=rain --time=night ;;
 		prebuilt) game prebuilt-night 600 "" --prebuilt --time=night ;;
 		classic) game classic 600 "" --controls=classic ;;
