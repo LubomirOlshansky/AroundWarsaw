@@ -27,6 +27,9 @@ const EGG_COLOUR := Color("#ff4fd8")
 const NEAR := 30.0
 const PIGEONS := 26
 const CROWD := 22
+## The driving-feel loop (2026-10-30): the share of its speed the car keeps knocking a barrier or
+## a cone away (was 0.85: a run through the roadworks felt like a wall of them).
+const KNOCK_KEEP := 0.95
 const SHIRTS := ["#d8432f", "#2f6fb5", "#e0b23a", "#3b8f5a", "#f2efe8", "#7a4fa8", "#e57aa0", "#2b2c2f", "#c96b2c", "#5aa9c9"]
 
 var hud: CanvasLayer
@@ -549,8 +552,8 @@ func _knockable(mesh: ArrayMesh, at: Vector3, yaw: float) -> MeshInstance3D:
 	return mi
 
 
-## Light collision: the car shoves barriers and cones out of its way (and loses a
-## little speed); they slide, turn and stop. Nothing to do when the car is far.
+## Light collision: the car shoves barriers and cones out of its way (and keeps KNOCK_KEEP of
+## its speed); they slide, turn and stop. Nothing to do when the car is far.
 func _barriers(dt: float) -> void:
 	if _barrier_centre == Vector3.INF:
 		return
@@ -570,7 +573,7 @@ func _barriers(dt: float) -> void:
 					k["spin"] = _rng.randf_range(-4.0, 4.0)
 					if _knock_wait <= 0.0:
 						_knock_wait = 0.25
-						_car.vel *= 0.85
+						_car.vel *= KNOCK_KEEP
 						Input.vibrate_handheld(25, 0.3)
 		if v.length_squared() > 0.0001:
 			node.global_position += v * dt
