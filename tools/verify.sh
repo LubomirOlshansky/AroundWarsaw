@@ -51,8 +51,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets drape drive drive-prebuilt steering settings tiers governor hud places rides landmarks sfx radio water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
-STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places rides landmarks sfx radio police plain ram prebuilt)
+STEPS_ALL=(map roads streets drape drive drive-prebuilt steering settings tiers governor hud places rides cost landmarks sfx radio water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
+STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places rides cost landmarks sfx radio police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -478,6 +478,7 @@ for s in $want; do
 		places) check places '^check_places:' --script res://tools/check_places.gd ;;
 		# Loop 2d-1: Podwózka's star and pay tables, the streak and the cancel rules, its lines.
 		rides) check rides '^check_rides:' --script res://tools/check_rides.gd ;;
+		cost) check cost '^check_cost_cuts:' --script res://tools/check_cost_cuts.gd ;;
 		landmarks) check landmarks '^landmark check:' --script res://tools/check_landmarks.gd ;;
 		sfx) check sfx '^sfx:' --script res://tools/check_sfx.gd ;;
 		radio) check radio '^radio:' --script res://tools/check_radio.gd ;;

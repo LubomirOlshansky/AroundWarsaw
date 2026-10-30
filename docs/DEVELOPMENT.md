@@ -3257,7 +3257,9 @@ into PackedFloat32Arrays, after the builder's set-up has read them and before th
 is saved: static at "city built" 224.7 → 204.8 MB prebuilt (index 103 → 83 MB) and 294 → 267
 MB on the runtime path; at the bench's end 252 → 233 and 357 → 329 MB; index.res 7.7 → 6.8 MB.
 Readers that still declare `var flat: Array = r["p"]` get a converted copy, so nothing else
-changed; the frame is unchanged.
+changed; the frame is unchanged. `game/tools/check_cost_cuts.gd` (verify step `cost`, under a
+second) checks the packing on a synthetic index: the numbers kept within float32, other keys
+left alone, packing twice a no-op.
 
 **What traffic costs (performance lane, 2026-10-30).** Timed per step on the Mac at 1920×1080
 (the bench's view, ~33 active cars, ~13 of them at junctions): nothing in traffic grows with the
@@ -3268,7 +3270,9 @@ the crossing and red-light checks and the speed model about 35–55 µs each), t
 about 35 % slower (its larger heap). `on_screen` now projects with the orthographic camera's own
 axes (identical answers on 35 k calls) and the junction pairs are rejected on packed positions:
 the junction checks −14 % (66 → 57 µs), too little to show on the bench card. What is left is
-per car; fewer cars in the view band is the lever, a design call.
+per car; fewer cars in the view band is the lever, a design call. `check_cost_cuts.gd` also
+holds `on_screen` to `Camera3D.unproject_position` (5 orthographic views, 10 000 points, a
+point and the one `height` above it).
 
 Loop 3g-1 (the police; police.md section 12 allowed ≤ +3 draw calls at any view, ≤ +8 k
 triangles, ≤ 0.15 ms of script, ≤ +2 MB) spent, in a koguty 3 chase: +1 to +3 draw calls at the
