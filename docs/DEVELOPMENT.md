@@ -1447,7 +1447,9 @@ phones; the log's `haptics:` line at load, and `rescue call ringing (buzz N ms)`
 Jazda · Driving: Controls (Point / Classic, with a line on what the scheme does) and "Kamera za
 autem · Camera follows the car" On / Off (the old CAM button, now with its state in view: the
 user had switched Classic's following off without noticing; Point with it off is the Fixed
-camera scheme; C still toggles it and a toast says which way); Świat · World: time of day
+camera scheme; C still toggles it and a toast says which way; loop MW-6 "Tryb gry · Game mode";
+F's asks, 2026-10-30: "Strefy piesze 20 km/h · Pedestrian zones 20 km/h" Wył. / Wł., off by
+default, saved as `[game] zone_cap`); Świat · World: time of day
 (TIME), weather (RAIN), traffic; Obraz · Picture: style (STYLE), quality, VHS tape (VHS), frame
 rate, the performance overlay and TEST; Dźwięk · Sound. Style and VHS are saved
 (`display/style`, `display/vhs`); the time of day and the weather are the world's and start by
@@ -1475,6 +1477,18 @@ cards; speech bubbles are dark cards with the speaker's name in their colour; BR
 helicopter's pads and Classic's steering strip sit on solid plates (held: the accent); the
 minimap takes a night palette as the lamps come on (light streets on a dark ground; it was the
 brightest thing on a night screen).
+
+**The full-screen map** (F's asks, 2026-10-30; `full_map.gd`, made on its first open): a tap on
+the minimap (down and up on it within 0.35 s and 10 pt: hud.gd `map_pressed`) pauses the game
+like the settings card and shows the minimap's own mesh north up over the whole screen, in its
+day or night palette: the car's arrow, the mission target, the notebook's "?" marks (the ones the
+minimap shows, 1.6× bigger) and the places found as gold dots, never names. One finger pans, two
+pinch (from the whole map to 250 m across the screen's height; it opens at 1,400 m on the car),
+the mouse wheel zooms. MAPA · map · north up top left, the ✕ (48 pt) top right, the hint
+*Przesuń palcem · zbliż dwoma palcami / Drag to move · pinch to zoom* at the bottom; the ✕, Esc
+or Android's back gesture close it. Closed it is hidden (no draws); open, the 2D pass has 39 draw
+calls (29 with it closed) at any zoom. `check_hud` lays it out at its 6 screens (the ✕ 44 pt in
+the safe area, the cards in it and apart, a tap on the minimap, a pan and a pinch).
 
 **Polish above English** on the HUD: the top row, the cards' titles, text and buttons
 (PRZYJMIJ · Accept, POMIŃ · Skip, JEDZIEMY! · Go! ...), the status panels' hints, the toasts, the
@@ -2447,7 +2461,13 @@ swing (a standing pose needs a new constant and a branch in `actor.gdshader`: th
 - **The zone cap**: inside a pedestrian-zone polygon (`ped_zones.gd`, loop 3d-1) the car's gas is
   capped at 20 km/h through the existing `car.zone_cap` hook (no change to `car.gd`; a faster car
   coasts down to it), with the pill *STREFA PIESZA · 20 KM/H · PEDESTRIAN ZONE · 20 KM/H*.
-- **The whistle**: moving in a zone with a guard within 60 m (once a zone a minute): the whistle,
+  **Off by default since F's asks (2026-10-30)**: Settings → Jazda → *Strefy piesze 20 km/h ·
+  Pedestrian zones 20 km/h* (Wył. / Wł., saved as `[game] zone_cap` in settings.gd; `--zone-cap` /
+  `--no-zone-cap` for one run). Off: no cap, no pill, no whistle, run or guards' car (main.gd
+  stops setting `car.zone_cap`; police.gd / guards.gd `zone_cap`); the guards still stand at their
+  posts, the guard conversation and the clamp are unchanged; the `zone:` log line says
+  `(no cap)`.
+- **The whistle** (only with the zone switch on): moving in a zone with a guard within 60 m (once a zone a minute): the whistle,
   the guard's line (`guard`, tagged `oldtown` on the Rynek and Barbakan posts, the deptak line
   elsewhere), the guard runs after the car for 3 s, gives up with the `run` line. **The guards'
   car** (one at a time, the police mesh's shape 1, spawned out of sight 150-300 m away near a post)
@@ -2710,7 +2730,7 @@ name or logo). The joke is the app and its GPS, never the driver or the passenge
     map has no Old Town square.
   - `reroute`: 40 % of the way in the app recalculates once and draws a new line that first turns
     back to the junction behind the car.
-  - `rechotka` ("turn at the Rechotka") only by flag until loop 2d-2 places the shops.
+  - `rechotka` ("turn at the Frogs"; the shop was Rechotka 24 until 2026-10-30, the id stays) only by flag until loop 2d-2 places the shops.
   Ignoring the app is always allowed.
 - **Stars** (live in the status panel, `★★★★½ 4,5`, a short toast for each change): from 5.0,
   −½ for a hard bump (closing speed over 4 m/s), braking over 18 m/s² or a corner over 15 m/s²
@@ -2863,7 +2883,7 @@ baked from the demo fetch already on disk (no downloads; README "Map data" for t
   the squares and pedestrian areas: the Old Town and New Town, Plac Zamkowy, Krakowskie
   Przedmieście's north end); traffic never enters (pedestrian ways are not in the lane graph);
   `game/scripts/ped_zones.gd` and `car.gd` `zone_cap` hold the player's car to 20 km/h there
-  (`zone:` log lines). The pill, the guards and the clamp are loop 3g-2's.
+  (`zone:` log lines) when Settings → Jazda's zone switch is on (off by default since 2026-10-30). The pill, the guards and the clamp are loop 3g-2's.
 - **Classes fixed over the whole map** (each counted before → after): a vertex within 0.3 m of the
   one before it got no node in the deck solver (a crash on the box's rails: 1 → 0); a rail way with
   no layer between cutting tracks is in the cutting (Żelazna's crossover, an R3 failure that
@@ -3511,7 +3531,7 @@ Data: `data/eggs.json` (45 cards) and `data/kadr.json` (15 spots); the then card
   E21 the garage's paint; E16 E27 the dog walkers (MW-4); E18 E19 Wiralek's trend cycle
   (MW-4); E23 E25 the night buses; E24 the player's horn and the bus stops; E28 the riders
   (MW-4); E29 E30 Kolka and Hyrax (MW-4); E34 the armchair man (MW-4); E35 KASETA's older
-  decades (T1); E39 a tram in old livery; E40 the payphone. Rechotka's two eggs wait for MW-2
+  decades (T1); E39 a tram in old livery; E40 the payphone. The Frogs shop's two eggs wait for MW-2
   (not cards yet). Loop MW-4 woke E16 E18 E19 E27 E28 E29 E30 (a new kind, `event`: the
   moment is seen by `city_life.gd`, which calls `fire`; E27 E30 keep `stop` / `lap` with a
   crowd condition) and gave E20 the `lukrownia` crowd: **reachable 36, waiting 9** (E01 E21
@@ -3595,9 +3615,17 @@ condition). Lines: the vision's groups already in `dialogue.json` (`club_door`, 
   a kebab), a `clubbers` line every 35-60 s. The car at the door (under 10 km/h within 8 m):
   the bouncer's `car` line once per club per night; `car_black` and E01 wait for the garage's
   paint.
-- **Level 26's roof crowd**: built only where the roof grid has a tower over 40 m at the place
-  (up to 16 figures on a ring at its edge). The roof grid has nothing at level_26's point, so there is
-  no roof crowd yet (BACKLOG).
+- **Level 26's roof crowd**: built only where the roof grid has a tower over 40 m at the place.
+  F's asks (2026-10-30): `places.json` `near` moved onto the tower at Plac Zawiszy (it was 520 m
+  west of it; the map's 116 m tower, OSM "Atlas Tower" parts, centre about −2224, 1012), so it
+  shows: `roof_ring` traces the roof grid in 48 rays to where it drops below the top floors; up
+  to 16 figures stand 4.6 m in from that edge (the roof curve 22:00-03:59; a seeded order round
+  the roof); a short queue (`level_26_door`, at most 8, the roof curve, the `club_door` lines and
+  the bouncer) waits on the footway at the ground-floor door; while the club is open and the view
+  is within 350 m, a violet band (`#a35cff`, 2 m tall, 1 m under the body's roof, one mesh in
+  `Models.material()` as LIT_SIGN, so it glows only with the city's lights) rings the top floor.
+  The club's bass (`city_sounds.gd`, its `club` tag and hours) comes from the tower's foot.
+  Cost at night in view: +2 draw calls (the band, the crowd cell's MultiMesh); 0 by day or far.
 - **The dawn crowd** (Sat/Sun 05:00-09:00, Live or the Dawn look): 20-40 walkers (curve 0.5 at
   05, 1.0 at 06-07, 0.4 at 08) in twos and threes from Lusterko, Smoła and Jasna 0 to the Palm,
   Metro Nowy Świat-Uniwersytet, the two nearest tram platforms and the two nearest kebab stands
@@ -4129,6 +4157,21 @@ Plain HTML and CSS, self-hosted fonts, one small script for the beta and feedbac
 email through the form. Deploying by hand, the secrets and where the
 beta links go: `site/README.md`.
 
+## The design wiki (wiki.aroundwarsaw.app, 2026-10-30)
+
+A private website for designing the game without reading code: every activity (with its lines
+and tuning), the 53 landmarks with their cards, looks and pictures, the 72 notebook places, the
+eggs, Fotka spots and KASETA cards, the radio, every line of dialogue, the parody names, each
+script's description and constants, the settings, flags and budgets, the open questions, the
+design docs, and a Progress page (the road to the 1.0 demo, the lanes, the backlog by area, the
+log). `python3 -I tools/wiki_build.py` writes it to `build/wiki/` from the repo alone, so it
+never needs hand-editing; each item links to its file and line on GitHub. Pictures:
+`wiki/media.json` and `wiki/img/`. It is its own Worker (`wiki/wrangler.jsonc`,
+`aroundwarsaw-wiki`, the subdomain `wiki.aroundwarsaw.app`) behind a password (`wiki/worker.js`,
+the secret `WIKI_PASSWORD`), `noindex` everywhere and unlinked from the landing: it is spoilers
+and plans. `.github/workflows/wiki.yml` checks the build on every change to the data, scripts or
+docs and deploys only when run by hand. Details: `wiki/README.md`.
+
 ## Layout
 
 **One-command checks.** `tools/verify.sh` runs the verification set and prints one
@@ -4299,7 +4342,7 @@ Command-line options (after `--`):
 | `--kebab=N` | put the car in a stand's ring and take kebab order N (the same N gives the same order; stand N mod 7) |
 | `--sloik` / `--sloik=K` | start the słoiki run at Dworzec Centralny (K jars already broken) |
 | `--ride=N` | loop 2d-1: Podwózka ride N's request, the car on the road 60 m before its passenger (the same N gives the same ride; with `--ride-quirk=river` or `zone` the passenger is picked near river spot / park N, so the leg fits); with `--autopilot` it is accepted after 2 s and driven |
-| `--ride-quirk=river\|zone\|oldtown\|rechotka\|reroute` | loop 2d-1: force the ride's quirk (`oldtown` becomes `zone` on today's map; `rechotka` only by flag until the shops exist) |
+| `--ride-quirk=river\|zone\|oldtown\|rechotka\|reroute` | loop 2d-1: force the ride's quirk (`oldtown` becomes `zone` on today's map; `rechotka`, the Frogs turn, only by flag until the shops exist) |
 | `--passenger=normal\|believer\|hurry` | loop 2d-1: force the passenger type |
 | `--stars=X` | loop 2d-1: the live rating starts at X (1–5; for card shots) |
 | `--ignore-app` | loop 2d-1: the autopilot drives the shortest road to the door, not the app's route |
@@ -4326,6 +4369,7 @@ Command-line options (after `--`):
 | `--controls=point\|classic\|fixed` | loop 2a: the control scheme for this run (not saved) |
 | `--traffic=empty\|low\|normal\|busy` (or 0-3) | loop 2a: the traffic level for this run (not saved) |
 | `--settings` | loop 2a: open the settings panel at the start (screenshots) |
+| `--fullmap` | F's asks (2026-10-30): open the full-screen map at the start (the game paused; screenshots) |
 | `--settings-tab=N` | loop 2e: open the settings panel at tab N (0 Jazda · Driving, 1 Świat · World, 2 Obraz · Picture, 3 Dźwięk · Sound; loop MW-1: 4 Zeszyt · the notebook) |
 | `--notebook` / `--notebook=CHAPTER\|ID` | loop MW-1: open the settings card on MOJA WARSZAWA, the notebook (a chapter by id or number 1-9, or a place's card by its id; screenshots) |
 | `--found=all\|none\|CHAPTER[:K],…` | loop MW-1: the notebook's record for this run, in memory, no rewards (a chapter by id or number, `:K` its first K places; `--found=1:4,9` half of the first chapter and all of the ninth). Use with `--nosave` (a later save would keep it) |
@@ -4336,6 +4380,7 @@ Command-line options (after `--`):
 | `--tape=<id\|n>` | loop MW-6: the car stopped at that then card (`then_cards.json` id or 1-20), the tape played at once (ghost, sound, card); implies `--tape-log` |
 | `--tape-log` | loop MW-6: print `tape:` lines: the ghost built and dropped, each play (`tape: n <id> ghost ok (k boxes)[, first time: +15 respect]`) |
 | `--spacer` / `--wander`, `--no-spacer` | loop MW-6: Spacer (wander mode) on or off for this run (not saved) |
+| `--zone-cap`, `--no-zone-cap` | F's asks (2026-10-30): the pedestrian zones' 20 km/h cap, pill and whistle on or off for this run (not saved; the setting is off by default); verify.sh's G1 run passes `--zone-cap` |
 | `--spacer-hint=S` | loop MW-6: Spacer's first hint after S s (default 180-300, seeded); `spacer:` lines log each hint (`spacer: hint n -> <place> (name), d m; next in s`) |
 | `--fotka` / `--photo` | loop MW-6: open Fotka at the start (screenshots of the photo mode) |
 | `--kadr=<n\|id>` | loop MW-6: Fotka open at that Kadr spot (`kadr.json`, 1-15 or `k07`), in its look, aimed at its subject, a photo 2 s later; implies `--photo-log` |
@@ -4382,7 +4427,7 @@ Command-line options (after `--`):
 | `--police-offence=F:kind,…` | loop 3g-1: an offence at frame F (`speed`, `red`, `oneway`, `bump`, `ram`), seen by the nearest unit (the cooldown test P7) |
 | `--escort` | loop 3g-2: with `--mission=N`, the car is put at the rescue's pickup at frame 30 and the person boards; the escort always comes (as on a session's first rescue) |
 | `--police-auto=follow` | loop 3g-2: the test driver rides along the escort's route behind it (12-22 m back, through the traffic), the last stretch to the hospital's ring straight (the escort run E1) |
-| `--guards[=talk]` | loop 3g-2: start at the south end of Krakowskie Przedmieście's car-free stretch and drive north into the pedestrian zone at 30 km/h (the zone caps it to 20): the whistle, the 3 s run, the guards' car; `=talk` stops by the gate's guards instead (the guard conversation) |
+| `--guards[=talk]` | loop 3g-2: start at the south end of Krakowskie Przedmieście's car-free stretch and drive north into the pedestrian zone at 30 km/h (the zone caps it to 20) (with `--zone-cap`: the cap is off by default since 2026-10-30): the whistle, the 3 s run, the guards' car; `=talk` stops by the gate's guards instead (the guard conversation) |
 | `--clamp[=sorry]` | loop 3g-2: start parked on Plac Zamkowy by a guard; the clamp's countdown at frame 60, the clamp 10 s later, off after 10 s (`=sorry`: Przepraszam tapped 1 s after it goes on) |
 | `--first-contact` | loop 3g-2: arm the scripted first contact at frame 60 as if the first race had just ended (with `--pedal=gas`: drive into the officer; add `--police-auto=stop` to stop by him: the routine check) |
 

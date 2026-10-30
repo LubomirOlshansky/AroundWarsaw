@@ -195,6 +195,9 @@ var tod: Node
 var rivals: Node
 var ped_zones: RefCounted
 var zone := ""
+## F's asks (2026-10-30): the zones' 20 km/h cap is on (Settings → JAZDA; off by default): the
+## guards' zone pill and whistle only then (main.gd sets it every frame).
+var zone_cap := false
 var guards: Guards
 ## World position -> HUD pixels.
 var project: Callable
@@ -429,6 +432,7 @@ func _step(dt: float) -> void:
 		_perceive()
 		_escort_tick()
 		guards.zone = zone
+		guards.zone_cap = zone_cap
 		guards.tick()
 		_clubs_tick()
 		for u in _units:

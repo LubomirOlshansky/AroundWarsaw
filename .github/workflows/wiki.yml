@@ -1,0 +1,54 @@
+# The design wiki (wiki/README.md). Every push to main and every pull request that touches the
+# game's data, scripts or docs rebuilds the wiki from them; the job fails if the generator breaks
+# (a changed format shows up here). Deploying uses the landing's Cloudflare secrets (the Worker's
+# WIKI_PASSWORD secret is set once with wrangler): by hand with Run workflow, or after every push
+# to main once the repository variable WIKI_AUTO_DEPLOY is "true" (Settings → Secrets and
+# variables → Actions → Variables). It is off until the user approves the first deploy.
+name: wiki
+
+on:
+  push:
+    branches: [main]
+    paths: ["game/data/**", "game/scripts/**", "docs/**", "wiki/**", "tools/wiki_build.py", ".github/workflows/wiki.yml"]
+  pull_request:
+    paths: ["game/data/**", "game/scripts/**", "docs/**", "wiki/**", "tools/wiki_build.py", ".github/workflows/wiki.yml"]
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: "Deploy to wiki.aroundwarsaw.app"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wiki-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the wiki
+        run: python3 -I tools/wiki_build.py
+      - name: Keep the built wiki for a look
+        uses: actions/upload-artifact@v4
+        with:
+          name: wiki
+          path: build/wiki
+          retention-days: 7
+      - name: Deploy to Cloudflare
+        if: >-
+          env.HAS_TOKEN == 'true' && (
+            (github.event_name == 'workflow_dispatch' && inputs.deploy) ||
+            (github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.WIKI_AUTO_DEPLOY == 'true'))
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: wiki
+          command: deploy
