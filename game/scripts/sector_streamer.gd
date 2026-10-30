@@ -27,6 +27,7 @@ extends Node
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Proxies := preload("res://scripts/sector_proxies.gd")
+const IndexPack := preload("res://scripts/index_pack.gd")
 const INDEX_SCENE := "res://map/index.res"
 const INDEX_JSON := "res://map/index.json"
 const PROXY_SCENE := "res://map/proxies.scn"
@@ -168,6 +169,8 @@ func open(world: Node3D, use_prebuilt: bool, building_mat: ShaderMaterial, flat_
 			"prebuilt" if prebuilt else "runtime", keys.size(), SECTOR, t_index,
 			("" if prebuilt else ", roof pass %d ms" % t_roofs), t_proxies, start, Time.get_ticks_msec() - t_start])
 	_last_tick = Time.get_ticks_usec()
+	# The memory loop: the index's coordinates packed (the prebuilt index is saved packed).
+	IndexPack.pack(map.index_data)
 	return map.index_data
 
 
@@ -196,6 +199,7 @@ static func open_whole(parent: Node, use_prebuilt: bool) -> Node3D:
 		map.add_child(root)
 	if not use_prebuilt:
 		map.measure_sectors()
+	IndexPack.pack(map.index_data)
 	return map
 
 

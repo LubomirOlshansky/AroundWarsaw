@@ -6,6 +6,7 @@ extends MultiMeshInstance3D
 ## time; no shadow.
 
 const Models := preload("res://scripts/models.gd")
+const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
 
 const DROPS := 56
 const FOAM := 22
@@ -31,6 +32,7 @@ func _ready() -> void:
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_custom_data = true
+	InstanceBuffers.prepare(mm)
 	mm.mesh = st.commit()
 	mm.instance_count = DROPS + FOAM
 	mm.custom_aabb = AABB(Vector3(-12, -2, -12), Vector3(24, 12, 24))
@@ -105,7 +107,7 @@ func _process(dt: float) -> void:
 		var r := 1.6 + _vel[i].x * (1.0 - exp(-2.2 * t)) / 2.2 * 1.4
 		var w := _size[i] * fade
 		_write(i, dir * r + Vector3.UP * 0.06, Vector3(w, 0.06, 0.32 * fade + 0.05), atan2(dir.x, dir.z))
-	RenderingServer.multimesh_set_buffer(multimesh.get_rid(), _buf)
+	InstanceBuffers.send(multimesh.get_rid(), _buf)
 
 
 ## Instance i at local `p`, scaled by `s`, turned `yaw` about the vertical.

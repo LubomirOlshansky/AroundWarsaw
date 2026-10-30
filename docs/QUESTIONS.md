@@ -10,12 +10,43 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 | Lane | Item | Session | Since |
 | --- | --- | --- | --- |
+| web | The game in the browser at play.aroundwarsaw.app, the "Play online" button | thread "Put the game online" | 2026-10-30 |
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
+| landmarks/models | Landmark and skyscraper models (Złote Tarasy, Złota 44, Varso, PKiN, Spire, Q22, Muzeum Narodowe, Stadion Narodowy), bus stops: BACKLOG "High priority" | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
 
 ## Waiting
 
 Newest first. One entry per question.
+
+- **2026-10-30 · web · deploy** — May I deploy the web build? It creates the Worker
+  `aroundwarsaw-play` with the custom domain play.aroundwarsaw.app (a new DNS record in the
+  aroundwarsaw.app zone) and uploads build/web (~141 MB), then redeploys the landing so the
+  "Play online" button and the /play/ redirect go live. Both are public; `wrangler rollback` and
+  deleting the Worker undo them. Default built: everything ready and tried locally; nothing
+  deployed. Where: docs/DEVELOPMENT.md "The web build".
+- **2026-10-30 · content · MW-1 (the notebook)** — The minimap shows "?" for undiscovered
+  places within 400 m of the car, because districts don't exist yet. Switch to "in a discovered
+  district" once DEMO 6.3's districts land? Default built: 400 m.
+- **2026-10-30 · content · MW-1** — Venue cards hide the street address (a venue's real address
+  can name the real club, e.g. "Jasna 1" is on the denylist). Add a designer-written "safe to
+  show" address per place? Default built: no address on venue cards.
+- **2026-10-30 · content · MW-1** — The settings tab is ZESZYT · notebook, and the card's title
+  becomes MOJA WARSZAWA on that tab (the full name doesn't fit as a fifth tab on the iPhone SE).
+  Keep? Default built: ZESZYT.
+- **2026-10-30 · content · MW-1** — The chapter-complete card reads ROZDZIAŁ GOTOWY · CHAPTER
+  DONE with "+50 zł, +30 ★". Wording for a game-designer pass? Default built: as written.
+- **2026-10-30 · content · MW-1** — Stadion Narodowy (115 m from any road) and Most
+  Śląsko-Dąbrowski (65 m) can't be found by car with today's anchors: wider radius, or wait for
+  the map lane's bake resolution? Default built: nothing changed; BACKLOG "From loop MW-1".
+- **2026-10-30 · store release · app IDs** — The iOS bundle ID is still
+  `com.olshanskysoft.nocnawarszawa`. Change it to `com.olshanskysoft.aroundwarsaw` before the
+  App Store Connect record exists, or keep it? Nobody ever sees it (the home-screen and store
+  name is "Around Warsaw" on both platforms). The Android package can't change: Play has had
+  version code 1 under `com.olshanskysoft.nocnawarszawa` since October, and a new package
+  would be a new app. Options: keep (both platforms match) / change iOS only. Default built:
+  keep, as the rename of 2026-10-30 decided. Where: `game/export_presets.cfg`, ROADMAP
+  "rename + open source".
 
 - **2026-10-30 · content · MW-0 (Moja Warszawa data)** — Where is the real "Apteka" bar you
   meant? Options: name the street / keep the default. Default built: APTECZKA in a Nowy Świat

@@ -212,13 +212,13 @@ the game's own invented app-taxi), invented people only (Seba z Pragi is a type,
 game's rivals), Polish diacritics checked. The game itself is Polish above English on every
 screen; the listing says "Polish with English" nowhere because Play shows one language at a time.
 
-### Graphics (made for the beta: `docs/store/screenshots/README.md`)
+### Graphics (made for the beta, all in `docs/store/`)
 
-| Asset | Requirement | Suggestion |
+| Asset | Requirement | File |
 | --- | --- | --- |
-| App icon | 512 × 512 PNG, 32-bit, ≤ 1 MB | `game/icon.svg` (the Palace in 32 × 32 pixels) scaled ×16 with nearest-neighbour, no smoothing |
-| Feature graphic | 1024 × 500 JPEG or 24-bit PNG | a night shot of the Palace and Marszałkowska, the title in the pixel font |
-| Phone screenshots | 2 to 8, 16:9 landscape, each side 320-3840 px, the long side at most twice the short | `tools/shots.sh --size=1920x1080` (not 2532×1170: that is 2.16:1, over Play's 2:1 limit): spawn by day, the Palace at night, rain at night, the helicopter, a kebab or Podwózka card |
+| App icon | 512 × 512 PNG, 32-bit, ≤ 1 MB | `graphics/play-icon-512.png` (the website's icon: the Palace in pixels, with alpha) |
+| Feature graphic | 1024 × 500 JPEG or 24-bit PNG | `graphics/play-feature-1024x500.jpg`: the Palace at dusk, "Around Warsaw" in Pixelify Sans, "Drive and fly the real Warsaw". Source `graphics/play-feature.html` (the website's og.jpg and fonts), shot in Chromium at 1024 × 500 |
+| Phone screenshots | 2 to 8, 16:9 landscape, each side 320-3840 px, the long side at most twice the short | `screenshots/play-phone/01..07` (1920 × 1080, HUD on; `screenshots/README.md`) |
 | 7" and 10" tablet screenshots | optional for a phone game | skip for internal testing |
 
 ## 6. Before you go past internal testing

@@ -35,6 +35,7 @@ var spent_usec := 0
 
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const Models := preload("res://scripts/models.gd")
+const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 
 enum Kind { CAR, TAXI, VAN, BUS, POLICE, NODE }
@@ -296,6 +297,13 @@ var _halos: MultiMesh
 var _lamp_state := PackedInt32Array()
 ## Controller*2+group -> lamp instance indices (first of three per pole).
 var _lamp_slots := {}
+## The performance lane (2026-10-30): `_lamp_slots`' keys, checked LAMP_STRIDE frames apart in
+## turn. Loop 3d-1's bigger map has every signal of 18.6 km² in here, and asking each one's
+## light every frame grew with the map; a lamp now changes at most LAMP_STRIDE frames (0.1 s
+## at 60 fps) after its controller does. The cars read `graph.light` themselves, unaffected.
+var _lamp_keys := PackedInt32Array()
+var _lamp_turn := 0
+const LAMP_STRIDE := 6
 
 
 func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dictionary) -> void:
@@ -313,6 +321,7 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.use_custom_data = true
+		InstanceBuffers.prepare(mm)
 		# Loop 3g-1: POLICE draws the patrol estate and the guards' car (shapes 0 and 1).
 		mm.mesh = Models.police_mesh() if k == Kind.POLICE else Models.traffic_mesh(k)
 		mm.instance_count = POOL[k]
@@ -322,7 +331,7 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 		var buf := PackedFloat32Array()
 		buf.resize(POOL[k] * 16)
 		buf.fill(0.0)
-		mm.buffer = buf
+		InstanceBuffers.send(mm.get_rid(), buf)
 		var mmi := MultiMeshInstance3D.new()
 		mmi.multimesh = mm
 		mmi.material_override = Models.material()
@@ -342,11 +351,12 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 		var beam := MultiMesh.new()
 		beam.transform_format = MultiMesh.TRANSFORM_3D
 		beam.use_custom_data = true
+		InstanceBuffers.prepare(beam)
 		beam.mesh = Models.headlight_pools(LENGTH[k] * 0.5, 0.85 if k == Kind.BUS else 0.6, 15.0 if k == Kind.BUS else 13.0)
 		beam.instance_count = POOL[k]
 		beam.visible_instance_count = 0
 		beam.custom_aabb = mm.custom_aabb
-		beam.buffer = buf
+		InstanceBuffers.send(beam.get_rid(), buf)
 		var bmi := MultiMeshInstance3D.new()
 		bmi.multimesh = beam
 		bmi.material_override = Models.glow_material()
@@ -1647,9 +1657,9 @@ func _write() -> void:
 		_top[k] = 0
 		if k == Kind.POLICE and _drawn[k] == 0:
 			continue  # loop 3g-1: no police car out, nothing to send
-		RenderingServer.multimesh_set_buffer(_mm[k].get_rid(), _buf[k])
+		InstanceBuffers.send(_mm[k].get_rid(), _buf[k])
 		if k < TRAFFIC_KINDS and _beam_mmi[k].visible:
-			RenderingServer.multimesh_set_buffer(_beam_mm[k].get_rid(), _buf[k])
+			InstanceBuffers.send(_beam_mm[k].get_rid(), _buf[k])
 
 
 # --- traffic-light lamps --------------------------------------------------------------
@@ -1720,10 +1730,13 @@ func _build_lamps(signals: Array) -> void:
 	add_child(hmi)
 	_lamp_state.resize(graph.ctrl_pos.size() * 2)
 	_lamp_state.fill(-1)
+	_lamp_keys = PackedInt32Array(_lamp_slots.keys())
 
 
 func _update_lamps() -> void:
-	for key in _lamp_slots:
+	_lamp_turn = (_lamp_turn + 1) % LAMP_STRIDE
+	for n in range(_lamp_turn, _lamp_keys.size(), LAMP_STRIDE):
+		var key := _lamp_keys[n]
 		var state := graph.light(key / 2, key % 2)
 		if state == _lamp_state[key]:
 			continue

@@ -3,8 +3,9 @@
 # build/android/nocnawarszawa-<version name>-<version code>.aab (the "Android" preset).
 #
 # usage: tools/export_android.sh [--skip-city] [--apk]
-#   --skip-city  don't re-split the map or rebuild the prebuilt sectors (they are tracked;
-#                use this when the map hasn't changed since the last bake)
+#   --skip-city  don't re-split the map or rebuild the prebuilt sectors when they are already
+#                there and match their inputs (loop 3d-1: they are derived, not tracked, so
+#                tools/setup_map.sh --if-needed still makes them when missing or stale)
 #   --apk        a debug APK instead (build/android/nocnawarszawa-debug.apk, debug keystore),
 #                for `adb install` on a test phone
 #
@@ -33,7 +34,17 @@ vname=$(print -r -- $opts | sed -n 's/^version\/name="\(.*\)"/\1/p')
 vcode=$(print -r -- $opts | sed -n 's/^version\/code=\([0-9]*\)/\1/p')
 package=$(print -r -- $opts | sed -n 's/^package\/unique_name="\(.*\)"/\1/p')
 
-if (( ! skip_city )); then
+# A clone Godot has never opened must be imported first: bake_city.gd on an unimported project
+# can't resolve the add-ons' class names (PhantomCameraHost) and the export then crashes in its
+# own first import (seen 2026-10-30 in a fresh clone).
+[[ -d .godot/imported ]] || godot --headless --path . --import
+# Loop 3d-1: the GUGiK outputs (lod2.*, terrain.json) are derived too: made first when missing.
+if [[ ! -f map/lod2.bin || ! -f map/lod2.json || ! -f map/terrain.json ]]; then
+	../tools/setup_map.sh --full
+fi
+if (( skip_city )); then
+	../tools/setup_map.sh --if-needed
+else
 	# The same two steps as tools/export_ios.sh: the map split into 512 m sectors, then each
 	# sector's scene, the proxies and the index. Not --headless: the headless renderer discards
 	# MultiMesh and texture data. This opens a window for a moment.

@@ -3,6 +3,13 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## High priority: landmark and skyscraper models (the user, 2026-10-30)
+- **The user dislikes how several models look** (2026-10-30): Złote Tarasy, Złota 44 and the
+  other skyscrapers (Varso, Pałac Kultury, Warsaw Spire, Q22), Muzeum Narodowe (and Stadion
+  Narodowy), the bus stops, and other weak models. Goal: keep the game's own pixel and
+  low-poly style, but with colours, proportions and silhouettes that clearly read as the real
+  buildings. Before/after shots at phone size. Lane "landmarks/models" (docs/QUESTIONS.md).
+
 ## From v0.6 (traffic, trams, pedestrians, rivals)
 - ~~Cars can overlap briefly in complex junctions~~ (fewer by three quarters, the traffic loop
   2026-10-30: junction cars watch each other's body and path, `--traffic-overlaps` counts them;
@@ -1022,10 +1029,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   with the next deploy; the store forms link to it.
 - iPad: the iOS preset targets iPhone and iPad (`targeted_device_family=2`); keep or drop
   before the first App Store release (QUESTIONS.md). Nobody has played on an iPad yet.
-- The App Store wants a privacy manifest (`PrivacyInfo.xcprivacy`) for apps using
-  required-reason APIs (file timestamps, system boot time, UserDefaults); Godot's iOS template
-  may need one declaring them, with no data collected. Check App Store Connect's email after
-  the first upload.
+- ~~The App Store wants a privacy manifest~~ (checked 2026-10-30: Godot's export writes
+  `PrivacyInfo.xcprivacy` with file timestamps, boot time and disk space, no tracking, no
+  collected data; app-store-connect.md section 4). Still read App Store Connect's email after
+  the first upload for an ITMS-91053 warning.
 - The store screenshots show the HUD; they need redoing when the HUD changes  (re-rendered with KEBAB FM
   on 2026-10-30; shot 07 from the bigger demo map, because on main's map Varso stands about
   140 m from the edge and every wide framing shows the cliff).
@@ -1040,6 +1047,26 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - Varso's crown runs off the top of store shot 7 (all three sizes); most shots show 0 km/h.
 - The iPad set is rendered at 2440×1830 and scaled to 2752×2064 (the Mac can't open a
   2064-pixel-tall window).
+
+## From the performance baseline (2026-10-30)
+
+- Loop 3d-1's map left +0.4–0.6 ms of main-thread process on the Mac after the lamp fix
+  (traffic about 0.5 ms; `--no-traffic` drops process to 0.60): find what in traffic scales
+  with the map (the spawn slots' grid walk in `_count_target`, the junction checks) with a
+  per-function timer before changing anything.
+- Static memory doubled with the bigger map (173 → ~330 MB runtime, 241 MB prebuilt): check
+  it on the iPhone 11 (TEST · BENCH's memory line) before the beta. The index packing cut it
+  by ~20 MB on the phone path (2026-10-30, DEVELOPMENT.md "Performance budgets").
+- Memory still on the table (2026-10-30, measured on the Mac):
+  - The index's dictionaries (83 MB prebuilt after the packing): ~60 k small Dictionaries with
+    a String kind each. Columns per list (one PackedFloat32Array of outlines with offsets, kinds
+    as ints) would cut most of it, but every reader (hud, missions, eggs, pedestrians, rides)
+    changes with it.
+  - The three map-wide textures (~96 MB video): the light map (5318×3782 RG8, 1 m) could go to
+    2 m (lamp pools are 12–15 m wide, but they stop at walls at 1 m), or AO and lights to ASTC
+    4×4 at bake time (half the size, lossy). Both change the look a little: the visual lane's
+    call with shots. The surface map holds data (deck heights, flow angle) and must stay exact.
+  - Side jobs hold 17 MB at start (rides 7.5): look for whole-map tables built from the index.
 
 ## From the driving-feel loop (less sticky, 2026-10-30)
 
@@ -1071,3 +1098,52 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - Two places share an address with another on purpose (Miłość Hipoteczna and Żwir at Kredytowa 9,
   Pawilony and Apteczka at Nowy Świat 22/28): the notebook may find both at once. If that reads as
   one find, MW-1 can offset Żwir to the upstairs door and Apteczka 30 m into the courtyard.
+
+## From loop MW-1 (the MOJA WARSZAWA notebook, 2026-10-30)
+
+- **The real bake resolution (map lane).** The notebook resolves the places at load from the
+  `near` hints (`notebook.gd` `resolve`: the bake's projection, then an address poi, a named
+  square, park or landmark, or the place's own poi kind, within 300-600 m of the hint). The 3d
+  bake should resolve every `address` / `osm` anchor into `pois` kind `place` (with the place id),
+  print the distance from the hint, and `notebook.gd` then take that point first. Today 45 of 72
+  places sit on their rough hint (the 48 `osm` anchors mostly), and the address matches are up to
+  359 m from their hints (Smoła, Smolna 38; Stara elektrownia, Dobra 42), so either the hint or
+  the anchor is wrong there.
+- `check_places` reachability (a lane or footway within radius + 10 m): 70 of 72. Not reached:
+  Most Śląsko-Dąbrowski (65 m, on its hint) and Stadion Narodowy (115 m: the `stadium` poi is the
+  bowl's middle; the helicopter's 60 m doesn't reach either). The bake's point (the west gate)
+  fixes the stadium.
+- **PÓŁNOC FM track unlocks (MW-5).** A chapter complete is recorded in the save
+  (`wallet.chapters_done`, chapter id → yyyymmdd, section `notes_chapters` of `user://save.cfg`)
+  and paid (+50 zł, +30 respect) once; the track it unlocks (7 tracks for 9 chapters, the last
+  two a horn tune and the gold cover) is MW-5's: read `chapters_done` there.
+- The finding rule's "stop inside for 1 s" never decides anything with the car: a car stopped
+  inside the radius is under 30 km/h and found at the next 2 Hz check anyway. Kept as specified
+  (`Notebook.finds`, checked); if the stop is meant for a wider reach (parked at the kerb just
+  outside), it needs a number.
+- The shared addresses: Miłość Hipoteczna and Żwir both sit on their hint today (Kredytowa 9 is not
+  an address point in the map), 18 m apart; Apteczka and Pawilony both matched Nowy Świat 22/28
+  (the same point): one pass finds both, two toasts in a row (the second replaces the first).
+  Not offset in MW-1 (the bake's anchors will separate them).
+- The minimap's "?" shows undiscovered places within 400 m of the car (vision.md: "in a
+  discovered district"; there are no districts yet). Switch to districts when DEMO 6.3's exist.
+- The card shows no district (places.json has none; vision.md's card wants one) and no address
+  for a venue (an address can name the real business: "Jasna 1" on the denylist). A `district`
+  field in places.json (designer) would fill it.
+- Chapter icons are the chapter's number on the notebook's chips until the PixelLab icons
+  (vision.md section 9) exist.
+- The tap-a-place-within-80-m way of finding (vision.md 4.1, the landmark card's tap) is not
+  built: the landmark tap (`main.gd` `_on_tap`) doesn't know the places yet.
+
+## From the web build (2026-10-30)
+
+- **Try it in a phone's browser** (iOS Safari, Android Chrome): memory with the ~140 MB pack in
+  memory, the touch controls for real, the safe area (`OS.has_feature("mobile")` is false on the
+  web, so the HUD uses the desktop layout rules), the frame rate.
+- **Smaller download**: ~141 MB, mostly the 108 sector scenes, which barely compress. Options:
+  load sectors over HTTP as the car needs them (a pack per sector with
+  `ProjectSettings.load_resource_pack`), or a web-only lighter city (no far sectors, proxies only).
+- **The Compatibility renderer's look**: compare the web against the phone shot for shot
+  (night lights, water, shadows); only the green traffic was fixed.
+- **Prebuilt MultiMeshes with custom data and no colours** would show the same Compatibility bug
+  if a shader reads COLOR; none looked wrong in the browser (trees, parked cars).
