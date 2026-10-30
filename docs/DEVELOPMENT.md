@@ -581,6 +581,15 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   `map_builder` asks `landmarks.skin_at` for every kept LoD2 run and OpenStreetMap building
   (its centre in the site's outline, or its whole box inside the outline's box). Its outline's
   cells are on the picking grid for its card.
+- **Low-rise landmarks** (`landmarks.gd` `SKINS`, the third pass): 15 buildings players pass
+  every few minutes keep their LoD2 or OpenStreetMap shapes but take their real stone, brick
+  and roof colours through `skin_at`, the way Muzeum Narodowe does: Teatr Wielki's pale stone
+  and green copper, Zamek Królewski's brick red, Barbakan's and the Archikatedra's brick,
+  Centrum Nauki Kopernik's dark grey with a green roof, the Library's green roof, St Anne's,
+  the Holy Cross, All Saints' and St Alexander's, the Presidential Palace, Staszic Palace,
+  Zachęta, the Mirowska halls and the Sejm. Each has an info card; the far skyline takes each
+  wall colour. The Planetarium, the Tomb of the Unknown Soldier and the Church of the Saviour
+  stay as they were (their outlines carry no roof the helicopter check accepts).
 - **Bus and tram shelters** (the landmarks loop; `map_builder.gd` `_make_shared`): Warsaw's
   glass shelter as the game's camera sees it: a pale glass roof in a graphite frame overhanging
   the kerb, a dark fascia, glass back and end, three posts, a bench, a poster box at the far end
