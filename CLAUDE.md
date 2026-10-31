@@ -171,7 +171,8 @@ tools/export_android.sh [--skip-city|--apk]   # the signed Play AAB in build/and
 - Checks are `game/tools/check_*.gd` SceneTree scripts printing `<name>: OK` and exiting 0/1;
   every new check joins `tools/verify.sh` in the same change.
 - Python tools: `python3 -I`, standard library; a docstring with the usage line.
-- When behaviour changes, DEVELOPMENT.md, ROADMAP (progress-log row) and BACKLOG change with it.
+- When behaviour changes, DEVELOPMENT.md, ROADMAP (progress-log row) and BACKLOG change with it,
+  plus one short plain line under the day in docs/CHANGELOG.md (the website's /progress/ page).
 
 ## Definition of done
 
