@@ -470,11 +470,14 @@ class Landmarks:
                 self.colliders.append((key, lm[name]))
         tar = lm.get("Złote Tarasy", [])
         if len(tar) >= 3:
-            domes = [pairs(b["p"]) for b in blds if len(b["p"]) >= 6 and str(b["c"]).lower() == "#336699"
-                     and b["h"] >= 20.0 and point_in_poly(*centre(pairs(b["p"])), tar)]
-            if domes:
-                self.zones.append(("tarasy", domes, [q for q in (lm.get("Lumen", []), lm.get("Skylight", [])) if len(q) >= 3]))
-                self.colliders += [("tarasy", q) for q in domes]
+            # The whole complex inside its outline is the landmark (spec tarasy.md): the domes
+            # collide along the wave's rim, the parts standing on the ground along their own.
+            inside = [b for b in blds if len(b["p"]) >= 6 and b["h"] > b["mh"] and not b.get("br")
+                      and point_in_poly(*centre(pairs(b["p"])), tar)]
+            if inside:
+                self.zones.append(("tarasy", [tar], []))
+                self.colliders += [("tarasy", pairs(b["p"])) for b in inside
+                                   if (str(b["c"]).lower() == "#336699" and b["h"] >= 20.0) or b["mh"] < 0.5]
         # Stadion Narodowy: the zone from its outer masts (landmarks.gd _find_stadium).
         inner, outer = [], []
         for b in blds:
