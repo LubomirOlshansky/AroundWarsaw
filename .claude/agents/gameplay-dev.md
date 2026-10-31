@@ -58,7 +58,7 @@ the brief you were given, verify it, and report. You don't spawn other agents.
    per frame or adds geometry, materials or lights.
 4. `tools/verify.sh --ios` (BUILD SUCCEEDED) at the end, unless the brief says otherwise.
 5. docs/BACKLOG.md updated as the brief asks; a new flag gets a row in docs/archive/DEVELOPMENT-full.md
-   (no ROADMAP or CHANGELOG edits).
+   (no ROADMAP edit; one docs/CHANGELOG.md line only for player-visible changes).
 6. Scope: list every file you created or changed; nothing outside the brief.
 
 ## When the brief is spec-applying (often a Sonnet run)

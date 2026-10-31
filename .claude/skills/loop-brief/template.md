@@ -58,7 +58,7 @@ frame cheaper">.
   changed>.
 - Bench before/after (medians), vertices before/after, within the budget.
 - docs/BACKLOG.md updated (remove what you fixed, add what you found); a new flag or changed
-  behaviour gets a short note in docs/archive/DEVELOPMENT-full.md. No ROADMAP or CHANGELOG edits.
+  behaviour gets a short note in docs/archive/DEVELOPMENT-full.md. No ROADMAP edit; one plain docs/CHANGELOG.md line only if the player can see the change.
 
 ## Report format
 What you changed (per item), the root causes you confirmed (with numbers), files new/changed,

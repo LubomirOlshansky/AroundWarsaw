@@ -100,7 +100,7 @@ helper asks for one in its report.
 | `docs/DEVELOPMENT.md` | a short index; the full reference (controls, flags, map data, bench, **Performance budgets**) is `docs/archive/DEVELOPMENT-full.md`: read a section, never the whole file | a note in the matching section when a flag or behaviour changes |
 | `README.md`, `CONTRIBUTING.md` | the public front page (pitch, run, credits) and the contributor rules | when what a visitor needs changes |
 | `docs/ROADMAP.md` | the order of work ("Agent order") and the history up to 2026-10-31 | only when the order changes; no per-item rows |
-| `docs/BACKLOG.md` | issues found along the way and decisions taken by default | each item: fixed removed, found added (the only required bookkeeping; PR history is the changelog) |
+| `docs/BACKLOG.md` | issues found along the way and decisions taken by default | each item: fixed removed, found added (plus one CHANGELOG.md line for player-visible changes: it feeds /progress/) |
 | `docs/QUESTIONS.md` | parked questions for the user (with the default built) and the lanes in progress | when a question is parked or answered, a lane claimed or freed |
 | `docs/DEMO.md` | the demo plan: area, quality bar, road defects, police, milestones | when the plan changes |
 | `docs/WORKFLOW.md` | this page | when the way of working changes |
@@ -116,7 +116,7 @@ driving, map geometry or per-frame code):
 
 1. CI **verify** is green (and `tools/verify.sh --only=` for the checks the change touches).
 2. A visible change was seen in one phone-size shot (2532x1170).
-3. BACKLOG updated; CREDITS for anything new from outside.
+3. BACKLOG updated (and a CHANGELOG line if player-visible); CREDITS for anything new from outside.
 
 **Full** (gameplay, driving feel, police/AI, map geometry, roads, streaming, anything that runs
 per frame or adds geometry, materials or lights, anything for the phone):
