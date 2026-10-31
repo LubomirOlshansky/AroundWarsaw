@@ -208,6 +208,10 @@ var map: Node3D
 
 var style_index := 0
 var cam_yaw := 45.0
+## --no-ghost (2026-10-31, the landing's screenshots): no occlusion ghost and no see-through hole
+## round the car, so a
+## wide framed shot centred on a spot behind a building keeps that building whole.
+var no_ghost := false
 var cam_yaw_target := 45.0
 ## --yaw= was given (the follow camera then doesn't start behind the vehicle).
 var _flag_yaw := false
@@ -3089,6 +3093,8 @@ func _parse_args() -> void:
 			no_save = true
 		elif arg == "--free":
 			free_roam = true
+		elif arg == "--no-ghost":
+			no_ghost = true
 		elif arg.begins_with("--tap="):
 			var xy := arg.trim_prefix("--tap=").split(",")
 			tap_at = Vector2(float(xy[0]), float(xy[1]))
@@ -4302,6 +4308,8 @@ func _process(dt: float) -> void:
 	# rarely hidden; a full-size one cuts into the roof edge it has landed on.
 	var car_view := cam.global_transform.affine_inverse() * (pos + Vector3(0, 3.5 if flying else 1.0, 0))
 	var hole := clampf(cam.size * 0.11, 7.0, 20.0) * (0.55 if flying else 1.0)
+	if no_ghost:
+		hole = 0.0  # --no-ghost: the see-through hole is off too
 	building_mat.set_shader_parameter("fade_radius", hole)
 	_update_ghost(pos, car_view)
 	for m in map.fade_materials:
@@ -4347,6 +4355,8 @@ func _update_ghost(pos: Vector3, car_view: Vector3) -> void:
 	var ahead_xz := Vector2(ahead.x, ahead.z).normalized()
 	var occ := Vector4(pos.x, pos.z, ahead_xz.x, ahead_xz.y)
 	var ghost_r := clampf(cam.size * 0.22, 14.0, 50.0) * (0.6 if flying else 1.0)
+	if no_ghost:
+		ghost_r = 0.0
 	for m: ShaderMaterial in [building_mat, map.flat_material, post_mat] + _neon_materials():  # sweep 2: + neon
 		m.set_shader_parameter("car_view", car_view)
 		m.set_shader_parameter("occluder", occ)
