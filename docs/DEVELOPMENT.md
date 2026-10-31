@@ -215,6 +215,7 @@ text) have ready answers in `docs/store/play-console.md`; the privacy policy is
 | Benchmark: a minute on the bench route, then a result card to copy (loop 2b) | Settings → Obraz → TEST | the same (or `--bench-button`) |
 | Quality: Auto → Low → Medium → High → Ultra → Auto (loop G1; Auto, the default, picks a level for the device) | Settings → Obraz → Jakość obrazu | U |
 | Car ↔ helicopter (from the start) | HELI / AUTO, top right | H |
+| Horn (night-buses loop: dogs bark, walkers turn; stopped at a bus stop it calls a bus) | the round horn left of HAMULEC · brake | B |
 | Fly (helicopter) | Drag on the left side: it flies where you point | W A S D / arrows (screen directions) |
 | Climb / sink (helicopter) | ▲ ▼ pads (where HAMULEC · brake is) | Space / Shift (or F) |
 | Open a rescue call that came in (loop 2e: 60 s into play, then 90 s after each one) | WEZWANIE · rescue call, top centre | M |
@@ -3637,7 +3638,8 @@ Data: `data/eggs.json` (45 cards) and `data/kadr.json` (15 spots); the then card
   crowd condition) and gave E20 the `lukrownia` crowd: **reachable 36, waiting 9** (E01 E21
   E23 E24 E25 E34 E35 E39 E40; "Everyday life and trends" below). Loop MW-2 added the Frogs and
   Leżak eggs (38 reachable); loop jobs-2 woke E34 (an `event`: the armchair man) and E40 (a `stop`
-  at the payphone): **reachable 40, waiting 7** (E01 E21 E23 E24 E25 E35 E39).
+  at the payphone): **reachable 40, waiting 7** (E01 E21 E23 E24 E25 E35 E39). The night-buses loop woke E23
+  E24 E25 (`event`s seen by `buses.gd`): **reachable 43, waiting 4** (E01 E21 E35 E39).
 - **KASETA** (`tape.gd`): the 20 then cards at their notebook places. Within 40 m of one, on the
   ground under 12 km/h, the context button reads KASETA · time tape; a tap plays it: the VHS
   overlay for 6 s, a tape-rewind sound (procedural, seeded, no file), a dithered ghost of the
@@ -3754,8 +3756,8 @@ condition). Lines: the vision's groups already in `dialogue.json` (`club_door`, 
   role, the beehave branch `Club` keeps it parked, never a chase; spawned off screen within the
   trap band) and an officer in hi-vis standing by it; `police_club` lines to a slow car within
   15 m, at most every 45 s. When the window ends the car is dismissed. E04 is a stop by them.
-- **Night buses at Centralny** are not built: `traffic.gd` has no way to gather buses or give one
-  an N route without more than a one-line hook (BACKLOG; E23 E25 wait).
+- **Night buses at Centralny**: built by the night-buses loop (2026-10-31, "The night buses, the
+  bus stops and the horn" below).
 - **The mesh**: every still figure is the pedestrians' mesh and material (`Models.person_mesh`,
   `actor.gdshader` with `walk = 0`: the legs' swing off), one MultiMesh per 512 m cell with
   every crowd in it, no sun shadow, its AABB the figures' box; a sitter is a lower, longer
@@ -3823,9 +3825,9 @@ unchanged.
   coats. The dog stops 3-6 s at each tree within 3.5 m of
   its footway (12 m apart at least); the walker waits. A horn within 15 m of a dog: it barks
   (`bark_small` / `_mid` / `_big` by size, at most every 2 s per dog) and one walker says a
-  `dog_walkers` `horn` line, at most once a minute. The player has no horn (BACKLOG): the AI
-  cars' horns at the player stand in (`traffic.gd`'s `blocked_by_player` and `bumped_driver`
-  signals, connected in `main.gd`; no edit in traffic.gd).
+  `dog_walkers` `horn` line, at most once a minute. The AI cars' horns at the player count
+  (`traffic.gd`'s `blocked_by_player` and `bumped_driver` signals, connected in `main.gd`). Since
+  the night-buses loop the player's own horn counts too (the HUD's horn, B).
 - **The influencer dog** at Plac Zbawiciela (07:00-21:00): a fluffy dog on the footway nearest
   the square with three photographers round it (guests), a `phone_shutter` every 5-11 s within
   60 m, the walker's `influencer` line to a slow car. E27 is a 2 s stop within 20 m of it (the
@@ -4095,6 +4097,76 @@ Data: `eggs.json` E34 (`event`) and E40 (`stop`, 8 m, 2 s): no words changed.
   the payphone's spot and mesh, E40 once. `check_city_life.gd` adds the armchair man (1 in 3 over 600
   days, there and back, his ends, his way on Mokotowska, the guest and the chair near him and none
   far, E34 once).
+
+## The night buses, the bus stops and the horn (loop night-buses, 2026-10-31)
+
+`game/scripts/buses.gd` (built in `main.gd` after city life; docs/design/vision.md 3.5 "Buses").
+It drives the traffic's own buses (`traffic.gd`'s BUS pool of 8, main roads only) and ticks on a
+0.5 s timer, with no per-frame scans.
+
+- **The N sign**: from 22:30 to 05:00 game time (`time_of_day.gd` `local_clock`; Night's fixed
+  look is 01:30, so it is on) every traffic bus shows an amber **N** on a dark plate: on both
+  sides above the windows, at the back and at the front. `traffic.gd` `night_sign` swaps the BUS
+  MultiMesh's mesh for `night_bus_mesh()` (the same bus, +195 vertices, `LIT_SIGN` part so it
+  glows with the lights). +0 draw calls, no shader change. No real operator's name or logo.
+- **The night hub at Dworzec Centralny**: every half hour from 22:30 to 04:30 (13 a night), a
+  ring of 5-8 buses (seeded by the day and the slot) gathers in two rows of 4 bays. The bays are
+  at the kerb of Aleje Jerozolimskie in front of the station, by the shelters on both
+  carriageways (`HUB_ROWS`; there is no bus loop in the lane graph). Each bus arrives within 50 s
+  of the slot, stands 2-4 min and then drives on as any bus. The ring is only real while the
+  view is within 330 m. Its buses come from the traffic first: a bus out of sight is taken over,
+  else a free pool slot is used, so the traffic cap holds. A bus whose bay is out of sight is
+  parked there at once. One whose bay is in sight drives in from upstream and pulls in.
+  **E23**: the car within 60 m of the ring while 5 or more buses stand there. The `bus_stop`
+  night line (index 4) plays once per gathering.
+- **Bus stops**: the map's shelters (`highway=bus_stop`, the sector files' `shelters`) that stand
+  right of a bus road's kerb lane (lane class 0-1, within 1.5-10 m). The 4 nearest within 170 m
+  of the view get 1-2 waiting figures from 06:00 to 22:00, seeded per stop. At night the hub's
+  stops get 2-3 figures while a ring stands. The figures are `pedestrians.gd`'s new 8 stop slots
+  (the walkers' MultiMesh: +0 draw calls). Standing still (under 1 km/h) within 14 m of a stop with
+  people at it gives a `bus_stop` bubble from them, at most every 25 s, and every 90 s per stop.
+- **The horn**: a round horn button left of HAMULEC · brake (Classic: left of its brake), or **B**
+  on the Mac (H is the helicopter). It plays `horn_player` (make_sfx.py: a two-tone 494/622 Hz
+  square, 0.3 s). The dogs react through `city_life.gd` `horn`, and walkers within 9 m coming at
+  the car turn round (`pedestrians.gd` `startle`). At most one honk every 0.6 s; it does nothing
+  in the helicopter.
+- **E24, Na żądanie**: stopped at a bus stop, a honk calls a bus. The car says the `bus_stop`
+  request line ("Stoję na przystanku na żądanie. Żądam.", index 2). The nearest bus within 300 m
+  with a lane route to the stop comes, or else one from the pool, spawned upstream out of sight.
+  It pulls in by the car for 8 s (if the car blocks the kerb lane it stops where it is, within
+  30 m). E24 fires when it stands there.
+- **E25, Wyścig z nocnym**: a bus leaving the hub's eastbound row while the car is at the ring
+  heads for Rondo de Gaulle'a (the Palm, about 1.3 km). If the car gets within 30 m of the Palm
+  before the bus, and no speed trap flashed it since the start (`police.gd` `trap_flashes`), E25
+  fires (+30 respect). There is no on-screen race card (BACKLOG). A bus on a route never
+  chances a red light (the rivals still do).
+- **Traffic hooks** (`traffic.gd`): a driver can be sent to a stop (`send_to_stop`: route, the
+  kerb lane, pull in by 0.9-1 m, wait, `bus_halted` / `bus_left`), added from the pool
+  (`add_bus`) and let go (`let_go`). Hub and called buses are `persistent` while held.
+- **Shelters in the exported game**: the stops come from each sector's `res://map/sectors/i_j.json`
+  `shelters` list when it is there (editor and Mac runs). Otherwise they come from the sector's
+  shelter MultiMesh instances, read once per sector load (a GPU read-back on a real renderer).
+  BACKLOG asks the map lane to put the shelters in the index.
+- **Testing aids** (flags table): `--night-hub` (a gathering now, whatever the time; with
+  `--time=night` the N signs too), `--bus-log` (`buses:` lines), `--honk=F1,F2` (honk on those
+  frames). E24 can be tried with `--at=-1388,633 --time=day --honk=300`, and E25 with
+  `--night-hub` plus a drive east.
+- **Check**: `check_buses.gd` (verify step `buses`, CI too; `centrum.json` only). It covers the
+  sign's hours and the night mesh, 13 gatherings a night with rings of 5-8 (88 plans), the
+  standing count over a gathering, the hub's 8 bays, the stops on the real map (188 of 351
+  shelters), the stop figures (1-2 by day, at most 8), the horn's rate limit and startles, and
+  E23/E24/E25 once each through `EggBook` (+30/+15/+30).
+- **Cost** (headless bench, two runs each; rendered draw calls with software Vulkan):
+
+  | View | Before | After |
+  | --- | --- | --- |
+  | Bench route, day (headless, scripts total, 2 runs) | 4.61-4.9 ms | 4.62-5.31 ms (noise); "buses" 0.00 ms |
+  | Centralny 01:30 with a ring of 7 (`--probe --at=-1392,640 --time=night --night-hub`, headless) | scripts 4.78-4.85 ms | 4.09-4.24 ms; "buses" 0.00 ms (under 5 µs a frame) |
+  | Centralny at night, rendered: draw calls (main / shadow / 2D) | 110 (71 / 0 / 39) | 111 (71 / 0 / 40), the horn's one 2D draw; with the ring: main 71, 2D +4 more while the E23 note and the bubble show |
+  | The stop by Centralny by day (`--at=-1388,633 --heading=290 --time=day`), rendered | 145 (61 / 45 / 39) | 149 (61 / 45 / 43): the horn +1, the stop's bubble +3 while it shows |
+
+  The N sign, the ring and the stop figures add no 3D draw call (the bus and walkers' MultiMeshes);
+  the horn is one triangle array (one 2D draw).
 
 ## The easy-driving loop: drive through the small props (2026-10-30)
 
@@ -4745,6 +4817,9 @@ Command-line options (after `--`):
 | `--zajac` | loop MW-4: Live on Wednesday 2026-10-28 at 19:00 (`--clock=` and a Wednesday `--date=` change them), the car by Kolka's start (free roam, no title); with `--autopilot` the car paces the club 10 m to its side from 19:00 (the Zając: `life: zajac paid +40 respect (E29)`) |
 | `--trend-day=N` | loop MW-4: the Wiralek cycle's day number (0 = slot 1 on day 1, slot 2 on day 3, slot 3 on day 5; 88 = all three on day 1) instead of Live's date or the session's |
 | `--trend-job[=1\|2\|3]` | loop MW-4: start by that Wiralek slot (1 Plac Zbawiciela, 2 Chmielna, 3 Tamka) with its "Na czasie" request offered; with `--autopilot` accepted and driven; implies `--trend-log` |
+| `--night-hub` | night-buses loop: a gathering of night buses at Dworzec Centralny now, whatever the time (with `--time=night`, the N signs too); its buses park at their bays at once |
+| `--bus-log` | night-buses loop: print `buses:` lines: the hub's bays and stops, each gathering and ring bus, the car at the ring, the race to the Palm, each honk and called bus, the stop lines, a summary every 20 s |
+| `--honk=F1,F2,...` | night-buses loop: the player honks on those frames (as the horn button; rate-limited) |
 | `--life-soak` | loop MW-4: a Friday dusk; the car is driven at the nearest dog walker or rider at 7 m/s, every frame counts a dog, walker or rider inside the car's footprint (`life: soak done … overlaps 0`); verify step `life-soak` |
 | `--club=<id>` | loop MW-3: start at that club (`lusterko`, `smola`, `jasna_0`, `lombard`, `milosc_hipoteczna`, or its name): the car on the lane nearest its door (within 60 m), free roam, no title |
 | `--notes-log` | loop MW-1: print `notes:` lines: each place's resolution at load (`notes: place <id> address\|name\|poi\|near N m from the hint (x, z)`), each find (`notes: found <id> (chapter N, k/8)`) and each chapter completed |

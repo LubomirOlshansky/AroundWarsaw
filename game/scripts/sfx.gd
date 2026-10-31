@@ -47,6 +47,8 @@ const SHOTS := {
 	"phone_shutter": -17.0, "cafe_bell": -15.0,
 	# Loop MW-2 (storefronts.gd): the Frogs door's croak chime, a Leżak knocked over.
 	"frog_chime": -15.0, "scooter_clatter": -12.0,
+	# The night-buses loop (buses.gd, tools/make_sfx.py): the player's own horn.
+	"horn_player": -12.0,
 }
 ## Loop 3g-2: the siren loop (one positional voice) and its level there.
 const SIREN := "police_siren"
@@ -386,6 +388,11 @@ func pigeons(at: Vector3) -> void:
 
 
 ## Loop MW-4: one of the city's one-shots (SHOTS) at `at` (city_life.gd: barks, bells, beeps).
+## The night-buses loop: the player's horn (not positional: it is the player's own car).
+func horn_player() -> void:
+	_play2("horn_player", 0.0)
+
+
 func play_at(n: String, at: Vector3, gain_db := 0.0) -> void:
 	_play3(n, at, gain_db)
 

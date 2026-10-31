@@ -456,7 +456,8 @@ func _check_eggs(c: Crowds, nb: Notebook) -> void:
 	for id in ["e03", "e04", "e15"]:
 		_expect(not book.eggs[book.by_id[id]].has("waits"), "%s still waits" % id)
 	_expect(book.eggs[book.by_id["e01"]].has("waits"), "e01 should wait for the garage's paint")
-	_expect(book.eggs[book.by_id["e23"]].has("waits") and book.eggs[book.by_id["e25"]].has("waits"), "e23 / e25 wait for the night buses")
+	for id in ["e23", "e24", "e25"]:
+		_expect(str(book.eggs[book.by_id[id]]["trigger"]["kind"]) == "event" and not book.eggs[book.by_id[id]].has("waits"), "%s is the night-buses loop's event" % id)
 	# [egg, state additions, the crowd levels it wants, the levels that aren't enough]
 	var cases: Array = [
 		["e03", {"look": "Dawn", "hour": 5.75, "weekday": 6}, {"dawn": 1.0}, {"dawn": 0.0}],
