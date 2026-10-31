@@ -253,33 +253,33 @@
   },
   "small": [
     {
-      "img": "castle-square-s",
-      "w": 1100,
-      "h": 508,
+      "img": "car-zamek",
+      "w": 1920,
+      "h": 884,
       "en": [
         "Plac Zamkowy",
-        "The Royal Castle and the square at its gate.",
-        "The Royal Castle and Plac Zamkowy in the game"
+        "A small car by Sigismund's Column, under the Royal Castle.",
+        "A small red car on Plac Zamkowy near Sigismund's Column and the Royal Castle in the game"
       ],
       "pl": [
         "Plac Zamkowy",
-        "Zamek Królewski i plac przy jego bramie.",
-        "Zamek Królewski i plac Zamkowy w grze"
+        "Małe auto przy Kolumnie Zygmunta, pod Zamkiem Królewskim.",
+        "Małe czerwone auto na placu Zamkowym przy Kolumnie Zygmunta i Zamku Królewskim w grze"
       ]
     },
     {
-      "img": "palm-dawn",
-      "w": 1100,
-      "h": 507,
+      "img": "heli-palm",
+      "w": 1920,
+      "h": 884,
       "en": [
-        "The palm at Rondo de Gaulle'a",
-        "Dawn at the most famous palm in town. The HELI button shows it from above.",
-        "Dawn at the palm on Rondo de Gaulle'a in the game, with the HUD"
+        "The helicopter and the palm",
+        "Hovering over Rondo de Gaulle'a, the most famous palm in town.",
+        "The rescue helicopter hovering over the roundabout with the palm at Rondo de Gaulle'a in the game"
       ],
       "pl": [
-        "Palma na rondzie de Gaulle'a",
-        "Świt przy najsłynniejszej palmie w mieście. Przycisk HELI pokaże ją z góry.",
-        "Świt przy palmie na rondzie de Gaulle'a w grze, z interfejsem"
+        "Helikopter i palma",
+        "W zawisie nad rondem de Gaulle'a, przy najsłynniejszej palmie w mieście.",
+        "Śmigłowiec ratunkowy w zawisie nad rondem de Gaulle'a z palmą w grze"
       ]
     }
   ],
