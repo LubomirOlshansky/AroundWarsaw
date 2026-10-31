@@ -42,7 +42,7 @@ better at the default view on a 1170-line phone.
 | Look | Character | Notes |
 | --- | --- | --- |
 | Day (the default) | bright, stylised, friendly; soft cloud shadows; sky `#a8cde6` | the original look; changes to it need before/after shots |
-| Dusk | low orange sun from the south-west, violet fill, pink-purple sky, first lamps | magenta/cyan split-tone |
+| Dusk | the dusk loop (2026-10-31, the user's 16:20 photos): overcast blue hour, slate-blue sky, flat cool light with no sun shadows, most windows and every lamp on, the Palace floodlit gold, lit names on the towers | cool blue shadows, warm lights |
 | Night | deep navy-violet ambient, cold moon, stars, light bloom | water dark and calm; lamps' reflections carry it |
 | Rain | overcast, wet asphalt and paving with a sky sheen, mirrored lights | streaks are screen-space |
 

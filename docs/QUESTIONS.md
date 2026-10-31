@@ -19,6 +19,8 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · visuals · the dusk loop** — Dusk now matches the user's 16:20 photos: an overcast blue hour (slate-blue sky, flat cool light, no sun shadows, a soft glow) instead of the pink-violet sunset; Dawn, which reuses Dusk's palette, turns blue too. Default built: that. Alternative: keep the pink sunset as Dusk and add the blue hour as a sixth look.
+- **2026-10-31 · landmarks · the dusk loop** — The towers' lit names are parodies: PREZYDENT (the Marriott tower's crown), SAMSONG (its band, as on the Spire), NOWOTEL, WESTYNKA, CHILTON, INTERKONTI. Rondo 1's tenants, PHN and the Bank Polski tower got no lit name (not sure which building wears which; no network to check). Default built: that. Alternative: name those too.
 - **2026-10-31 · design · the first scene** — Where the game starts (the street the player sees first, to be polished for a "wow"). Default planned: Marszałkowska by Plac Defilad (the Palace, the new Museum of Modern Art, the Eastern Wall, the towers), where the spawn and the first-10-minutes script already are. Alternatives: Plac Zamkowy and the Old Town, Rondo Daszyńskiego's towers, Most Świętokrzyski. Plan: docs/design/first-scene.md.
 - **2026-10-31 · design · the first scene** — The light of the first frame. Default planned: day, as decided on 2026-10-28. Alternative: a late-afternoon golden light for the first minutes, once the dusk thread's work lands.
 - **2026-10-31 · gameplay · loop 3h slice 2** — The Palace's and the stadium's Syrenki stand 148 m and 211 m from their anchors (no ground street nearer). Default built: that (a 260 m fallback). Alternative: anchor them elsewhere in `syrenki.json`.
