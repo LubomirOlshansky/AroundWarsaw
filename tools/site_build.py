@@ -143,6 +143,12 @@ def landing(strings: dict, lang: str) -> str:
         f'    <figure class="tile">\n      {pic(m["img"], 1920, 887, html.escape(m[lang][2]))}\n'
         f"      <figcaption><h3>{html.escape(m[lang][0])}</h3><p>{html.escape(m[lang][1])}</p></figcaption>\n    </figure>"
         for m in strings["missions"])
+    values["small"] = "\n".join(
+        f'    <figure class="tile">\n      {pic(m["img"], m["w"], m["h"], html.escape(m[lang][2]))}\n'
+        f"      <figcaption><h3>{html.escape(m[lang][0])}</h3><p>{html.escape(m[lang][1])}</p></figcaption>\n    </figure>"
+        for m in strings["small"])
+    values["timeline"] = "\n".join(
+        f"      <li><time>{html.escape(d.replace("Oct", "paź") if lang == "pl" else d)}</time><p>{html.escape(txt[lang])}</p></li>" for d, txt in strings["timeline"])
     values["author_body"] = "\n".join(f"      <p>{p}</p>" for p in strings["author"][lang])
     values["topics"] = "\n".join(
         f'        <label><input type="radio" name="topic" value="{html.escape(v)}"{" checked" if i == 0 else ""}>'

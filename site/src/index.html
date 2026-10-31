@@ -93,6 +93,9 @@
     </div>
     <figcaption><h3>{{dn_title}}</h3><p>{{dn_line}}</p></figcaption>
   </figure>
+  <div class="small-pair">
+{{small}}
+  </div>
 </section>
 
 <section class="missions" id="missions" aria-labelledby="missions-title">
@@ -110,12 +113,15 @@
     <div>
       <h2 id="open-title">{{open_title}}</h2>
       <p class="lede">{{open_lede}}</p>
+      <ul class="links open-links">
+        <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>{{open_repo}}</a></li>
+        <li><a href="https://wiki.aroundwarsaw.app">{{open_wiki}}</a></li>
+        <li><a href="/progress/">{{open_progress}}<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+      </ul>
     </div>
-    <ul class="links open-links">
-      <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>{{open_repo}}</a></li>
-      <li><a href="https://wiki.aroundwarsaw.app">{{open_wiki}}</a></li>
-      <li><a href="/progress/">{{open_progress}}<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
-    </ul>
+    <ol class="timeline" aria-label="{{tl_label}}">
+{{timeline}}
+    </ol>
   </div>
 </section>
 
