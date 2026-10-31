@@ -126,7 +126,9 @@
     "dn_label": "Time of day: drag to switch between day and night",
     "dn_alt_day": "Stadion Narodowy by day in the game, with Most Poniatowskiego and the Vistula",
     "dn_alt_night": "Stadion Narodowy at night in the game, the bridge lamps reflected in the Vistula",
-    "tl_label": "How the project grew"
+    "tl_label": "How the project grew",
+    "nav_wiki": "Wiki",
+    "nav_progress": "Progress"
   },
   "pl": {
     "lang": "pl",
@@ -198,7 +200,9 @@
     "dn_label": "Pora dnia: przeciągnij, żeby przełączyć dzień i noc",
     "dn_alt_day": "Stadion Narodowy w dzień w grze, z Mostem Poniatowskiego i Wisłą",
     "dn_alt_night": "Stadion Narodowy nocą w grze, latarnie mostu odbite w Wiśle",
-    "tl_label": "Jak rosło to dotąd"
+    "tl_label": "Jak rosło to dotąd",
+    "nav_wiki": "Wiki",
+    "nav_progress": "Postępy"
   },
   "missions": [
     {
