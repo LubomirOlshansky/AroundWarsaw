@@ -76,6 +76,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Left: the photo check on the
   Mac (the two city-room windows' faces and sizes and the skylight count are estimates; the
   photos in `refs/` were not reachable from the cloud), and TR Warszawa next door.
+- **TR Warszawa's building site** (F, 2026-10-31): built as site `tr` (hoarding, the black box
+  half built, cabins, two cranes). Left for the map lane: two mapped trees stand inside its
+  hoarding (one through the cabins); drop the trees in that box at bake time.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
   photos per building in `refs/` (Wikimedia Commons, gitignored; fetched on the Mac, the cloud
