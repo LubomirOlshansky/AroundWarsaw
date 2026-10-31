@@ -236,6 +236,9 @@ const INFO := {
 	"flaga": ["Flaga na rondzie Radosława",
 			"Biało-czerwona na maszcie wysokim na prawie 58 m.",
 			"The white-and-red on a mast almost 58 m tall."],
+	"swieto": ["Most Świętokrzyski",
+			"Most wantowy z 2000 roku: jeden pylon, wanty w jednej płaszczyźnie.",
+			"A cable-stayed bridge of 2000: one pylon, its stays in one plane."],
 	"zygmunt": ["Kolumna Zygmunta",
 			"Najstarszy świecki pomnik Warszawy, z 1644 roku.",
 			"Warsaw's oldest secular monument, of 1644."],
@@ -483,6 +486,7 @@ func _find_sites() -> void:
 	_find_arkadia()
 	_find_forest()
 	_find_flag()
+	_find_swieto()
 	# The museum and Plac Piłsudskiego loop (2026-10-31): the square's edges.
 	_find_plac()
 
@@ -640,6 +644,8 @@ func build(surface, near := Rect2()) -> void:
 				_build_forest(s)
 			"flaga":
 				_build_flag(s)
+			"swieto":
+				_build_swieto(s)
 			"muzeum":
 				_build_muzeum(s)
 			"europejski":
@@ -1992,6 +1998,65 @@ func _build_flag(_site: Dictionary) -> void:
 			_quad(Vector3(a.x, top - FLAG_H - droop0, a.y), Vector3(b.x, top - FLAG_H - droop1, b.y),
 					Vector3(b.x, top - FLAG_H * 0.5 - droop1, b.y), Vector3(a.x, top - FLAG_H * 0.5 - droop0, a.y), side, Color("#d4213d"))
 	_collide(_circle(c, 1.6, 8))
+
+# --- Most Świętokrzyski (the landmarks loop, the user's ask 2026-10-31) --------------------------
+
+## The cable-stayed bridge (2000): one concrete pylon on the Praga bank, in the 2.6 m median
+## between the carriageways, leaning back east, and its stays in one plane along the median: a
+## fan of 12 over the main span west across the river and 9 back to the east. The decks are
+## map_builder's; the deck's height along the axis is its profile from the bake (a parabola
+## through its crown, within about a metre). The site is the median strip under the stays, so
+## every sector they cross builds them.
+const SWIETO_PYLON := Vector2(737.5, -898.4)
+const SWIETO_WEST := Vector2(-0.8142, 0.5806)  # along the deck, towards the Old Town bank
+const SWIETO_TOP := 70.0                       # the pylon's top (map y)
+const SWIETO_LEAN := 7.0                       # its top stands this far back east
+const SWIETO_GREY := Color("#cfcdc6")
+const SWIETO_STAY := Color("#eef0f0")
+func _find_swieto() -> void:
+	var across := Vector2(-SWIETO_WEST.y, SWIETO_WEST.x)
+	var a := SWIETO_PYLON - SWIETO_WEST * 120.0
+	var b := SWIETO_PYLON + SWIETO_WEST * 175.0
+	_add_site("swieto", [PackedVector2Array([a - across * 1.2, b - across * 1.2, b + across * 1.2, a + across * 1.2])])
+
+
+## The deck's top on the median at `s` metres west of the pylon.
+func _swieto_deck(s: float) -> float:
+	return -7.89 - 0.00007 * (s - 72.0) * (s - 72.0)
+
+
+func _build_swieto(_site: Dictionary) -> void:
+	var w := SWIETO_WEST
+	var across := Vector2(-w.y, w.x)
+	var deck := _swieto_deck(0.0)
+	_g = _ground_under(_circle(SWIETO_PYLON, 2.0, 6))
+	# The pylon: a tapering shaft from the ground through the deck to its top, leaning east.
+	var ring := func(at: Vector2, half_along: float, half_across: float) -> PackedVector2Array:
+		return PackedVector2Array([at - w * half_along - across * half_across, at + w * half_along - across * half_across,
+				at + w * half_along + across * half_across, at - w * half_along + across * half_across])
+	var foot: PackedVector2Array = ring.call(SWIETO_PYLON, 3.6, 1.15)
+	_prism(foot, _g - 1.0, deck, SWIETO_GREY, Color(0, 0, 0, 0), M_STONE)
+	var top_at := SWIETO_PYLON - w * SWIETO_LEAN
+	_mode = M_STONE
+	_frustum(foot, deck, ring.call(top_at, 2.0, 0.85), SWIETO_TOP, SWIETO_GREY, SWIETO_GREY.darkened(0.1))
+	# The aviation light on its top, red at night.
+	_prism(_circle(top_at, 0.35, 6), SWIETO_TOP, SWIETO_TOP + 0.6, Color(1.0, 0.15, 0.1), Color(1.0, 0.15, 0.1), M_LAMP, M_LAMP)
+	# Solid from the ground to the top for the car under the deck, on it and the helicopter: one
+	# column round the foot and the leaning top together.
+	_collide_span(ring.call(SWIETO_PYLON.lerp(top_at, 0.5), 3.6 + SWIETO_LEAN * 0.5, 1.15), _g - 1.0, SWIETO_TOP)
+	# The stays: anchored up the pylon's top 30 m, landing along the median.
+	var shaft := func(y: float) -> Vector3:
+		var t := (y - deck) / (SWIETO_TOP - deck)
+		var p := SWIETO_PYLON.lerp(top_at, t)
+		return Vector3(p.x, y, p.y)
+	for k in 12:
+		var s := 30.0 + k * 11.5
+		var land := SWIETO_PYLON + w * s
+		_beam(shaft.call(SWIETO_TOP - 3.0 - k * 2.3), Vector3(land.x, _swieto_deck(s) + 1.0, land.y), 0.22, SWIETO_STAY, false)
+	for k in 9:
+		var s := -(22.0 + k * 10.5)
+		var land := SWIETO_PYLON + w * s
+		_beam(shaft.call(SWIETO_TOP - 4.0 - k * 2.6), Vector3(land.x, _swieto_deck(s) + 1.0, land.y), 0.26, SWIETO_STAY, false)
 
 ## A kept building's site (the museum) on the picking grid: every cell whose centre is inside.
 func _mark_zone(site: Dictionary) -> void:
