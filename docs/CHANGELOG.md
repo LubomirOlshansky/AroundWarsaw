@@ -10,7 +10,8 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-10-31
-- Next to the museum, the new TR Warszawa theatre is going up: a fenced building site with its black box half built, site cabins, stacks of material and two tower cranes with red lights at night.
+- Beside the museum, the plot for the new TR Warszawa theatre is now a messy building site: a fence with black tarp, dug-up ground and old foundations, spoil heaps, cabins, a digger and a tower crane with a red light at night.
+- The museum now looks more like the real one: its corner block, big glowing roof windows round an open court, and windows where they really are.
 - The new Museum of Modern Art on Plac Defilad is now its own building: the long white box floating on a glass lobby behind white fins, a thin dark slot round the middle, big windows that glow at night, skylights on the roof, and an info card.
 - The towers and the Palace of Culture no longer flicker: overlapping walls and roofs were drawn twice, and now they are drawn once. The look is the same.
 - A new, shorter website: the newest screenshots, three missions, open source, a word from the author.
