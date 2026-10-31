@@ -97,7 +97,13 @@ Small problems that agents reported or that showed up in screenshots. They are f
   silhouette and flat renders, zero defects in `check_mesh_quality`, a photo check on the Mac.
   In this order unless the user says otherwise: Pałac Kultury i Nauki, Warszawa Centralna, the
   Warsaw University Library (BUW, its green roof garden and the copper-green facade panels),
-  the Copernicus Science Centre, Stadion Narodowy. Only listed, not started.
+  the Copernicus Science Centre, Stadion Narodowy. **Warszawa Centralna built 2026-10-31**
+  (site `centralna`, spec `docs/landmarks/specs/centralna.md`): the glass hall, the wings, the
+  flat slab overhanging to 140 x 86 m and the hyperbolic paraboloid shells under it, all from
+  the OSM parts. Left: the photo check on the Mac (OSM puts the shells in a 1.5 m tier wholly
+  under the flat slab, so from the 30-degree camera they show only as a small zigzag at the
+  two ends: if the photos show more of them, say so and the tier grows; the wings' walls; warm
+  or cool hall light). The others not started.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
   photos per building in `refs/` (Wikimedia Commons, gitignored; fetched on the Mac, the cloud

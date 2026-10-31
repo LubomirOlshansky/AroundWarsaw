@@ -510,7 +510,21 @@ class Landmarks:
         def frame(u, v):
             return (cen[0] + a[0] * u + bvec[0] * v, cen[1] + a[1] * u + bvec[1] * v)
         self.zones.append(("centralna", [[frame(u, v) for u, v in ((-73, -45.5), (73, -45.5), (73, 46.5), (-73, 46.5))]], []))
-        self.colliders.append(("centralna", [frame(-1.9 + u, 0.4 + v) for u, v in ((-35.5, -25.6), (35.5, -25.6), (35.5, 25.6), (-35.5, 25.6))]))
+        # The model's car walls (spec centralna.md): the mapped hall and wings, the vestibules
+        # and the pillars, as landmarks.gd _find_centralna sorts the parts in the zone (the
+        # pillars and vestibules inside the hall or a wing add nothing, so all are listed).
+        czone = [frame(u, v) for u, v in ((-73, -45.5), (73, -45.5), (73, 46.5), (-73, 46.5))]
+        for b in blds:
+            q = pairs(b["p"])
+            if len(q) < 3 or b["h"] <= b["mh"] or not point_in_poly(*centre(q), czone):
+                continue
+            xs, zs = [p[0] for p in q], [p[1] for p in q]
+            span = math.hypot(max(xs) - min(xs), max(zs) - min(zs))
+            area = abs(sum(q[i][0] * q[(i + 1) % len(q)][1] - q[(i + 1) % len(q)][0] * q[i][1] for i in range(len(q)))) / 2
+            pillar = abs(b["h"] - 15.0) < 0.5 and b["mh"] < 0.5 and span < 3.0
+            walls = b["mh"] < 11.0 and ((b["h"] >= 11.0 and area > 300.0) or (b["h"] <= 3.5 and area < 500.0))
+            if pillar or walls:
+                self.colliders.append(("centralna", q))
         # Most Poniatowskiego's towers. Loop 3b (R7): the bake's seats (`towers`,
         # tools/bake_structures.py), as landmarks.gd builds them: the plinth (0.6 m round the
         # shaft) is the collider, the zone is the one the bake wrote.

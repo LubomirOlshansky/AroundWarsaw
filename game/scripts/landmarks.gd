@@ -117,8 +117,8 @@ const INFO := {
 			"Otwarty w 2012 roku na Euro 2012, w misie dawnego Stadionu Dziesięciolecia. Biało-czerwona plecionka fasady.",
 			"Opened in 2012 for Euro 2012, in the bowl of the old Tenth-Anniversary Stadium. A red-and-white woven skin."],
 	"centralna": ["Warszawa Centralna",
-			"Dworzec otwarty w 1975 roku.",
-			"The main station, opened in 1975."],
+			"Dworzec otwarty w 1975 roku: szklana hala pod płaskim, wysuniętym dachem na paraboloidach hiperbolicznych.",
+			"The main station, opened in 1975: a glass hall under a flat overhanging roof on hyperbolic paraboloid shells."],
 	"poniatowski": ["Most Poniatowskiego",
 			"Most otwarty w 1914 roku. Wieże strzegą wjazdów.",
 			"The bridge opened in 1914. Its towers guard the way on."],
@@ -529,9 +529,12 @@ func _find_sites() -> void:
 	_find_prezydencki()
 
 
-## Warszawa Centralna: OpenStreetMap maps the station in 3D (its outline sits underground):
-## a roof of 140 x 57 m on two rows of pillars along Al. Jerozolimskie, the glass hall
-## (71 x 51 m) under it and a canopy round it to 140 x 86 m; the frame below is the roof's.
+## Warszawa Centralna (spec docs/landmarks/specs/centralna.md, 2026-10-31): OpenStreetMap maps
+## the station in 3D, and the model is built from those parts: the glass hall (71 x 51 m, its
+## mapped storey under it drawn as the hall's own ground floor), the lower side wings with
+## their roof boxes, the entrance vestibules, the 28 pillars (two rows, 10 m apart) and the
+## roof in two mapped tiers: the shell zone over the pillars (140 x 57 m, 15 to 16.5 m) and
+## the flat slab over it, overhanging both long sides to 140 x 86 m (16.5 to 18 m).
 const CENTRALNA := Vector2(-1420.0, 572.5)
 const CENTRALNA_TURN := -19.4
 func _find_centralna() -> void:
@@ -541,17 +544,60 @@ func _find_centralna() -> void:
 	for q in [[-73.0, -45.5], [73.0, -45.5], [73.0, 46.5], [-73.0, 46.5]]:
 		zone.append(CENTRALNA + a * float(q[0]) + b * float(q[1]))
 	_add_site("centralna", [zone])
+	if sites.is_empty() or sites[-1]["key"] != "centralna":
+		return
+	var site: Dictionary = sites[-1]
 	var pillars: Array[Vector2] = []
-	for bld in _parts_in(zone, func(b2: Dictionary) -> bool: return absf(float(b2["h"]) - 15.0) < 0.5 and float(b2["mh"]) < 0.5):
+	var hall: Array[PackedVector2Array] = []
+	var wings: Array[Dictionary] = []
+	var boxes: Array[Dictionary] = []
+	var small: Array[PackedVector2Array] = []
+	for bld in _parts_in(zone, func(b2: Dictionary) -> bool: return float(b2["h"]) > float(b2["mh"])):
 		var q := _pts(bld["p"])
+		var h := float(bld["h"])
+		var mh := float(bld["mh"])
 		var lo := q[0]
 		var hi := q[0]
 		for v in q:
 			lo = lo.min(v)
 			hi = hi.max(v)
-		if (hi - lo).length() < 3.0:
+		var area := absf(_area(q))
+		if absf(h - 15.0) < 0.5 and mh < 0.5 and (hi - lo).length() < 3.0:
 			pillars.append(_centre(q))
-	sites[-1]["pillars"] = pillars
+		elif mh >= 14.9:
+			site["slab" if mh >= 16.4 else "shells"] = q  # the roof's two tiers
+		elif mh >= 11.0:
+			boxes.append(bld)  # the boxes on the wings' roofs
+		elif h >= 14.5 and area > 1000.0:
+			hall.append(q)
+		elif h >= 11.0 and area > 300.0:
+			wings.append(bld)
+		elif h <= 3.5 and area < 500.0:
+			small.append(q)  # the vestibules (the 87-point storey under the hall is the hall's)
+	# The vestibules and pillars that stand clear of the hall and the wings (the rest are inside).
+	var vest: Array[PackedVector2Array] = []
+	for q in small:
+		if not _in_any(_centre(q), hall, wings):
+			vest.append(q)
+	var free: Array[Vector2] = []
+	for p in pillars:
+		if not _in_any(p, hall, wings):
+			free.append(p)
+	site["pillars"] = free
+	site["hall"] = hall
+	site["wings"] = wings
+	site["boxes"] = boxes
+	site["vest"] = vest
+
+
+func _in_any(p: Vector2, hall: Array[PackedVector2Array], wings: Array[Dictionary]) -> bool:
+	for q in hall:
+		if Geometry2D.is_point_in_polygon(p, q):
+			return true
+	for w in wings:
+		if Geometry2D.is_point_in_polygon(p, _pts(w["p"])):
+			return true
+	return false
 
 
 ## Most Poniatowskiego's four towers, two at each end of the river span: OpenStreetMap
@@ -2716,92 +2762,167 @@ func _beam(a: Vector3, b: Vector3, w: float, col: Color, solid := true) -> void:
 
 # --- Warszawa Centralna -----------------------------------------------------------------------
 
-## The roof: a grid of hyperbolic-paraboloid shells (saddles whose corners rise and
-## fall in turn, so the eaves zigzag along every side) on the mapped pillars; the glass
-## hall under it; a flat canopy round it, just under the shells' low corners.
+## Colours (spec centralna.md section 5).
+const CEN_GLASS := Color("#7f9fb2")     # the hall's curtain wall, lit cool white at night
+const CEN_WING := Color("#8d9aa2")      # the wings' glass in a light concrete grid
+const CEN_STONE := Color("#bcbaab")     # mapped: the wings and their roof boxes
+const CEN_DECK := Color("#9c9a90")      # the wings' and boxes' roofs
+const CEN_DOOR := Color("#3f4c55")      # the vestibules' dark glass
+const CEN_FASCIA := Color("#e4e2dc")    # mapped white: the slab's edge and the shells' fascia
+const CEN_ROOF := Color("#638898")      # mapped roof colour
+const CEN_SOFFIT := Color("#9a968c")    # the shells' underside: the ceiling, lit at night
+const CEN_PILLAR := Color("#bdb8ad")
+## The shells' grid (local metres): the pillars stand on every other node along u (10 m apart
+## from -65.4) on the rows v -20.5 and 21.2; the ends are the shell tier's mapped edges.
+const CEN_SHELL_U0 := -65.4
+const CEN_SHELL_V := [-28.0, -20.5, -13.55, -6.6, 0.35, 7.3, 14.25, 21.2, 28.9]
+const CEN_SHELL_ENDS := Vector2(-68.5, 68.7)
+const CEN_LOW := 15.0    # a shell's low corners: the pillars' heads
+const CEN_HIGH := 16.5   # its high corners: the slab's underside
+const CEN_TOP := 18.0
+
+## The station hall's glass box under the flat overhanging slab, and between them the roof's
+## shells: hyperbolic paraboloids (saddles whose corners fall to the pillars' heads and rise
+## to the slab in turn), so the shell tier's fascia zigzags under the straight slab wherever
+## its edge shows (the two ends). At night the hall glows cool white floor by floor, the
+## shells' underside is lit, and lamps line the slab's edge.
 func _build_centralna(site: Dictionary) -> void:
 	_o = CENTRALNA
 	_a = Vector2.from_angle(deg_to_rad(CENTRALNA_TURN))
 	_b = Vector2(-_a.y, _a.x)
 	_g = _ground_under(_rect(0.0, 0.0, 70.0, 43.0))
 	var g := _g
-	var u0 := -70.0
-	var v0 := -28.5
-	var bu := 10.0
-	var bv := 19.0
-	var nu := 14
-	var nv := 3
-	var low := 15.4
-	var high := 18.6
-	var corner_h := func(i: int, j: int) -> float: return g + (high if (i + j) % 2 == 0 else low)
-	# The canopy, under the shells' low corners: the strips beyond the roof on both long sides.
-	var slab := Color("#a9adb0")
-	for side in [-1.0, 1.0]:
-		var cv: float = side * 35.75
-		_prism(_rect(0.0, cv, 70.0, 7.25), g + 14.6, g + 15.3, Color("#55595e"), slab, M_STONE, M_STONE)
-	# The shells, each in 3 x 3 facets.
-	var conc := Color("#d2cdc1")
+	var none := Color(0, 0, 0, 0)
+	# The glass hall, from the ground (the mapped storey under it is its ground floor) to the
+	# slab: the shells meet its walls.
+	for q: PackedVector2Array in site.get("hall", []):
+		_prism(q, _ground_under(q) - 0.4, g + CEN_HIGH, CEN_GLASS, none, M_PAVILION + 0.5)
+		_collide(q)
+	# The lower wings either side, from the ground, and the boxes on their roofs.
+	for w: Dictionary in site.get("wings", []):
+		var q := _pts(w["p"])
+		_prism(q, _ground_under(q) - 0.4, g + float(w["h"]), CEN_WING, CEN_DECK, M_SKIN + float(S_GRID) / 16.0, M_STONE)
+		_collide(q)
+	for bx: Dictionary in site.get("boxes", []):
+		_prism(_pts(bx["p"]), g + float(bx["mh"]), g + float(bx["h"]), CEN_STONE, CEN_DECK, M_STONE, M_STONE)
+	for q: PackedVector2Array in site.get("vest", []):
+		_prism(q, _ground_under(q) - 0.4, g + 3.3, CEN_DOOR, CEN_DOOR.darkened(0.2), M_GLASS, M_STONE)
+		_collide(q)
+	# The pillars that stand clear of the hall and the wings (the ends), solid for the car too.
+	for p: Vector2 in site.get("pillars", []):
+		var l := _local(p)
+		_lbox(l.x, l.y, 0.55, 0.55, g - 0.4, g + CEN_LOW, CEN_PILLAR, M_STONE)
+		_collide(_rect(l.x, l.y, 0.55, 0.55))
+	_centralna_shells(g, site.get("shells", PackedVector2Array()))
+	# The slab: straight white edges, the mapped roof colour on top in a faint checker of panels
+	# over the shells' bays (every panel cut to the slab's outline; the end ones reach past it).
+	var slab: PackedVector2Array = site.get("slab", _rect(0.0, 0.0, 70.0, 43.0))
+	_prism(slab, g + CEN_HIGH, g + CEN_TOP, CEN_FASCIA, none, M_STONE)
 	_mode = M_STONE
-	for j in nv:
-		for i in nu:
-			var hs := [corner_h.call(i, j), corner_h.call(i + 1, j), corner_h.call(i + 1, j + 1), corner_h.call(i, j + 1)]
-			var m := 3
-			for b in m:
-				for a in m:
-					var pts: Array[Vector3] = []
-					for c in [[a, b], [a + 1, b], [a + 1, b + 1], [a, b + 1]]:
-						var s := float(c[0]) / m
-						var t := float(c[1]) / m
-						var y: float = lerpf(lerpf(hs[0], hs[1], s), lerpf(hs[3], hs[2], s), t)
-						var p := _w(u0 + (i + s) * bu, v0 + (j + t) * bv)
-						pts.append(Vector3(p.x, y, p.y))
-					var n := (pts[1] - pts[0]).cross(pts[3] - pts[0]).normalized()
-					if n.y < 0.0:
-						n = -n
-					_quad(pts[0], pts[1], pts[2], pts[3], n, conc if (i + j) % 2 == 0 else conc.darkened(0.07))
-	# The shells' edge all round: a dark fascia that zigzags with them.
-	var edges := []
-	for i in nu:
-		edges.append([Vector2(u0 + i * bu, v0), Vector2(u0 + (i + 1) * bu, v0), corner_h.call(i, 0), corner_h.call(i + 1, 0), -_b])
-		edges.append([Vector2(u0 + i * bu, v0 + nv * bv), Vector2(u0 + (i + 1) * bu, v0 + nv * bv), corner_h.call(i, nv), corner_h.call(i + 1, nv), _b])
-	for j in nv:
-		edges.append([Vector2(u0, v0 + j * bv), Vector2(u0, v0 + (j + 1) * bv), corner_h.call(0, j), corner_h.call(0, j + 1), -_a])
-		edges.append([Vector2(u0 + nu * bu, v0 + j * bv), Vector2(u0 + nu * bu, v0 + (j + 1) * bv), corner_h.call(nu, j), corner_h.call(nu, j + 1), _a])
-	for e in edges:
-		var a: Vector2 = _wl(e[0])
-		var b: Vector2 = _wl(e[1])
-		var out: Vector2 = e[4]
-		_quad(Vector3(a.x, float(e[2]) - 0.9, a.y), Vector3(b.x, float(e[3]) - 0.9, b.y),
-				Vector3(b.x, float(e[3]) + 0.05, b.y), Vector3(a.x, float(e[2]) + 0.05, a.y), Vector3(out.x, 0, out.y), Color("#4a4d52"))
-	# The dusk loop (2026-10-31): small warm-white lamps along the fascia, every ~5 m, 0.6 m
-	# under its top line (following the zigzag), 0.08 m proud of it: quads, two triangles each.
-	var keep_mode := _mode
+	var vb := [-44.0]
+	vb.append_array(CEN_SHELL_V.slice(0, 9, 2))
+	vb.append(45.0)
+	for j in vb.size() - 1:
+		for i in 14:
+			var u0 := -80.0 if i == 0 else CEN_SHELL_U0 - 5.0 + i * 10.0
+			var u1 := 80.0 if i == 13 else CEN_SHELL_U0 + 5.0 + i * 10.0
+			var cell := PackedVector2Array([_w(u0, vb[j]), _w(u1, vb[j]), _w(u1, vb[j + 1]), _w(u0, vb[j + 1])])
+			for piece in Geometry2D.intersect_polygons(cell, slab):
+				if piece.size() >= 3 and not Geometry2D.is_polygon_clockwise(piece):
+					_cap(piece, g + CEN_TOP, CEN_ROOF.darkened(0.03) if (i + j) % 2 == 1 else CEN_ROOF)
+	# The dusk loop (2026-10-31): small warm-white lamps along the slab's edge, every ~5 m,
+	# 0.6 m under its top, 0.08 m proud of it (0.8 m: smaller ones were under a pixel from
+	# the driving camera).
 	_mode = M_LAMP
 	var lamp := Color(1.0, 0.93, 0.78)
-	for e in edges:
-		var ea: Vector2 = _wl(e[0])
-		var eb: Vector2 = _wl(e[1])
-		var eo: Vector2 = e[4]
+	for k in slab.size():
+		var ea := slab[k]
+		var eb := slab[(k + 1) % slab.size()]
+		var eo := _out(slab, ea, eb)
 		var along := (eb - ea).normalized()
-		var count := maxi(1, roundi(ea.distance_to(eb) / 5.0))
-		for k in count:
-			var t := (float(k) + 0.5) / float(count)
+		var count := roundi(ea.distance_to(eb) / 5.0)
+		for n in count:
+			var t := (float(n) + 0.5) / float(count)
 			var p := ea.lerp(eb, t) + eo * 0.08
-			var y := lerpf(float(e[2]), float(e[3]), t) + 0.05 - 0.6
-			# 0.8 m: smaller ones were under a pixel from the driving camera.
+			var y := g + CEN_TOP - 0.6
 			var l := along * 0.4
 			_quad(Vector3(p.x - l.x, y - 0.4, p.y - l.y), Vector3(p.x + l.x, y - 0.4, p.y + l.y),
 					Vector3(p.x + l.x, y + 0.4, p.y + l.y), Vector3(p.x - l.x, y + 0.4, p.y - l.y),
 					Vector3(eo.x, 0.0, eo.y), lamp)
-	_mode = keep_mode
-	# The glass hall under the roof.
-	_prism(_rect(-1.9, 0.4, 35.5, 25.6), g - 0.4, g + 14.6, Color("#7f9fb2"), Color(0, 0, 0, 0), M_GLASS)
-	_collide(_rect(-1.9, 0.4, 35.5, 25.6))
-	# The pillars that carry the shells (mapped), solid for the car too.
-	for p: Vector2 in site.get("pillars", []):
-		var l := _local(p)
-		_lbox(l.x, l.y, 0.6, 0.6, g - 0.4, g + low, Color("#bdb8ad"), M_STONE)
-		_collide(_rect(l.x, l.y, 0.6, 0.6))
+	_mode = M_STONE
+
+
+## The shell tier: a grid of hyperbolic paraboloids, each bay's corners alternately at the
+## pillars' heads (15 m) and the slab (16.5 m); every bay's underside (lit at night) folds once, and the tier's edge a white fascia from the zigzag up to
+## the slab (triangles: one end of every segment already touches the slab).
+func _centralna_shells(g: float, tier: PackedVector2Array) -> void:
+	var us: Array[float] = [CEN_SHELL_ENDS.x]
+	for k in 27:
+		us.append(CEN_SHELL_U0 + 5.0 * k)
+	us.append(CEN_SHELL_ENDS.y)
+	var vs: Array = CEN_SHELL_V
+	# The ends follow the tier's mapped outline (its ends bow out by up to 1.7 m), so the
+	# zigzag stands flush under the slab's end edge, where it shows.
+	var ends: Array[Vector2] = []
+	for v in vs:
+		# The corners: a metre in, where the line still crosses both ends.
+		ends.append(_tier_ends(tier, clampf(float(v), float(vs[0]) + 1.0, float(vs[-1]) - 1.0)))
+	var ni := us.size() - 1
+	var corner := func(i: int, j: int) -> Vector3:
+		var u: float = ends[j].x if i == 0 else (ends[j].y if i == ni else us[i])
+		var p := _w(u, float(vs[j]))
+		return Vector3(p.x, g + (CEN_LOW if (i + j) % 2 == 0 else CEN_HIGH), p.y)
+	_mode = M_LAMP
+	for j in vs.size() - 1:
+		for i in us.size() - 1:
+			var c00: Vector3 = corner.call(i, j)
+			var c10: Vector3 = corner.call(i + 1, j)
+			var c01: Vector3 = corner.call(i, j + 1)
+			var c11: Vector3 = corner.call(i + 1, j + 1)
+			# One fold along the diagonal joining the two low corners (the valley the pillars
+			# carry): seen only from under the slab, so no finer than that.
+			var lows := (i + j) % 2 == 0
+			var tris := [[c00, c10, c11], [c00, c11, c01]] if lows else [[c00, c10, c01], [c10, c11, c01]]
+			for tr in tris:
+				var n: Vector3 = (tr[1] - tr[0]).cross(tr[2] - tr[0]).normalized()
+				if n.y > 0.0:
+					n = -n
+				_tri(tr[0], tr[1], tr[2], n, CEN_SOFFIT, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	# The fascia round the tier: along each side, triangles from the zigzag up to the slab.
+	_mode = M_STONE
+	var nj := vs.size() - 1
+	var edges: Array = []  # [i0, j0, i1, j1, outward]
+	for k in ni:
+		edges.append([k, 0, k + 1, 0, -_b])
+		edges.append([k, nj, k + 1, nj, _b])
+	for k in nj:
+		edges.append([0, k, 0, k + 1, -_a])
+		edges.append([ni, k, ni, k + 1, _a])
+	for e in edges:
+		var out: Vector2 = e[4]
+		var p0: Vector3 = corner.call(e[0], e[1])
+		var p1: Vector3 = corner.call(e[2], e[3])
+		var length := Vector2(p0.x, p0.z).distance_to(Vector2(p1.x, p1.z))
+		var low_end := p0 if p0.y < p1.y else p1
+		var top := Vector3(low_end.x, g + CEN_HIGH, low_end.z)
+		_tri(p0, p1, top, Vector3(out.x, 0.0, out.y), CEN_FASCIA, Vector2(0.0, p0.y - g),
+				Vector2(length, p1.y - g), Vector2(0.0 if p0.y < p1.y else length, CEN_HIGH), CEN_HIGH)
+
+
+## Where the line v (the shell tier's local plan) crosses the tier's outline: its west and
+## east ends (CEN_SHELL_ENDS when the outline is missing or the line misses it).
+func _tier_ends(tier: PackedVector2Array, v: float) -> Vector2:
+	var lo := INF
+	var hi := -INF
+	for k in tier.size():
+		var a := _local(tier[k])
+		var b := _local(tier[(k + 1) % tier.size()])
+		if (a.y - v) * (b.y - v) > 0.0 or is_equal_approx(a.y, b.y):
+			continue
+		var u := lerpf(a.x, b.x, (v - a.y) / (b.y - a.y))
+		lo = minf(lo, u)
+		hi = maxf(hi, u)
+	return Vector2(lo, hi) if hi > lo else CEN_SHELL_ENDS
 
 
 # --- Most Poniatowskiego's towers ---------------------------------------------------------------
