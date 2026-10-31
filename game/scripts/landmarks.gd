@@ -269,6 +269,9 @@ const INFO := {
 	"europejski": ["Hotel Europejski",
 			"Klasycystyczny hotel z lat 1857–1877 przy Krakowskim Przedmieściu.",
 			"A classical hotel of 1857–1877 on Krakowskie Przedmieście."],
+	"msn": ["Muzeum Sztuki Nowoczesnej",
+			"Biały gmach Thomasa Phifera przy Placu Defilad. Otwarty w 2024 roku.",
+			"Thomas Phifer's white museum on Plac Defilad. Opened in 2024."],
 	"grob": ["Grób Nieznanego Żołnierza",
 			"Trzy łuki ocalałe z Pałacu Saskiego. Wieczny ogień i warta.",
 			"Three arches left of the Saxon Palace. An eternal flame, a guard."],
@@ -506,6 +509,8 @@ func _find_sites() -> void:
 		# and the hotel itself stays the map's.
 		var e := _box_of([metropol]).end
 		_add_site("metropolsign", [PackedVector2Array([e, e + Vector2(0.2, 0), e + Vector2(0.2, 0.2), e + Vector2(0, 0.2)])])
+	# First scene item 1 (2026-10-31): the Museum of Modern Art on Plac Defilad.
+	_find_msn()
 
 
 ## Warszawa Centralna: OpenStreetMap maps the station in 3D (its outline sits underground):
@@ -680,6 +685,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_wiktoria(s)
 			"metropolsign":
 				_build_metropol_sign(s)
+			"msn":
+				_build_msn(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -3065,6 +3072,95 @@ func _build_europejski(site: Dictionary) -> void:
 		_mode = M_GLASS
 		_wall(_w(-1.6, 0.86), _w(1.6, 0.86), g, g + 4.9, _b, EUROPEJSKI_GLASS, -0.85)
 	_collide(ring)
+
+
+# --- Muzeum Sztuki Nowoczesnej ------------------------------------------------------------
+
+## The Museum of Modern Art (Thomas Phifer, 2024), first scene item 1 (2026-10-31), built to its
+## spec docs/landmarks/specs/msn.md from the museum's OpenStreetMap parts: one long white box on
+## a glazed ground floor behind deep white fins, a thin dark slot all round where the upper box
+## sits back, two "city room" windows, long skylights on the flat roof. Its plan frame: u along
+## the long side (north-north-west end at u < 0), +v towards the Palace, -v Marszałkowska.
+const MSN := Vector2(-1022.4, 100.15)
+const MSN_AXIS := Vector2(0.3445, 0.9388)
+const MSN_HU := 51.85          # the box's half length and half width (the outline)
+const MSN_HV := 19.9
+const MSN_INSET := 0.7         # the slot band sits this far in
+const MSN_CORE := Vector2(45.8, 13.95)  # the glazed ground floor's half plan
+const MSN_BASE := 5.0          # the soffit
+const MSN_SLOT := Vector2(12.5, 13.8)
+const MSN_H := 26.0
+## The fins' centres (u) on the Marszałkowska face (v -17.4) and the Plac Defilad face (v +17.35).
+const MSN_FINS_EAST := [-50.4, -39.4, -26.4, -18.4, -10.4, 0.4, 7.4, 15.3, 26.4, 33.8, 40.8, 50.4]
+const MSN_FINS_WEST := [-50.4, -39.5, -32.5, -26.5, -18.5, -10.6, 0.4, 7.3, 15.2, 26.2, 33.7, 40.7, 50.3]
+## The ends' fins, turned along u: [u, v].
+const MSN_FINS_END := [[-49.4, 3.95], [-49.4, -8.5], [49.4, 6.3], [49.4, -8.55]]
+const MSN_SKY_V := [-9.0, 0.0, 9.0]
+const MSN_WHITE := Color("#ebe9e3")
+const MSN_ROOF := Color("#d9d8d2")
+const MSN_LOBBY := Color("#a9c3cd")
+const MSN_SLOT_GLASS := Color("#4a5960")
+const MSN_WINDOW := Color("#8fa9b6")
+const MSN_SKY := Color("#b9c8d0")
+func _find_msn() -> void:
+	var outline := _landmark("Muzeum Sztuki Nowoczesnej")
+	if outline.size() < 3:
+		return
+	# Grown a metre so the fins and the mapped parts on the edge go with it.
+	var grown := Geometry2D.offset_polygon(outline, 1.0, Geometry2D.JOIN_MITER)
+	_add_site("msn", [grown[0] if not grown.is_empty() else outline])
+
+
+func _build_msn(_site: Dictionary) -> void:
+	_o = MSN
+	_a = MSN_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	var box := _rect(0.0, 0.0, MSN_HU, MSN_HV)
+	_g = _ground_under(box)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	# w1, w2: the city-room windows first, flush, so the upper wall is cut round them.
+	_mode = M_PAVILION
+	_wall(_w(6.0, MSN_HV), _w(30.0, MSN_HV), g + 16.5, g + 23.0, _b, MSN_WINDOW)
+	_wall(_w(-30.0, -MSN_HV), _w(-12.0, -MSN_HV), g + 16.5, g + 22.0, -_b, MSN_WINDOW)
+	# core: the glazed lobby, lit warm at night.
+	_prism(_rect(0.0, 0.0, MSN_CORE.x, MSN_CORE.y), g - 0.4, g + MSN_BASE, MSN_LOBBY, none, M_PAVILION)
+	# fins
+	for u: float in MSN_FINS_EAST:
+		_prism(_rect(u, -17.4, 0.5, 1.5), g - 0.4, g + MSN_BASE, MSN_WHITE, none, M_STONE)
+	for u: float in MSN_FINS_WEST:
+		_prism(_rect(u, 17.35, 0.5, 1.5), g - 0.4, g + MSN_BASE, MSN_WHITE, none, M_STONE)
+	for f: Array in MSN_FINS_END:
+		_prism(_rect(f[0], f[1], 1.5, 0.5), g - 0.4, g + MSN_BASE, MSN_WHITE, none, M_STONE)
+	_mode = M_STONE
+	# soffit
+	_msn_ring(MSN_HU, MSN_HV, MSN_CORE.x, MSN_CORE.y, g + MSN_BASE, Vector3.DOWN, MSN_WHITE.darkened(0.12))
+	# lower
+	_prism(box, g + MSN_BASE, g + MSN_SLOT.x, MSN_WHITE, none, M_STONE)
+	# ledge, slot, under
+	var hu := MSN_HU - MSN_INSET
+	var hv := MSN_HV - MSN_INSET
+	_msn_ring(MSN_HU, MSN_HV, hu, hv, g + MSN_SLOT.x, Vector3.UP, MSN_WHITE)
+	_prism(_rect(0.0, 0.0, hu, hv), g + MSN_SLOT.x, g + MSN_SLOT.y, MSN_SLOT_GLASS, none, M_GLASS)
+	_mode = M_STONE
+	_msn_ring(MSN_HU, MSN_HV, hu, hv, g + MSN_SLOT.y, Vector3.DOWN, MSN_WHITE.darkened(0.15))
+	# upper, with its roof
+	_prism(box, g + MSN_SLOT.y, g + MSN_H, MSN_WHITE, MSN_ROOF, M_STONE, M_STONE)
+	# sky
+	for v: float in MSN_SKY_V:
+		_lbox(0.0, v, 42.0, 1.2, g + MSN_H, g + MSN_H + 0.9, MSN_WHITE, M_STONE, MSN_SKY)
+	_collide(box)
+
+
+## A flat ring in the museum's frame between the half plans (hu, hv) and (iu, iv) at y, facing
+## `n` (up for a ledge, down for a soffit): four quads.
+func _msn_ring(hu: float, hv: float, iu: float, iv: float, y: float, n: Vector3, col: Color) -> void:
+	for r: Array in [[-hu, -hv, -iu, hv], [iu, -hv, hu, hv], [-iu, -hv, iu, -iv], [-iu, iv, iu, hv]]:
+		var p0 := _w(r[0], r[1])
+		var p1 := _w(r[2], r[1])
+		var p2 := _w(r[2], r[3])
+		var p3 := _w(r[0], r[3])
+		_quad(Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), Vector3(p2.x, y, p2.y), Vector3(p3.x, y, p3.y), n, col)
 
 
 ## The Tomb of the Unknown Soldier: the three arches left of the Saxon Palace's colonnade (blown

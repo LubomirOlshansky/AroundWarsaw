@@ -72,7 +72,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   base with the glazed lobby behind, one long ribbon of windows at mid-height, a few big upper
   windows, long skylights on the flat roof, a card. Spec and the values still to set:
   docs/design/first-scene.md "Spec for item 1". Landmarks lane: Opus spec, `object-modeler`
-  builds, `art-director` accepts.
+  builds, `art-director` accepts. **Built 2026-10-31** (site `msn`, spec
+  `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Left: the photo check on the
+  Mac (the two city-room windows' faces and sizes and the skylight count are estimates; the
+  photos in `refs/` were not reachable from the cloud), and TR Warszawa next door.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
   photos per building in `refs/` (Wikimedia Commons, gitignored; fetched on the Mac, the cloud
