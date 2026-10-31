@@ -630,10 +630,10 @@ func _make_ride(n: int, e: int, s: float, from: Vector2, lo: float, hi: float) -
 	var named: Array = []
 	if rivals != null and rng.randf() < NAMED_SHARE:
 		var dist := graph.distances_from(graph.e_b[r["p_e"]])
-		var inner: Rect2 = map.bounds.grow(-40.0)
 		for f in rivals.get("_finishes"):
-			# Nobody asks to be taken to the far end of a bridge, or to the map's edge.
-			if String(f["name"]).contains("Most") or not inner.has_point(graph.node_pos[int(f["node"])]):
+			# Nobody asks to be taken to the far end of a bridge, or to the map's edge (map north:
+			# the L-shaped outline's, 40 m in).
+			if String(f["name"]).contains("Most") or not map.in_map(graph.node_pos[int(f["node"])], -40.0):
 				continue
 			var road: float = graph.e_len[r["p_e"]] - float(r["p_s"]) + dist[int(f["node"])]
 			if road >= RIDE_MIN and road <= RIDE_MAX:
@@ -1269,6 +1269,8 @@ func _bank_spots(data: Dictionary) -> bool:
 	var t0 := Time.get_ticks_usec()
 	for b: Array in bank:
 		var w := Vector2(float(b[0]), float(b[1]))
+		if not map.in_map(w, -SCAN):
+			continue  # map north: never in the corner left outside
 		var hit := graph.snap(Vector2(float(b[2]), float(b[3])), BANK_SNAP, Vector2.ZERO, true, true)
 		if hit.is_empty():
 			continue
@@ -1337,6 +1339,9 @@ func _finish_river_spots() -> void:
 ## over dry, open ground.
 func _try_spot(edge: Vector2, into: Vector2) -> void:
 	var t := Vector2(-into.y, into.x)
+	# Map north: the scan runs over the bounding box; a spot keeps to the map's outline.
+	if not map.in_map(edge, -SCAN):
+		return
 	# The river, not a pond or a fountain: still deep water 60 m out.
 	var deep := edge + into * 60.0
 	if map.shore_distance(deep.x, deep.y) < 40.0:

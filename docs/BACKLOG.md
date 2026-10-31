@@ -56,6 +56,38 @@ Small problems that agents reported or that showed up in screenshots. They are f
   rebuild the prebuilt sectors with `bake_city.gd` (a renderer, never `--headless`); render
   before/after with the Mobile renderer on lavapipe (docs/DEVELOPMENT.md "Cloud rendering").
 
+## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
+- **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;
+  the designer (`game-designer`, Sonnet for the text) specs it, `warsaw-tone` rules apply (real
+  brands only as parodies, affectionate, Polish with English).
+- **Coffee raves** (poranne kawowe imprezy): daytime, sober-ish dance mornings, a flat white in
+  one hand and a DJ on a pallet stage. Real Warsaw has them in cafes, courtyards and on the
+  Vistula boulevards (Sunday 10:00-14:00). Fiction: a morning counterpart to the five clubs. Two
+  or three parody venues, e.g. **Kawa Zero** (a courtyard in Praga), **Flat Biały** (a
+  Powiśle cafe with a terrace) and a pop-up on the Bulwary. Crowd: cargo bikes, oat-milk jokes,
+  strollers with headphones, a queue for the barista rather than the door. Shut at night.
+- **Arthouse cinemas** (kina studyjne): small screens in old halls, a bar, a repertory board.
+  Parody names for the real ones: **Kino Muranek** (for Muranów), **Iluzja** (Iluzjon),
+  **Kultura 24** (Kultura), **Elektroniczne** (Elektronik), **Kinoteka Pałacowa** (Kinoteka, in
+  the Palace of Culture). Facade = a hand-painted poster board and a neon title strip; a hush
+  rather than a crowd; a small queue before the evening show (18:00-21:00).
+- **Fit with existing systems** (no new system needed):
+  - *Notebook places*: each venue is a `places.json` entry with a card (`hours`, `district`,
+    a note line), unlocked when you stop at it, like the Wiralek and the clubs.
+  - *Venues with queues*: reuse MW-3's queue and hour curves: coffee raves peak Sun/Sat
+    morning, cinemas in the evening. Neon fascia through `storefronts.gd`.
+  - *Day/night schedule*: raves open 08:00-14:00 and are dark at night; cinemas the reverse.
+    That gives the day a nightlife of its own, so a Day run is not empty.
+  - *Eggs*: a DJ who plays only the horn tune; a film that is "three hours of a pigeon" on a
+    Kino Muranek board; a cinema bar that only serves coffee at a rave and wine at a premiere.
+  - *Radio / dialogue*: a morning DJ spot on the radio and one-liners in `dialogue.json`
+    (rave-goers, ushers).
+  - *Jobs*: a possible courier or taxi run: carry a DJ's crate to the rave, or a film reel to
+    the cinema before the show (uses `rides.gd` finishes).
+- **Open**: the final parody names (F's pick), whether raves are Sunday-only, and the
+  locations (map lane: pick real addresses from `centrum.json` POIs). Default if unanswered:
+  the names above, daily 08:00-14:00 at weekends only.
+
 ## From v0.6 (traffic, trams, pedestrians, rivals)
 - ~~Cars can overlap briefly in complex junctions~~ (fewer by three quarters, the traffic loop
   2026-10-30: junction cars watch each other's body and path, `--traffic-overlaps` counts them;
@@ -1044,14 +1076,21 @@ Small problems that agents reported or that showed up in screenshots. They are f
   car park, OSM way 91341678 and ramps, is left out of the bake: the car-park race of DEMO 6.4 needs
   it modelled). Their parts are in the index's `site_parts` (`bake_sectors.py` SITE_NAMES "Westfield
   Arkadia", a SITE_AREAS box for Forest).
-- **For the gameplay lanes** (not built here; the map has a corner left `outside` since map north):
+- ~~**For the gameplay lanes** (not built here; the map has a corner left `outside` since map north):
   the helicopter's clamp (`heli.gd`, `bounds.grow(-12)`), the car's off-map test (`main.gd`
   `_node_spot`), Podwózka's named finishes and river scan (`rides.gd`), the missions' and eggs'
   random spots (`missions.gd`, `eggs.gd`) and the minimap's frame (`hud.gd`, `full_map.gd`) still
   use the bounding rectangle: the helicopter can fly over the empty north-east corner (nothing is
   drawn there; the edge walls stop the car), and a random spot there snaps to the nearest road.
   `map_builder.gd` `in_map(p, pad)`, `map_outline()` and `clip_to_map()` give the shape. A notebook
-  place for Rondo Radosława / Arkadia is the content lane's (`game/data` places).
+  place for Rondo Radosława / Arkadia is the content lane's (`game/data` places).~~ **Done (the
+  L-shaped map loop, 2026-10-31)**: all of them use the outline (DEVELOPMENT.md "The L-shaped map in
+  gameplay"); the minimap and full map shade the corner as off the map; Rondo Radosława, Arkadia and
+  Forest are notebook places (a ninth card in `kiedys`, `codziennie` and `bary`: the 9 x 8 rule is
+  now 8 to 10 a chapter, QUESTIONS); `check_edge` proves the clamp, the spots and the mask.
+- **From the L-shaped map loop**: the barriers' day street (eggs.gd) may differ near the corner for
+  some dates (the pool of segments 120 m inside the outline is smaller); the helicopter's clamp is
+  only in heli.gd: an autopilot target in the corner (none today) would be chased along the edge.
 - **Rondo Radosława's ring has no spiral lane lines** (`bake_roads._spiral_rings`: its pieces carry 2
   and 3 lanes, and the first piece decides): plain lane lines; cosmetic.
 - **The committed maps grow with the bounding box** (ao.bin and lights.bin 40 → 48 MB, water.bin
@@ -1062,8 +1101,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   L1 15 OSM blocks drawn inside a model whose centroid misses them (towers' podiums, courtyard
   wings), L2 73 big outlines a small model's centroid falls in (the outline hidden, the model
   small); `tools/check_lod2.py` lists them with `--at=`.
-- **check_police P12 "guard car follows 15 s" failed once** in the full `verify.sh --ios` run
-  (map north, 2026-10-31) and passed 3 of 3 alone: a timing-sensitive case under load (gameplay lane).
+- ~~**check_police P12 "guard car follows 15 s" failed once** in the full `verify.sh --ios` run
+  (map north, 2026-10-31) and passed 3 of 3 alone: a timing-sensitive case under load (gameplay lane).~~
+  **Fixed (the L-shaped map loop)**: not load but chance (1 run in 12 alone): the guards' car's
+  random spot missed the check's one road 4 tries running; each case now seeds the random numbers
+  (`FRESH_SEED`): 20/20 alone, 21/21 three at a time.
 - **The viaducts at the north edge**: Jana Pawła II's and Andersa's decks over the ring railway end
   in the air at the edge (C6 allows the rim; the edge walls stop the car 5 m before). The ring railway
   and Dworzec Gdański's platforms lie just past it; the next growth north takes them in whole
@@ -1648,6 +1690,13 @@ Small problems that agents reported or that showed up in screenshots. They are f
   view it is a few pixels. The art director may want it bigger or red.
 
 ## From the content-POIs loop (map lane, 2026-10-31)
+
+- **check_streaming's `look` pass depends on the Mac's frame rate** (found 2026-10-31): the look
+  waits `LOOK_WAIT_MS` (1.5 s) of wall-clock time while the sectors load a slice a frame, so on a
+  busy Mac whose frames ran at 16.7 ms (the iOS Simulator of another project running) s_-6_0 was
+  still loading when the camera arrived (24 frames over 5 %, frame 1338); at 8.4 ms and 1.5 ms
+  frames the same code passed. Fix (map lane): wait in frames, or run the pass on a frame budget
+  that doesn't change with the machine; the iPhone 11's 60 Hz is the case that counts.
 
 - **The content lane's switch** (storefronts.gd, roundup_job.gd, props.gd; none of it built):
   the Leżaks from the `scooter` pois (`p` the pose: `lie` on its side as today; `stand` upright;

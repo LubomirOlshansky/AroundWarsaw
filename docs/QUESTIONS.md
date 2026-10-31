@@ -12,14 +12,25 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | --- | --- | --- | --- |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
-| gameplay (content thread) | The L-shaped map in gameplay (helicopter clamp, off-map test, random spots, minimap/full map), notebook places for Rondo Radosława and Arkadia, check_police P12's flake | cloud thread "Add autonomous backlog workflow" | 2026-10-31 |
 | map | The loading fix (on-screen sectors first, proxies that look like the city), then the map north to Rondo Radosława, Arkadia and Forest (3d-1, 3d-2a, 3d-2b and 3e landed) | thread "Finish the demo map extension" | 2026-10-30 |
 | map | Free: the next map item by priority (3d-1, 3d-2a, 3d-2b, 3e, the loading fix, map north and the content POIs landed) | thread "Finish the demo map extension" | 2026-10-30 |
+| gameplay | Loop 3h part 1, slice 1: save v2 and districts (discovery, "?" marks, completion); Syrenki, ladder, first 10 minutes and end card follow in their own threads | thread "Build demo loop save and districts" | 2026-10-31 |
 
 ## Waiting
 
 Newest first. One entry per question.
 
+- **2026-10-31 · content · L-shaped map** — The notebook's 9 chapters × 8 cards rule: the new places
+  (Rondo Radosława in `kiedys`, Arkadia in `codziennie`, Forest in `bary`) went in as ninth cards, the
+  rule is now 8–10 per chapter and a chapter of 9 is drawn 5 × 2. Default built: that. Alternative: a
+  10th chapter "Północ · Up north" (the chips row is already tight). The words for the 3 places are
+  mine, for the designer's review.
+- **2026-10-31 · visuals · L-shaped map** — The off-map tan (#c8b48e) is drawn on the minimap and the
+  full map past the bounds as well as over the corner, so the edge reads the same everywhere.
+  Default built: that. Alternative: tint only the corner. Wants an art-director look.
+- **2026-10-31 · content · L-shaped map** — The streamed and prebuilt paths with the L were not seen
+  here (derived index stale; every shot is `--monolithic`). Check on the Mac after
+  `tools/setup_map.sh --if-needed`.
 - **2026-10-31 · landmarks (content thread) · Plac Piłsudskiego 2** — Sofitel Victoria is shown as
   **"Hotel Wiktoria"** (Sofitel is a brand). Default built: Hotel Wiktoria, a 30 m slab on an 8 m
   podium (estimated). F can veto the name.
