@@ -125,9 +125,11 @@ func _check_zones(marks, data: Dictionary) -> void:
 				or name == "Hotel Europejski" \
 				or (Rect2(-871.0, -776.0, 11.0, 15.0).has_point(c) and float(bld["h"]) < 7.0) \
 				or (str(bld["c"]) in ["#9cafb3", "#a9adb2"] and Rect2(-870, -1000, 130, 120).has_point(c)) \
-				or (str(bld.get("kind", "")) == "roof" and Rect2(-735, -670, 20, 15).has_point(c))
+				or (str(bld.get("kind", "")) == "roof" and Rect2(-735, -670, 20, 15).has_point(c)) \
+				or name in ["Zachęta", "Pałac Prezydencki"] \
+				or (name == "Kościół Świętej Trójcy" and Rect2(-880, -535, 50, 55).has_point(c))
 		var want_keep := (name == "Krzyż Papieski") or (str(bld.get("kind", "")) == "garage" and Rect2(80, 260, 40, 25).has_point(c)) \
-				or name in ["Pałac Potockich", "Teatr Narodowy", "Zachęta"] \
+				or name in ["Pałac Potockich", "Teatr Narodowy"] \
 				or (str(bld.get("kind", "")) == "outbuilding" and Rect2(-735, -610, 25, 15).has_point(c))
 		if want_drop:
 			dropped += 1
