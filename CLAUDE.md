@@ -18,6 +18,7 @@ a high-quality demo of central Warsaw on the iPhone (docs/DEMO.md). The repo is 
 | `docs/WORKFLOW.md` | how the work is run: the loop, who owns what, definition of done, milestone gates |
 | `docs/ROADMAP.md` | order of work and the progress log · `docs/BACKLOG.md` found issues and decisions |
 | `docs/QUESTIONS.md` | parked questions for the user (with the default built) and the lanes in progress |
+| `docs/LANDMARKS.md` | every landmark and building: what is done and how, and the plan by priority (P0 tools, P1 heroes, P2 named, P3 generic) |
 | `docs/DEMO.md` | the demo plan: area, quality bar, road defects, police, milestones |
 | `CREDITS.md`, `LICENSE` | data licences (ODbL, GUGiK, CC BY 4.0) and MIT |
 | `data/raw/`, `build/`, `shots/`, `game_*/`, `refs/` | raw downloads, builds, screenshots, temp copies, reference photos: gitignored, never committed |

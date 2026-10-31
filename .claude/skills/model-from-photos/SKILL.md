@@ -133,7 +133,8 @@ kind repeated across the whole map gets one MultiMesh. No new node, material or 
 - **The user picks last**: the report to the user shows photo, before and after for each hero
   landmark; the user's "no" sends it back.
 
-**A log per landmark**: `docs/landmarks/<slug>.md` (short): the spec's link, the scores per
+**The list**: `docs/LANDMARKS.md` holds every landmark's state and the plan by priority; a
+thread that lands an item ticks its row there. **A log per landmark**: `docs/landmarks/<slug>.md` (short): the spec's link, the scores per
 pass, what was fixed, what still differs from the photos. The next thread reads it first.
 
 ## 6. Who does what
