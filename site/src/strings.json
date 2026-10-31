@@ -1,166 +1,23 @@
 {
-  "hero": "hero-palace-dusk",
+  "hero": "rotunda-rain-night",
   "reel": [
     {
-      "img": "narodowy-night",
+      "img": "palace-day",
       "w": 1920,
       "h": 884,
+      "span": "lead",
       "en": [
-        "Stadion Narodowy",
-        "Red and white, and lit all night. The bridge lamps do the rest.",
-        "Stadion Narodowy at night in the game, the bridge's lamps reflected in the Vistula"
+        "The Palace of Culture by day",
+        "The same view as the first screen, in daylight, with Złote Tarasy beside it.",
+        "The Palace of Culture by day in the game, with the glass domes of Złote Tarasy and the towers of Śródmieście"
       ],
       "pl": [
-        "Stadion Narodowy",
-        "Biało-czerwony i świeci całą noc. Resztę robią latarnie mostu.",
-        "Stadion Narodowy nocą w grze, latarnie mostu odbite w Wiśle"
-      ]
-    },
-    {
-      "img": "rotunda-rain-night",
-      "w": 1920,
-      "h": 884,
-      "en": [
-        "Rondo Dmowskiego, in the rain",
-        "Wet tarmac, the Rotunda glowing, a kebab neon that never closes.",
-        "Rondo Dmowskiego in the rain at night: the glowing Rotunda, headlights on wet tarmac and a kebab neon"
-      ],
-      "pl": [
-        "Rondo Dmowskiego w deszczu",
-        "Mokry asfalt, świecąca Rotunda i neon kebaba, który nigdy nie zamyka.",
-        "Rondo Dmowskiego w deszczu nocą: świecąca Rotunda, reflektory na mokrym asfalcie i neon kebaba"
-      ]
-    },
-    {
-      "img": "palace-night",
-      "w": 1920,
-      "h": 884,
-      "en": [
-        "The Palace at night",
-        "Floodlit, with the clock set to Warsaw time.",
-        "The Palace of Culture floodlit at night, its gold spire above the dark business district"
-      ],
-      "pl": [
-        "Pałac nocą",
-        "W iluminacji, a zegar chodzi według czasu w Warszawie.",
-        "Pałac Kultury nocą w iluminacji, złota iglica nad ciemnym centrum biurowym"
-      ]
-    },
-    {
-      "img": "poniatowski-night",
-      "w": 1920,
-      "h": 884,
-      "en": [
-        "Most Poniatowskiego",
-        "Golden arches on the Vistula. Please don't test the water with your wheels.",
-        "Most Poniatowskiego over the Vistula at night, golden reflections under its arches"
-      ],
-      "pl": [
-        "Most Poniatowskiego",
-        "Złote przęsła na Wiśle. Prosimy nie sprawdzać wody kołami.",
-        "Most Poniatowskiego nad Wisłą nocą, złote odbicia pod przęsłami"
-      ]
-    },
-    {
-      "img": "varso-dusk",
-      "w": 1920,
-      "h": 912,
-      "en": [
-        "Varso and Złote Tarasy",
-        "Sunset on the towers over Aleje Jerozolimskie.",
-        "Varso Tower and Złote Tarasy at sunset above Aleje Jerozolimskie"
-      ],
-      "pl": [
-        "Varso i Złote Tarasy",
-        "Zachód słońca na wieżowcach nad Alejami Jerozolimskimi.",
-        "Varso Tower i Złote Tarasy o zachodzie słońca nad Alejami Jerozolimskimi"
-      ]
-    },
-    {
-      "img": "narodowy-day",
-      "w": 1920,
-      "h": 884,
-      "en": [
-        "Powiśle to Praga",
-        "The stadium, the bridge and the Vistula's sandbanks by day.",
-        "Stadion Narodowy by day, with Most Poniatowskiego and the Vistula's sandbanks behind it"
-      ],
-      "pl": [
-        "Od Powiśla po Pragę",
-        "Stadion, most i łachy Wisły w dzień.",
-        "Stadion Narodowy w dzień, za nim Most Poniatowskiego i łachy Wisły"
-      ]
-    },
-    {
-      "img": "heli-vistula-day",
-      "w": 1920,
-      "h": 884,
-      "en": [
-        "Or take the helicopter",
-        "Rescue calls from above the river. Trams and buses keep running below.",
-        "The rescue helicopter over the Vistula by Most Poniatowskiego, a tram and buses on the bridge"
-      ],
-      "pl": [
-        "Albo helikopter",
-        "Wezwania ratunkowe znad rzeki. Na dole jeżdżą tramwaje i autobusy.",
-        "Śmigłowiec nad Wisłą przy Moście Poniatowskiego, na moście tramwaj i autobusy"
+        "Pałac Kultury w dzień",
+        "Ten sam widok co na pierwszym ekranie, ale w dzień, ze Złotymi Tarasami obok.",
+        "Pałac Kultury w dzień w grze, ze szklanymi kopułami Złotych Tarasów i wieżowcami Śródmieścia"
       ]
     }
   ],
-  "moves": {
-    "en": [
-      [
-        "Kebab at 3 a.m.",
-        "Hot when it leaves. Warm if you're quick."
-      ],
-      [
-        "Helicopter rescues",
-        "Swap the car for a rotor and land where the call is."
-      ],
-      [
-        "Street races",
-        "Seba from Praga is already revving."
-      ],
-      [
-        "Podwózka",
-        "Drive for the ride app that trusts its GPS more than it trusts you."
-      ],
-      [
-        "The police",
-        "They're here, with a sense of humour. No fines. A little talk, maybe."
-      ],
-      [
-        "Kebab FM",
-        "And Rondo FM, and Mordor FM. Pigeons not included."
-      ]
-    ],
-    "pl": [
-      [
-        "Kebab o trzeciej",
-        "Gorący, kiedy wyjeżdża. Ciepły, jeśli się pospieszysz."
-      ],
-      [
-        "Akcje helikopterem",
-        "Zamień auto na wirnik i ląduj tam, gdzie wzywają."
-      ],
-      [
-        "Wyścigi",
-        "Seba z Pragi już grzeje silnik."
-      ],
-      [
-        "Podwózka",
-        "Jeździsz dla aplikacji, która ufa GPS-owi bardziej niż Tobie."
-      ],
-      [
-        "Policja",
-        "Jest, ale z humorem. Mandatu nie będzie. Pogadanka owszem."
-      ],
-      [
-        "Kebab FM",
-        "I Rondo FM, i Mordor FM. Gołębie w cenie."
-      ]
-    ]
-  },
   "topics": {
     "en": [
       [
@@ -209,32 +66,24 @@
     "other_lang_short": "PL",
     "other_lang_name": "Po polsku",
     "other_lang_label": "Polska wersja",
-    "title": "Around Warsaw · drive the real centre of Warsaw",
-    "description": "An arcade drive through the real centre of Warsaw, built from open map data. Day, night and rain, from the Palace of Culture to Stadion Narodowy. Free beta for iPhone and Android.",
+    "title": "Around Warsaw · an open-source game about living in Warsaw",
+    "description": "An open-source arcade game for iPhone and Android, set in the real centre of Warsaw: missions, city lore and the night city's humour. Built from open map data. Free beta.",
     "skip": "Skip to content",
     "brand_label": "Around Warsaw, home",
     "nav_label": "Main",
     "nav_city": "The city",
-    "nav_play": "Play",
     "nav_beta": "Get the beta",
-    "hero_alt": "The Palace of Culture at dusk in the game, floodlit, with Złote Tarasy and the towers of Śródmieście",
-    "hook": "The real centre of Warsaw, street by street, built from open map data. Take a small car (or a helicopter) through it by day, at night and in the rain.",
+    "hero_alt": "Rondo Dmowskiego in the rain at night in the game: the glowing Rotunda, headlights on wet tarmac and a kebab neon",
     "cta_beta": "Get the beta",
-    "cta_web": "Play online",
-    "cta_web_note": "In your browser: Chrome, Safari or Firefox; about 140 MB to load the first time",
-    "cta_free": "free, no ads",
+    "cta_free": "Free, no ads, MIT-licensed. Beta for iPhone and Android.",
     "radio_label": "On the car radio",
     "radio_lines": "Traffic on Marszałkowska: yes, as always <i>·</i> The Palace clock is right, we checked <i>·</i> Pigeons on Plac Defilad report no delays <i>·</i> Seba from Praga is warming up the engine <i>·</i> Next on Mordor FM: Monday <i>·</i> The roadworks continue. You keep driving <i>·</i>",
-    "city_title": "The city is the main character",
-    "city_lede": "Every street, bridge and square in a 3.5 × 1.8 km slice of central Warsaw is where it really is, from OpenStreetMap and Poland's surveying office. The landmarks are built by hand.",
-    "shots_credit": "Screenshots from the current build.",
-    "play_title": "Things to do tonight",
-    "facts": "Free. No ads, no purchases, no tracking. Plays offline. Open source.",
+    "city_title": "The real centre of Warsaw",
+    "city_lede": "About 21 km² from Arkadia to Stadion Narodowy, built from open map data.",
     "beta_title": "Get the beta",
     "beta_lede": "Leave your email and say which phone you have. You'll get an invite with the next build. Or just tell me what to build next.",
     "beta_ios": "iPhone: an invite to TestFlight, Apple's app for betas.",
     "beta_android": "Android: an invite to the test on Google Play. The phone needs Vulkan.",
-    "maker": "Made in Warsaw by Lubomir Olshansky. One person, a lot of open data. Say hi:",
     "f_topic": "What is it about?",
     "f_platform": "Your phone",
     "f_platform_none": "Doesn't matter",
@@ -257,7 +106,30 @@
     "foot_support": "Support",
     "foot_credits": "Credits",
     "foot_note": "Map:",
-    "foot_parody": "Every brand in the game is a parody."
+    "foot_parody": "Every brand in the game is a parody.",
+    "nav_missions": "Missions",
+    "nav_open": "Open source",
+    "tag_open": "Open source",
+    "hook": "An open-source game for iPhone and Android about living in Warsaw. Drive a small car through the real city centre: kebab runs at 3 a.m., rescues, and a notebook of 72 real places.",
+    "cta_source": "Source on GitHub",
+    "missions_title": "Missions with a Warsaw accent",
+    "missions_lede": "Real addresses, and the city talks back in Polish and English.",
+    "open_title": "Open source, built in public",
+    "open_lede": "Around Warsaw is a free fan game made in the open. Read the code, browse the design wiki, follow what changed each day, or send a fix.",
+    "author_title": "About the author",
+    "open_repo": "Code on GitHub",
+    "open_wiki": "Design wiki",
+    "open_backlog": "Backlog",
+    "open_progress": "Daily progress",
+    "dn_title": "Stadion Narodowy, day and night",
+    "dn_line": "Drag to change the time. Same spot, same river, different city.",
+    "dn_label": "Time of day: drag to switch between day and night",
+    "dn_alt_day": "Stadion Narodowy by day in the game, with Most Poniatowskiego and the Vistula",
+    "dn_alt_night": "Stadion Narodowy at night in the game, the bridge lamps reflected in the Vistula",
+    "tl_label": "How it grew so far",
+    "nav_wiki": "Wiki",
+    "nav_progress": "Progress",
+    "open_contribute": "How to contribute"
   },
   "pl": {
     "lang": "pl",
@@ -269,32 +141,24 @@
     "other_lang_short": "EN",
     "other_lang_name": "In English",
     "other_lang_label": "English version",
-    "title": "Around Warsaw · przejedź prawdziwe centrum Warszawy",
-    "description": "Zręcznościowa jazda po prawdziwym centrum Warszawy, zbudowanym z otwartych danych map. Dzień, noc i deszcz, od Pałacu Kultury po Stadion Narodowy. Darmowa beta na iPhone'a i Androida.",
+    "title": "Around Warsaw · open-source'owa gra o życiu w Warszawie",
+    "description": "Open-source'owa gra zręcznościowa na iPhone'a i Androida w prawdziwym centrum Warszawy: misje, miejska historia i humor nocnego miasta. Zbudowana z otwartych danych map. Darmowa beta.",
     "skip": "Przejdź do treści",
     "brand_label": "Around Warsaw, strona główna",
     "nav_label": "Menu",
     "nav_city": "Miasto",
-    "nav_play": "Gra",
     "nav_beta": "Beta",
-    "hero_alt": "Pałac Kultury o zmierzchu w grze, podświetlony, obok Złote Tarasy i wieżowce Śródmieścia",
-    "hook": "Prawdziwe centrum Warszawy, ulica po ulicy, zbudowane z otwartych danych map. Przejedź je małym autem (albo helikopterem) w dzień, nocą i w deszczu.",
+    "hero_alt": "Rondo Dmowskiego w deszczu nocą w grze: świecąca Rotunda, reflektory na mokrym asfalcie i neon kebaba",
     "cta_beta": "Zapisz się do bety",
-    "cta_web": "Zagraj online",
-    "cta_web_note": "W przeglądarce: Chrome, Safari lub Firefox; za pierwszym razem około 140 MB",
-    "cta_free": "za darmo, bez reklam",
+    "cta_free": "Za darmo, bez reklam, licencja MIT. Beta na iPhone'a i Androida.",
     "radio_label": "W radiu w aucie",
     "radio_lines": "Na Marszałkowskiej korek. Tak, jak zawsze <i>·</i> Zegar na Pałacu chodzi dobrze, sprawdzaliśmy <i>·</i> Gołębie z placu Defilad nie zgłaszają opóźnień <i>·</i> Seba z Pragi grzeje silnik <i>·</i> Za chwilę w Mordor FM: poniedziałek <i>·</i> Remont trwa. Ty jedź <i>·</i>",
-    "city_title": "Miasto jest bohaterem",
-    "city_lede": "Każda ulica, most i plac na kawałku centrum 3,5 × 1,8 km są tam, gdzie naprawdę, z OpenStreetMap i danych GUGiK. Zabytki i wieżowce zbudowane ręcznie.",
-    "shots_credit": "Zrzuty z obecnej wersji gry.",
-    "play_title": "Co dziś w nocy",
-    "facts": "Za darmo. Bez reklam, zakupów i śledzenia. Działa bez internetu. Open source.",
+    "city_title": "Prawdziwe centrum Warszawy",
+    "city_lede": "Około 21 km² od Arkadii po Stadion Narodowy, z otwartych danych map.",
     "beta_title": "Zapisz się do bety",
     "beta_lede": "Zostaw e-mail i napisz, jaki masz telefon. Zaproszenie przyjdzie z następną wersją. Albo po prostu napisz, co zrobić dalej.",
     "beta_ios": "iPhone: zaproszenie do TestFlight, aplikacji Apple do bet.",
     "beta_android": "Android: zaproszenie do testu w Google Play. Telefon musi mieć Vulkan.",
-    "maker": "Robi to w Warszawie Lubomir Olshansky. Jedna osoba i dużo otwartych danych. Napisz:",
     "f_topic": "W jakiej sprawie?",
     "f_platform": "Twój telefon",
     "f_platform_none": "Obojętnie",
@@ -317,6 +181,195 @@
     "foot_support": "Pomoc",
     "foot_credits": "Autorzy",
     "foot_note": "Mapa:",
-    "foot_parody": "Wszystkie marki w grze to parodie."
+    "foot_parody": "Wszystkie marki w grze to parodie.",
+    "nav_missions": "Misje",
+    "nav_open": "Open source",
+    "tag_open": "Open source",
+    "hook": "Open-source'owa gra na iPhone'a i Androida o życiu w Warszawie. Jeździsz małym autem po prawdziwym centrum: kebab o trzeciej, ratunek i zeszyt 72 prawdziwych miejsc.",
+    "cta_source": "Kod na GitHubie",
+    "missions_title": "Misje z warszawskim akcentem",
+    "missions_lede": "Prawdziwe adresy, a miasto odpowiada po polsku i angielsku.",
+    "open_title": "Open source, robione publicznie",
+    "open_lede": "Around Warsaw to darmowa gra fanowska robiona w otwarty sposób. Przeczytaj kod, zajrzyj do wiki projektowej, zobacz, co zmieniło się każdego dnia, albo wyślij poprawkę.",
+    "author_title": "O autorze",
+    "open_repo": "Kod na GitHubie",
+    "open_wiki": "Wiki projektowa",
+    "open_backlog": "Lista zadań",
+    "open_progress": "Postępy dzień po dniu",
+    "dn_title": "Stadion Narodowy, dzień i noc",
+    "dn_line": "Przeciągnij, żeby zmienić porę. To samo miejsce, ta sama rzeka, inne miasto.",
+    "dn_label": "Pora dnia: przeciągnij, żeby przełączyć dzień i noc",
+    "dn_alt_day": "Stadion Narodowy w dzień w grze, z Mostem Poniatowskiego i Wisłą",
+    "dn_alt_night": "Stadion Narodowy nocą w grze, latarnie mostu odbite w Wiśle",
+    "tl_label": "Jak rosło dotąd",
+    "nav_wiki": "Wiki",
+    "nav_progress": "Postępy",
+    "open_contribute": "Jak pomóc"
+  },
+  "missions": [
+    {
+      "img": "m-courier-race",
+      "en": [
+        "Kebab at 3 a.m.",
+        "Deliver to a real address before it goes cold. A bike courier may race you.",
+        "A night kebab delivery in the game, with a courier racing the player"
+      ],
+      "pl": [
+        "Kebab o trzeciej",
+        "Dowieź pod prawdziwy adres, zanim wystygnie. Kurier na rowerze może się ścigać.",
+        "Nocna dostawa kebaba w grze, kurier na rowerze ściga gracza"
+      ]
+    },
+    {
+      "img": "m-escort",
+      "en": [
+        "Rescue calls",
+        "Pick someone up from a roof or a sandbar and race to a real hospital.",
+        "A rescue in the game: a car with a patient heads for the hospital"
+      ],
+      "pl": [
+        "Wezwania ratunkowe",
+        "Zabierz kogoś z dachu albo łachy i zdąż do prawdziwego szpitala.",
+        "Akcja ratunkowa w grze: auto wiezie pacjenta do szpitala"
+      ]
+    },
+    {
+      "img": "lore-notebook",
+      "en": [
+        "72 places in a notebook",
+        "Find a place, and the game writes down a true fact and a local joke.",
+        "The MOJA WARSZAWA notebook open in the game"
+      ],
+      "pl": [
+        "72 miejsca w zeszycie",
+        "Znajdź miejsce, a gra zapisze prawdziwą ciekawostkę i lokalny żart.",
+        "Zeszyt MOJA WARSZAWA otwarty w grze"
+      ]
+    }
+  ],
+  "author": {
+    "en": [
+      "Hi, I'm Lubomir Olshansky. By day I build iOS and Kotlin Multiplatform apps at a bank in Poland, and I've lived in Warsaw for twelve years.",
+      "As a kid I dreamed of a game set in the city I live in. When I saw <a href=\"https://bedirhanyildirim.com/pixel-art-map-of-warsaw/\">Isometric Warsaw</a> and what generative AI makes possible, it finally looked doable. I want it to hold what living here is like, not just the map."
+    ],
+    "pl": [
+      "Cześć, jestem Lubomir Olshansky. Na co dzień tworzę aplikacje na iOS i w Kotlin Multiplatform w banku w Polsce, a w Warszawie mieszkam od dwunastu lat.",
+      "Jako dziecko marzyłem o grze w mieście, w którym mieszkam. Gdy zobaczyłem <a href=\"https://bedirhanyildirim.com/pixel-art-map-of-warsaw/\">Isometric Warsaw</a> i to, co daje generatywna AI, wreszcie wyglądało to na wykonalne. Chcę, żeby było w niej to, jak się tu żyje, a nie sama mapa."
+    ]
+  },
+  "small": [
+    {
+      "img": "car-zamek",
+      "w": 1920,
+      "h": 884,
+      "en": [
+        "Plac Zamkowy",
+        "A small car by Sigismund's Column, under the Royal Castle.",
+        "A small red car on Plac Zamkowy near Sigismund's Column and the Royal Castle in the game"
+      ],
+      "pl": [
+        "Plac Zamkowy",
+        "Małe auto przy Kolumnie Zygmunta, pod Zamkiem Królewskim.",
+        "Małe czerwone auto na placu Zamkowym przy Kolumnie Zygmunta i Zamku Królewskim w grze"
+      ]
+    },
+    {
+      "img": "heli-palm",
+      "w": 1920,
+      "h": 884,
+      "en": [
+        "The helicopter and the palm",
+        "Hovering over Rondo de Gaulle'a, the most famous palm in town.",
+        "The rescue helicopter hovering over the roundabout with the palm at Rondo de Gaulle'a in the game"
+      ],
+      "pl": [
+        "Helikopter i palma",
+        "W zawisie nad rondem de Gaulle'a, przy najsłynniejszej palmie w mieście.",
+        "Śmigłowiec ratunkowy w zawisie nad rondem de Gaulle'a z palmą w grze"
+      ]
+    }
+  ],
+  "timeline": [
+    [
+      "27 Oct",
+      {
+        "en": "A small car in an isometric centre of Warsaw, built from open map data.",
+        "pl": "Małe auto w izometrycznym centrum Warszawy, zbudowanym z otwartych danych map."
+      }
+    ],
+    [
+      "28 Oct",
+      {
+        "en": "The helicopter, rescue calls, traffic and trams, day and night, the first landmarks.",
+        "pl": "Helikopter, wezwania ratunkowe, ruch i tramwaje, dzień i noc, pierwsze zabytki."
+      }
+    ],
+    [
+      "29 Oct",
+      {
+        "en": "The city streams in pieces; a 20 km² map, the app-taxi job, the first Android build.",
+        "pl": "Miasto ładuje się kawałkami; mapa 20 km², praca w aplikacji taxi, pierwsza wersja na Androida."
+      }
+    ],
+    [
+      "30 Oct",
+      {
+        "en": "The game becomes Around Warsaw and open source. The city notebook, PÓŁNOC FM, 40 more landmarks.",
+        "pl": "Gra staje się Around Warsaw i open source. Zeszyt miasta, PÓŁNOC FM, 40 kolejnych zabytków."
+      }
+    ],
+    [
+      "31 Oct",
+      {
+        "en": "The map grows north, couriers race you at night, a vintage tram and a first garage.",
+        "pl": "Mapa rośnie na północ, kurierzy ścigają Cię nocą, stary tramwaj i pierwszy warsztat."
+      }
+    ]
+  ],
+  "open_facts": {
+    "en": [
+      [
+        "Licence",
+        "MIT. The code, the tools and the map pipeline are all on GitHub."
+      ],
+      [
+        "Engine",
+        "Godot 4, GDScript, the Mobile renderer. Runs at 60 fps on an iPhone 11."
+      ],
+      [
+        "Map",
+        "OpenStreetMap streets and GUGiK's 3D buildings, terrain and laser-scanned trees."
+      ],
+      [
+        "Built",
+        "In public since 27 October 2026, with changes landing every day."
+      ],
+      [
+        "Privacy",
+        "No ads, no purchases, no tracking. The game works offline."
+      ]
+    ],
+    "pl": [
+      [
+        "Licencja",
+        "MIT. Kod, narzędzia i cały proces budowy mapy są na GitHubie."
+      ],
+      [
+        "Silnik",
+        "Godot 4, GDScript, renderer Mobile. 60 kl./s na iPhonie 11."
+      ],
+      [
+        "Mapa",
+        "Ulice z OpenStreetMap, budynki 3D, teren i drzewa ze skanu laserowego GUGiK."
+      ],
+      [
+        "Powstaje",
+        "Publicznie od 27 października 2026, zmiany codziennie."
+      ],
+      [
+        "Prywatność",
+        "Bez reklam, zakupów i śledzenia. Gra działa bez internetu."
+      ]
+    ]
   }
 }

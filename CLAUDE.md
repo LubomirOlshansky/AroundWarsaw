@@ -71,6 +71,7 @@ for the user's yes: park them (free downloads and add-ons are pre-approved, "Har
 | `device-run` | build, install, launch on the iPhone, copy the log back; the user starts it with `/device-run`, agents read the file only when the user allowed a run this loop |
 | `model-from-photos` | landmark and building models: reference photos in `refs/` (Wikimedia Commons, gitignored), the spec from them, detail levels L1-L3 and triangle budgets, the side-by-side photo check |
 | `pixellab` | 2D pixel art via the PixelLab MCP server: portraits, HUD/minimap icons, signs and posters, UI, store art; not for the 3D city |
+| `impeccable` | web design for the site (`site/`): new work, critique, polish, the craft floor (pbakaus/impeccable v4.8.0, Apache-2.0; its launcher binary may be blocked in cloud sessions, then read its references directly) |
 
 **Tools note.** The PixelLab MCP server (`pixellab`, tools `mcp__pixellab__*`) is configured
 in the user's own Claude Code settings. Its API key lives only there: never write a key into

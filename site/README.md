@@ -7,7 +7,7 @@ analytics.
 | File | What |
 | --- | --- |
 | `src/index.html` | the landing's template, `{{key}}` placeholders |
-| `src/strings.json` | all the copy in `en` and `pl`, the hero shot, the screenshot reel (image, size, caption, alt text), the list of things to do, the form's topics |
+| `src/strings.json` | all the copy in `en` and `pl`: the hero shot, the city mosaic (`reel`: image, size, `span` lead/wide/half/pair, caption, alt text), the `missions` (shot, the game's line PL over EN), `moves` ("And also"), the notebook entries (`lore`, from game/data/places.json) and `lore_shots`, `open_facts`, the `author` paragraphs (raw HTML, for the link), the form's topics |
 | `public/progress/index.html` | **built**: what was added or improved each day (`tools/changelog.py` from `docs/CHANGELOG.md` and ROADMAP's progress log) with links to the backlog; run `python3 -I tools/site_build.py` before every deploy so it is current |
 | `public/index.html`, `public/pl/index.html`, `public/privacy/index.html`, `public/support/index.html` | **built**, never edited by hand: `python3 -I tools/site_build.py` (the privacy page comes from `docs/privacy.md`, support from `docs/support.md`) |
 | `public/styles.css` | all styles; colours and fonts are tokens on `:root` |
@@ -20,9 +20,14 @@ analytics.
 | `play/wrangler.jsonc` | that game's own Worker (`aroundwarsaw-play`), serving `build/web` from `tools/export_web.sh`; docs/DEVELOPMENT.md "The web build" |
 
 Design notes: the world is the game's night city (sodium lamps, one pink neon, the car radio).
-One moving part: the Kebab FM ticker, still under reduced motion. No eyebrow labels, no
-icon-card grids. Changes went through the impeccable design skill's craft floor (contrast,
-type measure, focus and selection colours, form states).
+The page reads hero → Kebab FM ticker → the city (a mosaic) → missions (big frames with the HUD
+on, the game's own line in a HUD-styled bubble, Polish over English) → the city notebook (set
+like the in-game MOJA WARSZAWA page, gold rule) → open source → about the author → the beta form.
+One moving part: the ticker, still under reduced motion. No eyebrow labels, no icon-card grids.
+The 2026-10-31 redesign used the Impeccable skill (`.claude/skills/impeccable`, v4.8.0,
+Apache-2.0, from github.com/pbakaus/impeccable): its new-work and craft-floor references
+(contrast, type measure, focus and selection colours, form states). Copy that states a game
+fact (72 places, 21 km², the missions) is checked against game/data and docs before it ships.
 
 ## Change the copy or the screenshots
 

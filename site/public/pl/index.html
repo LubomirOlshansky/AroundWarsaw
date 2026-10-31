@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Around Warsaw · przejedź prawdziwe centrum Warszawy</title>
-<meta name="description" content="Zręcznościowa jazda po prawdziwym centrum Warszawy, zbudowanym z otwartych danych map. Dzień, noc i deszcz, od Pałacu Kultury po Stadion Narodowy. Darmowa beta na iPhone&#x27;a i Androida.">
+<title>Around Warsaw · open-source&#x27;owa gra o życiu w Warszawie</title>
+<meta name="description" content="Open-source&#x27;owa gra zręcznościowa na iPhone&#x27;a i Androida w prawdziwym centrum Warszawy: misje, miejska historia i humor nocnego miasta. Zbudowana z otwartych danych map. Darmowa beta.">
 <meta name="theme-color" content="#0b0d24">
 <meta name="color-scheme" content="dark">
 <link rel="canonical" href="https://aroundwarsaw.app/pl/">
@@ -18,8 +18,8 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Around Warsaw">
 <meta property="og:url" content="https://aroundwarsaw.app/pl/">
-<meta property="og:title" content="Around Warsaw · przejedź prawdziwe centrum Warszawy">
-<meta property="og:description" content="Zręcznościowa jazda po prawdziwym centrum Warszawy, zbudowanym z otwartych danych map. Dzień, noc i deszcz, od Pałacu Kultury po Stadion Narodowy. Darmowa beta na iPhone&#x27;a i Androida.">
+<meta property="og:title" content="Around Warsaw · open-source&#x27;owa gra o życiu w Warszawie">
+<meta property="og:description" content="Open-source&#x27;owa gra zręcznościowa na iPhone&#x27;a i Androida w prawdziwym centrum Warszawy: misje, miejska historia i humor nocnego miasta. Zbudowana z otwartych danych map. Darmowa beta.">
 <meta property="og:locale" content="pl_PL">
 <meta property="og:image" content="https://aroundwarsaw.app/img/og.jpg">
 <meta property="og:image:width" content="1200">
@@ -45,8 +45,11 @@
     <a class="brand" href="/pl/" aria-label="Around Warsaw, strona główna"><img src="/favicon.svg" alt="" width="28" height="28">Around Warsaw</a>
     <nav aria-label="Menu">
       <a class="wide" href="#city">Miasto</a>
-      <a class="wide" href="#play">Gra</a>
-      <a href="#beta">Beta</a>
+      <a class="wide" href="#missions">Misje</a>
+      <a class="wide" href="https://wiki.aroundwarsaw.app">Wiki</a>
+      <a class="wide" href="/progress/">Postępy</a>
+      <a class="wide" href="#open">Open source</a>
+      <a class="nav-beta" href="#beta">Beta</a>
       <a class="lang" href="/" hreflang="en" lang="en" aria-label="English version">EN</a>
     </nav>
   </div>
@@ -56,16 +59,17 @@
 
 <section class="hero" aria-labelledby="title">
   <picture class="hero-shot">
-    <source media="(max-width: 700px)" srcset="/img/game/hero-palace-dusk-960.webp">
-    <img src="/img/game/hero-palace-dusk.webp" alt="Pałac Kultury o zmierzchu w grze, podświetlony, obok Złote Tarasy i wieżowce Śródmieścia" width="1920" height="884" fetchpriority="high">
+    <source media="(max-width: 700px)" srcset="/img/game/rotunda-rain-night-960.webp">
+    <img src="/img/game/rotunda-rain-night.webp" alt="Rondo Dmowskiego w deszczu nocą w grze: świecąca Rotunda, reflektory na mokrym asfalcie i neon kebaba" width="1920" height="884" fetchpriority="high">
   </picture>
   <div class="hero-in"><div class="hero-text">
     <h1 id="title">Around<br>Warsaw</h1>
-    <p class="hook">Prawdziwe centrum Warszawy, ulica po ulicy, zbudowane z otwartych danych map. Przejedź je małym autem (albo helikopterem) w dzień, nocą i w deszczu.</p>
+    <p class="hook">Open-source&#x27;owa gra na iPhone&#x27;a i Androida o życiu w Warszawie. Jeździsz małym autem po prawdziwym centrum: kebab o trzeciej, ratunek i zeszyt 72 prawdziwych miejsc.</p>
     <div class="cta">
       <a class="btn btn-primary" href="#beta">Zapisz się do bety<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
-      <span class="platforms"><svg aria-hidden="true"><use href="#i-apple"/></svg>iPhone · <svg aria-hidden="true"><use href="#i-play"/></svg>Android · za darmo, bez reklam</span>
+      <a class="btn btn-ghost" href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>Kod na GitHubie</a>
     </div>
+    <p class="cta-note">Za darmo, bez reklam, licencja MIT. Beta na iPhone&#x27;a i Androida.</p>
   </div></div>
 </section>
 
@@ -75,55 +79,100 @@
 </div>
 
 <section class="city" id="city" aria-labelledby="city-title">
-  <div class="wrap">
-    <h2 id="city-title">Miasto jest bohaterem</h2>
-    <p class="lede">Każda ulica, most i plac na kawałku centrum 3,5 × 1,8 km są tam, gdzie naprawdę, z OpenStreetMap i danych GUGiK. Zabytki i wieżowce zbudowane ręcznie.</p>
+  <div class="wrap head">
+    <h2 id="city-title">Prawdziwe centrum Warszawy</h2>
+    <p class="lede">Około 21 km² od Arkadii po Stadion Narodowy, z otwartych danych map.</p>
   </div>
-  <div class="reel">
-    <figure class="shot">
+  <div class="mosaic">
+    <figure class="tile tile-lead">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/palace-day-960.webp"><img src="/img/game/palace-day.webp" alt="Pałac Kultury w dzień w grze, ze szklanymi kopułami Złotych Tarasów i wieżowcami Śródmieścia" width="1920" height="884" loading="lazy" decoding="async"></picture>
+      <figcaption><h3>Pałac Kultury w dzień</h3><p>Ten sam widok co na pierwszym ekranie, ale w dzień, ze Złotymi Tarasami obok.</p></figcaption>
+    </figure>
+  </div>
+  <figure class="wrap daynight" id="daynight">
+    <div class="dn-stage">
       <picture><source media="(max-width: 700px)" srcset="/img/game/narodowy-night-960.webp"><img src="/img/game/narodowy-night.webp" alt="Stadion Narodowy nocą w grze, latarnie mostu odbite w Wiśle" width="1920" height="884" loading="lazy" decoding="async"></picture>
-      <figcaption><h3>Stadion Narodowy</h3><p>Biało-czerwony i świeci całą noc. Resztę robią latarnie mostu.</p></figcaption>
+      <picture class="dn-day"><source media="(max-width: 700px)" srcset="/img/game/narodowy-day-960.webp"><img src="/img/game/narodowy-day.webp" alt="Stadion Narodowy w dzień w grze, z Mostem Poniatowskiego i Wisłą" width="1920" height="884" loading="lazy" decoding="async"></picture>
+      <input class="dn-range" type="range" min="0" max="100" value="50" aria-label="Pora dnia: przeciągnij, żeby przełączyć dzień i noc">
+    </div>
+    <figcaption><h3>Stadion Narodowy, dzień i noc</h3><p>Przeciągnij, żeby zmienić porę. To samo miejsce, ta sama rzeka, inne miasto.</p></figcaption>
+  </figure>
+  <div class="small-pair">
+    <figure class="tile">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/car-zamek-960.webp"><img src="/img/game/car-zamek.webp" alt="Małe czerwone auto na placu Zamkowym przy Kolumnie Zygmunta i Zamku Królewskim w grze" width="1920" height="884" loading="lazy" decoding="async"></picture>
+      <figcaption><h3>Plac Zamkowy</h3><p>Małe auto przy Kolumnie Zygmunta, pod Zamkiem Królewskim.</p></figcaption>
     </figure>
-    <figure class="shot shot-flip">
-      <picture><source media="(max-width: 700px)" srcset="/img/game/rotunda-rain-night-960.webp"><img src="/img/game/rotunda-rain-night.webp" alt="Rondo Dmowskiego w deszczu nocą: świecąca Rotunda, reflektory na mokrym asfalcie i neon kebaba" width="1920" height="884" loading="lazy" decoding="async"></picture>
-      <figcaption><h3>Rondo Dmowskiego w deszczu</h3><p>Mokry asfalt, świecąca Rotunda i neon kebaba, który nigdy nie zamyka.</p></figcaption>
-    </figure>
-    <figure class="shot">
-      <picture><source media="(max-width: 700px)" srcset="/img/game/palace-night-960.webp"><img src="/img/game/palace-night.webp" alt="Pałac Kultury nocą w iluminacji, złota iglica nad ciemnym centrum biurowym" width="1920" height="884" loading="lazy" decoding="async"></picture>
-      <figcaption><h3>Pałac nocą</h3><p>W iluminacji, a zegar chodzi według czasu w Warszawie.</p></figcaption>
-    </figure>
-    <figure class="shot shot-flip">
-      <picture><source media="(max-width: 700px)" srcset="/img/game/poniatowski-night-960.webp"><img src="/img/game/poniatowski-night.webp" alt="Most Poniatowskiego nad Wisłą nocą, złote odbicia pod przęsłami" width="1920" height="884" loading="lazy" decoding="async"></picture>
-      <figcaption><h3>Most Poniatowskiego</h3><p>Złote przęsła na Wiśle. Prosimy nie sprawdzać wody kołami.</p></figcaption>
-    </figure>
-    <figure class="shot">
-      <picture><source media="(max-width: 700px)" srcset="/img/game/varso-dusk-960.webp"><img src="/img/game/varso-dusk.webp" alt="Varso Tower i Złote Tarasy o zachodzie słońca nad Alejami Jerozolimskimi" width="1920" height="912" loading="lazy" decoding="async"></picture>
-      <figcaption><h3>Varso i Złote Tarasy</h3><p>Zachód słońca na wieżowcach nad Alejami Jerozolimskimi.</p></figcaption>
-    </figure>
-    <figure class="shot shot-flip">
-      <picture><source media="(max-width: 700px)" srcset="/img/game/narodowy-day-960.webp"><img src="/img/game/narodowy-day.webp" alt="Stadion Narodowy w dzień, za nim Most Poniatowskiego i łachy Wisły" width="1920" height="884" loading="lazy" decoding="async"></picture>
-      <figcaption><h3>Od Powiśla po Pragę</h3><p>Stadion, most i łachy Wisły w dzień.</p></figcaption>
-    </figure>
-    <figure class="shot">
-      <picture><source media="(max-width: 700px)" srcset="/img/game/heli-vistula-day-960.webp"><img src="/img/game/heli-vistula-day.webp" alt="Śmigłowiec nad Wisłą przy Moście Poniatowskiego, na moście tramwaj i autobusy" width="1920" height="884" loading="lazy" decoding="async"></picture>
-      <figcaption><h3>Albo helikopter</h3><p>Wezwania ratunkowe znad rzeki. Na dole jeżdżą tramwaje i autobusy.</p></figcaption>
+    <figure class="tile">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/heli-palm-960.webp"><img src="/img/game/heli-palm.webp" alt="Śmigłowiec ratunkowy w zawisie nad rondem de Gaulle&#x27;a z palmą w grze" width="1920" height="884" loading="lazy" decoding="async"></picture>
+      <figcaption><h3>Helikopter i palma</h3><p>W zawisie nad rondem de Gaulle&#x27;a, przy najsłynniejszej palmie w mieście.</p></figcaption>
     </figure>
   </div>
-  <p class="wrap credit">Zrzuty z obecnej wersji gry.</p>
 </section>
 
-<section class="play" id="play" aria-labelledby="play-title">
+<section class="missions" id="missions" aria-labelledby="missions-title">
+  <div class="wrap head">
+    <h2 id="missions-title">Misje z warszawskim akcentem</h2>
+    <p class="lede">Prawdziwe adresy, a miasto odpowiada po polsku i angielsku.</p>
+  </div>
+  <div class="trio">
+    <figure class="tile">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/m-courier-race-960.webp"><img src="/img/game/m-courier-race.webp" alt="Nocna dostawa kebaba w grze, kurier na rowerze ściga gracza" width="1920" height="887" loading="lazy" decoding="async"></picture>
+      <figcaption><h3>Kebab o trzeciej</h3><p>Dowieź pod prawdziwy adres, zanim wystygnie. Kurier na rowerze może się ścigać.</p></figcaption>
+    </figure>
+    <figure class="tile">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/m-escort-960.webp"><img src="/img/game/m-escort.webp" alt="Akcja ratunkowa w grze: auto wiezie pacjenta do szpitala" width="1920" height="887" loading="lazy" decoding="async"></picture>
+      <figcaption><h3>Wezwania ratunkowe</h3><p>Zabierz kogoś z dachu albo łachy i zdąż do prawdziwego szpitala.</p></figcaption>
+    </figure>
+    <figure class="tile">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/lore-notebook-960.webp"><img src="/img/game/lore-notebook.webp" alt="Zeszyt MOJA WARSZAWA otwarty w grze" width="1920" height="887" loading="lazy" decoding="async"></picture>
+      <figcaption><h3>72 miejsca w zeszycie</h3><p>Znajdź miejsce, a gra zapisze prawdziwą ciekawostkę i lokalny żart.</p></figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="open" id="open" aria-labelledby="open-title">
+  <div class="wrap open-grid">
+    <div>
+      <h2 id="open-title">Open source, robione publicznie</h2>
+      <p class="lede">Around Warsaw to darmowa gra fanowska robiona w otwarty sposób. Przeczytaj kod, zajrzyj do wiki projektowej, zobacz, co zmieniło się każdego dnia, albo wyślij poprawkę.</p>
+      <ul class="links open-links">
+        <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>Kod na GitHubie</a></li>
+        <li><a href="https://wiki.aroundwarsaw.app">Wiki projektowa</a></li>
+        <li><a href="/progress/">Postępy dzień po dniu<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+        <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw/blob/main/CONTRIBUTING.md">Jak pomóc</a></li>
+      </ul>
+    </div>
+    <dl class="stack">
+      <div><dt>Licencja</dt><dd>MIT. Kod, narzędzia i cały proces budowy mapy są na GitHubie.</dd></div>
+      <div><dt>Silnik</dt><dd>Godot 4, GDScript, renderer Mobile. 60 kl./s na iPhonie 11.</dd></div>
+      <div><dt>Mapa</dt><dd>Ulice z OpenStreetMap, budynki 3D, teren i drzewa ze skanu laserowego GUGiK.</dd></div>
+      <div><dt>Powstaje</dt><dd>Publicznie od 27 października 2026, zmiany codziennie.</dd></div>
+      <div><dt>Prywatność</dt><dd>Bez reklam, zakupów i śledzenia. Gra działa bez internetu.</dd></div>
+    </dl>
+  </div>
   <div class="wrap">
-    <h2 id="play-title">Co dziś w nocy</h2>
-    <ol class="moves">
-      <li><h3>Kebab o trzeciej</h3><p>Gorący, kiedy wyjeżdża. Ciepły, jeśli się pospieszysz.</p></li>
-      <li><h3>Akcje helikopterem</h3><p>Zamień auto na wirnik i ląduj tam, gdzie wzywają.</p></li>
-      <li><h3>Wyścigi</h3><p>Seba z Pragi już grzeje silnik.</p></li>
-      <li><h3>Podwózka</h3><p>Jeździsz dla aplikacji, która ufa GPS-owi bardziej niż Tobie.</p></li>
-      <li><h3>Policja</h3><p>Jest, ale z humorem. Mandatu nie będzie. Pogadanka owszem.</p></li>
-      <li><h3>Kebab FM</h3><p>I Rondo FM, i Mordor FM. Gołębie w cenie.</p></li>
+    <h3 class="tl-title">Jak rosło dotąd</h3>
+    <ol class="timeline" aria-label="Jak rosło dotąd">
+      <li><time>27 paź</time><p>Małe auto w izometrycznym centrum Warszawy, zbudowanym z otwartych danych map.</p></li>
+      <li><time>28 paź</time><p>Helikopter, wezwania ratunkowe, ruch i tramwaje, dzień i noc, pierwsze zabytki.</p></li>
+      <li><time>29 paź</time><p>Miasto ładuje się kawałkami; mapa 20 km², praca w aplikacji taxi, pierwsza wersja na Androida.</p></li>
+      <li><time>30 paź</time><p>Gra staje się Around Warsaw i open source. Zeszyt miasta, PÓŁNOC FM, 40 kolejnych zabytków.</p></li>
+      <li><time>31 paź</time><p>Mapa rośnie na północ, kurierzy ścigają Cię nocą, stary tramwaj i pierwszy warsztat.</p></li>
     </ol>
-    <p class="facts">Za darmo. Bez reklam, zakupów i śledzenia. Działa bez internetu. Open source.</p>
+  </div>
+</section>
+
+<section class="author" id="author" aria-labelledby="author-title">
+  <div class="wrap author-grid">
+    <h2 id="author-title">O autorze</h2>
+    <div class="author-text">
+      <p>Cześć, jestem Lubomir Olshansky. Na co dzień tworzę aplikacje na iOS i w Kotlin Multiplatform w banku w Polsce, a w Warszawie mieszkam od dwunastu lat.</p>
+      <p>Jako dziecko marzyłem o grze w mieście, w którym mieszkam. Gdy zobaczyłem <a href="https://bedirhanyildirim.com/pixel-art-map-of-warsaw/">Isometric Warsaw</a> i to, co daje generatywna AI, wreszcie wyglądało to na wykonalne. Chcę, żeby było w niej to, jak się tu żyje, a nie sama mapa.</p>
+      <ul class="links">
+        <li><a href="https://t.me/olshansky93"><svg aria-hidden="true"><use href="#i-telegram"/></svg>Telegram</a></li>
+        <li><a href="https://www.linkedin.com/in/lubomir-olshansky/"><svg aria-hidden="true"><use href="#i-linkedin"/></svg>LinkedIn</a></li>
+      </ul>
+    </div>
   </div>
 </section>
 
@@ -136,14 +185,6 @@
         <li><svg aria-hidden="true"><use href="#i-apple"/></svg><span>iPhone: zaproszenie do TestFlight, aplikacji Apple do bet.</span></li>
         <li><svg aria-hidden="true"><use href="#i-play"/></svg><span>Android: zaproszenie do testu w Google Play. Telefon musi mieć Vulkan.</span></li>
       </ul>
-      <div class="maker">
-        <p>Robi to w Warszawie Lubomir Olshansky. Jedna osoba i dużo otwartych danych. Napisz:</p>
-        <ul class="links">
-          <li><a href="https://t.me/olshansky93"><svg aria-hidden="true"><use href="#i-telegram"/></svg>Telegram</a></li>
-          <li><a href="https://www.linkedin.com/in/lubomir-olshansky/"><svg aria-hidden="true"><use href="#i-linkedin"/></svg>LinkedIn</a></li>
-          <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>GitHub</a></li>
-        </ul>
-      </div>
     </div>
 
     <form class="form" id="form" action="https://formspree.io/f/mykaeqjp" method="POST" novalidate>

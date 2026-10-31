@@ -24,7 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SITE = ROOT / "site"
 # Copy that carries its own markup (links, separators); everything else is escaped.
-RAW_KEYS = {"f_legal", "radio_lines"}
+RAW_KEYS = {"f_legal", "radio_lines"}  # the author paragraphs are raw too (a link)
 
 PAGE = """<!doctype html>
 <html lang="en">
@@ -124,19 +124,34 @@ def landing(strings: dict, lang: str) -> str:
     """The landing page in one language."""
     values = {k: (v if k in RAW_KEYS else html.escape(v)) for k, v in strings[lang].items()}
     values["hero"] = strings["hero"]
+    def pic(name: str, w: int, h: int, alt: str) -> str:
+        return (f'<picture><source media="(max-width: 700px)" srcset="/img/game/{name}-960.webp">'
+                f'<img src="/img/game/{name}.webp" alt="{alt}" width="{w}" height="{h}" loading="lazy" decoding="async"></picture>')
+
+    # The city: a mosaic; each shot's "span" (wide, half, lead) sets its place in the grid.
     figs = []
-    for i, shot in enumerate(strings["reel"]):
+    for shot in strings["reel"]:
         title, line, alt = (html.escape(t) for t in shot[lang])
-        name = shot["img"]
         figs.append(
-            f'    <figure class="shot{" shot-flip" if i % 2 else ""}">\n'
-            f'      <picture><source media="(max-width: 700px)" srcset="/img/game/{name}-960.webp">'
-            f'<img src="/img/game/{name}.webp" alt="{alt}" width="{shot["w"]}" height="{shot["h"]}" loading="lazy" decoding="async"></picture>\n'
+            f'    <figure class="tile tile-{shot.get("span", "half")}">\n'
+            f'      {pic(shot["img"], shot["w"], shot["h"], alt)}\n'
             f"      <figcaption><h3>{title}</h3><p>{line}</p></figcaption>\n"
             f"    </figure>")
     values["reel"] = "\n".join(figs)
-    values["moves"] = "\n".join(
-        f"      <li><h3>{html.escape(a)}</h3><p>{html.escape(b)}</p></li>" for a, b in strings["moves"][lang])
+    # Missions: three short tiles (shot, title, one line).
+    values["missions"] = "\n".join(
+        f'    <figure class="tile">\n      {pic(m["img"], 1920, 887, html.escape(m[lang][2]))}\n'
+        f"      <figcaption><h3>{html.escape(m[lang][0])}</h3><p>{html.escape(m[lang][1])}</p></figcaption>\n    </figure>"
+        for m in strings["missions"])
+    values["open_facts"] = "\n".join(
+        f"      <div><dt>{html.escape(a)}</dt><dd>{html.escape(b)}</dd></div>" for a, b in strings["open_facts"][lang])
+    values["small"] = "\n".join(
+        f'    <figure class="tile">\n      {pic(m["img"], m["w"], m["h"], html.escape(m[lang][2]))}\n'
+        f"      <figcaption><h3>{html.escape(m[lang][0])}</h3><p>{html.escape(m[lang][1])}</p></figcaption>\n    </figure>"
+        for m in strings["small"])
+    values["timeline"] = "\n".join(
+        f"      <li><time>{html.escape(d.replace("Oct", "paź") if lang == "pl" else d)}</time><p>{html.escape(txt[lang])}</p></li>" for d, txt in strings["timeline"])
+    values["author_body"] = "\n".join(f"      <p>{p}</p>" for p in strings["author"][lang])
     values["topics"] = "\n".join(
         f'        <label><input type="radio" name="topic" value="{html.escape(v)}"{" checked" if i == 0 else ""}>'
         f"<span>{html.escape(t)}</span></label>"
