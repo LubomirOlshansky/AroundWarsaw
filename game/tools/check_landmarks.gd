@@ -36,6 +36,8 @@ func _check() -> int:
 	var failures := 0
 	for k in map.landmark_info.size():
 		var info: Dictionary = map.landmark_info[k]
+		if info["pl"] == "":
+			continue  # a skin with no card (Królewska's block) is off the picking grid on purpose
 		var c: Vector2 = info["centre"]
 		# The tallest roof-grid cell near the centre, and what a tap straight down finds.
 		var tallest := -INF
