@@ -46,6 +46,9 @@ import struct
 import sys
 from array import array
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import map_shape  # noqa: E402  (map north: the box and its north extension)
+
 SECTOR = 512.0
 BUILDING_SLACK = 6.0   # bake_osm.py keeps buildings hanging this far over the map's edge
 # Loop 3d-1: what the split is made from (map-dir files, and this script), hashed into
@@ -65,6 +68,9 @@ SIGN_FRONT = 8.0
 # Point things (trees, lamps, props, parked cars): their instances are filed by position,
 # but a lamp's halo hangs 1.2 m off it and a parked car's collider reaches 2.1 m.
 POINT_MARGIN = 8.0
+# Map north: a sector is kept when it meets the map grown by this (the ground's 10 m cells on the
+# map's edge, and the 6 m a building may hang over it).
+GROUND_CELL = 10.0
 
 # Per-sector feature lists of dictionaries, and where each keeps its geometry.
 SECTOR_LISTS = {
@@ -94,7 +100,9 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               "Warsaw Trade Tower", "Skyliner", "Warsaw Unit", "Mennica Legacy Tower", "Generation Park Y",
               "Skysawa", "Błękitny Wieżowiec", "Warszawskie Centrum Finansowe", "Centrum LIM", "Chałubińskiego 8",
               "Spektrum Tower", "The Bridge", "Hilton Warsaw City", "The Westin Warsaw", "Novotel Warszawa Centrum",
-              "Central Tower", "Ilmet", "Platinum Tower A", "Platinum Tower B", "Łucka City", "Widok Towers"]
+              "Central Tower", "Ilmet", "Platinum Tower A", "Platinum Tower B", "Łucka City", "Widok Towers",
+              # map north (2026-10-31): Arkadia, for the landmarks lane (docs/DEMO.md 2.2)
+              "Westfield Arkadia"]
 SITE_PAD = 12.0
 SITE_AREAS = [
     (1250.0, -820.0, 1700.0, -370.0),       # Stadion Narodowy's masts (Rect2(1250, -820, 450, 450))
@@ -105,6 +113,7 @@ SITE_AREAS = [
     (-680.0, 1180.0, -350.0, 1620.0),       # MDM (Plac Konstytucji to Plac Zbawiciela, landmarks.gd _find_mdm)
     (-2700.0, 560.0, -2655.0, 650.0),       # The Warsaw HUB's towers (landmarks.gd TOWERS "at")
     (-650.0, -790.0, -630.0, -765.0),       # Plac Piłsudskiego's south-east block (landmarks.gd KROLEWSKA_BLOCK)
+    (-3105.0, -2455.0, -2920.0, -2335.0),   # map north: the Forest tower's office block (unnamed in OSM; docs/DEMO.md 2.2)
 ]
 
 
@@ -126,14 +135,20 @@ def extent(item, how):
 
 
 class Grid:
-    def __init__(self, bounds):
+    def __init__(self, bounds, shape=None):
         self.i0 = math.floor(bounds[0] / SECTOR)
         self.i1 = math.floor(bounds[2] / SECTOR)
         self.j0 = math.floor(bounds[1] / SECTOR)
         self.j1 = math.floor(bounds[3] / SECTOR)
+        # Map north: the sectors that meet the map (grown by a ground cell: the 10 m grid's cells
+        # on its edge reach past it); those wholly in a part left `outside` are no sectors.
+        self.shape = shape
+        self._keys = [(i, j) for j in range(self.j0, self.j1 + 1) for i in range(self.i0, self.i1 + 1)
+                      if shape is None or shape.meets((i * SECTOR, j * SECTOR, (i + 1) * SECTOR, (j + 1) * SECTOR))]
+        self._have = set(self._keys)
 
     def keys(self):
-        return [(i, j) for j in range(self.j0, self.j1 + 1) for i in range(self.i0, self.i1 + 1)]
+        return list(self._keys)
 
     def touching(self, box, margin):
         """Sectors whose square grown by `margin` meets the box (x0, z0, x1, z1)."""
@@ -143,7 +158,7 @@ class Grid:
         i1 = min(self.i1, math.floor((box[2] + margin) / SECTOR))
         j0 = max(self.j0, math.floor((box[1] - margin) / SECTOR))
         j1 = min(self.j1, math.floor((box[3] + margin) / SECTOR))
-        return [(i, j) for j in range(j0, j1 + 1) for i in range(i0, i1 + 1)]
+        return [(i, j) for j in range(j0, j1 + 1) for i in range(i0, i1 + 1) if (i, j) in self._have]
 
 
 def carry_closure(buildings, footprints, chosen, fp_chosen):
@@ -282,7 +297,8 @@ def reach(bounds, map_dir):
 def main(map_dir):
     with open(os.path.join(map_dir, "centrum.json"), encoding="utf-8") as fh:
         data = json.load(fh)
-    grid = Grid(reach(data["bounds"], map_dir))
+    shape = map_shape.of(data)
+    grid = Grid(reach(data["bounds"], map_dir), shape.grow(GROUND_CELL) if shape.outside else None)
     keys = grid.keys()
     sectors = {k: {"sector": list(k)} for k in keys}
     counts = {k: 0 for k in keys}

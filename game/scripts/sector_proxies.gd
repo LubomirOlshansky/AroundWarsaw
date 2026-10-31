@@ -76,7 +76,7 @@ static func _context(map) -> Dictionary:
 
 
 static func build(map, key: Vector2i, ctx: Dictionary) -> ArrayMesh:
-	var rect := Rect2(Vector2(key) * MapBuilder.SECTOR, Vector2(MapBuilder.SECTOR, MapBuilder.SECTOR)).intersection(map.bounds)
+	var rect: Rect2 = map.clip_to_map(Rect2(Vector2(key) * MapBuilder.SECTOR, Vector2(MapBuilder.SECTOR, MapBuilder.SECTOR)))  # map north: not over the part left outside
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var tris := _ground(st, map, rect, ctx)

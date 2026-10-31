@@ -180,6 +180,33 @@ its place and reason (most of them "loop 3e", the structures of 4.6). The first 
 21.050) cut Most Łazienkowski mid-river; the user moved the edge to 21.056. The ground is the
 1 m NMT of the whole box (fetched with the user's yes; README "Loop 3d-1").
 
+**Map north (2026-10-31, the user's ask: Rondo Radosława with its flag, Arkadia and the Forest
+tower).** The map grows north on its west side only: `bake_osm.py` `BBOX_NORTH` = south 52.2525
+(the box's north edge), west 20.9780, north 52.2591, east x −1,706.12 (20.99897, a column of the 10 m
+terrain lattice): map metres x −3,136 to −1,706, z −2,775 to −2,046, 1,430 × 730 m = 1.04 km² on
+top of the box (21.2 km² in all, 112 sectors: i −7..−4 of row j −6 are new). The map is the box's
+bounding rectangle without its north-east corner (centrum.json `outside`, `tools/map_shape.py`).
+North: Arkadia's outline (52.2587) and its ring road Kłopot + 20 m, short of the ring railway and
+Dworzec Gdański's platforms; the viaducts of Jana Pawła II and Andersa over the railway are cut at
+the edge (check_roads C6 allows the rim), Dworzec Gdański's footbridges, which the edge cuts, are
+left out. East: past Andersa, so Słomińskiego closes the street net (the roundabout, Słomińskiego,
+Andersa, back south into the box). Inside: Rondo Radosława, Arkadia, Forest, Okopowa,
+Powązkowska and Burakowska to the west edge, Jana Pawła II from the box to its viaduct,
+Słomińskiego to Andersa, Inflancka, Stawki's north side, Muranów north. docs/DEVELOPMENT.md "Map north".
+
+**Hand-over for the landmarks lane (map north).** The map draws these from LoD2/OSM today; each
+is registered so a site can replace it (`bake_sectors.py` `SITE_NAMES` / `SITE_AREAS`: their
+parts are in the index's `site_parts` for the prebuilt city). Heights: GUGiK's 0.5 m surface model
+(`data/raw/demo/gugik/nmpt05_sites/`, `tools/fetch_demo.py nmptsites`) over the 1 m NMT.
+
+| Site | OpenStreetMap | Where (map metres) | Height (NMPT) | Drawn today |
+| --- | --- | --- | --- | --- |
+| Arkadia | way 41927532 "Westfield Arkadia" (building=retail, 3 levels, layer 1, roof:shape many) | outline x −2,844..−2,539, z −2,730..−2,402; centre (−2,708, −2,520) | ground 106.8 m a.s.l.; roof ~21 m (p90), top 37 m at (−2,778, −2,470) | one LoD2 model (2018); the OSM outline hidden |
+| Arkadia's roof car park | way 91341678 (service=parking_aisle on the roof, no layer) and its ramps 91341665, 1343067224, 1343067227 (bridge=yes) | along the roof, x −2,836..−2,535 | on the roof | left out of the bake (drawn flat it ran through the mall); the ramps' feet on Błońska stay. DEMO 6.4's car-park race needs it modelled |
+| Forest (tower and office block) | office block way 1507720304 (building=office, unnamed; landuse "Forest" 1087209842); parts 923445779 (the tower: 28 levels, height 120, glass, flat roof), 923445778 (8 levels), 923445777 and 923445776 (6 levels) | block x −3,097..−2,931, z −2,447..−2,346, centre (−3,011, −2,392); the tower x −2,990..−2,938, z −2,384..−2,346, centre (−2,959, −2,366) | ground 105.6 m; the tower's roof ~120 m, top 124.7 m at (−2,971, −2,357); the 8-storey part's roof 44 m (a 107 m spike on it at (−2,948, −2,380), a crane or a mast), the others' 33 and 32 m | the parts as OSM blocks (the 2018 LoD2 sheds there are left out: `bake_gugik.py` NEWER_SHARE) |
+| Rondo Radosława | ring ways 4840968, 228882920, 228882922, 228882925, 229104868, 229104869, 303165578, 306462714 (junction=circular, secondary, 2-3 lanes); trams cross the island | ring centre (−2,833, −2,292), the ring x −2,890..−2,777, z −2,348..−2,236 (~55 m radius) | ground 106.2 m | road, lanes and trams; the island is bare ground |
+| The flag mast | not in OpenStreetMap | (−2,850, −2,295), in the island's west part, beside the trams | a 57.8 m thin column in the surface model (cells at 52-58 m within 2 m of it) | nothing: the island is left for the landmarks lane (no placeholder from OSM) |
+
 ### 2.2 What is inside, and what exists today
 
 Positions are approximate map metres. *Built* means hand-built in `landmarks.gd`; *lump* means a
@@ -207,7 +234,8 @@ demo, **B** next, **C** keep the LoD2/OSM shape with a better material.
 | Most Łazienkowski and Trasa Łazienkowska | 1,704, 962 | Outside | Structure work (4.6) |
 | Rondo Daszyńskiego towers: Warsaw Spire, The Warsaw HUB, Skyliner, Warsaw UNIT, Mennica Legacy, Generation Park | around −2,700, 130 to 550 | Outside | Spire **A**; the rest **B** (OSM parts + curtain-wall material, as Varso was) |
 | Warsaw Uprising Museum | −2,925, 188 | Outside | **B** |
-| Arkadia and Dworzec Gdański | −2,686, −2,565 / −2,045, −2,621 | Outside | Arkadia **B** (a big low mall and its car parks); the station **C** |
+| Arkadia and Dworzec Gdański | −2,686, −2,565 / −2,045, −2,621 | Inside since map north (2026-10-31): Arkadia as LoD2; the station's platforms just past the north edge | Arkadia **B** (a big low mall and its car parks); the station **C** |
+| Rondo Radosława and its flag, the Forest tower | −2,833, −2,292 / −2,959, −2,366 | Inside since map north: the ring drivable, the island bare; Forest as OSM parts | The flag **A** (cheap: a mast and a flag), Forest **B** (2.1 "Map north" hand-over) |
 | Hala Mirowska, Hala Koszyki | −1,909, −299 / −770, 1,238 | Outside | **B** (brick halls; kebab and market jokes) |
 | POLIN museum, Plac Bankowy, Teatr Wielki | −2,113, −1,714 / −1,568, −1,106 / −948, −1,039 | Outside | **C** |
 | Plac Zbawiciela | −648, 1,592 | Outside | **B** (the round plaza, a café-district egg) |

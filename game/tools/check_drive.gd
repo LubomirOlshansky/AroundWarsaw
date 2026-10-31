@@ -42,8 +42,20 @@ const STEP := 4.0          # metres between the sweep's samples
 const RIM := 14.0          # samples this close to the map's edge are left out (the edge walls,
                            # 5 m in, and half a bus)
 ## Loop 3e: every structure both ways (the demo map's 55 deck groups and 10 tunnels: 98 routes,
-## ~2 s); 20 before, which the tunnels alone filled.
-const ROUTES := 100
+## ~2 s); 20 before, which the tunnels alone filled. Map north: 61 deck groups and the SPOTS.
+const ROUTES := 150
+## Map north (2026-10-31): routes through every lane edge that passes within SPOT_REACH of these
+## places too (both ways where the road has both), driven first: Rondo Radosława's ring and its
+## approaches (Jana Pawła II from the old map's edge and up to its viaduct, Okopowa, Słomińskiego,
+## Andersa's start), [x, z, what].
+const SPOTS := [
+	[-2833.0, -2238.0, "Rondo Radosława, the ring's north side"], [-2778.0, -2292.0, "Rondo Radosława, the ring's east side"],
+	[-2833.0, -2346.0, "Rondo Radosława, the ring's south side"], [-2885.0, -2292.0, "Rondo Radosława, the ring's west side"],
+	[-2768.0, -2180.0, "Jana Pawła II south of the ring"], [-2770.0, -2080.0, "Jana Pawła II at the old north edge"],
+	[-2905.0, -2560.0, "Jana Pawła II north of the ring"], [-2900.0, -2180.0, "Okopowa"],
+	[-2650.0, -2380.0, "Słomińskiego by Arkadia"], [-1880.0, -2560.0, "Andersa's start"],
+]
+const SPOT_REACH := 8.0
 const ROUTE_REACH := 150.0 # each route runs this far on either side of its structure
 const FRAME := 0.4         # metres per frame on the autopilot (24 m/s at 60 fps)
 const JUMP := 0.3          # a height jump over this between two frames is a finding
@@ -152,7 +164,7 @@ func _allowed(kind: String, p: Vector2) -> bool:
 # --- 1. every lane, a car and a bus ------------------------------------------------------
 
 func _sweep() -> int:
-	var inner: Rect2 = map.bounds.grow(-RIM)
+	# Map north: the map's shape (map_builder.in_map: the bounds without the corner left outside).
 	var samples := 0
 	var lanes := 0
 	var hits := {"car": [], "bus": []}
@@ -172,7 +184,7 @@ func _sweep() -> int:
 			var s := s0
 			while true:
 				var p := graph.point_at(e, s, off)
-				if inner.has_point(p):
+				if map.in_map(p, -RIM):
 					samples += 1
 					var y := graph.height(e, s)
 					for kind in (["car", "bus"] if graph.e_class[e] <= BUS_CLASS else ["car"]):
@@ -277,6 +289,23 @@ func _routes() -> int:
 	keys.sort_custom(func(a: String, b: String) -> bool:
 		return (a.begins_with("tunnel") and not b.begins_with("tunnel")) or \
 				(a.begins_with("tunnel") == b.begins_with("tunnel") and graph.e_len[best[a]] > graph.e_len[best[b]]))
+	# Map north: the SPOTS' edges first.
+	var spot_keys: Array = []
+	for spot: Array in SPOTS:
+		var at := Vector2(float(spot[0]), float(spot[1]))
+		for e in graph.e_a.size():
+			var near := false
+			var s := 0.0
+			while s <= graph.e_len[e]:
+				if graph.point_at(e, s).distance_to(at) < SPOT_REACH:
+					near = true
+					break
+				s += 2.0
+			if near:
+				var k := "%s, edge %d" % [spot[2], e]
+				best[k] = e
+				spot_keys.append(k)
+	keys = spot_keys + keys
 	# Up to ROUTES: then through the longest structure edges no route has crossed yet.
 	var paths := {}
 	var used := {}
@@ -409,10 +438,10 @@ func _drive(path: Array[int], first_lane := 0) -> Array:
 	if pts.is_empty():
 		return [0, jumps]
 	# The rim: a route starts and ends inside the map (past it a deck is cut off in the air).
-	var inner: Rect2 = map.bounds.grow(-RIM)
+	# Map north: the map's shape (map_builder.in_map: the bounds without the corner left outside).
 	var keep := PackedVector2Array()
 	for p in pts:
-		if inner.has_point(p):
+		if map.in_map(p, -RIM):
 			keep.append(p)
 	pts = keep
 	if pts.is_empty():

@@ -40,7 +40,10 @@ MAP = os.path.join(ROOT, "game", "map")
 # Loop 3d-1: the demo box (20.1 km² with the east edge at 21.056, docs/DEVELOPMENT.md "Map data"): 42,578
 # scanned trees (the GUGiK sheets cover the whole box, so no OSM trees are left), 3,548 pois.
 # Before: 75324 / 1020 / 12554 on the first box; 231420 / 3069 / 38570 with the east edge at 21.050.
-EXPECTED = {"trees3d": 255468, "pois": 3548, "trees3d_crown": 42578}
+# Map north (2026-10-31): the box and its north extension (Rondo Radosława, Arkadia, Forest, Andersa
+# to Dworzec Gdański; bake_osm.BBOX_NORTH, 1.04 km²): 44,832 scanned trees (+2,254), 3,601 pois (+53:
+# addresses 3,332 -> 3,378, a hospital, a kebab place, a park, four squares). Before: 255468 / 3548 / 42578.
+EXPECTED = {"trees3d": 268992, "pois": 3601, "trees3d_crown": 44832}
 # docs/DEMO.md 7 row 7: the lane graph's strongly connected share at least this.
 SCC_SHARE = 0.95
 

@@ -530,6 +530,9 @@ def bake(bed, els, nodes, ways, project, in_bbox, clip_polygon, rect, stitch, pa
     # A sandbar is gravel when its inner point lies on a gravel polygon.
     bar_items = [item(b, gravels.hit(*_inner(b)) >= 0) for b in bars]
     gaps = sand_gaps(sand, green + plazas + paving)
+    # Map north (tools/check_outline.py O2): the fills are traced on a raster, so a fill on the
+    # map's edge reached a pixel past it; cut to the map like the sand itself.
+    gaps = [c for c in (clip_polygon(g, rect) for g in gaps) if len(c) >= 3]
     print(f"banks: {counts['built'] / 1000:.2f} km built, {counts['natural'] / 1000:.2f} km natural "
           f"({sum(1 for s in shore if s.get('n') == 1)} sandy runs, {sum(1 for s in shore if s.get('n') == 2)} green); "
           f"sand {len(sand)} polygons ({len(gravel)} gravel) + {len(gaps)} gap fills ({sum(_area(g) for g in gaps):.0f} m2); "

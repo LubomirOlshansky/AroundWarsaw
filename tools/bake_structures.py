@@ -1379,6 +1379,7 @@ def place_bank(m):
     (spots, notes)."""
     import check_roads as cr
     d = m.d
+    inner = m.shape.grow(-10.0)
     river = []
     for a in d.get("areas", []):
         if a.get("k") != "water":
@@ -1488,7 +1489,7 @@ def place_bank(m):
                 else:
                     continue
                 w = (ex + nx * BANK_INLAND, ez + nz * BANK_INLAND)
-                if not (m.bounds[0] + 10 < w[0] < m.bounds[2] - 10 and m.bounds[1] + 10 < w[1] < m.bounds[3] - 10):
+                if not inner.contains(w[0], w[1]):   # map north: the map's shape, 10 m in
                     continue
                 if wet(*w) or any(wet(w[0] + math.cos(t) * BANK_DRY * f, w[1] + math.sin(t) * BANK_DRY * f)
                                   for t in [k * math.tau / 12 for k in range(12)] for f in (0.5, 1.0)):
@@ -1529,6 +1530,42 @@ def place_bank(m):
     return out, {"candidates": cands, "blocked": why}
 
 
+def _trim_walls(walls, shape):
+    """Map north (tools/check_outline.py O1): a wall run's end past the map's edge (up to 1 m:
+    a road's retaining wall clipped with its road, then offset) is cut back onto the edge, its
+    top and bottom heights interpolated there. Runs wholly off the map are dropped."""
+    out = []
+    for w in walls:
+        p = list(zip(w["p"][0::2], w["p"][1::2]))
+        if all(shape.contains(x, z) for x, z in p):
+            out.append(w)
+            continue
+        t, b, f = list(w["t"]), list(w["b"]), list(w.get("f", []))
+        for end in (0, 1):
+            if end == 1:
+                p, t, b, f = p[::-1], t[::-1], b[::-1], f[::-1]
+            while len(p) >= 2 and not shape.contains(*p[0]) and not shape.contains(*p[1]):
+                p, t, b = p[1:], t[1:], b[1:]
+                f = f[1:]
+            if len(p) >= 2 and not shape.contains(*p[0]):
+                segs = shape.clip_segments(p[1], p[0])
+                if segs:
+                    q = segs[0][1]
+                    ln = math.dist(p[1], p[0]) or 1.0
+                    u = math.dist(p[1], q) / ln
+                    p[0] = q
+                    t[0] = round(t[1] + (t[0] - t[1]) * u, 2)
+                    b[0] = round(b[1] + (b[0] - b[1]) * u, 2)
+            if end == 1:
+                p, t, b, f = p[::-1], t[::-1], b[::-1], f[::-1]
+        if len(p) >= 2 and all(shape.grow(0.01).contains(x, z) for x, z in p):
+            w = dict(w, p=[round(c, 2) for q in p for c in q], t=t, b=b)
+            if "f" in w:
+                w["f"] = f
+            out.append(w)
+    return out
+
+
 def add_structures(out, map_dir, terrain):
     """Everything this module adds, into the finished map file `out` (bake_osm.py)."""
     import check_roads as cr
@@ -1564,7 +1601,7 @@ def add_structures(out, map_dir, terrain):
     print(f"trees (map review A): {ct} scanned crowns beside a deck shrunk to clear its slab ({cl} still reach it)")
     walls, wst = place_walls(m)
     frames, twalls, tst = place_tunnels(m)
-    out["walls"] = walls + twalls
+    out["walls"] = _trim_walls(walls + twalls, m.shape)
     out.setdefault("tunnels", {})["frames"] = frames
     out["garage_doors"] = place_garage_doors(m)
     print(f"tunnels (loop 3b): {tst['portals']} portal frames, {tst['tunnel m']:.0f} m of tunnel walled, "

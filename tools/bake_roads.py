@@ -117,6 +117,8 @@ PORTAL_OUT = (4, 12)   # a portal's level: the 1 m cells this many metres out of
 PORTAL_PCT = 0.3       # ...this percentile of them (the trench's floor, not its walls' tops)...
 PORTAL_HOLD = 8.0      # ...held by the ways at the portal over their last metres
 NMT_BOX = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "raw", "demo", "gugik", "nmt1_box")
+# Map north: the 1 m bare earth of the north extension (tools/fetch_demo.py nmt1north), read with it.
+NMT_NORTH = os.path.join(os.path.dirname(NMT_BOX), "nmt1_north")
 
 SPIRAL_LANES = 3     # loop 3b-2: a roundabout ring with this many lanes or more...
 SPIRAL_RADIUS = 25.0  # ...and at least this big (Rondo Dmowskiego) gets spiral lane lines
@@ -480,6 +482,8 @@ class Roadbed:
             t = self.terrain.t
             self.land = (max(rect[0], t["x0"]), max(rect[1], t["z0"]),
                          min(rect[2], t["x0"] + (t["nx"] - 1) * t["step"]), min(rect[3], t["z0"] + (t["nz"] - 1) * t["step"]))
+            if hasattr(rect, "outside"):   # map north: still the map's shape (tools/map_shape.py)
+                self.land = type(rect)(self.land, rect.outside)
         self.roads = roads
         self.paths = paths
         self.trams = trams
@@ -560,7 +564,7 @@ class Roadbed:
         T = self.terrain
         roads = self.roads
         self.surface_model = SurfaceModel.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "raw", "demo", "gugik"))
-        self.nmt = NMT.load(NMT_BOX)   # loop 3e: the 1 m bare earth (ground profiles)
+        self.nmt = NMT.load(NMT_BOX, NMT_NORTH)   # loop 3e: the 1 m bare earth (ground profiles)
 
         # What runs under: ground roads, trams and rails, and the structures below.
         under = Grid(32.0)
@@ -1638,7 +1642,7 @@ class Roadbed:
             for q in (pts[0], pts[-1]):
                 k = node_of[_key(q)]
                 others = verts.get(_key(q), set()) - {i}
-                rim = min(abs(q[0] - x0), abs(q[0] - x1), abs(q[1] - z0), abs(q[1] - z1)) < 0.5
+                rim = _rim(self.rect, q[0], q[1]) < 0.5
                 stairs = family == "path" and any(math.dist(q, v) < 1.5 for v in self._stair_ends(q))
                 if not others and not rim and not stairs:
                     PIN[k] = TH[k]
@@ -2190,6 +2194,8 @@ class Roadbed:
                         return True
             return False
 
+        land_in = self.land.grow(-0.5) if hasattr(self.land, "outside") and self.land.outside else None
+
         def walk(points, lv, main, outward_right):
             # points: the boundary in order, outward on the right (or left).
             run_k, run_l = [], []
@@ -2206,8 +2212,12 @@ class Roadbed:
                     x = a[0] + d[0] * ln * k / n
                     z = a[1] + d[1] * ln * k / n
                     kind = self.outside_kind(lv, x + ox * 0.45, z + oz * 0.45)
-                    if not (self.land[0] + 0.5 <= x <= self.land[2] - 0.5 and self.land[1] + 0.5 <= z <= self.land[3] - 0.5):
-                        kind = None  # past the terrain's edge
+                    if land_in is not None:
+                        on_land = land_in.contains(x, z)
+                    else:
+                        on_land = self.land[0] + 0.5 <= x <= self.land[2] - 0.5 and self.land[1] + 0.5 <= z <= self.land[3] - 0.5
+                    if not on_land:
+                        kind = None  # past the terrain's edge (map north: the map's shape's, the corner left outside too)
                     if kind == "kerb" and self.tram_caps.hit(x, z) is not None:
                         kind = "track"   # a tram track leaves the road here: no kerb across it
                     if kind == "kerb" and joint(lv, x + ox * 0.45, z + oz * 0.45):
@@ -3042,7 +3052,7 @@ class Roadbed:
                 for k in range(n + 1):
                     x = a[0] + (b[0] - a[0]) * k / n
                     z = a[1] + (b[1] - a[1]) * k / n
-                    rim = min(abs(x - x0), abs(x - x1), abs(z - z0), abs(z - z1)) < 1.0
+                    rim = _rim(self.rect, x, z) < 1.0
                     # Loop 3b-2: not where this water body's edge runs through another one (the
                     # Vistula is mapped as two relations: their seam crossed the river at z ~820
                     # and got a granite edge and a wall across the water).
@@ -3287,6 +3297,13 @@ def _close_open(cum, hs, pit, hump):
     return window(window(hs, hump, min), hump, max)
 
 
+def _rim(rect, x, z):
+    """Distance from (x, z) to the map's edge (map north: a Shape's outline; else the box's)."""
+    if hasattr(rect, "rim"):
+        return rect.rim(x, z)
+    return min(abs(x - rect[0]), abs(x - rect[2]), abs(z - rect[1]), abs(z - rect[3]))
+
+
 class NMT:
     """Loop 3e: the 1 m bare earth of the whole box (`data/raw/demo/gugik/nmt1_box`, the tiles
     tools/prepare_demo.py builds the 10 m grid from), in map heights (minus SURFACE_BASE)."""
@@ -3301,10 +3318,15 @@ class NMT:
                     self.cells.setdefault((i, j), []).append(g)
 
     @staticmethod
-    def load(folder):
+    def load(folder, *more):
+        """The tiles of `folder` (None when it isn't there), then those of `more` (map north:
+        the extension's, read after the box's so the box's own cells win where they overlap)."""
         if not os.path.isdir(folder):
             return None
-        files = [os.path.join(folder, f) for f in sorted(os.listdir(folder)) if f.lower().endswith((".tif", ".tiff"))]
+        files = []
+        for d in (folder,) + more:
+            if os.path.isdir(d):
+                files += [os.path.join(d, f) for f in sorted(os.listdir(d)) if f.lower().endswith((".tif", ".tiff"))]
         return NMT([_TifGrid(f) for f in files]) if files else None
 
     def at(self, x, z):
@@ -3350,8 +3372,7 @@ class SurfaceModel:
             grids.append([_TifGrid(f) if not f.lower().endswith(".asc") else _AscGrid(f) for f in files])
         # Only the windows that reach into this map.
         import bake_osm
-        sw, ne = bake_osm.project(bake_osm.BBOX[0], bake_osm.BBOX[1]), bake_osm.project(bake_osm.BBOX[2], bake_osm.BBOX[3])
-        rect = (sw[0], ne[1], ne[0], sw[1])
+        rect = bake_osm.map_shape()   # map north: the bounding rectangle of the box and its extension
         grids = [[g for g in gl if g.touches(rect)] for gl in grids]
         print(f"decks: surface model (R2): {len(grids[0])} surface + {len(grids[1])} bare-earth windows in this map")
         return SurfaceModel(grids[0], grids[1]) if grids[0] and grids[1] else None

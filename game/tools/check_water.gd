@@ -186,7 +186,7 @@ func _check_edges() -> void:
 			var steps := maxi(1, ceili(length / 2.0))
 			for k in steps:
 				var p := a.lerp(c, (k + 0.5) / steps)
-				if p.x - b.position.x < 6.0 or b.end.x - p.x < 6.0 or p.y - b.position.y < 6.0 or b.end.y - p.y < 6.0:
+				if not map.in_map(p, -6.0):   # map north: the rim along the map's shape
 					rim += length / steps
 					run = _close_run(run, places)
 					continue
@@ -404,7 +404,7 @@ func _check_walkers() -> void:
 			for lane in graph.e_lanes[e]:
 				var q := graph.point_at(e, s, graph.lane_offset(e, lane))
 				if map.shore_distance(q.x, q.y) >= 1.0 and y < map.terrain_height(q.x, q.y) + 0.5:
-					if not map.bounds.grow(-6.0).has_point(q):
+					if not map.in_map(q, -6.0):
 						rim += 1  # beyond the edge walls: a lane running off the map
 						continue
 					lanes += 1
@@ -479,7 +479,7 @@ func _start_ramming() -> void:
 			while next < run + length:
 				var p := a + t * (next - run)
 				next += 10.0
-				if p.x - b.position.x < 12.0 or b.end.x - p.x < 12.0 or p.y - b.position.y < 12.0 or b.end.y - p.y < 12.0:
+				if not map.in_map(p, -12.0):   # map north: the rim along the map's shape
 					continue
 				var start := p + land * 8.0
 				if map.shore_distance(start.x, start.y) > 0.0 or map.shore_distance(p.x - land.x * 8.0, p.y - land.y * 8.0) < map.WET:
@@ -540,6 +540,8 @@ func _check_game() -> int:
 	var landing_test := game.has_method("_landing_problem")
 	for z in range(ceili(b.position.y), floori(b.end.y), 20):
 		for x in range(ceili(b.position.x), floori(b.end.x), 20):
+			if not map.in_map(Vector2(x, z), -10.0):
+				continue  # map north: the corner left outside
 			var g: float = map.ground_height(x, z)
 			var why: Array = game._landing_problem(Vector3(x, g, z)) if landing_test \
 					else ([] if map.top_height(x, z, 3.0) <= g + 1.0 else ["roof", ""])
@@ -581,7 +583,7 @@ func _check_game() -> int:
 			while next < run + length:
 				var p := a + t * (next - run)
 				next += 10.0
-				if not b.grow(-10.0).has_point(p):
+				if not map.in_map(p, -20.0):
 					continue
 				for o in [0.0, 3.0, -3.0]:
 					var q: Vector2 = p + n * o
@@ -604,6 +606,8 @@ func _check_game() -> int:
 	var has_tow := game.has_method("_water_tow_spot")
 	for z in range(ceili(b.position.y), floori(b.end.y), 40):
 		for x in range(ceili(b.position.x), floori(b.end.x), 40):
+			if not map.in_map(Vector2(x, z), -10.0):
+				continue  # map north: the corner left outside
 			var g: float = map.terrain_height(x, z)
 			if not map.in_water(x, z, g) or map.ground_height(x, z) > g + 0.5:
 				continue

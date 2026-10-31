@@ -18,7 +18,8 @@ the folder the bake chain reads for the box bake_osm.BBOX (docs/DEVELOPMENT.md "
   trees/             links to the GUGiK tree sheets (1:2500) that meet the box, for
                      tools/bake_trees_gugik.py data/work/demo/trees data/work/demo/trees_area.json
 
-Coordinates and the box come from tools/bake_osm.py (ORIGIN, BBOX).
+Coordinates and the box come from tools/bake_osm.py (ORIGIN, BBOX; map north: BBOX_NORTH too, the
+map's boxes are bake_osm.BOXES and their bounding box bake_osm.HULL).
 """
 import glob
 import json
@@ -39,21 +40,20 @@ KEEP_RELATIONS = {"multipolygon"}
 
 
 def box_meets(s, w, n, e, pad=0.0):
-    bs, bw, bn, be = bake_osm.BBOX
-    return s <= bn + pad and n >= bs - pad and w <= be + pad and e >= bw - pad
+    """Whether the lat/lon box meets one of the map's boxes (map north: BBOX or BBOX_NORTH)."""
+    return any(s <= bn + pad and n >= bs - pad and w <= be + pad and e >= bw - pad for bs, bw, bn, be in bake_osm.BOXES)
 
 
 def osm():
     src = os.path.join(RAW, "demo", "osm", "osm_demo.json")
     data = json.load(open(src, encoding="utf-8"))
     els = data["elements"]
-    s, w, n, e = bake_osm.BBOX
     near = set()
     nodes = {}
     for el in els:
         if el["type"] == "node":
             nodes[el["id"]] = el
-            if s - PAD <= el["lat"] <= n + PAD and w - PAD <= el["lon"] <= e + PAD:
+            if bake_osm.in_bbox(el["lat"], el["lon"], PAD):
                 near.add(el["id"])
     ways = {el["id"]: el for el in els if el["type"] == "way"}
     keep_ways = {i for i, way in ways.items() if any(k in near for k in way.get("nodes", []))}
@@ -92,7 +92,7 @@ def ortho():
     for t in tiles:
         im = Image.open(os.path.join(RAW, "demo", "gugik", "ortho", t["file"])).convert("RGB")
         full.paste(im, (xs.index(t["bbox"][1]) * tw, ys.index(t["bbox"][2]) * th))
-    s, w, n, e = bake_osm.BBOX
+    s, w, n, e = bake_osm.HULL   # map north: the whole bounding box (the part left outside unused)
     W, H = full.size
     x0 = round((w - bw) / (be - bw) * W)
     x1 = round((e - bw) / (be - bw) * W)
@@ -117,7 +117,8 @@ def terrain():
     o = d.get("origin")
     if o and (abs(o[0] - bake_osm.LAT0) > 1e-9 or abs(o[1] - bake_osm.LON0) > 1e-9):
         raise SystemExit("terrain: the grid's origin %s is not bake_osm.ORIGIN" % o)
-    sw, ne = bake_osm.project(bake_osm.BBOX[0], bake_osm.BBOX[1]), bake_osm.project(bake_osm.BBOX[2], bake_osm.BBOX[3])
+    hull = bake_osm.HULL   # map north: the lattice spans the bounding box; the builder draws the map's part
+    sw, ne = bake_osm.project(hull[0], hull[1]), bake_osm.project(hull[2], hull[3])
     x0, z0, step, nx, nz = d["x0"], d["z0"], d["step"], d["nx"], d["nz"]
     # The nodes at or just past the box's edges, no more: a row beyond them puts ground
     # triangles past the sector grid (check_streaming's identity: 26 tiles north of j -4).
@@ -130,7 +131,7 @@ def terrain():
     i1 = math.ceil((ne[0] - x0) / step - 1e-6)
     j1 = math.ceil((sw[1] - z0) / step - 1e-6)
     h = d["h"]
-    nmt1 = Mosaic(os.path.join(RAW, "demo", "gugik", "nmt1_box"))
+    nmt1 = Mosaic(os.path.join(RAW, "demo", "gugik", "nmt1_box"), os.path.join(RAW, "demo", "gugik", "nmt1_north"))
     roads = RoadCells(os.path.join(WORK, "osm_demo.json")) if nmt1.ok else None
     cut, stats = [], {"10 m grid": 0, "1 m ground": 0, "1 m road": 0}
     for j in range(j0, j1 + 1):
@@ -168,15 +169,20 @@ ROAD_PCT = 0.5
 
 
 class Mosaic:
-    """The 1 m tiles of gugik/nmt1_box/ as one grid (they share the WCS cell edges)."""
+    """The 1 m tiles of gugik/nmt1_box/ as one grid (they share the WCS cell edges). Map north:
+    and those of gugik/nmt1_north/ (the extension's), laid first so the box's own tiles win
+    where they overlap (the same cells from the same service)."""
 
-    def __init__(self, folder):
+    def __init__(self, folder, *more):
         import array
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         import geotiff
         from pl1992 import to_pl1992
         self._to = to_pl1992
         paths = sorted(glob.glob(os.path.join(folder, "*.tif")))
+        if paths:
+            for d in more:
+                paths = sorted(glob.glob(os.path.join(d, "*.tif"))) + paths
         self.ok = bool(paths)
         if not self.ok:
             return

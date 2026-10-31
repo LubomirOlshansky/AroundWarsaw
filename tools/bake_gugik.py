@@ -14,6 +14,13 @@ Writes  game/map/lod2.bin   float32 arrays: positions, normals, colours, UVs (on
 A LoD2 building is kept when it stands inside a mapped OSM building (so buildings
 demolished since the 2018 survey drop out); an OSM building is kept only where
 no LoD2 building covers it (so newer towers such as Varso stay).
+Map north (2026-10-31): "stands inside" was its biggest ground triangle's centroid in an OSM
+outline; a model whose centroid falls in a courtyard, a gap between two outlines or a passage
+dropped out though OpenStreetMap maps it (59 plain blocks map-wide, the Old Town's among them).
+Now a model is also kept when OVERLAP_KEEP of its footprint lies in OSM outlines (sampled every
+SAMPLE m); the OSM outlines it then hides are those it covers by OVERLAP_COVER of their own area
+(a sliver of overlap hides nothing, so no block is lost and none is drawn twice:
+tools/check_lod2.py counts both).
 """
 import array
 import glob
@@ -26,9 +33,19 @@ import xml.etree.ElementTree as ET
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bake_osm  # noqa: E402
+import map_shape  # noqa: E402  (map north: the map is the box and its north extension)
 from pl1992 import from_pl1992  # noqa: E402
 
 BASE_HEIGHT = 100.0  # metres above sea level that becomes y = 0 in the game
+OVERLAP_KEEP = 0.5   # map north: a model with this share of its footprint in OSM outlines is kept...
+OVERLAP_COVER = 0.5  # ...and hides the OSM outlines it covers by this share of their area
+SAMPLE = 1.0         # metres between the samples of those shares (finer for small outlines)
+HEIGHT_AGREE = 6.0   # ...when the OSM outline's height (the one it overlaps most) lies between its eaves
+HEIGHT_SHARE = 0.25  # and its top, give or take this many metres or this share of its top (else it is
+                     # an older building there)
+UNTAGGED_H = 14.0    # bake_osm.make_building's height for an outline with no height or levels: no test
+NEWER_SHARE = 0.5    # map north: models all under this share of an outline's mapped height...
+NEWER_MIN = 10.0     # ...and this many metres lower are older than the building OSM maps there
 NS = {"bldg": "http://www.opengis.net/citygml/building/2.0", "gml": "http://www.opengis.net/gml"}
 BLDG = "{%s}" % NS["bldg"]
 GML = "{%s}" % NS["gml"]
@@ -301,13 +318,40 @@ def buildings_in(path, convert):
         el.clear()
 
 
+def overlap(polys, hit):
+    """Map north: the share of the polygons' area where hit(x, z) returns something, and per hit
+    the samples it got: a grid every SAMPLE m (at least ~400 samples a polygon)."""
+    total, inside, hits = 0, 0, {}
+    for poly in polys:
+        if len(poly) < 3:
+            continue
+        xs, zs = [q[0] for q in poly], [q[1] for q in poly]
+        area = abs(area2d(poly))
+        step = min(SAMPLE, max(0.2, math.sqrt(area / 400.0))) if area > 0 else SAMPLE
+        z = min(zs) + step * 0.5
+        while z < max(zs):
+            x = min(xs) + step * 0.5
+            while x < max(xs):
+                if point_in_poly(x, z, poly):
+                    total += 1
+                    found = hit(x, z)
+                    if found:
+                        inside += 1
+                        for k in found:
+                            hits[k] = hits.get(k, 0) + 1
+                x += step
+            z += step
+    return (inside / total if total else 0.0), hits
+
+
 # --- main ---------------------------------------------------------------------
 
 def main(raw, out_dir):
     terrain = Terrain(os.path.join(raw, "terrain_10m.json"))
     ortho = Ortho(os.path.join(raw, "ortho.bmp"), os.path.join(raw, "ortho.json"))
     osm = json.load(open(os.path.join(out_dir, "centrum.json"), encoding="utf-8"))
-    bx0, bz0, bx1, bz1 = osm["bounds"]
+    shape = map_shape.of(osm)
+    rim = shape.grow(6)
 
     cache = {}
 
@@ -346,6 +390,7 @@ def main(raw, out_dir):
 
     seen = set()
     kept = []
+    stats_loose = {"kept": 0, "hid": 0, "taller": 0}
     for path in sorted(glob.glob(os.path.join(raw, "sheets", "*.gml"))):
         for gid, surfaces in buildings_in(path, convert):
             if gid in seen or not surfaces:
@@ -359,21 +404,68 @@ def main(raw, out_dir):
             big = max(tris, key=lambda t: abs(_orient((t[0][0], t[0][2]), (t[1][0], t[1][2]), (t[2][0], t[2][2]))))
             cx = sum(v[0] for v in big) / 3
             cz = sum(v[2] for v in big) / 3
-            if not (bx0 <= cx <= bx1 and bz0 <= cz <= bz1):
+            if not shape.contains(cx, cz):
                 continue
             outline = ground[0][1] if ground else ref[1]
-            if any(not (bx0 - 6 <= v[0] <= bx1 + 6 and bz0 - 6 <= v[2] <= bz1 + 6) for v in outline):
+            if any(not rim.contains(v[0], v[2]) for v in outline):
                 continue  # hangs over the edge of the map
             matches = osm_at(cx, cz)
-            if not matches:
-                continue  # not on today's map: demolished or never there
             footprints = [[(v[0], v[2]) for v in g[1]] for g in ground] or [[(v[0], v[2]) for v in ref[1]]]
-            kept.append((gid, surfaces, matches, footprints))
+            loose = False
+            if not matches:
+                # Map north: kept by area when most of its footprint lies in OSM outlines.
+                share, hits = overlap(footprints, osm_at)
+                if share < OVERLAP_KEEP:
+                    continue  # not on today's map: demolished or never there
+                matches = [k for k, _ in sorted(hits.items(), key=lambda kv: -kv[1])]
+                # ...and stands as tall as what OpenStreetMap maps there: the 2018 model of a
+                # building pulled down for a new tower overlaps the tower's outline (Studio by
+                # Rondo Daszyńskiego, now Studio A's 22 storeys).
+                # OpenStreetMap's height is to the top or (from its storeys) about to the eaves: it
+                # has to lie between the model's eaves and its top, give or take the tolerance.
+                all_y = [v[1] for srf in surfaces for v in srf[1]]
+                base = min(all_y)
+                tall = max(all_y) - base
+                roofs = [v[1] for srf in surfaces if srf[0] == "RoofSurface" for v in srf[1]]
+                eaves = (min(roofs) - base) if roofs else tall
+                tol = max(HEIGHT_AGREE, HEIGHT_SHARE * tall)
+                mapped = float(osm_polys[matches[0]][5].get("h", 0) or 0)
+                if mapped > 0 and mapped != UNTAGGED_H and not (eaves - tol <= mapped <= tall + tol):
+                    stats_loose["taller"] += 1
+                    stats_loose.setdefault("taller at", []).append((round(cx), round(cz), round(tall, 1), mapped))
+                    continue
+                loose = True
+                stats_loose["kept"] += 1
+            kept.append((gid, surfaces, matches, footprints, loose))
+
+    # Map north (the Forest tower): a 2018 model of a building since replaced by a much taller one
+    # stood in for the new one (a 6.8 m shed hid Forest's 120 m tower part). Where every model
+    # standing in an OSM outline with a mapped height is under NEWER_SHARE of it and NEWER_MIN or
+    # more lower, they are older than the map: left out, and the outline is drawn from OSM.
+    tops = [max(v[1] for srf in surfaces for v in srf[1]) - min(v[1] for srf in surfaces for v in srf[1])
+            for _, surfaces, _, _, _ in kept]
+    by_outline = {}
+    for i, (_, _, matches, _, _) in enumerate(kept):
+        for k in matches:
+            by_outline.setdefault(k, []).append(i)
+    older = set()
+    for k, models in by_outline.items():
+        h = float(osm_polys[k][5].get("h", 0) or 0)
+        if h == UNTAGGED_H or h <= 0:
+            continue
+        top = max(tops[i] for i in models)
+        if top < NEWER_SHARE * h and h - top >= NEWER_MIN:
+            older.update(models)
+            stats_loose.setdefault("older at", []).append((round(osm_polys[k][1]), round(osm_polys[k][2]), round(top, 1), h))
+    kept = [m for i, m in enumerate(kept) if i not in older]
+    stats_loose["older"] = len(older)
 
     # OSM buildings that no LoD2 footprint covers stay as simple extrusions.
     # An OSM building is covered when its centre, or most of its corners, fall inside LoD2 footprints.
     covered = set()
-    for _, _, matches, footprints in kept:
+    for _, _, matches, footprints, loose in kept:
+        if loose:
+            continue   # map north: below, by area
         covered.update(matches)
         for footprint in footprints:
             fx = [p[0] for p in footprint]
@@ -386,6 +478,34 @@ def main(raw, out_dir):
                 inside = sum(1 for q in p if point_in_poly(q[0], q[1], footprint))
                 if point_in_poly(cx, cz, footprint) or inside * 2 >= len(p):
                     covered.add(k)
+    # Map north: the models kept by area hide only the outlines the kept models' footprints (all
+    # of them: a block two models share) cover by OVERLAP_COVER of their area, never by a centre
+    # or corners on a shared wall (that hid a warehouse next to Forest it didn't touch).
+    fps = [f for _, _, _, footprints, _ in kept for f in footprints]
+    fp_boxes = [(min(q[0] for q in f), min(q[1] for q in f), max(q[0] for q in f), max(q[1] for q in f)) for f in fps]
+    fp_cells = {}
+    for i, b in enumerate(fp_boxes):
+        for gi in range(int(b[0] // cell), int(b[2] // cell) + 1):
+            for gj in range(int(b[1] // cell), int(b[3] // cell) + 1):
+                fp_cells.setdefault((gi, gj), []).append(i)
+
+    def in_footprints(x, z):
+        for i in fp_cells.get((int(x // cell), int(z // cell)), ()):
+            b = fp_boxes[i]
+            if b[0] <= x <= b[2] and b[1] <= z <= b[3] and point_in_poly(x, z, fps[i]):
+                return [0]
+        return []
+
+    for _, _, matches, footprints, loose in kept:
+        if not loose:
+            continue
+        for k in matches:
+            if k in covered:
+                continue
+            share, _ = overlap([osm_polys[k][0]], in_footprints)
+            if share >= OVERLAP_COVER:
+                covered.add(k)
+                stats_loose["hid"] += 1
     keep_osm = [k for k in range(len(osm_polys)) if k not in covered]
 
     landmark_polys = [(l["name"], list(zip(l["p"][0::2], l["p"][1::2]))) for l in osm.get("landmarks", [])
@@ -456,7 +576,7 @@ def main(raw, out_dir):
                 emit([a0, b1, a1], n, side, (-1.0, -1.0), (seed01, -1.0))
             placed += 1
     stats = {"roof": 0, "wall": 0}
-    for gid, surfaces, matches, footprints in kept:
+    for gid, surfaces, matches, footprints, _loose in kept:
         all_y = [v[1] for s in surfaces for v in s[1]]
         ground_z, top_z = min(all_y), max(all_y)
         height = top_z - ground_z
@@ -558,6 +678,12 @@ def main(raw, out_dir):
     # Loop 3d-1: terrain.json is tools/bake_terrain.py's now (it runs first, from the same grid).
     print(f"LoD2 buildings {len(kept)} ({stats['roof']} roof and {stats['wall']} wall polygons), "
           f"{count} vertices; OSM buildings kept {len(keep_osm)} of {len(osm_polys)}")
+    print(f"LoD2 (map north): {stats_loose['kept']} models kept by area ({OVERLAP_KEEP:.0%} of the footprint in OSM "
+          f"outlines and as tall), hiding {stats_loose['hid']} OSM outlines they cover by {OVERLAP_COVER:.0%}; "
+          f"{stats_loose['taller']} left out as another height than the outline (an older building: x, z, LoD2 m, "
+          f"OSM m: {stats_loose.get('taller at', [])})")
+    print(f"LoD2 (map north): {stats_loose.get('older', 0)} models left out under a much taller mapped building (a newer "
+          f"one on the site; the outline's x0, z0, the models' top, its height): {stats_loose.get('older at', [])}")
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bake_roads  # noqa: E402  (v0.75: carriageways, decks, markings, kerbs)
+from map_shape import Shape  # noqa: E402  (map north: the box with its north extension)
 
 # Loop 3d-1: the demo box (docs/DEMO.md 2.1, the user's decision 2026-10-29): Rondo Daszyńskiego
 # to past the stadium and Most Łazienkowski, MDM to just past the Barbakan, 5,318 × 3,782 m =
@@ -28,6 +29,17 @@ ORIGIN = (52.2340, 21.0240)
 LAT0, LON0 = ORIGIN
 M_PER_DEG_LAT = 110574.0
 M_PER_DEG_LON = 111320.0 * math.cos(math.radians(LAT0))
+# Map north (2026-10-31, the user's ask: Rondo Radosława with its flag, Arkadia and the Forest
+# tower): the map grows north on its west side only, by this box on top of BBOX's north edge
+# (south, west, north, east). North 52.2591 (z -2,775) is Arkadia's outline (52.2587) and its ring
+# road Kłopot (z -2,755) + 20 m, short of the ring railway and Dworzec Gdański's platforms, inside
+# the demo fetch (52.2595); the viaducts of Jana Pawła II and Andersa over the railway end at
+# z -2,850 and are cut at the edge (check_roads C6 allows the rim). The east edge is x -1,706.12,
+# a column of the 10 m terrain lattice (so the ground stops there cell by cell), east of Andersa
+# (x -1,790 to -1,920), which closes the street net: Słomińskiego from the roundabout to Andersa,
+# Andersa south into the old map. Everything east of it and north of BBOX stays off the map
+# (centrum.json `outside`, tools/map_shape.py).
+BBOX_NORTH = (BBOX[2], BBOX[1], 52.2591, LON0 - 1706.12 / M_PER_DEG_LON)
 
 # Loop 3d-1: the demo box's inputs, prepared from data/raw (read-only) by tools/prepare_demo.py:
 # the OSM export cut to the box, the aerial photo joined and cut, the 10 m grid cut, links to the
@@ -42,7 +54,23 @@ GUGIK_TREES = os.path.join(WORK, "trees_area.json")
 def ortho_box():
     """The aerial photo's own box (south, west, north, east): ortho.json, cut at whole pixels."""
     meta = os.path.join(WORK, "ortho.json")
-    return tuple(json.load(open(meta))["bbox"]) if os.path.exists(meta) else BBOX
+    return tuple(json.load(open(meta))["bbox"]) if os.path.exists(meta) else HULL
+
+
+# Map north: the boxes the map is made of, their bounding box (south, west, north, east) and the
+# map in metres: a Shape (tools/map_shape.py), the bounding rectangle (x0, z0, x1, z1) with the
+# corner that is not map in `outside`.
+BOXES = [BBOX, BBOX_NORTH]
+HULL = (min(b[0] for b in BOXES), min(b[1] for b in BOXES), max(b[2] for b in BOXES), max(b[3] for b in BOXES))
+
+
+def map_shape():
+    sw, ne = project(HULL[0], HULL[1]), project(HULL[2], HULL[3])
+    hull = (sw[0], ne[1], ne[0], sw[1])
+    nsw, nne = project(BBOX_NORTH[0], BBOX_NORTH[1]), project(BBOX_NORTH[2], BBOX_NORTH[3])
+    msw, mne = project(BBOX[0], BBOX[1]), project(BBOX[2], BBOX[3])
+    # The strip north of BBOX east of BBOX_NORTH (the extension shares BBOX's west edge).
+    return Shape(hull, [(nne[0], hull[1], hull[2], mne[1])] if nne[0] < hull[2] else [])
 
 # Laser-scan records that are not trees (loop 1): (x, z in map metres as trees_area.json has
 # them, height, what it is). They are left out of trees3d; one marked "palm" is where the
@@ -123,7 +151,11 @@ def centroid(pts):
 
 
 def in_bbox(lat, lon, pad=0.0):
-    return BBOX[0] - pad <= lat <= BBOX[2] + pad and BBOX[1] - pad <= lon <= BBOX[3] + pad
+    """Inside the map's boxes (map north: BBOX or BBOX_NORTH), grown by pad degrees."""
+    for b in BOXES:
+        if b[0] - pad <= lat <= b[2] + pad and b[1] - pad <= lon <= b[3] + pad:
+            return True
+    return False
 
 
 def stitch(member_ways):
@@ -236,7 +268,7 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
                 continue
             pts = coords(ring[:-1])
             if "building" in t or "building:part" in t:
-                buildings.append(make_building(t, pts, "building:part" in t))
+                buildings.append(dict(make_building(t, pts, "building:part" in t), _mp=True))
             else:
                 for (key, val), kind in GREEN.items():
                     if t.get(key) == val:
@@ -272,8 +304,11 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
         b["p"] = flat(b.pop("_pts"))
         del b["part"]
 
-    sw, ne = project(BBOX[0], BBOX[1]), project(BBOX[2], BBOX[3])
-    rect = (sw[0], ne[1], ne[0], sw[1])  # x0, z0, x1, z1
+    rect = map_shape()  # x0, z0, x1, z1 (map north: a Shape, the box and its north extension)
+    roads, dropped_roof = roof_aisles(roads, buildings)
+    paths, dropped_bridges = cut_footbridges(paths, roads, rect)
+    print(f"map north: {dropped_roof} roof car park ways left out (a parking aisle on a building's roof, "
+          f"mapped with no layer, and its ramps); {dropped_bridges} footbridge ways the map's edge cuts left out")
     roads = clip_lines(roads, rect)
     tunnel_roads = clip_lines(tunnel_roads, rect)
     roads, garages = garage_ramps(roads, os.path.join(os.path.dirname(os.path.abspath(dst)), "terrain.json"))
@@ -282,7 +317,7 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     areas = [dict(a, p=flat(c)) for a in areas
              for c in [clip_polygon(list(zip(a["p"][0::2], a["p"][1::2])), rect)] if len(c) >= 3]
     # Buildings stay only if they don't hang over the edge of the map by more than a few metres.
-    grown = (rect[0] - 6, rect[1] - 6, rect[2] + 6, rect[3] + 6)
+    grown = rect.grow(6)
     kept = [b for b in kept if all(inside(grown, x, z) for x, z in zip(b["p"][0::2], b["p"][1::2]))]
 
     gugik = json.load(open(GUGIK_TREES)) if os.path.exists(GUGIK_TREES) else None
@@ -351,6 +386,9 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
         for k in [k for k in e if k.startswith("_")]:
             del e[k]
     markings = bed.edge_lines + bed.lane_lines + bed.lane_marks + bed.hatching
+    # Map north (tools/check_outline.py O1): lines offset from a road clipped at the map's edge
+    # (the lane and edge lines, the cycle lanes) ran up to 1.5 m past it, over nothing.
+    markings = clip_lines(markings, rect)
     print("markings: " + ", ".join(f"{k} {sum(1 for m in markings if m['k'] == k)}" for k in sorted({m["k"] for m in markings})))
     for item in roads + paths + trams + details.get("rails", []) + details.get("islands", []) + details.get("surfaces", []):
         if item.get("dk", -1) < 0:
@@ -367,13 +405,15 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     out = {
         "origin": [LAT0, LON0],
         "bounds": [round(v, 1) for v in rect],
+        # Map north: the parts of the bounds that are not map (tools/map_shape.py; map_builder.gd).
+        "outside": [[round(v, 1) if any(abs(v - b) < 1e-6 for b in rect) else round(v, 2) for v in o] for o in rect.outside],
         "spawn": spawn,
         "roads": roads, "paths": paths, "trams": trams, "areas": areas, "buildings": kept,
         "trees": trees, "trees3d": trees3d, "landmarks": landmarks, "markings": markings, "pois": pois,
         "graph": graph,
         "carriage": [_lv({"p": flat(c["p"]), "k": c["k"]}, c["dk"]) for c in bed.carriage + bed.hatch],
         "kerbs": [_lv({"p": k["p"]}, k["dk"]) for k in bed.kerbs],
-        "medians": [_lv({"s": m["s"], "k": m["k"]}, m["dk"]) for m in bed.medians],
+        "medians": [_lv({"s": sm, "k": m["k"]}, m["dk"]) for m in bed.medians for sm in [trim_strip(m["s"], rect)] if len(sm) >= 8],
         "guards": [_lv({"p": g["p"]}, g["dk"]) for g in bed.guards],
         "symbols": [_lv({k: v for k, v in m.items() if k != "dk"}, m["dk"]) for m in bed.symbols],
         "decks": bed.deck_json(),
@@ -409,6 +449,146 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
           f"{len(out['tunnels']['portals'])} portals; garages: {len(garages)} doors (R9)")
     print(f"roads {len(roads)} paths {len(paths)} trams {len(trams)} areas {len(areas)} "
           f"trees {len(trees) // 4} + GUGiK {len(trees3d) // 6} buildings {len(kept)} (dropped {len(buildings) - len(kept)} outlines with parts) spawn {spawn}")
+
+
+# Map north (2026-10-31, check_roads C1/C5 at Arkadia): a service way that lies this share of its
+# length inside building outlines and has no layer, level or covered tag is a car park on the roof
+# (Arkadia's, mapped flat): drawn on the ground it ran through the mall. It is left out with the
+# bridge ramps that climb to it. The raw way stays in the OSM export for the landmarks lane.
+ROOF_SHARE = 0.75
+ROOF_MIN = 50.0
+ROOF_STUB = 15.0   # a service way shorter than this between the ramps goes with them
+
+
+def roof_aisles(roads, buildings):
+    """Map north: (roads without the roof car parks and their ramps, how many ways went)."""
+    # Outlines with courtyards (multipolygons: their inner rings aren't in the list) would hold
+    # every courtyard's car park: only closed building ways count.
+    outlines = [b["_pts"] if "_pts" in b else list(zip(b["p"][0::2], b["p"][1::2])) for b in buildings if not b.get("_mp")]
+    boxes = [(min(q[0] for q in o), min(q[1] for q in o), max(q[0] for q in o), max(q[1] for q in o)) for o in outlines]
+    cells = {}
+    for k, b in enumerate(boxes):
+        for i in range(int(b[0] // 50), int(b[2] // 50) + 1):
+            for j in range(int(b[1] // 50), int(b[3] // 50) + 1):
+                cells.setdefault((i, j), []).append(k)
+
+    def in_building(x, z):
+        for k in cells.get((int(x // 50), int(z // 50)), ()):
+            b = boxes[k]
+            if b[0] <= x <= b[2] and b[1] <= z <= b[3] and point_in_poly(x, z, outlines[k]):
+                return True
+        return False
+
+    roof = []
+    for r in roads:
+        t = r["_t"]
+        if r["k"] != "service" or t.get("service") != "parking_aisle" or r["bridge"] \
+                or any(k in t for k in ("layer", "level", "covered", "tunnel")):
+            continue
+        pts = list(zip(r["p"][0::2], r["p"][1::2]))
+        total = inside = 0.0
+        for a, b in zip(pts, pts[1:]):
+            ln = math.dist(a, b)
+            n = max(1, int(ln))
+            for k in range(n):
+                total += ln / n
+                if in_building(a[0] + (b[0] - a[0]) * (k + 0.5) / n, a[1] + (b[1] - a[1]) * (k + 0.5) / n):
+                    inside += ln / n
+        if total >= ROOF_MIN and inside >= ROOF_SHARE * total:
+            roof.append(r)
+    for r in roof:
+        print(f"map north: roof car park way {r['_id']} at ({r['p'][0]:.0f}, {r['p'][1]:.0f}) left out")
+    # The ramps: service bridges, and the short service stubs between them, joined to the roof
+    # car park way by way.
+    gone = {id(r) for r in roof}
+    ends = {(round(x, 2), round(z, 2)) for r in roof for x, z in zip(r["p"][0::2], r["p"][1::2])}
+    grew = bool(roof)
+    while grew:
+        grew = False
+        for r in roads:
+            if id(r) in gone or r["k"] != "service":
+                continue
+            pts = list(zip(r["p"][0::2], r["p"][1::2]))
+            short = sum(math.dist(a, b) for a, b in zip(pts, pts[1:])) < ROOF_STUB
+            if (r["bridge"] or short) and any((round(x, 2), round(z, 2)) in ends for x, z in pts):
+                gone.add(id(r))
+                ends.update((round(x, 2), round(z, 2)) for x, z in pts)
+                grew = True
+    return [r for r in roads if id(r) not in gone], len(gone)
+
+
+def trim_strip(s4, shape):
+    """Map north (tools/check_outline.py O1): a median strip (pairs of side points, 4 values a
+    pair) offset from a road clipped at the map's edge reached up to 2 m past it: its end pairs
+    off the map are dropped and a side point past the edge is moved back onto it."""
+    pairs_ = [list(s4[k:k + 4]) for k in range(0, len(s4) - 3, 4)]
+
+    def side_in(p, j):
+        return shape.contains(p[j], p[j + 1])
+
+    for _ in range(2):
+        while len(pairs_) >= 3 and not any(side_in(pairs_[0], j) or side_in(pairs_[1], j) for j in (0, 2)):
+            pairs_.pop(0)
+        if len(pairs_) >= 2:
+            for j in (0, 2):
+                p, q = pairs_[0], pairs_[1]
+                if not side_in(p, j) and side_in(q, j):
+                    segs = shape.clip_segments((q[j], q[j + 1]), (p[j], p[j + 1]))
+                    if segs:
+                        p[j], p[j + 1] = round(segs[0][1][0], 2), round(segs[0][1][1], 2)
+        pairs_.reverse()
+    return [v for p in pairs_ for v in p]
+
+
+FOOTBRIDGE_BESIDE = 12.0   # map north: a bridge footway this near a road bridge is its pavement
+
+
+def cut_footbridges(paths, roads, shape):
+    """Map north (2026-10-31, check_roads C3/C9 at Dworzec Gdański): a footbridge (the bridge
+    footways joined at their ends) that the map's edge cuts can't be solved from one end (it led
+    over the railway at 3 m and through a station building) and leads off the map: left out whole.
+    A road bridge's pavements (bridge footways that run beside a road bridge for most of their
+    points) stay with it. Returns (paths, how many ways went)."""
+    br = [k for k, p in enumerate(paths) if p.get("_br")]
+    parent = {k: k for k in br}
+
+    def find(k):
+        while parent[k] != k:
+            parent[k] = parent[parent[k]]
+            k = parent[k]
+        return k
+
+    at = {}
+    for k in br:
+        for x, z in zip(paths[k]["p"][0::2], paths[k]["p"][1::2]):
+            q = (round(x, 2), round(z, 2))
+            if q in at:
+                parent[find(k)] = find(at[q])
+            else:
+                at[q] = k
+    groups = {}
+    for k in br:
+        groups.setdefault(find(k), []).append(k)
+    decks = [list(zip(r["p"][0::2], r["p"][1::2])) for r in roads if r["bridge"]]
+
+    def beside(x, z):
+        for d in decks:
+            for a, b in zip(d, d[1:]):
+                if seg_distance(x, z, a, b) < FOOTBRIDGE_BESIDE:
+                    return True
+        return False
+
+    gone = set()
+    for members in groups.values():
+        pts = [(x, z) for k in members for x, z in zip(paths[k]["p"][0::2], paths[k]["p"][1::2])]
+        if all(shape.contains(x, z) for x, z in pts):
+            continue
+        # A road bridge's pavement runs along it; a footbridge only meets one (Dworzec Gdański's
+        # footbridge leaves Andersa's bridge over the platforms).
+        if sum(1 for x, z in pts if beside(x, z)) >= 0.5 * len(pts):
+            continue
+        gone.update(members)
+    return [p for k, p in enumerate(paths) if k not in gone], len(gone)
 
 
 CROWN_NEAR = 12.0    # loop 3b-2: a scanned tree this close to a road's edge (m)...
@@ -665,7 +845,17 @@ def bake_trees(src, areas, gugik=None):
 
 
 def inside(rect, x, z):
+    if isinstance(rect, Shape):
+        return rect.contains(x, z)
     return rect[0] <= x <= rect[2] and rect[1] <= z <= rect[3]
+
+
+def clip_segments(a, b, rect):
+    """Map north: the pieces of a-b inside rect (a Shape: up to two), as (p, q) pairs."""
+    if isinstance(rect, Shape) and rect.outside:
+        return rect.clip_segments(a, b)
+    seg = clip_segment(a, b, rect)
+    return [] if seg is None else [seg]
 
 
 def clip_segment(a, b, rect):
@@ -695,28 +885,41 @@ def clip_lines(items, rect):
         pts = list(zip(item["p"][0::2], item["p"][1::2]))
         piece = []
         for a, b in zip(pts, pts[1:]):
-            seg = clip_segment(a, b, rect)
-            if seg is None:
+            segs = clip_segments(a, b, rect)
+            if not segs:
                 if len(piece) >= 2:
                     out.append(dict(item, p=flat(piece)))
                 piece = []
                 continue
-            if piece and piece[-1] == seg[0]:
-                piece.append(seg[1])
-            else:
-                if len(piece) >= 2:
+            for seg in segs:
+                if piece and piece[-1] == seg[0]:
+                    piece.append(seg[1])
+                else:
+                    if len(piece) >= 2:
+                        out.append(dict(item, p=flat(piece)))
+                    piece = [seg[0], seg[1]]
+                if seg[1] != b:
                     out.append(dict(item, p=flat(piece)))
-                piece = [seg[0], seg[1]]
-            if seg[1] != b:
-                out.append(dict(item, p=flat(piece)))
-                piece = []
+                    piece = []
         if len(piece) >= 2:
             out.append(dict(item, p=flat(piece)))
     return out
 
 
 def clip_polygon(poly, rect):
-    """Sutherland-Hodgman against the four edges of rect."""
+    """Sutherland-Hodgman against the four edges of rect. Map north: for a Shape, a polygon
+    that reaches into a part left `outside` is cut to each of the map's rectangles and the
+    larger piece kept (only outlines across the extension's inner corner have two)."""
+    out = _clip_rect(poly, rect)
+    if isinstance(rect, Shape) and rect.outside and out:
+        if all(abs(ring_area(_clip_rect(out, o))) < 1e-6 for o in rect.outside):
+            return out
+        pieces = [_clip_rect(out, r) for r in rect.parts()]
+        return max(pieces, key=lambda c: abs(ring_area(c)) if len(c) >= 3 else -1.0)
+    return out
+
+
+def _clip_rect(poly, rect):
     x0, z0, x1, z1 = rect
     edges = [(lambda p: p[0] >= x0, lambda a, b: (x0, a[1] + (b[1] - a[1]) * (x0 - a[0]) / (b[0] - a[0]))),
              (lambda p: p[0] <= x1, lambda a, b: (x1, a[1] + (b[1] - a[1]) * (x1 - a[0]) / (b[0] - a[0]))),
@@ -921,7 +1124,7 @@ def bake_pois(els, nodes, ways, roads, paths, areas, rect):
     for r in roads:
         p = list(zip(r["p"][0::2], r["p"][1::2]))
         segs += list(zip(p, p[1:]))
-    grown = (rect[0] + 25, rect[1] + 25, rect[2] - 25, rect[3] - 25)
+    grown = rect.grow(-25) if isinstance(rect, Shape) else (rect[0] + 25, rect[1] + 25, rect[2] - 25, rect[3] - 25)
     out = []
     for e in els:
         t = e.get("tags", {})
@@ -1435,24 +1638,25 @@ def bake_graph(els, nodes, ways, rect, signal_src, poles, bed=None, levels=None)
         cur = []
         for k in range(len(pts) - 1):
             a, b = pts[k], pts[k + 1]
-            seg = clip_segment(a, b, rect)
-            if seg is None:
+            segs = clip_segments(a, b, rect)
+            if not segs:
                 if len(cur) >= 2:
                     pieces.append((t, cur))
                 cur = []
                 continue
-            pa = (seg[0][0], seg[0][1], ids[k] if math.dist(seg[0], a) < 1e-6 else None)
-            pb = (seg[1][0], seg[1][1], ids[k + 1] if math.dist(seg[1], b) < 1e-6 else None)
-            if cur and math.dist(cur[-1][:2], pa[:2]) > 1e-6:
-                if len(cur) >= 2:
+            for seg in segs:
+                pa = (seg[0][0], seg[0][1], ids[k] if math.dist(seg[0], a) < 1e-6 else None)
+                pb = (seg[1][0], seg[1][1], ids[k + 1] if math.dist(seg[1], b) < 1e-6 else None)
+                if cur and math.dist(cur[-1][:2], pa[:2]) > 1e-6:
+                    if len(cur) >= 2:
+                        pieces.append((t, cur))
+                    cur = []
+                if not cur:
+                    cur = [pa]
+                cur.append(pb)
+                if pb[2] is None:
                     pieces.append((t, cur))
-                cur = []
-            if not cur:
-                cur = [pa]
-            cur.append(pb)
-            if pb[2] is None:
-                pieces.append((t, cur))
-                cur = []
+                    cur = []
         if len(cur) >= 2:
             pieces.append((t, cur))
 
@@ -1546,11 +1750,17 @@ def bake_graph(els, nodes, ways, rect, signal_src, poles, bed=None, levels=None)
     # "portals"; route planning can, and a rival that drives off the map comes back
     # through one. Without them the little Praga streets, which only meet the rest of
     # the network out east, would be a dead end.
-    x0, z0, x1, z1 = rect
+    # Map north: the sides are the map's outline's (six for the box with its north extension).
+    ring = rect.outline() if isinstance(rect, Shape) else [(rect[0], rect[1]), (rect[2], rect[1]), (rect[2], rect[3]), (rect[0], rect[3])]
+    sides = [(ring[k - 1], ring[k]) for k in range(len(ring))]
+    upright = [abs(a[0] - b[0]) < 1e-6 for a, b in sides]
 
     def rim_side(p):
-        for side, d in enumerate((abs(p[0] - x0), abs(p[0] - x1), abs(p[1] - z0), abs(p[1] - z1))):
-            if d < 0.5:
+        for side, (a, b) in enumerate(sides):
+            if upright[side]:
+                if abs(p[0] - a[0]) < 0.5 and min(a[1], b[1]) - 0.5 <= p[1] <= max(a[1], b[1]) + 0.5:
+                    return side
+            elif abs(p[1] - a[1]) < 0.5 and min(a[0], b[0]) - 0.5 <= p[0] <= max(a[0], b[0]) + 0.5:
                 return side
         return -1
 
@@ -1573,7 +1783,7 @@ def bake_graph(els, nodes, ways, rect, signal_src, poles, bed=None, levels=None)
             q = node_xz[edges[j]["a"]]
             if rim_side(q) != side:
                 continue
-            d = abs(p[1] - q[1]) if side < 2 else abs(p[0] - q[0])
+            d = abs(p[1] - q[1]) if upright[side] else abs(p[0] - q[0])
             if d <= PORTAL_REACH:
                 near.append((d, j))
         for d, j in sorted(near)[:3]:
@@ -1903,7 +2113,9 @@ def bake_extras(src, roads, rect):
                 h = (math.sin(cx * 3.1 + cz * 1.7) * 43758.5453) % 1.0
                 near = nearest_seg(cx, cz)
                 clear = near is None or near[0] > near[3] / 2 + 1.3
-                if h < PARKED_FILL and clear and all(point_in_poly(px, pz, poly) for px, pz in corners):
+                # Map north (tools/check_outline.py O4): and on the map: a lot across the map's edge
+                # put cars up to 70 m past it, over nothing (the lot's centre is on the map).
+                if h < PARKED_FILL and clear and all(point_in_poly(px, pz, poly) and inside(rect, px, pz) for px, pz in corners):
                     yaw = math.atan2(-vx, -vz) + (math.pi if row % 2 else 0.0)
                     cars += [round(cx, 1), round(cz, 1), round(yaw, 2), int(h * 1000) % CAR_COLOURS]
                 u += 2.5
