@@ -2,19 +2,19 @@
   "hero": "rotunda-rain-night",
   "reel": [
     {
-      "img": "old-town",
-      "w": 1266,
-      "h": 585,
+      "img": "palace-day",
+      "w": 1920,
+      "h": 884,
       "span": "lead",
       "en": [
-        "The Old Town",
-        "Rebuilt after the war, rebuilt again here, house by house.",
-        "The Old Town market square in the game: colourful houses and the cathedral"
+        "The Palace of Culture by day",
+        "The same view as the first screen, in daylight, with Złote Tarasy beside it.",
+        "The Palace of Culture by day in the game, with the glass domes of Złote Tarasy and the towers of Śródmieście"
       ],
       "pl": [
-        "Stare Miasto",
-        "Odbudowane po wojnie, odbudowane i tutaj, kamienica po kamienicy.",
-        "Rynek Starego Miasta w grze: kolorowe kamienice i katedra"
+        "Pałac Kultury w dzień",
+        "Ten sam widok co na pierwszym ekranie, ale w dzień, ze Złotymi Tarasami obok.",
+        "Pałac Kultury w dzień w grze, ze szklanymi kopułami Złotych Tarasów i wieżowcami Śródmieścia"
       ]
     }
   ],

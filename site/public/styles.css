@@ -327,3 +327,5 @@ section { padding: clamp(48px, 7vw, 88px) 0; }
 @media (max-width: 700px) { .stack div { grid-template-columns: 1fr; gap: 4px; } }
 
 .tile-lead img { aspect-ratio: 1266 / 585; }
+
+.tile-lead img { aspect-ratio: 1920 / 884; }
