@@ -41,7 +41,8 @@ image, not what the report says it shows.
 - 2D art: matches the palette and outline, reads at its real on-screen size, no text drawn by
   the generator, no real brand, logo or likeness, provenance file present.
 - **Landmarks and buildings: judge against the real thing.** Open the reference photos in
-  `refs/<slug>/` (or the ones in the brief) beside the matched shots and score them with the
+  `refs/<slug>/` (or the ones in the brief) beside the matched shots and score them *before*
+  reading the spec or the builder's report, with the anchors and evidence rule in the
   model-from-photos skill's checklist (silhouette, proportions, colour, each identity feature,
   facade rhythm, ground). Below the bar for the brief's detail level is a fix, a missing
   identity feature a blocker. No photos for a hero landmark: say so, and ask for them rather
