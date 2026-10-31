@@ -4,13 +4,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 ## Top priority: a game-like full map with teleport (the user, 2026-10-31)
-- **The full map looks like a topographic sheet** (F, 2026-10-31): make it a fun, stylized city
-  map in the spirit of open-world driving games, in an original style: bold simplified roads by
-  class, coloured districts, bright water and parks, illustrated landmark icons (Pałac Kultury,
-  the Rotunda, Stadion Narodowy, the Castle and Sigismund's Column, the bridges, the Rondo
-  Daszyńskiego towers and so on). **Press and hold** a spot on the map to teleport there (the
-  nearest lane; the helicopter keeps its height). Not during a race, a job or a rescue. The
-  minimap and the first 10 minutes stay as they are. Thread "Make the map fun and game-like".
+- **Landed** (thread "Make the map fun and game-like"): the full map in its own poster style
+  (map_art.gd), 25 landmark pins (map_icons.gd), hold 0.6 s to teleport, the cards behind ≡.
+  Left: street names along the main roads close in; F to judge the icons and colours on the
+  phone (maybe hand-drawn or PixelLab icon art later); the first open on an older phone (the
+  art is made on a worker thread at start, ~0.1-0.7 s on a computer).
 
 ## High priority: landmark and skyscraper models (the user, 2026-10-30)
 - **The user dislikes how several models look** (2026-10-30): Złote Tarasy, Złota 44 and the

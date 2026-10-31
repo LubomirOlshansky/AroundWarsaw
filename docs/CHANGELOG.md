@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-10-31
+- The full map is now a game map: bold coloured roads, bright water and parks, pastel districts and pin icons for the big landmarks (the Palace, the Castle, the stadium, the bridges and more). Press and hold a spot on it to jump there.
 - The towers and the Palace of Culture no longer flicker: overlapping walls and roofs were drawn twice, and now they are drawn once. The look is the same.
 - A new, shorter website: the newest screenshots, three missions, open source, a word from the author.
 - A new automatic check looks at every landmark model for flickering surfaces, zero-size faces, floating parts and too many triangles, so these get caught before anyone looks at a screenshot.

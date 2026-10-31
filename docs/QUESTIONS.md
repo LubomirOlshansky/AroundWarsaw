@@ -12,12 +12,17 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | --- | --- | --- | --- |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
-| gameplay (UI) | The game-like full map with landmark icons and hold-to-teleport (BACKLOG top) | cloud thread "Make the map fun and game-like" | 2026-10-31 |
 | map | Free: the next map item by priority (3d-1, 3d-2a, 3d-2b, 3e, the loading fix, map north and the content POIs landed) | thread "Finish the demo map extension" | 2026-10-30 |
 
 ## Waiting
 
 Newest first. One entry per question.
+
+- **2026-10-31 · gameplay · the game map** — Teleport: free and unlimited, by holding a spot for
+  0.6 s; refused during a race, a job, a rescue, a police chase and the first-drive guide. The
+  districts' and ladder cards now sit behind a ≡ button (hidden when the map opens) so the map
+  shows. Default built: those. Alternatives: a price or a cooldown on teleports, only to places
+  already discovered, or the cards shown at open.
 
 - **2026-10-31 · gameplay · loop 3h slice 4** — Who gets the guide: a save with no job done, no
   złoty, no rung beaten and the guide not finished; quitting before the first delivery repeats it.

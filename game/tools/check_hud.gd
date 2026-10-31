@@ -380,11 +380,16 @@ func _check_full_map(hud: CanvasLayer, tag: String) -> int:
 	fm.set_ladder(ld.rows(false))
 	lw.free()
 	await process_frame
+	if fm.rects().has("ladder"):
+		problems.append("%s: the cards show before the ≡ is pressed" % where)
+	(fm.get("_cards") as Button).pressed.emit()  # 2026-10-31: the cards behind the ≡ button
+	await process_frame
 	var rs: Dictionary = fm.rects()
 	_check_touch(where + " close", rs["close"], pt, safe)
+	_check_touch(where + " cards", rs["cards"], pt, safe)
 	if not rs.has("ladder"):
 		problems.append("%s: no ladder card" % where)
-	for k in ["head", "hint", "ladder"]:
+	for k in ["head", "hint", "ladder", "cards"]:
 		if not rs.has(k):
 			continue
 		if not safe.grow(0.5).encloses(rs[k]):
@@ -430,9 +435,79 @@ func _check_full_map(hud: CanvasLayer, tag: String) -> int:
 	await process_frame
 	if fm.visible or hud.full_map_open():
 		problems.append("%s: the ✕ did not close it" % where)
+	await _check_map_hold(hud, where)
 	if verbose:
 		print("  %s: ✕ %s, head %s, hint %s; pan %.0f px, pinch %.2f×" % [where, _pts(rs["close"], pt), _pts(rs["head"], pt),
 				_pts(rs["hint"], pt), moved, fm.ppm / ppm0])
+	return 1
+
+
+## F's ask (2026-10-31): the full map's hold to teleport. Held HOLD_S still, it emits `teleport`
+## once with the map point under the finger and closes; let go early, dragged past the slop or
+## joined by a second finger, nothing; refused (can_teleport gives a reason), no ring and the note
+## card shows, inside the safe area and clear of the other cards.
+func _check_map_hold(hud: CanvasLayer, where: String) -> int:
+	var fm: Control = hud.full_map
+	var pt: float = hud.pt
+	var safe: Rect2 = hud.safe_rect()
+	var got: Array[Vector2] = []
+	var on_jump := func(p: Vector2) -> void: got.append(p)
+	fm.teleport.connect(on_jump)
+	var mid: Vector2 = fm.get_viewport().get_visible_rect().size * 0.5 + Vector2(0.0, 30.0 * pt)
+	var touch := func(i: int, at: Vector2, down: bool) -> void:
+		var e := InputEventScreenTouch.new()
+		e.index = i
+		e.position = at
+		e.pressed = down
+		fm._input(e)
+	var hold := func(seconds: float) -> void:
+		var t := 0.0
+		while t < seconds and fm.visible:
+			fm._process(0.05)
+			t += 0.05
+	var cases := [["let go early", 0.3, "early"], ["dragged", 1.0, "drag"], ["two fingers", 1.0, "two"],
+			["refused", 1.0, "refused"], ["held", 1.0, "held"]]
+	for c: Array in cases:
+		hud.open_full_map(Vector2(10.0, 20.0), 0.5, PackedVector2Array())
+		await process_frame
+		got.clear()
+		var why: Array = ["Nie teraz", "Not now"] if c[2] == "refused" else []
+		fm.can_teleport = func() -> Array: return why
+		var want: Vector2 = fm.to_map(mid)
+		touch.call(0, mid, true)
+		if c[2] == "drag":
+			var d := InputEventScreenDrag.new()
+			d.index = 0
+			d.position = mid + Vector2(30.0 * pt, 0.0)
+			fm._input(d)
+		elif c[2] == "two":
+			touch.call(1, mid + Vector2(80.0 * pt, 0.0), true)
+		hold.call(float(c[1]))
+		if c[2] == "refused":
+			var rs: Dictionary = fm.rects()
+			if not rs.has("note"):
+				problems.append("%s hold %s: no note card" % [where, c[0]])
+			else:
+				if not safe.grow(0.5).encloses(rs["note"]):
+					problems.append("%s hold: the note %s is outside the safe area" % [where, _pts(rs["note"], pt)])
+				for k in rs:
+					if k != "note" and (rs[k] as Rect2).intersects(rs["note"]):
+						problems.append("%s hold: the note and %s overlap" % [where, k])
+		touch.call(0, mid, false)
+		touch.call(1, mid, false)
+		var want_n := 1 if c[2] == "held" else 0
+		if got.size() != want_n:
+			problems.append("%s hold %s: teleport emitted %d times (want %d)" % [where, c[0], got.size(), want_n])
+		elif want_n == 1:
+			if got[0].distance_to(want) > 0.5:
+				problems.append("%s hold: teleported to %s, the finger was over %s" % [where, got[0], want])
+			if fm.visible:
+				problems.append("%s hold: the map stayed open after the teleport" % where)
+		if fm.visible:
+			fm.close()
+		await process_frame
+	fm.teleport.disconnect(on_jump)
+	fm.can_teleport = Callable()
 	return 1
 
 
