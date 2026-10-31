@@ -22,6 +22,10 @@ data/work/
 # Screenshots from test runs
 shots/
 
+# Reference photos of the real buildings (Wikimedia Commons, their own licences; the
+# model-from-photos skill): used to write specs and judge models, never committed or shipped
+refs/
+
 # Temporary copies of the game made while measuring
 game_*/
 
