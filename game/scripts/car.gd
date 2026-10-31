@@ -147,6 +147,10 @@ var _sink := 0.0
 var ground_height: Callable = func(_x: float, _z: float, _y: float) -> float: return 0.0
 var vel := Vector3.ZERO
 var forward_speed := 0.0
+## Times the car's state left the numbers (NaN or infinity) and was put back (loop 3h slice 4).
+var nan_recoveries := 0
+var _good_xform := Transform3D.IDENTITY
+var _good_seen := false
 ## Sideways speed in m/s; high when the tail slides (skid marks, the tyres' squeal).
 var slip := 0.0
 ## 0..1, how wet the road is (weather.gd): a little less grip and braking in the rain.
@@ -258,7 +262,31 @@ func _process(dt: float) -> void:
 func _physics_process(dt: float) -> void:
 	var t0 := Time.get_ticks_usec()
 	_step(dt)
+	_keep_finite()
 	spent_usec += Time.get_ticks_usec() - t0
+
+
+## A safety net (loop 3h slice 4): once in ~10 headless first-10 replays the car's position went
+## NaN at a rescue pickup (cause not found yet; BACKLOG "From loop 3h slice 4"), and a NaN car
+## poisons everything that measures from it (every Syrenka "found", the police lookups). If the
+## position, rotation or velocity is not a number after a step, the car goes back to its last good
+## transform, stopped, and the event is logged once per occurrence.
+func _keep_finite() -> void:
+	var x := global_transform
+	if x.origin.is_finite() and x.basis.x.is_finite() and x.basis.z.is_finite() and vel.is_finite() \
+			and is_finite(forward_speed):
+		_good_xform = x
+		_good_seen = true
+		return
+	nan_recoveries += 1
+	push_warning("car: state not a number (pos %s, vel %s), put back at %s (recovery %d)"
+			% [x.origin, vel, _good_xform.origin, nan_recoveries])
+	vel = Vector3.ZERO
+	velocity = Vector3.ZERO
+	forward_speed = 0.0
+	if _good_seen:
+		global_transform = _good_xform
+	reset_physics_interpolation()
 
 
 func _step(dt: float) -> void:

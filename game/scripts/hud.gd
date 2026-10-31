@@ -115,6 +115,8 @@ signal pinched(ratio: float)          # finger distance now / before
 ## The follow-camera loop: a second finger turns the stick's finger into a pinch while the stick is
 ## pushed less than this (a share of its radius: inside its dead zone).
 const PINCH_STICK := 0.15
+## Loop 3h slice 4: the ghost finger's gesture, once every this many seconds.
+const FINGER_LOOP := 1.8
 signal vehicle_pressed
 signal card_pressed(index: int)       # a button on the mission card
 signal pill_pressed                   # the context button: a rescue call that came in
@@ -329,6 +331,13 @@ var _pedals_hidden := false
 ## the minimap, the wallet, the cards and the bubbles stay. Set once by main.gd.
 var touch_off := false
 # --- end desktop: --no-touch -----------------------------------------------------------------
+## Loop 3h slice 4 (docs/DEMO.md 6.2, 0:05): the ghost finger. first10.gd turns it on after 4 s
+## without a touch or a key; it is drawn on the pad (no node of its own: +0 draw calls when off)
+## and goes at the first touch, click or key. `input_ms`: when the last touch, click or key came
+## (Time.get_ticks_msec; 0: none yet).
+var input_ms := 0
+var _finger := false
+var _finger_t := 0.0
 ## Minimap: north-up data drawn once, then turned and moved so the camera's view is up.
 ## Loop 2b: every street, park and pond is built once into one 2D mesh, drawn with one call and
 ## cut to the circle by a small shader (it was 6,500 draw calls, the iPhone's 16 fps).
@@ -602,6 +611,8 @@ func _layout_fixed() -> void:
 	_speed.position = Vector2(x0 + (TOUCH + 8.0) * pt, y + (ROW_H * pt - _speed.size.y) * 0.5)
 	var right := _safe.end.x - EDGE * pt
 	for b: Button in [_vehicle_button, _radio_button]:
+		if not b.visible:
+			continue  # loop 3h slice 4: the HELI chip waits for the first rescue
 		b.size = b.custom_minimum_size
 		b.position = Vector2(right - b.size.x, y)
 		right = b.position.x - GAP * pt
@@ -1291,6 +1302,10 @@ func show_card(title: String, body: String, buttons: PackedStringArray, accent: 
 	for i in buttons.size():
 		var en := buttons[i]
 		var pl: String = WORDS.get(en, en)
+		if "|" in en:
+			# Loop 3h slice 4: "POLISH|ENGLISH", a button's own two words (the end card's).
+			pl = en.get_slice("|", 0)
+			en = en.get_slice("|", 1)
 		var b := _chip(_card_buttons, pl, "" if pl == en else en.substr(0, 1) + en.substr(1).to_lower())
 		b.name = "button%d" % i
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1415,6 +1430,9 @@ func _frame(dt: float) -> void:
 		_info_card.modulate.a = clampf(_info_left / 0.6, 0.0, 1.0) * clampf((8.0 - _info_left) / 0.25, 0.0, 1.0)
 		if _info_left <= 0.0:
 			_show(_info_card, false)
+	if _finger:
+		_finger_t += dt
+		_pad.queue_redraw()
 	if _pill.visible:
 		# The context button breathes so a call that came in is noticed.
 		_pill_t += dt
@@ -2282,6 +2300,10 @@ func _row_bottom() -> float:
 
 func _input(event: InputEvent) -> void:
 	var size := get_viewport().get_visible_rect().size
+	if (event is InputEventScreenTouch or event is InputEventMouseButton or event is InputEventKey) and event.is_pressed():
+		input_ms = maxi(1, Time.get_ticks_msec())  # loop 3h slice 4: the ghost finger goes
+		if _finger:
+			ghost_finger(false)
 	if settings_open() or full_map_open():
 		return  # the panel's buttons take every touch; nothing steers under it
 	if event is InputEventScreenTouch:
@@ -2469,7 +2491,73 @@ func _plate(c: Vector2, r: float, held: bool) -> void:
 	_pad.draw_arc(c, r - 0.6 * pt, 0, TAU, 40, ACCENT if held else Color(1, 1, 1, 0.3), 1.3 * pt)
 
 
+## Loop 3h slice 4: the ghost finger on or off (first10.gd; any touch or key turns it off).
+func ghost_finger(on: bool) -> void:
+	if on == _finger:
+		return
+	_finger = on
+	_finger_t = 0.0
+	_pad.queue_redraw()
+
+
+func finger_shown() -> bool:
+	return _finger
+
+
+## Where the ghost finger presses: the stick's side of the screen (main.gd's --stick spot).
+func _finger_origin() -> Vector2:
+	var size := get_viewport().get_visible_rect().size
+	return Vector2(maxf(size.x * 0.2, _safe.position.x + 70.0 * pt), size.y * 0.68)
+
+
+## The ghost finger: a fingertip that comes down, drags up and to the right (the way Point steers:
+## point where to go) and lifts, every FINGER_LOOP s, with its trail and a two-line hint. With
+## --no-touch (a desktop) only the hint, naming the keys.
+func _draw_finger() -> void:
+	var o := _finger_origin()
+	var font := ThemeDB.fallback_font
+	var k := fmod(_finger_t, FINGER_LOOP) / FINGER_LOOP
+	var lines := ["Połóż palec i wskaż, dokąd jechać", "Put a finger down and point the way"]
+	if touch_off:
+		lines = ["W A S D albo strzałki: jazda", "W A S D or the arrow keys to drive"]
+	else:
+		var press := clampf(k / 0.15, 0.0, 1.0) * clampf((1.0 - k) / 0.15, 0.0, 1.0)
+		var drag := clampf((k - 0.2) / 0.55, 0.0, 1.0)
+		drag = drag * drag * (3.0 - 2.0 * drag)
+		var tip := o + Vector2(0.55, -0.85).normalized() * STICK_R * pt * 1.1 * drag
+		_pad.draw_circle(o, STICK_R * pt, Color(CARD_BG, 0.35 * press))
+		_pad.draw_arc(o, STICK_R * pt - 0.6 * pt, 0, TAU, 40, Color(1, 1, 1, 0.35 * press), 1.3 * pt)
+		if drag > 0.02:
+			_pad.draw_line(o, tip, Color(INK, 0.45 * press), 5.0 * pt)
+		_pad.draw_circle(tip, 19.0 * pt, Color(OUTLINE, 0.35 * press))
+		_pad.draw_circle(tip, 16.0 * pt, Color(INK, 0.8 * press))
+	var fs := _px(T_BODY)
+	var fs2 := _px(T_SUB)
+	# Right of the stick's circle, level with it: above it the wallet and the minimap sit, below
+	# it the credit line (the first shots had the hint under the wallet).
+	var at := o + Vector2(STICK_R * pt * 1.25 + 18.0 * pt, -(fs2 + 6.0 * pt) * 0.5)
+	var w := maxf(font.get_string_size(lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x, font.get_string_size(lines[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs2).x)
+	at.x = clampf(at.x, _safe.position.x + EDGE * pt, _safe.end.x - EDGE * pt - w)
+	var outline := _px(3.0)
+	_pad.draw_string_outline(font, at, lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, outline, OUTLINE)
+	_pad.draw_string(font, at, lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs, INK)
+	var at2 := at + Vector2(0, fs2 + 6.0 * pt)
+	_pad.draw_string_outline(font, at2, lines[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, outline, OUTLINE)
+	_pad.draw_string(font, at2, lines[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs2, SUB)
+
+
+## Loop 3h slice 4: the HELI chip shown or hidden (first10.gd: the helicopter waits for the first
+## rescue on a fresh save).
+func set_vehicle_shown(on: bool) -> void:
+	if _vehicle_button.visible == on:
+		return
+	_vehicle_button.visible = on
+	_mark()
+
+
 func _draw_pad() -> void:
+	if _finger and _stick_index == -1 and not flying:
+		_draw_finger()
 	if _marker_visible:
 		# A yellow pointer over the player's car.
 		var m := _marker - Vector2(0, 6.0 * pt)

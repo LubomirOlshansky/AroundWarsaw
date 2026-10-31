@@ -1941,9 +1941,10 @@ discovery, "?" marks and completion on the full map (DEMO G3). Left for the late
 - ~~**Syrenki** (slice 2): 20 collectibles; register each with `districts.gd` `add_syrenka(id,
   district)` and mark finds in `wallet.syrenki` (saved already); then they count in completion.~~
   Done in slice 2 (see below).
-- ~~**Rival ladder and "Trzy mosty"**~~ (done in slice 3, see below), **the first 10 minutes** (the
+- ~~**Rival ladder and "Trzy mosty"**~~ (done in slice 3, see below), ~~**the first 10 minutes** (the
   hint finger, the first order, the first race, the `--first10` replay check), **the end card** (can
-  read `percent_total()` and the discovered count).
+  read `percent_total()` and the discovered count)~~ (done in slice 4, see below; the end card doesn't
+  show the districts' %).
 - Ujazdów i Łazienki has no notebook place or egg (the park lies south of the map; only the Sejm is
   in it): completion there is its 2 jobs, and it shows no "?" marks. The designer (places for the
   Sejm, Ujazdowski Castle, Plac na Rozdrożu) or the map lane (the park) would fill it. Wola has 2
@@ -1983,19 +1984,21 @@ for a new rung, the DRABINKA card on the full map, the save's `[ladder]`) and th
 (trzy_mosty.gd: Rondo Daszyńskiego east over Śląsko-Dąbrowski, west over Świętokrzyski, east over
 Poniatowskiego to the stadium; at night; three ordered checkpoints; +500 zł +250 respect;
 `trzy_mosty` saved for the end card). Left:
-- **Slice 4: the first 10 minutes** (the hint finger after 4 s, the guaranteed first order past the
+- ~~**Slice 4: the first 10 minutes** (the hint finger after 4 s, the guaranteed first order past the
   Rotunda, the first race at 800 m to the Palm with Seba losing narrowly, the Powiśle card at ~8:00,
   the `--first10` replay check) and **the end card** (win "Trzy mosty" = `wallet.ladder` has
   `trzy_mosty` / `Ladder.final_won()`, and 10 jobs; "free roam" after). The first race in 6.2 is
   against Seba, but the ladder opens with Halina: slice 4 decides whether the scripted first race is
-  Halina (the ladder's first rung) or a Seba race outside the ladder.
+  Halina (the ladder's first rung) or a Seba race outside the ladder.~~ Done in slice 4 (below): the
+  first race is Halina's.
+- ~~The paces are guesses (Halina 1.25 … Mike 1.5, the final 1.45): tune on the phone (A-checks: the
+  first race is won narrowly by an ordinary player).~~ The first race has its own rubber band now
+  (slice 4); the ladder's paces are still guesses for the phone.
 - The final is long: 10.1 km by road (3.8 km from Rondo Daszyńskiego to the first bridge alone). The
   autopilot's ghost (pace 1.8) needs about 14.5 minutes of game time with the city's lights and traffic
   (867 s, Seba 30 s behind);
   a player on the phone should judge whether it is an epic or a slog. A shorter cut (a start nearer
   the river, e.g. Rondo ONZ, or one bridge fewer) is one constant in `trzy_mosty.gd`.
-- The paces are guesses (Halina 1.25 … Mike 1.5, the final 1.45): tune on the phone (A-checks: the
-  first race is won narrowly by an ordinary player).
 - Players with race wins from before the ladder start at rung one (the old wins didn't record the
   rival).
 - Seba waits at the start held still: no idle animation, and while he waits he isn't cruising for a
@@ -2003,3 +2006,36 @@ Poniatowskiego to the stadium; at night; three ordered checkpoints; +500 zł +25
 - The finish line is a beacon ring, not a set piece: a crowd or a banner by the stands (the stadium is
   the landmarks lane's) would make the end a moment.
 - The refusal and final lines were written in this slice: the game-designer should review them.
+
+## From loop 3h slice 4 (the first 10 minutes and the end card, 2026-10-31)
+
+Closed: the guided first 10 minutes (first10.gd: a director on a fresh save, the ghost finger, the
+arrow to the Świętokrzyska stand, the guided order past the Rotunda, Pani Halina's first race to the
+Palm with a rubber band, the first contact's fallback, the held first call, the helicopter after the
+first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at 10:00; the save's
+`[intro]`) and the end card ("Dzięki za grę!", free roam after). Left:
+- **The opening shot is the other thread's**: the spawn faces south on Marszałkowska while the
+  Świętokrzyska stand is ~530 m north of it (behind the car), so 6.2's "ring 150 m ahead" is an arrow
+  at 0:10 instead. When the first-scene thread sets the spawn and heading, a spawn facing north (or
+  the stand moved, `jobs.FIRST_STAND`) puts the ring on screen at once.
+- **Feel on the phone**: the rubber band's numbers (pace 1.15, 25 m, 0.4-1.5) come from a 1-D model;
+  F's runs should say whether Halina is close enough to feel like a race and never obviously
+  waiting. The ghost finger's place and gesture likewise (it sits on the stick's side, lower left).
+- **No "6.2" beat for "two jokes, the roosters explained in one line"** of the trap: the first
+  contact's own conversation (police.dialogue) is what plays; the designer could add the koguty line.
+- **The cassette is KASETA's then card** on the boulevards (a ground spot, not a roof), and its
+  "new song" is the next locked PÓŁNOC FM track (track 3 on a fresh save). A real cassette
+  collectible on a roof (DEMO 6.2, 6.3 "10 cassettes") is still to come; then the beat points there.
+- The guide's words (`first10.gd` LINES, Halina's FIRST_LINES, the end card) were written in this
+  slice: the game-designer should review them.
+- The end card counts every paid job kind but races and the courier bonus; DEMO's "10 jobs" might
+  mean kebab-style jobs only.
+- **The NaN car (unexplained)**: once in ~10 headless replays the player car's position went NaN at
+  the first rescue's pickup (~248 s, right as Powiśle was discovered); 20 later replays were clean.
+  car.gd `_keep_finite` now puts the car back at its last good transform and logs `car: state not a
+  number` (`nan_recoveries`); the replay also fails fast on a NaN. If that line ever shows up in a
+  log, its position and velocity are the lead.
+- The end card first didn't show at all: its four Polish lines plus English were taller than the
+  HUD's room, so the layout left it unplaced. Now two Polish lines (the credits and the repo as one
+  shared line) and the English paragraph; a layout assertion in check_end_card would catch it again.
+- `first10-run` takes ~5 min in the container (3.4× real time headless); it stays out of `--quick`.

@@ -4971,6 +4971,67 @@ final's route on the lane graph), the flow in `rivals.gd`.
   `open_count` (~20 µs) only when the wallet changes. +0 draw calls while driving: the start marker
   is the race's own Beacon, the diamond joins the minimap's batch, the card is labels on the paused map.
 
+## The first 10 minutes and the end card (loop 3h slice 4, 2026-10-31)
+
+DEMO 6.2 "The first 10 minutes" and 6.3 "The end of the demo". `scripts/first10.gd` (new: the
+director and the end card; its rules are static functions, map-free), small hooks in `jobs.gd`
+(the guided first order), `rivals.gd` (Halina's first race), `hud.gd` (the ghost finger, the HELI
+chip, a card button's own two words), `missions.gd` (`held`, `ring_in`), `garage.gd` (`held`),
+`police.gd` (`arm_first_contact`, `first_armed`), `wallet.gd` (`[intro]`, `jobs_done`) and `main.gd`.
+
+- **Who gets it.** A normal launch (the title screen) on a fresh save: no job done, no złoty, no
+  ladder rung and `[intro] done` not set (`First10.guide_due`). Test runs never, unless `--first10`.
+  A player who quits before the first delivery gets the guide again next time; once anything is
+  earned it never comes back, and nothing stays locked for a returning player.
+- **A director, not rails.** Five looks a second on the seconds of play since the title; each beat
+  is "met" when the player gets there alone and "fired" when the director pushes it (`decide`), and
+  every push waits while a job, a race, a rescue, a police stop, the garage or a card is on. One
+  `first10:` line per beat in the log.
+
+| Beat | 6.2 | The guarantee (and its fallback) |
+| --- | --- | --- |
+| finger | 0:05 | The ghost finger after 4 s with no touch or key (`hud.ghost_finger`: drawn on the pad, a fingertip dragging up and right over the stick's spot, "Połóż palec i wskaż, dokąd jechać / Put a finger down and point the way"; with `--no-touch` the keys' line); gone at the first touch, click or key |
+| stand | 0:15 | The edge arrow "KEBAB n m" to the stand by Marszałkowska × Świętokrzyska (`jobs.FIRST_STAND`, the stand nearest it) and a toast, until an order starts (any stand's) |
+| order | 0:30 | That stand's next order is the guided one (`jobs.pin_first` / `first_pick`): the door past the Rotunda (south of Rondo Dmowskiego, within 450 m east or west) nearest 700 m by road, measured from either carriageway by the stand (on the demo map: Aleje Jerozolimskie 33, 926 m; the stand is on the northbound side and nothing past the Rotunda is nearer); the customer's line, the heat and the pay are the ordinary flow's. Another stand's first order is an ordinary one |
+| race | 1:30 | 6 s after the first delivery's card (or at 3:00 without one) Pani Halina rolls up behind (`rivals.call_first`: put ~45 m back on the player's road, she drives up and stops, or appears 12 m back after 12 s), flashes and says "Synku! Babcia mruga. Do Palmy, kto pierwszy?"; the prompt "PANI HALINA MRUGA · MRUGNIJ" waits 20 s (a nudge at 8 s) or until the player drives 90 m off. Flash back: the race to the Palm (Rondo de Gaulle'a; an ordinary finish if the Palm is over 1.6 km away) with the first race's rubber band (below). Declined: she tries twice more, 60 s apart |
+| trap | 3:00 | The police's scripted first contact (loop 3g-2: a patrol car parked 150 m ahead after the first race, the lizak, the caution); with no race by 4:30 the director arms it (`police.arm_first_contact`) |
+| rescue | 4:00 | The first call is held (`missions.held`) until 3:45 and the race (or 5:00), then rings 12 s later (`ring_in`; again if a job reset the countdown). Call 1 is a street rescue (the car) |
+| heli | ~5:00 | The HELI chip is hidden and H says "Helikopter? Najpierw jedno wezwanie ratunkowe." until the first rescue is done ("Pogotowie lotnicze pożycza ci starego śmigłowca: HELI"), a helicopter-only call is up, or 7:00 |
+| tape | 6:00 | From 5:30, once the helicopter is out, the arrow "KASETA" to the boulevard's then card (`t_bulwary_2018`, KASETA at the Bulwary place) and a toast; its first play during the guide opens the next PÓŁNOC FM track (the "new song", radio.gd `unlock_track(next_locked)`). It is drivable: the car or the helicopter landed |
+| powisle | 8:00 | "Odkryto: Powiśle" comes from districts.gd (the boulevards are in Powiśle, so the tape usually brings it); not by 7:30, the arrow "POWIŚLE" to the district's label |
+| garage | 10:00 | Mirek's garage stays hidden (`garage.held`) until 9:30 and the first earnings, then its own toast and an arrow "MIREK" for 90 s |
+
+- **The end of the guide**: at the garage (or 15:00) every hold is let go and `done` is saved.
+- **The first race's rubber band** (`rivals.first_band`, every 0.2 s): Halina's speed factor is
+  1.15 + 0.012 × (the gap − 25 m) between 0.4 and 1.5, the gap being how much more she has left
+  than the player (she aims 25 m behind); in her last 140 m she lifts off (0.32) for a player within
+  12 m; a player more than 150 m behind races her plain 1.15 and can lose. `check_first10`'s 1-D
+  race of 800 m on a 50 km/h street: a player averaging 34 km/h wins by 2.4 s, 50 km/h by 0.9 s,
+  22 km/h by 2.1 s; one who stops for a minute loses; her plain ladder pace (1.25) would have beaten
+  the 34 km/h player by half a minute. The win is her rung beaten (ladder.gd), as any win.
+- **The save**: `[intro]` (`wallet.intro`: beat id → the day; `done`; `end_seen`), no version bump
+  (a v2 file without it loads as nothing seen; an older build keeps it as an unknown section);
+  `--nosave` writes nothing.
+- **The end card** (any save, guide or not): once "Trzy mosty" is won (`trzy_mosty` in `[ladder]`)
+  and 10 jobs are done (`wallet.jobs_done`: every paid kind but `race` and `courier`, whose bonus
+  rides on a kebab delivery; an old save counts from its totals by kind), shown once when nothing
+  else is on: "DZIĘKI ZA GRĘ! / Thanks for playing!", "To był koniec dema. Trzy mosty twoje, kebaby
+  dowiezione, a Palma… dalej sztuczna.", that the city stays open with everything unlocked, the
+  credits line (OpenStreetMap (ODbL) and GUGiK, the game MIT) and "Kod:
+  github.com/LubomirOlshansky/AroundWarsaw" (text, no link); one button, "JEDŹ DALEJ / Free roam",
+  closes it. `end_seen` is saved when it shows.
+- **Checks**: `tools/verify.sh --only=first10` (`game/tools/check_first10.gd`, CI too: the beats
+  and windows, who gets the guide, three synthetic players through `decide`, a beat waiting for a
+  job, `judge`, the rubber band's 1-D races, the words), `--only=endcard`
+  (`game/tools/check_end_card.gd`, CI too: fixture wallets, an old save, the card and its button,
+  `[intro]`), and `--only=first10-run` (not in `--quick`, ~12 min): the replay, `--first10
+  --autopilot` on the real city, passes on `first10: OK` (each beat's trigger inside its window).
+- **Testing aids**: `--first10`, `--end-card`, `--first-race` (flags table).
+- **Cost**: the director's look at 5 Hz (a dozen state reads, no scan; the bench's `first10` line);
+  Halina's roll-up a distance a frame while it lasts; the finger is drawn on the pad (no node) and
+  only while shown; the arrow is the HUD's own; the end card is the HUD's card. +0 draw calls while
+  driving.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -5508,6 +5569,9 @@ Command-line options (after `--`):
 | `--syrenki-log` | loop 3h slice 2: `syrenki:` lines: each figurine's spot, its metres from the anchor and from a lane centre, and every find |
 | `--syrenki=all\|none\|<n>\|<id>,…` | loop 3h slice 2: the Syrenki found for this run (the first n, or those ids), in memory, no cards or rewards. Use with `--nosave` |
 | `--ladder=N` | loop 3h slice 3: the first N rungs of the rival ladder beaten for this run (0-7; 6: only the final left, 7: the final won too), the respect raised to open the next, in memory (`ladder:` lines). Use with `--nosave` |
+| `--first10` | loop 3h slice 4: the guided first 10 minutes in a test run (first10.gd: the guide as on a fresh save, no title; `first10:` lines per beat). With `--autopilot` the headless replay: the car taken to the first stand at 0:15, the flash back at Halina, the call answered, the boulevard tape played, the result cards closed; it prints `first10: OK (…)` when every beat's trigger fell inside its window (an error line per miss) and quits after the garage (~575 s of play), or judges at 700 s at the latest (missing beats fail; a NaN car fails at once). Use with `--nosave` |
+| `--end-card` | loop 3h slice 4: the end card ("Dzięki za grę! / Thanks for playing!") at once, whatever the save (screenshots) |
+| `--first-race` | loop 3h slice 4: Pani Halina rolls up behind the car a second in, for the guided first race (the prompt, then the race to the Palm with its rubber band; screenshots, the race's feel) |
 | `--trzy-mosty[=N]` | loop 3h slice 3: the final race "Trzy mosty" at once (`=N`, 1-3: from the river span of bridge N, the bridges before it counted, Seba 12 m behind in the next lane: screenshots and a quick finish): the run at night, the ladder up to the final (as `--ladder=6` unless `--ladder` says), the car at its start at Rondo Daszyńskiego, Seba ahead, his challenge and the countdown; with `--autopilot` the ghost drives the seven legs (`trzy mosty:` lines: the start, the length, each checkpoint, Seba over each bridge, the result) |
 | `--syrenka=<id\|n>[:m]` | loop 3h slice 2: the car on the street beside that Syrenka (an id or 1 to 20), m metres before it (25 by default; `:0` finds it at once), facing it (a screenshot aid) |
 | `--found-eggs=all\|none\|reachable\|ID,…` | loop MW-6: the egg record for this run, in memory, no rewards (screenshots of the SEKRETY page). Use with `--nosave` |

@@ -74,6 +74,9 @@ var _dropoff: Node3D
 var _call_in := -1.0
 ## Loop MW-6: Spacer (spacer.gd): no call comes in by itself, and a rescue runs without its clock.
 var calls_off := false
+## Loop 3h slice 4: the guided first 10 minutes (first10.gd) hold the first call until its beat
+## (about 4:00, after the first race): the countdown stands still while this is on.
+var held := false
 
 
 func setup(map_node: Node3D, data: Dictionary, world: Node3D, hud_layer: CanvasLayer) -> void:
@@ -184,6 +187,27 @@ func quiet_start(first := -1.0) -> void:
 	_call_in = first if first >= 0.0 else FIRST_CALL
 
 
+## Loop 3h slice 4: the next call comes in `seconds` from now (first10.gd's rescue beat), unless
+## one is on or ringing already. Returns true when the countdown was set.
+func ring_in(seconds: float) -> bool:
+	if state != State.CLOSED and state != State.IDLE:
+		return false
+	state = State.CLOSED
+	_call_in = seconds
+	return true
+
+
+## Loop 3h slice 4: the call on the card or under way can only be reached by the helicopter
+## (first10.gd unlocks it then, even before the first rescue is done).
+func call_needs_heli() -> bool:
+	return (state == State.OFFER or state == State.PICKUP) and bool(_mission.get("heli", false))
+
+
+## Loop 3h slice 4: the seconds until the next call (-1: none counting).
+func call_in() -> float:
+	return _call_in
+
+
 # --- sweep 2: the first call's hitch --------------------------------------------------------
 ## The first rescue call's hitch (61 ms on the iPhone 11, 100-117 ms on the Pro Max) is its
 ## buzz, as far as the Mac can tell: there the call costs 0.3 ms of script, compiles no
@@ -289,7 +313,7 @@ func needs_heli() -> bool:
 ## (the bottom of the skids for the helicopter), `speed` its speed in m/s.
 func tick(dt: float, pos: Vector3, speed: float, flying: bool) -> void:
 	player = pos
-	if state == State.CLOSED and not paused and _call_in >= 0.0 and not calls_off:
+	if state == State.CLOSED and not paused and _call_in >= 0.0 and not calls_off and not held:
 		# Sweep 2: start the haptic engine a moment before the call (it stops itself when idle).
 		if _call_in >= HAPTICS_LEAD and _call_in - dt < HAPTICS_LEAD:
 			warm_haptics()
