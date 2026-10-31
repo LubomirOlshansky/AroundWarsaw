@@ -105,6 +105,10 @@ default. Route by the **kind** of work, not its size:
   logs and shot sets to subagents and keep only their summary; read line ranges, not big
   files; one backlog item per thread, then a fresh one (cache: idle > 1 h re-reads it all).
 - Say which model each delegation used when you report it.
+- **Advisor (2026-10-31, on trial).** `.claude/settings.json` sets `advisorModel: opus`, so every
+  session in the repo, cloud lane threads included, can consult an Opus advisor at decision points.
+  It can't be limited to Sonnet: an Opus session gets an Opus advisor too (extra cost). Turn it off
+  with `/advisor off`. F reviews how it works later.
 
 ## Hard rules
 
