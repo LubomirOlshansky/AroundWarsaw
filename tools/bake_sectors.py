@@ -102,7 +102,9 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               "Spektrum Tower", "The Bridge", "Hilton Warsaw City", "The Westin Warsaw", "Novotel Warszawa Centrum",
               "Central Tower", "Ilmet", "Platinum Tower A", "Platinum Tower B", "Łucka City", "Widok Towers",
               # map north (2026-10-31): Arkadia, for the landmarks lane (docs/DEMO.md 2.2)
-              "Westfield Arkadia"]
+              "Westfield Arkadia",
+              # the University Library (2026-10-31): its roof houses and round lights
+              "Biblioteka Uniwersytecka"]
 SITE_PAD = 12.0
 SITE_AREAS = [
     (1250.0, -820.0, 1700.0, -370.0),       # Stadion Narodowy's masts (Rect2(1250, -820, 450, 450))

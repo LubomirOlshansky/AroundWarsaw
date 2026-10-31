@@ -103,7 +103,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
   the OSM parts. Left: the photo check on the Mac (OSM puts the shells in a 1.5 m tier wholly
   under the flat slab, so from the 30-degree camera they show only as a small zigzag at the
   two ends: if the photos show more of them, say so and the tier grows; the wings' walls; warm
-  or cool hall light). The others not started.
+  or cool hall light). **The University Library built 2026-10-31** (site `buw`, spec
+  `docs/landmarks/specs/buw.md`, log `docs/landmarks/buw.md`): the copper plates with their
+  lines of text on Dobra, the four philosophers on columns, the roof garden from the mapped
+  lawns, the glass roofs and the trellis. Left: the photo check on the Mac (the height, LoD2
+  may say more than OSM's 10.9 m; which front the philosophers stand at; the glass roofs'
+  pitch). The others not started.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
   photos per building in `refs/` (Wikimedia Commons, gitignored; fetched on the Mac, the cloud

@@ -198,8 +198,8 @@ const INFO := {
 			"Centrum nauki otwarte w 2010 roku. Na dachu ogród.",
 			"A science centre, opened in 2010. A garden on its roof."],
 	"buw": ["Biblioteka Uniwersytecka",
-			"Zielona miedź na ścianach, ogród na dachu.",
-			"Green copper on its walls, a garden on its roof."],
+			"Otwarta w 1999 roku. Miedziane strony z tekstami, ogród na dachu.",
+			"Opened in 1999. Copper pages of text out front, a garden on the roof."],
 	"zamek": ["Zamek Królewski",
 			"Zniszczony w 1944 roku, odbudowany w latach 1971–1984.",
 			"Destroyed in 1944, rebuilt in 1971–1984."],
@@ -380,6 +380,8 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return Color(PLAC_WALLS[key])
 	if MALACHOWSKI_WALLS.has(key):
 		return Color(MALACHOWSKI_WALLS[key])
+	if key == "buw":
+		return BUW_GLASS
 	return fallback
 
 
@@ -527,6 +529,8 @@ func _find_sites() -> void:
 	_find_trojca()
 	_find_zacheta()
 	_find_prezydencki()
+	# The University Library (2026-10-31): a model instead of a skin.
+	_find_buw()
 
 
 ## Warszawa Centralna (spec docs/landmarks/specs/centralna.md, 2026-10-31): OpenStreetMap maps
@@ -757,6 +761,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_zacheta(s)
 			"prezydencki":
 				_build_prezydencki(s)
+			"buw":
+				_build_buw(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -2181,7 +2187,6 @@ func _sloped(poly: PackedVector2Array, y0: float, hi: float, lo: float, wall: Co
 const SKINS := [
 	{"key": "teatr", "osm": "Teatr Wielki", "mode": M_MONUMENT, "wall": "#ddd2b6", "roof": "#7fa894"},
 	{"key": "kopernik", "osm": "Centrum Nauki Kopernik", "mode": M_STONE, "wall": "#5f5a54", "roof": "#6f9a4c"},
-	{"key": "buw", "osm": "Biblioteka Uniwersytecka", "mode": M_STONE, "wall": "#7f9e8a", "roof": "#6a9a52"},
 	{"key": "zamek", "osm": "Zamek Królewski", "mode": M_MONUMENT, "wall": "#c87560", "roof": "#6e5a4e"},
 	{"key": "barbakan", "osm": "Barbakan", "mode": M_GOTHIC, "wall": "#ab5a42", "roof": "#6b4a3c"},
 	{"key": "archikatedra", "osm": "Archikatedra pw. Świętego Jana Chrzciciela", "mode": M_GOTHIC, "wall": "#9a4b38", "roof": "#6e3a2e"},
@@ -4319,3 +4324,280 @@ func _build_prezydencki(site: Dictionary) -> void:
 	_beam(Vector3(arm0.x, g + 6.95, arm0.y), Vector3(arm1.x, g + 7.7, arm1.y), 0.09, PREZ_BRONZE)
 	_collide(_rect(su, sv, 3.0, 1.6))
 	_collide(site["ring"])
+
+
+# --- Biblioteka Uniwersytecka (BUW) -------------------------------------------------------------
+
+## The University Library on Dobra (Budzyński and Badowski, 1999; spec
+## docs/landmarks/specs/buw.md, 2026-10-31): a glass block the size of its outline under the
+## roof garden (2002), which OpenStreetMap maps lawn by lawn; on Dobra a screen of green copper
+## plates covered in lines of old text, the entrance under two of them and four philosophers on
+## columns before it; the other fronts glass behind a patina-green trellis. In the garden: the
+## long glass roof over the central hall (the bare band between the mapped lawns) with its
+## trusses, a second glass roof, two round lights and three copper roof houses (mapped parts).
+## The cassette of the first ten minutes lies on the garden: the only flat roof here.
+const BUW_ROOF := 10.9                  # the roof garden's mapped parts
+const BUW_FRONT := Vector2(-15.1, -965.9)  # the outline's west corner, where Dobra's plates start
+const BUW_FRONT_AXIS := Vector2(0.667, 0.745)  # along Dobra, to the south-east
+const BUW_HALL := Vector2(59.8, -953.95)  # the long glass roof's centre (the bare band)
+const BUW_HALL_AXIS := Vector2(0.8916, -0.4529)
+const BUW_HALL_SIZE := Vector2(28.2, 11.9)  # half sizes along and across
+## The glass roofs' pitch: steep enough (about 25 degrees) that no 4 m roof cell on them is
+## flat, so the cassette (missions.roof_spot, the highest flat spot) lands on the garden.
+const BUW_RIDGE := 6.2  # the long glass roof's ridge over the roof
+const BUW_LIGHT := Vector2(108.5, -979.3)  # a point in the second glass roof's mapped part
+const BUW_GLASS := Color("#7a978c")
+const BUW_COPPER := Color("#6f9c86")
+const BUW_INK := Color("#3e6252")
+const BUW_PATINA := Color("#557f6b")
+const BUW_DECK := Color("#a9a799")
+const BUW_PARK := Color("#5f8f4a")
+const BUW_LAWN := Color("#78a85a")
+const BUW_SKY := Color("#9cbdb6")
+const BUW_TRUSS := Color("#4c7563")
+const BUW_DOOR := Color("#34423f")
+const BUW_COLUMN := Color("#cfc9b8")
+const BUW_BRONZE := Color("#4a4239")
+
+
+func _find_buw() -> void:
+	var outline := _landmark("Biblioteka Uniwersytecka")
+	if outline.size() < 3:
+		return
+	_add_site("buw", [outline])
+	if sites.is_empty() or sites[-1]["key"] != "buw":
+		return
+	var site: Dictionary = sites[-1]
+	site["ring"] = outline
+	var houses: Array[Dictionary] = []
+	var rounds: Array[Vector3] = []  # x, z, radius
+	for bld in _parts_in(outline, func(b2: Dictionary) -> bool: return float(b2["h"]) > float(b2["mh"])):
+		var q := _pts(bld["p"])
+		var area := absf(_area(q))
+		if float(bld["h"]) >= 13.5 or (q.size() == 4 and area < 60.0):
+			houses.append(bld)  # the long roof house, the stair head (14 m), the lift head
+		elif q.size() >= 19 and area < 300.0:
+			var c := _centre(q)
+			rounds.append(Vector3(c.x, c.y, sqrt(area / PI)))
+		elif Geometry2D.is_point_in_polygon(BUW_LIGHT, q):
+			site["light"] = q
+	site["houses"] = houses
+	site["rounds"] = rounds
+	site["beds"] = _buw_beds(site)
+
+
+## The roof garden's beds (found once, not per sector): every mapped park or lawn on the roof,
+## biggest first, each clipped to the roof and kept off the glass roofs, the round lights, the
+## roof houses and the beds before it. A cut that would leave a hole (a light inside a lawn)
+## splits the piece through the hole first: a hole can't be drawn, and the two would overlap.
+func _buw_beds(site: Dictionary) -> Array:
+	var ring := _simplify(site["ring"], 0.8)
+	var keep_off: Array[PackedVector2Array] = []
+	var hall_a := BUW_HALL_AXIS
+	var hall_b := Vector2(-hall_a.y, hall_a.x)
+	var hs := BUW_HALL_SIZE
+	keep_off.append(PackedVector2Array([BUW_HALL - hall_a * hs.x - hall_b * hs.y, BUW_HALL + hall_a * hs.x - hall_b * hs.y,
+			BUW_HALL + hall_a * hs.x + hall_b * hs.y, BUW_HALL - hall_a * hs.x + hall_b * hs.y]))
+	var light: PackedVector2Array = site.get("light", PackedVector2Array())
+	if light.size() >= 3:
+		keep_off.append(light)
+	for r: Vector3 in site["rounds"]:
+		keep_off.append(_circle(Vector2(r.x, r.y), r.z + 0.5, 12))
+	for h: Dictionary in site["houses"]:
+		keep_off.append(_pts(h["p"]))
+	var areas: Array = []
+	var box := _box_of([ring])
+	for ar in data.get("areas", []):
+		var k: String = ar.get("k", "")
+		if k != "park" and k != "grass":
+			continue
+		var q := _pts(ar["p"])
+		if q.size() >= 3 and box.intersects(_box_of([q])):
+			areas.append([absf(_area(q)), q, BUW_PARK if k == "park" else BUW_LAWN])
+	areas.sort_custom(func(x: Array, y: Array) -> bool: return x[0] > y[0])
+	var drawn: Array[PackedVector2Array] = keep_off.duplicate()
+	var beds: Array = []
+	for ar: Array in areas:
+		for piece in Geometry2D.intersect_polygons(ar[1], ring):
+			if Geometry2D.is_polygon_clockwise(piece):
+				continue
+			var parts: Array[PackedVector2Array] = [piece]
+			for d: PackedVector2Array in drawn:
+				var next: Array[PackedVector2Array] = []
+				for p in parts:
+					next.append_array(_clip_whole(p, d))
+				parts = next
+			for p in parts:
+				if absf(_area(p)) < 6.0:
+					continue
+				var bed := _simplify(p, 0.4)
+				if bed.size() >= 3:
+					beds.append([bed, ar[2]])
+					drawn.append(p)
+	return beds
+
+
+## `p` minus `d` with no holes: where `d` lies inside `p`, `p` is cut in two through `d`'s
+## centre first.
+func _clip_whole(p: PackedVector2Array, d: PackedVector2Array, depth := 0) -> Array[PackedVector2Array]:
+	var out: Array[PackedVector2Array] = []
+	var cut := Geometry2D.clip_polygons(p, d)
+	var holed := false
+	for c in cut:
+		if Geometry2D.is_polygon_clockwise(c):
+			holed = true
+	if not holed:
+		for c in cut:
+			if c.size() >= 3:
+				out.append(c)
+		return out
+	if depth > 3:
+		return out  # left out rather than drawn over what is under it
+	var x := _centre(d).x
+	var box := _box_of([p]).grow(1.0)
+	for half in [Rect2(box.position.x, box.position.y, x - box.position.x, box.size.y),
+			Rect2(x, box.position.y, box.end.x - x, box.size.y)]:
+		var r := PackedVector2Array([half.position, Vector2(half.end.x, half.position.y), half.end,
+				Vector2(half.position.x, half.end.y)])
+		for piece in Geometry2D.intersect_polygons(p, r):
+			if not Geometry2D.is_polygon_clockwise(piece):
+				out.append_array(_clip_whole(piece, d, depth + 1))
+	return out
+
+
+func _build_buw(site: Dictionary) -> void:
+	var outline: PackedVector2Array = site["ring"]
+	var ring := _simplify(outline, 0.8)
+	_g = _ground_under(outline)
+	var g := _g
+	var top := g + BUW_ROOF
+	# The block: glass walls round the straightened outline, the paved deck on top.
+	_prism(ring, g - 0.4, top, BUW_GLASS, BUW_DECK, M_GLASS, M_STONE)
+	_collide(outline)
+	_buw_front(g, ring)
+	_buw_roof(site, g)
+
+
+## Dobra: the copper plates with their lines of text, the doors under the middle two, the four
+## philosophers on their columns; on the other fronts the trellis posts.
+func _buw_front(g: float, ring: PackedVector2Array) -> void:
+	_o = BUW_FRONT
+	_a = BUW_FRONT_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)  # out of the front, to the south-west
+	var top := g + BUW_ROOF
+	for k in 12:
+		var u0 := 1.5 + 6.0 * k
+		var u1 := u0 + 5.0
+		var door := k == 5 or k == 6
+		var y0 := g + 4.5 if door else g - 0.4
+		var tint := 1.0 + 0.04 * (_buw_hash(float(k), 3.0) * 2.0 - 1.0)
+		var plate := Color(BUW_COPPER.r * tint, BUW_COPPER.g * tint, BUW_COPPER.b * tint)
+		_lbox((u0 + u1) * 0.5, 0.4, 2.5, 0.2, y0, g + 13.5, plate, M_STONE, plate.darkened(0.15))
+		if not door:
+			_collide(_rect((u0 + u1) * 0.5, 0.4, 2.5, 0.2))
+		# lines of text, left-aligned, each its own length
+		_mode = M_STONE
+		var row := 0
+		var y := maxf(2.0, y0 - g + 1.0)
+		while y < 12.7:
+			var length := 4.4 * (0.45 + 0.55 * _buw_hash(float(k), float(row)))
+			_wall(_w(u0 + 0.3, 0.64), _w(u0 + 0.3 + length, 0.64), g + y, g + y + 0.25, _b, BUW_INK)
+			y += 0.9
+			row += 1
+	_mode = M_GLASS
+	_wall(_w(31.5, 0.25), _w(42.5, 0.25), g - 0.4, g + 4.2, _b, BUW_DOOR)
+	_mode = M_STONE
+	for u: float in [31.75, 35.25, 38.75, 42.25]:
+		_column(u, 4.0, 0.35, g, g + 9.0, BUW_COLUMN)
+		_lbox(u, 4.0, 0.3, 0.22, g + 9.0, g + 10.6, BUW_BRONZE, M_STONE, BUW_BRONZE)
+		_lbox(u, 4.0, 0.14, 0.14, g + 10.6, g + 11.0, BUW_BRONZE, M_STONE, BUW_BRONZE)
+		_collide(_rect(u, 4.0, 0.5, 0.5))
+	# The trellis: a post every ~6 m 0.2 m out of every front but Dobra's, to 2 m over the roof.
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var mid := _local((a + b) * 0.5)
+		if mid.x > -1.0 and mid.x < 76.0 and absf(mid.y) < 3.0:
+			continue  # Dobra: the plates
+		var length := a.distance_to(b)
+		var count := floori((length - 1.0) / 6.0)
+		if count < 1:
+			continue
+		var along := (b - a) / length
+		var out := _out(ring, a, b)
+		for n in count:
+			var p := a + along * (length * (float(n) + 0.5) / float(count)) + out * 0.35
+			var post := PackedVector2Array([p - along * 0.15 - out * 0.15, p + along * 0.15 - out * 0.15,
+					p + along * 0.15 + out * 0.15, p - along * 0.15 + out * 0.15])
+			_prism(post, g - 0.4, top + 2.0, BUW_PATINA, BUW_PATINA.darkened(0.1), M_STONE, M_STONE)
+	_prism(ring, top, top + 1.1, BUW_PATINA, Color(0, 0, 0, 0), M_STONE)
+
+
+## The roof garden: the mapped lawns as low beds on the deck (kept off the glass roofs and the
+## roof houses), the long glass roof and its trusses, the second glass roof, the round lights,
+## the copper roof houses.
+func _buw_roof(site: Dictionary, g: float) -> void:
+	var top := g + BUW_ROOF
+	var none := Color(0, 0, 0, 0)
+	_o = BUW_HALL
+	_a = BUW_HALL_AXIS
+	_b = Vector2(-_a.y, _a.x)
+	var hu := BUW_HALL_SIZE.x
+	var hv := BUW_HALL_SIZE.y
+	var hall := _rect(0.0, 0.0, hu, hv)
+	var light: PackedVector2Array = site.get("light", PackedVector2Array())
+	_mode = M_STONE
+	for bed: Array in site.get("beds", []):
+		_cap(bed[0], top + 0.12, bed[1])
+	# The long glass roof over the hall: a copper curb, the glazed pitch to its ridge, trusses.
+	_prism(hall, top, top + 0.8, BUW_PATINA, none, M_STONE)
+	_mode = M_GLASS_ROOF
+	_frustum(hall, top + 0.8, _rect(0.0, 0.0, hu - 0.4, 0.3), top + BUW_RIDGE, BUW_SKY, BUW_SKY)
+	_mode = M_STONE
+	var u := -24.0
+	while u <= 24.01:
+		var e0 := _w(u, -hv)
+		var r0 := _w(u, 0.0)
+		var e1 := _w(u + 0.06, hv)  # the second half 6 cm along: the two meet at the ridge
+		var r1 := _w(u + 0.06, 0.0)
+		# 0.4 m over the glass all along (parallel to it, so never in its plane)
+		_beam(Vector3(e0.x, top + 1.2, e0.y), Vector3(r0.x, top + BUW_RIDGE + 0.4, r0.y), 0.35, BUW_TRUSS)
+		_beam(Vector3(r1.x, top + BUW_RIDGE + 0.4, r1.y), Vector3(e1.x, top + 1.2, e1.y), 0.35, BUW_TRUSS)
+		u += 6.0
+	# The second glass roof: a curb and a glass pyramid. No glass roof here has a flat top: the
+	# cassette (missions.roof_spot, the highest flat spot) must land on the garden.
+	if light.size() >= 3:
+		var lr := _hull(light)
+		_prism(lr, top, top + 0.6, BUW_PATINA, none, M_STONE)
+		_mode = M_GLASS_ROOF
+		_pyramid(lr, top + 0.6, top + 5.0, BUW_SKY)
+		_mode = M_STONE
+	# The round lights: copper curbs and glass cones.
+	for r: Vector3 in site.get("rounds", []):
+		var c := Vector2(r.x, r.y)
+		var sides := 12 if r.z > 6.0 else 8
+		_prism(_circle(c, r.z, sides), top, top + 0.9, BUW_PATINA, none, M_STONE)
+		_mode = M_GLASS_ROOF
+		_pyramid(_circle(c, r.z, sides), top + 0.9, top + 0.9 + r.z * 0.6, BUW_SKY)
+		_mode = M_STONE
+	# The roof houses: copper boxes to their mapped heights (the lift head 3.1 m over the
+	# roof) under a low pyramid cap, so none is a flat roof for the cassette either.
+	for h: Dictionary in site.get("houses", []):
+		var q := _hull(_pts(h["p"]))
+		var hh := g + maxf(float(h["h"]), BUW_ROOF + 3.1)
+		_prism(q, top, hh, BUW_PATINA, none, M_STONE)
+		_mode = M_STONE
+		_pyramid(q, hh, hh + 0.8, BUW_PATINA.darkened(0.12))
+
+
+## A polygon's convex hull, open (a pyramid over a concave ring folds over itself).
+func _hull(q: PackedVector2Array) -> PackedVector2Array:
+	var h := Geometry2D.convex_hull(q)
+	if h.size() > 1 and h[0].is_equal_approx(h[-1]):
+		h.resize(h.size() - 1)
+	return h
+
+
+## A steady pseudo-random number in [0, 1) for a plate and a row (the lines' lengths).
+func _buw_hash(a: float, b: float) -> float:
+	return fposmod(sin(a * 12.9898 + b * 78.233) * 43758.5453, 1.0)

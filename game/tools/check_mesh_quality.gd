@@ -25,6 +25,7 @@ const BUDGET := {
 	"arkadia": 1440,
 	"blekitny": 910,
 	"bridge": 110,
+	"buw": 2250,
 	"central": 340,
 	"centralna": 1650,
 	"chalubinskiego8": 1520,
