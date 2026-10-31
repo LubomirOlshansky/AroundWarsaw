@@ -3,8 +3,8 @@
 A private website about everything in the game, for designing it without reading code: every
 activity, landmark, place, secret, radio station, line, parody name, system and tuning number,
 the pillars, and how far each part has come. **Spoilers and plans**: it lives at
-https://wiki.aroundwarsaw.app behind a password, is never linked from the landing, and tells
-search engines to stay away (`noindex` on every page and answer, `robots.txt` disallows all).
+https://wiki.aroundwarsaw.app, open to anyone with the link (no password, the user's call on
+2026-10-31), is never linked from the landing, and tells search engines to stay away (`noindex` on every page and answer, `robots.txt` disallows all).
 
 Nothing in it is written by hand. `tools/wiki_build.py` reads the game's data
 (`game/data/*.json`), its scripts (each one's top comment and constants) and the docs
@@ -16,7 +16,7 @@ wiki follows. Every item links to the file and line to edit on GitHub.
 | `../tools/wiki_build.py` | the generator: `python3 -I tools/wiki_build.py` → `build/wiki/` |
 | `static/wiki.css`, `static/wiki.js` | the look, the page filter and the search |
 | `media.json`, `img/` | the pictures: which screenshot goes with which landmark, place or page (landing shots are shared with `site:`) |
-| `worker.js` | the Worker: asks for the password, then serves the pages with `noindex` and `no-store` |
+| `worker.js` | the Worker: serves the pages with `noindex` (and asks for a password only if the secret `WIKI_PASSWORD` is set) |
 | `wrangler.jsonc` | the Worker `aroundwarsaw-wiki` on its own subdomain (the landing's Worker is untouched) |
 
 ## Look at it locally
@@ -28,7 +28,7 @@ cd build/wiki && python3 -m http.server 8766   # http://localhost:8766
 
 ## Deploy (asks the user first)
 
-Once, set the password (any user name works at the prompt in the browser):
+Only to lock it again, set a password (any user name works at the prompt in the browser); to open it, `npx wrangler@4 secret delete WIKI_PASSWORD`:
 
 ```sh
 cd wiki && npx wrangler@4 secret put WIKI_PASSWORD
