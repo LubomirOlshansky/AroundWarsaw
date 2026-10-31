@@ -72,6 +72,7 @@ const STAMPS_CARD := 10
 const FREE_RESPECT := 10
 const LINE_GAP := 60.0
 const FROGS_COLOUR := Color("#4fae3b")
+const CAFE_TUBE := Color(1.0, 0.78, 0.45)
 ## The venues' fascias (vision 3.0-3.2): place id -> [the lines of the sign, tube colour, metres
 ## up (the sign's bottom)]. The words are the parody names of places.json (Glon na Powiślu: GLON).
 const VENUES := {
@@ -93,6 +94,21 @@ const VENUES := {
 	"glon_mokotowska": [["GLON"], Color(0.2, 1.0, 0.45), 3.0],
 	"glon_dobra": [["GLON"], Color(0.2, 1.0, 0.45), 3.0],
 	"merdak": [["MERDAK"], Color(0.62, 0.25, 1.0), 3.0],
+	"coffeechair_foksal": [["COFFEE", "CHAIR"], CAFE_TUBE, 2.8],
+	"coffeechair_chmielna": [["COFFEE", "CHAIR"], CAFE_TUBE, 2.8],
+	"coffeechair_krakowskie": [["COFFEE", "CHAIR"], CAFE_TUBE, 2.8],
+	"coffeechair_trzech_krzyzy": [["COFFEE", "CHAIR"], CAFE_TUBE, 2.8],
+	"coffeechair_hoza": [["COFFEE", "CHAIR"], CAFE_TUBE, 2.8],
+}
+## COFFEECHAIR (BACKLOG, the user 2026-10-31): a parody of a real coffee-shop chain, our own name
+## and a warm cream tube (no logo, no chair icon of anyone's). Small cafés that are not notebook
+## places: id -> [lat, lon] in Śródmieście; their signs ride the venue code (venue_list).
+const CAFES := {
+	"coffeechair_foksal": [52.2330, 21.0200],
+	"coffeechair_chmielna": [52.2312, 21.0170],
+	"coffeechair_krakowskie": [52.2398, 21.0158],
+	"coffeechair_trzech_krzyzy": [52.2201, 21.0243],
+	"coffeechair_hoza": [52.2208, 21.0185],
 }
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
@@ -207,7 +223,11 @@ func setup(data: Dictionary, places: Array) -> void:
 	for p: Dictionary in data.get("pois", []):
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
-	venues = venue_list(places, addrs, graph)
+	var with_cafes: Array = places.duplicate()
+	for id: String in CAFES:
+		var ll: Array = CAFES[id]
+		with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
+	venues = venue_list(with_cafes, addrs, graph)
 	for v in venues:
 		avoid.append(v["road"])
 	var polys := landmark_index(data.get("landmarks", []))

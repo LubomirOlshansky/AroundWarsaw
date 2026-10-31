@@ -147,9 +147,6 @@ golden-image shots runtime vs `--prebuilt`,
   hints, first order and first race to loop 3h item 6.
 
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
-- **Coffeechair cafés** (the user, 2026-10-31): a parody of the Coffeedesk coffee shops,
-  small branded cafés round the city with their own sign ("COFFEECHAIR", a chair for the desk),
-  for the content lane (shop signs and fascias). Brand rules: parody name and look only.
 - **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;
   the designer (`game-designer`, Sonnet for the text) specs it, `warsaw-tone` rules apply (real
   brands only as parodies, affectionate, Polish with English).
