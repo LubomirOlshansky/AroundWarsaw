@@ -4,8 +4,16 @@ extends CanvasLayer
 ## sun), a neon perspective grid, and a palm in silhouette (the artificial palm on
 ## Rondo de Gaulle'a). The city builds behind it; once it is ready, a tap or any
 ## key fades the title out ("TAP TO DRIVE / DOTKNIJ, BY JECHAĆ").
+##
+## Save and resume (2026-10-31): with a save worth resuming (wallet.gd `has_progress`, main.gd sets
+## `can_resume`) the prompt reads "KONTYNUUJ / continue" (a tap anywhere, Enter or Space: the car
+## is where the last session left it) and a "NOWA GRA / new game" button sits in the bottom-right
+## corner (or the N key). It asks first, "ZACZĄĆ OD NOWA?", with TAK / NIE (Y or T, N or Esc), since
+## a new game wipes the progress (wallet.gd keeps one copy, save.prev.cfg); TAK emits `new_game`.
 
 signal dismissed
+## Save and resume: "NOWA GRA" confirmed (main.gd wipes the save and starts the city again).
+signal new_game
 
 ## The game's name as the title shows it (the rename to Around Warsaw, 2026-10-30; it was
 ## "NOCNA WARSZAWA"). The one place to change it.
@@ -29,6 +37,20 @@ var _tag_pl: Label
 var _tag_en: Label
 var _prompt: Label
 var _prompt_pl: Label
+## Save and resume: a save to continue (set before set_ready), the "NOWA GRA" button, the
+## confirmation's TAK and NIE buttons, the save's line under the prompt ("1 240 zł · respekt 87"),
+## and the screen: CHOICE (continue or new game) or CONFIRM (TAK / NIE).
+var can_resume := false
+var resume_line := ""
+## Save and resume: after "NOWA GRA" the city starts again with the title up; it goes by itself
+## once the start is in (no second tap).
+var auto_go := false
+enum {CHOICE, CONFIRM}
+var screen := CHOICE
+var _new_btn: Label
+var _yes_btn: Label
+var _no_btn: Label
+var _line: Label
 var _gone := false
 var _t := 0.0
 var _start_sound: AudioStreamPlayer
@@ -72,6 +94,10 @@ func _ready() -> void:
 	_tag_en = _make_label(ThemeDB.fallback_font)
 	_prompt = _make_label(ThemeDB.fallback_font)
 	_prompt_pl = _make_label(ThemeDB.fallback_font)
+	_line = _make_label(ThemeDB.fallback_font)
+	_new_btn = _make_button()
+	_yes_btn = _make_button()
+	_no_btn = _make_button()
 	_start_sound = AudioStreamPlayer.new()
 	_start_sound.volume_db = -8.0
 	if ResourceLoader.exists("res://audio/ui/start.wav"):
@@ -88,6 +114,20 @@ func _make_label(font: Font) -> Label:
 	l.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(l)
+	return l
+
+
+## Save and resume: a label on a dark, cyan-edged plate, as the HUD's buttons; hidden until used.
+func _make_button() -> Label:
+	var l := _make_label(ThemeDB.fallback_font)
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(0.08, 0.02, 0.18, 0.82)
+	box.border_color = Color("#7ff6ff")
+	box.set_border_width_all(2)
+	box.set_corner_radius_all(6)
+	l.add_theme_stylebox_override("normal", box)
+	l.visible = false
 	return l
 
 
@@ -154,13 +194,56 @@ func _layout() -> void:
 	_prompt_pl.position = Vector2(_safe.position.x, bottom - ps * 1.0)
 	_prompt.size = Vector2(_safe.size.x, ps * 1.5)
 	_prompt.position = Vector2(_safe.position.x, bottom - ps * 2.4)
+	# Save and resume: the save's line just under the prompt's English, the NOWA GRA button in
+	# the bottom-right corner, TAK and NIE side by side above the prompt (each at least ~11 mm high).
+	_line.add_theme_font_size_override("font_size", int(ps * 0.62))
+	_line.add_theme_color_override("font_color", Color("#fff3b0"))
+	_line.add_theme_color_override("font_outline_color", Color("#14053a"))
+	_line.add_theme_constant_override("outline_size", maxi(3, int(ps * 0.16)))
+	_line.size = Vector2(_safe.size.x, ps * 1.1)
+	_line.position = Vector2(_safe.position.x, bottom + ps * 0.3)
+	var bh := maxf(h * 0.1, 44.0)
+	var bs := int(maxf(h * 0.03, 12.0))
+	for b: Label in [_new_btn, _yes_btn, _no_btn]:
+		b.add_theme_font_size_override("font_size", bs)
+		b.add_theme_color_override("font_color", Color("#7ff6ff"))
+		b.add_theme_color_override("font_outline_color", Color("#14053a"))
+		b.add_theme_constant_override("outline_size", maxi(2, int(bs * 0.16)))
+	_new_btn.size = Vector2(maxf(bs * 9.0, 140.0), bh)
+	_new_btn.position = Vector2(_safe.end.x - _new_btn.size.x - h * 0.03, _safe.end.y - bh - h * 0.04)
+	var bw := maxf(bs * 13.0, 200.0)
+	var gap := h * 0.04
+	var by := bottom - ps * 2.4 - bh - gap
+	_yes_btn.size = Vector2(bw, bh)
+	_no_btn.size = Vector2(bw * 0.6, bh)
+	var row := _yes_btn.size.x + gap + _no_btn.size.x
+	_yes_btn.position = Vector2(size.x * 0.5 - row * 0.5, by)
+	_no_btn.position = Vector2(_yes_btn.position.x + bw + gap, by)
 	_set_prompt()
 	_palm.queue_redraw()
 
 
 ## Loop 2e: Polish above English (the big upper line is Polish, the small one under it English).
 func _set_prompt() -> void:
-	if ready_to_drive and touch_off:
+	var choosing := ready_to_drive and can_resume and not auto_go
+	_new_btn.visible = choosing and screen == CHOICE
+	_yes_btn.visible = choosing and screen == CONFIRM
+	_no_btn.visible = choosing and screen == CONFIRM
+	_line.visible = choosing and screen == CHOICE and resume_line != ""
+	_new_btn.text = "NOWA GRA\nnew game"
+	_yes_btn.text = "TAK, OD NOWA\nyes, start over"
+	_no_btn.text = "NIE\nno"
+	_line.text = resume_line
+	if choosing and screen == CONFIRM:
+		_prompt.text = "ZACZĄĆ OD NOWA?"
+		_prompt_pl.text = "start over? the money, jobs and finds are wiped"
+	elif choosing:
+		_prompt.text = "KONTYNUUJ"
+		_prompt_pl.text = "tap to continue"
+	elif ready_to_drive and auto_go:
+		_prompt.text = "NOWA GRA"
+		_prompt_pl.text = "new game"
+	elif ready_to_drive and touch_off:
 		_prompt.text = ""  # desktop: --no-touch
 		_prompt_pl.text = ""
 	elif ready_to_drive:
@@ -176,12 +259,14 @@ func set_ready() -> void:
 	ready_to_drive = true
 	_t = 0.0
 	_set_prompt()
+	if auto_go:
+		dismiss()
 
 
 func _process(dt: float) -> void:
 	_t += dt
-	if ready_to_drive and not _gone:
-		# The prompt pulses like a VCR's menu.
+	if ready_to_drive and not _gone and screen == CHOICE:
+		# The prompt pulses like a VCR's menu (still while the question is asked).
 		var a := 0.45 + 0.55 * (0.5 + 0.5 * cos(_t * 4.2))
 		_prompt.modulate.a = a
 		_prompt_pl.modulate.a = a
@@ -191,17 +276,58 @@ func _input(event: InputEvent) -> void:
 	if _gone:
 		return
 	var go := false
+	var key := KEY_NONE
+	var at := Vector2.INF
 	if event is InputEventKey:
 		go = (event as InputEventKey).pressed and not (event as InputEventKey).echo
+		key = (event as InputEventKey).keycode
 	elif event is InputEventScreenTouch:
 		go = (event as InputEventScreenTouch).pressed
+		at = (event as InputEventScreenTouch).position
 	elif event is InputEventMouseButton:
 		go = (event as InputEventMouseButton).pressed
+		at = (event as InputEventMouseButton).position
 	if not go:
 		return
 	get_viewport().set_input_as_handled()
-	if ready_to_drive:
+	if not ready_to_drive:
+		return
+	if not can_resume or auto_go:
 		dismiss()
+		return
+	choose(_pick(key, at))
+
+
+## Save and resume: what a key or a tap at `at` picks on the screen shown: "continue", "new",
+## "yes", "no" or "" (nothing: a stray key on the question).
+func _pick(key: Key, at: Vector2) -> String:
+	if screen == CONFIRM:
+		if key in [KEY_Y, KEY_T] or (at != Vector2.INF and _yes_btn.get_global_rect().grow(6.0).has_point(at)):
+			return "yes"
+		if key in [KEY_N, KEY_ESCAPE, KEY_BACKSPACE] or (at != Vector2.INF and _no_btn.get_global_rect().grow(6.0).has_point(at)):
+			return "no"
+		return ""
+	if key == KEY_N or (at != Vector2.INF and _new_btn.get_global_rect().grow(6.0).has_point(at)):
+		return "new"
+	return "continue"
+
+
+## Save and resume: acts on a pick ("continue", "new", "yes", "no"; check_save.gd calls it too).
+func choose(what: String) -> void:
+	match what:
+		"continue":
+			dismiss()
+		"new":
+			screen = CONFIRM
+			_set_prompt()
+			_prompt.modulate.a = 1.0
+			_prompt_pl.modulate.a = 1.0
+		"no":
+			screen = CHOICE
+			_set_prompt()
+		"yes":
+			_gone = true
+			new_game.emit()
 
 
 func dismiss() -> void:
