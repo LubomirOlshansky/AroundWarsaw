@@ -2,10 +2,10 @@ extends SceneTree
 ## Loop 3h slice 3: the rival ladder (ladder.gd) and the final race's route (trzy_mosty.gd).
 ## Checks that:
 ## - the rungs are the six rivals of rivals.gd in order of stake (Halina 60 ... Mike 300, the same
-##   stakes as RIVALS), the respect thresholds are 0/100/250/400/600/850 and 1100 for the final,
+##   stakes as RIVALS), the respect thresholds are 0/100/220/340/480/640 and 850 for the final,
 ##   and the pace rises up the ladder (Halina 1.25 ... Mike 1.5);
 ## - the gating on a fresh in-memory wallet: only Halina open; a locked rung says what is missing
-##   ("NAJPIERW HALINA", "SZACUNEK 250") and cannot be won; race wins alone (+100 each) are not
+##   ("NAJPIERW HALINA", "SZACUNEK 220") and cannot be won; race wins alone (+100 each) are not
 ##   enough past the second rung; the whole ladder walked to the final and `final_won`; open_count
 ##   only grows; next_rung; the full map's rows (★ / → / ·, the final "w nocy" by day);
 ## - every rival has a refusal line and Seba's final lines are there, Polish and English, at most
@@ -76,7 +76,7 @@ func _fresh() -> Wallet:
 
 func _data() -> void:
 	_expect(Ladder.RUNGS.size() == 6 and Ladder.FINAL == 6, "%d rungs, final %d" % [Ladder.RUNGS.size(), Ladder.FINAL])
-	var want := [0, 100, 250, 400, 600, 850]
+	var want := [0, 100, 220, 340, 480, 640]
 	var stakes := []
 	for i in Ladder.RUNGS.size():
 		var r: Dictionary = Ladder.RUNGS[i]
@@ -94,7 +94,7 @@ func _data() -> void:
 		_expect(found, "%s is not in rivals.gd" % r["rival"])
 		_expect(Ladder.rung_of(str(r["rival"])) == i, "rung_of(%s)" % r["rival"])
 	_expect(stakes == [60, 90, 120, 150, 200, 300], "stakes %s" % [stakes])
-	_expect(Ladder.threshold(Ladder.FINAL) == 1100, "the final needs %d" % Ladder.threshold(Ladder.FINAL))
+	_expect(Ladder.threshold(Ladder.FINAL) == 850, "the final needs %d" % Ladder.threshold(Ladder.FINAL))
 	_expect(is_equal_approx(Ladder.pace(0).x, 1.25) and is_equal_approx(Ladder.pace(5).x, 1.5), "pace Halina %.2f, Mike %.2f" % [Ladder.pace(0).x, Ladder.pace(5).x])
 	_expect(Ladder.rung_of("Nobody") == -1 and is_equal_approx(Ladder.pace(-1).x, Ladder.DEFAULT_PACE), "an unknown rival")
 	_summary["data"] = "stakes %s, pace %.2f-%.2f" % [stakes, Ladder.pace(0).x, Ladder.pace(5).x]
@@ -120,19 +120,19 @@ func _gating() -> void:
 		w.respect += 100
 		_expect(l.open_count() >= seen, "open_count fell")
 		seen = l.open_count()
-	_expect(stuck_at == 2, "race wins alone got stuck at rung %d (want 2: Bartek needs 250)" % stuck_at)
-	_expect(l.missing(2)[0] == "SZACUNEK 250" and l.missing(2)[1] == "respect 250", "missing(2): %s" % [l.missing(2)])
+	_expect(stuck_at == 2, "race wins alone got stuck at rung %d (want 2: Bartek needs 220)" % stuck_at)
+	_expect(l.missing(2)[0] == "SZACUNEK 220" and l.missing(2)[1] == "respect 220", "missing(2): %s" % [l.missing(2)])
 	_expect(not l.win(2), "Bartek won at respect %d" % w.respect)
 	# The rest of the way, with the respect from other activities.
 	for i in range(2, Ladder.RUNGS.size()):
 		w.respect = maxi(w.respect, Ladder.threshold(i))
 		_expect(l.is_open(i) and l.win(i), "rung %d at respect %d" % [i, w.respect])
 	_expect(l.next_rung() == Ladder.FINAL and not l.is_open(Ladder.FINAL), "the final open at respect %d" % w.respect)
-	_expect(l.missing(Ladder.FINAL)[0] == "SZACUNEK 1100", "missing(final): %s" % [l.missing(Ladder.FINAL)])
+	_expect(l.missing(Ladder.FINAL)[0] == "SZACUNEK 850", "missing(final): %s" % [l.missing(Ladder.FINAL)])
 	var day: Array = l.rows(false)
 	_expect(day.size() == 7 and str(day[6][0]).contains("szacunek") and day[6][1] == "next", "rows before the final: %s" % [day[6]])
-	w.respect = 1100
-	_expect(l.is_open(Ladder.FINAL) and l.open_count() == 7, "the final at 1100")
+	w.respect = 850
+	_expect(l.is_open(Ladder.FINAL) and l.open_count() == 7, "the final at 850")
 	day = l.rows(false)
 	var night: Array = l.rows(true)
 	_expect(str(day[6][0]).contains("w nocy · at night") and str(night[6][0]).contains("Rondo Daszyńskiego"), "the final's row: %s / %s" % [day[6][0], night[6][0]])
@@ -175,7 +175,7 @@ func _save() -> void:
 	var l := Ladder.new()
 	l.wallet = w
 	_expect(l.win(0, 20261031), "win(0) on the scratch wallet")
-	w.respect = 1100
+	w.respect = 850
 	for i in range(1, Ladder.RUNGS.size()):
 		l.win(i, 20261031)
 	l.win(Ladder.FINAL, 20261031)
@@ -224,7 +224,7 @@ func _save() -> void:
 	_expect(n.ladder.size() == 3 and ln.next_rung() == 3 and n.respect == 400 and ln.is_open(3), "--ladder=3: %s, respect %d" % [n.ladder, n.respect])
 	n.respect = 0
 	ln.preset(6)
-	_expect(ln.next_rung() == Ladder.FINAL and n.respect == 1100 and ln.is_open(Ladder.FINAL), "--ladder=6: respect %d" % n.respect)
+	_expect(ln.next_rung() == Ladder.FINAL and n.respect == 850 and ln.is_open(Ladder.FINAL), "--ladder=6: respect %d" % n.respect)
 	ln.preset(0)
 	_expect(n.ladder.is_empty() and ln.next_rung() == 0, "--ladder=0")
 	_expect(not FileAccess.file_exists(SCRATCH), "--nosave wrote a file")

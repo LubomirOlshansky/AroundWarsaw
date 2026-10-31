@@ -322,6 +322,12 @@ func heli_refused() -> void:
 		hud.toast(LINES["heli_locked"][0], LINES["heli_locked"][1])
 
 
+## The guide is running now (a fresh save, not finished yet): everything it points at is the main
+## line's first chapter (main_line.gd).
+func guide_on() -> bool:
+	return guide and _running and not fired.has("done")
+
+
 ## An arrow is up.
 func hint_shown() -> bool:
 	return hint_at != Vector3.INF

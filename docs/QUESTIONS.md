@@ -18,6 +18,14 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · gameplay · the main line** (docs/design/main-line.md) — The main line is the
+  guide (first 10 min), then the ladder's next rival (a gold star on the minimap and the full map,
+  pinned to the rim at any distance), then the final at night; the respect gates are lowered to
+  0/100/220/340/480/640 and 850 (was ... 850 and 1100) so the final comes in about an hour, an
+  estimate from the pay tables. Default built: that. To check: F times a fresh save on the phone;
+  whether the on-screen edge arrow should also show the star, and whether a short goal line belongs
+  on the driving screen (today it is on the full map only).
+
 - **2026-10-31 · gameplay · the game map** — Teleport: free and unlimited, by holding a spot for
   0.6 s; refused during a race, a job, a rescue, a police chase and the first-drive guide. The
   districts' and ladder cards now sit behind a ≡ button (hidden when the map opens) so the map

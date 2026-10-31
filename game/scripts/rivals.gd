@@ -979,6 +979,27 @@ func first_waiting() -> bool:
 	return _caller >= 0
 
 
+## The main line (main_line.gd): the race on now is the final or the next rung's (a beaten rival
+## re-raced is a side race).
+func main_race() -> bool:
+	if not has_target():
+		return false
+	if final_on:
+		return true
+	if ladder == null or wallet == null or rival < 0:
+		return false
+	return Ladder.rung_of(str(RIVALS[rival]["name"])) == ladder.next_rung()
+
+
+## The map point (x, z) of the rival called `name` (RIVALS' name), INF if not on the map.
+func rival_at(name: String) -> Vector2:
+	for i in mini(_drivers.size(), RIVALS.size()):
+		if RIVALS[i]["name"] == name:
+			var p: Vector3 = _drivers[i].pos
+			return Vector2(p.x, p.z)
+	return Vector2.INF
+
+
 # --- loop 3h slice 3: the ladder and the final "Trzy mosty" ---------------------------------
 
 ## It is night for the final: the Night look, or the live clock with the lights well on (rides.gd's
