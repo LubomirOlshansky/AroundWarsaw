@@ -34,6 +34,7 @@ const Tape := preload("res://scripts/tape.gd")
 const Fotka := preload("res://scripts/fotka.gd")
 ## The garage loop: Warsztat u Mirka's paint card (garage.gd, garage_card.gd).
 const Garage := preload("res://scripts/garage.gd")
+const Ladder := preload("res://scripts/ladder.gd")
 const Dialogue := preload("res://scripts/dialogue.gd")
 ## Loop 2d-1: Podwózka's card words.
 const RideRules := preload("res://scripts/ride_rules.gd")
@@ -370,9 +371,22 @@ func _check_full_map(hud: CanvasLayer, tag: String) -> int:
 	await process_frame
 	await process_frame
 	var fm: Control = hud.full_map
+	# Loop 3h slice 3: the DRABINKA card (a ladder half way up, the longest rows).
+	var lw := Wallet.new()
+	lw.persistent = false
+	var ld := Ladder.new()
+	ld.wallet = lw
+	ld.preset(3)
+	fm.set_ladder(ld.rows(false))
+	lw.free()
+	await process_frame
 	var rs: Dictionary = fm.rects()
 	_check_touch(where + " close", rs["close"], pt, safe)
-	for k in ["head", "hint"]:
+	if not rs.has("ladder"):
+		problems.append("%s: no ladder card" % where)
+	for k in ["head", "hint", "ladder"]:
+		if not rs.has(k):
+			continue
 		if not safe.grow(0.5).encloses(rs[k]):
 			problems.append("%s: the %s %s is outside the safe area %s" % [where, k, _pts(rs[k], pt), _pts(safe, pt)])
 	var keys := rs.keys()

@@ -73,7 +73,11 @@
 # completion and the full map's fog; neither needs a map (CI too). Loop 3h slice 2: `syrenki` runs
 # game/tools/check_syrenki.gd: the 20 Syrenki's data and words, a find, the reward ladder (the paints
 # "scale" at 5 and "silver" at 20, 150 zł at 10, once each), the save round trip and the districts'
-# completion; no map (CI too).
+# completion; no map (CI too). Loop 3h slice 3: `ladder` runs game/tools/check_ladder.gd: the rival
+# ladder's order, thresholds and pace, the gating and the locked prompt's words, the refusal and
+# final lines, the save (round trip, a v2/v1 file without [ladder], --nosave writes nothing,
+# --ladder=N) and, from the committed centrum.json's lane graph, the final "Trzy mosty"'s three
+# bridges (east, west, east), its legs and its start and finish (CI too).
 # `streaming` runs game/tools/check_streaming.gd
 # (loop 3c) WITH a renderer (a window opens for a minute or two): every sector built from its
 # file is the whole city, vertex for vertex; 10 spots rendered with --monolithic and with the
@@ -106,8 +110,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki parodies jobs2 couriers rides cost landmarks sites sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois drape drive steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki parodies jobs2 couriers rides cost landmarks sites sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder parodies jobs2 couriers rides cost landmarks sites sfx radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois drape drive steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder parodies jobs2 couriers rides cost landmarks sites sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -621,6 +625,7 @@ for s in $want; do
 		save) check save '^check_save:' --script res://tools/check_save.gd ;;
 		districts) check districts '^check_districts:' --script res://tools/check_districts.gd ;;
 		syrenki) check syrenki '^syrenki:' --script res://tools/check_syrenki.gd ;;
+		ladder) check ladder '^ladder:' --script res://tools/check_ladder.gd ;;
 		life-soak) life_soak ;;
 		# Loop 2d-1: Podwózka's star and pay tables, the streak and the cancel rules, its lines.
 		rides) check rides '^check_rides:' --script res://tools/check_rides.gd ;;
@@ -645,6 +650,8 @@ for s in $want; do
 		plain) game plain 600 "" ;;
 		heli) game heli 6000 '^rescue (done|failed):' --mission=1 --heli --autopilot ;;
 		race) game race 8000 '^race (won|lost):' --race=0 --autopilot ;;
+		# Loop 3h slice 3: the final "Trzy mosty" from its last bridge (the whole race is ~14 min of play).
+		trzy-mosty) game trzy-mosty 9000 '^trzy mosty (won|lost):' --trzy-mosty=3 --autopilot ;;
 		# Loop 3d-1: 15000 frames: on the demo map order 0 goes 1,023 m by road (Oboźna 1) and is
 		# delivered at 219.8 s of play (9000 frames = 150 s ended it on the way). Content POIs
 		# (2026-10-31): 11 places' addresses joined the address list, so the order's shuffle picks

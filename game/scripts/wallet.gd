@@ -21,7 +21,7 @@ const PATH := "user://save.cfg"
 const VERSION := 2
 ## The sections this version reads and writes; any other is kept as it was (`_extra`).
 const SECTIONS := ["save", "wallet", "jobs", "best", "eggs", "police", "keep", "notes", "notes_chapters",
-		"polnoc", "tapes", "kadr", "kadr_photos", "garage", "districts", "district_jobs", "syrenki"]
+		"polnoc", "tapes", "kadr", "kadr_photos", "garage", "districts", "district_jobs", "syrenki", "ladder"]
 ## The easter eggs that count towards "found x/5".
 const EGGS := {"palma": "The Palm on Rondo de Gaulle'a", "pigeons": "Pigeons on Plac Defilad",
 		"barriers": "The wandering roadworks", "patelnia": "Patelnia by Metro Centrum",
@@ -74,6 +74,10 @@ var paints := {}
 var districts := {}
 var district_jobs := {}
 var syrenki := {}
+## Loop 3h slice 3: the rival ladder (ladder.gd): rung id ("halina" ... "mike", and "trzy_mosty" for
+## the final race) -> the day it was first beaten (yyyymmdd). The save's [ladder] section; a v2 file
+## without it (slices 1-2) loads as nothing beaten (no version bump: the section is only added).
+var ladder := {}
 ## The district the vehicle is in now (districts.gd sets it; not saved).
 var district := ""
 ## False with --nosave: nothing is read or written.
@@ -156,6 +160,8 @@ func load_save() -> void:
 		district_jobs[key] = int(cfg.get_value("district_jobs", key, 0))
 	for key in (cfg.get_section_keys("syrenki") if cfg.has_section("syrenki") else PackedStringArray()):
 		syrenki[key] = int(cfg.get_value("syrenki", key, 1))
+	for key in (cfg.get_section_keys("ladder") if cfg.has_section("ladder") else PackedStringArray()):
+		ladder[key] = int(cfg.get_value("ladder", key, 1))
 
 
 ## Loop 3h slice 1: where the copy of a version-`version` file goes before it is migrated
@@ -225,6 +231,8 @@ func save() -> void:
 		cfg.set_value("district_jobs", key, int(district_jobs[key]))
 	for key in syrenki:
 		cfg.set_value("syrenki", key, int(syrenki[key]))
+	for key in ladder:
+		cfg.set_value("ladder", key, int(ladder[key]))
 	for section in _extra:
 		for key in _extra[section]:
 			cfg.set_value(section, key, _extra[section][key])
@@ -254,6 +262,7 @@ func reset() -> void:
 	districts.clear()
 	district_jobs.clear()
 	syrenki.clear()
+	ladder.clear()
 	save()
 	changed.emit(zl, respect, 0)
 
@@ -346,9 +355,9 @@ func egg_count() -> int:
 
 
 func summary() -> String:
-	return "%d zł, respect %d, jobs %s, best %s, eggs %d/%d, notebook %d, tapes %d, kadr %d, paint %s (%d bought), districts %d, syrenki %d, save v%d" % [zl, respect,
+	return "%d zł, respect %d, jobs %s, best %s, eggs %d/%d, notebook %d, tapes %d, kadr %d, paint %s (%d bought), districts %d, syrenki %d, ladder %d, save v%d" % [zl, respect,
 			jobs, best, eggs_found(), egg_count(), notes.size(), tapes.size(), kadr.size(), paint, paints.size(), districts.size(),
-			syrenki.size(), loaded_version]
+			syrenki.size(), ladder.size(), loaded_version]
 
 
 ## "1 240 zł": thousands apart with a space, the Polish way.

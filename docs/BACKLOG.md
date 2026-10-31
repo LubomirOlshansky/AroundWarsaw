@@ -1941,9 +1941,9 @@ discovery, "?" marks and completion on the full map (DEMO G3). Left for the late
 - ~~**Syrenki** (slice 2): 20 collectibles; register each with `districts.gd` `add_syrenka(id,
   district)` and mark finds in `wallet.syrenki` (saved already); then they count in completion.~~
   Done in slice 2 (see below).
-- **Rival ladder and "Trzy mosty"**, **the first 10 minutes** (the hint finger, the first order,
-  the first race, the `--first10` replay check), **the end card** (can read `percent_total()` and
-  the discovered count).
+- ~~**Rival ladder and "Trzy mosty"**~~ (done in slice 3, see below), **the first 10 minutes** (the
+  hint finger, the first order, the first race, the `--first10` replay check), **the end card** (can
+  read `percent_total()` and the discovered count).
 - Ujazdów i Łazienki has no notebook place or egg (the park lies south of the map; only the Sejm is
   in it): completion there is its 2 jobs, and it shows no "?" marks. The designer (places for the
   Sejm, Ujazdowski Castle, Plac na Rozdrożu) or the map lane (the park) would fill it. Wola has 2
@@ -1974,3 +1974,32 @@ Closed: the Syrenki (syrenki.gd: 20 figurines by the kerb, the find, the reward 
 - The reward cards queue in `syrenki.gd`; the HUD's note card shows one at a time (a find while
   another card is up waits for it).
 - Garage card: ten paints in two rows of five; on the smallest phone check it still fits.
+
+## From loop 3h slice 3 (the rival ladder and "Trzy mosty", 2026-10-31)
+
+Closed: the rival ladder (ladder.gd: six rungs in order of stake, opened by the rung before and by
+respect 0/100/250/400/600/850, the locked prompt and the refusal lines, a pace per rival, the toast
+for a new rung, the DRABINKA card on the full map, the save's `[ladder]`) and the final "Trzy mosty"
+(trzy_mosty.gd: Rondo Daszyńskiego east over Śląsko-Dąbrowski, west over Świętokrzyski, east over
+Poniatowskiego to the stadium; at night; three ordered checkpoints; +500 zł +250 respect;
+`trzy_mosty` saved for the end card). Left:
+- **Slice 4: the first 10 minutes** (the hint finger after 4 s, the guaranteed first order past the
+  Rotunda, the first race at 800 m to the Palm with Seba losing narrowly, the Powiśle card at ~8:00,
+  the `--first10` replay check) and **the end card** (win "Trzy mosty" = `wallet.ladder` has
+  `trzy_mosty` / `Ladder.final_won()`, and 10 jobs; "free roam" after). The first race in 6.2 is
+  against Seba, but the ladder opens with Halina: slice 4 decides whether the scripted first race is
+  Halina (the ladder's first rung) or a Seba race outside the ladder.
+- The final is long: 10.1 km by road (3.8 km from Rondo Daszyńskiego to the first bridge alone). The
+  autopilot's ghost (pace 1.8) needs about 14.5 minutes of game time with the city's lights and traffic
+  (867 s, Seba 30 s behind);
+  a player on the phone should judge whether it is an epic or a slog. A shorter cut (a start nearer
+  the river, e.g. Rondo ONZ, or one bridge fewer) is one constant in `trzy_mosty.gd`.
+- The paces are guesses (Halina 1.25 … Mike 1.5, the final 1.45): tune on the phone (A-checks: the
+  first race is won narrowly by an ordinary player).
+- Players with race wins from before the ladder start at rung one (the old wins didn't record the
+  rival).
+- Seba waits at the start held still: no idle animation, and while he waits he isn't cruising for a
+  re-race of his rung (at night only, once the final is open).
+- The finish line is a beacon ring, not a set piece: a crowd or a banner by the stands (the stadium is
+  the landmarks lane's) would make the end a moment.
+- The refusal and final lines were written in this slice: the game-designer should review them.
