@@ -3,6 +3,13 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Top priority: a game-like full map with teleport (the user, 2026-10-31)
+- **Landed** (thread "Make the map fun and game-like"): the full map in its own poster style
+  (map_art.gd), 25 landmark pins (map_icons.gd), hold 0.6 s to teleport, the cards behind ≡.
+  Left: street names along the main roads close in; F to judge the icons and colours on the
+  phone (maybe hand-drawn or PixelLab icon art later); the first open on an older phone (the
+  art is made on a worker thread at start, ~0.1-0.7 s on a computer).
+
 ## High priority: landmark and skyscraper models (the user, 2026-10-30)
 - **The user dislikes how several models look** (2026-10-30): Złote Tarasy, Złota 44 and the
   other skyscrapers (Varso, Pałac Kultury, Warsaw Spire, Q22), Muzeum Narodowe (and Stadion

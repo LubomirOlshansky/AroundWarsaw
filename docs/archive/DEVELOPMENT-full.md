@@ -5557,6 +5557,8 @@ Command-line options (after `--`):
 | `--traffic=empty\|low\|normal\|busy` (or 0-3) | loop 2a: the traffic level for this run (not saved) |
 | `--settings` | loop 2a: open the settings panel at the start (screenshots) |
 | `--fullmap` | F's asks (2026-10-30): open the full-screen map at the start (the game paused; screenshots) |
+| `--fullmap=M` | 2026-10-31: the same, M metres across the screen's height (the game map's shots) |
+| `--map-jump=X,Z` | 2026-10-31: the full map's hold-to-teleport to X,Z at the start (prints the refusal, if any, and where the car went) |
 | `--settings-tab=N` | loop 2e: open the settings panel at tab N (0 Jazda · Driving, 1 Świat · World, 2 Obraz · Picture, 3 Dźwięk · Sound; loop MW-1: 4 Zeszyt · the notebook) |
 | `--notebook` / `--notebook=CHAPTER\|ID` | loop MW-1: open the settings card on MOJA WARSZAWA, the notebook (a chapter by id or number 1-9, or a place's card by its id; screenshots) |
 | `--found=all\|none\|CHAPTER[:K],…` | loop MW-1: the notebook's record for this run, in memory, no rewards (a chapter by id or number, `:K` its first K places; `--found=1:4,9` half of the first chapter and all of the ninth). Use with `--nosave` (a later save would keep it) |
