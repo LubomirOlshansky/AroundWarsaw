@@ -94,6 +94,7 @@ const Tiers := preload("res://scripts/tiers.gd")
 const Governor := preload("res://scripts/governor.gd")
 ## Loop 3g-1: the police (police.gd; its block below, "loop 3g-1: the police").
 const Police := preload("res://scripts/police.gd")
+const Buses := preload("res://scripts/buses.gd")
 const MAP_PATH := "res://map/centrum.json"
 
 ## Visual styles to compare on the phone. lines = vertical resolution of the pixel image.
@@ -337,6 +338,13 @@ var _sunsets := {}
 ## Wiralek slot, 1-3).
 var life: CityLife
 var trend_job: TrendJob
+## The night-buses loop (buses.gd): the N sign, the night hub at Centralny, the bus stops' people,
+## the player's horn, E23-E25; flags --night-hub (a gathering now, parked at once), --bus-log,
+## --honk=F1,F2 (the horn at those frames).
+var buses: Buses
+var night_hub_flag := false
+var bus_log := false
+var honk_frames: Array[int] = []
 var life_flag := 1
 var dogs_log := false
 var trend_log := false
@@ -947,6 +955,7 @@ func _build_world() -> void:
 		_build_police(data, world)
 	_build_crowds(data, world)
 	_build_city_life(data, world)
+	_build_buses(data, world)
 	_build_storefronts(data, world)
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
@@ -1652,6 +1661,39 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 			return out
 	if club_flag != "":
 		_put_at_club(club_flag)
+
+
+# --- the night-buses loop ----------------------------------------------------------------------
+
+## The buses (buses.gd) on the traffic's lane graph, after everyday life (the dogs hear the horn);
+## the HUD's horn. None with --no-traffic.
+func _build_buses(data: Dictionary, world: Node3D) -> void:
+	if traffic == null:
+		return
+	buses = Buses.new()
+	buses.name = "Buses"
+	buses.traffic = traffic
+	buses.graph = graph
+	buses.map = map
+	buses.walkers = walkers
+	buses.dialogue = dialogue
+	buses.sfx = sfx
+	buses.life = life
+	buses.police = police
+	buses.egg_book = egg_book
+	buses.log_on = bus_log
+	buses.clock = tod.local_clock
+	buses.focus = func() -> Vector3: return cam_focus
+	buses.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	buses.probe = _egg_state
+	world.add_child(buses)
+	buses.setup(data)
+	hud.horn_pressed.connect(func() -> void: buses.honk())
+	if night_hub_flag:
+		buses.force()
 
 
 # --- loop MW-4: everyday life and trends -------------------------------------------------------
@@ -2719,6 +2761,13 @@ func _parse_args() -> void:
 			crowd_flag = clampi(int(arg.trim_prefix("--crowd=")), 0, 2)
 		elif arg == "--night-log":
 			night_log = true
+		elif arg == "--night-hub":
+			night_hub_flag = true
+		elif arg == "--bus-log":
+			bus_log = true
+		elif arg.begins_with("--honk="):
+			for f in arg.trim_prefix("--honk=").split(",", false):
+				honk_frames.append(int(f))
 		elif arg.begins_with("--life="):
 			life_flag = clampi(int(arg.trim_prefix("--life=")), 0, 2)
 		elif arg == "--dogs-log":
@@ -3795,6 +3844,8 @@ func _process(dt: float) -> void:
 		_on_tap(tap_at)
 	if frame == 60 and bench_button:
 		_start_phone_bench()
+	if buses != null and frame in honk_frames:
+		buses.honk()  # the night-buses loop: --honk=F
 	if frame in shots:
 		_capture(frame)
 	_govern()
@@ -3954,6 +4005,8 @@ func _make_stats() -> BenchStats:
 		b.systems["crowds"] = [crowds, "spent_usec", true]  # loop MW-3
 	if life != null:
 		b.systems["city life"] = [life, "spent_usec", true]  # loop MW-4
+	if buses != null:
+		b.systems["buses"] = [buses, "spent_usec", true]  # the night-buses loop
 	if storefronts != null:
 		b.systems["storefronts"] = [storefronts, "spent_usec", true]  # loop MW-2
 	if egg_book != null:
@@ -4611,6 +4664,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_next_style()
 			KEY_H:
 				_toggle_vehicle()
+			KEY_B:
+				# The night-buses loop: the horn (H was the helicopter's already).
+				if buses != null and not flying:
+					buses.honk()
 			KEY_M:
 				# Loop 2d-1: a Podwózka request or result first.
 				if (rides == null or not rides.primary()) and (jobs == null or not jobs.primary()) \
@@ -4929,6 +4986,8 @@ func _on_sector_ready(root: Node3D) -> void:
 	# Loop MW-2: the storefronts first (the neon atlas, a Neon holder of their own goes in below).
 	if storefronts != null:
 		storefronts.on_sector_ready(root)
+	if buses != null:
+		buses.on_sector_ready(root)  # the night-buses loop: the sector's shelters become stops
 	var lit := tod != null and tod.lights_on > 0.001
 	var small: bool = _small_cast == 1 if _small_cast >= 0 else bool(QUALITY[quality]["small_shadows"])
 	var cast := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if small else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

@@ -19,6 +19,15 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · content · night buses** — The horn's key is **B**, because H already toggles the
+  helicopter. Default built: B.
+- **2026-10-31 · content · night buses** — The horn button's icon (a bell with sound arcs) reads like
+  a volume button. Default built: the icon, no label. Alternatives: a "KLAKSON" label or a trumpet icon.
+- **2026-10-31 · content · night buses** — E25's race against the night bus starts quietly. Default
+  built: no card. Alternative: a "WYŚCIG Z NOCNYM · RACE THE NIGHT BUS" pill.
+- **2026-10-31 · content · night buses** — A stop's random bubble can say the request line ("Żądam.")
+  without a honk. Default built: left random. Alternative: keep that line for E24 only.
+
 - **2026-10-31 · content · jobs-2 (courier race, round-up, payphone, armchair)** — The Leżak
   round-up follows parodies.md 5.3 (collect into the boot, unload at the depot), not pushing
   scooters with the car. Default built: the spec.
