@@ -58,6 +58,7 @@ const BUDGET := {
 	"skysawa": 170,
 	"spektrum": 990,
 	"spire": 1290,
+	"tr": 600,
 	"stadium": 3470,
 	"swieto": 240,
 	"tarasy": 2930,

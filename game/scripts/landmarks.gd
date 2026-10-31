@@ -272,6 +272,9 @@ const INFO := {
 	"msn": ["Muzeum Sztuki Nowoczesnej",
 			"Biały gmach Thomasa Phifera przy Placu Defilad. Otwarty w 2024 roku.",
 			"Thomas Phifer's white museum on Plac Defilad. Opened in 2024."],
+	"tr": ["TR Warszawa (budowa)",
+			"Tu rośnie nowy gmach teatru TR Warszawa, czarny sąsiad białego muzeum.",
+			"TR Warszawa's new theatre going up: the white museum's black neighbour."],
 	"grob": ["Grób Nieznanego Żołnierza",
 			"Trzy łuki ocalałe z Pałacu Saskiego. Wieczny ogień i warta.",
 			"Three arches left of the Saxon Palace. An eternal flame, a guard."],
@@ -511,6 +514,7 @@ func _find_sites() -> void:
 		_add_site("metropolsign", [PackedVector2Array([e, e + Vector2(0.2, 0), e + Vector2(0.2, 0.2), e + Vector2(0, 0.2)])])
 	# First scene item 1 (2026-10-31): the Museum of Modern Art on Plac Defilad.
 	_find_msn()
+	_find_tr()
 
 
 ## Warszawa Centralna: OpenStreetMap maps the station in 3D (its outline sits underground):
@@ -687,6 +691,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_metropol_sign(s)
 			"msn":
 				_build_msn(s)
+			"tr":
+				_build_tr(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -3161,6 +3167,126 @@ func _msn_ring(hu: float, hv: float, iu: float, iv: float, y: float, n: Vector3,
 		var p2 := _w(r[2], r[3])
 		var p3 := _w(r[0], r[3])
 		_quad(Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), Vector3(p2.x, y, p2.y), Vector3(p3.x, y, p3.y), n, col)
+
+
+# --- TR Warszawa's building site ----------------------------------------------------------
+
+## F's ask (2026-10-31): the plot south of the museum, where TR Warszawa's theatre is going up
+## (its black box by the same architect), as a building site: a hoarding round it with a gate
+## on Marszałkowska, the concrete slab, the black box's first floors closed and the floors
+## above still an open frame round two concrete cores, stacked site cabins, stacks of material,
+## and two tower cranes whose jibs swing over the square (a red lamp on each: lit at night).
+## Placed in the museum's frame (MSN, MSN_AXIS): u 58..104 continues the museum's line.
+const TR_U := Vector2(58.0, 104.0)   # the plot along u
+const TR_V := 19.0                   # half its width
+const TR_HOARD := Color("#3f5a4a")   # dark green hoarding boards
+const TR_CONCRETE := Color("#a7a49d")
+const TR_BLACK := Color("#2b2d30")
+const TR_STEEL := Color("#4a4d52")
+const TR_CRANE := Color("#e2b33a")
+const TR_CABIN := Color("#e8ebee")
+const TR_CABIN_B := Color("#3d6fa3")
+## Each crane: [u, v, mast height, jib angle (deg, from +u), jib length, counter-jib length].
+const TR_CRANES := [[66.0, 10.0, 46.0, 200.0, 48.0, 14.0], [97.0, -11.0, 38.0, 35.0, 40.0, 12.0]]
+func _find_tr() -> void:
+	_o = MSN
+	_a = MSN_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	var cu := (TR_U.x + TR_U.y) * 0.5
+	_add_site("tr", [_rect(cu, 0.0, (TR_U.y - TR_U.x) * 0.5 + 0.5, TR_V + 0.5)])
+
+
+func _build_tr(_site: Dictionary) -> void:
+	_o = MSN
+	_a = MSN_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	var u0 := TR_U.x
+	var u1 := TR_U.y
+	var cu := (u0 + u1) * 0.5
+	var hu := (u1 - u0) * 0.5
+	var plot := _rect(cu, 0.0, hu, TR_V)
+	_g = _ground_under(plot)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	# hoarding: four 2.4 m board runs, 0.2 m thick, a 9 m gate gap on the Marszałkowska side.
+	var t := 0.1
+	_lbox(cu, TR_V - t, hu, t, g - 0.3, g + 2.4, TR_HOARD, M_STONE)
+	_lbox(u0 + t, 0.0, t, TR_V - 2.0 * t, g - 0.3, g + 2.4, TR_HOARD, M_STONE)
+	_lbox(u1 - t, 0.0, t, TR_V - 2.0 * t, g - 0.3, g + 2.4, TR_HOARD, M_STONE)
+	var gate := Vector2(cu - 4.5, cu + 4.5)
+	_lbox((u0 + gate.x) * 0.5, -TR_V + t, (gate.x - u0) * 0.5, t, g - 0.3, g + 2.4, TR_HOARD, M_STONE)
+	_lbox((gate.y + u1) * 0.5, -TR_V + t, (u1 - gate.y) * 0.5, t, g - 0.3, g + 2.4, TR_HOARD, M_STONE)
+	# slab: the poured ground slab inside the hoarding.
+	_lbox(cu, 0.0, hu - 1.0, TR_V - 1.0, g - 0.3, g + 0.25, TR_CONCRETE, M_STONE, TR_CONCRETE.lightened(0.05))
+	# box: the theatre's first two floors already clad black, a floor slab on them.
+	var bu := Vector2(66.0, 96.0)
+	var bv := 13.0
+	var bc := (bu.x + bu.y) * 0.5
+	var bh := (bu.y - bu.x) * 0.5
+	_lbox(bc, 0.0, bh, bv, g + 0.25, g + 9.0, TR_BLACK, M_STONE, TR_CONCRETE)
+	# frame: steel columns round the edge up to 17 m, a second slab at 13 m and one at 17 m.
+	for k in 5:
+		var u := bu.x + 0.4 + (bh * 2.0 - 0.8) * k / 4.0
+		for v: float in [-bv + 0.4, bv - 0.4]:
+			_prism(_rect(u, v, 0.3, 0.3), g + 9.0, g + 17.0, TR_STEEL, none, M_STONE)
+	for v: float in [-4.3, 4.3]:
+		for u: float in [bu.x + 0.4, bu.y - 0.4]:
+			_prism(_rect(u, v, 0.3, 0.3), g + 9.0, g + 17.0, TR_STEEL, none, M_STONE)
+	_lbox(bc, 0.0, bh, bv, g + 12.7, g + 13.0, TR_CONCRETE, M_STONE, TR_CONCRETE)
+	_lbox(bc - 4.0, 0.0, bh - 4.0, bv, g + 17.0, g + 17.3, TR_CONCRETE, M_STONE, TR_CONCRETE)
+	# cores: the stair and lift cores, poured ahead of the floors.
+	_lbox(bu.x + 5.0, 2.0, 2.6, 3.2, g + 17.3, g + 23.0, TR_CONCRETE.darkened(0.06), M_STONE, TR_CONCRETE)
+	_lbox(bu.y - 6.0, -3.0, 2.6, 2.6, g + 13.0, g + 20.0, TR_CONCRETE.darkened(0.06), M_STONE, TR_CONCRETE)
+	# cabins: two stacks of site cabins by the gate, white and blue.
+	for i in 2:
+		var su := u0 + 3.5 + i * 2.7
+		_lbox(su, -TR_V + 5.5, 1.2, 3.0, g + 0.25, g + 2.85, TR_CABIN, M_STONE, TR_CABIN.darkened(0.08))
+		_lbox(su, -TR_V + 5.5, 1.2, 3.0, g + 2.85, g + 5.45, TR_CABIN_B if i == 0 else TR_CABIN, M_STONE, TR_CABIN.darkened(0.12))
+	# stacks: pallets of blocks and bundles of steel along the north board.
+	for i in 4:
+		var su := u1 - 4.0 - i * 3.2
+		_lbox(su, TR_V - 3.0, 1.1, 0.9, g + 0.25, g + 1.2 + 0.25 * (i % 2), Color("#9a7b5c") if i % 2 == 0 else TR_STEEL, M_STONE)
+	for c: Array in TR_CRANES:
+		_tr_crane(c)
+	_o = MSN
+	_a = MSN_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_collide(plot)
+
+
+## crane: a square mast on a concrete foot, the slewing deck, the operator's cab, the jib and
+## the counter-jib with its counterweight, the A-frame with its two ties, a red lamp on top.
+func _tr_crane(c: Array) -> void:
+	var g := _g
+	var base := _w(c[0], c[1])
+	var h: float = c[2]
+	_o = base
+	_a = Vector2.from_angle(deg_to_rad(c[3]) + MSN_AXIS.angle())
+	_b = Vector2(-_a.y, _a.x)
+	var none := Color(0, 0, 0, 0)
+	_lbox(0.0, 0.0, 2.2, 2.2, g - 0.3, g + 1.2, TR_CONCRETE, M_STONE)
+	_prism(_rect(0.0, 0.0, 0.8, 0.8), g + 1.2, g + h, TR_CRANE, none, M_STONE)
+	_lbox(0.0, 0.0, 1.3, 1.3, g + h, g + h + 1.0, TR_CRANE.darkened(0.15), M_STONE)
+	_lbox(1.6, -1.6, 0.9, 0.8, g + h - 1.2, g + h + 1.0, TR_CABIN, M_STONE)
+	var jl: float = c[4]
+	var cl: float = c[5]
+	_lbox(jl * 0.5, 0.0, jl * 0.5, 0.5, g + h + 1.0, g + h + 2.2, TR_CRANE, M_STONE)
+	_lbox(-cl * 0.5 - 0.0, 0.0, cl * 0.5, 0.6, g + h + 1.0, g + h + 1.8, TR_CRANE, M_STONE)
+	_lbox(-cl + 1.6, 0.0, 1.5, 1.1, g + h - 0.6, g + h + 1.0, TR_CONCRETE.darkened(0.15), M_STONE)
+	# the A-frame: a tapered tower over the mast, the ties as thin slanted boxes.
+	_mode = M_STONE
+	_frustum(_rect(0.0, 0.0, 0.7, 0.7), g + h + 2.2, _rect(0.0, 0.0, 0.25, 0.25), g + h + 8.0, TR_CRANE, TR_CRANE)
+	for tie: Vector2 in [Vector2(jl * 0.7, g + h + 2.2), Vector2(-cl + 0.5, g + h + 1.8)]:
+		var top := _w(0.0, 0.0)
+		var end := _w(tie.x, 0.0)
+		var side := _b * 0.12
+		var y_top := g + h + 7.6
+		var n := Vector3(end.x - top.x, tie.y - y_top, end.y - top.y).cross(Vector3(side.x, 0.0, side.y)).normalized()
+		_quad(Vector3(top.x - side.x, y_top, top.y - side.y), Vector3(top.x + side.x, y_top, top.y + side.y),
+				Vector3(end.x + side.x, tie.y, end.y + side.y), Vector3(end.x - side.x, tie.y, end.y - side.y),
+				n if n.y > 0.0 else -n, TR_CRANE.darkened(0.1))
+	_prism(_rect(0.0, 0.0, 0.25, 0.25), g + h + 8.0, g + h + 8.6, DUSK_RED, DUSK_RED, M_LAMP, M_LAMP)
+	_mode = M_STONE
 
 
 ## The Tomb of the Unknown Soldier: the three arches left of the Saxon Palace's colonnade (blown

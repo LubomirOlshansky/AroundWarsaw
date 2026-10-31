@@ -32,7 +32,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 
 | # | Object | Today | To do | Photos |
 | --- | --- | --- | --- | --- |
-| 1.1 | Muzeum Sztuki Nowoczesnej | DONE 2026-10-31 (L3, site `msn`, spec `docs/landmarks/specs/msn.md`, 336 tris): white box on the glazed ground floor and its 29 fins, the slot, two city-room windows, three skylights, card | photo check on the Mac: the city-room windows (face, size) and the skylights against `ortho.jpg` | 4 + ortho (no Marszałkowska front yet) |
+| 1.1 | Muzeum Sztuki Nowoczesnej | DONE 2026-10-31 (L3, site `msn`, spec `docs/landmarks/specs/msn.md`, 336 tris): white box on the glazed ground floor and its 29 fins, the slot, two city-room windows, three skylights, card | photo check on the Mac: the city-room windows (face, size) and the skylights against `ortho.jpg`; next door TR Warszawa is a building site with cranes (site `tr`, 2026-10-31) | 4 + ortho (no Marszałkowska front yet) |
 | 1.2 | Pałac Kultury i Nauki | model (tiers, pinnacles, spire, clocks) | re-pass against photos: proportions of the tiers, attics, the side wings and the Congress Hall | yes |
 | 1.3 | Rotunda + Domy Towarowe Centrum (the Eastern Wall) | Rotunda model; the stores generic | Rotunda re-pass (today's teal glass); the three glass stores and the pavilions as a model | yes |
 | 1.4 | Złote Tarasy | model (glass wave) | re-pass: the wave's shape against the orthophoto, lit dome at night | yes |
