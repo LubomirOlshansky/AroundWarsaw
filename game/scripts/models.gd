@@ -979,7 +979,9 @@ static func tram_mesh(cab: bool, rear := false) -> ArrayMesh:
 	var zf := -hl - nose
 	var lower := PackedVector2Array([Vector2(-hl, 0.32), Vector2(zf, 0.62), Vector2(zf, 1.1), Vector2(hl, 1.1), Vector2(hl, 0.32)])
 	var lw := _widths(lower, W)
-	s.loft(lower, lw, [red, red, red, red, null], red)
+	# The Rondo photos (2026-10-31): a Pesa Swing is yellow with a black skirt and a red roof.
+	var skirt := fin(Color("#1d1e20"))
+	s.loft(lower, lw, [skirt, skirt, skirt, skirt, null], skirt)
 	var house := PackedVector2Array([Vector2(zf, 1.1), Vector2(zf + (0.38 if cab else 0.0), 3.2), Vector2(hl, 3.2), Vector2(hl, 1.1)])
 	var hw := PackedFloat32Array([W, W - 0.05, W - 0.05, W])
 	s.loft(house, hw, [yellow, yellow, yellow, null], yellow)
@@ -1008,7 +1010,7 @@ static func tram_mesh(cab: bool, rear := false) -> ArrayMesh:
 	for z: float in [-3.2, 3.2]:
 		s.box(Vector3(0, 0.22, z), Vector3(2.0, 0.36, 1.8), fin(Color("#1c1c1e")))
 	# The grey roof plate down a yellow roof, as before.
-	s.box(Vector3(0.0, 3.25, 0.0), Vector3(1.9, 0.1, 2.0 * hl - 0.6), fin(Color("#a4a19b")))
+	s.box(Vector3(0.0, 3.25, 0.0), Vector3(2.2, 0.14, 2.0 * hl - 0.2), red)
 	if cab:
 		s.box(Vector3(0.0, 3.44, 1.2), Vector3(1.5, 0.3, 2.2), fin(Color("#8e8b85")))
 	else:
