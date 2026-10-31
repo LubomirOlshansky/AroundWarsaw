@@ -5,14 +5,19 @@ extends Node
 ## key L) for 6 s. Accept and both go to the same door: the rider on the footway network (parks,
 ## squares, crossings and cycle paths: an A* from the stand to the door, worked out in a worker
 ## thread while the order card is up), the car by road. No challenge when the rider's way is longer
-## than 1.6 × the straight line (`DETOUR_MAX`). The rider rides at 6.5 m/s (`V`, 23 km/h). The race
+## than 1.6 × the straight line (`DETOUR_MAX`). Loop couriers: the challenger is one of the couriers
+## waiting by the stand at night (city_life.gd `waiting_at`; none waiting, no challenge unless forced):
+## he stands by his bike through the offer, and on ŚCIGAJ gets on it (`take_waiting`) and goes from his
+## spot. His pace is the order's: his time is the road's at V_ROAD (`pace`, 6.5-11 m/s), so a decent
+## player (DECENT: 30-50 km/h door to door) wins about two in three. The race
 ## UI is the kebab's status with the rivals' 1ST / 2ND badge and the gap. Win: the kebab pays as usual
 ## plus +30 zł +30 respect and the rider's `lose` line; lose: the kebab pays as usual, the rider's
 ## `win` line. No fine, nothing taken; the heat rules are the kebab's (jobs.gd owns the job: this
 ## node is its child and only adds the rider, the badge and the bonus).
 ##
 ## Drawing: one MeshInstance3D of props.gd's Pędzik rider (the shared actor material, no shadow),
-## shown only from the challenge to a few seconds after the door: +1 draw call while it is in view,
+## shown from the start of the race (from the challenge when no courier was waiting) to a few
+## seconds after the door: +1 draw call while it is in view,
 ## 0 otherwise. Per frame only while a race runs: the rider's step (a few vector ops) and the rank
 ## at 5 Hz (a lane snap and a lookup). Nothing runs when no race is on.
 
@@ -28,6 +33,13 @@ const OFFER_S := 6.0
 ## The A* has this long to finish before the challenge is dropped (s).
 const ROUTE_WAIT := 4.0
 const V := 6.5
+## Loop couriers (BACKLOG "The courier rarely wins"): the rider's time is the order's road at V_ROAD
+## m/s (36 km/h), his speed within V_MIN-V_MAX (23-40 km/h: an e-bike courier, cartoon fast); a decent
+## player averages DECENT m/s door to door (30-50 km/h), so he wins about 2 in 3 (`decent_wins`).
+const V_ROAD := 10.0
+const V_MIN := 6.5
+const V_MAX := 11.0
+const DECENT := Vector2(8.0, 14.0)
 const DETOUR_MAX := 1.6
 const PAY_ZL := 30
 const PAY_RESPECT := 30
@@ -52,8 +64,13 @@ var paths: Array = []
 var force := false
 ## --autopilot: the challenge is taken after a second.
 var autopilot := false
-## The rider's speed (m/s): V, or --courier-v for a test run.
+## The rider's speed (m/s): `pace` at the race's start, or --courier-v for a test run (`fixed_speed`).
 var speed := V
+var fixed_speed := false
+## Loop couriers: city_life.gd (the couriers waiting at the stands; null: the rider appears at the
+## kiosk, as before) and the order's stand.
+var life: Node
+var stand_i := -1
 var state := State.IDLE
 ## The race's outcome once the rider or the car is at the door.
 var rider_first := false
@@ -66,6 +83,8 @@ var raced := 0
 var won := 0
 
 var _rider: MeshInstance3D
+## Loop couriers: the waiting courier who challenged ([at, yaw]; [] when he appeared at the kiosk).
+var _waiter: Array = []
 var _task := -1
 var _out: Array = [null]
 var _pts := PackedVector2Array()
@@ -104,6 +123,21 @@ static func challenges(night: bool, r: float, forced := false) -> bool:
 ## The way fits: the rider's path at most DETOUR_MAX × the straight line (and some way at all).
 static func fits(path_m: float, straight_m: float) -> bool:
 	return path_m > 0.0 and straight_m > 0.0 and path_m <= DETOUR_MAX * straight_m
+
+
+## Loop couriers: the rider's speed for a way `path_m` long against `road_m` by road: his time is the
+## road's at V_ROAD, within V_MIN-V_MAX (V without a road).
+static func pace(path_m: float, road_m: float) -> float:
+	if path_m <= 0.0 or road_m <= 0.0:
+		return V
+	return clampf(path_m * V_ROAD / road_m, V_MIN, V_MAX)
+
+
+## Loop couriers: the share of decent drives (an average speed door to door spread evenly over
+## DECENT) that beat a rider at `v` m/s on a way `path_m` long to a door `road_m` away by road.
+static func decent_wins(path_m: float, road_m: float, v: float) -> float:
+	var tie := road_m * v / maxf(path_m, 0.01)
+	return clampf((DECENT.y - tie) / (DECENT.y - DECENT.x), 0.0, 1.0)
 
 
 ## The race's pay on top of the kebab's: {zl, respect, line (the rider's dialogue tag)}.
@@ -173,11 +207,13 @@ func setup(world: Node3D) -> void:
 
 ## A kebab order was taken at a stand (jobs.gd `_begin_kebab`): the kiosk at `stand`, the door's
 ## ring at `door`, its lane graph point (`door_e`, `door_s`; -1: none); `n` the order's number (its
-## roll), `go` starts the delivery.
-func on_order(stand: Vector3, door: Vector3, n: int, night: bool, door_e: int, door_s: float, go: Callable) -> void:
+## roll), `go` starts the delivery; loop couriers: `si` the stand's index (its waiting couriers).
+func on_order(stand: Vector3, door: Vector3, n: int, night: bool, door_e: int, door_s: float, go: Callable, si := -1) -> void:
 	cancel()
 	if not challenges(night, roll(n), force):
 		return
+	stand_i = si
+	_waiter = []
 	_door = door
 	_go = go
 	_door_e = door_e
@@ -204,6 +240,13 @@ func accept() -> bool:
 	_rank_t = 0.0
 	raced += 1
 	rider_first = false
+	if not fixed_speed:
+		speed = pace(path_len, road)
+	# Loop couriers: the waiting courier gets on his bike and goes.
+	if not _waiter.is_empty() and life != null:
+		life.take_waiting(stand_i)
+	_place(0.0)
+	_rider.visible = true
 	if hud != null:
 		hud.hide_challenge()
 	if car != null and car.has_method("flash_lights"):
@@ -216,8 +259,9 @@ func accept() -> bool:
 			_dist_rev = graph.distances_to(graph.e_a[graph.e_reverse[_door_e]])
 	_rider_left = path_len
 	_player_left = road
-	print("courier: race on: the rider's way %d m (%.2f × the straight %d m), the road %d m" % [roundi(path_len),
-			path_len / maxf(straight, 1.0), roundi(straight), roundi(road)])
+	print("courier: race on: the rider's way %d m (%.2f × the straight %d m), the road %d m; the rider at %.1f m/s (%.0f s; a decent drive wins %.0f %%)" % [
+			roundi(path_len), path_len / maxf(straight, 1.0), roundi(straight), roundi(road), speed, path_len / maxf(speed, 0.1),
+			decent_wins(path_len, road, speed) * 100.0])
 	if _go.is_valid():
 		_go.call()
 	Input.vibrate_handheld(80, 0.7)
@@ -334,6 +378,24 @@ func _routed(r: Variant) -> void:
 		state = State.IDLE
 		return
 	var d: Dictionary = r
+	# Loop couriers: the challenger is a courier waiting by the stand (from his spot); none waiting,
+	# no challenge, unless forced (--courier-race: he appears at the kiosk, as before).
+	_waiter = []
+	if life != null and stand_i >= 0:
+		var w: Array = life.waiting_at(stand_i)
+		if not w.is_empty():
+			_waiter = w[w.size() - 1]
+		elif not force:
+			print("courier: no challenge (no courier waiting at stand %d)" % stand_i)
+			state = State.IDLE
+			return
+	if not _waiter.is_empty():
+		var at: Vector3 = _waiter[0]
+		var pts0: PackedVector2Array = d["pts"]
+		var dk0: PackedInt32Array = d["dk"]
+		pts0.insert(0, Vector2(at.x, at.z))
+		dk0.insert(0, -1)
+		d = {"pts": pts0, "dk": dk0, "len": length_of(pts0)}
 	path_len = float(d["len"])
 	if not fits(path_len, straight):
 		print("courier: no challenge (the way %d m is %.2f × the straight %d m)" % [roundi(path_len), path_len / maxf(straight, 1.0),
@@ -353,13 +415,18 @@ func _routed(r: Variant) -> void:
 	_s = 0.0
 	_seg = 0
 	_place(0.0)
-	_rider.visible = true
+	if not _waiter.is_empty():
+		# He stands by his bike (city life draws him) until ŚCIGAJ; the node only carries the bubble.
+		var w0: Vector3 = _waiter[0]
+		_rider.global_position = w0
+		_rider.rotation.y = float(_waiter[1])
+	_rider.visible = _waiter.is_empty()
 	state = State.OFFER
 	_t = 0.0
 	if dialogue != null:
 		dialogue.say(_rider, "Pędzik", "pedzik", "challenge", 4.5, COLOUR, 2.4, true)
-	print("courier: challenge: the rider's way %d m, %.2f × the straight %d m" % [roundi(path_len), path_len / maxf(straight, 1.0),
-			roundi(straight)])
+	print("courier: challenge: the rider's way %d m, %.2f × the straight %d m%s" % [roundi(path_len), path_len / maxf(straight, 1.0),
+			roundi(straight), " (a courier waiting at stand %d)" % stand_i if not _waiter.is_empty() else ""])
 
 
 ## The rider on along its way; at its end it waits at the door.

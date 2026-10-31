@@ -12,13 +12,20 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | --- | --- | --- | --- |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
-| content + traffic | Night buses at Centralny, bus-stop figures, the horn (E23–E25); then the old tram (E39), garage paint (E01, E21), kebab-stand couriers | cloud thread "Add autonomous backlog workflow" | 2026-10-31 |
 | map | The loading fix (on-screen sectors first, proxies that look like the city), then the map north to Rondo Radosława, Arkadia and Forest (3d-1, 3d-2a, 3d-2b and 3e landed) | thread "Finish the demo map extension" | 2026-10-30 |
 
 ## Waiting
 
 Newest first. One entry per question.
 
+- **2026-10-31 · content · couriers** — The courier race's pace: the rider's time is the order's
+  road distance at 10 m/s, so a player averaging 30–50 km/h wins about 2 in 3. Default built: that.
+  Alternative: a fixed speed (e.g. 8.5 m/s), or tune after phone runs.
+- **2026-10-31 · content · couriers** — Kerb riders ride 0.45 m from the kerb (parodies.md says 0.6 m;
+  at 0.6 m AI cars would clip them). Default built: 0.45 m. Alternative: 0.6 m with AI cars nudging
+  past riders (a traffic.gd change).
+- **2026-10-31 · content · couriers** — Kerb riders: 3 by day, 5 at night, on top of the 4/6 path
+  riders, all in the pool of 16. Default built: that. Alternative: read "3–6" as the total.
 - **2026-10-31 · content · garage** — When does Mirek's garage open? Default built: after the first
   earnings (a job, any złoty, or an owned paint), not the 10:00 clock beat.
 - **2026-10-31 · content · garage** — Prices: cream 150, pea green 180, Vistula blue 200, tram

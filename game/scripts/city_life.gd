@@ -27,7 +27,11 @@ extends Node3D
 ## four-shape family (+1 in view); the riders and the parked bikes one more (+1: there is no
 ## rider MultiMesh to share yet); loop MW-2's Pędzik couriers (parodies.md 4: 4 by day, 6 at
 ## night, on the cycle paths and the footways, magenta, the square backpack) one more of their own
-## (+1 in view: one shape, no morph, so not in the bike family's four); the fascias and the banner a
+## (+1 in view: not in the bike family's four); loop couriers (parodies.md 4.2): 3 more by day, 5 at
+## night ride the roads' kerb edge (the lane graph's outer lane, KERB_IN in from the kerb), 1 or 2
+## couriers wait by each kebab stand near the view at night (the rider mesh's standing shape, their
+## bikes parked beside them; courier_race.gd's challenger is one of them), and within 4 m of the car's
+## path a rider swerves onto the footway or, with no room, hops; all in the same MultiMesh (+0); the fascias and the banner a
 ## mesh each, near them. No sun shadow. The logic ticks at 2 Hz; the movers step at 15 Hz
 ## (walkers, runners and far riders at 7.5 Hz) only while something is near the view; far from
 ## all of it nothing but the tick runs. The rules are static functions (check_city_life.gd runs them on synthetic clocks and dates).
@@ -39,6 +43,7 @@ const Crowds := preload("res://scripts/crowds.gd")
 const EggBook := preload("res://scripts/egg_book.gd")
 const Pedestrians := preload("res://scripts/pedestrians.gd")
 const Props := preload("res://scripts/props.gd")
+const LaneGraph := preload("res://scripts/lane_graph.gd")
 
 ## Seconds between two ticks of the logic, and between two moves of the movers.
 const TICK := 0.5
@@ -102,6 +107,33 @@ const PEDZIK_V := Vector2(5.0, 7.0)
 const PEDZIK_MISS := 4.0
 const PEDZIK_GAP := 30.0
 const PEDZIK_FOOT := 0.5
+## Loop couriers (parodies.md 4.2): the kerb riders, on top of the path riders above: 3 round the
+## view by day, 5 at night (× 1.5, rounded), on the outer lane's kerb edge of the lane graph's roads.
+const KERB_DAY := 3
+const KERB_NIGHT := 5
+## A kerb rider's middle this far in from the kerb (m; parodies.md says 0.6 m: at 0.45 his bike's
+## inner edge is 0.7 m out, clear of a car on a 3 m lane), and the lanes he rides: at least KERB_LW
+## wide, no living street (class 3), no tunnel.
+const KERB_IN := 0.45
+const KERB_LW := 2.9
+## The dodge (parodies.md 4.2): a Pędzik rider whose closest approach to the car over the next
+## DODGE_T s is within PEDZIK_MISS swerves SWERVE_OUT m past the kerb onto the footway (SWERVE_RATE
+## m/s sideways), or hops (a HOP_T s cartoon jump, HOP_H m up) where there is no room; back to his
+## line CALM_T s after the car is clear.
+const DODGE_T := 1.0
+const SWERVE_OUT := 1.4
+const SWERVE_RATE := 3.0
+const CALM_T := 1.0
+const HOP_T := 0.3
+const HOP_H := 0.55
+const DODGE_NONE := 0
+const DODGE_SWERVE := 1
+const DODGE_HOP := 2
+## Loop couriers (parodies.md 4.2): 1 or 2 couriers waiting by each kebab stand at night (21-06),
+## standing beside their parked bikes (props.gd PEDZIK_STANDING) at the first WAIT_MAX free spots
+## of WAIT_SPOTS (the kiosk's own x along the road, z towards it; m).
+const WAIT_MAX := 2
+const WAIT_SPOTS := [Vector2(2.75, -0.35), Vector2(-2.75, -0.35), Vector2(3.9, -0.6), Vector2(-3.9, -0.6)]
 const RIDER_BASE := 4
 const RIDE_HOURS := [6.0, 22.0]
 const RUSH := [[7.0, 9.5], [16.0, 19.0]]
@@ -245,6 +277,13 @@ class Mover:
 	var cb := 0.0
 	var udir := Vector2.ZERO
 	var dy := 0.0
+	## Loop couriers: a kerb rider's lane graph edge (-1: a path rider), his dodge (DODGE_*), the
+	## hop's time left, the time the car has been clear, and the side offset he steers to.
+	var ke := -1
+	var dodge := 0
+	var hop := 0.0
+	var calm := 0.0
+	var want_off := 0.0
 
 
 var map: Node3D
@@ -276,6 +315,17 @@ var probe: Callable
 var amount := 1.0
 ## Loop MW-2: the Pędzik couriers (main.gd's --no-parodies turns them off).
 var pedzik_on := true
+## Loop couriers: the traffic's lane graph (the kerb riders ride its outer lanes; null: none) and the
+## kebab stands' kiosks (jobs.gd stand_frames: [at, yaw] each; the couriers waiting there at night).
+var graph: LaneGraph
+var stands: Array = []
+## Loop couriers: --pedzik-log (`pedzik:` lines: the minute's riders, the dodges, the waiting couriers).
+var pedzik_log := false
+## Loop couriers: --pedzik-kerb (a testing aid for shots): the kerb riders start 8-35 m from the view.
+var kerb_close := false
+## Loop couriers: dodges so far (the check, the log).
+var pedzik_swerves := 0
+var pedzik_hops := 0
 ## --dogs-log, --trend-log, --life-log (the riders, runners, Kolka, Hyrax, the soak).
 var dogs_log := false
 var trend_log := false
@@ -343,6 +393,18 @@ var _stops := {}
 var _dogs: Array[Mover] = []
 var _riders: Array[Mover] = []
 var _pedziks: Array[Mover] = []
+## Loop couriers: the kerb riders (Pędzik too: their slots in the Pedzik MultiMesh follow _pedziks').
+var _kerbers: Array[Mover] = []
+## Loop couriers: the couriers waiting at the stands near the view ([stand, at, yaw] each, after the
+## riders in the Pedzik MultiMesh), its signature (a change writes everything), each stand's free
+## spots (worked out once), and the couriers the race took from a stand (back when it leaves the band).
+var _waiting: Array = []
+var _wait_sig := 0
+var _wait_spots := {}
+var _taken := {}
+## Loop couriers: the car's velocity on the ground and its speed (km/h), read once a step.
+var _car_v := Vector2.ZERO
+var _car_kmh := 0.0
 var _runners: Array[Mover] = []
 var _docks: Array[Dictionary] = []
 var _zones: Array[Vector2] = []
@@ -515,6 +577,65 @@ static func armchair_at(t_s: float, length: float) -> Vector2:
 static func pedzik_count(hour: float, k := 1.0) -> int:
 	var night := hour >= 21.0 or hour < 6.0
 	return mini(roundi((PEDZIK_NIGHT if night else PEDZIK_DAY) * k), PEDZIK_CAP)
+
+
+## Loop couriers: Pędzik's night (parodies.md 4.2: 21-06).
+static func pedzik_night(hour: float) -> bool:
+	return hour >= 21.0 or hour < 6.0
+
+
+## Loop couriers: the kerb riders round the view at `hour` (3 by day, 5 at night, × `k`).
+static func kerb_count(hour: float, k := 1.0) -> int:
+	return mini(roundi((KERB_NIGHT if pedzik_night(hour) else KERB_DAY) * k), PEDZIK_CAP)
+
+
+## Loop couriers: the couriers waiting by stand `stand` on day `day` at `hour`: 1 or 2 at night
+## (seeded by the stand and the day: the same night always has the same), none by day.
+static func waiting_count(stand: int, day: int, hour: float) -> int:
+	if not pedzik_night(hour):
+		return 0
+	var rng := RandomNumberGenerator.new()
+	# The small hours belong to the night that began the evening before.
+	rng.seed = stand * 7741 + (day - int(hour < 12.0)) * 131 + 5
+	return 1 + rng.randi() % WAIT_MAX
+
+
+## Loop couriers: the closest two points moving from `p` at `vp` and from `c` at `vc` (m/s) come
+## within the next `horizon` s.
+static func closest_approach(p: Vector2, vp: Vector2, c: Vector2, vc: Vector2, horizon: float) -> float:
+	var d := p - c
+	var w := vp - vc
+	var w2 := w.length_squared()
+	var at := clampf(-d.dot(w) / w2, 0.0, horizon) if w2 > 0.0001 else 0.0
+	return (d + w * at).length()
+
+
+## Loop couriers: a Pędzik rider's dodge for a closest approach `gap` (m) to the car's path: none
+## beyond PEDZIK_MISS, a swerve onto the footway where there is `room`, else a hop.
+static func dodge(gap: float, room: bool) -> int:
+	if gap > PEDZIK_MISS:
+		return DODGE_NONE
+	return DODGE_SWERVE if room else DODGE_HOP
+
+
+## Loop couriers: a near miss says a `pedzik` line when the car does 10 km/h or more and the last
+## line was PEDZIK_GAP s ago or more.
+static func says_near_miss(now: float, last: float, kmh: float) -> bool:
+	return kmh >= 10.0 and now - last >= PEDZIK_GAP
+
+
+## Loop couriers: the hop's height with `left` s of it to go (a parabola, HOP_H at its top).
+static func hop_height(left: float) -> float:
+	if left <= 0.0:
+		return 0.0
+	var x := clampf(1.0 - left / HOP_T, 0.0, 1.0)
+	return 4.0 * HOP_H * x * (1.0 - x)
+
+
+## Loop couriers: a road a kerb rider takes: lanes KERB_LW wide or more, no living street, no tunnel,
+## and long enough to ride.
+static func kerb_road(lw: float, road_class: int, tunnel: int, length: float) -> bool:
+	return lw >= KERB_LW and road_class <= 2 and tunnel < 0 and length > 6.0
 
 
 static func runner_count(hour: float, near_zone: bool, k := 1.0) -> int:
@@ -1427,7 +1548,11 @@ func tick(step: float) -> void:
 	var p2 := Vector2(vp.x, vp.z)
 	if vp != Vector3.INF:
 		_trend_eggs(p2)
+	# Loop couriers: the couriers waiting at the stands near the view (no index needed).
+	_wait_tick(eye)
 	if not _ready:
+		if not _waiting.is_empty():
+			_active = true
 		return
 	var zone := false
 	for z in _zones:
@@ -1444,6 +1569,7 @@ func tick(step: float) -> void:
 	_keep(_dogs, dog_count(_hour, zone, amount), "dog", eye, car2)
 	_keep(_riders, rider_count(_hour, amount), "rider", eye, car2)
 	_keep(_pedziks, pedzik_count(_hour, amount) if pedzik_on else 0, "pedzik", eye, car2)
+	_keep(_kerbers, kerb_count(_hour, amount) if pedzik_on and graph != null else 0, "kerb", eye, car2)
 	_keep(_runners, runner_count(_hour, run_zone, amount), "runner", eye, car2)
 	_shown_now = _shown_bits(eye)
 	# Who is on screen, for the step's rate: inside the view's ground rectangle and VIS_MARGIN
@@ -1458,7 +1584,7 @@ func tick(step: float) -> void:
 		vr = view.view_right
 		va = view.view_ahead
 		vh = (view.view_half as Vector2) + Vector2.ONE * VIS_MARGIN
-	for list: Array[Mover] in [_dogs, _riders, _runners, _pedziks]:
+	for list: Array[Mover] in [_dogs, _riders, _runners, _pedziks, _kerbers]:
 		for m in list:
 			if view != null:
 				var q := m.p2 - vc
@@ -1497,12 +1623,12 @@ func tick(step: float) -> void:
 	if _banner != null:
 		_banner.visible = hyrax and eye.distance_to(_hyrax["at"]) < FASCIA_R
 	var was := _active
-	_active = not _dogs.is_empty() or not _riders.is_empty() or not _runners.is_empty() or not _pedziks.is_empty() or near_fixed or kolka_near
+	_active = not _dogs.is_empty() or not _riders.is_empty() or not _runners.is_empty() or not _pedziks.is_empty() or near_fixed or kolka_near \
+			or not _kerbers.is_empty() or not _waiting.is_empty()
 	if was and not _active:
 		_hide_all()
 	if not veh[2] and vp != Vector3.INF:
 		_bell_tick(p2, float(veh[1]), step)
-		_pedzik_tick(p2, float(veh[1]))
 		_follow_tick(p2, float(veh[1]), step)
 	if kphase == "run" and not _kolka.is_empty():
 		_zajac_tick(vp, float(veh[1]), bool(veh[2]), step)
@@ -1514,7 +1640,7 @@ func tick(step: float) -> void:
 		_infl_tick(p2, float(veh[1]), bool(veh[2]), step)
 	if aport:
 		_aport_tick(veh)
-	if dogs_log or life_log or soak:
+	if dogs_log or life_log or soak or pedzik_log:
 		_log_t -= step
 		if _log_t <= 0.0:
 			_log_t = MINUTE
@@ -1522,10 +1648,95 @@ func tick(step: float) -> void:
 				print("dogs: %s" % dog_summary())
 			if life_log:
 				print("life: %s" % life_summary())
+			if pedzik_log:
+				print("pedzik: %s" % pedzik_summary())
 			if soak:
 				print("life: soak %.1f min · dogs %d near (%d met) · riders %d (%d met) · runners %d · overlaps %d · closest %s" % [
 						t / 60.0, _dogs.size(), met_dogs, _riders.size(), met_riders, _runners.size(), overlaps,
 						"%.2f m" % closest if closest < INF else "-"])
+
+
+# --- loop couriers: the couriers waiting at the kebab stands -----------------------------------
+
+## The couriers waiting at the stands within NEAR_R of `eye` at night (waiting_count, less the ones the
+## race took): a change writes everything at the next step. The race's take comes back when its stand
+## leaves the band (NEAR_R + 100 m) or the night ends.
+func _wait_tick(eye: Vector2) -> void:
+	var list: Array = []
+	var sig := 0
+	if pedzik_on and not stands.is_empty() and pedzik_night(_hour):
+		var day := days_now()
+		for i in stands.size():
+			var at: Vector3 = stands[i][0]
+			var d := eye.distance_to(Vector2(at.x, at.z))
+			if d > NEAR_R:
+				if d > NEAR_R + 100.0 and _taken.has(i):
+					_taken.erase(i)
+				continue
+			var n := waiting_count(i, day, _hour) - int(_taken.get(i, 0))
+			var spots := _spots_of(i)
+			for k in mini(n, spots.size()):
+				list.append([i, spots[k][0], spots[k][1]])
+				sig = (sig * 31 + i * 4 + k + 1) % 1000000007
+	elif not _taken.is_empty():
+		_taken.clear()
+	if sig != _wait_sig or list.size() != _waiting.size():
+		_wait_sig = sig
+		_waiting = list
+		_full = true
+
+
+## Stand i's free spots for its couriers (worked out once): WAIT_SPOTS beside the kiosk with no roof
+## over them and no lane under them, the first WAIT_MAX; each [at, yaw] (the bike pointing at the road,
+## as the counter faces).
+func _spots_of(i: int) -> Array:
+	if _wait_spots.has(i):
+		return _wait_spots[i]
+	var at: Vector3 = stands[i][0]
+	var yaw: float = stands[i][1]
+	var b := Basis(Vector3.UP, yaw)
+	var out: Array = []
+	for o: Vector2 in WAIT_SPOTS:
+		if out.size() >= WAIT_MAX:
+			break
+		var p3 := at + b * Vector3(o.x, 0.0, o.y)
+		if map != null:
+			if map.roof_height(p3.x, p3.z) - map.ground_height(p3.x, p3.z) > 1.0:
+				continue
+			p3.y = map.ground_height(p3.x, p3.z)
+		if graph != null and not graph.snap(Vector2(p3.x, p3.z), 1.8).is_empty():
+			continue
+		out.append([p3, yaw])
+	_wait_spots[i] = out
+	return out
+
+
+## The couriers waiting at stand i now ([at, yaw] each; [] by day, or none there): courier_race.gd's
+## challenger is one of them. By the rule, wherever the view is.
+func waiting_at(i: int) -> Array:
+	if not pedzik_on or i < 0 or i >= stands.size() or not clock.is_valid():
+		return []
+	var hour := float((clock.call() as Dictionary)["hour"])
+	var n := waiting_count(i, days_now(), hour) - int(_taken.get(i, 0))
+	var spots := _spots_of(i)
+	var out: Array = []
+	for k in mini(n, spots.size()):
+		out.append(spots[k])
+	return out
+
+
+## The race took a courier from stand i (he gets on his bike: courier_race.gd draws him riding):
+## one fewer waits there; his pose ([at, yaw], the last spot taken), [] when none was waiting.
+func take_waiting(i: int) -> Array:
+	var w := waiting_at(i)
+	if w.is_empty():
+		return []
+	_taken[i] = int(_taken.get(i, 0)) + 1
+	var eye3: Vector3 = focus.call() if focus.is_valid() else Vector3.ZERO
+	_wait_tick(Vector2(eye3.x, eye3.z))
+	if pedzik_log:
+		print("pedzik: a courier waiting at stand %d gets on his bike for the race (%d left there)" % [i, w.size() - 1])
+	return w[w.size() - 1]
 
 
 ## "07:30 day 6 · 10 walkers (zone) · 3 at trees · barks 2 · horn lines 1".
@@ -1557,6 +1768,16 @@ func life_summary() -> String:
 			"on" if hyrax_on(_hour, _weekday) else "off", bells, zajac_cheers, zajac_paid, _zajac_m]
 
 
+## Loop couriers: "01:30 · 6 on the paths, 5 on the kerb · 3 waiting at 2 stands · swerves 4 · hops 1 · lines 1".
+func pedzik_summary() -> String:
+	var at := {}
+	for w: Array in _waiting:
+		at[w[0]] = true
+	return "%02d:%02d · %d on the paths, %d on the kerb · %d waiting at %d stands · swerves %d · hops %d · lines %d" % [int(_hour),
+			int(fmod(_hour, 1.0) * 60.0), _pedziks.size(), _kerbers.size(), _waiting.size(), at.size(), pedzik_swerves,
+			pedzik_hops, pedzik_lines]
+
+
 func _hide_all() -> void:
 	if _chair != null:
 		_chair.visible = false
@@ -1579,7 +1800,7 @@ func _hide_all() -> void:
 func _keep(list: Array[Mover], want: int, kind: String, eye: Vector2, car2 := Vector2.INF) -> void:
 	for i in range(list.size() - 1, -1, -1):
 		var m: Mover = list[i]
-		if m.p2.distance_to(eye) > NEAR_R or (list.size() > want and not _seen(m)):
+		if m.p2.distance_to(eye) > NEAR_R or (list.size() > want and not _seen(m)) or m.v <= 0.0:
 			list.remove_at(i)
 			_full = true  # the slots move: the next step writes everything
 	var tries := 4
@@ -1603,6 +1824,8 @@ func _seen(m: Mover) -> bool:
 
 ## A new mover on a footway (a dog walker, a runner) or a cycle path (a rider) SPAWN_R from `eye`.
 func _spawn(kind: String, eye: Vector2) -> Mover:
+	if kind == "kerb":
+		return _spawn_kerb(eye)
 	var pset := "cyc" if kind == "rider" or (kind == "pedzik" and _rng.randf() >= PEDZIK_FOOT) else "foot"
 	var grid: Dictionary = _foot_grid if pset == "foot" else _cyc_grid
 	var list: Array[PackedVector2Array] = _foot if pset == "foot" else _cyc
@@ -1648,6 +1871,7 @@ func _spawn(kind: String, eye: Vector2) -> Mover:
 		"pedzik":
 			m.v = _rng.randf_range(PEDZIK_V.x, PEDZIK_V.y)
 			m.off = _rng.randf_range(-0.3, 0.3)
+			m.want_off = m.off
 		"runner":
 			m.v = _rng.randf_range(2.7, 3.3)
 			m.off = _rng.randf_range(-0.5, 0.5)
@@ -1655,6 +1879,102 @@ func _spawn(kind: String, eye: Vector2) -> Mover:
 			m.tr = _rng.randf() * 0.99
 	_place_mover(m)
 	return m
+
+
+## Loop couriers: a kerb rider SPAWN_R from `eye`, on the kerb edge of a lane graph road there (null
+## when the cell has none he takes).
+func _spawn_kerb(eye: Vector2) -> Mover:
+	var r := _rng.randf_range(8.0, 35.0) if kerb_close else _rng.randf_range(SPAWN_R.x, SPAWN_R.y)
+	var at := eye + Vector2.from_angle(_rng.randf() * TAU) * r
+	var cands: PackedInt32Array = graph.grid.get(LaneGraph.cell_key(at), PackedInt32Array())
+	if cands.is_empty():
+		return null
+	var e := cands[_rng.randi() % cands.size()]
+	if not _kerb_edge(e):
+		return null
+	var m := Mover.new()
+	m.kind = "kerb"
+	m.kd = PEDZIK_K
+	m.pset = "kerb"
+	m.v = _rng.randf_range(PEDZIK_V.x, PEDZIK_V.y)
+	_kerb_path(m, e, Vector2.INF, 0.0)
+	m.s = _rng.randf_range(0.0, m.length)
+	_place_mover(m)
+	return m
+
+
+func _kerb_edge(e: int) -> bool:
+	return kerb_road(graph.e_lw[e], graph.e_class[e], graph.e_tn[e], graph.e_s1[e] - graph.e_s0[e])
+
+
+## Loop couriers: mover `m` onto edge `e`'s kerb line (its outer lane's kerb, KERB_IN in), from s0 to
+## s1; from `from` (height `from_h`) first when given: the way across the junction.
+func _kerb_path(m: Mover, e: int, from: Vector2, from_h: float) -> void:
+	var g := graph
+	var off := g.lane_offset(e, g.e_lanes[e] - 1) + g.e_lw[e] * 0.5 - KERB_IN
+	var s0 := g.e_s0[e]
+	var s1 := g.e_s1[e]
+	var pts := PackedVector2Array()
+	var h := PackedFloat32Array()
+	if from != Vector2.INF:
+		pts.append(from)
+		h.append(from_h)
+	var i := g.seek(e, s0, g.e_first[e])
+	pts.append(g.point(e, s0, off, i))
+	h.append(_kerb_h(e, s0))
+	var last := g.e_first[e] + g.e_count[e] - 1
+	for k in range(i + 1, last):
+		if g.cum[k] >= s1:
+			break
+		if g.cum[k] > s0:
+			pts.append(g.pts[k] + g.nrm[k] * off)
+			h.append(_kerb_h(e, g.cum[k]))
+	pts.append(g.point(e, s1, off, g.seek(e, s1, i)))
+	h.append(_kerb_h(e, s1))
+	var cum := PackedFloat32Array()
+	var run := 0.0
+	for k in pts.size():
+		if k > 0:
+			run += pts[k].distance_to(pts[k - 1])
+		cum.append(run)
+	m.ke = e
+	m.i = e
+	m.pts = pts
+	m.cum = cum
+	m.h = h
+	m.k = 0
+	m.length = maxf(run, 0.01)
+	m.cached = true
+	m.dir = 1.0
+
+
+func _kerb_h(e: int, s: float) -> float:
+	return graph.height(e, s) if map != null else 0.0
+
+
+## Loop couriers: a kerb rider at his edge's end takes a road on from its end node (straight on or
+## right before a left turn, the U-turn last); none: he stops (and _keep drops him).
+func _next_kerb(m: Mover, over: float) -> void:
+	var g := graph
+	var e := m.ke
+	var ahead := g.direction(e, g.e_s1[e])
+	var best: Array[int] = []
+	var rest: Array[int] = []
+	for f in g.node_out[g.e_b[e]]:
+		if not _kerb_edge(f):
+			continue
+		if f != g.e_reverse[e] and ahead.angle_to(g.direction(f, g.e_s0[f])) > -0.6:
+			best.append(f)
+		else:
+			rest.append(f)
+	var picks := best if not best.is_empty() else rest
+	if picks.is_empty():
+		m.v = 0.0
+		m.s = m.length
+		return
+	var f: int = picks[_rng.randi() % picks.size()]
+	_kerb_path(m, f, m.pts[m.pts.size() - 1], m.h[m.h.size() - 1])
+	m.s = clampf(over, 0.0, m.length)
 
 
 ## The path's running lengths (cached).
@@ -1787,6 +2107,13 @@ func _advance(m: Mover, dt: float) -> void:
 		var j := m.stops.bsearch(lo, false)
 		if j < m.stops.size() and m.stops[j] > lo and m.stops[j] < maxf(s0, s1):
 			m.wait = _rng.randf_range(TREE_WAIT.x, TREE_WAIT.y)
+	if m.ke >= 0:
+		var ks := m.s + m.v * dt
+		if ks > m.length:
+			_next_kerb(m, ks - m.length)
+		else:
+			m.s = ks
+		return
 	var cum := m.cum if m.cached else _cum_of(m.pset, m.i)
 	var length := cum[cum.size() - 1]
 	var s := m.s + m.v * dt * m.dir
@@ -1828,9 +2155,12 @@ func _move(dt: float) -> void:
 	var car2 := Vector2(vp.x, vp.z) if vp != Vector3.INF and not bool(veh[2]) else Vector2.INF
 	# Where the car will be by the next step (and a little more): the movers keep clear of that too.
 	var ahead := Vector2.ZERO
+	_car_v = Vector2.ZERO
 	if veh.size() > 5 and veh[5] is Vector3:
 		var v: Vector3 = veh[5]
 		ahead = Vector2(v.x, v.z) * MOVE_TICK * 2.0
+		_car_v = Vector2(v.x, v.z)
+	_car_kmh = float(veh[1]) if veh.size() > 1 else 0.0
 	var eye3: Vector3 = focus.call() if focus.is_valid() else Vector3.ZERO
 	var eye := Vector2(eye3.x, eye3.z)
 	_move_n += 1
@@ -1845,6 +2175,7 @@ func _move(dt: float) -> void:
 	_step_list(_riders, RIDER_K, dt, eye, car2, ahead, full)
 	_step_list(_runners, RUNNER_K, dt, eye, car2, ahead, full)
 	_step_list(_pedziks, PEDZIK_K, dt, eye, car2, ahead, full)
+	_step_list(_kerbers, PEDZIK_K, dt, eye, car2, ahead, full, _pedziks.size())
 	# Loop jobs-2: the chair goes where the man is.
 	if _shown_now & ARM_BIT and _arm_on and _chair != null:
 		var pose := armchair_pose()
@@ -1923,14 +2254,19 @@ func _step_dogs(dt: float, eye: Vector2, car2: Vector2, ahead: Vector2, full: bo
 
 ## The riders' or the runners' step: along the path (the next path at its end), out of the car's
 ## way, the instance into its slot (a rider's bike, a runner's guest).
-func _step_list(list: Array[Mover], kd: int, dt: float, eye: Vector2, car2: Vector2, ahead: Vector2, full: bool) -> void:
+## Loop couriers: `base` is a Pędzik list's first slot in the Pedzik MultiMesh (the kerb riders' come
+## after the path riders'); a Pędzik rider dodges the car's path (_dodge_step) and may be in a hop.
+func _step_list(list: Array[Mover], kd: int, dt: float, eye: Vector2, car2: Vector2, ahead: Vector2, full: bool, base := 0) -> void:
 	var rider := kd == RIDER_K or kd == PEDZIK_K
 	var ped := kd == PEDZIK_K
-	var slot0 := 0 if ped else (_dock_n if rider else _dogs.size())
+	var slot0 := base if ped else (_dock_n if rider else _dogs.size())
 	var moved := false
 	var has_car := car2 != Vector2.INF
 	var car_r2 := FAR_CAR * FAR_CAR
 	var far2 := FAR_MOVE * FAR_MOVE
+	# Loop couriers: the car's path matters to a Pędzik within this (his and its way in DODGE_T s).
+	var dodge_r := PEDZIK_MISS + (_car_v.length() + PEDZIK_V.y) * DODGE_T
+	var dodge_r2 := dodge_r * dodge_r
 	for idx in list.size():
 		var m: Mover = list[idx]
 		# _due inline.
@@ -1948,7 +2284,20 @@ func _step_list(list: Array[Mover], kd: int, dt: float, eye: Vector2, car2: Vect
 		var s1 := s0 + m.v * mdt * m.dir
 		var near := has_car and p0.distance_squared_to(car2) < _reach2
 		var fade := not near and m.shove != Vector2.ZERO
-		if m.fast and s1 >= m.ca and s1 <= m.cb and not fade:
+		# Loop couriers: a Pędzik's dodge (his side offset steering to its target, the hop's clock).
+		var steer := false
+		if ped:
+			if has_car and p0.distance_squared_to(car2) < dodge_r2:
+				_dodge_step(m, car2)
+			elif m.dodge != DODGE_NONE:
+				m.dodge = DODGE_NONE
+				m.want_off = m.off if m.ke < 0 else 0.0
+			if m.hop > 0.0:
+				m.hop = maxf(0.0, m.hop - mdt)
+			if m.off != m.want_off:
+				m.off = move_toward(m.off, m.want_off, SWERVE_RATE * mdt)
+				steer = true
+		if m.fast and s1 >= m.ca and s1 <= m.cb and not fade and not steer:
 			# Still on the same segment: slide along it (what _place_mover would give).
 			m.s = s1
 			var ds := s1 - s0
@@ -1967,8 +2316,10 @@ func _step_list(list: Array[Mover], kd: int, dt: float, eye: Vector2, car2: Vect
 			_clear_mover(m, kd, car2, ahead)
 		if not full:
 			if ped:
-				put(_ped_buf, idx, m.p3, m.yaw, Vector3.ONE, Color.WHITE, 0.0)
-				_ped_box = _ped_box.expand(m.p3)
+				if slot0 + idx < PEDZIK_CAP:
+					var hp := m.p3 + Vector3(0.0, hop_height(m.hop), 0.0) if m.hop > 0.0 else m.p3
+					put(_ped_buf, slot0 + idx, hp, m.yaw, Vector3.ONE, Color.WHITE, 0.0)
+					_ped_box = _ped_box.expand(hp)
 			elif rider:
 				put(_bike_buf, slot0 + idx, m.p3, m.yaw, Vector3.ONE, m.shirt, m.shape)
 				_bbox = _bbox.expand(m.p3)
@@ -1982,6 +2333,65 @@ func _step_list(list: Array[Mover], kd: int, dt: float, eye: Vector2, car2: Vect
 			_bikes_moved = true
 		else:
 			_gdirty = true
+
+
+## Loop couriers: a Pędzik rider near the car: his closest approach to it over DODGE_T s; within
+## PEDZIK_MISS he swerves (a kerb rider SWERVE_OUT past the kerb onto the footway; a path rider is on
+## it already and steps aside with the shove) or, with no room there, hops; a near miss may say a line.
+## The car clear for CALM_T s: back to his line. _clear_mover stays the backstop (CLEAR of the car).
+func _dodge_step(m: Mover, car2: Vector2) -> void:
+	var gap := closest_approach(m.p2, m.udir * m.dir * m.v, car2, _car_v, DODGE_T)
+	if gap > PEDZIK_MISS:
+		if m.dodge != DODGE_NONE:
+			m.calm += MOVE_TICK
+			if m.calm >= CALM_T:
+				m.dodge = DODGE_NONE
+				if m.ke >= 0:
+					m.want_off = 0.0
+		return
+	m.calm = 0.0
+	if m.dodge != DODGE_NONE:
+		return
+	var d := dodge(gap, _room(m))
+	m.dodge = d
+	if d == DODGE_SWERVE:
+		pedzik_swerves += 1
+		if m.ke >= 0:
+			m.want_off = KERB_IN + SWERVE_OUT
+	else:
+		pedzik_hops += 1
+		m.hop = HOP_T
+	if pedzik_log:
+		print("pedzik: a %s %s at %.0f, %.0f (the car's path %.1f m off, %.0f km/h)" % ["kerb rider" if m.ke >= 0 else "rider",
+				"swerves" if d == DODGE_SWERVE else "hops", m.p2.x, m.p2.y, gap, _car_kmh])
+	_near_miss(m)
+
+
+## Loop couriers: room for a kerb rider's swerve: the footway SWERVE_OUT past the kerb is open (no
+## roof, no other road), and he is not on a bridge (its railing). A path rider always has it.
+func _room(m: Mover) -> bool:
+	if m.ke < 0 or graph == null:
+		return true
+	if graph.e_bridge[m.ke] == 1:
+		return false
+	var dir := m.udir * m.dir
+	var q := m.p2 + Vector2(-dir.y, dir.x) * (KERB_IN + SWERVE_OUT - m.off)
+	if map != null and map.roof_height(q.x, q.y) - map.ground_height(q.x, q.y) > 1.0:
+		return false
+	return graph.snap(q, 1.2).is_empty()
+
+
+## Loop couriers: a near miss (a dodge with the car at 10 km/h or more) says a `pedzik` line, once
+## per PEDZIK_GAP s.
+func _near_miss(m: Mover) -> void:
+	if not says_near_miss(t, _pedzik_t, _car_kmh):
+		return
+	_pedzik_t = t
+	pedzik_lines += 1
+	if dialogue != null:
+		dialogue.say(func() -> Vector3: return m.p3 + Vector3(0, 2.2, 0), "Pędzik", "pedzik", "", 4.0, Color("#c23a7e"), 2.2)
+	if life_log or pedzik_log:
+		print("pedzik: a near miss at %.0f, %.0f: the line" % [m.p2.x, m.p2.y])
 
 
 ## Out of the car's way (only near it: CLEAR of its way ahead, for a dog its lead and shove more),
@@ -2161,13 +2571,24 @@ func _write_all(eye: Vector2, car2: Vector2) -> void:
 		InstanceBuffers.send(_bike_mm.get_rid(), _bike_buf)
 		_bike_mm.custom_aabb = bbox.grow(1.5).expand(bbox.end + Vector3(0, 2.0, 0))
 	_bike_mmi.visible = n > 0
-	# Loop MW-2: the Pędzik couriers, their own MultiMesh.
-	var pn := mini(_pedziks.size(), PEDZIK_CAP)
+	# Loop MW-2: the Pędzik couriers, their own MultiMesh; loop couriers: the kerb riders after the
+	# path riders, then the couriers waiting at the stands (standing beside their bikes).
+	var pn := 0
 	var pbox := AABB()
-	for k in pn:
-		var r: Mover = _pedziks[k]
-		put(_ped_buf, k, r.p3, r.yaw, Vector3.ONE, Color.WHITE, 0.0)
-		pbox = AABB(r.p3, Vector3.ZERO) if k == 0 else pbox.expand(r.p3)
+	for list: Array[Mover] in [_pedziks, _kerbers]:
+		for r in list:
+			if pn >= PEDZIK_CAP:
+				break
+			var hp := r.p3 + Vector3(0.0, hop_height(r.hop), 0.0) if r.hop > 0.0 else r.p3
+			put(_ped_buf, pn, hp, r.yaw, Vector3.ONE, Color.WHITE, 0.0)
+			pbox = AABB(hp, Vector3.ZERO) if pn == 0 else pbox.expand(hp)
+			pn += 1
+	for w: Array in _waiting:
+		if pn >= PEDZIK_CAP:
+			break
+		put(_ped_buf, pn, w[1], float(w[2]), Vector3.ONE, Color.WHITE, Props.PEDZIK_STANDING)
+		pbox = AABB(w[1], Vector3.ZERO) if pn == 0 else pbox.expand(w[1])
+		pn += 1
 	_ped_box = pbox
 	_ped_mm.visible_instance_count = pn
 	if pn > 0:
@@ -2649,23 +3070,6 @@ func _bell_tick(p: Vector2, kmh: float, step: float) -> void:
 		print("life: the car parked on a cycle path at %.0f, %.0f for %.0f s: the bell" % [p.x, p.y, _bell_hold])
 
 
-## Loop MW-2: a Pędzik courier within PEDZIK_MISS of the moving car (it swerved: _clear_mover)
-## says a `pedzik` line, once per PEDZIK_GAP s.
-func _pedzik_tick(p: Vector2, kmh: float) -> void:
-	if kmh < 10.0 or t - _pedzik_t < PEDZIK_GAP:
-		return
-	for r in _pedziks:
-		if r.p2.distance_to(p) <= PEDZIK_MISS:
-			_pedzik_t = t
-			pedzik_lines += 1
-			if dialogue != null:
-				var at := r.p3
-				dialogue.say(func() -> Vector3: return at + Vector3(0, 2.2, 0), "Pędzik", "pedzik", "", 4.0, Color("#c23a7e"), 2.2)
-			if life_log:
-				print("life: a Pędzik courier's near miss at %.0f, %.0f" % [r.p2.x, r.p2.y])
-			return
-
-
 func _on_cycle_path(p: Vector2) -> bool:
 	var c := Vector2i(floori(p.x / CELL), floori(p.y / CELL))
 	for i: int in _cyc_grid.get(c, PackedInt32Array()):
@@ -2735,7 +3139,7 @@ func _soak_frame(dt: float) -> void:
 		return
 	var cp := Vector2(car.global_position.x, car.global_position.z)
 	var yaw: float = car.rotation.y
-	for list: Array[Mover] in [_dogs, _riders, _runners, _pedziks]:
+	for list: Array[Mover] in [_dogs, _riders, _runners, _pedziks, _kerbers]:
 		for m in list:
 			for key in (["p2", "d2"] if m["kind"] == "dog" else ["p2"]):
 				var q: Vector2 = m[key]

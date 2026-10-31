@@ -16,6 +16,8 @@ const HEAD_LAMP := Models.HEAD_LAMP
 const LIT_WINDOW := Models.LIT_WINDOW
 const LIT_SIGN := Models.LIT_SIGN
 const BLINK := Models.BLINK
+## Loop couriers: the waiting courier's shape in pedzik_rider's morph family (INSTANCE_CUSTOM.a).
+const PEDZIK_STANDING := 1.0
 
 
 static func _begin() -> SurfaceTool:
@@ -544,49 +546,60 @@ static func add_metro_entrance(st: SurfaceTool, xf: Transform3D) -> void:
 ## in a white helmet, a magenta jacket and dark trousers, and the 0.45 m cube backpack in magenta
 ## with a cream band round its middle and our own mark (a wheel with three speed lines) on the
 ## sides in vertex-coloured pixels. No sun shadow (small_casters' rule: its own MultiMesh).
+## Loop couriers: a two-shape family (actor.gdshader's morph, INSTANCE_CUSTOM.a): shape 0 riding,
+## shape 1 (`PEDZIK_STANDING`) the courier waiting at a kebab stand, standing on the bike's right
+## (+x) with his legs straight and his arms down, the bike parked beside him. A MeshInstance3D (the
+## courier race's rider) draws shape 0.
 static func pedzik_rider() -> ArrayMesh:
-	var st := _begin()
-	var dark := Color("#3a3b3f")
-	var magenta := Color("#c23a7e")
-	var cream := Color("#fbf7ee")
+	return Models.family([_pedzik_pose(false), _pedzik_pose(true)])
+
+
+## One of pedzik_rider's shapes: the same parts in the same order (the family's rule), riding or
+## standing beside the bike.
+static func _pedzik_pose(standing: bool) -> Models.Shape:
+	var sh := Models.Shape.new()
+	var dark := Models.fin(Color("#3a3b3f"))
+	var magenta := Models.fin(Color("#c23a7e"))
+	var cream := Models.fin(Color("#fbf7ee"))
+	var legs := Models.fin(Color("#2d3442"))
 	for z in [-0.52, 0.52]:
-		box(st, Vector3(0, 0.33, z), Vector3(0.05, 0.64, 0.64), Models.TYRE)
-	box(st, Vector3(0, 0.62, 0), Vector3(0.05, 0.06, 0.98), dark)
-	box(st, Vector3(0, 1.0, -0.46), Vector3(0.5, 0.04, 0.04), dark)
-	box(st, Vector3(0, 0.88, 0.25), Vector3(0.12, 0.05, 0.2), dark)
-	# The rider.
-	box(st, Vector3(-0.1, 0.62, 0.0), Vector3(0.14, 0.56, 0.16), Color("#2d3442"))
-	box(st, Vector3(0.1, 0.62, 0.0), Vector3(0.14, 0.56, 0.16), Color("#2d3442"))
-	box(st, Vector3(0, 1.22, 0.1), Vector3(0.42, 0.55, 0.26), magenta)
-	box(st, Vector3(0, 1.1, -0.2), Vector3(0.52, 0.1, 0.42), magenta)
-	box(st, Vector3(0, 1.62, 0.02), Vector3(0.24, 0.24, 0.24), Color("#e2b48c"))
-	box(st, Vector3(0, 1.76, 0.03), Vector3(0.28, 0.1, 0.3), Color("#f4f4f0"))
+		sh.box(Vector3(0, 0.33, z), Vector3(0.05, 0.64, 0.64), Models.fin(Models.TYRE))
+	sh.box(Vector3(0, 0.62, 0), Vector3(0.05, 0.06, 0.98), dark)
+	sh.box(Vector3(0, 1.0, -0.46), Vector3(0.5, 0.04, 0.04), dark)
+	sh.box(Vector3(0, 0.88, 0.25), Vector3(0.12, 0.05, 0.2), dark)
+	# The rider: on the saddle, or a step to the bike's right, standing.
+	if standing:
+		sh.xform = Transform3D(Basis.IDENTITY, Vector3(0.62, 0.0, 0.12))
+	for x in [-0.1, 0.1]:
+		if standing:
+			sh.box(Vector3(x, 0.47, 0.0), Vector3(0.14, 0.94, 0.16), legs, true)
+		else:
+			sh.box(Vector3(x, 0.62, 0.0), Vector3(0.14, 0.56, 0.16), legs, true)
+	sh.box(Vector3(0, 1.22, 0.1), Vector3(0.42, 0.55, 0.26), magenta)
+	if standing:
+		sh.box(Vector3(0, 1.12, 0.08), Vector3(0.52, 0.44, 0.12), magenta, true)
+	else:
+		sh.box(Vector3(0, 1.1, -0.2), Vector3(0.52, 0.1, 0.42), magenta, true)
+	sh.box(Vector3(0, 1.62, 0.02), Vector3(0.24, 0.24, 0.24), Models.fin(Color("#e2b48c")))
+	sh.box(Vector3(0, 1.76, 0.03), Vector3(0.28, 0.1, 0.3), Models.fin(Color("#f4f4f0")), true)
 	# The backpack and its band.
-	box(st, Vector3(0, 1.38, 0.45), Vector3(0.45, 0.45, 0.45), magenta)
-	box(st, Vector3(0, 1.38, 0.45), Vector3(0.47, 0.08, 0.47), cream)
-	# The mark on both sides: a wheel (a ring of 8 pixels) and three speed lines.
+	sh.box(Vector3(0, 1.38, 0.45), Vector3(0.45, 0.45, 0.45), magenta, true)
+	sh.box(Vector3(0, 1.38, 0.45), Vector3(0.47, 0.08, 0.47), cream, true)
+	# The mark on both sides: a wheel (a ring of 8 pixels) and three speed lines, one-sided quads.
 	var mark := [Vector2(1, 0), Vector2(2, 0), Vector2(0, 1), Vector2(3, 1), Vector2(0, 2), Vector2(3, 2), Vector2(1, 3), Vector2(2, 3)]
 	var px := 0.035
-	# One-sided quads (2 triangles a pixel, not a box's 12: the rider's ≤ 300).
 	for side in [-1.0, 1.0]:
 		var n := Vector3(side, 0, 0)
 		for m: Vector2 in mark:
-			_face(st, Vector3(0.227 * side, 1.56 - m.y * px, 0.5 - m.x * px), Vector3(0, 0, px * 0.5), Vector3(0, px * 0.5, 0), n, cream)
+			_shape_face(sh, Vector3(0.227 * side, 1.56 - m.y * px, 0.5 - m.x * px), Vector3(0, 0, px * 0.5), Vector3(0, px * 0.5, 0), n, cream)
 		for k in 3:
-			_face(st, Vector3(0.227 * side, 1.56 - k * px * 1.4, 0.61), Vector3(0, 0, px), Vector3(0, px * 0.3, 0), n, cream)
-	return st.commit()
+			_shape_face(sh, Vector3(0.227 * side, 1.56 - k * px * 1.4, 0.61), Vector3(0, 0, px), Vector3(0, px * 0.3, 0), n, cream)
+	return sh
 
 
-## One quad facing `n`: `u` and `v` its half sides.
-static func _face(st: SurfaceTool, c: Vector3, u: Vector3, v: Vector3, n: Vector3, colour: Color, part := FIXED) -> void:
-	var q := [c - u - v, c + u - v, c + u + v, c - u + v]
-	if ((q[1] as Vector3) - q[0]).cross((q[2] as Vector3) - q[0]).dot(n) > 0.0:
-		q = [q[0], q[3], q[2], q[1]]
-	for k in [0, 1, 2, 0, 2, 3]:
-		st.set_color(colour)
-		st.set_normal(n)
-		st.set_uv(Vector2(part, 0.0))
-		st.add_vertex(q[k])
+## A one-sided quad on a Shape, facing `n` (`u`, `v` its half sides).
+static func _shape_face(sh: Models.Shape, c: Vector3, u: Vector3, v: Vector3, n: Vector3, f: Array) -> void:
+	sh.quad(c - u - v, c + u - v, c + u + v, c - u + v, f, n)
 
 
 ## A kebab stand with its name on a smaller board under KEBAB (parodies.md 6.1: U ZDZICHA at

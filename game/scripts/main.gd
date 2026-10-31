@@ -377,6 +377,11 @@ var courier_race := false
 var roundup_flag := false
 ## Loop jobs-2: --courier-v=M (the courier's speed in m/s, for a test run; 6.5 by default).
 var courier_v := -1.0
+## Loop couriers: --pedzik-log (city life's `pedzik:` lines: the minute's riders on the paths and the
+## kerb, the couriers waiting, each swerve, hop and near miss, a courier taken by the race).
+var pedzik_log := false
+## Loop couriers: --pedzik-kerb (a testing aid for shots: the kerb riders start 8-35 m from the view).
+var pedzik_kerb := false
 ## Loop jobs-2: --armchair (the armchair man out today at any hour, the car on the lane by him).
 var armchair_flag := false
 var start_sloik := -1
@@ -969,6 +974,7 @@ func _build_world() -> void:
 		jobs.courier.force = courier_race  # loop jobs-2
 		if courier_v > 0.0:
 			jobs.courier.speed = courier_v
+			jobs.courier.fixed_speed = true  # loop couriers
 		jobs.start_kebab(start_kebab)
 		cam_focus = car.global_position
 	elif jobs != null and start_sloik >= 0:
@@ -1882,6 +1888,14 @@ func _build_city_life(data: Dictionary, world: Node3D) -> void:
 	life.trend_log = trend_log
 	life.life_log = life_log
 	life.pedzik_on = not no_parodies
+	# Loop couriers: the kerb riders ride the lane graph; the couriers wait at the kebab stands; the
+	# courier race's challenger is one of them.
+	life.graph = graph
+	life.pedzik_log = pedzik_log
+	life.kerb_close = pedzik_kerb
+	if jobs != null:
+		life.stands = jobs.stand_frames()
+		jobs.courier.life = life
 	life.soak = life_soak
 	life.zajac_rig = zajac_flag and autopilot
 	life.armchair_flag = armchair_flag  # loop jobs-2
@@ -2837,6 +2851,10 @@ func _parse_args() -> void:
 			# Loop jobs-2: kebab order N with the courier's challenge (day or night).
 			courier_race = true
 			start_kebab = maxi(0, int(arg.trim_prefix("--courier-race="))) if arg.contains("=") else 0
+		elif arg == "--pedzik-log":
+			pedzik_log = true  # loop couriers
+		elif arg == "--pedzik-kerb":
+			pedzik_kerb = true  # loop couriers
 		elif arg.begins_with("--courier-v="):
 			courier_v = clampf(float(arg.trim_prefix("--courier-v=")), 0.5, 30.0)
 		elif arg == "--roundup":
