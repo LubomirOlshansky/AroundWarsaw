@@ -1,7 +1,7 @@
 # App Store Connect: ready answers
 
 Answers for Around Warsaw's App Store Connect forms, for TestFlight now and the App Store
-release later. Version 0.1 (build 1), bundle ID `com.olshanskysoft.nocnawarszawa`, team in
+release later. Version 0.1 (build 1), bundle ID `com.olshanskysoft.aroundwarsaw`, team in
 `game/export_presets.cfg`. The build: `tools/export_ios.sh` (docs/DEVELOPMENT.md). Field names
 follow App Store Connect's English labels as of October 2026; Apple renames things, so match by
 meaning. Character limits are Apple's; the counts in brackets were measured (Polish letters
@@ -28,7 +28,7 @@ adding testers, submitting for Beta App Review. Each is marked ⏸ below.
 | Platforms | iOS |
 | Name | **Around Warsaw** |
 | Primary language | **English (U.S.)** |
-| Bundle ID | `com.olshanskysoft.nocnawarszawa` (register it under Certificates, IDs & Profiles first if Xcode hasn't) |
+| Bundle ID | `com.olshanskysoft.aroundwarsaw` (register it under Certificates, IDs & Profiles first if Xcode hasn't) |
 | SKU | `aroundwarsaw-ios` (yours only, never shown) |
 | User access | Full access |
 

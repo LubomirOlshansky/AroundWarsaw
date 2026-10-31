@@ -289,7 +289,7 @@ Newest first. One entry per question.
   name is "Around Warsaw" on both platforms). The Android package can't change: Play has had
   version code 1 under `com.olshanskysoft.nocnawarszawa` since October, and a new package
   would be a new app. Options: keep (both platforms match) / change iOS only. Default built:
-  keep, as the rename of 2026-10-30 decided. Where: `game/export_presets.cfg`, ROADMAP
+  keep, as the rename of 2026-10-30 decided. **Answered 2026-10-31 by the user: change iOS only; done in `game/export_presets.cfg`** (Android stays). Where: `game/export_presets.cfg`, ROADMAP
   "rename + open source".
 
 - **2026-10-30 · store release · store listings** — Ship the iOS app for iPhone and iPad, or
