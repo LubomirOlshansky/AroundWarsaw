@@ -19,9 +19,16 @@ extends SceneTree
 ##     and the car at 45 m/s (162 km/h) in its widest view east to west (--stream-pass): no frame may
 ##     miss a sector the view needs (the look-ahead's job), none load at once; prints the slowest
 ##     frame while a sector loaded (the pieces one a frame: no load-end hitch) against the median.
+##     The loading fix (2026-10-31) adds five: heli-low (the helicopter at 45 m, full speed, four
+##     turns) and switch (the car at 45 m/s, then the helicopter): as strict; start (the helicopter
+##     off at once from the first frame, no waiting for the ring), look (looks at targets 0.6-3 km
+##     off, as a new rescue or delivery target gets) and jump (the car put somewhere new, as a tow
+##     does): no frame may show proxies over PROXY_SHARE of the view's ground (a proxy close up),
+##     jump may load at once. Each prints the frames with a proxy in the view, the nearest's
+##     distance from the view's centre and the most of the view's ground they covered.
 ## Needs a renderer (the pixels, and the meshes' data): a window opens.
 ##   godot --path game --resolution 1280x720 --script res://tools/check_streaming.gd
-##       [-- --only=identity,pixels,soak,pass --soak=MINUTES --keep=DIR --size=WxH]
+##       [-- --only=identity,pixels,soak,pass --passes=heli,car,... --soak=MINUTES --keep=DIR --size=WxH]
 ## Prints `check_streaming: OK` (exit 0) or the problems (exit 1). --soak=15 is the 15-minute
 ## run (docs/DEVELOPMENT.md "Sectors and streaming"); tools/verify.sh runs 3 minutes.
 
@@ -55,6 +62,11 @@ var problems: Array[String] = []
 ## What the OK line says (each part's result).
 var notes: Array[String] = []
 var only: PackedStringArray = ["identity", "pixels", "soak", "pass"]
+## The passes part (d) runs (--passes=): the strict ones (no frame may miss a sector in the view,
+## none load at once) and the loading fix's (no proxy over PROXY_SHARE of the view's ground).
+var passes: PackedStringArray = ["heli", "car", "heli-low", "switch", "start", "look", "jump"]
+const STRICT := ["heli", "car", "heli-low", "switch"]
+const PROXY_SHARE := 0.05
 var soak_minutes := 3.0
 var keep := ""
 var size := Vector2i(2868, 1320)
@@ -64,6 +76,8 @@ func _initialize() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--only="):
 			only = a.trim_prefix("--only=").split(",")
+		elif a.begins_with("--passes="):
+			passes = a.trim_prefix("--passes=").split(",")
 		elif a.begins_with("--soak="):
 			soak_minutes = float(a.trim_prefix("--soak="))
 		elif a.begins_with("--keep="):
@@ -83,7 +97,7 @@ func _run() -> void:
 	if "soak" in only:
 		_soak()
 	if "pass" in only:
-		for kind in ["heli", "car"]:
+		for kind in passes:
 			_pass(kind)
 	if problems.is_empty():
 		print("check_streaming: OK (%s)" % "; ".join(notes))
@@ -374,21 +388,36 @@ func _pass(kind: String) -> void:
 		problems.append("pass %s: exit %d, no 'stream soak stats:' line" % [kind, _run_code])
 		return
 	var missing := int(stats["missing_frames"])
-	if missing > 0:
+	if missing > 0 and kind in STRICT:
 		problems.append("pass %s: %d frames missed a sector the view needs (first: %s)" % [kind, missing,
 				", ".join(PackedStringArray(stats.get("missing_log", []).slice(0, 3)))])
-	if int(stats["forced"]) > 0:
+	if int(stats["forced"]) > 0 and kind != "jump":
 		problems.append("pass %s: %d sectors had to be loaded at once" % [kind, int(stats["forced"])])
+	if float(stats.get("proxy_share_max", 0.0)) >= PROXY_SHARE:
+		problems.append("pass %s: proxies covered up to %.0f %% of the view's ground (%d frames over %.0f %%; first: %s)" % [kind,
+				float(stats["proxy_share_max"]) * 100.0, int(stats.get("proxy_share_frames", 0)), PROXY_SHARE * 100.0,
+				", ".join(PackedStringArray(stats.get("missing_log", []).slice(0, 3)))])
 	var lf: Dictionary = stats.get("load_frame_ms", {})
 	print("pass %s: %d loads, %d missing, %d forced, at most %d sectors in full, slowest frame while a sector loaded %.1f ms (median %.1f; frames' median %.1f) (%d s)" % [
 			kind, int(stats["loads"]), missing, int(stats["forced"]), int(stats.get("max_loaded", 0)),
 			float(lf.get("max", 0.0)), float(lf.get("median", 0.0)), float(stats.get("frame_median_ms", 0.0)),
 			(Time.get_ticks_msec() - _run_t) / 1000])
-	notes.append("%s pass: 0 missing, %d loads, slowest load frame %.1f ms" % [kind, int(stats["loads"]), float(lf.get("max", 0.0))])
+	print("pass %s: proxies in the view: %s" % [kind, _proxy_line(stats)])
+	notes.append("%s pass: %s, %d loads, slowest load frame %.1f ms" % [kind, "0 missing" if missing == 0 else
+			"%d frames with a proxy in the view, none close" % missing, int(stats["loads"]), float(lf.get("max", 0.0))])
 	_judge_load_frames("pass " + kind, stats)
 	for l in text.split("\n"):
 		if l.begins_with("ERROR") or l.begins_with("SCRIPT ERROR") or l.begins_with("WARNING"):
 			problems.append("pass %s: %s" % [kind, l.substr(0, 160)])
+
+
+## The loading fix: what the player saw of the proxies in a run.
+static func _proxy_line(stats: Dictionary) -> String:
+	if int(stats.get("missing_frames", 0)) == 0:
+		return "none"
+	return "%d frames, the nearest %.0f m from the view's centre, at most %.0f %% of the view's ground (%d frames over 5 %%), one sector at most %d frames" % [
+			int(stats["missing_frames"]), float(stats.get("proxy_near_m", -1.0)), float(stats.get("proxy_share_max", 0.0)) * 100.0,
+			int(stats.get("proxy_share_frames", 0)), int(stats.get("proxy_run_frames", 0))]
 
 
 ## Loop 3d-2b: a frame while a sector loads over 33 ms is reported (the Mac's times move with

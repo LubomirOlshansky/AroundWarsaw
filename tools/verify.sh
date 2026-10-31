@@ -59,7 +59,8 @@
 # prebuilt sectors streamed differ in at most 0.5 % of their pixels; a 3-minute soak over every
 # sector misses no sector the car or the view needs (the 15-minute soak: README "Sectors and
 # streaming"); loop 3d-2b: and two fast passes (the helicopter at its highest, the car at 45 m/s)
-# miss none either (~8 min in all).
+# miss none either; the loading fix (2026-10-31): five more (the helicopter low with turns, a car to
+# helicopter switch, the start, looks at far targets, jumps): no proxy close up (~13 min in all).
 # Loop 3g-1 (police, docs/design/police.md section 15): `police` runs game/tools/check_police.gd
 # (P11 lines and flow, P12 the state machine with synthetic inputs); `police-runs` the scripted
 # game runs P1-P7 on the prebuilt city (the lizak, the trap stop, an escape, caught, the three
@@ -563,7 +564,8 @@ for s in $want; do
 		water) check water '^check_water:' --script res://tools/check_water.gd ;;
 		water-prebuilt) check water-prebuilt '^check_water:' --script res://tools/check_water.gd -- --prebuilt ;;
 		# Loop 3c: the sectors are the whole city (meshes, pixels at 10 spots), streaming misses nothing.
-		streaming) shown streaming '^check_streaming:' --script res://tools/check_streaming.gd -- --keep=$logs/streaming ;;
+		# The loading fix (2026-10-31): seven passes now, ~13 min: at least 25 min before it's stopped.
+		streaming) STEP_LIMIT=$(( STEP_LIMIT > 1500 ? STEP_LIMIT : 1500 )) shown streaming '^check_streaming:' --script res://tools/check_streaming.gd -- --keep=$logs/streaming ;;
 		# Loop 3g-1: the police's lines, flow and state machine (P11, P12), the runs P1-P7, the soak P13.
 		police) check police '^check_police:' --script res://tools/check_police.gd ;;
 		police-runs) police_runs ;;

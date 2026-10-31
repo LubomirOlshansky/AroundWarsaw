@@ -2574,10 +2574,11 @@ The demo's bigger box (loop 3d) only adds sectors.
   saved once so all sectors use one copy and the per-frame uniforms reach them all).
 - **Proxies** (`sector_proxies.gd`): one mesh and one material per sector from the index alone:
   the ground as a 32 m grid coloured by what covers it, the main roads as strips, the buildings
-  and landmarks as a skyline of boxes from the roof grid (8 m, merged along rows), trees as blobs
-  per 24 m; at most 14,724 triangles and 84 KB a sector, no shadows, visibility range 2,400 m with
-  fade Disabled. A sector's proxy shows only while the sector is not in full detail
-  (`--sectors=proxies` to see them).
+  and landmarks as a skyline of boxes from the roof grid (8 m, merged into rectangles; since the
+  loading fix in each building's own roof and wall colours, noted while the sectors are built),
+  trees as blobs per 24 m in the season's leaf colours; at most 15,000 triangles a sector, no
+  shadows, visibility range 2,400 m with fade Disabled. A sector's proxy shows only while the
+  sector is not in full detail (`--sectors=proxies` to see them).
 - **The streamer** (`sector_streamer.gd`): full detail for the 3 × 3 round the camera's focus,
   the next row once the focus is within 192 m of its sector's edge (a square of 704 m round the
   focus), and every sector the view needs (its box from its lowest ground to its tallest roof,
@@ -4257,6 +4258,87 @@ view`); `--size=` overrides it. A pinch now works on the left half too: a second
 stick's finger is still inside the dead zone (`hud.gd` `PINCH_STICK`) turns both into the pinch
 (the first finger always took the stick, so a pinch there drove the car).
 
+## The loading fix: the view's sectors first, proxies that look like the city (2026-10-31)
+
+The user, flying the helicopter at ~44 m on the iPhone 16 Pro Max, saw flat brown slabs where the
+city should be: the sector proxies (`sector_proxies.gd`), shown while a sector loads.
+
+**Measured first.** The streamer now counts what the player sees of the proxies on every frame
+(`sector_streamer.gd` `_count_proxies`, in the soak's and the passes' stats): a frame with a sector
+in the camera's view still a proxy, the nearest such sector's square from the view's centre on the
+ground (`proxy_near_m`), the most of the view's ground footprint the proxies covered
+(`proxy_share_max`; frames over 5 %: `proxy_share_frames`) and the longest one sector stayed a
+proxy in the view (`proxy_run_frames`). Five new passes (`--stream-pass=heli-low|start|switch|look|jump`,
+flags table) try the suspects: the helicopter low, fast and turning, the start, a car→helicopter
+switch, the camera's look at a new target, a jump.
+
+**The cause, confirmed** on the Mac and on the iPhone 11: not flying (low, fast or turning: 0
+frames; the 704 m square round the focus covers any turn of the view at 45 m) and not the start
+(a few frames of a tower 366 m off), but **the camera's look at a new rescue or delivery target**
+(`camera_shots.gd`: when the vehicle is slow, the camera flies 0.6-3 km to the target and back in
+~3 s): the target's sectors weren't wanted until the frustum reached them, loaded one after
+another at ~0.5 s each on the phone, and **a target over 1,800 m from the focus was never wanted
+at all** (`VIEW_RANGE`: the view tests stopped there), so the whole look showed proxies. A
+rescue call ringing while the helicopter hovers at its 45 m is exactly the user's case. Jumps (a
+tow, a race start) showed some too: only the car's own sector loads at once.
+
+**The fix** (`sector_streamer.gd`, `main.gd`):
+- *The view wherever it reaches*: the frustum is cut to the map's lowest ground and tallest roof
+  and kept as a rectangle on the map (`_view_box`); a sector over it gets the planes' tests,
+  wherever it is (`VIEW_RANGE` is gone). Cheaper than before: fewer plane tests.
+- *Order*: the sectors in the view now first, nearest the view's centre on the ground first (the
+  camera's, not the car's: they differ during a look); then the ones a coming view needs
+  (`expect_view`, below); then the rest by the look-ahead as before. A load in the view or a
+  coming view loads `URGENT_PIECES` (4) pieces a frame; a worker busy with a sector of the last
+  class gives it up at its next piece (`aborts`; the sector goes back in the queue).
+- *A look waits for its sectors*: `main.gd` `_queue_look` tells the streamer the target's view
+  (±137 m) and the halfway view's (±275 m) and starts the look once they are in, at most
+  `LOOK_WAIT_MS` 1.5 s later (the camera stays on the vehicle meanwhile; a finger on the stick or
+  the pedals cancels the look, as it did). On the iPhone 11 it waited 0.5-1.0 s for the far ones.
+- *Jumps*: for `JUMP_FRAMES` (3) frames after a forced load, a sector whose ground is in the view
+  loads at once too (the cut is already a stall; `jump_loads`, counted in `forced`).
+- *The start*: under the title screen a sector's pieces load all at once (`hurry`), and the title
+  offers "tap to drive" once nothing is left to load round the start (`TITLE_WAIT_MS` 8 s at
+  most): on the iPhone 11 870 ms after the city is built.
+- Turning-aware look-ahead: measured, not built (the helicopter at 360 m on the turning route: 72
+  frames with a proxy in the view, the nearest 499 m off, 0.3 % of the ground at most).
+
+**Proxies like the city** (`sector_proxies.gd`, `map_builder.gd`): while the sectors are built
+(`bake_city.gd`, or the runtime path's roof pass when there is no `proxies.scn`) the builder notes,
+per 4 m roof-grid cell, the colour of the roof that gives the cell its height and of a wall standing
+in it (`proxy_colours`, `roof_colour`, `wall_colour`: the LoD2 triangles' and the OpenStreetMap
+buildings' own colours; not saved, not in the exported game). The skyline's 8 m boxes take them
+(quantised to 5 bits a channel) and merge into rectangles where height, landmark and colours agree;
+the tree blobs take the season's leaf colours. Still one mesh and one material a sector (+0 draw
+calls). The runtime path's own proxies (no `proxies.scn`) are the baked ones exactly (5 sectors
+compared array for array). `proxies.scn` 8.63 → 8.75 MB; 732,384 → 712,774 triangles (at most
+14,978 → 14,800 a sector). Shots: `shots/loadfix/proxy_close_before`, `_after`, `_after_runtime`
+(`--sectors=proxies --heli --at=-570,100 --heading=90`).
+
+| Passes (Mac, 1280×720, `--fixed-fps 60`, prebuilt) | Before | After |
+| --- | --- | --- |
+| look: frames with a proxy in view / nearest / most of the view's ground / frames over 5 % / longest (frames) | 417 / 0 m / 100 % / 337 / 81 | 95 / 148 m / 0 % / 0 / 41 (tower tops only) |
+| jump (6 jumps): the same; forced loads | 123 / 60 m / 10 % / 12 / 28; 10 | 14 / 176 m / 0 % / 0 / 8; 16 |
+| start | 12 / 674 m / 0 % / 0 / 12 | 0 |
+| heli-low, switch, heli, car | 0 | 0 |
+| Slowest frame while a sector loaded, heli-low: median / p90 / max | 9.7 / 10.9 / 11.7 ms | 9.9 / 11.7 / 13.2 ms |
+| Streaming ms a frame, p99 over all frames (heli-low / look) | 0.80 / 0.74 | 0.70 / 0.88 |
+
+| iPhone 11 (`tools/device_run.sh`, `--notitle --prebuilt --stream-log`) | Before | After |
+| --- | --- | --- |
+| look | 401 / 0 m / 100 % / 283 / 83 | 97 / 0 m / 100 % / **25** / 23 (glimpses as the camera flies past sectors on its way) |
+| jump; frames over 33 ms | 120 / 60 m / 11 % / 10 / 29; 11 | 14 / 176 m / 0 % / 0 / 8; 15 (the jumps' at-once loads) |
+| start | 19 / 366 m / 0 % / 0 / 16 | 3 / 366 m / 0 % / 0 / 3 |
+| heli-low, switch | 0 | 0 |
+| Slowest frame while a sector loaded, heli-low: median / p90 / max | 21.0 / 24.9 / 27.6 ms | 21.3 / 24.6 / 28.3 ms |
+| 6-minute soak, two runs each (B, A, B, A): frame median, frames over 33 ms, slowest frame that streamed, streaming p99 all / that streamed | 16.67 / 16.66 ms; 3 / 1; 33.9 / 27.8 ms; 1.91 / 2.18, 3.52 / 4.17 ms | 16.67 / 16.67 ms; 3 / 3; 33.4 / 34.0 ms; 1.85 / 1.85, 3.78 / 3.81 ms (0 missing, 74 loads in each of the four) |
+
+Probe (2868×1320, prebuilt): draw calls 138 / 103 / 149 / 220 → 138 / 103 / 149 / 220, video at
+the spawn 304 → 304 MB. Vertices (`count_vertices.gd`) 18,701,187 → 18,701,187. Bench (Mac,
+runtime path, medians of 3 interleaved): 8.33 → 8.33 ms, scripts 0.90 → 0.90 ms, draw calls 110 → 110.
+check_streaming runs the seven passes in part (d): heli, car, heli-low and switch may miss
+nothing; start, look and jump may show no proxy over 5 % of the view's ground; jump may load at once.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -4702,6 +4784,7 @@ Command-line options (after `--`):
 | `--spots=X,Z,H/X,Z,H/...` | loop 3c, with `--shots=F1,F2,...`: the car jumps to spot k (heading H) 90 frames before shot k, the sectors the view needs are finished 30 frames before it (`tools/check_streaming.gd`) |
 | `--stream-soak=MIN` | loop 3c: the car on autopilot over every sector's middle (row by row, through buildings), the view 80 m then 220 m every 20 s, the helicopter for the last third; then `stream soak:` lines and the game quits (no traffic); loop G0+: the same two lines also go to `user://stream_soak_result.txt` (`tools/device_run.sh` copies it back), and `stream soak stats:` adds `frames_over_budget` (frames whose streaming took over 3 ms), `slow_frames` (each frame over 33 ms past the warm-up: frame, ms, the streaming ms in it), `sector_ms` (median, p99, max of a streamed sector's main-thread ms) and `kinds` (per node class added, the hand-over, the finish and the unload: count, total and worst ms); loop 3d-2b: `stream soak stats:` adds `max_loaded` (most sectors in full at once), `slot_waits` and `evictions` (map slots), `missing_log` (the first frames that missed a sector in view: frame, sector, its state), `frame_median_ms` and `load_frame_ms` (per streamed sector the slowest frame from its worker's start to its last node: median, p90, max) |
 | `--stream-pass=heli` / `--stream-pass=car` | loop 3d-2b: one fast pass instead of the soak's tour: the helicopter at its highest (360 m) and fastest west to east along z −300 (the Palace's north, the river, Praga), or the car at 45 m/s in its top-speed view east to west along z 250; it starts at the route's start facing along it, counts once nothing is left to load, then prints the soak's two lines and quits (no traffic) |
+| `--stream-pass=heli-low` / `start` / `switch` / `look` / `jump` | the loading fix (2026-10-31), passes that look for a proxy close up, all from the spawn: `heli-low` the helicopter at 45 m (or `--heli-alt=M`), full speed, four legs with turns (300,279 · 300,−800 · −1400,−800 · −1400,900); `start` the first two legs from the very first frame (no waiting for the ring round the start); `switch` the car at 45 m/s on the first leg, then the helicopter takes off for two more; `look` hovering, a look at a target every 7 s (0.6, 1.0, 1.5, 2.1, 3.0 and 2.3 km off, as a new rescue or delivery target gets); `jump` the car put somewhere new every 7 s (six places, as a tow or a race start does). The soak's two lines then carry `proxy_near_m`, `proxy_share_max`, `proxy_share_frames`, `proxy_run_frames` (see "The loading fix") and each look or jump prints the frames with a proxy in the view since the one before |
 | `--stream-ahead=0` | loop 3d-2b: no look-ahead (the streamer as before, for a before/after on one build) |
 | `--stream-slow=MS` | loop 3d-2b: every worker load takes MS ms longer (the phone's slower loads on the Mac: `--stream-slow=400` with the look-ahead off misses 337 frames in the helicopter pass, with it 0) |
 | `--stream-gate=0` | loop 3d-2b: a prebuilt sector's pieces load with its scene at once (the old one-frame load end), not one a frame |

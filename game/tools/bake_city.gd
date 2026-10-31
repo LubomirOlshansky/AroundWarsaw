@@ -81,6 +81,9 @@ func _bake() -> Error:
 	for k: Array in index["sectors"]["keys"]:
 		keys.append(Vector2i(int(k[0]), int(k[1])))
 	var total := 0
+	# The loading fix: the sectors' builds note each roof-grid cell's roof and wall colours, for the
+	# proxies (sector_proxies.gd); the grids aren't saved.
+	map.proxy_colours = true
 	for key in keys:
 		var t := Time.get_ticks_msec()
 		var root: Node3D = map.build_sector(key)

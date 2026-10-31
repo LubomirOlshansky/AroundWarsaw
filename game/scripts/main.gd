@@ -630,7 +630,8 @@ func _ready() -> void:
 		hud.visible = false
 		dialogue.host_on = false
 		title.dismissed.connect(_on_title_dismissed)
-		title.set_ready()
+		# The loading fix: "tap to drive" once the sectors round the start are in (_title_frame).
+		_title_wait_t = Time.get_ticks_msec()
 	else:
 		radio.now_playing()
 		_fallback_toast()
@@ -651,6 +652,26 @@ func _exit_tree() -> void:
 		_stats.unhook()
 	if RenderingServer.frame_pre_draw.is_connected(_stress_wait):
 		RenderingServer.frame_pre_draw.disconnect(_stress_wait)
+
+
+## The loading fix (2026-10-31): the title screen waits (at most TITLE_WAIT_MS) for the sectors
+## round the start to be in before it offers "tap to drive", and the streamer loads them
+## unthrottled meanwhile (nothing on screen moves that could hitch): the first seconds of play
+## show no proxies. -1: the prompt is up.
+const TITLE_WAIT_MS := 8000
+var _title_wait_t := -1
+
+
+func _title_frame() -> void:
+	if streamer != null:
+		streamer.hurry = title != null
+	if title == null or _title_wait_t < 0:
+		return
+	if streamer == null or streamer.idle() or Time.get_ticks_msec() - _title_wait_t > TITLE_WAIT_MS:
+		print("title: the start's sectors in after %d ms%s" % [Time.get_ticks_msec() - _title_wait_t,
+				"" if streamer == null or streamer.idle() else " (not all: the wait's limit)"])
+		_title_wait_t = -1
+		title.set_ready()
 
 
 func _on_title_dismissed() -> void:
@@ -3816,6 +3837,8 @@ func _process(dt: float) -> void:
 		_autopilot(dt)
 	_update_camera(dt)
 	_stream_frame(dt)  # loop 3c: the sectors round the camera
+	_title_frame()  # the loading fix: the title's prompt once the start is in
+	_look_frame()  # the loading fix: a look at a new target once its sectors are in
 	if cam_log:
 		_cam_log_frame(dt)
 	var pos := _vehicle_position()
@@ -4341,8 +4364,7 @@ func _new_target(source: String, t: Vector3) -> void:
 	if speed > LOOK_SPEED or busy or Vector2(t.x - p.x, t.z - p.z).length() < CameraShots.NEAR:
 		return
 	var ground := Vector3(p.x, map.ground_height(p.x, p.z), p.z) if flying else p
-	var screen := get_viewport().get_visible_rect().size
-	moments.look_at_target(ground, t, cam_yaw, camera_pitch, _view_size, screen.x / maxf(screen.y, 1.0))
+	_queue_look(ground, t)
 
 
 ## Loop 2b: benches, bins and bike racks (map_builder.gd FINE_GROUP) hide in a view wider than
@@ -4947,8 +4969,15 @@ var _soak_leg := 0
 var _soak_t := 0.0
 ## Loop 3d-2b, --stream-pass=heli|car: one fast pass across the map instead of the soak's tour
 ## (the helicopter at its highest and fastest, or the car at PASS_CAR_SPEED in its widest view).
+## The loading fix (2026-10-31), the passes that look for a proxy close up: heli-low (the helicopter
+## at its usual 45 m, full speed, four turns from the spawn), start (the same from the first frame,
+## no waiting for the ring round the start), switch (the car at PASS_CAR_SPEED, then the helicopter
+## takes off and flies on), look (hovering at the spawn, a look at a target 0.6-3 km away every
+## PASS_EVENT_S, as a new rescue or delivery target gets) and jump (the car put somewhere new every
+## PASS_EVENT_S, as a tow or a race start does).
 var _pass_kind := ""
 const PASS_CAR_SPEED := 45.0
+const PASS_EVENT_S := 7.0
 ## Frames since the pass put the vehicle at its start (-1 once the pass runs: the numbers count
 ## from the first frame at least 180 frames on with nothing left to load).
 var _pass_frames := 0
@@ -4989,6 +5018,15 @@ func _parse_stream_args() -> void:
 			if _pass_kind == "heli":
 				start_flying = true
 				_start_alt = Heli.MAX_HEIGHT
+			elif _pass_kind in ["heli-low", "start", "look"]:
+				# The loading fix: the helicopter at its usual height (where the player saw the proxies),
+				# or at --heli-alt's.
+				start_flying = true
+				if _start_alt <= 0.0:
+					_start_alt = Heli.CRUISE
+			if _pass_kind == "start":
+				_pass_frames = -1  # counted from the first frame: no waiting for the ring round the start
+				_soak_leg = 1
 
 
 ## Loop 3d-1: "" when the city this run needs is there, else what is missing and how to make it
@@ -5148,14 +5186,37 @@ func _pass_route(data: Dictionary) -> Array[Vector2]:
 	var inner := Rect2(b[0], b[1], b[2] - b[0], b[3] - b[1]).grow(-120.0)
 	if _pass_kind == "heli":
 		return [Vector2(inner.position.x, -300.0), Vector2(inner.end.x, -300.0)]
-	return [Vector2(inner.end.x, 250.0), Vector2(inner.position.x, 250.0)]
+	if _pass_kind == "car":
+		return [Vector2(inner.end.x, 250.0), Vector2(inner.position.x, 250.0)]
+	# The loading fix's passes start at the spawn (route[0]); look's points are its targets, jump's
+	# where the car is put.
+	var spawn: Dictionary = data.get("spawn", {})
+	var route: Array[Vector2] = [Vector2(float(spawn.get("x", 0.0)), float(spawn.get("z", 0.0)))]
+	var points: Array = []
+	match _pass_kind:
+		"heli-low", "start", "switch":
+			points = [[300, 279], [300, -800], [-1400, -800], [-1400, 900]]
+			# start: the first two legs (the first minute matters); switch: the car's leg and two flown.
+			points = points.slice(0, {"heli-low": 4, "start": 2, "switch": 3}[_pass_kind])
+		"look":
+			points = [[-300, 280], [-900, -750], [-2400, 600], [1000, -500], [1900, -900], [-2900, 1500]]
+		"jump":
+			points = [[500, -300], [-2500, -1200], [1500, 900], [-300, 1300], [-1500, -1700], [1200, -1500]]
+		_:
+			push_warning("--stream-pass=%s: no such pass (heli, car, heli-low, start, switch, look, jump)" % _pass_kind)
+	for q: Array in points:
+		route.append(Vector2(float(q[0]), float(q[1])).clamp(inner.position, inner.end))
+	return route
 
 
 ## --stream-soak, each frame: the car (then the helicopter) along the tour at 22 m/s, through
 ## buildings like the mission autopilot; the view 1x, then wide (220 m), every 20 s.
 func _soak_frame(dt: float) -> void:
 	_soak_t += dt
-	if _pass_kind != "" and _soak_leg >= _soak_route.size():
+	if _pass_kind in ["look", "jump"]:
+		if _pass_frames < 0 and _soak_t >= PASS_EVENT_S * _soak_route.size():
+			_soak_minutes = _soak_t / 60.0  # the last look or jump had its PASS_EVENT_S: report
+	elif _pass_kind != "" and _soak_leg >= _soak_route.size():
 		_soak_minutes = _soak_t / 60.0  # the pass is over: report as the soak does
 	if _soak_t >= _soak_minutes * 60.0:
 		print("stream soak: %.0f s over %d sectors: %s" % [_soak_t, streamer.keys.size(), streamer.summary()])
@@ -5187,7 +5248,8 @@ func _soak_frame(dt: float) -> void:
 			var yaw := atan2(-d.x, -d.y)
 			car.rotation.y = yaw
 			if flying:
-				heli.place(Vector3(s0.x, map.ground_height(s0.x, s0.y) + Heli.MAX_HEIGHT, s0.y), yaw, Heli.MAX_HEIGHT)
+				var alt := _start_alt if _start_alt > 0.0 else Heli.CRUISE
+				heli.place(Vector3(s0.x, map.ground_height(s0.x, s0.y) + alt, s0.y), yaw, alt)
 			else:
 				car.collision_mask = 0
 				car.global_position = Vector3(s0.x, map.drive_height(s0.x, s0.y, 0.0), s0.y)
@@ -5207,24 +5269,112 @@ func _soak_frame(dt: float) -> void:
 	elif _pass_kind == "heli":
 		base_size = FollowCamera.DEFAULT_SIZE
 		heli.alt_target = Heli.MAX_HEIGHT
+	elif _pass_kind != "":
+		base_size = FollowCamera.DEFAULT_SIZE  # the helicopter keeps its height (it climbs over a tower)
 	else:
 		base_size = FollowCamera.DEFAULT_SIZE if int(_soak_t / 20.0) % 2 == 0 else 220.0
 		if not flying and _soak_t > _soak_minutes * 40.0:
 			_take_off(Heli.CRUISE)
+	if _pass_kind in ["look", "jump"]:
+		_pass_event()
+		return
 	if _pass_kind != "" and _soak_leg >= _soak_route.size():
 		return
+	if _pass_kind == "switch" and not flying and _soak_leg >= 2:
+		_take_off(Heli.CRUISE)  # the loading fix: the car's first leg done, the helicopter flies on
 	var target: Vector2 = _soak_route[_soak_leg % _soak_route.size()]
 	var pos := _vehicle_position()
 	var to := Vector2(target.x - pos.x, target.y - pos.z)
 	if to.length() < 25.0:
 		_soak_leg += 1
+		if _pass_kind != "":
+			print("stream pass: leg %d done at frame %d (%.0f s)" % [_soak_leg - 1, frame, _soak_t])
 		return
 	if flying:
 		heli.input_dir = Vector3(to.x, 0.0, to.y).normalized()
 		heli.climb = 1.0 if heli.blocked else 0.0
 		return
-	var step := to.normalized() * (PASS_CAR_SPEED if _pass_kind == "car" else 22.0) * dt
+	var step := to.normalized() * (PASS_CAR_SPEED if _pass_kind in ["car", "switch"] else 22.0) * dt
 	car.collision_mask = 0
 	car.vel = Vector3.ZERO
 	car.global_position = Vector3(pos.x + step.x, map.drive_height(pos.x + step.x, pos.z + step.y, pos.y), pos.z + step.y)
 	car.rotation.y = atan2(-to.x, -to.y)
+
+
+## The loading fix: a look at a new target (camera_shots.gd) is about to show the target and the
+## way there: the streamer loads the target's sectors (its view, as it could turn) and the halfway
+## view's next, while the camera is still on its way.
+## The look waits for them, at most LOOK_WAIT_MS (the camera stays on the vehicle meanwhile): a
+## target 2-3 km off needs 5-8 sectors, ~1.2 s of loading on the iPhone 11. [from, to, since (ms)];
+## empty: none waiting.
+const LOOK_WAIT_MS := 1500
+var _look_queued: Array = []
+
+
+func _queue_look(from: Vector3, to: Vector3) -> void:
+	if streamer == null:
+		var screen := get_viewport().get_visible_rect().size
+		moments.look_at_target(from, to, cam_yaw, camera_pitch, _view_size, screen.x / maxf(screen.y, 1.0))
+		return
+	var time := LOOK_WAIT_MS / 1000.0 + CameraShots.OUT_TIME + CameraShots.HOLD_TIME + CameraShots.BACK_TIME + 0.5
+	streamer.expect_view(to, CameraShots.TARGET_SIZE * 1.25, time)
+	streamer.expect_view((from + to) * 0.5, CameraShots.MAX_SIZE * 1.25, time, 1)
+	_look_queued = [from, to, Time.get_ticks_msec()]
+
+
+## Each frame: a queued look starts once its sectors are in (or the wait is over); a finger on the
+## stick or the pedals meanwhile cancels it, as it would have kept the camera on the car.
+func _look_frame() -> void:
+	if _look_queued.is_empty():
+		return
+	var waited := Time.get_ticks_msec() - int(_look_queued[2])
+	if _pass_kind == "" and (hud.stick_active() or controls.held or hud.gas or hud.brake or _heli_held):
+		_look_queued = []
+		return
+	if not streamer.expected_in(1) and waited < LOOK_WAIT_MS:
+		return
+	var screen := get_viewport().get_visible_rect().size
+	moments.look_at_target(_look_queued[0], _look_queued[1], cam_yaw, camera_pitch, _view_size, screen.x / maxf(screen.y, 1.0))
+	print("camera: the look waited %d ms for its sectors%s" % [waited, "" if streamer.expected_in(1) else " (not all in)"])
+	_look_queued = []
+
+
+## The loading fix: the frames with a proxy in the view since the last look or jump (printed at
+## each: the one before's share).
+var _pass_missing := 0
+
+
+func _pass_tally() -> String:
+	var n := streamer.missing_frames - _pass_missing
+	_pass_missing = streamer.missing_frames
+	return "%d frames with a proxy in the view since the last" % n
+
+
+## The loading fix, --stream-pass=look|jump: every PASS_EVENT_S (from the pass's start) the next
+## route point: a look at it (camera_shots.gd, as a new target gets; the helicopter hovers), or the
+## car put there (as a tow does: no view finished first). The car stays where it was put.
+func _pass_event() -> void:
+	var due := int(_soak_t / PASS_EVENT_S) + 1
+	if flying:
+		heli.input_dir = Vector3.ZERO
+		heli.climb = 0.0
+	if _pass_kind == "jump":
+		var at: Vector2 = _soak_route[mini(_soak_leg - 1, _soak_route.size() - 1)]
+		if _soak_leg < due and _soak_leg < _soak_route.size():
+			at = _soak_route[_soak_leg]
+			_soak_leg += 1
+			car.global_position = Vector3(at.x, map.drive_height(at.x, at.y, 0.0), at.y)
+			car.reset_physics_interpolation()
+			_cut_camera()
+			print("stream pass: jump to %.0f, %.0f at frame %d (%s)" % [at.x, at.y, frame, _pass_tally()])
+		car.collision_mask = 0
+		car.vel = Vector3.ZERO
+		car.forward_speed = 0.0
+		car.global_position = Vector3(at.x, map.drive_height(at.x, at.y, 0.0), at.y)
+		return
+	if _soak_leg < due and _soak_leg < _soak_route.size() and not moments.playing() and _look_queued.is_empty():
+		var t: Vector2 = _soak_route[_soak_leg]
+		_soak_leg += 1
+		var p := _vehicle_position()
+		_queue_look(Vector3(p.x, map.ground_height(p.x, p.z), p.z), Vector3(t.x, map.ground_height(t.x, t.y), t.y))
+		print("stream pass: look at %.0f, %.0f at frame %d (%s)" % [t.x, t.y, frame, _pass_tally()])

@@ -5,10 +5,13 @@ extends RefCounted
 ## index only, so both city paths make the same ones (tools/bake_city.gd saves them in
 ## map/proxies.scn): the ground as a 32 m grid coloured by what covers it (water, green,
 ## plaza), the main roads as flat strips, the buildings and landmarks as a skyline of boxes
-## from the helicopter's roof grid (8 m, merged along each row), and the trees as blobs per
-## 24 m. Under 15k triangles and 0.3 MB a sector. The streamer hides a sector's proxy once the
-## sector is in; visibility ranges (fade Disabled: an alpha fade would make it transparent,
-## which the Mobile renderer pays for) only drop it past the camera's farthest view.
+## from the helicopter's roof grid (8 m, merged into rectangles), and the trees as blobs per
+## 24 m. The loading fix (2026-10-31): the boxes take each building's own roof and wall colours
+## (map_builder.gd `roof_colour` / `wall_colour`, noted while the sectors were built: the same
+## buildings, the same colours) and the trees the season's leaf colours, so a proxy reads as the
+## city rather than brown slabs. Under MAX_TRIANGLES a sector. The streamer hides a sector's
+## proxy once the sector is in; visibility ranges (fade Disabled: an alpha fade would make it
+## transparent, which the Mobile renderer pays for) only drop it past the camera's farthest view.
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Landmarks := preload("res://scripts/landmarks.gd")
@@ -20,7 +23,6 @@ const MAIN_ROADS := ["motorway", "trunk", "primary", "secondary", "tertiary", "m
 		"primary_link", "secondary_link", "tertiary_link"]
 const ROOF := Color("#857a70")
 const WALL := Color("#cfc4b2")
-const CANOPY := Color("#6f9a3c")
 const ROAD := Color("#4f535a")
 ## Landmarks' skyline colours by landmarks.gd site key.
 const LANDMARK := {"palace": Color("#d8c49c"), "tarasy": Color("#8fb4cb"), "rotunda": Color("#9cc4d4"),
@@ -152,6 +154,7 @@ static func _roads(st: SurfaceTool, map, rect: Rect2, ctx: Dictionary) -> int:
 
 
 static func _trees(st: SurfaceTool, map, rect: Rect2, ctx: Dictionary) -> int:
+	var leaves: Array = MapBuilder.CANOPY_AUTUMN if String(map.season) == "autumn" else MapBuilder.CANOPY_SUMMER
 	var cells := {}
 	var real: Array = ctx["trees"]
 	for i in range(0, real.size() - 5, 6):
@@ -177,12 +180,14 @@ static func _trees(st: SurfaceTool, map, rect: Rect2, ctx: Dictionary) -> int:
 		var centre := Vector3(p.x, (base + top) * 0.5, p.y)
 		var h := maxf((top - base) * 0.5, 1.5)
 		var ring := [Vector3(r, 0, 0), Vector3(0, 0, r), Vector3(-r, 0, 0), Vector3(0, 0, -r)]
+		# The loading fix: the season's leaf colours, one a blob (as the city's crowns vary).
+		var leaf := Color(leaves[absi(c.x * 73856093 ^ c.y * 19349663) % leaves.size()])
 		for k in 4:
 			var e0: Vector3 = centre + ring[k]
 			var e1: Vector3 = centre + ring[(k + 1) % 4]
 			for tip in [centre + Vector3(0, h, 0), centre - Vector3(0, h, 0)]:
 				var n3: Vector3 = ((e0 + e1 + tip) / 3.0 - centre).normalized()
-				var col := CANOPY if tip.y > centre.y else CANOPY.darkened(0.2)
+				var col := leaf if tip.y > centre.y else leaf.darkened(0.2)
 				if (e1 - e0).cross(tip - e0).dot(n3) > 0.0:
 					for v in [e0, tip, e1]:
 						st.set_color(col)
@@ -197,52 +202,118 @@ static func _trees(st: SurfaceTool, map, rect: Rect2, ctx: Dictionary) -> int:
 
 
 ## The buildings as boxes over cells of `size` metres (the roof grid's highest point in each),
-## merged along each row where the top (to a metre) and the landmark agree. With `st` null it
-## only counts the triangles.
+## merged into rectangles where the top (to a metre), the landmark and the colours agree (each
+## row's runs first, then equal runs in the rows after). With `st` null it only counts the
+## triangles.
 static func _skyline(st, map, rect: Rect2, size: float) -> int:
-	var n := int(size / map.ROOF_CELL)
+	var cells := _sky_cells(map, rect, size)
+	var nx: int = cells[0]
+	var nz: int = cells[1]
+	var grid: Array = cells[2]
+	# Each row's runs of equal cells: [x0, x1 (cells, end excluded), the cells' value].
+	var rows := []
+	for j in nz:
+		var runs := []
+		var i := 0
+		while i < nx:
+			var v: Array = grid[j * nx + i]
+			var i1 := i + 1
+			while i1 < nx and grid[j * nx + i1] == v:
+				i1 += 1
+			if not v.is_empty():
+				runs.append([i, i1, v])
+			i = i1
+		rows.append(runs)
 	var tris := 0
-	var z := rect.position.y
-	while z < rect.end.y - 0.01:
-		var run_top := -INF
-		var run_id := 0
-		var run_x0 := 0.0
-		var x := rect.position.x
-		while x < rect.end.x + size - 0.01:
-			var top := -INF
-			var id := 0
-			if x < rect.end.x - 0.01:
-				for dz in n:
-					for dx in n:
-						var h: float = map.roof_height(x + (dx + 0.5) * map.ROOF_CELL, z + (dz + 0.5) * map.ROOF_CELL)
-						if h > top:
-							top = h
-						var lid: int = map.landmark_at(x + (dx + 0.5) * map.ROOF_CELL, z + (dz + 0.5) * map.ROOF_CELL) + 1
-						if lid > 0:
-							id = lid
-				top = roundf(top) if top > MapBuilder.NO_ROOF + 1.0 else -INF
-			if top != run_top or id != run_id:
-				if run_top > -INF:
-					tris += 10
-					if st != null:
-						_box(st, map, Rect2(run_x0, z, x - run_x0, minf(size, rect.end.y - z)), run_top, run_id)
-				run_top = top
-				run_id = id
-				run_x0 = x
-			x += size
-		z += size
+	for j in nz:
+		for run: Array in rows[j]:
+			if run.is_empty():
+				continue
+			# Down the rows while the next one has the same run.
+			var j1 := j + 1
+			while j1 < nz:
+				var found := -1
+				var next: Array = rows[j1]
+				for k in next.size():
+					var other: Array = next[k]
+					if not other.is_empty() and other[0] == run[0] and other[1] == run[1] and other[2] == run[2]:
+						found = k
+						break
+				if found < 0:
+					break
+				next[found] = []
+				j1 += 1
+			tris += 10
+			if st != null:
+				var v: Array = run[2]
+				var x0 := rect.position.x + int(run[0]) * size
+				var z0 := rect.position.y + j * size
+				var r := Rect2(x0, z0, minf(rect.position.x + int(run[1]) * size, rect.end.x) - x0,
+						minf(rect.position.y + j1 * size, rect.end.y) - z0)
+				_box(st, map, r, float(v[0]), Color.hex(int(v[2])), Color.hex(int(v[3])))
 	return tris
 
 
-static func _box(st: SurfaceTool, map, r: Rect2, top: float, id: int) -> void:
+## The skyline's cells over `rect`: [nx, nz, per cell (row by row) [] for none, or [top (to a
+## metre), landmark id + 1, roof RGBA8, wall RGBA8]]. A building's colours are the roof grid's
+## (map_builder.gd, noted as the sectors were built): the highest roof's in the cell and a wall's
+## standing in it; a landmark's from LANDMARK; where none was noted, the old stone and slate.
+static func _sky_cells(map, rect: Rect2, size: float) -> Array:
+	var n := int(size / map.ROOF_CELL)
+	var nx := ceili((rect.size.x - 0.01) / size)
+	var nz := ceili((rect.size.y - 0.01) / size)
+	var grid := []
+	grid.resize(nx * nz)
+	for j in nz:
+		var z := rect.position.y + j * size
+		for i in nx:
+			var x := rect.position.x + i * size
+			var top := -INF
+			var id := 0
+			var roof := Color(0, 0, 0, 0)
+			var wall := Color(0, 0, 0, 0)
+			for dz in n:
+				for dx in n:
+					var px: float = x + (dx + 0.5) * map.ROOF_CELL
+					var pz: float = z + (dz + 0.5) * map.ROOF_CELL
+					var h: float = map.roof_height(px, pz)
+					var rc: Color = map.roof_colour(px, pz)
+					if h > top:
+						top = h
+						if rc.a > 0.0:
+							roof = rc
+					elif roof.a == 0.0 and rc.a > 0.0:
+						roof = rc
+					if wall.a == 0.0:
+						wall = map.wall_colour(px, pz)
+					var lid: int = map.landmark_at(px, pz) + 1
+					if lid > 0:
+						id = lid
+			if top <= MapBuilder.NO_ROOF + 1.0:
+				grid[j * nx + i] = []
+				continue
+			if id > 0 and id <= map.landmark_info.size():
+				var key := String(map.landmark_info[id - 1]["key"])
+				wall = LANDMARK.get(key, Landmarks.tower_colour(key, WALL))
+				roof = wall.darkened(0.15)
+			else:
+				if wall.a == 0.0:
+					wall = WALL if roof.a == 0.0 else roof.lightened(0.35)
+				if roof.a == 0.0:
+					roof = ROOF
+			grid[j * nx + i] = [roundf(top), id, _quantised(roof), _quantised(wall)]
+	return [nx, nz, grid]
+
+
+## A colour to 5 bits a channel (RGBA8 packed): the cells of one building agree, and a proxy
+## shows no finer shades anyway.
+static func _quantised(c: Color) -> int:
+	return Color(roundf(c.r * 31.0) / 31.0, roundf(c.g * 31.0) / 31.0, roundf(c.b * 31.0) / 31.0, 1.0).to_rgba32()
+
+
+static func _box(st: SurfaceTool, map, r: Rect2, top: float, roof: Color, wall: Color) -> void:
 	var c := r.get_center()
 	var g: float = map.terrain_height(c.x, c.y) - 1.0
-	var wall := WALL
-	var roof := ROOF
-	if id > 0 and id <= map.landmark_info.size():
-		var key := String(map.landmark_info[id - 1]["key"])
-		wall = LANDMARK.get(key, Landmarks.tower_colour(key, WALL))
-		roof = wall.darkened(0.15)
 	var x0 := r.position.x
 	var x1 := r.end.x
 	var z0 := r.position.y

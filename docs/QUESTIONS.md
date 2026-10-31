@@ -107,6 +107,14 @@ Newest first. One entry per question.
   photo spots (`game/data/eggs.json`, `kadr.json`). Default built: as written.
 - **2026-10-30 · content · MW-6** — The KASETA ghost is faint (dithered, reusing the building
   shader) and dim at night. Brighter needs a visuals-lane shader uniform. Default built: faint.
+- **2026-10-31 · map · loading fix** — Far-target looks: the camera's look at a new target waits
+  up to 1.5 s for its sectors, and on the iPhone 11 a few city-coloured proxies still flash past in
+  flight (25 frames over 6 looks). Alternatives (camera lane): cut instead of flying for targets past
+  ~1.5 km, or a shorter look; or 28 map slots (+5 MB). Default built: the 1.5 s wait.
+- **2026-10-31 · map · loading fix** — "Tap to drive" waits for the start's sectors (870 ms on the
+  iPhone 11, at most 8 s). Default built: on (the old way showed far-tower proxies at the start).
+- **2026-10-31 · map · loading fix** — Jumps (tow, race start) load the view's sectors at once:
+  1-2 extra frames over 33 ms per cut, instead of 0.5-1 s of proxies at the new place. Default built: at once.
 - **2026-10-31 · map · 3e** — Ground under trenches: 1 m sub-cells only at tunnel portals and
   road cuttings (keeps the +1 % vertex budget), or a new builder feature that cuts the ground along
   a lowered corridor and draws the floor as one strip (would also fix the rail cutting and ~40 more
