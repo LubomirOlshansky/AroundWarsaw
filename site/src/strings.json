@@ -2,19 +2,19 @@
   "hero": "hero-palace-dusk",
   "reel": [
     {
-      "img": "center-day",
-      "w": 1920,
-      "h": 816,
+      "img": "old-town",
+      "w": 1266,
+      "h": 585,
       "span": "lead",
       "en": [
-        "Śródmieście by day",
-        "Złote Tarasy, Varso and the towers along Aleje Jerozolimskie.",
-        "Central Warsaw by day in the game: Złote Tarasy's glass domes, Varso and the towers of Śródmieście"
+        "The Old Town",
+        "Rebuilt after the war, rebuilt again here, house by house.",
+        "The Old Town market square in the game: colourful houses and the cathedral"
       ],
       "pl": [
-        "Śródmieście w dzień",
-        "Złote Tarasy, Varso i wieżowce wzdłuż Alej Jerozolimskich.",
-        "Centrum Warszawy w dzień w grze: szklane kopuły Złotych Tarasów, Varso i wieżowce Śródmieścia"
+        "Stare Miasto",
+        "Odbudowane po wojnie, odbudowane i tutaj, kamienica po kamienicy.",
+        "Rynek Starego Miasta w grze: kolorowe kamienice i katedra"
       ]
     }
   ],
