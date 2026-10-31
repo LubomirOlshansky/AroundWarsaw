@@ -5435,6 +5435,7 @@ Command-line options (after `--`):
 | `--stream-ahead=0` | loop 3d-2b: no look-ahead (the streamer as before, for a before/after on one build) |
 | `--stream-slow=MS` | loop 3d-2b: every worker load takes MS ms longer (the phone's slower loads on the Mac: `--stream-slow=400` with the look-ahead off misses 337 frames in the helicopter pass, with it 0) |
 | `--stream-gate=0` | loop 3d-2b: a prebuilt sector's pieces load with its scene at once (the old one-frame load end), not one a frame |
+| `--solo=KEY` / `--solo-look=lit\|flat\|sil` | landmarks 0.3: build one landmark site alone (key as in `landmarks.gd`: `palace`, `rotunda`, `varso`…), no ground, roads, buildings or traffic, on a plain background, runtime city path only (forces off `--prebuilt`). `flat` (default) = unlit in the site's colours on grey, `sil` = dark silhouette on near-white, `lit` = the normal look. Use `--time=day`; the judge's shots (model-from-photos skill section 5): `tools/shots.sh --set=first` |
 | `--debug-ao` / `--no-ao` | show / switch off the baked ground shadows |
 | `--heli` | start in the helicopter |
 | `--heli-stick=X,Z` | the L-shaped map loop (2026-10-31): the helicopter's stick held towards that world direction (x east, z south; length up to 1) the whole run, for screenshots of the clamp along the map's outline (with `--heli --at=`) |

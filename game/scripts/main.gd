@@ -247,6 +247,11 @@ var hide_hud := false
 var no_touch := false
 var sun_pitch := -50.0
 var debug_ao := false
+## Landmarks 0.3 (2026-10-31): `--solo=KEY` builds that landmark site alone (map_builder.solo_site),
+## `--solo-look=lit|flat|sil` draws it lit, unlit in its own colours, or as a dark silhouette on a
+## plain background (shaders/solo.gdshader).
+var solo_site := ""
+var solo_look := "flat"
 ## Loop 3a: --debug-roads draws the decks, approaches, tunnels, lane heights and piers round
 ## the car (debug_roads.gd, with the Debug Draw add-on).
 var debug_roads := false
@@ -829,6 +834,9 @@ func _build_world() -> void:
 
 	building_mat = ShaderMaterial.new()
 	building_mat.shader = load("res://shaders/building.gdshader")
+	if solo_site != "" and solo_look != "lit":
+		building_mat.shader = load("res://shaders/solo.gdshader")
+		building_mat.set_shader_parameter("look", 1 if solo_look == "sil" else 0)
 	var flat_mat := ShaderMaterial.new()
 	flat_mat.shader = load("res://shaders/ground.gdshader")
 	flat_mat.set_shader_parameter("debug_ao", debug_ao)
@@ -1051,6 +1059,9 @@ func _build_world() -> void:
 	_apply_style()
 	_show_night_nodes(false)
 	tod.set_mode(start_time, true)
+	if solo_site != "" and solo_look != "lit":
+		tod.plain_background = Color("#f0f0f0") if solo_look == "sil" else Color("#8a8f96")
+		tod.refresh()
 	# Loop MW-3: --clock=HH:MM with a fixed look (--time=night --clock=01:00) starts its clock there.
 	if live_clock != "" and start_time != TimeOfDay.LIVE:
 		var hm := live_clock.split(":")
@@ -2882,6 +2893,12 @@ func _parse_args() -> void:
 			sun_pitch = float(arg.trim_prefix("--sun="))
 		elif arg == "--debug-ao":
 			debug_ao = true
+		elif arg.begins_with("--solo="):
+			solo_site = arg.trim_prefix("--solo=")
+			MapBuilder.solo_site = solo_site
+			no_traffic = true
+		elif arg.begins_with("--solo-look="):
+			solo_look = arg.trim_prefix("--solo-look=")
 		elif arg == "--tunnel":
 			start_in_tunnel = true
 		elif arg == "--debug-roads":
@@ -5318,7 +5335,7 @@ func _parse_stream_args() -> void:
 func _missing_map() -> String:
 	if monolithic:
 		return "" if FileAccess.file_exists(MAP_PATH) else "map: no %s (the committed map data)" % MAP_PATH
-	var use_prebuilt := prebuilt or not OS.has_feature("editor")
+	var use_prebuilt := (prebuilt or not OS.has_feature("editor")) and solo_site == ""
 	if use_prebuilt and not ResourceLoader.exists("res://map/index.res"):
 		return "map: the prebuilt sectors are missing (map/index.res, sectors/*.scn): run tools/setup_map.sh once (docs/DEVELOPMENT.md \"Map data\")"
 	if not use_prebuilt and not FileAccess.file_exists("res://map/index.json"):
@@ -5338,7 +5355,7 @@ func _open_streamed_city(world: Node3D, flat_mat: ShaderMaterial) -> Dictionary:
 	streamer.packs = _packs
 	add_child(streamer)
 	streamer.sector_ready.connect(_on_sector_ready)
-	var use_prebuilt := prebuilt or not OS.has_feature("editor")
+	var use_prebuilt := (prebuilt or not OS.has_feature("editor")) and solo_site == ""
 	var data := streamer.open(world, use_prebuilt, building_mat, flat_mat, start_at)
 	map = streamer.map
 	building_mat = map.building_material

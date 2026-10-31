@@ -23,6 +23,11 @@ const FINE_GROUP := "fine_detail"
 ## Loop 2b: lamps, signals, parked cars, advertising columns and shelters: they cast sun shadows
 ## on High only (main.gd QUALITY); the group "small_casters".
 const SMALL_CASTERS := "small_casters"
+
+## Landmarks 0.3 (2026-10-31): the site key of `--solo=KEY` (main.gd); while set, a run builds
+## that landmark alone (no ground, roads, buildings, trees or props) for the judge's unlit and
+## silhouette shots. Static, because the streamer makes the builder. Runtime path only.
+static var solo_site := ""
 ## Direction of the Śródmieście street grid (Marszałkowska), for paving on open areas.
 const CITY_GRID := Vector2(0.342, 0.940)
 ## Ground-shader layer ids (UV.y).
@@ -470,6 +475,14 @@ func build_sector(key: Vector2i, roofs_only := false, merge := true) -> Node3D:
 
 ## Loop 3c: everything but the colliders, in build order (one sector or the whole map).
 func _build_parts(marks, roofs_only: bool) -> void:
+	if solo_site != "":
+		# Landmarks 0.3: one site's triangles and nothing else (`marks.build`'s `only`).
+		var solo_walls := _new_surface()
+		solo_walls.none = roofs_only
+		marks.build(solo_walls, _near if _in_sector else Rect2(), solo_site)
+		if not roofs_only:
+			_add_mesh(solo_walls, building_material, true)
+		return
 	if not roofs_only:
 		var flat := _new_surface()
 		# Loop 3d-2a: the ground is built last, so it can leave out what the flat layers on it
