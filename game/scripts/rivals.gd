@@ -52,6 +52,37 @@ const FINAL_LINES := {
 	"lose": ["Szacun, mordo. Dziś cała Warszawa jest twoja.", "Respect, buddy. Tonight the whole of Warsaw is yours."],
 }
 
+## Loop 3h slice 4 (docs/DEMO.md 6.2, 1:30): the guided first race. After the first delivery Pani
+## Halina (the ladder's first rung) rolls up behind the player and flashes (`call_first`); flash
+## back and she races to the Palm (FIRST_FINISH, ~800 m from the Rotunda's side of the centre). A
+## rubber band keeps her about FIRST_GAP m behind the player (her pace FIRST_PACE ± FIRST_GAIN per
+## metre off that gap, between FIRST_MIN and FIRST_MAX), and in the last FIRST_EASE m she never
+## passes a player who is close: an ordinary drive wins by a couple of seconds. A player far
+## behind (she is more than FIRST_LOSE m ahead) races a Halina at her plain pace and can lose; the
+## normal retry is any later race against her. The win counts as her rung beaten (ladder.gd).
+const FIRST_FINISH := "Rondo de Gaulle'a (the Palm)"
+const FIRST_PACE := 1.15
+const FIRST_GAP := 25.0
+const FIRST_GAIN := 0.012
+const FIRST_MIN := 0.4
+const FIRST_MAX := 1.5
+const FIRST_EASE := 140.0
+const FIRST_LOSE := 150.0
+## The Palm is the finish when it is at most this far by road from her; else an ordinary one.
+const FIRST_FAR := 1600.0
+## She rolls up from about FIRST_BACK m behind; the prompt waits FIRST_WAIT s for the flash, or
+## until the player is FIRST_AWAY m from her; she gives up rolling up after FIRST_ROLL s.
+const FIRST_BACK := 45.0
+const FIRST_WAIT := 20.0
+const FIRST_AWAY := 90.0
+const FIRST_ROLL := 12.0
+## Her words for it, [Polish, English] (each at most 70 characters).
+const FIRST_LINES := {
+	"call": ["Synku! Babcia mruga. Do Palmy, kto pierwszy?", "Sonny! Granny's flashing you. To the Palm, first one there?"],
+	"nudge": ["Mrugnij, synku. Babcia nie ma całego dnia.", "Flash back, sonny. Granny hasn't got all day."],
+	"gone": ["Ech, młodzież. To innym razem.", "Oh, young people. Another time, then."],
+}
+
 ## Each rival: name, tag colour, car style (models.gd), box size, and lines as
 ## [Polish, English]. Challenges carry the finish: {pl} / {en}.
 const RIVALS := [
@@ -214,6 +245,15 @@ var _rank_timer := 0.0
 var _beacon: Node3D
 var _ghost = null
 var _rng := RandomNumberGenerator.new()
+## Loop 3h slice 4: the rival rolling up for the guided first race (-1: none), how long it has
+## been (s), and whether the prompt has nudged; `first_race` while that race runs, and
+## `first_result` ("won", "lost", "declined") once it is over (first10.gd reads it).
+var _caller := -1
+var _call_t := 0.0
+var _call_up := false
+var _nudged := false
+var first_race := false
+var first_result := ""
 
 
 func setup(lane_graph: LaneGraph, traffic_node: Traffic, hud_layer: CanvasLayer, bubble_layer: Control,
@@ -473,9 +513,16 @@ func start_race(i: int) -> void:
 	final_on = false
 	_beacon.recolour(RACE_COLOUR)
 	rival = i
+	# Loop 3h slice 4: the rival who rolled up for the guided first race races to the Palm.
+	first_race = i == _caller
+	_caller = -1
 	var d = _drivers[i]
 	var t0 := Time.get_ticks_usec()
-	_finish = _pick_finish(d)
+	_finish = _first_finish() if first_race else {}
+	if not _finish.is_empty() and graph.remaining(_distances(_finish["node"]), d.edge, d.s) > FIRST_FAR:
+		_finish = {}  # the player is far from the Palm (another stand's order): a nearer finish, the same tuning
+	if _finish.is_empty():
+		_finish = _pick_finish(d)
 	_dist = _distances(_finish["node"])
 	print("race: %s to %s, %d m by road (picked in %.1f ms)" % [RIVALS[i]["name"], _finish["name"],
 			roundi(graph.remaining(_dist, d.edge, d.s)), (Time.get_ticks_usec() - t0) / 1000.0])
@@ -534,6 +581,9 @@ func _frame(dt: float) -> void:
 	for i in _cooldown.size():
 		_cooldown[i] = maxf(0.0, _cooldown[i] - dt)
 	_update_tags()
+	if _caller >= 0 and (state == State.CRUISE or state == State.PROMPT):
+		_first_call_tick(dt)  # loop 3h slice 4: Halina rolling up for the first race
+		return
 	match state:
 		State.CRUISE:
 			_look_for_challenge()
@@ -615,7 +665,7 @@ func _go() -> void:
 	d.held = false
 	# Loop 3h slice 3: each rung's own pace (Halina 1.25 ... Mike 1.5; the final 1.45), was 1.45 flat.
 	var pace := Ladder.pace(Ladder.FINAL if final_on else Ladder.rung_of(RIVALS[rival]["name"]))
-	d.speed_factor = pace.x
+	d.speed_factor = FIRST_PACE if first_race else pace.x
 	d.accel_factor = pace.y
 	if final_on:
 		_prepare_final()
@@ -646,6 +696,8 @@ func _track(dt: float) -> void:
 		_rank_timer = 0.2
 		_rival_left = traffic.remaining(d)
 		_player_left = _player_remaining()
+		if first_race:
+			d.speed_factor = first_band(_rival_left, _player_left)
 	_show_status()
 
 
@@ -710,6 +762,11 @@ func _finish_race(won: bool, why: String) -> void:
 	_say(rival, line[0], line[1], 5.0)
 	var who: String = r["name"]
 	print("race %s: %s to %s in %.1f s" % ["won" if won else "lost", who, _finish["name"], _race_time])
+	if first_race:
+		# Loop 3h slice 4: the guided first race is over (first10.gd's race beat).
+		first_race = false
+		first_result = "won" if won else "lost"
+		print("first race %s: %s, %.0f m between them at the end" % [first_result, who, absf(_rival_left - _player_left)])
 	if won:
 		var stake: int = r["stake"]
 		# Loop 3g-2: escaping the police during the race: +20 % on the stake.
@@ -792,6 +849,134 @@ func _update_tags() -> void:
 		dots.append(Vector2(d.pos.x, d.pos.z))
 		colours.append(r["colour"])
 	hud.set_minimap_dots(dots, colours)
+
+
+# --- loop 3h slice 4: the guided first race ------------------------------------------------
+
+## The Palm's finish (FIRST_FINISH), or {} if the map has none.
+func _first_finish() -> Dictionary:
+	for f in _finishes:
+		if f["name"] == FIRST_FINISH:
+			return f
+	return {}
+
+
+## The first race's rubber band: Halina's speed factor from what is left for her and for the
+## player (m). She aims FIRST_GAP m behind; close to the finish she lets a close player win; a
+## player more than FIRST_LOSE m behind her gets her plain pace (and can lose).
+static func first_band(her_left: float, player_left: float) -> float:
+	if her_left == INF or player_left == INF:
+		return FIRST_PACE
+	var gap := her_left - player_left  # > 0: she is behind
+	if gap < -FIRST_LOSE:
+		return FIRST_PACE
+	if her_left < FIRST_EASE and gap < 12.0:
+		return FIRST_MIN * 0.8  # the last stretch: she lifts off for a close player
+	return clampf(FIRST_PACE + (gap - FIRST_GAP) * FIRST_GAIN, FIRST_MIN, FIRST_MAX)
+
+
+## Loop 3h slice 4: Halina (rival `name`) rolls up behind the player for the guided first race:
+## put about FIRST_BACK m back on the player's road (out of sight if it can be), she drives up and
+## stops behind, flashes and the prompt asks for a flash back. False if a race or a prompt is on,
+## the rival is unknown or no lane is near the car.
+func call_first(name := "Pani Halina") -> bool:
+	if state != State.CRUISE or _caller >= 0 or flying:
+		return false
+	var i := -1
+	for k in RIVALS.size():
+		if RIVALS[k]["name"] == name:
+			i = k
+	if i < 0:
+		return false
+	var p := Vector2(car.global_position.x, car.global_position.z)
+	var heading := Vector2(-sin(car.rotation.y), -cos(car.rotation.y))
+	var hit := graph.snap(p, 40.0, heading, true)
+	if hit.is_empty():
+		hit = graph.snap(p, 40.0, Vector2.ZERO, true)
+	if hit.is_empty():
+		return false
+	var spot := _behind(int(hit[0]), int(hit[1]), float(hit[2]), FIRST_BACK)
+	var d = _drivers[i]
+	traffic.teleport(d, spot[0], spot[1], spot[2])
+	d.held = false
+	d.speed_factor = 1.3
+	d.accel_factor = 1.6
+	var goal: int = graph.e_b[int(hit[0])]
+	traffic.race_to(d, goal, _distances(goal))
+	_caller = i
+	_call_t = 0.0
+	_call_up = false
+	_nudged = false
+	rival = i
+	print("first race: %s rolls up %.0f m behind (edge %d)" % [name, FIRST_BACK, spot[0]])
+	return true
+
+
+## A lane point `back` m behind (e, lane, s) along the road (into the edge before when this one
+## is too short): [edge, lane, s].
+func _behind(e: int, lane: int, s: float, back: float) -> Array:
+	if s - back >= graph.e_s0[e] + 2.0:
+		return [e, lane, s - back]
+	var left := back - (s - graph.e_s0[e])
+	var here := graph.direction(e, graph.e_s0[e])
+	var best := -1
+	var best_turn := 0.9
+	for f in graph.node_in[graph.e_a[e]]:
+		if f == graph.e_reverse[e] or graph.node_scc[graph.e_a[f]] == 0:
+			continue
+		var turn := absf(here.angle_to(graph.direction(f, graph.e_s1[f])))
+		if turn < best_turn:
+			best_turn = turn
+			best = f
+	if best < 0:
+		return [e, lane, graph.e_s0[e] + 2.0]
+	return [best, mini(lane, graph.e_lanes[best] - 1), maxf(graph.e_s1[best] - left, graph.e_s0[best] + 2.0)]
+
+
+## Every frame while Halina rolls up and waits (a distance and a timer, no scan): she stops behind
+## the car, flashes, the prompt waits for the flash back (or she gives up: a job or a rescue
+## started, the player drove off, the wait ran out).
+func _first_call_tick(dt: float) -> void:
+	_call_t += dt
+	var d = _drivers[_caller]
+	var gap := Vector2(d.pos.x - car.global_position.x, d.pos.z - car.global_position.z).length()
+	var other: bool = missions.has_target() or (jobs != null and jobs.busy()) or flying
+	if not _call_up and not other:
+		if gap < 14.0 or _call_t > FIRST_ROLL:
+			if gap >= 14.0:
+				# Stuck in a knot of cars or turned off: she is just there, behind.
+				var hit := graph.snap(Vector2(car.global_position.x, car.global_position.z), 40.0, Vector2.ZERO, true)
+				if not hit.is_empty():
+					var spot := _behind(int(hit[0]), int(hit[1]), float(hit[2]), 12.0)
+					traffic.teleport(d, spot[0], spot[1], spot[2])
+			traffic.stop_racing(d)
+			d.held = true
+			_call_up = true
+			_call_t = 0.0
+			state = State.PROMPT
+			var r: Dictionary = RIVALS[_caller]
+			hud.show_challenge("%s MRUGA · MRUGNIJ" % String(r["name"]).to_upper(), r["colour"], "%s flashed you: flash back to race (L)" % r["name"])
+			_say(_caller, FIRST_LINES["call"][0], FIRST_LINES["call"][1], 4.0)
+			print("first race: %s flashed, waiting for the flash back" % r["name"])
+		return
+	if _call_up and not _nudged and _call_t > 8.0:
+		_nudged = true
+		_say(_caller, FIRST_LINES["nudge"][0], FIRST_LINES["nudge"][1], 3.5)
+	if _call_t > FIRST_WAIT or (_call_up and gap > FIRST_AWAY) or other:
+		_say(_caller, FIRST_LINES["gone"][0], FIRST_LINES["gone"][1], 3.5)
+		print("first race: %s gave up waiting (%.0f s, %.0f m)" % [RIVALS[_caller]["name"], _call_t, gap])
+		d.held = false
+		traffic.stop_racing(d)
+		_cooldown[_caller] = 25.0
+		_caller = -1
+		first_result = "declined"
+		state = State.CRUISE
+		hud.hide_challenge()
+
+
+## Loop 3h slice 4: the guided first race is waiting for its flash back.
+func first_waiting() -> bool:
+	return _caller >= 0
 
 
 # --- loop 3h slice 3: the ladder and the final "Trzy mosty" ---------------------------------

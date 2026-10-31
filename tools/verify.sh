@@ -77,7 +77,15 @@
 # ladder's order, thresholds and pace, the gating and the locked prompt's words, the refusal and
 # final lines, the save (round trip, a v2/v1 file without [ladder], --nosave writes nothing,
 # --ladder=N) and, from the committed centrum.json's lane graph, the final "Trzy mosty"'s three
-# bridges (east, west, east), its legs and its start and finish (CI too).
+# bridges (east, west, east), its legs and its start and finish (CI too). Loop 3h slice 4: `first10`
+# runs game/tools/check_first10.gd: the guide's ten beats and windows, who gets the guide, three
+# synthetic players through the director's rules (each beat in its window, the fallbacks, a beat
+# waiting for a job), the first race's rubber band in a 1-D race, the words; `endcard` runs
+# game/tools/check_end_card.gd: the end card's trigger on fixture wallets (final + 9 jobs no, + 10
+# yes, seen no), the card and its button, the save's [intro]; neither needs a map (CI too).
+# `first10-run` (not in --quick, ~12 min) is the headless replay: --first10 --autopilot plays the
+# first 10 minutes on the real city (the stand, the guided order, Halina's race, the trap, the
+# call, the helicopter, the tape, Powiśle, the garage) and passes on `first10: OK`.
 # `streaming` runs game/tools/check_streaming.gd
 # (loop 3c) WITH a renderer (a window opens for a minute or two): every sector built from its
 # file is the whole city, vertex for vertex; 10 spots rendered with --monolithic and with the
@@ -110,8 +118,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder parodies jobs2 couriers rides cost landmarks sites sfx radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois drape drive steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder parodies jobs2 couriers rides cost landmarks sites sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder first10 endcard parodies jobs2 couriers rides cost landmarks sites sfx radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois drape drive steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder first10 endcard parodies jobs2 couriers rides cost landmarks sites sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -626,6 +634,8 @@ for s in $want; do
 		districts) check districts '^check_districts:' --script res://tools/check_districts.gd ;;
 		syrenki) check syrenki '^syrenki:' --script res://tools/check_syrenki.gd ;;
 		ladder) check ladder '^ladder:' --script res://tools/check_ladder.gd ;;
+		first10) check first10 '^first10:' --script res://tools/check_first10.gd ;;
+		endcard) check endcard '^end_card:' --script res://tools/check_end_card.gd ;;
 		life-soak) life_soak ;;
 		# Loop 2d-1: Podwózka's star and pay tables, the streak and the cancel rules, its lines.
 		rides) check rides '^check_rides:' --script res://tools/check_rides.gd ;;
@@ -652,6 +662,8 @@ for s in $want; do
 		race) game race 8000 '^race (won|lost):' --race=0 --autopilot ;;
 		# Loop 3h slice 3: the final "Trzy mosty" from its last bridge (the whole race is ~14 min of play).
 		trzy-mosty) game trzy-mosty 9000 '^trzy mosty (won|lost):' --trzy-mosty=3 --autopilot ;;
+		# Loop 3h slice 4: the first 10 minutes replayed (the director quits after the garage, ~575 s).
+		first10-run) STEP_LIMIT=$(( STEP_LIMIT > 1500 ? STEP_LIMIT : 1500 )) game first10-run 42000 '^first10: OK' --first10 --autopilot ;;
 		# Loop 3d-1: 15000 frames: on the demo map order 0 goes 1,023 m by road (Oboźna 1) and is
 		# delivered at 219.8 s of play (9000 frames = 150 s ended it on the way). Content POIs
 		# (2026-10-31): 11 places' addresses joined the address list, so the order's shuffle picks

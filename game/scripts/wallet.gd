@@ -21,11 +21,14 @@ const PATH := "user://save.cfg"
 const VERSION := 2
 ## The sections this version reads and writes; any other is kept as it was (`_extra`).
 const SECTIONS := ["save", "wallet", "jobs", "best", "eggs", "police", "keep", "notes", "notes_chapters",
-		"polnoc", "tapes", "kadr", "kadr_photos", "garage", "districts", "district_jobs", "syrenki", "ladder"]
+		"polnoc", "tapes", "kadr", "kadr_photos", "garage", "districts", "district_jobs", "syrenki", "ladder", "intro"]
 ## The easter eggs that count towards "found x/5".
 const EGGS := {"palma": "The Palm on Rondo de Gaulle'a", "pigeons": "Pigeons on Plac Defilad",
 		"barriers": "The wandering roadworks", "patelnia": "Patelnia by Metro Centrum",
 		"syrenka": "The Mermaid on the boulevard"}
+## Loop 3h slice 4: the job kinds that are not jobs for the end card's count (`jobs_done`): a race
+## is a race, and the courier's bonus rides on a kebab delivery that counts already.
+const NOT_JOBS := ["race", "courier"]
 
 var zl := 0
 var respect := 0
@@ -78,6 +81,11 @@ var syrenki := {}
 ## the final race) -> the day it was first beaten (yyyymmdd). The save's [ladder] section; a v2 file
 ## without it (slices 1-2) loads as nothing beaten (no version bump: the section is only added).
 var ladder := {}
+## Loop 3h slice 4: the guided first 10 minutes and the end card (first10.gd): beat id ("finger",
+## "order", "race", ... "garage", "done") -> the day it happened (yyyymmdd), and "end_seen" once the
+## end card was shown. The save's [intro] section; a v2 file without it loads as nothing seen (no
+## version bump: the section is only added).
+var intro := {}
 ## The district the vehicle is in now (districts.gd sets it; not saved).
 var district := ""
 ## False with --nosave: nothing is read or written.
@@ -162,6 +170,8 @@ func load_save() -> void:
 		syrenki[key] = int(cfg.get_value("syrenki", key, 1))
 	for key in (cfg.get_section_keys("ladder") if cfg.has_section("ladder") else PackedStringArray()):
 		ladder[key] = int(cfg.get_value("ladder", key, 1))
+	for key in (cfg.get_section_keys("intro") if cfg.has_section("intro") else PackedStringArray()):
+		intro[key] = int(cfg.get_value("intro", key, 1))
 
 
 ## Loop 3h slice 1: where the copy of a version-`version` file goes before it is migrated
@@ -233,6 +243,8 @@ func save() -> void:
 		cfg.set_value("syrenki", key, int(syrenki[key]))
 	for key in ladder:
 		cfg.set_value("ladder", key, int(ladder[key]))
+	for key in intro:
+		cfg.set_value("intro", key, int(intro[key]))
 	for section in _extra:
 		for key in _extra[section]:
 			cfg.set_value(section, key, _extra[section][key])
@@ -263,6 +275,7 @@ func reset() -> void:
 	district_jobs.clear()
 	syrenki.clear()
 	ladder.clear()
+	intro.clear()
 	save()
 	changed.emit(zl, respect, 0)
 
@@ -279,6 +292,16 @@ func pay(amount: int, gain := 0, kind := "") -> void:
 	save()
 	changed.emit(zl, respect, amount)
 	print("wallet: +%d zł, +%d respect (%s) -> %d zł, respect %d" % [amount, gain, kind if kind != "" else "-", zl, respect])
+
+
+## Loop 3h slice 4: the jobs finished, of every paid kind but NOT_JOBS (a kebab, słoiki, a rescue,
+## a Podwózka ride, the round-up, "Na czasie"...). Old saves count from the totals they kept by kind.
+func jobs_done() -> int:
+	var n := 0
+	for k in jobs:
+		if not str(k) in NOT_JOBS:
+			n += int(jobs[k])
+	return n
 
 
 ## The garage loop: pays `amount` złoty out of the wallet (a paint job) and saves; false (nothing
@@ -355,9 +378,9 @@ func egg_count() -> int:
 
 
 func summary() -> String:
-	return "%d zł, respect %d, jobs %s, best %s, eggs %d/%d, notebook %d, tapes %d, kadr %d, paint %s (%d bought), districts %d, syrenki %d, ladder %d, save v%d" % [zl, respect,
+	return "%d zł, respect %d, jobs %s, best %s, eggs %d/%d, notebook %d, tapes %d, kadr %d, paint %s (%d bought), districts %d, syrenki %d, ladder %d, intro %d, save v%d" % [zl, respect,
 			jobs, best, eggs_found(), egg_count(), notes.size(), tapes.size(), kadr.size(), paint, paints.size(), districts.size(),
-			syrenki.size(), ladder.size(), loaded_version]
+			syrenki.size(), ladder.size(), intro.size(), loaded_version]
 
 
 ## "1 240 zł": thousands apart with a space, the Polish way.

@@ -817,7 +817,7 @@ a car joins. A clipboard-scribble sound for the clamp.
 | 0:05 | Driving. A ghost finger only if there is no touch for 4 s | New hint |
 | 0:15 | A dashed ring and a kebab steam icon 150 m ahead (the Marszałkowska/Świętokrzyska stand) | Exists, plus a guaranteed first order |
 | 0:30 | The first order: a hand-picked 700 m delivery past the Rotunda. The customer's punchline, money pops | New "first order" |
-| 1:30 | Seba rolls up behind: FLASH LIGHTS. An 800 m race to the Palm, which he is tuned to lose narrowly | Exists + a first-race tuning |
+| 1:30 | ~~Seba~~ **Pani Halina** rolls up behind and flashes: FLASH LIGHTS back. An 800 m race to the Palm, which she is tuned to lose narrowly (2026-10-31, loop 3h slice 4: Halina is the ladder's first rung, so the first race counts on the ladder and Seba stays the final's boss, making "Trzy mosty" the payoff) | Exists + a first-race tuning (rivals.gd `first_band`) |
 | 3:00 | The first speed trap on the way back: a caution, two jokes, the roosters explained in one line | New (police) |
 | 4:00 | A rescue call (street, car): the hospital, the escort, and the helicopter unlocked | Exists + gating |
 | 6:00 | Helicopter over the river: a cassette on the boulevard roof, a new song | New collectible |

@@ -46,6 +46,14 @@ const NIGHT_BONUS := 1.5
 const BRAKE_FREE := 16.0
 const CORNER_FREE := 14.0
 const BUMP_FREE := 3.0
+## Loop 3h slice 4 (docs/DEMO.md 6.2, 0:30): the guided first order. The stand by the
+## Marszałkowska × Świętokrzyska corner (the stand nearest FIRST_STAND), its first order a door
+## about FIRST_ROAD m by road past the Rotunda (south of FIRST_PAST: the round pavilion on Rondo
+## Dmowskiego), the one nearest that length (first10.gd pins it; any other stand's first order is
+## an ordinary one).
+const FIRST_STAND := Vector2(-1060.0, -230.0)
+const FIRST_PAST := Vector2(-852.0, 334.0)
+const FIRST_ROAD := 700.0
 const CUSTOMERS := ["Ania", "Kasia", "Ola", "Magda", "Zosia", "Ewa", "Basia", "Marta",
 		"Tomek", "Kuba", "Piotrek", "Michał", "Paweł", "Marek", "Wojtek", "Krzysiek"]
 const NEWCOMERS := ["Kuba", "Ola", "Bartek", "Kasia", "Michał", "Magda"]
@@ -125,6 +133,9 @@ var _stand_halo: ArrayMesh
 var _halo_mat: ShaderMaterial
 var _places_shown := false
 var _rng := RandomNumberGenerator.new()
+## Loop 3h slice 4: the stand whose next order is the guided first order (first10.gd `pin_first`;
+## -1: none). Cleared once that order is made.
+var pinned := -1
 
 
 func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
@@ -586,16 +597,19 @@ func _release() -> void:
 
 # --- kebab -------------------------------------------------------------------------------
 
-## Order n from stand i (the same n always gives the same order).
-func _make_kebab_order(i: int, n: int) -> Dictionary:
+## Order n from stand i (the same n always gives the same order). Loop 3h slice 4: `first`, the
+## guided first order: the door nearest FIRST_ROAD m by road past the Rotunda (first_pick).
+func _make_kebab_order(i: int, n: int, first := false) -> Dictionary:
 	var s := _stands[i]
 	var rng := RandomNumberGenerator.new()
 	rng.seed = n * 7907 + i * 131 + 3
 	# Now and then the customer is across the river from the stand.
-	var want_across := rng.randf() < 0.3
+	var want_across := rng.randf() < 0.3 and not first
 	var from := Vector2(s["ring"].x, s["ring"].z)
-	var pick := _pick_address(s["edge"], s["s"], from, ORDER_MIN, ACROSS_MAX if want_across else ORDER_MAX, rng,
-			func(a: Dictionary) -> bool: return want_across == ((a["d"] == "praga") != bool(s["across"])))
+	var pick := first_pick(i) if first else {}
+	if pick.is_empty():
+		pick = _pick_address(s["edge"], s["s"], from, ORDER_MIN, ACROSS_MAX if want_across else ORDER_MAX, rng,
+				func(a: Dictionary) -> bool: return want_across == ((a["d"] == "praga") != bool(s["across"])))
 	if pick.is_empty():
 		pick = _pick_address(s["edge"], s["s"], from, ORDER_MIN, ORDER_MAX, rng, func(_a: Dictionary) -> bool: return true)
 	if pick.is_empty():
@@ -617,7 +631,10 @@ func _make_kebab_order(i: int, n: int) -> Dictionary:
 
 ## An address `lo`-`hi` metres by road from lane point (e, s) that passes `test`,
 ## picked with `rng`; with its door's ring, the trip length and the way there.
-func _pick_address(e: int, s: float, from: Vector2, lo: float, hi: float, rng: RandomNumberGenerator, test: Callable) -> Dictionary:
+## Loop 3h slice 4: `aim` > 0 looks at every fitting address (up to 400, unshuffled) and returns
+## the one whose trip is nearest `aim` m (the guided first order).
+func _pick_address(e: int, s: float, from: Vector2, lo: float, hi: float, rng: RandomNumberGenerator, test: Callable,
+		aim := 0.0) -> Dictionary:
 	var dist := graph.distances_from(graph.e_b[e])
 	var list: Array[Dictionary] = []
 	for a in _addresses:
@@ -625,12 +642,14 @@ func _pick_address(e: int, s: float, from: Vector2, lo: float, hi: float, rng: R
 		if d >= lo * 0.55 and d <= hi and test.call(a):
 			list.append(a)
 	# Shuffle with the order's own random numbers.
-	for k in range(list.size() - 1, 0, -1):
-		var j := rng.randi() % (k + 1)
-		var t := list[k]
-		list[k] = list[j]
-		list[j] = t
-	for a in list.slice(0, 80):
+	if aim <= 0.0:
+		for k in range(list.size() - 1, 0, -1):
+			var j := rng.randi() % (k + 1)
+			var t := list[k]
+			list[k] = list[j]
+			list[j] = t
+	var best: Dictionary = {}
+	for a in list.slice(0, 400 if aim > 0.0 else 80):
 		var hit := graph.snap(a["door"], 30.0)
 		if hit.is_empty():
 			continue
@@ -656,12 +675,17 @@ func _pick_address(e: int, s: float, from: Vector2, lo: float, hi: float, rng: R
 		out["s"] = hit[2]
 		out["reached"] = reached
 		out["finish"] = finish
-		return out
-	return {}
+		if aim <= 0.0:
+			return out
+		if best.is_empty() or absf(road - aim) < absf(float(best["road"]) - aim):
+			best = out
+	return best
 
 
 func _begin_kebab(i: int, n: int) -> void:
-	var o := _make_kebab_order(i, n)
+	var o := _make_kebab_order(i, n, i == pinned)
+	if i == pinned:
+		pinned = -1
 	if o.is_empty():
 		hud.toast("Brak zamówień", "No orders right now")
 		_stands[i]["cool"] = true
@@ -1028,6 +1052,76 @@ func _abandon() -> void:
 # --- testing aids --------------------------------------------------------------------------
 
 ## --kebab=N: puts the car in stand (N mod stands)'s ring and starts order N.
+# --- loop 3h slice 4: the guided first order (first10.gd) ----------------------------------
+
+## The stand nearest FIRST_STAND (the Marszałkowska × Świętokrzyska corner), or -1 (none within
+## 120 m).
+func first_stand() -> int:
+	var best := -1
+	var best_d := 120.0
+	for i in _stands.size():
+		var d := Vector2(_stands[i]["at"].x, _stands[i]["at"].z).distance_to(FIRST_STAND)
+		if d < best_d:
+			best_d = d
+			best = i
+	return best
+
+
+## The guided first order's door from stand `i`: south of FIRST_PAST (past the Rotunda, within
+## 450 m of it east or west), the trip nearest FIRST_ROAD m (450-1200 m by road, from either
+## carriageway by the stand); {} if none. (On the demo map the nearest such door, Aleje
+## Jerozolimskie 33, is ~920 m by road from the Świętokrzyska stand.)
+func first_pick(i: int) -> Dictionary:
+	if i < 0 or i >= _stands.size():
+		return {}
+	var s := _stands[i]
+	var from := Vector2(s["ring"].x, s["ring"].z)
+	var past := func(a: Dictionary) -> bool:
+		var door: Vector2 = a["door"]
+		return door.y > FIRST_PAST.y + 40.0 and absf(door.x - FIRST_PAST.x) < 450.0 and a["d"] != "praga"
+	var pick := _pick_address(s["edge"], s["s"], from, FIRST_ROAD - 250.0, FIRST_ROAD + 500.0, _rng, past, FIRST_ROAD)
+	# The stand may sit on the far carriageway (by Świętokrzyska it is the northbound one): the
+	# player turns round, so the trip is measured from the other way's lane too, the nearer kept.
+	var dir := graph.direction(int(s["edge"]), float(s["s"]))
+	var other := graph.snap(from, 30.0, -dir, true)
+	if not other.is_empty() and int(other[0]) != int(s["edge"]):
+		var back := _pick_address(int(other[0]), float(other[2]), from, FIRST_ROAD - 250.0, FIRST_ROAD + 500.0, _rng, past, FIRST_ROAD)
+		if not back.is_empty() and (pick.is_empty() or absf(float(back["road"]) - FIRST_ROAD) < absf(float(pick["road"]) - FIRST_ROAD)):
+			pick = back
+	var n := 0
+	for a in _addresses:
+		if past.call(a):
+			n += 1
+	print("jobs: the guided first order from stand %d: %d doors past the Rotunda, %s" % [i, n,
+			"%s, %d m by road" % [pick["name"], roundi(float(pick["road"]))] if not pick.is_empty() else "none in reach"])
+	return pick
+
+
+## The next order from stand `i` is the guided first one (first10.gd).
+func pin_first(i: int) -> void:
+	pinned = i
+
+
+## --first10: the car at stand `i` and its guided first order at once. False if none came.
+func start_first(i: int) -> bool:
+	if i < 0 or i >= _stands.size() or state != State.IDLE:
+		return false
+	pin_first(i)
+	_put_car(_stands[i])
+	_begin_kebab(i, _orders)
+	return state == State.ORDER
+
+
+## Kebab orders made since the start (the guide's "order" beat).
+func orders_started() -> int:
+	return _orders
+
+
+## The ring of stand `i` (Vector3.INF if none): the guide's pointer.
+func stand_ring(i: int) -> Vector3:
+	return _stands[i]["ring"] if i >= 0 and i < _stands.size() else Vector3.INF
+
+
 func start_kebab(n: int) -> bool:
 	if _stands.is_empty():
 		return false

@@ -2051,6 +2051,22 @@ func _first_seen() -> bool:
 	return wallet != null and "keep" in wallet and bool(wallet.keep.get(FIRST_KEY, false))
 
 
+## Loop 3h slice 4: the first contact is armed (waiting to be set up, or set up), or done.
+func first_armed() -> bool:
+	return _first_seen() or _first_wait >= 0.0 or not _first.is_empty()
+
+
+## Loop 3h slice 4: the guided first 10 minutes (first10.gd) arm the first contact when the first
+## race never came (its beat's fallback): as the race would, FIRST_DELAY s from now. False if it
+## was armed or done already.
+func arm_first_contact() -> bool:
+	if first_armed():
+		return false
+	_first_wait = FIRST_DELAY
+	_log("first contact armed (the guide: no race yet)")
+	return true
+
+
 ## Marks the first contact done in the save (once per save).
 func _first_done(why: String) -> void:
 	if _first_seen():

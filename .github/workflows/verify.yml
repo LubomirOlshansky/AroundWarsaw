@@ -49,11 +49,11 @@ jobs:
       # the steps that need no map; the map, roads, drape, drive, landmarks and the game runs
       # stay on the Mac's tools/verify.sh. Loop MW-1: `places` reads only the committed
       # centrum.json and data/places.json, so it runs here too; loop MW-5: `sounds` too; loop
-      # MW-6: `eggs` and `tape` too; loop MW-3: `crowds` too; loop MW-4: `life` too; loop jobs-2: `jobs2` too; loop couriers: `couriers` too; the museum and Plac loop: `sites` too; the L-shaped map loop: `edge` too; loop 3h slice 1: `save` and `districts` too; slice 2: `syrenki` too; slice 3: `ladder` too.
+      # MW-6: `eggs` and `tape` too; loop MW-3: `crowds` too; loop MW-4: `life` too; loop jobs-2: `jobs2` too; loop couriers: `couriers` too; the museum and Plac loop: `sites` too; the L-shaped map loop: `edge` too; loop 3h slice 1: `save` and `districts` too; slice 2: `syrenki` too; slice 3: `ladder` too; slice 4: `first10` and `endcard` too.
       - name: tools/verify.sh, the steps that need no map
         env:
           GODOT: /home/runner/godot/godot
-        run: zsh tools/verify.sh --only=steering,settings,tiers,governor,hud,places,edge,eggs,tape,crowds,life,buses,oldtram,garage,save,districts,syrenki,ladder,parodies,jobs2,couriers,rides,sites,sfx,radio,sounds,police --logs="$RUNNER_TEMP/verify"
+        run: zsh tools/verify.sh --only=steering,settings,tiers,governor,hud,places,edge,eggs,tape,crowds,life,buses,oldtram,garage,save,districts,syrenki,ladder,first10,endcard,parodies,jobs2,couriers,rides,sites,sfx,radio,sounds,police --logs="$RUNNER_TEMP/verify"
 
       - name: Keep the logs
         if: always()

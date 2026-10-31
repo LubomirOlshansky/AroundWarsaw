@@ -80,6 +80,9 @@ var eggs_found: Callable
 var syrenki_found: Callable
 ## --garage: shown whatever the wallet says (no toast).
 var force := false
+## Loop 3h slice 4: the guided first 10 minutes (first10.gd) keep the ring hidden until their
+## 10:00 beat, earnings or not (the rule's "after the first earnings" waits for it).
+var held := false
 ## --garage-log: the card, the buys and the paints.
 var log_on := false
 ## Time spent in this script since the bench last read it (µs).
@@ -294,7 +297,7 @@ func is_open() -> bool:
 
 ## The ring and the marks follow the rule (the first time: a toast).
 func _refresh(quiet := false) -> void:
-	var on := force or (wallet != null and open_rule(wallet.jobs, int(wallet.zl), wallet.paints))
+	var on := force or (not held and wallet != null and open_rule(wallet.jobs, int(wallet.zl), wallet.paints))
 	if on == _shown:
 		return
 	_shown = on

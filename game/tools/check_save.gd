@@ -7,7 +7,8 @@ extends SceneTree
 ## - loading it keeps every value, reports version 1 migrated to 2, and copies the old file beside
 ##   it unchanged (save.v1.cfg);
 ## - the next save writes version 2, keeps the unknown section, and a fresh load of it gives the
-##   same record (and the v2 additions: districts, their jobs, the Syrenki round-trip);
+##   same record (and the v2 additions: districts, their jobs, the Syrenki round-trip; loop 3h
+##   slice 4: the [intro] section too);
 ## - a job paid in a district counts there; reset() clears the v2 sections too;
 ## - a file of a newer version is read but never overwritten;
 ## - with persistent = false (--nosave) nothing is read or written (no file appears);
@@ -136,6 +137,7 @@ func _round_trip() -> void:
 	w.load_save()
 	w.districts = {"powisle": 20261031, "srodmiescie": 20261030}
 	w.syrenki = {"s01": 20261031}
+	w.intro = {"finger": 20261031, "end_seen": 20261031}  # loop 3h slice 4
 	w.district = "powisle"
 	w.pay(25, 1, "kebab")
 	w.pay(10, 0)  # no kind: not a job
@@ -149,8 +151,9 @@ func _round_trip() -> void:
 	_expect(b.zl == 1275 and b.respect == 88 and b.notes == w.notes and b.eggs == w.eggs and b.paints == w.paints
 			and b.keep == w.keep and b.tracks == w.tracks, "round trip of the v1 sections: %s" % b.summary())
 	_expect(b.district == "", "the district now is not saved: %s" % b.district)
+	_expect(b.intro == w.intro, "round trip of [intro] (loop 3h slice 4): %s" % b.intro)
 	b.reset()
-	_expect(b.districts.is_empty() and b.district_jobs.is_empty() and b.syrenki.is_empty() and b.zl == 0, "reset() left %s" % b.summary())
+	_expect(b.districts.is_empty() and b.district_jobs.is_empty() and b.syrenki.is_empty() and b.intro.is_empty() and b.zl == 0, "reset() left %s" % b.summary())
 	w.free()
 	b.free()
 

@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-10-31
 
+- New players get a guided first ten minutes: a hint finger, a first kebab order, a race against Pani Halina, a friendly police caution, a rescue that earns you the helicopter, a tape on the boulevards and Mirek's garage. Win "Trzy mosty" and finish ten jobs for a thank-you card, then drive on.
 - The rivals are a ladder now: beat Pani Halina first, earn respect, work up to Mordor Mike, then race Seba over three bridges at night in "Trzy mosty".
 - Dusk looks like a real late-October evening in Warsaw: a blue-grey sky, the Palace of Culture lit gold, lit hotel names, the station canopy's lamps and red lights on the towers.
 - Twenty little mermaid figurines hide by the kerbs of Warsaw: drive past to find them, with rewards at 5, 10 and 20 and two new paints.
