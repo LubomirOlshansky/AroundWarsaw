@@ -5,7 +5,7 @@ extends Node
 ## and a reward; the first find puts the card in the notebook (wallet.gd `eggs`: id -> the day),
 ## pays its respect, opens its PÓŁNOC FM track (radio.gd `unlock_track`), stamps its then card
 ## (tape.gd) and shows the note card. An egg whose trigger needs something not built yet (the
-## crowds of MW-3/MW-4, the garage's paint, the night buses) has `waits`: its card is in the
+## crowds of MW-3/MW-4, the night buses; the garage's paint until the garage loop) has `waits`: its card is in the
 ## notebook as "?", and nothing finds it.
 ##
 ## The triggers (`step`, static, so check_eggs.gd runs them on synthetic inputs):
@@ -32,7 +32,10 @@ extends Node
 ## day's roadworks on that street: eggs.gd); loop MW-3: `crowd` (a crowd of crowds.gd out now: a
 ## name, or [name, at least this level 0..1]: "dawn", "police_club", "steps", "guitar", "plan_c";
 ## the probe's `crowds`), and `days` (the trigger met on that many different days, Live's date
-## or the real one, kept in the wallet's `keep` as `egg_days_<id>`; the card on the last).
+## or the real one, kept in the wallet's `keep` as `egg_days_<id>`; the card on the last). The garage
+## loop: `paint` (the car's paint now, garage.gd's id: E01 black, E21 green; the probe's `paint`)
+## and `nights` (the weekdays whose night it is, crowds.gd `night_day`: 01:00 on a Saturday is
+## Friday's night).
 ## Checked twice a second over a 200 m grid of the eggs (`CELL`): a check looks at the eggs of
 ## the one cell the vehicle is in; nothing runs per frame but a timer (and the --egg rig).
 
@@ -64,7 +67,7 @@ var radio: Node
 var tape: Node
 ## Called at each check: a Dictionary (main.gd `_egg_state`): pos, kmh, flying, alt, roof, away,
 ## look, hour, weekday, month, live, sun, rain, station, date, roadworks; loop MW-3: crowds
-## (crowds.gd `levels`: name -> 0..1).
+## (crowds.gd `levels`: name -> 0..1); the garage loop: paint (the car's paint id).
 var probe: Callable
 var blip: Callable
 ## --egg-log: the trigger and the reward of each find, and the --egg rig's lines.
@@ -367,6 +370,12 @@ static func conditions(t: Dictionary, s: Dictionary) -> bool:
 		return false
 	if t.has("roadworks") and str(s.get("roadworks", "")) != str(t["roadworks"]):
 		return false
+	if t.has("paint") and str(s.get("paint", "red")) != str(t["paint"]):
+		return false
+	if t.has("nights"):
+		var nd := (int(s.get("weekday", 5)) + 5) % 7 + 1 if hour < 12.0 else int(s.get("weekday", 5))
+		if not nd in (t["nights"] as Array).map(func(x: Variant) -> int: return int(x)):
+			return false
 	if t.has("crowd"):
 		var c: Variant = t["crowd"]
 		var crowd := str(c[0]) if c is Array else str(c)

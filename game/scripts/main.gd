@@ -95,6 +95,9 @@ const Governor := preload("res://scripts/governor.gd")
 ## Loop 3g-1: the police (police.gd; its block below, "loop 3g-1: the police").
 const Police := preload("res://scripts/police.gd")
 const Buses := preload("res://scripts/buses.gd")
+const OldTram := preload("res://scripts/old_tram.gd")
+## The garage loop: Warsztat u Mirka and its paint jobs (garage.gd, its card garage_card.gd).
+const Garage := preload("res://scripts/garage.gd")
 const MAP_PATH := "res://map/centrum.json"
 
 ## Visual styles to compare on the phone. lines = vertical resolution of the pixel image.
@@ -345,6 +348,20 @@ var buses: Buses
 var night_hub_flag := false
 var bus_log := false
 var honk_frames: Array[int] = []
+## The vintage-tram loop (old_tram.gd): the old two-car set on summer weekends, E39; flags
+## --old-tram (the set now near the car; =follow: and the car kept behind it), --tram-log.
+var old_tram: OldTram
+var old_tram_flag := ""
+var tram_log := false
+## The garage loop (garage.gd): Warsztat u Mirka on Brzeska; flags --paint=<id> (the car starts in
+## that paint, owned for the run), --garage (the car in the garage's ring, the card open; the
+## garage shown whatever the wallet), --garage-log (`garage:` lines).
+var garage: Garage
+var paint_flag := ""
+var garage_flag := false
+## --garage=ring: the car 16 m short of the ring (the ring in view, no card).
+var garage_ring_only := false
+var garage_log := false
 var life_flag := 1
 var dogs_log := false
 var trend_log := false
@@ -360,6 +377,11 @@ var courier_race := false
 var roundup_flag := false
 ## Loop jobs-2: --courier-v=M (the courier's speed in m/s, for a test run; 6.5 by default).
 var courier_v := -1.0
+## Loop couriers: --pedzik-log (city life's `pedzik:` lines: the minute's riders on the paths and the
+## kerb, the couriers waiting, each swerve, hop and near miss, a courier taken by the race).
+var pedzik_log := false
+## Loop couriers: --pedzik-kerb (a testing aid for shots: the kerb riders start 8-35 m from the view).
+var pedzik_kerb := false
 ## Loop jobs-2: --armchair (the armchair man out today at any hour, the car on the lane by him).
 var armchair_flag := false
 var start_sloik := -1
@@ -603,6 +625,8 @@ func _ready() -> void:
 	var t0 := Time.get_ticks_msec()
 	_place_start()  # loop MW-1: --place=<id>, the sectors round the place
 	_club_start()  # loop MW-3: --club=<id>, the same
+	if garage_flag:
+		start_at = Vector3(Garage.SPOT.x, 0.0, Garage.SPOT.y)  # the garage loop: --garage
 	# The web loop 2: the web build downloads its sectors (sector_packs.gd), the start's first.
 	if SectorPacks.active() and not monolithic:
 		_packs = SectorPacks.new()
@@ -924,6 +948,7 @@ func _build_world() -> void:
 		_build_side_jobs(data, world)
 	_build_notebook(data)
 	_build_moments(data, world)
+	_build_garage(world)
 	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
 	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
 		var t := Radio.unlock_toast(String(track["title"]))
@@ -949,6 +974,7 @@ func _build_world() -> void:
 		jobs.courier.force = courier_race  # loop jobs-2
 		if courier_v > 0.0:
 			jobs.courier.speed = courier_v
+			jobs.courier.fixed_speed = true  # loop couriers
 		jobs.start_kebab(start_kebab)
 		cam_focus = car.global_position
 	elif jobs != null and start_sloik >= 0:
@@ -977,6 +1003,7 @@ func _build_world() -> void:
 	_build_crowds(data, world)
 	_build_city_life(data, world)
 	_build_buses(data, world)
+	_build_old_tram(world)
 	_build_storefronts(data, world)
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
@@ -1656,6 +1683,9 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 	if traffic != null:
 		crowds.on_screen = traffic.on_screen
 	crowds.calendar = _crowd_calendar
+	# The garage loop: the car's paint at the doors, and E01 at Lusterko's.
+	crowds.paint = func() -> String: return str(wallet.paint)
+	crowds.egg = func(id: String) -> bool: return egg_book != null and egg_book.fire(id, _egg_state())
 	world.add_child(crowds)
 	crowds.setup(notes.places, data)
 	tod.changed.connect(func(_m: int) -> void: crowds.refresh())
@@ -1682,6 +1712,74 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 			return out
 	if club_flag != "":
 		_put_at_club(club_flag)
+
+
+# --- the garage loop ---------------------------------------------------------------------------
+
+## Warsztat u Mirka (garage.gd): its ring on Brzeska, the car's saved paint (or --paint), the card
+## that pauses the game like the settings card.
+func _build_garage(world: Node3D) -> void:
+	garage = Garage.new()
+	garage.name = "Garage"
+	garage.wallet = wallet
+	garage.hud = hud
+	garage.dialogue = dialogue
+	garage.car = car
+	garage.map = map
+	garage.graph = graph
+	garage.log_on = garage_log
+	if egg_book != null:
+		garage.eggs_found = egg_book.found_total
+		# E21: the café's `viral` glon line over the green car (E01's line is the bouncer's: crowds.gd).
+		egg_book.found.connect(func(id: String) -> void:
+			if id == "e21" and dialogue != null:
+				dialogue.say(func() -> Vector3: return car.global_position + Vector3(0, 2.2, 0), "Glon", "viral", "glon", 4.5,
+						Color("#7ad36a"), 2.2, true))
+	garage.busy = func() -> bool:
+		return flying or title != null or _phone_bench or hud.settings_open() or hud.full_map_open() \
+				or (fotka != null and fotka.is_open()) or missions.has_target() \
+				or (jobs != null and jobs.busy()) or (rivals != null and rivals.busy()) \
+				or (police != null and not police.calm())
+	world.add_child(garage)
+	if paint_flag != "":
+		garage.preset(paint_flag)
+	garage.force = garage_flag
+	garage.setup(world)
+	if garage_flag:
+		_put_at_garage()
+	garage.opened.connect(func() -> void:
+		car.vel = Vector3.ZERO
+		car.forward_speed = 0.0
+		get_tree().paused = true
+		_blip_sound())
+	garage.closed.connect(func() -> void:
+		get_tree().paused = false
+		_blip_sound())
+
+
+## --garage: the car in the ring, still (the card opens at the garage's next look); --garage=ring:
+## 16 m short of it along the lane, facing it.
+func _put_at_garage() -> void:
+	if garage == null or garage.at == Vector3.INF:
+		return
+	var lane := _lane_spot(garage.at, car.rotation.y)
+	var spot := garage.at
+	var yaw := car.rotation.y
+	if not lane.is_empty() and Vector2((lane[0] as Vector3).x, (lane[0] as Vector3).z).distance_to(Vector2(garage.at.x, garage.at.z)) < Garage.RING - 1.0:
+		spot = lane[0]
+		yaw = lane[1]
+	if garage_ring_only:
+		var back := Vector3(sin(yaw), 0.0, cos(yaw)) * 16.0  # the car's front is -Z
+		spot = Vector3(spot.x + back.x, map.ground_height(spot.x + back.x, spot.z + back.z), spot.z + back.z)
+	car.global_position = spot
+	car.rotation.y = yaw
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.reset_physics_interpolation()
+	cam_focus = car.global_position
+	_cut_camera()
+	print("garage: --garage: the car at %.0f, %.0f heading %.0f, %.1f m from the ring's centre" % [spot.x, spot.z,
+			_compass_yaw(yaw), Vector2(spot.x, spot.z).distance_to(Vector2(garage.at.x, garage.at.z))])
 
 
 # --- the night-buses loop ----------------------------------------------------------------------
@@ -1717,6 +1815,56 @@ func _build_buses(data: Dictionary, world: Node3D) -> void:
 		buses.force()
 
 
+# --- the vintage-tram loop --------------------------------------------------------------------
+
+## The old tram (old_tram.gd) on the trams' tracks, after the buses. None with --no-traffic.
+func _build_old_tram(world: Node3D) -> void:
+	if trams == null:
+		return
+	old_tram = OldTram.new()
+	old_tram.name = "OldTram"
+	old_tram.trams = trams
+	old_tram.sfx = sfx
+	old_tram.dialogue = dialogue
+	old_tram.egg_book = egg_book
+	old_tram.log_on = tram_log
+	old_tram.clock = tod.local_clock
+	old_tram.calendar = _crowd_calendar
+	old_tram.focus = func() -> Vector3: return cam_focus
+	old_tram.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	old_tram.probe = _egg_state
+	world.add_child(old_tram)
+	old_tram.setup()
+	if sfx != null:
+		trams.old_bell.connect(func(at: Vector3) -> void: sfx.play_at("old_tram_bell", at))
+	if old_tram_flag != "":
+		old_tram.force(Vector2(car.global_position.x, car.global_position.z))
+
+
+## --old-tram=follow: the car (no collisions) kept 22 m behind the old set's tail on its rails,
+## facing along them, so the view goes with it and E39's count runs.
+func _old_tram_follow_frame() -> void:
+	if old_tram == null or old_tram.tram == null:
+		return
+	var t: Trams.Tram = old_tram.tram
+	var back := Trams.length_of(t) + 22.0
+	var p := trams.body_point(t, back)
+	var q := trams.body_point(t, back - 4.0)
+	var dir := (q - p).normalized() if q.distance_to(p) > 0.01 else t.dir
+	car.collision_layer = 0
+	car.collision_mask = 0
+	car.global_position = Vector3(p.x, t.pos.y + 0.5, p.y)
+	car.rotation = Vector3(0.0, atan2(-dir.x, -dir.y), 0.0)
+	car.vel = Vector3(dir.x, 0.0, dir.y) * t.v
+	car.forward_speed = t.v
+	car.target_dir = Vector3.ZERO
+	car.throttle = 0.0
+	cam_focus = car.global_position
+
+
 # --- loop MW-4: everyday life and trends -------------------------------------------------------
 
 ## Everyday life (city_life.gd) at the notebook's places, after the crowds (the trend queues are
@@ -1740,6 +1888,14 @@ func _build_city_life(data: Dictionary, world: Node3D) -> void:
 	life.trend_log = trend_log
 	life.life_log = life_log
 	life.pedzik_on = not no_parodies
+	# Loop couriers: the kerb riders ride the lane graph; the couriers wait at the kebab stands; the
+	# courier race's challenger is one of them.
+	life.graph = graph
+	life.pedzik_log = pedzik_log
+	life.kerb_close = pedzik_kerb
+	if jobs != null:
+		life.stands = jobs.stand_frames()
+		jobs.courier.life = life
 	life.soak = life_soak
 	life.zajac_rig = zajac_flag and autopilot
 	life.armchair_flag = armchair_flag  # loop jobs-2
@@ -2096,7 +2252,7 @@ func _egg_state() -> Dictionary:
 			"away": title != null or _phone_bench or (fotka != null and fotka.is_open()),
 			"look": TimeOfDay.NAMES[tod.mode], "hour": float(c["hour"]), "weekday": int(c["weekday"]), "month": month,
 			"live": live, "sun": tod.sun_elevation, "rain": weather.state != 0, "station": station, "date": ymd,
-			"roadworks": eggs.barrier_street if eggs != null else "", "crowds": _crowd_levels()}
+			"roadworks": eggs.barrier_street if eggs != null else "", "crowds": _crowd_levels(), "paint": str(wallet.paint)}
 
 
 ## The crowds' levels for the eggs (crowds.gd's, loop MW-4: and city_life.gd's).
@@ -2183,6 +2339,8 @@ func _egg_moment() -> void:
 			radio_picked = true
 		if t.has("roadworks"):
 			barrier_force = str(t["roadworks"])
+		if t.has("paint") and paint_flag == "":
+			paint_flag = str(t["paint"])  # the garage loop: E01 black, E21 green
 		if str(t.get("kind", "")) == "tape":
 			tape_flag = str(t["card"])
 		print("egg: --egg=%s %s: %s; the moment: %s%s%s" % [egg_flag, _egg["name"][0], t,
@@ -2369,6 +2527,13 @@ func _egg_place() -> void:
 			_cut_camera()
 		"tape":
 			pass  # _start_moment plays the tape (_egg_moment set --tape)
+		"event":
+			# The garage loop: E01 at a club's door (crowds.gd fires it): the car at the door.
+			if t.has("door") and crowds != null and crowds.by_id.has(str(t["door"])):
+				var site: Dictionary = crowds.sites[crowds.by_id[str(t["door"])]]
+				var door: Vector2 = site["door"]
+				_put_car_near(door, Crowds.CAR_NEAR - 1.0)
+				at = door
 	# The start point (the place's hint) may have been in the river (E09): no tow once the car
 	# stands on dry land or a deck.
 	var cp := car.global_position
@@ -2686,6 +2851,10 @@ func _parse_args() -> void:
 			# Loop jobs-2: kebab order N with the courier's challenge (day or night).
 			courier_race = true
 			start_kebab = maxi(0, int(arg.trim_prefix("--courier-race="))) if arg.contains("=") else 0
+		elif arg == "--pedzik-log":
+			pedzik_log = true  # loop couriers
+		elif arg == "--pedzik-kerb":
+			pedzik_kerb = true  # loop couriers
 		elif arg.begins_with("--courier-v="):
 			courier_v = clampf(float(arg.trim_prefix("--courier-v=")), 0.5, 30.0)
 		elif arg == "--roundup":
@@ -2786,6 +2955,10 @@ func _parse_args() -> void:
 			night_hub_flag = true
 		elif arg == "--bus-log":
 			bus_log = true
+		elif arg == "--old-tram" or arg.begins_with("--old-tram="):
+			old_tram_flag = "follow" if arg == "--old-tram=follow" else "now"
+		elif arg == "--tram-log":
+			tram_log = true
 		elif arg.begins_with("--honk="):
 			for f in arg.trim_prefix("--honk=").split(",", false):
 				honk_frames.append(int(f))
@@ -2813,6 +2986,16 @@ func _parse_args() -> void:
 			club_flag = arg.trim_prefix("--club=")
 			show_title = false
 			free_roam = true
+		elif arg.begins_with("--paint="):
+			paint_flag = arg.trim_prefix("--paint=")  # the garage loop
+		elif arg == "--garage" or arg == "--garage=ring":
+			garage_flag = true
+			garage_ring_only = arg == "--garage=ring"
+			garage_log = true
+			show_title = false
+			free_roam = true
+		elif arg == "--garage-log":
+			garage_log = true
 		elif arg.begins_with("--egg="):
 			egg_flag = arg.trim_prefix("--egg=")
 		elif arg == "--egg-log":
@@ -2884,7 +3067,7 @@ func _parse_args() -> void:
 	# Test runs go straight to the city (--title brings the title screen back).
 	if demo or not shots.is_empty() or autopilot or start_race > 0 or start_mission > 0 or start_rival > 0 or bench or probe \
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or open_map_at_start or hold_stick != Vector2.INF or bench_button \
-			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0:
+			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0 or old_tram_flag != "":
 		show_title = false
 	if start_ride >= 0 or place_flag != "" or roundup_flag:
 		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place)
@@ -4030,10 +4213,14 @@ func _make_stats() -> BenchStats:
 		b.systems["city life"] = [life, "spent_usec", true]  # loop MW-4
 	if buses != null:
 		b.systems["buses"] = [buses, "spent_usec", true]  # the night-buses loop
+	if old_tram != null:
+		b.systems["old tram"] = [old_tram, "spent_usec", true]  # the vintage-tram loop
 	if storefronts != null:
 		b.systems["storefronts"] = [storefronts, "spent_usec", true]  # loop MW-2
 	if egg_book != null:
 		b.systems["eggs+tape+spacer"] = [self, "_moments_usec", false]  # loop MW-6
+	if garage != null:
+		b.systems["garage"] = [garage, "spent_usec", true]  # the garage loop
 	b.systems["sound"] = [sfx, "last_usec", false]
 	b.systems["hud+minimap"] = [hud, "spent_usec", true]
 	b.systems["bubbles"] = [bubbles, "spent_usec", true]
@@ -4389,6 +4576,8 @@ func _read_input(dt: float) -> void:
 		_ram_test_frame(dt)
 	if tram_watch >= 0:
 		_tram_watch_frame()
+	if old_tram_flag == "follow":
+		_old_tram_follow_frame()  # the vintage-tram loop
 
 
 ## The stick and W A S D both point in screen space (W is up the screen); Space /

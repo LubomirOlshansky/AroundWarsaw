@@ -1387,7 +1387,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (`fotka.gd`, `data/kadr.json`'s 15 Kadr spots), the notebook's SEKRETY / KASETA / KADR pages,
   `check_eggs` and `check_tape` (verify steps `eggs`, `tape`; quick set and CI), `check_hud`'s
   new pages and Fotka's controls, the flags (DEVELOPMENT.md "Fotka, Spacer, KASETA and the eggs").
-- **The 19 waiting eggs** and what wakes each: E01 E21 the garage's paint; ~~E03 the dawn crowd
+- **The 19 waiting eggs** and what wakes each: ~~E01 E21 the garage's paint~~ (woken in the garage
+  loop: 1 waits now, E35); ~~E03 the dawn crowd
   and the Dawn look (MW-3); E04 the patrol cars parked by the clubs (MW-3); E15 the guitarist
   on the steps (MW-3)~~ (woken in loop MW-3: 16 wait now); ~~E16 E27 the dog walkers (MW-4); E18 E19
   Wiralek's trend cycle (MW-4)~~; ~~E23 E25 the night buses at Centralny (MW-3 skipped them: "From
@@ -1395,7 +1396,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   loop: 4 wait now);
   ~~E28 the Rowerilo riders (MW-4); E29 E30 Kolka and Hyrax (MW-4)~~ (woken in loop MW-4: 9 wait
   now); ~~E34 the armchair man (MW-4 skipped it: "From loop MW-4")~~;
-  E35 KASETA's older decades (T1); E39 a tram in old livery; ~~E40 the payphone prop (with T17)~~
+  E35 KASETA's older decades (T1); ~~E39 a tram in old livery~~ (woken in the vintage-tram loop: 3
+  wait now; T13 stays waiting: "From the vintage-tram loop"); ~~E40 the payphone prop (with T17)~~
   (E34 and E40 woken in loop jobs-2: 7 wait now; T17 is not a then card: "From loop jobs-2").
   Each needs only its trigger in `eggs.json` (drop `waits`) once its piece exists.
   ~~The Frogs shop's two eggs are not cards yet (MW-2).~~ Done in MW-2: `easter_rechotka`,
@@ -1438,8 +1440,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   then E23 and E25 only need their triggers (drop `waits`).~~ Done in the night-buses loop
   (`buses.gd`; traffic.gd `send_to_stop`, `add_bus`, `let_go`, `night_sign`; "From the night
   buses loop").
-- **E01 and `car_black`** wait for the garage's paint (the car line fires; the black car's line
-  and the egg need a paint the player chose).
+- ~~**E01 and `car_black`** wait for the garage's paint (the car line fires; the black car's line
+  and the egg need a paint the player chose).~~ Done in the garage loop ("From the garage loop").
 - ~~**Level 26's roof crowd**: the roof grid (`map.roof_height`) has nothing over 40 m at
   level_26's resolved point, so no roof crowd is built.~~ Done (F's asks, 2026-10-30): the hint
   was 520 m west of the tower; `near` now on it.
@@ -1589,8 +1591,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   should be checked for a hitch at sector load.
 - **Setup** costs ~230 ms at the city's start (headless, desktop): the address and venue lists,
   the shop picks, the Leżak and metro picks, the neon atlas. Could move to a worker thread.
-- **Not built (cheap later)**: Pędzik on the road's kerb edge (they ride the cycle paths and
-  footways only), the 1-2 couriers waiting at each kebab stand at night, the hop over a car,
+- **Not built (cheap later)**: ~~Pędzik on the road's kerb edge (they ride the cycle paths and
+  footways only), the 1-2 couriers waiting at each kebab stand at night, the hop over a car~~
+  (done in loop couriers: "From loop couriers"),
   ~~**the courier race** (parodies.md 4.3), **the Leżak round-up** (5.3: depot, pins, boot of 5)~~
   (done in loop jobs-2: "From loop jobs-2"), Leżaks on shelter roofs.
 - **PixelLab pictograms** (parodies.md 6.2 / 9): the ten billboards are text only (the five new
@@ -1614,13 +1617,15 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Mokotowska (E34): 40 eggs reachable, 7 waiting. `check_side_jobs` (verify `jobs2`, quick and CI);
   `--courier-race[=N]`, `--courier-v=`, `--roundup`, `--armchair` (DEVELOPMENT.md "The courier race,
   the round-up, the payphone and the armchair man").
-- **The courier rarely wins in play**: on today's map the footway network follows the streets, so
+- ~~**The courier rarely wins in play**: on today's map the footway network follows the streets, so
   his way is about as long as the road (stand 0 → Oboźna 1: 1,013 m against 1,023 m); at 6.5 m/s
   a player driving at 30-50 km/h beats him by a minute. parodies.md's "25 % shorter" needs park and
   courtyard paths the bake doesn't have, or a faster rider. The autopilot (the job's ghost: 222 s
-  for 1 km with the lights) loses. Tune on the phone (Open Question: speed).
-- **The courier appears when he challenges**: parodies.md 4.2's 1-2 couriers waiting at each stand
-  at night are still not built, so the challenger is drawn by the kiosk only from the challenge.
+  for 1 km with the lights) loses. Tune on the phone (Open Question: speed).~~ Loop couriers: his pace
+  is the order's road at 10 m/s (6.5-11 m/s), a decent drive wins about 2 in 3 ("From loop couriers").
+- ~~**The courier appears when he challenges**: parodies.md 4.2's 1-2 couriers waiting at each stand
+  at night are still not built, so the challenger is drawn by the kiosk only from the challenge.~~
+  Loop couriers: the challenger is one of the couriers waiting there.
 - **The round-up follows parodies.md 5.3** (collect into a boot of 5, unload at the depot), not
   pushing scooters into the zone with the knock: the brief's wording; Open Question.
 - **Leżaks round a depot are picked up and unloaded at once** (the zone's 2-3 lie within the 7 m
@@ -1643,6 +1648,33 @@ Small problems that agents reported or that showed up in screenshots. They are f
   drove about 2.3 km to Oboźna 1 (the race's gap read 2,292 m at 20 s, honest, the car's own
   lane). The race reads the car's lane, so it can say 2ND at the start of an order the card calls
   short. Snapping the stand by the car's heading in `_make_kebab_order` would fix the card.
+
+## From loop couriers (Pędzik at the kebab stands and on the road, 2026-10-31)
+
+- Done: 1-2 couriers waiting by each kebab stand at night (the race's challenger is one of them),
+  3 / 5 kerb riders (day / night) on the roads' kerb edge, the swerve onto the footway or the hop,
+  the near miss's line, the courier race's pace; `check_couriers` (verify `couriers`, quick and CI),
+  `--pedzik-log`, `--pedzik-kerb` (DEVELOPMENT.md "The Pędzik couriers at the stands and on the kerb").
+- **The race's pace is a model, not a measurement**: a decent player is taken as 30-50 km/h door to
+  door (BACKLOG's own range above); the rider's time is the road's at 10 m/s, so such a player wins
+  2 in 3. On the default route the rider rides 9.9 m/s (36 km/h, 102 s for 1,015 m). Nobody has
+  timed real players: count wins on the phone (`courier:` lines) and move `CourierRace.V_ROAD`
+  (Open Question). The shortcut through courtyards needs footways the bake doesn't have (map lane).
+- **The kerb line is 0.45 m in, not parodies.md's 0.6 m**: a traffic car's side is 0.63 m from the
+  kerb on a 3 m lane, so at 0.6 m the AI cars on the kerb lane would pass through the rider's
+  handlebars. The AI traffic doesn't see the riders (a bus pulling in at a stop, or a car on a
+  narrower 2.9-3 m lane, can still brush one); lanes under 2.9 m and living streets have none.
+- **The waiting couriers stand still**: the car driven onto the pavement at a stand passes through
+  them (they are not movers; the riders and walkers step aside). Small; a shove like the walkers'.
+- **"He gets on his bike"** is a cut: at ŚCIGAJ the standing instance in the Pedzik MultiMesh goes
+  and the race's own rider (riding) appears on his spot; no mounting animation. The race's rider is
+  still its own MeshInstance3D (+1 draw call while a race is in view, as in jobs-2); folding it into
+  the Pedzik MultiMesh would make that +0.
+- **Hops are rare**: a kerb rider hops only where the footway past the kerb is a roof, another road
+  or a bridge (its railing); elsewhere he swerves. The phone should say whether a hop reads at all
+  (0.3 s, 0.55 m up, at the movers' 15 Hz step: ~5 frames).
+- **`--courier-race` at night by a stand with nobody waiting** still draws the rider at the kiosk (forced);
+  unforced, no courier waiting means no challenge (parodies.md 4.3).
 
 ## From the night buses loop (the N sign, Centralny's ring, the bus stops, the horn, 2026-10-31)
 
@@ -1685,3 +1717,58 @@ Small problems that agents reported or that showed up in screenshots. They are f
   prebuilt sectors from another bake): the `prebuilt` step logged 1,647 `_fill_height` errors on
   main too. A scratch copy re-split and rebuilt with a renderer ran with 0 errors.
   `tools/setup_map.sh --if-needed` fixes it in place (map lane).
+
+## From the vintage-tram loop (the old two-car set, E39, 2026-10-31)
+
+- Done: the old set (a rounded 1960s-style motor car and trailer, red and cream, our own shape) on
+  the trams' tracks, one of the eight trams recruited out of sight (its meshes swapped, the third
+  car hidden: -1 draw call in view); Saturdays and Sundays 09:00-19:00 (Live: June-September), one
+  25-min run an hour; its creak and its own bell; E39 (300 m followed within 40 m, +30, the egg's
+  line over the tram): 44 eggs reachable, 3 waiting. `check_old_tram` (verify `oldtram`, quick and
+  CI); `--old-tram[=follow]`, `--tram-log` (DEVELOPMENT.md "The vintage tram and E39").
+- **T13 waits**: vision's E39 reward names the then card T13 (the rounded 1960s tram and the boxy
+  1970s one), but the then cards start in 2010 (QUESTIONS, answered 2026-10-30): E39 gives +30
+  and its line only. When the older decades come (with T1), T13 can be added to
+  `then_cards.json` and to E39's reward (`"then": "t13_..."`).
+- **Without Live the set is rare**: the fixed looks' clock is "always Friday" (Day 14:00), so the
+  set runs only on the game's Saturday: Dawn's clock after 09:00 (3+ hours of play) or the Day look
+  from `--clock=` before noon. Open Question: also run it in the plain Day look (e.g. one run an
+  hour whatever the day) so that E39 is findable without Live? Built as the brief says.
+- **The hours are a guess**: 09:00-19:00, one run an hour starting in the first half hour, 25 min
+  each; the set at 29 km/h. Tune with F on the phone.
+- **No boxy 1970s set**: vision's T13 pairs the rounded tram with a boxy 1970s one; only the
+  rounded one runs. A second look (a 105N-like boxy set) is a mesh swap away if wanted.
+- **The rails don't change**: it runs the modern trams' pieces, stops and lights; no heritage
+  route (Warsaw's tourist line T) of its own. A route would need the map lane's track pieces
+  named by line.
+- **Night**: it runs by day only, so its hidden third car's tail glow isn't missed; with
+  `--old-tram` at night the trailer shows its tail lamps but no red glow on the rails.
+
+## From the garage loop (Warsztat u Mirka and the paint jobs, 2026-10-31)
+
+- Done: the garage on Brzeska in Praga (a dashed blue ring, a diamond on the minimap and the full
+  map; shown after the first earnings, a toast the first time), the paint card (pauses the game;
+  8 paints: factory red free, cream 150, pea green 180, blue 200, yellow 250, black 300, pink 350,
+  gold free at 5 egg cards), owned paints kept and switched free, saved in `[garage]`; `car.gd`
+  `set_paint`; Mirek's lines (dialogue.json `garage`); E01 (black at Lusterko's door, Fri/Sat
+  23-06, +50, `car_black`) and E21 (green, 2 s at Glon, +15): 46 eggs reachable, 1 waiting (E35).
+  `check_garage` (verify `garage`, quick and CI); `check_hud` lays the card out; `--paint=`,
+  `--garage[=ring]`, `--garage-log` (DEVELOPMENT.md "The garage").
+- **The 3 cars** (DEMO 6.3: the hatchback, a boxy estate and a tiny 1970s-style city car, invented
+  shapes) are not built: a later loop (models.gd's shapes, the card's second row, their feel in
+  car.gd: driving lane).
+- **The horn tune** (DEMO 6.3: collectibles unlock a horn tune) is not built: a later item with
+  the horn's sound (buses.gd's horn button).
+- **No sign on the workshop**: the venue neon fascias (storefronts.gd) come from places.json
+  places; a "WARSZTAT" sign needs a place (or a sign hook of its own) and the letters in the neon
+  atlas. Until then the ring and the diamond mark it.
+- **Prices are a guess** (150-350 zł, black 300; the gold one at 5 egg cards): tune with F on the
+  phone against how fast the złoty come in the first 15 minutes.
+- **The unlock is "after the first earnings"**, not the beat's clock (10:00 of play): with the demo
+  script's first order at 0:30 it shows within the first minute. Open Question for the designer.
+- **The bouncer's `car` lines name a red hatchback** ("Czerwony hatchback. Dziś wchodzi tylko
+  czerń.") whatever the paint: with another non-black paint it is a white lie. A `car_red` tag (the
+  designer's words) would fix it.
+- **Brzeska is one-way and narrow** (3 m, one lane): the ring covers the street; a car coming the
+  other way still drives in. The workshop could move to a wider kerb (map lane: a service way's
+  mouth on Brzeska) if F finds it awkward.

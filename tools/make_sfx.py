@@ -34,6 +34,11 @@ levels (if their folder is given) to balance the buses against.
       "meep" (494 / 622 Hz, 0.3 s, a nasal square through a 1.3 kHz band): the B key and
       the HUD's horn button (buses.gd)
   pigeons      a flock flushing
+  tram_creak   the vintage-tram loop (old_tram.gd): the old set's low creak, 1.1 s: a stick-slip
+      pulse train wandering 70-110 Hz through two body resonances (380 / 820 Hz), swelling in
+      and out
+  old_tram_bell  the old set's own two-tone gong, 1.6 s: two strikes, 784 then 622 Hz, with
+      the gong's inharmonic partials (lower and plainer than the modern tram_bell)
   birds_a / birds_b       sparrow chirps, a whistled phrase (day)
   siren_far / dog_far     the night's rare distant events
   police_siren   loop 3g-2 (docs/design/police.md 10): the patrol car's two-tone siren,
@@ -70,7 +75,8 @@ levels (if their folder is given) to balance the buses against.
   --only=club_leak,busker  makes just those (the city's sounds: club_leak, metro_chime,
   church_bell, busker, crowd_murmur, steps_guitar; loop MW-4's bark_small, bark_mid, bark_big,
   bike_bell, watch_beep, queue_chatter, phone_shutter, cafe_bell; loop MW-2's frog_chime,
-  scooter_clatter) and leaves the other files as
+  scooter_clatter; the night-buses loop's horn_player; the vintage-tram loop's tram_creak,
+  old_tram_bell) and leaves the other files as
   they are.
 """
 import array
@@ -530,6 +536,37 @@ def horn_player():
             out[i] += amp * sq * env
     out = mix((0.45, biquad(out, "lp", 2400.0, 0.7)), (0.9, biquad(out, "bp", 1300.0, 2.2)))
     return saturate(out, 1.5)
+
+
+def tram_creak(seed):
+    """The vintage-tram loop: a low wooden-and-steel creak, stick-slip pulses through resonances."""
+    rnd = random.Random(seed)
+    n = int(1.1 * RATE)
+    out = zeros(n)
+    i = 0.0
+    while i < n:
+        t = i / n
+        f = 70.0 + 40.0 * (0.5 - 0.5 * math.cos(TAU * t * 1.3)) + rnd.uniform(-6.0, 6.0)
+        k = int(i)
+        amp = math.sin(math.pi * t) ** 1.5 * rnd.uniform(0.6, 1.0)
+        for m in range(min(18, n - k)):
+            out[k + m] += amp * (1.0 - m / 18.0) * (1.0 if m < 3 else -0.4)
+        i += RATE / f
+    body = mix((0.9, biquad(out, "bp", 380.0, 4.0)), (0.55, biquad(out, "bp", 820.0, 5.0)),
+               (0.25, biquad(out, "lp", 240.0, 0.7)))
+    return fade(saturate(body, 1.4), 0.03, 0.12)
+
+
+def old_tram_bell(seed):
+    """The vintage-tram loop: the old set's two-tone gong, struck twice."""
+    rnd = random.Random(seed)
+    n = int(1.6 * RATE)
+    out = zeros(n)
+    for at, f, g in ((0.0, 784.0, 1.0), (0.24, 622.0, 0.85)):
+        sig = bell(n - int(at * RATE), [(f, 1.0, 0.7), (f * 2.76, 0.3, 0.3), (f * 5.4, 0.12, 0.12),
+                                        (f * 0.5, 0.25, 0.8)], 0.4, rnd)
+        place(out, sig, int(at * RATE), g)
+    return fade(out, 0.0, 0.15)
 
 
 def pigeons(seed):
@@ -1210,7 +1247,9 @@ CITY = {"club_leak": lambda: [club_leak(71)], "metro_chime": lambda: [metro_chim
         # Loop MW-2 (storefronts.gd): the Frogs door's croak chime, a Leżak knocked over.
         "frog_chime": lambda: [frog_chime(89)], "scooter_clatter": lambda: [scooter_clatter(90)],
         # The night-buses loop (buses.gd): the player's horn.
-        "horn_player": lambda: [horn_player()]}
+        "horn_player": lambda: [horn_player()],
+        # The vintage-tram loop (old_tram.gd): the old set's creak and its bell.
+        "tram_creak": lambda: [tram_creak(91)], "old_tram_bell": lambda: [old_tram_bell(92)]}
 
 
 def main(out_dir, radio_dir=None, only=None):

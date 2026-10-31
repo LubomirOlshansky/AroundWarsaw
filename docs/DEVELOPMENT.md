@@ -3639,7 +3639,10 @@ Data: `data/eggs.json` (45 cards) and `data/kadr.json` (15 spots); the then card
   E23 E24 E25 E34 E35 E39 E40; "Everyday life and trends" below). Loop MW-2 added the Frogs and
   Leżak eggs (38 reachable); loop jobs-2 woke E34 (an `event`: the armchair man) and E40 (a `stop`
   at the payphone): **reachable 40, waiting 7** (E01 E21 E23 E24 E25 E35 E39). The night-buses loop woke E23
-  E24 E25 (`event`s seen by `buses.gd`): **reachable 43, waiting 4** (E01 E21 E35 E39).
+  E24 E25 (`event`s seen by `buses.gd`): **reachable 43, waiting 4** (E01 E21 E35 E39). The
+  vintage-tram loop woke E39 (an `event` seen by `old_tram.gd`): **reachable 44, waiting 3** (E01
+  E21 E35). The garage loop woke E01 (an `event`: `crowds.gd` at Lusterko's door) and E21 (a `stop`
+  with the `paint` condition): **reachable 46, waiting 1** (E35; "The garage" below).
 - **KASETA** (`tape.gd`): the 20 then cards at their notebook places. Within 40 m of one, on the
   ground under 12 km/h, the context button reads KASETA · time tape; a tap plays it: the VHS
   overlay for 6 s, a tape-rewind sound (procedural, seeded, no file), a dithered ghost of the
@@ -3717,8 +3720,8 @@ condition). Lines: the vision's groups already in `dialogue.json` (`club_door`, 
   dark clothes, a broader bouncer at the door. The door: a `club_door` `reject` bubble every
   30-60 s while a queue of 4 or more is on screen (the one turned away goes to the end, or for
   a kebab), a `clubbers` line every 35-60 s. The car at the door (under 10 km/h within 8 m):
-  the bouncer's `car` line once per club per night; `car_black` and E01 wait for the garage's
-  paint.
+  the bouncer's `car` line once per club per night (the garage loop: painted black, `car_black`;
+  at Lusterko on a Friday or Saturday night 23:00-06:00 egg E01 and that line, queue or not).
 - **Level 26's roof crowd**: built only where the roof grid has a tower over 40 m at the place.
   F's asks (2026-10-30): `places.json` `near` moved onto the tower at Plac Zawiszy (it was 520 m
   west of it; the map's 116 m tower, OSM "Atlas Tower" parts, centre about −2224, 1012), so it
@@ -4003,8 +4006,9 @@ none of it); nothing new casts a sun shadow.
   footways, 5-7 m/s; `city_life.gd`'s movers (they step aside from the car like the cyclists).
   One city MultiMesh of 16 ("Pedzik", +1 in view): the bike family's mesh already holds its four
   morph shapes. A near miss (within 4 m, the car over 10 km/h) gets a `pedzik` bubble, once per
-  30 s. Not built: the kerb-edge riding, the couriers waiting at the stands (BACKLOG); loop jobs-2
-  built the race ("The courier race, the round-up, the payphone and the armchair man" below).
+  30 s. Loop jobs-2 built the race ("The courier race, the round-up, the payphone and the armchair
+  man" below); loop couriers the kerb riders, the couriers waiting at the stands and the dodge ("The
+  Pędzik couriers at the stands and on the kerb" below).
 - **Metro entrances** (vision 3.5): up to three on the pavement within 70 m of each of nine
   station places (Ratusz Arsenał, Świętokrzyska, Centrum, Politechnika, Rondo ONZ, …), a glass
   canopy and an M post; they and the zones' paint are one "StreetProps" mesh per sector (+1 where
@@ -4048,7 +4052,7 @@ Data: `eggs.json` E34 (`event`) and E40 (`stop`, 8 m, 2 s): no words changed.
   PĘDZIK (key L) for 6 s. His way is an A* over the footways, crossings and cycle paths within 250 m
   of the stand and the door (`Crowds.build_routes`, in a worker thread while the order card is up);
   no challenge when it is over 1.6 × the straight line. Accepting starts the delivery (GO) too; he
-  rides at 6.5 m/s (23 km/h). The kebab's status gets the rivals' 1ST / 2ND badge and "Pędzik: N m
+  rides at 6.5 m/s (23 km/h; loop couriers: at his pace, below). The kebab's status gets the rivals' 1ST / 2ND badge and "Pędzik: N m
   przed tobą / za tobą" (the gap: his way left against the car's road distance to the door, either side of the street, at 5 Hz). At the
   door first: the kebab pays as usual plus **+30 zł +30 respect** (`wallet.pay`, kind `courier`) and
   his `lose` line; second: the kebab pays as usual, his `win` line when he arrives. The kebab's heat
@@ -4097,6 +4101,70 @@ Data: `eggs.json` E34 (`event`) and E40 (`stop`, 8 m, 2 s): no words changed.
   the payphone's spot and mesh, E40 once. `check_city_life.gd` adds the armchair man (1 in 3 over 600
   days, there and back, his ends, his way on Mokotowska, the guest and the chair near him and none
   far, E34 once).
+
+## The Pędzik couriers at the stands and on the kerb (loop couriers, 2026-10-31)
+
+docs/design/parodies.md 4.2 and 4.3. Code: `city_life.gd` (the kerb riders, the dodge, the waiting
+couriers, `waiting_at` / `take_waiting`), `props.gd` (`pedzik_rider` is now a two-shape morph family:
+riding, and `PEDZIK_STANDING`), `courier_race.gd` (the challenger, `pace`, `decent_wins`), `jobs.gd`
+(`stand_frames`, the stand's index to the race), `main.gd` (the wiring, `--pedzik-log`, `--pedzik-kerb`).
+
+- **Couriers waiting at the kebab stands** (21:00-06:00): 1 or 2 by each stand within 200 m of the view
+  (`waiting_count`, seeded by the stand and the night), standing on their bike's right with the bike
+  pointing at the road, at the first two free spots 2.75 m (else 3.9 m) either side of the kiosk (no
+  roof, no lane within 1.8 m); none by day. They are instances of the Pedzik MultiMesh after the riders,
+  drawn with the rider mesh's standing shape (actor.gdshader's morph): **+0 draw calls**.
+- **The courier race's challenger** is one of them: no courier waiting at night, no challenge (unless
+  `--courier-race` forces it: then he appears at the kiosk as before). Through the offer he stands where
+  he was (the challenge bubble over him); at ŚCIGAJ he gets on his bike (`take_waiting`: he leaves the
+  MultiMesh and the race's rider appears riding on his spot) and his way starts there. A taken courier
+  is back when the stand has been out of the band (300 m) or by the next night.
+- **The race's pace** (BACKLOG "The courier rarely wins"): the rider's time is the order's road at
+  `V_ROAD` 10 m/s (`pace`: his way × 10 / the road, 6.5-11 m/s); taking a decent player as 30-50 km/h
+  door to door (8-14 m/s, spread evenly), the player wins 2 in 3 whatever the route's shape
+  (`decent_wins`). The default route (stand 0 → Oboźna 1: his way 1,015 m from his spot, the road
+  1,023 m): 9.9 m/s, 102 s. `--courier-v=` still fixes the speed for a test run. A faster rider, not a
+  shortcut: the footways follow the streets (no courtyard paths in the bake).
+- **Kerb riders**: 3 round the view by day, 5 at night (× the life amount; on top of the 4 / 6 on the
+  cycle paths and footways), on the lane graph's roads with lanes 2.9 m wide or more (no living street,
+  no tunnel), riding with the traffic on the outer lane's kerb line 0.45 m in from the kerb (parodies.md
+  says 0.6: a traffic car's side is 0.63 m from the kerb on a 3 m lane), 5-7 m/s, across the junctions
+  to a road going on (straight or right first, a left turn or the U-turn only when nothing else).
+  Same pool of 16 and MultiMesh (+0).
+- **The dodge** (every Pędzik rider, at the movers' step near the car): the closest approach of the
+  rider and the car over the next second (`closest_approach`, both moving); within 4 m he **swerves**
+  1.4 m past the kerb onto the footway (3 m/s sideways; a path rider is on the footway already and
+  steps aside with the walkers' shove) or, where the footway there is under a roof, on another road or
+  he is on a bridge, **hops** (0.3 s, 0.55 m up). Back to his line 1 s after the car is clear. The old
+  clearing (CLEAR of the car's way) stays the backstop: never inside the car's footprint. A dodge with
+  the car at 10 km/h or more is a near miss: a `pedzik` line over him, at most once per 30 s.
+- **Testing aids**: `--pedzik-log` (`pedzik: 01:30 · 6 on the paths, 5 on the kerb · 3 waiting at 2
+  stands · swerves 2 · hops 0 · lines 1` a minute, each swerve, hop, near miss and take),
+  `--pedzik-kerb` (the kerb riders start 8-35 m from the view, for shots).
+- **Check**: `check_couriers.gd` (verify step `couriers`, quick and CI; `centrum.json` and
+  `places.json` only, the stands placed by jobs.gd's own kerb test on the lane graph, seeded): the
+  counts (kerb 3 / 5, waiting 1-2 at night over 1,260 stand-nights and none by day, the night the same
+  across midnight), the kerb roads, the dodge on synthetic inputs (head on, overtaken 3 m aside, wide,
+  going away, far, parked), the hop's arc, the near miss's rate (10 lines in 300 s of near misses every
+  2 s at 30 km/h, none under 10 km/h), the real city at night by a stand (its couriers, drawn standing
+  after the riders, the race's take and its return, none by day), the kerb riders on their kerb lines
+  and still on kerb roads after 20 s, a car driven at one at 10 m/s (a swerve onto the footway and back,
+  0 overlaps, one line). `check_side_jobs.gd` adds the pace, the waiting challenger and `--courier-v`.
+- **Cost** (Linux container; before = the code from a copy; headless `--fixed-fps 60`, two runs each;
+  draw calls rendered with the software Vulkan driver at 2532×1170, one run each):
+
+  | | Before | After |
+  | --- | --- | --- |
+  | Bench route, day (`--bench`): "city life" | 0.04 / 0.03 ms | 0.04 / 0.04 ms |
+  | Kebab stand 0 at night (`--probe --at=632,-52 --time=night`): "city life" | 0.04 / 0.03 ms | 0.04 / 0.04 ms |
+  | Draw calls, stand 0 at night (main / shadow / 2D) | 116 (68 / 0 / 47) | 115 (67 / 0 / 47) |
+  | Draw calls, a plain day start (`--probe --time=day`) | 129 (59 / 35 / 35) | 129 (59 / 35 / 35) |
+
+  The waiting couriers and the kerb riders are Pedzik MultiMesh instances (+0; the ±1 at the stand is
+  which MultiMeshes happen to be in view). Triangles: the rider mesh 200 → 186 (the family drops the
+  boxes' unseen bottoms). `check_couriers`: ~35 µs a 15 Hz step at a stand at night with everything
+  near (≈ 9 µs a frame). No per-frame scans: the stands are looked at in the 2 Hz tick (42 of them), a
+  stand's free spots once, the room for a swerve once per dodge.
 
 ## The night buses, the bus stops and the horn (loop night-buses, 2026-10-31)
 
@@ -4167,6 +4235,135 @@ It drives the traffic's own buses (`traffic.gd`'s BUS pool of 8, main roads only
 
   The N sign, the ring and the stop figures add no 3D draw call (the bus and walkers' MultiMeshes);
   the horn is one triangle array (one 2D draw).
+
+## The vintage tram and E39 (loop vintage-tram, 2026-10-31)
+
+`game/scripts/old_tram.gd` (built in `main.gd` after the buses; docs/design/vision.md 8, egg E39
+"Zabytkowy tramwaj"). It ticks on a 0.5 s timer, with no per-frame scans.
+
+- **The set**: a rounded 1960s-style two-car set, our own shape (no operator's name or logo): a
+  motor car with a diamond pantograph and a trailer, carmine red below and cream above, a thin red
+  line over the windows, a grey-cream roof rounded at its edges and ends, a four-piece
+  windscreen, two headlamps, a lit destination plate with a "T", doors on the right side only
+  (a single-ended set), tail lamps on the trailer's back. Each car is one mesh of one surface on
+  the actor material (`vintage_meshes()`, made once; 1,238 and 942 vertices, a modern cab car 240).
+- **On the tracks**: it is one of `trams.gd`'s eight trams, recruited while out of sight
+  (`set_vintage`): the meshes of its own MeshInstance3Ds are swapped and its third car hidden
+  (`n_cars` 2, its length 21.7 m for the spacing). It runs like any tram (stops, lights, keeping
+  apart) at 8 m/s (29 km/h, the modern ones 40): the trams behind it queue. **-1 draw call** while
+  in view (two car meshes for three), never more.
+- **When**: Saturdays and Sundays 09:00-19:00 by the game clock (`time_of_day.gd` `local_clock`,
+  the weekday the crowds read); with Live, June to September only. One run an hour: it starts at
+  a minute seeded by the day (Live: the date; the fixed looks: the weekday) and the hour, in the
+  first half hour, and lasts 25 min. A run takes the out-of-sight tram nearest the car (`trams.gd`
+  `in_sight`: within the trams' posing reach of the view); when it is over the set turns modern
+  again once it is out of sight. The fixed looks' clock is Friday from 14:00 (Day), so without
+  Live it shows on the game's Saturday: the Day look from `--clock=` before noon, or Dawn's
+  Saturday after 09:00.
+- **The sound**: a low creak (`tram_creak`, make_sfx.py: stick-slip pulses through two body
+  resonances, 1.1 s) every 6-11 s while it moves within 85 m of the view, and its own two-tone
+  gong (`old_tram_bell`, 784 / 622 Hz) where a modern tram rings (`trams.gd` `old_bell`). Both
+  go through `sfx.gd`'s six positional voices.
+- **E39**: the car (not the helicopter) within 40 m of the set's body, behind or beside it (at
+  most 2 m past its nose), adds the metres the set moves; farther than 80 m starts the count
+  again (`follow_step`). At 300 m: E39 (+30 respect) and the egg's own line ("Kiedyś skrzypiało.
+  Teraz szumi. Tęsknimy za skrzypieniem.") in a bubble over the tram. Vision's reward also names
+  the then card T13, which stays waiting: the then cards start in 2010 (QUESTIONS, answered).
+- **Testing aids** (flags table): `--old-tram` (the set now on the track nearest the car, whatever
+  the time; it stays), `--old-tram=follow` (and the car, with no collisions, kept 22 m behind its
+  tail: the view goes with it and E39's count runs), `--tram-log` (`old tram:` lines).
+- **Check**: `check_old_tram.gd` (verify step `oldtram`, quick set and CI; `centrum.json` only):
+  the window with and without Live and on the fixed looks' clock, one 25-min run in each of 50
+  hours with 26 different start minutes, the follow count (adds, holds, resets), the look (two
+  cars of one surface, the recruited tram showing 2 of its 3 mesh nodes, no node added, the
+  modern meshes back on the way out), and a run on the real tracks: taken out of sight, E39 once
+  at 304 m (+30), the count reset 100 m back, modern again out of sight.
+- **Cost** (headless bench, two runs each; rendered draw calls with software Vulkan, all passes):
+
+  | View | Before | After |
+  | --- | --- | --- |
+  | Bench route, day (headless, scripts total) | 2.50-2.83 ms | 2.59-2.66 ms (noise); "old tram" 0.00 ms |
+  | The set in view on Marszałkowska (`--probe --at=-1113.2,-263.4 --heading=160 --time=day --old-tram`, headless) | | scripts 2.63 ms, "old tram" 0.00 ms (under 5 µs a frame) |
+  | Plain day at the spawn (`--probe --time=day`), rendered | 128 (main 58 / shadow 35 / 2D 35) | 128 (58 / 35 / 35) |
+  | The same tram there as a modern three-car tram vs the old set, rendered | 134 (61 / 38 / 35) | 132 (60 / 37 / 35): one car fewer in each 3D pass |
+
+## The garage: Warsztat u Mirka and the paint jobs (the garage loop, 2026-10-31)
+
+docs/DEMO.md 6.2's 10:00 beat and 6.3 "Progression" (złoty buy paint jobs; collectibles open a gold
+paint), checklist F4. Code: `garage.gd` (new: the place, the paints, the rules, a 4 Hz look at the
+ring), `garage_card.gd` (new: the paint card), `wallet.gd` (`spend`, `paint`, `paints`; the save's
+`[garage]` section), `car.gd` (`set_paint`), hooks in `main.gd` (section "the garage loop"),
+`hud.gd` / `full_map.gd` (the diamond), `crowds.gd` (the black car at the doors), `egg_book.gd`
+(the `paint` and `nights` conditions). Data: dialogue.json's `garage` group (Mirek's lines: `hello`,
+`buy`, `black`, `green`, `gold`, `switch`, `short`, `locked`), eggs.json's E01 and E21 triggers.
+
+- **The place**: "Warsztat u Mirka" on Brzeska in Praga (a real street, an invented workshop;
+  Mirek is an invented type), at the lane graph's point nearest `Garage.SPOT` (1321, -1948). A
+  dashed ring in the garage's blue (`#5aa0ff`, jobs.gd's pull-in look, radius 6 m) on the street,
+  and a blue diamond on the minimap (pinned to the rim up to 1.5 km away) and the full map. No sign
+  on the building (the venue neon path needs a places.json place; a later item).
+- **When it shows**: once the player has earned anything (`open_rule`: a job done, złoty in the
+  wallet, or a paint already bought); the default for the beat's "after the first earnings"
+  (in the demo's first ten minutes that is the first kebab's pay). The first time, a toast:
+  "Warsztat u Mirka otwarty: Brzeska, Praga. Lakier za złotówki." The ring is always open then.
+- **The card**: drive into the ring and stop (under 1.5 m/s) with nothing else on (no job, ride,
+  race, rescue, police, helicopter, map or settings open): the game pauses under the card like the
+  settings card. Title and wallet, Mirek's line (Polish over English), the eight paints as
+  swatches (the colour with its stripe, the Polish name, the price, "na aucie · on", "masz · yours"
+  or "k/5 sekretów"), the action for the swatch picked (KUP ZA 300 ZŁ · Buy, LAKIERUJ · Paint it
+  free, BRAKUJE 120 ZŁ, ZA 5 SEKRETÓW; greyed when it can't be done) and WYJAZD · Drive off (Esc
+  too). Leaving takes 20 m before the card can open again.
+- **The paints** (`Garage.PAINTS`; prices *guess*, tuned against the first ten minutes: a kebab
+  pays ~25-45 zł, Seba's race 150, a rescue ~80-110, so the first paint is reachable by ~10 min):
+
+  | id | Name | Price | Note |
+  | --- | --- | --- | --- |
+  | red | Fabryczna czerwień · Factory red | free | the default |
+  | cream | Kremowy · Cream | 150 zł | red stripes |
+  | green | Zielony groszek · Pea green | 180 zł | egg E21 |
+  | blue | Wiślany błękit · Vistula blue | 200 zł | |
+  | yellow | Żółty jak tramwaj · Tram yellow | 250 zł | dark stripes |
+  | black | Czarny lakier · Black paint | 300 zł | egg E01; glows 4.5 (not 1.4) and wears silver stripes that glow 0.9, so it reads at night |
+  | pink | Różowy pączek · Doughnut pink | 350 zł | |
+  | gold | Złoto Syrenki · Mermaid gold | free at 5 egg cards found | DEMO 6.3's collectible unlock |
+
+  Owned paints are kept (`wallet.paints`: id -> the day bought); switching between them is free.
+  The save has no version number, so nothing was bumped: an old save without `[garage]` loads as
+  the factory red with nothing owned.
+- **The car**: `car.set_paint(body, stripes, glow, stripe_glow)` makes the body's one mesh again
+  with the new vertex colours (actor.gdshader's hero part, the same shared material): once per
+  change, no new material, node or draw call.
+- **E01** (`Czarny lakier`, +50): the car painted black within 8 m of Lusterko's door under
+  10 km/h, on a Friday or Saturday night (`nights` [5, 6]: 01:30 on a Saturday is Friday's night)
+  between 23:00 and 06:00. `crowds.gd` `door_egg` sees it at the door and calls
+  `egg_book.fire("e01")` (the egg's conditions are its paint, night and hours); the bouncer's
+  `car_black` line comes with it, queue or not. Elsewhere a black car at a door gets `car_black`
+  instead of `car`.
+- **E21** (`Pasujesz do menu`, +15): stop 2 s within 25 m of Glon painted green; the café's
+  `viral` `glon` line over the car.
+- **Testing aids** (flags table): `--paint=<id>`, `--garage`, `--garage=ring`, `--garage-log`;
+  `--egg=e01` / `--egg=e21` set the paint and put the car at Lusterko's door / Glon.
+- **Check**: `check_garage.gd` (verify step `garage`, quick set and CI; needs no map): the paints
+  (8, prices 150-400, black 300, gold behind 5 eggs), the rule in every case, buying with enough
+  and too little money, switching free, the gold lock, 10 seeded walks of 200 taps (the wallet
+  never below 0, paid = the prices of what was bought, nothing bought twice), the save round trip
+  and an old save, the car's body recoloured with the same material and node count, Mirek's lines
+  (every tag, both languages, ≤ 70 characters), E01 and E21 on synthetic inputs (not without their
+  paint, night or hours; once each, +50 / +15). `check_hud.gd` lays out the card at its six screens
+  in four states (on, to buy, short, locked).
+- **Cost** (Linux container; before = the code at HEAD from a copy; headless bench with
+  `--fixed-fps 60`, two runs each interleaved; draw calls rendered with the software Vulkan driver
+  at 1280×720, `--probe --time=day`):
+
+  | View | Before | After |
+  | --- | --- | --- |
+  | Bench route, day (headless, scripts total) | 5.11, 4.08 ms (earlier 5.03, 5.75) | 4.11, 5.26 ms (noise); "garage" 0.00 ms |
+  | Plain day at the spawn, rendered (main / shadow / 2D) | 127 (57 / 35 / 35) | 127 (57 / 35 / 35) |
+  | Brzeska by the garage, ring not shown (`--at=1310,-1959 --heading=138`) | 91 (34 / 22 / 35) | 92 (35 / 22 / 35), the same 35 nodes in view (a moving actor) |
+  | The garage's ring in view (`--garage=ring`, its own camera) | | 97 (38 / 24 / 35); the ring is one unshaded mesh, no shadow: +1 main draw while in view, 0 away |
+
+  The diamond joins the minimap's one triangle batch (+0 2D draws). The card, open, is a 2D panel
+  of its own (the game paused); a new paint makes the body's mesh once (same material).
 
 ## The easy-driving loop: drive through the small props (2026-10-30)
 
@@ -4871,7 +5068,9 @@ Command-line options (after `--`):
 | `--rechotka` | loop MW-2: the car on the lane by the nearest placed Frogs' door, stopped (the stamp in 2 s) |
 | `--stamps=K` | loop MW-2: the Frogs card starts at K stamps (9: the next stop is the free hot dog) |
 | `--courier-race[=N]` | loop jobs-2: kebab order N (default 0) with the Pędzik courier's challenge forced (day or night); with `--autopilot` the challenge is taken after 1 s; `courier:` lines (the way vs the straight line and the road, the result, the pay) |
-| `--courier-v=M` | loop jobs-2: the courier's speed in m/s for a test run (6.5 by default; `--courier-v=3` lets the autopilot win) |
+| `--courier-v=M` | loop jobs-2: the courier's speed in m/s for a test run (by default his pace: the order's road at 10 m/s, 6.5-11 m/s, loop couriers; `--courier-v=3` lets the autopilot win) |
+| `--pedzik-log` | loop couriers: print `pedzik:` lines: the minute's riders on the paths and on the kerb, the couriers waiting (and at how many stands), the swerves, hops and lines; each swerve, hop and near miss; a waiting courier taken by the race |
+| `--pedzik-kerb` | loop couriers: a testing aid for shots: the kerb riders start 8-35 m from the view (not 25-150 m), so one is in view at once |
 | `--roundup` | loop jobs-2: the car in the ring of the Leżak depot nearest it and the round-up's card up (day or night); with `--autopilot` GO is taken and the car slides to each Leżak and back; `roundup:` lines |
 | `--armchair` | loop jobs-2: the armchair man (E34) out today at any hour; the car on the lane nearest him once his way is known |
 | `--stars=X` | loop 2d-1: the live rating starts at X (1–5; for card shots) |
@@ -4926,9 +5125,14 @@ Command-line options (after `--`):
 | `--trend-day=N` | loop MW-4: the Wiralek cycle's day number (0 = slot 1 on day 1, slot 2 on day 3, slot 3 on day 5; 88 = all three on day 1) instead of Live's date or the session's |
 | `--trend-job[=1\|2\|3]` | loop MW-4: start by that Wiralek slot (1 Plac Zbawiciela, 2 Chmielna, 3 Tamka) with its "Na czasie" request offered; with `--autopilot` accepted and driven; implies `--trend-log` |
 | `--night-hub` | night-buses loop: a gathering of night buses at Dworzec Centralny now, whatever the time (with `--time=night`, the N signs too); its buses park at their bays at once |
+| `--old-tram` / `--old-tram=follow` | vintage-tram loop: the old two-car set now, on the track nearest the car, whatever the time (it stays); `=follow`: and the car (no collisions) kept 22 m behind its tail, so the view goes with it and E39's 300 m count runs |
+| `--tram-log` | vintage-tram loop: print `old tram:` lines: each run taken out of sight and turned modern, the follow count every 50 m and its resets, E39 |
 | `--bus-log` | night-buses loop: print `buses:` lines: the hub's bays and stops, each gathering and ring bus, the car at the ring, the race to the Palm, each honk and called bus, the stop lines, a summary every 20 s |
 | `--honk=F1,F2,...` | night-buses loop: the player honks on those frames (as the horn button; rate-limited) |
 | `--life-soak` | loop MW-4: a Friday dusk; the car is driven at the nearest dog walker or rider at 7 m/s, every frame counts a dog, walker or rider inside the car's footprint (`life: soak done … overlaps 0`); verify step `life-soak` |
+| `--paint=<id>` | garage loop: the car starts in that paint (`red`, `cream`, `green`, `blue`, `yellow`, `black`, `pink`, `gold`), owned for the run (use with `--nosave`) |
+| `--garage` / `--garage=ring` | garage loop: start in Warsztat u Mirka's ring on Brzeska, the garage shown whatever the wallet, the paint card open a moment in (free roam, no title; implies `--garage-log`); `=ring`: 16 m short of the ring, no card |
+| `--garage-log` | garage loop: print `garage:` lines: the place, the card opening and closing, each buy and switch |
 | `--club=<id>` | loop MW-3: start at that club (`lusterko`, `smola`, `jasna_0`, `lombard`, `milosc_hipoteczna`, or its name): the car on the lane nearest its door (within 60 m), free roam, no title |
 | `--notes-log` | loop MW-1: print `notes:` lines: each place's resolution at load (`notes: place <id> address\|name\|poi\|near N m from the hint (x, z)`), each find (`notes: found <id> (chapter N, k/8)`) and each chapter completed |
 | `--call-in=S` | loop 2e: the first rescue call comes in after S seconds of play (default 60) |

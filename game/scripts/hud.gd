@@ -239,6 +239,10 @@ var _icons := {}
 var _mini_pois := PackedVector2Array()
 ## Loop MW-1: the notebook's places not found yet near the car (map x, z), drawn as "?".
 var _mini_unknown := PackedVector2Array()
+## The garage loop: the garage's diamond (set_minimap_garage), INF while it isn't shown.
+var _mini_garage := Vector2.INF
+var _mini_garage_colour := Color.WHITE
+const GARAGE_REACH := 1500.0
 var _mini_poi_colours := PackedColorArray()
 ## Mission target: its point on screen (the arrow) and on the minimap.
 var _target_visible := false
@@ -1627,6 +1631,10 @@ func _paint_minimap_overlay() -> void:
 		var half := (2.0 if far else 2.8) * pt
 		_tri_rect(Rect2(centre + r - Vector2.ONE * (half + 1.0 * pt), Vector2.ONE * (half + 1.0 * pt) * 2.0), OUTLINE)
 		_tri_rect(Rect2(centre + r - Vector2.ONE * half, Vector2.ONE * half * 2.0), Color(_mini_poi_colours[i], blink))
+	# The garage loop: the garage's diamond, pinned to the rim up to GARAGE_REACH m away.
+	if _mini_garage != Vector2.INF and _mini_garage.distance_to(_mini_car) <= GARAGE_REACH:
+		var g := ((_mini_garage - _mini_car) * s).rotated(_mini_yaw).limit_length(_mini_radius - 6.0 * pt)
+		_tri_diamond(centre + g, 4.6 * pt, _mini_garage_colour)
 	for i in _mini_dots.size():
 		# Rivals within the minimap's reach; the rest would crowd the rim.
 		var r := ((_mini_dots[i] - _mini_car) * s).rotated(_mini_yaw)
@@ -1675,6 +1683,16 @@ func _paint_minimap_overlay() -> void:
 	var fs := _px(T_LABEL)
 	var n := centre + _north * (_mini_radius - 8.0 * pt)
 	o.draw_string(font, n + Vector2(-fs * 0.3, fs * 0.35), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color("#2a2622").lerp(INK, _night))
+
+
+## The garage loop: a diamond `r` from its centre to a corner, with the dark outline (two
+## triangles each: no draw call of its own, it joins the overlay's batch).
+func _tri_diamond(at: Vector2, r: float, colour: Color) -> void:
+	for k: Array in [[r + 1.2 * pt, OUTLINE], [r, colour]]:
+		var q: float = k[0]
+		var c: Color = k[1]
+		_tri(at + Vector2(0, -q), at + Vector2(q, 0), at + Vector2(0, q), c, c, c)
+		_tri(at + Vector2(0, -q), at + Vector2(0, q), at + Vector2(-q, 0), c, c, c)
 
 
 ## Loop 2e: the minimap's day or night palette (time_of_day.gd's lights: 0 day, 1 night).
@@ -1738,6 +1756,13 @@ func _tri_question(at: Vector2, k := 1.0) -> void:
 		_tri_cols = keep_cols
 	_tri_pts.append_array(Transform2D(0.0, Vector2(k, k), 0.0, at) * _question_pts)
 	_tri_cols.append_array(_question_cols)
+
+
+## The garage loop: Warsztat u Mirka on the minimap and the full map (map coordinates; INF: not
+## shown), a diamond in its colour, pinned to the minimap's rim up to GARAGE_REACH m away.
+func set_minimap_garage(p: Vector2, colour: Color) -> void:
+	_mini_garage = p
+	_mini_garage_colour = colour
 
 
 ## Side-job places on the minimap (map coordinates), drawn as blinking squares.
@@ -2173,6 +2198,8 @@ func open_full_map(car_xz: Vector2, car_yaw: float, found: PackedVector2Array) -
 	full_map.unknown = _mini_unknown
 	full_map.found = found
 	full_map.target = _mini_target
+	full_map.garage = _mini_garage
+	full_map.garage_colour = _mini_garage_colour
 	full_map.target_colour = _mini_target_colour
 	full_map.open(car_xz, car_yaw)
 

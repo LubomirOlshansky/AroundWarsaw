@@ -1,14 +1,12 @@
 {
 	"_about": "Loop MW-6 (docs/design/vision.md section 8 and 4.7): the notebook's egg cards, the five eggs of v0.65 and vision's 40 (the Frogs triple corner, id easter_rechotka, and the standing Leżak, parodies.md, come with MW-2's storefronts). Each: `id`, `name` [pl, en] (Polish as vision's table has it; the English is a gloss), `place` (an id in places.json, or one of eggs.gd's spots for the five old ones), `line` [pl, en] or `line_ref` [dialogue.json group, index from 0], `trigger` (`kind`: stop, pass, hover, land, circle, lap, street, between, tape, event (loop MW-4: city_life.gd sees the moment), legacy, or waits; with its numbers and the conditions night, after, hours, weekday, look, summer, dry, date, station, roadworks, and loop MW-3's crowd and days: egg_book.gd), `reward` (respect; track: a PÓŁNOC FM track; then: a then card stamped; kadr: a Kadr spot unlocked) and, for an egg whose trigger needs something not built yet, `waits` (what: the card is defined, nothing can find it). Lines taken from vision's quotes and the then cards of vision 3.9; the ones vision does not quote were written in MW-6 for the game-designer to review (a Polish line at most 70 characters).",
 	"waits": {
-		"garage": "the garage's paint (no garage yet)",
 		"dogs": "the dog walkers (MW-4)",
 		"wiralek": "the Wiralek trend cycle (MW-4)",
 		"cyclists": "the Rowerilo riders (MW-4)",
 		"runners": "Kolka and Hyrax (MW-4)",
 		"armchair": "the man with the armchair (MW-4)",
 		"older_tapes": "KASETA's older decades (T1, 'later': the user's answer 3)",
-		"old_tram": "a tram in old livery (trams)",
 		"payphone": "the payphone prop and T17 (older decades)"
 	},
 	"eggs": [
@@ -114,12 +112,21 @@
 				9
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "event",
+				"door": "lusterko",
+				"paint": "black",
+				"nights": [
+					5,
+					6
+				],
+				"hours": [
+					23,
+					6
+				]
 			},
 			"reward": {
 				"respect": 50
-			},
-			"waits": "garage"
+			}
 		},
 		{
 			"id": "e02",
@@ -556,12 +563,14 @@
 				6
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "stop",
+				"within": 25,
+				"secs": 2,
+				"paint": "green"
 			},
 			"reward": {
 				"respect": 15
-			},
-			"waits": "garage"
+			}
 		},
 		{
 			"id": "e22",
@@ -944,12 +953,11 @@
 				"It used to creak. Now it hums. We miss the creak."
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "event"
 			},
 			"reward": {
 				"respect": 30
-			},
-			"waits": "old_tram"
+			}
 		},
 		{
 			"id": "e40",

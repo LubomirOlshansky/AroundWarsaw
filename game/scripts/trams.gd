@@ -54,10 +54,17 @@ class Tram:
 	var dir := Vector2.UP
 	var mid := Vector2.ZERO
 	var rear := Vector2.ZERO
+	## The vintage-tram loop (old_tram.gd): this tram runs as the old two-car set (its cars
+	## beyond `n_cars` hidden, its cruise `cruise`), and rings the old bell.
+	var vintage := false
+	var n_cars := 3
+	var cruise := CRUISE
 
 
 ## v0.9: the bell, as a tram leaves a stop or brakes for the player's car on its track.
 signal bell(at: Vector3)
+## The vintage-tram loop: the old tram's bell instead (its own two-tone hand bell).
+signal old_bell(at: Vector3)
 
 var graph: LaneGraph
 var map: Node3D
@@ -68,6 +75,10 @@ var player_on_road := true
 var trams: Array[Tram] = []
 ## How long the last update took, for --bench.
 var last_usec := 0
+## The vintage-tram loop: the last update's view centre and reach (a tram farther than this is
+## not posed: out of sight).
+var view_at := Vector2.ZERO
+var view_reach := 600.0
 
 var _pts: Array[PackedVector2Array] = []
 var _cum: Array[PackedFloat32Array] = []
@@ -318,9 +329,10 @@ func _process(dt: float) -> void:
 	var t0 := Time.get_ticks_usec()
 	for tram in trams:
 		var head := _head(tram)
+		var length := length_of(tram)
 		tram.dir = _dir(head, clampf(tram.s, 0.0, _len[head]))
-		tram.mid = _back_point(tram, LENGTH * 0.5)
-		tram.rear = _back_point(tram, LENGTH)
+		tram.mid = _back_point(tram, length * 0.5)
+		tram.rear = _back_point(tram, length)
 	for tram in trams:
 		_move(tram, dt)
 	# Only trams that could be seen get their cars placed (moving physics bodies
@@ -330,6 +342,8 @@ func _process(dt: float) -> void:
 	if traffic != null:
 		centre = traffic.view_centre
 		reach = maxf(traffic.view_half.x, traffic.view_half.y) * 1.5 + 120.0
+	view_at = centre
+	view_reach = reach
 	for tram in trams:
 		var head := _back_point(tram, 0.0)
 		if head.distance_to(centre) < reach:
@@ -366,7 +380,7 @@ func _move(tram: Tram, dt: float) -> void:
 				if tram.dwell > DWELL:
 					tram.served = int(halts[k + 4])
 					tram.dwell = 0.0
-					bell.emit(tram.pos)
+					_ring(tram)
 			break
 	# Other trams ahead and the player's car on the track.
 	var fwd := tram.dir
@@ -414,9 +428,9 @@ func _move(tram: Tram, dt: float) -> void:
 			gap = minf(gap, along - 4.0)
 			if tram.bell_wait <= 0.0 and along < 30.0 and tram.v > 2.0:
 				tram.bell_wait = 8.0
-				bell.emit(tram.pos)
+				_ring(tram)
 	tram.bell_wait -= dt
-	var want := CRUISE
+	var want := tram.cruise
 	if gap < INF:
 		want = minf(want, sqrt(maxf(gap - 0.3, 0.0) * 2.0 * DECEL))
 	if tram.v < want:
@@ -503,7 +517,7 @@ func _pose(tram: Tram) -> void:
 		var body := tram.cars[k]
 		var b0 := maxf(CAR_FRONT[k], lo)
 		var b1 := minf(CAR_FRONT[k] + CAR, hi)
-		if b1 - b0 < 0.3:
+		if b1 - b0 < 0.3 or k >= tram.n_cars:
 			body.visible = false
 			body.collision_layer = 0
 			continue
@@ -520,3 +534,107 @@ func _pose(tram: Tram) -> void:
 		body.collision_layer = 1 if near and player_on_road else 0
 		if k == 0:
 			tram.pos = Vector3(front.x, y, front.y)
+
+
+# --- the vintage-tram loop (old_tram.gd) ------------------------------------------------------
+
+## The bell as a tram leaves a stop or brakes for the car: the old tram's own (old_bell).
+func _ring(tram: Tram) -> void:
+	if tram.vintage:
+		old_bell.emit(tram.pos)
+	else:
+		bell.emit(tram.pos)
+
+
+## A tram's length, head to tail (3 cars, or the old set's 2).
+static func length_of(tram: Tram) -> float:
+	return tram.n_cars * CAR + (tram.n_cars - 1) * JOINT
+
+
+## Turns tram `tram` into the old two-car set (`meshes`: [motor car, trailer], cruising at
+## `cruise` m/s) or back (on false). Its car meshes are swapped on its own MeshInstance3Ds (the
+## same material): the old set draws one car fewer than a modern tram, never more.
+func set_vintage(tram: Tram, on: bool, meshes: Array = [], cruise := CRUISE) -> void:
+	if on == tram.vintage:
+		return
+	tram.vintage = on
+	tram.n_cars = meshes.size() if on else 3
+	tram.cruise = cruise if on else CRUISE
+	for k in 3:
+		var mi := tram.cars[k].get_child(0) as MeshInstance3D
+		if on and k < meshes.size():
+			mi.set_meta("modern", mi.mesh)
+			mi.mesh = meshes[k]
+			mi.rotation.y = 0.0  # the trailer's back (tail lamps) is at +Z
+		elif not on and mi.has_meta("modern"):
+			mi.mesh = mi.get_meta("modern")
+			mi.remove_meta("modern")
+			mi.rotation.y = PI if k == 2 else 0.0
+		if on and k >= tram.n_cars:
+			tram.cars[k].visible = false
+			tram.cars[k].collision_layer = 0
+	if on and tram.v > tram.cruise:
+		tram.v = tram.cruise
+
+
+## Whether any of tram `tram` is within the last update's reach of the view (posed: it may be
+## seen). A tram swapped while out of it is never seen changing.
+func in_sight(tram: Tram) -> bool:
+	for p in [_back_point(tram, 0.0), _back_point(tram, length_of(tram) * 0.5), _back_point(tram, length_of(tram))]:
+		if (p as Vector2).distance_to(view_at) < view_reach:
+			return true
+	return false
+
+
+## The trams out of sight now, nearest the point `p` first.
+func out_of_sight(p: Vector2) -> Array[Tram]:
+	var out: Array[Tram] = []
+	for tram in trams:
+		if not in_sight(tram):
+			out.append(tram)
+	out.sort_custom(func(a: Tram, b: Tram) -> bool:
+		return _back_point(a, 0.0).distance_squared_to(p) < _back_point(b, 0.0).distance_squared_to(p))
+	return out
+
+
+## Puts tram `tram` on the track nearest `p`, its head `ahead` m along the rails from the point
+## nearest p (--old-tram), standing still; false if no track piece is long enough. The other
+## trams keep their places (one that is in the way is left for the trams' own spacing).
+func place_near(tram: Tram, p: Vector2, ahead := 30.0) -> bool:
+	var best := -1
+	var best_s := 0.0
+	var best_d := INF
+	for i in _pts.size():
+		if _len[i] < 40.0:
+			continue
+		var near := _project(i, p)
+		if near.y < best_d:
+			best_d = near.y
+			best = i
+			best_s = near.x
+	if best < 0:
+		return false
+	var s := clampf(best_s + ahead, minf(length_of(tram), _len[best] - 1.0), _len[best] - 1.0)
+	tram.trail = PackedInt32Array([best])
+	var back := s
+	while back < LENGTH + 5.0 and not _pred[tram.trail[0]].is_empty():
+		var prev := _pred[tram.trail[0]][0]
+		tram.trail.insert(0, prev)
+		back += _len[prev]
+	tram.s = s
+	tram.v = 0.0
+	tram.dwell = 0.0
+	tram.served = -1
+	tram.next = _pick_next(best)
+	var head := _back_point(tram, 0.0)
+	tram.pos = Vector3(head.x, tram.pos.y, head.y)
+	tram.dir = _dir(best, s)
+	tram.mid = _back_point(tram, length_of(tram) * 0.5)
+	tram.rear = _back_point(tram, length_of(tram))
+	return true
+
+
+## A point `back` m behind tram `tram`'s head along its rails (old_tram.gd: its body, for the
+## follow).
+func body_point(tram: Tram, back: float) -> Vector2:
+	return _back_point(tram, back)

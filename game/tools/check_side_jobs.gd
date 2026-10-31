@@ -7,8 +7,11 @@ extends SceneTree
 ##      orders), forced by the flag; the way at most 1.6 × the straight line; +30 zł +30 respect
 ##      for a win, nothing for a loss;
 ##   2. the race on a synthetic footway: a straight way is challenged, a detour isn't; the rider
-##      rides it at 6.5 m/s and gets to the door first (no pay); a race the car wins pays +30 zł
-##      +30 respect once; a challenge not taken goes after 6 s;
+##      rides it at his pace (loop couriers: the road's time at 10 m/s) and gets to the door first
+##      (no pay); a race the car wins pays +30 zł +30 respect once; a challenge not taken goes after
+##      6 s; loop couriers: the pace on the default route (a decent drive wins about 2 in 3), the
+##      challenger one of the couriers waiting at the stand (from his spot; he gets on his bike at
+##      ŚCIGAJ), no challenge at night with none waiting, the --courier-v speed kept;
 ##   3. the round-up's rules: 8 zł a Leżak, +40 zł for all within 6 minutes, +40 respect for all;
 ##      the pick-up within 4 m under 15 km/h with room in the boot (5); the depots 1,200 m apart,
 ##      never the standing Leżak's zone;
@@ -145,6 +148,20 @@ class FakeTod extends Node:
 	var mode := 2
 
 
+## Loop couriers: city_life.gd's side the race uses (the couriers waiting at a stand).
+class FakeLife extends Node:
+	var waiting: Array = []
+	var taken := 0
+
+	func waiting_at(_i: int) -> Array:
+		return waiting.duplicate()
+
+	func take_waiting(_i: int) -> Array:
+		taken += 1
+		var w: Variant = waiting.pop_back()
+		return w if w != null else []
+
+
 var problems: Array[String] = []
 var verbose := false
 var _summary := {}
@@ -224,7 +241,20 @@ func _check_race_rules() -> void:
 	var l := CourierRace.result(false)
 	_expect(int(w["zl"]) == 30 and int(w["respect"]) == 30 and str(w["line"]) == "lose", "a win: %s" % [w])
 	_expect(int(l["zl"]) == 0 and int(l["respect"]) == 0 and str(l["line"]) == "win", "a loss: %s" % [l])
-	_summary["race"] = "%d of 1,000 night orders" % n
+	# Loop couriers: the pace. The default route (stand 0 to Oboźna 1, BACKLOG "From loop jobs-2"):
+	# his way 1,013 m, the road 1,023 m: about 9.9 m/s, 102 s; a decent drive wins about 2 in 3.
+	var v0 := CourierRace.pace(1013.0, 1023.0)
+	var share := CourierRace.decent_wins(1013.0, 1023.0, v0)
+	_expect(absf(v0 - 9.9) < 0.05 and absf(share - 2.0 / 3.0) < 0.02, "the default route's pace %.2f m/s, a decent drive wins %.2f (want 9.9, 0.67)" % [v0, share])
+	_expect(CourierRace.decent_wins(1013.0, 1023.0, CourierRace.V) > 0.95, "at the old 6.5 m/s a decent drive should nearly always win")
+	_expect(CourierRace.pace(400.0, 1600.0) == CourierRace.V_MIN and CourierRace.pace(1500.0, 1000.0) == CourierRace.V_MAX
+			and CourierRace.pace(0.0, 100.0) == CourierRace.V, "the pace's bounds")
+	# Over routes from 0.75 × to 1.1 × the road the share stays about 2 in 3 (the pace's point).
+	for k in 8:
+		var path := 1000.0 * (0.75 + 0.05 * k)
+		var sh := CourierRace.decent_wins(path, 1000.0, CourierRace.pace(path, 1000.0))
+		_expect(absf(sh - 2.0 / 3.0) < 0.02, "a way %.0f m against 1,000 m by road: a decent drive wins %.2f" % [path, sh])
+	_summary["race"] = "%d of 1,000 night orders; the default route at %.1f m/s, a decent drive wins %.0f %%" % [n, v0, share * 100.0]
 
 
 # 2. ------------------------------------------------------------------------------------------
@@ -296,7 +326,9 @@ func _check_race() -> void:
 		frames += 1
 	var race_us := float(Time.get_ticks_usec() - t0) / maxf(frames, 1.0)
 	var secs := frames * DT
-	_expect(cr.rider_first and absf(secs - 310.0 / CourierRace.V) < 1.0, "the rider took %.1f s for 310 m (want %.1f)" % [secs, 310.0 / CourierRace.V])
+	var want_s := 310.0 / CourierRace.pace(310.0, 320.0)
+	_expect(absf(cr.speed - CourierRace.pace(310.0, 320.0)) < 0.01, "the rider's speed %.2f m/s (want the pace %.2f)" % [cr.speed, CourierRace.pace(310.0, 320.0)])
+	_expect(cr.rider_first and absf(secs - want_s) < 1.0, "the rider took %.1f s for 310 m (want %.1f)" % [secs, want_s])
 	_expect(cr.badge() == "2ND" and dlg.count("pedzik", "win") == 1, "the rider first: badge %s, %d win lines" % [cr.badge(), dlg.count("pedzik", "win")])
 	var zl := wallet.zl
 	var rs := wallet.respect
@@ -324,6 +356,52 @@ func _check_race() -> void:
 	for k in roundi((CourierRace.OFFER_S + 0.2) * 60.0):
 		cr.step(DT)
 	_expect(cr.state == CourierRace.State.IDLE and not hud.challenge and not cr.accept(), "the challenge stayed past 6 s")
+	# Loop couriers: the challenger is a courier waiting at the stand. Unforced at night, none waiting:
+	# no challenge.
+	var life := FakeLife.new()
+	root.add_child(life)
+	cr.life = life
+	cr.force = false
+	var night_n := 0
+	while not CourierRace.challenges(true, CourierRace.roll(night_n)):
+		night_n += 1
+	cr.on_order(Vector3(0, 0, 0), Vector3(300, 0, 0), night_n, true, -1, 0.0, go, 7)
+	await _until(cr, func() -> bool: return cr.state != CourierRace.State.ROUTING)
+	_expect(cr.state == CourierRace.State.IDLE and not hud.challenge, "a challenge with no courier waiting at the stand")
+	# Two waiting: the challenge from the last one's spot; he stands (the race's rider hidden) until ŚCIGAJ.
+	var spot := Vector3(2.0, 0.0, -3.0)
+	life.waiting = [[Vector3(-2.0, 0.0, -3.0), 0.0], [spot, 0.0]]
+	var said0 := dlg.count("pedzik", "challenge")
+	cr.on_order(Vector3(0, 0, 0), Vector3(300, 0, 0), night_n, true, -1, 0.0, go, 7)
+	await _until(cr, func() -> bool: return cr.state != CourierRace.State.ROUTING)
+	cr.step(DT)
+	var rider: MeshInstance3D = cr.get("_rider")
+	_expect(cr.state == CourierRace.State.OFFER and dlg.count("pedzik", "challenge") == said0 + 1 and not rider.visible
+			and rider.global_position.distance_to(spot) < 0.01, "the waiting courier's challenge: state %d, rider shown %s at %s" % [
+			cr.state, rider.visible, rider.global_position])
+	_expect(life.taken == 0, "a courier taken before ŚCIGAJ")
+	cr.set_road(320.0)
+	_expect(cr.accept() and life.taken == 1 and rider.visible and rider.global_position.distance_to(spot) < 0.01,
+			"ŚCIGAJ: the waiting courier didn't get on his bike at his spot (taken %d, shown %s, at %s)" % [life.taken, rider.visible, rider.global_position])
+	_expect(absf(cr.path_len - (310.0 + spot.distance_to(Vector3.ZERO))) < 2.5, "his way from his spot: %.0f m" % cr.path_len)
+	cr.cancel()
+	# Not taken: he stays waiting (nothing taken), the offer goes after 6 s.
+	cr.on_order(Vector3(0, 0, 0), Vector3(300, 0, 0), night_n, true, -1, 0.0, go, 7)
+	await _until(cr, func() -> bool: return cr.state != CourierRace.State.ROUTING)
+	for k in roundi((CourierRace.OFFER_S + 0.2) * 60.0):
+		cr.step(DT)
+	_expect(cr.state == CourierRace.State.IDLE and life.taken == 1 and not rider.visible, "an offer not taken took a courier or showed the rider")
+	# --courier-v keeps its speed.
+	cr.force = true
+	cr.fixed_speed = true
+	cr.speed = 3.0
+	cr.on_order(Vector3(0, 0, 0), Vector3(300, 0, 0), 5, true, -1, 0.0, go, 7)
+	await _until(cr, func() -> bool: return cr.state != CourierRace.State.ROUTING)
+	cr.set_road(320.0)
+	_expect(cr.accept() and cr.speed == 3.0, "--courier-v's speed changed to %.2f" % cr.speed)
+	cr.cancel()
+	cr.life = null
+	life.queue_free()
 	_summary["race_us"] = "%.1f µs a frame" % race_us
 	_summary["race"] = "%s; the 310 m way in %.1f s, a win +30/+30 once" % [_summary.get("race", "?"), secs]
 	cr.queue_free()

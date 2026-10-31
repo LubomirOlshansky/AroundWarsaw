@@ -182,6 +182,9 @@ static func want_state(t: Dictionary) -> Dictionary:
 		s["station"] = str(t["station"])
 	if t.has("roadworks"):
 		s["roadworks"] = str(t["roadworks"])
+	# The garage loop: the car's paint.
+	if t.has("paint"):
+		s["paint"] = str(t["paint"])
 	# Loop MW-3: the crowd the trigger wants is out (at its level).
 	if t.has("crowd"):
 		var c: Variant = t["crowd"]
@@ -215,6 +218,9 @@ static func broken_state(t: Dictionary, s: Dictionary) -> Dictionary:
 		return b
 	if t.has("crowd"):
 		b["crowds"] = {}
+		return b
+	if t.has("paint"):
+		b["paint"] = "red"  # the garage loop: the factory paint
 		return b
 	if t.has("max_kmh"):
 		b["kmh"] = float(t["max_kmh"]) + 15.0
