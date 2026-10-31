@@ -3,6 +3,22 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Top priority: a game-like full map with teleport (the user, 2026-10-31)
+- **Landed** (thread "Make the map fun and game-like"): the full map in its own poster style
+  (map_art.gd), 25 landmark pins (map_icons.gd), hold 0.6 s to teleport, the cards behind ≡.
+  Left: street names along the main roads close in; F to judge the icons and colours on the
+  phone (maybe hand-drawn or PixelLab icon art later); the first open on an older phone (the
+  art is made on a worker thread at start, ~0.1-0.7 s on a computer).
+
+## High priority: the main line and quest markers (the user, 2026-10-31)
+- **Landed** (thread "Shape main line and quest markers", docs/design/main-line.md): the main line
+  in three chapters (the guide, the ladder, the final) as `main_line.gd`; its marker a gold star on
+  the minimap (pinned to the rim at any distance) and the full map (a goal card under the title, a
+  legend); side quests keep a ringed dot in their colour and the start squares (now on the full map
+  too); the ladder's gates lowered to 0/100/220/340/480/640/850 for a ~1 h main line.
+  Left: a timed fresh-save run on the phone (the hour is an estimate); the edge arrow on the screen
+  could carry the star too; maybe a short goal line on the driving screen (QUESTIONS.md).
+
 ## High priority: landmark and skyscraper models (the user, 2026-10-30)
 - **The user dislikes how several models look** (2026-10-30): Złote Tarasy, Złota 44 and the
   other skyscrapers (Varso, Pałac Kultury, Warsaw Spire, Q22), Muzeum Narodowe (and Stadion
@@ -48,8 +64,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   a kept skin today, outline in `centrum.json` landmarks "Kościół pw. Świętej Anny", centre
   (−658, −1350), the free-standing bell tower is a separate building to its north-east), the other
   churches (Holy Cross, All Saints, St Alexander's rotunda, the Visitationists) and the Palace
-  on the Isle's neighbours, Zachęta/Staszic/Presidential Palace facades (all colour-only skins
-  today), the Old Town's gables and dormers (the LoD2 roofs have none), PZU/JM Tower. How the
+  on the Isle's neighbours, Staszic's facade (a colour-only skin today; Zachęta, Holy Trinity
+  and the Presidential Palace became models on 2026-10-31, specs in docs/landmarks/specs/), the Old Town's gables and dormers (the LoD2 roofs have none), PZU/JM Tower. How the
   lane works: `landmarks.gd` sites (`TOWERS`, `SKINS`, fixed-position circle zones like
   `_find_zygmunt`), each needs a card in `INFO` and `check_landmarks`; a site found in
   `data["buildings"]` also needs its box in `bake_sectors.py` `SITE_AREAS`; after a change
@@ -72,7 +88,31 @@ Small problems that agents reported or that showed up in screenshots. They are f
   base with the glazed lobby behind, one long ribbon of windows at mid-height, a few big upper
   windows, long skylights on the flat roof, a card. Spec and the values still to set:
   docs/design/first-scene.md "Spec for item 1". Landmarks lane: Opus spec, `object-modeler`
-  builds, `art-director` accepts.
+  builds, `art-director` accepts. **Built 2026-10-31** (site `msn`, spec
+  `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Left: the photo check on the
+  Mac (the two city-room windows' faces and sizes and the skylight count are estimates; the
+  photos in `refs/` were not reachable from the cloud), and TR Warszawa next door.
+- **TR Warszawa's building site** (F, 2026-10-31): built as site `tr` on the empty plot west of
+  the museum (a messy site: hoarding, dirt, heaps, old foundations, cabins, a digger, one
+  crane). Left for the map lane: a mapped tree stands on the hoarding's north corner.
+- **Złote Tarasy, the museum's way** (the user, 2026-10-31): **Built 2026-10-31** (site
+  `tarasy`, spec `docs/landmarks/specs/tarasy.md`): the whole complex from its OSM 3D parts,
+  the glass wave, the terraced sandstone podium, Lumen's crescent, Skylight with a lit crown,
+  the drum, the planted south terraces. Left: the photo check on the Mac (Lumen's ribbons,
+  Skylight's crown, the red entrance boxes), `tools/check_roads.py` on the Mac (needs
+  terrain.json; its tarasy zone now mirrors the outline).
+- **Recheck with the museum's approach** (the user, 2026-10-31): rebuild each from its real 3D
+  map data, a spec in `docs/landmarks/specs/` passing `tools/check_spec.py`, the `--solo`
+  silhouette and flat renders, zero defects in `check_mesh_quality`, a photo check on the Mac.
+  In this order unless the user says otherwise: Pałac Kultury i Nauki, Warszawa Centralna, the
+  Warsaw University Library (BUW, its green roof garden and the copper-green facade panels),
+  the Copernicus Science Centre, Stadion Narodowy. **Warszawa Centralna built 2026-10-31**
+  (site `centralna`, spec `docs/landmarks/specs/centralna.md`): the glass hall, the wings, the
+  flat slab overhanging to 140 x 86 m and the hyperbolic paraboloid shells under it, all from
+  the OSM parts. Left: the photo check on the Mac (OSM puts the shells in a 1.5 m tier wholly
+  under the flat slab, so from the 30-degree camera they show only as a small zigzag at the
+  two ends: if the photos show more of them, say so and the tier grows; the wings' walls; warm
+  or cool hall light). The others not started.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
   photos per building in `refs/` (Wikimedia Commons, gitignored; fetched on the Mac, the cloud
@@ -111,6 +151,9 @@ golden-image shots runtime vs `--prebuilt`,
   proxies swap to sectors on an older iPhone.
 
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
+- **Coffeechair cafés** (the user, 2026-10-31): a parody of the Coffeedesk coffee shops,
+  small branded cafés round the city with their own sign ("COFFEECHAIR", a chair for the desk),
+  for the content lane (shop signs and fascias). Brand rules: parody name and look only.
 - **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;
   the designer (`game-designer`, Sonnet for the text) specs it, `warsaw-tone` rules apply (real
   brands only as parodies, affectionate, Polish with English).

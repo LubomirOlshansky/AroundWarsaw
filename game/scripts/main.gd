@@ -108,6 +108,7 @@ const OldTram := preload("res://scripts/old_tram.gd")
 const Garage := preload("res://scripts/garage.gd")
 ## Loop 3h slice 4: the guided first 10 minutes and the end card.
 const First10 := preload("res://scripts/first10.gd")
+const MainLine := preload("res://scripts/main_line.gd")
 const MAP_PATH := "res://map/centrum.json"
 
 ## Visual styles to compare on the phone. lines = vertical resolution of the pixel image.
@@ -209,6 +210,10 @@ var map: Node3D
 
 var style_index := 0
 var cam_yaw := 45.0
+## --no-ghost (2026-10-31, the landing's screenshots): no occlusion ghost and no see-through hole
+## round the car, so a
+## wide framed shot centred on a spot behind a building keeps that building whole.
+var no_ghost := false
 var cam_yaw_target := 45.0
 ## --yaw= was given (the follow camera then doesn't start behind the vehicle).
 var _flag_yaw := false
@@ -551,6 +556,8 @@ var _flag_perf := false
 var open_settings_at_start := false
 ## F's asks (2026-10-30): --fullmap opens the full-screen map at the start (screenshots).
 var open_map_at_start := false
+var fullmap_span := 0.0
+var map_jump := Vector2.INF
 var hold_stick := Vector2.INF
 var hold_pedal := ""
 ## Testing aid (--clicks=X:Y:F,...): a mouse click (a touch, with the project's touch
@@ -992,6 +999,7 @@ func _build_world() -> void:
 			_rotate_camera(d))
 	hud.pinched.connect(_on_pinch)
 	hud.setup_minimap(data, map.map_outline(), map.outside)  # map north: the L, not the box
+	hud.map_landmarks = map.landmark_info  # the full map's landmark icons (map_icons.gd)
 	hud.vehicle_pressed.connect(_toggle_vehicle)
 	hud.tapped.connect(_on_tap)
 	_set_flying(false)
@@ -1149,6 +1157,10 @@ func _build_world() -> void:
 		_open_settings.call_deferred()
 	elif open_map_at_start:
 		_open_full_map.call_deferred()
+	if map_jump != Vector2.INF:
+		var why := _teleport_refusal()
+		print("teleport: --map-jump refusal: %s" % ("none" if why.is_empty() else why[1]))
+		_teleport_from_map.call_deferred(map_jump)
 	_stats = _make_stats()
 	# Loop 3g-1: the police's script time among the bench's lines.
 	if police != null:
@@ -3145,6 +3157,8 @@ func _parse_args() -> void:
 			no_save = true
 		elif arg == "--free":
 			free_roam = true
+		elif arg == "--no-ghost":
+			no_ghost = true
 		elif arg.begins_with("--tap="):
 			var xy := arg.trim_prefix("--tap=").split(",")
 			tap_at = Vector2(float(xy[0]), float(xy[1]))
@@ -3182,8 +3196,15 @@ func _parse_args() -> void:
 			_flag_traffic = Settings.parse_traffic(arg.trim_prefix("--traffic="))
 		elif arg == "--settings":
 			open_settings_at_start = true
-		elif arg == "--fullmap":
+		elif arg.begins_with("--map-jump="):
+			# 2026-10-31: the full map's hold-to-teleport to x,z once the drive starts (tests).
+			var xz := arg.trim_prefix("--map-jump=").split(",")
+			map_jump = Vector2(float(xz[0]), float(xz[1]))
+		elif arg == "--fullmap" or arg.begins_with("--fullmap="):
 			open_map_at_start = true
+			# --fullmap=M (2026-10-31): open it M metres across the screen's height (shots).
+			if arg.contains("="):
+				fullmap_span = maxf(1.0, float(arg.trim_prefix("--fullmap=")))
 		elif arg == "--notebook" or arg.begins_with("--notebook="):
 			# Loop MW-1: the notebook's tab at the start (a chapter, or a place's card).
 			open_settings_at_start = true
@@ -3551,10 +3572,15 @@ func _open_full_map() -> void:
 			if notes.is_found(str(place["id"])):
 				found.append(place["at"])
 	hud.set_night(tod.lights_on)  # its palette (the minimap's), even before the first frame
+	_main_t = 0.0
+	_main_line_tick(0.0)  # the main line's step as it is now (the map can open before the first look)
 	print("full map: open (paused), %d places found on it" % found.size())
 	_blip_sound()
 	get_tree().paused = true
 	hud.open_full_map(Vector2(pos.x, pos.z), yaw, found)
+	if fullmap_span > 0.0:
+		hud.full_map.show_span(fullmap_span)
+		fullmap_span = 0.0
 	if districts != null and districts.ready_ok:
 		hud.full_map.set_districts(districts.view(), districts.percent_total(), syrenki.found_count() if syrenki != null else 0,
 				syrenki.entries.size() if syrenki != null else 0)  # loop 3h slice 1 (+ slice 2: the Syrenki line)
@@ -3562,6 +3588,54 @@ func _open_full_map() -> void:
 		hud.full_map.set_ladder(rivals.ladder_rows())  # loop 3h slice 3: the DRABINKA card
 	if not hud.full_map.closed.is_connected(_close_full_map):
 		hud.full_map.closed.connect(_close_full_map)
+		hud.full_map.teleport.connect(_teleport_from_map)
+		hud.full_map.can_teleport = _teleport_refusal
+
+
+## F's ask (2026-10-31): why a hold on the full map can't teleport now ([pl, en]), or [] when it
+## can. Not in the middle of something the jump would skip or cheat: a race, a job or a ride, a
+## rescue, a police chase, the first 10 minutes' guide.
+func _teleport_refusal() -> Array:
+	if rivals != null and rivals.racing():
+		return ["Nie teraz: trwa wyścig", "Not now: you're racing"]
+	if (jobs != null and jobs.busy()) or (jobs != null and jobs.courier != null and jobs.courier.racing()):
+		return ["Nie teraz: masz zlecenie", "Not now: you're on a job"]
+	if missions != null and missions.has_target():
+		return ["Nie teraz: trwa akcja ratunkowa", "Not now: a rescue is on"]
+	if police != null and police.chasing():
+		return ["Nie teraz: policja siedzi ci na ogonie", "Not now: the police are on your tail"]
+	if first10 != null and first10.guide and not first10.fired.has("done"):
+		return ["Najpierw pierwsza jazda", "Finish the first drive first"]
+	return []
+
+
+## F's ask (2026-10-31): the full map's hold, held: the car onto the lane nearest that spot (in its
+## direction of travel), or the nearest lane anywhere when none is within reach; the helicopter
+## keeps its height. The camera cuts there; the city streams in round it as on any drive.
+func _teleport_from_map(p: Vector2) -> void:
+	if flying:
+		heli.global_position = Vector3(p.x, heli.global_position.y, p.y)
+		heli.vel = Vector3.ZERO
+		heli.reset_physics_interpolation()
+		cam_focus = heli.global_position
+		fcam.reset_lead()
+		print("teleport: the helicopter to %.0f, %.0f" % [p.x, p.y])
+		return
+	var at := Vector3(p.x, map.terrain_height(p.x, p.y), p.y)
+	var spot := _lane_spot(at, car.rotation.y)
+	if spot.is_empty():
+		spot = _node_spot(at)
+	if spot.is_empty():
+		print("teleport: no lane near %.0f, %.0f" % [p.x, p.y])
+		return
+	var to: Vector3 = spot[0]
+	car.global_position = Vector3(to.x, to.y + 0.05, to.z)
+	car.rotation.y = spot[1]
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.reset_physics_interpolation()
+	_cut_camera()
+	print("teleport: the car to %.0f, %.0f (asked %.0f, %.0f), heading %.0f" % [to.x, to.z, p.x, p.y, _compass_yaw(spot[1])])
 
 
 func _close_full_map() -> void:
@@ -4294,12 +4368,15 @@ func _process(dt: float) -> void:
 		hud.set_speed(roundi(absf(car.forward_speed) * 3.6))
 		missions.tick(dt, pos, car.vel.length(), false)
 	_show_target()
+	_main_line_tick(dt)
 	var heading: float = heli.rotation.y if flying else car.rotation.y
 	hud.update_minimap(Vector2(pos.x, pos.z), heading, deg_to_rad(cam_yaw))
 	# The see-through hole: aimed at the cabin and smaller for the helicopter, which is
 	# rarely hidden; a full-size one cuts into the roof edge it has landed on.
 	var car_view := cam.global_transform.affine_inverse() * (pos + Vector3(0, 3.5 if flying else 1.0, 0))
 	var hole := clampf(cam.size * 0.11, 7.0, 20.0) * (0.55 if flying else 1.0)
+	if no_ghost:
+		hole = 0.0  # --no-ghost: the see-through hole is off too
 	building_mat.set_shader_parameter("fade_radius", hole)
 	_update_ghost(pos, car_view)
 	for m in map.fade_materials:
@@ -4345,6 +4422,8 @@ func _update_ghost(pos: Vector3, car_view: Vector3) -> void:
 	var ahead_xz := Vector2(ahead.x, ahead.z).normalized()
 	var occ := Vector4(pos.x, pos.z, ahead_xz.x, ahead_xz.y)
 	var ghost_r := clampf(cam.size * 0.22, 14.0, 50.0) * (0.6 if flying else 1.0)
+	if no_ghost:
+		ghost_r = 0.0
 	for m: ShaderMaterial in [building_mat, map.flat_material, post_mat] + _neon_materials():  # sweep 2: + neon
 		m.set_shader_parameter("car_view", car_view)
 		m.set_shader_parameter("occluder", occ)
@@ -4681,6 +4760,55 @@ func _vehicle_position() -> Vector3:
 	return heli.global_position if flying else car.global_position
 
 
+## The main line (main_line.gd): the active target is the main line's (_put_target), and its step
+## (looked at every MainLine.STEP_EVERY s: the marker, the full map's goal line).
+var _main_target := Vector2.INF
+var _main_t := 0.0
+var main_step: Dictionary = {}
+
+
+func _guide_on() -> bool:
+	return first10 != null and first10.guide_on()
+
+
+## The active target on the minimap: a side quest's dot in its colour, or (`main`) the main line's
+## star (hud.gd `set_main_line`, from `_main_line_tick`).
+func _put_target(xz: Vector2, colour: Color, main: bool) -> void:
+	hud.set_minimap_target(Vector2.INF if main else xz, colour)
+	_main_target = xz if main else Vector2.INF
+
+
+## The main line's step now (main_line.gd `step`), at most every MainLine.STEP_EVERY s.
+func _main_line_tick(dt: float) -> void:
+	_main_t -= dt
+	if _main_t > 0.0 or hud == null:
+		return
+	_main_t = MainLine.STEP_EVERY
+	var f := {"guide": _guide_on(), "target": _main_target, "target_main": _main_target != Vector2.INF}
+	if first10 != null and first10.hint_shown():
+		f["guide_at"] = Vector2(first10.hint_at.x, first10.hint_at.z)
+		f["guide_word"] = first10.hint_word
+	if rivals != null and rivals.ladder != null and wallet != null:
+		var nxt: int = rivals.ladder.next_rung()
+		f["next"] = nxt
+		f["open"] = rivals.ladder.is_open(nxt)
+		f["respect"] = int(wallet.respect)
+		f["need"] = Ladder.threshold(mini(nxt, Ladder.FINAL))
+		if nxt < Ladder.FINAL:
+			f["rival"] = str(Ladder.RUNGS[nxt]["rival"])
+			f["rival_at"] = rivals.rival_at(f["rival"])
+		f["night"] = rivals.night()
+		f["final_at"] = rivals.start_marker()
+		f["jobs"] = wallet.jobs_done()
+		f["end_jobs"] = First10.END_JOBS
+		f["end_seen"] = wallet.intro.has("end_seen")
+	else:
+		f["next"] = Ladder.FINAL + 1
+		f["end_seen"] = true
+	main_step = MainLine.step(f)
+	hud.set_main_line(main_step["at"], str(main_step["pl"]), str(main_step["en"]))
+
+
 ## The arrow and minimap dot for the mission target.
 func _show_target() -> void:
 	if rivals != null and rivals.has_target():
@@ -4689,7 +4817,7 @@ func _show_target() -> void:
 		var m := roundi(Vector2(f.x - p.x, f.z - p.z).length())
 		var on := cam.unproject_position(f + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on, "%d m" % m, rivals.target_colour(), m > 12)
-		hud.set_minimap_target(Vector2(f.x, f.z), rivals.target_colour())
+		_put_target(Vector2(f.x, f.z), rivals.target_colour(), _guide_on() or rivals.main_race())
 		_new_target("race", f)
 		return
 	# Loop MW-4: the "Na czasie" job's queue, then its door.
@@ -4699,7 +4827,7 @@ func _show_target() -> void:
 		var mt := roundi(Vector2(tp.x - at_t.x, tp.z - at_t.z).length())
 		var on_t := cam.unproject_position(tp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on_t, "%d m" % mt, trend_job.target_colour(), mt > 12)
-		hud.set_minimap_target(Vector2(tp.x, tp.z), trend_job.target_colour())
+		_put_target(Vector2(tp.x, tp.z), trend_job.target_colour(), _guide_on())
 		_new_target("job", tp)
 		return
 	# Loop 2d-1: a Podwózka ride's pin, passenger or door.
@@ -4709,7 +4837,7 @@ func _show_target() -> void:
 		var mr := roundi(Vector2(rp.x - at_r.x, rp.z - at_r.z).length())
 		var on_r := cam.unproject_position(rp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on_r, "%d m" % mr, rides.target_colour(), mr > 12)
-		hud.set_minimap_target(Vector2(rp.x, rp.z), rides.target_colour())
+		_put_target(Vector2(rp.x, rp.z), rides.target_colour(), _guide_on())
 		_new_target("job", rp)
 		return
 	if jobs != null and jobs.has_target():
@@ -4718,7 +4846,7 @@ func _show_target() -> void:
 		var mj := roundi(Vector2(j.x - at_j.x, j.z - at_j.z).length())
 		var on_j := cam.unproject_position(j + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on_j, "%d m" % mj, jobs.target_colour(), mj > 12)
-		hud.set_minimap_target(Vector2(j.x, j.z), jobs.target_colour())
+		_put_target(Vector2(j.x, j.z), jobs.target_colour(), _guide_on())
 		_new_target("job", j)
 		return
 	# Loop 3h slice 4: the guide's arrow (the first stand, the boulevard tape, Powiśle, the garage).
@@ -4728,7 +4856,7 @@ func _show_target() -> void:
 		var mf := roundi(Vector2(fp.x - at_f.x, fp.z - at_f.z).length())
 		var on_f := cam.unproject_position(fp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on_f, "%s %d m" % [first10.hint_word, mf], First10.HINT_COLOUR, mf > 12)
-		hud.set_minimap_target(Vector2(fp.x, fp.z), First10.HINT_COLOUR)
+		_put_target(Vector2(fp.x, fp.z), First10.HINT_COLOUR, true)
 		return
 	# Loop MW-6: Spacer's soft hint, the edge arrow to the nearest notebook place not found yet.
 	if not missions.has_target() and spacer != null and spacer.hint_shown():
@@ -4737,13 +4865,13 @@ func _show_target() -> void:
 		var mh := roundi(Vector2(hp.x - at_h.x, hp.y - at_h.z).length())
 		var on_h := cam.unproject_position(Vector3(hp.x, map.ground_height(hp.x, hp.y) + 3.5, hp.y)) * float(view.stretch_shrink)
 		hud.set_target(on_h, "? %d m" % mh, Spacer.HINT_COLOUR, mh > 25)
-		hud.set_minimap_target(hp, Spacer.HINT_COLOUR)
+		_put_target(hp, Spacer.HINT_COLOUR, false)
 		if notes != null and notes.is_found(spacer.hint_id):
 			spacer.dismiss()
 		return
 	if not missions.has_target():
 		hud.set_target(Vector2.ZERO, "", Color.WHITE, false)
-		hud.set_minimap_target(Vector2.INF, Color.WHITE)
+		_put_target(Vector2.INF, Color.WHITE, false)
 		_last_target_source = ""
 		return
 	var t: Vector3 = missions.target_position()
@@ -4753,7 +4881,7 @@ func _show_target() -> void:
 	var at := cam.unproject_position(t + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 	# Up close the ring says enough, and the pointer would sit on the vehicle's own marker.
 	hud.set_target(at, "%d m" % metres, colour, metres > 12)
-	hud.set_minimap_target(Vector2(t.x, t.z), colour)
+	_put_target(Vector2(t.x, t.z), colour, _guide_on())
 	_new_target("rescue", t)
 
 

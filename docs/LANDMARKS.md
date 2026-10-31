@@ -32,15 +32,15 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 
 | # | Object | Today | To do | Photos |
 | --- | --- | --- | --- | --- |
-| 1.1 | Muzeum Sztuki Nowoczesnej | generic white LoD2 parts, no card | new model: white box, arcade, window slot, skylights, card (docs/design/first-scene.md) | 4 + ortho (no Marszałkowska front yet) |
+| 1.1 | Muzeum Sztuki Nowoczesnej | DONE 2026-10-31 (L3, site `msn`, spec `docs/landmarks/specs/msn.md`, 336 tris): white box on the glazed ground floor and its 29 fins, the slot, two city-room windows, three skylights, card | photo check on the Mac: the city-room windows (face, size) and the skylights against `ortho.jpg`; next door TR Warszawa is a building site with cranes (site `tr`, 2026-10-31) | 4 + ortho (no Marszałkowska front yet) |
 | 1.2 | Pałac Kultury i Nauki | model (tiers, pinnacles, spire, clocks) | re-pass against photos: proportions of the tiers, attics, the side wings and the Congress Hall | yes |
 | 1.3 | Rotunda + Domy Towarowe Centrum (the Eastern Wall) | Rotunda model; the stores generic | Rotunda re-pass (today's teal glass); the three glass stores and the pavilions as a model | yes |
-| 1.4 | Złote Tarasy | model (glass wave) | re-pass: the wave's shape against the orthophoto, lit dome at night | yes |
+| 1.4 | Złote Tarasy | DONE 2026-10-31 (L3, site `tarasy`, spec `docs/landmarks/specs/tarasy.md`, 4762 tris): the wave, the terraced podium, Lumen, Skylight and its lit crown, the drum, from the OSM parts | photo check on the Mac: Lumen's ribbons, Skylight's crown, the wave against the orthophoto | yes |
 | 1.5 | Varso, Złota 44, Warsaw Spire, Rondo 1, Q22 | Varso, Złota 44 and Spire own geometry; Rondo 1 and Q22 from the tower table | re-pass of the skyline against photos, crowns first | Varso, Złota 44, Spire, Rondo 1 yes |
 | 1.6 | Zamek Królewski + Plac Zamkowy | skin only (colour) | model: the clock tower, the facade's bays, the roof; the square's paving round the Column | yes |
 | 1.7 | Stadion Narodowy | model (weave, masts, membrane) | re-pass against photos and the orthophoto; the embankment round it | yes |
 | 1.8 | Most Poniatowskiego | towers model, heights guessed | towers from photos; the deck's arches and balustrades | yes |
-| 1.9 | Warszawa Centralna | model (shell roof) | re-pass; the canopy's AO | yes |
+| 1.9 | Warszawa Centralna | DONE 2026-10-31 (L2, site `centralna`, spec `docs/landmarks/specs/centralna.md`, 1370 tris): the glass hall, the wings, the flat slab overhanging to 140 x 86 m, the hyperbolic paraboloid shells under it on the mapped pillars, from the OSM parts | photo check on the Mac: how much of the shells shows outside, the wings' walls; the canopy's AO | yes |
 
 ### P2. Named landmarks to L2 (today skins: colour only on LoD2)
 
@@ -50,9 +50,10 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | 2.2 | Teatr Wielki | the colonnade and the portico on Plac Teatralny |
 | 2.3 | Old Town and New Town tenements | gables and dormers (map lane: `_tenement_facades`, the LoD2 roofs) |
 | 2.4 | Archikatedra, Barbakan | the Cathedral's stepped gable; the Barbican's towers and walls |
-| 2.5 | Pałac Prezydencki | the forecourt wings, the portico, the statue of Poniatowski in front |
+| 2.5 | Pałac Prezydencki | DONE 2026-10-31 (model, spec `docs/landmarks/specs/prezydencki.md`, 868 tris): wings round the forecourt, portico, Poniatowski's statue, lions, gate, guardhouses; photo check on the Mac |
 | 2.6 | Kościół Świętego Krzyża, Wszystkich Świętych, św. Aleksandra | twin towers; the towers; the rotunda and dome |
-| 2.7 | Sejm, Zachęta, Pałac Staszica, Kopernik, BUW, Hala Mirowska | facades and roofs from the photos |
+| 2.6b | Kościół Świętej Trójcy (Lutheran, Plac Małachowskiego) | DONE 2026-10-31 (L3 model, spec `trojca.md`, 1901 tris): drum with oculi, four Tuscan porticoes, copper dome, columned lantern and cross |
+| 2.7 | Sejm, Pałac Staszica, Kopernik, BUW, Hala Mirowska | facades and roofs from the photos (Zachęta DONE 2026-10-31: model, spec `zacheta.md`, from the user's photo) |
 | 2.8 | MDM and Plac Konstytucji | the blocks' arcades, reliefs, the corner towers |
 | 2.9 | Towers missing from the table | PZU Tower, JM Tower, Pekao Tower, Warsaw Towers, Atlas, Prosta |
 | 2.10 | Dom bez Kantów, Departament, the Królewska block | colours from photos (guesses today); a name for the block |
@@ -85,11 +86,11 @@ Checks: `check_landmarks.gd` runs on the full map for EVERY site that has a card
 | Name (game / real) | Area | Category | Built how | Card | Check / budget | Open issues |
 |---|---|---|---|---|---|---|
 | Pałac Kultury i Nauki | Śródmieście | landmark model | `_build_palace`: tiers from OSM parts (P_WINGS, P_COURTS, P_HALL), M_MONUMENT, M_STONE pinnacles, M_GOLD spire to 237 m, `_dial` clocks (M_DIAL, hands from shader, Warsaw time), M_ATTIC; Congress Hall drum | yes | check_landmarks (+ roof-rescue / spire-cell probe); no budget | Roof rescue lands on 28 m annex; user disliked "Palace" once, re-pass vs photos wanted |
-| Złote Tarasy | Śródmieście | landmark model | `_build_tarasy` + `_wave`: glass wave over 8 mapped domes, M_GLASS_ROOF, glass rim walls; Lumen and Skylight kept | yes | check_landmarks | Dome not lit from inside at night (dusk list); user disliked look earlier |
+| Złote Tarasy | Śródmieście | landmark model | `_build_tarasy` + `_tarasy_wave`: the whole complex from its OSM parts (spec tarasy.md): the wave, lit rim walls, podium, Lumen, Skylight + crown, drum | yes | check_landmarks, check_mesh_quality | photo check on the Mac |
 | Rotunda (Rotunda PKO) | Marszałkowska x Al. Jerozolimskie | landmark model | `_build_rotunda`: granite plinth, 2 lit glass storeys M_PAVILION (warm), white overhanging roof with oculus, ribs; Rondo photos 2026-10-31: 24-tooth white zigzag crown, red and blue light in the glass under it, lit parody name BANK POLSKA on the south and east faces | yes | check_landmarks | none listed |
 | Varso Tower | Chmielna / Rondo ONZ side | tower (hand-built) | `_build_varso`: M_GLASS slabs 177/205/230 m, dark spines, lit glass crown 193-234 m (M_PAVILION cool), one mast to 310 m, 5 rings, beacon | yes | check_landmarks | Antenna lattice unlit (dusk); Varso I/II OSM extrusions elsewhere |
 | Stadion Narodowy (PGE Narodowy) | Praga, Saska Kępa side | stadium | `_find_stadium` (72 mast pairs give outline) + `_build_stadium`: M_WEAVE skin leaning out, 72 masts, M_MEMBRANE roof ring, red seats, needle on cables; `_beam` | yes | check_landmarks | Embankment bare terrain; AO/lamp maps still on LoD2 footprint |
-| Warszawa Centralna | Śródmieście | station | `_find_centralna` + `_build_centralna`: grid of hyperbolic-paraboloid shell roof on mapped pillars, glass hall, canopy 140x86 m, turned -19.4 deg | yes | check_landmarks | AO ignores canopy |
+| Warszawa Centralna | Śródmieście | station | `_find_centralna` + `_build_centralna` + `_centralna_shells`: the whole station from its OSM parts (spec centralna.md): glass hall, wings and roof boxes, vestibules, end pillars, the hypar shell tier and the flat slab over it, turned -19.4 deg | yes | check_landmarks, check_mesh_quality | AO ignores canopy; photo check on the Mac |
 | Most Poniatowskiego (towers) | Vistula, Śródmieście/Praga | bridge (towers) | `_find_towers` (bake seats 4 towers `data["towers"]`) + `_build_towers`: plinth, shaft with cornice, open arcade, pointed roof, finial; deck itself is map_builder decks | yes | check_landmarks (special-cased); no budget | Tower heights are a guess (top 15 m over deck); thin pale lines along deck |
 | Most Świętokrzyski | Vistula, Śródmieście/Praga | bridge | `_find_swieto`/`_build_swieto`: concrete pylon leaning back 7 m (70 m top), 12+9 stays in one plane along the median; deck is map_builder's | yes | check_landmarks (needs 6 rays, not 10) | none listed |
 | Kolumna Zygmunta | Plac Zamkowy, Old Town | hand-built monument | `_find_zygmunt` (circle zone r=4) + `_build_zygmunt`: stepped granite base, pedestal, 12 m shaft, capital, bronze king with cross and sabre | yes | check_landmarks | none |
@@ -170,7 +171,7 @@ Decks are generic: `map_builder._build_bridge_structures` + `_decks`/`_deck_gaps
 - **Stations / sport / halls**: Dworzec Gdański, Powiśle, Stadion, Warszawa Wschodnia, Śródmieście, Ochota; Torwar, Hala Gwardii, Hala Koszyki, Narodowe Centrum Sportu (the stadium's name; stadium is found by masts, not this outline), Elektrownia Powiśle, Elektrownia Tramwajów.
 - **Hotels / towers / malls not in TOWERS**: Hotel Bristol, Polonia Palace, Metropol, Mercure Grand/Centrum, Radisson Blu Sobieski, Sheraton, Holiday Inn, Pekao Tower, PZU Tower, JM Tower, Warsaw Towers, Atlas, Prosta Tower, V Tower, Concept Tower, Crown Tower/Square/Point, North Gate, Sienna Center, Vitkac, Feniks, Żyletkowiec, Pasaż Saski, Hala Koszyki, Wola Center, Centrum Marszałkowska, Atrium Plaza/Centrum, Equator, Ethos.
 (A dump of all 782 names can be regenerated with: python3 -I script comparing `landmarks[].name` to the `"osm"` and `_landmark("...")` strings in landmarks.gd.)
-Handled outlines (found by `_landmark("name")`): Pałac Kultury i Nauki, Złote Tarasy, Lumen, Skylight (kept), Rotunda PKO, Varso Tower, Westfield Arkadia, Hotel Europejski, Grób Nieznanego Żołnierza, Metropolitan, Sofitel Victoria, plus TOWERS/SKINS/PLAC_SKINS names. Found by point or box instead (no named outline): Muzeum Narodowe, MDM, Forest, HUB B/C, Krolewska block, Zygmunt, flag, Świętokrzyski, Poniatowski towers, Stadion, Centralna.
+Handled outlines (found by `_landmark("name")`): Pałac Kultury i Nauki, Złote Tarasy (Lumen and Skylight built inside it), Rotunda PKO, Varso Tower, Westfield Arkadia, Hotel Europejski, Grób Nieznanego Żołnierza, Metropolitan, Sofitel Victoria, plus TOWERS/SKINS/PLAC_SKINS names. Found by point or box instead (no named outline): Muzeum Narodowe, MDM, Forest, HUB B/C, Krolewska block, Zygmunt, flag, Świętokrzyski, Poniatowski towers, Stadion, Centralna.
 
 ### 3. Street furniture and props (how built)
 | Type | Where | Built how | Notes |

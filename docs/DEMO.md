@@ -829,6 +829,9 @@ through the Old Town, where the city guards meet you.
 
 ### 6.3 The first hour
 
+The main line through the first hour (the guide, the ladder, the final), its markers and its
+pacing: docs/design/main-line.md (2026-10-31).
+
 | Activity | Demo content | Exists? |
 | --- | --- | --- |
 | Rival ladder | The 6 rivals in order of stake (Halina 60 → Mordor Mike 300 zł), each unlocking the next; a **final race "Trzy mosty"** (three bridges) against Seba at night, from Rondo Daszyńskiego to the stadium's stands | Races exist; ladder and final are new |

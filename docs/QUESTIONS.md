@@ -33,6 +33,20 @@ Newest first. One entry per question.
 - **2026-10-31 · gameplay · first-10 polish** — The first mixtape lies on the University Library's
   roof (the roof garden by the boulevards) and gives the next PÓŁNOC FM track, +10 respect. Default
   built: that. Alternative: the Copernicus Science Centre's roof, right on the boulevards.
+- **2026-10-31 · gameplay · the main line** (docs/design/main-line.md) — The main line is the
+  guide (first 10 min), then the ladder's next rival (a gold star on the minimap and the full map,
+  pinned to the rim at any distance), then the final at night; the respect gates are lowered to
+  0/100/220/340/480/640 and 850 (was ... 850 and 1100) so the final comes in about an hour, an
+  estimate from the pay tables. Default built: that. To check: F times a fresh save on the phone;
+  whether the on-screen edge arrow should also show the star, and whether a short goal line belongs
+  on the driving screen (today it is on the full map only).
+
+- **2026-10-31 · gameplay · the game map** — Teleport: free and unlimited, by holding a spot for
+  0.6 s; refused during a race, a job, a rescue, a police chase and the first-drive guide. The
+  districts' and ladder cards now sit behind a ≡ button (hidden when the map opens) so the map
+  shows. Default built: those. Alternatives: a price or a cooldown on teleports, only to places
+  already discovered, or the cards shown at open.
+
 - **2026-10-31 · gameplay · loop 3h slice 4** — Who gets the guide: a save with no job done, no
   złoty, no rung beaten and the guide not finished; quitting before the first delivery repeats it.
   Default built: that. Alternative: once per install whatever happens.
