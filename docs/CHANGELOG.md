@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-10-31
 
+- Rondo Dmowskiego, the rest of the photos: the city bus is an 18 m yellow-and-red articulated one with a bellows in the middle, the bus shelter has its big lit ad panel, the Nowotel's name has its orange rule and chain line under it, Hotel Metropol's roof carries a green neon name and Rondo 1 has a clinic sign at street level.
 - Rondo Dmowskiego at night looks like the photos: the Nowotel's white tower with its name in blue neon, the Rotunda's white zigzag crown with red and blue light, red bus shelters, and yellow trams with a red roof.
 - The rivals are a ladder now: beat Pani Halina first, earn respect, work up to Mordor Mike, then race Seba over three bridges at night in "Trzy mosty".
 - Dusk looks like a real late-October evening in Warsaw: a blue-grey sky, the Palace of Culture lit gold, lit hotel names, the station canopy's lamps and red lights on the towers.

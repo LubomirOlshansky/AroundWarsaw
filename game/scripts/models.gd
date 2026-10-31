@@ -76,7 +76,7 @@ const TRAFFIC := [
 			"paint": ["#f2f2ee", "#e9e9e6", "#d8d2c2", "#b8bcc0"]},
 	],
 	[
-		{"name": "bus", "share": 1.0, "size": Vector3(2.5, 3.2, 12.0), "paint": ["#ffffff"]},
+		{"name": "bus", "share": 1.0, "size": Vector3(2.5, 3.2, 18.0), "paint": ["#ffffff"]},
 	],
 ]
 ## Loop 2c: the parked cars' paints (map_builder.gd picks one by the bake's index): traffic's
@@ -653,14 +653,17 @@ static func _van(boxed: bool) -> Shape:
 	return s
 
 
-## Warsaw's city bus, 12 m: red below the windows, yellow above, a long dark window band
-## (lit at night) with pillars, a big windscreen with a destination display, three doors on
-## the right, the air-conditioning box on the roof.
+## Warsaw's city bus, an 18 m articulated Solaris (the Rondo night photos, 2026-10-31): red
+## below the windows, yellow above, a long dark window band (lit at night) with pillars, a big
+## windscreen with a destination display, doors on the right, the air-conditioning box on the
+## roof; a front section (z -9 to 3), the black bellows (3 to 3.7) and a rear section (3.7 to
+## 9) on its own axle. Its length is traffic.gd's LENGTH and TRAFFIC's size.z.
 static func bus_mesh() -> ArrayMesh:
 	var s := Shape.new()
 	var red := fin(Color("#c8282a"))
 	var yellow := fin(Color("#f2c12e"))
 	var W := 1.25
+	s.xform = Transform3D(Basis.IDENTITY, Vector3(0.0, 0.0, -3.0))
 	var lower := PackedVector2Array([Vector2(-5.96, 0.36), Vector2(-6.0, 0.6), Vector2(-5.98, 1.0),
 			Vector2(-5.96, 1.04), Vector2(5.97, 1.15), Vector2(5.99, 1.15), Vector2(6.0, 0.6), Vector2(5.96, 0.36)])
 	var lw := PackedFloat32Array([W, W, W, W, W, W, W, W])
@@ -671,30 +674,52 @@ static func bus_mesh() -> ArrayMesh:
 	var glass := fin(GLASS, LIT_WINDOW)
 	s.pane(s.edge_face(house, hw, 0), 0.04, 0.96, 0.03, 0.8, fin(GLASS))
 	s.pane(s.edge_face(house, hw, 0), 0.12, 0.88, 0.84, 0.96, fin(Color("#f0c674"), LIT_SIGN))
-	s.pane(s.edge_face(house, hw, 2), 0.1, 0.9, 0.12, 0.5, fin(GLASS))
 	var bands := [Vector2(0.01, 0.12), Vector2(0.14, 0.33), Vector2(0.35, 0.52), Vector2(0.54, 0.73), Vector2(0.75, 0.96)]
 	for sgn: float in [-1.0, 1.0]:
 		var side := s.side_face(house, hw, sgn)
 		for b: Vector2 in bands:
 			s.pane(side, b.x, b.y, 0.28, 0.82, glass)
-	# Doors on the right (+x): front, middle, rear.
-	for z: float in [-5.0, -0.6, 3.6]:
+	# Doors on the right (+x): front and middle of the front section.
+	for z: float in [-5.0, -0.6]:
 		s.side_rect(W + 0.014, 1.0, 0.42, 2.6, z - 0.6, z + 0.6, fin(Color("#2d3640")))
 	s.box(Vector3(0.0, 3.12, 1.0), Vector3(1.7, 0.28, 3.2), fin(Color("#d9d4c8")))
 	var nose := s.edge_face(lower, lw, 1)
 	s.pane(nose, 0.05, 0.22, 0.25, 0.85, fin(HEADLIGHT, HEAD_LAMP))
 	s.pane(nose, 0.78, 0.95, 0.25, 0.85, fin(HEADLIGHT, HEAD_LAMP))
-	var back := s.edge_face(lower, lw, 5)
-	s.pane(back, 0.04, 0.18, 0.1, 0.7, fin(TAIL, TAIL_LAMP))
-	s.pane(back, 0.82, 0.96, 0.1, 0.7, fin(TAIL, TAIL_LAMP))
 	s.box(Vector3(0.0, 0.3, -5.92), Vector3(2.54, 0.2, 0.2), fin(TRIM))
-	s.box(Vector3(0.0, 0.3, 5.92), Vector3(2.54, 0.2, 0.2), fin(TRIM))
 	var r := 0.48
 	var wc := r * cos(PI / 6.0)
 	for z: float in [-3.9, 3.4]:
 		for sgn: float in [-1.0, 1.0]:
 			s.arch(sgn * (W + 0.006), sgn, z, wc, r + 0.08, 0.36, fin(WELL))
 			s.wheel(Vector3(sgn * (W + 0.02 - 0.15), wc, z), r, 0.3, 6, sgn, fin(TYRE), fin(HUB))
+	# The rear section: its own lower and upper bodies with square ends, a door, an axle.
+	s.xform = Transform3D.IDENTITY
+	var rl := PackedVector2Array([Vector2(3.7, 0.36), Vector2(3.7, 1.15), Vector2(8.97, 1.15), Vector2(9.0, 0.6),
+			Vector2(8.96, 0.36)])
+	var rlw := PackedFloat32Array([W, W, W, W, W])
+	s.loft(rl, rlw, [red, red, red, red, null], red)
+	var rh := PackedVector2Array([Vector2(3.7, 1.15), Vector2(3.7, 2.98), Vector2(9.0, 2.98), Vector2(9.0, 1.15)])
+	var rhw := PackedFloat32Array([W - 0.03, W - 0.03, W - 0.03, W - 0.03])
+	s.loft(rh, rhw, [yellow, yellow, yellow, null], yellow)
+	var rb := [Vector2(0.02, 0.2), Vector2(0.24, 0.46), Vector2(0.5, 0.72), Vector2(0.76, 0.97)]
+	for sgn: float in [-1.0, 1.0]:
+		var rside := s.side_face(rh, rhw, sgn)
+		for b: Vector2 in rb:
+			s.pane(rside, b.x, b.y, 0.28, 0.82, glass)
+	s.side_rect(W + 0.014, 1.0, 0.42, 2.6, 6.3, 7.5, fin(Color("#2d3640")))
+	var back := s.edge_face(rl, rlw, 2)
+	s.pane(back, 0.04, 0.18, 0.1, 0.7, fin(TAIL, TAIL_LAMP))
+	s.pane(back, 0.82, 0.96, 0.1, 0.7, fin(TAIL, TAIL_LAMP))
+	s.pane(s.edge_face(rh, rhw, 2), 0.1, 0.9, 0.12, 0.5, fin(GLASS))
+	s.box(Vector3(0.0, 0.3, 8.92), Vector3(2.54, 0.2, 0.2), fin(TRIM))
+	for sgn: float in [-1.0, 1.0]:
+		s.arch(sgn * (W + 0.006), sgn, 7.4, wc, r + 0.08, 0.36, fin(WELL))
+		s.wheel(Vector3(sgn * (W + 0.02 - 0.15), wc, 7.4), r, 0.3, 6, sgn, fin(TYRE), fin(HUB))
+	# The articulation: black bellows, a turntable plate and a roof cover across the gap.
+	var bellows := fin(Color("#1c1d20"))
+	s.box(Vector3(0.0, 1.95, 3.35), Vector3(2.3, 2.1, 0.8), bellows)
+	s.box(Vector3(0.0, 0.62, 3.35), Vector3(2.3, 0.5, 0.8), fin(TRIM))
 	return s.mesh()
 
 
