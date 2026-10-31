@@ -76,7 +76,7 @@ backlog-loop skill (`.claude/skills/backlog-loop/SKILL.md`).
 
 ## Models: one loop, several tiers
 
-The main session always runs on Opus and picks a model for every delegation by the kind of
+The main session runs on Sonnet by default (Opus only for map geometry, gameplay design, performance and device runs, chosen per thread) and picks a model for every delegation by the kind of
 work (the table in CLAUDE.md, "Model routing"): **Opus** decides, **Sonnet** applies what is
 already decided, **Haiku** looks things up and counts. A loop is often split that way:
 
@@ -97,10 +97,10 @@ helper asks for one in its report.
 
 | Document | Holds | Updated |
 | --- | --- | --- |
-| `docs/DEVELOPMENT.md` | how the game works: controls, flags, map data, bench, **Performance budgets** | with every behaviour change |
+| `docs/DEVELOPMENT.md` | a short index; the full reference (controls, flags, map data, bench, **Performance budgets**) is `docs/archive/DEVELOPMENT-full.md`: read a section, never the whole file | a note in the matching section when a flag or behaviour changes |
 | `README.md`, `CONTRIBUTING.md` | the public front page (pitch, run, credits) and the contributor rules | when what a visitor needs changes |
-| `docs/ROADMAP.md` | the order of work ("Agent order") and the progress log, one row per loop | each loop: item done + a row |
-| `docs/BACKLOG.md` | issues found along the way and decisions taken by default | each loop: fixed removed, found added |
+| `docs/ROADMAP.md` | the order of work ("Agent order") and the history up to 2026-10-31 | only when the order changes; no per-item rows |
+| `docs/BACKLOG.md` | issues found along the way and decisions taken by default | each item: fixed removed, found added (plus one CHANGELOG.md line for player-visible changes: it feeds /progress/) |
 | `docs/QUESTIONS.md` | parked questions for the user (with the default built) and the lanes in progress | when a question is parked or answered, a lane claimed or freed |
 | `docs/DEMO.md` | the demo plan: area, quality bar, road defects, police, milestones | when the plan changes |
 | `docs/WORKFLOW.md` | this page | when the way of working changes |
@@ -109,15 +109,26 @@ helper asks for one in its report.
 
 ## Definition of done (a loop item)
 
-1. **It works**: `tools/verify.sh` RESULT: PASS; the item's own checks pass, with numbers.
-   GitHub runs `tools/verify.sh --quick` on Linux for every push to main and every pull request
-   (`.github/workflows/verify.yml`): a red **verify** check on main is fixed before new work.
-2. **It was seen**: screenshots at phone size (2532x1170; 2868x1320 for HUD work) looked at,
-   before and after, on both city paths when the map builder changed; reviewed against the
-   art bible for anything visible.
-3. **It fits the phone**: bench before/after within DEVELOPMENT.md's budgets; vertices reported.
+Two sizes, picked by the kind of change.
+
+**Light** (content, text, landing/site, docs, object polish, tooling, small fixes that touch no
+driving, map geometry or per-frame code):
+
+1. CI **verify** is green (and `tools/verify.sh --only=` for the checks the change touches).
+2. A visible change was seen in one phone-size shot (2532x1170).
+3. BACKLOG updated (and a CHANGELOG line if player-visible); CREDITS for anything new from outside.
+
+**Full** (gameplay, driving feel, police/AI, map geometry, roads, streaming, anything that runs
+per frame or adds geometry, materials or lights, anything for the phone):
+
+1. **It works**: `tools/verify.sh` RESULT: PASS; the item's own checks pass, with numbers. CI
+   runs `tools/verify.sh --quick` on Linux for every push to main and pull request
+   (`.github/workflows/verify.yml`): a red **verify** on main is fixed before new work.
+2. **It was seen**: phone-size screenshots (2868x1320 for HUD work), before and after, on both
+   city paths when the map builder changed; art bible for anything visible.
+3. **It fits the phone**: bench before/after within the "Performance budgets"; vertices reported.
 4. **It ships**: `tools/verify.sh --ios` BUILD SUCCEEDED at the loop's end.
-5. **It is written down**: DEVELOPMENT.md, ROADMAP row, BACKLOG; CREDITS for anything new from outside.
+5. **It is written down**: BACKLOG; a note in the archive section for a new flag; CREDITS for anything new from outside.
 6. **It is honest**: what only the phone can tell (feel, heat, sound, touch) is named, with what
    the user should try; Open Questions list every default taken.
 

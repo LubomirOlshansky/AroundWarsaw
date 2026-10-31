@@ -1,204 +1,95 @@
 # Around Warsaw: project instructions
 
-Around Warsaw (formerly Nocna Warszawa; renamed 2026-10-30; the bundle and package IDs keep
-`com.olshanskysoft.nocnawarszawa` and the build files `NocnaWarszawa`; the radio's 87,3 station
-is KEBAB FM since 2026-10-30, the user's choice; its id and folder stay `nocna_fm`). A free, open-source (MIT) fan game: an isometric small-car arcade drive (and a
-helicopter) through the real centre of Warsaw, built in Godot 4.7.2 (Mobile renderer, iOS first, Metal)
-from OpenStreetMap and GUGiK open data. The goal is a top indie game; the next milestone is
-a high-quality demo of central Warsaw on the iPhone (docs/DEMO.md). The repo is public.
+Around Warsaw (formerly Nocna Warszawa; bundle/package IDs keep `com.olshanskysoft.nocnawarszawa`,
+build files keep `NocnaWarszawa`; the 87,3 radio station is KEBAB FM, id and folder `nocna_fm`).
+A free, open-source (MIT) fan game: an isometric small-car arcade drive (and a helicopter) through
+the real centre of Warsaw, Godot 4.7.2 (Mobile renderer, iOS first, Metal), from OpenStreetMap and
+GUGiK open data. Next milestone: a high-quality central-Warsaw demo on the iPhone (docs/DEMO.md).
+The repo is public.
 
 ## Where things are
 
 | Path | What |
 | --- | --- |
-| `game/` | the Godot project: `scripts/` (GDScript), `shaders/`, `tools/` (check scripts, `bake_city.gd`), `data/` (dialogue), `map/` (baked, generated), `audio/` |
-| `tools/` | Python bakes and helpers; `verify.sh`, `shots.sh`, `device_run.sh`, `check_map_data.py`, `export_ios.sh`, `hooks/guard_godot.py` (the guard hook, on in `.claude/settings.json`: blocks game runs without `--nosave` or a quit flag, and a headless `bake_city.gd`) |
-| `README.md`, `CONTRIBUTING.md` | the public front page and how to contribute: short, for visitors |
-| `docs/DEVELOPMENT.md` | how everything works: controls, every flag, map-data chain, bench, **Performance budgets** (the old README, moved 2026-10-30) |
-| `docs/WORKFLOW.md` | how the work is run: the loop, who owns what, definition of done, milestone gates |
-| `docs/ROADMAP.md` | order of work and the progress log · `docs/BACKLOG.md` found issues and decisions |
-| `docs/QUESTIONS.md` | parked questions for the user (with the default built) and the lanes in progress |
-| `docs/LANDMARKS.md` | every landmark and building: what is done and how, and the plan by priority (P0 tools, P1 heroes, P2 named, P3 generic) |
-| `docs/DEMO.md` | the demo plan: area, quality bar, road defects, police, milestones |
-| `CREDITS.md`, `LICENSE` | data licences (ODbL, GUGiK, CC BY 4.0) and MIT |
-| `data/raw/`, `build/`, `shots/`, `game_*/`, `refs/` | raw downloads, builds, screenshots, temp copies, reference photos: gitignored, never committed |
-| `game/map/index.*`, `sectors/`, `proxies.scn`, `shared/`, `lod2.*`, `terrain.json` | derived (loop 3d-1): gitignored; a fresh clone runs `tools/setup_map.sh` once (~2 min, a window opens; `lod2.*` and `terrain.json` need GUGiK's raw data, `--full`) |
+| `game/` | Godot project: `scripts/`, `shaders/`, `tools/` (check scripts, `bake_city.gd`), `data/`, `map/` (baked), `audio/` |
+| `tools/` | Python bakes and helpers, `verify.sh`, `shots.sh`, `device_run.sh`, `check_map_data.py`, `export_ios.sh`, `hooks/guard_godot.py` (blocks game runs without `--nosave` or a quit flag) |
+| `docs/DEVELOPMENT.md` | short INDEX. The full reference is `docs/archive/DEVELOPMENT-full.md` (~490 KB): never read it whole, grep a section and read that range |
+| `docs/WORKFLOW.md` | the loop, owners, light/full definition of done, milestone gates |
+| `docs/BACKLOG.md` (issues, decisions) · `docs/QUESTIONS.md` (parked questions, lanes in progress) · `docs/ROADMAP.md` (order of work) · `docs/DEMO.md` · `docs/LANDMARKS.md` · `docs/ADDONS.md` | read only the section you need |
+| `.claude/agents`, `.claude/skills` | agents and skills (their descriptions say when to use them) |
+| `data/raw/`, `build/`, `shots/`, `game_*/`, `refs/` | gitignored, never committed |
+| `game/map/index.*`, `sectors/`, `proxies.scn`, `shared/`, `lod2.*`, `terrain.json` | derived, gitignored; a fresh clone runs `tools/setup_map.sh` once (`--full` for GUGiK data) |
 
-## Your role: orchestrator
+## Model routing
 
-For anything bigger than a one-file fix: **plan, brief, delegate, verify, report** (the
-loop-brief skill; the cycle in docs/WORKFLOW.md). Give each subagent a self-contained brief:
-it has no memory of this conversation. Accept nothing on a report alone: run the checks and
-look at the shots yourself. Subagents can't ask the user; park their **Open Questions** in
-`docs/QUESTIONS.md`, and re-delegate with the answers when they come. One agent writes in the
-project at a time.
+The project default is **Sonnet**; the coordinator picks the model per thread. **Opus** only for
+map geometry, gameplay design and feel, performance, device-gated work, root causes, and accepting
+art. **Sonnet** for content, text, landing/site, docs, object polish and applying a spec.
+**Haiku** for lookups, counts and log crunching. Agent files follow this (`gameplay-dev`,
+`object-modeler`, `qa-tester` Sonnet; `map-engineer`, `perf-engineer`, `game-designer`,
+`art-director` Opus; `scout`, `Explore` Haiku). A cheaper run that fails its gates or returns
+open questions is re-run one tier up, not patched. Only the main session spawns agents. Delegate
+file dumps, logs and shot sets; keep the summary. Say which model each delegation used.
 
-**Backlog mode (the user's standing rule, 2026-10-30).** The work doesn't stop for a
-question: keep picking the next item by priority and land it, until the backlog is empty
-(the backlog-loop skill). A question that needs the user is parked in `docs/QUESTIONS.md`
-with the default that was built, and the next item starts at once; the user answers in one
-batch. After each finished item you pick the next one yourself, for every agent. Stay in
-your lane: one session per area (driving, map, visuals, content, performance, landing,
-store release); check open PRs, recent main commits and the "In progress" table first.
-A cloud session merges its own PR once every check is green (the user's yes, 2026-10-30).
-Anything else that can't be undone, paid tools, device runs and store submissions still wait
-for the user's yes: park them (free downloads and add-ons are pre-approved, "Hard rules").
+## Backlog mode (standing rule)
 
-## Agents (`.claude/agents/`)
-
-| Agent | Lane | Writes | Default model |
-| --- | --- | --- | --- |
-| `gameplay-dev` | GDScript, shaders, HUD, driving, missions, jobs, police, traffic, landmarks in code | `game/scripts`, `game/shaders`, `game/tools` | opus (sonnet for spec-applying tasks) |
-| `map-engineer` | bakes, roads, decks, ramps, lane graph, trees, POIs, the bigger map, city.scn | `tools/*.py`, `game/map` (by baking), `map_builder.gd` | opus |
-| `perf-engineer` | measure and cut frame cost, budgets, device benches | code, for cost only, look unchanged | opus |
-| `game-designer` | missions, loop, police, economy, jokes, text, 2D art specs and PixelLab assets | design docs, `game/data`, `game/art` | opus |
-| `art-director` | judges screenshots and 2D art against the art bible | nothing (read-only) | opus |
-| `object-modeler` | applies an approved spec to landmarks, facades, roofs, signs, props in code; before/after shots; escalates anything open | the named object code (`landmarks.gd`, `models.gd`, `props.gd`, facade helpers) | sonnet |
-| `qa-tester` | runs the verification set, shot sets, device runs; reports | nothing in the project | sonnet |
-| `scout` | read-only lookups, counts, log crunching, parse checks | nothing | haiku |
-
-## Skills (`.claude/skills/`)
-
-| Skill | Use for |
-| --- | --- |
-| `verify-game` | `tools/verify.sh`: map data, check scripts, headless runs; what it can't prove |
-| `screenshot-review` | `tools/shots.sh` at phone sizes and judging shots; `art-bible.md` lives here |
-| `bake-map` | the OSM/GUGiK bake chain, its invariants, downloads, road and deck checks |
-| `godot-mobile-perf` | performance rules for the phone and how to measure before/after |
-| `warsaw-tone` | humour, parody and Polish/English rules; `dialogue.json` format |
-| `loop-brief` | the brief template, delegation table, and how to verify a result |
-| `backlog-loop` | backlog mode: pick the next item by priority, park questions, lanes, keep going until the backlog is empty |
-| `device-run` | build, install, launch on the iPhone, copy the log back; the user starts it with `/device-run`, agents read the file only when the user allowed a run this loop |
-| `model-from-photos` | landmark and building models: reference photos in `refs/` (Wikimedia Commons, gitignored), the spec from them, detail levels L1-L3 and triangle budgets, the side-by-side photo check |
-| `pixellab` | 2D pixel art via the PixelLab MCP server: portraits, HUD/minimap icons, signs and posters, UI, store art; not for the 3D city |
-| `impeccable` | web design for the site (`site/`): new work, critique, polish, the craft floor (pbakaus/impeccable v4.8.0, Apache-2.0; its launcher binary may be blocked in cloud sessions, then read its references directly) |
-
-**Tools note.** The PixelLab MCP server (`pixellab`, tools `mcp__pixellab__*`) is configured
-in the user's own Claude Code settings. Its API key lives only there: never write a key into
-any file, script, log or commit, never ask anyone to, and don't add a project `.mcp.json`.
-Up to 50 generations per loop without asking; more needs the user's yes.
-
-## Model routing (per delegation, by kind of work)
-
-You, the orchestrator (the Mac session or a cloud lane thread), run on Opus and spend Opus on
-deciding, briefing and accepting, not on edits. For each delegation pick the tier with the Agent
-tool's `model` parameter (`"opus"`, `"sonnet"`, `"haiku"`); it overrides the agent file's
-default. Route by the **kind** of work, not its size:
-
-| Tier | Work |
-| --- | --- |
-| **Opus** (effort high) | deciding anything: design, game feel, tuning, police and mission design; root causes; performance analysis and budgets; the map pipeline's geometry (roads, decks, overpasses, lane graph); art direction and judging shots; anything device-gated (phone runs, haptics, iOS export); writing briefs and specs; reviewing another agent's work |
-| **Sonnet** (effort medium) | applying a spec that already fixes the values; tests for behaviour already pinned; mechanical refactors, renames, flag strips; strings and translations against approved text; docs updates from a finished report; running `tools/verify.sh` and reporting; installing an approved add-on and its credits |
-| **Haiku** (effort low) | read-only lookups ("where is X", "does Y exist", "how many"); grepping or summarising logs (bench output, device logs); counting and extracting from data files; checking files parse (frontmatter, JSON); listing files and diffs. No edits that need judgment, never device-gated, never the final verification |
-
-- **Escalate, don't patch.** A Haiku or Sonnet run that returns Open Questions, fails its
-  gates, overshoots its file scope, or gives a result you can't verify is re-run one tier up
-  with the whole task. When unsure, go up a tier. Device-gated and performance work never
-  goes below Opus.
-- **One loop, several tiers**: Opus does the deciding, cheaper tiers do the applying and the
-  counting (examples in docs/WORKFLOW.md). Put the tier and the reason in each brief.
-- **Only you spawn.** Claude Code lets a subagent spawn its own (up to three levels) when its
-  `tools` list `Agent`; ours don't, by design: routing, cost and the one-writer rule stay with
-  you. An agent that wants a cheaper helper asks in its report ("Haiku could crunch X").
-- `Explore` is overridden in `.claude/agents/Explore.md` to run on Haiku; `scout` for counts.
-- **Object work** (landmarks, facades, signs, props): Opus writes the spec with the values,
-  `object-modeler` (Sonnet) builds it and renders before/after, `art-director` (Opus) accepts
-  or returns a fix list. Its **Escalate** items come back to you, never guessed.
-- **Context is the bill.** Every turn re-reads the whole conversation: delegate file dumps,
-  logs and shot sets to subagents and keep only their summary; read line ranges, not big
-  files; one backlog item per thread, then a fresh one (cache: idle > 1 h re-reads it all).
-- Say which model each delegation used when you report it.
-- **Advisor (2026-10-31, on trial).** `.claude/settings.json` sets `advisorModel: opus`, so every
-  session in the repo, cloud lane threads included, can consult an Opus advisor at decision points.
-  It can't be limited to Sonnet: an Opus session gets an Opus advisor too (extra cost). Turn it off
-  with `/advisor off`. F reviews how it works later.
+The work never stops for a question: park it in `docs/QUESTIONS.md` with the default that was
+built, and take the next item by priority (backlog-loop skill). One item per thread, one session
+per area (driving, map, visuals, content, performance, landing, store); check open PRs, recent
+main commits and "In progress" first. A cloud session merges its own PR once every check is green.
+Irreversible things, paid tools, device runs and store submissions wait for the user's yes.
 
 ## Hard rules
 
-- **Runs.** Every game run passes `--nosave` and quits (`--quit-after N` or `--shots=`);
-  autopilot runs never quit by themselves. `check_steering.gd` runs with `--fixed-fps 60`.
-  Engine flags go before `--`, game flags after; Godot ignores unknown flags silently.
-  macOS has no `timeout` (`perl -e 'alarm shift; exec @ARGV' 600 cmd...`); never name a zsh loop variable
-  `path`; `pgrep -f X` in a wait loop matches the loop itself (use `pgrep -x Godot`).
-- **Both city paths** must work: the runtime build (each 512 m sector built from its file) and
-  the prebuilt sectors (`game/map/sectors/*.scn`, `index.res`, `proxies.scn`; loop 3c, DEVELOPMENT.md
-  "Sectors and streaming"). After a map change: `python3 -I tools/bake_sectors.py`, then rebuild
-  the prebuilt sectors WITH a renderer: `godot --path game --resolution 320x180 --script
-  res://tools/bake_city.gd`, never `--headless`. Check looks on both (`--prebuilt`).
-- **Derived map files are never committed** (loop 3d-1): the split and the prebuilt sectors
-  come from `centrum.json` and the `.bin` maps, `lod2.*` and `terrain.json` from GUGiK's raw data; `tools/setup_map.sh` makes them (`--if-needed`:
-  only when missing or made from other inputs; `check_map_data.py` compares their stamps'
-  SHA-256, not file times).
-- **Map data.** After any centrum.json re-bake, run the whole chain and
-  `python3 -I tools/check_map_data.py` (loop 3d-1: trees3d 255468 values, pois 3548, graph ≥ 95 % strongly
-  connected, palm; new counts only on purpose, recorded in that script and DEVELOPMENT.md together).
-- **Performance is a gate.** The phone's frame grows with draw calls, not triangles. Keep
-  DEVELOPMENT.md "Performance budgets"; report bench before/after for anything that runs per frame
-  or adds geometry, materials or lights.
-- **Downloads and installs are pre-approved** (the user, 2026-10-30): free dev tools, data
-  downloads and Godot add-ons install without asking. Name each one in the PR or report with
-  its source, size and licence. Still free only, from official sources; an add-on keeps the
-  rules below (licence, CREDITS line, budgets, checked on the phone if native). A paid tool or
-  service still needs the user's yes.
+- **Runs.** Every game run passes `--nosave` and quits (`--quit-after N` or `--shots=`); autopilot
+  runs never quit by themselves; `check_steering.gd` needs `--fixed-fps 60`. Engine flags before
+  `--`, game flags after. macOS has no `timeout` (`perl -e 'alarm shift; exec @ARGV' 600 cmd...`).
+- **Both city paths** (runtime build and prebuilt sectors) must work. After a map change:
+  `python3 -I tools/bake_sectors.py`, then `godot --path game --resolution 320x180 --script
+  res://tools/bake_city.gd` with a renderer, never `--headless`. Check looks with `--prebuilt` too.
+- **Derived map files are never committed.** After any centrum.json re-bake run the whole chain
+  and `python3 -I tools/check_map_data.py`; new counts only on purpose, recorded in that script
+  and the archive's "Map data" together.
+- **Performance is a gate.** The phone's frame grows with draw calls, not triangles. Report bench
+  before/after for anything per-frame or adding geometry, materials or lights (archive section
+  "Performance budgets").
+- **Downloads are pre-approved** (free dev tools, data, Godot add-ons from official sources): name
+  each in the PR with source, size and licence. Add-on rules and the installed list: docs/ADDONS.md.
+  A paid tool or service needs the user's yes. Never write the PixelLab key (or any key) into a
+  file; no project `.mcp.json`; up to 50 PixelLab generations per loop.
 - **Content.** Original art, music and writing. Real place names are fine; brands only as
-  parodies (no real names or logos); affectionate humour, never about real private people;
-  on-screen text in Polish with English (warsaw-tone skill).
-- **Device runs** on the user's iPhone are allowed for test builds when the user said so for
-  the current loop (device-run skill); one device user at a time. Find the phone's identifier
-  with `xcrun devicectl list devices`; never write it into a tracked file.
-- **Public repo.** No secrets, keys, device identifiers, email addresses or absolute home
-  paths in tracked files; repo-relative paths.
-
-## Godot add-ons
-
-Pre-approved (the user, 2026-10-30): install without asking, one at a time, free only, and
-name it in the PR. Prefer GDScript-only
-add-ons under MIT or CC0; a native GDExtension needs iOS binaries (most don't ship them), so
-check it on the phone before relying on it. Each goes in `game/addons/<name>/` with its
-licence file kept, gets a CREDITS.md line (name, author, licence, URL, version), and must keep
-the performance budgets. **Installed:** Debug Draw (HardPixel, v1.1.0, loop 3a; GDScript only,
-loaded only with `--debug-roads`); Phantom Camera (Ramokz, v0.11.0.3, the camera loop; it runs
-the fly-in and target-look tweens only, the follow camera is `follow_camera.gd`; its editor plugin
-is off); beehave (bitbrain, v2.9.3, loop 3g-1; the police units' behaviour trees, ticked by
-hand at 5 Hz; editor plugin off, no autoloads: `police/police_tree.gd` has a lean `_ready`; one
-local line in `debug/debugger_messages.gd`, no messages without a debugger); Dialogue Manager
-(Nathan Hoad, v4.1.0, loop 3g-1; the pull-over's flow, `dialogue/police.dialogue` compiled at
-runtime by `police.gd`; editor plugin off, so no import plugin and no autoload). **Our own, not an add-on:**
-`addons/nw_android_export/` (an editor plugin, on; it only marks Vulkan required in the Android
-export's manifest; DEVELOPMENT.md "Android (Google Play)"). Candidates when a loop
-needs them: Folder Import Rules, Lente photo mode, the In-app Review and Share plugins.
+  parodies; affectionate humour, never about real private people; on-screen text in Polish with
+  English (warsaw-tone skill).
+- **Device runs** only when the user said so for the current loop (device-run skill); never write
+  a device identifier into a tracked file.
+- **Public repo.** No secrets, keys, device identifiers, emails or absolute home paths in tracked files.
 
 ## Commands
 
 ```zsh
 tools/verify.sh [--quick|--ios|--only=a,b]   # the verification set, one PASS/FAIL table
 tools/shots.sh [--set=core|quick|names] [--size=2532x1170]   # phone-size screenshots
-cd game && godot --path . --disable-vsync -- --bench --nosave  # bench (+ --time=night, --weather=rain --time=night)
-tools/export_ios.sh   # splits the map, prebuilds the sectors, exports build/ios (verify.sh --ios also builds it)
-tools/export_android.sh [--skip-city|--apk]   # the signed Play AAB in build/android (key and setup: DEVELOPMENT.md "Android (Google Play)")
+cd game && godot --path . --disable-vsync -- --bench --nosave  # bench
+tools/export_ios.sh   # splits the map, prebuilds sectors, exports build/ios
+tools/export_android.sh [--skip-city|--apk]   # the signed Play AAB
 ```
 
-## Code conventions
+## Conventions
 
-- GDScript: static types (`:=`, typed returns and arrays), tabs, `##` doc comments on classes
-  and members saying what and why (and which loop added it); follow the file's existing order.
-- New testing aids are game flags parsed in `main.gd` and documented in DEVELOPMENT.md's flags table.
-- Checks are `game/tools/check_*.gd` SceneTree scripts printing `<name>: OK` and exiting 0/1;
-  every new check joins `tools/verify.sh` in the same change.
-- Python tools: `python3 -I`, standard library; a docstring with the usage line.
-- When behaviour changes, DEVELOPMENT.md, ROADMAP (progress-log row) and BACKLOG change with it,
-  plus one short plain line under the day in docs/CHANGELOG.md (the website's /progress/ page).
-
-## Definition of done
-
-`tools/verify.sh` PASS (and `--ios` at a loop's end) · screenshots at phone size looked at,
-both city paths where the map builder changed · bench within budget · docs updated · scope
-matches the brief · what only the phone can show is named, with what the user should try.
-Details: docs/WORKFLOW.md.
+- GDScript: static types, tabs, `##` doc comments saying what and why. Python: `python3 -I`,
+  standard library, a usage docstring. Checks are `game/tools/check_*.gd` printing `<name>: OK`
+  and exiting 0/1; a new check joins `tools/verify.sh` in the same change. New test flags are
+  parsed in `main.gd` and noted in the archive's flags table.
+- **Docs bookkeeping: BACKLOG** (fixed removed, found added), plus ONE plain line under the day
+  in `docs/CHANGELOG.md` only for a change the player or visitor can see (it feeds the live
+  /progress/ page). No ROADMAP row.
+- **Definition of done** is light or full by change kind (docs/WORKFLOW.md): light for content,
+  text, site, docs, polish; full (verify, shots, bench, `--ios`) for gameplay, geometry and
+  anything per-frame. Name what only the phone can show.
 
 ## Git
 
-The repo is public. Commit or push only when the user asks in the current conversation.
-Never force-push, rewrite published history or delete a remote branch. Never commit
-`data/raw/`, `build/`, `shots/`, `game_*/` copies, logs, keys, device identifiers or personal
-data. Subagents don't touch git unless their brief says so.
+Commit or push only when the user asks in the current conversation. Never force-push, rewrite
+published history or delete a remote branch. Never commit `data/raw/`, `build/`, `shots/`,
+`game_*/` copies, logs, keys, device identifiers or personal data. Subagents don't touch git
+unless their brief says so.
