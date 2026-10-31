@@ -68,6 +68,7 @@ backlog-loop skill (`.claude/skills/backlog-loop/SKILL.md`).
 | Map data, bakes, roads, bridge decks, the lane graph, the demo area's map, city.scn | `map-engineer` | `tools/*.py`, `game/map`, `map_builder.gd`, `chunked_surface.gd` |
 | Frame cost, quality levels, budgets, device benches | `perf-engineer` | any code, for cost only; DEVELOPMENT.md "Performance budgets" |
 | Design, tuning, jokes, text, 2D art (PixelLab) | `game-designer` | design docs, `game/data`, `game/art` |
+| Applying an approved spec to landmarks, facades, signs, props | `object-modeler` (Sonnet) | the named object code |
 | Look and readability review | `art-director` | none (read-only) |
 | Running checks, shots, device runs | `qa-tester` | none in the project |
 | Lookups, counts, log crunching | `scout` | none |
@@ -84,6 +85,7 @@ already decided, **Haiku** looks things up and counts. A loop is often split tha
 | Performance | `perf-engineer` measures, ranks and cuts the costs | | `scout` turns bench and device logs into a before/after table |
 | Roads | `map-engineer` finds the defect classes, fixes the bake and writes the exact fix list | `gameplay-dev` applies that list across many files (each change spelled out) | `scout` re-counts the findings over the whole map |
 | Police | `game-designer` designs the police; then `gameplay-dev` builds their AI and the feel | `game-designer` or `gameplay-dev` adds the strings and translations from the approved text | `scout` checks `dialogue.json` parses and counts the new lines |
+| Landmarks and objects | the lane writes the spec with every value; `art-director` accepts the shots | `object-modeler` builds it and renders before/after; escalates what the spec leaves open | `scout` / `Explore` find the functions and OSM ids |
 | Any loop's end | the main session verifies; `art-director` judges the shots | `qa-tester` runs `tools/verify.sh` and the shot set | |
 
 A cheaper run that returns Open Questions, fails a gate, overshoots its files or can't be

@@ -25,12 +25,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
   only recoloured~~ is a real model (straightened outline, tall window bays, the raised entrance
   block with its portal, a parapet, a tank and a gun in the east courtyard); Hotel Europejski
   (rusticated base, cornice, hipped roof, central bays) and the Tomb of the Unknown Soldier
-  (three arches, the eternal flame) are built, each with a card (`check_sites`). **Left there**:
-  the Metropolitan keeps its fin skin (a curved-fin model round its round courtyard would need
-  its parts' heights checked against photos); Sofitel Victoria and the square's south edge on
-  Królewska are LoD2 only (its height isn't mapped; a card would need a parody name); the museum's
-  heights are the mapped 14.2 m (photos would set the real cornice and entrance heights); the
-  army museum's yard placement is a guess (east courtyard).
+  (three arches, the eternal flame) are built, each with a card (`check_sites`). ~~Left there:
+  the Metropolitan's fin skin, Sofitel Victoria and Królewska LoD2 only, the museum at 14.2 m~~
+  **Plac Piłsudskiego part 2 (2026-10-31)**: the Metropolitan is a model (glass behind real
+  granite fins, the round courtyard and fountain, three passages, the set-back seventh storey);
+  the hotel on Królewska is **Hotel Wiktoria** (a slab of ribbon windows on a dark podium, a
+  card under the parody name); the Królewska edge (Dom bez Kantów, the Departament, the unnamed
+  south-east block) in its own stone; the museum's wings 18.5 m and entrance block 25 m.
+  **Left**: Hotel Wiktoria's heights (slab 30 m, podium 8 m, 18 m deep), the museum's and
+  Europejski's are estimates to set from photos; the Królewska-edge colours are guesses; the
+  unnamed south-east block has no card (its name isn't mapped); the Metropolitan's passages are
+  dark panels, not open; the army museum's yard placement is a guess (east courtyard).
   Next candidates: tram stop platforms, kiosks (not in the baked data yet), Warsaw's green bins. **Left**: PZU Tower and JM Tower (oddly mapped) keep the
   generic glass, and any model the user names next (docs/QUESTIONS.md).
 

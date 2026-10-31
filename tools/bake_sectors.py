@@ -112,6 +112,7 @@ SITE_AREAS = [
     (-7.0, 235.0, 13.0, 255.0),             # Muzeum Narodowe (its outline's centre, by landmarks.gd MUZEUM)
     (-680.0, 1180.0, -350.0, 1620.0),       # MDM (Plac Konstytucji to Plac Zbawiciela, landmarks.gd _find_mdm)
     (-2700.0, 560.0, -2655.0, 650.0),       # The Warsaw HUB's towers (landmarks.gd TOWERS "at")
+    (-650.0, -790.0, -630.0, -765.0),       # Plac Piłsudskiego's south-east block (landmarks.gd KROLEWSKA_BLOCK)
     (-3105.0, -2455.0, -2920.0, -2335.0),   # map north: the Forest tower's office block (unnamed in OSM; docs/DEMO.md 2.2)
 ]
 

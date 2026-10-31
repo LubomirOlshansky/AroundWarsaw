@@ -7,12 +7,15 @@ template site/src/index.html and the copy in site/src/strings.json ({{key}} plac
 the screenshot reel, the list of things to do and the form's topics are built here), and
 site/public/privacy/index.html from docs/privacy.md, so the policy the stores link to
 (https://aroundwarsaw.app/privacy/) always says what that file says, and
-site/public/support/index.html from docs/support.md (the stores' support URL). The Markdown
+site/public/support/index.html from docs/support.md (the stores' support URL), and
+site/public/progress/index.html, the day-by-day changelog (tools/changelog.py: docs/CHANGELOG.md and
+ROADMAP's progress log). The Markdown
 converter knows only what those files use: #/## headings, paragraphs, "- " lists, **bold**,
 [links](url), "---".
 """
 
 import html
+import importlib.util
 import json
 import re
 import sys
@@ -141,6 +144,28 @@ def landing(strings: dict, lang: str) -> str:
     return fill((SITE / "src" / "index.html").read_text(encoding="utf-8"), values)
 
 
+def changelog():
+    """tools/changelog.py (imported by path: `python3 -I` leaves the tools folder off sys.path)."""
+    spec = importlib.util.spec_from_file_location("changelog", ROOT / "tools" / "changelog.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def progress_page() -> str:
+    """/progress/: what was added or improved each day, from docs/CHANGELOG.md and ROADMAP's log."""
+    cl = changelog()
+    intro = (
+        "<h1>Progress · Postępy</h1>\n"
+        "<p>What was added or improved in Around Warsaw, day by day, newest first. "
+        "Co dodano albo poprawiono, dzień po dniu.</p>\n"
+        f'<p class="links"><a href="{cl.BACKLOG_URL}">The backlog: known issues and what\'s next</a> '
+        f'<a href="{cl.ROADMAP_URL}">The full progress log</a></p>\n')
+    return PAGE.format(title="Progress · Postępy", extra="",
+                       description="What's new in Around Warsaw, day by day: what was added or improved, and the backlog.",
+                       body=intro + cl.html_days())
+
+
 def main() -> int:
     strings = json.loads((SITE / "src" / "strings.json").read_text(encoding="utf-8"))
     pages = {
@@ -154,6 +179,7 @@ def main() -> int:
             title="Support · Pomoc", extra="",
             description="Help with Around Warsaw and its beta: contact, TestFlight and Google Play testing, common questions.",
             body=convert((ROOT / "docs" / "support.md").read_text(encoding="utf-8"))),
+        SITE / "public" / "progress" / "index.html": progress_page(),
     }
     for path, text in pages.items():
         path.parent.mkdir(parents=True, exist_ok=True)
