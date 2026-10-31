@@ -275,6 +275,9 @@ const INFO := {
 	"msn": ["Muzeum Sztuki Nowoczesnej",
 			"Biały gmach Thomasa Phifera przy Placu Defilad. Otwarty w 2024 roku.",
 			"Thomas Phifer's white museum on Plac Defilad. Opened in 2024."],
+	"tr": ["Plac budowy TR Warszawa",
+			"Ogrodzony plac pod nowy gmach teatru TR Warszawa, obok białego muzeum.",
+			"The fenced plot for TR Warszawa's new theatre, next to the white museum."],
 	"grob": ["Grób Nieznanego Żołnierza",
 			"Trzy łuki ocalałe z Pałacu Saskiego. Wieczny ogień i warta.",
 			"Three arches left of the Saxon Palace. An eternal flame, a guard."],
@@ -519,6 +522,7 @@ func _find_sites() -> void:
 		_add_site("metropolsign", [PackedVector2Array([e, e + Vector2(0.2, 0), e + Vector2(0.2, 0.2), e + Vector2(0, 0.2)])])
 	# First scene item 1 (2026-10-31): the Museum of Modern Art on Plac Defilad.
 	_find_msn()
+	_find_tr()
 	# Plac Małachowskiego and the Presidential Palace (2026-10-31): models instead of skins.
 	_find_trojca()
 	_find_zacheta()
@@ -699,6 +703,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_metropol_sign(s)
 			"msn":
 				_build_msn(s)
+			"tr":
+				_build_tr(s)
 			"trojca":
 				_build_trojca(s)
 			"zacheta":
@@ -3187,20 +3193,32 @@ const MSN_FINS_EAST := [-50.4, -39.4, -26.4, -18.4, -10.4, 0.4, 7.4, 15.3, 26.4,
 const MSN_FINS_WEST := [-50.4, -39.5, -32.5, -26.5, -18.5, -10.6, 0.4, 7.3, 15.2, 26.2, 33.7, 40.7, 50.3]
 ## The ends' fins, turned along u: [u, v].
 const MSN_FINS_END := [[-49.4, 3.95], [-49.4, -8.5], [49.4, 6.3], [49.4, -8.55]]
-const MSN_SKY_V := [-9.0, 0.0, 9.0]
+## The glazed roof panels [u, v, half u, half v] and the light well [u, v, half side] (F's night
+## photo, 2026-10-31: big lit fields round an open square court; the layout is an estimate).
+const MSN_SKY := [[-38.5, -6.0, 8.5, 10.0], [-14.0, -11.0, 10.0, 5.0], [-14.0, 9.0, 10.0, 7.0],
+		[29.0, -10.0, 15.0, 6.0], [29.0, 10.0, 15.0, 6.0]]
+const MSN_WELL := Vector3(6.0, 0.0, 4.0)
+## The north-west corner block (OSM: u -64.3..-53.8, v 16.5..27, 26 m on an 8 m base).
+const MSN_CORNER_U := -64.3
+const MSN_CORNER_V := Vector2(16.5, 27.0)
 const MSN_WHITE := Color("#ebe9e3")
 const MSN_ROOF := Color("#d9d8d2")
 const MSN_LOBBY := Color("#a9c3cd")
 const MSN_SLOT_GLASS := Color("#4a5960")
 const MSN_WINDOW := Color("#8fa9b6")
-const MSN_SKY := Color("#b9c8d0")
+const MSN_SKY_GLASS := Color("#cfd8dc")
 func _find_msn() -> void:
 	var outline := _landmark("Muzeum Sztuki Nowoczesnej")
 	if outline.size() < 3:
 		return
 	# Grown a metre so the fins and the mapped parts on the edge go with it.
 	var grown := Geometry2D.offset_polygon(outline, 1.0, Geometry2D.JOIN_MITER)
-	_add_site("msn", [grown[0] if not grown.is_empty() else outline])
+	_o = MSN
+	_a = MSN_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	var corner := _rect((MSN_CORNER_U - MSN_HU) * 0.5, (MSN_CORNER_V.x + MSN_CORNER_V.y) * 0.5,
+			(MSN_HU + MSN_CORNER_U) * -0.5 + 1.0, (MSN_CORNER_V.y - MSN_CORNER_V.x) * 0.5 + 1.0)
+	_add_site("msn", [grown[0] if not grown.is_empty() else outline, corner])
 
 
 func _build_msn(_site: Dictionary) -> void:
@@ -3211,10 +3229,19 @@ func _build_msn(_site: Dictionary) -> void:
 	_g = _ground_under(box)
 	var g := _g
 	var none := Color(0, 0, 0, 0)
-	# w1, w2: the city-room windows first, flush, so the upper wall is cut round them.
+	# The windows first, flush, so the walls are cut round them (F's night photo, 2026-10-31):
+	# w1 and w3 on the Plac Defilad face, w4 and w5 on the north end, w2 on Marszałkowska.
 	_mode = M_PAVILION
-	_wall(_w(6.0, MSN_HV), _w(30.0, MSN_HV), g + 16.5, g + 23.0, _b, MSN_WINDOW)
+	_wall(_w(0.0, MSN_HV), _w(14.0, MSN_HV), g + 16.5, g + 22.5, _b, MSN_WINDOW)
+	_wall(_w(-1.0, MSN_HV), _w(5.0, MSN_HV), g + 7.0, g + 10.5, _b, MSN_WINDOW)
 	_wall(_w(-30.0, -MSN_HV), _w(-12.0, -MSN_HV), g + 16.5, g + 22.0, -_b, MSN_WINDOW)
+	_wall(_w(-MSN_HU, -9.0), _w(-MSN_HU, -15.0), g + 15.5, g + 22.0, -_a, MSN_WINDOW)
+	_wall(_w(-MSN_HU, -11.5), _w(-MSN_HU, -14.0), g + 7.0, g + 9.5, -_a, MSN_WINDOW)
+	# corner: the full-height block standing out at the north-west corner (OSM's part at
+	# (-1062, 54), closed up to the box), solid to the ground, a glazed top a metre under the roof.
+	var corner := PackedVector2Array([_w(MSN_CORNER_U, MSN_CORNER_V.x), _w(-MSN_HU, MSN_CORNER_V.x),
+			_w(-MSN_HU, MSN_CORNER_V.y), _w(MSN_CORNER_U, MSN_CORNER_V.y)])
+	_prism(corner, g - 0.4, g + MSN_H - 1.0, MSN_WHITE, MSN_SKY_GLASS, M_STONE, M_GLASS_ROOF)
 	# core: the glazed lobby, lit warm at night.
 	_prism(_rect(0.0, 0.0, MSN_CORE.x, MSN_CORE.y), g - 0.4, g + MSN_BASE, MSN_LOBBY, none, M_PAVILION)
 	# fins
@@ -3236,11 +3263,21 @@ func _build_msn(_site: Dictionary) -> void:
 	_prism(_rect(0.0, 0.0, hu, hv), g + MSN_SLOT.x, g + MSN_SLOT.y, MSN_SLOT_GLASS, none, M_GLASS)
 	_mode = M_STONE
 	_msn_ring(MSN_HU, MSN_HV, hu, hv, g + MSN_SLOT.y, Vector3.DOWN, MSN_WHITE.darkened(0.15))
-	# upper, with its roof
-	_prism(box, g + MSN_SLOT.y, g + MSN_H, MSN_WHITE, MSN_ROOF, M_STONE, M_STONE)
-	# sky
-	for v: float in MSN_SKY_V:
-		_lbox(0.0, v, 42.0, 1.2, g + MSN_H, g + MSN_H + 0.9, MSN_WHITE, M_STONE, MSN_SKY)
+	# upper, its roof round the light well
+	_prism(box, g + MSN_SLOT.y, g + MSN_H, MSN_WHITE, none, M_STONE)
+	var well := _rect(MSN_WELL.x, MSN_WELL.y, MSN_WELL.z, MSN_WELL.z)
+	_mode = M_STONE
+	_cap_holes(box, [well], g + MSN_H, MSN_ROOF)
+	# well: an open court cut into the roof, 4 m deep, its floor in shade.
+	for i in 4:
+		var a := well[i]
+		var b := well[(i + 1) % 4]
+		_wall(a, b, g + MSN_H - 4.0, g + MSN_H, -_out(well, a, b), MSN_WHITE.darkened(0.2))
+	_cap(well, g + MSN_H - 4.0, MSN_ROOF.darkened(0.35))
+	# sky: the big glazed roof panels over the top galleries, lit from inside at night.
+	for r: Array in MSN_SKY:
+		_prism(_rect(r[0], r[1], r[2], r[3]), g + MSN_H, g + MSN_H + 0.35, MSN_WHITE, MSN_SKY_GLASS, M_STONE, M_GLASS_ROOF)
+	_mode = M_STONE
 	_collide(box)
 
 
@@ -3253,6 +3290,159 @@ func _msn_ring(hu: float, hv: float, iu: float, iv: float, y: float, n: Vector3,
 		var p2 := _w(r[2], r[3])
 		var p3 := _w(r[0], r[3])
 		_quad(Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), Vector3(p2.x, y, p2.y), Vector3(p3.x, y, p3.y), n, col)
+
+
+# --- TR Warszawa's building site ----------------------------------------------------------
+
+## F's ask (2026-10-31): the empty plot west of the museum, between its tree court and the
+## Palace, fenced for TR Warszawa's theatre, as a messy building site and nothing built yet
+## (F's night photo: a hoarding with black tarps, dug-up ground with old foundations, rubble,
+## cabins): a hoarding with a gate, the dug-up ground, spoil heaps, the grid of old foundation
+## walls, stacked cabins, a skip, pallets and steel, a small digger and one tower crane (a red
+## lamp on its top, lit at night). In the museum's frame (MSN, MSN_AXIS): u -62..16, v 46..100.
+const TR_U := Vector2(-62.0, 16.0)   # the plot along u
+const TR_V := Vector2(46.0, 100.0)   # and across (towards the Palace)
+const TR_HOARD := Color("#3f5a4a")   # dark green hoarding boards
+const TR_TARP := Color("#232527")    # black tarp on the fence
+const TR_DIRT := Color("#7d6a55")
+const TR_SPOIL := Color("#8b7760")
+const TR_CONCRETE := Color("#a7a49d")
+const TR_STEEL := Color("#4a4d52")
+const TR_CRANE := Color("#e2b33a")
+const TR_CABIN := Color("#e8ebee")
+const TR_CABIN_B := Color("#3d6fa3")
+## The crane: [u, v, mast height, jib angle (deg, from +u), jib length, counter-jib length].
+const TR_CRANES := [[-6.0, 90.0, 40.0, 200.0, 44.0, 12.0]]
+## Spoil heaps: [u, v, half u, half v, height].
+const TR_HEAPS := [[-48.0, 88.0, 7.0, 5.0, 3.2], [-30.0, 92.0, 5.0, 4.0, 2.4], [6.0, 56.0, 4.0, 3.5, 2.0]]
+## The old foundations: walls [u0, v0, u1, v1, height] (a grid with gaps, as dug up).
+const TR_RUINS := [[-40.0, 58.0, -18.0, 58.0, 0.9], [-40.0, 58.0, -40.0, 78.0, 0.7], [-29.0, 62.0, -29.0, 80.0, 1.1],
+		[-36.0, 70.0, -14.0, 70.0, 0.6], [-18.0, 58.0, -18.0, 66.0, 1.0], [-22.0, 80.0, -8.0, 80.0, 0.8]]
+func _find_tr() -> void:
+	_o = MSN
+	_a = MSN_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_add_site("tr", [_tr_rect(0.5)])
+
+
+## The plot's rectangle in the museum's frame, grown by `grow` metres.
+func _tr_rect(grow: float) -> PackedVector2Array:
+	return _rect((TR_U.x + TR_U.y) * 0.5, (TR_V.x + TR_V.y) * 0.5,
+			(TR_U.y - TR_U.x) * 0.5 + grow, (TR_V.y - TR_V.x) * 0.5 + grow)
+
+
+func _build_tr(_site: Dictionary) -> void:
+	_o = MSN
+	_a = MSN_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	var u0 := TR_U.x
+	var u1 := TR_U.y
+	var v0 := TR_V.x
+	var v1 := TR_V.y
+	var cu := (u0 + u1) * 0.5
+	var cv := (v0 + v1) * 0.5
+	var hu := (u1 - u0) * 0.5
+	var hv := (v1 - v0) * 0.5
+	var plot := _tr_rect(0.0)
+	_g = _ground_under(plot)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	# hoarding: 2.4 m boards, 0.2 m thick, black tarp on the long run by the tree court and a
+	# 10 m gate in it; green boards on the other three runs.
+	var t := 0.1
+	var gate := Vector2(-8.0, 2.0)
+	_lbox((u0 + gate.x) * 0.5, v0 + t, (gate.x - u0) * 0.5, t, g - 0.3, g + 2.4, TR_TARP, M_STONE)
+	_lbox((gate.y + u1) * 0.5, v0 + t, (u1 - gate.y) * 0.5, t, g - 0.3, g + 2.4, TR_TARP, M_STONE)
+	_lbox(cu, v1 - t, hu, t, g - 0.3, g + 2.4, TR_HOARD, M_STONE)
+	_lbox(u0 + t, cv, t, hv - 2.0 * t, g - 0.3, g + 2.4, TR_HOARD, M_STONE)
+	_lbox(u1 - t, cv, t, hv - 2.0 * t, g - 0.3, g + 2.4, TR_HOARD, M_STONE)
+	# ground: the dug-up dirt inside the hoarding.
+	_lbox(cu, cv, hu - 0.4, hv - 0.4, g - 0.3, g + 0.15, TR_DIRT, M_STONE, TR_DIRT)
+	# heaps: spoil heaps of dug soil and rubble.
+	_mode = M_STONE
+	for h: Array in TR_HEAPS:
+		_frustum(_rect(h[0], h[1], h[2], h[3]), g + 0.15, _rect(h[0], h[1], h[2] * 0.3, h[3] * 0.3), g + 0.15 + h[4],
+				TR_SPOIL, TR_SPOIL.lightened(0.06))
+	# ruins: the old foundation walls, broken off at different heights.
+	for w: Array in TR_RUINS:
+		var along := Vector2(w[2] - w[0], w[3] - w[1])
+		var mid := Vector2(w[0] + w[2], w[1] + w[3]) * 0.5
+		var half_u := maxf(absf(along.x) * 0.5, 0.25)
+		var half_v := maxf(absf(along.y) * 0.5, 0.25)
+		_lbox(mid.x, mid.y, half_u, half_v, g + 0.15, g + 0.15 + w[4], TR_CONCRETE.darkened(0.12), M_STONE, TR_CONCRETE)
+	# cabins: two stacks of site cabins inside the gate, white and blue.
+	for i in 2:
+		var su := u1 - 4.0 - i * 2.7
+		_lbox(su, v0 + 5.0, 1.2, 3.0, g + 0.15, g + 2.75, TR_CABIN, M_STONE, TR_CABIN.darkened(0.08))
+		_lbox(su, v0 + 5.0, 1.2, 3.0, g + 2.75, g + 5.35, TR_CABIN_B if i == 0 else TR_CABIN, M_STONE, TR_CABIN.darkened(0.12))
+	# skip: an open steel skip by the gate (walls only, rubble inside).
+	_prism(_rect(-14.0, v0 + 4.0, 2.8, 1.2), g + 0.15, g + 1.6, Color("#c8552f"), none, M_STONE)
+	_lbox(-14.0, v0 + 4.0, 2.6, 1.0, g + 0.15, g + 1.2, TR_SPOIL.darkened(0.1), M_STONE, TR_SPOIL.darkened(0.1))
+	# stacks: pallets of blocks and bundles of steel along the far board.
+	for i in 5:
+		var su := u1 - 6.0 - i * 3.4
+		_lbox(su, v1 - 3.0, 1.1, 0.9, g + 0.15, g + 1.1 + 0.25 * (i % 2), Color("#9a7b5c") if i % 2 == 0 else TR_STEEL, M_STONE)
+	# digger: a small yellow excavator by the heaps, its arm down into the ground.
+	_tr_digger(Vector2(-38.0, 84.0), 30.0)
+	for c: Array in TR_CRANES:
+		_tr_crane(c)
+	_o = MSN
+	_a = MSN_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_collide(plot)
+
+
+## digger: tracks, the turning body, the cab and the boom, at `at` (museum frame), turned `deg`.
+func _tr_digger(at: Vector2, deg: float) -> void:
+	var g := _g
+	var p := _w(at.x, at.y)
+	_o = p
+	_a = Vector2.from_angle(deg_to_rad(deg) + MSN_AXIS.angle())
+	_b = Vector2(-_a.y, _a.x)
+	for side: float in [-1.1, 1.1]:
+		_lbox(0.0, side, 1.9, 0.4, g + 0.15, g + 0.85, Color("#2f3033"), M_STONE)
+	_lbox(-0.2, 0.0, 1.5, 1.2, g + 0.85, g + 1.9, TR_CRANE, M_STONE)
+	_lbox(0.6, 0.6, 0.6, 0.55, g + 1.9, g + 3.1, TR_CRANE.darkened(0.1), M_STONE, Color("#3a4046"))
+	_lbox(2.6, -0.4, 1.4, 0.2, g + 1.6, g + 2.2, TR_CRANE, M_STONE)
+	_lbox(4.0, -0.4, 0.2, 0.2, g + 0.15, g + 2.2, TR_STEEL, M_STONE)
+	_o = MSN
+	_a = MSN_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+
+
+## crane: a square mast on a concrete foot, the slewing deck, the operator's cab, the jib and
+## the counter-jib with its counterweight, the A-frame with its two ties, a red lamp on top.
+func _tr_crane(c: Array) -> void:
+	var g := _g
+	var base := _w(c[0], c[1])
+	var h: float = c[2]
+	_o = base
+	_a = Vector2.from_angle(deg_to_rad(c[3]) + MSN_AXIS.angle())
+	_b = Vector2(-_a.y, _a.x)
+	var none := Color(0, 0, 0, 0)
+	_lbox(0.0, 0.0, 2.2, 2.2, g - 0.3, g + 1.2, TR_CONCRETE, M_STONE)
+	_prism(_rect(0.0, 0.0, 0.8, 0.8), g + 1.2, g + h, TR_CRANE, none, M_STONE)
+	_lbox(0.0, 0.0, 1.3, 1.3, g + h, g + h + 1.0, TR_CRANE.darkened(0.15), M_STONE)
+	_lbox(1.6, -1.6, 0.9, 0.8, g + h - 1.2, g + h + 1.0, TR_CABIN, M_STONE)
+	var jl: float = c[4]
+	var cl: float = c[5]
+	_lbox(jl * 0.5, 0.0, jl * 0.5, 0.5, g + h + 1.0, g + h + 2.2, TR_CRANE, M_STONE)
+	_lbox(-cl * 0.5 - 0.0, 0.0, cl * 0.5, 0.6, g + h + 1.0, g + h + 1.8, TR_CRANE, M_STONE)
+	_lbox(-cl + 1.6, 0.0, 1.5, 1.1, g + h - 0.6, g + h + 1.0, TR_CONCRETE.darkened(0.15), M_STONE)
+	# the A-frame: a tapered tower over the mast, the ties as thin slanted boxes.
+	_mode = M_STONE
+	_frustum(_rect(0.0, 0.0, 0.7, 0.7), g + h + 2.2, _rect(0.0, 0.0, 0.25, 0.25), g + h + 8.0, TR_CRANE, TR_CRANE)
+	for tie: Vector2 in [Vector2(jl * 0.7, g + h + 2.2), Vector2(-cl + 0.5, g + h + 1.8)]:
+		var top := _w(0.0, 0.0)
+		var end := _w(tie.x, 0.0)
+		var side := _b * 0.12
+		var y_top := g + h + 7.6
+		var n := Vector3(end.x - top.x, tie.y - y_top, end.y - top.y).cross(Vector3(side.x, 0.0, side.y)).normalized()
+		_quad(Vector3(top.x - side.x, y_top, top.y - side.y), Vector3(top.x + side.x, y_top, top.y + side.y),
+				Vector3(end.x + side.x, tie.y, end.y + side.y), Vector3(end.x - side.x, tie.y, end.y - side.y),
+				n if n.y > 0.0 else -n, TR_CRANE.darkened(0.1))
+	_prism(_rect(0.0, 0.0, 0.25, 0.25), g + h + 8.0, g + h + 8.6, DUSK_RED, DUSK_RED, M_LAMP, M_LAMP)
+	_mode = M_STONE
 
 
 ## The Tomb of the Unknown Soldier: the three arches left of the Saxon Palace's colonnade (blown

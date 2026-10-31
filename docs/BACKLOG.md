@@ -83,6 +83,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Left: the photo check on the
   Mac (the two city-room windows' faces and sizes and the skylight count are estimates; the
   photos in `refs/` were not reachable from the cloud), and TR Warszawa next door.
+- **TR Warszawa's building site** (F, 2026-10-31): built as site `tr` on the empty plot west of
+  the museum (a messy site: hoarding, dirt, heaps, old foundations, cabins, a digger, one
+  crane). Left for the map lane: a mapped tree stands on the hoarding's north corner.
 - **Złote Tarasy, the museum's way** (the user, 2026-10-31): **Built 2026-10-31** (site
   `tarasy`, spec `docs/landmarks/specs/tarasy.md`): the whole complex from its OSM 3D parts,
   the glass wave, the terraced sandstone podium, Lumen's crescent, Skylight with a lit crown,
