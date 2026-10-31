@@ -85,6 +85,14 @@
   <div class="mosaic">
 {{reel}}
   </div>
+  <figure class="wrap daynight" id="daynight">
+    <div class="dn-stage">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/narodowy-night-960.webp"><img src="/img/game/narodowy-night.webp" alt="{{dn_alt_night}}" width="1920" height="884" loading="lazy" decoding="async"></picture>
+      <picture class="dn-day"><source media="(max-width: 700px)" srcset="/img/game/narodowy-day-960.webp"><img src="/img/game/narodowy-day.webp" alt="{{dn_alt_day}}" width="1920" height="884" loading="lazy" decoding="async"></picture>
+      <input class="dn-range" type="range" min="0" max="100" value="50" aria-label="{{dn_label}}">
+    </div>
+    <figcaption><h3>{{dn_title}}</h3><p>{{dn_line}}</p></figcaption>
+  </figure>
 </section>
 
 <section class="missions" id="missions" aria-labelledby="missions-title">

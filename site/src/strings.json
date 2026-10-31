@@ -16,38 +16,6 @@
         "Pałac na różowo, Varso i wieżowce zapalone piętro po piętrze.",
         "Centrum Warszawy nocą w grze: Pałac Kultury podświetlony na różowo wśród rozświetlonych wieżowców"
       ]
-    },
-    {
-      "img": "old-town",
-      "w": 1266,
-      "h": 585,
-      "span": "wide",
-      "en": [
-        "The Old Town",
-        "Rebuilt after the war, rebuilt again here, house by house.",
-        "The Old Town in the game: the market square's houses, the cathedral and the walls"
-      ],
-      "pl": [
-        "Stare Miasto",
-        "Odbudowane po wojnie, odbudowane i tutaj, kamienica po kamienicy.",
-        "Stare Miasto w grze: kamienice Rynku, katedra i mury"
-      ]
-    },
-    {
-      "img": "castle-square",
-      "w": 1266,
-      "h": 585,
-      "span": "half",
-      "en": [
-        "Plac Zamkowy",
-        "The Royal Castle and the W-Z route diving under it.",
-        "The Royal Castle and Plac Zamkowy in the game, with the W-Z route below"
-      ],
-      "pl": [
-        "Plac Zamkowy",
-        "Zamek Królewski i trasa W-Z, która nurkuje pod placem.",
-        "Zamek Królewski i plac Zamkowy w grze, pod spodem trasa W-Z"
-      ]
     }
   ],
   "topics": {
@@ -152,7 +120,12 @@
     "open_repo": "Code on GitHub",
     "open_wiki": "Design wiki",
     "open_backlog": "Backlog",
-    "open_progress": "Daily progress"
+    "open_progress": "Daily progress",
+    "dn_title": "Stadion Narodowy, day and night",
+    "dn_line": "Drag to change the time. Same spot, same river, different city.",
+    "dn_label": "Time of day: drag to switch between day and night",
+    "dn_alt_day": "Stadion Narodowy by day in the game, with Most Poniatowskiego and the Vistula",
+    "dn_alt_night": "Stadion Narodowy at night in the game, the bridge lamps reflected in the Vistula"
   },
   "pl": {
     "lang": "pl",
@@ -218,7 +191,12 @@
     "open_repo": "Kod na GitHubie",
     "open_wiki": "Wiki projektowa",
     "open_backlog": "Lista zadań",
-    "open_progress": "Postępy dzień po dniu"
+    "open_progress": "Postępy dzień po dniu",
+    "dn_title": "Stadion Narodowy, dzień i noc",
+    "dn_line": "Przeciągnij, żeby zmienić porę. To samo miejsce, ta sama rzeka, inne miasto.",
+    "dn_label": "Pora dnia: przeciągnij, żeby przełączyć dzień i noc",
+    "dn_alt_day": "Stadion Narodowy w dzień w grze, z Mostem Poniatowskiego i Wisłą",
+    "dn_alt_night": "Stadion Narodowy nocą w grze, latarnie mostu odbite w Wiśle"
   },
   "missions": [
     {
