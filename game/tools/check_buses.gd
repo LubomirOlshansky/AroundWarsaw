@@ -125,7 +125,7 @@ func _check_places(g: LaneGraph, data: Dictionary, digest: PackedStringArray) ->
 	for b: Dictionary in bays:
 		var at: Vector3 = b["at"]
 		east += int(b["east"])
-		if Vector2(at.x, at.z).distance_to(Buses.HUB) > 60.0:
+		if Vector2(at.x, at.z).distance_to(Buses.HUB) > 85.0:  # the 18 m articulated buses stand 20 m apart
 			problems.append("hub bay at %.0f, %.0f: %.0f m from the hub" % [at.x, at.z, Vector2(at.x, at.z).distance_to(Buses.HUB)])
 		if g.e_class[int(b["e"])] > 1:
 			problems.append("hub bay on a class %d edge" % g.e_class[int(b["e"])])

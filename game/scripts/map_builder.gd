@@ -4784,6 +4784,12 @@ func _make_shared() -> void:
 	for sz in [-0.03, 0.03]:
 		_box(shelter, Vector3(-2.45, 2.47, -0.7 + sz), Vector3(0.34, 0.2, 0.02), Color("#f2f2ee"))
 		_box(shelter, Vector3(-2.45, 2.34, -0.7 + sz), Vector3(0.3, 0.05, 0.02), Color("#f2f2ee"))
+	# The Rondo photos' ad panel: a big lit panel in a black case on the glass end, a poster
+	# (orange over cream, SHELTER_POSTER) on both faces, glowing at night.
+	_box(shelter, Vector3(-2.3, 1.3, 0.3), Vector3(0.12, 1.95, 1.2), Color("#141518"))
+	for sx: float in [-0.075, 0.075]:
+		_box(shelter, Vector3(-2.3 + sx, 1.5, 0.3), Vector3(0.02, 1.4, 1.02), SHELTER_POSTER[0])
+		_box(shelter, Vector3(-2.3 + sx, 0.72, 0.3), Vector3(0.02, 0.2, 1.02), SHELTER_POSTER[1])
 	_shared["shelter"] = _mark_glow(shelter.commit(), SHELTER_POSTER)
 
 

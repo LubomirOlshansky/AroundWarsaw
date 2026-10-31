@@ -59,7 +59,8 @@ const TOWERS := [
 	{"key": "zlota44", "osm": "Złota 44", "style": S_SAIL, "glass": "#b4c8d3", "roof": "#e4e8ea", "crest": "slope"},
 	{"key": "spire", "osm": "Warsaw Spire", "style": S_DIAMOND, "glass": "#5a8fb8", "roof": "#a3b6c4"},
 	{"key": "q22", "osm": "Q22", "style": S_BANDS, "glass": "#8ba2b4", "roof": "#bcc4ca"},
-	{"key": "rondo1", "osm": "Rondo 1", "style": S_FINS, "glass": "#6f8ea4", "roof": "#a9b3b9", "crest": "frame"},
+	{"key": "rondo1", "osm": "Rondo 1", "style": S_FINS, "glass": "#6f8ea4", "roof": "#a9b3b9", "crest": "frame",
+			"base_sign": "ENELMEDIK"},
 	{"key": "plater49", "osm": "InterContinental", "style": S_GRID, "glass": "#5f7f9a", "roof": "#c3c7c9", "sign": "INTERKONTI"},
 	{"key": "cosmopolitan", "osm": "Cosmopolitan", "style": S_RIBBON, "glass": "#4d6574", "roof": "#dfe2e0"},
 	{"key": "wtt", "osm": "Warsaw Trade Tower", "style": S_BANDS, "glass": "#3d6a7a", "roof": "#8d979c"},
@@ -494,6 +495,12 @@ func _find_sites() -> void:
 	_find_swieto()
 	# The museum and Plac Piłsudskiego loop (2026-10-31): the square's edges.
 	_find_plac()
+	var metropol := _landmark("Hotel Metropol")
+	if metropol.size() >= 3:
+		# A 0.2 m zone at the roof's south-east corner: a site's zone drops what stands in it,
+		# and the hotel itself stays the map's.
+		var e := _box_of([metropol]).end
+		_add_site("metropolsign", [PackedVector2Array([e, e + Vector2(0.2, 0), e + Vector2(0.2, 0.2), e + Vector2(0, 0.2)])])
 
 
 ## Warszawa Centralna: OpenStreetMap maps the station in 3D (its outline sits underground):
@@ -661,6 +668,8 @@ func build(surface, near := Rect2()) -> void:
 				_build_metropolitan(s)
 			"wiktoria":
 				_build_wiktoria(s)
+			"metropolsign":
+				_build_metropol_sign(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -1561,9 +1570,14 @@ func _dusk_details(spec: Dictionary, poly: PackedVector2Array, g: float, top_h: 
 	if spec.get("marriott", false):
 		_marriott(poly, g, top_h)
 	if spec.has("sign"):
-		_crown_signs(poly, g + top_h, str(spec["sign"]), DUSK_WARM, 3.0, 0.75 if spec.get("marriott", false) else 0.7)
+		_crown_signs(poly, g + top_h, str(spec["sign"]), DUSK_WARM, 3.0,
+				0.75 if spec.get("marriott", false) else 0.7)
+	if spec.has("base_sign"):
+		# A shop's name over the ground floor on the south and east faces (Rondo 1's clinic).
+		_crown_signs(poly, g + 5.2, str(spec["base_sign"]), Color(0.75, 1.0, 0.95), 0.0, 0.3)
 	if spec.has("vsign"):
 		_crown_signs(poly, g + top_h, str(spec["vsign"]), VSIGN_BLUE, 5.0, 0.5, true)
+		_vsign_tail(poly, g + top_h - 5.0 - 7.04 * str(spec["vsign"]).length())
 	if top_h >= 100.0 and spec["key"] != "zlota44" and spec["key"] != "spire":
 		var roof_y := func(_q: Vector2) -> float: return g + top_h
 		if spec.get("crest", "") == "slope":
@@ -1575,6 +1589,14 @@ const DUSK_WARM := Color(1.0, 0.95, 0.86)
 const DUSK_RED := Color(1.0, 0.12, 0.1)
 ## NOWOTEL's name: blue neon, letter over letter down the shaft (the Rondo photos).
 const VSIGN_BLUE := Color(0.18, 0.42, 1.0)
+
+
+## The Nowotel's tail under its stacked name (the Rondo night photos): an orange rule, the
+## chain's parody line (ACORN over HOTELS) in the same blue, on the faces the name is on.
+func _vsign_tail(poly: PackedVector2Array, y: float) -> void:
+	_crown_signs(poly, y - 1.0, "--", Color(1.0, 0.5, 0.15), 0.0, 0.3)
+	_crown_signs(poly, y - 3.5, "ACORN", VSIGN_BLUE, 0.0, 0.3)
+	_crown_signs(poly, y - 6.5, "HOTELS", VSIGN_BLUE, 0.0, 0.26)
 
 
 ## The Marriott (the dusk loop): a dark band round the crown (top 7 m) and one two thirds up
@@ -3094,6 +3116,24 @@ func _find_plac2() -> void:
 			if not sites.is_empty() and sites[-1]["key"] == "krolewska":
 				sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": KROLEWSKA_WALL, "roof": KROLEWSKA_ROOF}
 			return
+
+
+## Hotel Metropol (the Rondo night photos, 2026-10-31): the building stays the map's own; its
+## roof carries a green neon name, a parody (METROPOLKA), on the south and east faces. A site
+## with no card, so it is not on the picking grid.
+func _build_metropol_sign(_site: Dictionary) -> void:
+	var outline := _box_poly(_box_of([_landmark("Hotel Metropol")]))
+	var g := _ground_under(outline)
+	var top := 0.0
+	for bld in _parts_in(outline, func(_b: Dictionary) -> bool: return true):
+		top = maxf(top, float(bld["h"]))
+	if top < 20.0:
+		return
+	_crown_signs(outline, g + top + 3.0, "METROPOLKA", Color(0.18, 1.0, 0.36), 0.0, 0.7)
+
+
+func _box_poly(r: Rect2) -> PackedVector2Array:
+	return PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)])
 
 
 ## The Metropolitan: the outline's fronts in glass (M_GLASS) behind granite fins standing out
