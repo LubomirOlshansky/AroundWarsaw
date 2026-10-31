@@ -915,7 +915,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   review A's specs.
 
 ## From loop 3d-1 (the demo map, the 18.6 km² box, 2026-10-29)
-- **Loop 3e's structures, all allowlisted with place and reason** (`tools/check_roads_allow.json`,
+- ~~**Loop 3e's structures, all allowlisted with place and reason**~~ Loop 3e: W-Z's tunnel and
+  portals, the Wisłostrada's portals (and the two Wybrzeże Kościuszkowskie steps), Plac Na
+  Rozdrożu's tubes, Wiadukt Markiewicza and the Copernicus building done; what is left is in
+  "From loop 3e". Was: **Loop 3e's structures, all allowlisted with place and reason** (`tools/check_roads_allow.json`,
   `tools/check_drive_allow.json`, README "Loop 3d-1"): Trasa W-Z's tunnel and portals (Aleja
   Solidarności, Grodzka, Nowy Zjazd, the tram's abutment), Trasa Łazienkowska's trench at Plac Na
   Rozdrożu (its ways are layer -1 with no tunnel tag: a cutting the grid doesn't show; 0.3-0.8 m
@@ -927,7 +930,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **The new 10 m grid moved the old map's ground** (the demo fetch samples the NMT 3.5 m east and
   5 m south of the old grid's nodes; ±0.7 m at p1/p99, up to 3 m on embankments): 27 allowlist
   entries no longer matched and went, new ones came, and two main-road spots now step: Wybrzeże
-  Kościuszkowskie by Tamka (625, −453) 2.4 m in 6 m and (642, −548). A rule for a road's end on a
+  Kościuszkowskie by Tamka (625, −453) 2.4 m in 6 m and (642, −548) (~~fixed in loop 3e: the
+  Wisłostrada's south portals on the 1 m trench floor~~). A rule for a road's end on a
   hump of the grid, or the 1 m NMT along the river (one download, ~125 MB for the whole box,
   DEMO 3.1's optional line), would fix the class.
 - ~~**The AO, lamp-light and surface maps** are 37 + 37 + 19 MB (93 MB of video memory as whole
@@ -964,6 +968,39 @@ Small problems that agents reported or that showed up in screenshots. They are f
   the Mac. To bring them back: a release asset with the derived pack that CI downloads, or a small
   test map. `shots.sh`'s `settings_panel` shot is MISSING (the paused game never reaches the shot
   frame): a shot-script issue, not the map.
+
+## From loop 3e (the structures, 2026-10-30)
+- **Most Łazienkowski's Praga end and the Czerniakowska interchange (R8)**: where two ramps of one
+  deck group part, a ramp's guard rail runs into the other's lanes and a bus brushes the slab of a
+  neighbouring piece (check_drive 28 lane spots, 2 jumps at (2125, 805); C1/C8 at the ramps' joints).
+  Spec: each ramp's rails and slab from its own piece, cut where another piece's lanes run (the
+  deck-end rule, `GUARD_END`, everywhere two pieces part), and lanes sampled on their own piece.
+- **The rail cutting west of Centralna** stays on the 10 m grid (C3 72 under its footbridges and
+  Żelazna/Towarowa, Towarowa's deck joint 0.3 m). On its 1 m level (the WKD 7 m under the grid) it is
+  24,000 m² of 1 m ground sub-cells (+0.5 M vertices), and its 8 m service bridges are shorter than
+  the cutting the 1 m data shows. Needs the ground cut along a corridor (below) and "a way that
+  crosses a cutting with no shared node holds its own level over it".
+- **The ground cut along a corridor**: the trenches lower the drawn ground in 1 m sub-cells (633
+  cells, +0.89 % vertices); the deck seeds (every structure's way) would fix Nowy Zjazd's pits and
+  ~40 abutment findings more for +0.4 M vertices. Draw a lowered corridor's floor as one strip and
+  clip the grid's triangles round it (a few triangles a cell) instead.
+- **Plac Na Rozdrożu's tubes end short of the street over them** (OpenStreetMap ends T2-T5 a few
+  metres before the street's edge): the open road's last metres pass under the street's corridor,
+  its lanes step 0.6 m there (C8 2, C1 1, check_drive 9 lane spots at the west portals, 4 jumps at
+  the rim west of them). Spec: extend a tube under a way that crosses its open road within 15 m of
+  the portal with no shared node.
+- **Wybrzeże Szczecińskie's deck over the Port Praski inlet (deck 4)** by Most Śląsko-Dąbrowski's
+  Praga end: a bus on the outer lane at its west end brushes the neighbouring piece's parapet (the
+  gap between pieces keeps a collider where there is a drop): 6 lane spots. The new footbridge to
+  Karowa (deck 19, mapped `living_street`) still ends 2.2 m in the air at its Praga end (C6).
+- **Nowy Zjazd under the W-Z approach**: a bus on its inner lane brushes the tram approach's
+  0.6 m side wall at (−357, −1419) (6 lane spots).
+- **check_drive's routes**: 98 now (every deck group and tunnel both ways); they found jumps at Most
+  Poniatowskiego's north ramps (deck 13: 0.4-0.6 m at (920, 16) and (988, −13)), allowed with that
+  reason.
+- **The W-Z tunnel's trams**: OpenStreetMap's tram tracks through the tunnel are not drawn (tram
+  tunnels are left out); the tram approach ends at the east portal.
+- Build time: the monolithic build 58 → 75 s (the set fills' corridor tests in `terrain_height`).
 
 ## From loop 3d-2a (the ground, part one, 2026-10-30)
 - **The full cut under roads** (clip the ground along the road surface, close it with skirts) is

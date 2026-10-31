@@ -3271,6 +3271,95 @@ ms, one per load) with the pieces one a frame; `tools/device_run.sh --label=stre
 --done='^stream soak stats:' -- --notitle --prebuilt --stream-soak=6 --stream-log` reads it
 (`load_frame_ms`).
 
+## Loop 3e: the structures of the demo map (2026-10-30)
+
+ROADMAP "The road to the 1.0 demo" row 3 (docs/DEMO.md 4.6): the W-Z tunnel, Most Śląsko-Dąbrowski,
+Trasa Łazienkowska, the Wisłostrada's portals, Wiadukt Markiewicza, the rail cutting. Loop 3d-1 had
+only allowlisted them. Measured first (render spots added to `tools/road_spots.txt`: 16, at both
+W-Z portals, the W-Z viaduct, both ends of Most Śląsko-Dąbrowski, the Wisłostrada's north portal,
+Plac Na Rozdrożu, Agrykola, the Czerniakowska interchange, both ends of Most Łazienkowski, Wiadukt
+Markiewicza, Żelazna and Towarowa over the cutting, the zoo's viaducts and the Praga rail bridges;
+`tools/overlay_structures.py` draws decks, tunnels, fills, walls, piers, portals and the findings
+of check_roads and check_drive over the aerial photo). `check_drive.gd` drove 20 routes, which the
+tunnels alone filled: now `ROUTES` 100 (all 98: every deck group and tunnel both ways, ~2 s);
+`--no-allow` counts every finding, `--routes=N`.
+
+**The causes, confirmed** (the 1 m NMT, `data/raw/demo/gugik/nmt1_box`, against the 10 m grid):
+
+- **Portals pinned on the grid's blur.** A tunnel's portal took the grid's height at the mouth, where
+  the 10 m node reads the ground over the tunnel: W-Z's east portal at −0.01 m while the trench
+  before it is at −5.9 m (Nowy Zjazd 42 % over 7 m, a 1.6-2.1 m lane step); the Wisłostrada's
+  south portals 3-3.5 m and north portals 2-3.6 m too high (Wybrzeże Kościuszkowskie 41 % at
+  (625, −453) and 37 % at (642, −548), the two "main-road steps", and 43 % at the north ramp).
+- **Tube floors at the cover's depth.** A tube's floor was "6 m under the ground over it", no
+  steeper than 8 % *down* from a portal but not up: Plac Na Rozdrożu's short tubes followed the
+  street over them in 0.3-0.8 m waves (16 autopilot jumps), W-Z's floor would have jumped 5 m.
+- **Buildings over a tube solid into it**: the Copernicus Science Centre over the Wisłostrada's
+  tubes, a block over W-Z's west end (68 + 15 lane spots in collision, C5 13).
+- **Walls in the lanes**: a fill's or trench's wall at the foot of which another way's lanes run
+  (Nowy Zjazd under the W-Z approach, Wiadukt Markiewicza's Karowa), the wall of the street over
+  Plac Na Rozdrożu's tubes standing across their mouths.
+
+**Fixes (classes, whole map):**
+
+- **Ground profiles** (`bake_roads.py` `_ground_profiles`, `NMT`, `base_h`): the open ways near a
+  tunnel's portal (within `PROFILE_REACH` 80 m along the streets) and every cutting (a way with
+  layer < 0 and no tunnel) take their own level in the 1 m bare earth (every 2 m the median across
+  the carriageway; pits under 6 m closed, humps under 30 m opened; one level at a shared vertex;
+  a cross-section over a step has none), where it differs from the grid by 0.3 m or more, out to
+  where they agree within 5 cm. They are written as **"set" fills** (`fills[].s`): inside the
+  corridor (road half width + 1.5 m, round joins) the ground *is* that level, up or down
+  (`map_builder.gd` `_fill_height`, check_roads `Map.terrain`); where one lowers the ground by
+  more than 0.1 m its cells are drawn in the 1 m sub-cells like the aprons', 0.1 m under the road
+  (`SET_SINK`, `SET_FINE`, `SET_SUB`; `_fine_index`, check_roads `Map.drawn`). A portal's level is
+  the trench's floor (`PORTAL_PCT` of the 1 m cells 4-12 m out of the mouth), held over the last 8
+  m of its ways; within 12 m of a bridge's end a way never goes under the grid. The structures'
+  pins and the portals stand on these levels; an approach solved under the grid becomes a set fill
+  too. 75 stretches of 62 ways, 951 m (54 lowered, at most 6.1 m).
+- **Tubes**: a tube with a portal at each end runs straight between them, dipping only where the
+  ground would come within `TUNNEL_HEAD` 5.6 m of its floor (15 m from the portals), ramps ≤ 8 %;
+  and never steeper than 8 % up from a portal (`solve_tunnels`).
+- **Trench walls** (`bake_structures.place_walls`): a set fill lower than the ground beside it gets a
+  concrete wall facing the road (solid, a parapet from 1 m; under a deck it stops under the slab);
+  no wall (trench or fill) where a ground lane runs within 3 m of it at its foot (`TRENCH_LANE`);
+  a fill's wall over a tunnel keeps the mouth open wherever its foot would stand in it. The portal
+  ramps' own walls give way to these inside a profile's corridor.
+- **Buildings over tubes**: `lod2_open` also opens the walls of buildings that reach into a tube's
+  lanes (bus half width); check_roads C5 skips a tube's ways where they run `TUNNEL_MOUTH` (4.8 m)
+  under the ground (what stands over them is check_drive's).
+- **Deck rails at a deck's end**: within 8 m of a piece's end a deck's guard rail clears 2.6 m
+  round its lanes (cut twice: a cut end is looked at again).
+
+| Loop 3e (demo map) | Before | After |
+| --- | --- | --- |
+| check_roads, all findings (allowed) | 338: C1 81, C2 1, C3 137, C5 72, C6 4, C8 30, C9 12, C11 1 | 304: C1 67, C2 1, C3 137, C5 60, C6 4, C8 17, C9 12, C11 6 |
+| `tools/check_roads_allow.json` | 198 entries | 171 (33 fixed and gone, 6 new with their causes) |
+| check_drive `--no-allow`, the 98 routes | 157 lane spots, 28 jumps | 51, 11 |
+| `tools/check_drive_allow.json` | 15 entries (over 20 routes) | 11 (over 98 routes) |
+| Portal floors (m): W-Z east / west; Wisłostrada S ×2 / N ×2; Plac Na Rozdrożu's 8 | −0.01 / 0.36; −15.8, −14.0 / −16.4, −17.8; 6.7-10.6 | −6.09 / −0.49; −18.9, −17.5 / −20.1, −20.0; 5.6-7.1 |
+| Retaining walls | 15,283 m | 15,668 m (1,548 m along trenches; the portal ramps' 813 m → 51 m) |
+| City vertices (`count_vertices.gd`): meshes, instances, total | 11,327,676, 8,034,004, 19,361,680 | 11,499,831 (+172,155, +0.89 % of the city: 294 more cells in 1 m sub-cells, 633 in all, and the trench walls), 7,199,724 (−834,280: a third of the parked cars), 18,699,555 |
+| Monolithic build | 58 s | 75 s (the set fills' corridor tests in `terrain_height`) |
+| Probe draw calls, all passes (2868×1320, Metal mobile, prebuilt): spawn, river, zoomed out, helicopter; W-Z east portal, Plac Na Rozdrożu | 135, 103, 148, 217; 125, 126 | 135, 103, 148, 217; 126, 124 (main pass 50 → 49 at both portals) |
+| Probe main-pass + shadow triangles (all passes), same views | 0.62, 0.50, 0.91, 0.96 M | 0.59, 0.50, 0.90, 0.93 M (fewer parked cars) |
+| Bench (Mac, Metal, runtime path, uncapped, medians of 3 interleaved with a copy of the old code): frame, draw calls, scripts, video | day 2.50 ms, 117, 0.96 ms, 227 MB; night 2.69, 88, 1.00, 217; rain at night 2.59, 88, 1.00, 217 | day 2.78 ms, 118, 1.04 ms, 224 MB; night 2.67, 88, 1.07, 211; rain at night 2.66, 88, 1.12, 211 (the day runs spread 2.39-2.87 either way; three more day pairs ran at the display's 120 Hz: 8.33 ms and 107 draw calls both) |
+| Parked cars in the car parks (`bake_osm.py` `PARKED_FILL`, the user: about a third) | 14,637 (bays filled where the hash < 0.8) | 4,927 (`PARKED_FILL` 0.27) |
+
+Per structure (check_roads + check_drive `--no-allow`, before → after): W-Z (tunnel, portals, Nowy
+Zjazd, viaduct) C1 12 → 8, C5 2 → 0, C8 6 → 2, lane spots 24 → 6, jumps 1 → 0; the Wisłostrada's
+north portal C1 2 → 0, C8 2 → 0, C5 11 → 1, lane spots 68 → 0 (C11 0 → 1); its south portals C1 2 → 0, C8 2 → 0 (C11 0 → 1); Plac Na Rozdrożu
+C1 11 → 6, C8 8 → 4, C11 1 → 0, lane spots 26 → 9, jumps 20 → 4; Wiadukt Markiewicza lane spots
+3 → 0; Most Łazienkowski's Praga end and the Czerniakowska interchange, the rail cutting, Most
+Śląsko-Dąbrowski's Praga end (deck 4's parapet), the zoo's viaducts: unchanged, each left with its
+cause (BACKLOG "From loop 3e").
+
+**Not done, measured:** the deck seeds (every structure's way, not only portals and cuttings) fixed
+Nowy Zjazd's pits and 40 more findings but drew 1,000 cells in 1 m sub-cells (+0.4 M vertices);
+the rail cutting on its 1 m level (the WKD 7 m under the grid) is 24,000 m² of sub-cells (+0.5 M);
+2 m sub-cells left the drawn ground over the road at the trenches' edges. All three need the ground
+cut along a corridor (the trench floor drawn as one strip, the grid's triangles clipped round it)
+instead of sub-cells: BACKLOG.
+
 ## Moja Warszawa notebook (loop MW-1, 2026-10-30)
 
 MOJA WARSZAWA, the city notebook (docs/design/vision.md 4.1): the 72 places of
@@ -3828,6 +3917,9 @@ still hold, with the paths above.
    measured decks (R2). Then `godot --headless --path game --script res://tools/check_drive.gd`.
    Laser-scan records that are not trees are left out (`GUGIK_NOT_TREES`: the Palm, written
    as `palm`). After a re-bake run steps 3-5 again.
+   Loop 3e: the open ways by the tunnels' portals and the cuttings take their level from the 1 m
+   NMT of the whole box (`data/raw/demo/gugik/nmt1_box`, `bake_roads._ground_profiles`, "set"
+   fills `s`); without it the grid alone (see Loop 3e).
    Loop 3b-2: `tools/bake_banks.py` (after the shore runs) marks natural banks on `shore` (`n`)
    and writes `sand` and `sandbars` (`g`: gravel); `crown_scales` writes `trees3d_crown` (one
    crown scale per scanned tree, 12,554 values on the first box, 38,570 since loop 3d-1, checked by `check_map_data.py`);

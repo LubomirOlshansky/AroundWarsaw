@@ -248,6 +248,8 @@ WALL_PARAPET = 1.0     # ...and with a parapet on top (roads) from this height
 WALL_STEP = 3.0        # wall points at most this far apart
 WALL_OUT = 0.3         # the wall's face stands this far outside the fill's corridor
 WALL_CROSS = 25.0      # a way meeting the side at more than this angle (degrees) crosses it
+TRENCH_LANE = 3.0      # loop 3e: no trench wall this near a ground lane's centre (a bus's half width, the 3 m
+                       # between the wall's points and a margin)
 
 
 def place_walls(m):
@@ -299,8 +301,34 @@ def place_walls(m):
             return hd
         return None
 
+    # Loop 3e: the ground lanes, so a trench wall never stands in a lane (a way merging into a
+    # profiled way at a shallow angle: Nowy Zjazd under the W-Z viaduct).
+    lanes = cr.Grid(16.0)
+    for e in d["graph"]["edges"]:
+        if e.get("dk") is not None or e.get("tn") is not None:
+            continue
+        lpts = cr.pairs(e["p"])
+        for k in range(e["n"]):
+            q = cr.offset_line(lpts, e["o"] + e["lw"] * k)
+            for a, b in zip(q, q[1:]):
+                lanes.add((a, b), min(a[0], b[0]) - 3, min(a[1], b[1]) - 3, max(a[0], b[0]) + 3, max(a[1], b[1]) + 3)
+
+    def in_lane(x, z, below=None):
+        """A ground lane's centre within TRENCH_LANE of (x, z) (`below`: one whose ground there
+        is under that height: a road at the foot of a wall, not on the fill it holds)."""
+        for a, b in lanes.at(x, z):
+            if cr.seg_dist2(x, z, a, b) < TRENCH_LANE ** 2:
+                if below is None:
+                    return True
+                abx, abz = b[0] - a[0], b[1] - a[1]
+                t = min(max(((x - a[0]) * abx + (z - a[1]) * abz) / max(abx * abx + abz * abz, 1e-9), 0.0), 1.0)
+                if m.terrain(a[0] + abx * t, a[1] + abz * t) < below:
+                    return True
+        return False
+
     runs = []
     total = solid = 0.0
+    trench = [0]
     for f in m.fills.p:
         pts, cum, hs = f["pts"], f["cum"], f["h"]
         if cum[-1] < 0.5:
@@ -323,7 +351,41 @@ def place_walls(m):
                 top = _interp(cum, hs, s)
                 px, pz = x + nx * off, z + nz * off
                 low = outside(px + nx * 0.4, pz + nz * 0.4, top)
-                if top - low < WALL_MIN or m.on_rim(px, pz, 2.0):
+                if f["s"] and low - top >= WALL_MIN and not m.on_rim(px, pz, 2.0) and not in_lane(px, pz):
+                    # Loop 3e: a ground profile lower than the ground beside it is a trench (a
+                    # portal's open ramp, a cutting): a concrete wall facing the road, from the
+                    # road up to the ground, solid and topped like the approaches' walls.
+                    if cur is not None and cur["_side"] != -side:
+                        if len(cur["p"]) >= 4:
+                            runs.append(cur)
+                        cur = None
+                    flag = 0
+                    if not crossed(px, pz, ux, uz, top):
+                        if low - top >= WALL_SOLID:
+                            flag |= 1
+                        if low - top >= WALL_PARAPET:
+                            flag |= 2
+                    # Under a deck over the trench (a bridge over a cutting) the wall stops under
+                    # its slab, with no parapet (Towarowa's over the railway cutting).
+                    for hd, _, _ in m.decks.at(px, pz):
+                        if hd > top + 1.0:
+                            low = min(low, hd - SLAB - 0.1)
+                            flag &= ~2
+                    if cur is None:
+                        cur = {"p": [], "t": [], "b": [], "f": [], "k": "concrete", "_side": -side}
+                    cur["p"] += [px, pz]
+                    cur["t"].append(low)
+                    cur["b"].append(top)
+                    cur["f"].append(flag)
+                    trench[0] += 1
+                    continue
+                if cur is not None and cur["_side"] != side:
+                    if len(cur["p"]) >= 4:
+                        runs.append(cur)
+                    cur = None
+                if top - low < WALL_MIN or m.on_rim(px, pz, 2.0) or in_lane(px, pz, top - 0.5):
+                    # (loop 3e: nor where a lane runs at its foot: Plac Na Rozdrożu's street over
+                    # the Trasa's tubes stood its wall across the open road before their portals)
                     if cur is not None and len(cur["p"]) >= 4:
                         runs.append(cur)
                     cur = None
@@ -335,8 +397,16 @@ def place_walls(m):
                     if kind == "stone" and top - low >= WALL_PARAPET:
                         flag |= 2
                 floor = over_tunnel(px, pz)
-                if floor is not None and floor < low:
-                    low = floor + MOUTH   # a tunnel passes under the approach: its mouth stays open
+                if floor is not None and floor < low + MOUTH:
+                    # A tunnel passes under the approach: its mouth stays open (loop 3e: wherever
+                    # the wall's foot would stand in it, not only under the tunnel's floor: Plac Na
+                    # Rozdrożu's street over the Trasa's tubes walled their mouths at 8 m).
+                    low = max(low, floor + MOUTH)
+                    if top - low < WALL_MIN:
+                        if cur is not None and len(cur["p"]) >= 4:
+                            runs.append(cur)
+                        cur = None
+                        continue
                 if cur is None:
                     cur = {"p": [], "t": [], "b": [], "f": [], "k": kind, "_side": side}
                 cur["p"] += [px, pz]
@@ -354,8 +424,8 @@ def place_walls(m):
             top = hs[end]
             qx, qz = x + ux * sgn * 0.6, z + uz * sgn * 0.6
             low = m.terrain(qx, qz)
-            if top - low < WALL_MIN:
-                continue
+            if top - low < WALL_MIN or f["s"]:
+                continue   # (loop 3e: a ground profile goes on into its way's next one)
             # Across the corridor, the outside (along the fill, away from it) to the right.
             left = (x + uz * f["l"], z - ux * f["l"])
             right = (x - uz * f["r"], z + ux * f["r"])
@@ -379,7 +449,7 @@ def place_walls(m):
         r["t"] = [round(v, 2) for v in r["t"]]
         r["b"] = [round(v, 2) for v in r["b"]]
         del r["_side"]
-    return runs, {"runs": len(runs), "m": total, "solid m": solid}
+    return runs, {"runs": len(runs), "m": total, "solid m": solid, "trench m": trench[0] * WALL_STEP}
 
 
 TOWER_AREAS = ((910, -165, 40, 60), (1398, -332, 45, 65))   # landmarks.gd _find_towers
@@ -731,6 +801,8 @@ def place_tunnels(m):
                         while s <= min(TRENCH_REACH, bcum[-1]):
                             qx, qz = cr._at(back, bcum, s)
                             vx, vz = _dir_at(back, bcum, s)
+                            if any(m.fills.p[i]["s"] for _, _, i in m.fills.at(qx, qz, ends=True)):
+                                break   # loop 3e: a ground profile's trench walls (place_walls) take over
                             px, pz = qx - vz * side * half, qz + vx * side * half
                             road = m.terrain(qx, qz)
                             ox, oz = qx - vz * side * (half + TRENCH_SIDE), qz + vx * side * (half + TRENCH_SIDE)
@@ -776,6 +848,38 @@ DRIVE_HALF = 1.7       # a lane's drive corridor: a bus's half width (1.3), and 
                        # bus box's chord on a bend and the game's mitred lane offsets
 ROAD_INSET = 0.15      # a carriageway's own corridor: its half width less this
 SMALL_BUILDING = 30.0  # a mapped building this small (a kiosk, a vent) in a lane is left out
+GUARD_END = 8.0        # loop 3e: a deck's guard rail this near its piece's end clears a bus on the lanes there...
+GUARD_END_LANE = 2.6   # ...by this from their centres (where they turn on and off the deck the box swings out)
+
+
+def _clear_guards(src, inside, in_deck_lane, deck_ends, notes):
+    """clear_carriageways' guard rails: the runs left once the parts in a lane are cut out."""
+    import check_roads as cr
+    guards = []
+    for g in src:
+        ps = cr.pairs(g["p"])
+        run = []
+        for a, b in zip(ps, ps[1:]):
+            n = max(1, math.ceil(math.dist(a, b) / 0.5))
+            for k in range(n + 1):
+                if k == 0 and run:
+                    continue
+                x, z = a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n
+                if (inside(x, z, 0.1) if g.get("dk") is None else in_deck_lane(x, z, g["dk"]) or
+                        # Loop 3e: by a deck's end its rail bends round the corner, into the lanes
+                        # running on or off it (deck 4's across Wybrzeże Szczecińskie): a bus's
+                        # half width there, on the deck and on the ground.
+                        (any(math.hypot(x - ex, z - ez) < GUARD_END for ex, ez in deck_ends.get(g["dk"], ())) and
+                         (inside(x, z, 0.1) or in_deck_lane(x, z, g["dk"], GUARD_END_LANE)))):
+                    notes["barrier m cut"] += math.dist(a, b) / n
+                    if len(run) >= 2:
+                        guards.append(dict(g, p=[round(v, 2) for q in _simplify(run) for v in q]))
+                    run = []
+                else:
+                    run.append((x, z))
+        if len(run) >= 2:
+            guards.append(dict(g, p=[round(v, 2) for q in _simplify(run) for v in q]))
+    return guards
 
 
 def clear_carriageways(m):
@@ -864,32 +968,18 @@ def clear_carriageways(m):
         for k in range(e["n"]):
             q = cr.offset_line(pts, e["o"] + e["lw"] * k)
             for a, b in zip(q, q[1:]):
-                deck_lanes.add((a, b, e["dk"]), min(a[0], b[0]) - 1.4, min(a[1], b[1]) - 1.4,
-                               max(a[0], b[0]) + 1.4, max(a[1], b[1]) + 1.4)
+                deck_lanes.add((a, b, e["dk"]), min(a[0], b[0]) - GUARD_END_LANE, min(a[1], b[1]) - GUARD_END_LANE,
+                               max(a[0], b[0]) + GUARD_END_LANE, max(a[1], b[1]) + GUARD_END_LANE)
 
-    def in_deck_lane(x, z, g):
-        return any(dg == g and cr.seg_dist2(x, z, a, b) < 1.4 ** 2 for a, b, dg in deck_lanes.at(x, z))
+    def in_deck_lane(x, z, g, r=1.4):
+        return any(dg == g and cr.seg_dist2(x, z, a, b) < r ** 2 for a, b, dg in deck_lanes.at(x, z))
     # Guard rails: a mapped one's parts in a carriageway or a lane; a deck's in a lane on its deck.
-    guards = []
-    for g in d.get("guards", []):
-        ps = cr.pairs(g["p"])
-        run = []
-        for a, b in zip(ps, ps[1:]):
-            n = max(1, math.ceil(math.dist(a, b) / 0.5))
-            for k in range(n + 1):
-                if k == 0 and run:
-                    continue
-                x, z = a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n
-                if (inside(x, z, 0.1) if g.get("dk") is None else in_deck_lane(x, z, g["dk"])):
-                    notes["barrier m cut"] += math.dist(a, b) / n
-                    if len(run) >= 2:
-                        guards.append(dict(g, p=[round(v, 2) for q in _simplify(run) for v in q]))
-                    run = []
-                else:
-                    run.append((x, z))
-        if len(run) >= 2:
-            guards.append(dict(g, p=[round(v, 2) for q in _simplify(run) for v in q]))
-    d["guards"] = guards
+    deck_ends = {}
+    for pc in m.decks.p:
+        deck_ends.setdefault(pc["g"], []).extend([pc["pts"][0], pc["pts"][-1]])
+    # (Loop 3e: twice: a rail cut by a lane leaves an end the second look clears round its corner.)
+    for _ in range(2):
+        d["guards"] = _clear_guards(d.get("guards", []), inside, in_deck_lane, deck_ends, notes)
     # Small buildings (kiosks, vents: under SMALL_BUILDING m2) reaching into a ground lane.
     for b in d["buildings"]:
         q = cr.pairs(b["p"])
@@ -1119,14 +1209,16 @@ def open_lod2(m):
     import check_roads as cr
     d = m.d
     lanes = cr.Grid(16.0)
+    tube = cr.Grid(16.0)   # loop 3e: the tunnels' lanes (a bus's half width: DRIVE_HALF)
     for e in d["graph"]["edges"]:
-        if e.get("dk") is not None or e.get("tn") is not None:
+        if e.get("dk") is not None:
             continue
         pts = cr.pairs(e["p"])
         for k in range(e["n"]):
             q = cr.offset_line(pts, e["o"] + e["lw"] * k)
             for a, b in zip(q, q[1:]):
-                lanes.add((a, b), min(a[0], b[0]) - 2, min(a[1], b[1]) - 2, max(a[0], b[0]) + 2, max(a[1], b[1]) + 2)
+                (tube if e.get("tn") is not None else lanes).add(
+                    (a, b), min(a[0], b[0]) - 2, min(a[1], b[1]) - 2, max(a[0], b[0]) + 2, max(a[1], b[1]) + 2)
     out = []
     lod_json = os.path.join(m.dir, "lod2.json")
     if not os.path.exists(lod_json):
@@ -1147,7 +1239,10 @@ def open_lod2(m):
             n = max(1, math.ceil(math.dist(a, b) / 0.5))
             for k in range(n + 1):
                 x, z = a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n
-                if any(cr.seg_dist2(x, z, la, lb) < 1.1 ** 2 for la, lb in lanes.at(x, z)):
+                # Loop 3e: and where a building over a tunnel (the Copernicus Science Centre over the
+                # Wisłostrada's tubes, a block over W-Z's west end) reaches down into a tube's lanes.
+                if any(cr.seg_dist2(x, z, la, lb) < 1.1 ** 2 for la, lb in lanes.at(x, z)) or \
+                        any(cr.seg_dist2(x, z, la, lb) < (DRIVE_HALF + 0.3) ** 2 for la, lb in tube.at(x, z)):
                     if not any(math.hypot(x - c[0], z - c[1]) < 1.5 for c in out):
                         out.append([round(x, 2), round(z, 2), 2.5])
     return out
@@ -1189,8 +1284,10 @@ def place_aprons(m):
                     continue                    # not at the ground (a fill or another deck goes on)
                 if any(abs(hd - h) < 0.5 for hd, _, _ in m.decks.at(px, pz)) or m.tunnels.at(px, pz):
                     continue                    # the structure goes on
-                if any(abs(hf - h) < 0.5 for hf, g, i in m.fills.at(px, pz, ends=True) if m.fills.p[i] is not pc):
-                    continue                    # an approach goes on
+                if any(abs(hf - h) < 0.5 for hf, g, i in m.fills.at(px, pz, ends=True) if m.fills.p[i] is not pc
+                       and not (kind == "tunnel" and m.fills.p[i]["s"])):
+                    continue                    # an approach goes on (loop 3e: a portal's open road on its
+                                                # ground profile still needs the ground held under the mouth)
                 inner = 0.0 if kind == "fill" else APRON_IN
                 # Left and right of the apron's own direction (outward: reversed at a start).
                 l, r = (pc["r"], pc["l"]) if end == 0 else (pc["l"], pc["r"])
@@ -1472,7 +1569,8 @@ def add_structures(out, map_dir, terrain):
     out["garage_doors"] = place_garage_doors(m)
     print(f"tunnels (loop 3b): {tst['portals']} portal frames, {tst['tunnel m']:.0f} m of tunnel walled, "
           f"{tst['ramp m']:.0f} m of open ramp walls; {len(out['garage_doors'])} garage doors")
-    print(f"walls (R6): {wst['runs']} retaining wall runs, {wst['m']:.0f} m ({wst['solid m']:.0f} m solid)")
+    print(f"walls (R6): {wst['runs']} retaining wall runs, {wst['m']:.0f} m ({wst['solid m']:.0f} m solid; "
+          f"loop 3e: {wst['trench m']:.0f} m along trenches)")
     print(f"piers (R5): {st['candidates']} places under the decks: {st['in place']} in place, {st['slid']} slid "
           f"along the deck to a clear spot, {st['portals']} portal frames, {st['skipped']} left out"
           + (f" (at {', '.join(f'({x}, {z})' for x, z in st['skipped at'][:12])})" if st["skipped"] else ""))

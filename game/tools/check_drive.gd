@@ -24,9 +24,11 @@ extends SceneTree
 ##
 ## Prints each finding (with its --at=) and `check_drive: OK` when there is none, else the
 ## counts and exit 1. ~20 s (6 of it building the city).
-##   godot --headless --path game --script res://tools/check_drive.gd [-- --prebuilt --verbose --dump=FILE --debug=X,Z]
+##   godot --headless --path game --script res://tools/check_drive.gd [-- --prebuilt --verbose --dump=FILE --debug=X,Z --no-allow --routes=N]
 ## --verbose lists the routes, --dump writes every collision's contact points (an absolute path),
-## --debug prints the autopilot's frames near a point.
+## --debug prints the autopilot's frames near a point. Loop 3e: --no-allow ignores
+## tools/check_drive_allow.json (every finding counts: the before/after of a class), --routes=N
+## drives N routes instead of ROUTES.
 
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const SectorStreamer := preload("res://scripts/sector_streamer.gd")
@@ -39,7 +41,9 @@ const LIFT := 0.3          # the boxes' bottom over the lane's height
 const STEP := 4.0          # metres between the sweep's samples
 const RIM := 14.0          # samples this close to the map's edge are left out (the edge walls,
                            # 5 m in, and half a bus)
-const ROUTES := 20
+## Loop 3e: every structure both ways (the demo map's 55 deck groups and 10 tunnels: 98 routes,
+## ~2 s); 20 before, which the tunnels alone filled.
+const ROUTES := 100
 const ROUTE_REACH := 150.0 # each route runs this far on either side of its structure
 const FRAME := 0.4         # metres per frame on the autopilot (24 m/s at 60 fps)
 const JUMP := 0.3          # a height jump over this between two frames is a finding
@@ -68,6 +72,9 @@ var _dump: PackedStringArray = []
 ## structures loop 3e builds, docs/DEMO.md 4.6): [kind ("lane" or "jump"), centre, radius].
 var _allow: Array = []
 var allowed := 0
+## Loop 3e: --no-allow (count every finding) and --routes=N (more routes than ROUTES).
+var no_allow := false
+var routes_max := ROUTES
 
 
 func _initialize() -> void:
@@ -78,13 +85,17 @@ func _initialize() -> void:
 			verbose = true
 		elif a.begins_with("--dump="):
 			dump_path = a.trim_prefix("--dump=")
+		elif a == "--no-allow":
+			no_allow = true
+		elif a.begins_with("--routes="):
+			routes_max = int(a.trim_prefix("--routes="))
 		elif a.begins_with("--debug="):
 			var xz := a.trim_prefix("--debug=").split(",")
 			debug_at = Vector2(float(xz[0]), float(xz[1]))
 	_t0 = Time.get_ticks_msec()
 	var allow_path := ProjectSettings.globalize_path("res://").path_join("../tools/check_drive_allow.json")
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(allow_path)) if FileAccess.file_exists(allow_path) else null
-	if parsed is Dictionary:
+	if parsed is Dictionary and not no_allow:
 		for a: Dictionary in parsed.get("allow", []):
 			_allow.append([String(a["kind"]), Vector2(a["at"][0], a["at"][1]), float(a["r"])])
 	# Loop 3c: the streamed city, every sector: the prebuilt sector scenes (--prebuilt) or the
@@ -280,7 +291,7 @@ func _routes() -> int:
 			rest.append(e)
 	rest.sort_custom(func(a: int, b: int) -> bool: return graph.e_len[a] > graph.e_len[b])
 	for e: int in rest:
-		if keys.size() >= ROUTES:
+		if keys.size() >= routes_max:
 			break
 		if used.has(e):
 			continue
@@ -294,7 +305,7 @@ func _routes() -> int:
 	# their outermost lane.
 	var lanes := {}
 	for key: String in keys.duplicate():
-		if keys.size() >= ROUTES:
+		if keys.size() >= routes_max:
 			break
 		var path: Array[int] = paths[key]
 		var e0: int = path[0]
@@ -306,7 +317,7 @@ func _routes() -> int:
 	var jumps := 0
 	var frames := 0
 	for key in keys:
-		if routes >= ROUTES:
+		if routes >= routes_max:
 			break
 		var path: Array[int] = paths[key]
 		var r := _drive(path, lanes.get(key, 0))

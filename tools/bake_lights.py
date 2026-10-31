@@ -362,8 +362,8 @@ def main(map_dir):
             for q in ((pc["p"][0], pc["p"][1]), (pc["p"][-2], pc["p"][-1]))]
     approaches = []
     for f in osm.get("fills", []):
-        if f.get("k") != "road":
-            continue
+        if f.get("k") != "road" or f.get("s"):
+            continue   # loop 3e: a ground profile ("s") is a street on the 1 m ground, not an approach
         fp = list(zip(f["p"][0::2], f["p"][1::2]))
         if any(math.hypot(ex - q[0], ez - q[1]) < 3.0 for ex, ez in ends for q in (fp[0], fp[-1])):
             approaches.append({"p": f["p"], "w": float(f["l"]) + float(f["r"]), "c": (float(f["r"]) - float(f["l"])) * 0.5,
