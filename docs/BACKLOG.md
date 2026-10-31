@@ -79,7 +79,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   zero-area and flipped triangles, parts touching neither the ground nor another part (FAIL);
   parts inside parts and T-junction gaps (WARN, for the art-director); per-site allow-lists;
   joins `tools/verify.sh`. (2) A game flag that renders one landmark alone, unlit and as a
-  silhouette, for the judge's shots. (3) Later: golden-image shots runtime vs `--prebuilt`,
+  silhouette, for the judge's shots. (3) A small `tools/check_spec.py` that checks a landmark spec has every section and parts-table
+column filled and a triangle budget, so a Sonnet build never starts from an open spec.
+(4) Evals for the model-from-photos skill: the Palace, the Rotunda and the Museum of Modern
+Art (their photos exist) built with and without the skill, scored the same way. (5) Later:
+golden-image shots runtime vs `--prebuilt`,
   a flicker probe (two frames, a tiny camera move, diff), the Old Town's gables and a
   straight-skeleton roof bake (map lane), fewer directional shadow splits (perf lane). The
   rubric anchors, photo-first judging, the parts table and the two-round cap are in the

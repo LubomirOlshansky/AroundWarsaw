@@ -77,7 +77,11 @@ parts, z-fighting) are ones a judge looking at shots misses.
    triangle budget, and the mesh check when it exists (BACKLOG: `check_mesh_quality.gd`:
    coplanar overlapping faces, zero-area and flipped triangles, parts touching neither the
    ground nor another part). A FAIL goes back to the builder, not to the reviewer.
-2. **The builder's own look** at the matched shots against the photos.
+2. **The builder's own look, in stages**: massing first (render, compare the silhouette with
+   the photos), then the facade, then the roof and the small details, each stage rendered
+   and compared before the next (a wrong silhouette is cheapest to fix before the facade).
+   Measurable gaps (a height, a storey count, a setback) are fixed against the photo inside
+   the stage; anything the photos don't settle goes to Escalate.
 3. **The reviewer** (`art-director`, Opus), section 5 below.
 4. **At most two fix rounds** between builder and reviewer; still failing after two, the spec
    is wrong or open: the lane session re-specs or asks the user. No third guess.
@@ -117,6 +121,9 @@ kind repeated across the whole map gets one MultiMesh. No new node, material or 
   vanish at a zoom.
 - **The user picks last**: the report to the user shows photo, before and after for each hero
   landmark; the user's "no" sends it back.
+
+**A log per landmark**: `docs/landmarks/<slug>.md` (short): the spec's link, the scores per
+pass, what was fixed, what still differs from the photos. The next thread reads it first.
 
 ## 6. Who does what
 
