@@ -33,6 +33,9 @@ Rules for a good brief:
 - **Constraints** are the block from `template.md`, pasted whole, plus the task's own.
 - **Acceptance** lists the exact commands and outputs that prove each item, the screenshots
   wanted (names, sizes, both city paths), and the docs to update.
+- **Object briefs** (landmarks, facades, props): the spec is written from the reference photos
+  and names the detail level (L1-L3), the identity features and the triangle budget; the
+  acceptance asks for matched shots beside the photos (the model-from-photos skill).
 - **Model line**: "Model: <tier>, because <reason>" (e.g. "Model: sonnet, because the spec
   fixes every value; any decision it doesn't make goes to Open Questions").
 - **Report format** always ends with **Open Questions** (each with the default the agent picked).

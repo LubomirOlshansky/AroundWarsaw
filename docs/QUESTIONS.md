@@ -19,13 +19,14 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · design · the first scene** — Where the game starts (the street the player sees first, to be polished for a "wow"). Default planned: Marszałkowska by Plac Defilad (the Palace, the new Museum of Modern Art, the Eastern Wall, the towers), where the spawn and the first-10-minutes script already are. Alternatives: Plac Zamkowy and the Old Town, Rondo Daszyńskiego's towers, Most Świętokrzyski. Plan: docs/design/first-scene.md.
+- **2026-10-31 · design · the first scene** — The light of the first frame. Default planned: day, as decided on 2026-10-28. Alternative: a late-afternoon golden light for the first minutes, once the dusk thread's work lands.
 - **2026-10-31 · gameplay · loop 3h slice 3** — "Trzy mosty" is 10.1 km by road (Rondo Daszyńskiego → Most Śląsko-Dąbrowski east → Most Świętokrzyski west → Most Poniatowskiego east → the stadium's south stands); the autopilot needs ~14.5 min of play, a player maybe 7–10. Default built: the full DEMO route. Alternative: a start nearer the river (e.g. Rondo ONZ) or two bridges.
 - **2026-10-31 · gameplay · loop 3h slice 3** — Ladder thresholds 0/100/250/400/600/850, the final 1100 respect; race wins +100; the final pays 500 zł + 250 respect (rematches too). Default built: that, numbers for the designer to tune.
 - **2026-10-31 · gameplay · loop 3h slice 3** — Rival pace: Halina 1.25, Słoik 1.3, Bartek 1.35, Seba 1.4, Zbyszek 1.45, Mike 1.5 (× the street's limit; was 1.45 for all); Seba in the final 1.45. Default built: those, guesses until F races Halina on the phone.
 - **2026-10-31 · gameplay · loop 3h slice 3** — Once the final is open, at night Seba waits at the start held still (so his own rung can't be re-raced at night). Default built: that. Alternative: he cruises and only the marker waits.
 - **2026-10-31 · content · loop 3h slice 3** — Six refusal lines (one per rival) and Seba's four final lines (`rivals.gd` RIVALS `refuse`, FINAL_LINES). Default built: mine, for the designer's review.
 - **2026-10-31 · gameplay · loop 3h slice 3** — DEMO 6.2's first race is against Seba, but the ladder opens with Halina. Default built: the ladder as specified; slice 4 picks the first race (Halina, or a Seba race outside the ladder).
-
 - **2026-10-31 · gameplay · loop 3h slice 2** — The Palace's and the stadium's Syrenki stand 148 m and 211 m from their anchors (no ground street nearer). Default built: that (a 260 m fallback). Alternative: anchor them elsewhere in `syrenki.json`.
 - **2026-10-31 · gameplay · loop 3h slice 2** — No hint for the Syrenki (no "?" marks, no minimap dot, no chime); only a cyan diamond over each and "Syrenki n/20" on the full map. Default built: that. Alternative: a chime under ~40 m or a dot once the district is discovered.
 - **2026-10-31 · gameplay · loop 3h slice 2** — Rewards: 5 Syrenki open the "Łuska Syreny" paint, 10 give 150 zł and 50 respect, 20 open "Srebro Syreny" and 300 zł; +5 respect a find. Default built: that, numbers for the designer to tune with the ladder.
