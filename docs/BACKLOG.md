@@ -21,6 +21,16 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm, Zachęta…) in their real colours.
   **Street furniture**: historic lanterns on the Royal Route and in the Old Town (2026-10-30). MDM's blocks and
   Plac Konstytucji's candelabras (2026-10-30).
+  **Muzeum Narodowe and Plac Piłsudskiego (2026-10-31, the museum and Plac loop)**: ~~the museum
+  only recoloured~~ is a real model (straightened outline, tall window bays, the raised entrance
+  block with its portal, a parapet, a tank and a gun in the east courtyard); Hotel Europejski
+  (rusticated base, cornice, hipped roof, central bays) and the Tomb of the Unknown Soldier
+  (three arches, the eternal flame) are built, each with a card (`check_sites`). **Left there**:
+  the Metropolitan keeps its fin skin (a curved-fin model round its round courtyard would need
+  its parts' heights checked against photos); Sofitel Victoria and the square's south edge on
+  Królewska are LoD2 only (its height isn't mapped; a card would need a parody name); the museum's
+  heights are the mapped 14.2 m (photos would set the real cornice and entrance heights); the
+  army museum's yard placement is a guess (east courtyard).
   Next candidates: tram stop platforms, kiosks (not in the baked data yet), Warsaw's green bins. **Left**: PZU Tower and JM Tower (oddly mapped) keep the
   generic glass, and any model the user names next (docs/QUESTIONS.md).
 
