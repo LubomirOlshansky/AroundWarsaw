@@ -47,6 +47,7 @@ const S_RIBBON := 5
 const S_DARK := 6
 const S_GOLD := 7
 const S_FRAME := 8
+const S_TILE := 9   # Novotel's white tiled shaft (the Rondo photos, 2026-10-31)
 
 ## The landmarks loop (2026-10-30): the skyline's towers, so each reads as itself and not as one
 ## more blue box. Each is built from its mapped building parts (the outline `osm` names; what
@@ -83,7 +84,7 @@ const TOWERS := [
 	# The second pass: the rest of the skyline over 80 m (the hotels by their addresses).
 	{"key": "grzybowska63", "osm": "Hilton Warsaw City", "style": S_BANDS, "glass": "#4d7590", "roof": "#9aa5ad", "sign": "CHILTON"},
 	{"key": "jp2_21", "osm": "The Westin Warsaw", "style": S_GRID, "glass": "#86aca7", "roof": "#a9b5b3", "mapped": true, "sign": "WESTYNKA"},
-	{"key": "marszalkowska94", "osm": "Novotel Warszawa Centrum", "style": S_RIBBON, "glass": "#3b4a55", "roof": "#c9c9c2", "sign": "NOWOTEL"},
+	{"key": "marszalkowska94", "osm": "Novotel Warszawa Centrum", "style": S_TILE, "glass": "#d9dcdf", "roof": "#c9c9c2", "vsign": "NOWOTEL", "chamfer": true},
 	{"key": "central", "osm": "Central Tower", "style": S_DARK, "glass": "#3e5c78", "roof": "#6f7d88"},
 	{"key": "ilmet", "osm": "Ilmet", "style": S_BANDS, "glass": "#7d5a48", "roof": "#8c8278"},
 	{"key": "platinum_a", "osm": "Platinum Tower A", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
@@ -1354,6 +1355,44 @@ func _build_rotunda(site: Dictionary) -> void:
 	_mode = M_GLASS_ROOF
 	_pyramid(ring.call(5.2), g + 14.5, g + 15.6, Color("#86aebf"))
 	_collide(ring.call(r + 0.25))
+	_rotunda_night(c, r, g)
+
+
+## The Rondo photos (2026-10-31): the Rotunda's white zigzag crown (24 teeth, 3 m, standing on
+## the roof's rim), red and blue light glowing in the glass under it (every sixth and every
+## sixth-plus-three bay) and the bank's name, a parody (BANK POLSKA), lit white on the glass at
+## the south and east faces.
+func _rotunda_night(c: Vector2, r: float, g: float) -> void:
+	var teeth := 24
+	var edge := r + 2.2
+	var white := Color("#ffffff")
+	_mode = M_STONE
+	for k in teeth:
+		var a0 := TAU * k / teeth
+		var a1 := TAU * (k + 1) / teeth
+		var pa := c + Vector2.from_angle(a0) * edge
+		var pb := c + Vector2.from_angle(a1) * edge
+		var pm := c + Vector2.from_angle((a0 + a1) * 0.5) * edge
+		var va := Vector3(pa.x, g + 12.2, pa.y)
+		var vb := Vector3(pb.x, g + 12.2, pb.y)
+		var vt := Vector3(pm.x, g + 15.2, pm.y)
+		var n := (vb - va).cross(vt - va).normalized()
+		if n.dot(Vector3(pm.x - c.x, 0.0, pm.y - c.y)) < 0.0:
+			n = -n
+		_quad(va, vb, vt, vt, n, white)
+		_quad(vb, va, vt, vt, -n, white.darkened(0.15))
+	for k in teeth:
+		if k % 6 != 1 and k % 6 != 4:
+			continue
+		var a0 := TAU * k / teeth
+		var a1 := TAU * (k + 1) / teeth
+		var tint := Color("#3b63d8") if k % 12 < 6 else Color("#d8433a")
+		var wedge := PackedVector2Array([c + Vector2.from_angle(a0) * (r - 0.4), c + Vector2.from_angle(a1) * (r - 0.4),
+				c + Vector2.from_angle(a1) * (r + 0.06), c + Vector2.from_angle(a0) * (r + 0.06)])
+		_prism(wedge, g + 6.0, g + 10.4, tint, Color(0, 0, 0, 0), M_LAMP)
+	for d: Vector2 in [Vector2(0, 1), Vector2(1, 0)]:
+		var at := c + d * (r + 0.3)
+		signs.append(["BANK POLSKA", Vector3(at.x, g + 2.4, at.y), Vector3(d.x, 0.0, d.y), 0.9, Color(0.95, 0.97, 1.0)])
 
 
 # --- Varso Tower ------------------------------------------------------------------------------
@@ -1493,9 +1532,23 @@ func _build_tower(site: Dictionary) -> void:
 			if spec.get("crest", "") == "frame" and h >= top_h - 0.5:
 				# Rondo 1: an open frame round the top, from the roof to 192 m.
 				_prism(poly, g + h, g + 192.0, wall, Color(0, 0, 0, 0), M_SKIN + float(S_FRAME) / 16.0)
+			if spec.get("chamfer", false) and h >= top_h - 0.5:
+				_chamfered_top(poly, g + h, wall)
 		if mh < 2.0:
 			_collide(poly)
 	_dusk_details(spec, top_poly, g, top_h)
+
+
+## Novotel's cut-off top (the Rondo photos): the shaft ends in two setbacks, 1.4 m in and 2.8 m
+## in, each 2.2 m tall, so the corners read chamfered from the street, in the shaft's white.
+func _chamfered_top(poly: PackedVector2Array, roof_y: float, wall: Color) -> void:
+	var y := roof_y
+	for inset: float in [1.4, 2.8]:
+		var shrunk := Geometry2D.offset_polygon(poly, -inset)
+		if shrunk.is_empty():
+			return
+		_prism(shrunk[0], y, y + 2.2, wall, wall.darkened(0.1), M_SKIN + float(S_TILE) / 16.0, M_STONE)
+		y += 2.2
 
 
 ## The dusk loop (2026-10-31): what lights up a tower's crown after dark. The tallest part
@@ -1509,6 +1562,8 @@ func _dusk_details(spec: Dictionary, poly: PackedVector2Array, g: float, top_h: 
 		_marriott(poly, g, top_h)
 	if spec.has("sign"):
 		_crown_signs(poly, g + top_h, str(spec["sign"]), DUSK_WARM, 3.0, 0.75 if spec.get("marriott", false) else 0.7)
+	if spec.has("vsign"):
+		_crown_signs(poly, g + top_h, str(spec["vsign"]), VSIGN_BLUE, 5.0, 0.5, true)
 	if top_h >= 100.0 and spec["key"] != "zlota44" and spec["key"] != "spire":
 		var roof_y := func(_q: Vector2) -> float: return g + top_h
 		if spec.get("crest", "") == "slope":
@@ -1518,6 +1573,8 @@ func _dusk_details(spec: Dictionary, poly: PackedVector2Array, g: float, top_h: 
 
 const DUSK_WARM := Color(1.0, 0.95, 0.86)
 const DUSK_RED := Color(1.0, 0.12, 0.1)
+## NOWOTEL's name: blue neon, letter over letter down the shaft (the Rondo photos).
+const VSIGN_BLUE := Color(0.18, 0.42, 1.0)
 
 
 ## The Marriott (the dusk loop): a dark band round the crown (top 7 m) and one two thirds up
@@ -1551,7 +1608,8 @@ func _square(c: Vector2, r: float) -> PackedVector2Array:
 ## The dusk loop: a lit name on the two faces of `poly` that face the camera most, south and
 ## east, centred `drop` m under `top_y`, the word spanning `share` of the face's width. Only
 ## the long faces count (at least half the longest edge), so a corner chamfer never carries one.
-func _crown_signs(poly: PackedVector2Array, top_y: float, word: String, colour: Color, drop := 3.0, share := 0.7) -> void:
+func _crown_signs(poly: PackedVector2Array, top_y: float, word: String, colour: Color, drop := 3.0, share := 0.7,
+		vertical := false) -> void:
 	var longest := 0.0
 	for i in poly.size():
 		longest = maxf(longest, poly[i].distance_to(poly[(i + 1) % poly.size()]))
@@ -1574,8 +1632,16 @@ func _crown_signs(poly: PackedVector2Array, top_y: float, word: String, colour: 
 		var a := poly[i]
 		var b := poly[(i + 1) % poly.size()]
 		var o := _out(poly, a, b)
-		var k := share * a.distance_to(b) / Neon.length_of(word)
 		var mid := (a + b) * 0.5
+		if vertical:
+			# One letter per sign, stacked: each 1.8 m glyph box grown by k, `drop` under the top.
+			var kv := 3.2
+			var step := Neon.ROW_H * Neon.PIXEL * kv
+			for n in word.length():
+				var top := top_y - drop - step * n
+				signs.append([word[n], Vector3(mid.x, top - step, mid.y), Vector3(o.x, 0.0, o.y), kv, colour])
+			continue
+		var k := share * a.distance_to(b) / Neon.length_of(word)
 		var base_y := top_y - drop - Neon.ROW_H * Neon.PIXEL * k * 0.5
 		signs.append([word, Vector3(mid.x, base_y, mid.y), Vector3(o.x, 0.0, o.y), k, colour])
 

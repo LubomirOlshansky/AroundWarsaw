@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-10-31
 
+- Rondo Dmowskiego at night looks like the photos: the Nowotel's white tower with its name in blue neon, the Rotunda's white zigzag crown with red and blue light, red bus shelters, and yellow trams with a red roof.
 - The rivals are a ladder now: beat Pani Halina first, earn respect, work up to Mordor Mike, then race Seba over three bridges at night in "Trzy mosty".
 - Dusk looks like a real late-October evening in Warsaw: a blue-grey sky, the Palace of Culture lit gold, lit hotel names, the station canopy's lamps and red lights on the towers.
 - Twenty little mermaid figurines hide by the kerbs of Warsaw: drive past to find them, with rewards at 5, 10 and 20 and two new paints.
