@@ -630,6 +630,13 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   terraces with a hedge round each. **The flag on Rondo Radosława** (`_build_flag`; not in
   OpenStreetMap): a 57.8 m steel mast with a gilded finial at (−2,850, −2,295) and a 16 × 10 m
   white-and-red flag in folds, flying east.
+- **Most Świętokrzyski** (`_build_swieto`; the user's ask): the decks are map_builder's, the
+  landmark adds what made it a plain viaduct before: the concrete pylon on the Praga bank in
+  the 2.6 m median, from the ground through the deck to 70 m (map y), leaning 7 m back east, a
+  red aviation light on top, and its stays in one plane along the median, 12 over the main span
+  west and 9 back east, landing a metre over the deck's profile (`_swieto_deck`, a parabola
+  through the bake's crown). The site is the median strip under the stays, so every sector
+  they cross builds them.
 - **Muzeum Narodowe** (the museum and Plac Piłsudskiego loop, 2026-10-31; `_build_muzeum`): the
   landmarks loop kept the LoD2 model in stone (`skin_at`); now it is a model like the Palace. The
   mapped outline (481 points: every pier) is straightened to 18 corners (`_simplify`,
