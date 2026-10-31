@@ -2030,4 +2030,12 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
   slice: the game-designer should review them.
 - The end card counts every paid job kind but races and the courier bonus; DEMO's "10 jobs" might
   mean kebab-style jobs only.
+- **The NaN car (unexplained)**: once in ~10 headless replays the player car's position went NaN at
+  the first rescue's pickup (~248 s, right as Powiśle was discovered); 20 later replays were clean.
+  car.gd `_keep_finite` now puts the car back at its last good transform and logs `car: state not a
+  number` (`nan_recoveries`); the replay also fails fast on a NaN. If that line ever shows up in a
+  log, its position and velocity are the lead.
+- The end card first didn't show at all: its four Polish lines plus English were taller than the
+  HUD's room, so the layout left it unplaced. Now two Polish lines (the credits and the repo as one
+  shared line) and the English paragraph; a layout assertion in check_end_card would catch it again.
 - `first10-run` takes ~5 min in the container (3.4× real time headless); it stays out of `--quick`.

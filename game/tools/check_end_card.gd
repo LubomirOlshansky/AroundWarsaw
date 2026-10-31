@@ -122,7 +122,7 @@ func _card() -> void:
 	hud.card_pressed.emit(0)
 	_expect(not hud.up and not f.end_card_shown(), "the button closes it: free roam")
 	var lines := First10.end_words()[1].split("\n")
-	_expect(lines.size() == 4 and lines[0] == First10.END_BODY[0], "the Polish body, line by line: %s" % [lines])
+	_expect(lines.size() == 2 and lines[0].begins_with(First10.END_BODY[0]) and First10.REPO in lines[1], "the Polish body, line by line: %s" % [lines])
 	f.free()
 	hud.free()
 	w.free()

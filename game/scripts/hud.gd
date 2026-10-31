@@ -2533,8 +2533,9 @@ func _draw_finger() -> void:
 		_pad.draw_circle(tip, 16.0 * pt, Color(INK, 0.8 * press))
 	var fs := _px(T_BODY)
 	var fs2 := _px(T_SUB)
-	# Above the stick's circle (below it sits the credit line).
-	var at := o + Vector2(-STICK_R * pt, -STICK_R * pt * 2.1 - 14.0 * pt - fs2 - 6.0 * pt)
+	# Right of the stick's circle, level with it: above it the wallet and the minimap sit, below
+	# it the credit line (the first shots had the hint under the wallet).
+	var at := o + Vector2(STICK_R * pt * 1.25 + 18.0 * pt, -(fs2 + 6.0 * pt) * 0.5)
 	var w := maxf(font.get_string_size(lines[0], HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x, font.get_string_size(lines[1], HORIZONTAL_ALIGNMENT_LEFT, -1, fs2).x)
 	at.x = clampf(at.x, _safe.position.x + EDGE * pt, _safe.end.x - EDGE * pt - w)
 	var outline := _px(3.0)
