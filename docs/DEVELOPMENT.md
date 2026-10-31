@@ -4045,8 +4045,9 @@ missing lines merged, none changed), `eggs.json` (`easter_rechotka`, `easter_lez
 Everything is built at runtime from the data, on both city paths (the prebuilt sectors hold
 none of it); nothing new casts a sun shadow.
 
-- **Where things stand.** The baked data has no `shop=convenience`, `subway_entrance`,
-  `bicycle_rental` or `scooter` pois (BACKLOG "From loop MW-2": the map lane's list), so
+- **Where things stand.** The baked data had no `shop=convenience`, `subway_entrance`,
+  `bicycle_rental` or `scooter` pois (BACKLOG "From loop MW-2": the map lane's list; baked since
+  2026-10-31, "Content POIs", the switch to them is the content lane's next loop), so
   `storefronts.gd` picks from what it has: the 3,332 address pois (`door` is the road point,
   `x, z` the building), the lane graph's junctions and the notebook's resolved places.
 - **Frogs** (parodies.md 2): an address within 26 m of a junction (`JUNCTION_REACH`), off the
@@ -4667,6 +4668,52 @@ landmarks lane is the table under it).
 | Build time, the whole city headless (check_drive) | 113 s | 119 s |
 | check_streaming | identity OK (108 sectors) | identity OK (112 sectors, 1,806 meshes and MultiMeshes); 10 spots at most 0.059 % of pixels differ; every pass 0 missing (it caught the ground grid's last row past the north edge drawn over the corner left outside: `_cell_outside` treats the outside part's sides on the bounds as open) |
 
+## Content POIs: corner shops, metro entrances, bike docks and the Leżaks (2026-10-31)
+
+The content lane's asks (BACKLOG "From loop MW-2", parodies.md 5.2): the data its runtime placement
+lacked, baked into `centrum.json` `pois` by `tools/bake_street_pois.py` (called at the end of
+`bake_osm.py` on the finished data, after `bake_structures`; ~8 s). Data only: nothing reads the new
+kinds yet, so nothing new is drawn. The new pois come **after** every older one (the older 3,601 are
+byte for byte what they were); everything else in `centrum.json`, `ao.bin`, `lights.bin` and
+`water.bin` is unchanged. Deterministic: the order and the random numbers are SHA-1 hashes of
+positions (`SEED`), never Python's `hash` or a set's order (the full bake and the dry run below give
+the same pois).
+
+| Kind | Count | Fields |
+| --- | --- | --- |
+| `convenience` | 260 | `x, z` the shop (OSM shop=convenience; none below ground), `door` the road point at its door (as `address`), `fr` 1 for the chain the Frogs parody (163), `lv` a mapped level off the ground floor. No names (brands only as parodies) |
+| `subway_entrance` | 84 | `x, z`; `yaw` the way down (`atan2(dx, dz)`: `Basis(Vector3.UP, yaw)` turns +Z to it) and `f` how it was found: `steps` (a stair or underground way through the node, its `incline`; 18), `canopy` (towards the centre of the canopy it sits on; 55), `footway` (along the nearest footway, either way; 11); `st` the station (the nearest railway=station station=subway within 400 m: 10 stations), `ref` the exit's number, `u` 1 when it opens off an underground passage only (3) |
+| `bicycle_rental` | 92 | the city bike docks: `x, z`, `yaw` along the dock's long side (or the nearest street), `l` its length when mapped as an area (62) |
+| `address` (more) | 11 | `name, x, z, door` as the others, `v` 1: the addresses of 11 places of the notebook and the venues that the address bake leaves out (not a home or office: Warszawa Powiśle's pavilion, Kruczkowskiego 3B, is a train_station building; the others address points or halls): `EXTRA_ADDRESSES`. Places resolved by address 5 → 15 of 72. Plac Żelaznej Bramy 1 (Hala Gwardii) is in no OSM element |
+| `scooter_zone` | 56 | parodies.md 5.2: a 3 × 1.5 m painted zone on a footway beside a street in the hero districts (storefronts.gd's `HERO`), 400 m apart: `x, z`, `yaw` (the 3 m side along it); `egg` "easter_lezak" on the one that fits nearest a street exit of Metro Nowy Świat-Uniwersytet (within 60 m; at (−547, −308), 5 m off exit 5) |
+| `scooter` | 468 | `x, z`, `yaw`, `p` the pose: `lie` 436 (on a footway, 15 m apart, 3 in 10 spots two, near a junction 30 m, a stop 20 m, a metro exit 20 m, the river 80 m or a park's edge 6 m; 2-3 round each zone with `zn` its zone's order), the odd places (1 in 15, 150 m apart): `grass` 5, `bench` 5 (across its front), `frogs` 5 (1 m out of the shop's wall towards its door), `hedge` 4 (half in it), `roof` 12 (1 in 40, on a bus shelter by a mapped stop, `h` 2.6 m over the ground: the shelter mesh's roof); `stand` 1 (the egg's, in its zone) |
+
+- **Density** (parodies.md 5.2, *guess*): 30 a km² in the hero districts, 12 elsewhere, met per
+  500 m square on its land (not water): a quota of 469, 468 placed (one square has too few clear
+  footway points). storefronts.gd's runtime pick places 277 in 14 zones.
+- **Clear of** (`Solids`, shared with the check): the carriageway areas, medians and road strips
+  (width + 0.8 m), kerbs (0.6 m), crossings (width + 1.2 m) and their kerb ramps (3 m from a
+  crossing's end and from OSM's kerb and crossing nodes), tram tracks (2 m), rails, buildings and
+  LoD2 footprints, walls, fences, hedges, steps, guard rails, platforms, islands, fountains,
+  flowerbeds, construction, water, piers, tunnel portals (15 m), garage ramps, the metro's stairs
+  (3 m round the entrance and 8 m down its `yaw`), poles, trees, benches, bins, racks, columns,
+  shelters, parked cars and the Palm; 10 m inside the map's outline.
+- **The check** `tools/check_pois.py` (verify step `pois`, ~4 s; quick too): Q1 off the map, Q2 on
+  the carriageway, Q3 on a crossing or kerb ramp, Q4 in or against anything solid, Q5 not on its
+  spot (off the footway, the grass, the hedge, the bench, the shelter's roof), Q6 the rules (the
+  density, zone spacing, one egg zone with one standing scooter, the odd and roof shares, a yaw on
+  every entrance, a door on every shop): **0** each. Run on a dump of storefronts.gd's runtime
+  picks (`--points=`): of its 277 Leżaks 108 fail (Q1 1, Q2 44: 36 on the carriageway and 8 on a
+  tram track, Q3 44: 27 on a crossing and 17 on a kerb ramp, Q4 19); of its 25 metro entrances 14
+  (4 on the carriageway, 2 on a crossing, 8 in a building, on steps or a platform).
+- **Look**: `python3 tools/overlay_pois.py OUT.png X Z HALF` (Pillow) draws them over the photo.
+- **Dry run**: `python3 -I tools/bake_street_pois.py [centrum.json] [osm_demo.json] --out=FILE` adds
+  them to a finished map elsewhere (it won't write into `game/map`: re-bake with bake_osm.py).
+- **Sizes**: centrum.json 17.11 → 17.17 MB (+64 KB), index.json 10.77 → 10.84 MB, index.res
+  7.60 → 7.63 MB; the sector files and scenes, vertices, draw calls and the bench unchanged (no
+  geometry). The kebab run's order 0 changed with the longer address list (Oboźna 1 → Emiliana
+  Konopczyńskiego 3, 1,266 m by road): verify's `kebab` step runs 21,000 frames.
+
 ## The L-shaped map in gameplay (2026-10-31)
 
 Since map north the map is its bounding rectangle without the north-east corner left `outside`
@@ -4999,6 +5046,9 @@ still hold, with the paths above.
    the door, `o` = office, `d` = `powisle` or `praga` across the river), `station` (Warszawa
    Centralna, shown as "Dworzec Centralny"), `patelnia`, `defilad` and `syrenka` (the boulevard
    spot facing the water, as none is mapped).
+   Content POIs (2026-10-31): at its end the bake runs `tools/bake_street_pois.py` on the finished
+   data and appends, after every older poi, `convenience`, `subway_entrance`, `bicycle_rental`, 11
+   more `address` (`v`), `scooter_zone` and `scooter` (see "Content POIs"; `tools/check_pois.py`).
 2. GUGiK: the Warsaw LoD2 package (`integracja.gugik.gov.pl/Budynki3D/pobierz.php?plik=powiaty/1465_gml.zip`),
    the four sheets that cover the map unpacked into `data/raw/gugik/sheets/`
    (`python3 -I tools/find_sheets.py data/raw/gugik/1465_gml.zip tools` lists them), then
@@ -5139,6 +5189,9 @@ flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
 - Map north: `tools/map_shape.py` (the map's shape: the bounds without the corner left `outside`),
   `tools/check_outline.py` (step `outline`: nothing off the map, every sector on it),
   `tools/check_lod2.py` (step `lod2`: LoD2 and OSM blocks never both, never neither); see "Map north".
+- Content POIs: `tools/bake_street_pois.py` (run by `bake_osm.py`: corner shops, metro entrances,
+  bike docks, the places' missing addresses, the Leżaks and their zones), `tools/check_pois.py`
+  (step `pois`), `tools/overlay_pois.py` (them over the aerial photo); see "Content POIs".
 - Loop 3a: `tools/check_roads.py` (+ `check_roads_allow.json`; the road rules C1-C10),
   `tools/road_spots.txt` (the road render spots for `tools/shots.sh --set=roads`),
   `game/scripts/debug_roads.gd` (`--debug-roads`), `game/addons/debug_draw/` (the Debug Draw

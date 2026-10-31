@@ -19,6 +19,9 @@
 # under what covers it whole, no hole where it was left out, the ground on the height rule.
 # `streets` runs tools/check_streets.py (map review B): poles on the asphalt, zebras off it,
 # grass medians on tram tracks (S1, S2, S4 FAIL; S3, medians in a junction, is reported).
+# `pois` runs tools/check_pois.py (content POIs, 2026-10-31): the baked corner shops, metro
+# entrances, bike docks, Leżaks and zones (Q1-Q6: none on the carriageway, a crossing, a kerb ramp,
+# in anything solid or off the map; the density, the egg zone, the odd shares).
 # `tiers` and `governor` (loop G1): the device tiers and the pixel image's size rule, and the
 # frame governor's rules on scripted frames.
 # Loop MW-1: `places` runs game/tools/check_places.gd: MOJA WARSZAWA's 75 places (Polish +
@@ -100,8 +103,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts parodies jobs2 couriers rides cost landmarks sites sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline drape drive steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts parodies jobs2 couriers rides cost landmarks sites sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts parodies jobs2 couriers rides cost landmarks sites sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois drape drive steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts parodies jobs2 couriers rides cost landmarks sites sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -551,6 +554,20 @@ for s in $want; do
 				0) row PASS "outline" $secs "check_outline: OK · $counts" ;;
 				*) row FAIL "outline" $secs "$(grep -m1 '^check_outline:' $logs/outline.log | tail -1) · $counts ($logs/outline.log)" ;;
 			esac ;;
+		# Content POIs (2026-10-31): the street pois of tools/bake_street_pois.py (corner shops, metro
+		# entrances, bike docks, the Leżaks and their zones): Q1-Q6 of tools/check_pois.py over the whole
+		# map (no scooter on a carriageway, crossing or kerb ramp, in anything solid, off the map; ~4 s).
+		pois)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/check_pois.py > $logs/pois.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			counts=$(grep -m1 '^check_pois counts:' $logs/pois.log)
+			counts=${counts#check_pois counts: }
+			case $code in
+				0) row PASS "pois" $secs "check_pois: OK · $counts" ;;
+				*) row FAIL "pois" $secs "$(grep '^check_pois: ' $logs/pois.log | tail -1) · $counts ($logs/pois.log)" ;;
+			esac ;;
 		# Map north: the LoD2 models and the OSM blocks never both (L1), never neither (L2), at most
 		# the counts recorded in tools/check_lod2.py (not in --quick: ~35 s; needs lod2.json).
 		lod2)
@@ -625,8 +642,10 @@ for s in $want; do
 		heli) game heli 6000 '^rescue (done|failed):' --mission=1 --heli --autopilot ;;
 		race) game race 8000 '^race (won|lost):' --race=0 --autopilot ;;
 		# Loop 3d-1: 15000 frames: on the demo map order 0 goes 1,023 m by road (Oboźna 1) and is
-		# delivered at 219.8 s of play (9000 frames = 150 s ended it on the way).
-		kebab) game kebab 15000 '^kebab delivered:' --kebab=0 --autopilot ;;
+		# delivered at 219.8 s of play (9000 frames = 150 s ended it on the way). Content POIs
+		# (2026-10-31): 11 places' addresses joined the address list, so the order's shuffle picks
+		# Emiliana Konopczyńskiego 3, 1,266 m by road: 21000 frames (350 s of play).
+		kebab) game kebab 21000 '^kebab delivered:' --kebab=0 --autopilot ;;
 		# Loop 2d-1: a Podwózka ride by the app's route: a passenger 34 m off the pin, a GPS believer,
 		# the river quirk (its waypoint on dry land, the `ride: quirk river` line says how far from
 		# the water), the stars and the pay (`ride: pay`, the wallet before and after).

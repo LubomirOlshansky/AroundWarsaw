@@ -43,7 +43,10 @@ MAP = os.path.join(ROOT, "game", "map")
 # Map north (2026-10-31): the box and its north extension (Rondo Radosława, Arkadia, Forest, Andersa
 # to Dworzec Gdański; bake_osm.BBOX_NORTH, 1.04 km²): 44,832 scanned trees (+2,254), 3,601 pois (+53:
 # addresses 3,332 -> 3,378, a hospital, a kebab place, a park, four squares). Before: 255468 / 3548 / 42578.
-EXPECTED = {"trees3d": 268992, "pois": 3601, "trees3d_crown": 44832}
+# Content POIs (2026-10-31, tools/bake_street_pois.py, appended after the older ones): 4,572 pois
+# (+971: convenience 260, subway_entrance 84, bicycle_rental 92, 11 places' addresses, scooter_zone 56,
+# scooter 468; tools/check_pois.py checks them). Before: 3601.
+EXPECTED = {"trees3d": 268992, "pois": 4572, "trees3d_crown": 44832}
 # docs/DEMO.md 7 row 7: the lane graph's strongly connected share at least this.
 SCC_SHARE = 0.95
 

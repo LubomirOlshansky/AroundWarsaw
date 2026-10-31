@@ -443,6 +443,11 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     import bake_structures
     map_dir = os.path.dirname(os.path.abspath(dst))
     bake_structures.add_structures(out, map_dir, json.load(open(os.path.join(map_dir, "terrain.json"))))
+    # Loop "content POIs" (2026-10-31): the corner shops, metro entrances, city bike docks, the
+    # places' missing addresses and the Leżaks with their zones, appended after every older poi
+    # on the finished data (they keep clear of its solids; tools/bake_street_pois.py).
+    import bake_street_pois
+    bake_street_pois.add(out, els, nodes, ways, map_dir)
     with open(dst, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
     print(f"tunnels: {len(tunnel_roads)} tunnel roads, {len(out['tunnels']['pieces'])} pieces, "
