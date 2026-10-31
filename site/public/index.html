@@ -133,15 +133,26 @@
 <section class="open" id="open" aria-labelledby="open-title">
   <div class="wrap open-grid">
     <div>
-      <h2 id="open-title">Open source</h2>
-      <p class="lede">Free and MIT-licensed, built in public since 27 October 2026. Every change is in the open: the code, the design wiki and the daily progress. How it grew so far:</p>
+      <h2 id="open-title">Open source, built in public</h2>
+      <p class="lede">Around Warsaw is a free fan game made in the open. Read the code, browse the design wiki, follow what changed each day, or send a fix.</p>
       <ul class="links open-links">
         <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>Code on GitHub</a></li>
         <li><a href="https://wiki.aroundwarsaw.app">Design wiki</a></li>
         <li><a href="/progress/">Daily progress<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+        <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw/blob/main/CONTRIBUTING.md">How to contribute</a></li>
       </ul>
     </div>
-    <ol class="timeline" aria-label="How the project grew">
+    <dl class="stack">
+      <div><dt>Licence</dt><dd>MIT. The code, the tools and the map pipeline are all on GitHub.</dd></div>
+      <div><dt>Engine</dt><dd>Godot 4, GDScript, the Mobile renderer. Runs at 60 fps on an iPhone 11.</dd></div>
+      <div><dt>Map</dt><dd>OpenStreetMap streets and GUGiK&#x27;s 3D buildings, terrain and laser-scanned trees.</dd></div>
+      <div><dt>Built</dt><dd>In public since 27 October 2026, with changes landing every day.</dd></div>
+      <div><dt>Privacy</dt><dd>No ads, no purchases, no tracking. The game works offline.</dd></div>
+    </dl>
+  </div>
+  <div class="wrap">
+    <h3 class="tl-title">How it grew so far</h3>
+    <ol class="timeline" aria-label="How it grew so far">
       <li><time>27 Oct</time><p>A small car in an isometric centre of Warsaw, built from open map data.</p></li>
       <li><time>28 Oct</time><p>The helicopter, rescue calls, traffic and trams, day and night, the first landmarks.</p></li>
       <li><time>29 Oct</time><p>The city streams in pieces; a 20 km² map, the app-taxi job, the first Android build.</p></li>

@@ -311,3 +311,17 @@ section { padding: clamp(48px, 7vw, 88px) 0; }
 .bar nav .nav-beta { background: var(--neon); color: #fff; padding: 0 16px; min-height: 36px; display: inline-flex; align-items: center; border-radius: 8px; }
 .bar nav .nav-beta:hover { background: var(--neon-deep); color: #fff; }
 @media (max-width: 700px) { .hero-text { margin-left: 0; } }
+
+/* Open source: the heading, text and buttons on the left, the facts on the right, the timeline below. */
+.open-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.stack { margin: 0; display: grid; }
+.stack div { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 16px; padding: 16px 0; border-top: 1px solid var(--line); }
+.stack div:last-child { border-bottom: 1px solid var(--line); }
+.stack dt { font-family: var(--display); font-size: 1.15rem; color: var(--sky); }
+.stack dd { margin: 0; color: var(--ink-2); }
+.tl-title { margin: clamp(40px, 6vw, 64px) 0 12px; font-size: clamp(1.3rem, 2.2vw, 1.7rem); }
+.open .timeline { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0 20px; border-top: 1px solid var(--line); }
+.open .timeline li { grid-template-columns: 1fr; gap: 6px; padding: 14px 0 0; border: 0; }
+.open .timeline p { font-size: 15px; }
+@media (max-width: 1000px) { .open .timeline { grid-template-columns: 1fr; border: 0; } .open .timeline li { grid-template-columns: 5.5em minmax(0, 1fr); border-top: 1px solid var(--line); padding: 12px 0; } }
+@media (max-width: 700px) { .stack div { grid-template-columns: 1fr; gap: 4px; } }

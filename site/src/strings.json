@@ -114,8 +114,8 @@
     "cta_source": "Source on GitHub",
     "missions_title": "Missions with a Warsaw accent",
     "missions_lede": "Real addresses, and the city talks back in Polish and English.",
-    "open_title": "Open source",
-    "open_lede": "Free and MIT-licensed, built in public since 27 October 2026. Every change is in the open: the code, the design wiki and the daily progress. How it grew so far:",
+    "open_title": "Open source, built in public",
+    "open_lede": "Around Warsaw is a free fan game made in the open. Read the code, browse the design wiki, follow what changed each day, or send a fix.",
     "author_title": "About the author",
     "open_repo": "Code on GitHub",
     "open_wiki": "Design wiki",
@@ -126,9 +126,10 @@
     "dn_label": "Time of day: drag to switch between day and night",
     "dn_alt_day": "Stadion Narodowy by day in the game, with Most Poniatowskiego and the Vistula",
     "dn_alt_night": "Stadion Narodowy at night in the game, the bridge lamps reflected in the Vistula",
-    "tl_label": "How the project grew",
+    "tl_label": "How it grew so far",
     "nav_wiki": "Wiki",
-    "nav_progress": "Progress"
+    "nav_progress": "Progress",
+    "open_contribute": "How to contribute"
   },
   "pl": {
     "lang": "pl",
@@ -188,8 +189,8 @@
     "cta_source": "Kod na GitHubie",
     "missions_title": "Misje z warszawskim akcentem",
     "missions_lede": "Prawdziwe adresy, a miasto odpowiada po polsku i angielsku.",
-    "open_title": "Open source",
-    "open_lede": "Za darmo, na licencji MIT, robione publicznie od 27 października 2026. Każda zmiana jest jawna: kod, wiki projektowa i postępy dzień po dniu. Jak to rosło do tej pory:",
+    "open_title": "Open source, robione publicznie",
+    "open_lede": "Around Warsaw to darmowa gra fanowska robiona w otwarty sposób. Przeczytaj kod, zajrzyj do wiki projektowej, zobacz, co zmieniło się każdego dnia, albo wyślij poprawkę.",
     "author_title": "O autorze",
     "open_repo": "Kod na GitHubie",
     "open_wiki": "Wiki projektowa",
@@ -200,9 +201,10 @@
     "dn_label": "Pora dnia: przeciągnij, żeby przełączyć dzień i noc",
     "dn_alt_day": "Stadion Narodowy w dzień w grze, z Mostem Poniatowskiego i Wisłą",
     "dn_alt_night": "Stadion Narodowy nocą w grze, latarnie mostu odbite w Wiśle",
-    "tl_label": "Jak rosło to dotąd",
+    "tl_label": "Jak rosło dotąd",
     "nav_wiki": "Wiki",
-    "nav_progress": "Postępy"
+    "nav_progress": "Postępy",
+    "open_contribute": "Jak pomóc"
   },
   "missions": [
     {
@@ -323,5 +325,51 @@
         "pl": "Mapa rośnie na północ, kurierzy ścigają Cię nocą, stary tramwaj i pierwszy warsztat."
       }
     ]
-  ]
+  ],
+  "open_facts": {
+    "en": [
+      [
+        "Licence",
+        "MIT. The code, the tools and the map pipeline are all on GitHub."
+      ],
+      [
+        "Engine",
+        "Godot 4, GDScript, the Mobile renderer. Runs at 60 fps on an iPhone 11."
+      ],
+      [
+        "Map",
+        "OpenStreetMap streets and GUGiK's 3D buildings, terrain and laser-scanned trees."
+      ],
+      [
+        "Built",
+        "In public since 27 October 2026, with changes landing every day."
+      ],
+      [
+        "Privacy",
+        "No ads, no purchases, no tracking. The game works offline."
+      ]
+    ],
+    "pl": [
+      [
+        "Licencja",
+        "MIT. Kod, narzędzia i cały proces budowy mapy są na GitHubie."
+      ],
+      [
+        "Silnik",
+        "Godot 4, GDScript, renderer Mobile. 60 kl./s na iPhonie 11."
+      ],
+      [
+        "Mapa",
+        "Ulice z OpenStreetMap, budynki 3D, teren i drzewa ze skanu laserowego GUGiK."
+      ],
+      [
+        "Powstaje",
+        "Publicznie od 27 października 2026, zmiany codziennie."
+      ],
+      [
+        "Prywatność",
+        "Bez reklam, zakupów i śledzenia. Gra działa bez internetu."
+      ]
+    ]
+  }
 }

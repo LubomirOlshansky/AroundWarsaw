@@ -143,6 +143,8 @@ def landing(strings: dict, lang: str) -> str:
         f'    <figure class="tile">\n      {pic(m["img"], 1920, 887, html.escape(m[lang][2]))}\n'
         f"      <figcaption><h3>{html.escape(m[lang][0])}</h3><p>{html.escape(m[lang][1])}</p></figcaption>\n    </figure>"
         for m in strings["missions"])
+    values["open_facts"] = "\n".join(
+        f"      <div><dt>{html.escape(a)}</dt><dd>{html.escape(b)}</dd></div>" for a, b in strings["open_facts"][lang])
     values["small"] = "\n".join(
         f'    <figure class="tile">\n      {pic(m["img"], m["w"], m["h"], html.escape(m[lang][2]))}\n'
         f"      <figcaption><h3>{html.escape(m[lang][0])}</h3><p>{html.escape(m[lang][1])}</p></figcaption>\n    </figure>"
