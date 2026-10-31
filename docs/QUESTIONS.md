@@ -14,7 +14,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
 | gameplay (content thread) | The L-shaped map in gameplay (helicopter clamp, off-map test, random spots, minimap/full map), notebook places for Rondo Radosława and Arkadia, check_police P12's flake | cloud thread "Add autonomous backlog workflow" | 2026-10-31 |
 | map | The loading fix (on-screen sectors first, proxies that look like the city), then the map north to Rondo Radosława, Arkadia and Forest (3d-1, 3d-2a, 3d-2b and 3e landed) | thread "Finish the demo map extension" | 2026-10-30 |
-| map | The content lane's map asks (corner shops, metro entrances, bike and scooter spots, Kruczkowskiego 3B) (3d-1, 3d-2a, 3d-2b, 3e, the loading fix and map north landed) | thread "Finish the demo map extension" | 2026-10-30 |
+| map | Free: the next map item by priority (3d-1, 3d-2a, 3d-2b, 3e, the loading fix, map north and the content POIs landed) | thread "Finish the demo map extension" | 2026-10-30 |
 
 ## Waiting
 
@@ -151,6 +151,16 @@ Newest first. One entry per question.
   iPhone 11, at most 8 s). Default built: on (the old way showed far-tower proxies at the start).
 - **2026-10-31 · map · loading fix** — Jumps (tow, race start) load the view's sectors at once:
   1-2 extra frames over 33 ms per cut, instead of 0.5-1 s of proxies at the new place. Default built: at once.
+- **2026-10-31 · map · content POIs** — Place addresses OSM has on non-home buildings (11, Kruczkowskiego
+  3B among them) are baked as `address` pois with `v` = 1, so places and venues find them with no
+  code change, but the job shuffles move (the kebab run's first order changed). Or a separate kind
+  that leaves jobs as they were? Default built: `address` + `v`.
+- **2026-10-31 · map · content POIs** — Leżak zones: "one per ~400 m" read as at least 400 m apart
+  (56 zones), not one per 400 m of street (several hundred). Default built: 56.
+- **2026-10-31 · map · content POIs** — Leżak density: parodies.md's guess of 30 / 12 per km²
+  (468 scooters; about 3 per 300 m square, sparse at street scale). Default built: the guess.
+- **2026-10-31 · map · content POIs** — Corner shops store no names, only `fr` for the chain the
+  Frogs parody; or a parody-name field per chain? Default built: `fr` only.
 - **2026-10-31 · map · map north** — Shape of the growth: only the west side of the north edge
   (an L, 1.04 km²), or the whole north strip (~3.9 km², Praga north and Dworzec Gdański too)?
   Default built: the L.
