@@ -95,6 +95,7 @@ const Governor := preload("res://scripts/governor.gd")
 ## Loop 3g-1: the police (police.gd; its block below, "loop 3g-1: the police").
 const Police := preload("res://scripts/police.gd")
 const Buses := preload("res://scripts/buses.gd")
+const OldTram := preload("res://scripts/old_tram.gd")
 const MAP_PATH := "res://map/centrum.json"
 
 ## Visual styles to compare on the phone. lines = vertical resolution of the pixel image.
@@ -345,6 +346,11 @@ var buses: Buses
 var night_hub_flag := false
 var bus_log := false
 var honk_frames: Array[int] = []
+## The vintage-tram loop (old_tram.gd): the old two-car set on summer weekends, E39; flags
+## --old-tram (the set now near the car; =follow: and the car kept behind it), --tram-log.
+var old_tram: OldTram
+var old_tram_flag := ""
+var tram_log := false
 var life_flag := 1
 var dogs_log := false
 var trend_log := false
@@ -977,6 +983,7 @@ func _build_world() -> void:
 	_build_crowds(data, world)
 	_build_city_life(data, world)
 	_build_buses(data, world)
+	_build_old_tram(world)
 	_build_storefronts(data, world)
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
@@ -1715,6 +1722,56 @@ func _build_buses(data: Dictionary, world: Node3D) -> void:
 	hud.horn_pressed.connect(func() -> void: buses.honk())
 	if night_hub_flag:
 		buses.force()
+
+
+# --- the vintage-tram loop --------------------------------------------------------------------
+
+## The old tram (old_tram.gd) on the trams' tracks, after the buses. None with --no-traffic.
+func _build_old_tram(world: Node3D) -> void:
+	if trams == null:
+		return
+	old_tram = OldTram.new()
+	old_tram.name = "OldTram"
+	old_tram.trams = trams
+	old_tram.sfx = sfx
+	old_tram.dialogue = dialogue
+	old_tram.egg_book = egg_book
+	old_tram.log_on = tram_log
+	old_tram.clock = tod.local_clock
+	old_tram.calendar = _crowd_calendar
+	old_tram.focus = func() -> Vector3: return cam_focus
+	old_tram.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	old_tram.probe = _egg_state
+	world.add_child(old_tram)
+	old_tram.setup()
+	if sfx != null:
+		trams.old_bell.connect(func(at: Vector3) -> void: sfx.play_at("old_tram_bell", at))
+	if old_tram_flag != "":
+		old_tram.force(Vector2(car.global_position.x, car.global_position.z))
+
+
+## --old-tram=follow: the car (no collisions) kept 22 m behind the old set's tail on its rails,
+## facing along them, so the view goes with it and E39's count runs.
+func _old_tram_follow_frame() -> void:
+	if old_tram == null or old_tram.tram == null:
+		return
+	var t: Trams.Tram = old_tram.tram
+	var back := Trams.length_of(t) + 22.0
+	var p := trams.body_point(t, back)
+	var q := trams.body_point(t, back - 4.0)
+	var dir := (q - p).normalized() if q.distance_to(p) > 0.01 else t.dir
+	car.collision_layer = 0
+	car.collision_mask = 0
+	car.global_position = Vector3(p.x, t.pos.y + 0.5, p.y)
+	car.rotation = Vector3(0.0, atan2(-dir.x, -dir.y), 0.0)
+	car.vel = Vector3(dir.x, 0.0, dir.y) * t.v
+	car.forward_speed = t.v
+	car.target_dir = Vector3.ZERO
+	car.throttle = 0.0
+	cam_focus = car.global_position
 
 
 # --- loop MW-4: everyday life and trends -------------------------------------------------------
@@ -2786,6 +2843,10 @@ func _parse_args() -> void:
 			night_hub_flag = true
 		elif arg == "--bus-log":
 			bus_log = true
+		elif arg == "--old-tram" or arg.begins_with("--old-tram="):
+			old_tram_flag = "follow" if arg == "--old-tram=follow" else "now"
+		elif arg == "--tram-log":
+			tram_log = true
 		elif arg.begins_with("--honk="):
 			for f in arg.trim_prefix("--honk=").split(",", false):
 				honk_frames.append(int(f))
@@ -2884,7 +2945,7 @@ func _parse_args() -> void:
 	# Test runs go straight to the city (--title brings the title screen back).
 	if demo or not shots.is_empty() or autopilot or start_race > 0 or start_mission > 0 or start_rival > 0 or bench or probe \
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or open_map_at_start or hold_stick != Vector2.INF or bench_button \
-			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0:
+			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0 or old_tram_flag != "":
 		show_title = false
 	if start_ride >= 0 or place_flag != "" or roundup_flag:
 		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place)
@@ -4030,6 +4091,8 @@ func _make_stats() -> BenchStats:
 		b.systems["city life"] = [life, "spent_usec", true]  # loop MW-4
 	if buses != null:
 		b.systems["buses"] = [buses, "spent_usec", true]  # the night-buses loop
+	if old_tram != null:
+		b.systems["old tram"] = [old_tram, "spent_usec", true]  # the vintage-tram loop
 	if storefronts != null:
 		b.systems["storefronts"] = [storefronts, "spent_usec", true]  # loop MW-2
 	if egg_book != null:
@@ -4389,6 +4452,8 @@ func _read_input(dt: float) -> void:
 		_ram_test_frame(dt)
 	if tram_watch >= 0:
 		_tram_watch_frame()
+	if old_tram_flag == "follow":
+		_old_tram_follow_frame()  # the vintage-tram loop
 
 
 ## The stick and W A S D both point in screen space (W is up the screen); Space /

@@ -3639,7 +3639,9 @@ Data: `data/eggs.json` (45 cards) and `data/kadr.json` (15 spots); the then card
   E23 E24 E25 E34 E35 E39 E40; "Everyday life and trends" below). Loop MW-2 added the Frogs and
   Leżak eggs (38 reachable); loop jobs-2 woke E34 (an `event`: the armchair man) and E40 (a `stop`
   at the payphone): **reachable 40, waiting 7** (E01 E21 E23 E24 E25 E35 E39). The night-buses loop woke E23
-  E24 E25 (`event`s seen by `buses.gd`): **reachable 43, waiting 4** (E01 E21 E35 E39).
+  E24 E25 (`event`s seen by `buses.gd`): **reachable 43, waiting 4** (E01 E21 E35 E39). The
+  vintage-tram loop woke E39 (an `event` seen by `old_tram.gd`): **reachable 44, waiting 3** (E01
+  E21 E35).
 - **KASETA** (`tape.gd`): the 20 then cards at their notebook places. Within 40 m of one, on the
   ground under 12 km/h, the context button reads KASETA · time tape; a tap plays it: the VHS
   overlay for 6 s, a tape-rewind sound (procedural, seeded, no file), a dithered ghost of the
@@ -4167,6 +4169,57 @@ It drives the traffic's own buses (`traffic.gd`'s BUS pool of 8, main roads only
 
   The N sign, the ring and the stop figures add no 3D draw call (the bus and walkers' MultiMeshes);
   the horn is one triangle array (one 2D draw).
+
+## The vintage tram and E39 (loop vintage-tram, 2026-10-31)
+
+`game/scripts/old_tram.gd` (built in `main.gd` after the buses; docs/design/vision.md 8, egg E39
+"Zabytkowy tramwaj"). It ticks on a 0.5 s timer, with no per-frame scans.
+
+- **The set**: a rounded 1960s-style two-car set, our own shape (no operator's name or logo): a
+  motor car with a diamond pantograph and a trailer, carmine red below and cream above, a thin red
+  line over the windows, a grey-cream roof rounded at its edges and ends, a four-piece
+  windscreen, two headlamps, a lit destination plate with a "T", doors on the right side only
+  (a single-ended set), tail lamps on the trailer's back. Each car is one mesh of one surface on
+  the actor material (`vintage_meshes()`, made once; 1,238 and 942 vertices, a modern cab car 240).
+- **On the tracks**: it is one of `trams.gd`'s eight trams, recruited while out of sight
+  (`set_vintage`): the meshes of its own MeshInstance3Ds are swapped and its third car hidden
+  (`n_cars` 2, its length 21.7 m for the spacing). It runs like any tram (stops, lights, keeping
+  apart) at 8 m/s (29 km/h, the modern ones 40): the trams behind it queue. **-1 draw call** while
+  in view (two car meshes for three), never more.
+- **When**: Saturdays and Sundays 09:00-19:00 by the game clock (`time_of_day.gd` `local_clock`,
+  the weekday the crowds read); with Live, June to September only. One run an hour: it starts at
+  a minute seeded by the day (Live: the date; the fixed looks: the weekday) and the hour, in the
+  first half hour, and lasts 25 min. A run takes the out-of-sight tram nearest the car (`trams.gd`
+  `in_sight`: within the trams' posing reach of the view); when it is over the set turns modern
+  again once it is out of sight. The fixed looks' clock is Friday from 14:00 (Day), so without
+  Live it shows on the game's Saturday: the Day look from `--clock=` before noon, or Dawn's
+  Saturday after 09:00.
+- **The sound**: a low creak (`tram_creak`, make_sfx.py: stick-slip pulses through two body
+  resonances, 1.1 s) every 6-11 s while it moves within 85 m of the view, and its own two-tone
+  gong (`old_tram_bell`, 784 / 622 Hz) where a modern tram rings (`trams.gd` `old_bell`). Both
+  go through `sfx.gd`'s six positional voices.
+- **E39**: the car (not the helicopter) within 40 m of the set's body, behind or beside it (at
+  most 2 m past its nose), adds the metres the set moves; farther than 80 m starts the count
+  again (`follow_step`). At 300 m: E39 (+30 respect) and the egg's own line ("Kiedyś skrzypiało.
+  Teraz szumi. Tęsknimy za skrzypieniem.") in a bubble over the tram. Vision's reward also names
+  the then card T13, which stays waiting: the then cards start in 2010 (QUESTIONS, answered).
+- **Testing aids** (flags table): `--old-tram` (the set now on the track nearest the car, whatever
+  the time; it stays), `--old-tram=follow` (and the car, with no collisions, kept 22 m behind its
+  tail: the view goes with it and E39's count runs), `--tram-log` (`old tram:` lines).
+- **Check**: `check_old_tram.gd` (verify step `oldtram`, quick set and CI; `centrum.json` only):
+  the window with and without Live and on the fixed looks' clock, one 25-min run in each of 50
+  hours with 26 different start minutes, the follow count (adds, holds, resets), the look (two
+  cars of one surface, the recruited tram showing 2 of its 3 mesh nodes, no node added, the
+  modern meshes back on the way out), and a run on the real tracks: taken out of sight, E39 once
+  at 304 m (+30), the count reset 100 m back, modern again out of sight.
+- **Cost** (headless bench, two runs each; rendered draw calls with software Vulkan, all passes):
+
+  | View | Before | After |
+  | --- | --- | --- |
+  | Bench route, day (headless, scripts total) | 2.50-2.83 ms | 2.59-2.66 ms (noise); "old tram" 0.00 ms |
+  | The set in view on Marszałkowska (`--probe --at=-1113.2,-263.4 --heading=160 --time=day --old-tram`, headless) | | scripts 2.63 ms, "old tram" 0.00 ms (under 5 µs a frame) |
+  | Plain day at the spawn (`--probe --time=day`), rendered | 128 (main 58 / shadow 35 / 2D 35) | 128 (58 / 35 / 35) |
+  | The same tram there as a modern three-car tram vs the old set, rendered | 134 (61 / 38 / 35) | 132 (60 / 37 / 35): one car fewer in each 3D pass |
 
 ## The easy-driving loop: drive through the small props (2026-10-30)
 
@@ -4818,6 +4871,8 @@ Command-line options (after `--`):
 | `--trend-day=N` | loop MW-4: the Wiralek cycle's day number (0 = slot 1 on day 1, slot 2 on day 3, slot 3 on day 5; 88 = all three on day 1) instead of Live's date or the session's |
 | `--trend-job[=1\|2\|3]` | loop MW-4: start by that Wiralek slot (1 Plac Zbawiciela, 2 Chmielna, 3 Tamka) with its "Na czasie" request offered; with `--autopilot` accepted and driven; implies `--trend-log` |
 | `--night-hub` | night-buses loop: a gathering of night buses at Dworzec Centralny now, whatever the time (with `--time=night`, the N signs too); its buses park at their bays at once |
+| `--old-tram` / `--old-tram=follow` | vintage-tram loop: the old two-car set now, on the track nearest the car, whatever the time (it stays); `=follow`: and the car (no collisions) kept 22 m behind its tail, so the view goes with it and E39's 300 m count runs |
+| `--tram-log` | vintage-tram loop: print `old tram:` lines: each run taken out of sight and turned modern, the follow count every 50 m and its resets, E39 |
 | `--bus-log` | night-buses loop: print `buses:` lines: the hub's bays and stops, each gathering and ring bus, the car at the ring, the race to the Palm, each honk and called bus, the stop lines, a summary every 20 s |
 | `--honk=F1,F2,...` | night-buses loop: the player honks on those frames (as the horn button; rate-limited) |
 | `--life-soak` | loop MW-4: a Friday dusk; the car is driven at the nearest dog walker or rider at 7 m/s, every frame counts a dog, walker or rider inside the car's footprint (`life: soak done … overlaps 0`); verify step `life-soak` |

@@ -8,7 +8,6 @@
 		"runners": "Kolka and Hyrax (MW-4)",
 		"armchair": "the man with the armchair (MW-4)",
 		"older_tapes": "KASETA's older decades (T1, 'later': the user's answer 3)",
-		"old_tram": "a tram in old livery (trams)",
 		"payphone": "the payphone prop and T17 (older decades)"
 	},
 	"eggs": [
@@ -944,12 +943,11 @@
 				"It used to creak. Now it hums. We miss the creak."
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "event"
 			},
 			"reward": {
 				"respect": 30
-			},
-			"waits": "old_tram"
+			}
 		},
 		{
 			"id": "e40",
