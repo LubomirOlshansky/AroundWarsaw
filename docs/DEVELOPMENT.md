@@ -811,6 +811,16 @@ that the helicopter (heli.gd stepped by hand) flying at it at half its height is
 it and then lands on open ground beside it, the roof rescues on the replaced outlines and the
 cells round the Palace's spire.
 
+`godot --headless --path game --script res://tools/check_mesh_quality.gd` (verify step `meshq`, in the
+quick set and in CI; landmarks plan 0.1 and 0.2) builds EVERY landmark site alone (`landmarks.build(surface, near, only)`
+on a stub map, from the committed `centrum.json`) and checks its mesh: a triangle BUDGET per site (a
+site with none fails, so detail never goes in without a limit), every triangle in a landmark material code
+(no draw call of its own), z-fighting (same-facing triangles on one plane within 2 cm overlapping by
+more than 0.01 m2), zero-area triangles, normals that disagree with their geometry, and parts floating
+clear of the ground and of every other part. The defects that exist today are a ratchet in `KNOWN`
+(the check fails above it and says when to lower it); new sites start at zero. A new site gets its
+`BUDGET` line (measured + about 20 %) in the same change; the art-director judges only after this passes.
+
 `godot --headless --path game --script res://tools/check_sites.gd` (verify step `sites`, in the
 quick set and in CI; the museum and Plac loop) checks the models at Muzeum Narodowe, Hotel
 Europejski and the Tomb from the committed `centrum.json` alone (a stub map, flat ground): each
