@@ -1,6 +1,6 @@
 # Around Warsaw: project instructions
 
-Around Warsaw (formerly Nocna Warszawa; bundle/package IDs keep `com.olshanskysoft.nocnawarszawa`,
+Around Warsaw (formerly Nocna Warszawa; the Android package keeps `com.olshanskysoft.nocnawarszawa` (Play has it), the iOS bundle ID is `com.olshanskysoft.aroundwarsaw`,
 build files keep `NocnaWarszawa`; the 87,3 radio station is KEBAB FM, id and folder `nocna_fm`).
 A free, open-source (MIT) fan game: an isometric small-car arcade drive (and a helicopter) through
 the real centre of Warsaw, Godot 4.7.2 (Mobile renderer, iOS first, Metal), from OpenStreetMap and
