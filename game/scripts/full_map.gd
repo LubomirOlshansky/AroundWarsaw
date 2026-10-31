@@ -26,6 +26,7 @@ signal teleport(at: Vector2)
 
 const MapArt := preload("res://scripts/map_art.gd")
 const MapIcons := preload("res://scripts/map_icons.gd")
+const MainLine := preload("res://scripts/main_line.gd")
 ## The hold to teleport: this long, the finger within HOLD_SLOP points of where it went down.
 const HOLD_S := 0.6
 const HOLD_SLOP := 12.0
@@ -76,6 +77,15 @@ var garage_colour := Color.WHITE
 var final_start := Vector2.INF
 var final_colour := Color.WHITE
 var target_colour := Color.WHITE
+## The main line (main_line.gd, hud.gd `set_main_line`): its marker (INF: none) and goal line. On the
+## map a big gold star in a pulsing ring (pinned to the screen's edge when off it); the side quests
+## keep their colours: the active one a ringed dot, the places to start one (kebab stands, the
+## station, the scooters: hud.gd's minimap squares) squares. A legend bottom left says which is which.
+var main_at := Vector2.INF
+var main_pl := ""
+var main_en := ""
+var side_spots := PackedVector2Array()
+var side_colours := PackedColorArray()
 ## The minimap's night (kept for hud.gd; the full map has one look day and night).
 var night := 0.0
 ## Loop 3h slice 1: districts.gd `view()` (names, label point, polygons, found, pct) and the total %.
@@ -106,6 +116,16 @@ var _hold_t := 0.0
 ## A refusal line shown for a moment (the time left, s).
 var _note: PanelContainer
 var _note_t := 0.0
+## The main line's goal card (under the title) and the legend (bottom left; its icons are painted
+## in the overlay's batch at `_legend_icons`' rects).
+var _goal: PanelContainer
+var _legend: PanelContainer
+var _legend_icons: Array[Control] = []
+## The legend's icons are drawn here, on top of its card (the overlay is under the cards).
+var _legend_art: Control
+## The legend's rows: [Polish · English]; their icons in order: the star, the ringed dot, the
+## square, the "?".
+const LEGEND := ["główny wątek · main line", "zlecenie · side job", "start zlecenia · job spot", "nieodkryte · not found yet"]
 ## For checks: the last spot teleported to (INF: none).
 var last_teleport := Vector2.INF
 var _overlay: Control
@@ -188,6 +208,35 @@ func _build() -> void:
 	_head = _card(["MAPA WARSZAWY", "map of Warsaw · north up"], [T_TITLE, T_SUB])
 	_head.name = "head"
 	add_child(_head)
+	_goal = _card(["", ""], [T_SUB, T_SUB])
+	_goal.name = "goal"
+	_goal.visible = false
+	var gl: Label = _goal.get_child(0).get_child(0)
+	gl.add_theme_color_override("font_color", MainLine.COLOUR)
+	add_child(_goal)
+	_legend = _card([], [])
+	_legend.name = "legend"
+	var lv: VBoxContainer = _legend.get_child(0)
+	for text in LEGEND:
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", int(4.0 * pt))
+		var icon := Control.new()
+		icon.custom_minimum_size = Vector2(16.0, 16.0) * pt
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(icon)
+		_legend_icons.append(icon)
+		var l := Label.new()
+		l.text = text
+		l.add_theme_font_size_override("font_size", _px(T_SUB - 1.0))
+		l.add_theme_color_override("font_color", Color("#fbf7ee"))
+		row.add_child(l)
+		lv.add_child(row)
+	add_child(_legend)
+	_legend_art = Control.new()
+	_legend_art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_legend_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_legend_art.draw.connect(_paint_legend)
+	add_child(_legend_art)
 	_hint = _card(["Przytrzymaj miejsce, by się tam przenieść", "Hold a spot to jump there · drag · pinch"], [T_SUB, T_SUB])
 	_hint.name = "hint"
 	add_child(_hint)
@@ -259,6 +308,9 @@ func _card(lines: Array, sizes: Array) -> PanelContainer:
 func open(at: Vector2, yaw: float) -> void:
 	if not _built:
 		_build()
+		var keep := [main_pl, main_en]
+		main_pl = "-"
+		set_main_line(main_at, keep[0], keep[1])
 	car = at
 	car_yaw = yaw
 	centre = at
@@ -328,12 +380,24 @@ func _fit() -> void:
 	_cards.position = _close.position - Vector2(m + _cards.size.x, 0.0)
 	_hint.size = _hint.get_combined_minimum_size()
 	_hint.position = Vector2(s.position.x + (s.size.x - _hint.size.x) * 0.5, s.end.y - m - _hint.size.y)
-	if _list.visible:
-		_list.size = _list.get_combined_minimum_size()
-		_list.position = Vector2(s.position.x + m, _head.position.y + _head.size.y + m)
+	var below := _head.position.y + _head.size.y + m
 	if _ladder.visible:
 		_ladder.size = _ladder.get_combined_minimum_size()
 		_ladder.position = Vector2(s.end.x - m - _ladder.size.x, _close.position.y + _close.size.y + m)
+	if _goal.visible:
+		# As wide as its line, but never into the ladder's card or the buttons: then it wraps.
+		var right := _ladder.position.x if _ladder.visible else _cards.position.x
+		_wrap_goal(maxf(120.0 * pt, right - m - (s.position.x + m) - 24.0 * pt))
+		_goal.size = _goal.get_combined_minimum_size()
+		_goal.position = Vector2(s.position.x + m, below)
+		below = _goal.position.y + _goal.size.y + m
+	_legend.size = _legend.get_combined_minimum_size()
+	_legend.position = Vector2(s.position.x + m, s.end.y - m - _legend.size.y)
+	# A narrow screen: the legend gives way to the hold hint (they would meet at the bottom).
+	_legend.visible = _legend.position.x + _legend.size.x + m <= _hint.position.x and not _list.visible
+	if _list.visible:
+		_list.size = _list.get_combined_minimum_size()
+		_list.position = Vector2(s.position.x + m, below)
 	if _note.visible:
 		_note.size = _note.get_combined_minimum_size()
 		_note.position = Vector2(s.position.x + (s.size.x - _note.size.x) * 0.5, s.end.y - m - _note.size.y)
@@ -357,6 +421,7 @@ func _place() -> void:
 	_mat.set_shader_parameter("widen", pt * pow(ppm / maxf(ref, 0.0001), 0.33) / ppm)
 	_content.queue_redraw()  # the side streets come and go with the zoom
 	_overlay.queue_redraw()
+	_legend_art.queue_redraw()
 
 
 ## A map point (m) on the screen (px).
@@ -369,6 +434,10 @@ func rects() -> Dictionary:
 	if not _built:
 		return {}
 	var out := {"close": _close.get_global_rect(), "cards": _cards.get_global_rect(), "head": _head.get_global_rect()}
+	if _goal.visible:
+		out["goal"] = _goal.get_global_rect()
+	if _legend.visible:
+		out["legend"] = _legend.get_global_rect()
 	if _hint.visible:
 		out["hint"] = _hint.get_global_rect()
 	if _note.visible:
@@ -378,6 +447,52 @@ func rects() -> Dictionary:
 	if _ladder.visible:
 		out["ladder"] = _ladder.get_global_rect()
 	return out
+
+
+## The legend's icons, in its rows' order, on top of its card (one batch of their own).
+func _paint_legend() -> void:
+	if not _legend.visible or _legend_icons.size() != 4:
+		return
+	var ic: Array[Vector2] = []
+	for c in _legend_icons:
+		ic.append(c.get_global_rect().get_center() - _legend_art.get_global_rect().position)
+	hud._tri_begin()
+	hud.main_star(ic[0], 1.2)
+	hud.side_pin(ic[1], 1.2, Color("#ff8a3d"))  # jobs.gd KEBAB_COLOUR
+	var half := 3.4 * pt
+	hud._tri_rect(Rect2(ic[2] - Vector2.ONE * (half + 1.2 * pt), Vector2.ONE * (half + 1.2 * pt) * 2.0), hud.OUTLINE)
+	hud._tri_rect(Rect2(ic[2] - Vector2.ONE * half, Vector2.ONE * half * 2.0), Color("#ff8a3d"))
+	hud._tri_question(ic[3], 1.3)
+	hud._tri_flush(_legend_art)
+
+
+## The goal card's lines wrap at `w` pixels (the card's padding left out) when longer.
+func _wrap_goal(w: float) -> void:
+	var box: VBoxContainer = _goal.get_child(0)
+	for c in box.get_children():
+		var l := c as Label
+		l.autowrap_mode = TextServer.AUTOWRAP_OFF
+		l.custom_minimum_size.x = 0.0
+		if l.get_minimum_size().x > w:
+			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			l.custom_minimum_size.x = w
+	_goal.reset_size()
+
+
+## The main line's marker (map x, z; INF: none) and goal line (hud.gd passes it on open and while
+## open). An empty line hides the goal card (the main line is done).
+func set_main_line(at: Vector2, pl: String, en: String) -> void:
+	var changed := pl != main_pl or en != main_en
+	main_at = at
+	main_pl = pl
+	main_en = en
+	if not _built or not changed:
+		return
+	var box: VBoxContainer = _goal.get_child(0)
+	(box.get_child(0) as Label).text = "★ " + pl
+	(box.get_child(1) as Label).text = en
+	_goal.visible = pl != ""
+	_fit()
 
 
 ## Loop 3h slice 3: the rival ladder's card (ladder.gd `rows`: [text, "won" | "next" | "locked"]);
@@ -491,6 +606,14 @@ func _paint() -> void:
 		MapIcons.paint(hud, ic["shape"], ic["colour"], tip, r)
 		if close_in:
 			named.append(ic)
+	# The side quests' places to start one: squares in their job's colour.
+	for i in side_spots.size():
+		var at := to_screen(side_spots[i])
+		if view.has_point(at):
+			var half := 3.6 * pt
+			hud._tri_rect(Rect2(at - Vector2.ONE * (half + 1.2 * pt), Vector2.ONE * (half + 1.2 * pt) * 2.0), hud.OUTLINE)
+			hud._tri_rect(Rect2(at - Vector2.ONE * half, Vector2.ONE * half * 2.0),
+					side_colours[i] if i < side_colours.size() else Color.WHITE)
 	for q in found:
 		var at := to_screen(q)
 		if view.has_point(at):
@@ -504,14 +627,17 @@ func _paint() -> void:
 		var g := to_screen(garage)
 		if view.has_point(g):
 			hud._tri_diamond(g, 6.5 * pt, garage_colour)
-	if final_start != Vector2.INF:
-		var fs := to_screen(final_start)
-		if view.has_point(fs):
-			hud._tri_diamond(fs, 8.0 * pt, final_colour)
+	# Loop 3h slice 3's diamond at the final's start is the main line's star now.
 	if target != Vector2.INF:
-		var t := to_screen(target)
-		hud._tri_fan(t, 5.0 * pt, 0.0, TAU, hud.OUTLINE)
-		hud._tri_fan(t, 3.8 * pt, 0.0, TAU, target_colour)
+		hud.side_pin(to_screen(target), 1.5, target_colour)
+	if main_at != Vector2.INF:
+		# The main line's star; off the screen it waits at the edge, smaller, on the way to it.
+		var mp := to_screen(main_at)
+		var inner := Rect2(Vector2.ZERO, _view()).grow(-24.0 * pt)
+		if inner.has_point(mp):
+			hud.main_star(mp, 1.9)
+		else:
+			hud.main_star(mp.clamp(inner.position, inner.end), 1.3)
 	var c := to_screen(car)
 	var d := Vector2(-sin(car_yaw), -cos(car_yaw))
 	var side := Vector2(-d.y, d.x)
@@ -611,6 +737,9 @@ func _process(dt: float) -> void:
 		if _note_t <= 0.0:
 			_note.visible = false
 			_fit()
+	if main_at != Vector2.INF and _hold_index < 0:
+		_overlay.queue_redraw()  # the star's ring pulses (one batch, the game paused under it)
+		_legend_art.queue_redraw()
 	if _hold_index < 0:
 		return
 	_hold_t += dt

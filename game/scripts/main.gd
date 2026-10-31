@@ -108,6 +108,7 @@ const Garage := preload("res://scripts/garage.gd")
 ## Loop 3h slice 4: the guided first 10 minutes and the end card.
 const First10 := preload("res://scripts/first10.gd")
 const StopAssist := preload("res://scripts/stop_assist.gd")
+const MainLine := preload("res://scripts/main_line.gd")
 const MAP_PATH := "res://map/centrum.json"
 
 ## Visual styles to compare on the phone. lines = vertical resolution of the pixel image.
@@ -3509,6 +3510,8 @@ func _open_full_map() -> void:
 			if notes.is_found(str(place["id"])):
 				found.append(place["at"])
 	hud.set_night(tod.lights_on)  # its palette (the minimap's), even before the first frame
+	_main_t = 0.0
+	_main_line_tick(0.0)  # the main line's step as it is now (the map can open before the first look)
 	print("full map: open (paused), %d places found on it" % found.size())
 	_blip_sound()
 	get_tree().paused = true
@@ -4304,6 +4307,7 @@ func _process(dt: float) -> void:
 		missions.tick(dt, pos, car.vel.length(), false)
 	_show_target()
 	_stop_assist()
+	_main_line_tick(dt)
 	var heading: float = heli.rotation.y if flying else car.rotation.y
 	hud.update_minimap(Vector2(pos.x, pos.z), heading, deg_to_rad(cam_yaw))
 	# The see-through hole: aimed at the cabin and smaller for the helicopter, which is
@@ -4711,6 +4715,55 @@ func _stop_assist() -> void:
 	car.assist_reach = StopAssist.RING
 
 
+## The main line (main_line.gd): the active target is the main line's (_put_target), and its step
+## (looked at every MainLine.STEP_EVERY s: the marker, the full map's goal line).
+var _main_target := Vector2.INF
+var _main_t := 0.0
+var main_step: Dictionary = {}
+
+
+func _guide_on() -> bool:
+	return first10 != null and first10.guide_on()
+
+
+## The active target on the minimap: a side quest's dot in its colour, or (`main`) the main line's
+## star (hud.gd `set_main_line`, from `_main_line_tick`).
+func _put_target(xz: Vector2, colour: Color, main: bool) -> void:
+	hud.set_minimap_target(Vector2.INF if main else xz, colour)
+	_main_target = xz if main else Vector2.INF
+
+
+## The main line's step now (main_line.gd `step`), at most every MainLine.STEP_EVERY s.
+func _main_line_tick(dt: float) -> void:
+	_main_t -= dt
+	if _main_t > 0.0 or hud == null:
+		return
+	_main_t = MainLine.STEP_EVERY
+	var f := {"guide": _guide_on(), "target": _main_target, "target_main": _main_target != Vector2.INF}
+	if first10 != null and first10.hint_shown():
+		f["guide_at"] = Vector2(first10.hint_at.x, first10.hint_at.z)
+		f["guide_word"] = first10.hint_word
+	if rivals != null and rivals.ladder != null and wallet != null:
+		var nxt: int = rivals.ladder.next_rung()
+		f["next"] = nxt
+		f["open"] = rivals.ladder.is_open(nxt)
+		f["respect"] = int(wallet.respect)
+		f["need"] = Ladder.threshold(mini(nxt, Ladder.FINAL))
+		if nxt < Ladder.FINAL:
+			f["rival"] = str(Ladder.RUNGS[nxt]["rival"])
+			f["rival_at"] = rivals.rival_at(f["rival"])
+		f["night"] = rivals.night()
+		f["final_at"] = rivals.start_marker()
+		f["jobs"] = wallet.jobs_done()
+		f["end_jobs"] = First10.END_JOBS
+		f["end_seen"] = wallet.intro.has("end_seen")
+	else:
+		f["next"] = Ladder.FINAL + 1
+		f["end_seen"] = true
+	main_step = MainLine.step(f)
+	hud.set_main_line(main_step["at"], str(main_step["pl"]), str(main_step["en"]))
+
+
 ## The arrow and minimap dot for the mission target.
 func _show_target() -> void:
 	if rivals != null and rivals.has_target():
@@ -4719,7 +4772,7 @@ func _show_target() -> void:
 		var m := roundi(Vector2(f.x - p.x, f.z - p.z).length())
 		var on := cam.unproject_position(f + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on, "%d m" % m, rivals.target_colour(), m > 12)
-		hud.set_minimap_target(Vector2(f.x, f.z), rivals.target_colour())
+		_put_target(Vector2(f.x, f.z), rivals.target_colour(), _guide_on() or rivals.main_race())
 		_new_target("race", f)
 		return
 	# Loop MW-4: the "Na czasie" job's queue, then its door.
@@ -4729,7 +4782,7 @@ func _show_target() -> void:
 		var mt := roundi(Vector2(tp.x - at_t.x, tp.z - at_t.z).length())
 		var on_t := cam.unproject_position(tp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on_t, "%d m" % mt, trend_job.target_colour(), mt > 12)
-		hud.set_minimap_target(Vector2(tp.x, tp.z), trend_job.target_colour())
+		_put_target(Vector2(tp.x, tp.z), trend_job.target_colour(), _guide_on())
 		_new_target("job", tp)
 		return
 	# Loop 2d-1: a Podwózka ride's pin, passenger or door.
@@ -4739,7 +4792,7 @@ func _show_target() -> void:
 		var mr := roundi(Vector2(rp.x - at_r.x, rp.z - at_r.z).length())
 		var on_r := cam.unproject_position(rp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on_r, "%d m" % mr, rides.target_colour(), mr > 12)
-		hud.set_minimap_target(Vector2(rp.x, rp.z), rides.target_colour())
+		_put_target(Vector2(rp.x, rp.z), rides.target_colour(), _guide_on())
 		_new_target("job", rp)
 		return
 	if jobs != null and jobs.has_target():
@@ -4748,7 +4801,7 @@ func _show_target() -> void:
 		var mj := roundi(Vector2(j.x - at_j.x, j.z - at_j.z).length())
 		var on_j := cam.unproject_position(j + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on_j, "%d m" % mj, jobs.target_colour(), mj > 12)
-		hud.set_minimap_target(Vector2(j.x, j.z), jobs.target_colour())
+		_put_target(Vector2(j.x, j.z), jobs.target_colour(), _guide_on())
 		_new_target("job", j)
 		return
 	# Loop 3h slice 4: the guide's arrow (the first stand, the boulevard tape, Powiśle, the garage).
@@ -4758,7 +4811,7 @@ func _show_target() -> void:
 		var mf := roundi(Vector2(fp.x - at_f.x, fp.z - at_f.z).length())
 		var on_f := cam.unproject_position(fp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on_f, "%s %d m" % [first10.hint_word, mf], First10.HINT_COLOUR, mf > 12)
-		hud.set_minimap_target(Vector2(fp.x, fp.z), First10.HINT_COLOUR)
+		_put_target(Vector2(fp.x, fp.z), First10.HINT_COLOUR, true)
 		return
 	# Loop MW-6: Spacer's soft hint, the edge arrow to the nearest notebook place not found yet.
 	if not missions.has_target() and spacer != null and spacer.hint_shown():
@@ -4767,13 +4820,13 @@ func _show_target() -> void:
 		var mh := roundi(Vector2(hp.x - at_h.x, hp.y - at_h.z).length())
 		var on_h := cam.unproject_position(Vector3(hp.x, map.ground_height(hp.x, hp.y) + 3.5, hp.y)) * float(view.stretch_shrink)
 		hud.set_target(on_h, "? %d m" % mh, Spacer.HINT_COLOUR, mh > 25)
-		hud.set_minimap_target(hp, Spacer.HINT_COLOUR)
+		_put_target(hp, Spacer.HINT_COLOUR, false)
 		if notes != null and notes.is_found(spacer.hint_id):
 			spacer.dismiss()
 		return
 	if not missions.has_target():
 		hud.set_target(Vector2.ZERO, "", Color.WHITE, false)
-		hud.set_minimap_target(Vector2.INF, Color.WHITE)
+		_put_target(Vector2.INF, Color.WHITE, false)
 		_last_target_source = ""
 		return
 	var t: Vector3 = missions.target_position()
@@ -4783,7 +4836,7 @@ func _show_target() -> void:
 	var at := cam.unproject_position(t + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 	# Up close the ring says enough, and the pointer would sit on the vehicle's own marker.
 	hud.set_target(at, "%d m" % metres, colour, metres > 12)
-	hud.set_minimap_target(Vector2(t.x, t.z), colour)
+	_put_target(Vector2(t.x, t.z), colour, _guide_on())
 	_new_target("rescue", t)
 
 

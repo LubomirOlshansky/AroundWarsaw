@@ -17,6 +17,15 @@ Small problems that agents reported or that showed up in screenshots. They are f
   phone (maybe hand-drawn or PixelLab icon art later); the first open on an older phone (the
   art is made on a worker thread at start, ~0.1-0.7 s on a computer).
 
+## High priority: the main line and quest markers (the user, 2026-10-31)
+- **Landed** (thread "Shape main line and quest markers", docs/design/main-line.md): the main line
+  in three chapters (the guide, the ladder, the final) as `main_line.gd`; its marker a gold star on
+  the minimap (pinned to the rim at any distance) and the full map (a goal card under the title, a
+  legend); side quests keep a ringed dot in their colour and the start squares (now on the full map
+  too); the ladder's gates lowered to 0/100/220/340/480/640/850 for a ~1 h main line.
+  Left: a timed fresh-save run on the phone (the hour is an estimate); the edge arrow on the screen
+  could carry the star too; maybe a short goal line on the driving screen (QUESTIONS.md).
+
 ## High priority: landmark and skyscraper models (the user, 2026-10-30)
 - **The user dislikes how several models look** (2026-10-30): Złote Tarasy, Złota 44 and the
   other skyscrapers (Varso, Pałac Kultury, Warsaw Spire, Q22), Muzeum Narodowe (and Stadion

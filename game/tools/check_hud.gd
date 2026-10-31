@@ -367,10 +367,15 @@ func _check_full_map(hud: CanvasLayer, tag: String) -> int:
 	hud.map_pressed.disconnect(on_tap)
 	if tapped[0] != 1:
 		problems.append("%s: a tap on the minimap emitted map_pressed %d times (want 1)" % [where, tapped[0]])
+	# The main line (main_line.gd): its star and its longest goal line, the card under the title.
+	hud.set_main_line(Vector2(300.0, -200.0), "Zdobądź szacunek: 1000/1000, potem Taksiarz Zbyszek",
+			"Earn respect: 1000/1000, then Taksiarz Zbyszek")
 	hud.open_full_map(Vector2(10.0, 20.0), 0.5, PackedVector2Array([Vector2(100.0, 50.0)]))
 	await process_frame
 	await process_frame
 	var fm: Control = hud.full_map
+	if not fm.rects().has("goal"):
+		problems.append("%s: no goal card for the main line" % where)
 	# Loop 3h slice 3: the DRABINKA card (a ladder half way up, the longest rows).
 	var lw := Wallet.new()
 	lw.persistent = false
@@ -389,7 +394,7 @@ func _check_full_map(hud: CanvasLayer, tag: String) -> int:
 	_check_touch(where + " cards", rs["cards"], pt, safe)
 	if not rs.has("ladder"):
 		problems.append("%s: no ladder card" % where)
-	for k in ["head", "hint", "ladder", "cards"]:
+	for k in ["head", "hint", "ladder", "cards", "goal", "legend"]:
 		if not rs.has(k):
 			continue
 		if not safe.grow(0.5).encloses(rs[k]):
