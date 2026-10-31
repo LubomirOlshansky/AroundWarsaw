@@ -1049,30 +1049,8 @@
   {
    "rule": "C5",
    "at": [
-    -3075,
-    12
-   ],
-   "r": 6,
-   "name": "service [service]",
-   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
-   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
-  },
-  {
-   "rule": "C5",
-   "at": [
     -2712,
     -1927
-   ],
-   "r": 6,
-   "name": "service [service]",
-   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway ends at or inside the wall; a minor way no traffic uses (as on the first box)",
-   "source": "OpenStreetMap (data/raw/demo/osm, 2026-10-28); tools/check_roads.py on the loop 3d-1 bake"
-  },
-  {
-   "rule": "C5",
-   "at": [
-    -2019,
-    -141
    ],
    "r": 6,
    "name": "service [service]",
@@ -1880,6 +1858,50 @@
    "name": "Wybrzeże Kościuszkowskie",
    "reason": "loop 3e: the Wisłostrada tunnel's south portal (T0): its apron and the trench's ground profile meet 0.37 m apart over 1-2 m of the road's edge",
    "source": "GUGiK NMT 1 m (data/raw/demo/gugik/nmt1_box), OpenStreetMap; tools/check_roads.py on the loop 3e bake"
+  },
+  {
+   "rule": "C3",
+   "at": [
+    -1900,
+    -2660
+   ],
+   "r": 8,
+   "name": "footway",
+   "reason": "map north (2026-10-31): a footway by the Słomińskiego junction passes under the first metres of Andersa's tram deck (its south end pinned to the junction, Dworzec Gdański): 2.4 m clear against the footway rule's 2.5 m; nothing drives there",
+   "source": "OpenStreetMap: Andersa's tram bridge (layer 2) and the footways under it; tools/check_roads.py on the map-north bake"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -2175,
+    -2493
+   ],
+   "r": 8,
+   "name": "service",
+   "reason": "a courtyard driveway mapped up to (or through) a gate in the building: its passage way (tunnel=building_passage) is left out of the map (C7), so the driveway's last metres end inside the building's outline; a minor way no traffic uses, and the building's wall stops the car at the gate",
+   "source": "OpenStreetMap way 243215956 (highway=service) beside its passage 243215955 (tunnel=building_passage); map north"
+  },
+  {
+   "rule": "C5",
+   "at": [
+    -2637,
+    -2056
+   ],
+   "r": 8,
+   "name": "service",
+   "reason": "map north (2026-10-31): a private driveway under a colonnade (covered=colonnade) into the building on Dzika; the LoD2 outline (2018) covers the colonnade, so the way's last metres run inside it; no traffic uses it and the wall stops the car",
+   "source": "OpenStreetMap way 1228289894 (highway=service, service=driveway, access=private, covered=colonnade)"
+  },
+  {
+   "rule": "C9",
+   "at": [
+    -2939,
+    -2712
+   ],
+   "r": 4,
+   "name": "tree",
+   "reason": "map north (2026-10-31): a scanned tree beside Jana Pawła II's viaduct by Arkadia; bake_structures trim_crowns shrank its crown to the floor (CROWN_MIN, 40 %), which still reaches the viaduct footway's deck by 1.9 m; the scan's trees are kept as counted",
+   "source": "GUGiK laser-scanned trees (trees3d); OpenStreetMap way 243199078 (footway, bridge=viaduct)"
   }
  ]
 }

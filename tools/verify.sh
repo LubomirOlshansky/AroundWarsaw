@@ -81,8 +81,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud places eggs tape crowds life buses parodies jobs2 rides cost landmarks sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places eggs tape crowds life buses parodies jobs2 rides cost landmarks sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places eggs tape crowds life buses parodies jobs2 rides cost landmarks sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline drape drive steering settings tiers governor hud places eggs tape crowds life buses parodies jobs2 rides cost landmarks sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -517,6 +517,33 @@ for s in $want; do
 			case $code in
 				0) row PASS "streets" $secs "check_streets: OK · $counts" ;;
 				*) row FAIL "streets" $secs "$(grep -m1 '^check_streets:' $logs/streets.log) · $counts ($logs/streets.log)" ;;
+			esac ;;
+		# Map north (2026-10-31): nothing of the map where the map isn't (its bounds without the
+		# corner left `outside`), every sector on the map (tools/check_outline.py O1-O5; O6, dead
+		# ends on the extension's edge, reported).
+		outline)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/check_outline.py > $logs/outline.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			counts=$(grep -m1 '^check_outline counts:' $logs/outline.log)
+			counts=${counts#check_outline counts: }
+			case $code in
+				0) row PASS "outline" $secs "check_outline: OK · $counts" ;;
+				*) row FAIL "outline" $secs "$(grep -m1 '^check_outline:' $logs/outline.log | tail -1) · $counts ($logs/outline.log)" ;;
+			esac ;;
+		# Map north: the LoD2 models and the OSM blocks never both (L1), never neither (L2), at most
+		# the counts recorded in tools/check_lod2.py (not in --quick: ~35 s; needs lod2.json).
+		lod2)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/check_lod2.py --quiet > $logs/lod2.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			counts=$(grep -m1 '^check_lod2 counts:' $logs/lod2.log)
+			counts=${counts#check_lod2 counts: }
+			case $code in
+				0) row PASS "lod2" $secs "$(grep -m1 -E '^check_lod2: (OK|no )' $logs/lod2.log) · $counts" ;;
+				*) row FAIL "lod2" $secs "$(grep -m1 '^check_lod2: ' $logs/lod2.log | tail -1) · $counts ($logs/lod2.log)" ;;
 			esac ;;
 		# Loop 3b-2: the bare ground poking through the areas laid on it (water, grass, plazas, sand).
 		drape) check drape '^check_drape:' --script res://tools/check_drape.gd ;;

@@ -48,6 +48,7 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 sys.path.insert(0, TOOLS)
 import bake_osm  # noqa: E402  (bounding box, projection, clipping)
+import map_shape  # noqa: E402  (map north: the box and its north extension)
 
 DRIVABLE = set(bake_osm.DRIVABLE)
 GRADE_MAX = 0.12          # C1
@@ -275,6 +276,7 @@ class Map:
             for k in range(0, len(c["n"]), 2):
                 self.th[c["n"][k]] -= c["n"][k + 1]
         self.bounds = self.d["bounds"]
+        self.shape = map_shape.of(self.d)   # map north: the bounds without what is `outside`
         # Loop 3a: the approaches correct the ground under their corridors (map_builder
         # terrain_height: the higher of the grid and the fill).
         self.fills = Pieces([dict(f, g=k) for k, f in enumerate(self.d.get("fills", []))])
@@ -444,8 +446,7 @@ class Map:
         return self.deck_height(g, x, z) if g is not None and g >= 0 else self.terrain(x, z)
 
     def on_rim(self, x, z, pad=1.0):
-        x0, z0, x1, z1 = self.bounds
-        return min(abs(x - x0), abs(x - x1), abs(z - z0), abs(z - z1)) < pad
+        return self.shape.rim(x, z) < pad
 
 
 # --- buildings and landmarks (C5, C9, C10) -------------------------------------------------
@@ -1037,8 +1038,7 @@ class Check:
             ps = pairs(r["p"])
             for a, b in zip(ps, ps[1:]):
                 have.add((a, b), min(a[0], b[0]) - 1, min(a[1], b[1]) - 1, max(a[0], b[0]) + 1, max(a[1], b[1]) + 1)
-        x0, z0, x1, z1 = m.bounds
-        rect = (x0, z0, x1, z1)
+        rect = m.shape
         ruled_out = defaultdict(int)
         for w in els:
             if w["type"] != "way":
@@ -1066,15 +1066,13 @@ class Check:
             covered = total = 0
             first = None
             for a, b in zip(pts, pts[1:]):
-                seg = bake_osm.clip_segment(a, b, rect)
-                if seg is None:
-                    continue
-                for x, z in sample(list(seg), 2.0):
-                    total += 1
-                    if any(seg_dist2(x, z, sa, sb) < 1.0 for sa, sb in have.at(x, z)):
-                        covered += 1
-                    elif first is None:
-                        first = (x, z)
+                for seg in bake_osm.clip_segments(a, b, rect):
+                    for x, z in sample(list(seg), 2.0):
+                        total += 1
+                        if any(seg_dist2(x, z, sa, sb) < 1.0 for sa, sb in have.at(x, z)):
+                            covered += 1
+                        elif first is None:
+                            first = (x, z)
             if total and covered < 0.8 * total and any(seg_dist2(dr[0], dr[1], a, b) < 16.0 for dr in doors
                                                          for a, b in zip(pts, pts[1:])):
                 ruled_out["ended at a garage door (R9)"] += 1

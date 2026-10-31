@@ -41,7 +41,7 @@ done
 if (( full )); then
 	if [[ ! -d $ROOT/data/raw/demo/gugik/nmt1_box || ! -d $ROOT/data/raw/gugik/sheets || ! -d $ROOT/data/raw/demo/gugik/sheets ]]; then
 		print -r -- "setup_map: game/map/lod2.* and terrain.json are built from GUGiK's raw data, which isn't here:"
-		print -r -- "  data/raw/demo (python3 -I tools/fetch_demo.py nmt10, ortho, sheets, nmt1box; see data/raw/demo/MANIFEST.md)"
+		print -r -- "  data/raw/demo (python3 -I tools/fetch_demo.py nmt10, ortho, sheets, nmt1box, nmt1north; see data/raw/demo/MANIFEST.md)"
 		print -r -- "  data/raw/gugik/1465_gml.zip and sheets/ (docs/DEVELOPMENT.md \"Map data\", step 2: the Warsaw LoD2 package)"
 		exit 1
 	fi

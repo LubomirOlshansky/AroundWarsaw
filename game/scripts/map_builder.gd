@@ -127,6 +127,10 @@ var _extra_lamps := PackedFloat32Array()
 var _lod2_footprints: Array = []
 ## Loop 3c: stored, so the prebuilt index (map/index.res) has the map's rectangle too.
 @export_storage var bounds: Rect2
+## Map north (2026-10-31): the parts of `bounds` that are not map (centrum.json `outside`; today
+## the north-east corner, east of the extension to Rondo Radosława and Arkadia). Each holds a
+## corner of `bounds` (tools/map_shape.py, the bakes' twin of in_map, map_outline, clip_to_map).
+@export_storage var outside: Array[Rect2] = []
 var _wall_faces := PackedVector3Array()
 
 ## Terrain heights in metres relative to the bake's base height; empty means a flat world.
@@ -289,7 +293,7 @@ func measure_sectors() -> void:
 	var step := float(_terrain.get("step", 10.0))
 	for k: Array in index_data.get("sectors", {}).get("keys", []):
 		var key := Vector2i(int(k[0]), int(k[1]))
-		var rect := Rect2(Vector2(key) * SECTOR, Vector2(SECTOR, SECTOR)).intersection(bounds)
+		var rect := clip_to_map(Rect2(Vector2(key) * SECTOR, Vector2(SECTOR, SECTOR)))
 		var lo := INF
 		var hi := -INF
 		var z := rect.position.y
@@ -316,6 +320,96 @@ func measure_sectors() -> void:
 ## Loop 3c: the key of the sector holding a point.
 static func sector_of(x: float, z: float) -> Vector2i:
 	return Vector2i(floori(x / SECTOR), floori(z / SECTOR))
+
+
+# --- Map north (2026-10-31): the map's shape, `bounds` without its `outside` corners ---------
+
+## An outside part as the map grown by d metres sees it: its sides on the bounds move out with
+## them, its inner sides in (tools/map_shape.py Shape.grow).
+func _outside_grown(o: Rect2, d: float) -> Rect2:
+	var x0 := o.position.x - d if o.position.x <= bounds.position.x else o.position.x + d
+	var z0 := o.position.y - d if o.position.y <= bounds.position.y else o.position.y + d
+	var x1 := o.end.x + d if o.end.x >= bounds.end.x else o.end.x - d
+	var z1 := o.end.y + d if o.end.y >= bounds.end.y else o.end.y - d
+	return Rect2(x0, z0, x1 - x0, z1 - z0)
+
+
+## Map north: whether p lies on the map grown by `pad` metres (shrunk for pad < 0): inside the
+## bounds and in no outside part.
+func in_map(p: Vector2, pad := 0.0) -> bool:
+	if not bounds.grow(pad).has_point(p):
+		return false
+	for o in outside:
+		var g := _outside_grown(o, pad)
+		if p.x > g.position.x and p.x < g.end.x and p.y > g.position.y and p.y < g.end.y:
+			return false
+	return true
+
+
+## Map north: the map's outline grown by `pad`: the bounds' corners clockwise from the north-west
+## (+z south), each corner an outside part holds replaced by the part's inner corner and the two
+## points where its sides meet the bounds (six points with the north extension).
+func map_outline(pad := 0.0) -> PackedVector2Array:
+	var r := bounds.grow(pad)
+	var corners := [r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]
+	var out := PackedVector2Array()
+	for k in 4:
+		var c: Vector2 = corners[k]
+		var notch := Rect2()
+		var found := false
+		for o in outside:
+			var g := _outside_grown(o, pad)
+			if c.x >= g.position.x - 0.01 and c.x <= g.end.x + 0.01 and c.y >= g.position.y - 0.01 and c.y <= g.end.y + 0.01:
+				notch = g
+				found = true
+		if not found:
+			out.append(c)
+			continue
+		var ix := notch.end.x if is_equal_approx(c.x, r.position.x) else notch.position.x
+		var iz := notch.end.y if is_equal_approx(c.y, r.position.y) else notch.position.y
+		var prev: Vector2 = corners[(k + 3) % 4]
+		var nxt: Vector2 = corners[(k + 1) % 4]
+		out.append(Vector2(ix, c.y) if is_equal_approx(prev.y, c.y) else Vector2(c.x, iz))
+		out.append(Vector2(ix, iz))
+		out.append(Vector2(ix, c.y) if is_equal_approx(nxt.y, c.y) else Vector2(c.x, iz))
+	return out
+
+
+## Map north: rect cut to the map: to the bounds, then by any outside part that spans it whole
+## in one direction (one that only bites a corner of it leaves it as it is).
+func clip_to_map(rect: Rect2) -> Rect2:
+	var r := rect.intersection(bounds)
+	for o in outside:
+		if not r.intersects(o):
+			continue
+		if o.position.y <= r.position.y and o.end.y >= r.end.y:
+			if o.position.x <= r.position.x and o.end.x >= r.end.x:
+				return Rect2(r.position, Vector2.ZERO)
+			if o.position.x <= r.position.x:
+				r = Rect2(o.end.x, r.position.y, r.end.x - o.end.x, r.size.y)
+			elif o.end.x >= r.end.x:
+				r = Rect2(r.position.x, r.position.y, o.position.x - r.position.x, r.size.y)
+		elif o.position.x <= r.position.x and o.end.x >= r.end.x:
+			if o.position.y <= r.position.y:
+				r = Rect2(r.position.x, o.end.y, r.size.x, r.end.y - o.end.y)
+			elif o.end.y >= r.end.y:
+				r = Rect2(r.position.x, r.position.y, r.size.x, o.position.y - r.position.y)
+	return r
+
+
+## Map north: whether the 10 m ground cell [x, x + step] x [z, z + step] lies wholly in an outside
+## part (no ground there; a cell across the outline is drawn, as on the box's own edges).
+func _cell_outside(x: float, z: float, step: float) -> bool:
+	for o in outside:
+		var g := o.grow(0.01)
+		# A side on the bounds runs on past them (the grid's last row reaches past the map's edge).
+		var x0 := -INF if o.position.x <= bounds.position.x + 0.05 else g.position.x
+		var z0 := -INF if o.position.y <= bounds.position.y + 0.05 else g.position.y
+		var x1 := INF if o.end.x >= bounds.end.x - 0.05 else g.end.x
+		var z1 := INF if o.end.y >= bounds.end.y - 0.05 else g.end.y
+		if x >= x0 and x + step <= x1 and z >= z0 and z + step <= z1:
+			return true
+	return false
 
 
 static func sector_name(key: Vector2i) -> String:
@@ -518,10 +612,22 @@ func _setup(d: Dictionary, building_mat: ShaderMaterial, flat_mat: ShaderMateria
 	data = d
 	var b: Array = data["bounds"]
 	bounds = Rect2(b[0], b[1], b[2] - b[0], b[3] - b[1])
+	outside.clear()
+	for o: Array in data.get("outside", []):
+		outside.append(Rect2(o[0], o[1], float(o[2]) - float(o[0]), float(o[3]) - float(o[1])))
 	_roof_x0 = bounds.position.x
 	_roof_z0 = bounds.position.y
-	_roof_nx = ceili(bounds.size.x / ROOF_CELL)
-	_roof_nz = ceili(bounds.size.y / ROOF_CELL)
+	# Map north: the 4 m roof grid keeps the box's own cells (its lines through the box's north-west
+	# corner, which an outside part's inner edge marks): grown from the extension's edge, every
+	# cell of the box moved 1.8 m and the helicopter's heights, the roof rescues and the landmarks'
+	# tap cells with it (check_landmarks: the Presidential Palace's tallest cell lost its tap).
+	for o in outside:
+		if o.position.y <= bounds.position.y + 0.05 and o.end.y < bounds.end.y:
+			_roof_z0 = o.end.y - ceilf((o.end.y - bounds.position.y) / ROOF_CELL - 1e-4) * ROOF_CELL
+		if o.position.x <= bounds.position.x + 0.05 and o.end.x < bounds.end.x:
+			_roof_x0 = o.end.x - ceilf((o.end.x - bounds.position.x) / ROOF_CELL - 1e-4) * ROOF_CELL
+	_roof_nx = ceili((bounds.end.x - _roof_x0) / ROOF_CELL)
+	_roof_nz = ceili((bounds.end.y - _roof_z0) / ROOF_CELL)
 	_roof.resize(_roof_nx * _roof_nz)
 	_roof.fill(NO_ROOF)
 	map_grids.clear()
@@ -1016,7 +1122,6 @@ func nearest_dry(x: float, z: float) -> Vector2:
 	var p := Vector2(x, z)
 	if shore_distance(x, z) == 0.0:
 		return p
-	var inner := bounds.grow(-6.0)
 	var best := p
 	var best_r := 800.0
 	for k in 72:
@@ -1024,7 +1129,7 @@ func nearest_dry(x: float, z: float) -> Vector2:
 		var r := 0.0
 		while r < best_r:
 			var q := p + d * r
-			if not inner.has_point(q):
+			if not in_map(q, -6.0):
 				break
 			var w := shore_distance(q.x, q.y)
 			if w == 0.0:
@@ -1950,22 +2055,64 @@ func _build_edges(st) -> void:
 	# Loop 3d-1: the walls stand on the map's edge, not the grid's: the demo box's grid reaches
 	# 4 m past its north edge, past the sector grid too (check_streaming: walls in no sector).
 	# Where the grid ends on the edge (the first box) this is the same as before.
-	var nz0 := maxf(z0, bounds.position.y)
-	var sz0 := minf(z0 + (nz - 1) * step, bounds.end.y)
-	var wx0 := maxf(x0, bounds.position.x)
-	var ex0 := minf(x0 + (nx - 1) * step, bounds.end.x)
-	var sides := [
-		[nx, func(i: int) -> Vector3: return Vector3(x0 + i * step, _grid_height(x0 + i * step, nz0), nz0), Vector3.FORWARD],
-		[nx, func(i: int) -> Vector3: return Vector3(x0 + i * step, _grid_height(x0 + i * step, sz0), sz0), Vector3.BACK],
-		[nz, func(j: int) -> Vector3: return Vector3(wx0, _grid_height(wx0, z0 + j * step), z0 + j * step), Vector3.LEFT],
-		[nz, func(j: int) -> Vector3: return Vector3(ex0, _grid_height(ex0, z0 + j * step), z0 + j * step), Vector3.RIGHT],
-	]
+	# Map north: one wall per side of the map's outline (six with the north extension). Along a
+	# side the corners are the grid's columns or rows; at a convex corner of the outline the wall
+	# runs on to the grid's next node past it (as the box's four always did), at the inner corner
+	# it stops on the corner (past it would stand inside the map).
+	var lx1 := x0 + (nx - 1) * step
+	var lz1 := z0 + (nz - 1) * step
+	var ring := map_outline()
+	var sides := []
+	for k in ring.size():
+		var a := ring[k - 1]
+		var c := ring[k]
+		var along_x := absf(c.x - a.x) > absf(c.y - a.y)
+		var mid := (a + c) * 0.5
+		var n := Vector3.ZERO
+		if along_x:
+			n = Vector3.FORWARD if not in_map(mid + Vector2(0, -1)) else Vector3.BACK
+		else:
+			n = Vector3.LEFT if not in_map(mid + Vector2(-1, 0)) else Vector3.RIGHT
+		var fixed := clampf(a.y if along_x else a.x, z0 if along_x else x0, lz1 if along_x else lx1)
+		var lo0 := x0 if along_x else z0
+		var lo1 := lx1 if along_x else lz1
+		var ends := [a.x if along_x else a.y, c.x if along_x else c.y]
+		var convex := [_outline_convex(ring, k - 1), _outline_convex(ring, k)]
+		var vals := PackedFloat64Array()
+		var u0 := minf(ends[0], ends[1])
+		var u1 := maxf(ends[0], ends[1])
+		var lo_convex: bool = convex[0] if ends[0] < ends[1] else convex[1]
+		var hi_convex: bool = convex[1] if ends[0] < ends[1] else convex[0]
+		var first := ceili((u0 - lo0) / step - 1e-6)
+		var last := floori((u1 - lo0) / step + 1e-6)
+		if lo_convex:
+			first = maxi(floori((u0 - lo0) / step + 1e-6), 0)
+		else:
+			vals.append(u0)
+		for q in range(first, last + 1):
+			var u := lo0 + q * step
+			if u > lo1 + 1e-6:
+				break
+			if (vals.is_empty() or u > vals[vals.size() - 1] + 1e-6) and (lo_convex or u > u0 + 1e-6) and (hi_convex or u < u1 - 1e-6):
+				vals.append(u)
+		if hi_convex:
+			var past := lo0 + ceili((u1 - lo0) / step - 1e-6) * step
+			if past <= lo1 + 1e-6 and (vals.is_empty() or past > vals[vals.size() - 1] + 1e-6):
+				vals.append(past)
+		else:
+			vals.append(u1)
+		var pts: Array[Vector3] = []
+		for u in vals:
+			var px := u if along_x else fixed
+			var pz := fixed if along_x else u
+			pts.append(Vector3(px, _grid_height(px, pz), pz))
+		sides.append([pts, n])
 	for side in sides:
-		var corner: Callable = side[1]
-		var n: Vector3 = side[2]
-		for k in int(side[0]) - 1:
-			var a: Vector3 = corner.call(k)
-			var b: Vector3 = corner.call(k + 1)
+		var pts: Array[Vector3] = side[0]
+		var n: Vector3 = side[1]
+		for k in pts.size() - 1:
+			var a: Vector3 = pts[k]
+			var b: Vector3 = pts[k + 1]
 			var a1 := Vector3(a.x, a.y - 0.8, a.z)
 			var b1 := Vector3(b.x, b.y - 0.8, b.z)
 			var a2 := Vector3(a.x, bottom, a.z)
@@ -1975,6 +2122,20 @@ func _build_edges(st) -> void:
 			_tri_shaded(st, a, b1, a1, n, top_col, soil, soil, none, none, none)
 			_tri_shaded(st, a1, b1, b2, n, soil, soil, deep, none, none, none)
 			_tri_shaded(st, a1, b2, a2, n, soil, deep, deep, none, none, none)
+
+
+## Map north: whether the outline's corner k turns the way the outline does (a corner of the map,
+## not its inner corner by the part left outside).
+func _outline_convex(ring: PackedVector2Array, k: int) -> bool:
+	var n := ring.size()
+	var a := ring[(k - 1 + n) % n]
+	var b := ring[(k + n) % n]
+	var c := ring[(k + 1) % n]
+	var turn := (b - a).cross(c - b)
+	var area := 0.0
+	for i in n:
+		area += ring[i].cross(ring[(i + 1) % n])
+	return turn * area > 0.0
 
 
 ## Smooth normals from the height gradient, so slopes shade softly instead of in facets
@@ -2513,6 +2674,8 @@ func _build_ground(st) -> void:
 	var hidden := 0
 	for j in range(cj.x, cj.y):
 		for i in range(ci.x, ci.y):
+			if not outside.is_empty() and _cell_outside(x0 + i * step, z0 + j * step, step):
+				continue  # map north: no ground where the map isn't
 			if _fine_cells.has(Vector2i(i, j)):
 				_ground_fine_cell(st, i, j, normals, colour)  # map round 2 (D5), loop 3d-2a
 				continue
@@ -3521,7 +3684,6 @@ func _shore_under_decks(baked: Array[PackedVector2Array]) -> Array[PackedVector2
 					var list: PackedVector2Array = grid.get(key, PackedVector2Array())
 					list.append_array(PackedVector2Array([poly[i], poly[i + 1]]))
 					grid[key] = list
-	var inner := bounds.grow(-1.0)
 	var out: Array[PackedVector2Array] = []
 	for a in data["areas"]:
 		if a["k"] != "water":
@@ -3540,7 +3702,7 @@ func _shore_under_decks(baked: Array[PackedVector2Array]) -> Array[PackedVector2
 		var start := -1
 		for k in samples.size():
 			var p := samples[k]
-			var want := inner.has_point(p) and not _near_segments(grid, CELL, p, 0.75)
+			var want := in_map(p, -1.0) and not _near_segments(grid, CELL, p, 0.75)
 			if want:
 				var g := terrain_height(p.x, p.y)
 				for d in _decks_at(p.x, p.y):
@@ -5268,14 +5430,17 @@ func _build_edge_walls() -> void:
 	add_child(body)
 
 
-## Invisible walls at the edge of the baked area.
+## Invisible walls at the edge of the baked area (map north: along the map's outline, 5 m in;
+## four walls for a box, six with the north extension).
 func _add_edge_walls(body: StaticBody3D) -> void:
-	var r := bounds.grow(-5.0)
-	var centre := r.get_center()
-	for edge in [[Vector3(centre.x, 50, r.position.y), Vector3(r.size.x, 200, 1)],
-			[Vector3(centre.x, 50, r.end.y), Vector3(r.size.x, 200, 1)],
-			[Vector3(r.position.x, 50, centre.y), Vector3(1, 200, r.size.y)],
-			[Vector3(r.end.x, 50, centre.y), Vector3(1, 200, r.size.y)]]:
+	var ring := map_outline(-5.0)
+	for k in ring.size():
+		var a := ring[k - 1]
+		var c := ring[k]
+		var mid := (a + c) * 0.5
+		var along_x := absf(c.x - a.x) > absf(c.y - a.y)
+		var edge := [Vector3(mid.x, 50, mid.y),
+				Vector3(absf(c.x - a.x), 200, 1) if along_x else Vector3(1, 200, absf(c.y - a.y))]
 		var wall := CollisionShape3D.new()
 		var box := BoxShape3D.new()
 		box.size = edge[1]

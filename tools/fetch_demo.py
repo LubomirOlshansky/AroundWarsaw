@@ -11,6 +11,9 @@ Commands, in the order they are meant to be run (small downloads first, the big 
     osm         D1: OpenStreetMap from the public Overpass API as 3 x 3 tiles, merged into osm_demo.json
     ortho       D2: GUGiK aerial photo (WMS) as 2 x 2 PNG tiles
     nmt10       D3: GUGiK 10 m elevation grid (GetHByPointList), terrain_10m.json
+    nmt1box     loop 3d-1: the 1 m bare earth (NMT) of the whole bake box, gugik/nmt1_box/
+    nmt1north   map north: the same for the box's north extension (bake_osm.BBOX_NORTH), gugik/nmt1_north/
+    nmptsites   map north: the 0.5 m surface model over Arkadia, Forest and Rondo Radosława, gugik/nmpt05_sites/
     sheets      LoD2: unpack the extra 1:5000 sheets the box needs from the Warsaw package on disk
     trees       D6: stream the GUGiK 3D-tree package, keep only the 1:2500 sheets the box needs
     check       re-run the checks of every finished stage and write meta/*.json
@@ -1517,19 +1520,80 @@ NMT1_TILE = 1400.0
 NMT1_MAX_MB = 250.0
 
 
+# Map north (2026-10-31, pre-approved free download): the same 1 m bare earth for the map's north
+# extension (bake_osm.BBOX_NORTH: Rondo Radosława, Arkadia, Forest, Andersa to Dworzec Gdański),
+# into gugik/nmt1_north/; tools/prepare_demo.py reads both folders as one mosaic.
+NMT1_NORTH = (52.2525, 20.9780, 52.2591, 20.99897)
+
+
 def cmd_nmt1box(a):
+    return nmt1_tiles(a, NMT1_BOX, "nmt1_box", "nmt1box", "1 m bare earth for the whole box (loop 3d-1, ",
+                      "with the user's yes (loop 3d-1)")
+
+
+def cmd_nmt1north(a):
+    return nmt1_tiles(a, NMT1_NORTH, "nmt1_north", "nmt1north", "1 m bare earth for the map's north extension (map north, ",
+                      "(free download, pre-approved; map north)")
+
+
+# Map north (2026-10-31, free download, pre-approved): the 0.5 m surface model (NMPT) over the
+# extension's landmark sites, for their heights (the landmarks lane's hand-over, docs/DEMO.md 2.2):
+# (name, x0, z0, x1, z1 in map metres), into gugik/nmpt05_sites/<name>.tif.
+NMPT_SITES = [
+    ("arkadia", -2870.0, -2760.0, -2510.0, -2390.0),
+    ("forest", -3110.0, -2460.0, -2915.0, -2330.0),
+    ("rondo_radoslawa", -2900.0, -2360.0, -2765.0, -2225.0),
+]
+
+
+def cmd_nmptsites(a):
+    folder = os.path.join(a.out, "gugik", "nmpt05_sites")
+    os.makedirs(folder, exist_ok=True)
+    done, t_all = [], time.time()
+    for name, x0, z0, x1, z1 in NMPT_SITES:
+        corners = [to_en(*unproject(x, z)) for x in (x0, x1) for z in (z0, z1)]
+        win = snap_window(min(c[0] for c in corners), min(c[1] for c in corners),
+                          max(c[0] for c in corners), max(c[1] for c in corners))
+        path = os.path.join(folder, name + ".tif")
+        if a.dry_run:
+            log(f"nmptsites {name}: window {win}")
+            continue
+        if not os.path.exists(path):
+            t0 = time.time()
+            ncols, nrows, e_ul, n_ul, csz, vals = wcs_window(NMPT_WCS, NMPT_COVERAGE, win, 0.5, f"nmptsites {name}")
+            write_geotiff_f32(path, ncols, nrows, e_ul, n_ul, csz, vals)
+            log(f"nmptsites {name}: {ncols}x{nrows} {human(os.path.getsize(path))} in {time.time() - t0:.0f} s")
+            time.sleep(1)
+        done.append({"file": f"gugik/nmpt05_sites/{name}.tif", "window_en": win, "size": os.path.getsize(path)})
+    if a.dry_run:
+        return 0
+    total = sum(d["size"] for d in done)
+    meta_update(a.out, "nmptsites", tiles=done, bytes=total,
+                source=NMPT_WCS + "?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&COVERAGEID=" + NMPT_COVERAGE,
+                format="Arc/Info ASCII Grid from the WCS (image/x-aaigrid), stored as float32 GeoTIFF, EPSG:2180, EVRF2007")
+    lines = ["", "## 0.5 m surface model over the north extension's landmark sites (map north, " + today() + ")", "",
+             f"`gugik/nmpt05_sites/<site>.tif`: {len(done)} windows ({', '.join(n for n, *_ in NMPT_SITES)}), {human(total)}, "
+             f"GUGiK NMPT WCS `{NMPT_COVERAGE}` (EVRF2007), 0.5 m cells, float32 GeoTIFF EPSG:2180; licence as D2-D5 "
+             f"(GUGiK open data, free use). Fetched by `tools/fetch_demo.py nmptsites` (free download, pre-approved) in "
+             f"{time.time() - t_all:.0f} s: the heights in docs/DEMO.md 2.2's hand-over for the landmarks lane.", ""]
+    with open(os.path.join(a.out, "MANIFEST.md"), "a", encoding="utf-8") as fh:
+        fh.write("\n".join(lines))
+    log(f"nmptsites: {len(done)} windows, {human(total)}")
+    return 0
+
+
+def nmt1_tiles(a, box, sub, stage, title, why):
     out = a.out
-    box = NMT1_BOX
     corners = [to_en(lat, lon) for lat in (box[0], box[2]) for lon in (box[1], box[3])]
     e0, e1 = min(c[0] for c in corners) - 20, max(c[0] for c in corners) + 20
     n0, n1 = min(c[1] for c in corners) - 20, max(c[1] for c in corners) + 20
     nx, ny = math.ceil((e1 - e0) / NMT1_TILE), math.ceil((n1 - n0) / NMT1_TILE)
-    folder = os.path.join(out, "gugik", "nmt1_box")
+    folder = os.path.join(out, "gugik", sub)
     os.makedirs(folder, exist_ok=True)
     est = (e1 - e0) * (n1 - n0) * 4 / 1e6
-    log(f"nmt1box: {nx} x {ny} tiles over {(e1 - e0) / 1000:.2f} x {(n1 - n0) / 1000:.2f} km, ~{est:.0f} MB as float32")
+    log(f"{stage}: {nx} x {ny} tiles over {(e1 - e0) / 1000:.2f} x {(n1 - n0) / 1000:.2f} km, ~{est:.0f} MB as float32")
     if est > NMT1_MAX_MB:
-        raise SystemExit(f"nmt1box: {est:.0f} MB is over {NMT1_MAX_MB:.0f} MB: stopped")
+        raise SystemExit(f"{stage}: {est:.0f} MB is over {NMT1_MAX_MB:.0f} MB: stopped")
     if a.dry_run:
         return 0
     t_all, done = time.time(), []
@@ -1540,23 +1604,23 @@ def cmd_nmt1box(a):
                               e0 + (i + 1) * (e1 - e0) / nx, n0 + (j + 1) * (n1 - n0) / ny)
             if not os.path.exists(path):
                 t0 = time.time()
-                ncols, nrows, e_ul, n_ul, csz, vals = wcs_window(NMT_WCS, NMT_COVERAGE, win, 1.0, f"nmt1box r{j}c{i}")
+                ncols, nrows, e_ul, n_ul, csz, vals = wcs_window(NMT_WCS, NMT_COVERAGE, win, 1.0, f"{stage} r{j}c{i}")
                 write_geotiff_f32(path, ncols, nrows, e_ul, n_ul, csz, vals)
-                log(f"nmt1box r{j}c{i}: {ncols}x{nrows} {human(os.path.getsize(path))} in {time.time() - t0:.0f} s")
+                log(f"{stage} r{j}c{i}: {ncols}x{nrows} {human(os.path.getsize(path))} in {time.time() - t0:.0f} s")
                 time.sleep(1)
-            done.append({"file": f"gugik/nmt1_box/r{j}c{i}.tif", "window_en": win, "size": os.path.getsize(path)})
+            done.append({"file": f"gugik/{sub}/r{j}c{i}.tif", "window_en": win, "size": os.path.getsize(path)})
     total = sum(d["size"] for d in done)
-    meta_update(out, "nmt1box", box=list(box), tiles=done, bytes=total,
+    meta_update(out, stage, box=list(box), tiles=done, bytes=total,
                 source=NMT_WCS + "?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&COVERAGEID=" + NMT_COVERAGE,
                 format="Arc/Info ASCII Grid from the WCS (image/x-aaigrid), stored as float32 GeoTIFF, EPSG:2180, EVRF2007")
-    lines = ["", "## 1 m bare earth for the whole box (loop 3d-1, " + today() + ")", "",
-             f"`gugik/nmt1_box/r<row>c<col>.tif`: {len(done)} tiles, {human(total)}, the box S {box[0]} W {box[1]} N {box[2]} "
+    lines = ["", "## " + title + today() + ")", "",
+             f"`gugik/{sub}/r<row>c<col>.tif`: {len(done)} tiles, {human(total)}, the box S {box[0]} W {box[1]} N {box[2]} "
              f"E {box[3]} (+20 m), GUGiK NMT WCS `{NMT_COVERAGE}` (EVRF2007), 1 m cells on the official cell edges, float32 "
-             "GeoTIFF EPSG:2180; licence as D2-D5 (GUGiK open data, free use). Fetched by `tools/fetch_demo.py nmt1box` with "
-             f"the user's yes (loop 3d-1) in {time.time() - t_all:.0f} s. `tools/prepare_demo.py` builds the bake's terrain from it.", ""]
+             "GeoTIFF EPSG:2180; licence as D2-D5 (GUGiK open data, free use). Fetched by `tools/fetch_demo.py {stage}` "
+             f"{why} in {time.time() - t_all:.0f} s. `tools/prepare_demo.py` builds the bake's terrain from it.", ""]
     with open(os.path.join(out, "MANIFEST.md"), "a", encoding="utf-8") as fh:
         fh.write("\n".join(lines))
-    log(f"nmt1box: {len(done)} tiles, {human(total)}")
+    log(f"{stage}: {len(done)} tiles, {human(total)}")
     return 0
 
 

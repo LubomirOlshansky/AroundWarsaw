@@ -4286,6 +4286,105 @@ runtime path, medians of 3 interleaved): 8.33 → 8.33 ms, scripts 0.90 → 0.90
 check_streaming runs the seven passes in part (d): heli, car, heli-low and switch may miss
 nothing; start, look and jump may show no proxy over 5 % of the view's ground; jump may load at once.
 
+## Map north: Rondo Radosława, Arkadia and Forest (2026-10-31)
+
+The user asked for Rondo Radosława with its flag, Arkadia and the Forest tower. The map grows north
+on its **west side only** (docs/DEMO.md 2.1 "Map north" has the box and why; the hand-over to the
+landmarks lane is the table under it).
+
+- **The shape** (`tools/map_shape.py`, new): the map is its bounding rectangle (centrum.json
+  `bounds`, as before: x −3,136 to +2,182, z −2,775 to +1,736) without the rectangles in
+  `outside` (one: x −1,706 to +2,182, z −2,775 to −2,046, east of the extension and north of the
+  old edge). `bake_osm.py` `BBOX_NORTH` is the extension (1,430 × 730 m = 1.04 km²; 21.2 km² in all),
+  `BOXES`/`HULL` the boxes and their bounding box, `map_shape()` the Shape (a tuple of the bounds, so
+  code that unpacks it is unchanged). It clips roads, lanes and lines to the shape (a line can leave
+  and come back: `clip_segments`), cuts outlines across the inner corner to the larger piece, keeps
+  points in either box (`in_bbox`), and the lane graph's off-map links pair ends along the outline's
+  six sides. `map_builder.gd` has the same shape (`outside`, `in_map`, `map_outline`,
+  `clip_to_map`): the earth wall and the invisible edge walls follow the six sides (at the inner
+  corner they stop on it), no ground is drawn in the part left outside (the extension's east edge is
+  a column of the 10 m lattice, so the ground ends there cell by cell), and the proxies, the sector
+  heights, the river walls and `nearest_dry` keep to it. `bake_sectors.py` keeps the sectors that
+  meet the map (+10 m): **112** (i −7..4, j −6..3: the box's 108 and i −7..−4 of row j −6; the other
+  8 of that row would hold nothing). `check_drive.gd` leaves out the rim along the shape.
+- **The data**: everything but the 1 m bare earth was in the demo fetch (it reaches 52.2595).
+  Downloads (free, pre-approved): `tools/fetch_demo.py nmt1north`, GUGiK NMT 1 m for the extension
+  (+20 m), 2 tiles, 4.6 MB, 38 s, `data/raw/demo/gugik/nmt1_north/` (`prepare_demo.py` and
+  `bake_roads` read it with `nmt1_box/`); `tools/fetch_demo.py nmptsites`, the 0.5 m surface model
+  over Arkadia, Forest and the roundabout, 3 windows, 2.9 MB, 46 s, `nmpt05_sites/` (the heights in
+  DEMO.md's hand-over; no bake reads it). Licence as the rest of GUGiK's data (CREDITS.md). The
+  terrain lattice now spans the bounding box (533 × 453 nodes); the box's nodes are unchanged
+  (compared node by node), the extension's are from the 1 m data, the part outside keeps the 10 m
+  grid's values and is never drawn.
+- **Classes fixed over the whole map** (each a rule in the bake; counts by `tools/check_outline.py`,
+  new, and check_roads):
+  - things past the map's edge (O1-O4; on the old map 33 lines, 3 sand fills and 84 parked cars, up
+    to 70 m past the west edge over nothing): parked cars only on the map, the lane, edge and
+    cycle markings clipped to it, a median strip's ends and a retaining wall's ends cut back onto it,
+    the sand gap fills clipped: **120 → 0** (the extension included);
+  - a footbridge the map's edge cuts (Dworzec Gdański's two station footbridges over the platforms:
+    3 m over the rails, through a station building; check_roads C3 13, C9 1): left out whole, as are
+    any bridge footways joined to one that crosses the edge, unless they run beside a road bridge
+    (its pavement): **2 → 0**, 22 ways;
+  - a roof car park mapped flat (Arkadia's parking aisle, no layer, 83 % of it inside the mall: drawn
+    on the ground through the building, with three bridge ramps rising into the wall; C1 2, C5 2): a
+    parking aisle with three quarters of its length inside plain building outlines and no layer,
+    level or covered tag is left out with its ramps: **1 → 0** (5 ways; the raw ways stay for the
+    landmarks lane);
+  - kerbs drawn across a road's end at the old north edge (the kerb walker stopped at the land's
+    rectangle, which no longer ends there): the walker uses the shape (O1 23 → 0 on an
+    extended bake before the fix).
+  - the 4 m roof grid (the helicopter's heights, roof rescues, the landmarks' tap cells) anchored
+    on the bounds' north edge moved every cell of the box 1.8 m (check_landmarks: the Presidential
+    Palace's tallest cell lost its tap): it keeps the box's lines now (`_roof_z0` through the outside
+    part's inner edge). check_ground, check_water and check_drive leave the rim and the part outside
+    by the shape (`in_map`), not the rectangle.
+- **Looser LoD2 ↔ OSM match** (`bake_gugik.py`): a LoD2 model whose biggest ground triangle's
+  centroid misses every OSM outline is now also kept when **half its footprint** lies in OSM
+  outlines (sampled every metre) and OSM's height there lies between its eaves and its top (± 6 m or
+  25 %); it hides only the outlines the kept footprints cover by half. Of the 389 models the centroid
+  rule drops, 13 overlap by half, 8 of them stand as tall (both Old Town blocks the diagnostic found
+  among them); the other 5 are older buildings on a rebuilt site. **And a 2018 model under a much
+  taller mapped building** (all models in an outline with a mapped height under half of it and
+  10 m lower: Forest's 120 m tower had been drawn as a 6.8 m shed, and 45 more in Wola, Muranów and
+  Praga) is left out, so the outline draws from OSM. `tools/check_lod2.py` (new) counts an OSM block
+  drawn inside LoD2 (L1, doubled) and an outline drawn by neither (L2, lost): on the old map 16 / 81,
+  on the extended map with the old rules 16 / 83, now **15 / 73**; against that bake 7 OSM blocks
+  gained LoD2 and 57 outlines came back from 2018 models to their mapped height (LoD2 models
+  6,157 → 6,119, vertices 1.61 → 1.61 M). L1 and L2 are FAILs above those counts.
+- **The checks** in the new area: check_roads found C1 2, C3 22, C5 5, C9 2 not allowed on the first
+  extended bake; the classes above took 25 of them; 4 are allowlisted with their reason (a footway
+  0.1 m short under Andersa's tram deck, two driveways through a gate and under a colonnade, a
+  scanned tree by the Jana Pawła II viaduct) and two old entries no longer match (their LoD2 sheds
+  went with the newer-building rule). check_drive drives 22 routes through Rondo Radosława's ring
+  and its approaches (`SPOTS`; Jana Pawła II both ways from the old edge to its viaduct, Okopowa,
+  Słomińskiego, Andersa) besides every structure both ways (128 routes, 0 height jumps; `ROUTES`
+  100 → 150, the extension has six more deck groups). No flag mast is mapped: the roundabout's
+  island is bare ground for the landmarks lane (its mast stands in the surface model at (−2,850,
+  −2,295), 57.8 m).
+
+| Map north numbers | Before (the box) | After (the box and its north extension) |
+| --- | --- | --- |
+| Area, sectors | 20.1 km², 108 | 21.2 km², 112 (+4 in row j −6) |
+| Roads, paths, trams, areas | 8,038, 19,464, 287, 11,750 | 8,487, 20,677, 334, 12,446 |
+| Buildings: OSM outlines (drawn as blocks) / LoD2 models | 12,610 (4,667) / 6,025, 1.55 M vertices | 12,873 (4,825) / 6,119, 1.61 M vertices |
+| Scanned trees, pois, addresses | 42,578, 3,548, 3,332 | 44,832, 3,601, 3,378 |
+| Lane graph | 2,714 nodes (2,615: 96.4 %), 4,427 edges, 183 signal controllers, 221 off-map links | 2,902 nodes (2,803: 96.6 %), 4,710 edges, 195, 218 |
+| Decks, retaining walls | 217 pieces in 55 structures, 1,426 runs | 242 pieces in 59 structures, 1,479 runs |
+| centrum.json; ao / lights / water.bin (committed); lod2.bin | 16.3; 40.2 / 40.3 / 20.1; 86.8 MB | 17.1; 48.0 / 48.0 / 24.0; 90.0 MB (the maps span the bounding box) |
+| Sector files, index.json; prebuilt sectors, index.res, proxies.scn | 29.4, 9.7 MB; 143 MB (with the pieces), 6.8, 8.8 MB | 31.0, 10.8 MB; 151 MB, 7.3, 9.3 MB |
+| check_roads (not allowed / found) | 0 / 302 | 0 / 306 |
+| check_outline (O1-O5) | 120 | 0 |
+| check_lod2 (L1 doubled / L2 lost) | 16 / 81 | 15 / 73 |
+| check_drive (both paths) | 0 not allowed, 62 allowed; 98 routes | 0 not allowed, 62 allowed; 128 routes (22 through the roundabout), 0 jumps |
+| Vertices (`count_vertices.gd`) | 18.70 M (meshes 11.50, instances 7.20) | 19.70 M (12.15, 7.55): +1.00 M, the extension's (0.96 M a km²); LoD2 in the box 1,549,362 → 1,548,197 vertices |
+| Probe draw calls (spawn, river, zoomed out, helicopter; 3D main / shadow) | 137, 104, 150, 220 (58/38, 36/25, 66/40, 111/74) | 138, 104, 151, 224 (58/38, 36/25, 66/41, 112/76): the city +0 (the helicopter view with `--no-traffic` 102/68 both); one more car or tram in view |
+| Probe over Rondo Radosława (`--at=-2833,-2292 --heading=60 --heli --size=150`; the car on Jana Pawła II `--at=-2790,-2200 --heading=340`) | (the map's edge) | 203 (100/68), 115 (46/28): inside the helicopter's 224 |
+| Bench (Mac, 1920×1080, medians of 3 interleaved with a copy of the old map) | 8.33 ms a frame (120 Hz cap), process 1.75 ms, scripts 0.86 ms, 111 draw calls | 8.33 ms, process 1.90 ms (runs 1.63-1.95), scripts 0.88 ms, 111 draw calls |
+| Memory (probe at the spawn): static / video | 330 / 287 MB | 350 / 289 MB (the bigger index) |
+| Build time, the whole city headless (check_drive) | 113 s | 119 s |
+| check_streaming | identity OK (108 sectors) | identity OK (112 sectors, 1,806 meshes and MultiMeshes); 10 spots at most 0.059 % of pixels differ; every pass 0 missing (it caught the ground grid's last row past the north edge drawn over the corner left outside: `_cell_outside` treats the outside part's sides on the bounds as open) |
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -4421,6 +4520,12 @@ System Trace: the iPhone 11 at ×2 holds 60 at its lowest GPU clock, Loop G1 abo
    landmarks, the ghost, the river or the night lights.
 
 ## Map data
+
+**Map north (2026-10-31)**: the box grew north on its west side by `bake_osm.py` `BBOX_NORTH`
+(Rondo Radosława, Arkadia, Forest; 1.04 km², 21.2 km² and 112 sectors in all): the map is the
+bounding rectangle without its north-east corner (`outside`, `tools/map_shape.py`); the extension's
+1 m NMT is `data/raw/demo/gugik/nmt1_north/` (`tools/fetch_demo.py nmt1north`). See "Map north"
+for the counts; the chain below is unchanged.
 
 **Loop 3d-1: the demo box.** The map is the box of docs/DEMO.md 2.1: south 52.2183, west
 20.9780, north 52.2525, east 21.0560 (map metres x −3,136 to +2,182, z −2,046 to +1,736;
@@ -4624,6 +4729,9 @@ flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
   `game/scripts/sector_proxies.gd` (one low-detail mesh per sector), `game/tools/bake_city.gd`
   (the prebuilt sectors, proxies, index and shared resources), `game/tools/check_streaming.gd`
   (step `streaming`); see "Sectors and streaming".
+- Map north: `tools/map_shape.py` (the map's shape: the bounds without the corner left `outside`),
+  `tools/check_outline.py` (step `outline`: nothing off the map, every sector on it),
+  `tools/check_lod2.py` (step `lod2`: LoD2 and OSM blocks never both, never neither); see "Map north".
 - Loop 3a: `tools/check_roads.py` (+ `check_roads_allow.json`; the road rules C1-C10),
   `tools/road_spots.txt` (the road render spots for `tools/shots.sh --set=roads`),
   `game/scripts/debug_roads.gd` (`--debug-roads`), `game/addons/debug_draw/` (the Debug Draw

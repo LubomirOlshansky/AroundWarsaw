@@ -1005,6 +1005,38 @@ Small problems that agents reported or that showed up in screenshots. They are f
   tunnels are left out); the tram approach ends at the east portal.
 - Build time: the monolithic build 58 → 75 s (the set fills' corridor tests in `terrain_height`).
 
+## From map north (Rondo Radosława, Arkadia, Forest; 2026-10-31)
+- **For the landmarks lane** (docs/DEMO.md 2.1 "Hand-over"): Rondo Radosława's flag mast (not in
+  OpenStreetMap; the surface model has a 57.8 m column at (−2,850, −2,295)) and the island round it,
+  Forest's tower (OSM part 923445779, 120 m; drawn today as OSM blocks), Arkadia (LoD2 today; its roof
+  car park, OSM way 91341678 and ramps, is left out of the bake: the car-park race of DEMO 6.4 needs
+  it modelled). Their parts are in the index's `site_parts` (`bake_sectors.py` SITE_NAMES "Westfield
+  Arkadia", a SITE_AREAS box for Forest).
+- **For the gameplay lanes** (not built here; the map has a corner left `outside` since map north):
+  the helicopter's clamp (`heli.gd`, `bounds.grow(-12)`), the car's off-map test (`main.gd`
+  `_node_spot`), Podwózka's named finishes and river scan (`rides.gd`), the missions' and eggs'
+  random spots (`missions.gd`, `eggs.gd`) and the minimap's frame (`hud.gd`, `full_map.gd`) still
+  use the bounding rectangle: the helicopter can fly over the empty north-east corner (nothing is
+  drawn there; the edge walls stop the car), and a random spot there snaps to the nearest road.
+  `map_builder.gd` `in_map(p, pad)`, `map_outline()` and `clip_to_map()` give the shape. A notebook
+  place for Rondo Radosława / Arkadia is the content lane's (`game/data` places).
+- **Rondo Radosława's ring has no spiral lane lines** (`bake_roads._spiral_rings`: its pieces carry 2
+  and 3 lanes, and the first piece decides): plain lane lines; cosmetic.
+- **The committed maps grow with the bounding box** (ao.bin and lights.bin 40 → 48 MB, water.bin
+  20 → 24 MB, most of the growth zeros over the corner left outside): the export leaves them out
+  (the prebuilt sectors carry their slices); a per-part layout would save ~16 MB in the repository.
+- **The looser LoD2 match is cautious**: half the footprint in OSM outlines (8 models); at 30 % it
+  would be 27 models touching 44 plain blocks (the diagnostic's 59 counted any touch). What stays:
+  L1 15 OSM blocks drawn inside a model whose centroid misses them (towers' podiums, courtyard
+  wings), L2 73 big outlines a small model's centroid falls in (the outline hidden, the model
+  small); `tools/check_lod2.py` lists them with `--at=`.
+- **check_police P12 "guard car follows 15 s" failed once** in the full `verify.sh --ios` run
+  (map north, 2026-10-31) and passed 3 of 3 alone: a timing-sensitive case under load (gameplay lane).
+- **The viaducts at the north edge**: Jana Pawła II's and Andersa's decks over the ring railway end
+  in the air at the edge (C6 allows the rim; the edge walls stop the car 5 m before). The ring railway
+  and Dworzec Gdański's platforms lie just past it; the next growth north takes them in whole
+  (needs the ortho, trees and OSM past 52.2595: a new fetch).
+
 ## From loop 3d-2a (the ground, part one, 2026-10-30)
 - **The full cut under roads** (clip the ground along the road surface, close it with skirts) is
   not built: of the ground under roads only whole 10 m triangles go (1,109 under the road surface

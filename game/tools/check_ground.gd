@@ -172,6 +172,9 @@ func _initialize() -> void:
 			var cell := Vector2i(i, j)
 			if fine.has(cell):
 				continue
+			# Map north: no ground where the map isn't (map_builder _cell_outside: the corner left outside).
+			if map.has_method("_cell_outside") and not map.outside.is_empty() and map._cell_outside(gx + i * step, gz + j * step, step):
+				continue
 			for half in 2:
 				if drawn.has(Vector3i(i, j, half)):
 					continue
