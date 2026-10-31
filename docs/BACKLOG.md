@@ -64,6 +64,15 @@ Small problems that agents reported or that showed up in screenshots. They are f
   windows, long skylights on the flat roof, a card. Spec and the values still to set:
   docs/design/first-scene.md "Spec for item 1". Landmarks lane: Opus spec, `object-modeler`
   builds, `art-director` accepts.
+- **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
+  OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
+  photos per building in `refs/` (Wikimedia Commons, gitignored; fetched on the Mac, the cloud
+  gets 403), specs written from them at a detail level (L2 for named landmarks, L3 for the
+  heroes), triangle budgets instead of minimal geometry, and `art-director` scoring matched
+  shots against the photos (the model-from-photos skill). Next: re-pass the hero landmarks
+  (the first scene's buildings, the Palace, the Old Town square, the Castle, the towers, the
+  stadium, the bridges) against their photos, worst score first. Wanted later: an automatic
+  check for coplanar faces (z-fighting) in a site's mesh.
 - **The first scene, polished to the maximum** (the user, 2026-10-31): the place the player sees
   first must make a "wow". Default place: Marszałkowska by Plac Defilad (the Palace, the museum,
   the Eastern Wall, the towers), where the spawn and DEMO 6.2's first minutes already are; the

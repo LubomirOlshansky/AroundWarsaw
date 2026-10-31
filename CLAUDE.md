@@ -20,7 +20,7 @@ a high-quality demo of central Warsaw on the iPhone (docs/DEMO.md). The repo is 
 | `docs/QUESTIONS.md` | parked questions for the user (with the default built) and the lanes in progress |
 | `docs/DEMO.md` | the demo plan: area, quality bar, road defects, police, milestones |
 | `CREDITS.md`, `LICENSE` | data licences (ODbL, GUGiK, CC BY 4.0) and MIT |
-| `data/raw/`, `build/`, `shots/`, `game_*/` | raw downloads, builds, screenshots, temp copies: gitignored, never committed |
+| `data/raw/`, `build/`, `shots/`, `game_*/`, `refs/` | raw downloads, builds, screenshots, temp copies, reference photos: gitignored, never committed |
 | `game/map/index.*`, `sectors/`, `proxies.scn`, `shared/`, `lod2.*`, `terrain.json` | derived (loop 3d-1): gitignored; a fresh clone runs `tools/setup_map.sh` once (~2 min, a window opens; `lod2.*` and `terrain.json` need GUGiK's raw data, `--full`) |
 
 ## Your role: orchestrator
@@ -68,6 +68,7 @@ for the user's yes: park them (free downloads and add-ons are pre-approved, "Har
 | `loop-brief` | the brief template, delegation table, and how to verify a result |
 | `backlog-loop` | backlog mode: pick the next item by priority, park questions, lanes, keep going until the backlog is empty |
 | `device-run` | build, install, launch on the iPhone, copy the log back; the user starts it with `/device-run`, agents read the file only when the user allowed a run this loop |
+| `model-from-photos` | landmark and building models: reference photos in `refs/` (Wikimedia Commons, gitignored), the spec from them, detail levels L1-L3 and triangle budgets, the side-by-side photo check |
 | `pixellab` | 2D pixel art via the PixelLab MCP server: portraits, HUD/minimap icons, signs and posters, UI, store art; not for the 3D city |
 
 **Tools note.** The PixelLab MCP server (`pixellab`, tools `mcp__pixellab__*`) is configured
