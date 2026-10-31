@@ -9,6 +9,9 @@ extends Control
 ## Loop 3h slice 1 (DEMO G3): the districts (districts.gd `view`, given by `set_districts` after
 ## open): the ones not discovered yet under a light fog, each discovered one's name and per cent
 ## at its label, and a card listing them all with the total (the districts' completion on the map).
+## Loop 3h slice 3: the rival ladder's card on the right (DRABINKA · rival ladder: each rung with
+## its stake, ★ beaten, → next and what it needs, · locked; the final's state), given by
+## `set_ladder` after open, and the final's start marker (a diamond) once it is open at night.
 
 signal closed
 
@@ -41,6 +44,9 @@ var target := Vector2.INF
 ## The garage loop: Warsztat u Mirka's diamond (INF: not shown yet).
 var garage := Vector2.INF
 var garage_colour := Color.WHITE
+## Loop 3h slice 3: the final race's start marker (INF: not shown).
+var final_start := Vector2.INF
+var final_colour := Color.WHITE
 var target_colour := Color.WHITE
 var night := 0.0
 ## Loop 3h slice 1: districts.gd `view()` (names, label point, polygons, found, pct) and the total %.
@@ -65,6 +71,10 @@ var _pinch := 0.0
 ## discovered yet, clipped to the map's bounds) and the districts' card.
 var _fog := PackedVector2Array()
 var _list: PanelContainer
+## Loop 3h slice 3: the ladder's card (top right, under the ✕).
+var _ladder: PanelContainer
+## Its rows' colours: beaten, next, locked.
+const LADDER_COLOURS := {"won": Color("#ffd23f"), "next": Color("#fbf7ee"), "locked": Color("#8f88a0")}
 
 
 func _ready() -> void:
@@ -117,6 +127,10 @@ func _build() -> void:
 	_list.name = "districts"
 	_list.visible = false
 	add_child(_list)
+	_ladder = _card([], [])
+	_ladder.name = "ladder"
+	_ladder.visible = false
+	add_child(_ladder)
 
 
 func _box(alpha: float) -> StyleBoxFlat:
@@ -202,6 +216,9 @@ func _fit() -> void:
 	if _list.visible:
 		_list.size = _list.get_combined_minimum_size()
 		_list.position = Vector2(s.position.x + m, _head.position.y + _head.size.y + m)
+	if _ladder.visible:
+		_ladder.size = _ladder.get_combined_minimum_size()
+		_ladder.position = Vector2(s.end.x - m - _ladder.size.x, _close.position.y + _close.size.y + m)
 	_place()
 
 
@@ -230,7 +247,31 @@ func rects() -> Dictionary:
 	var out := {"close": _close.get_global_rect(), "head": _head.get_global_rect(), "hint": _hint.get_global_rect()}
 	if _list.visible:
 		out["districts"] = _list.get_global_rect()
+	if _ladder.visible:
+		out["ladder"] = _ladder.get_global_rect()
 	return out
+
+
+## Loop 3h slice 3: the rival ladder's card (ladder.gd `rows`: [text, "won" | "next" | "locked"]);
+## call after open(). Labels only: the game is paused under the map.
+func set_ladder(rows: Array) -> void:
+	if not _built:
+		return
+	var box: VBoxContainer = _ladder.get_child(0)
+	for c in box.get_children():
+		box.remove_child(c)
+		c.queue_free()
+	var lines: Array = [["DRABINKA", ""], ["rival ladder", ""]]
+	lines.append_array(rows)
+	for i in lines.size():
+		var l := Label.new()
+		l.text = str(lines[i][0])
+		l.add_theme_font_size_override("font_size", _px(T_TITLE if i == 0 else T_SUB))
+		l.add_theme_color_override("font_color", Color("#ffd23f") if i == 0 else
+				(Color("#c9c2d8") if i == 1 else LADDER_COLOURS.get(str(lines[i][1]), Color.WHITE)))
+		box.add_child(l)
+	_ladder.visible = not rows.is_empty()
+	_fit()
 
 
 ## Loop 3h slice 1: the districts to show (districts.gd `view()`) and the total per cent; call
@@ -303,6 +344,10 @@ func _paint() -> void:
 		var g := to_screen(garage)
 		if view.has_point(g):
 			hud._tri_diamond(g, 6.5 * pt, garage_colour)
+	if final_start != Vector2.INF:
+		var fs := to_screen(final_start)
+		if view.has_point(fs):
+			hud._tri_diamond(fs, 8.0 * pt, final_colour)
 	if target != Vector2.INF:
 		var t := to_screen(target)
 		hud._tri_fan(t, 5.0 * pt, 0.0, TAU, hud.OUTLINE)

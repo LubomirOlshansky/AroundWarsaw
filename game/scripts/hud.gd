@@ -254,6 +254,10 @@ var _mini_unknown := PackedVector2Array()
 ## The garage loop: the garage's diamond (set_minimap_garage), INF while it isn't shown.
 var _mini_garage := Vector2.INF
 var _mini_garage_colour := Color.WHITE
+## Loop 3h slice 3: the final race's start marker (set_minimap_final), INF while it isn't shown;
+## pinned to the rim at any distance (it is the one place to go at night once the final opens).
+var _mini_final := Vector2.INF
+var _mini_final_colour := Color.WHITE
 const GARAGE_REACH := 1500.0
 var _mini_poi_colours := PackedColorArray()
 ## Mission target: its point on screen (the arrow) and on the minimap.
@@ -1677,6 +1681,10 @@ func _paint_minimap_overlay() -> void:
 	if _mini_garage != Vector2.INF and _mini_garage.distance_to(_mini_car) <= GARAGE_REACH:
 		var g := ((_mini_garage - _mini_car) * s).rotated(_mini_yaw).limit_length(_mini_radius - 6.0 * pt)
 		_tri_diamond(centre + g, 4.6 * pt, _mini_garage_colour)
+	# Loop 3h slice 3: the final's start, a bigger diamond, pinned to the rim at any distance.
+	if _mini_final != Vector2.INF:
+		var fs := ((_mini_final - _mini_car) * s).rotated(_mini_yaw).limit_length(_mini_radius - 7.0 * pt)
+		_tri_diamond(centre + fs, 5.6 * pt, _mini_final_colour)
 	for i in _mini_dots.size():
 		# Rivals within the minimap's reach; the rest would crowd the rim.
 		var r := ((_mini_dots[i] - _mini_car) * s).rotated(_mini_yaw)
@@ -1805,6 +1813,13 @@ func _tri_question(at: Vector2, k := 1.0) -> void:
 func set_minimap_garage(p: Vector2, colour: Color) -> void:
 	_mini_garage = p
 	_mini_garage_colour = colour
+
+
+## Loop 3h slice 3: the final race's start marker on the minimap and the full map (map
+## coordinates; INF: not shown), a diamond in its colour, pinned to the minimap's rim.
+func set_minimap_final(p: Vector2, colour: Color) -> void:
+	_mini_final = p
+	_mini_final_colour = colour
 
 
 ## Side-job places on the minimap (map coordinates), drawn as blinking squares.
@@ -2242,6 +2257,8 @@ func open_full_map(car_xz: Vector2, car_yaw: float, found: PackedVector2Array) -
 	full_map.target = _mini_target
 	full_map.garage = _mini_garage
 	full_map.garage_colour = _mini_garage_colour
+	full_map.final_start = _mini_final  # loop 3h slice 3
+	full_map.final_colour = _mini_final_colour
 	full_map.target_colour = _mini_target_colour
 	full_map.open(car_xz, car_yaw)
 

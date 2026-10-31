@@ -75,6 +75,9 @@ const Fotka := preload("res://scripts/fotka.gd")
 const Districts := preload("res://scripts/districts.gd")
 ## Loop 3h slice 2: the 20 Syrenki (collectibles).
 const Syrenki := preload("res://scripts/syrenki.gd")
+## Loop 3h slice 3: the final race's route (the start's hint for --trzy-mosty).
+const TrzyMosty := preload("res://scripts/trzy_mosty.gd")
+const Ladder := preload("res://scripts/ladder.gd")
 const Sfx := preload("res://scripts/sfx.gd")
 ## Loop MW-5: the city's sounds at the notebook's places.
 const CitySounds := preload("res://scripts/city_sounds.gd")
@@ -315,6 +318,12 @@ var syrenki: Syrenki
 var syrenki_log := false
 var syrenki_spec := ""
 var syrenka_flag := ""
+## Loop 3h slice 3: the rival ladder and the final "Trzy mosty" (rivals.gd, ladder.gd,
+## trzy_mosty.gd): --ladder=N (the first N rungs beaten for this run, respect raised to fit; -1: the
+## save's) and --trzy-mosty (the car at Rondo Daszyńskiego at night, the final at once).
+var ladder_flag := -1
+var trzy_mosty_flag := false
+var trzy_mosty_bridge := 0
 var tape: Tape
 var spacer: Spacer
 var fotka: Fotka
@@ -647,6 +656,10 @@ func _ready() -> void:
 	var t0 := Time.get_ticks_msec()
 	_place_start()  # loop MW-1: --place=<id>, the sectors round the place
 	_syrenka_start()  # loop 3h slice 2: --syrenka=<id|n>
+	if trzy_mosty_flag:
+		# Loop 3h slice 3: --trzy-mosty[=N]: the city built round the start (or bridge N) first.
+		var hint: Vector2 = TrzyMosty.START_HINT if trzy_mosty_bridge <= 0 else TrzyMosty.BRIDGES[trzy_mosty_bridge - 1]["hint"]
+		start_at = Vector3(hint.x, 0.0, hint.y)
 	_club_start()  # loop MW-3: --club=<id>, the same
 	if garage_flag:
 		start_at = Vector3(Garage.SPOT.x, 0.0, Garage.SPOT.y)  # the garage loop: --garage
@@ -990,7 +1003,7 @@ func _build_world() -> void:
 	# Loop 2e: no call card at the start (docs/DEMO.md 6.1): calls come in during play.
 	if start_mission > 0:
 		missions.start(start_mission)
-	elif demo or start_race > 0 or start_rival > 0 or bench or start_kebab >= 0 or start_sloik >= 0 or free_roam or roundup_flag:
+	elif demo or start_race > 0 or start_rival > 0 or trzy_mosty_flag or bench or start_kebab >= 0 or start_sloik >= 0 or free_roam or roundup_flag:
 		missions.close()
 	else:
 		missions.quiet_start(call_in)
@@ -1015,6 +1028,10 @@ func _build_world() -> void:
 			rivals.start_race(i)
 		elif autopilot:
 			rivals.tail = i
+	elif rivals != null and trzy_mosty_flag:
+		# Loop 3h slice 3: --trzy-mosty: the final at once from its start (the run is at night).
+		if rivals.start_final_now(trzy_mosty_bridge):
+			cam_focus = car.global_position
 
 	if _water_test_at != Vector2.INF:
 		_start_water_test()
@@ -1127,7 +1144,10 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	add_child(rivals)
 	rivals.autopilot = autopilot
 	rivals.wallet = wallet
+	rivals.tod = tod  # loop 3h slice 3: the final waits for the night
 	rivals.setup(graph, traffic, hud, bubbles, missions, map, world, car, data)
+	if ladder_flag >= 0 or trzy_mosty_flag:
+		rivals.preset_ladder(ladder_flag if ladder_flag >= 0 else Ladder.RUNGS.size())  # loop 3h slice 3
 	print("living city: %d lanes, %d trams in %d ms" % [graph.lane_count, trams.trams.size(), Time.get_ticks_msec() - t0])
 	if bench:
 		_clear_bench_result()
@@ -1481,7 +1501,7 @@ func _start_phone_bench() -> void:
 		return
 	_phone_saved = {"at": car.global_transform, "mask": car.collision_mask, "size": base_size,
 			"wallet": [wallet.zl, wallet.respect, wallet.jobs.duplicate(true), wallet.best.duplicate(true),
-					wallet.eggs.duplicate(true), wallet.district_jobs.duplicate(true)], "persistent": wallet.persistent,
+					wallet.eggs.duplicate(true), wallet.district_jobs.duplicate(true), wallet.ladder.duplicate(true)], "persistent": wallet.persistent,
 			"calls": missions.paused}
 	wallet.persistent = false
 	# Loop G1: no rescue call comes in during the minute (its clock waits, as during a race): the
@@ -1542,6 +1562,7 @@ func _end_phone_bench(done: bool) -> void:
 	wallet.best = w[3]
 	wallet.eggs = w[4]
 	wallet.district_jobs = w[5]  # loop 3h slice 1
+	wallet.ladder = w[6]  # loop 3h slice 3
 	wallet.persistent = _phone_saved["persistent"]
 	missions.paused = _phone_saved["calls"]
 	hud.set_wallet(wallet.zl, wallet.respect)
@@ -3121,6 +3142,12 @@ func _parse_args() -> void:
 			syrenki_spec = arg.trim_prefix("--syrenki=")
 		elif arg.begins_with("--syrenka="):
 			syrenka_flag = arg.trim_prefix("--syrenka=")
+		elif arg.begins_with("--ladder="):
+			ladder_flag = clampi(int(arg.trim_prefix("--ladder=")), 0, Ladder.FINAL + 1)  # loop 3h slice 3
+		elif arg == "--trzy-mosty" or arg.begins_with("--trzy-mosty="):
+			trzy_mosty_flag = true
+			trzy_mosty_bridge = clampi(int(arg.trim_prefix("--trzy-mosty=")), 0, 3) if arg.contains("=") else 0
+			start_time = TimeOfDay.NIGHT
 		elif arg == "--egg-log":
 			egg_log = true
 		elif arg.begins_with("--found-eggs="):
@@ -3192,7 +3219,7 @@ func _parse_args() -> void:
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or open_map_at_start or hold_stick != Vector2.INF or bench_button \
 			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0 or old_tram_flag != "":
 		show_title = false
-	if start_ride >= 0 or place_flag != "" or roundup_flag or district_card != "" or syrenka_flag != "":
+	if start_ride >= 0 or place_flag != "" or roundup_flag or district_card != "" or syrenka_flag != "" or trzy_mosty_flag:
 		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place; loop 3h: --district=)
 	# Loop MW-6: and the eggs', the tape's and Fotka's flags; --egg sets its moment's time.
 	if egg_flag != "" or tape_flag != "" or fotka_flag or spacer_hint >= 0.0:
@@ -3411,6 +3438,8 @@ func _open_full_map() -> void:
 	if districts != null and districts.ready_ok:
 		hud.full_map.set_districts(districts.view(), districts.percent_total(), syrenki.found_count() if syrenki != null else 0,
 				syrenki.entries.size() if syrenki != null else 0)  # loop 3h slice 1 (+ slice 2: the Syrenki line)
+	if rivals != null:
+		hud.full_map.set_ladder(rivals.ladder_rows())  # loop 3h slice 3: the DRABINKA card
 	if not hud.full_map.closed.is_connected(_close_full_map):
 		hud.full_map.closed.connect(_close_full_map)
 

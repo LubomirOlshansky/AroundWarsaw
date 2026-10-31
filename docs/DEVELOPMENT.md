@@ -465,6 +465,10 @@ Bartek 120, Seba 150, Zbyszek 200, Mordor Mike 300) and +100 respect. Only one a
 time: no race during a rescue or a side job, rescue calls wait while a race is on, and the
 helicopter waits until it is over.
 
+Loop 3h slice 3: the rivals are a ladder now, in order of stake, each opened by the one before and by
+respect, each with its own pace, and the final "Trzy mosty" at night ("The rival ladder and the final
+"Trzy mosty"" below).
+
 Rivals talk in speech bubbles, Polish with English subtitles (`bubbles.gd`, reusable: anything
 can talk, `bubbles.say(node_or_callable, speaker, polish, english)`; `bubbles.tag()` for name
 labels).
@@ -4881,6 +4885,76 @@ this slice for review).
 - **Cost**: the 20 distance checks at 5 Hz are about 8 µs a look (`spent_usec`, the bench's
   "syrenki" line); the figurines are one draw call and ~20 x the mesh's triangles.
 
+## The rival ladder and the final "Trzy mosty" (loop 3h slice 3, 2026-10-31)
+
+DEMO 6.3 "Rival ladder" and "Progression" ("Respect unlocks rivals and the final race").
+`scripts/ladder.gd` (new: the order, gating and record, map-free), `scripts/trzy_mosty.gd` (new: the
+final's route on the lane graph), the flow in `rivals.gd`.
+
+- **The ladder.** Six rungs in order of stake: Pani Halina 60 → Słoik z Radomia 90 → Bulwar Bartek
+  120 → Seba z Pragi 150 → Taksiarz Zbyszek 200 → Mordor Mike 300 zł, then the final. A rung is open
+  when the one before it is beaten AND the respect is at least 0 / 100 / 250 / 400 / 600 / 850; the
+  final needs Mike beaten and 1100. A race win is +100 respect, so from Bartek on the jobs, districts
+  and Syrenki fill the gap between rungs (`check_ladder` proves race wins alone stop at Bartek). A
+  beaten rung stays open: re-races pay the stake again, as before. A race started by `--race=N`
+  ignores the gating and counts on the ladder only if the rung was open.
+- **A locked rival** still shows the prompt behind it, grey: "SŁOIK Z RADOMIA · NAJPIERW HALINA" /
+  "locked: beat Pani Halina first (L)", or "· SZACUNEK 250" / "respect 250". Flashing gets a refusal
+  bubble in their voice (RIVALS `refuse`, Polish above English, ≤ 70 characters) and an 8 s pause
+  before the prompt comes back; no race.
+- **Pace** (the rival driver's `speed_factor` / `accel_factor`, was a flat 1.45 / 1.7): Halina 1.25 /
+  1.5, Słoik 1.3 / 1.55, Bartek 1.35 / 1.6, Seba 1.4 / 1.65, Zbyszek 1.45 / 1.7, Mike 1.5 / 1.75; Seba
+  in the final 1.45 / 1.7 (*guess*, for the phone: Halina should be beaten narrowly by an ordinary
+  player). The `--autopilot` ghost is still 1.8 / 2.2.
+- **New rung open**: a toast "Nowy rywal: Słoik z Radomia" / "New rival: … · 90 zł" (and "Finał
+  otwarty: Trzy mosty · w nocy") when the open count grows (the wallet's `changed`, or a rung beaten).
+- **The record**: the save's `[ladder]` section (`wallet.ladder`: rung id `halina` … `mike` and
+  `trzy_mosty` = the day first beaten). No version bump: a v2 file of slices 1-2 (or a v1 file) loads
+  as nothing beaten, money kept; an older build keeps the section as an unknown one. `final_won` (the
+  `trzy_mosty` key) is there for the end card (slice 4). `--nosave` writes nothing; TEST · BENCH
+  puts the ladder back with the rest of the wallet.
+- **On the full map**: the DRABINKA · rival ladder card top right (`full_map.gd` `set_ladder`, rows
+  from `ladder.gd` `rows`): "★ Pani Halina · 60 zł" beaten, "→ Słoik z Radomia · 90 zł · szacunek ·
+  respect 100" next (or "otwarty · open"), "· …" locked; the final last: "→ Finał · Trzy mosty · 500 zł
+  · w nocy · at night" by day, "· Rondo Daszyńskiego" at night. Labels only, the game paused.
+- **The final "Trzy mosty"** (`trzy_mosty.gd` builds it once at setup; `rivals: Trzy mosty: …` in
+  the log): from Rondo Daszyńskiego (the start lane on Prosta by the roundabout, heading east) **east
+  over Most Śląsko-Dąbrowski, back west over Most Świętokrzyski, east again over Most Poniatowskiego**
+  to the National Stadium (the finish: the named street's node within 270 m of the PGE Narodowy poi
+  nearest by road from the last bridge but at least 400 m on: Aleja Poniatowskiego at the stadium's
+  south stands). 10.1 km by road. Each bridge is a checkpoint at the middle of its river span (the
+  longest `br` edge of that name going that way, ~500 m), between the carriageways: it counts within
+  20 m and 6 m of the deck's height (never from a road under a viaduct), in order, at 5 Hz.
+- **At night only** (the Night look, or Live with the lights on: rides.gd's rule; the clock is never
+  changed): once the final is open Seba waits at the start (moved there only out of sight, 180 m from
+  both spots, and held), the race beacon in gold at the start with a gold diamond on the minimap
+  (pinned to the rim at any distance, `hud.set_minimap_final`) and on the full map; hidden while a
+  rescue or side job runs. Drive into it (10 m): Seba's challenge, the banner TRZY MOSTY, 3-2-1. By
+  day the ladder card says "w nocy · at night".
+- **The race**: the beacon on the next bridge's checkpoint (then the finish), the edge arrow and the
+  minimap target follow it (`target_position`), a toast "MOST 1/3 · Most Śląsko-Dąbrowski" at each;
+  the status reads "MOST 2/3 · TRZY MOSTY" (then "META"), the metres to it, the clock and 1ST /
+  2ND (both measured along the route: the current leg's distance plus the legs after it). Seba
+  drives seven legs on the lane graph (each span's near end, then its far end, so his shortest path
+  really takes that bridge; then the stadium), re-targeted with `traffic.race_to` when he reaches
+  each; the legs' distances are computed one a frame during the challenge (~8-12 ms each in the
+  container), kept for a rematch. **Win**: the card "TRZY MOSTY · WYGRANA" (the first time "KRÓL
+  NOCNEJ WARSZAWY!" / "King of Warsaw by night!"), +500 zł, +250 respect, a best time under
+  `race:Trzy mosty`, `trzy_mosty` saved; a rematch pays the same. **Lose** (Seba at the stadium first,
+  or the ✕): "Rewanż: Rondo Daszyńskiego, w nocy" and the marker comes back. Seba's final lines:
+  `FINAL_LINES` (wait, challenge, win, lose).
+- **Checks**: `tools/verify.sh --only=ladder` (`game/tools/check_ladder.gd`, CI too): the rung data
+  against RIVALS, the gating and the missing words, a whole ladder walk, the rows, the words' lengths,
+  the save (round trip, v2/v1 without the section, `--nosave`, `--ladder=N`) and, from the committed
+  centrum.json, the route (the three spans east/west/east, each span its own shortest way, the legs
+  route, the start and finish, a checkpoint not counting 10 m under or 30 m aside).
+- **Testing aids**: `--ladder=N`, `--trzy-mosty` (with `--autopilot` the ghost drives the legs; the
+  log's `trzy mosty:` lines: the start, the length, each checkpoint, Seba over each bridge, the
+  result).
+- **Cost**: the start look and the checkpoint test at 5 Hz (a few distance tests); the ladder's
+  `open_count` (~20 µs) only when the wallet changes. +0 draw calls while driving: the start marker
+  is the race's own Beacon, the diamond joins the minimap's batch, the card is labels on the paused map.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -5416,6 +5490,8 @@ Command-line options (after `--`):
 | `--districts-log` | loop 3h slice 1: a `districts:` line when the vehicle changes district, discovers one, and the summary at the start |
 | `--syrenki-log` | loop 3h slice 2: `syrenki:` lines: each figurine's spot, its metres from the anchor and from a lane centre, and every find |
 | `--syrenki=all\|none\|<n>\|<id>,…` | loop 3h slice 2: the Syrenki found for this run (the first n, or those ids), in memory, no cards or rewards. Use with `--nosave` |
+| `--ladder=N` | loop 3h slice 3: the first N rungs of the rival ladder beaten for this run (0-7; 6: only the final left, 7: the final won too), the respect raised to open the next, in memory (`ladder:` lines). Use with `--nosave` |
+| `--trzy-mosty[=N]` | loop 3h slice 3: the final race "Trzy mosty" at once (`=N`, 1-3: from the river span of bridge N, the bridges before it counted, Seba 12 m behind in the next lane: screenshots and a quick finish): the run at night, the ladder up to the final (as `--ladder=6` unless `--ladder` says), the car at its start at Rondo Daszyńskiego, Seba ahead, his challenge and the countdown; with `--autopilot` the ghost drives the seven legs (`trzy mosty:` lines: the start, the length, each checkpoint, Seba over each bridge, the result) |
 | `--syrenka=<id\|n>[:m]` | loop 3h slice 2: the car on the street beside that Syrenka (an id or 1 to 20), m metres before it (25 by default; `:0` finds it at once), facing it (a screenshot aid) |
 | `--found-eggs=all\|none\|reachable\|ID,…` | loop MW-6: the egg record for this run, in memory, no rewards (screenshots of the SEKRETY page). Use with `--nosave` |
 | `--tape=<id\|n>` | loop MW-6: the car stopped at that then card (`then_cards.json` id or 1-20), the tape played at once (ghost, sound, card); implies `--tape-log` |
