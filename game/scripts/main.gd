@@ -78,6 +78,8 @@ const CitySounds := preload("res://scripts/city_sounds.gd")
 const Crowds := preload("res://scripts/crowds.gd")
 ## Loop MW-4: everyday life and trends, and the "Na czasie" job.
 const CityLife := preload("res://scripts/city_life.gd")
+## Loop MW-2: storefronts and parodies (Frogs, the venues' neon, Leżak, the metro entrances).
+const Storefronts := preload("res://scripts/storefronts.gd")
 const TrendJob := preload("res://scripts/trend_job.gd")
 const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
@@ -359,6 +361,13 @@ var parody_log := false
 ## --gps-in=S: the first GPS moment of the app-taxis in traffic from S seconds in (screenshots).
 var gps_in := -1.0
 # --- end loop 2d-1 ---
+## Loop MW-2: the storefronts (storefronts.gd) and their flags: --no-parodies (none of MW-2's
+## shops, signs, scooters or entrances, for an A/B), --rechotka (the car by the nearest Frogs
+## door, stopped: a stamp), --stamps=K (the card starts at K: the 10th stamp's free hot dog).
+var storefronts: Storefronts
+var no_parodies := false
+var rechotka_flag := false
+var stamps_flag := -1
 var host_in := -1.0
 var barrier_day := 0
 var reset_save := false
@@ -926,6 +935,7 @@ func _build_world() -> void:
 		_build_police(data, world)
 	_build_crowds(data, world)
 	_build_city_life(data, world)
+	_build_storefronts(data, world)
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
 	_apply_style()
@@ -1521,6 +1531,41 @@ func _build_notebook(data: Dictionary) -> void:
 		_put_at_place(place_flag)
 
 
+# --- loop MW-2: storefronts and parodies ------------------------------------------------------
+
+## The storefronts (storefronts.gd) on the notebook's places and the lane graph; their walls come
+## when each sector is in (_on_sector_ready). None with --no-parodies.
+func _build_storefronts(data: Dictionary, world: Node3D) -> void:
+	if no_parodies or notes == null or not notes.ready_ok or graph == null:
+		return
+	storefronts = Storefronts.new()
+	storefronts.name = "Storefronts"
+	storefronts.map = map
+	storefronts.graph = graph
+	storefronts.dialogue = dialogue
+	storefronts.hud = hud
+	storefronts.wallet = wallet
+	storefronts.sfx = sfx
+	storefronts.egg_book = egg_book
+	storefronts.jobs = jobs
+	storefronts.eggs = eggs
+	storefronts.car = car
+	storefronts.log_on = parody_log
+	storefronts.rig_rechotka = rechotka_flag
+	storefronts.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	storefronts.lit = func() -> bool: return tod != null and tod.lights_on > 0.001
+	storefronts.fine_shown = func() -> bool: return _fine_shown
+	world.add_child(storefronts)
+	storefronts.setup(data, notes.places)
+	if stamps_flag >= 0:
+		storefronts.preset_stamps(stamps_flag)
+	if rides != null:
+		rides.frogs = storefronts
+
+
 # --- loop MW-3: the night and the river's crowds --------------------------------------------
 
 ## The crowds (crowds.gd) at the notebook's places, after the police (their cars by the clubs)
@@ -1596,6 +1641,7 @@ func _build_city_life(data: Dictionary, world: Node3D) -> void:
 	life.dogs_log = dogs_log
 	life.trend_log = trend_log
 	life.life_log = life_log
+	life.pedzik_on = not no_parodies
 	life.soak = life_soak
 	life.zajac_rig = zajac_flag and autopilot
 	life.trend_day_flag = trend_day_flag
@@ -2542,6 +2588,12 @@ func _parse_args() -> void:
 		elif arg.begins_with("--gps-in="):
 			gps_in = maxf(0.0, float(arg.trim_prefix("--gps-in=")))
 		# --- end loop 2d-1 ---
+		elif arg == "--no-parodies":
+			no_parodies = true
+		elif arg == "--rechotka":
+			rechotka_flag = true
+		elif arg.begins_with("--stamps="):
+			stamps_flag = maxi(0, int(arg.trim_prefix("--stamps=")))
 		elif arg.begins_with("--host-in="):
 			host_in = maxf(0.0, float(arg.trim_prefix("--host-in=")))
 		elif arg.begins_with("--barriers="):
@@ -3841,6 +3893,8 @@ func _make_stats() -> BenchStats:
 		b.systems["crowds"] = [crowds, "spent_usec", true]  # loop MW-3
 	if life != null:
 		b.systems["city life"] = [life, "spent_usec", true]  # loop MW-4
+	if storefronts != null:
+		b.systems["storefronts"] = [storefronts, "spent_usec", true]  # loop MW-2
 	if egg_book != null:
 		b.systems["eggs+tape+spacer"] = [self, "_moments_usec", false]  # loop MW-6
 	b.systems["sound"] = [sfx, "last_usec", false]
@@ -4810,6 +4864,9 @@ func _city_nodes() -> Array[Node]:
 ## lights, small casters' shadows as _apply_extras last set them (the quality, the governor's
 ## GPU level, the wide view; loop G1), fine detail by the view's width, --exp.
 func _on_sector_ready(root: Node3D) -> void:
+	# Loop MW-2: the storefronts first (the neon atlas, a Neon holder of their own goes in below).
+	if storefronts != null:
+		storefronts.on_sector_ready(root)
 	var lit := tod != null and tod.lights_on > 0.001
 	var small: bool = _small_cast == 1 if _small_cast >= 0 else bool(QUALITY[quality]["small_shadows"])
 	var cast := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if small else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

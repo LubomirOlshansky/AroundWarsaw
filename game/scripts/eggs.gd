@@ -756,9 +756,16 @@ func _build_billboards(data: Dictionary, palm: Vector3) -> void:
 	if palm != Vector3.INF:
 		# Off the roundabout, looking at it.
 		places.append([by_start.get("PALMA"), palm, Color("#ff4fd8"), Color("#fbf7ee"), 34.0])
+	# The kebab stand nearest the Patelnia (loop MW-2: the one at -782,418 left the map's data, so
+	# the nearest within 400 m now; the board was missing, 4 of DEMO's 5 stood).
+	var kebab := Vector2.INF
 	for p in data.get("pois", []):
-		if p["k"] == "kebab" and Vector2(p["x"], p["z"]).distance_to(Vector2(-782, 418)) < 60.0:
-			places.append([by_start.get("KEBAB"), Vector3(p["x"], 0, p["z"]), Color("#2a1f3a"), Color("#ffd23f"), 14.0])
+		var kp := Vector2(p["x"], p["z"])
+		if p["k"] == "kebab" and kp.distance_to(Vector2(-782, 418)) < 400.0 and (kebab == Vector2.INF
+				or kp.distance_to(Vector2(-782, 418)) < kebab.distance_to(Vector2(-782, 418))):
+			kebab = kp
+	if kebab != Vector2.INF:
+		places.append([by_start.get("KEBAB"), Vector3(kebab.x, 0, kebab.y), Color("#2a1f3a"), Color("#ffd23f"), 14.0])
 	var marsz := Vector2.INF
 	for r in data["roads"]:
 		if r["name"] == "Marszałkowska":
@@ -779,6 +786,20 @@ func _build_billboards(data: Dictionary, palm: Vector3) -> void:
 		if spot == Vector2.INF:
 			continue
 		_billboard(place[0], spot, place[2], place[3])
+
+
+## Loop MW-2 (parodies.md 6.2, storefronts.gd): the `signs` line starting with `word` on a
+## billboard near `near` (the same spot rules as the others); false if no line or no spot.
+func billboard_line(word: String, near: Vector2, paper: Color, ink: Color) -> bool:
+	for l in dialogue.lines.get("signs", []):
+		if String(l[0]).get_slice(" ", 0) != word:
+			continue
+		var spot := _find_spot(near, 18.0, 90.0, 6.0, 7.0)
+		if spot == Vector2.INF:
+			return false
+		_billboard(l, spot, paper, ink)
+		return true
+	return false
 
 
 func _billboard(l: Array, spot: Vector2, paper: Color, ink: Color) -> void:

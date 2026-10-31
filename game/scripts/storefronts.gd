@@ -1,0 +1,1423 @@
+extends Node3D
+## Loop MW-2 (docs/design/parodies.md 2, 5, 6; docs/design/vision.md 3.0-3.2, 3.5, section 5 row 3):
+## storefronts and parodies, built at runtime from the data both city paths have (the lane graph,
+## the `address` and `kebab` pois, the notebook's places), never baked into the sector scenes.
+##  - **Frogs** (parodies.md 2; ids stay `rechotka`): frog-green corner shops on the ground floor
+##    of buildings at junctions (an address's door within JUNCTION_REACH m of a junction of three
+##    or more ways), 70 m apart, at most 24 a km² in the hero districts and 10 elsewhere, at most 2
+##    in the Old Town, none on a landmark; the two triple corners (Marszałkowska × Świętokrzyska and
+##    Plac Zbawiciela: three Frogs on one junction, the spacing waived, egg `easter_rechotka`).
+##    The facade itself comes from the city's own wall colliders when the shop's sector has
+##    loaded: a ray from the road point at the door towards the building (the wall and its
+##    normal, exact on either path and with LoD2), two more 2.6 m to each side (the 5.5 m of
+##    straight wall), a roof 5 m over the street just inside. The stamp card (2.3): stop within
+##    STAMP_REACH m of a door under 2 m/s for 2 s: the croak chime, the till's `rechotka` `stamp`
+##    line, +1 stamp (one a shop a day, 10 a day); the 10th: HOT DOG GRATIS and +10 respect.
+##  - **The 17 venues' neon fascias** (vision 3.0: the parody names of places.json; Glon's two
+##    cafés make 18 signs; Syreni Szept is closed and dark): rows added to neon_signs.gd's atlas
+##    (this script's `venue_atlas`, so the sector scenes stay as baked), each sign an instance in
+##    its sector's own Neon MultiMesh (+0 draw calls), 0.14 m off the wall the ray found.
+##  - **Leżak** (5): dumped e-scooters on the pavements by the junctions, lying (1 in 30 at a
+##    Frogs door), the empty parking zones (one per ~400 m in the hero districts; the one by Metro
+##    Nowy Świat-Uniwersytet holds a standing Leżak: egg `easter_lezak`); the car within 1.2 m
+##    pushes one 1-3 m (never onto a lane), a clatter and the `lezak` `knock` aside once a minute.
+##  - **Metro entrances** (vision 3.5): two or three canopies with an M post on the pavements by
+##    each station place of the notebook's metro chapter.
+##  - **Kebab** (6.1): U ZDZICHA and NA CIENKIM name boards on the stands nearest those places,
+##    the vendors' `zdzich`, `cienkim`, `hala`, `stadium` tags (jobs.gd draws the other stands in
+##    a MultiMesh per tile); **billboards** (6.2): the four new `signs` lines (eggs.gd's
+##    billboards) by a triple corner, Dworzec Centralny, Hala Mirowska and Nowy Świat's metro,
+##    and MW-4's WIRALEK line on Chmielna (10 billboards with eggs.gd's five).
+## Drawing: per loaded sector one MultiMesh of Frogs, one of Leżaks (`fine_detail`) and one mesh of
+## the street props (metro entrances, zones), children of the sector's root (gone with it); no sun
+## shadow. Nothing runs per frame but a 2 Hz tick (stamps) and the car's 16 m cell of scooters.
+
+const Models := preload("res://scripts/models.gd")
+const Props := preload("res://scripts/props.gd")
+const PixelFont := preload("res://scripts/pixel_font.gd")
+const Neon := preload("res://scripts/neon_signs.gd")
+const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
+const Notebook := preload("res://scripts/notebook.gd")
+const EggBook := preload("res://scripts/egg_book.gd")
+
+## The sector size (the city's 512 m tiles: map_builder.gd SECTOR).
+const TILE := 512.0
+const TICK := 0.5
+## Frogs (parodies.md 2.2): an address's road point this near a junction node anchors a shop.
+const JUNCTION_REACH := 26.0
+const SPACING := 70.0
+const HERO_PER_KM2 := 24
+const OTHER_PER_KM2 := 10
+## The hero districts (DEMO 2.3: Śródmieście, the Royal Route, the Old Town, Powiśle, Praga and the
+## stadium), as the map's rectangle east of Emilii Plater (metres).
+const HERO := Rect2(-1500.0, -2050.0, 3700.0, 3800.0)
+const OLDTOWN_MAX := 2
+## The triple corners (place ids of the notebook: their junctions).
+const TRIPLES := ["swietokrzyska_metro", "plac_zbawiciela"]
+const TRIPLE_REACH := 40.0
+## The facade: the ray's height over the road, how far it looks, the straight wall each side.
+const RAY_UP := 1.2
+const RAY_FAR := 45.0
+## How far a triple corner's own sites look from its junction (Marszałkowska's corners are wide).
+const CORNER_FAR := 80.0
+const SHOP_SIDE := 2.6
+const PLANE_TOL := 0.35
+const SHOP_ROOF := 5.0
+## The stamp card (2.3; *guess*: 6 m in the spec is often out of reach from the kerb lane).
+const STAMP_REACH := 8.0
+const STAMP_SPEED := 2.0
+const STAMP_HOLD := 2.0
+const STAMPS_DAY := 10
+const STAMPS_CARD := 10
+const FREE_RESPECT := 10
+const LINE_GAP := 60.0
+const FROGS_COLOUR := Color("#4fae3b")
+## The venues' fascias (vision 3.0-3.2): place id -> [the lines of the sign, tube colour, metres
+## up (the sign's bottom)]. The words are the parody names of places.json (Glon na Powiślu: GLON).
+const VENUES := {
+	"lusterko": [["LUSTERKO"], Color(1.0, 1.0, 1.0), 3.0],
+	"smola": [["SMOŁA"], Color(1.0, 0.1, 0.55), 3.0],
+	"jasna_0": [["JASNA 0"], Color(0.1, 0.9, 1.0), 3.0],
+	"level_26": [["LEVEL 26"], Color(0.62, 0.25, 1.0), 3.2],
+	"lombard": [["LOMBARD"], Color(1.0, 0.72, 0.12), 3.0],
+	"milosc_hipoteczna": [["MIŁOŚĆ", "HIPOTECZNA"], Color(1.0, 0.1, 0.55), 3.0],
+	"m2_1499": [["1499 M2"], Color(1.0, 1.0, 1.0), 3.2],
+	"hocki_bloki": [["HOCKI BLOKI"], Color(1.0, 0.85, 0.35), 2.6],
+	"plan_c": [["PLAN C"], Color(0.1, 0.9, 1.0), 3.0],
+	"apteczka": [["APTECZKA"], Color(0.2, 1.0, 0.45), 2.8],
+	"przegryzki_zagryzki": [["PRZEGRYZKI", "ZAGRYZKI"], Color(1.0, 0.1, 0.55), 3.0],
+	"kasa_biletowa": [["KASA", "BILETOWA"], Color(0.85, 0.95, 1.0), 3.0],
+	"zwir": [["ŻWIR"], Color(0.1, 0.9, 1.0), 6.5],
+	"bar_pyzowy": [["BAR PYZOWY"], Color(1.0, 0.85, 0.35), 3.0],
+	"lukrownia": [["LUKROWNIA"], Color(1.0, 0.45, 0.8), 3.0],
+	"glon_mokotowska": [["GLON"], Color(0.2, 1.0, 0.45), 3.0],
+	"glon_dobra": [["GLON"], Color(0.2, 1.0, 0.45), 3.0],
+	"merdak": [["MERDAK"], Color(0.62, 0.25, 1.0), 3.0],
+}
+## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
+const VENUE_PX := 0.12
+const VENUE_PX_MIN := 0.08
+## Leżak (5.2; *guess*): scooters a km² in the hero districts and elsewhere, the zones' spacing.
+const LEZAK_HERO := 30
+const LEZAK_OTHER := 12
+const ZONE_SPACING := 400.0
+const KNOCK_R := 1.2
+## How far a Leżak keeps from a lane's middle (lane_graph.gd snap's reach).
+const LANE_CLEAR := 2.0
+const KNOCK_GAP := 60.0
+const LEZAK_CELL := 16.0
+## The metro stations (notebook places) and the entrances each gets.
+const STATIONS := ["ratusz_arsenal", "swietokrzyska_metro", "patelnia", "politechnika", "rondo_onz",
+		"nowy_swiat_uniwersytet", "stadion_metro", "centrum_nauki_kopernik", "rondo_daszynskiego"]
+const METRO_PER := 3
+const METRO_REACH := 70.0
+## The named kebab stands (6.1): place id -> [the board's words, the vendor's tag]; other tags by
+## the stand's nearest place.
+const NAMED_STANDS := {"u_zdzicha": ["U ZDZICHA", "zdzich"], "na_cienkim": ["NA CIENKIM", "cienkim"]}
+const STAND_TAGS := {"hala_mirowska": "hala", "hala_gwardii": "hala", "hala_koszyki": "hala", "stadion_narodowy": "stadium"}
+const STAND_TAG_REACH := 220.0
+## The four new billboards (6.2): the line's first word -> the place they stand by, the colours.
+const BILLBOARDS := {"FROGS": ["swietokrzyska_metro", "#4fae3b", "#fbf7ee"], "PODWÓZKA": ["dworzec_centralny", "#1f1f22", "#e8f4ff"],
+		"PĘDZIK": ["hala_mirowska", "#c23a7e", "#fbf7ee"], "LEŻAK": ["nowy_swiat_uniwersytet", "#8e44d9", "#fbf7ee"],
+		"WIRALEK": ["wiralek_chmielna", "#1c1f26", "#ff7ac8"]}
+
+var map: Node3D
+var graph  # LaneGraph
+var dialogue: Node
+var hud: CanvasLayer
+var wallet: Node
+var sfx: Node
+var egg_book: Node
+var jobs: Node
+var eggs: Node
+var car: Node3D
+## [position, km/h, flying] of the player's vehicle.
+var vehicle: Callable
+## Whether the night lights are on, and whether the fine detail is shown (main.gd's state).
+var lit: Callable
+var fine_shown: Callable
+var log_on := false
+## --rechotka: put the car by the nearest Frogs door once its sector has placed it.
+var rig_rechotka := false
+var spent_usec := 0
+
+## Frogs: {road: Vector2 (the road point at the door), bld: Vector2 (the building's point),
+## j: Vector2 (the junction), triple: place id or "", name, key: Vector2i, state: 0 waiting for its
+## sector, 1 placed, 2 no wall; placed: xf (Transform3D on the wall), door: Vector2}.
+var shops: Array[Dictionary] = []
+## Venues: {id, lines, colour, up, road, bld, key, state, xfs: Array[Transform3D], off (m from the wall)}.
+var venues: Array[Dictionary] = []
+## Leżaks: {at: Vector3, yaw, up (standing), key, zone (index or -1)}.
+var scooters: Array[Dictionary] = []
+var zones: Array[Dictionary] = []
+var metros: Array[Dictionary] = []
+## The triple corners' junctions: place id -> Vector2.
+var triple_at := {}
+var stamps := 0
+var stamped_today := 0
+var counts := {}
+
+var _by_key := {}
+var _roots := {}
+## Frogs standing at each triple corner so far (three, then the spares stand down: state 3).
+var _triple_placed := {}
+var _pending: Array[Vector2i] = []
+var _shop_mesh: ArrayMesh
+var _lezak_mesh: ArrayMesh
+var _atlas: ImageTexture
+var _rows := 0
+var _row_of := {}
+var _upgraded := {}
+var _neon_mat: ShaderMaterial
+var _lezak_mmi := {}
+var _lezak_grid := {}
+var _door_grid := {}
+var _t := 0.0
+var _hold := 0.0
+var _hold_shop := -1
+var _line_t := -INF
+var _knock_t := -INF
+var _clock := 0.0
+var _rig_done := false
+
+
+# --- setup --------------------------------------------------------------------------------------
+
+## Everything placed from the data once (the walls wait for their sectors). `places` is the
+## notebook's resolved list.
+func setup(data: Dictionary, places: Array) -> void:
+	var t0 := Time.get_ticks_usec()
+	var at := {}
+	for p: Dictionary in places:
+		at[str(p["id"])] = p
+	var addrs := address_list(data.get("pois", []))
+	var jpos := junctions(graph)
+	for id: String in TRIPLES:
+		if at.has(id):
+			var tj := nearest_point(jpos, at[id]["at"], TRIPLE_REACH * 2.0)
+			if tj != Vector2.INF:
+				triple_at[id] = tj
+	var avoid := PackedVector2Array()
+	for p: Dictionary in data.get("pois", []):
+		if str(p.get("k", "")) == "kebab":
+			avoid.append(Vector2(float(p["x"]), float(p["z"])))
+	venues = venue_list(places, addrs, graph)
+	for v in venues:
+		avoid.append(v["road"])
+	var polys := landmark_index(data.get("landmarks", []))
+	var oldtown: Array[PackedVector2Array] = []
+	for z: Dictionary in data.get("ped_zones", []):
+		if str(z.get("z", "")) == "oldtown":
+			oldtown.append(_pts(z["p"]))
+	shops = pick_shops(addrs, jpos, triple_at, polys, oldtown, avoid)
+	var nt := 0
+	for s in shops:
+		if s["triple"] != "" and not s["spare"]:
+			nt += 1
+	_pick_scooters(jpos, at)
+	_pick_metros(at)
+	for i in shops.size():
+		_add_to_key("shops", shops[i]["key"], i)
+	for i in venues.size():
+		_add_to_key("venues", venues[i]["key"], i)
+	for i in scooters.size():
+		_add_to_key("scooters", scooters[i]["key"], i)
+	for i in zones.size():
+		_add_to_key("zones", zones[i]["key"], i)
+	for i in metros.size():
+		_add_to_key("metros", metros[i]["key"], i)
+	_shop_mesh = Props.frogs_shop()
+	_lezak_mesh = Props.lezak()
+	_build_atlas()
+	_kebab_boards(at)
+	_billboards(at)
+	_load_stamps()
+	# The eggs where their things are: the first triple corner's junction, the standing Leżak's zone.
+	if egg_book != null:
+		if triple_at.has(TRIPLES[0]):
+			egg_book.move_egg("easter_rechotka", triple_at[TRIPLES[0]])
+		for z in zones:
+			if z["standing"]:
+				egg_book.move_egg("easter_lezak", Vector2(z["at"].x, z["at"].z))
+	counts = {"frogs": shops.size(), "triple": nt, "venues": venues.size(), "lezak": scooters.size(), "zones": zones.size(),
+			"metro": metros.size()}
+	print("storefronts: %d Frogs (%d on %d triple corners), %d venue signs, %d Leżaks, %d zones, %d metro entrances, in %.1f ms" % [
+			shops.size(), nt, triple_at.size(), venues.size(), scooters.size(), zones.size(), metros.size(), (Time.get_ticks_usec() - t0) / 1000.0])
+	# Sectors already in.
+	var holder := map.get_node_or_null("Sectors") if map != null else null
+	if holder != null:
+		for r in holder.get_children():
+			if r is Node3D and (r as Node3D).visible:
+				on_sector_ready(r)
+
+
+func _add_to_key(kind: String, key: Vector2i, i: int) -> void:
+	if not _by_key.has(key):
+		_by_key[key] = {"shops": [], "venues": [], "scooters": [], "zones": [], "metros": []}
+	(_by_key[key][kind] as Array).append(i)
+
+
+static func key_of(p: Vector2) -> Vector2i:
+	return Vector2i(floori(p.x / TILE), floori(p.y / TILE))
+
+
+static func _pts(flat: Array) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for i in range(0, flat.size() - 1, 2):
+		out.append(Vector2(float(flat[i]), float(flat[i + 1])))
+	return out
+
+
+static func _hash(p: Vector2) -> float:
+	return fposmod(sin(p.x * 12.9898 + p.y * 78.233) * 43758.5453, 1.0)
+
+
+# --- the pure parts (check_parodies.gd runs them) -------------------------------------------------
+
+## The `address` pois: [{name, road (the road point at the door), bld (the building's point)}].
+static func address_list(pois: Array) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for p: Dictionary in pois:
+		if str(p.get("k", "")) != "address" or not p.has("door"):
+			continue
+		var d: Array = p["door"]
+		out.append({"name": str(p.get("name", "")), "road": Vector2(float(d[0]), float(d[1])), "bld": Vector2(float(p["x"]), float(p["z"]))})
+	return out
+
+
+## The lane graph's junctions: nodes with three or more ways, none on a bridge, deck or tunnel.
+static func junctions(g) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	if g == null:
+		return out
+	for n in g.node_pos.size():
+		var other := {}
+		var raised := false
+		for e in g.node_out[n]:
+			other[g.e_b[e]] = true
+			raised = raised or g.e_bridge[e] == 1 or g.e_dk[e] >= 0 or g.e_tn[e] >= 0
+		for e in g.node_in[n]:
+			other[g.e_a[e]] = true
+			raised = raised or g.e_bridge[e] == 1 or g.e_dk[e] >= 0 or g.e_tn[e] >= 0
+		if other.size() >= 3 and not raised:
+			out.append(g.node_pos[n])
+	return out
+
+
+static func nearest_point(pts: PackedVector2Array, p: Vector2, reach: float) -> Vector2:
+	var best := Vector2.INF
+	var bd := reach
+	for q in pts:
+		var d := q.distance_to(p)
+		if d < bd:
+			bd = d
+			best = q
+	return best
+
+
+## The landmarks' footprints in a 128 m grid: {"polys": [PackedVector2Array], "grid": {cell: [i]}}.
+static func landmark_index(landmarks: Array) -> Dictionary:
+	var polys: Array[PackedVector2Array] = []
+	var grid := {}
+	for l: Dictionary in landmarks:
+		var pts := _pts(l.get("p", []))
+		if pts.size() < 3:
+			continue
+		var lo := pts[0]
+		var hi := pts[0]
+		for q in pts:
+			lo = lo.min(q)
+			hi = hi.max(q)
+		var i := polys.size()
+		polys.append(pts)
+		for cx in range(floori(lo.x / 128.0), floori(hi.x / 128.0) + 1):
+			for cz in range(floori(lo.y / 128.0), floori(hi.y / 128.0) + 1):
+				var c := Vector2i(cx, cz)
+				if not grid.has(c):
+					grid[c] = []
+				(grid[c] as Array).append(i)
+	return {"polys": polys, "grid": grid}
+
+
+static func on_landmark(index: Dictionary, p: Vector2) -> bool:
+	for i: int in index["grid"].get(Vector2i(floori(p.x / 128.0), floori(p.y / 128.0)), []):
+		if Geometry2D.is_point_in_polygon(p, index["polys"][i]):
+			return true
+	return false
+
+
+static func per_km2(p: Vector2) -> int:
+	return HERO_PER_KM2 if HERO.has_point(p) else OTHER_PER_KM2
+
+
+## The Frogs (parodies.md 2.2): the triple corners first (three addresses on different corners
+## of the junction, each corner at least 60 degrees round from the others), then the addresses
+## by a junction in a fixed shuffled order, 70 m apart, within the density per km² cell, not on
+## a landmark or by a kebab stand or a venue (`avoid`, 20 m), at most OLDTOWN_MAX in the Old Town.
+static func pick_shops(addrs: Array[Dictionary], jpos: PackedVector2Array, triples: Dictionary, lm: Dictionary,
+		oldtown: Array[PackedVector2Array], avoid: PackedVector2Array) -> Array[Dictionary]:
+	var jgrid := {}
+	for q in jpos:
+		var c := Vector2i(floori(q.x / 64.0), floori(q.y / 64.0))
+		if not jgrid.has(c):
+			jgrid[c] = PackedVector2Array()
+		var arr: PackedVector2Array = jgrid[c]
+		arr.append(q)
+		jgrid[c] = arr
+	var cands: Array[Dictionary] = []
+	for a in addrs:
+		var r: Vector2 = a["road"]
+		var c := Vector2i(floori(r.x / 64.0), floori(r.y / 64.0))
+		var best := Vector2.INF
+		var bd := JUNCTION_REACH
+		for dx in [-1, 0, 1]:
+			for dz in [-1, 0, 1]:
+				for q: Vector2 in jgrid.get(c + Vector2i(dx, dz), PackedVector2Array()):
+					var d := q.distance_to(r)
+					if d < bd:
+						bd = d
+						best = q
+		if best == Vector2.INF or (a["bld"] as Vector2).distance_to(r) < 3.0:
+			continue
+		if on_landmark(lm, a["bld"]):
+			continue
+		var near_avoid := false
+		for v in avoid:
+			if v.distance_to(r) < 20.0:
+				near_avoid = true
+				break
+		if near_avoid:
+			continue
+		cands.append({"name": a["name"], "road": r, "bld": a["bld"], "j": best, "triple": "", "h": _hash(r), "spare": false})
+	var out: Array[Dictionary] = []
+	var used := {}
+	# The triple corners.
+	for id: String in triples:
+		var tj: Vector2 = triples[id]
+		var near: Array = []
+		for k in cands.size():
+			var cd: Dictionary = cands[k]
+			if (cd["road"] as Vector2).distance_to(tj) < TRIPLE_REACH and (cd["j"] as Vector2).distance_to(tj) < 30.0:
+				near.append([(cd["road"] as Vector2).distance_to(tj), k])
+		near.sort()
+		# The corner buildings themselves when the addresses run short: a site on each diagonal,
+		# placed by the wall ray like any other (the data has no shop=convenience to anchor to).
+		for d12 in 12:
+			var dir := Vector2.from_angle(PI * 0.25 + d12 * PI / 6.0)
+			cands.append({"name": "", "road": tj + dir * 6.0, "bld": tj + dir * 80.0, "j": tj, "triple": "", "h": 2.0,
+					"corner": true, "spare": false})
+			near.append([1000.0 + d12, cands.size() - 1])
+		var angles: Array[float] = []
+		for nk: Array in near:
+			var cd: Dictionary = cands[nk[1]]
+			var ang := ((cd["bld"] as Vector2) - tj).angle()
+			var clash := false
+			for a0 in angles:
+				if absf(angle_difference(a0, ang)) < deg_to_rad(60.0):
+					clash = true
+					break
+			if clash:
+				continue
+			angles.append(ang)
+			var s := cd.duplicate()
+			s["triple"] = id
+			# Past the first three, spares: one stands only if a first three's wall wasn't there.
+			s["spare"] = angles.size() > 3
+			out.append(s)
+			used[nk[1]] = true
+			if angles.size() == 6:
+				break
+	# The rest, in their shuffled order.
+	var order: Array = []
+	for k in cands.size():
+		if not used.has(k) and not cands[k].has("corner"):
+			order.append([cands[k]["h"], k])
+	order.sort()
+	var cells := {}
+	var sgrid := {}
+	for s in out:
+		_count(cells, sgrid, s["road"])
+	var in_old := 0
+	for ok: Array in order:
+		var cd: Dictionary = cands[ok[1]]
+		var r: Vector2 = cd["road"]
+		var cell := Vector2i(floori(r.x / 1000.0), floori(r.y / 1000.0))
+		if int(cells.get(cell, 0)) >= per_km2(r):
+			continue
+		var c := Vector2i(floori(r.x / SPACING), floori(r.y / SPACING))
+		var close := false
+		for dx in [-1, 0, 1]:
+			for dz in [-1, 0, 1]:
+				for q: Vector2 in sgrid.get(c + Vector2i(dx, dz), []):
+					if q.distance_to(r) < SPACING:
+						close = true
+		if close:
+			continue
+		var old := false
+		for poly in oldtown:
+			if Geometry2D.is_point_in_polygon(cd["bld"], poly) or Geometry2D.is_point_in_polygon(r, poly):
+				old = true
+				break
+		if old:
+			if in_old >= OLDTOWN_MAX:
+				continue
+			in_old += 1
+		out.append(cd.duplicate())
+		_count(cells, sgrid, r)
+	for s in out:
+		s["key"] = key_of(s["road"])
+		s["state"] = 0
+	return out
+
+
+static func _count(cells: Dictionary, sgrid: Dictionary, r: Vector2) -> void:
+	var cell := Vector2i(floori(r.x / 1000.0), floori(r.y / 1000.0))
+	cells[cell] = int(cells.get(cell, 0)) + 1
+	var c := Vector2i(floori(r.x / SPACING), floori(r.y / SPACING))
+	if not sgrid.has(c):
+		sgrid[c] = []
+	(sgrid[c] as Array).append(r)
+
+
+## The venues' anchors (vision 3.0-3.2): a place with an `address` takes the matching address
+## poi (the same rule as notebook.gd: the number, the street's last word) nearest its hint; else
+## the address poi nearest the place; else the road nearest it, looking at the place.
+static func venue_list(places: Array, addrs: Array[Dictionary], g) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var split: Array = []
+	for p: Dictionary in places:
+		var id := str(p["id"])
+		if not VENUES.has(id):
+			continue
+		var spec: Array = VENUES[id]
+		var at: Vector2 = p["at"]
+		var best: Dictionary = {}
+		var bd := INF
+		if p.has("address"):
+			var sa := Notebook.split_address(str(p["address"]))
+			if not sa.is_empty():
+				var last: String = str(sa[0]).get_slice(" ", str(sa[0]).get_slice_count(" ") - 1)
+				if split.is_empty():
+					for a in addrs:
+						split.append(Notebook.split_address(str(a["name"])))
+				for ai in addrs.size():
+					var a := addrs[ai]
+					var asa: Array = split[ai]
+					if asa.is_empty() or (asa[1] != sa[1] and not str(asa[1]).split("/").has(sa[1])):
+						continue
+					var st: String = asa[0]
+					if st.get_slice(" ", st.get_slice_count(" ") - 1) != last:
+						continue
+					var d := (a["bld"] as Vector2).distance_to(at)
+					if d < bd and d < 600.0:
+						bd = d
+						best = a
+		if best.is_empty():
+			for a in addrs:
+				var d := (a["bld"] as Vector2).distance_to(at)
+				if d < bd and d < 40.0:
+					bd = d
+					best = a
+		var road := Vector2.INF
+		var bld := Vector2.INF
+		if not best.is_empty():
+			road = best["road"]
+			bld = best["bld"]
+		elif g != null:
+			# No address near: the nearest road, else the nearest address within 140 m (Kasa
+			# Biletowa: Kruczkowskiego 3B isn't in the data, its pavilion sits back from the roads).
+			var hit: Array = g.snap(at, 60.0)
+			if not hit.is_empty():
+				road = g.point_at(hit[0], hit[2])
+				bld = at + (at - road).normalized() * 10.0 if at.distance_to(road) > 1.0 else at
+			else:
+				for a in addrs:
+					var d := (a["bld"] as Vector2).distance_to(at)
+					if d < bd and d < 140.0:
+						bd = d
+						road = a["road"]
+						bld = a["bld"]
+		if road == Vector2.INF:
+			continue
+		out.append({"id": id, "lines": spec[0], "colour": spec[1], "up": spec[2], "road": road, "bld": bld, "key": key_of(road),
+				"state": 0, "xfs": [], "off": -1.0})
+	return out
+
+
+## A sign line's width in the atlas (pixels, the tube's PAD both sides).
+static func line_px(line: String) -> int:
+	return PixelFont.width(line) + 2 * Neon.PAD
+
+
+# --- the neon atlas ---------------------------------------------------------------------------
+
+## neon_signs.gd's atlas with the venues' lines as rows after its own (drawn with pixel_font.gd's
+## glyphs, the accents in the row's top padding): the shop words' rows keep their place, so the
+## baked signs read the same through the new texture.
+func _build_atlas() -> void:
+	var lines: Array[String] = []
+	for v in venues:
+		for l: String in v["lines"]:
+			if not lines.has(l):
+				lines.append(l)
+	var base := Neon.atlas().get_image()
+	var n0 := Neon.all_words().size()
+	_rows = n0 + lines.size()
+	var img := Image.create_empty(Neon.ATLAS_W, Neon.ROW_H * _rows, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 1))
+	img.blit_rect(base, Rect2i(0, 0, base.get_width(), base.get_height()), Vector2i.ZERO)
+	for k in lines.size():
+		var r := n0 + k
+		_row_of[lines[k]] = r
+		var tube := {}
+		PixelFont.each_pixel(lines[k], Neon.PAD, func(x: int, row: int) -> void:
+			if x < Neon.ATLAS_W:
+				tube[Vector2i(x, r * Neon.ROW_H + row)] = true)
+		for p: Vector2i in tube:
+			for dy in range(-2, 3):
+				for dx in range(-2, 3):
+					var q := Vector2i(p.x + dx, p.y + dy)
+					if q.x < 0 or q.y < r * Neon.ROW_H or q.x >= Neon.ATLAS_W or q.y >= (r + 1) * Neon.ROW_H:
+						continue
+					var g := 1.0 - (absi(dx) + absi(dy)) / 4.0
+					var c := img.get_pixelv(q)
+					img.set_pixelv(q, Color(c.r, maxf(c.g, g), 0, 1))
+		for p: Vector2i in tube:
+			img.set_pixelv(p, Color(1, 1, 0, 1))
+	_atlas = ImageTexture.create_from_image(img)
+
+
+## A neon material (a sector's, the landmarks') reads the bigger atlas from now on.
+func _upgrade(m: ShaderMaterial) -> void:
+	if m == null or _upgraded.has(m.get_instance_id()):
+		return
+	_upgraded[m.get_instance_id()] = true
+	m.set_shader_parameter("words", _atlas)
+	m.set_shader_parameter("rows", float(_rows))
+	if _neon_mat == null:
+		_neon_mat = m
+
+
+# --- a sector comes in ----------------------------------------------------------------------------
+
+## main.gd's _on_sector_ready, first: the neon materials take the atlas; when the sector is in
+## (visible), its Leżaks and street props now, its walls' rays at the next physics frame.
+func on_sector_ready(root: Node3D) -> void:
+	for holder in ["Neon", "LandmarkSigns"]:
+		var h := root.get_node_or_null(holder)
+		if h != null:
+			for c in h.get_children():
+				var g := c as GeometryInstance3D
+				if g != null:
+					_upgrade(g.material_override as ShaderMaterial)
+	if not root.visible or root.has_meta("mw2"):
+		return
+	root.set_meta("mw2", true)
+	var key := _root_key(root)
+	if key == Vector2i(-99999, -99999) or not _by_key.has(key):
+		return
+	_roots[key] = root.get_instance_id()
+	_build_props(key, root)
+	_write_lezaks(key)
+	_pending.append(key)
+
+
+static func _root_key(root: Node3D) -> Vector2i:
+	var n := str(root.name)
+	if not n.begins_with("s_"):
+		return Vector2i(-99999, -99999)
+	var parts := n.split("_")
+	if parts.size() < 3:
+		return Vector2i(-99999, -99999)
+	return Vector2i(int(parts[1]), int(parts[2]))
+
+
+func _root(key: Vector2i) -> Node3D:
+	if not _roots.has(key):
+		return null
+	var o := instance_from_id(int(_roots[key]))
+	if o == null or not is_instance_valid(o) or not (o as Node).is_inside_tree():
+		_roots.erase(key)
+		return null
+	return o as Node3D
+
+
+func _physics_process(_dt: float) -> void:
+	if _pending.is_empty():
+		return
+	var t0 := Time.get_ticks_usec()
+	var space := get_world_3d().direct_space_state
+	var keys := _pending.duplicate()
+	_pending.clear()
+	for key in keys:
+		var root := _root(key)
+		if root == null:
+			continue
+		var b: Dictionary = _by_key[key]
+		for i: int in b["shops"]:
+			if int(shops[i]["state"]) == 0:
+				_place_shop(i, space)
+		for i: int in b["venues"]:
+			if int(venues[i]["state"]) == 0:
+				_place_venue(i, space)
+		_build_shops(key, root)
+		_venue_neon(key, root)
+		_write_lezaks(key)
+	_index_doors()
+	spent_usec += Time.get_ticks_usec() - t0
+
+
+## A ray along the ground at RAY_UP to the city's walls: {p, n (horizontal, towards `from`)} or {}.
+## Only the sectors' (or the map's) own bodies count: cars, stands and people are looked through.
+func _ray(space: PhysicsDirectSpaceState3D, from: Vector3, to: Vector3) -> Dictionary:
+	var q := PhysicsRayQueryParameters3D.create(from, to)
+	var ex: Array[RID] = []
+	for k in 5:
+		q.exclude = ex
+		var hit := space.intersect_ray(q)
+		if hit.is_empty():
+			return {}
+		var col: Object = hit["collider"]
+		var par := (col as Node).get_parent() if col is Node else null
+		if col is StaticBody3D and par != null and (str(par.name).begins_with("s_") or par == map):
+			var n: Vector3 = hit["normal"]
+			n.y = 0.0
+			if n.length() < 0.5:
+				return {}
+			n = n.normalized()
+			if n.dot(from - (hit["position"] as Vector3)) < 0.0:
+				n = -n
+			return {"p": hit["position"], "n": n}
+		ex.append(hit["rid"])
+	return {}
+
+
+## The wall a site faces: the ray from its road point towards its building, `side` m of straight
+## wall each way (rays from the road shifted along it), a roof `roof` m over the street just
+## inside. Tries the middle shifted along the wall by up to 5 m. {} if none.
+func _wall(space: PhysicsDirectSpaceState3D, road: Vector2, bld: Vector2, side: float, roof: float, far := RAY_FAR) -> Dictionary:
+	var y: float = map.ground_height(road.x, road.y) + RAY_UP
+	var dir := bld - road
+	if dir.length() < 0.5:
+		return {}
+	dir = dir.normalized()
+	var reach := minf(far, road.distance_to(bld) + 25.0)
+	var first := _ray(space, Vector3(road.x, y, road.y), Vector3(road.x + dir.x * reach, y, road.y + dir.y * reach))
+	if first.is_empty():
+		return {}
+	var n: Vector3 = first["n"]
+	var t := Vector3(n.z, 0.0, -n.x)
+	# The square-on rays start a little in front of the first hit, not at the road point: a corner's
+	# first ray meets its wall at a slant, tens of metres along from the road point's foot.
+	var hit0: Vector3 = first["p"]
+	var back := clampf(Vector2(hit0.x, hit0.z).distance_to(road) * 0.8, 1.5, 6.0)
+	var base := hit0 + n * back
+	reach = back + 6.0
+	for shift: float in [0.0, 2.5, -2.5, 5.0, -5.0]:
+		var o := base + t * shift
+		var mid := _ray(space, o, o - n * reach)
+		if mid.is_empty() or (mid["n"] as Vector3).dot(n) < 0.9:
+			continue
+		var p: Vector3 = mid["p"]
+		var ok := true
+		for k: float in [-side, side]:
+			var o2 := o + t * k
+			var h := _ray(space, o2, o2 - n * (reach + 3.0))
+			if h.is_empty() or (h["n"] as Vector3).dot(n) < 0.9 or absf(((h["p"] as Vector3) - p).dot(n)) > PLANE_TOL:
+				ok = false
+				break
+		if not ok:
+			continue
+		var g: float = map.ground_height(p.x, p.z)
+		var inside := p - n * 2.0
+		if map.top_height(inside.x, inside.z) < g + roof:
+			continue
+		return {"p": Vector3(p.x, g, p.z), "n": n, "t": t}
+	return {}
+
+
+func _place_shop(i: int, space: PhysicsDirectSpaceState3D) -> void:
+	var s := shops[i]
+	if s["triple"] != "" and int(_triple_placed.get(s["triple"], 0)) >= 3:
+		s["state"] = 3
+		return
+	var far := CORNER_FAR if s.has("corner") else RAY_FAR
+	var w := _wall(space, s["road"], s["bld"], SHOP_SIDE, SHOP_ROOF, far)
+	# A triple-corner shop that misses its wall swings round its junction a little (the egg needs three).
+	if w.is_empty() and s["triple"] != "":
+		var j: Vector2 = s["j"]
+		for turn: float in [0.35, -0.35, 0.7, -0.7]:
+			var road := j + ((s["road"] as Vector2) - j).rotated(turn)
+			w = _wall(space, road, j + ((s["bld"] as Vector2) - j).rotated(turn), SHOP_SIDE, SHOP_ROOF, far)
+			if not w.is_empty():
+				s["road"] = road
+				break
+	if w.is_empty():
+		s["state"] = 2
+		if log_on:
+			print("storefronts: Frogs %d (%s%s): no wall from %.0f, %.0f" % [i, s["name"],
+					", triple " + str(s["triple"]) if s["triple"] != "" else "", s["road"].x, s["road"].y])
+		return
+	var n: Vector3 = w["n"]
+	var p: Vector3 = w["p"]
+	s["xf"] = Transform3D(Basis(w["t"], Vector3.UP, n), p + n * 0.02)
+	s["door"] = Vector2(p.x + n.x * 1.0, p.z + n.z * 1.0)
+	s["state"] = 1
+	if s["triple"] != "":
+		_triple_placed[s["triple"]] = int(_triple_placed.get(s["triple"], 0)) + 1
+	if log_on:
+		print("storefronts: Frogs %d (%s%s) on the wall at %.1f, %.1f facing %d°" % [i, s["name"],
+				", triple " + str(s["triple"]) if s["triple"] != "" else "", p.x, p.z, roundi(rad_to_deg(atan2(n.x, n.z)))])
+	# One shop in 30 has a Leżak lying at its door (parodies.md 5.2's odd places).
+	if _hash(s["road"] * 1.7) < 1.0 / 30.0:
+		var at := p + n * 1.6 + (w["t"] as Vector3) * 1.2
+		_add_scooter(Vector3(at.x, map.ground_height(at.x, at.z), at.z), _hash(s["road"]) * TAU, false, -1)
+
+
+func _place_venue(i: int, space: PhysicsDirectSpaceState3D) -> void:
+	var v := venues[i]
+	var lines: Array = v["lines"]
+	var widest := 0
+	for l: String in lines:
+		widest = maxi(widest, line_px(l))
+	var px := VENUE_PX
+	var w := {}
+	while px >= VENUE_PX_MIN - 0.001:
+		w = _wall(space, v["road"], v["bld"], widest * px * 0.5, 2.5)
+		if not w.is_empty():
+			break
+		px -= 0.02
+	if w.is_empty():
+		px = VENUE_PX_MIN
+		# Looked for a little to each side (a tree's trunk or a kiosk's wall in the first ray's way).
+		var road: Vector2 = v["road"]
+		for turn: float in [0.0, 0.3, -0.3, 0.6, -0.6, 1.0, -1.0, 1.57, -1.57, 2.2, -2.2, PI]:
+			w = _wall(space, road, road + ((v["bld"] as Vector2) - road).rotated(turn), widest * px * 0.5, 2.0, CORNER_FAR)
+			if not w.is_empty():
+				break
+	if w.is_empty():
+		v["state"] = 2
+		if log_on:
+			print("storefronts: venue %s: no wall from %.0f, %.0f (its building %.0f, %.0f)" % [v["id"], v["road"].x, v["road"].y,
+					v["bld"].x, v["bld"].y])
+		return
+	var n: Vector3 = w["n"]
+	var t: Vector3 = w["t"]
+	var p: Vector3 = w["p"]
+	var h := Neon.ROW_H * px
+	var xfs: Array[Transform3D] = []
+	for k in lines.size():
+		var length := line_px(lines[k]) * px
+		var bottom := float(v["up"]) + (lines.size() - 1 - k) * h
+		xfs.append(Transform3D(Basis(t * length, Vector3.UP * h, n), p + Vector3.UP * (bottom + h * 0.5) + n * 0.14))
+	v["xfs"] = xfs
+	v["px"] = px
+	v["off"] = 0.14
+	v["wall"] = Vector2(p.x, p.z)
+	v["state"] = 1
+	if log_on:
+		print("storefronts: venue %s \"%s\" on the wall at %.1f, %.1f, %.2f m out, letter pixel %.2f m" % [v["id"],
+				" / ".join(lines), p.x, p.z, v["off"], px])
+
+
+## The sector's Frogs: one MultiMesh under its root.
+func _build_shops(key: Vector2i, root: Node3D) -> void:
+	var placed: Array[Transform3D] = []
+	for i: int in _by_key[key]["shops"]:
+		if int(shops[i]["state"]) == 1:
+			placed.append(shops[i]["xf"])
+	if placed.is_empty() or root.get_node_or_null("Frogs") != null:
+		return
+	var mm := _static_mm(_shop_mesh, placed)
+	var mmi := MultiMeshInstance3D.new()
+	mmi.name = "Frogs"
+	mmi.multimesh = mm
+	mmi.material_override = Models.material()
+	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mmi.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	root.add_child(mmi)
+
+
+func _static_mm(mesh: Mesh, xfs: Array[Transform3D]) -> MultiMesh:
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_custom_data = true
+	InstanceBuffers.prepare(mm)
+	mm.mesh = mesh
+	mm.instance_count = xfs.size()
+	InstanceBuffers.whiten(mm)
+	var box := AABB(xfs[0].origin, Vector3.ZERO)
+	for k in xfs.size():
+		mm.set_instance_transform(k, xfs[k])
+		mm.set_instance_custom_data(k, Color(0, 0, 0, 0))
+		box = box.expand(xfs[k].origin)
+	mm.custom_aabb = box.grow(6.0)
+	return mm
+
+
+## The sector's venue signs into its Neon MultiMesh (a copy with the signs appended: +0 draw
+## calls); a sector without signs of its own gets a Neon holder of its own (+1 at night there).
+func _venue_neon(key: Vector2i, root: Node3D) -> void:
+	var adds: Array[Array] = []
+	for i: int in _by_key[key]["venues"]:
+		var v := venues[i]
+		if int(v["state"]) != 1:
+			continue
+		var lines: Array = v["lines"]
+		for k in lines.size():
+			var c := Color(float(_row_of[lines[k]]), float(line_px(lines[k])) / Neon.ATLAS_W, 1.0, 0.3 + 0.05 * k)
+			adds.append([v["xfs"][k], v["colour"], c])
+	if adds.is_empty():
+		return
+	var holder := root.get_node_or_null("Neon") as Node3D
+	var mmi: MultiMeshInstance3D = null
+	if holder != null:
+		for c in holder.get_children():
+			if c is MultiMeshInstance3D:
+				mmi = c
+				break
+	if mmi == null:
+		if holder == null:
+			holder = Node3D.new()
+			holder.name = "Neon"
+			holder.add_to_group("night_lights", true)
+			holder.visible = bool(lit.call()) if lit.is_valid() else true
+			root.add_child(holder)
+		mmi = MultiMeshInstance3D.new()
+		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		if _neon_mat == null:
+			_neon_mat = ShaderMaterial.new()
+			_neon_mat.shader = load("res://shaders/neon.gdshader")
+			_upgrade(_neon_mat)
+		mmi.material_override = _neon_mat
+		holder.add_child(mmi)
+	var old := mmi.multimesh
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	mm.use_custom_data = true
+	mm.mesh = old.mesh if old != null else Neon.quad()
+	var n0 := old.instance_count if old != null else 0
+	mm.instance_count = n0 + adds.size()
+	var box := old.custom_aabb if old != null and old.custom_aabb.size != Vector3.ZERO else AABB((adds[0][0] as Transform3D).origin, Vector3.ZERO)
+	for k in n0:
+		mm.set_instance_transform(k, old.get_instance_transform(k))
+		mm.set_instance_color(k, old.get_instance_color(k) if old.use_colors else Color.WHITE)
+		mm.set_instance_custom_data(k, old.get_instance_custom_data(k) if old.use_custom_data else Color())
+	for k in adds.size():
+		var a: Array = adds[k]
+		mm.set_instance_transform(n0 + k, a[0])
+		mm.set_instance_color(n0 + k, a[1])
+		mm.set_instance_custom_data(n0 + k, a[2])
+		box = box.expand((a[0] as Transform3D).origin)
+	mm.custom_aabb = box.grow(6.0)
+	mmi.multimesh = mm
+	_upgrade(mmi.material_override as ShaderMaterial)
+
+
+# --- Leżak, zones, metro ----------------------------------------------------------------------
+
+## A point on the pavement beside lane graph edge e at s: past its outermost lane on its right,
+## `extra` m on; INF on a lane or under a roof.
+func _pavement(e: int, s: float, extra: float) -> Vector2:
+	var k: int = graph.e_lanes[e] - 1
+	var off: float = graph.lane_offset(e, maxi(k, 0)) + graph.e_lw[e] * 0.5 + extra
+	var p: Vector2 = graph.point_at(e, s, off)
+	if not graph.snap(p, 3.2).is_empty():
+		return Vector2.INF
+	var g: float = map.ground_height(p.x, p.y)
+	if map.top_height(p.x, p.y, 1.0) > g + 0.5:
+		return Vector2.INF
+	return p
+
+
+## The Leżaks: by the junctions in a fixed shuffled order (one or two on a pavement by a way out
+## of it, 12-20 m along), up to the density a km² cell; the zones every ZONE_SPACING m in the hero
+## districts with two or three lying round each; the zone nearest Metro Nowy Świat-Uniwersytet
+## has the one standing Leżak (easter_lezak).
+func _pick_scooters(jpos: PackedVector2Array, at: Dictionary) -> void:
+	if graph == null or map == null:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 5205
+	var order: Array = []
+	for n in graph.node_pos.size():
+		if graph.node_out[n].size() + graph.node_in[n].size() >= 5:
+			order.append([_hash(graph.node_pos[n] * 0.37), n])
+	order.sort()
+	var cells := {}
+	var zgrid: Array[Vector2] = []
+	var nsw: Vector2 = at["nowy_swiat_uniwersytet"]["at"] if at.has("nowy_swiat_uniwersytet") else Vector2.INF
+	for o: Array in order:
+		var n: int = o[1]
+		var np: Vector2 = graph.node_pos[n]
+		var cell := Vector2i(floori(np.x / 1000.0), floori(np.y / 1000.0))
+		var cap := LEZAK_HERO if HERO.has_point(np) else LEZAK_OTHER
+		if int(cells.get(cell, 0)) >= cap:
+			continue
+		var outs: PackedInt32Array = graph.node_out[n]
+		if outs.is_empty():
+			continue
+		var e: int = outs[rng.randi() % outs.size()]
+		if graph.e_bridge[e] == 1 or graph.e_dk[e] >= 0 or graph.e_tn[e] >= 0 or graph.e_len[e] < 30.0:
+			continue
+		var s := rng.randf_range(12.0, 20.0)
+		var p := _pavement(e, s, rng.randf_range(1.2, 2.6))
+		if p == Vector2.INF:
+			continue
+		var zone := -1
+		if HERO.has_point(p) and rng.randf() < 0.25:
+			var far := true
+			for z in zgrid:
+				if z.distance_to(p) < ZONE_SPACING:
+					far = false
+					break
+			if far:
+				zone = zones.size()
+				zgrid.append(p)
+				var d: Vector2 = graph.direction(e, s)
+				var g: float = map.ground_height(p.x, p.y)
+				zones.append({"at": Vector3(p.x, g, p.y), "yaw": atan2(d.x, d.y), "key": key_of(p), "standing": false,
+						"d": nsw.distance_to(p) if nsw != Vector2.INF else INF})
+		var g2: float = map.ground_height(p.x, p.y)
+		if zone >= 0:
+			# The joke: the zone is empty, they lie round it.
+			var z: Dictionary = zones[zone]
+			var zb := Basis(Vector3.UP, float(z["yaw"]))
+			for k in rng.randi_range(2, 3):
+				var off := zb * Vector3(rng.randf_range(-2.6, 2.6), 0.0, (1.3 if k % 2 == 0 else -1.3) + rng.randf_range(-0.2, 0.3))
+				var q := Vector3(p.x, g2, p.y) + off
+				_add_scooter(Vector3(q.x, map.ground_height(q.x, q.z), q.z), rng.randf() * TAU, false, zone)
+		else:
+			for k in (2 if rng.randf() < 0.3 else 1):
+				var q := Vector3(p.x, g2, p.y) + Vector3(rng.randf_range(-1.0, 1.0), 0.0, rng.randf_range(-1.0, 1.0)) * float(k)
+				_add_scooter(Vector3(q.x, map.ground_height(q.x, q.z), q.z), rng.randf() * TAU, false, -1)
+		cells[cell] = int(cells.get(cell, 0)) + 1
+	# The standing one, in the zone nearest Nowy Świat-Uniwersytet.
+	var best := -1
+	for i in zones.size():
+		if best < 0 or float(zones[i]["d"]) < float(zones[best]["d"]):
+			best = i
+	if best >= 0:
+		zones[best]["standing"] = true
+		var z: Dictionary = zones[best]
+		_add_scooter(z["at"] + Basis(Vector3.UP, float(z["yaw"])) * Vector3(0.6, 0.0, 0.0), float(z["yaw"]), true, best)
+
+
+func _add_scooter(at: Vector3, yaw: float, up: bool, zone: int) -> void:
+	# Never on a carriageway (parodies.md 5.2): a scatter that lands within LANE_CLEAR of a lane goes.
+	if not up and graph != null and not graph.snap(Vector2(at.x, at.z), LANE_CLEAR).is_empty():
+		return
+	var i := scooters.size()
+	var k := key_of(Vector2(at.x, at.z))
+	scooters.append({"at": at, "yaw": yaw, "up": up, "key": k, "zone": zone})
+	var c := Vector2i(floori(at.x / LEZAK_CELL), floori(at.z / LEZAK_CELL))
+	if not _lezak_grid.has(c):
+		_lezak_grid[c] = []
+	(_lezak_grid[c] as Array).append(i)
+	if not _by_key.is_empty():
+		_add_to_key("scooters", k, i)
+
+
+static func scooter_xf(s: Dictionary) -> Transform3D:
+	var b := Basis(Vector3.UP, float(s["yaw"]))
+	if not s["up"]:
+		# On its side: turned 90 degrees about its length, the deck's edge on the pavement.
+		b = b * Basis(Vector3.BACK, PI * 0.5)
+		return Transform3D(b, s["at"] + Vector3.UP * 0.1)
+	return Transform3D(b, s["at"])
+
+
+## The sector's Leżaks (its MultiMesh made or rewritten; `fine_detail`, hidden in wide views).
+func _write_lezaks(key: Vector2i) -> void:
+	var root := _root(key)
+	if root == null or not _by_key.has(key):
+		return
+	var xfs: Array[Transform3D] = []
+	for i: int in _by_key[key]["scooters"]:
+		xfs.append(scooter_xf(scooters[i]))
+	if xfs.is_empty():
+		return
+	var mmi: MultiMeshInstance3D = null
+	if _lezak_mmi.has(key) and is_instance_valid(instance_from_id(int(_lezak_mmi[key]))):
+		mmi = instance_from_id(int(_lezak_mmi[key])) as MultiMeshInstance3D
+	if mmi == null or not mmi.is_inside_tree():
+		mmi = MultiMeshInstance3D.new()
+		mmi.name = "Lezaks"
+		mmi.material_override = Models.material()
+		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mmi.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+		mmi.add_to_group("fine_detail", true)
+		mmi.visible = bool(fine_shown.call()) if fine_shown.is_valid() else true
+		root.add_child(mmi)
+		_lezak_mmi[key] = mmi.get_instance_id()
+	mmi.multimesh = _static_mm(_lezak_mesh, xfs)
+
+
+## The metro entrances: by each station place, up to METRO_PER on the pavements beside the
+## lanes within METRO_REACH m, 25 m apart, facing along the street.
+func _pick_metros(at: Dictionary) -> void:
+	if graph == null or map == null:
+		return
+	for id: String in STATIONS:
+		if not at.has(id):
+			continue
+		var c: Vector2 = at[id]["at"]
+		var cands: Array = []
+		var seen := {}
+		for dx in range(-1, 2):
+			for dz in range(-1, 2):
+				var key: int = graph.cell_key(c + Vector2(dx, dz) * 60.0)
+				if seen.has(key) or not graph.grid.has(key):
+					continue
+				seen[key] = true
+				for e: int in graph.grid[key]:
+					if graph.e_bridge[e] == 1 or graph.e_dk[e] >= 0 or graph.e_tn[e] >= 0:
+						continue
+					var s0: float = graph.project(e, c)
+					for ds in [-30.0, -15.0, 0.0, 15.0, 30.0]:
+						var s: float = clampf(s0 + ds, graph.e_s0[e] + 3.0, graph.e_s1[e] - 3.0)
+						var q: Vector2 = graph.point_at(e, s)
+						if q.distance_to(c) < METRO_REACH + 8.0:
+							cands.append([q.distance_to(c), e, s])
+		# Nearest first, and the pavement test (a snap and a height) only until three stand.
+		cands.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+		var got: Array[Vector2] = []
+		for cd: Array in cands:
+			var p := _pavement(cd[1], cd[2], 2.8)
+			if p == Vector2.INF or p.distance_to(c) > METRO_REACH:
+				continue
+			var clash := false
+			for q in got:
+				if q.distance_to(p) < 25.0:
+					clash = true
+					break
+			for m in metros:
+				if Vector2(m["at"].x, m["at"].z).distance_to(p) < 25.0:
+					clash = true
+			if clash:
+				continue
+			got.append(p)
+			var d: Vector2 = graph.direction(cd[1], cd[2])
+			metros.append({"at": Vector3(p.x, map.ground_height(p.x, p.y), p.y), "yaw": atan2(d.x, d.y), "station": id, "key": key_of(p)})
+			if got.size() >= METRO_PER:
+				break
+
+
+## The sector's street props (metro entrances and the zones' paint): one mesh under its root.
+func _build_props(key: Vector2i, root: Node3D) -> void:
+	var b: Dictionary = _by_key[key]
+	if (b["metros"] as Array).is_empty() and (b["zones"] as Array).is_empty():
+		return
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var box := AABB()
+	var first := true
+	for i: int in b["metros"]:
+		var m := metros[i]
+		Props.add_metro_entrance(st, Transform3D(Basis(Vector3.UP, float(m["yaw"])), m["at"]))
+		box = AABB(m["at"], Vector3.ZERO) if first else box.expand(m["at"])
+		first = false
+	for i: int in b["zones"]:
+		var z := zones[i]
+		Props.add_scooter_zone(st, Transform3D(Basis(Vector3.UP, float(z["yaw"])), z["at"]))
+		box = AABB(z["at"], Vector3.ZERO) if first else box.expand(z["at"])
+		first = false
+	var mi := MeshInstance3D.new()
+	mi.name = "StreetProps"
+	mi.mesh = st.commit()
+	mi.material_override = Models.material()
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	root.add_child(mi)
+
+
+# --- kebab boards and billboards ------------------------------------------------------------------
+
+func _kebab_boards(at: Dictionary) -> void:
+	if jobs == null or not jobs.has_method("stand_points"):
+		return
+	var pts: PackedVector2Array = jobs.stand_points()
+	for id: String in NAMED_STANDS:
+		if not at.has(id):
+			continue
+		var i := _nearest_index(pts, at[id]["at"], 300.0)
+		if i >= 0:
+			jobs.name_stand(i, NAMED_STANDS[id][0], NAMED_STANDS[id][1])
+			if log_on:
+				print("storefronts: kebab stand %d is %s" % [i, NAMED_STANDS[id][0]])
+	for id: String in STAND_TAGS:
+		if not at.has(id):
+			continue
+		var i := _nearest_index(pts, at[id]["at"], STAND_TAG_REACH)
+		if i >= 0 and jobs.stand_tag(i) == "":
+			jobs.tag_stand(i, STAND_TAGS[id])
+
+
+static func _nearest_index(pts: PackedVector2Array, p: Vector2, reach: float) -> int:
+	var best := -1
+	var bd := reach
+	for i in pts.size():
+		var d := pts[i].distance_to(p)
+		if d < bd:
+			bd = d
+			best = i
+	return best
+
+
+func _billboards(at: Dictionary) -> void:
+	if eggs == null or not eggs.has_method("billboard_line"):
+		return
+	for word: String in BILLBOARDS:
+		var spec: Array = BILLBOARDS[word]
+		var id: String = spec[0]
+		var where: Vector2 = triple_at.get(id, at[id]["at"] if at.has(id) else Vector2.INF)
+		if where == Vector2.INF:
+			continue
+		eggs.billboard_line(word, where, Color(spec[1]), Color(spec[2]))
+
+
+# --- the stamp card -------------------------------------------------------------------------------
+
+func _index_doors() -> void:
+	_door_grid.clear()
+	for i in shops.size():
+		if int(shops[i]["state"]) != 1:
+			continue
+		var d: Vector2 = shops[i]["door"]
+		var c := Vector2i(floori(d.x / 64.0), floori(d.y / 64.0))
+		if not _door_grid.has(c):
+			_door_grid[c] = []
+		(_door_grid[c] as Array).append(i)
+
+
+## The placed Frogs whose door is nearest `p`, within `reach` m (-1 if none): rides.gd's detour and
+## the GPS's Frogs turn ask too.
+func shop_near(p: Vector2, reach: float) -> int:
+	var c := Vector2i(floori(p.x / 64.0), floori(p.y / 64.0))
+	var best := -1
+	var bd := reach
+	for dx in [-1, 0, 1]:
+		for dz in [-1, 0, 1]:
+			for i: int in _door_grid.get(c + Vector2i(dx, dz), []):
+				var d := (shops[i]["door"] as Vector2).distance_to(p)
+				if d < bd:
+					bd = d
+					best = i
+	return best
+
+
+## A Frogs (placed or not) by `p` within `reach`, by its junction: for the GPS's turn.
+func frogs_at_junction(p: Vector2, reach: float) -> int:
+	var best := -1
+	var bd := reach
+	for i in shops.size():
+		if int(shops[i]["state"]) >= 2 or (shops[i]["spare"] and int(shops[i]["state"]) == 0):
+			continue
+		var d := (shops[i]["j"] as Vector2).distance_to(p)
+		if d < bd:
+			bd = d
+			best = i
+	return best
+
+
+func _load_stamps() -> void:
+	if wallet == null:
+		return
+	stamps = int(wallet.keep.get("frogs_stamps", 0))
+	if int(wallet.keep.get("frogs_day", 0)) != EggBook.today():
+		wallet.keep["frogs_day"] = EggBook.today()
+		wallet.keep["frogs_today"] = []
+	stamped_today = (wallet.keep.get("frogs_today", []) as Array).size()
+
+
+## The stamp rule (static: check_parodies.gd runs it): {stamp: bool, free: bool} for a stop at
+## shop `i` given today's stamped shops and the card's count.
+static func stamp_rule(i: int, today: Array, card: int) -> Dictionary:
+	if today.has(i) or today.size() >= STAMPS_DAY:
+		return {"stamp": false, "free": false}
+	return {"stamp": true, "free": card + 1 >= STAMPS_CARD}
+
+
+func _process(dt: float) -> void:
+	var t0 := Time.get_ticks_usec()
+	_clock += dt
+	_t += dt
+	if not vehicle.is_valid():
+		return
+	var veh: Array = vehicle.call()
+	var vp: Vector3 = veh[0]
+	var flying: bool = veh[2]
+	if not flying and vp != Vector3.INF:
+		_knock_check(vp, float(veh[1]))
+	if _t >= TICK:
+		var step := _t
+		_t = 0.0
+		_tick(vp, float(veh[1]), flying, step)
+	spent_usec += Time.get_ticks_usec() - t0
+
+
+func _tick(vp: Vector3, kmh: float, flying: bool, step: float) -> void:
+	if rig_rechotka and not _rig_done:
+		_rig(vp)
+	if flying or vp == Vector3.INF:
+		_hold = 0.0
+		return
+	var i := shop_near(Vector2(vp.x, vp.z), STAMP_REACH)
+	if i < 0 or kmh / 3.6 >= STAMP_SPEED:
+		_hold = 0.0
+		_hold_shop = -1
+		return
+	if i != _hold_shop:
+		_hold_shop = i
+		_hold = 0.0
+	_hold += step
+	if _hold < STAMP_HOLD or _hold - step >= STAMP_HOLD:
+		return
+	_stop_at(i)
+
+
+## Stopped at shop i for STAMP_HOLD s.
+func _stop_at(i: int) -> void:
+	var door: Vector2 = shops[i]["door"]
+	var at3 := Vector3(door.x, map.ground_height(door.x, door.y), door.y)
+	if wallet != null and int(wallet.keep.get("frogs_day", 0)) != EggBook.today():
+		_load_stamps()
+	var today: Array = wallet.keep.get("frogs_today", []) if wallet != null else []
+	var r := stamp_rule(i, today, stamps)
+	if sfx != null:
+		sfx.play_at("frog_chime", at3)
+	if not r["stamp"]:
+		if _clock - _line_t > LINE_GAP and dialogue != null:
+			_line_t = _clock
+			dialogue.say(func() -> Vector3: return at3, "Frogs", "rechotka", "", 4.0, FROGS_COLOUR, 2.6)
+		return
+	today.append(i)
+	stamps += 1
+	stamped_today = today.size()
+	if r["free"]:
+		print("rechotka: stamp %d, the free hot dog (+%d respect)" % [stamps, FREE_RESPECT])
+		stamps = 0
+		if wallet != null:
+			wallet.add_respect(FREE_RESPECT)
+		if hud != null:
+			hud.show_note("HOT DOG GRATIS! · FREE HOT DOG!", "Karta stałego klienta: 10/10 · +%d ★" % FREE_RESPECT, FROGS_COLOUR)
+		if dialogue != null:
+			dialogue.say(func() -> Vector3: return at3, "Frogs", "rechotka", "free", 4.5, FROGS_COLOUR, 2.6, true)
+	else:
+		print("rechotka: stamp %d (shop %d, %d today)" % [stamps, i, today.size()])
+		if hud != null:
+			hud.toast("FROGS · PIECZĄTKA %d/%d" % [stamps, STAMPS_CARD], "Frogs · stamp %d of %d" % [stamps, STAMPS_CARD])
+		if dialogue != null:
+			dialogue.say(func() -> Vector3: return at3, "Frogs", "rechotka", "stamp", 4.0, FROGS_COLOUR, 2.6, true)
+	_line_t = _clock
+	if wallet != null:
+		wallet.keep["frogs_stamps"] = stamps
+		wallet.keep["frogs_today"] = today
+		wallet.save()
+
+
+## --stamps=K: the card starts at K (for the free hot dog's check).
+func preset_stamps(k: int) -> void:
+	stamps = clampi(k, 0, STAMPS_CARD - 1)
+	if wallet != null:
+		wallet.keep["frogs_stamps"] = stamps
+
+
+## --rechotka: the car on the lane nearest the door of the placed Frogs nearest it, stopped.
+func _rig(vp: Vector3) -> void:
+	var best := -1
+	var bd := INF
+	for i in shops.size():
+		if int(shops[i]["state"]) != 1:
+			continue
+		var d := (shops[i]["door"] as Vector2).distance_to(Vector2(vp.x, vp.z))
+		if d < bd:
+			bd = d
+			best = i
+	if best < 0 or bd > 400.0 or car == null:
+		return
+	var door: Vector2 = shops[best]["door"]
+	var hit: Array = graph.snap(door, 20.0, Vector2.ZERO, false, true)
+	if hit.is_empty():
+		return
+	var p: Vector2 = graph.point(hit[0], hit[2], graph.lane_offset(hit[0], hit[1]), graph.seek(hit[0], hit[2], graph.e_first[hit[0]]))
+	var d: Vector2 = graph.direction(hit[0], hit[2])
+	car.global_position = Vector3(p.x, graph.surface(hit[0], p) + 0.1, p.y)
+	car.rotation.y = atan2(-d.x, -d.y)
+	car.set("vel", Vector3.ZERO)
+	car.set("forward_speed", 0.0)
+	car.reset_physics_interpolation()
+	_rig_done = true
+	print("rechotka: --rechotka: the car %.1f m from Frogs %d's door (%s)" % [p.distance_to(door), best, shops[best]["name"]])
+
+
+# --- the knock-about ------------------------------------------------------------------------------
+
+## The car within KNOCK_R m of a lying Leżak pushes it 1-3 m on (never onto a lane): the clatter,
+## the `lezak` `knock` aside at most once a minute, its sector's MultiMesh rewritten once.
+func _knock_check(vp: Vector3, kmh: float) -> void:
+	if kmh < 3.0 or _lezak_grid.is_empty():
+		return
+	var c := Vector2i(floori(vp.x / LEZAK_CELL), floori(vp.z / LEZAK_CELL))
+	for dx in [-1, 0, 1]:
+		for dz in [-1, 0, 1]:
+			for i: int in _lezak_grid.get(c + Vector2i(dx, dz), []):
+				var s := scooters[i]
+				if s["up"]:
+					continue
+				var at: Vector3 = s["at"]
+				var d := Vector2(at.x - vp.x, at.z - vp.z)
+				if d.length() > KNOCK_R + 0.9:
+					continue
+				_knock(i, d, kmh)
+
+
+func _knock(i: int, away: Vector2, kmh: float) -> void:
+	var s := scooters[i]
+	var at: Vector3 = s["at"]
+	var dir := away.normalized() if away.length() > 0.01 else Vector2.RIGHT
+	var push := clampf(kmh / 15.0, 1.0, 3.0)
+	var to := Vector2.INF
+	while push >= 0.5:
+		var q := Vector2(at.x, at.z) + dir * push
+		if graph == null or graph.snap(q, 2.6).is_empty():
+			to = q
+			break
+		push -= 0.5
+	if to == Vector2.INF:
+		to = Vector2(at.x, at.z) + dir * 0.3
+	var old_c := Vector2i(floori(at.x / LEZAK_CELL), floori(at.z / LEZAK_CELL))
+	s["at"] = Vector3(to.x, map.ground_height(to.x, to.y), to.y)
+	s["yaw"] = float(s["yaw"]) + 0.6
+	var new_c := Vector2i(floori(to.x / LEZAK_CELL), floori(to.y / LEZAK_CELL))
+	if new_c != old_c:
+		(_lezak_grid[old_c] as Array).erase(i)
+		if not _lezak_grid.has(new_c):
+			_lezak_grid[new_c] = []
+		(_lezak_grid[new_c] as Array).append(i)
+	_write_lezaks(s["key"])
+	if sfx != null:
+		sfx.play_at("scooter_clatter", s["at"])
+	if log_on:
+		print("storefronts: Leżak %d knocked %.1f m to %.1f, %.1f" % [i, push, to.x, to.y])
+	if _clock - _knock_t > KNOCK_GAP and dialogue != null and dialogue.bubbles != null:
+		_knock_t = _clock
+		var l: Array = dialogue.line("lezak", "knock", true)
+		if not l.is_empty():
+			var p3: Vector3 = s["at"]
+			dialogue.bubbles.say(func() -> Vector3: return p3, "", l[0], l[1], 3.5, Color("#8e44d9"), 1.6)
+
+
+## For the bench's and the check's counters.
+func summary() -> String:
+	var placed := 0
+	var failed := 0
+	for s in shops:
+		placed += 1 if int(s["state"]) == 1 else 0
+		failed += 1 if int(s["state"]) == 2 else 0
+	var vp := 0
+	for v in venues:
+		vp += 1 if int(v["state"]) == 1 else 0
+	return "Frogs %d placed, %d without a wall, %d waiting · venues %d of %d · stamps %d (%d today)" % [placed, failed,
+			shops.size() - placed - failed, vp, venues.size(), stamps, stamped_today]

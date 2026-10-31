@@ -3848,6 +3848,95 @@ unchanged.
   does, the tree stops once per path. A spawned mover is cleared of the car at once (a random
   point of a path could be under it: the 25-minute soak found one).
 
+## Storefronts and parodies (loop MW-2, 2026-10-30)
+
+docs/design/parodies.md 2-10 and vision.md section 5 row 3 (loop 2d-2 folded in). Code:
+`storefronts.gd` (new: the Frogs, the venue neon, the Leżaks, the metro entrances, the stamp
+card, the knock, the kebab boards and the five billboards, the two eggs' places), `props.gd`
+(the meshes: `frogs_shop`, `lezak`, `add_scooter_zone`, `add_metro_entrance`, `pedzik_rider`,
+`named_kebab_stand`), `city_life.gd` (the Pędzik couriers), `jobs.gd` (the stands as per-tile
+MultiMeshes, `stand_points`, `name_stand`, `tag_stand`), `eggs.gd` (`billboard_line`; the KEBAB
+billboard now finds its stand), `rides.gd` / `ride_rules.gd` (the `rechotka` quirk and the
+`detour` passenger live), `main.gd` (flags, `_build_storefronts`, the sector hook), `sfx.gd` and
+`tools/make_sfx.py` (`frog_chime`, `scooter_clatter`). Data: `dialogue.json` (parodies.md 7's
+missing lines merged, none changed), `eggs.json` (`easter_rechotka`, `easter_lezak`: 47 cards).
+Everything is built at runtime from the data, on both city paths (the prebuilt sectors hold
+none of it); nothing new casts a sun shadow.
+
+- **Where things stand.** The baked data has no `shop=convenience`, `subway_entrance`,
+  `bicycle_rental` or `scooter` pois (BACKLOG "From loop MW-2": the map lane's list), so
+  `storefronts.gd` picks from what it has: the 3,332 address pois (`door` is the road point,
+  `x, z` the building), the lane graph's junctions and the notebook's resolved places.
+- **Frogs** (parodies.md 2): an address within 26 m of a junction (`JUNCTION_REACH`), off the
+  landmarks and 20 m from the kebab pois and the venues, 70 m apart (`SPACING`), at most 24 a km²
+  in the hero districts and 10 elsewhere, two in the Old Town; a fixed shuffle (no randomness at
+  run time). **Triple corners**: Świętokrzyska × Marszałkowska and Plac Zbawiciela (`TRIPLES`),
+  three Frogs 60° apart round one junction, from the addresses and then twelve sites round the
+  junction looked for out to 80 m (`CORNER_FAR`), with spares that stand only if one of the
+  three finds no wall. 248 picked, ~200 placed (a Frogs needs a wall).
+- **On the wall.** Placement waits for the sector: when a sector is shown, rays at 1.2 m from
+  the road point towards the building (`_wall`) find the sector's own wall collider, then a
+  square-on ray from just in front of that hit and two more ±2.6 m along it must meet the same
+  plane (within 0.35 m) under a roof 5 m up. The shop's mesh (5 × 0.9 m green fascia FROGS at a
+  0.12 m letter pixel, the window, the door, a lily-pad blade sign with "24") goes 0.02 m out,
+  in one MultiMesh per sector ("Frogs", +1 draw call where any is in view). LoD2 facades work the
+  same way (they are colliders too); untested here (no `lod2.*` in this container).
+- **The stamp card** (2.4): stopped (under 2 m/s for 2 s) within 8 m of a Frogs door: the
+  `frog_chime`, a stamp (toast `FROGS · PIECZĄTKA n/10`), a `rechotka` `stamp` line; one a shop a
+  day, ten a day; the 10th is the free hot dog (+10 respect, a note card, the `free` line), and
+  the card starts again. Kept in the wallet's `keep` (`frogs_stamps`, `frogs_day`,
+  `frogs_today`). `storefronts.gd stamp_rule` is the rule.
+- **Podwózka**: the `rechotka` quirk is in the random pool once Frogs exist, at a junction with a
+  Frogs within 30 m (a triple corner first); 15 % *guess* of passengers are `detour`: after 8 s
+  they ask for a Frogs (`podwozka_passenger` `detour`), and a 2 s stop by one is +½ star once.
+- **The venues** (vision 3.1-3.2): the 17 venues' parody names as neon on their facades (18
+  signs: Glon twice; Syreni Szept is closed, dark), from the address, else the nearest road, else
+  the nearest address within 140 m. Two-line names (MIŁOŚĆ / HIPOTECZNA, PRZEGRYZKI / ZAGRYZKI,
+  KASA / BILETOWA); ŻWIR upstairs at 6.5 m. The rows are drawn into an extended copy of
+  `neon_signs.gd`'s atlas at setup (that file and `pixel_font.gd` are prebuilt-sector inputs,
+  so they stay as they are) and set on each sector's neon material; the sign quads join the
+  sector's own `Neon` MultiMesh: **+0 draw calls**. Letter pixel 0.12 m, down to 0.08 m where the
+  straight wall is short; 0.14 m off the facade.
+- **Leżaks** (5): 30 a km² in the hero districts, 12 elsewhere, on the pavement 12-20 m out of
+  junctions (never within 2 m of a lane's middle), lying at a random yaw; one Frogs door in 30
+  has one; parking zones (a white 3 × 1.5 m rectangle) every 400 m in the hero districts with
+  two or three lying round each, and the one standing in the zone nearest Metro Nowy
+  Świat-Uniwersytet (`easter_lezak`). One MultiMesh per sector ("Lezaks", in `fine_detail`,
+  hidden in wide views). **The knock**: the car within 1.2 m pushes one 1-3 m (not onto a lane),
+  `scooter_clatter`, a `lezak` `knock` aside at most once a minute.
+- **Pędzik** (4): couriers in magenta with the 0.45 m square backpack (200 triangles), 4 round
+  the view by day and 6 at night (21-06), × the life amount; half on the cycle paths, half on the
+  footways, 5-7 m/s; `city_life.gd`'s movers (they step aside from the car like the cyclists).
+  One city MultiMesh of 16 ("Pedzik", +1 in view): the bike family's mesh already holds its four
+  morph shapes. A near miss (within 4 m, the car over 10 km/h) gets a `pedzik` bubble, once per
+  30 s. Not built: the kerb-edge riding, the couriers waiting at the stands, the race (BACKLOG).
+- **Metro entrances** (vision 3.5): up to three on the pavement within 70 m of each of nine
+  station places (Ratusz Arsenał, Świętokrzyska, Centrum, Politechnika, Rondo ONZ, …), a glass
+  canopy and an M post; they and the zones' paint are one "StreetProps" mesh per sector (+1 where
+  any).
+- **Kebab stands** (6.1): jobs.gd's 42 stands are now one MultiMesh per 512 m tile
+  ("KebabStands", a small caster: its sun shadow on High only); U ZDZICHA (Hala Mirowska) and NA CIENKIM (Plac Zbawiciela) get a name board,
+  the halls' and the stadium's stands their own `kebab_vendor` lines (`stand_tag`).
+- **Billboards** (6.2): eggs.gd's five plus FROGS · TU TEŻ, PODWÓZKA · GPS WIE LEPIEJ, PĘDZIK,
+  LEŻAK and WIRALEK (the `signs` lines), text only (PixelLab pictograms: BACKLOG); the KEBAB one
+  now stands by its kebab poi.
+- **The eggs**: `easter_rechotka` (stop 2 s within 30 m of the first triple corner's junction,
+  +20 respect), `easter_lezak` (stop 2 s within 12 m of the standing Leżak, +20); egg_book's
+  cards, moved to their places by `storefronts.gd` (`move_egg`).
+- **Cost**: setup ~230 ms at the city's start (headless desktop); the wall rays once per sector
+  as it shows (`_physics_process`); the hook a frame 3 µs headless (`check_parodies`); no
+  per-frame scans (16 m cells for the knock, 64 m cells for the doors, a 2 Hz tick); the bench's
+  `storefronts` 0.01 ms. Draw calls (software Vulkan, all passes, day / night): Nowy Świat
+  116 → 121 / 95 → 100, Centrum 131 → 133 / 102 → 104, Świętokrzyska's triple corner 131 → 141 /
+  108 → 115, zoomed out there (125 m) 155 → 167, the helicopter 210 → 220, the bench route
+  120 → 121 (parodies.md 8's ceiling: +15 / 17 / 20). The new billboards cast a sun shadow like
+  eggs.gd's older five (+2 shadow draws on High where one is in view).
+- **Check**: `check_parodies.gd` (verify step `parodies`, CI too): the rules, the picks on
+  `centrum.json` (spacing, density, triples, venues and names, walls in 2D from the outlines,
+  Leżaks and metro off the lanes), the brand denylist, the lines and the font, the wall ray on a
+  synthetic facade, the hooks (stamps, the free hot dog once, the knock, the two eggs once), the
+  cost and the meshes' triangles.
+
 ## The easy-driving loop: drive through the small props (2026-10-30)
 
 The user's call: small things don't stop the car. Lamps and signal poles never had colliders;
@@ -4352,11 +4441,14 @@ Command-line options (after `--`):
 | `--kebab=N` | put the car in a stand's ring and take kebab order N (the same N gives the same order; stand N mod 7) |
 | `--sloik` / `--sloik=K` | start the słoiki run at Dworzec Centralny (K jars already broken) |
 | `--ride=N` | loop 2d-1: Podwózka ride N's request, the car on the road 60 m before its passenger (the same N gives the same ride; with `--ride-quirk=river` or `zone` the passenger is picked near river spot / park N, so the leg fits); with `--autopilot` it is accepted after 2 s and driven |
-| `--ride-quirk=river\|zone\|oldtown\|rechotka\|reroute` | loop 2d-1: force the ride's quirk (`oldtown` becomes `zone` on today's map; `rechotka`, the Frogs turn, only by flag until the shops exist) |
-| `--passenger=normal\|believer\|hurry` | loop 2d-1: force the passenger type |
+| `--ride-quirk=river\|zone\|oldtown\|rechotka\|reroute` | loop 2d-1: force the ride's quirk (`oldtown` becomes `zone` on today's map; `rechotka`, the Frogs turn: in the random pool since loop MW-2) |
+| `--passenger=normal\|believer\|hurry\|detour` | loop 2d-1: force the passenger type (loop MW-2: `detour` asks for a Frogs stop, +½ star once) |
+| `--no-parodies` | loop MW-2: no storefronts (Frogs, venue neon, Leżaks, metro entrances, the new billboards) and no Pędzik couriers |
+| `--rechotka` | loop MW-2: the car on the lane by the nearest placed Frogs' door, stopped (the stamp in 2 s) |
+| `--stamps=K` | loop MW-2: the Frogs card starts at K stamps (9: the next stop is the free hot dog) |
 | `--stars=X` | loop 2d-1: the live rating starts at X (1–5; for card shots) |
 | `--ignore-app` | loop 2d-1: the autopilot drives the shortest road to the door, not the app's route |
-| `--parody-log` | loop 2d-1: print `ride:` lines (the offer, the pickup, the quirk and its waypoint, every star change and why, the arrival, the pay with the wallet before and after, cancels, the autopilot's legs) and `gps:` lines (each GPS moment in traffic) |
+| `--parody-log` | loop 2d-1 (and MW-2: `storefronts:` lines, each Frogs and venue on its wall or not, each Leżak knocked): print `ride:` lines (the offer, the pickup, the quirk and its waypoint, every star change and why, the arrival, the pay with the wallet before and after, cancels, the autopilot's legs) and `gps:` lines (each GPS moment in traffic) |
 | `--gps-in=S` | loop 2d-1: the app-taxis' first GPS moment is looked for S seconds in (screenshots) |
 | `--pullover-frame=N` | loop 2d-1: the `--pullover=TAG` conversation at frame N instead of 60 (e.g. during a `--ride`) |
 | `--heat=X` | the kebab's starting heat, 0–1 (for a cold-arrival screenshot) |
