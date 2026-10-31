@@ -73,6 +73,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (the first scene's buildings, the Palace, the Old Town square, the Castle, the towers, the
   stadium, the bridges) against their photos, worst score first. Wanted later: an automatic
   check for coplanar faces (z-fighting) in a site's mesh.
+- **Model checks from the research** (2026-10-31, report in the project files "Детальніші моделі
+  будівель"): (1) `game/tools/check_mesh_quality.gd`, run on each landmark site's mesh arrays:
+  coplanar overlapping faces (z-fighting: group triangles by plane, test 2D overlap, ~0.01 m²),
+  zero-area and flipped triangles, parts touching neither the ground nor another part (FAIL);
+  parts inside parts and T-junction gaps (WARN, for the art-director); per-site allow-lists;
+  joins `tools/verify.sh`. (2) A game flag that renders one landmark alone, unlit and as a
+  silhouette, for the judge's shots. (3) Later: golden-image shots runtime vs `--prebuilt`,
+  a flicker probe (two frames, a tiny camera move, diff), the Old Town's gables and a
+  straight-skeleton roof bake (map lane), fewer directional shadow splits (perf lane). The
+  rubric anchors, photo-first judging, the parts table and the two-round cap are in the
+  model-from-photos skill already.
 - **The first scene, polished to the maximum** (the user, 2026-10-31): the place the player sees
   first must make a "wow". Default place: Marszałkowska by Plac Defilad (the Palace, the museum,
   the Eastern Wall, the towers), where the spawn and DEMO 6.2's first minutes already are; the

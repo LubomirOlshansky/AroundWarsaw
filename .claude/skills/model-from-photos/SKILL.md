@@ -47,6 +47,9 @@ photos say goes into the spec as values. Sections, every value filled:
 6. **Ground and night**: what stands at its foot (steps, a forecourt, a canopy, the sign under
    a parody name), what lights up at night.
 7. **Detail level and budget** (below), and the shots to take.
+8. **Parts table**: one row per part (id, shape, size, position, material code, which identity
+   feature it serves). The builder names its functions after the part ids, and a failed check
+   or a reviewer's fix points at a row, not at prose.
 
 ## 3. Detail levels
 
@@ -64,22 +67,58 @@ higher, named in the spec); the site's triangle budget goes into `check_sites.gd
 No new material, light or MultiMesh without a measured before/after draw-call count. Window
 grids belong in `building.gdshader`'s window rhythm, not one mesh per window.
 
-## 4. The photo check (after the build)
+## 4. The checks, in this order (research 2026-10-31)
+
+Cheap checks first, the expensive eye last: retrying on error feedback is what makes code-built
+models work; longer agent runs don't improve the shape, and the commonest failures (floating
+parts, z-fighting) are ones a judge looking at shots misses.
+
+1. **Automatic** (the builder, before any review): `tools/verify.sh --quick`, the site's
+   triangle budget, and the mesh check when it exists (BACKLOG: `check_mesh_quality.gd`:
+   coplanar overlapping faces, zero-area and flipped triangles, parts touching neither the
+   ground nor another part). A FAIL goes back to the builder, not to the reviewer.
+2. **The builder's own look** at the matched shots against the photos.
+3. **The reviewer** (`art-director`, Opus), section 5 below.
+4. **At most two fix rounds** between builder and reviewer; still failing after two, the spec
+   is wrong or open: the lane session re-specs or asks the user. No third guess.
+
+**Detail without draw calls.** The Mobile renderer has no automatic instancing: N copies of
+a column as separate nodes cost N draw calls. Cornices, pilasters, columns, battlements and
+lamps on a landmark are triangles merged into the site's mesh with the shared material; only a
+kind repeated across the whole map gets one MultiMesh. No new node, material or decal per detail.
+
+## 5. The photo check (after the build)
 
 - **Matched shots**: for each reference photo that shows the silhouette, a game shot from the
   nearest angle (`--at=x,z` and the camera, helicopter for aerial views), at 2532x1170, day.
   Plus the usual before/after at the default view.
-- **Side by side**: the reviewer opens the photo and the shot together and scores 1-5:
-  silhouette, proportions, colour, identity features (each one named: there or missing),
-  facade rhythm, ground. Pass: every score ≥ 4 for L3, ≥ 3 for L2. A missing identity
-  feature is a fail whatever the scores.
+- **Shots for the judge**: besides the lit matched shots, one unlit (flat colour) shot and one
+  silhouette on a plain background per main angle, with the landmark alone when the flag
+  exists: shape errors hide in lighting and street clutter.
+- **Side by side, photo first**: the reviewer opens the photos and shots and scores them
+  *before* reading the spec (a judge favours what it wrote or read; the spec comes after, to
+  name what is missing). Scores 1-5 on silhouette, proportions, colour, identity features
+  (each one named: there or missing), facade rhythm, ground. Every score cites what in the
+  shot earns it ("the spire's base is 1.4x too wide against photo 2"). Pass: every score ≥ 4
+  for L3, ≥ 3 for L2. A missing identity feature is a fail whatever the scores. A one-point
+  difference is within a judge's noise: a borderline score is looked at again, not argued.
+- **Anchors** (what the numbers mean, the same for every landmark):
+
+  | Score | Silhouette and proportions | Colour | Identity features | Facade rhythm | Ground |
+  | --- | --- | --- | --- | --- | --- |
+  | 5 | reads as the photo's outline from its angle; every volume's ratio within ~10 % | the photo's hues, calmed to the palette, right light/dark split | all there and placed right | bays and storeys counted right, base/middle/top clear | what stands at its foot is there |
+  | 3 | recognisable, one volume or ratio clearly off | right family, one part wrong | all there, one misplaced or crude | rhythm close, one band or level missing | partly |
+  | 1 | could be another building | wrong colour family | one or more missing | generic grid | nothing |
+
+- **Choosing between two builds**: compare them pairwise, twice with the order swapped; if the
+  two answers disagree, call it a tie.
 - **Defects** (automatic where a check exists, by eye always): z-fighting and flicker on
   coplanar faces, a part inside another, floating or sunken parts, gaps at joins, faces that
   vanish at a zoom.
 - **The user picks last**: the report to the user shows photo, before and after for each hero
   landmark; the user's "no" sends it back.
 
-## 5. Who does what
+## 6. Who does what
 
 | Step | Who | Model |
 | --- | --- | --- |

@@ -52,6 +52,10 @@ tries. Other items in the brief go on.
 
 ## Gates (before you report)
 
+Order matters (model-from-photos skill, section 4): the automatic checks first, a FAIL is
+yours to fix before anyone reviews. After two review rounds that still fail, stop and
+escalate: the spec needs changing, not a third try.
+
 1. `tools/verify.sh --quick` PASS (or the set the brief names); paste the table.
 2. Matched shots: for each reference photo that shows the silhouette, a game shot from the
    nearest angle (model-from-photos skill, section 4), named after the photo.
