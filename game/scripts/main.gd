@@ -107,6 +107,7 @@ const OldTram := preload("res://scripts/old_tram.gd")
 const Garage := preload("res://scripts/garage.gd")
 ## Loop 3h slice 4: the guided first 10 minutes and the end card.
 const First10 := preload("res://scripts/first10.gd")
+const StopAssist := preload("res://scripts/stop_assist.gd")
 const MAP_PATH := "res://map/centrum.json"
 
 ## Visual styles to compare on the phone. lines = vertical resolution of the pixel image.
@@ -4302,6 +4303,7 @@ func _process(dt: float) -> void:
 		hud.set_speed(roundi(absf(car.forward_speed) * 3.6))
 		missions.tick(dt, pos, car.vel.length(), false)
 	_show_target()
+	_stop_assist()
 	var heading: float = heli.rotation.y if flying else car.rotation.y
 	hud.update_minimap(Vector2(pos.x, pos.z), heading, deg_to_rad(cam_yaw))
 	# The see-through hole: aimed at the cabin and smaller for the helicopter, which is
@@ -4689,6 +4691,24 @@ func _view_census() -> String:
 
 func _vehicle_position() -> Vector3:
 	return heli.global_position if flying else car.global_position
+
+
+## The quest stop assist (stop_assist.gd): hands the car the ring of the errand on now, in the
+## arrow's order (a race has none), so it brakes itself into it.
+func _stop_assist() -> void:
+	var at := Vector3.INF
+	if flying or (rivals != null and rivals.has_target()):
+		pass
+	elif trend_job != null and trend_job.has_target():
+		at = trend_job.stop_spot()
+	elif rides != null and rides.has_target():
+		at = rides.stop_spot()
+	elif jobs != null and jobs.has_target():
+		at = jobs.stop_spot()
+	elif missions.has_target():
+		at = missions.stop_spot()
+	car.assist_at = at
+	car.assist_reach = StopAssist.RING
 
 
 ## The arrow and minimap dot for the mission target.

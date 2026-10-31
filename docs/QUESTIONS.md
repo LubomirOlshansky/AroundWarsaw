@@ -18,6 +18,13 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · driving · quest stop assist** — Every pickup and drop-off (rescue, Podwózka,
+  kebab and słoiki doors, "Na czasie", the Leżak depot) now has a 9 m ring (was 6-7), counts
+  under ~16 km/h as stopped (was 4-9 km/h), and the car brakes itself into the ring when it heads
+  in and holds still ~1.5 s; BRAKE at a standstill reverses out. Always on, no setting. Default
+  built: that. Alternatives: a setting to switch the auto-brake off, or the assist only on touch
+  controls (keyboard players get it too now).
+
 - **2026-10-31 · gameplay · the game map** — Teleport: free and unlimited, by holding a spot for
   0.6 s; refused during a race, a job, a rescue, a police chase and the first-drive guide. The
   districts' and ladder cards now sit behind a ≡ button (hidden when the map opens) so the map

@@ -17,6 +17,7 @@ extends Node
 ## night only while no job runs) and the shared beacon: +0-1 draw calls near a depot.
 
 const Beacon := preload("res://scripts/beacon.gd")
+const StopAssist := preload("res://scripts/stop_assist.gd")
 const Missions := preload("res://scripts/missions.gd")
 
 ## Teal (the passengers' and goods' job colour, as the słoiki); the pins in Leżak's violet.
@@ -26,7 +27,9 @@ const FAIL_COLOUR := Color("#e2574c")
 const DEPOT_SPACING := 1200.0
 const DEPOT_R := 7.0
 const DEPOT_SPEED := 8.0
-const UNLOAD_SPEED := 2.5
+## Unloading at the depot is a quest stop (stop_assist.gd): its ring and its "stopped".
+const UNLOAD_R := StopAssist.RING
+const UNLOAD_SPEED := StopAssist.STOP_SPEED
 const WANT := 10
 ## Fewer than this within reach: no job at that depot tonight.
 const AT_LEAST := 4
@@ -148,6 +151,14 @@ func target_position() -> Vector3:
 	var i := _next()
 	if i >= 0:
 		return store.scooters[i]["at"]
+	return depots[depot]["at"]
+
+
+## Where the car should stop now (stop_assist.gd): the depot, once the way leads back to unload
+## (the Leżaks themselves are a slow drive-by, not a stop).
+func stop_spot() -> Vector3:
+	if not has_target() or boot <= 0 or _next() >= 0:
+		return Vector3.INF
 	return depots[depot]["at"]
 
 
@@ -312,7 +323,7 @@ func _collect_tick(dt: float) -> void:
 				break
 	var at: Vector3 = depots[depot]["at"]
 	var dd := _flat(p, at)
-	if boot > 0 and dd < DEPOT_R and car.vel.length() < UNLOAD_SPEED and not flying:
+	if boot > 0 and dd < UNLOAD_R and car.vel.length() < UNLOAD_SPEED and not flying:
 		unloaded += boot
 		print("roundup: unloaded %d at the depot (%d back) at %.0f s" % [boot, unloaded, clock])
 		hud.toast("WYŁADOWANO %d · RAZEM %d/%d" % [boot, unloaded, unloaded + targets.size()],
