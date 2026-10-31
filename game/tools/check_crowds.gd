@@ -10,7 +10,8 @@ extends SceneTree
 ##   4. the sites at their places (five queues on a footway within 40 m, the steps, Plan C);
 ##   5. the door: a rejection every 30-60 s while a queue of 4+ is on screen (none off screen or
 ##      with a short queue; each a `club_door` reject line); the car at the door's `car` line once
-##      a club a night, never fast or flying;
+##      a club a night, never fast or flying (the garage loop: painted black, `car_black` instead,
+##      and no egg asked at Smoła's door);
 ##   6. the dawn crowd's routes over the real footways (A*), and on a synthetic grid; its walkers
 ##      (30 at 05:45 in the Dawn look, none on a Live Wednesday, none at 09:00) on their routes;
 ##   7. the levels the eggs read, and the eggs E03 E04 E10 E14 E15 firing on synthetic inputs
@@ -340,7 +341,24 @@ func _check_door(c: Crowds, dlg: FakeDialogue) -> void:
 	now = {"hour": 1.0, "weekday": 7}
 	_run_ticks(c, 2.0)
 	_expect(dlg.count("club_door", "car") == lines0 + 2, "the next night: the car line again")
+	# The garage loop: painted black, the next night: the `car_black` line instead; no egg at Smoła.
+	var eggs_asked: Array[String] = []
+	c.paint = func() -> String: return "black"
+	c.egg = func(id: String) -> bool:
+		eggs_asked.append(id)
+		return true
+	var black0 := dlg.count("club_door", "car_black")
+	now = {"hour": 1.0, "weekday": 1}
+	_run_ticks(c, 45.0)
+	_expect(dlg.count("club_door", "car_black") == black0 + 1 and dlg.count("club_door", "car") == lines0 + 2,
+			"the black car: %d car_black lines (want 1), %d car lines (want none)" % [dlg.count("club_door", "car_black") - black0,
+			dlg.count("club_door", "car") - lines0 - 2])
+	_expect(eggs_asked.is_empty(), "an egg asked at Smoła's door: %s" % [eggs_asked])
+	c.paint = Callable()
+	c.egg = Callable()
 	veh = [Vector3.INF, 0.0, false]
+	now = {"hour": 1.0, "weekday": 7}
+	_run_ticks(c, 2.0)
 	# The police by Smoła (no police node: the officer alone), and their level.
 	_expect(c.police_on and c.levels.get("police_club", 0.0) == 1.0 and smola["officer"] != Vector3.INF, "the police by Smoła at Saturday's 01:00")
 	now = {"hour": 14.0, "weekday": 6}
@@ -455,7 +473,8 @@ func _check_eggs(c: Crowds, nb: Notebook) -> void:
 	book.setup(places, {"palma": Vector3(palm_xz.x, 0.0, palm_xz.y)}, {})
 	for id in ["e03", "e04", "e15"]:
 		_expect(not book.eggs[book.by_id[id]].has("waits"), "%s still waits" % id)
-	_expect(book.eggs[book.by_id["e01"]].has("waits"), "e01 should wait for the garage's paint")
+	# The garage loop woke E01: an event at Lusterko's door (crowds.gd `door_egg`, check_garage).
+	_expect(str(book.eggs[book.by_id["e01"]]["trigger"]["kind"]) == "event" and not book.eggs[book.by_id["e01"]].has("waits"), "e01 is the garage loop's event")
 	for id in ["e23", "e24", "e25"]:
 		_expect(str(book.eggs[book.by_id[id]]["trigger"]["kind"]) == "event" and not book.eggs[book.by_id[id]].has("waits"), "%s is the night-buses loop's event" % id)
 	# [egg, state additions, the crowd levels it wants, the levels that aren't enough]

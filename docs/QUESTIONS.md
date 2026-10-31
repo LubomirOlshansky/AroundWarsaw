@@ -19,6 +19,17 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · content · garage** — When does Mirek's garage open? Default built: after the first
+  earnings (a job, any złoty, or an owned paint), not the 10:00 clock beat.
+- **2026-10-31 · content · garage** — Prices: cream 150, pea green 180, Vistula blue 200, tram
+  yellow 250, black 300, doughnut pink 350 zł; factory red free; Mermaid gold free at 5 eggs found.
+  Default built: as listed (a guess to tune).
+- **2026-10-31 · content · garage** — Black at night reads as a dark teal slate with silver stripes
+  (a stronger glow so it doesn't vanish). Default built: that. Art director / visuals to judge.
+- **2026-10-31 · content · garage** — The garage is on Brzeska (narrow, one-way; the ring fills the
+  street). Default built: Brzeska. Alternative: a wider kerb on Ząbkowska or Targowa.
+- **2026-10-31 · content · garage** — Mirek's 12 lines (dialogue group `garage`) were written in this
+  loop. Default built: as written, for the designer's review.
 - **2026-10-31 · content · vintage tram** — Without Live the clock's looks are always Friday, so the
   vintage tram (weekends 09:00–19:00) almost never runs and E39 is hard to find. Default built: the
   game's weekend only. Alternative: one run an hour in the Day look whatever the day.

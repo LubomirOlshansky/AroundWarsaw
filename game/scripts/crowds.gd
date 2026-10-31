@@ -8,7 +8,8 @@ extends Node3D
 ##    footway nearest the place (no storefronts yet: MW-2), dark clothes, the bouncer at the head;
 ##    the door turns one away every 30-60 s while a queue of 4 or more is on screen (a `club_door`
 ##    `reject` bubble); the car at the door (< 10 km/h within 8 m) gets the bouncer's `car` line
-##    once per club per night (`car_black` and egg E01 wait for the garage's paint);
+##    once per club per night (the garage loop: painted black, the `car_black` line; at Lusterko's
+##    door on a Friday or Saturday night, 23:00-06:00, egg E01 through `egg`, `door_egg`);
 ##  - **Level 26's roof crowd** on the tower's top at its place (vision's roof curve), when the
 ##    roof grid says the tower is there; F's asks (2026-10-30): the place's anchor moved onto the
 ##    tower (places.json `near`), the figures stand by the parapet of the roof grid's outline
@@ -148,6 +149,11 @@ var sounds: Node
 ## Loop MW-4: a trend queue's length now and its line's tag, (id) -> [n, tag] (city_life.gd
 ## `trend_queue`); unset: the trend queues stay empty.
 var trend: Callable
+## The garage loop: the car's paint now (garage.gd's id), -> String; unset: the factory red.
+var paint: Callable
+## The garage loop: an egg at a door (egg_book.gd `fire` with the probe's state), (id) -> bool:
+## true on its first find.
+var egg: Callable
 ## --crowd=: 0 none (this node isn't built), 1 normal, 2 double; the Low tier halves it.
 var amount := 1.0
 ## --night-log: queues, rejections, the dawn walkers each minute and every event.
@@ -295,6 +301,12 @@ static func police_time(hour: float, weekday: int) -> bool:
 ## The car at the door: near and slow, on the ground.
 static func car_at_door(dist: float, kmh: float, flying: bool) -> bool:
 	return not flying and dist <= CAR_NEAR and kmh < CAR_KMH
+
+
+## The garage loop: the egg a car painted `paint_id` finds at club `site`'s door ("" none): E01,
+## the black car at Lusterko (its night and hours are the egg's own conditions, egg_book.gd).
+static func door_egg(site: String, paint_id: String) -> String:
+	return "e01" if site == "lusterko" and paint_id == "black" else ""
 
 
 # --- setup ---------------------------------------------------------------------------------
@@ -1058,14 +1070,24 @@ func _door(s: Dictionary, step: float, veh: Array) -> void:
 			s["chat_t"] = _rng.randf_range(CHAT_GAP.x, CHAT_GAP.y)
 			_say_from_queue(s)
 	var p: Vector3 = veh[0]
-	if p != Vector3.INF and int(s["car_night"]) != _night_key and int(s["n"]) > 0 \
-			and car_at_door(Vector2(p.x, p.z).distance_to(door), float(veh[1]), bool(veh[2])):
+	var at_door := p != Vector3.INF and car_at_door(Vector2(p.x, p.z).distance_to(door), float(veh[1]), bool(veh[2]))
+	var paint_id: String = str(paint.call()) if paint.is_valid() else "red"
+	# The garage loop: the black car at Lusterko's door finds E01 (once; the egg's conditions are
+	# its night and hours) and gets the black line then, queue or not.
+	var key := door_egg(str(s["id"]), paint_id) if at_door else ""
+	if key != "" and egg.is_valid() and bool(egg.call(key)):
 		s["car_night"] = _night_key
 		car_lines += 1
-		# Black paint (car_black, egg E01) waits for the garage: always the `car` line for now.
-		_say(_anchor(s, 0), "Bramka", "club_door", "car", BUBBLE)
+		_say(func() -> Vector3: return door3 + Vector3(0, 2.0, 0), "Bramka", "club_door", "car_black", BUBBLE)
 		if log_on:
-			print("night: the car at %s's door (%.0f km/h): the bouncer's car line" % [s["id"], float(veh[1])])
+			print("night: the black car at %s's door (%.0f km/h): egg %s and the car_black line" % [s["id"], float(veh[1]), key])
+	elif at_door and int(s["car_night"]) != _night_key and int(s["n"]) > 0:
+		s["car_night"] = _night_key
+		car_lines += 1
+		var tag := "car_black" if paint_id == "black" else "car"
+		_say(_anchor(s, 0), "Bramka", "club_door", tag, BUBBLE)
+		if log_on:
+			print("night: the car at %s's door (%.0f km/h, paint %s): the bouncer's %s line" % [s["id"], float(veh[1]), paint_id, tag])
 
 
 ## The door turns the head of the queue away: the bouncer's `reject` line; half of them rejoin the

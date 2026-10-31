@@ -53,6 +53,9 @@
 # 09-19, Live Jun-Sep) and one run an hour, the follow count and its reset, the look's draw-call
 # budget (2 car meshes, no node added), a run on the real tracks finding E39 once; centrum.json only
 # (CI too).
+# The garage loop: `garage` runs game/tools/check_garage.gd: Warsztat u Mirka's paints and rules,
+# buying and switching (10 seeded walks), the save, the car's paint, Mirek's lines, E01 and E21
+# once; no map at all (CI too).
 # `streaming` runs game/tools/check_streaming.gd
 # (loop 3c) WITH a renderer (a window opens for a minute or two): every sector built from its
 # file is the whole city, vertex for vertex; 10 spots rendered with --monolithic and with the
@@ -85,8 +88,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud places eggs tape crowds life buses oldtram parodies jobs2 rides cost landmarks sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places eggs tape crowds life buses oldtram parodies jobs2 rides cost landmarks sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud places eggs tape crowds life buses oldtram garage parodies jobs2 rides cost landmarks sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places eggs tape crowds life buses oldtram garage parodies jobs2 rides cost landmarks sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -552,6 +555,7 @@ for s in $want; do
 		life) check life '^check_city_life:' --script res://tools/check_city_life.gd ;;
 		buses) check buses '^check_buses:' --script res://tools/check_buses.gd ;;
 		oldtram) check oldtram '^check_old_tram:' --script res://tools/check_old_tram.gd ;;
+		garage) check garage '^check_garage:' --script res://tools/check_garage.gd ;;
 		life-soak) life_soak ;;
 		# Loop 2d-1: Podwózka's star and pay tables, the streak and the cancel rules, its lines.
 		rides) check rides '^check_rides:' --script res://tools/check_rides.gd ;;

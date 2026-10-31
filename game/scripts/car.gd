@@ -178,6 +178,13 @@ var _beams: Node3D
 var _night_beams: MeshInstance3D
 var _spot: SpotLight3D
 var _flash := 0.0
+## The garage loop: the body's paint and stripes and their night glow (garage.gd PAINTS; the
+## factory red by default), and the body's MeshInstance3D, whose mesh `set_paint` makes again.
+var paint := Color("#d8432f")
+var stripe := Color("#f4efe4")
+var paint_glow := HERO_PAINT
+var stripe_glow := HERO_STRIPE
+var _body_mesh: MeshInstance3D
 ## 0..1, how far the city's lights are on (time_of_day.gd); the game sets it every frame.
 var lights := 0.0:
 	set(value):
@@ -641,12 +648,12 @@ func _make_body() -> Node3D:
 	# windscreen, a glasshouse narrower at the roof, side windows with pillars, eight-sided
 	# wheels in dark arches with light hub caps, black bumpers, a roof spoiler, round head
 	# lamps), the stripes running over the nose, bonnet, roof and tailgate; still 3 meshes.
+	# The garage loop: the paint and the stripes are the car's (`set_paint`).
 	var root := Node3D.new()
-	var paint := Color("#d8432f")
-	var stripe := Color("#f4efe4")
-	var meshes := Models.player_meshes(Models.fin(paint, Models.HERO, HERO_PAINT),
-			Models.fin(stripe, Models.HERO, HERO_STRIPE))
+	var meshes := Models.player_meshes(Models.fin(paint, Models.HERO, paint_glow),
+			Models.fin(stripe, Models.HERO, stripe_glow))
 	_part(root, meshes[0], Models.material(), true)
+	_body_mesh = root.get_child(0) as MeshInstance3D
 	var lamp := StandardMaterial3D.new()
 	lamp.albedo_color = Color("#fff3c4")
 	lamp.roughness = 0.8
@@ -664,6 +671,18 @@ func _make_body() -> Node3D:
 	_tails.append(tail)
 	_part(root, meshes[2], tail, false)
 	return root
+
+
+## The garage loop: a new paint job. The body's one mesh is made again once with the new vertex
+## colours (the same shared material, so no new draw call or shader); the lamps stay.
+func set_paint(body: Color, stripes: Color, body_glow := HERO_PAINT, stripes_glow := HERO_STRIPE) -> void:
+	paint = body
+	stripe = stripes
+	paint_glow = body_glow
+	stripe_glow = stripes_glow
+	if _body_mesh != null:
+		_body_mesh.mesh = Models.player_meshes(Models.fin(paint, Models.HERO, paint_glow),
+				Models.fin(stripe, Models.HERO, stripe_glow))[0]
 
 
 ## Light thrown on the road ahead while flashing: two pale fans, drawn after the

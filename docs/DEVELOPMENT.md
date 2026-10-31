@@ -3641,7 +3641,8 @@ Data: `data/eggs.json` (45 cards) and `data/kadr.json` (15 spots); the then card
   at the payphone): **reachable 40, waiting 7** (E01 E21 E23 E24 E25 E35 E39). The night-buses loop woke E23
   E24 E25 (`event`s seen by `buses.gd`): **reachable 43, waiting 4** (E01 E21 E35 E39). The
   vintage-tram loop woke E39 (an `event` seen by `old_tram.gd`): **reachable 44, waiting 3** (E01
-  E21 E35).
+  E21 E35). The garage loop woke E01 (an `event`: `crowds.gd` at Lusterko's door) and E21 (a `stop`
+  with the `paint` condition): **reachable 46, waiting 1** (E35; "The garage" below).
 - **KASETA** (`tape.gd`): the 20 then cards at their notebook places. Within 40 m of one, on the
   ground under 12 km/h, the context button reads KASETA · time tape; a tap plays it: the VHS
   overlay for 6 s, a tape-rewind sound (procedural, seeded, no file), a dithered ghost of the
@@ -3719,8 +3720,8 @@ condition). Lines: the vision's groups already in `dialogue.json` (`club_door`, 
   dark clothes, a broader bouncer at the door. The door: a `club_door` `reject` bubble every
   30-60 s while a queue of 4 or more is on screen (the one turned away goes to the end, or for
   a kebab), a `clubbers` line every 35-60 s. The car at the door (under 10 km/h within 8 m):
-  the bouncer's `car` line once per club per night; `car_black` and E01 wait for the garage's
-  paint.
+  the bouncer's `car` line once per club per night (the garage loop: painted black, `car_black`;
+  at Lusterko on a Friday or Saturday night 23:00-06:00 egg E01 and that line, queue or not).
 - **Level 26's roof crowd**: built only where the roof grid has a tower over 40 m at the place.
   F's asks (2026-10-30): `places.json` `near` moved onto the tower at Plac Zawiszy (it was 520 m
   west of it; the map's 116 m tower, OSM "Atlas Tower" parts, centre about −2224, 1012), so it
@@ -4220,6 +4221,84 @@ It drives the traffic's own buses (`traffic.gd`'s BUS pool of 8, main roads only
   | The set in view on Marszałkowska (`--probe --at=-1113.2,-263.4 --heading=160 --time=day --old-tram`, headless) | | scripts 2.63 ms, "old tram" 0.00 ms (under 5 µs a frame) |
   | Plain day at the spawn (`--probe --time=day`), rendered | 128 (main 58 / shadow 35 / 2D 35) | 128 (58 / 35 / 35) |
   | The same tram there as a modern three-car tram vs the old set, rendered | 134 (61 / 38 / 35) | 132 (60 / 37 / 35): one car fewer in each 3D pass |
+
+## The garage: Warsztat u Mirka and the paint jobs (the garage loop, 2026-10-31)
+
+docs/DEMO.md 6.2's 10:00 beat and 6.3 "Progression" (złoty buy paint jobs; collectibles open a gold
+paint), checklist F4. Code: `garage.gd` (new: the place, the paints, the rules, a 4 Hz look at the
+ring), `garage_card.gd` (new: the paint card), `wallet.gd` (`spend`, `paint`, `paints`; the save's
+`[garage]` section), `car.gd` (`set_paint`), hooks in `main.gd` (section "the garage loop"),
+`hud.gd` / `full_map.gd` (the diamond), `crowds.gd` (the black car at the doors), `egg_book.gd`
+(the `paint` and `nights` conditions). Data: dialogue.json's `garage` group (Mirek's lines: `hello`,
+`buy`, `black`, `green`, `gold`, `switch`, `short`, `locked`), eggs.json's E01 and E21 triggers.
+
+- **The place**: "Warsztat u Mirka" on Brzeska in Praga (a real street, an invented workshop;
+  Mirek is an invented type), at the lane graph's point nearest `Garage.SPOT` (1321, -1948). A
+  dashed ring in the garage's blue (`#5aa0ff`, jobs.gd's pull-in look, radius 6 m) on the street,
+  and a blue diamond on the minimap (pinned to the rim up to 1.5 km away) and the full map. No sign
+  on the building (the venue neon path needs a places.json place; a later item).
+- **When it shows**: once the player has earned anything (`open_rule`: a job done, złoty in the
+  wallet, or a paint already bought); the default for the beat's "after the first earnings"
+  (in the demo's first ten minutes that is the first kebab's pay). The first time, a toast:
+  "Warsztat u Mirka otwarty: Brzeska, Praga. Lakier za złotówki." The ring is always open then.
+- **The card**: drive into the ring and stop (under 1.5 m/s) with nothing else on (no job, ride,
+  race, rescue, police, helicopter, map or settings open): the game pauses under the card like the
+  settings card. Title and wallet, Mirek's line (Polish over English), the eight paints as
+  swatches (the colour with its stripe, the Polish name, the price, "na aucie · on", "masz · yours"
+  or "k/5 sekretów"), the action for the swatch picked (KUP ZA 300 ZŁ · Buy, LAKIERUJ · Paint it
+  free, BRAKUJE 120 ZŁ, ZA 5 SEKRETÓW; greyed when it can't be done) and WYJAZD · Drive off (Esc
+  too). Leaving takes 20 m before the card can open again.
+- **The paints** (`Garage.PAINTS`; prices *guess*, tuned against the first ten minutes: a kebab
+  pays ~25-45 zł, Seba's race 150, a rescue ~80-110, so the first paint is reachable by ~10 min):
+
+  | id | Name | Price | Note |
+  | --- | --- | --- | --- |
+  | red | Fabryczna czerwień · Factory red | free | the default |
+  | cream | Kremowy · Cream | 150 zł | red stripes |
+  | green | Zielony groszek · Pea green | 180 zł | egg E21 |
+  | blue | Wiślany błękit · Vistula blue | 200 zł | |
+  | yellow | Żółty jak tramwaj · Tram yellow | 250 zł | dark stripes |
+  | black | Czarny lakier · Black paint | 300 zł | egg E01; glows 4.5 (not 1.4) and wears silver stripes that glow 0.9, so it reads at night |
+  | pink | Różowy pączek · Doughnut pink | 350 zł | |
+  | gold | Złoto Syrenki · Mermaid gold | free at 5 egg cards found | DEMO 6.3's collectible unlock |
+
+  Owned paints are kept (`wallet.paints`: id -> the day bought); switching between them is free.
+  The save has no version number, so nothing was bumped: an old save without `[garage]` loads as
+  the factory red with nothing owned.
+- **The car**: `car.set_paint(body, stripes, glow, stripe_glow)` makes the body's one mesh again
+  with the new vertex colours (actor.gdshader's hero part, the same shared material): once per
+  change, no new material, node or draw call.
+- **E01** (`Czarny lakier`, +50): the car painted black within 8 m of Lusterko's door under
+  10 km/h, on a Friday or Saturday night (`nights` [5, 6]: 01:30 on a Saturday is Friday's night)
+  between 23:00 and 06:00. `crowds.gd` `door_egg` sees it at the door and calls
+  `egg_book.fire("e01")` (the egg's conditions are its paint, night and hours); the bouncer's
+  `car_black` line comes with it, queue or not. Elsewhere a black car at a door gets `car_black`
+  instead of `car`.
+- **E21** (`Pasujesz do menu`, +15): stop 2 s within 25 m of Glon painted green; the café's
+  `viral` `glon` line over the car.
+- **Testing aids** (flags table): `--paint=<id>`, `--garage`, `--garage=ring`, `--garage-log`;
+  `--egg=e01` / `--egg=e21` set the paint and put the car at Lusterko's door / Glon.
+- **Check**: `check_garage.gd` (verify step `garage`, quick set and CI; needs no map): the paints
+  (8, prices 150-400, black 300, gold behind 5 eggs), the rule in every case, buying with enough
+  and too little money, switching free, the gold lock, 10 seeded walks of 200 taps (the wallet
+  never below 0, paid = the prices of what was bought, nothing bought twice), the save round trip
+  and an old save, the car's body recoloured with the same material and node count, Mirek's lines
+  (every tag, both languages, ≤ 70 characters), E01 and E21 on synthetic inputs (not without their
+  paint, night or hours; once each, +50 / +15). `check_hud.gd` lays out the card at its six screens
+  in four states (on, to buy, short, locked).
+- **Cost** (Linux container; before = the code at HEAD from a copy; headless bench with
+  `--fixed-fps 60`, two runs each interleaved; draw calls rendered with the software Vulkan driver
+  at 1280×720, `--probe --time=day`):
+
+  | View | Before | After |
+  | --- | --- | --- |
+  | Bench route, day (headless, scripts total) | 5.11, 4.08 ms (earlier 5.03, 5.75) | 4.11, 5.26 ms (noise); "garage" 0.00 ms |
+  | Plain day at the spawn, rendered (main / shadow / 2D) | 127 (57 / 35 / 35) | 127 (57 / 35 / 35) |
+  | Brzeska by the garage, ring not shown (`--at=1310,-1959 --heading=138`) | 91 (34 / 22 / 35) | 92 (35 / 22 / 35), the same 35 nodes in view (a moving actor) |
+  | The garage's ring in view (`--garage=ring`, its own camera) | | 97 (38 / 24 / 35); the ring is one unshaded mesh, no shadow: +1 main draw while in view, 0 away |
+
+  The diamond joins the minimap's one triangle batch (+0 2D draws). The card, open, is a 2D panel
+  of its own (the game paused); a new paint makes the body's mesh once (same material).
 
 ## The easy-driving loop: drive through the small props (2026-10-30)
 
@@ -4876,6 +4955,9 @@ Command-line options (after `--`):
 | `--bus-log` | night-buses loop: print `buses:` lines: the hub's bays and stops, each gathering and ring bus, the car at the ring, the race to the Palm, each honk and called bus, the stop lines, a summary every 20 s |
 | `--honk=F1,F2,...` | night-buses loop: the player honks on those frames (as the horn button; rate-limited) |
 | `--life-soak` | loop MW-4: a Friday dusk; the car is driven at the nearest dog walker or rider at 7 m/s, every frame counts a dog, walker or rider inside the car's footprint (`life: soak done … overlaps 0`); verify step `life-soak` |
+| `--paint=<id>` | garage loop: the car starts in that paint (`red`, `cream`, `green`, `blue`, `yellow`, `black`, `pink`, `gold`), owned for the run (use with `--nosave`) |
+| `--garage` / `--garage=ring` | garage loop: start in Warsztat u Mirka's ring on Brzeska, the garage shown whatever the wallet, the paint card open a moment in (free roam, no title; implies `--garage-log`); `=ring`: 16 m short of the ring, no card |
+| `--garage-log` | garage loop: print `garage:` lines: the place, the card opening and closing, each buy and switch |
 | `--club=<id>` | loop MW-3: start at that club (`lusterko`, `smola`, `jasna_0`, `lombard`, `milosc_hipoteczna`, or its name): the car on the lane nearest its door (within 60 m), free roam, no title |
 | `--notes-log` | loop MW-1: print `notes:` lines: each place's resolution at load (`notes: place <id> address\|name\|poi\|near N m from the hint (x, z)`), each find (`notes: found <id> (chapter N, k/8)`) and each chapter completed |
 | `--call-in=S` | loop 2e: the first rescue call comes in after S seconds of play (default 60) |

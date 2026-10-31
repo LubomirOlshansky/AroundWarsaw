@@ -2,7 +2,8 @@ extends Node
 ## The player's wallet and record, shared by every activity and kept between
 ## sessions in user://save.cfg (a ConfigFile): złoty and respect, jobs done by kind,
 ## best times, and the easter eggs found. Races pay the rival's stake, rescues and
-## side jobs pay their fares and tips. No shop yet: the money is for bragging.
+## side jobs pay their fares and tips. The garage loop: the złoty buy paint jobs at Warsztat u
+## Mirka (garage.gd: `spend`, `paint`, `paints`; the save's [garage] section).
 
 signal changed(zl: int, respect: int, gained: int)
 
@@ -49,6 +50,10 @@ var kadr_photos := {}
 ## Loop MW-6: the egg cards in all (egg_book.gd sets it from data/eggs.json; the five of v0.65 alone
 ## without it).
 var eggs_total := 0
+## The garage loop: the paint on the car (garage.gd PAINTS id; "red", the factory paint, by
+## default) and the paints bought (id -> the day, yyyymmdd; the factory red is never listed).
+var paint := "red"
+var paints := {}
 ## False with --nosave: nothing is read or written.
 var persistent := true
 ## Loop MW-5: the save's file (check_radio.gd points it at a scratch file of its own).
@@ -96,6 +101,10 @@ func load_save() -> void:
 		kadr[key] = int(cfg.get_value("kadr", key, 0))
 	for key in (cfg.get_section_keys("kadr_photos") if cfg.has_section("kadr_photos") else PackedStringArray()):
 		kadr_photos[key] = str(cfg.get_value("kadr_photos", key, ""))
+	paint = str(cfg.get_value("garage", "paint", "red"))
+	for key in (cfg.get_section_keys("garage") if cfg.has_section("garage") else PackedStringArray()):
+		if key.begins_with("own_"):
+			paints[key.trim_prefix("own_")] = int(cfg.get_value("garage", key, 1))
 
 
 func save() -> void:
@@ -128,6 +137,9 @@ func save() -> void:
 		cfg.set_value("kadr", key, kadr[key])
 	for key in kadr_photos:
 		cfg.set_value("kadr_photos", key, kadr_photos[key])
+	cfg.set_value("garage", "paint", paint)
+	for key in paints:
+		cfg.set_value("garage", "own_" + str(key), int(paints[key]))
 	cfg.save(path)
 
 
@@ -149,6 +161,8 @@ func reset() -> void:
 	tapes.clear()
 	kadr.clear()
 	kadr_photos.clear()
+	paint = "red"
+	paints.clear()
 	save()
 	changed.emit(zl, respect, 0)
 
@@ -163,6 +177,18 @@ func pay(amount: int, gain := 0, kind := "") -> void:
 	save()
 	changed.emit(zl, respect, amount)
 	print("wallet: +%d zł, +%d respect (%s) -> %d zł, respect %d" % [amount, gain, kind if kind != "" else "-", zl, respect])
+
+
+## The garage loop: pays `amount` złoty out of the wallet (a paint job) and saves; false (nothing
+## paid) when there are not that many.
+func spend(amount: int) -> bool:
+	if amount < 0 or amount > zl:
+		return false
+	zl -= amount
+	save()
+	changed.emit(zl, respect, -amount)
+	print("wallet: -%d zł (garage) -> %d zł, respect %d" % [amount, zl, respect])
+	return true
 
 
 ## Loop 3g-1: respect only (an escape from the police, +15); the złoty are never touched.
@@ -227,8 +253,8 @@ func egg_count() -> int:
 
 
 func summary() -> String:
-	return "%d zł, respect %d, jobs %s, best %s, eggs %d/%d, notebook %d, tapes %d, kadr %d" % [zl, respect, jobs, best,
-			eggs_found(), egg_count(), notes.size(), tapes.size(), kadr.size()]
+	return "%d zł, respect %d, jobs %s, best %s, eggs %d/%d, notebook %d, tapes %d, kadr %d, paint %s (%d bought)" % [zl, respect,
+			jobs, best, eggs_found(), egg_count(), notes.size(), tapes.size(), kadr.size(), paint, paints.size()]
 
 
 ## "1 240 zł": thousands apart with a space, the Polish way.

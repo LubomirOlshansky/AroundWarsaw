@@ -35,6 +35,9 @@ var car_yaw := 0.0
 var unknown := PackedVector2Array()
 var found := PackedVector2Array()
 var target := Vector2.INF
+## The garage loop: Warsztat u Mirka's diamond (INF: not shown yet).
+var garage := Vector2.INF
+var garage_colour := Color.WHITE
 var target_colour := Color.WHITE
 var night := 0.0
 
@@ -223,6 +226,10 @@ func _paint() -> void:
 		var at := to_screen(q)
 		if view.has_point(at):
 			hud._tri_question(at, 1.6)
+	if garage != Vector2.INF:
+		var g := to_screen(garage)
+		if view.has_point(g):
+			hud._tri_diamond(g, 6.5 * pt, garage_colour)
 	if target != Vector2.INF:
 		var t := to_screen(target)
 		hud._tri_fan(t, 5.0 * pt, 0.0, TAU, hud.OUTLINE)
