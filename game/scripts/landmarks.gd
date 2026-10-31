@@ -239,6 +239,15 @@ const INFO := {
 	"muzeum": ["Muzeum Narodowe",
 			"Gmach z lat 1927–1938 przy Alejach Jerozolimskich.",
 			"The museum's building of 1927–1938 on Al. Jerozolimskie."],
+	"wiktoria": ["Hotel Wiktoria",
+			"Hotel z 1976 roku przy Królewskiej, z widokiem na plac Piłsudskiego.",
+			"A hotel of 1976 on Królewska, looking out over Plac Piłsudskiego."],
+	"bez_kantow": ["Dom bez Kantów",
+			"Modernizm z zaokrąglonymi narożnikami. Kantów tu nie ma.",
+			"Modernism with rounded corners: no kanty (edges, or swindles)."],
+	"departament": ["Departament Wojskowej Służby Zdrowia",
+			"Przy Królewskiej, na skraju placu Piłsudskiego.",
+			"On Królewska, at the edge of Plac Piłsudskiego."],
 	"europejski": ["Hotel Europejski",
 			"Klasycystyczny hotel z lat 1857–1877 przy Krakowskim Przedmieściu.",
 			"A classical hotel of 1857–1877 on Krakowskie Przedmieście."],
@@ -334,6 +343,9 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 	for t: Dictionary in SKINS:
 		if t["key"] == key:
 			return Color(t["wall"])
+	# Plac Piłsudskiego, part 2: the square's models and skins.
+	if PLAC_WALLS.has(key):
+		return Color(PLAC_WALLS[key])
 	return fallback
 
 
@@ -616,6 +628,12 @@ func build(surface, near := Rect2()) -> void:
 				_build_europejski(s)
 			"grob":
 				_build_grob(s)
+			"metropolitan":
+				_build_metropolitan(s)
+			"wiktoria":
+				_build_wiktoria(s)
+			"krolewska":
+				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
 				if s.has("tower"):
 					_build_tower(s)
@@ -1684,7 +1702,6 @@ const SKINS := [
 	{"key": "wszystkich", "osm": "Kościół Wszystkich Świętych", "mode": M_MONUMENT, "wall": "#ddcfaa", "roof": "#6e7f6e"},
 	{"key": "aleksander", "osm": "Kościół Świętego Aleksandra", "mode": M_MONUMENT, "wall": "#ebe4d2", "roof": "#7f8f88"},
 	{"key": "mirowska", "osm": "Hala Mirowska", "mode": M_STONE, "wall": "#a85c40", "roof": "#6d7470"},
-	{"key": "metropolitan", "osm": "Metropolitan", "mode": M_SKIN + S_FINS / 16.0, "wall": "#7f8d94", "roof": "#9a9a96"},
 	{"key": "sejm", "osm": "Sejm RP", "mode": M_MONUMENT, "wall": "#e2e0d8", "roof": "#8d8f8c"},
 ]
 
@@ -1727,7 +1744,7 @@ func _find_muzeum() -> void:
 			_add_site("muzeum", zone)
 			if not sites.is_empty() and sites[-1]["key"] == "muzeum":
 				sites[-1]["ring"] = ring
-				sites[-1]["h"] = float(bld["h"])
+				sites[-1]["h"] = maxf(float(bld["h"]), MUZEUM_WINGS)
 				sites[-1]["courts"] = courts
 			return
 
@@ -2197,7 +2214,10 @@ const MUZEUM_AXIS := Vector2(0.964, -0.267)
 const MUZEUM_TANK := Vector2(53.8, 211.0)
 const MUZEUM_GUN := Vector2(56.5, 233.0)
 const MUZEUM_YARD_DIR := Vector2(-0.276, -0.961)
-const MUZEUM_TOP := 20.0           # the entrance block's parapet, over the 14 m wings
+## Plac part 2: the heights are estimates (OpenStreetMap tags the wings building:levels=4,
+## which the bake turns into 14.2 m at 3.3 m a storey; the museum's galleries are taller storeys).
+const MUZEUM_TOP := 25.0           # the entrance block's parapet (estimate; was 20 m)
+const MUZEUM_WINGS := 18.5         # the wings' parapet (estimate: four storeys of about 4.4 m)
 const MUZEUM_PLINTH := Color("#a99f8b")
 const MUZEUM_GLASS := Color("#3b424b")
 const ARMY_OLIVE := Color("#5a6141")
@@ -2294,9 +2314,9 @@ func _parapet(ring: PackedVector2Array, y: float, height: float, col: Color) -> 
 
 
 ## Muzeum Narodowe: Tadeusz Tołwiński's stripped-classical block in pale stone. The mapped
-## outline straightened, on a darker plinth, to its mapped height with a parapet; tall narrow
+## outline straightened, on a darker plinth, to its wings' height (MUZEUM_WINGS) with a parapet; tall narrow
 ## window bays in a steady rhythm on every front; at the back of the forecourt the raised
-## entrance block (20 m) with its recessed glazed portal behind four square piers under a
+## entrance block (MUZEUM_TOP) with its recessed glazed portal behind four square piers under a
 ## lintel, two tall bays either side, and steps; on the east courtyard's lawn the army museum's
 ## hardware: a tank and a field gun on concrete pads.
 func _build_muzeum(site: Dictionary) -> void:
@@ -2322,7 +2342,7 @@ func _build_muzeum(site: Dictionary) -> void:
 	_mode = M_GLASS
 	_wall(_w(-6.5, -2.56), _w(6.5, -2.56), g, g + 12.5, front, MUZEUM_GLASS)
 	for u in [-9.6, 9.6]:
-		_wall(_w(u - 0.65, -2.56), _w(u + 0.65, -2.56), g + 2.0, g + 17.5, front, MUZEUM_GLASS, 0.1)
+		_wall(_w(u - 0.65, -2.56), _w(u + 0.65, -2.56), g + 2.0, g + MUZEUM_TOP - 2.5, front, MUZEUM_GLASS, 0.1)
 	for u in [-4.875, -1.625, 1.625, 4.875]:
 		_lbox(u, -3.5, 0.55, 0.55, g, g + 12.5, light, M_STONE, light)
 	_lbox(0.0, -3.4, 7.0, 0.95, g + 12.5, g + 13.6, light, M_STONE, light)
@@ -2400,6 +2420,7 @@ func _find_plac() -> void:
 	if grob.size() >= 3:
 		var grown := Geometry2D.offset_polygon(grob, 1.0, Geometry2D.JOIN_MITER)
 		_add_site("grob", [grown[0] if not grown.is_empty() else grob])
+	_find_plac2()
 
 
 ## Hotel Europejski (1857-1877, Enrico Marconi): a long cream classical block. A rusticated
@@ -2529,3 +2550,277 @@ func _arch(u0: float, u1: float, v: float, y_spring: float, y_top: float, col: C
 	_tri(at.call(u0, y_top), at.call(cu, y_spring + r), at.call(u1, y_top), n, col,
 			uv.call(u0, y_top), uv.call(cu, y_spring + r), uv.call(u1, y_top), top)
 	_mode = keep
+
+
+# --- Plac Piłsudskiego, part 2 (2026-10-31) ---------------------------------------------------
+
+## The square's other edges. The Metropolitan (its mapped outline; it wore the towers' fin skin
+## since the landmarks loop) and Hotel Wiktoria (the parody name of the 1976 hotel on Królewska,
+## mapped as an outline only: GUGiK's LoD2 draws it, OpenStreetMap has no building there) are
+## models; the Królewska edge's blocks keep their LoD2 or OpenStreetMap shapes in their own
+## stone (`skin_at`). Heights: the Metropolitan's are the mapped parts' (building:levels);
+## the hotel's are estimates (docs/DEVELOPMENT.md says which).
+##
+## The Metropolitan (Foster + Partners, 2003): three seven-storey blocks round a circular
+## courtyard, joined over three passages; the curved fronts are glass behind close vertical
+## granite fins; the seventh storey stands back; a round fountain in the courtyard's floor.
+const METRO_COURT := Vector2(-800.3, -932.0)   # the courtyard's centre (the blocks' inner arcs)
+const METRO_COURT_R := 25.4
+## The three passages into the courtyard: the middles of the bridges mapped over them (6.6 m up).
+const METRO_GATES := [Vector2(-806.8, -900.0), Vector2(-826.5, -949.5), Vector2(-775.2, -947.6)]
+## The three blocks' plant rooms (the mapped 23.1-27.4 m parts), by their middles.
+const METRO_BLOCKS := [Vector2(-832.6, -921.6), Vector2(-804.6, -963.0), Vector2(-775.4, -909.0)]
+const METRO_H := 20.8          # the fin walls' top (mapped: six storeys)
+const METRO_RING_H := 24.1     # the seventh storey (mapped), METRO_SETBACK behind the fins
+const METRO_TOP_H := 27.4      # the plant rooms (mapped)
+const METRO_SETBACK := 2.0
+const METRO_GATE_H := 6.6
+const METRO_GATE_W := 6.0
+const METRO_FIN_STEP := 1.8    # the fins: one every 1.8 m round the fronts, 0.34 m thick, 0.9 m deep
+const METRO_FIN_W := 0.34
+const METRO_FIN_D := 0.9
+const METRO_GRANITE := Color("#bfb8ac")
+const METRO_GLASS := Color("#5d6c73")
+const METRO_ROOF := Color("#9a9a96")
+const METRO_PAVING := Color("#aaa59c")
+const METRO_GATE := Color("#2a2d30")
+const METRO_POOL := Color("#47606c")
+const METRO_JET := Color("#e4eff2")
+## Hotel Wiktoria: a 1970s slab on a podium. The slab runs along the Królewska front (the north
+## edge of its outline) WIKTORIA_SLAB_D deep, in ribbon windows of bronze-tinted glass between
+## pale spandrel bands (S_BANDS); the podium fills the outline in dark glass (S_DARK, its lobby
+## lit at night) under a stone fascia; a plant room on the slab.
+const WIKTORIA_H := 30.0          # the slab's roof: an estimate (nine storeys over the podium's two)
+const WIKTORIA_PODIUM_H := 8.0    # the podium's fascia: an estimate
+const WIKTORIA_SLAB_D := 18.0     # the slab's depth: an estimate (a double-loaded hotel floor)
+const WIKTORIA_GLASS := Color("#4c4640")
+const WIKTORIA_DARK := Color("#3c3b3a")
+const WIKTORIA_STONE := Color("#cdc9c0")
+const WIKTORIA_ROOF := Color("#8d8c88")
+## The Królewska edge, kept as LoD2 (or OpenStreetMap) draws it but in its own stone: by name
+## (the landmark outlines), and the unnamed block on the square's south-east corner by a point in
+## its west wing (`bake_sectors.py` SITE_AREAS carries it; no card, so not on the picking grid).
+## `mode` M_MONUMENT draws tall windows between piers, a value under 1 the city's plain windows
+## with that seed (Dom bez Kantów's modernist rows).
+const PLAC_SKINS := [
+	{"key": "bez_kantow", "osm": "Dom Bez Kantów", "mode": 0.37, "wall": "#d3cec2", "roof": "#85837e"},
+	{"key": "departament", "osm": "Departament Wojskowej Służby Zdrowia", "mode": M_MONUMENT, "wall": "#dccfb2", "roof": "#7c7871"},
+]
+const KROLEWSKA_BLOCK := Vector2(-660.0, -790.0)
+const KROLEWSKA_WALL := Color("#d9d0bb")
+const KROLEWSKA_ROOF := Color("#7f7c76")
+## The far skyline's colour of each (sector_proxies.gd, through `tower_colour`).
+const PLAC_WALLS := {"metropolitan": "#8a979c", "wiktoria": "#6f6b66", "europejski": "#e7ddc5",
+		"grob": "#ddd3bf", "bez_kantow": "#d3cec2", "departament": "#dccfb2", "krolewska": "#d9d0bb"}
+
+
+func _find_plac2() -> void:
+	var metro := _landmark("Metropolitan")
+	if metro.size() >= 3:
+		_add_site("metropolitan", [metro])
+		if not sites.is_empty() and sites[-1]["key"] == "metropolitan":
+			sites[-1]["ring"] = _simplify(metro, 0.4)
+	var hotel := _landmark("Sofitel Victoria")
+	if hotel.size() >= 3:
+		_add_site("wiktoria", [hotel])
+		if not sites.is_empty() and sites[-1]["key"] == "wiktoria":
+			sites[-1]["ring"] = _simplify(hotel, 0.8)
+	for t: Dictionary in PLAC_SKINS:
+		var outline := _landmark(t["osm"])
+		if outline.size() < 3:
+			continue
+		_add_site(t["key"], [outline])
+		if not sites.is_empty() and sites[-1]["key"] == t["key"]:
+			sites[-1]["skin"] = {"mode": t["mode"], "wall": Color(t["wall"]), "roof": Color(t["roof"])}
+	for bld in data["buildings"]:
+		var q := _pts(bld["p"])
+		if q.size() >= 4 and float(bld["h"]) >= 8.0 and _box_of([q]).has_point(KROLEWSKA_BLOCK) \
+				and Geometry2D.is_point_in_polygon(KROLEWSKA_BLOCK, q):
+			_add_site("krolewska", [q])
+			if not sites.is_empty() and sites[-1]["key"] == "krolewska":
+				sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": KROLEWSKA_WALL, "roof": KROLEWSKA_ROOF}
+			return
+
+
+## The Metropolitan: the outline's fronts in glass (M_GLASS) behind granite fins standing out
+## from the ground to the parapet; the courtyard's wall in glass with painted fins (S_FINS: seen
+## only from above); dark openings where the three passages go through, under a granite lintel;
+## a flat roof with a parapet; the seventh storey set back, the three plant rooms on top; in the
+## courtyard the paving and the round fountain with its jets.
+func _build_metropolitan(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	var court := _circle(METRO_COURT, METRO_COURT_R, 40)
+	_prism(ring, g - 0.6, g + METRO_H, METRO_GLASS, none, M_GLASS)
+	_inside_wall(court, g - 0.6, g + METRO_H, METRO_GLASS, M_SKIN + S_FINS / 16.0)
+	_mode = M_STONE
+	_cap_holes(ring, [court], g + METRO_H, METRO_ROOF)
+	_parapet(ring, g + METRO_H, 0.9, METRO_GRANITE)
+	_parapet(court, g + METRO_H, 0.9, METRO_GRANITE)
+	# The passages: where each meets the outer front and the courtyard.
+	var doors := PackedVector2Array()
+	for gate: Vector2 in METRO_GATES:
+		var d := (gate - METRO_COURT).normalized()
+		var t := Vector2(-d.y, d.x)
+		var p := _exit_point(ring, METRO_COURT, d, 120.0)
+		doors.append(p)
+		var half := METRO_GATE_W * 0.5
+		_mode = M_STONE
+		_wall(p + d * 0.45 - t * half, p + d * 0.45 + t * half, g - 0.6, g + METRO_GATE_H, d, METRO_GATE)
+		_wall(p + d * 0.95 - t * (half + 0.6), p + d * 0.95 + t * (half + 0.6), g + METRO_GATE_H, g + METRO_GATE_H + 0.9, d, METRO_GRANITE)
+		var q := METRO_COURT + d * (METRO_COURT_R - 0.3)
+		_wall(q - t * half, q + t * half, g - 0.6, g + METRO_GATE_H, -d, METRO_GATE)
+	_fins(ring, g - 0.6, g + METRO_H + 0.9, METRO_FIN_STEP, METRO_FIN_W, METRO_FIN_D, METRO_GRANITE, doors,
+			METRO_GATE_W * 0.5 + 0.8)
+	# The seventh storey, set back from the fins and from the courtyard.
+	var upper := _largest(Geometry2D.offset_polygon(ring, -METRO_SETBACK, Geometry2D.JOIN_MITER))
+	var court2 := _circle(METRO_COURT, METRO_COURT_R + METRO_SETBACK, 40)
+	var light := METRO_GLASS.lightened(0.1)
+	if upper.size() >= 3:
+		_prism(upper, g + METRO_H, g + METRO_RING_H, light, none, M_GLASS)
+		_inside_wall(court2, g + METRO_H, g + METRO_RING_H, light, M_GLASS)
+		_mode = M_STONE
+		_cap_holes(upper, [court2], g + METRO_RING_H, METRO_ROOF.lightened(0.05))
+		_parapet(upper, g + METRO_RING_H, 0.6, METRO_GRANITE)
+		# The plant rooms: each block's outer part, inside a wedge round its middle.
+		var inner := _largest(Geometry2D.offset_polygon(ring, -6.0, Geometry2D.JOIN_MITER))
+		var core := _circle(METRO_COURT, METRO_COURT_R + 10.0, 24)
+		for mid: Vector2 in METRO_BLOCKS:
+			var d := (mid - METRO_COURT).normalized()
+			var wedge := PackedVector2Array([METRO_COURT, METRO_COURT + d.rotated(-0.45) * 120.0,
+					METRO_COURT + d * 120.0, METRO_COURT + d.rotated(0.45) * 120.0])
+			for piece in Geometry2D.intersect_polygons(inner, wedge):
+				for part in Geometry2D.clip_polygons(piece, core):
+					if absf(_area(part)) > 40.0:
+						_prism(_simplify(part, 0.4), g + METRO_RING_H, g + METRO_TOP_H, light.lightened(0.08), METRO_ROOF,
+								M_GLASS, M_STONE)
+	# The courtyard: its paving, the round fountain and its jets.
+	var gc: float = map.terrain_height(METRO_COURT.x, METRO_COURT.y)
+	_mode = M_STONE
+	_cap(court, gc + 0.04, METRO_PAVING)
+	_prism(_circle(METRO_COURT, 7.0, 24), gc - 0.2, gc + 0.22, METRO_GRANITE, METRO_POOL, M_STONE, M_STONE)
+	for k in 8:
+		var j := METRO_COURT + Vector2.from_angle(TAU * k / 8.0) * 4.2
+		_beam(Vector3(j.x, gc + 0.22, j.y), Vector3(j.x, gc + 1.7, j.y), 0.14, METRO_JET)
+	_collide(ring)
+
+
+## A wall round the inside of a ring (a courtyard), facing its middle, in `mode`.
+func _inside_wall(ring: PackedVector2Array, y0: float, y1: float, col: Color, mode: float) -> void:
+	var keep := _mode
+	_mode = mode
+	var run := 0.0
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		_wall(a, b, y0, y1, -_out(ring, a, b), col, run)
+		run += a.distance_to(b)
+	_mode = keep
+
+
+## Where a ray from `c` along `d` last crosses a ring (its outer front), within `reach`.
+func _exit_point(ring: PackedVector2Array, c: Vector2, d: Vector2, reach: float) -> Vector2:
+	var best := c + d * reach
+	var far := -1.0
+	for i in ring.size():
+		var hit: Variant = Geometry2D.segment_intersects_segment(c, c + d * reach, ring[i], ring[(i + 1) % ring.size()])
+		if hit != null and (hit as Vector2).distance_to(c) > far:
+			far = (hit as Vector2).distance_to(c)
+			best = hit
+	return best
+
+
+## The biggest of some polygons (an offset ring can break into pieces).
+func _largest(polys: Array) -> PackedVector2Array:
+	var best := PackedVector2Array()
+	var size := 0.0
+	for p: PackedVector2Array in polys:
+		if absf(_area(p)) > size:
+			size = absf(_area(p))
+			best = p
+	return best
+
+
+## Vertical fins standing `depth` out from a ring's walls, one every `step` metres along it,
+## `w` thick, from y0 to y1, with a top; none within `gap` of a point in `skip` (a doorway).
+func _fins(ring: PackedVector2Array, y0: float, y1: float, step: float, w: float, depth: float, col: Color,
+		skip: PackedVector2Array, gap: float) -> void:
+	var keep := _mode
+	_mode = M_STONE
+	var next := step * 0.5   # where the next fin stands, from the start of the current edge
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var length := a.distance_to(b)
+		if length < 0.01:
+			continue
+		var e := (b - a) / length
+		var out := _out(ring, a, b)
+		while next <= length:
+			var p := a + e * next
+			next += step
+			var clear := true
+			for s in skip:
+				if p.distance_to(s) < gap:
+					clear = false
+					break
+			if not clear:
+				continue
+			var p0 := p - e * w * 0.5
+			var p1 := p + e * w * 0.5
+			var q0 := p0 + out * depth
+			var q1 := p1 + out * depth
+			_wall(p0, q0, y0, y1, -e, col)
+			_wall(q0, q1, y0, y1, out, col)
+			_wall(q1, p1, y0, y1, e, col)
+			_quad(Vector3(p0.x, y1, p0.y), Vector3(q0.x, y1, q0.y), Vector3(q1.x, y1, q1.y), Vector3(p1.x, y1, p1.y),
+					Vector3.UP, col.lightened(0.06))
+		next -= length
+	_mode = keep
+
+
+## Hotel Wiktoria: the podium over the whole outline in dark glass under a stone fascia, the
+## slab along the Królewska front in ribbon windows, a parapet and a plant room on it.
+func _build_wiktoria(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	# The frame: u east along the longest front facing north (Królewska), v south into the plot.
+	_a = Vector2.RIGHT
+	var longest := 0.0
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		if _out(ring, a, b).y < -0.7 and a.distance_to(b) > longest:
+			longest = a.distance_to(b)
+			_a = (b - a).normalized() * (1.0 if b.x >= a.x else -1.0)
+	_b = Vector2(-_a.y, _a.x)
+	_o = _centre(ring)
+	var lo := Vector2(INF, INF)
+	var hi := -lo
+	for q in ring:
+		lo = lo.min(_local(q))
+		hi = hi.max(_local(q))
+	# The podium and its fascia.
+	_prism(ring, g - 0.6, g + WIKTORIA_PODIUM_H, WIKTORIA_DARK, none, M_SKIN + S_DARK / 16.0)
+	var eave := _largest(Geometry2D.offset_polygon(ring, 0.4, Geometry2D.JOIN_MITER))
+	_prism(eave if eave.size() >= 3 else ring, g + WIKTORIA_PODIUM_H, g + WIKTORIA_PODIUM_H + 0.9,
+			WIKTORIA_STONE, WIKTORIA_ROOF, M_STONE, M_STONE)
+	# The slab: the outline's northern strip, a little in from its fronts.
+	var y0 := g + WIKTORIA_PODIUM_H + 0.9
+	var strip := PackedVector2Array([_wl(Vector2(lo.x - 1.0, lo.y - 1.0)), _wl(Vector2(hi.x + 1.0, lo.y - 1.0)),
+			_wl(Vector2(hi.x + 1.0, lo.y + WIKTORIA_SLAB_D)), _wl(Vector2(lo.x - 1.0, lo.y + WIKTORIA_SLAB_D))])
+	var inner := _largest(Geometry2D.offset_polygon(ring, -1.5, Geometry2D.JOIN_MITER))
+	for piece in Geometry2D.intersect_polygons(inner, strip):
+		if absf(_area(piece)) < 300.0:
+			continue
+		var slab := _simplify(piece, 0.8)
+		_prism(slab, y0, g + WIKTORIA_H, WIKTORIA_GLASS, WIKTORIA_ROOF, M_SKIN + S_BANDS / 16.0, M_STONE)
+		_parapet(slab, g + WIKTORIA_H, 1.0, WIKTORIA_STONE)
+		var c := _local(_centre(slab))
+		_prism(_rect(c.x, c.y, 9.0, 4.0), g + WIKTORIA_H, g + WIKTORIA_H + 3.2, WIKTORIA_ROOF.lightened(0.08),
+				WIKTORIA_ROOF, M_STONE, M_STONE)
+	_collide(ring)

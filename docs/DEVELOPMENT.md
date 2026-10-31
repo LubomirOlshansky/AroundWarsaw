@@ -615,8 +615,8 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   buildings"): the Cathedral and the Barbican are drawn in brick Gothic (`M_GOTHIC`,
   `building.gdshader` `gothic()`): brick in slow patches, a stone plinth, a buttress every
   6.5 m and tall pointed lancets on walls over 9 m, their stained glass faintly lit at night.
-  Foster's Metropolitan on Plac Piłsudskiego wears the towers' fin skin (`S_FINS`) in grey glass,
-  with a card.
+  Foster's Metropolitan on Plac Piłsudskiego wore the towers' fin skin (`S_FINS`) in grey glass,
+  with a card (a model since Plac Piłsudskiego part 2, below).
 - **Kolumna Zygmunta** (`_build_zygmunt`): OpenStreetMap maps the column in a dozen tiny 3D
   parts that the builder dropped as specks, leaving a dark cube on Plac Zamkowy. It is built
   as a landmark in a circle zone: three granite steps, the pedestal, the 12 m shaft, the
@@ -624,10 +624,10 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
 - **Muzeum Narodowe** (the museum and Plac Piłsudskiego loop, 2026-10-31; `_build_muzeum`): the
   landmarks loop kept the LoD2 model in stone (`skin_at`); now it is a model like the Palace. The
   mapped outline (481 points: every pier) is straightened to 18 corners (`_simplify`,
-  Douglas-Peucker at 1 m) and stands at its mapped height (14.2 m) on a darker plinth, with a
+  Douglas-Peucker at 1 m) and stands at 18.5 m (`MUZEUM_WINGS`; it was the mapped 14.2 m) on a darker plinth, with a
   parapet; tall narrow window bays every 4.4 m on every front (`_bays`: panes 0.07 m proud in
   the curtain-wall glass, `M_GLASS`, a transom every 4 m, some lit at night); at the back of the
-  forecourt (Dziedziniec Lorentza, open to Al. Jerozolimskie) the raised entrance block to 20 m:
+  forecourt (Dziedziniec Lorentza, open to Al. Jerozolimskie) the raised entrance block to 25 m (`MUZEUM_TOP`, was 20):
   a recessed glazed portal behind four square piers under a lintel, a tall bay either side,
   steps. In the east courtyard the army museum's hardware on concrete pads: a tank and a field
   gun. The zone is the outline plus its courtyards (the convex hull's pieces outside it over
@@ -645,9 +645,41 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   parts it is mapped in): the three arches left of the Saxon Palace's colonnade on a granite
   platform: two rows of four piers, round arches on both long faces (`_arch`), the entablature
   and cornice to 7.65 m, the tomb slab with wreaths and the eternal flame (`M_LAMP`, lit at
-  night) on the square's side; about 280 triangles, a card. The Metropolitan keeps its fin skin.
+  night) on the square's side; about 280 triangles, a card.
   Rendered draw calls are unchanged (`--probe` on lavapipe: 100 → 100 at the museum's front,
   133 → 133 on the square): every model is in the city's building mesh and material.
+- **Plac Piłsudskiego, part 2** (2026-10-31; `landmarks.gd` `_find_plac2` and the builders after
+  it). **The Metropolitan** (`_build_metropolitan`, its mapped outline straightened at 0.4 m): a
+  model instead of the fin skin: the curved fronts in curtain-wall glass (`M_GLASS`) behind real
+  granite fins (`_fins`: 0.34 m thick, 0.9 m deep, one every 1.8 m round the outline, from the
+  ground to the parapet, with tops), the circular courtyard (centre and 25.4 m radius from the
+  blocks' mapped inner arcs) in glass with painted fins (`S_FINS`), the three passages as dark
+  openings 6 m wide and 6.6 m high under a granite lintel on both faces (no fins there), a flat
+  roof and parapet at 20.8 m, the seventh storey set back 2 m to 24.1 m, the three blocks'
+  plant rooms to 27.4 m, and in the courtyard the paving, the round fountain (a dark pool in a
+  granite rim) and eight jets. About 2,600 triangles; its card as before. **Hotel Wiktoria**
+  (`_build_wiktoria`; the parody name of the 1976 hotel on Królewska, mapped as an outline
+  only: LoD2 drew it, OpenStreetMap has no building there, so without GUGiK's data the plot
+  was empty): a podium over the whole outline in dark glass (`S_DARK`, its lobby lit at night)
+  under a pale stone fascia, the slab along the Królewska front 18 m deep in ribbon windows of
+  bronze-tinted glass between pale bands (`S_BANDS`), a parapet and a plant room; about 190
+  triangles, a card. **The Królewska edge** keeps its LoD2 or OpenStreetMap shapes in its own
+  stone (`PLAC_SKINS`, `skin_at`): Dom bez Kantów (pale grey stone, the city's plain window rows:
+  a skin `mode` under 1 is that seed) and the Departament Wojskowej Służby Zdrowia (pale stone,
+  `M_MONUMENT`), each with a card, and the unnamed block on the square's south-east corner
+  (`KROLEWSKA_BLOCK`, a point in its west wing; `bake_sectors.py` `SITE_AREAS` carries it) in
+  pale stone with no card (so it isn't on the picking grid). The far skyline takes each wall
+  colour (`PLAC_WALLS` through `tower_colour`).
+  **Heights, known and estimated**: the Metropolitan's 20.8 / 24.1 / 27.4 m are the mapped parts'
+  (OpenStreetMap `building:levels`: six, seven and eight storeys at 3.3 m + 1 m; known to be seven
+  storeys round a courtyard, about 30 m: close). Hotel Wiktoria's are estimates: the slab 30 m
+  (nine storeys over a two-storey podium), the podium's fascia 8 m, the slab 18 m deep. Muzeum
+  Narodowe: the wings 18.5 m and the entrance block 25 m are estimates (OpenStreetMap says four
+  storeys, which the bake makes 14.2 m at 3.3 m each; a museum's storeys are taller);
+  Hotel Europejski's 19 m cornice stays an estimate. Photos would set all of these.
+  Rendered draw calls (`--probe` on lavapipe, 2532×1170): the museum's front 100 → 100, Plac
+  Piłsudskiego (`--at=-760,-820`) 134 → 133, in front of the Metropolitan 97 → 96 (its
+  OpenStreetMap parts went; every model is in the city's building mesh and material).
 - **Low-rise landmarks** (`landmarks.gd` `SKINS`, the third pass): 15 buildings players pass
   every few minutes keep their LoD2 or OpenStreetMap shapes but take their real stone, brick
   and roof colours through `skin_at` (as Muzeum Narodowe did before its model): Teatr Wielki's pale stone
@@ -758,10 +790,15 @@ cells round the Palace's spire.
 quick set and in CI; the museum and Plac loop) checks the models at Muzeum Narodowe, Hotel
 Europejski and the Tomb from the committed `centrum.json` alone (a stub map, flat ground): each
 site found (the museum a model, not a skin), what it replaces dropped and its neighbours kept
-(the garages, the papal cross, the Metropolitan), and each built alone within its triangle
+(the garages, the papal cross, Pałac Potockich, Teatr Narodowy, Zachęta), and each built alone within its triangle
 budget (2,500, 1,500, 600), every triangle in a landmark material code (the one building
 material: no draw call of its own) and inside its box + `SITE_REACH`, with car walls, tap cells
-and a card whose Polish and English lines are at most 70 characters.
+and a card whose Polish and English lines are at most 70 characters. Plac Piłsudskiego part 2
+added the Metropolitan (a model, not a skin; its parts dropped, its LoD2 model's centre in the
+courtyard replaced; budget 3,200) and Hotel Wiktoria (the LoD2 centre in its plot replaced, the
+canopy part dropped, the outbuilding behind kept; budget 900; no card may name the real hotel),
+and the Królewska edge's skins: each found, the building at its point kept and in its colours,
+a card for the named two and none for the unnamed block.
 
 ## Water, weather and sound (v0.9)
 
