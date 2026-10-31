@@ -294,6 +294,11 @@ var signs: Array = []
 var _g := 0.0          # the landmark's ground height
 var _id := 0           # landmark id for the picking grid (0: none)
 var _pick := PackedByteArray()
+## Walls already drawn by the current site, to cut a later coplanar wall back to what shows
+## (z-fighting fix, 2026-10-31): [ax, az, bx, bz, y0, y1, nx, nz] per wall.
+var _walls: Array[PackedFloat32Array] = []
+## Flat tops already drawn by the current site: [height, outline] (same fix, see _cap).
+var _caps: Array = []
 # A landmark's own plan axes (its local u, v in world metres).
 var _o := Vector2.ZERO
 var _a := Vector2.RIGHT
@@ -635,6 +640,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 		if only != "" and key != only:
 			continue
 		_id = k + 1
+		_walls.clear()
+		_caps.clear()
 		built += 1
 		match key:
 			"palace":
@@ -751,10 +758,48 @@ func _wall(a: Vector2, b: Vector2, y0: float, y1: float, out: Vector2, col: Colo
 	if length < 0.02 or y1 <= y0:
 		return
 	var n := Vector3(out.x, 0.0, out.y).normalized()
-	var h0 := y0 - _g
-	var h1 := y1 - _g
-	_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, y1, b.y), Vector3(a.x, y1, a.y), n, col,
-			Vector2(run, h0), Vector2(run + length, h0), Vector2(run + length, h1), Vector2(run, h1), h1)
+	# Cut away what an earlier wall of this site already covers in the same plane, facing the
+	# same way: two coplanar faces z-fight (flicker) on the phone. Pieces are (t0, t1, y0, y1)
+	# in metres along a→b and absolute height.
+	var d := (b - a) / length
+	var pieces: Array[Vector4] = [Vector4(0.0, length, y0, y1)]
+	for w in _walls:
+		if w[6] * n.x + w[7] * n.z < 0.9995:
+			continue
+		var wa := Vector2(w[0], w[1])
+		var wb := Vector2(w[2], w[3])
+		if absf((wa - a).dot(Vector2(-d.y, d.x))) > 0.03 or absf((wb - a).dot(Vector2(-d.y, d.x))) > 0.03:
+			continue
+		var e0 := (wa - a).dot(d)
+		var e1 := (wb - a).dot(d)
+		var t_lo := minf(e0, e1)
+		var t_hi := maxf(e0, e1)
+		var next: Array[Vector4] = []
+		for pc in pieces:
+			if t_hi <= pc.x + 0.01 or t_lo >= pc.y - 0.01 or w[5] <= pc.z + 0.01 or w[4] >= pc.w - 0.01:
+				next.append(pc)
+				continue
+			if t_lo > pc.x + 0.01:
+				next.append(Vector4(pc.x, t_lo, pc.z, pc.w))
+			if t_hi < pc.y - 0.01:
+				next.append(Vector4(t_hi, pc.y, pc.z, pc.w))
+			var m0 := maxf(pc.x, t_lo)
+			var m1 := minf(pc.y, t_hi)
+			if w[4] > pc.z + 0.01:
+				next.append(Vector4(m0, m1, pc.z, w[4]))
+			if w[5] < pc.w - 0.01:
+				next.append(Vector4(m0, m1, w[5], pc.w))
+		pieces = next
+	_walls.append(PackedFloat32Array([a.x, a.y, b.x, b.y, y0, y1, n.x, n.z]))
+	for pc in pieces:
+		var pa := a + d * pc.x
+		var pb := a + d * pc.y
+		var h0 := pc.z - _g
+		var h1 := pc.w - _g
+		var r0 := run + pc.x
+		var r1 := run + pc.y
+		_quad(Vector3(pa.x, pc.z, pa.y), Vector3(pb.x, pc.z, pb.y), Vector3(pb.x, pc.w, pb.y), Vector3(pa.x, pc.w, pa.y), n, col,
+				Vector2(r0, h0), Vector2(r1, h0), Vector2(r1, h1), Vector2(r0, h1), h1)
 
 
 ## The outward normal of edge a→b of a polygon (plan).
@@ -785,6 +830,29 @@ func _prism(poly: PackedVector2Array, y0: float, y1: float, wall: Color, roof: C
 
 ## A flat top over a polygon.
 func _cap(poly: PackedVector2Array, y: float, col: Color) -> void:
+	# Two flat tops at the same height that overlap z-fight: the later one keeps only what the
+	# earlier ones leave bare.
+	var pieces: Array[PackedVector2Array] = [poly]
+	for c in _caps:
+		if absf(float(c[0]) - y) > 0.03:
+			continue
+		var next: Array[PackedVector2Array] = []
+		for pc in pieces:
+			var cut := Geometry2D.clip_polygons(pc, c[1])
+			for q in cut:
+				if q.size() >= 3 and not Geometry2D.is_polygon_clockwise(q):
+					next.append(q)
+		pieces = next
+	_caps.append([y, poly])
+	for pc in pieces:
+		# Mapped outlines that double back on themselves triangulate into overlapping
+		# triangles; Clipper's union untangles them (a hole comes back clockwise: skipped).
+		for q in Geometry2D.merge_polygons(pc, PackedVector2Array()):
+			if q.size() >= 3 and not Geometry2D.is_polygon_clockwise(q):
+				_cap_piece(q, y, col)
+
+
+func _cap_piece(poly: PackedVector2Array, y: float, col: Color) -> void:
 	var idx := Geometry2D.triangulate_polygon(poly)
 	if idx.is_empty():
 		idx = Geometry2D.triangulate_delaunay(poly)
@@ -792,6 +860,8 @@ func _cap(poly: PackedVector2Array, y: float, col: Color) -> void:
 		var a := poly[idx[i]]
 		var b := poly[idx[i + 1]]
 		var c := poly[idx[i + 2]]
+		if absf((b - a).cross(c - a)) < 0.001:
+			continue  # a sliver with a repeated corner: no area, nothing to draw
 		_tri(Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y, c.y), Vector3.UP, col,
 				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
 
@@ -1114,8 +1184,10 @@ func _build_palace(site: Dictionary) -> void:
 		var su := -1.0 if k % 2 == 0 else 1.0
 		var sv := -1.0 if k < 2 else 1.0
 		_pinnacle(su * 19.5, sv * 19.5, 3.4, g + 139.0, 14.0, light)
-		_pinnacle(su * 19.5, 0.0, 2.0, g + 139.0, 8.0, light)
-		_pinnacle(0.0, sv * 19.5, 2.0, g + 139.0, 8.0, light)
+	# (Once per side: the loop above drew each of these twice, a z-fighting duplicate.)
+	for sd in [-1.0, 1.0]:
+		_pinnacle(sd * 19.5, 0.0, 2.0, g + 139.0, 8.0, light)
+		_pinnacle(0.0, sd * 19.5, 2.0, g + 139.0, 8.0, light)
 	# A stepped plinth for the clock tier.
 	_prism(_rect(0.0, 0.0, 12.5, 12.5), g + 139.0, g + 143.0, stone, roof, M_STONE, M_STONE)
 	_attic(_rect(0.0, 0.0, 12.5, 12.5), g + 143.0, 1.6, light)
@@ -1391,8 +1463,9 @@ func _rotunda_night(c: Vector2, r: float, g: float) -> void:
 		var n := (vb - va).cross(vt - va).normalized()
 		if n.dot(Vector3(pm.x - c.x, 0.0, pm.y - c.y)) < 0.0:
 			n = -n
-		_quad(va, vb, vt, vt, n, white)
-		_quad(vb, va, vt, vt, -n, white.darkened(0.15))
+		var none := Vector2(-1, -1)
+		_tri(va, vb, vt, n, white, none, none, none, -1.0)
+		_tri(vb, va, vt, -n, white.darkened(0.15), none, none, none, -1.0)
 	for k in teeth:
 		if k % 6 != 1 and k % 6 != 4:
 			continue
@@ -1916,9 +1989,19 @@ func _sloped(poly: PackedVector2Array, y0: float, hi: float, lo: float, wall: Co
 		var n := Vector3(o.x, 0.0, o.y).normalized()
 		var ta: float = top.call(a)
 		var tb: float = top.call(b)
-		_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, tb, b.y), Vector3(a.x, ta, a.y), n, wall,
-				Vector2(run, y0 - _g), Vector2(run + length, y0 - _g), Vector2(run + length, tb - _g),
-				Vector2(run, ta - _g), maxf(ta, tb) - _g)
+		# The rectangle up to the lower end goes through _wall (so a podium wall flush with it
+		# is cut back, not drawn over it); the wedge above it is a triangle.
+		var lowest := minf(ta, tb)
+		_wall(a, b, y0, lowest, o, wall, run)
+		if absf(ta - tb) > 0.01:
+			var a_high := ta > tb
+			var p_hi := (a if a_high else b)
+			var p_lo := (b if a_high else a)
+			var t_hi := maxf(ta, tb)
+			var r_hi := run if a_high else run + length
+			var r_lo := run + length if a_high else run
+			_tri(Vector3(p_lo.x, lowest, p_lo.y), Vector3(p_hi.x, lowest, p_hi.y), Vector3(p_hi.x, t_hi, p_hi.y), n, wall,
+					Vector2(r_lo, lowest - _g), Vector2(r_hi, lowest - _g), Vector2(r_hi, t_hi - _g), t_hi - _g)
 		run += length
 	_mode = M_SKIN
 	var idx := Geometry2D.triangulate_polygon(poly)
@@ -2283,11 +2366,15 @@ func _build_swieto(_site: Dictionary) -> void:
 	for k in 12:
 		var s := 30.0 + k * 11.5
 		var land := SWIETO_PYLON + w * s
-		_beam(shaft.call(SWIETO_TOP - 3.0 - k * 2.3), Vector3(land.x, _swieto_deck(s) + 1.0, land.y), 0.22, SWIETO_STAY, false)
+		# Each stay sits a few cm to the side of the others (z-fighting fix: stays in one plane
+		# share their side faces where they cross near the top).
+		var off := Vector3(across.x, 0.0, across.y) * (((k * 5) % 13 - 6) * 0.035)
+		_beam(shaft.call(SWIETO_TOP - 3.0 - k * 2.3) + off, Vector3(land.x, _swieto_deck(s) + 1.0, land.y) + off, 0.22, SWIETO_STAY, false)
 	for k in 9:
 		var s := -(22.0 + k * 10.5)
 		var land := SWIETO_PYLON + w * s
-		_beam(shaft.call(SWIETO_TOP - 4.0 - k * 2.6), Vector3(land.x, _swieto_deck(s) + 1.0, land.y), 0.26, SWIETO_STAY, false)
+		var off := Vector3(across.x, 0.0, across.y) * (((k * 5 + 4) % 13 - 6) * 0.035)
+		_beam(shaft.call(SWIETO_TOP - 4.0 - k * 2.6) + off, Vector3(land.x, _swieto_deck(s) + 1.0, land.y) + off, 0.26, SWIETO_STAY, false)
 
 ## A kept building's site (the museum) on the picking grid: every cell whose centre is inside.
 func _mark_zone(site: Dictionary) -> void:
@@ -2452,6 +2539,15 @@ func _build_stadium(site: Dictionary) -> void:
 		var a := c + axis * float(seg[0]) + across * float(seg[1])
 		var b := c + axis * float(seg[2]) + across * float(seg[3])
 		var w := (b - a).normalized().orthogonal() * 0.35
+		# Lines that cross share a square of grass; the long ones (along the pitch) take it,
+		# the short ones stop at their edge (z-fighting fix: flat quads at one height).
+		var along := (b - a).normalized()
+		if absf(float(seg[1]) - float(seg[3])) > 1.0:
+			a += along * 0.35
+			b -= along * 0.35
+		else:
+			a -= along * 0.35
+			b += along * 0.35
 		_quad(Vector3(a.x - w.x, y_line, a.y - w.y), Vector3(b.x - w.x, y_line, b.y - w.y), Vector3(b.x + w.x, y_line, b.y + w.y),
 				Vector3(a.x + w.x, y_line, a.y + w.y), Vector3.UP, line)
 	# The masts: from the foot of the skin, leaning out with it, spiking over the roof.
@@ -2480,7 +2576,9 @@ func _build_stadium(site: Dictionary) -> void:
 	_id = 0
 	for k in range(0, n, 3):
 		var h: Vector2 = hole[k]
-		_beam(hub, Vector3(h.x, hole_y, h.y), 0.18, Color("#c8cbd0"), false)
+		# A few cm of height apart at the hub, so neighbours' flat tops don't z-fight there.
+		var lift := Vector3(0.0, (k / 3 % 5) * 0.03, 0.0)
+		_beam(hub + lift, Vector3(h.x, hole_y, h.y), 0.18, Color("#c8cbd0"), false)
 	for k in range(0, n, n / 4):
 		var e: Vector2 = edge[k]
 		_beam(hub + Vector3(0, 2.0, 0), Vector3(e.x, roof_y, e.y), 0.25, Color("#2c2d31"), false)

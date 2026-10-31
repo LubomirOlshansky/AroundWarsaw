@@ -817,8 +817,9 @@ on a stub map, from the committed `centrum.json`) and checks its mesh: a triangl
 site with none fails, so detail never goes in without a limit), every triangle in a landmark material code
 (no draw call of its own), z-fighting (same-facing triangles on one plane within 2 cm overlapping by
 more than 0.01 m2), zero-area triangles, normals that disagree with their geometry, and parts floating
-clear of the ground and of every other part. The defects that exist today are a ratchet in `KNOWN`
-(the check fails above it and says when to lower it); new sites start at zero. A new site gets its
+clear of the ground and of every other part. `KNOWN` (a per-site ratchet) is empty since 2026-10-31: every site is at zero, and
+any new defect fails at once. The builder cuts coplanar walls, roof caps and sloped crowns back to what
+shows (`landmarks._wall`, `_cap`). A new site gets its
 `BUDGET` line (measured + about 20 %) in the same change; the art-director judges only after this passes.
 
 `godot --headless --path game --script res://tools/check_sites.gd` (verify step `sites`, in the
