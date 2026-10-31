@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-10-31
+- A new game now starts facing the first kebab stand, the first delivery is a short hop up Marszałkowska, and the "new song" waits as a mixtape on the University Library's roof: fly the helicopter over it to pick it up.
 - The towers and the Palace of Culture no longer flicker: overlapping walls and roofs were drawn twice, and now they are drawn once. The look is the same.
 - A new, shorter website: the newest screenshots, three missions, open source, a word from the author.
 - A new automatic check looks at every landmark model for flickering surfaces, zero-size faces, floating parts and too many triangles, so these get caught before anyone looks at a screenshot.

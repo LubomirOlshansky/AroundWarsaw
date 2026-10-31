@@ -18,6 +18,14 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · gameplay · first-10 polish** — Where a new game starts: on Marszałkowska's
+  northbound side level with the Museum of Modern Art, facing north to the Świętokrzyska stand
+  ~350 m ahead (the Palace on the left). Only a run that gets the guide starts there; the map's
+  spawn (southbound by the Rotunda) stays for everything else. Default built: that. Alternative: a
+  start nearer the stand (~150 m, DEMO's figure) at the cost of the museum in the first frame.
+- **2026-10-31 · gameplay · first-10 polish** — The first mixtape lies on the University Library's
+  roof (the roof garden by the boulevards) and gives the next PÓŁNOC FM track, +10 respect. Default
+  built: that. Alternative: the Copernicus Science Centre's roof, right on the boulevards.
 - **2026-10-31 · gameplay · loop 3h slice 4** — Who gets the guide: a save with no job done, no
   złoty, no rung beaten and the guide not finished; quitting before the first delivery repeats it.
   Default built: that. Alternative: once per install whatever happens.
@@ -31,10 +39,6 @@ Newest first. One entry per question.
 - **2026-10-31 · gameplay · loop 3h slice 4** — Halina rolls up 6 s after the first delivery's card
   (or at 3:00 without one), waits 20 s for the flash back, tries 3 times 60 s apart; the finish is
   the Palm unless it is over 1.6 km by road. Default built: that.
-- **2026-10-31 · gameplay · loop 3h slice 4** — The 6:00 "cassette" is KASETA's then card on the
-  boulevards (a street spot, not a roof), and its first play during the guide opens the next locked
-  PÓŁNOC FM track (track 3 on a fresh save) as "the new song". Default built: that. Alternative: no
-  song until real cassettes exist.
 - **2026-10-31 · gameplay · loop 3h slice 4** — The end card's "10 jobs" are every paid job kind
   (kebab, słoiki, rescue, Podwózka, round-up, "Na czasie") but races and the courier's bonus; old
   saves count from their totals. Default built: that.

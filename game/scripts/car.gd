@@ -151,6 +151,8 @@ var forward_speed := 0.0
 var nan_recoveries := 0
 var _good_xform := Transform3D.IDENTITY
 var _good_seen := false
+## The state as the last physics step began (the NaN report says what went in).
+var _pre_step: Array = []
 ## Sideways speed in m/s; high when the tail slides (skid marks, the tyres' squeal).
 var slip := 0.0
 ## 0..1, how wet the road is (weather.gd): a little less grip and braking in the rain.
@@ -261,6 +263,7 @@ func _process(dt: float) -> void:
 
 func _physics_process(dt: float) -> void:
 	var t0 := Time.get_ticks_usec()
+	_pre_step = [global_transform, vel, target_dir, steer, steer_now, yaw_rate, throttle, braking, parked, collision_mask, in_water]
 	_step(dt)
 	_keep_finite()
 	spent_usec += Time.get_ticks_usec() - t0
@@ -279,8 +282,8 @@ func _keep_finite() -> void:
 		_good_seen = true
 		return
 	nan_recoveries += 1
-	push_warning("car: state not a number (pos %s, vel %s), put back at %s (recovery %d)"
-			% [x.origin, vel, _good_xform.origin, nan_recoveries])
+	push_warning("car: state not a number (pos %s, vel %s, basis z %s, fwd speed %s), put back at %s (recovery %d); the step began with %s"
+			% [x.origin, vel, x.basis.z, forward_speed, _good_xform.origin, nan_recoveries, _pre_step])
 	vel = Vector3.ZERO
 	velocity = Vector3.ZERO
 	forward_speed = 0.0

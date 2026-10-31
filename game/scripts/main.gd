@@ -75,6 +75,7 @@ const Fotka := preload("res://scripts/fotka.gd")
 const Districts := preload("res://scripts/districts.gd")
 ## Loop 3h slice 2: the 20 Syrenki (collectibles).
 const Syrenki := preload("res://scripts/syrenki.gd")
+const Cassettes := preload("res://scripts/cassettes.gd")
 ## Loop 3h slice 3: the final race's route (the start's hint for --trzy-mosty).
 const TrzyMosty := preload("res://scripts/trzy_mosty.gd")
 const Ladder := preload("res://scripts/ladder.gd")
@@ -322,6 +323,8 @@ var districts_log := false
 ## --syrenki=all|none|<n>|<id>,... (the record, in memory), --syrenka=<id|n>[:m] (the car on the street
 ## next to that Syrenka, facing it, m metres before it: 25 by default; :0 finds it at once).
 var syrenki: Syrenki
+## The first-10 polish: the mixtapes on roofs (cassettes.gd).
+var cassettes: Cassettes
 var syrenki_log := false
 var syrenki_spec := ""
 var syrenka_flag := ""
@@ -678,6 +681,7 @@ func _ready() -> void:
 	_club_start()  # loop MW-3: --club=<id>, the same
 	if garage_flag:
 		start_at = Vector3(Garage.SPOT.x, 0.0, Garage.SPOT.y)  # the garage loop: --garage
+	_guide_start()  # the first-10 polish: a guided run starts facing the first stand
 	var no_map := _missing_map()
 	if no_map != "":
 		# Loop 3d-1: the split and the prebuilt sectors are not committed; a fresh clone makes
@@ -1001,6 +1005,7 @@ func _build_world() -> void:
 	_build_moments(data, world)
 	_build_districts()
 	_build_syrenki(world)
+	_build_cassettes(world)
 	_build_garage(world)
 	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
 	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
@@ -1785,6 +1790,18 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 
 ## Warsztat u Mirka (garage.gd): its ring on Brzeska, the car's saved paint (or --paint), the card
 ## that pauses the game like the settings card.
+## The first-10 polish: a run that will get the guide (a normal launch or --first10 on a fresh
+## save, with no other start asked for) starts at First10.START, facing north up Marszałkowska to
+## the first stand. Set before the city is built, so the sectors round it come in first.
+func _guide_start() -> void:
+	if start_at != Vector3.INF or start_heading != INF or not (first10_flag or show_title):
+		return
+	if not First10.guide_due(wallet):
+		return
+	start_at = Vector3(First10.START.x, 0.0, First10.START.y)
+	start_heading = First10.START_HEADING
+
+
 ## Loop 3h slice 4: the director of the first 10 minutes and the end card (first10.gd). The guide
 ## runs in a normal launch on a fresh save, or with --first10; never in other test runs.
 func _build_first10() -> void:
@@ -1802,6 +1819,7 @@ func _build_first10() -> void:
 	first10.radio = radio
 	first10.districts = districts
 	first10.garage = garage
+	first10.cassettes = cassettes
 	first10.flying = func() -> bool: return flying
 	first10.scripted = first10_flag and autopilot
 	add_child(first10)
@@ -2332,6 +2350,24 @@ func _build_districts() -> void:
 		notes.extra_marks = districts.marks
 	if districts_log:
 		print("districts: %s" % districts.summary())
+
+
+## The first-10 polish: the mixtapes (cassettes.gd) on their landmarks' roofs (the rescue's
+## flat-roof spots), picked up from the helicopter; each opens the next PÓŁNOC FM track.
+func _build_cassettes(world: Node3D) -> void:
+	cassettes = Cassettes.new()
+	cassettes.name = "Cassettes"
+	cassettes.wallet = wallet
+	cassettes.hud = hud
+	cassettes.radio = radio
+	cassettes.world = world
+	cassettes.blip = _blip_sound
+	add_child(cassettes)
+	if not cassettes.load_data():
+		return
+	cassettes.place_all(missions.roof_spot)
+	if notes != null:
+		cassettes.probe = notes.probe
 
 
 ## Loop 3h slice 2: the 20 Syrenki (syrenki.gd) on the notebook's places and the lane graph; the
@@ -4438,6 +4474,8 @@ func _make_stats() -> BenchStats:
 		b.systems["garage"] = [garage, "spent_usec", true]  # the garage loop
 	if first10 != null:
 		b.systems["first10"] = [first10, "spent_usec", true]  # loop 3h slice 4
+	if cassettes != null:
+		b.systems["cassettes"] = [cassettes, "spent_usec", true]  # the first-10 polish
 	b.systems["sound"] = [sfx, "last_usec", false]
 	b.systems["hud+minimap"] = [hud, "spent_usec", true]
 	b.systems["bubbles"] = [bubbles, "spent_usec", true]

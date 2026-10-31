@@ -21,7 +21,7 @@ const PATH := "user://save.cfg"
 const VERSION := 2
 ## The sections this version reads and writes; any other is kept as it was (`_extra`).
 const SECTIONS := ["save", "wallet", "jobs", "best", "eggs", "police", "keep", "notes", "notes_chapters",
-		"polnoc", "tapes", "kadr", "kadr_photos", "garage", "districts", "district_jobs", "syrenki", "ladder", "intro"]
+		"polnoc", "tapes", "kadr", "kadr_photos", "garage", "districts", "district_jobs", "syrenki", "ladder", "intro", "cassettes"]
 ## The easter eggs that count towards "found x/5".
 const EGGS := {"palma": "The Palm on Rondo de Gaulle'a", "pigeons": "Pigeons on Plac Defilad",
 		"barriers": "The wandering roadworks", "patelnia": "Patelnia by Metro Centrum",
@@ -77,6 +77,8 @@ var paints := {}
 var districts := {}
 var district_jobs := {}
 var syrenki := {}
+## The first-10 polish (cassettes.gd): the mixtapes taken, id -> the day (YYYYMMDD).
+var cassettes := {}
 ## Loop 3h slice 3: the rival ladder (ladder.gd): rung id ("halina" ... "mike", and "trzy_mosty" for
 ## the final race) -> the day it was first beaten (yyyymmdd). The save's [ladder] section; a v2 file
 ## without it (slices 1-2) loads as nothing beaten (no version bump: the section is only added).
@@ -172,6 +174,8 @@ func load_save() -> void:
 		ladder[key] = int(cfg.get_value("ladder", key, 1))
 	for key in (cfg.get_section_keys("intro") if cfg.has_section("intro") else PackedStringArray()):
 		intro[key] = int(cfg.get_value("intro", key, 1))
+	for key in (cfg.get_section_keys("cassettes") if cfg.has_section("cassettes") else PackedStringArray()):
+		cassettes[key] = int(cfg.get_value("cassettes", key, 1))
 
 
 ## Loop 3h slice 1: where the copy of a version-`version` file goes before it is migrated
@@ -245,6 +249,8 @@ func save() -> void:
 		cfg.set_value("ladder", key, int(ladder[key]))
 	for key in intro:
 		cfg.set_value("intro", key, int(intro[key]))
+	for key in cassettes:
+		cfg.set_value("cassettes", key, int(cassettes[key]))
 	for section in _extra:
 		for key in _extra[section]:
 			cfg.set_value(section, key, _extra[section][key])
@@ -276,6 +282,7 @@ func reset() -> void:
 	syrenki.clear()
 	ladder.clear()
 	intro.clear()
+	cassettes.clear()
 	save()
 	changed.emit(zl, respect, 0)
 

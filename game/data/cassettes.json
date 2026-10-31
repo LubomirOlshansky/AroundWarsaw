@@ -1,0 +1,15 @@
+{
+  "_doc": "Mixtapes on roofs (cassettes.gd, docs/DEMO.md 6.2 '6:00' and 6.3 '10 cassettes'). Each lies on the roof of a landmark (`roof`: its name in centrum.json's landmarks, the rescue's flat-roof spot) and opens the next locked PÓŁNOC FM track when picked up from the helicopter. `name` and `line` are [Polish, English]. The first one is the guide's 6:00 beat (first10.gd).",
+  "respect": 10,
+  "cassettes": [
+    {
+      "id": "c01_buw",
+      "roof": "Biblioteka Uniwersytecka",
+      "name": ["Dach BUW", "The BUW roof"],
+      "line": [
+        "Ktoś zostawił kasetę w ogrodzie na dachu biblioteki. Cicho, czytelnia pod spodem.",
+        "Someone left a mixtape in the library's roof garden. Quiet: the reading room is below."
+      ]
+    }
+  ]
+}

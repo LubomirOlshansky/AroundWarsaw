@@ -2014,18 +2014,26 @@ arrow to the Świętokrzyska stand, the guided order past the Rotunda, Pani Hali
 Palm with a rubber band, the first contact's fallback, the held first call, the helicopter after the
 first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at 10:00; the save's
 `[intro]`) and the end card ("Dzięki za grę!", free roam after). Left:
-- **The opening shot is the other thread's**: the spawn faces south on Marszałkowska while the
-  Świętokrzyska stand is ~530 m north of it (behind the car), so 6.2's "ring 150 m ahead" is an arrow
-  at 0:10 instead. When the first-scene thread sets the spawn and heading, a spawn facing north (or
-  the stand moved, `jobs.FIRST_STAND`) puts the ring on screen at once.
+- ~~**The opening shot is the other thread's**: the spawn faces south on Marszałkowska while the
+  Świętokrzyska stand is ~530 m north of it (behind the car).~~ Done in the first-10 polish: a run
+  that gets the guide starts at `First10.START` (northbound, level with the Museum of Modern Art,
+  facing the stand ~350 m ahead); the map's spawn is unchanged for the bench and the other runs. The
+  first-scene thread can still move that start point and heading by eye (`First10.START`,
+  `START_HEADING`).
+- ~~The first order is 926 m (Aleje Jerozolimskie 33, past the Rotunda, a U-turn away).~~ Done in the
+  first-10 polish: Marszałkowska 142, 226 m straight on from the stand; Halina waits until 1:15
+  (`RACE_EARLIEST`) so the race stays in 6.2's window.
 - **Feel on the phone**: the rubber band's numbers (pace 1.15, 25 m, 0.4-1.5) come from a 1-D model;
   F's runs should say whether Halina is close enough to feel like a race and never obviously
   waiting. The ghost finger's place and gesture likewise (it sits on the stick's side, lower left).
 - **No "6.2" beat for "two jokes, the roosters explained in one line"** of the trap: the first
   contact's own conversation (police.dialogue) is what plays; the designer could add the koguty line.
-- **The cassette is KASETA's then card** on the boulevards (a ground spot, not a roof), and its
-  "new song" is the next locked PÓŁNOC FM track (track 3 on a fresh save). A real cassette
-  collectible on a roof (DEMO 6.2, 6.3 "10 cassettes") is still to come; then the beat points there.
+- ~~**The cassette is KASETA's then card** on the boulevards (a ground spot, not a roof).~~ Done in the
+  first-10 polish: a mixtape on the University Library's roof (cassettes.gd, cassettes.json), taken
+  from the helicopter, opens the next PÓŁNOC FM track; the beat's arrow points there. Left: the other
+  nine of DEMO 6.3's "10 cassettes" (one line each in cassettes.json, a roof landmark and words); the
+  cassette is a static box model (a slow spin or bob would be a shader, the visuals lane's); the
+  words of c01_buw and the new tape line were written in that thread (the game-designer should review).
 - The guide's words (`first10.gd` LINES, Halina's FIRST_LINES, the end card) were written in this
   slice: the game-designer should review them.
 - The end card counts every paid job kind but races and the courier bonus; DEMO's "10 jobs" might
@@ -2035,6 +2043,12 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
   car.gd `_keep_finite` now puts the car back at its last good transform and logs `car: state not a
   number` (`nan_recoveries`); the replay also fails fast on a NaN. If that line ever shows up in a
   log, its position and velocity are the lead.
+  The first-10 polish: 30 more replays (18 on the new start, order and cassette) showed no NaN. Read
+  and ruled out: the terrain, apron, deck and tunnel heights (no division by a zero length on the
+  committed map's aprons), the autopilots' slides (each divides by a length > 0.5 m). The warning
+  now also prints the state the physics step began with (transform, velocity, target_dir, steer,
+  steer_now, yaw_rate, throttle, braking, parked, collision mask, in water): a NaN going in means
+  another script wrote it, a finite one means car.gd's own step made it.
 - The end card first didn't show at all: its four Polish lines plus English were taller than the
   HUD's room, so the layout left it unplaced. Now two Polish lines (the credits and the repo as one
   shared line) and the English paragraph; a layout assertion in check_end_card would catch it again.

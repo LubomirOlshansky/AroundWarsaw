@@ -42,6 +42,7 @@ func _initialize() -> void:
 	_ordinary()
 	_wanderer()
 	_busy()
+	_quick()
 	_scripted()
 	_judge()
 	_band()
@@ -261,6 +262,21 @@ func _busy() -> void:
 	var done: Dictionary = r[0]
 	_expect(_at(done, "rescue") >= 330.0 - 0.01 and _at(done, "rescue") < 331.0, "the call waits for the job (220-330 s): %.1f" % _at(done, "rescue"))
 	_summary.append("busy: the call at %.0f s" % _at(done, "rescue"))
+
+
+## The first-10 polish: the short first order is done in ~20 s; Halina still waits for
+## RACE_EARLIEST, inside the race's window.
+func _quick() -> void:
+	var toy := Toy.new()
+	toy.input_at = 1.0
+	toy.order_at = 15.0
+	toy.deliver_s = 20.0
+	var r := _play(toy, 1000.0)
+	var done: Dictionary = r[0]
+	var race := _at(done, "race")
+	_expect(race >= First10.RACE_EARLIEST - 0.01 and race <= First10.RACE_EARLIEST + 1.0, "a quick first delivery (35 s): Halina at %.1f s, not before %.0f" % [race, First10.RACE_EARLIEST])
+	_expect(First10.judge(done, r[1]).is_empty(), "the quick player's beats in their windows: %s" % [First10.judge(done, r[1])])
+	_summary.append("quick: the race at %.0f s" % race)
 
 
 func _scripted() -> void:
