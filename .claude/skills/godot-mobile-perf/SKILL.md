@@ -5,7 +5,7 @@ description: Godot 4 Mobile-renderer performance rules for Around Warsaw on the 
 
 # Frame cost on the phone
 
-The budgets live in docs/DEVELOPMENT.md, **"Performance budgets"** (draw calls, triangles in the main
+The budgets live in docs/archive/DEVELOPMENT-full.md, **"Performance budgets"** (draw calls, triangles in the main
 and shadow passes, script ms, frame ms, and what each loop may add). Read them first. If that
 section is missing, use "Provisional budget P" in docs/DEMO.md "Milestones" and the latest
 loop 2b row in docs/ROADMAP.md, and say so in your report.

@@ -69,7 +69,7 @@ Every flag, the other control schemes and how each part works:
 - **iOS:** `tools/export_ios.sh`, then open the Xcode project in `build/ios/` and run it on your
   iPhone ([DEVELOPMENT.md, "Run it on your iPhone"](docs/DEVELOPMENT.md#run-it-on-your-iphone)).
 - **Android:** `tools/export_android.sh --apk` for a debug APK
-  ([DEVELOPMENT.md, "Android (Google Play)"](docs/DEVELOPMENT.md#android-google-play)).
+  ([DEVELOPMENT.md, "Android (Google Play)"](docs/archive/DEVELOPMENT-full.md#android-google-play)).
 
 ## Data and credits
 

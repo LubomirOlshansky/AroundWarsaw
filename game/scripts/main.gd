@@ -105,6 +105,8 @@ const Buses := preload("res://scripts/buses.gd")
 const OldTram := preload("res://scripts/old_tram.gd")
 ## The garage loop: Warsztat u Mirka and its paint jobs (garage.gd, its card garage_card.gd).
 const Garage := preload("res://scripts/garage.gd")
+## Loop 3h slice 4: the guided first 10 minutes and the end card.
+const First10 := preload("res://scripts/first10.gd")
 const MAP_PATH := "res://map/centrum.json"
 
 ## Visual styles to compare on the phone. lines = vertical resolution of the pixel image.
@@ -329,6 +331,14 @@ var syrenka_flag := ""
 var ladder_flag := -1
 var trzy_mosty_flag := false
 var trzy_mosty_bridge := 0
+## Loop 3h slice 4 (first10.gd): the guide on a fresh save in a normal launch; --first10 runs it in
+## a test run too and scripts its triggers (with --autopilot: the headless replay); --end-card
+## shows the end card at once (screenshots); --first-race has Halina roll up for the first race a
+## second in.
+var first10: First10
+var first10_flag := false
+var end_card_flag := false
+var first_race_flag := false
 var tape: Tape
 var spacer: Spacer
 var fotka: Fotka
@@ -668,12 +678,6 @@ func _ready() -> void:
 	_club_start()  # loop MW-3: --club=<id>, the same
 	if garage_flag:
 		start_at = Vector3(Garage.SPOT.x, 0.0, Garage.SPOT.y)  # the garage loop: --garage
-	# The web loop 2: the web build downloads its sectors (sector_packs.gd), the start's first.
-	if SectorPacks.active() and not monolithic:
-		_packs = SectorPacks.new()
-		_packs.name = "SectorPacks"
-		add_child(_packs)
-		await _packs.fetch_start(start_at, SectorStreamer.START_REACH, SectorStreamer.SECTOR)
 	var no_map := _missing_map()
 	if no_map != "":
 		# Loop 3d-1: the split and the prebuilt sectors are not committed; a fresh clone makes
@@ -694,6 +698,8 @@ func _ready() -> void:
 	else:
 		radio.now_playing()
 		_fallback_toast()
+		if first10 != null:
+			first10.begin()  # loop 3h slice 4: no title: the guide's clock starts now
 	_started = true
 
 
@@ -739,6 +745,8 @@ func _on_title_dismissed() -> void:
 	title = null
 	radio.now_playing()
 	_fallback_toast()
+	if first10 != null:
+		first10.begin()  # loop 3h slice 4: the guide's clock starts with the first tap
 	if cinematic_flyin:
 		_fly_in()
 
@@ -1054,6 +1062,7 @@ func _build_world() -> void:
 	_build_buses(data, world)
 	_build_old_tram(world)
 	_build_storefronts(data, world)
+	_build_first10()
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
 	_apply_style()
@@ -1776,6 +1785,33 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 
 ## Warsztat u Mirka (garage.gd): its ring on Brzeska, the car's saved paint (or --paint), the card
 ## that pauses the game like the settings card.
+## Loop 3h slice 4: the director of the first 10 minutes and the end card (first10.gd). The guide
+## runs in a normal launch on a fresh save, or with --first10; never in other test runs.
+func _build_first10() -> void:
+	first10 = First10.new()
+	first10.name = "First10"
+	first10.wallet = wallet
+	first10.hud = hud
+	first10.map = map
+	first10.car = car
+	first10.jobs = jobs
+	first10.rivals = rivals
+	first10.missions = missions
+	first10.police = police
+	first10.tape = tape
+	first10.radio = radio
+	first10.districts = districts
+	first10.garage = garage
+	first10.flying = func() -> bool: return flying
+	first10.scripted = first10_flag and autopilot
+	add_child(first10)
+	first10.setup(first10_flag or show_title)
+	if end_card_flag:
+		first10.end_at = 1.0
+	if first_race_flag:
+		first10.race_at = 1.0
+
+
 func _build_garage(world: Node3D) -> void:
 	garage = Garage.new()
 	garage.name = "Garage"
@@ -3159,6 +3195,12 @@ func _parse_args() -> void:
 			syrenki_spec = arg.trim_prefix("--syrenki=")
 		elif arg.begins_with("--syrenka="):
 			syrenka_flag = arg.trim_prefix("--syrenka=")
+		elif arg == "--first10":
+			first10_flag = true  # loop 3h slice 4
+		elif arg == "--end-card":
+			end_card_flag = true
+		elif arg == "--first-race":
+			first_race_flag = true
 		elif arg.begins_with("--ladder="):
 			ladder_flag = clampi(int(arg.trim_prefix("--ladder=")), 0, Ladder.FINAL + 1)  # loop 3h slice 3
 		elif arg == "--trzy-mosty" or arg.begins_with("--trzy-mosty="):
@@ -3241,6 +3283,8 @@ func _parse_args() -> void:
 	# Loop MW-6: and the eggs', the tape's and Fotka's flags; --egg sets its moment's time.
 	if egg_flag != "" or tape_flag != "" or fotka_flag or spacer_hint >= 0.0:
 		show_title = false
+	if first10_flag or end_card_flag or first_race_flag:
+		show_title = false  # loop 3h slice 4: --first10 and --end-card are test runs
 	# Loop MW-4: --zajac is Kolka's Wednesday evening (Live), --life-soak a Friday dusk.
 	if zajac_flag or life_soak or trend_job_flag > 0 or armchair_flag:
 		show_title = false
@@ -3280,10 +3324,6 @@ func _load_settings() -> void:
 		base_size = settings.view
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
 	auto_quality = Tiers.for_model(model_name)
-	# The web loop 2: a phone's browser has a fraction of the app's memory and GPU time (Safari
-	# closed the page on an iPhone): Auto picks Low there.
-	if OS.has_feature("web_ios") or OS.has_feature("web_android"):
-		auto_quality = Tiers.LOW
 	quality_choice = _flag_quality if _flag_quality != -2 else settings.quality
 	quality = auto_quality if quality_choice == Tiers.AUTO else quality_choice
 	print("quality: %s · Auto picks %s for %s" % [Tiers.describe(quality_choice, quality, model_name),
@@ -4396,6 +4436,8 @@ func _make_stats() -> BenchStats:
 		b.systems["syrenki"] = [syrenki, "spent_usec", true]  # loop 3h slice 2
 	if garage != null:
 		b.systems["garage"] = [garage, "spent_usec", true]  # the garage loop
+	if first10 != null:
+		b.systems["first10"] = [first10, "spent_usec", true]  # loop 3h slice 4
 	b.systems["sound"] = [sfx, "last_usec", false]
 	b.systems["hud+minimap"] = [hud, "spent_usec", true]
 	b.systems["bubbles"] = [bubbles, "spent_usec", true]
@@ -4613,6 +4655,15 @@ func _show_target() -> void:
 		hud.set_target(on_j, "%d m" % mj, jobs.target_colour(), mj > 12)
 		hud.set_minimap_target(Vector2(j.x, j.z), jobs.target_colour())
 		_new_target("job", j)
+		return
+	# Loop 3h slice 4: the guide's arrow (the first stand, the boulevard tape, Powiśle, the garage).
+	if not missions.has_target() and first10 != null and first10.hint_shown():
+		var fp: Vector3 = first10.hint_at
+		var at_f := _vehicle_position()
+		var mf := roundi(Vector2(fp.x - at_f.x, fp.z - at_f.z).length())
+		var on_f := cam.unproject_position(fp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
+		hud.set_target(on_f, "%s %d m" % [first10.hint_word, mf], First10.HINT_COLOUR, mf > 12)
+		hud.set_minimap_target(Vector2(fp.x, fp.z), First10.HINT_COLOUR)
 		return
 	# Loop MW-6: Spacer's soft hint, the edge arrow to the nearest notebook place not found yet.
 	if not missions.has_target() and spacer != null and spacer.hint_shown():
@@ -4850,6 +4901,9 @@ func _toggle_vehicle() -> void:
 		return
 	if not flying and car.in_water:
 		return  # loop 10a: the tow is on its way
+	if not flying and first10 != null and first10.heli_locked():
+		first10.heli_refused()  # loop 3h slice 4: the helicopter comes with the first rescue
+		return
 	if not flying:
 		_take_off(Heli.CRUISE)
 		hud.toast("Helikopter: kieruj palcem, ▲ ▼ to wysokość", "Helicopter: steer with the stick, ▲ ▼ (Space / Shift) for height")
@@ -5251,10 +5305,7 @@ func _quit_quietly() -> void:
 # third; then the streaming numbers, and the game quits).
 
 const SectorStreamer := preload("res://scripts/sector_streamer.gd")
-const SectorPacks := preload("res://scripts/sector_packs.gd")
 var streamer: SectorStreamer
-## The web loop 2: the web build's sector downloads (sector_packs.gd); null elsewhere.
-var _packs: SectorPacks
 var monolithic := false
 var _sectors_all := false
 var _sectors_proxies := false
@@ -5352,7 +5403,6 @@ func _open_streamed_city(world: Node3D, flat_mat: ShaderMaterial) -> Dictionary:
 	streamer.look_ahead = _stream_ahead
 	streamer.slow_ms = _stream_slow
 	streamer.gate_pieces = _stream_gate
-	streamer.packs = _packs
 	add_child(streamer)
 	streamer.sector_ready.connect(_on_sector_ready)
 	var use_prebuilt := (prebuilt or not OS.has_feature("editor")) and solo_site == ""

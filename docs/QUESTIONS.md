@@ -18,6 +18,35 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · gameplay · loop 3h slice 4** — Who gets the guide: a save with no job done, no
+  złoty, no rung beaten and the guide not finished; quitting before the first delivery repeats it.
+  Default built: that. Alternative: once per install whatever happens.
+- **2026-10-31 · gameplay · loop 3h slice 4** — On a fresh save the helicopter waits for the first
+  rescue (the HELI chip hidden, H explains), or a helicopter-only call, or 7:00 of play. Old saves
+  never see it locked. Default built: that. Alternative: never lock it.
+- **2026-10-31 · gameplay · loop 3h slice 4** — Halina's first-race rubber band: pace 1.15 aiming
+  25 m behind, ±0.012 a metre, 0.4-1.5, lifting off in her last 140 m for a close player; a player
+  150 m behind races her plain. Default built: those (a 1-D model: 34 km/h wins by 2.4 s). F to judge
+  on the phone.
+- **2026-10-31 · gameplay · loop 3h slice 4** — Halina rolls up 6 s after the first delivery's card
+  (or at 3:00 without one), waits 20 s for the flash back, tries 3 times 60 s apart; the finish is
+  the Palm unless it is over 1.6 km by road. Default built: that.
+- **2026-10-31 · gameplay · loop 3h slice 4** — The 6:00 "cassette" is KASETA's then card on the
+  boulevards (a street spot, not a roof), and its first play during the guide opens the next locked
+  PÓŁNOC FM track (track 3 on a fresh save) as "the new song". Default built: that. Alternative: no
+  song until real cassettes exist.
+- **2026-10-31 · gameplay · loop 3h slice 4** — The end card's "10 jobs" are every paid job kind
+  (kebab, słoiki, rescue, Podwózka, round-up, "Na czasie") but races and the courier's bonus; old
+  saves count from their totals. Default built: that.
+- **2026-10-31 · gameplay · loop 3h slice 4** — In the guide, Mirek's garage waits for 9:30 (and the
+  first earnings), then its toast and an arrow; outside the guide it opens at the first earnings as
+  before. Default built: that.
+- **2026-10-31 · gameplay · loop 3h slice 4** — The spawn faces south on Marszałkowska, and the
+  Świętokrzyska stand is ~530 m north (behind the car), so 6.2's "ring 150 m ahead" is an arrow at
+  0:10. Default built: the arrow. For the first-scene thread: a spawn facing north, or a nearer stand.
+- **2026-10-31 · content · loop 3h slice 4** — New words: the guide's toasts (first10.gd LINES),
+  Halina's three first-race lines (rivals.gd FIRST_LINES), the ghost finger's hint and the end card
+  ("Dzięki za grę! … a Palma… dalej sztuczna."). Default built: mine, for the designer's review.
 - **2026-10-31 · visuals · the dusk loop** — Dusk now matches the user's 16:20 photos: an overcast blue hour (slate-blue sky, flat cool light, no sun shadows, a soft glow) instead of the pink-violet sunset; Dawn, which reuses Dusk's palette, turns blue too. Default built: that. Alternative: keep the pink sunset as Dusk and add the blue hour as a sixth look.
 - **2026-10-31 · landmarks · the dusk loop** — The towers' lit names are parodies: PREZYDENT (the Marriott tower's crown), SAMSONG (its band, as on the Spire), NOWOTEL, WESTYNKA, CHILTON, INTERKONTI. Rondo 1's tenants, PHN and the Bank Polski tower got no lit name (not sure which building wears which; no network to check). Default built: that. Alternative: name those too.
 - **2026-10-31 · design · the first scene** — Where the game starts (the street the player sees first, to be polished for a "wow"). Default planned: Marszałkowska by Plac Defilad (the Palace, the new Museum of Modern Art, the Eastern Wall, the towers), where the spawn and the first-10-minutes script already are. Alternatives: Plac Zamkowy and the Old Town, Rondo Daszyńskiego's towers, Most Świętokrzyski. Plan: docs/design/first-scene.md.
@@ -27,7 +56,9 @@ Newest first. One entry per question.
 - **2026-10-31 · gameplay · loop 3h slice 3** — Rival pace: Halina 1.25, Słoik 1.3, Bartek 1.35, Seba 1.4, Zbyszek 1.45, Mike 1.5 (× the street's limit; was 1.45 for all); Seba in the final 1.45. Default built: those, guesses until F races Halina on the phone.
 - **2026-10-31 · gameplay · loop 3h slice 3** — Once the final is open, at night Seba waits at the start held still (so his own rung can't be re-raced at night). Default built: that. Alternative: he cruises and only the marker waits.
 - **2026-10-31 · content · loop 3h slice 3** — Six refusal lines (one per rival) and Seba's four final lines (`rivals.gd` RIVALS `refuse`, FINAL_LINES). Default built: mine, for the designer's review.
-- **2026-10-31 · gameplay · loop 3h slice 3** — DEMO 6.2's first race is against Seba, but the ladder opens with Halina. Default built: the ladder as specified; slice 4 picks the first race (Halina, or a Seba race outside the ladder).
+- **2026-10-31 · gameplay · loop 3h slice 4** — DEMO 6.2's first race: **decided, Pani Halina** (the
+  ladder's first rung, stake 60; a win counts as her rung beaten), so Seba stays the boss of the
+  final "Trzy mosty". DEMO 6.2's 1:30 row says so. Alternative: a Seba race outside the ladder.
 - **2026-10-31 · gameplay · loop 3h slice 2** — The Palace's and the stadium's Syrenki stand 148 m and 211 m from their anchors (no ground street nearer). Default built: that (a 260 m fallback). Alternative: anchor them elsewhere in `syrenki.json`.
 - **2026-10-31 · gameplay · loop 3h slice 2** — No hint for the Syrenki (no "?" marks, no minimap dot, no chime); only a cyan diamond over each and "Syrenki n/20" on the full map. Default built: that. Alternative: a chime under ~40 m or a dot once the district is discovered.
 - **2026-10-31 · gameplay · loop 3h slice 2** — Rewards: 5 Syrenki open the "Łuska Syreny" paint, 10 give 150 zł and 50 respect, 20 open "Srebro Syreny" and 300 zł; +5 respect a find. Default built: that, numbers for the designer to tune with the ladder.
@@ -289,7 +320,7 @@ Newest first. One entry per question.
   name is "Around Warsaw" on both platforms). The Android package can't change: Play has had
   version code 1 under `com.olshanskysoft.nocnawarszawa` since October, and a new package
   would be a new app. Options: keep (both platforms match) / change iOS only. Default built:
-  keep, as the rename of 2026-10-30 decided. Where: `game/export_presets.cfg`, ROADMAP
+  keep, as the rename of 2026-10-30 decided. **Answered 2026-10-31 by the user: change iOS only; done in `game/export_presets.cfg`** (Android stays). Where: `game/export_presets.cfg`, ROADMAP
   "rename + open source".
 
 - **2026-10-30 · store release · store listings** — Ship the iOS app for iPhone and iPad, or
