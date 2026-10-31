@@ -13,7 +13,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
 | landmarks (content thread) | Muzeum Narodowe as a real model, then Plac Piłsudskiego's edges (Hotel Europejski, the square's office blocks); split agreed with the landmarks thread, which keeps the Old Town, churches, St Anne's and skyscrapers | cloud thread "Add autonomous backlog workflow" | 2026-10-31 |
-| map | The loading fix (on-screen sectors first, proxies that look like the city), then the map north to Rondo Radosława, Arkadia and Forest (3d-1, 3d-2a, 3d-2b and 3e landed) | thread "Finish the demo map extension" | 2026-10-30 |
+| map | The content lane's map asks (corner shops, metro entrances, bike and scooter spots, Kruczkowskiego 3B) (3d-1, 3d-2a, 3d-2b, 3e, the loading fix and map north landed) | thread "Finish the demo map extension" | 2026-10-30 |
 
 ## Waiting
 
@@ -134,6 +134,21 @@ Newest first. One entry per question.
   iPhone 11, at most 8 s). Default built: on (the old way showed far-tower proxies at the start).
 - **2026-10-31 · map · loading fix** — Jumps (tow, race start) load the view's sectors at once:
   1-2 extra frames over 33 ms per cut, instead of 0.5-1 s of proxies at the new place. Default built: at once.
+- **2026-10-31 · map · map north** — Shape of the growth: only the west side of the north edge
+  (an L, 1.04 km²), or the whole north strip (~3.9 km², Praga north and Dworzec Gdański too)?
+  Default built: the L.
+- **2026-10-31 · map · map north** — North edge at 52.2591 cuts the Jana Pawła II and Andersa
+  viaducts; taking them in whole needs a new OSM, orthophoto and tree fetch past 52.2595.
+  Default built: cut at 52.2591.
+- **2026-10-31 · map · map north** — Looser LoD2 match: footprint share 50 % (8 models kept), or
+  30 % (27 models, 44 blocks)? Default built: 50 %.
+- **2026-10-31 · map · map north** — Outdated 2018 LoD2 models under much taller mapped buildings
+  give way to OSM map-wide (46 models, mostly Wola: low sheds become the mapped towers as plain
+  blocks), or only in the new area? Default built: map-wide.
+- **2026-10-31 · map · map north** — Arkadia's roof car park is left out of the bake: keep it out,
+  or model it for DEMO 6.4's car-park race? Default built: left out.
+- **2026-10-31 · map · map north** — The flag mast on Rondo Radosława isn't in OSM: no placeholder,
+  left to the landmarks lane (spot in DEMO.md 2.1). Default built: none.
 - **2026-10-31 · map · 3e** — Ground under trenches: 1 m sub-cells only at tunnel portals and
   road cuttings (keeps the +1 % vertex budget), or a new builder feature that cuts the ground along
   a lowered corridor and draws the floor as one strip (would also fix the rail cutting and ~40 more
