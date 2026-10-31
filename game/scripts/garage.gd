@@ -38,7 +38,8 @@ const CHECK_EVERY := 0.25
 const GOLD_EGGS := 5
 const DEFAULT := "red"
 ## id, name [pl, en], the body's colour and glow (car.gd HERO_PAINT is 1.4), the stripes' colour
-## and glow (HERO_STRIPE 0.3), the price (zł), `eggs`: egg cards needed instead of money. Black
+## and glow (HERO_STRIPE 0.3), the price (zł), `eggs`: egg cards needed instead of money (loop 3h
+## slice 2: `syrenki`: Syrenki found needed, the same way: "scale" at 5, "silver" at 20). Black
 ## glows more than its colour gives (a near-black lit by 1.4 stays near-black at night) and wears
 ## silver stripes that glow, so the car reads on a dark street.
 const PAINTS: Array[Dictionary] = [
@@ -58,6 +59,10 @@ const PAINTS: Array[Dictionary] = [
 			"stripe": Color("#f4efe4"), "stripe_glow": 0.3, "price": 350},
 	{"id": "gold", "name": ["Złoto Syrenki", "Mermaid gold"], "paint": Color("#d6a630"), "glow": 1.5,
 			"stripe": Color("#2b2620"), "stripe_glow": 0.0, "price": 0, "eggs": GOLD_EGGS},
+	{"id": "scale", "name": ["Łuska Syreny", "Mermaid scale"], "paint": Color("#2a9d8f"), "glow": 1.4,
+			"stripe": Color("#f4efe4"), "stripe_glow": 0.3, "price": 0, "syrenki": 5},
+	{"id": "silver", "name": ["Srebro Syreny", "Mermaid silver"], "paint": Color("#c9ced6"), "glow": 1.1,
+			"stripe": Color("#2b2620"), "stripe_glow": 0.0, "price": 0, "syrenki": 20},
 ]
 
 var wallet: Node
@@ -71,6 +76,8 @@ var graph
 var busy: Callable
 ## The egg cards found, -> int (egg_book.gd found_total; unset: the wallet's eggs).
 var eggs_found: Callable
+## Loop 3h slice 2: the Syrenki found, -> int (unset: the wallet's `syrenki`).
+var syrenki_found: Callable
 ## --garage: shown whatever the wallet says (no toast).
 var force := false
 ## --garage-log: the card, the buys and the paints.
@@ -100,8 +107,8 @@ static func find(id: String) -> Dictionary:
 
 ## What a tap on `id` would do with `zl` złoty, `owned` (id -> day) and `eggs` egg cards found:
 ## "on" (on the car now), "switch" (owned: free), "buy" (affordable), "short" (too little money),
-## "locked" (gold, too few eggs), "" (no such paint).
-static func rule(id: String, current: String, zl: int, owned: Dictionary, eggs: int) -> String:
+## "locked" (gold, too few eggs; loop 3h slice 2: or too few `syrenki`), "" (no such paint).
+static func rule(id: String, current: String, zl: int, owned: Dictionary, eggs: int, syrenki := 0) -> String:
 	var p := find(id)
 	if p.is_empty():
 		return ""
@@ -111,6 +118,8 @@ static func rule(id: String, current: String, zl: int, owned: Dictionary, eggs: 
 		return "switch"
 	if p.has("eggs"):
 		return "switch" if eggs >= int(p["eggs"]) else "locked"
+	if p.has("syrenki"):
+		return "switch" if syrenki >= int(p["syrenki"]) else "locked"
 	return "buy" if zl >= int(p["price"]) else "short"
 
 
@@ -193,9 +202,15 @@ func eggs_now() -> int:
 	return wallet.eggs_found() if wallet != null else 0
 
 
+func syrenki_now() -> int:
+	if syrenki_found.is_valid():
+		return int(syrenki_found.call())
+	return wallet.syrenki.size() if wallet != null else 0
+
+
 ## What a tap on `id` would do now (`rule`).
 func rule_now(id: String) -> String:
-	return rule(id, current(), int(wallet.zl) if wallet != null else 0, owned(), eggs_now())
+	return rule(id, current(), int(wallet.zl) if wallet != null else 0, owned(), eggs_now(), syrenki_now())
 
 
 ## Buys or switches to `id` when the rule allows: the wallet pays a buy, the paint is owned and on

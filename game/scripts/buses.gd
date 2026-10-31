@@ -42,7 +42,7 @@ const SIGN_TO := 5.0
 const HUB := Vector2(-1392.0, 652.0)
 const HUB_ROWS := [[Vector2(-1392.7, 624.9), Vector2(-0.95, 0.31), 4], [Vector2(-1381.6, 680.6), Vector2(0.92, -0.39), 4]]
 const BAY_LEAD := 10.0
-const BAY_GAP := 14.0
+const BAY_GAP := 20.0
 ## A ring bus stands this far right of its kerb lane's line: half a lane and a metre (at the kerb).
 const BAY_PULL := 1.0
 ## The gatherings: from 22:30, every half hour, SLOTS of them (the last at 04:30); each lives

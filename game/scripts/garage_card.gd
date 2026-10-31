@@ -2,7 +2,7 @@ extends Control
 ## The garage loop (2026-10-31): the paint card at Warsztat u Mirka (garage.gd). The game pauses
 ## under it (main.gd, like the settings card), so it runs with PROCESS_MODE_ALWAYS. In the HUD's
 ## card recipe (hud.gd `_panel_box`, `_chip`, the type scale): the title and the wallet, Mirek's
-## line, the paints as swatches in two rows of four (each 44 pt or more: the colour, its Polish
+## line, the paints as swatches in two rows of five (each 44 pt or more: the colour, its Polish
 ## name, the price or "masz" / "na aucie"), then the action for the swatch picked (buy, switch,
 ## or why not) and WYJAZD · Drive off. Polish over English throughout. Built at the first open.
 
@@ -11,6 +11,8 @@ signal closed
 ## The swatches' size in points (at least 44 tall: the touch rule).
 const SWATCH := Vector2(114.0, 58.0)
 const GAP := 6.0
+## Swatches per row (loop 3h slice 2: ten paints in two rows of five).
+const COLUMNS := 5
 
 ## garage.gd (the rules, the paints, Mirek's lines).
 var garage: Node
@@ -72,7 +74,7 @@ func _build() -> void:
 	_money.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_money.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	head.add_child(_money)
-	var width := SWATCH.x * 4.0 + GAP * 3.0
+	var width := SWATCH.x * COLUMNS + GAP * (COLUMNS - 1)
 	_line = hud._label(hud.T_SUB, hud.INK)
 	hud._wrap(_line, width)
 	col.add_child(_line)
@@ -80,7 +82,7 @@ func _build() -> void:
 	hud._wrap(_line_en, width)
 	col.add_child(_line_en)
 	_grid = GridContainer.new()
-	_grid.columns = 4
+	_grid.columns = COLUMNS
 	_grid.add_theme_constant_override("h_separation", roundi(GAP * pt))
 	_grid.add_theme_constant_override("v_separation", roundi(GAP * pt))
 	col.add_child(_grid)
@@ -202,9 +204,12 @@ func _refresh() -> void:
 			"on":
 				price.text = "na aucie · on"
 			"switch":
-				price.text = "masz · yours" if id != "gold" or w.paints.has("gold") else "gratis · free"
+				price.text = "masz · yours" if not (p.has("eggs") or p.has("syrenki")) or w.paints.has(id) else "gratis · free"
 			"locked":
-				price.text = "%d/%d sekretów" % [garage.eggs_now(), int(p["eggs"])]
+				if p.has("syrenki"):
+					price.text = "%d/%d Syrenek" % [garage.syrenki_now(), int(p["syrenki"])]
+				else:
+					price.text = "%d/%d sekretów" % [garage.eggs_now(), int(p["eggs"])]
 			_:
 				price.text = w.money(int(p["price"]))
 		var lit := id == picked
@@ -230,7 +235,10 @@ func _refresh() -> void:
 			hud._set_chip(_action, "BRAKUJE %s" % w.money(miss).to_upper(), "%s short" % _money_en(miss))
 			_action.disabled = true
 		"locked":
-			hud._set_chip(_action, "ZA %d SEKRETÓW" % int(p2["eggs"]), "Find %d easter eggs" % int(p2["eggs"]))
+			if p2.has("syrenki"):
+				hud._set_chip(_action, "ZA %d SYRENEK" % int(p2["syrenki"]), "Find %d Mermaids" % int(p2["syrenki"]))
+			else:
+				hud._set_chip(_action, "ZA %d SEKRETÓW" % int(p2["eggs"]), "Find %d easter eggs" % int(p2["eggs"]))
 			_action.disabled = true
 	_action.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_place()

@@ -42,8 +42,8 @@ const STOP_S := 1.0
 ## over the ground).
 const HELI_RADIUS := 60.0
 const HELI_ALT := 60.0
-## The minimap's "?": undiscovered places within this many metres of the car (vision.md says
-## "in a discovered district"; there are no districts yet).
+## The minimap's "?": undiscovered places within this many metres of the car; loop 3h slice 1 adds
+## the discovered districts' own "?" marks wherever they are (`extra_marks`, districts.gd).
 const MINI_REACH := 400.0
 const CARD_RESPECT := 5
 const CHAPTER_ZL := 50
@@ -55,7 +55,11 @@ const KIND_REACH := 300.0
 ## A place whose own kind of poi the map has (the special pois eggs.gd uses).
 const POI_KIND := {"syrenka": "syrenka", "patelnia": "patelnia", "plac_defilad": "defilad",
 		"stadion_narodowy": "stadium"}
+## The chapters' size since loop MW-0 (vision.md 4.1: 9 chapters of 8). Map north (2026-10-31):
+## a chapter may hold up to MAX_PER_CHAPTER (Rondo Radosława, Arkadia and Forest went into three
+## of them as a ninth card); the counts shown are the chapter's own size (chapter_places).
 const PER_CHAPTER := 8
+const MAX_PER_CHAPTER := 10
 
 ## The chapters in the notebook's order: {id, name_pl, name_en}.
 var chapters: Array = []
@@ -82,6 +86,9 @@ var _grid := {}
 var _t := 0.0
 var _still := {}
 var _unknown := PackedVector2Array()
+## Loop 3h slice 1: more "?" marks (map points) beyond MINI_REACH: districts.gd `marks`, the
+## discovered districts' first three places not found yet.
+var extra_marks: Callable
 
 
 ## Reads places.json (no map: the UI and the checks that need no positions). False if missing.
@@ -355,6 +362,10 @@ func _update_minimap(p: Vector2) -> void:
 		var at: Vector2 = place["at"]
 		if at.distance_squared_to(p) < MINI_REACH * MINI_REACH and not is_found(str(place["id"])):
 			marks.append(at)
+	if extra_marks.is_valid():
+		for at: Vector2 in extra_marks.call():
+			if at.distance_squared_to(p) >= MINI_REACH * MINI_REACH:
+				marks.append(at)
 	if marks != _unknown:
 		_unknown = marks
 		hud.set_minimap_unknown(marks)
@@ -414,9 +425,9 @@ func record(id: String, date := 0) -> bool:
 	var k := found_in(ci)
 	var chapter: Dictionary = chapters[ci] if ci < chapters.size() else {"id": "", "name_pl": "", "name_en": ""}
 	if log_on:
-		print("notes: found %s (chapter %d, %d/%d)" % [id, ci + 1, k, PER_CHAPTER])
+		print("notes: found %s (chapter %d, %d/%d)" % [id, ci + 1, k, chapter_places(ci).size()])
 	if hud != null:
-		hud.toast("NOWY WPIS · %s" % place["name_pl"], "NEW ENTRY · %s · %d/%d" % [place["name_en"], k, PER_CHAPTER])
+		hud.toast("NOWY WPIS · %s" % place["name_pl"], "NEW ENTRY · %s · %d/%d" % [place["name_en"], k, chapter_places(ci).size()])
 	if blip.is_valid():
 		blip.call()
 	Input.vibrate_handheld(25, 0.3)

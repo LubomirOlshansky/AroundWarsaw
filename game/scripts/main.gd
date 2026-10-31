@@ -71,6 +71,13 @@ const EggBook := preload("res://scripts/egg_book.gd")
 const Tape := preload("res://scripts/tape.gd")
 const Spacer := preload("res://scripts/spacer.gd")
 const Fotka := preload("res://scripts/fotka.gd")
+## Loop 3h slice 1: the demo's districts (discovery, "?" marks, completion).
+const Districts := preload("res://scripts/districts.gd")
+## Loop 3h slice 2: the 20 Syrenki (collectibles).
+const Syrenki := preload("res://scripts/syrenki.gd")
+## Loop 3h slice 3: the final race's route (the start's hint for --trzy-mosty).
+const TrzyMosty := preload("res://scripts/trzy_mosty.gd")
+const Ladder := preload("res://scripts/ladder.gd")
 const Sfx := preload("res://scripts/sfx.gd")
 ## Loop MW-5: the city's sounds at the notebook's places.
 const CitySounds := preload("res://scripts/city_sounds.gd")
@@ -219,6 +226,10 @@ var _last_target := Vector3.INF
 var follow := true
 var cam_focus := Vector3.ZERO
 var demo := false
+## The L-shaped map loop (2026-10-31), --heli-stick=X,Z: the helicopter's stick held towards that
+## world direction (x east, z south) the whole run, for screenshots of the clamp along the map's
+## outline (ZERO: off).
+var heli_stick := Vector2.ZERO
 var shots: Array[int] = []
 ## The shots saved so far: the frames of `shots` that reached their PNG (a run that ends
 ## without one says so in _exit_tree).
@@ -293,6 +304,26 @@ var notes_log := false
 ## hint after S s), --fotka (Fotka open at the start), --kadr=<n|id> (Fotka aimed at a Kadr spot,
 ## a photo after 2 s), --fotka-shot=S (a photo S s after --fotka opens), --photo-log.
 var egg_book: EggBook
+## Loop 3h slice 1: the districts (districts.gd) and their flags: --district=<id> (that district's
+## "discovered" card at the first check), --districts=all|none|<id>[:jobs],... (the record, in
+## memory), --districts-log.
+var districts: Districts
+var district_card := ""
+var districts_spec := ""
+var districts_log := false
+## Loop 3h slice 2: the Syrenki (syrenki.gd) and their flags: --syrenki-log (placements and finds),
+## --syrenki=all|none|<n>|<id>,... (the record, in memory), --syrenka=<id|n>[:m] (the car on the street
+## next to that Syrenka, facing it, m metres before it: 25 by default; :0 finds it at once).
+var syrenki: Syrenki
+var syrenki_log := false
+var syrenki_spec := ""
+var syrenka_flag := ""
+## Loop 3h slice 3: the rival ladder and the final "Trzy mosty" (rivals.gd, ladder.gd,
+## trzy_mosty.gd): --ladder=N (the first N rungs beaten for this run, respect raised to fit; -1: the
+## save's) and --trzy-mosty (the car at Rondo Daszyńskiego at night, the final at once).
+var ladder_flag := -1
+var trzy_mosty_flag := false
+var trzy_mosty_bridge := 0
 var tape: Tape
 var spacer: Spacer
 var fotka: Fotka
@@ -624,6 +655,11 @@ func _ready() -> void:
 	await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
 	_place_start()  # loop MW-1: --place=<id>, the sectors round the place
+	_syrenka_start()  # loop 3h slice 2: --syrenka=<id|n>
+	if trzy_mosty_flag:
+		# Loop 3h slice 3: --trzy-mosty[=N]: the city built round the start (or bridge N) first.
+		var hint: Vector2 = TrzyMosty.START_HINT if trzy_mosty_bridge <= 0 else TrzyMosty.BRIDGES[trzy_mosty_bridge - 1]["hint"]
+		start_at = Vector3(hint.x, 0.0, hint.y)
 	_club_start()  # loop MW-3: --club=<id>, the same
 	if garage_flag:
 		start_at = Vector3(Garage.SPOT.x, 0.0, Garage.SPOT.y)  # the garage loop: --garage
@@ -855,8 +891,7 @@ func _build_world() -> void:
 	heli = Heli.new()
 	heli.ground_height = map.ground_height
 	heli.top_height = map.top_height
-	var b: Array = data["bounds"]
-	heli.bounds = Rect2(b[0], b[1], b[2] - b[0], b[3] - b[1])
+	heli.set_map(map)  # map north: the L-shaped outline, not the bounding box
 	world.add_child(heli)
 	heli.landed.connect(_on_heli_landed)
 
@@ -909,7 +944,7 @@ func _build_world() -> void:
 		if not follow:
 			_rotate_camera(d))
 	hud.pinched.connect(_on_pinch)
-	hud.setup_minimap(data)
+	hud.setup_minimap(data, map.map_outline(), map.outside)  # map north: the L, not the box
 	hud.vehicle_pressed.connect(_toggle_vehicle)
 	hud.tapped.connect(_on_tap)
 	_set_flying(false)
@@ -948,6 +983,8 @@ func _build_world() -> void:
 		_build_side_jobs(data, world)
 	_build_notebook(data)
 	_build_moments(data, world)
+	_build_districts()
+	_build_syrenki(world)
 	_build_garage(world)
 	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
 	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
@@ -966,7 +1003,7 @@ func _build_world() -> void:
 	# Loop 2e: no call card at the start (docs/DEMO.md 6.1): calls come in during play.
 	if start_mission > 0:
 		missions.start(start_mission)
-	elif demo or start_race > 0 or start_rival > 0 or bench or start_kebab >= 0 or start_sloik >= 0 or free_roam or roundup_flag:
+	elif demo or start_race > 0 or start_rival > 0 or trzy_mosty_flag or bench or start_kebab >= 0 or start_sloik >= 0 or free_roam or roundup_flag:
 		missions.close()
 	else:
 		missions.quiet_start(call_in)
@@ -991,6 +1028,10 @@ func _build_world() -> void:
 			rivals.start_race(i)
 		elif autopilot:
 			rivals.tail = i
+	elif rivals != null and trzy_mosty_flag:
+		# Loop 3h slice 3: --trzy-mosty: the final at once from its start (the run is at night).
+		if rivals.start_final_now(trzy_mosty_bridge):
+			cam_focus = car.global_position
 
 	if _water_test_at != Vector2.INF:
 		_start_water_test()
@@ -1103,7 +1144,10 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	add_child(rivals)
 	rivals.autopilot = autopilot
 	rivals.wallet = wallet
+	rivals.tod = tod  # loop 3h slice 3: the final waits for the night
 	rivals.setup(graph, traffic, hud, bubbles, missions, map, world, car, data)
+	if ladder_flag >= 0 or trzy_mosty_flag:
+		rivals.preset_ladder(ladder_flag if ladder_flag >= 0 else Ladder.RUNGS.size())  # loop 3h slice 3
 	print("living city: %d lanes, %d trams in %d ms" % [graph.lane_count, trams.trams.size(), Time.get_ticks_msec() - t0])
 	if bench:
 		_clear_bench_result()
@@ -1457,7 +1501,8 @@ func _start_phone_bench() -> void:
 		return
 	_phone_saved = {"at": car.global_transform, "mask": car.collision_mask, "size": base_size,
 			"wallet": [wallet.zl, wallet.respect, wallet.jobs.duplicate(true), wallet.best.duplicate(true),
-					wallet.eggs.duplicate(true)], "persistent": wallet.persistent, "calls": missions.paused}
+					wallet.eggs.duplicate(true), wallet.district_jobs.duplicate(true), wallet.ladder.duplicate(true)], "persistent": wallet.persistent,
+			"calls": missions.paused}
 	wallet.persistent = false
 	# Loop G1: no rescue call comes in during the minute (its clock waits, as during a race): the
 	# first call, 60 s into play, landed inside it and was the card's worst frame (61 ms on the
@@ -1516,6 +1561,8 @@ func _end_phone_bench(done: bool) -> void:
 	wallet.jobs = w[2]
 	wallet.best = w[3]
 	wallet.eggs = w[4]
+	wallet.district_jobs = w[5]  # loop 3h slice 1
+	wallet.ladder = w[6]  # loop 3h slice 3
 	wallet.persistent = _phone_saved["persistent"]
 	missions.paused = _phone_saved["calls"]
 	hud.set_wallet(wallet.zl, wallet.respect)
@@ -2214,6 +2261,87 @@ func _build_moments(data: Dictionary, world: Node3D) -> void:
 		_moment_at = 1.0
 
 
+## Loop 3h slice 1: the districts (districts.gd) on the notebook's places, checked at 3 Hz through
+## the notebook's probe; their "?" marks join the notebook's (notebook.gd `extra_marks`).
+func _build_districts() -> void:
+	districts = Districts.new()
+	districts.name = "Districts"
+	districts.wallet = wallet
+	districts.hud = hud
+	districts.log_on = districts_log
+	districts.blip = _blip_sound
+	districts.force_card = district_card
+	add_child(districts)
+	var points := {}
+	if notes != null:
+		for p: Dictionary in notes.places:
+			points[str(p["id"])] = p["at"]
+	if not districts.setup(points):
+		return
+	if districts_spec != "":
+		districts.preset(districts_spec)
+	if notes != null:
+		districts.probe = notes.probe
+		notes.extra_marks = districts.marks
+	if districts_log:
+		print("districts: %s" % districts.summary())
+
+
+## Loop 3h slice 2: the 20 Syrenki (syrenki.gd) on the notebook's places and the lane graph; the
+## find is checked at 5 Hz through the notebook's probe.
+func _build_syrenki(world: Node3D) -> void:
+	syrenki = Syrenki.new()
+	syrenki.name = "Syrenki"
+	syrenki.wallet = wallet
+	syrenki.hud = hud
+	syrenki.districts = districts
+	syrenki.world = world
+	syrenki.log_on = syrenki_log
+	syrenki.blip = _blip_sound
+	add_child(syrenki)
+	var points := {}
+	if notes != null:
+		for p: Dictionary in notes.places:
+			points[str(p["id"])] = p["at"]
+	if not syrenki.load_data(points):
+		return
+	if graph != null:
+		syrenki.place_all(map, graph)
+	if syrenki_spec != "":
+		syrenki.preset(syrenki_spec)
+	if notes != null:
+		syrenki.probe = notes.probe
+	if syrenka_flag != "":
+		var parts := syrenka_flag.split(":")
+		var i := syrenki.index_of(parts[0])
+		var back := float(parts[1]) if parts.size() > 1 else 25.0
+		var spot := syrenki.drive_in(graph, i, back) if i >= 0 else []
+		if spot.is_empty():
+			push_warning("--syrenka=%s: no such Syrenka or no street" % syrenka_flag)
+		else:
+			car.global_position = spot[0]
+			car.rotation.y = spot[1]
+			car.vel = Vector3.ZERO
+			car.forward_speed = 0.0
+			car.reset_physics_interpolation()
+			cam_focus = car.global_position
+			print("syrenki: --syrenka=%s: the car at %.1f, %.1f facing it" % [syrenka_flag, car.global_position.x, car.global_position.z])
+
+
+## --syrenka=<id|n>, before the city opens: start at the Syrenka's anchor (map-free), so the
+## sectors round it are built first (the exact spot comes after, _build_syrenki).
+func _syrenka_start() -> void:
+	if syrenka_flag == "":
+		return
+	var sy := Syrenki.new()
+	if sy.load_data():
+		var i := sy.index_of(syrenka_flag.get_slice(":", 0))
+		if i >= 0 and sy.entries[i]["anchor"] != Vector2.INF:
+			var at: Vector2 = sy.entries[i]["anchor"]
+			start_at = Vector3(at.x, 0.0, at.y)
+	sy.free()
+
+
 ## Spacer on or off: what comes by itself stops (or starts again).
 func _apply_spacer(on: bool) -> void:
 	if missions != null:
@@ -2788,6 +2916,10 @@ func _parse_args() -> void:
 			_flag_cinematic = arg.trim_prefix("--cinematic=") if arg.contains("=") else "all"
 		elif arg == "--heli":
 			start_flying = true
+		elif arg.begins_with("--heli-stick="):
+			var hs := arg.trim_prefix("--heli-stick=").split(",")
+			if hs.size() == 2:
+				heli_stick = Vector2(float(hs[0]), float(hs[1]))
 		elif arg.begins_with("--heli-alt="):
 			# Loop 3d-2b: start flying this high over the ground, placed there at once (the
 			# helicopter at its highest, Heli.MAX_HEIGHT 360, for the memory and far-level probes).
@@ -2998,6 +3130,24 @@ func _parse_args() -> void:
 			garage_log = true
 		elif arg.begins_with("--egg="):
 			egg_flag = arg.trim_prefix("--egg=")
+		elif arg.begins_with("--district="):
+			district_card = arg.trim_prefix("--district=")
+		elif arg.begins_with("--districts="):
+			districts_spec = arg.trim_prefix("--districts=")
+		elif arg == "--districts-log":
+			districts_log = true
+		elif arg == "--syrenki-log":
+			syrenki_log = true
+		elif arg.begins_with("--syrenki="):
+			syrenki_spec = arg.trim_prefix("--syrenki=")
+		elif arg.begins_with("--syrenka="):
+			syrenka_flag = arg.trim_prefix("--syrenka=")
+		elif arg.begins_with("--ladder="):
+			ladder_flag = clampi(int(arg.trim_prefix("--ladder=")), 0, Ladder.FINAL + 1)  # loop 3h slice 3
+		elif arg == "--trzy-mosty" or arg.begins_with("--trzy-mosty="):
+			trzy_mosty_flag = true
+			trzy_mosty_bridge = clampi(int(arg.trim_prefix("--trzy-mosty=")), 0, 3) if arg.contains("=") else 0
+			start_time = TimeOfDay.NIGHT
 		elif arg == "--egg-log":
 			egg_log = true
 		elif arg.begins_with("--found-eggs="):
@@ -3069,8 +3219,8 @@ func _parse_args() -> void:
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or open_map_at_start or hold_stick != Vector2.INF or bench_button \
 			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0 or old_tram_flag != "":
 		show_title = false
-	if start_ride >= 0 or place_flag != "" or roundup_flag:
-		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place)
+	if start_ride >= 0 or place_flag != "" or roundup_flag or district_card != "" or syrenka_flag != "" or trzy_mosty_flag:
+		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place; loop 3h: --district=)
 	# Loop MW-6: and the eggs', the tape's and Fotka's flags; --egg sets its moment's time.
 	if egg_flag != "" or tape_flag != "" or fotka_flag or spacer_hint >= 0.0:
 		show_title = false
@@ -3285,6 +3435,11 @@ func _open_full_map() -> void:
 	_blip_sound()
 	get_tree().paused = true
 	hud.open_full_map(Vector2(pos.x, pos.z), yaw, found)
+	if districts != null and districts.ready_ok:
+		hud.full_map.set_districts(districts.view(), districts.percent_total(), syrenki.found_count() if syrenki != null else 0,
+				syrenki.entries.size() if syrenki != null else 0)  # loop 3h slice 1 (+ slice 2: the Syrenki line)
+	if rivals != null:
+		hud.full_map.set_ladder(rivals.ladder_rows())  # loop 3h slice 3: the DRABINKA card
 	if not hud.full_map.closed.is_connected(_close_full_map):
 		hud.full_map.closed.connect(_close_full_map)
 
@@ -3437,7 +3592,6 @@ func _lane_spot(at: Vector3, yaw: float) -> Array:
 func _node_spot(at: Vector3) -> Array:
 	if graph == null:
 		return []
-	var inner: Rect2 = map.bounds.grow(-12.0)
 	var best: Array = []
 	var best_d := INF
 	for n in graph.node_pos.size():
@@ -3448,7 +3602,7 @@ func _node_spot(at: Vector3) -> Array:
 			var s := graph.e_s0[e]
 			var q := graph.point_at(e, s, graph.lane_offset(e, 0))
 			var h := graph.height(e, s)
-			if not inner.has_point(q) or not _same_level(at, q, h) or map.in_water(q.x, q.y, h):
+			if not map.in_map(q, -12.0) or not _same_level(at, q, h) or map.in_water(q.x, q.y, h):
 				continue
 			var dir := graph.direction(e, s)
 			best = [Vector3(q.x, h, q.y), atan2(-dir.x, -dir.y)]
@@ -4219,6 +4373,10 @@ func _make_stats() -> BenchStats:
 		b.systems["storefronts"] = [storefronts, "spent_usec", true]  # loop MW-2
 	if egg_book != null:
 		b.systems["eggs+tape+spacer"] = [self, "_moments_usec", false]  # loop MW-6
+	if districts != null:
+		b.systems["districts"] = [districts, "spent_usec", true]  # loop 3h slice 1
+	if syrenki != null:
+		b.systems["syrenki"] = [syrenki, "spent_usec", true]  # loop 3h slice 2
 	if garage != null:
 		b.systems["garage"] = [garage, "spent_usec", true]  # the garage loop
 	b.systems["sound"] = [sfx, "last_usec", false]
@@ -4597,6 +4755,8 @@ func _read_heli_input(left: bool, right: bool, up: bool, down: bool, dt: float) 
 	var climb := float(Input.is_physical_key_pressed(KEY_SPACE)) \
 			- float(Input.is_physical_key_pressed(KEY_SHIFT) or Input.is_physical_key_pressed(KEY_F))
 	heli.climb = clampf(climb + hud.climb, -1.0, 1.0)
+	if heli_stick != Vector2.ZERO:
+		heli.input_dir = Vector3(heli_stick.x, 0.0, heli_stick.y).limit_length(1.0)
 	if demo and not autopilot:
 		# A slow circle at cruise height, for screenshots.
 		var a := frame * 0.0035
@@ -5289,6 +5449,8 @@ func _soak_tour(data: Dictionary) -> Array[Vector2]:
 	for key in streamer.keys:
 		var c := (Vector2(key) + Vector2(0.5, 0.5)) * SectorStreamer.SECTOR
 		c = c.clamp(inner.position, inner.end)
+		if not map.in_map(c, -60.0):
+			continue  # map north: a sector's middle in the corner left outside
 		if not rows.has(key.y):
 			rows[key.y] = []
 		rows[key.y].append(c)

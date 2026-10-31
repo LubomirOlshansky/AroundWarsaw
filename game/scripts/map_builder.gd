@@ -4756,14 +4756,20 @@ func _make_shared() -> void:
 	shelter.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var glass := Color("#b8d3df")
 	var graphite := Color("#33363b")
+	# The Rondo photos (2026-10-31): Warsaw's shelter has a red frame: the roof's edge, the
+	# posts and a red loop round the glass end, with an ad panel in a black case.
+	var red := Color("#c8282a")
 	_box(shelter, Vector3(0, 2.5, 0.08), Vector3(4.3, 0.12, 1.95), graphite)
 	_box(shelter, Vector3(0, 2.57, 0.08), Vector3(4.0, 0.03, 1.7), Color("#a7c2cf"))
-	_box(shelter, Vector3(0, 2.38, -0.86), Vector3(4.3, 0.3, 0.06), Color("#2b2e33"))
+	_box(shelter, Vector3(0, 2.38, -0.86), Vector3(4.3, 0.3, 0.06), red)
 	_box(shelter, Vector3(0, 1.3, 0.75), Vector3(3.85, 2.05, 0.04), glass)
 	_box(shelter, Vector3(0, 0.12, 0.75), Vector3(3.9, 0.1, 0.06), graphite)
 	_box(shelter, Vector3(-1.95, 1.3, 0.17), Vector3(0.04, 2.05, 1.15), glass)
 	for x in [-1.95, 0.0, 1.95]:
-		_box(shelter, Vector3(x, 1.25, 0.78), Vector3(0.09, 2.5, 0.09), graphite)
+		_box(shelter, Vector3(x, 1.25, 0.78), Vector3(0.09, 2.5, 0.09), red)
+	# The red loop round the glass end: a post at each corner and a bar along the foot.
+	_box(shelter, Vector3(-1.95, 0.05, 0.17), Vector3(0.06, 0.06, 1.2), red)
+	_box(shelter, Vector3(-1.95, 2.4, -0.4), Vector3(0.06, 0.2, 0.06), red)
 	# The poster box: a graphite case, a poster on each face.
 	_box(shelter, Vector3(1.95, 1.2, 0.12), Vector3(0.2, 1.95, 1.3), graphite)
 	for sx in [-0.11, 0.11]:
@@ -4778,6 +4784,12 @@ func _make_shared() -> void:
 	for sz in [-0.03, 0.03]:
 		_box(shelter, Vector3(-2.45, 2.47, -0.7 + sz), Vector3(0.34, 0.2, 0.02), Color("#f2f2ee"))
 		_box(shelter, Vector3(-2.45, 2.34, -0.7 + sz), Vector3(0.3, 0.05, 0.02), Color("#f2f2ee"))
+	# The Rondo photos' ad panel: a big lit panel in a black case on the glass end, a poster
+	# (orange over cream, SHELTER_POSTER) on both faces, glowing at night.
+	_box(shelter, Vector3(-2.3, 1.3, 0.3), Vector3(0.12, 1.95, 1.2), Color("#141518"))
+	for sx: float in [-0.075, 0.075]:
+		_box(shelter, Vector3(-2.3 + sx, 1.5, 0.3), Vector3(0.02, 1.4, 1.02), SHELTER_POSTER[0])
+		_box(shelter, Vector3(-2.3 + sx, 0.72, 0.3), Vector3(0.02, 0.2, 1.02), SHELTER_POSTER[1])
 	_shared["shelter"] = _mark_glow(shelter.commit(), SHELTER_POSTER)
 
 

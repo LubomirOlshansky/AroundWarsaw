@@ -49,6 +49,8 @@ const SOURCES := ["res://scripts/police.gd", "res://scripts/police/police_unit.g
 const BUBBLE := 70
 const REPLY := 28
 const DT := 1.0 / 60.0
+## Each case's seed for the global random numbers (see _fresh).
+const FRESH_SEED := 1955
 
 ## Every [group, tag, prefer] police.gd and the conversation ask for (police.md section 6).
 const USED := [
@@ -407,7 +409,12 @@ var _log: Array[String] = []
 
 
 ## A fresh police on a straight two-way road 2 km long (x 0..2000 at z 0), the car at x 500.
+## The L-shaped map loop (2026-10-31): the global random numbers are seeded for each case
+## (FRESH_SEED), so a case's random draws (the guards' car spot, guards.gd `_spawn_car`) are the
+## same on every run: "guard car follows 15 s" failed about 1 run in 12 (alone or under load)
+## when 4 tries of 8 random spots in 8 s all missed the one road.
 func _fresh(now := false) -> void:
+	seed(FRESH_SEED)
 	if _world != null:
 		_world.free()
 	_world = Node3D.new()
@@ -762,11 +769,15 @@ func _part_two() -> void:
 	var g = _guard_at(520.0, 14.0)
 	traffic.screen = false
 	# The car is placed at a random spot 150-300 m out and retried every 2 s when no road is
-	# found there; wait for it (up to 8 s) so the case doesn't hang on one random draw.
-	for _i in 16:
+	# found there; wait for it (up to 30 s; with FRESH_SEED it comes out on the first try).
+	var waited := 0.0
+	for _i in 60:
 		await _steps(0.5)
+		waited += 0.5
 		if p.guards._car_unit != null:
 			break
+	if verbose:
+		print("  the guards' car out after %.1f s" % waited)
 	traffic.screen = true
 	var gcar = p.guards._car_unit
 	p.zone = "oldtown"

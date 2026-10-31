@@ -18,9 +18,10 @@ a high-quality demo of central Warsaw on the iPhone (docs/DEMO.md). The repo is 
 | `docs/WORKFLOW.md` | how the work is run: the loop, who owns what, definition of done, milestone gates |
 | `docs/ROADMAP.md` | order of work and the progress log · `docs/BACKLOG.md` found issues and decisions |
 | `docs/QUESTIONS.md` | parked questions for the user (with the default built) and the lanes in progress |
+| `docs/LANDMARKS.md` | every landmark and building: what is done and how, and the plan by priority (P0 tools, P1 heroes, P2 named, P3 generic) |
 | `docs/DEMO.md` | the demo plan: area, quality bar, road defects, police, milestones |
 | `CREDITS.md`, `LICENSE` | data licences (ODbL, GUGiK, CC BY 4.0) and MIT |
-| `data/raw/`, `build/`, `shots/`, `game_*/` | raw downloads, builds, screenshots, temp copies: gitignored, never committed |
+| `data/raw/`, `build/`, `shots/`, `game_*/`, `refs/` | raw downloads, builds, screenshots, temp copies, reference photos: gitignored, never committed |
 | `game/map/index.*`, `sectors/`, `proxies.scn`, `shared/`, `lod2.*`, `terrain.json` | derived (loop 3d-1): gitignored; a fresh clone runs `tools/setup_map.sh` once (~2 min, a window opens; `lod2.*` and `terrain.json` need GUGiK's raw data, `--full`) |
 
 ## Your role: orchestrator
@@ -52,6 +53,7 @@ for the user's yes: park them (free downloads and add-ons are pre-approved, "Har
 | `perf-engineer` | measure and cut frame cost, budgets, device benches | code, for cost only, look unchanged | opus |
 | `game-designer` | missions, loop, police, economy, jokes, text, 2D art specs and PixelLab assets | design docs, `game/data`, `game/art` | opus |
 | `art-director` | judges screenshots and 2D art against the art bible | nothing (read-only) | opus |
+| `object-modeler` | applies an approved spec to landmarks, facades, roofs, signs, props in code; before/after shots; escalates anything open | the named object code (`landmarks.gd`, `models.gd`, `props.gd`, facade helpers) | sonnet |
 | `qa-tester` | runs the verification set, shot sets, device runs; reports | nothing in the project | sonnet |
 | `scout` | read-only lookups, counts, log crunching, parse checks | nothing | haiku |
 
@@ -67,6 +69,7 @@ for the user's yes: park them (free downloads and add-ons are pre-approved, "Har
 | `loop-brief` | the brief template, delegation table, and how to verify a result |
 | `backlog-loop` | backlog mode: pick the next item by priority, park questions, lanes, keep going until the backlog is empty |
 | `device-run` | build, install, launch on the iPhone, copy the log back; the user starts it with `/device-run`, agents read the file only when the user allowed a run this loop |
+| `model-from-photos` | landmark and building models: reference photos in `refs/` (Wikimedia Commons, gitignored), the spec from them, detail levels L1-L3 and triangle budgets, the side-by-side photo check |
 | `pixellab` | 2D pixel art via the PixelLab MCP server: portraits, HUD/minimap icons, signs and posters, UI, store art; not for the 3D city |
 | `impeccable` | web design for the site (`site/`): new work, critique, polish, the craft floor (pbakaus/impeccable v4.8.0, Apache-2.0; its launcher binary may be blocked in cloud sessions, then read its references directly) |
 
@@ -77,7 +80,8 @@ Up to 50 generations per loop without asking; more needs the user's yes.
 
 ## Model routing (per delegation, by kind of work)
 
-You, the orchestrator, always run on Opus. For each delegation pick the tier with the Agent
+You, the orchestrator (the Mac session or a cloud lane thread), run on Opus and spend Opus on
+deciding, briefing and accepting, not on edits. For each delegation pick the tier with the Agent
 tool's `model` parameter (`"opus"`, `"sonnet"`, `"haiku"`); it overrides the agent file's
 default. Route by the **kind** of work, not its size:
 
@@ -96,8 +100,18 @@ default. Route by the **kind** of work, not its size:
 - **Only you spawn.** Claude Code lets a subagent spawn its own (up to three levels) when its
   `tools` list `Agent`; ours don't, by design: routing, cost and the one-writer rule stay with
   you. An agent that wants a cheaper helper asks in its report ("Haiku could crunch X").
-- The built-in Explore agent runs on your model (Opus); use `scout` for cheap lookups.
+- `Explore` is overridden in `.claude/agents/Explore.md` to run on Haiku; `scout` for counts.
+- **Object work** (landmarks, facades, signs, props): Opus writes the spec with the values,
+  `object-modeler` (Sonnet) builds it and renders before/after, `art-director` (Opus) accepts
+  or returns a fix list. Its **Escalate** items come back to you, never guessed.
+- **Context is the bill.** Every turn re-reads the whole conversation: delegate file dumps,
+  logs and shot sets to subagents and keep only their summary; read line ranges, not big
+  files; one backlog item per thread, then a fresh one (cache: idle > 1 h re-reads it all).
 - Say which model each delegation used when you report it.
+- **Advisor (2026-10-31, on trial).** `.claude/settings.json` sets `advisorModel: opus`, so every
+  session in the repo, cloud lane threads included, can consult an Opus advisor at decision points.
+  It can't be limited to Sonnet: an Opus session gets an Opus advisor too (extra cost). Turn it off
+  with `/advisor off`. F reviews how it works later.
 
 ## Hard rules
 

@@ -1,0 +1,299 @@
+{
+	"_about": "Loop 3h slice 2 (docs/DEMO.md 6.3, checklist F4): the 20 Syrenki, small mermaid figurines by the kerb round the demo's districts (syrenki.gd). Each: `id`, `district` (an id in districts.json; check_syrenki.gd checks the point lies in it), the anchor (`place`: an id in places.json, or `near`: [lat, lon]), `real` (true: the real statue, the Old Town's), `name` and `line` [pl, en] (≤ 70 characters each). The figurine stands on the kerb of the street nearest its anchor; a drive past within `near` metres finds it. `rewards`: what a count of Syrenki found gives once (`paint`: a garage.gd paint id unlocked, `zl`, `respect`) and its card's words. Words written in slice 2 for the game-designer to review.",
+	"near": 7.0,
+	"respect": 5,
+	"rewards": [
+		{
+			"at": 5,
+			"paint": "scale",
+			"text": [
+				"Nowy lakier w garażu: Łuska Syreny.",
+				"A new paint in the garage: Mermaid scale."
+			]
+		},
+		{
+			"at": 10,
+			"zl": 150,
+			"respect": 50,
+			"text": [
+				"Miasto dziękuje: 150 zł i szacunek.",
+				"The city says thanks: 150 zł and respect."
+			]
+		},
+		{
+			"at": 20,
+			"paint": "silver",
+			"zl": 300,
+			"text": [
+				"Wszystkie! Srebro Syreny w garażu i 300 zł.",
+				"All of them! Mermaid silver in the garage, 300 zł."
+			]
+		}
+	],
+	"syrenki": [
+		{
+			"id": "s01_palac",
+			"district": "srodmiescie",
+			"place": "palac_kultury",
+			"name": [
+				"Syrenka pod Pałacem",
+				"The Mermaid by the Palace"
+			],
+			"line": [
+				"Pałac jej nie zauważa. Ona jego też nie.",
+				"The Palace ignores her. She returns the favour."
+			]
+		},
+		{
+			"id": "s02_mirowska",
+			"district": "srodmiescie",
+			"place": "hala_mirowska",
+			"name": [
+				"Syrenka na targu",
+				"The market Mermaid"
+			],
+			"line": [
+				"Kupiła pietruszkę. Miecz ma na wszelki wypadek.",
+				"She bought parsley. The sword is just in case."
+			]
+		},
+		{
+			"id": "s03_dworzec",
+			"district": "srodmiescie",
+			"place": "dworzec_centralny",
+			"name": [
+				"Syrenka na dworcu",
+				"The Mermaid at the station"
+			],
+			"line": [
+				"Czeka na pociąg od 1975 roku. Opóźniony.",
+				"Waiting for a train since 1975. Delayed."
+			]
+		},
+		{
+			"id": "s04_elektrownia",
+			"district": "powisle",
+			"place": "stara_elektrownia",
+			"name": [
+				"Syrenka przy elektrowni",
+				"The Mermaid by the power station"
+			],
+			"line": [
+				"Ładuje miecz. Pełna bateria o północy.",
+				"Charging her sword. Full battery by midnight."
+			]
+		},
+		{
+			"id": "s05_kasa",
+			"district": "powisle",
+			"place": "kasa_biletowa",
+			"name": [
+				"Syrenka na Powiślu",
+				"The Powiśle Mermaid"
+			],
+			"line": [
+				"Bilet ma, pociągu nie ma. Jest za to piwo.",
+				"She has a ticket and no train. There is beer."
+			]
+		},
+		{
+			"id": "s06_kopernik",
+			"district": "powisle",
+			"place": "centrum_nauki_kopernik",
+			"name": [
+				"Syrenka naukowiec",
+				"The scientist Mermaid"
+			],
+			"line": [
+				"Bada, czemu wszyscy robią sobie z nią selfie.",
+				"Researching why everyone takes selfies with her."
+			]
+		},
+		{
+			"id": "s07_rynek",
+			"district": "stare_miasto",
+			"place": "rynek_starego_miasta",
+			"real": true,
+			"name": [
+				"Syrenka na Rynku",
+				"The Mermaid on the Market Square"
+			],
+			"line": [
+				"Ta prawdziwa. Brąz, tarcza, miecz, zero cierpliwości.",
+				"The real one. Bronze, shield, sword, zero patience."
+			]
+		},
+		{
+			"id": "s08_barbakan",
+			"district": "stare_miasto",
+			"place": "barbakan",
+			"name": [
+				"Syrenka na murach",
+				"The Mermaid on the walls"
+			],
+			"line": [
+				"Pilnuje bramy. Turystów wpuszcza, korków nie.",
+				"Guarding the gate. Tourists in, traffic jams out."
+			]
+		},
+		{
+			"id": "s09_fontanny",
+			"district": "stare_miasto",
+			"place": "fontanny_podzamcze",
+			"name": [
+				"Syrenka w fontannach",
+				"The Mermaid in the fountains"
+			],
+			"line": [
+				"Wreszcie woda, która gra. Ona tańczy.",
+				"At last, water that plays music. She dances."
+			]
+		},
+		{
+			"id": "s10_nowy_swiat",
+			"district": "trakt",
+			"place": "nowy_swiat",
+			"name": [
+				"Syrenka na Nowym Świecie",
+				"The Mermaid on Nowy Świat"
+			],
+			"line": [
+				"Pączek w jednej ręce, miecz w drugiej.",
+				"A doughnut in one hand, the sword in the other."
+			]
+		},
+		{
+			"id": "s11_karowa",
+			"district": "trakt",
+			"place": "karowa",
+			"name": [
+				"Syrenka na wiadukcie",
+				"The Mermaid on the viaduct"
+			],
+			"line": [
+				"Tu jeździ się powoli. Ona i tak jest szybsza.",
+				"You drive slowly here. She's faster anyway."
+			]
+		},
+		{
+			"id": "s12_trzy_krzyze",
+			"district": "trakt",
+			"place": "plac_trzech_krzyzy",
+			"name": [
+				"Syrenka na placu",
+				"The Mermaid on the square"
+			],
+			"line": [
+				"Trzy krzyże, jedna syrenka. Rachunek się zgadza.",
+				"Three crosses, one mermaid. The maths checks out."
+			]
+		},
+		{
+			"id": "s13_stadion",
+			"district": "praga",
+			"place": "stadion_narodowy",
+			"name": [
+				"Syrenka kibic",
+				"The Mermaid fan"
+			],
+			"line": [
+				"Szalik na ogonie. Gol czy nie, i tak krzyczy.",
+				"A scarf on her tail. Goal or no goal, she shouts."
+			]
+		},
+		{
+			"id": "s14_zabkowska",
+			"district": "praga",
+			"place": "kebab_zabkowska",
+			"name": [
+				"Syrenka z Ząbkowskiej",
+				"The Mermaid of Ząbkowska"
+			],
+			"line": [
+				"Na Pradze bierze miecz nawet po kebaba.",
+				"On Praga she takes the sword even for a kebab."
+			]
+		},
+		{
+			"id": "s15_plaza",
+			"district": "praga",
+			"place": "poniatowka",
+			"name": [
+				"Syrenka na plaży",
+				"The Mermaid on the beach"
+			],
+			"line": [
+				"Wreszcie piasek. Ogon go nie lubi, ona tak.",
+				"Sand at last. The tail hates it, she loves it."
+			]
+		},
+		{
+			"id": "s16_krasinskich",
+			"district": "muranow",
+			"place": "ogrod_krasinskich",
+			"name": [
+				"Syrenka w ogrodzie",
+				"The Mermaid in the garden"
+			],
+			"line": [
+				"Karmi kaczki. Kaczki udają, że jej nie znają.",
+				"Feeding the ducks. They pretend not to know her."
+			]
+		},
+		{
+			"id": "s17_zakupy",
+			"district": "muranow",
+			"place": "arkadia",
+			"name": [
+				"Syrenka na zakupach",
+				"The Mermaid out shopping"
+			],
+			"line": [
+				"Szuka butów. Mały problem: nie ma nóg.",
+				"Shopping for shoes. Small problem: no legs."
+			]
+		},
+		{
+			"id": "s18_mordor",
+			"district": "wola",
+			"place": "rondo_daszynskiego",
+			"name": [
+				"Syrenka w Mordorze",
+				"The Mermaid in Mordor"
+			],
+			"line": [
+				"Spotkanie o 9:00, potem spotkanie o spotkaniu.",
+				"A 9:00 meeting, then a meeting about the meeting."
+			]
+		},
+		{
+			"id": "s19_zbawiciela",
+			"district": "poludnie",
+			"place": "plac_zbawiciela",
+			"name": [
+				"Syrenka na Zbawiciela",
+				"The Mermaid on Plac Zbawiciela"
+			],
+			"line": [
+				"Matcha, okulary, ogon. Wtapia się w tłum.",
+				"Matcha, sunglasses, a tail. She blends right in."
+			]
+		},
+		{
+			"id": "s20_sejm",
+			"district": "lazienki",
+			"near": [
+				52.2255,
+				21.0275
+			],
+			"name": [
+				"Syrenka pod Sejmem",
+				"The Mermaid by the Sejm"
+			],
+			"line": [
+				"Przyszła na obrady. Wyszła na kawę.",
+				"She came for the session. Left for a coffee."
+			]
+		}
+	]
+}

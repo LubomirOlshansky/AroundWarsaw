@@ -15,7 +15,7 @@ again, and the wiki follows.
   wiki/static/              the wiki's look (wiki.css, wiki.js)
 
 Every item says which file (and line) to edit to change it, with a link that opens the file on
-GitHub. The wiki is served by wiki/worker.js behind a password (wiki/README.md); it is full of
+GitHub. The wiki is served by wiki/worker.js (wiki/README.md), open to anyone with the link; it is full of
 spoilers and plans, so it is never linked from the landing and asks search engines to stay away.
 The Markdown converter knows what the docs use: headings, paragraphs, nested lists, tables,
 code, **bold**, *italic*, ~~struck~~, `code` and [links](url).

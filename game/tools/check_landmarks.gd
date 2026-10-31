@@ -30,12 +30,12 @@ func _check() -> int:
 	var space: PhysicsDirectSpaceState3D = map.get_world_3d().direct_space_state
 	var missions: Node = load("res://scripts/missions.gd").new()
 	missions.map = map
-	var b: Rect2 = map.bounds
-	missions._inner = b.grow(-40.0)
 	var data: Dictionary = map.data
 	var failures := 0
 	for k in map.landmark_info.size():
 		var info: Dictionary = map.landmark_info[k]
+		if info["pl"] == "":
+			continue  # a skin with no card (Królewska's block) is off the picking grid on purpose
 		var c: Vector2 = info["centre"]
 		# The tallest roof-grid cell near the centre, and what a tap straight down finds.
 		var tallest := -INF
@@ -74,7 +74,10 @@ func _check() -> int:
 				r -= 2.0
 		print("%-22s tallest cell %5.1f m above ground at %s · tap finds %s · car rays stopped %d/12" % [
 				info["name"], tallest - ground, at.round(), "it" if tap == k else "id %d" % tap, hits])
-		if tap != k or hits < 10:
+		# A bridge's pylon stands in the median between two carriageways: a car from along the
+		# deck passes beside it, so Most Świętokrzyski needs fewer stopped rays.
+		var need := 6 if info["key"] == "swieto" else 10
+		if tap != k or hits < need:
 			failures += 1
 	# Roof rescues that the landmarks' outlines now give (missions.gd's own search).
 	for l in data.get("landmarks", []):
@@ -138,6 +141,8 @@ func _fly_checks() -> int:
 		var c: Vector2 = box.get_center()
 		if info["key"] == "poniatowski":
 			c = Vector2(935.0, -128.0)  # the west pair
+		elif info["key"] == "swieto":
+			c = Vector2(735.0, -896.0)  # the pylon at 45 m (the site is a long strip: its middle is open air)
 		var heli: Node3D = Heli.new()
 		heli.ground_height = map.ground_height
 		heli.top_height = map.top_height

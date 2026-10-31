@@ -1,5 +1,5 @@
-// The design wiki: a Worker that serves build/wiki (tools/wiki_build.py) behind a password
-// (worker.js runs before every file). Its own Worker and subdomain, so the landing's Worker
+// The design wiki: a Worker that serves build/wiki (tools/wiki_build.py) with noindex
+// headers, behind a password only if the secret WIKI_PASSWORD is set (worker.js runs before every file). Its own Worker and subdomain, so the landing's Worker
 // (site/wrangler.jsonc) and its deploys are untouched. wiki/README.md: build, password, deploy.
 {
   "name": "aroundwarsaw-wiki",

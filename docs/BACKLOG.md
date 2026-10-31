@@ -38,6 +38,105 @@ Small problems that agents reported or that showed up in screenshots. They are f
   dark panels, not open; the army museum's yard placement is a guess (east courtyard).
   Next candidates: tram stop platforms, kiosks (not in the baked data yet), Warsaw's green bins. **Left**: PZU Tower and JM Tower (oddly mapped) keep the
   generic glass, and any model the user names next (docs/QUESTIONS.md).
+  **Landmarks lane, hand-over (2026-10-31)**: since the first passes the lane also landed: the Rondo
+  Daszyńskiego towers (The Warsaw HUB found by a point, `_tallest_at`; sloped crowns), the Old
+  Town's and New Town's tenements split into their OSM houses' colours and tile roofs
+  (`map_builder._tenement_facades`), brick Gothic for the Cathedral and the Barbican
+  (`M_GOTHIC`), Sigismund's Column, map north (Arkadka with its lit sign, the Forest tower, the
+  flag on Rondo Radosława) and Most Świętokrzyski's pylon and stays. **Left, for fresh threads**:
+  St Anne's classical facade (a portico of four columns and a pediment on its west face; it is
+  a kept skin today, outline in `centrum.json` landmarks "Kościół pw. Świętej Anny", centre
+  (−658, −1350), the free-standing bell tower is a separate building to its north-east), the other
+  churches (Holy Cross, All Saints, St Alexander's rotunda, the Visitationists) and the Palace
+  on the Isle's neighbours, Zachęta/Staszic/Presidential Palace facades (all colour-only skins
+  today), the Old Town's gables and dormers (the LoD2 roofs have none), PZU/JM Tower. How the
+  lane works: `landmarks.gd` sites (`TOWERS`, `SKINS`, fixed-position circle zones like
+  `_find_zygmunt`), each needs a card in `INFO` and `check_landmarks`; a site found in
+  `data["buildings"]` also needs its box in `bake_sectors.py` `SITE_AREAS`; after a change
+  rebuild the prebuilt sectors with `bake_city.gd` (a renderer, never `--headless`); render
+  before/after with the Mobile renderer on lavapipe (docs/DEVELOPMENT.md "Cloud rendering").
+
+- **From the dusk loop (2026-10-31)**: still unlit after the user's 16:20 photos: Rondo 1's
+  tenant names, PHN and the Bank Polski tower's crown (not sure which building wears which; the
+  cloud has no network to check), Złote Tarasy's dome lit from inside, Varso's antenna lattice,
+  Chałubińskiego 8's antenna and dark-glass refit (photo IMG_7104), the screens on the Marriott's
+  podium. The canopy lamps and the crown names are small at the widest zoom; look on the phone.
+  Art review (art-director, Opus): Centrum LIM's lit cells (the `S_GRID` skin, shared with the
+  InterContinental and the Westin) are cold white and many, the photos show sparse warm ones
+  (`#ffcf7a`, ~12 %, upper third); the landmark signs still glow inside the occlusion ghost.
+
+## High priority: the first scene and the Museum of Modern Art (the user, 2026-10-31)
+- **Muzeum Sztuki Nowoczesnej as it is** (the user, 2026-10-31): the new white box on Plac
+  Defilad's east edge (Thomas Phifer, opened 2024). Today it is plain white LoD2 parts with no
+  model and no card. Wanted: one long, low, matte white box, the arcade of square columns at its
+  base with the glazed lobby behind, one long ribbon of windows at mid-height, a few big upper
+  windows, long skylights on the flat roof, a card. Spec and the values still to set:
+  docs/design/first-scene.md "Spec for item 1". Landmarks lane: Opus spec, `object-modeler`
+  builds, `art-director` accepts.
+- **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
+  OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
+  photos per building in `refs/` (Wikimedia Commons, gitignored; fetched on the Mac, the cloud
+  gets 403), specs written from them at a detail level (L2 for named landmarks, L3 for the
+  heroes), triangle budgets instead of minimal geometry, and `art-director` scoring matched
+  shots against the photos (the model-from-photos skill). Next: re-pass the hero landmarks
+  (the first scene's buildings, the Palace, the Old Town square, the Castle, the towers, the
+  stadium, the bridges) against their photos, worst score first. Wanted later: an automatic
+  check for coplanar faces (z-fighting) in a site's mesh.
+- **Model checks from the research** (2026-10-31; item (1) DONE the same day as `check_mesh_quality.gd`, the z-fighting, zero-area, floating and budget parts; its `KNOWN` ratchet is empty since 2026-10-31 (the z-fighting in the towers and the Palace is fixed); parts inside parts and T gaps are still open, report in the project files "Детальніші моделі
+  будівель"): (1) `game/tools/check_mesh_quality.gd`, run on each landmark site's mesh arrays:
+  coplanar overlapping faces (z-fighting: group triangles by plane, test 2D overlap, ~0.01 m²),
+  zero-area and flipped triangles, parts touching neither the ground nor another part (FAIL);
+  parts inside parts and T-junction gaps (WARN, for the art-director); per-site allow-lists;
+  joins `tools/verify.sh`. (2) A game flag that renders one landmark alone, unlit and as a
+  silhouette, for the judge's shots. (3) A small `tools/check_spec.py` that checks a landmark spec has every section and parts-table
+column filled and a triangle budget, so a Sonnet build never starts from an open spec.
+(4) Evals for the model-from-photos skill: the Palace, the Rotunda and the Museum of Modern
+Art (their photos exist) built with and without the skill, scored the same way. (5) Later:
+golden-image shots runtime vs `--prebuilt`,
+  a flicker probe (two frames, a tiny camera move, diff), the Old Town's gables and a
+  straight-skeleton roof bake (map lane), fewer directional shadow splits (perf lane). The
+  rubric anchors, photo-first judging, the parts table and the two-round cap are in the
+  model-from-photos skill already.
+- **The first scene, polished to the maximum** (the user, 2026-10-31): the place the player sees
+  first must make a "wow". Default place: Marszałkowska by Plac Defilad (the Palace, the museum,
+  the Eastern Wall, the towers), where the spawn and DEMO 6.2's first minutes already are; the
+  choice is parked in docs/QUESTIONS.md. The plan, its eight items (the museum, the opening shot,
+  the Eastern Wall and Rotunda, Plac Defilad's ground, Marszałkowska's street, life, sound,
+  light), the `first` shot set, performance and the order of work: docs/design/first-scene.md.
+  The dusk and night look there belongs to the thread "Match landmarks to Warsaw at dusk"; the
+  hints, first order and first race to loop 3h item 6.
+
+## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
+- **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;
+  the designer (`game-designer`, Sonnet for the text) specs it, `warsaw-tone` rules apply (real
+  brands only as parodies, affectionate, Polish with English).
+- **Coffee raves** (poranne kawowe imprezy): daytime, sober-ish dance mornings, a flat white in
+  one hand and a DJ on a pallet stage. Real Warsaw has them in cafes, courtyards and on the
+  Vistula boulevards (Sunday 10:00-14:00). Fiction: a morning counterpart to the five clubs. Two
+  or three parody venues, e.g. **Kawa Zero** (a courtyard in Praga), **Flat Biały** (a
+  Powiśle cafe with a terrace) and a pop-up on the Bulwary. Crowd: cargo bikes, oat-milk jokes,
+  strollers with headphones, a queue for the barista rather than the door. Shut at night.
+- **Arthouse cinemas** (kina studyjne): small screens in old halls, a bar, a repertory board.
+  Parody names for the real ones: **Kino Muranek** (for Muranów), **Iluzja** (Iluzjon),
+  **Kultura 24** (Kultura), **Elektroniczne** (Elektronik), **Kinoteka Pałacowa** (Kinoteka, in
+  the Palace of Culture). Facade = a hand-painted poster board and a neon title strip; a hush
+  rather than a crowd; a small queue before the evening show (18:00-21:00).
+- **Fit with existing systems** (no new system needed):
+  - *Notebook places*: each venue is a `places.json` entry with a card (`hours`, `district`,
+    a note line), unlocked when you stop at it, like the Wiralek and the clubs.
+  - *Venues with queues*: reuse MW-3's queue and hour curves: coffee raves peak Sun/Sat
+    morning, cinemas in the evening. Neon fascia through `storefronts.gd`.
+  - *Day/night schedule*: raves open 08:00-14:00 and are dark at night; cinemas the reverse.
+    That gives the day a nightlife of its own, so a Day run is not empty.
+  - *Eggs*: a DJ who plays only the horn tune; a film that is "three hours of a pigeon" on a
+    Kino Muranek board; a cinema bar that only serves coffee at a rave and wine at a premiere.
+  - *Radio / dialogue*: a morning DJ spot on the radio and one-liners in `dialogue.json`
+    (rave-goers, ushers).
+  - *Jobs*: a possible courier or taxi run: carry a DJ's crate to the rave, or a film reel to
+    the cinema before the show (uses `rides.gd` finishes).
+- **Open**: the final parody names (F's pick), whether raves are Sunday-only, and the
+  locations (map lane: pick real addresses from `centrum.json` POIs). Default if unanswered:
+  the names above, daily 08:00-14:00 at weekends only.
 
 ## From v0.6 (traffic, trams, pedestrians, rivals)
 - ~~Cars can overlap briefly in complex junctions~~ (fewer by three quarters, the traffic loop
@@ -1027,14 +1126,21 @@ Small problems that agents reported or that showed up in screenshots. They are f
   car park, OSM way 91341678 and ramps, is left out of the bake: the car-park race of DEMO 6.4 needs
   it modelled). Their parts are in the index's `site_parts` (`bake_sectors.py` SITE_NAMES "Westfield
   Arkadia", a SITE_AREAS box for Forest).
-- **For the gameplay lanes** (not built here; the map has a corner left `outside` since map north):
+- ~~**For the gameplay lanes** (not built here; the map has a corner left `outside` since map north):
   the helicopter's clamp (`heli.gd`, `bounds.grow(-12)`), the car's off-map test (`main.gd`
   `_node_spot`), Podwózka's named finishes and river scan (`rides.gd`), the missions' and eggs'
   random spots (`missions.gd`, `eggs.gd`) and the minimap's frame (`hud.gd`, `full_map.gd`) still
   use the bounding rectangle: the helicopter can fly over the empty north-east corner (nothing is
   drawn there; the edge walls stop the car), and a random spot there snaps to the nearest road.
   `map_builder.gd` `in_map(p, pad)`, `map_outline()` and `clip_to_map()` give the shape. A notebook
-  place for Rondo Radosława / Arkadia is the content lane's (`game/data` places).
+  place for Rondo Radosława / Arkadia is the content lane's (`game/data` places).~~ **Done (the
+  L-shaped map loop, 2026-10-31)**: all of them use the outline (DEVELOPMENT.md "The L-shaped map in
+  gameplay"); the minimap and full map shade the corner as off the map; Rondo Radosława, Arkadia and
+  Forest are notebook places (a ninth card in `kiedys`, `codziennie` and `bary`: the 9 x 8 rule is
+  now 8 to 10 a chapter, QUESTIONS); `check_edge` proves the clamp, the spots and the mask.
+- **From the L-shaped map loop**: the barriers' day street (eggs.gd) may differ near the corner for
+  some dates (the pool of segments 120 m inside the outline is smaller); the helicopter's clamp is
+  only in heli.gd: an autopilot target in the corner (none today) would be chased along the edge.
 - **Rondo Radosława's ring has no spiral lane lines** (`bake_roads._spiral_rings`: its pieces carry 2
   and 3 lanes, and the first piece decides): plain lane lines; cosmetic.
 - **The committed maps grow with the bounding box** (ao.bin and lights.bin 40 → 48 MB, water.bin
@@ -1045,8 +1151,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   L1 15 OSM blocks drawn inside a model whose centroid misses them (towers' podiums, courtyard
   wings), L2 73 big outlines a small model's centroid falls in (the outline hidden, the model
   small); `tools/check_lod2.py` lists them with `--at=`.
-- **check_police P12 "guard car follows 15 s" failed once** in the full `verify.sh --ios` run
-  (map north, 2026-10-31) and passed 3 of 3 alone: a timing-sensitive case under load (gameplay lane).
+- ~~**check_police P12 "guard car follows 15 s" failed once** in the full `verify.sh --ios` run
+  (map north, 2026-10-31) and passed 3 of 3 alone: a timing-sensitive case under load (gameplay lane).~~
+  **Fixed (the L-shaped map loop)**: not load but chance (1 run in 12 alone): the guards' car's
+  random spot missed the check's one road 4 tries running; each case now seeds the random numbers
+  (`FRESH_SEED`): 20/20 alone, 21/21 three at a time.
 - **The viaducts at the north edge**: Jana Pawła II's and Andersa's decks over the ring railway end
   in the air at the edge (C6 allows the rim; the edge walls stop the car 5 m before). The ring railway
   and Dworzec Gdański's platforms lie just past it; the next growth north takes them in whole
@@ -1349,11 +1458,13 @@ Small problems that agents reported or that showed up in screenshots. They are f
   an address point in the map), 18 m apart; Apteczka and Pawilony both matched Nowy Świat 22/28
   (the same point): one pass finds both, two toasts in a row (the second replaces the first).
   Not offset in MW-1 (the bake's anchors will separate them).
-- The minimap's "?" shows undiscovered places within 400 m of the car (vision.md: "in a
-  discovered district"; there are no districts yet). Switch to districts when DEMO 6.3's exist.
-- The card shows no district (places.json has none; vision.md's card wants one) and no address
-  for a venue (an address can name the real business: "Jasna 1" on the denylist). A `district`
-  field in places.json (designer) would fill it.
+- ~~The minimap's "?" shows undiscovered places within 400 m of the car (vision.md: "in a
+  discovered district"; there are no districts yet). Switch to districts when DEMO 6.3's exist.~~
+  Loop 3h slice 1: each discovered district adds its first three unfound places as "?" anywhere
+  (the 400 m marks stay).
+- The card shows no district (~~places.json has none~~: loop 3h slice 1 added `district` to every
+  place; notebook_page.gd doesn't show it yet) and no address for a venue (an address can name the
+  real business: "Jasna 1" on the denylist).
 - Chapter icons are the chapter's number on the notebook's chips until the PixelLab icons
   (vision.md section 9) exist.
 - The tap-a-place-within-80-m way of finding (vision.md 4.1, the landmark card's tap) is not
@@ -1587,15 +1698,20 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## From loop MW-2 (storefronts and parodies, 2026-10-30)
 
-- **What the map lane should bake** (none of it is in `centrum.json`; MW-2 places from addresses
+- ~~**What the map lane should bake** (none of it is in `centrum.json`; MW-2 places from addresses
   and the lane graph at runtime, DEVELOPMENT.md "Storefronts and parodies"): `shop=convenience`
   (the Frogs could stand where real corner shops are), `railway=subway_entrance` (the metro
   entrances are put on the pavement round nine station places, not at the real stairs: at
   Centrum one canopy stands over the map's own sunken stairs), `amenity=bicycle_rental` (the
   docks), the `scooter` / `scooter_zone` pois of parodies.md 5.2 (the odd places: grass, bench
   fronts, hedges, 1 in 40 on a shelter roof), and an address for **Kruczkowskiego 3B** (Kasa
-  Biletowa resolves to Aleja 3 Maja 7A, the nearest address within 140 m). An outline per
-  facade with its street side would replace the sector-load wall rays.
+  Biletowa resolves to Aleja 3 Maja 7A, the nearest address within 140 m).~~ Baked in the
+  content-POIs loop (2026-10-31, DEVELOPMENT.md "Content POIs"): `convenience` 260 (`fr` the
+  Frogs' chain, 163), `subway_entrance` 84 (`yaw` the way down, `st` the station), `bicycle_rental`
+  92, `scooter_zone` 56 (one `egg`), `scooter` 468 (poses), and Kruczkowskiego 3B with 10 more
+  places' addresses (`address` with `v`). **The content lane's switch** is "From the content-POIs
+  loop" below. Still open: an outline per facade with its street side would replace the
+  sector-load wall rays.
 - **What the landmarks lane could add**: nothing blocks. The venue neon sits 0.14 m off the
   collider's face; on a LoD2 facade (no `lod2.*` in this container) the rays meet the LoD2
   walls, untested here. A real shop front (door recess, glass) on the Frogs' walls would beat
@@ -1624,6 +1740,36 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (`--rechotka` stops 6.4 m from Krucza 51's door). Open Question in the MW-2 report.
 - **The metro M** is a cream M on a navy square: generic, no operator's logo; at the default
   view it is a few pixels. The art director may want it bigger or red.
+
+## From the content-POIs loop (map lane, 2026-10-31)
+
+- **check_streaming's `look` pass depends on the Mac's frame rate** (found 2026-10-31): the look
+  waits `LOOK_WAIT_MS` (1.5 s) of wall-clock time while the sectors load a slice a frame, so on a
+  busy Mac whose frames ran at 16.7 ms (the iOS Simulator of another project running) s_-6_0 was
+  still loading when the camera arrived (24 frames over 5 %, frame 1338); at 8.4 ms and 1.5 ms
+  frames the same code passed. Fix (map lane): wait in frames, or run the pass on a frame budget
+  that doesn't change with the machine; the iPhone 11's 60 Hz is the case that counts.
+
+- **The content lane's switch** (storefronts.gd, roundup_job.gd, props.gd; none of it built):
+  the Leżaks from the `scooter` pois (`p` the pose: `lie` on its side as today; `stand` upright;
+  `roof` at `h` 2.6 m over the ground; `grass`, `bench`, `hedge`, `frogs` lie like `lie`) instead
+  of `_pick_scooters`, the zones' paint from `scooter_zone` (3 m along `yaw`), the standing one
+  and `easter_lezak` from the zone with `egg`; the round-up's depots at zones as today. The metro
+  canopies at the `subway_entrance` pois facing `yaw` (skip `u`: underground passages), with
+  `st` instead of the nine notebook places. The Frogs from the `convenience` pois with `fr` (their
+  `door` is the road point, `x, z` the shop: the wall rays still find the facade), the other
+  `convenience` free for other parody shops. Bike docks (`bicycle_rental`, `yaw`, `l`) for a rack
+  row of parody bikes. Today's runtime picks fail the bake's rules often (`tools/check_pois.py
+  --points=`: 108 of 277 Leżaks on a carriageway, crossing, kerb ramp or something solid, 14 of 25
+  metro canopies), so the switch also fixes those.
+- **`address` with `v`** (11): places' addresses the job pool didn't have; `jobs.gd` and `rides.gd`
+  take every `address`, so their shuffles changed (the kebab run's order 0 is now 1,266 m by road:
+  verify `kebab` 15000 → 21000 frames). Skipping `v` in the two jobs gives back the old picks
+  (gameplay lane), if wanted.
+- **Hala Gwardii's address** (Plac Żelaznej Bramy 1) is in no OSM element: the notebook keeps
+  its hint.
+- `check_pois.py` isn't in CI (`.github/workflows/verify.yml`): it reads only centrum.json (and
+  lod2.json and the OSM export when they are there), so it could join the CI list.
 
 ## From loop jobs-2 (the courier race, the Leżak round-up, the payphone, the armchair man, 2026-10-31)
 
@@ -1787,3 +1933,73 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **Brzeska is one-way and narrow** (3 m, one lane): the ring covers the street; a car coming the
   other way still drives in. The workshop could move to a wider kerb (map lane: a service way's
   mouth on Brzeska) if F finds it awkward.
+
+## From loop 3h slice 1 (save v2 and the districts, 2026-10-31)
+
+Closed: save v2 (a version, the v1 migration and backup, settings' version), districts as data with
+discovery, "?" marks and completion on the full map (DEMO G3). Left for the later 3h slices:
+- ~~**Syrenki** (slice 2): 20 collectibles; register each with `districts.gd` `add_syrenka(id,
+  district)` and mark finds in `wallet.syrenki` (saved already); then they count in completion.~~
+  Done in slice 2 (see below).
+- ~~**Rival ladder and "Trzy mosty"**~~ (done in slice 3, see below), **the first 10 minutes** (the
+  hint finger, the first order, the first race, the `--first10` replay check), **the end card** (can
+  read `percent_total()` and the discovered count).
+- Ujazdów i Łazienki has no notebook place or egg (the park lies south of the map; only the Sejm is
+  in it): completion there is its 2 jobs, and it shows no "?" marks. The designer (places for the
+  Sejm, Ujazdowski Castle, Plac na Rozdrożu) or the map lane (the park) would fill it. Wola has 2
+  places, Stare Miasto 4: thin for "3 ?" for long.
+- The notebook's place card doesn't show the place's district yet (notebook_page.gd).
+- Jobs done before save v2 have no district (v1 counted jobs by kind only): they don't count
+  towards any district.
+- The district polygons are hand-drawn from the stale water data and the embankment roads; the
+  river line north of Most Śląsko-Dąbrowski is extrapolated (the map lane could bake a river line).
+- The discovery card uses the note card (5.5 s); a bigger centred card or a sound of its own
+  (loop 3i's district ambiences) would make it a moment.
+
+## From loop 3h slice 2 (the 20 Syrenki, 2026-10-31)
+
+Closed: the Syrenki (syrenki.gd: 20 figurines by the kerb, the find, the reward ladder, the paints
+"Łuska Syreny" and "Srebro Syreny", the "Syrenki n/20" line on the full map). Left:
+- No hint for the Syrenki: no "?" marks, no minimap dot, no radar. A player finds them by chance or
+  by a guide. A counter in the pause card or the notebook, and a sound of their own near one
+  (a chime under ~40 m), would help; the designer decides how much to give away.
+- The words in `data/syrenki.json` were written in this slice: the game-designer should review them.
+- The figurine is `Props.mermaid()` scaled to 3 m with a cyan diamond over her (it read badly at
+  1.7 m): check it on the phone; a dedicated figurine mesh (props.gd, another thread's file) and a
+  slow spin or bob for the diamond (a shader: the visuals lane) would read better still.
+- Placed by rule, not by eye: look at each on the street (the kerb side, trees, benches, a
+  building's wall in a narrow street); `--syrenka=<id>` puts the car in front of one.
+- No Syrenka on a bridge or in a tunnel (ground streets only); the real statue on the Old Town
+  Market Square stands on the street ring, not in the square itself.
+- The reward cards queue in `syrenki.gd`; the HUD's note card shows one at a time (a find while
+  another card is up waits for it).
+- Garage card: ten paints in two rows of five; on the smallest phone check it still fits.
+
+## From loop 3h slice 3 (the rival ladder and "Trzy mosty", 2026-10-31)
+
+Closed: the rival ladder (ladder.gd: six rungs in order of stake, opened by the rung before and by
+respect 0/100/250/400/600/850, the locked prompt and the refusal lines, a pace per rival, the toast
+for a new rung, the DRABINKA card on the full map, the save's `[ladder]`) and the final "Trzy mosty"
+(trzy_mosty.gd: Rondo Daszyńskiego east over Śląsko-Dąbrowski, west over Świętokrzyski, east over
+Poniatowskiego to the stadium; at night; three ordered checkpoints; +500 zł +250 respect;
+`trzy_mosty` saved for the end card). Left:
+- **Slice 4: the first 10 minutes** (the hint finger after 4 s, the guaranteed first order past the
+  Rotunda, the first race at 800 m to the Palm with Seba losing narrowly, the Powiśle card at ~8:00,
+  the `--first10` replay check) and **the end card** (win "Trzy mosty" = `wallet.ladder` has
+  `trzy_mosty` / `Ladder.final_won()`, and 10 jobs; "free roam" after). The first race in 6.2 is
+  against Seba, but the ladder opens with Halina: slice 4 decides whether the scripted first race is
+  Halina (the ladder's first rung) or a Seba race outside the ladder.
+- The final is long: 10.1 km by road (3.8 km from Rondo Daszyńskiego to the first bridge alone). The
+  autopilot's ghost (pace 1.8) needs about 14.5 minutes of game time with the city's lights and traffic
+  (867 s, Seba 30 s behind);
+  a player on the phone should judge whether it is an epic or a slog. A shorter cut (a start nearer
+  the river, e.g. Rondo ONZ, or one bridge fewer) is one constant in `trzy_mosty.gd`.
+- The paces are guesses (Halina 1.25 … Mike 1.5, the final 1.45): tune on the phone (A-checks: the
+  first race is won narrowly by an ordinary player).
+- Players with race wins from before the ladder start at rung one (the old wins didn't record the
+  rival).
+- Seba waits at the start held still: no idle animation, and while he waits he isn't cruising for a
+  re-race of his rung (at night only, once the final is open).
+- The finish line is a beacon ring, not a set piece: a crowd or a banner by the stands (the stadium is
+  the landmarks lane's) would make the end a moment.
+- The refusal and final lines were written in this slice: the game-designer should review them.

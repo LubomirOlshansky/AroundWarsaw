@@ -46,7 +46,7 @@ const POOL := [112, 16, 16, 8, 8]
 const TRAFFIC_KINDS := 4
 ## Each kind's longest shape (m), for the headlight pools. The shapes, their sizes and paints
 ## are models.gd TRAFFIC (loop 2c; red stays the player's, orange the jobs': the look loop).
-const LENGTH := [4.65, 4.6, 5.4, 12.0, 4.7]
+const LENGTH := [4.65, 4.6, 5.4, 18.0, 4.7]
 ## Cars per lane-metre in view, by road class (main, tertiary, residential, living street).
 const DENSITY := [1.0 / 20.0, 1.0 / 34.0, 1.0 / 90.0, 1.0 / 180.0]
 const MAX_CARS := 140
@@ -1755,9 +1755,9 @@ static func night_bus_mesh() -> ArrayMesh:
 	var lit := Models.fin(Color("#ffb21e"), Models.LIT_SIGN)
 	# A side's "right" as seen from outside it: -z on the +x side, +z on the -x side.
 	for sgn: float in [-1.0, 1.0]:
-		_n_sign(s, Vector3(sgn * 1.262, 2.12, -3.55), Vector3(0, 0, -sgn), Vector3(sgn, 0, 0), Vector2(1.2, 1.0), 0.19, plate, lit)
-	_n_sign(s, Vector3(0.0, 2.44, 5.995), Vector3.RIGHT, Vector3.BACK, Vector2(1.0, 0.8), 0.15, plate, lit)
-	_n_sign(s, Vector3(0.0, 2.56, -5.9), Vector3.LEFT, Vector3.FORWARD, Vector2(0.9, 0.72), 0.13, plate, lit)
+		_n_sign(s, Vector3(sgn * 1.262, 2.12, -6.55), Vector3(0, 0, -sgn), Vector3(sgn, 0, 0), Vector2(1.2, 1.0), 0.19, plate, lit)
+	_n_sign(s, Vector3(0.0, 2.44, 8.995), Vector3.RIGHT, Vector3.BACK, Vector2(1.0, 0.8), 0.15, plate, lit)
+	_n_sign(s, Vector3(0.0, 2.56, -8.9), Vector3.LEFT, Vector3.FORWARD, Vector2(0.9, 0.72), 0.13, plate, lit)
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	st.append_from(Models.bus_mesh(), 0, Transform3D.IDENTITY)

@@ -1,5 +1,5 @@
 {
-  "_about": "Loop MW-0 (docs/design/vision.md 4.1): the 72 places of the MOJA WARSZAWA notebook, 8 in each of the 9 chapters listed in `chapters` (id, name_pl, name_en; the notebook's order). Each place: `id` (snake_case, unique), `chapter`, `name_pl` / `name_en` (the real place name, or the near-miss parody name for a venue: never a real business name, see brand_denylist.json), and its anchor: either `address` (a real street and number, resolved by the bake to the OSM address point) or `osm` (an English description of the anchor and the OSM tags that find it; business anchors by position only, never by name). `near` [lat, lon] is a rough hint (about ±150 m) for the bake's search and for the in-the-box check; the address or anchor wins. `radius` metres (25; 40 for squares, parks, bridges and large sites; `heli_radius` 60 where the helicopter finds it from below 60 m altitude). `fact` [pl, en] is true and checked; `joke` [pl, en] is ours; Polish lines are at most 70 characters. `hours` only for night venues: the game's own opening hours for the parody (PN WT ŚR CZ PT SB ND), not the real venue's. `tags` feed the notebook's filters, the night scene and later loops (`venue` marks a parody business; `then` a then-and-now spot, see then_cards.json; `wiralek_slot` numbers the three trend slots of vision.md 3.4). `guess`: true marks an anchor the user has not confirmed, with `guess_note`. Loop MW-1's bake resolves every anchor to map metres into `pois` kind `place`; `check_places.gd` then checks PL + EN, the 70 characters, inside the demo box (S 52.2183, W 20.9780, N 52.2525, E 21.0500), reachability and the brand denylist.",
+  "_about": "Loop MW-0 (docs/design/vision.md 4.1): the 72 places of the MOJA WARSZAWA notebook, 8 in each of the 9 chapters listed in `chapters` (id, name_pl, name_en; the notebook's order). Each place: `id` (snake_case, unique), `chapter`, `name_pl` / `name_en` (the real place name, or the near-miss parody name for a venue: never a real business name, see brand_denylist.json), and its anchor: either `address` (a real street and number, resolved by the bake to the OSM address point) or `osm` (an English description of the anchor and the OSM tags that find it; business anchors by position only, never by name). `near` [lat, lon] is a rough hint (about ±150 m) for the bake's search and for the in-the-box check; the address or anchor wins. `radius` metres (25; 40 for squares, parks, bridges and large sites; `heli_radius` 60 where the helicopter finds it from below 60 m altitude). `fact` [pl, en] is true and checked; `joke` [pl, en] is ours; Polish lines are at most 70 characters. `hours` only for night venues: the game's own opening hours for the parody (PN WT ŚR CZ PT SB ND), not the real venue's. `tags` feed the notebook's filters, the night scene and later loops (`venue` marks a parody business; `then` a then-and-now spot, see then_cards.json; `wiralek_slot` numbers the three trend slots of vision.md 3.4). `guess`: true marks an anchor the user has not confirmed, with `guess_note`. Loop MW-1's bake resolves every anchor to map metres into `pois` kind `place`; `check_places.gd` then checks PL + EN, the 70 characters, inside the demo box (S 52.2183, W 20.9780, N 52.2525, E 21.0500), reachability and the brand denylist. Loop 3h slice 1: `district` (an id in districts.json, the district the place counts towards for completion, districts.gd).",
   "chapters": [
     {
       "id": "noc",
@@ -74,7 +74,8 @@
         "after_hours",
         "queue",
         "dawn"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "smola",
@@ -101,7 +102,8 @@
         "club",
         "queue",
         "police_club"
-      ]
+      ],
+      "district": "powisle"
     },
     {
       "id": "jasna_0",
@@ -128,7 +130,8 @@
         "club",
         "queue",
         "cellar"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "level_26",
@@ -156,7 +159,8 @@
         "tower",
         "heli"
       ],
-      "heli_radius": 60
+      "heli_radius": 60,
+      "district": "wola"
     },
     {
       "id": "lombard",
@@ -182,7 +186,8 @@
         "venue",
         "club",
         "mazowiecka"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "milosc_hipoteczna",
@@ -207,7 +212,8 @@
       "tags": [
         "venue",
         "club"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "syreni_szept",
@@ -234,7 +240,8 @@
         "closed",
         "then",
         "modernism"
-      ]
+      ],
+      "district": "powisle"
     },
     {
       "id": "m2_1499",
@@ -260,7 +267,8 @@
         "venue",
         "club",
         "events"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "hocki_bloki",
@@ -286,7 +294,8 @@
         "venue",
         "river",
         "summer"
-      ]
+      ],
+      "district": "powisle"
     },
     {
       "id": "plan_c",
@@ -313,7 +322,8 @@
         "bar",
         "crowd",
         "summer"
-      ]
+      ],
+      "district": "poludnie"
     },
     {
       "id": "apteczka",
@@ -340,7 +350,8 @@
         "bar"
       ],
       "guess": true,
-      "guess_note": "The real bar's street is unknown (vision.md Open Question 2). The user's 2026-10-29 answer puts APTECZKA 'in some centre': the Pawilony courtyards. Move it when the user names the street."
+      "guess_note": "The real bar's street is unknown (vision.md Open Question 2). The user's 2026-10-29 answer puts APTECZKA 'in some centre': the Pawilony courtyards. Move it when the user names the street.",
+      "district": "trakt"
     },
     {
       "id": "pawilony",
@@ -366,7 +377,8 @@
         "bar",
         "courtyard",
         "heli"
-      ]
+      ],
+      "district": "trakt"
     },
     {
       "id": "przegryzki_zagryzki",
@@ -392,7 +404,8 @@
         "venue",
         "bar",
         "royal_route"
-      ]
+      ],
+      "district": "trakt"
     },
     {
       "id": "kasa_biletowa",
@@ -419,7 +432,8 @@
         "bar",
         "powisle",
         "modernism"
-      ]
+      ],
+      "district": "powisle"
     },
     {
       "id": "buw_ogrod",
@@ -446,7 +460,8 @@
         "heli",
         "students"
       ],
-      "heli_radius": 60
+      "heli_radius": 60,
+      "district": "powisle"
     },
     {
       "id": "stara_elektrownia",
@@ -471,7 +486,36 @@
         "powisle",
         "food_hall",
         "brick"
-      ]
+      ],
+      "district": "powisle"
+    },
+    {
+      "id": "forest",
+      "chapter": "bary",
+      "name_pl": "Forest",
+      "name_en": "Forest",
+      "osm": "the 120 m glass office tower by Jana Pawła II north of Rondo Radosława, its east side (building:part, by position)",
+      "near": [
+        52.2554,
+        20.9814
+      ],
+      "radius": 40,
+      "fact": [
+        "Wieża Forest ma 120 m; wokół niej rośnie około 200 drzew.",
+        "The Forest tower is 120 m tall; about 200 trees grow round it."
+      ],
+      "joke": [
+        "Biuro z lasem pod oknem. Korpo od dziewiątej, wiewiórki od ósmej.",
+        "An office with a wood under the window. Corporate from nine, squirrels from eight."
+      ],
+      "tags": [
+        "towers",
+        "office",
+        "heli",
+        "north"
+      ],
+      "heli_radius": 60,
+      "district": "muranow"
     },
     {
       "id": "schodki_kopernik",
@@ -497,7 +541,8 @@
         "crowd",
         "sunset",
         "summer"
-      ]
+      ],
+      "district": "powisle"
     },
     {
       "id": "bulwary",
@@ -522,7 +567,8 @@
         "river",
         "runners",
         "promenade"
-      ]
+      ],
+      "district": "powisle"
     },
     {
       "id": "syrenka",
@@ -547,7 +593,8 @@
         "river",
         "statue",
         "egg"
-      ]
+      ],
+      "district": "powisle"
     },
     {
       "id": "poniatowka",
@@ -573,7 +620,8 @@
         "beach",
         "praga",
         "sunset"
-      ]
+      ],
+      "district": "praga"
     },
     {
       "id": "fontanny_podzamcze",
@@ -599,7 +647,8 @@
         "fountains",
         "summer",
         "dusk"
-      ]
+      ],
+      "district": "stare_miasto"
     },
     {
       "id": "most_swietokrzyski",
@@ -623,7 +672,8 @@
       "tags": [
         "river",
         "bridge"
-      ]
+      ],
+      "district": "praga"
     },
     {
       "id": "most_slasko_dabrowski",
@@ -648,7 +698,8 @@
         "river",
         "bridge",
         "old_town"
-      ]
+      ],
+      "district": "stare_miasto"
     },
     {
       "id": "most_poniatowskiego",
@@ -673,7 +724,8 @@
         "river",
         "bridge",
         "kadr"
-      ]
+      ],
+      "district": "praga"
     },
     {
       "id": "plac_zbawiciela",
@@ -698,7 +750,8 @@
         "square",
         "crowd",
         "mdm"
-      ]
+      ],
+      "district": "poludnie"
     },
     {
       "id": "wiralek_zbawiciela",
@@ -724,7 +777,8 @@
         "wiralek",
         "queue"
       ],
-      "wiralek_slot": 1
+      "wiralek_slot": 1,
+      "district": "poludnie"
     },
     {
       "id": "wiralek_chmielna",
@@ -750,7 +804,8 @@
         "wiralek",
         "queue"
       ],
-      "wiralek_slot": 2
+      "wiralek_slot": 2,
+      "district": "srodmiescie"
     },
     {
       "id": "wiralek_tamka",
@@ -777,7 +832,8 @@
         "queue",
         "powisle"
       ],
-      "wiralek_slot": 3
+      "wiralek_slot": 3,
+      "district": "powisle"
     },
     {
       "id": "glon_mokotowska",
@@ -802,7 +858,8 @@
         "venue",
         "cafe",
         "matcha"
-      ]
+      ],
+      "district": "poludnie"
     },
     {
       "id": "glon_dobra",
@@ -829,7 +886,8 @@
         "matcha",
         "powisle",
         "students"
-      ]
+      ],
+      "district": "powisle"
     },
     {
       "id": "lukrownia",
@@ -855,7 +913,8 @@
         "bakery",
         "queue",
         "fat_thursday"
-      ]
+      ],
+      "district": "trakt"
     },
     {
       "id": "nowy_swiat",
@@ -880,7 +939,8 @@
         "street",
         "royal_route",
         "cafes"
-      ]
+      ],
+      "district": "trakt"
     },
     {
       "id": "ratusz_arsenal",
@@ -904,7 +964,8 @@
       "tags": [
         "metro",
         "m1"
-      ]
+      ],
+      "district": "muranow"
     },
     {
       "id": "swietokrzyska_metro",
@@ -930,7 +991,8 @@
         "m1",
         "m2",
         "interchange"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "patelnia",
@@ -957,7 +1019,8 @@
         "square",
         "buskers",
         "egg"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "politechnika",
@@ -983,7 +1046,8 @@
         "m1",
         "edge",
         "students"
-      ]
+      ],
+      "district": "poludnie"
     },
     {
       "id": "rondo_onz",
@@ -1008,7 +1072,8 @@
         "metro",
         "m2",
         "towers"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "nowy_swiat_uniwersytet",
@@ -1033,7 +1098,8 @@
         "metro",
         "m2",
         "students"
-      ]
+      ],
+      "district": "trakt"
     },
     {
       "id": "stadion_metro",
@@ -1059,7 +1125,8 @@
         "m2",
         "praga",
         "stadium"
-      ]
+      ],
+      "district": "praga"
     },
     {
       "id": "dworzec_centralny",
@@ -1084,7 +1151,8 @@
         "rail",
         "night_bus",
         "hub"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "bar_pyzowy",
@@ -1110,7 +1178,8 @@
         "milk_bar",
         "lunch",
         "mdm"
-      ]
+      ],
+      "district": "poludnie"
     },
     {
       "id": "hala_mirowska",
@@ -1135,7 +1204,8 @@
         "market",
         "hall",
         "brick"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "hala_gwardii",
@@ -1161,7 +1231,8 @@
         "hall",
         "food_hall",
         "brick"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "u_zdzicha",
@@ -1185,7 +1256,8 @@
       "tags": [
         "venue",
         "kebab"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "na_cienkim",
@@ -1210,7 +1282,8 @@
         "venue",
         "kebab",
         "night"
-      ]
+      ],
+      "district": "poludnie"
     },
     {
       "id": "kebab_palma",
@@ -1234,7 +1307,8 @@
       "tags": [
         "kebab",
         "dawn"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "kebab_zabkowska",
@@ -1258,7 +1332,8 @@
       "tags": [
         "kebab",
         "praga"
-      ]
+      ],
+      "district": "praga"
     },
     {
       "id": "kebab_stadion",
@@ -1283,7 +1358,8 @@
         "kebab",
         "stadium",
         "praga"
-      ]
+      ],
+      "district": "praga"
     },
     {
       "id": "merdak",
@@ -1309,7 +1385,8 @@
         "pets",
         "dogs",
         "powisle"
-      ]
+      ],
+      "district": "powisle"
     },
     {
       "id": "rowerilo_dock",
@@ -1333,7 +1410,8 @@
       "tags": [
         "venue",
         "bikes"
-      ]
+      ],
+      "district": "powisle"
     },
     {
       "id": "kolka_start",
@@ -1358,7 +1436,8 @@
         "venue",
         "runners",
         "wednesday"
-      ]
+      ],
+      "district": "powisle"
     },
     {
       "id": "hyrax_narodowy",
@@ -1384,7 +1463,8 @@
         "runners",
         "saturday",
         "stadium"
-      ]
+      ],
+      "district": "praga"
     },
     {
       "id": "ogrod_saski",
@@ -1409,7 +1489,8 @@
         "park",
         "dogs",
         "runners"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "ogrod_krasinskich",
@@ -1434,7 +1515,8 @@
         "park",
         "dogs",
         "muranow"
-      ]
+      ],
+      "district": "muranow"
     },
     {
       "id": "krakowskie_przedmiescie",
@@ -1459,7 +1541,8 @@
         "street",
         "royal_route",
         "statue"
-      ]
+      ],
+      "district": "trakt"
     },
     {
       "id": "karowa",
@@ -1484,7 +1567,36 @@
         "street",
         "viaduct",
         "slow_drive"
-      ]
+      ],
+      "district": "trakt"
+    },
+    {
+      "id": "arkadia",
+      "chapter": "codziennie",
+      "name_pl": "Arkadia",
+      "name_en": "Arkadia",
+      "osm": "the shopping centre's east side on Jana Pawła II (building=retail, by position)",
+      "near": [
+        52.2572,
+        20.9869
+      ],
+      "radius": 40,
+      "fact": [
+        "Arkadię otwarto w 2004 roku; ma około 230 sklepów.",
+        "Arkadia opened in 2004; it holds about 230 shops."
+      ],
+      "joke": [
+        "Wchodzisz po skarpetki. Wychodzisz po zmroku. Auta szukasz do rana.",
+        "You go in for socks. You come out after dark. You look for the car till morning."
+      ],
+      "tags": [
+        "mall",
+        "car_park",
+        "heli",
+        "north"
+      ],
+      "heli_radius": 60,
+      "district": "muranow"
     },
     {
       "id": "zwir",
@@ -1508,7 +1620,8 @@
       "tags": [
         "venue",
         "records"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "mokotowska",
@@ -1533,7 +1646,8 @@
         "street",
         "design",
         "vintage"
-      ]
+      ],
+      "district": "poludnie"
     },
     {
       "id": "plac_konstytucji",
@@ -1559,7 +1673,8 @@
         "neon",
         "mdm",
         "kadr"
-      ]
+      ],
+      "district": "poludnie"
     },
     {
       "id": "sciana_wschodnia",
@@ -1584,7 +1699,8 @@
         "street",
         "neon",
         "modernism"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "wiezowiec_1933",
@@ -1610,7 +1726,8 @@
         "heli",
         "modernism"
       ],
-      "heli_radius": 60
+      "heli_radius": 60,
+      "district": "srodmiescie"
     },
     {
       "id": "plac_trzech_krzyzy",
@@ -1636,7 +1753,8 @@
         "church",
         "night",
         "quiet"
-      ]
+      ],
+      "district": "trakt"
     },
     {
       "id": "rynek_starego_miasta",
@@ -1660,7 +1778,8 @@
       "tags": [
         "square",
         "old_town"
-      ]
+      ],
+      "district": "stare_miasto"
     },
     {
       "id": "barbakan",
@@ -1684,7 +1803,8 @@
       "tags": [
         "old_town",
         "walls"
-      ]
+      ],
+      "district": "stare_miasto"
     },
     {
       "id": "plac_defilad",
@@ -1709,7 +1829,8 @@
         "square",
         "then",
         "pigeons"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "muzeum_defilad",
@@ -1733,7 +1854,8 @@
       "tags": [
         "museum",
         "then"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "palac_kultury",
@@ -1759,7 +1881,8 @@
         "then",
         "heli"
       ],
-      "heli_radius": 60
+      "heli_radius": 60,
+      "district": "srodmiescie"
     },
     {
       "id": "stadion_narodowy",
@@ -1785,7 +1908,8 @@
         "then",
         "stadium",
         "praga"
-      ]
+      ],
+      "district": "praga"
     },
     {
       "id": "rotunda",
@@ -1810,7 +1934,8 @@
         "landmark",
         "then",
         "meeting_point"
-      ]
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "rondo_daszynskiego",
@@ -1837,7 +1962,8 @@
         "towers",
         "mordor",
         "metro"
-      ]
+      ],
+      "district": "wola"
     },
     {
       "id": "centrum_nauki_kopernik",
@@ -1863,7 +1989,8 @@
         "then",
         "river",
         "science"
-      ]
+      ],
+      "district": "powisle"
     },
     {
       "id": "hala_koszyki",
@@ -1889,7 +2016,36 @@
         "hall",
         "then",
         "food_hall"
-      ]
+      ],
+      "district": "poludnie"
+    },
+    {
+      "id": "rondo_radoslawa",
+      "chapter": "kiedys",
+      "name_pl": "Rondo Radosława",
+      "name_en": "Rondo Radosława",
+      "osm": "the flag mast on the roundabout's island, west of the tram tracks (not in OSM: map north, a 57.8 m column in the surface model at x -2,850, z -2,295)",
+      "near": [
+        52.2548,
+        20.9819
+      ],
+      "radius": 40,
+      "fact": [
+        "Maszt na rondzie ma 63 m, a flaga ponad 100 m². Stoi od 2014 roku.",
+        "The roundabout's mast is 63 m tall, its flag over 100 m². Up since 2014."
+      ],
+      "joke": [
+        "Flagę widać z korka na Okopowej. Z flagi korek też.",
+        "You can see the flag from the jam on Okopowa. The flag can see the jam too."
+      ],
+      "tags": [
+        "square",
+        "flag",
+        "heli",
+        "north"
+      ],
+      "heli_radius": 60,
+      "district": "muranow"
     }
   ]
 }

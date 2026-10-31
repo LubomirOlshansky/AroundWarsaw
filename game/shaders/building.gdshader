@@ -191,6 +191,7 @@ const int S_RIBBON = 5;
 const int S_DARK = 6;
 const int S_GOLD = 7;
 const int S_FRAME = 8;
+const int S_TILE = 9;
 
 vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool cut) {
 	glow = vec3(0.0);
@@ -240,6 +241,21 @@ vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool 
 		frame = fract(u / 1.5) < 0.1 || fract(h / fh) < 0.08;
 		frame_col = srgb_to_linear(vec3(0.42, 0.33, 0.2)) * mix(0.3, 1.0, daylight);
 		c = mix(c, col * mix(0.35, 1.0, daylight) * 1.15, 0.6);
+	} else if (s == S_TILE) {
+		// Novotel's shaft (the Rondo photos, 2026-10-31): white tiled panels, a hairline grid
+		// every 3.4 m by one floor, floodlit white at night, a window slit now and then.
+		float gx = fract(u / 3.4);
+		float gy = fract(h / fh);
+		bool seam = gx < 0.035 || gy < 0.03;
+		float flood = mix(0.3, 1.0, daylight);
+		vec3 tile = white * (seam ? 0.72 : 1.0) * flood;
+		if (lights_on > 0.001) {
+			glow = srgb_to_linear(vec3(0.62, 0.66, 0.74)) * (seam ? 0.3 : 0.62) * lights_on;
+			if (gx > 0.3 && gx < 0.62 && gy > 0.35 && gy < 0.62 && hash12(vec2(floor(u / 3.4), level) + 7.7) < 0.12 * lights_on) {
+				glow = WARM_PALE * 0.9;
+			}
+		}
+		return tile;
 	} else if (s == S_FRAME) {
 		frame = fract(u / 3.2) < 0.14 || fract(h / 4.4) < 0.1 || h > top - 0.9;
 		frame_col = mix(silver, white, 0.5);
@@ -489,13 +505,14 @@ vec3 landmark(int mode, float param, vec3 col, vec2 uv, float top, bool wall, ve
 	return col;
 }
 
-// Floodlights on the landmark: warm from below, violet up the tower, a bright edge
-// at the top of every wall, where the next terrace's lamps stand.
+// Floodlights on the landmark: the dusk loop (2026-10-31, the user's photos) lights it gold
+// all the way up (was violet up the tower), a little brighter on the high terraces, with a
+// bright edge at the top of every wall, where the next terrace's lamps stand.
 vec3 floodlight(vec3 col, float h, float top) {
-	vec3 light = vec3(1.0, 0.72, 0.42) * (0.5 + 0.9 * exp(-h / 22.0));
-	light += vec3(0.75, 0.32, 1.0) * smoothstep(25.0, 110.0, h) * 0.75;
-	light += vec3(1.0, 0.85, 0.65) * smoothstep(top - 9.0, top - 0.5, h) * 0.55;
-	return col * light * 1.25;
+	vec3 gold = vec3(1.0, 0.7, 0.3);
+	vec3 light = gold * (0.62 + 0.5 * exp(-h / 18.0) + 0.3 * smoothstep(30.0, 140.0, h));
+	light += vec3(1.0, 0.88, 0.62) * smoothstep(top - 9.0, top - 0.5, h) * 0.5;
+	return col * light * 1.3;
 }
 
 void fragment() {

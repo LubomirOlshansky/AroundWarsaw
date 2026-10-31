@@ -256,9 +256,14 @@ HELI / AUTO (right); the keys are unchanged.
 ## Night and vaporwave
 
 - **Day** is the original look, calmed in the look loop (no saturation boost by day, quieter
-  grass, brick-red cycle lanes, a grey-green-blue river; see The first-minute look). **Dusk**: a low orange sun from the south-west
-  with long shadows, a violet fill light, a pink-purple sky behind the diorama, glass towers
-  reflecting it, and the first windows and lamps on. **Night**: deep navy-violet ambient, a
+  grass, brick-red cycle lanes, a grey-green-blue river; see The first-minute look). **Dusk** (the dusk loop, 2026-10-31, after the
+  user's photos of Śródmieście at 16:20 in late October): the blue hour under an overcast sky, a
+  slate-blue sky behind the diorama, flat cool light with no sun shadows (which pays for a soft
+  glow, 0.4), glass towers reflecting the grey-blue sky, most windows and every lamp on, the
+  Palace of Culture floodlit gold to the spire (`building.gdshader` `floodlight`; it was violet up
+  the tower), lit names on the hotels' crowns and red aviation lights on the towers over 100 m
+  (`landmarks.gd` `_dusk_details`, `_crown_signs`, `_aviation`; at Dusk and Night). Dawn keeps
+  using Dusk's palette. **Night**: deep navy-violet ambient, a
   cold moon (no shadows, which pays for the glow), stars, and the lit city. A switch blends
   over 1.5 s.
 - **Lit windows** (`building.gdshader`): a seeded share of each building's windows (some
@@ -389,7 +394,7 @@ at the hospital. Out of time: TRY AGAIN, NEXT CALL or FREE ROAM.
   ConfigFile; on the Mac `~/Library/Application Support/Godot/app_userdata/Around Warsaw/`;
   `.../Nocna Warszawa/` before the rename of 2026-10-30, so a Mac's older save stays there; the
   phones keep theirs, as `user://` follows the unchanged bundle ID).
-  No shop yet.
+  No shop yet. Loop 3h slice 1: the save has a version (save v2, see "Save v2 and the districts").
 - **Kebab delivery** (`jobs.gd`): seven stands (a kiosk with a pixel KEBAB board, a striped
   awning and a lit hatch; the board glows pink and gold at night) at the two mapped kebab places
   (by Dworzec Centralny, under the Jana Pawła II viaduct, and in the Powiśle food hall) and on
@@ -464,6 +469,10 @@ trash-talk bubble end it: win and you get the rival's stake in złoty (Pani Hali
 Bartek 120, Seba 150, Zbyszek 200, Mordor Mike 300) and +100 respect. Only one activity at a
 time: no race during a rescue or a side job, rescue calls wait while a race is on, and the
 helicopter waits until it is over.
+
+Loop 3h slice 3: the rivals are a ladder now, in order of stake, each opened by the one before and by
+respect, each with its own pace, and the final "Trzy mosty" at night ("The rival ladder and the final
+"Trzy mosty"" below).
 
 Rivals talk in speech bubbles, Polish with English subtitles (`bubbles.gd`, reusable: anything
 can talk, `bubbles.say(node_or_callable, speaker, polish, english)`; `bubbles.tag()` for name
@@ -630,6 +639,13 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   terraces with a hedge round each. **The flag on Rondo Radosława** (`_build_flag`; not in
   OpenStreetMap): a 57.8 m steel mast with a gilded finial at (−2,850, −2,295) and a 16 × 10 m
   white-and-red flag in folds, flying east.
+- **Most Świętokrzyski** (`_build_swieto`; the user's ask): the decks are map_builder's, the
+  landmark adds what made it a plain viaduct before: the concrete pylon on the Praga bank in
+  the 2.6 m median, from the ground through the deck to 70 m (map y), leaning 7 m back east, a
+  red aviation light on top, and its stays in one plane along the median, 12 over the main span
+  west and 9 back east, landing a metre over the deck's profile (`_swieto_deck`, a parabola
+  through the bake's crown). The site is the median strip under the stays, so every sector
+  they cross builds them.
 - **Muzeum Narodowe** (the museum and Plac Piłsudskiego loop, 2026-10-31; `_build_muzeum`): the
   landmarks loop kept the LoD2 model in stone (`skin_at`); now it is a model like the Palace. The
   mapped outline (481 points: every pier) is straightened to 18 corners (`_simplify`,
@@ -794,6 +810,17 @@ tallest roof-grid cell, that a tap finds it, that a car driving in from 12 direc
 that the helicopter (heli.gd stepped by hand) flying at it at half its height is stopped outside
 it and then lands on open ground beside it, the roof rescues on the replaced outlines and the
 cells round the Palace's spire.
+
+`godot --headless --path game --script res://tools/check_mesh_quality.gd` (verify step `meshq`, in the
+quick set and in CI; landmarks plan 0.1 and 0.2) builds EVERY landmark site alone (`landmarks.build(surface, near, only)`
+on a stub map, from the committed `centrum.json`) and checks its mesh: a triangle BUDGET per site (a
+site with none fails, so detail never goes in without a limit), every triangle in a landmark material code
+(no draw call of its own), z-fighting (same-facing triangles on one plane within 2 cm overlapping by
+more than 0.01 m2), zero-area triangles, normals that disagree with their geometry, and parts floating
+clear of the ground and of every other part. `KNOWN` (a per-site ratchet) is empty since 2026-10-31: every site is at zero, and
+any new defect fails at once. The builder cuts coplanar walls, roof caps and sloped crowns back to what
+shows (`landmarks._wall`, `_cap`). A new site gets its
+`BUDGET` line (measured + about 20 %) in the same change; the art-director judges only after this passes.
 
 `godot --headless --path game --script res://tools/check_sites.gd` (verify step `sites`, in the
 quick set and in CI; the museum and Plac loop) checks the models at Muzeum Narodowe, Hotel
@@ -3498,7 +3525,8 @@ instead of sub-cells: BACKLOG.
 ## Moja Warszawa notebook (loop MW-1, 2026-10-30)
 
 MOJA WARSZAWA, the city notebook (docs/design/vision.md 4.1): the 72 places of
-`game/data/places.json` (designer-owned; 9 chapters of 8) found by driving or flying past them,
+`game/data/places.json` (designer-owned; 9 chapters of 8; 75 since the L-shaped map loop, see
+"The L-shaped map in gameplay") found by driving or flying past them,
 kept in the save, read in the settings card's fifth tab. Code: `notebook.gd` (places, finding,
 rewards, the minimap's marks), `notebook_page.gd` (the page), small hooks in `main.gd`
 (`_build_notebook`, `_place_start`, `_put_at_place`, the flags), `hud.gd` (`set_minimap_unknown`,
@@ -4037,8 +4065,9 @@ missing lines merged, none changed), `eggs.json` (`easter_rechotka`, `easter_lez
 Everything is built at runtime from the data, on both city paths (the prebuilt sectors hold
 none of it); nothing new casts a sun shadow.
 
-- **Where things stand.** The baked data has no `shop=convenience`, `subway_entrance`,
-  `bicycle_rental` or `scooter` pois (BACKLOG "From loop MW-2": the map lane's list), so
+- **Where things stand.** The baked data had no `shop=convenience`, `subway_entrance`,
+  `bicycle_rental` or `scooter` pois (BACKLOG "From loop MW-2": the map lane's list; baked since
+  2026-10-31, "Content POIs", the switch to them is the content lane's next loop), so
   `storefronts.gd` picks from what it has: the 3,332 address pois (`door` is the road point,
   `x, z` the building), the lane graph's junctions and the notebook's resolved places.
 - **Frogs** (parodies.md 2): an address within 26 m of a junction (`JUNCTION_REACH`), off the
@@ -4659,6 +4688,289 @@ landmarks lane is the table under it).
 | Build time, the whole city headless (check_drive) | 113 s | 119 s |
 | check_streaming | identity OK (108 sectors) | identity OK (112 sectors, 1,806 meshes and MultiMeshes); 10 spots at most 0.059 % of pixels differ; every pass 0 missing (it caught the ground grid's last row past the north edge drawn over the corner left outside: `_cell_outside` treats the outside part's sides on the bounds as open) |
 
+## Content POIs: corner shops, metro entrances, bike docks and the Leżaks (2026-10-31)
+
+The content lane's asks (BACKLOG "From loop MW-2", parodies.md 5.2): the data its runtime placement
+lacked, baked into `centrum.json` `pois` by `tools/bake_street_pois.py` (called at the end of
+`bake_osm.py` on the finished data, after `bake_structures`; ~8 s). Data only: nothing reads the new
+kinds yet, so nothing new is drawn. The new pois come **after** every older one (the older 3,601 are
+byte for byte what they were); everything else in `centrum.json`, `ao.bin`, `lights.bin` and
+`water.bin` is unchanged. Deterministic: the order and the random numbers are SHA-1 hashes of
+positions (`SEED`), never Python's `hash` or a set's order (the full bake and the dry run below give
+the same pois).
+
+| Kind | Count | Fields |
+| --- | --- | --- |
+| `convenience` | 260 | `x, z` the shop (OSM shop=convenience; none below ground), `door` the road point at its door (as `address`), `fr` 1 for the chain the Frogs parody (163), `lv` a mapped level off the ground floor. No names (brands only as parodies) |
+| `subway_entrance` | 84 | `x, z`; `yaw` the way down (`atan2(dx, dz)`: `Basis(Vector3.UP, yaw)` turns +Z to it) and `f` how it was found: `steps` (a stair or underground way through the node, its `incline`; 18), `canopy` (towards the centre of the canopy it sits on; 55), `footway` (along the nearest footway, either way; 11); `st` the station (the nearest railway=station station=subway within 400 m: 10 stations), `ref` the exit's number, `u` 1 when it opens off an underground passage only (3) |
+| `bicycle_rental` | 92 | the city bike docks: `x, z`, `yaw` along the dock's long side (or the nearest street), `l` its length when mapped as an area (62) |
+| `address` (more) | 11 | `name, x, z, door` as the others, `v` 1: the addresses of 11 places of the notebook and the venues that the address bake leaves out (not a home or office: Warszawa Powiśle's pavilion, Kruczkowskiego 3B, is a train_station building; the others address points or halls): `EXTRA_ADDRESSES`. Places resolved by address 5 → 15 of 72. Plac Żelaznej Bramy 1 (Hala Gwardii) is in no OSM element |
+| `scooter_zone` | 56 | parodies.md 5.2: a 3 × 1.5 m painted zone on a footway beside a street in the hero districts (storefronts.gd's `HERO`), 400 m apart: `x, z`, `yaw` (the 3 m side along it); `egg` "easter_lezak" on the one that fits nearest a street exit of Metro Nowy Świat-Uniwersytet (within 60 m; at (−547, −308), 5 m off exit 5) |
+| `scooter` | 468 | `x, z`, `yaw`, `p` the pose: `lie` 436 (on a footway, 15 m apart, 3 in 10 spots two, near a junction 30 m, a stop 20 m, a metro exit 20 m, the river 80 m or a park's edge 6 m; 2-3 round each zone with `zn` its zone's order), the odd places (1 in 15, 150 m apart): `grass` 5, `bench` 5 (across its front), `frogs` 5 (1 m out of the shop's wall towards its door), `hedge` 4 (half in it), `roof` 12 (1 in 40, on a bus shelter by a mapped stop, `h` 2.6 m over the ground: the shelter mesh's roof); `stand` 1 (the egg's, in its zone) |
+
+- **Density** (parodies.md 5.2, *guess*): 30 a km² in the hero districts, 12 elsewhere, met per
+  500 m square on its land (not water): a quota of 469, 468 placed (one square has too few clear
+  footway points). storefronts.gd's runtime pick places 277 in 14 zones.
+- **Clear of** (`Solids`, shared with the check): the carriageway areas, medians and road strips
+  (width + 0.8 m), kerbs (0.6 m), crossings (width + 1.2 m) and their kerb ramps (3 m from a
+  crossing's end and from OSM's kerb and crossing nodes), tram tracks (2 m), rails, buildings and
+  LoD2 footprints, walls, fences, hedges, steps, guard rails, platforms, islands, fountains,
+  flowerbeds, construction, water, piers, tunnel portals (15 m), garage ramps, the metro's stairs
+  (3 m round the entrance and 8 m down its `yaw`), poles, trees, benches, bins, racks, columns,
+  shelters, parked cars and the Palm; 10 m inside the map's outline.
+- **The check** `tools/check_pois.py` (verify step `pois`, ~4 s; quick too): Q1 off the map, Q2 on
+  the carriageway, Q3 on a crossing or kerb ramp, Q4 in or against anything solid, Q5 not on its
+  spot (off the footway, the grass, the hedge, the bench, the shelter's roof), Q6 the rules (the
+  density, zone spacing, one egg zone with one standing scooter, the odd and roof shares, a yaw on
+  every entrance, a door on every shop): **0** each. Run on a dump of storefronts.gd's runtime
+  picks (`--points=`): of its 277 Leżaks 108 fail (Q1 1, Q2 44: 36 on the carriageway and 8 on a
+  tram track, Q3 44: 27 on a crossing and 17 on a kerb ramp, Q4 19); of its 25 metro entrances 14
+  (4 on the carriageway, 2 on a crossing, 8 in a building, on steps or a platform).
+- **Look**: `python3 tools/overlay_pois.py OUT.png X Z HALF` (Pillow) draws them over the photo.
+- **Dry run**: `python3 -I tools/bake_street_pois.py [centrum.json] [osm_demo.json] --out=FILE` adds
+  them to a finished map elsewhere (it won't write into `game/map`: re-bake with bake_osm.py).
+- **Sizes**: centrum.json 17.11 → 17.17 MB (+64 KB), index.json 10.77 → 10.84 MB, index.res
+  7.60 → 7.63 MB; the sector files and scenes, vertices, draw calls and the bench unchanged (no
+  geometry). The kebab run's order 0 changed with the longer address list (Oboźna 1 → Emiliana
+  Konopczyńskiego 3, 1,266 m by road): verify's `kebab` step runs 21,000 frames.
+
+## The L-shaped map in gameplay (2026-10-31)
+
+Since map north the map is its bounding rectangle without the north-east corner left `outside`
+(see "Map north"). What still used the rectangle now uses `map_builder.gd`'s shape (`in_map`,
+`map_outline`, `outside`; that file unchanged):
+
+- **The helicopter** (`heli.gd`): `set_map(map)` takes the bounds and each outside part grown by
+  the 12 m pad (`keep_out`); `clamp_to_map(from, to)` clamps to the bounds, then out of a part
+  along the side the move crossed last (by the sweep's entry time), so it slides along that side,
+  and round the inner corner without flicking between the two sides; a point already inside a part
+  (a teleport) goes out by the nearest inner side. Two rectangle tests a frame. (A bug found on the
+  way: a Vector2 clamp compared with the double-precision position zeroed the velocity every
+  frame; axes are compared within 1 mm.)
+- **The car's tow off-map test** (`main.gd` `_node_spot`): a junction lane `in_map(q, -12)`;
+  `--stream-soak`'s tour skips a sector middle in the corner.
+- **Rescue spots** (`missions.gd`, `EDGE_PAD` 40 m; `_inner` is gone, check_landmarks and
+  check_water no longer set it), **the barriers' street** (`eggs.gd`, 120 m in: the day's street
+  can change near the corner, as the pool of segments shrank), **Podwózka** (`rides.gd`): the
+  named finishes 40 m inside the outline, the river spots (the baked `drivable_bank` and the scan's)
+  `in_map(p, -SCAN)`.
+- **The minimap and the full map** (`hud.gd` `_minimap_mesh`, one mesh: +0 draw calls): first the
+  off-map ground (`OFF_MAP` #c8b48e, a frame 6 km round the bounds and each part left outside, so the
+  corner reads as off the map at every zoom), then parks, streets and tunnels without any triangle
+  whose middle lies in a part left outside, the edge line round the outline (six sides).
+  `setup_minimap(data, outline, outside)` (defaults: the bounds' rectangle). The full map draws the
+  same mesh; its pan stays in the outline's box (the bounds), the outside shaded.
+- **Notebook places up north** (`game/data/places.json`, `near` hints, "?" like the rest): Rondo
+  Radosława (chapter `kiedys`: the 63 m flag mast of 2014, flag over 100 m²), Arkadia
+  (`codziennie`: opened 2004, about 230 shops) and Forest (`bary`, "new Warsaw": the 120 m tower,
+  about 200 trees round it), radius 40, `heli_radius` 60, tag `north`. A chapter now holds 8 to
+  `Notebook.MAX_PER_CHAPTER` (10) cards: the counts and the toast use the chapter's own size, a
+  chapter over 8 draws its cards 5 x 2. `check_places`: the hints in the demo box or map north
+  (`BOX_NORTH`), the places `in_map`.
+- **check_police P12 "guard car follows 15 s"** was flaky (1 run in 12 alone): the guards' car is
+  put on a road at a random spot 150-300 m out (guards.gd `_spawn_car`, the global `randf`), and on
+  the check's one straight road 4 tries of 8 spots in 8 s could all miss. `_fresh` seeds the global
+  random numbers (`FRESH_SEED`) for every case, the wait is up to 30 s (the car comes out at 0.5 s):
+  20 of 20 alone, 21 of 21 three at a time.
+- **check_edge.gd** (new, step `edge`, centrum.json only, CI too): E1 the helicopter's clamp
+  (4,000 random moves, four flights past the inner corner: never off, never a step back, never
+  stuck), E2 the rescue spots (591, all `in_map(p, -40)`), E3 the minimap mesh (no street or park
+  in the corner, the off-map ground over it whole, the edge's vertex at the inner corner).
+- **Cost** (Linux container, headless bench `--fixed-fps 60`, before = HEAD from a copy, runs
+  interleaved): frame 6.57 / 6.70 → 5.60 / 6.76 ms, scripts 5.79 / 5.96 → 4.98 / 6.01 ms (noise),
+  hud+minimap 0.15 / 0.14 → 0.13 / 0.15 ms, heli 0.00. Draw calls +0 (the off-map ground is in the
+  minimap's one mesh), no new shader.
+
+## Save v2 and the districts (loop 3h slice 1, 2026-10-31)
+
+Part of loop 3h, the demo loop (`docs/design/loop-3h-handover.md`, DEMO 6.2-6.3, checklist G3).
+
+**Save v2** (`wallet.gd`, `settings.gd`):
+
+- `user://save.cfg` carries `[save] version = 2` (`Wallet.VERSION`). A file without it is version 1
+  (every save before loop 3h). Loading one: `Wallet.migrate(cfg, 1)` in memory (nothing is renamed
+  from v1 to v2: wallet, jobs, best, eggs, police, keep, notes, notes_chapters, polnoc, tapes, kadr,
+  kadr_photos, garage all load as they were; an egg saved as `true`, v0.65, becomes 1, a `false` one
+  is dropped), a copy of the old file is kept once as `user://save.v1.cfg` (`backup_path`), and the
+  next save writes v2. The log says `wallet: save version 1 migrated to 2 (...)`; the `save:` line
+  ends `save vN` (0: no file).
+- New in v2: `[districts]` (id = the day discovered), `[district_jobs]` (id = jobs done there; `pay`
+  with a kind counts one in `wallet.district`, the district the vehicle is in, set by districts.gd,
+  not saved) and `[syrenki]` (id = the day; empty until the Syrenki slice). `reset()` clears them.
+- A section this build doesn't know is kept and written back as it was (`_extra`). A file of a newer
+  version (`newer`) is read but never overwritten (a warning says so). TEST · BENCH puts
+  `district_jobs` back with the rest of the wallet.
+- `user://settings.cfg` carries `[meta] version = 2` (`Settings.VERSION`); a file without it is
+  version 1 and loads as before (loop G1's High → Auto rule is that migration); a newer one is never
+  overwritten.
+- `--nosave` still neither reads nor writes either file (no migration, no backup).
+- `check_save.gd` (step `save`, CI too): a version-1 fixture built in the check with every section
+  (and one "from a newer build") loads with every value, reports 1 → 2, keeps a byte-equal backup;
+  the next save writes v2 and keeps the unknown section; the v2 sections round-trip; a job paid in a
+  district counts there; a newer file is never overwritten; `--nosave` writes nothing and reads no
+  v1 file; a missing file gives the defaults; settings.cfg's version, its v1 load and a newer file.
+  Scratch files only (`user://check_save*.cfg`), deleted after.
+
+**The districts** (`districts.gd`, new; `data/districts.json`, new):
+
+- **Data.** Nine districts from DEMO 2.3, in priority order (a point belongs to the first whose area
+  holds it): Praga (everything east of a river line traced from the map's water and the embankment
+  roads), Stare Miasto, Muranów (with Arkadia), Śródmieście (and the Rondo de Gaulle'a corner, so
+  the Palm is Śródmieście's), Trakt Królewski (Krakowskie Przedmieście, Nowy Świat, Plac Trzech
+  Krzyży), Powiśle, Wola (Rondo Daszyńskiego), Śródmieście Południowe (Plac Zbawiciela, Koszyki,
+  Politechnika; not in DEMO 2.3) and Ujazdów i Łazienki (the Sejm; the park is south of the map).
+  The first five are DEMO's hero districts. Each has its names, a card line [pl, en], a label point
+  and `jobs_goal` (3 for a hero district, 2 else). `places.json` and `eggs.json` gained a `district`
+  field on every entry (computed once from the place's `near` hint; an egg takes its place's).
+  Places per district: Śródmieście 22, Powiśle 15, Południe 10, Trakt 9, Praga 8, Muranów 5, Stare
+  Miasto 4, Wola 2, Łazienki 0.
+- **Discovery.** At 3 Hz (a timer, the notebook's probe) the vehicle's district is looked up: ≤ 9
+  boxes, then the polygon (2.3 µs a lookup in the check). Entering one for the first time: the note
+  card under the wallet, "Odkryto: Powiśle" over "Powiśle discovered", the district's line in Polish
+  and English, "3 × ? na mapie · on the map", +10 respect (*guess*), the blip and a 40 ms buzz,
+  saved. The district the game starts in is discovered quietly (DEMO A2: nothing between the first
+  tap and driving). A v1 save's districts (those of every place or egg already found) are
+  discovered quietly at setup. Nothing happens on the title screen or during TEST · BENCH.
+- **The "?" marks.** In each discovered district its first three places not in the notebook
+  (nearest its label first) are "?" on the minimap (when in its reach) and the full map; a place
+  found makes room for the next (`notebook.gd` `extra_marks`, the notebook's own 400 m marks stay).
+- **Completion** (`progress`, `percent`): places + eggs (those that can be found: no `waits`) +
+  Syrenki found in the district, plus its jobs done up to `jobs_goal`, over the same in all, rounded
+  down (100 % only when everything is done). The Syrenki are a hook: `add_syrenka(id, district)`
+  lists one, the wallet's `syrenki` marks it found; none exist yet, so 0 of 0.
+- **On the map** (`full_map.gd` `set_districts`, called by main.gd after the map opens): the
+  districts not discovered yet under a light fog (each district's own shape, the earlier ones cut
+  out, clipped to the bounds and triangulated once: a few dozen triangles in the overlay's one batch,
+  +0 draw calls), each discovered one's name and per cent at its label, and the DZIELNICE ·
+  districts card on the left: one row per district ("Powiśle · 7%", or "? ? ?"), "Razem · in all".
+  The map is paused, so none of it costs a frame while driving.
+- `check_districts.gd` (step `districts`, CI too, no map): the data (names, Polish lines ≤ 70, the
+  labels in their own districts, the five heroes), a 50 m grid over the bounds all covered, eleven
+  known spots in the right district, every place and egg tied (a place's to its hint, an egg's to
+  its place's), ≥ 3 places in each hero district; the flow (quiet start, one card for Powiśle, +10
+  respect, nothing while away), the marks (3 a district, refilled), completion (jobs up to the goal,
+  an egg, a Syrenka listed and found, 100 % when all is done), the presets, a v1 record's quiet
+  discoveries, the fog tiling the bounds exactly once (and none when all are found), the lookup's µs.
+- **Testing aids**: `--district=<id>`, `--districts=all|none|<id>[:jobs],...`, `--districts-log`
+  (the flags table); with `--fullmap` and `--found=` / `--found-eggs=` for the map's shots.
+- **Cost** (Linux container, headless bench `--fixed-fps 60 --monolithic`, two runs each; before =
+  HEAD before the change): frame 2.32 / 2.67 → 2.35 / 2.49 ms, scripts 1.99 / 2.32 → 2.03 / 2.14 ms
+  (noise), "districts" 0.00 ms, hud+minimap 0.08 / 0.09 → 0.08 / 0.09. Draw calls +0 while driving
+  (the card is the existing note card, the marks join the minimap's batch); the open full map adds
+  its fog to the overlay's one batch, plus the card and the labels' text (the game is paused).
+
+## Syrenki (loop 3h slice 2, 2026-10-31)
+
+DEMO 6.3 and checklist F4: 20 small mermaid figurines by the kerb round the demo's districts, to
+find by driving past. `scripts/syrenki.gd`, `data/syrenki.json` (the designer's words, written in
+this slice for review).
+
+- **Data.** Each entry: `id`, `district`, the anchor (`place`: a places.json id, or `near`:
+  [lat, lon]), `real` (the Old Town's statue), `name` and `line` [pl, en] (at most 70 characters);
+  `near` 7 m (the pickup radius), `respect` 5 a find, `rewards`: at 5 the paint "Łuska Syreny"
+  (`scale`), at 10 150 zł + 50 respect, at 20 the paint "Srebro Syreny" (`silver`) + 300 zł, each
+  with its card's words. Each is listed under its district (`districts.gd` `add_syrenka`), so it
+  counts in that district's % on the full map.
+- **Placing** (`place_all`, needs the lane graph and the ground): the nearest ground-level street
+  within 150 m of the anchor (no tunnel, no deck, no bridge), the figurine on the kerb side
+  towards the anchor, past the outer lane's edge plus 2 m, pushed out by 1 m steps until no lane
+  centre is closer than half a lane and 1 m; facing the street. No random: the same every run.
+  Height from `ground_height`. `--syrenki-log` prints each one's spot, its distance from the
+  anchor and from the nearest lane centre.
+- **The prop.** One MultiMesh for all 20 (+1 draw call in all the city, only while one is in
+  view; under the world's SubViewport like every prop), one mesh (`figurine_mesh`): `Props.mermaid()`
+  scaled to 3 m with a cyan cube stood on its corner floating at 4 m (Models `LIT_SIGN`: it glows
+  at night), so a Syrenka reads from the follow camera; `Models.material()`, no shadow, no
+  collision. At 1.7 m she was walker-sized and did not read in the shots. A found one is a zero-scale instance (at load too).
+- **The find.** A 5 Hz timer compares the vehicle (the notebook's probe) with the figurines not
+  found: under 7 m on the ground plane (flying: and under 20 m above the ground). First find:
+  `wallet.syrenki[id]` = today (saved), +5 respect, the card `SYRENKA n/20 · MERMAID` (name, then
+  the line in Polish and English), the blip and a short buzz. A count that reaches a reward's `at`
+  gives it once (the count only grows): its card follows the find's after 5.8 s (`hud.show_note`
+  shows one card at a time; cards queue in `syrenki.gd`). The paints are derived from the count:
+  `garage.gd` PAINTS `syrenki` 5 and 20, `rule(..., syrenki)` says "locked" below it; the card
+  shows "n/5 Syrenek". The garage card is now two rows of five swatches (ten paints).
+- **On the map**: the districts card lists "Syrenki n/20" above the total (`full_map.gd`
+  `set_districts`).
+- **Checks**: `tools/verify.sh --only=syrenki` (`game/tools/check_syrenki.gd`, map-free): the
+  data (20, unique, districts, anchors inside their districts, words), a find and its card, the
+  repeat, the ladder (5, 10, 20, once each), the save round trip (a scratch file), the districts'
+  completion, the look's µs.
+- **Testing aids**: `--syrenki-log`, `--syrenki=all|none|<n>|<id>,...`, `--syrenka=<id|n>[:m]` (the
+  flags table).
+- **Cost**: the 20 distance checks at 5 Hz are about 8 µs a look (`spent_usec`, the bench's
+  "syrenki" line); the figurines are one draw call and ~20 x the mesh's triangles.
+
+## The rival ladder and the final "Trzy mosty" (loop 3h slice 3, 2026-10-31)
+
+DEMO 6.3 "Rival ladder" and "Progression" ("Respect unlocks rivals and the final race").
+`scripts/ladder.gd` (new: the order, gating and record, map-free), `scripts/trzy_mosty.gd` (new: the
+final's route on the lane graph), the flow in `rivals.gd`.
+
+- **The ladder.** Six rungs in order of stake: Pani Halina 60 → Słoik z Radomia 90 → Bulwar Bartek
+  120 → Seba z Pragi 150 → Taksiarz Zbyszek 200 → Mordor Mike 300 zł, then the final. A rung is open
+  when the one before it is beaten AND the respect is at least 0 / 100 / 250 / 400 / 600 / 850; the
+  final needs Mike beaten and 1100. A race win is +100 respect, so from Bartek on the jobs, districts
+  and Syrenki fill the gap between rungs (`check_ladder` proves race wins alone stop at Bartek). A
+  beaten rung stays open: re-races pay the stake again, as before. A race started by `--race=N`
+  ignores the gating and counts on the ladder only if the rung was open.
+- **A locked rival** still shows the prompt behind it, grey: "SŁOIK Z RADOMIA · NAJPIERW HALINA" /
+  "locked: beat Pani Halina first (L)", or "· SZACUNEK 250" / "respect 250". Flashing gets a refusal
+  bubble in their voice (RIVALS `refuse`, Polish above English, ≤ 70 characters) and an 8 s pause
+  before the prompt comes back; no race.
+- **Pace** (the rival driver's `speed_factor` / `accel_factor`, was a flat 1.45 / 1.7): Halina 1.25 /
+  1.5, Słoik 1.3 / 1.55, Bartek 1.35 / 1.6, Seba 1.4 / 1.65, Zbyszek 1.45 / 1.7, Mike 1.5 / 1.75; Seba
+  in the final 1.45 / 1.7 (*guess*, for the phone: Halina should be beaten narrowly by an ordinary
+  player). The `--autopilot` ghost is still 1.8 / 2.2.
+- **New rung open**: a toast "Nowy rywal: Słoik z Radomia" / "New rival: … · 90 zł" (and "Finał
+  otwarty: Trzy mosty · w nocy") when the open count grows (the wallet's `changed`, or a rung beaten).
+- **The record**: the save's `[ladder]` section (`wallet.ladder`: rung id `halina` … `mike` and
+  `trzy_mosty` = the day first beaten). No version bump: a v2 file of slices 1-2 (or a v1 file) loads
+  as nothing beaten, money kept; an older build keeps the section as an unknown one. `final_won` (the
+  `trzy_mosty` key) is there for the end card (slice 4). `--nosave` writes nothing; TEST · BENCH
+  puts the ladder back with the rest of the wallet.
+- **On the full map**: the DRABINKA · rival ladder card top right (`full_map.gd` `set_ladder`, rows
+  from `ladder.gd` `rows`): "★ Pani Halina · 60 zł" beaten, "→ Słoik z Radomia · 90 zł · szacunek ·
+  respect 100" next (or "otwarty · open"), "· …" locked; the final last: "→ Finał · Trzy mosty · 500 zł
+  · w nocy · at night" by day, "· Rondo Daszyńskiego" at night. Labels only, the game paused.
+- **The final "Trzy mosty"** (`trzy_mosty.gd` builds it once at setup; `rivals: Trzy mosty: …` in
+  the log): from Rondo Daszyńskiego (the start lane on Prosta by the roundabout, heading east) **east
+  over Most Śląsko-Dąbrowski, back west over Most Świętokrzyski, east again over Most Poniatowskiego**
+  to the National Stadium (the finish: the named street's node within 270 m of the PGE Narodowy poi
+  nearest by road from the last bridge but at least 400 m on: Aleja Poniatowskiego at the stadium's
+  south stands). 10.1 km by road. Each bridge is a checkpoint at the middle of its river span (the
+  longest `br` edge of that name going that way, ~500 m), between the carriageways: it counts within
+  20 m and 6 m of the deck's height (never from a road under a viaduct), in order, at 5 Hz.
+- **At night only** (the Night look, or Live with the lights on: rides.gd's rule; the clock is never
+  changed): once the final is open Seba waits at the start (moved there only out of sight, 180 m from
+  both spots, and held), the race beacon in gold at the start with a gold diamond on the minimap
+  (pinned to the rim at any distance, `hud.set_minimap_final`) and on the full map; hidden while a
+  rescue or side job runs. Drive into it (10 m): Seba's challenge, the banner TRZY MOSTY, 3-2-1. By
+  day the ladder card says "w nocy · at night".
+- **The race**: the beacon on the next bridge's checkpoint (then the finish), the edge arrow and the
+  minimap target follow it (`target_position`), a toast "MOST 1/3 · Most Śląsko-Dąbrowski" at each;
+  the status reads "MOST 2/3 · TRZY MOSTY" (then "META"), the metres to it, the clock and 1ST /
+  2ND (both measured along the route: the current leg's distance plus the legs after it). Seba
+  drives seven legs on the lane graph (each span's near end, then its far end, so his shortest path
+  really takes that bridge; then the stadium), re-targeted with `traffic.race_to` when he reaches
+  each; the legs' distances are computed one a frame during the challenge (~8-12 ms each in the
+  container), kept for a rematch. **Win**: the card "TRZY MOSTY · WYGRANA" (the first time "KRÓL
+  NOCNEJ WARSZAWY!" / "King of Warsaw by night!"), +500 zł, +250 respect, a best time under
+  `race:Trzy mosty`, `trzy_mosty` saved; a rematch pays the same. **Lose** (Seba at the stadium first,
+  or the ✕): "Rewanż: Rondo Daszyńskiego, w nocy" and the marker comes back. Seba's final lines:
+  `FINAL_LINES` (wait, challenge, win, lose).
+- **Checks**: `tools/verify.sh --only=ladder` (`game/tools/check_ladder.gd`, CI too): the rung data
+  against RIVALS, the gating and the missing words, a whole ladder walk, the rows, the words' lengths,
+  the save (round trip, v2/v1 without the section, `--nosave`, `--ladder=N`) and, from the committed
+  centrum.json, the route (the three spans east/west/east, each span its own shortest way, the legs
+  route, the start and finish, a checkpoint not counting 10 m under or 30 m aside).
+- **Testing aids**: `--ladder=N`, `--trzy-mosty` (with `--autopilot` the ghost drives the legs; the
+  log's `trzy mosty:` lines: the start, the length, each checkpoint, Seba over each bridge, the
+  result).
+- **Cost**: the start look and the checkpoint test at 5 Hz (a few distance tests); the ladder's
+  `open_count` (~20 µs) only when the wallet changes. +0 draw calls while driving: the start marker
+  is the race's own Beacon, the diamond joins the minimap's batch, the card is labels on the paused map.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -4866,6 +5178,9 @@ still hold, with the paths above.
    the door, `o` = office, `d` = `powisle` or `praga` across the river), `station` (Warszawa
    Centralna, shown as "Dworzec Centralny"), `patelnia`, `defilad` and `syrenka` (the boulevard
    spot facing the water, as none is mapped).
+   Content POIs (2026-10-31): at its end the bake runs `tools/bake_street_pois.py` on the finished
+   data and appends, after every older poi, `convenience`, `subway_entrance`, `bicycle_rental`, 11
+   more `address` (`v`), `scooter_zone` and `scooter` (see "Content POIs"; `tools/check_pois.py`).
 2. GUGiK: the Warsaw LoD2 package (`integracja.gugik.gov.pl/Budynki3D/pobierz.php?plik=powiaty/1465_gml.zip`),
    the four sheets that cover the map unpacked into `data/raw/gugik/sheets/`
    (`python3 -I tools/find_sheets.py data/raw/gugik/1465_gml.zip tools` lists them), then
@@ -4960,8 +5275,8 @@ design docs, and a Progress page (the road to the 1.0 demo, the lanes, the backl
 log). `python3 -I tools/wiki_build.py` writes it to `build/wiki/` from the repo alone, so it
 never needs hand-editing; each item links to its file and line on GitHub. Pictures:
 `wiki/media.json` and `wiki/img/`. It is its own Worker (`wiki/wrangler.jsonc`,
-`aroundwarsaw-wiki`, the subdomain `wiki.aroundwarsaw.app`) behind a password (`wiki/worker.js`,
-the secret `WIKI_PASSWORD`), `noindex` everywhere and unlinked from the landing: it is spoilers
+`aroundwarsaw-wiki`, the subdomain `wiki.aroundwarsaw.app`) open to anyone with the link (`wiki/worker.js`; it asks for a
+password only if the secret `WIKI_PASSWORD` is set, the user's call 2026-10-31), `noindex` everywhere and unlinked from the landing: it is spoilers
 and plans. `.github/workflows/wiki.yml` checks the build on every change to the data, scripts or
 docs and deploys only when run by hand. Details: `wiki/README.md`.
 
@@ -5006,6 +5321,9 @@ flag. How the work is run: `docs/WORKFLOW.md`, `CLAUDE.md`.
 - Map north: `tools/map_shape.py` (the map's shape: the bounds without the corner left `outside`),
   `tools/check_outline.py` (step `outline`: nothing off the map, every sector on it),
   `tools/check_lod2.py` (step `lod2`: LoD2 and OSM blocks never both, never neither); see "Map north".
+- Content POIs: `tools/bake_street_pois.py` (run by `bake_osm.py`: corner shops, metro entrances,
+  bike docks, the places' missing addresses, the Leżaks and their zones), `tools/check_pois.py`
+  (step `pois`), `tools/overlay_pois.py` (them over the aerial photo); see "Content POIs".
 - Loop 3a: `tools/check_roads.py` (+ `check_roads_allow.json`; the road rules C1-C10),
   `tools/road_spots.txt` (the road render spots for `tools/shots.sh --set=roads`),
   `game/scripts/debug_roads.gd` (`--debug-roads`), `game/addons/debug_draw/` (the Debug Draw
@@ -5119,6 +5437,7 @@ Command-line options (after `--`):
 | `--stream-gate=0` | loop 3d-2b: a prebuilt sector's pieces load with its scene at once (the old one-frame load end), not one a frame |
 | `--debug-ao` / `--no-ao` | show / switch off the baked ground shadows |
 | `--heli` | start in the helicopter |
+| `--heli-stick=X,Z` | the L-shaped map loop (2026-10-31): the helicopter's stick held towards that world direction (x east, z south; length up to 1) the whole run, for screenshots of the clamp along the map's outline (with `--heli --at=`) |
 | `--heli-alt=M` | loop 3d-2b: start in the helicopter M metres over the ground, placed there at once (360 = its highest; the memory and far-level probes) |
 | `--mission=N` | start rescue call N at once (N = 1, 5, 9… streets, 2, 6… roofs, 3, 7… river, 4, 8… parks) |
 | `--autopilot` | testing aid: fly (or, ghosting through walls, drive) to each mission target; in a race or a side job, drive the route; with `--rival`, tail the rival |
@@ -5182,6 +5501,14 @@ Command-line options (after `--`):
 | `--place=ID` | loop MW-1: start at a notebook place (`places.json` id): the sectors round its hint first, then the car on the nearest lane if that is inside the place's radius, else on the place (found within a second, standing) |
 | `--egg=<id>` | loop MW-6: the vehicle at that egg (`data/eggs.json` id, `e07` or `palma`) in its look, weather and day (`--time`, `--weather`, `--date` set for it), a motion trigger (lap, street, circle) driven along its path at 90 % of its speed limit; prints `egg: --egg=<id> <kind> at x, z (state)`, the find with its reward (`egg: found <id> <name> (k/45): +N respect[, track n][, then card ...][, kadr ... open]`) and `egg: --egg=<id> found S s after the start`; a waiting egg says what it waits for. Implies `--egg-log` |
 | `--egg-log` | loop MW-6: print `egg:` lines: each trigger met (with the state), each find and reward, with `--egg` the state every 10 s until found |
+| `--district=<id>` | loop 3h slice 1: that district's "discovered" card at the districts' first check (a screenshot aid; it is also discovered if the car is in it). Use with `--nosave` |
+| `--districts=all\|none\|<id>[:jobs],…` | loop 3h slice 1: the districts discovered for this run (and the jobs done in each), in memory, no cards or rewards (the full map's shots). Use with `--nosave` |
+| `--districts-log` | loop 3h slice 1: a `districts:` line when the vehicle changes district, discovers one, and the summary at the start |
+| `--syrenki-log` | loop 3h slice 2: `syrenki:` lines: each figurine's spot, its metres from the anchor and from a lane centre, and every find |
+| `--syrenki=all\|none\|<n>\|<id>,…` | loop 3h slice 2: the Syrenki found for this run (the first n, or those ids), in memory, no cards or rewards. Use with `--nosave` |
+| `--ladder=N` | loop 3h slice 3: the first N rungs of the rival ladder beaten for this run (0-7; 6: only the final left, 7: the final won too), the respect raised to open the next, in memory (`ladder:` lines). Use with `--nosave` |
+| `--trzy-mosty[=N]` | loop 3h slice 3: the final race "Trzy mosty" at once (`=N`, 1-3: from the river span of bridge N, the bridges before it counted, Seba 12 m behind in the next lane: screenshots and a quick finish): the run at night, the ladder up to the final (as `--ladder=6` unless `--ladder` says), the car at its start at Rondo Daszyńskiego, Seba ahead, his challenge and the countdown; with `--autopilot` the ghost drives the seven legs (`trzy mosty:` lines: the start, the length, each checkpoint, Seba over each bridge, the result) |
+| `--syrenka=<id\|n>[:m]` | loop 3h slice 2: the car on the street beside that Syrenka (an id or 1 to 20), m metres before it (25 by default; `:0` finds it at once), facing it (a screenshot aid) |
 | `--found-eggs=all\|none\|reachable\|ID,…` | loop MW-6: the egg record for this run, in memory, no rewards (screenshots of the SEKRETY page). Use with `--nosave` |
 | `--tape=<id\|n>` | loop MW-6: the car stopped at that then card (`then_cards.json` id or 1-20), the tape played at once (ghost, sound, card); implies `--tape-log` |
 | `--tape-log` | loop MW-6: print `tape:` lines: the ghost built and dropped, each play (`tape: n <id> ghost ok (k boxes)[, first time: +15 respect]`) |

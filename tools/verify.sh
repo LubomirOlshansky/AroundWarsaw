@@ -19,11 +19,17 @@
 # under what covers it whole, no hole where it was left out, the ground on the height rule.
 # `streets` runs tools/check_streets.py (map review B): poles on the asphalt, zebras off it,
 # grass medians on tram tracks (S1, S2, S4 FAIL; S3, medians in a junction, is reported).
+# `pois` runs tools/check_pois.py (content POIs, 2026-10-31): the baked corner shops, metro
+# entrances, bike docks, Leżaks and zones (Q1-Q6: none on the carriageway, a crossing, a kerb ramp,
+# in anything solid or off the map; the density, the egg zone, the odd shares).
 # `tiers` and `governor` (loop G1): the device tiers and the pixel image's size rule, and the
 # frame governor's rules on scripted frames.
-# Loop MW-1: `places` runs game/tools/check_places.gd: MOJA WARSZAWA's 72 places (Polish +
+# Loop MW-1: `places` runs game/tools/check_places.gd: MOJA WARSZAWA's 75 places (Polish +
 # English, the 70 characters, the demo box, the brand denylist, reachability as a WARN) and the
 # notebook's finding and reward rules on synthetic inputs; it reads only centrum.json (CI too).
+# The L-shaped map loop: `edge` runs game/tools/check_edge.gd: the helicopter's clamp along the
+# map's outline (random moves, four flights past the inner corner), the rescue spots inside the
+# outline, the minimap's mesh over the corner left outside; centrum.json only (CI too).
 # Loop MW-5: `radio` also checks PÓŁNOC FM (its 7 tracks and seams, the hours, reruns, the host,
 # the unlocks); `sounds` runs game/tools/check_city_sounds.gd: the city's sounds at the notebook's
 # places (the emitters, the hours, the cap of 8, the bells, the 02:00 beat); centrum.json only (CI too).
@@ -60,6 +66,18 @@
 # The garage loop: `garage` runs game/tools/check_garage.gd: Warsztat u Mirka's paints and rules,
 # buying and switching (10 seeded walks), the save, the car's paint, Mirek's lines, E01 and E21
 # once; no map at all (CI too).
+# Loop 3h slice 1: `save` runs game/tools/check_save.gd: save v2 (a version-1 fixture built in the
+# check migrates keeping every section, a backup of the old file, the round trip, a newer file never
+# overwritten, --nosave writes nothing, settings.cfg's version); `districts` runs
+# game/tools/check_districts.gd: the districts' data, coverage and ties, discovery, the "?" marks,
+# completion and the full map's fog; neither needs a map (CI too). Loop 3h slice 2: `syrenki` runs
+# game/tools/check_syrenki.gd: the 20 Syrenki's data and words, a find, the reward ladder (the paints
+# "scale" at 5 and "silver" at 20, 150 zł at 10, once each), the save round trip and the districts'
+# completion; no map (CI too). Loop 3h slice 3: `ladder` runs game/tools/check_ladder.gd: the rival
+# ladder's order, thresholds and pace, the gating and the locked prompt's words, the refusal and
+# final lines, the save (round trip, a v2/v1 file without [ladder], --nosave writes nothing,
+# --ladder=N) and, from the committed centrum.json's lane graph, the final "Trzy mosty"'s three
+# bridges (east, west, east), its legs and its start and finish (CI too).
 # `streaming` runs game/tools/check_streaming.gd
 # (loop 3c) WITH a renderer (a window opens for a minute or two): every sector built from its
 # file is the whole city, vertex for vertex; 10 spots rendered with --monolithic and with the
@@ -92,8 +110,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places eggs tape crowds life buses oldtram garage parodies jobs2 couriers rides cost landmarks sites sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline drape drive steering settings tiers governor hud places eggs tape crowds life buses oldtram garage parodies jobs2 couriers rides cost landmarks sites sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder parodies jobs2 couriers rides cost landmarks sites meshq sfx radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois drape drive steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder parodies jobs2 couriers rides cost landmarks sites meshq sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -543,6 +561,20 @@ for s in $want; do
 				0) row PASS "outline" $secs "check_outline: OK · $counts" ;;
 				*) row FAIL "outline" $secs "$(grep -m1 '^check_outline:' $logs/outline.log | tail -1) · $counts ($logs/outline.log)" ;;
 			esac ;;
+		# Content POIs (2026-10-31): the street pois of tools/bake_street_pois.py (corner shops, metro
+		# entrances, bike docks, the Leżaks and their zones): Q1-Q6 of tools/check_pois.py over the whole
+		# map (no scooter on a carriageway, crossing or kerb ramp, in anything solid, off the map; ~4 s).
+		pois)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/check_pois.py > $logs/pois.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			counts=$(grep -m1 '^check_pois counts:' $logs/pois.log)
+			counts=${counts#check_pois counts: }
+			case $code in
+				0) row PASS "pois" $secs "check_pois: OK · $counts" ;;
+				*) row FAIL "pois" $secs "$(grep '^check_pois: ' $logs/pois.log | tail -1) · $counts ($logs/pois.log)" ;;
+			esac ;;
 		# Map north: the LoD2 models and the OSM blocks never both (L1), never neither (L2), at most
 		# the counts recorded in tools/check_lod2.py (not in --quick: ~35 s; needs lod2.json).
 		lod2)
@@ -572,6 +604,7 @@ for s in $want; do
 		# Loop 2e: the HUD at phone size: 44 pt controls, 11 / 13 pt text, the safe area, no overlaps.
 		hud) check hud '^check_hud:' --script res://tools/check_hud.gd ;;
 		places) check places '^check_places:' --script res://tools/check_places.gd ;;
+		edge) check edge '^check_edge:' --script res://tools/check_edge.gd ;;
 		# Loop MW-6: the egg cards and their triggers; KASETA's then cards and ghosts.
 		eggs) check eggs '^check_eggs:' --script res://tools/check_eggs.gd ;;
 		tape) check tape '^check_tape:' --script res://tools/check_tape.gd ;;
@@ -589,6 +622,10 @@ for s in $want; do
 		buses) check buses '^check_buses:' --script res://tools/check_buses.gd ;;
 		oldtram) check oldtram '^check_old_tram:' --script res://tools/check_old_tram.gd ;;
 		garage) check garage '^check_garage:' --script res://tools/check_garage.gd ;;
+		save) check save '^check_save:' --script res://tools/check_save.gd ;;
+		districts) check districts '^check_districts:' --script res://tools/check_districts.gd ;;
+		syrenki) check syrenki '^syrenki:' --script res://tools/check_syrenki.gd ;;
+		ladder) check ladder '^ladder:' --script res://tools/check_ladder.gd ;;
 		life-soak) life_soak ;;
 		# Loop 2d-1: Podwózka's star and pay tables, the streak and the cancel rules, its lines.
 		rides) check rides '^check_rides:' --script res://tools/check_rides.gd ;;
@@ -597,6 +634,7 @@ for s in $want; do
 		# The museum and Plac loop: Muzeum Narodowe, Hotel Europejski and the Tomb from centrum.json
 		# alone (found, what they replace, triangles, one material, cards; no terrain or sectors).
 		sites) check sites '^check_sites:' --script res://tools/check_sites.gd ;;
+		meshq) check meshq '^check_mesh_quality:' --script res://tools/check_mesh_quality.gd ;;
 		sfx) check sfx '^sfx:' --script res://tools/check_sfx.gd ;;
 		radio) check radio '^radio:' --script res://tools/check_radio.gd ;;
 		sounds) check sounds '^city_sounds:' --script res://tools/check_city_sounds.gd ;;
@@ -613,9 +651,13 @@ for s in $want; do
 		plain) game plain 600 "" ;;
 		heli) game heli 6000 '^rescue (done|failed):' --mission=1 --heli --autopilot ;;
 		race) game race 8000 '^race (won|lost):' --race=0 --autopilot ;;
+		# Loop 3h slice 3: the final "Trzy mosty" from its last bridge (the whole race is ~14 min of play).
+		trzy-mosty) game trzy-mosty 9000 '^trzy mosty (won|lost):' --trzy-mosty=3 --autopilot ;;
 		# Loop 3d-1: 15000 frames: on the demo map order 0 goes 1,023 m by road (Oboźna 1) and is
-		# delivered at 219.8 s of play (9000 frames = 150 s ended it on the way).
-		kebab) game kebab 15000 '^kebab delivered:' --kebab=0 --autopilot ;;
+		# delivered at 219.8 s of play (9000 frames = 150 s ended it on the way). Content POIs
+		# (2026-10-31): 11 places' addresses joined the address list, so the order's shuffle picks
+		# Emiliana Konopczyńskiego 3, 1,266 m by road: 21000 frames (350 s of play).
+		kebab) game kebab 21000 '^kebab delivered:' --kebab=0 --autopilot ;;
 		# Loop 2d-1: a Podwózka ride by the app's route: a passenger 34 m off the pin, a GPS believer,
 		# the river quirk (its waypoint on dry land, the `ride: quirk river` line says how far from
 		# the water), the stars and the pay (`ride: pay`, the wallet before and after).

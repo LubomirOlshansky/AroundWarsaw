@@ -1,12 +1,11 @@
 // The Around Warsaw design wiki (wiki.aroundwarsaw.app): serves build/wiki, the pages
-// tools/wiki_build.py makes, only to someone who knows the password. HTTP Basic auth, any user
-// name, the password is the Worker secret WIKI_PASSWORD (`npx wrangler@4 secret put
-// WIKI_PASSWORD`); with no secret set nothing is served. Every answer asks search engines and
-// caches to keep away: the wiki is spoilers and plans.
+// tools/wiki_build.py makes. It is open to anyone with the link (the user's call, 2026-10-31).
+// To lock it again, set the Worker secret WIKI_PASSWORD (`npx wrangler@4 secret put
+// WIKI_PASSWORD`): then it asks for HTTP Basic auth, any user name. Every answer asks search
+// engines to keep away: the wiki is spoilers and plans, so it stays out of search results.
 
 const PRIVATE = {
   "X-Robots-Tag": "noindex, nofollow, noarchive",
-  "Cache-Control": "private, no-store",
   "Referrer-Policy": "no-referrer",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
@@ -33,10 +32,7 @@ async function allowed(request, password) {
 
 export default {
   async fetch(request, env) {
-    if (!env.WIKI_PASSWORD) {
-      return new Response("The wiki has no password set yet (wiki/README.md).", { status: 503, headers: PRIVATE });
-    }
-    if (!(await allowed(request, env.WIKI_PASSWORD))) {
+    if (env.WIKI_PASSWORD && !(await allowed(request, env.WIKI_PASSWORD))) {
       return new Response("Around Warsaw design wiki: sign in.", {
         status: 401,
         headers: { ...PRIVATE, "WWW-Authenticate": 'Basic realm="Around Warsaw design wiki", charset="UTF-8"' },
