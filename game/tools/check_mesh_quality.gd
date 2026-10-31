@@ -60,7 +60,7 @@ const BUDGET := {
 	"spire": 1290,
 	"stadium": 3470,
 	"swieto": 240,
-	"tarasy": 2930,
+	"tarasy": 5700,
 	"unit": 1160,
 	"varso": 1680,
 	"wcf": 190,
