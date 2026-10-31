@@ -35,7 +35,8 @@ Two strips, each cut into pavilions along its long axis (the outline's longest e
 - Front (the passage side): a door, 1.0 x 2.2 m, dark; beside it either a lit shop window
   (warm, M_PAVILION, 1.4 to 2.4 m wide, 0.9 to 2.3 m up) or a closed roller shutter (grey).
 - Over the front: a fascia board 0.45 m tall, a little proud of the wall, in a darker shade of
-  the wall; on about two pavilions in three, a small neon word standing on the eave's front edge (under the eave the game's camera would not see it).
+  the wall; on about two pavilions in three it is a lit light box (M_PAVILION, the wall's colour
+  half white) with a small neon word standing on the eave's front edge (under the eave the game's camera would not see it).
 - String lights: three warm bulbs (0.16 m lamp boxes, M_LAMP) touching the underside of each
   front's eave, on about half the pavilions.
 
@@ -56,14 +57,14 @@ surface (landmark material codes): no draw call of its own.
 The courtyard keeps the map's own ground and footpaths. At night the lit windows, the bulbs and
 the neon words carry the place. Neon words (the font of `neon_signs.gd`; no brands, Polish):
 PIWO, BAR, SHOTY, KLUB, DISCO, KARAOKE, OTWARTE, in pink, cyan, violet, amber and green, scale
-0.26 (about 0.57 m tall). Over the gate on Nowy Świat (the tenement's front at -285.0, 111.5),
-PAWILONY in warm white, scale 0.45, 4 m up. APTECZKA (storefronts.gd venues) still finds its
+up to 0.4 (about 0.88 m tall; smaller on a narrow front). Over the gate on Nowy Świat (the tenement's front at -285.0, 111.5),
+PAWILONY in warm white, scale 0.55, 5.5 m up (over the ground floor's shop signs). APTECZKA (storefronts.gd venues) still finds its
 own wall here.
 
 ## 7. Detail level and budget
 
-L2, triangle budget 1800 (measured 1490 for 37 pavilions, plus about 20 % as the other sites);
-`check_mesh_quality` BUDGET "pawilony" 1800, zero defects of any kind.
+L2, triangle budget 2100 (measured 1740 for 37 pavilions and their sign boards, plus about 20 %
+as the other sites); `check_mesh_quality` BUDGET "pawilony" 2100, zero defects of any kind.
 
 ## 8. Parts table
 
@@ -73,10 +74,11 @@ L2, triangle budget 1800 (measured 1490 for 37 pavilions, plus about 20 % as the
 | plinth | prism | box x 0.3 m | under each box, below ground | M_STONE #2c2c2c | hides the terrain's dips |
 | eave | slab | box width x 0.3 m deep x 0.15 m | box top, front only | M_STONE, the roof darkened | the flat roof's overhang |
 | roof | cap | box plan | box top | M_STONE, roof palette | a patchwork of roofs from the helicopter |
-| fascia | board | width - 0.4 x 0.45 m | front, under the eave, 4 cm proud | M_STONE, wall darkened | where the neon word sits |
+| fascia | board | width - 0.4 x 0.38 m | front, under the eave, 9 cm proud | M_STONE wall darkened, or M_PAVILION lit on a signed bar | the bars' light boxes at night |
 | door | panel | 1.0 x 2.2 m | front, one side | M_STONE #1f2124 | one door per bar |
 | window | panel | 1.4-2.4 x 1.4 m | front, beside the door, 0.9 m up | M_PAVILION warm | lit bar at night |
 | shutter | panel | 1.4-2.4 x 1.4 m | instead of the window on some | M_STONE #8e9196 | a closed bar |
 | bulbs | 3 lamp boxes | 0.16 m | under the eave, front | M_LAMP warm | string lights |
-| neon | sign quad | scale 0.26 | on the eave's front edge | neon_signs.gd (LandmarkSigns) | the dozen little signs |
-| gate | sign quad | scale 0.45 | the tenement front on Nowy Świat, 4 m up | neon_signs.gd | PAWILONY over the gate |
+| board | thin box | the word's length x 0.25 m x its height | on the eave, behind the word | M_STONE #1f2124 | hides the word's back (seen mirrored otherwise) |
+| neon | sign quad | scale up to 0.4 | on the eave's front edge | neon_signs.gd (LandmarkSigns) | the dozen little signs |
+| gate | sign quad | scale 0.55 | the tenement front on Nowy Świat, 5.5 m up | neon_signs.gd | PAWILONY over the gate |

@@ -2007,7 +2007,7 @@ Poniatowskiego to the stadium; at night; three ordered checkpoints; +500 zł +25
 ## From the Pawilony loop (landmarks lane, 2026-10-31)
 
 - The Pawilony are a site now (`landmarks.gd` `_build_pawilony`, spec `docs/landmarks/specs/pawilony.md`):
-  37 pavilions cut from the two OpenStreetMap strips, 1490 triangles (budget 1800). Built without
+  37 pavilions cut from the two OpenStreetMap strips, 1740 triangles (budget 2100). Built without
   photos (the cloud has none): the art-director's check against `refs/pawilony/` on the Mac is open,
   and the gate sign's spot (-285.0, 111.5) is measured from the OSM outline, not the LoD2 front.
 - Not built: string lights across the passages (they would hang in the air: the FLOAT check), the

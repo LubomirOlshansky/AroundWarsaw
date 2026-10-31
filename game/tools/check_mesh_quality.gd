@@ -46,7 +46,7 @@ const BUDGET := {
 	"metropolitan": 3100,
 	"muzeum": 840,
 	"palace": 3900,
-	"pawilony": 1800,
+	"pawilony": 2100,
 	"plater49": 140,
 	"platinum_a": 80,
 	"platinum_b": 80,

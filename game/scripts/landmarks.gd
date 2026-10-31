@@ -3454,13 +3454,13 @@ const PAW_EAVE := 0.3
 const PAW_WORDS := ["PIWO", "BAR", "SHOTY", "KLUB", "DISCO", "KARAOKE", "OTWARTE"]
 const PAW_TUBES := [Color(1.0, 0.1, 0.55), Color(0.1, 0.9, 1.0), Color(0.62, 0.25, 1.0),
 		Color(1.0, 0.72, 0.12), Color(0.2, 1.0, 0.45)]
-const PAW_SIGN_K := 0.26      # a word's scale: 0.57 m tall
+const PAW_SIGN_K := 0.4       # a word's scale: 0.88 m tall (less on a narrow front)
 ## The gate: the tenement's front on Nowy Świat where the passage goes in (the footpath through
 ## it), its outward normal (west, to the street), the sign's height and scale.
 const PAW_GATE := Vector2(-285.0, 111.5)
 const PAW_GATE_OUT := Vector2(-0.94, 0.34)
-const PAW_GATE_UP := 4.0
-const PAW_GATE_K := 0.45
+const PAW_GATE_UP := 5.5   # over the ground floor's shop signs (the tenement has a KEBAB 24H)
+const PAW_GATE_K := 0.55
 
 
 func _find_pawilony() -> void:
@@ -3553,8 +3553,12 @@ func _paw_row(strip: int, u0: float, u1: float, vb: float, vf: float, side: floa
 		# The fascia, then the door and the window (or shutter) below it, a little proud of the wall.
 		var f := vf + side * 0.09
 		var p := vf + side * 0.05
+		# A bar with a sign has its fascia lit (a light box), the others a plain board.
+		var signed := _paw_rand(strip, i, 7) < 0.67
+		_mode = M_PAVILION if signed else M_STONE
+		_wall(_w(a + 0.2, f), _w(b - 0.2, f), top - 0.52, top - 0.14, out,
+				wall.lerp(Color.WHITE, 0.45) if signed else wall.darkened(0.25))
 		_mode = M_STONE
-		_wall(_w(a + 0.2, f), _w(b - 0.2, f), top - 0.52, top - 0.14, out, wall.darkened(0.25))
 		var left := _paw_rand(strip, i, 4) < 0.5
 		var d0 := a + 0.5 if left else b - 1.5
 		_wall(_w(d0, p), _w(d0 + 1.0, p), g, g + 2.0, out, PAW_DOOR)
@@ -3567,11 +3571,17 @@ func _paw_row(strip: int, u0: float, u1: float, vb: float, vf: float, side: floa
 		# A neon word on most fronts, standing on the eave's front edge (under the eave the
 		# game's camera, 30-40 degrees down, can't see it), warm bulbs under the others' eaves.
 		var mid := (a + b) * 0.5
-		if _paw_rand(strip, i, 7) < 0.67:
+		if signed:
 			var word: String = PAW_WORDS[int(_paw_rand(strip, i, 8) * PAW_WORDS.size()) % PAW_WORDS.size()]
 			var tube: Color = PAW_TUBES[int(_paw_rand(strip, i, 9) * PAW_TUBES.size()) % PAW_TUBES.size()]
+			var k := minf(PAW_SIGN_K, (b - a - 0.4) / Neon.length_of(word))
 			var at := _w(mid, vf + side * (PAW_EAVE + 0.02 - 0.4))
-			signs.append([word, Vector3(at.x, top + 0.05, at.y), n3, PAW_SIGN_K, tube])
+			signs.append([word, Vector3(at.x, top + 0.05, at.y), n3, k, tube])
+			# The sign's board behind it, so from behind the word isn't seen backwards.
+			var half := Neon.length_of(word) * k * 0.5
+			var board := PackedVector2Array([_w(mid - half, vf + side * 0.05), _w(mid + half, vf + side * 0.05),
+					_w(mid + half, vf + side * PAW_EAVE), _w(mid - half, vf + side * PAW_EAVE)])
+			_prism(board, top + 0.05, top + 0.05 + Neon.ROW_H * Neon.PIXEL * k, PAW_DOOR, PAW_DOOR, M_STONE, M_STONE)
 		else:
 			_mode = M_LAMP
 			for t: float in [0.25, 0.5, 0.75]:
