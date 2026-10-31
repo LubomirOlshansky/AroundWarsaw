@@ -45,8 +45,10 @@
     <a class="brand" href="{{home}}" aria-label="{{brand_label}}"><img src="/favicon.svg" alt="" width="28" height="28">Around Warsaw</a>
     <nav aria-label="{{nav_label}}">
       <a class="wide" href="#city">{{nav_city}}</a>
-      <a class="wide" href="#play">{{nav_play}}</a>
-      <a href="#beta">{{nav_beta}}</a>
+      <a class="wide" href="#missions">{{nav_missions}}</a>
+      <a class="wide" href="#lore">{{nav_lore}}</a>
+      <a class="wide" href="#open">{{nav_open}}</a>
+      <a class="nav-beta" href="#beta">{{nav_beta}}</a>
       <a class="lang" href="{{other_home}}" hreflang="{{other_lang}}" lang="{{other_lang}}" aria-label="{{other_lang_label}}">{{other_lang_short}}</a>
     </nav>
   </div>
@@ -57,15 +59,17 @@
 <section class="hero" aria-labelledby="title">
   <picture class="hero-shot">
     <source media="(max-width: 700px)" srcset="/img/game/{{hero}}-960.webp">
-    <img src="/img/game/{{hero}}.webp" alt="{{hero_alt}}" width="1920" height="884" fetchpriority="high">
+    <img src="/img/game/{{hero}}.webp" alt="{{hero_alt}}" width="1920" height="887" fetchpriority="high">
   </picture>
   <div class="hero-in"><div class="hero-text">
+    <p class="tags"><span><svg aria-hidden="true"><use href="#i-apple"/></svg>iPhone</span><span><svg aria-hidden="true"><use href="#i-play"/></svg>Android</span><span><svg aria-hidden="true"><use href="#i-github"/></svg>{{tag_open}}</span></p>
     <h1 id="title">Around<br>Warsaw</h1>
     <p class="hook">{{hook}}</p>
     <div class="cta">
       <a class="btn btn-primary" href="#beta">{{cta_beta}}<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
-      <span class="platforms"><svg aria-hidden="true"><use href="#i-apple"/></svg>iPhone · <svg aria-hidden="true"><use href="#i-play"/></svg>Android · {{cta_free}}</span>
+      <a class="btn btn-ghost" href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>{{cta_source}}</a>
     </div>
+    <p class="cta-note">{{cta_free}}</p>
   </div></div>
 </section>
 
@@ -75,23 +79,79 @@
 </div>
 
 <section class="city" id="city" aria-labelledby="city-title">
-  <div class="wrap">
+  <div class="wrap head">
     <h2 id="city-title">{{city_title}}</h2>
     <p class="lede">{{city_lede}}</p>
   </div>
-  <div class="reel">
+  <div class="mosaic">
 {{reel}}
   </div>
-  <p class="wrap credit">{{shots_credit}}</p>
 </section>
 
-<section class="play" id="play" aria-labelledby="play-title">
+<section class="missions" id="missions" aria-labelledby="missions-title">
+  <div class="wrap head">
+    <h2 id="missions-title">{{missions_title}}</h2>
+    <p class="lede">{{missions_lede}}</p>
+  </div>
+  <div class="runs">
+{{missions}}
+  </div>
   <div class="wrap">
-    <h2 id="play-title">{{play_title}}</h2>
-    <ol class="moves">
+    <h3 class="also">{{also_title}}</h3>
+    <ul class="moves">
 {{moves}}
+    </ul>
+  </div>
+</section>
+
+<section class="lore" id="lore" aria-labelledby="lore-title">
+  <div class="wrap lore-grid">
+    <div class="lore-intro">
+      <h2 id="lore-title">{{lore_title}}</h2>
+      <p class="lede">{{lore_lede}}</p>
+      <picture class="lore-shot">
+        <source media="(max-width: 700px)" srcset="/img/game/lore-notebook-960.webp">
+        <img src="/img/game/lore-notebook.webp" alt="{{lore_shot_alt}}" width="1920" height="884" loading="lazy" decoding="async">
+      </picture>
+    </div>
+    <ol class="notebook" aria-label="{{lore_list_label}}">
+{{lore}}
     </ol>
-    <p class="facts">{{facts}}</p>
+  </div>
+  <div class="wrap lore-pair">
+{{lore_shots}}
+  </div>
+</section>
+
+<section class="open" id="open" aria-labelledby="open-title">
+  <div class="wrap open-grid">
+    <div>
+      <h2 id="open-title">{{open_title}}</h2>
+      <p class="lede">{{open_lede}}</p>
+      <ul class="links open-links">
+        <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>{{open_repo}}</a></li>
+        <li><a href="/progress/">{{open_progress}}<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+        <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw/blob/main/docs/BACKLOG.md">{{open_backlog}}</a></li>
+        <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw/blob/main/CONTRIBUTING.md">{{open_contribute}}</a></li>
+      </ul>
+    </div>
+    <dl class="stack">
+{{open_facts}}
+    </dl>
+  </div>
+</section>
+
+<section class="author" id="author" aria-labelledby="author-title">
+  <div class="wrap author-grid">
+    <h2 id="author-title">{{author_title}}</h2>
+    <div class="author-text">
+{{author_body}}
+      <ul class="links">
+        <li><a href="https://t.me/olshansky93"><svg aria-hidden="true"><use href="#i-telegram"/></svg>Telegram</a></li>
+        <li><a href="https://www.linkedin.com/in/lubomir-olshansky/"><svg aria-hidden="true"><use href="#i-linkedin"/></svg>LinkedIn</a></li>
+        <li><a href="https://github.com/LubomirOlshansky"><svg aria-hidden="true"><use href="#i-github"/></svg>GitHub</a></li>
+      </ul>
+    </div>
   </div>
 </section>
 
@@ -104,14 +164,6 @@
         <li><svg aria-hidden="true"><use href="#i-apple"/></svg><span>{{beta_ios}}</span></li>
         <li><svg aria-hidden="true"><use href="#i-play"/></svg><span>{{beta_android}}</span></li>
       </ul>
-      <div class="maker">
-        <p>{{maker}}</p>
-        <ul class="links">
-          <li><a href="https://t.me/olshansky93"><svg aria-hidden="true"><use href="#i-telegram"/></svg>Telegram</a></li>
-          <li><a href="https://www.linkedin.com/in/lubomir-olshansky/"><svg aria-hidden="true"><use href="#i-linkedin"/></svg>LinkedIn</a></li>
-          <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>GitHub</a></li>
-        </ul>
-      </div>
     </div>
 
     <form class="form" id="form" action="https://formspree.io/f/mykaeqjp" method="POST" novalidate>
