@@ -77,7 +77,9 @@ Marszałkowska. What makes it read:
 - **Next door**: TR Warszawa, a black steel-clad cube (building after the museum); the outline
   near (−1062, 54) in `centrum.json` should be checked against it.
 
-Values left for the spec writer (Opus) to set from photos, not for the modeler to guess: the
+Detail level L3 (the model-from-photos skill): the spec is written from the photos in
+`refs/muzeum_sztuki_nowoczesnej/`, and acceptance scores matched shots against them. Values left
+for the spec writer (Opus) to set from photos, not for the modeler to guess: the
 height (LoD2 says 26 m), the arcade's height and column spacing, the slot's height and depth,
 which face gets the big windows, the skylight count. The card text (Polish + English) goes to
 the game-designer. Pitfalls from the landmarks lane apply (BACKLOG "Landmarks lane, hand-over"):
