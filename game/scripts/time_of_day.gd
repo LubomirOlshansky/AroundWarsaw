@@ -95,6 +95,8 @@ var _look_ms := Time.get_ticks_msec()
 ## Loop MW-3: --clock=HH:MM with a fixed look: the hour its clock starts from (-1: the look's own,
 ## vision.md 4.5). Cleared when the look changes.
 var fixed_start := -1.0
+## Landmarks 0.3: `--solo` shots keep this plain background (alpha 0: the look's own sky).
+var plain_background := Color(0, 0, 0, 0)
 
 
 ## `day_pitch` is the day sun's pitch (--sun=).
@@ -302,6 +304,8 @@ func _apply(look: Dictionary) -> void:
 	var r := _rain
 	var grey := r * float(look["daylight"])
 	env.background_color = (look["background"] as Color).lerp(Color("#8d97a4"), 0.6 * grey)
+	if plain_background.a > 0.0:
+		env.background_color = plain_background
 	env.ambient_light_color = (look["ambient"] as Color).lerp(Color("#aab1bd"), 0.4 * grey)
 	env.ambient_light_energy = look["ambient_energy"] * (1.0 + 0.18 * r)
 	sun.light_color = look["sun"]

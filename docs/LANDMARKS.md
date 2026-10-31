@@ -25,7 +25,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | --- | --- | --- | --- |
 | 0.1 | DONE 2026-10-31: `check_mesh_quality.gd`: z-fighting, zero-area and flipped triangles, floating parts, per site, in `verify.sh` | gameplay-dev (Opus brief, Sonnet build) | the defects a judge misses; BACKLOG "Model checks from the research" |
 | 0.2 | DONE 2026-10-31 (in `check_mesh_quality.gd`'s BUDGET, all 46 sites): triangle budgets for every hand-built site | object-modeler | detail without a limit can't be accepted |
-| 0.3 | A flag rendering one landmark alone, unlit and as a silhouette, and the `first` shot set | gameplay-dev | the judge's shots (skill section 5) |
+| 0.3 | DONE 2026-10-31: `--solo=KEY --solo-look=flat\|sil\|lit` renders one landmark alone, unlit or as a silhouette (`solo.gdshader`, runtime path only), and `tools/shots.sh --set=first` (Palace, Rotunda, Tarasy, flat + sil) | gameplay-dev | the judge's shots (skill section 5) |
 | 0.4 | `tools/check_spec.py` and the skill's evals (Palace, Rotunda, MSN) | main session | no build from an open spec |
 
 ### P1. Heroes to L3 (the first minute, the skyline, the postcards)
