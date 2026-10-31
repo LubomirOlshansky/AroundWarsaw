@@ -10,15 +10,26 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 | Lane | Item | Session | Since |
 | --- | --- | --- | --- |
-| content | Side jobs and props: the Pędzik courier race, the Leżak round-up job, then the payphone (E40) and the armchair man (E34) if cheap | cloud thread "Build notebook and gameplay features" | 2026-10-31 |
-| driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
+| content + traffic | Night buses at Centralny, bus-stop figures, the horn (E23–E25); then the old tram (E39), garage paint (E01, E21), kebab-stand couriers | cloud thread "Add autonomous backlog workflow" | 2026-10-31 |
 | map | The loading fix (on-screen sectors first, proxies that look like the city), then the map north to Rondo Radosława, Arkadia and Forest (3d-1, 3d-2a, 3d-2b and 3e landed) | thread "Finish the demo map extension" | 2026-10-30 |
 
 ## Waiting
 
 Newest first. One entry per question.
+
+- **2026-10-31 · content · jobs-2 (courier race, round-up, payphone, armchair)** — The Leżak
+  round-up follows parodies.md 5.3 (collect into the boot, unload at the depot), not pushing
+  scooters with the car. Default built: the spec.
+- **2026-10-31 · content · jobs-2** — Pędzik rides at 6.5 m/s and rarely beats a player; tune
+  with `--courier-v=` on the phone. The race's gap reads high at the start when the order's
+  lane is the far carriageway (jobs.gd's order picker, BACKLOG). Default built: 6.5 m/s.
+- **2026-10-31 · content · jobs-2** — E40's card shows T17's line (+10) rather than adding a
+  21st KASETA then card (that set is 2010–today). Default built: as said.
+- **2026-10-31 · content · jobs-2** — The payphone (a small grey post by the bus shelter at Plac
+  Konstytucji) and the armchair man (rust shirt, teal chair, Mokotowska, 1 day in 3, 08–20) are
+  hard to spot in shots; art-director pass and a phone look. Default built: as made.
 
 - **2026-10-30 · content · MW-2 (storefronts and parodies)** — The Frogs stamp card reaches 8 m
   from the door (parodies.md says 6 m), and 15 % of Podwózka passengers are `detour` (ask for a
@@ -80,6 +91,14 @@ Newest first. One entry per question.
   photo spots (`game/data/eggs.json`, `kadr.json`). Default built: as written.
 - **2026-10-30 · content · MW-6** — The KASETA ghost is faint (dithered, reusing the building
   shader) and dim at night. Brighter needs a visuals-lane shader uniform. Default built: faint.
+- **2026-10-31 · map · loading fix** — Far-target looks: the camera's look at a new target waits
+  up to 1.5 s for its sectors, and on the iPhone 11 a few city-coloured proxies still flash past in
+  flight (25 frames over 6 looks). Alternatives (camera lane): cut instead of flying for targets past
+  ~1.5 km, or a shorter look; or 28 map slots (+5 MB). Default built: the 1.5 s wait.
+- **2026-10-31 · map · loading fix** — "Tap to drive" waits for the start's sectors (870 ms on the
+  iPhone 11, at most 8 s). Default built: on (the old way showed far-tower proxies at the start).
+- **2026-10-31 · map · loading fix** — Jumps (tow, race start) load the view's sectors at once:
+  1-2 extra frames over 33 ms per cut, instead of 0.5-1 s of proxies at the new place. Default built: at once.
 - **2026-10-31 · map · 3e** — Ground under trenches: 1 m sub-cells only at tunnel portals and
   road cuttings (keeps the +1 % vertex budget), or a new builder feature that cuts the ground along
   a lowered corridor and draws the floor as one strip (would also fix the rail cutting and ~40 more

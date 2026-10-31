@@ -81,6 +81,7 @@ const CityLife := preload("res://scripts/city_life.gd")
 ## Loop MW-2: storefronts and parodies (Frogs, the venues' neon, Leżak, the metro entrances).
 const Storefronts := preload("res://scripts/storefronts.gd")
 const TrendJob := preload("res://scripts/trend_job.gd")
+const RoundupJob := preload("res://scripts/roundup_job.gd")
 const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
 const FollowCamera := preload("res://scripts/follow_camera.gd")
@@ -345,6 +346,14 @@ var zajac_flag := false
 var trend_day_flag := -1
 var trend_job_flag := 0
 var start_kebab := -1
+## Loop jobs-2: --courier-race[=N] (kebab order N, default 0, with the courier's challenge forced).
+var courier_race := false
+## Loop jobs-2: --roundup (the car at the nearest Leżak depot, the round-up's card up, day or night).
+var roundup_flag := false
+## Loop jobs-2: --courier-v=M (the courier's speed in m/s, for a test run; 6.5 by default).
+var courier_v := -1.0
+## Loop jobs-2: --armchair (the armchair man out today at any hour, the car on the lane by him).
+var armchair_flag := false
 var start_sloik := -1
 var start_heat := -1.0
 # --- loop 2d-1: Podwózka (rides.gd) and its testing flags ---
@@ -924,11 +933,14 @@ func _build_world() -> void:
 	# Loop 2e: no call card at the start (docs/DEMO.md 6.1): calls come in during play.
 	if start_mission > 0:
 		missions.start(start_mission)
-	elif demo or start_race > 0 or start_rival > 0 or bench or start_kebab >= 0 or start_sloik >= 0 or free_roam:
+	elif demo or start_race > 0 or start_rival > 0 or bench or start_kebab >= 0 or start_sloik >= 0 or free_roam or roundup_flag:
 		missions.close()
 	else:
 		missions.quiet_start(call_in)
 	if jobs != null and start_kebab >= 0:
+		jobs.courier.force = courier_race  # loop jobs-2
+		if courier_v > 0.0:
+			jobs.courier.speed = courier_v
 		jobs.start_kebab(start_kebab)
 		cam_focus = car.global_position
 	elif jobs != null and start_sloik >= 0:
@@ -1585,6 +1597,29 @@ func _build_storefronts(data: Dictionary, world: Node3D) -> void:
 		storefronts.preset_stamps(stamps_flag)
 	if rides != null:
 		rides.frogs = storefronts
+	# Loop jobs-2: the Leżak round-up, at the zones storefronts.gd painted (jobs.gd steps it).
+	if jobs != null:
+		var ru := RoundupJob.new()
+		ru.name = "RoundupJob"
+		ru.hud = hud
+		ru.dialogue = dialogue
+		ru.wallet = wallet
+		ru.missions = missions
+		ru.map = map
+		ru.car = car
+		ru.tod = tod
+		ru.jobs = jobs
+		ru.store = storefronts
+		ru.autopilot = autopilot
+		ru.force = roundup_flag
+		ru.log_on = parody_log or roundup_flag
+		ru.set_process(false)
+		jobs.add_child(ru)
+		ru.setup(world)
+		jobs.roundup = ru
+		if roundup_flag:
+			ru.start_at_nearest()
+			cam_focus = car.global_position
 
 
 # --- loop MW-3: the night and the river's crowds --------------------------------------------
@@ -1665,6 +1700,7 @@ func _build_city_life(data: Dictionary, world: Node3D) -> void:
 	life.pedzik_on = not no_parodies
 	life.soak = life_soak
 	life.zajac_rig = zajac_flag and autopilot
+	life.armchair_flag = armchair_flag  # loop jobs-2
 	life.trend_day_flag = trend_day_flag
 	life.clock = tod.local_clock
 	life.calendar = _crowd_calendar
@@ -1721,7 +1757,7 @@ func _build_city_life(data: Dictionary, world: Node3D) -> void:
 		jobs.trend = trend_job
 		if spacer != null:
 			trend_job.quiet = spacer.on
-	if zajac_flag or trend_job_flag > 0:
+	if zajac_flag or trend_job_flag > 0 or armchair_flag:
 		_life_start.call_deferred()
 
 
@@ -1741,6 +1777,21 @@ func _life_start() -> void:
 		_put_car_near(at, 80.0)
 		print("life: --zajac: the car at %.0f, %.0f (Kolka's start %.0f m away), %s" % [car.global_position.x, car.global_position.z,
 				Vector2(car.global_position.x, car.global_position.z).distance_to(at), life.life_summary()])
+	if armchair_flag:
+		# Loop jobs-2: once his way is known, the car on the lane nearest the armchair man.
+		var waited_a := 0.0
+		while (life.get("_arm") as Dictionary).is_empty() and waited_a < 30.0:
+			await get_tree().create_timer(0.5).timeout
+			waited_a += 0.5
+		var pose: Array = life.armchair_pose()
+		var ap: Vector3 = pose[0]
+		if ap == Vector3.INF:
+			print("life: --armchair: no way on %s" % CityLife.ARMCHAIR_STREET)
+		else:
+			_put_car_near(Vector2(ap.x, ap.z), 60.0)
+			cam_focus = car.global_position
+			print("life: --armchair: the man at %.0f, %.0f, the car %.0f m from him" % [ap.x, ap.z,
+					Vector2(car.global_position.x, car.global_position.z).distance_to(Vector2(ap.x, ap.z))])
 	if trend_job_flag > 0 and trend_job != null:
 		var i := trend_job_flag - 1
 		var door: Vector2 = life.slot_doors[i] if i < life.slot_doors.size() else Vector2.INF
@@ -2589,6 +2640,16 @@ func _parse_args() -> void:
 			force_title = true
 		elif arg.begins_with("--kebab="):
 			start_kebab = maxi(0, int(arg.trim_prefix("--kebab=")))
+		elif arg == "--courier-race" or arg.begins_with("--courier-race="):
+			# Loop jobs-2: kebab order N with the courier's challenge (day or night).
+			courier_race = true
+			start_kebab = maxi(0, int(arg.trim_prefix("--courier-race="))) if arg.contains("=") else 0
+		elif arg.begins_with("--courier-v="):
+			courier_v = clampf(float(arg.trim_prefix("--courier-v=")), 0.5, 30.0)
+		elif arg == "--roundup":
+			roundup_flag = true
+		elif arg == "--armchair":
+			armchair_flag = true
 		elif arg == "--sloik" or arg.begins_with("--sloik="):
 			start_sloik = maxi(0, int(arg.trim_prefix("--sloik="))) if arg.contains("=") else 0
 		elif arg.begins_with("--heat="):
@@ -2776,13 +2837,13 @@ func _parse_args() -> void:
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or open_map_at_start or hold_stick != Vector2.INF or bench_button \
 			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0:
 		show_title = false
-	if start_ride >= 0 or place_flag != "":
+	if start_ride >= 0 or place_flag != "" or roundup_flag:
 		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place)
 	# Loop MW-6: and the eggs', the tape's and Fotka's flags; --egg sets its moment's time.
 	if egg_flag != "" or tape_flag != "" or fotka_flag or spacer_hint >= 0.0:
 		show_title = false
 	# Loop MW-4: --zajac is Kolka's Wednesday evening (Live), --life-soak a Friday dusk.
-	if zajac_flag or life_soak or trend_job_flag > 0:
+	if zajac_flag or life_soak or trend_job_flag > 0 or armchair_flag:
 		show_title = false
 		free_roam = true
 	if zajac_flag:
@@ -4609,7 +4670,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_blip_sound()
 				_set_quality(Tiers.AUTO if quality_choice >= Tiers.ULTRA else quality_choice + 1)
 			KEY_L:
-				if rivals != null:
+				# Loop jobs-2: the courier's challenge first (only while it is up).
+				if (jobs == null or not jobs.flash()) and rivals != null:
 					rivals.flash()
 			KEY_MINUS:
 				_zoom_view(1)

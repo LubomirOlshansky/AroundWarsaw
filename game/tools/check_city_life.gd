@@ -15,7 +15,10 @@ extends SceneTree
 ##   7. the eggs E16 E18 E19 E20 E27 E28 E29 E30 on synthetic inputs, each only with its conditions,
 ##      each reward once;
 ##   8. the meshes (each dog ≤ 120 triangles), the car's clearance, and the real city: walkers at
-##      Plac Zbawiciela at 07:30, none at 11:00, the dock, Kolka's route, the tick's cost.
+##      Plac Zbawiciela at 07:30, none at 11:00, the dock, Kolka's route, the tick's cost;
+##   9. loop jobs-2: the armchair man (E34): one day in three, there and back, his two ends on a
+##      synthetic street; on the real map his way on Mokotowska, his guest and the chair near the
+##      view (none far), the car beside him counted; E34 an event egg, once.
 ## Prints "check_city_life: OK (...)" or the problems (exit 1).
 ##   godot --headless --path game --script res://tools/check_city_life.gd [-- --verbose]
 
@@ -24,6 +27,7 @@ const TrendJob := preload("res://scripts/trend_job.gd")
 const Notebook := preload("res://scripts/notebook.gd")
 const EggBook := preload("res://scripts/egg_book.gd")
 const Wallet := preload("res://scripts/wallet.gd")
+const Props := preload("res://scripts/props.gd")
 
 
 ## A stand-in for dialogue.gd: records each line asked for.
@@ -68,6 +72,7 @@ func _run() -> void:
 	_check_zajac()
 	_check_fat_thursday()
 	_check_meshes()
+	_check_armchair_rules()
 	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://map/centrum.json"))
 	var book: Notebook = Notebook.new()
 	root.add_child(book)
@@ -80,9 +85,9 @@ func _run() -> void:
 	book.queue_free()
 	await process_frame
 	if problems.is_empty():
-		print("check_city_life: OK (dog hours and caps, riders, runners, Kolka; horn %s; trend cycle on synthetic dates, sync every %d cycles; pay %s; Zając once; Fat Thursday %s; eggs E16 E18 E19 E20 E27 E28 E29 E30 once each; dogs %d tris; city %s)" % [
+		print("check_city_life: OK (dog hours and caps, riders, runners, Kolka; horn %s; trend cycle on synthetic dates, sync every %d cycles; pay %s; Zając once; Fat Thursday %s; eggs E16 E18 E19 E20 E27 E28 E29 E30 E34 once each; dogs %d tris; city %s; the armchair man %s, his way %s)" % [
 				_summary.get("horn", "?"), CityLife.SYNC_EVERY, _summary.get("pay", "?"), _summary.get("fat", "?"),
-				_summary.get("tris", 0), _summary.get("city", "?")])
+				_summary.get("tris", 0), _summary.get("city", "?"), _summary.get("armchair", "?"), _summary.get("armchair_city", "?")])
 		quit(0)
 	else:
 		for p in problems:
@@ -309,7 +314,8 @@ func _check_eggs(nb: Notebook) -> void:
 	book.setup(places, {}, {})
 	for id in ["e16", "e18", "e19", "e20", "e27", "e28", "e29", "e30"]:
 		_expect(book.by_id.has(id) and not book.eggs[book.by_id[id]].has("waits"), "%s still waits" % id)
-	_expect(book.eggs[book.by_id["e34"]].has("waits"), "e34 (the armchair) should still wait")
+	# Loop jobs-2: the armchair man is built: E34 is an event egg now.
+	_expect(not book.eggs[book.by_id["e34"]].has("waits"), "e34 (the armchair) still waits")
 	# Events: [id, a state that misses, a state that meets].
 	var ev: Array = [
 		["e16", {"hour": 22.0}, {"hour": 10.0}],
@@ -317,6 +323,7 @@ func _check_eggs(nb: Notebook) -> void:
 		["e29", {"hour": 19.2, "weekday": 4}, {"hour": 19.2, "weekday": 3}],
 		["e18", {}, {}],
 		["e19", {}, {}],
+		["e34", {}, {}],
 	]
 	for row: Array in ev:
 		var id: String = row[0]
@@ -408,6 +415,34 @@ func _check_meshes() -> void:
 	_summary["tris"] = tris
 
 
+## 9. Loop jobs-2: the armchair man's rules on synthetic days and a synthetic street.
+func _check_armchair_rules() -> void:
+	var days := 0
+	for d in 600:
+		days += int(CityLife.armchair_day(d))
+	_expect(days >= 150 and days <= 250, "the armchair man out %d days of 600 (want about 200: 1 in 3)" % days)
+	_expect(CityLife.armchair_day(77) == CityLife.armchair_day(77), "armchair_day isn't the same twice")
+	# There and back on a 90 m way at 0.9 m/s: 100 s out, 100 s back.
+	var a0 := CityLife.armchair_at(0.0, 90.0)
+	var a1 := CityLife.armchair_at(50.0, 90.0)
+	var a2 := CityLife.armchair_at(150.0, 90.0)
+	var a3 := CityLife.armchair_at(200.0, 90.0)
+	_expect(is_equal_approx(a0.x, 0.0) and a0.y > 0.0 and is_equal_approx(a1.x, 45.0) and a1.y > 0.0, "the armchair man's way out: %s %s" % [a0, a1])
+	_expect(is_equal_approx(a2.x, 45.0) and a2.y < 0.0 and absf(a3.x) < 0.01, "the armchair man's way back: %s %s" % [a2, a3])
+	# A straight street 600 m long through the place: the ends ARMCHAIR_HALF each way.
+	var pieces := PackedVector2Array()
+	for k in 31:
+		pieces.append(Vector2(-300.0 + k * 20.0, 5.0))
+	var ends := CityLife.armchair_ends(pieces, Vector2(0.0, 0.0))
+	_expect(ends.size() == 2 and absf((ends[0] as Vector2).distance_to(ends[1]) - 2.0 * CityLife.ARMCHAIR_HALF) <= 45.0,
+			"the armchair man's ends on a straight street: %s" % [ends])
+	_expect(CityLife.armchair_ends(pieces, Vector2(0.0, 900.0)).is_empty(), "armchair ends with the street far from the place")
+	var cm := Props.carried_armchair()
+	var ctris := cm.surface_get_array_len(0) / 3
+	_expect(cm.get_surface_count() == 1 and ctris <= 150, "the armchair: %d triangles, %d surfaces" % [ctris, cm.get_surface_count()])
+	_summary["armchair"] = "%d of 600 days, %d tris" % [days, ctris]
+
+
 func _check_city(nb: Notebook, data: Dictionary) -> void:
 	var dlg := FakeDialogue.new()
 	root.add_child(dlg)
@@ -480,12 +515,52 @@ func _check_city(nb: Notebook, data: Dictionary) -> void:
 		life.tick(0.5)
 	var left: int = (life.get("_dogs") as Array).size()
 	_expect(left == 0, "walkers at 11:00: %d (want 0)" % left)
+	# Loop jobs-2: the armchair man on Mokotowska (forced out), the view on him: his guest, the chair.
+	var arm: Dictionary = life.get("_arm")
+	_expect(not arm.is_empty() and float(arm.get("len", 0.0)) > 150.0, "the armchair man has no way on Mokotowska (%s)" % [arm.get("len", "none")])
+	var arm_note := "none"
+	if not arm.is_empty():
+		life.armchair_flag = true
+		now = {"hour": 11.0, "weekday": 2}
+		var pose: Array = life.armchair_pose()
+		var ap: Vector3 = pose[0]
+		var mok := Vector2.INF
+		for p: Dictionary in nb.places:
+			if str(p["id"]) == CityLife.ARMCHAIR_PLACE:
+				mok = p["at"]
+		_expect(mok != Vector2.INF and Vector2(ap.x, ap.z).distance_to(mok) <= CityLife.ARMCHAIR_HALF + 60.0,
+				"the armchair man %.0f m from Mokotowska's place" % Vector2(ap.x, ap.z).distance_to(mok))
+		eye = ap
+		veh = [ap + Vector3(4.0, 0.0, 0.0), 10.0, false, 0.0, 0.0]
+		var met0: int = life.met_armchair
+		for i in 3:
+			life.tick(0.5)
+			for k in 4:
+				life.call("_move", CityLife.MOVE_TICK)
+		var chair: MeshInstance3D = life.get("_chair")
+		_expect(chair.visible and chair.global_position.distance_to(life.armchair_pose()[0]) < 0.5, "the chair isn't on the man's head")
+		_expect(int(life.get("_shown")) & CityLife.ARM_BIT != 0, "the armchair man isn't among the shown guests")
+		_expect(int(life.met_armchair) > met0, "the car beside the armchair man wasn't counted")
+		# Not his day, not forced: gone.
+		life.armchair_flag = false
+		var off_day := 0
+		while CityLife.armchair_day(off_day):
+			off_day += 1
+		life.trend_day_flag = off_day
+		veh = [Vector3.INF, 0.0, false, 0.0, 0.0]
+		for i in 2:
+			life.tick(0.5)
+		_expect(not bool(life.get("_arm_on")), "the armchair man out on day %d (not his day)" % off_day)
+		life.trend_day_flag = 0
+		arm_note = "%.0f m" % float(arm["len"])
+	_summary["armchair_city"] = arm_note
 	# Far from everything (the Vistula's far side, 4 km out): nothing active, nothing drawn.
 	eye = Vector3(5000.0, 0.0, 5000.0)
 	now = {"hour": 7.5, "weekday": 5}
 	for i in 4:
 		life.tick(0.5)
 	_expect(not bool(life.get("_active")), "city life active far from everything")
+	_expect(not (life.get("_chair") as MeshInstance3D).visible, "the chair shown far from the view")
 	_summary["city"] = "%d walkers at Plac Zbawiciela 07:30, Kolka %.0f m, dock %d bikes, %.0f µs per game second" % [
 			n_dogs, float(kolka.get("len", 0.0)), int((life.get("_docks") as Array)[0]["n"]) if not (life.get("_docks") as Array).is_empty() else 0, per_s]
 	life.queue_free()

@@ -129,6 +129,19 @@ const KOLKA_V := 3.0
 const KOLKA_N := Vector2i(12, 20)
 ## Kolka's start: the route's last point this near the place (the A*'s detours cut off).
 const KOLKA_REACH := 500.0
+## Loop jobs-2 (vision 3.7, egg E34): the man carrying a 1960s armchair down Mokotowska, one day in
+## three (`armchair_day`, by the cycle's day) in the shops' hours: a guest walking the footways
+## between two points of the street ARMCHAIR_HALF m each way of the place, there and back, the chair
+## upside down on his head (one small mesh, +1 draw call near him). The car within ARMCHAIR_EGG m: E34.
+const ARMCHAIR_PLACE := "mokotowska"
+const ARMCHAIR_STREET := "Mokotowska"
+const ARMCHAIR_HALF := 200.0
+const ARMCHAIR_V := 0.9
+const ARMCHAIR_EGG := 8.0
+const ARMCHAIR_EVERY := 3
+## His bit in `_shown` (out and near the view), clear of the docks' bits from 5 up.
+const ARM_BIT := 1 << 30
+const ARM_SHIRT := Color("#c96b2c")
 ## Pale yellow, mint, white (never the jobs' orange).
 const KOLKA_TOPS := ["#fff3a6", "#b8f0d8", "#f7f7f2", "#fff8c9", "#c9f5e6", "#eef9b0"]
 const ZAJAC_LAT := 25.0
@@ -271,6 +284,12 @@ var life_log := false
 var soak := false
 ## --zajac with --autopilot: the car paces Kolka.
 var zajac_rig := false
+## Loop jobs-2: --armchair: the armchair man out today, at any hour.
+var armchair_flag := false
+## The map's roads (the armchair man's street), set before setup.
+var roads: Array = []
+## Loop jobs-2: times the car passed the armchair man (the check, the log).
+var met_armchair := 0
 ## --trend-day=N: the trend cycle's day number (days since EPOCH), instead of the date.
 var trend_day_flag := -1
 ## Sessions played (the save's `life_sessions`), for the trend cycle without Live.
@@ -372,6 +391,13 @@ var _dbox := AABB()
 var _move_n := 0
 ## How far Kolka's start is from the place (the A*'s detour cut off, m).
 var _kolka_skip := 0.0
+## Loop jobs-2: the armchair man's way {pts, h, cum, len} ({} until the index is built, or none),
+## his guest slot in the step, the chair's mesh, whether he is out.
+var _arm := {}
+var _arm_ends: Array = []
+var _arm_slot := -1
+var _chair: MeshInstance3D
+var _arm_on := false
 ## The date as the last tick read it (Kolka's members at 15 Hz without the calendar call).
 var _date := 0
 var _date_live := false
@@ -466,6 +492,23 @@ static func rider_count(hour: float, k := 1.0) -> int:
 ## A rider's kind from a roll 0..1: 55 % commuters, 30 % Rowerilo, 15 % cargo *guess*.
 static func rider_kind(roll: float) -> int:
 	return COMMUTER if roll < 0.55 else (ROWERILO if roll < 0.85 else CARGO)
+
+
+## Loop jobs-2: the armchair man's day (1 in ARMCHAIR_EVERY by the cycle's day number, seeded so the
+## days don't come in a fixed beat).
+static func armchair_day(day: int) -> bool:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = day * 7919 + 34
+	return rng.randi() % ARMCHAIR_EVERY == 0
+
+
+## Loop jobs-2: the armchair man's point `t` s into the day's walk on a way `length` m long: there
+## and back at ARMCHAIR_V (the distance along the way, and +1 / -1 for the way he faces).
+static func armchair_at(t_s: float, length: float) -> Vector2:
+	if length <= 0.0:
+		return Vector2.ZERO
+	var run := fposmod(t_s * ARMCHAIR_V, length * 2.0)
+	return Vector2(run, 1.0) if run <= length else Vector2(length * 2.0 - run, -1.0)
 
 
 ## Loop MW-2: Pędzik couriers round the view at `hour` (parodies.md 4.2: × 1.5 at night, 21-06).
@@ -640,24 +683,58 @@ func setup(places: Array, data: Dictionary, seed_value := 4404) -> void:
 	var end: Vector2 = _at.get("most_poniatowskiego", Vector2.INF)
 	var paths: Array = (data.get("paths", []) as Array).duplicate()
 	var trees: Array = (data.get("trees3d", []) as Array).duplicate()
+	# Loop jobs-2: the armchair man's two ends on Mokotowska.
+	_arm_ends = armchair_ends(EggBook.street_pieces(data.get("roads", roads), ARMCHAIR_STREET), _at.get(ARMCHAIR_PLACE, Vector2.INF))
+	var walk := _arm_ends.duplicate()
 	_index_out = [null]
 	var out := _index_out
-	_index_task = WorkerThreadPool.add_task(func() -> void: out[0] = build_index(paths, trees, start, end), false, "city life index")
+	_index_task = WorkerThreadPool.add_task(func() -> void: out[0] = build_index(paths, trees, start, end, walk), false, "city life index")
 	_build_drawing()
 	print("life: %d dog zones, %d runner zones, the index being built (%d paths, %d trees), amount %.2f" % [
 			_zones.size(), _run_zones.size(), paths.size(), trees.size() / 6, amount])
 
 
+## Loop jobs-2: the armchair man's two ends: the street's pieces within ARMCHAIR_HALF m of the place,
+## the one farthest from it and the one farthest from that ([] without the street or the place).
+static func armchair_ends(pieces: PackedVector2Array, place: Vector2) -> Array:
+	if place == Vector2.INF or pieces.is_empty():
+		return []
+	var a := Vector2.INF
+	var ad := -1.0
+	for q in pieces:
+		var d := q.distance_to(place)
+		if d <= ARMCHAIR_HALF and d > ad:
+			ad = d
+			a = q
+	if a == Vector2.INF:
+		return []
+	var b := a
+	var bd := -1.0
+	for q in pieces:
+		if q.distance_to(place) <= ARMCHAIR_HALF and q.distance_to(a) > bd:
+			bd = q.distance_to(a)
+			b = q
+	if bd < 60.0:
+		return []
+	return [a, b]
+
+
 ## The index (pure: a worker thread runs it; check_city_life.gd too): footways (`foot`, on the
 ## ground) and cycle paths (`cycle`, any deck) with their 64 m grids and ends, the trees' 32 m grid,
-## Kolka's route from `start` to `end` (A* over the footways in their box; [] without).
-static func build_index(paths: Array, trees: Array, start: Vector2, end: Vector2) -> Dictionary:
+## Kolka's route from `start` to `end` (A* over the footways in their box; [] without); loop jobs-2:
+## the armchair man's way between `walk`'s two points (A* over the footways and crossings round them).
+static func build_index(paths: Array, trees: Array, start: Vector2, end: Vector2, walk: Array = []) -> Dictionary:
 	var out := {"foot": [], "foot_dk": PackedInt32Array(), "cyc": [], "cyc_dk": PackedInt32Array(), "cyc_w": PackedFloat32Array(),
-			"foot_grid": {}, "cyc_grid": {}, "tree_grid": {}, "foot_ends": {}, "cyc_ends": {}, "kolka": {}}
+			"foot_grid": {}, "cyc_grid": {}, "tree_grid": {}, "foot_ends": {}, "cyc_ends": {}, "kolka": {}, "armchair": {}}
 	var box := Rect2()
 	var has_box := start != Vector2.INF and end != Vector2.INF
 	if has_box:
 		box = Rect2(start, Vector2.ZERO).expand(end).grow(300.0)
+	var walk_box := Rect2()
+	var has_walk := walk.size() == 2
+	if has_walk:
+		walk_box = Rect2(walk[0], Vector2.ZERO).expand(walk[1]).grow(80.0)
+	var walk_paths: Array = []
 	var kolka_paths: Array = []
 	var foot_dk := PackedInt32Array()
 	var cyc_dk := PackedInt32Array()
@@ -680,6 +757,8 @@ static func build_index(paths: Array, trees: Array, start: Vector2, end: Vector2
 		# The boulevard is footway, crossings and cycle path in turn: Kolka runs on all of them.
 		if has_box and k in ["foot", "zebra", "cycle", "cyclecross"] and (box.has_point(pts[0]) or box.has_point(pts[n - 1])):
 			kolka_paths.append([pts, dk])
+		if has_walk and dk < 0 and k in ["foot", "zebra"] and (walk_box.has_point(pts[0]) or walk_box.has_point(pts[n - 1])):
+			walk_paths.append([pts, dk])
 		if pset == "":
 			continue
 		var list: Array = out[pset]
@@ -730,6 +809,10 @@ static func build_index(paths: Array, trees: Array, start: Vector2, end: Vector2
 		var routes := Crowds.build_routes(kolka_paths, [["kolka", start]], [["bridge", end]])
 		if not routes.is_empty():
 			out["kolka"] = routes[0]
+	if has_walk and not walk_paths.is_empty():
+		var wr := Crowds.build_routes(walk_paths, [["a", walk[0]]], [["b", walk[1]]])
+		if not wr.is_empty():
+			out["armchair"] = wr[0]
 	return out
 
 
@@ -773,7 +856,20 @@ func _finish_index() -> void:
 			cum.append(run)
 			h.append(map.deck_height(dk[i], pts[i].x, pts[i].y) if map != null else 0.0)
 		_kolka = {"pts": pts, "h": h, "cum": cum, "len": run, "members": [], "date": -1, "beeped": false, "chat": 20.0}
+	var ar: Dictionary = d.get("armchair", {})
+	if not ar.is_empty():
+		var apts: PackedVector2Array = ar["pts"]
+		var acum := PackedFloat32Array()
+		var ah := PackedFloat32Array()
+		var arun := 0.0
+		for i in apts.size():
+			if i > 0:
+				arun += apts[i].distance_to(apts[i - 1])
+			acum.append(arun)
+			ah.append(_ground(apts[i]))
+		_arm = {"pts": apts, "cum": acum, "h": ah, "len": arun}
 	_place_fixed()
+	print("life: the armchair man's way on %s: %s" % [ARMCHAIR_STREET, "%.0f m" % float(_arm["len"]) if not _arm.is_empty() else "none"])
 	print("life: %d footways, %d cycle paths, %d tree cells; Kolka's route %s; the dock %s; Hyrax %s; the influencer %s; the ball %s" % [
 			_foot.size(), _cyc.size(), _tree_grid.size(), "%.0f m (from %.0f m off the place)" % [float(_kolka["len"]), _kolka_skip] if not _kolka.is_empty() else "none",
 			"%d bikes" % int(_docks[0]["n"]) if not _docks.is_empty() else "none",
@@ -1073,6 +1169,15 @@ func _build_drawing() -> void:
 	_ped_mmi = _new_mmi(_ped_mm, "Pedzik")
 	_gbuf.resize(Pedestrians.GUESTS * 16)
 	_gbuf.fill(0.0)
+	# Loop jobs-2: the armchair on the man's head (shown only near him).
+	_chair = MeshInstance3D.new()
+	_chair.name = "Armchair"
+	_chair.mesh = Props.carried_armchair()
+	_chair.material_override = Models.material()
+	_chair.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_chair.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	_chair.visible = false
+	add_child(_chair)
 
 
 func _new_mm(mesh: ArrayMesh, cap: int) -> MultiMesh:
@@ -1248,6 +1353,28 @@ func _trend_eggs(p: Vector2) -> void:
 			_fire("e19")
 
 
+## Loop jobs-2: the armchair man now: [position, yaw] (his way's point at the session's time).
+func armchair_pose() -> Array:
+	if _arm.is_empty():
+		return [Vector3.INF, 0.0]
+	var at := armchair_at(t, float(_arm["len"]))
+	var pts: PackedVector2Array = _arm["pts"]
+	var cum: PackedFloat32Array = _arm["cum"]
+	var h: PackedFloat32Array = _arm["h"]
+	var i := cum.bsearch(at.x) - 1
+	i = clampi(i, 0, pts.size() - 2)
+	var span := maxf(cum[i + 1] - cum[i], 0.001)
+	var k := clampf((at.x - cum[i]) / span, 0.0, 1.0)
+	var p := pts[i].lerp(pts[i + 1], k)
+	var dir := (pts[i + 1] - pts[i]) * at.y
+	return [Vector3(p.x, lerpf(h[i], h[i + 1], k), p.y), atan2(-dir.x, -dir.y)]
+
+
+## Loop jobs-2: he is out (his day, the shops' hours, or --armchair) and his way is known.
+func armchair_out() -> bool:
+	return not _arm.is_empty() and (armchair_flag or (armchair_day(days_now()) and in_hours([SHOP_HOURS], _hour)))
+
+
 func _fire(id: String) -> bool:
 	if egg_book == null or egg_book.is_found(id):
 		return false
@@ -1353,6 +1480,19 @@ func tick(step: float) -> void:
 		near_fixed = true
 	if aport and eye.distance_to(Vector2(_aport["dog"].x, _aport["dog"].z)) < NEAR_R + 100.0:
 		near_fixed = true
+	# Loop jobs-2: the armchair man (near the view: he walks; the car beside him: E34).
+	_arm_on = armchair_out()
+	if _arm_on:
+		var pose := armchair_pose()
+		var ap: Vector3 = pose[0]
+		if eye.distance_to(Vector2(ap.x, ap.z)) < NEAR_R:
+			near_fixed = true
+		if not veh[2] and vp != Vector3.INF and p2.distance_to(Vector2(ap.x, ap.z)) <= ARMCHAIR_EGG:
+			met_armchair += 1
+			if _fire("e34") and life_log:
+				print("life: passed the armchair man at %.0f, %.0f" % [ap.x, ap.z])
+	if _chair != null and _chair.visible and _shown_now & ARM_BIT == 0:
+		_chair.visible = false
 	var kolka_near := kphase != "" and not _kolka.is_empty() and eye.distance_to(_kolka_centre()) < NEAR_R + 200.0
 	if _banner != null:
 		_banner.visible = hyrax and eye.distance_to(_hyrax["at"]) < FASCIA_R
@@ -1418,6 +1558,8 @@ func life_summary() -> String:
 
 
 func _hide_all() -> void:
+	if _chair != null:
+		_chair.visible = false
 	_dog_mm.visible_instance_count = 0
 	_dog_mmi.visible = false
 	_bike_mm.visible_instance_count = 0
@@ -1703,6 +1845,12 @@ func _move(dt: float) -> void:
 	_step_list(_riders, RIDER_K, dt, eye, car2, ahead, full)
 	_step_list(_runners, RUNNER_K, dt, eye, car2, ahead, full)
 	_step_list(_pedziks, PEDZIK_K, dt, eye, car2, ahead, full)
+	# Loop jobs-2: the chair goes where the man is.
+	if _shown_now & ARM_BIT and _arm_on and _chair != null:
+		var pose := armchair_pose()
+		_chair.global_position = pose[0]
+		_chair.rotation.y = pose[1]
+		_chair.visible = true
 	if full:
 		_write_all(eye, car2)
 		return
@@ -1889,7 +2037,12 @@ func _shown_bits(eye: Vector2) -> int:
 		if eye.distance_to(_docks[di]["at"]) <= NEAR_R:
 			docks_in |= 1 << di
 	var kolka_on := kolka_phase(_hour, _weekday) != "" and not _kolka.is_empty()
-	return int(hyrax) | int(infl) << 1 | int(aport) << 2 | int(aport_near) << 3 | int(kolka_on) << 4 | docks_in << 5
+	# Loop jobs-2: the armchair man out and near.
+	var arm := 0
+	if _arm_on:
+		var ap: Vector3 = armchair_pose()[0]
+		arm = ARM_BIT if eye.distance_to(Vector2(ap.x, ap.z)) < NEAR_R else 0
+	return int(hyrax) | int(infl) << 1 | int(aport) << 2 | int(aport_near) << 3 | int(kolka_on) << 4 | docks_in << 5 | arm
 
 
 ## After the steps that wrote their own slots: the sends, Kolka's half, the Hyrax loop, a carried
@@ -1916,6 +2069,10 @@ func _write_moved(car2: Vector2) -> void:
 		_ped_mm.custom_aabb = _ped_box.grow(1.5).expand(_ped_box.end + Vector3(0, 2.2, 0))
 	if _kolka_slot >= 0:
 		_kolka_step(car2)
+	if _arm_slot >= 0:
+		var pose := armchair_pose()
+		put(_gbuf, _arm_slot, pose[0], pose[1], Vector3.ONE, ARM_SHIRT, 0.3)
+		_gdirty = true
 	if _hyrax_slot >= 0 and _shown & 1:
 		_g_n = 0
 		_hyrax_loop()
@@ -1937,7 +2094,7 @@ func _write_all(eye: Vector2, car2: Vector2) -> void:
 	var hyrax := _shown & 1 != 0
 	var infl := _shown & 2 != 0
 	var aport_near := _shown & 8 != 0
-	var docks_in := _shown >> 5
+	var docks_in := (_shown & ~ARM_BIT) >> 5
 	_dn = 0
 	_dbox = AABB()
 	_ball_slot = -1
@@ -2081,6 +2238,11 @@ func _write_guests(eye: Vector2, car2: Vector2, hyrax: bool, infl: bool, aport: 
 	_g_n = 0
 	_kolka_slot = -1
 	_hyrax_slot = -1
+	_arm_slot = -1
+	if _shown & ARM_BIT and _arm_on:
+		var pose := armchair_pose()
+		_arm_slot = _g_n
+		_fig(pose[0], pose[1], ARM_SHIRT, 0.3)
 	for d in _dogs:
 		_fig(d.p3, d.yaw, d.shirt, d.tr)
 	for r in _runners:
@@ -2122,6 +2284,7 @@ func _write_guests(eye: Vector2, car2: Vector2, hyrax: bool, infl: bool, aport: 
 		_full = true
 		_kolka_slot = -1
 		_hyrax_slot = -1
+		_arm_slot = -1
 		# The nearest GUESTS, in order of distance (stable as before: a sort of the indices).
 		var order: Array[int] = []
 		var dist := PackedFloat32Array()
