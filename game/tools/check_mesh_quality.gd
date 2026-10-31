@@ -26,7 +26,7 @@ const BUDGET := {
 	"blekitny": 910,
 	"bridge": 110,
 	"central": 340,
-	"centralna": 1560,
+	"centralna": 1650,
 	"chalubinskiego8": 1520,
 	"cosmopolitan": 110,
 	"europejski": 480,

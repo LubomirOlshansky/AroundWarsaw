@@ -44,7 +44,7 @@ SHOT[classic_controls]="--controls=classic --pedal=gas"
 # Landmarks 0.3 (the `first` set, model-from-photos skill section 5): the first scene's three
 # heroes (and the Museum of Modern Art, first-scene item 1) alone on a plain background (--solo, DEVELOPMENT.md flags), unlit in their own colours
 # (flat) and as a silhouette (sil), from the north-west like palace_day. Runtime city path only.
-for sk in "palace -1290,170 150" "rotunda -808,378 45" "tarasy -1495,420 160" "msn -1022,100 70"; do
+for sk in "palace -1290,170 150" "rotunda -808,378 45" "tarasy -1495,420 160" "msn -1022,100 70" "centralna -1440,560 180"; do
 	fk=(${=sk})  # not `set --`: that would eat the script's own arguments
 	for lk in flat sil; do
 		SHOT[first_${fk[1]}_$lk]="--at=${fk[2]} --heading=135 --time=day --nohud --size=${fk[3]} --solo=${fk[1]} --solo-look=$lk"

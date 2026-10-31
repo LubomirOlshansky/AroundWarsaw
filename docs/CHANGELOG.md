@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-10-31
+- Warszawa Centralna is rebuilt from the real map data: the glass hall under its wide, flat overhanging roof, the roof's saddle-shaped shells on rows of pillars, the lower wings at both ends, and at night the hall glowing white under a line of lamps.
 - Złote Tarasy is rebuilt as one landmark: the golden glass wave over the terraced mall, the Lumen offices curving round it, the Skylight tower with a crown that glows at night, and the round glass drum by the station.
 - Plac Małachowskiego and the Presidential Palace are real buildings now: Holy Trinity's white rotunda with its four columned porches, green dome and tall lantern; Zachęta in white with its two big columns, sculpted pediment, steps and lamps; the Presidential Palace's wings round the forecourt, a columned portico, Prince Poniatowski on horseback, and four stone lions at the gate.
 - The new Museum of Modern Art on Plac Defilad is now its own building: the long white box floating on a glass lobby behind white fins, a thin dark slot round the middle, big windows that glow at night, skylights on the roof, and an info card.
