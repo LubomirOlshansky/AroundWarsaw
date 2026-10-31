@@ -27,6 +27,14 @@ GUGiK LoD2 heights and what the model remembered; nobody put a photo beside the 
   Wikimedia: a cloud thread asks for the photos, or uses the photos the user drops in chat.
   Photos are never published, never traced into textures, and never shipped in the game.
 - Open every photo before using it; drop the wrong building, crops and interiors.
+- **The view from above: `refs/<slug>/ortho.jpg`**, a crop of GUGiK's orthophoto (geoportal.gov.pl,
+  free open data since 2020; the official WMS, `PZGIK/ORTO/WMS/HighResolution`, else
+  `StandardResolution`): the footprint plus 30 m (at least 120 m square, ~250 m for the Palace
+  and the stadium), about 2048 px wide, with the WMS, layer, bbox and CRS in SOURCES.md. The
+  game is seen from above, so this is the photo that shows what the player sees most: the roof
+  (shape, skylights, plant, courtyards), the footprint against the OSM outline, what stands
+  round it. Game x/z to lat/lon: the map's `origin` and `project` in `tools/bake_osm.py`.
+  Google's and Apple's 3D views may be looked at, never downloaded or copied (their terms).
 
 ## 2. The spec (Opus, from the photos)
 
@@ -41,7 +49,8 @@ photos say goes into the spec as values. Sections, every value filled:
 3. **Facade, base to top**: the base (arcade, plinth, shop glass, entrance, steps), the middle
    (window grid: bays per face, storey bands, recess depth, piers or fins), the top (cornice,
    attic, parapet). Window rhythm in bays and storeys, not "some windows".
-4. **Roof**: shape, crown, skylights, plant, spire, flagpole.
+4. **Roof**: shape, crown, skylights, plant, spire, flagpole, counted and placed from the
+   orthophoto (`ortho.jpg`), not guessed.
 5. **Colour and material**: sampled from the daylight photos, then mapped to the art bible's
    palette (the game's colours stay calmer than the photo); which material code each part uses.
 6. **Ground and night**: what stands at its foot (steps, a forecourt, a canopy, the sign under
@@ -95,6 +104,8 @@ kind repeated across the whole map gets one MultiMesh. No new node, material or 
 
 - **Matched shots**: for each reference photo that shows the silhouette, a game shot from the
   nearest angle (`--at=x,z` and the camera, helicopter for aerial views), at 2532x1170, day.
+  For the orthophoto, the highest helicopter view straight over the site: the roof and the
+  footprint are compared with `ortho.jpg`.
   Plus the usual before/after at the default view.
 - **Shots for the judge**: besides the lit matched shots, one unlit (flat colour) shot and one
   silhouette on a plain background per main angle, with the landmark alone when the flag
@@ -102,7 +113,7 @@ kind repeated across the whole map gets one MultiMesh. No new node, material or 
 - **Side by side, photo first**: the reviewer opens the photos and shots and scores them
   *before* reading the spec (a judge favours what it wrote or read; the spec comes after, to
   name what is missing). Scores 1-5 on silhouette, proportions, colour, identity features
-  (each one named: there or missing), facade rhythm, ground. Every score cites what in the
+  (each one named: there or missing), facade rhythm, roof (against the orthophoto), ground. Every score cites what in the
   shot earns it ("the spire's base is 1.4x too wide against photo 2"). Pass: every score ≥ 4
   for L3, ≥ 3 for L2. A missing identity feature is a fail whatever the scores. A one-point
   difference is within a judge's noise: a borderline score is looked at again, not argued.
