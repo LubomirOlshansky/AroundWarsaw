@@ -19,6 +19,7 @@
 # under what covers it whole, no hole where it was left out, the ground on the height rule.
 # `streets` runs tools/check_streets.py (map review B): poles on the asphalt, zebras off it,
 # grass medians on tram tracks (S1, S2, S4 FAIL; S3, medians in a junction, is reported).
+# `spec` runs tools/check_spec.py (LANDMARKS 0.4): the landmark specs are complete.
 # `pois` runs tools/check_pois.py (content POIs, 2026-10-31): the baked corner shops, metro
 # entrances, bike docks, Leżaks and zones (Q1-Q6: none on the carriageway, a crossing, a kerb ramp,
 # in anything solid or off the map; the density, the egg zone, the odd shares).
@@ -118,8 +119,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder first10 endcard parodies jobs2 couriers rides cost landmarks sites sfx radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois drape drive steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder first10 endcard parodies jobs2 couriers rides cost landmarks sites sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois spec lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder first10 endcard parodies jobs2 couriers rides cost landmarks sites meshq sfx radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois spec drape drive steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder first10 endcard parodies jobs2 couriers rides cost landmarks sites meshq sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -583,6 +584,19 @@ for s in $want; do
 				0) row PASS "pois" $secs "check_pois: OK · $counts" ;;
 				*) row FAIL "pois" $secs "$(grep '^check_pois: ' $logs/pois.log | tail -1) · $counts ($logs/pois.log)" ;;
 			esac ;;
+		# Landmark specs (LANDMARKS 0.4): every docs/landmarks/specs/*.md has all eight sections, a
+		# detail level, a triangle budget and a filled parts table (tools/check_spec.py; ~0.1 s).
+		spec)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/check_spec.py --selftest > $logs/spec.log 2>&1 && python3 -I $ROOT/tools/check_spec.py >> $logs/spec.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			counts=$(grep -m1 '^check_spec counts:' $logs/spec.log)
+			counts=${counts#check_spec counts: }
+			case $code in
+				0) row PASS "spec" $secs "check_spec: OK · $counts" ;;
+				*) row FAIL "spec" $secs "$(grep '^check_spec: ' $logs/spec.log | tail -1) · $counts ($logs/spec.log)" ;;
+			esac ;;
 		# Map north: the LoD2 models and the OSM blocks never both (L1), never neither (L2), at most
 		# the counts recorded in tools/check_lod2.py (not in --quick: ~35 s; needs lod2.json).
 		lod2)
@@ -644,6 +658,7 @@ for s in $want; do
 		# The museum and Plac loop: Muzeum Narodowe, Hotel Europejski and the Tomb from centrum.json
 		# alone (found, what they replace, triangles, one material, cards; no terrain or sectors).
 		sites) check sites '^check_sites:' --script res://tools/check_sites.gd ;;
+		meshq) check meshq '^check_mesh_quality:' --script res://tools/check_mesh_quality.gd ;;
 		sfx) check sfx '^sfx:' --script res://tools/check_sfx.gd ;;
 		radio) check radio '^radio:' --script res://tools/check_radio.gd ;;
 		sounds) check sounds '^city_sounds:' --script res://tools/check_city_sounds.gd ;;

@@ -99,9 +99,6 @@ var slow_ms := 0
 ## Loop 3d-2b: --stream-gate=0 loads a sector's pieces with its scene at once (the old way).
 var gate_pieces := true
 var keys: Array[Vector2i] = []
-## The web loop 2: on the web, where the sector scenes come from (sector_packs.gd; main.gd sets
-## it). A sector loads once its pack is in; null on every other build.
-var packs: Node = null
 var _sectors: Node3D
 var _proxies: Node3D
 var _proxy := {}   # key -> MeshInstance3D
@@ -700,16 +697,11 @@ func _poll_worker(focus: Vector3) -> bool:
 	for key in keys:
 		if _state[key]["s"] == ADDING:
 			return handed
-	if packs != null:
-		packs.mount_waiting()  # no worker running: the file table is ours to change
 	var best := Vector2i.ZERO
 	var best_d := INF
 	for key in keys:
 		if _state[key]["s"] == WANTED:
 			var d: float = _state[key].get("prio", (Vector2(key) + Vector2(0.5, 0.5)).distance_squared_to(Vector2(focus.x, focus.z) / SECTOR))
-			if packs != null and not packs.is_ready(key):
-				packs.want(key, d)
-				continue
 			if d < best_d:
 				best_d = d
 				best = key
@@ -840,8 +832,6 @@ func _drop_task() -> void:
 func _start_adding(key: Vector2i, root: Node3D) -> void:
 	var t := Time.get_ticks_usec()
 	_worked = true
-	if packs != null:
-		packs.release(key)  # the web loop 2: loaded; its pack's megabyte goes (fetched again if wanted again)
 	root.visible = false
 	sector_ready.emit(root)
 	# Loop 3d-2b: its slices of the baked maps go into a map slot first, one map a step.
@@ -963,9 +953,6 @@ func _finish(key: Vector2i) -> void:
 func _load_now(key: Vector2i) -> void:
 	var st: Dictionary = _state[key]
 	if st["s"] == IN:
-		return
-	if packs != null and not packs.is_ready(key):
-		packs.want(key, -1.0)  # the web loop 2: first in the download queue; the proxy shows till then
 		return
 	var t := Time.get_ticks_usec()
 	_worked = true

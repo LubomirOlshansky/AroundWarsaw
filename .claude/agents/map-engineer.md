@@ -27,7 +27,7 @@ whole map, verify it, and report. You don't spawn other agents.
 ## Read first
 
 1. The brief, CLAUDE.md, docs/WORKFLOW.md, and the bake-map skill.
-2. docs/DEVELOPMENT.md "Map data", "Real roads (v0.75)", "Layout"; docs/DEMO.md for the demo area and
+2. docs/archive/DEVELOPMENT-full.md "Map data", "Real roads (v0.75)", "Layout"; docs/DEMO.md for the demo area and
    its road defect list; docs/BACKLOG.md "From v0.75".
 3. CREDITS.md before adding or changing any data source.
 
@@ -57,8 +57,8 @@ whole map, verify it, and report. You don't spawn other agents.
 3. Orthophoto overlays (`tools/overlay_ortho.py`) and in-game shots at the defect spots, on
    both city paths, looked at yourself.
 4. `tools/verify.sh` PASS (traffic, races and jobs use the lane graph); `--ios` at the end.
-5. Bench and vertices within the budget; DEVELOPMENT.md "Map data" / "Real roads", ROADMAP row and
-   BACKLOG updated.
+5. Bench and vertices within the budget; docs/archive/DEVELOPMENT-full.md "Map data" / "Real roads"
+   and BACKLOG updated (no ROADMAP row).
 
 ## Helpers
 

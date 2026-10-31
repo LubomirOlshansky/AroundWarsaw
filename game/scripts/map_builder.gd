@@ -23,6 +23,11 @@ const FINE_GROUP := "fine_detail"
 ## Loop 2b: lamps, signals, parked cars, advertising columns and shelters: they cast sun shadows
 ## on High only (main.gd QUALITY); the group "small_casters".
 const SMALL_CASTERS := "small_casters"
+
+## Landmarks 0.3 (2026-10-31): the site key of `--solo=KEY` (main.gd); while set, a run builds
+## that landmark alone (no ground, roads, buildings, trees or props) for the judge's unlit and
+## silhouette shots. Static, because the streamer makes the builder. Runtime path only.
+static var solo_site := ""
 ## Direction of the Śródmieście street grid (Marszałkowska), for paving on open areas.
 const CITY_GRID := Vector2(0.342, 0.940)
 ## Ground-shader layer ids (UV.y).
@@ -470,6 +475,14 @@ func build_sector(key: Vector2i, roofs_only := false, merge := true) -> Node3D:
 
 ## Loop 3c: everything but the colliders, in build order (one sector or the whole map).
 func _build_parts(marks, roofs_only: bool) -> void:
+	if solo_site != "":
+		# Landmarks 0.3: one site's triangles and nothing else (`marks.build`'s `only`).
+		var solo_walls := _new_surface()
+		solo_walls.none = roofs_only
+		marks.build(solo_walls, _near if _in_sector else Rect2(), solo_site)
+		if not roofs_only:
+			_add_mesh(solo_walls, building_material, true)
+		return
 	if not roofs_only:
 		var flat := _new_surface()
 		# Loop 3d-2a: the ground is built last, so it can leave out what the flat layers on it
@@ -4756,14 +4769,20 @@ func _make_shared() -> void:
 	shelter.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var glass := Color("#b8d3df")
 	var graphite := Color("#33363b")
+	# The Rondo photos (2026-10-31): Warsaw's shelter has a red frame: the roof's edge, the
+	# posts and a red loop round the glass end, with an ad panel in a black case.
+	var red := Color("#c8282a")
 	_box(shelter, Vector3(0, 2.5, 0.08), Vector3(4.3, 0.12, 1.95), graphite)
 	_box(shelter, Vector3(0, 2.57, 0.08), Vector3(4.0, 0.03, 1.7), Color("#a7c2cf"))
-	_box(shelter, Vector3(0, 2.38, -0.86), Vector3(4.3, 0.3, 0.06), Color("#2b2e33"))
+	_box(shelter, Vector3(0, 2.38, -0.86), Vector3(4.3, 0.3, 0.06), red)
 	_box(shelter, Vector3(0, 1.3, 0.75), Vector3(3.85, 2.05, 0.04), glass)
 	_box(shelter, Vector3(0, 0.12, 0.75), Vector3(3.9, 0.1, 0.06), graphite)
 	_box(shelter, Vector3(-1.95, 1.3, 0.17), Vector3(0.04, 2.05, 1.15), glass)
 	for x in [-1.95, 0.0, 1.95]:
-		_box(shelter, Vector3(x, 1.25, 0.78), Vector3(0.09, 2.5, 0.09), graphite)
+		_box(shelter, Vector3(x, 1.25, 0.78), Vector3(0.09, 2.5, 0.09), red)
+	# The red loop round the glass end: a post at each corner and a bar along the foot.
+	_box(shelter, Vector3(-1.95, 0.05, 0.17), Vector3(0.06, 0.06, 1.2), red)
+	_box(shelter, Vector3(-1.95, 2.4, -0.4), Vector3(0.06, 0.2, 0.06), red)
 	# The poster box: a graphite case, a poster on each face.
 	_box(shelter, Vector3(1.95, 1.2, 0.12), Vector3(0.2, 1.95, 1.3), graphite)
 	for sx in [-0.11, 0.11]:
@@ -4778,6 +4797,12 @@ func _make_shared() -> void:
 	for sz in [-0.03, 0.03]:
 		_box(shelter, Vector3(-2.45, 2.47, -0.7 + sz), Vector3(0.34, 0.2, 0.02), Color("#f2f2ee"))
 		_box(shelter, Vector3(-2.45, 2.34, -0.7 + sz), Vector3(0.3, 0.05, 0.02), Color("#f2f2ee"))
+	# The Rondo photos' ad panel: a big lit panel in a black case on the glass end, a poster
+	# (orange over cream, SHELTER_POSTER) on both faces, glowing at night.
+	_box(shelter, Vector3(-2.3, 1.3, 0.3), Vector3(0.12, 1.95, 1.2), Color("#141518"))
+	for sx: float in [-0.075, 0.075]:
+		_box(shelter, Vector3(-2.3 + sx, 1.5, 0.3), Vector3(0.02, 1.4, 1.02), SHELTER_POSTER[0])
+		_box(shelter, Vector3(-2.3 + sx, 0.72, 0.3), Vector3(0.02, 0.2, 1.02), SHELTER_POSTER[1])
 	_shared["shelter"] = _mark_glow(shelter.commit(), SHELTER_POSTER)
 
 

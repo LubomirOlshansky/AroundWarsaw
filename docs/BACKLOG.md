@@ -82,15 +82,15 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (the first scene's buildings, the Palace, the Old Town square, the Castle, the towers, the
   stadium, the bridges) against their photos, worst score first. Wanted later: an automatic
   check for coplanar faces (z-fighting) in a site's mesh.
-- **Model checks from the research** (2026-10-31, report in the project files "Детальніші моделі
+- **Model checks from the research** (2026-10-31; item (1) DONE the same day as `check_mesh_quality.gd`, the z-fighting, zero-area, floating and budget parts; its `KNOWN` ratchet is empty since 2026-10-31 (the z-fighting in the towers and the Palace is fixed); parts inside parts and T gaps are still open, report in the project files "Детальніші моделі
   будівель"): (1) `game/tools/check_mesh_quality.gd`, run on each landmark site's mesh arrays:
   coplanar overlapping faces (z-fighting: group triangles by plane, test 2D overlap, ~0.01 m²),
   zero-area and flipped triangles, parts touching neither the ground nor another part (FAIL);
   parts inside parts and T-junction gaps (WARN, for the art-director); per-site allow-lists;
   joins `tools/verify.sh`. (2) A game flag that renders one landmark alone, unlit and as a
-  silhouette, for the judge's shots. (3) A small `tools/check_spec.py` that checks a landmark spec has every section and parts-table
+  silhouette, for the judge's shots. (3) DONE 2026-10-31: `tools/check_spec.py`, which checks a landmark spec has every section and parts-table
 column filled and a triangle budget, so a Sonnet build never starts from an open spec.
-(4) Evals for the model-from-photos skill: the Palace, the Rotunda and the Museum of Modern
+(4) OPEN (plan in the skill, section 7): evals for the model-from-photos skill: the Palace, the Rotunda and the Museum of Modern
 Art (their photos exist) built with and without the skill, scored the same way. (5) Later:
 golden-image shots runtime vs `--prebuilt`,
   a flicker probe (two frames, a tiny camera move, diff), the Old Town's gables and a

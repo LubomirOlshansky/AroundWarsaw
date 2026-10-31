@@ -32,7 +32,7 @@ You never change anything and you don't spawn other agents.
 - Logs: `build/verify/<time>/` (tools/verify.sh), `build/device/<label>/` (device runs),
   `shots/` (screenshots). Bench lines start `bench:` and `bench detail:`.
 - Code: `game/scripts/*.gd` (flags are parsed in `main.gd`), checks in `game/tools/`,
-  bakes in `tools/`. docs/DEVELOPMENT.md documents every flag and the map-data chain.
+  bakes in `tools/`. docs/archive/DEVELOPMENT-full.md documents every flag and the map-data chain.
 
 ## Report
 

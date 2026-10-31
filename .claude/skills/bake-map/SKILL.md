@@ -5,7 +5,7 @@ description: Runs or changes Around Warsaw's map-data bake chain (OpenStreetMap 
 
 # The map-data bake chain
 
-docs/DEVELOPMENT.md "Map data" holds the exact commands; this is the order, the rules and the checks.
+docs/archive/DEVELOPMENT-full.md "Map data" holds the exact commands; this is the order, the rules and the checks.
 If they disagree, DEVELOPMENT.md wins: fix this file.
 
 ## Rules
@@ -30,7 +30,7 @@ If they disagree, DEVELOPMENT.md wins: fix this file.
 
 ## Order (re-run everything below the step you changed)
 
-Loop 3d-1 (the demo box, docs/DEVELOPMENT.md "Map data"): `tools/bake_all.sh` runs the whole chain (~10 min).
+Loop 3d-1 (the demo box, docs/archive/DEVELOPMENT-full.md "Map data"): `tools/bake_all.sh` runs the whole chain (~10 min).
 It starts with `python3 tools/prepare_demo.py` (the raw downloads cut to `bake_osm.BBOX` into
 `data/work/demo/`; `data/raw` is read-only) and `python3 -I tools/bake_terrain.py` (the terrain,
 first: bake_osm reads it), runs bake_osm.py before and again after bake_gugik.py (the structures

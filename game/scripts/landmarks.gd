@@ -47,6 +47,7 @@ const S_RIBBON := 5
 const S_DARK := 6
 const S_GOLD := 7
 const S_FRAME := 8
+const S_TILE := 9   # Novotel's white tiled shaft (the Rondo photos, 2026-10-31)
 
 ## The landmarks loop (2026-10-30): the skyline's towers, so each reads as itself and not as one
 ## more blue box. Each is built from its mapped building parts (the outline `osm` names; what
@@ -58,7 +59,8 @@ const TOWERS := [
 	{"key": "zlota44", "osm": "Złota 44", "style": S_SAIL, "glass": "#b4c8d3", "roof": "#e4e8ea", "crest": "slope"},
 	{"key": "spire", "osm": "Warsaw Spire", "style": S_DIAMOND, "glass": "#5a8fb8", "roof": "#a3b6c4"},
 	{"key": "q22", "osm": "Q22", "style": S_BANDS, "glass": "#8ba2b4", "roof": "#bcc4ca"},
-	{"key": "rondo1", "osm": "Rondo 1", "style": S_FINS, "glass": "#6f8ea4", "roof": "#a9b3b9", "crest": "frame"},
+	{"key": "rondo1", "osm": "Rondo 1", "style": S_FINS, "glass": "#6f8ea4", "roof": "#a9b3b9", "crest": "frame",
+			"base_sign": "ENELMEDIK"},
 	{"key": "plater49", "osm": "InterContinental", "style": S_GRID, "glass": "#5f7f9a", "roof": "#c3c7c9", "sign": "INTERKONTI"},
 	{"key": "cosmopolitan", "osm": "Cosmopolitan", "style": S_RIBBON, "glass": "#4d6574", "roof": "#dfe2e0"},
 	{"key": "wtt", "osm": "Warsaw Trade Tower", "style": S_BANDS, "glass": "#3d6a7a", "roof": "#8d979c"},
@@ -83,7 +85,7 @@ const TOWERS := [
 	# The second pass: the rest of the skyline over 80 m (the hotels by their addresses).
 	{"key": "grzybowska63", "osm": "Hilton Warsaw City", "style": S_BANDS, "glass": "#4d7590", "roof": "#9aa5ad", "sign": "CHILTON"},
 	{"key": "jp2_21", "osm": "The Westin Warsaw", "style": S_GRID, "glass": "#86aca7", "roof": "#a9b5b3", "mapped": true, "sign": "WESTYNKA"},
-	{"key": "marszalkowska94", "osm": "Novotel Warszawa Centrum", "style": S_RIBBON, "glass": "#3b4a55", "roof": "#c9c9c2", "sign": "NOWOTEL"},
+	{"key": "marszalkowska94", "osm": "Novotel Warszawa Centrum", "style": S_TILE, "glass": "#d9dcdf", "roof": "#c9c9c2", "vsign": "NOWOTEL", "chamfer": true},
 	{"key": "central", "osm": "Central Tower", "style": S_DARK, "glass": "#3e5c78", "roof": "#6f7d88"},
 	{"key": "ilmet", "osm": "Ilmet", "style": S_BANDS, "glass": "#7d5a48", "roof": "#8c8278"},
 	{"key": "platinum_a", "osm": "Platinum Tower A", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
@@ -292,6 +294,11 @@ var signs: Array = []
 var _g := 0.0          # the landmark's ground height
 var _id := 0           # landmark id for the picking grid (0: none)
 var _pick := PackedByteArray()
+## Walls already drawn by the current site, to cut a later coplanar wall back to what shows
+## (z-fighting fix, 2026-10-31): [ax, az, bx, bz, y0, y1, nx, nz] per wall.
+var _walls: Array[PackedFloat32Array] = []
+## Flat tops already drawn by the current site: [height, outline] (same fix, see _cap).
+var _caps: Array = []
 # A landmark's own plan axes (its local u, v in world metres).
 var _o := Vector2.ZERO
 var _a := Vector2.RIGHT
@@ -493,6 +500,12 @@ func _find_sites() -> void:
 	_find_swieto()
 	# The museum and Plac Piłsudskiego loop (2026-10-31): the square's edges.
 	_find_plac()
+	var metropol := _landmark("Hotel Metropol")
+	if metropol.size() >= 3:
+		# A 0.2 m zone at the roof's south-east corner: a site's zone drops what stands in it,
+		# and the hotel itself stays the map's.
+		var e := _box_of([metropol]).end
+		_add_site("metropolsign", [PackedVector2Array([e, e + Vector2(0.2, 0), e + Vector2(0.2, 0.2), e + Vector2(0, 0.2)])])
 
 
 ## Warszawa Centralna: OpenStreetMap maps the station in 3D (its outline sits underground):
@@ -609,7 +622,8 @@ func _find_stadium() -> void:
 
 # --- building -------------------------------------------------------------------------
 
-func build(surface, near := Rect2()) -> void:
+## `only` (the mesh-quality check, loop 0.1): build just the site with this key.
+func build(surface, near := Rect2(), only := "") -> void:
 	st = surface
 	_pick.resize(map._roof_nx * map._roof_nz)
 	_pick.fill(0)
@@ -623,7 +637,11 @@ func build(surface, near := Rect2()) -> void:
 		if near.has_area() and not (s["box"] as Rect2).grow(SITE_REACH).intersects(near):
 			continue
 		var key: String = s["key"]
+		if only != "" and key != only:
+			continue
 		_id = k + 1
+		_walls.clear()
+		_caps.clear()
 		built += 1
 		match key:
 			"palace":
@@ -660,6 +678,8 @@ func build(surface, near := Rect2()) -> void:
 				_build_metropolitan(s)
 			"wiktoria":
 				_build_wiktoria(s)
+			"metropolsign":
+				_build_metropol_sign(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -738,10 +758,48 @@ func _wall(a: Vector2, b: Vector2, y0: float, y1: float, out: Vector2, col: Colo
 	if length < 0.02 or y1 <= y0:
 		return
 	var n := Vector3(out.x, 0.0, out.y).normalized()
-	var h0 := y0 - _g
-	var h1 := y1 - _g
-	_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, y1, b.y), Vector3(a.x, y1, a.y), n, col,
-			Vector2(run, h0), Vector2(run + length, h0), Vector2(run + length, h1), Vector2(run, h1), h1)
+	# Cut away what an earlier wall of this site already covers in the same plane, facing the
+	# same way: two coplanar faces z-fight (flicker) on the phone. Pieces are (t0, t1, y0, y1)
+	# in metres along a→b and absolute height.
+	var d := (b - a) / length
+	var pieces: Array[Vector4] = [Vector4(0.0, length, y0, y1)]
+	for w in _walls:
+		if w[6] * n.x + w[7] * n.z < 0.9995:
+			continue
+		var wa := Vector2(w[0], w[1])
+		var wb := Vector2(w[2], w[3])
+		if absf((wa - a).dot(Vector2(-d.y, d.x))) > 0.03 or absf((wb - a).dot(Vector2(-d.y, d.x))) > 0.03:
+			continue
+		var e0 := (wa - a).dot(d)
+		var e1 := (wb - a).dot(d)
+		var t_lo := minf(e0, e1)
+		var t_hi := maxf(e0, e1)
+		var next: Array[Vector4] = []
+		for pc in pieces:
+			if t_hi <= pc.x + 0.01 or t_lo >= pc.y - 0.01 or w[5] <= pc.z + 0.01 or w[4] >= pc.w - 0.01:
+				next.append(pc)
+				continue
+			if t_lo > pc.x + 0.01:
+				next.append(Vector4(pc.x, t_lo, pc.z, pc.w))
+			if t_hi < pc.y - 0.01:
+				next.append(Vector4(t_hi, pc.y, pc.z, pc.w))
+			var m0 := maxf(pc.x, t_lo)
+			var m1 := minf(pc.y, t_hi)
+			if w[4] > pc.z + 0.01:
+				next.append(Vector4(m0, m1, pc.z, w[4]))
+			if w[5] < pc.w - 0.01:
+				next.append(Vector4(m0, m1, w[5], pc.w))
+		pieces = next
+	_walls.append(PackedFloat32Array([a.x, a.y, b.x, b.y, y0, y1, n.x, n.z]))
+	for pc in pieces:
+		var pa := a + d * pc.x
+		var pb := a + d * pc.y
+		var h0 := pc.z - _g
+		var h1 := pc.w - _g
+		var r0 := run + pc.x
+		var r1 := run + pc.y
+		_quad(Vector3(pa.x, pc.z, pa.y), Vector3(pb.x, pc.z, pb.y), Vector3(pb.x, pc.w, pb.y), Vector3(pa.x, pc.w, pa.y), n, col,
+				Vector2(r0, h0), Vector2(r1, h0), Vector2(r1, h1), Vector2(r0, h1), h1)
 
 
 ## The outward normal of edge a→b of a polygon (plan).
@@ -772,6 +830,29 @@ func _prism(poly: PackedVector2Array, y0: float, y1: float, wall: Color, roof: C
 
 ## A flat top over a polygon.
 func _cap(poly: PackedVector2Array, y: float, col: Color) -> void:
+	# Two flat tops at the same height that overlap z-fight: the later one keeps only what the
+	# earlier ones leave bare.
+	var pieces: Array[PackedVector2Array] = [poly]
+	for c in _caps:
+		if absf(float(c[0]) - y) > 0.03:
+			continue
+		var next: Array[PackedVector2Array] = []
+		for pc in pieces:
+			var cut := Geometry2D.clip_polygons(pc, c[1])
+			for q in cut:
+				if q.size() >= 3 and not Geometry2D.is_polygon_clockwise(q):
+					next.append(q)
+		pieces = next
+	_caps.append([y, poly])
+	for pc in pieces:
+		# Mapped outlines that double back on themselves triangulate into overlapping
+		# triangles; Clipper's union untangles them (a hole comes back clockwise: skipped).
+		for q in Geometry2D.merge_polygons(pc, PackedVector2Array()):
+			if q.size() >= 3 and not Geometry2D.is_polygon_clockwise(q):
+				_cap_piece(q, y, col)
+
+
+func _cap_piece(poly: PackedVector2Array, y: float, col: Color) -> void:
 	var idx := Geometry2D.triangulate_polygon(poly)
 	if idx.is_empty():
 		idx = Geometry2D.triangulate_delaunay(poly)
@@ -779,6 +860,8 @@ func _cap(poly: PackedVector2Array, y: float, col: Color) -> void:
 		var a := poly[idx[i]]
 		var b := poly[idx[i + 1]]
 		var c := poly[idx[i + 2]]
+		if absf((b - a).cross(c - a)) < 0.001:
+			continue  # a sliver with a repeated corner: no area, nothing to draw
 		_tri(Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y, c.y), Vector3.UP, col,
 				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
 
@@ -1101,8 +1184,10 @@ func _build_palace(site: Dictionary) -> void:
 		var su := -1.0 if k % 2 == 0 else 1.0
 		var sv := -1.0 if k < 2 else 1.0
 		_pinnacle(su * 19.5, sv * 19.5, 3.4, g + 139.0, 14.0, light)
-		_pinnacle(su * 19.5, 0.0, 2.0, g + 139.0, 8.0, light)
-		_pinnacle(0.0, sv * 19.5, 2.0, g + 139.0, 8.0, light)
+	# (Once per side: the loop above drew each of these twice, a z-fighting duplicate.)
+	for sd in [-1.0, 1.0]:
+		_pinnacle(sd * 19.5, 0.0, 2.0, g + 139.0, 8.0, light)
+		_pinnacle(0.0, sd * 19.5, 2.0, g + 139.0, 8.0, light)
 	# A stepped plinth for the clock tier.
 	_prism(_rect(0.0, 0.0, 12.5, 12.5), g + 139.0, g + 143.0, stone, roof, M_STONE, M_STONE)
 	_attic(_rect(0.0, 0.0, 12.5, 12.5), g + 143.0, 1.6, light)
@@ -1354,6 +1439,45 @@ func _build_rotunda(site: Dictionary) -> void:
 	_mode = M_GLASS_ROOF
 	_pyramid(ring.call(5.2), g + 14.5, g + 15.6, Color("#86aebf"))
 	_collide(ring.call(r + 0.25))
+	_rotunda_night(c, r, g)
+
+
+## The Rondo photos (2026-10-31): the Rotunda's white zigzag crown (24 teeth, 3 m, standing on
+## the roof's rim), red and blue light glowing in the glass under it (every sixth and every
+## sixth-plus-three bay) and the bank's name, a parody (BANK POLSKA), lit white on the glass at
+## the south and east faces.
+func _rotunda_night(c: Vector2, r: float, g: float) -> void:
+	var teeth := 24
+	var edge := r + 2.2
+	var white := Color("#ffffff")
+	_mode = M_STONE
+	for k in teeth:
+		var a0 := TAU * k / teeth
+		var a1 := TAU * (k + 1) / teeth
+		var pa := c + Vector2.from_angle(a0) * edge
+		var pb := c + Vector2.from_angle(a1) * edge
+		var pm := c + Vector2.from_angle((a0 + a1) * 0.5) * edge
+		var va := Vector3(pa.x, g + 12.2, pa.y)
+		var vb := Vector3(pb.x, g + 12.2, pb.y)
+		var vt := Vector3(pm.x, g + 15.2, pm.y)
+		var n := (vb - va).cross(vt - va).normalized()
+		if n.dot(Vector3(pm.x - c.x, 0.0, pm.y - c.y)) < 0.0:
+			n = -n
+		var none := Vector2(-1, -1)
+		_tri(va, vb, vt, n, white, none, none, none, -1.0)
+		_tri(vb, va, vt, -n, white.darkened(0.15), none, none, none, -1.0)
+	for k in teeth:
+		if k % 6 != 1 and k % 6 != 4:
+			continue
+		var a0 := TAU * k / teeth
+		var a1 := TAU * (k + 1) / teeth
+		var tint := Color("#3b63d8") if k % 12 < 6 else Color("#d8433a")
+		var wedge := PackedVector2Array([c + Vector2.from_angle(a0) * (r - 0.4), c + Vector2.from_angle(a1) * (r - 0.4),
+				c + Vector2.from_angle(a1) * (r + 0.06), c + Vector2.from_angle(a0) * (r + 0.06)])
+		_prism(wedge, g + 6.0, g + 10.4, tint, Color(0, 0, 0, 0), M_LAMP)
+	for d: Vector2 in [Vector2(0, 1), Vector2(1, 0)]:
+		var at := c + d * (r + 0.3)
+		signs.append(["BANK POLSKA", Vector3(at.x, g + 2.4, at.y), Vector3(d.x, 0.0, d.y), 0.9, Color(0.95, 0.97, 1.0)])
 
 
 # --- Varso Tower ------------------------------------------------------------------------------
@@ -1493,9 +1617,23 @@ func _build_tower(site: Dictionary) -> void:
 			if spec.get("crest", "") == "frame" and h >= top_h - 0.5:
 				# Rondo 1: an open frame round the top, from the roof to 192 m.
 				_prism(poly, g + h, g + 192.0, wall, Color(0, 0, 0, 0), M_SKIN + float(S_FRAME) / 16.0)
+			if spec.get("chamfer", false) and h >= top_h - 0.5:
+				_chamfered_top(poly, g + h, wall)
 		if mh < 2.0:
 			_collide(poly)
 	_dusk_details(spec, top_poly, g, top_h)
+
+
+## Novotel's cut-off top (the Rondo photos): the shaft ends in two setbacks, 1.4 m in and 2.8 m
+## in, each 2.2 m tall, so the corners read chamfered from the street, in the shaft's white.
+func _chamfered_top(poly: PackedVector2Array, roof_y: float, wall: Color) -> void:
+	var y := roof_y
+	for inset: float in [1.4, 2.8]:
+		var shrunk := Geometry2D.offset_polygon(poly, -inset)
+		if shrunk.is_empty():
+			return
+		_prism(shrunk[0], y, y + 2.2, wall, wall.darkened(0.1), M_SKIN + float(S_TILE) / 16.0, M_STONE)
+		y += 2.2
 
 
 ## The dusk loop (2026-10-31): what lights up a tower's crown after dark. The tallest part
@@ -1508,7 +1646,14 @@ func _dusk_details(spec: Dictionary, poly: PackedVector2Array, g: float, top_h: 
 	if spec.get("marriott", false):
 		_marriott(poly, g, top_h)
 	if spec.has("sign"):
-		_crown_signs(poly, g + top_h, str(spec["sign"]), DUSK_WARM, 3.0, 0.75 if spec.get("marriott", false) else 0.7)
+		_crown_signs(poly, g + top_h, str(spec["sign"]), DUSK_WARM, 3.0,
+				0.75 if spec.get("marriott", false) else 0.7)
+	if spec.has("base_sign"):
+		# A shop's name over the ground floor on the south and east faces (Rondo 1's clinic).
+		_crown_signs(poly, g + 5.2, str(spec["base_sign"]), Color(0.75, 1.0, 0.95), 0.0, 0.3)
+	if spec.has("vsign"):
+		_crown_signs(poly, g + top_h, str(spec["vsign"]), VSIGN_BLUE, 5.0, 0.5, true)
+		_vsign_tail(poly, g + top_h - 5.0 - 7.04 * str(spec["vsign"]).length())
 	if top_h >= 100.0 and spec["key"] != "zlota44" and spec["key"] != "spire":
 		var roof_y := func(_q: Vector2) -> float: return g + top_h
 		if spec.get("crest", "") == "slope":
@@ -1518,6 +1663,16 @@ func _dusk_details(spec: Dictionary, poly: PackedVector2Array, g: float, top_h: 
 
 const DUSK_WARM := Color(1.0, 0.95, 0.86)
 const DUSK_RED := Color(1.0, 0.12, 0.1)
+## NOWOTEL's name: blue neon, letter over letter down the shaft (the Rondo photos).
+const VSIGN_BLUE := Color(0.18, 0.42, 1.0)
+
+
+## The Nowotel's tail under its stacked name (the Rondo night photos): an orange rule, the
+## chain's parody line (ACORN over HOTELS) in the same blue, on the faces the name is on.
+func _vsign_tail(poly: PackedVector2Array, y: float) -> void:
+	_crown_signs(poly, y - 1.0, "--", Color(1.0, 0.5, 0.15), 0.0, 0.3)
+	_crown_signs(poly, y - 3.5, "ACORN", VSIGN_BLUE, 0.0, 0.3)
+	_crown_signs(poly, y - 6.5, "HOTELS", VSIGN_BLUE, 0.0, 0.26)
 
 
 ## The Marriott (the dusk loop): a dark band round the crown (top 7 m) and one two thirds up
@@ -1551,7 +1706,8 @@ func _square(c: Vector2, r: float) -> PackedVector2Array:
 ## The dusk loop: a lit name on the two faces of `poly` that face the camera most, south and
 ## east, centred `drop` m under `top_y`, the word spanning `share` of the face's width. Only
 ## the long faces count (at least half the longest edge), so a corner chamfer never carries one.
-func _crown_signs(poly: PackedVector2Array, top_y: float, word: String, colour: Color, drop := 3.0, share := 0.7) -> void:
+func _crown_signs(poly: PackedVector2Array, top_y: float, word: String, colour: Color, drop := 3.0, share := 0.7,
+		vertical := false) -> void:
 	var longest := 0.0
 	for i in poly.size():
 		longest = maxf(longest, poly[i].distance_to(poly[(i + 1) % poly.size()]))
@@ -1574,8 +1730,16 @@ func _crown_signs(poly: PackedVector2Array, top_y: float, word: String, colour: 
 		var a := poly[i]
 		var b := poly[(i + 1) % poly.size()]
 		var o := _out(poly, a, b)
-		var k := share * a.distance_to(b) / Neon.length_of(word)
 		var mid := (a + b) * 0.5
+		if vertical:
+			# One letter per sign, stacked: each 1.8 m glyph box grown by k, `drop` under the top.
+			var kv := 3.2
+			var step := Neon.ROW_H * Neon.PIXEL * kv
+			for n in word.length():
+				var top := top_y - drop - step * n
+				signs.append([word[n], Vector3(mid.x, top - step, mid.y), Vector3(o.x, 0.0, o.y), kv, colour])
+			continue
+		var k := share * a.distance_to(b) / Neon.length_of(word)
 		var base_y := top_y - drop - Neon.ROW_H * Neon.PIXEL * k * 0.5
 		signs.append([word, Vector3(mid.x, base_y, mid.y), Vector3(o.x, 0.0, o.y), k, colour])
 
@@ -1825,9 +1989,19 @@ func _sloped(poly: PackedVector2Array, y0: float, hi: float, lo: float, wall: Co
 		var n := Vector3(o.x, 0.0, o.y).normalized()
 		var ta: float = top.call(a)
 		var tb: float = top.call(b)
-		_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, tb, b.y), Vector3(a.x, ta, a.y), n, wall,
-				Vector2(run, y0 - _g), Vector2(run + length, y0 - _g), Vector2(run + length, tb - _g),
-				Vector2(run, ta - _g), maxf(ta, tb) - _g)
+		# The rectangle up to the lower end goes through _wall (so a podium wall flush with it
+		# is cut back, not drawn over it); the wedge above it is a triangle.
+		var lowest := minf(ta, tb)
+		_wall(a, b, y0, lowest, o, wall, run)
+		if absf(ta - tb) > 0.01:
+			var a_high := ta > tb
+			var p_hi := (a if a_high else b)
+			var p_lo := (b if a_high else a)
+			var t_hi := maxf(ta, tb)
+			var r_hi := run if a_high else run + length
+			var r_lo := run + length if a_high else run
+			_tri(Vector3(p_lo.x, lowest, p_lo.y), Vector3(p_hi.x, lowest, p_hi.y), Vector3(p_hi.x, t_hi, p_hi.y), n, wall,
+					Vector2(r_lo, lowest - _g), Vector2(r_hi, lowest - _g), Vector2(r_hi, t_hi - _g), t_hi - _g)
 		run += length
 	_mode = M_SKIN
 	var idx := Geometry2D.triangulate_polygon(poly)
@@ -2192,11 +2366,15 @@ func _build_swieto(_site: Dictionary) -> void:
 	for k in 12:
 		var s := 30.0 + k * 11.5
 		var land := SWIETO_PYLON + w * s
-		_beam(shaft.call(SWIETO_TOP - 3.0 - k * 2.3), Vector3(land.x, _swieto_deck(s) + 1.0, land.y), 0.22, SWIETO_STAY, false)
+		# Each stay sits a few cm to the side of the others (z-fighting fix: stays in one plane
+		# share their side faces where they cross near the top).
+		var off := Vector3(across.x, 0.0, across.y) * (((k * 5) % 13 - 6) * 0.035)
+		_beam(shaft.call(SWIETO_TOP - 3.0 - k * 2.3) + off, Vector3(land.x, _swieto_deck(s) + 1.0, land.y) + off, 0.22, SWIETO_STAY, false)
 	for k in 9:
 		var s := -(22.0 + k * 10.5)
 		var land := SWIETO_PYLON + w * s
-		_beam(shaft.call(SWIETO_TOP - 4.0 - k * 2.6), Vector3(land.x, _swieto_deck(s) + 1.0, land.y), 0.26, SWIETO_STAY, false)
+		var off := Vector3(across.x, 0.0, across.y) * (((k * 5 + 4) % 13 - 6) * 0.035)
+		_beam(shaft.call(SWIETO_TOP - 4.0 - k * 2.6) + off, Vector3(land.x, _swieto_deck(s) + 1.0, land.y) + off, 0.26, SWIETO_STAY, false)
 
 ## A kept building's site (the museum) on the picking grid: every cell whose centre is inside.
 func _mark_zone(site: Dictionary) -> void:
@@ -2361,6 +2539,15 @@ func _build_stadium(site: Dictionary) -> void:
 		var a := c + axis * float(seg[0]) + across * float(seg[1])
 		var b := c + axis * float(seg[2]) + across * float(seg[3])
 		var w := (b - a).normalized().orthogonal() * 0.35
+		# Lines that cross share a square of grass; the long ones (along the pitch) take it,
+		# the short ones stop at their edge (z-fighting fix: flat quads at one height).
+		var along := (b - a).normalized()
+		if absf(float(seg[1]) - float(seg[3])) > 1.0:
+			a += along * 0.35
+			b -= along * 0.35
+		else:
+			a -= along * 0.35
+			b += along * 0.35
 		_quad(Vector3(a.x - w.x, y_line, a.y - w.y), Vector3(b.x - w.x, y_line, b.y - w.y), Vector3(b.x + w.x, y_line, b.y + w.y),
 				Vector3(a.x + w.x, y_line, a.y + w.y), Vector3.UP, line)
 	# The masts: from the foot of the skin, leaning out with it, spiking over the roof.
@@ -2389,7 +2576,9 @@ func _build_stadium(site: Dictionary) -> void:
 	_id = 0
 	for k in range(0, n, 3):
 		var h: Vector2 = hole[k]
-		_beam(hub, Vector3(h.x, hole_y, h.y), 0.18, Color("#c8cbd0"), false)
+		# A few cm of height apart at the hub, so neighbours' flat tops don't z-fight there.
+		var lift := Vector3(0.0, (k / 3 % 5) * 0.03, 0.0)
+		_beam(hub + lift, Vector3(h.x, hole_y, h.y), 0.18, Color("#c8cbd0"), false)
 	for k in range(0, n, n / 4):
 		var e: Vector2 = edge[k]
 		_beam(hub + Vector3(0, 2.0, 0), Vector3(e.x, roof_y, e.y), 0.25, Color("#2c2d31"), false)
@@ -3028,6 +3217,24 @@ func _find_plac2() -> void:
 			if not sites.is_empty() and sites[-1]["key"] == "krolewska":
 				sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": KROLEWSKA_WALL, "roof": KROLEWSKA_ROOF}
 			return
+
+
+## Hotel Metropol (the Rondo night photos, 2026-10-31): the building stays the map's own; its
+## roof carries a green neon name, a parody (METROPOLKA), on the south and east faces. A site
+## with no card, so it is not on the picking grid.
+func _build_metropol_sign(_site: Dictionary) -> void:
+	var outline := _box_poly(_box_of([_landmark("Hotel Metropol")]))
+	var g := _ground_under(outline)
+	var top := 0.0
+	for bld in _parts_in(outline, func(_b: Dictionary) -> bool: return true):
+		top = maxf(top, float(bld["h"]))
+	if top < 20.0:
+		return
+	_crown_signs(outline, g + top + 3.0, "METROPOLKA", Color(0.18, 1.0, 0.36), 0.0, 0.7)
+
+
+func _box_poly(r: Rect2) -> PackedVector2Array:
+	return PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)])
 
 
 ## The Metropolitan: the outline's fronts in glass (M_GLASS) behind granite fins standing out

@@ -23,7 +23,7 @@ image, not what the report says it shows.
 3. For 2D art: `.claude/skills/pixellab/SKILL.md` (palette, outline, no text in images, the
    provenance JSON beside each PNG under `game/art/`).
 4. For the parody and text rules: `.claude/skills/warsaw-tone/SKILL.md`.
-5. docs/DEVELOPMENT.md sections for the feature, and docs/BACKLOG.md for issues already known (say
+5. docs/archive/DEVELOPMENT-full.md sections for the feature, and docs/BACKLOG.md for issues already known (say
    "known" rather than reporting them as new).
 
 ## How to review

@@ -5,6 +5,7 @@
 # after which the game quits by itself.
 #
 #   tools/shots.sh                     the core set at 2532x1170 into shots/review_<time>/
+#   tools/shots.sh --set=first         landmarks 0.3: palace, rotunda, tarasy alone, flat and silhouette
 #   tools/shots.sh --set=quick         spawn by day (runtime city) + by night (prebuilt city)
 #   tools/shots.sh --set=river_night,palace_day   just those (--list prints the names)
 #   tools/shots.sh --size=2868x1320    another phone (default 2532x1170, a 6.1" iPhone;
@@ -28,6 +29,7 @@ FRAME=240
 # Defilad, Marszałkowska looking south, the Palace of Culture from the north-west, the river
 # by Most Poniatowskiego, Rondo Dmowskiego.
 typeset -A SHOT
+FIRST=()
 SHOT[spawn_day]="--time=day"
 SHOT[spawn_night_prebuilt]="--prebuilt --time=night"
 SHOT[marszalkowska_day]="--at=-1113.2,-263.4 --heading=160 --time=day"
@@ -39,6 +41,16 @@ SHOT[dusk_vhs]="--time=dusk --vhs"
 SHOT[heli_day]="--heli --time=day"
 SHOT[settings_panel]="--settings"
 SHOT[classic_controls]="--controls=classic --pedal=gas"
+# Landmarks 0.3 (the `first` set, model-from-photos skill section 5): the first scene's three
+# heroes alone on a plain background (--solo, DEVELOPMENT.md flags), unlit in their own colours
+# (flat) and as a silhouette (sil), from the north-west like palace_day. Runtime city path only.
+for sk in "palace -1290,170 150" "rotunda -808,378 45" "tarasy -1495,420 160"; do
+	fk=(${=sk})  # not `set --`: that would eat the script's own arguments
+	for lk in flat sil; do
+		SHOT[first_${fk[1]}_$lk]="--at=${fk[2]} --heading=135 --time=day --nohud --size=${fk[3]} --solo=${fk[1]} --solo-look=$lk"
+		FIRST+=(first_${fk[1]}_$lk)
+	done
+done
 CORE=(spawn_day spawn_night_prebuilt marszalkowska_day palace_day river_day river_night rondo_rain_night heli_day settings_panel)
 QUICK=(spawn_day spawn_night_prebuilt)
 
@@ -60,6 +72,7 @@ while (( $# )); do
 	case $1 in
 		--set=core) set_names=($CORE) ;;
 		--set=quick) set_names=($QUICK) ;;
+		--set=first) set_names=($FIRST) ;;
 		--set=roads) set_names=($ROADS); FRAME=90 ;;
 		--game=*) GAME=${1#--game=}; [[ $GAME == /* ]] || GAME=$ROOT/$GAME ;;
 		--set=*) set_names=(${(s:,:)${1#--set=}}) ;;

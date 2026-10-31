@@ -10,7 +10,11 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-10-31
-
+- The towers and the Palace of Culture no longer flicker: overlapping walls and roofs were drawn twice, and now they are drawn once. The look is the same.
+- A new, shorter website: the newest screenshots, three missions, open source, a word from the author.
+- A new automatic check looks at every landmark model for flickering surfaces, zero-size faces, floating parts and too many triangles, so these get caught before anyone looks at a screenshot.
+- Rondo Dmowskiego, the rest of the photos: the city bus is an 18 m yellow-and-red articulated one with a bellows in the middle, the bus shelter has its big lit ad panel, the Nowotel's name has its orange rule and chain line under it, Hotel Metropol's roof carries a green neon name and Rondo 1 has a clinic sign at street level.
+- Rondo Dmowskiego at night looks like the photos: the Nowotel's white tower with its name in blue neon, the Rotunda's white zigzag crown with red and blue light, red bus shelters, and yellow trams with a red roof.
 - New players get a guided first ten minutes: a hint finger, a first kebab order, a race against Pani Halina, a friendly police caution, a rescue that earns you the helicopter, a tape on the boulevards and Mirek's garage. Win "Trzy mosty" and finish ten jobs for a thank-you card, then drive on.
 - The rivals are a ladder now: beat Pani Halina first, earn respect, work up to Mordor Mike, then race Seba over three bridges at night in "Trzy mosty".
 - Dusk looks like a real late-October evening in Warsaw: a blue-grey sky, the Palace of Culture lit gold, lit hotel names, the station canopy's lamps and red lights on the towers.
@@ -24,6 +28,7 @@ someone writes its lines.
 - A vintage tram, and Warsztat u Mirka: the first garage, with paint jobs.
 - Fewer brown blocks on the horizon when you fly the helicopter.
 - This page: what's new, day by day.
+- The design wiki is online, open to anyone with the link.
 - Planned for the lore: morning coffee raves and arthouse cinemas.
 
 ## 2026-10-30

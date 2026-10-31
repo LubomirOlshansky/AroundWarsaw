@@ -191,6 +191,7 @@ const int S_RIBBON = 5;
 const int S_DARK = 6;
 const int S_GOLD = 7;
 const int S_FRAME = 8;
+const int S_TILE = 9;
 
 vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool cut) {
 	glow = vec3(0.0);
@@ -240,6 +241,21 @@ vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool 
 		frame = fract(u / 1.5) < 0.1 || fract(h / fh) < 0.08;
 		frame_col = srgb_to_linear(vec3(0.42, 0.33, 0.2)) * mix(0.3, 1.0, daylight);
 		c = mix(c, col * mix(0.35, 1.0, daylight) * 1.15, 0.6);
+	} else if (s == S_TILE) {
+		// Novotel's shaft (the Rondo photos, 2026-10-31): white tiled panels, a hairline grid
+		// every 3.4 m by one floor, floodlit white at night, a window slit now and then.
+		float gx = fract(u / 3.4);
+		float gy = fract(h / fh);
+		bool seam = gx < 0.035 || gy < 0.03;
+		float flood = mix(0.3, 1.0, daylight);
+		vec3 tile = white * (seam ? 0.72 : 1.0) * flood;
+		if (lights_on > 0.001) {
+			glow = srgb_to_linear(vec3(0.62, 0.66, 0.74)) * (seam ? 0.3 : 0.62) * lights_on;
+			if (gx > 0.3 && gx < 0.62 && gy > 0.35 && gy < 0.62 && hash12(vec2(floor(u / 3.4), level) + 7.7) < 0.12 * lights_on) {
+				glow = WARM_PALE * 0.9;
+			}
+		}
+		return tile;
 	} else if (s == S_FRAME) {
 		frame = fract(u / 3.2) < 0.14 || fract(h / 4.4) < 0.1 || h > top - 0.9;
 		frame_col = mix(silver, white, 0.5);

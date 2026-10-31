@@ -9,7 +9,7 @@ The user's standing rule (2026-10-30): **the work never stops for a question.** 
 that needs the user is parked and the next item starts at once; the user answers later, in
 one batch. The work ends only when the backlog is empty (or the only items left wait on the
 user). The cycle around it is in docs/WORKFLOW.md "Backlog mode"; each item is still a loop
-run with the loop-brief skill, to the full definition of done.
+run with the loop-brief skill, to the light or full definition of done (docs/WORKFLOW.md).
 
 ## 1. Where the work comes from (priority order)
 

@@ -23,10 +23,10 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 
 | # | Item | Who | Why first |
 | --- | --- | --- | --- |
-| 0.1 | `check_mesh_quality.gd`: z-fighting, zero-area and flipped triangles, floating parts, per site, in `verify.sh` | gameplay-dev (Opus brief, Sonnet build) | the defects a judge misses; BACKLOG "Model checks from the research" |
-| 0.2 | Triangle budgets in `check_sites.gd` for every hand-built site (only 5 of 17 have one) | object-modeler | detail without a limit can't be accepted |
-| 0.3 | A flag rendering one landmark alone, unlit and as a silhouette, and the `first` shot set | gameplay-dev | the judge's shots (skill section 5) |
-| 0.4 | `tools/check_spec.py` and the skill's evals (Palace, Rotunda, MSN) | main session | no build from an open spec |
+| 0.1 | DONE 2026-10-31: `check_mesh_quality.gd`: z-fighting, zero-area and flipped triangles, floating parts, per site, in `verify.sh` | gameplay-dev (Opus brief, Sonnet build) | the defects a judge misses; BACKLOG "Model checks from the research" |
+| 0.2 | DONE 2026-10-31 (in `check_mesh_quality.gd`'s BUDGET, all 46 sites): triangle budgets for every hand-built site | object-modeler | detail without a limit can't be accepted |
+| 0.3 | DONE 2026-10-31: `--solo=KEY --solo-look=flat\|sil\|lit` renders one landmark alone, unlit or as a silhouette (`solo.gdshader`, runtime path only), and `tools/shots.sh --set=first` (Palace, Rotunda, Tarasy, flat + sil) | gameplay-dev | the judge's shots (skill section 5) |
+| 0.4 | DONE 2026-10-31 (checker): `tools/check_spec.py` (step `spec` in `verify.sh`, specs in `docs/landmarks/specs/`); the skill's evals (Palace, Rotunda, MSN) are planned in the skill, section 7, not run (need photos, a GPU run and the Mac) | main session | no build from an open spec |
 
 ### P1. Heroes to L3 (the first minute, the skyline, the postcards)
 
@@ -86,7 +86,7 @@ Checks: `check_landmarks.gd` runs on the full map for EVERY site that has a card
 |---|---|---|---|---|---|---|
 | Pałac Kultury i Nauki | Śródmieście | landmark model | `_build_palace`: tiers from OSM parts (P_WINGS, P_COURTS, P_HALL), M_MONUMENT, M_STONE pinnacles, M_GOLD spire to 237 m, `_dial` clocks (M_DIAL, hands from shader, Warsaw time), M_ATTIC; Congress Hall drum | yes | check_landmarks (+ roof-rescue / spire-cell probe); no budget | Roof rescue lands on 28 m annex; user disliked "Palace" once, re-pass vs photos wanted |
 | Złote Tarasy | Śródmieście | landmark model | `_build_tarasy` + `_wave`: glass wave over 8 mapped domes, M_GLASS_ROOF, glass rim walls; Lumen and Skylight kept | yes | check_landmarks | Dome not lit from inside at night (dusk list); user disliked look earlier |
-| Rotunda (Rotunda PKO) | Marszałkowska x Al. Jerozolimskie | landmark model | `_build_rotunda`: granite plinth, 2 lit glass storeys M_PAVILION (warm), white overhanging roof with oculus, ribs | yes | check_landmarks | none listed |
+| Rotunda (Rotunda PKO) | Marszałkowska x Al. Jerozolimskie | landmark model | `_build_rotunda`: granite plinth, 2 lit glass storeys M_PAVILION (warm), white overhanging roof with oculus, ribs; Rondo photos 2026-10-31: 24-tooth white zigzag crown, red and blue light in the glass under it, lit parody name BANK POLSKA on the south and east faces | yes | check_landmarks | none listed |
 | Varso Tower | Chmielna / Rondo ONZ side | tower (hand-built) | `_build_varso`: M_GLASS slabs 177/205/230 m, dark spines, lit glass crown 193-234 m (M_PAVILION cool), one mast to 310 m, 5 rings, beacon | yes | check_landmarks | Antenna lattice unlit (dusk); Varso I/II OSM extrusions elsewhere |
 | Stadion Narodowy (PGE Narodowy) | Praga, Saska Kępa side | stadium | `_find_stadium` (72 mast pairs give outline) + `_build_stadium`: M_WEAVE skin leaning out, 72 masts, M_MEMBRANE roof ring, red seats, needle on cables; `_beam` | yes | check_landmarks | Embankment bare terrain; AO/lamp maps still on LoD2 footprint |
 | Warszawa Centralna | Śródmieście | station | `_find_centralna` + `_build_centralna`: grid of hyperbolic-paraboloid shell roof on mapped pillars, glass hall, canopy 140x86 m, turned -19.4 deg | yes | check_landmarks | AO ignores canopy |
@@ -126,7 +126,7 @@ Checks: `check_landmarks.gd` runs on the full map for EVERY site that has a card
 | The Bridge | S_FINS | - | - |
 | Chilton (Hilton Warsaw City, Grzybowska 63) | S_BANDS | parody sign CHILTON | - |
 | Westynka (The Westin, Jana Pawła II 21) | S_GRID | mapped, sign WESTYNKA | - |
-| Nowotel (Novotel, Marszałkowska 94/98) | S_RIBBON | sign NOWOTEL | - |
+| Nowotel (Novotel, Marszałkowska 94/98) | S_TILE (white tiled shaft, floodlit; 2026-10-31 Rondo photos) | vertical blue neon N-O-W-O-T-E-L (`vsign`, one letter per sign), two setbacks at the top (`chamfer`); the ACCOR line is not built | - |
 | Central Tower | S_DARK | - | - |
 | Ilmet | S_BANDS | brown glass | - |
 | Platinum Tower A / B | S_RIBBON | two entries | - |

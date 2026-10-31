@@ -53,8 +53,6 @@ game/map/index.json
 game/map/index.res
 game/map/proxies.scn
 game/map/shared/
-# The web build's list of sector packs (tools/export_web.sh, game/tools/pack_sectors.gd)
-game/map/web_sectors.json
 
 # Loop 3d-1 (the user's decision): the GUGiK-only bake outputs are derived too (tools/setup_map.sh
 # --full rebuilds them from data/raw): the LoD2 buildings and the terrain grid

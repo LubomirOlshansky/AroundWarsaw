@@ -76,7 +76,7 @@ MCP clients truncate.
   commercial use allowed, so these assets are the game's own art under the MIT licence
   (`LICENSE`, `CREDITS.md`). The terms forbid training other models on the outputs.
 - Draw-call budget: each new sign or poster in the city is a material. Pack small art into an
-  atlas and draw repeated signs with MultiMesh (see the performance budgets in docs/DEVELOPMENT.md).
+  atlas and draw repeated signs with MultiMesh (see the performance budgets in docs/archive/DEVELOPMENT-full.md).
 
 ## Check before you call it done
 

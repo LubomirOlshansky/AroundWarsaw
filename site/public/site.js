@@ -52,3 +52,14 @@
       .then(function () { send.disabled = false; });
   });
 })();
+
+// The day/night picture: the range input moves the wipe (--p on the stage).
+(function () {
+  "use strict";
+  var stage = document.querySelector(".dn-stage");
+  var range = stage && stage.querySelector(".dn-range");
+  if (!range) return;
+  function move() { stage.style.setProperty("--p", range.value + "%"); }
+  range.addEventListener("input", move);
+  move();
+})();
