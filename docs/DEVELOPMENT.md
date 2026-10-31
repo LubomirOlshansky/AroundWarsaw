@@ -5695,3 +5695,13 @@ tools/export_web.sh --deploy   # also upload it (the user's yes first: it is pub
   screen on a throttled 40 Mbit/s link. Not covered: a real phone's browser (iOS Safari's memory
   with a 140 MB pack, the safe area: `OS.has_feature("mobile")` is false on the web), frame rate
   on a weak laptop, Firefox.
+
+### Landmark spec check (LANDMARKS 0.4, 2026-10-31)
+
+`tools/check_spec.py` (verify step `spec`, ~0.1 s, quick too; Python standard library) checks the
+specs in `docs/landmarks/specs/*.md` before a build starts: S1 all eight sections of the
+model-from-photos skill are present and not empty or TODO/TBD, S2 a detail level (L1-L3) and a
+triangle budget are stated, S3 the parts table has the columns id, shape, size, position,
+material, feature, at least one row, every cell filled and unique ids, S4 the budget is within
+L1 1,500 / L2 3,000 / L3 8,000 unless the spec names an "exception". `--selftest` runs its own
+cases (also in the verify step); `check_spec.py FILE.md` checks one file. No spec is checked in yet.
