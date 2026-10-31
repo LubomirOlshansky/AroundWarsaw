@@ -66,6 +66,10 @@ photos say goes into the spec as values. Sections, every value filled:
    feature it serves). The builder names its functions after the part ids, and a failed check
    or a reviewer's fix points at a row, not at prose.
 
+The spec lives at `docs/landmarks/specs/<slug>.md`, and `tools/check_spec.py` (a `verify.sh` step,
+`spec`) FAILs one that lacks a section, a level, a budget number or a filled parts-table cell
+(columns: id, shape, size, position, material, feature). Run it before handing a spec to the builder.
+
 ## 3. Detail levels
 
 | Level | What it has | For |
@@ -152,3 +156,13 @@ pass, what was fixed, what still differs from the photos. The next thread reads 
 | Build, render before/after and the matched shots | `object-modeler` | Sonnet |
 | Score against the photos, accept or return a fix list | `art-director` | Opus |
 | Final pick | the user | |
+
+## 7. Evals (planned, not run yet)
+
+To learn whether this skill beats a plain brief: build the **Palace**, the **Rotunda** and the
+**Muzeum Sztuki Nowoczesnej** twice each, once with the skill (photos, a spec that passes
+`check_spec.py`, the checks of section 4) and once with a one-paragraph brief and the same
+Sonnet builder. Score both with `art-director` by section 5 (photo first, same anchors, the
+pairwise order-swap rule), using `tools/shots.sh --set=first` for the solo flat and silhouette
+shots. Record scores and triangle counts per landmark in `docs/landmarks/<slug>.md`. Needs the
+reference photos in `refs/` and a Mac or GPU run, so it waits for the first hero thread that has them.
