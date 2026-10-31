@@ -19,6 +19,13 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · content · vintage tram** — Without Live the clock's looks are always Friday, so the
+  vintage tram (weekends 09:00–19:00) almost never runs and E39 is hard to find. Default built: the
+  game's weekend only. Alternative: one run an hour in the Day look whatever the day.
+- **2026-10-31 · content · vintage tram** — Hours and pace are guesses. Default built: 09:00–19:00,
+  one 25-minute run an hour, 29 km/h (modern trams 40).
+- **2026-10-31 · content · vintage tram** — E39 gives +30 and its line; the then card T13 waits for
+  the older decades (F's "from 2010"). Default built: no card.
 - **2026-10-31 · content · night buses** — The horn's key is **B**, because H already toggles the
   helicopter. Default built: B.
 - **2026-10-31 · content · night buses** — The horn button's icon (a bell with sound arcs) reads like

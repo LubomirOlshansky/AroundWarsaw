@@ -1342,7 +1342,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   loop: 4 wait now);
   ~~E28 the Rowerilo riders (MW-4); E29 E30 Kolka and Hyrax (MW-4)~~ (woken in loop MW-4: 9 wait
   now); ~~E34 the armchair man (MW-4 skipped it: "From loop MW-4")~~;
-  E35 KASETA's older decades (T1); E39 a tram in old livery; ~~E40 the payphone prop (with T17)~~
+  E35 KASETA's older decades (T1); ~~E39 a tram in old livery~~ (woken in the vintage-tram loop: 3
+  wait now; T13 stays waiting: "From the vintage-tram loop"); ~~E40 the payphone prop (with T17)~~
   (E34 and E40 woken in loop jobs-2: 7 wait now; T17 is not a then card: "From loop jobs-2").
   Each needs only its trigger in `eggs.json` (drop `waits`) once its piece exists.
   ~~The Frogs shop's two eggs are not cards yet (MW-2).~~ Done in MW-2: `easter_rechotka`,
@@ -1632,3 +1633,29 @@ Small problems that agents reported or that showed up in screenshots. They are f
   prebuilt sectors from another bake): the `prebuilt` step logged 1,647 `_fill_height` errors on
   main too. A scratch copy re-split and rebuilt with a renderer ran with 0 errors.
   `tools/setup_map.sh --if-needed` fixes it in place (map lane).
+
+## From the vintage-tram loop (the old two-car set, E39, 2026-10-31)
+
+- Done: the old set (a rounded 1960s-style motor car and trailer, red and cream, our own shape) on
+  the trams' tracks, one of the eight trams recruited out of sight (its meshes swapped, the third
+  car hidden: -1 draw call in view); Saturdays and Sundays 09:00-19:00 (Live: June-September), one
+  25-min run an hour; its creak and its own bell; E39 (300 m followed within 40 m, +30, the egg's
+  line over the tram): 44 eggs reachable, 3 waiting. `check_old_tram` (verify `oldtram`, quick and
+  CI); `--old-tram[=follow]`, `--tram-log` (DEVELOPMENT.md "The vintage tram and E39").
+- **T13 waits**: vision's E39 reward names the then card T13 (the rounded 1960s tram and the boxy
+  1970s one), but the then cards start in 2010 (QUESTIONS, answered 2026-10-30): E39 gives +30
+  and its line only. When the older decades come (with T1), T13 can be added to
+  `then_cards.json` and to E39's reward (`"then": "t13_..."`).
+- **Without Live the set is rare**: the fixed looks' clock is "always Friday" (Day 14:00), so the
+  set runs only on the game's Saturday: Dawn's clock after 09:00 (3+ hours of play) or the Day look
+  from `--clock=` before noon. Open Question: also run it in the plain Day look (e.g. one run an
+  hour whatever the day) so that E39 is findable without Live? Built as the brief says.
+- **The hours are a guess**: 09:00-19:00, one run an hour starting in the first half hour, 25 min
+  each; the set at 29 km/h. Tune with F on the phone.
+- **No boxy 1970s set**: vision's T13 pairs the rounded tram with a boxy 1970s one; only the
+  rounded one runs. A second look (a 105N-like boxy set) is a mesh swap away if wanted.
+- **The rails don't change**: it runs the modern trams' pieces, stops and lights; no heritage
+  route (Warsaw's tourist line T) of its own. A route would need the map lane's track pieces
+  named by line.
+- **Night**: it runs by day only, so its hidden third car's tail glow isn't missed; with
+  `--old-tram` at night the trailer shows its tail lamps but no red glow on the rails.
