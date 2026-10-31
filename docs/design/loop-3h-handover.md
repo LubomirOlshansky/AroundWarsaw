@@ -27,7 +27,7 @@ green (the user's standing yes for cloud sessions).
 
 ---
 
-You are doing loop 3h, "the demo loop", part 1, on Around Warsaw, a free, open-source (MIT) fan game: an isometric small-car arcade drive through the real centre of Warsaw, made in Godot 4.7.2, Mobile renderer, iOS first (Metal). The project is /home/user/AroundWarsaw.
+You are doing loop 3h, "the demo loop", part 1, on Around Warsaw, a free, open-source (MIT) fan game: an isometric small-car arcade drive through the real centre of Warsaw, made in Godot 4.7.2, Mobile renderer, iOS first (Metal). The project is the repository you are in.
 
 Act as the project's `gameplay-dev` agent: read `.claude/agents/gameplay-dev.md` first and follow it (lane, code style, gates, report), except where this brief says otherwise. Where a call is design (numbers, wording, order), also read `.claude/agents/game-designer.md` and make the call yourself (the user's standing rule: autopilot, make reasonable calls, park the question with the default you built).
 
