@@ -12,6 +12,7 @@ someone writes its lines.
 ## 2026-10-31
 - The first time you play, the game opens with a short camera flight over the Palace of Culture and Plac Defilad that lands behind your car. Tap to skip it.
 - A new game now starts facing the first kebab stand, the first delivery is a short hop up Marszałkowska, and the "new song" waits as a mixtape on the University Library's roof: fly the helicopter over it to pick it up.
+- The game remembers where you left the car: on the next launch the title offers "KONTYNUUJ" to carry on from there, or "NOWA GRA" to start over (it asks first, since a new game wipes your money and finds).
 - The story now stands out from the side jobs: the next main-line goal is a gold star on the minimap (always at its edge when far away) and on the full map, with a goal line under the map's title; side jobs keep their coloured dots and squares, and a small legend says which is which. The rival ladder asks for less respect, so the final race comes within about an hour.
 - Warszawa Centralna is rebuilt from the real map data: the glass hall under its wide, flat overhanging roof, the roof's saddle-shaped shells on rows of pillars, the lower wings at both ends, and at night the hall glowing white under a line of lamps.
 - The website's first city picture is new: Plac Defilad from above at golden hour, with the Palace, the new Museum of Modern Art and the building site beside it.

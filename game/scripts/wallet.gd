@@ -21,7 +21,7 @@ const PATH := "user://save.cfg"
 const VERSION := 2
 ## The sections this version reads and writes; any other is kept as it was (`_extra`).
 const SECTIONS := ["save", "wallet", "jobs", "best", "eggs", "police", "keep", "notes", "notes_chapters",
-		"polnoc", "tapes", "kadr", "kadr_photos", "garage", "districts", "district_jobs", "syrenki", "ladder", "intro", "cassettes"]
+		"polnoc", "tapes", "kadr", "kadr_photos", "garage", "districts", "district_jobs", "syrenki", "ladder", "intro", "cassettes", "session"]
 ## The easter eggs that count towards "found x/5".
 const EGGS := {"palma": "The Palm on Rondo de Gaulle'a", "pigeons": "Pigeons on Plac Defilad",
 		"barriers": "The wandering roadworks", "patelnia": "Patelnia by Metro Centrum",
@@ -88,6 +88,12 @@ var ladder := {}
 ## end card was shown. The save's [intro] section; a v2 file without it loads as nothing seen (no
 ## version bump: the section is only added).
 var intro := {}
+## Save and resume (2026-10-31): where the last session's car was, for "KONTYNUUJ" on the next
+## launch: x, z, yaw (radians), tunnel (1 when it was on a tunnel's floor) and at (unix seconds).
+## main.gd `_remember_spot` keeps it every few seconds and when the app goes to the background.
+## The save's [session] section; a file without it resumes at the start (no version bump: the
+## section is only added, and an older build keeps it as an unknown section).
+var session := {}
 ## The district the vehicle is in now (districts.gd sets it; not saved).
 var district := ""
 ## False with --nosave: nothing is read or written.
@@ -176,6 +182,8 @@ func load_save() -> void:
 		intro[key] = int(cfg.get_value("intro", key, 1))
 	for key in (cfg.get_section_keys("cassettes") if cfg.has_section("cassettes") else PackedStringArray()):
 		cassettes[key] = int(cfg.get_value("cassettes", key, 1))
+	for key in (cfg.get_section_keys("session") if cfg.has_section("session") else PackedStringArray()):
+		session[key] = cfg.get_value("session", key)
 
 
 ## Loop 3h slice 1: where the copy of a version-`version` file goes before it is migrated
@@ -251,6 +259,8 @@ func save() -> void:
 		cfg.set_value("intro", key, int(intro[key]))
 	for key in cassettes:
 		cfg.set_value("cassettes", key, int(cassettes[key]))
+	for key in session:
+		cfg.set_value("session", key, session[key])
 	for section in _extra:
 		for key in _extra[section]:
 			cfg.set_value(section, key, _extra[section][key])
@@ -283,8 +293,57 @@ func reset() -> void:
 	ladder.clear()
 	intro.clear()
 	cassettes.clear()
+	session.clear()
 	save()
 	changed.emit(zl, respect, 0)
+
+
+## Save and resume: the path of the copy `start_over` keeps of the old save (user://save.prev.cfg).
+func previous_path() -> String:
+	return path.get_basename() + ".prev.cfg"
+
+
+## Save and resume: anything worth resuming (money, respect, a job, a find, a beaten rival, a
+## guide beat, or a spot of the last session). A fresh save offers only "tap to drive".
+func has_progress() -> bool:
+	return zl != 0 or respect != 0 or not (jobs.is_empty() and eggs.is_empty() and notes.is_empty()
+			and districts.is_empty() and syrenki.is_empty() and ladder.is_empty() and intro.is_empty()
+			and paints.is_empty() and kadr.is_empty() and tapes.is_empty() and session.is_empty())
+
+
+## Save and resume: "NOWA GRA" confirmed. The old file is copied to previous_path() first (one
+## copy, the last one replaced), then the record is wiped as --reset-save does. Not with --nosave
+## (nothing is written) or a newer build's file (never overwritten: false, nothing done).
+func start_over() -> bool:
+	if newer:
+		return false
+	if persistent and FileAccess.file_exists(path):
+		DirAccess.copy_absolute(ProjectSettings.globalize_path(path), ProjectSettings.globalize_path(previous_path()))
+	reset()
+	print("wallet: a new game%s" % (" (the old save kept as %s)" % previous_path() if persistent else " (not saved)"))
+	return true
+
+
+## Save and resume: the car's spot for the next launch, saved only when it moved more than
+## `min_move` metres from the one kept (a parked car writes nothing). True when it was written.
+func remember_spot(pos: Vector3, yaw: float, tunnel: bool, now: int, min_move := 5.0) -> bool:
+	if session.has("x") and Vector2(float(session["x"]), float(session["z"])).distance_to(Vector2(pos.x, pos.z)) < min_move \
+			and bool(int(session.get("tunnel", 0))) == tunnel:
+		return false
+	session["x"] = snappedf(pos.x, 0.01)
+	session["z"] = snappedf(pos.z, 0.01)
+	session["yaw"] = snappedf(yaw, 0.001)
+	session["tunnel"] = 1 if tunnel else 0
+	session["at"] = now
+	save()
+	return true
+
+
+## Save and resume: the kept spot as [Vector3(x, 0, z), yaw, tunnel], or [] (none).
+func resume_spot() -> Array:
+	if not session.has("x") or not session.has("z"):
+		return []
+	return [Vector3(float(session["x"]), 0.0, float(session["z"])), float(session.get("yaw", 0.0)), int(session.get("tunnel", 0)) == 1]
 
 
 ## Pays `amount` złoty and `gain` respect, counts a finished job of `kind` (if any)
@@ -385,9 +444,9 @@ func egg_count() -> int:
 
 
 func summary() -> String:
-	return "%d zł, respect %d, jobs %s, best %s, eggs %d/%d, notebook %d, tapes %d, kadr %d, paint %s (%d bought), districts %d, syrenki %d, ladder %d, intro %d, save v%d" % [zl, respect,
+	return "%d zł, respect %d, jobs %s, best %s, eggs %d/%d, notebook %d, tapes %d, kadr %d, paint %s (%d bought), districts %d, syrenki %d, ladder %d, intro %d, resume %s, save v%d" % [zl, respect,
 			jobs, best, eggs_found(), egg_count(), notes.size(), tapes.size(), kadr.size(), paint, paints.size(), districts.size(),
-			syrenki.size(), ladder.size(), intro.size(), loaded_version]
+			syrenki.size(), ladder.size(), intro.size(), "yes" if session.has("x") else "no", loaded_version]
 
 
 ## "1 240 zł": thousands apart with a space, the Polish way.
