@@ -274,3 +274,9 @@ section > .head { margin-bottom: clamp(32px, 5vw, 56px); }
 .prose .day-count { font: 600 0.8rem var(--body); color: var(--ink-3); margin-left: 8px; white-space: nowrap; }
 .prose .links { display: flex; flex-wrap: wrap; gap: 10px; }
 .prose ul.day { padding-left: 1.2em; }
+
+/* The short page: three frames under Missions. */
+.trio { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2.4vw, 28px); max-width: calc(var(--wrap) + 160px); margin: 0 auto; padding: 0 var(--gutter); }
+.trio img { aspect-ratio: 16 / 10; }
+@media (max-width: 900px) { .trio { grid-template-columns: 1fr; gap: 28px; } }
+section { padding: clamp(48px, 7vw, 88px) 0; }

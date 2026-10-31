@@ -48,126 +48,8 @@
         "Zamek Królewski i trasa W-Z, która nurkuje pod placem.",
         "Zamek Królewski i plac Zamkowy w grze, pod spodem trasa W-Z"
       ]
-    },
-    {
-      "img": "konstytucji-dusk",
-      "w": 1266,
-      "h": 585,
-      "span": "half",
-      "en": [
-        "Plac Konstytucji",
-        "MDM at dusk. The lamps come on before you do.",
-        "Plac Konstytucji at dusk in the game: a small red car under the street lamps by the MDM blocks"
-      ],
-      "pl": [
-        "Plac Konstytucji",
-        "MDM o zmierzchu. Latarnie zapalają się szybciej niż Ty.",
-        "Plac Konstytucji o zmierzchu w grze: małe czerwone auto pod latarniami przy blokach MDM"
-      ]
-    },
-    {
-      "img": "varso-dusk-2",
-      "w": 1266,
-      "h": 585,
-      "span": "wide",
-      "en": [
-        "Varso and Rondo ONZ",
-        "Sunset on the glass, the business district still at work.",
-        "The towers of Varso and Rondo ONZ at dusk in the game"
-      ],
-      "pl": [
-        "Varso i rondo ONZ",
-        "Zachód słońca na szkle, biurowce dalej pracują.",
-        "Wieżowce Varso i ronda ONZ o zmierzchu w grze"
-      ]
-    },
-    {
-      "img": "frogs-kebab",
-      "w": 1920,
-      "h": 887,
-      "span": "pair",
-      "en": [
-        "A kebab stand, a Frogs",
-        "Every corner has both. Brands appear only as parodies.",
-        "A kebab stand with its glowing sign and a Frogs shop on a street corner in the game"
-      ],
-      "pl": [
-        "Budka z kebabem i Frogs",
-        "Na każdym rogu jedno i drugie. Marki tylko jako parodie.",
-        "Budka z kebabem ze świecącym szyldem i sklep Frogs na rogu ulicy w grze"
-      ]
-    },
-    {
-      "img": "narodowy-night",
-      "w": 1920,
-      "h": 884,
-      "span": "pair",
-      "en": [
-        "Stadion Narodowy",
-        "Red and white, lit all night, the Vistula in front.",
-        "Stadion Narodowy at night in the game, the bridge's lamps reflected in the Vistula"
-      ],
-      "pl": [
-        "Stadion Narodowy",
-        "Biało-czerwony, świeci całą noc, przed nim Wisła.",
-        "Stadion Narodowy nocą w grze, latarnie mostu odbite w Wiśle"
-      ]
     }
   ],
-  "moves": {
-    "en": [
-      [
-        "The helicopter",
-        "Swap the car for a rotor any time and land on flat roofs."
-      ],
-      [
-        "The słoiki run",
-        "Sunday at Centralna, mum's jars, a newcomer's flat in Powiśle. Mind the bumps."
-      ],
-      [
-        "Podwózka",
-        "Drive for the ride app that trusts its GPS more than it trusts you."
-      ],
-      [
-        "Street races",
-        "Seba from Praga is already revving."
-      ],
-      [
-        "Four radio stations",
-        "KEBAB FM, RONDO FM, MORDOR FM and, after dark, PÓŁNOC FM."
-      ],
-      [
-        "Day, night and rain",
-        "Or live time, with the real sun over Warsaw."
-      ]
-    ],
-    "pl": [
-      [
-        "Helikopter",
-        "W każdej chwili zamień auto na wirnik i ląduj na płaskich dachach."
-      ],
-      [
-        "Słoiki",
-        "Niedziela na Centralnym, słoiki od mamy, wynajęte mieszkanie na Powiślu. Uwaga na dziury."
-      ],
-      [
-        "Podwózka",
-        "Jeździsz dla aplikacji, która ufa GPS-owi bardziej niż Tobie."
-      ],
-      [
-        "Wyścigi",
-        "Seba z Pragi już grzeje silnik."
-      ],
-      [
-        "Cztery stacje radiowe",
-        "KEBAB FM, RONDO FM, MORDOR FM, a po zmroku PÓŁNOC FM."
-      ],
-      [
-        "Dzień, noc i deszcz",
-        "Albo czas na żywo, z prawdziwym słońcem nad Warszawą."
-      ]
-    ]
-  },
   "topics": {
     "en": [
       [
@@ -228,8 +110,8 @@
     "cta_free": "Free, no ads, MIT-licensed. Beta for iPhone and Android.",
     "radio_label": "On the car radio",
     "radio_lines": "Traffic on Marszałkowska: yes, as always <i>·</i> The Palace clock is right, we checked <i>·</i> Pigeons on Plac Defilad report no delays <i>·</i> Seba from Praga is warming up the engine <i>·</i> Next on Mordor FM: Monday <i>·</i> The roadworks continue. You keep driving <i>·</i>",
-    "city_title": "The real centre, block by block",
-    "city_lede": "About 21 km² of central Warsaw, from Arkadia to Stadion Narodowy and from MDM to the Old Town. Streets, bridges and trees come from OpenStreetMap and Poland's surveying office; the landmarks are built by hand.",
+    "city_title": "The real centre of Warsaw",
+    "city_lede": "About 21 km² from Arkadia to Stadion Narodowy, built from open map data.",
     "beta_title": "Get the beta",
     "beta_lede": "Leave your email and say which phone you have. You'll get an invite with the next build. Or just tell me what to build next.",
     "beta_ios": "iPhone: an invite to TestFlight, Apple's app for betas.",
@@ -258,25 +140,19 @@
     "foot_note": "Map:",
     "foot_parody": "Every brand in the game is a parody.",
     "nav_missions": "Missions",
-    "nav_lore": "Lore",
     "nav_open": "Open source",
     "tag_open": "Open source",
-    "hook": "A game about living in Warsaw, not just a map of it. Drive a small car (or a helicopter) through the real city centre: deliver a kebab at 3 a.m., answer rescue calls, talk your way past the city guard, and fill a notebook with 72 real places.",
+    "hook": "An open-source game for iPhone and Android about living in Warsaw. Drive a small car through the real city centre: kebab runs at 3 a.m., rescues, and a notebook of 72 real places.",
     "cta_source": "Source on GitHub",
     "missions_title": "Missions with a Warsaw accent",
-    "missions_lede": "Everything happens at real addresses, and the city talks back: Polish first, English underneath.",
-    "also_title": "And also",
-    "lore_title": "The city notebook",
-    "lore_lede": "MOJA WARSZAWA: 72 real places in nine chapters, from techno cellars to the river steps and the milk bars. Find one and the game writes it down, with a true fact and a local joke.",
-    "lore_shot_alt": "The MOJA WARSZAWA notebook open in the game on the entry for Lusterko, a club by the palm at Rondo de Gaulle'a",
-    "lore_list_label": "Entries from the notebook",
-    "open_title": "Open source, built in public",
-    "open_lede": "Around Warsaw is a free fan game made in the open. Read the code, follow what changed each day, see what's next on the backlog, or send a fix.",
-    "open_repo": "The code on GitHub",
-    "open_progress": "Progress, day by day",
-    "open_backlog": "The backlog",
-    "open_contribute": "How to contribute",
-    "author_title": "About the author"
+    "missions_lede": "Real addresses, and the city talks back in Polish and English.",
+    "open_title": "Open source",
+    "open_lede": "Free, MIT-licensed and built in public.",
+    "author_title": "About the author",
+    "open_repo": "Code on GitHub",
+    "open_wiki": "Design wiki",
+    "open_backlog": "Backlog",
+    "open_progress": "Daily progress"
   },
   "pl": {
     "lang": "pl",
@@ -300,8 +176,8 @@
     "cta_free": "Za darmo, bez reklam, licencja MIT. Beta na iPhone'a i Androida.",
     "radio_label": "W radiu w aucie",
     "radio_lines": "Na Marszałkowskiej korek. Tak, jak zawsze <i>·</i> Zegar na Pałacu chodzi dobrze, sprawdzaliśmy <i>·</i> Gołębie z placu Defilad nie zgłaszają opóźnień <i>·</i> Seba z Pragi grzeje silnik <i>·</i> Za chwilę w Mordor FM: poniedziałek <i>·</i> Remont trwa. Ty jedź <i>·</i>",
-    "city_title": "Prawdziwe centrum, kwartał po kwartale",
-    "city_lede": "Około 21 km² centrum Warszawy, od Arkadii po Stadion Narodowy i od MDM po Stare Miasto. Ulice, mosty i drzewa z OpenStreetMap i danych GUGiK; zabytki i wieżowce zbudowane ręcznie.",
+    "city_title": "Prawdziwe centrum Warszawy",
+    "city_lede": "Około 21 km² od Arkadii po Stadion Narodowy, z otwartych danych map.",
     "beta_title": "Zapisz się do bety",
     "beta_lede": "Zostaw e-mail i napisz, jaki masz telefon. Zaproszenie przyjdzie z następną wersją. Albo po prostu napisz, co zrobić dalej.",
     "beta_ios": "iPhone: zaproszenie do TestFlight, aplikacji Apple do bet.",
@@ -330,246 +206,69 @@
     "foot_note": "Mapa:",
     "foot_parody": "Wszystkie marki w grze to parodie.",
     "nav_missions": "Misje",
-    "nav_lore": "Historia",
     "nav_open": "Open source",
     "tag_open": "Open source",
-    "hook": "Gra o tym, jak się żyje w Warszawie, a nie sama mapa. Jeździsz małym autem (albo helikopterem) po prawdziwym centrum: dowozisz kebab o trzeciej, odbierasz wezwania, tłumaczysz się strażnikowi miejskiemu i zapisujesz w zeszycie 72 prawdziwe miejsca.",
+    "hook": "Open-source'owa gra na iPhone'a i Androida o życiu w Warszawie. Jeździsz małym autem po prawdziwym centrum: kebab o trzeciej, ratunek i zeszyt 72 prawdziwych miejsc.",
     "cta_source": "Kod na GitHubie",
     "missions_title": "Misje z warszawskim akcentem",
-    "missions_lede": "Wszystko dzieje się pod prawdziwymi adresami, a miasto odpowiada: najpierw po polsku, pod spodem po angielsku.",
-    "also_title": "A poza tym",
-    "lore_title": "Zeszyt miasta",
-    "lore_lede": "MOJA WARSZAWA: 72 prawdziwe miejsca w dziewięciu rozdziałach, od techno w piwnicach po schodki nad Wisłą i bary mleczne. Znajdź jedno, a gra je zapisze, z prawdziwą ciekawostką i lokalnym żartem.",
-    "lore_shot_alt": "Zeszyt MOJA WARSZAWA otwarty w grze na wpisie o Lusterku, klubie przy palmie na rondzie de Gaulle'a",
-    "lore_list_label": "Wpisy z zeszytu",
-    "open_title": "Open source, robione publicznie",
-    "open_lede": "Around Warsaw to darmowa gra fanowska robiona w otwarty sposób. Przeczytaj kod, zobacz, co zmieniło się każdego dnia i co jest dalej w planach, albo wyślij poprawkę.",
+    "missions_lede": "Prawdziwe adresy, a miasto odpowiada po polsku i angielsku.",
+    "open_title": "Open source",
+    "open_lede": "Za darmo, na licencji MIT, robione publicznie.",
+    "author_title": "O autorze",
     "open_repo": "Kod na GitHubie",
-    "open_progress": "Postępy dzień po dniu",
+    "open_wiki": "Wiki projektowa",
     "open_backlog": "Lista zadań",
-    "open_contribute": "Jak pomóc",
-    "author_title": "O autorze"
+    "open_progress": "Postępy dzień po dniu"
   },
   "missions": [
     {
       "img": "m-courier-race",
-      "who": "KEBAB → Obożna 1",
-      "quote": [
-        "GORĄCY 78% · Pędzik: 1309 m przed tobą",
-        "Hot 78% · The courier is 1309 m ahead"
-      ],
       "en": [
         "Kebab at 3 a.m.",
-        "A stand hands you an order for a real address. The kebab cools as you drive and the tip cools with it. At night a courier on a bike may race you to the door: he takes the parks and the crossings, you take the road.",
-        "A night kebab delivery in the game: the order card shows the kebab at 78 % heat, and a bike courier 1.3 km ahead"
+        "Deliver to a real address before it goes cold. A bike courier may race you.",
+        "A night kebab delivery in the game, with a courier racing the player"
       ],
       "pl": [
         "Kebab o trzeciej",
-        "Budka daje zamówienie pod prawdziwy adres. Kebab stygnie w trakcie jazdy, a napiwek razem z nim. W nocy kurier na rowerze może rzucić wyzwanie: on jedzie przez parki i przejścia, Ty ulicą.",
-        "Nocna dostawa kebaba w grze: karta zamówienia pokazuje kebab na 78 % ciepła i kuriera rowerowego 1,3 km przed autem"
+        "Dowieź pod prawdziwy adres, zanim wystygnie. Kurier na rowerze może się ścigać.",
+        "Nocna dostawa kebaba w grze, kurier na rowerze ściga gracza"
       ]
     },
     {
       "img": "m-escort",
-      "who": "DO SZPITALA",
-      "quote": [
-        "Pacjent na pokładzie: do zielonego światła",
-        "Patient on board: head for the green beacon"
-      ],
       "en": [
         "Rescue calls",
-        "Someone is stuck on a real roof, a real square or a sandbank of the Vistula. Get there by car or by helicopter, pick them up and race the clock to a real hospital. The police may even escort you.",
-        "A rescue in the game: the car heads to hospital with a patient, 2:45 left, and a police escort adds ten seconds"
+        "Pick someone up from a roof or a sandbar and race to a real hospital.",
+        "A rescue in the game: a car with a patient heads for the hospital"
       ],
       "pl": [
         "Wezwania ratunkowe",
-        "Ktoś utknął na prawdziwym dachu, placu albo łasze na Wiśle. Dojedź autem albo dolecisz helikopterem, zabierz go i zdąż do prawdziwego szpitala. Policja czasem nawet eskortuje.",
-        "Akcja ratunkowa w grze: auto wiezie pacjenta do szpitala, zostało 2:45, a policyjna eskorta dodaje dziesięć sekund"
+        "Zabierz kogoś z dachu albo łachy i zdąż do prawdziwego szpitala.",
+        "Akcja ratunkowa w grze: auto wiezie pacjenta do szpitala"
       ]
     },
     {
-      "img": "m-lezak",
-      "who": "LEŻAKI 1/10 · BAGAŻNIK 5/5",
-      "quote": [
-        "Bagażnik pełny: wracaj do strefy",
-        "The boot is full: back to the zone"
-      ],
+      "img": "lore-notebook",
       "en": [
-        "The Leżak round-up",
-        "Rental e-scooters lie all over the pavements at night. Collect ten of them, five fit in the boot at a time. Gently: under 15 km/h, or they won't get in.",
-        "The Leżak round-up in the game at night: the boot holds five scooters, the depot is 99 m away"
+        "72 places in a notebook",
+        "Find a place, and the game writes down a true fact and a local joke.",
+        "The MOJA WARSZAWA notebook open in the game"
       ],
       "pl": [
-        "Zbieranie Leżaków",
-        "W nocy hulajnogi na minuty leżą na każdym chodniku. Zbierz dziesięć, do bagażnika wchodzi pięć naraz. Delikatnie: poniżej 15 km/h, inaczej nie wejdą.",
-        "Zbieranie Leżaków nocą w grze: bagażnik mieści pięć hulajnóg, baza jest 99 m dalej"
-      ]
-    },
-    {
-      "img": "m-guard",
-      "who": "STRAŻNIK HENIO",
-      "quote": [
-        "Panie, tu jest deptak, a nie Wisłostrada!",
-        "Sir, this is a promenade, not the Wisłostrada!"
-      ],
-      "en": [
-        "The gentle police",
-        "Speed traps, the lizak and the city guard on the promenades. Never a fine, never a game over: a talking-to, a wheel clamp for ten seconds, and a chase that ends when the shift does.",
-        "A city guard stops the player's car in a pedestrian zone in the game and says it is a promenade, not the Wisłostrada"
-      ],
-      "pl": [
-        "Łagodna policja",
-        "Suszarki, lizak i straż miejska na deptakach. Nigdy mandat, nigdy koniec gry: pogadanka, blokada na koło na dziesięć sekund i pościg, który kończy się razem ze zmianą.",
-        "Strażnik miejski zatrzymuje auto gracza w strefie pieszej i mówi, że to deptak, a nie Wisłostrada"
+        "72 miejsca w zeszycie",
+        "Znajdź miejsce, a gra zapisze prawdziwą ciekawostkę i lokalny żart.",
+        "Zeszyt MOJA WARSZAWA otwarty w grze"
       ]
     }
   ],
-  "lore": [
-    {
-      "place": "Lusterko",
-      "chapter": {
-        "en": "Night and techno",
-        "pl": "Noc i techno"
-      },
-      "joke": [
-        "Otwiera się, gdy inni zamykają. W niedzielę o dziewiątej też.",
-        "It opens when the rest close. At nine on a Sunday, too."
-      ],
-      "fact": {
-        "en": "The palm at Rondo de Gaulle'a has stood here since 2002.",
-        "pl": "Palma przy rondzie de Gaulle'a stoi tu od 2002 roku."
-      }
-    },
-    {
-      "place": "Plac Zbawiciela",
-      "chapter": {
-        "en": "Queueing for the trend",
-        "pl": "Kolejka po trend"
-      },
-      "joke": [
-        "Przychodzi się tu zobaczyć, kto przyszedł się pokazać.",
-        "You come here to see who came here to be seen."
-      ],
-      "fact": {
-        "en": "The MDM blocks round the square were built in 1950–1952.",
-        "pl": "Bloki MDM wokół placu zbudowano w latach 1950–1952."
-      }
-    },
-    {
-      "place": "Bar Pyzowy",
-      "chapter": {
-        "en": "Food",
-        "pl": "Jedzenie"
-      },
-      "joke": [
-        "O trzynastej w kolejce stoi student, emeryt i prezes. Wszyscy po pyzy.",
-        "At one p.m. the queue holds a student, a pensioner and a CEO. All for dumplings."
-      ],
-      "fact": {
-        "en": "Warsaw's first milk bar opened in 1896.",
-        "pl": "Pierwszy warszawski bar mleczny otwarto w 1896 roku."
-      }
-    },
-    {
-      "place": "Plac Konstytucji",
-      "chapter": {
-        "en": "Retro and chic",
-        "pl": "Retro i szyk"
-      },
-      "joke": [
-        "Piłka wisi w powietrzu od sześćdziesięciu lat. Nikt jej nie odbił.",
-        "The ball's been in the air for sixty years. Nobody has returned it."
-      ],
-      "fact": {
-        "en": "The volleyball-player neon here dates from 1961.",
-        "pl": "Neon z siatkarką pochodzi z 1961 roku."
-      }
-    }
-  ],
-  "lore_shots": [
-    {
-      "img": "lore-kaseta",
-      "en": [
-        "KASETA, then and now",
-        "Twenty tapes of the city since 2010. Play one where it happened: June 2012, the fan zone, the whole square singing.",
-        "The KASETA card in the game on Plac Defilad: June 2012, the Euro fan zone and a giant screen"
-      ],
-      "pl": [
-        "KASETA, kiedyś i dziś",
-        "Dwadzieścia kaset z miastem od 2010 roku. Puść ją tam, gdzie to się działo: czerwiec 2012, strefa kibica, cały plac śpiewa.",
-        "Karta KASETA w grze na placu Defilad: czerwiec 2012, strefa kibica i wielki ekran"
-      ]
-    },
-    {
-      "img": "lore-smolna",
-      "en": [
-        "PÓŁNOC FM, after midnight",
-        "The late station knows the gossip: a new café on Plac Zbawiciela. The last one was new on Thursday.",
-        "Night in the game by a club queue, with a PÓŁNOC FM radio line about a new café on Plac Zbawiciela"
-      ],
-      "pl": [
-        "PÓŁNOC FM, po północy",
-        "Nocna stacja zna plotki: na Zbawiciela nowa kawiarnia. Poprzednia była nowa w czwartek.",
-        "Noc w grze przy kolejce do klubu, w radiu PÓŁNOC FM mówi o nowej kawiarni na placu Zbawiciela"
-      ]
-    }
-  ],
-  "open_facts": {
-    "en": [
-      [
-        "Licence",
-        "MIT. The code, the tools and the map pipeline are all on GitHub."
-      ],
-      [
-        "Engine",
-        "Godot 4, GDScript, the Mobile renderer. Runs at 60 fps on an iPhone 11."
-      ],
-      [
-        "Map",
-        "OpenStreetMap streets and GUGiK's 3D buildings, terrain and laser-scanned trees."
-      ],
-      [
-        "Built",
-        "In public since 27 October 2026, with changes landing every day."
-      ],
-      [
-        "Privacy",
-        "No ads, no purchases, no tracking. The game works offline."
-      ]
-    ],
-    "pl": [
-      [
-        "Licencja",
-        "MIT. Kod, narzędzia i cały proces budowy mapy są na GitHubie."
-      ],
-      [
-        "Silnik",
-        "Godot 4, GDScript, renderer Mobile. 60 kl./s na iPhonie 11."
-      ],
-      [
-        "Mapa",
-        "Ulice z OpenStreetMap, budynki 3D, teren i drzewa ze skanu laserowego GUGiK."
-      ],
-      [
-        "Powstaje",
-        "Publicznie od 27 października 2026, zmiany codziennie."
-      ],
-      [
-        "Prywatność",
-        "Bez reklam, zakupów i śledzenia. Gra działa bez internetu."
-      ]
-    ]
-  },
   "author": {
     "en": [
-      "Hi, I'm Lubomir Olshansky. By day I'm a mobile developer, building iOS and Kotlin Multiplatform apps at a bank in Poland. I've lived in Warsaw for twelve years.",
-      "As a kid I dreamed of playing a game set in the city I lived in: my streets, my tram stops, the places I actually knew. For years that stayed a dream. Then I saw <a href=\"https://bedirhanyildirim.com/pixel-art-map-of-warsaw/\">Isometric Warsaw</a>, a pixel-art map of the city built from open data, and what generative AI now lets one person build, and it suddenly looked doable.",
-      "So I'm making it. Not just a map of Warsaw, but what it's like to live here: the kebab at 3 a.m., the queue outside the club at dawn, mum's jars on a Sunday, the city guard reminding you it's a promenade. If you live here too, tell me what's missing."
+      "Hi, I'm Lubomir Olshansky. By day I build iOS and Kotlin Multiplatform apps at a bank in Poland, and I've lived in Warsaw for twelve years.",
+      "As a kid I dreamed of a game set in the city I live in. When I saw <a href=\"https://bedirhanyildirim.com/pixel-art-map-of-warsaw/\">Isometric Warsaw</a> and what generative AI makes possible, it finally looked doable. I want it to hold what living here is like, not just the map."
     ],
     "pl": [
-      "Cześć, jestem Lubomir Olshansky. Na co dzień jestem programistą mobilnym: tworzę aplikacje na iOS i w Kotlin Multiplatform w banku w Polsce. W Warszawie mieszkam od dwunastu lat.",
-      "Jako dziecko marzyłem o grze w mieście, w którym mieszkam: z moimi ulicami, przystankami i miejscami, które naprawdę znam. Przez lata to było tylko marzenie. Potem zobaczyłem <a href=\"https://bedirhanyildirim.com/pixel-art-map-of-warsaw/\">Isometric Warsaw</a>, pikselową mapę miasta z otwartych danych, i to, co generatywna AI pozwala dziś zbudować jednej osobie. I nagle wydało się to realne.",
-      "Więc ją robię. Nie samą mapę Warszawy, tylko to, jak się tu żyje: kebab o trzeciej, kolejka do klubu o świcie, słoiki od mamy w niedzielę, strażnik, który przypomina, że to deptak. Jeśli też tu mieszkasz, napisz, czego brakuje."
+      "Cześć, jestem Lubomir Olshansky. Na co dzień tworzę aplikacje na iOS i w Kotlin Multiplatform w banku w Polsce, a w Warszawie mieszkam od dwunastu lat.",
+      "Jako dziecko marzyłem o grze w mieście, w którym mieszkam. Gdy zobaczyłem <a href=\"https://bedirhanyildirim.com/pixel-art-map-of-warsaw/\">Isometric Warsaw</a> i to, co daje generatywna AI, wreszcie wyglądało to na wykonalne. Chcę, żeby było w niej to, jak się tu żyje, a nie sama mapa."
     ]
   }
 }

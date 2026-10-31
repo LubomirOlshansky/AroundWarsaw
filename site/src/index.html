@@ -46,7 +46,6 @@
     <nav aria-label="{{nav_label}}">
       <a class="wide" href="#city">{{nav_city}}</a>
       <a class="wide" href="#missions">{{nav_missions}}</a>
-      <a class="wide" href="#lore">{{nav_lore}}</a>
       <a class="wide" href="#open">{{nav_open}}</a>
       <a class="nav-beta" href="#beta">{{nav_beta}}</a>
       <a class="lang" href="{{other_home}}" hreflang="{{other_lang}}" lang="{{other_lang}}" aria-label="{{other_lang_label}}">{{other_lang_short}}</a>
@@ -93,33 +92,8 @@
     <h2 id="missions-title">{{missions_title}}</h2>
     <p class="lede">{{missions_lede}}</p>
   </div>
-  <div class="runs">
+  <div class="trio">
 {{missions}}
-  </div>
-  <div class="wrap">
-    <h3 class="also">{{also_title}}</h3>
-    <ul class="moves">
-{{moves}}
-    </ul>
-  </div>
-</section>
-
-<section class="lore" id="lore" aria-labelledby="lore-title">
-  <div class="wrap lore-grid">
-    <div class="lore-intro">
-      <h2 id="lore-title">{{lore_title}}</h2>
-      <p class="lede">{{lore_lede}}</p>
-      <picture class="lore-shot">
-        <source media="(max-width: 700px)" srcset="/img/game/lore-notebook-960.webp">
-        <img src="/img/game/lore-notebook.webp" alt="{{lore_shot_alt}}" width="1920" height="884" loading="lazy" decoding="async">
-      </picture>
-    </div>
-    <ol class="notebook" aria-label="{{lore_list_label}}">
-{{lore}}
-    </ol>
-  </div>
-  <div class="wrap lore-pair">
-{{lore_shots}}
   </div>
 </section>
 
@@ -128,16 +102,12 @@
     <div>
       <h2 id="open-title">{{open_title}}</h2>
       <p class="lede">{{open_lede}}</p>
-      <ul class="links open-links">
-        <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>{{open_repo}}</a></li>
-        <li><a href="/progress/">{{open_progress}}<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
-        <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw/blob/main/docs/BACKLOG.md">{{open_backlog}}</a></li>
-        <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw/blob/main/CONTRIBUTING.md">{{open_contribute}}</a></li>
-      </ul>
     </div>
-    <dl class="stack">
-{{open_facts}}
-    </dl>
+    <ul class="links open-links">
+      <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>{{open_repo}}</a></li>
+      <li><a href="https://wiki.aroundwarsaw.app">{{open_wiki}}</a></li>
+      <li><a href="/progress/">{{open_progress}}<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+    </ul>
   </div>
 </section>
 
@@ -149,7 +119,6 @@
       <ul class="links">
         <li><a href="https://t.me/olshansky93"><svg aria-hidden="true"><use href="#i-telegram"/></svg>Telegram</a></li>
         <li><a href="https://www.linkedin.com/in/lubomir-olshansky/"><svg aria-hidden="true"><use href="#i-linkedin"/></svg>LinkedIn</a></li>
-        <li><a href="https://github.com/LubomirOlshansky"><svg aria-hidden="true"><use href="#i-github"/></svg>GitHub</a></li>
       </ul>
     </div>
   </div>

@@ -138,35 +138,12 @@ def landing(strings: dict, lang: str) -> str:
             f"      <figcaption><h3>{title}</h3><p>{line}</p></figcaption>\n"
             f"    </figure>")
     values["reel"] = "\n".join(figs)
-    # Missions: a big in-game shot (the HUD on) and what happens, with the game's own line, PL over EN.
-    runs = []
-    for i, m in enumerate(strings["missions"]):
-        title, text, alt = (html.escape(t) for t in m[lang])
-        q_pl, q_en = (html.escape(t) for t in m["quote"])
-        who = html.escape(m["who"])
-        runs.append(
-            f'    <article class="run{" run-flip" if i % 2 else ""}">\n'
-            f'      {pic(m["img"], 1920, 887, alt)}\n'
-            f'      <div class="run-text"><h3>{title}</h3><p>{text}</p>\n'
-            f'        <blockquote class="bubble"><p class="who">{who}</p><p lang="pl">{q_pl}</p><p class="en" lang="en">{q_en}</p></blockquote></div>\n'
-            f"    </article>")
-    values["missions"] = "\n".join(runs)
-    # City lore: notebook entries as the game prints them (places.json), PL over EN, and the fact.
-    values["lore"] = "\n".join(
-        f'      <li class="entry"><p class="entry-head"><span class="place">{html.escape(e["place"])}</span>'
-        f'<span class="chapter">{html.escape(e["chapter"][lang])}</span></p>'
-        f'<p class="joke" lang="pl">{html.escape(e["joke"][0])}</p><p class="joke-en" lang="en">{html.escape(e["joke"][1])}</p>'
-        f'<p class="fact">{html.escape(e["fact"][lang])}</p></li>'
-        for e in strings["lore"])
-    values["lore_shots"] = "\n".join(
-        f'    <figure class="tile">\n      {pic(s["img"], 1920, 887, html.escape(s[lang][2]))}\n'
-        f"      <figcaption><h3>{html.escape(s[lang][0])}</h3><p>{html.escape(s[lang][1])}</p></figcaption>\n    </figure>"
-        for s in strings["lore_shots"])
-    values["open_facts"] = "\n".join(
-        f"      <div><dt>{html.escape(a)}</dt><dd>{html.escape(b)}</dd></div>" for a, b in strings["open_facts"][lang])
+    # Missions: three short tiles (shot, title, one line).
+    values["missions"] = "\n".join(
+        f'    <figure class="tile">\n      {pic(m["img"], 1920, 887, html.escape(m[lang][2]))}\n'
+        f"      <figcaption><h3>{html.escape(m[lang][0])}</h3><p>{html.escape(m[lang][1])}</p></figcaption>\n    </figure>"
+        for m in strings["missions"])
     values["author_body"] = "\n".join(f"      <p>{p}</p>" for p in strings["author"][lang])
-    values["moves"] = "\n".join(
-        f"      <li><h3>{html.escape(a)}</h3><p>{html.escape(b)}</p></li>" for a, b in strings["moves"][lang])
     values["topics"] = "\n".join(
         f'        <label><input type="radio" name="topic" value="{html.escape(v)}"{" checked" if i == 0 else ""}>'
         f"<span>{html.escape(t)}</span></label>"

@@ -11,7 +11,7 @@ someone writes its lines.
 
 ## 2026-10-31
 
-- A new website: the newest screenshots, the missions, the city notebook, open source and a word from the author.
+- A new, shorter website: the newest screenshots, three missions, open source, a word from the author.
 - The map grows north: Rondo Radosława, Arkadia and the Forest tower.
 - Plac Piłsudskiego is complete, with Hotel Europejski, the Metropolitan, Hotel Wiktoria and the Tomb of the Unknown Soldier.
 - Muzeum Narodowe is a real model now.
