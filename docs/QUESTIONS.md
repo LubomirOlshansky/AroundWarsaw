@@ -18,6 +18,12 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · driving · quest stop assist** — Every pickup and drop-off (rescue, Podwózka,
+  kebab and słoiki doors, "Na czasie", the Leżak depot) now has a 9 m ring (was 6-7), counts
+  under ~16 km/h as stopped (was 4-9 km/h), and the car brakes itself into the ring when it heads
+  in and holds still ~1.5 s; BRAKE at a standstill reverses out. Always on, no setting. Default
+  built: that. Alternatives: a setting to switch the auto-brake off, or the assist only on touch
+  controls (keyboard players get it too now).
 - **2026-10-31 · gameplay · the main line** (docs/design/main-line.md) — The main line is the
   guide (first 10 min), then the ladder's next rival (a gold star on the minimap and the full map,
   pinned to the rim at any distance), then the final at night; the respect gates are lowered to

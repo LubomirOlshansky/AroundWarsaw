@@ -3,6 +3,13 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Quest pickups and drop-offs too hard to stop on (the user, 2026-10-31)
+- **Landed** (thread "Make quest pickup and dropoff easier"): stop_assist.gd, one shared 9 m
+  ring and ~16 km/h "stopped" for every car stop zone, and car.gd's stop assist (brakes into the
+  ring when heading in, holds for the quest's hold, never touches a car passing by;
+  check_stop_assist.gd). Left: F to feel it on the phone (is the glide-in too firm or too
+  soft: StopAssist.DECEL 9 m/s²; does a 9 m ring reach across the road at narrow doors).
+
 ## Top priority: a game-like full map with teleport (the user, 2026-10-31)
 - **Landed** (thread "Make the map fun and game-like"): the full map in its own poster style
   (map_art.gd), 25 landmark pins (map_icons.gd), hold 0.6 s to teleport, the cards behind ≡.
