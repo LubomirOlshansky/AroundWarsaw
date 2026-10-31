@@ -32,6 +32,9 @@ const Wallet := preload("res://scripts/wallet.gd")
 const EggBook := preload("res://scripts/egg_book.gd")
 const Tape := preload("res://scripts/tape.gd")
 const Fotka := preload("res://scripts/fotka.gd")
+## The garage loop: Warsztat u Mirka's paint card (garage.gd, garage_card.gd).
+const Garage := preload("res://scripts/garage.gd")
+const Dialogue := preload("res://scripts/dialogue.gd")
 ## Loop 2d-1: Podwózka's card words.
 const RideRules := preload("res://scripts/ride_rules.gd")
 ## Width x height in pixels (landscape): the user's 6.9" Pro Max, the 6.1" class, a computer
@@ -316,6 +319,7 @@ func _check_screen(screen: Vector2i) -> int:
 	kadr.free()
 	notes_wallet.free()
 	count += await _check_fotka(vp, hud, tag)
+	count += await _check_garage(vp, hud, tag)
 	var bench := "AROUND WARSAW bench (loop 2b) · BENCH · 2026-10-28 16:42:59\ndevice iPhone17,2 · iOS 26.0 · Apple A18 Pro GPU (metal, mobile) · Apple A18 Pro\nscreen 2868x1320 @ 120 Hz · image 1434x660 (×2) · view 80 m · quality Auto→High fallback (iPhone17,2) · traffic Normal · Day · Clear · cap 60 fps · Point\nthermal state: not readable from Godot; a phone that warms up shows it as falling fps per 10 s\nfps 59.9 avg · 1% low 55.3 · worst frame 25.0 ms · late 0.4% (over 17.7 ms) · missed refreshes 12 (0.4%) · 3300 frames in 55 s\nfps per 10 s: 60 60 60 60 60 60 · governor held: GPU 2/2 · CPU 2/2, wide, 12 changes\nframe 16.69 ms · main thread: process 2.10, physics 0.40, draw 13.90 · 3D view: render CPU 0.60, GPU n/a (Metal)\ndraw calls 141 · objects 410 · triangles 0.42 M (all passes, as the overlay counts them)\nmain pass: 50 draws, 50 objects, 0.24 M tris · shadow pass: 33 draws, 33 objects, 0.13 M tris · 2D: 58 draws\nscripts 1.90 ms: traffic 0.70 · traffic bodies 0.05 · trams 0.25 · people 0.30 · rivals 0.05 · jobs+eggs 0.10\n  jobs physics 0.01 · sound 0.04 · hud+minimap 0.20 · bubbles 0.05 · dialogue 0.01\ncars on screen 15 · driving 31 · people 48\nmemory: static 640 MB · video 310 MB (textures 120, buffers 150) · 3 pipeline compilations"
 	hud.show_bench_card(bench)
 	await process_frame
@@ -460,6 +464,63 @@ func _check_fotka(vp: SubViewport, hud: CanvasLayer, tag: String) -> int:
 		problems.append("%s: closing left its layer up or the HUD hidden" % where)
 	f.queue_free()
 	return 1
+
+
+## The garage loop: the paint card open (the swatches, the action, WYJAZD), in three states (the
+## paint on the car, one to buy, one short of money, the gold one locked): every button 44 pt and
+## inside the safe area, the card inside it unshrunk, no two buttons overlapping, the texts big
+## enough; WYJAZD closes it.
+func _check_garage(vp: SubViewport, hud: CanvasLayer, tag: String) -> int:
+	var pt: float = hud.pt
+	var safe: Rect2 = hud.safe_rect()
+	var w: Node = Wallet.new()
+	w.persistent = false
+	w.zl = 12345
+	vp.add_child(w)
+	var d: Node = Dialogue.new()
+	vp.add_child(d)
+	var g: Node = Garage.new()
+	g.wallet = w
+	g.hud = hud
+	g.dialogue = d
+	g.eggs_found = func() -> int: return 2
+	vp.add_child(g)
+	g.open_card()
+	var states := 0
+	for pick in ["red", "pink", "black", "gold"]:
+		if pick == "black":
+			w.zl = 7
+		g.card.pick(pick)
+		await process_frame
+		await process_frame
+		var where := "%s garage card (%s)" % [tag, pick]
+		var rects: Dictionary = g.card.ui_rects()
+		var card: Rect2 = rects["card"]
+		if not safe.grow(0.5).encloses(card):
+			problems.append("%s: the card %s sticks out of the safe area %s" % [where, _pts(card, pt), _pts(safe, pt)])
+		var names := rects.keys()
+		names.erase("card")
+		for a in names.size():
+			var ra: Rect2 = rects[names[a]]
+			_check_touch("%s %s" % [where, names[a]], ra, pt, safe)
+			if not card.grow(0.5).encloses(ra):
+				problems.append("%s: %s is outside the card" % [where, names[a]])
+			for b in range(a + 1, names.size()):
+				if ra.intersection(rects[names[b]]).get_area() > pt * pt:
+					problems.append("%s: %s overlaps %s" % [where, names[a], names[b]])
+		_check_fonts(g.card, where, pt)
+		if verbose:
+			print("  %s: card %s, action %s" % [where, _pts(card, pt), _pts(rects["action"], pt)])
+		states += 1
+	(g.card.get("_leave") as Button).pressed.emit()
+	await process_frame
+	if g.card.visible or g.is_open():
+		problems.append("%s garage card: WYJAZD did not close it" % tag)
+	g.card.queue_free()
+	g.queue_free()
+	d.queue_free()
+	w.queue_free()
+	return states
 
 
 ## 2026-10-30: RADIO tapped changes the station; held RADIO_HOLD s it skips the track once and

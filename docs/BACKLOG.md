@@ -1355,7 +1355,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (`fotka.gd`, `data/kadr.json`'s 15 Kadr spots), the notebook's SEKRETY / KASETA / KADR pages,
   `check_eggs` and `check_tape` (verify steps `eggs`, `tape`; quick set and CI), `check_hud`'s
   new pages and Fotka's controls, the flags (DEVELOPMENT.md "Fotka, Spacer, KASETA and the eggs").
-- **The 19 waiting eggs** and what wakes each: E01 E21 the garage's paint; ~~E03 the dawn crowd
+- **The 19 waiting eggs** and what wakes each: ~~E01 E21 the garage's paint~~ (woken in the garage
+  loop: 1 waits now, E35); ~~E03 the dawn crowd
   and the Dawn look (MW-3); E04 the patrol cars parked by the clubs (MW-3); E15 the guitarist
   on the steps (MW-3)~~ (woken in loop MW-3: 16 wait now); ~~E16 E27 the dog walkers (MW-4); E18 E19
   Wiralek's trend cycle (MW-4)~~; ~~E23 E25 the night buses at Centralny (MW-3 skipped them: "From
@@ -1407,8 +1408,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   then E23 and E25 only need their triggers (drop `waits`).~~ Done in the night-buses loop
   (`buses.gd`; traffic.gd `send_to_stop`, `add_bus`, `let_go`, `night_sign`; "From the night
   buses loop").
-- **E01 and `car_black`** wait for the garage's paint (the car line fires; the black car's line
-  and the egg need a paint the player chose).
+- ~~**E01 and `car_black`** wait for the garage's paint (the car line fires; the black car's line
+  and the egg need a paint the player chose).~~ Done in the garage loop ("From the garage loop").
 - ~~**Level 26's roof crowd**: the roof grid (`map.roof_height`) has nothing over 40 m at
   level_26's resolved point, so no roof crowd is built.~~ Done (F's asks, 2026-10-30): the hint
   was 520 m west of the tower; `near` now on it.
@@ -1680,3 +1681,32 @@ Small problems that agents reported or that showed up in screenshots. They are f
   named by line.
 - **Night**: it runs by day only, so its hidden third car's tail glow isn't missed; with
   `--old-tram` at night the trailer shows its tail lamps but no red glow on the rails.
+
+## From the garage loop (Warsztat u Mirka and the paint jobs, 2026-10-31)
+
+- Done: the garage on Brzeska in Praga (a dashed blue ring, a diamond on the minimap and the full
+  map; shown after the first earnings, a toast the first time), the paint card (pauses the game;
+  8 paints: factory red free, cream 150, pea green 180, blue 200, yellow 250, black 300, pink 350,
+  gold free at 5 egg cards), owned paints kept and switched free, saved in `[garage]`; `car.gd`
+  `set_paint`; Mirek's lines (dialogue.json `garage`); E01 (black at Lusterko's door, Fri/Sat
+  23-06, +50, `car_black`) and E21 (green, 2 s at Glon, +15): 46 eggs reachable, 1 waiting (E35).
+  `check_garage` (verify `garage`, quick and CI); `check_hud` lays the card out; `--paint=`,
+  `--garage[=ring]`, `--garage-log` (DEVELOPMENT.md "The garage").
+- **The 3 cars** (DEMO 6.3: the hatchback, a boxy estate and a tiny 1970s-style city car, invented
+  shapes) are not built: a later loop (models.gd's shapes, the card's second row, their feel in
+  car.gd: driving lane).
+- **The horn tune** (DEMO 6.3: collectibles unlock a horn tune) is not built: a later item with
+  the horn's sound (buses.gd's horn button).
+- **No sign on the workshop**: the venue neon fascias (storefronts.gd) come from places.json
+  places; a "WARSZTAT" sign needs a place (or a sign hook of its own) and the letters in the neon
+  atlas. Until then the ring and the diamond mark it.
+- **Prices are a guess** (150-350 zł, black 300; the gold one at 5 egg cards): tune with F on the
+  phone against how fast the złoty come in the first 15 minutes.
+- **The unlock is "after the first earnings"**, not the beat's clock (10:00 of play): with the demo
+  script's first order at 0:30 it shows within the first minute. Open Question for the designer.
+- **The bouncer's `car` lines name a red hatchback** ("Czerwony hatchback. Dziś wchodzi tylko
+  czerń.") whatever the paint: with another non-black paint it is a white lie. A `car_red` tag (the
+  designer's words) would fix it.
+- **Brzeska is one-way and narrow** (3 m, one lane): the ring covers the street; a car coming the
+  other way still drives in. The workshop could move to a wider kerb (map lane: a service way's
+  mouth on Brzeska) if F finds it awkward.

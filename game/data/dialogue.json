@@ -1874,5 +1874,91 @@
       "Leżak, który stoi. W swojej strefie. Ktoś powinien to zgłosić.",
       "A Leżak standing up. In its own parking zone. Somebody should report this."
     ]
+  ],
+  "garage": [
+    [
+      "Wjeżdżaj. Tylko nie na kanał, tam śpi kot.",
+      "Drive in. Just not over the pit, the cat sleeps there.",
+      {
+        "only": "hello"
+      }
+    ],
+    [
+      "Mirek, od lat na Brzeskiej. Lakier od ręki, kawa z fusami.",
+      "Mirek, on Brzeska for years. Paint while you wait, coffee with grounds.",
+      {
+        "only": "hello"
+      }
+    ],
+    [
+      "Schnie do jutra. Ale jeździć możesz już dziś.",
+      "Dries by tomorrow. But you can drive it today.",
+      {
+        "only": "buy"
+      }
+    ],
+    [
+      "Lakier jak z fabryki. Z której, nie powiem.",
+      "Paint like from the factory. Which factory, I won't say.",
+      {
+        "only": "buy"
+      }
+    ],
+    [
+      "Polerowałem rękawem. Gwarancja do pierwszego gołębia.",
+      "Polished it with my sleeve. Guaranteed until the first pigeon.",
+      {
+        "only": "buy"
+      }
+    ],
+    [
+      "Czarny jak noc w Śródmieściu. Bramkarz może nawet mrugnie.",
+      "Black as a night downtown. The bouncer might even blink.",
+      {
+        "only": "black"
+      }
+    ],
+    [
+      "Zielony groszek. W kawiarni pomyślą, że jesteś z menu.",
+      "Pea green. At the café they'll think you're on the menu.",
+      {
+        "only": "green"
+      }
+    ],
+    [
+      "Złoty? To nie lakier, to medal. Za sekrety miasta.",
+      "Gold? That's not paint, that's a medal. For the city's secrets.",
+      {
+        "only": "gold"
+      }
+    ],
+    [
+      "Stary kolor? Mam go jeszcze w puszce. Gratis.",
+      "The old colour? I've still got it in a tin. On the house.",
+      {
+        "only": "switch"
+      }
+    ],
+    [
+      "Mirek kredytu nie daje. Mirek daje lakier. Za gotówkę.",
+      "Mirek doesn't do credit. Mirek does paint. For cash.",
+      {
+        "only": "short"
+      }
+    ],
+    [
+      "Dowieź parę kebabów i wracaj. Lakier poczeka.",
+      "Deliver a few kebabs and come back. The paint will wait.",
+      {
+        "only": "short"
+      }
+    ],
+    [
+      "Złoty jest dla tych, co znają sekrety miasta. Wróć z pięcioma.",
+      "Gold is for those who know the city's secrets. Come back with five.",
+      {
+        "only": "locked"
+      }
+    ]
   ]
 }
