@@ -1,5 +1,5 @@
 {
-	"_about": "Loop MW-6 (docs/design/vision.md section 8 and 4.7): the notebook's egg cards, the five eggs of v0.65 and vision's 40 (the Frogs triple corner, id easter_rechotka, and the standing Leżak, parodies.md, come with MW-2's storefronts). Each: `id`, `name` [pl, en] (Polish as vision's table has it; the English is a gloss), `place` (an id in places.json, or one of eggs.gd's spots for the five old ones), `line` [pl, en] or `line_ref` [dialogue.json group, index from 0], `trigger` (`kind`: stop, pass, hover, land, circle, lap, street, between, tape, event (loop MW-4: city_life.gd sees the moment), legacy, or waits; with its numbers and the conditions night, after, hours, weekday, look, summer, dry, date, station, roadworks, and loop MW-3's crowd and days: egg_book.gd), `reward` (respect; track: a PÓŁNOC FM track; then: a then card stamped; kadr: a Kadr spot unlocked) and, for an egg whose trigger needs something not built yet, `waits` (what: the card is defined, nothing can find it). Lines taken from vision's quotes and the then cards of vision 3.9; the ones vision does not quote were written in MW-6 for the game-designer to review (a Polish line at most 70 characters).",
+	"_about": "Loop MW-6 (docs/design/vision.md section 8 and 4.7): the notebook's egg cards, the five eggs of v0.65 and vision's 40 (the Frogs triple corner, id easter_rechotka, and the standing Leżak, parodies.md, come with MW-2's storefronts). Each: `id`, `name` [pl, en] (Polish as vision's table has it; the English is a gloss), `place` (an id in places.json, or one of eggs.gd's spots for the five old ones), `line` [pl, en] or `line_ref` [dialogue.json group, index from 0], `trigger` (`kind`: stop, pass, hover, land, circle, lap, street, between, tape, event (loop MW-4: city_life.gd sees the moment), legacy, or waits; with its numbers and the conditions night, after, hours, weekday, look, summer, dry, date, station, roadworks, and loop MW-3's crowd and days: egg_book.gd), `reward` (respect; track: a PÓŁNOC FM track; then: a then card stamped; kadr: a Kadr spot unlocked) and, for an egg whose trigger needs something not built yet, `waits` (what: the card is defined, nothing can find it). Lines taken from vision's quotes and the then cards of vision 3.9; the ones vision does not quote were written in MW-6 for the game-designer to review (a Polish line at most 70 characters). Loop 3h slice 1: `district` (an id in districts.json, the district the egg counts towards for completion, districts.gd).",
 	"waits": {
 		"dogs": "the dog walkers (MW-4)",
 		"wiralek": "the Wiralek trend cycle (MW-4)",
@@ -26,7 +26,8 @@
 			},
 			"reward": {
 				"respect": 10
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "pigeons",
@@ -44,7 +45,8 @@
 			},
 			"reward": {
 				"respect": 10
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "barriers",
@@ -62,7 +64,8 @@
 			},
 			"reward": {
 				"respect": 10
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "patelnia",
@@ -80,7 +83,8 @@
 			},
 			"reward": {
 				"respect": 10
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "syrenka",
@@ -98,7 +102,8 @@
 			},
 			"reward": {
 				"respect": 10
-			}
+			},
+			"district": "powisle"
 		},
 		{
 			"id": "e01",
@@ -126,7 +131,8 @@
 			},
 			"reward": {
 				"respect": 50
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e02",
@@ -153,7 +159,8 @@
 			},
 			"reward": {
 				"respect": 30
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e03",
@@ -174,7 +181,8 @@
 			},
 			"reward": {
 				"respect": 20
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e04",
@@ -195,7 +203,8 @@
 			},
 			"reward": {
 				"respect": 20
-			}
+			},
+			"district": "powisle"
 		},
 		{
 			"id": "e05",
@@ -217,7 +226,8 @@
 			},
 			"reward": {
 				"respect": 40
-			}
+			},
+			"district": "wola"
 		},
 		{
 			"id": "e06",
@@ -239,7 +249,8 @@
 			},
 			"reward": {
 				"respect": 30
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e07",
@@ -260,7 +271,8 @@
 			},
 			"reward": {
 				"respect": 20
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e08",
@@ -279,7 +291,8 @@
 			},
 			"reward": {
 				"respect": 15
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e09",
@@ -302,7 +315,8 @@
 			},
 			"reward": {
 				"respect": 20
-			}
+			},
+			"district": "praga"
 		},
 		{
 			"id": "e10",
@@ -331,7 +345,8 @@
 			},
 			"reward": {
 				"respect": 30
-			}
+			},
+			"district": "poludnie"
 		},
 		{
 			"id": "e11",
@@ -353,7 +368,8 @@
 			},
 			"reward": {
 				"respect": 20
-			}
+			},
+			"district": "trakt"
 		},
 		{
 			"id": "e12",
@@ -373,7 +389,8 @@
 			},
 			"reward": {
 				"respect": 15
-			}
+			},
+			"district": "powisle"
 		},
 		{
 			"id": "e13",
@@ -394,7 +411,8 @@
 			"reward": {
 				"respect": 40,
 				"kadr": "k10"
-			}
+			},
+			"district": "powisle"
 		},
 		{
 			"id": "e14",
@@ -422,7 +440,8 @@
 			"reward": {
 				"respect": 40,
 				"track": 5
-			}
+			},
+			"district": "powisle"
 		},
 		{
 			"id": "e15",
@@ -444,7 +463,8 @@
 			},
 			"reward": {
 				"respect": 30
-			}
+			},
+			"district": "powisle"
 		},
 		{
 			"id": "e16",
@@ -466,7 +486,8 @@
 			},
 			"reward": {
 				"respect": 40
-			}
+			},
+			"district": "powisle"
 		},
 		{
 			"id": "e17",
@@ -492,7 +513,8 @@
 			},
 			"reward": {
 				"respect": 20
-			}
+			},
+			"district": "stare_miasto"
 		},
 		{
 			"id": "e18",
@@ -510,7 +532,8 @@
 			},
 			"reward": {
 				"respect": 40
-			}
+			},
+			"district": "poludnie"
 		},
 		{
 			"id": "e19",
@@ -528,7 +551,8 @@
 			},
 			"reward": {
 				"respect": 50
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e20",
@@ -549,7 +573,8 @@
 			},
 			"reward": {
 				"respect": 30
-			}
+			},
+			"district": "trakt"
 		},
 		{
 			"id": "e21",
@@ -570,7 +595,8 @@
 			},
 			"reward": {
 				"respect": 15
-			}
+			},
+			"district": "poludnie"
 		},
 		{
 			"id": "e22",
@@ -591,7 +617,8 @@
 			},
 			"reward": {
 				"respect": 20
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e23",
@@ -609,7 +636,8 @@
 			},
 			"reward": {
 				"respect": 30
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e24",
@@ -627,7 +655,8 @@
 			},
 			"reward": {
 				"respect": 15
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e25",
@@ -645,7 +674,8 @@
 			},
 			"reward": {
 				"respect": 30
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e26",
@@ -676,7 +706,8 @@
 			},
 			"reward": {
 				"respect": 15
-			}
+			},
+			"district": "poludnie"
 		},
 		{
 			"id": "e27",
@@ -697,7 +728,8 @@
 			},
 			"reward": {
 				"respect": 15
-			}
+			},
+			"district": "poludnie"
 		},
 		{
 			"id": "e28",
@@ -719,7 +751,8 @@
 			},
 			"reward": {
 				"respect": 20
-			}
+			},
+			"district": "powisle"
 		},
 		{
 			"id": "e29",
@@ -744,7 +777,8 @@
 			},
 			"reward": {
 				"respect": 40
-			}
+			},
+			"district": "powisle"
 		},
 		{
 			"id": "e30",
@@ -775,7 +809,8 @@
 			},
 			"reward": {
 				"respect": 30
-			}
+			},
+			"district": "praga"
 		},
 		{
 			"id": "e31",
@@ -797,7 +832,8 @@
 			"reward": {
 				"respect": 20,
 				"track": 2
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e32",
@@ -818,7 +854,8 @@
 			},
 			"reward": {
 				"respect": 20
-			}
+			},
+			"district": "poludnie"
 		},
 		{
 			"id": "e33",
@@ -840,7 +877,8 @@
 			},
 			"reward": {
 				"respect": 20
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e34",
@@ -858,7 +896,8 @@
 			},
 			"reward": {
 				"respect": 20
-			}
+			},
+			"district": "poludnie"
 		},
 		{
 			"id": "e35",
@@ -877,7 +916,8 @@
 			"reward": {
 				"respect": 15
 			},
-			"waits": "older_tapes"
+			"waits": "older_tapes",
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e36",
@@ -896,7 +936,8 @@
 			},
 			"reward": {
 				"respect": 15
-			}
+			},
+			"district": "praga"
 		},
 		{
 			"id": "e37",
@@ -916,7 +957,8 @@
 			},
 			"reward": {
 				"respect": 40
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e38",
@@ -939,7 +981,8 @@
 			"reward": {
 				"respect": 20,
 				"then": "t_palac_2020"
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e39",
@@ -957,7 +1000,8 @@
 			},
 			"reward": {
 				"respect": 30
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "e40",
@@ -977,7 +1021,8 @@
 			},
 			"reward": {
 				"respect": 10
-			}
+			},
+			"district": "poludnie"
 		},
 		{
 			"id": "easter_rechotka",
@@ -997,7 +1042,8 @@
 			},
 			"reward": {
 				"respect": 20
-			}
+			},
+			"district": "srodmiescie"
 		},
 		{
 			"id": "easter_lezak",
@@ -1017,7 +1063,8 @@
 			},
 			"reward": {
 				"respect": 20
-			}
+			},
+			"district": "trakt"
 		}
 	]
 }

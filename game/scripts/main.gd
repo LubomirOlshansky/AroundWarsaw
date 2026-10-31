@@ -71,6 +71,8 @@ const EggBook := preload("res://scripts/egg_book.gd")
 const Tape := preload("res://scripts/tape.gd")
 const Spacer := preload("res://scripts/spacer.gd")
 const Fotka := preload("res://scripts/fotka.gd")
+## Loop 3h slice 1: the demo's districts (discovery, "?" marks, completion).
+const Districts := preload("res://scripts/districts.gd")
 const Sfx := preload("res://scripts/sfx.gd")
 ## Loop MW-5: the city's sounds at the notebook's places.
 const CitySounds := preload("res://scripts/city_sounds.gd")
@@ -297,6 +299,13 @@ var notes_log := false
 ## hint after S s), --fotka (Fotka open at the start), --kadr=<n|id> (Fotka aimed at a Kadr spot,
 ## a photo after 2 s), --fotka-shot=S (a photo S s after --fotka opens), --photo-log.
 var egg_book: EggBook
+## Loop 3h slice 1: the districts (districts.gd) and their flags: --district=<id> (that district's
+## "discovered" card at the first check), --districts=all|none|<id>[:jobs],... (the record, in
+## memory), --districts-log.
+var districts: Districts
+var district_card := ""
+var districts_spec := ""
+var districts_log := false
 var tape: Tape
 var spacer: Spacer
 var fotka: Fotka
@@ -951,6 +960,7 @@ func _build_world() -> void:
 		_build_side_jobs(data, world)
 	_build_notebook(data)
 	_build_moments(data, world)
+	_build_districts()
 	_build_garage(world)
 	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
 	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
@@ -1460,7 +1470,8 @@ func _start_phone_bench() -> void:
 		return
 	_phone_saved = {"at": car.global_transform, "mask": car.collision_mask, "size": base_size,
 			"wallet": [wallet.zl, wallet.respect, wallet.jobs.duplicate(true), wallet.best.duplicate(true),
-					wallet.eggs.duplicate(true)], "persistent": wallet.persistent, "calls": missions.paused}
+					wallet.eggs.duplicate(true), wallet.district_jobs.duplicate(true)], "persistent": wallet.persistent,
+			"calls": missions.paused}
 	wallet.persistent = false
 	# Loop G1: no rescue call comes in during the minute (its clock waits, as during a race): the
 	# first call, 60 s into play, landed inside it and was the card's worst frame (61 ms on the
@@ -1519,6 +1530,7 @@ func _end_phone_bench(done: bool) -> void:
 	wallet.jobs = w[2]
 	wallet.best = w[3]
 	wallet.eggs = w[4]
+	wallet.district_jobs = w[5]  # loop 3h slice 1
 	wallet.persistent = _phone_saved["persistent"]
 	missions.paused = _phone_saved["calls"]
 	hud.set_wallet(wallet.zl, wallet.respect)
@@ -2215,6 +2227,32 @@ func _build_moments(data: Dictionary, world: Node3D) -> void:
 			page.kadr = fotka
 	if egg_flag != "" or tape_flag != "" or fotka_flag:
 		_moment_at = 1.0
+
+
+## Loop 3h slice 1: the districts (districts.gd) on the notebook's places, checked at 3 Hz through
+## the notebook's probe; their "?" marks join the notebook's (notebook.gd `extra_marks`).
+func _build_districts() -> void:
+	districts = Districts.new()
+	districts.name = "Districts"
+	districts.wallet = wallet
+	districts.hud = hud
+	districts.log_on = districts_log
+	districts.blip = _blip_sound
+	districts.force_card = district_card
+	add_child(districts)
+	var points := {}
+	if notes != null:
+		for p: Dictionary in notes.places:
+			points[str(p["id"])] = p["at"]
+	if not districts.setup(points):
+		return
+	if districts_spec != "":
+		districts.preset(districts_spec)
+	if notes != null:
+		districts.probe = notes.probe
+		notes.extra_marks = districts.marks
+	if districts_log:
+		print("districts: %s" % districts.summary())
 
 
 ## Spacer on or off: what comes by itself stops (or starts again).
@@ -3005,6 +3043,12 @@ func _parse_args() -> void:
 			garage_log = true
 		elif arg.begins_with("--egg="):
 			egg_flag = arg.trim_prefix("--egg=")
+		elif arg.begins_with("--district="):
+			district_card = arg.trim_prefix("--district=")
+		elif arg.begins_with("--districts="):
+			districts_spec = arg.trim_prefix("--districts=")
+		elif arg == "--districts-log":
+			districts_log = true
 		elif arg == "--egg-log":
 			egg_log = true
 		elif arg.begins_with("--found-eggs="):
@@ -3076,8 +3120,8 @@ func _parse_args() -> void:
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or open_map_at_start or hold_stick != Vector2.INF or bench_button \
 			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0 or old_tram_flag != "":
 		show_title = false
-	if start_ride >= 0 or place_flag != "" or roundup_flag:
-		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place)
+	if start_ride >= 0 or place_flag != "" or roundup_flag or district_card != "":
+		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place; loop 3h: --district=)
 	# Loop MW-6: and the eggs', the tape's and Fotka's flags; --egg sets its moment's time.
 	if egg_flag != "" or tape_flag != "" or fotka_flag or spacer_hint >= 0.0:
 		show_title = false
@@ -3292,6 +3336,8 @@ func _open_full_map() -> void:
 	_blip_sound()
 	get_tree().paused = true
 	hud.open_full_map(Vector2(pos.x, pos.z), yaw, found)
+	if districts != null and districts.ready_ok:
+		hud.full_map.set_districts(districts.view(), districts.percent_total())  # loop 3h slice 1
 	if not hud.full_map.closed.is_connected(_close_full_map):
 		hud.full_map.closed.connect(_close_full_map)
 
@@ -4225,6 +4271,8 @@ func _make_stats() -> BenchStats:
 		b.systems["storefronts"] = [storefronts, "spent_usec", true]  # loop MW-2
 	if egg_book != null:
 		b.systems["eggs+tape+spacer"] = [self, "_moments_usec", false]  # loop MW-6
+	if districts != null:
+		b.systems["districts"] = [districts, "spent_usec", true]  # loop 3h slice 1
 	if garage != null:
 		b.systems["garage"] = [garage, "spent_usec", true]  # the garage loop
 	b.systems["sound"] = [sfx, "last_usec", false]

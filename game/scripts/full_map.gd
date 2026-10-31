@@ -6,6 +6,9 @@ extends Control
 ## the car's arrow, the mission target, the notebook's "?" marks (the places not found yet within
 ## the minimap's reach: never their names) and the places found (gold dots). The ✕, Esc or the
 ## Android back gesture close it. Built the first time it opens; hidden it draws nothing (0 cost).
+## Loop 3h slice 1 (DEMO G3): the districts (districts.gd `view`, given by `set_districts` after
+## open): the ones not discovered yet under a light fog, each discovered one's name and per cent
+## at its label, and a card listing them all with the total (the districts' completion on the map).
 
 signal closed
 
@@ -40,6 +43,9 @@ var garage := Vector2.INF
 var garage_colour := Color.WHITE
 var target_colour := Color.WHITE
 var night := 0.0
+## Loop 3h slice 1: districts.gd `view()` (names, label point, polygons, found, pct) and the total %.
+var districts: Array[Dictionary] = []
+var districts_total := 0
 
 ## The map point at the screen's centre (m) and the zoom (pixels per metre).
 var centre := Vector2.ZERO
@@ -55,6 +61,10 @@ var _hint: PanelContainer
 var _close: Button
 var _touches := {}
 var _pinch := 0.0
+## Loop 3h slice 1: the fog's triangles (map points, three a triangle: the districts not
+## discovered yet, clipped to the map's bounds) and the districts' card.
+var _fog := PackedVector2Array()
+var _list: PanelContainer
 
 
 func _ready() -> void:
@@ -103,6 +113,10 @@ func _build() -> void:
 	_close.custom_minimum_size = Vector2.ONE * 48.0 * pt
 	_close.pressed.connect(close)
 	add_child(_close)
+	_list = _card([], [])
+	_list.name = "districts"
+	_list.visible = false
+	add_child(_list)
 
 
 func _box(alpha: float) -> StyleBoxFlat:
@@ -185,6 +199,9 @@ func _fit() -> void:
 	_close.position = Vector2(s.end.x - m - _close.size.x, s.position.y + m)
 	_hint.size = _hint.get_combined_minimum_size()
 	_hint.position = Vector2(s.position.x + (s.size.x - _hint.size.x) * 0.5, s.end.y - m - _hint.size.y)
+	if _list.visible:
+		_list.size = _list.get_combined_minimum_size()
+		_list.position = Vector2(s.position.x + m, _head.position.y + _head.size.y + m)
 	_place()
 
 
@@ -210,13 +227,65 @@ func to_screen(p: Vector2) -> Vector2:
 func rects() -> Dictionary:
 	if not _built:
 		return {}
-	return {"close": _close.get_global_rect(), "head": _head.get_global_rect(), "hint": _hint.get_global_rect()}
+	var out := {"close": _close.get_global_rect(), "head": _head.get_global_rect(), "hint": _hint.get_global_rect()}
+	if _list.visible:
+		out["districts"] = _list.get_global_rect()
+	return out
+
+
+## Loop 3h slice 1: the districts to show (districts.gd `view()`) and the total per cent; call
+## after open(). The fog is triangulated here once (the map is paused), so painting it is a few
+## dozen triangles in the overlay's one batch (+0 draw calls).
+func set_districts(view: Array[Dictionary], total: int) -> void:
+	districts = view
+	districts_total = total
+	_fog = PackedVector2Array()
+	var frame := PackedVector2Array([bounds.position, Vector2(bounds.end.x, bounds.position.y), bounds.end,
+			Vector2(bounds.position.x, bounds.end.y)])
+	for d in districts:
+		if d["found"]:
+			continue
+		for poly: PackedVector2Array in d["polys"]:
+			var parts: Array[PackedVector2Array] = [poly]
+			if bounds.has_area():
+				parts = Geometry2D.intersect_polygons(poly, frame)
+			for part in parts:
+				var tris := Geometry2D.triangulate_polygon(part)
+				for i in tris:
+					_fog.append(part[i])
+	if not _built:
+		return
+	var lines := ["DZIELNICE", "districts"]
+	var sizes := [T_TITLE, T_SUB]
+	for d in districts:
+		lines.append("%s · %d%%" % [d["name_pl"], d["pct"]] if d["found"] else "? ? ?")
+		sizes.append(T_SUB)
+	lines.append("Razem · in all %d%%" % total)
+	sizes.append(T_SUB)
+	var rows: VBoxContainer = _list.get_child(0)
+	for c in rows.get_children():
+		rows.remove_child(c)
+		c.queue_free()
+	for i in lines.size():
+		var l := Label.new()
+		l.text = lines[i]
+		l.add_theme_font_size_override("font_size", _px(sizes[i]))
+		var found: bool = i < 2 or i == lines.size() - 1 or districts[i - 2]["found"]
+		l.add_theme_color_override("font_color", Color("#ffd23f") if i == 0 else
+				(Color("#fbf7ee") if found and i >= 2 else Color("#c9c2d8")))
+		rows.add_child(l)
+	_list.visible = not districts.is_empty()
+	_fit()
 
 
 func _paint() -> void:
 	var o := _overlay
 	var view := Rect2(Vector2.ZERO, _view()).grow(20.0 * pt)
 	hud._tri_begin()
+	# Loop 3h slice 1: the districts not discovered yet, under a light fog.
+	var fog := Color(0.16, 0.14, 0.2, 0.3).lerp(Color(0.0, 0.0, 0.0, 0.45), night)
+	for i in range(0, _fog.size() - 2, 3):
+		hud._tri(to_screen(_fog[i]), to_screen(_fog[i + 1]), to_screen(_fog[i + 2]), fog, fog, fog)
 	for q in found:
 		var at := to_screen(q)
 		if view.has_point(at):
@@ -243,6 +312,23 @@ func _paint() -> void:
 	hud._tri(tip, c - d * 6.0 * pt + side * 6.0 * pt, notch, ARROW, ARROW, ARROW)
 	hud._tri(tip, notch, c - d * 6.0 * pt - side * 6.0 * pt, ARROW, ARROW, ARROW)
 	hud._tri_flush(o)
+	# Loop 3h slice 1: each discovered district's name and per cent at its label.
+	var font := ThemeDB.fallback_font
+	var fs := _px(T_SUB)
+	var ink := Color("#2a2622").lerp(Color("#fbf7ee"), night)
+	var rim := Color(0.93, 0.9, 0.83, 0.9).lerp(Color(0.07, 0.06, 0.1, 0.9), night)
+	for dd in districts:
+		if not dd["found"]:
+			continue
+		var at := to_screen(dd["at"])
+		if not view.has_point(at):
+			continue
+		for row: Array in [[str(dd["name_pl"]).to_upper(), -0.15], ["%d%%" % dd["pct"], 1.0]]:
+			var text: String = row[0]
+			var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+			var p := at + Vector2(-w * 0.5, fs * float(row[1]))
+			o.draw_string_outline(font, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, _px(4), rim)
+			o.draw_string(font, p, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, ink)
 
 
 # --- gestures ------------------------------------------------------------------------------

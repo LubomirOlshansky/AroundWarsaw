@@ -19,6 +19,14 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · gameplay · loop 3h slice 1** — District list: nine districts (Praga, Stare Miasto, Muranów, Śródmieście, Trakt Królewski, Powiśle, Wola, Śródmieście Południowe, Ujazdów i Łazienki); Śródmieście Południowe is not in DEMO 2.3, Mokotów left out (off the map). Default built: that. Alternative: fold Południe into Śródmieście.
+- **2026-10-31 · gameplay · loop 3h slice 1** — District completion counts notebook places too (vision 4.1), plus eggs, Syrenki and jobs up to `jobs_goal` (3 hero, 2 other). Default built: that. Alternative: jobs, eggs and Syrenki only.
+- **2026-10-31 · gameplay · loop 3h slice 1** — The starting district is discovered quietly, so its card never shows. Default built: that. Alternative: show it after the first 30 s.
+- **2026-10-31 · gameplay · loop 3h slice 1** — +10 respect per discovered district. Default built: that; a guess, for the designer to tune with the ladder.
+- **2026-10-31 · gameplay · loop 3h slice 1** — The discovery card reuses the note card (5.5 s). Default built: that. Alternative: a bigger centred card with its own sound (visuals lane, 3i).
+- **2026-10-31 · gameplay · loop 3h slice 1** — The Palm (Rondo de Gaulle'a) counts in Śródmieście, not Trakt Królewski. Default built: that.
+- **2026-10-31 · gameplay · loop 3h slice 1** — A save from a newer version is read but never overwritten, so that session's progress isn't kept. Default built: that. Alternative: write a side file.
+- **2026-10-31 · gameplay · loop 3h slice 1** — Map lane ask: places for Ujazdów i Łazienki (it has none, so no "?" there and jobs-only completion) and a baked river line (the Praga line north of Śląsko-Dąbrowski is extrapolated). Default built: as is.
 - **2026-10-31 · content · L-shaped map** — The notebook's 9 chapters × 8 cards rule: the new places
   (Rondo Radosława in `kiedys`, Arkadia in `codziennie`, Forest in `bary`) went in as ninth cards, the
   rule is now 8–10 per chapter and a chapter of 9 is drawn 5 × 2. Default built: that. Alternative: a
