@@ -621,24 +621,46 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   parts that the builder dropped as specks, leaving a dark cube on Plac Zamkowy. It is built
   as a landmark in a circle zone: three granite steps, the pedestal, the 12 m shaft, the
   capital and the king in bronze with his cross raised and his sabre, to 22.9 m, with a card.
-- **Muzeum Narodowe** (the landmarks loop): kept as LoD2 draws it (one model round its
-  courtyards), but in its pale stone with tall windows between piers (`M_MONUMENT`, `#c9bfa9`):
-  `map_builder` asks `landmarks.skin_at` for every kept LoD2 run and OpenStreetMap building
-  (its centre in the site's outline, or its whole box inside the outline's box). Its outline's
-  cells are on the picking grid for its card.
+- **Muzeum Narodowe** (the museum and Plac Piłsudskiego loop, 2026-10-31; `_build_muzeum`): the
+  landmarks loop kept the LoD2 model in stone (`skin_at`); now it is a model like the Palace. The
+  mapped outline (481 points: every pier) is straightened to 18 corners (`_simplify`,
+  Douglas-Peucker at 1 m) and stands at its mapped height (14.2 m) on a darker plinth, with a
+  parapet; tall narrow window bays every 4.4 m on every front (`_bays`: panes 0.07 m proud in
+  the curtain-wall glass, `M_GLASS`, a transom every 4 m, some lit at night); at the back of the
+  forecourt (Dziedziniec Lorentza, open to Al. Jerozolimskie) the raised entrance block to 20 m:
+  a recessed glazed portal behind four square piers under a lintel, a tall bay either side,
+  steps. In the east courtyard the army museum's hardware on concrete pads: a tank and a field
+  gun. The zone is the outline plus its courtyards (the convex hull's pieces outside it over
+  1,000 m²: the LoD2 model's centre falls in one), so the LoD2 or OpenStreetMap model is dropped
+  and the garages beside it stay. About 690 triangles, in the city's building mesh (no draw call
+  of its own); its card as before.
+- **Plac Piłsudskiego's edges** (the same loop): **Hotel Europejski** (`_build_europejski`, its
+  mapped outline straightened at 0.8 m) in cream: a rusticated ground floor and mezzanine to 6 m
+  (five stone courses, each with its light edge, `M_STONE`) with tall dark openings every 4.6 m,
+  three floors of windows between pilasters above (`M_MONUMENT`) to the 19 m cornice, a
+  projecting cornice, a low hipped roof in grey-green sheet, and a central bay stepping forward
+  on the Krakowskie Przedmieście front and on the square's (an attic over it, a tall entrance);
+  about 400 triangles, a card. **Grób Nieznanego Żołnierza** (`_build_grob`, a fixed place like
+  Sigismund's Column; the zone is its mapped outline grown 1 m, which drops the hundred tiny 3D
+  parts it is mapped in): the three arches left of the Saxon Palace's colonnade on a granite
+  platform: two rows of four piers, round arches on both long faces (`_arch`), the entablature
+  and cornice to 7.65 m, the tomb slab with wreaths and the eternal flame (`M_LAMP`, lit at
+  night) on the square's side; about 280 triangles, a card. The Metropolitan keeps its fin skin.
+  Rendered draw calls are unchanged (`--probe` on lavapipe: 100 → 100 at the museum's front,
+  133 → 133 on the square): every model is in the city's building mesh and material.
 - **Low-rise landmarks** (`landmarks.gd` `SKINS`, the third pass): 15 buildings players pass
   every few minutes keep their LoD2 or OpenStreetMap shapes but take their real stone, brick
-  and roof colours through `skin_at`, the way Muzeum Narodowe does: Teatr Wielki's pale stone
+  and roof colours through `skin_at` (as Muzeum Narodowe did before its model): Teatr Wielki's pale stone
   and green copper, Zamek Królewski's brick red, Barbakan's and the Archikatedra's brick,
   Centrum Nauki Kopernik's dark grey with a green roof, the Library's green roof, St Anne's,
   the Holy Cross, All Saints' and St Alexander's, the Presidential Palace, Staszic Palace,
   Zachęta, the Mirowska halls and the Sejm. Each has an info card; the far skyline takes each
-  wall colour. The Planetarium, the Tomb of the Unknown Soldier and the Church of the Saviour
+  wall colour. The Planetarium and the Church of the Saviour
   stay as they were (their outlines carry no roof the helicopter check accepts).
 - **MDM** (`landmarks.gd` `_find_mdm`): the unnamed blocks over 15 m round Plac Konstytucji
   (95 m) and along Marszałkowska to Plac Zbawiciela (50 m from the axis) in pale sandstone with
   tall windows (`M_MONUMENT`, `#cdbfa3`) and grey roofs, one card. `skin_at` takes a whole box
-  only for a site of one outline (the museum); for MDM's many blocks a model's centre must be
+  only for a site of one outline; for MDM's many blocks a model's centre must be
   in one of them. `bake_sectors.py` `SITE_AREAS` carries its parts.
 - **Bus and tram shelters** (the landmarks loop; `map_builder.gd` `_make_shared`): Warsaw's
   glass shelter as the game's camera sees it: a pale glass roof in a graphite frame overhanging
@@ -731,6 +753,15 @@ tallest roof-grid cell, that a tap finds it, that a car driving in from 12 direc
 that the helicopter (heli.gd stepped by hand) flying at it at half its height is stopped outside
 it and then lands on open ground beside it, the roof rescues on the replaced outlines and the
 cells round the Palace's spire.
+
+`godot --headless --path game --script res://tools/check_sites.gd` (verify step `sites`, in the
+quick set and in CI; the museum and Plac loop) checks the models at Muzeum Narodowe, Hotel
+Europejski and the Tomb from the committed `centrum.json` alone (a stub map, flat ground): each
+site found (the museum a model, not a skin), what it replaces dropped and its neighbours kept
+(the garages, the papal cross, the Metropolitan), and each built alone within its triangle
+budget (2,500, 1,500, 600), every triangle in a landmark material code (the one building
+material: no draw call of its own) and inside its box + `SITE_REACH`, with car walls, tap cells
+and a card whose Polish and English lines are at most 70 characters.
 
 ## Water, weather and sound (v0.9)
 

@@ -239,6 +239,12 @@ const INFO := {
 	"muzeum": ["Muzeum Narodowe",
 			"Gmach z lat 1927–1938 przy Alejach Jerozolimskich.",
 			"The museum's building of 1927–1938 on Al. Jerozolimskie."],
+	"europejski": ["Hotel Europejski",
+			"Klasycystyczny hotel z lat 1857–1877 przy Krakowskim Przedmieściu.",
+			"A classical hotel of 1857–1877 on Krakowskie Przedmieście."],
+	"grob": ["Grób Nieznanego Żołnierza",
+			"Trzy łuki ocalałe z Pałacu Saskiego. Wieczny ogień i warta.",
+			"Three arches left of the Saxon Palace. An eternal flame, a guard."],
 	"mdm": ["MDM",
 			"Marszałkowska Dzielnica Mieszkaniowa, socrealizm z lat 1950–1952.",
 			"The socialist-realist housing district of 1950–1952."],
@@ -453,6 +459,8 @@ func _find_sites() -> void:
 	_find_mdm()
 	_find_skins()
 	_find_zygmunt()
+	# The museum and Plac Piłsudskiego loop (2026-10-31): the square's edges.
+	_find_plac()
 
 
 ## Warszawa Centralna: OpenStreetMap maps the station in 3D (its outline sits underground):
@@ -602,6 +610,12 @@ func build(surface, near := Rect2()) -> void:
 				_build_towers(s)
 			"zygmunt":
 				_build_zygmunt(s)
+			"muzeum":
+				_build_muzeum(s)
+			"europejski":
+				_build_europejski(s)
+			"grob":
+				_build_grob(s)
 			_:
 				if s.has("tower"):
 					_build_tower(s)
@@ -1685,24 +1699,36 @@ func _find_skins() -> void:
 			sites[-1]["skin"] = {"mode": t["mode"], "wall": Color(t["wall"]), "roof": Color(t["roof"])}
 
 
-# --- Muzeum Narodowe (the landmarks loop) ------------------------------------------------------
+# --- Muzeum Narodowe (the landmarks loop; a real model since the museum and Plac loop) ----------
 
 ## The museum's building (1927-1938) at the east end of Al. Jerozolimskie, mapped as one
-## outline round the courtyards (with the army museum in its wings): kept as the LoD2 or
-## OpenStreetMap model draws it, but in its pale stone with tall windows between piers
-## (map_builder asks `skin_at`), and on the picking grid for its card.
+## outline round the courtyards (with the army museum in its wings). The landmarks loop kept the
+## LoD2 or OpenStreetMap model in its stone (`skin_at`); the museum and Plac Piłsudskiego loop
+## (2026-10-31) builds it (`_build_muzeum`): the outline straightened (`_simplify`), and its
+## courtyards (the hull's pieces outside it, over MUZEUM_COURT m²) join the zone, since the LoD2
+## model's centre falls in one.
 const MUZEUM := Vector2(24.0, 251.0)  # inside its wings (its outline's centre is a courtyard)
 const MUZEUM_STONE := Color("#c9bfa9")
 const MUZEUM_ROOF := Color("#8f8b84")
+const MUZEUM_COURT := 1000.0
 func _find_muzeum() -> void:
 	for bld in data["buildings"]:
 		var q := _pts(bld["p"])
 		if q.size() < 20 or float(bld["h"]) < 10.0 or not _box_of([q]).has_point(MUZEUM):
 			continue
 		if Geometry2D.is_point_in_polygon(MUZEUM, q):
-			_add_site("muzeum", [q])
+			var ring := _simplify(q, 1.0)
+			var zone: Array = [q]
+			var courts: Array[PackedVector2Array] = []
+			for piece in Geometry2D.clip_polygons(Geometry2D.convex_hull(ring), ring):
+				if absf(_area(piece)) > MUZEUM_COURT:
+					courts.append(piece)
+					zone.append(piece)
+			_add_site("muzeum", zone)
 			if not sites.is_empty() and sites[-1]["key"] == "muzeum":
-				sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": MUZEUM_STONE, "roof": MUZEUM_ROOF}
+				sites[-1]["ring"] = ring
+				sites[-1]["h"] = float(bld["h"])
+				sites[-1]["courts"] = courts
 			return
 
 
@@ -2157,3 +2183,349 @@ func _build_towers(site: Dictionary) -> void:
 		else:
 			# Solid from the boulevard to over the deck (a car on either level stops at it).
 			_collide_span(_rect(0.0, 0.0, hu + 0.6, hv + 0.6), g - 1.0, deck + 6.0)
+
+
+# --- Muzeum Narodowe and Plac Piłsudskiego (the museum and Plac loop, 2026-10-31) ----------------
+
+## The museum's raised entrance block stands at the back of its forecourt (Dziedziniec im.
+## Stanisława Lorentza, the courtyard open to Al. Jerozolimskie): the middle of that wall and the
+## building's own axis along the avenue (east); its back is MUZEUM_AXIS turned a quarter (south).
+const MUZEUM_DOOR := Vector2(-2.95, 276.7)
+const MUZEUM_AXIS := Vector2(0.964, -0.267)
+## The army museum's tank and field gun: on the east courtyard's lawn between its pool and the
+## east block (map areas), lined up with that wall.
+const MUZEUM_TANK := Vector2(53.8, 211.0)
+const MUZEUM_GUN := Vector2(56.5, 233.0)
+const MUZEUM_YARD_DIR := Vector2(-0.276, -0.961)
+const MUZEUM_TOP := 20.0           # the entrance block's parapet, over the 14 m wings
+const MUZEUM_PLINTH := Color("#a99f8b")
+const MUZEUM_GLASS := Color("#3b424b")
+const ARMY_OLIVE := Color("#5a6141")
+const ARMY_TRACK := Color("#2f302b")
+const ARMY_PAD := Color("#9a968d")
+
+
+## A closed outline with the steps under `tol` metres dropped (Douglas-Peucker), so walls run
+## straight between the mapped corners (the museum's outline has 481 points: every pier).
+func _simplify(ring: PackedVector2Array, tol: float) -> PackedVector2Array:
+	var far := 0
+	for i in ring.size():
+		if ring[i].distance_squared_to(ring[0]) > ring[far].distance_squared_to(ring[0]):
+			far = i
+	if far == 0:
+		return ring
+	var back := ring.slice(far)
+	back.append(ring[0])
+	var out := _dp(ring.slice(0, far + 1), tol)
+	out.resize(out.size() - 1)
+	var rest := _dp(back, tol)
+	rest.resize(rest.size() - 1)
+	out.append_array(rest)
+	return out if out.size() >= 3 else ring
+
+
+func _dp(pts: PackedVector2Array, tol: float) -> PackedVector2Array:
+	var best := -1.0
+	var at := 0
+	for i in range(1, pts.size() - 1):
+		var d := pts[i].distance_to(Geometry2D.get_closest_point_to_segment(pts[i], pts[0], pts[-1]))
+		if d > best:
+			best = d
+			at = i
+	if best <= tol:
+		return PackedVector2Array([pts[0], pts[-1]])
+	var out := _dp(pts.slice(0, at + 1), tol)
+	out.resize(out.size() - 1)
+	out.append_array(_dp(pts.slice(at), tol))
+	return out
+
+
+func _area(poly: PackedVector2Array) -> float:
+	var a := 0.0
+	for i in poly.size():
+		var p := poly[i]
+		var q := poly[(i + 1) % poly.size()]
+		a += p.x * q.y - q.x * p.y
+	return a * 0.5
+
+
+## Tall window bays along a ring's walls: a pane `w` wide every `step` metres (the walls'
+## piers between them), from h0 to h1 over the ground, 0.07 m proud of the wall, in the
+## curtain-wall glass (M_GLASS: a transom every 4 m, some lit at night); none where a bay's
+## foot falls in `skip` (a block standing in front of that wall).
+func _bays(ring: PackedVector2Array, h0: float, h1: float, step: float, w: float, col: Color,
+		skip := PackedVector2Array()) -> void:
+	var keep := _mode
+	_mode = M_GLASS
+	var along := 0.0
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var length := a.distance_to(b)
+		along += length
+		var n := floori((length - 1.5) / step)
+		if n < 1:
+			continue
+		var e := (b - a) / length
+		var out := _out(ring, a, b)
+		var t0 := (length - n * step) * 0.5 + step * 0.5
+		for k in n:
+			var p := a + e * (t0 + k * step) + out * 0.07
+			if skip.size() >= 3 and Geometry2D.is_point_in_polygon(p, skip):
+				continue
+			# UV.x centred on a pane of the shader's 1.5 m grid (so its mullions frame the bay), at
+			# the bay's distance round the ring (so each bay draws its own lit rooms at night).
+			var pane := floorf((along + t0 + k * step) / 1.5) * 1.5
+			_wall(p - e * w * 0.5, p + e * w * 0.5, _g + h0, _g + h1, out, col, pane + 0.75 - w * 0.5)
+	_mode = keep
+
+
+## A thin parapet (zero thickness, both sides drawn) round a ring, from y up `height`.
+func _parapet(ring: PackedVector2Array, y: float, height: float, col: Color) -> void:
+	var keep := _mode
+	_mode = M_STONE
+	var run := 0.0
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		_wall(a, b, y, y + height, _out(ring, a, b), col, run)
+		run += a.distance_to(b)
+	_mode = keep
+
+
+## Muzeum Narodowe: Tadeusz Tołwiński's stripped-classical block in pale stone. The mapped
+## outline straightened, on a darker plinth, to its mapped height with a parapet; tall narrow
+## window bays in a steady rhythm on every front; at the back of the forecourt the raised
+## entrance block (20 m) with its recessed glazed portal behind four square piers under a
+## lintel, two tall bays either side, and steps; on the east courtyard's lawn the army museum's
+## hardware: a tank and a field gun on concrete pads.
+func _build_muzeum(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	var h: float = site["h"]
+	var light := MUZEUM_STONE.lightened(0.07)
+	var base := Geometry2D.offset_polygon(ring, 0.35, Geometry2D.JOIN_MITER)
+	if not base.is_empty():
+		_prism(base[0], g - 0.6, g + 1.3, MUZEUM_PLINTH, MUZEUM_PLINTH, M_STONE, M_STONE)
+	_prism(ring, g - 0.6, g + h, MUZEUM_STONE, MUZEUM_ROOF, M_STONE, M_STONE)
+	_parapet(ring, g + h, 1.0, light)
+	# The entrance block, in the forecourt's frame (u east along the avenue, v to the back).
+	_o = MUZEUM_DOOR
+	_a = MUZEUM_AXIS
+	_b = Vector2(-_a.y, _a.x)
+	var block := _rect(0.0, 7.0, 12.0, 9.5)
+	_bays(ring, 2.0, h - 2.2, 4.4, 1.3, MUZEUM_GLASS, _rect(0.0, 7.0, 12.5, 10.0))
+	_prism(block, g - 0.6, g + MUZEUM_TOP, MUZEUM_STONE, MUZEUM_ROOF, M_STONE, M_STONE)
+	_parapet(block, g + MUZEUM_TOP, 1.0, light)
+	var front := -_b
+	_mode = M_GLASS
+	_wall(_w(-6.5, -2.56), _w(6.5, -2.56), g, g + 12.5, front, MUZEUM_GLASS)
+	for u in [-9.6, 9.6]:
+		_wall(_w(u - 0.65, -2.56), _w(u + 0.65, -2.56), g + 2.0, g + 17.5, front, MUZEUM_GLASS, 0.1)
+	for u in [-4.875, -1.625, 1.625, 4.875]:
+		_lbox(u, -3.5, 0.55, 0.55, g, g + 12.5, light, M_STONE, light)
+	_lbox(0.0, -3.4, 7.0, 0.95, g + 12.5, g + 13.6, light, M_STONE, light)
+	_lbox(0.0, -6.0, 8.5, 3.5, g - 0.6, g + 0.4, MUZEUM_PLINTH, M_STONE, MUZEUM_PLINTH)
+	_collide(ring)
+	_collide(_rect(0.0, -2.5, 7.0, 1.6))
+	# The army museum's hardware on the lawn of the east courtyard, beside its pool, noses north.
+	_tank(MUZEUM_TANK, MUZEUM_YARD_DIR)
+	_field_gun(MUZEUM_GUN, MUZEUM_YARD_DIR.rotated(-0.5))
+
+
+## A tank on show (a hull on its tracks, an eight-sided turret, the gun), on a pad; `dir` its nose.
+func _tank(c: Vector2, dir: Vector2) -> void:
+	var g: float = map.terrain_height(c.x, c.y)
+	_o = c
+	_a = dir
+	_b = Vector2(-dir.y, dir.x)
+	_lbox(0.0, 0.0, 4.0, 2.4, g - 0.3, g + 0.15, ARMY_PAD, M_STONE, ARMY_PAD)
+	for v in [-1.45, 1.45]:
+		_lbox(0.0, v, 3.4, 0.4, g + 0.15, g + 1.1, ARMY_TRACK, M_STONE, ARMY_TRACK)
+	_lbox(-0.1, 0.0, 3.1, 1.1, g + 0.5, g + 1.55, ARMY_OLIVE, M_STONE, ARMY_OLIVE.darkened(0.08))
+	var turret := _circle(_w(-0.4, 0.0), 1.15, 8)
+	_prism(turret, g + 1.55, g + 2.3, ARMY_OLIVE.lightened(0.04), ARMY_OLIVE, M_STONE, M_STONE)
+	var muzzle := _w(4.3, 0.0)
+	var root := _w(0.6, 0.0)
+	_beam(Vector3(root.x, g + 1.9, root.y), Vector3(muzzle.x, g + 2.0, muzzle.y), 0.2, ARMY_OLIVE.darkened(0.25))
+	_collide(_rect(0.0, 0.0, 3.4, 1.9))
+
+
+## A field gun on show: the carriage and its shield, two wheels, the barrel raised, the split trail.
+func _field_gun(c: Vector2, dir: Vector2) -> void:
+	var g: float = map.terrain_height(c.x, c.y)
+	_o = c
+	_a = dir
+	_b = Vector2(-dir.y, dir.x)
+	_lbox(-0.6, 0.0, 3.0, 1.7, g - 0.3, g + 0.15, ARMY_PAD, M_STONE, ARMY_PAD)
+	_lbox(0.0, 0.0, 0.7, 0.6, g + 0.6, g + 1.1, ARMY_OLIVE, M_STONE, ARMY_OLIVE)
+	_lbox(0.45, 0.0, 0.06, 0.95, g + 0.7, g + 1.9, ARMY_OLIVE.darkened(0.1), M_STONE, ARMY_OLIVE)
+	for v in [-0.95, 0.95]:
+		_lbox(0.0, v, 0.6, 0.1, g + 0.15, g + 1.35, ARMY_TRACK, M_STONE, ARMY_TRACK)
+	var root := _w(0.2, 0.0)
+	var muzzle := _w(3.4, 0.0)
+	_beam(Vector3(root.x, g + 1.05, root.y), Vector3(muzzle.x, g + 2.0, muzzle.y), 0.17, ARMY_OLIVE.darkened(0.25))
+	for v in [-1.0, 1.0]:
+		var p0 := _w(-0.4, v * 0.3)
+		var p1 := _w(-3.2, v * 1.0)
+		_beam(Vector3(p0.x, g + 0.75, p0.y), Vector3(p1.x, g + 0.25, p1.y), 0.16, ARMY_OLIVE.darkened(0.15))
+
+
+## Plac Piłsudskiego's edges: Hotel Europejski (its mapped outline) and the Tomb of the Unknown
+## Soldier (built at its place, like Sigismund's Column; its zone the mapped outline, which
+## drops the hundred tiny 3D parts it is mapped in).
+const EUROPEJSKI_WALL := Color("#e7ddc5")
+const EUROPEJSKI_BASE := Color("#d2c5a7")
+const EUROPEJSKI_ROOF := Color("#6f7b76")
+const EUROPEJSKI_GLASS := Color("#3a3f47")
+const EUROPEJSKI_H := 19.0        # the main cornice
+const EUROPEJSKI_BASE_H := 6.0    # the rusticated ground floor and mezzanine
+## The Tomb: the middle of its arcade, the arcade's long axis (south), its piers along it.
+const GROB := Vector2(-865.75, -768.7)
+const GROB_AXIS := Vector2(-0.2425, -0.970)
+const GROB_PIERS := [-5.55, -1.85, 1.85, 5.55]
+const GROB_ROW := 2.98            # each row of piers this far from the axis
+const GROB_STONE := Color("#ddd3bf")
+const GROB_GRANITE := Color("#7f7c78")
+const GROB_BRONZE := Color("#4f4a40")
+const GROB_FLAME := Color("#ffb04a")
+func _find_plac() -> void:
+	var euro := _landmark("Hotel Europejski")
+	if euro.size() >= 3:
+		_add_site("europejski", [euro])
+		if not sites.is_empty() and sites[-1]["key"] == "europejski":
+			sites[-1]["ring"] = _simplify(euro, 0.8)
+	var grob := _landmark("Grób Nieznanego Żołnierza")
+	if grob.size() >= 3:
+		var grown := Geometry2D.offset_polygon(grob, 1.0, Geometry2D.JOIN_MITER)
+		_add_site("grob", [grown[0] if not grown.is_empty() else grob])
+
+
+## Hotel Europejski (1857-1877, Enrico Marconi): a long cream classical block. A rusticated
+## ground floor and mezzanine (stone courses, each with its light edge) with tall dark openings,
+## three floors of windows between pilasters above (M_MONUMENT), a projecting cornice, a low
+## hipped roof in grey-green sheet; a central bay stepping forward on the Krakowskie
+## Przedmieście front and on the square's, each with an attic and a tall entrance.
+func _build_europejski(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	var courses := 5
+	for k in courses:
+		var y0 := g - 0.6 + (EUROPEJSKI_BASE_H + 0.6) * k / courses
+		var y1 := g - 0.6 + (EUROPEJSKI_BASE_H + 0.6) * (k + 1) / courses
+		var col := EUROPEJSKI_BASE.darkened(0.12 if k == 0 else (0.0 if k % 2 == 1 else 0.05))
+		_prism(ring, y0, y1, col, none, M_STONE)
+	_bays(ring, 0.7, 4.7, 4.6, 1.9, EUROPEJSKI_GLASS)
+	_prism(ring, g + EUROPEJSKI_BASE_H, g + EUROPEJSKI_H, EUROPEJSKI_WALL, none, M_MONUMENT)
+	var lip := EUROPEJSKI_WALL.lightened(0.08)
+	var eave := Geometry2D.offset_polygon(ring, 0.45, Geometry2D.JOIN_MITER)
+	_prism(eave[0] if not eave.is_empty() else ring, g + EUROPEJSKI_H - 0.1, g + EUROPEJSKI_H + 0.6, lip, lip, M_STONE, M_STONE)
+	# The roof: hipped over the plan's inner rectangle (its axes from the longest front).
+	var longest := 0.0
+	for i in ring.size():
+		var e := ring[(i + 1) % ring.size()] - ring[i]
+		if e.length() > longest:
+			longest = e.length()
+			_a = e.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_o = _centre(ring)
+	var lo := Vector2(INF, INF)
+	var hi := -lo
+	for q in ring:
+		lo = lo.min(_local(q))
+		hi = hi.max(_local(q))
+	_o = _wl((lo + hi) * 0.5)
+	var hu := (hi.x - lo.x) * 0.5 - 4.0
+	var hv := (hi.y - lo.y) * 0.5 - 4.0
+	_mode = M_STONE
+	_frustum(_rect(0.0, 0.0, hu, hv), g + EUROPEJSKI_H + 0.6, _rect(0.0, 0.0, hu - 6.0, hv - 6.0),
+			g + EUROPEJSKI_H + 4.2, EUROPEJSKI_ROOF, EUROPEJSKI_ROOF.darkened(0.08))
+	# The central bays: on the two longest fronts that face east and west (the street, the square).
+	var compass := Vector2(1, 0)
+	for side: float in [1.0, -1.0]:
+		var best := -1
+		var best_len := 0.0
+		for i in ring.size():
+			var a := ring[i]
+			var b := ring[(i + 1) % ring.size()]
+			if _out(ring, a, b).dot(compass * side) > 0.8 and a.distance_to(b) > best_len:
+				best_len = a.distance_to(b)
+				best = i
+		if best < 0 or best_len < 24.0:
+			continue
+		var a := ring[best]
+		var b := ring[(best + 1) % ring.size()]
+		_o = (a + b) * 0.5
+		_a = (b - a).normalized()
+		_b = _out(ring, a, b)
+		_lbox(0.0, 0.0, 9.0, 0.8, g - 0.6, g + EUROPEJSKI_BASE_H, EUROPEJSKI_BASE.darkened(0.03), M_STONE, EUROPEJSKI_BASE)
+		_lbox(0.0, 0.0, 9.0, 0.8, g + EUROPEJSKI_BASE_H, g + EUROPEJSKI_H + 0.6, EUROPEJSKI_WALL, M_MONUMENT, lip)
+		_lbox(0.0, 0.0, 6.0, 0.6, g + EUROPEJSKI_H + 0.6, g + EUROPEJSKI_H + 2.6, lip, M_STONE, lip)
+		_mode = M_GLASS
+		_wall(_w(-1.6, 0.86), _w(1.6, 0.86), g, g + 4.9, _b, EUROPEJSKI_GLASS, -0.85)
+	_collide(ring)
+
+
+## The Tomb of the Unknown Soldier: the three arches left of the Saxon Palace's colonnade (blown
+## up in 1944). A granite platform, two rows of four stone piers, round arches on both long
+## faces, the entablature and its cornice over them; under the middle arch the tomb slab with
+## wreaths and the eternal flame (it glows at night) on the square's side.
+func _build_grob(_site: Dictionary) -> void:
+	_o = GROB
+	_a = GROB_AXIS
+	_b = Vector2(-_a.y, _a.x)
+	_g = map.terrain_height(GROB.x, GROB.y)
+	var g := _g
+	var light := GROB_STONE.lightened(0.06)
+	_lbox(0.0, 0.0, 7.6, 4.4, g - 0.5, g + 0.3, GROB_GRANITE, M_STONE, GROB_GRANITE)
+	for v: float in [-GROB_ROW, GROB_ROW]:
+		for u: float in GROB_PIERS:
+			_lbox(u, v, 0.65, 0.65, g + 0.3, g + 5.0, GROB_STONE, M_STONE, GROB_STONE)
+			_lbox(u, v, 0.8, 0.8, g + 5.0, g + 5.35, light, M_STONE, light)
+		# The arches between the piers, on the row's outer face.
+		var face := v + signf(v) * 0.65
+		for k in GROB_PIERS.size() - 1:
+			_arch(float(GROB_PIERS[k]) + 0.65, float(GROB_PIERS[k + 1]) - 0.65, face, g + 3.6, g + 5.35, GROB_STONE)
+	_lbox(0.0, 0.0, 6.3, 3.75, g + 5.35, g + 7.3, GROB_STONE, M_STONE, GROB_STONE.darkened(0.08))
+	_lbox(0.0, 0.0, 6.55, 4.0, g + 7.3, g + 7.65, light, M_STONE, light.darkened(0.1))
+	# The tomb, its wreaths, the flame in its bronze bowl.
+	_lbox(0.0, 0.0, 1.2, 0.8, g + 0.3, g + 0.55, GROB_GRANITE.darkened(0.3), M_STONE, GROB_GRANITE.darkened(0.3))
+	_lbox(-0.75, -0.95, 0.3, 0.3, g + 0.3, g + 0.6, Color("#c8323a"), M_STONE, Color("#c8323a"))
+	_lbox(0.75, -0.95, 0.3, 0.3, g + 0.3, g + 0.6, Color("#f1efe8"), M_STONE, Color("#f1efe8"))
+	var bowl := _w(0.0, -1.9)
+	_prism(_circle(bowl, 0.35, 6), g + 0.3, g + 1.0, GROB_BRONZE, GROB_BRONZE, M_STONE, M_STONE)
+	_mode = M_LAMP
+	_pyramid(_circle(bowl, 0.26, 4), g + 1.0, g + 1.75, GROB_FLAME)
+	_mode = M_STONE
+	_collide(_rect(0.0, 0.0, 6.3, 3.7))
+
+
+## A round arch's spandrel in the plane v = `v` of the local frame: the wall between y_spring
+## and y_top from u0 to u1, less a half circle over the opening (six steps).
+func _arch(u0: float, u1: float, v: float, y_spring: float, y_top: float, col: Color) -> void:
+	var keep := _mode
+	_mode = M_STONE
+	var r := (u1 - u0) * 0.5
+	var cu := (u0 + u1) * 0.5
+	var n2 := _b * signf(v)
+	var n := Vector3(n2.x, 0.0, n2.y)
+	var steps := 6
+	var at := func(u: float, y: float) -> Vector3:
+		var p := _w(u, v)
+		return Vector3(p.x, y, p.y)
+	var uv := func(u: float, y: float) -> Vector2: return Vector2(u - u0, y - _g)
+	var top := y_top - _g
+	var prev := Vector2(u0, y_spring)
+	for k in range(1, steps + 1):
+		var ang := PI - PI * k / steps
+		var cur := Vector2(cu + cos(ang) * r, y_spring + sin(ang) * r)
+		var corner := Vector2(u0 if k * 2 <= steps else u1, y_top)
+		_tri(at.call(corner.x, corner.y), at.call(prev.x, prev.y), at.call(cur.x, cur.y), n, col,
+				uv.call(corner.x, corner.y), uv.call(prev.x, prev.y), uv.call(cur.x, cur.y), top)
+		prev = cur
+	_tri(at.call(u0, y_top), at.call(cu, y_spring + r), at.call(u1, y_top), n, col,
+			uv.call(u0, y_top), uv.call(cu, y_spring + r), uv.call(u1, y_top), top)
+	_mode = keep
