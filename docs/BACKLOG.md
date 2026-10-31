@@ -1582,15 +1582,20 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## From loop MW-2 (storefronts and parodies, 2026-10-30)
 
-- **What the map lane should bake** (none of it is in `centrum.json`; MW-2 places from addresses
+- ~~**What the map lane should bake** (none of it is in `centrum.json`; MW-2 places from addresses
   and the lane graph at runtime, DEVELOPMENT.md "Storefronts and parodies"): `shop=convenience`
   (the Frogs could stand where real corner shops are), `railway=subway_entrance` (the metro
   entrances are put on the pavement round nine station places, not at the real stairs: at
   Centrum one canopy stands over the map's own sunken stairs), `amenity=bicycle_rental` (the
   docks), the `scooter` / `scooter_zone` pois of parodies.md 5.2 (the odd places: grass, bench
   fronts, hedges, 1 in 40 on a shelter roof), and an address for **Kruczkowskiego 3B** (Kasa
-  Biletowa resolves to Aleja 3 Maja 7A, the nearest address within 140 m). An outline per
-  facade with its street side would replace the sector-load wall rays.
+  Biletowa resolves to Aleja 3 Maja 7A, the nearest address within 140 m).~~ Baked in the
+  content-POIs loop (2026-10-31, DEVELOPMENT.md "Content POIs"): `convenience` 260 (`fr` the
+  Frogs' chain, 163), `subway_entrance` 84 (`yaw` the way down, `st` the station), `bicycle_rental`
+  92, `scooter_zone` 56 (one `egg`), `scooter` 468 (poses), and Kruczkowskiego 3B with 10 more
+  places' addresses (`address` with `v`). **The content lane's switch** is "From the content-POIs
+  loop" below. Still open: an outline per facade with its street side would replace the
+  sector-load wall rays.
 - **What the landmarks lane could add**: nothing blocks. The venue neon sits 0.14 m off the
   collider's face; on a LoD2 facade (no `lod2.*` in this container) the rays meet the LoD2
   walls, untested here. A real shop front (door recess, glass) on the Frogs' walls would beat
@@ -1619,6 +1624,29 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (`--rechotka` stops 6.4 m from Krucza 51's door). Open Question in the MW-2 report.
 - **The metro M** is a cream M on a navy square: generic, no operator's logo; at the default
   view it is a few pixels. The art director may want it bigger or red.
+
+## From the content-POIs loop (map lane, 2026-10-31)
+
+- **The content lane's switch** (storefronts.gd, roundup_job.gd, props.gd; none of it built):
+  the Leżaks from the `scooter` pois (`p` the pose: `lie` on its side as today; `stand` upright;
+  `roof` at `h` 2.6 m over the ground; `grass`, `bench`, `hedge`, `frogs` lie like `lie`) instead
+  of `_pick_scooters`, the zones' paint from `scooter_zone` (3 m along `yaw`), the standing one
+  and `easter_lezak` from the zone with `egg`; the round-up's depots at zones as today. The metro
+  canopies at the `subway_entrance` pois facing `yaw` (skip `u`: underground passages), with
+  `st` instead of the nine notebook places. The Frogs from the `convenience` pois with `fr` (their
+  `door` is the road point, `x, z` the shop: the wall rays still find the facade), the other
+  `convenience` free for other parody shops. Bike docks (`bicycle_rental`, `yaw`, `l`) for a rack
+  row of parody bikes. Today's runtime picks fail the bake's rules often (`tools/check_pois.py
+  --points=`: 108 of 277 Leżaks on a carriageway, crossing, kerb ramp or something solid, 14 of 25
+  metro canopies), so the switch also fixes those.
+- **`address` with `v`** (11): places' addresses the job pool didn't have; `jobs.gd` and `rides.gd`
+  take every `address`, so their shuffles changed (the kebab run's order 0 is now 1,266 m by road:
+  verify `kebab` 15000 → 21000 frames). Skipping `v` in the two jobs gives back the old picks
+  (gameplay lane), if wanted.
+- **Hala Gwardii's address** (Plac Żelaznej Bramy 1) is in no OSM element: the notebook keeps
+  its hint.
+- `check_pois.py` isn't in CI (`.github/workflows/verify.yml`): it reads only centrum.json (and
+  lod2.json and the OSM export when they are there), so it could join the CI list.
 
 ## From loop jobs-2 (the courier race, the Leżak round-up, the payphone, the armchair man, 2026-10-31)
 
