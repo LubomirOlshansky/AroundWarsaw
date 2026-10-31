@@ -70,6 +70,9 @@ TRAM_HALF, RAIL_HALF = 1.5, 2.0
 HEIGHT_STEP = 8.0         # lane_graph.gd
 DECK_CELL = 16.0          # map_builder.gd
 APRON_TAPER = 3.0         # map_builder.gd APRON_TAPER (map round 2): an apron fades out past its sides
+SET_SINK = 0.1            # map_builder.gd SET_SINK (loop 3e): the drawn ground under a lowering ground profile
+SET_FINE = 0.001          # map_builder.gd SET_FINE (loop 3e): sub-cells only where a profile lies this far under the grid
+TUNNEL_MOUTH = 4.8        # tools/bake_structures.py MOUTH: a tunnel's mouth (C5 over a tunnel, loop 3e)
 APRON_IN = 4.0            # tools/bake_structures.py: an apron starts this far inside a structure's end (its `i`)
 
 RULES = [("C1", "grade"), ("C2", "joints"), ("C3", "clearance"), ("C4", "piers"), ("C5", "solids"),
@@ -175,7 +178,7 @@ class Pieces:
         for pc in raw:
             pts = pairs(pc["p"])
             self.p.append({"pts": pts, "cum": cum_of(pts), "h": pc["h"], "l": pc["l"], "r": pc["r"], "g": pc["g"],
-                           "k": pc.get("k", "road")})
+                           "k": pc.get("k", "road"), "s": bool(pc.get("s"))})
         self.any = defaultdict(list)
         self.byg = defaultdict(list)
         self.groups = defaultdict(list)
@@ -300,8 +303,10 @@ class Map:
                     self.apron_cells[(cx, cz)].append(k)
 
     def terrain(self, x, z):
-        """map_builder terrain_height: the grid, raised to any approach whose corridor holds the point."""
+        """map_builder terrain_height: the grid, raised to any approach whose corridor holds the
+        point; loop 3e: a ground profile's ("s" fills) level where one holds it (the nearest)."""
         h = self.grid(x, z)
+        set_h, set_lat = None, 1e9
         for i, k in self.fill_cells.get((math.floor(x / 16.0), math.floor(z / 16.0)), ()):
             d = self.fills.p[i]
             a, b = d["pts"][k], d["pts"][k + 1]
@@ -310,12 +315,28 @@ class Map:
             if l2 < 1e-6:
                 continue
             u = ((x - a[0]) * abx + (z - a[1]) * abz) / l2
+            if d["s"]:
+                # Loop 3e: a ground profile's corridor has round joins (a disc at each vertex: no
+                # wedge of the grid left on the outside of a bend or between two pieces).
+                w = min(d["l"], d["r"])
+                for q, hq in ((a, d["h"][k]), (b, d["h"][k + 1])):
+                    dq = math.hypot(x - q[0], z - q[1])
+                    if dq <= w and dq < set_lat:
+                        set_h, set_lat = hq, dq
             if (u < 0 and k > 0) or (u > 1 and k < len(d["pts"]) - 2) or u < -0.05 or u > 1.05:
                 continue
             lat = (abx * (z - a[1]) - abz * (x - a[0])) / math.sqrt(l2)
             if -d["l"] <= lat <= d["r"]:
                 t = min(max(u, 0.0), 1.0)
-                h = max(h, d["h"][k] + (d["h"][k + 1] - d["h"][k]) * t)
+                v = d["h"][k] + (d["h"][k + 1] - d["h"][k]) * t
+                if d["s"]:
+                    if abs(lat) < set_lat:
+                        set_h, set_lat = v, abs(lat)
+                else:
+                    h = max(h, v)
+        self.set_hit = set_h is not None
+        if set_h is not None:
+            h = set_h
         for k in self.apron_cells.get((math.floor(x / 16.0), math.floor(z / 16.0)), ()):
             x0, z0, ux, uz, ln, ha, l, r, inner = self.aprons[k]
             along = (x - x0) * ux + (z - z0) * uz
@@ -339,13 +360,33 @@ class Map:
         return h00 + (h11 - h01) * u + (h01 - h00) * v
 
     GROUND_SUB = 10   # map_builder GROUND_SUB
+    SET_SUB = 10      # map_builder SET_SUB (loop 3e): a cell only a ground profile reaches
 
     def drawn(self, x, z):
         """C11 (map round 2): the drawn ground mesh's height (map_builder `_drawn_height`): the
         10 m grid's two triangles per cell, and in the cells an apron reaches GROUND_SUB x
         GROUND_SUB sub-cells at min(grid, terrain)."""
         if self.fine is None:
-            self.fine = set()
+            self.fine = {}   # (i, j) -> sub-cells a side (map_builder _fine_cells)
+            # Loop 3e: and the cells a ground profile ("s" fill) reaches (map_builder _fine_index).
+            for d in self.fills.p:
+                if not d["s"]:
+                    continue
+                reach = max(d["l"], d["r"])
+                for k in range(len(d["pts"]) - 1):
+                    a, b = d["pts"][k], d["pts"][k + 1]
+                    # Only where it lowers the ground (map_builder _set_lowers).
+                    h = min(d["h"][k], d["h"][k + 1])
+                    ln = math.hypot(b[0] - a[0], b[1] - a[1])
+                    nx, nz = ((-(b[1] - a[1]) / ln * reach, (b[0] - a[0]) / ln * reach) if ln > 1e-3 else (0.0, 0.0))
+                    if not any(h < self.grid(px, pz) - SET_FINE for px, pz in
+                               (a, b, (a[0] + nx, a[1] + nz), (a[0] - nx, a[1] - nz), (b[0] + nx, b[1] + nz), (b[0] - nx, b[1] - nz))):
+                        continue
+                    for j in range(min(max(math.floor((min(a[1], b[1]) - reach - self.tz0) / self.step), 0), self.nz - 2),
+                                   min(max(math.floor((max(a[1], b[1]) + reach - self.tz0) / self.step), 0), self.nz - 2) + 1):
+                        for i in range(min(max(math.floor((min(a[0], b[0]) - reach - self.tx0) / self.step), 0), self.nx - 2),
+                                       min(max(math.floor((max(a[0], b[0]) + reach - self.tx0) / self.step), 0), self.nx - 2) + 1):
+                            self.fine[(i, j)] = max(self.fine.get((i, j), 0), self.SET_SUB)
             for x0, z0, ux, uz, ln, h, l, r, inner in self.aprons:
                 xs, zs = [], []
                 for along in (0.0, ln):
@@ -356,13 +397,13 @@ class Map:
                                min(max(math.floor((max(zs) - self.tz0) / self.step), 0), self.nz - 2) + 1):
                     for i in range(min(max(math.floor((min(xs) - self.tx0) / self.step), 0), self.nx - 2),
                                    min(max(math.floor((max(xs) - self.tx0) / self.step), 0), self.nx - 2) + 1):
-                        self.fine.add((i, j))
+                        self.fine[(i, j)] = self.GROUND_SUB
         fx = min(max((x - self.tx0) / self.step, 0.0), self.nx - 1.0001)
         fz = min(max((z - self.tz0) / self.step, 0.0), self.nz - 1.0001)
         i, j = int(fx), int(fz)
         if (i, j) not in self.fine:
             return self.grid(x, z)
-        n = self.GROUND_SUB
+        n = self.fine[(i, j)]
         sub = self.step / n
         si = min(max(int((fx - i) * n), 0), n - 1)
         sj = min(max(int((fz - j) * n), 0), n - 1)
@@ -372,7 +413,10 @@ class Map:
         v = min(max((z - z0) / sub, 0.0), 1.0)
 
         def c(px, pz):
-            return min(self.grid(px, pz), self.terrain(px, pz))
+            g, t = self.grid(px, pz), self.terrain(px, pz)
+            if self.set_hit and t < g - 0.001:
+                t -= SET_SINK   # loop 3e: map_builder _drawn_corner
+            return min(g, t)
         h00, h10, h01, h11 = c(x0, z0), c(x0 + sub, z0), c(x0, z0 + sub), c(x0 + sub, z0 + sub)
         if u >= v:
             return h00 + (h10 - h00) * u + (h11 - h10) * v
@@ -867,6 +911,12 @@ class Check:
             run, first = 0, None
             for x, z, y in (pts if height is None else ((x, z, height(x, z)) for x, z in sample(pts, 2.0))):
                 hit = None
+                if m.terrain(x, z) - y >= TUNNEL_MOUTH and m.tunnels.at(x, z):
+                    # Loop 3e: under the ground in a tunnel, what stands on the ground over it
+                    # (the Copernicus Science Centre over the Wisłostrada's tubes) is not in the
+                    # way; its walls reaching down into the tube are check_drive's (lod2_open).
+                    run, first = 0, None
+                    continue
                 for q, base, top, lab, _, _ in sol.at(x, z):
                     if base < y + SOLID_ABOVE and top > y:
                         hit = lab

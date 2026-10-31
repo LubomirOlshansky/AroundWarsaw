@@ -79,6 +79,8 @@ PIT_MIN = 0.4        # ...when it is at least this deep...
 PIT_PORTAL = 80.0    # ...and not this close to a tunnel's portal (loop 3b: its open ramp's trench)
 TUNNEL_COVER = 6.0   # R4: a tunnel runs this far under the terrain...
 TUNNEL_GRADE = 0.08  # ...its portal ramps no steeper than this
+TUNNEL_HEAD = 5.6    # loop 3e: a tube between two portals keeps this much ground over its floor (the mouth and a slab)...
+TUNNEL_FREE = 15.0   # ...further than this from a portal
 BLUR_FREE = 30.0     # within this of a bridge way the terrain only bounds an approach from below
 BESIDE_REACH = 6.0   # a footway or tram track this far past a road deck's edge is held to its height
 STAIR_GRADE = 0.5    # a footbridge meets the ground by stairs: its ends may be this steep
@@ -96,6 +98,25 @@ DECK_OPEN = 6.0      # R2: spikes narrower than twice this (a pylon, a gantry) a
 PILLAR_AREA = 12.0   # R2: a mapped building this small under a road deck is one of its pillars...
 PILLAR_SLAB = 1.3 + 0.08 + 0.05   # ...and the deck's surface stands this far over its top (the slab)
 SURFACE_BASE = 100.0  # R2: the surface model's heights minus this are the map's (bake_gugik BASE_HEIGHT)
+# Loop 3e: ground profiles from the 1 m NMT (`_ground_profiles`). The 10 m grid can't hold a
+# road's level where the ground steps beside it: a portal's trench, a cutting, a road along a
+# retaining wall or under the escarpment. Near the structures the road's own level in the 1 m
+# bare earth sets the ground under its corridor (up or down: a "set" fill).
+PROFILE_REACH = 80.0   # ordinary ways this far along the streets from a structure's way...
+PROFILE_MIN = 0.3      # ...whose 1 m level differs from the 10 m grid's by this...
+PROFILE_FEATHER = 0.05 # ...get the profile, out to where the two agree within this
+PROFILE_RING = 300.0   # (looked at this much further, where a profile runs on to meet the grid)
+PROFILE_STEP = 2.0     # profile stations this far apart
+PROFILE_SIDE = 1.5     # the profile's corridor: the road's half width and this (a 1 m sub-cell past the edge)
+PROFILE_PIT = 6.0      # pits narrower than this in the 1 m road level are a drain or a shaft (closed)...
+PROFILE_HUMP = 30.0    # ...and humps narrower than this a deck the bare earth kept (opened)
+PROFILE_VERTEX = 2.5   # a vertex shared by ways: the median of the 1 m cells within this
+PROFILE_SPREAD = 2.5   # a cross-section of the 1 m cells spanning more than this is over a step (no level)
+PROFILE_BRIDGE = 12.0  # a way's profile never under the grid this near a bridge's end
+PORTAL_OUT = (4, 12)   # a portal's level: the 1 m cells this many metres out of the mouth...
+PORTAL_PCT = 0.3       # ...this percentile of them (the trench's floor, not its walls' tops)...
+PORTAL_HOLD = 8.0      # ...held by the ways at the portal over their last metres
+NMT_BOX = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "raw", "demo", "gugik", "nmt1_box")
 
 SPIRAL_LANES = 3     # loop 3b-2: a roundabout ring with this many lanes or more...
 SPIRAL_RADIUS = 25.0  # ...and at least this big (Rondo Dmowskiego) gets spiral lane lines
@@ -539,6 +560,7 @@ class Roadbed:
         T = self.terrain
         roads = self.roads
         self.surface_model = SurfaceModel.load(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "raw", "demo", "gugik"))
+        self.nmt = NMT.load(NMT_BOX)   # loop 3e: the 1 m bare earth (ground profiles)
 
         # What runs under: ground roads, trams and rails, and the structures below.
         under = Grid(32.0)
@@ -589,6 +611,9 @@ class Roadbed:
             self.paths[:] = [p for i, p in enumerate(self.paths) if i not in stubs]
         path_ok = [p["k"] in ("foot", "cycle") for p in self.paths]
         path_mem = self._members(self.paths, lambda p: p.get("_br"), "path", usable=path_ok)
+        # Loop 3e: the ordinary ways by the structures on the 1 m ground, before the structures
+        # are solved (their pins and the tunnels' portals take the ground these give).
+        self._ground_profiles(road_mem, rail_mem)
         for items, mem in ((roads, road_mem), (rails, rail_mem), (self.trams, tram_mem), (self.paths, path_mem)):
             for it, why in zip(items, mem):
                 if why:
@@ -675,7 +700,12 @@ class Roadbed:
         # corridor (`fills`), so whatever lies on the ground there (the road, its kerbs and
         # markings, the carriageway areas, the lanes, the car) sees the right height. Only the
         # bridges are decks.
-        self.fills = [pc for pc in self.pieces if pc["a"]]
+        self.fills = [pc for pc in self.pieces if pc["a"]] + self.profile_fills
+        # Loop 3e: an approach solved under the 10 m grid (its ground is a ground profile's, lower
+        # than the grid: W-Z's ramps down to the east portal) sets the ground, not only raises it.
+        for pc in self.fills:
+            if not pc.get("set") and any(h < T.h(*p) - PROFILE_MIN for p, h in zip(pc["pts"], pc["h"])):
+                pc["set"] = True
         self.pieces = [pc for pc in self.pieces if not pc["a"]]
         self.road_piece = {pc["road"]: k for k, pc in enumerate(self.pieces) if "road" in pc}
         self.road_fill = {pc["road"]: pc for pc in self.fills if "road" in pc}
@@ -747,7 +777,8 @@ class Roadbed:
         than that bridged, the humps kept); where it stands PIT_MIN or more above the grid,
         that stretch becomes a fill like an approach's."""
         T = self.terrain
-        on_structure = set(self.road_piece) | set(self.road_fill)
+        on_structure = set(self.road_piece) | set(self.road_fill) | \
+            {i for i, r in enumerate(self.roads) if id(r) in getattr(self, "profile_ways", ())}   # loop 3e
         n0 = len(self.fills)
         half = PIT_SPAN * 0.5
         # A fill corrects the ground under its corridor only: where another way enters it (a
@@ -855,7 +886,9 @@ class Roadbed:
                 for key in (ids[0], ids[-1]):
                     q = nodes[key]
                     if key in open_v:
-                        pins[key] = T.h(*q)
+                        # Loop 3e: the open road's level at the portal (its ground profile from
+                        # the 1 m NMT where the 10 m grid blurs the portal's face).
+                        pins[key] = self.base_h(*q)
                         self.portals.append([round(q[0], 1), round(q[1], 1), g])
             import heapq
             ramp = {key: -1e9 for key in nodes}
@@ -873,11 +906,44 @@ class Roadbed:
                     if v > ramp[o]:
                         ramp[o] = v
                         heapq.heappush(heap, (-v, o))
+            # Loop 3e: and no steeper than TUNNEL_GRADE up from a portal either (the floor ran
+            # from a portal pinned low to the cover's depth in a few metres: W-Z's east portal,
+            # Plac Na Rozdrożu's short tubes).
+            rise = {key: 1e9 for key in nodes}
+            heap = [(h, key) for key, h in pins.items()]
+            for key, h in pins.items():
+                rise[key] = h
+            heapq.heapify(heap)
+            while heap:
+                h, key = heapq.heappop(heap)
+                if h > rise[key]:
+                    continue
+                for o, d in nbr.get(key, ()):
+                    v = h + TUNNEL_GRADE * d
+                    if v < rise[o]:
+                        rise[o] = v
+                        heapq.heappush(heap, (v, o))
             for i, (pts, ids) in per_item.items():
                 hs = []
                 for q, key in zip(pts, ids):
-                    deep = T.h(*q) - TUNNEL_COVER
+                    deep = min(T.h(*q) - TUNNEL_COVER, rise[key])
                     hs.append(pins[key] if key in pins else max(deep, ramp[key]) if ramp[key] > -1e8 else deep)
+                if len(members) == 1 and ids[0] in pins and ids[-1] in pins and len(pts) > 2:
+                    # Loop 3e: a tube with a portal at each end runs straight between them (the
+                    # cover's depth followed the ground over it in 0.3-0.8 m waves: Plac Na
+                    # Rozdrożu's tubes, the Wisłostrada's), dipping under any stretch where the
+                    # ground would come within TUNNEL_HEAD of the floor (away from the portals),
+                    # its ramps no steeper than TUNNEL_GRADE.
+                    cum = _cum(pts)
+                    h0, h1 = pins[ids[0]], pins[ids[-1]]
+                    hs = [h0 + (h1 - h0) * c / cum[-1] for c in cum]
+                    for k, q in enumerate(pts):
+                        if TUNNEL_FREE < cum[k] < cum[-1] - TUNNEL_FREE:
+                            hs[k] = min(hs[k], T.h(*q) - TUNNEL_HEAD)
+                    for k in range(1, len(hs) - 1):
+                        hs[k] = min(hs[k], hs[k - 1] + TUNNEL_GRADE * (cum[k] - cum[k - 1]))
+                    for k in range(len(hs) - 2, 0, -1):
+                        hs[k] = min(hs[k], hs[k + 1] + TUNNEL_GRADE * (cum[k + 1] - cum[k]))
                 r = tunnel_roads[i]
                 r["tn"] = g
                 self.tunnel_pieces.append({"pts": pts, "h": hs, "l": r["w"] * 0.5 + 0.5, "r": r["w"] * 0.5 + 0.5, "g": g})
@@ -1015,6 +1081,277 @@ class Roadbed:
                     return True
         return False
 
+    # -- ground profiles from the 1 m NMT (loop 3e) ------------------------------------------
+
+    def _ground_profiles(self, road_mem, rail_mem):
+        """Loop 3e: the 10 m grid can't hold a road's level where the ground steps beside it (a
+        tunnel's open ramp in its trench, a cutting, a road along a retaining wall or at the
+        escarpment's foot): its node reads the ground over the wall, so the road dives in or
+        out over one cell (W-Z's east portal 43 % over 7 m, the Wisłostrada's portals 41 %,
+        Plac Na Rozdrożu's cutting 54 %, Nowy Zjazd's 2 m pits). Near the structures the
+        ordinary ways (and every cutting: layer < 0, no tunnel) take their own level in the
+        1 m bare earth (`data/raw/demo/gugik/nmt1_box`): every PROFILE_STEP the median of the 1 m
+        cells across the carriageway; pits narrower than PROFILE_PIT closed, humps narrower than
+        PROFILE_HUMP opened (a deck the bare earth kept); one level at a vertex the ways share.
+        Where it differs from the grid by PROFILE_MIN or more (out to where they agree within
+        PROFILE_FEATHER), a "set" fill: the ground under the corridor is that level, up or down
+        (map_builder.gd terrain_height; the drawn ground follows in 1 m sub-cells where it is
+        lowered). The structures' pins and the tunnels' portals stand on these levels (`base_h`).
+        Ways this far from every structure keep the grid (their heights don't change)."""
+        import heapq
+        T = self.terrain
+        self.profile_fills = []
+        self.profile_ways = set()
+        self._profile_grid = Grid(16.0)
+        nmt = self.nmt
+        if nmt is None:
+            print("profiles: no 1 m NMT (data/raw/demo/gugik/nmt1_box): the 10 m grid alone (loop 3e skipped)")
+            return
+        rails = self.details.get("rails", [])
+        tunnels = getattr(self, "tunnel_roads", [])
+        ways = []   # (item, family, half width, cutting)
+        for i, r in enumerate(self.roads):
+            if not road_mem[i] and not r.get("bridge"):
+                ways.append((r, "road", max(r["w"] * 0.5, 1.5), (r.get("_ly") or 0) < 0))
+        # (Rails stay on the grid: the railway cutting west of Centralna on its 1 m level is
+        # 24,000 m2 of 1 m ground sub-cells, a +0.5 M vertex cost; BACKLOG "From loop 3e".)
+        # Seeds: the tunnels' ends and the cuttings. (Every vertex of every structure's way was
+        # tried too: it fixed Nowy Zjazd's pits and a few abutment streets, but its 1 m ground
+        # sub-cells cost 1,000 grid cells, +0.4 M vertices: BACKLOG "From loop 3e".)
+        seed = {}
+        for r in tunnels:
+            q = pairs(r["p"])
+            seed[_key(q[0])] = 0.0
+            seed[_key(q[-1])] = 0.0
+        # The street network over the candidate ways' vertices, for the distance from a seed.
+        nbr = {}
+        for it, fam, half, cut in ways:
+            q = pairs(it["p"])
+            for a, b in zip(q, q[1:]):
+                ka, kb = _key(a), _key(b)
+                d = math.dist(a, b)
+                nbr.setdefault(ka, []).append((kb, d))
+                nbr.setdefault(kb, []).append((ka, d))
+            if cut:
+                for v in q:
+                    seed[_key(v)] = 0.0
+        dist = dict(seed)
+        heap = [(d, k) for k, d in seed.items()]
+        heapq.heapify(heap)
+        while heap:
+            d, k = heapq.heappop(heap)
+            if d > dist.get(k, 1e9) or d > PROFILE_REACH + PROFILE_RING:
+                continue
+            for o, w in nbr.get(k, ()):
+                nd = d + w
+                if nd < dist.get(o, 1e9):
+                    dist[o] = nd
+                    heapq.heappush(heap, (nd, o))
+        # Each candidate's stations: (s, point, the 1 m level, the grid, distance to a seed).
+        prof = {}
+        for idx, (it, fam, half, cut) in enumerate(ways):
+            q = pairs(it["p"])
+            if len(q) < 2 or not any(dist.get(_key(v), 1e9) <= PROFILE_REACH + PROFILE_RING for v in q):
+                continue   # (the ring past PROFILE_REACH: where a profile runs on until it meets the grid)
+            ps, cum, lv = self._nmt_levels(q, half)
+            vk = [_key(p) for p in ps]
+            dd = [dist.get(k, 1e9) for k in vk]
+            for k in range(1, len(ps)):
+                dd[k] = min(dd[k], dd[k - 1] + cum[k] - cum[k - 1])
+            for k in range(len(ps) - 2, -1, -1):
+                dd[k] = min(dd[k], dd[k + 1] + cum[k + 1] - cum[k])
+            if cut:
+                dd = [0.0] * len(ps)   # a cutting is profiled whole
+            prof[idx] = {"ps": ps, "cum": cum, "lv": lv, "g": [T.h(*p) for p in ps], "dd": dd, "keys": vk}
+        # A bridge's end: the bare earth there is what the bridge spans (a cutting, a ditch) or its
+        # abutment's foot; within PROFILE_BRIDGE of a bridge's end a way never goes under the grid
+        # (two 8 m service bridges over the WKD cutting by Centralna dived into it).
+        bridge_keys = set()
+        for items, mem in ((self.roads, road_mem), (rails, rail_mem)):
+            for it, m in zip(items, mem):
+                if m == "bridge":
+                    q = pairs(it["p"])
+                    bridge_keys |= {_key(q[0]), _key(q[-1])}
+        for idx, pr in prof.items():
+            cum, lv, keys = pr["cum"], pr["lv"], pr["keys"]
+            ends = [cum[k] for k, key in enumerate(keys) if key in bridge_keys]
+            if ends:
+                for k in range(len(lv)):
+                    if min(abs(cum[k] - e) for e in ends) <= PROFILE_BRIDGE:
+                        lv[k] = max(lv[k], pr["g"][k])
+        # A tunnel's portal: the bare earth at the mouth is the portal's roof, not the road, so
+        # the open road's level there is the floor of the trench before it (PORTAL_PCT of the 1 m
+        # cells PORTAL_OUT metres out, across the tunnel's width), and the ways at the portal
+        # hold it over their last PORTAL_HOLD metres.
+        portal = {}
+        for r in tunnels:
+            q = pairs(r["p"])
+            if len(q) < 2:
+                continue
+            hw = max(r["w"] * 0.5 - 1.0, 0.5)
+            for end, prev in ((q[0], q[1]), (q[-1], q[-2])):
+                d = _unit(prev, end)
+                if d is None or _key(end) not in nbr:
+                    continue   # not a portal (the map's edge, or another tunnel goes on)
+                vals = []
+                for a in range(PORTAL_OUT[0], PORTAL_OUT[1] + 1):
+                    b = -hw
+                    while b <= hw + 1e-6:
+                        v = nmt.at(end[0] + d[0] * a - d[1] * b, end[1] + d[1] * a + d[0] * b)
+                        if v is not None:
+                            vals.append(v)
+                        b += 1.0
+                if vals:
+                    vals.sort()
+                    portal[_key(end)] = vals[int(len(vals) * PORTAL_PCT)]
+        for idx, pr in prof.items():
+            cum, lv = pr["cum"], pr["lv"]
+            for k in (0, len(lv) - 1):
+                if pr["keys"][k] not in portal:
+                    continue
+                p_lv = portal[pr["keys"][k]]
+                far = PORTAL_HOLD if k == 0 else cum[-1] - PORTAL_HOLD
+                far_lv = _interp(cum, lv, far) if cum[-1] > PORTAL_HOLD else p_lv
+                for j in range(len(lv)):
+                    t = abs(cum[j] - cum[k]) / PORTAL_HOLD
+                    if t < 1.0:
+                        lv[j] = p_lv + (far_lv - p_lv) * t
+        # One level at a vertex the candidates share (their mean there; a portal's own level),
+        # blended in over 4 m.
+        at_vertex = {}
+        for idx, pr in prof.items():
+            for k, key in enumerate(pr["keys"]):
+                at_vertex.setdefault(key, []).append(pr["lv"][k])
+        shared = {key: sum(v) / len(v) for key, v in at_vertex.items() if len(v) > 1}
+        shared.update({key: v for key, v in portal.items() if key in at_vertex})
+        for idx, pr in prof.items():
+            cum, lv = pr["cum"], pr["lv"]
+            delta = [0.0] * len(lv)
+            for k, key in enumerate(pr["keys"]):
+                if key in shared:
+                    dv = shared[key] - lv[k]
+                    for j in range(len(lv)):
+                        t = 1.0 - abs(cum[j] - cum[k]) / 4.0
+                        if t > 0.0 and abs(dv * t) > abs(delta[j]):
+                            delta[j] = dv * t
+            pr["lv"] = [a + b for a, b in zip(lv, delta)]
+        # Runs where the level is off the grid near a structure; grown to where they agree. A run
+        # reaching a shared vertex makes the others there start one too (no step at the joint).
+        forced = set()
+        runs = {}
+        for _ in range(6):
+            grew = False
+            for idx, pr in prof.items():
+                lv, g, dd, keys = pr["lv"], pr["g"], pr["dd"], pr["keys"]
+                n = len(lv)
+                off = [abs(a - b) for a, b in zip(lv, g)]
+                mark = [(dd[k] <= PROFILE_REACH and off[k] >= PROFILE_MIN) or (keys[k] in forced and off[k] > PROFILE_FEATHER)
+                        for k in range(n)]
+                out = []
+                k = 0
+                while k < n:
+                    if not mark[k]:
+                        k += 1
+                        continue
+                    a = b = k
+                    while a > 0 and off[a - 1] > PROFILE_FEATHER:
+                        a -= 1
+                    while b < n - 1 and (off[b + 1] > PROFILE_FEATHER or mark[b + 1]):
+                        b += 1
+                    a, b = max(a - 1, 0), min(b + 1, n - 1)
+                    out.append((a, b))
+                    k = b + 1
+                if out != runs.get(idx):
+                    runs[idx] = out
+                    for a, b in out:
+                        for k in range(a, b + 1):
+                            if keys[k] in shared and keys[k] not in forced and off[k] > PROFILE_FEATHER:
+                                forced.add(keys[k])
+                                grew = True
+            if not grew:
+                break
+        n_lo = n_hi = 0
+        length = 0.0
+        worst = 0.0
+        for idx, out in runs.items():
+            it, fam, half, cut = ways[idx]
+            pr = prof[idx]
+            for a, b in out:
+                if b <= a:
+                    continue
+                pts = pr["ps"][a:b + 1]
+                hs = pr["lv"][a:b + 1]
+                side = half + PROFILE_SIDE
+                pc = {"pts": pts, "cum": _cum(pts), "h": hs, "l": side, "r": side, "kind": fam, "a": True, "set": True,
+                      "item": it}
+                self.profile_fills.append(pc)
+                self.profile_ways.add(id(it))
+                xs = [p[0] for p in pts]
+                zs = [p[1] for p in pts]
+                self._profile_grid.add(pc, min(xs) - side, min(zs) - side, max(xs) + side, max(zs) + side)
+                length += pc["cum"][-1]
+                d = [h - gg for h, gg in zip(hs, pr["g"][a:b + 1])]
+                worst = max(worst, max(abs(v) for v in d))
+                if min(d) < -PROFILE_MIN:
+                    n_lo += 1
+                if max(d) > PROFILE_MIN:
+                    n_hi += 1
+        print(f"profiles (loop 3e): {len(self.profile_fills)} stretches of {len(self.profile_ways)} ways by the "
+              f"structures on the 1 m ground ({length:.0f} m; {n_lo} lowered, {n_hi} raised, at most {worst:.1f} m off "
+              f"the 10 m grid) of {len(prof)} ways looked at")
+
+    def _nmt_levels(self, q, half):
+        """Loop 3e: a way's level in the 1 m bare earth: stations every PROFILE_STEP (its own
+        vertices kept), each the median of the cells across its carriageway (half width `half`),
+        pits narrower than PROFILE_PIT closed and humps narrower than PROFILE_HUMP opened.
+        (ps, cum, levels); the grid where the NMT has no cell."""
+        nmt, T = self.nmt, self.terrain
+        ps = resample(q, PROFILE_STEP)
+        cum = _cum(ps)
+        lv = []
+        for k, p in enumerate(ps):
+            d = _edge_dir(ps, cum, cum[k])
+            vals = []
+            o = -(half - 0.6) if half > 1.2 else 0.0
+            while o <= max(half - 0.6, 0.0) + 1e-6:
+                v = nmt.at(p[0] - d[1] * o, p[1] + d[0] * o)
+                if v is not None:
+                    vals.append(v)
+                o += 0.75
+            vals.sort()
+            # A cross-section over a step (a way along a cutting's or a wall's edge, its corridor
+            # half in and half out: the WKD's service roads by Centralna) has no one level: the
+            # grid's there.
+            lv.append(vals[len(vals) // 2] if vals and vals[-1] - vals[0] <= PROFILE_SPREAD else T.h(*p))
+        return ps, cum, _close_open(cum, lv, PROFILE_PIT * 0.5, PROFILE_HUMP * 0.5)
+
+    def base_h(self, x, z):
+        """Loop 3e: the ground under a way before the structures: a ground profile's level
+        where one holds the point, else the 10 m grid (the rule of map_builder.gd _fill_height
+        and check_roads Map.terrain: the nearest corridor by its segments, round joins)."""
+        best_d, best_h = 1e18, None
+        for pc in getattr(self, "_profile_grid", Grid()).at(x, z):
+            pts, hs = pc["pts"], pc["h"]
+            w = min(pc["l"], pc["r"])
+            for k in range(len(pts) - 1):
+                a, b = pts[k], pts[k + 1]
+                for q, hq in ((a, hs[k]), (b, hs[k + 1])):
+                    dq = math.hypot(x - q[0], z - q[1])
+                    if dq <= w and dq < best_d:
+                        best_d, best_h = dq, hq
+                abx, abz = b[0] - a[0], b[1] - a[1]
+                l2 = abx * abx + abz * abz
+                if l2 < 1e-6:
+                    continue
+                u = ((x - a[0]) * abx + (z - a[1]) * abz) / l2
+                if (u < 0 and k > 0) or (u > 1 and k < len(pts) - 2) or u < -0.05 or u > 1.05:
+                    continue
+                lat = (abx * (z - a[1]) - abz * (x - a[0])) / math.sqrt(l2)
+                if -pc["l"] <= lat <= pc["r"] and abs(lat) < best_d:
+                    t = min(max(u, 0.0), 1.0)
+                    best_d, best_h = abs(lat), hs[k] + (hs[k + 1] - hs[k]) * t
+        return best_h if best_h is not None else self.terrain.h(x, z)
+
     # -- the profile solver (R1, R3) -----------------------------------------------------
 
     def _solve(self, items, member, family, half_w, beside=None):
@@ -1114,7 +1451,7 @@ class Roadbed:
             node_of[key] = k
             X.append(p[0])
             Z.append(p[1])
-            h = T.h(*p)
+            h = self.base_h(*p)   # loop 3e: the ground profiles' level where they hold the point
             TH.append(h)
             LB.append(h)
             PIN.append(None)
@@ -1297,7 +1634,7 @@ class Roadbed:
                         opts, ocum, oh = self.profiles[id(items[o])]
                         PIN[k] = _interp(ocum, oh, project_onto(opts, ocum, q[0], q[1])[0])
                     else:
-                        PIN[k] = T.h(*q)
+                        PIN[k] = self.base_h(*q)   # loop 3e: on its ground profile where it has one
             for q in (pts[0], pts[-1]):
                 k = node_of[_key(q)]
                 others = verts.get(_key(q), set()) - {i}
@@ -1376,7 +1713,7 @@ class Roadbed:
             H = self._relax(X, Z, TH, LB, PIN, W, nbr, coupled, item_nodes, member)
         for i in idx:
             ps, ss, ids = item_nodes[i]
-            hs = [max(H[k], T.h(*p)) for p, k in zip(ps, ids)]
+            hs = [max(H[k], self.base_h(*p)) for p, k in zip(ps, ids)]
             self.profiles[id(items[i])] = (ps, ss, hs)
         dbg = os.environ.get("NW_DECK_DEBUG")
         if dbg:
@@ -2750,11 +3087,18 @@ class Roadbed:
             r = self.roads[i]
             pc["l"] = max(0.5, r["w"] * 0.5 - r["c"] + 0.4)
             pc["r"] = max(0.5, r["w"] * 0.5 + r["c"] + 0.4)
+        # Loop 3e: a ground profile holds its road's measured strip and PROFILE_SIDE past it.
+        for pc in self.fills:
+            if pc.get("set") and pc["kind"] == "road" and "item" in pc:
+                r = pc["item"]
+                pc["l"] = max(pc["l"], r["w"] * 0.5 - r.get("c", 0.0) + PROFILE_SIDE)
+                pc["r"] = max(pc["r"], r["w"] * 0.5 + r.get("c", 0.0) + PROFILE_SIDE)
 
     def fill_json(self):
         """Loop 3a: the approaches, the ground corrected under their corridors."""
-        return [{"p": flat(pc["pts"]), "h": [round(h, 2) for h in pc["h"]], "l": round(pc["l"], 2),
-                 "r": round(pc["r"], 2), "k": pc["kind"]} for pc in self.fills]
+        return [dict({"p": flat(pc["pts"]), "h": [round(h, 2) for h in pc["h"]], "l": round(pc["l"], 2),
+                      "r": round(pc["r"], 2), "k": pc["kind"]}, **({"s": 1} if pc.get("set") else {}))
+                for pc in self.fills]
 
 
 # Map review B (2026-10-29): junction boxes, crossings and poles (Roadbed._junction_boxes,
@@ -2921,6 +3265,54 @@ def _stacked(pa, pb):
             if abs(ha - hb) > 2.5:
                 return True
     return False
+
+
+def _close_open(cum, hs, pit, hump):
+    """Loop 3e: a profile's pits narrower than 2 x `pit` closed (the highest within `pit`, then
+    the lowest of those) and its humps narrower than 2 x `hump` opened (the lowest within
+    `hump`, then the highest of those): ramps and steps wider than that stay."""
+    def window(vals, r, fn):
+        out = []
+        a = 0
+        b = 0
+        n = len(vals)
+        for k in range(n):
+            while cum[a] < cum[k] - r:
+                a += 1
+            while b < n - 1 and cum[b + 1] <= cum[k] + r:
+                b += 1
+            out.append(fn(vals[a:b + 1]))
+        return out
+    hs = window(window(hs, pit, max), pit, min)
+    return window(window(hs, hump, min), hump, max)
+
+
+class NMT:
+    """Loop 3e: the 1 m bare earth of the whole box (`data/raw/demo/gugik/nmt1_box`, the tiles
+    tools/prepare_demo.py builds the 10 m grid from), in map heights (minus SURFACE_BASE)."""
+
+    def __init__(self, grids):
+        self.grids = grids
+        self.cells = {}
+        for g in grids:
+            x0, z0, x1, z1 = g.box
+            for i in range(int(x0 // 256), int(x1 // 256) + 1):
+                for j in range(int(z0 // 256), int(z1 // 256) + 1):
+                    self.cells.setdefault((i, j), []).append(g)
+
+    @staticmethod
+    def load(folder):
+        if not os.path.isdir(folder):
+            return None
+        files = [os.path.join(folder, f) for f in sorted(os.listdir(folder)) if f.lower().endswith((".tif", ".tiff"))]
+        return NMT([_TifGrid(f) for f in files]) if files else None
+
+    def at(self, x, z):
+        for g in self.cells.get((int(x // 256), int(z // 256)), ()):
+            h = g.at(x, z)
+            if h is not None and h == h and h > -1000.0:
+                return h - SURFACE_BASE
+        return None
 
 
 class SurfaceModel:

@@ -13,7 +13,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | driving | The car's feel, traffic and the player, the roadworks (PR #5 and #8 landed; the ram test) | cloud thread "Make driving smoother" | 2026-10-30 |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
-| map | Loop 3e, structures: the W-Z tunnel, Most Śląsko-Dąbrowski, Trasa Łazienkowska, the Wybrzeże trench, Wiadukt Markiewicza, the rail cutting (3d-1, 3d-2a and 3d-2b landed) | thread "Finish the demo map extension" | 2026-10-30 |
+| map | The loading fix (on-screen sectors first, proxies that look like the city), then the map north to Rondo Radosława, Arkadia and Forest (3d-1, 3d-2a, 3d-2b and 3e landed) | thread "Finish the demo map extension" | 2026-10-30 |
 
 ## Waiting
 
@@ -91,6 +91,21 @@ Newest first. One entry per question.
   photo spots (`game/data/eggs.json`, `kadr.json`). Default built: as written.
 - **2026-10-30 · content · MW-6** — The KASETA ghost is faint (dithered, reusing the building
   shader) and dim at night. Brighter needs a visuals-lane shader uniform. Default built: faint.
+- **2026-10-31 · map · 3e** — Ground under trenches: 1 m sub-cells only at tunnel portals and
+  road cuttings (keeps the +1 % vertex budget), or a new builder feature that cuts the ground along
+  a lowered corridor and draws the floor as one strip (would also fix the rail cutting and ~40 more
+  findings for a few vertices per cell)? Default built: sub-cells; the strip is a follow-up loop.
+- **2026-10-31 · map · 3e** — check_drive now drives all 98 structure routes (~2 s more), which
+  surfaced allowlisted jumps at Poniatowski deck 13, Łazienkowski deck 20 and Towarowa. Default
+  built: keep 98 routes (the alternative was back to 20, hiding them).
+- **2026-10-31 · map · 3e** — Plac Na Rozdrożu's tube ends stop a few metres short of the street
+  over them: extend a tunnel under any way crossing its open road within 15 m of the portal?
+  Default built: OSM geometry kept, allowlisted with its cause.
+- **2026-10-31 · map · 3e** — Portal headwalls are plain concrete; the new tall W-Z east headwall
+  reads as a dark slab at night. An art pass on portal frames (lining, lamps)? Default: none
+  until the art director picks it up.
+- **2026-10-31 · map · 3e** — Parked cars at `PARKED_FILL` 0.27 (14,637 → 4,927) as asked. If
+  it now looks too empty, it's one constant in `bake_osm.py`. Default built: 0.27.
 - **2026-10-30 · map · 3d-2b** — A far level by zoom: draw the helicopter's highest views (above
   ~200 m) as painted proxies? Over the centre ~357 draw calls would drop to a few dozen, but those
   views lose their 3D detail. Default built: no far level, full detail everywhere (the orthographic

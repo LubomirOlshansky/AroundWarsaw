@@ -709,6 +709,7 @@ func terrain_height(x: float, z: float) -> float:
 ## aprons).
 func _fill_height(x: float, z: float) -> float:
 	var h := _grid_height(x, z)
+	_set_hit = false
 	if _fill_cells.is_empty():
 		return h
 	var codes: PackedInt32Array = _fill_cells.get((floori(x / FILL_CELL) + 1024) * 4096 + floori(z / FILL_CELL) + 1024,
@@ -716,7 +717,12 @@ func _fill_height(x: float, z: float) -> float:
 	if codes.is_empty():
 		return h
 	# Loop 3a: inside an approach's corridor the ground is its profile (never lower).
+	# Loop 3e: inside a ground profile's ("s": the 1 m NMT's level of a way by a structure,
+	# tools/bake_roads.py `_ground_profiles`) it is that level, up or down: the nearest one's,
+	# its corridor with round joins (a disc at each vertex).
 	var p := Vector2(x, z)
+	var set_h := NAN
+	var set_d := INF
 	for code in codes:
 		var d: Dictionary = _fills[code >> 12]
 		var k := code & 4095
@@ -726,14 +732,34 @@ func _fill_height(x: float, z: float) -> float:
 		var l2 := ab.length_squared()
 		if l2 < 0.000001:
 			continue
+		var hs: PackedFloat32Array = d["h"]
+		var is_set: bool = d["s"]
+		if is_set:
+			var w := minf(float(d["l"]), float(d["r"]))
+			var da := p.distance_to(a)
+			if da <= w and da < set_d:
+				set_h = hs[k]
+				set_d = da
+			var db := p.distance_to(pts[k + 1])
+			if db <= w and db < set_d:
+				set_h = hs[k + 1]
+				set_d = db
 		var u := (p - a).dot(ab) / l2
 		if (u < 0.0 and k > 0) or (u > 1.0 and k < pts.size() - 2) or u < -0.05 or u > 1.05:
 			continue
 		var t := clampf(u, 0.0, 1.0)
 		var lat := ab.cross(p - a) / sqrt(l2)
 		if lat >= -float(d["l"]) and lat <= float(d["r"]):
-			var hs: PackedFloat32Array = d["h"]
-			h = maxf(h, lerpf(hs[k], hs[k + 1], t))
+			var v := lerpf(hs[k], hs[k + 1], t)
+			if is_set:
+				if absf(lat) < set_d:
+					set_h = v
+					set_d = absf(lat)
+			else:
+				h = maxf(h, v)
+	_set_hit = not is_nan(set_h)
+	if _set_hit:
+		return set_h
 	return h
 
 
@@ -1167,7 +1193,8 @@ func _load_fills() -> void:
 	for piece in data.get("fills", []):
 		var pts := _pts(piece["p"])
 		var i := _fills.size()
-		_fills.append({"pts": pts, "h": PackedFloat32Array(piece["h"]), "l": float(piece["l"]), "r": float(piece["r"])})
+		_fills.append({"pts": pts, "h": PackedFloat32Array(piece["h"]), "l": float(piece["l"]), "r": float(piece["r"]),
+				"s": int(piece.get("s", 0)) == 1})
 		var reach := maxf(float(piece["l"]), float(piece["r"])) + 0.5
 		for k in pts.size() - 1:
 			var lo := pts[k].min(pts[k + 1]) - Vector2.ONE * reach
@@ -1709,9 +1736,10 @@ func _fill_grid_cells(st, poly: PackedVector2Array, y: float, col: Color) -> voi
 			if _fine_cells.has(Vector2i(i0 + i, j0 + j)):
 				# Map round 2 (D5): a cell an apron reaches is drawn in sub-cells; lay the
 				# polygon on their triangles, each clipped.
-				var s := step / GROUND_SUB
-				for sj in GROUND_SUB:
-					for si in GROUND_SUB:
+				var sub: int = _fine_cells[Vector2i(i0 + i, j0 + j)]
+				var s := step / sub
+				for sj in sub:
+					for si in sub:
 						var sa := Vector2(x + si * s, z + sj * s)
 						var sb := sa + Vector2(s, 0)
 						var sc := sa + Vector2(s, s)
@@ -1903,8 +1931,12 @@ func _ground_normals() -> PackedVector3Array:
 
 ## The sub-cells per grid cell side under an apron (1 m on the 10 m grid).
 const GROUND_SUB := 10
+## Loop 3e: a cell only a ground profile reaches (no apron) in SET_SUB x SET_SUB sub-cells (1 m,
+## as the aprons': 2 m ones left the drawn ground over the road at a trench's edge, check_roads C11).
+const SET_SUB := 10
 ## Grid cells (Vector2i(i, j)) an apron's corridor reaches, from `_aprons` (built on first use,
-## the same for the whole city and each sector).
+## the same for the whole city and each sector); loop 3e: and a lowering ground profile's, each
+## with its sub-cells a side (GROUND_SUB, SET_SUB).
 var _fine_cells := {}
 var _fine_ready := false
 
@@ -1921,6 +1953,23 @@ func _fine_index() -> void:
 	var gz := float(_terrain["z0"])
 	var nx := int(_terrain["nx"])
 	var nz := int(_terrain["nz"])
+	# Loop 3e: the cells a ground profile reaches (where it lowers the ground, the drawn ground
+	# follows it in the 1 m sub-cells; check_roads Map.drawn the same).
+	for d in _fills:
+		if not bool(d["s"]):
+			continue
+		var reach := maxf(float(d["l"]), float(d["r"]))
+		var pts: PackedVector2Array = d["pts"]
+		var hs: PackedFloat32Array = d["h"]
+		for k in pts.size() - 1:
+			# Only where it lowers the ground (a raised one stands on the grid, like an approach).
+			if not _set_lowers(pts[k], pts[k + 1], minf(hs[k], hs[k + 1]), reach):
+				continue
+			var lo := pts[k].min(pts[k + 1]) - Vector2.ONE * reach
+			var hi := pts[k].max(pts[k + 1]) + Vector2.ONE * reach
+			for j in range(clampi(floori((lo.y - gz) / step), 0, nz - 2), clampi(floori((hi.y - gz) / step), 0, nz - 2) + 1):
+				for i in range(clampi(floori((lo.x - gx) / step), 0, nx - 2), clampi(floori((hi.x - gx) / step), 0, nx - 2) + 1):
+					_fine_cells[Vector2i(i, j)] = maxi(int(_fine_cells.get(Vector2i(i, j), 0)), SET_SUB)
 	for a in _aprons:
 		var o := Vector2(a[0], a[1])
 		var u := Vector2(a[2], a[3])
@@ -1934,13 +1983,40 @@ func _fine_index() -> void:
 				hi = hi.max(p)
 		for j in range(clampi(floori((lo.y - gz) / step), 0, nz - 2), clampi(floori((hi.y - gz) / step), 0, nz - 2) + 1):
 			for i in range(clampi(floori((lo.x - gx) / step), 0, nx - 2), clampi(floori((hi.x - gx) / step), 0, nx - 2) + 1):
-				_fine_cells[Vector2i(i, j)] = true
+				_fine_cells[Vector2i(i, j)] = GROUND_SUB
+
+
+## Loop 3e: whether a ground profile's segment a-b (its lower end at h) lies under the grid
+## anywhere over its corridor (its ends and the corridor's corners, `reach` out).
+func _set_lowers(a: Vector2, b: Vector2, h: float, reach: float) -> bool:
+	var ab := b - a
+	var n := Vector2(-ab.y, ab.x).normalized() * reach if ab.length_squared() > 0.000001 else Vector2.ZERO
+	for p: Vector2 in [a, b, a + n, a - n, b + n, b - n]:
+		if h < _grid_height(p.x, p.y) - SET_FINE:
+			return true
+	return false
 
 
 ## The drawn ground's height at a sub-cell corner: the grid, or terrain_height where an apron
 ## holds the ground under it.
 func _drawn_corner(x: float, z: float) -> float:
-	return minf(_grid_height(x, z), terrain_height(x, z))
+	var g := _grid_height(x, z)
+	var t := terrain_height(x, z)
+	# Loop 3e: under a ground profile that lowers the ground, SET_SINK lower still (the 1 m
+	# sub-cells between two profiles' levels or across a corridor's edge stay under the road).
+	if _set_hit and t < g - 0.001:
+		t -= SET_SINK
+	return minf(g, t)
+
+
+## Loop 3e: the drawn ground's sink under a lowering ground profile (`_drawn_corner`;
+## check_roads Map.drawn the same), and whether the last `_fill_height` was in one's corridor.
+const SET_SINK := 0.1
+## Loop 3e: a ground profile's segment gets the 1 m sub-cells where it lies this far under the grid
+## anywhere (a raised one doesn't; a lowered one left out would meet its sub-celled neighbour in a
+## crack at their shared edge: check_ground's height rule).
+const SET_FINE := 0.001
+var _set_hit := false
 
 
 ## The drawn ground's height at a point (the mesh `_build_ground` draws): the grid's two
@@ -1956,9 +2032,10 @@ func _drawn_height(x: float, z: float) -> float:
 	var j := int(fz)
 	if not _fine_cells.has(Vector2i(i, j)):
 		return _grid_height(x, z)
-	var s := step / GROUND_SUB
-	var si := clampi(int((fx - i) * GROUND_SUB), 0, GROUND_SUB - 1)
-	var sj := clampi(int((fz - j) * GROUND_SUB), 0, GROUND_SUB - 1)
+	var sub: int = _fine_cells[Vector2i(i, j)]
+	var s := step / sub
+	var si := clampi(int((fx - i) * sub), 0, sub - 1)
+	var sj := clampi(int((fz - j) * sub), 0, sub - 1)
 	var x0 := float(_terrain["x0"]) + i * step + si * s
 	var z0 := float(_terrain["z0"]) + j * step + sj * s
 	var u := clampf((x - x0) / s, 0.0, 1.0)
@@ -1983,12 +2060,13 @@ func _ground_fine_cell(st, i: int, j: int, normals: PackedVector3Array, colour: 
 	var nx := int(_terrain["nx"])
 	var cx := float(_terrain["x0"]) + i * step
 	var cz := float(_terrain["z0"]) + j * step
-	var s := step / GROUND_SUB
+	var sub: int = _fine_cells[Vector2i(i, j)]
+	var s := step / sub
 	var n00 := normals[j * nx + i]
 	var n10 := normals[j * nx + i + 1]
 	var n01 := normals[(j + 1) * nx + i]
 	var n11 := normals[(j + 1) * nx + i + 1]
-	var side := GROUND_SUB + 1
+	var side := sub + 1
 	# The lattice: each point's height, normal and whether an apron lowers it.
 	var pos := PackedVector3Array()
 	var nrm := PackedVector3Array()
@@ -2001,12 +2079,12 @@ func _ground_fine_cell(st, i: int, j: int, normals: PackedVector3Array, colour: 
 			var x := cx + a * s
 			var z := cz + b * s
 			var g := _grid_height(x, z)
-			var h := minf(g, terrain_height(x, z))
+			var h := _drawn_corner(x, z)
 			var k := b * side + a
 			pos[k] = Vector3(x, h, z)
 			low[k] = 1 if g - h > 0.001 or not ground_lean else 0
-			var fu := float(a) / GROUND_SUB
-			var fv := float(b) / GROUND_SUB
+			var fu := float(a) / sub
+			var fv := float(b) / sub
 			var n := (n00.lerp(n10, fu)).lerp(n01.lerp(n11, fu), fv).normalized()
 			if g - h > 0.01:
 				# Lowered: the slope of the drawn ground itself.
@@ -2021,13 +2099,13 @@ func _ground_fine_cell(st, i: int, j: int, normals: PackedVector3Array, colour: 
 				if low[b * side + a] == 1 and ((a >= b) if half == 0 else (a <= b)):
 					lowered = true
 		if not lowered:
-			var far := Vector2i(GROUND_SUB, 0) if half == 0 else Vector2i(0, GROUND_SUB)
-			_ground_lattice_tri(st, pos, nrm, side, [Vector2i(0, 0), far, Vector2i(GROUND_SUB, GROUND_SUB)], colour)
+			var far := Vector2i(sub, 0) if half == 0 else Vector2i(0, sub)
+			_ground_lattice_tri(st, pos, nrm, side, [Vector2i(0, 0), far, Vector2i(sub, sub)], colour)
 			continue
-		for sj in GROUND_SUB:
+		for sj in sub:
 			var run := -1
-			for si in GROUND_SUB + 1:
-				var inside := si < GROUND_SUB and ((si >= sj) if half == 0 else (si <= sj))
+			for si in sub + 1:
+				var inside := si < sub and ((si >= sj) if half == 0 else (si <= sj))
 				var sub_low := inside and (low[sj * side + si] == 1 or low[sj * side + si + 1] == 1
 						or low[(sj + 1) * side + si] == 1 or low[(sj + 1) * side + si + 1] == 1)
 				if inside and not sub_low:
@@ -4832,15 +4910,22 @@ static func halo_quad(size: float) -> ArrayMesh:
 ## The landmarks loop: the landmarks' own big signs (`marks.signs`: word, the middle of its
 ## bottom edge, the wall's outward normal, the scale over a shop sign), lit by day and night
 ## (INSTANCE_CUSTOM.z = 2), so not under the night lights' holder.
+## Loop 3e merge: the sectors share one Landmarks, whose `signs` grow with every landmark it
+## builds, and a landmark can be built by more than one sector; so each sector takes only the
+## signs standing in it, and the list is emptied after each build.
 func _build_landmark_signs(marks) -> void:
-	if marks.signs.is_empty():
+	var list: Array = marks.signs.duplicate()
+	marks.signs.clear()
+	if _in_sector:
+		list = list.filter(func(s: Array) -> bool: return _sector_rect.has_point(Vector2((s[1] as Vector3).x, (s[1] as Vector3).z)))
+	if list.is_empty():
 		return
 	_make_shared()
 	var spots: Array[Transform3D] = []
 	var colours: Array[Color] = []
 	var custom: Array[Color] = []
 	var all := Neon.all_words()
-	for sign: Array in marks.signs:
+	for sign: Array in list:
 		var word: String = sign[0]
 		var t := Neon.place(word, sign[1], sign[2])
 		var k: float = sign[3]

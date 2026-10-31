@@ -298,6 +298,7 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     # the small mapped buildings that are a viaduct's pillars.
     bed.set_trees(trees3d)
     bed.set_pillars(kept)
+    bed.tunnel_roads = tunnel_roads   # loop 3e: their portals seed the ground profiles
     bed.solve_decks()
     bed.solve_tunnels(tunnel_roads)
     bed.fill_pits()
@@ -1808,6 +1809,7 @@ def bake_graph(els, nodes, ways, rect, signal_src, poles, bed=None, levels=None)
 
 
 CAR_COLOURS = 10  # the game's parked-car palette size
+PARKED_FILL = 0.27  # share of car-park bays with a car (the user, 2026-10-30: about a third of the old 0.8)
 
 
 def bake_extras(src, roads, rect):
@@ -1901,7 +1903,7 @@ def bake_extras(src, roads, rect):
                 h = (math.sin(cx * 3.1 + cz * 1.7) * 43758.5453) % 1.0
                 near = nearest_seg(cx, cz)
                 clear = near is None or near[0] > near[3] / 2 + 1.3
-                if h < 0.8 and clear and all(point_in_poly(px, pz, poly) for px, pz in corners):
+                if h < PARKED_FILL and clear and all(point_in_poly(px, pz, poly) for px, pz in corners):
                     yaw = math.atan2(-vx, -vz) + (math.pi if row % 2 else 0.0)
                     cars += [round(cx, 1), round(cz, 1), round(yaw, 2), int(h * 1000) % CAR_COLOURS]
                 u += 2.5

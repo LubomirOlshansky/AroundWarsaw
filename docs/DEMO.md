@@ -523,20 +523,27 @@ reasoned allowlist entries only), the render spots look right, and loop 2b's bud
 ### 4.6 Structures in the new area to watch
 
 Run `check_roads.py` on the first bake of the demo area before fixing anything. Expect at least
-these:
+these (loop 3e, 2026-10-30: marked **done** or **left**, docs/DEVELOPMENT.md "Loop 3e"):
 
 - **Trasa W-Z**: the tunnel under Plac Zamkowy, its portal and the viaduct over Wybrzeże Gdańskie
-  onto Most Śląsko-Dąbrowski (R1, R4).
-- **The Wisłostrada tunnel** in full, with both portals (R4).
+  onto Most Śląsko-Dąbrowski (R1, R4). **Done** (portals on the trench floor, the tube straight
+  between them, the block over its west end open); **left**: Nowy Zjazd's pits and one wall by a lane,
+  the Praga end's deck 4 parapet.
+- **The Wisłostrada tunnel** in full, with both portals (R4). **Done** (both south portals and the
+  north portal under the Copernicus Science Centre).
 - **Trasa Łazienkowska**: a trench or tunnel at Plac na Rozdrożu and Al. Ujazdowskie, the
   viaduct over Agrykola and the park, the interchange with Czerniakowska and the Wisłostrada, and
-  the bridge. This is the first **stacked interchange**, where R8 matters (C8). Check the OSM
+  the bridge. This is the first **stacked interchange**, where R8 matters (C8). **Done**: the
+  cutting and tubes at Plac Na Rozdrożu (but the tubes end short of the street over them); **left**:
+  the interchange and Most Łazienkowski's Praga end (R8). Check the OSM
   `layer` tags: ways with `layer<0` and no `tunnel` are dropped today (5 service ways in today's
   map), and here they may be the Trasa itself.
 - **Most Świętokrzyski**: the deck plus its single pylon and cables (the pylon is a tier-A
   landmark).
-- **Wiadukt Markiewicza** on Karowa, down the escarpment (R1, curved).
-- **The railway at Dworzec Gdański** and the Jana Pawła II viaducts near Arkadia (R1, R5).
+- **Wiadukt Markiewicza** on Karowa, down the escarpment (R1, curved). **Done** (no wall in Karowa's lanes).
+- **The railway at Dworzec Gdański** and the Jana Pawła II viaducts near Arkadia (R1, R5). The rail
+  cutting west of Centralna: **left** on the 10 m grid (its 1 m level costs +0.5 M vertices without a
+  ground cut).
 - **Pedestrian zones**: the Old Town, Plac Zamkowy and parts of Krakowskie Przedmieście. They are
   drivable for the player (section 5) but not for traffic, so keep them out of the lane graph via
   `access`, `motor_vehicle` and `highway=pedestrian`.

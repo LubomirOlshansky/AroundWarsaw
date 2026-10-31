@@ -1,39 +1,6 @@
 {
- "about": "Loop 3d-1: places where game/tools/check_drive.gd's findings are allowed. Every entry: kind (lane: a lane spot in collision; jump: an autopilot height jump), at (map metres), r (metres), name, why, source. Each is a structure of the demo box that loop 3e builds (docs/DEMO.md 4.6); remove an entry when its structure is built (check_drive counts what it allowed).",
+ "about": "Loop 3d-1: places where game/tools/check_drive.gd's findings are allowed. Every entry: kind (lane: a lane spot in collision; jump: an autopilot height jump), at (map metres), r (metres), name, why, source. Loop 3e built most of them; what is left is listed with its cause. Remove an entry when its cause is fixed (check_drive counts what it allowed; --no-allow counts every finding).",
  "allow": [
-  {
-   "kind": "lane",
-   "at": [
-    330,
-    -900
-   ],
-   "r": 50,
-   "name": "Tunel Wisłostrady, north portal",
-   "reason": "loop 3e (docs/DEMO.md 4.6): the Wisłostrada tunnel's north portal under the Copernicus Science Centre: the tunnel's lanes meet the building's underside and the portal's walls (the tunnel was cut by the first box's rim at z -885)",
-   "source": "OpenStreetMap (Tunel Wisłostrady), GUGiK LoD2; check_drive.gd on the loop 3d-1 bake"
-  },
-  {
-   "kind": "lane",
-   "at": [
-    187,
-    -1033
-   ],
-   "r": 12,
-   "name": "Tunel Wisłostrady, north ramp",
-   "reason": "loop 3e: the same tunnel's north ramp (Wybrzeże Kościuszkowskie meets the portal frame)",
-   "source": "check_drive.gd on the loop 3d-1 bake"
-  },
-  {
-   "kind": "jump",
-   "at": [
-    154,
-    -1060
-   ],
-   "r": 8,
-   "name": "Tunel Wisłostrady, north portal ramp",
-   "reason": "loop 3e: the tunnel's portal ramp meets the 10 m grid in 0.3 m steps",
-   "source": "check_drive.gd on the loop 3d-1 bake"
-  },
   {
    "kind": "lane",
    "at": [
@@ -42,19 +9,8 @@
    ],
    "r": 50,
    "name": "Plac Na Rozdrożu (Trasa Łazienkowska)",
-   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa Łazienkowska's trench and tunnels under Plac Na Rozdrożu: the trench's ways (layer -1, no tunnel tag) run as a cutting the 10 m grid doesn't show, beside the tunnels' walls",
+   "reason": "loop 3e: Trasa Łazienkowska's tubes under Plac Na Rozdrożu: OpenStreetMap ends T2 and T3 a few metres short of the street over them, so a bus on the open road's last metres before the west portals meets that street's wall and the portal's frame (the tubes should reach under the street: BACKLOG 'From loop 3e')",
    "source": "OpenStreetMap; check_drive.gd on the loop 3d-1 bake"
-  },
-  {
-   "kind": "jump",
-   "at": [
-    75,
-    1625
-   ],
-   "r": 70,
-   "name": "Trasa Łazienkowska tunnels, east",
-   "reason": "loop 3e: the tunnels under Plac Na Rozdrożu: their floors follow the grid's trench in 0.3-0.4 m steps a frame",
-   "source": "check_drive.gd on the loop 3d-1 bake"
   },
   {
    "kind": "jump",
@@ -64,29 +20,7 @@
    ],
    "r": 60,
    "name": "Trasa Łazienkowska tunnels, west",
-   "reason": "loop 3e: as above, by Aleje Ujazdowskie (0.4-0.8 m a frame where the tunnel floor meets the trench)",
-   "source": "check_drive.gd on the loop 3d-1 bake"
-  },
-  {
-   "kind": "lane",
-   "at": [
-    -835,
-    -1393
-   ],
-   "r": 25,
-   "name": "Aleja Solidarności, W-Z tunnel west portal",
-   "reason": "loop 3e (docs/DEMO.md 4.6): Trasa W-Z's tunnel under Plac Zamkowy: a bus box meets the portal's LoD2 building over the lane",
-   "source": "check_drive.gd on the loop 3d-1 bake"
-  },
-  {
-   "kind": "jump",
-   "at": [
-    -674,
-    -1408
-   ],
-   "r": 6,
-   "name": "Trasa W-Z, east portal",
-   "reason": "loop 3e: the W-Z tunnel's east portal ramp (0.3 m a frame)",
+   "reason": "loop 3e: Trasa Łazienkowska west of Plac Na Rozdrożu by the map's south edge: the cutting's ground profile and the 10 m grid meet in 0.6 m steps where the profile ends at the rim (z 1736)",
    "source": "check_drive.gd on the loop 3d-1 bake"
   },
   {
@@ -97,7 +31,7 @@
    ],
    "r": 65,
    "name": "Trasa Łazienkowska interchange",
-   "reason": "loop 3e (docs/DEMO.md 4.6): the stacked interchange of Trasa Łazienkowska with Czerniakowska and the Wisłostrada: buses under its decks meet piers and slabs (R8)",
+   "reason": "loop 3e (docs/DEMO.md 4.6): the stacked interchange of Trasa Łazienkowska with Czerniakowska: where two ramps of one deck group part, a ramp's guard rail runs into the other's lanes (R8: each ramp's own rails and lanes; not done this loop)",
    "source": "check_drive.gd on the loop 3d-1 bake"
   },
   {
@@ -108,18 +42,7 @@
    ],
    "r": 14,
    "name": "Wybrzeże Szczecińskie under Most Śląsko-Dąbrowski",
-   "reason": "loop 3e (docs/DEMO.md 4.6): Most Śląsko-Dąbrowski's Praga end over Wybrzeże Szczecińskie (deck 16 ends where its ramp's ways stop being bridges)",
-   "source": "check_drive.gd on the loop 3d-1 bake"
-  },
-  {
-   "kind": "lane",
-   "at": [
-    -328,
-    -916
-   ],
-   "r": 8,
-   "name": "Karowa, Wiadukt Markiewicza",
-   "reason": "loop 3e (docs/DEMO.md 4.6): Wiadukt Markiewicza on Karowa, down the escarpment (its arches and walls)",
+   "reason": "loop 3e: Wybrzeże Szczecińskie's short deck over the Port Praski inlet (deck 4) by Most Śląsko-Dąbrowski's Praga end: at its west end a bus on the outer lane brushes the parapet of the deck's neighbouring piece (the gap between pieces keeps a collider where there is a drop)",
    "source": "check_drive.gd on the loop 3d-1 bake"
   },
   {
@@ -141,7 +64,7 @@
    ],
    "r": 55,
    "name": "Nowy Zjazd (Trasa W-Z)",
-   "reason": "loop 3e (docs/DEMO.md 4.6): Nowy Zjazd's viaduct and ramps down to Most Śląsko-Dąbrowski: on the 1 m terrain its lanes meet the viaduct's walls and slab",
+   "reason": "loop 3e: Nowy Zjazd's loop under the W-Z approach: a bus on its inner lane brushes the tram approach's 0.6-0.9 m side wall where the lane runs within 3 m of it",
    "source": "check_drive.gd on the loop 3d-1 bake (the 1 m terrain, east edge 21.056)"
   },
   {
@@ -152,7 +75,7 @@
    ],
    "r": 110,
    "name": "Most Łazienkowski, the Praga end",
-   "reason": "loop 3e (docs/DEMO.md 4.6): Most Łazienkowski's Praga end and its interchange with Wał Miedzeszyński (in the map since the east edge moved to 21.056): buses under and beside its decks meet piers and slabs",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Most Łazienkowski's Praga end and its interchange with Wał Miedzeszyński: buses under and beside its ramps meet a pier, the slabs of the ramps' neighbouring pieces and guard rails where ramps part (R8; not done this loop)",
    "source": "check_drive.gd on the loop 3d-1 bake (the 1 m terrain, east edge 21.056)"
   },
   {
@@ -165,6 +88,39 @@
    "name": "Francuska by Rondo Waszyngtona",
    "reason": "a fence on Francuska's grass median: the bus box grazes it where the lane runs wider than the road's width estimate (check_drive's known class)",
    "source": "check_drive.gd on the loop 3d-1 bake (the 1 m terrain, east edge 21.056)"
+  },
+  {
+   "kind": "jump",
+   "at": [
+    -2383,
+    968
+   ],
+   "r": 8,
+   "name": "Towarowa's deck joint",
+   "reason": "loop 3e: found by the routes over every structure (20 before): Towarowa's deck over the railway cutting west of Centralna (deck 12) meets its street in 0.3 m steps; the cutting stays on the 10 m grid (BACKLOG 'From loop 3e')",
+   "source": "check_drive.gd --no-allow --routes=100 on the loop 3e bake"
+  },
+  {
+   "kind": "jump",
+   "at": [
+    950,
+    0
+   ],
+   "r": 40,
+   "name": "Most Poniatowskiego's north ramps (deck 13)",
+   "reason": "loop 3e: found by the routes over every structure (20 before): the ramp's fill meets the ground in 0.4-0.6 m steps at (920, 16) and (988, -13); not one of this loop's structures",
+   "source": "check_drive.gd --no-allow --routes=100 on the loop 3e bake"
+  },
+  {
+   "kind": "jump",
+   "at": [
+    2125,
+    805
+   ],
+   "r": 8,
+   "name": "Most Łazienkowski's Praga ramps (deck 20)",
+   "reason": "loop 3e: found by the routes over every structure: a 0.7 m step where a ramp's deck meets the ground (R8 work left, as the lane entry at 2045, 815)",
+   "source": "check_drive.gd --no-allow --routes=100 on the loop 3e bake"
   }
  ]
 }
