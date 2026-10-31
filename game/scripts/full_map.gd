@@ -121,6 +121,8 @@ var _note_t := 0.0
 var _goal: PanelContainer
 var _legend: PanelContainer
 var _legend_icons: Array[Control] = []
+## The legend's icons are drawn here, on top of its card (the overlay is under the cards).
+var _legend_art: Control
 ## The legend's rows: [Polish · English]; their icons in order: the star, the ringed dot, the
 ## square, the "?".
 const LEGEND := ["główny wątek · main line", "zlecenie · side job", "start zlecenia · job spot", "nieodkryte · not found yet"]
@@ -230,6 +232,11 @@ func _build() -> void:
 		row.add_child(l)
 		lv.add_child(row)
 	add_child(_legend)
+	_legend_art = Control.new()
+	_legend_art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_legend_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_legend_art.draw.connect(_paint_legend)
+	add_child(_legend_art)
 	_hint = _card(["Przytrzymaj miejsce, by się tam przenieść", "Hold a spot to jump there · drag · pinch"], [T_SUB, T_SUB])
 	_hint.name = "hint"
 	add_child(_hint)
@@ -414,6 +421,7 @@ func _place() -> void:
 	_mat.set_shader_parameter("widen", pt * pow(ppm / maxf(ref, 0.0001), 0.33) / ppm)
 	_content.queue_redraw()  # the side streets come and go with the zoom
 	_overlay.queue_redraw()
+	_legend_art.queue_redraw()
 
 
 ## A map point (m) on the screen (px).
@@ -439,6 +447,23 @@ func rects() -> Dictionary:
 	if _ladder.visible:
 		out["ladder"] = _ladder.get_global_rect()
 	return out
+
+
+## The legend's icons, in its rows' order, on top of its card (one batch of their own).
+func _paint_legend() -> void:
+	if not _legend.visible or _legend_icons.size() != 4:
+		return
+	var ic: Array[Vector2] = []
+	for c in _legend_icons:
+		ic.append(c.get_global_rect().get_center() - _legend_art.get_global_rect().position)
+	hud._tri_begin()
+	hud.main_star(ic[0], 1.2)
+	hud.side_pin(ic[1], 1.2, Color("#ff8a3d"))  # jobs.gd KEBAB_COLOUR
+	var half := 3.4 * pt
+	hud._tri_rect(Rect2(ic[2] - Vector2.ONE * (half + 1.2 * pt), Vector2.ONE * (half + 1.2 * pt) * 2.0), hud.OUTLINE)
+	hud._tri_rect(Rect2(ic[2] - Vector2.ONE * half, Vector2.ONE * half * 2.0), Color("#ff8a3d"))
+	hud._tri_question(ic[3], 1.3)
+	hud._tri_flush(_legend_art)
 
 
 ## The goal card's lines wrap at `w` pixels (the card's padding left out) when longer.
@@ -613,17 +638,6 @@ func _paint() -> void:
 			hud.main_star(mp, 1.9)
 		else:
 			hud.main_star(mp.clamp(inner.position, inner.end), 1.3)
-	# The legend's icons, in its rows' order.
-	if _legend.visible and _legend_icons.size() == 4:
-		var ic: Array[Vector2] = []
-		for c in _legend_icons:
-			ic.append(c.get_global_rect().get_center())
-		hud.main_star(ic[0], 1.2)
-		hud.side_pin(ic[1], 1.2, Color("#ff8a3d"))  # jobs.gd KEBAB_COLOUR
-		var half := 3.4 * pt
-		hud._tri_rect(Rect2(ic[2] - Vector2.ONE * (half + 1.2 * pt), Vector2.ONE * (half + 1.2 * pt) * 2.0), hud.OUTLINE)
-		hud._tri_rect(Rect2(ic[2] - Vector2.ONE * half, Vector2.ONE * half * 2.0), Color("#ff8a3d"))
-		hud._tri_question(ic[3], 1.3)
 	var c := to_screen(car)
 	var d := Vector2(-sin(car_yaw), -cos(car_yaw))
 	var side := Vector2(-d.y, d.x)
@@ -725,6 +739,7 @@ func _process(dt: float) -> void:
 			_fit()
 	if main_at != Vector2.INF and _hold_index < 0:
 		_overlay.queue_redraw()  # the star's ring pulses (one batch, the game paused under it)
+		_legend_art.queue_redraw()
 	if _hold_index < 0:
 		return
 	_hold_t += dt

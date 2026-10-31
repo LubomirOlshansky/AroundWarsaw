@@ -1757,8 +1757,8 @@ func _paint_minimap_overlay() -> void:
 		side_pin(centre + t, 1.0, _mini_target_colour)
 	if _main_at != Vector2.INF:
 		# The main line: a gold star in a pulsing ring, pinned to the rim at any distance.
-		var mr := ((_main_at - _mini_car) * s).rotated(_mini_yaw).limit_length(_mini_radius - 6.5 * pt)
-		main_star(centre + mr, 1.0)
+		var mr := ((_main_at - _mini_car) * s).rotated(_mini_yaw).limit_length(_mini_radius - 8.0 * pt)
+		main_star(centre + mr, 1.3)
 	var d := _car_dir.normalized()
 	var side := Vector2(-d.y, d.x)
 	var tip := centre + d * 6.0 * pt

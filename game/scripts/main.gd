@@ -3509,6 +3509,8 @@ func _open_full_map() -> void:
 			if notes.is_found(str(place["id"])):
 				found.append(place["at"])
 	hud.set_night(tod.lights_on)  # its palette (the minimap's), even before the first frame
+	_main_t = 0.0
+	_main_line_tick(0.0)  # the main line's step as it is now (the map can open before the first look)
 	print("full map: open (paused), %d places found on it" % found.size())
 	_blip_sound()
 	get_tree().paused = true
