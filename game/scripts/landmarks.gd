@@ -617,7 +617,8 @@ func _find_stadium() -> void:
 
 # --- building -------------------------------------------------------------------------
 
-func build(surface, near := Rect2()) -> void:
+## `only` (the mesh-quality check, loop 0.1): build just the site with this key.
+func build(surface, near := Rect2(), only := "") -> void:
 	st = surface
 	_pick.resize(map._roof_nx * map._roof_nz)
 	_pick.fill(0)
@@ -631,6 +632,8 @@ func build(surface, near := Rect2()) -> void:
 		if near.has_area() and not (s["box"] as Rect2).grow(SITE_REACH).intersects(near):
 			continue
 		var key: String = s["key"]
+		if only != "" and key != only:
+			continue
 		_id = k + 1
 		built += 1
 		match key:

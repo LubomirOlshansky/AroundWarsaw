@@ -23,8 +23,8 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 
 | # | Item | Who | Why first |
 | --- | --- | --- | --- |
-| 0.1 | `check_mesh_quality.gd`: z-fighting, zero-area and flipped triangles, floating parts, per site, in `verify.sh` | gameplay-dev (Opus brief, Sonnet build) | the defects a judge misses; BACKLOG "Model checks from the research" |
-| 0.2 | Triangle budgets in `check_sites.gd` for every hand-built site (only 5 of 17 have one) | object-modeler | detail without a limit can't be accepted |
+| 0.1 | DONE 2026-10-31: `check_mesh_quality.gd`: z-fighting, zero-area and flipped triangles, floating parts, per site, in `verify.sh` | gameplay-dev (Opus brief, Sonnet build) | the defects a judge misses; BACKLOG "Model checks from the research" |
+| 0.2 | DONE 2026-10-31 (in `check_mesh_quality.gd`'s BUDGET, all 46 sites): triangle budgets for every hand-built site | object-modeler | detail without a limit can't be accepted |
 | 0.3 | A flag rendering one landmark alone, unlit and as a silhouette, and the `first` shot set | gameplay-dev | the judge's shots (skill section 5) |
 | 0.4 | `tools/check_spec.py` and the skill's evals (Palace, Rotunda, MSN) | main session | no build from an open spec |
 
