@@ -24,6 +24,7 @@ someone writes its lines.
 - A vintage tram, and Warsztat u Mirka: the first garage, with paint jobs.
 - Fewer brown blocks on the horizon when you fly the helicopter.
 - This page: what's new, day by day.
+- The design wiki is online, open to anyone with the link.
 - Planned for the lore: morning coffee raves and arthouse cinemas.
 
 ## 2026-10-30
