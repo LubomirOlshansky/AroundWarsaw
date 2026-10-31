@@ -56,6 +56,23 @@ Small problems that agents reported or that showed up in screenshots. They are f
   rebuild the prebuilt sectors with `bake_city.gd` (a renderer, never `--headless`); render
   before/after with the Mobile renderer on lavapipe (docs/DEVELOPMENT.md "Cloud rendering").
 
+## High priority: the first scene and the Museum of Modern Art (the user, 2026-10-31)
+- **Muzeum Sztuki Nowoczesnej as it is** (the user, 2026-10-31): the new white box on Plac
+  Defilad's east edge (Thomas Phifer, opened 2024). Today it is plain white LoD2 parts with no
+  model and no card. Wanted: one long, low, matte white box, the arcade of square columns at its
+  base with the glazed lobby behind, one long ribbon of windows at mid-height, a few big upper
+  windows, long skylights on the flat roof, a card. Spec and the values still to set:
+  docs/design/first-scene.md "Spec for item 1". Landmarks lane: Opus spec, `object-modeler`
+  builds, `art-director` accepts.
+- **The first scene, polished to the maximum** (the user, 2026-10-31): the place the player sees
+  first must make a "wow". Default place: Marszałkowska by Plac Defilad (the Palace, the museum,
+  the Eastern Wall, the towers), where the spawn and DEMO 6.2's first minutes already are; the
+  choice is parked in docs/QUESTIONS.md. The plan, its eight items (the museum, the opening shot,
+  the Eastern Wall and Rotunda, Plac Defilad's ground, Marszałkowska's street, life, sound,
+  light), the `first` shot set, performance and the order of work: docs/design/first-scene.md.
+  The dusk and night look there belongs to the thread "Match landmarks to Warsaw at dusk"; the
+  hints, first order and first race to loop 3h item 6.
+
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
 - **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;
   the designer (`game-designer`, Sonnet for the text) specs it, `warsaw-tone` rules apply (real
