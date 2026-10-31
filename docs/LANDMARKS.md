@@ -12,10 +12,12 @@ the inventory taken from the code on 2026-10-31. How a model is made: the model-
 
 ## Part 1. The plan, by priority
 
-Photos: `refs/` on the Mac holds photos for 19 buildings (the first scene's, the Palace, the
-towers, the Castle, Teatr Wielki, St Anne's, the stadium, Centralna, Most Poniatowskiego,
-Kopernik, the Presidential Palace, Muzeum Narodowe), the rest being collected, plus a GUGiK
-orthophoto per building. No free photos found for Skyliner, Chilton and Westynka.
+Photos (2026-10-31): `refs/` on the Mac holds 51 buildings, 154 free photos and 50 GUGiK
+orthophotos (`refs/INDEX.md` lists them). No usable free photo: Skyliner, Chilton, Westynka,
+Ilmet, Platinum Towers, Spektrum, BUW (interiors only), The Bridge, the flag on Rondo
+Radosława, Hotel Wiktoria; none collected yet for Chałubińskiego 8, Forest, MDM, the
+Departament. The Museum of Modern Art has no photo of its Marszałkowska front yet. The second
+batch's captions (towers, churches) come from Commons titles: check the angle before a spec.
 
 ### P0. The tools first (they make every model after them better)
 
