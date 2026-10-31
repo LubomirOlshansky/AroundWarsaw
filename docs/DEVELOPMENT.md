@@ -389,7 +389,7 @@ at the hospital. Out of time: TRY AGAIN, NEXT CALL or FREE ROAM.
   ConfigFile; on the Mac `~/Library/Application Support/Godot/app_userdata/Around Warsaw/`;
   `.../Nocna Warszawa/` before the rename of 2026-10-30, so a Mac's older save stays there; the
   phones keep theirs, as `user://` follows the unchanged bundle ID).
-  No shop yet.
+  No shop yet. Loop 3h slice 1: the save has a version (save v2, see "Save v2 and the districts").
 - **Kebab delivery** (`jobs.gd`): seven stands (a kiosk with a pixel KEBAB board, a striped
   awning and a lit hatch; the board glows pink and gold at night) at the two mapped kebab places
   (by Dworzec Centralny, under the Jana Pawła II viaduct, and in the Powiśle food hall) and on
@@ -4714,6 +4714,84 @@ Since map north the map is its bounding rectangle without the north-east corner 
   hud+minimap 0.15 / 0.14 → 0.13 / 0.15 ms, heli 0.00. Draw calls +0 (the off-map ground is in the
   minimap's one mesh), no new shader.
 
+## Save v2 and the districts (loop 3h slice 1, 2026-10-31)
+
+Part of loop 3h, the demo loop (`docs/design/loop-3h-handover.md`, DEMO 6.2-6.3, checklist G3).
+
+**Save v2** (`wallet.gd`, `settings.gd`):
+
+- `user://save.cfg` carries `[save] version = 2` (`Wallet.VERSION`). A file without it is version 1
+  (every save before loop 3h). Loading one: `Wallet.migrate(cfg, 1)` in memory (nothing is renamed
+  from v1 to v2: wallet, jobs, best, eggs, police, keep, notes, notes_chapters, polnoc, tapes, kadr,
+  kadr_photos, garage all load as they were; an egg saved as `true`, v0.65, becomes 1, a `false` one
+  is dropped), a copy of the old file is kept once as `user://save.v1.cfg` (`backup_path`), and the
+  next save writes v2. The log says `wallet: save version 1 migrated to 2 (...)`; the `save:` line
+  ends `save vN` (0: no file).
+- New in v2: `[districts]` (id = the day discovered), `[district_jobs]` (id = jobs done there; `pay`
+  with a kind counts one in `wallet.district`, the district the vehicle is in, set by districts.gd,
+  not saved) and `[syrenki]` (id = the day; empty until the Syrenki slice). `reset()` clears them.
+- A section this build doesn't know is kept and written back as it was (`_extra`). A file of a newer
+  version (`newer`) is read but never overwritten (a warning says so). TEST · BENCH puts
+  `district_jobs` back with the rest of the wallet.
+- `user://settings.cfg` carries `[meta] version = 2` (`Settings.VERSION`); a file without it is
+  version 1 and loads as before (loop G1's High → Auto rule is that migration); a newer one is never
+  overwritten.
+- `--nosave` still neither reads nor writes either file (no migration, no backup).
+- `check_save.gd` (step `save`, CI too): a version-1 fixture built in the check with every section
+  (and one "from a newer build") loads with every value, reports 1 → 2, keeps a byte-equal backup;
+  the next save writes v2 and keeps the unknown section; the v2 sections round-trip; a job paid in a
+  district counts there; a newer file is never overwritten; `--nosave` writes nothing and reads no
+  v1 file; a missing file gives the defaults; settings.cfg's version, its v1 load and a newer file.
+  Scratch files only (`user://check_save*.cfg`), deleted after.
+
+**The districts** (`districts.gd`, new; `data/districts.json`, new):
+
+- **Data.** Nine districts from DEMO 2.3, in priority order (a point belongs to the first whose area
+  holds it): Praga (everything east of a river line traced from the map's water and the embankment
+  roads), Stare Miasto, Muranów (with Arkadia), Śródmieście (and the Rondo de Gaulle'a corner, so
+  the Palm is Śródmieście's), Trakt Królewski (Krakowskie Przedmieście, Nowy Świat, Plac Trzech
+  Krzyży), Powiśle, Wola (Rondo Daszyńskiego), Śródmieście Południowe (Plac Zbawiciela, Koszyki,
+  Politechnika; not in DEMO 2.3) and Ujazdów i Łazienki (the Sejm; the park is south of the map).
+  The first five are DEMO's hero districts. Each has its names, a card line [pl, en], a label point
+  and `jobs_goal` (3 for a hero district, 2 else). `places.json` and `eggs.json` gained a `district`
+  field on every entry (computed once from the place's `near` hint; an egg takes its place's).
+  Places per district: Śródmieście 22, Powiśle 15, Południe 10, Trakt 9, Praga 8, Muranów 5, Stare
+  Miasto 4, Wola 2, Łazienki 0.
+- **Discovery.** At 3 Hz (a timer, the notebook's probe) the vehicle's district is looked up: ≤ 9
+  boxes, then the polygon (2.3 µs a lookup in the check). Entering one for the first time: the note
+  card under the wallet, "Odkryto: Powiśle" over "Powiśle discovered", the district's line in Polish
+  and English, "3 × ? na mapie · on the map", +10 respect (*guess*), the blip and a 40 ms buzz,
+  saved. The district the game starts in is discovered quietly (DEMO A2: nothing between the first
+  tap and driving). A v1 save's districts (those of every place or egg already found) are
+  discovered quietly at setup. Nothing happens on the title screen or during TEST · BENCH.
+- **The "?" marks.** In each discovered district its first three places not in the notebook
+  (nearest its label first) are "?" on the minimap (when in its reach) and the full map; a place
+  found makes room for the next (`notebook.gd` `extra_marks`, the notebook's own 400 m marks stay).
+- **Completion** (`progress`, `percent`): places + eggs (those that can be found: no `waits`) +
+  Syrenki found in the district, plus its jobs done up to `jobs_goal`, over the same in all, rounded
+  down (100 % only when everything is done). The Syrenki are a hook: `add_syrenka(id, district)`
+  lists one, the wallet's `syrenki` marks it found; none exist yet, so 0 of 0.
+- **On the map** (`full_map.gd` `set_districts`, called by main.gd after the map opens): the
+  districts not discovered yet under a light fog (each district's own shape, the earlier ones cut
+  out, clipped to the bounds and triangulated once: a few dozen triangles in the overlay's one batch,
+  +0 draw calls), each discovered one's name and per cent at its label, and the DZIELNICE ·
+  districts card on the left: one row per district ("Powiśle · 7%", or "? ? ?"), "Razem · in all".
+  The map is paused, so none of it costs a frame while driving.
+- `check_districts.gd` (step `districts`, CI too, no map): the data (names, Polish lines ≤ 70, the
+  labels in their own districts, the five heroes), a 50 m grid over the bounds all covered, eleven
+  known spots in the right district, every place and egg tied (a place's to its hint, an egg's to
+  its place's), ≥ 3 places in each hero district; the flow (quiet start, one card for Powiśle, +10
+  respect, nothing while away), the marks (3 a district, refilled), completion (jobs up to the goal,
+  an egg, a Syrenka listed and found, 100 % when all is done), the presets, a v1 record's quiet
+  discoveries, the fog tiling the bounds exactly once (and none when all are found), the lookup's µs.
+- **Testing aids**: `--district=<id>`, `--districts=all|none|<id>[:jobs],...`, `--districts-log`
+  (the flags table); with `--fullmap` and `--found=` / `--found-eggs=` for the map's shots.
+- **Cost** (Linux container, headless bench `--fixed-fps 60 --monolithic`, two runs each; before =
+  HEAD before the change): frame 2.32 / 2.67 → 2.35 / 2.49 ms, scripts 1.99 / 2.32 → 2.03 / 2.14 ms
+  (noise), "districts" 0.00 ms, hud+minimap 0.08 / 0.09 → 0.08 / 0.09. Draw calls +0 while driving
+  (the card is the existing note card, the marks join the minimap's batch); the open full map adds
+  its fog to the overlay's one batch, plus the card and the labels' text (the game is paused).
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -5238,6 +5316,9 @@ Command-line options (after `--`):
 | `--place=ID` | loop MW-1: start at a notebook place (`places.json` id): the sectors round its hint first, then the car on the nearest lane if that is inside the place's radius, else on the place (found within a second, standing) |
 | `--egg=<id>` | loop MW-6: the vehicle at that egg (`data/eggs.json` id, `e07` or `palma`) in its look, weather and day (`--time`, `--weather`, `--date` set for it), a motion trigger (lap, street, circle) driven along its path at 90 % of its speed limit; prints `egg: --egg=<id> <kind> at x, z (state)`, the find with its reward (`egg: found <id> <name> (k/45): +N respect[, track n][, then card ...][, kadr ... open]`) and `egg: --egg=<id> found S s after the start`; a waiting egg says what it waits for. Implies `--egg-log` |
 | `--egg-log` | loop MW-6: print `egg:` lines: each trigger met (with the state), each find and reward, with `--egg` the state every 10 s until found |
+| `--district=<id>` | loop 3h slice 1: that district's "discovered" card at the districts' first check (a screenshot aid; it is also discovered if the car is in it). Use with `--nosave` |
+| `--districts=all\|none\|<id>[:jobs],…` | loop 3h slice 1: the districts discovered for this run (and the jobs done in each), in memory, no cards or rewards (the full map's shots). Use with `--nosave` |
+| `--districts-log` | loop 3h slice 1: a `districts:` line when the vehicle changes district, discovers one, and the summary at the start |
 | `--found-eggs=all\|none\|reachable\|ID,…` | loop MW-6: the egg record for this run, in memory, no rewards (screenshots of the SEKRETY page). Use with `--nosave` |
 | `--tape=<id\|n>` | loop MW-6: the car stopped at that then card (`then_cards.json` id or 1-20), the tape played at once (ghost, sound, card); implies `--tape-log` |
 | `--tape-log` | loop MW-6: print `tape:` lines: the ghost built and dropped, each play (`tape: n <id> ghost ok (k boxes)[, first time: +15 respect]`) |

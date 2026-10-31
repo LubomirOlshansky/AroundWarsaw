@@ -10,9 +10,14 @@ extends RefCounted
 ## Loop G1b: Auto's sharp image and its fallback (`[auto_image]`, tiers.gd SHARP_*), written only
 ## by a normal launch's own sessions (main.gd: never by --nosave, test runs, benches or
 ## --last-session=); a file without it (from before G1b) starts sharp.
+## Loop 3h slice 1 (save v2): the file carries `[meta] version` (VERSION, 2); a file without it is
+## version 1 and loads as before (loop G1's High → Auto rule is that migration); the next save
+## writes version 2. A file from a newer version is read and never overwritten.
 
 const Tiers := preload("res://scripts/tiers.gd")
 const PATH := "user://settings.cfg"
+## Loop 3h slice 1: the settings file's format version (1: before loop 3h, no `[meta]`).
+const VERSION := 2
 ## Traffic levels: traffic.gd's density (Busy = 1.0, the level before loop 2a) and the
 ## share of the pedestrians. Busy's target is more than the spawner can place in the band
 ## round the view (about 44 cars at the default view, wanted 70), so the densities are set
@@ -67,6 +72,10 @@ var auto_image := Tiers.sharp_state()
 var persistent := true
 ## Where it is kept (tools/check_settings.gd points it at a scratch file).
 var path := PATH
+## Loop 3h slice 1: the version of the file as loaded (0: no file); true when it is newer than
+## VERSION (then save() leaves it alone).
+var loaded_version := 0
+var newer := false
 
 
 func load_file() -> void:
@@ -75,6 +84,8 @@ func load_file() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(path) != OK:
 		return
+	loaded_version = int(cfg.get_value("meta", "version", 1))
+	newer = loaded_version > VERSION
 	controls = clampi(int(cfg.get_value("controls", "scheme", controls)), 0, 2)
 	classic_follow = bool(cfg.get_value("controls", "classic_follow", classic_follow))
 	traffic = clampi(int(cfg.get_value("world", "traffic", traffic)), 0, TRAFFIC.size() - 1)
@@ -101,9 +112,10 @@ func load_file() -> void:
 
 
 func save() -> void:
-	if not persistent:
+	if not persistent or newer:
 		return
 	var cfg := ConfigFile.new()
+	cfg.set_value("meta", "version", VERSION)
 	cfg.set_value("controls", "scheme", controls)
 	cfg.set_value("controls", "classic_follow", classic_follow)
 	cfg.set_value("world", "traffic", traffic)

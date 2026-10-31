@@ -42,8 +42,8 @@ const STOP_S := 1.0
 ## over the ground).
 const HELI_RADIUS := 60.0
 const HELI_ALT := 60.0
-## The minimap's "?": undiscovered places within this many metres of the car (vision.md says
-## "in a discovered district"; there are no districts yet).
+## The minimap's "?": undiscovered places within this many metres of the car; loop 3h slice 1 adds
+## the discovered districts' own "?" marks wherever they are (`extra_marks`, districts.gd).
 const MINI_REACH := 400.0
 const CARD_RESPECT := 5
 const CHAPTER_ZL := 50
@@ -86,6 +86,9 @@ var _grid := {}
 var _t := 0.0
 var _still := {}
 var _unknown := PackedVector2Array()
+## Loop 3h slice 1: more "?" marks (map points) beyond MINI_REACH: districts.gd `marks`, the
+## discovered districts' first three places not found yet.
+var extra_marks: Callable
 
 
 ## Reads places.json (no map: the UI and the checks that need no positions). False if missing.
@@ -359,6 +362,10 @@ func _update_minimap(p: Vector2) -> void:
 		var at: Vector2 = place["at"]
 		if at.distance_squared_to(p) < MINI_REACH * MINI_REACH and not is_found(str(place["id"])):
 			marks.append(at)
+	if extra_marks.is_valid():
+		for at: Vector2 in extra_marks.call():
+			if at.distance_squared_to(p) >= MINI_REACH * MINI_REACH:
+				marks.append(at)
 	if marks != _unknown:
 		_unknown = marks
 		hud.set_minimap_unknown(marks)

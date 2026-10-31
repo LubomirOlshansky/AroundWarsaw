@@ -4,10 +4,24 @@ extends Node
 ## best times, and the easter eggs found. Races pay the rival's stake, rescues and
 ## side jobs pay their fares and tips. The garage loop: the złoty buy paint jobs at Warsztat u
 ## Mirka (garage.gd: `spend`, `paint`, `paints`; the save's [garage] section).
+##
+## Loop 3h slice 1, save v2: the file carries `[save] version` (VERSION). A file without it is
+## version 1 (every save before loop 3h): `migrate` brings it up to date in memory, a copy of the
+## old file is kept beside it once (`user://save.v1.cfg`, BACKUP), and the next save writes v2.
+## Nothing is renamed from v1 to v2, so every section of v1 (wallet, jobs, best, eggs, police,
+## keep, notes, chapters, PÓŁNOC FM, tapes, Kadr, the garage) loads as it was; v2 adds the
+## districts (discovered, jobs done in each) and the Syrenki. A section this build does not know
+## (a newer build's) is kept and written back as it was. A file from a newer version is read but
+## never overwritten (`newer`). `--nosave` (persistent false) neither reads nor writes anything.
 
 signal changed(zl: int, respect: int, gained: int)
 
 const PATH := "user://save.cfg"
+## Loop 3h slice 1: the save's format version (1: before loop 3h, no `[save]` section).
+const VERSION := 2
+## The sections this version reads and writes; any other is kept as it was (`_extra`).
+const SECTIONS := ["save", "wallet", "jobs", "best", "eggs", "police", "keep", "notes", "notes_chapters",
+		"polnoc", "tapes", "kadr", "kadr_photos", "garage", "districts", "district_jobs", "syrenki"]
 ## The easter eggs that count towards "found x/5".
 const EGGS := {"palma": "The Palm on Rondo de Gaulle'a", "pigeons": "Pigeons on Plac Defilad",
 		"barriers": "The wandering roadworks", "patelnia": "Patelnia by Metro Centrum",
@@ -54,10 +68,25 @@ var eggs_total := 0
 ## default) and the paints bought (id -> the day, yyyymmdd; the factory red is never listed).
 var paint := "red"
 var paints := {}
+## Loop 3h slice 1 (save v2): the districts discovered (districts.gd: id -> the day, yyyymmdd),
+## the jobs done in each (id -> count; `pay` counts a job in `district`, the one the vehicle is in),
+## and the Syrenki found (the later slice's collectibles: id -> the day).
+var districts := {}
+var district_jobs := {}
+var syrenki := {}
+## The district the vehicle is in now (districts.gd sets it; not saved).
+var district := ""
 ## False with --nosave: nothing is read or written.
 var persistent := true
 ## Loop MW-5: the save's file (check_radio.gd points it at a scratch file of its own).
 var path := PATH
+## Loop 3h slice 1: the version of the file as loaded (0: no file), the version it was migrated
+## from (0: none), and true when the file is from a newer build (then it is never overwritten).
+var loaded_version := 0
+var migrated_from := 0
+var newer := false
+## Sections of the file this version does not know: section -> {key: value}, written back.
+var _extra := {}
 
 
 func _ready() -> void:
@@ -70,6 +99,22 @@ func load_save() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(path) != OK:
 		return
+	loaded_version = int(cfg.get_value("save", "version", 1))
+	newer = loaded_version > VERSION
+	if newer:
+		print("wallet: %s is save version %d, newer than this build's %d: read, never overwritten" % [path, loaded_version, VERSION])
+	elif loaded_version < VERSION:
+		migrated_from = loaded_version
+		if persistent:
+			DirAccess.copy_absolute(ProjectSettings.globalize_path(path), ProjectSettings.globalize_path(backup_path(loaded_version)))
+		migrate(cfg, loaded_version)
+		print("wallet: save version %d migrated to %d (the old file kept as %s)" % [migrated_from, VERSION, backup_path(migrated_from)])
+	_extra.clear()
+	for section in cfg.get_sections():
+		if not section in SECTIONS:
+			_extra[section] = {}
+			for key in cfg.get_section_keys(section):
+				_extra[section][key] = cfg.get_value(section, key)
 	zl = int(cfg.get_value("wallet", "zl", 0))
 	respect = int(cfg.get_value("wallet", "respect", 0))
 	for key in (cfg.get_section_keys("jobs") if cfg.has_section("jobs") else PackedStringArray()):
@@ -105,12 +150,46 @@ func load_save() -> void:
 	for key in (cfg.get_section_keys("garage") if cfg.has_section("garage") else PackedStringArray()):
 		if key.begins_with("own_"):
 			paints[key.trim_prefix("own_")] = int(cfg.get_value("garage", key, 1))
+	for key in (cfg.get_section_keys("districts") if cfg.has_section("districts") else PackedStringArray()):
+		districts[key] = int(cfg.get_value("districts", key, 1))
+	for key in (cfg.get_section_keys("district_jobs") if cfg.has_section("district_jobs") else PackedStringArray()):
+		district_jobs[key] = int(cfg.get_value("district_jobs", key, 0))
+	for key in (cfg.get_section_keys("syrenki") if cfg.has_section("syrenki") else PackedStringArray()):
+		syrenki[key] = int(cfg.get_value("syrenki", key, 1))
+
+
+## Loop 3h slice 1: where the copy of a version-`version` file goes before it is migrated
+## (beside the save: user://save.v1.cfg).
+func backup_path(version: int) -> String:
+	return path.get_basename() + ".v%d.cfg" % version
+
+
+## Loop 3h slice 1: brings a save of version `from` up to VERSION in place, one step at a time.
+## Returns the version it ends at. Each step only adds or reshapes: progress is never dropped.
+static func migrate(cfg: ConfigFile, from: int) -> int:
+	var v := from
+	if v < 2:
+		# 1 -> 2 (loop 3h): an egg saved as `true` (v0.65, before MW-6 kept the day) becomes 1
+		# (found, the day unknown), as load_save always read it; the districts, their jobs and
+		# the Syrenki start empty (districts.gd discovers, quietly, the districts of the places
+		# and eggs already found).
+		for key in (cfg.get_section_keys("eggs") if cfg.has_section("eggs") else PackedStringArray()):
+			var e: Variant = cfg.get_value("eggs", key, false)
+			if e is bool:
+				if e:
+					cfg.set_value("eggs", key, 1)
+				else:
+					cfg.erase_section_key("eggs", key)
+		v = 2
+	cfg.set_value("save", "version", v)
+	return v
 
 
 func save() -> void:
-	if not persistent:
+	if not persistent or newer:
 		return
 	var cfg := ConfigFile.new()
+	cfg.set_value("save", "version", VERSION)
 	cfg.set_value("wallet", "zl", zl)
 	cfg.set_value("wallet", "respect", respect)
 	for key in jobs:
@@ -140,6 +219,15 @@ func save() -> void:
 	cfg.set_value("garage", "paint", paint)
 	for key in paints:
 		cfg.set_value("garage", "own_" + str(key), int(paints[key]))
+	for key in districts:
+		cfg.set_value("districts", key, int(districts[key]))
+	for key in district_jobs:
+		cfg.set_value("district_jobs", key, int(district_jobs[key]))
+	for key in syrenki:
+		cfg.set_value("syrenki", key, int(syrenki[key]))
+	for section in _extra:
+		for key in _extra[section]:
+			cfg.set_value(section, key, _extra[section][key])
 	cfg.save(path)
 
 
@@ -163,6 +251,9 @@ func reset() -> void:
 	kadr_photos.clear()
 	paint = "red"
 	paints.clear()
+	districts.clear()
+	district_jobs.clear()
+	syrenki.clear()
 	save()
 	changed.emit(zl, respect, 0)
 
@@ -174,6 +265,8 @@ func pay(amount: int, gain := 0, kind := "") -> void:
 	respect += gain
 	if kind != "":
 		jobs[kind] = int(jobs.get(kind, 0)) + 1
+		if district != "":
+			district_jobs[district] = int(district_jobs.get(district, 0)) + 1
 	save()
 	changed.emit(zl, respect, amount)
 	print("wallet: +%d zł, +%d respect (%s) -> %d zł, respect %d" % [amount, gain, kind if kind != "" else "-", zl, respect])
@@ -253,8 +346,9 @@ func egg_count() -> int:
 
 
 func summary() -> String:
-	return "%d zł, respect %d, jobs %s, best %s, eggs %d/%d, notebook %d, tapes %d, kadr %d, paint %s (%d bought)" % [zl, respect,
-			jobs, best, eggs_found(), egg_count(), notes.size(), tapes.size(), kadr.size(), paint, paints.size()]
+	return "%d zł, respect %d, jobs %s, best %s, eggs %d/%d, notebook %d, tapes %d, kadr %d, paint %s (%d bought), districts %d, syrenki %d, save v%d" % [zl, respect,
+			jobs, best, eggs_found(), egg_count(), notes.size(), tapes.size(), kadr.size(), paint, paints.size(), districts.size(),
+			syrenki.size(), loaded_version]
 
 
 ## "1 240 zł": thousands apart with a space, the Polish way.

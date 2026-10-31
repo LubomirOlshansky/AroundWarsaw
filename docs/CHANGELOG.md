@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-10-31
 
+- Warsaw's districts: discover each one, find three "?" in it, and see how much of it you've done on the map. The save keeps a version now, so progress carries into later builds.
 - The map grows north: Rondo Radosława, Arkadia and the Forest tower.
 - Plac Piłsudskiego is complete, with Hotel Europejski, the Metropolitan, Hotel Wiktoria and the Tomb of the Unknown Soldier.
 - Muzeum Narodowe is a real model now.

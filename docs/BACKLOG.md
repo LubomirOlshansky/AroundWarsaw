@@ -1376,11 +1376,13 @@ Small problems that agents reported or that showed up in screenshots. They are f
   an address point in the map), 18 m apart; Apteczka and Pawilony both matched Nowy Świat 22/28
   (the same point): one pass finds both, two toasts in a row (the second replaces the first).
   Not offset in MW-1 (the bake's anchors will separate them).
-- The minimap's "?" shows undiscovered places within 400 m of the car (vision.md: "in a
-  discovered district"; there are no districts yet). Switch to districts when DEMO 6.3's exist.
-- The card shows no district (places.json has none; vision.md's card wants one) and no address
-  for a venue (an address can name the real business: "Jasna 1" on the denylist). A `district`
-  field in places.json (designer) would fill it.
+- ~~The minimap's "?" shows undiscovered places within 400 m of the car (vision.md: "in a
+  discovered district"; there are no districts yet). Switch to districts when DEMO 6.3's exist.~~
+  Loop 3h slice 1: each discovered district adds its first three unfound places as "?" anywhere
+  (the 400 m marks stay).
+- The card shows no district (~~places.json has none~~: loop 3h slice 1 added `district` to every
+  place; notebook_page.gd doesn't show it yet) and no address for a venue (an address can name the
+  real business: "Jasna 1" on the denylist).
 - Chapter icons are the chapter's number on the notebook's chips until the PixelLab icons
   (vision.md section 9) exist.
 - The tap-a-place-within-80-m way of finding (vision.md 4.1, the landmark card's tap) is not
@@ -1814,3 +1816,24 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **Brzeska is one-way and narrow** (3 m, one lane): the ring covers the street; a car coming the
   other way still drives in. The workshop could move to a wider kerb (map lane: a service way's
   mouth on Brzeska) if F finds it awkward.
+
+## From loop 3h slice 1 (save v2 and the districts, 2026-10-31)
+
+Closed: save v2 (a version, the v1 migration and backup, settings' version), districts as data with
+discovery, "?" marks and completion on the full map (DEMO G3). Left for the later 3h slices:
+- **Syrenki** (slice 2): 20 collectibles; register each with `districts.gd` `add_syrenka(id,
+  district)` and mark finds in `wallet.syrenki` (saved already); then they count in completion.
+- **Rival ladder and "Trzy mosty"**, **the first 10 minutes** (the hint finger, the first order,
+  the first race, the `--first10` replay check), **the end card** (can read `percent_total()` and
+  the discovered count).
+- Ujazdów i Łazienki has no notebook place or egg (the park lies south of the map; only the Sejm is
+  in it): completion there is its 2 jobs, and it shows no "?" marks. The designer (places for the
+  Sejm, Ujazdowski Castle, Plac na Rozdrożu) or the map lane (the park) would fill it. Wola has 2
+  places, Stare Miasto 4: thin for "3 ?" for long.
+- The notebook's place card doesn't show the place's district yet (notebook_page.gd).
+- Jobs done before save v2 have no district (v1 counted jobs by kind only): they don't count
+  towards any district.
+- The district polygons are hand-drawn from the stale water data and the embankment roads; the
+  river line north of Most Śląsko-Dąbrowski is extrapolated (the map lane could bake a river line).
+- The discovery card uses the note card (5.5 s); a bigger centred card or a sound of its own
+  (loop 3i's district ambiences) would make it a moment.

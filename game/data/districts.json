@@ -1,0 +1,141 @@
+{
+	"_about": "Loop 3h slice 1 (docs/DEMO.md 2.3 and 6.2-6.3, checklist G3): the demo's districts, for discovery (the card when the car first enters one), the notebook's three \"?\" marks per discovered district, and completion (districts.gd). Each district: `id`, `name_pl` / `name_en` (real district names; the English a gloss), `hero` (DEMO 2.3's five hero districts), `line` [pl, en] (the card's line, Polish at most 70 characters, warsaw-tone), `label` [x, z] (where the full map writes its name, map metres), `jobs_goal` (the jobs done in it that count towards completion) and `areas`: polygons in map metres (+x east, +z south, the same numbers --at= takes) as flat [x, z, x, z, ...] lists. The list is in priority order: a point belongs to the first district with an area that holds it (so Praga, east of the river line, comes first and the Palm's corner of Śródmieście, Rondo de Gaulle'a across the Royal Route, comes before it; an earlier district's area never sits wholly inside a later one's, so the districts' own shapes have no holes). Together the areas cover the whole map's bounds. Places (places.json) and eggs (eggs.json) carry a `district` field with one of these ids.",
+	"districts": [
+		{
+			"id": "praga",
+			"name_pl": "Praga",
+			"name_en": "Praga",
+			"hero": true,
+			"line": [
+				"Prawy brzeg. Tu się mówi „na Pradze”, nie „w Pradze”.",
+				"The right bank. Locals say 'na Pradze'; Prague is elsewhere."
+			],
+			"label": [1650, -1250],
+			"jobs_goal": 3,
+			"areas": [
+				[-950, -2950, -700, -2500, -420, -2050, -150, -1800, -75, -1500, 200, -1250, 475, -1000, 760, -750, 900, -500, 1075, -250, 1210, 0, 1350, 250, 1525, 500, 1640, 750, 1800, 1000, 2000, 1250, 2150, 1500, 2250, 1900, 2600, 1900, 2600, -3000, -950, -3000]
+			]
+		},
+		{
+			"id": "stare_miasto",
+			"name_pl": "Stare Miasto",
+			"name_en": "The Old Town",
+			"hero": true,
+			"line": [
+				"Odbudowane z gruzów. Bruk wiernie niewygodny jak dawniej.",
+				"Rebuilt from rubble. The cobbles, faithfully uncomfortable."
+			],
+			"label": [-800, -1950],
+			"jobs_goal": 3,
+			"areas": [
+				[-1250, -3000, 2600, -3000, 2600, -1500, -1250, -1500]
+			]
+		},
+		{
+			"id": "muranow",
+			"name_pl": "Muranów",
+			"name_en": "Muranów",
+			"hero": false,
+			"line": [
+				"Bloki, galeria i parking większy niż cała dzielnica.",
+				"Blocks, a mall and a car park bigger than the district."
+			],
+			"label": [-2250, -1800],
+			"jobs_goal": 2,
+			"areas": [
+				[-3300, -3000, -1250, -3000, -1250, -800, -3300, -800]
+			]
+		},
+		{
+			"id": "srodmiescie",
+			"name_pl": "Śródmieście",
+			"name_en": "The City Centre",
+			"hero": true,
+			"line": [
+				"Pałac, Patelnia i Palma. Wszystko na P, nawet parking.",
+				"The Palace, Patelnia and the Palm. All P-words, even the parking."
+			],
+			"label": [-1150, 0],
+			"jobs_goal": 3,
+			"areas": [
+				[-300, 200, 150, 200, 150, 420, -300, 420],
+				[-1800, -1500, -800, -1500, -800, -1200, -650, -700, -500, 0, -250, 700, -1800, 700]
+			]
+		},
+		{
+			"id": "trakt",
+			"name_pl": "Trakt Królewski",
+			"name_en": "The Royal Route",
+			"hero": true,
+			"line": [
+				"Tędy jeździli królowie. Ty jedziesz za autobusem.",
+				"Kings rode this way. You are stuck behind a bus."
+			],
+			"label": [-420, -450],
+			"jobs_goal": 3,
+			"areas": [
+				[-800, -1500, -300, -1500, -150, -700, -200, 0, 0, 250, 100, 700, -250, 700, -500, 0, -650, -700, -800, -1200]
+			]
+		},
+		{
+			"id": "powisle",
+			"name_pl": "Powiśle",
+			"name_en": "Powiśle",
+			"hero": true,
+			"line": [
+				"Schodki, bulwary i kolejka do baru. Wisła płynie, kolejka nie.",
+				"Steps, boulevards and a bar queue. The river flows; the queue doesn't."
+			],
+			"label": [380, -480],
+			"jobs_goal": 3,
+			"areas": [
+				[-800, -1500, 2600, -1500, 2600, 700, -800, 700]
+			]
+		},
+		{
+			"id": "wola",
+			"name_pl": "Wola",
+			"name_en": "Wola",
+			"hero": false,
+			"line": [
+				"Szklane wieże i nowy Mordor. Kawa w kubku, życie w tabelce.",
+				"Glass towers and the new Mordor. Coffee in a cup, life in a spreadsheet."
+			],
+			"label": [-2500, 350],
+			"jobs_goal": 2,
+			"areas": [
+				[-3300, -800, -1800, -800, -1800, 1900, -3300, 1900]
+			]
+		},
+		{
+			"id": "poludnie",
+			"name_pl": "Śródmieście Południowe",
+			"name_en": "The South Centre",
+			"hero": false,
+			"line": [
+				"Plac Zbawiciela: kawa za 19 zł, kolejka gratis.",
+				"Plac Zbawiciela: coffee for 19 zł, the queue comes free."
+			],
+			"label": [-850, 1300],
+			"jobs_goal": 2,
+			"areas": [
+				[-1800, 700, -200, 700, -200, 1900, -1800, 1900]
+			]
+		},
+		{
+			"id": "lazienki",
+			"name_pl": "Ujazdów i Łazienki",
+			"name_en": "Ujazdów and Łazienki",
+			"hero": false,
+			"line": [
+				"Pawie, ambasady i cisza. Nawet klakson tu szepcze.",
+				"Peacocks, embassies and quiet. Even the horn whispers here."
+			],
+			"label": [550, 1300],
+			"jobs_goal": 2,
+			"areas": [
+				[-200, 700, 2600, 700, 2600, 1900, -200, 1900]
+			]
+		}
+	]
+}

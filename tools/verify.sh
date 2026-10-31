@@ -63,6 +63,11 @@
 # The garage loop: `garage` runs game/tools/check_garage.gd: Warsztat u Mirka's paints and rules,
 # buying and switching (10 seeded walks), the save, the car's paint, Mirek's lines, E01 and E21
 # once; no map at all (CI too).
+# Loop 3h slice 1: `save` runs game/tools/check_save.gd: save v2 (a version-1 fixture built in the
+# check migrates keeping every section, a backup of the old file, the round trip, a newer file never
+# overwritten, --nosave writes nothing, settings.cfg's version); `districts` runs
+# game/tools/check_districts.gd: the districts' data, coverage and ties, discovery, the "?" marks,
+# completion and the full map's fog; neither needs a map (CI too).
 # `streaming` runs game/tools/check_streaming.gd
 # (loop 3c) WITH a renderer (a window opens for a minute or two): every sector built from its
 # file is the whole city, vertex for vertex; 10 spots rendered with --monolithic and with the
@@ -95,8 +100,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage parodies jobs2 couriers rides cost landmarks sites sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline drape drive steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage parodies jobs2 couriers rides cost landmarks sites sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts parodies jobs2 couriers rides cost landmarks sites sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline drape drive steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts parodies jobs2 couriers rides cost landmarks sites sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -593,6 +598,8 @@ for s in $want; do
 		buses) check buses '^check_buses:' --script res://tools/check_buses.gd ;;
 		oldtram) check oldtram '^check_old_tram:' --script res://tools/check_old_tram.gd ;;
 		garage) check garage '^check_garage:' --script res://tools/check_garage.gd ;;
+		save) check save '^check_save:' --script res://tools/check_save.gd ;;
+		districts) check districts '^check_districts:' --script res://tools/check_districts.gd ;;
 		life-soak) life_soak ;;
 		# Loop 2d-1: Podwózka's star and pay tables, the streak and the cancel rules, its lines.
 		rides) check rides '^check_rides:' --script res://tools/check_rides.gd ;;
