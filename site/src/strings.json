@@ -1,5 +1,5 @@
 {
-  "hero": "hero-venue-night",
+  "hero": "hero-palace-dusk",
   "reel": [
     {
       "img": "center-day",
@@ -73,7 +73,7 @@
     "nav_label": "Main",
     "nav_city": "The city",
     "nav_beta": "Get the beta",
-    "hero_alt": "A night street in Warsaw in the game: lit windows, a pink neon over a club and a queue outside",
+    "hero_alt": "The Palace of Culture at dusk in the game, floodlit, with Złote Tarasy and the towers of Śródmieście",
     "cta_beta": "Get the beta",
     "cta_free": "Free, no ads, MIT-licensed. Beta for iPhone and Android.",
     "radio_label": "On the car radio",
@@ -145,7 +145,7 @@
     "nav_label": "Menu",
     "nav_city": "Miasto",
     "nav_beta": "Beta",
-    "hero_alt": "Nocna ulica Warszawy w grze: zapalone okna, różowy neon nad klubem i kolejka przed wejściem",
+    "hero_alt": "Pałac Kultury o zmierzchu w grze, podświetlony, obok Złote Tarasy i wieżowce Śródmieścia",
     "cta_beta": "Zapisz się do bety",
     "cta_free": "Za darmo, bez reklam, licencja MIT. Beta na iPhone'a i Androida.",
     "radio_label": "W radiu w aucie",
@@ -253,33 +253,33 @@
   },
   "small": [
     {
-      "img": "car-oldtown",
-      "w": 1000,
-      "h": 667,
+      "img": "castle-square-s",
+      "w": 1100,
+      "h": 508,
       "en": [
-        "Through the Old Town",
-        "A small car in the narrow streets by the Market Square.",
-        "A small red car on a narrow Old Town street in the game"
+        "Plac Zamkowy",
+        "The Royal Castle and the square at its gate.",
+        "The Royal Castle and Plac Zamkowy in the game"
       ],
       "pl": [
-        "Przez Stare Miasto",
-        "Małe auto w wąskich uliczkach przy Rynku.",
-        "Małe czerwone auto na wąskiej uliczce Starego Miasta w grze"
+        "Plac Zamkowy",
+        "Zamek Królewski i plac przy jego bramie.",
+        "Zamek Królewski i plac Zamkowy w grze"
       ]
     },
     {
-      "img": "heli-vistula-day",
-      "w": 1920,
-      "h": 884,
+      "img": "palm-dawn",
+      "w": 1100,
+      "h": 507,
       "en": [
-        "Or take the helicopter",
-        "Fly over the Vistula; trams and buses keep running below.",
-        "The rescue helicopter over the Vistula by Most Poniatowskiego"
+        "The palm at Rondo de Gaulle'a",
+        "Dawn at the most famous palm in town. The HELI button shows it from above.",
+        "Dawn at the palm on Rondo de Gaulle'a in the game, with the HUD"
       ],
       "pl": [
-        "Albo helikopter",
-        "Leć nad Wisłą; na dole jeżdżą tramwaje i autobusy.",
-        "Śmigłowiec nad Wisłą przy Moście Poniatowskiego"
+        "Palma na rondzie de Gaulle'a",
+        "Świt przy najsłynniejszej palmie w mieście. Przycisk HELI pokaże ją z góry.",
+        "Świt przy palmie na rondzie de Gaulle'a w grze, z interfejsem"
       ]
     }
   ],
