@@ -19,6 +19,8 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · design · the first scene** — Where the game starts (the street the player sees first, to be polished for a "wow"). Default planned: Marszałkowska by Plac Defilad (the Palace, the new Museum of Modern Art, the Eastern Wall, the towers), where the spawn and the first-10-minutes script already are. Alternatives: Plac Zamkowy and the Old Town, Rondo Daszyńskiego's towers, Most Świętokrzyski. Plan: docs/design/first-scene.md.
+- **2026-10-31 · design · the first scene** — The light of the first frame. Default planned: day, as decided on 2026-10-28. Alternative: a late-afternoon golden light for the first minutes, once the dusk thread's work lands.
 - **2026-10-31 · gameplay · loop 3h slice 2** — The Palace's and the stadium's Syrenki stand 148 m and 211 m from their anchors (no ground street nearer). Default built: that (a 260 m fallback). Alternative: anchor them elsewhere in `syrenki.json`.
 - **2026-10-31 · gameplay · loop 3h slice 2** — No hint for the Syrenki (no "?" marks, no minimap dot, no chime); only a cyan diamond over each and "Syrenki n/20" on the full map. Default built: that. Alternative: a chime under ~40 m or a dot once the district is discovered.
 - **2026-10-31 · gameplay · loop 3h slice 2** — Rewards: 5 Syrenki open the "Łuska Syreny" paint, 10 give 150 zł and 50 respect, 20 open "Srebro Syreny" and 300 zł; +5 respect a find. Default built: that, numbers for the designer to tune with the ladder.
