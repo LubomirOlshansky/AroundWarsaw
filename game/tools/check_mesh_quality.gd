@@ -70,27 +70,10 @@ const BUDGET := {
 	"zygmunt": 280,
 }
 ## Known defects per site: {"zfight": n, "degenerate": n, "badnormal": n, "float": n}.
-const KNOWN := {
-	"blekitny": {"zfight": 235},
-	"central": {"zfight": 106},
-	"chalubinskiego8": {"zfight": 526},
-	"europejski": {"zfight": 8},
-	"gpy": {"zfight": 42},
-	"lucka": {"degenerate": 2},
-	"mennica": {"zfight": 48},
-	"palace": {"zfight": 94},
-	"plater49": {"zfight": 19},
-	"q22": {"zfight": 127, "degenerate": 2},
-	"rotunda": {"degenerate": 48},
-	"skyliner": {"zfight": 15},
-	"spektrum": {"zfight": 7},
-	"stadium": {"zfight": 8},
-	"swieto": {"zfight": 114},
-	"varso": {"zfight": 105, "degenerate": 4},
-	"wtt": {"zfight": 194, "degenerate": 40},
-}
+const KNOWN := {}
 const ZFIGHT_AREA := 0.01
 const ZFIGHT_PLANE := 0.02
+const ZFIGHT_WINDOW := 0.3  ## coarse sort window; _coplanar decides
 const DEGENERATE_AREA := 1.0e-5
 const WELD := 20.0  ## vertices closer than 1/WELD m are one
 const TOUCH := 0.1
@@ -249,6 +232,17 @@ func _zfight(rec: Recorder, gn: Array[Vector3], live: Array[int], out: Dictionar
 	# Buckets of near-equal plane normals (up to sign); inside one, triangles sorted by plane
 	# distance are compared while their planes lie within ZFIGHT_PLANE.
 	var buckets := {}
+	# Plane distances are measured from the site's own centre: with positions 1500 m from the
+	# origin, a 1e-5 difference between two near-equal normals alone shifts a distance by 1.5 cm.
+	var origin := Vector3.ZERO
+	if not live.is_empty():
+		var lo := rec.pos[live[0] * 3]
+		var hi := lo
+		for t in live:
+			for k in 3:
+				lo = lo.min(rec.pos[t * 3 + k])
+				hi = hi.max(rec.pos[t * 3 + k])
+		origin = (lo + hi) * 0.5
 	for t in live:
 		var n := gn[t]
 		var s := 1.0
@@ -258,7 +252,7 @@ func _zfight(rec: Recorder, gn: Array[Vector3], live: Array[int], out: Dictionar
 		var key := Vector3i(roundi(cn.x * 25.0), roundi(cn.y * 25.0), roundi(cn.z * 25.0))
 		if not buckets.has(key):
 			buckets[key] = []
-		(buckets[key] as Array).append([rec.pos[t * 3].dot(cn), t, s])
+		(buckets[key] as Array).append([(rec.pos[t * 3] - origin).dot(cn), t, s])
 	for key: Vector3i in buckets:
 		var list: Array = buckets[key]
 		if list.size() < 2:
@@ -266,15 +260,28 @@ func _zfight(rec: Recorder, gn: Array[Vector3], live: Array[int], out: Dictionar
 		list.sort_custom(func(x: Array, y: Array) -> bool: return x[0] < y[0])
 		for i in list.size():
 			for j in range(i + 1, list.size()):
-				if list[j][0] - list[i][0] > ZFIGHT_PLANE:
+				if list[j][0] - list[i][0] > ZFIGHT_WINDOW:
 					break
 				if list[i][2] != list[j][2] and gn[list[i][1]].dot(gn[list[j][1]]) < 0.0:
 					# opposite facing: back to back, culled, no fight
 					if (list[i][2] * list[j][2]) < 0.0:
 						continue
+				if not _coplanar(rec, list[i][1], list[j][1], gn[list[i][1]], gn[list[j][1]]):
+					continue
 				if _overlap(rec, list[i][1], list[j][1], gn[list[i][1]]) > ZFIGHT_AREA:
 					out["zfight"] += 1
 					out["at_zfight"].append(rec.pos[list[i][1] * 3])
+
+
+## The exact test behind the sorted window: every vertex of each triangle within ZFIGHT_PLANE
+## of the other's plane.
+func _coplanar(rec: Recorder, ta: int, tb: int, na: Vector3, nb: Vector3) -> bool:
+	for k in 3:
+		if absf((rec.pos[tb * 3 + k] - rec.pos[ta * 3]).dot(na)) > ZFIGHT_PLANE:
+			return false
+		if absf((rec.pos[ta * 3 + k] - rec.pos[tb * 3]).dot(nb)) > ZFIGHT_PLANE:
+			return false
+	return true
 
 
 func _overlap(rec: Recorder, ta: int, tb: int, n: Vector3) -> float:

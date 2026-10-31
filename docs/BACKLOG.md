@@ -82,7 +82,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (the first scene's buildings, the Palace, the Old Town square, the Castle, the towers, the
   stadium, the bridges) against their photos, worst score first. Wanted later: an automatic
   check for coplanar faces (z-fighting) in a site's mesh.
-- **Model checks from the research** (2026-10-31; item (1) DONE the same day as `check_mesh_quality.gd`, the z-fighting, zero-area, floating and budget parts; its `KNOWN` ratchet lists the existing z-fighting in the towers and the Palace to fix; parts inside parts and T gaps are still open, report in the project files "Детальніші моделі
+- **Model checks from the research** (2026-10-31; item (1) DONE the same day as `check_mesh_quality.gd`, the z-fighting, zero-area, floating and budget parts; its `KNOWN` ratchet is empty since 2026-10-31 (the z-fighting in the towers and the Palace is fixed); parts inside parts and T gaps are still open, report in the project files "Детальніші моделі
   будівель"): (1) `game/tools/check_mesh_quality.gd`, run on each landmark site's mesh arrays:
   coplanar overlapping faces (z-fighting: group triangles by plane, test 2D overlap, ~0.01 m²),
   zero-area and flipped triangles, parts touching neither the ground nor another part (FAIL);
