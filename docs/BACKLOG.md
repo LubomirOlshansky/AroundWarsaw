@@ -56,6 +56,15 @@ Small problems that agents reported or that showed up in screenshots. They are f
   rebuild the prebuilt sectors with `bake_city.gd` (a renderer, never `--headless`); render
   before/after with the Mobile renderer on lavapipe (docs/DEVELOPMENT.md "Cloud rendering").
 
+- **From the dusk loop (2026-10-31)**: still unlit after the user's 16:20 photos: Rondo 1's
+  tenant names, PHN and the Bank Polski tower's crown (not sure which building wears which; the
+  cloud has no network to check), Złote Tarasy's dome lit from inside, Varso's antenna lattice,
+  Chałubińskiego 8's antenna and dark-glass refit (photo IMG_7104), the screens on the Marriott's
+  podium. The canopy lamps and the crown names are small at the widest zoom; look on the phone.
+  Art review (art-director, Opus): Centrum LIM's lit cells (the `S_GRID` skin, shared with the
+  InterContinental and the Westin) are cold white and many, the photos show sparse warm ones
+  (`#ffcf7a`, ~12 %, upper third); the landmark signs still glow inside the occlusion ghost.
+
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
 - **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;
   the designer (`game-designer`, Sonnet for the text) specs it, `warsaw-tone` rules apply (real

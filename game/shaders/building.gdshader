@@ -489,13 +489,14 @@ vec3 landmark(int mode, float param, vec3 col, vec2 uv, float top, bool wall, ve
 	return col;
 }
 
-// Floodlights on the landmark: warm from below, violet up the tower, a bright edge
-// at the top of every wall, where the next terrace's lamps stand.
+// Floodlights on the landmark: the dusk loop (2026-10-31, the user's photos) lights it gold
+// all the way up (was violet up the tower), a little brighter on the high terraces, with a
+// bright edge at the top of every wall, where the next terrace's lamps stand.
 vec3 floodlight(vec3 col, float h, float top) {
-	vec3 light = vec3(1.0, 0.72, 0.42) * (0.5 + 0.9 * exp(-h / 22.0));
-	light += vec3(0.75, 0.32, 1.0) * smoothstep(25.0, 110.0, h) * 0.75;
-	light += vec3(1.0, 0.85, 0.65) * smoothstep(top - 9.0, top - 0.5, h) * 0.55;
-	return col * light * 1.25;
+	vec3 gold = vec3(1.0, 0.7, 0.3);
+	vec3 light = gold * (0.62 + 0.5 * exp(-h / 18.0) + 0.3 * smoothstep(30.0, 140.0, h));
+	light += vec3(1.0, 0.88, 0.62) * smoothstep(top - 9.0, top - 0.5, h) * 0.5;
+	return col * light * 1.3;
 }
 
 void fragment() {

@@ -26,6 +26,7 @@ const M_GOLD := 4.0       # the Palace's spire
 const M_DIAL := 5.0       # clock dials: lit at night
 const M_WEAVE := 6.0      # Stadion Narodowy's red-and-white skin
 const M_GLASS_ROOF := 7.0 # Złote Tarasy's wave
+const Neon := preload("res://scripts/neon_signs.gd")  # the dusk loop: sign sizes
 const M_PAVILION := 8.0   # glass lit from inside: + 0 warm (the Rotunda), + 0.5 cool (Varso's crown)
 const M_ATTIC := 9.0      # a parapet cut into merlons; fraction = its height / 10 m
 const M_LAMP := 10.0      # glows at night
@@ -58,7 +59,7 @@ const TOWERS := [
 	{"key": "spire", "osm": "Warsaw Spire", "style": S_DIAMOND, "glass": "#5a8fb8", "roof": "#a3b6c4"},
 	{"key": "q22", "osm": "Q22", "style": S_BANDS, "glass": "#8ba2b4", "roof": "#bcc4ca"},
 	{"key": "rondo1", "osm": "Rondo 1", "style": S_FINS, "glass": "#6f8ea4", "roof": "#a9b3b9", "crest": "frame"},
-	{"key": "plater49", "osm": "InterContinental", "style": S_GRID, "glass": "#5f7f9a", "roof": "#c3c7c9"},
+	{"key": "plater49", "osm": "InterContinental", "style": S_GRID, "glass": "#5f7f9a", "roof": "#c3c7c9", "sign": "INTERKONTI"},
 	{"key": "cosmopolitan", "osm": "Cosmopolitan", "style": S_RIBBON, "glass": "#4d6574", "roof": "#dfe2e0"},
 	{"key": "wtt", "osm": "Warsaw Trade Tower", "style": S_BANDS, "glass": "#3d6a7a", "roof": "#8d979c"},
 	{"key": "skyliner", "osm": "Skyliner", "style": S_FINS, "glass": "#2f6190", "roof": "#9aa6b0"},
@@ -72,14 +73,17 @@ const TOWERS := [
 	{"key": "skysawa", "osm": "Skysawa", "style": S_BANDS, "glass": "#7e93a3", "roof": "#a7b0b6"},
 	{"key": "blekitny", "osm": "Błękitny Wieżowiec", "style": S_GOLD, "glass": "#c9a45c", "roof": "#8e8a80"},
 	{"key": "wcf", "osm": "Warszawskie Centrum Finansowe", "style": S_DARK, "glass": "#4d6862", "roof": "#7d8580"},
-	{"key": "lim", "osm": "Centrum LIM", "style": S_DARK, "glass": "#6a5442", "roof": "#6e6a66"},
+	# The dusk loop (2026-10-31): Centrum LIM holds the Marriott (the 140 m tower at about
+	# (-1308, 697)), so the one site is dressed as it: dark green-black glass in a fine grid,
+	# dark bands, a lattice mast and the names (_marriott).
+	{"key": "lim", "osm": "Centrum LIM", "style": S_GRID, "glass": "#24343a", "roof": "#6f777b", "sign": "PREZYDENT", "marriott": true},
 	{"key": "chalubinskiego8", "osm": "Chałubińskiego 8", "style": S_FINS, "glass": "#2f6f8f", "roof": "#c9cfd2", "mapped": true},
 	{"key": "spektrum", "osm": "Spektrum Tower", "style": S_BANDS, "glass": "#2f5563", "roof": "#7c878c", "mapped": true},
 	{"key": "bridge", "osm": "The Bridge", "style": S_FINS, "glass": "#6d8da6", "roof": "#b0bac2"},
 	# The second pass: the rest of the skyline over 80 m (the hotels by their addresses).
-	{"key": "grzybowska63", "osm": "Hilton Warsaw City", "style": S_BANDS, "glass": "#4d7590", "roof": "#9aa5ad"},
-	{"key": "jp2_21", "osm": "The Westin Warsaw", "style": S_GRID, "glass": "#86aca7", "roof": "#a9b5b3", "mapped": true},
-	{"key": "marszalkowska94", "osm": "Novotel Warszawa Centrum", "style": S_RIBBON, "glass": "#3b4a55", "roof": "#c9c9c2"},
+	{"key": "grzybowska63", "osm": "Hilton Warsaw City", "style": S_BANDS, "glass": "#4d7590", "roof": "#9aa5ad", "sign": "CHILTON"},
+	{"key": "jp2_21", "osm": "The Westin Warsaw", "style": S_GRID, "glass": "#86aca7", "roof": "#a9b5b3", "mapped": true, "sign": "WESTYNKA"},
+	{"key": "marszalkowska94", "osm": "Novotel Warszawa Centrum", "style": S_RIBBON, "glass": "#3b4a55", "roof": "#c9c9c2", "sign": "NOWOTEL"},
 	{"key": "central", "osm": "Central Tower", "style": S_DARK, "glass": "#3e5c78", "roof": "#6f7d88"},
 	{"key": "ilmet", "osm": "Ilmet", "style": S_BANDS, "glass": "#7d5a48", "roof": "#8c8278"},
 	{"key": "platinum_a", "osm": "Platinum Tower A", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
@@ -165,8 +169,8 @@ const INFO := {
 			"144 m. Otwarte w 1998 roku.",
 			"144 m. Opened in 1998."],
 	"lim": ["Centrum LIM",
-			"140 m przy Alejach Jerozolimskich. Otwarte w 1989 roku.",
-			"140 m on Al. Jerozolimskie. Opened in 1989."],
+			"Hotel Prezydent nad Dworcem Centralnym, 140 m, od 1989 roku.",
+			"Hotel Prezydent over the Central Station, 140 m, since 1989."],
 	"chalubinskiego8": ["Chałubińskiego 8",
 			"140 m. Białe żebra na niebieskim szkle.",
 			"140 m. White ribs on blue glass."],
@@ -1410,6 +1414,8 @@ func _build_varso(site: Dictionary) -> void:
 		var rr: float = 2.7 if h < 290.0 else 1.2
 		_prism(sq.call(rr), g + h - 0.6, g + h, Color("#7689a9"), Color("#8fa0bb"), M_STONE, M_STONE)
 	_prism(sq.call(0.5), g + 309.0, g + 310.5, Color("#ff3b30"), Color("#ff6a5c"), M_LAMP, M_LAMP)
+	# The dusk loop: the aviation light on the spire's very top.
+	_prism(_square(spire, 0.35), g + 310.5, g + 311.2, DUSK_RED, DUSK_RED, M_LAMP, M_LAMP)
 
 
 func _osm(value, fallback: Color) -> Color:
@@ -1438,9 +1444,12 @@ func _build_tower(site: Dictionary) -> void:
 		parts = parts.filter(func(b: Dictionary) -> bool: return str(b.get("name", "")) != spec.get("osm", ""))
 	var boxes: Array[Rect2] = []
 	var top_h := 0.0
+	var top_poly := PackedVector2Array()
 	for b in parts:
 		boxes.append(_box_of([_pts(b["p"])]))
-		top_h = maxf(top_h, float(b["h"]))
+		if float(b["h"]) > top_h:
+			top_h = float(b["h"])
+			top_poly = _pts(b["p"])
 	if spec["key"] == "zlota44":
 		# Złota 44: the tower is lofted (_zlota_sail); only the podium is built from its parts.
 		_zlota_sail(g, glass, roof, skin)
@@ -1486,6 +1495,135 @@ func _build_tower(site: Dictionary) -> void:
 				_prism(poly, g + h, g + 192.0, wall, Color(0, 0, 0, 0), M_SKIN + float(S_FRAME) / 16.0)
 		if mh < 2.0:
 			_collide(poly)
+	_dusk_details(spec, top_poly, g, top_h)
+
+
+## The dusk loop (2026-10-31): what lights up a tower's crown after dark. The tallest part
+## `poly` (roof at g + top_h): the Marriott's bands and mast, a hotel's name, and red
+## aviation lights on a roof of 100 m or more (the Spire and Złota 44 do theirs in their own
+## builders).
+func _dusk_details(spec: Dictionary, poly: PackedVector2Array, g: float, top_h: float) -> void:
+	if poly.size() < 3:
+		return
+	if spec.get("marriott", false):
+		_marriott(poly, g, top_h)
+	if spec.has("sign"):
+		_crown_signs(poly, g + top_h, str(spec["sign"]), DUSK_WARM, 3.0, 0.75 if spec.get("marriott", false) else 0.7)
+	if top_h >= 100.0 and spec["key"] != "zlota44" and spec["key"] != "spire":
+		var roof_y := func(_q: Vector2) -> float: return g + top_h
+		if spec.get("crest", "") == "slope":
+			roof_y = _slope_roof(poly, g + top_h, g + top_h - 24.0)
+		_aviation(poly, roof_y)
+
+
+const DUSK_WARM := Color(1.0, 0.95, 0.86)
+const DUSK_RED := Color(1.0, 0.12, 0.1)
+
+
+## The Marriott (the dusk loop): a dark band round the crown (top 7 m) and one two thirds up
+## (4 m), each 0.15 m proud of the glass, a lattice mast on the roof (shaft, platform, a red
+## lamp on top) and the brand's parody (SAMSONG) lit on the mid band, on the south and east
+## faces. The name on the crown goes up with the `sign` key (_dusk_details).
+func _marriott(poly: PackedVector2Array, g: float, h: float) -> void:
+	var band := Color("#14191c")
+	var mode := M_SKIN + float(S_DARK) / 16.0
+	var wide := Geometry2D.offset_polygon(poly, 0.15)
+	if wide.is_empty():
+		return
+	var out: PackedVector2Array = wide[0]
+	var mid := g + 0.62 * h
+	_prism(out, g + h - 7.0, g + h, band, Color(0, 0, 0, 0), mode)
+	_prism(out, mid - 2.0, mid + 2.0, band, Color(0, 0, 0, 0), mode)
+	var c := _centre(poly)
+	var roof := g + h
+	var steel := Color("#b8b2a8")
+	_prism(_square(c, 1.2), roof, roof + 26.0, steel, steel.lightened(0.1), M_STONE, M_STONE)
+	_prism(_square(c, 3.0), roof + 14.0, roof + 14.6, steel.darkened(0.15), steel, M_STONE, M_STONE)
+	_prism(_square(c, 0.4), roof + 26.0, roof + 26.8, DUSK_RED, DUSK_RED, M_LAMP, M_LAMP)
+	_crown_signs(poly, mid, "SAMSONG", DUSK_WARM, 0.0, 0.75)
+
+
+## An axis-aligned square round `c`, half-width `r`.
+func _square(c: Vector2, r: float) -> PackedVector2Array:
+	return PackedVector2Array([c + Vector2(-r, -r), c + Vector2(r, -r), c + Vector2(r, r), c + Vector2(-r, r)])
+
+
+## The dusk loop: a lit name on the two faces of `poly` that face the camera most, south and
+## east, centred `drop` m under `top_y`, the word spanning `share` of the face's width. Only
+## the long faces count (at least half the longest edge), so a corner chamfer never carries one.
+func _crown_signs(poly: PackedVector2Array, top_y: float, word: String, colour: Color, drop := 3.0, share := 0.7) -> void:
+	var longest := 0.0
+	for i in poly.size():
+		longest = maxf(longest, poly[i].distance_to(poly[(i + 1) % poly.size()]))
+	var picked: Array[int] = []
+	for d: Vector2 in [Vector2(0, 1), Vector2(1, 0)]:
+		var best := -1
+		var best_dot := 0.3
+		for i in poly.size():
+			var a := poly[i]
+			var b := poly[(i + 1) % poly.size()]
+			if a.distance_to(b) < longest * 0.5:
+				continue
+			var dot := _out(poly, a, b).dot(d)
+			if dot > best_dot:
+				best_dot = dot
+				best = i
+		if best >= 0 and not picked.has(best):
+			picked.append(best)
+	for i in picked:
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		var o := _out(poly, a, b)
+		var k := share * a.distance_to(b) / Neon.length_of(word)
+		var mid := (a + b) * 0.5
+		var base_y := top_y - drop - Neon.ROW_H * Neon.PIXEL * k * 0.5
+		signs.append([word, Vector3(mid.x, base_y, mid.y), Vector3(o.x, 0.0, o.y), k, colour])
+
+
+## The dusk loop: red aviation lights, 0.7 m lamp boxes, on a roof's outline at the south-west,
+## south-east and north-east corners of its bounding box (each clamped into the outline, then
+## drawn in a little); three, to keep to 30 triangles. `roof_y` gives the roof's height at a point.
+func _aviation(poly: PackedVector2Array, roof_y: Callable) -> void:
+	var lo := poly[0]
+	var hi := poly[0]
+	for q in poly:
+		lo = lo.min(q)
+		hi = hi.max(q)
+	var c := _centre(poly)
+	for corner: Vector2 in [Vector2(lo.x, hi.y), hi, Vector2(hi.x, lo.y)]:
+		var p := corner
+		if not Geometry2D.is_point_in_polygon(p, poly):
+			var near := p
+			var best := INF
+			for i in poly.size():
+				var q := Geometry2D.get_closest_point_to_segment(p, poly[i], poly[(i + 1) % poly.size()])
+				if q.distance_to(p) < best:
+					best = q.distance_to(p)
+					near = q
+			p = near
+		p += (c - p).normalized() * minf(0.8, p.distance_to(c))
+		var y: float = roof_y.call(p)
+		_prism(_square(p, 0.35), y, y + 0.7, DUSK_RED, DUSK_RED, M_LAMP, M_LAMP)
+
+
+## The roof height of a part cut on a slope (_sloped): `hi` at the north end of its longest
+## axis, `lo` at the other.
+func _slope_roof(poly: PackedVector2Array, hi: float, lo: float) -> Callable:
+	var c := _centre(poly)
+	var axis := Vector2.ZERO
+	var reach := 0.0
+	for q in poly:
+		if (q - c).length() > reach:
+			reach = (q - c).length()
+			axis = (q - c).normalized()
+	if axis.y > 0.0:
+		axis = -axis
+	var lo_d := INF
+	var hi_d := -INF
+	for q in poly:
+		lo_d = minf(lo_d, (q - c).dot(axis))
+		hi_d = maxf(hi_d, (q - c).dot(axis))
+	return func(q: Vector2) -> float: return lerpf(lo, hi, inverse_lerp(lo_d, hi_d, (q - c).dot(axis)))
 
 
 ## Złota 44 (the landmarks loop, after the user's phone look: "like a rectangle, not curvy").
@@ -1588,6 +1726,7 @@ func _zlota_sail(g: float, glass: Color, roof: Color, skin: float) -> void:
 				glass.lerp(roof, 0.3), Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
 	_mode = keep
 	_collide(base)
+	_aviation(crown, func(q: Vector2) -> float: return top.call(q))
 
 
 ## Warsaw Spire (the landmarks loop, after the user's phone look: "not recognisable at all").
@@ -1642,6 +1781,7 @@ func _spire(outline: PackedVector2Array, g: float, glass: Color, roof: Color, sk
 	var mast := PackedVector2Array([c + Vector2(-0.8, -0.8), c + Vector2(0.8, -0.8), c + Vector2(0.8, 0.8), c + Vector2(-0.8, 0.8)])
 	_prism(mast, g + SPIRE_TOP, g + 220.0, Color("#d5dade"), Color("#e8ecef"), M_STONE, M_STONE)
 	_collide(base)
+	_aviation(top, func(_q: Vector2) -> float: return g + 196.0)  # on the frame's rim (the dusk loop)
 	# The signs, on the wide east and west faces 14 m under the roof.
 	var t := (SPIRE_TOP - 14.0) / SPIRE_TOP
 	var face: PackedVector2Array = ring.call(t)
@@ -2339,6 +2479,27 @@ func _build_centralna(site: Dictionary) -> void:
 		var out: Vector2 = e[4]
 		_quad(Vector3(a.x, float(e[2]) - 0.9, a.y), Vector3(b.x, float(e[3]) - 0.9, b.y),
 				Vector3(b.x, float(e[3]) + 0.05, b.y), Vector3(a.x, float(e[2]) + 0.05, a.y), Vector3(out.x, 0, out.y), Color("#4a4d52"))
+	# The dusk loop (2026-10-31): small warm-white lamps along the fascia, every ~5 m, 0.6 m
+	# under its top line (following the zigzag), 0.08 m proud of it: quads, two triangles each.
+	var keep_mode := _mode
+	_mode = M_LAMP
+	var lamp := Color(1.0, 0.93, 0.78)
+	for e in edges:
+		var ea: Vector2 = _wl(e[0])
+		var eb: Vector2 = _wl(e[1])
+		var eo: Vector2 = e[4]
+		var along := (eb - ea).normalized()
+		var count := maxi(1, roundi(ea.distance_to(eb) / 5.0))
+		for k in count:
+			var t := (float(k) + 0.5) / float(count)
+			var p := ea.lerp(eb, t) + eo * 0.08
+			var y := lerpf(float(e[2]), float(e[3]), t) + 0.05 - 0.6
+			# 0.8 m: smaller ones were under a pixel from the driving camera.
+			var l := along * 0.4
+			_quad(Vector3(p.x - l.x, y - 0.4, p.y - l.y), Vector3(p.x + l.x, y - 0.4, p.y + l.y),
+					Vector3(p.x + l.x, y + 0.4, p.y + l.y), Vector3(p.x - l.x, y + 0.4, p.y - l.y),
+					Vector3(eo.x, 0.0, eo.y), lamp)
+	_mode = keep_mode
 	# The glass hall under the roof.
 	_prism(_rect(-1.9, 0.4, 35.5, 25.6), g - 0.4, g + 14.6, Color("#7f9fb2"), Color(0, 0, 0, 0), M_GLASS)
 	_collide(_rect(-1.9, 0.4, 35.5, 25.6))

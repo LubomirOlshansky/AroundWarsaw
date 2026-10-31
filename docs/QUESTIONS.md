@@ -19,6 +19,8 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · visuals · the dusk loop** — Dusk now matches the user's 16:20 photos: an overcast blue hour (slate-blue sky, flat cool light, no sun shadows, a soft glow) instead of the pink-violet sunset; Dawn, which reuses Dusk's palette, turns blue too. Default built: that. Alternative: keep the pink sunset as Dusk and add the blue hour as a sixth look.
+- **2026-10-31 · landmarks · the dusk loop** — The towers' lit names are parodies: PREZYDENT (the Marriott tower's crown), SAMSONG (its band, as on the Spire), NOWOTEL, WESTYNKA, CHILTON, INTERKONTI. Rondo 1's tenants, PHN and the Bank Polski tower got no lit name (not sure which building wears which; no network to check). Default built: that. Alternative: name those too.
 - **2026-10-31 · gameplay · loop 3h slice 2** — The Palace's and the stadium's Syrenki stand 148 m and 211 m from their anchors (no ground street nearer). Default built: that (a 260 m fallback). Alternative: anchor them elsewhere in `syrenki.json`.
 - **2026-10-31 · gameplay · loop 3h slice 2** — No hint for the Syrenki (no "?" marks, no minimap dot, no chime); only a cyan diamond over each and "Syrenki n/20" on the full map. Default built: that. Alternative: a chime under ~40 m or a dot once the district is discovered.
 - **2026-10-31 · gameplay · loop 3h slice 2** — Rewards: 5 Syrenki open the "Łuska Syreny" paint, 10 give 150 zł and 50 respect, 20 open "Srebro Syreny" and 300 zł; +5 respect a find. Default built: that, numbers for the designer to tune with the ladder.
