@@ -70,8 +70,9 @@ delegating, make a marker for the scope check: `touch <scratch>/loop_start`.
 3. **Look:** open the key screenshots yourself; for a visible change, have `art-director`
    review the set.
 4. **Numbers:** bench before/after against the budget; device numbers if the loop had a run.
-5. **Docs:** DEVELOPMENT.md (behaviour, flags), ROADMAP (item marked done, a progress-log row in the
-   house style), BACKLOG (fixed items removed, found ones added) are updated.
+5. **Docs:** BACKLOG (fixed items removed, found ones added) is updated. A new flag or changed
+   behaviour gets a short note in the matching section of the archive (docs/archive/DEVELOPMENT-full.md is
+   an index). No ROADMAP row, no CHANGELOG line: the PR history is the changelog.
 6. A Sonnet run that fails its gates, overshoots scope or returns Open Questions: re-run the
    whole task on Opus with the answers, don't patch it.
 

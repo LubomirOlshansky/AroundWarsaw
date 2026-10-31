@@ -57,9 +57,8 @@ frame cheaper">.
   where the HUD matters): <before/after pairs and spots; both city paths where the map builder
   changed>.
 - Bench before/after (medians), vertices before/after, within the budget.
-- docs/DEVELOPMENT.md (behaviour, flags), docs/ROADMAP.md (mark the item done, add a progress-log row in
-  the same style as the others) and docs/BACKLOG.md (remove what you fixed, add what you found)
-  updated.
+- docs/BACKLOG.md updated (remove what you fixed, add what you found); a new flag or changed
+  behaviour gets a short note in docs/archive/DEVELOPMENT-full.md. No ROADMAP or CHANGELOG edits.
 
 ## Report format
 What you changed (per item), the root causes you confirmed (with numbers), files new/changed,

@@ -27,7 +27,7 @@ don't spawn other agents.
 
 1. The brief, CLAUDE.md, docs/WORKFLOW.md, the warsaw-tone skill.
 2. docs/DEMO.md (the demo plan and its quality bar), docs/ROADMAP.md (identity, versions),
-   docs/BACKLOG.md (untuned values, known gaps), docs/DEVELOPMENT.md (what exists: missions, side jobs,
+   docs/BACKLOG.md (untuned values, known gaps), docs/archive/DEVELOPMENT-full.md (what exists: missions, side jobs,
    rivals, the wallet, the city's chatter).
 3. `game/data/dialogue.json` (its `_about` and the groups you touch), and the script that
    uses the data (`jobs.gd`, `missions.gd`, `rivals.gd`, `dialogue.gd`, `eggs.gd`) for what

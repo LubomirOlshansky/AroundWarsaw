@@ -993,7 +993,7 @@ def page_radio(site: Site) -> int:
     body.append('<h2 id="host">The radio host</h2>' + lines_block([g for g in dialogue() if g.startswith(("radio", "polnoc"))], 40))
     toc.append((2, "host", "The radio host"))
     body.append('<h2 id="music">Adding music</h2><p>Drop a song in <code>data/raw/music/&lt;station&gt;/</code> and run <code>tools/add_music.py</code>; '
-                f'the whole recipe is in docs/DEVELOPMENT.md. {edit_link("docs/DEVELOPMENT.md", line_of("docs/DEVELOPMENT.md", r"^## Adding music"), "Adding music")}</p>'
+                f'the whole recipe is in docs/archive/DEVELOPMENT-full.md. {edit_link("docs/archive/DEVELOPMENT-full.md", line_of("docs/archive/DEVELOPMENT-full.md", r"^## Adding music"), "Adding music")}</p>'
                 '<details class="tuning"><summary>Tuning: radio.gd</summary>' + consts_table("game/scripts/radio.gd") + "</details>")
     toc.append((2, "music", "Adding music"))
     site.page("radio/", "Radio", "\n".join(body), "The stations on the car radio, their playlists and the host's lines.", toc)
@@ -1083,7 +1083,7 @@ def page_systems(site: Site) -> None:
 # ---- settings ----------------------------------------------------------------------------------------
 
 def page_settings(site: Site) -> None:
-    dev = read("docs/DEVELOPMENT.md")
+    dev = read("docs/archive/DEVELOPMENT-full.md")
     flags = ""
     for block in re.split(r"\n(?=## )", dev):
         if "| `--demo`" in block:
@@ -1097,7 +1097,7 @@ def page_settings(site: Site) -> None:
             consts_table("game/scripts/settings.gd"),
             '<h2 id="controls">Controls</h2>', md(md_section(dev, "Controls"), "docs", 1),
             '<h2 id="flags">Test flags</h2>', "<p>Flags start the game straight into a situation (a race, a job, night, rain…) for testing. "
-            + edit_link("docs/DEVELOPMENT.md") + "</p>", filter_box("Find a flag…"), md(flags, "docs"),
+            + edit_link("docs/archive/DEVELOPMENT-full.md") + "</p>", filter_box("Find a flag…"), md(flags, "docs"),
             '<h2 id="budgets">Performance budgets</h2>', "<p>The phone's limits every change must keep.</p>",
             md(md_section(dev, "Performance budgets"), "docs", 1)]
     site.page("settings/", "Settings and flags", "\n".join(body), "The player's settings, the controls, the test flags and the performance budgets.",
@@ -1115,7 +1115,7 @@ DOC_PAGES = [
     ("parodies", "Parodies design", "docs/design/parodies.md"),
     ("graphics", "Graphics", "docs/design/graphics.md"),
     ("workflow", "How the work is run", "docs/WORKFLOW.md"),
-    ("development", "Development (every detail)", "docs/DEVELOPMENT.md"),
+    ("development", "Development (every detail)", "docs/archive/DEVELOPMENT-full.md"),
 ]
 
 

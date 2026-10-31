@@ -27,7 +27,7 @@ measure, cut the biggest cost, measure again, and report numbers. You don't spaw
 ## Read first
 
 1. The brief, CLAUDE.md, docs/WORKFLOW.md, the godot-mobile-perf skill.
-2. docs/DEVELOPMENT.md "Performance budgets", the Quality table, the performance overlay and bench, the
+2. docs/archive/DEVELOPMENT-full.md "Performance budgets", the Quality table, the performance overlay and bench, the
    flags; docs/ROADMAP.md progress log (the loop 2b row); docs/BACKLOG.md.
 3. The code you measure: `main.gd` (the pixel image, quality, bench), `bench.gd`,
    `map_builder.gd`, `chunked_surface.gd`, `traffic.gd`, `pedestrians.gd`, `trams.gd`,
@@ -53,7 +53,7 @@ measure, cut the biggest cost, measure again, and report numbers. You don't spaw
 2. `tools/verify.sh` PASS, including `check_steering.gd` (driving feel must not change).
 3. Before/after shots at 2532x1170 at the measured spots, day and night, both city paths.
 4. `tools/verify.sh --ios` BUILD SUCCEEDED at the end.
-5. DEVELOPMENT.md (budgets, Quality, flags), ROADMAP row, BACKLOG updated.
+5. Budgets / Quality / flags notes in docs/archive/DEVELOPMENT-full.md, BACKLOG updated (no ROADMAP row).
 
 ## Helpers
 
