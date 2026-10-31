@@ -2003,3 +2003,16 @@ Poniatowskiego to the stadium; at night; three ordered checkpoints; +500 zł +25
 - The finish line is a beacon ring, not a set piece: a crowd or a banner by the stands (the stadium is
   the landmarks lane's) would make the end a moment.
 - The refusal and final lines were written in this slice: the game-designer should review them.
+
+## From the Pawilony loop (landmarks lane, 2026-10-31)
+
+- The Pawilony are a site now (`landmarks.gd` `_build_pawilony`, spec `docs/landmarks/specs/pawilony.md`):
+  37 pavilions cut from the two OpenStreetMap strips, 1490 triangles (budget 1800). Built without
+  photos (the cloud has none): the art-director's check against `refs/pawilony/` on the Mac is open,
+  and the gate sign's spot (-285.0, 111.5) is measured from the OSM outline, not the LoD2 front.
+- Not built: string lights across the passages (they would hang in the air: the FLOAT check), the
+  courtyard's own tables and crowd at night, graffiti.
+- **F's ask (2026-10-31): shisha lounges.** Small night spots with neon, like the Pawilony: a few
+  hookah lounges (under made-up names, no real ones) on the centre's night streets, each a lit
+  front with a neon word (a new word like SZISZA in the neon font, which has no Ł/Ó/Ś yet) and maybe
+  a notebook place in `places.json`. Content lane (game-designer for names and spots).

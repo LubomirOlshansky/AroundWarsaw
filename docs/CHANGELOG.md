@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-10-31
+- The Pawilony behind Nowy Świat: a maze of tiny one-storey bars, each a different colour, with lit windows, warm bulbs and little neon signs (PIWO, SHOTY, KARAOKE...), and a PAWILONY sign over the gate on Nowy Świat.
 - The towers and the Palace of Culture no longer flicker: overlapping walls and roofs were drawn twice, and now they are drawn once. The look is the same.
 - A new, shorter website: the newest screenshots, three missions, open source, a word from the author.
 - A new automatic check looks at every landmark model for flickering surfaces, zero-size faces, floating parts and too many triangles, so these get caught before anyone looks at a screenshot.

@@ -171,7 +171,7 @@ def main(argv):
 	if "--selftest" in argv:
 		selftest()
 		return 0
-	files = [Path(a) for a in argv if not a.startswith("-")] or sorted(SPEC_DIR.glob("*.md"))
+	files = [Path(a) for a in argv if not a.startswith("-")] or sorted(p for p in SPEC_DIR.glob("*.md") if p.name != "README.md")
 	bad = 0
 	for f in files:
 		for e in check(f.read_text(encoding="utf-8")):
