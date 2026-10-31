@@ -621,6 +621,15 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   parts that the builder dropped as specks, leaving a dark cube on Plac Zamkowy. It is built
   as a landmark in a circle zone: three granite steps, the pedestal, the 12 m shaft, the
   capital and the king in bronze with his cross raised and his sabre, to 22.9 m, with a card.
+- **Map north** (the user's ask; docs/DEMO.md 2.1 "Hand-over"): **Arkadia** (`_build_arkadia`)
+  is its OpenStreetMap outline lifted as one block: a glass storey lit from inside, pale panels
+  to 21 m, the grey roof deck with three long skylights along its axis, and the 37 m entrance
+  tower with the parody of its name, ARKADKA, lit on both faces (a landmark sign, `LANDMARK_WORDS`;
+  card "Arkadka"). **Forest** (`_build_forest`) from its mapped parts in `FOREST_BOX`: the 120 m
+  tower in dark green glass with fins, the lower wings in glass bands under planted roof
+  terraces with a hedge round each. **The flag on Rondo Radosława** (`_build_flag`; not in
+  OpenStreetMap): a 57.8 m steel mast with a gilded finial at (−2,850, −2,295) and a 16 × 10 m
+  white-and-red flag in folds, flying east.
 - **Muzeum Narodowe** (the museum and Plac Piłsudskiego loop, 2026-10-31; `_build_muzeum`): the
   landmarks loop kept the LoD2 model in stone (`skin_at`); now it is a model like the Palace. The
   mapped outline (481 points: every pier) is straightened to 18 corners (`_simplify`,

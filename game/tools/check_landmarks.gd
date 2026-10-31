@@ -54,11 +54,15 @@ func _check() -> int:
 		var aim := Vector3(at.x, tallest - 1.0, at.y)
 		var tap: int = map.pick_landmark(aim + Vector3(0.0, 500.0, 866.0), Vector3(0.0, -0.5, -0.866))
 		# A car driving in from 12 directions (2 m steps at bumper height over the ground,
-		# from 220 m out to the centre): does a wall stop it before the middle?
+		# from 220 m out to the centre, or from past the site's far corner when it is bigger,
+		# such as Arkadia's 300 m block): does a wall stop it before the middle?
+		var reach := 220.0
+		for corner in [box.position, box.end, Vector2(box.position.x, box.end.y), Vector2(box.end.x, box.position.y)]:
+			reach = maxf(reach, c.distance_to(corner) + 10.0)
 		var hits := 0
 		for d in 12:
 			var dir := Vector2.from_angle(TAU * d / 12.0)
-			var r := 220.0
+			var r := reach
 			while r > 4.0:
 				var p0 := c + dir * r
 				var p1 := c + dir * (r - 2.0)
