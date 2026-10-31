@@ -31,6 +31,7 @@ var spent_usec := 0
 const SettingsPanel := preload("res://scripts/settings_panel.gd")
 const FullMap := preload("res://scripts/full_map.gd")
 const MapArt := preload("res://scripts/map_art.gd")
+const MainLine := preload("res://scripts/main_line.gd")
 const ScreenPoints := preload("res://scripts/screen_points.gd")
 ## drive_controls.gd's schemes (POINT, CLASSIC, FIXED).
 const CLASSIC := 1
@@ -271,6 +272,12 @@ var _mini_final := Vector2.INF
 var _mini_final_colour := Color.WHITE
 const GARAGE_REACH := 1500.0
 var _mini_poi_colours := PackedColorArray()
+## The main line (main_line.gd, set by main.gd's `_main_line_tick`): its marker (a gold star in a
+## pulsing ring, pinned to the minimap's rim at any distance; INF: this step has no place) and its
+## goal line [Polish, English] for the full map. Side quests keep their colours (a ringed dot for
+## the active one, squares for the places to start one).
+var _main_at := Vector2.INF
+var main_goal := PackedStringArray(["", ""])
 ## Mission target: its point on screen (the arrow) and on the minimap.
 var _target_visible := false
 var _target_at := Vector2.ZERO
@@ -1713,10 +1720,7 @@ func _paint_minimap_overlay() -> void:
 	if _mini_garage != Vector2.INF and _mini_garage.distance_to(_mini_car) <= GARAGE_REACH:
 		var g := ((_mini_garage - _mini_car) * s).rotated(_mini_yaw).limit_length(_mini_radius - 6.0 * pt)
 		_tri_diamond(centre + g, 4.6 * pt, _mini_garage_colour)
-	# Loop 3h slice 3: the final's start, a bigger diamond, pinned to the rim at any distance.
-	if _mini_final != Vector2.INF:
-		var fs := ((_mini_final - _mini_car) * s).rotated(_mini_yaw).limit_length(_mini_radius - 7.0 * pt)
-		_tri_diamond(centre + fs, 5.6 * pt, _mini_final_colour)
+	# Loop 3h slice 3's diamond at the final's start is the main line's star now (main_line.gd).
 	for i in _mini_dots.size():
 		# Rivals within the minimap's reach; the rest would crowd the rim.
 		var r := ((_mini_dots[i] - _mini_car) * s).rotated(_mini_yaw)
@@ -1746,11 +1750,15 @@ func _paint_minimap_overlay() -> void:
 	if _mini_route.size() >= 2:
 		_paint_minimap_route(centre, s)
 	if _mini_target != Vector2.INF:
-		# The mission target, pinned to the rim when it's beyond the map's reach.
+		# A side quest's target, pinned to the rim when it's beyond the map's reach: a dot in the
+		# job's colour inside a white ring (the main line's is the star below).
 		var t := ((_mini_target - _mini_car) * s).rotated(_mini_yaw)
 		t = t.limit_length(_mini_radius - 5.0 * pt)
-		_tri_fan(centre + t, 3.8 * pt, 0.0, TAU, OUTLINE)
-		_tri_fan(centre + t, 2.8 * pt, 0.0, TAU, _mini_target_colour)
+		side_pin(centre + t, 1.0, _mini_target_colour)
+	if _main_at != Vector2.INF:
+		# The main line: a gold star in a pulsing ring, pinned to the rim at any distance.
+		var mr := ((_main_at - _mini_car) * s).rotated(_mini_yaw).limit_length(_mini_radius - 8.0 * pt)
+		main_star(centre + mr, 1.3)
 	var d := _car_dir.normalized()
 	var side := Vector2(-d.y, d.x)
 	var tip := centre + d * 6.0 * pt
@@ -1765,6 +1773,43 @@ func _paint_minimap_overlay() -> void:
 	var fs := _px(T_LABEL)
 	var n := centre + _north * (_mini_radius - 8.0 * pt)
 	o.draw_string(font, n + Vector2(-fs * 0.3, fs * 0.35), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color("#2a2622").lerp(INK, _night))
+
+
+## The main line's marker at `at` (k: its size, 1 on the minimap): a gold five-point star with a
+## dark rim in a ring that pulses (into the overlay's one triangle batch).
+func main_star(at: Vector2, k: float) -> void:
+	var pulse := 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.005)
+	var ring := Color(MainLine.COLOUR, 0.25 + 0.45 * pulse)
+	var r0 := (5.6 + 1.2 * pulse) * pt * k
+	_tri_ring(at, r0, r0 + 1.4 * pt * k, 0.0, TAU, ring)
+	_tri_star(at, 5.2 * pt * k, MainLine.RIM)
+	_tri_star(at, 4.0 * pt * k, MainLine.COLOUR)
+
+
+## A side quest's target at `at` (k: its size): a dot in its colour inside a white ring, with the
+## dark outline.
+func side_pin(at: Vector2, k: float, colour: Color) -> void:
+	_tri_fan(at, 4.0 * pt * k, 0.0, TAU, OUTLINE)
+	_tri_fan(at, 3.1 * pt * k, 0.0, TAU, Color(1, 1, 1, 0.95))
+	_tri_fan(at, 2.2 * pt * k, 0.0, TAU, colour)
+
+
+## A five-point star (point up), `r` to a point, the inner corners at 0.45 r.
+func _tri_star(at: Vector2, r: float, colour: Color) -> void:
+	for i in 10:
+		var a0 := -PI * 0.5 + PI * i / 5.0
+		var a1 := -PI * 0.5 + PI * (i + 1) / 5.0
+		var p0 := at + Vector2.from_angle(a0) * (r if i % 2 == 0 else r * 0.45)
+		var p1 := at + Vector2.from_angle(a1) * (r if i % 2 == 1 else r * 0.45)
+		_tri(at, p0, p1, colour, colour, colour)
+
+
+## The main line's marker (map x, z; INF: none) and its goal line (main.gd, a few times a second).
+func set_main_line(at: Vector2, pl: String, en: String) -> void:
+	_main_at = at
+	main_goal = PackedStringArray([pl, en])
+	if full_map != null and full_map.is_open():
+		full_map.set_main_line(at, pl, en)
 
 
 ## The garage loop: a diamond `r` from its centre to a corner, with the dark outline (two
@@ -2296,6 +2341,9 @@ func open_full_map(car_xz: Vector2, car_yaw: float, found: PackedVector2Array) -
 	full_map.final_start = _mini_final  # loop 3h slice 3
 	full_map.final_colour = _mini_final_colour
 	full_map.target_colour = _mini_target_colour
+	full_map.side_spots = _mini_pois
+	full_map.side_colours = _mini_poi_colours
+	full_map.set_main_line(_main_at, main_goal[0], main_goal[1])
 	full_map.open(car_xz, car_yaw)
 
 
