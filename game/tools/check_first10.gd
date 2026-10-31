@@ -356,13 +356,13 @@ func _words() -> void:
 		_expect(l.size() == 2 and str(l[0]) != "" and str(l[1]) != "" and str(l[0]) != str(l[1]), "Polish and English: %s" % [l])
 		for x in l:
 			_expect(str(x).length() <= 70, "at most 70 characters: %s (%d)" % [x, str(x).length()])
-	for l: Array in [First10.END_TITLE, First10.END_BODY, First10.END_FREE, First10.END_CREDITS, First10.END_CODE]:
+	for l: Array in [First10.END_TITLE, First10.END_BODY, First10.END_FREE]:
 		_expect(l.size() == 2 and str(l[0]) != str(l[1]), "the end card in Polish and English: %s" % [l])
 		for x in l:
 			_expect(str(x).length() <= 100, "an end card line at most 100 characters: %s" % x)
 	var w := First10.end_words()
-	_expect(w.size() == 4 and First10.REPO in w[1] and First10.REPO in w[3], "the repo's name on the card")
-	_expect("OpenStreetMap" in w[1] and "GUGiK" in w[1] and "MIT" in w[1] and "OpenStreetMap" in w[3], "the credits on the card")
+	_expect(w.size() == 4 and First10.REPO in w[1], "the repo's name on the card (the shared line under the Polish)")
+	_expect("OpenStreetMap" in w[1] and "GUGiK" in w[1] and "MIT" in w[1], "the credits on the card (the shared line)")
 	var readme := FileAccess.get_file_as_string(ProjectSettings.globalize_path("res://").path_join("../README.md").simplify_path())
 	if readme != "":
 		_expect(("https://" + First10.REPO) in readme, "README names %s" % First10.REPO)

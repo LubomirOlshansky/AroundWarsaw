@@ -90,8 +90,7 @@ const END_BODY := [
 const END_FREE := ["Miasto zostaje otwarte: jeździsz dalej, wszystko odblokowane.",
 	"The city stays open: drive on, everything unlocked."]
 ## One line for both languages (the card has room for one): the data, the licence, the code.
-const END_CREDITS := ["© OpenStreetMap (ODbL), GUGiK · MIT", "© OpenStreetMap (ODbL), GUGiK · MIT"]
-const END_CODE := ["%s", "%s"]
+const END_CREDITS := "© OpenStreetMap (ODbL), GUGiK · MIT"
 const END_BUTTON := "JEDŹ DALEJ|FREE ROAM"
 const END_COLOUR := Color("#ffd23f")
 ## The director's words, [Polish, English] (each at most 70 characters).
@@ -254,7 +253,7 @@ static func judge(done: Dictionary, ways: Dictionary) -> Array[String]:
 ## The end card's words: [title, body, title_en, body_en].
 static func end_words() -> PackedStringArray:
 	return PackedStringArray([END_TITLE[0],
-			"%s %s\n%s · %s" % [END_BODY[0], END_FREE[0], END_CREDITS[0], END_CODE[0] % REPO],
+			"%s %s\n%s · %s" % [END_BODY[0], END_FREE[0], END_CREDITS, REPO],
 			END_TITLE[1],
 			"%s %s" % [END_BODY[1], END_FREE[1]]])
 
