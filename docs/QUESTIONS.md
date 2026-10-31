@@ -12,13 +12,22 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | --- | --- | --- | --- |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
-| landmarks (content thread) | Plac Piłsudskiego part 2: Sofitel Victoria as "Hotel Wiktoria", the Metropolitan's curved fins, the Królewska edge, real heights for #75's models | cloud thread "Add autonomous backlog workflow" | 2026-10-31 |
+| map | The loading fix (on-screen sectors first, proxies that look like the city), then the map north to Rondo Radosława, Arkadia and Forest (3d-1, 3d-2a, 3d-2b and 3e landed) | thread "Finish the demo map extension" | 2026-10-30 |
 | map | The content lane's map asks (corner shops, metro entrances, bike and scooter spots, Kruczkowskiego 3B) (3d-1, 3d-2a, 3d-2b, 3e, the loading fix and map north landed) | thread "Finish the demo map extension" | 2026-10-30 |
 
 ## Waiting
 
 Newest first. One entry per question.
 
+- **2026-10-31 · landmarks (content thread) · Plac Piłsudskiego 2** — Sofitel Victoria is shown as
+  **"Hotel Wiktoria"** (Sofitel is a brand). Default built: Hotel Wiktoria, a 30 m slab on an 8 m
+  podium (estimated). F can veto the name.
+- **2026-10-31 · landmarks (content thread) · Plac Piłsudskiego 2** — Muzeum Narodowe raised to
+  18.5 m wings and a 25 m entrance block (OSM's 4 levels gave 14.2 m). Default built: the new heights
+  (estimates). Alternative: back to 14.2/20 m.
+- **2026-10-31 · landmarks (content thread) · Plac Piłsudskiego 2** — Dom bez Kantów's card plays on
+  "kant" (an edge, or a swindle): "Kantów tu nie ma." Default built: the pun. The unnamed block
+  south-east of Europejski has no card (no name in the data).
 - **2026-10-31 · landmarks (content thread) · museum and Plac Piłsudskiego** — Built from mapped
   footprints only, no photos: the museum at the mapped 14.2 m with a 20 m entrance block, the army
   museum's tank and gun in the east courtyard, Hotel Europejski's cornice at 19 m (estimated). Default

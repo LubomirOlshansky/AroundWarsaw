@@ -11,13 +11,23 @@ extends SceneTree
 ##     material, so no draw call of its own), lies within the site's box + SITE_REACH (so a
 ##     sector that builds the site keeps all of it), and it adds car walls and tap cells;
 ##   - its info card has a name and Polish and English lines of at most 70 characters.
+## Plac Piłsudskiego, part 2 (2026-10-31): the Metropolitan (a model now, not the fin skin) and
+## Hotel Wiktoria (the 1976 hotel on Królewska, under a parody name: no card says the real one)
+## the same way; the Królewska edge's skins (Dom bez Kantów, the Departament, the unnamed block on
+## the square's south-east corner) are found and give the buildings under them their stone, and
+## the unnamed one has no card (so it isn't on the picking grid).
 ## Prints a line per site, then `check_sites: OK` (exit 0) or the problems (exit 1).
 ##   godot --headless --path game --script res://tools/check_sites.gd
 
 const Landmarks := preload("res://scripts/landmarks.gd")
 const Chunked := preload("res://scripts/chunked_surface.gd")
 ## Triangles a site may hold (the museum and Plac loop's own models).
-const BUDGET := {"muzeum": 2500, "europejski": 1500, "grob": 600}
+const BUDGET := {"muzeum": 2500, "europejski": 1500, "grob": 600, "metropolitan": 3200, "wiktoria": 900}
+## The Królewska edge's skins: key -> a point in a building the skin must cover.
+const SKINNED := {"bez_kantow": Vector2(-580.0, -785.0), "departament": Vector2(-596.0, -702.0),
+		"krolewska": Vector2(-660.0, -790.0)}
+## Words no card may hold (the hotel's real brand and name).
+const DENY := ["sofitel", "victoria"]
 const MAX_LINE := 70
 
 var problems: Array[String] = []
@@ -83,6 +93,7 @@ func _initialize() -> void:
 	_check_zones(marks, data)
 	for key: String in BUDGET:
 		_check_site(marks, map, key)
+	_check_skins(marks, data)
 	if problems.is_empty():
 		print("check_sites: OK")
 		quit(0)
@@ -102,8 +113,8 @@ func _centre(flat: Array) -> Vector2:
 
 func _check_zones(marks, data: Dictionary) -> void:
 	for s: Dictionary in marks.sites:
-		if s["key"] == "muzeum" and s.has("skin"):
-			problems.append("muzeum: still a skin site, not a model")
+		if s["key"] in ["muzeum", "metropolitan"] and s.has("skin"):
+			problems.append("%s: still a skin site, not a model" % s["key"])
 	var dropped := 0
 	var kept := 0
 	for bld: Dictionary in data["buildings"]:
@@ -112,9 +123,12 @@ func _check_zones(marks, data: Dictionary) -> void:
 		# The museum (its outline round the courtyards), Hotel Europejski, the Tomb's parts.
 		var want_drop := (Rect2(-60, 170, 215, 135).has_point(c) and (bld["p"] as Array).size() > 40) \
 				or name == "Hotel Europejski" \
-				or (Rect2(-871.0, -776.0, 11.0, 15.0).has_point(c) and float(bld["h"]) < 7.0)
+				or (Rect2(-871.0, -776.0, 11.0, 15.0).has_point(c) and float(bld["h"]) < 7.0) \
+				or (str(bld["c"]) in ["#9cafb3", "#a9adb2"] and Rect2(-870, -1000, 130, 120).has_point(c)) \
+				or (str(bld.get("kind", "")) == "roof" and Rect2(-735, -670, 20, 15).has_point(c))
 		var want_keep := (name == "Krzyż Papieski") or (str(bld.get("kind", "")) == "garage" and Rect2(80, 260, 40, 25).has_point(c)) \
-				or (str(bld["c"]) == "#9cafb3" and Rect2(-870, -1000, 130, 120).has_point(c))
+				or name in ["Pałac Potockich", "Teatr Narodowy", "Zachęta"] \
+				or (str(bld.get("kind", "")) == "outbuilding" and Rect2(-735, -610, 25, 15).has_point(c))
 		if want_drop:
 			dropped += 1
 			if marks.keeps_building(bld):
@@ -126,6 +140,11 @@ func _check_zones(marks, data: Dictionary) -> void:
 	# The museum's LoD2 model is one run round its courtyards: its box's centre is in one.
 	if not marks.replaces(Vector2(47.5, 237.5)):
 		problems.append("muzeum: a model centred in its east courtyard (the LoD2 run) would stay")
+	# The Metropolitan's LoD2 model centres in its courtyard; the hotel's in its plot.
+	if not marks.replaces(Landmarks.METRO_COURT):
+		problems.append("metropolitan: a model centred in its courtyard (the LoD2 run) would stay")
+	if not marks.replaces(Vector2(-720.0, -638.0)):
+		problems.append("wiktoria: a model centred in the hotel's plot (the LoD2 run) would stay")
 	if dropped < 3 or kept < 3:
 		problems.append("the zone test found %d buildings to drop and %d to keep (map changed?)" % [dropped, kept])
 	print("check_sites: zones: %d buildings dropped under the sites, %d neighbours kept" % [dropped, kept])
@@ -153,6 +172,10 @@ func _check_site(marks, map: StubMap, key: String) -> void:
 			marks._build_europejski(s)
 		"grob":
 			marks._build_grob(s)
+		"metropolitan":
+			marks._build_metropolitan(s)
+		"wiktoria":
+			marks._build_wiktoria(s)
 	marks._id = 0
 	var tris := rec.pos.size() / 3
 	var reach: Rect2 = (s["box"] as Rect2).grow(Landmarks.SITE_REACH)
@@ -187,6 +210,55 @@ func _check_site(marks, map: StubMap, key: String) -> void:
 	if card.size() != 3 or str(card[0]) == "":
 		problems.append("%s: no info card" % key)
 	else:
-		for line: String in [card[1], card[2]]:
-			if line == "" or line.length() > MAX_LINE:
-				problems.append("%s: card line of %d characters: %s" % [key, line.length(), line])
+		_check_card(key, card)
+
+
+func _check_card(key: String, card: Array) -> void:
+	for line: String in [card[1], card[2]]:
+		if line == "" or line.length() > MAX_LINE:
+			problems.append("%s: card line of %d characters: %s" % [key, line.length(), line])
+	for word: String in DENY:
+		if (" ".join(card)).to_lower().contains(word):
+			problems.append("%s: its card names %s" % [key, word])
+
+
+## The Królewska edge: each skin site is found, gives the building at its point its own colours
+## and mode, and has a card when it is on the picking grid.
+func _check_skins(marks, data: Dictionary) -> void:
+	for key: String in SKINNED:
+		var site: Dictionary = {}
+		for s: Dictionary in marks.sites:
+			if s["key"] == key:
+				site = s
+		if site.is_empty() or not site.has("skin"):
+			problems.append("%s: skin site not found" % key)
+			continue
+		var at: Vector2 = SKINNED[key]
+		var found := false
+		for bld: Dictionary in data["buildings"]:
+			var q := PackedVector2Array()
+			for i in range(0, (bld["p"] as Array).size() - 1, 2):
+				q.append(Vector2(bld["p"][i], bld["p"][i + 1]))
+			if q.size() < 3 or not Geometry2D.is_point_in_polygon(at, q):
+				continue
+			found = true
+			var box := Rect2(q[0], Vector2.ZERO)
+			for v in q:
+				box = box.expand(v)
+			if not marks.keeps_building(bld):
+				problems.append("%s: the building at %s is dropped (a skin keeps it)" % [key, at])
+			var skin: Dictionary = marks.skin_at(box)
+			if skin.is_empty() or skin["wall"] != site["skin"]["wall"]:
+				problems.append("%s: the building at %s doesn't take its skin" % [key, at])
+		if not found:
+			problems.append("%s: no building at %s (map changed?)" % [key, at])
+		var card: Array = Landmarks.INFO.get(key, [])
+		if key == "krolewska":
+			if not card.is_empty():
+				problems.append("krolewska: has a card (the block's name isn't mapped)")
+		elif card.size() != 3:
+			problems.append("%s: no info card" % key)
+		else:
+			_check_card(key, card)
+		print("check_sites: %-12s skin %s, mode %.2f, %s" % [key, (site["skin"]["wall"] as Color).to_html(false),
+				float(site["skin"]["mode"]), "no card" if card.is_empty() else "card"])
