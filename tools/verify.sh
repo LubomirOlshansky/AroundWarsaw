@@ -89,6 +89,9 @@
 # call, the helicopter, the cassette, Powiśle, the garage) and passes on `first10: OK`. The first-10
 # polish: `cassettes` runs game/tools/check_cassettes.gd: the mixtapes on roofs (cassettes.json), the
 # helicopter's pickup rule, a pickup's card, respect and PÓŁNOC FM track, the save; no map (CI too).
+# The opening flyover: `opening` runs game/tools/check_opening.gd: the first launch's camera flight
+# (camera_shots.gd `open_view`) is short, starts on the Palace, ends exactly on the follow view and
+# moves smoothly frame to frame; no map (CI too).
 # `streaming` runs game/tools/check_streaming.gd
 # (loop 3c) WITH a renderer (a window opens for a minute or two): every sector built from its
 # file is the whole city, vertex for vertex; 10 spots rendered with --monolithic and with the
@@ -121,8 +124,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois spec lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki cassettes ladder first10 endcard parodies jobs2 couriers rides cost landmarks sites meshq sfx radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois spec drape drive steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki cassettes ladder first10 endcard parodies jobs2 couriers rides cost landmarks sites meshq sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois spec lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki cassettes ladder first10 endcard opening parodies jobs2 couriers rides cost landmarks sites meshq sfx radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois spec drape drive steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki cassettes ladder first10 endcard opening parodies jobs2 couriers rides cost landmarks sites meshq sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -653,6 +656,7 @@ for s in $want; do
 		ladder) check ladder '^ladder:' --script res://tools/check_ladder.gd ;;
 		first10) check first10 '^first10:' --script res://tools/check_first10.gd ;;
 		endcard) check endcard '^end_card:' --script res://tools/check_end_card.gd ;;
+		opening) check opening '^opening:' --script res://tools/check_opening.gd ;;
 		life-soak) life_soak ;;
 		# Loop 2d-1: Podwózka's star and pay tables, the streak and the cancel rules, its lines.
 		rides) check rides '^check_rides:' --script res://tools/check_rides.gd ;;

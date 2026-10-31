@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-10-31
+- The first time you play, the game opens with a short camera flight over the Palace of Culture and Plac Defilad that lands behind your car. Tap to skip it.
 - A new game now starts facing the first kebab stand, the first delivery is a short hop up Marszałkowska, and the "new song" waits as a mixtape on the University Library's roof: fly the helicopter over it to pick it up.
 - The towers and the Palace of Culture no longer flicker: overlapping walls and roofs were drawn twice, and now they are drawn once. The look is the same.
 - A new, shorter website: the newest screenshots, three missions, open source, a word from the author.

@@ -702,7 +702,7 @@ func _ready() -> void:
 	else:
 		radio.now_playing()
 		_fallback_toast()
-		if first10 != null:
+		if first10 != null and not _opening_on:
 			first10.begin()  # loop 3h slice 4: no title: the guide's clock starts now
 	_started = true
 
@@ -749,17 +749,44 @@ func _on_title_dismissed() -> void:
 	title = null
 	radio.now_playing()
 	_fallback_toast()
-	if first10 != null:
-		first10.begin()  # loop 3h slice 4: the guide's clock starts with the first tap
 	if cinematic_flyin:
 		_fly_in()
+	if first10 != null and not _opening_on:
+		first10.begin()  # loop 3h slice 4: the guide's clock starts with the first tap
 
 
-## Camera loop: the fly-in from over the city down to the car (camera_shots.gd).
+## The opening flyover (docs/design/opening-flyover.md): the first launch's camera flight over
+## Plac Defilad down to the car, in place of the short fly-in. Due when the guide runs in a normal
+## launch (a fresh save), or forced by --cinematic=opening. While it plays the HUD is hidden and
+## the guide's clock waits; both start when it ends (done or skipped by a tap).
+var _opening_on := false
+
+func _opening_due() -> bool:
+	if _flag_cinematic == "opening":
+		return true
+	return cinematic_flyin and not flying and _flag_cinematic == "" and first10 != null and first10.guide
+
+
+## Camera loop: the fly-in from over the city down to the car (camera_shots.gd), or the opening
+## flyover on a first launch.
 func _fly_in() -> void:
 	var vehicle: Node3D = heli if flying else car
+	if _opening_due():
+		_opening_on = true
+		hud.visible = false
+		moments.ended.connect(_on_opening_ended, CONNECT_ONE_SHOT)
+		moments.opening(vehicle.global_position, cam_yaw, camera_pitch,
+				PackedStringArray(["Śródmieście · Plac Defilad", "the centre of Warsaw"]))
+		return
 	var ahead := -vehicle.global_transform.basis.z
 	moments.fly_in(vehicle.global_position, ahead, cam_yaw, camera_pitch, _view_size)
+
+
+func _on_opening_ended(_what: String) -> void:
+	_opening_on = false
+	hud.visible = not hide_hud
+	if first10 != null:
+		first10.begin()
 
 
 ## Camera loop: the car was put somewhere else (a tow): the view goes there at once, and a
@@ -3340,7 +3367,7 @@ func _parse_args() -> void:
 		show_title = true
 	# Camera loop: the cinematic moments in a normal launch only (never with screenshots or a bench).
 	var normal := show_title and shots.is_empty() and not bench and not probe and not bench_button and not demo
-	cinematic_flyin = normal or _flag_cinematic in ["all", "flyin"]
+	cinematic_flyin = normal or _flag_cinematic in ["all", "flyin", "opening"]
 	cinematic_look = normal or _flag_cinematic in ["all", "look"]
 	# Loop G1: the governor runs in a normal launch; test runs hold it so they repeat.
 	var test_run := DisplayServer.get_name() == "headless" or not shots.is_empty() or bench or probe or autopilot \

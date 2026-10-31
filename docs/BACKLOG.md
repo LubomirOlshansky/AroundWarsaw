@@ -105,6 +105,10 @@ golden-image shots runtime vs `--prebuilt`,
   light), the `first` shot set, performance and the order of work: docs/design/first-scene.md.
   The dusk and night look there belongs to the thread "Match landmarks to Warsaw at dusk"; the
   hints, first order and first race to loop 3h item 6.
+  **Item 2 (the opening shot) built 2026-10-31**: the start (PR #115) and the first launch's
+  flyover over the Palace down to the car (docs/design/opening-flyover.md). Left: its length and
+  the stand's arrow timing on the phone (QUESTIONS), and whether the wide views hitch while the
+  proxies swap to sectors on an older iPhone.
 
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
 - **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;

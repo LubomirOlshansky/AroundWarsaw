@@ -1832,6 +1832,14 @@ interpolation on, as here).
 - **Fly-in** when the title screen goes: from a 200 m view 90 m along the car's way (the title
   still covers the cut) down to the follow view in 2.6 s (cubic in-out), turned like the follow
   camera all along, so the stick means the same on screen.
+- **The opening flyover** (2026-10-31, docs/design/opening-flyover.md) replaces the fly-in on a
+  fresh save's normal launch (when the guide runs; `--cinematic=opening` forces it): 7.5 s from a
+  420 m view over the Palace (turned 115°, pitch -38°) over Plac Defilad (230 m, 40°) down to the
+  follow view, one smootherstep over the flight through a Catmull-Rom of the keys and the live
+  follow view (size in log space), placed by camera_shots.gd itself, not the host. A WARSZAWA
+  caption (Śródmieście · Plac Defilad / the centre of Warsaw) fades in 0.6-5.4 s. The HUD is
+  hidden and first10.gd's clock waits until it ends (done, skipped or stopped: `ended`).
+  `check_opening.gd` samples it (ends on the follow view, ≤ 6 m, 1.5°, 3 % a frame).
 - **A look at a new target** (a rescue call's place, a delivery address; not a race's
   checkpoints) when the vehicle is under 30 km/h, nothing is held and the target is over 40 m
   away: both in one view if they fit in 220 m, else over a 220 m view halfway (out 0.6 + 0.6 s,
@@ -5623,7 +5631,7 @@ Command-line options (after `--`):
 | `--debug-roads` | loop 3a: draw the bridge decks, approaches, tunnels, lane heights and piers round the car (Debug Draw add-on) |
 | `--cam-log` | camera loop: print the camera every 0.25 s (`cam:` lines: scheme, finger, speed, the car's and the camera's compass headings, the camera's fastest turn since the last line, the car's place on screen, the view's height) |
 | `--cam-test=classic_turn\|point_release\|brake` | camera loop: drive one camera moment in the real city (scripted inputs through the scheme's mapping, the car ghosting through walls, no traffic, 1 s parked first; implies `--cam-log`): Classic following, a 90° right turn at 50 km/h; Point, the stick held 90° right at 50 km/h for 2.5 s then let go; Classic following, flat out to 90 km/h then braking to a stop. Frame strips: add `--shots=` every 15 frames (`--at=-1113.2,-263.4 --heading=160` is Marszałkowska) |
-| `--cinematic` / `--cinematic=flyin\|look` | camera loop: the cinematic moments in a test run too (they play only in a normal launch: never with `--notitle`, `--shots`, `--bench`, `--probe`, `--demo` or the other testing flags). With `--notitle` the fly-in starts at once; `--mission=1 --cinematic=look` shows the look at a rescue target |
+| `--cinematic` / `--cinematic=flyin\|look\|opening` | camera loop: the cinematic moments in a test run too (they play only in a normal launch: never with `--notitle`, `--shots`, `--bench`, `--probe`, `--demo` or the other testing flags). With `--notitle` the fly-in starts at once; `--mission=1 --cinematic=look` shows the look at a rescue target. `=opening` forces the first launch's opening flyover (docs/design/opening-flyover.md; normally on a fresh save's normal launch only): `--first10 --cinematic=opening --shots=5,150,300,470` shows it |
 | `--debug-roads` | loop 3a: draw the bridge decks, approaches, tunnels, lane heights and piers round the car (Debug Draw add-on); loop 3b: the piers, portal legs and cap beams the bake placed |
 | `--tunnel` | loop 3b: with `--at`, start on the floor of the tunnel under that point (the car shows through the ground as a silhouette) |
 | `--drive-into-water=X,Z` | loop 10a: start at X,Z and drive flat out at the nearest water (within 120 m), the collision off until 3 m past the edge as if the car had jumped it; prints `water test:`, `water: splash at …` and `water: towed after … s …` (where to, how far from a lane, dry or not, the job / rescue / race / wallet), each with its frame. With `--kebab=0` a delivery is running (`tools/verify.sh` step `splash`) |

@@ -18,6 +18,13 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · gameplay · opening flyover** — How long the first launch's camera flight over
+  the Palace down to the car should be. Default built: 7.5 s (skippable with a tap), with a
+  WARSZAWA caption. Alternatives: 5 s, or 10 s with one more pass (the Eastern Wall and the
+  Rotunda). docs/design/opening-flyover.md.
+- **2026-10-31 · gameplay · opening flyover** — The guide's beats count from the flight's end, so
+  the stand's arrow comes 10 s after you get control (17.5 s after the tap). Default built: that.
+  Alternative: the arrow at once after the flight, since the flight already showed the square.
 - **2026-10-31 · gameplay · first-10 polish** — Where a new game starts: on Marszałkowska's
   northbound side level with the Museum of Modern Art, facing north to the Świętokrzyska stand
   ~350 m ahead (the Palace on the left). Only a run that gets the guide starts there; the map's
