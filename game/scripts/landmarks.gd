@@ -227,6 +227,15 @@ const INFO := {
 	"mirowska": ["Hala Mirowska",
 			"Ceglana hala targowa.",
 			"A brick market hall."],
+	"arkadia": ["Arkadka",
+			"Największe centrum handlowe w mieście, przy rondzie Radosława.",
+			"The city's biggest mall, by Rondo Radosława."],
+	"forest": ["Forest",
+			"Biurowiec z zielonymi tarasami i 120-metrową wieżą.",
+			"An office block of planted terraces and a 120 m tower."],
+	"flaga": ["Flaga na rondzie Radosława",
+			"Biało-czerwona na maszcie wysokim na prawie 58 m.",
+			"The white-and-red on a mast almost 58 m tall."],
 	"zygmunt": ["Kolumna Zygmunta",
 			"Najstarszy świecki pomnik Warszawy, z 1644 roku.",
 			"Warsaw's oldest secular monument, of 1644."],
@@ -459,6 +468,9 @@ func _find_sites() -> void:
 	_find_mdm()
 	_find_skins()
 	_find_zygmunt()
+	_find_arkadia()
+	_find_forest()
+	_find_flag()
 	# The museum and Plac Piłsudskiego loop (2026-10-31): the square's edges.
 	_find_plac()
 
@@ -610,6 +622,12 @@ func build(surface, near := Rect2()) -> void:
 				_build_towers(s)
 			"zygmunt":
 				_build_zygmunt(s)
+			"arkadia":
+				_build_arkadia(s)
+			"forest":
+				_build_forest(s)
+			"flaga":
+				_build_flag(s)
 			"muzeum":
 				_build_muzeum(s)
 			"europejski":
@@ -1813,6 +1831,150 @@ func _build_zygmunt(_site: Dictionary) -> void:
 	var sabre := PackedVector2Array([c + Vector2(-0.34, 0.1), c + Vector2(-0.3, 0.1), c + Vector2(-0.3, 0.95), c + Vector2(-0.34, 0.95)])
 	_prism(sabre, g + 19.55, g + 19.65, ZYGMUNT_BRONZE, ZYGMUNT_BRONZE, M_STONE, M_STONE)
 	_collide(_circle(c, 3.4, 8))
+
+# --- Map north: Arkadia, the Forest tower, Rondo Radosława's flag (the landmarks loop) -----------
+
+## Arkadia (2004), the city's biggest mall, by Rondo Radosława (docs/DEMO.md 2.1 "Hand-over"):
+## its OpenStreetMap outline lifted as one block, a glass storey lit from inside under pale
+## panels to 21 m, the grey roof deck of its car park, and the 37 m tower over the west
+## entrance with the parody of its name, ARKADKA, on both faces. One card.
+const ARKADIA_TOWER := Vector2(-2778.0, -2470.0)
+const ARKADIA_TOP := 21.0
+const ARKADIA_WALL := Color("#dcd9d2")
+const ARKADIA_ROOF := Color("#77797a")
+const ARKADIA_RED := Color(1.0, 0.18, 0.22)
+func _find_arkadia() -> void:
+	var outline := _landmark("Westfield Arkadia")
+	if outline.size() >= 3:
+		_add_site("arkadia", [outline])
+
+
+func _build_arkadia(site: Dictionary) -> void:
+	var poly: PackedVector2Array = site["zone"][0]
+	_g = _ground_under(poly)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	_prism(poly, g - 0.5, g + 5.0, Color("#a9c6d2"), none, M_PAVILION)
+	_prism(poly, g + 5.0, g + ARKADIA_TOP - 1.0, ARKADIA_WALL, none, M_STONE)
+	_prism(poly, g + ARKADIA_TOP - 1.0, g + ARKADIA_TOP, Color("#9ea2a4"), ARKADIA_ROOF, M_STONE, M_STONE)
+	# The malls' glass roofs: three long skylights along the block's long axis over the deck.
+	var c := _centre(poly)
+	var sxx := 0.0
+	var szz := 0.0
+	var sxz := 0.0
+	for q in poly:
+		sxx += (q.x - c.x) * (q.x - c.x)
+		szz += (q.y - c.y) * (q.y - c.y)
+		sxz += (q.x - c.x) * (q.y - c.y)
+	var axis := Vector2.from_angle(0.5 * atan2(2.0 * sxz, sxx - szz))
+	var across := Vector2(-axis.y, axis.x)
+	for k: int in [-1, 0, 1]:
+		var m := c + across * (k * 70.0)
+		var strip := PackedVector2Array([m - axis * 200.0 - across * 5.0, m + axis * 200.0 - across * 5.0,
+				m + axis * 200.0 + across * 5.0, m - axis * 200.0 + across * 5.0])
+		for piece: PackedVector2Array in Geometry2D.intersect_polygons(strip, poly):
+			var inner := PackedVector2Array()
+			var pc := _centre(piece)
+			for q in piece:
+				inner.append(q + (pc - q).normalized() * 6.0)  # off the deck's edge
+			_prism(inner, g + ARKADIA_TOP, g + ARKADIA_TOP + 1.6, Color("#9fc0cf"), Color("#8fb3c4"), M_PAVILION, M_GLASS_ROOF)
+	# The entrance tower: glass below, a white box above with the sign; a little proud of the block.
+	var t := _circle(ARKADIA_TOWER, 9.9, 4)
+	_prism(t, g + ARKADIA_TOP, g + 30.0, Color("#9fc0cf"), none, M_PAVILION)
+	_prism(t, g + 30.0, g + 37.0, Color("#f1efe9"), Color("#d8d6d0"), M_STONE, M_STONE)
+	for d: Vector2 in [Vector2(0.0, 1.0), Vector2(0.0, -1.0)]:
+		var at := ARKADIA_TOWER + d * 7.0
+		signs.append(["ARKADKA", Vector3(at.x, g + 31.4, at.y), Vector3(d.x, 0.0, d.y), 1.15, ARKADIA_RED])
+	_collide(poly)
+
+
+## The Forest (2023): an office block of stepped wings whose roofs are planted terraces, and
+## its 120 m glass tower. Built from its mapped parts (bake_sectors.py SITE_AREAS has the box):
+## the tallest is the tower, in dark green glass with fins; the rest in paler glass bands,
+## each roof a garden.
+const FOREST_BOX := Rect2(-3105.0, -2455.0, 185.0, 120.0)
+const FOREST_GLASS := Color("#5f7d74")
+const FOREST_LOW := Color("#8fa9a0")
+const FOREST_GREEN := Color("#5d8f45")
+func _find_forest() -> void:
+	var zone: Array = []
+	var parts: Array = []
+	for bld in data["buildings"]:
+		var q := _pts(bld["p"])
+		if q.size() >= 3 and FOREST_BOX.has_point(_centre(q)) and float(bld["h"]) >= 25.0:
+			zone.append(q)
+			parts.append(bld)
+	_add_site("forest", zone)
+	if not sites.is_empty() and sites[-1]["key"] == "forest":
+		sites[-1]["parts"] = parts
+
+
+func _build_forest(site: Dictionary) -> void:
+	var parts: Array = site["parts"]
+	var tallest := 0.0
+	for bld in parts:
+		tallest = maxf(tallest, float(bld["h"]))
+	_g = INF
+	for bld in parts:
+		_g = minf(_g, _ground_under(_pts(bld["p"])))
+	var g := _g
+	for bld in parts:
+		var poly := _pts(bld["p"])
+		var h := float(bld["h"])
+		var mh := float(bld["mh"])
+		if h >= tallest - 0.5:
+			_prism(poly, g + mh, g + h, FOREST_GLASS, Color("#4f5a58"), M_SKIN + S_FINS / 16.0, M_STONE)
+			# A dark crown band.
+			_prism(poly, g + h, g + h + 1.2, Color("#3d4645"), Color(0, 0, 0, 0), M_STONE)
+		else:
+			_prism(poly, g + mh, g + h, FOREST_LOW, FOREST_GREEN, M_SKIN + S_BANDS / 16.0, M_STONE)
+			# The planted edge: a hedge round each terrace.
+			var c := _centre(poly)
+			var hedge := PackedVector2Array()
+			for q in poly:
+				hedge.append(q + (c - q).normalized() * 0.6)
+			_prism(hedge, g + h, g + h + 0.9, FOREST_GREEN.darkened(0.15), FOREST_GREEN.lightened(0.08), M_STONE, M_STONE)
+		_collide(poly)
+
+
+## Rondo Radosława's flag (not in OpenStreetMap; the surface model's 57.8 m column in the
+## island's west part): a steel mast and a big white-and-red flag in a light wind.
+const FLAG_MAST := Vector2(-2850.0, -2295.0)
+const FLAG_HEIGHT := 57.8
+const FLAG_W := 16.0
+const FLAG_H := 10.0
+func _find_flag() -> void:
+	_add_site("flaga", [_circle(FLAG_MAST, 2.5, 8)])
+
+
+func _build_flag(_site: Dictionary) -> void:
+	var c := FLAG_MAST
+	_g = _ground_under(_circle(c, 1.5, 6))
+	var g := _g
+	var steel := Color("#c9cdd0")
+	_prism(_circle(c, 1.6, 8), g - 0.3, g + 0.6, Color("#8d8a86"), Color("#8d8a86"), M_STONE, M_STONE)
+	_mode = M_STONE
+	_frustum(_circle(c, 0.42, 10), g + 0.6, _circle(c, 0.2, 10), g + FLAG_HEIGHT, steel, steel)
+	_prism(_circle(c, 0.32, 8), g + FLAG_HEIGHT, g + FLAG_HEIGHT + 0.5, Color("#d9b24a"), Color("#d9b24a"), M_STONE, M_STONE)
+	# The flag flies east from the mast in folds: strips across, each turned a little.
+	var top := g + FLAG_HEIGHT - 0.6
+	var strips := 8
+	for k in strips:
+		var x0 := 0.25 + FLAG_W * k / strips
+		var x1 := 0.25 + FLAG_W * (k + 1) / strips
+		var z0 := sin(k * 1.1) * 0.9 * k / strips
+		var z1 := sin((k + 1) * 1.1) * 0.9 * (k + 1) / strips
+		var a := Vector2(c.x + x0, c.y + z0)
+		var b := Vector2(c.x + x1, c.y + z1)
+		var droop0 := 0.35 * k / strips
+		var droop1 := 0.35 * (k + 1) / strips
+		var n := Vector3(-(b - a).y, 0.0, (b - a).x).normalized()
+		for side: Vector3 in [n, -n]:
+			_quad(Vector3(a.x, top - FLAG_H * 0.5 - droop0, a.y), Vector3(b.x, top - FLAG_H * 0.5 - droop1, b.y),
+					Vector3(b.x, top - droop1, b.y), Vector3(a.x, top - droop0, a.y), side, Color("#f4f4f2"))
+			_quad(Vector3(a.x, top - FLAG_H - droop0, a.y), Vector3(b.x, top - FLAG_H - droop1, b.y),
+					Vector3(b.x, top - FLAG_H * 0.5 - droop1, b.y), Vector3(a.x, top - FLAG_H * 0.5 - droop0, a.y), side, Color("#d4213d"))
+	_collide(_circle(c, 1.6, 8))
 
 ## A kept building's site (the museum) on the picking grid: every cell whose centre is inside.
 func _mark_zone(site: Dictionary) -> void:
