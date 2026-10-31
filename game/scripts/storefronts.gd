@@ -110,6 +110,9 @@ const LEZAK_CELL := 16.0
 const STATIONS := ["ratusz_arsenal", "swietokrzyska_metro", "patelnia", "politechnika", "rondo_onz",
 		"nowy_swiat_uniwersytet", "stadion_metro", "centrum_nauki_kopernik", "rondo_daszynskiego"]
 const METRO_PER := 3
+## Loop jobs-2: the payphone's place (E40) and how far from its point it may stand (m).
+const PHONE_PLACE := "plac_konstytucji"
+const PHONE_REACH := 70.0
 const METRO_REACH := 70.0
 ## The named kebab stands (6.1): place id -> [the board's words, the vendor's tag]; other tags by
 ## the stand's nearest place.
@@ -151,6 +154,9 @@ var venues: Array[Dictionary] = []
 var scooters: Array[Dictionary] = []
 var zones: Array[Dictionary] = []
 var metros: Array[Dictionary] = []
+## Loop jobs-2 (E40, vision 3.9 T17): the old card payphone at Plac Konstytucji {at: Vector3, yaw, key}
+## ({} when the place or a pavement spot isn't found); in its sector's street-prop mesh.
+var payphone := {}
 ## The triple corners' junctions: place id -> Vector2.
 var triple_at := {}
 var stamps := 0
@@ -216,6 +222,7 @@ func setup(data: Dictionary, places: Array) -> void:
 			nt += 1
 	_pick_scooters(jpos, at)
 	_pick_metros(at)
+	_pick_payphone(at)
 	for i in shops.size():
 		_add_to_key("shops", shops[i]["key"], i)
 	for i in venues.size():
@@ -226,6 +233,8 @@ func setup(data: Dictionary, places: Array) -> void:
 		_add_to_key("zones", zones[i]["key"], i)
 	for i in metros.size():
 		_add_to_key("metros", metros[i]["key"], i)
+	if not payphone.is_empty() and not _by_key.has(payphone["key"]):
+		_by_key[payphone["key"]] = {"shops": [], "venues": [], "scooters": [], "zones": [], "metros": []}
 	_shop_mesh = Props.frogs_shop()
 	_lezak_mesh = Props.lezak()
 	_build_atlas()
@@ -239,6 +248,8 @@ func setup(data: Dictionary, places: Array) -> void:
 		for z in zones:
 			if z["standing"]:
 				egg_book.move_egg("easter_lezak", Vector2(z["at"].x, z["at"].z))
+		if not payphone.is_empty():
+			egg_book.move_egg("e40", Vector2(payphone["at"].x, payphone["at"].z))
 	counts = {"frogs": shops.size(), "triple": nt, "venues": venues.size(), "lezak": scooters.size(), "zones": zones.size(),
 			"metro": metros.size()}
 	print("storefronts: %d Frogs (%d on %d triple corners), %d venue signs, %d Leżaks, %d zones, %d metro entrances, in %.1f ms" % [
@@ -1035,12 +1046,18 @@ func _write_lezaks(key: Vector2i) -> void:
 		return
 	var xfs: Array[Transform3D] = []
 	for i: int in _by_key[key]["scooters"]:
-		xfs.append(scooter_xf(scooters[i]))
-	if xfs.is_empty():
+		if not scooters[i].get("gone", false):
+			xfs.append(scooter_xf(scooters[i]))
+	if xfs.is_empty() and not _lezak_mmi.has(key):
 		return
 	var mmi: MultiMeshInstance3D = null
 	if _lezak_mmi.has(key) and is_instance_valid(instance_from_id(int(_lezak_mmi[key]))):
 		mmi = instance_from_id(int(_lezak_mmi[key])) as MultiMeshInstance3D
+	if xfs.is_empty():
+		# Loop jobs-2: every Leżak of the sector is in a boot: nothing to draw.
+		if mmi != null:
+			mmi.multimesh = null
+		return
 	if mmi == null or not mmi.is_inside_tree():
 		mmi = MultiMeshInstance3D.new()
 		mmi.name = "Lezaks"
@@ -1104,10 +1121,64 @@ func _pick_metros(at: Dictionary) -> void:
 				break
 
 
+## Loop jobs-2: the payphone's spot: on the pavement by Plac Konstytucji's nearest lanes (2.4 m past
+## the outer lane's edge, within PHONE_REACH m of the place, the nearest such), 8 m clear of the
+## metro entrances, facing the road.
+func _pick_payphone(at: Dictionary) -> void:
+	if graph == null or map == null or not at.has(PHONE_PLACE):
+		return
+	var c: Vector2 = at[PHONE_PLACE]["at"]
+	if c == Vector2.INF:
+		return
+	var best := Vector2.INF
+	var best_d := PHONE_REACH
+	var best_e := -1
+	var best_s := 0.0
+	var seen := {}
+	for dx in range(-1, 2):
+		for dz in range(-1, 2):
+			var key: int = graph.cell_key(c + Vector2(dx, dz) * 60.0)
+			if seen.has(key) or not graph.grid.has(key):
+				continue
+			seen[key] = true
+			for e: int in graph.grid[key]:
+				if graph.e_bridge[e] == 1 or graph.e_dk[e] >= 0 or graph.e_tn[e] >= 0:
+					continue
+				var s0: float = graph.project(e, c)
+				for ds in [-20.0, -10.0, 0.0, 10.0, 20.0]:
+					var sv: float = clampf(s0 + ds, graph.e_s0[e] + 3.0, graph.e_s1[e] - 3.0)
+					var q: Vector2 = graph.point_at(e, sv)
+					if q.distance_to(c) > best_d + 10.0:
+						continue
+					var p := _pavement(e, sv, 2.4)
+					if p == Vector2.INF or p.distance_to(c) >= best_d:
+						continue
+					var clash := false
+					for m in metros:
+						if Vector2(m["at"].x, m["at"].z).distance_to(p) < 8.0:
+							clash = true
+							break
+					if not clash:
+						best = p
+						best_d = p.distance_to(c)
+						best_e = e
+						best_s = sv
+	if best == Vector2.INF:
+		print("storefronts: no pavement for the payphone at %s" % PHONE_PLACE)
+		return
+	# Facing the road: the lane's point at the same s is in front (-z).
+	var road: Vector2 = graph.point_at(best_e, best_s)
+	var to := road - best
+	payphone = {"at": Vector3(best.x, map.ground_height(best.x, best.y), best.y), "yaw": atan2(-to.x, -to.y), "key": key_of(best)}
+	if log_on:
+		print("storefronts: the payphone at %.0f, %.0f (%.0f m from %s)" % [best.x, best.y, best_d, PHONE_PLACE])
+
+
 ## The sector's street props (metro entrances and the zones' paint): one mesh under its root.
 func _build_props(key: Vector2i, root: Node3D) -> void:
 	var b: Dictionary = _by_key[key]
-	if (b["metros"] as Array).is_empty() and (b["zones"] as Array).is_empty():
+	var phone: bool = not payphone.is_empty() and payphone["key"] == key
+	if (b["metros"] as Array).is_empty() and (b["zones"] as Array).is_empty() and not phone:
 		return
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -1123,6 +1194,8 @@ func _build_props(key: Vector2i, root: Node3D) -> void:
 		Props.add_scooter_zone(st, Transform3D(Basis(Vector3.UP, float(z["yaw"])), z["at"]))
 		box = AABB(z["at"], Vector3.ZERO) if first else box.expand(z["at"])
 		first = false
+	if phone:
+		Props.add_payphone(st, Transform3D(Basis(Vector3.UP, float(payphone["yaw"])), payphone["at"]))
 	var mi := MeshInstance3D.new()
 	mi.name = "StreetProps"
 	mi.mesh = st.commit()
@@ -1407,6 +1480,63 @@ func _knock(i: int, away: Vector2, kmh: float) -> void:
 		if not l.is_empty():
 			var p3: Vector3 = s["at"]
 			dialogue.bubbles.say(func() -> Vector3: return p3, "", l[0], l[1], 3.5, Color("#8e44d9"), 1.6)
+
+
+# --- loop jobs-2: the round-up's side (roundup_job.gd) ----------------------------------------------
+
+## The lying Leżaks still out within `reach` m of `p`, nearest first (at most `n`): a scan of the list,
+## run once when a round-up starts.
+func lying_near(p: Vector2, reach: float, n: int) -> Array[int]:
+	var near: Array = []
+	for i in scooters.size():
+		var s := scooters[i]
+		if s["up"] or s.get("gone", false):
+			continue
+		var d := Vector2(s["at"].x, s["at"].z).distance_to(p)
+		if d <= reach:
+			near.append([d, i])
+	near.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+	var out: Array[int] = []
+	for k in mini(n, near.size()):
+		out.append(int(near[k][1]))
+	return out
+
+
+## Leżak i goes into the boot: off the map (its cell and its sector's MultiMesh), the clatter.
+func collect(i: int) -> void:
+	var s := scooters[i]
+	if s.get("gone", false):
+		return
+	s["gone"] = true
+	var at: Vector3 = s["at"]
+	var c := Vector2i(floori(at.x / LEZAK_CELL), floori(at.z / LEZAK_CELL))
+	if _lezak_grid.has(c):
+		(_lezak_grid[c] as Array).erase(i)
+	_write_lezaks(s["key"])
+	if sfx != null:
+		sfx.play_at("scooter_clatter", at)
+
+
+## The collected Leżaks lie about again (by the next morning: roundup_job.gd calls it by day).
+## Returns how many came back.
+func restore_collected() -> int:
+	var keys := {}
+	var n := 0
+	for i in scooters.size():
+		var s := scooters[i]
+		if not s.get("gone", false):
+			continue
+		s["gone"] = false
+		n += 1
+		var at: Vector3 = s["at"]
+		var c := Vector2i(floori(at.x / LEZAK_CELL), floori(at.z / LEZAK_CELL))
+		if not _lezak_grid.has(c):
+			_lezak_grid[c] = []
+		(_lezak_grid[c] as Array).append(i)
+		keys[s["key"]] = true
+	for k: Vector2i in keys:
+		_write_lezaks(k)
+	return n
 
 
 ## For the bench's and the check's counters.

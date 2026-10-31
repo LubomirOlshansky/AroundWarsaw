@@ -1303,8 +1303,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Wiralek's trend cycle (MW-4)~~; E23 E25 the night buses at Centralny (MW-3 skipped them: "From
   loop MW-3"); E24 the player's horn and buses pulling in at stops;
   ~~E28 the Rowerilo riders (MW-4); E29 E30 Kolka and Hyrax (MW-4)~~ (woken in loop MW-4: 9 wait
-  now); E34 the armchair man (MW-4 skipped it: "From loop MW-4");
-  E35 KASETA's older decades (T1); E39 a tram in old livery; E40 the payphone prop (with T17).
+  now); ~~E34 the armchair man (MW-4 skipped it: "From loop MW-4")~~;
+  E35 KASETA's older decades (T1); E39 a tram in old livery; ~~E40 the payphone prop (with T17)~~
+  (E34 and E40 woken in loop jobs-2: 7 wait now; T17 is not a then card: "From loop jobs-2").
   Each needs only its trigger in `eggs.json` (drop `waits`) once its piece exists.
   ~~The Frogs shop's two eggs are not cards yet (MW-2).~~ Done in MW-2: `easter_rechotka`,
   `easter_lezak`.
@@ -1402,8 +1403,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **PixelLab pictograms on the Wiralek fascias** (vision 3.4's table: a croissant cube, a cracked
   chocolate bar, …): PixelLab wasn't available this loop; the fascia shows the word only. Eight
   pictograms, then a textured quad beside the word (+0 draws if in the fascia's mesh).
-- **The armchair man (E34)** isn't built: the dogs' MultiMesh has no spare shape and a chair
-  prop on a guest needs a fifth shape or its own mesh. Small; MW-2 or a later life pass.
+- ~~**The armchair man (E34)** isn't built: the dogs' MultiMesh has no spare shape and a chair
+  prop on a guest needs a fifth shape or its own mesh. Small; MW-2 or a later life pass.~~ Done in
+  loop jobs-2: a guest with the chair as its own small mesh (+1 near him).
 - **No running stride**: runners, Kolka and Hyrax use the walking legs (`actor.gdshader`'s `walk`;
   visuals lane). Waiting walkers and the still photographers swing their legs too (guests share
   the walkers' material); a `walk` per instance would need the shader.
@@ -1494,9 +1496,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   the shop picks, the Leżak and metro picks, the neon atlas. Could move to a worker thread.
 - **Not built (cheap later)**: Pędzik on the road's kerb edge (they ride the cycle paths and
   footways only), the 1-2 couriers waiting at each kebab stand at night, the hop over a car,
-  **the courier race** (parodies.md 4.3), **the Leżak round-up** (5.3: depot, pins, boot of 5),
-  Leżaks on shelter roofs. The `pedzik` `challenge` / `win` / `lose` and the `lezak` `start` /
-  `done` lines wait for them.
+  ~~**the courier race** (parodies.md 4.3), **the Leżak round-up** (5.3: depot, pins, boot of 5)~~
+  (done in loop jobs-2: "From loop jobs-2"), Leżaks on shelter roofs.
 - **PixelLab pictograms** (parodies.md 6.2 / 9): the ten billboards are text only (the five new
   ones: FROGS · TU TEŻ, PODWÓZKA · GPS WIE LEPIEJ, PĘDZIK, LEŻAK, WIRALEK); a frog, a pin, a
   backpack, a scooter and a phone pictogram each would be a textured quad beside the word.
@@ -1511,3 +1512,39 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **The metro M** is a cream M on a navy square: generic, no operator's logo; at the default
   view it is a few pixels. The art director may want it bigger or red.
 
+## From loop jobs-2 (the courier race, the Leżak round-up, the payphone, the armchair man, 2026-10-31)
+
+- Done: the courier race (`courier_race.gd`, parodies.md 4.3), the Leżak round-up
+  (`roundup_job.gd`, 5.3), the payphone at Plac Konstytucji (E40) and the armchair man on
+  Mokotowska (E34): 40 eggs reachable, 7 waiting. `check_side_jobs` (verify `jobs2`, quick and CI);
+  `--courier-race[=N]`, `--courier-v=`, `--roundup`, `--armchair` (DEVELOPMENT.md "The courier race,
+  the round-up, the payphone and the armchair man").
+- **The courier rarely wins in play**: on today's map the footway network follows the streets, so
+  his way is about as long as the road (stand 0 → Oboźna 1: 1,013 m against 1,023 m); at 6.5 m/s
+  a player driving at 30-50 km/h beats him by a minute. parodies.md's "25 % shorter" needs park and
+  courtyard paths the bake doesn't have, or a faster rider. The autopilot (the job's ghost: 222 s
+  for 1 km with the lights) loses. Tune on the phone (Open Question: speed).
+- **The courier appears when he challenges**: parodies.md 4.2's 1-2 couriers waiting at each stand
+  at night are still not built, so the challenger is drawn by the kiosk only from the challenge.
+- **The round-up follows parodies.md 5.3** (collect into a boot of 5, unload at the depot), not
+  pushing scooters into the zone with the knock: the brief's wording; Open Question.
+- **Leżaks round a depot are picked up and unloaded at once** (the zone's 2-3 lie within the 7 m
+  ring): a free one or two to start. Kept (the zone's joke works: they lie round the zone).
+- **A fixed Night look keeps collected Leżaks gone** for the session (they come back when the
+  look leaves night: Live's morning, or a switch to Day); a session restart brings them back.
+- **The autopilot round-up slides through buildings** (as the trend job's): it proves the flow,
+  not that a player can reach each Leżak; some lie on footways behind railings. Phone check.
+- **T17 isn't a KASETA then card**: the 20-card set covers 2010 to today and its words are the
+  designer's; E40's card carries T17's line ("Karta na 25 impulsów…") and +10. A 21st then card
+  (a payphone ghost, a year such as 2010) is the designer's call (Open Question).
+- **The armchair man's hours** are the shops' (08-20) and his days the trend cycle's day number
+  (Live's date, else the session's), so a fixed look sees him in 1 session in 3. No line of his
+  own (vision quotes none); E34's card line only.
+- **The payphone** stands where the pavement test finds room nearest Plac Konstytucji's point
+  (32 m off its point); the real square has none today. Its look is the art
+  director's to judge (no operator colours on purpose).
+- **The kebab order's distance can be half the drive**: jobs.gd measures "1,023 m by road" from
+  the stand's nearest lane, which can be the other carriageway; the car starting the other way
+  drove about 2.3 km to Oboźna 1 (the race's gap read 2,292 m at 20 s, honest, the car's own
+  lane). The race reads the car's lane, so it can say 2ND at the start of an order the card calls
+  short. Snapping the stand by the car's heading in `_make_kebab_order` would fix the card.

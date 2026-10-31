@@ -24,6 +24,7 @@ const Beacon := preload("res://scripts/beacon.gd")
 const Models := preload("res://scripts/models.gd")
 const Props := preload("res://scripts/props.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
+const CourierRace := preload("res://scripts/courier_race.gd")
 
 const KEBAB_COLOUR := Color("#ff8a3d")
 const SLOIK_COLOUR := Color("#4fd8c4")
@@ -81,6 +82,11 @@ var trend: Node
 ## Loop 3g-2 (police.md 8.3): the kebab's heat stands still while a pull-over's card is open
 ## (police.gd sets it).
 var heat_frozen := false
+## Loop jobs-2 (parodies.md 4.3): the courier race (courier_race.gd, a child: it rides along a
+## kebab order) and the Leżak round-up (roundup_job.gd, a child too; main.gd makes it). Both step
+## in this script's _process, so the bench's "jobs+eggs" line holds them.
+var courier: CourierRace
+var roundup: Node
 
 ## Stands: {ring: Vector3, at: Vector3, yaw, heading, node, marker, cool, across; loop MW-2: xf (the
 ## kiosk's transform), name (its board, "" for KEBAB only), tag (the vendor's line tag)}.
@@ -156,6 +162,21 @@ func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
 	_beacon = Beacon.new()
 	world.add_child(_beacon)
 	_beacon.setup(KEBAB_COLOUR, Color("#2f6fb5"))
+	# Loop jobs-2: the courier race rides along the kebab orders.
+	courier = CourierRace.new()
+	courier.name = "CourierRace"
+	courier.dialogue = dialogue
+	courier.bubbles = bubbles
+	courier.hud = hud
+	courier.wallet = wallet
+	courier.map = map
+	courier.car = car
+	courier.graph = graph
+	courier.paths = data.get("paths", [])
+	courier.autopilot = autopilot
+	courier.set_process(false)
+	add_child(courier)
+	courier.setup(world)
 	hud.card_pressed.connect(_on_card)
 	hud.abort_pressed.connect(func():
 		if state == State.ORDER or state == State.DELIVER:
@@ -400,12 +421,18 @@ func heat() -> float:
 
 func busy() -> bool:
 	# Loop 2d-1: a Podwózka ride counts as a job for everything that waits on one.
-	return state != State.IDLE or (rides != null and rides.busy()) or (trend != null and trend.busy())
+	return state != State.IDLE or (rides != null and rides.busy()) or (trend != null and trend.busy()) or round_busy()
 
 
-## Loop 2d-1: a kebab or słoiki job of this script's own is on (rides.gd asks this).
+## Loop jobs-2: the Leżak round-up is on (its card included).
+func round_busy() -> bool:
+	return roundup != null and roundup.busy()
+
+
+## Loop 2d-1: a kebab or słoiki job of this script's own is on (rides.gd asks this); loop jobs-2:
+## or the Leżak round-up.
 func own_busy() -> bool:
-	return state != State.IDLE
+	return state != State.IDLE or round_busy()
 
 
 ## Loop MW-4: this script's own job or the "Na czasie" one (its card included) is on: rides.gd
@@ -415,14 +442,20 @@ func side_busy() -> bool:
 
 
 func has_target() -> bool:
+	if round_busy():
+		return roundup.has_target()  # loop jobs-2
 	return state == State.DELIVER
 
 
 func target_position() -> Vector3:
+	if round_busy():
+		return roundup.target_position()
 	return _order["ring"]
 
 
 func target_colour() -> Color:
+	if round_busy():
+		return roundup.target_colour()
 	return KEBAB_COLOUR if job == Job.KEBAB else SLOIK_COLOUR
 
 
@@ -434,6 +467,8 @@ func _free() -> bool:
 		return false  # loop 2d-1: one activity at a time
 	if trend != null and trend.busy():
 		return false  # loop MW-4
+	if round_busy():
+		return false  # loop jobs-2
 	return rivals == null or not rivals.busy()
 
 
@@ -442,6 +477,11 @@ func _process(dt: float) -> void:
 		return
 	var t0 := Time.get_ticks_usec()
 	_t += dt
+	# Loop jobs-2: the courier race and the round-up step here (idle: a match on their state).
+	if courier.state != CourierRace.State.IDLE:
+		courier.step(dt)
+	if roundup != null:
+		roundup.step(dt)
 	match state:
 		State.IDLE:
 			_look_for_work()
@@ -476,8 +516,8 @@ func _look_for_work() -> void:
 
 
 ## Rings, columns and minimap squares for the job places while nothing else runs.
-func _show_places(on: bool) -> void:
-	if on == _places_shown:
+func _show_places(on: bool, again := false) -> void:
+	if on == _places_shown and not again:
 		return
 	_places_shown = on
 	for s in _stands:
@@ -493,7 +533,24 @@ func _show_places(on: bool) -> void:
 		if not _station.is_empty():
 			pts.append(Vector2(_station["ring"].x, _station["ring"].z))
 			colours.append(SLOIK_COLOUR)
+	# Loop jobs-2: the Leżak depots at night.
+	if roundup != null and roundup._shown and not round_busy():
+		for q: Vector2 in roundup.depot_points():
+			pts.append(q)
+			colours.append(roundup.COLOUR)
 	hud.set_minimap_pois(pts, colours)
+
+
+## Loop jobs-2: the round-up's depots came on or went (night, a job): the minimap squares again.
+func depots_shown(_on: bool) -> void:
+	if not round_busy():
+		_show_places(_places_shown, true)
+
+
+## Loop jobs-2: the round-up is over: the places' squares at the next look.
+func places_dirty() -> void:
+	_places_shown = not _free()
+	_show_places(not _places_shown)
 
 
 ## Other activities stop offering themselves while a job runs.
@@ -623,6 +680,11 @@ func _begin_kebab(i: int, n: int) -> void:
 			"It cools on the way: the hotter, the bigger the tip.%s%s" % [extra, night])
 	print("kebab order %d: stand %d -> %s (%s), %d m by road%s" % [n, i, o["name"], o["customer"], roundi(o["road"]),
 			", across the river" if o["across"] else ""])
+	# Loop jobs-2 (parodies.md 4.3): a courier waiting here may challenge (at night, 1 in 4).
+	courier.set_road(float(o["road"]))
+	courier.on_order(_stands[i]["at"], o["ring"], n, _night(), int(o["edge"]) if bool(o["reached"]) else -1, float(o["s"]), func() -> void:
+		if state == State.ORDER and job == Job.KEBAB:
+			_go())
 
 
 ## The order line follows the vendor's; the job goes when the player drives off,
@@ -689,8 +751,12 @@ func _deliver_tick(dt: float) -> void:
 		hint = ["Stań w kręgu", "Pull up inside the ring"]
 	if job == Job.KEBAB:
 		var word := "GORĄCY" if _heat >= 0.7 else ("CIEPŁY" if _heat >= 0.4 else "ZIMNY")
+		# Loop jobs-2: racing the courier, the rivals' badge and the gap.
+		var race: Array = courier.hint()
+		if not race.is_empty() and not flying and d > ARRIVE:
+			hint = race
 		hud.show_status("KEBAB → %s" % _order["name"], "%s %d%%" % [word, roundi(_heat * 100.0)], "%d m" % roundi(d),
-				hint[0], 0.0, KEBAB_COLOUR, "", {"heat": _heat}, hint[1])
+				hint[0], 0.0, KEBAB_COLOUR, courier.badge(), {"heat": _heat}, hint[1])
 	else:
 		_chat_t -= dt
 		if _chat_t <= 0.0 and not bubbles.is_talking(car):
@@ -727,6 +793,17 @@ func _kebab_result() -> void:
 	var bonus := NIGHT_BONUS if _night() else 1.0
 	var total := roundi((fare + tip) * bonus)
 	wallet.pay(total, 10 if hot else 0, "kebab")
+	# Loop jobs-2: the courier race, if one ran (its +30 zł +30 respect are paid by courier_race.gd).
+	var race := courier.finish()
+	var race_pl := ""
+	var race_en := ""
+	if not race.is_empty():
+		if bool(race["won"]):
+			race_pl = "\nPędzik w tyle: +%d zł, +%d szacunku" % [int(race["zl"]), int(race["respect"])]
+			race_en = "\nYou beat the courier: +%d zł, +%d respect" % [int(race["zl"]), int(race["respect"])]
+		else:
+			race_pl = "\nPędzik był pierwszy. Kebab i tak dojechał"
+			race_en = "\nThe courier got there first. The kebab still made it"
 	var key := "kebab:%d:%s" % [_order["stand"], _order["name"]]
 	var best: float = wallet.best_time(key)
 	var record: bool = wallet.record(key, _clock)
@@ -743,10 +820,10 @@ func _kebab_result() -> void:
 	var times_pl := "%s, ciepło %d%%%s" % [_clock_text(_clock), roundi(_heat * 100.0),
 			" · nowy rekord!" if record and best > 0.0 else (" · rekord %s" % _clock_text(best) if best > 0.0 else "")]
 	hud.show_card("DOWIEZIONE · " + ("WCIĄŻ GORĄCY" if _heat >= 0.7 else ("CIEPŁY" if hot else "ZIMNY")),
-			"%s%s, %s: %s\n%s" % [quote, _order["customer"], _order["name"], times_pl, money_pl],
+			"%s%s, %s: %s\n%s%s" % [quote, _order["customer"], _order["name"], times_pl, money_pl, race_pl],
 			PackedStringArray(["OK"]), KEBAB_COLOUR if hot else Color("#7fb8de"), true,
 			"Delivered · " + ("still hot" if _heat >= 0.7 else ("warm" if hot else "cold")),
-			"%s%s · %s" % [quote_en, times, money])
+			"%s%s · %s%s" % [quote_en, times, money, race_en])
 	print("kebab delivered: %s in %.1f s, heat %d%%, %s, paid %d zł (wallet %d zł)" % [_order["name"], _clock,
 			roundi(_heat * 100.0), "hot" if hot else "cold", total, wallet.zl])
 
@@ -892,14 +969,22 @@ func _on_card(index: int) -> void:
 				else:
 					_station["cool"] = true
 				bubbles.hush(_stands[_order["stand"]]["node"] if job == Job.KEBAB else _station["person"])
+				courier.cancel()
 				_release()
 		State.RESULT:
 			_release()
 
 
+## Loop jobs-2: key L or the ŚCIGAJ button takes the courier's challenge (false when there is none).
+func flash() -> bool:
+	return courier != null and courier.accept()
+
+
 ## Keyboard: M answers a job card's first button (GO, OK), K its second (NOT NOW).
 ## Returns false when no job card is up.
 func primary() -> bool:
+	if round_busy():
+		return roundup.primary()  # loop jobs-2
 	if state == State.ORDER or state == State.RESULT:
 		_on_card(0)
 		return true
@@ -907,6 +992,8 @@ func primary() -> bool:
 
 
 func secondary() -> bool:
+	if round_busy():
+		return roundup.secondary()
 	if state == State.ORDER:
 		_on_card(1)
 		return true
@@ -915,6 +1002,7 @@ func secondary() -> bool:
 
 func _abandon() -> void:
 	state = State.RESULT
+	courier.cancel()
 	hud.hide_status()
 	_beacon.visible = false
 	_remove_ghost()
@@ -963,6 +1051,8 @@ func _put_car(place: Dictionary) -> void:
 ## The autopilot drives the job's route (returns true while it does): on a ghost
 ## driver along the lane graph, then straight to the door's ring.
 func drive_player() -> bool:
+	if roundup != null and roundup.drive_player():
+		return true  # loop jobs-2
 	if not autopilot or state != State.DELIVER:
 		return false
 	var target: Vector3 = _order["ring"]

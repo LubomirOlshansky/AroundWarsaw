@@ -463,6 +463,44 @@ static func add_scooter_zone(st: SurfaceTool, xf: Transform3D) -> void:
 		_xbox(st, xf, b[0], b[1], white)
 
 
+## Loop jobs-2 (vision.md 3.9 T17, egg E40): the old card payphone at Plac Konstytucji, into the
+## sector's street-prop mesh at `xf`: a grey post, the phone's box with a dark screen, a black
+## handset on its hook and a cream card slot, under a small hood (no operator's colours or mark).
+## The phone faces -z. 10 boxes, 120 triangles; 1.95 m tall; no shadow (the street-prop mesh).
+static func add_payphone(st: SurfaceTool, xf: Transform3D) -> void:
+	var steel := Color("#6b7079")
+	var shell := Color("#aeb4bb")
+	var dark := Color("#1d1f24")
+	var hood := Color("#4d6178")
+	_xbox(st, xf, Vector3(0, 0.03, 0), Vector3(0.3, 0.06, 0.3), steel)
+	_xbox(st, xf, Vector3(0, 0.6, 0.02), Vector3(0.1, 1.2, 0.1), steel)
+	_xbox(st, xf, Vector3(0, 1.42, 0), Vector3(0.38, 0.52, 0.2), shell)
+	_xbox(st, xf, Vector3(0, 1.58, -0.105), Vector3(0.2, 0.09, 0.02), dark)
+	_xbox(st, xf, Vector3(0.06, 1.42, -0.105), Vector3(0.1, 0.12, 0.02), Color("#3a3d44"))
+	_xbox(st, xf, Vector3(0.06, 1.33, -0.112), Vector3(0.08, 0.012, 0.012), Color("#fbf7ee"))
+	_xbox(st, xf, Vector3(-0.15, 1.44, -0.12), Vector3(0.06, 0.32, 0.06), dark)
+	_xbox(st, xf, Vector3(-0.15, 1.3, -0.15), Vector3(0.05, 0.03, 0.07), dark)
+	_xbox(st, xf, Vector3(0, 1.88, -0.04), Vector3(0.56, 0.05, 0.42), hood)
+	_xbox(st, xf, Vector3(0, 1.82, 0.14), Vector3(0.56, 0.12, 0.05), hood)
+
+
+## Loop jobs-2 (vision.md 3.7, egg E34): a 1960s armchair carried upside down on a man's head (his
+## head's top at 1.75 m): the teal cushion on top, the back hanging down behind him (+z: he faces
+## -z), the wooden arms, and four splayed legs in the air. 10 boxes, 120 triangles.
+static func carried_armchair() -> ArrayMesh:
+	var st := _begin()
+	var teal := Color("#3f7f7a")
+	var wood := Color("#8a5a34")
+	box(st, Vector3(0, 1.84, 0.02), Vector3(0.66, 0.12, 0.6), teal)
+	box(st, Vector3(0, 1.58, 0.33), Vector3(0.62, 0.5, 0.09), teal)
+	for x in [-0.36, 0.36]:
+		box(st, Vector3(x, 1.74, 0.02), Vector3(0.07, 0.1, 0.56), wood)
+	for x in [-0.27, 0.27]:
+		for z in [-0.22, 0.26]:
+			beam(st, Vector3(x, 1.9, z), Vector3(x * 1.25, 2.16, z * 1.25), 0.045, 0.045, wood)
+	return st.commit()
+
+
 ## A box through a transform (for the combined street-prop mesh of a sector).
 static func _xbox(st: SurfaceTool, xf: Transform3D, centre: Vector3, size: Vector3, colour: Color, part := FIXED) -> void:
 	obox(st, xf * centre, xf.basis.orthonormalized(), size, colour, part)
