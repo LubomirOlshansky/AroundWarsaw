@@ -3634,7 +3634,9 @@ Data: `data/eggs.json` (45 cards) and `data/kadr.json` (15 spots); the then card
   (not cards yet). Loop MW-4 woke E16 E18 E19 E27 E28 E29 E30 (a new kind, `event`: the
   moment is seen by `city_life.gd`, which calls `fire`; E27 E30 keep `stop` / `lap` with a
   crowd condition) and gave E20 the `lukrownia` crowd: **reachable 36, waiting 9** (E01 E21
-  E23 E24 E25 E34 E35 E39 E40; "Everyday life and trends" below).
+  E23 E24 E25 E34 E35 E39 E40; "Everyday life and trends" below). Loop MW-2 added the Frogs and
+  Leżak eggs (38 reachable); loop jobs-2 woke E34 (an `event`: the armchair man) and E40 (a `stop`
+  at the payphone): **reachable 40, waiting 7** (E01 E21 E23 E24 E25 E35 E39).
 - **KASETA** (`tape.gd`): the 20 then cards at their notebook places. Within 40 m of one, on the
   ground under 12 km/h, the context button reads KASETA · time tape; a tap plays it: the VHS
   overlay for 6 s, a tape-rewind sound (procedural, seeded, no file), a dithered ghost of the
@@ -3998,7 +4000,8 @@ none of it); nothing new casts a sun shadow.
   footways, 5-7 m/s; `city_life.gd`'s movers (they step aside from the car like the cyclists).
   One city MultiMesh of 16 ("Pedzik", +1 in view): the bike family's mesh already holds its four
   morph shapes. A near miss (within 4 m, the car over 10 km/h) gets a `pedzik` bubble, once per
-  30 s. Not built: the kerb-edge riding, the couriers waiting at the stands, the race (BACKLOG).
+  30 s. Not built: the kerb-edge riding, the couriers waiting at the stands (BACKLOG); loop jobs-2
+  built the race ("The courier race, the round-up, the payphone and the armchair man" below).
 - **Metro entrances** (vision 3.5): up to three on the pavement within 70 m of each of nine
   station places (Ratusz Arsenał, Świętokrzyska, Centrum, Politechnika, Rondo ONZ, …), a glass
   canopy and an M post; they and the zones' paint are one "StreetProps" mesh per sector (+1 where
@@ -4025,6 +4028,72 @@ none of it); nothing new casts a sun shadow.
   Leżaks and metro off the lanes), the brand denylist, the lines and the font, the wall ray on a
   synthetic facade, the hooks (stamps, the free hot dog once, the knock, the two eggs once), the
   cost and the meshes' triangles.
+
+## The courier race, the round-up, the payphone and the armchair man (loop jobs-2, 2026-10-31)
+
+docs/design/parodies.md 4.3 and 5.3, vision.md 3.7 (E34) and 3.9 (T17, E40). Code: `courier_race.gd`
+and `roundup_job.gd` (new; both children of `jobs.gd`, which steps them in its own `_process`, so
+the bench's "jobs+eggs" line holds them, and answers `busy` / the target / the card keys / the
+autopilot for them: one activity at a time, as every job), `storefronts.gd` (`lying_near`,
+`collect`, `restore_collected`, the payphone), `props.gd` (`add_payphone`, `carried_armchair`),
+`city_life.gd` (the armchair man), `main.gd` (flags, the round-up's construction, key L).
+Data: `eggs.json` E34 (`event`) and E40 (`stop`, 8 m, 2 s): no words changed.
+
+- **The courier race** (parodies.md 4.3): at night, a kebab order rolls (`CourierRace.roll`, by the
+  order's number) and 1 in 4 (`CHANCE`) a Pędzik courier at the stand challenges: he appears by the
+  kiosk, says the `pedzik` `challenge` line, and the rivals' FLASH LIGHTS button reads ŚCIGAJ ·
+  PĘDZIK (key L) for 6 s. His way is an A* over the footways, crossings and cycle paths within 250 m
+  of the stand and the door (`Crowds.build_routes`, in a worker thread while the order card is up);
+  no challenge when it is over 1.6 × the straight line. Accepting starts the delivery (GO) too; he
+  rides at 6.5 m/s (23 km/h). The kebab's status gets the rivals' 1ST / 2ND badge and "Pędzik: N m
+  przed tobą / za tobą" (the gap: his way left against the car's road distance to the door, either side of the street, at 5 Hz). At the
+  door first: the kebab pays as usual plus **+30 zł +30 respect** (`wallet.pay`, kind `courier`) and
+  his `lose` line; second: the kebab pays as usual, his `win` line when he arrives. The kebab's heat
+  is untouched; dropping the order (✕) ends the race. On today's map his way is usually about as long
+  as the road (footways follow the streets: stand 0 → Oboźna 1, 1,013 m against 1,023 m by road), so
+  a clean drive wins; the autopilot (the job's ghost, 222 s for 1 km with the lights) loses at 6.5 m/s.
+  The rider is one MeshInstance3D of the Pędzik mesh (shared actor material, no shadow), shown from
+  the challenge to 8 s after the door: +1 draw call in view while a race runs.
+- **The Leżak round-up** (parodies.md 5.3): **depots** at storefronts.gd's parking zones 1,200 m
+  apart (`DEPOT_SPACING`; the standing Leżak's zone left out): 5 on today's map. At night, with
+  nothing else on, a teal dashed ring at each and a teal square on the minimap; pull in (under
+  8 m/s, within 7 m): the card ZBIERZ 10 LEŻAKÓW and the `lezak` `start` line (GO / NOT NOW; driving
+  off is NOT NOW). GO: the 10 nearest lying Leżaks within 600 m (fewer than 4: "Tu już posprzątane")
+  get violet pins on the minimap; the target arrow points at the nearest. Within 4 m under 15 km/h:
+  the clatter, the Leżak is off the pavement (its sector's MultiMesh rewritten once), +1 in the boot
+  (5); full or none left, back to the depot's ring (under 2.5 m/s) to unload; the status shows
+  LEŻAKI n/10 · BAGAŻNIK n/5, the 6-minute clock and the hint. All back: **8 zł a Leżak, +40 zł if
+  within 6 minutes, +40 respect**, the `done` line on the result card (`RoundupJob.pay`). ✕ pays the
+  unloaded ones (no bonus, no respect). The collected ones lie about again when the night ends
+  (`restore_collected`; a fixed Night look keeps them gone for the session). Nothing new is drawn but
+  the rings (one mesh each, at night while no job runs) and the job's beacon at the depot on the way
+  back.
+- **The payphone** (E40, T17): an old card payphone (`Props.add_payphone`: a grey post, the box with
+  a dark screen, a black handset and a cream card slot under a small blue-grey hood, no operator's
+  colours or mark; 120 triangles) on the pavement 2.4 m past the outer lane within 70 m of Plac
+  Konstytucji's point (32 m on today's map, -564, 1293), 8 m clear of the metro entrances, facing the
+  road; it joins its sector's "StreetProps" mesh (**+0 draw calls**; no shadow). E40 moves onto it
+  (`move_egg`): a 2 s stop within 8 m, +10 respect and its card (the T17 line). T17 itself is not a
+  KASETA then card (the 20-card set is 2010 to today; Open Question).
+- **The armchair man** (E34, vision 3.7): one day in three (`CityLife.armchair_day`, seeded by the
+  cycle's day number: Live's date or the session's) in the shops' hours (08-20), a man in a rust
+  shirt walks Mokotowska with a 1960s teal armchair upside down on his head: a pedestrians.gd guest
+  (+0) on an A* footway way between the street's points 200 m each way of the `mokotowska` place
+  (487 m on today's map, from near Plac Zbawiciela to Wilcza), there and back at 0.9 m/s (his place
+  on it from the session's clock: nothing steps while he is far); the chair one MeshInstance3D
+  (`Props.carried_armchair`, 96 triangles, no shadow) shown only while he is near the view (**+1
+  draw call** there). The car within 8 m of him: E34 (`fire`, +20 respect once).
+- **Cost** (headless bench, `--fixed-fps 60`; "jobs+eggs" holds the race and the round-up): see the
+  table in the loop's report and ROADMAP's row; the race's step 2.6-5 µs a frame and the idle
+  round-up's 0.6 µs (`check_side_jobs`); the A* once per challenged order in a worker thread.
+- **Check**: `check_side_jobs.gd` (verify step `jobs2`, quick and CI): the race's rules (night, 1 in
+  4 over 1,000 orders, the 1.6 × rule, the pay), a race on synthetic footways (a straight way
+  challenged, a detour not, the rider's 310 m in 47.7 s, a loss paying nothing, a win +30/+30 once,
+  the challenge gone after 6 s); the round-up's rules and a run on the real map's zones (the depots'
+  spacing, the card, a full boot of 5, the pay once, late without the bonus, ✕, back by morning);
+  the payphone's spot and mesh, E40 once. `check_city_life.gd` adds the armchair man (1 in 3 over 600
+  days, there and back, his ends, his way on Mokotowska, the guest and the chair near him and none
+  far, E34 once).
 
 ## The easy-driving loop: drive through the small props (2026-10-30)
 
@@ -4538,6 +4607,10 @@ Command-line options (after `--`):
 | `--no-parodies` | loop MW-2: no storefronts (Frogs, venue neon, Leżaks, metro entrances, the new billboards) and no Pędzik couriers |
 | `--rechotka` | loop MW-2: the car on the lane by the nearest placed Frogs' door, stopped (the stamp in 2 s) |
 | `--stamps=K` | loop MW-2: the Frogs card starts at K stamps (9: the next stop is the free hot dog) |
+| `--courier-race[=N]` | loop jobs-2: kebab order N (default 0) with the Pędzik courier's challenge forced (day or night); with `--autopilot` the challenge is taken after 1 s; `courier:` lines (the way vs the straight line and the road, the result, the pay) |
+| `--courier-v=M` | loop jobs-2: the courier's speed in m/s for a test run (6.5 by default; `--courier-v=3` lets the autopilot win) |
+| `--roundup` | loop jobs-2: the car in the ring of the Leżak depot nearest it and the round-up's card up (day or night); with `--autopilot` GO is taken and the car slides to each Leżak and back; `roundup:` lines |
+| `--armchair` | loop jobs-2: the armchair man (E34) out today at any hour; the car on the lane nearest him once his way is known |
 | `--stars=X` | loop 2d-1: the live rating starts at X (1–5; for card shots) |
 | `--ignore-app` | loop 2d-1: the autopilot drives the shortest road to the door, not the app's route |
 | `--parody-log` | loop 2d-1 (and MW-2: `storefronts:` lines, each Frogs and venue on its wall or not, each Leżak knocked): print `ride:` lines (the offer, the pickup, the quirk and its waypoint, every star change and why, the arrival, the pay with the wallet before and after, cancels, the autopilot's legs) and `gps:` lines (each GPS moment in traffic) |

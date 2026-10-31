@@ -850,12 +850,11 @@
 				"A man carries a 1960s armchair. The armchair is fine."
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "event"
 			},
 			"reward": {
 				"respect": 20
-			},
-			"waits": "armchair"
+			}
 		},
 		{
 			"id": "e35",
@@ -969,12 +968,13 @@
 				"A 25-unit card. Enough for three calls and some gossip."
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "stop",
+				"within": 8,
+				"secs": 2
 			},
 			"reward": {
 				"respect": 10
-			},
-			"waits": "payphone"
+			}
 		},
 		{
 			"id": "easter_rechotka",
