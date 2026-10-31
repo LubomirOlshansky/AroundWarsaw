@@ -12,6 +12,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | --- | --- | --- | --- |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
+| gameplay (content thread) | The L-shaped map in gameplay (helicopter clamp, off-map test, random spots, minimap/full map), notebook places for Rondo Radosława and Arkadia, check_police P12's flake | cloud thread "Add autonomous backlog workflow" | 2026-10-31 |
 | map | The loading fix (on-screen sectors first, proxies that look like the city), then the map north to Rondo Radosława, Arkadia and Forest (3d-1, 3d-2a, 3d-2b and 3e landed) | thread "Finish the demo map extension" | 2026-10-30 |
 | map | The content lane's map asks (corner shops, metro entrances, bike and scooter spots, Kruczkowskiego 3B) (3d-1, 3d-2a, 3d-2b, 3e, the loading fix and map north landed) | thread "Finish the demo map extension" | 2026-10-30 |
 
