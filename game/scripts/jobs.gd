@@ -237,6 +237,15 @@ func stand_points() -> PackedVector2Array:
 	return out
 
 
+## Loop couriers: each stand's kiosk as [at, yaw] (the counter faces the road), in their order: the
+## couriers waiting there at night (city_life.gd).
+func stand_frames() -> Array:
+	var out: Array = []
+	for st in _stands:
+		out.append([st["at"], (st["xf"] as Transform3D).basis.get_euler().y])
+	return out
+
+
 ## Stand i gets a name board under KEBAB (props.gd named_kebab_stand) and its vendor's tag.
 func name_stand(i: int, words: String, tag: String) -> void:
 	if i < 0 or i >= _stands.size() or _stands[i]["name"] != "":
@@ -684,7 +693,7 @@ func _begin_kebab(i: int, n: int) -> void:
 	courier.set_road(float(o["road"]))
 	courier.on_order(_stands[i]["at"], o["ring"], n, _night(), int(o["edge"]) if bool(o["reached"]) else -1, float(o["s"]), func() -> void:
 		if state == State.ORDER and job == Job.KEBAB:
-			_go())
+			_go(), i)
 
 
 ## The order line follows the vendor's; the job goes when the player drives off,

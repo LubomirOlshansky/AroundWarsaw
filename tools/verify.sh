@@ -42,6 +42,10 @@
 # 1.6 × detour rule, the rider's way and speed, a win's +30 zł +30 respect once), the Leżak round-up
 # (the pay, the boot of 5, the depots, ten Leżaks on the real map, late, ✕, back by morning), the
 # payphone by Plac Konstytucji and E40 once; centrum.json only (CI too).
+# Loop couriers: `couriers` runs game/tools/check_couriers.gd: the Pędzik couriers waiting at the kebab
+# stands at night (1 or 2, none by day, the race's take), the kerb riders on the real lane graph (the
+# count in the band, on the kerb line, through the junctions), the swerve / hop on synthetic inputs and
+# a car driven at one (never in its footprint), the near miss's line once per 30 s; centrum.json only (CI too).
 # Loop MW-4: `life` runs game/tools/check_city_life.gd: the dogs' hours and caps, the horn's rate
 # limits, the Wiralek cycle on synthetic dates, the "Na czasie" pay, the Zając, Fat Thursday, the
 # life eggs, the meshes and the tick's cost; centrum.json only (CI too). `life-soak` (not in
@@ -88,8 +92,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud places eggs tape crowds life buses oldtram garage parodies jobs2 rides cost landmarks sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places eggs tape crowds life buses oldtram garage parodies jobs2 rides cost landmarks sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud places eggs tape crowds life buses oldtram garage parodies jobs2 couriers rides cost landmarks sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places eggs tape crowds life buses oldtram garage parodies jobs2 couriers rides cost landmarks sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -550,6 +554,8 @@ for s in $want; do
 		parodies) check parodies '^check_parodies:' --script res://tools/check_parodies.gd ;;
 		# Loop jobs-2: the courier race, the Leżak round-up, the payphone and E40.
 		jobs2) check jobs2 '^check_side_jobs:' --script res://tools/check_side_jobs.gd ;;
+		# Loop couriers: the waiting couriers, the kerb riders, the dodge, the near miss's line.
+		couriers) check couriers '^check_couriers:' --script res://tools/check_couriers.gd ;;
 		# Loop MW-4: everyday life and trends: dogs, riders, runners, Kolka, the Wiralek cycle, the
 		# "Na czasie" pay, the Zając, Fat Thursday, the life eggs (E16 E18-E20 E27-E30).
 		life) check life '^check_city_life:' --script res://tools/check_city_life.gd ;;

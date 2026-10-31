@@ -4006,8 +4006,9 @@ none of it); nothing new casts a sun shadow.
   footways, 5-7 m/s; `city_life.gd`'s movers (they step aside from the car like the cyclists).
   One city MultiMesh of 16 ("Pedzik", +1 in view): the bike family's mesh already holds its four
   morph shapes. A near miss (within 4 m, the car over 10 km/h) gets a `pedzik` bubble, once per
-  30 s. Not built: the kerb-edge riding, the couriers waiting at the stands (BACKLOG); loop jobs-2
-  built the race ("The courier race, the round-up, the payphone and the armchair man" below).
+  30 s. Loop jobs-2 built the race ("The courier race, the round-up, the payphone and the armchair
+  man" below); loop couriers the kerb riders, the couriers waiting at the stands and the dodge ("The
+  Pędzik couriers at the stands and on the kerb" below).
 - **Metro entrances** (vision 3.5): up to three on the pavement within 70 m of each of nine
   station places (Ratusz Arsenał, Świętokrzyska, Centrum, Politechnika, Rondo ONZ, …), a glass
   canopy and an M post; they and the zones' paint are one "StreetProps" mesh per sector (+1 where
@@ -4051,7 +4052,7 @@ Data: `eggs.json` E34 (`event`) and E40 (`stop`, 8 m, 2 s): no words changed.
   PĘDZIK (key L) for 6 s. His way is an A* over the footways, crossings and cycle paths within 250 m
   of the stand and the door (`Crowds.build_routes`, in a worker thread while the order card is up);
   no challenge when it is over 1.6 × the straight line. Accepting starts the delivery (GO) too; he
-  rides at 6.5 m/s (23 km/h). The kebab's status gets the rivals' 1ST / 2ND badge and "Pędzik: N m
+  rides at 6.5 m/s (23 km/h; loop couriers: at his pace, below). The kebab's status gets the rivals' 1ST / 2ND badge and "Pędzik: N m
   przed tobą / za tobą" (the gap: his way left against the car's road distance to the door, either side of the street, at 5 Hz). At the
   door first: the kebab pays as usual plus **+30 zł +30 respect** (`wallet.pay`, kind `courier`) and
   his `lose` line; second: the kebab pays as usual, his `win` line when he arrives. The kebab's heat
@@ -4100,6 +4101,70 @@ Data: `eggs.json` E34 (`event`) and E40 (`stop`, 8 m, 2 s): no words changed.
   the payphone's spot and mesh, E40 once. `check_city_life.gd` adds the armchair man (1 in 3 over 600
   days, there and back, his ends, his way on Mokotowska, the guest and the chair near him and none
   far, E34 once).
+
+## The Pędzik couriers at the stands and on the kerb (loop couriers, 2026-10-31)
+
+docs/design/parodies.md 4.2 and 4.3. Code: `city_life.gd` (the kerb riders, the dodge, the waiting
+couriers, `waiting_at` / `take_waiting`), `props.gd` (`pedzik_rider` is now a two-shape morph family:
+riding, and `PEDZIK_STANDING`), `courier_race.gd` (the challenger, `pace`, `decent_wins`), `jobs.gd`
+(`stand_frames`, the stand's index to the race), `main.gd` (the wiring, `--pedzik-log`, `--pedzik-kerb`).
+
+- **Couriers waiting at the kebab stands** (21:00-06:00): 1 or 2 by each stand within 200 m of the view
+  (`waiting_count`, seeded by the stand and the night), standing on their bike's right with the bike
+  pointing at the road, at the first two free spots 2.75 m (else 3.9 m) either side of the kiosk (no
+  roof, no lane within 1.8 m); none by day. They are instances of the Pedzik MultiMesh after the riders,
+  drawn with the rider mesh's standing shape (actor.gdshader's morph): **+0 draw calls**.
+- **The courier race's challenger** is one of them: no courier waiting at night, no challenge (unless
+  `--courier-race` forces it: then he appears at the kiosk as before). Through the offer he stands where
+  he was (the challenge bubble over him); at ŚCIGAJ he gets on his bike (`take_waiting`: he leaves the
+  MultiMesh and the race's rider appears riding on his spot) and his way starts there. A taken courier
+  is back when the stand has been out of the band (300 m) or by the next night.
+- **The race's pace** (BACKLOG "The courier rarely wins"): the rider's time is the order's road at
+  `V_ROAD` 10 m/s (`pace`: his way × 10 / the road, 6.5-11 m/s); taking a decent player as 30-50 km/h
+  door to door (8-14 m/s, spread evenly), the player wins 2 in 3 whatever the route's shape
+  (`decent_wins`). The default route (stand 0 → Oboźna 1: his way 1,015 m from his spot, the road
+  1,023 m): 9.9 m/s, 102 s. `--courier-v=` still fixes the speed for a test run. A faster rider, not a
+  shortcut: the footways follow the streets (no courtyard paths in the bake).
+- **Kerb riders**: 3 round the view by day, 5 at night (× the life amount; on top of the 4 / 6 on the
+  cycle paths and footways), on the lane graph's roads with lanes 2.9 m wide or more (no living street,
+  no tunnel), riding with the traffic on the outer lane's kerb line 0.45 m in from the kerb (parodies.md
+  says 0.6: a traffic car's side is 0.63 m from the kerb on a 3 m lane), 5-7 m/s, across the junctions
+  to a road going on (straight or right first, a left turn or the U-turn only when nothing else).
+  Same pool of 16 and MultiMesh (+0).
+- **The dodge** (every Pędzik rider, at the movers' step near the car): the closest approach of the
+  rider and the car over the next second (`closest_approach`, both moving); within 4 m he **swerves**
+  1.4 m past the kerb onto the footway (3 m/s sideways; a path rider is on the footway already and
+  steps aside with the walkers' shove) or, where the footway there is under a roof, on another road or
+  he is on a bridge, **hops** (0.3 s, 0.55 m up). Back to his line 1 s after the car is clear. The old
+  clearing (CLEAR of the car's way) stays the backstop: never inside the car's footprint. A dodge with
+  the car at 10 km/h or more is a near miss: a `pedzik` line over him, at most once per 30 s.
+- **Testing aids**: `--pedzik-log` (`pedzik: 01:30 · 6 on the paths, 5 on the kerb · 3 waiting at 2
+  stands · swerves 2 · hops 0 · lines 1` a minute, each swerve, hop, near miss and take),
+  `--pedzik-kerb` (the kerb riders start 8-35 m from the view, for shots).
+- **Check**: `check_couriers.gd` (verify step `couriers`, quick and CI; `centrum.json` and
+  `places.json` only, the stands placed by jobs.gd's own kerb test on the lane graph, seeded): the
+  counts (kerb 3 / 5, waiting 1-2 at night over 1,260 stand-nights and none by day, the night the same
+  across midnight), the kerb roads, the dodge on synthetic inputs (head on, overtaken 3 m aside, wide,
+  going away, far, parked), the hop's arc, the near miss's rate (10 lines in 300 s of near misses every
+  2 s at 30 km/h, none under 10 km/h), the real city at night by a stand (its couriers, drawn standing
+  after the riders, the race's take and its return, none by day), the kerb riders on their kerb lines
+  and still on kerb roads after 20 s, a car driven at one at 10 m/s (a swerve onto the footway and back,
+  0 overlaps, one line). `check_side_jobs.gd` adds the pace, the waiting challenger and `--courier-v`.
+- **Cost** (Linux container; before = the code from a copy; headless `--fixed-fps 60`, two runs each;
+  draw calls rendered with the software Vulkan driver at 2532×1170, one run each):
+
+  | | Before | After |
+  | --- | --- | --- |
+  | Bench route, day (`--bench`): "city life" | 0.04 / 0.03 ms | 0.04 / 0.04 ms |
+  | Kebab stand 0 at night (`--probe --at=632,-52 --time=night`): "city life" | 0.04 / 0.03 ms | 0.04 / 0.04 ms |
+  | Draw calls, stand 0 at night (main / shadow / 2D) | 116 (68 / 0 / 47) | 115 (67 / 0 / 47) |
+  | Draw calls, a plain day start (`--probe --time=day`) | 129 (59 / 35 / 35) | 129 (59 / 35 / 35) |
+
+  The waiting couriers and the kerb riders are Pedzik MultiMesh instances (+0; the ±1 at the stand is
+  which MultiMeshes happen to be in view). Triangles: the rider mesh 200 → 186 (the family drops the
+  boxes' unseen bottoms). `check_couriers`: ~35 µs a 15 Hz step at a stand at night with everything
+  near (≈ 9 µs a frame). No per-frame scans: the stands are looked at in the 2 Hz tick (42 of them), a
+  stand's free spots once, the room for a swerve once per dodge.
 
 ## The night buses, the bus stops and the horn (loop night-buses, 2026-10-31)
 
@@ -4895,7 +4960,9 @@ Command-line options (after `--`):
 | `--rechotka` | loop MW-2: the car on the lane by the nearest placed Frogs' door, stopped (the stamp in 2 s) |
 | `--stamps=K` | loop MW-2: the Frogs card starts at K stamps (9: the next stop is the free hot dog) |
 | `--courier-race[=N]` | loop jobs-2: kebab order N (default 0) with the Pędzik courier's challenge forced (day or night); with `--autopilot` the challenge is taken after 1 s; `courier:` lines (the way vs the straight line and the road, the result, the pay) |
-| `--courier-v=M` | loop jobs-2: the courier's speed in m/s for a test run (6.5 by default; `--courier-v=3` lets the autopilot win) |
+| `--courier-v=M` | loop jobs-2: the courier's speed in m/s for a test run (by default his pace: the order's road at 10 m/s, 6.5-11 m/s, loop couriers; `--courier-v=3` lets the autopilot win) |
+| `--pedzik-log` | loop couriers: print `pedzik:` lines: the minute's riders on the paths and on the kerb, the couriers waiting (and at how many stands), the swerves, hops and lines; each swerve, hop and near miss; a waiting courier taken by the race |
+| `--pedzik-kerb` | loop couriers: a testing aid for shots: the kerb riders start 8-35 m from the view (not 25-150 m), so one is in view at once |
 | `--roundup` | loop jobs-2: the car in the ring of the Leżak depot nearest it and the round-up's card up (day or night); with `--autopilot` GO is taken and the car slides to each Leżak and back; `roundup:` lines |
 | `--armchair` | loop jobs-2: the armchair man (E34) out today at any hour; the car on the lane nearest him once his way is known |
 | `--stars=X` | loop 2d-1: the live rating starts at X (1–5; for card shots) |
