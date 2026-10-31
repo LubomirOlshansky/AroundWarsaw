@@ -56,6 +56,38 @@ Small problems that agents reported or that showed up in screenshots. They are f
   rebuild the prebuilt sectors with `bake_city.gd` (a renderer, never `--headless`); render
   before/after with the Mobile renderer on lavapipe (docs/DEVELOPMENT.md "Cloud rendering").
 
+## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
+- **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;
+  the designer (`game-designer`, Sonnet for the text) specs it, `warsaw-tone` rules apply (real
+  brands only as parodies, affectionate, Polish with English).
+- **Coffee raves** (poranne kawowe imprezy): daytime, sober-ish dance mornings, a flat white in
+  one hand and a DJ on a pallet stage. Real Warsaw has them in cafes, courtyards and on the
+  Vistula boulevards (Sunday 10:00-14:00). Fiction: a morning counterpart to the five clubs. Two
+  or three parody venues, e.g. **Kawa Zero** (a courtyard in Praga), **Flat Biały** (a
+  Powiśle cafe with a terrace) and a pop-up on the Bulwary. Crowd: cargo bikes, oat-milk jokes,
+  strollers with headphones, a queue for the barista rather than the door. Shut at night.
+- **Arthouse cinemas** (kina studyjne): small screens in old halls, a bar, a repertory board.
+  Parody names for the real ones: **Kino Muranek** (for Muranów), **Iluzja** (Iluzjon),
+  **Kultura 24** (Kultura), **Elektroniczne** (Elektronik), **Kinoteka Pałacowa** (Kinoteka, in
+  the Palace of Culture). Facade = a hand-painted poster board and a neon title strip; a hush
+  rather than a crowd; a small queue before the evening show (18:00-21:00).
+- **Fit with existing systems** (no new system needed):
+  - *Notebook places*: each venue is a `places.json` entry with a card (`hours`, `district`,
+    a note line), unlocked when you stop at it, like the Wiralek and the clubs.
+  - *Venues with queues*: reuse MW-3's queue and hour curves: coffee raves peak Sun/Sat
+    morning, cinemas in the evening. Neon fascia through `storefronts.gd`.
+  - *Day/night schedule*: raves open 08:00-14:00 and are dark at night; cinemas the reverse.
+    That gives the day a nightlife of its own, so a Day run is not empty.
+  - *Eggs*: a DJ who plays only the horn tune; a film that is "three hours of a pigeon" on a
+    Kino Muranek board; a cinema bar that only serves coffee at a rave and wine at a premiere.
+  - *Radio / dialogue*: a morning DJ spot on the radio and one-liners in `dialogue.json`
+    (rave-goers, ushers).
+  - *Jobs*: a possible courier or taxi run: carry a DJ's crate to the rave, or a film reel to
+    the cinema before the show (uses `rides.gd` finishes).
+- **Open**: the final parody names (F's pick), whether raves are Sunday-only, and the
+  locations (map lane: pick real addresses from `centrum.json` POIs). Default if unanswered:
+  the names above, daily 08:00-14:00 at weekends only.
+
 ## From v0.6 (traffic, trams, pedestrians, rivals)
 - ~~Cars can overlap briefly in complex junctions~~ (fewer by three quarters, the traffic loop
   2026-10-30: junction cars watch each other's body and path, `--traffic-overlaps` counts them;
