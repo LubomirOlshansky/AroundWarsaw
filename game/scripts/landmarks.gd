@@ -242,6 +242,12 @@ const INFO := {
 	"zygmunt": ["Kolumna Zygmunta",
 			"Najstarszy świecki pomnik Warszawy, z 1644 roku.",
 			"Warsaw's oldest secular monument, of 1644."],
+	"anna_front": ["Fasada kościoła św. Anny",
+			"Klasycystyczny portyk z czterema kolumnami, projekt Chrystiana Piotra Aignera z 1788 roku.",
+			"A classicist portico of four columns, designed by Chrystian Piotr Aigner in 1788."],
+	"dzwonnica": ["Dzwonnica kościoła św. Anny",
+			"Wolno stojąca dzwonnica Jakuba Kubickiego z 1819 roku.",
+			"The free-standing bell tower by Jakub Kubicki, of 1819."],
 	"metropolitan": ["Metropolitan",
 			"Biurowiec Normana Fostera przy placu Piłsudskiego, z 2003 roku.",
 			"Norman Foster's office building on Plac Piłsudskiego, of 2003."],
@@ -483,6 +489,7 @@ func _find_sites() -> void:
 	_find_mdm()
 	_find_skins()
 	_find_zygmunt()
+	_find_anna()
 	_find_arkadia()
 	_find_forest()
 	_find_flag()
@@ -638,6 +645,10 @@ func build(surface, near := Rect2()) -> void:
 				_build_towers(s)
 			"zygmunt":
 				_build_zygmunt(s)
+			"anna_front":
+				_build_anna_front(s)
+			"dzwonnica":
+				_build_dzwonnica(s)
 			"arkadia":
 				_build_arkadia(s)
 			"forest":
@@ -1854,6 +1865,142 @@ func _build_zygmunt(_site: Dictionary) -> void:
 	var sabre := PackedVector2Array([c + Vector2(-0.34, 0.1), c + Vector2(-0.3, 0.1), c + Vector2(-0.3, 0.95), c + Vector2(-0.34, 0.95)])
 	_prism(sabre, g + 19.55, g + 19.65, ZYGMUNT_BRONZE, ZYGMUNT_BRONZE, M_STONE, M_STONE)
 	_collide(_circle(c, 3.4, 8))
+
+# --- St Anne's: the classicist front and the bell tower (the landmarks lane, 2026-10-31) ---------
+
+## Kościół św. Anny at the head of Krakowskie Przedmieście. The church itself stays the kept
+## building in its stone skin ("sw_anna"); two sites add what its outline doesn't have. The front
+## (Aigner, 1788): a portico of four Corinthian columns on steps, an entablature and a pediment
+## with a cross, over a screen wall wider than the nave with the tall windows between piers.
+## The bell tower (Kubicki, 1819) stands apart to the north: a stone base, an arcaded storey,
+## a cornice, a drum and a copper dome with its lantern; its two OpenStreetMap buildings
+## (25 m and 33.8 m, one over the other) are replaced. Frames measured from `centrum.json`:
+## the front's west wall runs (-689.3, -1358.2) to (-683.8, -1340.0); the tower's footprint is
+## the 25 m block's rectangle.
+const ANNA_O := Vector2(-686.55, -1349.1)  # the middle of the front's wall
+const ANNA_A := Vector2(0.289, 0.957)      # u: along the front, north to south
+const ANNA_BELL := Vector2(-689.275, -1379.575)
+const ANNA_BELL_A := Vector2(0.985, -0.174)
+const ANNA_WALL := Color("#e8dfc6")
+const ANNA_LIGHT := Color("#f2ebd8")
+const ANNA_SHADE := Color("#cfc2a2")
+const ANNA_COPPER := Color("#7fa894")
+func _anna_front_frame() -> void:
+	_o = ANNA_O
+	_a = ANNA_A
+	_b = Vector2(-_a.y, _a.x)   # v: outwards, to the west and the street
+
+
+func _anna_bell_frame() -> void:
+	_o = ANNA_BELL
+	_a = ANNA_BELL_A
+	_b = Vector2(-_a.y, _a.x)
+
+
+func _find_anna() -> void:
+	_anna_front_frame()
+	_add_site("anna_front", [_rect(0.0, 2.0, 9.6, 2.4)])
+	_anna_bell_frame()
+	_add_site("dzwonnica", [_rect(0.0, 0.0, 5.4, 5.4)])
+
+
+## A point of the local frame at height y (absolute).
+func _p3(u: float, v: float, y: float) -> Vector3:
+	var w := _w(u, v)
+	return Vector3(w.x, y, w.y)
+
+
+## A triangular pediment over the local width ±hu, from v0 to v1, its base at y0 and rising
+## `rise`: the front face with a darker tympanum, and the two sloping tops.
+func _pediment(hu: float, v0: float, v1: float, y0: float, rise: float, col: Color, tymp: Color) -> void:
+	_mode = M_STONE
+	var none := Vector2(-1, -1)
+	var nf := Vector3(_b.x, 0.0, _b.y)
+	_tri(_p3(-hu, v1, y0), _p3(hu, v1, y0), _p3(0.0, v1, y0 + rise), nf, col, none, none, none, -1.0)
+	var inner := hu - 1.1
+	var top := y0 + rise - 1.1
+	_tri(_p3(-inner, v1 + 0.05, y0 + 0.4), _p3(inner, v1 + 0.05, y0 + 0.4), _p3(0.0, v1 + 0.05, top), nf, tymp, none, none, none, -1.0)
+	for sgn: float in [-1.0, 1.0]:
+		var n := (Vector3(_a.x, 0.0, _a.y) * sgn * rise + Vector3.UP * hu).normalized()
+		_quad(_p3(sgn * hu, v0, y0), _p3(sgn * hu, v1, y0), _p3(0.0, v1, y0 + rise), _p3(0.0, v0, y0 + rise), n, col.darkened(0.12))
+
+
+func _build_anna_front(_site: Dictionary) -> void:
+	_anna_front_frame()
+	_g = _ground_under(_rect(0.0, 2.0, 9.6, 3.0))
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	_mode = M_STONE
+	# Steps: two courses, the lower one wider.
+	_lbox(0.0, 1.7, 7.9, 1.9, g - 0.8, g + 0.3, ANNA_SHADE, M_STONE, ANNA_LIGHT)
+	_lbox(0.0, 1.5, 7.5, 1.5, g + 0.3, g + 0.7, ANNA_SHADE, M_STONE, ANNA_LIGHT)
+	# The screen wall: the front's full width, tall windows between piers, to the cornice.
+	var top := g + 14.2
+	_lbox(0.0, 0.3, 9.3, 0.8, g + 0.2, top, ANNA_WALL, M_MONUMENT, ANNA_LIGHT)
+	# The cornice runs the full width and steps forward over the portico.
+	_lbox(0.0, 0.2, 9.7, 1.0, top, top + 0.9, ANNA_LIGHT, M_STONE, ANNA_LIGHT)
+	_lbox(0.0, 1.5, 7.5, 2.1, top, top + 1.2, ANNA_LIGHT, M_STONE, ANNA_LIGHT)
+	# Four Corinthian columns: a base, an octagonal shaft, a capital.
+	for u: float in [-5.4, -1.8, 1.8, 5.4]:
+		var c := _w(u, 2.4)
+		_lbox(u, 2.4, 0.7, 0.7, g + 0.7, g + 1.2, ANNA_SHADE, M_STONE, ANNA_LIGHT)
+		_prism(_circle(c, 0.52, 8), g + 1.2, top - 1.0, ANNA_WALL, none, M_STONE)
+		_lbox(u, 2.4, 0.78, 0.78, top - 1.0, top, ANNA_LIGHT, M_STONE, ANNA_LIGHT)
+	# Door and niches: dark openings in the wall behind the columns.
+	_mode = M_GLASS
+	var door := Color("#4a4034")
+	_wall(_w(-1.0, 1.12), _w(1.0, 1.12), g + 0.7, g + 5.0, _b, door, -0.85)
+	for sgn: float in [-1.0, 1.0]:
+		_wall(_w(sgn * 8.0 - 0.6, 1.12), _w(sgn * 8.0 + 0.6, 1.12), g + 3.2, g + 6.4, _b, door, -0.85)
+	_mode = M_STONE
+	# The pediment over the portico, with a cross on its apex and urns on the corners.
+	_pediment(7.5, 0.1, 3.5, top + 1.2, 3.6, ANNA_LIGHT, ANNA_SHADE)
+	var apex := top + 4.8
+	_lbox(0.0, 1.8, 0.12, 0.12, apex, apex + 2.4, ANNA_LIGHT, M_STONE, ANNA_LIGHT)
+	_lbox(0.0, 1.8, 0.55, 0.12, apex + 1.5, apex + 1.7, ANNA_LIGHT, M_STONE, ANNA_LIGHT)
+	for sgn: float in [-1.0, 1.0]:
+		_pinnacle(sgn * 7.1, 3.0, 0.8, top + 1.2, 1.7, ANNA_LIGHT)
+		_pinnacle(sgn * 9.0, 0.4, 0.8, top + 0.9, 1.9, ANNA_LIGHT)
+	_collide(_rect(0.0, 1.5, 7.5, 1.5))
+
+
+func _build_dzwonnica(_site: Dictionary) -> void:
+	_anna_bell_frame()
+	_g = _ground_under(_rect(0.0, 0.0, 4.4, 4.4))
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	_mode = M_STONE
+	# A plinth, the stone base with pilasters, a string course.
+	_lbox(0.0, 0.0, 4.6, 4.6, g - 0.8, g + 0.8, ANNA_SHADE, M_STONE, ANNA_LIGHT)
+	_lbox(0.0, 0.0, 4.3, 4.3, g + 0.8, g + 11.0, ANNA_WALL, M_MONUMENT, ANNA_LIGHT)
+	_lbox(0.0, 0.0, 4.55, 4.55, g + 11.0, g + 11.7, ANNA_LIGHT, M_STONE, ANNA_LIGHT)
+	# The arcaded storey: a narrower body with a dark round-arched opening on every face.
+	_lbox(0.0, 0.0, 3.7, 3.7, g + 11.7, g + 19.5, ANNA_WALL, M_STONE, ANNA_LIGHT)
+	var dark := Color("#463d34")
+	for k in 4:
+		var turn := Vector2.from_angle(k * PI * 0.5)
+		var n := _w(0.0, 0.0)
+		var dir := Vector2(turn.x * _b.x - turn.y * _b.y, turn.x * _b.y + turn.y * _b.x)  # _b turned by k quarters
+		var side := Vector2(-dir.y, dir.x)
+		var face := n + dir * 3.71
+		_mode = M_GLASS
+		_wall(face - side * 1.1, face + side * 1.1, g + 13.2, g + 17.4, dir, dark, -0.85)
+		_mode = M_STONE
+		for s: float in [-1.0, 1.0]:
+			_prism(_circle(n + dir * 3.72 + side * s * 2.6, 0.28, 4), g + 11.7, g + 19.5, ANNA_LIGHT, none, M_STONE)
+	_lbox(0.0, 0.0, 4.1, 4.1, g + 19.5, g + 20.4, ANNA_LIGHT, M_STONE, ANNA_LIGHT)
+	# The drum, the copper dome (two rings), the lantern, a cross.
+	var c := _w(0.0, 0.0)
+	_prism(_circle(c, 3.0, 8), g + 20.4, g + 22.8, ANNA_WALL, ANNA_LIGHT, M_STONE, M_STONE)
+	_mode = M_STONE
+	_frustum(_circle(c, 3.2, 8), g + 22.8, _circle(c, 2.2, 8), g + 25.2, ANNA_COPPER)
+	_frustum(_circle(c, 2.2, 8), g + 25.2, _circle(c, 0.9, 8), g + 28.2, ANNA_COPPER.lightened(0.05), ANNA_COPPER)
+	_prism(_circle(c, 0.9, 8), g + 28.2, g + 30.4, ANNA_LIGHT, none, M_STONE)
+	_frustum(_circle(c, 1.1, 8), g + 30.4, _circle(c, 0.25, 8), g + 32.4, ANNA_COPPER)
+	_lbox(0.0, 0.0, 0.08, 0.08, g + 32.4, g + 34.4, ANNA_LIGHT, M_STONE, ANNA_LIGHT)
+	_lbox(0.0, 0.0, 0.45, 0.08, g + 33.3, g + 33.5, ANNA_LIGHT, M_STONE, ANNA_LIGHT)
+	_collide(_rect(0.0, 0.0, 4.4, 4.4))
+
 
 # --- Map north: Arkadia, the Forest tower, Rondo Radosława's flag (the landmarks loop) -----------
 
