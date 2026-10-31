@@ -12,6 +12,7 @@ someone writes its lines.
 ## 2026-10-31
 
 - The rivals are a ladder now: beat Pani Halina first, earn respect, work up to Mordor Mike, then race Seba over three bridges at night in "Trzy mosty".
+- Dusk looks like a real late-October evening in Warsaw: a blue-grey sky, the Palace of Culture lit gold, lit hotel names, the station canopy's lamps and red lights on the towers.
 - Twenty little mermaid figurines hide by the kerbs of Warsaw: drive past to find them, with rewards at 5, 10 and 20 and two new paints.
 - Warsaw's districts: discover each one, find three "?" in it, and see how much of it you've done on the map. The save keeps a version now, so progress carries into later builds.
 - The map grows north: Rondo Radosława, Arkadia and the Forest tower.

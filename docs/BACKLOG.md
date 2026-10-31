@@ -56,6 +56,15 @@ Small problems that agents reported or that showed up in screenshots. They are f
   rebuild the prebuilt sectors with `bake_city.gd` (a renderer, never `--headless`); render
   before/after with the Mobile renderer on lavapipe (docs/DEVELOPMENT.md "Cloud rendering").
 
+- **From the dusk loop (2026-10-31)**: still unlit after the user's 16:20 photos: Rondo 1's
+  tenant names, PHN and the Bank Polski tower's crown (not sure which building wears which; the
+  cloud has no network to check), Złote Tarasy's dome lit from inside, Varso's antenna lattice,
+  Chałubińskiego 8's antenna and dark-glass refit (photo IMG_7104), the screens on the Marriott's
+  podium. The canopy lamps and the crown names are small at the widest zoom; look on the phone.
+  Art review (art-director, Opus): Centrum LIM's lit cells (the `S_GRID` skin, shared with the
+  InterContinental and the Westin) are cold white and many, the photos show sparse warm ones
+  (`#ffcf7a`, ~12 %, upper third); the landmark signs still glow inside the occlusion ghost.
+
 ## High priority: the first scene and the Museum of Modern Art (the user, 2026-10-31)
 - **Muzeum Sztuki Nowoczesnej as it is** (the user, 2026-10-31): the new white box on Plac
   Defilad's east edge (Thomas Phifer, opened 2024). Today it is plain white LoD2 parts with no
@@ -73,6 +82,21 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (the first scene's buildings, the Palace, the Old Town square, the Castle, the towers, the
   stadium, the bridges) against their photos, worst score first. Wanted later: an automatic
   check for coplanar faces (z-fighting) in a site's mesh.
+- **Model checks from the research** (2026-10-31, report in the project files "Детальніші моделі
+  будівель"): (1) `game/tools/check_mesh_quality.gd`, run on each landmark site's mesh arrays:
+  coplanar overlapping faces (z-fighting: group triangles by plane, test 2D overlap, ~0.01 m²),
+  zero-area and flipped triangles, parts touching neither the ground nor another part (FAIL);
+  parts inside parts and T-junction gaps (WARN, for the art-director); per-site allow-lists;
+  joins `tools/verify.sh`. (2) A game flag that renders one landmark alone, unlit and as a
+  silhouette, for the judge's shots. (3) A small `tools/check_spec.py` that checks a landmark spec has every section and parts-table
+column filled and a triangle budget, so a Sonnet build never starts from an open spec.
+(4) Evals for the model-from-photos skill: the Palace, the Rotunda and the Museum of Modern
+Art (their photos exist) built with and without the skill, scored the same way. (5) Later:
+golden-image shots runtime vs `--prebuilt`,
+  a flicker probe (two frames, a tiny camera move, diff), the Old Town's gables and a
+  straight-skeleton roof bake (map lane), fewer directional shadow splits (perf lane). The
+  rubric anchors, photo-first judging, the parts table and the two-round cap are in the
+  model-from-photos skill already.
 - **The first scene, polished to the maximum** (the user, 2026-10-31): the place the player sees
   first must make a "wow". Default place: Marszałkowska by Plac Defilad (the Palace, the museum,
   the Eastern Wall, the towers), where the spawn and DEMO 6.2's first minutes already are; the

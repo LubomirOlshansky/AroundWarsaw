@@ -30,7 +30,8 @@ it, and hand it back for acceptance. You don't decide looks and you don't spawn 
 1. The brief: the spec (values), the objects, the shots it wants, the budget.
 2. CLAUDE.md "Hard rules" and "Code conventions"; `.claude/skills/screenshot-review/art-bible.md`;
    the model-from-photos skill (detail levels, triangle budgets, the matched shots).
-   If `refs/<slug>/` exists, open its photos and SOURCES.md: build what they show at the
+   If `refs/<slug>/` exists, open its photos, the orthophoto `ortho.jpg` (the roof and the
+   footprint from above) and SOURCES.md: build what they show at the
    brief's detail level (L2 or L3), every identity feature the spec names.
 3. The code: grep for the object's function first and read only that range. `map_builder.gd`
    and `main.gd` are thousands of lines; never read them whole.
@@ -51,6 +52,10 @@ Don't try a second or third guess: escalating costs less than an Opus review of 
 tries. Other items in the brief go on.
 
 ## Gates (before you report)
+
+Order matters (model-from-photos skill, section 4): the automatic checks first, a FAIL is
+yours to fix before anyone reviews. After two review rounds that still fail, stop and
+escalate: the spec needs changing, not a third try.
 
 1. `tools/verify.sh --quick` PASS (or the set the brief names); paste the table.
 2. Matched shots: for each reference photo that shows the silhouette, a game shot from the

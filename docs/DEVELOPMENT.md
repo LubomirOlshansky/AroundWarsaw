@@ -256,9 +256,14 @@ HELI / AUTO (right); the keys are unchanged.
 ## Night and vaporwave
 
 - **Day** is the original look, calmed in the look loop (no saturation boost by day, quieter
-  grass, brick-red cycle lanes, a grey-green-blue river; see The first-minute look). **Dusk**: a low orange sun from the south-west
-  with long shadows, a violet fill light, a pink-purple sky behind the diorama, glass towers
-  reflecting it, and the first windows and lamps on. **Night**: deep navy-violet ambient, a
+  grass, brick-red cycle lanes, a grey-green-blue river; see The first-minute look). **Dusk** (the dusk loop, 2026-10-31, after the
+  user's photos of Śródmieście at 16:20 in late October): the blue hour under an overcast sky, a
+  slate-blue sky behind the diorama, flat cool light with no sun shadows (which pays for a soft
+  glow, 0.4), glass towers reflecting the grey-blue sky, most windows and every lamp on, the
+  Palace of Culture floodlit gold to the spire (`building.gdshader` `floodlight`; it was violet up
+  the tower), lit names on the hotels' crowns and red aviation lights on the towers over 100 m
+  (`landmarks.gd` `_dusk_details`, `_crown_signs`, `_aviation`; at Dusk and Night). Dawn keeps
+  using Dusk's palette. **Night**: deep navy-violet ambient, a
   cold moon (no shadows, which pays for the glow), stars, and the lit city. A switch blends
   over 1.5 s.
 - **Lit windows** (`building.gdshader`): a seeded share of each building's windows (some

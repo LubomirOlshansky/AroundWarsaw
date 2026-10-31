@@ -46,13 +46,16 @@ const LOOKS := [
 		"glow": 0.0, "saturation_share": 0.0,
 	},
 	{
-		"background": Color("#3a2466"), "ambient": Color("#7464b4"), "ambient_energy": 0.5,
-		"sun": Color("#ff8a4c"), "sun_energy": 1.7, "sun_pitch": -13.0, "sun_yaw": -40.0, "shadows": 1.0,
-		"lights_on": 0.72, "daylight": 0.45, "sky_colour": Vector3(0.98, 0.56, 0.62),
-		"tone_amount": 0.7, "tone_shadow": Vector3(0.82, 0.7, 1.25), "tone_light": Vector3(1.1, 0.96, 0.9),
-		"sky_amount": 1.0, "sky_top": Color("#24174f"), "sky_bottom": Color("#ff7d7a"), "stars": 0.25,
-		# No glow while the sun still casts shadows: the two together doubled the GPU time.
-		"glow": 0.0, "saturation_share": 1.0,
+		# The dusk loop (2026-10-31, the user's photos of Śródmieście at 16:20 in late October): the
+		# blue hour under an overcast sky, not a sunset. A slate-blue sky, cool flat light and no
+		# shadows (the sun is behind the clouds), so the lit windows, the signs and the floodlit
+		# Palace carry the picture; a soft glow, as at night (no shadow pass to pay for it).
+		"background": Color("#47506e"), "ambient": Color("#5f6a8c"), "ambient_energy": 0.52,
+		"sun": Color("#d9b8a0"), "sun_energy": 0.55, "sun_pitch": -16.0, "sun_yaw": -40.0, "shadows": 0.0,
+		"lights_on": 0.8, "daylight": 0.36, "sky_colour": Vector3(0.46, 0.5, 0.63),
+		"tone_amount": 0.7, "tone_shadow": Vector3(0.8, 0.86, 1.24), "tone_light": Vector3(1.06, 0.98, 0.9),
+		"sky_amount": 1.0, "sky_top": Color("#2a3150"), "sky_bottom": Color("#a49aa6"), "stars": 0.0,
+		"glow": 0.4, "saturation_share": 0.8,
 	},
 	{
 		"background": Color("#0a0b22"), "ambient": Color("#33378a"), "ambient_energy": 0.44,
