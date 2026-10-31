@@ -34,6 +34,12 @@ GUGiK LoD2 heights and what the model remembered; nobody put a photo beside the 
   game is seen from above, so this is the photo that shows what the player sees most: the roof
   (shape, skylights, plant, courtyards), the footprint against the OSM outline, what stands
   round it. Game x/z to lat/lon: the map's `origin` and `project` in `tools/bake_osm.py`.
+  What worked (2026-10-31): `https://mapy.geoportal.gov.pl/wss/service/PZGIK/ORTO/WMS/HighResolution`,
+  layer `Raster`, WMS 1.3.0, EPSG:4326 (axis order lat,lon in the bbox), image/jpeg, up to
+  4096 px, no key (a User-Agent only). It is not a true ortho: **towers lean**, their roofs
+  shifted off the base (Varso, Złota 44, Warsaw Unit, WCF); take roof plans from low
+  buildings, and a tower's footprint from OSM. Some sites are blurred by the Geoportal itself
+  (Dom bez Kantów, parts round the Presidential Palace).
   Google's and Apple's 3D views may be looked at, never downloaded or copied (their terms).
 
 ## 2. The spec (Opus, from the photos)
