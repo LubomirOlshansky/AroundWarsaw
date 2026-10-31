@@ -76,6 +76,18 @@ Small problems that agents reported or that showed up in screenshots. They are f
   `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Left: the photo check on the
   Mac (the two city-room windows' faces and sizes and the skylight count are estimates; the
   photos in `refs/` were not reachable from the cloud), and TR Warszawa next door.
+- **Złote Tarasy, the museum's way** (the user, 2026-10-31): **Built 2026-10-31** (site
+  `tarasy`, spec `docs/landmarks/specs/tarasy.md`): the whole complex from its OSM 3D parts,
+  the glass wave, the terraced sandstone podium, Lumen's crescent, Skylight with a lit crown,
+  the drum, the planted south terraces. Left: the photo check on the Mac (Lumen's ribbons,
+  Skylight's crown, the red entrance boxes), `tools/check_roads.py` on the Mac (needs
+  terrain.json; its tarasy zone now mirrors the outline).
+- **Recheck with the museum's approach** (the user, 2026-10-31): rebuild each from its real 3D
+  map data, a spec in `docs/landmarks/specs/` passing `tools/check_spec.py`, the `--solo`
+  silhouette and flat renders, zero defects in `check_mesh_quality`, a photo check on the Mac.
+  In this order unless the user says otherwise: Pałac Kultury i Nauki, Warszawa Centralna, the
+  Warsaw University Library (BUW, its green roof garden and the copper-green facade panels),
+  the Copernicus Science Centre, Stadion Narodowy. Only listed, not started.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
   photos per building in `refs/` (Wikimedia Commons, gitignored; fetched on the Mac, the cloud
@@ -110,6 +122,9 @@ golden-image shots runtime vs `--prebuilt`,
   hints, first order and first race to loop 3h item 6.
 
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
+- **Coffeechair cafés** (the user, 2026-10-31): a parody of the Coffeedesk coffee shops,
+  small branded cafés round the city with their own sign ("COFFEECHAIR", a chair for the desk),
+  for the content lane (shop signs and fascias). Brand rules: parody name and look only.
 - **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;
   the designer (`game-designer`, Sonnet for the text) specs it, `warsaw-tone` rules apply (real
   brands only as parodies, affectionate, Polish with English).

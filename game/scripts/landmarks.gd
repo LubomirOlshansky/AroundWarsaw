@@ -105,8 +105,8 @@ const INFO := {
 			"237 m razem z iglicą. Otwarty w 1955 roku.",
 			"237 m with its spire. Opened in 1955."],
 	"tarasy": ["Złote Tarasy",
-			"Centrum handlowe pod falującym szklanym dachem. Otwarte w 2007 roku.",
-			"A shopping centre under a rolling glass roof. Opened in 2007."],
+			"Centrum handlowe pod falującym szklanym dachem, obok biurowce Lumen i Skylight. Otwarte w 2007 roku.",
+			"A shopping centre under a rolling glass roof, with the Lumen and Skylight office buildings. Opened in 2007."],
 	"rotunda": ["Rotunda",
 			"Okrągły szklany pawilon u zbiegu Marszałkowskiej i Alej Jerozolimskich. Klasyczne miejsce spotkań: „pod Rotundą”.",
 			"A round glass pavilion where Marszałkowska meets Al. Jerozolimskie. The classic place to meet: \"under the Rotunda\"."],
@@ -470,18 +470,21 @@ func _find_sites() -> void:
 	var palace := _landmark("Pałac Kultury i Nauki")
 	if palace.size() >= 3:
 		_add_site("palace", [palace])
-	# Złote Tarasy: the glass wave is mapped as eight glass domes over the mall; the office
-	# crescent (Lumen) and Skylight stay as they are.
+	# Złote Tarasy (spec docs/landmarks/specs/tarasy.md, 2026-10-31): the whole complex inside
+	# its outline is the landmark, built from its mapped parts. The glass wave is mapped as
+	# eight glass domes over the mall; the rest is the terraced mall, Lumen and Skylight.
 	var tarasy := _landmark("Złote Tarasy")
 	if tarasy.size() >= 3:
-		var domes := _parts_in(tarasy, func(b: Dictionary) -> bool:
-				return str(b["c"]).to_lower() == "#336699" and float(b["h"]) >= 20.0)
-		var zone: Array = []
-		for b in domes:
-			zone.append(_pts(b["p"]))
-		_add_site("tarasy", zone, [_landmark("Lumen"), _landmark("Skylight")])
+		var parts := _parts_in(tarasy, func(b: Dictionary) -> bool:
+				return float(b["h"]) > float(b["mh"]) and not b.get("br", false))
+		var domes: Array[Dictionary] = []
+		for b in parts:
+			if _tarasy_dome(b):
+				domes.append(b)
+		_add_site("tarasy", [tarasy])
 		if not sites.is_empty() and sites[-1]["key"] == "tarasy":
 			sites[-1]["domes"] = domes
+			sites[-1]["parts"] = parts
 	var rotunda := _landmark("Rotunda PKO")
 	if rotunda.size() >= 3:
 		_add_site("rotunda", [rotunda])
@@ -1293,11 +1296,88 @@ func _dial(c: Vector2, y: float, n: Vector2, r: float) -> void:
 
 # --- Złote Tarasy -----------------------------------------------------------------------------
 
+## Złote Tarasy (Jerde Partnership, 2007), rebuilt 2026-10-31 to its spec
+## docs/landmarks/specs/tarasy.md from the complex's OpenStreetMap parts: the glass wave over
+## the mall, the mall's terraced sandstone podium under it, the Lumen office crescent wrapping
+## it on Złota and Jana Pawła II, the Skylight tower on Emilii Plater with its lit glass crown,
+## the round glass drum on the station side. Every part keeps its mapped outline and heights;
+## what the part is decides its look (TARASY_*).
+const TARASY_SAND := Color("#d9c7a0")      # the podium's sandstone walls
+const TARASY_SHOP := Color("#c8b27e")      # the podium's golden shop glass (S_GRID)
+const TARASY_TERRACE := Color("#8a9a72")   # the planted terraces (mapped #6EBE9F)
+const TARASY_DECK := Color("#a49d90")      # the podium's plain roofs
+const TARASY_LUMEN := Color("#9fb0b8")     # Lumen's silver-blue glass between white ribbons
+const TARASY_LUMEN_ROOF := Color("#8e9497")
+const TARASY_SKY := Color("#6f9cb0")       # Skylight's blue-green curtain wall
+const TARASY_SKY_ROOF := Color("#a7b3b8")
+const TARASY_CROWN := Color("#b9d2dc")     # Skylight's glass crown, lit cool white at night
+const TARASY_DRUM := Color("#c9b98f")      # the drum: golden glass lit warm
+const TARASY_RED := Color("#c0624c")       # the red entrance boxes on Jana Pawła II (mapped tomato)
+const TARASY_RIM := Color("#b9a983")       # the wave's glass walls: the terraces' shopfronts
+const TARASY_WAVE := Color("#d4b066")      # the landmarks loop: golden glass (was #8fb6c6, ice)
+## How far Skylight's crown leans in (fraction of the way to the centre) and how high it is.
+const TARASY_CROWN_IN := 0.18
+const TARASY_CROWN_H := 8.0
+
+
+func _tarasy_dome(b: Dictionary) -> bool:
+	return str(b["c"]).to_lower() == "#336699" and float(b["h"]) >= 20.0
+
+
+func _build_tarasy(site: Dictionary) -> void:
+	_g = _ground_under(site["zone"][0])
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	var shop := M_SKIN + float(S_GRID) / 16.0
+	for b: Dictionary in site.get("parts", []):
+		if _tarasy_dome(b):
+			continue
+		var poly := _pts(b["p"])
+		if poly.size() < 3:
+			continue
+		var h := float(b["h"])
+		var mh := float(b["mh"])
+		var y0 := _ground_under(poly) - 0.4 if mh < 0.5 else g + mh
+		var y1 := g + h
+		var nm := str(b.get("name", ""))
+		var col := str(b["c"]).to_lower()
+		if nm == "Lumen":
+			# The office crescent: white ribbons between silver-blue glass, on the podium.
+			_prism(poly, y0, y1, TARASY_LUMEN, TARASY_LUMEN_ROOF, M_SKIN + float(S_RIBBON) / 16.0, M_SKIN)
+		elif nm == "Skylight":
+			_prism(poly, y0, y1, TARASY_SKY, TARASY_SKY_ROOF, M_SKIN + float(S_BANDS) / 16.0, M_SKIN)
+			# The crown: the curtain wall carried up past the roof and leaning in, lit at night.
+			var c := _centre(poly)
+			var top := PackedVector2Array()
+			for q in poly:
+				top.append(q + (c - q) * TARASY_CROWN_IN)
+			_mode = M_PAVILION + 0.5
+			_frustum(poly, y1, top, y1 + TARASY_CROWN_H, TARASY_CROWN, TARASY_SKY_ROOF)
+		elif col == "#336699":
+			# The glass floor under the wave's low south sweep: the wave carried down to the plaza.
+			_prism(poly, y0, y1, TARASY_RIM, TARASY_WAVE, M_PAVILION, M_GLASS_ROOF)
+		elif h >= 29.5 and h - mh < 1.0:
+			_prism(poly, y0, y1, TARASY_SAND, TARASY_SAND.darkened(0.08), M_STONE, M_STONE)  # the drum's rim
+		elif h >= 29.5 and mh < 0.5 and poly.size() >= 16:
+			_prism(poly, y0, y1, TARASY_DRUM, TARASY_DECK, M_PAVILION, M_STONE)  # the drum
+		elif col == "tomato":
+			_prism(poly, y0, y1, TARASY_RED, TARASY_RED.darkened(0.15), M_STONE, M_STONE)
+		elif col == "#6ebe9f":
+			_prism(poly, y0, y1, TARASY_SAND, TARASY_TERRACE, shop, M_STONE)
+		else:
+			_prism(poly, y0, y1, TARASY_SAND, TARASY_DECK, shop, M_STONE)
+		if mh < 0.5:
+			_collide(poly)
+	_tarasy_wave(site)
+	_mode = M_STONE
+
+
 ## The glass wave: one surface over the mapped domes (each a cap rising to its mapped
 ## height, 35 m by the offices, 22 m towards the station), blended where they meet so
 ## the roof rolls instead of creasing, laid on the ground's slope, with glass walls
-## round its rim where it stands clear of the ground.
-func _build_tarasy(site: Dictionary) -> void:
+## round its rim where it stands clear of the ground: the terraces' shopfronts, lit warm
+## floor by floor at night.
+func _tarasy_wave(site: Dictionary) -> void:
 	var domes: Array = []
 	for b in site.get("domes", []):
 		var poly := _pts(b["p"])
@@ -1313,8 +1393,7 @@ func _build_tarasy(site: Dictionary) -> void:
 	for d in domes:
 		lo = lo.min(d[0] - Vector2.ONE * d[1])
 		hi = hi.max(d[0] + Vector2.ONE * d[1])
-	_g = _ground_under(PackedVector2Array([lo, hi, Vector2(lo.x, hi.y), Vector2(hi.x, lo.y)]))
-	var glass := Color("#d4b066")  # the landmarks loop: golden glass (was #8fb6c6, read as ice)
+	var glass := TARASY_WAVE
 	var step := 3.0
 	var nx := ceili((hi.x - lo.x) / step)
 	var nz := ceili((hi.y - lo.y) / step)
@@ -1358,7 +1437,7 @@ func _build_tarasy(site: Dictionary) -> void:
 					n = -n
 				_tri(a, b, c, n, glass, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
 	# The rim: glass walls where the wave stands clear of the ground.
-	_mode = M_GLASS
+	_mode = M_PAVILION
 	var ring := PackedVector2Array()
 	for d in domes:
 		var seg := 40
@@ -1382,7 +1461,7 @@ func _build_tarasy(site: Dictionary) -> void:
 				continue
 			var n: Vector2 = (m - (d[0] as Vector2)).normalized()
 			_quad(Vector3(a.x, ga, a.y), Vector3(b.x, gb, b.y), Vector3(b.x, yb, b.y), Vector3(a.x, ya, a.y),
-					Vector3(n.x, 0, n.y), Color("#a99f7e"), Vector2(0, ga - _g), Vector2(a.distance_to(b), gb - _g),
+					Vector3(n.x, 0, n.y), TARASY_RIM, Vector2(0, ga - _g), Vector2(a.distance_to(b), gb - _g),
 					Vector2(a.distance_to(b), yb - _g), Vector2(0, ya - _g), maxf(ya, yb) - _g)
 			map._wall_faces.append_array([Vector3(a.x, ga - 1.0, a.y), Vector3(b.x, gb - 1.0, b.y), Vector3(b.x, gb + 5.0, b.y),
 					Vector3(a.x, ga - 1.0, a.y), Vector3(b.x, gb + 5.0, b.y), Vector3(a.x, ga + 5.0, a.y)])
