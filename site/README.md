@@ -8,6 +8,7 @@ analytics.
 | --- | --- |
 | `src/index.html` | the landing's template, `{{key}}` placeholders |
 | `src/strings.json` | all the copy in `en` and `pl`, the hero shot, the screenshot reel (image, size, caption, alt text), the list of things to do, the form's topics |
+| `public/progress/index.html` | **built**: what was added or improved each day (`tools/changelog.py` from `docs/CHANGELOG.md` and ROADMAP's progress log) with links to the backlog; run `python3 -I tools/site_build.py` before every deploy so it is current |
 | `public/index.html`, `public/pl/index.html`, `public/privacy/index.html`, `public/support/index.html` | **built**, never edited by hand: `python3 -I tools/site_build.py` (the privacy page comes from `docs/privacy.md`, support from `docs/support.md`) |
 | `public/styles.css` | all styles; colours and fonts are tokens on `:root` |
 | `public/site.js` | the beta and feedback form: checks the fields, posts to Formspree in place, says how it went (without JavaScript the form still posts) |

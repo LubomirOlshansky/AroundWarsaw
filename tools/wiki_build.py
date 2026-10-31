@@ -526,6 +526,15 @@ ROUND_ALIASES = {"3f": ["landmark models", "rondo towers", "mdm", "historic lant
                  "MW-2": ["storefront", "shop front"], "3i": ["puddles", "night water", "banded headlights"]}
 
 
+def changelog():
+    """tools/changelog.py, the day-by-day changelog (imported by path: `python3 -I`)."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("changelog", ROOT / "tools" / "changelog.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
 def progress_log() -> list[list[str]]:
     sec = md_section(read("docs/ROADMAP.md"), "Progress log")
     rows = []
@@ -658,13 +667,16 @@ def page_progress(site: Site) -> dict:
         "<p>Problems and ideas found along the way; a struck-through entry is fixed. " + edit_link("docs/BACKLOG.md") + "</p>",
         table(["Area", "Fixed", "Open", "Progress"],
               [[esc(s), str(f), str(o), bar(f, o + f)] for s, o, f in bl if o + f]),
+        '<h2 id="days">Day by day</h2>',
+        "<p>The short version, as on aroundwarsaw.app/progress/. " + edit_link("docs/CHANGELOG.md") + "</p>",
+        changelog().html_days("h3"),
         '<h2 id="log">Progress log (newest first)</h2>',
         filter_box("Filter the log…"),
         table(["Date", "Update", "What landed"], [[esc(d), esc(v), md_inline(w)] for d, v, w in reversed(progress_log())], "log"),
     ]
     site.page("progress/", "Progress", "\n".join(body),
               "How complete each part of the game is, worked out from the roadmap, the progress log, the backlog and the eggs every time the wiki is built.",
-              toc=[(2, "inventory", "What is in the game"), (2, "road", "The road to the 1.0 demo"), (2, "lanes", "Who is working on what"), (2, "backlog", "Backlog by area"), (2, "log", "Progress log")])
+              toc=[(2, "inventory", "What is in the game"), (2, "road", "The road to the 1.0 demo"), (2, "lanes", "Who is working on what"), (2, "backlog", "Backlog by area"), (2, "days", "Day by day"), (2, "log", "Progress log")])
     return {"rounds": (done_rounds, total_rounds), "eggs": (live, total_eggs), "backlog": (bl_fixed, bl_open + bl_fixed)}
 
 
