@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-10-31
 
+- Frogs shops, metro entrances and dumped e-scooters now stand where the real ones are, and none on the road or a crossing.
 - The map grows north: Rondo Radosława, Arkadia and the Forest tower.
 - Plac Piłsudskiego is complete, with Hotel Europejski, the Metropolitan, Hotel Wiktoria and the Tomb of the Unknown Soldier.
 - Muzeum Narodowe is a real model now.

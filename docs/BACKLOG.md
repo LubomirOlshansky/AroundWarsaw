@@ -1698,7 +1698,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
   frames the same code passed. Fix (map lane): wait in frames, or run the pass on a frame budget
   that doesn't change with the machine; the iPhone 11's 60 Hz is the case that counts.
 
-- **The content lane's switch** (storefronts.gd, roundup_job.gd, props.gd; none of it built):
+- **The content lane's switch** (storefronts.gd, 2026-10-31: **built** in loop content-POIs-switch, see ROADMAP; bike docks and the other `convenience` shops are not used yet; roundup_job.gd and props.gd needed no change):
   the Leżaks from the `scooter` pois (`p` the pose: `lie` on its side as today; `stand` upright;
   `roof` at `h` 2.6 m over the ground; `grass`, `bench`, `hedge`, `frogs` lie like `lie`) instead
   of `_pick_scooters`, the zones' paint from `scooter_zone` (3 m along `yaw`), the standing one
