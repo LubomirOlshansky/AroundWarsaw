@@ -51,6 +51,13 @@ const ROW_H := 44.0
 ## The minimap: its diameter on screen and how far from the car its rim reaches (metres).
 const MINI_D := 96.0
 const MINI_REACH := 360.0
+## Map north (the L-shaped map, 2026-10-31): the minimap's and the full map's ground off the map
+## (past the bounds and over the corner left outside), a step darker than the card's paper so the
+## map reads as an L. Its chroma is over 0.2, so MINI_CLIP's night palette darkens it as an area.
+const OFF_MAP := Color("#c8b48e")
+## How far past the bounds the off-map ground is drawn (m): the full map at its widest zoom,
+## centred on the map's edge, shows about 5.4 km past it on a 19.5:9 screen.
+const OFF_MAP_REACH := 6000.0
 ## The stick's (and Classic's steering strip's) reach: a full push is this far from where the
 ## thumb came down (loop 2a's 70 HUD units were 43 pt on the user's Pro Max, 38 on a 6.1").
 const STICK_R := 42.0
@@ -132,6 +139,11 @@ var settings_panel: Control
 var full_map: Control
 ## The minimap's map in metres (its bounds), for the full map.
 var _map_bounds := Rect2()
+## Map north: the map's outline (map_builder.gd `map_outline`) and the parts of the bounds left
+## outside (its `outside`), from setup_minimap: the edge line runs round the outline, and no
+## street or park is drawn in an outside part (check_edge counts the minimap's triangles there).
+var _map_outline := PackedVector2Array()
+var _map_outside: Array[Rect2] = []
 ## A finger down on the minimap: [index, where, when] (a tap there opens the full map).
 var _map_tap: Array = []
 ## Helicopter height pads: +1 held climbs, -1 sinks.
@@ -1460,7 +1472,10 @@ func _over_panel(p: Vector2) -> bool:
 
 # --- the minimap -----------------------------------------------------------------------------
 
-func setup_minimap(data: Dictionary) -> void:
+## `outline` and `outside`: the map's shape (map north; empty: the bounds' rectangle).
+func setup_minimap(data: Dictionary, outline := PackedVector2Array(), outside: Array[Rect2] = []) -> void:
+	_map_outline = outline
+	_map_outside = outside
 	_mini_radius = MINI_D * 0.5 * pt
 	_mini_scale = _mini_radius / MINI_REACH
 	_minimap = Control.new()
@@ -1470,9 +1485,12 @@ func setup_minimap(data: Dictionary) -> void:
 	_minimap.draw.connect(func(): _minimap.draw_circle(Vector2.ONE * _mini_radius, _mini_radius,
 			Color(0.93, 0.9, 0.83, 0.94).lerp(CARD_BG, _night)))
 	add_child(_minimap)
-	_mini_mesh = _minimap_mesh(data)
 	var bb: Array = data.get("bounds", [0.0, 0.0, 0.0, 0.0])
 	_map_bounds = Rect2(Vector2(bb[0], bb[1]), Vector2(float(bb[2]) - float(bb[0]), float(bb[3]) - float(bb[1])))
+	if _map_outline.size() < 3:
+		_map_outline = PackedVector2Array([_map_bounds.position, Vector2(_map_bounds.end.x, _map_bounds.position.y),
+				_map_bounds.end, Vector2(_map_bounds.position.x, _map_bounds.end.y)])
+	_mini_mesh = _minimap_mesh(data)
 	_mini_clip = ShaderMaterial.new()
 	_mini_clip.shader = Shader.new()
 	_mini_clip.shader.code = MINI_CLIP
@@ -1507,14 +1525,37 @@ func update_minimap(car_xz: Vector2, car_yaw: float, view_yaw: float) -> void:
 
 ## The minimap's map as one mesh (loop 2b), in the order it was drawn before: parks and
 ## water, then the streets (draw_polyline's strip: each point pushed out half the width
-## along the mean of its two segments' normals), the map's edge and the Palace's dot.
+## along the mean of its two segments' normals), the map's edge and the Palace's dot. Map north:
+## first the off-map ground (OFF_MAP: a frame round the bounds and each part left outside), and
+## no park, street or tunnel triangle whose middle lies in a part left outside; the edge runs
+## round the map's outline (an L since map north), not the bounds.
 func _minimap_mesh(data: Dictionary) -> ArrayMesh:
 	var s := _mini_scale
 	var verts := PackedVector2Array()
 	var cols := PackedColorArray()
-	var tri := func(a: Vector2, b: Vector2, c: Vector2, col: Color) -> void:
+	var put := func(a: Vector2, b: Vector2, c: Vector2, col: Color) -> void:
 		verts.append_array([a, b, c])
 		cols.append_array([col, col, col])
+	var outside := _map_outside
+	var tri := func(a: Vector2, b: Vector2, c: Vector2, col: Color) -> void:
+		var m := (a + b + c) / (3.0 * s)
+		for o in outside:
+			if o.has_point(m):
+				return
+		put.call(a, b, c, col)
+	var quad := func(r: Rect2) -> void:
+		var lo := r.position * s
+		var hi := r.end * s
+		put.call(lo, Vector2(hi.x, lo.y), hi, OFF_MAP)
+		put.call(lo, hi, Vector2(lo.x, hi.y), OFF_MAP)
+	var mb := _map_bounds
+	var far := mb.grow(OFF_MAP_REACH)
+	quad.call(Rect2(far.position, Vector2(far.size.x, mb.position.y - far.position.y)))
+	quad.call(Rect2(Vector2(far.position.x, mb.end.y), Vector2(far.size.x, far.end.y - mb.end.y)))
+	quad.call(Rect2(Vector2(far.position.x, mb.position.y), Vector2(mb.position.x - far.position.x, mb.size.y)))
+	quad.call(Rect2(Vector2(mb.end.x, mb.position.y), Vector2(far.end.x - mb.end.x, mb.size.y)))
+	for o in outside:
+		quad.call(o.intersection(mb))
 	for a in data["areas"]:
 		var colour: Color
 		match String(a["k"]):
@@ -1536,7 +1577,7 @@ func _minimap_mesh(data: Dictionary) -> ArrayMesh:
 		var ids := Geometry2D.triangulate_polygon(pts)
 		for k in range(0, ids.size() - 2, 3):
 			tri.call(pts[ids[k]], pts[ids[k + 1]], pts[ids[k + 2]], colour)
-	var strip := func(pts: PackedVector2Array, col: Color, width: float) -> void:
+	var strip := func(pts: PackedVector2Array, col: Color, width: float, emit: Callable) -> void:
 		var prev := Vector2.ZERO
 		var left := PackedVector2Array()
 		var right := PackedVector2Array()
@@ -1551,8 +1592,8 @@ func _minimap_mesh(data: Dictionary) -> ArrayMesh:
 			right.append(pts[i] - off)
 			prev = t
 		for i in pts.size() - 1:
-			tri.call(left[i], right[i], left[i + 1], col)
-			tri.call(right[i], right[i + 1], left[i + 1], col)
+			emit.call(left[i], right[i], left[i + 1], col)
+			emit.call(right[i], right[i + 1], left[i + 1], col)
 	for r in data["roads"]:
 		var pts := PackedVector2Array()
 		var flat: Array = r["p"]
@@ -1561,7 +1602,7 @@ func _minimap_mesh(data: Dictionary) -> ArrayMesh:
 		if pts.size() < 2:
 			continue
 		var minor: bool = r["k"] in ["service", "living_street"]
-		strip.call(pts, Color("#8d8f94") if minor else Color("#5b5e64"), maxf(1.0, float(r["w"]) * s))
+		strip.call(pts, Color("#8d8f94") if minor else Color("#5b5e64"), maxf(1.0, float(r["w"]) * s), tri)
 	# Loop 3b: tunnels, dashed (8 m drawn, 8 m left out) so they read as under the ground.
 	for r in data.get("tunnels", {}).get("roads", []):
 		var flat: Array = r["p"]
@@ -1579,15 +1620,16 @@ func _minimap_mesh(data: Dictionary) -> ArrayMesh:
 				if phase < 8.0:
 					var t1 := minf(t + 8.0 - phase, ln)
 					strip.call(PackedVector2Array([a.lerp(c, t / ln) * s, a.lerp(c, t1 / ln) * s]),
-							Color("#5b5e64"), maxf(1.0, float(r["w"]) * s))
+							Color("#5b5e64"), maxf(1.0, float(r["w"]) * s), tri)
 					t = t1
 				else:
 					t += 16.0 - phase
 			run += ln
-	var b: Array = data["bounds"]
-	var lo := Vector2(b[0], b[1]) * s
-	var hi := Vector2(b[2], b[3]) * s
-	strip.call(PackedVector2Array([lo, Vector2(hi.x, lo.y), hi, Vector2(lo.x, hi.y), lo]), Color("#6a503b"), 1.2 * pt)
+	var edge := PackedVector2Array()
+	for q in _map_outline:
+		edge.append(q * s)
+	edge.append(_map_outline[0] * s)
+	strip.call(edge, Color("#6a503b"), 1.2 * pt, put)
 	for l in data.get("landmarks", []):
 		if l["name"] == "Pałac Kultury i Nauki":
 			var flat: Array = l["p"]

@@ -21,9 +21,12 @@
 # grass medians on tram tracks (S1, S2, S4 FAIL; S3, medians in a junction, is reported).
 # `tiers` and `governor` (loop G1): the device tiers and the pixel image's size rule, and the
 # frame governor's rules on scripted frames.
-# Loop MW-1: `places` runs game/tools/check_places.gd: MOJA WARSZAWA's 72 places (Polish +
+# Loop MW-1: `places` runs game/tools/check_places.gd: MOJA WARSZAWA's 75 places (Polish +
 # English, the 70 characters, the demo box, the brand denylist, reachability as a WARN) and the
 # notebook's finding and reward rules on synthetic inputs; it reads only centrum.json (CI too).
+# The L-shaped map loop: `edge` runs game/tools/check_edge.gd: the helicopter's clamp along the
+# map's outline (random moves, four flights past the inner corner), the rescue spots inside the
+# outline, the minimap's mesh over the corner left outside; centrum.json only (CI too).
 # Loop MW-5: `radio` also checks PÓŁNOC FM (its 7 tracks and seams, the hours, reruns, the host,
 # the unlocks); `sounds` runs game/tools/check_city_sounds.gd: the city's sounds at the notebook's
 # places (the emitters, the hours, the cap of 8, the bells, the 02:00 beat); centrum.json only (CI too).
@@ -92,8 +95,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places eggs tape crowds life buses oldtram garage parodies jobs2 couriers rides cost landmarks sites sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline drape drive steering settings tiers governor hud places eggs tape crowds life buses oldtram garage parodies jobs2 couriers rides cost landmarks sites sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage parodies jobs2 couriers rides cost landmarks sites sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline drape drive steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage parodies jobs2 couriers rides cost landmarks sites sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -572,6 +575,7 @@ for s in $want; do
 		# Loop 2e: the HUD at phone size: 44 pt controls, 11 / 13 pt text, the safe area, no overlaps.
 		hud) check hud '^check_hud:' --script res://tools/check_hud.gd ;;
 		places) check places '^check_places:' --script res://tools/check_places.gd ;;
+		edge) check edge '^check_edge:' --script res://tools/check_edge.gd ;;
 		# Loop MW-6: the egg cards and their triggers; KASETA's then cards and ghosts.
 		eggs) check eggs '^check_eggs:' --script res://tools/check_eggs.gd ;;
 		tape) check tape '^check_tape:' --script res://tools/check_tape.gd ;;

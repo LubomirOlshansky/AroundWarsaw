@@ -22,6 +22,9 @@ const HELI_REACH := 8.0      # hover or land this close...
 const HELI_LOW := 4.0        # ...with the skids no higher above the person than this
 const MIN_ROOF := 20.0       # a roof rescue is at least this high above the street
 const OPEN_RADIUS := 4.5     # street spots need this much open sky for the helicopter
+## Map north: rescue spots keep this far inside the map's outline (map_builder.gd `in_map`; it was
+## the bounding box shrunk by as much, which let a spot fall in the corner left outside).
+const EDGE_PAD := 40.0
 const PICKUP_COLOUR := Color("#ffc23a")
 const DROPOFF_COLOUR := Color("#56d68a")
 const FAIL_COLOUR := Color("#e2574c")
@@ -63,7 +66,6 @@ var _success := false
 var _time_left := 0.0
 var _limit := 0.0
 var _hold := 0.0
-var _inner: Rect2
 var _road_points := PackedVector2Array()
 var _road_names := PackedStringArray()
 var _pickup: Node3D
@@ -77,8 +79,6 @@ var calls_off := false
 func setup(map_node: Node3D, data: Dictionary, world: Node3D, hud_layer: CanvasLayer) -> void:
 	map = map_node
 	hud = hud_layer
-	var b: Array = data["bounds"]
-	_inner = Rect2(b[0], b[1], b[2] - b[0], b[3] - b[1]).grow(-40.0)
 	for k in ORDER:
 		_places[k] = []
 	var t0 := Time.get_ticks_msec()
@@ -479,7 +479,7 @@ func _flat_roof(poly: PackedVector2Array) -> Vector3:
 		while x < hi.x:
 			var p := Vector2(x, z)
 			var h: float = map.roof_height(x, z)
-			if h > best_h and _inner.has_point(p) and Geometry2D.is_point_in_polygon(p, poly) \
+			if h > best_h and map.in_map(p, -EDGE_PAD) and Geometry2D.is_point_in_polygon(p, poly) \
 					and h - map.ground_height(x, z) >= MIN_ROOF and _is_flat(x, z, h, cell):
 				best_h = h
 				best = Vector3(x, h, z)
@@ -600,7 +600,7 @@ func _find_pois(pois: Array) -> void:
 
 ## Open sky: no building within OPEN_RADIUS, so the helicopter can come down too.
 func _is_open(x: float, z: float) -> bool:
-	return _inner.has_point(Vector2(x, z)) and map.top_height(x, z, OPEN_RADIUS) <= map.ground_height(x, z) + 1.5
+	return map.in_map(Vector2(x, z), -EDGE_PAD) and map.top_height(x, z, OPEN_RADIUS) <= map.ground_height(x, z) + 1.5
 
 
 ## The point itself if it's open, else the nearest open point within `reach` metres.

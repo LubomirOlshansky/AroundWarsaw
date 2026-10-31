@@ -3498,7 +3498,8 @@ instead of sub-cells: BACKLOG.
 ## Moja Warszawa notebook (loop MW-1, 2026-10-30)
 
 MOJA WARSZAWA, the city notebook (docs/design/vision.md 4.1): the 72 places of
-`game/data/places.json` (designer-owned; 9 chapters of 8) found by driving or flying past them,
+`game/data/places.json` (designer-owned; 9 chapters of 8; 75 since the L-shaped map loop, see
+"The L-shaped map in gameplay") found by driving or flying past them,
 kept in the save, read in the settings card's fifth tab. Code: `notebook.gd` (places, finding,
 rewards, the minimap's marks), `notebook_page.gd` (the page), small hooks in `main.gd`
 (`_build_notebook`, `_place_start`, `_put_at_place`, the flags), `hud.gd` (`set_minimap_unknown`,
@@ -4659,6 +4660,53 @@ landmarks lane is the table under it).
 | Build time, the whole city headless (check_drive) | 113 s | 119 s |
 | check_streaming | identity OK (108 sectors) | identity OK (112 sectors, 1,806 meshes and MultiMeshes); 10 spots at most 0.059 % of pixels differ; every pass 0 missing (it caught the ground grid's last row past the north edge drawn over the corner left outside: `_cell_outside` treats the outside part's sides on the bounds as open) |
 
+## The L-shaped map in gameplay (2026-10-31)
+
+Since map north the map is its bounding rectangle without the north-east corner left `outside`
+(see "Map north"). What still used the rectangle now uses `map_builder.gd`'s shape (`in_map`,
+`map_outline`, `outside`; that file unchanged):
+
+- **The helicopter** (`heli.gd`): `set_map(map)` takes the bounds and each outside part grown by
+  the 12 m pad (`keep_out`); `clamp_to_map(from, to)` clamps to the bounds, then out of a part
+  along the side the move crossed last (by the sweep's entry time), so it slides along that side,
+  and round the inner corner without flicking between the two sides; a point already inside a part
+  (a teleport) goes out by the nearest inner side. Two rectangle tests a frame. (A bug found on the
+  way: a Vector2 clamp compared with the double-precision position zeroed the velocity every
+  frame; axes are compared within 1 mm.)
+- **The car's tow off-map test** (`main.gd` `_node_spot`): a junction lane `in_map(q, -12)`;
+  `--stream-soak`'s tour skips a sector middle in the corner.
+- **Rescue spots** (`missions.gd`, `EDGE_PAD` 40 m; `_inner` is gone, check_landmarks and
+  check_water no longer set it), **the barriers' street** (`eggs.gd`, 120 m in: the day's street
+  can change near the corner, as the pool of segments shrank), **Podwózka** (`rides.gd`): the
+  named finishes 40 m inside the outline, the river spots (the baked `drivable_bank` and the scan's)
+  `in_map(p, -SCAN)`.
+- **The minimap and the full map** (`hud.gd` `_minimap_mesh`, one mesh: +0 draw calls): first the
+  off-map ground (`OFF_MAP` #c8b48e, a frame 6 km round the bounds and each part left outside, so the
+  corner reads as off the map at every zoom), then parks, streets and tunnels without any triangle
+  whose middle lies in a part left outside, the edge line round the outline (six sides).
+  `setup_minimap(data, outline, outside)` (defaults: the bounds' rectangle). The full map draws the
+  same mesh; its pan stays in the outline's box (the bounds), the outside shaded.
+- **Notebook places up north** (`game/data/places.json`, `near` hints, "?" like the rest): Rondo
+  Radosława (chapter `kiedys`: the 63 m flag mast of 2014, flag over 100 m²), Arkadia
+  (`codziennie`: opened 2004, about 230 shops) and Forest (`bary`, "new Warsaw": the 120 m tower,
+  about 200 trees round it), radius 40, `heli_radius` 60, tag `north`. A chapter now holds 8 to
+  `Notebook.MAX_PER_CHAPTER` (10) cards: the counts and the toast use the chapter's own size, a
+  chapter over 8 draws its cards 5 x 2. `check_places`: the hints in the demo box or map north
+  (`BOX_NORTH`), the places `in_map`.
+- **check_police P12 "guard car follows 15 s"** was flaky (1 run in 12 alone): the guards' car is
+  put on a road at a random spot 150-300 m out (guards.gd `_spawn_car`, the global `randf`), and on
+  the check's one straight road 4 tries of 8 spots in 8 s could all miss. `_fresh` seeds the global
+  random numbers (`FRESH_SEED`) for every case, the wait is up to 30 s (the car comes out at 0.5 s):
+  20 of 20 alone, 21 of 21 three at a time.
+- **check_edge.gd** (new, step `edge`, centrum.json only, CI too): E1 the helicopter's clamp
+  (4,000 random moves, four flights past the inner corner: never off, never a step back, never
+  stuck), E2 the rescue spots (591, all `in_map(p, -40)`), E3 the minimap mesh (no street or park
+  in the corner, the off-map ground over it whole, the edge's vertex at the inner corner).
+- **Cost** (Linux container, headless bench `--fixed-fps 60`, before = HEAD from a copy, runs
+  interleaved): frame 6.57 / 6.70 → 5.60 / 6.76 ms, scripts 5.79 / 5.96 → 4.98 / 6.01 ms (noise),
+  hud+minimap 0.15 / 0.14 → 0.13 / 0.15 ms, heli 0.00. Draw calls +0 (the off-map ground is in the
+  minimap's one mesh), no new shader.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -5119,6 +5167,7 @@ Command-line options (after `--`):
 | `--stream-gate=0` | loop 3d-2b: a prebuilt sector's pieces load with its scene at once (the old one-frame load end), not one a frame |
 | `--debug-ao` / `--no-ao` | show / switch off the baked ground shadows |
 | `--heli` | start in the helicopter |
+| `--heli-stick=X,Z` | the L-shaped map loop (2026-10-31): the helicopter's stick held towards that world direction (x east, z south; length up to 1) the whole run, for screenshots of the clamp along the map's outline (with `--heli --at=`) |
 | `--heli-alt=M` | loop 3d-2b: start in the helicopter M metres over the ground, placed there at once (360 = its highest; the memory and far-level probes) |
 | `--mission=N` | start rescue call N at once (N = 1, 5, 9… streets, 2, 6… roofs, 3, 7… river, 4, 8… parks) |
 | `--autopilot` | testing aid: fly (or, ghosting through walls, drive) to each mission target; in a race or a side job, drive the route; with `--rival`, tail the rival |

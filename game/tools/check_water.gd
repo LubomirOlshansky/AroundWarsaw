@@ -648,7 +648,6 @@ func _check_game() -> int:
 	#    doors and stands, the spawn.
 	var missions: Node = load("res://scripts/missions.gd").new()
 	missions.map = map
-	missions._inner = map.bounds.grow(-40.0)
 	for k in missions.ORDER:
 		missions._places[k] = []
 	missions._collect_road_names(map.data["roads"])
