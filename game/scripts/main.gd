@@ -73,6 +73,8 @@ const Spacer := preload("res://scripts/spacer.gd")
 const Fotka := preload("res://scripts/fotka.gd")
 ## Loop 3h slice 1: the demo's districts (discovery, "?" marks, completion).
 const Districts := preload("res://scripts/districts.gd")
+## Loop 3h slice 2: the 20 Syrenki (collectibles).
+const Syrenki := preload("res://scripts/syrenki.gd")
 const Sfx := preload("res://scripts/sfx.gd")
 ## Loop MW-5: the city's sounds at the notebook's places.
 const CitySounds := preload("res://scripts/city_sounds.gd")
@@ -306,6 +308,13 @@ var districts: Districts
 var district_card := ""
 var districts_spec := ""
 var districts_log := false
+## Loop 3h slice 2: the Syrenki (syrenki.gd) and their flags: --syrenki-log (placements and finds),
+## --syrenki=all|none|<n>|<id>,... (the record, in memory), --syrenka=<id|n>[:m] (the car on the street
+## next to that Syrenka, facing it, m metres before it: 25 by default; :0 finds it at once).
+var syrenki: Syrenki
+var syrenki_log := false
+var syrenki_spec := ""
+var syrenka_flag := ""
 var tape: Tape
 var spacer: Spacer
 var fotka: Fotka
@@ -637,6 +646,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
 	_place_start()  # loop MW-1: --place=<id>, the sectors round the place
+	_syrenka_start()  # loop 3h slice 2: --syrenka=<id|n>
 	_club_start()  # loop MW-3: --club=<id>, the same
 	if garage_flag:
 		start_at = Vector3(Garage.SPOT.x, 0.0, Garage.SPOT.y)  # the garage loop: --garage
@@ -961,6 +971,7 @@ func _build_world() -> void:
 	_build_notebook(data)
 	_build_moments(data, world)
 	_build_districts()
+	_build_syrenki(world)
 	_build_garage(world)
 	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
 	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
@@ -2255,6 +2266,61 @@ func _build_districts() -> void:
 		print("districts: %s" % districts.summary())
 
 
+## Loop 3h slice 2: the 20 Syrenki (syrenki.gd) on the notebook's places and the lane graph; the
+## find is checked at 5 Hz through the notebook's probe.
+func _build_syrenki(world: Node3D) -> void:
+	syrenki = Syrenki.new()
+	syrenki.name = "Syrenki"
+	syrenki.wallet = wallet
+	syrenki.hud = hud
+	syrenki.districts = districts
+	syrenki.world = world
+	syrenki.log_on = syrenki_log
+	syrenki.blip = _blip_sound
+	add_child(syrenki)
+	var points := {}
+	if notes != null:
+		for p: Dictionary in notes.places:
+			points[str(p["id"])] = p["at"]
+	if not syrenki.load_data(points):
+		return
+	if graph != null:
+		syrenki.place_all(map, graph)
+	if syrenki_spec != "":
+		syrenki.preset(syrenki_spec)
+	if notes != null:
+		syrenki.probe = notes.probe
+	if syrenka_flag != "":
+		var parts := syrenka_flag.split(":")
+		var i := syrenki.index_of(parts[0])
+		var back := float(parts[1]) if parts.size() > 1 else 25.0
+		var spot := syrenki.drive_in(graph, i, back) if i >= 0 else []
+		if spot.is_empty():
+			push_warning("--syrenka=%s: no such Syrenka or no street" % syrenka_flag)
+		else:
+			car.global_position = spot[0]
+			car.rotation.y = spot[1]
+			car.vel = Vector3.ZERO
+			car.forward_speed = 0.0
+			car.reset_physics_interpolation()
+			cam_focus = car.global_position
+			print("syrenki: --syrenka=%s: the car at %.1f, %.1f facing it" % [syrenka_flag, car.global_position.x, car.global_position.z])
+
+
+## --syrenka=<id|n>, before the city opens: start at the Syrenka's anchor (map-free), so the
+## sectors round it are built first (the exact spot comes after, _build_syrenki).
+func _syrenka_start() -> void:
+	if syrenka_flag == "":
+		return
+	var sy := Syrenki.new()
+	if sy.load_data():
+		var i := sy.index_of(syrenka_flag.get_slice(":", 0))
+		if i >= 0 and sy.entries[i]["anchor"] != Vector2.INF:
+			var at: Vector2 = sy.entries[i]["anchor"]
+			start_at = Vector3(at.x, 0.0, at.y)
+	sy.free()
+
+
 ## Spacer on or off: what comes by itself stops (or starts again).
 func _apply_spacer(on: bool) -> void:
 	if missions != null:
@@ -3049,6 +3115,12 @@ func _parse_args() -> void:
 			districts_spec = arg.trim_prefix("--districts=")
 		elif arg == "--districts-log":
 			districts_log = true
+		elif arg == "--syrenki-log":
+			syrenki_log = true
+		elif arg.begins_with("--syrenki="):
+			syrenki_spec = arg.trim_prefix("--syrenki=")
+		elif arg.begins_with("--syrenka="):
+			syrenka_flag = arg.trim_prefix("--syrenka=")
 		elif arg == "--egg-log":
 			egg_log = true
 		elif arg.begins_with("--found-eggs="):
@@ -3120,7 +3192,7 @@ func _parse_args() -> void:
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or open_map_at_start or hold_stick != Vector2.INF or bench_button \
 			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0 or old_tram_flag != "":
 		show_title = false
-	if start_ride >= 0 or place_flag != "" or roundup_flag or district_card != "":
+	if start_ride >= 0 or place_flag != "" or roundup_flag or district_card != "" or syrenka_flag != "":
 		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place; loop 3h: --district=)
 	# Loop MW-6: and the eggs', the tape's and Fotka's flags; --egg sets its moment's time.
 	if egg_flag != "" or tape_flag != "" or fotka_flag or spacer_hint >= 0.0:
@@ -3337,7 +3409,8 @@ func _open_full_map() -> void:
 	get_tree().paused = true
 	hud.open_full_map(Vector2(pos.x, pos.z), yaw, found)
 	if districts != null and districts.ready_ok:
-		hud.full_map.set_districts(districts.view(), districts.percent_total())  # loop 3h slice 1
+		hud.full_map.set_districts(districts.view(), districts.percent_total(), syrenki.found_count() if syrenki != null else 0,
+				syrenki.entries.size() if syrenki != null else 0)  # loop 3h slice 1 (+ slice 2: the Syrenki line)
 	if not hud.full_map.closed.is_connected(_close_full_map):
 		hud.full_map.closed.connect(_close_full_map)
 
@@ -4273,6 +4346,8 @@ func _make_stats() -> BenchStats:
 		b.systems["eggs+tape+spacer"] = [self, "_moments_usec", false]  # loop MW-6
 	if districts != null:
 		b.systems["districts"] = [districts, "spent_usec", true]  # loop 3h slice 1
+	if syrenki != null:
+		b.systems["syrenki"] = [syrenki, "spent_usec", true]  # loop 3h slice 2
 	if garage != null:
 		b.systems["garage"] = [garage, "spent_usec", true]  # the garage loop
 	b.systems["sound"] = [sfx, "last_usec", false]

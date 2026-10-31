@@ -12,13 +12,16 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | --- | --- | --- | --- |
 | visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
 | landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
-| gameplay | Loop 3h slice 2: the 20 Syrenki (collectibles, rewards, district completion) | thread "Add the 20 Syrenki collectibles" | 2026-10-31 |
 | map | Free: the next map item by priority (3d-1, 3d-2a, 3d-2b, 3e, the loading fix, map north and the content POIs landed) | thread "Finish the demo map extension" | 2026-10-30 |
 
 ## Waiting
 
 Newest first. One entry per question.
 
+- **2026-10-31 · gameplay · loop 3h slice 2** — The Palace's and the stadium's Syrenki stand 148 m and 211 m from their anchors (no ground street nearer). Default built: that (a 260 m fallback). Alternative: anchor them elsewhere in `syrenki.json`.
+- **2026-10-31 · gameplay · loop 3h slice 2** — No hint for the Syrenki (no "?" marks, no minimap dot, no chime); only a cyan diamond over each and "Syrenki n/20" on the full map. Default built: that. Alternative: a chime under ~40 m or a dot once the district is discovered.
+- **2026-10-31 · gameplay · loop 3h slice 2** — Rewards: 5 Syrenki open the "Łuska Syreny" paint, 10 give 150 zł and 50 respect, 20 open "Srebro Syreny" and 300 zł; +5 respect a find. Default built: that, numbers for the designer to tune with the ladder.
+- **2026-10-31 · content · loop 3h slice 2** — The 20 Syrenki's names and lines (`game/data/syrenki.json`) and their places (one real statue, the Old Town's; the Powiśle statue stays an egg only). Default built: mine, for the designer's review.
 - **2026-10-31 · gameplay · loop 3h slice 1** — District list: nine districts (Praga, Stare Miasto, Muranów, Śródmieście, Trakt Królewski, Powiśle, Wola, Śródmieście Południowe, Ujazdów i Łazienki); Śródmieście Południowe is not in DEMO 2.3, Mokotów left out (off the map). Default built: that. Alternative: fold Południe into Śródmieście.
 - **2026-10-31 · gameplay · loop 3h slice 1** — District completion counts notebook places too (vision 4.1), plus eggs, Syrenki and jobs up to `jobs_goal` (3 hero, 2 other). Default built: that. Alternative: jobs, eggs and Syrenki only.
 - **2026-10-31 · gameplay · loop 3h slice 1** — The starting district is discovered quietly, so its card never shows. Default built: that. Alternative: show it after the first 30 s.

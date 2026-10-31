@@ -2,7 +2,7 @@ extends SceneTree
 ## The garage loop (2026-10-31): Warsztat u Mirka's rules without the map (garage.gd,
 ## garage_card.gd's words, wallet.gd's [garage] section, car.gd `set_paint`, eggs E01 and E21).
 ##   - the paints: 8, ids unique, the factory red free and the default, black and green there
-##     (the eggs need them), the gold one behind GOLD_EGGS egg cards, prices 150-400 zł;
+##     (the eggs need them), the gold one behind GOLD_EGGS egg cards, prices 150-400 zł (ten paints since loop 3h slice 2: the Syrenki ones are free, opened by 5 and 20 Syrenki);
 ##   - the rule: on / switch / buy / short / locked for each case; when it shows (`open_rule`);
 ##   - buying with enough money pays the price once and owns the paint; too little pays nothing;
 ##     switching to an owned paint (or the factory red) is free; the gold one opens at 5 eggs;
@@ -84,13 +84,13 @@ func _check_paints() -> void:
 		if name.size() != 2 or str(name[0]) == "" or str(name[1]) == "":
 			problems.append("paint %s: a name without Polish and English" % id)
 		var price := int(p["price"])
-		if id == Garage.DEFAULT or p.has("eggs"):
+		if id == Garage.DEFAULT or p.has("eggs") or p.has("syrenki"):
 			if price != 0:
 				problems.append("paint %s: %d zł (want free)" % [id, price])
 		elif price < 150 or price > 400:
 			problems.append("paint %s: %d zł (want 150-400)" % [id, price])
-	if Garage.PAINTS.size() < 6 or Garage.PAINTS.size() > 8:
-		problems.append("%d paints (want 6-8)" % Garage.PAINTS.size())
+	if Garage.PAINTS.size() < 6 or Garage.PAINTS.size() > 10:
+		problems.append("%d paints (want 6-10)" % Garage.PAINTS.size())
 	for need in ["red", "black", "green", "gold"]:
 		if not ids.has(need):
 			problems.append("no %s paint" % need)
@@ -113,6 +113,8 @@ func _check_rules() -> void:
 	_expect("rule black 300 zł", Garage.rule("black", "red", 300, {}, 0), "buy")
 	_expect("rule black 299 zł", Garage.rule("black", "red", 299, {}, 0), "short")
 	_expect("rule gold 4 eggs", Garage.rule("gold", "red", 9999, {}, 4), "locked")
+	_expect("rule scale 4 syrenki", Garage.rule("scale", "red", 9999, {}, 99, 4), "locked")
+	_expect("rule scale 5 syrenki", Garage.rule("scale", "red", 0, {}, 0, 5), "switch")
 	_expect("rule gold 5 eggs", Garage.rule("gold", "red", 0, {}, 5), "switch")
 	_expect("rule nothing", Garage.rule("chrome", "red", 0, {}, 0), "")
 	_expect("shown, nothing earned", Garage.open_rule({}, 0, {}), false)
