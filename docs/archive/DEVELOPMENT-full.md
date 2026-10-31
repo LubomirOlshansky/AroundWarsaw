@@ -5497,6 +5497,7 @@ Command-line options (after `--`):
 | `--stream-slow=MS` | loop 3d-2b: every worker load takes MS ms longer (the phone's slower loads on the Mac: `--stream-slow=400` with the look-ahead off misses 337 frames in the helicopter pass, with it 0) |
 | `--stream-gate=0` | loop 3d-2b: a prebuilt sector's pieces load with its scene at once (the old one-frame load end), not one a frame |
 | `--solo=KEY` / `--solo-look=lit\|flat\|sil` | landmarks 0.3: build one landmark site alone (key as in `landmarks.gd`: `palace`, `rotunda`, `varso`…), no ground, roads, buildings or traffic, on a plain background, runtime city path only (forces off `--prebuilt`). `flat` (default) = unlit in the site's colours on grey, `sil` = dark silhouette on near-white, `lit` = the normal look. Use `--time=day`; the judge's shots (model-from-photos skill section 5): `tools/shots.sh --set=first` |
+| `--no-ghost` | 2026-10-31, for the landing's screenshots: no occlusion ghost and no see-through hole round the car (the dither and the hole that open buildings between the camera and the car), so a wide framed shot (`--yaw` / `--pitch` / `--size`) centred on a spot behind a building keeps it whole. The landing's Palace shot: `--at=-1180,215 --yaw=225 --pitch=-38 --size=400 --time=live --clock=18:15 --date=20260915 --nohud --no-ghost` at 1920x1080 |
 | `--debug-ao` / `--no-ao` | show / switch off the baked ground shadows |
 | `--heli` | start in the helicopter |
 | `--heli-stick=X,Z` | the L-shaped map loop (2026-10-31): the helicopter's stick held towards that world direction (x east, z south; length up to 1) the whole run, for screenshots of the clamp along the map's outline (with `--heli --at=`) |
@@ -5557,6 +5558,8 @@ Command-line options (after `--`):
 | `--traffic=empty\|low\|normal\|busy` (or 0-3) | loop 2a: the traffic level for this run (not saved) |
 | `--settings` | loop 2a: open the settings panel at the start (screenshots) |
 | `--fullmap` | F's asks (2026-10-30): open the full-screen map at the start (the game paused; screenshots) |
+| `--fullmap=M` | 2026-10-31: the same, M metres across the screen's height (the game map's shots) |
+| `--map-jump=X,Z` | 2026-10-31: the full map's hold-to-teleport to X,Z at the start (prints the refusal, if any, and where the car went) |
 | `--settings-tab=N` | loop 2e: open the settings panel at tab N (0 Jazda · Driving, 1 Świat · World, 2 Obraz · Picture, 3 Dźwięk · Sound; loop MW-1: 4 Zeszyt · the notebook) |
 | `--notebook` / `--notebook=CHAPTER\|ID` | loop MW-1: open the settings card on MOJA WARSZAWA, the notebook (a chapter by id or number 1-9, or a place's card by its id; screenshots) |
 | `--found=all\|none\|CHAPTER[:K],…` | loop MW-1: the notebook's record for this run, in memory, no rewards (a chapter by id or number, `:K` its first K places; `--found=1:4,9` half of the first chapter and all of the ninth). Use with `--nosave` (a later save would keep it) |

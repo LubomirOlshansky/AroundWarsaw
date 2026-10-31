@@ -30,6 +30,7 @@ var spent_usec := 0
 
 const SettingsPanel := preload("res://scripts/settings_panel.gd")
 const FullMap := preload("res://scripts/full_map.gd")
+const MapArt := preload("res://scripts/map_art.gd")
 const ScreenPoints := preload("res://scripts/screen_points.gd")
 ## drive_controls.gd's schemes (POINT, CLASSIC, FIXED).
 const CLASSIC := 1
@@ -145,6 +146,14 @@ var _map_bounds := Rect2()
 ## outside (its `outside`), from setup_minimap: the edge line runs round the outline, and no
 ## street or park is drawn in an outside part (check_edge counts the minimap's triangles there).
 var _map_outline := PackedVector2Array()
+## centrum.json, kept (a reference) for the full map's own meshes (full_map.gd, map_art.gd).
+var _map_data: Dictionary = {}
+## map_builder.gd `landmark_info`, for the full map's icons (main.gd sets it).
+var map_landmarks: Array = []
+## The full map's art (map_art.gd `prepare`), made on a worker thread from setup_minimap; the
+## task's id until the first open waits for it (-1: none pending).
+var _map_art_task := -1
+var _map_art: Dictionary = {}
 var _map_outside: Array[Rect2] = []
 ## A finger down on the minimap: [index, where, when] (a tap there opens the full map).
 var _map_tap: Array = []
@@ -1496,6 +1505,7 @@ func _over_panel(p: Vector2) -> bool:
 
 ## `outline` and `outside`: the map's shape (map north; empty: the bounds' rectangle).
 func setup_minimap(data: Dictionary, outline := PackedVector2Array(), outside: Array[Rect2] = []) -> void:
+	_map_data = data
 	_map_outline = outline
 	_map_outside = outside
 	_mini_radius = MINI_D * 0.5 * pt
@@ -1513,6 +1523,10 @@ func setup_minimap(data: Dictionary, outline := PackedVector2Array(), outside: A
 		_map_outline = PackedVector2Array([_map_bounds.position, Vector2(_map_bounds.end.x, _map_bounds.position.y),
 				_map_bounds.end, Vector2(_map_bounds.position.x, _map_bounds.end.y)])
 	_mini_mesh = _minimap_mesh(data)
+	var outline_now := _map_outline
+	var outside_now := _map_outside.duplicate()
+	_map_art_task = WorkerThreadPool.add_task(func() -> void:
+		_map_art = MapArt.prepare(data, outline_now, outside_now), false, "full map art")
 	_mini_clip = ShaderMaterial.new()
 	_mini_clip.shader = Shader.new()
 	_mini_clip.shader.code = MINI_CLIP
@@ -2261,10 +2275,14 @@ func open_full_map(car_xz: Vector2, car_yaw: float, found: PackedVector2Array) -
 		full_map = FullMap.new()
 		full_map.name = "full_map"
 		full_map.hud = self
-		full_map.mesh = _mini_mesh
-		full_map.shader = _mini_clip.shader
-		full_map.mini_scale = _mini_scale
+		full_map.data = _map_data
+		full_map.outline = _map_outline
+		full_map.outside = _map_outside
+		full_map.landmarks = map_landmarks
 		full_map.bounds = _map_bounds
+		_wait_map_art()
+		full_map.prepared = _map_art
+		_map_art = {}
 		full_map.pt = pt
 		full_map.safe = _safe
 		add_child(full_map)
@@ -2279,6 +2297,17 @@ func open_full_map(car_xz: Vector2, car_yaw: float, found: PackedVector2Array) -
 	full_map.final_colour = _mini_final_colour
 	full_map.target_colour = _mini_target_colour
 	full_map.open(car_xz, car_yaw)
+
+
+## Waits for the full map's art (setup_minimap's worker task), if it's still being made.
+func _wait_map_art() -> void:
+	if _map_art_task >= 0:
+		WorkerThreadPool.wait_for_task_completion(_map_art_task)
+		_map_art_task = -1
+
+
+func _exit_tree() -> void:
+	_wait_map_art()
 
 
 func full_map_open() -> bool:

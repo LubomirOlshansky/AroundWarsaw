@@ -3,6 +3,13 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Top priority: a game-like full map with teleport (the user, 2026-10-31)
+- **Landed** (thread "Make the map fun and game-like"): the full map in its own poster style
+  (map_art.gd), 25 landmark pins (map_icons.gd), hold 0.6 s to teleport, the cards behind ≡.
+  Left: street names along the main roads close in; F to judge the icons and colours on the
+  phone (maybe hand-drawn or PixelLab icon art later); the first open on an older phone (the
+  art is made on a worker thread at start, ~0.1-0.7 s on a computer).
+
 ## High priority: landmark and skyscraper models (the user, 2026-10-30)
 - **The user dislikes how several models look** (2026-10-30): Złote Tarasy, Złota 44 and the
   other skyscrapers (Varso, Pałac Kultury, Warsaw Spire, Q22), Muzeum Narodowe (and Stadion
@@ -76,6 +83,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Left: the photo check on the
   Mac (the two city-room windows' faces and sizes and the skylight count are estimates; the
   photos in `refs/` were not reachable from the cloud), and TR Warszawa next door.
+- **TR Warszawa's building site** (F, 2026-10-31): built as site `tr` on the empty plot west of
+  the museum (a messy site: hoarding, dirt, heaps, old foundations, cabins, a digger, one
+  crane). Left for the map lane: a mapped tree stands on the hoarding's north corner.
 - **Złote Tarasy, the museum's way** (the user, 2026-10-31): **Built 2026-10-31** (site
   `tarasy`, spec `docs/landmarks/specs/tarasy.md`): the whole complex from its OSM 3D parts,
   the glass wave, the terraced sandstone podium, Lumen's crescent, Skylight with a lit crown,

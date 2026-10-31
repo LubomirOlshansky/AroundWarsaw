@@ -18,6 +18,12 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · gameplay · the game map** — Teleport: free and unlimited, by holding a spot for
+  0.6 s; refused during a race, a job, a rescue, a police chase and the first-drive guide. The
+  districts' and ladder cards now sit behind a ≡ button (hidden when the map opens) so the map
+  shows. Default built: those. Alternatives: a price or a cooldown on teleports, only to places
+  already discovered, or the cards shown at open.
+
 - **2026-10-31 · gameplay · loop 3h slice 4** — Who gets the guide: a save with no job done, no
   złoty, no rung beaten and the guide not finished; quitting before the first delivery repeats it.
   Default built: that. Alternative: once per install whatever happens.

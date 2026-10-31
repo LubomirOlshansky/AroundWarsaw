@@ -208,6 +208,10 @@ var map: Node3D
 
 var style_index := 0
 var cam_yaw := 45.0
+## --no-ghost (2026-10-31, the landing's screenshots): no occlusion ghost and no see-through hole
+## round the car, so a
+## wide framed shot centred on a spot behind a building keeps that building whole.
+var no_ghost := false
 var cam_yaw_target := 45.0
 ## --yaw= was given (the follow camera then doesn't start behind the vehicle).
 var _flag_yaw := false
@@ -548,6 +552,8 @@ var _flag_perf := false
 var open_settings_at_start := false
 ## F's asks (2026-10-30): --fullmap opens the full-screen map at the start (screenshots).
 var open_map_at_start := false
+var fullmap_span := 0.0
+var map_jump := Vector2.INF
 var hold_stick := Vector2.INF
 var hold_pedal := ""
 ## Testing aid (--clicks=X:Y:F,...): a mouse click (a touch, with the project's touch
@@ -961,6 +967,7 @@ func _build_world() -> void:
 			_rotate_camera(d))
 	hud.pinched.connect(_on_pinch)
 	hud.setup_minimap(data, map.map_outline(), map.outside)  # map north: the L, not the box
+	hud.map_landmarks = map.landmark_info  # the full map's landmark icons (map_icons.gd)
 	hud.vehicle_pressed.connect(_toggle_vehicle)
 	hud.tapped.connect(_on_tap)
 	_set_flying(false)
@@ -1117,6 +1124,10 @@ func _build_world() -> void:
 		_open_settings.call_deferred()
 	elif open_map_at_start:
 		_open_full_map.call_deferred()
+	if map_jump != Vector2.INF:
+		var why := _teleport_refusal()
+		print("teleport: --map-jump refusal: %s" % ("none" if why.is_empty() else why[1]))
+		_teleport_from_map.call_deferred(map_jump)
 	_stats = _make_stats()
 	# Loop 3g-1: the police's script time among the bench's lines.
 	if police != null:
@@ -3082,6 +3093,8 @@ func _parse_args() -> void:
 			no_save = true
 		elif arg == "--free":
 			free_roam = true
+		elif arg == "--no-ghost":
+			no_ghost = true
 		elif arg.begins_with("--tap="):
 			var xy := arg.trim_prefix("--tap=").split(",")
 			tap_at = Vector2(float(xy[0]), float(xy[1]))
@@ -3119,8 +3132,15 @@ func _parse_args() -> void:
 			_flag_traffic = Settings.parse_traffic(arg.trim_prefix("--traffic="))
 		elif arg == "--settings":
 			open_settings_at_start = true
-		elif arg == "--fullmap":
+		elif arg.begins_with("--map-jump="):
+			# 2026-10-31: the full map's hold-to-teleport to x,z once the drive starts (tests).
+			var xz := arg.trim_prefix("--map-jump=").split(",")
+			map_jump = Vector2(float(xz[0]), float(xz[1]))
+		elif arg == "--fullmap" or arg.begins_with("--fullmap="):
 			open_map_at_start = true
+			# --fullmap=M (2026-10-31): open it M metres across the screen's height (shots).
+			if arg.contains("="):
+				fullmap_span = maxf(1.0, float(arg.trim_prefix("--fullmap=")))
 		elif arg == "--notebook" or arg.begins_with("--notebook="):
 			# Loop MW-1: the notebook's tab at the start (a chapter, or a place's card).
 			open_settings_at_start = true
@@ -3492,6 +3512,9 @@ func _open_full_map() -> void:
 	_blip_sound()
 	get_tree().paused = true
 	hud.open_full_map(Vector2(pos.x, pos.z), yaw, found)
+	if fullmap_span > 0.0:
+		hud.full_map.show_span(fullmap_span)
+		fullmap_span = 0.0
 	if districts != null and districts.ready_ok:
 		hud.full_map.set_districts(districts.view(), districts.percent_total(), syrenki.found_count() if syrenki != null else 0,
 				syrenki.entries.size() if syrenki != null else 0)  # loop 3h slice 1 (+ slice 2: the Syrenki line)
@@ -3499,6 +3522,54 @@ func _open_full_map() -> void:
 		hud.full_map.set_ladder(rivals.ladder_rows())  # loop 3h slice 3: the DRABINKA card
 	if not hud.full_map.closed.is_connected(_close_full_map):
 		hud.full_map.closed.connect(_close_full_map)
+		hud.full_map.teleport.connect(_teleport_from_map)
+		hud.full_map.can_teleport = _teleport_refusal
+
+
+## F's ask (2026-10-31): why a hold on the full map can't teleport now ([pl, en]), or [] when it
+## can. Not in the middle of something the jump would skip or cheat: a race, a job or a ride, a
+## rescue, a police chase, the first 10 minutes' guide.
+func _teleport_refusal() -> Array:
+	if rivals != null and rivals.racing():
+		return ["Nie teraz: trwa wyścig", "Not now: you're racing"]
+	if (jobs != null and jobs.busy()) or (jobs != null and jobs.courier != null and jobs.courier.racing()):
+		return ["Nie teraz: masz zlecenie", "Not now: you're on a job"]
+	if missions != null and missions.has_target():
+		return ["Nie teraz: trwa akcja ratunkowa", "Not now: a rescue is on"]
+	if police != null and police.chasing():
+		return ["Nie teraz: policja siedzi ci na ogonie", "Not now: the police are on your tail"]
+	if first10 != null and first10.guide and not first10.fired.has("done"):
+		return ["Najpierw pierwsza jazda", "Finish the first drive first"]
+	return []
+
+
+## F's ask (2026-10-31): the full map's hold, held: the car onto the lane nearest that spot (in its
+## direction of travel), or the nearest lane anywhere when none is within reach; the helicopter
+## keeps its height. The camera cuts there; the city streams in round it as on any drive.
+func _teleport_from_map(p: Vector2) -> void:
+	if flying:
+		heli.global_position = Vector3(p.x, heli.global_position.y, p.y)
+		heli.vel = Vector3.ZERO
+		heli.reset_physics_interpolation()
+		cam_focus = heli.global_position
+		fcam.reset_lead()
+		print("teleport: the helicopter to %.0f, %.0f" % [p.x, p.y])
+		return
+	var at := Vector3(p.x, map.terrain_height(p.x, p.y), p.y)
+	var spot := _lane_spot(at, car.rotation.y)
+	if spot.is_empty():
+		spot = _node_spot(at)
+	if spot.is_empty():
+		print("teleport: no lane near %.0f, %.0f" % [p.x, p.y])
+		return
+	var to: Vector3 = spot[0]
+	car.global_position = Vector3(to.x, to.y + 0.05, to.z)
+	car.rotation.y = spot[1]
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.reset_physics_interpolation()
+	_cut_camera()
+	print("teleport: the car to %.0f, %.0f (asked %.0f, %.0f), heading %.0f" % [to.x, to.z, p.x, p.y, _compass_yaw(spot[1])])
 
 
 func _close_full_map() -> void:
@@ -4237,6 +4308,8 @@ func _process(dt: float) -> void:
 	# rarely hidden; a full-size one cuts into the roof edge it has landed on.
 	var car_view := cam.global_transform.affine_inverse() * (pos + Vector3(0, 3.5 if flying else 1.0, 0))
 	var hole := clampf(cam.size * 0.11, 7.0, 20.0) * (0.55 if flying else 1.0)
+	if no_ghost:
+		hole = 0.0  # --no-ghost: the see-through hole is off too
 	building_mat.set_shader_parameter("fade_radius", hole)
 	_update_ghost(pos, car_view)
 	for m in map.fade_materials:
@@ -4282,6 +4355,8 @@ func _update_ghost(pos: Vector3, car_view: Vector3) -> void:
 	var ahead_xz := Vector2(ahead.x, ahead.z).normalized()
 	var occ := Vector4(pos.x, pos.z, ahead_xz.x, ahead_xz.y)
 	var ghost_r := clampf(cam.size * 0.22, 14.0, 50.0) * (0.6 if flying else 1.0)
+	if no_ghost:
+		ghost_r = 0.0
 	for m: ShaderMaterial in [building_mat, map.flat_material, post_mat] + _neon_materials():  # sweep 2: + neon
 		m.set_shader_parameter("car_view", car_view)
 		m.set_shader_parameter("occluder", occ)

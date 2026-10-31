@@ -11,6 +11,10 @@ someone writes its lines.
 
 ## 2026-10-31
 - Warszawa Centralna is rebuilt from the real map data: the glass hall under its wide, flat overhanging roof, the roof's saddle-shaped shells on rows of pillars, the lower wings at both ends, and at night the hall glowing white under a line of lamps.
+- The website's first city picture is new: Plac Defilad from above at golden hour, with the Palace, the new Museum of Modern Art and the building site beside it.
+- Beside the museum, the plot for the new TR Warszawa theatre is now a messy building site: a fence with black tarp, dug-up ground and old foundations, spoil heaps, cabins, a digger and a tower crane with a red light at night.
+- The museum now looks more like the real one: its corner block, big glowing roof windows round an open court, and windows where they really are.
+- The full map is now a game map: bold coloured roads, bright water and parks, pastel districts and pin icons for the big landmarks (the Palace, the Castle, the stadium, the bridges and more). Press and hold a spot on it to jump there.
 - Złote Tarasy is rebuilt as one landmark: the golden glass wave over the terraced mall, the Lumen offices curving round it, the Skylight tower with a crown that glows at night, and the round glass drum by the station.
 - Plac Małachowskiego and the Presidential Palace are real buildings now: Holy Trinity's white rotunda with its four columned porches, green dome and tall lantern; Zachęta in white with its two big columns, sculpted pediment, steps and lamps; the Presidential Palace's wings round the forecourt, a columned portico, Prince Poniatowski on horseback, and four stone lions at the gate.
 - The new Museum of Modern Art on Plac Defilad is now its own building: the long white box floating on a glass lobby behind white fins, a thin dark slot round the middle, big windows that glow at night, skylights on the roof, and an info card.

@@ -2,19 +2,19 @@
   "hero": "rotunda-rain-night",
   "reel": [
     {
-      "img": "palace-day",
+      "img": "palace-golden",
       "w": 1920,
       "h": 884,
       "span": "lead",
       "en": [
-        "The Palace of Culture by day",
-        "The same view as the first screen, in daylight, with Złote Tarasy beside it.",
-        "The Palace of Culture by day in the game, with the glass domes of Złote Tarasy and the towers of Śródmieście"
+        "The Palace of Culture at golden hour",
+        "Plac Defilad from above: the Palace, the new white Museum of Modern Art, the theatre's building site and Złote Tarasy.",
+        "The Palace of Culture at golden hour in the game, seen from above, with the white Museum of Modern Art, a building site with a crane, the glass domes of Złote Tarasy and the towers of Śródmieście"
       ],
       "pl": [
-        "Pałac Kultury w dzień",
-        "Ten sam widok co na pierwszym ekranie, ale w dzień, ze Złotymi Tarasami obok.",
-        "Pałac Kultury w dzień w grze, ze szklanymi kopułami Złotych Tarasów i wieżowcami Śródmieścia"
+        "Pałac Kultury o złotej godzinie",
+        "Plac Defilad z góry: Pałac, nowe białe Muzeum Sztuki Nowoczesnej, plac budowy teatru i Złote Tarasy.",
+        "Pałac Kultury o złotej godzinie w grze, z góry, z białym Muzeum Sztuki Nowoczesnej, placem budowy z dźwigiem, szklanymi kopułami Złotych Tarasów i wieżowcami Śródmieścia"
       ]
     }
   ],
