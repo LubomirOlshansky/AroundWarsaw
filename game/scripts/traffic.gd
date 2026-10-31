@@ -197,6 +197,16 @@ class Driver:
 	var goal := Vector2.INF
 	## Any car: giving way to a police car with its lights on (seconds left: the kerb lane, slow).
 	var yield_t := 0.0
+	## The night-buses loop (buses.gd): a bus sent to a stop drives there (its route) and stops
+	## with its front at `halt_s` on edge `halt_e` (-1: none), moves `halt_pull` m towards the
+	## kerb, stands `halt_wait` s (`halting` while it does; INF: until buses.gd lets it go) and
+	## drives on as any bus. `tag` is buses.gd's: what the bus is doing for it ("" = nothing).
+	var halt_e := -1
+	var halt_s := 0.0
+	var halt_pull := 0.0
+	var halt_wait := 0.0
+	var halting := false
+	var tag := ""
 
 
 signal bumped_driver(d: Driver)
@@ -207,6 +217,10 @@ signal bumped_police(d: Driver, speed: float)
 ## Loop 3g-1: a police car came into the band (a patrol) or left it (any police car).
 signal police_spawned(d: Driver)
 signal police_released(d: Driver)
+## The night-buses loop: a bus sent to a stop (send_to_stop) stands there now, pulled in; and
+## one let go (its stand over) drives on.
+signal bus_halted(d: Driver)
+signal bus_left(d: Driver)
 
 var graph: LaneGraph
 var map: Node3D
@@ -232,6 +246,21 @@ var visible_count := 0
 var police_target := 0
 var police_min_dist := 0.0
 var patrol_wait := 20.0
+## The night-buses loop (vision.md 3.5): the buses show an N route sign (buses.gd sets it from
+## the clock, 22:30-05:00). The BUS MultiMesh swaps its mesh for the bus with the sign (the
+## same surface, material and instances: +0 draw calls, no shader change).
+var night_sign := false:
+	set(value):
+		if value == night_sign:
+			return
+		night_sign = value
+		if _mm.size() > Kind.BUS:
+			if _bus_day == null:
+				_bus_day = _mm[Kind.BUS].mesh
+			_mm[Kind.BUS].mesh = night_bus_mesh() if value else _bus_day
+## The day bus (kept while the night one is on).
+var _bus_day: Mesh
+static var _bus_night: ArrayMesh
 ## Police cars with their lights on this frame (traffic ahead gives way to them).
 var _sirens: Array[Driver] = []
 
@@ -718,6 +747,11 @@ func _start(d: Driver, e: int, lane: int, s: float) -> void:
 	d.finish = -1
 	d.run_red = false
 	d.yield_t = 0.0
+	# The night-buses loop: a pooled driver forgets its last stop (and a ring bus's parking).
+	d.halt_e = -1
+	d.halting = false
+	d.tag = ""
+	d.parked = false
 	_enter_edge(d, e, lane, s)
 	var p := graph.point_at(e, s, d.off)
 	d.pos = Vector3(p.x, graph.height(e, s), p.y)
@@ -1314,7 +1348,8 @@ func _choose_next(d: Driver) -> void:
 	d.v_turn = 3.5 if best == rev else lerpf(16.0, 5.5, clampf(turn / 1.6, 0.0, 1.0))
 	d.next_reg = graph.e_lane0[best] + d.next_lane
 	# A racing rival chances some reds.
-	d.run_red = not d.route.is_empty() and _rng.randf() < 0.6
+	# The night-buses loop: a bus on a route (to a stop, the race to the Palm) never does.
+	d.run_red = not d.route.is_empty() and d.kind != Kind.BUS and _rng.randf() < 0.6
 
 
 func _drive(d: Driver, dt: float) -> void:
@@ -1367,6 +1402,12 @@ func _drive(d: Driver, dt: float) -> void:
 			if stop < gap:
 				gap = stop
 				lead_v = 0.0
+		if d.halt_e >= 0:
+			# The night-buses loop: a bus on its way to a stop (buses.gd).
+			var hg := _halt_gap(d, dt)
+			if hg < gap:
+				gap = hg
+				lead_v = 0.0
 		if player_on_road:
 			var rel := Vector2(player_pos.x - d.pos.x, player_pos.z - d.pos.z)
 			if rel.length_squared() < (1600.0 if d.chase else 900.0):
@@ -1388,7 +1429,7 @@ func _drive(d: Driver, dt: float) -> void:
 		else:
 			d.cross_wait = 0.0
 		d.cross_ignore -= dt
-	if not d.route.is_empty():
+	if not d.route.is_empty() and d.halt_e < 0:
 		_overtake(d, leader_gap, dt)
 	elif not d.ghost and player_gap < 10.0 and player_gap <= gap + 0.01 and d.v < 0.5:
 		# The player's car stands in the lane: go round it when the next lane is free.
@@ -1695,6 +1736,164 @@ func _write() -> void:
 		InstanceBuffers.send(_mm[k].get_rid(), _buf[k])
 		if k < TRAFFIC_KINDS and _beam_mmi[k].visible:
 			InstanceBuffers.send(_beam_mm[k].get_rid(), _buf[k])
+
+
+# --- the night-buses loop: the N sign, stops, extra buses ------------------------------------
+
+## The N, four by five (the route sign's letter; no operator's name or number).
+const N_GLYPH := ["#..#", "##.#", "#.##", "#..#", "#..#"]
+
+
+## The bus with its night route sign: models.gd's bus plus a dark display with an amber N
+## (LIT_SIGN: it glows with the city's lights) on both sides by the front door, the back and
+## over the windscreen, merged into the bus's one surface (one mesh, made once).
+static func night_bus_mesh() -> ArrayMesh:
+	if _bus_night != null:
+		return _bus_night
+	var s := Models.Shape.new()
+	var plate := Models.fin(Color("#16171b"))
+	var lit := Models.fin(Color("#ffb21e"), Models.LIT_SIGN)
+	# A side's "right" as seen from outside it: -z on the +x side, +z on the -x side.
+	for sgn: float in [-1.0, 1.0]:
+		_n_sign(s, Vector3(sgn * 1.262, 2.12, -3.55), Vector3(0, 0, -sgn), Vector3(sgn, 0, 0), Vector2(1.2, 1.0), 0.19, plate, lit)
+	_n_sign(s, Vector3(0.0, 2.44, 5.995), Vector3.RIGHT, Vector3.BACK, Vector2(1.0, 0.8), 0.15, plate, lit)
+	_n_sign(s, Vector3(0.0, 2.56, -5.9), Vector3.LEFT, Vector3.FORWARD, Vector2(0.9, 0.72), 0.13, plate, lit)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.append_from(Models.bus_mesh(), 0, Transform3D.IDENTITY)
+	st.append_from(s.mesh(), 0, Transform3D.IDENTITY)
+	_bus_night = st.commit()
+	return _bus_night
+
+
+## A dark plate `size` (w, h) at `centre` facing `out`, with N_GLYPH on it in `px` m pixels.
+static func _n_sign(s: Models.Shape, centre: Vector3, right: Vector3, out: Vector3, size: Vector2, px: float,
+		plate: Array, lit: Array) -> void:
+	var up := Vector3.UP
+	var hw := right * size.x * 0.5
+	var hh := up * size.y * 0.5
+	s.quad(centre - hw - hh, centre + hw - hh, centre + hw + hh, centre - hw + hh, plate, out)
+	var o := centre - right * px * 2.0 + up * px * 2.5 + out * 0.006
+	for r in N_GLYPH.size():
+		var row: String = N_GLYPH[r]
+		for c in row.length():
+			if row[c] != "#":
+				continue
+			var a := o + right * px * c - up * px * r
+			s.quad(a, a + right * px, a + right * px - up * px, a - up * px, lit, out)
+
+
+## The buses out now (traffic and buses.gd's).
+func buses() -> Array[Driver]:
+	var out: Array[Driver] = []
+	for d in _active:
+		if d.kind == Kind.BUS:
+			out.append(d)
+	return out
+
+
+## A bus from the pool on lane (e, lane) at s, standing (buses.gd: a ring bus, the one that
+## comes for the player's horn); null if the pool is empty. Not persistent: the caller decides.
+func add_bus(e: int, lane: int, s: float) -> Driver:
+	if _free_slots[Kind.BUS].is_empty() or _free.is_empty():
+		return null
+	var look: Dictionary = Models.TRAFFIC[Kind.BUS][0]
+	var d: Driver = _free.pop_back()
+	d.kind = Kind.BUS
+	d.slot = _free_slots[Kind.BUS][_free_slots[Kind.BUS].size() - 1]
+	_free_slots[Kind.BUS].resize(_free_slots[Kind.BUS].size() - 1)
+	_counts[Kind.BUS] += 1
+	d.size = look["size"]
+	d.length = d.size.z
+	d.shape = 0
+	d.paint = Color(look["paint"][0])
+	d.speed_factor = 0.85
+	d.accel_factor = 0.7
+	d.persistent = false
+	d.ghost = false
+	d.node = null
+	d.core_only = false
+	d.parked = false
+	_start(d, e, lane, s)
+	d.v = 0.0
+	return d
+
+
+## Sends bus `d` to stop with its front at s on edge e (its route `dist`: graph.distances_to the
+## edge's end), pulled `pull` m towards the kerb, for `wait` s (INF: until let_go). It keeps out
+## of the band's thinning while on its way (persistent) and runs no reds.
+func send_to_stop(d: Driver, e: int, s: float, dist: PackedFloat32Array, wait: float, pull: float) -> void:
+	d.halt_e = e
+	d.halt_s = s
+	d.halt_wait = wait
+	d.halt_pull = pull
+	d.halting = false
+	d.persistent = true
+	d.route = dist
+	d.finish = graph.e_b[e]
+	d.arrived = false
+	if not d.in_conn and not d.parked:
+		_choose_next(d)
+	d.run_red = false
+
+
+## Ends a bus's stop (or its way there): it drives on as any bus, out of the kerb's pull.
+func let_go(d: Driver) -> void:
+	var was := d.halting
+	d.halt_e = -1
+	d.halting = false
+	d.persistent = false
+	d.tag = ""
+	if d.reg >= 0 and not d.in_conn:
+		d.off_target = graph.lane_offset(d.edge, d.lane)
+	stop_racing(d)
+	if was:
+		bus_left.emit(d)
+
+
+## True if the driver is still the same pooled car (kind and slot unchanged since `slot`).
+static func same(d: Driver, kind: int, slot: int) -> bool:
+	return d != null and d.active and d.kind == kind and d.slot == slot
+
+
+## A bus's way to its stop, each frame it drives on the stop's edge (_drive): the gap to the
+## stop's line (INF: not there yet); standing, it pulls in and counts its wait down.
+func _halt_gap(d: Driver, dt: float) -> float:
+	if d.halting:
+		var off := graph.lane_offset(d.edge, d.lane) + d.halt_pull
+		d.off_target = off
+		if d.halt_wait < INF:
+			d.halt_wait -= dt
+			if d.halt_wait <= 0.0:
+				let_go(d)
+				return INF
+		return 0.0
+	if d.arrived:
+		let_go(d)
+		return INF
+	var e := d.edge
+	var g := INF
+	if not d.in_conn and e == d.halt_e:
+		if d.lane < graph.e_lanes[e] - 1:
+			_change_lane_to(d, graph.e_lanes[e] - 1)
+		g = d.halt_s - (d.s + d.length * 0.5)
+	elif d.next_edge == d.halt_e and d.next_edge >= 0:
+		# The stop is just past the junction ahead (a short edge): look through it.
+		var rest := d.conn_len - d.cu if d.in_conn else graph.e_s1[e] - d.s + d.conn_len
+		g = rest + d.halt_s - graph.e_s0[d.halt_e] - d.length * 0.5
+	else:
+		return INF
+	if g < -3.0:
+		# Driven past it (pushed, or put down beyond it): no stop this time.
+		let_go(d)
+		return INF
+	if g < 1.2 and d.v < 0.4:
+		d.halting = true
+		d.v = 0.0
+		bus_halted.emit(d)
+		return 0.0
+	# The driver model keeps MIN_GAP to a stop line: the stop's line is that much further on.
+	return maxf(g + MIN_GAP, 0.0)
 
 
 # --- traffic-light lamps --------------------------------------------------------------

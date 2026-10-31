@@ -1337,8 +1337,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **The 19 waiting eggs** and what wakes each: E01 E21 the garage's paint; ~~E03 the dawn crowd
   and the Dawn look (MW-3); E04 the patrol cars parked by the clubs (MW-3); E15 the guitarist
   on the steps (MW-3)~~ (woken in loop MW-3: 16 wait now); ~~E16 E27 the dog walkers (MW-4); E18 E19
-  Wiralek's trend cycle (MW-4)~~; E23 E25 the night buses at Centralny (MW-3 skipped them: "From
-  loop MW-3"); E24 the player's horn and buses pulling in at stops;
+  Wiralek's trend cycle (MW-4)~~; ~~E23 E25 the night buses at Centralny (MW-3 skipped them: "From
+  loop MW-3"); E24 the player's horn and buses pulling in at stops~~ (woken in the night-buses
+  loop: 4 wait now);
   ~~E28 the Rowerilo riders (MW-4); E29 E30 Kolka and Hyrax (MW-4)~~ (woken in loop MW-4: 9 wait
   now); ~~E34 the armchair man (MW-4 skipped it: "From loop MW-4")~~;
   E35 KASETA's older decades (T1); E39 a tram in old livery; ~~E40 the payphone prop (with T17)~~
@@ -1378,10 +1379,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
   police parked by Lusterko and Smoła; eggs E03 E04 E15 woken, E10 E14 with their crowd
   conditions (29 reachable, 16 waiting); `check_crowds` (verify step `crowds`, quick and CI);
   `--crowd=`, `--night-log`, `--club=` (DEVELOPMENT.md "The night and the river").
-- **Night buses at Centralny (vision 3.5) not built**: `traffic.gd` (driving lane) has no way to
+- ~~**Night buses at Centralny (vision 3.5) not built**: `traffic.gd` (driving lane) has no way to
   gather its buses at a stop or give one an N route and sign within a one-line hook. Needs a
   small traffic API (`spawn_bus(route, sign)` or a bus "layover" mode) from the driving lane;
-  then E23 and E25 only need their triggers (drop `waits`).
+  then E23 and E25 only need their triggers (drop `waits`).~~ Done in the night-buses loop
+  (`buses.gd`; traffic.gd `send_to_stop`, `add_bus`, `let_go`, `night_sign`; "From the night
+  buses loop").
 - **E01 and `car_black`** wait for the garage's paint (the car line fires; the black car's line
   and the egg need a paint the player chose).
 - ~~**Level 26's roof crowd**: the roof grid (`map.roof_height`) has nothing over 40 m at
@@ -1425,9 +1428,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   `check_city_life` (verify `life`, quick and CI) and the `life-soak` run; `--life=`,
   `--dogs-log`, `--trend-log`, `--life-log`, `--zajac`, `--trend-day=`, `--trend-job`,
   `--life-soak` (DEVELOPMENT.md "Everyday life and trends").
-- **The player has no horn** (vision's horn reactions, E24): the dogs bark at the AI cars' horns
+- ~~**The player has no horn** (vision's horn reactions, E24): the dogs bark at the AI cars' horns
   (`traffic.gd` signals, connected in `main.gd`). A horn button (the driving lane: a HUD
-  control and `car.gd` / `sfx.horn`) then needs one line: `life.horn(car.global_position)`.
+  control and `car.gd` / `sfx.horn`) then needs one line: `life.horn(car.global_position)`.~~
+  Done in the night-buses loop: the HUD's horn left of the brake and B (`buses.gd` `honk`, no
+  `car.gd` change).
 - **No Rowerilo docks in the map data**: the bake has no `amenity=bicycle_rental` POIs, so the
   only dock is the `rowerilo_dock` place (9 bikes). Map lane: bake the docks as POIs (kind
   `bike_dock`) and `city_life.gd` `_place_fixed` can put a row at each.
@@ -1585,3 +1590,45 @@ Small problems that agents reported or that showed up in screenshots. They are f
   drove about 2.3 km to Oboźna 1 (the race's gap read 2,292 m at 20 s, honest, the car's own
   lane). The race reads the car's lane, so it can say 2ND at the start of an order the card calls
   short. Snapping the stand by the car's heading in `_make_kebab_order` would fix the card.
+
+## From the night buses loop (the N sign, Centralny's ring, the bus stops, the horn, 2026-10-31)
+
+- Done: the N sign 22:30-05:00 (the BUS MultiMesh's mesh swapped, +0 draw calls), the night hub
+  at Dworzec Centralny (a ring of 5-8 every half hour, 22:30-04:30, recruited from the traffic's
+  buses), waiting figures at the bus stops by day and a `bus_stop` bubble, the player's horn (the
+  HUD button left of the brake, B on the Mac), E23 E24 E25: 43 eggs reachable, 4 waiting.
+  `check_buses` (verify `buses`, quick and CI); `--night-hub`, `--bus-log`, `--honk=`
+  (DEVELOPMENT.md "The night buses, the bus stops and the horn").
+- **Map lane: the shelters aren't in the index**: `tools/bake_sectors.py` keeps `shelters` sector-only
+  (SECTOR_ONLY), so `buses.gd` learns a sector's stops when it loads. It reads the sector's
+  `sectors/i_j.json` where that exists (the editor, the Mac), else the shelter MultiMesh's
+  instance transforms (the exported game: a GPU read-back once per sector load, tested on
+  software Vulkan, not on the phone). Moving `shelters` (points only) into `index.json` /
+  `index.res` would give every stop at start, with no read-back.
+- **Map lane: no `highway=bus_stop` / `public_transport=platform` data of its own**: the stops are
+  the shelters that stand right of a bus road's kerb lane (188 of 351). A stop without a
+  shelter has no figures; a shelter on a side street has none either. Baking the stop points
+  (with their `name` and `route_ref` if wanted) would make the stops exact.
+- **Map lane: Centralny has no bus loop or bays in the lane graph**: the ring stands in two
+  rows of 4 at the kerb lanes of Aleje Jerozolimskie by the station's shelters (`HUB_ROWS`), about
+  1 m over the kerb line (BAY_PULL), not in real bays. A bay or layover lane on both
+  carriageways (or the real Dworzec Centralny stops' platforms) would let them pull off the road.
+- **The horn is B, not H**: H was already the car ↔ helicopter key. Open Question.
+- **E24's line**: vision 3.5 says "line 3", eggs.json's `line_ref` says index 2: the same line
+  (the third, "Stoję na przystanku na żądanie. Żądam."), the request line; built that way.
+- **A stop's own bubble can say the request line**: `dialogue.gd` picks a `bus_stop` line at
+  random, so the waiting figure can say "Stoję na przystanku na żądanie…" without a honk. Harmless,
+  but a `kind` to keep the request line for E24 would be the designer's call.
+- **E25 has no race card**: the race starts quietly when a bus leaves the eastbound row with the
+  car at the ring, and `--bus-log` is the only place that says so. A status pill ("WYŚCIG Z NOCNYM ·
+  RACE THE NIGHT BUS") is the designer's call (vision gives none).
+- **A bus on a route never chances a red**: `traffic.gd` lets a driver on a route (the rivals' races)
+  run 60 % of reds; a bus routed to a stop, the hub or the Palm doesn't (E25 would be unfair, and a
+  bus jumping a red reads wrong). Rivals are unchanged.
+- **Stop figures swing their legs a little** (the walkers' MultiMesh, the trap officers' trick):
+  standing figures in the walkers' buffer share their `walk` value. A per-instance stand flag is
+  the visuals lane's (actor.gdshader), if it shows on the phone.
+- **The prebuilt city in this container was stale** (`check_map_data.py`: the sector files and
+  prebuilt sectors from another bake): the `prebuilt` step logged 1,647 `_fill_height` errors on
+  main too. A scratch copy re-split and rebuilt with a renderer ran with 0 errors.
+  `tools/setup_map.sh --if-needed` fixes it in place (map lane).

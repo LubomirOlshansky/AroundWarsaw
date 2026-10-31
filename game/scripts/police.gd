@@ -34,6 +34,8 @@ extends Node
 
 ## Time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
+## The night-buses loop (E25, buses.gd): times a speed trap caught the player speeding past it.
+var trap_flashes := 0
 
 const Unit := preload("res://scripts/police/police_unit.gd")
 const Talk := preload("res://scripts/police/police_talk.gd")
@@ -1266,6 +1268,7 @@ func _traps_frame() -> void:
 		if speed <= t["limit"] + TRAP_OVER:
 			continue
 		t["rearm"] = clock + TRAP_REARM
+		trap_flashes += 1
 		if phase != Phase.CALM:
 			continue
 		if _rescue_on():

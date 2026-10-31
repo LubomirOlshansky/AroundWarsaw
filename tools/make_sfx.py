@@ -30,6 +30,9 @@ levels (if their folder is given) to balance the buses against.
   jar_clink / jar_break   the słoiki run's jars
   tram_bell    the tram's two-tone bell
   horn / horn_double      a small car's horn
+  horn_player  the night-buses loop: the player's little hatch's own horn, one short bright
+      "meep" (494 / 622 Hz, 0.3 s, a nasal square through a 1.3 kHz band): the B key and
+      the HUD's horn button (buses.gd)
   pigeons      a flock flushing
   birds_a / birds_b       sparrow chirps, a whistled phrase (day)
   siren_far / dog_far     the night's rare distant events
@@ -510,6 +513,23 @@ def horn(double):
                 out[i] += 0.5 * sq * env
     out = mix((0.5, biquad(out, "lp", 1800.0, 0.7)), (0.8, biquad(out, "bp", 1150.0, 2.0)))
     return saturate(out, 1.3)
+
+
+def horn_player():
+    """The night-buses loop: the hero hatch's horn, one short bright meep."""
+    n = int(0.36 * RATE)
+    out = zeros(n)
+    start, end = 0.0, 0.3
+    for f, amp in ((494.0, 0.5), (622.0, 0.42)):
+        ph = 0.0
+        for i in range(int(start * RATE), int(end * RATE)):
+            ph += f / RATE
+            sq = 1.0 if ph % 1.0 < 0.35 else -1.0
+            t = (i - start * RATE) / RATE
+            env = min(1.0, t / 0.008) * min(1.0, ((end - start) - t) / 0.04)
+            out[i] += amp * sq * env
+    out = mix((0.45, biquad(out, "lp", 2400.0, 0.7)), (0.9, biquad(out, "bp", 1300.0, 2.2)))
+    return saturate(out, 1.5)
 
 
 def pigeons(seed):
@@ -1188,7 +1208,9 @@ CITY = {"club_leak": lambda: [club_leak(71)], "metro_chime": lambda: [metro_chim
         "queue_chatter": lambda: [queue_chatter(86)], "phone_shutter": lambda: [phone_shutter(87)],
         "cafe_bell": lambda: [cafe_bell(88)],
         # Loop MW-2 (storefronts.gd): the Frogs door's croak chime, a Leżak knocked over.
-        "frog_chime": lambda: [frog_chime(89)], "scooter_clatter": lambda: [scooter_clatter(90)]}
+        "frog_chime": lambda: [frog_chime(89)], "scooter_clatter": lambda: [scooter_clatter(90)],
+        # The night-buses loop (buses.gd): the player's horn.
+        "horn_player": lambda: [horn_player()]}
 
 
 def main(out_dir, radio_dir=None, only=None):

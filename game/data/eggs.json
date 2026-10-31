@@ -4,8 +4,6 @@
 		"garage": "the garage's paint (no garage yet)",
 		"dogs": "the dog walkers (MW-4)",
 		"wiralek": "the Wiralek trend cycle (MW-4)",
-		"night_buses": "the night buses at Centralny (MW-3)",
-		"bus_stops": "the player's horn and the buses pulling in at stops",
 		"cyclists": "the Rowerilo riders (MW-4)",
 		"runners": "Kolka and Hyrax (MW-4)",
 		"armchair": "the man with the armchair (MW-4)",
@@ -598,12 +596,11 @@
 				4
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "event"
 			},
 			"reward": {
 				"respect": 30
-			},
-			"waits": "night_buses"
+			}
 		},
 		{
 			"id": "e24",
@@ -617,12 +614,11 @@
 				2
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "event"
 			},
 			"reward": {
 				"respect": 15
-			},
-			"waits": "bus_stops"
+			}
 		},
 		{
 			"id": "e25",
@@ -636,12 +632,11 @@
 				"Faster than the night bus. And past no radar gun."
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "event"
 			},
 			"reward": {
 				"respect": 30
-			},
-			"waits": "night_buses"
+			}
 		},
 		{
 			"id": "e26",
