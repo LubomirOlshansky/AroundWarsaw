@@ -48,8 +48,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   a kept skin today, outline in `centrum.json` landmarks "Kościół pw. Świętej Anny", centre
   (−658, −1350), the free-standing bell tower is a separate building to its north-east), the other
   churches (Holy Cross, All Saints, St Alexander's rotunda, the Visitationists) and the Palace
-  on the Isle's neighbours, Zachęta/Staszic/Presidential Palace facades (all colour-only skins
-  today), the Old Town's gables and dormers (the LoD2 roofs have none), PZU/JM Tower. How the
+  on the Isle's neighbours, Staszic's facade (a colour-only skin today; Zachęta, Holy Trinity
+  and the Presidential Palace became models on 2026-10-31, specs in docs/landmarks/specs/), the Old Town's gables and dormers (the LoD2 roofs have none), PZU/JM Tower. How the
   lane works: `landmarks.gd` sites (`TOWERS`, `SKINS`, fixed-position circle zones like
   `_find_zygmunt`), each needs a card in `INFO` and `check_landmarks`; a site found in
   `data["buildings"]` also needs its box in `bake_sectors.py` `SITE_AREAS`; after a change

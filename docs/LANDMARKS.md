@@ -50,9 +50,10 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | 2.2 | Teatr Wielki | the colonnade and the portico on Plac Teatralny |
 | 2.3 | Old Town and New Town tenements | gables and dormers (map lane: `_tenement_facades`, the LoD2 roofs) |
 | 2.4 | Archikatedra, Barbakan | the Cathedral's stepped gable; the Barbican's towers and walls |
-| 2.5 | Pałac Prezydencki | the forecourt wings, the portico, the statue of Poniatowski in front |
+| 2.5 | Pałac Prezydencki | DONE 2026-10-31 (model, spec `docs/landmarks/specs/prezydencki.md`, 868 tris): wings round the forecourt, portico, Poniatowski's statue, lions, gate, guardhouses; photo check on the Mac |
 | 2.6 | Kościół Świętego Krzyża, Wszystkich Świętych, św. Aleksandra | twin towers; the towers; the rotunda and dome |
-| 2.7 | Sejm, Zachęta, Pałac Staszica, Kopernik, BUW, Hala Mirowska | facades and roofs from the photos |
+| 2.6b | Kościół Świętej Trójcy (Lutheran, Plac Małachowskiego) | DONE 2026-10-31 (L3 model, spec `trojca.md`, 1901 tris): drum with oculi, four Tuscan porticoes, copper dome, columned lantern and cross |
+| 2.7 | Sejm, Pałac Staszica, Kopernik, BUW, Hala Mirowska | facades and roofs from the photos (Zachęta DONE 2026-10-31: model, spec `zacheta.md`, from the user's photo) |
 | 2.8 | MDM and Plac Konstytucji | the blocks' arcades, reliefs, the corner towers |
 | 2.9 | Towers missing from the table | PZU Tower, JM Tower, Pekao Tower, Warsaw Towers, Atlas, Prosta |
 | 2.10 | Dom bez Kantów, Departament, the Królewska block | colours from photos (guesses today); a name for the block |
