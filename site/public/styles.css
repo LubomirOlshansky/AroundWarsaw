@@ -296,7 +296,7 @@ section { padding: clamp(48px, 7vw, 88px) 0; }
 @media (max-width: 700px) { .dn-stage { aspect-ratio: 4 / 3; } }
 
 .small-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(16px, 2.4vw, 28px); margin-top: clamp(28px, 4vw, 48px); padding: 0 var(--gutter); max-width: calc(var(--wrap) + 160px); margin-inline: auto; }
-.small-pair img { aspect-ratio: 3 / 2; }
+.small-pair img { aspect-ratio: 1100 / 508; }
 @media (max-width: 700px) { .small-pair { grid-template-columns: 1fr; } }
 .timeline { list-style: none; margin: 0; padding: 0; display: grid; }
 .timeline li { display: grid; grid-template-columns: 5.5em minmax(0, 1fr); gap: 16px; padding: 14px 0; border-top: 1px solid var(--line); }
