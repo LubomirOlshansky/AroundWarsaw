@@ -10,7 +10,12 @@ extends Node3D
 ##    `reject` bubble); the car at the door (< 10 km/h within 8 m) gets the bouncer's `car` line
 ##    once per club per night (`car_black` and egg E01 wait for the garage's paint);
 ##  - **Level 26's roof crowd** on the tower's top at its place (vision's roof curve), when the
-##    roof grid says the tower is there;
+##    roof grid says the tower is there; F's asks (2026-10-30): the place's anchor moved onto the
+##    tower (places.json `near`), the figures stand by the parapet of the roof grid's outline
+##    (`roof_ring`: 48 rays round the top floors), a short queue waits at the
+##    ground-floor door (`level_26_door`, a queue site with the `club_door` lines), and while the
+##    club is open (the roof curve's hours) and near, a violet band of light rings the top floor
+##    (one mesh in Models.material(), LIT_SIGN: +1 draw call, hidden by day and far);
 ##  - **the dawn crowd** (Sat/Sun 05:00-09:00, Live or the Dawn look): 20-40 walkers in twos and
 ##    threes on footway routes from Lusterko, Smoła and Jasna 0 to the Palm, Metro Nowy
 ##    Świat-Uniwersytet, the nearest tram platforms and two kebab stands (A* over the footways
@@ -19,6 +24,9 @@ extends Node3D
 ##    rows facing the river (sitters, standers at the water's edge), the guitarist (egg E15);
 ##    without Live the season is summer (vision Open Question 5);
 ##  - **Plac Zbawiciela's summer crowd** (up to 40 standing in groups, Fri/Sat 21:00-02:00);
+##  - loop MW-4 (vision 3.4): **the trend queues** at the three Wiralek slots and Lukrownia
+##    (`TRENDS`): their length and the line's tag come from `trend` (city_life.gd's cycle and Fat
+##    Thursday), bright clothes, no bouncer, a `viral` line now and then;
 ##  - **the police by the clubs** (Fri/Sat 00:00-08:00, Lusterko and Smoła): a parked patrol car
 ##    (police.gd `club_park`, the existing police units, never a chase) and an officer standing by
 ##    it (`police_club` lines).
@@ -72,7 +80,23 @@ const CLUBS := {
 	"lombard": {"max": 16, "curve": "club"},
 	"milosc_hipoteczna": {"max": 16, "curve": "club"},
 }
+## Loop MW-4: the trend queues (places.json ids) and their longest line (vision 3.4: day 1's 30,
+## Fat Thursday's 60 at Lukrownia).
+const TRENDS := {"wiralek_zbawiciela": 30, "wiralek_chmielna": 30, "wiralek_tamka": 30, "lukrownia": 60}
 const ROOF_ID := "level_26"
+## F's asks (2026-10-30): Level 26's queue at the tower's ground-floor door (a queue site of its
+## own, not a places.json id), its longest line (short: the lift takes eight at a time), the
+## roof ring's rays, the band's place under the roof (m) and its colour.
+const ROOF_DOOR_ID := "level_26_door"
+const ROOF_DOOR_MAX := 8
+const RING_RAYS := 48
+const RING_TOP := 1.0
+const RING_H := 2.0
+const RING_OUT := 0.25
+## The roof crowd stands this far inside the grid's edge: the facade is at most a cell (4 m)
+## inside it, so they are on the roof, a step or two from the parapet.
+const RING_IN := 4.6
+const RING_COLOUR := Color("#a35cff")
 const STEPS_ID := "schodki_kopernik"
 const PLAN_C_ID := "plan_c"
 ## vision 4.5's hour curves (the hour's whole part; missing hours are 0). Lusterko's 09-12 is 0.5
@@ -121,6 +145,9 @@ var dialogue: Node
 var police: Node
 ## city_sounds.gd (add_crowd); may be null.
 var sounds: Node
+## Loop MW-4: a trend queue's length now and its line's tag, (id) -> [n, tag] (city_life.gd
+## `trend_queue`); unset: the trend queues stay empty.
+var trend: Callable
 ## --crowd=: 0 none (this node isn't built), 1 normal, 2 double; the Low tier halves it.
 var amount := 1.0
 ## --night-log: queues, rejections, the dawn walkers each minute and every event.
@@ -164,6 +191,8 @@ var _route_out: Array = []
 var _route_in := {}
 var _night_key := -1
 var _last_hour := 0.0
+## F's asks: Level 26's violet band (null until built: no tall roof there, or no map).
+var _ring: MeshInstance3D
 
 
 # --- the rules (static: check_crowds.gd) ---------------------------------------------------
@@ -283,8 +312,13 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 			var c: Dictionary = CLUBS[id]
 			_add_site({"id": id, "kind": "queue", "at": at[id], "max": int(c["max"]), "curve": str(c["curve"]),
 					"police": bool(c.get("police", false)), "dawn": bool(c.get("dawn", false))})
+	for id: String in TRENDS:
+		if at.has(id):
+			_add_site({"id": id, "kind": "trend", "at": at[id], "max": int(TRENDS[id]), "tag": ""})
 	if at.has(ROOF_ID):
 		_add_site({"id": ROOF_ID, "kind": "roof", "at": at[ROOF_ID], "max": ROOF_MAX, "curve": "roof"})
+		_add_site({"id": ROOF_DOOR_ID, "kind": "queue", "at": at[ROOF_ID], "max": ROOF_DOOR_MAX, "curve": "roof",
+				"police": false, "dawn": false})
 	if at.has(STEPS_ID):
 		_add_site({"id": STEPS_ID, "kind": "steps", "at": at[STEPS_ID], "max": STEPS_MAX})
 	if at.has(PLAN_C_ID):
@@ -426,7 +460,7 @@ func nearest_foot(p: Vector2, reach: float) -> Array:
 func _place_site(s: Dictionary) -> void:
 	var at: Vector2 = s["at"]
 	match str(s["kind"]):
-		"queue":
+		"queue", "trend":
 			var hit := nearest_foot(at, FOOT_REACH)
 			var line := PackedVector2Array()
 			var out := Vector2.RIGHT
@@ -583,8 +617,35 @@ func _place_square(s: Dictionary) -> void:
 	s["door"] = at
 
 
-## Level 26: the roof's edge round the place, 12 directions (the roof grid's height drops by 10 m
-## or more), figures a metre inside it. Without a tall roof there (under 40 m): no crowd.
+## F's asks (2026-10-30): the tower's outline round `at` from the roof grid (`roof`: (x, z) ->
+## the grid's height; the city's grid on both paths, LoD2's or OpenStreetMap's, whichever is
+## drawn): `rays` rays out in 0.5 m steps to where the grid drops under the top floors (`top`
+## − 6 m), as [the first point past the edge, the direction, the roof's height at the edge] each
+## (rays that find nothing are left out). A grid cell is marked when anything of the building
+## touches it, so the point is on the facade or up to a cell (4 m) outside it, never inside.
+static func roof_ring(at: Vector2, top: float, roof: Callable, rays: int) -> Array:
+	var out: Array = []
+	for a in rays:
+		var dir := Vector2.from_angle(a * TAU / rays)
+		var last := -1.0
+		var h := top
+		var r := 0.0
+		while r < 60.0:
+			var y: float = roof.call(at.x + dir.x * r, at.y + dir.y * r)
+			if y >= top - 6.0:
+				last = r
+				h = y
+			elif r - last > 6.0:
+				break
+			r += 0.5
+		if last >= 0.0:
+			out.append([at + dir * (last + 0.5), dir, h])
+	return out
+
+
+## Level 26: the tower's outline (`roof_ring`), the figures RING_IN m inside it (on the roof
+## whatever the grid's cell did), every second ray, in a seeded order. Without a tall roof there
+## (under 40 m): no crowd.
 func _place_roof(s: Dictionary) -> void:
 	var at: Vector2 = s["at"]
 	s["slots"] = []
@@ -596,17 +657,91 @@ func _place_roof(s: Dictionary) -> void:
 	if top - ground < 40.0:
 		print("crowds: no tall roof at %s (%.0f m over the ground): no roof crowd" % [s["id"], top - ground])
 		return
+	var ring := roof_ring(at, top, func(x: float, z: float) -> float: return map.roof_height(x, z), RING_RAYS)
 	var slots: Array = []
-	for a in 12:
-		var dir := Vector2.from_angle(a * TAU / 12.0)
-		var r := 1.0
-		while r < 40.0 and map.roof_height(at.x + dir.x * r, at.y + dir.y * r) > top - 10.0:
-			r += 1.0
-		for k in 2:
-			var p := at + dir * maxf(r - 1.5 - k * 0.8, 0.5) + Vector2(-dir.y, dir.x) * (k * 0.6 - 0.3)
-			slots.append({"p": p, "pose": STAND, "yaw": atan2(-dir.x, -dir.y), "shirt": DARK[(a + k) % DARK.size()], "y": top})
+	for k in range(0, ring.size(), 2):
+		var r: Array = ring[k]
+		var dir: Vector2 = r[1]
+		var p: Vector2 = r[0] - dir * RING_IN
+		if p.distance_to(at) < 1.0:
+			p = at + dir
+		var y: float = map.roof_height(p.x, p.y)
+		slots.append({"p": p, "pose": STAND, "yaw": atan2(-dir.x, -dir.y), "shirt": DARK[(k / 2) % DARK.size()],
+				"y": y if y >= top - 6.0 else float(r[2])})
+	# A seeded order, so a small crowd is spread round the roof, not bunched on one side.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2626
+	for k in range(slots.size() - 1, 0, -1):
+		var m := rng.randi_range(0, k)
+		var tmp: Dictionary = slots[k]
+		slots[k] = slots[m]
+		slots[m] = tmp
 	s["slots"] = slots
 	s["top"] = top
+	if ring.size() >= RING_RAYS / 2:
+		_build_ring(ring, at)
+	print("crowds: %s on a roof %.0f m over the ground, %d spots at the parapet, %s" % [s["id"], top - ground, slots.size(),
+			"the band of light round %d m of facade" % roundi(_ring_len(ring)) if _ring != null else "no band (%d rays)" % ring.size()])
+
+
+## F's asks: the violet band round the top floor, one quad per pair of rays, RING_OUT m off the
+## smoothed outline, RING_TOP m under the body's roof; Models.material()'s LIT_SIGN (it glows only while
+## the city's lights are on). Hidden until the club opens near the view (`tick`).
+func _build_ring(ring: Array, at: Vector2) -> void:
+	# One height all round (the lowest of the top floors' roofs: the tower's body, not a crown
+	# on it), and the outline smoothed over five rays (the grid's 4 m steps), half a metre out.
+	var lowest := INF
+	for r: Array in ring:
+		lowest = minf(lowest, float(r[2]))
+	var y1 := lowest - RING_TOP
+	var y0 := y1 - RING_H
+	var pts: Array[Vector2] = []
+	var n_r := ring.size()
+	for k in n_r:
+		var d := 0.0
+		for o in range(-2, 3):
+			d += ((ring[(k + o + n_r) % n_r][0] as Vector2) - at).length()
+		pts.append(at + (ring[k][1] as Vector2) * (d / 5.0 + 0.5 + RING_OUT))
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for k in n_r:
+		var r0: Array = ring[k]
+		var a: Vector2 = pts[k]
+		var b: Vector2 = pts[(k + 1) % n_r]
+		if a.distance_to(b) > 30.0:
+			continue
+		var n2 := Vector2((b - a).y, -(b - a).x).normalized()
+		if n2.dot(r0[1] as Vector2) < 0.0:
+			n2 = -n2
+		var n := Vector3(n2.x, 0.0, n2.y)
+		var q := [Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, y1, b.y), Vector3(a.x, y1, a.y)]
+		if (q[1] - q[0]).cross(q[2] - q[0]).dot(n) > 0.0:
+			q = [q[0], q[3], q[2], q[1]]
+		for i in [0, 1, 2, 0, 2, 3]:
+			st.set_color(RING_COLOUR)
+			st.set_normal(n)
+			st.set_uv(Vector2(Models.LIT_SIGN, 0.0))
+			st.add_vertex(q[i])
+	_ring = MeshInstance3D.new()
+	_ring.name = "Level26Ring"
+	_ring.mesh = st.commit()
+	_ring.material_override = Models.material()
+	_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_ring.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	_ring.visible = false
+	add_child(_ring)
+
+
+static func _ring_len(ring: Array) -> float:
+	var l := 0.0
+	for k in ring.size():
+		l += (ring[k][0] as Vector2).distance_to(ring[(k + 1) % ring.size()][0] as Vector2)
+	return l
+
+
+## F's asks: whether the band is shown now (for check_crowds and the log).
+func ring_on() -> bool:
+	return _ring != null and _ring.visible
 
 
 # --- drawing -------------------------------------------------------------------------------
@@ -714,6 +849,14 @@ func _figures(s: Dictionary) -> Array:
 				var to := (line[maxi(k - 1, 0)] - line[k + 1]).normalized()
 				out.append([_ground(p), atan2(-to.x, -to.y) + rng.randf_range(-0.4, 0.4), STAND,
 						Color(DARK[rng.randi() % DARK.size()]), rng.randf_range(0.25, 0.5)])
+		"trend":
+			# Loop MW-4: the trend's queue, bright clothes, nobody at the door.
+			var line: PackedVector2Array = s["line"]
+			for k in mini(n, line.size() - 1):
+				var p := line[k] + Vector2(rng.randf_range(-0.12, 0.12), rng.randf_range(-0.12, 0.12))
+				var to := (line[maxi(k - 1, 0)] - line[k + 1]).normalized()
+				out.append([_ground(p), atan2(-to.x, -to.y) + rng.randf_range(-0.5, 0.5), STAND,
+						Color(BRIGHT[rng.randi() % BRIGHT.size()]), rng.randf() * 0.99])
 		"steps":
 			var slots: Array = s["slots"]
 			for k in mini(n, slots.size()):
@@ -833,6 +976,10 @@ func tick(step: float) -> void:
 			"plan_c":
 				plan_lvl = plan_c_level(hour, weekday, month, rain)
 				want = roundi(PLAN_C_MAX * k * plan_lvl)
+			"trend":
+				var q: Array = trend.call(str(s["id"])) if trend.is_valid() else [0, ""]
+				want = mini(roundi(int(q[0]) * k), int(s["max"]) * 2)
+				s["tag"] = str(q[1])
 		s["want"] = want
 		if t >= float(s["next"]):
 			s["next"] = t + _rng.randf_range(REWRITE.x, REWRITE.y)
@@ -853,15 +1000,27 @@ func tick(step: float) -> void:
 			s["dirty"] = false
 			s["inst"] = _figures(s) if near else []
 			(_cells[s["cell"]] as Dictionary)["dirty"] = true
+		if kind == "roof" and _ring != null:
+			# F's asks: the band while the club is open (the roof's hours) and near the view.
+			var lit := near and want > 0
+			if lit != _ring.visible:
+				_ring.visible = lit
+				if log_on:
+					print("night: Level 26's band of light %s" % ("on" if lit else "off"))
 		if near and kind == "queue":
 			_door(s, step, veh)
 		elif near and kind in ["steps", "plan_c"]:
 			_chatter(s, step, veh)
+		elif near and kind == "trend":
+			_trend_talk(s, step)
 	_redraw()
 	_dawn(hour, weekday, live, look, step, eye2)
 	levels = {"dawn": 1.0 if dawn_on and not walkers.is_empty() else 0.0, "police_club": 1.0 if police_on else 0.0,
 			"steps": steps_lvl, "guitar": 1.0 if by_id.has(STEPS_ID) and bool(sites[by_id[STEPS_ID]].get("guitar_on", false)) else 0.0,
 			"plan_c": plan_lvl}
+	for s in sites:
+		if s["kind"] == "trend":
+			levels[str(s["id"])] = float(s["n"]) / float(s["max"])
 	if log_on:
 		_log_t -= step
 		if _log_t <= 0.0:
@@ -961,6 +1120,20 @@ func _chatter(s: Dictionary, step: float, veh: Array) -> void:
 		_say(_anchor(s, i), "", "schodki", "sunset", BUBBLE, true)
 	else:
 		_say(_anchor(s, i), "", "schodki", "", BUBBLE)
+
+
+## Loop MW-4: a trend queue's `viral` line every 35-60 s on screen (the tag: day 1 "new", the
+## queue's "queue", the last days' "gone").
+func _trend_talk(s: Dictionary, step: float) -> void:
+	if int(s["n"]) < 1 or str(s["tag"]) == "":
+		return
+	if on_screen.is_valid() and not on_screen.call(_ground(s["door"]), 2.0):
+		return
+	s["chat_t"] = float(s["chat_t"]) - step
+	if float(s["chat_t"]) > 0.0:
+		return
+	s["chat_t"] = _rng.randf_range(CHAT_GAP.x, CHAT_GAP.y)
+	_say(_anchor(s, _rng.randi() % maxi(int(s["n"]), 1)), "", "viral", str(s["tag"]), BUBBLE, true)
 
 
 ## A bubble anchor on figure `i` of site `s` (0: the bouncer at a queue).

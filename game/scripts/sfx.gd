@@ -41,6 +41,12 @@ const SHOTS := {
 	# Loop 3g-2 (police.md 10, tools/make_sfx.py): the police's and the guards' own sounds, each
 	# set to land where its 3g-1 placeholder sat (by the files' RMS).
 	"police_whoop": -26.0, "megaphone": -14.0, "whistle": -18.0, "scribble": -14.0, "stamp": -17.0, "clank": -9.0,
+	# Loop MW-4 (city_life.gd, tools/make_sfx.py): the barks in three sizes, the bike bell, the
+	# running watch, the phone's shutter and the café's door bell.
+	"bark_small": -12.0, "bark_mid": -11.0, "bark_big": -10.0, "bike_bell": -13.0, "watch_beep": -20.0,
+	"phone_shutter": -17.0, "cafe_bell": -15.0,
+	# Loop MW-2 (storefronts.gd): the Frogs door's croak chime, a Leżak knocked over.
+	"frog_chime": -15.0, "scooter_clatter": -12.0,
 }
 ## Loop 3g-2: the siren loop (one positional voice) and its level there.
 const SIREN := "police_siren"
@@ -377,6 +383,11 @@ func horn(at: Vector3) -> void:
 
 func pigeons(at: Vector3) -> void:
 	_play3("pigeons", at, 0.0)
+
+
+## Loop MW-4: one of the city's one-shots (SHOTS) at `at` (city_life.gd: barks, bells, beeps).
+func play_at(n: String, at: Vector3, gain_db := 0.0) -> void:
+	_play3(n, at, gain_db)
 
 
 func _play2(n: String, gain_db: float, bus := &"SFX") -> void:

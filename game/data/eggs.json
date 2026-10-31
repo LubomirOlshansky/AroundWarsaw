@@ -1,5 +1,5 @@
 {
-	"_about": "Loop MW-6 (docs/design/vision.md section 8 and 4.7): the notebook's egg cards, the five eggs of v0.65 and vision's 40 (the Rechotka triple corner and the standing Leżak, parodies.md, come with MW-2's storefronts). Each: `id`, `name` [pl, en] (Polish as vision's table has it; the English is a gloss), `place` (an id in places.json, or one of eggs.gd's spots for the five old ones), `line` [pl, en] or `line_ref` [dialogue.json group, index from 0], `trigger` (`kind`: stop, pass, hover, land, circle, lap, street, between, tape, legacy, or waits; with its numbers and the conditions night, after, hours, weekday, look, summer, dry, date, station, roadworks, and loop MW-3's crowd and days: egg_book.gd), `reward` (respect; track: a PÓŁNOC FM track; then: a then card stamped; kadr: a Kadr spot unlocked) and, for an egg whose trigger needs something not built yet, `waits` (what: the card is defined, nothing can find it). Lines taken from vision's quotes and the then cards of vision 3.9; the ones vision does not quote were written in MW-6 for the game-designer to review (a Polish line at most 70 characters).",
+	"_about": "Loop MW-6 (docs/design/vision.md section 8 and 4.7): the notebook's egg cards, the five eggs of v0.65 and vision's 40 (the Frogs triple corner, id easter_rechotka, and the standing Leżak, parodies.md, come with MW-2's storefronts). Each: `id`, `name` [pl, en] (Polish as vision's table has it; the English is a gloss), `place` (an id in places.json, or one of eggs.gd's spots for the five old ones), `line` [pl, en] or `line_ref` [dialogue.json group, index from 0], `trigger` (`kind`: stop, pass, hover, land, circle, lap, street, between, tape, event (loop MW-4: city_life.gd sees the moment), legacy, or waits; with its numbers and the conditions night, after, hours, weekday, look, summer, dry, date, station, roadworks, and loop MW-3's crowd and days: egg_book.gd), `reward` (respect; track: a PÓŁNOC FM track; then: a then card stamped; kadr: a Kadr spot unlocked) and, for an egg whose trigger needs something not built yet, `waits` (what: the card is defined, nothing can find it). Lines taken from vision's quotes and the then cards of vision 3.9; the ones vision does not quote were written in MW-6 for the game-designer to review (a Polish line at most 70 characters).",
 	"waits": {
 		"garage": "the garage's paint (no garage yet)",
 		"dogs": "the dog walkers (MW-4)",
@@ -453,12 +453,15 @@
 				"The ball came back off the roof. The dog wasn't surprised."
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "event",
+				"hours": [
+					7,
+					21
+				]
 			},
 			"reward": {
 				"respect": 40
-			},
-			"waits": "dogs"
+			}
 		},
 		{
 			"id": "e17",
@@ -498,12 +501,11 @@
 				"A queue, a photo, the next place"
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "event"
 			},
 			"reward": {
 				"respect": 40
-			},
-			"waits": "wiralek"
+			}
 		},
 		{
 			"id": "e19",
@@ -517,12 +519,11 @@
 				"Three queues at once. The city held its breath."
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "event"
 			},
 			"reward": {
 				"respect": 50
-			},
-			"waits": "wiralek"
+			}
 		},
 		{
 			"id": "e20",
@@ -538,7 +539,8 @@
 			"trigger": {
 				"kind": "pass",
 				"within": 25,
-				"date": "fat_thursday"
+				"date": "fat_thursday",
+				"crowd": "lukrownia"
 			},
 			"reward": {
 				"respect": 30
@@ -684,12 +686,14 @@
 				5
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "stop",
+				"within": 20,
+				"secs": 2,
+				"crowd": "influencer"
 			},
 			"reward": {
 				"respect": 15
-			},
-			"waits": "dogs"
+			}
 		},
 		{
 			"id": "e28",
@@ -703,12 +707,15 @@
 				1
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "event",
+				"hours": [
+					6,
+					22
+				]
 			},
 			"reward": {
 				"respect": 20
-			},
-			"waits": "cyclists"
+			}
 		},
 		{
 			"id": "e29",
@@ -722,12 +729,18 @@
 				3
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "event",
+				"weekday": [
+					3
+				],
+				"hours": [
+					19,
+					20
+				]
 			},
 			"reward": {
 				"respect": 40
-			},
-			"waits": "runners"
+			}
 		},
 		{
 			"id": "e30",
@@ -741,12 +754,24 @@
 				4
 			],
 			"trigger": {
-				"kind": "waits"
+				"kind": "lap",
+				"r": [
+					32,
+					70
+				],
+				"max_kmh": 20,
+				"weekday": [
+					6
+				],
+				"hours": [
+					9,
+					17
+				],
+				"crowd": "hyrax"
 			},
 			"reward": {
 				"respect": 30
-			},
-			"waits": "runners"
+			}
 		},
 		{
 			"id": "e31",
@@ -950,6 +975,46 @@
 				"respect": 10
 			},
 			"waits": "payphone"
+		},
+		{
+			"id": "easter_rechotka",
+			"name": [
+				"Trzy Frogsy",
+				"Three Frogs"
+			],
+			"place": "swietokrzyska_metro",
+			"line_ref": [
+				"easter_rechotka",
+				0
+			],
+			"trigger": {
+				"kind": "stop",
+				"within": 30,
+				"secs": 2
+			},
+			"reward": {
+				"respect": 20
+			}
+		},
+		{
+			"id": "easter_lezak",
+			"name": [
+				"Leżak, który stoi",
+				"The Leżak that stands"
+			],
+			"place": "nowy_swiat_uniwersytet",
+			"line": [
+				"Leżak, który stoi. W swojej strefie. Ktoś powinien to zgłosić.",
+				"A Leżak standing up. In its own zone. Someone should report this."
+			],
+			"trigger": {
+				"kind": "stop",
+				"within": 12,
+				"secs": 2
+			},
+			"reward": {
+				"respect": 20
+			}
 		}
 	]
 }

@@ -4,7 +4,8 @@ extends SceneTree
 ##   - every card has its name and line in Polish and English (a `line_ref` resolving to a
 ##     dialogue.json line), each at most 70 characters, a reward (respect), a trigger kind, a
 ##     place that exists (places.json, or eggs.gd's five spots); a waiting egg names what it
-##     waits for; unique ids; 45 cards (5 of v0.65 + vision's 40);
+##     waits for; unique ids; 47 cards (5 of v0.65 + vision's 40 + loop MW-2's two: the Frogs
+##     triple corner and the standing Leżak);
 ##   - every reachable egg fires on synthetic inputs of its kind (the vehicle at its place, its
 ##     time, day and weather; a lap, a street, a circle driven), and an egg with a condition does
 ##     not fire without it (by day, too fast, in the rain, another station);
@@ -20,7 +21,7 @@ const Notebook := preload("res://scripts/notebook.gd")
 const Wallet := preload("res://scripts/wallet.gd")
 const MAX_PL := 70
 const OLD_SPOTS := ["palma", "pigeons", "barriers", "patelnia", "syrenka"]
-const KINDS := ["stop", "pass", "hover", "land", "circle", "lap", "street", "between", "tape", "legacy", "waits"]
+const KINDS := ["stop", "pass", "hover", "land", "circle", "lap", "street", "between", "tape", "legacy", "waits", "event"]
 
 
 ## A stand-in for radio.gd: tracks 1-2 free, the rest locked; records the calls.
@@ -98,8 +99,8 @@ func _run() -> void:
 
 
 func _check_data(book: EggBook, nb: Notebook) -> void:
-	if book.eggs.size() != 45:
-		problems.append("%d cards, want 45 (5 of v0.65 + vision's 40)" % book.eggs.size())
+	if book.eggs.size() != 47:
+		problems.append("%d cards, want 47 (5 of v0.65 + vision's 40 + MW-2's two)" % book.eggs.size())
 	var ids := {}
 	for e in book.eggs:
 		var id := str(e["id"])
@@ -191,6 +192,11 @@ static func want_state(t: Dictionary) -> Dictionary:
 ## The same state with one of the trigger's conditions broken ({} if it has none).
 static func broken_state(t: Dictionary, s: Dictionary) -> Dictionary:
 	var b := s.duplicate()
+	# Loop MW-4: a window alone is broken an hour after it closes (a 9-17 window held 16.5).
+	if t.has("hours") and not bool(t.get("night", false)) and not t.has("after"):
+		b["look"] = "Day"
+		b["hour"] = fmod(float((t["hours"] as Array)[1]) + 1.0, 24.0)
+		return b
 	if bool(t.get("night", false)) or t.has("after") or t.has("hours"):
 		b["look"] = "Day"
 		b["hour"] = 10.0 if not t.has("hours") or float((t["hours"] as Array)[0]) > 11.0 else 16.5
@@ -262,7 +268,7 @@ func _check_triggers(book: EggBook) -> int:
 		var id := str(e["id"])
 		var t: Dictionary = e["trigger"]
 		var kind := str(t.get("kind", ""))
-		if e.has("waits") or kind in ["legacy", "tape", "waits"]:
+		if e.has("waits") or kind in ["legacy", "tape", "waits", "event"]:
 			# Never fires by itself.
 			if EggBook.step(e, want_state(t), {}, 0.5):
 				problems.append("%s: a %s egg fired from step()" % [id, kind if not e.has("waits") else "waiting"])

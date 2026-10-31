@@ -438,6 +438,7 @@ func _build_parts(marks, roofs_only: bool) -> void:
 	_build_shore()
 	_add_mesh(walls, building_material, true)
 	_build_neon(keep, marks)
+	_build_landmark_signs(marks)
 
 	_build_trees()
 	_build_street_furniture()
@@ -4095,6 +4096,9 @@ func _build_lod2(walls, marks) -> Array:
 					col[t] = skin["roof"] if nrm[t].y >= 0.7 else skin["wall"]
 					uv2[t].x = skin["mode"]
 		t0 = t1
+	var facades := _tenement_facades(pos, nrm, col, uv2, dropped)
+	col = facades[0]
+	uv2 = facades[1]
 	# Split into tiles by triangle, like the other city meshes (not on the roof pass).
 	var tiles := {}
 	for t in range(0, count if not walls.none else 0, 3):
@@ -4463,7 +4467,7 @@ func _make_shared() -> void:
 	var neon := ShaderMaterial.new()
 	neon.shader = load("res://shaders/neon.gdshader")
 	neon.set_shader_parameter("words", Neon.atlas())
-	neon.set_shader_parameter("rows", float(Neon.WORDS.size()))
+	neon.set_shader_parameter("rows", float(Neon.all_words().size()))
 	_shared["neon"] = neon
 	_shared["neon_quad"] = Neon.quad()
 
@@ -4743,6 +4747,86 @@ const OLD_TOWN := Vector3(-760.0, -1680.0, 190.0)
 const CANDELABRAS := Vector3(-533.8, 1282.4, 75.0)
 const CANDELABRA_HEAD := Vector3(0, 8.5, 0)
 
+## The landmarks loop (Old Town): the historic districts (x, z, radius), the Old Town and the
+## New Town, where GUGiK models a whole block of tenements as one building (Rynek's sides are
+## 49 and 84 OpenStreetMap houses in one model), so it stood in one colour like a modern block.
+const HISTORIC := [Vector3(-760.0, -1680.0, 200.0), Vector3(-830.0, -1920.0, 170.0)]
+## Their tenements' own colours where OpenStreetMap has none (ochre, salmon, cream, terracotta,
+## pale yellow, sage, blue-grey, peach, oxblood): the rebuilt Old Town's palette.
+const TENEMENTS := ["#d9a441", "#e1968f", "#ebe1d1", "#c8733f", "#efd9a0", "#a9b98a", "#9fb6cf",
+		"#f0c1ab", "#9c4a43", "#e8c07a", "#cf8c59", "#dcc9a3"]
+## Their pitched roofs' tiles, half mixed into the aerial photo's colour (which reads pale pink).
+const TILES := ["#9c4a35", "#a85a3e", "#8a4434", "#b0603f", "#94503c"]
+## Kinds whose walls keep their own colour there (the churches: a skin or brick of their own).
+const NOT_TENEMENTS := ["church", "cathedral", "chapel", "monastery", "convent", "religious"]
+
+
+## The historic districts: each LoD2 wall in them takes the colour and window seed of the
+## OpenStreetMap house it stands on (its centre a metre inside the wall), so a block reads as
+## a row of tenements, each its own colour and window rhythm, under a tiled roof. Load time only, both city paths
+## (the house's own data, never which sector it came in). Returns [colours, UV2s] (packed
+## arrays are copies).
+func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedColorArray,
+		uv2: PackedVector2Array, dropped: PackedByteArray) -> Array:
+	var cell := 24.0
+	var grid := {}
+	var polys: Array[PackedVector2Array] = []
+	var looks: Array[Color] = []
+	var seeds: Array[float] = []
+	var roofs: Array[Color] = []
+	for bld in data.get("buildings", []):
+		var p: Array = bld["p"]
+		if p.size() < 6 or NOT_TENEMENTS.has(str(bld.get("kind", ""))):
+			continue
+		var poly := _pts(p)
+		var box := Rect2(poly[0], Vector2.ZERO)
+		for q in poly:
+			box = box.expand(q)
+		if not _historic(box.get_center(), 40.0):
+			continue
+		var hsh := absi(int(poly[0].x * 73.0 + poly[0].y * 31.0))
+		var k := polys.size()
+		polys.append(poly)
+		looks.append(_osm_colour(bld["c"], Color(TENEMENTS[hsh % TENEMENTS.size()])))
+		seeds.append(fposmod(hsh * 0.6180339887, 1.0))
+		roofs.append(Color(TILES[hsh % TILES.size()]))
+		for gx in range(floori(box.position.x / cell), floori(box.end.x / cell) + 1):
+			for gz in range(floori(box.position.y / cell), floori(box.end.y / cell) + 1):
+				var key := Vector2i(gx, gz)
+				if not grid.has(key):
+					grid[key] = []
+				(grid[key] as Array).append(k)
+	if polys.is_empty():
+		return [col, uv2]
+	for t in range(0, pos.size(), 3):
+		if dropped[t / 3] or uv2[t].x >= 1.0 or col[t].a < 0.9 or nrm[t].y > 0.95 or nrm[t].y < -0.3:
+			continue  # a landmark's, glass, a flat roof or an underside
+		var pitched := nrm[t].y >= 0.3
+		var c := (pos[t] + pos[t + 1] + pos[t + 2]) / 3.0
+		# A wall's house is a metre behind it; a roof slope's is under its centre.
+		var probe := Vector2(c.x, c.z) if pitched else Vector2(c.x, c.z) - Vector2(nrm[t].x, nrm[t].z).normalized()
+		if not _historic(probe, 0.0):
+			continue
+		var cands: Array = grid.get(Vector2i(floori(probe.x / cell), floori(probe.y / cell)), [])
+		for k in cands:
+			if Geometry2D.is_point_in_polygon(probe, polys[k]):
+				for v in 3:
+					if pitched:
+						col[t + v] = col[t + v].lerp(roofs[k], 0.5)
+					else:
+						col[t + v] = looks[k]
+						uv2[t + v].x = seeds[k]
+				break
+	return [col, uv2]
+
+
+## Whether a point is within `slack` metres of a historic district (HISTORIC).
+func _historic(at: Vector2, slack: float) -> bool:
+	for d in HISTORIC:
+		if at.distance_to(Vector2(d.x, d.y)) < d.z + slack:
+			return true
+	return false
+
 
 ## The named Royal Route streets' segments in this map or sector: [a, b, half width + reach].
 func _royal_segments() -> Array:
@@ -4823,6 +4907,34 @@ static func halo_quad(size: float) -> ArrayMesh:
 ## Neon shop signs (neon_signs.gd) on the ground floor of about a third of the
 ## buildings with a street in front: on the longest wall facing it, if the word
 ## fits. They go under a "Neon" node the game shows only when the lights are on.
+## The landmarks loop: the landmarks' own big signs (`marks.signs`: word, the middle of its
+## bottom edge, the wall's outward normal, the scale over a shop sign), lit by day and night
+## (INSTANCE_CUSTOM.z = 2), so not under the night lights' holder.
+func _build_landmark_signs(marks) -> void:
+	if marks.signs.is_empty():
+		return
+	_make_shared()
+	var spots: Array[Transform3D] = []
+	var colours: Array[Color] = []
+	var custom: Array[Color] = []
+	var all := Neon.all_words()
+	for sign: Array in marks.signs:
+		var word: String = sign[0]
+		var t := Neon.place(word, sign[1], sign[2])
+		var k: float = sign[3]
+		t.basis = Basis(t.basis.x * k, t.basis.y * k, t.basis.z)
+		t.origin = sign[1] + Vector3.UP * (t.basis.y.length() * 0.5) + (sign[2] as Vector3).normalized() * 0.4
+		spots.append(t)
+		colours.append(sign[4])
+		custom.append(Color(all.find(word), float(Neon.word_width(word) + 2 * Neon.PAD) / Neon.ATLAS_W, 2.0, 0.0))
+	var holder := Node3D.new()
+	holder.name = "LandmarkSigns"
+	_out.add_child(holder)
+	_tree_multimesh(_shared["neon_quad"], _shared["neon"], spots, colours, custom, holder)
+	for c in holder.get_children():
+		(c as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+
 func _build_neon(keep: Array, marks) -> void:
 	var streets := {}
 	for r in data["roads"]:
@@ -4951,19 +5063,21 @@ func _cylinder(st, centre: Vector3, radius: float, height: float, sides: int, co
 		_tri(st, centre + up, p1 + up, p0 + up, Vector3.UP, col)
 
 
-## Benches, bins, bike racks, bus shelters and Warsaw's advertising columns.
+## Benches, bins, bike racks, bus shelters and Warsaw's advertising columns. The easy-driving
+## loop (2026-10-30, the user's call): the small ones (benches, bins, bike racks, columns) are not
+## obstacles, the car drives through them like the lamps and signal poles; shelters stay solid.
 func _build_props() -> void:
 	_make_shared()
 	var metal: Material = _shared["prop_metal"]
 	var none: Array[Color] = []
-	_props(_shared["bench"], metal, data.get("benches", []), 3.2, none, true)
-	_props(_shared["bin"], metal, data.get("bins", []), 1.0, none, true)
-	_props(_shared["rack"], metal, data.get("bikes", []), 3.4, none, true)
+	_props(_shared["bench"], metal, data.get("benches", []), 0.0, none, true)
+	_props(_shared["bin"], metal, data.get("bins", []), 0.0, none, true)
+	_props(_shared["rack"], metal, data.get("bikes", []), 0.0, none, true)
 	var tints: Array[Color] = []
 	var list: Array = data.get("columns", [])
 	for i in range(0, list.size() - 2, 3):
 		tints.append(Color(POSTER[int(absf(float(list[i]) * 7.0 + float(list[i + 1]) * 3.0)) % POSTER.size()]))
-	_props(_shared["column"], metal, list, 1.4, tints)
+	_props(_shared["column"], metal, list, 0.0, tints)
 	var shelters: Array = data.get("shelters", [])
 	var glows: Array[Color] = []
 	glows.resize(shelters.size() / 3)

@@ -16,7 +16,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
   with tall windows and a card; new bus shelters (glass roof, poster box lit at night, the
   blue D-15 sign). The Palace and the stadium were already detailed models and keep their look.
   **Second pass landed (2026-10-30)**: 9 more (Grzybowska 63, Jana Pawła II 21, Marszałkowska
-  94/98: the hotels by their addresses; Central Tower, Ilmet, the Platinum Towers, Łucka City,
+  94/98: the hotels, now under parody names Chilton, Westynka and Nowotel; Central Tower, Ilmet, the Platinum Towers, Łucka City,
   Widok Towers): 27 towers in all. **Third pass (2026-10-30)**: 15 low-rise landmarks
   (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm, Zachęta…) in their real colours.
   **Street furniture**: historic lanterns on the Royal Route and in the Old Town (2026-10-30). MDM's blocks and
@@ -205,8 +205,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   and full gas from three quarters out on the stick (70 HUD units, ~38 pt radius on an iPhone
   13), the 80 m default view, and whether the 44 pt panel controls feel right. Touch was emulated from the mouse and driven by
   `--clicks` / `--drag` / `--stick` on the Mac; nothing ran on a device.
-- Point with a finger that never lifts behaves like a fixed camera at whatever angle the
-  camera had (it only comes round after a release). The zoom (− + / pinch) is not saved.
+- ~~Point with a finger that never lifts behaves like a fixed camera at whatever angle the
+  camera had (it only comes round after a release). The zoom (− + / pinch) is not saved.~~ The
+  follow-camera loop (2026-10-30): Point's camera turns with the car while held, the zoom has five
+  saved steps. Not tested headless: the 20° re-aim, and how it feels on the phone.
 - In a dense spot the car can be pinned between a wall and a stopped traffic car that waits for
   it; the unstick turns it out after 1.5 s, and a second pin within 5 s tows it back onto the
   nearest lane on its level (next to a kerb that can be almost where it was, turned the lane's
@@ -835,11 +837,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **The request card lost "your rating"** to fit beside the car on 390-pt phones (five lines of
   text above the pedals); the rating is on the result card. A request could show it on the
   PODWÓZKA button instead.
-- **Loop 2d-2 (after 3c's streaming)**: the `rechotka` quirk joins the random pool once the
-  Rechotka shops exist (today it is flag-only and names a shop nobody can see), and the `detour`
-  passenger (a stop at any Rechotka, +½) needs them too; Pędzik, Leżak, the kebab stands and the
+- ~~**Loop 2d-2 (after 3c's streaming)**: the `rechotka` quirk joins the random pool once the
+  Frogs shops exist (was Rechotka 24; renamed 2026-10-30) (today it is flag-only and names a shop nobody can see), and the `detour`
+  passenger (a stop at any Frogs, +½) needs them too; Pędzik, Leżak, the kebab stands and the
   billboards are 2d-2's; the `signs` and `column_posters` Podwózka lines (parodies.md 7) wait for
-  the billboards. `oldtown` falls back to a park until the map has the Old Town square.
+  the billboards.~~ Done in loop MW-2 (2d-2 folded in; "From loop MW-2"). `oldtown` falls back
+  to a park until the map has the Old Town square.
 - **PixelLab (not in this session)**: the Podwózka pickup icon (16 px), the "Nawigacja" avatar
   (32 px, it speaks as a plain bubble now), a believer and a student passenger portrait, the
   Podwózka billboard (parodies.md 9). The passenger figure is `props.gd`'s person with a hop and
@@ -1223,11 +1226,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## From the driving-feel loop (less sticky, 2026-10-30)
 
-- Street furniture is still solid and unknockable: benches, bike racks, advertising columns,
-  shelters and parked cars. On today's map 7 benches, 11 bike racks and 3 shelters overlap a
-  carriageway (measured against the roads' half widths); the bake could keep them off the
-  asphalt as map review B did for lamps and signal poles, or they could be knocked about like
-  the roadworks' cones.
+- ~~Street furniture is still solid and unknockable: benches, bike racks, advertising columns,
+  shelters and parked cars.~~ Benches, bins, bike racks and columns are driven through since the
+  easy-driving loop (2026-10-30); shelters and parked cars stay solid (3 shelters overlapped a
+  carriageway on the old map). Knocking them about like the roadworks' cones is still open.
 - Corner slip and the shove are tuned on the flat test ground (`check_steering`) and by reading
   the numbers, not yet on the phone: how a 35 % bump feels, whether 7 m/s of sidestep reads as a
   jump at 60 fps, and whether shoved traffic overlapping the next lane looks wrong.
@@ -1254,6 +1256,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 ## From loop MW-1 (the MOJA WARSZAWA notebook, 2026-10-30)
 
+- ~~**The minimap opens full screen** (F, 2026-10-30): a tap on the minimap opens a full-screen map
+  with the notebook's "?" marks and found places; another tap or the back gesture closes it.
+  HUD, content lane; 0 cost when closed.~~ Done (F's asks, 2026-10-30: `full_map.gd`).
 - **The real bake resolution (map lane).** The notebook resolves the places at load from the
   `near` hints (`notebook.gd` `resolve`: the bake's projection, then an address poi, a named
   square, park or landmark, or the place's own poi kind, within 300-600 m of the hint). The 3d
@@ -1309,8 +1314,8 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Done in loop MW-6: E14 opens track 5; E31 opens the next locked track when its own is free
   (the default built; an Open Question of the loop).
 - **Skipped (their crowds are MW-3 / MW-4's)**: ~~the steps crowd's murmur, the guitarist on the
-  steps, the queue murmur~~ (done in loop MW-3: `crowd_murmur` and `steps_guitar`), dog barks at
-  horns, Jasna 0's grate rumble, dawn birds and the first tram's bell, the metro's ventilation
+  steps, the queue murmur~~ (done in loop MW-3: `crowd_murmur` and `steps_guitar`), ~~dog barks at
+  horns~~ (done in loop MW-4: three barks at the AI cars' horns), Jasna 0's grate rumble, dawn birds and the first tram's bell, the metro's ventilation
   hum, the club door "closing" between admissions.
 - **The fixed looks' clock** (`time_of_day.gd` `local_clock`: Day 14:00, Dusk 19:30, Night 01:30,
   Friday night) runs on in real time from when the look was set, so the bells strike after an
@@ -1331,13 +1336,15 @@ Small problems that agents reported or that showed up in screenshots. They are f
   new pages and Fotka's controls, the flags (DEVELOPMENT.md "Fotka, Spacer, KASETA and the eggs").
 - **The 19 waiting eggs** and what wakes each: E01 E21 the garage's paint; ~~E03 the dawn crowd
   and the Dawn look (MW-3); E04 the patrol cars parked by the clubs (MW-3); E15 the guitarist
-  on the steps (MW-3)~~ (woken in loop MW-3: 16 wait now); E16 E27 the dog walkers (MW-4); E18 E19
-  Wiralek's trend cycle (MW-4); E23 E25 the night buses at Centralny (MW-3 skipped them: "From
+  on the steps (MW-3)~~ (woken in loop MW-3: 16 wait now); ~~E16 E27 the dog walkers (MW-4); E18 E19
+  Wiralek's trend cycle (MW-4)~~; E23 E25 the night buses at Centralny (MW-3 skipped them: "From
   loop MW-3"); E24 the player's horn and buses pulling in at stops;
-  E28 the Rowerilo riders (MW-4); E29 E30 Kolka and Hyrax (MW-4); E34 the armchair man (MW-4);
+  ~~E28 the Rowerilo riders (MW-4); E29 E30 Kolka and Hyrax (MW-4)~~ (woken in loop MW-4: 9 wait
+  now); E34 the armchair man (MW-4 skipped it: "From loop MW-4");
   E35 KASETA's older decades (T1); E39 a tram in old livery; E40 the payphone prop (with T17).
   Each needs only its trigger in `eggs.json` (drop `waits`) once its piece exists.
-  Rechotka's two eggs are not cards yet (MW-2).
+  ~~The Frogs shop's two eggs are not cards yet (MW-2).~~ Done in MW-2: `easter_rechotka`,
+  `easter_lezak`.
 - **Words to review (designer)**: the egg lines vision's table doesn't quote and every English
   name are this loop's (marked in the generator); the 15 Kadr spots (`kadr.json`: names, places,
   looks) are this loop's picks; the KASETA ghosts are boxes from the then cards' ghost notes.
@@ -1376,10 +1383,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   then E23 and E25 only need their triggers (drop `waits`).
 - **E01 and `car_black`** wait for the garage's paint (the car line fires; the black car's line
   and the egg need a paint the player chose).
-- **Level 26's roof crowd**: the roof grid (`map.roof_height`) has nothing over 40 m at
-  level_26's resolved point, so no roof crowd is built (the code is there: a ring at the roof's
-  edge, the roof curve). Either the place's point is off the tower (map lane: the bake's anchors)
-  or the tower isn't in the roof grid. Fix the anchor and it appears.
+- ~~**Level 26's roof crowd**: the roof grid (`map.roof_height`) has nothing over 40 m at
+  level_26's resolved point, so no roof crowd is built.~~ Done (F's asks, 2026-10-30): the hint
+  was 520 m west of the tower; `near` now on it.
 - **A real sitting pose**: sitters are a lower, longer instance of the standing figure (y × 0.6,
   z × 1.35), legs still. A bent-knees pose needs `actor.gdshader` (visuals lane) or a second mesh
   (+1 draw call at the steps). Open Question of the loop.
@@ -1407,6 +1413,64 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - **Phone check**: the queue figures at 80 m are 2-3 image pixels wide; whether a queue of 24
   reads as a queue (and the dawn walkers as a crowd) only the phone shows.
 
+## From loop MW-4 (everyday life and trends, 2026-10-30)
+
+- Done: dog walkers (three dogs, the trees, the horn's bark and line), the influencer dog and
+  E16's ball; cyclists (commuters, Rowerilo, cargo) on the cycle paths, the dock, the bell at a
+  car parked on a cycle path; runners, KOLKA on Wednesdays and the Zając; Hyrax on Saturdays
+  and Podwózka's `hurry` riders; the Wiralek cycle (three slots, queues, fascias), the "Na
+  czasie" job, Fat Thursday's queue; eight procedural sounds; eggs E16 E18 E19 E27 E28 E29 E30
+  woken (the `event` kind), E20 with the `lukrownia` crowd (36 reachable, 9 waiting);
+  `check_city_life` (verify `life`, quick and CI) and the `life-soak` run; `--life=`,
+  `--dogs-log`, `--trend-log`, `--life-log`, `--zajac`, `--trend-day=`, `--trend-job`,
+  `--life-soak` (DEVELOPMENT.md "Everyday life and trends").
+- **The player has no horn** (vision's horn reactions, E24): the dogs bark at the AI cars' horns
+  (`traffic.gd` signals, connected in `main.gd`). A horn button (the driving lane: a HUD
+  control and `car.gd` / `sfx.horn`) then needs one line: `life.horn(car.global_position)`.
+- **No Rowerilo docks in the map data**: the bake has no `amenity=bicycle_rental` POIs, so the
+  only dock is the `rowerilo_dock` place (9 bikes). Map lane: bake the docks as POIs (kind
+  `bike_dock`) and `city_life.gd` `_place_fixed` can put a row at each.
+- **E28's "to a dock"** is simplified to "follow a Rowerilo rider 400 m" (the rider then docks
+  off screen): with docks in the data the rider could ride to the nearest one. Open Question.
+- ~~**No rider MultiMesh to share** (MW-2's Pędzik riders aren't built): the bikes are their own
+  MultiMesh (+1 draw call in view). When Pędzik lands, its riders can join it (a fourth bike
+  shape) or the reverse.~~ MW-2: the bike family already holds its four morph shapes (commuter,
+  Rowerilo, cargo, parked), so Pędzik has its own MultiMesh (+1 in view, "From loop MW-2").
+- **PixelLab pictograms on the Wiralek fascias** (vision 3.4's table: a croissant cube, a cracked
+  chocolate bar, …): PixelLab wasn't available this loop; the fascia shows the word only. Eight
+  pictograms, then a textured quad beside the word (+0 draws if in the fascia's mesh).
+- **The armchair man (E34)** isn't built: the dogs' MultiMesh has no spare shape and a chair
+  prop on a guest needs a fifth shape or its own mesh. Small; MW-2 or a later life pass.
+- **No running stride**: runners, Kolka and Hyrax use the walking legs (`actor.gdshader`'s `walk`;
+  visuals lane). Waiting walkers and the still photographers swing their legs too (guests share
+  the walkers' material); a `walk` per instance would need the shader.
+- **Not built from vision 3.4 / 3.7**: one queuer in five holding a phone up (a pose), the pigeon
+  on days 6-7, the influencer at the window, the courier with the square backpack, MERDAK pet
+  shops (no `shop=pet` anchors in places.json), scooters (Leżak, MW-2), the cargo bike's child
+  laughing and the Hyrax finish's whistle (sounds), the traffic behind honking at the Zając
+  (one car horn plays instead).
+- **Kolka's start**: the `kolka_start` place's pin resolves about 490 m from the boulevard (by
+  the projection; in the water by the tow's test) and the footway A* from it detours north; the
+  club gathers at the route's last point within 500 m of the pin (on the boulevard), 1,261 m
+  from Most Poniatowskiego. Map lane: the bake's anchors (like E09's bridge pin).
+- **The clock is the wall clock** (MW-3/MW-5's note): in a headless run with `--fixed-fps` the
+  game runs faster than the clock, so Kolka (and every clocked thing) moves at real time while
+  the car moves at game time. `--zajac --autopilot` therefore needs about 4 minutes of real time
+  to pay. A game-time clock is the visuals/time lane's call.
+- **Hyrax and Kolka need Live** (or `--zajac`): a fixed look is always Friday (Saturday before
+  noon), so Kolka never runs and Hyrax only before 12:00 in a fixed Day look started in the
+  morning (`--clock=10:00`). Open Question.
+- **Guesses to tune on the phone**: the dog and rider counts, the rider mix, 3 m/s runners,
+  the Hyrax ring (26 m, 24 barriers), the fascia's size, the job's tip and late rule, the 240 s
+  per-slot offer cooldown.
+- ~~**Script cost over budget at the busiest spots**: "city life" 0.08-0.10 ms against 0.05.~~
+  Done in the MW-4 cost cut (DEVELOPMENT "Everyday life and trends", Cost): 0.04 ms at Plac
+  Zbawiciela 07:30, 0.03-0.04 with Kolka running, 0.02 on the bench route. Left: the phone's
+  own number (the performance lane's device bench); full packed arrays for the movers would cut
+  the step again if the phone needs it.
+- **Phone check**: whether a 120-triangle dog reads at 80 m (2-3 image pixels), the bikes' cream
+  and basket, the fascia's word at phone size, the bark and bell levels in the mix.
+
 ## From the web build (2026-10-30)
 
 - **Try it in a phone's browser** (iOS Safari, Android Chrome): memory with the ~140 MB pack in
@@ -1420,3 +1484,67 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (night lights, water, shadows); only the green traffic was fixed.
 - **Prebuilt MultiMeshes with custom data and no colours** would show the same Compatibility bug
   if a shader reads COLOR; none looked wrong in the browser (trees, parked cars).
+
+## From F's asks (2026-10-30: Frogs, the zones' switch, LEVEL 26, the full-screen map)
+
+- ~~**Frogs' shops** are still words only (MW-2 builds them): the fascia spec is FROGS at a 0.12 m
+  letter pixel (parodies.md 2.1); the ids stay `rechotka` / `easter_rechotka`.~~ Built in MW-2.
+- **The zones' switch off** also silences the guards' whistle, run and car (only the pill and the
+  cap were asked about); the clamp keeps its "in a zone or on a footway" rule. If F wants the
+  whistle as flavour with no cap, it is one condition in `guards.gd` `_zone_tick`.
+- **LEVEL 26's band** follows the roof grid's 4 m cells (smoothed over five rays, put 0.5 m out),
+  so it sits on the facade or up to a few metres out of it; the parapet figures stand 4.6 m in
+  from the grid's edge. A tower-top outline from the map lane (the top floor's footprint as a poi
+  or in `landmarks`) would put both exactly on the glass. The figures are dark on a dark roof and
+  hard to see from the helicopter; a light shirt or two would read better (art direction).
+- **LEVEL 26's cost** in view at night is +2 draw calls: the band (+1) and the crowd MultiMesh of
+  its 512 m cell (+1, the roof crowd and the door queue; before, the roof crowd was never built
+  and the cell stayed hidden). 0 by day and beyond 350 m.
+- **The full-screen map** shows the "?" marks the minimap shows (unfound places within 400 m of
+  the car), not every unfound place (that would spoil the finding). The 3D view still renders
+  under it while open (the game is paused); stopping the view's updates while the map is open
+  would save the phone's GPU (performance lane).
+- **Android's back gesture**: `full_map.gd` closes on `NOTIFICATION_WM_GO_BACK_REQUEST`, but
+  `application/config/quit_on_go_back` is Godot's default (true): check on a phone whether the
+  back gesture quits the app first (store-release lane).
+
+## From loop MW-2 (storefronts and parodies, 2026-10-30)
+
+- **What the map lane should bake** (none of it is in `centrum.json`; MW-2 places from addresses
+  and the lane graph at runtime, DEVELOPMENT.md "Storefronts and parodies"): `shop=convenience`
+  (the Frogs could stand where real corner shops are), `railway=subway_entrance` (the metro
+  entrances are put on the pavement round nine station places, not at the real stairs: at
+  Centrum one canopy stands over the map's own sunken stairs), `amenity=bicycle_rental` (the
+  docks), the `scooter` / `scooter_zone` pois of parodies.md 5.2 (the odd places: grass, bench
+  fronts, hedges, 1 in 40 on a shelter roof), and an address for **Kruczkowskiego 3B** (Kasa
+  Biletowa resolves to Aleja 3 Maja 7A, the nearest address within 140 m). An outline per
+  facade with its street side would replace the sector-load wall rays.
+- **What the landmarks lane could add**: nothing blocks. The venue neon sits 0.14 m off the
+  collider's face; on a LoD2 facade (no `lod2.*` in this container) the rays meet the LoD2
+  walls, untested here. A real shop front (door recess, glass) on the Frogs' walls would beat
+  our 5 m fascia box.
+- **Wall rays at sector load**: 248 Frogs picked, ~200 find a straight 5.2 m wall with a 5 m
+  roof (the rest are skipped: a Frogs needs a wall). The rays run once per sector on the main
+  thread (`storefronts.gd` `_physics_process`, ~1-3 ms a sector in the headless run); the phone
+  should be checked for a hitch at sector load.
+- **Setup** costs ~230 ms at the city's start (headless, desktop): the address and venue lists,
+  the shop picks, the Leżak and metro picks, the neon atlas. Could move to a worker thread.
+- **Not built (cheap later)**: Pędzik on the road's kerb edge (they ride the cycle paths and
+  footways only), the 1-2 couriers waiting at each kebab stand at night, the hop over a car,
+  **the courier race** (parodies.md 4.3), **the Leżak round-up** (5.3: depot, pins, boot of 5),
+  Leżaks on shelter roofs. The `pedzik` `challenge` / `win` / `lose` and the `lezak` `start` /
+  `done` lines wait for them.
+- **PixelLab pictograms** (parodies.md 6.2 / 9): the ten billboards are text only (the five new
+  ones: FROGS · TU TEŻ, PODWÓZKA · GPS WIE LEPIEJ, PĘDZIK, LEŻAK, WIRALEK); a frog, a pin, a
+  backpack, a scooter and a phone pictogram each would be a textured quad beside the word.
+- **Two older `kebab_order` lines** are over the Polish bubbles' 70 characters (72 and 75:
+  "Zamówienie dla pana Krzysztofa…", "Powiśle, kamienica bez windy…"); `check_parodies` lists them
+  as known. A designer's trim.
+- **An older column poster** "CISZA NOCNA 3:00–3:05" has an en dash the pixel font lacks (it
+  draws a gap); a `–` glyph in `pixel_font.gd` or a hyphen in the line.
+- **Stamp reach** is 8 m from the door point (parodies.md 2.4 says 6): the door point is 1 m out
+  from the wall and a car on the near lane stops a pavement's width plus half a lane away
+  (`--rechotka` stops 6.4 m from Krucza 51's door). Open Question in the MW-2 report.
+- **The metro M** is a cream M on a navy square: generic, no operator's logo; at the default
+  view it is a few pixels. The art director may want it bigger or red.
+

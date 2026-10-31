@@ -570,7 +570,7 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   Trade Tower, Skyliner, Warsaw Unit, Mennica Legacy Tower, Generation Park Y, Skysawa,
   Błękitny Wieżowiec, Warszawskie Centrum Finansowe, Centrum LIM, Chałubińskiego 8, Spektrum
   Tower and The Bridge, and in a second pass Grzybowska 63, Jana Pawła II 21 and Marszałkowska
-  94/98 (hotels, named by their addresses), Central Tower, Ilmet, Platinum Towers A and B, Łucka
+  94/98 (the hotels, under parody names on their cards: Chilton, Westynka, Nowotel), Central Tower, Ilmet, Platinum Towers A and B, Łucka
   City and Widok Towers, were all the same blue box. Each is now built from its mapped parts
   (what else stands in its outline, LoD2 or OpenStreetMap, is dropped; the outline itself is
   left out when parts are mapped; a part starting in the air with nothing mapped under it
@@ -584,6 +584,42 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   its roof to 192 m (`S_FRAME`: the panes are cut away). Q22 stood 55 m tall (its LoD2 model
   predates the tower); it is 155 m now. Each has an info card; the far skyline (proxies) takes
   each tower's glass colour.
+- **Złota 44's sail** (after the user's phone look, "a rectangle, not curvy"; `_zlota_sail`):
+  the tower is lofted through 8 rings from the mapped core's corners: a straight west front,
+  soft corners, and the east front a curve that swells as it climbs (4 m out at the foot, 14 m
+  at the crown), the crown cut on a slope from 192 m at the north to 158 m and glazed like the
+  walls. Only the podium is still built from its OpenStreetMap parts.
+- **Warsaw Spire** (after the user's phone look, "not recognisable at all"; `_spire`):
+  OpenStreetMap has the 180 m tower only as its outline (the crown and masts are parts from
+  180 m up), so it stood as a lump. It is lofted from the outline through 6 rings, narrowing to
+  84 % at 180 m, with an open frame of fins to 196 m and a mast to 220 m. Its brand's parody,
+  SAMSONG, glows on the east and west faces near the top: a landmark sign (`signs`,
+  `map_builder._build_landmark_signs`, `neon_signs.gd` `LANDMARK_WORDS`, never a shop's word),
+  drawn with the neon signs' shader but lit by day too (`INSTANCE_CUSTOM.z` = 2) and outside the
+  night lights' holder. The two 55 m buildings beside it come from their parts.
+- **Rondo Daszyńskiego** (after the user's look, "too simple with rooftops"): The Warsaw HUB's two
+  130 m towers are landmarks too, found by a point rather than an OSM id (`_tallest_at`: the
+  tallest kept outline holding that point; `bake_sectors.py` `SITE_AREAS` has their box), in
+  pale glass with white fins and a card. Their tops, Mennica Legacy's and Generation Park Y's
+  are cut on a slope (`"crest": "slope"`), and every sloped roof is glazed in the walls' glass
+  tinted toward the roof colour, since a pale slab tilted to the camera blew out.
+- **Old Town and New Town tenements** (after the user's look, "kind of generic"; map_builder
+  `_tenement_facades`, `HISTORIC`): GUGiK models a whole block as one LoD2 building (Rynek's
+  sides are 49 and 84 OpenStreetMap houses in one model), so a block stood in one colour. In the
+  two historic districts each LoD2 wall takes the colour (OSM `building:colour`, else the
+  `TENEMENTS` palette) and window seed of the OSM house a metre behind it, and each pitched roof
+  is half mixed toward a tile red (`TILES`). Churches keep their own (`NOT_TENEMENTS`). Load time
+  only; the same on both city paths.
+- **Brick Gothic and the Metropolitan** (after the user's look, "churches look like default
+  buildings"): the Cathedral and the Barbican are drawn in brick Gothic (`M_GOTHIC`,
+  `building.gdshader` `gothic()`): brick in slow patches, a stone plinth, a buttress every
+  6.5 m and tall pointed lancets on walls over 9 m, their stained glass faintly lit at night.
+  Foster's Metropolitan on Plac Piłsudskiego wears the towers' fin skin (`S_FINS`) in grey glass,
+  with a card.
+- **Kolumna Zygmunta** (`_build_zygmunt`): OpenStreetMap maps the column in a dozen tiny 3D
+  parts that the builder dropped as specks, leaving a dark cube on Plac Zamkowy. It is built
+  as a landmark in a circle zone: three granite steps, the pedestal, the 12 m shaft, the
+  capital and the king in bronze with his cross raised and his sabre, to 22.9 m, with a card.
 - **Muzeum Narodowe** (the landmarks loop): kept as LoD2 draws it (one model round its
   courtyards), but in its pale stone with tall windows between piers (`M_MONUMENT`, `#c9bfa9`):
   `map_builder` asks `landmarks.skin_at` for every kept LoD2 run and OpenStreetMap building
@@ -1421,7 +1457,9 @@ phones; the log's `haptics:` line at load, and `rescue call ringing (buzz N ms)`
 Jazda · Driving: Controls (Point / Classic, with a line on what the scheme does) and "Kamera za
 autem · Camera follows the car" On / Off (the old CAM button, now with its state in view: the
 user had switched Classic's following off without noticing; Point with it off is the Fixed
-camera scheme; C still toggles it and a toast says which way); Świat · World: time of day
+camera scheme; C still toggles it and a toast says which way; loop MW-6 "Tryb gry · Game mode";
+F's asks, 2026-10-30: "Strefy piesze 20 km/h · Pedestrian zones 20 km/h" Wył. / Wł., off by
+default, saved as `[game] zone_cap`); Świat · World: time of day
 (TIME), weather (RAIN), traffic; Obraz · Picture: style (STYLE), quality, VHS tape (VHS), frame
 rate, the performance overlay and TEST; Dźwięk · Sound. Style and VHS are saved
 (`display/style`, `display/vhs`); the time of day and the weather are the world's and start by
@@ -1449,6 +1487,18 @@ cards; speech bubbles are dark cards with the speaker's name in their colour; BR
 helicopter's pads and Classic's steering strip sit on solid plates (held: the accent); the
 minimap takes a night palette as the lamps come on (light streets on a dark ground; it was the
 brightest thing on a night screen).
+
+**The full-screen map** (F's asks, 2026-10-30; `full_map.gd`, made on its first open): a tap on
+the minimap (down and up on it within 0.35 s and 10 pt: hud.gd `map_pressed`) pauses the game
+like the settings card and shows the minimap's own mesh north up over the whole screen, in its
+day or night palette: the car's arrow, the mission target, the notebook's "?" marks (the ones the
+minimap shows, 1.6× bigger) and the places found as gold dots, never names. One finger pans, two
+pinch (from the whole map to 250 m across the screen's height; it opens at 1,400 m on the car),
+the mouse wheel zooms. MAPA · map · north up top left, the ✕ (48 pt) top right, the hint
+*Przesuń palcem · zbliż dwoma palcami / Drag to move · pinch to zoom* at the bottom; the ✕, Esc
+or Android's back gesture close it. Closed it is hidden (no draws); open, the 2D pass has 39 draw
+calls (29 with it closed) at any zoom. `check_hud` lays it out at its 6 screens (the ✕ 44 pt in
+the safe area, the cards in it and apart, a tap on the minimap, a pan and a pinch).
 
 **Polish above English** on the HUD: the top row, the cards' titles, text and buttons
 (PRZYJMIJ · Accept, POMIŃ · Skip, JEDZIEMY! · Go! ...), the status panels' hints, the toasts, the
@@ -2421,7 +2471,13 @@ swing (a standing pose needs a new constant and a branch in `actor.gdshader`: th
 - **The zone cap**: inside a pedestrian-zone polygon (`ped_zones.gd`, loop 3d-1) the car's gas is
   capped at 20 km/h through the existing `car.zone_cap` hook (no change to `car.gd`; a faster car
   coasts down to it), with the pill *STREFA PIESZA · 20 KM/H · PEDESTRIAN ZONE · 20 KM/H*.
-- **The whistle**: moving in a zone with a guard within 60 m (once a zone a minute): the whistle,
+  **Off by default since F's asks (2026-10-30)**: Settings → Jazda → *Strefy piesze 20 km/h ·
+  Pedestrian zones 20 km/h* (Wył. / Wł., saved as `[game] zone_cap` in settings.gd; `--zone-cap` /
+  `--no-zone-cap` for one run). Off: no cap, no pill, no whistle, run or guards' car (main.gd
+  stops setting `car.zone_cap`; police.gd / guards.gd `zone_cap`); the guards still stand at their
+  posts, the guard conversation and the clamp are unchanged; the `zone:` log line says
+  `(no cap)`.
+- **The whistle** (only with the zone switch on): moving in a zone with a guard within 60 m (once a zone a minute): the whistle,
   the guard's line (`guard`, tagged `oldtown` on the Rynek and Barbakan posts, the deptak line
   elsewhere), the guard runs after the car for 3 s, gives up with the `run` line. **The guards'
   car** (one at a time, the police mesh's shape 1, spawned out of sight 150-300 m away near a post)
@@ -2684,7 +2740,7 @@ name or logo). The joke is the app and its GPS, never the driver or the passenge
     map has no Old Town square.
   - `reroute`: 40 % of the way in the app recalculates once and draws a new line that first turns
     back to the junction behind the car.
-  - `rechotka` ("turn at the Rechotka") only by flag until loop 2d-2 places the shops.
+  - `rechotka` ("turn at the Frogs"; the shop was Rechotka 24 until 2026-10-30, the id stays) only by flag until loop 2d-2 places the shops.
   Ignoring the app is always allowed.
 - **Stars** (live in the status panel, `★★★★½ 4,5`, a short toast for each change): from 5.0,
   −½ for a hard bump (closing speed over 4 m/s), braking over 18 m/s² or a corner over 15 m/s²
@@ -2837,7 +2893,7 @@ baked from the demo fetch already on disk (no downloads; README "Map data" for t
   the squares and pedestrian areas: the Old Town and New Town, Plac Zamkowy, Krakowskie
   Przedmieście's north end); traffic never enters (pedestrian ways are not in the lane graph);
   `game/scripts/ped_zones.gd` and `car.gd` `zone_cap` hold the player's car to 20 km/h there
-  (`zone:` log lines). The pill, the guards and the clamp are loop 3g-2's.
+  (`zone:` log lines) when Settings → Jazda's zone switch is on (off by default since 2026-10-30). The pill, the guards and the clamp are loop 3g-2's.
 - **Classes fixed over the whole map** (each counted before → after): a vertex within 0.3 m of the
   one before it got no node in the deck solver (a crash on the box's rails: 1 → 0); a rail way with
   no layer between cutting tracks is in the cutting (Żelazna's crossover, an R3 failure that
@@ -3064,9 +3120,9 @@ the car must get past each. Before → after (Point; Classic in brackets):
 | `car_clip`: a stopped car's corner 0.5 m into the car's path | 32 km/h, past at 2.1 s (Classic: stopped, never past) | 93 km/h, past at 1.2 s (Classic the same) |
 | `car_behind`: a stopped car square ahead | 22 km/h, past at 2.6 s | 26 km/h, past at 2.3 s |
 
-Every older test (holds, turns, walls, the corner, the camera) reads the same as before. Street furniture stays solid (benches, racks, columns, shelters,
-parked cars): on today's map 7 benches, 11 bike racks and 3 shelters overlap a carriageway
-(BACKLOG).
+Every older test (holds, turns, walls, the corner, the camera) reads the same as before. Street furniture stayed solid (benches, racks, columns, shelters,
+parked cars): on that day's map 7 benches, 11 bike racks and 3 shelters overlapped a carriageway.
+Since the easy-driving loop (below) only shelters and parked cars are.
 
 ## The roadworks loop: traffic and the helicopter knock the barriers (2026-10-30)
 
@@ -3574,8 +3630,11 @@ Data: `data/eggs.json` (45 cards) and `data/kadr.json` (15 spots); the then card
   E21 the garage's paint; E16 E27 the dog walkers (MW-4); E18 E19 Wiralek's trend cycle
   (MW-4); E23 E25 the night buses; E24 the player's horn and the bus stops; E28 the riders
   (MW-4); E29 E30 Kolka and Hyrax (MW-4); E34 the armchair man (MW-4); E35 KASETA's older
-  decades (T1); E39 a tram in old livery; E40 the payphone. Rechotka's two eggs wait for MW-2
-  (not cards yet).
+  decades (T1); E39 a tram in old livery; E40 the payphone. The Frogs shop's two eggs wait for MW-2
+  (not cards yet). Loop MW-4 woke E16 E18 E19 E27 E28 E29 E30 (a new kind, `event`: the
+  moment is seen by `city_life.gd`, which calls `fire`; E27 E30 keep `stop` / `lap` with a
+  crowd condition) and gave E20 the `lukrownia` crowd: **reachable 36, waiting 9** (E01 E21
+  E23 E24 E25 E34 E35 E39 E40; "Everyday life and trends" below).
 - **KASETA** (`tape.gd`): the 20 then cards at their notebook places. Within 40 m of one, on the
   ground under 12 km/h, the context button reads KASETA · time tape; a tap plays it: the VHS
   overlay for 6 s, a tape-rewind sound (procedural, seeded, no file), a dithered ghost of the
@@ -3655,9 +3714,17 @@ condition). Lines: the vision's groups already in `dialogue.json` (`club_door`, 
   a kebab), a `clubbers` line every 35-60 s. The car at the door (under 10 km/h within 8 m):
   the bouncer's `car` line once per club per night; `car_black` and E01 wait for the garage's
   paint.
-- **Level 26's roof crowd**: built only where the roof grid has a tower over 40 m at the place
-  (up to 16 figures on a ring at its edge). The roof grid has nothing at level_26's point, so there is
-  no roof crowd yet (BACKLOG).
+- **Level 26's roof crowd**: built only where the roof grid has a tower over 40 m at the place.
+  F's asks (2026-10-30): `places.json` `near` moved onto the tower at Plac Zawiszy (it was 520 m
+  west of it; the map's 116 m tower, OSM "Atlas Tower" parts, centre about −2224, 1012), so it
+  shows: `roof_ring` traces the roof grid in 48 rays to where it drops below the top floors; up
+  to 16 figures stand 4.6 m in from that edge (the roof curve 22:00-03:59; a seeded order round
+  the roof); a short queue (`level_26_door`, at most 8, the roof curve, the `club_door` lines and
+  the bouncer) waits on the footway at the ground-floor door; while the club is open and the view
+  is within 350 m, a violet band (`#a35cff`, 2 m tall, 1 m under the body's roof, one mesh in
+  `Models.material()` as LIT_SIGN, so it glows only with the city's lights) rings the top floor.
+  The club's bass (`city_sounds.gd`, its `club` tag and hours) comes from the tower's foot.
+  Cost at night in view: +2 draw calls (the band, the crowd cell's MultiMesh); 0 by day or far.
 - **The dawn crowd** (Sat/Sun 05:00-09:00, Live or the Dawn look): 20-40 walkers (curve 0.5 at
   05, 1.0 at 06-07, 0.4 at 08) in twos and threes from Lusterko, Smoła and Jasna 0 to the Palm,
   Metro Nowy Świat-Uniwersytet, the two nearest tram platforms and the two nearest kebab stands
@@ -3730,6 +3797,271 @@ condition). Lines: the vision's groups already in `dialogue.json` (`club_door`, 
   compare with `--crowd=0`. Triangles: a figure is the people's mesh; 80 on the steps is +0.01 M
   in the main pass (0.16 → 0.17 M), under the 25 k budget. Far from every crowd (more than
   350 m): no figures, the MultiMeshes hidden, the 2 Hz tick only (bench route, 0.01 ms).
+
+## Everyday life and trends (loop MW-4, 2026-10-30)
+
+docs/design/vision.md 3.4, 3.7, 4.7 and section 5's MW-4 row. Code: `city_life.gd` (new: the dog
+walkers, riders, runners, Kolka, Hyrax, the Wiralek cycle, the fascias, its rules as static
+functions, its two MultiMeshes), `trend_job.gd` (new: the "Na czasie" job), hooks in `main.gd`
+(section "loop MW-4"), `crowds.gd` (`trend` sites: the slots' and Lukrownia's queues),
+`pedestrians.gd` (48 `guest` instances after the fixed ones; its `custom_aabb` widened to 12 km, since the guests stand anywhere in the city; `take_guests` hands them over as one buffer), `jobs.gd` (`trend`, `side_busy`),
+`rides.gd` (`hurry_to`), `egg_book.gd` (the `event` kind, `fire`, `move_egg`), `sfx.gd`
+(`play_at`, seven one-shots), `city_sounds.gd` (the `queue` kind), `tools/make_sfx.py` (eight
+sounds). Data: `data/eggs.json` (E16 E18 E19 E27-E30 woken; E20 a crowd condition). Lines: the
+vision's groups already in `dialogue.json` (`dog_walkers`, `cyclists`, `runners`, `viral`),
+unchanged.
+
+- **Dog walkers** (06:30-09:00 and 19:00-22:30): 5 near the view, 10 within 450 m of Plac
+  Zbawiciela or a Powiśle place (×`--life`, the Low tier halves them). Each is a walker (a
+  pedestrian guest) on a footway (no deck) with a dog 1.6 m ahead on the lead, 0.9-1.2 m/s,
+  joining the next footway at a path's end. Three dogs (long and low, squat and flat-faced, big
+  and fluffy; 120 triangles at most, one mesh with the four shapes as a morph family, the
+  people's material, no shadow; drawn 1.35× life size so they read at phone distance *guess*), eight
+  coats. The dog stops 3-6 s at each tree within 3.5 m of
+  its footway (12 m apart at least); the walker waits. A horn within 15 m of a dog: it barks
+  (`bark_small` / `_mid` / `_big` by size, at most every 2 s per dog) and one walker says a
+  `dog_walkers` `horn` line, at most once a minute. The player has no horn (BACKLOG): the AI
+  cars' horns at the player stand in (`traffic.gd`'s `blocked_by_player` and `bumped_driver`
+  signals, connected in `main.gd`; no edit in traffic.gd).
+- **The influencer dog** at Plac Zbawiciela (07:00-21:00): a fluffy dog on the footway nearest
+  the square with three photographers round it (guests), a `phone_shutter` every 5-11 s within
+  60 m, the walker's `influencer` line to a slow car. E27 is a 2 s stop within 20 m of it (the
+  egg moved there with `move_egg`; the `influencer` crowd level).
+- **E16, the ball** (07:00-21:00): a ball on the highest roof by Centrum Nauki Kopernik, its dog
+  on the open ground nearest it. Fly the helicopter within 4 m of the ball (it is carried), then
+  within 8 m of the dog under 30 m: the dog's `dog_walkers` line and E16 (+40).
+- **Cyclists** (06:00-22:00; 4 near the view, 8 at 07:00-09:30 and 16:00-19:00): on the 901
+  `cycle` paths of the map at 4-6 m/s, 55 % commuters, 30 % Rowerilo (cream bike, grey
+  basket), 15 % cargo bikes with a child box *guess*. A car stopped on a cycle path (within its
+  half-width + 1 m) for 3 s: a `bike_bell` from the nearest rider and a `cyclists` `lane` line,
+  once per 45 s. **The dock**: a row of 6-10 parked Rowerilo bikes (seeded: 9) by the
+  `rowerilo_dock` place; the map has no `amenity=bicycle_rental` POIs (BACKLOG for the map
+  lane). **E28**: a Rowerilo rider followed 400 m (within 25 m behind, over 8 km/h) "docks"
+  with a `cyclists` line (the vision's "to a dock" is simplified: Open Question).
+- **Runners** (06:00-08:00, 18:00-21:00): up to 6 within 300 m of a boulevard place or a park,
+  3 m/s, a third in Kolka's colours; guests with the walking legs (no running stride yet:
+  BACKLOG). **KOLKA** (Wednesdays; Live, or `--zajac`): 12-20 (by date) gather at 18:45, run at
+  19:00 at 3 m/s in rows of three to Most Poniatowskiego and back (A* over the footways,
+  crossings and cycle paths in the box round both ends, 1,261 m one way; the A* leaves the
+  place by a detour, so the club starts at the route's last point within 500 m of it, on the
+  boulevard), stand at the start until 19:45. A `runners` line every 40-70 s within 80 m, a
+  `watch_beep` as it passes. **The Zając**: the car beside the club's front rows (≤ 25 m
+  lateral) at 9-14 km/h for 600 m (a 2 s grace for a lamp post): the `runners` `zajac` cheer,
+  a car horn behind, and E29 (+40 respect, once: a second pacing cheers but pays nothing).
+- **Hyrax** (Saturdays 09:00-17:00; Live): on the open ground nearest the stadium's forecourt
+  place, a ring of 24 roadworks barriers (the dogs' MultiMesh's fourth shape), 14 runners
+  looping inside, a HYRAX banner (pixel font) on the side away from the stadium, `runners`
+  `hyrax` lines. E30 is a lap round it at ≤ 20 km/h (the `hyrax` crowd level). That morning
+  (07:00-10:00) Podwózka's `hurry` riders go to an address within 350 m of the stadium
+  (`Hyrax · ...`).
+- **The Wiralek cycle**: three slots (Plac Zbawiciela, Chmielna, Tamka), each a trend for 7
+  days and a WKRÓTCE NOWE MIEJSCE day: day 1 NOWOŚĆ and a queue of 30, days 2-3 20, days 4-5 8,
+  days 6-7 2, day 8 none. The slots are 0, 2 and 4 days apart; one cycle in 12 they line up
+  (E19). The day: `--trend-day=N`, Live's date (days since Monday 2026-01-05), or without Live
+  the session's (a trend lives four sessions: days 1, 4, 6 and 8; Open Question). The queue
+  (crowds.gd's queue code, `trend` sites with brighter clothes and no bouncer) stands 08:00-20:00
+  and says `viral` lines by its tag (`new`, `queue`, `gone`); a `queue_chatter` loop at each
+  queue of 2 or more (city_sounds.gd, within its cap of 8). The **fascia** over each slot's door:
+  WIRALEK (· NOWOŚĆ! on day 1) and the trend word in the pixel font, pink (grey on day 8), facing
+  the street, built when the word changes and shown within 320 m. **E18**: one slot seen (within 70 m) on day 1,
+  day 4 and day 8 of one trend (kept in the save's `keep`); **E19**: any slot seen while all
+  three are on day 1. **Fat Thursday** (Live or `--date`, from the computus): Lukrownia's queue
+  of 60, 06:00-18:00; E20 is its `pass` with the `lukrownia` crowd.
+- **"Na czasie" · On trend** (`trend_job.gd`): passing an open slot (within 60 m, 08:00-20:00,
+  days 1-7) with nothing else on: a request card (pink, #ff7ac8) from an office worker at Rondo
+  Daszyńskiego, each slot again after 240 s. Accept: stop 2 s by the queue, then deliver to an
+  address door within 300 m of the roundabout in 6 minutes. Pay 25 zł + 8 zł a km by road, +15
+  respect, a 10 zł tip *guess*; days 6-7: the `viral` `late` line ("To już niemodne. Napiwku nie
+  będzie, sorry.") and no tip; late: half the pay, no tip, no respect *guess*. One activity at
+  a time (`jobs.busy()` and Podwózka's offers see it). `--trend-job[=1|2|3] --autopilot` drives
+  it.
+- **Not built**: one queuer in five holding a phone up (no pose without the shaders' lane), the
+  pigeon on days 6-7, the influencer at the window, MERDAK pet shops (no `shop=pet` anchors in
+  the places), the armchair man (E34 still waits), the PixelLab pictograms on the fascias
+  (BACKLOG).
+- **Testing aids** (flags table): `--life=0|1|2`, `--dogs-log` (`dogs: 07:30 day 5 · 10 walkers
+  (Powiśle / Plac Zbawiciela ×2) · 2 at trees · barks 0 · horn lines 0` every minute, each bark
+  and horn line), `--trend-log` (`trend: slot 1 day 3 queue 20 (WORD, id)` at the start and on
+  every change, the slots seen for E18, the job's lines), `--life-log` (`life:` lines: riders,
+  runners, Kolka, Hyrax, bells, the Zając), `--zajac` (Live, Wednesday 2026-10-28 19:00, the car
+  by Kolka's start; with `--autopilot` the car paces the club 10 m to its side), `--trend-day=N`,
+  `--trend-job[=N]`, `--life-soak`.
+- **Checks**: `check_city_life.gd` (verify step `life`, quick set and CI; committed
+  `centrum.json` and `places.json` only, seeded): the dogs' hours, zones and caps, the riders',
+  runners', Kolka's and Hyrax's windows, the car's footprint and clearance, the horn (5 lines and
+  150 barks for a horn every 0.5 s for 300 s), the Wiralek cycle on synthetic dates (days, queues,
+  tags, words, offsets, the sync every 12 cycles, the sessions), the job's pay (the day-6 no-tip
+  joke), the Zając (600 m at 12 km/h; too fast, too slow, too far, the grace), Fat Thursday
+  2026-2028 and Lukrownia's queue, E16 E18 E19 E20 E27 E28 E29 E30 on synthetic inputs (each only
+  with its conditions, each reward once; E34 still waits), the meshes, and the real city
+  (10 walkers at Plac Zbawiciela at 07:30, none at 11:00, a parked car never overlapped, Kolka's
+  route, the dock, nothing active 4 km out). `life-soak` (verify step, not in `--quick`):
+  `--life-soak` drives the car at the nearest walker or rider at 7 m/s for 10 minutes of play
+  (a Friday dusk) and counts every frame a dog, walker or rider is inside the car's footprint:
+  0. `check_eggs.gd` knows the `event` kind; `check_sfx.gd` loops `queue_chatter`.
+- **Cost**: (Linux container; before = the code at HEAD from a copy; headless `--probe` /
+  `--bench` with `--fixed-fps 60`, two runs each interleaved; draw calls rendered with the
+  software Vulkan driver at 1280×720, one run each):
+
+  | | Before | After |
+  | --- | --- | --- |
+  | Plac Zbawiciela 07:30 (`--probe --place=plac_zbawiciela --time=day --clock=07:30`): bench line "city life" (first cut → the cost cut below) | | 0.08 / 0.08 → 0.04 / 0.04 ms |
+  | The boulevards, Wednesday 19:02, Kolka running (`--probe --time=live --date=20261028 --clock=19:02 --at=1026,-711`): "city life" | | 0.10 / 0.10 → 0.03 / 0.04 ms |
+  | A Wiralek slot (`--probe --place=wiralek_chmielna --time=day --clock=12:00 --trend-day=0`): "city life" | | 0.01 / 0.01 → 0.01 / 0.01 ms |
+  | Bench route, day (`--bench`): "city life" | | 0.03 / 0.03 → 0.02 / 0.02 ms |
+  | Bench route, day: scripts in all (noise ±0.3) | 3.36 / 3.81 ms | 3.21 / 3.60 ms |
+  | "jobs+eggs" (the trend job inside), the four spots | 0.14-0.17 ms | 0.14-0.17 ms |
+  | Draw calls, Plac Zbawiciela 07:30 (main / shadow / 2D) | 124 (52 / 35 / 37) | 126 (54 / 35 / 37) |
+  | Draw calls, the boulevards 19:02 (night: no sun shadow) | 81 (47 / 0 / 34) | 82 (48 / 0 / 34) |
+  | Draw calls, Chmielna's slot 12:00 | 113 (45 / 29 / 39) | 118 (45 / 29 / 44) |
+  | Draw calls, a plain day start (`--probe --time=day`) | 124 (55 / 35 / 34) | 125 (56 / 35 / 34) |
+
+  In view: the dogs' MultiMesh +1 and the bikes' +1 in the main pass (Plac Zbawiciela: both;
+  the boulevards and the plain start: the bikes), 0 in the shadow pass; walkers, runners, Kolka,
+  Hyrax and the queues are guests and crowd cells (+0); a fascia or the banner +1 near it (not
+  in view at the slot's probe point, inside the block; the 2D +5 there are the queue's
+  bubbles). Triangles: +0.01 M at most. Far from all of it: nothing drawn, the 2 Hz tick only.
+  **The cost cut** (same loop, profiled at the two busy spots first; the window's own timer at
+  Plac Zbawiciela ~55 → ~38 µs a frame, Kolka ~50 → ~34): the movers are typed `Mover` objects,
+  not dictionaries; a step inside its path segment slides along it (no re-placing), a dog's
+  tree stop is a binary search and a dog waiting at its tree is not touched; clearing the car
+  shifts the walker and its dog by the shove instead of placing again, and near the car the
+  shoves hold (they fade once the car is past `reach`, ≥ 10.5 m). Instances are written by the
+  step that moved them into the slots of the last full write (a full write only when the lists
+  or what is shown change, at a tick); the guests go to `pedestrians.gd` as one packed buffer
+  (`take_guests`, merged natively before its send) instead of a call per figure. Kolka's members
+  are packed arrays, half of them a step (7.5 Hz each, as the runners), all within `FAR_CAR` of
+  the car. Who is on screen is read from traffic.gd's view rectangle (+8 m) at the tick: a mover
+  off it steps every 4th step (3.75 Hz, time saved up). `FAR_CAR` 30 → 15 m. The tick reads the
+  day number and Fat Thursday only when the date changes, the slots' states only when the day
+  does, the tree stops once per path. A spawned mover is cleared of the car at once (a random
+  point of a path could be under it: the 25-minute soak found one).
+
+## Storefronts and parodies (loop MW-2, 2026-10-30)
+
+docs/design/parodies.md 2-10 and vision.md section 5 row 3 (loop 2d-2 folded in). Code:
+`storefronts.gd` (new: the Frogs, the venue neon, the Leżaks, the metro entrances, the stamp
+card, the knock, the kebab boards and the five billboards, the two eggs' places), `props.gd`
+(the meshes: `frogs_shop`, `lezak`, `add_scooter_zone`, `add_metro_entrance`, `pedzik_rider`,
+`named_kebab_stand`), `city_life.gd` (the Pędzik couriers), `jobs.gd` (the stands as per-tile
+MultiMeshes, `stand_points`, `name_stand`, `tag_stand`), `eggs.gd` (`billboard_line`; the KEBAB
+billboard now finds its stand), `rides.gd` / `ride_rules.gd` (the `rechotka` quirk and the
+`detour` passenger live), `main.gd` (flags, `_build_storefronts`, the sector hook), `sfx.gd` and
+`tools/make_sfx.py` (`frog_chime`, `scooter_clatter`). Data: `dialogue.json` (parodies.md 7's
+missing lines merged, none changed), `eggs.json` (`easter_rechotka`, `easter_lezak`: 47 cards).
+Everything is built at runtime from the data, on both city paths (the prebuilt sectors hold
+none of it); nothing new casts a sun shadow.
+
+- **Where things stand.** The baked data has no `shop=convenience`, `subway_entrance`,
+  `bicycle_rental` or `scooter` pois (BACKLOG "From loop MW-2": the map lane's list), so
+  `storefronts.gd` picks from what it has: the 3,332 address pois (`door` is the road point,
+  `x, z` the building), the lane graph's junctions and the notebook's resolved places.
+- **Frogs** (parodies.md 2): an address within 26 m of a junction (`JUNCTION_REACH`), off the
+  landmarks and 20 m from the kebab pois and the venues, 70 m apart (`SPACING`), at most 24 a km²
+  in the hero districts and 10 elsewhere, two in the Old Town; a fixed shuffle (no randomness at
+  run time). **Triple corners**: Świętokrzyska × Marszałkowska and Plac Zbawiciela (`TRIPLES`),
+  three Frogs 60° apart round one junction, from the addresses and then twelve sites round the
+  junction looked for out to 80 m (`CORNER_FAR`), with spares that stand only if one of the
+  three finds no wall. 248 picked, ~200 placed (a Frogs needs a wall).
+- **On the wall.** Placement waits for the sector: when a sector is shown, rays at 1.2 m from
+  the road point towards the building (`_wall`) find the sector's own wall collider, then a
+  square-on ray from just in front of that hit and two more ±2.6 m along it must meet the same
+  plane (within 0.35 m) under a roof 5 m up. The shop's mesh (5 × 0.9 m green fascia FROGS at a
+  0.12 m letter pixel, the window, the door, a lily-pad blade sign with "24") goes 0.02 m out,
+  in one MultiMesh per sector ("Frogs", +1 draw call where any is in view). LoD2 facades work the
+  same way (they are colliders too); untested here (no `lod2.*` in this container).
+- **The stamp card** (2.4): stopped (under 2 m/s for 2 s) within 8 m of a Frogs door: the
+  `frog_chime`, a stamp (toast `FROGS · PIECZĄTKA n/10`), a `rechotka` `stamp` line; one a shop a
+  day, ten a day; the 10th is the free hot dog (+10 respect, a note card, the `free` line), and
+  the card starts again. Kept in the wallet's `keep` (`frogs_stamps`, `frogs_day`,
+  `frogs_today`). `storefronts.gd stamp_rule` is the rule.
+- **Podwózka**: the `rechotka` quirk is in the random pool once Frogs exist, at a junction with a
+  Frogs within 30 m (a triple corner first); 15 % *guess* of passengers are `detour`: after 8 s
+  they ask for a Frogs (`podwozka_passenger` `detour`), and a 2 s stop by one is +½ star once.
+- **The venues** (vision 3.1-3.2): the 17 venues' parody names as neon on their facades (18
+  signs: Glon twice; Syreni Szept is closed, dark), from the address, else the nearest road, else
+  the nearest address within 140 m. Two-line names (MIŁOŚĆ / HIPOTECZNA, PRZEGRYZKI / ZAGRYZKI,
+  KASA / BILETOWA); ŻWIR upstairs at 6.5 m. The rows are drawn into an extended copy of
+  `neon_signs.gd`'s atlas at setup (that file and `pixel_font.gd` are prebuilt-sector inputs,
+  so they stay as they are) and set on each sector's neon material; the sign quads join the
+  sector's own `Neon` MultiMesh: **+0 draw calls**. Letter pixel 0.12 m, down to 0.08 m where the
+  straight wall is short; 0.14 m off the facade.
+- **Leżaks** (5): 30 a km² in the hero districts, 12 elsewhere, on the pavement 12-20 m out of
+  junctions (never within 2 m of a lane's middle), lying at a random yaw; one Frogs door in 30
+  has one; parking zones (a white 3 × 1.5 m rectangle) every 400 m in the hero districts with
+  two or three lying round each, and the one standing in the zone nearest Metro Nowy
+  Świat-Uniwersytet (`easter_lezak`). One MultiMesh per sector ("Lezaks", in `fine_detail`,
+  hidden in wide views). **The knock**: the car within 1.2 m pushes one 1-3 m (not onto a lane),
+  `scooter_clatter`, a `lezak` `knock` aside at most once a minute.
+- **Pędzik** (4): couriers in magenta with the 0.45 m square backpack (200 triangles), 4 round
+  the view by day and 6 at night (21-06), × the life amount; half on the cycle paths, half on the
+  footways, 5-7 m/s; `city_life.gd`'s movers (they step aside from the car like the cyclists).
+  One city MultiMesh of 16 ("Pedzik", +1 in view): the bike family's mesh already holds its four
+  morph shapes. A near miss (within 4 m, the car over 10 km/h) gets a `pedzik` bubble, once per
+  30 s. Not built: the kerb-edge riding, the couriers waiting at the stands, the race (BACKLOG).
+- **Metro entrances** (vision 3.5): up to three on the pavement within 70 m of each of nine
+  station places (Ratusz Arsenał, Świętokrzyska, Centrum, Politechnika, Rondo ONZ, …), a glass
+  canopy and an M post; they and the zones' paint are one "StreetProps" mesh per sector (+1 where
+  any).
+- **Kebab stands** (6.1): jobs.gd's 42 stands are now one MultiMesh per 512 m tile
+  ("KebabStands", a small caster: its sun shadow on High only); U ZDZICHA (Hala Mirowska) and NA CIENKIM (Plac Zbawiciela) get a name board,
+  the halls' and the stadium's stands their own `kebab_vendor` lines (`stand_tag`).
+- **Billboards** (6.2): eggs.gd's five plus FROGS · TU TEŻ, PODWÓZKA · GPS WIE LEPIEJ, PĘDZIK,
+  LEŻAK and WIRALEK (the `signs` lines), text only (PixelLab pictograms: BACKLOG); the KEBAB one
+  now stands by its kebab poi.
+- **The eggs**: `easter_rechotka` (stop 2 s within 30 m of the first triple corner's junction,
+  +20 respect), `easter_lezak` (stop 2 s within 12 m of the standing Leżak, +20); egg_book's
+  cards, moved to their places by `storefronts.gd` (`move_egg`).
+- **Cost**: setup ~230 ms at the city's start (headless desktop); the wall rays once per sector
+  as it shows (`_physics_process`); the hook a frame 3 µs headless (`check_parodies`); no
+  per-frame scans (16 m cells for the knock, 64 m cells for the doors, a 2 Hz tick); the bench's
+  `storefronts` 0.01 ms. Draw calls (software Vulkan, all passes, day / night): Nowy Świat
+  116 → 121 / 95 → 100, Centrum 131 → 133 / 102 → 104, Świętokrzyska's triple corner 131 → 141 /
+  108 → 115, zoomed out there (125 m) 155 → 167, the helicopter 210 → 220, the bench route
+  120 → 121 (parodies.md 8's ceiling: +15 / 17 / 20). The new billboards cast a sun shadow like
+  eggs.gd's older five (+2 shadow draws on High where one is in view).
+- **Check**: `check_parodies.gd` (verify step `parodies`, CI too): the rules, the picks on
+  `centrum.json` (spacing, density, triples, venues and names, walls in 2D from the outlines,
+  Leżaks and metro off the lanes), the brand denylist, the lines and the font, the wall ray on a
+  synthetic facade, the hooks (stamps, the free hot dog once, the knock, the two eggs once), the
+  cost and the meshes' triangles.
+
+## The easy-driving loop: drive through the small props (2026-10-30)
+
+The user's call: small things don't stop the car. Lamps and signal poles never had colliders;
+now benches, bins, bike racks and advertising columns don't either (`map_builder.gd`
+`_build_props`, their `solid` size 0, so `_props` adds no wall faces). Bus shelters, parked cars,
+fences, walls, hedges, buildings and the landmarks stay solid. The roadworks' barriers and cones
+were already knocked aside (the roadworks loop). The prebuilt sectors carry the colliders, so
+they are rebuilt (`map_builder.gd` is one of `city.stamp`'s inputs: `tools/setup_map.sh
+--if-needed` sees it). `check_drive`'s lane sweep, runtime city: 71 → 69 car and 176 → 168 bus
+boxes in collision.
+
+## The follow-camera loop: Point turns with the car, and a saved zoom (2026-10-30)
+
+From the phone: the camera didn't follow the car while driving, it only swung round once the
+finger lifted. That was loop 2a's design for Point (the default controls): the stick points in
+screen directions, so a camera turning under a held finger turned the held direction with it
+and the car circled (3.8 circles in 10 s, `check_steering --legacy`); the fix was a camera that
+waited for the finger to lift. Now (`drive_controls.gd` `FOLLOW_HELD`, false brings the old
+camera back):
+
+- Point's camera turns with the car all the time, at the gentler `RETURN_GAIN` (Classic keeps
+  `TURN_GAIN`), never over 64°/s, the pixel-grid snap unchanged (`main.gd _update_camera`).
+- A held direction keeps the world direction it meant when it was set: it is read against the
+  camera's yaw at that moment, so the camera coming round doesn't turn it and nothing circles.
+  Moving the finger 20° or more (`REAIM`) sets it again, against the screen as it is then.
+- `check_steering`: the held-stick tests (`hold_right`, `hold_diagonal`, `behind`, `release`,
+  `keys_right`) read exactly as before (same errors, settling, no overshoot); the camera now
+  turns up to 50-60°/s in Point's tests (it was 0), and the car stays nearer the screen's
+  middle. The "never while the finger is down" rule applies to Fixed only.
+
+The zoom: five steps of view height (`follow_camera.gd` `VIEWS`: 50, 65, 80, 100, 125 m; 80 is
+the default). A pinch takes a step each time the fingers' span changes by 1.2× (`PINCH_STEP`),
+the mouse wheel and − / + one step a notch. It is saved (`settings.gd` `view`, `[display]
+view`); `--size=` overrides it. A pinch now works on the left half too: a second finger while the
+stick's finger is still inside the dead zone (`hud.gd` `PINCH_STICK`) turns both into the pinch
+(the first finger always took the stick, so a pinch there drove the car).
 
 ## Performance budgets
 
@@ -4016,6 +4348,21 @@ Plain HTML and CSS, self-hosted fonts, one small script for the beta and feedbac
 email through the form. Deploying by hand, the secrets and where the
 beta links go: `site/README.md`.
 
+## The design wiki (wiki.aroundwarsaw.app, 2026-10-30)
+
+A private website for designing the game without reading code: every activity (with its lines
+and tuning), the 53 landmarks with their cards, looks and pictures, the 72 notebook places, the
+eggs, Fotka spots and KASETA cards, the radio, every line of dialogue, the parody names, each
+script's description and constants, the settings, flags and budgets, the open questions, the
+design docs, and a Progress page (the road to the 1.0 demo, the lanes, the backlog by area, the
+log). `python3 -I tools/wiki_build.py` writes it to `build/wiki/` from the repo alone, so it
+never needs hand-editing; each item links to its file and line on GitHub. Pictures:
+`wiki/media.json` and `wiki/img/`. It is its own Worker (`wiki/wrangler.jsonc`,
+`aroundwarsaw-wiki`, the subdomain `wiki.aroundwarsaw.app`) behind a password (`wiki/worker.js`,
+the secret `WIKI_PASSWORD`), `noindex` everywhere and unlinked from the landing: it is spoilers
+and plans. `.github/workflows/wiki.yml` checks the build on every change to the data, scripts or
+docs and deploys only when run by hand. Details: `wiki/README.md`.
+
 ## Layout
 
 **One-command checks.** `tools/verify.sh` runs the verification set and prints one
@@ -4186,11 +4533,14 @@ Command-line options (after `--`):
 | `--kebab=N` | put the car in a stand's ring and take kebab order N (the same N gives the same order; stand N mod 7) |
 | `--sloik` / `--sloik=K` | start the słoiki run at Dworzec Centralny (K jars already broken) |
 | `--ride=N` | loop 2d-1: Podwózka ride N's request, the car on the road 60 m before its passenger (the same N gives the same ride; with `--ride-quirk=river` or `zone` the passenger is picked near river spot / park N, so the leg fits); with `--autopilot` it is accepted after 2 s and driven |
-| `--ride-quirk=river\|zone\|oldtown\|rechotka\|reroute` | loop 2d-1: force the ride's quirk (`oldtown` becomes `zone` on today's map; `rechotka` only by flag until the shops exist) |
-| `--passenger=normal\|believer\|hurry` | loop 2d-1: force the passenger type |
+| `--ride-quirk=river\|zone\|oldtown\|rechotka\|reroute` | loop 2d-1: force the ride's quirk (`oldtown` becomes `zone` on today's map; `rechotka`, the Frogs turn: in the random pool since loop MW-2) |
+| `--passenger=normal\|believer\|hurry\|detour` | loop 2d-1: force the passenger type (loop MW-2: `detour` asks for a Frogs stop, +½ star once) |
+| `--no-parodies` | loop MW-2: no storefronts (Frogs, venue neon, Leżaks, metro entrances, the new billboards) and no Pędzik couriers |
+| `--rechotka` | loop MW-2: the car on the lane by the nearest placed Frogs' door, stopped (the stamp in 2 s) |
+| `--stamps=K` | loop MW-2: the Frogs card starts at K stamps (9: the next stop is the free hot dog) |
 | `--stars=X` | loop 2d-1: the live rating starts at X (1–5; for card shots) |
 | `--ignore-app` | loop 2d-1: the autopilot drives the shortest road to the door, not the app's route |
-| `--parody-log` | loop 2d-1: print `ride:` lines (the offer, the pickup, the quirk and its waypoint, every star change and why, the arrival, the pay with the wallet before and after, cancels, the autopilot's legs) and `gps:` lines (each GPS moment in traffic) |
+| `--parody-log` | loop 2d-1 (and MW-2: `storefronts:` lines, each Frogs and venue on its wall or not, each Leżak knocked): print `ride:` lines (the offer, the pickup, the quirk and its waypoint, every star change and why, the arrival, the pay with the wallet before and after, cancels, the autopilot's legs) and `gps:` lines (each GPS moment in traffic) |
 | `--gps-in=S` | loop 2d-1: the app-taxis' first GPS moment is looked for S seconds in (screenshots) |
 | `--pullover-frame=N` | loop 2d-1: the `--pullover=TAG` conversation at frame N instead of 60 (e.g. during a `--ride`) |
 | `--heat=X` | the kebab's starting heat, 0–1 (for a cold-arrival screenshot) |
@@ -4213,6 +4563,7 @@ Command-line options (after `--`):
 | `--controls=point\|classic\|fixed` | loop 2a: the control scheme for this run (not saved) |
 | `--traffic=empty\|low\|normal\|busy` (or 0-3) | loop 2a: the traffic level for this run (not saved) |
 | `--settings` | loop 2a: open the settings panel at the start (screenshots) |
+| `--fullmap` | F's asks (2026-10-30): open the full-screen map at the start (the game paused; screenshots) |
 | `--settings-tab=N` | loop 2e: open the settings panel at tab N (0 Jazda · Driving, 1 Świat · World, 2 Obraz · Picture, 3 Dźwięk · Sound; loop MW-1: 4 Zeszyt · the notebook) |
 | `--notebook` / `--notebook=CHAPTER\|ID` | loop MW-1: open the settings card on MOJA WARSZAWA, the notebook (a chapter by id or number 1-9, or a place's card by its id; screenshots) |
 | `--found=all\|none\|CHAPTER[:K],…` | loop MW-1: the notebook's record for this run, in memory, no rewards (a chapter by id or number, `:K` its first K places; `--found=1:4,9` half of the first chapter and all of the ninth). Use with `--nosave` (a later save would keep it) |
@@ -4223,6 +4574,7 @@ Command-line options (after `--`):
 | `--tape=<id\|n>` | loop MW-6: the car stopped at that then card (`then_cards.json` id or 1-20), the tape played at once (ghost, sound, card); implies `--tape-log` |
 | `--tape-log` | loop MW-6: print `tape:` lines: the ghost built and dropped, each play (`tape: n <id> ghost ok (k boxes)[, first time: +15 respect]`) |
 | `--spacer` / `--wander`, `--no-spacer` | loop MW-6: Spacer (wander mode) on or off for this run (not saved) |
+| `--zone-cap`, `--no-zone-cap` | F's asks (2026-10-30): the pedestrian zones' 20 km/h cap, pill and whistle on or off for this run (not saved; the setting is off by default); verify.sh's G1 run passes `--zone-cap` |
 | `--spacer-hint=S` | loop MW-6: Spacer's first hint after S s (default 180-300, seeded); `spacer:` lines log each hint (`spacer: hint n -> <place> (name), d m; next in s`) |
 | `--fotka` / `--photo` | loop MW-6: open Fotka at the start (screenshots of the photo mode) |
 | `--kadr=<n\|id>` | loop MW-6: Fotka open at that Kadr spot (`kadr.json`, 1-15 or `k07`), in its look, aimed at its subject, a photo 2 s later; implies `--photo-log` |
@@ -4230,6 +4582,14 @@ Command-line options (after `--`):
 | `--photo-log` | loop MW-6: print `fotka:` lines (open, close, `fotka: saved user://photos/... (WxH)`) and `kadr:` lines (`kadr: n ok (<id> ...)` or `kadr: none (why)`) |
 | `--crowd=0\|1\|2` | loop MW-3: the night and river crowds off (nothing built, no cost), normal (default) or doubled; the Low tier halves them |
 | `--night-log` | loop MW-3: print `night:` lines: the sites at the start, a summary every minute (`night: 01:00 day 6 · queues … smola 24 … · rejections 1 · car lines 0 · dawn walkers 30 · roof 0, steps 24, plan_c 28 · police on`), each rejection, line, police unit and the dawn routes |
+| `--life=0\|1\|2` | loop MW-4: everyday life (dogs, riders, runners, Kolka, Hyrax, the Wiralek fascias and the "Na czasie" job) off (nothing built), normal (default) or doubled; the Low tier halves it |
+| `--dogs-log` | loop MW-4: print `dogs:` lines: the minute's summary (`dogs: 07:30 day 5 · 10 walkers (Powiśle / Plac Zbawiciela ×2) · 2 at trees · barks 0 · horn lines 0`), each bark and horn line |
+| `--trend-log` | loop MW-4: print `trend:` lines: each slot's day and queue at the start and on every change (`trend: slot 1 day 3 queue 20 (CZEKOLADA Z PUSTYNI, wiralek_zbawiciela)`), Lukrownia on Fat Thursday, the slots seen for E18, and `trend job:` lines |
+| `--life-log` | loop MW-4: print `life:` lines: the index, the minute's summary (riders, runners, Kolka, Hyrax, bells, the Zając), the bell, E28's follow, the Zając |
+| `--zajac` | loop MW-4: Live on Wednesday 2026-10-28 at 19:00 (`--clock=` and a Wednesday `--date=` change them), the car by Kolka's start (free roam, no title); with `--autopilot` the car paces the club 10 m to its side from 19:00 (the Zając: `life: zajac paid +40 respect (E29)`) |
+| `--trend-day=N` | loop MW-4: the Wiralek cycle's day number (0 = slot 1 on day 1, slot 2 on day 3, slot 3 on day 5; 88 = all three on day 1) instead of Live's date or the session's |
+| `--trend-job[=1\|2\|3]` | loop MW-4: start by that Wiralek slot (1 Plac Zbawiciela, 2 Chmielna, 3 Tamka) with its "Na czasie" request offered; with `--autopilot` accepted and driven; implies `--trend-log` |
+| `--life-soak` | loop MW-4: a Friday dusk; the car is driven at the nearest dog walker or rider at 7 m/s, every frame counts a dog, walker or rider inside the car's footprint (`life: soak done … overlaps 0`); verify step `life-soak` |
 | `--club=<id>` | loop MW-3: start at that club (`lusterko`, `smola`, `jasna_0`, `lombard`, `milosc_hipoteczna`, or its name): the car on the lane nearest its door (within 60 m), free roam, no title |
 | `--notes-log` | loop MW-1: print `notes:` lines: each place's resolution at load (`notes: place <id> address\|name\|poi\|near N m from the hint (x, z)`), each find (`notes: found <id> (chapter N, k/8)`) and each chapter completed |
 | `--call-in=S` | loop 2e: the first rescue call comes in after S seconds of play (default 60) |
@@ -4261,7 +4621,7 @@ Command-line options (after `--`):
 | `--police-offence=F:kind,…` | loop 3g-1: an offence at frame F (`speed`, `red`, `oneway`, `bump`, `ram`), seen by the nearest unit (the cooldown test P7) |
 | `--escort` | loop 3g-2: with `--mission=N`, the car is put at the rescue's pickup at frame 30 and the person boards; the escort always comes (as on a session's first rescue) |
 | `--police-auto=follow` | loop 3g-2: the test driver rides along the escort's route behind it (12-22 m back, through the traffic), the last stretch to the hospital's ring straight (the escort run E1) |
-| `--guards[=talk]` | loop 3g-2: start at the south end of Krakowskie Przedmieście's car-free stretch and drive north into the pedestrian zone at 30 km/h (the zone caps it to 20): the whistle, the 3 s run, the guards' car; `=talk` stops by the gate's guards instead (the guard conversation) |
+| `--guards[=talk]` | loop 3g-2: start at the south end of Krakowskie Przedmieście's car-free stretch and drive north into the pedestrian zone at 30 km/h (the zone caps it to 20) (with `--zone-cap`: the cap is off by default since 2026-10-30): the whistle, the 3 s run, the guards' car; `=talk` stops by the gate's guards instead (the guard conversation) |
 | `--clamp[=sorry]` | loop 3g-2: start parked on Plac Zamkowy by a guard; the clamp's countdown at frame 60, the clamp 10 s later, off after 10 s (`=sorry`: Przepraszam tapped 1 s after it goes on) |
 | `--first-contact` | loop 3g-2: arm the scripted first contact at frame 60 as if the first race had just ended (with `--pedal=gas`: drive into the officer; add `--police-auto=stop` to stop by him: the routine check) |
 

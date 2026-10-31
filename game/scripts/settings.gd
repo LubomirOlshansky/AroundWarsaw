@@ -46,6 +46,9 @@ var perf := false
 ## warm up) or 30 (battery saver).
 const FPS := [60, 30]
 var fps := 60
+## The follow-camera loop (2026-10-30): the driving view's height in metres, the player's zoom
+## (follow_camera.gd VIEWS; 80 is DEFAULT_SIZE).
+var view := 80.0
 ## Loop 2e: main.gd STYLES (Sharp, Fine, Clean, Chunky) and the VHS overlay.
 var style := 0
 var vhs := false
@@ -54,6 +57,10 @@ var vhs := false
 ## places), and whether Spacer has been offered once (after the first pause).
 var wander := false
 var wander_offered := false
+## F's asks (2026-10-30): the pedestrian zones' 20 km/h cap (ped_zones.gd, loop 3d-1) and its
+## pill, off by default (driving made easier); Settings → JAZDA turns it on. The guards stand in
+## the zones either way, and the footway clamp is not part of it.
+var zone_cap := false
 ## Loop G1b: Auto's sharp-image state (tiers.gd sharp_state: fallback, calm, wait, trial, why).
 var auto_image := Tiers.sharp_state()
 ## False with --nosave: nothing is read or written.
@@ -83,8 +90,10 @@ func load_file() -> void:
 		fps = FPS[0]
 	style = clampi(int(cfg.get_value("display", "style", style)), 0, 3)
 	vhs = bool(cfg.get_value("display", "vhs", vhs))
+	view = clampf(float(cfg.get_value("display", "view", view)), 50.0, 125.0)
 	wander = bool(cfg.get_value("game", "wander", wander))
 	wander_offered = bool(cfg.get_value("game", "wander_offered", wander_offered))
+	zone_cap = bool(cfg.get_value("game", "zone_cap", zone_cap))
 	var image := {}
 	for key in auto_image:
 		image[key] = cfg.get_value("auto_image", key, auto_image[key])
@@ -107,17 +116,19 @@ func save() -> void:
 	cfg.set_value("display", "fps", fps)
 	cfg.set_value("display", "style", style)
 	cfg.set_value("display", "vhs", vhs)
+	cfg.set_value("display", "view", view)
 	cfg.set_value("game", "wander", wander)
 	cfg.set_value("game", "wander_offered", wander_offered)
+	cfg.set_value("game", "zone_cap", zone_cap)
 	for key in auto_image:
 		cfg.set_value("auto_image", key, auto_image[key])
 	cfg.save(path)
 
 
 func summary() -> String:
-	return "controls %d, classic camera %s, traffic %s, quality %s, volume %.0f/%.0f/%.0f %%, perf %s, %d fps, style %d, vhs %s, auto image %s" % [
+	return "controls %d, classic camera %s, traffic %s, quality %s, volume %.0f/%.0f/%.0f %%, perf %s, %d fps, style %d, vhs %s, zone cap %s, auto image %s" % [
 			controls, "follow" if classic_follow else "fixed", TRAFFIC_NAMES[traffic], "auto" if quality == AUTO else str(quality),
-			master * 100.0, music * 100.0, effects * 100.0, perf, fps, style, vhs, image_summary()]
+			master * 100.0, music * 100.0, effects * 100.0, perf, fps, style, vhs, zone_cap, image_summary()]
 
 
 ## Loop G1b: "sharp", "sharp, on trial 1/4" or "fallback, calm 1/2 (GPU extras down 74 s)".

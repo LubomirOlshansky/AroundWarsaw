@@ -27,13 +27,21 @@
 # Loop MW-5: `radio` also checks PÓŁNOC FM (its 7 tracks and seams, the hours, reruns, the host,
 # the unlocks); `sounds` runs game/tools/check_city_sounds.gd: the city's sounds at the notebook's
 # places (the emitters, the hours, the cap of 8, the bells, the 02:00 beat); centrum.json only (CI too).
-# Loop MW-6: `eggs` runs game/tools/check_eggs.gd: the 45 egg cards (words, places, rewards), each
+# Loop MW-6: `eggs` runs game/tools/check_eggs.gd: the 47 egg cards (words, places, rewards), each
 # reachable egg's trigger on synthetic inputs (fires with its conditions, not without), the
 # waiting ones listed; `tape` runs game/tools/check_tape.gd: KASETA's 20 then cards, the ghosts
 # (one draw call, built only within 150 m), the button, the first-play reward and the dither;
 # both read only centrum.json (CI too). Loop MW-3: `crowds` runs game/tools/check_crowds.gd: the
 # city clock and the Dawn look, the queues, the door, the steps, Plan C, the police's hours, the
 # dawn crowd's routes and walkers, the crowd eggs (E03 E04 E10 E14 E15); centrum.json only (CI too).
+# Loop MW-2: `parodies` runs game/tools/check_parodies.gd: the stamp card, the detour, the couriers'
+# counts, the Frogs' and venues' picks and walls (2D), the Leżaks and metro entrances off the
+# lanes, no real brand, the lines and the font, the wall ray on a synthetic facade, the stamps,
+# the knock and the two Frogs/Leżak eggs once, the cost; centrum.json only (CI too).
+# Loop MW-4: `life` runs game/tools/check_city_life.gd: the dogs' hours and caps, the horn's rate
+# limits, the Wiralek cycle on synthetic dates, the "Na czasie" pay, the Zając, Fat Thursday, the
+# life eggs, the meshes and the tick's cost; centrum.json only (CI too). `life-soak` (not in
+# --quick, ~3 min) drives the car at the walkers and riders for 10 minutes of play: no overlaps.
 # `streaming` runs game/tools/check_streaming.gd
 # (loop 3c) WITH a renderer (a window opens for a minute or two): every sector built from its
 # file is the whole city, vertex for vertex; 10 spots rendered with --monolithic and with the
@@ -65,8 +73,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud places eggs tape crowds rides cost landmarks sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak)
-STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places eggs tape crowds rides cost landmarks sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets drape ground drive drive-prebuilt steering settings tiers governor hud places eggs tape crowds life parodies rides cost landmarks sfx radio sounds water water-prebuilt streaming police plain ram heli race kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets drape drive steering settings tiers governor hud places eggs tape crowds life parodies rides cost landmarks sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -319,7 +327,7 @@ police_runs2() {
 	police_run e1 2400 --mission=9 --escort --police-auto=follow --traffic=empty; f=$RUN_LOG
 	expect E1 '^police: escort joined \(unit [0-9]+, .*rescue clock \+10 s' $f "joined +10s"
 	expect E1 '^police: escort status: lead, (1[2-9]|2[0-6]) m ahead' $f "leads"
-	police_run g1 1500 --guards; f=$RUN_LOG
+	police_run g1 1500 --guards --zone-cap; f=$RUN_LOG
 	expect G1 '^guard: whistle \(post ' $f "whistle"
 	expect G1 '^guard: gave up ' $f "run 3s"
 	grep -qE '^guard: guard car following' $f && P_NOTE+=("G1 car follows")
@@ -384,6 +392,32 @@ police_soak() {
 		row FAIL "$label" $secs "a police car $lanes m off its lane ($logf)"
 	else
 		row PASS "$label" $secs "0 errors · $started chases ($ended ended), wallet $zl0 zł → $zl1 zł, B4 ≥ $b4, lanes ≤ $lanes m"
+	fi
+}
+
+# Loop MW-4 (vision 5's acceptance): the car driven at the dog walkers and riders for
+# NW_LIFE_SOAK_MINUTES of play (default 10) on a Friday dusk; passes with no errors, some met and
+# no dog, walker or rider ever inside the car's footprint (`life: soak done ... overlaps 0`).
+life_soak() {
+	local mins=${NW_LIFE_SOAK_MINUTES:-10}
+	local t0=$EPOCHREALTIME frames=$(( mins * 3600 )) logf=$logs/run_life-soak.log code
+	( cd $GAME && limited $STEP_LIMIT $GODOT --headless --path . --fixed-fps 60 --quit-after $frames \
+		-- --nosave --notitle --life-soak ) > $logf 2>&1
+	code=$?
+	local secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+	local np=$(problems $logf | wc -l | tr -d ' ')
+	local end=$(grep -m1 '^life: soak done' $logf)
+	local label="run: life soak $mins min"
+	if (( code != 0 || np > 0 )); then
+		row FAIL "$label" $secs "exit $code, $np error/warning lines: $(problems $logf | head -1 | cut -c1-100) ($logf)"
+	elif [[ -z $end ]]; then
+		row FAIL "$label" $secs "no 'life: soak done' line ($logf)"
+	elif [[ $end != *"overlaps 0 "* ]]; then
+		row FAIL "$label" $secs "${end[1,140]} ($logf)"
+	elif [[ $end == *"dogs met 0 "* ]]; then
+		row WARN "$label" $secs "met no dog: ${end[1,120]}"
+	else
+		row PASS "$label" $secs "0 errors · ${end[7,130]}"
 	fi
 }
 
@@ -497,6 +531,12 @@ for s in $want; do
 		tape) check tape '^check_tape:' --script res://tools/check_tape.gd ;;
 		# Loop MW-3: the night and the river's crowds, their rules on synthetic clocks, the crowd eggs.
 		crowds) check crowds '^check_crowds:' --script res://tools/check_crowds.gd ;;
+		# Loop MW-2: the storefronts and parodies (Frogs, venues, Leżaks, metro, stamps, eggs).
+		parodies) check parodies '^check_parodies:' --script res://tools/check_parodies.gd ;;
+		# Loop MW-4: everyday life and trends: dogs, riders, runners, Kolka, the Wiralek cycle, the
+		# "Na czasie" pay, the Zając, Fat Thursday, the life eggs (E16 E18-E20 E27-E30).
+		life) check life '^check_city_life:' --script res://tools/check_city_life.gd ;;
+		life-soak) life_soak ;;
 		# Loop 2d-1: Podwózka's star and pay tables, the streak and the cancel rules, its lines.
 		rides) check rides '^check_rides:' --script res://tools/check_rides.gd ;;
 		cost) check cost '^check_cost_cuts:' --script res://tools/check_cost_cuts.gd ;;

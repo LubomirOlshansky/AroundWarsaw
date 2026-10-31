@@ -7,6 +7,9 @@ extends RefCounted
 ## The map builder adds them under a "Neon" node, which the game hides by day.
 
 const WORDS := ["KEBAB 24H", "BAR MLECZNY", "APTEKA", "KWIATY", "HOTEL", "KANTOR", "PIZZA", "KLUB", "NOCNY"]
+## The landmarks loop: words only the landmarks wear (never a shop's), after WORDS in the atlas:
+## the parody of the brand on Warsaw Spire's crown.
+const LANDMARK_WORDS := ["SAMSONG"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)
@@ -31,6 +34,8 @@ const FONT := {
 	"M": ["#...#", "##.##", "#.#.#", "#.#.#", "#...#", "#...#", "#...#"],
 	"N": ["#...#", "##..#", "#.#.#", "#..##", "#...#", "#...#", "#...#"],
 	"O": [".###.", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
+	"S": [".####", "#....", "#....", ".###.", "....#", "....#", "####."],
+	"G": [".###.", "#...#", "#....", "#.###", "#...#", "#...#", ".####"],
 	"P": ["####.", "#...#", "#...#", "####.", "#....", "#....", "#...."],
 	"R": ["####.", "#...#", "#...#", "####.", "#.#..", "#..#.", "#...#"],
 	"T": ["#####", "..#..", "..#..", "..#..", "..#..", "..#..", "..#.."],
@@ -56,11 +61,12 @@ static func word_width(word: String) -> int:
 ## The atlas: one row per word, red = the tube, green = its glow (the tube grown by
 ## a pixel or two and faded), so the shader can draw a pixel-art halo.
 static func atlas() -> ImageTexture:
-	var h := ROW_H * WORDS.size()
+	var all := all_words()
+	var h := ROW_H * all.size()
 	var img := Image.create_empty(ATLAS_W, h, false, Image.FORMAT_RGBA8)
 	img.fill(Color(0, 0, 0, 1))
-	for r in WORDS.size():
-		var word: String = WORDS[r]
+	for r in all.size():
+		var word: String = all[r]
 		var x := PAD
 		var tube := {}
 		for i in word.length():
@@ -89,6 +95,11 @@ static func atlas() -> ImageTexture:
 		for p in tube:
 			img.set_pixelv(p, Color(1, 1, 0, 1))
 	return ImageTexture.create_from_image(img)
+
+
+## The atlas rows: the shop words, then the landmarks' words.
+static func all_words() -> Array:
+	return WORDS + LANDMARK_WORDS
 
 
 ## The tube colour for a word, varied by a 0..1 pick.

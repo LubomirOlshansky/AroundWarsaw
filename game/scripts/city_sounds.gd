@@ -34,8 +34,11 @@ const KINDS := {
 	"busker": {"file": "busker", "db": -11.0, "unit": 8.0, "reach": 60.0, "up": 1.2},
 	"murmur": {"file": "crowd_murmur", "db": -13.0, "unit": 10.0, "reach": 55.0, "up": 1.5},
 	"guitar": {"file": "steps_guitar", "db": -12.0, "unit": 4.0, "reach": 25.0, "up": 1.0},
+	# Loop MW-4: a trend queue's chatter (the Wiralek slots, Lukrownia), closer and smaller than
+	# the murmur.
+	"queue": {"file": "queue_chatter", "db": -15.0, "unit": 6.0, "reach": 40.0, "up": 1.5},
 }
-const LOOPING := ["club", "busker", "murmur", "guitar"]
+const LOOPING := ["club", "busker", "murmur", "guitar", "queue"]
 ## A train below a metro entrance every 3-4 minutes (vision.md 3.5).
 const METRO_GAP := Vector2(180.0, 240.0)
 ## The Patelnia's busker from 19:00 to 22:00 (vision.md 3.10: "at 19:00").
@@ -114,7 +117,8 @@ func setup(places: Array, ground: Callable) -> void:
 	print("sounds: %d emitters %s, the 02:00 beat %s" % [emitters.size(), counts, "at Plac Trzech Krzyży" if quiet_at != Vector3.INF else "(no quiet place)"])
 
 
-## Loop MW-3: a crowd's sound at `at` (kind "murmur" or "guitar"), sounding while `when` says.
+## Loop MW-3: a crowd's sound at `at` (kind "murmur" or "guitar"; loop MW-4: "queue"), sounding
+## while `when` says.
 func add_crowd(id: String, kind: String, at: Vector3, when: Callable) -> void:
 	emitters.append({"id": id, "kind": kind, "at": at + Vector3(0, float(KINDS[kind]["up"]), 0), "hours": {},
 			"player": null, "next": 0.0, "when": when})

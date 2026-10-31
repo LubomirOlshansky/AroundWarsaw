@@ -11,7 +11,9 @@ extends Node
 ## to a real address 600-2,500 m by road or one of the race finishes; the beacon and the arrow
 ## always point at the real door, the minimap's dotted line is the app's idea, and 35 % of
 ## rides get one quirk (the river's edge, a park's paths, a recalculation; the Old Town square
-## and the Rechotka turn by flag only for now), said by "Nawigacja" 200 m before it. Stars live
+## and the Frogs turn (quirk id `rechotka`; loop MW-2: in the pool once the Frogs exist, at a junction
+## with a Frogs on it), said by "Nawigacja" 200 m before it. Loop MW-2: a `detour` passenger (DETOUR_SHARE
+## of the rides once there are Frogs) asks for a stop at one: stopped by any Frogs door, +½. Stars live
 ## in the status panel; at the door a result card with the passenger's comment and the pay.
 ## Cancel: the ✕ any time, or the passenger after 3 × the ETA: no pay, the streak ends. The
 ## police loop calls on_pulled_over() (one star).
@@ -67,6 +69,13 @@ const SCAN := 8.0
 const SCAN_ROWS := 3
 const RIVER_BUDGET := 24
 const QUIRKS := ["river", "zone", "reroute"]
+## Loop MW-2: with the Frogs placed (storefronts.gd) their turn joins the pool, and this share of
+## the rides has a `detour` passenger *guess*; the stop: by a Frogs door under DETOUR_SPEED m/s for
+## DETOUR_HOLD s; the Frogs turn's junction needs a Frogs within FROGS_TURN m.
+const DETOUR_SHARE := 0.15
+const DETOUR_SPEED := 2.0
+const DETOUR_HOLD := 2.0
+const FROGS_TURN := 30.0
 ## The result card comes this long after the arrival (Nawigacja's line first), and goes by itself
 ## RESULT_LIFE s later or once the car is RESULT_OFF m away (no button: M closes it too).
 const RESULT_AFTER := 2.6
@@ -90,6 +99,8 @@ var car: CharacterBody3D
 var tod: Node
 var weather: Node
 var moments: Node
+## Loop MW-2: the Frogs (storefronts.gd: shop_near, frogs_at_junction); null: none placed.
+var frogs: Node
 var state := State.IDLE
 ## Set by the game each frame: in the helicopter; `away`: the title screen or the bench is up
 ## (no offers, and the first 2 minutes wait).
@@ -109,6 +120,10 @@ var start_stars := -1.0
 ## Loop MW-3 (vision.md 4.5, 4.7): at dawn the requests come from the club doors: -> [[club id,
 ## door: Vector2], ...] while the dawn crowd is out (crowds.gd), else []. Unset: none.
 var club_doors: Callable
+## Loop MW-4 (vision.md 3.7, 4.7): where a `hurry` passenger goes now, -> Vector2 (Saturday
+## morning: the Hyrax forecourt by the stadium, a late competitor; city_life.gd hurry_target), INF
+## for anywhere. Unset: anywhere.
+var hurry_to: Callable
 ## --gps-in=S: the first GPS moment in traffic from S seconds in (gps_moments.gd).
 var gps_first := -1.0
 ## How long the last update took, for --bench (µs), and the physics step's sum.
@@ -136,6 +151,9 @@ var _said_quirk := false
 ## "" (not yet), "reached", "ignored" (can still turn "reached"), "reroute" (done).
 var _quirk_done := ""
 var _chat_t := 0.0
+## Loop MW-2: the detour's stop (seconds held by a Frogs door) and whether it has been asked for.
+var _detour_hold := 0.0
+var _detour_said := false
 var _route := PackedVector2Array()
 var _legs: Array[Dictionary] = []
 var _leg := 0
@@ -445,8 +463,8 @@ func _on_bump(_collider: Object, speed: float) -> void:
 func _free() -> bool:
 	if flying or away or car.in_water or missions.has_target() or not _calls_quiet():
 		return false
-	if jobs != null and jobs.own_busy():
-		return false
+	if jobs != null and jobs.side_busy():
+		return false  # loop MW-4: the "Na czasie" job too
 	return rivals == null or not rivals.busy()
 
 
@@ -521,7 +539,7 @@ func _show_offer(r: Dictionary) -> void:
 ## The request waits 10 s (the autopilot takes it after 2); a rescue call opened over it, or
 ## anything else starting, takes it away.
 func _offer_tick() -> void:
-	if not _calls_quiet() or (jobs != null and jobs.own_busy()) or (rivals != null and rivals.busy()):
+	if not _calls_quiet() or (jobs != null and jobs.side_busy()) or (rivals != null and rivals.busy()):
 		state = State.IDLE  # their card is up now, not ours
 		return
 	if flying or away:
@@ -645,13 +663,30 @@ func _make_ride(n: int, e: int, s: float, from: Vector2, lo: float, hi: float) -
 		kind = force_passenger
 	r["type"] = kind
 	r["club"] = club
+	# Loop MW-4: on a Hyrax Saturday morning the one in a hurry is a late competitor.
+	var race: Vector2 = hurry_to.call() if kind == "hurry" and hurry_to.is_valid() else Vector2.INF
+	if race != Vector2.INF:
+		var by_race := func(a: Dictionary) -> bool: return (a["door"] as Vector2).distance_to(race) < 350.0
+		var go: Dictionary = jobs._pick_address(r["p_e"], r["p_s"], kerb, RIDE_MIN, 6000.0, rng, by_race)
+		if not go.is_empty():
+			r["dest"] = "Hyrax · %s" % go["name"]
+			r["ring"] = go["ring"]
+			r["road"] = float(go["road"])
+			r["finish"] = int(go["finish"])
+			r["hyrax"] = true
 	r["their"] = snappedf(rng.randf_range(4.2, 5.0), 0.1)
 	var quirk := ""
+	var pool: Array = QUIRKS + (["rechotka"] if frogs != null and not frogs.shops.is_empty() else [])
 	if rng.randf() < QUIRK_SHARE:
-		quirk = QUIRKS[rng.randi() % QUIRKS.size()]
+		quirk = pool[rng.randi() % pool.size()]
 	if force_quirk != "":
 		quirk = force_quirk
 	r["quirk"] = quirk
+	var droll := rng.randf()
+	r["detour"] = (frogs != null and not frogs.shops.is_empty() and kind != "club" and droll < DETOUR_SHARE) \
+			or force_passenger == "detour"
+	if force_passenger == "detour":
+		r["type"] = "normal"
 	r["shirt"] = Color(SHIRTS[rng.randi() % SHIRTS.size()])
 	r["night"] = _night()
 	r["rain"] = _rain()
@@ -758,6 +793,8 @@ func _board() -> void:
 	_rules.begin(_ride["eta"], start_stars if start_stars > 0.0 else Rules.START)
 	_said_quirk = false
 	_quirk_done = ""
+	_detour_hold = 0.0
+	_detour_said = false
 	_ride["straight"] = _flat(car.global_position, _ride["ring"])
 	_chat_t = _rng.randf_range(8.0, 14.0)
 	_have_last = false
@@ -846,6 +883,7 @@ func _ride_tick(dt: float) -> void:
 		_cancel(true)
 		return
 	_quirk_tick(p)
+	_detour_tick(p, speed, dt)
 	_chat_t -= dt
 	if _chat_t <= 0.0 and not bubbles.is_talking(car):
 		_chat_t = _rng.randf_range(CHAT_GAP.x, CHAT_GAP.y)
@@ -903,6 +941,26 @@ func _quirk_tick(p: Vector3) -> void:
 		_log("quirk %s ignored at %.1f s (%s passenger)" % [quirk, _rules.clock, _ride["type"]])
 		if _ride["type"] == "believer":
 			dialogue.say(car, _ride["name"], "podwozka_passenger", "believer", 4.0, COLOUR, 2.4, true)
+
+
+## Loop MW-2: a `detour` passenger asks for a Frogs 8 s in; stopped by any Frogs door (storefronts.gd's
+## shop_near, STAMP_REACH) under DETOUR_SPEED for DETOUR_HOLD s: +½ once (ride_rules.gd detour).
+func _detour_tick(p: Vector3, speed: float, dt: float) -> void:
+	if not bool(_ride.get("detour", false)) or frogs == null or _rules.detoured:
+		return
+	if not _detour_said and _rules.clock > 8.0 and not bubbles.is_talking(car):
+		_detour_said = true
+		dialogue.say(car, _ride["name"], "podwozka_passenger", "detour", 4.5, COLOUR, 2.4, true)
+		_log("detour: %s asks for a Frogs" % _ride["name"])
+	if not _detour_said or speed >= DETOUR_SPEED or flying:
+		_detour_hold = 0.0
+		return
+	if frogs.shop_near(Vector2(p.x, p.z), frogs.STAMP_REACH) < 0:
+		_detour_hold = 0.0
+		return
+	_detour_hold += dt
+	if _detour_hold >= DETOUR_HOLD and _rules.detour():
+		_star_note(Rules.BONUS, "a Frogs stop", ["postój przy Frogsie", "a Frogs stop"])
 
 
 ## The app recalculates once: a new line that first turns back to the junction behind the car.
@@ -1098,18 +1156,39 @@ func _zone_plan(a_e: int, a_s: float, dist_a: PackedFloat32Array, dist_b: Packed
 	return best
 
 
-## The Rechotka turn (flag only until the shops are placed, loop 2d-2): the first junction on the
-## shortest road, 250 m or more in, where the way turns; Nawigacja names the shop there.
+## The Frogs turn (quirk id `rechotka`: the shop was Rechotka 24 until 2026-10-30; flag only
+## until the shops are placed, loop 2d-2): the first junction on the shortest road, 250 m or
+## more in, where the way turns; Nawigacja names the shop there.
+## Loop MW-2: with the Frogs placed, the turn must have a Frogs on its junction (a triple corner
+## first); without them (or forced with none on the way) the first turn, as before.
 func _rechotka_plan(a_e: int, a_s: float, dist_b: PackedFloat32Array) -> Dictionary:
 	var path := PackedVector2Array()
 	_road_path(a_e, a_s, _ride["finish"], dist_b, path)
 	var run := 0.0
+	var first := {}
+	var best := {}
 	for i in range(1, path.size() - 1):
 		run += path[i].distance_to(path[i - 1])
 		var turn := absf((path[i] - path[i - 1]).angle_to(path[i + 1] - path[i]))
 		if run > 250.0 and turn > 0.8:
-			return {"w": path[i]}
-	return {}
+			if first.is_empty():
+				first = {"w": path[i]}
+			if frogs == null:
+				break
+			var k: int = frogs.frogs_at_junction(path[i], FROGS_TURN)
+			if k >= 0:
+				var triple: bool = frogs.shops[k]["triple"] != ""
+				if best.is_empty() or (triple and not bool(best["triple"])):
+					best = {"w": path[i], "triple": triple, "shop": k}
+				if triple:
+					break
+	if not best.is_empty():
+		_log("quirk rechotka: the turn at the Frogs at %d,%d%s" % [roundi(best["w"].x), roundi(best["w"].y),
+				" (a triple corner)" if best["triple"] else ""])
+		return best
+	if frogs != null and not frogs.shops.is_empty() and force_quirk == "":
+		return {}
+	return first
 
 
 # --- roads on the lane graph -------------------------------------------------------------------

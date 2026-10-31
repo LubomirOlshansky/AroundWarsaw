@@ -76,6 +76,11 @@ const Sfx := preload("res://scripts/sfx.gd")
 const CitySounds := preload("res://scripts/city_sounds.gd")
 ## Loop MW-3: the night and the river's crowds.
 const Crowds := preload("res://scripts/crowds.gd")
+## Loop MW-4: everyday life and trends, and the "Na czasie" job.
+const CityLife := preload("res://scripts/city_life.gd")
+## Loop MW-2: storefronts and parodies (Frogs, the venues' neon, Leżak, the metro entrances).
+const Storefronts := preload("res://scripts/storefronts.gd")
+const TrendJob := preload("res://scripts/trend_job.gd")
 const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
 const FollowCamera := preload("res://scripts/follow_camera.gd")
@@ -101,10 +106,12 @@ var camera_pitch := -30.0
 const CAMERA_DISTANCE := 500.0
 ## Height of the view in metres (orthographic size): wide enough to read the city.
 var base_size := FollowCamera.DEFAULT_SIZE
+## The follow-camera loop: --size= was given (the saved zoom doesn't apply), and the pinch's span
+## ratio since its last zoom step.
+var _flag_size := false
+var _pinch_run := 1.0
 ## The helicopter's view is this much wider than the car's (as before loop 2a: 1.3 × 110 m).
 const HELI_VIEW := 1.3 * 110.0 / FollowCamera.DEFAULT_SIZE
-const MIN_SIZE := 30.0
-const MAX_SIZE := 320.0
 
 var view: SubViewportContainer
 var sv: SubViewport
@@ -113,6 +120,10 @@ var car: CharacterBody3D
 ## Loop 3d-1: the pedestrian zones (ped_zones.gd), where the car is capped at 20 km/h.
 var ped_zones: RefCounted
 var _zone := ""
+## F's asks (2026-10-30): whether the zones cap the car at all (Settings → JAZDA, off by default:
+## settings.gd `zone_cap`), and --zone-cap / --no-zone-cap for one run (-1: the setting).
+var zone_cap_on := false
+var zone_cap_flag := -1
 ## Loop 3b: the car seen through the ground inside a tunnel (tunnel_xray.gd).
 var _xray: Node3D
 var heli: Node3D
@@ -317,6 +328,22 @@ var night_log := false
 var club_flag := ""
 ## Live's sunset hour by date (yyyymmdd -> hour), for the steps crowd.
 var _sunsets := {}
+## Loop MW-4: everyday life (city_life.gd) and the "Na czasie" job (trend_job.gd), and their flags:
+## --life=0|1|2 (none, normal, double; the Low tier halves it), --dogs-log, --trend-log,
+## --life-log, --life-soak (the car driven at the dogs and riders, overlaps counted), --zajac
+## (Live, Wednesday 28 October 2026 at 18:59, the car by Kolka's start; with --autopilot it paces
+## the club), --trend-day=N (the trend cycle's day number), --trend-job[=slot] (the request at a
+## Wiralek slot, 1-3).
+var life: CityLife
+var trend_job: TrendJob
+var life_flag := 1
+var dogs_log := false
+var trend_log := false
+var life_log := false
+var life_soak := false
+var zajac_flag := false
+var trend_day_flag := -1
+var trend_job_flag := 0
 var start_kebab := -1
 var start_sloik := -1
 var start_heat := -1.0
@@ -334,6 +361,13 @@ var parody_log := false
 ## --gps-in=S: the first GPS moment of the app-taxis in traffic from S seconds in (screenshots).
 var gps_in := -1.0
 # --- end loop 2d-1 ---
+## Loop MW-2: the storefronts (storefronts.gd) and their flags: --no-parodies (none of MW-2's
+## shops, signs, scooters or entrances, for an A/B), --rechotka (the car by the nearest Frogs
+## door, stopped: a stamp), --stamps=K (the card starts at K: the 10th stamp's free hot dog).
+var storefronts: Storefronts
+var no_parodies := false
+var rechotka_flag := false
+var stamps_flag := -1
 var host_in := -1.0
 var barrier_day := 0
 var reset_save := false
@@ -427,6 +461,8 @@ var _flag_traffic := -1
 var _flag_fixed := false
 var _flag_perf := false
 var open_settings_at_start := false
+## F's asks (2026-10-30): --fullmap opens the full-screen map at the start (screenshots).
+var open_map_at_start := false
 var hold_stick := Vector2.INF
 var hold_pedal := ""
 ## Testing aid (--clicks=X:Y:F,...): a mouse click (a touch, with the project's touch
@@ -796,6 +832,7 @@ func _build_world() -> void:
 	hud.settings_pressed.connect(_open_settings)
 	hud.settings_panel.changed.connect(_on_setting)
 	hud.settings_panel.closed.connect(_close_settings)
+	hud.map_pressed.connect(_open_full_map)  # F's asks: a tap on the minimap
 	# Loop 2e: TIME, VHS, RAIN, STYLE, CAM, QUALITY and the rotate and zoom buttons left the
 	# driving screen (Settings has them; the keys stay; zoom is a pinch, a twist turns a fixed
 	# camera).
@@ -809,7 +846,7 @@ func _build_world() -> void:
 	hud.rotate_pressed.connect(func(d: int):
 		if not follow:
 			_rotate_camera(d))
-	hud.pinched.connect(func(ratio: float): _zoom(1.0 / ratio))
+	hud.pinched.connect(_on_pinch)
 	hud.setup_minimap(data)
 	hud.vehicle_pressed.connect(_toggle_vehicle)
 	hud.tapped.connect(_on_tap)
@@ -897,6 +934,8 @@ func _build_world() -> void:
 	if traffic != null and not police_opts.get("off", false):
 		_build_police(data, world)
 	_build_crowds(data, world)
+	_build_city_life(data, world)
+	_build_storefronts(data, world)
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
 	_apply_style()
@@ -946,6 +985,8 @@ func _build_world() -> void:
 		if settings_tab == 4:
 			hud.settings_panel.show_notebook(notebook_open)
 		_open_settings.call_deferred()
+	elif open_map_at_start:
+		_open_full_map.call_deferred()
 	_stats = _make_stats()
 	# Loop 3g-1: the police's script time among the bench's lines.
 	if police != null:
@@ -1055,6 +1096,8 @@ func _set_quality(choice: int) -> void:
 	if crowds != null:
 		crowds.amount = _crowd_scale()
 		crowds.refresh()
+	if life != null:
+		life.amount = float(life_flag) * (0.5 if quality == Tiers.LOW else 1.0)
 	RenderingServer.directional_shadow_atlas_set_size(qs["shadow_size"], true)
 	tod.refresh()
 	weather.density = qs["rain"]
@@ -1488,6 +1531,41 @@ func _build_notebook(data: Dictionary) -> void:
 		_put_at_place(place_flag)
 
 
+# --- loop MW-2: storefronts and parodies ------------------------------------------------------
+
+## The storefronts (storefronts.gd) on the notebook's places and the lane graph; their walls come
+## when each sector is in (_on_sector_ready). None with --no-parodies.
+func _build_storefronts(data: Dictionary, world: Node3D) -> void:
+	if no_parodies or notes == null or not notes.ready_ok or graph == null:
+		return
+	storefronts = Storefronts.new()
+	storefronts.name = "Storefronts"
+	storefronts.map = map
+	storefronts.graph = graph
+	storefronts.dialogue = dialogue
+	storefronts.hud = hud
+	storefronts.wallet = wallet
+	storefronts.sfx = sfx
+	storefronts.egg_book = egg_book
+	storefronts.jobs = jobs
+	storefronts.eggs = eggs
+	storefronts.car = car
+	storefronts.log_on = parody_log
+	storefronts.rig_rechotka = rechotka_flag
+	storefronts.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	storefronts.lit = func() -> bool: return tod != null and tod.lights_on > 0.001
+	storefronts.fine_shown = func() -> bool: return _fine_shown
+	world.add_child(storefronts)
+	storefronts.setup(data, notes.places)
+	if stamps_flag >= 0:
+		storefronts.preset_stamps(stamps_flag)
+	if rides != null:
+		rides.frogs = storefronts
+
+
 # --- loop MW-3: the night and the river's crowds --------------------------------------------
 
 ## The crowds (crowds.gd) at the notebook's places, after the police (their cars by the clubs)
@@ -1539,6 +1617,125 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 			return out
 	if club_flag != "":
 		_put_at_club(club_flag)
+
+
+# --- loop MW-4: everyday life and trends -------------------------------------------------------
+
+## Everyday life (city_life.gd) at the notebook's places, after the crowds (the trend queues are
+## their sites) and the sound; the "Na czasie" job (trend_job.gd) beside the side jobs. None with
+## --life=0 or without the notebook's places.
+func _build_city_life(data: Dictionary, world: Node3D) -> void:
+	if life_flag == 0 or notes == null or not notes.ready_ok:
+		return
+	life = CityLife.new()
+	life.name = "CityLife"
+	life.map = map
+	life.dialogue = dialogue
+	life.sfx = sfx
+	life.walkers = walkers
+	life.egg_book = egg_book
+	life.wallet = wallet
+	life.hud = hud
+	life.car = car
+	life.amount = float(life_flag) * (0.5 if quality == Tiers.LOW else 1.0)
+	life.dogs_log = dogs_log
+	life.trend_log = trend_log
+	life.life_log = life_log
+	life.pedzik_on = not no_parodies
+	life.soak = life_soak
+	life.zajac_rig = zajac_flag and autopilot
+	life.trend_day_flag = trend_day_flag
+	life.clock = tod.local_clock
+	life.calendar = _crowd_calendar
+	life.focus = func() -> Vector3: return cam_focus
+	life.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true, heli.rotation.y, heli.global_position.y - map.ground_height(heli.global_position.x, heli.global_position.z)]
+		return [car.global_position, car.vel.length() * 3.6, false, car.rotation.y, 0.0, car.vel]
+	life.probe = _egg_state
+	if traffic != null:
+		life.on_screen = traffic.on_screen
+		life.view = traffic  # loop MW-4's cost cut: its view rectangle for who is on screen
+		# The player has no horn yet (BACKLOG): the AI cars' horns at the player make the dogs bark.
+		traffic.blocked_by_player.connect(func(d): life.horn(d.pos))
+		traffic.bumped_driver.connect(func(d): life.horn(d.pos))
+	# Sessions played: the trend cycle's day without Live (saved like the rest of the keep).
+	life.session = int(wallet.keep.get("life_sessions", 0))
+	wallet.keep["life_sessions"] = life.session + 1
+	wallet.save()
+	world.add_child(life)
+	life.setup(notes.places, data)
+	# The Wiralek slots' doors: the trend queues' (crowds.gd), else the places themselves.
+	var at := {}
+	for p: Dictionary in notes.places:
+		at[str(p["id"])] = p["at"]
+	for id: String in CityLife.SLOTS:
+		var door: Vector2 = at.get(id, Vector2.INF)
+		var out := Vector2.DOWN
+		if crowds != null and crowds.by_id.has(id):
+			var site: Dictionary = crowds.sites[crowds.by_id[id]]
+			door = site["door"]
+			out = site["out"]
+		life.slot_doors.append(door)
+		life.slot_out.append(out)
+	if crowds != null:
+		crowds.trend = life.trend_queue
+		if city_sounds != null:
+			for id: String in Crowds.TRENDS:
+				if crowds.by_id.has(id):
+					var site: Dictionary = crowds.sites[crowds.by_id[id]]
+					var d2: Vector2 = site["door"]
+					city_sounds.add_crowd(id, "queue", Vector3(d2.x, map.ground_height(d2.x, d2.y), d2.y),
+							func() -> bool: return int(site["n"]) >= 2)
+	if rides != null:
+		rides.hurry_to = life.hurry_target
+	if jobs != null:
+		trend_job = TrendJob.new()
+		trend_job.name = "TrendJob"
+		trend_job.autopilot = autopilot
+		trend_job.log_on = trend_log
+		add_child(trend_job)
+		trend_job.setup({"hud": hud, "dialogue": dialogue, "wallet": wallet, "missions": missions, "rivals": rivals, "jobs": jobs,
+				"rides": rides, "graph": graph, "map": map, "car": car, "life": life}, at, world)
+		jobs.trend = trend_job
+		if spacer != null:
+			trend_job.quiet = spacer.on
+	if zajac_flag or trend_job_flag > 0:
+		_life_start.call_deferred()
+
+
+## --zajac: the car on the lane nearest Kolka's start; --trend-job=N: by slot N with its request
+## (once the city has its first tick).
+func _life_start() -> void:
+	await get_tree().create_timer(1.5).timeout
+	if zajac_flag and notes != null and notes.by_id.has("kolka_start"):
+		# Where the club gathers (its route's start, on the boulevard), once the index is built.
+		var waited := 0.0
+		while life.kolka_start_at() == Vector2.INF and waited < 20.0:
+			await get_tree().create_timer(0.5).timeout
+			waited += 0.5
+		var at: Vector2 = life.kolka_start_at()
+		if at == Vector2.INF:
+			at = notes.places[notes.by_id["kolka_start"]]["at"]
+		_put_car_near(at, 80.0)
+		print("life: --zajac: the car at %.0f, %.0f (Kolka's start %.0f m away), %s" % [car.global_position.x, car.global_position.z,
+				Vector2(car.global_position.x, car.global_position.z).distance_to(at), life.life_summary()])
+	if trend_job_flag > 0 and trend_job != null:
+		var i := trend_job_flag - 1
+		var door: Vector2 = life.slot_doors[i] if i < life.slot_doors.size() else Vector2.INF
+		if door == Vector2.INF:
+			push_warning("--trend-job=%d: no such slot" % trend_job_flag)
+			return
+		_put_car_near(door, 60.0)
+		life.tick(0.0)
+		if not trend_job.offer(i):
+			print("trend job: --trend-job=%d: no request (the slot is on day %d)" % [trend_job_flag, int(life.slots_now[i]["day"])])
+
+
+## --zajac: is yyyymmdd a Wednesday (Kolka's day)?
+static func _is_wednesday(ymd: int) -> bool:
+	var t := Time.get_unix_time_from_datetime_dict({"year": ymd / 10000, "month": (ymd / 100) % 100, "day": ymd % 100, "hour": 12})
+	return int(Time.get_datetime_dict_from_unix_time(int(t))["weekday"]) == 3
 
 
 ## --crowd= × the Low tier's half.
@@ -1753,6 +1950,8 @@ func _apply_spacer(on: bool) -> void:
 		missions.calls_off = on
 	if rides != null:
 		rides.quiet = on
+	if trend_job != null:
+		trend_job.quiet = on
 	if rivals != null:
 		rivals.quiet = on
 	if police != null:
@@ -1783,7 +1982,15 @@ func _egg_state() -> Dictionary:
 			"away": title != null or _phone_bench or (fotka != null and fotka.is_open()),
 			"look": TimeOfDay.NAMES[tod.mode], "hour": float(c["hour"]), "weekday": int(c["weekday"]), "month": month,
 			"live": live, "sun": tod.sun_elevation, "rain": weather.state != 0, "station": station, "date": ymd,
-			"roadworks": eggs.barrier_street if eggs != null else "", "crowds": crowds.levels if crowds != null else {}}
+			"roadworks": eggs.barrier_street if eggs != null else "", "crowds": _crowd_levels()}
+
+
+## The crowds' levels for the eggs (crowds.gd's, loop MW-4: and city_life.gd's).
+func _crowd_levels() -> Dictionary:
+	var out: Dictionary = crowds.levels.duplicate() if crowds != null else {}
+	if life != null:
+		out.merge(life.levels, true)
+	return out
 
 
 ## The time of day's look for a Kadr: Day, Dusk or Night (Live by the sun's height).
@@ -2291,6 +2498,7 @@ func _parse_args() -> void:
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
 		elif arg.begins_with("--size="):
 			base_size = float(arg.trim_prefix("--size="))
+			_flag_size = true
 		elif arg == "--fixed":
 			_flag_fixed = true
 		elif arg.begins_with("--yaw="):
@@ -2380,6 +2588,12 @@ func _parse_args() -> void:
 		elif arg.begins_with("--gps-in="):
 			gps_in = maxf(0.0, float(arg.trim_prefix("--gps-in=")))
 		# --- end loop 2d-1 ---
+		elif arg == "--no-parodies":
+			no_parodies = true
+		elif arg == "--rechotka":
+			rechotka_flag = true
+		elif arg.begins_with("--stamps="):
+			stamps_flag = maxi(0, int(arg.trim_prefix("--stamps=")))
 		elif arg.begins_with("--host-in="):
 			host_in = maxf(0.0, float(arg.trim_prefix("--host-in=")))
 		elif arg.begins_with("--barriers="):
@@ -2427,6 +2641,8 @@ func _parse_args() -> void:
 			_flag_traffic = Settings.parse_traffic(arg.trim_prefix("--traffic="))
 		elif arg == "--settings":
 			open_settings_at_start = true
+		elif arg == "--fullmap":
+			open_map_at_start = true
 		elif arg == "--notebook" or arg.begins_with("--notebook="):
 			# Loop MW-1: the notebook's tab at the start (a chapter, or a place's card).
 			open_settings_at_start = true
@@ -2442,6 +2658,25 @@ func _parse_args() -> void:
 			crowd_flag = clampi(int(arg.trim_prefix("--crowd=")), 0, 2)
 		elif arg == "--night-log":
 			night_log = true
+		elif arg.begins_with("--life="):
+			life_flag = clampi(int(arg.trim_prefix("--life=")), 0, 2)
+		elif arg == "--dogs-log":
+			dogs_log = true
+		elif arg == "--trend-log":
+			trend_log = true
+		elif arg == "--life-log":
+			life_log = true
+		elif arg == "--life-soak":
+			life_soak = true
+			life_log = true
+		elif arg == "--zajac":
+			zajac_flag = true
+			life_log = true
+		elif arg.begins_with("--trend-day="):
+			trend_day_flag = maxi(0, int(arg.trim_prefix("--trend-day=")))
+		elif arg == "--trend-job" or arg.begins_with("--trend-job="):
+			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 3)
+			trend_log = true
 		elif arg.begins_with("--club="):
 			# Loop MW-3: the car at a club's door (places.json id or name), no title.
 			club_flag = arg.trim_prefix("--club=")
@@ -2461,6 +2696,10 @@ func _parse_args() -> void:
 			spacer_flag = 1
 		elif arg == "--no-spacer":
 			spacer_flag = 0
+		elif arg == "--zone-cap":
+			zone_cap_flag = 1
+		elif arg == "--no-zone-cap":
+			zone_cap_flag = 0
 		elif arg.begins_with("--spacer-hint="):
 			spacer_hint = float(arg.trim_prefix("--spacer-hint="))
 		elif arg == "--fotka" or arg == "--photo":
@@ -2513,7 +2752,7 @@ func _parse_args() -> void:
 			_police_flag(arg)
 	# Test runs go straight to the city (--title brings the title screen back).
 	if demo or not shots.is_empty() or autopilot or start_race > 0 or start_mission > 0 or start_rival > 0 or bench or probe \
-			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or hold_stick != Vector2.INF or bench_button \
+			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or open_map_at_start or hold_stick != Vector2.INF or bench_button \
 			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0:
 		show_title = false
 	if start_ride >= 0 or place_flag != "":
@@ -2521,6 +2760,20 @@ func _parse_args() -> void:
 	# Loop MW-6: and the eggs', the tape's and Fotka's flags; --egg sets its moment's time.
 	if egg_flag != "" or tape_flag != "" or fotka_flag or spacer_hint >= 0.0:
 		show_title = false
+	# Loop MW-4: --zajac is Kolka's Wednesday evening (Live), --life-soak a Friday dusk.
+	if zajac_flag or life_soak or trend_job_flag > 0:
+		show_title = false
+		free_roam = true
+	if zajac_flag:
+		# Kolka's start (19:00 Wednesday, Live); the car goes to the club once its route is known
+		# (_life_start: the place's own pin is off the boulevard).
+		start_time = TimeOfDay.LIVE
+		if live_clock == "":
+			live_clock = "19:00"
+		if live_date == 0 or not _is_wednesday(live_date):
+			live_date = 20261028
+	elif life_soak and start_time == TimeOfDay.DAY:
+		start_time = TimeOfDay.DUSK
 	_egg_moment()
 	if force_title:
 		show_title = true
@@ -2542,6 +2795,8 @@ func _parse_args() -> void:
 func _load_settings() -> void:
 	settings.persistent = not no_save
 	settings.load_file()
+	if not _flag_size:
+		base_size = settings.view
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
 	auto_quality = Tiers.for_model(model_name)
 	# The web loop 2: a phone's browser has a fraction of the app's memory and GPU time (Safari
@@ -2566,6 +2821,7 @@ func _load_settings() -> void:
 			" (%s)" % ("--last-session=" + _flag_last_session) if _flag_last_session != "" else ""])
 	traffic_level = _flag_traffic if _flag_traffic >= 0 else settings.traffic
 	show_perf = _flag_perf or settings.perf
+	zone_cap_on = zone_cap_flag == 1 if zone_cap_flag >= 0 else settings.zone_cap
 	var scheme := _flag_controls if _flag_controls >= 0 else settings.controls
 	if _flag_fixed and scheme == Controls.POINT:
 		scheme = Controls.FIXED
@@ -2695,6 +2951,36 @@ func _open_settings() -> void:
 	hud.open_settings(_settings_state())
 
 
+## F's asks (2026-10-30): the full-screen map (hud.gd, full_map.gd) on the car or the helicopter,
+## the notebook's places found on it. The game pauses under it, like the settings card.
+func _open_full_map() -> void:
+	if not _started or title != null or hud.settings_open() or hud.full_map_open():
+		return
+	if _phone_bench:
+		_end_phone_bench(false)
+	var pos := _vehicle_position()
+	var yaw: float = heli.rotation.y if flying else car.rotation.y
+	var found := PackedVector2Array()
+	if notes != null:
+		notes._update_minimap(Vector2(pos.x, pos.z))  # the "?" marks as they are here now
+		for place: Dictionary in notes.places:
+			if notes.is_found(str(place["id"])):
+				found.append(place["at"])
+	hud.set_night(tod.lights_on)  # its palette (the minimap's), even before the first frame
+	print("full map: open (paused), %d places found on it" % found.size())
+	_blip_sound()
+	get_tree().paused = true
+	hud.open_full_map(Vector2(pos.x, pos.z), yaw, found)
+	if not hud.full_map.closed.is_connected(_close_full_map):
+		hud.full_map.closed.connect(_close_full_map)
+
+
+func _close_full_map() -> void:
+	print("full map: closed")
+	get_tree().paused = false
+	_blip_sound()
+
+
 ## What the settings panel shows (loop 2e: also the camera, time of day, weather, style, VHS).
 func _settings_state() -> Dictionary:
 	# Loop G1: the panel's quality row is Auto, then Low..Ultra (the choice + 1).
@@ -2708,7 +2994,7 @@ func _settings_state() -> Dictionary:
 			"auto": auto_name,
 			"master": settings.master, "music": settings.music, "effects": settings.effects, "perf": int(show_perf),
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
-			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on)}
+			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on)}
 
 
 func _close_settings() -> void:
@@ -2773,6 +3059,9 @@ func _on_setting(key: String, value: Variant) -> void:
 			settings.wander = int(value) == 1
 			if spacer != null:
 				spacer.set_on(settings.wander)
+		"zones":
+			settings.zone_cap = int(value) == 1
+			zone_cap_on = settings.zone_cap
 		"master", "music", "effects":
 			settings.set(key, float(value))
 			Sfx.set_levels(settings.master, settings.music, settings.effects)
@@ -3361,21 +3650,27 @@ func _process(dt: float) -> void:
 	var pos := _vehicle_position()
 	_xray.show_through(not flying and map.in_tunnel(pos.x, pos.z, pos.y))
 	# Loop 3d-1: the pedestrian zones cap the player's car (police.md 5.6); the log says when.
+	# F's asks (2026-10-30): only with the Settings switch on (off by default).
 	var zone: String = ped_zones.at(car.global_position.x, car.global_position.z) if ped_zones != null and not flying else ""
-	car.zone_cap = PedZones.CAP if zone != "" else INF
+	car.zone_cap = PedZones.CAP if zone != "" and zone_cap_on else INF
 	if zone != _zone:
-		print("zone: %s at %.0f km/h" % [(zone + " (20 km/h)") if zone != "" else "left " + _zone, absf(car.forward_speed) * 3.6])
+		print("zone: %s at %.0f km/h" % [(zone + (" (20 km/h)" if zone_cap_on else " (no cap)")) if zone != "" else "left " + _zone,
+				absf(car.forward_speed) * 3.6])
 		_zone = zone
 	_feed_life(pos)
 	if police != null:
 		police.flying = flying  # loop 3g-1: the police ignore the helicopter
 		police.zone = zone  # loop 3g-2: the city guards' zone pill and whistle
+		police.zone_cap = zone_cap_on  # F's asks: the pill and the whistle only with the cap on
 	if jobs != null:
 		# Loop 2b: no side job starts on the bench route (the ghost stops at red lights).
 		jobs.flying = flying or _bench_ghost != null
 		# Loop 2d-1: no ride is offered from the helicopter, on the title screen or the bench.
 		rides.flying = flying
 		rides.away = title != null or _bench_ghost != null or _phone_bench
+		if trend_job != null:
+			trend_job.flying = flying
+			trend_job.away = rides.away
 		eggs.player = pos
 		eggs.player_vel = heli.vel if flying else car.vel
 		eggs.flying = flying
@@ -3596,6 +3891,10 @@ func _make_stats() -> BenchStats:
 		b.systems["city sounds"] = [city_sounds, "spent_usec", true]  # loop MW-5
 	if crowds != null:
 		b.systems["crowds"] = [crowds, "spent_usec", true]  # loop MW-3
+	if life != null:
+		b.systems["city life"] = [life, "spent_usec", true]  # loop MW-4
+	if storefronts != null:
+		b.systems["storefronts"] = [storefronts, "spent_usec", true]  # loop MW-2
 	if egg_book != null:
 		b.systems["eggs+tape+spacer"] = [self, "_moments_usec", false]  # loop MW-6
 	b.systems["sound"] = [sfx, "last_usec", false]
@@ -3786,6 +4085,16 @@ func _show_target() -> void:
 		hud.set_target(on, "%d m" % m, rivals.target_colour(), m > 12)
 		hud.set_minimap_target(Vector2(f.x, f.z), rivals.target_colour())
 		_new_target("race", f)
+		return
+	# Loop MW-4: the "Na czasie" job's queue, then its door.
+	if trend_job != null and trend_job.has_target():
+		var tp: Vector3 = trend_job.target_position()
+		var at_t := _vehicle_position()
+		var mt := roundi(Vector2(tp.x - at_t.x, tp.z - at_t.z).length())
+		var on_t := cam.unproject_position(tp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
+		hud.set_target(on_t, "%d m" % mt, trend_job.target_colour(), mt > 12)
+		hud.set_minimap_target(Vector2(tp.x, tp.z), trend_job.target_colour())
+		_new_target("job", tp)
 		return
 	# Loop 2d-1: a Podwózka ride's pin, passenger or door.
 	if rides != null and rides.has_target():
@@ -3981,6 +4290,8 @@ func _autopilot(dt: float) -> void:
 		return
 	if rides != null and rides.drive_player():
 		return  # loop 2d-1
+	if trend_job != null and trend_job.drive_player():
+		return  # loop MW-4
 	if jobs != null and jobs.drive_player():
 		return
 	if not missions.has_target():
@@ -4193,8 +4504,23 @@ static func _shader_value(m: ShaderMaterial, key: String, fallback: Variant) -> 
 # --- end sweep 2 ---------------------------------------------------------------------------
 
 
-func _zoom(factor: float) -> void:
-	base_size = clampf(base_size * factor, MIN_SIZE, MAX_SIZE)
+## The follow-camera loop: the player's zoom, one VIEWS step wider (+1) or closer (-1), saved.
+func _zoom_view(steps: int) -> void:
+	base_size = FollowCamera.view_step(base_size, steps)
+	settings.view = base_size
+	settings.save()
+
+
+## The follow-camera loop: a pinch (`ratio`: the fingers' span now / before) steps the zoom each
+## time the span has changed by PINCH_STEP since the last step.
+func _on_pinch(ratio: float) -> void:
+	_pinch_run *= ratio
+	if _pinch_run >= FollowCamera.PINCH_STEP:
+		_pinch_run = 1.0
+		_zoom_view(-1)
+	elif _pinch_run <= 1.0 / FollowCamera.PINCH_STEP:
+		_pinch_run = 1.0
+		_zoom_view(1)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -4203,9 +4529,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	var wheel := event as InputEventMouseButton
 	if wheel and wheel.pressed:
 		if wheel.button_index == MOUSE_BUTTON_WHEEL_UP:
-			_zoom(1.0 / 1.12)
+			_zoom_view(-1)
 		elif wheel.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			_zoom(1.12)
+			_zoom_view(1)
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -4226,10 +4552,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_toggle_vehicle()
 			KEY_M:
 				# Loop 2d-1: a Podwózka request or result first.
-				if (rides == null or not rides.primary()) and (jobs == null or not jobs.primary()):
+				if (rides == null or not rides.primary()) and (jobs == null or not jobs.primary()) \
+						and (trend_job == null or not trend_job.primary()):
 					missions.primary()
 			KEY_K:
-				if (rides == null or not rides.secondary()) and (jobs == null or not jobs.secondary()):
+				if (rides == null or not rides.secondary()) and (jobs == null or not jobs.secondary()) \
+						and (trend_job == null or not trend_job.secondary()):
 					missions.secondary()
 			KEY_N:
 				_blip_sound()
@@ -4262,9 +4590,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				if rivals != null:
 					rivals.flash()
 			KEY_MINUS:
-				_zoom(1.3)
+				_zoom_view(1)
 			KEY_EQUAL:
-				_zoom(1.0 / 1.3)
+				_zoom_view(-1)
 
 
 func _screen_to_world(s: Vector2) -> Vector3:
@@ -4279,16 +4607,19 @@ func _update_camera(dt: float) -> void:
 	var vehicle: Node3D = heli if flying else car
 	var speed: float = heli.speed() if flying else absf(car.forward_speed)
 	if follow:
-		# Camera loop (follow_camera.gd): Point and the helicopter wait while the stick is held and
-		# 0.6 s after, then ease round; Classic turns with the car; never faster than 64°/s.
+		# Camera loop (follow_camera.gd): the helicopter waits while the stick is held and 0.6 s
+		# after, then eases round; Classic turns with the car; never faster than 64°/s. The
+		# follow-camera loop: Point turns with the car too, finger down or not, more gently
+		# (drive_controls.gd FOLLOW_HELD keeps a held direction from turning with it).
 		var heading := rad_to_deg(vehicle.rotation.y)
 		if flying:
 			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, true, _heli_held, _heli_release,
 					FollowCamera.FULL_SPEED_HELI, dt)
 		else:
-			var waits := controls.scheme != Controls.CLASSIC
-			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, waits, controls.held, controls.since_release,
-					FollowCamera.FULL_SPEED_POINT if waits else FollowCamera.FULL_SPEED, dt)
+			var classic := controls.scheme == Controls.CLASSIC
+			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, controls.camera_waits(), controls.held,
+					controls.since_release, FollowCamera.FULL_SPEED if classic else FollowCamera.FULL_SPEED_POINT, dt,
+					FollowCamera.TURN_GAIN if classic else FollowCamera.RETURN_GAIN)
 		cam_yaw_target = cam_yaw
 	else:
 		fcam.stop_turning()
@@ -4533,6 +4864,9 @@ func _city_nodes() -> Array[Node]:
 ## lights, small casters' shadows as _apply_extras last set them (the quality, the governor's
 ## GPU level, the wide view; loop G1), fine detail by the view's width, --exp.
 func _on_sector_ready(root: Node3D) -> void:
+	# Loop MW-2: the storefronts first (the neon atlas, a Neon holder of their own goes in below).
+	if storefronts != null:
+		storefronts.on_sector_ready(root)
 	var lit := tod != null and tod.lights_on > 0.001
 	var small: bool = _small_cast == 1 if _small_cast >= 0 else bool(QUALITY[quality]["small_shadows"])
 	var cast := GeometryInstance3D.SHADOW_CASTING_SETTING_ON if small else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

@@ -9,7 +9,8 @@ extends SceneTree
 ## tab of the settings panel and the bench card; loop 3g-1: a police chase (the pill, the koguty,
 ## a megaphone bubble), the lizak, and the pull-over card (the pedals away); loop MW-6: the
 ## notebook's egg, tape and Kadr pages (a found card, one not found, the next page) and Fotka's
-## photo-mode controls (fotka.gd, its own layer with the HUD hidden). In each state:
+## photo-mode controls (fotka.gd, its own layer with the HUD hidden); F's asks (2026-10-30): the
+## full-screen map (the ✕, its cards, a tap on the minimap, a pan and a pinch). In each state:
 ##   - every control the player can press is at least 44 pt each way and inside the safe area;
 ##   - every text is at least 11 pt, and the body texts (cards, ticker, toasts, hints) 13 pt;
 ##   - every HUD rect (the fixed controls, the panels, the pedals, the speech bubbles) is inside
@@ -331,11 +332,90 @@ func _check_screen(screen: Vector2i) -> int:
 			_check_touch(bw + " " + k, targets[k], pt, safe)
 	_check_fonts(bcard, bw, pt)
 	count += 1
+	hud.clear_all()
+	count += await _check_full_map(hud, tag)
 	if screen == SCREENS[0]:
 		_check_radio_hold(hud)
 	vp.queue_free()
 	await process_frame
 	return count
+
+
+## F's asks (2026-10-30): the full-screen map open (a tap on the minimap): the ✕ 44 pt and
+## inside the safe area, the title and the hint inside it too, none of the three overlapping,
+## the texts big enough; a tap's touch on the minimap emits `map_pressed`; a pan and a pinch move
+## and zoom it; the ✕ closes it and then nothing of it shows.
+func _check_full_map(hud: CanvasLayer, tag: String) -> int:
+	var pt: float = hud.pt
+	var safe: Rect2 = hud.safe_rect()
+	var where := "%s full map" % tag
+	var tapped := [0]
+	var on_tap := func() -> void: tapped[0] += 1
+	hud.map_pressed.connect(on_tap)
+	var mini: Rect2 = (hud.get("_minimap") as Control).get_global_rect()
+	for down in [true, false]:
+		var t := InputEventScreenTouch.new()
+		t.index = 0
+		t.position = mini.get_center()
+		t.pressed = down
+		hud._input(t)
+	hud.map_pressed.disconnect(on_tap)
+	if tapped[0] != 1:
+		problems.append("%s: a tap on the minimap emitted map_pressed %d times (want 1)" % [where, tapped[0]])
+	hud.open_full_map(Vector2(10.0, 20.0), 0.5, PackedVector2Array([Vector2(100.0, 50.0)]))
+	await process_frame
+	await process_frame
+	var fm: Control = hud.full_map
+	var rs: Dictionary = fm.rects()
+	_check_touch(where + " close", rs["close"], pt, safe)
+	for k in ["head", "hint"]:
+		if not safe.grow(0.5).encloses(rs[k]):
+			problems.append("%s: the %s %s is outside the safe area %s" % [where, k, _pts(rs[k], pt), _pts(safe, pt)])
+	var keys := rs.keys()
+	for i in keys.size():
+		for j in range(i + 1, keys.size()):
+			if (rs[keys[i]] as Rect2).intersects(rs[keys[j]]):
+				problems.append("%s: %s and %s overlap" % [where, keys[i], keys[j]])
+	_check_fonts(fm, where, pt)
+	# A one-finger pan of 100 px moves the map 100 px; a pinch to twice the span doubles the zoom.
+	var c0: Vector2 = fm.centre
+	var ppm0: float = fm.ppm
+	var mid: Vector2 = fm.get_viewport().get_visible_rect().size * 0.5
+	var ev := func(e: InputEvent) -> void: fm._input(e)
+	var touch := func(i: int, at: Vector2, down: bool) -> InputEventScreenTouch:
+		var e := InputEventScreenTouch.new()
+		e.index = i
+		e.position = at
+		e.pressed = down
+		return e
+	var drag := func(i: int, at: Vector2) -> InputEventScreenDrag:
+		var e := InputEventScreenDrag.new()
+		e.index = i
+		e.position = at
+		return e
+	ev.call(touch.call(0, mid, true))
+	ev.call(drag.call(0, mid + Vector2(100.0, 0.0)))
+	ev.call(touch.call(0, mid + Vector2(100.0, 0.0), false))
+	var moved: float = (c0 - fm.centre).x * ppm0
+	if absf(moved - 100.0) > 1.0:
+		problems.append("%s: a 100 px pan moved the map %.1f px" % [where, moved])
+	fm.ppm = ppm0
+	fm.centre = c0
+	ev.call(touch.call(0, mid - Vector2(50.0, 0.0), true))
+	ev.call(touch.call(1, mid + Vector2(50.0, 0.0), true))
+	ev.call(drag.call(1, mid + Vector2(150.0, 0.0)))
+	ev.call(touch.call(0, mid, false))
+	ev.call(touch.call(1, mid, false))
+	if fm.ppm <= ppm0 * 1.5:
+		problems.append("%s: a pinch to twice the span zoomed %.2f×" % [where, fm.ppm / ppm0])
+	(fm.get("_close") as Button).pressed.emit()
+	await process_frame
+	if fm.visible or hud.full_map_open():
+		problems.append("%s: the ✕ did not close it" % where)
+	if verbose:
+		print("  %s: ✕ %s, head %s, hint %s; pan %.0f px, pinch %.2f×" % [where, _pts(rs["close"], pt), _pts(rs["head"], pt),
+				_pts(rs["hint"], pt), moved, fm.ppm / ppm0])
+	return 1
 
 
 ## Loop MW-6: Fotka open (the HUD hidden): its buttons 44 pt and inside the safe area, nothing

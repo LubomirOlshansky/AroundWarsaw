@@ -76,12 +76,20 @@ var start_heat := 1.0
 var start_broken := 0
 ## Loop 2d-1: the Podwózka job (rides.gd), so the two never run at once.
 var rides: Node
+## Loop MW-4: the "Na czasie" job (trend_job.gd), likewise.
+var trend: Node
 ## Loop 3g-2 (police.md 8.3): the kebab's heat stands still while a pull-over's card is open
 ## (police.gd sets it).
 var heat_frozen := false
 
-## Stands: {ring: Vector3, at: Vector3, yaw, heading, node, marker, cool, across}.
+## Stands: {ring: Vector3, at: Vector3, yaw, heading, node, marker, cool, across; loop MW-2: xf (the
+## kiosk's transform), name (its board, "" for KEBAB only), tag (the vendor's line tag)}.
 var _stands: Array[Dictionary] = []
+## Loop MW-2: the generic stands' MultiMeshes, one per 512 m tile (parodies.md 6.1, 8: ≈ ±0 draw
+## calls, fewer nodes), and where they go.
+var _stand_tiles: Array[MultiMeshInstance3D] = []
+var _stand_mesh: ArrayMesh
+var _world: Node3D
 ## The station pick-up: {ring, at, yaw, heading, person, marker, cool}.
 var _station: Dictionary = {}
 ## Addresses: {name, door: Vector2, at: Vector2, office, d}.
@@ -140,6 +148,9 @@ func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
 				var door: Array = p["door"]
 				_addresses.append({"name": p["name"], "door": Vector2(door[0], door[1]), "at": Vector2(p["x"], p["z"]),
 						"office": p.has("o"), "d": String(p.get("d", ""))})
+	_world = world
+	_stand_mesh = stand_mesh
+	_build_stand_tiles()
 	for s in _stands:
 		s["across"] = _district_near(Vector2(s["ring"].x, s["ring"].z)) == "praga"
 	_beacon = Beacon.new()
@@ -155,6 +166,78 @@ func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
 		where.append("%d,%d" % [roundi(st["at"].x), roundi(st["at"].z)])
 	print("jobs: %d kebab stands (%s), %d addresses, station %s in %d ms" % [_stands.size(), " ".join(where), _addresses.size(),
 			"%d,%d" % [roundi(_station["ring"].x), roundi(_station["ring"].z)] if not _station.is_empty() else "none", Time.get_ticks_msec() - t0])
+
+
+# --- loop MW-2: the stands' drawing, names and tags (storefronts.gd) ---------------------------
+
+## The generic stands' kiosks: one MultiMesh per 512 m tile (made again when a stand is named).
+func _build_stand_tiles() -> void:
+	for t in _stand_tiles:
+		t.queue_free()
+	_stand_tiles.clear()
+	if _world == null or _stand_mesh == null:
+		return
+	var tiles := {}
+	for st in _stands:
+		if st["name"] != "":
+			continue
+		var o: Vector3 = (st["xf"] as Transform3D).origin
+		var key := Vector2i(floori(o.x / 512.0), floori(o.z / 512.0))
+		if not tiles.has(key):
+			tiles[key] = []
+		(tiles[key] as Array).append(st["xf"])
+	for key: Vector2i in tiles:
+		var xfs: Array = tiles[key]
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = _stand_mesh
+		mm.instance_count = xfs.size()
+		var box := AABB((xfs[0] as Transform3D).origin, Vector3.ZERO)
+		for k in xfs.size():
+			mm.set_instance_transform(k, xfs[k])
+			box = box.expand((xfs[k] as Transform3D).origin)
+		mm.custom_aabb = box.grow(6.0)
+		var mmi := MultiMeshInstance3D.new()
+		mmi.name = "KebabStands"
+		mmi.multimesh = mm
+		mmi.material_override = Models.material()
+		mmi.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+		# A small prop's sun shadow: on High only, as the map's small casters (main.gd _apply_extras).
+		mmi.add_to_group("small_casters", true)
+		_world.add_child(mmi)
+		_stand_tiles.append(mmi)
+
+
+## Where the stands are (their kiosks), in their order.
+func stand_points() -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for st in _stands:
+		out.append(Vector2(st["at"].x, st["at"].z))
+	return out
+
+
+## Stand i gets a name board under KEBAB (props.gd named_kebab_stand) and its vendor's tag.
+func name_stand(i: int, words: String, tag: String) -> void:
+	if i < 0 or i >= _stands.size() or _stands[i]["name"] != "":
+		return
+	_stands[i]["name"] = words
+	_stands[i]["tag"] = tag
+	var mi := MeshInstance3D.new()
+	mi.name = "NamedStand"
+	mi.mesh = Props.named_kebab_stand(words)
+	mi.material_override = Models.material()
+	mi.add_to_group("small_casters", true)
+	(_stands[i]["node"] as Node3D).add_child(mi)
+	_build_stand_tiles()
+
+
+func stand_tag(i: int) -> String:
+	return String(_stands[i]["tag"]) if i >= 0 and i < _stands.size() else ""
+
+
+func tag_stand(i: int, tag: String) -> void:
+	if i >= 0 and i < _stands.size():
+		_stands[i]["tag"] = tag
 
 
 # --- places ---------------------------------------------------------------------------
@@ -191,7 +274,7 @@ func _kerb(door: Vector2, at: Vector2, half: float, offsets: Array) -> Dictionar
 	return {}
 
 
-func _add_stand(p: Dictionary, mesh: ArrayMesh, world: Node3D) -> void:
+func _add_stand(p: Dictionary, _mesh: ArrayMesh, world: Node3D) -> void:
 	var door: Array = p["door"]
 	var half := float(p.get("w", 7.0)) * 0.5
 	var k := _kerb(Vector2(door[0], door[1]), Vector2(p["x"], p["z"]), half, [2.4, 1.6, 3.4, 4.4])
@@ -205,10 +288,8 @@ func _add_stand(p: Dictionary, mesh: ArrayMesh, world: Node3D) -> void:
 	var at := Vector3(spot.x, map.terrain_height(spot.x, spot.y), spot.y)
 	var yaw := atan2(side.x, side.y)  # the counter faces the road
 	var node := Node3D.new()
-	var mi := MeshInstance3D.new()
-	mi.mesh = mesh
-	mi.material_override = Models.material()
-	node.add_child(mi)
+	# Loop MW-2 (parodies.md 6.1): the stand's kiosk is drawn by its tile's MultiMesh
+	# (_build_stand_tiles); a named stand gets a mesh of its own (name_stand).
 	# Solid: the car stops at the kiosk.
 	var body := StaticBody3D.new()
 	var shape := CollisionShape3D.new()
@@ -234,7 +315,7 @@ func _add_stand(p: Dictionary, mesh: ArrayMesh, world: Node3D) -> void:
 	world.add_child(marker)
 	marker.global_position = ring
 	_stands.append({"ring": ring, "at": at, "heading": k["heading"], "node": node, "marker": marker, "cool": false,
-			"edge": k["edge"], "s": k["s"]})
+			"edge": k["edge"], "s": k["s"], "xf": Transform3D(Basis(Vector3.UP, yaw), at), "name": "", "tag": ""})
 
 
 func _add_station(p: Dictionary, world: Node3D) -> void:
@@ -319,12 +400,18 @@ func heat() -> float:
 
 func busy() -> bool:
 	# Loop 2d-1: a Podwózka ride counts as a job for everything that waits on one.
-	return state != State.IDLE or (rides != null and rides.busy())
+	return state != State.IDLE or (rides != null and rides.busy()) or (trend != null and trend.busy())
 
 
 ## Loop 2d-1: a kebab or słoiki job of this script's own is on (rides.gd asks this).
 func own_busy() -> bool:
 	return state != State.IDLE
+
+
+## Loop MW-4: this script's own job or the "Na czasie" one (its card included) is on: rides.gd
+## offers nothing then.
+func side_busy() -> bool:
+	return own_busy() or (trend != null and trend.state != 0)
 
 
 func has_target() -> bool:
@@ -345,6 +432,8 @@ func _free() -> bool:
 		return false
 	if rides != null and rides.busy():
 		return false  # loop 2d-1: one activity at a time
+	if trend != null and trend.busy():
+		return false  # loop MW-4
 	return rivals == null or not rivals.busy()
 
 
@@ -519,7 +608,10 @@ func _begin_kebab(i: int, n: int) -> void:
 	_said_order = false
 	_claim()
 	var stand: Node3D = _stands[i]["node"]
-	dialogue.say(stand, "Kebab 24h", "kebab_vendor", "", 2.4, KEBAB_COLOUR, 5.2)
+	# Loop MW-2: a stand's own vendor lines (zdzich, cienkim, hala, stadium) first.
+	var vtag: String = _stands[i]["tag"]
+	var who: String = "Kebab 24h" if _stands[i]["name"] == "" else String(_stands[i]["name"]).capitalize()
+	dialogue.say(stand, who, "kebab_vendor", vtag, 2.4, KEBAB_COLOUR, 5.2, vtag != "")
 	var where := "%s, %s" % [o["customer"], o["name"]]
 	var extra := " Across the river (\"basically the centre\")." if o["across"] else ""
 	var night := " Night pays ×%.1f." % NIGHT_BONUS if _night() else ""

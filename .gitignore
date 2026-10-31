@@ -57,3 +57,7 @@ game/map/web_sectors.json
 game/map/lod2.bin
 game/map/lod2.json
 game/map/terrain.json
+
+# Wrangler's local state and dev secrets (site/, wiki/)
+.wrangler/
+.dev.vars

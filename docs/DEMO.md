@@ -839,14 +839,14 @@ unlocked.
 
 | Joke | Suggested name and look |
 | --- | --- |
-| The 24h corner shop chain | **Rechotka 24** ("rechot" is a frog's croak and a belly laugh): frog green with a cartoon frog of our own |
+| The 24h corner shop chain | ~~Rechotka 24~~ → **Frogs** (the user's pick, 2026-10-30; an English word, not the real brand's name or logo): frog green with a lily-pad sign of our own |
 | App-taxi | **Podwózka**, with a star bar and a phone-shaped roof sign |
 | Couriers | **Pędzik**: magenta square backpacks |
 | E-scooters | ~~Hulajka~~ → **Leżak** (deckchair): violet, lying in odd places ("Hulaj" was a real Polish scooter-sharing brand) |
 | Kebab | Stand names in pixel letters: "U Zdzicha", "Na cienkim" (~~"Nocny Marek"~~: one letter from Warsaw's "Nocny Market") |
 
 **Superseded by `docs/design/parodies.md`** (2026-10-28, game-designer): the final names
-(Rechotka 24 with a lily-pad sign and no frog figure, Podwózka, Pędzik, Leżak, U Zdzicha, Na
+(Rechotka 24 with a lily-pad sign and no frog figure, renamed **Frogs** by the user on 2026-10-30; Podwózka, Pędzik, Leżak, U Zdzicha, Na
 cienkim) after a web and domain check; a trademark-register search (UPRP/EUIPO) belongs to
 loop 3k's brand audit.
 
@@ -890,7 +890,7 @@ adds content. One agent at a time, as in ROADMAP's "How the work is run".
 | 9 | **Loop 3f: Landmarks, tier A** | The 12 tier-A landmarks (2.2) with info cards | Each recognisable from 3 angles; `check_landmarks.gd` extended (walls, roof grid, taps); orthophoto overlays | Building material only; ≤ 400k vertices in total; +0 draw calls |
 | 10 | **Loop 2c: Car models** | The player's hatch, traffic, and the police estate and guard car | They read at the default zoom (C1 test); silhouettes distinct | Traffic MultiMeshes unchanged in count; ≤ +20 % vertices for vehicles |
 | 11 | **Loop 3g: Police** | Section 5 | Flags drive every flow (chase 1 to 3, escape, caught, caution, clamp, escort); a 10-minute soak with police on, no police car through geometry; lines in `dialogue.json` | ≤ +3 draw calls; scripts ≤ 0.15 ms on the Mac |
-| 12 | **Loop 2d: Warsaw jokes and side jobs** | Rechotka shops, app-taxi with stars, couriers, scooters, more kebab, 10 billboards, 15 eggs | Counts in 6.3; every new prop instanced; lines original and brand-free | Props in MultiMeshes per sector (≤ +4 draw calls per sector) |
+| 12 | **Loop 2d: Warsaw jokes and side jobs** | Frogs (was Rechotka) shops, app-taxi with stars, couriers, scooters, more kebab, 10 billboards, 15 eggs | Counts in 6.3; every new prop instanced; lines original and brand-free | Props in MultiMeshes per sector (≤ +4 draw calls per sector) |
 | 13 | **Loop 3h: The demo loop** | 6.2 and 6.3: the first-10-minutes script, rival ladder and final race, Syrenki and cassettes, the garage, district cards, the end card, save v2 | A scripted replay hits every 6.2 beat on time; checklist A1 to A5, F1 to F4, G1 to G3 and I1 to I2 green | Scripts ≤ +0.2 ms |
 | 14 | **Loop 3i: Juice, sound and night pass** | Sparks and dust, money pops, scrape loop, district ambiences, siren, the night look in the new districts, Reduce Motion, left-handed layout | B3, D1, D3 and J3 green; the night render spots | Particles ≤ 1 draw call, ≤ 64 alive |
 | 15 | **Loop 3j: Device pass and TestFlight** (10b folded in) | Real numbers on the user's iPhone 11 and 16 Pro Max; debug flags stripped; an archive ready | H1 to H4 green on device; a 30-minute soak; the credits and licences screen (ODbL, GUGiK, CC BY for the trees); a privacy statement of no data collection. The user signs and uploads to TestFlight | Meets P on device |
