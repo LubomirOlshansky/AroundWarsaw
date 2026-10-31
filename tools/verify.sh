@@ -69,7 +69,8 @@
 # once; no map at all (CI too).
 # Loop 3h slice 1: `save` runs game/tools/check_save.gd: save v2 (a version-1 fixture built in the
 # check migrates keeping every section, a backup of the old file, the round trip, a newer file never
-# overwritten, --nosave writes nothing, settings.cfg's version); `districts` runs
+# overwritten, --nosave writes nothing, settings.cfg's version; save and resume: the [session] spot,
+# NOWA GRA's wipe and its save.prev.cfg copy, the title's KONTYNUUJ / NOWA GRA / TAK / NIE); `districts` runs
 # game/tools/check_districts.gd: the districts' data, coverage and ties, discovery, the "?" marks,
 # completion and the full map's fog; neither needs a map (CI too). Loop 3h slice 2: `syrenki` runs
 # game/tools/check_syrenki.gd: the 20 Syrenki's data and words, a find, the reward ladder (the paints

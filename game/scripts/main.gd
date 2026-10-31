@@ -16,7 +16,8 @@ extends Node
 ## --kebab=N starts kebab order N, --sloik[=K] the słoiki run (K jars already
 ## broken), --heat=X the kebab's starting heat, --host-in=S the radio host's first
 ## line after S seconds, --barriers=YYYYMMDD the day the roadworks are placed for,
-## --reset-save wipes the wallet, --nosave neither reads nor writes it, --free
+## --reset-save wipes the wallet, --nosave neither reads nor writes it (save and resume:
+## --title-choice=continue|new|ask, --resume=x,z[,heading]), --free
 ## starts in free roam (no rescue call card). v0.8: --tap=X,Y taps that screen pixel
 ## at frame 60 (a landmark's info card). v0.9: --weather=clear|rain, --time=live with
 ## --clock=HH:MM and --date=YYYYMMDD (Warsaw time), --perf shows the performance
@@ -672,6 +673,7 @@ func _ready() -> void:
 			push_warning("--station=%s: no such station in radio.json" % station_flag)
 	radio.tune(start_index, true)
 	print("save: %s (%s)" % [wallet.summary(), ProjectSettings.globalize_path(Wallet.PATH) if not no_save else "not saved"])
+	_resume_start()  # save and resume: the car where the last session left it
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
@@ -692,6 +694,7 @@ func _ready() -> void:
 		get_tree().quit(1)
 		return
 	_build_world()
+	_put_at_resume()
 	print("city built in %d ms, %s" % [Time.get_ticks_msec() - t0, _scene_stats()])
 	if loading != null:
 		loading.queue_free()
@@ -699,6 +702,11 @@ func _ready() -> void:
 		hud.visible = false
 		dialogue.host_on = false
 		title.dismissed.connect(_on_title_dismissed)
+		title.new_game.connect(_on_new_game)
+		title.can_resume = (wallet.has_progress() and wallet.persistent and not wallet.newer) or title_choice in ["ask", "new"] or not resume_flag.is_empty()
+		title.resume_line = "%s · respekt %d" % [Wallet.money(wallet.zl), wallet.respect]
+		title.auto_go = _new_game_pending
+		_new_game_pending = false
 		# The loading fix: "tap to drive" once the sectors round the start are in (_title_frame).
 		_title_wait_t = Time.get_ticks_msec()
 	else:
@@ -743,6 +751,95 @@ func _title_frame() -> void:
 				"" if streamer == null or streamer.idle() else " (not all: the wait's limit)"])
 		_title_wait_t = -1
 		title.set_ready()
+		if title != null and title_choice != "":
+			# Save and resume: --title-choice= picks for the player (continue, new, or ask: the question up).
+			print("title: --title-choice=%s" % title_choice)
+			match title_choice:
+				"new":
+					title.choose("new")
+					title.choose("yes")
+				"ask":
+					title.choose("new")
+				_:
+					title.choose("continue")
+
+
+## Save and resume (2026-10-31): the car goes back to where the last session left it on a normal
+## launch (the title screen up, no flag that places it); "NOWA GRA" on the title wipes the save
+## (wallet.gd `start_over`, a copy kept as save.prev.cfg) and starts the scene again, the title
+## going by itself once the start is in (`_new_game_pending` survives the reload: a static).
+## `--title-choice=continue|new` picks on the title once it is ready (the shots and checks).
+## The spot is kept every REMEMBER_EVERY seconds of driving (moved 5 m or more), and when the app
+## goes to the background or the window closes; never by test runs or --nosave.
+const REMEMBER_EVERY := 5.0
+static var _new_game_pending := false
+var title_choice := ""
+var resume_flag: Array = []
+var _resume_yaw := INF
+var _remember_on := false
+var _remember_t := 0.0
+
+
+func _resume_start() -> void:
+	_remember_on = show_title and wallet.persistent and not wallet.newer
+	if not resume_flag.is_empty():
+		wallet.session = {"x": resume_flag[0].x, "z": resume_flag[0].z, "yaw": resume_flag[1], "tunnel": 0, "at": 0}
+	if not show_title or start_at != Vector3.INF:
+		return
+	var spot := wallet.resume_spot()
+	if spot.is_empty():
+		return
+	start_at = spot[0]
+	start_in_tunnel = spot[2]
+	_resume_yaw = spot[1]
+	print("resume: the last session's spot (%.0f, %.0f)%s" % [start_at.x, start_at.z, " in a tunnel" if start_in_tunnel else ""])
+
+
+## Once the city is built: the kept spot onto the nearest lane on its level (facing the kept way
+## where the lane allows); a spot with no lane near, or in the water, goes back to the start.
+func _put_at_resume() -> void:
+	if _resume_yaw == INF or car == null:
+		return
+	var lane := _lane_spot(car.global_position, _resume_yaw)
+	if lane.is_empty() or Vector2((lane[0] as Vector3).x, (lane[0] as Vector3).z).distance_to(Vector2(start_at.x, start_at.z)) > 60.0:
+		print("resume: no lane near the kept spot, back to the start")
+		car.global_transform = _spawn
+	else:
+		car.global_position = lane[0]
+		car.rotation.y = lane[1]
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.reset_physics_interpolation()
+	cam_focus = car.global_position
+
+
+## Every REMEMBER_EVERY s (and on the way to the background): the car's spot into the save, when
+## it is on the ground (not flying, not in the water, not mid-air off a kerb).
+func _remember_frame(dt: float, now := false) -> void:
+	if not _remember_on or not _started or title != null or _phone_bench or car == null or map == null:
+		return
+	_remember_t += dt
+	if not now and _remember_t < REMEMBER_EVERY:
+		return
+	_remember_t = 0.0
+	var p := car.global_position
+	if map.in_water(p.x, p.z, p.y) or absf(p.y - map.drive_height(p.x, p.z, p.y)) > 1.5:
+		return
+	wallet.remember_spot(p, car.rotation.y, map.in_tunnel(p.x, p.z, p.y), int(Time.get_unix_time_from_system()), 1.0 if now else 5.0)
+
+
+func _notification(what: int) -> void:
+	if what in [NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_WM_CLOSE_REQUEST]:
+		_remember_frame(0.0, true)
+
+
+func _on_new_game() -> void:
+	if not wallet.start_over():
+		return
+	_remember_on = false
+	_new_game_pending = true
+	get_tree().paused = false
+	get_tree().call_deferred("reload_current_scene")
 
 
 func _on_title_dismissed() -> void:
@@ -3089,6 +3186,16 @@ func _parse_args() -> void:
 			barrier_day = int(arg.trim_prefix("--barriers="))
 		elif arg == "--reset-save":
 			reset_save = true
+		elif arg.begins_with("--title-choice="):
+			title_choice = arg.trim_prefix("--title-choice=")  # save and resume: continue|new
+			force_title = true
+		elif arg.begins_with("--resume="):
+			# Save and resume: --resume=x,z[,heading°] a kept spot in memory (with --nosave: the test of
+			# the resume path without a real save).
+			var r := arg.trim_prefix("--resume=").split(",")
+			if r.size() >= 2:
+				resume_flag = [Vector3(float(r[0]), 0.0, float(r[1])), -deg_to_rad(float(r[2])) if r.size() > 2 else 0.0]
+			force_title = true
 		elif arg == "--nosave":
 			no_save = true
 		elif arg == "--free":
@@ -4242,6 +4349,7 @@ func _process(dt: float) -> void:
 	_update_camera(dt)
 	_stream_frame(dt)  # loop 3c: the sectors round the camera
 	_title_frame()  # the loading fix: the title's prompt once the start is in
+	_remember_frame(dt)  # save and resume: the car's spot for the next launch
 	_look_frame()  # the loading fix: a look at a new target once its sectors are in
 	if cam_log:
 		_cam_log_frame(dt)
