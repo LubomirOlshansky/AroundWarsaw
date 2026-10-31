@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Around Warsaw · przejedź prawdziwe centrum Warszawy</title>
-<meta name="description" content="Zręcznościowa jazda po prawdziwym centrum Warszawy, zbudowanym z otwartych danych map. Dzień, noc i deszcz, od Pałacu Kultury po Stadion Narodowy. Darmowa beta na iPhone&#x27;a i Androida.">
+<title>Around Warsaw · open-source&#x27;owa gra o życiu w Warszawie</title>
+<meta name="description" content="Open-source&#x27;owa gra zręcznościowa na iPhone&#x27;a i Androida w prawdziwym centrum Warszawy: misje, miejska historia i humor nocnego miasta. Zbudowana z otwartych danych map. Darmowa beta.">
 <meta name="theme-color" content="#0b0d24">
 <meta name="color-scheme" content="dark">
 <link rel="canonical" href="https://aroundwarsaw.app/pl/">
@@ -18,8 +18,8 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Around Warsaw">
 <meta property="og:url" content="https://aroundwarsaw.app/pl/">
-<meta property="og:title" content="Around Warsaw · przejedź prawdziwe centrum Warszawy">
-<meta property="og:description" content="Zręcznościowa jazda po prawdziwym centrum Warszawy, zbudowanym z otwartych danych map. Dzień, noc i deszcz, od Pałacu Kultury po Stadion Narodowy. Darmowa beta na iPhone&#x27;a i Androida.">
+<meta property="og:title" content="Around Warsaw · open-source&#x27;owa gra o życiu w Warszawie">
+<meta property="og:description" content="Open-source&#x27;owa gra zręcznościowa na iPhone&#x27;a i Androida w prawdziwym centrum Warszawy: misje, miejska historia i humor nocnego miasta. Zbudowana z otwartych danych map. Darmowa beta.">
 <meta property="og:locale" content="pl_PL">
 <meta property="og:image" content="https://aroundwarsaw.app/img/og.jpg">
 <meta property="og:image:width" content="1200">
@@ -45,8 +45,10 @@
     <a class="brand" href="/pl/" aria-label="Around Warsaw, strona główna"><img src="/favicon.svg" alt="" width="28" height="28">Around Warsaw</a>
     <nav aria-label="Menu">
       <a class="wide" href="#city">Miasto</a>
-      <a class="wide" href="#play">Gra</a>
-      <a href="#beta">Beta</a>
+      <a class="wide" href="#missions">Misje</a>
+      <a class="wide" href="#lore">Historia</a>
+      <a class="wide" href="#open">Open source</a>
+      <a class="nav-beta" href="#beta">Beta</a>
       <a class="lang" href="/" hreflang="en" lang="en" aria-label="English version">EN</a>
     </nav>
   </div>
@@ -56,16 +58,18 @@
 
 <section class="hero" aria-labelledby="title">
   <picture class="hero-shot">
-    <source media="(max-width: 700px)" srcset="/img/game/hero-palace-dusk-960.webp">
-    <img src="/img/game/hero-palace-dusk.webp" alt="Pałac Kultury o zmierzchu w grze, podświetlony, obok Złote Tarasy i wieżowce Śródmieścia" width="1920" height="884" fetchpriority="high">
+    <source media="(max-width: 700px)" srcset="/img/game/hero-venue-night-960.webp">
+    <img src="/img/game/hero-venue-night.webp" alt="Nocna ulica Warszawy w grze: zapalone okna, różowy neon nad klubem i kolejka przed wejściem" width="1920" height="887" fetchpriority="high">
   </picture>
   <div class="hero-in"><div class="hero-text">
+    <p class="tags"><span><svg aria-hidden="true"><use href="#i-apple"/></svg>iPhone</span><span><svg aria-hidden="true"><use href="#i-play"/></svg>Android</span><span><svg aria-hidden="true"><use href="#i-github"/></svg>Open source</span></p>
     <h1 id="title">Around<br>Warsaw</h1>
-    <p class="hook">Prawdziwe centrum Warszawy, ulica po ulicy, zbudowane z otwartych danych map. Przejedź je małym autem (albo helikopterem) w dzień, nocą i w deszczu.</p>
+    <p class="hook">Gra o tym, jak się żyje w Warszawie, a nie sama mapa. Jeździsz małym autem (albo helikopterem) po prawdziwym centrum: dowozisz kebab o trzeciej, odbierasz wezwania, tłumaczysz się strażnikowi miejskiemu i zapisujesz w zeszycie 72 prawdziwe miejsca.</p>
     <div class="cta">
       <a class="btn btn-primary" href="#beta">Zapisz się do bety<svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
-      <span class="platforms"><svg aria-hidden="true"><use href="#i-apple"/></svg>iPhone · <svg aria-hidden="true"><use href="#i-play"/></svg>Android · za darmo, bez reklam</span>
+      <a class="btn btn-ghost" href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>Kod na GitHubie</a>
     </div>
+    <p class="cta-note">Za darmo, bez reklam, licencja MIT. Beta na iPhone&#x27;a i Androida.</p>
   </div></div>
 </section>
 
@@ -75,55 +79,146 @@
 </div>
 
 <section class="city" id="city" aria-labelledby="city-title">
-  <div class="wrap">
-    <h2 id="city-title">Miasto jest bohaterem</h2>
-    <p class="lede">Każda ulica, most i plac na kawałku centrum 3,5 × 1,8 km są tam, gdzie naprawdę, z OpenStreetMap i danych GUGiK. Zabytki i wieżowce zbudowane ręcznie.</p>
+  <div class="wrap head">
+    <h2 id="city-title">Prawdziwe centrum, kwartał po kwartale</h2>
+    <p class="lede">Około 21 km² centrum Warszawy, od Arkadii po Stadion Narodowy i od MDM po Stare Miasto. Ulice, mosty i drzewa z OpenStreetMap i danych GUGiK; zabytki i wieżowce zbudowane ręcznie.</p>
   </div>
-  <div class="reel">
-    <figure class="shot">
+  <div class="mosaic">
+    <figure class="tile tile-lead">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/city-night-960.webp"><img src="/img/game/city-night.webp" alt="Centrum Warszawy nocą w grze: Pałac Kultury podświetlony na różowo wśród rozświetlonych wieżowców" width="1270" height="540" loading="lazy" decoding="async"></picture>
+      <figcaption><h3>Śródmieście po zmroku</h3><p>Pałac na różowo, Varso i wieżowce zapalone piętro po piętrze.</p></figcaption>
+    </figure>
+    <figure class="tile tile-wide">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/old-town-960.webp"><img src="/img/game/old-town.webp" alt="Stare Miasto w grze: kamienice Rynku, katedra i mury" width="1266" height="585" loading="lazy" decoding="async"></picture>
+      <figcaption><h3>Stare Miasto</h3><p>Odbudowane po wojnie, odbudowane i tutaj, kamienica po kamienicy.</p></figcaption>
+    </figure>
+    <figure class="tile tile-half">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/castle-square-960.webp"><img src="/img/game/castle-square.webp" alt="Zamek Królewski i plac Zamkowy w grze, pod spodem trasa W-Z" width="1266" height="585" loading="lazy" decoding="async"></picture>
+      <figcaption><h3>Plac Zamkowy</h3><p>Zamek Królewski i trasa W-Z, która nurkuje pod placem.</p></figcaption>
+    </figure>
+    <figure class="tile tile-half">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/konstytucji-dusk-960.webp"><img src="/img/game/konstytucji-dusk.webp" alt="Plac Konstytucji o zmierzchu w grze: małe czerwone auto pod latarniami przy blokach MDM" width="1266" height="585" loading="lazy" decoding="async"></picture>
+      <figcaption><h3>Plac Konstytucji</h3><p>MDM o zmierzchu. Latarnie zapalają się szybciej niż Ty.</p></figcaption>
+    </figure>
+    <figure class="tile tile-wide">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/varso-dusk-2-960.webp"><img src="/img/game/varso-dusk-2.webp" alt="Wieżowce Varso i ronda ONZ o zmierzchu w grze" width="1266" height="585" loading="lazy" decoding="async"></picture>
+      <figcaption><h3>Varso i rondo ONZ</h3><p>Zachód słońca na szkle, biurowce dalej pracują.</p></figcaption>
+    </figure>
+    <figure class="tile tile-pair">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/frogs-kebab-960.webp"><img src="/img/game/frogs-kebab.webp" alt="Budka z kebabem ze świecącym szyldem i sklep Frogs na rogu ulicy w grze" width="1920" height="887" loading="lazy" decoding="async"></picture>
+      <figcaption><h3>Budka z kebabem i Frogs</h3><p>Na każdym rogu jedno i drugie. Marki tylko jako parodie.</p></figcaption>
+    </figure>
+    <figure class="tile tile-pair">
       <picture><source media="(max-width: 700px)" srcset="/img/game/narodowy-night-960.webp"><img src="/img/game/narodowy-night.webp" alt="Stadion Narodowy nocą w grze, latarnie mostu odbite w Wiśle" width="1920" height="884" loading="lazy" decoding="async"></picture>
-      <figcaption><h3>Stadion Narodowy</h3><p>Biało-czerwony i świeci całą noc. Resztę robią latarnie mostu.</p></figcaption>
-    </figure>
-    <figure class="shot shot-flip">
-      <picture><source media="(max-width: 700px)" srcset="/img/game/rotunda-rain-night-960.webp"><img src="/img/game/rotunda-rain-night.webp" alt="Rondo Dmowskiego w deszczu nocą: świecąca Rotunda, reflektory na mokrym asfalcie i neon kebaba" width="1920" height="884" loading="lazy" decoding="async"></picture>
-      <figcaption><h3>Rondo Dmowskiego w deszczu</h3><p>Mokry asfalt, świecąca Rotunda i neon kebaba, który nigdy nie zamyka.</p></figcaption>
-    </figure>
-    <figure class="shot">
-      <picture><source media="(max-width: 700px)" srcset="/img/game/palace-night-960.webp"><img src="/img/game/palace-night.webp" alt="Pałac Kultury nocą w iluminacji, złota iglica nad ciemnym centrum biurowym" width="1920" height="884" loading="lazy" decoding="async"></picture>
-      <figcaption><h3>Pałac nocą</h3><p>W iluminacji, a zegar chodzi według czasu w Warszawie.</p></figcaption>
-    </figure>
-    <figure class="shot shot-flip">
-      <picture><source media="(max-width: 700px)" srcset="/img/game/poniatowski-night-960.webp"><img src="/img/game/poniatowski-night.webp" alt="Most Poniatowskiego nad Wisłą nocą, złote odbicia pod przęsłami" width="1920" height="884" loading="lazy" decoding="async"></picture>
-      <figcaption><h3>Most Poniatowskiego</h3><p>Złote przęsła na Wiśle. Prosimy nie sprawdzać wody kołami.</p></figcaption>
-    </figure>
-    <figure class="shot">
-      <picture><source media="(max-width: 700px)" srcset="/img/game/varso-dusk-960.webp"><img src="/img/game/varso-dusk.webp" alt="Varso Tower i Złote Tarasy o zachodzie słońca nad Alejami Jerozolimskimi" width="1920" height="912" loading="lazy" decoding="async"></picture>
-      <figcaption><h3>Varso i Złote Tarasy</h3><p>Zachód słońca na wieżowcach nad Alejami Jerozolimskimi.</p></figcaption>
-    </figure>
-    <figure class="shot shot-flip">
-      <picture><source media="(max-width: 700px)" srcset="/img/game/narodowy-day-960.webp"><img src="/img/game/narodowy-day.webp" alt="Stadion Narodowy w dzień, za nim Most Poniatowskiego i łachy Wisły" width="1920" height="884" loading="lazy" decoding="async"></picture>
-      <figcaption><h3>Od Powiśla po Pragę</h3><p>Stadion, most i łachy Wisły w dzień.</p></figcaption>
-    </figure>
-    <figure class="shot">
-      <picture><source media="(max-width: 700px)" srcset="/img/game/heli-vistula-day-960.webp"><img src="/img/game/heli-vistula-day.webp" alt="Śmigłowiec nad Wisłą przy Moście Poniatowskiego, na moście tramwaj i autobusy" width="1920" height="884" loading="lazy" decoding="async"></picture>
-      <figcaption><h3>Albo helikopter</h3><p>Wezwania ratunkowe znad rzeki. Na dole jeżdżą tramwaje i autobusy.</p></figcaption>
+      <figcaption><h3>Stadion Narodowy</h3><p>Biało-czerwony, świeci całą noc, przed nim Wisła.</p></figcaption>
     </figure>
   </div>
-  <p class="wrap credit">Zrzuty z obecnej wersji gry.</p>
 </section>
 
-<section class="play" id="play" aria-labelledby="play-title">
+<section class="missions" id="missions" aria-labelledby="missions-title">
+  <div class="wrap head">
+    <h2 id="missions-title">Misje z warszawskim akcentem</h2>
+    <p class="lede">Wszystko dzieje się pod prawdziwymi adresami, a miasto odpowiada: najpierw po polsku, pod spodem po angielsku.</p>
+  </div>
+  <div class="runs">
+    <article class="run">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/m-courier-race-960.webp"><img src="/img/game/m-courier-race.webp" alt="Nocna dostawa kebaba w grze: karta zamówienia pokazuje kebab na 78 % ciepła i kuriera rowerowego 1,3 km przed autem" width="1920" height="887" loading="lazy" decoding="async"></picture>
+      <div class="run-text"><h3>Kebab o trzeciej</h3><p>Budka daje zamówienie pod prawdziwy adres. Kebab stygnie w trakcie jazdy, a napiwek razem z nim. W nocy kurier na rowerze może rzucić wyzwanie: on jedzie przez parki i przejścia, Ty ulicą.</p>
+        <blockquote class="bubble"><p class="who">KEBAB → Obożna 1</p><p lang="pl">GORĄCY 78% · Pędzik: 1309 m przed tobą</p><p class="en" lang="en">Hot 78% · The courier is 1309 m ahead</p></blockquote></div>
+    </article>
+    <article class="run run-flip">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/m-escort-960.webp"><img src="/img/game/m-escort.webp" alt="Akcja ratunkowa w grze: auto wiezie pacjenta do szpitala, zostało 2:45, a policyjna eskorta dodaje dziesięć sekund" width="1920" height="887" loading="lazy" decoding="async"></picture>
+      <div class="run-text"><h3>Wezwania ratunkowe</h3><p>Ktoś utknął na prawdziwym dachu, placu albo łasze na Wiśle. Dojedź autem albo dolecisz helikopterem, zabierz go i zdąż do prawdziwego szpitala. Policja czasem nawet eskortuje.</p>
+        <blockquote class="bubble"><p class="who">DO SZPITALA</p><p lang="pl">Pacjent na pokładzie: do zielonego światła</p><p class="en" lang="en">Patient on board: head for the green beacon</p></blockquote></div>
+    </article>
+    <article class="run">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/m-lezak-960.webp"><img src="/img/game/m-lezak.webp" alt="Zbieranie Leżaków nocą w grze: bagażnik mieści pięć hulajnóg, baza jest 99 m dalej" width="1920" height="887" loading="lazy" decoding="async"></picture>
+      <div class="run-text"><h3>Zbieranie Leżaków</h3><p>W nocy hulajnogi na minuty leżą na każdym chodniku. Zbierz dziesięć, do bagażnika wchodzi pięć naraz. Delikatnie: poniżej 15 km/h, inaczej nie wejdą.</p>
+        <blockquote class="bubble"><p class="who">LEŻAKI 1/10 · BAGAŻNIK 5/5</p><p lang="pl">Bagażnik pełny: wracaj do strefy</p><p class="en" lang="en">The boot is full: back to the zone</p></blockquote></div>
+    </article>
+    <article class="run run-flip">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/m-guard-960.webp"><img src="/img/game/m-guard.webp" alt="Strażnik miejski zatrzymuje auto gracza w strefie pieszej i mówi, że to deptak, a nie Wisłostrada" width="1920" height="887" loading="lazy" decoding="async"></picture>
+      <div class="run-text"><h3>Łagodna policja</h3><p>Suszarki, lizak i straż miejska na deptakach. Nigdy mandat, nigdy koniec gry: pogadanka, blokada na koło na dziesięć sekund i pościg, który kończy się razem ze zmianą.</p>
+        <blockquote class="bubble"><p class="who">STRAŻNIK HENIO</p><p lang="pl">Panie, tu jest deptak, a nie Wisłostrada!</p><p class="en" lang="en">Sir, this is a promenade, not the Wisłostrada!</p></blockquote></div>
+    </article>
+  </div>
   <div class="wrap">
-    <h2 id="play-title">Co dziś w nocy</h2>
-    <ol class="moves">
-      <li><h3>Kebab o trzeciej</h3><p>Gorący, kiedy wyjeżdża. Ciepły, jeśli się pospieszysz.</p></li>
-      <li><h3>Akcje helikopterem</h3><p>Zamień auto na wirnik i ląduj tam, gdzie wzywają.</p></li>
-      <li><h3>Wyścigi</h3><p>Seba z Pragi już grzeje silnik.</p></li>
+    <h3 class="also">A poza tym</h3>
+    <ul class="moves">
+      <li><h3>Helikopter</h3><p>W każdej chwili zamień auto na wirnik i ląduj na płaskich dachach.</p></li>
+      <li><h3>Słoiki</h3><p>Niedziela na Centralnym, słoiki od mamy, wynajęte mieszkanie na Powiślu. Uwaga na dziury.</p></li>
       <li><h3>Podwózka</h3><p>Jeździsz dla aplikacji, która ufa GPS-owi bardziej niż Tobie.</p></li>
-      <li><h3>Policja</h3><p>Jest, ale z humorem. Mandatu nie będzie. Pogadanka owszem.</p></li>
-      <li><h3>Kebab FM</h3><p>I Rondo FM, i Mordor FM. Gołębie w cenie.</p></li>
+      <li><h3>Wyścigi</h3><p>Seba z Pragi już grzeje silnik.</p></li>
+      <li><h3>Cztery stacje radiowe</h3><p>KEBAB FM, RONDO FM, MORDOR FM, a po zmroku PÓŁNOC FM.</p></li>
+      <li><h3>Dzień, noc i deszcz</h3><p>Albo czas na żywo, z prawdziwym słońcem nad Warszawą.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="lore" id="lore" aria-labelledby="lore-title">
+  <div class="wrap lore-grid">
+    <div class="lore-intro">
+      <h2 id="lore-title">Zeszyt miasta</h2>
+      <p class="lede">MOJA WARSZAWA: 72 prawdziwe miejsca w dziewięciu rozdziałach, od techno w piwnicach po schodki nad Wisłą i bary mleczne. Znajdź jedno, a gra je zapisze, z prawdziwą ciekawostką i lokalnym żartem.</p>
+      <picture class="lore-shot">
+        <source media="(max-width: 700px)" srcset="/img/game/lore-notebook-960.webp">
+        <img src="/img/game/lore-notebook.webp" alt="Zeszyt MOJA WARSZAWA otwarty w grze na wpisie o Lusterku, klubie przy palmie na rondzie de Gaulle&#x27;a" width="1920" height="884" loading="lazy" decoding="async">
+      </picture>
+    </div>
+    <ol class="notebook" aria-label="Wpisy z zeszytu">
+      <li class="entry"><p class="entry-head"><span class="place">Lusterko</span><span class="chapter">Noc i techno</span></p><p class="joke" lang="pl">Otwiera się, gdy inni zamykają. W niedzielę o dziewiątej też.</p><p class="joke-en" lang="en">It opens when the rest close. At nine on a Sunday, too.</p><p class="fact">Palma przy rondzie de Gaulle&#x27;a stoi tu od 2002 roku.</p></li>
+      <li class="entry"><p class="entry-head"><span class="place">Plac Zbawiciela</span><span class="chapter">Kolejka po trend</span></p><p class="joke" lang="pl">Przychodzi się tu zobaczyć, kto przyszedł się pokazać.</p><p class="joke-en" lang="en">You come here to see who came here to be seen.</p><p class="fact">Bloki MDM wokół placu zbudowano w latach 1950–1952.</p></li>
+      <li class="entry"><p class="entry-head"><span class="place">Bar Pyzowy</span><span class="chapter">Jedzenie</span></p><p class="joke" lang="pl">O trzynastej w kolejce stoi student, emeryt i prezes. Wszyscy po pyzy.</p><p class="joke-en" lang="en">At one p.m. the queue holds a student, a pensioner and a CEO. All for dumplings.</p><p class="fact">Pierwszy warszawski bar mleczny otwarto w 1896 roku.</p></li>
+      <li class="entry"><p class="entry-head"><span class="place">Plac Konstytucji</span><span class="chapter">Retro i szyk</span></p><p class="joke" lang="pl">Piłka wisi w powietrzu od sześćdziesięciu lat. Nikt jej nie odbił.</p><p class="joke-en" lang="en">The ball&#x27;s been in the air for sixty years. Nobody has returned it.</p><p class="fact">Neon z siatkarką pochodzi z 1961 roku.</p></li>
     </ol>
-    <p class="facts">Za darmo. Bez reklam, zakupów i śledzenia. Działa bez internetu. Open source.</p>
+  </div>
+  <div class="wrap lore-pair">
+    <figure class="tile">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/lore-kaseta-960.webp"><img src="/img/game/lore-kaseta.webp" alt="Karta KASETA w grze na placu Defilad: czerwiec 2012, strefa kibica i wielki ekran" width="1920" height="887" loading="lazy" decoding="async"></picture>
+      <figcaption><h3>KASETA, kiedyś i dziś</h3><p>Dwadzieścia kaset z miastem od 2010 roku. Puść ją tam, gdzie to się działo: czerwiec 2012, strefa kibica, cały plac śpiewa.</p></figcaption>
+    </figure>
+    <figure class="tile">
+      <picture><source media="(max-width: 700px)" srcset="/img/game/lore-smolna-960.webp"><img src="/img/game/lore-smolna.webp" alt="Noc w grze przy kolejce do klubu, w radiu PÓŁNOC FM mówi o nowej kawiarni na placu Zbawiciela" width="1920" height="887" loading="lazy" decoding="async"></picture>
+      <figcaption><h3>PÓŁNOC FM, po północy</h3><p>Nocna stacja zna plotki: na Zbawiciela nowa kawiarnia. Poprzednia była nowa w czwartek.</p></figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="open" id="open" aria-labelledby="open-title">
+  <div class="wrap open-grid">
+    <div>
+      <h2 id="open-title">Open source, robione publicznie</h2>
+      <p class="lede">Around Warsaw to darmowa gra fanowska robiona w otwarty sposób. Przeczytaj kod, zobacz, co zmieniło się każdego dnia i co jest dalej w planach, albo wyślij poprawkę.</p>
+      <ul class="links open-links">
+        <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>Kod na GitHubie</a></li>
+        <li><a href="/progress/">Postępy dzień po dniu<svg aria-hidden="true"><use href="#i-arrow"/></svg></a></li>
+        <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw/blob/main/docs/BACKLOG.md">Lista zadań</a></li>
+        <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw/blob/main/CONTRIBUTING.md">Jak pomóc</a></li>
+      </ul>
+    </div>
+    <dl class="stack">
+      <div><dt>Licencja</dt><dd>MIT. Kod, narzędzia i cały proces budowy mapy są na GitHubie.</dd></div>
+      <div><dt>Silnik</dt><dd>Godot 4, GDScript, renderer Mobile. 60 kl./s na iPhonie 11.</dd></div>
+      <div><dt>Mapa</dt><dd>Ulice z OpenStreetMap, budynki 3D, teren i drzewa ze skanu laserowego GUGiK.</dd></div>
+      <div><dt>Powstaje</dt><dd>Publicznie od 27 października 2026, zmiany codziennie.</dd></div>
+      <div><dt>Prywatność</dt><dd>Bez reklam, zakupów i śledzenia. Gra działa bez internetu.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="author" id="author" aria-labelledby="author-title">
+  <div class="wrap author-grid">
+    <h2 id="author-title">O autorze</h2>
+    <div class="author-text">
+      <p>Cześć, jestem Lubomir Olshansky. Na co dzień jestem programistą mobilnym: tworzę aplikacje na iOS i w Kotlin Multiplatform w banku w Polsce. W Warszawie mieszkam od dwunastu lat.</p>
+      <p>Jako dziecko marzyłem o grze w mieście, w którym mieszkam: z moimi ulicami, przystankami i miejscami, które naprawdę znam. Przez lata to było tylko marzenie. Potem zobaczyłem <a href="https://bedirhanyildirim.com/pixel-art-map-of-warsaw/">Isometric Warsaw</a>, pikselową mapę miasta z otwartych danych, i to, co generatywna AI pozwala dziś zbudować jednej osobie. I nagle wydało się to realne.</p>
+      <p>Więc ją robię. Nie samą mapę Warszawy, tylko to, jak się tu żyje: kebab o trzeciej, kolejka do klubu o świcie, słoiki od mamy w niedzielę, strażnik, który przypomina, że to deptak. Jeśli też tu mieszkasz, napisz, czego brakuje.</p>
+      <ul class="links">
+        <li><a href="https://t.me/olshansky93"><svg aria-hidden="true"><use href="#i-telegram"/></svg>Telegram</a></li>
+        <li><a href="https://www.linkedin.com/in/lubomir-olshansky/"><svg aria-hidden="true"><use href="#i-linkedin"/></svg>LinkedIn</a></li>
+        <li><a href="https://github.com/LubomirOlshansky"><svg aria-hidden="true"><use href="#i-github"/></svg>GitHub</a></li>
+      </ul>
+    </div>
   </div>
 </section>
 
@@ -136,14 +231,6 @@
         <li><svg aria-hidden="true"><use href="#i-apple"/></svg><span>iPhone: zaproszenie do TestFlight, aplikacji Apple do bet.</span></li>
         <li><svg aria-hidden="true"><use href="#i-play"/></svg><span>Android: zaproszenie do testu w Google Play. Telefon musi mieć Vulkan.</span></li>
       </ul>
-      <div class="maker">
-        <p>Robi to w Warszawie Lubomir Olshansky. Jedna osoba i dużo otwartych danych. Napisz:</p>
-        <ul class="links">
-          <li><a href="https://t.me/olshansky93"><svg aria-hidden="true"><use href="#i-telegram"/></svg>Telegram</a></li>
-          <li><a href="https://www.linkedin.com/in/lubomir-olshansky/"><svg aria-hidden="true"><use href="#i-linkedin"/></svg>LinkedIn</a></li>
-          <li><a href="https://github.com/LubomirOlshansky/AroundWarsaw"><svg aria-hidden="true"><use href="#i-github"/></svg>GitHub</a></li>
-        </ul>
-      </div>
     </div>
 
     <form class="form" id="form" action="https://formspree.io/f/mykaeqjp" method="POST" novalidate>
