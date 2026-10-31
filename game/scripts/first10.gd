@@ -69,7 +69,11 @@ const TAPE_AT := 330.0
 const TAPE_ID := "t_bulwary_2018"
 const POWISLE_AT := 450.0
 const GARAGE_AT := 570.0
+## The garage beat stops waiting for a free moment here (its window ends at 660 s).
+const GARAGE_LATEST := 640.0
 const GUIDE_END := 900.0
+## The replay judges by here at the latest (after the last window, before verify.sh's 48000 frames).
+const REPLAY_DEADLINE := 700.0
 ## An arrow stays at most this long (s), unless its beat is met first.
 const HINT_S := 150.0
 const GARAGE_HINT_S := 90.0
@@ -221,7 +225,10 @@ static func decide(now: float, f: Dictionary, done: Dictionary) -> Array[String]
 		out.append("tape")
 	if not is_done.call("powisle") and not f.get("powisle", false) and now >= POWISLE_AT and free:
 		out.append("powisle")
-	if not is_done.call("garage") and not f.get("garage", false) and now >= GARAGE_AT and free and f.get("earned", false):
+	# The garage's toast waits for a free moment, but not past its window: a long ride (Podwózka)
+	# would hold it for minutes, so near the window's end it shows over whatever is running.
+	if not is_done.call("garage") and not f.get("garage", false) and now >= GARAGE_AT and f.get("earned", false) \
+			and (free or now >= GARAGE_LATEST):
 		out.append("garage")
 	if not is_done.call("done") and (now >= GUIDE_END or (is_done.call("garage") and f.get("garage", false))):
 		out.append("done")
@@ -588,6 +595,11 @@ func _script(f: Dictionary) -> void:
 			car.vel = Vector3.ZERO
 			car.reset_physics_interpolation()
 			tape.play(tape.index_of(TAPE_ID))
+	# The replay's own deadline: past every window with no verdict yet, judge now (missing beats
+	# fail) rather than run into --quit-after with no line and exit 0.
+	if not fired.has("done") and t > REPLAY_DEADLINE:
+		fired["done"] = t
+		_done_t = t - 2.0
 	if fired.has("done") and _done_t >= 0.0 and t > _done_t + 1.0:
 		_done_t = -1.0
 		var bad := judge(fired, how)

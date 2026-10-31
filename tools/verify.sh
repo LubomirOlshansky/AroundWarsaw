@@ -663,7 +663,7 @@ for s in $want; do
 		# Loop 3h slice 3: the final "Trzy mosty" from its last bridge (the whole race is ~14 min of play).
 		trzy-mosty) game trzy-mosty 9000 '^trzy mosty (won|lost):' --trzy-mosty=3 --autopilot ;;
 		# Loop 3h slice 4: the first 10 minutes replayed (the director quits after the garage, ~575 s).
-		first10-run) STEP_LIMIT=$(( STEP_LIMIT > 1500 ? STEP_LIMIT : 1500 )) game first10-run 42000 '^first10: OK' --first10 --autopilot ;;
+		first10-run) STEP_LIMIT=$(( STEP_LIMIT > 1500 ? STEP_LIMIT : 1500 )) game first10-run 48000 '^first10: OK' --first10 --autopilot ;;
 		# Loop 3d-1: 15000 frames: on the demo map order 0 goes 1,023 m by road (Oboźna 1) and is
 		# delivered at 219.8 s of play (9000 frames = 150 s ended it on the way). Content POIs
 		# (2026-10-31): 11 places' addresses joined the address list, so the order's shuffle picks
