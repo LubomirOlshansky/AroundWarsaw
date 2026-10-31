@@ -38,6 +38,23 @@ Small problems that agents reported or that showed up in screenshots. They are f
   dark panels, not open; the army museum's yard placement is a guess (east courtyard).
   Next candidates: tram stop platforms, kiosks (not in the baked data yet), Warsaw's green bins. **Left**: PZU Tower and JM Tower (oddly mapped) keep the
   generic glass, and any model the user names next (docs/QUESTIONS.md).
+  **Landmarks lane, hand-over (2026-10-31)**: since the first passes the lane also landed: the Rondo
+  Daszyńskiego towers (The Warsaw HUB found by a point, `_tallest_at`; sloped crowns), the Old
+  Town's and New Town's tenements split into their OSM houses' colours and tile roofs
+  (`map_builder._tenement_facades`), brick Gothic for the Cathedral and the Barbican
+  (`M_GOTHIC`), Sigismund's Column, map north (Arkadka with its lit sign, the Forest tower, the
+  flag on Rondo Radosława) and Most Świętokrzyski's pylon and stays. **Left, for fresh threads**:
+  St Anne's classical facade (a portico of four columns and a pediment on its west face; it is
+  a kept skin today, outline in `centrum.json` landmarks "Kościół pw. Świętej Anny", centre
+  (−658, −1350), the free-standing bell tower is a separate building to its north-east), the other
+  churches (Holy Cross, All Saints, St Alexander's rotunda, the Visitationists) and the Palace
+  on the Isle's neighbours, Zachęta/Staszic/Presidential Palace facades (all colour-only skins
+  today), the Old Town's gables and dormers (the LoD2 roofs have none), PZU/JM Tower. How the
+  lane works: `landmarks.gd` sites (`TOWERS`, `SKINS`, fixed-position circle zones like
+  `_find_zygmunt`), each needs a card in `INFO` and `check_landmarks`; a site found in
+  `data["buildings"]` also needs its box in `bake_sectors.py` `SITE_AREAS`; after a change
+  rebuild the prebuilt sectors with `bake_city.gd` (a renderer, never `--headless`); render
+  before/after with the Mobile renderer on lavapipe (docs/DEVELOPMENT.md "Cloud rendering").
 
 ## From v0.6 (traffic, trams, pedestrians, rivals)
 - ~~Cars can overlap briefly in complex junctions~~ (fewer by three quarters, the traffic loop

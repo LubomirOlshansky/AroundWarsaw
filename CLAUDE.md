@@ -52,6 +52,7 @@ for the user's yes: park them (free downloads and add-ons are pre-approved, "Har
 | `perf-engineer` | measure and cut frame cost, budgets, device benches | code, for cost only, look unchanged | opus |
 | `game-designer` | missions, loop, police, economy, jokes, text, 2D art specs and PixelLab assets | design docs, `game/data`, `game/art` | opus |
 | `art-director` | judges screenshots and 2D art against the art bible | nothing (read-only) | opus |
+| `object-modeler` | applies an approved spec to landmarks, facades, roofs, signs, props in code; before/after shots; escalates anything open | the named object code (`landmarks.gd`, `models.gd`, `props.gd`, facade helpers) | sonnet |
 | `qa-tester` | runs the verification set, shot sets, device runs; reports | nothing in the project | sonnet |
 | `scout` | read-only lookups, counts, log crunching, parse checks | nothing | haiku |
 
@@ -76,7 +77,8 @@ Up to 50 generations per loop without asking; more needs the user's yes.
 
 ## Model routing (per delegation, by kind of work)
 
-You, the orchestrator, always run on Opus. For each delegation pick the tier with the Agent
+You, the orchestrator (the Mac session or a cloud lane thread), run on Opus and spend Opus on
+deciding, briefing and accepting, not on edits. For each delegation pick the tier with the Agent
 tool's `model` parameter (`"opus"`, `"sonnet"`, `"haiku"`); it overrides the agent file's
 default. Route by the **kind** of work, not its size:
 
@@ -95,8 +97,18 @@ default. Route by the **kind** of work, not its size:
 - **Only you spawn.** Claude Code lets a subagent spawn its own (up to three levels) when its
   `tools` list `Agent`; ours don't, by design: routing, cost and the one-writer rule stay with
   you. An agent that wants a cheaper helper asks in its report ("Haiku could crunch X").
-- The built-in Explore agent runs on your model (Opus); use `scout` for cheap lookups.
+- `Explore` is overridden in `.claude/agents/Explore.md` to run on Haiku; `scout` for counts.
+- **Object work** (landmarks, facades, signs, props): Opus writes the spec with the values,
+  `object-modeler` (Sonnet) builds it and renders before/after, `art-director` (Opus) accepts
+  or returns a fix list. Its **Escalate** items come back to you, never guessed.
+- **Context is the bill.** Every turn re-reads the whole conversation: delegate file dumps,
+  logs and shot sets to subagents and keep only their summary; read line ranges, not big
+  files; one backlog item per thread, then a fresh one (cache: idle > 1 h re-reads it all).
 - Say which model each delegation used when you report it.
+- **Advisor (2026-10-31, on trial).** `.claude/settings.json` sets `advisorModel: opus`, so every
+  session in the repo, cloud lane threads included, can consult an Opus advisor at decision points.
+  It can't be limited to Sonnet: an Opus session gets an Opus advisor too (extra cost). Turn it off
+  with `/advisor off`. F reviews how it works later.
 
 ## Hard rules
 
@@ -171,7 +183,8 @@ tools/export_android.sh [--skip-city|--apk]   # the signed Play AAB in build/and
 - Checks are `game/tools/check_*.gd` SceneTree scripts printing `<name>: OK` and exiting 0/1;
   every new check joins `tools/verify.sh` in the same change.
 - Python tools: `python3 -I`, standard library; a docstring with the usage line.
-- When behaviour changes, DEVELOPMENT.md, ROADMAP (progress-log row) and BACKLOG change with it.
+- When behaviour changes, DEVELOPMENT.md, ROADMAP (progress-log row) and BACKLOG change with it,
+  plus one short plain line under the day in docs/CHANGELOG.md (the website's /progress/ page).
 
 ## Definition of done
 

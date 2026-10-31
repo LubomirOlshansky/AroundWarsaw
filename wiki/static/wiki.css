@@ -131,3 +131,5 @@ mark { background: color-mix(in srgb, var(--accent) 40%, transparent); color: in
   .top { gap: 8px; padding: 10px 12px; }
   body { font-size: 15px; }
 }
+.day-count { font: 600 12px var(--body); color: var(--ink-3); margin-left: 8px; }
+ul.day li { margin: 4px 0; }

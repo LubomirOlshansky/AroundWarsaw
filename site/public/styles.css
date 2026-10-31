@@ -195,3 +195,8 @@ section { padding: clamp(64px, 10vw, 120px) 0; }
   .radio-roll p[aria-hidden] { display: none; }
   .btn, .btn svg { transition: none; }
 }
+
+/* /progress/: the day-by-day changelog (tools/changelog.py) */
+.prose .day-count { font: 600 0.8rem var(--body); color: var(--ink-3); margin-left: 8px; white-space: nowrap; }
+.prose .links { display: flex; flex-wrap: wrap; gap: 10px; }
+.prose ul.day { padding-left: 1.2em; }
