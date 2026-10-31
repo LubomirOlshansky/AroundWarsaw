@@ -1888,8 +1888,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
 
 Closed: save v2 (a version, the v1 migration and backup, settings' version), districts as data with
 discovery, "?" marks and completion on the full map (DEMO G3). Left for the later 3h slices:
-- **Syrenki** (slice 2): 20 collectibles; register each with `districts.gd` `add_syrenka(id,
-  district)` and mark finds in `wallet.syrenki` (saved already); then they count in completion.
+- ~~**Syrenki** (slice 2): 20 collectibles; register each with `districts.gd` `add_syrenka(id,
+  district)` and mark finds in `wallet.syrenki` (saved already); then they count in completion.~~
+  Done in slice 2 (see below).
 - **Rival ladder and "Trzy mosty"**, **the first 10 minutes** (the hint finger, the first order,
   the first race, the `--first10` replay check), **the end card** (can read `percent_total()` and
   the discovered count).
@@ -1904,3 +1905,22 @@ discovery, "?" marks and completion on the full map (DEMO G3). Left for the late
   river line north of Most Śląsko-Dąbrowski is extrapolated (the map lane could bake a river line).
 - The discovery card uses the note card (5.5 s); a bigger centred card or a sound of its own
   (loop 3i's district ambiences) would make it a moment.
+
+## From loop 3h slice 2 (the 20 Syrenki, 2026-10-31)
+
+Closed: the Syrenki (syrenki.gd: 20 figurines by the kerb, the find, the reward ladder, the paints
+"Łuska Syreny" and "Srebro Syreny", the "Syrenki n/20" line on the full map). Left:
+- No hint for the Syrenki: no "?" marks, no minimap dot, no radar. A player finds them by chance or
+  by a guide. A counter in the pause card or the notebook, and a sound of their own near one
+  (a chime under ~40 m), would help; the designer decides how much to give away.
+- The words in `data/syrenki.json` were written in this slice: the game-designer should review them.
+- The figurine is `Props.mermaid()` scaled to 3 m with a cyan diamond over her (it read badly at
+  1.7 m): check it on the phone; a dedicated figurine mesh (props.gd, another thread's file) and a
+  slow spin or bob for the diamond (a shader: the visuals lane) would read better still.
+- Placed by rule, not by eye: look at each on the street (the kerb side, trees, benches, a
+  building's wall in a narrow street); `--syrenka=<id>` puts the car in front of one.
+- No Syrenka on a bridge or in a tunnel (ground streets only); the real statue on the Old Town
+  Market Square stands on the street ring, not in the square itself.
+- The reward cards queue in `syrenki.gd`; the HUD's note card shows one at a time (a find while
+  another card is up waits for it).
+- Garage card: ten paints in two rows of five; on the smallest phone check it still fits.

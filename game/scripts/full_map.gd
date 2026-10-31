@@ -236,7 +236,8 @@ func rects() -> Dictionary:
 ## Loop 3h slice 1: the districts to show (districts.gd `view()`) and the total per cent; call
 ## after open(). The fog is triangulated here once (the map is paused), so painting it is a few
 ## dozen triangles in the overlay's one batch (+0 draw calls).
-func set_districts(view: Array[Dictionary], total: int) -> void:
+## Loop 3h slice 2: `syrenki_total` > 0 adds one line, "Syrenki found/total", above the total.
+func set_districts(view: Array[Dictionary], total: int, syrenki_found := 0, syrenki_total := 0) -> void:
 	districts = view
 	districts_total = total
 	_fog = PackedVector2Array()
@@ -260,6 +261,9 @@ func set_districts(view: Array[Dictionary], total: int) -> void:
 	for d in districts:
 		lines.append("%s · %d%%" % [d["name_pl"], d["pct"]] if d["found"] else "? ? ?")
 		sizes.append(T_SUB)
+	if syrenki_total > 0:
+		lines.append("Syrenki %d/%d" % [syrenki_found, syrenki_total])
+		sizes.append(T_SUB)
 	lines.append("Razem · in all %d%%" % total)
 	sizes.append(T_SUB)
 	var rows: VBoxContainer = _list.get_child(0)
@@ -270,7 +274,7 @@ func set_districts(view: Array[Dictionary], total: int) -> void:
 		var l := Label.new()
 		l.text = lines[i]
 		l.add_theme_font_size_override("font_size", _px(sizes[i]))
-		var found: bool = i < 2 or i == lines.size() - 1 or districts[i - 2]["found"]
+		var found: bool = i < 2 or i >= 2 + districts.size() or districts[i - 2]["found"]
 		l.add_theme_color_override("font_color", Color("#ffd23f") if i == 0 else
 				(Color("#fbf7ee") if found and i >= 2 else Color("#c9c2d8")))
 		rows.add_child(l)

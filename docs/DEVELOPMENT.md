@@ -4839,6 +4839,48 @@ Part of loop 3h, the demo loop (`docs/design/loop-3h-handover.md`, DEMO 6.2-6.3,
   (the card is the existing note card, the marks join the minimap's batch); the open full map adds
   its fog to the overlay's one batch, plus the card and the labels' text (the game is paused).
 
+## Syrenki (loop 3h slice 2, 2026-10-31)
+
+DEMO 6.3 and checklist F4: 20 small mermaid figurines by the kerb round the demo's districts, to
+find by driving past. `scripts/syrenki.gd`, `data/syrenki.json` (the designer's words, written in
+this slice for review).
+
+- **Data.** Each entry: `id`, `district`, the anchor (`place`: a places.json id, or `near`:
+  [lat, lon]), `real` (the Old Town's statue), `name` and `line` [pl, en] (at most 70 characters);
+  `near` 7 m (the pickup radius), `respect` 5 a find, `rewards`: at 5 the paint "Łuska Syreny"
+  (`scale`), at 10 150 zł + 50 respect, at 20 the paint "Srebro Syreny" (`silver`) + 300 zł, each
+  with its card's words. Each is listed under its district (`districts.gd` `add_syrenka`), so it
+  counts in that district's % on the full map.
+- **Placing** (`place_all`, needs the lane graph and the ground): the nearest ground-level street
+  within 150 m of the anchor (no tunnel, no deck, no bridge), the figurine on the kerb side
+  towards the anchor, past the outer lane's edge plus 2 m, pushed out by 1 m steps until no lane
+  centre is closer than half a lane and 1 m; facing the street. No random: the same every run.
+  Height from `ground_height`. `--syrenki-log` prints each one's spot, its distance from the
+  anchor and from the nearest lane centre.
+- **The prop.** One MultiMesh for all 20 (+1 draw call in all the city, only while one is in
+  view; under the world's SubViewport like every prop), one mesh (`figurine_mesh`): `Props.mermaid()`
+  scaled to 3 m with a cyan cube stood on its corner floating at 4 m (Models `LIT_SIGN`: it glows
+  at night), so a Syrenka reads from the follow camera; `Models.material()`, no shadow, no
+  collision. At 1.7 m she was walker-sized and did not read in the shots. A found one is a zero-scale instance (at load too).
+- **The find.** A 5 Hz timer compares the vehicle (the notebook's probe) with the figurines not
+  found: under 7 m on the ground plane (flying: and under 20 m above the ground). First find:
+  `wallet.syrenki[id]` = today (saved), +5 respect, the card `SYRENKA n/20 · MERMAID` (name, then
+  the line in Polish and English), the blip and a short buzz. A count that reaches a reward's `at`
+  gives it once (the count only grows): its card follows the find's after 5.8 s (`hud.show_note`
+  shows one card at a time; cards queue in `syrenki.gd`). The paints are derived from the count:
+  `garage.gd` PAINTS `syrenki` 5 and 20, `rule(..., syrenki)` says "locked" below it; the card
+  shows "n/5 Syrenek". The garage card is now two rows of five swatches (ten paints).
+- **On the map**: the districts card lists "Syrenki n/20" above the total (`full_map.gd`
+  `set_districts`).
+- **Checks**: `tools/verify.sh --only=syrenki` (`game/tools/check_syrenki.gd`, map-free): the
+  data (20, unique, districts, anchors inside their districts, words), a find and its card, the
+  repeat, the ladder (5, 10, 20, once each), the save round trip (a scratch file), the districts'
+  completion, the look's µs.
+- **Testing aids**: `--syrenki-log`, `--syrenki=all|none|<n>|<id>,...`, `--syrenka=<id|n>[:m]` (the
+  flags table).
+- **Cost**: the 20 distance checks at 5 Hz are about 8 µs a look (`spent_usec`, the bench's
+  "syrenki" line); the figurines are one draw call and ~20 x the mesh's triangles.
+
 ## Performance budgets
 
 Set in loop 2b from the measurements above; loop 2c (the player's car and the traffic as nicer
@@ -5372,6 +5414,9 @@ Command-line options (after `--`):
 | `--district=<id>` | loop 3h slice 1: that district's "discovered" card at the districts' first check (a screenshot aid; it is also discovered if the car is in it). Use with `--nosave` |
 | `--districts=all\|none\|<id>[:jobs],…` | loop 3h slice 1: the districts discovered for this run (and the jobs done in each), in memory, no cards or rewards (the full map's shots). Use with `--nosave` |
 | `--districts-log` | loop 3h slice 1: a `districts:` line when the vehicle changes district, discovers one, and the summary at the start |
+| `--syrenki-log` | loop 3h slice 2: `syrenki:` lines: each figurine's spot, its metres from the anchor and from a lane centre, and every find |
+| `--syrenki=all\|none\|<n>\|<id>,…` | loop 3h slice 2: the Syrenki found for this run (the first n, or those ids), in memory, no cards or rewards. Use with `--nosave` |
+| `--syrenka=<id\|n>[:m]` | loop 3h slice 2: the car on the street beside that Syrenka (an id or 1 to 20), m metres before it (25 by default; `:0` finds it at once), facing it (a screenshot aid) |
 | `--found-eggs=all\|none\|reachable\|ID,…` | loop MW-6: the egg record for this run, in memory, no rewards (screenshots of the SEKRETY page). Use with `--nosave` |
 | `--tape=<id\|n>` | loop MW-6: the car stopped at that then card (`then_cards.json` id or 1-20), the tape played at once (ghost, sound, card); implies `--tape-log` |
 | `--tape-log` | loop MW-6: print `tape:` lines: the ghost built and dropped, each play (`tape: n <id> ghost ok (k boxes)[, first time: +15 respect]`) |
