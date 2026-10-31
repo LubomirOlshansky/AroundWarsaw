@@ -4,7 +4,8 @@ extends Control
 ## PixelLab icons come, and its count k/8), the chapter's name, then its 8 cards in a grid of
 ## 4 x 2: a found card shows its name (Polish over English), one not found yet only "?" and the
 ## chapter. Tapping a card opens it: name, fact and joke (Polish over English), the address,
-## the hours for a night venue and the day it was found; WRÓĆ goes back to the grid.
+## the hours for a night venue and the day it was found; WRÓĆ goes back to the grid. Map north
+## (2026-10-31): a chapter of 9 or 10 cards draws them 5 x 2.
 ##
 ## Loop MW-6: three more chips after the chapters, each with a small pixel icon drawn in the
 ## boxes' triangles (no texture): SEKRETY · eggs (egg_book.gd, 45 cards), KASETA · tape (tape.gd,
@@ -273,7 +274,8 @@ func _grid_view() -> void:
 	var tw := font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_SUB)).x
 	var list: Array = book.chapter_places(chapter)
 	_word(Vector2(tw + 8.0 * pt, top + 2.0 * pt), "%s · %d/%d" % [c["name_en"], book.found_in(chapter), list.size()], T_LABEL, SUB)
-	var cols := 4
+	# Map north: a chapter of 9 or 10 (Notebook.MAX_PER_CHAPTER) takes 5 columns, still 2 rows.
+	var cols := 4 if list.size() <= 8 else 5
 	var cw := (W - GAP * (cols - 1)) / cols
 	var ch := (AREA - TITLE_H - GAP) / 2.0
 	for k in list.size():

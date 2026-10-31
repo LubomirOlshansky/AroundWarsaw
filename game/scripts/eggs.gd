@@ -472,8 +472,7 @@ func _build_barriers(data: Dictionary) -> void:
 		today = int(d["year"]) * 10000 + int(d["month"]) * 100 + int(d["day"])
 	var rng := RandomNumberGenerator.new()
 	rng.seed = today
-	var b: Array = data["bounds"]
-	var inner := Rect2(b[0], b[1], b[2] - b[0], b[3] - b[1]).grow(-120.0)
+	# Map north: 120 m inside the map's outline (it was the bounding box; the corner left outside).
 	var segs: Array = []
 	for r in data["roads"]:
 		if String(r["name"]) == "" or not String(r["k"]) in ["primary", "secondary", "tertiary", "residential", "unclassified"]:
@@ -484,7 +483,7 @@ func _build_barriers(data: Dictionary) -> void:
 			var c := Vector2(flat[i + 2], flat[i + 3])
 			if force_street != "" and String(r["name"]) != force_street:
 				continue
-			if a.distance_to(c) >= 26.0 and inner.has_point(a) and inner.has_point(c):
+			if a.distance_to(c) >= 26.0 and map.in_map(a, -120.0) and map.in_map(c, -120.0):
 				segs.append([a, c, float(r["w"]), String(r["name"])])
 	for attempt in 300:
 		if segs.is_empty():

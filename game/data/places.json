@@ -474,6 +474,33 @@
       ]
     },
     {
+      "id": "forest",
+      "chapter": "bary",
+      "name_pl": "Forest",
+      "name_en": "Forest",
+      "osm": "the 120 m glass office tower by Jana Pawła II north of Rondo Radosława, its east side (building:part, by position)",
+      "near": [
+        52.2554,
+        20.9814
+      ],
+      "radius": 40,
+      "fact": [
+        "Wieża Forest ma 120 m; wokół niej rośnie około 200 drzew.",
+        "The Forest tower is 120 m tall; about 200 trees grow round it."
+      ],
+      "joke": [
+        "Biuro z lasem pod oknem. Korpo od dziewiątej, wiewiórki od ósmej.",
+        "An office with a wood under the window. Corporate from nine, squirrels from eight."
+      ],
+      "tags": [
+        "towers",
+        "office",
+        "heli",
+        "north"
+      ],
+      "heli_radius": 60
+    },
+    {
       "id": "schodki_kopernik",
       "chapter": "schodki",
       "name_pl": "Schodki przy Koperniku",
@@ -1487,6 +1514,33 @@
       ]
     },
     {
+      "id": "arkadia",
+      "chapter": "codziennie",
+      "name_pl": "Arkadia",
+      "name_en": "Arkadia",
+      "osm": "the shopping centre's east side on Jana Pawła II (building=retail, by position)",
+      "near": [
+        52.2572,
+        20.9869
+      ],
+      "radius": 40,
+      "fact": [
+        "Arkadię otwarto w 2004 roku; ma około 230 sklepów.",
+        "Arkadia opened in 2004; it holds about 230 shops."
+      ],
+      "joke": [
+        "Wchodzisz po skarpetki. Wychodzisz po zmroku. Auta szukasz do rana.",
+        "You go in for socks. You come out after dark. You look for the car till morning."
+      ],
+      "tags": [
+        "mall",
+        "car_park",
+        "heli",
+        "north"
+      ],
+      "heli_radius": 60
+    },
+    {
       "id": "zwir",
       "chapter": "retro",
       "name_pl": "Żwir",
@@ -1890,6 +1944,33 @@
         "then",
         "food_hall"
       ]
+    },
+    {
+      "id": "rondo_radoslawa",
+      "chapter": "kiedys",
+      "name_pl": "Rondo Radosława",
+      "name_en": "Rondo Radosława",
+      "osm": "the flag mast on the roundabout's island, west of the tram tracks (not in OSM: map north, a 57.8 m column in the surface model at x -2,850, z -2,295)",
+      "near": [
+        52.2548,
+        20.9819
+      ],
+      "radius": 40,
+      "fact": [
+        "Maszt na rondzie ma 63 m, a flaga ponad 100 m². Stoi od 2014 roku.",
+        "The roundabout's mast is 63 m tall, its flag over 100 m². Up since 2014."
+      ],
+      "joke": [
+        "Flagę widać z korka na Okopowej. Z flagi korek też.",
+        "You can see the flag from the jam on Okopowa. The flag can see the jam too."
+      ],
+      "tags": [
+        "square",
+        "flag",
+        "heli",
+        "north"
+      ],
+      "heli_radius": 60
     }
   ]
 }

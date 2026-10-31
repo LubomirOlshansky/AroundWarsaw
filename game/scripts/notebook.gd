@@ -55,7 +55,11 @@ const KIND_REACH := 300.0
 ## A place whose own kind of poi the map has (the special pois eggs.gd uses).
 const POI_KIND := {"syrenka": "syrenka", "patelnia": "patelnia", "plac_defilad": "defilad",
 		"stadion_narodowy": "stadium"}
+## The chapters' size since loop MW-0 (vision.md 4.1: 9 chapters of 8). Map north (2026-10-31):
+## a chapter may hold up to MAX_PER_CHAPTER (Rondo Radosława, Arkadia and Forest went into three
+## of them as a ninth card); the counts shown are the chapter's own size (chapter_places).
 const PER_CHAPTER := 8
+const MAX_PER_CHAPTER := 10
 
 ## The chapters in the notebook's order: {id, name_pl, name_en}.
 var chapters: Array = []
@@ -414,9 +418,9 @@ func record(id: String, date := 0) -> bool:
 	var k := found_in(ci)
 	var chapter: Dictionary = chapters[ci] if ci < chapters.size() else {"id": "", "name_pl": "", "name_en": ""}
 	if log_on:
-		print("notes: found %s (chapter %d, %d/%d)" % [id, ci + 1, k, PER_CHAPTER])
+		print("notes: found %s (chapter %d, %d/%d)" % [id, ci + 1, k, chapter_places(ci).size()])
 	if hud != null:
-		hud.toast("NOWY WPIS · %s" % place["name_pl"], "NEW ENTRY · %s · %d/%d" % [place["name_en"], k, PER_CHAPTER])
+		hud.toast("NOWY WPIS · %s" % place["name_pl"], "NEW ENTRY · %s · %d/%d" % [place["name_en"], k, chapter_places(ci).size()])
 	if blip.is_valid():
 		blip.call()
 	Input.vibrate_handheld(25, 0.3)

@@ -1044,14 +1044,21 @@ Small problems that agents reported or that showed up in screenshots. They are f
   car park, OSM way 91341678 and ramps, is left out of the bake: the car-park race of DEMO 6.4 needs
   it modelled). Their parts are in the index's `site_parts` (`bake_sectors.py` SITE_NAMES "Westfield
   Arkadia", a SITE_AREAS box for Forest).
-- **For the gameplay lanes** (not built here; the map has a corner left `outside` since map north):
+- ~~**For the gameplay lanes** (not built here; the map has a corner left `outside` since map north):
   the helicopter's clamp (`heli.gd`, `bounds.grow(-12)`), the car's off-map test (`main.gd`
   `_node_spot`), Podwózka's named finishes and river scan (`rides.gd`), the missions' and eggs'
   random spots (`missions.gd`, `eggs.gd`) and the minimap's frame (`hud.gd`, `full_map.gd`) still
   use the bounding rectangle: the helicopter can fly over the empty north-east corner (nothing is
   drawn there; the edge walls stop the car), and a random spot there snaps to the nearest road.
   `map_builder.gd` `in_map(p, pad)`, `map_outline()` and `clip_to_map()` give the shape. A notebook
-  place for Rondo Radosława / Arkadia is the content lane's (`game/data` places).
+  place for Rondo Radosława / Arkadia is the content lane's (`game/data` places).~~ **Done (the
+  L-shaped map loop, 2026-10-31)**: all of them use the outline (DEVELOPMENT.md "The L-shaped map in
+  gameplay"); the minimap and full map shade the corner as off the map; Rondo Radosława, Arkadia and
+  Forest are notebook places (a ninth card in `kiedys`, `codziennie` and `bary`: the 9 x 8 rule is
+  now 8 to 10 a chapter, QUESTIONS); `check_edge` proves the clamp, the spots and the mask.
+- **From the L-shaped map loop**: the barriers' day street (eggs.gd) may differ near the corner for
+  some dates (the pool of segments 120 m inside the outline is smaller); the helicopter's clamp is
+  only in heli.gd: an autopilot target in the corner (none today) would be chased along the edge.
 - **Rondo Radosława's ring has no spiral lane lines** (`bake_roads._spiral_rings`: its pieces carry 2
   and 3 lanes, and the first piece decides): plain lane lines; cosmetic.
 - **The committed maps grow with the bounding box** (ao.bin and lights.bin 40 → 48 MB, water.bin
@@ -1062,8 +1069,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   L1 15 OSM blocks drawn inside a model whose centroid misses them (towers' podiums, courtyard
   wings), L2 73 big outlines a small model's centroid falls in (the outline hidden, the model
   small); `tools/check_lod2.py` lists them with `--at=`.
-- **check_police P12 "guard car follows 15 s" failed once** in the full `verify.sh --ios` run
-  (map north, 2026-10-31) and passed 3 of 3 alone: a timing-sensitive case under load (gameplay lane).
+- ~~**check_police P12 "guard car follows 15 s" failed once** in the full `verify.sh --ios` run
+  (map north, 2026-10-31) and passed 3 of 3 alone: a timing-sensitive case under load (gameplay lane).~~
+  **Fixed (the L-shaped map loop)**: not load but chance (1 run in 12 alone): the guards' car's
+  random spot missed the check's one road 4 tries running; each case now seeds the random numbers
+  (`FRESH_SEED`): 20/20 alone, 21/21 three at a time.
 - **The viaducts at the north edge**: Jana Pawła II's and Andersa's decks over the ring railway end
   in the air at the edge (C6 allows the rim; the edge walls stop the car 5 m before). The ring railway
   and Dworzec Gdański's platforms lie just past it; the next growth north takes them in whole

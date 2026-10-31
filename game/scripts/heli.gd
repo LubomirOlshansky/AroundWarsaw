@@ -20,6 +20,7 @@ const MAX_HEIGHT := 360.0    # above the ground; Varso's spire tops out at 310 m
 const CLIMB_RATE := 12.0     # m/s the wanted height moves while climb is held
 const RADIUS := 3.0          # footprint tested against roofs (the fuselage, not the blade tips)
 const STEP := 0.6            # a ledge this low is flown up onto instead of blocking
+const PAD := 12.0            # metres kept from the map's edge
 ## See-through parts draw after the post-process quad: it repaints the screen from
 ## a copy taken before the transparent pass, which would wipe them out.
 const AFTER_POST := 1
@@ -36,6 +37,11 @@ var landing := false
 var ground_height: Callable = func(_x: float, _z: float) -> float: return 0.0
 var top_height: Callable = func(_x: float, _z: float, _r: float) -> float: return 0.0
 var bounds := Rect2(-1000, -1000, 2000, 2000)
+## Map north (the L-shaped map, 2026-10-31): the corners of `bounds` that are not map, each grown
+## by the 12 m pad (map_builder.gd `in_map(p, -PAD)` is false inside them); the game sets them
+## (`set_map`). The clamp slides along their sides, so the helicopter can't fly over the empty
+## north-east corner.
+var keep_out: Array[Rect2] = []
 
 ## Horizontal velocity.
 var vel := Vector3.ZERO
@@ -124,13 +130,14 @@ func _step(dt: float) -> void:
 			nx = p.x
 			nz = p.z
 			vel = Vector3.ZERO
-	var inside := bounds.grow(-12.0)
-	if nx < inside.position.x or nx > inside.end.x:
-		nx = clampf(nx, inside.position.x, inside.end.x)
+	# Vector2 is single precision: a moved axis is one the clamp changed by more than its rounding.
+	var kept := clamp_to_map(Vector2(p.x, p.z), Vector2(nx, nz))
+	if absf(kept.x - nx) > 1e-3:
 		vel.x = 0.0
-	if nz < inside.position.y or nz > inside.end.y:
-		nz = clampf(nz, inside.position.y, inside.end.y)
+		nx = kept.x
+	if absf(kept.y - nz) > 1e-3:
 		vel.z = 0.0
+		nz = kept.y
 
 	# Height: the wanted height follows the ground, but never sinks below what we are
 	# over, so lifting off a tall roof answers the stick at once.
@@ -157,6 +164,69 @@ func _step(dt: float) -> void:
 	_tail_rotor.rotate_x(40.0 * _spin * dt)
 	_update_shadow(nx, nz)
 	_update_lights(dt, nx, nz)
+
+
+## Map north: the bounds and the parts outside, as `map` (map_builder.gd) has them.
+func set_map(map: Node3D) -> void:
+	bounds = map.bounds
+	keep_out.clear()
+	for o: Rect2 in map.outside:
+		keep_out.append(map._outside_grown(o, -PAD))
+
+
+## Map north: where a move from `from` (on the map) to `to` ends, kept PAD m inside the map's
+## outline: clamped to the bounds, then out of each part left outside along the side it crossed
+## last (the one its sweep enters latest), so it slides along that side; at the inner corner
+## it stops on whichever side it meets and slides on, never flicking between the two. A point
+## already inside a part (a teleport) goes out by the nearest inner side.
+func clamp_to_map(from: Vector2, to: Vector2) -> Vector2:
+	var inside := bounds.grow(-PAD)
+	var n := to.clamp(inside.position, inside.end)
+	for g in keep_out:
+		if not (n.x > g.position.x and n.x < g.end.x and n.y > g.position.y and n.y < g.end.y):
+			continue
+		# Each axis: the side `from` stands beyond (none if it stands within the part's span).
+		var side_x := NAN
+		if from.x <= g.position.x:
+			side_x = g.position.x
+		elif from.x >= g.end.x:
+			side_x = g.end.x
+		var side_z := NAN
+		if from.y <= g.position.y:
+			side_z = g.position.y
+		elif from.y >= g.end.y:
+			side_z = g.end.y
+		if is_nan(side_x) and is_nan(side_z):
+			# Out by the nearest of its sides inside the map (not one on the bounds).
+			var best := INF
+			var out := n
+			var sides: Array[Vector2] = []
+			if g.position.x > inside.position.x + 0.01:
+				sides.append(Vector2(g.position.x, n.y))
+			if g.end.x < inside.end.x - 0.01:
+				sides.append(Vector2(g.end.x, n.y))
+			if g.position.y > inside.position.y + 0.01:
+				sides.append(Vector2(n.x, g.position.y))
+			if g.end.y < inside.end.y - 0.01:
+				sides.append(Vector2(n.x, g.end.y))
+			for c in sides:
+				if c.distance_to(n) < best:
+					best = c.distance_to(n)
+					out = c
+			n = out
+		elif is_nan(side_z):
+			n.x = side_x
+		elif is_nan(side_x):
+			n.y = side_z
+		else:
+			# Both: the side whose line the move crosses later is the one it meets.
+			var tx := (side_x - from.x) / (n.x - from.x) if n.x != from.x else -INF
+			var tz := (side_z - from.y) / (n.y - from.y) if n.y != from.y else -INF
+			if tx >= tz:
+				n.x = side_x
+			else:
+				n.y = side_z
+	return n
 
 
 ## True when the top of anything near (x, z) stands above the skids at height y.

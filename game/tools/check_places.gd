@@ -3,7 +3,8 @@ extends SceneTree
 ## headless, from the committed map data (map/centrum.json; index.json if that is missing) and
 ## data/places.json:
 ##   - every place has its name, fact and joke in Polish and English, each Polish line at most
-##     70 characters (the "NOWY WPIS · <name>" toast too), 8 places in each of the 9 chapters,
+##     70 characters (the "NOWY WPIS · <name>" toast too), 8 places in each of the 9 chapters
+##     (map north: up to 10),
 ##     unique ids;
 ##   - its `near` hint is inside the demo box and where notebook.gd puts it is inside the map;
 ##   - nothing the notebook shows (names, fact, joke, the card's address and hours line, the
@@ -21,8 +22,12 @@ extends SceneTree
 const Notebook := preload("res://scripts/notebook.gd")
 const NotebookPage := preload("res://scripts/notebook_page.gd")
 const Wallet := preload("res://scripts/wallet.gd")
+const MapBuilder := preload("res://scripts/map_builder.gd")
 ## The demo box (places.json `_about`): south, west, north, east.
 const BOX := [52.2183, 20.9780, 52.2525, 21.0500]
+## Map north (2026-10-31; docs/DEMO.md 2.1): the strip on the box's west side up to Arkadia
+## (bake_osm.py BBOX_NORTH: east to 20.99897).
+const BOX_NORTH := [52.2525, 20.9780, 52.2591, 20.99897]
 const MAX_PL := 70
 const REACH_SLACK := 10.0
 const SEG_CELL := 50.0
@@ -54,7 +59,11 @@ func _run() -> void:
 		return
 	_check_text(book)
 	var bounds: Array = data["bounds"]
-	var map_box := Rect2(bounds[0], bounds[1], float(bounds[2]) - float(bounds[0]), float(bounds[3]) - float(bounds[1]))
+	# Map north: the map's shape (map_builder.gd in_map), not the bounding box.
+	var shape: Node3D = MapBuilder.new()
+	shape.bounds = Rect2(bounds[0], bounds[1], float(bounds[2]) - float(bounds[0]), float(bounds[3]) - float(bounds[1]))
+	for o: Array in data.get("outside", []):
+		shape.outside.append(Rect2(o[0], o[1], float(o[2]) - float(o[0]), float(o[3]) - float(o[1])))
 	var segs := _segments(data)
 	var unreachable := PackedStringArray()
 	var by_source := {}
@@ -63,10 +72,12 @@ func _run() -> void:
 		var near: Array = place["near"]
 		var lat := float(near[0])
 		var lon := float(near[1])
-		if lat < BOX[0] or lat > BOX[2] or lon < BOX[1] or lon > BOX[3]:
-			problems.append("%s: the hint %.4f, %.4f is outside the demo box" % [id, lat, lon])
+		var in_box := lat >= BOX[0] and lat <= BOX[2] and lon >= BOX[1] and lon <= BOX[3]
+		var in_north := lat >= BOX_NORTH[0] and lat <= BOX_NORTH[2] and lon >= BOX_NORTH[1] and lon <= BOX_NORTH[3]
+		if not in_box and not in_north:
+			problems.append("%s: the hint %.4f, %.4f is outside the demo box and map north" % [id, lat, lon])
 		var at: Vector2 = place["at"]
-		if not map_box.has_point(at):
+		if not shape.in_map(at):
 			problems.append("%s: placed at %.0f, %.0f, outside the map" % [id, at.x, at.y])
 		by_source[place["source"]] = int(by_source.get(place["source"], 0)) + 1
 		var d := _nearest(segs, at)
@@ -77,6 +88,7 @@ func _run() -> void:
 			print("  %s reachable: %.1f m (need %.0f)" % [id, d, need])
 	var rules := _check_rules(book)
 	book.free()
+	shape.free()
 	if not unreachable.is_empty():
 		print("places: WARN %d of %d places have no lane or footway within radius + 10 m (rough `near` hints): %s" % [
 				unreachable.size(), book_count(data), ", ".join(unreachable)])
@@ -131,8 +143,9 @@ func _check_text(book: Notebook) -> void:
 	if book.chapters.size() != 9:
 		problems.append("%d chapters (9 expected)" % book.chapters.size())
 	for c: Dictionary in book.chapters:
-		if int(per.get(c["id"], 0)) != Notebook.PER_CHAPTER:
-			problems.append("chapter %s has %d places (%d expected)" % [c["id"], int(per.get(c["id"], 0)), Notebook.PER_CHAPTER])
+		var n := int(per.get(c["id"], 0))
+		if n < Notebook.PER_CHAPTER or n > Notebook.MAX_PER_CHAPTER:
+			problems.append("chapter %s has %d places (%d to %d expected)" % [c["id"], n, Notebook.PER_CHAPTER, Notebook.MAX_PER_CHAPTER])
 		if str(c.get("name_pl", "")) == "" or str(c.get("name_en", "")) == "":
 			problems.append("chapter %s has no Polish or no English name" % c["id"])
 

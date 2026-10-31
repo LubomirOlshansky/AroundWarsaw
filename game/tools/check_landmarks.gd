@@ -30,8 +30,6 @@ func _check() -> int:
 	var space: PhysicsDirectSpaceState3D = map.get_world_3d().direct_space_state
 	var missions: Node = load("res://scripts/missions.gd").new()
 	missions.map = map
-	var b: Rect2 = map.bounds
-	missions._inner = b.grow(-40.0)
 	var data: Dictionary = map.data
 	var failures := 0
 	for k in map.landmark_info.size():

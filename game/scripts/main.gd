@@ -219,6 +219,10 @@ var _last_target := Vector3.INF
 var follow := true
 var cam_focus := Vector3.ZERO
 var demo := false
+## The L-shaped map loop (2026-10-31), --heli-stick=X,Z: the helicopter's stick held towards that
+## world direction (x east, z south) the whole run, for screenshots of the clamp along the map's
+## outline (ZERO: off).
+var heli_stick := Vector2.ZERO
 var shots: Array[int] = []
 ## The shots saved so far: the frames of `shots` that reached their PNG (a run that ends
 ## without one says so in _exit_tree).
@@ -855,8 +859,7 @@ func _build_world() -> void:
 	heli = Heli.new()
 	heli.ground_height = map.ground_height
 	heli.top_height = map.top_height
-	var b: Array = data["bounds"]
-	heli.bounds = Rect2(b[0], b[1], b[2] - b[0], b[3] - b[1])
+	heli.set_map(map)  # map north: the L-shaped outline, not the bounding box
 	world.add_child(heli)
 	heli.landed.connect(_on_heli_landed)
 
@@ -909,7 +912,7 @@ func _build_world() -> void:
 		if not follow:
 			_rotate_camera(d))
 	hud.pinched.connect(_on_pinch)
-	hud.setup_minimap(data)
+	hud.setup_minimap(data, map.map_outline(), map.outside)  # map north: the L, not the box
 	hud.vehicle_pressed.connect(_toggle_vehicle)
 	hud.tapped.connect(_on_tap)
 	_set_flying(false)
@@ -2788,6 +2791,10 @@ func _parse_args() -> void:
 			_flag_cinematic = arg.trim_prefix("--cinematic=") if arg.contains("=") else "all"
 		elif arg == "--heli":
 			start_flying = true
+		elif arg.begins_with("--heli-stick="):
+			var hs := arg.trim_prefix("--heli-stick=").split(",")
+			if hs.size() == 2:
+				heli_stick = Vector2(float(hs[0]), float(hs[1]))
 		elif arg.begins_with("--heli-alt="):
 			# Loop 3d-2b: start flying this high over the ground, placed there at once (the
 			# helicopter at its highest, Heli.MAX_HEIGHT 360, for the memory and far-level probes).
@@ -3437,7 +3444,6 @@ func _lane_spot(at: Vector3, yaw: float) -> Array:
 func _node_spot(at: Vector3) -> Array:
 	if graph == null:
 		return []
-	var inner: Rect2 = map.bounds.grow(-12.0)
 	var best: Array = []
 	var best_d := INF
 	for n in graph.node_pos.size():
@@ -3448,7 +3454,7 @@ func _node_spot(at: Vector3) -> Array:
 			var s := graph.e_s0[e]
 			var q := graph.point_at(e, s, graph.lane_offset(e, 0))
 			var h := graph.height(e, s)
-			if not inner.has_point(q) or not _same_level(at, q, h) or map.in_water(q.x, q.y, h):
+			if not map.in_map(q, -12.0) or not _same_level(at, q, h) or map.in_water(q.x, q.y, h):
 				continue
 			var dir := graph.direction(e, s)
 			best = [Vector3(q.x, h, q.y), atan2(-dir.x, -dir.y)]
@@ -4597,6 +4603,8 @@ func _read_heli_input(left: bool, right: bool, up: bool, down: bool, dt: float) 
 	var climb := float(Input.is_physical_key_pressed(KEY_SPACE)) \
 			- float(Input.is_physical_key_pressed(KEY_SHIFT) or Input.is_physical_key_pressed(KEY_F))
 	heli.climb = clampf(climb + hud.climb, -1.0, 1.0)
+	if heli_stick != Vector2.ZERO:
+		heli.input_dir = Vector3(heli_stick.x, 0.0, heli_stick.y).limit_length(1.0)
 	if demo and not autopilot:
 		# A slow circle at cruise height, for screenshots.
 		var a := frame * 0.0035
@@ -5289,6 +5297,8 @@ func _soak_tour(data: Dictionary) -> Array[Vector2]:
 	for key in streamer.keys:
 		var c := (Vector2(key) + Vector2(0.5, 0.5)) * SectorStreamer.SECTOR
 		c = c.clamp(inner.position, inner.end)
+		if not map.in_map(c, -60.0):
+			continue  # map north: a sector's middle in the corner left outside
 		if not rows.has(key.y):
 			rows[key.y] = []
 		rows[key.y].append(c)
