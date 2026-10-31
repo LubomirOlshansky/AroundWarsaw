@@ -2,7 +2,7 @@
 """Check that a landmark spec is complete before a build starts (LANDMARKS 0.4).
 
 Usage:
-  python3 -I tools/check_spec.py                 # every docs/landmarks/specs/*.md
+  python3 -I tools/check_spec.py                 # every docs/landmarks/specs/*.md but README.md
   python3 -I tools/check_spec.py FILE.md ...     # just those files
   python3 -I tools/check_spec.py --selftest      # the checker's own tests
 
@@ -171,7 +171,7 @@ def main(argv):
 	if "--selftest" in argv:
 		selftest()
 		return 0
-	files = [Path(a) for a in argv if not a.startswith("-")] or sorted(SPEC_DIR.glob("*.md"))
+	files = [Path(a) for a in argv if not a.startswith("-")] or sorted(f for f in SPEC_DIR.glob("*.md") if f.name != "README.md")
 	bad = 0
 	for f in files:
 		for e in check(f.read_text(encoding="utf-8")):

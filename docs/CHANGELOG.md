@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-10-31
+- The new Museum of Modern Art on Plac Defilad is now its own building: the long white box floating on a glass lobby behind white fins, a thin dark slot round the middle, big windows that glow at night, skylights on the roof, and an info card.
 - The towers and the Palace of Culture no longer flicker: overlapping walls and roofs were drawn twice, and now they are drawn once. The look is the same.
 - A new, shorter website: the newest screenshots, three missions, open source, a word from the author.
 - A new automatic check looks at every landmark model for flickering surfaces, zero-size faces, floating parts and too many triangles, so these get caught before anyone looks at a screenshot.
