@@ -4910,15 +4910,22 @@ static func halo_quad(size: float) -> ArrayMesh:
 ## The landmarks loop: the landmarks' own big signs (`marks.signs`: word, the middle of its
 ## bottom edge, the wall's outward normal, the scale over a shop sign), lit by day and night
 ## (INSTANCE_CUSTOM.z = 2), so not under the night lights' holder.
+## Loop 3e merge: the sectors share one Landmarks, whose `signs` grow with every landmark it
+## builds, and a landmark can be built by more than one sector; so each sector takes only the
+## signs standing in it, and the list is emptied after each build.
 func _build_landmark_signs(marks) -> void:
-	if marks.signs.is_empty():
+	var list: Array = marks.signs.duplicate()
+	marks.signs.clear()
+	if _in_sector:
+		list = list.filter(func(s: Array) -> bool: return _sector_rect.has_point(Vector2((s[1] as Vector3).x, (s[1] as Vector3).z)))
+	if list.is_empty():
 		return
 	_make_shared()
 	var spots: Array[Transform3D] = []
 	var colours: Array[Color] = []
 	var custom: Array[Color] = []
 	var all := Neon.all_words()
-	for sign: Array in marks.signs:
+	for sign: Array in list:
 		var word: String = sign[0]
 		var t := Neon.place(word, sign[1], sign[2])
 		var k: float = sign[3]
