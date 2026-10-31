@@ -27,6 +27,17 @@ extends Node
 ## per load); each sector brings its slices of the AO, lamp-light and surface maps into a slot of
 ## city_maps.gd's arrays (at most CityMaps.SLOTS sectors in full detail at once).
 ##
+## The loading fix (2026-10-31; docs/DEVELOPMENT.md "The loading fix"): the proxies the player saw
+## close up came from the camera's look at a new target (a rescue or a delivery: the camera flies
+## 0.6-3 km off and back) and from jumps (a tow, a race start). Now the view is tested wherever it
+## reaches (its frustum cut to the map's heights as a rectangle on the map, not 1,800 m round the
+## focus); the order of loads is the sectors in the view now (nearest the view's centre first),
+## then those a coming view needs (`expect_view`: main.gd holds the look until they are in, at
+## most 1.5 s), then the rest by the look-ahead; a worker busy with a later class gives its sector
+## up for one in the view; for a few frames after a jump the sectors whose ground is in the view
+## load at once with the car's; under the title screen a sector's pieces load all at once
+## (`hurry`), and the title offers "tap to drive" once the start's sectors are in.
+##
 ## --sectors=all loads every sector at the start and keeps them (the old behaviour, pixel
 ## diffs); --stream-log prints every load and unload with its frame and main-thread ms, and (loop
 ## G0+) each worker load: its load and instantiate ms and the slowest frame while it ran, split
@@ -47,11 +58,12 @@ const KEEP_REACH := LOAD_REACH + 256.0
 ## At the start, the sectors within this much of the start go in at once (what the view there
 ## shows); the rest of the ring streams in over the first seconds.
 const START_REACH := 320.0
-## The view's boxes are grown this much to load, and this much to keep; a sector farther than
-## VIEW_RANGE from the focus is never in view (the camera's far plane, a tower's height).
+## The view's boxes are grown this much to load, and this much to keep. The loading fix: a sector
+## is tested against the view wherever it is (the view's rectangle on the map rules the far ones
+## out); before, one over VIEW_RANGE (1,800 m) from the focus was never in view, so a look at a
+## target 2-3 km off showed proxies only.
 const VIEW_GROW := 128.0
 const VIEW_KEEP := 256.0
-const VIEW_RANGE := 1800.0
 ## The car's physics needs every sector within this of it in (a wall or parapet across a border).
 const CAR_REACH := 40.0
 ## The frames at the start the frame-time numbers leave out (shaders compiling on first sight).
@@ -114,6 +126,26 @@ var _rush := false
 ## view isn't in yet (its proxy shows: better a busier frame than a longer gap).
 var _pieces_per_frame := 1
 const URGENT_PIECES := 4
+## The loading fix: under the title screen nothing on screen can hitch, so a sector's pieces load
+## this many a frame (main.gd sets `hurry` while the title shows).
+const HURRY_PIECES := 64
+var hurry := false
+## The loading fix: the order of loads. A sector in the camera's view now goes first (nearest the
+## view's centre first), then one a view about to come needs (expect_view: a look at a new target),
+## then the rest the focus wants (nearest the point the look-ahead puts it). A worker loading a
+## sector of a later class gives it up (back in the queue) when one of the first two waits.
+const FIRST_SEEN := 0.0
+const FIRST_EXPECTED := 1000.0
+const FIRST_REST := 2000.0
+## The loading fix: views about to come: [rect on the map, until (usec)].
+var _expect: Array = []
+## The loading fix: frames left after a jump (a forced load) in which a sector whose ground is in
+## the view loads at once too (the cut shows the city, not its proxies), and how many did.
+const JUMP_FRAMES := 3
+var _jump_left := 0
+var jump_loads := 0
+var aborts := 0
+var _abort := false
 ## Loop 3d-2b: the slowest frame (usec) while the sector now loading was loaded and added, and
 ## per streamed sector that slowest frame (ms): what a load costs the frame, wherever it lands.
 var _window_max := 0
@@ -150,6 +182,24 @@ var missing_log: Array[String] = []
 var slot_waits := 0
 var evictions := 0
 var _view_planes: Array[Plane] = []
+## The loading fix (2026-10-31): the view's frustum cut to the map's heights (its lowest ground to
+## its tallest roof) as a rectangle on the map (x, z; `_view_ok` false: no camera); a sector whose
+## square misses it is out of the view without the planes' tests. `_y_range`: the map's lowest
+## ground and tallest roof (from sector_heights).
+var _view_rect := Rect2()
+var _view_ok := false
+var _y_range := Vector2(-30.0, 320.0)
+var _cam: Camera3D
+## The loading fix: what the player sees of the proxies. Of the frames with a sector in the view still
+## a proxy (missing_frames): the nearest such sector's square to the view's centre on the ground (m; 0:
+## the centre stands in it), the most of the view's ground the proxies covered (share), the frames they
+## covered over PROXY_SHARE of it, and the longest one sector stayed a proxy in the view (frames).
+var proxy_near := INF
+var proxy_share := 0.0
+var proxy_share_frames := 0
+var proxy_run := 0
+var proxy_run_key := ""
+const PROXY_SHARE := 0.05
 ## Loop 3d-2b: the view's planes moved along the look-ahead, the focus's velocity (m/s, smoothed)
 ## and where it was the frame before.
 var _ahead_planes: Array[Plane] = []
@@ -186,11 +236,22 @@ func open(world: Node3D, use_prebuilt: bool, building_mat: ShaderMaterial, flat_
 	var t_index := Time.get_ticks_msec() - t0
 	if not prebuilt:
 		# The runtime path: every sector's cells of the roof and picking grids first (missions,
-		# eggs and the helicopter read them over the whole map at the start).
+		# eggs and the helicopter read them over the whole map at the start). The loading fix: and
+		# the roofs' and walls' colours when it must make the proxies itself (no proxies.scn).
+		map.proxy_colours = not ResourceLoader.exists(PROXY_SCENE)
 		for key in keys:
 			map.build_sector(key, true).free()
 		map.measure_sectors()
 	var t_roofs := Time.get_ticks_msec() - t0 - t_index
+	# The loading fix: the map's lowest ground and tallest roof (the view's rectangle is cut to them).
+	var y_lo := INF
+	var y_hi := -INF
+	for k in map.sector_heights:
+		var h: Vector2 = map.sector_heights[k]
+		y_lo = minf(y_lo, h.x)
+		y_hi = maxf(y_hi, h.y)
+	if y_lo < y_hi:
+		_y_range = Vector2(y_lo, y_hi)
 	_sectors = Node3D.new()
 	_sectors.name = "Sectors"
 	# Loop G0+: the city stands still, so its nodes take no physics interpolation (as the people's
@@ -208,6 +269,10 @@ func open(world: Node3D, use_prebuilt: bool, building_mat: ShaderMaterial, flat_
 		_proxies = (load(PROXY_SCENE) as PackedScene).instantiate()
 	else:
 		_proxies = Proxies.build_all(map, keys)
+	# The loading fix: the colour grids were for the proxies only (10 MB on the demo map).
+	map.proxy_colours = false
+	map.roof_rgba = PackedInt32Array()
+	map.wall_rgba = PackedInt32Array()
 	t_proxies = Time.get_ticks_msec() - t_proxies
 	_proxies.name = "Proxies"
 	_proxies.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
@@ -305,6 +370,7 @@ func update(focus: Vector3, car: Vector3, cam: Camera3D) -> void:
 		busy_usec.append(0)
 		return
 	_view_planes = cam.get_frustum() if cam != null else []
+	_view_box(cam)
 	_look_ahead(focus)
 	var focus2 := focus + ahead
 	var car_key := MapBuilder.sector_of(car.x, car.z)
@@ -316,11 +382,18 @@ func update(focus: Vector3, car: Vector3, cam: Camera3D) -> void:
 			missing = true
 			forced += 1
 			_load_now(key)
+			_jump_left = JUMP_FRAMES
+	var now := Time.get_ticks_usec()
+	while not _expect.is_empty() and int(_expect[0][1]) < now:
+		_expect.pop_front()
+	var centre := _view_centre()
+	var first_waits := false
 	if proxies_only:
 		stream_usec.append(Time.get_ticks_usec() - t0)
 		busy_usec.append(stream_usec[-1] if _worked else 0)
 		return
 	var in_full := 0
+	var shown: Array[Vector2i] = []
 	for ki in keys.size():
 		var key := keys[ki]
 		var st: Dictionary = _state[key]
@@ -332,19 +405,28 @@ func update(focus: Vector3, car: Vector3, cam: Camera3D) -> void:
 		var want := near
 		var keep := near or _in_reach(key, focus, KEEP_REACH)
 		var seen := false
-		if _in_reach(key, focus, VIEW_RANGE):
-			if not want and _in_view(key, VIEW_GROW):
+		# The loading fix: the view's rectangle first (cheap), the planes only for a sector over it.
+		if _rect_meets(key, VIEW_KEEP, _view_rect):
+			if (not want or st["s"] != IN) and _rect_meets(key, VIEW_GROW, _view_rect) and _in_view(key, VIEW_GROW):
 				want = true
+				seen = st["s"] != IN and _in_view(key, 0.0)  # in the view itself: it shows its proxy
 			if not keep and (want or _in_view(key, VIEW_KEEP)):
 				keep = true
-			seen = want and st["s"] != IN and _in_view(key, 0.0)  # in the view itself: it shows its proxy
+		var expected := false
+		var expect_prio := INF
+		for e: Array in _expect:
+			if _square_meets(key, 0.0, e[0]):
+				expected = true
+				expect_prio = minf(expect_prio, float(e[2]) * 100.0 + (Vector2(key) + Vector2(0.5, 0.5)).distance_squared_to((e[0] as Rect2).get_center() / SECTOR))
+				want = true
+				keep = true
 		# And where the focus will be: its square, the view moved there. A quarter of the sectors a
 		# frame (the answer is seconds ahead; a frame's delay is nothing), kept in between.
 		var later: int = st.get("ahead", 0)
 		if ahead == Vector3.ZERO:
 			later = 0
 		elif (ki + frame) % AHEAD_EVERY == 0:
-			var ahead_range := _in_reach(key, focus2, VIEW_RANGE)
+			var ahead_range := _rect_meets(key, VIEW_KEEP, Rect2(_view_rect.position + Vector2(ahead.x, ahead.z), _view_rect.size))
 			later = 0
 			if _in_reach(key, focus2, LOAD_REACH) or (ahead_range and _in_view(key, VIEW_GROW, _ahead_planes)):
 				later = 2
@@ -354,19 +436,41 @@ func update(focus: Vector3, car: Vector3, cam: Camera3D) -> void:
 		want = want or later == 2
 		keep = keep or want or later >= 1
 		st["want"] = want
-		# Which wanted sector loads first: one in the view now, then the nearest the focus ahead.
-		st["prio"] = 0.0 if seen else 1.0 + (Vector2(key) + Vector2(0.5, 0.5)).distance_squared_to(Vector2(focus2.x, focus2.z) / SECTOR)
+		# The loading fix: which wanted sector loads first: one in the view now (nearest the view's
+		# centre), then one a coming view needs, then the nearest the focus ahead.
+		var mid := Vector2(key) + Vector2(0.5, 0.5)
+		if seen:
+			st["prio"] = FIRST_SEEN + mid.distance_squared_to(centre / SECTOR)
+		elif expected:
+			st["prio"] = FIRST_EXPECTED + expect_prio
+		else:
+			st["prio"] = FIRST_REST + mid.distance_squared_to(Vector2(focus2.x, focus2.z) / SECTOR)
 		if want and st["s"] == QUEUED:
 			_state[key] = {"s": WANTED, "t0": Time.get_ticks_usec(), "ms": 0.0, "want": true, "prio": st["prio"], "ahead": later}
 		elif not keep and st["s"] != QUEUED:
 			_unload(key)
+		elif seen and st["s"] != IN and _jump_left > 0 and ground_in_view(key, 0.0, 25.0, _view_planes):
+			# The loading fix: just after a jump, a sector whose ground is in the view loads at once
+			# (the frame of the cut is already a stall: better the city than its proxy for a second).
+			forced += 1
+			jump_loads += 1
+			_load_now(key)
 		elif seen and st["s"] != IN:
 			missing = true
-			if missing_log.size() < 40:
-				missing_log.append("%d %s %s" % [frame, MapBuilder.sector_name(key), ["queued", "wanted", "loading", "adding", "in"][int(st["s"])]])
+			shown.append(key)
+		if _state[key]["s"] == WANTED and float(_state[key].get("prio", FIRST_REST)) < FIRST_REST:
+			first_waits = true
+		if not seen or st["s"] == IN:
+			st.erase("vis_from")
+	if not shown.is_empty():
+		_count_proxies(shown)
 	if missing:
 		missing_frames += 1
-	_pieces_per_frame = URGENT_PIECES if missing else 1
+	_jump_left = maxi(_jump_left - 1, 0)
+	var urgent := missing or first_waits or (_thread != null and _state.has(_task_key) \
+			and float(_state[_task_key].get("prio", FIRST_REST)) < FIRST_REST)
+	_pieces_per_frame = HURRY_PIECES if hurry else (URGENT_PIECES if urgent else 1)
+	_check_abort(first_waits)
 	max_loaded = maxi(max_loaded, in_full)
 	var t1 := Time.get_ticks_usec()
 	# One step a frame: a finished sector handed over (its state applied, its nodes queued), or
@@ -453,8 +557,15 @@ func reset_stats() -> void:
 	unloads = 0
 	max_loaded = 0
 	missing_log.clear()
+	proxy_near = INF
+	proxy_share = 0.0
+	proxy_share_frames = 0
+	proxy_run = 0
+	proxy_run_key = ""
 	slot_waits = 0
 	evictions = 0
+	jump_loads = 0
+	aborts = 0
 	frame = 0
 	_last_tick = Time.get_ticks_usec()
 
@@ -535,12 +646,16 @@ func stats() -> Dictionary:
 			"frames_over_33ms": slow, "frames_over_33ms_streaming": slow_busy,
 			"missing_frames": missing_frames, "forced": forced, "max_loaded": max_loaded,
 			"slot_waits": slot_waits, "evictions": evictions, "missing_log": missing_log,
+			"jump_loads": jump_loads, "aborts": aborts,
 			"frames_over_budget": over_budget, "slow_frames": slow_list,
 			"sector_ms": {"n": per_sector.size(),
 				"median": per_sector[per_sector.size() / 2] if not per_sector.is_empty() else 0.0,
 				"p99": per_sector[mini(per_sector.size() - 1, int(per_sector.size() * 0.99))] if not per_sector.is_empty() else 0.0,
 				"max": per_sector[-1] if not per_sector.is_empty() else 0.0},
 			"kinds": kinds,
+			"proxy_near_m": snappedf(proxy_near, 0.1) if proxy_near < INF else -1.0,
+			"proxy_share_max": snappedf(proxy_share, 0.001), "proxy_share_frames": proxy_share_frames,
+			"proxy_run_frames": proxy_run, "proxy_run_sector": proxy_run_key,
 			"frame_median_ms": plain[plain.size() / 2] if not plain.is_empty() else 0.0,
 			"load_frame_ms": {"n": windows.size(),
 				"median": windows[windows.size() / 2] if not windows.is_empty() else 0.0,
@@ -577,6 +692,9 @@ func _poll_worker(focus: Vector3) -> bool:
 			handed = true
 		elif root != null:
 			root.free()
+		elif _state[_task_key]["s"] == LOADING:
+			_state[_task_key]["s"] = WANTED  # the loading fix: given up; it loads again in its turn
+		_abort = false
 	# The next load starts once every sector handed over is in (the loader's uploads and the main
 	# thread's adds don't then compete for the renderer).
 	for key in keys:
@@ -627,11 +745,14 @@ func _make(key: Vector2i) -> void:
 		var held: Array[Resource] = []
 		if gate_pieces and OS.get_thread_caller_id() != OS.get_main_thread_id():
 			for n in int(map.sector_pieces.get(key, 0)):
-				if _quitting:
+				if _quitting or _abort:
 					break
 				held.append(ResourceLoader.load(_piece_path(key, n)))
 				if (n + 1) % _pieces_per_frame == 0:
 					_wait_gate()
+		if _abort:
+			_task_root = null
+			return  # the loading fix: given up for a sector in the view (it goes back in the queue)
 		var scene := ResourceLoader.load(_scene_path(key), "PackedScene", ResourceLoader.CACHE_MODE_IGNORE) as PackedScene
 		_task_t[1] = Time.get_ticks_usec()
 		_task_root = scene.instantiate() as Node3D if scene != null else null
@@ -695,6 +816,7 @@ func _drop_task() -> void:
 	if _thread == null:
 		return
 	_gate_lock.lock()
+	_abort = false  # the loading fix: the main thread waits for this one: no giving up
 	_rush = true
 	if _gate_waiting:
 		_gate_waiting = false
@@ -708,6 +830,8 @@ func _drop_task() -> void:
 			_start_adding(_task_key, _task_root)
 		else:
 			_task_root.free()
+	elif _state.has(_task_key) and _state[_task_key]["s"] == LOADING:
+		_state[_task_key]["s"] = WANTED  # the loading fix: an aborted load goes back in the queue
 	_task_root = null
 
 
@@ -925,6 +1049,175 @@ func _unload(key: Vector2i) -> void:
 
 
 # --- which sectors ------------------------------------------------------------------------
+
+## The loading fix: the camera's frustum (its 8 corners, 12 edges) cut to the map's heights, as a
+## rectangle on the map. Every point of a sector's box that is in the view lies over it.
+func _view_box(cam: Camera3D) -> void:
+	_cam = cam
+	_view_ok = false
+	if cam == null or not cam.is_inside_tree():
+		return
+	var vp := cam.get_viewport().get_visible_rect().size
+	var fwd := -cam.global_transform.basis.z
+	var eye := cam.global_position
+	var near := PackedVector3Array()
+	var far := PackedVector3Array()
+	for c in [Vector2.ZERO, Vector2(vp.x, 0.0), vp, Vector2(0.0, vp.y)]:
+		var o := cam.project_ray_origin(c)
+		var d := cam.project_ray_normal(c)
+		var o_depth := (o - eye).dot(fwd)
+		var near_p := o + d * maxf(cam.near - o_depth, 0.0) / maxf(d.dot(fwd), 1e-4)
+		near.append(near_p)
+		far.append(o + d * maxf(cam.far - o_depth, 0.0) / maxf(d.dot(fwd), 1e-4))
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for i in 4:
+		for e in [[near[i], near[(i + 1) % 4]], [far[i], far[(i + 1) % 4]], [near[i], far[i]]]:
+			var a: Vector3 = e[0]
+			var b: Vector3 = e[1]
+			var t0 := 0.0
+			var t1 := 1.0
+			var dy := b.y - a.y
+			if absf(dy) < 1e-6:
+				if a.y < _y_range.x or a.y > _y_range.y:
+					continue
+			else:
+				var ta := (_y_range.x - a.y) / dy
+				var tb := (_y_range.y - a.y) / dy
+				t0 = maxf(t0, minf(ta, tb))
+				t1 = minf(t1, maxf(ta, tb))
+				if t0 > t1:
+					continue
+			for t in [t0, t1]:
+				var p: Vector3 = a.lerp(b, t)
+				lo = Vector2(minf(lo.x, p.x), minf(lo.y, p.z))
+				hi = Vector2(maxf(hi.x, p.x), maxf(hi.y, p.z))
+	if lo.x <= hi.x:
+		_view_rect = Rect2(lo, hi - lo)
+		_view_ok = true
+
+
+## The loading fix: whether the sector's square, grown by `grow`, meets `rect`.
+func _square_meets(key: Vector2i, grow: float, rect: Rect2) -> bool:
+	var x0 := key.x * SECTOR - grow
+	var z0 := key.y * SECTOR - grow
+	return x0 < rect.end.x and x0 + SECTOR + 2.0 * grow > rect.position.x and z0 < rect.end.y and z0 + SECTOR + 2.0 * grow > rect.position.y
+
+
+## The loading fix: a view about to come (a look at a new target, camera_shots.gd): the sectors
+## within `half` metres of `at` (a square: the camera may turn) are wanted, before all but the ones
+## in the view now, for `seconds`; a lower `rank` first (the target before the way there).
+func expect_view(at: Vector3, half: float, seconds: float, rank := 0) -> void:
+	var r := Rect2(at.x - half, at.z - half, half * 2.0, half * 2.0)
+	_expect.append([r, Time.get_ticks_usec() + int(seconds * 1e6), rank])
+	_expect.sort_custom(func(a: Array, b: Array) -> bool: return int(a[1]) < int(b[1]))
+
+
+## The loading fix: whether every sector the views about to come need (of rank `max_rank` or
+## lower) is in full detail.
+func expected_in(max_rank := 1 << 20) -> bool:
+	for e: Array in _expect:
+		if int(e[2]) > max_rank:
+			continue
+		for key in keys:
+			if _state[key]["s"] != IN and _square_meets(key, 0.0, e[0]):
+				return false
+	return true
+
+
+## The loading fix: the screen's centre on the ground (x, z), where the view's nearest-first order
+## measures from (the car, or where a look took the camera).
+func _view_centre() -> Vector2:
+	if _cam == null or not _view_ok:
+		return Vector2.ZERO
+	var vp := _cam.get_viewport().get_visible_rect().size
+	var p := _on_ground(vp * 0.5, 0.0)
+	for i in 2:
+		p = _on_ground(vp * 0.5, map.ground_height(p.x, p.z))
+	return Vector2(p.x, p.z)
+
+
+## The loading fix: the worker gives up a sector of the last class (wanted only round the focus or
+## ahead) when one in the view or a coming view waits; it stops at its next piece and the sector
+## goes back in the queue.
+func _check_abort(first_waits: bool) -> void:
+	if not first_waits or _thread == null or _abort or _rush or not _state.has(_task_key):
+		return
+	if float(_state[_task_key].get("prio", FIRST_REST)) < FIRST_REST:
+		return
+	_abort = true
+	aborts += 1
+	if log:
+		print("stream: frame %d the worker gives up %s for a sector in the view" % [frame, MapBuilder.sector_name(_task_key)])
+
+
+## The loading fix: whether the sector's square, grown by `grow`, meets `rect` (the view's).
+func _rect_meets(key: Vector2i, grow: float, rect: Rect2) -> bool:
+	if not _view_ok:
+		return false
+	var x0 := key.x * SECTOR - grow
+	var z0 := key.y * SECTOR - grow
+	return x0 < rect.end.x and x0 + SECTOR + 2.0 * grow > rect.position.x and z0 < rect.end.y and z0 + SECTOR + 2.0 * grow > rect.position.y
+
+
+## The loading fix's numbers, on a frame where `shown` sectors are in the view as proxies: the view's
+## ground (the screen's corners and centre on the ground there), each proxy's distance from its
+## centre and their share of it, and how long each has been there.
+func _count_proxies(shown: Array[Vector2i]) -> void:
+	if _cam == null:
+		return
+	var vp := _cam.get_viewport().get_visible_rect().size
+	var centre := _on_ground(vp * 0.5, 0.0)
+	var gy: float = map.ground_height(centre.x, centre.z)
+	centre = _on_ground(vp * 0.5, gy)
+	var foot := PackedVector2Array()
+	for c in [Vector2.ZERO, Vector2(vp.x, 0.0), vp, Vector2(0.0, vp.y)]:
+		var p := _on_ground(c, gy)
+		foot.append(Vector2(p.x, p.z))
+	var area := absf(_area(foot))
+	var c2 := Vector2(centre.x, centre.z)
+	var covered := 0.0
+	for key in shown:
+		var r := Rect2(Vector2(key) * SECTOR, Vector2(SECTOR, SECTOR))
+		var d := Vector2(maxf(maxf(r.position.x - c2.x, 0.0), c2.x - r.end.x), maxf(maxf(r.position.y - c2.y, 0.0), c2.y - r.end.y)).length()
+		proxy_near = minf(proxy_near, d)
+		var sq := PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)])
+		var part := 0.0
+		for poly in Geometry2D.intersect_polygons(foot, sq):
+			part += absf(_area(poly))
+		covered += part
+		var st: Dictionary = _state[key]
+		if not st.has("vis_from"):
+			st["vis_from"] = frame
+		var run := frame - int(st["vis_from"]) + 1
+		if run > proxy_run:
+			proxy_run = run
+			proxy_run_key = MapBuilder.sector_name(key)
+		if missing_log.size() < 40:
+			missing_log.append("%d %s %s %.0f m %.0f %%" % [frame, MapBuilder.sector_name(key),
+					["queued", "wanted", "loading", "adding", "in"][int(st["s"])], d, part / maxf(area, 1.0) * 100.0])
+	var share := covered / maxf(area, 1.0)
+	proxy_share = maxf(proxy_share, share)
+	if share >= PROXY_SHARE:
+		proxy_share_frames += 1
+
+
+## A screen point's ray on the plane y = `y` (the camera's own ray, ortho or not).
+func _on_ground(px: Vector2, y: float) -> Vector3:
+	var o := _cam.project_ray_origin(px)
+	var d := _cam.project_ray_normal(px)
+	if absf(d.y) < 1e-4:
+		return o
+	return o + d * ((y - o.y) / d.y)
+
+
+static func _area(poly: PackedVector2Array) -> float:
+	var a := 0.0
+	for i in poly.size():
+		var p := poly[i]
+		var q := poly[(i + 1) % poly.size()]
+		a += p.x * q.y - q.x * p.y
+	return a * 0.5
 
 ## Whether the sector's square meets the square of half-size `reach` round `p`.
 func _in_reach(key: Vector2i, p: Vector3, reach: float) -> bool:

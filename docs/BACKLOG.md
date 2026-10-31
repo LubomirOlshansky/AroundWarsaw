@@ -1035,6 +1035,27 @@ Small problems that agents reported or that showed up in screenshots. They are f
   then fine on a rerun: flaky, not broken. Three prebuilt spot shots with `--time=day` once came out
   at night while other Godot runs were going; fine on a rerun.
 
+## From the loading fix (the view's sectors first, city-coloured proxies, 2026-10-31)
+- **A look at a far target still shows proxies in passing on the iPhone 11** (25 frames over 5 %
+  of the view in six looks, 0 on the Mac): the camera flies over sectors on its way that load only
+  as it reaches them. Expecting the whole way too was tried and dropped: the 24 map slots fill
+  (265 slot waits on the Mac) and the target's own sectors then wait. A shorter or cut look for
+  targets past ~1.5 km, or more map slots (QUESTIONS 3d-2b), would end it: the camera's lane.
+- **Jumps load the view's sectors at once** (the frame of the cut): on the iPhone 11 the jump pass
+  has 15 frames over 33 ms against 11 (one or two at each cut); the alternative is a second of
+  proxies at the new place.
+- **Fotka's camera isn't the streamer's**: `fotka.gd` orbits its own camera while
+  `sector_streamer.gd` is fed the main one; its views stay within the 704 m square loaded round the
+  car today, but a wider Fotka zoom would show proxies (content lane: feed the streamer the current
+  camera).
+- **The proxies at night** use a plain lit material: no lamp light or lit windows (the city's
+  night look comes from its own shaders). Rarely seen now; a night tint is the next step if it is.
+- **The proxies' boxes are 8 m cells**: a building reads as a stack of coloured blocks up close
+  (`shots/loadfix/proxy_close_after`). LoD2 outlines would be truer but cost triangles (15,000 a
+  sector).
+- **Turning-aware look-ahead not built**: the helicopter at 360 m turning shows a proxy's edge at
+  499 m (0.3 % of the view) at worst; the 704 m square round the focus already covers any turn.
+
 ## From loop 3d-2b (the map engine, part two, 2026-10-30)
 - **Far levels are not built** (measured: with the orthographic camera every sector drawn has its
   ground on screen; the proxies show only while a sector loads). A far level by zoom, the

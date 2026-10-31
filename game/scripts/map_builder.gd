@@ -193,6 +193,16 @@ const NO_ROOF := -1000.0
 ## (1-based, 0 for none) covers each roof-grid cell, for tapping.
 @export_storage var landmark_info: Array[Dictionary] = []
 @export_storage var _pick := PackedByteArray()
+## The loading fix (2026-10-31): what colour tops each roof-grid cell, for the proxies
+## (sector_proxies.gd), from the same buildings the sectors are built from: the roof's colour where
+## a roof gives the cell its height (RGBA8, 0 for none), and the colour of a wall standing in it.
+## Recorded only while `proxy_colours` is on (tools/bake_city.gd, or the runtime path when it makes
+## the proxies itself): not saved, not in the exported game.
+var proxy_colours := false
+var roof_rgba := PackedInt32Array()
+var wall_rgba := PackedInt32Array()
+var _scratch_rgba := PackedInt32Array()
+var _scratch_wall := PackedInt32Array()
 
 # --- Loop 3c: sectors -------------------------------------------------------------------
 ## The city in 512 m sectors (docs/DEMO.md 2.4): tools/bake_sectors.py splits the map data
@@ -340,6 +350,12 @@ func build_sector(key: Vector2i, roofs_only := false, merge := true) -> Node3D:
 	_wall_faces.clear()
 	_scratch_roof.resize(_roof.size())
 	_scratch_roof.fill(NO_ROOF)
+	if proxy_colours:
+		_open_colours()
+		_scratch_rgba.resize(_roof.size())
+		_scratch_rgba.fill(0)
+		_scratch_wall.resize(_roof.size())
+		_scratch_wall.fill(0)
 	_merge = merge
 	_build_parts(_marks, roofs_only)
 	if not roofs_only:
@@ -461,6 +477,11 @@ func _merge_roofs() -> void:
 			var k := j * _roof_nx + i
 			if _scratch_roof[k] > _roof[k]:
 				_roof[k] = _scratch_roof[k]
+			if proxy_colours:
+				if _scratch_rgba[k] != 0:
+					roof_rgba[k] = _scratch_rgba[k]
+				if _scratch_wall[k] != 0:
+					wall_rgba[k] = _scratch_wall[k]
 
 
 ## Loop 3c: the sector's own cells of the landmarks' picking grid.
@@ -1501,11 +1522,14 @@ func _roof_mark(x: float, z: float, y: float) -> void:
 ## A LoD2 triangle into the roof grid. Every corner marks its cell (that catches
 ## spires, chimneys and wall tops); roof triangles also give each cell centre
 ## they cover the roof's height there.
-func _roof_triangle(a: Vector3, b: Vector3, c: Vector3, is_roof: bool) -> void:
+func _roof_triangle(a: Vector3, b: Vector3, c: Vector3, is_roof: bool, col := Color(0, 0, 0, 0)) -> void:
 	_roof_mark(a.x, a.z, a.y)
 	_roof_mark(b.x, b.z, b.y)
 	_roof_mark(c.x, c.z, c.y)
 	if not is_roof:
+		if proxy_colours and col.a > 0.0:
+			var m := (a + b + c) / 3.0
+			_colour_mark(m.x, m.z, col, true, 0.0)
 		return
 	var d := (b.z - c.z) * (a.x - c.x) + (c.x - b.x) * (a.z - c.z)
 	if absf(d) < 0.01:
@@ -1526,6 +1550,8 @@ func _roof_triangle(a: Vector3, b: Vector3, c: Vector3, is_roof: bool) -> void:
 				continue
 			var y := l1 * a.y + l2 * b.y + l3 * c.y
 			var k := j * _roof_nx + i
+			if proxy_colours and col.a > 0.0:
+				_colour_mark(x, z, col, false, y)
 			if _in_sector:
 				if y > _scratch_roof[k]:
 					_scratch_roof[k] = y
@@ -1534,7 +1560,7 @@ func _roof_triangle(a: Vector3, b: Vector3, c: Vector3, is_roof: bool) -> void:
 
 
 ## A flat-roofed OpenStreetMap building into the roof grid.
-func _roof_polygon(poly: PackedVector2Array, top: float) -> void:
+func _roof_polygon(poly: PackedVector2Array, top: float, roof_col := Color(0, 0, 0, 0), wall_col := Color(0, 0, 0, 0)) -> void:
 	var lo := Vector2(INF, INF)
 	var hi := -lo
 	for q in poly:
@@ -1549,11 +1575,64 @@ func _roof_polygon(poly: PackedVector2Array, top: float) -> void:
 		for i in range(i0, i1 + 1):
 			var p := Vector2(_roof_x0 + (i + 0.5) * ROOF_CELL, _roof_z0 + (j + 0.5) * ROOF_CELL)
 			var k := j * _roof_nx + i
+			if proxy_colours and roof_col.a > 0.0 and Geometry2D.is_point_in_polygon(p, poly):
+				_colour_mark(p.x, p.y, roof_col, false, top)
+				_colour_mark(p.x, p.y, wall_col, true, 0.0)
 			if _in_sector:
 				if top > _scratch_roof[k] and Geometry2D.is_point_in_polygon(p, poly):
 					_scratch_roof[k] = top
 			elif top > _roof[k] and Geometry2D.is_point_in_polygon(p, poly):
 				_roof[k] = top
+
+
+## The loading fix: the colour grids sized to the roof grid (empty until a build records them).
+func _open_colours() -> void:
+	if roof_rgba.size() != _roof.size():
+		roof_rgba.resize(_roof.size())
+		roof_rgba.fill(0)
+		wall_rgba.resize(_roof.size())
+		wall_rgba.fill(0)
+
+
+## The loading fix: `col` for the cell holding a point: a wall's (`wall`), or a roof's at height `y`
+## when it is the cell's highest so far (within a metre: a wall top or a spire's corner marks
+## the height first) or the cell has no roof colour yet.
+func _colour_mark(x: float, z: float, col: Color, wall: bool, y: float) -> void:
+	var i := floori((x - _roof_x0) / ROOF_CELL)
+	var j := floori((z - _roof_z0) / ROOF_CELL)
+	if i < 0 or j < 0 or i >= _roof_nx or j >= _roof_nz:
+		return
+	var k := j * _roof_nx + i
+	var c := Color(col.r, col.g, col.b, 1.0).to_rgba32()
+	if _in_sector:
+		if wall:
+			_scratch_wall[k] = c
+		elif _scratch_rgba[k] == 0 or y >= _scratch_roof[k] - 1.0:
+			_scratch_rgba[k] = c
+	else:
+		_open_colours()
+		if wall:
+			wall_rgba[k] = c
+		elif roof_rgba[k] == 0 or y >= _roof[k] - 1.0:
+			roof_rgba[k] = c
+
+
+## The loading fix (sector_proxies.gd): the roof's and the wall's colour over the cell holding a
+## point (alpha 0: none recorded).
+func roof_colour(x: float, z: float) -> Color:
+	return _grid_colour(roof_rgba, x, z)
+
+
+func wall_colour(x: float, z: float) -> Color:
+	return _grid_colour(wall_rgba, x, z)
+
+
+func _grid_colour(grid: PackedInt32Array, x: float, z: float) -> Color:
+	var i := floori((x - _roof_x0) / ROOF_CELL)
+	var j := floori((z - _roof_z0) / ROOF_CELL)
+	if grid.is_empty() or i < 0 or j < 0 or i >= _roof_nx or j >= _roof_nz or grid[j * _roof_nx + i] == 0:
+		return Color(0, 0, 0, 0)
+	return Color.hex(grid[j * _roof_nx + i])
 
 
 ## The surface a flat layer is laid on: the terrain, or the deck it was baked onto.
@@ -3837,7 +3916,7 @@ func _build_buildings(st, keep: Array, marks) -> void:
 						Vector3(a.x, g0, a.y), Vector3(b.x, g1, b.y), Vector3(a.x, g1, a.y)])
 		_uv2 = Vector2(_uv2.x, -1.0)
 		_fill(st, poly, ground + h, roof)
-		_roof_polygon(poly, ground + h)
+		_roof_polygon(poly, ground + h, roof, wall)
 	_uv2 = Vector2.ZERO
 
 
@@ -4151,7 +4230,7 @@ func _build_lod2(walls, marks) -> Array:
 						break
 			if solid:
 				_wall_faces.append_array([pos[t], pos[t + 1], pos[t + 2]])
-		_roof_triangle(pos[t], pos[t + 1], pos[t + 2], flat_ish)
+		_roof_triangle(pos[t], pos[t + 1], pos[t + 2], flat_ish, col[t])
 	_has_lod2 = true
 	if not _in_sector:
 		return meta["keep_osm"]
