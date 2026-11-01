@@ -732,6 +732,88 @@ static func add_bollards(st: SurfaceTool, xf: Transform3D, n := 4) -> void:
 		_xbox(st, xf, Vector3(x, 0.78, 0), Vector3(0.18, 0.08, 0.18), Color("#e8e3d4"))
 
 
+## The start area as real Warsaw (R7, docs/design/start-area-real.md): Warsaw's street name plate
+## (the city information system's: a navy plate, the name in white, a red strip along the foot for
+## the district) on a grey pole at a crossing. `along` is the street the plate runs along (its faces
+## look at -z and +z), `across` the side street's, a plate lower down turned a quarter. Both faces
+## carry the name, so the camera reads one of them either way. ~400 triangles with the letters.
+static func add_street_plates(st: SurfaceTool, xf: Transform3D, along: String, across: String) -> void:
+	_xbox(st, xf, Vector3(0, 1.6, 0), Vector3(0.08, 3.2, 0.08), Color("#8d939a"))
+	_street_plate(st, xf, Vector3(0, 3.0, 0), along)
+	if across != "":
+		var turned := Transform3D(xf.basis * Basis(Vector3.UP, PI * 0.5), xf.origin)
+		_street_plate(st, turned, Vector3(0, 2.55, 0), across)
+
+
+## One plate at `centre` (local to `xf`), its faces looking at -z and +z.
+static func _street_plate(st: SurfaceTool, xf: Transform3D, centre: Vector3, name: String) -> void:
+	var px := 0.03
+	var w := PixelFont.width(name) * px + 0.16
+	_xbox(st, xf, centre, Vector3(w, 0.36, 0.04), Color("#1d2f5c"))
+	_xbox(st, xf, centre + Vector3(0, -0.15, 0), Vector3(w + 0.005, 0.07, 0.045), Color("#c8282a"))
+	var b := xf.basis.orthonormalized()
+	var top := centre.y + 0.15
+	for side in [-1.0, 1.0]:
+		# A reader on the `side` face: their right is -X on the -z face and +X on the +z one.
+		var right: Vector3 = b * Vector3(side, 0, 0)
+		var at: Vector3 = xf * Vector3(centre.x + side * -0.5 * (w - 0.16), top, centre.z + side * 0.025)
+		PixelFont.add_quads(st, name, at, right, Vector3.DOWN, px, Color("#f2f2ee"), FIXED)
+
+
+## R7: a city bike dock (a parody of the city's hire bikes): a row of `n` docked bikes, mint
+## mudguards on grey frames, in grey stands, and a terminal post at the -x end with the word
+## ROWERY (bikes) on its head. The bikes lean along x, the riders' side at -z. ~110 triangles a bike.
+static func add_bike_dock(st: SurfaceTool, xf: Transform3D, n := 6) -> void:
+	var grey := Color("#7c838b")
+	var mint := Color("#3fbfa0")
+	var tyre := Color("#24272b")
+	for k in n:
+		var z := (k - (n - 1) * 0.5) * 0.85
+		_xbox(st, xf, Vector3(0.75, 0.4, z), Vector3(0.1, 0.8, 0.12), grey)
+		_xbox(st, xf, Vector3(-0.45, 0.33, z), Vector3(0.66, 0.66, 0.05), tyre)
+		_xbox(st, xf, Vector3(0.45, 0.33, z), Vector3(0.66, 0.66, 0.05), tyre)
+		_xbox(st, xf, Vector3(-0.45, 0.33, z), Vector3(0.5, 0.5, 0.06), Color("#cfd3d6"))
+		_xbox(st, xf, Vector3(0.45, 0.33, z), Vector3(0.5, 0.5, 0.06), Color("#cfd3d6"))
+		_xbox(st, xf, Vector3(0.0, 0.6, z), Vector3(0.9, 0.08, 0.07), grey)
+		_xbox(st, xf, Vector3(-0.45, 0.68, z), Vector3(0.55, 0.06, 0.12), mint)
+		_xbox(st, xf, Vector3(0.45, 0.68, z), Vector3(0.5, 0.06, 0.12), mint)
+		_xbox(st, xf, Vector3(-0.2, 0.92, z), Vector3(0.2, 0.06, 0.14), tyre)
+		_xbox(st, xf, Vector3(0.55, 1.0, z), Vector3(0.06, 0.06, 0.5), grey)
+		_xbox(st, xf, Vector3(0.7, 0.9, z), Vector3(0.3, 0.22, 0.26), mint)
+	var end := -(n - 1) * 0.5 * 0.85 - 0.9
+	_xbox(st, xf, Vector3(0.4, 0.9, end), Vector3(0.4, 1.8, 0.3), Color("#2b2f36"))
+	_xbox(st, xf, Vector3(0.4, 1.35, end), Vector3(0.42, 0.3, 0.2), Color("#9fe0c8"), LIT_WINDOW)
+	_xbox(st, xf, Vector3(0.4, 1.86, end), Vector3(0.5, 0.22, 0.85), mint)
+	var px := 0.022
+	var word := "ROWERY"
+	var tw := PixelFont.width(word) * px
+	var b := xf.basis.orthonormalized()
+	PixelFont.add_quads(st, word, xf * Vector3(0.66, 1.86 + 0.11, end + tw * 0.5), b * Vector3.FORWARD, Vector3.DOWN, px,
+			Color("#f2f2ee"), LIT_SIGN)
+
+
+## R7: Warsaw's glass tram shelter, as the map's shared shelter (map_builder.gd) but into a
+## street-prop mesh: a graphite roof with a red edge, a glass back and end, red posts, a bench
+## and a poster box. The tracks are on its -z side. ~250 triangles.
+static func add_tram_shelter(st: SurfaceTool, xf: Transform3D) -> void:
+	var glass := Color("#b8d3df")
+	var graphite := Color("#33363b")
+	var red := Color("#c8282a")
+	_xbox(st, xf, Vector3(0, 2.5, 0.08), Vector3(4.3, 0.12, 1.95), graphite)
+	_xbox(st, xf, Vector3(0, 2.57, 0.08), Vector3(4.0, 0.03, 1.7), Color("#a7c2cf"))
+	_xbox(st, xf, Vector3(0, 2.38, -0.86), Vector3(4.3, 0.3, 0.06), red)
+	_xbox(st, xf, Vector3(0, 1.3, 0.75), Vector3(3.85, 2.05, 0.04), glass)
+	_xbox(st, xf, Vector3(-1.95, 1.3, 0.17), Vector3(0.04, 2.05, 1.15), glass)
+	for x in [-1.95, 0.0, 1.95]:
+		_xbox(st, xf, Vector3(x, 1.25, 0.78), Vector3(0.09, 2.5, 0.09), red)
+	_xbox(st, xf, Vector3(1.95, 1.2, 0.12), Vector3(0.2, 1.95, 1.3), graphite)
+	for sx in [-0.11, 0.11]:
+		_xbox(st, xf, Vector3(1.95 + sx, 1.45, 0.12), Vector3(0.02, 1.1, 1.12), Color("#f0c94a"), LIT_WINDOW)
+	_xbox(st, xf, Vector3(-0.2, 0.46, 0.5), Vector3(2.2, 0.06, 0.38), Color("#5c6168"))
+	for x in [-1.1, 0.7]:
+		_xbox(st, xf, Vector3(x, 0.22, 0.5), Vector3(0.06, 0.44, 0.3), graphite)
+
+
 ## A stop post (a tram or bus stop's pole): a 2.6 m grey pole, a round yellow-green plate facing the
 ## street and a timetable box under it. ~70 triangles.
 static func add_stop_post(st: SurfaceTool, xf: Transform3D) -> void:

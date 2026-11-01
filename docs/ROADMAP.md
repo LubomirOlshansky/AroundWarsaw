@@ -48,7 +48,7 @@ then the Launch gate.
   - [x] R5 Scena Relax, Zodiak and the Cepelia pavilion as models
   - [x] R6 a trend spot in the start box (MACZA in Pasaż Wiecha, built by the trends thread) and
         six lines on the empty stores, Frogs XXL, Plac Centralny, Scena Relax, 2026-11-01
-  - [ ] R7 street details in the box (street name plates, bike dock, tram stops, bollards)
+  - [x] R7 street details in the box (street name plates, bike dock, tram stops, bollards), 2026-11-01
   - [ ] R8 landmark polish left in the box (the museum's ribbon and roofline)
 
 ### Left: map and roads
