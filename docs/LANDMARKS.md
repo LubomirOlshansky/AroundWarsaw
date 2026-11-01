@@ -57,6 +57,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | 2.7 | Sejm (DONE 2026-11-01: hall colonnade, spec `sejm.md`, Mac photo check parked), Pałac Staszica (DONE 2026-11-01: portico, cornice, Copernicus statue, spec `staszic.md`, Mac photo check parked), Kopernik, BUW, Hala Mirowska (DONE 2026-11-01: L2 model, spec `mirowska.md`, from the mapped parts, Mac photo check parked; Hala Gwardii DONE 2026-11-01: L2 twin model, spec `gwardii.md`, bays from the outline, Mac photo check parked) | facades and roofs from the photos (Zachęta DONE 2026-10-31: model, spec `zacheta.md`, from the user's photo; Kopernik DONE 2026-11-01: L2 model, spec `kopernik.md`, log `docs/landmarks/kopernik.md`, from OSM and LoD2, then the Mac's photo check: warm strip facade with slits and bays, the copper-red planetarium drum and dome, roof craters and paths, the cantilever; BUW DONE 2026-10-31: L2 model, spec `buw.md`, log `docs/landmarks/buw.md`, from OSM: copper pages, philosophers; the roof from the orthophoto on 2026-11-01: glass field and tail, oculus, mound and pyramid, formal beds, the green band; photo check of the height and the philosophers) |
 | 2.8 | MDM and Plac Konstytucji | the blocks' arcades, reliefs, the corner towers |
 | 2.9 | Towers missing from the table | PZU Tower, JM Tower, Pekao Tower, Warsaw Towers, Atlas, Prosta |
+| 2.11 | Railway stations (F, 2026-11-01; plan `docs/design/railway.md`) | Warszawa Ochota (S1: the hypar over the glass hall on its bridge), Warszawa Powiśle (S2: the kite pavilion, the round saucer pavilion, the X canopies), then Stadion, Śródmieście's entrances, Wschodnia, Gdańska, Ochota WKD (S3); Centralna is 1.9 |
 | 2.10 | Dom bez Kantów, Departament, the Królewska block | colours from photos (guesses today); a name for the block |
 
 ### P3. Still generic (L1 from LoD2), by how often a player sees them
@@ -65,7 +66,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | --- | --- | --- |
 | 3.1 | On the demo's routes | Teatr Narodowy, Hotel Bristol, Polonia Palace, Poczta Główna, NBP, Filharmonia, Hala Koszyki, Pałac Krasińskich, Arsenał |
 | 3.2 | Churches and religious | Praga cathedral, Kościół Zbawiciela, Wizytek, Synagoga Nożyków, Katedra polowa, Cerkiew, the rest |
-| 3.3 | Stations and halls | Gdański, Powiśle, Stadion, Wschodnia, Śródmieście; Torwar, Elektrownia Powiśle |
+| 3.3 | Stations and halls | the stations moved to 2.11; Torwar, Elektrownia Powiśle |
 | 3.4 | Culture and civic | POLIN, Planetarium, Politechnika's main hall, Zamek Ujazdowski, the palaces (about 40) |
 | 3.5 | Other bridges | Śląsko-Dąbrowski, Gdański, Łazienkowski: generic decks today |
 | 3.6 | Street furniture | kiosks, tram stop platforms, Warsaw's green bins (BACKLOG "next candidates") |
