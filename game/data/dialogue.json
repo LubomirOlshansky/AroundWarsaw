@@ -1594,6 +1594,34 @@
       {
         "only": "late"
       }
+    ],
+    [
+      "Drop o 16:00. Pistacja się skończy przed moją kolejką. Zawsze tak jest.",
+      "Drop at 4 pm. The pistachio will run out before my turn. Always does.",
+      {
+        "only": "drop"
+      }
+    ],
+    [
+      "Piętnaście zł za pudełko, z którego zjem dwie kostki. Warto.",
+      "Fifteen zł for a box, I'll eat two squares. Worth it.",
+      {
+        "only": "drop"
+      }
+    ],
+    [
+      "Mama pyta, po co stoję. Mówię: to limitowane.",
+      "Mum asks why I'm standing here. I say: it's limited.",
+      {
+        "only": "drop"
+      }
+    ],
+    [
+      "Przed mną czterdzieści osób. Wszystkie nagrywają.",
+      "Forty people ahead of me. All filming.",
+      {
+        "only": "drop"
+      }
     ]
   ],
   "runners": [

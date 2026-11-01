@@ -1372,6 +1372,11 @@ func hour_now() -> float:
 	return _hour
 
 
+## The game weekday at the last tick, 1 Monday .. 7 Sunday (trend_job.gd's drop).
+func weekday_now() -> int:
+	return _weekday
+
+
 ## crowds.gd's `trend`: a slot's (or Lukrownia's) queue now, without the amount (crowds.gd
 ## applies it), and its line's tag.
 func trend_queue(id: String) -> Array:
