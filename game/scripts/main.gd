@@ -46,6 +46,7 @@ const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
 const TunnelXray := preload("res://scripts/tunnel_xray.gd")
 const PedZones := preload("res://scripts/ped_zones.gd")
+const ScooterZones := preload("res://scripts/scooter_zones.gd")
 const Heli := preload("res://scripts/heli.gd")
 const Hud := preload("res://scripts/hud.gd")
 const Missions := preload("res://scripts/missions.gd")
@@ -141,6 +142,10 @@ var cam: Camera3D
 var car: CharacterBody3D
 ## Loop 3d-1: the pedestrian zones (ped_zones.gd), where the car is capped at 20 km/h.
 var ped_zones: RefCounted
+## The 12 km/h e-scooter streets (scooter_zones.gd): a toast on entering one.
+var scooter_zones := ScooterZones.new()
+var _scooter_zone := ""
+var _scooter_toast_at := -999.0
 var _zone := ""
 ## F's asks (2026-10-30): whether the zones cap the car at all (Settings → JAZDA, off by default:
 ## settings.gd `zone_cap`), and --zone-cap / --no-zone-cap for one run (-1: the setting).
@@ -4432,6 +4437,15 @@ func _process(dt: float) -> void:
 		print("zone: %s at %.0f km/h" % [(zone + (" (20 km/h)" if zone_cap_on else " (no cap)")) if zone != "" else "left " + _zone,
 				absf(car.forward_speed) * 3.6])
 		_zone = zone
+	var sz: String = scooter_zones.at(car.global_position.x, car.global_position.z) if not flying else ""
+	if sz != _scooter_zone:
+		_scooter_zone = sz
+		var now := Time.get_ticks_msec() / 1000.0
+		if sz != "" and hud != null and now - _scooter_toast_at >= ScooterZones.COOLDOWN:
+			_scooter_toast_at = now
+			var tw: Array = ScooterZones.toast_for(sz)
+			hud.toast(str(tw[0]), str(tw[1]))
+			print("zone: scooter %s (12 km/h for scooters)" % sz)
 	_feed_life(pos)
 	if police != null:
 		police.flying = flying  # loop 3g-1: the police ignore the helicopter

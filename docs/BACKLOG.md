@@ -32,7 +32,7 @@ Spec and sources: `docs/design/trends-2025-26.md`. Built: eight parody trend spo
 - [ ] Wykop/X/TikTok skim (cloud could not fetch them); adjust the trend list.
 - [ ] Phone check of the PISTACJA queue (Friday 16:00-18:30 drop, 36 people) and the "Limitka" job (`--trend-job=4`): line on the footway, 5 s wait, 5 min delivery. Built 2026-11-01.
 - [ ] Padel thread (F, 2026-11-01; docs/design/padel.md): queue at PADELNIA and eight lines built; still to build: notebook lore entries, Trener Dominik / Pani Basia / Prezes z Mokotowa as voices, the "Czwarty" side quest, a roof court. Phone check of PADELNIA's queue.
-- [ ] E-scooter 12 km/h zones (rules of 3 June 2026) as slow zones with signs.
+- [ ] E-scooter 12 km/h zones: four discs built (Złota, Zgody, Bracka, Plac Centralny; `scooter_zones.gd`, centres *guess*, toast on entry, car not capped). Still open: check the centres against the real streets, scooter riders that slow down, a zone pill.
 - [x] Lines about matcha, padel, natural wine, queue, scooter rules: 8 column posters and 5 signs in dialogue.json (PL + EN).
 - [ ] Phone check: do the new column posters read (rows ≤ 8 letters)? Not run, no Godot in the cloud.
 - [ ] Phone check: sign sizes and placement of the eight new spots (not run: no Godot in the cloud).
