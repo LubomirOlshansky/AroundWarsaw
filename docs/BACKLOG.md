@@ -276,9 +276,13 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
 ### P1: main line and side quests (game-designer, Opus for the review)
 - Every activity has a headless check (rides, side jobs, couriers, ladder, syrenki, eggs, garage,
   police, main line, end card); none has been played end to end by a person on the phone, and the
-  pay tables are first guesses (BACKLOG-TRIAGE "Decisions"). The guide's lines, Halina's lines and
-  the end card are unreviewed ("From loop 3h slice 4"); the end card's "10 jobs" definition and the
-  trap's koguty line are open. A designer pass over all player-facing text and pay, then F's run.
+  pay tables were first guesses. **Designer pass done (2026-11-01, docs/design/pay-tables.md)**: a
+  desk model of złoty and respect a minute per activity; a rematch now gives +20 respect (was +100,
+  a shortcut past every gate), słoiki pay 40 + 30 a jar (was 50 + 35); the guide's, Halina's, the
+  end card's and the final's words made player-neutral; "10 jobs" kept as every paid job kind; the
+  koguty line was already in the first contact. Left: F's timed run on the phone (the hour, the
+  pay), and the police's "pan" outside the first contact (formal, assumes a man; ~20 lines in
+  dialogue.json `police_*`), a content pass of its own.
 - The DEMO 6.3 counts left: the second słoiki station (jobs.gd has one) and the Łazienki peacock
   rescue (none yet; the Old Town tourist is a "fainted" street rescue in missions.gd). The 10 roof
   cassettes and the landmark cards (72 vs ~25) are done (2026-11-01).
@@ -2482,8 +2486,8 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
 - **Feel on the phone**: the rubber band's numbers (pace 1.15, 25 m, 0.4-1.5) come from a 1-D model;
   F's runs should say whether Halina is close enough to feel like a race and never obviously
   waiting. The ghost finger's place and gesture likewise (it sits on the stick's side, lower left).
-- **No "6.2" beat for "two jokes, the roosters explained in one line"** of the trap: the first
-  contact's own conversation (police.dialogue) is what plays; the designer could add the koguty line.
+- ~~**No "6.2" beat for "two jokes, the roosters explained in one line"** of the trap~~: the first
+  contact already says it ("Koguty na dachu to my…", police.dialogue); checked in the designer pass.
 - ~~**The cassette is KASETA's then card** on the boulevards (a ground spot, not a roof).~~ Done in the
   first-10 polish: a mixtape on the University Library's roof (cassettes.gd, cassettes.json), taken
   from the helicopter, opens the next PÓŁNOC FM track; the beat's arrow points there. The other nine
@@ -2495,8 +2499,8 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
 - ~~The guide's words (`first10.gd` LINES, Halina's FIRST_LINES, the end card) need a designer
   review~~ (done 2026-11-01: grammar fixes (stary śmigłowiec), "To już koniec dema", tone kept;
   only text changed, not run in Godot here).
-- The end card counts every paid job kind but races and the courier bonus; DEMO's "10 jobs" might
-  mean kebab-style jobs only.
+- ~~The end card counts every paid job kind but races and the courier bonus; DEMO's "10 jobs" might
+  mean kebab-style jobs only.~~ Kept as it is by the designer pass (docs/design/pay-tables.md).
 - **The NaN car (unexplained)**: once in ~10 headless replays the player car's position went NaN at
   the first rescue's pickup (~248 s, right as Powiśle was discovered); 20 later replays were clean.
   car.gd `_keep_finite` now puts the car back at its last good transform and logs `car: state not a
