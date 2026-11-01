@@ -40,6 +40,7 @@ const Neon := preload("res://scripts/neon_signs.gd")
 const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
 const Notebook := preload("res://scripts/notebook.gd")
 const EggBook := preload("res://scripts/egg_book.gd")
+const Zaglebie := preload("res://scripts/zaglebie.gd")
 
 ## The sector size (the city's 512 m tiles: map_builder.gd SECTOR).
 const TILE := 512.0
@@ -140,8 +141,14 @@ const VENUES := {
 	"kino_luna": [["KINO", "LUNA"], CINEMA_TUBE_C, 3.2],
 	"kino_kultura": [["KINO", "KULTURA"], CINEMA_TUBE, 3.2],
 	"kino_elektronik": [["KINO", "ELEKTRONIK"], CINEMA_TUBE_B, 3.2],
-	"kino_femina": [["KINO", "FEMINA"], CINEMA_TUBE_C, 3.2],
 	"kino_kinoteka": [["KINOTEKA"], CINEMA_TUBE, 3.2],
+	# Zagłębie Kebabowe on Al. Solidarności (zaglebie.gd): Kino Femina's fascia and the five shops'.
+	"zag_femina": [["KINO", "FEMINA"], Color(1.0, 0.3, 0.35), 4.6],
+	"zag_krol": [["KEBAB KRÓL", "MAZOWSZA"], Color(1.0, 0.72, 0.12), 2.8],
+	"zag_stambul": [["STAMBUŁ 24"], Color(0.1, 0.9, 1.0), 2.8],
+	"zag_pasza": [["DONER", "PASZA"], Color(1.0, 0.1, 0.4), 2.8],
+	"zag_erdal": [["U WUJKA", "ERDALA"], Color(0.2, 1.0, 0.45), 2.8],
+	"zag_rozen": [["ZAKWAS", "I ROŻEN", "CRAFT KEBAB"], Color(1.0, 0.85, 0.35), 2.8],
 }
 ## COFFEECHAIR (BACKLOG, the user 2026-10-31): a parody of a real coffee-shop chain, our own name
 ## and a warm cream tube (no logo, no chair icon of anyone's). Small cafés that are not notebook
@@ -198,8 +205,8 @@ const HYPE := {
 }
 ## Warsaw's classic and arthouse cinemas (F, 2026-11-02; BACKLOG "Lore: coffee raves and arthouse
 ## cinemas"): Kino Muranów (Andersa 1), Atlantic (Chmielna 33), Luna (Marszałkowska 28), Kultura
-## (Krakowskie Przedmieście 21/23), Elektronik (Czerwonego Krzyża 3/5), Femina (Al. Solidarności
-## 115, by the kebab district) and the Kinoteka in the Palace. Like the cafés, not notebook places;
+## (Krakowskie Przedmieście 21/23), Elektronik (Czerwonego Krzyża 3/5) and the Kinoteka in the Palace
+## (Kino Femina's fascia is zaglebie.gd's `zag_femina`). Like the cafés, not notebook places;
 ## same venue code, the nearest road snaps the sign. Iluzjon (Narbutta, Mokotów) is south of the map.
 const CINEMAS := {
 	"kino_muranow": [52.24620, 21.00030],
@@ -207,9 +214,16 @@ const CINEMAS := {
 	"kino_luna": [52.22830, 21.01360],
 	"kino_kultura": [52.24060, 21.01680],
 	"kino_elektronik": [52.23480, 21.02900],
-	"kino_femina": [52.24195, 20.99440],
 	"kino_kinoteka": [52.23100, 21.00450],
 }
+## Zagłębie Kebabowe's venue anchors: id -> [lat, lon] (Femina and the five shops' doors).
+static func zaglebie_table() -> Dictionary:
+	var t := {Zaglebie.FEMINA_ID: Zaglebie.FEMINA}
+	for sh: Dictionary in Zaglebie.SHOPS:
+		t[sh["id"]] = sh["ll"]
+	return t
+
+
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
 const VENUE_PX_MIN := 0.08
@@ -317,7 +331,7 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS]:
+	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, zaglebie_table()]:
 		for id: String in table:
 			var ll: Array = table[id]
 			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
