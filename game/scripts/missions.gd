@@ -13,6 +13,7 @@ extends Node
 signal accepted
 
 const Access := preload("res://scripts/access.gd")
+const Haptics := preload("res://scripts/haptics.gd")
 const Beacon := preload("res://scripts/beacon.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 
@@ -230,16 +231,10 @@ func call_in() -> float:
 const HAPTICS_LEAD := 2.0
 
 
-## Builds the haptic engine if it isn't yet and starts it without waiting (the engine's
-## singleton exists on iPhone builds only; elsewhere this does nothing). True when it ran.
+## Builds the haptic engine if it isn't yet and starts it without waiting (haptics.gd warm();
+## the engine's singleton exists on iPhone builds only; elsewhere this does nothing). True when it ran.
 static func warm_haptics() -> bool:
-	for n: String in ["AppleEmbedded", "iOS"]:
-		if Engine.has_singleton(n):
-			var ios := Engine.get_singleton(n)
-			if ios.has_method("start_haptic_engine"):
-				ios.call("start_haptic_engine")
-				return true
-	return false
+	return Haptics.warm()
 # --- end sweep 2 ---------------------------------------------------------------------------
 
 

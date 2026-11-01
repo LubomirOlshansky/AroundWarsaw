@@ -19,6 +19,7 @@ extends Node
 
 const Districts := preload("res://scripts/districts.gd")
 const Models := preload("res://scripts/models.gd")
+const Access := preload("res://scripts/access.gd")
 
 const DATA_PATH := "res://data/cassettes.json"
 const CHECK_EVERY := 0.2
@@ -188,7 +189,7 @@ func take(id: String) -> bool:
 		hud.show_note("KASETA Z MUZYKĄ · MIXTAPE", "%s\n%s\n%s" % [name[0], line[0], line[1]], COLOUR)
 	if blip.is_valid():
 		blip.call()
-	Input.vibrate_handheld(40, 0.4)
+	Access.buzz(40, 0.4)
 	var n := 0
 	if radio != null:
 		n = radio.next_locked()

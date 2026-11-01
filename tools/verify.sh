@@ -134,8 +134,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails streetmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh spec drape drive steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails streetmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh spec drape drive steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -694,6 +694,8 @@ for s in $want; do
 		sites) check sites '^check_sites:' --script res://tools/check_sites.gd ;;
 		meshq) check meshq '^check_mesh_quality:' --script res://tools/check_mesh_quality.gd ;;
 		sfx) check sfx '^sfx:' --script res://tools/check_sfx.gd ;;
+		# v1.0 juice: crash sparks and dust (crash_fx.gd), the buzzes' floor and switch (haptics.gd).
+		juice) check juice '^check_juice:' --script res://tools/check_juice.gd ;;
 		radio) check radio '^radio:' --script res://tools/check_radio.gd ;;
 		sounds) check sounds '^city_sounds:' --script res://tools/check_city_sounds.gd ;;
 		# Loop 10a: where a car can get into the water (whole map), and the game's tow decisions.
