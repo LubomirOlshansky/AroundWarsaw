@@ -5663,7 +5663,7 @@ func _pick_unghosted(origin: Vector3, dir: Vector3) -> int:
 		dv.x *= 0.78
 		if dv.y > 0.0:
 			dv.y /= float(_shader_value(building_mat, "occlusion_up", 1.35))
-		region = 1.0 - smoothstep(0.65, 0.9, dv.length())
+		region = 1.0 - smoothstep(0.74, 0.84, dv.length())
 	if region < GHOST_PICK or dir.y > -0.01:
 		return map.pick_landmark(origin, dir)
 	var occ: Vector4 = _shader_value(building_mat, "occluder", Vector4(0, 0, 0, -1))
@@ -5674,7 +5674,7 @@ func _pick_unghosted(origin: Vector3, dir: Vector3) -> int:
 		var top: float = map.roof_height(q.x, q.z)
 		if top != MapBuilder.NO_ROOF and q.y <= top:
 			var side := (Vector2(q.x, q.z) - Vector2(occ.x, occ.y)).dot(Vector2(occ.z, occ.w))
-			if region * smoothstep(1.0, 4.0, -side) < GHOST_PICK:
+			if region * smoothstep(1.0, 2.0, -side) < GHOST_PICK:
 				return map.landmark_at(q.x, q.z)
 		if q.y < map.terrain_height(q.x, q.z) - 0.5:
 			return -1

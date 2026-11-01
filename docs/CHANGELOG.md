@@ -17,6 +17,7 @@ someone writes its lines.
 
 - Podwózka is easier to catch: the waiting passenger's "!" is bigger, and within 25 m a START KURS button starts the ride at once (no stopping in a ring), with the destination and distance on the toast. Rescues now follow your vehicle: in the helicopter you get roof and sandbar calls (violet marker), in the car street and park calls, and car jobs hide their arrow while you fly.
 - The helicopter and the map teleport are open from the first second; traffic starts calmer; the car grips the road more and slides less; zoom buttons (+ / −) next to the minimap; POMOC DROGOWA and NOWA GRA at the top of Settings; bigger pickup rings.
+- The see-through fade on buildings beside the car is a thin seam now, so walls no longer flicker at the road edge.
 - The old VHS tape filter is now a Retro vaporwave look in Settings → Obraz: pink and teal sunset tones, a soft neon glow, scanlines and a little grain. The picture-style choice is gone; the game always draws the sharp image.
 - Marszałkowska's tram stops fill with commuters at rush hour, thin out at weekends and night, and crowd the platforms when it rains.
 - Photo mode no longer lets your car roll backwards into a building, and the pause menu's JAZDA tab has a POMOC DROGOWA button that tows you onto the nearest road if you ever get stuck.
