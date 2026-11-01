@@ -50,6 +50,7 @@ const S_FRAME := 8
 const S_TILE := 9   # Novotel's white tiled shaft (the Rondo photos, 2026-10-31)
 const S_EASTWALL := 10  # the Eastern Wall stores: strong dark mullions every 1.5 m, a thin floor line
 const S_PUNCHED := 11   # a re-clad point block: light horizontal cladding, punched windows in bands
+const S_MIRROR := 13    # the Blue Skyscraper's blue reflective float glass
 const S_SLAB := 12      # a 1960s slab's long face: plaster and loggia bands
 
 ## The landmarks loop (2026-10-30): the skyline's towers, so each reads as itself and not as one
@@ -76,7 +77,9 @@ const TOWERS := [
 	{"key": "hub_b", "at": Vector2(-2677.0, 576.0), "style": S_FINS, "glass": "#8fb2c8", "roof": "#c9d2d8", "crest": "slope"},
 	{"key": "hub_c", "at": Vector2(-2677.0, 633.0), "style": S_FINS, "glass": "#8fb2c8", "roof": "#c9d2d8", "crest": "slope"},
 	{"key": "skysawa", "osm": "Skysawa", "style": S_BANDS, "glass": "#7e93a3", "roof": "#a7b0b6"},
-	{"key": "blekitny", "osm": "Błękitny Wieżowiec", "style": S_GOLD, "glass": "#c9a45c", "roof": "#8e8a80"},
+	# Błękitny Wieżowiec (Plac Bankowy 2, 1991): untinted reflective float glass that mirrors the
+	# sky, hence blue (its first cladding was copper, the "Golden Tower"; spec blekitny.md).
+	{"key": "blekitny", "osm": "Błękitny Wieżowiec", "style": S_MIRROR, "glass": "#5f94c6", "roof": "#9aa3aa", "cool": true},
 	{"key": "wcf", "osm": "Warszawskie Centrum Finansowe", "style": S_DARK, "glass": "#4d6862", "roof": "#7d8580"},
 	# The dusk loop (2026-10-31): Centrum LIM holds the Marriott (the 140 m tower at about
 	# (-1308, 697)), so the one site is dressed as it: dark green-black glass in a fine grid,
@@ -176,8 +179,8 @@ const INFO := {
 			"155 m przy Świętokrzyskiej.",
 			"155 m on Świętokrzyska."],
 	"blekitny": ["Błękitny Wieżowiec",
-			"120 m przy placu Bankowym. Błękitny z nazwy, złoty ze szkła.",
-			"120 m on Plac Bankowy. Blue by name, gold by its glass."],
+			"120 m przy placu Bankowym. Szkło lustrzane z 1991 roku: błękitny, bo odbija niebo.",
+			"120 m on Plac Bankowy. 1991 mirror glass: blue because it reflects the sky."],
 	"wcf": ["Warszawskie Centrum Finansowe",
 			"144 m. Otwarte w 1998 roku.",
 			"144 m. Opened in 1998."],
@@ -266,6 +269,24 @@ const INFO := {
 	"brama_uw": ["Brama Główna Uniwersytetu",
 			"Wejście na kampus najstarszej uczelni stolicy, z 1816 roku.",
 			"The way into the campus of the capital's oldest university, 1816."],
+	"ratusz": ["Ratusz przy placu Bankowym",
+			"Pałac Komisji Rządowej Przychodów i Skarbu (Corazzi, 1825): żółty, z kolumnami, dziś urząd miasta.",
+			"The Treasury palace (Corazzi, 1825): yellow, columned, today the city hall."],
+	"wojewodzki": ["Mazowiecki Urząd Wojewódzki",
+			"Skrzydło pałacu Komisji Skarbu od strony placu: tu załatwia się sprawy wojewody.",
+			"The Treasury palace's wing on the square, where the voivode's paperwork gets done."],
+	"gielda": ["Giełda i Bank Polski",
+			"Klasycystyczny gmach Corazziego z rotundą, kiedyś giełda, dziś siedziba spółek.",
+			"Corazzi's classical bourse and bank with its rotunda, now offices."],
+	"arsenal": ["Arsenał",
+			"Siedemnastowieczny arsenał królewski, od 1953 Muzeum Archeologiczne.",
+			"The seventeenth-century royal arsenal, the Archaeological Museum since 1953."],
+	"mniszchow": ["Pałac Mniszchów",
+			"Niski pałacyk przy Senatorskiej, z cegły i tynku.",
+			"A low palace on Senatorska, brick and plaster."],
+	"landau": ["Dom Bankowy Landaua",
+			"Neorenesansowy dom bankiera przy placu Bankowym.",
+			"A banker's neo-Renaissance house on Plac Bankowy."],
 	"kazimierzowski": ["Pałac Kazimierzowski",
 			"Barokowy pałac w głębi kampusu, siedziba rektoratu.",
 			"A baroque palace deep in the campus, home of the rector's office."],
@@ -2275,7 +2296,7 @@ func _build_tower(site: Dictionary) -> void:
 			wall = _osm(b["c"], glass)  # mapped in its own colours (Chałubińskiego 8's white ribs)
 		elif h < top_h * 0.3 and h < 40.0:
 			# The podium: the tower's glass, a step warmer and darker.
-			wall = glass.darkened(0.12).lerp(Color("#b8a88c"), 0.15)
+			wall = glass.darkened(0.12).lerp(Color("#b8a88c"), 0.0 if spec.get("cool", false) else 0.15)
 		if spec.get("crest", "") == "slope" and h >= top_h - 0.5:
 			_sloped(poly, base, g + h, g + h - 24.0, wall, roof, skin)
 		else:
@@ -2708,6 +2729,13 @@ const SKINS := [
 	{"key": "czapski", "osm": "Pałac Czapskich", "mode": M_MONUMENT, "wall": "#e4cfae", "roof": "#6b5f5a"},
 	{"key": "potocki", "osm": "Pałac Potockich", "mode": M_MONUMENT, "wall": "#e8d9a8", "roof": "#7a6e68"},
 	{"key": "bristol", "osm": "Hotel Bristol", "mode": M_MONUMENT, "wall": "#e4d2b4", "roof": "#6a5a52"},
+	# Plac Bankowy (2026-11-02): the palaces round the square in their real colours.
+	{"key": "ratusz", "osm": "Urząd Miasta Stołecznego Warszawy", "mode": M_MONUMENT, "wall": "#e6d8a0", "roof": "#76847a"},
+	{"key": "wojewodzki", "osm": "Mazowiecki Urząd Wojewódzki", "mode": M_MONUMENT, "wall": "#e3d6a8", "roof": "#76847a"},
+	{"key": "gielda", "osm": "Gmach Giełdy i Banku Polskiego", "mode": M_MONUMENT, "wall": "#e4d8b2", "roof": "#7a847c"},
+	{"key": "arsenal", "osm": "Arsenał", "mode": M_MONUMENT, "wall": "#e8dfc6", "roof": "#8b5a44"},
+	{"key": "mniszchow", "osm": "Pałac Mniszchów", "mode": M_MONUMENT, "wall": "#e2cdb6", "roof": "#7a6a62"},
+	{"key": "landau", "osm": "Dom Bankowy Landaua", "mode": M_MONUMENT, "wall": "#d9b99e", "roof": "#6e6660"},
 	{"key": "kazimierzowski", "osm": "Pałac Kazimierzowski", "mode": M_MONUMENT, "wall": "#e6d9ac", "roof": "#6e6a62"},
 	{"key": "sejm", "osm": "Sejm RP", "mode": M_MONUMENT, "wall": "#e2e0d8", "roof": "#8d8f8c"},
 	# Dom Partii (F's photo, 2026-11-01): the white stone block at Rondo de Gaulle'a; its extras

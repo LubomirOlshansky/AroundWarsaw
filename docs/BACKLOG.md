@@ -119,6 +119,23 @@ photos, per the landmark recipe in docs/LANDMARKS.md.
 Split for parallel threads: G4 (driving), G5 (collisions and flicker), G8+G9 (street life),
 G10+G12 (quests), G13 (shop, after G4), G7+G11 (visual content), G16 (text), G17 (traffic), G18 (Ujazdów). G1-G4, G14 and G15 are done by this thread.
 
+## Plac Bankowy as in real life (F, 2026-11-02)
+
+Pass 1 (cloud, Sonnet, light definition of done): the Blue Skyscraper (OSM "Błękitny Wieżowiec")
+is blue reflective float glass (S_MIRROR, glass #5f94c6, grey roof, cool podium), the gold was its
+copper first cladding; kept skins with cards for the Treasury palace / city hall (`ratusz`, the
+OSM name "Urząd Miasta Stołecznego Warszawy", cream-yellow, grey-green roof), its Voivodeship wing
+(`wojewodzki`; OSM maps it teal, now palace yellow), the old Stock Exchange and Bank of Poland
+(`gielda`), the Arsenal (`arsenal`), Pałac Mniszchów, Dom Bankowy Landaua. The OSM already maps
+the Treasury palace's portico columns and wing pavilions; they now read in yellow with pale columns.
+- Pass 2: a modelled pediment over the main portico and the stepped gables on the wings' square
+  ends (Corazzi's facade has a six-column Corinthian portico, wings two storeys on the square), the
+  Arsenal's real front (central risalit, tall roof), Giełda's rotunda, the Bankowa tenements
+  (unnamed in OSM: need a site by point, like `_tallest_at`).
+- Pałac Jabłonowskich (the old Ratusz with the clock tower) is on Plac Teatralny, not here, and is
+  not modelled yet (OSM "Pałac Jabłonowskich", 39 points near (-990, -1185)); next to `teatr`.
+- Overlaps Za Żelazną Bramą (PR #215): none; it works west of Al. Jana Pawła II.
+
 ## Marszałkowska street by street (F, 2026-11-01)
 
 Order: plac Bankowy to plac Zbawiciela. Pass 1 (cloud, Sonnet): Kościół Najświętszego Zbawiciela

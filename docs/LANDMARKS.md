@@ -131,7 +131,7 @@ Checks: `check_landmarks.gd` runs on the full map for EVERY site that has a card
 | Mennica Legacy Tower | S_FINS | crest slope | - |
 | Generation Park Y | S_DARK | crest slope | - |
 | Skysawa | S_BANDS | - | - |
-| Błękitny Wieżowiec | S_GOLD | gold glass | - |
+| Błękitny Wieżowiec | S_MIRROR | blue reflective float glass (2026-11-02; was gold: that was its first copper cladding), cool podium, grey roof | Mac photo check: blue tone, spandrel width |
 | Warszawskie Centrum Finansowe | S_DARK | - | Bank Polski/PHN crown unlit |
 | Centrum LIM (Marriott; "PREZYDENT" sign, SAMSONG on mid band) | S_GRID | `_marriott`: dark bands, lattice mast, red lamp; crown name | lit cells too cold/many |
 | Chałubińskiego 8 | S_FINS | mapped colours kept | antenna / dark-glass refit unlit |

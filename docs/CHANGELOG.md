@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Plac Bankowy looks like the real square: the Blue Skyscraper is blue mirror glass (not gold), and the city hall palace, the Voivodeship wing, the old Stock Exchange and Bank, the Arsenal and two small palaces wear their real colours (yellow palace with white columns).
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
