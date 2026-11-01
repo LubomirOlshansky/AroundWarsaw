@@ -5631,6 +5631,8 @@ Command-line options (after `--`):
 | `--packs-log` | packs: print `packs:` lines: the routes' lengths, each club setting off and going home, each rave with its booth's position, the minute's summary (where each pack's head is), every line and meeting |
 | `--tram-log` | vintage-tram loop: print `old tram:` lines: each run taken out of sight and turned modern, the follow count every 50 m and its resets, E39 |
 | `--bus-log` | night-buses loop: print `buses:` lines: the hub's bays and stops, each gathering and ring bus, the car at the ring, the race to the Palm, each honk and called bus, the stop lines, a summary every 20 s |
+| `--crash=now` / `--crash=X,Z` / `--crash=on` / `--crash=0` | crash scenes (`crash_scenes.gd`): a scene now 45-130 m ahead of the car (shots; it may be in view), or on the fitting road nearest X,Z; `on`: the 3-5 minute timer in a test run too (it runs in a normal launch only); `0`: none |
+| `--crash-log` | crash scenes: print `crash:` lines: the first scene's wait, each scene (where, street, lane, vehicles, distance, life), the radio line, every bubble line, each clear and the next wait |
 | `--honk=F1,F2,...` | night-buses loop: the player honks on those frames (as the horn button; rate-limited) |
 | `--life-soak` | loop MW-4: a Friday dusk; the car is driven at the nearest dog walker or rider at 7 m/s, every frame counts a dog, walker or rider inside the car's footprint (`life: soak done … overlaps 0`); verify step `life-soak` |
 | `--paint=<id>` | garage loop: the car starts in that paint (`red`, `cream`, `green`, `blue`, `yellow`, `black`, `pink`, `gold`), owned for the run (use with `--nosave`) |

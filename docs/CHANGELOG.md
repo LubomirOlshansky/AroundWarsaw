@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Now and then a fender bender blocks a lane somewhere ahead: two dented cars, a police car with its lights flashing and a yellow ambulance, the drivers arguing over who had the green while people film it for the estate's group. Traffic queues and squeezes past, and KEBAB FM reads it out in the traffic news.
 - Warszawa Stadion station is a landmark: the white 1950s hall with its curved sail and the platforms' walls in the stadium's red-and-white mosaic.
 - The railway has its overhead wires now, hung from grey masts along the tracks, and the cross-city tunnel has concrete mouths where the trains disappear.
 - Trains run through the city: green-and-white suburban units, the red city line and long grey-blue expresses come out of the cross-city tunnel and the map's edges, stop at Ochota, Powiśle and Stadion, and roll over the bridge.

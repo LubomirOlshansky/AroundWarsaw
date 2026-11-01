@@ -63,6 +63,10 @@
 # Loop night-buses: `buses` runs game/tools/check_buses.gd: the N sign's hours and mesh, the
 # Centralny gatherings on a synthetic clock (rings of 5-8), the bays and stops, the stop figures'
 # cap, the horn's rate limit, E23/E24/E25 once each; centrum.json only (CI too).
+# The crash scenes (2026-11-01): `crashes` runs game/tools/check_crash_scenes.gd: the police family's
+# three shapes in one surface (the ambulance), the `crash_scene` and KEBAB FM lines, spots on the real
+# lane graph (main roads, 2+ lanes, no overlaps), the real traffic queueing and going round a scene,
+# the timer (first, life, gap); centrum.json only (CI too).
 # The vintage-tram loop: `oldtram` runs game/tools/check_old_tram.gd: the old set's window (weekends
 # 09-19, Live Jun-Sep) and one run an hour, the follow count and its reset, the look's draw-call
 # budget (2 car meshes, no node added), a run on the real tracks finding E39 once; centrum.json only
@@ -142,8 +146,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails streetmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh spec drape drive steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice gamepad radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails streetmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings tiers governor hud places edge eggs tape crowds life buses crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh spec drape drive steering stopassist settings tiers governor hud places edge eggs tape crowds life buses crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice gamepad radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -679,6 +683,9 @@ for s in $want; do
 		# "Na czasie" pay, the Zając, Fat Thursday, the life eggs (E16 E18-E20 E27-E30).
 		life) check life '^check_city_life:' --script res://tools/check_city_life.gd ;;
 		buses) check buses '^check_buses:' --script res://tools/check_buses.gd ;;
+		# The crash scenes: the ambulance in the police family, the lines, the spots on the real
+		# graph, the traffic going round a scene, the timer.
+		crashes) check crashes '^check_crash_scenes:' --script res://tools/check_crash_scenes.gd ;;
 		oldtram) check oldtram '^check_old_tram:' --script res://tools/check_old_tram.gd ;;
 		# The railway (docs/design/railway.md T1): the trains on the rail tracks.
 		trains) check trains '^check_trains:' --script res://tools/check_trains.gd ;;

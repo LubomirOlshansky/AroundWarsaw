@@ -53,7 +53,7 @@ jobs:
       - name: tools/verify.sh, the steps that need no map
         env:
           GODOT: /home/runner/godot/godot
-        run: zsh tools/verify.sh --only=steering,settings,tiers,governor,hud,places,edge,eggs,tape,crowds,life,buses,oldtram,packs,garage,save,districts,syrenki,cassettes,ladder,first10,endcard,opening,parodies,jobs2,couriers,rides,sites,meshq,sfx,juice,gamepad,radio,sounds,police --logs="$RUNNER_TEMP/verify"
+        run: zsh tools/verify.sh --only=steering,settings,tiers,governor,hud,places,edge,eggs,tape,crowds,life,buses,crashes,oldtram,packs,garage,save,districts,syrenki,cassettes,ladder,first10,endcard,opening,parodies,jobs2,couriers,rides,sites,meshq,sfx,juice,gamepad,radio,sounds,police --logs="$RUNNER_TEMP/verify"
 
       - name: Keep the logs
         if: always()

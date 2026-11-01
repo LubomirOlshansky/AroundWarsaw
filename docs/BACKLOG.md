@@ -3,6 +3,21 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Crash scenes (F, 2026-11-01)
+
+Lane file: [docs/design/crash-scenes.md](design/crash-scenes.md). Built: `crash_scenes.gd` (a
+fender bender every 3-5 minutes ahead on a main road: two wrecks, the police car, the ambulance as
+the police family's shape 2, seven people, the `crash_scene` lines, KEBAB FM's `crash` lines),
+traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WAIT),
+`check_crash_scenes.gd` in verify and CI, `--crash=now|X,Z|on|0`, `--crash-log`. Left:
+- The phone's look (the ambulance's lettering and band at phone size, the halos at night) and a
+  bench on the device with a scene in view (+0 draw calls by construction; cloud bench below).
+- A siren or hazard-light sound at the scene (sfx.gd has the police siren only for chases).
+- A minimap or full-map marker for the scene (today only the radio names the street).
+- Wrecks have no hazard lights or broken glass; nobody waves the traffic on.
+- The scene's people stand still (no gestures); the onlookers' phones are not modelled.
+- A scene on a one-lane road (none today: they need 2+ lanes so the traffic can go round).
+
 ## The railway: stations, the cross-city line, trains (F, 2026-11-01)
 
 Plan: docs/design/railway.md. One PR per item, in this order:
