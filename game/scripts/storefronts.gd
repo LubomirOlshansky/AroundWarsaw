@@ -21,8 +21,9 @@ extends Node3D
 ##    `scooter_zone` (the one by Metro Nowy Świat-Uniwersytet holds a standing Leżak: egg
 ##    `easter_lezak`); the car within 1.2 m pushes one 1-3 m (never onto a lane), a clatter and
 ##    the `lezak` `knock` aside once a minute.
-##  - **Metro entrances** (vision 3.5): a canopy with an M post at each street `subway_entrance`
-##    poi, facing its `yaw`.
+##  - **Metro entrances** (vision 3.5): at each street `subway_entrance` poi, facing its `yaw`, in
+##    the form its `f` says (glass-vault canopy, granite stairwell, footway passage mouth) with a
+##    treaded opening, a red M post and, on 3 in 5, a glass lift (`Props.add_metro_entrance`).
 ##  - **Kebab** (6.1): U ZDZICHA and NA CIENKIM name boards on the stands nearest those places,
 ##    the vendors' `zdzich`, `cienkim`, `hala`, `stadium` tags (jobs.gd draws the other stands in
 ##    a MultiMesh per tile); **billboards** (6.2): the four new `signs` lines (eggs.gd's
@@ -1124,7 +1125,8 @@ func _load_metros(pois: Array) -> void:
 		var x := float(p["x"])
 		var z := float(p["z"])
 		metros.append({"at": Vector3(x, map.ground_height(x, z), z), "yaw": float(p["yaw"]), "station": str(p.get("st", "")),
-				"ref": str(p.get("ref", "")), "key": key_of(Vector2(x, z))})
+				"ref": str(p.get("ref", "")), "key": key_of(Vector2(x, z)), "form": str(p.get("f", "canopy")),
+				"lift": (int(absf(x * 7.0 + z * 13.0)) % 5) < 3})
 
 
 ## The Rowerilo docks from the bake's `bicycle_rental` pois (`yaw` along the rack row, `l` its length
@@ -1208,7 +1210,7 @@ func _build_props(key: Vector2i, root: Node3D) -> void:
 	var first := true
 	for i: int in b["metros"]:
 		var m := metros[i]
-		Props.add_metro_entrance(st, Transform3D(Basis(Vector3.UP, float(m["yaw"])), m["at"]))
+		Props.add_metro_entrance(st, Transform3D(Basis(Vector3.UP, float(m["yaw"])), m["at"]), m["form"], m["lift"])
 		box = AABB(m["at"], Vector3.ZERO) if first else box.expand(m["at"])
 		first = false
 	for i: int in b["zones"]:

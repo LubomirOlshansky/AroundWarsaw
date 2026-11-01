@@ -2343,8 +2343,8 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
 - **Stamp reach** is 8 m from the door point (parodies.md 2.4 says 6): the door point is 1 m out
   from the wall and a car on the near lane stops a pavement's width plus half a lane away
   (`--rechotka` stops 6.4 m from Krucza 51's door). Open Question in the MW-2 report.
-- **The metro M** is a cream M on a navy square: generic, no operator's logo; at the default
-  view it is a few pixels. The art director may want it bigger or red.
+- ~~**The metro M** is a cream M on a navy square~~ (done 2026-11-01: a red lit square on a 3.4 m
+  post, plus a red fascia on the canopies; still our own shape, no operator logo).
 
 ## From the content-POIs loop (map lane, 2026-10-31)
 

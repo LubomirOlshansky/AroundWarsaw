@@ -31,6 +31,7 @@ then the Launch gate.
 - [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted
 
 ### Left: the start of the game
+- [x] Metro entrances modelled at the real M1/M2 stairs: vaulted glass canopies, stairwells, passage mouths, red M posts, lifts (F, 2026-11-01; Mac look check parked in QUESTIONS)
 - [x] Merge PR #115 (start facing the first stand, short first order, BUW roof cassette), then
       PR #121 (the opening flyover) (both on main; ticked 2026-11-01)
 - [ ] First-scene items 4-7: pavilions and towers behind the stores, Plac Defilad's paving, tram

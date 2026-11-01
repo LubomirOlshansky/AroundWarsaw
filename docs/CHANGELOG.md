@@ -10,6 +10,8 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+
+- The metro stations' street entrances look like the real thing now: glass-vaulted canopies, stairwells with railings and steps leading down, passage mouths, tall red lit M signs, and glass lifts beside many of them.
 - The Old Town has hotels: Kasztel Inn by Castle Square, Hotel Canaletto and the Rezydencja Starówka on the Market now have a door with a lit entrance, a canopy, a neon name and flags, and a card when you tap them.
 - ROWERILO city-bike docks now stand at the real station spots across the city: a row of mint bikes and a glowing terminal on the pavement.
 - The city no longer ends in blue sky at its edges: past Warszawa Wschodnia, Dworzec Gdański and all round the map the land runs on, with a tree line, blocks of flats beyond and the tracks and roads heading out, all fading into the distance.

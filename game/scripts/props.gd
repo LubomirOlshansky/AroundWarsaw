@@ -508,37 +508,100 @@ static func _xbox(st: SurfaceTool, xf: Transform3D, centre: Vector3, size: Vecto
 	obox(st, xf * centre, xf.basis.orthonormalized(), size, colour, part)
 
 
-## A metro entrance (vision.md 3.5): a low glass-and-steel canopy over a stair opening and a post
-## with a plain pixel-font M in a square (our own shape, not the operator's mark: cream on navy,
-## lit at night), into the sector's street-prop mesh at `xf` (the stairs go down along -z; the
-## post stands at the front right). ~250 triangles.
-static func add_metro_entrance(st: SurfaceTool, xf: Transform3D) -> void:
+## A metro entrance (vision.md 3.5, M1 and M2 at the real stairs) into the sector's street-prop
+## mesh at `xf` (open front at -z; the stairs go down towards +z, as the bake's `yaw` says). `form`
+## is the bake's `f`: "canopy" (a barrel-vaulted glass canopy on steel ribs with a lit red fascia
+## and a handrail down the middle), "steps" (an open stairwell behind a granite balustrade) or
+## "footway" (a passage mouth between two stepped concrete retaining walls). Every form has the
+## step treads painted down the dark opening, a red M post (a pixel-font M in a red square, our
+## own shape, not the operator's mark; lit at night) and, when `lift`, a glass lift shaft beside it.
+## Stays in the sector's one mesh: no extra draw call. 320-620 triangles.
+static func add_metro_entrance(st: SurfaceTool, xf: Transform3D, form := "canopy", lift := false) -> void:
 	var steel := Color("#5b5f66")
+	var rail := Color("#b9bec4")
 	var glass := Color("#a8cde6")
-	var navy := Color("#24324a")
-	var cream := Color("#fbf7ee")
-	# The opening (dark), its kerb and the canopy on four posts.
+	var granite := Color("#8d8b86")
+	var concrete := Color("#9a978f")
+	# The opening, its treads (light at the top, darker down) and the handrail posts.
 	_xbox(st, xf, Vector3(0, 0.02, 0), Vector3(2.2, 0.03, 4.0), Color("#1d1f24"))
-	for x in [-1.2, 1.2]:
-		_xbox(st, xf, Vector3(x, 0.5, 0.0), Vector3(0.1, 1.0, 4.2), steel)
-	_xbox(st, xf, Vector3(0, 0.5, 2.05), Vector3(2.5, 1.0, 0.1), steel)
-	for x in [-1.2, 1.2]:
-		for z in [-1.9, 1.9]:
-			_xbox(st, xf, Vector3(x, 1.45, z), Vector3(0.08, 0.9, 0.08), steel)
-	_xbox(st, xf, Vector3(0, 1.95, 0), Vector3(2.6, 0.08, 4.2), glass, LIT_WINDOW)
-	_xbox(st, xf, Vector3(0, 2.02, 0), Vector3(2.7, 0.06, 0.1), steel)
-	# The M post: a 2.8 m pole, a 0.8 m navy square with a cream M on both faces.
-	var post := Vector3(1.7, 0, -2.2)
-	_xbox(st, xf, post + Vector3(0, 1.4, 0), Vector3(0.1, 2.8, 0.1), steel)
-	_xbox(st, xf, post + Vector3(0, 2.75, 0), Vector3(0.8, 0.8, 0.08), navy, LIT_SIGN)
-	var px := 0.085
+	for i in 9:
+		var k := float(i) / 8.0
+		var tone := Color("#7b7e84").lerp(Color("#2a2c31"), k)
+		_xbox(st, xf, Vector3(0, 0.04, -1.8 + i * 0.42), Vector3(2.2, 0.02, 0.2), tone)
+	for z in [-1.7, 0.0, 1.7]:
+		_xbox(st, xf, Vector3(0, 0.5, z), Vector3(0.05, 1.0, 0.05), rail)
+	_xbox(st, xf, Vector3(0, 0.98, 0), Vector3(0.06, 0.05, 3.7), rail)
+	match form:
+		"steps":
+			# A balustrade of granite on three sides, a cap on its top.
+			for x in [-1.2, 1.2]:
+				_xbox(st, xf, Vector3(x, 0.45, 0.0), Vector3(0.22, 0.9, 4.2), granite)
+				_xbox(st, xf, Vector3(x, 0.93, 0.0), Vector3(0.32, 0.06, 4.3), steel)
+			_xbox(st, xf, Vector3(0, 0.45, 2.0), Vector3(2.66, 0.9, 0.22), granite)
+			_xbox(st, xf, Vector3(0, 0.93, 2.0), Vector3(2.76, 0.06, 0.32), steel)
+		"footway":
+			# Two retaining walls climbing from the mouth into the ground, handrails along them.
+			for x in [-1.2, 1.2]:
+				for j in 4:
+					var hgt := 0.35 + j * 0.3
+					_xbox(st, xf, Vector3(x, hgt * 0.5, -1.5 + j * 1.0), Vector3(0.24, hgt, 1.0), concrete)
+				_xbox(st, xf, Vector3(x * 0.9, 1.0, -0.1), Vector3(0.05, 0.05, 3.7), rail)
+			_xbox(st, xf, Vector3(0, 0.6, 2.05), Vector3(2.66, 1.2, 0.2), concrete)
+		_:
+			# The canopy: steel sill and posts, glass sides and back, a vaulted glass roof on three
+			# ribs (seven points on an ellipse 1.35 m out and 0.7 m up from the 2.2 m springing).
+			for x in [-1.3, 1.3]:
+				_xbox(st, xf, Vector3(x, 0.15, 0.0), Vector3(0.12, 0.3, 4.2), steel)
+				_xbox(st, xf, Vector3(x, 1.25, 0.0), Vector3(0.05, 1.9, 4.1), glass, LIT_WINDOW)
+				for z in [-2.05, 0.0, 2.05]:
+					_xbox(st, xf, Vector3(x, 1.2, z), Vector3(0.1, 2.0, 0.1), steel)
+			_xbox(st, xf, Vector3(0, 1.25, 2.1), Vector3(2.6, 1.9, 0.05), glass, LIT_WINDOW)
+			_xbox(st, xf, Vector3(0, 0.15, 2.05), Vector3(2.6, 0.3, 0.12), steel)
+			var pts: Array[Vector3] = []
+			for i in 7:
+				var a := PI * float(i) / 6.0
+				pts.append(Vector3(1.35 * cos(a), 2.2 + 0.7 * sin(a), 0.0))
+			for i in 6:
+				var a: Vector3 = pts[i]
+				var b: Vector3 = pts[i + 1]
+				_xbeam(st, xf, a, b, 4.3, 0.04, glass, LIT_WINDOW)
+				for z in [-2.1, 0.0, 2.1]:
+					_xbeam(st, xf, a + Vector3(0, 0, z), b + Vector3(0, 0, z), 0.1, 0.1, steel)
+			# The fascia over the open front: red, lit, with the M on it.
+			_xbox(st, xf, Vector3(0, 2.62, -2.15), Vector3(2.8, 0.55, 0.14), Color("#c8171f"), LIT_SIGN)
+			_metro_m(st, xf, Vector3(0, 2.62, -2.15), 0.06, [-1.0])
+	# The M post at the front right: a 3.4 m pole, a 0.9 m red square, the M on both faces.
+	var post := Vector3(1.7, 0, -2.4)
+	_xbox(st, xf, post + Vector3(0, 1.7, 0), Vector3(0.1, 3.4, 0.1), steel)
+	_xbox(st, xf, post + Vector3(0, 3.3, 0), Vector3(0.9, 0.9, 0.08), Color("#c8171f"), LIT_SIGN)
+	_metro_m(st, xf, post + Vector3(0, 3.3, 0), 0.095, [-1.0, 1.0], 0.08)
+	if lift:
+		# The lift: a steel frame round a lit glass shaft, a dark door on the open side (-z).
+		var c := Vector3(-2.3, 0, -0.6)
+		_xbox(st, xf, c + Vector3(0, 1.3, 0), Vector3(1.3, 2.5, 1.3), glass, LIT_WINDOW)
+		for x in [-0.7, 0.7]:
+			for z in [-0.7, 0.7]:
+				_xbox(st, xf, c + Vector3(x, 1.35, z), Vector3(0.1, 2.7, 0.1), steel)
+		_xbox(st, xf, c + Vector3(0, 2.72, 0), Vector3(1.5, 0.12, 1.5), steel)
+		_xbox(st, xf, c + Vector3(0, 0.95, -0.67), Vector3(0.9, 1.9, 0.04), Color("#3a3e45"))
+
+
+## A beam between two points of an entrance's local frame, `w` wide along its z, through `xf`.
+static func _xbeam(st: SurfaceTool, xf: Transform3D, a: Vector3, b: Vector3, w: float, t: float, colour: Color, part := FIXED) -> void:
+	beam(st, xf * a, xf * b, w, t, colour, xf.basis * Vector3.UP, part)
+
+
+## The cream pixel M facing -z (sides -1) and/or +z (1) on a plate centred at `c` (local frame).
+## `thick` is the plate's thickness (the M stands 5 mm off each face).
+static func _metro_m(st: SurfaceTool, xf: Transform3D, c: Vector3, px: float, sides: Array, thick := 0.14) -> void:
+	var cream := Color("#fbf7ee")
 	var w := PixelFont.width("M") * px
-	var top := 2.75 + (PixelFont.BODY + 3.5) * px
+	var top := (PixelFont.BODY + 3.5) * px
 	var basis := xf.basis.orthonormalized()
-	# side 1: the face towards -z (its reader looks +z, -x on the right); side -1 the back.
-	for side in [-1.0, 1.0]:
-		var right := basis * Vector3(-side, 0, 0)
-		var origin := xf * (post + Vector3(side * w * 0.5, top, -side * 0.045))
+	for side: float in sides:
+		# side -1 faces -z (its reader looks +z, -x on the right); side 1 the back.
+		var right := basis * Vector3(side, 0, 0)
+		var origin := xf * (c + Vector3(-side * w * 0.5, top, side * (thick * 0.5 + 0.005)))
 		PixelFont.add_quads(st, "M", origin, right, Vector3.DOWN, px, cream, LIT_SIGN)
 
 
