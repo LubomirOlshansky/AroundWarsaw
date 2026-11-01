@@ -10,6 +10,8 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- The Old Town Market Square has its cobbled paving now, café gardens with umbrellas in the restaurants' colours along all four sides, and the Syrenka in her fountain: bronze, with her raised sword and round shield, on a stone pedestal behind a low stone rim.
+- People stand on the observation decks: on St Anne's bell tower terrace (with a new stone balustrade) and on the roof of Varso Tower, more of them in the afternoon, on weekends and in summer.
 - Larger text in Settings → DOSTĘP now changes the HUD text straight away, no restart needed.
 - Mariensztat, the little 1949 square under the Old Town's escarpment, now looks like itself: pastel houses under red tile roofs with dormers and chimneys.
 - The colour-blind option now also changes the green "win" and red "fail" cards and badges to blue and orange-red, so they are easy to tell apart.

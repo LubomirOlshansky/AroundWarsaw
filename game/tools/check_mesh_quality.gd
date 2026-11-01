@@ -32,6 +32,8 @@ const BUDGET := {
 	"chalubinskiego8": 1520,
 	"cosmopolitan": 110,
 	"dom_partii_extras": 100,
+	"rynek": 3100,
+	"syrenka": 480,
 	"dtc": 1730,
 	"europejski": 480,
 	"flaga": 170,

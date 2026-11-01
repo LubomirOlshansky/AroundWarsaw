@@ -62,6 +62,13 @@ then the Launch gate.
 - [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
 
 ### Left: landmarks and street details
+- [x] Old Town Market Square and its Syrenka (F, 2026-11-01): cobbled paving, 58 café umbrellas, the
+      fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
+      Mac photo check parked (QUESTIONS)
+- [x] People on the observation decks (F, 2026-11-01): Varso Tower's roof and St Anne's bell tower
+      terrace (with a balustrade), hours, weekends and seasons (`crowds.gd` DECKS)
+- [ ] Old Town Market Square leftovers: per-house plaster colours and sgraffito from photos, the
+      four corner streets' mouths, a card for the Museum of Warsaw house (BACKLOG "Old Town square")
 - [ ] The landmark lane's remaining list (BACKLOG "Landmarks lane, hand-over": the Cathedral, the
       Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old

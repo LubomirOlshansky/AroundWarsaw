@@ -3,6 +3,30 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+
+## Old Town Market Square, the Syrenka and the decks (F, 2026-11-01)
+
+Built in a cloud thread with no photos (spec docs/landmarks/specs/rynek.md, LANDMARKS 2.12).
+Open:
+- **Photo check on the Mac** (QUESTIONS): the paving, the umbrella colours, the statue's pose and
+  pedestal, the rim wall against the mapped pond.
+- The houses' plaster colours: the Rynek's four sides use the generic historic palette; real
+  fronts (Dekert, Fukier, the Museum of Warsaw's houses) need photos for per-house colours,
+  sgraffito and the real stepped gables on the other three sides (`OldTownRoofs.gable` does the
+  east side only).
+- The umbrellas are one row on the 7 m line, drive-through, with no night light; a second row,
+  café lights at night and a few people sitting under them would make the square busier.
+- The statue is 6.4 m tall (taller than life, for the camera); if the photos say she should be
+  smaller, scale `_syrenka_figure` and the pedestal heights together.
+- The fountain's rim is a collider now (the car meets a wall, not the pond); the pedestrians
+  still wade through the pond's map polygon (they avoid water by a distance rule): make them walk
+  round the rim.
+- Varso's deck: visitors stand on the crown's roof ring (roof grid, spire flattened away); the real
+  Varso Observation Deck is glazed at ~230 m. St Anne's terrace is at the tower's cornice (25 m);
+  the real one is at ~40 m. Opening hours are guesses (10-22 and 10-19). PKiN's 30th-floor terrace
+  (114 m, `docs/landmarks/specs/palace.md`) has no visitors yet (the roof ring needs an explicit
+  deck height: `DECKS` `top`).
+
 ## Mariensztat and Krakowskie Przedmieście: review (F, 2026-11-01)
 
 F asked whether Mariensztat and Krakowskie Przedmieście are modelled well. Cloud shots (OSM
@@ -2411,8 +2435,9 @@ Closed: the Syrenki (syrenki.gd: 20 figurines by the kerb, the find, the reward 
   slow spin or bob for the diamond (a shader: the visuals lane) would read better still.
 - Placed by rule, not by eye: look at each on the street (the kerb side, trees, benches, a
   building's wall in a narrow street); `--syrenka=<id>` puts the car in front of one.
-- No Syrenka on a bridge or in a tunnel (ground streets only); the real statue on the Old Town
-  Market Square stands on the street ring, not in the square itself.
+- No Syrenka on a bridge or in a tunnel (ground streets only); the figurines are small kerb
+  Syrenki, not the statue (the Old Town Market Square's bronze Syrenka is a landmark model since
+  2026-11-01, `syrenka` site).
 - The reward cards queue in `syrenki.gd`; the HUD's note card shows one at a time (a find while
   another card is up waits for it).
 - Garage card: ten paints in two rows of five; on the smallest phone check it still fits.

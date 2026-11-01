@@ -17,6 +17,11 @@ extends Node3D
 ##    ground-floor door (`level_26_door`, a queue site with the `club_door` lines), and while the
 ##    club is open (the roof curve's hours) and near, a violet band of light rings the top floor
 ##    (one mesh in Models.material(), LIT_SIGN: +1 draw call, hidden by day and far);
+##  - **the observation decks** (F, 2026-11-01): visitors on the Varso Tower's roof deck (the
+##    tallest in the EU, 230 m; a ring of figures at the crown's parapet, from the roof grid like
+##    Level 26) and on St Anne's bell tower terrace (the gallery round the octagon, 25 m up, the
+##    model's balustrade): open 10-22 and 10-19, the afternoon and evening busier, weekends,
+##    summer and dry weather fuller (`deck_level`); standing, facing out over the city;
 ##  - **the dawn crowd** (Sat/Sun 05:00-09:00, Live or the Dawn look): 20-40 walkers in twos and
 ##    threes on footway routes from Lusterko, Smoła and Jasna 0 to the Palm, Metro Nowy
 ##    Świat-Uniwersytet, the nearest tram platforms and two kebab stands (A* over the footways
@@ -69,6 +74,16 @@ const POLICE_GAP := 45.0
 const FOOT_REACH := 40.0
 const STEPS_MAX := 80
 const PLAN_C_MAX := 40
+## F's asks (2026-11-01): the observation decks. `at` is where the roof grid is read (Varso) or
+## the terrace's centre (`top`: the deck's height over the ground, so a mast over it is
+## flattened away; St Anne's: a square ring, `half` m from the centre along `axis`, at
+## `up` m over the ground, the bell tower of landmarks.gd `_anna_tower`); `open`/`close` the
+## hours (*guess*), `max` the most at once.
+const DECKS := {
+	"varso_deck": {"at": Vector2(-1622.0, 583.0), "max": 14, "open": 10.0, "close": 22.0, "in": 1.6, "top": 234.0},
+	"anna_deck": {"at": Vector2(-689.275, -1379.575), "max": 8, "open": 10.0, "close": 19.0,
+			"half": 5.0, "axis": Vector2(0.985, -0.174), "up": 25.1, "gap": 1.9},
+}
 const ROOF_MAX := 16
 const DAWN_MIN := 20
 const DAWN_MAX := 40
@@ -311,6 +326,23 @@ static func plan_c_level(hour: float, weekday: int, month: int, rain: bool) -> f
 	return curve_at("plan_c", hour) * (0.1 if rain else 1.0)
 
 
+## An observation deck's level 0..1 (F's asks, 2026-11-01): 0 outside `open`..`close`, a ramp over
+## the first and last 90 minutes, busiest round 17:00; weekends (6, 7) fuller than weekdays,
+## summer fuller than winter, rain a fifth of dry (all *guesses*).
+static func deck_level(hour: float, weekday: int, month: int, rain: bool, open: float, close: float) -> float:
+	if hour < open or hour >= close:
+		return 0.0
+	var ramp := clampf(minf(hour - open, close - hour) / 1.5, 0.2, 1.0)
+	var peak := lerpf(0.6, 1.0, clampf(1.0 - absf(hour - 17.0) / 7.0, 0.0, 1.0))
+	var days := 1.0 if weekday in [6, 7] else 0.7
+	var season := 0.4 + 0.6 * month_factor(month)
+	return ramp * peak * days * season * (0.2 if rain else 1.0)
+
+
+static func deck_count(max_n: int, hour: float, weekday: int, month: int, rain: bool, open: float, close: float, k := 1.0) -> int:
+	return roundi(max_n * k * deck_level(hour, weekday, month, rain, open, close))
+
+
 ## The dawn crowd is out: 05:00-09:00 on a Saturday or Sunday in Live, or in the Dawn look.
 static func dawn_time(hour: float, weekday: int, live: bool, look: String) -> bool:
 	if hour < 5.0 or hour >= 9.0:
@@ -429,6 +461,13 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		_add_site({"id": ROOF_ID, "kind": "roof", "at": at[ROOF_ID], "max": ROOF_MAX, "curve": "roof"})
 		_add_site({"id": ROOF_DOOR_ID, "kind": "queue", "at": at[ROOF_ID], "max": ROOF_DOOR_MAX, "curve": "roof",
 				"police": false, "dawn": false})
+	for id: String in DECKS:
+		var d: Dictionary = DECKS[id]
+		var site := {"id": id, "kind": "deck", "at": d["at"], "max": int(d["max"]), "open": float(d["open"]), "close": float(d["close"])}
+		for key: String in ["in", "top", "half", "axis", "up", "gap"]:
+			if d.has(key):
+				site[key] = d[key]
+		_add_site(site)
 	if at.has(STEPS_ID):
 		_add_site({"id": STEPS_ID, "kind": "steps", "at": at[STEPS_ID], "max": STEPS_MAX})
 	if at.has(PLAN_C_ID):
@@ -606,6 +645,8 @@ func _place_site(s: Dictionary) -> void:
 			_place_square(s)
 		"roof":
 			_place_roof(s)
+		"deck":
+			_place_deck(s)
 
 
 ## The points of a polyline from q (on segment j) one way along it, then straight on past its end.
@@ -794,6 +835,60 @@ func _place_roof(s: Dictionary) -> void:
 			"the band of light round %d m of facade" % roundi(_ring_len(ring)) if _ring != null else "no band (%d rays)" % ring.size()])
 
 
+## An observation deck's spots (F's asks, 2026-11-01), every second one in a seeded order, each
+## `slot` facing out over the view. A square terrace (`half`): along its four sides `gap` m
+## apart, `up` m over the terrain. A tower's roof (`in`): the roof ring as `_place_roof`'s, the
+## figures `in` m inside the parapet, on the roof grid's height. No map or no tall roof: none.
+func _place_deck(s: Dictionary) -> void:
+	var at: Vector2 = s["at"]
+	s["slots"] = []
+	s["door"] = at
+	if map == null:
+		return
+	var slots: Array = []
+	if s.has("half"):
+		var axis: Vector2 = (s["axis"] as Vector2).normalized()
+		var half := float(s["half"])
+		var y: float = map.terrain_height(at.x, at.y) + float(s["up"])
+		var per_side := maxi(int(floor(2.0 * half / float(s["gap"]))), 1)
+		var k := 0
+		for side in 4:
+			var out := axis.rotated(side * PI * 0.5)
+			var along := Vector2(-out.y, out.x)
+			for i in per_side:
+				var t := (i + 0.5) / per_side * 2.0 - 1.0
+				var p := at + out * half + along * (t * (half - 0.5))
+				slots.append({"p": p, "pose": STAND, "yaw": atan2(-out.x, -out.y), "shirt": BRIGHT[k % BRIGHT.size()], "y": y})
+				k += 1
+	else:
+		var ground: float = map.ground_height(at.x, at.y)
+		var top := ground + float(s["top"])
+		var seen: float = map.roof_height(at.x, at.y)
+		if seen < top - 6.0:
+			print("crowds: no roof at %s (%.0f m over the ground, the deck is %.0f): no deck crowd" % [s["id"], seen - ground, float(s["top"])])
+			return
+		# A mast over the deck (Varso's spire) is flattened to the deck's height, so the ring
+		# stays on the crown and a figure never stands on the mast.
+		var roof := func(x: float, z: float) -> float: return minf(map.roof_height(x, z), top + 2.0)
+		var ring := roof_ring(at, top, roof, RING_RAYS)
+		for k in range(0, ring.size(), 2):
+			var r: Array = ring[k]
+			var dir: Vector2 = r[1]
+			var p: Vector2 = r[0] - dir * float(s["in"])
+			var y: float = minf(map.roof_height(p.x, p.y), top)
+			slots.append({"p": p, "pose": STAND, "yaw": atan2(-dir.x, -dir.y), "shirt": BRIGHT[(k / 2 + 3) % BRIGHT.size()],
+					"y": y if y >= top - 6.0 else top})
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(str(s["id"]))
+	for k in range(slots.size() - 1, 0, -1):
+		var m := rng.randi_range(0, k)
+		var tmp: Dictionary = slots[k]
+		slots[k] = slots[m]
+		slots[m] = tmp
+	s["slots"] = slots
+	print("crowds: %s, %d spots on the deck" % [s["id"], slots.size()])
+
+
 ## F's asks: the violet band round the top floor, one quad per pair of rays, RING_OUT m off the
 ## smoothed outline, RING_TOP m under the body's roof; Models.material()'s LIT_SIGN (it glows only while
 ## the city's lights are on). Hidden until the club opens near the view (`tick`).
@@ -975,7 +1070,7 @@ func _figures(s: Dictionary) -> Array:
 			if bool(s.get("guitar_on", false)):
 				var face: Vector2 = s["face"]
 				out.append([_ground(s["guitar"]), atan2(-face.x, -face.y), SIT, GUITAR_SHIRT, 0.0])
-		"plan_c", "roof":
+		"plan_c", "roof", "deck":
 			var slots: Array = s["slots"]
 			for k in mini(n, slots.size()):
 				var sl: Dictionary = slots[k]
@@ -1087,6 +1182,9 @@ func tick(step: float) -> void:
 			"plan_c":
 				plan_lvl = plan_c_level(hour, weekday, month, rain)
 				want = roundi(PLAN_C_MAX * k * plan_lvl)
+			"deck":
+				want = 0 if (s["slots"] as Array).is_empty() else deck_count(int(s["max"]), hour, weekday, month, rain,
+						float(s["open"]), float(s["close"]), k)
 			"trend":
 				var q: Array = [0, ""]
 				if s["id"] == PISTACJA_ID:
