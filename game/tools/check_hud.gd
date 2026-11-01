@@ -110,7 +110,8 @@ func _check_screen(screen: Vector2i) -> int:
 	var perf_text := "60 fps · 16.7 ms · worst 18.2 · cap 60 fps\nCPU 11.2 + 0.3 + 14.1 ms · GPU n/a · 670 MB\ndraws 153 = 53 + 35 + 65 · 0.45 M tris\nMedium ×3 fallback · gov GPU 2/2 · CPU 2/2 · wide"
 	# Desktop: --no-touch (trailer loop, 2026-10-29): a third pass with the touch-only controls
 	# away; none may be left to press or take room.
-	for mode in ["", "perf", "no-touch"]:
+	# Accessibility (2026-11-01): a fourth pass in the left-handed layout (the pedals bottom left).
+	for mode in ["", "perf", "no-touch", "left-handed"]:
 		var perf: bool = mode == "perf"
 		for state in ["car, Point", "car, Classic", "helicopter", "call came in", "call card", "rescued, paid",
 				"rescue, host, egg", "kebab offer", "kebab delivery", "race", "rival ahead", "landmark card", "note card", "tow toast",
@@ -120,6 +121,10 @@ func _check_screen(screen: Vector2i) -> int:
 				continue
 			if mode == "no-touch" and not state in ["car, Point", "car, Classic", "helicopter", "kebab offer", "pull-over", "ride offer"]:
 				continue
+			if mode == "left-handed" and not state in ["car, Point", "car, Classic", "helicopter", "rescue, host, egg", "kebab offer",
+					"landmark card", "police chase", "pull-over", "ride offer", "ride"]:
+				continue
+			hud.set_left_handed(mode == "left-handed")
 			hud.clear_all()
 			bubbles.clear()
 			hud.set_touch_off(mode == "no-touch")
@@ -249,6 +254,17 @@ func _check_screen(screen: Vector2i) -> int:
 			await process_frame
 			bubbles.layout()
 			_check_state(hud, bubbles, "%s %s%s" % [tag, state, " + " + mode if mode != "" else ""])
+			if mode == "left-handed" and state in ["car, Point", "car, Classic", "helicopter"]:
+				# The pressable discs all on the left half; the credit line on the right.
+				var tt: Dictionary = hud.touch_targets()
+				for k in ["brake", "gas", "horn", "climb", "sink"]:
+					if tt.has(k) and (tt[k] as Rect2).get_center().x > screen.x * 0.5:
+						problems.append("%s %s + left-handed: %s is on the right" % [tag, state, k])
+				if not hud.call("_stick_side", screen.x * 0.8, float(screen.x)) or hud.call("_stick_side", screen.x * 0.2, float(screen.x)):
+					problems.append("%s %s + left-handed: the stick's side is not the right" % [tag, state])
+				var nr: Dictionary = hud.named_rects()
+				if nr.has("credit") and (nr["credit"] as Rect2).get_center().x < screen.x * 0.5:
+					problems.append("%s %s + left-handed: the credit line is on the left, under the pedals" % [tag, state])
 			# Landmark card fix: with the ticker up and the car parked, a tapped landmark's card
 			# (and a note card) must be on screen at once, not waiting for room, and not over the car.
 			if state in ["landmark card", "note card"]:
@@ -315,6 +331,7 @@ func _check_screen(screen: Vector2i) -> int:
 			print("  %s: %d buttons, panel %s" % [where, buttons.size(), _pts(card, pt)])
 		count += 1
 	panel.close()
+	hud.set_left_handed(false)
 	book.free()
 	egg_book.free()
 	tape.free()

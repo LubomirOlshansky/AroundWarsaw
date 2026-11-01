@@ -139,6 +139,8 @@ var brake := false
 ## Loop 2a: the GAS pedal (Classic), and the control scheme the pads are drawn for.
 var gas := false
 var scheme := 0
+## Accessibility (2026-11-01): the pedals on the left, the stick on the right (set_left_handed).
+var left_handed := false
 var settings_panel: Control
 ## F's asks (2026-10-30): the full-screen map (full_map.gd), made on its first open.
 var full_map: Control
@@ -644,8 +646,10 @@ func _layout_fixed() -> void:
 	_wallet.position = Vector2(x0, below)
 	_wallet.size = Vector2(_wallet_width(), 30.0 * pt)
 	_credit.size = _credit.get_combined_minimum_size()
-	# Bottom left: centred, it ran into Classic's BRAKE.
-	_credit.position = Vector2(x0, _safe.end.y - 3.0 * pt - _credit.size.y)
+	# Bottom left: centred, it ran into Classic's BRAKE. Left-handed: bottom right, the pedals' side
+	# swapped.
+	var credit_x := _safe.end.x - EDGE * pt - _credit.size.x if left_handed else x0
+	_credit.position = Vector2(credit_x, _safe.end.y - 3.0 * pt - _credit.size.y)
 	_top_y = (ROW_Y + ROW_H + GAP) * pt
 	_col_y = _wallet.position.y + _wallet.size.y + GAP * pt
 	_col_right = maxf(_wallet.position.x + _wallet.size.x, below - 6.0 * pt if _minimap == null else _minimap.position.x + _minimap.size.x) + GAP * pt
@@ -2208,15 +2212,43 @@ func _draw_status_icons() -> void:
 # --- the pedals and the stick ----------------------------------------------------------------
 
 func _brake_centre() -> Vector2:
+	return _side(_brake_right())
+
+
+## Where BRAKE is in the right-handed layout (the left-handed one mirrors it: `_side`).
+func _brake_right() -> Vector2:
 	if scheme == CLASSIC:
 		# Left of GAS and a little lower, so the thumb rolls from one to the other.
 		return Vector2(_safe.end.x - 156.0 * pt, _safe.end.y - 42.0 * pt)
 	return Vector2(_safe.end.x - 56.0 * pt, _safe.end.y - 50.0 * pt)
 
 
+## Accessibility (2026-11-01): the left-handed layout mirrors a point of the right-handed one
+## across the safe area's middle (the pedals, the horn, the helicopter's pads, Classic's strip
+## and the ghost finger); right-handed, the point as it is.
+func _side(p: Vector2) -> Vector2:
+	return Vector2(_safe.position.x + _safe.end.x - p.x, p.y) if left_handed else p
+
+
+## Accessibility (2026-11-01): the left-handed layout on or off (Settings → DOSTĘP; access.gd).
+func set_left_handed(on: bool) -> void:
+	if on == left_handed:
+		return
+	left_handed = on
+	_mark()
+	if _pad != null:
+		_pad.queue_redraw()
+
+
+## Whether a finger coming down at x (pixels) is on the stick's side of the screen: the left
+## 60 %, or the right 60 % in the left-handed layout.
+func _stick_side(x: float, width: float) -> bool:
+	return x > width * 0.4 if left_handed else x < width * 0.6
+
+
 ## Loop 2a: the GAS pedal (Classic), where BRAKE is in the other schemes.
 func _gas_centre() -> Vector2:
-	return Vector2(_safe.end.x - 58.0 * pt, _safe.end.y - 52.0 * pt)
+	return _side(Vector2(_safe.end.x - 58.0 * pt, _safe.end.y - 52.0 * pt))
 
 
 ## The brake's touch radius (a little larger than drawn).
@@ -2226,7 +2258,8 @@ func _brake_reach() -> float:
 
 ## Where Classic's steering strip is hinted until a thumb comes down.
 func _strip_hint_centre() -> Vector2:
-	return Vector2(maxf(_safe.position.x + 110.0 * pt, _screen.x * 0.16), _safe.end.y - 60.0 * pt)
+	var x := maxf(_safe.position.x + 110.0 * pt, _screen.x * 0.16)
+	return Vector2(_screen.x - x if left_handed else x, _safe.end.y - 60.0 * pt)
 
 
 func _on_pedals(p: Vector2) -> bool:
@@ -2239,7 +2272,7 @@ func _on_pedals(p: Vector2) -> bool:
 ## The night-buses loop: the horn's centre, left of BRAKE (none in the helicopter).
 func _horn_centre() -> Vector2:
 	var r := CLASSIC_BRAKE_R if scheme == CLASSIC else BRAKE_R
-	return _brake_centre() + Vector2(-(r + HORN_CLEAR + HORN_R), r - HORN_R) * pt
+	return _side(_brake_right() + Vector2(-(r + HORN_CLEAR + HORN_R), r - HORN_R) * pt)
 
 
 ## The night-buses loop: a touch at `p` presses the horn.
@@ -2368,7 +2401,7 @@ const _UP_DOWN := [1, -1]
 
 ## The helicopter's climb (+1) and sink (-1) pads, stacked where the brake is.
 func _climb_centre(direction: int) -> Vector2:
-	return Vector2(_safe.end.x - 56.0 * pt, _safe.end.y - (130.0 if direction > 0 else 44.0) * pt)
+	return _side(Vector2(_safe.end.x - 56.0 * pt, _safe.end.y - (130.0 if direction > 0 else 44.0) * pt))
 
 
 ## Touches above this line belong to the top row (not the stick, not a tap on the city).
@@ -2415,7 +2448,7 @@ func _input(event: InputEvent) -> void:
 			elif not touch_off and not flying and touch.position.distance_to(_brake_centre()) < _brake_reach():
 				_brake_index = touch.index
 				brake = true
-			elif touch.position.x < size.x * 0.6 and touch.position.y > _row_bottom() and _stick_index == -1:
+			elif _stick_side(touch.position.x, size.x) and touch.position.y > _row_bottom() and _stick_index == -1:
 				_stick_index = touch.index
 				_stick_origin = touch.position
 				_stick_point = touch.position
@@ -2590,7 +2623,8 @@ func finger_shown() -> bool:
 ## Where the ghost finger presses: the stick's side of the screen (main.gd's --stick spot).
 func _finger_origin() -> Vector2:
 	var size := get_viewport().get_visible_rect().size
-	return Vector2(maxf(size.x * 0.2, _safe.position.x + 70.0 * pt), size.y * 0.68)
+	var x := maxf(size.x * 0.2, _safe.position.x + 70.0 * pt)
+	return Vector2(size.x - x if left_handed else x, size.y * 0.68)
 
 
 ## The ghost finger: a fingertip that comes down, drags up and to the right (the way Point steers:

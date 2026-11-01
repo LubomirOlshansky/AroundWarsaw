@@ -90,7 +90,8 @@ then the Launch gate.
 - [ ] Loop 3i juice leftovers: money pops, district ambiences
 - [x] Accessibility options (2026-11-01, Settings → DOSTĘP, `access.gd`): larger HUD text, calm
       (no flashing or shaking), colour-safe markers, vibration on/off, stop assist on/off.
-      Left to do: left-handed layout, live text size, subtitles (BACKLOG)
+      Left-handed layout added 2026-11-01 (DOSTĘP, `--left-handed`). Left to do: live text size,
+      subtitles (BACKLOG)
 - [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
 - [ ] Rondo de Gaulle'a and the food hype (F, 2026-11-01; spec docs/design/gaulle-and-food-hype.md):

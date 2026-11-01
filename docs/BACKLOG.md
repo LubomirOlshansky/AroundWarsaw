@@ -49,7 +49,12 @@ Built: Settings → DOSTĘP (`game/scripts/access.gd`, kept in `[access]` of set
 text (x1.25, read when the HUD is built: shows after a restart), calm (patrol-car lights steady, no
 VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue), vibration on/off
 (every buzz goes through `Access.buzz`), stop assist on/off. Left:
-- Left-handed control layout (steering on the right, GAS and BRAKE on the left).
+- ~~Left-handed control layout~~ Done (2026-11-01): Settings → DOSTĘP → "Dla leworęcznych"
+  (`access.gd left_handed`, `hud.gd set_left_handed`, at once, no restart; flag `--left-handed`):
+  BRAKE, GAS, the horn and the helicopter's pads bottom left, the stick's side (the right 60 %)
+  and Classic's strip on the right, the credit line bottom right; `check_hud` runs a left-handed
+  pass (10 states x 6 screens). Left: the feel on the phone; in this layout the bottom card can
+  sit lower (nothing on the right pushes it up), so the radio ticker waits for room more often.
 - Text size that follows the phone's own setting, and live (no restart); the panels with fixed
   layouts (cards, bubbles) need a check at x1.25 on the SE.
 - Subtitles: nothing is voiced yet; revisit when speech or radio talk with words lands.
