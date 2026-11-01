@@ -338,6 +338,9 @@ const INFO := {
 	"mf": ["Ministerstwo Finansów",
 			"Gmach z lat 1953–56 przy Świętokrzyskiej. Tu liczą cudze pieniądze.",
 			"1953–56 on Świętokrzyska: where the country's money is counted."],
+	"teresy": ["Kościół św. Teresy od Dzieciątka Jezus",
+			"Ceglany kościół parafialny na Powiślu, ze stromym dachem i sygnaturką.",
+			"A brick parish church in Powiśle, with a steep roof and a bell turret."],
 	"muzeum": ["Muzeum Narodowe",
 			"Gmach z lat 1927–1938 przy Alejach Jerozolimskich.",
 			"The museum's building of 1927–1938 on Al. Jerozolimskie."],
@@ -502,6 +505,8 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return KOP_WALL
 	if key == "mf":
 		return MF_WALL
+	if key == "teresy":
+		return TERESY_BRICK
 	return fallback
 
 
@@ -687,6 +692,10 @@ func _find_sites() -> void:
 	_find_mf()
 	# Powiśle, street by street (2026-11-01): Ostrogski Castle and the Chopin Institute, Tamka 41.
 	_find_ostrogski()
+
+
+	# The Powiśle parish church (2026-11-01): a model instead of the mapped box.
+	_find_teresy()
 
 
 ## Warszawa Centralna (spec docs/landmarks/specs/centralna.md, 2026-10-31): OpenStreetMap maps
@@ -1074,6 +1083,10 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_srodmiescie(s)
 			"ostrogski":
 				_build_ostrogski(s)
+
+
+			"teresy":
+				_build_teresy(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -9934,3 +9947,90 @@ func _dormer(sgn: float, u: float, v: float, y: float, hu: float, hv: float, ris
 	_wall(_w(sgn * (uf + 0.02), v - 0.3), _w(sgn * (uf + 0.02), v + 0.3), ry - 0.2, ry + 1.2, _a * sgn, OSTROG_DARK)
 	_mode = M_STONE
 	_gable(sgn * (uf + 0.05), sgn * (u - 0.6), v, 0.62, ry + 1.5, 0.8, OSTROG_WALL, OSTROG_ROOF)
+
+
+## The parish church of St Thérèse of the Child Jesus (Kościół św. Teresy od Dzieciątka Jezus,
+## Powiśle): a brick hall church with a steep gable roof, a lower chapel at the choir end, a
+## lower parish house behind and a small bell turret on the ridge over the front gable. The
+## whole mapped outline is replaced; the massing follows it. Spec docs/landmarks/specs/teresy.md.
+## Frame: origin at the outline's centre, u along the nave (axis 50 degrees), +v to the right
+## of it; the nave is u -10..21.8, v -7.8..14.3, the front gable at u +21.8 (photo check).
+const TERESY := Vector2(369.93, -579.04)
+const TERESY_AXIS := Vector2(0.6428, 0.7660)
+const TERESY_BRICK := Color("#b8644b")
+const TERESY_BRICK_LOW := Color("#a65a44")
+const TERESY_TILE := Color("#8f4f40")
+const TERESY_TRIM := Color("#d9cdb4")
+const TERESY_DARK := Color("#3a3f42")
+const TERESY_GOLD := Color("#c9a24a")
+
+
+func _find_teresy() -> void:
+	var outline := _landmark("Parafia Świętej Teresy od Dzieciątka Jezus")
+	if outline.size() >= 3:
+		_add_site("teresy", [outline])
+		if not sites.is_empty() and sites[-1]["key"] == "teresy":
+			sites[-1]["ring"] = outline
+
+
+func _build_teresy(_site: Dictionary) -> void:
+	_o = TERESY
+	_a = TERESY_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_g = _ground_under(_rect(4.2, 3.25, 17.6, 11.0))
+	var g := _g
+	var wall := TERESY_BRICK
+	var none := Color(0, 0, 0, 0)
+	# the nave: a trimmed plinth, brick walls (Gothic mode: buttresses and lancets) to the eaves
+	_lbox(5.9, 3.25, 15.9, 11.05, g - 0.6, g + 0.9, TERESY_TRIM.darkened(0.12), M_STONE, TERESY_TRIM)
+	_lbox(5.9, 3.25, 15.8, 10.95, g + 0.9, g + 10.0, wall, M_GOTHIC, TERESY_TILE)
+	_lbox(5.9, 3.25, 15.9, 11.05, g + 10.0, g + 10.5, TERESY_TRIM, M_STONE, TERESY_TRIM)
+	# the steep roof: front and back gables, slopes with a small overhang
+	_gable(21.9, -10.0, 3.25, 11.35, g + 10.5, 6.8, wall, TERESY_TILE)
+	# the lower annex at the choir end and the polygonal chapel on the north side
+	_lbox(-11.7, 5.8, 1.7, 8.5, g - 0.6, g + 6.5, TERESY_BRICK_LOW, M_GOTHIC, TERESY_TILE)
+	var chapel := PackedVector2Array([_w(-9.8, -7.9), _w(-10.0, -9.8), _w(-7.0, -11.9), _w(-3.0, -10.6),
+			_w(-1.4, -7.6), _w(-1.4, -7.9)])
+	_prism(chapel, g - 0.6, g + 7.5, TERESY_BRICK_LOW, none, M_GOTHIC, M_STONE)
+	_frustum(chapel, g + 7.5, _shrink_ring(chapel, 0.6), g + 9.0, TERESY_TILE, TERESY_TILE)
+	# the parish house behind the nave: brick, a window storey, a hipped tile roof
+	_lbox(-3.25, 21.6, 7.55, 7.4, g - 0.6, g + 8.0, TERESY_BRICK_LOW, M_MONUMENT, TERESY_TILE)
+	_lbox(-3.25, 21.6, 7.75, 7.6, g + 8.0, g + 8.5, TERESY_TRIM, M_STONE, TERESY_TRIM)
+	_hip(-3.25, 21.6, 7.75, 7.6, g + 8.5, 3.6, TERESY_TILE)
+	# the front: a stepped portal (dark door, trim frame), a round window and a cross on the gable
+	_mode = M_GLASS
+	_wall(_w(21.97, 0.0), _w(21.97, 5.0), g + 0.9, g + 6.0, _a, TERESY_DARK)
+	_mode = M_STONE
+	_lbox(22.1, 2.5, 0.2, 3.1, g + 6.0, g + 6.5, TERESY_TRIM, M_STONE, TERESY_TRIM)
+	for k in 3:
+		_lbox(22.7 + 0.5 * k, 2.5, 0.5, 3.6 - 0.3 * k, g - 0.6, g + 0.9 - 0.3 * k, TERESY_TRIM.darkened(0.15), M_STONE, TERESY_TRIM)
+	var oc := _w(21.98, 3.25)
+	_disc(Vector3(oc.x, g + 12.6, oc.y), Vector3(_a.x, 0.0, _a.y), 1.5, 10, TERESY_DARK)
+	_lbox(21.9, 3.25, 0.15, 0.15, g + 17.3, g + 19.9, TERESY_GOLD, M_STONE, TERESY_GOLD)
+	_lbox(21.9, 3.25, 0.15, 0.7, g + 18.6, g + 18.9, TERESY_GOLD, M_STONE, TERESY_GOLD)
+	# the bell turret on the ridge: a square brick shaft with louvres, a steep cap and a cross
+	var rt := g + 16.6
+	_lbox(16.0, 3.25, 1.5, 1.5, rt - 2.5, rt + 3.0, wall, M_STONE, wall)
+	_mode = M_GLASS
+	for sd: float in [-1.0, 1.0]:
+		_wall(_w(15.0, 3.25 + sd * 1.52), _w(17.0, 3.25 + sd * 1.52), rt + 0.6, rt + 2.6, _b * sd, TERESY_DARK)
+		_wall(_w(16.0 + sd * 1.52, 2.25), _w(16.0 + sd * 1.52, 4.25), rt + 0.6, rt + 2.6, _a * sd, TERESY_DARK)
+	_mode = M_STONE
+	_lbox(16.0, 3.25, 1.75, 1.75, rt + 3.0, rt + 3.4, TERESY_TRIM, M_STONE, TERESY_TRIM)
+	_pyramid(_rect(16.0, 3.25, 1.6, 1.6), rt + 3.4, rt + 7.6, TERESY_TILE)
+	_lbox(16.0, 3.25, 0.12, 0.12, rt + 7.6, rt + 9.6, TERESY_GOLD, M_STONE, TERESY_GOLD)
+	_lbox(16.0, 3.25, 0.12, 0.55, rt + 8.6, rt + 8.85, TERESY_GOLD, M_STONE, TERESY_GOLD)
+	# the car stops at the walls
+	_collide(_rect(5.9, 3.25, 15.9, 11.05))
+	_collide(_rect(-3.25, 21.6, 7.55, 7.4))
+	_collide(chapel)
+
+
+## A ring pulled in towards its centre by `d` metres (a roof's inner ring).
+func _shrink_ring(ring: PackedVector2Array, d: float) -> PackedVector2Array:
+	var c := _centre(ring)
+	var out := PackedVector2Array()
+	for p in ring:
+		var dir := p - c
+		out.append(p - dir.normalized() * minf(d, dir.length() * 0.9))
+	return out
