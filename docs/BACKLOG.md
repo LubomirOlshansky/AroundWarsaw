@@ -82,7 +82,7 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   WARN as before; roads, map data, first10, first10-run, endcard, opening, cassettes, parodies,
   both city paths PASS; `--ios` export and unsigned build PASS). Left: the next item.
 - **check_streaming's look pass: the fix to confirm on the Mac** (found 2026-11-01, map lane,
-  Opus; fixed in the cloud the same day). The cause: a look at a new target pre-loaded a square
+  Opus; fixed in the cloud the same day, PR #183). The cause: a look at a new target pre-loaded a square
   round the target (±137 m) and round the halfway view (±275 m), but the real view is turned 45°
   and tipped 30° (a 110 m view covers ±147 m on the map, more with the towers behind it the view
   test counts), so s_-6_0 west of the look at -2400, 600 only started loading once the camera got
