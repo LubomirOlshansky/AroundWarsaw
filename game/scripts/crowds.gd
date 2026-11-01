@@ -127,6 +127,20 @@ const RING_IN := 4.6
 const RING_COLOUR := Color("#a35cff")
 const STEPS_ID := "schodki_kopernik"
 const PLAN_C_ID := "plan_c"
+## F's ask (2026-11-01): people chilling round the four food-and-culture yards of the west and
+## south, Norblin, Browary Warszawskie, Hala Koszyki and Elektrownia Powiśle. id -> [spot (the
+## yard), most people, radius to look for footways (m)]. A spot that finds no footway puts its
+## people in a loose spiral round the point.
+const CHILL := {
+	"chill_norblin": [Vector2(-2262.0, 56.0), 30, 34.0],
+	"chill_browary": [Vector2(-2503.0, -100.0), 36, 36.0],
+	"chill_koszyki": [Vector2(-884.0, 1266.0), 30, 30.0],
+	"chill_elektrownia": [Vector2(285.0, -738.0), 34, 36.0],
+}
+## KROWA 2.0, the milk bar in Norblin (our parody; a bar mleczny rebuilt as a start-up): it opens
+## 8:00-18:00 and its line is long at lunch. Same trend-queue machinery as KUKŁA, tag "kolejka".
+const MILK := ["krowa_norblin"]
+const MILK_MAX := 26
 ## vision 4.5's hour curves (the hour's whole part; missing hours are 0). Lusterko's 09-12 is 0.5
 ## on a Sunday only (`queue_factor`).
 const CURVES := {
@@ -135,6 +149,9 @@ const CURVES := {
 	"roof": {22: 0.3, 23: 0.6, 0: 1.0, 1: 1.0, 2: 0.8, 3: 0.4},
 	# *guess* (vision gives only "up to 40, Fri/Sat 21:00-02:00")
 	"plan_c": {21: 0.5, 22: 0.8, 23: 1.0, 0: 1.0, 1: 0.7},
+	# *guess*: lunch crowd, the long summer evening on the benches, thinning after 23:00
+	"chill": {11: 0.25, 12: 0.4, 13: 0.5, 14: 0.5, 15: 0.55, 16: 0.7, 17: 0.85, 18: 1.0, 19: 1.0, 20: 1.0, 21: 0.9,
+			22: 0.7, 23: 0.45, 0: 0.2},
 	# *guess*: 20 walkers at the edges of 05-09, 40 at the peak
 	"dawn": {5: 0.5, 6: 1.0, 7: 1.0, 8: 0.4},
 }
@@ -194,7 +211,7 @@ var spent_usec := 0
 var rejections := 0
 var car_lines := 0
 var dawn_lines := 0
-## The crowds' sites: {id, kind (queue, roof, steps, plan_c), at, n, want, max, ...}.
+## The crowds' sites: {id, kind (queue, roof, steps, plan_c, chill), at, n, want, max, ...}.
 var sites: Array[Dictionary] = []
 var by_id := {}
 ## The dawn crowd: its routes (after the worker thread) and walkers.
@@ -311,6 +328,20 @@ static func plan_c_level(hour: float, weekday: int, month: int, rain: bool) -> f
 	return curve_at("plan_c", hour) * (0.1 if rain else 1.0)
 
 
+## The chill yards' level 0..1 (hour curve; winter keeps a third of the summer, rain 0.15 *guess*).
+static func chill_level(hour: float, month: int, rain: bool) -> float:
+	return curve_at("chill", hour) * maxf(month_factor(month), 0.35) * (0.15 if rain else 1.0)
+
+
+## KROWA 2.0's line now: [people, "kolejka"]. Open 8:00-18:00, 26 at lunch (12-15), 10 otherwise.
+static func milk_queue(hour: float, weekday: int) -> Array:
+	if hour < 8.0 or hour >= 18.0:
+		return [0, ""]
+	if hour >= 12.0 and hour < 15.0:
+		return [MILK_MAX if weekday < 6 else MILK_MAX * 2 / 3, "kolejka"]
+	return [10, "kolejka"]
+
+
 ## The dawn crowd is out: 05:00-09:00 on a Saturday or Sunday in Live, or in the Dawn look.
 static func dawn_time(hour: float, weekday: int, live: bool, look: String) -> bool:
 	if hour < 5.0 or hour >= 9.0:
@@ -421,9 +452,9 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		var ll: Array = Storefronts.TRENDY[vid]
 		_add_site({"id": vid, "kind": "trend", "max": PISTACJA_MAX if vid == PISTACJA_ID else PADEL_MAX, "tag": "",
 				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
-	for vid: String in KUKLA + [PIURE_ID]:
+	for vid: String in KUKLA + [PIURE_ID] + MILK:
 		var ll: Array = Storefronts.HYPE[vid]
-		_add_site({"id": vid, "kind": "trend", "max": PIURE_MAX if vid == PIURE_ID else KUKLA_MAX, "tag": "",
+		_add_site({"id": vid, "kind": "trend", "max": PIURE_MAX if vid == PIURE_ID else (MILK_MAX if vid in MILK else KUKLA_MAX), "tag": "",
 				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
 	if at.has(ROOF_ID):
 		_add_site({"id": ROOF_ID, "kind": "roof", "at": at[ROOF_ID], "max": ROOF_MAX, "curve": "roof"})
@@ -431,6 +462,9 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 				"police": false, "dawn": false})
 	if at.has(STEPS_ID):
 		_add_site({"id": STEPS_ID, "kind": "steps", "at": at[STEPS_ID], "max": STEPS_MAX})
+	for cid: String in CHILL:
+		var cs: Array = CHILL[cid]
+		_add_site({"id": cid, "kind": "chill", "at": cs[0], "max": int(cs[1]), "radius": float(cs[2])})
 	if at.has(PLAN_C_ID):
 		_add_site({"id": PLAN_C_ID, "kind": "plan_c", "at": at[PLAN_C_ID], "max": PLAN_C_MAX})
 	# The dawn crowd's ends: the palm, the metro, kebab stands and tram platforms near the clubs.
@@ -602,7 +636,7 @@ func _place_site(s: Dictionary) -> void:
 			s["line"] = _resample(line, QUEUE_GAP, int(s["max"]) * 2 + 2)
 		"steps":
 			_place_steps(s)
-		"plan_c":
+		"plan_c", "chill":
 			_place_square(s)
 		"roof":
 			_place_roof(s)
@@ -696,6 +730,9 @@ func _place_square(s: Dictionary) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 2203
 	var spots: Array = []
+	var radius := float(s.get("radius", 36.0))
+	var cap := int(s.get("max", PLAN_C_MAX))
+	var chill := str(s["kind"]) == "chill"
 	for f in _foot:
 		if f["k"] != "foot":
 			continue
@@ -705,24 +742,26 @@ func _place_square(s: Dictionary) -> void:
 			var u := 0.0
 			while u < l:
 				var p := pts[j].lerp(pts[j + 1], u / maxf(l, 0.001))
-				if p.distance_to(at) < 36.0:
+				if p.distance_to(at) < radius:
 					spots.append([rng.randf(), p])
 				u += 2.5
 	spots.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 	var slots: Array = []
 	for sp: Array in spots:
-		if slots.size() >= PLAN_C_MAX * 2:
+		if slots.size() >= cap * 2:
 			break
 		var mid: Vector2 = sp[1]
 		var g := rng.randi_range(2, 5)
 		for i in g:
 			var a := TAU * i / g + rng.randf_range(-0.3, 0.3)
 			var p := mid + Vector2.from_angle(a) * 0.55
-			slots.append({"p": p, "pose": STAND, "yaw": atan2(-(mid - p).x, -(mid - p).y), "shirt": BRIGHT[rng.randi() % BRIGHT.size()]})
+			# Chilling: a third of a group sits (on a step, a kerb, the ground), the rest lean and talk.
+			var pose := SIT if chill and rng.randf() < 0.35 else STAND
+			slots.append({"p": p, "pose": pose, "yaw": atan2(-(mid - p).x, -(mid - p).y), "shirt": BRIGHT[rng.randi() % BRIGHT.size()]})
 	if slots.is_empty():
-		for i in PLAN_C_MAX:
+		for i in cap:
 			var p := at + Vector2.from_angle(i * 2.4) * (2.0 + i * 0.3)
-			slots.append({"p": p, "pose": STAND, "yaw": i * 1.3, "shirt": BRIGHT[i % BRIGHT.size()]})
+			slots.append({"p": p, "pose": SIT if chill and i % 3 == 0 else STAND, "yaw": i * 1.3, "shirt": BRIGHT[i % BRIGHT.size()]})
 	s["slots"] = slots
 	s["door"] = at
 
@@ -975,7 +1014,7 @@ func _figures(s: Dictionary) -> Array:
 			if bool(s.get("guitar_on", false)):
 				var face: Vector2 = s["face"]
 				out.append([_ground(s["guitar"]), atan2(-face.x, -face.y), SIT, GUITAR_SHIRT, 0.0])
-		"plan_c", "roof":
+		"plan_c", "roof", "chill":
 			var slots: Array = s["slots"]
 			for k in mini(n, slots.size()):
 				var sl: Dictionary = slots[k]
@@ -1087,6 +1126,8 @@ func tick(step: float) -> void:
 			"plan_c":
 				plan_lvl = plan_c_level(hour, weekday, month, rain)
 				want = roundi(PLAN_C_MAX * k * plan_lvl)
+			"chill":
+				want = roundi(int(s["max"]) * k * chill_level(hour, month, rain))
 			"trend":
 				var q: Array = [0, ""]
 				if s["id"] == PISTACJA_ID:
@@ -1095,6 +1136,8 @@ func tick(step: float) -> void:
 					q = padel_queue(hour, weekday)
 				elif s["id"] in KUKLA:
 					q = kukla_queue(hour, weekday)
+				elif s["id"] in MILK:
+					q = milk_queue(hour, weekday)
 				elif s["id"] == PIURE_ID:
 					q = piure_queue(hour, weekday)
 				elif trend.is_valid():

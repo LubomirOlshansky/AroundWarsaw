@@ -18,6 +18,11 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · content · the Norblin milk bar's name** — Default to build: **KROWA 2.0** (a bar
+  mleczny rebuilt as a start-up, sign "BAR MLECZNY / KROWA 2.0", pale-blue tube, open 8-18 with a
+  long lunch line). Say if you want another name. Also parked: the Mac look check of the four
+  sites (BACKLOG "Norblin, Browary, Koszyki, Elektrownia").
+
 - **2026-11-01 · content · the trains' parody names** — Default to build: KOLEJE MAZOWE (the
   green and white suburban units), SKiM (the red and yellow city line), INTERSZYBKO (the
   long-distance coaches). Say if any should change. docs/design/railway.md section 4.
