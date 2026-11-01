@@ -9,6 +9,9 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-01
+- Stadion Narodowy is rebuilt from the real map data: its woven skin is red below and white above like the flag, a full-size striped pitch sits in two tiers of red seats, and the needle over the pitch carries the folded roof.
+
 ## 2026-10-31
 - New: five shisha lounges in Śródmieście side streets (DYMEK, OPAR, CHMURKA, MGIEŁKA, ZADYM), each with a violet or teal neon sign that glows at night.
 - New: five COFFEECHAIR cafés in Śródmieście (Foksal, Chmielna, Krakowskie Przedmieście, Plac Trzech Krzyży, Hoża), each with a warm neon sign.

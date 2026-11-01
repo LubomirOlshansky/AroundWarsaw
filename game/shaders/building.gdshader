@@ -341,8 +341,8 @@ vec3 glass_wall(vec3 col, float u, float h, float top, float sp, float fh, float
 	return c;
 }
 
-// Stadion Narodowy's skin: two families of strips woven diagonally, red over white,
-// then white over red; dark gaps where the stands show through.
+// Stadion Narodowy's skin: two families of strips woven diagonally, one over the other in
+// turn, red low and white high; dark gaps where the stands show through.
 vec3 weave(float u, float h, out vec3 glow) {
 	glow = vec3(0.0);
 	float w = 4.2;
@@ -356,11 +356,18 @@ vec3 weave(float u, float h, out vec3 glow) {
 	vec3 white = srgb_to_linear(vec3(0.9, 0.9, 0.88));
 	vec3 gap = srgb_to_linear(vec3(0.16, 0.15, 0.17));
 	bool a_over = mod(floor(a) + floor(b), 2.0) < 1.0;
+	// Red below, white above, like the flag (the mapped skin: red 22-33 m, white 33-44 m):
+	// each strip between two crossings is red or white, white more often the higher its
+	// middle (h of a cell = (a - b) * w / 1.8), so the two colours weave into each other.
+	float hc = (floor(a) - floor(b)) * w / 1.8;
+	float p_white = smoothstep(21.0, 35.0, hc);
 	vec3 c;
 	if (in_a && (a_over || !in_b)) {
-		c = red * (0.85 + 0.3 * abs(fa - 0.5));
+		bool wa = hash12(vec2(floor(a), floor(b)) + 0.37) < p_white;
+		c = (wa ? white : red) * (0.85 + 0.3 * abs(fa - 0.5));
 	} else if (in_b) {
-		c = white * (0.82 + 0.3 * abs(fb - 0.5));
+		bool wb = hash12(vec2(floor(a), floor(b)) + 5.11) < p_white;
+		c = (wb ? white : red) * (0.82 + 0.3 * abs(fb - 0.5));
 	} else {
 		c = gap;
 	}
