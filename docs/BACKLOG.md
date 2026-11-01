@@ -2102,8 +2102,9 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
 - **The cassette is KASETA's then card** on the boulevards (a ground spot, not a roof), and its
   "new song" is the next locked PÓŁNOC FM track (track 3 on a fresh save). A real cassette
   collectible on a roof (DEMO 6.2, 6.3 "10 cassettes") is still to come; then the beat points there.
-- The guide's words (`first10.gd` LINES, Halina's FIRST_LINES, the end card) were written in this
-  slice: the game-designer should review them.
+- ~~The guide's words (`first10.gd` LINES, Halina's FIRST_LINES, the end card) need a designer
+  review~~ (done 2026-11-01: grammar fixes (stary śmigłowiec), "To już koniec dema", tone kept;
+  only text changed, not run in Godot here).
 - The end card counts every paid job kind but races and the courier bonus; DEMO's "10 jobs" might
   mean kebab-style jobs only.
 - **The NaN car (unexplained)**: once in ~10 headless replays the player car's position went NaN at
