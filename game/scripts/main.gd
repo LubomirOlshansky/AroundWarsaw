@@ -41,6 +41,7 @@ extends Node
 ## Loop G1b: --last-session=struggled|calm starts Auto as if the last session at the sharp image
 ## struggled (the ×2 fallback) or was calm (the sharp image), and writes nothing of it.
 
+const Access := preload("res://scripts/access.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
 const TunnelXray := preload("res://scripts/tunnel_xray.gd")
@@ -2614,6 +2615,8 @@ func _look_now() -> String:
 
 ## KASETA: the VHS overlay for `seconds`, then the setting again.
 func _vhs_pulse(seconds: float) -> void:
+	if Access.calm:
+		return  # access.gd: no flashing
 	_vhs_until = _clock + seconds
 	var keep := vhs
 	_set_vhs(true)
@@ -3504,6 +3507,7 @@ func _parse_args() -> void:
 func _load_settings() -> void:
 	settings.persistent = not no_save
 	settings.load_file()
+	Access.apply(settings)
 	if not _flag_size:
 		base_size = settings.view
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
@@ -3757,7 +3761,9 @@ func _settings_state() -> Dictionary:
 			"auto": auto_name,
 			"master": settings.master, "music": settings.music, "effects": settings.effects, "perf": int(show_perf),
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
-			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on)}
+			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on),
+			"text_large": int(settings.text_large), "calm": int(settings.calm), "color_safe": int(settings.color_safe),
+			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist)}
 
 
 func _close_settings() -> void:
@@ -3825,6 +3831,10 @@ func _on_setting(key: String, value: Variant) -> void:
 		"zones":
 			settings.zone_cap = int(value) == 1
 			zone_cap_on = settings.zone_cap
+		"text_large", "calm", "color_safe", "vibration", "stop_assist":
+			# Accessibility (access.gd). Text size shows from the next launch (the HUD is built once).
+			settings.set(key, int(value) == 1)
+			Access.apply(settings)
 		"master", "music", "effects":
 			settings.set(key, float(value))
 			Sfx.set_levels(settings.master, settings.music, settings.effects)
@@ -3934,7 +3944,7 @@ func _on_car_splashed(speed: float) -> void:
 	splash.burst(p, speed, car.vel)
 	if sfx != null:
 		sfx.splash(speed)
-	Input.vibrate_handheld(80, clampf(speed / 15.0, 0.4, 1.0))
+	Access.buzz(80, clampf(speed / 15.0, 0.4, 1.0))
 	_tow_wait = TOW_DELAY
 	_splash_at = _clock
 	if water_test == 2:

@@ -25,7 +25,8 @@ func _initialize() -> void:
 	fresh.load_file()
 	var defaults := fresh.controls == 0 and fresh.traffic == Settings.NORMAL_TRAFFIC and fresh.quality == Settings.AUTO \
 			and fresh.master == 1.0 and fresh.music == 1.0 and fresh.effects == 1.0 and not fresh.perf and fresh.classic_follow \
-			and fresh.fps == 60 and fresh.style == 0 and not fresh.vhs and not fresh.zone_cap
+			and fresh.fps == 60 and fresh.style == 0 and not fresh.vhs and not fresh.zone_cap \
+			and not fresh.text_large and not fresh.calm and not fresh.color_safe and fresh.vibration and fresh.stop_assist
 	print("defaults from a missing file: %s (%s)" % ["OK" if defaults else "WRONG", fresh.summary()])
 	ok = ok and defaults
 
@@ -77,6 +78,11 @@ func _initialize() -> void:
 	a.style = 3
 	a.vhs = true
 	a.zone_cap = true
+	a.text_large = true
+	a.calm = true
+	a.color_safe = true
+	a.vibration = false
+	a.stop_assist = false
 	a.save()
 	var b := Settings.new()
 	b.path = SCRATCH

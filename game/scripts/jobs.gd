@@ -20,6 +20,7 @@ extends Node
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
 
+const Access := preload("res://scripts/access.gd")
 const Beacon := preload("res://scripts/beacon.gd")
 const StopAssist := preload("res://scripts/stop_assist.gd")
 const Models := preload("res://scripts/models.gd")
@@ -823,7 +824,7 @@ func _arrive() -> void:
 		_kebab_result()
 	else:
 		_sloik_result()
-	Input.vibrate_handheld(120, 0.8)
+	Access.buzz(120, 0.8)
 
 
 func _kebab_result() -> void:
@@ -956,7 +957,7 @@ func _check_jars() -> void:
 	if broke:
 		print("słoiki: a jar broke at %.1f s, %d/%d left" % [_clock, _jars, JARS])
 		jars.emit(1)
-		Input.vibrate_handheld(90, 0.9)
+		Access.buzz(90, 0.9)
 		dialogue.say(car, _order["customer"], "sloik_crash", "", 3.5, FAIL_COLOUR, 2.4)
 		hud.toast("Trzask! Pękł słoik · zostało %d z %d" % [_jars, JARS], "Crash! A jar broke · %d of %d left" % [_jars, JARS])
 		_warn_wait = 3.0
@@ -965,7 +966,7 @@ func _check_jars() -> void:
 		_warn_wait = 7.0
 		jars.emit(0)
 		dialogue.say(car, _order["customer"], "sloik_bump", "", 2.5, Color("#ffb05a"), 2.4)
-		Input.vibrate_handheld(40, 0.4)
+		Access.buzz(40, 0.4)
 
 
 func _sloik_result() -> void:

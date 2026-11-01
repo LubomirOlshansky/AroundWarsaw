@@ -3,6 +3,19 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Accessibility follow-ups (2026-11-01)
+
+Built: Settings → DOSTĘP (`game/scripts/access.gd`, kept in `[access]` of settings.cfg): larger HUD
+text (x1.25, read when the HUD is built: shows after a restart), calm (patrol-car lights steady, no
+VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue), vibration on/off
+(every buzz goes through `Access.buzz`), stop assist on/off. Left:
+- Left-handed control layout (steering on the right, GAS and BRAKE on the left).
+- Text size that follows the phone's own setting, and live (no restart); the panels with fixed
+  layouts (cards, bubbles) need a check at x1.25 on the SE.
+- Subtitles: nothing is voiced yet; revisit when speech or radio talk with words lands.
+- Crash sparks and screen shake (another loop) must multiply by `Access.shake()` and buzz through
+  `Access.buzz`; colour-safe still to cover the HUD's green badges and the red fail colour.
+
 ## Ground vertex compression, to re-apply on the Mac (stale PR #53 triage, 2026-11-01)
 - PR #53 (commit b343d60, branch `claude/project-thread-ldyr9u`) stores the ground's meshes with
   `Mesh.ARRAY_FLAG_COMPRESS_ATTRIBUTES` (`chunked_surface.gd` `meshes(flags)`, `map_builder.gd`
