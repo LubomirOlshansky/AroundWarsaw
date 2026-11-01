@@ -4,6 +4,17 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Nowy Świat (F, 2026-11-01)
+
+Done (N1): `bake_street_details.py` DENSE puts a café cluster every 11-17 m on Nowy Świat (was every
+70-110 m): 12 to 33 cafés and 19 to 49 planters on the street, and the per-sector cap is 85 (100
+with stop kits). Skins and cards for Pałac Zamoyskich, Kamienice Mikulskiego 53 and 55, Kamienica
+Bürgera, Kamienica Jasińskiego and Pałac Kossakowskich (landmarks.gd SKINS, INFO).
+- **N2 (open):** colours and card texts are estimates, no photos in the cloud (Mac look check);
+  a pastry-shop parody for the old confectioner's near Nowy Świat 35; Chmielna's and Foksal's mouths;
+  the tenement fronts and café gardens' real extent from orthophoto; a night look of the terraces.
+- Not benched (cloud, no GPU): +68 props in the street-details batch, no new material or draw call.
+
 ## Old Town Market Square, the Syrenka and the decks (F, 2026-11-01)
 
 Built in a cloud thread with no photos (spec docs/landmarks/specs/rynek.md, LANDMARKS 2.12).

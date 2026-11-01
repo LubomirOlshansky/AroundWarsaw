@@ -22,7 +22,7 @@ const PAD := {"kiosk": Vector2(1.6, 1.2), "stall": Vector2(1.4, 1.0), "cafe": Ve
 const SOLID := {"kiosk": Vector2(1.45, 1.1), "stall": Vector2(1.2, 0.9), "cart": Vector2(0.9, 0.6)}
 ## Per-sector and total limits (the budget in the spec); check_street_details.gd holds the file to them.
 const MAX_ITEMS := 900
-const MAX_SECTOR := 70
+const MAX_SECTOR := 100
 
 var map: Node3D
 var count := 0

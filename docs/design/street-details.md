@@ -80,7 +80,7 @@ tram stops (shelter on or within 3 m of a `platforms` polygon), a ticket machine
 inside the shelter's own 2.6 m cleared disc (at its end, along its yaw), so they never add a new
 obstruction to a platform; no other kind goes on a platform.
 
-**Budget:** at most 900 items in all, 70 per 512 m sector; ~250 triangles average, 25 k per
+**Budget:** at most 900 items in all, 85 per 512 m sector (100 with the stop kits); ~250 triangles average, 25 k per
 sector. Runtime `game/scripts/street_details.gd`, built per sector on load on both city paths
 like storefronts.gd `_build_props` (not baked into sector scenes, so `bake_city.gd` is untouched):
 one MeshInstance3D a sector in the actors' material (`Models.material()`), **one draw call a

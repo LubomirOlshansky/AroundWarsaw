@@ -47,6 +47,9 @@ CORRIDORS = [
     ("C7", "avenue", [(73, -1835), (900, -1800), (1321, -1948)]),
     ("C8", "avenue", [(1417, -292), (1722, -391), (1611, -372), (1496, -601)]),
 ]
+# Streets that are one long café terrace in life (Nowy Świat, F 2026-11-01): a cluster every
+# `base` + up to `jitter` m instead of every 70-110 m, so the row reads continuous.
+DENSE = {"Nowy Świat": (11.0, 6.0)}
 REACH = 38.0                     # a road is on a corridor when its middle is this near the waypoints' line
 ROAD_KINDS = {"primary", "secondary", "tertiary", "unclassified", "residential", "living_street", "trunk"}
 NOT_NAMES = {"Wybrzeże Szczecińskie", "Nowy Zjazd"}
@@ -64,7 +67,7 @@ PARASOLS = ["#2f6b4f", "#f4f1de", "#24324a", "#c8282a", "#e07a5f"]
 POSTERS = ["#e07a5f", "#9db4d8", "#e8d36a", "#81b29a", "#e8a6b8"]
 AWNINGS = ["#e63946", "#2a9d8f", "#ffd23f"]
 MAX_ITEMS = 900
-MAX_SECTOR = 70
+MAX_SECTOR = 85  # the placer stops here; the stop kits may add a few more, up to the loader's 100
 SECTOR = 512.0
 PROBE_FROM, PROBE_TO, PROBE_STEP = 1.5, 8.0, 0.5
 STOP_REACH = 40.0
@@ -214,6 +217,8 @@ def cluster(pl, ch, road, side, x0, z0, tx, tz, nx, nz, w, anchor_key, corner):
             put("column", 0.0, pick(POSTERS, *anchor_key, "c"))
         else:
             n = 2 + int(h01(*anchor_key, "n") * 2)
+            if road.get("name", "") in DENSE:
+                n = 1 + int(h01(*anchor_key, "n") * 2)   # a terrace between two planters, closer together
             first = -3.5 * (n - 1) * 0.5
             put("planter", first - 4.0, pick(FLOWERS, *anchor_key, "pa"))
             for k in range(n):
@@ -279,7 +284,8 @@ def bake(data):
     for ch, r in roads:
         p = P.pairs(r["p"])
         side_key = (r.get("name", ""), r["k"])
-        walked = {1: h01(*side_key, p[0][0], p[0][1], 1.0) * 70.0, -1: h01(*side_key, p[0][0], p[0][1], -1.0) * 70.0}
+        base, jitter = DENSE.get(r.get("name", ""), (70.0, 40.0))
+        walked = {1: h01(*side_key, p[0][0], p[0][1], 1.0) * base, -1: h01(*side_key, p[0][0], p[0][1], -1.0) * base}
         total = sum(math.hypot(b[0] - a[0], b[1] - a[1]) for a, b in zip(p, p[1:]))
         run = 0.0
         for a, b in zip(p, p[1:]):
@@ -297,7 +303,7 @@ def bake(data):
                         corner = 15.0 <= to_end <= 40.0 or (total < 80.0 and to_end < 40.0)
                         key = (round(x0, 0), round(z0, 0), side)
                         cluster(pl, ch, r, side, x0, z0, tx, tz, nx, nz, r["w"], key, corner)
-                    pos += 70.0 + h01(round(a[0]), round(a[1]), round(pos), side) * 40.0
+                    pos += base + h01(round(a[0]), round(a[1]), round(pos), side) * jitter
                 walked[side] = pos
             run += ln
     stops = stop_kits(pl, roads)

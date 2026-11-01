@@ -77,6 +77,9 @@ then the Launch gate.
       Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
+- [ ] Nowy Świat street by street (F, 2026-11-01; BACKLOG "Nowy Świat"):
+  - [x] N1 café terraces along the whole street (about three times as many) and six named houses with skins and cards, 2026-11-01
+  - [ ] N2 Mac look check, Café Blikle-style pastry shop parody, Chmielna and Foksal corners, Pałac Staszica to the rondo's tenement fronts from photos
 - [ ] Mariensztat and Krakowskie Przedmieście review (F, 2026-11-01; BACKLOG section):
   - [x] M1 Mariensztat's houses in pastel with red tile roofs and dormers, 2026-11-01
   - [x] M2 Rynek Mariensztacki's card and six relief panels, 2026-11-01 (Mac photos for the real reliefs)
