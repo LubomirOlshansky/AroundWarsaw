@@ -281,7 +281,7 @@ func _check_picks(sf: Storefronts, data: Dictionary, book: Notebook, graph: Lane
 			continue
 		_expect(seen.has(id), "venue %s: not placed (no address, poi or road)" % id)
 	var want_signs := 18 + Storefronts.CAFES.size() + Storefronts.LOUNGES.size() + Storefronts.TRENDY.size() + Storefronts.HYPE.size() + Storefronts.zaglebie_table().size() + Storefronts.CINEMAS.size()
-	_expect(sf.venues.size() == want_signs, "venues: %d signs (want %d: 17 venues, Glon twice, %d Coffeechairs, %d shisha lounges, %d trend spots, %d food-hype spots, %d Zagłębie Kebabowe, %d cinemas)" % [sf.venues.size(), want_signs, Storefronts.CAFES.size(), Storefronts.LOUNGES.size(), Storefronts.TRENDY.size(), Storefronts.HYPE.size(), Storefronts.zaglebie_table().size() + Storefronts.CINEMAS.size()])
+	_expect(sf.venues.size() == want_signs, "venues: %d signs (want %d: 17 venues, Glon twice, %d Coffeechairs, %d shisha lounges, %d trend spots, %d food-hype spots, %d Zagłębie Kebabowe, %d cinemas)" % [sf.venues.size(), want_signs, Storefronts.CAFES.size(), Storefronts.LOUNGES.size(), Storefronts.TRENDY.size(), Storefronts.HYPE.size(), Storefronts.zaglebie_table().size(), Storefronts.CINEMAS.size()])
 	# Leżaks and metro entrances: off the lanes; one standing.
 	var standing := 0
 	for s in sf.scooters:
