@@ -62,6 +62,14 @@ then the Launch gate.
 - [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
 
 ### Left: landmarks and street details
+- [x] Old Town Market Square and its Syrenka (F, 2026-11-01): cobbled paving, 58 café umbrellas, the
+      fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
+      Mac photo check parked (QUESTIONS)
+- [x] People on the observation decks (F, 2026-11-01): Varso Tower's roof and St Anne's bell tower
+      terrace (with a balustrade), the Palace of Culture's 30th-floor terrace (114 m ledge and
+      balustrade, up to 16), hours, weekends and seasons (`crowds.gd` DECKS)
+- [ ] Old Town Market Square leftovers: per-house plaster colours and sgraffito from photos, the
+      four corner streets' mouths, a card for the Museum of Warsaw house (BACKLOG "Old Town square")
 - [x] Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle as models, people chilling
       in their yards and KROWA 2.0, the milk bar queue in Norblin (F, 2026-11-01; specs
       `norblin.md`, `browary.md`, `koszyki.md`, `elektrownia.md`; Mac look check parked)
@@ -71,9 +79,13 @@ then the Launch gate.
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
 - [ ] Mariensztat and Krakowskie Przedmieście review (F, 2026-11-01; BACKLOG section):
   - [x] M1 Mariensztat's houses in pastel with red tile roofs and dormers, 2026-11-01
-  - [ ] M2 Rynek Mariensztacki's card and reliefs; M3 the escarpment and Nowy Zjazd (Mac)
-  - [ ] K1-K6 Krakowskie Przedmieście's missing pieces: the Carmelite church, Mickiewicz's
-        monument, the University gate, Pałac Potockich's guardhouses, Bristol, the statues
+  - [x] M2 Rynek Mariensztacki's card and six relief panels, 2026-11-01 (Mac photos for the real reliefs)
+  - [ ] M3 the escarpment and Nowy Zjazd's viaduct over the estate (Mac, real terrain)
+  - [x] K1-K5 the Carmelite church's front, Mickiewicz's monument, the University gate and Pałac
+        Kazimierzowski's skin, Pałac Potockich and the Kordegarda, Bristol's corner dome, 2026-11-01
+        (spots and heights estimated; Mac photo check)
+  - [ ] K6 the black Chopin benches are done 2026-11-01; Prus's and Wyszyński's statues and the
+        granite paving wait for photos
 
 - [ ] The railway (F, 2026-11-01; plan docs/design/railway.md):
   - [x] R0 design: stations, the cross-city line, trains, 2026-11-01

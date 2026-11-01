@@ -3,6 +3,30 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+
+## Old Town Market Square, the Syrenka and the decks (F, 2026-11-01)
+
+Built in a cloud thread with no photos (spec docs/landmarks/specs/rynek.md, LANDMARKS 2.12).
+Open:
+- **Photo check on the Mac** (QUESTIONS): the paving, the umbrella colours, the statue's pose and
+  pedestal, the rim wall against the mapped pond.
+- The houses' plaster colours: the Rynek's four sides use the generic historic palette; real
+  fronts (Dekert, Fukier, the Museum of Warsaw's houses) need photos for per-house colours,
+  sgraffito and the real stepped gables on the other three sides (`OldTownRoofs.gable` does the
+  east side only).
+- The umbrellas are one row on the 7 m line, drive-through, with no night light; a second row,
+  café lights at night and a few people sitting under them would make the square busier.
+- The statue is 6.4 m tall (taller than life, for the camera); if the photos say she should be
+  smaller, scale `_syrenka_figure` and the pedestal heights together.
+- The fountain's rim is a collider now (the car meets a wall, not the pond); the pedestrians
+  still wade through the pond's map polygon (they avoid water by a distance rule): make them walk
+  round the rim.
+- Varso's deck: visitors stand on the crown's roof ring (roof grid, spire flattened away); the real
+  Varso Observation Deck is glazed at ~230 m. St Anne's terrace is at the tower's cornice (25 m);
+  the real one is at ~40 m. Opening hours are guesses (10-22, 10-19 and 10-18). PKiN's 30th-floor
+  terrace (114 m) has up to 16 visitors on a 1.9 m ledge with a balustrade round the shaft (the
+  real gallery runs inside the walls, so the ledge is a stand-in; Mac look check parked: ledge
+  depth, spacing, whether it reads as a step in the silhouette).
 ## Norblin, Browary, Koszyki, Elektrownia (F, 2026-11-01)
 
 Built (specs `docs/landmarks/specs/norblin.md`, `browary.md`, `koszyki.md`, `elektrownia.md`):
@@ -68,27 +92,33 @@ red tile roofs with dormers.
   joins `_historic`, so its 47 houses take the tenement palette, red tiles, dormers and chimneys
   (LoD2 path; load time only, +0 draw calls). Left: Mac look check (roof pitch from LoD2, the
   palette against photos, the 20.8 m house at (-388,-1362) that OSM tags taller than its neighbours).
-- M2 a landmark card for Rynek Mariensztacki (the 1949 estate, the first socialist-realist square,
-  the 1954 film "Przygoda na Mariensztacie") and its relief panels and
-  well/fountain from photos (Mac).
+- ~~M2 Rynek Mariensztacki's card and reliefs~~ Done 2026-11-01 (site `mariensztat`, spec
+  `mariensztat.md`, 540 tris): six relief panels (frame, terracotta field, sun, two figures) on the
+  south row's faces, and the card. Left: Mac photos for the real reliefs' subjects, number and
+  places, and the square's well or fountain (the map's fountain ring stays).
 - M3 the escarpment, the W-Z tunnel's mouth and Nowy Zjazd's viaduct over the estate: check on the
   Mac with real terrain (the cloud has none).
 
 **Krakowskie Przedmieście** (x -717..-434, z -1333..-465): well covered. Models: the Castle and
 Sigismund's Column at the north end, St Anne's (portico and bell tower), the Visitationists, the
 Presidential Palace, Hotel Europejski, Staszic Palace with Copernicus, Holy Cross; historic
-lanterns and street furniture along the whole street. Still generic boxes:
-- K1 the Carmelite church (Kościół Wniebowzięcia NMP i św. Józefa, (-582,-1036)): the facade with
-  its globe-topped attic; spec from photos.
-- K2 Mickiewicz's monument in Skwer Mickiewicza (lawn centred about (-627,-1074)): figure on a
-  tall pedestal with its fence and corner lanterns; the exact spot and height need the orthophoto
-  or a photo (Mac).
-- K3 the University gate (Brama Główna UW) and Pałac Kazimierzowski behind it.
-- K4 Pałac Potockich (-679,-946) with its two guardhouses (Kordegarda is mapped as a 4.3 m shed);
-  Pałac Czapskich (-609,-597).
-- K5 Hotel Bristol (-543,-917): the corner tower's dome and the facade (already in LANDMARKS 3.1).
-- K6 small things: Prus's and Cardinal Wyszyński's statues, the black Chopin benches, the
-  granite paving of the carriageway.
+lanterns and street furniture along the whole street. 2026-11-01 (K1-K5, K6 in part; all from
+the OSM outlines, no photos; specs in docs/landmarks/specs/):
+- ~~K1 the Carmelite church~~ the front on the kept skin (`karmelici`, 374 tris).
+- ~~K2 Mickiewicz's monument~~ (`mickiewicz`, 282 tris). Left: the exact spot on the lawn (today
+  the lawn's centre), its facing, the fence and corner lanterns' real shape (Mac photo).
+- ~~K3 the University gate~~ (`brama_uw`, 458 tris; Pałac Kazimierzowski is a kept skin with a
+  card, `kazimierzowski`). Left: the gate's true spot and width (today a guess at the campus
+  entrance in the east frontage near (-494,-684)), the palace's own model.
+- ~~K4 Pałac Potockich~~ the court front (`potocki`, 166 tris) and the Kordegarda built whole
+  (`kordegarda`, 466 tris, was a 4.3 m shed). Left: the second (southern) guardhouse is not mapped;
+  Pałac Czapskich (-609,-597) stays a box.
+- ~~K5 Hotel Bristol's corner dome~~ (`bristol`, 334 tris). Left: Mac photo check that the dome
+  is on this corner, its profile and the facade's colours.
+- K6 small things: the black Chopin benches are done (`map_builder` `_split_chopin_benches`: the
+  benches within 14 m of Krakowskie Przedmieście and Nowy Świat take a black granite model, +1
+  instanced mesh per tile that has any). Left: Prus's and Cardinal Wyszyński's statues (spots
+  need photos or the orthophoto) and the carriageway's granite paving.
 
 ## The railway: stations, the cross-city line, trains (F, 2026-11-01)
 
@@ -2509,8 +2539,9 @@ Closed: the Syrenki (syrenki.gd: 20 figurines by the kerb, the find, the reward 
   slow spin or bob for the diamond (a shader: the visuals lane) would read better still.
 - Placed by rule, not by eye: look at each on the street (the kerb side, trees, benches, a
   building's wall in a narrow street); `--syrenka=<id>` puts the car in front of one.
-- No Syrenka on a bridge or in a tunnel (ground streets only); the real statue on the Old Town
-  Market Square stands on the street ring, not in the square itself.
+- No Syrenka on a bridge or in a tunnel (ground streets only); the figurines are small kerb
+  Syrenki, not the statue (the Old Town Market Square's bronze Syrenka is a landmark model since
+  2026-11-01, `syrenka` site).
 - The reward cards queue in `syrenki.gd`; the HUD's note card shows one at a time (a find while
   another card is up waits for it).
 - Garage card: ten paints in two rows of five; on the smallest phone check it still fits.
