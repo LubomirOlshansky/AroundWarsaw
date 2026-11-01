@@ -2428,7 +2428,7 @@ func _near_miss(m: Mover) -> void:
 	_pedzik_t = t
 	pedzik_lines += 1
 	if dialogue != null:
-		dialogue.say(func() -> Vector3: return m.p3 + Vector3(0, 2.2, 0), "Pędzik", "pedzik", "", 4.0, Color("#c23a7e"), 2.2)
+		dialogue.say_ambient(func() -> Vector3: return m.p3 + Vector3(0, 2.2, 0), "Pędzik", "pedzik", "", 4.0, Color("#c23a7e"), 2.2)
 	if life_log or pedzik_log:
 		print("pedzik: a near miss at %.0f, %.0f: the line" % [m.p2.x, m.p2.y])
 
@@ -2963,7 +2963,7 @@ func _zajac_tick(vp: Vector3, kmh: float, flying: bool, step: float) -> void:
 	zajac_cheers += 1
 	var anchor := func() -> Vector3: return (_kolka_at(kolka_run(_hour, length))[0] as Vector3) + Vector3(0, 2.0, 0)
 	if dialogue != null:
-		dialogue.say(anchor, "Kolka", "runners", "zajac", 4.0, BUBBLE, 2.2, true)
+		dialogue.say_ambient(anchor, "Kolka", "runners", "zajac", 4.0, BUBBLE, 2.2, true)
 	if sfx != null and car != null:
 		sfx.horn(car.global_position + car.global_transform.basis.z * 18.0)
 	var paid := _fire("e29")
@@ -2992,7 +2992,7 @@ func _kolka_talk(eye: Vector2, step: float) -> void:
 			var anchor := func() -> Vector3:
 				var q := _kolka_centre()
 				return Vector3(q.x, _ground(q) + 2.0, q.y) if q != Vector2.INF else Vector3.INF
-			dialogue.say(anchor, "Kolka", "runners", "", 4.0, BUBBLE, 2.2)
+			dialogue.say_ambient(anchor, "Kolka", "runners", "", 4.0, BUBBLE, 2.2)
 
 
 ## --zajac --autopilot: the car beside the club's front at its pace, 10 m to the side.
@@ -3036,7 +3036,7 @@ func horn(at: Vector3) -> void:
 			horn_lines += 1
 			var m := d
 			if dialogue != null:
-				dialogue.say(func() -> Vector3: return (m["p3"] as Vector3) + Vector3(0, 2.0, 0), "", "dog_walkers", "horn", 4.0, BUBBLE, 2.2, true)
+				dialogue.say_ambient(func() -> Vector3: return (m["p3"] as Vector3) + Vector3(0, 2.0, 0), "", "dog_walkers", "horn", 4.0, BUBBLE, 2.2, true)
 			if dogs_log:
 				print("dogs: the walker's horn line")
 
@@ -3053,7 +3053,7 @@ func _tiny_tick(p: Vector2, kmh: float) -> void:
 		tiny_lines += 1
 		var m := d
 		if dialogue != null:
-			dialogue.say(func() -> Vector3: return m.p3 + Vector3(0, 2.3, 0), "", "dog_walkers", "tiny", 4.0, BUBBLE, 2.2, true)
+			dialogue.say_ambient(func() -> Vector3: return m.p3 + Vector3(0, 2.3, 0), "", "dog_walkers", "tiny", 4.0, BUBBLE, 2.2, true)
 		if dogs_log:
 			print("dogs: a big guy's tiny-dog line")
 		return
@@ -3072,7 +3072,7 @@ func _infl_tick(p: Vector2, kmh: float, flying: bool, step: float) -> void:
 		_infl["line_t"] = LINE_GAP
 		if dialogue != null:
 			var spot := Vector3(at.x, _ground(at) + 2.2, at.y)
-			dialogue.say(func() -> Vector3: return spot, "", "dog_walkers", "influencer", 4.0, BUBBLE, 2.2, true)
+			dialogue.say_ambient(func() -> Vector3: return spot, "", "dog_walkers", "influencer", 4.0, BUBBLE, 2.2, true)
 
 
 ## The ball on the Kopernik roof (E16): a call when the helicopter comes near, picked up within
@@ -3085,13 +3085,13 @@ func _aport_tick(veh: Array) -> void:
 	if not bool(_aport["told"]) and Vector2(vp.x - dog.x, vp.z - dog.z).length() < 300.0:
 		_aport["told"] = true
 		if hud != null:
-			hud.toast("Pies zgubił piłkę na dachu Kopernika", "A dog's ball is up on the Kopernik roof")
+			hud.ambient_toast("Pies zgubił piłkę na dachu Kopernika", "A dog's ball is up on the Kopernik roof")
 	var mem: Dictionary = _aport["mem"]
 	var was := str(mem["state"])
 	if aport_step(mem, vp, float(veh[4]), _aport["ball"], dog):
 		if dialogue != null:
 			var spot := dog + Vector3(1.0, 2.2, 0.6)
-			dialogue.say(func() -> Vector3: return spot, "", "dog_walkers", "", 4.0, BUBBLE, 2.2)
+			dialogue.say_ambient(func() -> Vector3: return spot, "", "dog_walkers", "", 4.0, BUBBLE, 2.2)
 		if sfx != null:
 			sfx.play_at("bark_big", dog)
 		_fire("e16")
@@ -3124,7 +3124,7 @@ func _bell_tick(p: Vector2, kmh: float, step: float) -> void:
 		sfx.play_at("bike_bell", from + Vector3(0, 1.0, 0))
 	if dialogue != null:
 		var at := from
-		dialogue.say(func() -> Vector3: return at + Vector3(0, 2.2, 0), "", "cyclists", "lane", 4.0, BUBBLE, 2.2, true)
+		dialogue.say_ambient(func() -> Vector3: return at + Vector3(0, 2.2, 0), "", "cyclists", "lane", 4.0, BUBBLE, 2.2, true)
 	if life_log:
 		print("life: the car parked on a cycle path at %.0f, %.0f for %.0f s: the bell" % [p.x, p.y, _bell_hold])
 
@@ -3155,7 +3155,7 @@ func _follow_tick(p: Vector2, kmh: float, step: float) -> void:
 		if float(r["follow"]) >= FOLLOW_M:
 			if dialogue != null:
 				var at: Vector3 = r["p3"]
-				dialogue.say(func() -> Vector3: return at + Vector3(0, 2.2, 0), "", "cyclists", "", 4.0, BUBBLE, 2.2)
+				dialogue.say_ambient(func() -> Vector3: return at + Vector3(0, 2.2, 0), "", "cyclists", "", 4.0, BUBBLE, 2.2)
 			var paid := _fire("e28")
 			if life_log:
 				print("life: a Rowerilo rider followed 400 m docks%s" % (" (E28)" if paid else ""))
@@ -3173,7 +3173,7 @@ func _hyrax_talk(step: float) -> void:
 		if dialogue != null:
 			var q := c + Vector2.from_angle(t * HYRAX_V / HYRAX_LOOP_R) * HYRAX_LOOP_R
 			var spot := Vector3(q.x, _ground(q) + 2.0, q.y)
-			dialogue.say(func() -> Vector3: return spot, "", "runners", "hyrax", 4.0, BUBBLE, 2.2, true)
+			dialogue.say_ambient(func() -> Vector3: return spot, "", "runners", "hyrax", 4.0, BUBBLE, 2.2, true)
 	if float(_hyrax["whistle"]) <= 0.0:
 		_hyrax["whistle"] = _rng.randf_range(60.0, 90.0)
 		if sfx != null:

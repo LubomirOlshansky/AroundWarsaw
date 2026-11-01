@@ -116,6 +116,14 @@ func say(anchor: Variant, speaker: String, group: String, tag := "", seconds := 
 	return l
 
 
+## `say` for ambient chatter: nothing (and no line used up) while the player drives fast (G16).
+func say_ambient(anchor: Variant, speaker: String, group: String, tag := "", seconds := 4.0,
+		accent := Color("#ffd23f"), height := 2.6, prefer := false) -> Array:
+	if bubbles != null and bubbles.muted():
+		return []
+	return say(anchor, speaker, group, tag, seconds, accent, height, prefer)
+
+
 # --- drivers' shouts ------------------------------------------------------------------
 
 ## The player's car hit an AI car (traffic.bumped_driver).

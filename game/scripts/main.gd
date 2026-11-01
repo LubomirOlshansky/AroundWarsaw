@@ -1170,6 +1170,7 @@ func _build_world() -> void:
 	# Speech bubbles (anyone can talk) and everybody's lines.
 	bubbles = Bubbles.new()
 	bubbles.pt = hud.pt
+	bubbles.kmh = func() -> float: return absf(car.forward_speed) * 3.6
 	bubbles.project = func(p: Vector3) -> Vector2: return cam.unproject_position(p) * float(view.stretch_shrink)
 	hud.add_child(bubbles)
 	hud.move_child(bubbles, 1)
@@ -4707,7 +4708,7 @@ func _process(dt: float) -> void:
 		if sz != "" and hud != null and now - _scooter_toast_at >= ScooterZones.COOLDOWN:
 			_scooter_toast_at = now
 			var tw: Array = ScooterZones.toast_for(sz)
-			hud.toast(str(tw[0]), str(tw[1]))
+			hud.ambient_toast(str(tw[0]), str(tw[1]))
 			print("zone: scooter %s (12 km/h for scooters)" % sz)
 	_feed_life(pos)
 	if police != null:

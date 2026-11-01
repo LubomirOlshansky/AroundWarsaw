@@ -11,6 +11,8 @@ someone writes its lines.
 
 ## 2026-11-01
 
+- Fewer texts while driving: street chatter stays quiet above 40 km/h and little hints come at most every 20 seconds. Traffic in Settings is now a slider.
+
 - The helicopter and the map teleport are open from the first second; traffic starts calmer; the car grips the road more and slides less; zoom buttons (+ / −) next to the minimap; POMOC DROGOWA and NOWA GRA at the top of Settings; bigger pickup rings.
 - The old VHS tape filter is now a Retro vaporwave look in Settings → Obraz: pink and teal sunset tones, a soft neon glow, scanlines and a little grain. The picture-style choice is gone; the game always draws the sharp image.
 - Marszałkowska's tram stops fill with commuters at rush hour, thin out at weekends and night, and crowd the platforms when it rains.

@@ -122,12 +122,6 @@ well; make the start and end points bigger and add assistance to pickup". Task: 
 "stopped" under 6 m/s, look-ahead 60 m, aim 3 m inside. Left for the phone: is it enough, or
 should a pickup start by driving through the ring without stopping (G10). Files: stop_assist.gd.
 
-**G16 · Fewer texts while driving (P2, Sonnet).** F: "less texts when the user goes on the road".
-Task: count the toasts and bubbles per minute in a 5-minute drive (a log), merge or drop the
-repeats and hints, rate-limit toasts to one per 20 s except for quest and danger lines, no
-speech bubbles above 40 km/h except police. Accept: at most 3 popups in a 5-minute free drive.
-Files: hud.gd toast, bubbles.gd, dialogue.gd, gps_moments.gd, first10.gd.
-
 **G17 · Stuck against other cars (P1, Opus).** F: "stuck with another cars". Task: reproduce
 (a car pinned against traffic or parked cars at junctions), make traffic yield or ghost through
 the player when contact lasts over 1.5 s, and tow the player to the lane after 8 s pinned with an

@@ -189,7 +189,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] G13 Upgrade shop: Audi TT parody (faster car), nitro, tuning, paid in zł (Opus design, Sonnet content)
 - [x] G14 POMOC DROGOWA (unstuck) and NOWA GRA (two-tap reset) at the top of Settings → Jazda (quick win)
 - [x] G15 Stop assist works better: bigger quest start and end rings, looser "stopped", longer look-ahead (quick win; phone check)
-- [ ] G16 Fewer text popups while driving on the road: toasts and speech bubbles only for what matters (Sonnet)
+- [x] G16 Fewer text popups while driving on the road: ambient bubbles muted above 40 km/h, ambient toasts one per 20 s, traffic is a slider (2026-11-01, Sonnet)
 - [ ] G17 Car stuck against other cars: traffic collision pushes, then auto-unstuck from cars (Opus)
 - [ ] G18 Park Ujazdowski and Zamek Ujazdowski (the castle) improved: its own landmark thread (Opus)
 
