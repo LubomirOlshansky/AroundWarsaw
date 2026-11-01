@@ -192,6 +192,9 @@ const int S_DARK = 6;
 const int S_GOLD = 7;
 const int S_FRAME = 8;
 const int S_TILE = 9;
+const int S_EASTWALL = 10;
+const int S_PUNCHED = 11;
+const int S_SLAB = 12;
 
 vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool cut) {
 	glow = vec3(0.0);
@@ -256,6 +259,60 @@ vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool 
 			}
 		}
 		return tile;
+	} else if (s == S_EASTWALL) {
+		// The Eastern Wall's stores (the Mac photo check, 2026-11-01): a vertical-led grid, strong
+		// dark grey mullions every 1.5 m, only a thin dark spandrel line at each floor.
+		frame = fract(u / 1.5) < 0.13 || fract(h / fh) < 0.035;
+		frame_col = srgb_to_linear(vec3(0.247, 0.278, 0.298)) * mix(0.3, 1.0, daylight);
+	} else if (s == S_PUNCHED) {
+		// A re-clad 1970s point block (the start area's 75 m tower, 2026-11-01): light horizontal
+		// metal cladding, punched windows in bands (2 x 1.4 m every 3.2 m, white frames, dark
+		// glass), warm at night.
+		float pf = 2.95;
+		float wx = fract(u / 3.2);
+		float wy = fract(h / pf);
+		float lvl = floor(h / pf);
+		vec3 clad = col * mix(0.3, 1.0, daylight) * (fract(h / 0.74) < 0.06 ? 0.9 : 1.0);
+		bool win = abs(wx - 0.5) < 0.3125 && wy > 0.3 && wy < 0.775;
+		bool rim = abs(wx - 0.5) < 0.345 && wy > 0.27 && wy < 0.805;
+		if (win) {
+			if (lights_on > 0.001 && hash12(vec2(floor(u / 3.2), lvl) + 2.9) < 0.42 * lights_on) {
+				glow = WARM_PALE * 0.95;
+				return c * 0.3;
+			}
+			return mix(srgb_to_linear(vec3(0.16, 0.19, 0.23)), sky * 0.5, refl) * mix(0.35, 1.0, daylight);
+		}
+		return rim ? white : clad;
+	} else if (s == S_SLAB) {
+		// A 1960s residential slab's long face (2026-11-01): pale plaster, a continuous loggia
+		// band on every floor (a light balustrade, a dark recess with windows between thin
+		// piers); warm windows and some lit balconies at night.
+		float pf = 2.85;
+		float wy = fract(h / pf);
+		float lvl = floor(h / pf);
+		float bay = floor(u / 3.6);
+		float wx = fract(u / 3.6);
+		vec3 plaster = col * mix(0.3, 1.0, daylight);
+		if (h < pf || h > top - 0.6) {
+			return plaster * (h < pf ? 0.86 : 1.06);
+		}
+		if (wy < 0.33) {
+			return srgb_to_linear(vec3(0.9, 0.88, 0.83)) * mix(0.3, 1.0, daylight);
+		}
+		if (wy > 0.9 || wx < 0.07) {
+			return plaster * 0.92;
+		}
+		vec3 deep = col * 0.55 * mix(0.35, 1.0, daylight);
+		if (abs(wx - 0.55) < 0.18 && wy > 0.45 && wy < 0.84) {
+			deep = mix(srgb_to_linear(vec3(0.17, 0.19, 0.22)), sky * 0.4, 0.3) * mix(0.35, 1.0, daylight);
+			if (lights_on > 0.001 && hash12(vec2(bay, lvl) + 4.1) < 0.45 * lights_on) {
+				glow = WARM_PALE * 0.9;
+				return deep * 0.3;
+			}
+		} else if (lights_on > 0.001 && hash12(vec2(bay, lvl) + 8.3) < 0.1 * lights_on) {
+			glow = WARM * 0.5;
+		}
+		return deep;
 	} else if (s == S_FRAME) {
 		frame = fract(u / 3.2) < 0.14 || fract(h / 4.4) < 0.1 || h > top - 0.9;
 		frame_col = mix(silver, white, 0.5);
@@ -476,6 +533,21 @@ vec3 landmark(int mode, float param, vec3 col, vec2 uv, float top, bool wall, ve
 		// A glass drum lit from inside: busy at night, nearly every bay.
 		if (!wall) {
 			return col;
+		}
+		if (param > 0.6) {
+			// param 0.75: the Rotunda (the Mac photo check, 2026-11-01): green-grey panes floor
+			// to eave (its silver mullions are geometry), one transom near the top, a little sky
+			// in the glass; lit warm from inside at night, nearly every pane.
+			float refl = clamp(uv.y / max(top, 1.0), 0.0, 1.0) * 0.22 + 0.14 * value_noise(vec2(uv.x * 0.06, uv.y * 0.05));
+			vec3 g = mix(col * mix(0.4, 1.0, daylight), srgb_to_linear(sky_colour) * mix(0.4, 1.0, daylight), refl);
+			if (top > 3.0 && uv.y > top - 1.55 && uv.y < top - 1.3) {
+				return srgb_to_linear(vec3(0.76, 0.78, 0.8)) * mix(0.3, 1.0, daylight);
+			}
+			if (lights_on > 0.001) {
+				glow = vec3(1.0, 0.86, 0.62) * (0.8 + 0.3 * hash12(vec2(floor(uv.x / 2.07), floor(uv.y / 5.0))));
+				g *= 0.4;
+			}
+			return g;
 		}
 		vec3 c = glass_wall(col, uv.x, uv.y, top, 1.6, 4.2, 0.0, glow);
 		if (lights_on > 0.001 && fract(uv.x / 1.6) > 0.1 && fract(uv.x / 1.6) < 0.9 && fract(uv.y / 4.2) > 0.06) {

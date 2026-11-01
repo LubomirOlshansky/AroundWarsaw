@@ -59,8 +59,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Europejski's are estimates to set from photos; the Królewska-edge colours are guesses; the
   unnamed south-east block has no card (its name isn't mapped); the Metropolitan's passages are
   dark panels, not open; the army museum's yard placement is a guess (east courtyard).
-  Next candidates: tram stop platforms, kiosks (not in the baked data yet), Warsaw's green bins. **Left**: PZU Tower and JM Tower (oddly mapped) keep the
-  generic glass, and any model the user names next (docs/QUESTIONS.md).
+  Next candidates: tram stop platforms, kiosks (not in the baked data yet), Warsaw's green bins. **Left**: PZU Tower and JM Tower are towers since 2026-11-01 (first pass, colours to check on a Mac photo), and any model the user names next (docs/QUESTIONS.md).
   **Landmarks lane, hand-over (2026-10-31)**: since the first passes the lane also landed: the Rondo
   Daszyńskiego towers (The Warsaw HUB found by a point, `_tallest_at`; sloped crowns), the Old
   Town's and New Town's tenements split into their OSM houses' colours and tile roofs
@@ -72,7 +71,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (−658, −1350), the free-standing bell tower is a separate building to its north-east), the other
   churches (Holy Cross, All Saints, St Alexander's rotunda, the Visitationists) and the Palace
   on the Isle's neighbours, Staszic's facade (a colour-only skin today; Zachęta, Holy Trinity
-  and the Presidential Palace became models on 2026-10-31, specs in docs/landmarks/specs/), the Old Town's gables and dormers (the LoD2 roofs have none), PZU/JM Tower. How the
+  and the Presidential Palace became models on 2026-10-31, specs in docs/landmarks/specs/) (PZU/JM Tower done 2026-11-01). (The Old Town's dormers and chimneys, 2026-11-01: `old_town_roofs.gd`, one per big roof slope, no new draw call; a Mac look on the real roofs and the stepped gables of the market square's east side are still open.) How the
   lane works: `landmarks.gd` sites (`TOWERS`, `SKINS`, fixed-position circle zones like
   `_find_zygmunt`), each needs a card in `INFO` and `check_landmarks`; a site found in
   `data["buildings"]` also needs its box in `bake_sectors.py` `SITE_AREAS`; after a change
@@ -178,8 +177,10 @@ golden-image shots runtime vs `--prebuilt`,
   two trams on Marszałkowska, one passing the car, one coming down the street; street furniture
   by the start (`first_scene.gd`: kiosk, flower stall, cafés, ad columns, planters). Found: the
   game's camera sees the east side's stores from behind their street faces, so furniture on
-  their pavements never shows (it stands on the museum's side instead). Left: the Rotunda
-  re-pass, the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
+  their pavements never shows (it stands on the museum's side instead). **2026-11-01 (Mac photo
+  check, spec B):** the Rotunda re-pass done (spec `docs/landmarks/specs/rotunda.md`: green-grey
+  glass between 52 silver mullions, the folded-plate crown with its teeth, the oculus, the
+  canopies, Widok Towers' green grid); only the phone can show the teeth and the signs' size. Left: the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
   the tram stops and kerbs (item 5), pedestrians and sound (6-7), the photo check on the Mac.
 
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)

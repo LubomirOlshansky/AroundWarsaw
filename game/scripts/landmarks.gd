@@ -48,6 +48,9 @@ const S_DARK := 6
 const S_GOLD := 7
 const S_FRAME := 8
 const S_TILE := 9   # Novotel's white tiled shaft (the Rondo photos, 2026-10-31)
+const S_EASTWALL := 10  # the Eastern Wall stores: strong dark mullions every 1.5 m, a thin floor line
+const S_PUNCHED := 11   # a re-clad point block: light horizontal cladding, punched windows in bands
+const S_SLAB := 12      # a 1960s slab's long face: plaster and loggia bands
 
 ## The landmarks loop (2026-10-30): the skyline's towers, so each reads as itself and not as one
 ## more blue box. Each is built from its mapped building parts (the outline `osm` names; what
@@ -91,7 +94,12 @@ const TOWERS := [
 	{"key": "platinum_a", "osm": "Platinum Tower A", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
 	{"key": "platinum_b", "osm": "Platinum Tower B", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
 	{"key": "lucka", "osm": "Łucka City", "style": S_RIBBON, "glass": "#7c8c98", "roof": "#bfc3c3"},
-	{"key": "widok", "osm": "Widok Towers", "style": S_FINS, "glass": "#4f677b", "roof": "#8d969c"},
+	{"key": "widok", "osm": "Widok Towers", "style": S_GRID, "glass": "#5d8478", "roof": "#8d969c"},
+	# The PZU Tower's two stepped glass volumes (92 and 97 m, one round-topped) in pale
+	# green-blue glass with ribbon bands, and its slim white mast (106 m). JM Tower's grey fins
+	# stand on dark navy glass (a dozen small mapped pilasters in #bfbfc4: kept as mapped).
+	{"key": "pzu", "osm": "PZU Tower", "style": S_RIBBON, "glass": "#8fb5bd", "roof": "#c4cccf"},
+	{"key": "jm", "osm": "JM Tower", "style": S_FINS, "glass": "#2b4560", "roof": "#7d878e", "mapped": true},
 ]
 
 const SANDSTONE := Color("#d8c49c")   # the Palace (bake_gugik.py LANDMARKS)
@@ -194,6 +202,10 @@ const INFO := {
 	"platinum_b": ["Platinum Tower B", "83 m.", "83 m."],
 	"lucka": ["Łucka City", "103 m przy Łuckiej.", "103 m on Łucka."],
 	"widok": ["Widok Towers", "95 m przy Alejach Jerozolimskich.", "95 m on Al. Jerozolimskie."],
+	"pzu": ["Wieża PZU", "Biurowiec przy Alejach Jana Pawła II: dwie szklane bryły, jedna z okrągłym szczytem.",
+			"An office tower on Al. Jana Pawła II: two glass volumes, one with a round top."],
+	"jm": ["JM Tower", "Biurowiec przy Alejach Jerozolimskich, ciemne szkło i szare żebra.",
+			"An office tower on Al. Jerozolimskie, dark glass and grey fins."],
 	"teatr": ["Teatr Wielki",
 			"Opera Narodowa. Gmach Antonia Corazziego z 1833 roku.",
 			"The National Opera. Antonio Corazzi's building of 1833."],
@@ -541,6 +553,8 @@ func _find_sites() -> void:
 	_find_tr()
 	# First scene item 3 (2026-10-31): the Eastern Wall's three glass department stores.
 	_find_dtc()
+	# The Mac photo check (2026-11-01, specs C and D): the tower and the slabs behind the stores.
+	_find_behind()
 	# Plac Małachowskiego and the Presidential Palace (2026-10-31): models instead of skins.
 	_find_trojca()
 	_find_zacheta()
@@ -849,6 +863,12 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"zamek":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the stone plinth is ours
 				_build_zamek(s)
+			"tower75":
+				_id = 0  # unnamed: no card, not on the picking grid
+				_build_tower75(s)
+			"slabs":
+				_id = 0
+				_build_slabs(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -1699,9 +1719,26 @@ func _wave(p: Vector2, domes: Array) -> float:
 
 # --- the Rotunda ------------------------------------------------------------------------------
 
-## A round glass pavilion on the corner of Marszałkowska and Al. Jerozolimskie: a granite
-## plinth, two storeys of glass lit from inside, a white roof that overhangs, rises gently
-## and opens in a glass oculus, ribbed like the old one.
+## The Mac photo check (2026-11-01, spec docs/landmarks/specs/rotunda.md): green-grey glass
+## floor to eave between 52 silver mullions, one transom near the top; a folded-plate crown in
+## brushed silver (48 radial folds whose ends make the eave's ring of downward teeth) rising
+## gently to a raised oculus with a metal kerb and a glazed top in a 4 x 4 grid; the main
+## entrance on the south under a flat canopy, a smaller one on the plaza (north-west), two
+## triangular plates on the roof's edge, and the bank's parody name either side of the south door.
+const ROT_GLASS := Color("#5e7f7a")    # #4d6f6b in shade, #6f8f8a lit
+const ROT_SILVER := Color("#c3c8cc")
+const ROT_FOLD_LIGHT := Color("#d4d8db")
+const ROT_FOLD_DARK := Color("#b0b6bb")
+const ROT_TOOTH := Color("#e4e7e9")   # the eave's teeth, white-silver
+const ROT_BAYS := 52
+const ROT_FOLDS := 48
+const ROT_EAVE := 10.8      # the glass's top and the soffit, over the ground
+const ROT_RIDGE := 12.3     # a fold's ridge at the eave (the teeth hang 1.5 m to ROT_EAVE)
+const ROT_OCULUS := 5.4     # the oculus's radius (10.8 m across)
+const ROT_SOUTH := Vector2(0, 1)
+const ROT_PLAZA := Vector2(-0.7071, -0.7071)
+
+
 func _build_rotunda(site: Dictionary) -> void:
 	var poly: PackedVector2Array = site["zone"][0]
 	var c := _centre(poly)
@@ -1711,88 +1748,150 @@ func _build_rotunda(site: Dictionary) -> void:
 	r /= poly.size()
 	_g = _ground_under(poly)
 	var g := _g
-	var seg := 48
-	var ring := func(radius: float) -> PackedVector2Array:
-		var out := PackedVector2Array()
-		for k in seg:
-			out.append(c + Vector2.from_angle(TAU * k / seg) * radius)
-		return out
-	# Plinth, glass drum, the band under the roof's edge (a lit strip at night).
-	_prism(ring.call(r + 0.25), g - 0.4, g + 0.7, Color("#56565c"), Color(0, 0, 0, 0), M_STONE)
-	_prism(ring.call(r), g + 0.7, g + 10.6, Color("#9cc4d4"), Color(0, 0, 0, 0), M_PAVILION)
-	_prism(ring.call(r + 0.05), g + 10.6, g + 11.0, Color("#fff2d6"), Color(0, 0, 0, 0), M_LAMP)
-	# The roof: an overhanging white edge, then a shallow cone up to the oculus, in ribs.
-	var edge := r + 2.2
-	_prism(ring.call(edge), g + 11.0, g + 12.2, Color("#eceae4"), Color(0, 0, 0, 0), M_STONE)
+	var none := Color(0, 0, 0, 0)
+	# The drum: one bay of the 52 centred on the south door, a mullion at every corner.
+	var step := TAU / ROT_BAYS
+	var a0 := ROT_SOUTH.angle() + 0.5 * step
+	var drum := PackedVector2Array()
+	for k in ROT_BAYS:
+		drum.append(c + Vector2.from_angle(a0 + k * step) * r)
+	_prism(drum, g - 0.4, g + 0.3, Color("#55585c"), none, M_STONE)
+	_prism(drum, g + 0.3, g + ROT_EAVE, ROT_GLASS, none, M_PAVILION + 0.75)
 	_mode = M_STONE
-	var under: PackedVector2Array = ring.call(edge)
-	var inner: PackedVector2Array = ring.call(r)
-	for k in seg:
-		var a := under[k]
-		var b := under[(k + 1) % seg]
-		var ai := inner[k]
-		var bi := inner[(k + 1) % seg]
-		_quad(Vector3(a.x, g + 11.0, a.y), Vector3(b.x, g + 11.0, b.y), Vector3(bi.x, g + 11.0, bi.y), Vector3(ai.x, g + 11.0, ai.y),
-				Vector3.DOWN, Color("#c9c7c0"))
-	var cone_out: PackedVector2Array = ring.call(edge)
-	var cone_in: PackedVector2Array = ring.call(5.2)
-	for k in seg:
-		var a := cone_out[k]
-		var b := cone_out[(k + 1) % seg]
-		var ai := cone_in[k]
-		var bi := cone_in[(k + 1) % seg]
-		var p0 := Vector3(a.x, g + 12.2, a.y)
-		var p1 := Vector3(b.x, g + 12.2, b.y)
-		var p2 := Vector3(bi.x, g + 13.6, bi.y)
-		var p3 := Vector3(ai.x, g + 13.6, ai.y)
-		var n := (p1 - p0).cross(p3 - p0).normalized()
-		if n.y < 0.0:
-			n = -n
-		_quad(p0, p1, p2, p3, n, Color("#f3f1ea") if k % 2 == 0 else Color("#dcdad3"))
-	# The oculus: a raised glass ring with a shallow glass cap.
-	_prism(ring.call(5.2), g + 13.6, g + 14.5, Color("#8fb6c6"), Color(0, 0, 0, 0), M_PAVILION)
+	for p in drum:
+		_rot_fin(c, p, g + 0.3, g + ROT_EAVE, 0.09, 0.32, ROT_SILVER)
+	_rot_crown(c, r, g)
+	# The entrances: glazed doors under a flat silver canopy, a transom over the doors.
+	_rot_door(c, r, g, ROT_SOUTH, 3, 8.0, 2.0, 4.0)
+	_rot_door(c, r, g, ROT_PLAZA, 2, 5.0, 1.5, 3.6)
+	# The bank's name (a parody), white on the glass either side of the south door.
+	for s: float in [-1.0, 1.0]:
+		var d := ROT_SOUTH.rotated(s * 0.56)
+		var at := c + d * (r + 0.1)
+		signs.append(["BANK POLSKA", Vector3(at.x, g + 5.2, at.y), Vector3(d.x, 0.0, d.y), 0.4, Color(0.95, 0.97, 1.0)])
+	_collide(drum)
+
+
+## A mullion standing proud of the glass at plan point p: its face and two sides.
+func _rot_fin(c: Vector2, p: Vector2, y0: float, y1: float, half: float, depth: float, col: Color) -> void:
+	var o := (p - c).normalized()
+	var t := Vector2(-o.y, o.x)
+	var a := p - t * half
+	var b := p + t * half
+	var a2 := a + o * depth
+	var b2 := b + o * depth
+	var n := Vector3(o.x, 0, o.y)
+	var tn := Vector3(t.x, 0, t.y)
+	_quad(Vector3(a2.x, y0, a2.y), Vector3(b2.x, y0, b2.y), Vector3(b2.x, y1, b2.y), Vector3(a2.x, y1, a2.y), n, col)
+	_quad(Vector3(b.x, y0, b.y), Vector3(b2.x, y0, b2.y), Vector3(b2.x, y1, b2.y), Vector3(b.x, y1, b.y), tn, col.darkened(0.08))
+	_quad(Vector3(a.x, y0, a.y), Vector3(a2.x, y0, a2.y), Vector3(a2.x, y1, a2.y), Vector3(a.x, y1, a.y), -tn, col.darkened(0.08))
+
+
+## The folded-plate roof: 48 folds from the eave to the oculus, a ridge and a valley each, the
+## valleys dropping to the eave so the plates' ends make a ring of downward teeth; a recessed
+## dark fascia behind the teeth, the soffit under the overhang, the oculus's kerb and glazed
+## top, and the two triangular plates on the edge (north-east and south-west).
+func _rot_crown(c: Vector2, r: float, g: float) -> void:
+	var edge := r + 2.2
+	var fold := TAU / ROT_FOLDS
+	var a0 := ROT_SOUTH.angle()
+	var top := g + 14.4    # a ridge at the oculus
+	var low := g + 14.0    # a valley at the oculus
+	_mode = M_STONE
+	for k in ROT_FOLDS:
+		var ar := a0 + k * fold
+		var av := ar + 0.5 * fold
+		var ar2 := ar + fold
+		var re := c + Vector2.from_angle(ar) * edge
+		var ve := c + Vector2.from_angle(av) * edge
+		var re2 := c + Vector2.from_angle(ar2) * edge
+		var ri := c + Vector2.from_angle(ar) * ROT_OCULUS
+		var vi := c + Vector2.from_angle(av) * ROT_OCULUS
+		var ri2 := c + Vector2.from_angle(ar2) * ROT_OCULUS
+		var p_re := Vector3(re.x, g + ROT_RIDGE, re.y)
+		var p_ve := Vector3(ve.x, g + ROT_EAVE, ve.y)
+		var p_re2 := Vector3(re2.x, g + ROT_RIDGE, re2.y)
+		var p_ri := Vector3(ri.x, top, ri.y)
+		var p_vi := Vector3(vi.x, low, vi.y)
+		var p_ri2 := Vector3(ri2.x, top, ri2.y)
+		for f: Array in [[p_re, p_ve, p_vi, p_ri, ROT_FOLD_LIGHT], [p_ve, p_re2, p_ri2, p_vi, ROT_FOLD_DARK]]:
+			_rot_up_tri(f[0], f[1], f[2], f[4])
+			_rot_up_tri(f[0], f[2], f[3], f[4])
+		# The teeth: the plates' ends, white-silver, seen as downward triangles from the street;
+		# behind them (between two teeth) the dark fascia closes the edge down to the soffit.
+		var o := Vector3(cos(av), 0, sin(av))
+		_tri(p_re, p_re2, p_ve, o, ROT_TOOTH, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+		var re_low := Vector3(re.x, g + ROT_EAVE, re.y)
+		var back := c + Vector2.from_angle(ar) * (edge - 0.5)
+		var back2 := c + Vector2.from_angle(ar2) * (edge - 0.5)
+		var dark := Color("#6d7378")
+		_quad(Vector3(back.x, g + ROT_EAVE, back.y), Vector3(back2.x, g + ROT_EAVE, back2.y),
+				Vector3(back2.x, g + ROT_RIDGE, back2.y), Vector3(back.x, g + ROT_RIDGE, back.y), o, dark)
+		# The soffit: the overhang's underside, from the glass out to the edge.
+		var si := c + Vector2.from_angle(ar) * (r - 0.2)
+		var si2 := c + Vector2.from_angle(ar2) * (r - 0.2)
+		_quad(Vector3(si.x, g + ROT_EAVE, si.y), Vector3(si2.x, g + ROT_EAVE, si2.y), Vector3(re2.x, g + ROT_EAVE, re2.y),
+				re_low, Vector3.DOWN, Color("#b9bec2"))
+	# The oculus: a metal kerb 1 m over the folds, a glazed top in a 4 x 4 grid.
+	var ring := _circle(c, ROT_OCULUS, 24)
+	_prism(ring, low - 0.1, top + 0.9, ROT_SILVER, Color(0, 0, 0, 0), M_STONE)
+	var glass_y := top + 0.9
 	_mode = M_GLASS_ROOF
-	_pyramid(ring.call(5.2), g + 14.5, g + 15.6, Color("#86aebf"))
-	_collide(ring.call(r + 0.25))
-	_rotunda_night(c, r, g)
-
-
-## The Rondo photos (2026-10-31): the Rotunda's white zigzag crown (24 teeth, 3 m, standing on
-## the roof's rim), red and blue light glowing in the glass under it (every sixth and every
-## sixth-plus-three bay) and the bank's name, a parody (BANK POLSKA), lit white on the glass at
-## the south and east faces.
-func _rotunda_night(c: Vector2, r: float, g: float) -> void:
-	var teeth := 24
-	var edge := r + 2.2
-	var white := Color("#ffffff")
+	_cap(ring, glass_y, Color("#8fb0ad"))
 	_mode = M_STONE
-	for k in teeth:
-		var a0 := TAU * k / teeth
-		var a1 := TAU * (k + 1) / teeth
-		var pa := c + Vector2.from_angle(a0) * edge
-		var pb := c + Vector2.from_angle(a1) * edge
-		var pm := c + Vector2.from_angle((a0 + a1) * 0.5) * edge
-		var va := Vector3(pa.x, g + 12.2, pa.y)
-		var vb := Vector3(pb.x, g + 12.2, pb.y)
-		var vt := Vector3(pm.x, g + 15.2, pm.y)
-		var n := (vb - va).cross(vt - va).normalized()
-		if n.dot(Vector3(pm.x - c.x, 0.0, pm.y - c.y)) < 0.0:
-			n = -n
-		var none := Vector2(-1, -1)
-		_tri(va, vb, vt, n, white, none, none, none, -1.0)
-		_tri(vb, va, vt, -n, white.darkened(0.15), none, none, none, -1.0)
-	for k in teeth:
-		if k % 6 != 1 and k % 6 != 4:
-			continue
-		var a0 := TAU * k / teeth
-		var a1 := TAU * (k + 1) / teeth
-		var tint := Color("#3b63d8") if k % 12 < 6 else Color("#d8433a")
-		var wedge := PackedVector2Array([c + Vector2.from_angle(a0) * (r - 0.4), c + Vector2.from_angle(a1) * (r - 0.4),
-				c + Vector2.from_angle(a1) * (r + 0.06), c + Vector2.from_angle(a0) * (r + 0.06)])
-		_prism(wedge, g + 6.0, g + 10.4, tint, Color(0, 0, 0, 0), M_LAMP)
-	for d: Vector2 in [Vector2(0, 1), Vector2(1, 0)]:
-		var at := c + d * (r + 0.3)
-		signs.append(["BANK POLSKA", Vector3(at.x, g + 2.4, at.y), Vector3(d.x, 0.0, d.y), 0.9, Color(0.95, 0.97, 1.0)])
+	for i in range(1, 4):
+		var off := -ROT_OCULUS + i * ROT_OCULUS * 0.5
+		var span := sqrt(ROT_OCULUS * ROT_OCULUS - off * off) - 0.2
+		for d: Vector2 in [Vector2(1, 0), Vector2(0, 1)]:
+			var across := Vector2(-d.y, d.x)
+			var m := c + across * off
+			_prism(PackedVector2Array([m - d * span - across * 0.12, m + d * span - across * 0.12,
+					m + d * span + across * 0.12, m - d * span + across * 0.12]),
+					glass_y, glass_y + 0.18 + (0.02 if d.x > 0.5 else 0.0), ROT_SILVER, ROT_SILVER, M_STONE, M_STONE)
+	# The two triangular plates standing on the edge, north-east and south-west.
+	for d: Vector2 in [Vector2(0.7071, -0.7071), Vector2(-0.7071, 0.7071)]:
+		var t := Vector2(-d.y, d.x)
+		var base := c + d * (edge - 0.6)
+		var pa := Vector3((base - t * 2.6).x, g + ROT_RIDGE - 0.4, (base - t * 2.6).y)
+		var pb := Vector3((base + t * 2.6).x, g + ROT_RIDGE - 0.4, (base + t * 2.6).y)
+		var pt := Vector3(base.x, g + ROT_RIDGE + 3.4, base.y)
+		var n := Vector3(d.x, 0, d.y)
+		var nn := Vector2(-1, -1)
+		_tri(pa, pb, pt, n, Color("#a9b0b5"), nn, nn, nn, -1.0)
+		_tri(pb, pa, pt, -n, Color("#8e959a"), nn, nn, nn, -1.0)
+
+
+## A roof triangle with its normal pointing up (a fold's facet).
+func _rot_up_tri(a: Vector3, b: Vector3, c: Vector3, col: Color) -> void:
+	var n := (b - a).cross(c - a).normalized()
+	if n.y < 0.0:
+		n = -n
+	_tri(a, b, c, n, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+
+
+## An entrance facing `d`: `bays` dark glass doors (centred on d) to 3.2 m, a silver transom
+## over them, and a flat canopy `wide` by `deep` at `at` m.
+func _rot_door(c: Vector2, r: float, g: float, d: Vector2, bays: int, wide: float, deep: float, at: float) -> void:
+	var step := TAU / ROT_BAYS
+	var mid := d.angle()
+	var first := mid - 0.5 * bays * step
+	_mode = M_STONE
+	for k in bays:
+		var p0 := c + Vector2.from_angle(first + k * step) * (r + 0.1)
+		var p1 := c + Vector2.from_angle(first + (k + 1) * step) * (r + 0.1)
+		var o := Vector2.from_angle(first + (k + 0.5) * step)
+		var n := Vector3(o.x, 0, o.y)
+		_quad(Vector3(p0.x, g + 0.3, p0.y), Vector3(p1.x, g + 0.3, p1.y), Vector3(p1.x, g + 3.2, p1.y), Vector3(p0.x, g + 3.2, p0.y),
+				n, Color("#2e3a39"))
+		var q0 := c + Vector2.from_angle(first + k * step) * (r + 0.22)
+		var q1 := c + Vector2.from_angle(first + (k + 1) * step) * (r + 0.22)
+		_quad(Vector3(q0.x, g + 3.2, q0.y), Vector3(q1.x, g + 3.2, q1.y), Vector3(q1.x, g + 3.5, q1.y), Vector3(q0.x, g + 3.5, q0.y),
+				n, ROT_SILVER)
+	var t := Vector2(-d.y, d.x)
+	var near := c + d * (r - 0.4)
+	var far := c + d * (r + deep)
+	_prism(PackedVector2Array([near - t * wide * 0.5, near + t * wide * 0.5, far + t * wide * 0.5, far - t * wide * 0.5]),
+			g + at, g + at + 0.35, ROT_SILVER, ROT_SILVER.lightened(0.08), M_STONE, M_STONE)
 
 
 # --- Varso Tower ------------------------------------------------------------------------------
@@ -3731,18 +3830,23 @@ const DTC_FASCIA := 0.8      # the slab edge over the shop windows
 const DTC_BODY := 17.5       # the curtain wall's top (OSM part h 17.5)
 const DTC_CORNICE := 0.5
 const DTC_TOP := 3.0         # the top storey (OSM parts 17.5 to 20.5)
-const DTC_TOP_IN := 3.0      # and how far it stands back from the edge (photo check)
-const DTC_RECESS := 1.5      # the shop floor's set-back where no part is mapped
+const DTC_TOP_IN := 3.0      # and how far it stands back from the long sides (the Mac photo check)
+const DTC_TOP_END := 8.0     # and from the ends (6-10 m in the photos)
+const DTC_RECESS := 4.5      # the shop floor's set-back under the cantilever (photos: 4-5 m)
 ## Down Marszałkowska (south-south-east) from the stores: the game's camera looks up the street,
 ## so the stores' south ends face it.
 const DTC_SOUTH := Vector2(0.349, 0.937)
-const DTC_SHOP := Color("#bcd8cf")      # the shop windows (OSM #B2E1C7), lit warm at night
-const DTC_GLASS := Color("#6f9f93")     # the curtain wall's green glass (OSM #78B3A1)
-const DTC_ALU := Color("#d3d7d5")       # fascia, cornice
+const DTC_SHOP := Color("#6e7f84")      # the dark shop windows deep under the cantilever, lit warm at night
+const DTC_GLASS := Color("#56656e")     # the curtain wall's dark blue-grey glass (the Mac photo check)
+const DTC_ALU := Color("#c9cdcf")       # fascia, cornice, soffit: light aluminium
 const DTC_TOP_WALL := Color("#dfe1dc")  # the top storey's panels (OSM #E4E5DE)
-const DTC_ROOF := Color("#6c757a")      # (OSM #4B555F, a step paler: the frame's biggest plain area)
+const DTC_ROOF := Color("#4f5559")      # the main roof
+const DTC_TOP_ROOF := Color("#5d6468")  # the top storey's roof
 const DTC_SKY := Color("#cfd8dc")       # the roof lights, lit at night
 const DTC_SIGN := Color(1.0, 0.86, 0.55)
+## The printed ad banners (A4): a word (generic or a parody) and the poster's colour.
+const DTC_BANNERS := [["PROMOCJA", Color("#c8322e")], ["SAMSONG", Color("#1f3f8f")], ["LODY", Color("#e0a21c")],
+		["WYPRZEDAZ", Color("#2c8a57")], ["SAMSONG", Color("#252a33")], ["PROMOCJA", Color("#8a2b7a")]]
 func _find_dtc() -> void:
 	var zone: Array[PackedVector2Array] = []
 	for d: Dictionary in DTC:
@@ -3756,55 +3860,196 @@ func _find_dtc() -> void:
 
 func _build_dtc(_site: Dictionary) -> void:
 	var none := Color(0, 0, 0, 0)
-	var skin := M_SKIN + float(S_BANDS) / 16.0
+	var skin := M_SKIN + float(S_EASTWALL) / 16.0
+	var banner_i := 0
 	for d: Dictionary in DTC:
 		var outline := _landmark(d["osm"])
 		if outline.size() < 3:
 			continue
 		_g = _ground_under(outline)
 		var g := _g
-		# shop: the glazed ground floor, its mapped outline (the piers are its jogs) or the box
-		# drawn in.
-		var shop := PackedVector2Array()
+		# shop: the dark glazed ground floor, its mapped outline (the piers are its jogs) kept at
+		# least DTC_RECESS in from the edge (the photo check: 4-5 m under the cantilever).
+		var mapped := PackedVector2Array()
 		for part in _parts_in(outline, func(b: Dictionary) -> bool: return float(b["mh"]) < 0.5 and float(b["h"]) < DTC_BASE + 1.0):
 			var q := _pts(part["p"])
-			if _area(q) > _area(shop):
-				shop = q
-		if _area(shop) < _area(outline) * 0.5:
-			var drawn := Geometry2D.offset_polygon(outline, -DTC_RECESS, Geometry2D.JOIN_MITER)
-			shop = drawn[0] if not drawn.is_empty() else outline
+			if _area(q) > _area(mapped):
+				mapped = q
+		var drawn := Geometry2D.offset_polygon(outline, -DTC_RECESS, Geometry2D.JOIN_MITER)
+		var shop: PackedVector2Array = drawn[0] if not drawn.is_empty() else outline
+		if _area(mapped) > _area(outline) * 0.5:
+			var both := _largest(Geometry2D.intersect_polygons(mapped, shop))
+			if _area(both) > _area(shop) * 0.6:
+				shop = both
 		_prism(shop, g - 0.4, g + DTC_BASE, DTC_SHOP, none, M_PAVILION)
-		# body: the fascia over the shops, the green curtain wall, the cornice and the roof.
+		# body: the fascia over the shops, the curtain wall, the cornice and the roof.
 		_prism(outline, g + DTC_BASE, g + DTC_BASE + DTC_FASCIA, DTC_ALU, none, M_STONE)
 		_prism(outline, g + DTC_BASE + DTC_FASCIA, g + DTC_BODY - DTC_CORNICE, DTC_GLASS, none, skin)
 		_prism(outline, g + DTC_BODY - DTC_CORNICE, g + DTC_BODY, DTC_ALU, DTC_ROOF, M_STONE, M_STONE)
-		# soffit: the cantilever's underside round the shop floor (seen from the pavement).
+		# soffit: the cantilever's light aluminium underside round the shop floor.
 		_mode = M_STONE
-		_soffit(outline, g + DTC_BASE, DTC_ALU.darkened(0.25))
-		# top: the set-back top storey.
-		var top := Geometry2D.offset_polygon(outline, -DTC_TOP_IN, Geometry2D.JOIN_MITER)
-		if not top.is_empty():
-			_prism(top[0], g + DTC_BODY, g + DTC_BODY + DTC_TOP, DTC_TOP_WALL, DTC_ROOF.lightened(0.06),
-					M_SKIN + float(S_DARK) / 16.0, M_STONE)
-			# roof: a row of skylights down the middle of the top storey's roof (lit at night), and
-			# air-handling units between them, along the store.
-			var c := _centre(top[0])
+		_soffit(outline, g + DTC_BASE, DTC_ALU.darkened(0.06))
+		_dtc_banners(outline, g, banner_i)
+		banner_i += 1
+		# top: the set-back top storey, 3 m in on the long sides and DTC_TOP_END at the ends.
+		var top := _dtc_top(outline)
+		if top.size() >= 3:
 			var y := g + DTC_BODY + DTC_TOP
-			var reach := _box_of([top[0]]).size.length() * 0.5
-			var across := Vector2(-DTC_SOUTH.y, DTC_SOUTH.x)
-			for n in range(-8, 9):
-				var p := c + DTC_SOUTH * (n * 7.0)
-				if absf(n * 7.0) > reach or not Geometry2D.is_point_in_polygon(p, top[0]):
-					continue
-				if n % 3 == 0:
-					_prism(_square(p + across * 4.0, 1.4), y, y + 1.4, Color("#a3aaac"), Color("#8d9497"), M_STONE, M_STONE)
-					continue
-				var sky := PackedVector2Array([p - DTC_SOUTH * 2.6 - across * 1.4, p + DTC_SOUTH * 2.6 - across * 1.4,
-						p + DTC_SOUTH * 2.6 + across * 1.4, p - DTC_SOUTH * 2.6 + across * 1.4])
-				_prism(sky, y, y + 0.45, DTC_ALU, DTC_SKY, M_STONE, M_GLASS_ROOF)
+			_prism(top, g + DTC_BODY, y, DTC_TOP_WALL, DTC_TOP_ROOF, M_SKIN + float(S_DARK) / 16.0, M_STONE)
+			_dtc_roof(top, y, d["osm"] == "Junior")
 		_dtc_sign(outline, str(d["sign"]), g + DTC_BODY)
 		_collide(shop)
 	_mode = M_STONE
+
+
+## The top storey's plan: the outline drawn in 3 m, then cut back to DTC_TOP_END from each end
+## (along the street).
+func _dtc_top(outline: PackedVector2Array) -> PackedVector2Array:
+	var inset := Geometry2D.offset_polygon(outline, -DTC_TOP_IN, Geometry2D.JOIN_MITER)
+	if inset.is_empty():
+		return PackedVector2Array()
+	var lo := INF
+	var hi := -INF
+	var c := _centre(outline)
+	for q in outline:
+		var s := (q - c).dot(DTC_SOUTH)
+		lo = minf(lo, s)
+		hi = maxf(hi, s)
+	var across := Vector2(-DTC_SOUTH.y, DTC_SOUTH.x)
+	var a := lo + DTC_TOP_END
+	var b := hi - DTC_TOP_END
+	var band := PackedVector2Array([c + DTC_SOUTH * a - across * 60.0, c + DTC_SOUTH * b - across * 60.0,
+			c + DTC_SOUTH * b + across * 60.0, c + DTC_SOUTH * a + across * 60.0])
+	return _largest(Geometry2D.intersect_polygons(inset[0], band))
+
+
+## The top storey's roof (the photo check): small square skylights in pairs and 2 x 2
+## clusters every 12 m down the middle, a few curved half-cylinder vents, and fewer, larger
+## plant boxes at the north end. Junior's roof is stepped: a lighter raised strip over its east
+## half, a light-blue glazed skylight block and more plant.
+func _dtc_roof(top: PackedVector2Array, y: float, junior: bool) -> void:
+	var c := _centre(top)
+	var across := Vector2(-DTC_SOUTH.y, DTC_SOUTH.x)
+	var lo := INF
+	var hi := -INF
+	for q in top:
+		var s := (q - c).dot(DTC_SOUTH)
+		lo = minf(lo, s)
+		hi = maxf(hi, s)
+	var mid_off := 0.0
+	if junior:
+		# The raised strip over the east half (the side away from the street).
+		var strip := _largest(Geometry2D.intersect_polygons(top, PackedVector2Array([
+				c + DTC_SOUTH * (lo - 1.0) + across * 0.5, c + DTC_SOUTH * (hi + 1.0) + across * 0.5,
+				c + DTC_SOUTH * (hi + 1.0) - across * 40.0, c + DTC_SOUTH * (lo - 1.0) - across * 40.0])))
+		if strip.size() >= 3:
+			_prism(strip, y, y + 1.2, DTC_TOP_WALL.darkened(0.08), Color("#848b8f"), M_STONE, M_STONE)
+		mid_off = 4.0   # the skylights move onto the lower west half
+		# The glazed skylight block, on the strip near the south end.
+		var gb := c + DTC_SOUTH * (hi - 14.0) - across * 4.5
+		var block := PackedVector2Array([gb - DTC_SOUTH * 5.0 - across * 2.6, gb + DTC_SOUTH * 5.0 - across * 2.6,
+				gb + DTC_SOUTH * 5.0 + across * 2.6, gb - DTC_SOUTH * 5.0 + across * 2.6])
+		_prism(block, y + 1.2, y + 2.6, Color("#a9c6d6"), Color("#b4d2e0"), M_PAVILION + 0.5, M_GLASS_ROOF)
+	var line := c + across * mid_off
+	var n := 0
+	var s := lo + 6.0
+	while s < hi - 5.0:
+		var p := line + DTC_SOUTH * s
+		if n % 4 == 2:
+			# A curved vent, its axis along the store.
+			_dtc_vent(p, y)
+		else:
+			var cluster := n % 2 == 0
+			for i in (4 if cluster else 2):
+				var off := Vector2(-1.5 if i % 2 == 0 else 1.5, -1.5 if i < 2 else 1.5)
+				if not cluster:
+					off.y = 0.0
+				var q := p + across * off.x + DTC_SOUTH * off.y
+				_prism(_rot_square(q, 1.1), y, y + 0.45, DTC_ALU, DTC_SKY, M_STONE, M_GLASS_ROOF)
+		s += 12.0
+		n += 1
+	# The plant: a few large boxes at the north end (more on Junior).
+	var boxes := 3 if junior else 2
+	for i in boxes:
+		var q := line + DTC_SOUTH * (lo + 3.5) + across * (-4.0 + i * 4.0) + (DTC_SOUTH * 6.0 if i == 2 else Vector2.ZERO)
+		if Geometry2D.is_point_in_polygon(q, top):
+			_prism(_rot_square(q, 1.7), y, y + 1.9, Color("#a3aaac"), Color("#8d9497"), M_STONE, M_STONE)
+
+
+## A square of half side h with its sides along and across the stores.
+func _rot_square(c: Vector2, h: float) -> PackedVector2Array:
+	var a := Vector2(-DTC_SOUTH.y, DTC_SOUTH.x)
+	return PackedVector2Array([c - DTC_SOUTH * h - a * h, c + DTC_SOUTH * h - a * h, c + DTC_SOUTH * h + a * h, c - DTC_SOUTH * h + a * h])
+
+
+## A curved half-cylinder vent on the roof, 2 m across and 4 m long along the store.
+func _dtc_vent(p: Vector2, y: float) -> void:
+	var a := Vector2(-DTC_SOUTH.y, DTC_SOUTH.x)
+	var seg := 6
+	var col := Color("#b4babd")
+	_mode = M_STONE
+	var e0 := p - DTC_SOUTH * 2.0
+	var e1 := p + DTC_SOUTH * 2.0
+	for k in seg:
+		var t0 := PI * k / seg
+		var t1 := PI * (k + 1) / seg
+		var o0 := a * cos(t0)
+		var o1 := a * cos(t1)
+		var h0 := sin(t0)
+		var h1 := sin(t1)
+		var nm := (t0 + t1) * 0.5
+		var n := Vector3(a.x * cos(nm), sin(nm), a.y * cos(nm))
+		_quad(Vector3((e0 + o0).x, y + h0, (e0 + o0).y), Vector3((e1 + o0).x, y + h0, (e1 + o0).y),
+				Vector3((e1 + o1).x, y + h1, (e1 + o1).y), Vector3((e0 + o1).x, y + h1, (e0 + o1).y), n, col)
+		for e: Vector2 in [e0, e1]:
+			var out := -DTC_SOUTH if e == e0 else DTC_SOUTH
+			var nn := Vector2(-1, -1)
+			_tri(Vector3(e.x, y, e.y), Vector3((e + o0).x, y + h0, (e + o0).y), Vector3((e + o1).x, y + h1, (e + o1).y),
+					Vector3(out.x, 0, out.y), col.darkened(0.1), nn, nn, nn, -1.0)
+
+
+## The photo check's printed ad banners: big parody posters the curtain wall's full height,
+## 0.2 m proud of the glass, on the faces the game's camera sees (the south end and the east
+## face), each with its word in white.
+func _dtc_banners(outline: PackedVector2Array, g: float, store: int) -> void:
+	var y0 := g + DTC_BASE + DTC_FASCIA + 0.4
+	var y1 := g + DTC_BODY - DTC_CORNICE - 0.4
+	var east := Vector2(DTC_SOUTH.y, -DTC_SOUTH.x)
+	var placed := 0
+	for want: Vector2 in [DTC_SOUTH, east]:
+		var best := -1
+		var best_len := 0.0
+		for i in outline.size():
+			var a := outline[i]
+			var b := outline[(i + 1) % outline.size()]
+			if _out(outline, a, b).dot(want) > 0.9 and a.distance_to(b) > best_len:
+				best_len = a.distance_to(b)
+				best = i
+		if best < 0 or best_len < 12.0:
+			continue
+		var a := outline[best]
+		var b := outline[(best + 1) % outline.size()]
+		var o := _out(outline, a, b)
+		var dir := (b - a).normalized()
+		var spots: Array = [0.5] if want == DTC_SOUTH else [0.3, 0.68]
+		for f: float in spots:
+			var spec: Array = DTC_BANNERS[(store * 3 + placed) % DTC_BANNERS.size()]
+			placed += 1
+			var w := minf(10.0, best_len * (0.7 if spots.size() == 1 else 0.34))
+			var m := a.lerp(b, f)
+			var p0 := m - dir * w * 0.5
+			var p1 := m + dir * w * 0.5
+			var q0 := p0 + o * 0.2
+			var q1 := p1 + o * 0.2
+			var n := Vector3(o.x, 0, o.y)
+			var col: Color = spec[1]
+			_mode = M_STONE
+			_quad(Vector3(q0.x, y0, q0.y), Vector3(q1.x, y0, q1.y), Vector3(q1.x, y1, q1.y), Vector3(q0.x, y1, q0.y), n, col)
+			_quad(Vector3(q0.x, y1, q0.y), Vector3(q1.x, y1, q1.y), Vector3(p1.x, y1, p1.y), Vector3(p0.x, y1, p0.y), Vector3.UP, col.darkened(0.2))
+			var word: String = spec[0]
+			var k := minf(0.8 * w / Neon.length_of(word), 1.6 / (Neon.ROW_H * Neon.PIXEL))
+			var at := m + o * 0.25
+			signs.append([word, Vector3(at.x, (y0 + y1) * 0.5 - 1.0, at.y), Vector3(o.x, 0.0, o.y), k, Color(1, 1, 1)])
 
 
 ## The store's name on the roof over its south end (the face the game's camera sees from the
@@ -3851,6 +4096,179 @@ func _soffit(outer: PackedVector2Array, y: float, col: Color) -> void:
 		var p2 := outer[idx[i + 2]]
 		_tri(Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), Vector3(p2.x, y, p2.y), Vector3.DOWN, col,
 				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0, false)
+
+
+# --- Behind the Eastern Wall: the re-clad tower and the 1960s slabs ---------------------------
+
+## The Mac photo check (2026-11-01, specs C and D: docs/landmarks/specs/tower75.md, slabs.md): the
+## buildings the start's camera sees over the stores. C: the 75 m tower at (-819, 254), a 1970s
+## point block re-clad in light horizontal metal with punched windows in bands, on a two-storey
+## dark glass podium, a steel frame of big red parody letters on its roof and a small billboard
+## at the roof's edge. D: the four 37 m slabs behind Junior, 1960s housing in pale cream-ochre
+## plaster, loggia bands on the long faces, plain ochre end walls, lift and stair houses on the
+## flat roofs, and a big rooftop billboard on the slab behind Sawa. Both unnamed (no card).
+const TOWER75_AT := Vector2(-819.0, 254.0)
+const TOWER75_PODIUM := 7.0
+const TOWER75_CLAD := Color("#d9dcdc")
+const TOWER75_GLASS := Color("#3e4e5e")
+const TOWER75_WORD := "KOKA-KOLKA"
+const SLAB_AT := [Vector2(-862.0, 86.0), Vector2(-853.0, 190.0), Vector2(-813.0, 207.0), Vector2(-778.0, 308.0)]
+const SLAB_BILLBOARD := 1     # the slab behind Sawa (index in SLAB_AT)
+const SLAB_PLASTER := Color("#d8c9a6")
+const SLAB_END := Color("#c9a96a")
+const SLAB_WORD := "ORANZADA"
+## Faces the game's camera sees most (south and east): signs face the one nearest this.
+const BEHIND_FACE := Vector2(0.349, 0.937)
+
+
+## The OpenStreetMap outline standing at a point (the first outline holding it).
+func _outline_at(at: Vector2) -> PackedVector2Array:
+	for bld in data["buildings"]:
+		var q := _pts(bld["p"])
+		if q.size() >= 3 and float(bld["mh"]) < 0.5 and _box_of([q]).has_point(at) and Geometry2D.is_point_in_polygon(at, q):
+			return q
+	return PackedVector2Array()
+
+
+func _find_behind() -> void:
+	# Zones grown 3 m: the LoD2 model of each stands a little off its OpenStreetMap outline.
+	var tower := _outline_at(TOWER75_AT)
+	if tower.size() >= 3:
+		_add_site("tower75", [_largest(Geometry2D.offset_polygon(tower, 3.0, Geometry2D.JOIN_MITER))])
+		sites[-1]["outline"] = tower
+	var slabs: Array[PackedVector2Array] = []
+	var outlines: Array[PackedVector2Array] = []
+	for at: Vector2 in SLAB_AT:
+		var q := _outline_at(at)
+		if q.size() >= 3:
+			slabs.append(_largest(Geometry2D.offset_polygon(q, 3.0, Geometry2D.JOIN_MITER)))
+			outlines.append(q)
+	_add_site("slabs", slabs)
+	if not sites.is_empty() and sites[-1]["key"] == "slabs":
+		sites[-1]["outlines"] = outlines
+
+
+## The edge of `poly` whose outward normal is nearest `want`, among the longer edges.
+func _edge_facing(poly: PackedVector2Array, want: Vector2, min_len: float) -> int:
+	var best := -1
+	var score := -INF
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		if a.distance_to(b) < min_len:
+			continue
+		var sc := _out(poly, a, b).dot(want)
+		if sc > score:
+			score = sc
+			best = i
+	return best
+
+
+## A steel frame on a roof along edge a→b (drawn in `inset` m): two or more posts and two rails,
+## the word on it facing out, lit by day and night.
+func _roof_frame(poly: PackedVector2Array, i: int, y: float, inset: float, tall: float, word: String, colour: Color,
+		share: float, panel := Color(0, 0, 0, 0)) -> void:
+	var a := poly[i]
+	var b := poly[(i + 1) % poly.size()]
+	var o := _out(poly, a, b)
+	var d := (b - a).normalized()
+	var mid := (a + b) * 0.5 - o * inset
+	var wide := a.distance_to(b) * share
+	var k := minf(0.85 * wide / Neon.length_of(word), (tall - 0.6) / (Neon.ROW_H * Neon.PIXEL))
+	var steel := Color("#5b6166")
+	var posts := maxi(2, ceili(wide / 8.0) + 1)
+	for n in posts:
+		var p := mid + d * (-0.5 * wide + wide * n / (posts - 1)) - o * 0.3
+		_prism(_square(p, 0.15), y, y + tall, steel, steel, M_STONE, M_STONE)
+	for ry: float in [0.4, tall - 0.3]:
+		var r0 := mid - d * wide * 0.5 - o * 0.3
+		var r1 := mid + d * wide * 0.5 - o * 0.3
+		_prism(PackedVector2Array([r0 - o * 0.08, r1 - o * 0.08, r1 + o * 0.08, r0 + o * 0.08]), y + ry - 0.15, y + ry + 0.15,
+				steel, steel, M_STONE, M_STONE)
+	if panel.a > 0.0:
+		var p0 := mid - d * wide * 0.5 - o * 0.12
+		var p1 := mid + d * wide * 0.5 - o * 0.12
+		_mode = M_STONE
+		_quad(Vector3(p0.x, y + 0.6, p0.y), Vector3(p1.x, y + 0.6, p1.y), Vector3(p1.x, y + tall - 0.1, p1.y),
+				Vector3(p0.x, y + tall - 0.1, p0.y), Vector3(o.x, 0, o.y), panel)
+	var h := Neon.ROW_H * Neon.PIXEL * k
+	signs.append([word, Vector3(mid.x, y + 0.5 * tall - 0.5 * h, mid.y), Vector3(o.x, 0.0, o.y), k, colour])
+
+
+func _build_tower75(site: Dictionary) -> void:
+	var outline: PackedVector2Array = _simplify(site["outline"], 0.6)
+	_g = _ground_under(outline)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	# The podium: two storeys of dark grey-blue glass in a square grid.
+	_prism(outline, g - 0.4, g + TOWER75_PODIUM, TOWER75_GLASS, Color("#6e767b"), M_SKIN + float(S_DARK) / 16.0, M_STONE)
+	# The shaft, a step in from the podium, in its cladding with punched windows.
+	var shaft := _largest(Geometry2D.offset_polygon(outline, -1.2, Geometry2D.JOIN_MITER))
+	if shaft.size() < 3:
+		shaft = outline
+	var top := g + 75.0
+	_prism(shaft, g + TOWER75_PODIUM, top - 0.9, TOWER75_CLAD, none, M_SKIN + float(S_PUNCHED) / 16.0)
+	_prism(shaft, top - 0.9, top, TOWER75_CLAD.lightened(0.08), Color("#8b9296"), M_STONE, M_STONE)
+	# The roof: a plant room, the big letters' frame facing down the street, a small billboard on
+	# the edge beside it.
+	var c := _centre(shaft)
+	_prism(_square(c, 3.2), top, top + 3.0, Color("#b9bdbe"), Color("#8b9296"), M_STONE, M_STONE)
+	var face := _edge_facing(shaft, BEHIND_FACE, 10.0)
+	if face >= 0:
+		_roof_frame(shaft, face, top, 1.2, 6.0, TOWER75_WORD, Color(1.0, 0.16, 0.12), 0.9)
+		var side := _edge_facing(shaft, Vector2(BEHIND_FACE.y, -BEHIND_FACE.x), 8.0)
+		if side >= 0 and side != face:
+			_roof_frame(shaft, side, top, 0.8, 3.2, "LODY", Color(1, 1, 1), 0.45, Color("#2a6fb0"))
+	_collide(outline)
+
+
+func _build_slabs(site: Dictionary) -> void:
+	var k := 0
+	for z: PackedVector2Array in site["outlines"]:
+		var poly := _simplify(z, 0.6)
+		if poly.size() < 3:
+			k += 1
+			continue
+		_g = _ground_under(poly)
+		var g := _g
+		var top := g + 37.3
+		# Walls: the long faces in plaster with their loggia bands, the ends plain ochre.
+		var longest := 0.0
+		for i in poly.size():
+			longest = maxf(longest, poly[i].distance_to(poly[(i + 1) % poly.size()]))
+		var run := 0.0
+		for i in poly.size():
+			var a := poly[i]
+			var b := poly[(i + 1) % poly.size()]
+			var long_face := a.distance_to(b) > longest * 0.5
+			_mode = M_SKIN + float(S_SLAB) / 16.0 if long_face else M_STONE
+			_wall(a, b, g - 0.4, top, _out(poly, a, b), SLAB_PLASTER if long_face else SLAB_END, run)
+			run += a.distance_to(b)
+		_mode = M_STONE
+		_cap(poly, top, Color("#8c8a84"))
+		# The roof: lift and stair houses along the slab's long axis.
+		var axis := Vector2.ZERO
+		for i in poly.size():
+			var e := poly[(i + 1) % poly.size()] - poly[i]
+			if e.length() > axis.length():
+				axis = e
+		axis = axis.normalized()
+		var c := _centre(poly)
+		var span := 0.0
+		for q in poly:
+			span = maxf(span, absf((q - c).dot(axis)))
+		for f: float in [-0.45, 0.45]:
+			var p := c + axis * span * f
+			var across := Vector2(-axis.y, axis.x)
+			_prism(PackedVector2Array([p - axis * 3.0 - across * 2.2, p + axis * 3.0 - across * 2.2, p + axis * 3.0 + across * 2.2,
+					p - axis * 3.0 + across * 2.2]), top, top + 3.2, SLAB_PLASTER.darkened(0.06), Color("#7d7b75"), M_STONE, M_STONE)
+		if k == SLAB_BILLBOARD:
+			var face := _edge_facing(poly, BEHIND_FACE, 15.0)
+			if face >= 0:
+				_roof_frame(poly, face, top, 4.5, 5.5, SLAB_WORD, Color(1.0, 0.62, 0.15), minf(0.9, 25.0 / poly[face].distance_to(poly[(face + 1) % poly.size()])), Color("#1d3d6b"))
+		_collide(poly)
+		k += 1
+	_mode = M_STONE
 
 
 # --- TR Warszawa's building site ----------------------------------------------------------

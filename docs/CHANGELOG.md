@@ -11,6 +11,12 @@ someone writes its lines.
 
 ## 2026-11-01
 - The Royal Castle is paler and pinker, like its plaster in life (it was brick-red with near-black roofs), and stands on a pale stone plinth.
+- The PZU Tower and JM Tower on the Jana Pawła II and Jerozolimskie axes get their own glass: pale ribbon bands and a white mast, dark glass with grey fins.
+- Old Town roofs grow small gabled dormers with cream frames and dark windows, and some carry a brick chimney.
+- The 1960s housing blocks behind the department stores are pale cream with long balcony bands, ochre end walls and lift houses on their roofs, and one carries a big lit billboard.
+- Behind the department stores, the tall block between Sawa and Wars is now a light, re-clad 1970s tower with rows of small windows, a dark glass base and big red letters on its roof.
+- The three department stores by the start look like the real ones: dark blue-grey glass in a tall grid, a deep dark shop floor under the overhang, small skylights and curved vents on the roofs, and big printed ad banners on their walls.
+- The Rotunda looks like the real one: green-grey glass between slim silver mullions, a silver folded roof whose edge hangs in a ring of teeth, a raised glass skylight in the middle, flat canopies over its doors, and the tower beside it is now a green glass grid.
 - The Grand Theatre (Teatr Wielki) has its famous front: a portico of eight tall columns on a stepped stone base, under a heavy beam and a crowned top with statues.
 - Stadion Narodowy now stands on its green embankment: the grass slopes of the old stadium's bank run down to the streets all round, and the paved promenade at the stadium's foot sits on the ground instead of hanging in the air.
 - The Copernicus Science Centre's roof now has all seven skylights where they really are, including the glass pyramid and a dark stair tower, and the planetarium has more facets and a dark glass ring round its white dome.
