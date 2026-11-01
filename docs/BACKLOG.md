@@ -75,6 +75,35 @@ Plan: docs/design/railway.md. One PR per item, in this order:
 - S3b-e the other stations: Śródmieście's entrances, Wschodnia and Gdańska at the edges, Ochota WKD.
 - L4 Most Średnicowy's look, after a Mac photo check.
 - Photo checks on the Mac for every station model (built from published descriptions).
+  **Mac photo check, 2026-11-01** (main 03a26dc; Commons photos in refs/ochota, powisle,
+  stadion_station, most_srednicowy, wschodnia, gdanska, each with SOURCES.md):
+  - **Ochota:** the glass hall, the deck over the cutting and the black-and-white band read right.
+    The roof is wrong. The model is one tilted plane (a wedge), but the real shell is a deep saddle:
+    two opposite corners shoot up, the middle sags well below them, and the grey-and-white stripes
+    on its underside are the station's signature from the street. Fix: a real hyperbolic
+    paraboloid with a clear sag, stripes visible from the game camera; the blue WARSZAWA OCHOTA
+    letters on their frame by the entrance. From the default camera the hall hides behind the
+    tower next to it (look at it from the south-west).
+  - **Powiśle, upper pavilion:** the roof curves the wrong way. The model's roof is a barrel
+    (convex, up in the middle); the real "kite" sags (concave, dark fascia, the two ends up),
+    over a fully glazed front. The model's grey solid base should be glass with the blue
+    WARSZAWA POWIŚLE letters over the doors. The small white tower beside it is in the photos.
+  - **Powiśle, round pavilion:** reads right at night (lit drum, saucer, neon). The real saucer
+    overhangs the drum far more (about twice its radius), and the neon is yellow tube letters on
+    top of the rim, not red on the disc. Hidden by trees from the low south view.
+  - **Stadion:** the platform canopies with red-and-white glass walls match the photos well. The
+    pavilion reads as a plain white box; the sail and mosaic still to compare.
+  - **Most Średnicowy (L4):** the model is a flat deck on many thin paired posts. The real bridge
+    is steel arch-truss spans (shallow arches with diagonal webs under the deck) on a few massive
+    stone piers, with catenary masts along it. Model those spans and fewer, wider piers.
+  - **Map edges:** at Warszawa Wschodnia the yard runs straight into the blue void (looking east
+    from the station the world visibly ends a few tracks away), and the platforms show as pale
+    strips with odd shadow patches. At Gdańska the north edge reads as a flat brown band ending at
+    the sky behind the footbridge. Both need an edge treatment (ground and track running on past
+    the edge, or the camera kept back from it); low priority, both stations are mostly off-map.
+  - **Bench with trains and wires:** the bench route does not pass the railway (130 draw calls,
+    0.61 M triangles, no late frames; trains 0.03 ms of script). `--bench --at=` near Ochota
+    gives the same route. A bench spot on the line (with a train in view) is still to add.
 
 ## The Mac App Store version and gamepads (F, 2026-11-01)
 
@@ -222,6 +251,10 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   shot. PR #183's head passes the look pass on the Mac (0 missing, no proxies in the view).
   check_streaming's pixels failed on main e0e02b8 (spots 3-4, 2.2-4.4 %, differing between runs):
   the speech bubbles' lines, not the city; the pixel runs now pass `--nohud` (0.24 % on 03a26dc).
+  PR #194 (roof dress) on the Mac: draw calls 130 before and after, triangles 0.61 to 0.62 M,
+  2 frames of 600 at 17.7-25 ms (0 before); at phone size (2532x1170) the tile courses show on
+  the Old Town's pitched roofs up close and fade out at the default zoom, flat roofs get faint
+  seams and lighter parapet rims; no shimmer seen in stills (motion is for the phone).
 - **Map checks in CI**: the derived map pack as a release asset that CI downloads (or a small test
   map), so roads, drape, drive and the game runs gate every PR again ("From loop 3d-1", CI). Gap.
 
