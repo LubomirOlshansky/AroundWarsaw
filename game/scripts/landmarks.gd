@@ -879,6 +879,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"sw_krzyz":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the facade and towers are ours
 				_build_krzyz(s)
+			"wszystkich":
+				_mark_zone(s)  # the nave stays LoD2's, in its skin; the front and towers are ours
+				_build_wszystkich(s)
 			"staszic":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the portico and the statue are ours
 				_build_staszic(s)
@@ -6869,3 +6872,97 @@ func _kop_convex(q: PackedVector2Array) -> PackedVector2Array:
 ## A steady pseudo-random number in [0, 1) (the strips, the openings, the beds).
 func _kop_hash(a: float, b: float) -> float:
 	return fposmod(sin(a * 12.9898 + b * 78.233) * 43758.5453, 1.0)
+
+
+## All Saints (Kościół Wszystkich Świętych; Marconi and Dziekoński, 1861-1892) on Plac Grzybowski:
+## the nave stays LoD2's (a kept skin); the model adds the south front, a stepped portal
+## of three arched doors under an entablature, a window storey and a pediment between two
+## square towers with belfries and copper domes with lanterns and spires. Spec
+## docs/landmarks/specs/wszystkich.md.
+## Frame: origin at the front's east end on the outline, u west along the front (36.9 m),
+## +v out of it to the square (south-south-west); the towers reach back to v -7.7.
+const WSZ := Vector2(-1393.3, -165.9)
+const WSZ_AXIS := Vector2(-0.925, 0.38)
+const WSZ_MID := 18.45
+const WSZ_WALL := Color("#ddcfaa")
+const WSZ_TRIM := Color("#efe6cc")
+const WSZ_BASE := Color("#b5aa8e")
+const WSZ_COPPER := Color("#6e8f7e")
+const WSZ_GOLD := Color("#c9a24a")
+const WSZ_DOOR := Color("#3a3d40")
+
+
+func _build_wszystkich(_site: Dictionary) -> void:
+	_o = WSZ
+	_a = WSZ_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)  # (-0.38, -0.925): out of the front, to the square
+	var m := WSZ_MID
+	_g = map.terrain_height(_w(m, 1.0).x, _w(m, 1.0).y)
+	var g := _g
+	_mode = M_STONE
+	for cu: float in [3.85, 2.0 * m - 3.85]:
+		_wsz_tower(cu)
+	# the plinth along the whole front, then the central screen: doors below, windows above
+	_lbox(m, 0.0, 19.0, 0.8, g - 0.6, g + 1.4, WSZ_BASE, M_STONE, WSZ_BASE.lightened(0.05))
+	_lbox(m, -0.55, 10.75, 0.75, g + 1.4, g + 9.0, WSZ_WALL, M_STONE, WSZ_WALL)
+	_lbox(m, -0.5, 10.5, 0.7, g + 9.0, g + 19.0, WSZ_WALL, M_MONUMENT, WSZ_WALL)
+	_mode = M_GLASS
+	for u: float in [-5.4, 0.0, 5.4]:
+		_wall(_w(m + u - 1.2, 0.24), _w(m + u + 1.2, 0.24), g + 1.5, g + 6.6, _b, WSZ_DOOR)
+	_mode = M_STONE
+	for u: float in [-8.1, -2.7, 2.7, 8.1]:
+		_lbox(m + u, 0.4, 0.35, 0.2, g + 1.4, g + 7.4, WSZ_TRIM, M_STONE, WSZ_TRIM)
+	_lbox(m, 0.5, 11.1, 0.7, g + 7.4, g + 8.4, WSZ_TRIM, M_STONE, WSZ_TRIM)
+	_lbox(m, 0.5, 11.3, 0.8, g + 8.4, g + 9.0, WSZ_WALL, M_STONE, WSZ_TRIM)
+	# the steps up to the portal
+	_lbox(m, 1.5, 7.2, 1.2, g - 0.6, g + 0.45, WSZ_BASE, M_STONE, WSZ_BASE.lightened(0.05))
+	_lbox(m, 0.9, 6.6, 0.7, g - 0.6, g + 0.9, WSZ_BASE, M_STONE, WSZ_BASE.lightened(0.04))
+	# the top: cornice, the pediment with an oculus, a gilt cross on the apex
+	_lbox(m, -0.4, 11.0, 0.9, g + 19.0, g + 19.9, WSZ_TRIM, M_STONE, WSZ_TRIM)
+	var ka := _a
+	var kb := _b
+	_a = kb
+	_b = ka
+	_gable(0.6, -1.3, m, 10.8, g + 19.9, 4.4, WSZ_WALL, WSZ_COPPER)
+	_a = ka
+	_b = kb
+	var oc := _w(m, 0.65)
+	_disc(Vector3(oc.x, g + 22.0, oc.y), Vector3(_b.x, 0.0, _b.y), 1.0, 8, WSZ_DOOR)
+	_lbox(m, -0.5, 0.15, 0.15, g + 24.3, g + 27.0, WSZ_GOLD, M_STONE, WSZ_GOLD)
+	_lbox(m, -0.5, 0.7, 0.15, g + 25.6, g + 26.0, WSZ_GOLD, M_STONE, WSZ_GOLD)
+	# the car meets the steps
+	_collide(_rect(m, 1.5, 7.2, 1.2))
+
+
+## One of the two towers: plinth, plain shaft with two window bands, double cornice, belfry
+## between corner piers, then the copper dome on an octagonal drum, a lantern and a gilt
+## spire (about 58 m to the tip).
+func _wsz_tower(cu: float) -> void:
+	var g := _g
+	var cv := -3.75
+	_lbox(cu, cv, 4.1, 4.3, g - 0.6, g + 1.6, WSZ_BASE, M_STONE, WSZ_BASE.lightened(0.05))
+	_lbox(cu, cv, 3.95, 4.15, g + 1.6, g + 24.0, WSZ_WALL, M_STONE, WSZ_WALL)
+	_mode = M_GLASS
+	for y: Array in [[8.0, 12.5], [15.5, 20.0]]:
+		_wall(_w(cu - 0.9, 0.5), _w(cu + 0.9, 0.5), g + float(y[0]), g + float(y[1]), _b, WSZ_DOOR)
+	_mode = M_STONE
+	for y: float in [7.2, 14.7]:  # string courses
+		_lbox(cu, cv, 4.1, 4.3, g + y, g + y + 0.5, WSZ_TRIM, M_STONE, WSZ_TRIM)
+	_lbox(cu, cv, 4.3, 4.5, g + 24.0, g + 24.9, WSZ_TRIM, M_STONE, WSZ_TRIM)
+	_lbox(cu, cv, 4.0, 4.2, g + 24.9, g + 25.5, WSZ_TRIM, M_STONE, WSZ_TRIM)
+	# the belfry: arched openings (the monument shader's windows) between four corner piers
+	_lbox(cu, cv, 3.2, 3.4, g + 25.5, g + 34.0, WSZ_WALL, M_MONUMENT, WSZ_WALL)
+	for su: float in [-1.0, 1.0]:
+		for sv: float in [-1.0, 1.0]:
+			_lbox(cu + su * 3.35, cv + sv * 3.55, 0.6, 0.6, g + 25.5, g + 34.0, WSZ_TRIM, M_STONE, WSZ_TRIM)
+	_lbox(cu, cv, 4.1, 4.3, g + 34.0, g + 35.0, WSZ_TRIM, M_STONE, WSZ_TRIM)
+	# the dome
+	var c := _w(cu, cv)
+	var prof := [[3.4, 35.0], [3.4, 37.0], [3.7, 38.4], [3.2, 41.0], [2.2, 43.4], [1.3, 44.8]]
+	for k in prof.size() - 1:
+		_frustum(_circle(c, float(prof[k][0]), 8), g + float(prof[k][1]), _circle(c, float(prof[k + 1][0]), 8),
+				g + float(prof[k + 1][1]), WSZ_COPPER.lightened(0.03 * k), WSZ_COPPER)
+	_prism(_circle(c, 1.0, 8), g + 44.8, g + 48.0, WSZ_TRIM, WSZ_COPPER, M_MONUMENT, M_STONE)
+	_frustum(_circle(c, 1.3, 8), g + 48.0, _circle(c, 0.2, 8), g + 52.5, WSZ_COPPER, WSZ_COPPER)
+	_lbox(cu, cv, 0.18, 0.18, g + 52.5, g + 58.0, WSZ_GOLD, M_STONE, WSZ_GOLD)
+	_lbox(cu, cv, 0.7, 0.18, g + 55.4, g + 55.8, WSZ_GOLD, M_STONE, WSZ_GOLD)
