@@ -30,10 +30,11 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
 
 Spec: `docs/design/gaulle-and-food-hype.md` (F's three photos; parody names in its section 2, the
 real ones added to `brand_denylist.json`). One PR each:
-- [ ] G1 the de Gaulle statue by the roundabout (site `gaulle`: curved steps, cobbled rings, the
-      granite cone, the dark plinth, the marching bronze general, a card). Opus.
-- [ ] G2 Dom Partii as a white stone skin, ROBUR on the roof, the courtyard's paving and fountain,
-      a card; the bars NEWTWICE, ZAMĘT and PIONEK as neons. Opus.
+- [x] G1 the de Gaulle statue by the roundabout (site `gaulle`: curved steps, cobbled rings, the
+      granite cone, the dark plinth, the marching bronze general, a card), 2026-11-01.
+- [x] G2 part 1: Dom Partii as a white stone skin with a card, ROBUR over the north-west corner,
+      the courtyard's paving with its key border and the long fountain with five jets, 2026-11-01.
+- [ ] G2 part 2: the bars NEWTWICE, ZAMĘT and PIONEK as neons (with G3/G4's venue table).
 - [ ] G3 HOTEL PIURE and its rooftop date bar LUŹNO (pink neon, terrace, dates in twos), TIMBER
       (the dating-app parody) on a billboard, posters, radio and `timber_date` lines.
 - [ ] G4 coffee-chain parodies KOSZTA COFFEE and GREEN CAFFE NERWO, the crêpe place KUKŁA with an

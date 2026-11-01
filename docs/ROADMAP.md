@@ -81,8 +81,9 @@ then the Launch gate.
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
 - [ ] Rondo de Gaulle'a and the food hype (F, 2026-11-01; spec docs/design/gaulle-and-food-hype.md):
   - [x] Design and the parody names, 2026-11-01
-  - [ ] G1 the de Gaulle statue
-  - [ ] G2 Dom Partii: white stone, ROBUR, the courtyard fountain, its bars
+  - [x] G1 the de Gaulle statue, 2026-11-01
+  - [x] G2 Dom Partii: white stone, ROBUR, the courtyard fountain, 2026-11-01
+  - [ ] G2 part 2: Dom Partii's bars as neons
   - [ ] G3 HOTEL PIURE, the LUŹNO date bar and TIMBER jokes
   - [ ] G4 KOSZTA COFFEE, GREEN CAFFE NERWO, KUKŁA and the queues
   - [ ] G5 Cringulo: the "Mlask" job, his pizza, fans and news
