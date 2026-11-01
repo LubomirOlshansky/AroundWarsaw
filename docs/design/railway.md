@@ -98,7 +98,9 @@ the bake (the "rail cutting" leftovers of loop 3e stay with the map lane).
 ### L4. Most Średnicowy
 
 The deck is there; the bridge's look (spans, girders, piers) from photos on the Mac. Photo
-check first, then a model like the other bridges.
+check first, then a model like the other bridges. Built 2026-11-01 after the Mac photo check:
+`map_builder._build_srednicowy` (granite piers with cutwaters, steel arch-truss spans under the
+deck, in the walls surface).
 
 ## 4. Trains (T1, `trains.gd`, a new check and verify step)
 

@@ -144,7 +144,7 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   ground (Mac look first); the WKD entrances (Śródmieście WKD's "propeller" roof, Ochota WKD):
   the OSM outlines there don't match the descriptions (a 90 m, 2.5 m shelter by Centralna; the
   platforms by Ochota are tram stops), so they wait for photos.
-- L4 Most Średnicowy's look, after a Mac photo check.
+- ~~L4 Most Średnicowy's look, after a Mac photo check.~~ Built 2026-11-01 (below).
 - Photo checks on the Mac for every station model (built from published descriptions).
   **Mac photo check, 2026-11-01** (main 03a26dc; Commons photos in refs/ochota, powisle,
   stadion_station, most_srednicowy, wschodnia, gdanska, each with SOURCES.md):
@@ -173,6 +173,11 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   - **Most Średnicowy (L4):** the model is a flat deck on many thin paired posts. The real bridge
     is steel arch-truss spans (shallow arches with diagonal webs under the deck) on a few massive
     stone piers, with catenary masts along it. Model those spans and fewer, wider piers.
+    **Fixed 2026-11-01:** `map_builder._build_srednicowy`: six granite piers with cutwaters
+    (the bake's pier rows at 96-476 m along the bridge) and five 69 m arch-truss spans between
+    them (four truss planes, Pratt diagonals, an arched bottom chord 8 m deep over the piers and
+    2.4 m at the crown); the thin posts there are skipped, the bank approaches keep theirs.
+    Left for the Mac: the spans' count and depth against refs/most_srednicowy, the paint colour.
   - **Map edges:** at Warszawa Wschodnia the yard runs straight into the blue void (looking east
     from the station the world visibly ends a few tracks away), and the platforms show as pale
     strips with odd shadow patches. At Gdańska the north edge reads as a flat brown band ending at
@@ -1497,7 +1502,8 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
   platform instead (the nearest `platforms` edge on the track's side).
 - **River piers** (art): Most Poniatowskiego (an arch bridge on masonry piers) and Most
   Średnicowy stand on the same thin concrete posts as the viaducts; a river-pier style (wider,
-  stone, cutwaters) would read more like Warsaw. A design call.
+  stone, cutwaters) would read more like Warsaw. A design call. (Most Średnicowy has its stone
+  piers since 2026-11-01; Poniatowskiego is still open.)
 - Most Świętokrzyski, the Jana Pawła II viaduct and the Wisłostrada tunnel end at the map's rim
   (the diorama's void beyond): the bigger map moves the rim past them (known, DEMO.md 4.4).
 
