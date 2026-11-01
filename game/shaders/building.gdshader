@@ -193,6 +193,7 @@ const int S_GOLD = 7;
 const int S_FRAME = 8;
 const int S_TILE = 9;
 const int S_EASTWALL = 10;
+const int S_PUNCHED = 11;
 
 vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool cut) {
 	glow = vec3(0.0);
@@ -262,6 +263,25 @@ vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool 
 		// dark grey mullions every 1.5 m, only a thin dark spandrel line at each floor.
 		frame = fract(u / 1.5) < 0.13 || fract(h / fh) < 0.035;
 		frame_col = srgb_to_linear(vec3(0.247, 0.278, 0.298)) * mix(0.3, 1.0, daylight);
+	} else if (s == S_PUNCHED) {
+		// A re-clad 1970s point block (the start area's 75 m tower, 2026-11-01): light horizontal
+		// metal cladding, punched windows in bands (2 x 1.4 m every 3.2 m, white frames, dark
+		// glass), warm at night.
+		float pf = 2.95;
+		float wx = fract(u / 3.2);
+		float wy = fract(h / pf);
+		float lvl = floor(h / pf);
+		vec3 clad = col * mix(0.3, 1.0, daylight) * (fract(h / 0.74) < 0.06 ? 0.9 : 1.0);
+		bool win = abs(wx - 0.5) < 0.3125 && wy > 0.3 && wy < 0.775;
+		bool rim = abs(wx - 0.5) < 0.345 && wy > 0.27 && wy < 0.805;
+		if (win) {
+			if (lights_on > 0.001 && hash12(vec2(floor(u / 3.2), lvl) + 2.9) < 0.42 * lights_on) {
+				glow = WARM_PALE * 0.95;
+				return c * 0.3;
+			}
+			return mix(srgb_to_linear(vec3(0.16, 0.19, 0.23)), sky * 0.5, refl) * mix(0.35, 1.0, daylight);
+		}
+		return rim ? white : clad;
 	} else if (s == S_FRAME) {
 		frame = fract(u / 3.2) < 0.14 || fract(h / 4.4) < 0.1 || h > top - 0.9;
 		frame_col = mix(silver, white, 0.5);

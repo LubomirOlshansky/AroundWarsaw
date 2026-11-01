@@ -14,7 +14,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# First scene item 3: the Eastern Wall's stores (parodies of their roof names).
 		"JUNIOREK", "SAWKA", "WARSIK",
 		# The stores' printed ad banners (the Mac photo check, 2026-11-01).
-		"PROMOCJA", "LODY", "WYPRZEDAZ"]
+		"PROMOCJA", "LODY", "WYPRZEDAZ",
+		# The tower and the slab behind the stores (specs C and D): a parody.
+		"KOKA-KOLKA"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

@@ -49,6 +49,7 @@ const S_GOLD := 7
 const S_FRAME := 8
 const S_TILE := 9   # Novotel's white tiled shaft (the Rondo photos, 2026-10-31)
 const S_EASTWALL := 10  # the Eastern Wall stores: strong dark mullions every 1.5 m, a thin floor line
+const S_PUNCHED := 11   # a re-clad point block: light horizontal cladding, punched windows in bands
 
 ## The landmarks loop (2026-10-30): the skyline's towers, so each reads as itself and not as one
 ## more blue box. Each is built from its mapped building parts (the outline `osm` names; what
@@ -542,6 +543,8 @@ func _find_sites() -> void:
 	_find_tr()
 	# First scene item 3 (2026-10-31): the Eastern Wall's three glass department stores.
 	_find_dtc()
+	# The Mac photo check (2026-11-01, specs C and D): the tower and the slabs behind the stores.
+	_find_behind()
 	# Plac Małachowskiego and the Presidential Palace (2026-10-31): models instead of skins.
 	_find_trojca()
 	_find_zacheta()
@@ -847,6 +850,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"teatr":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the portico is ours
 				_build_teatr(s)
+			"tower75":
+				_id = 0  # unnamed: no card, not on the picking grid
+				_build_tower75(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -4071,6 +4077,115 @@ func _soffit(outer: PackedVector2Array, y: float, col: Color) -> void:
 		var p2 := outer[idx[i + 2]]
 		_tri(Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), Vector3(p2.x, y, p2.y), Vector3.DOWN, col,
 				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0, false)
+
+
+# --- Behind the Eastern Wall: the re-clad tower and the 1960s slabs ---------------------------
+
+## The Mac photo check (2026-11-01, specs C and D: docs/landmarks/specs/tower75.md, slabs.md): the
+## buildings the start's camera sees over the stores. C: the 75 m tower at (-819, 254), a 1970s
+## point block re-clad in light horizontal metal with punched windows in bands, on a two-storey
+## dark glass podium, a steel frame of big red parody letters on its roof and a small billboard
+## at the roof's edge. D: the four 37 m slabs behind Junior, 1960s housing in pale cream-ochre
+## plaster, loggia bands on the long faces, plain ochre end walls, lift and stair houses on the
+## flat roofs, and a big rooftop billboard on the slab behind Sawa. Both unnamed (no card).
+const TOWER75_AT := Vector2(-819.0, 254.0)
+const TOWER75_PODIUM := 7.0
+const TOWER75_CLAD := Color("#d9dcdc")
+const TOWER75_GLASS := Color("#3e4e5e")
+const TOWER75_WORD := "KOKA-KOLKA"
+## Faces the game's camera sees most (south and east): signs face the one nearest this.
+const BEHIND_FACE := Vector2(0.349, 0.937)
+
+
+## The OpenStreetMap outline standing at a point (the first outline holding it).
+func _outline_at(at: Vector2) -> PackedVector2Array:
+	for bld in data["buildings"]:
+		var q := _pts(bld["p"])
+		if q.size() >= 3 and float(bld["mh"]) < 0.5 and _box_of([q]).has_point(at) and Geometry2D.is_point_in_polygon(at, q):
+			return q
+	return PackedVector2Array()
+
+
+func _find_behind() -> void:
+	# Zones grown 3 m: the LoD2 model of each stands a little off its OpenStreetMap outline.
+	var tower := _outline_at(TOWER75_AT)
+	if tower.size() >= 3:
+		_add_site("tower75", [_largest(Geometry2D.offset_polygon(tower, 3.0, Geometry2D.JOIN_MITER))])
+		sites[-1]["outline"] = tower
+
+
+## The edge of `poly` whose outward normal is nearest `want`, among the longer edges.
+func _edge_facing(poly: PackedVector2Array, want: Vector2, min_len: float) -> int:
+	var best := -1
+	var score := -INF
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		if a.distance_to(b) < min_len:
+			continue
+		var sc := _out(poly, a, b).dot(want)
+		if sc > score:
+			score = sc
+			best = i
+	return best
+
+
+## A steel frame on a roof along edge a→b (drawn in `inset` m): two or more posts and two rails,
+## the word on it facing out, lit by day and night.
+func _roof_frame(poly: PackedVector2Array, i: int, y: float, inset: float, tall: float, word: String, colour: Color,
+		share: float, panel := Color(0, 0, 0, 0)) -> void:
+	var a := poly[i]
+	var b := poly[(i + 1) % poly.size()]
+	var o := _out(poly, a, b)
+	var d := (b - a).normalized()
+	var mid := (a + b) * 0.5 - o * inset
+	var wide := a.distance_to(b) * share
+	var k := minf(0.85 * wide / Neon.length_of(word), (tall - 0.6) / (Neon.ROW_H * Neon.PIXEL))
+	var steel := Color("#5b6166")
+	var posts := maxi(2, ceili(wide / 8.0) + 1)
+	for n in posts:
+		var p := mid + d * (-0.5 * wide + wide * n / (posts - 1)) - o * 0.3
+		_prism(_square(p, 0.15), y, y + tall, steel, steel, M_STONE, M_STONE)
+	for ry: float in [0.4, tall - 0.3]:
+		var r0 := mid - d * wide * 0.5 - o * 0.3
+		var r1 := mid + d * wide * 0.5 - o * 0.3
+		_prism(PackedVector2Array([r0 - o * 0.08, r1 - o * 0.08, r1 + o * 0.08, r0 + o * 0.08]), y + ry - 0.15, y + ry + 0.15,
+				steel, steel, M_STONE, M_STONE)
+	if panel.a > 0.0:
+		var p0 := mid - d * wide * 0.5 - o * 0.12
+		var p1 := mid + d * wide * 0.5 - o * 0.12
+		_mode = M_STONE
+		_quad(Vector3(p0.x, y + 0.6, p0.y), Vector3(p1.x, y + 0.6, p1.y), Vector3(p1.x, y + tall - 0.1, p1.y),
+				Vector3(p0.x, y + tall - 0.1, p0.y), Vector3(o.x, 0, o.y), panel)
+	var h := Neon.ROW_H * Neon.PIXEL * k
+	signs.append([word, Vector3(mid.x, y + 0.5 * tall - 0.5 * h, mid.y), Vector3(o.x, 0.0, o.y), k, colour])
+
+
+func _build_tower75(site: Dictionary) -> void:
+	var outline: PackedVector2Array = _simplify(site["outline"], 0.6)
+	_g = _ground_under(outline)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	# The podium: two storeys of dark grey-blue glass in a square grid.
+	_prism(outline, g - 0.4, g + TOWER75_PODIUM, TOWER75_GLASS, Color("#6e767b"), M_SKIN + float(S_DARK) / 16.0, M_STONE)
+	# The shaft, a step in from the podium, in its cladding with punched windows.
+	var shaft := _largest(Geometry2D.offset_polygon(outline, -1.2, Geometry2D.JOIN_MITER))
+	if shaft.size() < 3:
+		shaft = outline
+	var top := g + 75.0
+	_prism(shaft, g + TOWER75_PODIUM, top - 0.9, TOWER75_CLAD, none, M_SKIN + float(S_PUNCHED) / 16.0)
+	_prism(shaft, top - 0.9, top, TOWER75_CLAD.lightened(0.08), Color("#8b9296"), M_STONE, M_STONE)
+	# The roof: a plant room, the big letters' frame facing down the street, a small billboard on
+	# the edge beside it.
+	var c := _centre(shaft)
+	_prism(_square(c, 3.2), top, top + 3.0, Color("#b9bdbe"), Color("#8b9296"), M_STONE, M_STONE)
+	var face := _edge_facing(shaft, BEHIND_FACE, 10.0)
+	if face >= 0:
+		_roof_frame(shaft, face, top, 1.2, 6.0, TOWER75_WORD, Color(1.0, 0.16, 0.12), 0.9)
+		var side := _edge_facing(shaft, Vector2(BEHIND_FACE.y, -BEHIND_FACE.x), 8.0)
+		if side >= 0 and side != face:
+			_roof_frame(shaft, side, top, 0.8, 3.2, "LODY", Color(1, 1, 1), 0.45, Color("#2a6fb0"))
+	_collide(outline)
 
 
 # --- TR Warszawa's building site ----------------------------------------------------------
