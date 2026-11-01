@@ -141,7 +141,7 @@ Not covered: PZU Tower, JM Tower (oddly mapped, generic glass), Pekao Tower, War
 All with a card; check_landmarks only (except where noted). Open issue common to all (BACKLOG "Left"): colour-only, no portico/gables/towers modelled.
 | Name | Mode | Wall / roof | Note |
 |---|---|---|---|
-| Teatr Wielki | M_MONUMENT | #ddd2b6 / #7fa894 | no portico |
+| Teatr Wielki | M_MONUMENT + portico model | #ddd2b6 / #7fa894 | 8-column portico, steps, attic (spec teatr.md, 2026-11-01; photo check on the Mac: column count, attic sculpture) |
 | Zamek Królewski | M_MONUMENT | #c87560 / #6e5a4e | no tower/clock |
 | Barbakan | M_GOTHIC | #ab5a42 / #6b4a3c | |
 | Archikatedra św. Jana | M_GOTHIC | #9a4b38 / #6e3a2e | |
