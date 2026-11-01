@@ -58,8 +58,11 @@ then the Launch gate.
 - [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views
       shows), 2026-11-01, PR #183
 - [ ] Map review C: the streets of the 3d-1 box and map north against the orthophoto
-- [ ] Loop 3e leftovers: Łazienkowski's Praga end (R8), the rail cutting, Rozdroże's tubes,
-      Nowy Zjazd's wall, deck 4; Most Łazienkowski cut by the east edge (decide)
+- [x] Bridge and tunnel joins (loop 3e leftovers): rails cut where a bus box touches them,
+      Rozdroże's portal wall, Nowy Zjazd's wall (check_drive `--no-allow` 51 → 26 lane spots; 3 of
+      11 allowlist entries gone). Open: the loop ramps' parapets and slabs at Łazienkowski's Praga
+      end, deck 4's parapet, the footbridge's Praga end (BACKLOG "From loop 3e")
+- [ ] Loop 3e leftovers still open: the rail cutting, Most Łazienkowski cut by the east edge (decide)
 - [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
 
 ### Left: landmarks and street details
@@ -72,6 +75,12 @@ then the Launch gate.
 - [x] People on the observation decks (F, 2026-11-01): Varso Tower's roof and St Anne's bell tower
       terrace (with a balustrade), the Palace of Culture's 30th-floor terrace (114 m ledge and
       balustrade, up to 16), hours, weekends and seasons (`crowds.gd` DECKS)
+- [x] The grand hotels (F, 2026-11-01, hotels pass): Hotel Bristol's body on its kept skin (rusticated
+      plinth, string courses, cornice, slate mansard with dormers, a canopied door with the gilded
+      name on Krakowskie Przedmieście, pediment, 2013 tris) and Hotel Polonia Palace built whole on
+      Al. Jerozolimskie (1202 tris, new `polonia` site and card) through one `_palace_hotel` builder;
+      Europejski, Wiktoria, the Marriott, Novotel, Westin and InterContinental were already models;
+      Mac look check parked (QUESTIONS, BACKLOG "Grand hotels")
 - [x] Old Town hotels (F, 2026-11-01): fronts on three tenements (portal, canopy, neon name, flags,
       lanterns, card), under parody names KASZTEL INN (Castle Inn), CANALETTO (Hotel Bellotto),
       STARÓWKA (an aparthotel on the Rynek); Mac look check parked (QUESTIONS, BACKLOG "Old Town hotels")
@@ -461,7 +470,7 @@ verify, a look at every before/after and the phone budget; locals get it early.
 | --- | --- | --- | --- |
 | 1 | **3d-1 merge** (on its last check) | The 20.1 km² demo map (Rondo Daszyńskiego → stadium, MDM → Barbakan, Most Łazienkowski), 1 m terrain, derived files out of git; then the iPhone 11 pass and the first Play internal testers | 1 |
 | 2 | **3d-2, map engine** | Ground cut back under roads + coarser ground on flat land; far levels with low buildings painted flat; look-ahead streaming; the one-frame-per-load hitch split in the bake | 5–8 |
-| 3 | **3e, structures** | The W-Z tunnel, Most Śląsko-Dąbrowski, Trasa Łazienkowska, the Wybrzeże trench, Wiadukt Markiewicza, the rail cutting. *Loop 3e (2026-10-30): the portals, tubes and trenches done; the interchanges (R8), the rail cutting and Rozdroże's tube ends left (BACKLOG "From loop 3e")* | 4–7 |
+| 3 | **3e, structures** | The W-Z tunnel, Most Śląsko-Dąbrowski, Trasa Łazienkowska, the Wybrzeże trench, Wiadukt Markiewicza, the rail cutting. *Loop 3e (2026-10-30): the portals, tubes and trenches done; the interchanges (R8), the rail cutting and Rozdroże's tube ends left (BACKLOG "From loop 3e"); the joins loop (2026-11-01) took Rozdroże's portals, Nowy Zjazd and most of the interchange's rails* | 4–7 |
 | 4 | **3f, landmark factory + facades** | A builder kit; tier A (10) + tier B (~30) + churches by rule, each capped, with a real LOD1, baked into the sectors, a card and a pin, chosen by the user from a gallery; facade families and glass on ordinary buildings | 15–22 |
 | 5 | **MW-0 – MW-2, Moja Warszawa I** (2d-2 folded in) | places.json and the lines; the MOJA WARSZAWA notebook; shop fronts with the near-miss parodies, metro entrances, Frogs (was Rechotka), kebab stands, billboards | 10–14 |
 | 6 | **MW-3 + 3g-2, night, river, police II** | Club queues, the door, the dawn crowd, the river steps; city guards in the Old Town, the clamp, escorts, chase framing | 8–12 |

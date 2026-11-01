@@ -359,6 +359,15 @@ def place_walls(m):
                         if len(cur["p"]) >= 4:
                             runs.append(cur)
                         cur = None
+                    # Loop 3e leftovers: not inside a tube's mouth either (a footway's profile in
+                    # its cutting stood this wall's foot 2 m under the mouth's top across Plac Na
+                    # Rozdrożu's west portals).
+                    floor = over_tunnel(px, pz)
+                    if floor is not None and top < floor + MOUTH:
+                        if cur is not None and len(cur["p"]) >= 4:
+                            runs.append(cur)
+                        cur = None
+                        continue
                     flag = 0
                     if not crossed(px, pz, ux, uz, top):
                         if low - top >= WALL_SOLID:
@@ -383,9 +392,11 @@ def place_walls(m):
                     if len(cur["p"]) >= 4:
                         runs.append(cur)
                     cur = None
-                if top - low < WALL_MIN or m.on_rim(px, pz, 2.0) or in_lane(px, pz, top - 0.5):
+                if top - low < WALL_MIN or m.on_rim(px, pz, 2.0) or in_lane(px, pz, top - WALL_MIN * 0.8):
                     # (loop 3e: nor where a lane runs at its foot: Plac Na Rozdrożu's street over
-                    # the Trasa's tubes stood its wall across the open road before their portals)
+                    # the Trasa's tubes stood its wall across the open road before their portals;
+                    # leftovers: a lane at the foot of a low wall is a WALL_MIN under its top, not
+                    # a half metre: Nowy Zjazd beside the W-Z tram approach's 0.6 m side wall)
                     if cur is not None and len(cur["p"]) >= 4:
                         runs.append(cur)
                     cur = None
@@ -850,9 +861,13 @@ ROAD_INSET = 0.15      # a carriageway's own corridor: its half width less this
 SMALL_BUILDING = 30.0  # a mapped building this small (a kiosk, a vent) in a lane is left out
 GUARD_END = 8.0        # loop 3e: a deck's guard rail this near its piece's end clears a bus on the lanes there...
 GUARD_END_LANE = 2.6   # ...by this from their centres (where they turn on and off the deck the box swings out)
+BUS_BOX = (2.6, 12.0)  # loop 3e leftovers: check_drive.gd's bus box on the roads buses drive (lane_graph.gd classes 0, 1)...
+BUS_STEP = 1.0         # ...placed on a deck lane every this many metres, its axles BUS_BOX[1] / 2 apart
+BUS_PAD = 0.1          # ...and a rail this near it goes (check_drive sweeps every 4 m)
+NO_BUS = ("residential", "unclassified", "living_street")
 
 
-def _clear_guards(src, inside, in_deck_lane, deck_ends, notes):
+def _clear_guards(src, inside, in_deck_lane, deck_ends, notes, in_bus_box=None):
     """clear_carriageways' guard rails: the runs left once the parts in a lane are cut out."""
     import check_roads as cr
     guards = []
@@ -866,6 +881,9 @@ def _clear_guards(src, inside, in_deck_lane, deck_ends, notes):
                     continue
                 x, z = a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n
                 if (inside(x, z, 0.1) if g.get("dk") is None else in_deck_lane(x, z, g["dk"]) or
+                        # Loop 3e leftovers: nor where a bus on a lane of its deck group would
+                        # brush it (a ramp's rail on a tight loop, a rail where two ramps part).
+                        (in_bus_box is not None and in_bus_box(x, z, g["dk"])) or
                         # Loop 3e: by a deck's end its rail bends round the corner, into the lanes
                         # running on or off it (deck 4's across Wybrzeże Szczecińskie): a bus's
                         # half width there, on the deck and on the ground.
@@ -973,13 +991,61 @@ def clear_carriageways(m):
 
     def in_deck_lane(x, z, g, r=1.4):
         return any(dg == g and cr.seg_dist2(x, z, a, b) < r ** 2 for a, b, dg in deck_lanes.at(x, z))
+    # The bus boxes along the main roads' lanes on decks, as check_drive.gd places them: the
+    # axles half the bus's length apart on the lane, the body along the line between them,
+    # cut short at the lane's ends.
+    bus_boxes = cr.Grid(16.0)
+    half_w = BUS_BOX[0] * 0.5 + BUS_PAD
+    for e in d["graph"]["edges"]:
+        if e.get("dk") is None or e["k"] in NO_BUS:
+            continue
+        pts = cr.pairs(e["p"])
+        clen = sum(math.dist(a, b) for a, b in zip(pts, pts[1:]))
+        for k in range(e["n"]):
+            q = cr.offset_line(pts, e["o"] + e["lw"] * k)
+            cum = [0.0]
+            for a, b in zip(q, q[1:]):
+                cum.append(cum[-1] + math.dist(a, b))
+            if cum[-1] < 1.0 or clen < 1.0:
+                continue
+            f = cum[-1] / clen
+            s0, s1 = e["s0"] * f, e["s1"] * f
+
+            def at(s, cum=cum, q=q):
+                s = min(max(s, 0.0), cum[-1])
+                j = max(i for i in range(len(cum) - 1) if cum[i] <= s) if s < cum[-1] else len(cum) - 2
+                t = (s - cum[j]) / max(cum[j + 1] - cum[j], 1e-9)
+                return q[j][0] + (q[j + 1][0] - q[j][0]) * t, q[j][1] + (q[j + 1][1] - q[j][1]) * t
+            s = s0
+            while True:
+                sa, sb = max(s - BUS_BOX[1] * 0.25, s0), min(s + BUS_BOX[1] * 0.25, s1)
+                a, b = at(sa), at(sb)
+                ln = math.dist(a, b)
+                if ln > 0.01:
+                    ux, uz = (b[0] - a[0]) / ln, (b[1] - a[1]) / ln
+                    ms = (sa + sb) * 0.5
+                    front, rear = min(BUS_BOX[1] * 0.5, s1 - ms), min(BUS_BOX[1] * 0.5, ms - s0)
+                    length = max(front + rear, 1.0)
+                    cx = (a[0] + b[0]) * 0.5 + ux * (front - rear) * 0.5
+                    cz = (a[1] + b[1]) * 0.5 + uz * (front - rear) * 0.5
+                    r = math.hypot(length * 0.5 + BUS_PAD, half_w)
+                    bus_boxes.add((cx, cz, ux, uz, length * 0.5 + BUS_PAD, e["dk"]), cx - r, cz - r, cx + r, cz + r)
+                if s >= s1:
+                    break
+                s = min(s + BUS_STEP, s1)
+
+    def in_bus_box(x, z, g):
+        for cx, cz, ux, uz, hl, dg in bus_boxes.at(x, z):
+            if dg == g and abs((x - cx) * ux + (z - cz) * uz) <= hl and abs(-(x - cx) * uz + (z - cz) * ux) <= half_w:
+                return True
+        return False
     # Guard rails: a mapped one's parts in a carriageway or a lane; a deck's in a lane on its deck.
     deck_ends = {}
     for pc in m.decks.p:
         deck_ends.setdefault(pc["g"], []).extend([pc["pts"][0], pc["pts"][-1]])
     # (Loop 3e: twice: a rail cut by a lane leaves an end the second look clears round its corner.)
     for _ in range(2):
-        d["guards"] = _clear_guards(d.get("guards", []), inside, in_deck_lane, deck_ends, notes)
+        d["guards"] = _clear_guards(d.get("guards", []), inside, in_deck_lane, deck_ends, notes, in_bus_box)
     # Small buildings (kiosks, vents: under SMALL_BUILDING m2) reaching into a ground lane.
     for b in d["buildings"]:
         q = cr.pairs(b["p"])

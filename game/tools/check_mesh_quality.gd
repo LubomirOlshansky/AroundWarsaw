@@ -24,7 +24,8 @@ const Landmarks := preload("res://scripts/landmarks.gd")
 const BUDGET := {
 	"aleksander": 1460,
 	"brama_uw": 550,
-	"bristol": 400,
+	"bristol": 2450,
+	"polonia": 1450,
 	"hotel_kasztel": 330,
 	"hotel_canaletto": 330,
 	"hotel_starowka": 330,

@@ -2,17 +2,6 @@
  "about": "Loop 3d-1: places where game/tools/check_drive.gd's findings are allowed. Every entry: kind (lane: a lane spot in collision; jump: an autopilot height jump), at (map metres), r (metres), name, why, source. Loop 3e built most of them; what is left is listed with its cause. Remove an entry when its cause is fixed (check_drive counts what it allowed; --no-allow counts every finding).",
  "allow": [
   {
-   "kind": "lane",
-   "at": [
-    75,
-    1620
-   ],
-   "r": 50,
-   "name": "Plac Na Rozdrożu (Trasa Łazienkowska)",
-   "reason": "loop 3e: Trasa Łazienkowska's tubes under Plac Na Rozdrożu: OpenStreetMap ends T2 and T3 a few metres short of the street over them, so a bus on the open road's last metres before the west portals meets that street's wall and the portal's frame (the tubes should reach under the street: BACKLOG 'From loop 3e')",
-   "source": "OpenStreetMap; check_drive.gd on the loop 3d-1 bake"
-  },
-  {
    "kind": "jump",
    "at": [
     -115,
@@ -26,23 +15,12 @@
   {
    "kind": "lane",
    "at": [
-    1327,
-    1073
-   ],
-   "r": 65,
-   "name": "Trasa Łazienkowska interchange",
-   "reason": "loop 3e (docs/DEMO.md 4.6): the stacked interchange of Trasa Łazienkowska with Czerniakowska: where two ramps of one deck group part, a ramp's guard rail runs into the other's lanes (R8: each ramp's own rails and lanes; not done this loop)",
-   "source": "check_drive.gd on the loop 3d-1 bake"
-  },
-  {
-   "kind": "lane",
-   "at": [
     418,
     -1519
    ],
    "r": 14,
    "name": "Wybrzeże Szczecińskie under Most Śląsko-Dąbrowski",
-   "reason": "loop 3e: Wybrzeże Szczecińskie's short deck over the Port Praski inlet (deck 4) by Most Śląsko-Dąbrowski's Praga end: at its west end a bus on the outer lane brushes the parapet of the deck's neighbouring piece (the gap between pieces keeps a collider where there is a drop)",
+   "reason": "loop 3e: Wybrzeże Szczecińskie's short deck over the Port Praski inlet (deck 4) by Most Śląsko-Dąbrowski's Praga end: at its west end a bus on the outer lane still brushes the parapet of the deck's neighbouring piece (the gap between pieces keeps a collider where there is a drop; map_builder.gd's parapet, not a baked rail): 2 places left of the 6 (loop 3e leftovers)",
    "source": "check_drive.gd on the loop 3d-1 bake"
   },
   {
@@ -59,23 +37,12 @@
   {
    "kind": "lane",
    "at": [
-    -362,
-    -1462
-   ],
-   "r": 55,
-   "name": "Nowy Zjazd (Trasa W-Z)",
-   "reason": "loop 3e: Nowy Zjazd's loop under the W-Z approach: a bus on its inner lane brushes the tram approach's 0.6-0.9 m side wall where the lane runs within 3 m of it",
-   "source": "check_drive.gd on the loop 3d-1 bake (the 1 m terrain, east edge 21.056)"
-  },
-  {
-   "kind": "lane",
-   "at": [
     2045,
     815
    ],
    "r": 110,
    "name": "Most Łazienkowski, the Praga end",
-   "reason": "loop 3e (docs/DEMO.md 4.6): Most Łazienkowski's Praga end and its interchange with Wał Miedzeszyński: buses under and beside its ramps meet a pier, the slabs of the ramps' neighbouring pieces and guard rails where ramps part (R8; not done this loop)",
+   "reason": "loop 3e (docs/DEMO.md 4.6): Most Łazienkowski's Praga end and its interchange with Wał Miedzeszyński: buses on the ramps' tight loops (R about 25 m on 4 m slabs: the 12 m box swings 0.7 m out) and beside the slab of the neighbouring piece where a ramp meets the main deck, and the ground gap lane between the loop ramp and the deck (loop 3e leftovers: the rails the box touched are cut, `bake_structures.py` BUS_BOX; what is left is the parapets and slabs of map_builder.gd)",
    "source": "check_drive.gd on the loop 3d-1 bake (the 1 m terrain, east edge 21.056)"
   },
   {
