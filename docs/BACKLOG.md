@@ -72,7 +72,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (−658, −1350), the free-standing bell tower is a separate building to its north-east), the other
   churches (Holy Cross, All Saints, St Alexander's rotunda, the Visitationists) and the Palace
   on the Isle's neighbours, Staszic's facade (a colour-only skin today; Zachęta, Holy Trinity
-  and the Presidential Palace became models on 2026-10-31, specs in docs/landmarks/specs/), the Old Town's gables and dormers (the LoD2 roofs have none), PZU/JM Tower. How the
+  and the Presidential Palace became models on 2026-10-31, specs in docs/landmarks/specs/), PZU/JM Tower. (The Old Town's dormers and chimneys, 2026-11-01: `old_town_roofs.gd`, one per big roof slope, no new draw call; a Mac look on the real roofs and the stepped gables of the market square's east side are still open.) How the
   lane works: `landmarks.gd` sites (`TOWERS`, `SKINS`, fixed-position circle zones like
   `_find_zygmunt`), each needs a card in `INFO` and `check_landmarks`; a site found in
   `data["buildings"]` also needs its box in `bake_sectors.py` `SITE_AREAS`; after a change
