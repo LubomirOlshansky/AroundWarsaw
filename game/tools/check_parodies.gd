@@ -265,7 +265,7 @@ func _check_picks(sf: Storefronts, data: Dictionary, book: Notebook, graph: Lane
 		if (Storefronts.CAFES.has(v["id"]) or Storefronts.LOUNGES.has(v["id"]) or Storefronts.TRENDY.has(v["id"])):
 			continue
 		# The food-hype venues (Storefronts.HYPE) aren't notebook places: no name to match, the wall still.
-		if not Storefronts.HYPE.has(v["id"]):
+		if not Storefronts.HYPE.has(v["id"]) and not Storefronts.CINEMAS.has(v["id"]):
 			var name := str(at[v["id"]]["name_pl"]).to_upper()
 			var joined := " ".join(v["lines"] as Array)
 			_expect(joined == name or name.begins_with(joined + " "), "venue %s: the sign says \"%s\", places.json \"%s\"" % [v["id"], joined, name])
@@ -280,8 +280,8 @@ func _check_picks(sf: Storefronts, data: Dictionary, book: Notebook, graph: Lane
 		if (Storefronts.CAFES.has(id) or Storefronts.LOUNGES.has(id) or Storefronts.TRENDY.has(id)):
 			continue
 		_expect(seen.has(id), "venue %s: not placed (no address, poi or road)" % id)
-	var want_signs := 18 + Storefronts.CAFES.size() + Storefronts.LOUNGES.size() + Storefronts.TRENDY.size() + Storefronts.HYPE.size()
-	_expect(sf.venues.size() == want_signs, "venues: %d signs (want %d: 17 venues, Glon twice, %d Coffeechairs, %d shisha lounges, %d trend spots, %d food-hype spots)" % [sf.venues.size(), want_signs, Storefronts.CAFES.size(), Storefronts.LOUNGES.size(), Storefronts.TRENDY.size(), Storefronts.HYPE.size()])
+	var want_signs := 18 + Storefronts.CAFES.size() + Storefronts.LOUNGES.size() + Storefronts.TRENDY.size() + Storefronts.HYPE.size() + Storefronts.CINEMAS.size()
+	_expect(sf.venues.size() == want_signs, "venues: %d signs (want %d: 17 venues, Glon twice, %d Coffeechairs, %d shisha lounges, %d trend spots, %d food-hype spots, %d cinemas)" % [sf.venues.size(), want_signs, Storefronts.CAFES.size(), Storefronts.LOUNGES.size(), Storefronts.TRENDY.size(), Storefronts.HYPE.size(), Storefronts.CINEMAS.size()])
 	# Leżaks and metro entrances: off the lanes; one standing.
 	var standing := 0
 	for s in sf.scooters:
