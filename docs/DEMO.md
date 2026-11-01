@@ -843,7 +843,7 @@ pacing: docs/design/main-line.md (2026-10-31).
 | Rescues | As now, over the whole area; new kinds: an Old Town tourist with a sprained ankle, a Łazienki peacock on a roof (helicopter) | Extend |
 | Police | 5.2 to 5.4 | New |
 | Collectibles | **20 Syrenki** (little invented mermaid figurines hidden round the city; the real statues count too), **10 cassettes** (7 new radio loops from `make_music.py`), **15 eggs** (5 exist + the Praga bears, Łazienki's peacocks, the pigeons of Plac Zamkowy, the "best view of Warsaw" joke on the Palace, a police car stuck in its own roadworks, a race up and down a multi-storey car park by Arkadia, the Old Town's horse carriage, a tram fan at Plac Bankowy, Plac Zbawiciela's café queue, the "new Mordor" commuter march at Rondo Daszyńskiego), billboards 5 → 10, posters 24 | 5 eggs exist |
-| Landmark cards | ~25 (7 now) | Extend |
+| Landmark cards | ~25 (72 now, 2026-11-01) | Done |
 
 **Progression.**
 

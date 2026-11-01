@@ -129,9 +129,9 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   pay tables are first guesses (BACKLOG-TRIAGE "Decisions"). The guide's lines, Halina's lines and
   the end card are unreviewed ("From loop 3h slice 4"); the end card's "10 jobs" definition and the
   trap's koguty line are open. A designer pass over all player-facing text and pay, then F's run.
-- The DEMO 6.3 counts left: 10 roof cassettes (#115 brings the first), ~25 landmark cards, the
-  second słoiki station, the Old Town tourist and Łazienki peacock rescues. Check each against the
-  code and list what is missing. Partly a gap.
+- The DEMO 6.3 counts left: the second słoiki station (jobs.gd has one) and the Łazienki peacock
+  rescue (none yet; the Old Town tourist is a "fainted" street rescue in missions.gd). The 10 roof
+  cassettes and the landmark cards (72 vs ~25) are done (2026-11-01).
 
 ### P2: UI
 - The HUD was sized on 2026-10-28; since then the ≡ map button, the goal star, district cards,
@@ -2279,8 +2279,10 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
   contact's own conversation (police.dialogue) is what plays; the designer could add the koguty line.
 - ~~**The cassette is KASETA's then card** on the boulevards (a ground spot, not a roof).~~ Done in the
   first-10 polish: a mixtape on the University Library's roof (cassettes.gd, cassettes.json), taken
-  from the helicopter, opens the next PÓŁNOC FM track; the beat's arrow points there. Left: the other
-  nine of DEMO 6.3's "10 cassettes" (one line each in cassettes.json, a roof landmark and words); the
+  from the helicopter, opens the next PÓŁNOC FM track; the beat's arrow points there. The other nine
+  of DEMO 6.3's "10 cassettes" are in (2026-11-01: c02 to c10, roofs found by `missions.roof_spot`,
+  not placed by any map-free check: an unplaced one logs `cassettes: ...no flat roof`, look for it on
+  the phone; only five songs are locked, so the later tapes give respect and a card); the
   cassette is a static box model (a slow spin or bob would be a shader, the visuals lane's); the
   words of c01_buw and the new tape line were written in that thread (the game-designer should review).
 - ~~The guide's words (`first10.gd` LINES, Halina's FIRST_LINES, the end card) need a designer
