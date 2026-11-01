@@ -11,11 +11,16 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | Lane | Item | Session | Since |
 | --- | --- | --- | --- |
 | landmarks | One landmark per thread (now the Cathedral and the Barbican); order in BACKLOG "Landmarks lane, hand-over" | fresh Sonnet threads | 2026-10-31 |
+| landmarks, map, gameplay | The railway: stations, track, catenary, trains (docs/design/railway.md) | cloud thread "Build railway stations and city rail lines" | 2026-11-01 |
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
 
 Newest first. One entry per question.
+
+- **2026-11-01 · content · the trains' parody names** — Default to build: KOLEJE MAZOWE (the
+  green and white suburban units), SKiM (the red and yellow city line), INTERSZYBKO (the
+  long-distance coaches). Say if any should change. docs/design/railway.md section 4.
 
 - **2026-11-01 · store release · the Mac version** — Default: the native Mac App Store version is
   post-v1.0 (after the iPhone demo and TestFlight), on the same App Store Connect record as a

@@ -3,6 +3,25 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## The railway: stations, the cross-city line, trains (F, 2026-11-01)
+
+Plan: docs/design/railway.md. One PR per item, in this order:
+- S1 Warszawa Ochota as a landmark (site `ochota`): the hyperbolic paraboloid roof (two corners at
+  8.34 m, striped mosaic underneath) over the 17.25 m glass hall on its bridge over the cutting,
+  the stairs to the platform, the kiosk.
+- S2 Warszawa Powiśle (site `powisle`): the upper "kite" pavilion over the tunnel's east portal,
+  the round lower pavilion with its inverted-dome roof and neon (the café-club), the platforms' X
+  canopies.
+- L1 track that reads as railway: sleepers, raised rails, ballast shoulders (no new draw calls).
+- L2 catenary: masts as one MultiMesh, the wires in one mesh, portal frames over the fans.
+- L3 the tunnel's mouths: west of Centralna (x -1924) and under the Powiśle pavilion (x 171).
+- T1 trains (`trains.gd`, `check_trains.gd` in verify): suburban, city line, long-distance; stop
+  at Ochota, Powiśle, Stadion; in and out of the tunnel and the map's edges.
+- S3 the other stations: Stadion, Śródmieście's entrances, Wschodnia and Gdańska at the edges,
+  Ochota WKD.
+- L4 Most Średnicowy's look, after a Mac photo check.
+- Photo checks on the Mac for every station model (built from published descriptions).
+
 ## The Mac App Store version and gamepads (F, 2026-11-01)
 
 Lane file: [docs/store/mac-and-gamepad.md](store/mac-and-gamepad.md). F wants the game ready for
