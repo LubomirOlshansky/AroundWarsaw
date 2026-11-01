@@ -27,7 +27,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# The start area as real Warsaw (R1, docs/design/start-area-real.md, 2026-11-01): the
 		# Eastern Wall as it is in 2025/26, half empty after H&M, Zara and C&A left, the H&M
 		# corner turning into a two-storey Frogs, a shoe chain on Zara's floor.
-		"WYPRZEDAŻ", "DO WYNAJĘCIA", "DO", "WYNAJĘCIA", "FROGS XXL", "FROGS", "XXL", "KAPCIE", "SCENA RELAX"]
+		"WYPRZEDAŻ", "DO WYNAJĘCIA", "DO", "WYNAJĘCIA", "FROGS XXL", "FROGS", "XXL", "KAPCIE", "SCENA RELAX",
+		# R5: the Cepelia pavilion's book and vinyl store (a parody) and Zodiak.
+		"EMPIRYK", "ZODIAK"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

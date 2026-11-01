@@ -69,6 +69,8 @@ const BUDGET := {
 	"spire": 1290,
 	"tr": 500,
 	"tower75": 220,
+	"cepelia": 900,
+	"zodiak": 600,
 	"stadium": 4750,
 	"swieto": 240,
 	"teatr": 600,

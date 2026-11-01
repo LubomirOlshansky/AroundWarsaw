@@ -45,7 +45,7 @@ then the Launch gate.
         (orthophoto check on the Mac)
   - [x] R4 ordinary buildings by type (pre-war tenement, 1960s-80s slab or point block, office),
         shader only, 2026-11-01 (socialist-realist left for a later pass)
-  - [ ] R5 Scena Relax, Zodiak and the Cepelia pavilion as models
+  - [x] R5 Scena Relax, Zodiak and the Cepelia pavilion as models
   - [x] R6 a trend spot in the start box (MACZA in Pasaż Wiecha, built by the trends thread) and
         six lines on the empty stores, Frogs XXL, Plac Centralny, Scena Relax, 2026-11-01
   - [ ] R7 street details in the box (street name plates, bike dock, tram stops, bollards)

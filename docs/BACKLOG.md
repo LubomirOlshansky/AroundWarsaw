@@ -261,9 +261,14 @@ plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 check
 - **R6 done 2026-11-01**: the trends thread's MACZA already stands in Pasaż Wiecha behind Sawa;
   four KEBAB FM host lines and two passenger lines joined dialogue.json (the stores to let, the
   two-storey Frogs, Plac Centralny's vanished tenements, the matcha queue, Scena Relax).
+- **R5 done 2026-11-01**: the Cepelia pavilion at Rondo Dmowskiego is a site (landmarks.gd
+  "cepelia"): a recessed glass shop floor, a frame band, a glass upper storey with mullions, a
+  white edge and the red EMPIRYK sign (the book and vinyl store, a parody). Zodiak in Pasaż
+  Wiecha is a low glass room under a thin overhanging roof slab on posts with its ZODIAK sign.
+  Scena Relax keeps R1's pink sign on its mapped building. Both have info cards. Only the phone
+  shows the signs' size at the default zoom.
 - **Open:** R3 part 2: granite kerbs, Złota's setts and elm alley, the fountain at the
-  old tunnel mouth, the three new crossings (orthophoto check on the Mac); R5 Scena Relax,
-  Zodiak and the Cepelia pavilion as models; R7 street name plates, a bike dock, tram
+  old tunnel mouth, the three new crossings (orthophoto check on the Mac); R7 street name plates, a bike dock, tram
   stops, bollards; R8 the museum's ribbon in stretches and the stepped roofline.
 - Found: the cloud can't read Wykop (login wall) or Commons (403); the trends come from Google's
   2025 year in search and the trade press. A Mac pass could add Wykop's own tags.
