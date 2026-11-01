@@ -31,7 +31,7 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
 Spec and sources: `docs/design/trends-2025-26.md`. Built: eight parody trend spots (`Storefronts.TRENDY`).
 - [ ] Wykop/X/TikTok skim (cloud could not fetch them); adjust the trend list.
 - [ ] Phone check of the PISTACJA queue (Friday 16:00-18:30 drop, 36 people) and the "Limitka" job (`--trend-job=4`): line on the footway, 5 s wait, 5 min delivery. Built 2026-11-01.
-- [ ] Padel lore thread (F, 2026-11-01): lore entries, characters, dialogue jokes, a court location or side quest.
+- [ ] Padel thread (F, 2026-11-01; docs/design/padel.md): queue at PADELNIA and eight lines built; still to build: notebook lore entries, Trener Dominik / Pani Basia / Prezes z Mokotowa as voices, the "Czwarty" side quest, a roof court. Phone check of PADELNIA's queue.
 - [ ] E-scooter 12 km/h zones (rules of 3 June 2026) as slow zones with signs.
 - [x] Lines about matcha, padel, natural wine, queue, scooter rules: 8 column posters and 5 signs in dialogue.json (PL + EN).
 - [ ] Phone check: do the new column posters read (rows ≤ 8 letters)? Not run, no Godot in the cloud.
