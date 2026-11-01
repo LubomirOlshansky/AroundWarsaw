@@ -67,8 +67,10 @@ then the Launch gate.
 - [ ] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
 - [x] DEMO 6.3 counts, cassettes and landmark cards (2026-11-01): 10 roof cassettes in
       `cassettes.json` (9 new), and 72 landmark cards already in `landmarks.gd` INFO (target ~25)
-- [ ] DEMO 6.3 counts, rescues and słoiki: the second słoiki station (jobs.gd has one), the Old
-      Town tourist and the Łazienki peacock rescues (a "tourist fainted" street rescue exists; no peacocks)
+- [x] DEMO 6.3 counts, rescues and słoiki (2026-11-01): the second słoiki station (Dworzec Gdański
+      → Muranów, `jobs.gd` GDANSKI) and the Łazienki peacock rescue (a roof by Ujazdów, helicopter,
+      `missions.gd` `_find_peacock`); the Old Town tourist is the "fainted" rescue on Rynek Starego Miasta;
+      verify step `rescues`. Phone check of both is open (below)
 - [ ] Loop 3i juice: sparks and dust (no particles yet), money pops, district ambiences,
       haptics working on the iPhone
 - [x] Accessibility options (2026-11-01, Settings → DOSTĘP, `access.gd`): larger HUD text, calm

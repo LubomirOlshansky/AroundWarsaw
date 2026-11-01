@@ -5544,7 +5544,7 @@ Command-line options (after `--`):
 | `--notitle` | skip the title screen (the testing flags `--demo --shots --autopilot --race --mission --rival --bench` skip it anyway) |
 | `--title` | show the title screen even with those flags (for screenshots) |
 | `--kebab=N` | put the car in a stand's ring and take kebab order N (the same N gives the same order; stand N mod 7) |
-| `--sloik` / `--sloik=K` | start the słoiki run at Dworzec Centralny (K jars already broken) |
+| `--sloik` / `--sloik=K` | start the słoiki run at Dworzec Centralny (K jars already broken); `--sloik-station=1` starts it at Dworzec Gdański (to Muranów) |
 | `--ride=N` | loop 2d-1: Podwózka ride N's request, the car on the road 60 m before its passenger (the same N gives the same ride; with `--ride-quirk=river` or `zone` the passenger is picked near river spot / park N, so the leg fits); with `--autopilot` it is accepted after 2 s and driven |
 | `--ride-quirk=river\|zone\|oldtown\|rechotka\|reroute` | loop 2d-1: force the ride's quirk (`oldtown` becomes `zone` on today's map; `rechotka`, the Frogs turn: in the random pool since loop MW-2) |
 | `--passenger=normal\|believer\|hurry\|detour` | loop 2d-1: force the passenger type (loop MW-2: `detour` asks for a Frogs stop, +½ star once) |

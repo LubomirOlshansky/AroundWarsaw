@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- A second słoiki station at Dworzec Gdański: a newcomer with mum's jars wants a ride to a flat in Muranów, and the stations show on the minimap. And a peacock has escaped from Łazienki onto a roof by Ujazdów: when a roof call comes in while you are in the south, "Pan Paw" is the one waiting up there for the helicopter.
 - Nine more mixtapes lie on roofs round the city (Kopernik, the Palace terrace, the Opera, Arkadka, the modern art museum, Polin, the Sejm, the defence ministry and the National Bank): fly the helicopter over one to pick it up. The first five open the next locked PÓŁNOC FM song; the rest give respect and a card.
 - New padel side job "Czwarty": on busy evenings the court needs a fourth player, so fetch one from across town before the booking ends. Padel also has its own page in the notebook, and the coach, the receptionist and the boss now chat in the court queue.
 - The department stores by the start look like they do today: "to let" boards on the emptied floors, a two-storey frog shop on the old corner store, a shoe shop, and the Scena Relax theatre's name behind them. Shop signs can now use Polish letters.

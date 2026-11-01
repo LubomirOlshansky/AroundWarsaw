@@ -451,6 +451,8 @@ var pedzik_kerb := false
 ## Loop jobs-2: --armchair (the armchair man out today at any hour, the car on the lane by him).
 var armchair_flag := false
 var start_sloik := -1
+## --sloik-station=N: the station of --sloik (0 Dworzec Centralny, 1 Dworzec Gdański).
+var start_sloik_station := 0
 var start_heat := -1.0
 # --- loop 2d-1: Podwózka (rides.gd) and its testing flags ---
 var rides: Rides
@@ -1181,7 +1183,7 @@ func _build_world() -> void:
 		jobs.start_kebab(start_kebab)
 		cam_focus = car.global_position
 	elif jobs != null and start_sloik >= 0:
-		jobs.start_sloik(start_sloik)
+		jobs.start_sloik(start_sloik, start_sloik_station)
 		cam_focus = car.global_position
 	elif rides != null and start_ride >= 0:
 		rides.start_ride(start_ride)  # loop 2d-1
@@ -3289,6 +3291,8 @@ func _parse_args() -> void:
 			roundup_flag = true
 		elif arg == "--armchair":
 			armchair_flag = true
+		elif arg.begins_with("--sloik-station="):
+			start_sloik_station = maxi(0, int(arg.trim_prefix("--sloik-station=")))
 		elif arg == "--sloik" or arg.begins_with("--sloik="):
 			start_sloik = maxi(0, int(arg.trim_prefix("--sloik="))) if arg.contains("=") else 0
 		elif arg.begins_with("--heat="):

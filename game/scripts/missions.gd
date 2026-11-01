@@ -41,6 +41,17 @@ const ORDER := [Kind.STREET, Kind.ROOF, Kind.RIVER, Kind.PARK]
 const TITLES := ["STREET RESCUE", "ROOF RESCUE", "RIVER RESCUE", "PARK RESCUE"]
 ## Loop 2e: the cards, the status and the toasts in Polish, the English under it.
 const TITLES_PL := ["RATUNEK NA ULICY", "RATUNEK NA DACHU", "RATUNEK NAD WISŁĄ", "RATUNEK W PARKU"]
+## DEMO 6.3: the Łazienki peacock. Łazienki itself lies just south of the demo map; its peacocks
+## wander north over Agrykola and Ujazdów, so one ends up on a roof by Park Ujazdowski: the first of
+## these buildings with a roof the helicopter can land on (else the nearest roof rescue within
+## PEACOCK_NEAR of PEACOCK_ANCHOR, map metres). A roof call within PEACOCK_REACH of the player
+## offers the peacock first, once per session.
+const PEACOCK_ROOFS := ["Zamek Ujazdowski", "Główna Biblioteka Lekarska im. Stanisława Konopki",
+		"Instytut Teatralny im. Z. Raszewskiego", "Laboratorium"]
+const PEACOCK_ANCHOR := Vector2(450.0, 1620.0)
+const PEACOCK_NEAR := 700.0
+const PEACOCK_REACH := 2600.0
+const PEACOCK_NAME := "Pan Paw"
 enum State { IDLE, OFFER, CLOSED, PICKUP, DROPOFF, RESULT, RINGING }
 ## Loop 2e: seconds of play before the first call comes in, and between calls (first guesses;
 ## docs/DEMO.md 6.2 puts the first rescue at 4:00 in the scripted first ten minutes).
@@ -68,6 +79,10 @@ const KIDS := ["Staś", "Zuzia", "Antek", "Hania"]
 var _places := {}
 ## Landmark name -> its outlines (PackedVector2Array each), for `roof_spot`.
 var _outlines := {}
+## The peacock's call (a ROOF place with "peacock": true), {} if no roof near Ujazdów fits; and
+## whether this session has rescued it.
+var _peacock: Dictionary = {}
+var _peacock_done := false
 var _hospitals: Array[Dictionary] = []
 var _mission: Dictionary = {}
 var _success := false
@@ -95,10 +110,11 @@ func setup(map_node: Node3D, data: Dictionary, world: Node3D, hud_layer: CanvasL
 	var t0 := Time.get_ticks_msec()
 	_collect_road_names(data["roads"])
 	_find_roofs(data.get("landmarks", []))
+	_find_peacock()
 	_find_streets(data["roads"])
 	_find_pois(data.get("pois", []))
-	print("missions: %d roofs, %d streets, %d riverside, %d parks, %d hospitals in %d ms" % [
-			_places[Kind.ROOF].size(), _places[Kind.STREET].size(), _places[Kind.RIVER].size(),
+	print("missions: %d roofs (peacock %s), %d streets, %d riverside, %d parks, %d hospitals in %d ms" % [
+			_places[Kind.ROOF].size(), str(_peacock.get("short", "none")), _places[Kind.STREET].size(), _places[Kind.RIVER].size(),
 			_places[Kind.PARK].size(), _hospitals.size(), Time.get_ticks_msec() - t0])
 	# Sweep 2: the haptic engine is built now, while the city loads, not at the first call.
 	var t1 := Time.get_ticks_usec()
@@ -402,7 +418,7 @@ func _picked_up() -> void:
 func _tag() -> String:
 	match int(_mission["kind"]):
 		Kind.ROOF:
-			return "roof"
+			return "peacock" if _mission.get("peacock", false) else "roof"
 		Kind.RIVER:
 			return "river"
 		Kind.PARK:
@@ -418,6 +434,8 @@ func _finish(success: bool, why: Array) -> void:
 	hud.hide_status()
 	if success:
 		var route := _flat(_mission["pos"], _mission["hospital"]["pos"])
+		if _mission.get("peacock", false):
+			_peacock_done = true
 		var score := 500 + int(_time_left) * 10 + int(route / 4.0)
 		total_score += score
 		var pay := roundi(score * 0.08)
@@ -434,7 +452,7 @@ func _finish(success: bool, why: Array) -> void:
 				"Safe and sound at the hospital: time, score and pay above.")
 		Access.buzz(120, 0.8)
 		if dialogue != null:
-			dialogue.say(_dropoff, "Ratownik", "rescue_done", "", 5.0, _dropoff_colour(), 3.6)
+			dialogue.say(_dropoff, "Ratownik", "rescue_done", "peacock" if _mission.get("peacock", false) else "", 5.0, _dropoff_colour(), 3.6)
 	else:
 		_pickup.visible = false
 		_dropoff.visible = false
@@ -447,6 +465,12 @@ func _finish(success: bool, why: Array) -> void:
 ## (a seeded pick, so the same start gives the same call), and a hospital.
 func _make(n: int) -> Dictionary:
 	var kind: int = ORDER[(n - 1) % ORDER.size()]
+	if kind == Kind.ROOF and not _peacock.is_empty() and not _peacock_done \
+			and _flat(player, _peacock["pos"]) <= PEACOCK_REACH:
+		var pm: Dictionary = _peacock.duplicate()
+		pm["hospital"] = _hospital_for(_peacock)
+		pm["who"] = PEACOCK_NAME
+		return pm
 	var list: Array = _places[kind]
 	if list.is_empty():
 		list = _places[Kind.STREET]
@@ -506,6 +530,33 @@ func _find_roofs(landmarks: Array) -> void:
 				"text": "Someone is stranded on the roof of %s, %d m up. Only the helicopter can reach them." % [name, up],
 				"text_pl": "Ktoś utknął na dachu: %s, %d m nad ulicą. Dotrze tylko helikopter." % [name, up]}
 	_places[Kind.ROOF].append_array(best.values())
+
+
+## DEMO 6.3: the peacock's roof (see PEACOCK_ROOFS); {} when none fits.
+func _find_peacock() -> void:
+	var roof := ""
+	var spot := Vector3.INF
+	for name in PEACOCK_ROOFS:
+		spot = roof_spot(name)
+		if spot != Vector3.INF:
+			roof = name
+			break
+	if spot == Vector3.INF:
+		var best := PEACOCK_NEAR
+		for p: Dictionary in _places[Kind.ROOF]:
+			var d := Vector2(p["pos"].x, p["pos"].z).distance_to(PEACOCK_ANCHOR)
+			if d < best:
+				best = d
+				roof = p["name"]
+				spot = p["pos"]
+	if spot == Vector3.INF:
+		return
+	var up := roundi(spot.y - map.ground_height(spot.x, spot.z))
+	_peacock = {"kind": Kind.ROOF, "name": PEACOCK_NAME, "short": "peacock on " + roof, "pos": spot, "heli": true,
+			"child": false, "peacock": true, "short_pl": "paw na dachu: " + roof,
+			"gloss": "A peacock escaped from Łazienki and sits on a roof %d m up: helicopter only." % up,
+			"text": "A peacock has escaped from Łazienki and is strutting on the roof of %s, %d m up. Only the helicopter can reach it." % [roof, up],
+			"text_pl": "Paw uciekł z Łazienek i paraduje po dachu: %s, %d m nad ulicą. Dotrze tylko helikopter." % [roof, up]}
 
 
 ## The first-10 polish (cassettes.gd): the roof spot of the landmark `name`: the rescue's own pick

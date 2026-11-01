@@ -129,9 +129,11 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   pay tables are first guesses (BACKLOG-TRIAGE "Decisions"). The guide's lines, Halina's lines and
   the end card are unreviewed ("From loop 3h slice 4"); the end card's "10 jobs" definition and the
   trap's koguty line are open. A designer pass over all player-facing text and pay, then F's run.
-- The DEMO 6.3 counts left: the second słoiki station (jobs.gd has one) and the Łazienki peacock
-  rescue (none yet; the Old Town tourist is a "fainted" street rescue in missions.gd). The 10 roof
-  cassettes and the landmark cards (72 vs ~25) are done (2026-11-01).
+- The DEMO 6.3 counts are done (2026-11-01): 10 roof cassettes, 72 landmark cards, the second
+  słoiki station (Dworzec Gdański, `--sloik --sloik-station=1`) and the Łazienki peacock rescue. Not
+  seen in a run yet (the cloud has no city): the Gdański ring and person on the kerb, the
+  Muranów drive, and the peacock's roof (Zamek Ujazdowski, else the nearest roof); the peacock call
+  needs the player within 2.6 km of it, so it never shows from the north; Łazienki itself is off the map.
 
 ### P2: UI
 - The HUD was sized on 2026-10-28; since then the ≡ map button, the goal star, district cards,

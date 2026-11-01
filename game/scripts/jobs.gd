@@ -59,6 +59,17 @@ const FIRST_ROAD := 300.0
 const CUSTOMERS := ["Ania", "Kasia", "Ola", "Magda", "Zosia", "Ewa", "Basia", "Marta",
 		"Tomek", "Kuba", "Piotrek", "Michał", "Paweł", "Marek", "Wojtek", "Krzysiek"]
 const NEWCOMERS := ["Kuba", "Ola", "Bartek", "Kasia", "Michał", "Magda"]
+## DEMO 6.3: the second słoiki station, Dworzec Gdański (the bake maps only Warszawa Centralna as a
+## "station" POI; the platforms of Gdańska lie past the north edge, its hall and forecourt inside).
+## `door` is a point on Słomińskiego by the hall (the kerb search snaps to the lane graph within 30 m),
+## `x`/`z` the building. Its newcomers go to Muranów, the blocks south of the station: a flat of
+## `dest` (a box x0, z0, x1, z1 in map metres, offices left out) 600 to 2000 m by road. The first
+## station's flats are in Powiśle, 1000 to 2400 m by road (data "d" = powisle).
+const GDANSKI := {"k": "station", "name": "Dworzec Gdański", "x": -2008.0, "z": -2700.0,
+		"door": [-2001.0, -2664.0], "w": 10.0, "dest": "muranow", "dest_pl": "Muranów", "dest_en": "Muranów",
+		"box": [-2700.0, -2700.0, -1500.0, -1500.0], "lo": 600.0, "hi": 2000.0, "tag": "gdanski"}
+const CENTRALNY_DEST := {"dest": "powisle", "dest_pl": "Powiśle", "dest_en": "Powiśle", "lo": 1000.0, "hi": 2400.0,
+		"tag": "centralny"}
 
 enum Job { NONE, KEBAB, SLOIK }
 enum State { IDLE, ORDER, DELIVER, RESULT }
@@ -107,6 +118,8 @@ var _stand_tiles: Array[MultiMeshInstance3D] = []
 var _stand_mesh: ArrayMesh
 var _world: Node3D
 ## The station pick-up: {ring, at, yaw, heading, person, marker, cool}.
+## Every słoiki station (the OSM one, then Dworzec Gdański), and the one a run is on.
+var _stations: Array[Dictionary] = []
 var _station: Dictionary = {}
 ## Addresses: {name, door: Vector2, at: Vector2, office, d}.
 var _addresses: Array[Dictionary] = []
@@ -167,6 +180,8 @@ func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
 				var door: Array = p["door"]
 				_addresses.append({"name": p["name"], "door": Vector2(door[0], door[1]), "at": Vector2(p["x"], p["z"]),
 						"office": p.has("o"), "d": String(p.get("d", ""))})
+	if not _station_near(Vector2(GDANSKI["x"], GDANSKI["z"])):
+		_add_station(GDANSKI, world)
 	_world = world
 	_stand_mesh = stand_mesh
 	_build_stand_tiles()
@@ -198,8 +213,9 @@ func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
 	var where := PackedStringArray()
 	for st in _stands:
 		where.append("%d,%d" % [roundi(st["at"].x), roundi(st["at"].z)])
-	print("jobs: %d kebab stands (%s), %d addresses, station %s in %d ms" % [_stands.size(), " ".join(where), _addresses.size(),
-			"%d,%d" % [roundi(_station["ring"].x), roundi(_station["ring"].z)] if not _station.is_empty() else "none", Time.get_ticks_msec() - t0])
+	print("jobs: %d kebab stands (%s), %d addresses, stations %s in %d ms" % [_stands.size(), " ".join(where), _addresses.size(),
+			" ".join(_stations.map(func(st: Dictionary) -> String: return "%s %d,%d" % [st["name"], roundi(st["ring"].x), roundi(st["ring"].z)])) \
+			if not _stations.is_empty() else "none", Time.get_ticks_msec() - t0])
 
 
 # --- loop MW-2: the stands' drawing, names and tags (storefronts.gd) ---------------------------
@@ -381,8 +397,21 @@ func _add_station(p: Dictionary, world: Node3D) -> void:
 	var marker := _marker(SLOIK_COLOUR, PULL_IN - 1.0)
 	world.add_child(marker)
 	marker.global_position = ring
-	_station = {"ring": ring, "at": person.global_position, "heading": k["heading"], "person": person,
-			"marker": marker, "cool": false, "edge": k["edge"], "s": k["s"], "name": String(p["name"])}
+	var dest: Dictionary = p if p.has("dest") else CENTRALNY_DEST
+	_stations.append({"ring": ring, "at": person.global_position, "heading": k["heading"], "person": person,
+			"marker": marker, "cool": false, "edge": k["edge"], "s": k["s"], "name": String(p["name"]),
+			"dest": dest.get("dest", "powisle"), "dest_pl": dest.get("dest_pl", "Powiśle"),
+			"dest_en": dest.get("dest_en", "Powiśle"), "box": dest.get("box", []), "lo": dest.get("lo", 1000.0),
+			"hi": dest.get("hi", 2400.0), "tag": dest.get("tag", "centralny")})
+
+
+## A słoiki station of the OSM data already stands within 150 m of `at` (a later bake that maps
+## Gdańska itself must not get a second one).
+func _station_near(at: Vector2) -> bool:
+	for st in _stations:
+		if _flat(Vector3(at.x, 0.0, at.y), st["ring"]) < 150.0:
+			return true
+	return false
 
 
 ## A ring on the road: "pull in here" (the stand's own sign and the minimap mark
@@ -536,12 +565,14 @@ func _look_for_work() -> void:
 		elif d < PULL_IN and slow:
 			_begin_kebab(i, _orders)
 			return
-	if not _station.is_empty():
-		var d := _flat(p, _station["ring"])
-		if _station["cool"]:
-			_station["cool"] = d < 25.0
+	for st in _stations:
+		var d := _flat(p, st["ring"])
+		if st["cool"]:
+			st["cool"] = d < 25.0
 		elif d < PULL_IN and slow:
+			_station = st
 			_begin_sloik(_orders)
+			return
 
 
 ## Rings, columns and minimap squares for the job places while nothing else runs.
@@ -551,16 +582,16 @@ func _show_places(on: bool, again := false) -> void:
 	_places_shown = on
 	for s in _stands:
 		(s["marker"] as Node3D).visible = on
-	if not _station.is_empty():
-		(_station["marker"] as Node3D).visible = on
+	for st in _stations:
+		(st["marker"] as Node3D).visible = on
 	var pts := PackedVector2Array()
 	var colours := PackedColorArray()
 	if on:
 		for s in _stands:
 			pts.append(Vector2(s["ring"].x, s["ring"].z))
 			colours.append(KEBAB_COLOUR)
-		if not _station.is_empty():
-			pts.append(Vector2(_station["ring"].x, _station["ring"].z))
+		for st in _stations:
+			pts.append(Vector2(st["ring"].x, st["ring"].z))
 			colours.append(SLOIK_COLOUR)
 	# Loop jobs-2: the Leżak depots at night.
 	if roundup != null and roundup._shown and not round_busy():
@@ -599,8 +630,8 @@ func _release() -> void:
 	hud.hide_status()
 	missions.paused = false
 	missions.close()
-	if not _station.is_empty():
-		(_station["person"] as Node3D).visible = true
+	for st in _stations:
+		(st["person"] as Node3D).visible = true
 	_remove_ghost()
 
 
@@ -876,11 +907,19 @@ func _begin_sloik(n: int) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = n * 3571 + 11
 	var from := Vector2(_station["ring"].x, _station["ring"].z)
-	var pick := _pick_address(_station["edge"], _station["s"], from, 1000.0, 2400.0, rng, func(a: Dictionary) -> bool:
-		return a["d"] == "powisle" and not a["office"])
+	var box: Array = _station["box"]
+	var dest: String = _station["dest"]
+	var pick := _pick_address(_station["edge"], _station["s"], from, _station["lo"], _station["hi"], rng, func(a: Dictionary) -> bool:
+		if a["office"]:
+			return false
+		if box.is_empty():
+			return a["d"] == dest
+		var at: Vector2 = a["at"]
+		return at.x >= box[0] and at.y >= box[1] and at.x <= box[2] and at.y <= box[3])
 	if pick.is_empty():
 		hud.toast("Nikt nie potrzebuje podwózki", "Nobody needs a lift right now")
 		_station["cool"] = true
+		_station = {}
 		return
 	_orders += 1
 	job = Job.SLOIK
@@ -890,12 +929,12 @@ func _begin_sloik(n: int) -> void:
 	_order["customer"] = NEWCOMERS[rng.randi() % NEWCOMERS.size()]
 	_claim()
 	var person: Node3D = _station["person"]
-	dialogue.say(person, _order["customer"], "sloik_start", "", 4.0, SLOIK_COLOUR, 2.9)
+	dialogue.say(person, _order["customer"], "sloik_start", _station["tag"], 4.0, SLOIK_COLOUR, 2.9)
 	hud.show_card("SŁOIKI · NIEDZIELNY WIECZÓR",
-			"%s wraca od mamy z %d słoikami. Cel: %s, Powiśle (%d m). Dziury, hamowanie i szybkie zakręty tłuką słoiki." % [
-			_order["customer"], JARS, _order["name"], roundi(_order["road"])],
+			"%s wraca od mamy z %d słoikami. Cel: %s, %s (%d m). Dziury, hamowanie i szybkie zakręty tłuką słoiki." % [
+			_order["customer"], JARS, _order["name"], _station["dest_pl"], roundi(_order["road"])],
 			PackedStringArray(["GO!", "NOT NOW"]), SLOIK_COLOUR, true, "The słoiki run · Sunday evening",
-			"Back from home with %d of mum's jars, to a rented flat in Powiśle. Bumps, braking and fast corners break jars." % JARS)
+			"Back from home with %d of mum's jars, to a rented flat in %s. Bumps, braking and fast corners break jars." % [JARS, _station["dest_en"]])
 	print("słoiki run %d: %s to %s, %d m by road" % [n, _order["customer"], _order["name"], roundi(_order["road"])])
 
 
@@ -1130,10 +1169,11 @@ func start_kebab(n: int) -> bool:
 	return state == State.ORDER
 
 
-## --sloik: puts the car at the station and starts the run (`broken` jars already gone).
-func start_sloik(broken := 0) -> bool:
-	if _station.is_empty():
+## --sloik: puts the car at station `station` (0 Centralny, 1 Gdański) and starts the run (`broken` jars already gone).
+func start_sloik(broken := 0, station := 0) -> bool:
+	if _stations.is_empty():
 		return false
+	_station = _stations[posmod(station, _stations.size())]
 	start_broken = broken
 	_put_car(_station)
 	_begin_sloik(0)

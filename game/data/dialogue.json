@@ -203,7 +203,24 @@
     ],
     [
       "Niedziela, Dworzec Centralny, dwie torby słoików. Klasyka.",
-      "Sunday, Central Station, two bags of jars. A classic."
+      "Sunday, Central Station, two bags of jars. A classic.",
+      {
+        "only": "centralny"
+      }
+    ],
+    [
+      "Dworzec Gdański, niedziela, kolejka po taksówki do końca świata. Dobrze, że mam kierowcę.",
+      "Gdański station, Sunday, a taxi queue to the end of the world. Good thing I have a driver.",
+      {
+        "only": "gdanski"
+      }
+    ],
+    [
+      "Mama dała bigos na tydzień i ogórki na rok. Do Muranowa jakoś dowiozę.",
+      "Mum gave me a week of bigos and a year of pickles. To Muranów, somehow.",
+      {
+        "only": "gdanski"
+      }
     ]
   ],
   "sloik_bump": [
@@ -736,6 +753,20 @@
       {
         "only": "square"
       }
+    ],
+    [
+      "Kraaa-aaak! (Uciekłem z Łazienek. Stąd lepiej widać ogród.)",
+      "Screeeee-ow! (I escaped from Łazienki. The garden looks better from up here.)",
+      {
+        "only": "peacock"
+      }
+    ],
+    [
+      "Nie jestem gołębiem. Proszę to zapisać w protokole.",
+      "I am not a pigeon. Please put that in the report.",
+      {
+        "only": "peacock"
+      }
     ]
   ],
   "rescue_done": [
@@ -750,6 +781,13 @@
     [
       "Na SOR-ze mówią, że rekord. Pielęgniarka nawet podniosła wzrok.",
       "A&E says it's a record. The nurse even looked up."
+    ],
+    [
+      "Ptak przekazany. Ogon dwa metry, ciśnienie w normie, duma bez zmian.",
+      "Bird handed over. Tail two metres, pressure normal, pride unchanged.",
+      {
+        "only": "peacock"
+      }
     ]
   ],
   "easter_palma": [

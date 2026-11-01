@@ -134,8 +134,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails streetmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh spec drape drive steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails streetmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs sites meshq sfx radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh spec drape drive steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs sites meshq sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -665,6 +665,8 @@ for s in $want; do
 		parodies) check parodies '^check_parodies:' --script res://tools/check_parodies.gd ;;
 		# Loop jobs-2: the courier race, the Leżak round-up, the payphone and E40.
 		jobs2) check jobs2 '^check_side_jobs:' --script res://tools/check_side_jobs.gd ;;
+		# DEMO 6.3: the second słoiki station (Dworzec Gdański) and the Łazienki peacock rescue.
+		rescues) check rescues '^check_rescues:' --script res://tools/check_rescues.gd ;;
 		# Loop couriers: the waiting couriers, the kerb riders, the dodge, the near miss's line.
 		couriers) check couriers '^check_couriers:' --script res://tools/check_couriers.gd ;;
 		# Loop MW-4: everyday life and trends: dogs, riders, runners, Kolka, the Wiralek cycle, the
