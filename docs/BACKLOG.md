@@ -26,6 +26,25 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
   by hand on a Mac session (full definition of done: re-bake, `verify.sh`, shots and bench), then
   close #53. Buildings stay uncompressed (windows come from UVs in metres).
 
+## Rondo de Gaulle'a, Dom Partii and the food-hype lore (F, 2026-11-01)
+
+Spec: `docs/design/gaulle-and-food-hype.md` (F's three photos; parody names in its section 2, the
+real ones added to `brand_denylist.json`). One PR each:
+- [ ] G1 the de Gaulle statue by the roundabout (site `gaulle`: curved steps, cobbled rings, the
+      granite cone, the dark plinth, the marching bronze general, a card). Opus.
+- [ ] G2 Dom Partii as a white stone skin, ROBUR on the roof, the courtyard's paving and fountain,
+      a card; the bars NEWTWICE, ZAMĘT and PIONEK as neons. Opus.
+- [ ] G3 HOTEL PIURE and its rooftop date bar LUŹNO (pink neon, terrace, dates in twos), TIMBER
+      (the dating-app parody) on a billboard, posters, radio and `timber_date` lines.
+- [ ] G4 coffee-chain parodies KOSZTA COFFEE and GREEN CAFFE NERWO, the crêpe place KUKŁA with an
+      all-day queue, `kolejka` and `kawa_sieciowa` lines, a "Kolejki" notebook card.
+- [ ] G5 Cringulo (the food-blogger parody): his van, the "Mlask" job (order at a new place, bring
+      it while warm, his review card, take his MLASK sticker back, the place's queue jumps),
+      CRINGULO PIZZA sold out at Frogs, radio news, fans, an egg; `check_cringulo.gd`. Opus design.
+- [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the
+      skin on the LoD2 model; KUKŁA/KOSZTA/NERWO spots on the real streets.
+- [x] `Tinder` in a run-club line replaced by TIMBER (it would fail the new denylist entry).
+
 ## Trends 2025–26 (F, 2026-11-01)
 
 Spec and sources: `docs/design/trends-2025-26.md`. Built: eight parody trend spots (`Storefronts.TRENDY`).

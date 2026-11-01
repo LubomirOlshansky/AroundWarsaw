@@ -79,6 +79,13 @@ then the Launch gate.
       Left to do: left-handed layout, live text size, subtitles (BACKLOG)
 - [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
+- [ ] Rondo de Gaulle'a and the food hype (F, 2026-11-01; spec docs/design/gaulle-and-food-hype.md):
+  - [x] Design and the parody names, 2026-11-01
+  - [ ] G1 the de Gaulle statue
+  - [ ] G2 Dom Partii: white stone, ROBUR, the courtyard fountain, its bars
+  - [ ] G3 HOTEL PIURE, the LUŹNO date bar and TIMBER jokes
+  - [ ] G4 KOSZTA COFFEE, GREEN CAFFE NERWO, KUKŁA and the queues
+  - [ ] G5 Cringulo: the "Mlask" job, his pizza, fans and news
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
 
