@@ -34,6 +34,7 @@ extends CharacterBody3D
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
 
+const StopAssist := preload("res://scripts/stop_assist.gd")
 const Models := preload("res://scripts/models.gd")
 
 ## Hit something hard enough to notice, at `speed` m/s closing speed (traffic stops
@@ -119,6 +120,18 @@ var braking := false
 ## still on the brake (a held brake at a standstill would reverse it into whatever is
 ## behind) and never counts as pinned. A player holding BRAKE to reverse is not parked.
 var parked := false
+## Quest stop assist (2026-10-31, stop_assist.gd): stopping exactly in a small ring with a finger
+## was the hardest part of every pickup and drop-off. The game sets assist_at to the ring of the
+## quest on now (Vector3.INF: none) and assist_reach to its radius; the car then caps its own
+## speed so it glides in and stops inside the ring, and holds still there for up to
+## StopAssist.HOLD s while the quest's hold runs. Holding BRAKE at a standstill (reverse) lets
+## go at once; either way it does not grab again until the car has left the ring.
+var assist_at := Vector3.INF
+var assist_reach := 0.0
+## True while the assist slows or holds the car this step (the HUD's hint reads it).
+var assisting := false
+var _assist_held := 0.0
+var _assist_spent := false
 ## Point-to-steer: when not zero, the car turns towards this world direction.
 var target_dir := Vector3.ZERO
 ## What the car does this step (loop 2a): the brakes are on (the button, or pointing well
@@ -289,6 +302,46 @@ func _keep_finite() -> void:
 	reset_physics_interpolation()
 
 
+## The quest stop assist's speed cap for this step (INF: free): ahead of the ring, the speed from
+## which StopAssist.DECEL still stops the car at the ring's centre; inside it, 0 for up to
+## StopAssist.HOLD s at a standstill. Only when the car heads into the ring (the centre in front,
+## the line of travel through the ring), so driving past or away is never touched.
+func _assist_cap(speed: float, fwd: Vector3, dt: float) -> float:
+	assisting = false
+	if assist_at == Vector3.INF or parked or in_water or assist_reach <= 0.0:
+		_assist_spent = false
+		_assist_held = 0.0
+		return INF
+	var p := global_position
+	var rel := Vector2(assist_at.x - p.x, assist_at.z - p.z)
+	var d := rel.length()
+	if d > assist_reach + StopAssist.LEAVE:
+		_assist_spent = false
+		_assist_held = 0.0
+	# Reversing out (BRAKE held at a crawl) or a tight spot across a level: the player decides.
+	if _assist_spent or (braking and speed < 0.5) or absf(assist_at.y - p.y) > 3.0:
+		if d <= assist_reach + StopAssist.LEAVE and (braking and speed < 0.5):
+			_assist_spent = true
+		return INF
+	if d < assist_reach - StopAssist.INSIDE:
+		if absf(speed) < 0.3:
+			_assist_held += dt
+			if _assist_held >= StopAssist.HOLD:
+				_assist_spent = true
+				return INF
+		assisting = true
+		return 0.0
+	if speed < 0.5 or d > StopAssist.LOOK:
+		return INF
+	var f2 := Vector2(fwd.x, fwd.z).normalized()
+	var along := rel.dot(f2)
+	if along <= 0.0 or absf(rel.cross(f2)) > assist_reach - StopAssist.INSIDE:
+		return INF
+	var cap := sqrt(2.0 * StopAssist.DECEL * maxf(along - 1.0, 0.0))
+	assisting = speed > cap
+	return cap
+
+
 func _step(dt: float) -> void:
 	_clock += dt
 	if in_water:
@@ -373,6 +426,10 @@ func _step(dt: float) -> void:
 	else:
 		speed = move_toward(speed, 0.0, 5.0 * dt)
 	speed = minf(speed, max_speed)
+	var cap := _assist_cap(speed, fwd, dt)
+	if speed > cap:
+		speed = move_toward(speed, cap, brake_decel * dt)
+		brake_now = true
 	brakes_on = brake_now
 
 	# Wet roads: the tail lets go a little sooner and slides a little longer.

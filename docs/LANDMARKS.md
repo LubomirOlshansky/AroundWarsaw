@@ -38,7 +38,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | 1.4 | Złote Tarasy | DONE 2026-10-31 (L3, site `tarasy`, spec `docs/landmarks/specs/tarasy.md`, 4762 tris): the wave, the terraced podium, Lumen, Skylight and its lit crown, the drum, from the OSM parts | photo check on the Mac: Lumen's ribbons, Skylight's crown, the wave against the orthophoto | yes |
 | 1.5 | Varso, Złota 44, Warsaw Spire, Rondo 1, Q22 | Varso, Złota 44 and Spire own geometry; Rondo 1 and Q22 from the tower table | re-pass of the skyline against photos, crowns first | Varso, Złota 44, Spire, Rondo 1 yes |
 | 1.6 | Zamek Królewski + Plac Zamkowy | skin only (colour) | model: the clock tower, the facade's bays, the roof; the square's paving round the Column | yes |
-| 1.7 | Stadion Narodowy | model (weave, masts, membrane) | re-pass against photos and the orthophoto; the embankment round it | yes |
+| 1.7 | Stadion Narodowy | DONE 2026-11-01 (L3, site `stadium`, spec `docs/landmarks/specs/stadium.md`, 3958 tris; Mac photo check applied 2026-11-01): the skin's staggered red and silver panels, silver more often higher, over a dark glass concourse, a real-size striped pitch in two tiers of red seats with the boxes between, the raised roof rim, a rounded opening, the needle with the folded roof's drum, from the OSM parts | the embankment round it | yes |
 | 1.8 | Most Poniatowskiego | towers model, heights guessed | towers from photos; the deck's arches and balustrades | yes |
 | 1.9 | Warszawa Centralna | DONE 2026-10-31 (L2, site `centralna`, spec `docs/landmarks/specs/centralna.md`, 1370 tris): the glass hall, the wings, the flat slab overhanging to 140 x 86 m, the hyperbolic paraboloid shells under it on the mapped pillars, from the OSM parts | photo check on the Mac: how much of the shells shows outside, the wings' walls; the canopy's AO | yes |
 
@@ -53,7 +53,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | 2.5 | Pałac Prezydencki | DONE 2026-10-31 (model, spec `docs/landmarks/specs/prezydencki.md`, 868 tris): wings round the forecourt, portico, Poniatowski's statue, lions, gate, guardhouses; photo check on the Mac |
 | 2.6 | Kościół Świętego Krzyża, Wszystkich Świętych, św. Aleksandra | twin towers; the towers; the rotunda and dome |
 | 2.6b | Kościół Świętej Trójcy (Lutheran, Plac Małachowskiego) | DONE 2026-10-31 (L3 model, spec `trojca.md`, 1901 tris): drum with oculi, four Tuscan porticoes, copper dome, columned lantern and cross |
-| 2.7 | Sejm, Pałac Staszica, Kopernik, BUW, Hala Mirowska | facades and roofs from the photos (Zachęta DONE 2026-10-31: model, spec `zacheta.md`, from the user's photo) |
+| 2.7 | Sejm, Pałac Staszica, Kopernik, BUW, Hala Mirowska | facades and roofs from the photos (Zachęta DONE 2026-10-31: model, spec `zacheta.md`, from the user's photo; Kopernik DONE 2026-11-01: L2 model, spec `kopernik.md`, log `docs/landmarks/kopernik.md`, from OSM and LoD2: the dark block with pixel windows, the overhang, the roof garden, the black planetarium; photo check on the Mac) |
 | 2.8 | MDM and Plac Konstytucji | the blocks' arcades, reliefs, the corner towers |
 | 2.9 | Towers missing from the table | PZU Tower, JM Tower, Pekao Tower, Warsaw Towers, Atlas, Prosta |
 | 2.10 | Dom bez Kantów, Departament, the Królewska block | colours from photos (guesses today); a name for the block |
@@ -89,7 +89,7 @@ Checks: `check_landmarks.gd` runs on the full map for EVERY site that has a card
 | Złote Tarasy | Śródmieście | landmark model | `_build_tarasy` + `_tarasy_wave`: the whole complex from its OSM parts (spec tarasy.md): the wave, lit rim walls, podium, Lumen, Skylight + crown, drum | yes | check_landmarks, check_mesh_quality | photo check on the Mac |
 | Rotunda (Rotunda PKO) | Marszałkowska x Al. Jerozolimskie | landmark model | `_build_rotunda`: granite plinth, 2 lit glass storeys M_PAVILION (warm), white overhanging roof with oculus, ribs; Rondo photos 2026-10-31: 24-tooth white zigzag crown, red and blue light in the glass under it, lit parody name BANK POLSKA on the south and east faces | yes | check_landmarks | none listed |
 | Varso Tower | Chmielna / Rondo ONZ side | tower (hand-built) | `_build_varso`: M_GLASS slabs 177/205/230 m, dark spines, lit glass crown 193-234 m (M_PAVILION cool), one mast to 310 m, 5 rings, beacon | yes | check_landmarks | Antenna lattice unlit (dusk); Varso I/II OSM extrusions elsewhere |
-| Stadion Narodowy (PGE Narodowy) | Praga, Saska Kępa side | stadium | `_find_stadium` (72 mast pairs give outline) + `_build_stadium`: M_WEAVE skin leaning out, 72 masts, M_MEMBRANE roof ring, red seats, needle on cables; `_beam` | yes | check_landmarks | Embankment bare terrain; AO/lamp maps still on LoD2 footprint |
+| Stadion Narodowy (PGE Narodowy) | Praga, Saska Kępa side | stadium | `_find_stadium` (72 mast pairs give outline) + `_build_stadium` (spec stadium.md): M_WEAVE skin leaning out, red low and white high, 72 masts, raised rim, M_MEMBRANE roof to a rounded opening, pitch along the masts' principal axis in two tiers with boxes, needle with hub and folded-roof drum on cables; `_beam` | yes | check_landmarks, check_mesh_quality | Embankment bare terrain; AO/lamp maps still on LoD2 footprint; photo check on the Mac |
 | Warszawa Centralna | Śródmieście | station | `_find_centralna` + `_build_centralna` + `_centralna_shells`: the whole station from its OSM parts (spec centralna.md): glass hall, wings and roof boxes, vestibules, end pillars, the hypar shell tier and the flat slab over it, turned -19.4 deg | yes | check_landmarks, check_mesh_quality | AO ignores canopy; photo check on the Mac |
 | Most Poniatowskiego (towers) | Vistula, Śródmieście/Praga | bridge (towers) | `_find_towers` (bake seats 4 towers `data["towers"]`) + `_build_towers`: plinth, shaft with cornice, open arcade, pointed roof, finial; deck itself is map_builder decks | yes | check_landmarks (special-cased); no budget | Tower heights are a guess (top 15 m over deck); thin pale lines along deck |
 | Most Świętokrzyski | Vistula, Śródmieście/Praga | bridge | `_find_swieto`/`_build_swieto`: concrete pylon leaning back 7 m (70 m top), 12+9 stays in one plane along the median; deck is map_builder's | yes | check_landmarks (needs 6 rays, not 10) | none listed |
@@ -101,6 +101,7 @@ Checks: `check_landmarks.gd` runs on the full map for EVERY site that has a card
 | Hotel Wiktoria (parody of Sofitel Victoria) | Królewska | hotel (parody) | `_build_wiktoria`: dark-glass podium S_DARK under stone fascia, ribbon slab S_BANDS, plant room | yes (parody only) | check_sites BUDGET 900 | Slab 30 m / podium 8 m / 18 m deep are estimates |
 | Arkadka (Westfield Arkadia) | Rondo Radosława | mall | `_build_arkadia`: outline lifted as block, lit glass storey + pale panels to 21 m, roof-deck, 37 m tower with ARKADKA sign | yes | check_landmarks | Roof car-park race (DEMO 6.4) needs modelling |
 | Forest (office) | north of Rondo Radosława | office | `_find_forest` (box) + `_build_forest`: tallest part = 120 m dark green glass tower with fins, other wings pale glass bands, planted roofs | yes | check_landmarks | none |
+| Centrum Nauki Kopernik + Planetarium | Powiśle, Wybrzeże Kościuszkowskie | science centre | `_find_kopernik` + `_build_kopernik`: dark block to LoD2's 13 m with "pixel" windows (`_kop_windows`, lit warm), the river corner over a glazed ground floor, low glass wings, roof garden (`_kop_roof`), black faceted planetarium (`_kop_planet`) (spec kopernik.md) | yes | check_landmarks, check_mesh_quality | photo check on the Mac: panels, overhang, planetarium height |
 | Flaga na rondzie Radosława | Rondo Radosława | monument/prop | `_build_flag`: steel mast 57.8 m + 16x10 m flag in light wind (not in OSM; circle zone) | yes | check_landmarks | none |
 
 #### 1b. Towers, generic builder `_build_tower` from `TOWERS` (skin, glass hex, roof hex, crest). All have cards. Check: check_landmarks only; no budget.
@@ -140,7 +141,6 @@ All with a card; check_landmarks only (except where noted). Open issue common to
 | Name | Mode | Wall / roof | Note |
 |---|---|---|---|
 | Teatr Wielki | M_MONUMENT | #ddd2b6 / #7fa894 | no portico |
-| Centrum Nauki Kopernik | M_STONE | #5f5a54 / #6f9a4c | green roof |
 | Biblioteka Uniwersytecka (BUW) | M_STONE | #7f9e8a / #6a9a52 | no rooftop garden detail |
 | Zamek Królewski | M_MONUMENT | #c87560 / #6e5a4e | no tower/clock |
 | Barbakan | M_GOTHIC | #ab5a42 / #6b4a3c | |

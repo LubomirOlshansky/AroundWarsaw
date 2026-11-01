@@ -11,8 +11,16 @@ someone writes its lines.
 
 ## 2026-11-01
 - The street where the game starts is busier and richer: the three glass department stores across from the museum (Junior, Sawa and Wars, with lit names JUNIOREK, SAWKA and WARSIK on their roofs) are real buildings now, a tram rolls past the car in the first seconds and another comes down the street, and the pavement by the museum has café tables under parasols, a newspaper kiosk, a flower stall, an advertising column and flower planters.
+- The Copernicus Science Centre by the river is rebuilt: a long dark block with windows scattered like pixels that glow at night, a corner hanging over the glass entrance, a garden of lawns and paths on its roof, and the black, faceted planetarium beside it.
+- Stadion Narodowy's facade now looks like the real one: rows of red and silver panels, more silver towards the top, over a dark glass entrance level, with stronger spikes on the skyline.
+- Stadion Narodowy is rebuilt from the real map data: its woven skin is red below and white above like the flag, a full-size striped pitch sits in two tiers of red seats, and the needle over the pitch carries the folded roof.
 
 ## 2026-10-31
+- New: five shisha lounges in Śródmieście side streets (DYMEK, OPAR, CHMURKA, MGIEŁKA, ZADYM), each with a violet or teal neon sign that glows at night.
+- New: five COFFEECHAIR cafés in Śródmieście (Foksal, Chmielna, Krakowskie Przedmieście, Plac Trzech Krzyży, Hoża), each with a warm neon sign.
+- Picking up and dropping off is much easier: the rings are bigger, you don't need to stop dead, and the car brakes by itself into the ring and waits there while the passenger gets in or out.
+- The game remembers where you left the car: on the next launch the title offers "KONTYNUUJ" to carry on from there, or "NOWA GRA" to start over (it asks first, since a new game wipes your money and finds).
+- The story now stands out from the side jobs: the next main-line goal is a gold star on the minimap (always at its edge when far away) and on the full map, with a goal line under the map's title; side jobs keep their coloured dots and squares, and a small legend says which is which. The rival ladder asks for less respect, so the final race comes within about an hour.
 - Warszawa Centralna is rebuilt from the real map data: the glass hall under its wide, flat overhanging roof, the roof's saddle-shaped shells on rows of pillars, the lower wings at both ends, and at night the hall glowing white under a line of lamps.
 - The website's first city picture is new: Plac Defilad from above at golden hour, with the Palace, the new Museum of Modern Art and the building site beside it.
 - Beside the museum, the plot for the new TR Warszawa theatre is now a messy building site: a fence with black tarp, dug-up ground and old foundations, spoil heaps, cabins, a digger and a tower crane with a red light at night.

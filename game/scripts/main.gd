@@ -16,7 +16,8 @@ extends Node
 ## --kebab=N starts kebab order N, --sloik[=K] the słoiki run (K jars already
 ## broken), --heat=X the kebab's starting heat, --host-in=S the radio host's first
 ## line after S seconds, --barriers=YYYYMMDD the day the roadworks are placed for,
-## --reset-save wipes the wallet, --nosave neither reads nor writes it, --free
+## --reset-save wipes the wallet, --nosave neither reads nor writes it (save and resume:
+## --title-choice=continue|new|ask, --resume=x,z[,heading]), --free
 ## starts in free roam (no rescue call card). v0.8: --tap=X,Y taps that screen pixel
 ## at frame 60 (a landmark's info card). v0.9: --weather=clear|rain, --time=live with
 ## --clock=HH:MM and --date=YYYYMMDD (Warsaw time), --perf shows the performance
@@ -109,6 +110,8 @@ const OldTram := preload("res://scripts/old_tram.gd")
 const Garage := preload("res://scripts/garage.gd")
 ## Loop 3h slice 4: the guided first 10 minutes and the end card.
 const First10 := preload("res://scripts/first10.gd")
+const StopAssist := preload("res://scripts/stop_assist.gd")
+const MainLine := preload("res://scripts/main_line.gd")
 const MAP_PATH := "res://map/centrum.json"
 
 ## Visual styles to compare on the phone. lines = vertical resolution of the pixel image.
@@ -674,6 +677,7 @@ func _ready() -> void:
 			push_warning("--station=%s: no such station in radio.json" % station_flag)
 	radio.tune(start_index, true)
 	print("save: %s (%s)" % [wallet.summary(), ProjectSettings.globalize_path(Wallet.PATH) if not no_save else "not saved"])
+	_resume_start()  # save and resume: the car where the last session left it
 	await get_tree().process_frame
 	await get_tree().process_frame
 	var t0 := Time.get_ticks_msec()
@@ -694,6 +698,7 @@ func _ready() -> void:
 		get_tree().quit(1)
 		return
 	_build_world()
+	_put_at_resume()
 	print("city built in %d ms, %s" % [Time.get_ticks_msec() - t0, _scene_stats()])
 	if loading != null:
 		loading.queue_free()
@@ -701,6 +706,11 @@ func _ready() -> void:
 		hud.visible = false
 		dialogue.host_on = false
 		title.dismissed.connect(_on_title_dismissed)
+		title.new_game.connect(_on_new_game)
+		title.can_resume = (wallet.has_progress() and wallet.persistent and not wallet.newer) or title_choice in ["ask", "new"] or not resume_flag.is_empty()
+		title.resume_line = "%s · respekt %d" % [Wallet.money(wallet.zl), wallet.respect]
+		title.auto_go = _new_game_pending
+		_new_game_pending = false
 		# The loading fix: "tap to drive" once the sectors round the start are in (_title_frame).
 		_title_wait_t = Time.get_ticks_msec()
 	else:
@@ -745,6 +755,95 @@ func _title_frame() -> void:
 				"" if streamer == null or streamer.idle() else " (not all: the wait's limit)"])
 		_title_wait_t = -1
 		title.set_ready()
+		if title != null and title_choice != "":
+			# Save and resume: --title-choice= picks for the player (continue, new, or ask: the question up).
+			print("title: --title-choice=%s" % title_choice)
+			match title_choice:
+				"new":
+					title.choose("new")
+					title.choose("yes")
+				"ask":
+					title.choose("new")
+				_:
+					title.choose("continue")
+
+
+## Save and resume (2026-10-31): the car goes back to where the last session left it on a normal
+## launch (the title screen up, no flag that places it); "NOWA GRA" on the title wipes the save
+## (wallet.gd `start_over`, a copy kept as save.prev.cfg) and starts the scene again, the title
+## going by itself once the start is in (`_new_game_pending` survives the reload: a static).
+## `--title-choice=continue|new` picks on the title once it is ready (the shots and checks).
+## The spot is kept every REMEMBER_EVERY seconds of driving (moved 5 m or more), and when the app
+## goes to the background or the window closes; never by test runs or --nosave.
+const REMEMBER_EVERY := 5.0
+static var _new_game_pending := false
+var title_choice := ""
+var resume_flag: Array = []
+var _resume_yaw := INF
+var _remember_on := false
+var _remember_t := 0.0
+
+
+func _resume_start() -> void:
+	_remember_on = show_title and wallet.persistent and not wallet.newer
+	if not resume_flag.is_empty():
+		wallet.session = {"x": resume_flag[0].x, "z": resume_flag[0].z, "yaw": resume_flag[1], "tunnel": 0, "at": 0}
+	if not show_title or start_at != Vector3.INF:
+		return
+	var spot := wallet.resume_spot()
+	if spot.is_empty():
+		return
+	start_at = spot[0]
+	start_in_tunnel = spot[2]
+	_resume_yaw = spot[1]
+	print("resume: the last session's spot (%.0f, %.0f)%s" % [start_at.x, start_at.z, " in a tunnel" if start_in_tunnel else ""])
+
+
+## Once the city is built: the kept spot onto the nearest lane on its level (facing the kept way
+## where the lane allows); a spot with no lane near, or in the water, goes back to the start.
+func _put_at_resume() -> void:
+	if _resume_yaw == INF or car == null:
+		return
+	var lane := _lane_spot(car.global_position, _resume_yaw)
+	if lane.is_empty() or Vector2((lane[0] as Vector3).x, (lane[0] as Vector3).z).distance_to(Vector2(start_at.x, start_at.z)) > 60.0:
+		print("resume: no lane near the kept spot, back to the start")
+		car.global_transform = _spawn
+	else:
+		car.global_position = lane[0]
+		car.rotation.y = lane[1]
+	car.vel = Vector3.ZERO
+	car.forward_speed = 0.0
+	car.reset_physics_interpolation()
+	cam_focus = car.global_position
+
+
+## Every REMEMBER_EVERY s (and on the way to the background): the car's spot into the save, when
+## it is on the ground (not flying, not in the water, not mid-air off a kerb).
+func _remember_frame(dt: float, now := false) -> void:
+	if not _remember_on or not _started or title != null or _phone_bench or car == null or map == null:
+		return
+	_remember_t += dt
+	if not now and _remember_t < REMEMBER_EVERY:
+		return
+	_remember_t = 0.0
+	var p := car.global_position
+	if map.in_water(p.x, p.z, p.y) or absf(p.y - map.drive_height(p.x, p.z, p.y)) > 1.5:
+		return
+	wallet.remember_spot(p, car.rotation.y, map.in_tunnel(p.x, p.z, p.y), int(Time.get_unix_time_from_system()), 1.0 if now else 5.0)
+
+
+func _notification(what: int) -> void:
+	if what in [NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_WM_CLOSE_REQUEST]:
+		_remember_frame(0.0, true)
+
+
+func _on_new_game() -> void:
+	if not wallet.start_over():
+		return
+	_remember_on = false
+	_new_game_pending = true
+	get_tree().paused = false
+	get_tree().call_deferred("reload_current_scene")
 
 
 func _on_title_dismissed() -> void:
@@ -3120,6 +3219,16 @@ func _parse_args() -> void:
 			barrier_day = int(arg.trim_prefix("--barriers="))
 		elif arg == "--reset-save":
 			reset_save = true
+		elif arg.begins_with("--title-choice="):
+			title_choice = arg.trim_prefix("--title-choice=")  # save and resume: continue|new
+			force_title = true
+		elif arg.begins_with("--resume="):
+			# Save and resume: --resume=x,z[,heading°] a kept spot in memory (with --nosave: the test of
+			# the resume path without a real save).
+			var r := arg.trim_prefix("--resume=").split(",")
+			if r.size() >= 2:
+				resume_flag = [Vector3(float(r[0]), 0.0, float(r[1])), -deg_to_rad(float(r[2])) if r.size() > 2 else 0.0]
+			force_title = true
 		elif arg == "--nosave":
 			no_save = true
 		elif arg == "--free":
@@ -3539,6 +3648,8 @@ func _open_full_map() -> void:
 			if notes.is_found(str(place["id"])):
 				found.append(place["at"])
 	hud.set_night(tod.lights_on)  # its palette (the minimap's), even before the first frame
+	_main_t = 0.0
+	_main_line_tick(0.0)  # the main line's step as it is now (the map can open before the first look)
 	print("full map: open (paused), %d places found on it" % found.size())
 	_blip_sound()
 	get_tree().paused = true
@@ -4273,6 +4384,7 @@ func _process(dt: float) -> void:
 	_update_camera(dt)
 	_stream_frame(dt)  # loop 3c: the sectors round the camera
 	_title_frame()  # the loading fix: the title's prompt once the start is in
+	_remember_frame(dt)  # save and resume: the car's spot for the next launch
 	_look_frame()  # the loading fix: a look at a new target once its sectors are in
 	if cam_log:
 		_cam_log_frame(dt)
@@ -4333,6 +4445,8 @@ func _process(dt: float) -> void:
 		hud.set_speed(roundi(absf(car.forward_speed) * 3.6))
 		missions.tick(dt, pos, car.vel.length(), false)
 	_show_target()
+	_stop_assist()
+	_main_line_tick(dt)
 	var heading: float = heli.rotation.y if flying else car.rotation.y
 	hud.update_minimap(Vector2(pos.x, pos.z), heading, deg_to_rad(cam_yaw))
 	# The see-through hole: aimed at the cabin and smaller for the helicopter, which is
@@ -4722,6 +4836,73 @@ func _vehicle_position() -> Vector3:
 	return heli.global_position if flying else car.global_position
 
 
+## The quest stop assist (stop_assist.gd): hands the car the ring of the errand on now, in the
+## arrow's order (a race has none), so it brakes itself into it.
+func _stop_assist() -> void:
+	var at := Vector3.INF
+	if flying or (rivals != null and rivals.has_target()):
+		pass
+	elif trend_job != null and trend_job.has_target():
+		at = trend_job.stop_spot()
+	elif rides != null and rides.has_target():
+		at = rides.stop_spot()
+	elif jobs != null and jobs.has_target():
+		at = jobs.stop_spot()
+	elif missions.has_target():
+		at = missions.stop_spot()
+	car.assist_at = at
+	car.assist_reach = StopAssist.RING
+
+
+## The main line (main_line.gd): the active target is the main line's (_put_target), and its step
+## (looked at every MainLine.STEP_EVERY s: the marker, the full map's goal line).
+var _main_target := Vector2.INF
+var _main_t := 0.0
+var main_step: Dictionary = {}
+
+
+func _guide_on() -> bool:
+	return first10 != null and first10.guide_on()
+
+
+## The active target on the minimap: a side quest's dot in its colour, or (`main`) the main line's
+## star (hud.gd `set_main_line`, from `_main_line_tick`).
+func _put_target(xz: Vector2, colour: Color, main: bool) -> void:
+	hud.set_minimap_target(Vector2.INF if main else xz, colour)
+	_main_target = xz if main else Vector2.INF
+
+
+## The main line's step now (main_line.gd `step`), at most every MainLine.STEP_EVERY s.
+func _main_line_tick(dt: float) -> void:
+	_main_t -= dt
+	if _main_t > 0.0 or hud == null:
+		return
+	_main_t = MainLine.STEP_EVERY
+	var f := {"guide": _guide_on(), "target": _main_target, "target_main": _main_target != Vector2.INF}
+	if first10 != null and first10.hint_shown():
+		f["guide_at"] = Vector2(first10.hint_at.x, first10.hint_at.z)
+		f["guide_word"] = first10.hint_word
+	if rivals != null and rivals.ladder != null and wallet != null:
+		var nxt: int = rivals.ladder.next_rung()
+		f["next"] = nxt
+		f["open"] = rivals.ladder.is_open(nxt)
+		f["respect"] = int(wallet.respect)
+		f["need"] = Ladder.threshold(mini(nxt, Ladder.FINAL))
+		if nxt < Ladder.FINAL:
+			f["rival"] = str(Ladder.RUNGS[nxt]["rival"])
+			f["rival_at"] = rivals.rival_at(f["rival"])
+		f["night"] = rivals.night()
+		f["final_at"] = rivals.start_marker()
+		f["jobs"] = wallet.jobs_done()
+		f["end_jobs"] = First10.END_JOBS
+		f["end_seen"] = wallet.intro.has("end_seen")
+	else:
+		f["next"] = Ladder.FINAL + 1
+		f["end_seen"] = true
+	main_step = MainLine.step(f)
+	hud.set_main_line(main_step["at"], str(main_step["pl"]), str(main_step["en"]))
+
+
 ## The arrow and minimap dot for the mission target.
 func _show_target() -> void:
 	if rivals != null and rivals.has_target():
@@ -4730,7 +4911,7 @@ func _show_target() -> void:
 		var m := roundi(Vector2(f.x - p.x, f.z - p.z).length())
 		var on := cam.unproject_position(f + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on, "%d m" % m, rivals.target_colour(), m > 12)
-		hud.set_minimap_target(Vector2(f.x, f.z), rivals.target_colour())
+		_put_target(Vector2(f.x, f.z), rivals.target_colour(), _guide_on() or rivals.main_race())
 		_new_target("race", f)
 		return
 	# Loop MW-4: the "Na czasie" job's queue, then its door.
@@ -4740,7 +4921,7 @@ func _show_target() -> void:
 		var mt := roundi(Vector2(tp.x - at_t.x, tp.z - at_t.z).length())
 		var on_t := cam.unproject_position(tp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on_t, "%d m" % mt, trend_job.target_colour(), mt > 12)
-		hud.set_minimap_target(Vector2(tp.x, tp.z), trend_job.target_colour())
+		_put_target(Vector2(tp.x, tp.z), trend_job.target_colour(), _guide_on())
 		_new_target("job", tp)
 		return
 	# Loop 2d-1: a Podwózka ride's pin, passenger or door.
@@ -4750,7 +4931,7 @@ func _show_target() -> void:
 		var mr := roundi(Vector2(rp.x - at_r.x, rp.z - at_r.z).length())
 		var on_r := cam.unproject_position(rp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on_r, "%d m" % mr, rides.target_colour(), mr > 12)
-		hud.set_minimap_target(Vector2(rp.x, rp.z), rides.target_colour())
+		_put_target(Vector2(rp.x, rp.z), rides.target_colour(), _guide_on())
 		_new_target("job", rp)
 		return
 	if jobs != null and jobs.has_target():
@@ -4759,7 +4940,7 @@ func _show_target() -> void:
 		var mj := roundi(Vector2(j.x - at_j.x, j.z - at_j.z).length())
 		var on_j := cam.unproject_position(j + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on_j, "%d m" % mj, jobs.target_colour(), mj > 12)
-		hud.set_minimap_target(Vector2(j.x, j.z), jobs.target_colour())
+		_put_target(Vector2(j.x, j.z), jobs.target_colour(), _guide_on())
 		_new_target("job", j)
 		return
 	# Loop 3h slice 4: the guide's arrow (the first stand, the boulevard tape, Powiśle, the garage).
@@ -4769,7 +4950,7 @@ func _show_target() -> void:
 		var mf := roundi(Vector2(fp.x - at_f.x, fp.z - at_f.z).length())
 		var on_f := cam.unproject_position(fp + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 		hud.set_target(on_f, "%s %d m" % [first10.hint_word, mf], First10.HINT_COLOUR, mf > 12)
-		hud.set_minimap_target(Vector2(fp.x, fp.z), First10.HINT_COLOUR)
+		_put_target(Vector2(fp.x, fp.z), First10.HINT_COLOUR, true)
 		return
 	# Loop MW-6: Spacer's soft hint, the edge arrow to the nearest notebook place not found yet.
 	if not missions.has_target() and spacer != null and spacer.hint_shown():
@@ -4778,13 +4959,13 @@ func _show_target() -> void:
 		var mh := roundi(Vector2(hp.x - at_h.x, hp.y - at_h.z).length())
 		var on_h := cam.unproject_position(Vector3(hp.x, map.ground_height(hp.x, hp.y) + 3.5, hp.y)) * float(view.stretch_shrink)
 		hud.set_target(on_h, "? %d m" % mh, Spacer.HINT_COLOUR, mh > 25)
-		hud.set_minimap_target(hp, Spacer.HINT_COLOUR)
+		_put_target(hp, Spacer.HINT_COLOUR, false)
 		if notes != null and notes.is_found(spacer.hint_id):
 			spacer.dismiss()
 		return
 	if not missions.has_target():
 		hud.set_target(Vector2.ZERO, "", Color.WHITE, false)
-		hud.set_minimap_target(Vector2.INF, Color.WHITE)
+		_put_target(Vector2.INF, Color.WHITE, false)
 		_last_target_source = ""
 		return
 	var t: Vector3 = missions.target_position()
@@ -4794,7 +4975,7 @@ func _show_target() -> void:
 	var at := cam.unproject_position(t + Vector3(0, 3.5, 0)) * float(view.stretch_shrink)
 	# Up close the ring says enough, and the pointer would sit on the vehicle's own marker.
 	hud.set_target(at, "%d m" % metres, colour, metres > 12)
-	hud.set_minimap_target(Vector2(t.x, t.z), colour)
+	_put_target(Vector2(t.x, t.z), colour, _guide_on())
 	_new_target("rescue", t)
 
 

@@ -15,9 +15,10 @@ signal accepted
 const Beacon := preload("res://scripts/beacon.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 
-const HOLD_TIME := 2.0
-const CAR_REACH := 6.0       # stop this close to the person...
-const CAR_STOPPED := 1.0     # ...going no faster than this (m/s)
+const StopAssist := preload("res://scripts/stop_assist.gd")
+const HOLD_TIME := 1.5
+const CAR_REACH := StopAssist.RING          # stop this close to the person...
+const CAR_STOPPED := StopAssist.STOP_SPEED  # ...going no faster than this (m/s)
 const HELI_REACH := 8.0      # hover or land this close...
 const HELI_LOW := 4.0        # ...with the skids no higher above the person than this
 const MIN_ROOF := 20.0       # a roof rescue is at least this high above the street
@@ -300,6 +301,14 @@ func target_position() -> Vector3:
 	return _mission["pos"] if state == State.PICKUP else _mission["hospital"]["pos"]
 
 
+## Where the car should stop now (stop_assist.gd; Vector3.INF: nowhere, e.g. a helicopter-only
+## pickup).
+func stop_spot() -> Vector3:
+	if not has_target() or (state == State.PICKUP and _mission["heli"]):
+		return Vector3.INF
+	return target_position()
+
+
 func target_colour() -> Color:
 	return PICKUP_COLOUR if state == State.PICKUP else DROPOFF_COLOUR
 
@@ -371,7 +380,7 @@ func _picked_up() -> void:
 	state = State.DROPOFF
 	_pickup.visible = false
 	var h: Dictionary = _mission["hospital"]
-	_dropoff.place(h["pos"], CAR_REACH + 2.0)
+	_dropoff.place(h["pos"], CAR_REACH)
 	hud.toast("Zabrani! Teraz: " + h["name"], "Picked up! Now to " + h["name"])
 	Input.vibrate_handheld(60, 0.6)
 	if dialogue != null and vehicle_anchor.is_valid():
