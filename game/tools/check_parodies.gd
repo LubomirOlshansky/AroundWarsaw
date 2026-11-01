@@ -38,7 +38,7 @@ const OLD_LONG := ["Zamówienie dla pana Krzysztofa z Powiśla. W uwagach: „du
 		"Powiśle, kamienica bez windy. Klientka prosi: „tylko nie trąbić, sąsiedzi”."]
 ## The dialogue groups the parodies speak or show.
 const GROUPS := ["rechotka", "easter_rechotka", "pedzik", "lezak", "easter_lezak", "kebab_vendor", "kebab_order", "signs",
-		"column_posters"]
+		"column_posters", "cringulo_review", "cringulo_owner"]
 
 
 ## A stand-in for dialogue.gd: the real lines, records each one asked for.
@@ -259,9 +259,11 @@ func _check_picks(sf: Storefronts, data: Dictionary, book: Notebook, graph: Lane
 		seen[v["id"]] = true
 		if (Storefronts.CAFES.has(v["id"]) or Storefronts.LOUNGES.has(v["id"]) or Storefronts.TRENDY.has(v["id"])):
 			continue
-		var name := str(at[v["id"]]["name_pl"]).to_upper()
-		var joined := " ".join(v["lines"] as Array)
-		_expect(joined == name or name.begins_with(joined + " "), "venue %s: the sign says \"%s\", places.json \"%s\"" % [v["id"], joined, name])
+		# The food-hype venues (Storefronts.HYPE) aren't notebook places: no name to match, the wall still.
+		if not Storefronts.HYPE.has(v["id"]):
+			var name := str(at[v["id"]]["name_pl"]).to_upper()
+			var joined := " ".join(v["lines"] as Array)
+			_expect(joined == name or name.begins_with(joined + " "), "venue %s: the sign says \"%s\", places.json \"%s\"" % [v["id"], joined, name])
 		var ok := false
 		var road: Vector2 = v["road"]
 		for turn: float in [0.0, 0.3, -0.3, 0.6, -0.6, 1.0, -1.0, 1.57, -1.57, 2.2, -2.2, PI]:
@@ -273,7 +275,8 @@ func _check_picks(sf: Storefronts, data: Dictionary, book: Notebook, graph: Lane
 		if (Storefronts.CAFES.has(id) or Storefronts.LOUNGES.has(id) or Storefronts.TRENDY.has(id)):
 			continue
 		_expect(seen.has(id), "venue %s: not placed (no address, poi or road)" % id)
-	_expect(sf.venues.size() == 18 + Storefronts.CAFES.size() + Storefronts.LOUNGES.size() + Storefronts.TRENDY.size(), "venues: %d signs (want %d: 17 venues, Glon twice, %d Coffeechairs, %d shisha lounges, %d trend spots)" % [sf.venues.size(), 18 + Storefronts.CAFES.size() + Storefronts.LOUNGES.size() + Storefronts.TRENDY.size(), Storefronts.CAFES.size(), Storefronts.LOUNGES.size(), Storefronts.TRENDY.size()])
+	var want_signs := 18 + Storefronts.CAFES.size() + Storefronts.LOUNGES.size() + Storefronts.TRENDY.size() + Storefronts.HYPE.size()
+	_expect(sf.venues.size() == want_signs, "venues: %d signs (want %d: 17 venues, Glon twice, %d Coffeechairs, %d shisha lounges, %d trend spots, %d food-hype spots)" % [sf.venues.size(), want_signs, Storefronts.CAFES.size(), Storefronts.LOUNGES.size(), Storefronts.TRENDY.size(), Storefronts.HYPE.size()])
 	# Leżaks and metro entrances: off the lanes; one standing.
 	var standing := 0
 	for s in sf.scooters:

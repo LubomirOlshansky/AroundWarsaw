@@ -67,6 +67,10 @@
 # 09-19, Live Jun-Sep) and one run an hour, the follow count and its reset, the look's draw-call
 # budget (2 car meshes, no node added), a run on the real tracks finding E39 once; centrum.json only
 # (CI too).
+# The railway (docs/design/railway.md T1): `trains` runs game/tools/check_trains.gd: the track graph's
+# ways in and out (the map's edges, both tunnel mouths), the cars' meshes (one surface, 400 tris), 40
+# simulated minutes: trains come and go, stop at Ochota, Powiśle and Stadion (the long-distance kind
+# never), never two on one track piece; centrum.json only (CI too).
 # Packs (docs/design/packs.md): `packs` runs game/tools/check_packs.gd: the clubs' and raves' hours on
 # synthetic clocks, the formation, the out-and-back loops on a grid and on the real footways and
 # cycle paths, the meshes' budgets, the lines (no real brand), a node drawing the packs only near
@@ -138,8 +142,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails streetmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh spec drape drive steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails streetmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh spec drape drive steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice gamepad radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -676,6 +680,8 @@ for s in $want; do
 		life) check life '^check_city_life:' --script res://tools/check_city_life.gd ;;
 		buses) check buses '^check_buses:' --script res://tools/check_buses.gd ;;
 		oldtram) check oldtram '^check_old_tram:' --script res://tools/check_old_tram.gd ;;
+		# The railway (docs/design/railway.md T1): the trains on the rail tracks.
+		trains) check trains '^check_trains:' --script res://tools/check_trains.gd ;;
 		# Packs: running clubs, cycling packs, coffee raves, the big guys with tiny dogs.
 		packs) check packs '^check_packs:' --script res://tools/check_packs.gd ;;
 		garage) check garage '^check_garage:' --script res://tools/check_garage.gd ;;
@@ -702,6 +708,8 @@ for s in $want; do
 		sfx) check sfx '^sfx:' --script res://tools/check_sfx.gd ;;
 		# v1.0 juice: crash sparks and dust (crash_fx.gd), the buzzes' floor and switch (haptics.gd).
 		juice) check juice '^check_juice:' --script res://tools/check_juice.gd ;;
+		# The gamepad loop: Xbox / PlayStation / MFi pads (gamepad.gd) on synthetic joypad events.
+		gamepad) check gamepad '^check_gamepad:' --script res://tools/check_gamepad.gd ;;
 		radio) check radio '^radio:' --script res://tools/check_radio.gd ;;
 		sounds) check sounds '^city_sounds:' --script res://tools/check_city_sounds.gd ;;
 		# Loop 10a: where a car can get into the water (whole map), and the game's tow decisions.

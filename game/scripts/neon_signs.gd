@@ -29,7 +29,15 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# corner turning into a two-storey Frogs, a shoe chain on Zara's floor.
 		"WYPRZEDAŻ", "DO WYNAJĘCIA", "DO", "WYNAJĘCIA", "FROGS XXL", "FROGS", "XXL", "KAPCIE", "SCENA RELAX",
 		# R5: the Cepelia pavilion's book and vinyl store (a parody) and Zodiak.
-		"EMPIRYK", "ZODIAK"]
+		"EMPIRYK", "ZODIAK",
+		# Dom Partii's roof sign (docs/design/gaulle-and-food-hype.md G2): the oak in Latin again.
+		"ROBUR",
+		# HOTEL PIURE's rooftop date bar (G3).
+		"LUŹNO",
+		# The railway (docs/design/railway.md, S2): the round pavilion's letters at Powiśle.
+		"WARSZAWA", "POWIŚLE",
+		# S3a: Warszawa Stadion's roof letters.
+		"STADION"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

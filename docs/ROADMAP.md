@@ -54,8 +54,8 @@ then the Launch gate.
 ### Left: map and roads
 - [ ] A full `tools/verify.sh` and `--ios` on the Mac on today's main, both city paths
 - [ ] Map checks in GitHub CI (the derived map pack as a release asset)
-- [ ] check_streaming's look pass green on the Mac: the fix (a look pre-loads what each of its
-      views shows) built 2026-11-01, PR #183; waits for the Mac run
+- [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views
+      shows), 2026-11-01, PR #183
 - [ ] Map review C: the streets of the 3d-1 box and map north against the orthophoto
 - [ ] Loop 3e leftovers: Łazienkowski's Praga end (R8), the rail cutting, Rozdroże's tubes,
       Nowy Zjazd's wall, deck 4; Most Łazienkowski cut by the east edge (decide)
@@ -66,6 +66,18 @@ then the Launch gate.
       Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
+
+- [ ] The railway (F, 2026-11-01; plan docs/design/railway.md):
+  - [x] R0 design: stations, the cross-city line, trains, 2026-11-01
+  - [x] S1 Warszawa Ochota: the hyperbolic paraboloid over the glass hall on its bridge, 2026-11-01
+  - [x] S2 Warszawa Powiśle: the kite pavilion, the round saucer pavilion, the X canopies, 2026-11-01
+  - [ ] L1 track that reads as railway (sleepers, rails, ballast shoulders)
+  - [x] L2 catenary masts and wires, 2026-11-01
+  - [x] L3 the tunnel's portals at Ochota and Powiśle, 2026-11-01
+  - [x] T1 trains through the city (suburban, city line, long-distance), `check_trains`, 2026-11-01
+  - [x] S3a Warszawa Stadion: the white hall with its sail, the red-and-white mosaic canopies, 2026-11-01
+  - [ ] S3b-e the other stations: Śródmieście's entrances, Wschodnia, Gdańska, Ochota WKD
+  - [ ] L4 Most Średnicowy's look (after a Mac photo check)
 
 ### Left: content and feel
 - [ ] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
@@ -81,6 +93,19 @@ then the Launch gate.
       Left to do: left-handed layout, live text size, subtitles (BACKLOG)
 - [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
+- [ ] Rondo de Gaulle'a and the food hype (F, 2026-11-01; spec docs/design/gaulle-and-food-hype.md):
+  - [x] Design and the parody names, 2026-11-01
+  - [x] G1 the de Gaulle statue, 2026-11-01
+  - [x] G2 Dom Partii: white stone, ROBUR, the courtyard fountain, 2026-11-01
+  - [x] G2 part 2: Dom Partii's bars as neons, 2026-11-01
+  - [x] G3 HOTEL PIURE, the LUŹNO date bar and TIMBER jokes, 2026-11-01
+  - [x] G4 KOSZTA COFFEE, GREEN CAFFE NERWO, KUKŁA and the queues, 2026-11-01
+  - [x] G5 Cringulo: the "Mlask" job, his pizza, fans and news, 2026-11-01
+  - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, "Kolejki" card, van fans and egg
+- [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
+      pads for driving, the helicopter, the mission card, Settings, the full map and the title;
+      touch unchanged. Left: real pads on the phone (beta), the bars / notebook / garage focus,
+      the full map's stick pan (docs/store/mac-and-gamepad.md)
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
 
@@ -96,11 +121,23 @@ then the Launch gate.
 - [ ] Debug flags stripped from the release build; credits and licences screen checked
 - [ ] Store screenshots re-shot after the opening lands; app icon; a short trailer
 - [ ] Deploy the support page; first TestFlight upload from the Mac; Play closed test
+- [ ] Gamepad testing in the beta: an Xbox, PlayStation or MFi pad on the iPhone (beta-testing.md)
 - [ ] Outside players finish the first ten minutes without help (the Demo gate)
 
 ### v1.0 Launch (after TestFlight)
 - [ ] Device pass iPhone 13 to current (60 fps, memory under 1.5 GB, load under 4 s), App Store
       assets and metadata, review notes
+
+### After v1.0: the Mac App Store version (F, 2026-11-01; docs/store/mac-and-gamepad.md)
+- [ ] Decide: the iPhone build on Apple Silicon Macs for the beta (an App Store Connect switch)
+- [ ] macOS export preset and `tools/export_macos.sh` (same bundle ID, universal binary)
+- [ ] Sandbox entitlements and signing (Apple Distribution, Mac Installer Distribution)
+- [ ] Keyboard and mouse controls (keys card, click-to-point, no touch pedals on a Mac)
+- [ ] Window and resolution settings (resizable, full screen, Retina, the HUD from the window)
+- [ ] Mac store screenshots (2880 × 1800) and the Mac's bench (Apple Silicon and Intel)
+- [ ] Beta: macOS TestFlight builds; the macOS export and signing; universal purchase on the
+      existing record (or a separate Mac record); the .pkg upload through Transporter or Xcode
+      (notarization only for outside the store); gamepad testing on the Mac
 
 ## Where we are (v0.4)
 

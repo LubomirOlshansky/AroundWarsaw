@@ -3,6 +3,46 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## The railway: stations, the cross-city line, trains (F, 2026-11-01)
+
+Plan: docs/design/railway.md. One PR per item, in this order:
+- ~~S1 Warszawa Ochota and S2 Warszawa Powiśle as landmarks~~ Done 2026-11-01 (sites `ochota`,
+  `powisle`, specs in docs/landmarks/specs/). Left: Mac photo checks (Ochota's stripes, supports and
+  stairs; Powiśle's arches, the saucer's profile, the canopies' length, the neon's letters); the
+  stairs from the round pavilion up to the platforms; a WARSZAWA OCHOTA sign if the real one has it.
+- L1 track that reads as railway: sleepers, raised rails, ballast shoulders (no new draw calls).
+- ~~L2 catenary, L3 the tunnel's mouths~~ Done 2026-11-01 (`map_builder` `_build_catenary`,
+  `_build_rail_portals`, in the walls surface: +0 draw calls). Left: portal frames over the station
+  fans; the museum sidings by Towarowa get wires too (real ones mostly have none); Mac check that
+  trains at the west mouth pass under the Towarowa junction (the cloud's terrain shows them at grade).
+- ~~T1 trains~~ Done 2026-11-01 (`trains.gd`, `check_trains.gd` in verify, `--train=X,Z`). Left:
+  the parody names on the cars' sides (no text on vehicle meshes yet); a horn and the rumble on
+  the bridge (sfx); headlight pools at night; a timetable (today: a new train every 8-30 s after one leaves, 5 at most).
+- ~~S3a Warszawa Stadion~~ Done 2026-11-01 (site `stadion_pkp`, spec `stadion_pkp.md`, 1294 tris).
+  Left: Mac photo check (the sail's shape and height, the glazing, the canopies' length, the
+  mosaic's pattern).
+- S3b-e the other stations: Śródmieście's entrances, Wschodnia and Gdańska at the edges, Ochota WKD.
+- L4 Most Średnicowy's look, after a Mac photo check.
+- Photo checks on the Mac for every station model (built from published descriptions).
+
+## The Mac App Store version and gamepads (F, 2026-11-01)
+
+Lane file: [docs/store/mac-and-gamepad.md](store/mac-and-gamepad.md). F wants the game ready for
+the Mac and for gamepads, and the Mac in the beta plan. Built: gamepad support (`gamepad.gd`,
+`check_gamepad.gd`): Xbox / PlayStation / MFi pads drive, fly, press the mission card, open
+Settings (focus ring, LB / RB tabs) and the full map; the title takes A / Y / B; the touch pedals
+hide while the pad is used and come back on a touch. Left:
+- Gamepad on real pads (iPhone and Mac): the button indices are checked on synthetic events only.
+- Gamepad gaps: Settings' volume bars, the notebook page and the garage card take no pad focus;
+  the full map has no stick pan / teleport; no per-family glyphs; no rumble.
+- Mac App Store version (post-v1.0 by default, QUESTIONS): macOS export preset, sandbox
+  entitlements and signing, keyboard and mouse controls (a keys card, click-to-point, `--no-touch`
+  by default), window and resolution settings, Mac store screenshots (2880 × 1800), the Mac's
+  bench (Apple Silicon and Intel).
+- Beta plan for the Mac: macOS TestFlight builds, the export and signing, a universal purchase on
+  the existing record (recommended) or a separate Mac record, the .pkg upload through Transporter
+  or Xcode (notarization only for outside the store); gamepad testing in every round.
+
 ## Accessibility follow-ups (2026-11-01)
 
 Built: Settings → DOSTĘP (`game/scripts/access.gd`, kept in `[access]` of settings.cfg): larger HUD
@@ -25,6 +65,36 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
   merged; the diff is 3 small hunks and no longer applies cleanly to `map_builder.gd`. Left: re-apply
   by hand on a Mac session (full definition of done: re-bake, `verify.sh`, shots and bench), then
   close #53. Buildings stay uncompressed (windows come from UVs in metres).
+
+## Rondo de Gaulle'a, Dom Partii and the food-hype lore (F, 2026-11-01)
+
+Spec: `docs/design/gaulle-and-food-hype.md` (F's three photos; parody names in its section 2, the
+real ones added to `brand_denylist.json`). One PR each:
+- [x] G1 the de Gaulle statue by the roundabout (site `gaulle`: curved steps, cobbled rings, the
+      granite cone, the dark plinth, the marching bronze general, a card), 2026-11-01.
+- [x] G2 part 1: Dom Partii as a white stone skin with a card, ROBUR over the north-west corner,
+      the courtyard's paving with its key border and the long fountain with five jets, 2026-11-01.
+- [x] G2 part 2: the bars NEWTWICE, ZAMĘT and PIONEK as neons (`Storefronts.HYPE`), 2026-11-01.
+- [x] G3 HOTEL PIURE's door neon, LUŹNO in pink on its roof (landmarks site `piure_sign`), the
+      evening line for the lift up to the date bar (crowds.gd, 10-16 people 18:00-01:00, tag
+      `timber`), TIMBER on a billboard and a column poster, 10 date lines, radio lines, 2026-11-01.
+- [x] G4 KOSZTA COFFEE ×3, GREEN CAFFE NERWO ×2 (one on the mapped pavilion), KUKŁA ×2 with its
+      all-day queue (8-30, tag `kolejka`), 8 queue lines, radio lines, a KUKŁA poster, 2026-11-01.
+- [x] G5 Cringulo: his cream van at one of four spots by weekday (11-21), the "Mlask" job in
+      `trend_job.gd` (`--trend-job=6`): fetch from a new place, bring it warm in 5 min, his review
+      card with a MLASK grade, the sticker back in 4 min, the place's queue at its longest for the
+      day (crowds.gd `cringulo_boost`); 9 review lines, 4 owner lines, 6 fan lines, CRINGULO PIZZA
+      sold out at Frogs (3 till lines, a poster), radio news; rules in `check_city_life.gd`, 2026-11-01.
+- [ ] Left from G3-G5: the dates on LUŹNO's roof itself (a roof crowd like Level 26's), the
+      Podwózka `timber` passengers, a notebook card "Kolejki", fans standing by Cringulo's van, an
+      egg (the car parked by the van while he films), the van's CRINGULO TV lettering, the egg
+      card; phone checks of every sign's size, the queues and the job's legs.
+- [ ] Roof rescues name the roof by its OSM name, which can be a real brand (a hotel or café
+      chain: Puro, Green Caffè Nero, Hilton…): show a parody or a street name instead (missions.gd
+      `_find_roofs`; found 2026-11-01).
+- [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the
+      skin on the LoD2 model; KUKŁA/KOSZTA/NERWO spots on the real streets.
+- [x] `Tinder` in a run-club line replaced by TIMBER (it would fail the new denylist entry).
 
 ## Trends 2025–26 (F, 2026-11-01)
 
@@ -81,22 +151,6 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   gwardii, wizytki, wszystkich, zamek) missed sections. After the fix 69 of 70 steps pass (places
   WARN as before; roads, map data, first10, first10-run, endcard, opening, cassettes, parodies,
   both city paths PASS; `--ios` export and unsigned build PASS). Left: the next item.
-- **check_streaming's look pass: the fix to confirm on the Mac** (found 2026-11-01, map lane,
-  Opus; fixed in the cloud the same day, PR #183). The cause: a look at a new target pre-loaded a square
-  round the target (±137 m) and round the halfway view (±275 m), but the real view is turned 45°
-  and tipped 30° (a 110 m view covers ±147 m on the map, more with the towers behind it the view
-  test counts), so s_-6_0 west of the look at -2400, 600 only started loading once the camera got
-  there; and the expectation ran out on the wall clock (4.9 s), so on frames slower than real time
-  it ended before the look did. Now `main.gd` `_queue_look` hands the streamer every view of the
-  look (`CameraShots.look_keys`: the car's, MID's, the target's, and the way between them every
-  60 m) and `sector_streamer.gd` `expect_shot` wants each sector whose box meets one of those
-  orthographic frusta (the target's first); the expectation runs on the game's clock and is held
-  for the whole look once it starts (`hold_expected`). The look waits for 3-14 sectors (was a
-  square's 2-6). Cloud (llvmpipe, ~3 fps, loads 2-9 s each, so every look hits the 1.5 s cap):
-  look pass 206 → 34 frames with a proxy in the view, 153 → 27 over 5 %; the third look (the
-  failing one) 40 → 0. **Confirm on the Mac**: `tools/verify.sh --only=streaming` (or the pass
-  alone: `cd game && godot --path . --resolution 1280x720 --script res://tools/check_streaming.gd
-  -- --only=pass --passes=look`); if it still fails, the next step is a longer LOOK_WAIT_MS.
 - **Map checks in CI**: the derived map pack as a release asset that CI downloads (or a small test
   map), so roads, drape, drive and the game runs gate every PR again ("From loop 3d-1", CI). Gap.
 

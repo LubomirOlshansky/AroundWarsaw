@@ -4619,7 +4619,8 @@ target's), `_queue_look` adds the way between them every `LOOK_STEP` (60 m), and
 them). The expectation runs on the streamer's game clock and `hold_expected` keeps it for the
 whole look once it starts. The look now waits for 3-14 sectors. Cloud look pass (llvmpipe, about
 3 fps, 2-9 s a load): 206 → 34 frames with a proxy in the view, 153 → 27 over 5 %, the look at
--2400, 600 40 → 0. The Mac run is the check that counts (BACKLOG).
+-2400, 600 40 → 0. Mac (`tools/verify.sh --only=streaming`, head 39c0ca2): the look pass
+0 missing, no proxy in the view.
 
 ## Map north: Rondo Radosława, Arkadia and Forest (2026-10-31)
 
@@ -5636,8 +5637,9 @@ Command-line options (after `--`):
 | `--life-log` | loop MW-4: print `life:` lines: the index, the minute's summary (riders, runners, Kolka, Hyrax, bells, the Zając), the bell, E28's follow, the Zając |
 | `--zajac` | loop MW-4: Live on Wednesday 2026-10-28 at 19:00 (`--clock=` and a Wednesday `--date=` change them), the car by Kolka's start (free roam, no title); with `--autopilot` the car paces the club 10 m to its side from 19:00 (the Zając: `life: zajac paid +40 respect (E29)`) |
 | `--trend-day=N` | loop MW-4: the Wiralek cycle's day number (0 = slot 1 on day 1, slot 2 on day 3, slot 3 on day 5; 88 = all three on day 1) instead of Live's date or the session's |
-| `--trend-job[=1\|2\|3\|4]` | loop MW-4: start by that Wiralek slot (1 Plac Zbawiciela, 2 Chmielna, 3 Tamka; 4: PISTACJA's "Limitka" drop job, whatever the clock) with its "Na czasie" request offered; with `--autopilot` accepted and driven; implies `--trend-log` |
+| `--trend-job[=1\|2\|3\|4\|5\|6]` | loop MW-4: start by that Wiralek slot (1 Plac Zbawiciela, 2 Chmielna, 3 Tamka; 4: PISTACJA's "Limitka" drop job, whatever the clock; 5: PADELNIA's "Czwarty"; 6: Cringulo's van parked by the car near KUKŁA on Nowy Świat with his "Mlask" request, docs/design/gaulle-and-food-hype.md G5) with its request offered; with `--autopilot` accepted and driven (Mlask: the review card closes by itself); implies `--trend-log` |
 | `--night-hub` | night-buses loop: a gathering of night buses at Dworzec Centralny now, whatever the time (with `--time=night`, the N signs too); its buses park at their bays at once |
+| `--train=X,Z` | railway T1 (docs/design/railway.md): a train put on the track nearest that point at the start, rolling on (shots) |
 | `--old-tram` / `--old-tram=follow` | vintage-tram loop: the old two-car set now, on the track nearest the car, whatever the time (it stays); `=follow`: and the car (no collisions) kept 22 m behind its tail, so the view goes with it and E39's 300 m count runs |
 | `--packs=0` | packs (docs/design/packs.md): no running clubs, cycling packs or coffee raves (`--crowd=0` drops them too) |
 | `--packs-now` | packs: every club and every COFFEECHAIR café's rave on whatever the clock says; each pack whose loop passes within 300 m of the car's start is timed to stream past it a few seconds in (shots) |

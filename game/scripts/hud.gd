@@ -2378,7 +2378,12 @@ func _row_bottom() -> float:
 
 func _input(event: InputEvent) -> void:
 	var size := get_viewport().get_visible_rect().size
-	if (event is InputEventScreenTouch or event is InputEventMouseButton or event is InputEventKey) and event.is_pressed():
+	if pad_mode and event is InputEventScreenTouch and event.is_pressed():
+		# The gamepad loop: a finger takes over from the pad, pedals and all, on this very touch.
+		pad_mode = false
+		set_touch_off(_touch_base)
+	if (event is InputEventScreenTouch or event is InputEventMouseButton or event is InputEventKey \
+			or event is InputEventJoypadButton) and event.is_pressed():
 		input_ms = maxi(1, Time.get_ticks_msec())  # loop 3h slice 4: the ghost finger goes
 		if _finger:
 			ghost_finger(false)
@@ -2596,7 +2601,9 @@ func _draw_finger() -> void:
 	var font := ThemeDB.fallback_font
 	var k := fmod(_finger_t, FINGER_LOOP) / FINGER_LOOP
 	var lines := ["Połóż palec i wskaż, dokąd jechać", "Put a finger down and point the way"]
-	if touch_off:
+	if pad_mode:
+		lines = ["Lewa gałka: wskaż, dokąd jechać", "Left stick: point the way"]
+	elif touch_off:
 		lines = ["W A S D albo strzałki: jazda", "W A S D or the arrow keys to drive"]
 	else:
 		var press := clampf(k / 0.15, 0.0, 1.0) * clampf((1.0 - k) / 0.15, 0.0, 1.0)
@@ -3108,6 +3115,22 @@ func set_touch_off(on: bool) -> void:
 	touch_off = on
 	_pad.queue_redraw()
 	_mark()
+
+
+# --- the gamepad loop ------------------------------------------------------------------------
+## True while the pad was used last (main.gd `_note_pad`): the touch pedals and pads are off the
+## screen as with --no-touch, and the hints speak of the pad. A finger brings them back at once.
+var pad_mode := false
+## --no-touch's own setting, so leaving pad mode puts back what the run asked for.
+var _touch_base := false
+
+
+func set_pad_mode(on: bool, touch_base: bool) -> void:
+	_touch_base = touch_base
+	if on == pad_mode:
+		return
+	pad_mode = on
+	set_touch_off(on or touch_base)
 # --- end desktop: --no-touch -----------------------------------------------------------------
 
 

@@ -54,6 +54,7 @@ const Skids := preload("res://scripts/skids.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const Traffic := preload("res://scripts/traffic.gd")
 const Trams := preload("res://scripts/trams.gd")
+const Trains := preload("res://scripts/trains.gd")
 const Pedestrians := preload("res://scripts/pedestrians.gd")
 const Rivals := preload("res://scripts/rivals.gd")
 const Bubbles := preload("res://scripts/bubbles.gd")
@@ -99,6 +100,7 @@ const TrendJob := preload("res://scripts/trend_job.gd")
 const RoundupJob := preload("res://scripts/roundup_job.gd")
 const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
+const Gamepad := preload("res://scripts/gamepad.gd")  # the gamepad loop
 const FollowCamera := preload("res://scripts/follow_camera.gd")
 const CameraShots := preload("res://scripts/camera_shots.gd")
 const Settings := preload("res://scripts/settings.gd")
@@ -166,6 +168,10 @@ var hud: CanvasLayer
 var graph: LaneGraph
 var traffic: Traffic
 var trams: Trams
+## The railway (docs/design/railway.md T1): trains on the cross-city line and the ring line.
+var trains: Trains
+## --train=X,Z: a train put on the track nearest that point at the start (shots).
+var train_at := Vector2.INF
 var walkers: Pedestrians
 var rivals: Rivals
 ## Loop 3g-1: the police (null with --no-police or no traffic) and their flags.
@@ -663,6 +669,7 @@ var _cam_turn_max := 0.0
 
 func _ready() -> void:
 	_parse_args()
+	Gamepad.install()  # the gamepad loop: the pad's stick and trigger actions
 	_parse_stream_args()  # loop 3c (the sectors block at the end of this file)
 	_load_settings()
 	# The audio buses first: the radio plays on Music from the title screen on.
@@ -931,12 +938,13 @@ func _cut_camera() -> void:
 		fcam.stop_turning()
 
 
-## Camera loop: any touch, click or key skips a cinematic moment.
+## Camera loop: any touch, click, key or pad button skips a cinematic moment.
 func _input(event: InputEvent) -> void:
+	_note_pad(event)
 	if moments == null or not moments.playing():
 		return
 	var go := false
-	if event is InputEventScreenTouch or event is InputEventMouseButton:
+	if event is InputEventScreenTouch or event is InputEventMouseButton or event is InputEventJoypadButton:
 		go = event.is_pressed()
 	elif event is InputEventKey:
 		go = event.is_pressed() and not event.is_echo()
@@ -1331,6 +1339,11 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	trams.traffic = traffic
 	traffic.trams = trams
 	_first_scene_trams()
+	trains = Trains.new()
+	world.add_child(trains)
+	trains.setup(map, data)
+	if train_at != Vector2.INF:
+		trains.place_near(train_at)
 	walkers = Pedestrians.new()
 	world.add_child(walkers)
 	walkers.setup(map, cam, traffic, data)
@@ -2343,6 +2356,15 @@ func _life_start() -> void:
 					Vector2(car.global_position.x, car.global_position.z).distance_to(Vector2(ap.x, ap.z))])
 	if trend_job_flag > 0 and trend_job != null:
 		var i := trend_job_flag - 1
+		if trend_job_flag == 6:
+			# "Mlask" (G5): Cringulo's van parked by the car, his request at once (KUKŁA by Nowy
+			# Świat if no Wiralek slot is new enough).
+			if crowds != null and crowds.by_id.has(Crowds.KUKLA[1]):
+				_put_car_near(crowds.sites[crowds.by_id[Crowds.KUKLA[1]]]["door"], 120.0)
+			life.tick(0.0)
+			if not trend_job.offer_mlask(true):
+				print("trend job: --trend-job=6: no request (no van spot or new place)")
+			return
 		if trend_job_flag == 5 and crowds != null and crowds.by_id.has(Crowds.PADEL_ID):
 			var cd: Vector2 = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]["door"]
 			_put_car_near(cd, 60.0)
@@ -3454,6 +3476,10 @@ func _parse_args() -> void:
 			bus_log = true
 		elif arg == "--old-tram" or arg.begins_with("--old-tram="):
 			old_tram_flag = "follow" if arg == "--old-tram=follow" else "now"
+		elif arg.begins_with("--train="):
+			var xz := arg.trim_prefix("--train=").split(",")
+			if xz.size() == 2:
+				train_at = Vector2(float(xz[0]), float(xz[1]))
 		elif arg == "--tram-log":
 			tram_log = true
 		elif arg.begins_with("--packs="):
@@ -3482,7 +3508,7 @@ func _parse_args() -> void:
 		elif arg.begins_with("--trend-day="):
 			trend_day_flag = maxi(0, int(arg.trim_prefix("--trend-day=")))
 		elif arg == "--trend-job" or arg.begins_with("--trend-job="):
-			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 5)
+			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 6)
 			trend_log = true
 		elif arg.begins_with("--club="):
 			# Loop MW-3: the car at a club's door (places.json id or name), no title.
@@ -4748,6 +4774,11 @@ func _feed_life(pos: Vector3) -> void:
 	traffic.player_on_road = not flying
 	trams.player_pos = ground
 	trams.player_on_road = not flying
+	if trains != null:
+		trains.player_pos = ground
+		trains.player_on_road = not flying
+		trains.view_at = traffic.view_centre
+		trains.view_reach = maxf(traffic.view_half.x, traffic.view_half.y) * 1.5 + 150.0
 	rivals.flying = flying
 
 
@@ -4808,6 +4839,8 @@ func _make_stats() -> BenchStats:
 		b.systems["traffic"] = [traffic, "last_usec", false]
 		b.systems["traffic bodies"] = [traffic, "spent_usec", true]
 		b.systems["trams"] = [trams, "last_usec", false]
+		if trains != null:
+			b.systems["trains"] = [trains, "last_usec", false]
 		b.systems["people"] = [walkers, "last_usec", false]
 		b.systems["rivals"] = [rivals, "spent_usec", true]
 		b.counts["cars on screen"] = func() -> int: return traffic.visible_count
@@ -5260,7 +5293,15 @@ func _read_input(dt: float) -> void:
 	# Loop 2a: the scheme maps the stick, keys and pedals (drive_controls.gd): Point / Fixed
 	# point in screen space (the camera waits while held), Classic steers car-relative.
 	var keys := {"left": left, "right": right, "up": gas, "down": down, "brake": space}
-	controls.drive(car, hud.stick, hud.stick_active(), keys, hud.gas, hud.brake, cam_yaw, dt)
+	# The gamepad loop: the pad's left stick stands in for the touch stick while no finger is on it;
+	# RT is GAS, LT or B is BRAKE (gamepad.gd).
+	var stick: Vector2 = hud.stick
+	var stick_on: bool = hud.stick_active()
+	var pad_stick := Gamepad.stick()
+	if not stick_on and pad_stick != Vector2.ZERO:
+		stick = pad_stick
+		stick_on = true
+	controls.drive(car, stick, stick_on, keys, hud.gas or Gamepad.gas(), hud.brake or Gamepad.brake(), cam_yaw, dt)
 	# Loop 3g-1: a pull-over holds the car; the police's test drivers (--police-auto, --trap with
 	# --pedal=gas, the soak's roaming autopilot) drive it.
 	if police != null and police.control_car(car, dt):
@@ -5284,10 +5325,13 @@ func _read_input(dt: float) -> void:
 ## Shift (or F) or the ▲ ▼ pads climb and sink.
 func _read_heli_input(left: bool, right: bool, up: bool, down: bool, dt: float) -> void:
 	var stick: Vector2 = hud.stick
+	var pad_stick := Gamepad.stick()  # the gamepad loop
+	if not hud.stick_active() and pad_stick != Vector2.ZERO:
+		stick = pad_stick
 	var aim := Vector2(float(right) - float(left), float(down) - float(up))
 	# Loop 2a: while the stick or a key is held the follow camera waits (as in Point), so a
 	# held direction doesn't turn with the view.
-	_heli_held = hud.stick_active() or aim != Vector2.ZERO
+	_heli_held = hud.stick_active() or pad_stick != Vector2.ZERO or aim != Vector2.ZERO
 	_heli_release = 0.0 if _heli_held else _heli_release + dt
 	if stick.length() > 0.2:
 		aim = stick.normalized() * clampf((stick.length() - 0.2) / 0.8, 0.0, 1.0)
@@ -5296,7 +5340,7 @@ func _read_heli_input(left: bool, right: bool, up: bool, down: bool, dt: float) 
 	heli.input_dir = _screen_to_world(aim)
 	var climb := float(Input.is_physical_key_pressed(KEY_SPACE)) \
 			- float(Input.is_physical_key_pressed(KEY_SHIFT) or Input.is_physical_key_pressed(KEY_F))
-	heli.climb = clampf(climb + hud.climb, -1.0, 1.0)
+	heli.climb = clampf(climb + hud.climb + Gamepad.climb(), -1.0, 1.0)  # the pad: RT up, LT down
 	if heli_stick != Vector2.ZERO:
 		heli.input_dir = Vector3(heli_stick.x, 0.0, heli_stick.y).limit_length(1.0)
 	if demo and not autopilot:
@@ -5380,7 +5424,10 @@ func _toggle_vehicle() -> void:
 		return
 	if not flying:
 		_take_off(Heli.CRUISE)
-		hud.toast("Helikopter: kieruj palcem, ▲ ▼ to wysokość", "Helicopter: steer with the stick, ▲ ▼ (Space / Shift) for height")
+		if Gamepad.in_use():
+			hud.toast("Helikopter: lewa gałka kieruje, RT / LT to wysokość", "Helicopter: steer with the left stick, RT / LT for height")
+		else:
+			hud.toast("Helikopter: kieruj palcem, ▲ ▼ to wysokość", "Helicopter: steer with the stick, ▲ ▼ (Space / Shift) for height")
 		return
 	if heli.landing:
 		heli.landing = false
@@ -5556,6 +5603,11 @@ func _on_pinch(ratio: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not _started or title != null:
 		return
+	var pad := Gamepad.command(event)
+	if pad != "":
+		_pad_command(pad)
+		get_viewport().set_input_as_handled()
+		return
 	var wheel := event as InputEventMouseButton
 	if wheel and wheel.pressed:
 		if wheel.button_index == MOUSE_BUTTON_WHEEL_UP:
@@ -5585,14 +5637,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				if buses != null and not flying:
 					buses.honk()
 			KEY_M:
-				# Loop 2d-1: a Podwózka request or result first.
-				if (rides == null or not rides.primary()) and (jobs == null or not jobs.primary()) \
-						and (trend_job == null or not trend_job.primary()):
-					missions.primary()
+				_primary()
 			KEY_K:
-				if (rides == null or not rides.secondary()) and (jobs == null or not jobs.secondary()) \
-						and (trend_job == null or not trend_job.secondary()):
-					missions.secondary()
+				_secondary()
 			KEY_N:
 				_blip_sound()
 				tod.next()
@@ -5621,13 +5668,73 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_blip_sound()
 				_set_quality(Tiers.AUTO if quality_choice >= Tiers.ULTRA else quality_choice + 1)
 			KEY_L:
-				# Loop jobs-2: the courier's challenge first (only while it is up).
-				if (jobs == null or not jobs.flash()) and rivals != null:
-					rivals.flash()
+				_flash()
 			KEY_MINUS:
 				_zoom_view(1)
 			KEY_EQUAL:
 				_zoom_view(-1)
+
+
+## M / the pad's A: the mission card's first button (loop 2d-1: a Podwózka request or result first).
+func _primary() -> void:
+	if (rides == null or not rides.primary()) and (jobs == null or not jobs.primary()) \
+			and (trend_job == null or not trend_job.primary()):
+		missions.primary()
+
+
+## K / the pad's X: the mission card's second button.
+func _secondary() -> void:
+	if (rides == null or not rides.secondary()) and (jobs == null or not jobs.secondary()) \
+			and (trend_job == null or not trend_job.secondary()):
+		missions.secondary()
+
+
+## L / the D-pad's left: flash the lights (loop jobs-2: the courier's challenge first, only while
+## it is up).
+func _flash() -> void:
+	if (jobs == null or not jobs.flash()) and rivals != null:
+		rivals.flash()
+
+
+## The gamepad loop: a button press (gamepad.gd `command`) does what its key does.
+func _pad_command(what: String) -> void:
+	match what:
+		"primary":
+			_primary()
+		"secondary":
+			_secondary()
+		"vehicle":
+			_toggle_vehicle()
+		"rotate_left":
+			_rotate_camera(-1)
+		"rotate_right":
+			_rotate_camera(1)
+		"follow":
+			_toggle_follow()
+		"horn":
+			if buses != null and not flying:
+				buses.honk()
+		"zoom_in":
+			_zoom_view(-1)
+		"zoom_out":
+			_zoom_view(1)
+		"radio":
+			radio.next()
+		"flash":
+			_flash()
+		"map":
+			_open_full_map()
+		"settings":
+			_open_settings()
+
+
+## The gamepad loop: the pad used last hides the touch pedals and pads (and the HUD speaks of the
+## pad's buttons); a finger on the screen brings them back at once (hud.gd `_input`).
+func _note_pad(event: InputEvent) -> void:
+	var was := Gamepad.in_use()
+	Gamepad.note(event)
+	if hud != null and Gamepad.in_use() != was:
+		hud.set_pad_mode(Gamepad.in_use(), no_touch)
 
 
 func _screen_to_world(s: Vector2) -> Vector3:

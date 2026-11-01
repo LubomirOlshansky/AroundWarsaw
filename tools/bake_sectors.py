@@ -84,9 +84,10 @@ SECTOR_POINTS = {"trees": 4, "lamps": 2, "signals": 3, "parked": 4, "benches": 3
                  "bikes": 3, "columns": 3, "shelters": 3}
 # Small whole-map lists every sector's builder reads as they are.
 SECTOR_WHOLE = ["lod2_cuts", "lod2_open"]
-# Keys only the sectors need (the rest of centrum.json goes to the index).
+# Keys only the sectors need (the rest of centrum.json goes to the index). The rails stay in the
+# index too: trains.gd runs on the whole network (docs/design/railway.md T1).
 SECTOR_ONLY = {"buildings", "markings", "carriage", "symbols", "sand", "sandbars", "surfaces",
-               "steps", "lines", "rails", "walls", "garage_doors", "lamps", "benches", "bins",
+               "steps", "lines", "walls", "garage_doors", "lamps", "benches", "bins",
                "bikes", "shelters", "trees", "trees3d_crown"}
 
 # Where landmarks.gd looks for the building parts its sites are made of (it reads every
@@ -110,7 +111,9 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               # the University Library (2026-10-31): its roof houses and round lights
               "Biblioteka Uniwersytecka",
               # Hotel Metropol's roof sign (landmarks.gd _build_metropol_sign reads its parts' height)
-              "Hotel Metropol"]
+              "Hotel Metropol",
+              # HOTEL PIURE's rooftop sign LUŹNO (landmarks.gd _build_piure_sign reads its parts' height)
+              "Puro Warszawa Centrum"]
 SITE_PAD = 12.0
 SITE_AREAS = [
     (1250.0, -820.0, 1700.0, -370.0),       # Stadion Narodowy's masts (Rect2(1250, -820, 450, 450))
