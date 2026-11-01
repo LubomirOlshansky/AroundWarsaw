@@ -18,6 +18,16 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · landmarks · the Old Town Market Square, the Syrenka and the decks: Mac look check**
+  Built in the cloud with no photos (free-licence sources are not reachable from there). Default
+  built: sand-grey paving with a border band and a pale disc, 58 café umbrellas in nine colours,
+  the Syrenka 6.4 m tall (taller than life, to read from the camera) in lit-patina green bronze,
+  Varso's deck on the crown's roof (the real deck is glazed, ~230 m) and St Anne's terrace on the
+  tower's cornice at 25 m (the real one is higher, ~40 m, above the louvres). On the Mac please
+  look at: the paving's colour with the real terrain under it, the umbrellas against the houses'
+  plaster colours, the statue's pose (sword hand, shield side, which way she faces), the rim
+  wall against the mapped pond, whether Varso's visitors stand on the crown's roof. Photos of
+  the square's four sides (one per house front) would let the plaster colours be set per house.
 - **2026-11-01 · content · the Norblin milk bar's name** — Default to build: **KROWA 2.0** (a bar
   mleczny rebuilt as a start-up, sign "BAR MLECZNY / KROWA 2.0", pale-blue tube, open 8-18 with a
   long lunch line). Say if you want another name. Also parked: the Mac look check of the four

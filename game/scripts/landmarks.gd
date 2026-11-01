@@ -287,6 +287,12 @@ const INFO := {
 	"gaulle": ["Pomnik generała de Gaulle'a",
 			"Maszeruje Alejami od 2005 roku. Kopia tego z Paryża.",
 			"Marching down the Avenues since 2005. A copy of the one in Paris."],
+	"rynek": ["Rynek Starego Miasta",
+			"Serce Starówki, odbudowane po wojnie z gruzów. Pod parasolami kawa, lody i turyści.",
+			"The heart of the Old Town, rebuilt from rubble after the war. Coffee, ice cream and tourists under umbrellas."],
+	"syrenka": ["Syrenka",
+			"Z mieczem i tarczą, jak w herbie miasta. Stoi w fontannie pośrodku Rynku i pilnuje Warszawy.",
+			"With her sword and shield, as on the city's coat of arms. She stands in the fountain in the middle of the square and watches over Warsaw."],
 	"zygmunt": ["Kolumna Zygmunta",
 			"Najstarszy świecki pomnik Warszawy, z 1644 roku.",
 			"Warsaw's oldest secular monument, of 1644."],
@@ -588,6 +594,7 @@ func _find_sites() -> void:
 	_find_zygmunt()
 	_find_gaulle()
 	_find_dom_partii()
+	_find_rynek()
 	_find_arkadia()
 	_find_forest()
 	_find_flag()
@@ -900,6 +907,10 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_gaulle(s)
 			"dom_partii_extras":
 				_build_dom_partii(s)
+			"rynek":
+				_build_rynek(s)
+			"syrenka":
+				_build_syrenka(s)
 			"arkadia":
 				_build_arkadia(s)
 			"forest":
@@ -2874,6 +2885,209 @@ func _build_dom_partii(_site: Dictionary) -> void:
 		var k := 1.5
 		var mid := DOM_NW + along * (Neon.length_of("ROBUR") * k * 0.5 + 2.5) - o * 0.6
 		signs.append(["ROBUR", Vector3(mid.x, top + 0.6, mid.y), Vector3(o.x, 0.0, o.y), k, DOM_SIGN])
+
+
+# --- Rynek Starego Miasta and its Syrenka (F, 2026-11-01) -------------------------------------
+
+## The Old Town Market Square (about 90 x 73 m, rebuilt from rubble after the war) and the
+## mermaid in its fountain. The houses round it are the map's (LoD2 on the Mac, the historic
+## tenement dress of `map_builder._tenement_facades` and `OldTownRoofs`); this adds what the map
+## lacks (docs/landmarks/specs/rynek.md): the cobbled paving (a border band, a field, a pale disc
+## round the fountain, laid round the mapped footways), the café gardens along all four sides
+## (58 umbrellas with a table and two chairs each, one colour per restaurant), and the fountain:
+## a stone rim wall round the mapped pond, an octagonal pedestal and the Syrenka in bronze with
+## her raised sword and round shield. Two sites: `rynek` (paving and gardens, one card) and
+## `syrenka` (the statue, its own card, built later so its picking cells win).
+## The square's corners are the open area's edge lines 7 m off the facades (found from the
+## OSM outlines: the flood fill of what is more than 7 m from a building), the umbrellas stand
+## on those lines where a facade is within 5-10 m (not in the street mouths).
+const RYNEK_QUAD := [Vector2(-854.2, -1756.1), Vector2(-811.2, -1796.6), Vector2(-758.2, -1735.9), Vector2(-799.7, -1695.4)]
+const RYNEK_FOUNTAIN := Vector2(-806.5, -1745.5)
+## Paving: how far past the 7 m line it reaches (so it stops 6.5 m off the facades, inside the
+## mapped footways' 5 m strip), the border band's width, and the disc round the fountain.
+const RYNEK_REACH := 0.5
+const RYNEK_BAND := 1.3
+const RYNEK_DISC := 11.0
+const RYNEK_FIELD := Color("#d8d1bf")
+const RYNEK_BORDER := Color("#bbb3a1")
+const RYNEK_LIGHT := Color("#e8e2d1")
+const RYNEK_RIM := Color("#ddd5c1")
+const RYNEK_STONE := Color("#cfc8b5")
+const RYNEK_STONE_HI := Color("#e0dac8")
+const RYNEK_BRONZE := Color("#7ba892")
+const RYNEK_BRONZE_SHADE := Color("#5a8873")
+const RYNEK_BRONZE_DEEP := Color("#3f6656")
+const RYNEK_BRONZE_HI := Color("#a8d0bb")
+const RYNEK_TABLE := Color("#ece6d8")
+const RYNEK_CHAIR := Color("#5a3b26")
+## One restaurant's umbrellas share a colour: runs of this many along a side.
+const RYNEK_RUN := 5
+const RYNEK_CANOPY := [Color("#c8282a"), Color("#f2efe8"), Color("#2f6b4f"), Color("#d9a441"), Color("#24324a"),
+		Color("#e07a5f"), Color("#3b7ea1"), Color("#efe3c0"), Color("#8c3a4a")]
+## x, z, yaw (the side's direction), side: the umbrellas' places.
+const RYNEK_UMBRELLAS := [
+	-851.1, -1759, 2.33, 0, -847.7, -1762.2, 2.33, 0, -844.4, -1765.3, 2.33, 0,
+	-841, -1768.5, 2.33, 0, -837.7, -1771.6, 2.33, 0, -834.3, -1774.8, 2.33, 0,
+	-831, -1777.9, 2.33, 0, -827.6, -1781.1, 2.33, 0, -824.3, -1784.2, 2.33, 0,
+	-821, -1787.4, 2.33, 0, -817.6, -1790.6, 2.33, 0, -814.3, -1793.7, 2.33, 0,
+	-808.9, -1794, 0.72, 1, -805.8, -1790.5, 0.72, 1, -802.8, -1787.1, 0.72, 1,
+	-799.8, -1783.6, 0.72, 1, -796.8, -1780.1, 0.72, 1, -793.7, -1776.7, 0.72, 1,
+	-790.7, -1773.2, 0.72, 1, -787.7, -1769.7, 0.72, 1, -784.7, -1766.3, 0.72, 1,
+	-781.6, -1762.8, 0.72, 1, -778.6, -1759.4, 0.72, 1, -775.6, -1755.9, 0.72, 1,
+	-772.6, -1752.4, 0.72, 1, -769.5, -1749, 0.72, 1, -766.5, -1745.5, 0.72, 1,
+	-763.5, -1742, 0.72, 1, -760.5, -1738.6, 0.72, 1, -760.8, -1733.3, -0.8, 2,
+	-764.1, -1730.1, -0.8, 2, -767.4, -1726.9, -0.8, 2, -770.7, -1723.7, -0.8, 2,
+	-774, -1720.5, -0.8, 2, -777.3, -1717.3, -0.8, 2, -780.6, -1714.1, -0.8, 2,
+	-783.9, -1710.9, -0.8, 2, -787.2, -1707.6, -0.8, 2, -790.5, -1704.4, -0.8, 2,
+	-793.8, -1701.2, -0.8, 2, -797.1, -1698, -0.8, 2, -802.4, -1698.4, -2.41, 3,
+	-805.5, -1701.8, -2.41, 3, -808.5, -1705.2, -2.41, 3, -811.6, -1708.6, -2.41, 3,
+	-814.7, -1712, -2.41, 3, -817.7, -1715.5, -2.41, 3, -820.8, -1718.9, -2.41, 3,
+	-823.9, -1722.3, -2.41, 3, -827, -1725.7, -2.41, 3, -830, -1729.2, -2.41, 3,
+	-833.1, -1732.6, -2.41, 3, -836.2, -1736, -2.41, 3, -839.3, -1739.4, -2.41, 3,
+	-842.3, -1742.9, -2.41, 3, -845.4, -1746.3, -2.41, 3, -848.5, -1749.7, -2.41, 3,
+	-851.5, -1753.1, -2.41, 3
+]
+## The fountain's rim wall: outer and inner radius, height over the ground.
+const SYRENKA_RIM_OUT := 4.5
+const SYRENKA_RIM_IN := 3.9
+const SYRENKA_RIM_H := 0.5
+
+
+func _find_rynek() -> void:
+	_add_site("rynek", [_rynek_paving()])
+	_add_site("syrenka", [_circle(RYNEK_FOUNTAIN, SYRENKA_RIM_OUT, 16)])
+
+
+## The paving's outline: the square's quad grown RYNEK_REACH, wound the way `_cap` wants.
+func _rynek_paving() -> PackedVector2Array:
+	var quad := PackedVector2Array(RYNEK_QUAD)
+	var grown := Geometry2D.offset_polygon(quad, RYNEK_REACH, Geometry2D.JOIN_MITER)
+	var out: PackedVector2Array = grown[0] if not grown.is_empty() else quad
+	if Geometry2D.is_polygon_clockwise(out):
+		out.reverse()
+	return out
+
+
+func _build_rynek(site: Dictionary) -> void:
+	var poly: PackedVector2Array = site["zone"][0]
+	var low := INF
+	var high := -INF
+	var box := _box_of([poly])
+	for k in 36:
+		var q := box.position + Vector2((k % 6) / 5.0 * box.size.x, (k / 6) / 5.0 * box.size.y)
+		if Geometry2D.is_point_in_polygon(q, poly):
+			var h: float = map.terrain_height(q.x, q.y)
+			low = minf(low, h)
+			high = maxf(high, h)
+	if low == INF:
+		return
+	_g = low
+	_no_roof = true
+	_mode = M_STONE
+	# The paving, over the highest ground in it, as a thick slab (its sides sink into the
+	# ground where the square dips): border, field, then the pale disc round the fountain. The
+	# mapped pond and its rim stay open.
+	var top := high + 0.03
+	var hole := _circle(RYNEK_FOUNTAIN, SYRENKA_RIM_OUT + 0.3, 16)
+	_prism(poly, low - 0.3, top, RYNEK_BORDER, RYNEK_BORDER, M_STONE, M_STONE)
+	var inner := Geometry2D.offset_polygon(poly, -RYNEK_BAND, Geometry2D.JOIN_MITER)
+	if not inner.is_empty():
+		_cap_holes(inner[0], [hole], top + 0.015, RYNEK_FIELD)
+	_cap(_circle(RYNEK_FOUNTAIN, RYNEK_DISC + 0.5, 28), top + 0.03, RYNEK_BORDER)
+	_cap_holes(_circle(RYNEK_FOUNTAIN, RYNEK_DISC, 28), [hole], top + 0.045, RYNEK_LIGHT)
+	# The café gardens: the umbrellas on their lines, a colour to each run.
+	var u := RYNEK_UMBRELLAS
+	var run := 0
+	var last_side := -1
+	for k in range(0, u.size(), 4):
+		var side := int(u[k + 3])
+		if side != last_side:
+			last_side = side
+			run = 0
+		var col: Color = RYNEK_CANOPY[(side * 3 + run / RYNEK_RUN) % RYNEK_CANOPY.size()]
+		run += 1
+		_umbrella(Vector2(u[k], u[k + 1]), float(u[k + 2]), top, col)
+	_no_roof = false
+
+
+## One café set: a round-ish table on a pole, two chairs, a square umbrella 3.4 m across on
+## the pole (its canopy a low pyramid in `col`). 52 triangles.
+func _umbrella(p: Vector2, yaw: float, y: float, col: Color) -> void:
+	_o = p
+	_a = Vector2(sin(yaw), cos(yaw))
+	_b = Vector2(-_a.y, _a.x)
+	_mode = M_STONE
+	_lbox(0.0, 0.0, 0.04, 0.04, y, y + 2.75, RYNEK_STONE_HI.darkened(0.45), M_STONE)
+	_lbox(0.0, 0.0, 0.4, 0.4, y + 0.72, y + 0.77, RYNEK_TABLE, M_STONE)
+	for v: float in [-0.8, 0.8]:
+		_lbox(0.0, v, 0.2, 0.2, y, y + 0.45, RYNEK_CHAIR, M_STONE)
+	_pyramid(_rect(0.0, 0.0, 1.7, 1.7), y + 2.25, y + 2.9, col)
+
+
+func _build_syrenka(_site: Dictionary) -> void:
+	var c := RYNEK_FOUNTAIN
+	_g = map.terrain_height(c.x, c.y)
+	var g := _g
+	_mode = M_STONE
+	# The rim: a low stone wall round the pond (so a car meets a wall, not the water), its top
+	# an annulus, then the pedestal in the middle on a round footing.
+	var outer := _circle(c, SYRENKA_RIM_OUT, 16)
+	var inner := _circle(c, SYRENKA_RIM_IN, 16)
+	for k in outer.size():
+		var k1 := (k + 1) % outer.size()
+		_wall(outer[k], outer[k1], g - 0.3, g + SYRENKA_RIM_H, (outer[k] + outer[k1]) * 0.5 - c, RYNEK_STONE)
+		_wall(inner[k1], inner[k], g - 0.3, g + SYRENKA_RIM_H, c - (inner[k] + inner[k1]) * 0.5, RYNEK_STONE.darkened(0.08))
+	_cap_holes(outer, [inner], g + SYRENKA_RIM_H, RYNEK_RIM)
+	var stone := RYNEK_STONE
+	_prism(_circle(c, 1.9, 8), g - 0.3, g + 0.35, stone.darkened(0.06), stone, M_STONE, M_STONE)
+	_prism(_circle(c, 1.45, 8), g + 0.35, g + 0.6, stone, RYNEK_STONE_HI, M_STONE, M_STONE)
+	_prism(_circle(c, 1.05, 8), g + 0.6, g + 2.4, stone.darkened(0.04), stone, M_STONE, M_STONE)
+	_prism(_circle(c, 1.3, 8), g + 2.4, g + 2.6, RYNEK_STONE_HI, RYNEK_STONE_HI.lightened(0.05), M_STONE, M_STONE)
+	_frustum(_circle(c, 0.95, 8), g + 2.6, _circle(c, 0.5, 8), g + 2.95, RYNEK_BRONZE_SHADE, RYNEK_BRONZE_SHADE)
+	_o = c
+	_a = Vector2(0.0, 1.0)
+	_b = Vector2(-_a.y, _a.x)
+	_syrenka_figure(g + 2.95)
+	_collide(outer)
+
+
+## The mermaid, bronze: the tail coiled on the rock with its fin flicked up, the torso, the
+## head with its long hair, the right arm raising the sword, the left holding the round shield
+## forward. `y` is the rock's top; the local frame is _o/_a/_b (u forward).
+func _syrenka_figure(y: float) -> void:
+	var bz := RYNEK_BRONZE
+	var none := Color(0, 0, 0, 0)
+	var pt := func(u: float, v: float, h: float) -> Vector3:
+		var w := _w(u, v)
+		return Vector3(w.x, y + h, w.y)
+	# The tail: four turns of a coil rising to the hips, then two flukes.
+	_beam(pt.call(0.35, -0.35, 0.12), pt.call(0.15, -0.75, 0.32), 0.46, RYNEK_BRONZE_SHADE)
+	_beam(pt.call(0.15, -0.75, 0.32), pt.call(-0.3, -0.55, 0.62), 0.44, bz)
+	_beam(pt.call(-0.3, -0.55, 0.62), pt.call(-0.25, -0.05, 0.95), 0.4, RYNEK_BRONZE_SHADE)
+	_beam(pt.call(-0.25, -0.05, 0.95), pt.call(0.0, 0.0, 1.25), 0.36, bz)
+	_beam(pt.call(0.35, -0.35, 0.12), pt.call(0.8, -0.15, 0.66), 0.13, RYNEK_BRONZE_DEEP)
+	_beam(pt.call(0.35, -0.35, 0.12), pt.call(0.62, -0.7, 0.74), 0.13, RYNEK_BRONZE_DEEP)
+	# The torso (a little wider at the shoulders), the neck, the head and the hair.
+	_mode = M_STONE
+	_frustum(_rect(0.0, 0.0, 0.2, 0.26), y + 1.2, _rect(0.0, 0.0, 0.22, 0.3), y + 1.55, bz)
+	_frustum(_rect(0.0, 0.0, 0.22, 0.3), y + 1.55, _rect(0.0, 0.0, 0.17, 0.25), y + 1.78, bz.lightened(0.04), bz)
+	_prism(_rect(0.0, 0.0, 0.06, 0.06), y + 1.78, y + 1.88, bz, none, M_STONE)
+	_prism(_rect(0.02, 0.0, 0.11, 0.1), y + 1.88, y + 2.14, bz.lightened(0.05), bz, M_STONE, M_STONE)
+	_prism(_rect(-0.1, 0.0, 0.09, 0.14), y + 1.9, y + 2.2, RYNEK_BRONZE_DEEP, RYNEK_BRONZE_DEEP, M_STONE, M_STONE)
+	_beam(pt.call(-0.14, 0.0, 2.0), pt.call(-0.42, 0.0, 1.3), 0.2, RYNEK_BRONZE_DEEP)
+	# The right arm (on the right of her heading) up with the sword, the guard, a gilt-like blade.
+	_beam(pt.call(0.0, -0.3, 1.68), pt.call(0.06, -0.5, 2.0), 0.14, bz)
+	_beam(pt.call(0.06, -0.5, 2.0), pt.call(0.1, -0.45, 2.45), 0.13, bz)
+	_lbox(0.1, -0.45, 0.05, 0.3, y + 2.42, y + 2.5, RYNEK_BRONZE_SHADE, M_STONE)
+	_beam(pt.call(0.1, -0.45, 2.45), pt.call(0.12, -0.45, 3.5), 0.07, RYNEK_BRONZE_HI)
+	# The left arm forward, the round shield at its hand, facing forward: a rim, a face, a boss.
+	_beam(pt.call(0.0, 0.3, 1.68), pt.call(0.3, 0.5, 1.45), 0.14, bz)
+	var hand: Vector3 = pt.call(0.55, 0.45, 1.5)
+	_beam(pt.call(0.3, 0.5, 1.45), hand, 0.13, bz)
+	var face := Vector3(_a.x, 0.0, _a.y)
+	_disc(hand, face, 0.52, 12, RYNEK_BRONZE_SHADE)
+	_disc(hand + face * 0.03, face, 0.4, 12, RYNEK_BRONZE_HI)
+	_disc(hand + face * 0.06, face, 0.13, 8, RYNEK_BRONZE_DEEP)
 
 
 # --- Map north: Arkadia, the Forest tower, Rondo Radosława's flag (the landmarks loop) -----------
@@ -7600,6 +7814,14 @@ func _anna_tower() -> void:
 	_mode = M_STONE
 	_lbox(0.0, 0.0, h + 0.5, h + 0.5, g + 24.0, g + 25.1, ANNA_TRIM, M_STONE, ANNA_TRIM)
 	_lbox(0.0, 0.0, h + 0.3, h + 0.3, g + 23.2, g + 24.0, ANNA_WALL, M_STONE, ANNA_WALL)
+	# The observation terrace (F, 2026-11-01): a stone balustrade round the cornice's edge, a post
+	# at each corner, 1.1 m high over the walking level at g + 25.1 (the visitors stand inside it,
+	# crowds.gd DECKS `anna_deck`, 5 m from the centre).
+	for su: float in [-1.0, 1.0]:
+		_lbox(su * (h + 0.38), 0.0, 0.12, h + 0.5, g + 25.1, g + 26.2, ANNA_TRIM, M_STONE, ANNA_TRIM)
+		_lbox(0.0, su * (h + 0.38), h + 0.5, 0.12, g + 25.1, g + 26.2, ANNA_TRIM, M_STONE, ANNA_TRIM)
+		for sv: float in [-1.0, 1.0]:
+			_lbox(su * (h + 0.38), sv * (h + 0.38), 0.2, 0.2, g + 25.1, g + 26.7, ANNA_WALL, M_STONE, ANNA_WALL)
 	var c := _w(0.0, 0.0)
 	_prism(_circle(c, 2.9, 8), g + 25.1, g + 33.8, ANNA_ROOF, ANNA_ROOF, M_STONE, M_STONE)  # hidden in the octagon: holds the ring up
 	_frustum(_circle(c, 3.9, 8), g + 33.8, _circle(c, 3.4, 8), g + 34.5, ANNA_TRIM, ANNA_TRIM)
