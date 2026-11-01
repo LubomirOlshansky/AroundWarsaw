@@ -12,6 +12,15 @@ const GLASS := Color("#2c3a4d")
 const BRICK := Color("#8c4a3a")
 const SINK := 0.45           ## m, a chimney's foot under the slope
 const NO_UV := Vector2(-1.0, -1.0)
+const RYNEK := Vector2(-812.4, -1753.8)  ## the market square's centre (OSM place node)
+const GABLE_NEAR := 22.0     ## m, the stepped-gable ring round the square: inner and outer radius
+const GABLE_FAR := 72.0
+const GABLE_BAY := 8.0       ## m, a house front's usual width: one gable per bay
+const GABLE_MIN := 4.5       ## m, a wall edge shorter than this takes none
+const GABLE_STEPS := [[0.0, 1.0], [1.0, 0.76], [2.0, 0.52]]  ## [height of a stage, its width / the bay's]
+const STAGE_H := 1.0         ## m, one stage's height
+const PINNACLE := 0.9        ## m, the triangle crowning the top stage
+const DEPTH := 0.3           ## m, the gable's thickness
 
 
 ## The extra triangles for one roof triangle (a, b, c; world metres; n its upward normal) of a
@@ -108,3 +117,67 @@ static func _tri(out: Dictionary, p0: Vector3, p1: Vector3, p2: Vector3, colour:
 	(out["pos"] as Array).append_array([p0, p1, p2])
 	(out["nrm"] as Array).append_array([nrm, nrm, nrm])
 	(out["col"] as Array).append_array([colour, colour, colour])
+
+
+## A stepped gable (the Old Town's attic gables) standing on a wall's top edge a -> b (same
+## height, world metres) facing the outward horizontal normal `n`: three stages of
+## shrinking width under a pinnacle, a front and a back face, a cap on each step and a dark
+## window in the second stage. `wall` is the house colour, `seed` 0..1 varies the stage count.
+## Keys "pos", "nrm", "col" as in dress().
+static func gable(a: Vector3, b: Vector3, n: Vector3, wall: Color, seed: float) -> Dictionary:
+	var out := {"pos": [], "nrm": [], "col": []}
+	var span := b - a
+	var width := span.length()
+	if width < GABLE_MIN:
+		return {}
+	var along := span / width
+	var mid := (a + b) * 0.5
+	var up := Vector3.UP
+	var front := n * 0.05  # proud of the wall, so it never z-fights the LoD2 plane
+	var back := -n * (DEPTH - 0.05)
+	var inside := mid - n * 4.0 + up * 1.5
+	var stages := 3 if fposmod(seed * 13.0, 1.0) > 0.25 else 2
+	var cap := wall.darkened(0.35)
+	var face := wall.lerp(FRAME, 0.25)
+	var top_h := 0.0
+	for i in stages:
+		var w: float = width * float(GABLE_STEPS[i][1])
+		var y0: float = float(GABLE_STEPS[i][0])
+		var y1 := y0 + STAGE_H
+		var l := mid - along * (w * 0.5)
+		var r := mid + along * (w * 0.5)
+		# Front and back faces of the stage.
+		for off: Vector3 in [front, back]:
+			_tri(out, l + off + up * y0, r + off + up * y0, r + off + up * y1, face, inside)
+			_tri(out, l + off + up * y0, r + off + up * y1, l + off + up * y1, face, inside)
+		# Its two ends (a thin strip, so the gable reads solid from the side) and its cap.
+		for side: Vector3 in [l, r]:
+			_tri(out, side + front + up * y0, side + back + up * y0, side + back + up * y1, face, inside)
+			_tri(out, side + front + up * y0, side + back + up * y1, side + front + up * y1, face, inside)
+		var next_w: float = width * float(GABLE_STEPS[i + 1][1]) if i + 1 < stages else 0.0
+		var shoulder := (w - next_w) * 0.5
+		for sgn in [-1.0, 1.0]:
+			var e0: Vector3 = mid + along * sgn * (w * 0.5)
+			var e1: Vector3 = mid + along * sgn * (w * 0.5 - shoulder)
+			_tri(out, e0 + front + up * y1, e1 + front + up * y1, e1 + back + up * y1, cap, inside)
+			_tri(out, e0 + front + up * y1, e1 + back + up * y1, e0 + back + up * y1, cap, inside)
+		top_h = y1
+	# The pinnacle: a triangle over the last stage, front and back.
+	var last_w: float = width * float(GABLE_STEPS[stages - 1][1])
+	var pl := mid - along * (last_w * 0.5) + up * top_h
+	var pr := mid + along * (last_w * 0.5) + up * top_h
+	var tip := mid + up * (top_h + PINNACLE)
+	for off: Vector3 in [front, back]:
+		_tri(out, pl + off, pr + off, tip + off, face, inside)
+	_tri(out, pl + front, tip + front, tip + back, cap, inside)
+	_tri(out, pl + front, tip + back, pl + back, cap, inside)
+	_tri(out, pr + front, tip + back, tip + front, cap, inside)
+	_tri(out, pr + front, pr + back, tip + back, cap, inside)
+	# A dark window in the second stage.
+	var ww := minf(0.9, width * 0.12)
+	var wl := mid - along * ww + up * (STAGE_H + 0.25)
+	var wr := mid + along * ww + up * (STAGE_H + 0.25)
+	var wf := n * 0.09
+	_tri(out, wl + wf, wr + wf, wr + wf + up * 0.6, GLASS, inside)
+	_tri(out, wl + wf, wr + wf + up * 0.6, wl + wf + up * 0.6, GLASS, inside)
+	return {"pos": PackedVector3Array(out["pos"]), "nrm": PackedVector3Array(out["nrm"]), "col": PackedColorArray(out["col"])}

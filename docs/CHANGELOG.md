@@ -12,6 +12,7 @@ someone writes its lines.
 ## 2026-11-01
 - The PZU Tower and JM Tower on the Jana Pawła II and Jerozolimskie axes get their own glass: pale ribbon bands and a white mast, dark glass with grey fins.
 - Old Town roofs grow small gabled dormers with cream frames and dark windows, and some carry a brick chimney.
+- The houses on the east side of the Old Town market square get stepped attic gables facing the square.
 - The 1960s housing blocks behind the department stores are pale cream with long balcony bands, ochre end walls and lift houses on their roofs, and one carries a big lit billboard.
 - Behind the department stores, the tall block between Sawa and Wars is now a light, re-clad 1970s tower with rows of small windows, a dark glass base and big red letters on its roof.
 - The three department stores by the start look like the real ones: dark blue-grey glass in a tall grid, a deep dark shop floor under the overhang, small skylights and curved vents on the roofs, and big printed ad banners on their walls.

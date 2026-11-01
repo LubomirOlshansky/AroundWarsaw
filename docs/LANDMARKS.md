@@ -48,7 +48,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | --- | --- | --- |
 | 2.1 | Kościół św. Anny | portico of four columns, pediment, the bell tower (BACKLOG hand-over) |
 | 2.2 | Teatr Wielki | the colonnade and the portico on Plac Teatralny |
-| 2.3 | Old Town and New Town tenements | gables and dormers (map lane: `_tenement_facades`, the LoD2 roofs) |
+| 2.3 | Old Town and New Town tenements | dormers and chimneys DONE 2026-11-01; stepped attic gables on the market square's east side DONE 2026-11-01 (`OldTownRoofs.gable`); the New Town and the other sides stay open (map lane: `_tenement_facades`, the LoD2 roofs) |
 | 2.4 | Archikatedra, Barbakan | the Cathedral's stepped gable; the Barbican's towers and walls |
 | 2.5 | Pałac Prezydencki | DONE 2026-10-31 (model, spec `docs/landmarks/specs/prezydencki.md`, 868 tris): wings round the forecourt, portico, Poniatowski's statue, lions, gate, guardhouses; photo check on the Mac |
 | 2.6 | Kościół Świętego Krzyża, Wszystkich Świętych, św. Aleksandra | twin towers; the towers; the rotunda and dome |
