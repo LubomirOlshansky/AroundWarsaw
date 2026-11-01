@@ -18,6 +18,8 @@ extends Control
 ## under the top row; a bubble that finds no free spot above or below where it wanted to be
 ## keeps that spot (`overlaps` counts them, for tools/check_hud.gd).
 
+const Access := preload("res://scripts/access.gd")
+
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
 
@@ -76,6 +78,7 @@ func _px(points: float) -> int:
 ## typed out. `height` lifts the tail above a Node3D anchor's origin.
 func say(anchor: Variant, speaker: String, line: String, subtitle := "", seconds := 4.0,
 		accent := Color("#ffd23f"), height := 2.6) -> void:
+	accent = Access.tint(accent)  # colour-safe (access.gd)
 	hush(anchor)
 	var typing := line.length() / TYPE_RATE
 	var b := {"anchor": anchor, "speaker": speaker, "line": line, "sub": subtitle, "age": 0.0,
@@ -132,6 +135,7 @@ func is_talking(anchor: Variant) -> bool:
 
 ## A small name label that stays over `anchor` until untag(); hidden while it talks.
 func tag(anchor: Variant, text: String, colour: Color, height := 2.6) -> void:
+	colour = Access.tint(colour)  # colour-safe (access.gd)
 	for t in _tags:
 		if _same(t["anchor"], anchor):
 			t["text"] = text

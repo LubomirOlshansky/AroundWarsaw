@@ -416,7 +416,8 @@ at the hospital. Out of time: TRY AGAIN, NEXT CALL or FREE ROAM.
   stress them, and a jar breaks when the stress fills (the jars rattle first and the passenger
   warns you). A full stop from 50 km/h or a corner at 30 km/h is fine; slamming the brakes from
   90 or throwing it round a corner at 50 is not. The passenger chats on the way (`passenger`);
-  pay is 50 zł + 35 zł a jar, +30 respect with all six.
+  pay is 40 zł + 30 zł a jar (50 + 35 until the designer pass of 2026-11-01,
+  docs/design/pay-tables.md), +30 respect with all six.
 - **One activity at a time**: a job starts only with no rescue or race under way and not from
   the helicopter; while it runs, rescue calls and race challenges wait, and the helicopter
   stays parked (the order rides in the car).
@@ -4607,6 +4608,21 @@ runtime path, medians of 3 interleaved): 8.33 → 8.33 ms, scripts 0.90 → 0.90
 check_streaming runs the seven passes in part (d): heli, car, heli-low and switch may miss
 nothing; start, look and jump may show no proxy over 5 % of the view's ground; jump may load at once.
 
+**The west sectors (2026-11-01).** The look pass failed on every Mac run (s_-6_0 loading at
+530 m from the view's centre during the look at -2400, 600). `_queue_look`'s two squares (±137 m
+round the target, ±275 m round the halfway view) were smaller than the views: turned 45° and
+tipped 30°, a 110 m view covers ±147 m on the map before the towers behind it, which the view
+test counts. And the expectation ran out on the wall clock, so on frames slower than real time it
+ended mid-look. Now `CameraShots.look_keys` gives the look's views (the car's, MID's, the
+target's), `_queue_look` adds the way between them every `LOOK_STEP` (60 m), and the streamer's
+`expect_shot` wants every sector whose box meets one of those orthographic frusta
+(`ortho_planes`; the target's view at rank 0, the way at rank 1, in the order the camera passes
+them). The expectation runs on the streamer's game clock and `hold_expected` keeps it for the
+whole look once it starts. The look now waits for 3-14 sectors. Cloud look pass (llvmpipe, about
+3 fps, 2-9 s a load): 206 → 34 frames with a proxy in the view, 153 → 27 over 5 %, the look at
+-2400, 600 40 → 0. Mac (`tools/verify.sh --only=streaming`, head 39c0ca2): the look pass
+0 missing, no proxy in the view.
+
 ## Map north: Rondo Radosława, Arkadia and Forest (2026-10-31)
 
 The user asked for Rondo Radosława with its flag, Arkadia and the Forest tower. The map grows north
@@ -5508,6 +5524,7 @@ Command-line options (after `--`):
 | `--at=x,z` | start at map coordinates (metres, +x east, +z south), on top of a bridge deck if there is one |
 | `--heading=deg` | the car's heading at the start (0 north, 90 east), for testing: with `--demo` it drives off that way |
 | `--nohud` | hide the controls |
+| `--left-handed` | accessibility (2026-11-01): the left-handed layout for this run (the pedals, the horn and the helicopter's pads bottom left, the stick's side and Classic's strip on the right, the credit line bottom right), as Settings → DOSTĘP → "Dla leworęcznych" sets it; for shots (`tools/check_hud.gd` checks it) |
 | `--no-touch` | desktop (trailer loop, 2026-10-29): no touch-only controls on screen (the pedals and HAMULEC, the stick's knob and Classic's strip hint, the helicopter's ▲/▼ pads, the title's "tap to drive"); the top row, minimap, wallet, cards, bubbles and the radio caption stay, and the panels get the pedals' room; the keys still drive. For recording on the computer (`tools/check_hud.gd` checks it) |
 | `--no-input` | loop 3d-1: the window never takes the keyboard focus (`WINDOW_FLAG_NO_FOCUS`): test renders whose windows hold the focus for minutes (`check_streaming.gd` passes it; keys typed in another app had toggled the time of day, the overlay and the radio) |
 | `--prebuilt` | load the prebuilt sectors like the exported game (loop 3c: `map/index.res`, `map/proxies.scn`, `map/sectors/s_<i>_<j>.scn`; `city.scn` before) instead of building each sector from its file |
@@ -5631,6 +5648,8 @@ Command-line options (after `--`):
 | `--packs-log` | packs: print `packs:` lines: the routes' lengths, each club setting off and going home, each rave with its booth's position, the minute's summary (where each pack's head is), every line and meeting |
 | `--tram-log` | vintage-tram loop: print `old tram:` lines: each run taken out of sight and turned modern, the follow count every 50 m and its resets, E39 |
 | `--bus-log` | night-buses loop: print `buses:` lines: the hub's bays and stops, each gathering and ring bus, the car at the ring, the race to the Palm, each honk and called bus, the stop lines, a summary every 20 s |
+| `--crash=now` / `--crash=X,Z` / `--crash=on` / `--crash=0` | crash scenes (`crash_scenes.gd`): a scene now 45-130 m ahead of the car (shots; it may be in view), or on the fitting road nearest X,Z; `on`: the 3-5 minute timer in a test run too (it runs in a normal launch only); `0`: none |
+| `--crash-log` | crash scenes: print `crash:` lines: the first scene's wait, each scene (where, street, lane, vehicles, distance, life), the radio line, every bubble line, each clear and the next wait |
 | `--honk=F1,F2,...` | night-buses loop: the player honks on those frames (as the horn button; rate-limited) |
 | `--life-soak` | loop MW-4: a Friday dusk; the car is driven at the nearest dog walker or rider at 7 m/s, every frame counts a dog, walker or rider inside the car's footprint (`life: soak done … overlaps 0`); verify step `life-soak` |
 | `--paint=<id>` | garage loop: the car starts in that paint (`red`, `cream`, `green`, `blue`, `yellow`, `black`, `pink`, `gold`), owned for the run (use with `--nosave`) |

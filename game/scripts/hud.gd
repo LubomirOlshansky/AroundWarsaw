@@ -139,6 +139,8 @@ var brake := false
 ## Loop 2a: the GAS pedal (Classic), and the control scheme the pads are drawn for.
 var gas := false
 var scheme := 0
+## Accessibility (2026-11-01): the pedals on the left, the stick on the right (set_left_handed).
+var left_handed := false
 var settings_panel: Control
 ## F's asks (2026-10-30): the full-screen map (full_map.gd), made on its first open.
 var full_map: Control
@@ -504,6 +506,18 @@ func _on_resize() -> void:
 
 # --- pieces ----------------------------------------------------------------------------------
 
+## Every label made by `_label`, so `apply_text_scale` can resize them live (Settings → text size).
+var _scaled_labels: Array[Label] = []
+
+
+## Re-apply `Access.text_scale` to every HUD label at once (no restart). Dead labels are dropped.
+func apply_text_scale() -> void:
+	_scaled_labels = _scaled_labels.filter(func(l: Label) -> bool: return is_instance_valid(l))
+	for l in _scaled_labels:
+		l.add_theme_font_size_override("font_size", _px(float(l.get_meta("base_pt")) * Access.text_scale))
+	_mark()
+
+
 ## A font size in pixels for a size in points.
 func _px(points: float) -> int:
 	return maxi(1, roundi(points * pt))
@@ -512,6 +526,8 @@ func _px(points: float) -> int:
 ## A label on the type scale; `outline` for text that sits on the city rather than a panel.
 func _label(points: float, colour: Color, outline := false) -> Label:
 	var l := Label.new()
+	l.set_meta("base_pt", points)
+	_scaled_labels.append(l)
 	l.add_theme_font_size_override("font_size", _px(points * Access.text_scale))
 	l.add_theme_color_override("font_color", colour)
 	if outline:
@@ -644,8 +660,10 @@ func _layout_fixed() -> void:
 	_wallet.position = Vector2(x0, below)
 	_wallet.size = Vector2(_wallet_width(), 30.0 * pt)
 	_credit.size = _credit.get_combined_minimum_size()
-	# Bottom left: centred, it ran into Classic's BRAKE.
-	_credit.position = Vector2(x0, _safe.end.y - 3.0 * pt - _credit.size.y)
+	# Bottom left: centred, it ran into Classic's BRAKE. Left-handed: bottom right, the pedals' side
+	# swapped.
+	var credit_x := _safe.end.x - EDGE * pt - _credit.size.x if left_handed else x0
+	_credit.position = Vector2(credit_x, _safe.end.y - 3.0 * pt - _credit.size.y)
 	_top_y = (ROW_Y + ROW_H + GAP) * pt
 	_col_y = _wallet.position.y + _wallet.size.y + GAP * pt
 	_col_right = maxf(_wallet.position.x + _wallet.size.x, below - 6.0 * pt if _minimap == null else _minimap.position.x + _minimap.size.x) + GAP * pt
@@ -1110,6 +1128,7 @@ func _build_ticker() -> void:
 ## Shows a line on the now-playing ticker for a few seconds: the radio's station changes, and
 ## the radio host's lines with an English subtitle (held longer and wrapped to a readable width).
 func ticker(text: String, colour: Color, subtitle := "") -> void:
+	colour = Access.tint(colour)  # colour-safe (access.gd)
 	var font := ThemeDB.fallback_font
 	var room := minf(TICKER_W * pt, _safe.size.x * 0.5)
 	var long := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_BODY)).x > room \
@@ -1301,6 +1320,7 @@ func _build_mission_panels() -> void:
 ## the title and text in Polish, `title_en` and `body_en` under them in English.
 func show_card(title: String, body: String, buttons: PackedStringArray, accent: Color, bottom := false,
 		title_en := "", body_en := "") -> void:
+	accent = Access.tint(accent)  # colour-safe (access.gd)
 	# Loop 2d-1: any other card is the centred one again.
 	if _card_side and not _side_call:
 		_card_side = false
@@ -1343,6 +1363,7 @@ func hide_card() -> void:
 ## Polish, `hint_en` under it in English.
 func show_status(title: String, clock: String, distance: String, hint: String, progress: float, accent: Color,
 		badge := "", icons := {}, hint_en := "") -> void:
+	accent = Access.tint(accent)  # colour-safe (access.gd)
 	if icons != _icons:
 		if icons.is_empty() != _icons.is_empty():
 			_mark()
@@ -1351,7 +1372,7 @@ func show_status(title: String, clock: String, distance: String, hint: String, p
 		_status_icons.queue_redraw()
 	_status_badge.text = badge
 	_status_badge.visible = badge != ""
-	_status_badge.add_theme_color_override("font_color", Color("#56d68a") if badge == "1ST" else ACCENT)
+	_status_badge.add_theme_color_override("font_color", Access.tint(Access.GREEN) if badge == "1ST" else ACCENT)
 	_status_title.text = title
 	_status_title.add_theme_color_override("font_color", accent)
 	_status_clock.text = clock + "    " + distance
@@ -1371,6 +1392,7 @@ func hide_status() -> void:
 
 ## The button that challenges the rival in front (key L does the same): Polish over English.
 func show_challenge(text: String, accent: Color, gloss := "flash your lights to race (L)") -> void:
+	accent = Access.tint(accent)  # colour-safe (access.gd)
 	var top := (_challenge.get_child(0) as Control).get_child(0) as Label
 	if top.text != text:
 		_set_chip(_challenge, text, gloss, 240.0)
@@ -1384,6 +1406,7 @@ func hide_challenge() -> void:
 
 ## A big line across the middle of the screen: the race countdown.
 func show_banner(text: String, colour: Color) -> void:
+	colour = Access.tint(colour)  # colour-safe (access.gd)
 	if _banner.text != text:
 		_banner.text = text
 		_mark()
@@ -1488,6 +1511,7 @@ func set_flying(on: bool) -> void:
 ## The mission target as seen on screen (`at` in screen pixels); an arrow on the screen edge
 ## points to it when it's off screen.
 func set_target(at: Vector2, label: String, colour: Color, show: bool) -> void:
+	colour = Access.tint(colour)  # colour-safe (access.gd)
 	if show or _target_visible:
 		_overlay.queue_redraw()
 	_target_visible = show
@@ -1497,6 +1521,7 @@ func set_target(at: Vector2, label: String, colour: Color, show: bool) -> void:
 
 
 func set_minimap_target(xz: Vector2, colour: Color) -> void:
+	colour = Access.tint(colour)  # colour-safe (access.gd)
 	_mini_target = xz
 	_mini_target_colour = colour
 
@@ -1913,6 +1938,7 @@ func set_minimap_pois(points: PackedVector2Array, colours: PackedColorArray) -> 
 ## The same card, recipe and point sizes; the next show_card() puts it back in the middle.
 func show_side_card(title: String, body: String, buttons: PackedStringArray, accent: Color, title_en := "",
 		body_en := "") -> void:
+	accent = Access.tint(accent)  # colour-safe (access.gd)
 	_card_side = true
 	_set_card_width(side_card_width())
 	_side_call = true
@@ -2096,6 +2122,7 @@ static func _money(amount: int) -> String:
 
 ## A small card under the wallet for a few seconds (an easter egg found).
 func show_note(title: String, body: String, colour: Color) -> void:
+	colour = Access.tint(colour)  # colour-safe (access.gd)
 	_set_note_width()  # landmark card fix
 	_note_title.text = title
 	_note_title.add_theme_color_override("font_color", colour.lerp(Color.WHITE, 0.2))
@@ -2208,15 +2235,43 @@ func _draw_status_icons() -> void:
 # --- the pedals and the stick ----------------------------------------------------------------
 
 func _brake_centre() -> Vector2:
+	return _side(_brake_right())
+
+
+## Where BRAKE is in the right-handed layout (the left-handed one mirrors it: `_side`).
+func _brake_right() -> Vector2:
 	if scheme == CLASSIC:
 		# Left of GAS and a little lower, so the thumb rolls from one to the other.
 		return Vector2(_safe.end.x - 156.0 * pt, _safe.end.y - 42.0 * pt)
 	return Vector2(_safe.end.x - 56.0 * pt, _safe.end.y - 50.0 * pt)
 
 
+## Accessibility (2026-11-01): the left-handed layout mirrors a point of the right-handed one
+## across the safe area's middle (the pedals, the horn, the helicopter's pads, Classic's strip
+## and the ghost finger); right-handed, the point as it is.
+func _side(p: Vector2) -> Vector2:
+	return Vector2(_safe.position.x + _safe.end.x - p.x, p.y) if left_handed else p
+
+
+## Accessibility (2026-11-01): the left-handed layout on or off (Settings → DOSTĘP; access.gd).
+func set_left_handed(on: bool) -> void:
+	if on == left_handed:
+		return
+	left_handed = on
+	_mark()
+	if _pad != null:
+		_pad.queue_redraw()
+
+
+## Whether a finger coming down at x (pixels) is on the stick's side of the screen: the left
+## 60 %, or the right 60 % in the left-handed layout.
+func _stick_side(x: float, width: float) -> bool:
+	return x > width * 0.4 if left_handed else x < width * 0.6
+
+
 ## Loop 2a: the GAS pedal (Classic), where BRAKE is in the other schemes.
 func _gas_centre() -> Vector2:
-	return Vector2(_safe.end.x - 58.0 * pt, _safe.end.y - 52.0 * pt)
+	return _side(Vector2(_safe.end.x - 58.0 * pt, _safe.end.y - 52.0 * pt))
 
 
 ## The brake's touch radius (a little larger than drawn).
@@ -2226,7 +2281,8 @@ func _brake_reach() -> float:
 
 ## Where Classic's steering strip is hinted until a thumb comes down.
 func _strip_hint_centre() -> Vector2:
-	return Vector2(maxf(_safe.position.x + 110.0 * pt, _screen.x * 0.16), _safe.end.y - 60.0 * pt)
+	var x := maxf(_safe.position.x + 110.0 * pt, _screen.x * 0.16)
+	return Vector2(_screen.x - x if left_handed else x, _safe.end.y - 60.0 * pt)
 
 
 func _on_pedals(p: Vector2) -> bool:
@@ -2239,7 +2295,7 @@ func _on_pedals(p: Vector2) -> bool:
 ## The night-buses loop: the horn's centre, left of BRAKE (none in the helicopter).
 func _horn_centre() -> Vector2:
 	var r := CLASSIC_BRAKE_R if scheme == CLASSIC else BRAKE_R
-	return _brake_centre() + Vector2(-(r + HORN_CLEAR + HORN_R), r - HORN_R) * pt
+	return _side(_brake_right() + Vector2(-(r + HORN_CLEAR + HORN_R), r - HORN_R) * pt)
 
 
 ## The night-buses loop: a touch at `p` presses the horn.
@@ -2368,7 +2424,7 @@ const _UP_DOWN := [1, -1]
 
 ## The helicopter's climb (+1) and sink (-1) pads, stacked where the brake is.
 func _climb_centre(direction: int) -> Vector2:
-	return Vector2(_safe.end.x - 56.0 * pt, _safe.end.y - (130.0 if direction > 0 else 44.0) * pt)
+	return _side(Vector2(_safe.end.x - 56.0 * pt, _safe.end.y - (130.0 if direction > 0 else 44.0) * pt))
 
 
 ## Touches above this line belong to the top row (not the stick, not a tap on the city).
@@ -2415,7 +2471,7 @@ func _input(event: InputEvent) -> void:
 			elif not touch_off and not flying and touch.position.distance_to(_brake_centre()) < _brake_reach():
 				_brake_index = touch.index
 				brake = true
-			elif touch.position.x < size.x * 0.6 and touch.position.y > _row_bottom() and _stick_index == -1:
+			elif _stick_side(touch.position.x, size.x) and touch.position.y > _row_bottom() and _stick_index == -1:
 				_stick_index = touch.index
 				_stick_origin = touch.position
 				_stick_point = touch.position
@@ -2590,7 +2646,8 @@ func finger_shown() -> bool:
 ## Where the ghost finger presses: the stick's side of the screen (main.gd's --stick spot).
 func _finger_origin() -> Vector2:
 	var size := get_viewport().get_visible_rect().size
-	return Vector2(maxf(size.x * 0.2, _safe.position.x + 70.0 * pt), size.y * 0.68)
+	var x := maxf(size.x * 0.2, _safe.position.x + 70.0 * pt)
+	return Vector2(size.x - x if left_handed else x, size.y * 0.68)
 
 
 ## The ghost finger: a fingertip that comes down, drags up and to the right (the way Point steers:

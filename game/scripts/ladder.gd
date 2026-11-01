@@ -7,7 +7,7 @@ extends RefCounted
 ##   threshold (`RUNGS[i].respect`; the first needs neither). A beaten rung stays open (beaten
 ##   rivals are re-raced as before, the stake paid again). The final (`FINAL`, index 6) needs the
 ##   sixth rung beaten and FINAL_RESPECT.
-## - A race win gives +100 respect, so the thresholds (0, 100, 220, 340, 480, 640, 850; the main line
+## - A rung's first race win gives +100 respect (WIN_GAIN; a rematch +20), so the thresholds (0, 100, 220, 340, 480, 640, 850; the main line
 ##   retune of 2026-10-31, docs/design/main-line.md: about 250 respect from side quests in all, the
 ##   final within the first hour; it was 0/100/250/400/600/850/1100, ~500) pull the
 ##   jobs, the districts and the Syrenki in between the rungs.
@@ -35,6 +35,12 @@ const FINAL_RESPECT := 850
 ## The final's pay: złoty and respect (the first win and every rematch alike).
 const FINAL_ZL := 500
 const FINAL_GAIN := 250
+## Race respect (the designer pass, 2026-11-01, docs/design/pay-tables.md): a rung's first win
+## gives WIN_GAIN, a rematch of a beaten rival (or a race the ladder doesn't count) REMATCH_GAIN, so
+## re-racing Halina (+100 in about four minutes) is no shortcut past the gates; the stake is paid
+## every time. The final's rematches give REMATCH_GAIN too.
+const WIN_GAIN := 100
+const REMATCH_GAIN := 20
 ## Seba's pace in the final (a long race: the same as Zbyszek's, a bit under Mike's).
 const FINAL_PACE := 1.45
 const FINAL_ACCEL := 1.7
@@ -57,6 +63,14 @@ static func rung_of(name: String) -> int:
 ## The respect rung `i` needs (FINAL: FINAL_RESPECT).
 static func threshold(i: int) -> int:
 	return FINAL_RESPECT if i == FINAL else int(RUNGS[i]["respect"])
+
+
+## The respect a won race on rung `i` gives: WIN_GAIN (FINAL_GAIN for the final) when `first` (the
+## rung's first win, or a race outside the ladder), REMATCH_GAIN for a rematch.
+static func race_gain(i: int, first: bool) -> int:
+	if not first:
+		return REMATCH_GAIN
+	return FINAL_GAIN if i == FINAL else WIN_GAIN
 
 
 ## The save's key of rung `i`.
