@@ -72,7 +72,7 @@ then the Launch gate.
   - [ ] L1 track that reads as railway (sleepers, rails, ballast shoulders)
   - [ ] L2 catenary masts and wires
   - [ ] L3 the tunnel's portals at Ochota and Powiśle
-  - [ ] T1 trains through the city (suburban, city line, long-distance), `check_trains`
+  - [x] T1 trains through the city (suburban, city line, long-distance), `check_trains`, 2026-11-01
   - [ ] S3 the other stations: Stadion, Śródmieście's entrances, Wschodnia, Gdańska, Ochota WKD
   - [ ] L4 Most Średnicowy's look (after a Mac photo check)
 
