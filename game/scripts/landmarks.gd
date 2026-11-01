@@ -326,6 +326,9 @@ const INFO := {
 	"forest": ["Forest",
 			"Biurowiec z zielonymi tarasami i 120-metrową wieżą.",
 			"An office block of planted terraces and a 120 m tower."],
+	"gbc": ["Gdański Business Center",
+			"Biurowce przy Inflanckiej: szklana wieża ze ściętym czubkiem i dwa dziesięciopiętrowe bloki z białymi pasami pięter.",
+			"The offices on Inflancka: a glass tower with a slanted crown and two ten-storey blocks with white floor bands."],
 	"flaga": ["Flaga na rondzie Radosława",
 			"Biało-czerwona na maszcie wysokim na prawie 58 m.",
 			"The white-and-red on a mast almost 58 m tall."],
@@ -511,6 +514,8 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return Color(PLAC_WALLS[key])
 	if MALACHOWSKI_WALLS.has(key):
 		return Color(MALACHOWSKI_WALLS[key])
+	if key == "gbc":
+		return GBC_GLASS
 	if key == "buw":
 		return BUW_GLASS
 	if key == "kopernik":
@@ -650,6 +655,7 @@ func _find_sites() -> void:
 	_find_rynek()
 	_find_arkadia()
 	_find_forest()
+	_find_gbc()
 	_find_flag()
 	_find_swieto()
 	# The museum and Plac Piłsudskiego loop (2026-10-31): the square's edges.
@@ -975,6 +981,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_arkadia(s)
 			"forest":
 				_build_forest(s)
+			"gbc":
+				_build_gbc(s)
 			"flaga":
 				_build_flag(s)
 			"swieto":
@@ -3294,6 +3302,65 @@ func _build_forest(site: Dictionary) -> void:
 			for q in poly:
 				hedge.append(q + (c - q).normalized() * 0.6)
 			_prism(hedge, g + h, g + h + 0.9, FOREST_GREEN.darkened(0.15), FOREST_GREEN.lightened(0.08), M_STONE, M_STONE)
+		_collide(poly)
+
+
+## Gdański Business Center (Inflancka, by Dworzec Gdański; spec docs/landmarks/specs/gbc.md):
+## a 74 m glass tower whose crown is cut on a slant, and the 45 m and 31 m blocks beside it,
+## built from their mapped parts (the box is also bake_sectors.py SITE_AREAS). The tower is blue
+## glass in a fine grid; the blocks are ten storeys of glass between white floor bands, a dark
+## top floor that overhangs a little, and the tenants' logos on it (parodies: AWIWA, NIELZEN).
+const GBC_BOX := Rect2(-2175.0, -2520.0, 230.0, 185.0)
+const GBC_GLASS := Color("#5f86ae")
+const GBC_BLOCK := Color("#7f9fa6")
+const GBC_DARK := Color("#2a2d33")
+const GBC_ROOF := Color("#9ba1a5")
+func _find_gbc() -> void:
+	var zone: Array = []
+	var parts: Array = []
+	for bld in data["buildings"]:
+		var q := _pts(bld["p"])
+		if q.size() >= 3 and GBC_BOX.has_point(_centre(q)) and float(bld["h"]) >= 25.0:
+			zone.append(q)
+			parts.append(bld)
+	_add_site("gbc", zone)
+	if not sites.is_empty() and sites[-1]["key"] == "gbc":
+		sites[-1]["parts"] = parts
+
+
+func _build_gbc(site: Dictionary) -> void:
+	var parts: Array = site["parts"]
+	var tallest := 0.0
+	_g = INF
+	for bld in parts:
+		tallest = maxf(tallest, float(bld["h"]))
+		_g = minf(_g, _ground_under(_pts(bld["p"])))
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	for bld in parts:
+		var poly := _pts(bld["p"])
+		var h := float(bld["h"])
+		if h >= tallest - 0.5:
+			# The tower: a lit lobby, blue glass in a fine grid, a crown cut on a slant with a
+			# dark band under its high edge.
+			var drop := 7.5
+			var shoulder := g + h - drop - 3.0
+			_prism(poly, g - 0.4, g + 5.0, GBC_GLASS.lightened(0.15), none, M_PAVILION)
+			_prism(poly, g + 5.0, shoulder, GBC_GLASS, GBC_DARK, M_SKIN + S_GRID / 16.0, M_STONE)
+			var band := Geometry2D.offset_polygon(poly, 0.35)
+			var ring: PackedVector2Array = band[0] if not band.is_empty() else poly
+			_sloped(_simplify(ring, 0.6), shoulder, g + h, g + h - drop, GBC_DARK, GBC_ROOF, M_STONE)
+			_crown_signs(poly, g + h - drop, "AWIWA", Color(0.96, 0.97, 1.0), 2.6, 0.45)
+		else:
+			# A ten-storey block: lit lobby, glass between white floor bands, a dark top floor
+			# that overhangs 0.5 m, a pale roof, one logo on the long faces facing the camera.
+			var crown := 3.8
+			_prism(poly, g - 0.4, g + 5.0, GBC_BLOCK.lightened(0.2), none, M_PAVILION)
+			_prism(poly, g + 5.0, g + h - crown, GBC_BLOCK, none, M_SKIN + S_RIBBON / 16.0)
+			var top := Geometry2D.offset_polygon(poly, 0.5)
+			var ring: PackedVector2Array = top[0] if not top.is_empty() else poly
+			_prism(ring, g + h - crown, g + h, GBC_DARK, GBC_ROOF, M_STONE, M_STONE)
+			_crown_signs(ring, g + h, "NIELZEN", Color(0.9, 0.96, 1.0), 1.0, 0.4)
 		_collide(poly)
 
 
