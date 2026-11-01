@@ -200,7 +200,9 @@ const STAND_TAG_REACH := 220.0
 ## The four new billboards (6.2): the line's first word -> the place they stand by, the colours.
 const BILLBOARDS := {"FROGS": ["swietokrzyska_metro", "#4fae3b", "#fbf7ee"], "PODWÓZKA": ["dworzec_centralny", "#1f1f22", "#e8f4ff"],
 		"PĘDZIK": ["hala_mirowska", "#c23a7e", "#fbf7ee"], "LEŻAK": ["nowy_swiat_uniwersytet", "#8e44d9", "#fbf7ee"],
-		"WIRALEK": ["wiralek_chmielna", "#1c1f26", "#ff7ac8"]}
+		"WIRALEK": ["wiralek_chmielna", "#1c1f26", "#ff7ac8"],
+		"KLATKA": ["hala_mirowska", "#1d3b5c", "#fbf7ee"], "METRAŻ": ["swietokrzyska_metro", "#f4f1ea", "#1d3b5c"],
+		"KREDYT": ["dworzec_centralny", "#c8282a", "#fbf7ee"]}
 
 var map: Node3D
 var graph  # LaneGraph
