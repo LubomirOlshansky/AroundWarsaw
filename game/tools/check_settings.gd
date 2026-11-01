@@ -136,5 +136,35 @@ func _initialize() -> void:
 	for f in [SCRATCH, SCRATCH_OFF, SCRATCH_OLD]:
 		if FileAccess.file_exists(f):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(f))
+	ok = _check_tint() and ok
 	print("settings: %s" % ("OK" if ok else "PROBLEM"))
 	quit(0 if ok else 1)
+
+
+## Colour-safe (access.gd `tint`): off, every colour as it is; on, the game's success green and fail
+## red (every script's constant for them) turn blue and vermilion, and other colours stay.
+func _check_tint() -> bool:
+	var A := preload("res://scripts/access.gd")
+	var greens := [A.GREEN, load("res://scripts/missions.gd").DROPOFF_COLOUR, load("res://scripts/rivals.gd").WIN_COLOUR]
+	var reds := [A.RED, load("res://scripts/missions.gd").FAIL_COLOUR, load("res://scripts/rivals.gd").LOSE_COLOUR,
+			load("res://scripts/jobs.gd").FAIL_COLOUR, load("res://scripts/rides.gd").FAIL_COLOUR,
+			load("res://scripts/roundup_job.gd").FAIL_COLOUR, load("res://scripts/trend_job.gd").FAIL_COLOUR]
+	var others := [Color("#ffd23f"), Color("#ff8a3d"), Color("#4fd8c4"), Color("#ff4fd8"), Color.WHITE]
+	var good := true
+	var was: bool = A.color_safe
+	A.color_safe = false
+	for c in greens + reds + others:
+		good = good and A.tint(c) == c
+	A.color_safe = true
+	for c in greens:
+		good = good and A.tint(c) == A.GREEN_SAFE
+	for c in reds:
+		good = good and A.tint(c) == A.RED_SAFE
+	for c in others:
+		good = good and A.tint(c) == c
+	var faded := Color(A.GREEN, 0.5)
+	good = good and is_equal_approx(A.tint(faded).a, 0.5) and A.tint(faded).b > 0.9
+	A.color_safe = was
+	print("colour-safe tint: %s (%d greens -> blue, %d reds -> vermilion, %d others kept)" % ["OK" if good else "WRONG",
+			greens.size(), reds.size(), others.size()])
+	return good

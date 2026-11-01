@@ -59,7 +59,12 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
   layouts (cards, bubbles) need a check at x1.25 on the SE.
 - Subtitles: nothing is voiced yet; revisit when speech or radio talk with words lands.
 - ~~Crash sparks buzz through `Access.buzz`~~ Done (2026-11-01: crash_fx.gd shakes nothing; the
-  car's knock goes through haptics.gd, which keeps `Access.vibration`). Colour-safe still to cover the HUD's green badges and the red fail colour.
+  car's knock goes through haptics.gd, which keeps `Access.vibration`). ~~Colour-safe still to cover the HUD's green badges and the red fail colour.~~ Done
+  (2026-11-01): `Access.tint` turns the success green blue and the fail red a lighter vermilion in
+  the cards, the status panel and its 1ST badge, banners, notes, the ticker, the target arrow, the
+  minimap target and the speech bubbles (`check_settings` "colour-safe tint" covers every script's
+  green and red constant). Left: 3D markers other than the drop-off beacon (race and rescue
+  rings) and a look on the phone.
 
 ## Ground vertex compression, to re-apply on the Mac (stale PR #53 triage, 2026-11-01)
 - PR #53 (commit b343d60, branch `claude/project-thread-ldyr9u`) stores the ground's meshes with

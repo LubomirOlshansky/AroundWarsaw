@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- The colour-blind option now also changes the green "win" and red "fail" cards and badges to blue and orange-red, so they are easy to tell apart.
 - Left-handed? Settings → DOSTĘP swaps the controls: brake, gas, horn and the helicopter's buttons go to the left, steering to the right.
 - Settings has an "About" page now (Sound → LICENCJE): who made the map data, the engine, the add-ons and every song on the radio, with their licences.
 - When the camera flies off to show a new job across town, the city there is ready when it arrives instead of grey stand-in blocks.
