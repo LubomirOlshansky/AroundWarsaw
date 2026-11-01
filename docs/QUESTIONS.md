@@ -18,6 +18,11 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · content · the Norblin milk bar's name** — Default to build: **KROWA 2.0** (a bar
+  mleczny rebuilt as a start-up, sign "BAR MLECZNY / KROWA 2.0", pale-blue tube, open 8-18 with a
+  long lunch line). Say if you want another name. Also parked: the Mac look check of the four
+  sites (BACKLOG "Norblin, Browary, Koszyki, Elektrownia").
+
 - **2026-11-01 · content · the trains' parody names** — Default to build: KOLEJE MAZOWE (the
   green and white suburban units), SKiM (the red and yellow city line), INTERSZYBKO (the
   long-distance coaches). Say if any should change. docs/design/railway.md section 4.
@@ -80,6 +85,13 @@ Newest first. One entry per question.
   south garden's beds are drawn as shrub, heather or lawn by a hash, not plant by plant; the
   four mapped vents at the north corner stand outside the outline as the city's plain drums.
   Default built: those. F to check against a photo or the street (docs/landmarks/buw.md).
+
+- **2026-11-01 · landmarks · Ministerstwo Finansów** — Built from the outline and public facts only
+  (no photo): pale pink-grey stone, rusticated ground floor, three storeys of bays, a cornice, a
+  central risalit with three doors, hipped roofs on the two south pavilions (the court's fountain is
+  the map's own). Mac photo check wanted: the real colour, whether the pavilions and the entrance
+  rise above the roofline, the window rhythm and the entrance's column or pilaster count. Default
+  built as above (spec docs/landmarks/specs/mf.md).
 
 - **2026-11-01 · landmarks · the Palace's stone colour** — The Mac photo check (PR #128) finds the
   Palace's stone too warm: the photos show a cooler grey-beige (about #cfc6b5 in sun) than the

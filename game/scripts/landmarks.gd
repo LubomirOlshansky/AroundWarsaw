@@ -251,6 +251,18 @@ const INFO := {
 	"aleksander": ["Kościół Świętego Aleksandra",
 			"Rotunda na placu Trzech Krzyży.",
 			"The rotunda on Plac Trzech Krzyży."],
+	"norblin": ["Fabryka Norblina",
+			"Ceglane hale z szklanymi piętrami i komin. Tu się teraz siedzi.",
+			"Brick halls with glass storeys on top, and a chimney. People sit here now."],
+	"browary": ["Browary Warszawskie",
+			"Dawny browar Haberbuscha i Schielego, dziś biura i bary.",
+			"The old Haberbusch and Schiele brewery, offices and bars now."],
+	"koszyki": ["Hala Koszyki",
+			"Ceglana hala targowa z 1909 roku. Dziś: ramen.",
+			"The brick market hall of 1909. Now: ramen."],
+	"elektrownia": ["Elektrownia Powiśle",
+			"Dawna elektrownia na Dobrej, dziś sklepy i jedzenie pod kominami.",
+			"The old power station on Dobra, shops and food under its chimneys."],
 	"mirowska": ["Hala Mirowska",
 			"Ceglana hala targowa.",
 			"A brick market hall."],
@@ -284,6 +296,9 @@ const INFO := {
 	"sejm": ["Sejm RP",
 			"Przy Wiejskiej.",
 			"On Wiejska."],
+	"mf": ["Ministerstwo Finansów",
+			"Gmach z lat 1953–56 przy Świętokrzyskiej. Tu liczą cudze pieniądze.",
+			"1953–56 on Świętokrzyska: where the country's money is counted."],
 	"muzeum": ["Muzeum Narodowe",
 			"Gmach z lat 1927–1938 przy Alejach Jerozolimskich.",
 			"The museum's building of 1927–1938 on Al. Jerozolimskie."],
@@ -441,6 +456,8 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return BUW_GLASS
 	if key == "kopernik":
 		return KOP_WALL
+	if key == "mf":
+		return MF_WALL
 	return fallback
 
 
@@ -617,6 +634,10 @@ func _find_sites() -> void:
 	_find_buw()
 	# The Copernicus Science Centre and its planetarium (2026-11-01): a model instead of a skin.
 	_find_kopernik()
+	# F's ask (2026-11-01): Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle.
+	_find_works()
+	# The Ministry of Finance (2026-11-01): a model instead of the mapped box.
+	_find_mf()
 
 
 ## Warszawa Centralna (spec docs/landmarks/specs/centralna.md, 2026-10-31): OpenStreetMap maps
@@ -923,6 +944,16 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_buw(s)
 			"kopernik":
 				_build_kopernik(s)
+			"norblin":
+				_build_norblin(s)
+			"browary":
+				_build_browary(s)
+			"koszyki":
+				_build_koszyki(s)
+			"elektrownia":
+				_build_elektrownia(s)
+			"mf":
+				_build_mf(s)
 			"teatr":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the portico is ours
 				_build_teatr(s)
@@ -8613,3 +8644,350 @@ func _build_srodmiescie(site: Dictionary) -> void:
 		var at: Vector2 = f[0] + side * (float(f[4]) + SRD_OVER)
 		signs.append(["ŚRÓDMIEŚCIE", Vector3(at.x, g + SRD_GLASS_H + 0.55, at.y), Vector3(side.x, 0.0, side.y), 0.5, SRD_NEON])
 		_collide(hall)
+
+# --- The brick works: Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle -------------
+## F's ask (2026-11-01): the four old-industry-turned-hangout sites of the west and south as
+## models (specs docs/landmarks/specs/norblin.md, browary.md, koszyki.md, elektrownia.md), each on
+## its mapped outline: brick walls on a plinth with round-headed windows in rows and a cornice, and
+## what makes each one itself. Norblin: glazed storeys over the restored halls and a chimney in the
+## court; the Browary: the brewhouse (Warzelnia) and the villa in brick, the office blocks clad in
+## warm grey with window bays, the brewery chimney; Koszyki: the market hall with its glass
+## lantern; the power station: two big storeys of arches and two chimneys. No photos in the
+## cloud: the Mac look check (BACKLOG) settles brick shade, storeys and the chimneys.
+const WORKS_BRICK := Color("#9b4d39")
+const WORKS_DARK := Color("#7d3b2c")
+const WORKS_TRIM := Color("#d3c7ab")
+const WORKS_PLINTH := Color("#6f6a63")
+const WORKS_ROOF := Color("#5d6366")
+const WORKS_GLASS := Color("#2f3a40")
+const WORKS_TOP := Color("#9db4be")
+const WORKS_MODERN := Color("#b3a894")
+const NORBLIN_PT := Vector2(-2273.0, 58.0)  # inside the tall mapped wing (43.9 m)
+const BROWARY_NAMES := ["Warzelnia", "Laboratorium", "Biura przy Bramie", "Biura przy Warzelni", "Biura przy Willi", "Willa Schielego"]
+
+
+## The landmark `name` whose outline lies near `at` (OSM repeats a name elsewhere in the city).
+func _landmark_near(name: String, at: Vector2, reach: float) -> PackedVector2Array:
+	for l in data.get("landmarks", []):
+		if l["name"] == name:
+			var q := _pts(l["p"])
+			if q.size() >= 3 and _centre(q).distance_to(at) < reach:
+				return q
+	return PackedVector2Array()
+
+
+func _find_works() -> void:
+	var nor := _landmark("Modsen")
+	if nor.size() >= 3:
+		_add_site("norblin", [nor])
+		if sites[-1]["key"] == "norblin":
+			sites[-1]["ring"] = nor
+			sites[-1]["wing"] = _tallest_at(NORBLIN_PT)
+	var rings: Array = []
+	var roles: Array = []
+	for n: String in BROWARY_NAMES:
+		var q := _landmark_near(n, Vector2(-2500.0, -100.0), 200.0)
+		if q.size() >= 3:
+			rings.append(q)
+			roles.append(n)
+	if not rings.is_empty():
+		_add_site("browary", rings)
+		if sites[-1]["key"] == "browary":
+			sites[-1]["roles"] = roles
+	var kosz := _landmark("Hala Koszyki")
+	if kosz.size() >= 3:
+		_add_site("koszyki", [kosz])
+		if sites[-1]["key"] == "koszyki":
+			sites[-1]["ring"] = kosz
+	var elek := _landmark("Elektrownia Powiśle")
+	if elek.size() >= 3:
+		_add_site("elektrownia", [elek])
+		if sites[-1]["key"] == "elektrownia":
+			sites[-1]["ring"] = elek
+
+
+## A ring grown by `d` (shrunk when negative): its largest piece, or empty.
+func _grown(ring: PackedVector2Array, d: float) -> PackedVector2Array:
+	var out := Geometry2D.offset_polygon(ring, d, Geometry2D.JOIN_MITER)
+	var best := PackedVector2Array()
+	var a := 0.0
+	for q: PackedVector2Array in out:
+		var s := absf(_area(q))
+		if s > a and not Geometry2D.is_polygon_clockwise(q):
+			a = s
+			best = q
+	return best
+
+
+## Brick walls round a ring from the ground to `h`: a plinth, a cornice, and round-headed windows
+## in `rows` ([foot, spring, half width] above the ground) every `pitch` m along each wall longer
+## than two bays (the windows are the walls' own panels, a few cm proud).
+func _works_walls(ring: PackedVector2Array, h: float, brick: Color, rows: Array, pitch: float, glass := WORKS_GLASS) -> void:
+	var g := _g
+	var base := _grown(ring, 0.2)
+	if base.size() >= 3:
+		_prism(base, g - 0.6, g + 1.0, WORKS_PLINTH, WORKS_PLINTH, M_STONE, M_STONE)
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var length := a.distance_to(b)
+		var n := floori((length - 1.0) / pitch)
+		if n < 2:
+			continue
+		var e := (b - a) / length
+		var out := _out(ring, a, b)
+		var t0 := (length - n * pitch) * 0.5 + pitch * 0.5
+		for k in n:
+			var at := a + e * (t0 + k * pitch)
+			for r: Array in rows:
+				_arch_win(at, e, out, float(r[2]), g + float(r[0]), g + float(r[1]), glass)
+	var top := _grown(ring, 0.25)
+	if top.size() >= 3:
+		# The cornice's cap is the whole roof (one flat top, no second at the same height).
+		_prism(ring, g - 0.6, g + h, brick, Color(0, 0, 0, 0), M_STONE, M_STONE)
+		_prism(top, g + h - 0.9, g + h, WORKS_TRIM, WORKS_ROOF, M_STONE, M_STONE)
+	else:
+		_prism(ring, g - 0.6, g + h, brick, WORKS_ROOF, M_STONE, M_STONE)
+
+
+## Glazed storeys on a ring: inset 1.8 m, curtain glass in `storeys` of 3.6 m from y, a flat roof.
+func _works_top(ring: PackedVector2Array, y: float, storeys: int) -> void:
+	var inner := _grown(ring, -1.8)
+	if inner.size() < 3:
+		return
+	var h := storeys * 3.6
+	_mode = M_GLASS
+	_prism(inner, y, y + h, WORKS_TOP, WORKS_ROOF, M_GLASS, M_STONE)
+	_parapet(inner, y + h, 0.7, WORKS_TRIM)
+	_mode = M_STONE
+
+
+## A brick chimney: a tapering ten-sided stack on a plinth, two pale bands and a cap near the top.
+func _works_chimney(c: Vector2, h: float, r0: float, brick: Color) -> void:
+	var g := _g
+	var r1 := r0 * 0.62
+	_mode = M_STONE
+	_prism(_circle(c, r0 * 1.5, 10), g - 0.6, g + 1.4, WORKS_PLINTH, WORKS_PLINTH, M_STONE, M_STONE)
+	_frustum(_circle(c, r0, 10), g + 1.4, _circle(c, r1, 10), g + h, brick)
+	for band: float in [3.6, 6.4]:
+		var y0 := g + h - band
+		var t0 := (y0 - g - 1.4) / (h - 1.4)
+		var t1 := (y0 + 1.0 - g - 1.4) / (h - 1.4)
+		_frustum(_circle(c, lerpf(r0, r1, t0) + 0.06, 10), y0, _circle(c, lerpf(r0, r1, t1) + 0.06, 10), y0 + 1.0, WORKS_TRIM)
+	_prism(_circle(c, r1 + 0.35, 10), g + h - 1.2, g + h, WORKS_TRIM.darkened(0.1), WORKS_ROOF, M_STONE, M_STONE)
+	_collide(_circle(c, r0, 8))
+
+
+## The ring's vertex farthest from `from`.
+func _farthest(ring: PackedVector2Array, from: Vector2) -> Vector2:
+	var best := ring[0]
+	for q in ring:
+		if q.distance_to(from) > best.distance_to(from):
+			best = q
+	return best
+
+
+## The long axis of a ring: [the origin (its low corner), the unit direction along the longest edge,
+## the unit across, the length, the width], for a lantern or ridge.
+func _long_axis(ring: PackedVector2Array) -> Array:
+	var a := Vector2.RIGHT
+	var best := 0.0
+	for i in ring.size():
+		var d := ring[(i + 1) % ring.size()] - ring[i]
+		if d.length() > best:
+			best = d.length()
+			a = d.normalized()
+	var b := Vector2(-a.y, a.x)
+	var u0 := INF
+	var u1 := -INF
+	var v0 := INF
+	var v1 := -INF
+	for q in ring:
+		u0 = minf(u0, q.dot(a))
+		u1 = maxf(u1, q.dot(a))
+		v0 = minf(v0, q.dot(b))
+		v1 = maxf(v1, q.dot(b))
+	return [a * u0 + b * v0, a, b, u1 - u0, v1 - v0]
+
+
+func _build_norblin(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	# The restored halls: brick, two rows of arched windows, three glazed storeys over them.
+	_works_walls(ring, 12.0, WORKS_BRICK, [[1.3, 5.0, 1.15], [7.0, 10.4, 1.05]], 4.2)
+	_works_top(ring, g + 12.0, 3)
+	# The tall mapped wing (43.9 m): two more glazed storeys over the glass.
+	var wing: PackedVector2Array = site.get("wing", PackedVector2Array())
+	if wing.size() >= 3:
+		_works_top(wing, g + 12.0 + 3.0 * 3.6, 2)
+	# The chimney in the court: the point of the ring's box farthest from every wall.
+	var box := _box_of([ring])
+	var best := box.get_center()
+	var room := 0.0
+	var x := box.position.x
+	while x < box.end.x:
+		var z := box.position.y
+		while z < box.end.y:
+			var p := Vector2(x, z)
+			if not Geometry2D.is_point_in_polygon(p, ring):
+				var d := INF
+				for i in ring.size():
+					var cp := Geometry2D.get_closest_point_to_segment(p, ring[i], ring[(i + 1) % ring.size()])
+					d = minf(d, cp.distance_to(p))
+				if d > room and d < 30.0:
+					room = d
+					best = p
+			z += 2.0
+		x += 2.0
+	_works_chimney(best, 36.0, 1.5, WORKS_BRICK)
+	_collide(ring)
+
+
+func _build_browary(site: Dictionary) -> void:
+	var zone: Array[PackedVector2Array] = site["zone"]
+	var roles: Array = site["roles"]
+	for k in zone.size():
+		var ring := zone[k]
+		var role: String = roles[k]
+		_g = _ground_under(ring)
+		var g := _g
+		var h := 12.0
+		match role:
+			"Warzelnia":
+				# The brewhouse: tall brick, narrow lancet-like windows in two rows, the brewery chimney by it.
+				_works_walls(ring, 14.0, WORKS_DARK, [[1.2, 5.4, 0.9], [7.0, 11.4, 0.9]], 3.4)
+				_works_chimney(_farthest(ring, _centre(ring)) + (_centre(ring) - _farthest(ring, _centre(ring))).normalized() * 3.0,
+						46.0, 1.7, WORKS_DARK)
+			"Willa Schielego":
+				_works_walls(ring, 8.0, WORKS_BRICK.lightened(0.08), [[1.2, 3.4, 0.7]], 3.4)
+			"Laboratorium":
+				_works_walls(ring, 8.0, WORKS_BRICK, [[1.2, 3.8, 0.8]], 3.6)
+			_:
+				# The office blocks between the old walls: warm grey, brick-coloured base, glass bays.
+				h = 22.0 if role == "Biura przy Warzelni" else 30.0
+				_prism(_grown(ring, 0.2), g - 0.6, g + 3.0, WORKS_BRICK, WORKS_BRICK, M_STONE, M_STONE)
+				_prism(ring, g - 0.6, g + h, WORKS_MODERN, WORKS_ROOF, M_STONE, M_STONE)
+				_parapet(ring, g + h, 0.8, WORKS_TRIM)
+				_bays(ring, 3.4, h - 1.2, 3.0, 1.9, WORKS_GLASS)
+		_collide(ring)
+
+
+func _build_koszyki(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	# The market hall: brick with big arched windows, cream trim, and its glass lantern.
+	_works_walls(ring, 11.0, WORKS_BRICK.lightened(0.04), [[1.3, 6.0, 1.3]], 4.4)
+	var ax := _long_axis(ring)
+	var o: Vector2 = ax[0]
+	var a: Vector2 = ax[1]
+	var b: Vector2 = ax[2]
+	var c := o + a * float(ax[3]) * 0.5 + b * float(ax[4]) * 0.5
+	_o = c
+	_a = a
+	_b = b
+	var half := float(ax[3]) * 0.3
+	_lbox(0.0, 0.0, half, 3.2, g + 11.0, g + 13.6, WORKS_TOP, M_GLASS, WORKS_TOP)
+	_mode = M_GLASS_ROOF
+	_frustum(_rect(0.0, 0.0, half, 3.2), g + 13.6, _rect(0.0, 0.0, half, 0.3), g + 15.0, WORKS_TOP, WORKS_TOP)
+	_mode = M_STONE
+	_collide(ring)
+
+
+func _build_elektrownia(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	# The power station: two storeys of tall arches, the roof in zinc grey, two chimneys.
+	_works_walls(ring, 19.0, WORKS_BRICK, [[1.4, 7.4, 1.5], [9.4, 15.6, 1.4]], 5.0)
+	_parapet(ring, g + 19.0, 0.9, WORKS_TRIM)
+	var c := _centre(ring)
+	var far_a := _farthest(ring, c)
+	var far_b := _farthest(ring, far_a)
+	for p: Vector2 in [far_a, far_b]:
+		_works_chimney(p + (c - p).normalized() * 3.0, 48.0, 2.0, WORKS_BRICK)
+
+
+# --- Ministerstwo Finansów (the landmarks lane, 2026-11-01, spec docs/landmarks/specs/mf.md) -----
+
+## The Ministry of Finance, Świętokrzyska 12 (Stanisław Bieńkuński and Stanisław Rychłowski,
+## 1953-1956; socialist realism with art déco, "Renaissance and Baroque palace principles" in
+## pale pink-grey Suchedniów sandstone and terrazzo plaster; a monument since 2012). Its mapped
+## outline is a comb: two wings reaching south to Świętokrzyska round a court with a round
+## fountain, the 83 m central block with its entrance in the middle of the south face, the long
+## north-west wing. The model lifts that outline (`_simplify`d) on a rusticated ground floor,
+## three storeys of tall bays, a cornice, an attic parapet and a dark flat roof; the central
+## entrance is a risalit with six pilasters, three doors, steps and a raised attic; each wing
+## ends in a hipped-roof pavilion; the court's fountain is the map's own. Heights are the
+## map's (17.5 m); the pavilions' roofs, the risalit's rise and the colours are a first pass
+## for the Mac photo check.
+const MF_TOP := 17.5
+const MF_FACE_E := Vector2(-506.7, -409.1)   # the central block's south face, east end
+const MF_FACE_W := Vector2(-586.1, -384.4)   # ... and west end
+const MF_BARS := [[Vector2(-464.2, -336.0), Vector2(-497.5, -325.0)], [Vector2(-545.4, -310.1), Vector2(-578.8, -300.1)]]
+const MF_BAR_DEPTH := 13.0
+const MF_WALL := Color("#d9ccc4")
+const MF_BASE := Color("#b9aca3")
+const MF_LIGHT := Color("#e7ded8")
+const MF_ROOF := Color("#6b716f")
+const MF_GLASS := Color("#3b4650")
+const MF_DOOR := Color("#34393d")
+func _find_mf() -> void:
+	var outline := _landmark("Ministerstwo Finansów")
+	if outline.size() < 3:
+		return
+	_add_site("mf", [outline])
+	if not sites.is_empty() and sites[-1]["key"] == "mf":
+		sites[-1]["ring"] = _simplify(outline, 1.8)
+
+
+func _build_mf(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	var h := MF_TOP
+	var none := Color(0, 0, 0, 0)
+	# The central entrance's frame: u along the south face (east to west), +v out into the court.
+	_o = (MF_FACE_E + MF_FACE_W) * 0.5
+	_a = (MF_FACE_W - MF_FACE_E).normalized()
+	_b = Vector2(_a.y, -_a.x)
+	var porch := _rect(0.0, 1.2, 13.0, 3.0)
+	# windows first (7 cm proud), so the walls behind them stay whole
+	_bays(ring, 1.0, 4.1, 3.6, 1.4, MF_GLASS, porch)
+	_bays(ring, 5.5, 14.0, 3.6, 1.7, MF_GLASS, porch)
+	_mode = M_STONE
+	_prism(ring, g - 0.6, g + 4.6, MF_BASE, none, M_STONE)
+	_prism(ring, g + 4.6, g + h, MF_WALL, MF_ROOF, M_STONE, M_STONE)
+	# the string course over the rusticated floor, the cornice and the attic parapet
+	var course := _largest(Geometry2D.offset_polygon(ring, 0.15, Geometry2D.JOIN_MITER))
+	_prism(course, g + 4.6, g + 5.0, MF_LIGHT, MF_LIGHT, M_STONE, M_STONE)
+	var eave := _largest(Geometry2D.offset_polygon(ring, 0.45, Geometry2D.JOIN_MITER))
+	_prism(eave, g + h - 2.3, g + h - 1.6, MF_LIGHT, MF_LIGHT, M_STONE, M_STONE)
+	_parapet(ring, g + h, 1.1, MF_LIGHT)
+	# the central risalit: rusticated below, six pilasters, three doors, a raised attic
+	_lbox(0.0, 0.45, 12.0, 1.95, g - 0.6, g + 4.6, MF_BASE, M_STONE, none)
+	_lbox(0.0, 0.45, 12.0, 1.95, g + 4.6, g + h + 2.0, MF_WALL, M_STONE, none)
+	_lbox(0.0, 0.5, 12.5, 2.45, g + h + 2.0, g + h + 2.8, MF_LIGHT, M_STONE, MF_LIGHT)
+	_mode = M_GLASS
+	for u: float in [-9.0, -4.5, 0.0, 4.5, 9.0]:
+		_wall(_w(u - 0.85, 2.43), _w(u + 0.85, 2.43), g + 5.5, g + 14.0, _b, MF_GLASS, 0.1)
+	for u: float in [-9.0, 9.0]:
+		_wall(_w(u - 0.7, 2.43), _w(u + 0.7, 2.43), g + 1.0, g + 4.1, _b, MF_GLASS, 0.1)
+	_mode = M_STONE
+	for u: float in [-4.5, 0.0, 4.5]:
+		_wall(_w(u - 1.2, 2.43), _w(u + 1.2, 2.43), g + 0.4, g + 4.0, _b, MF_DOOR)
+	for u: float in [-11.25, -6.75, -2.25, 2.25, 6.75, 11.25]:
+		_lbox(u, 2.75, 0.45, 0.35, g + 4.6, g + h + 2.0, MF_LIGHT, M_STONE, MF_LIGHT)
+	for k in 3:
+		_lbox(0.0, 2.4 + (3 - k) * 0.5, 10.0, (3 - k) * 0.5, g - 0.6, g + 0.18 * (k + 1), MF_LIGHT, M_STONE, MF_LIGHT)
+	# the wings' south pavilions: hipped dark roofs over the transverse bars
+	for bar: Array in MF_BARS:
+		var a: Vector2 = bar[0]
+		var b: Vector2 = bar[1]
+		var e := (b - a).normalized()
+		_a = e
+		_b = Vector2(e.y, -e.x)
+		_o = (a + b) * 0.5 - _b * (MF_BAR_DEPTH * 0.5)
+		_hip(0.0, 0.0, a.distance_to(b) * 0.5 - 0.7, MF_BAR_DEPTH * 0.5 - 0.7, g + h + 1.1, 3.4, MF_ROOF.lightened(0.15))
+	_collide(ring)
