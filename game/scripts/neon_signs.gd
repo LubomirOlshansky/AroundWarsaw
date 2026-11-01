@@ -16,7 +16,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# The stores' printed ad banners (the Mac photo check, 2026-11-01).
 		"PROMOCJA", "LODY", "WYPRZEDAZ",
 		# The tower and the slab behind the stores (specs C and D): a parody and a drink.
-		"KOKA-KOLKA", "ORANZADA"]
+		"KOKA-KOLKA", "ORANZADA",
+		# The Pawilony (2026-10-31): the bars' little words and the gate's name.
+		"PIWO", "BAR", "SHOTY", "DISCO", "KARAOKE", "OTWARTE", "PAWILONY"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

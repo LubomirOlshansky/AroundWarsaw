@@ -33,6 +33,7 @@ someone writes its lines.
 - Stadion Narodowy now stands on its green embankment: the grass slopes of the old stadium's bank run down to the streets all round, and the paved promenade at the stadium's foot sits on the ground instead of hanging in the air.
 - The Copernicus Science Centre's roof now has all seven skylights where they really are, including the glass pyramid and a dark stair tower, and the planetarium has more facets and a dark glass ring round its white dome.
 - The Copernicus Science Centre now matches the photos: warm striped walls with tall windows, the copper-red planetarium with its white dome, skylight craters and winding paths in the roof garden, and a dark wing hanging over the court.
+- The University Library stands at its real height now, its roof garden four metres higher, with a proper grassy hill under the glass pyramid, the vents on the river side, winding paths through shrubs and heather, white pavilions, and a lower green court with a skylight in the south corner.
 - The Palace of Culture is reshaped from the real map data: the tower now rises from full-height wings on its north and south sides, its shaft has heavy corner piers around ribbed middle bays, the Congress Hall has its real rounded outline and flat stepped grey roof, and the main entrance has a wider portico.
 - The street where the game starts is busier and richer: the three glass department stores across from the museum (Junior, Sawa and Wars, with lit names JUNIOREK, SAWKA and WARSIK on their roofs) are real buildings now, a tram rolls past the car in the first seconds and another comes down the street, and the pavement by the museum has café tables under parasols, a newspaper kiosk, a flower stall, an advertising column and flower planters.
 - The Copernicus Science Centre by the river is rebuilt: a long dark block with windows scattered like pixels that glow at night, a corner hanging over the glass entrance, a garden of lawns and paths on its roof, and the black, faceted planetarium beside it.
@@ -56,6 +57,7 @@ someone writes its lines.
 - Złote Tarasy is rebuilt as one landmark: the golden glass wave over the terraced mall, the Lumen offices curving round it, the Skylight tower with a crown that glows at night, and the round glass drum by the station.
 - Plac Małachowskiego and the Presidential Palace are real buildings now: Holy Trinity's white rotunda with its four columned porches, green dome and tall lantern; Zachęta in white with its two big columns, sculpted pediment, steps and lamps; the Presidential Palace's wings round the forecourt, a columned portico, Prince Poniatowski on horseback, and four stone lions at the gate.
 - The new Museum of Modern Art on Plac Defilad is now its own building: the long white box floating on a glass lobby behind white fins, a thin dark slot round the middle, big windows that glow at night, skylights on the roof, and an info card.
+- The Pawilony behind Nowy Świat: a maze of tiny one-storey bars, each a different colour, with lit windows, warm bulbs and little neon signs (PIWO, SHOTY, KARAOKE...), and a PAWILONY sign over the gate on Nowy Świat.
 - The towers and the Palace of Culture no longer flicker: overlapping walls and roofs were drawn twice, and now they are drawn once. The look is the same.
 - A new, shorter website: the newest screenshots, three missions, open source, a word from the author.
 - A new automatic check looks at every landmark model for flickering surfaces, zero-size faces, floating parts and too many triangles, so these get caught before anyone looks at a screenshot.
@@ -66,6 +68,7 @@ someone writes its lines.
 - Dusk looks like a real late-October evening in Warsaw: a blue-grey sky, the Palace of Culture lit gold, lit hotel names, the station canopy's lamps and red lights on the towers.
 - Twenty little mermaid figurines hide by the kerbs of Warsaw: drive past to find them, with rewards at 5, 10 and 20 and two new paints.
 - Warsaw's districts: discover each one, find three "?" in it, and see how much of it you've done on the map. The save keeps a version now, so progress carries into later builds.
+- Frogs shops, metro entrances and dumped e-scooters now stand where the real ones are, and none on the road or a crossing.
 - The map grows north: Rondo Radosława, Arkadia and the Forest tower.
 - Plac Piłsudskiego is complete, with Hotel Europejski, the Metropolitan, Hotel Wiktoria and the Tomb of the Unknown Soldier.
 - Muzeum Narodowe is a real model now.
