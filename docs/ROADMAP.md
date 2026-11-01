@@ -65,8 +65,10 @@ then the Launch gate.
 
 ### Left: content and feel
 - [ ] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
-- [ ] DEMO 6.3 counts: 10 roof cassettes (1 in #115), ~25 landmark cards, the second słoiki
-      station, the Old Town tourist and Łazienki peacock rescues (check each against the code)
+- [x] DEMO 6.3 counts, cassettes and landmark cards (2026-11-01): 10 roof cassettes in
+      `cassettes.json` (9 new), and 72 landmark cards already in `landmarks.gd` INFO (target ~25)
+- [ ] DEMO 6.3 counts, rescues and słoiki: the second słoiki station (jobs.gd has one), the Old
+      Town tourist and the Łazienki peacock rescues (a "tourist fainted" street rescue exists; no peacocks)
 - [ ] Loop 3i juice: sparks and dust (no particles yet), money pops, district ambiences,
       haptics working on the iPhone
 - [x] Accessibility options (2026-11-01, Settings → DOSTĘP, `access.gd`): larger HUD text, calm

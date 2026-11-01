@@ -12,13 +12,13 @@ extends Node
 ## | beat | the 6.2 time | what the director does (and its fallback) |
 ## | --- | --- | --- |
 ## | finger | 0:05 | the ghost finger (hud.gd) after FINGER_IDLE s with no touch or key; it goes at the first one |
-## | stand | 0:15 | the edge arrow to the kebab stand by Świętokrzyska (jobs.gd FIRST_STAND), until an order starts |
-## | order | 0:30 | that stand's next order is the guided one (~700 m past the Rotunda, jobs.gd `pin_first`) |
-## | race | 1:30 | RACE_AFTER s after the first delivery's card (or at RACE_LATEST without one) Pani Halina rolls up behind and flashes (rivals.gd `call_first`): the ladder's first rung, a race to the Palm she loses narrowly; declined, she tries twice more, RACE_RETRY s apart |
+## | stand | 0:15 | the edge arrow to the kebab stand by Świętokrzyska (jobs.gd FIRST_STAND), straight ahead of the start (START), until an order starts |
+## | order | 0:30 | that stand's next order is the guided one (~250 m straight on up Marszałkowska, jobs.gd `pin_first`) |
+## | race | 1:30 | RACE_AFTER s after the first delivery's card, not before RACE_EARLIEST (or at RACE_LATEST without one) Pani Halina rolls up behind and flashes (rivals.gd `call_first`): the ladder's first rung, a race to the Palm she loses narrowly; declined, she tries twice more, RACE_RETRY s apart |
 ## | trap | 3:00 | the police's scripted first contact (police.gd), armed by the race; without a race the director arms it at TRAP_LATEST |
 ## | rescue | 4:00 | the first call is held (missions.gd `held`) until RESCUE_AT and the race (or RESCUE_LATEST), then rings RESCUE_RING s later |
 ## | heli | ~5:00 | the helicopter (the HELI chip and H) waits for the first rescue done (or a helicopter-only call, or HELI_LATEST) |
-## | tape | 6:00 | the arrow to KASETA on the boulevards (TAPE_ID); its first play opens the next PÓŁNOC FM track ("a new song") |
+## | tape | 6:00 | the arrow to the mixtape on the University Library's roof (cassettes.gd, CASSETTE_ID), picked up from the helicopter: it opens the next PÓŁNOC FM track ("a new song"); without it, KASETA on the boulevards (TAPE_ID) as before |
 ## | powisle | 8:00 | "Powiśle discovered" comes from districts.gd; not by POWISLE_AT, the arrow to Powiśle |
 ## | garage | 10:00 | Mirek's garage (garage.gd `held`) waits for GARAGE_AT and the first earnings, then its toast and an arrow |
 ##
@@ -52,11 +52,21 @@ const WINDOWS := {
 	"heli": Vector2(240.0, 450.0), "tape": Vector2(330.0, 450.0), "powisle": Vector2(300.0, 540.0),
 	"garage": Vector2(570.0, 660.0),
 }
+## Where a guided run starts (main.gd `_guide_start`): the northbound carriageway of Marszałkowska
+## level with the Museum of Modern Art, the Palace on the left, facing north up the street to the
+## Świętokrzyska stand ~350 m ahead (jobs.gd FIRST_STAND). The map's spawn (centrum.json) faces
+## south with the stand behind it; the bench and the other test runs keep that one.
+const START := Vector2(-961.6, 95.0)
+## Compass degrees (main.gd `start_heading`): along the carriageway, north-north-west.
+const START_HEADING := 339.8
 const FINGER_IDLE := 4.0
 const STAND_AT := 10.0
 ## --first10: the car is taken to the stand at ORDER_AT s.
 const ORDER_AT := 15.0
 const RACE_AFTER := 6.0
+## The first-10 polish: the short first order is done by ~0:45, so Halina waits for this second
+## (6.2's 1:30 beat; a minute of free driving after the first delivery's card).
+const RACE_EARLIEST := 75.0
 const RACE_LATEST := 180.0
 const RACE_RETRY := 60.0
 const RACE_TRIES := 3
@@ -67,6 +77,8 @@ const RESCUE_RING := 12.0
 const HELI_LATEST := 420.0
 const TAPE_AT := 330.0
 const TAPE_ID := "t_bulwary_2018"
+## The guide's cassette (cassettes.json): on the BUW roof by the boulevards.
+const CASSETTE_ID := "c01_buw"
 const POWISLE_AT := 450.0
 const GARAGE_AT := 570.0
 ## The garage beat stops waiting for a free moment here (its window ends at 660 s).
@@ -98,7 +110,8 @@ const LINES := {
 	"stand": ["Kebab przy Świętokrzyskiej czeka z twoim pierwszym zamówieniem", "The kebab stand by Świętokrzyska is waiting with your first order"],
 	"heli": ["Pogotowie lotnicze pożycza ci stary śmigłowiec: HELI", "The air ambulance lends you its old helicopter: HELI"],
 	"heli_locked": ["Helikopter? Najpierw jedno wezwanie ratunkowe.", "The helicopter comes after your first rescue call."],
-	"tape": ["Na bulwarach leży KASETA. Zwolnij przy niej.", "A time tape lies on the boulevards: slow down beside it."],
+	"tape": ["Na dachu BUW leży kaseta z muzyką. Leć po nią helikopterem.", "A mixtape lies on the BUW roof: fly the helicopter to it."],
+	"tape_ground": ["Na bulwarach czeka KASETA. Zwolnij przy niej.", "A time tape waits on the boulevards: slow down by it."],
 	"powisle": ["Pod skarpą jest Powiśle. Zjedź w dół, do Wisły.", "Powiśle is below the escarpment: head down to the river."],
 }
 
@@ -117,6 +130,8 @@ var tape: Node
 var radio: Node
 var districts: Node
 var garage: Node
+## cassettes.gd: the guide's 6:00 cassette (null or not placed: KASETA's then card instead).
+var cassettes: Node
 ## main.gd: the vehicle is the helicopter now.
 var flying: Callable
 ## --first10: the replay's scripted triggers (with --autopilot), its lines, the check and the quit.
@@ -211,7 +226,7 @@ static func decide(now: float, f: Dictionary, done: Dictionary) -> Array[String]
 		out.append("order")
 	var delivered: float = f.get("delivered_t", -1.0)
 	if not is_done.call("race") and not f.get("raced", false) and not f.get("calling", false) and free \
-			and now >= float(f.get("race_next", 0.0)) and ((delivered >= 0.0 and now >= delivered + RACE_AFTER) or now >= RACE_LATEST):
+			and now >= float(f.get("race_next", 0.0)) and ((delivered >= 0.0 and now >= maxf(delivered + RACE_AFTER, RACE_EARLIEST)) or now >= RACE_LATEST):
 		out.append("race")
 	if not is_done.call("trap") and not f.get("trap", false) and now >= TRAP_LATEST and free:
 		out.append("trap")
@@ -378,7 +393,7 @@ func facts() -> Dictionary:
 		"rang": missions != null and int(missions.state) in [Missions.State.RINGING, Missions.State.OFFER, Missions.State.PICKUP, Missions.State.DROPOFF, Missions.State.RESULT],
 		"rescued": wallet != null and int(wallet.jobs.get("rescue", 0)) > 0,
 		"heli_call": missions != null and missions.has_method("call_needs_heli") and missions.call_needs_heli(),
-		"tape": wallet != null and wallet.tapes.has(TAPE_ID),
+		"tape": _tape_done(),
 		"powisle": districts != null and districts.is_discovered("powisle"),
 		"garage": garage != null and garage.is_shown(),
 		"earned": wallet != null and (wallet.jobs_done() > 0 or int(wallet.zl) > 0),
@@ -437,7 +452,8 @@ func _fire(id: String) -> void:
 			var at := _tape_at()
 			if at != Vector3.INF:
 				_hint(at, "KASETA", HINT_S)
-				hud.toast(LINES["tape"][0], LINES["tape"][1])
+				var words: Array = LINES["tape"] if _cassette() >= 0 else LINES["tape_ground"]
+				hud.toast(words[0], words[1])
 		"powisle":
 			if districts != null and districts.by_id.has("powisle"):
 				var p: Vector2 = districts.by_id["powisle"]["at"]
@@ -509,8 +525,31 @@ func _hint_met(f: Dictionary) -> bool:
 	return false
 
 
-## The boulevard tape's spot (Vector3.INF if the notebook has no place for it).
+## The guide's cassette's index in cassettes.gd, -1 if it isn't placed (then KASETA stands in).
+func _cassette() -> int:
+	if cassettes == null:
+		return -1
+	var i: int = cassettes.index_of(CASSETTE_ID)
+	return i if i >= 0 and cassettes.at(i) != Vector3.INF else -1
+
+
+## The tape beat is met: the cassette picked up (or, without one, KASETA played).
+func _tape_done() -> bool:
+	if _cassette() >= 0:
+		return cassettes.is_taken(CASSETTE_ID)
+	return wallet != null and wallet.tapes.has(TAPE_ID)
+
+
+## The 6:00 beat's spot: the cassette on its roof, else the boulevard tape's (Vector3.INF if none).
 func _tape_at() -> Vector3:
+	var c := _cassette()
+	if c >= 0:
+		return cassettes.at(c)
+	return _ground_tape_at()
+
+
+## KASETA's boulevard spot (Vector3.INF if the notebook has no place for it).
+func _ground_tape_at() -> Vector3:
 	if tape == null:
 		return Vector3.INF
 	var i: int = tape.index_of(TAPE_ID)
@@ -522,9 +561,10 @@ func _tape_at() -> Vector3:
 	return Vector3(p.x, map.ground_height(p.x, p.y) if map != null else 0.0, p.y)
 
 
-## KASETA played: the boulevard's, during the guide, opens the next PÓŁNOC FM track once.
+## KASETA played: the boulevard's, during the guide and only with no cassette to find (the cassette
+## brings its own song), opens the next PÓŁNOC FM track once.
 func _on_tape(card_id: String) -> void:
-	if not guide or _song or card_id != TAPE_ID or radio == null:
+	if not guide or _song or card_id != TAPE_ID or radio == null or _cassette() >= 0:
 		return
 	_song = true
 	var n: int = radio.next_locked()
@@ -592,7 +632,18 @@ func _script(f: Dictionary) -> void:
 			_call_t = 0.0
 			missions.offer(missions.number + 1)
 			missions.accept()
-	if fired.has("tape") and not f["tape"] and f["free"] and tape != null and missions != null \
+	if fired.has("tape") and not f["tape"] and f["free"] and _cassette() >= 0 and missions != null \
+			and int(missions.state) in [Missions.State.CLOSED, Missions.State.IDLE]:
+		# The player would fly there over Powiśle: the car is put on the boulevard below (KASETA's
+		# spot there, a street; districts.gd discovers Powiśle from it, as the flight would), then
+		# the cassette is taken (the pickup rule itself: check_cassettes.gd).
+		var below := _ground_tape_at()
+		if car != null and below != Vector3.INF:
+			car.global_position = below + Vector3(0, 0.5, 0)
+			car.vel = Vector3.ZERO
+			car.reset_physics_interpolation()
+		cassettes.take(CASSETTE_ID)
+	elif fired.has("tape") and not f["tape"] and f["free"] and tape != null and missions != null \
 			and int(missions.state) in [Missions.State.CLOSED, Missions.State.IDLE]:
 		var at := _tape_at()
 		if at != Vector3.INF and car != null:
