@@ -326,6 +326,15 @@ const INFO := {
 	"syrenka": ["Syrenka",
 			"Z mieczem i tarczą, jak w herbie miasta. Stoi w fontannie pośrodku Rynku i pilnuje Warszawy.",
 			"With her sword and shield, as on the city's coat of arms. She stands in the fountain in the middle of the square and watches over Warsaw."],
+	"syrenka_powisle": ["Syrenka na Powiślu",
+			"Brązowa, z 1939 roku, dłuta Ludwiki Nitschowej. Z mieczem i tarczą patrzy na Wisłę z bulwaru u stóp Tamki.",
+			"Bronze, of 1939, by Ludwika Nitschowa. Sword and shield up, she watches the Vistula from the boulevard at the foot of Tamka."],
+	"dworzec_wodny": ["Dworzec Wodny",
+			"Niski pawilon na nabrzeżu: szkło i drewno nad samą Wisłą.",
+			"A low pavilion on the quay: glass and timber right over the Vistula."],
+	"kaskada": ["Kaskada",
+			"Statek przycumowany do bulwarów. Zimą stoi, latem się kołysze.",
+			"A vessel moored to the boulevards. Still in winter, rocking in summer."],
 	"zygmunt": ["Kolumna Zygmunta",
 			"Najstarszy świecki pomnik Warszawy, z 1644 roku.",
 			"Warsaw's oldest secular monument, of 1644."],
@@ -682,6 +691,8 @@ func _find_sites() -> void:
 	_find_works()
 	# The Ministry of Finance (2026-11-01): a model instead of the mapped box.
 	_find_mf()
+	# The Powiśle boulevards (2026-11-01): the riverside Syrenka, the water station, the Kaskada.
+	_find_bulwary()
 
 
 ## Warszawa Centralna (spec docs/landmarks/specs/centralna.md, 2026-10-31): OpenStreetMap maps
@@ -1067,6 +1078,12 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_stadion_pkp(s)
 			"srodmiescie":
 				_build_srodmiescie(s)
+			"syrenka_powisle":
+				_build_syrenka_powisle(s)
+			"dworzec_wodny":
+				_build_dworzec_wodny(s)
+			"kaskada":
+				_build_kaskada(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -3159,6 +3176,181 @@ func _syrenka_figure(y: float) -> void:
 	_disc(hand, face, 0.52, 12, RYNEK_BRONZE_SHADE)
 	_disc(hand + face * 0.03, face, 0.4, 12, RYNEK_BRONZE_HI)
 	_disc(hand + face * 0.06, face, 0.13, 8, RYNEK_BRONZE_DEEP)
+
+
+# --- The Powiśle boulevards: the riverside Syrenka, Dworzec Wodny, Kaskada (2026-11-01) -----------
+
+## The Powiśle Syrenka (spec docs/landmarks/specs/syrenka_powisle.md): the baked "syrenka" point
+## is where the egg stands (the boulevard footway nearest the foot of Tamka, stepped towards the
+## water as eggs.gd does: 600, -697), facing the Vistula. The statue is hers now; eggs.gd keeps
+## only the trigger and the floodlight.
+const POWISLE_SYRENKA := Vector2(600.0, -697.0)
+const POWISLE_SYRENKA_YAW := -0.861
+const POWISLE_PLINTH := Color("#b9b2a2")
+const POWISLE_PLINTH_HI := Color("#d3ccbb")
+const WODNY_REACH := 60.0
+const WODNY_AT := Vector2(632.0, -680.0)
+const KASKADA_AT := Vector2(755.0, -521.0)
+const BOAT_TIMBER := Color("#8e6b47")
+const BOAT_TIMBER_HI := Color("#a98259")
+const BOAT_GLASS := Color("#9dc0cc")
+
+
+func _find_bulwary() -> void:
+	_add_site("syrenka_powisle", [_circle(POWISLE_SYRENKA, 1.6, 8)])
+	var wodny := _landmark_near("Dworzec Wodny", WODNY_AT, WODNY_REACH)
+	if wodny.size() >= 3:
+		_add_site("dworzec_wodny", [wodny])
+	var kaskada := _landmark_near("Kaskada", KASKADA_AT, WODNY_REACH)
+	if kaskada.size() >= 3:
+		_add_site("kaskada", [kaskada])
+
+
+## The statue on a low stone plinth: a footing slab, a block, a cap, then the bronze mermaid
+## 1.6 times life size (it must read from the camera), sword and shield both raised.
+func _build_syrenka_powisle(_site: Dictionary) -> void:
+	var c := POWISLE_SYRENKA
+	_g = map.terrain_height(c.x, c.y)
+	var g := _g
+	_mode = M_STONE
+	_o = c
+	_a = Vector2(-sin(POWISLE_SYRENKA_YAW), -cos(POWISLE_SYRENKA_YAW))
+	_b = Vector2(-_a.y, _a.x)
+	_lbox(0.0, 0.0, 1.25, 1.05, g - 0.3, g + 0.22, POWISLE_PLINTH.darkened(0.08), M_STONE, POWISLE_PLINTH)
+	_lbox(0.0, 0.0, 0.85, 0.7, g + 0.22, g + 1.15, POWISLE_PLINTH, M_STONE, POWISLE_PLINTH_HI)
+	_lbox(0.0, 0.0, 1.0, 0.85, g + 1.15, g + 1.38, POWISLE_PLINTH_HI, M_STONE, POWISLE_PLINTH_HI.lightened(0.04))
+	_syrenka_powisle_figure(g + 1.38)
+	_collide(_rect(0.0, 0.0, 1.25, 1.05))
+
+
+## The bronze: the tail coiled and rising to the hips with its flukes thrown up behind, the
+## torso, the head with long hair, the right arm (v negative) raising the sword high and
+## a little back, the left arm lifting the round shield to her shoulder, facing out.
+## `y` is the plinth's top; the local frame is _o/_a/_b (u forward, towards the water).
+func _syrenka_powisle_figure(y: float) -> void:
+	var bz := RYNEK_BRONZE
+	var none := Color(0, 0, 0, 0)
+	var pt := func(u: float, v: float, h: float) -> Vector3:
+		var w := _w(u, v)
+		return Vector3(w.x, y + h, w.y)
+	_beam(pt.call(0.1, 0.35, 0.05), pt.call(0.3, 0.5, 0.38), 0.5, RYNEK_BRONZE_SHADE)
+	_beam(pt.call(0.3, 0.5, 0.38), pt.call(-0.1, 0.3, 0.72), 0.46, bz)
+	_beam(pt.call(-0.1, 0.3, 0.72), pt.call(-0.2, -0.1, 1.0), 0.42, RYNEK_BRONZE_SHADE)
+	_beam(pt.call(-0.2, -0.1, 1.0), pt.call(0.0, 0.0, 1.3), 0.36, bz)
+	_beam(pt.call(0.1, 0.35, 0.05), pt.call(-0.5, 0.7, 0.85), 0.13, RYNEK_BRONZE_DEEP)
+	_beam(pt.call(0.1, 0.35, 0.05), pt.call(-0.6, 0.2, 0.95), 0.13, RYNEK_BRONZE_DEEP)
+	_mode = M_STONE
+	_frustum(_rect(0.0, 0.0, 0.2, 0.26), y + 1.25, _rect(0.0, 0.0, 0.22, 0.3), y + 1.6, bz)
+	_frustum(_rect(0.0, 0.0, 0.22, 0.3), y + 1.6, _rect(0.0, 0.0, 0.17, 0.25), y + 1.82, bz.lightened(0.04), bz)
+	_prism(_rect(0.0, 0.0, 0.06, 0.06), y + 1.82, y + 1.92, bz, none, M_STONE)
+	_prism(_rect(0.02, 0.0, 0.11, 0.1), y + 1.92, y + 2.18, bz.lightened(0.05), bz, M_STONE, M_STONE)
+	_prism(_rect(-0.1, 0.0, 0.09, 0.14), y + 1.94, y + 2.24, RYNEK_BRONZE_DEEP, RYNEK_BRONZE_DEEP, M_STONE, M_STONE)
+	_beam(pt.call(-0.14, 0.0, 2.05), pt.call(-0.45, 0.05, 1.35), 0.2, RYNEK_BRONZE_DEEP)
+	# The sword arm: up past the head, the blade leaning back, a guard under it.
+	_beam(pt.call(0.0, -0.3, 1.72), pt.call(0.04, -0.55, 2.1), 0.14, bz)
+	_beam(pt.call(0.04, -0.55, 2.1), pt.call(0.0, -0.5, 2.6), 0.13, bz)
+	_lbox(0.0, -0.5, 0.05, 0.3, y + 2.56, y + 2.64, RYNEK_BRONZE_SHADE, M_STONE)
+	_beam(pt.call(0.0, -0.5, 2.6), pt.call(-0.2, -0.5, 3.75), 0.07, RYNEK_BRONZE_HI)
+	# The shield arm: bent up, the shield at her shoulder, turned out to the water.
+	_beam(pt.call(0.0, 0.3, 1.72), pt.call(0.25, 0.55, 1.88), 0.14, bz)
+	var hand: Vector3 = pt.call(0.45, 0.5, 2.15)
+	_beam(pt.call(0.25, 0.55, 1.88), hand, 0.13, bz)
+	var face := Vector3(_a.x, 0.0, _a.y)
+	_disc(hand, face, 0.5, 12, RYNEK_BRONZE_SHADE)
+	_disc(hand + face * 0.03, face, 0.39, 12, RYNEK_BRONZE_HI)
+	_disc(hand + face * 0.06, face, 0.12, 8, RYNEK_BRONZE_DEEP)
+
+
+## A mapped outline's long axis: the local frame (_o centre, _a along the long side, _b across)
+## and the half sizes (x along, y across), from its principal axis, so a rotated strip builds
+## square to itself.
+func _long_frame(poly: PackedVector2Array) -> Vector2:
+	var c := _centre(poly)
+	var best := 0.0
+	var dir := Vector2.RIGHT
+	for i in poly.size():
+		var e := poly[(i + 1) % poly.size()] - poly[i]
+		if e.length() > best:
+			best = e.length()
+			dir = e.normalized()
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	var perp := Vector2(-dir.y, dir.x)
+	for q in poly:
+		var d := q - c
+		lo = Vector2(minf(lo.x, d.dot(dir)), minf(lo.y, d.dot(perp)))
+		hi = Vector2(maxf(hi.x, d.dot(dir)), maxf(hi.y, d.dot(perp)))
+	_o = c + dir * (lo.x + hi.x) * 0.5 + perp * (lo.y + hi.y) * 0.5
+	_a = dir
+	_b = perp
+	return (hi - lo) * 0.5
+
+
+## Dworzec Wodny: the Vistula's water station, a low glass-and-timber pavilion on its landing
+## stage. The mapped outline (about 40 x 11 m) is the stage: a timber deck on a dark skirt, the
+## glass hall on it with timber ends, posts along the water side, a flat timber-edged roof that
+## overhangs, a railing round the open deck.
+func _build_dworzec_wodny(site: Dictionary) -> void:
+	var poly: PackedVector2Array = site["zone"][0]
+	_g = _ground_under(poly)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	var half := _long_frame(poly)
+	var hu := half.x - 0.3
+	var hv := half.y - 0.3
+	_mode = M_STONE
+	_prism(poly, g - 1.5, g + 0.5, Color("#4c5559"), BOAT_TIMBER, M_STONE, M_STONE)
+	# The hall, a little off the middle towards the land (+v): glass between timber ends.
+	var hall_u := hu - 4.5
+	_lbox(0.0, 0.6, hall_u - 0.6, hv - 3.2, g + 0.5, g + 3.5, BOAT_GLASS, M_PAVILION, none)
+	for s in [-1.0, 1.0]:
+		_lbox(s * (hall_u - 0.3), 0.6, 0.35, hv - 3.1, g + 0.5, g + 3.55, BOAT_TIMBER, M_STONE, BOAT_TIMBER_HI)
+	# The posts of the waterside front (-v) and the mullions of the hall.
+	for k in 7:
+		var u := lerpf(-hall_u + 0.6, hall_u - 0.6, k / 6.0)
+		_lbox(u, -hv + 2.6, 0.12, 0.12, g + 0.5, g + 3.55, BOAT_TIMBER_HI, M_STONE, none)
+	# The flat roof, overhanging to the water, a timber fascia, a dark membrane.
+	_lbox(0.0, -0.4, hall_u + 1.2, hv - 1.4, g + 3.5, g + 3.85, BOAT_TIMBER, M_STONE, Color("#808a89"))
+	# The deck's railing round its open edge (the water side and both ends), a post every 4 m.
+	for s in [-1.0, 1.0]:
+		_lbox(s * (hu - 0.15), 0.0, 0.05, hv, g + 0.5, g + 1.2, Color("#c9ccc9"), M_STONE, none)
+	_lbox(0.0, -hv + 0.15, hu, 0.05, g + 0.5, g + 1.2, Color("#c9ccc9"), M_STONE, none)
+	for k in 9:
+		_lbox(lerpf(-hu, hu, k / 8.0), -hv + 0.15, 0.06, 0.06, g + 0.5, g + 1.25, BOAT_TIMBER_HI, M_STONE, none)
+	_collide(poly)
+
+
+## Kaskada: a vessel moored along the boulevard. The mapped outline (about 46 x 10 m, round at
+## both ends) is the hull: a dark skirt under a white top strake, a timber deck, a glazed
+## lounge amidships inside a rail, a flat roof with a sun deck and its awning on posts.
+func _build_kaskada(site: Dictionary) -> void:
+	var poly: PackedVector2Array = site["zone"][0]
+	_g = _ground_under(poly)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	var half := _long_frame(poly)
+	_mode = M_STONE
+	_prism(poly, g - 1.6, g + 0.55, Color("#2c3d4f"), none, M_STONE)
+	_prism(poly, g + 0.55, g + 1.5, Color("#e5e6e2"), BOAT_TIMBER, M_STONE, M_STONE)
+	var deck := Geometry2D.offset_polygon(poly, -0.9, Geometry2D.JOIN_MITER)
+	if deck.is_empty():
+		_collide(poly)
+		return
+	var lounge: PackedVector2Array = deck[0]
+	var inner := Geometry2D.offset_polygon(lounge, -2.2, Geometry2D.JOIN_MITER)
+	if not inner.is_empty():
+		lounge = inner[0]
+	_prism(lounge, g + 1.5, g + 4.4, BOAT_GLASS, none, M_PAVILION)
+	_prism(Geometry2D.offset_polygon(lounge, 0.5, Geometry2D.JOIN_MITER)[0], g + 4.4, g + 4.7, Color("#e5e6e2"), Color("#6a716f"), M_STONE, M_STONE)
+	# The sun deck's posts and awning over the stern half, its rail along the roof's edge.
+	var hv := minf(half.y - 2.6, 3.0)
+	for s in [-1.0, 1.0]:
+		for k in 3:
+			_lbox(-6.0 - k * 4.0, s * (hv - 0.4), 0.07, 0.07, g + 4.7, g + 6.9, BOAT_TIMBER_HI, M_STONE, none)
+	_lbox(-10.0, 0.0, 6.4, hv, g + 6.9, g + 7.05, Color("#f0ede4"), M_STONE, Color("#c8282a"))
+	# The bow's mast and the deck's rail posts.
+	_lbox(9.0, 0.0, 0.1, 0.1, g + 4.7, g + 9.0, Color("#c9ccc9"), M_STONE, none)
+	_collide(poly)
 
 
 # --- Map north: Arkadia, the Forest tower, Rondo Radosława's flag (the landmarks loop) -----------
