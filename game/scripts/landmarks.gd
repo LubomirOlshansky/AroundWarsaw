@@ -281,6 +281,9 @@ const INFO := {
 	"mariensztat": ["Rynek Mariensztacki",
 			"Osiedle odbudowane w 1949 roku; bohater filmu „Przygoda na Mariensztacie” z 1954 roku.",
 			"The estate rebuilt in 1949, and the star of the 1954 film \"Przygoda na Mariensztacie\"."],
+	"zbawiciela": ["Kościół Najświętszego Zbawiciela",
+			"Neorenesansowa bazylika z 1911 roku, z dwiema wieżami i kopułą, na placu, który od niej wziął nazwę.",
+			"The neo-Renaissance basilica of 1911 with two towers and a dome, on the square that took its name from it."],
 	"aleksander": ["Kościół Świętego Aleksandra",
 			"Rotunda na placu Trzech Krzyży.",
 			"The rotunda on Plac Trzech Krzyży."],
@@ -672,6 +675,8 @@ func _find_sites() -> void:
 	_find_prezydencki()
 	# St Alexander's church (2026-11-01): a model instead of a skin.
 	_find_aleksander()
+	# Plac Zbawiciela (Marszałkowska street by street, 2026-11-01): the basilica, a model.
+	_find_zbawiciela()
 	# The University Library (2026-10-31): a model instead of a skin.
 	_find_buw()
 	# The Copernicus Science Centre and its planetarium (2026-11-01): a model instead of a skin.
@@ -988,6 +993,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_prezydencki(s)
 			"aleksander":
 				_build_aleksander(s)
+			"zbawiciela":
+				_build_zbawiciela(s)
 			"buw":
 				_build_buw(s)
 			"kopernik":
@@ -6375,6 +6382,129 @@ func _build_aleksander(_site: Dictionary) -> void:
 		if not merged.is_empty():
 			ring = _largest(merged)
 	_collide(ring)
+
+
+## The Church of the Holiest Saviour (Kościół Najświętszego Zbawiciela; Józef Dziekoński and
+## Józef Piotrowski, 1901-1911) on the south side of Plac Zbawiciela, its front to the north,
+## to the square. Marszałkowska street by street (2026-11-01): the mapped masses were two
+## round 76 m posts and one 34 m box. Built from the outline: the nave, transept and apse in
+## pale plaster with a plinth, a windowed storey and a cornice under copper hipped roofs, a
+## porch across the front with three dark portals under a pediment and a gilt cross, two
+## square towers behind it rising through an octagonal belfry to copper spires (76 m, as
+## mapped), and a dome over the crossing with a windowed drum and a lantern. Heights below the
+## towers and every shape are estimates (no photo, no LoD2): the Mac photo check is parked.
+## Frame: origin at the front's middle, u east along the front, +v out of it to the north.
+const ZB_O := Vector2(-417.6, 1612.3)
+const ZB_NAVE_AT := Vector2(-417.6, 1625.0)
+const ZB_TOWER_AT := [Vector2(-427.4, 1621.7), Vector2(-408.9, 1621.7)]
+const ZB_TOWER_U := 9.25
+const ZB_TOWER_V := -9.4
+const ZB_DOME_C := Vector2(-0.5, -29.0)
+const ZB_WALL := Color("#d8cfba")
+const ZB_TRIM := Color("#ebe4d2")
+const ZB_BASE := Color("#a8a08e")
+const ZB_COPPER := Color("#6f8c80")
+const ZB_DARK := Color("#3a3d40")
+const ZB_GOLD := Color("#c9a24a")
+## The dome's profile above the drum: [radius, height above ground].
+const ZB_DOME := [[6.9, 38.0], [6.5, 40.4], [5.7, 42.6], [4.5, 44.4], [3.0, 45.7], [1.7, 46.3]]
+
+
+func _find_zbawiciela() -> void:
+	var nave := _outline_at(ZB_NAVE_AT)
+	if nave.size() < 3:
+		return
+	var zone: Array = [_largest(Geometry2D.offset_polygon(nave, 3.0, Geometry2D.JOIN_MITER))]
+	for at: Vector2 in ZB_TOWER_AT:
+		var t := _outline_at(at)
+		if t.size() >= 3:
+			zone.append(_largest(Geometry2D.offset_polygon(t, 3.0, Geometry2D.JOIN_MITER)))
+	_add_site("zbawiciela", zone)
+	if not sites.is_empty() and sites[-1]["key"] == "zbawiciela":
+		sites[-1]["outline"] = nave
+
+
+func _build_zbawiciela(site: Dictionary) -> void:
+	_o = ZB_O
+	_a = Vector2.RIGHT
+	_b = Vector2.UP  # out of the front, to the north
+	var outline: PackedVector2Array = _simplify(site["outline"], 0.6)
+	_g = _ground_under(outline)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	_mode = M_STONE
+	# the body from the mapped outline: plinth, a windowed storey, a cornice
+	var plinth := _largest(Geometry2D.offset_polygon(outline, 0.3, Geometry2D.JOIN_MITER))
+	_prism(plinth, g - 0.6, g + 1.5, ZB_BASE, ZB_BASE.lightened(0.05), M_STONE, M_STONE)
+	_prism(outline, g + 1.5, g + 21.0, ZB_WALL, none, M_MONUMENT)
+	var cornice := _largest(Geometry2D.offset_polygon(outline, 0.5, Geometry2D.JOIN_MITER))
+	_prism(cornice, g + 21.0, g + 22.0, ZB_TRIM, ZB_WALL.darkened(0.1), M_STONE, M_STONE)
+	# copper roofs: the nave's long hip, the transept's cross hip
+	_hip(0.0, -28.5, 7.9, 22.4, g + 22.0, 7.5, ZB_COPPER)
+	_hip(-0.5, -29.0, 18.8, 7.2, g + 22.0, 5.5, ZB_COPPER)
+	# the porch across the front: stone ground floor, three dark portals, pilasters, a pediment
+	_lbox(0.0, -3.1, 7.9, 3.1, g - 0.6, g + 18.0, ZB_WALL, M_MONUMENT, ZB_WALL)
+	_lbox(0.0, -0.1, 8.3, 0.7, g - 0.6, g + 1.5, ZB_BASE, M_STONE, ZB_BASE.lightened(0.05))
+	_mode = M_GLASS
+	_wall(_w(-1.7, 0.07), _w(1.7, 0.07), g + 1.5, g + 9.0, _b, ZB_DARK)
+	for sd: float in [-1.0, 1.0]:
+		_wall(_w(sd * 5.2 - 1.0, 0.07), _w(sd * 5.2 + 1.0, 0.07), g + 1.5, g + 7.0, _b, ZB_DARK)
+	_mode = M_STONE
+	for sd: float in [-1.0, 1.0]:  # the portals' hoods
+		_lbox(sd * 5.2, 0.3, 1.5, 0.35, g + 7.0, g + 7.5, ZB_TRIM, M_STONE, ZB_TRIM)
+	_lbox(0.0, 0.4, 2.3, 0.4, g + 9.0, g + 9.6, ZB_TRIM, M_STONE, ZB_TRIM)
+	for k in 3:  # steps up to the middle portal
+		_lbox(0.0, 1.0 + 0.5 * k, 3.0 - 0.4 * k, 0.5 + 0.5 * (2 - k), g - 0.6, g + 0.1 + 0.4 * (2 - k), ZB_BASE, M_STONE,
+				ZB_BASE.lightened(0.04))
+	for u: float in [-7.2, -3.4, 3.4, 7.2]:
+		_lbox(u, 0.15, 0.5, 0.3, g + 1.5, g + 16.6, ZB_TRIM, M_STONE, ZB_TRIM)
+	_lbox(0.0, 0.1, 8.3, 0.7, g + 16.6, g + 17.6, ZB_TRIM, M_STONE, ZB_TRIM)
+	var ka := _a
+	var kb := _b
+	_a = kb
+	_b = ka
+	_gable(0.05, -6.2, 0.0, 7.9, g + 17.6, 4.4, ZB_WALL, ZB_COPPER, false)
+	_a = ka
+	_b = kb
+	var rose := _w(0.0, 0.1)
+	_disc(Vector3(rose.x, g + 13.0, rose.y), Vector3(_b.x, 0.0, _b.y), 1.6, 10, ZB_DARK)
+	_lbox(0.0, -1.5, 0.15, 0.15, g + 22.0, g + 25.4, ZB_GOLD, M_STONE, ZB_GOLD)
+	_lbox(0.0, -1.5, 0.15, 0.6, g + 23.6, g + 23.9, ZB_GOLD, M_STONE, ZB_GOLD)
+	# the two towers: a square shaft, a cornice with pinnacles, an octagonal belfry, a copper spire
+	for sd: float in [-1.0, 1.0]:
+		var tu := sd * ZB_TOWER_U
+		var c := _w(tu, ZB_TOWER_V)
+		_lbox(tu, ZB_TOWER_V, 4.1, 4.1, g - 0.6, g + 1.5, ZB_BASE, M_STONE, ZB_BASE.lightened(0.05))
+		_lbox(tu, ZB_TOWER_V, 3.9, 3.9, g + 1.5, g + 31.0, ZB_WALL, M_MONUMENT, ZB_WALL)
+		_lbox(tu, ZB_TOWER_V, 4.3, 4.3, g + 31.0, g + 32.0, ZB_TRIM, M_STONE, ZB_TRIM)
+		for cu: float in [-1.0, 1.0]:
+			for cv: float in [-1.0, 1.0]:
+				_pinnacle(tu + cu * 3.7, ZB_TOWER_V + cv * 3.7, 0.9, g + 32.0, 3.6, ZB_TRIM)
+		_prism(_circle(c, 3.4, 8), g + 32.0, g + 50.0, ZB_WALL, none, M_MONUMENT)
+		_prism(_circle(c, 3.9, 8), g + 50.0, g + 51.0, ZB_TRIM, ZB_TRIM, M_STONE, M_STONE)
+		_frustum(_circle(c, 3.5, 8), g + 51.0, _circle(c, 0.5, 8), g + 69.0, ZB_COPPER, ZB_COPPER)
+		_prism(_circle(c, 0.7, 6), g + 69.0, g + 70.2, ZB_GOLD, ZB_GOLD, M_STONE, M_STONE)
+		_lbox(tu, ZB_TOWER_V, 0.12, 0.12, g + 70.2, g + 76.0, ZB_GOLD, M_STONE, ZB_GOLD)
+		_lbox(tu, ZB_TOWER_V, 0.12, 0.7, g + 73.0, g + 73.3, ZB_GOLD, M_STONE, ZB_GOLD)
+	# the dome over the crossing: a windowed drum, a cornice, the copper dome, a lantern, a cross
+	var dc := _w(ZB_DOME_C.x, ZB_DOME_C.y)
+	_prism(_circle(dc, 6.9, 16), g + 22.0, g + 36.0, ZB_WALL, none, M_MONUMENT)
+	_prism(_circle(dc, 7.5, 16), g + 36.0, g + 38.0, ZB_TRIM, ZB_TRIM, M_STONE, M_STONE)
+	for k in ZB_DOME.size() - 1:
+		var da: Array = ZB_DOME[k]
+		var db: Array = ZB_DOME[k + 1]
+		var col := ZB_COPPER.lerp(ZB_COPPER.lightened(0.12), float(k) / ZB_DOME.size())
+		_frustum(_circle(dc, da[0], 16), g + float(da[1]), _circle(dc, db[0], 16), g + float(db[1]), col)
+	_prism(_circle(dc, 1.9, 8), g + 46.3, g + 50.5, ZB_TRIM, none, M_MONUMENT)
+	_prism(_circle(dc, 2.4, 8), g + 50.5, g + 51.2, ZB_TRIM, ZB_TRIM, M_STONE, M_STONE)
+	_frustum(_circle(dc, 2.1, 8), g + 51.2, _circle(dc, 0.3, 8), g + 54.0, ZB_COPPER, ZB_COPPER)
+	_lbox(ZB_DOME_C.x, ZB_DOME_C.y, 0.12, 0.12, g + 54.0, g + 58.5, ZB_GOLD, M_STONE, ZB_GOLD)
+	_lbox(ZB_DOME_C.x, ZB_DOME_C.y, 0.6, 0.12, g + 56.2, g + 56.5, ZB_GOLD, M_STONE, ZB_GOLD)
+	# the car meets the walls
+	_collide(outline)
+	for sd: float in [-1.0, 1.0]:
+		_collide(_rect(sd * ZB_TOWER_U, ZB_TOWER_V, 4.1, 4.1))
+	_collide(_rect(0.0, 1.5, 3.0, 1.0))
 
 
 ## The Presidential Palace (Pałac Prezydencki; Aigner's classical rebuilding, 1818-1819) on

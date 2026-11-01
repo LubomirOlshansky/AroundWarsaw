@@ -4,6 +4,15 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Marszałkowska street by street (F, 2026-11-01)
+
+Order: plac Bankowy to plac Zbawiciela. Pass 1 (cloud, Sonnet): Kościół Najświętszego Zbawiciela
+modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
+- Mac photo check of the church: plaster and roof colours, belfry and spire shapes, the dome's
+  height, whether the porch is a portico or a recess (all estimated; towers' 76 m is mapped).
+- Next on the street: MDM's arcades, reliefs and corner towers (LANDMARKS 2.8), the church's
+  night lighting, Plac Zbawiciela's rotunda-side cafés, houses and roads street by street.
+
 ## Old Town Market Square, the Syrenka and the decks (F, 2026-11-01)
 
 Built in a cloud thread with no photos (spec docs/landmarks/specs/rynek.md, LANDMARKS 2.12).

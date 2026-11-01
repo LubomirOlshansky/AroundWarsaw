@@ -100,6 +100,7 @@ const BUDGET := {
 	"sejm": 1400,
 	"staszic": 360,
 	"zamek": 340,
+	"zbawiciela": 1250,
 	"tarasy": 5700,
 	"trojca": 2300,
 	"unit": 1160,
