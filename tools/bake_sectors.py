@@ -84,9 +84,10 @@ SECTOR_POINTS = {"trees": 4, "lamps": 2, "signals": 3, "parked": 4, "benches": 3
                  "bikes": 3, "columns": 3, "shelters": 3}
 # Small whole-map lists every sector's builder reads as they are.
 SECTOR_WHOLE = ["lod2_cuts", "lod2_open"]
-# Keys only the sectors need (the rest of centrum.json goes to the index).
+# Keys only the sectors need (the rest of centrum.json goes to the index). The rails stay in the
+# index too: trains.gd runs on the whole network (docs/design/railway.md T1).
 SECTOR_ONLY = {"buildings", "markings", "carriage", "symbols", "sand", "sandbars", "surfaces",
-               "steps", "lines", "rails", "walls", "garage_doors", "lamps", "benches", "bins",
+               "steps", "lines", "walls", "garage_doors", "lamps", "benches", "bins",
                "bikes", "shelters", "trees", "trees3d_crown"}
 
 # Where landmarks.gd looks for the building parts its sites are made of (it reads every

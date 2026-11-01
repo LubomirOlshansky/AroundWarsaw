@@ -317,6 +317,15 @@ const INFO := {
 	"zodiak": ["Zodiak",
 			"Pawilon w Pasażu Wiecha: dawny bar, dziś Warszawski Pawilon Architektury z kawiarnią.",
 			"A pavilion in Pasaż Wiecha: once a bar, now the Warsaw Architecture Pavilion and its café."],
+	"ochota": ["Warszawa Ochota",
+			"Dworzec z 1963 roku: szklana kasa na moście nad wykopem pod betonowym siodłem paraboloidy.",
+			"A 1963 station: a glass ticket hall on a bridge over the cutting, under a concrete saddle roof."],
+	"powisle": ["Warszawa Powiśle",
+			"Stacja z 1963 roku: pawilon-latawiec nad wylotem tunelu i okrągły pawilon, dziś kultowy bar.",
+			"A 1963 station: a kite pavilion over the tunnel's mouth and a round pavilion, now a cult bar."],
+	"stadion_pkp": ["Warszawa Stadion",
+			"Przystanek z 1958 roku pod stadionem: biała hala z żaglem i perony w czerwono-białej mozaice.",
+			"A 1958 stop by the stadium: a white hall with a sail and platforms in red-and-white mosaic."],
 	"pawilony": ["Pawilony",
 			"Labirynt barów wielkości kiosku za bramą przy Nowym Świecie.",
 			"A maze of kiosk-sized bars behind a gate on Nowy Świat."],
@@ -587,6 +596,11 @@ func _find_sites() -> void:
 	_find_behind()
 	# R5 of docs/design/start-area-real.md: the Cepelia pavilion and Zodiak.
 	_find_modern_pavilions()
+	# The railway (docs/design/railway.md, S1): Warszawa Ochota's hall and its saddle roof.
+	_find_ochota()
+	# S2: Warszawa Powiśle's two pavilions and the platform canopies.
+	_find_powisle()
+	_find_stadion_pkp()
 	# Plac Małachowskiego and the Presidential Palace (2026-10-31): models instead of skins.
 	_find_trojca()
 	_find_zacheta()
@@ -941,6 +955,12 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_cepelia(s)
 			"zodiak":
 				_build_zodiak(s)
+			"ochota":
+				_build_ochota(s)
+			"powisle":
+				_build_powisle(s)
+			"stadion_pkp":
+				_build_stadion_pkp(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -7826,3 +7846,702 @@ func _build_zodiak(site: Dictionary) -> void:
 		var k := minf(0.6 * a.distance_to(b) / Neon.length_of(ZOD_WORD), 1.0 / (Neon.ROW_H * Neon.PIXEL))
 		signs.append([ZOD_WORD, Vector3(mid.x, g + ZOD_H + ZOD_ROOF + 0.05, mid.y), Vector3(o.x, 0.0, o.y), k, ZOD_COLOUR])
 	_collide(room)
+
+
+# --- Warszawa Ochota (S1 of docs/design/railway.md, 2026-11-01) --------------------------------
+
+## The cross-city line's station by Plac Zawiszy (Arseniusz Romanowicz and Piotr Szymaniak,
+## 1962-63; on the monuments register). A square glazed ticket hall, 17.25 m a side, on a deck
+## at street level that reaches out over the railway cutting, under a thin concrete hyperbolic
+## paraboloid: two opposite corners rise to 8.34 m, the other two sit low on hinged supports, one
+## high corner on a sliding bearing; the shell's underside is a black-and-white striped mosaic,
+## and a mosaic band runs along the glass by the floor. Stairs fold down to the island platform;
+## a small kiosk (once a newsagent's) by the entrance. The hall's walls are glass up to the
+## shell (a hyperbolic paraboloid's edges are straight, so each wall is a trapezoid). Built from
+## the OSM outline and published descriptions (no photo in the cloud): spec
+## docs/landmarks/specs/ochota.md; the Mac photo check sets the stripes, the supports and the
+## stairs.
+const OCH_OSM := "Warszawa Ochota"
+const OCH_HIGH := 8.34         # the shell's two high corners over the deck
+const OCH_LOW := 3.0           # its two low corners
+const OCH_OVER := 1.4          # the shell's overhang past the hall
+const OCH_SHELL := 0.16        # the shell's edge thickness
+const OCH_GRID := 14           # rulings each way (the stripes underneath)
+const OCH_DECK := 1.1          # the deck slab's depth
+const OCH_STREET := 15.0       # the deck reaches this far (u) past the hall's street side
+const OCH_WHITE := Color("#e9e7e1")
+const OCH_BLACK := Color("#2b2c2e")
+const OCH_CONCRETE := Color("#b9b4aa")
+const OCH_GLASS := Color("#6a7c86")
+const OCH_FRAME := Color("#3a3f44")
+
+
+func _find_ochota() -> void:
+	var q := _landmark(OCH_OSM)
+	if q.size() < 3:
+		return
+	# The zone reaches over the stairs (along the tracks) and the deck to the street.
+	var f := _och_frame(_simplify(q, 0.4))
+	_o = f[0]
+	_a = f[1]
+	_b = f[2]
+	var hu: float = f[3]
+	var hv: float = f[4]
+	var zone := PackedVector2Array([_w(-hu - 3.0, -hv - 14.0), _w(hu + OCH_STREET, -hv - 14.0),
+			_w(hu + OCH_STREET, hv + 3.0), _w(-hu - 3.0, hv + 3.0)])
+	_add_site("ochota", [zone])
+	if not sites.is_empty() and sites[-1]["key"] == "ochota":
+		sites[-1]["frame"] = f
+
+
+## The hall's frame from its outline: [centre, u axis (across the tracks), v axis, half u,
+## half v]. u runs along the outline's longest edge; +u is the side with the higher ground (the
+## street the deck reaches; the cutting is on the other side).
+func _och_frame(poly: PackedVector2Array) -> Array:
+	var best := 0.0
+	var a := Vector2.RIGHT
+	for i in poly.size():
+		var e := poly[(i + 1) % poly.size()] - poly[i]
+		if e.length() > best:
+			best = e.length()
+			a = e.normalized()
+	var b := Vector2(-a.y, a.x)
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for p in poly:
+		var l := Vector2(p.dot(a), p.dot(b))
+		lo = Vector2(minf(lo.x, l.x), minf(lo.y, l.y))
+		hi = Vector2(maxf(hi.x, l.x), maxf(hi.y, l.y))
+	var c := a * (lo.x + hi.x) * 0.5 + b * (lo.y + hi.y) * 0.5
+	var hu := (hi.x - lo.x) * 0.5
+	if map.terrain_height(c.x - a.x * (hu + 25.0), c.y - a.y * (hu + 25.0)) > map.terrain_height(c.x + a.x * (hu + 25.0), c.y + a.y * (hu + 25.0)):
+		a = -a
+		b = -b
+	return [c, a, b, hu, (hi.y - lo.y) * 0.5]
+
+
+## The shell's height over the deck at local (u, v): a bilinear patch over the square of half
+## size h, high at (-h, -h) and (h, h), low at the other two corners.
+func _och_shell(u: float, v: float, h: float) -> float:
+	var s := (u + h) / (2.0 * h)
+	var t := (v + h) / (2.0 * h)
+	var diag := (1.0 - s) * (1.0 - t) + s * t
+	return OCH_LOW + (OCH_HIGH - OCH_LOW) * diag
+
+
+func _build_ochota(site: Dictionary) -> void:
+	var f: Array = site["frame"]
+	_o = f[0]
+	_a = f[1]
+	_b = f[2]
+	var hu: float = f[3]
+	var hv: float = f[4]
+	# The deck's level: the street on both rims of the cutting (the highest ground across).
+	var g := -INF
+	var low := INF
+	for k in range(-10, 11):
+		var p := _w(k * 5.0, 0.0)
+		g = maxf(g, map.terrain_height(p.x, p.y))
+		low = minf(low, map.terrain_height(p.x, p.y))
+	_g = g
+	var none := Color(0, 0, 0, 0)
+	var h := maxf(hu, hv) + OCH_OVER
+	# The deck: a slab from the street over the cutting, its edge beam, two piers in the cutting.
+	_mode = M_STONE
+	var deck := _rect((hu + OCH_STREET - h - 0.6) * 0.5, 0.0, (hu + OCH_STREET + h + 0.6) * 0.5, hv + 0.8)
+	_prism(deck, g - OCH_DECK, g, OCH_CONCRETE.darkened(0.08), OCH_CONCRETE.lightened(0.05), M_STONE, M_STONE)
+	_soffit(deck, g - OCH_DECK, OCH_CONCRETE.darkened(0.3))
+	for pu in [-hu + 1.5, hu - 1.5]:
+		_prism(_rect(pu, 0.0, 0.5, hv - 1.0), low - 1.0, g - OCH_DECK, OCH_CONCRETE.darkened(0.15), none, M_STONE)
+	# The hall: glass walls up to the shell, a black-and-white mosaic band by the floor.
+	var corners := [Vector2(-hu, -hv), Vector2(hu, -hv), Vector2(hu, hv), Vector2(-hu, hv)]
+	var hall := PackedVector2Array()
+	for c: Vector2 in corners:
+		hall.append(_w(c.x, c.y))
+	var keep := _mode
+	_mode = M_PAVILION
+	for i in 4:
+		var c0: Vector2 = corners[i]
+		var c1: Vector2 = corners[(i + 1) % 4]
+		var a := hall[i]
+		var b := hall[(i + 1) % 4]
+		var o := _out(hall, a, b)
+		var n := Vector3(o.x, 0.0, o.y)
+		var t0 := g + _och_shell(c0.x, c0.y, h) - OCH_SHELL
+		var t1 := g + _och_shell(c1.x, c1.y, h) - OCH_SHELL
+		var y0 := g + 0.6
+		var len := a.distance_to(b)
+		_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, t1, b.y), Vector3(a.x, t0, a.y), n, OCH_GLASS,
+				Vector2(0.0, 0.6), Vector2(len, 0.6), Vector2(len, t1 - g), Vector2(0.0, t0 - g), maxf(t0, t1) - g)
+	_mode = M_STONE
+	# Mullions every ~1.7 m, from the band to the shell.
+	for i in 4:
+		var c0: Vector2 = corners[i]
+		var c1: Vector2 = corners[(i + 1) % 4]
+		var a := hall[i]
+		var b := hall[(i + 1) % 4]
+		var o := _out(hall, a, b) * 0.06
+		var n := maxi(1, roundi(a.distance_to(b) / 1.7))
+		for k in range(0, n):
+			var t := float(k) / n
+			var cl: Vector2 = c0.lerp(c1, t)
+			var p := a.lerp(b, t) + o
+			var d := (b - a).normalized() * 0.06
+			var top := g + _och_shell(cl.x, cl.y, h) - OCH_SHELL
+			_quad(Vector3(p.x - d.x, g + 0.6, p.y - d.y), Vector3(p.x + d.x, g + 0.6, p.y + d.y),
+					Vector3(p.x + d.x, top, p.y + d.y), Vector3(p.x - d.x, top, p.y - d.y), Vector3(o.x, 0.0, o.y).normalized(), OCH_FRAME)
+		# The mosaic band: black and white tiles 0.6 m wide.
+		var m := maxi(1, roundi(a.distance_to(b) / 0.6))
+		for k in m:
+			var p0 := a.lerp(b, float(k) / m) + o * 0.5
+			var p1 := a.lerp(b, float(k + 1) / m) + o * 0.5
+			_quad(Vector3(p0.x, g, p0.y), Vector3(p1.x, g, p1.y), Vector3(p1.x, g + 0.6, p1.y), Vector3(p0.x, g + 0.6, p0.y),
+					Vector3(o.x, 0.0, o.y).normalized(), OCH_WHITE if k % 2 == 0 else OCH_BLACK)
+	_mode = keep
+	_och_roof(g, h)
+	_och_supports(g, h)
+	_och_stairs(g, hu, hv, low)
+	# The kiosk by the entrance on the street side.
+	_prism(_rect(hu + 4.0, hv - 2.5, 1.3, 1.0), g, g + 2.5, Color("#d7d2c4"), OCH_FRAME, M_PAVILION, M_STONE)
+	_collide_span(hall, low - 1.0, g + 4.0)
+
+
+## The shell: a ruled grid of OCH_GRID x OCH_GRID quads, white on top, the mosaic's black and
+## white stripes underneath (one stripe per ruling), the thin edge round it.
+func _och_roof(g: float, h: float) -> void:
+	_mode = M_STONE
+	var n := OCH_GRID
+	var step := 2.0 * h / n
+	for j in n:
+		for i in n:
+			var u0 := -h + i * step
+			var u1 := u0 + step
+			var v0 := -h + j * step
+			var v1 := v0 + step
+			var p00 := _w(u0, v0)
+			var p10 := _w(u1, v0)
+			var p11 := _w(u1, v1)
+			var p01 := _w(u0, v1)
+			var y00 := g + _och_shell(u0, v0, h)
+			var y10 := g + _och_shell(u1, v0, h)
+			var y11 := g + _och_shell(u1, v1, h)
+			var y01 := g + _och_shell(u0, v1, h)
+			var top: Array[Vector3] = [Vector3(p00.x, y00, p00.y), Vector3(p10.x, y10, p10.y), Vector3(p11.x, y11, p11.y), Vector3(p01.x, y01, p01.y)]
+			var nt := (top[1] - top[0]).cross(top[3] - top[0]).normalized()
+			if nt.y < 0.0:
+				nt = -nt
+			_quad(top[0], top[1], top[2], top[3], nt, OCH_WHITE)
+			var dn := Vector3(0.0, -OCH_SHELL, 0.0)
+			var stripe := OCH_BLACK if i % 2 == 0 else OCH_WHITE.darkened(0.06)
+			var keep := _no_roof
+			_no_roof = true
+			_quad(top[0] + dn, top[1] + dn, top[2] + dn, top[3] + dn, -nt, stripe)
+			_no_roof = keep
+	# The edge: four straight lines (the paraboloid's edges are its rulings).
+	var cs := [Vector2(-h, -h), Vector2(h, -h), Vector2(h, h), Vector2(-h, h)]
+	var ring := PackedVector2Array()
+	for c: Vector2 in cs:
+		ring.append(_w(c.x, c.y))
+	for i in 4:
+		var c0: Vector2 = cs[i]
+		var c1: Vector2 = cs[(i + 1) % 4]
+		var a := ring[i]
+		var b := ring[(i + 1) % 4]
+		var o := _out(ring, a, b)
+		var t0 := g + _och_shell(c0.x, c0.y, h)
+		var t1 := g + _och_shell(c1.x, c1.y, h)
+		_quad(Vector3(a.x, t0 - OCH_SHELL, a.y), Vector3(b.x, t1 - OCH_SHELL, b.y), Vector3(b.x, t1, b.y), Vector3(a.x, t0, a.y),
+				Vector3(o.x, 0.0, o.y), OCH_WHITE.darkened(0.05))
+
+
+## The two low corners on hinged concrete supports (raked struts down to the deck), and one high
+## corner on its sliding bearing: a slim column. The other high corner is free.
+func _och_supports(g: float, h: float) -> void:
+	for c: Vector2 in [Vector2(h, -h), Vector2(-h, h)]:
+		var top := _w(c.x, c.y)
+		var foot := _w(c.x * 0.86, c.y * 0.86)
+		var y := g + _och_shell(c.x, c.y, h) - OCH_SHELL
+		_beam(Vector3(foot.x, g, foot.y), Vector3(top.x, y, top.y), 0.55, OCH_CONCRETE)
+		_prism(_rect(c.x * 0.86, c.y * 0.86, 0.6, 0.6), g, g + 0.35, OCH_CONCRETE.darkened(0.1), OCH_CONCRETE, M_STONE, M_STONE)
+	var hc := _w(h - 0.5, h - 0.5)
+	_beam(Vector3(hc.x, g, hc.y), Vector3(hc.x, g + OCH_HIGH - OCH_SHELL - 0.3, hc.y), 0.32, OCH_FRAME)
+
+
+## The stairs from the hall down to the island platform in the cutting, along the tracks (-v)
+## from the hall's cutting side: a flight of steps between two concrete parapets.
+func _och_stairs(g: float, hu: float, hv: float, low: float) -> void:
+	var cu := -hu + 3.2
+	var half := 1.6
+	var floor_y := low + 0.9   # the platform's top (bake_osm: railway platforms 0.9 m)
+	var drop := g - floor_y
+	if drop < 1.0:
+		return
+	var steps := clampi(roundi(drop / 0.17), 6, 40)
+	var run := 0.3
+	var none := Color(0, 0, 0, 0)
+	for k in steps:
+		var v0 := -hv - k * run
+		var y := g - (k + 1) * drop / steps
+		_prism(_rect(cu, v0 - run * 0.5, half, run * 0.5), y - 0.2, y + drop / steps, OCH_CONCRETE.lightened(0.04), OCH_CONCRETE.lightened(0.1), M_STONE, M_STONE)
+	var len := steps * run
+	for side in [-1.0, 1.0]:
+		var su: float = cu + side * (half + 0.12)
+		var p0 := _w(su, -hv)
+		var p1 := _w(su, -hv - len)
+		_beam(Vector3(p0.x, g + 0.5, p0.y), Vector3(p1.x, floor_y + 0.5, p1.y), 0.24, OCH_CONCRETE.darkened(0.12))
+
+
+# --- Warszawa Powiśle (S2 of docs/design/railway.md, 2026-11-01) -------------------------------
+
+## The cross-city line's station on the embankment between the tunnel's east mouth and the
+## bridge (Romanowicz and Szymaniak, designed 1954-55, opened 1963). The upper pavilion, the
+## ticket hall on the Aleje level at the edge of the escarpment over the tunnel's mouth: a roof
+## stretched between two concrete arches, sagging between them into its own gutter ("a kite
+## floating in the air"), glass under it. The lower pavilion at the platforms' east end by
+## Kruczkowskiego: a glass drum under an inverted dome, a shallow saucer with its rim up (the
+## "UFO"), since 2013 the café-club "Warszawa Powiśle" with the station's name in neon on the
+## rim. The two side platforms between them under canopies on X-shaped steel supports. Built from
+## the OSM outlines and published descriptions (no photo in the cloud): spec
+## docs/landmarks/specs/powisle.md; the Mac photo check sets the arches, the saucer and the
+## canopies' length.
+const POW_OSM := "Dworzec PKP Powiśle"
+const POW_ARCH := 7.2          # the arches' crowns over the hall's floor
+const POW_SPRING := 3.4        # the arches' springing (the roof's side edges at the arches)
+const POW_SAG := 0.9           # the roof's sag between the arches
+const POW_INSET := 1.6         # the glass hall's set-back under the roof's edges
+const POW_GRID := 10
+const POW_LOW_C := Vector2(400.8, -6.3)   # the round pavilion's centre (its OSM roof outline)
+const POW_LOW_R := 10.6        # the saucer's radius
+const POW_DRUM_R := 7.8        # the glass drum's radius
+const POW_DRUM_H := 3.4
+const POW_RIM := 4.5           # the saucer's rim over the floor
+const POW_DISH := 0.8          # how far its middle dips under the rim
+const POW_SIDES := 28
+const POW_CANOPY := 72.0       # each platform's canopy length (middle of the platform)
+const POW_BAY := 7.2           # supports' spacing
+const POW_WHITE := Color("#e6e4dd")
+const POW_GREY := Color("#8d9095")
+const POW_DARK := Color("#2f3236")
+const POW_GLASS := Color("#5d717c")
+const POW_NEON := Color(1.0, 0.2, 0.25)
+
+
+func _find_powisle() -> void:
+	var q := _landmark(POW_OSM)
+	if q.size() < 3:
+		return
+	var ring := PackedVector2Array()
+	for k in POW_SIDES:
+		ring.append(POW_LOW_C + Vector2.from_angle(TAU * k / POW_SIDES) * (POW_LOW_R + 1.0))
+	_add_site("powisle", [_largest(Geometry2D.offset_polygon(q, 1.5, Geometry2D.JOIN_MITER)), ring])
+	if sites.is_empty() or sites[-1]["key"] != "powisle":
+		return
+	sites[-1]["frame"] = _och_frame(_simplify(q, 0.4))
+	# The two side platforms between the pavilions (their outlines, longest first).
+	var plats: Array = []
+	var mid := (_centre(q) + POW_LOW_C) * 0.5
+	for pl in data.get("platforms", []):
+		var p := _pts(pl["p"])
+		if p.size() >= 3 and _centre(p).distance_to(mid) < 140.0:
+			plats.append(_och_frame(_simplify(p, 0.3)))
+	sites[-1]["platforms"] = plats
+
+
+## The roof's height over the floor at local (u, v): arches at v = +-hv, the sag between them.
+func _pow_roof(u: float, v: float, hu: float, hv: float) -> float:
+	var s := clampf(u / hu, -1.0, 1.0)
+	var t := clampf(v / hv, -1.0, 1.0)
+	return POW_SPRING + (POW_ARCH - POW_SPRING) * (1.0 - s * s) - POW_SAG * (1.0 - t * t)
+
+
+func _build_powisle(site: Dictionary) -> void:
+	_pow_upper(site["frame"])
+	_pow_lower()
+	for f: Array in site.get("platforms", []):
+		_pow_canopy(f)
+
+
+func _pow_upper(f: Array) -> void:
+	_o = f[0]
+	_a = f[1]
+	_b = f[2]
+	var hu: float = f[3]
+	var hv: float = f[4]
+	# The floor: the Aleje level (the highest ground under the outline).
+	var g := -INF
+	for k in range(-2, 3):
+		for m in range(-2, 3):
+			var p := _w(hu * k * 0.5, hv * m * 0.5)
+			g = maxf(g, map.terrain_height(p.x, p.y))
+	_g = g
+	var none := Color(0, 0, 0, 0)
+	# A plinth to the ground on the escarpment's falling side.
+	_prism(_rect(0.0, 0.0, hu, hv), g - 6.0, g, POW_GREY.darkened(0.2), POW_GREY.lightened(0.2), M_STONE, M_STONE)
+	# The glass hall, set back under the roof; its tops follow the roof's underside.
+	var iu := hu - POW_INSET
+	var iv := hv - POW_INSET
+	var corners := [Vector2(-iu, -iv), Vector2(iu, -iv), Vector2(iu, iv), Vector2(-iu, iv)]
+	var hall := PackedVector2Array()
+	for c: Vector2 in corners:
+		hall.append(_w(c.x, c.y))
+	for i in 4:
+		var c0: Vector2 = corners[i]
+		var c1: Vector2 = corners[(i + 1) % 4]
+		var a := hall[i]
+		var b := hall[(i + 1) % 4]
+		var o := _out(hall, a, b)
+		var nrm := Vector3(o.x, 0.0, o.y)
+		var n := maxi(2, roundi(a.distance_to(b) / 1.8))
+		for k in n:
+			var l0: Vector2 = c0.lerp(c1, float(k) / n)
+			var l1: Vector2 = c0.lerp(c1, float(k + 1) / n)
+			var p0 := a.lerp(b, float(k) / n)
+			var p1 := a.lerp(b, float(k + 1) / n)
+			var t0 := g + _pow_roof(l0.x, l0.y, hu, hv) - 0.2
+			var t1 := g + _pow_roof(l1.x, l1.y, hu, hv) - 0.2
+			_mode = M_PAVILION
+			_quad(Vector3(p0.x, g, p0.y), Vector3(p1.x, g, p1.y), Vector3(p1.x, t1, p1.y), Vector3(p0.x, t0, p0.y), nrm, POW_GLASS,
+					Vector2(0.0, 0.0), Vector2(1.8, 0.0), Vector2(1.8, t1 - g), Vector2(0.0, t0 - g), maxf(t0, t1) - g)
+			_mode = M_STONE
+			var d := (p1 - p0).normalized() * 0.07
+			var q := p0 + o * 0.1
+			_quad(Vector3(q.x - d.x, g, q.y - d.y), Vector3(q.x + d.x, g, q.y + d.y), Vector3(q.x + d.x, t0, q.y + d.y),
+					Vector3(q.x - d.x, t0, q.y - d.y), nrm, POW_DARK)
+	# The roof: a grid between the arches, white on top, grey under.
+	var n := POW_GRID
+	for j in n:
+		for i in n:
+			var u0 := -hu + 2.0 * hu * i / n
+			var u1 := -hu + 2.0 * hu * (i + 1) / n
+			var v0 := -hv + 2.0 * hv * j / n
+			var v1 := -hv + 2.0 * hv * (j + 1) / n
+			var pts := [Vector2(u0, v0), Vector2(u1, v0), Vector2(u1, v1), Vector2(u0, v1)]
+			var top: Array[Vector3] = []
+			for l: Vector2 in pts:
+				var w := _w(l.x, l.y)
+				top.append(Vector3(w.x, g + _pow_roof(l.x, l.y, hu, hv), w.y))
+			var nt := (top[1] - top[0]).cross(top[3] - top[0]).normalized()
+			if nt.y < 0.0:
+				nt = -nt
+			_quad(top[0], top[1], top[2], top[3], nt, POW_WHITE)
+			var dn := Vector3(0.0, -0.18, 0.0)
+			var keep := _no_roof
+			_no_roof = true
+			_quad(top[0] + dn, top[1] + dn, top[2] + dn, top[3] + dn, -nt, POW_GREY.lightened(0.15))
+			_no_roof = keep
+	# The two arches: concrete ribs along the roof's ends, springing from the ground past the
+	# corners, swept as one piece each (chained beams overlap at their joints).
+	for side in [-1.0, 1.0]:
+		var v: float = side * (hv + 0.3)
+		var line: Array[Vector3] = []
+		var foot := _w(-hu - 0.8, v)
+		line.append(Vector3(foot.x, g, foot.y))
+		for k in range(0, 13):
+			var u := -hu + 2.0 * hu * k / 12.0
+			var w := _w(u, v)
+			line.append(Vector3(w.x, g + _pow_roof(u, v, hu, hv) + 0.25, w.y))
+		foot = _w(hu + 0.8, v)
+		line.append(Vector3(foot.x, g, foot.y))
+		_pow_rib(line, Vector3(_b.x, 0.0, _b.y), 0.22, POW_WHITE.darkened(0.05))
+	_collide_span(hall, g - 6.0, g + 4.0)
+
+
+## A rib swept along `line`: square section 2r, `side` the horizontal axis across it.
+func _pow_rib(line: Array[Vector3], side: Vector3, r: float, col: Color) -> void:
+	_mode = M_STONE
+	var ring: Array = []
+	for k in line.size():
+		var t := (line[mini(k + 1, line.size() - 1)] - line[maxi(k - 1, 0)]).normalized()
+		var up := side.cross(t).normalized()
+		if up.y < 0.0:
+			up = -up
+		ring.append([line[k] + up * r + side * r, line[k] + up * r - side * r, line[k] - up * r - side * r, line[k] - up * r + side * r])
+	for k in line.size() - 1:
+		var a: Array = ring[k]
+		var b: Array = ring[k + 1]
+		for f in 4:
+			var p0: Vector3 = a[f]
+			var p1: Vector3 = a[(f + 1) % 4]
+			var q1: Vector3 = b[(f + 1) % 4]
+			var q0: Vector3 = b[f]
+			var mid := (p0 + p1 + q0 + q1) * 0.25 - (line[k] + line[k + 1]) * 0.5
+			_quad(p0, p1, q1, q0, mid.normalized(), col)
+
+
+## The round pavilion: a glass drum under the saucer, its rim up, the neon on the rim.
+func _pow_lower() -> void:
+	var c := POW_LOW_C
+	var g := INF
+	for k in 8:
+		var p := c + Vector2.from_angle(TAU * k / 8.0) * POW_DRUM_R
+		g = minf(g, map.terrain_height(p.x, p.y))
+	_g = g
+	var none := Color(0, 0, 0, 0)
+	var drum := PackedVector2Array()
+	var rim := PackedVector2Array()
+	for k in POW_SIDES:
+		drum.append(c + Vector2.from_angle(TAU * k / POW_SIDES) * POW_DRUM_R)
+		rim.append(c + Vector2.from_angle(TAU * k / POW_SIDES) * POW_LOW_R)
+	_prism(drum, g - 0.5, g + POW_DRUM_H, POW_GLASS.lightened(0.1), none, M_PAVILION)
+	_mullions(drum, g, g + POW_DRUM_H, 2.0, 0.05, POW_DARK)
+	# The saucer: three rings from the middle (low) to the rim (high), its underside grey.
+	var rings := [0.0, 0.45, 0.8, 1.0]
+	_mode = M_STONE
+	for r in range(rings.size() - 1):
+		for k in POW_SIDES:
+			var a0 := Vector2.from_angle(TAU * k / POW_SIDES)
+			var a1 := Vector2.from_angle(TAU * (k + 1) / POW_SIDES)
+			var r0: float = rings[r]
+			var r1: float = rings[r + 1]
+			var y0 := g + POW_RIM - POW_DISH * (1.0 - r0 * r0)
+			var y1 := g + POW_RIM - POW_DISH * (1.0 - r1 * r1)
+			var p00 := c + a0 * r0 * POW_LOW_R
+			var p01 := c + a1 * r0 * POW_LOW_R
+			var p10 := c + a0 * r1 * POW_LOW_R
+			var p11 := c + a1 * r1 * POW_LOW_R
+			var q: Array[Vector3] = [Vector3(p00.x, y0, p00.y), Vector3(p10.x, y1, p10.y), Vector3(p11.x, y1, p11.y), Vector3(p01.x, y0, p01.y)]
+			var nt := (q[1] - q[0]).cross(q[3] - q[0])
+			if nt.length_squared() < 1e-6:
+				nt = (q[2] - q[0]).cross(q[1] - q[0])
+			nt = nt.normalized()
+			if nt.y < 0.0:
+				nt = -nt
+			if r0 == 0.0:
+				_tri(q[0], q[1], q[2], nt, POW_WHITE.darkened(0.04), Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+			else:
+				_quad(q[0], q[1], q[2], q[3], nt, POW_WHITE.darkened(0.04))
+	# The rim's face and the saucer's underside (a shallow cone up to the rim).
+	_prism(rim, g + POW_RIM - 0.45, g + POW_RIM, POW_WHITE, none, M_STONE)
+	var keep := _no_roof
+	_no_roof = true
+	for k in POW_SIDES:
+		var a := rim[k]
+		var b := rim[(k + 1) % POW_SIDES]
+		var a2 := c + (a - c) * (POW_DRUM_R / POW_LOW_R)
+		var b2 := c + (b - c) * (POW_DRUM_R / POW_LOW_R)
+		_quad(Vector3(a.x, g + POW_RIM - 0.45, a.y), Vector3(b.x, g + POW_RIM - 0.45, b.y),
+				Vector3(b2.x, g + POW_DRUM_H, b2.y), Vector3(a2.x, g + POW_DRUM_H, a2.y), Vector3.DOWN, POW_GREY)
+	_no_roof = keep
+	# The neon on the rim, on the side the game's camera sees: the two words side by side (one
+	# atlas row holds about a dozen letters).
+	var o := BEHIND_FACE.normalized()
+	var along := Vector2(-o.y, o.x)  # leftwards as read (Neon.place: right = (out.z, -out.x))
+	var k := minf(0.62 * POW_LOW_R / Neon.length_of("WARSZAWA"), 0.8 / (Neon.ROW_H * Neon.PIXEL))
+	for word: Array in [["WARSZAWA", 1.0], ["POWIŚLE", -1.0]]:
+		var w: String = word[0]
+		var at := c + o * (POW_LOW_R * 0.6) + along * (float(word[1]) * (Neon.length_of(w) * k * 0.5 + 0.4))
+		signs.append([w, Vector3(at.x, g + POW_RIM + 0.05, at.y), Vector3(o.x, 0.0, o.y), k, POW_NEON])
+	_collide(drum)
+
+
+## One platform's canopy: a thin slab on X-shaped steel supports along its middle.
+func _pow_canopy(f: Array) -> void:
+	_o = f[0]
+	_a = f[1]
+	_b = f[2]
+	var hu: float = f[3]
+	var hv: float = f[4]
+	if hu < 20.0 or hv > 8.0:
+		return
+	var len := minf(POW_CANOPY, hu * 2.0 - 10.0)
+	var floor_y: float = map.terrain_height(_o.x, _o.y) + 0.9
+	var top := floor_y + 3.6
+	var half := minf(hv + 0.6, 2.4)
+	_prism(_rect(0.0, 0.0, len * 0.5, half), top, top + 0.22, POW_WHITE.darkened(0.06), POW_GREY.darkened(0.1), M_STONE, M_STONE)
+	_soffit(_rect(0.0, 0.0, len * 0.5, half), top, POW_GREY)
+	var n := maxi(2, roundi(len / POW_BAY))
+	for k in n + 1:
+		var u := -len * 0.5 + len * k / n
+		var w := 0.9
+		for s in [-1.0, 1.0]:
+			var p0 := _w(u, -s * w)
+			var p1 := _w(u, s * w)
+			# The foot goes down into the platform's slab (it stands on the map's platform).
+			_beam(Vector3(p0.x, floor_y - 1.0, p0.y), Vector3(p1.x, top, p1.y), 0.16, POW_DARK)
+
+
+# --- Warszawa Stadion (the railway S3a, docs/landmarks/specs/stadion_pkp.md) ---------------
+# Romanowicz and Szymaniak's stop of 1955-58 by the old stadium, renovated for Euro 2012: a low
+# white ticket hall at street level south of the platforms, its platform-side end a curved white
+# "sail", the passage under the tracks, and two long side platforms whose canopies have glazed
+# wind walls over a red-and-white mosaic (the National Stadium's colours) and a perforated metal
+# roof. Built from the hall's OSM outline and the two platforms' outlines; shapes from texts.
+
+const STP_OSM := "Dworzec PKP Warszawa Stadion"
+const STP_SAIL := Rect2(1385.5, -1322.5, 12.6, 4.2)   # where the hall's curved end lies (its OSM arc)
+const STP_HALL_H := 3.9        # the glass walls' top over the plinth's foot
+const STP_ROOF := 0.5          # the roof slab
+const STP_EAVE := 0.8          # its overhang
+const STP_SAIL_H := 6.8        # the sail's tips over the ground
+const STP_SAIL_DIP := 1.1      # how far its middle dips under the tips
+const STP_SAIL_LEAN := 1.4     # how far its top leans out towards the platforms
+const STP_CANOPY := 96.0       # each canopy's length from the platform's hall end
+const STP_CANOPY_H := 3.8      # the canopy roof over the platform
+const STP_PANEL := 2.0         # the mosaic's panels
+const STP_WHITE := Color("#ecebe6")
+const STP_GLASS := Color("#56707e")
+const STP_RED := Color("#c4252b")
+const STP_METAL := Color("#b3b7bb")
+const STP_DARK := Color("#2d3034")
+const STP_NEON := Color(1.0, 0.18, 0.22)
+
+
+func _find_stadion_pkp() -> void:
+	var q := _landmark(STP_OSM)
+	if q.size() < 3:
+		return
+	_add_site("stadion_pkp", [_largest(Geometry2D.offset_polygon(q, 1.5, Geometry2D.JOIN_MITER))])
+	if sites.is_empty() or sites[-1]["key"] != "stadion_pkp":
+		return
+	sites[-1]["hall"] = q
+	# The two side platforms north of the hall (their frames, nearest end first).
+	var c := _centre(q)
+	var plats: Array = []
+	for pl in data.get("platforms", []):
+		var p := _pts(pl["p"])
+		if p.size() < 3:
+			continue
+		var f := _och_frame(_simplify(p, 0.3))
+		var hu: float = f[3]
+		var near := minf((f[0] + f[1] * hu).distance_to(c), (f[0] - f[1] * hu).distance_to(c))
+		if near < 60.0 and hu > 40.0:
+			plats.append(f)
+	sites[-1]["platforms"] = plats
+
+
+func _build_stadion_pkp(site: Dictionary) -> void:
+	var q: PackedVector2Array = site["hall"]
+	var c := _centre(q)
+	var g := INF
+	for p in q:
+		g = minf(g, map.terrain_height(p.x, p.y))
+	_g = g
+	var none := Color(0, 0, 0, 0)
+	var hall := _simplify(q, 0.15)
+	if Geometry2D.is_polygon_clockwise(hall):
+		hall.reverse()
+	# The plinth, the glass walls with their mullions, the white roof slab on its overhang.
+	_prism(hall, g - 0.6, g + 0.5, STP_WHITE.darkened(0.2), none, M_STONE)
+	var keep := _mode
+	_prism(hall, g + 0.5, g + STP_HALL_H, STP_GLASS, none, M_PAVILION)
+	_mode = keep
+	_mullions(hall, g + 0.5, g + STP_HALL_H, 1.8, 0.05, STP_DARK)
+	var roof := _largest(Geometry2D.offset_polygon(hall, STP_EAVE, Geometry2D.JOIN_MITER))
+	_prism(roof, g + STP_HALL_H, g + STP_HALL_H + STP_ROOF, STP_WHITE, STP_WHITE.darkened(0.08), M_STONE, M_STONE)
+	_soffit(roof, g + STP_HALL_H, STP_WHITE.darkened(0.25))
+	_stp_sail(q, g)
+	# STADION in red neon standing on the roof, facing the game's camera.
+	var o := BEHIND_FACE.normalized()
+	var k := 0.5
+	var at := c + o * 4.0
+	signs.append(["STADION", Vector3(at.x, g + STP_HALL_H + STP_ROOF + 0.05, at.y), Vector3(o.x, 0.0, o.y), k, STP_NEON])
+	_collide(hall)
+	var plats: Array = site.get("platforms", [])
+	var pair_mid := Vector2.ZERO
+	for f: Array in plats:
+		pair_mid += (f[0] as Vector2) / plats.size()
+	for f: Array in plats:
+		_stp_canopy(f, c, pair_mid)
+
+
+## The sail: a curved white wall along the hall's concave end, its tips high, its middle lower,
+## its top leaning out over the forecourt towards the platforms; both faces and the top edge.
+func _stp_sail(q: PackedVector2Array, g: float) -> void:
+	var arc := PackedVector2Array()
+	for p in q:
+		if STP_SAIL.has_point(p):
+			arc.append(p)
+	if arc.size() < 3:
+		return
+	arc = _simplify(arc, 0.12) if arc.size() > 8 else arc
+	var a0 := arc[0]
+	var a1 := arc[arc.size() - 1]
+	var chord := a1 - a0
+	var out := Vector2(-chord.y, chord.x).normalized()
+	var mid := (a0 + a1) * 0.5
+	if (_centre(q) - mid).dot(out) > 0.0:
+		out = -out
+	var n := arc.size()
+	var top := PackedVector3Array()
+	var foot := PackedVector3Array()
+	for i in n:
+		var t := float(i) / (n - 1)
+		var e := (2.0 * t - 1.0) * (2.0 * t - 1.0)
+		var h := STP_SAIL_H - STP_SAIL_DIP * (1.0 - e)
+		var lean := out * STP_SAIL_LEAN * (0.6 + 0.4 * (1.0 - e))
+		foot.append(Vector3(arc[i].x, g - 0.3, arc[i].y))
+		top.append(Vector3(arc[i].x + lean.x, g + h, arc[i].y + lean.y))
+	var d := Vector3(out.x, 0.0, out.y) * 0.22
+	_mode = M_STONE
+	for i in n - 1:
+		var nrm := (top[i + 1] - foot[i]).cross(foot[i + 1] - foot[i]).normalized()
+		if Vector2(nrm.x, nrm.z).dot(out) < 0.0:
+			nrm = -nrm
+		_quad(foot[i], foot[i + 1], top[i + 1], top[i], nrm, STP_WHITE)
+		_quad(foot[i] - d, foot[i + 1] - d, top[i + 1] - d, top[i] - d, -nrm, STP_WHITE.darkened(0.12))
+		_quad(top[i], top[i + 1], top[i + 1] - d, top[i] - d, Vector3.UP, STP_WHITE.lightened(0.05))
+
+
+## One platform's canopy from its hall end: posts along the outer edge, the wind wall there (the
+## red-and-white mosaic below, glass above), the perforated metal roof over the whole width, and
+## the stair head down to the passage under the tracks at the hall end.
+func _stp_canopy(f: Array, hall_c: Vector2, pair_mid: Vector2) -> void:
+	_o = f[0]
+	_a = f[1]
+	_b = f[2]
+	var hu: float = f[3]
+	var hv: float = f[4]
+	if hv > 9.0:
+		return
+	# u runs from the hall end (-hu) along the platform; v = +1 is the outer side.
+	if (_o + _a * hu).distance_to(hall_c) < (_o - _a * hu).distance_to(hall_c):
+		_a = -_a
+		_b = -_b
+	# The outer side: away from the tracks between the two side platforms (the side facing the
+	# pair's middle is the inner one).
+	var other := -1.0 if (_w(0.0, 1.0) - _o).dot(pair_mid - _o) > 0.0 else 1.0
+	var len := minf(STP_CANOPY, hu * 2.0 - 4.0)
+	var u0 := -hu + 1.0
+	var u1 := u0 + len
+	var floor_y: float = map.terrain_height(_o.x, _o.y) + 0.9
+	var top := floor_y + STP_CANOPY_H
+	var none := Color(0, 0, 0, 0)
+	var half := hv + 0.3
+	var slab := PackedVector2Array([_w(u0, -half), _w(u1, -half), _w(u1, half), _w(u0, half)])
+	_prism(slab, top, top + 0.25, STP_METAL.darkened(0.1), STP_METAL, M_STONE, M_STONE)
+	_soffit(slab, top, STP_METAL.darkened(0.35))
+	var v := other * (hv - 0.35)
+	var n := maxi(2, roundi(len / 8.0))
+	for k in n + 1:
+		var u := u0 + 0.4 + (len - 0.8) * k / n
+		_prism(_rect(u, v, 0.14, 0.14), floor_y - 1.0, top, STP_DARK, none, M_STONE)
+	# The wind wall just inside the posts: the mosaic panels (two rows, chequered) facing the
+	# tracks and out, glass from 2.4 m up to the roof.
+	var vin := v - other * 0.2
+	var nin := Vector3(_b.x, 0.0, _b.y) * -other
+	var m := maxi(1, roundi(len / STP_PANEL))
+	var e0 := _w(u0, vin)
+	var e1 := _w(u1, vin)
+	for face in 2:
+		var vv := vin + (other * 0.12 if face == 1 else 0.0)
+		var nf := nin if face == 0 else -nin
+		for row in 2:
+			var y0 := floor_y + 1.2 * row - (1.0 if row == 0 else 0.0)
+			var y1 := floor_y + 1.2 * (row + 1)
+			for k in m:
+				var p0 := _w(u0 + len * k / m, vv)
+				var p1 := _w(u0 + len * (k + 1) / m, vv)
+				var col := STP_RED if (k + row) % 2 == 0 else STP_WHITE
+				_quad(Vector3(p0.x, y0, p0.y), Vector3(p1.x, y0, p1.y), Vector3(p1.x, y1, p1.y), Vector3(p0.x, y1, p0.y), nf, col)
+	_mode = M_STONE
+	for s in [1.0, -1.0]:
+		var nn: Vector3 = nin * float(s)
+		_quad(Vector3(e0.x, floor_y + 2.4, e0.y), Vector3(e1.x, floor_y + 2.4, e1.y), Vector3(e1.x, top, e1.y), Vector3(e0.x, top, e0.y), nn, STP_GLASS.lightened(0.1))
+	# The stair head at the hall end: a white box with a dark opening facing along the platform.
+	var sh := _rect(u0 + 4.5, -other * 0.6, 3.5, 1.6)
+	_prism(sh, floor_y - 1.0, floor_y + 2.6, STP_WHITE, STP_WHITE.darkened(0.05), M_STONE, M_STONE)
+	var d0 := _w(u0 + 8.08, -other * 0.6 - 1.2)
+	var d1 := _w(u0 + 8.08, -other * 0.6 + 1.2)
+	var na := Vector3(_a.x, 0.0, _a.y)
+	_quad(Vector3(d0.x, floor_y - 1.0, d0.y), Vector3(d1.x, floor_y - 1.0, d1.y), Vector3(d1.x, floor_y + 2.2, d1.y), Vector3(d0.x, floor_y + 2.2, d0.y), na, STP_DARK)
+	_collide(sh)

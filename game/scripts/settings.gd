@@ -73,6 +73,8 @@ var calm := false
 var color_safe := false
 var vibration := true
 var stop_assist := true
+## Accessibility (2026-11-01): the pedals on the left, the stick on the right (hud.gd).
+var left_handed := false
 ## Loop G1b: Auto's sharp-image state (tiers.gd sharp_state: fallback, calm, wait, trial, why).
 var auto_image := Tiers.sharp_state()
 ## False with --nosave: nothing is read or written.
@@ -117,6 +119,7 @@ func load_file() -> void:
 	color_safe = bool(cfg.get_value("access", "color_safe", color_safe))
 	vibration = bool(cfg.get_value("access", "vibration", vibration))
 	stop_assist = bool(cfg.get_value("access", "stop_assist", stop_assist))
+	left_handed = bool(cfg.get_value("access", "left_handed", left_handed))
 	var image := {}
 	for key in auto_image:
 		image[key] = cfg.get_value("auto_image", key, auto_image[key])
@@ -149,15 +152,16 @@ func save() -> void:
 	cfg.set_value("access", "color_safe", color_safe)
 	cfg.set_value("access", "vibration", vibration)
 	cfg.set_value("access", "stop_assist", stop_assist)
+	cfg.set_value("access", "left_handed", left_handed)
 	for key in auto_image:
 		cfg.set_value("auto_image", key, auto_image[key])
 	cfg.save(path)
 
 
 func summary() -> String:
-	return "controls %d, classic camera %s, traffic %s, quality %s, volume %.0f/%.0f/%.0f %%, perf %s, %d fps, style %d, vhs %s, zone cap %s, access large %s calm %s colour-safe %s vibration %s assist %s, auto image %s" % [
+	return "controls %d, classic camera %s, traffic %s, quality %s, volume %.0f/%.0f/%.0f %%, perf %s, %d fps, style %d, vhs %s, zone cap %s, access large %s calm %s colour-safe %s vibration %s assist %s left-handed %s, auto image %s" % [
 			controls, "follow" if classic_follow else "fixed", TRAFFIC_NAMES[traffic], "auto" if quality == AUTO else str(quality),
-			master * 100.0, music * 100.0, effects * 100.0, perf, fps, style, vhs, zone_cap, text_large, calm, color_safe, vibration, stop_assist, image_summary()]
+			master * 100.0, music * 100.0, effects * 100.0, perf, fps, style, vhs, zone_cap, text_large, calm, color_safe, vibration, stop_assist, left_handed, image_summary()]
 
 
 ## Loop G1b: "sharp", "sharp, on trial 1/4" or "fallback, calm 1/2 (GPU extras down 74 s)".

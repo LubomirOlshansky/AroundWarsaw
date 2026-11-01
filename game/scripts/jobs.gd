@@ -42,6 +42,10 @@ const ORDER_MAX := 1500.0
 ## Waszyngtona just off the map.)
 const ACROSS_MAX := 3600.0
 const JARS := 6
+## Słoiki pay (the designer pass, 2026-11-01, docs/design/pay-tables.md): a fare plus a sum per
+## jar that arrives whole (was 50 + 35 a jar: about twice a kebab's złoty a minute).
+const SLOIK_BASE := 40
+const SLOIK_PER_JAR := 30
 const NIGHT_BONUS := 1.5
 ## Jar stress: braking harder than this (m/s²), and cornering harder than this
 ## (lateral m/s²), add to it; a bump adds by its closing speed above BUMP_FREE.
@@ -972,7 +976,7 @@ func _check_jars() -> void:
 func _sloik_result() -> void:
 	var intact := _jars
 	var group := "sloik_done" if intact >= 3 else "sloik_broken"
-	var pay := 50 + 35 * intact
+	var pay := SLOIK_BASE + SLOIK_PER_JAR * intact
 	wallet.pay(pay, 30 if intact == JARS else 0, "sloik")
 	var best: float = wallet.best_time("sloik")
 	var record: bool = intact == JARS and wallet.record("sloik", _clock)
@@ -989,10 +993,10 @@ func _sloik_result() -> void:
 		times += " · best with every jar %s" % _clock_text(best)
 		times_pl += " · rekord z kompletem %s" % _clock_text(best)
 	hud.show_card("DOWIEZIONE · %d/%d SŁOIKÓW" % [intact, JARS],
-			"%s%s, %s: %s\nKurs 50 zł + %d × 35 zł za słoiki = %d zł · w portfelu %s" % [quote, _order["customer"], _order["name"],
-			times_pl, intact, pay, _money(wallet.zl)],
+			"%s%s, %s: %s\nKurs %d zł + %d × %d zł za słoiki = %d zł · w portfelu %s" % [quote, _order["customer"], _order["name"],
+			times_pl, SLOIK_BASE, intact, SLOIK_PER_JAR, pay, _money(wallet.zl)],
 			PackedStringArray(["OK"]), SLOIK_COLOUR if intact >= 3 else FAIL_COLOUR, true, "Delivered · %d/%d jars" % [intact, JARS],
-			"%s%s · fare 50 zł + %d jars × 35 zł = %d zł" % [quote_en, times, intact, pay])
+			"%s%s · fare %d zł + %d jars × %d zł = %d zł" % [quote_en, times, SLOIK_BASE, intact, SLOIK_PER_JAR, pay])
 	print("słoiki delivered: %s in %.1f s, %d/%d jars, paid %d zł (wallet %d zł)" % [_order["name"], _clock, intact, JARS,
 			pay, wallet.zl])
 

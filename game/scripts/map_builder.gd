@@ -13,6 +13,7 @@ const Landmarks := preload("res://scripts/landmarks.gd")
 const CityMaps := preload("res://scripts/city_maps.gd")
 ## Loop 2c: the parked cars' mesh and paints come from the vehicles' models (one source).
 const Models := preload("res://scripts/models.gd")
+const Trains := preload("res://scripts/trains.gd")
 ## Tile size for instanced things (trees, lamps, parked cars). Loop 2b: 512 m (was 256): one
 ## MultiMesh is one draw call, and the iPhone pays per draw call, not per instance.
 const INSTANCE_TILE := 512.0
@@ -280,9 +281,11 @@ func setup_streamed(index: Dictionary, building_mat: ShaderMaterial, flat_mat: S
 	_out = self
 	_setup(index, building_mat, flat_mat)
 	index_data = index
-	# `areas`: the lawns of the University Library's roof garden (landmarks.gd _find_buw).
+	# `areas`: the lawns of the University Library's roof garden (landmarks.gd _find_buw);
+	# `platforms`: Powiśle's canopies stand on its platforms (landmarks.gd _find_powisle).
 	_marks = Landmarks.new(self, {"landmarks": index.get("landmarks", []), "towers": index.get("towers", []),
-			"buildings": index.get("site_parts", []), "areas": index.get("areas", [])})
+			"buildings": index.get("site_parts", []), "areas": index.get("areas", []),
+			"platforms": index.get("platforms", [])})
 	landmark_info = _marks.info
 	_pick.resize(_roof_nx * _roof_nz)
 	_pick.fill(0)
@@ -561,6 +564,8 @@ func _build_parts(marks, roofs_only: bool) -> void:
 	_build_bridge_structures(walls)
 	_build_walls(walls)
 	_build_portals(walls)
+	_build_rail_portals(walls)
+	_build_catenary(walls)
 	_build_garage_doors(walls)
 	_build_guard_rails(walls)
 	_build_shore()
@@ -1455,6 +1460,174 @@ func _build_portals(st) -> void:
 		_wall_faces.append_array([Vector3(a.x, y + PORTAL_MOUTH, a.y), Vector3(b.x, y + PORTAL_MOUTH, b.y), Vector3(b.x, top + 1.6, b.y),
 				Vector3(a.x, y + PORTAL_MOUTH, a.y), Vector3(b.x, top + 1.6, b.y), Vector3(a.x, top + 1.6, a.y)])
 	_uv2 = Vector2.ZERO
+
+
+## The railway's tunnel mouths (L3 of docs/design/railway.md): where the cross-city tunnel's
+## tracks end in the map (west of Ochota's cutting, under Powiśle's upper pavilion, trains.gd
+## PORTALS), a concrete headwall over a dark mouth 6.4 m high (the catenary's height), two
+## posts and the dark back a few metres in, across all the tracks that end there. The trains
+## slide in and out of it (trains.gd cuts them at the tracks' ends).
+const RAIL_MOUTH := 6.4
+
+
+func _build_rail_portals(st) -> void:
+	_uv2 = Vector2(0.5, -1.0)
+	for q: Vector2 in Trains.PORTALS:
+		if _in_sector and not _sector_rect.has_point(q):
+			continue  # a sector holds every rail it touches whole: one sector owns each mouth
+		var ends := PackedVector2Array()
+		var dir := Vector2.ZERO
+		var y := INF
+		for r in data.get("rails", []):
+			var poly := _pts(r["p"])
+			if poly.size() < 2:
+				continue
+			for k: int in [0, poly.size() - 1]:
+				if poly[k].distance_to(q) < Trains.PORTAL_R:
+					ends.append(poly[k])
+					var inner := poly[1] if k == 0 else poly[poly.size() - 2]
+					dir += (poly[k] - inner).normalized()
+					y = minf(y, deck_height(int(r.get("dk", -1)), poly[k].x, poly[k].y))
+		if ends.size() < 2 or dir.length() < 0.5:
+			continue
+		var d := dir.normalized()
+		var side := Vector2(-d.y, d.x)
+		var lo := INF
+		var hi := -INF
+		var along := -INF
+		var c := Vector2.ZERO
+		for e in ends:
+			c += e
+		c /= ends.size()
+		for e in ends:
+			lo = minf(lo, (e - c).dot(side))
+			hi = maxf(hi, (e - c).dot(side))
+			along = maxf(along, (e - c).dot(d))
+		var mid := c + side * (lo + hi) * 0.5 + d * along
+		var w := hi - lo + 5.0
+		var inside := mid + d * 10.0
+		var top := maxf(terrain_height(inside.x, inside.y), y + RAIL_MOUTH + 1.0) + 0.5
+		var basis := Basis(Vector3.UP, atan2(-d.x, -d.y))
+		var head := mid + d * 0.6
+		_box_oriented(st, Vector3(head.x, (y + RAIL_MOUTH + top) * 0.5, head.y), basis,
+				Vector3(w + 2.4, top - y - RAIL_MOUTH, 1.2), PORTAL_CONCRETE)
+		for sgn in [-1.0, 1.0]:
+			var p: Vector2 = head + side * sgn * (w * 0.5 + 0.6)
+			_box_oriented(st, Vector3(p.x, (y - 0.5 + top) * 0.5, p.y), basis, Vector3(1.2, top - y + 0.5, 1.2),
+					PORTAL_CONCRETE.darkened(0.06))
+		var back := mid + d * 3.5
+		var l0 := back - side * w * 0.5
+		var r0 := back + side * w * 0.5
+		_quad(st, Vector3(l0.x, y - 0.3, l0.y), Vector3(r0.x, y - 0.3, r0.y), Vector3(r0.x, y + RAIL_MOUTH, r0.y),
+				Vector3(l0.x, y + RAIL_MOUTH, l0.y), Vector3(-d.x, 0.0, -d.y), PORTAL_DARK)
+		# The mouth's inner walls and roof, from the headwall to the dark back.
+		for sgn in [-1.0, 1.0]:
+			var a: Vector2 = mid + side * sgn * w * 0.5
+			var b: Vector2 = back + side * sgn * w * 0.5
+			var n := Vector3(-side.x * sgn, 0.0, -side.y * sgn)
+			_quad(st, Vector3(a.x, y - 0.3, a.y), Vector3(b.x, y - 0.3, b.y), Vector3(b.x, y + RAIL_MOUTH, b.y),
+					Vector3(a.x, y + RAIL_MOUTH, a.y), n, PORTAL_DARK.lightened(0.1))
+		var la := mid - side * w * 0.5
+		var ra := mid + side * w * 0.5
+		_quad(st, Vector3(la.x, y + RAIL_MOUTH, la.y), Vector3(ra.x, y + RAIL_MOUTH, ra.y), Vector3(r0.x, y + RAIL_MOUTH, r0.y),
+				Vector3(l0.x, y + RAIL_MOUTH, l0.y), Vector3.DOWN, PORTAL_DARK)
+	_uv2 = Vector2.ZERO
+
+
+## The railway's overhead line (L2 of docs/design/railway.md): a steel mast where a track crosses
+## a CATENARY_STEP grid line (so masts stand in step on parallel tracks and in every sector alike),
+## on the track's outer side (the side with no other track within reach), its arm out over the
+## track, and the contact wire along every track 5.6 m over the rails. Into the walls' surface
+## (no draw call of its own); not solid (the car never reaches the tracks' sides at that height).
+const CATENARY_STEP := 55.0
+const CATENARY_H := 5.6
+const MAST_H := 7.4
+const MAST_OUT := 2.9
+const MAST_COL := Color("#6c7176")
+const WIRE_COL := Color("#2a2c2f")
+
+
+func _build_catenary(st) -> void:
+	var rails: Array = data.get("rails", [])
+	if rails.is_empty():
+		return
+	_uv2 = Vector2(0.5, -1.0)
+	# Every track's segments in 8 m cells, to find a neighbouring track beside a mast.
+	var grid := {}
+	for r in rails:
+		var poly := _pts(r["p"])
+		for i in poly.size() - 1:
+			for p: Vector2 in [poly[i], poly[i + 1], (poly[i] + poly[i + 1]) * 0.5]:
+				var key := Vector2i(floori(p.x / 8.0), floori(p.y / 8.0))
+				var segs: PackedVector2Array = grid.get(key, PackedVector2Array())
+				segs.append_array(PackedVector2Array([poly[i], poly[i + 1]]))
+				grid[key] = segs
+	for r in rails:
+		var poly := _pts(r["p"])
+		var dk := int(r.get("dk", -1))
+		for i in poly.size() - 1:
+			var a := poly[i]
+			var b := poly[i + 1]
+			var len := a.distance_to(b)
+			if len < 0.05:
+				continue
+			var d := (b - a) / len
+			var n := Vector2(-d.y, d.x)
+			# The wire, in pieces of up to 10 m, each end at the rails' height.
+			var pieces := maxi(1, ceili(len / 10.0))
+			for k in pieces:
+				var p0 := a.lerp(b, float(k) / pieces)
+				var p1 := a.lerp(b, float(k + 1) / pieces)
+				if _in_sector and not _sector_rect.has_point((p0 + p1) * 0.5):
+					continue  # the sector holding the piece's middle draws it
+				var y0 := deck_height(dk, p0.x, p0.y) + CATENARY_H
+				var y1 := deck_height(dk, p1.x, p1.y) + CATENARY_H
+				var w := n * 0.05
+				_quad(st, Vector3(p0.x - w.x, y0, p0.y - w.y), Vector3(p1.x - w.x, y1, p1.y - w.y),
+						Vector3(p1.x + w.x, y1, p1.y + w.y), Vector3(p0.x + w.x, y0, p0.y + w.y), Vector3.UP, WIRE_COL)
+			# Masts where the segment crosses a grid line across it.
+			var axis := 0 if absf(d.x) >= absf(d.y) else 1
+			var u0 := a[axis]
+			var u1 := b[axis]
+			var g0 := ceili(minf(u0, u1) / CATENARY_STEP)
+			var g1 := floori(maxf(u0, u1) / CATENARY_STEP)
+			for g in range(g0, g1 + 1):
+				var t := (g * CATENARY_STEP - u0) / (u1 - u0) if absf(u1 - u0) > 0.001 else 0.0
+				var p := a.lerp(b, clampf(t, 0.0, 1.0))
+				if _in_sector and not _sector_rect.has_point(p):
+					continue
+				var free := [not _track_near(grid, p + n * 4.5, 2.5), not _track_near(grid, p - n * 4.5, 2.5)]
+				if not free[0] and not free[1]:
+					continue
+				var sgn := 1.0 if free[0] else -1.0
+				_mast(st, p, n * sgn, d, deck_height(dk, p.x, p.y))
+	_uv2 = Vector2.ZERO
+
+
+func _track_near(grid: Dictionary, p: Vector2, reach: float) -> bool:
+	var segs: PackedVector2Array = grid.get(Vector2i(floori(p.x / 8.0), floori(p.y / 8.0)), PackedVector2Array())
+	for i in range(0, segs.size(), 2):
+		var a := segs[i]
+		var ab := segs[i + 1] - a
+		var l2 := ab.length_squared()
+		var t := clampf((p - a).dot(ab) / l2, 0.0, 1.0) if l2 > 0.000001 else 0.0
+		if p.distance_to(a + ab * t) < reach:
+			return true
+	return false
+
+
+## One mast `out` of the track at p (rails at height y): an H-section post, the arm back over the
+## track at the wire's height and a stay above it.
+func _mast(st, p: Vector2, out: Vector2, d: Vector2, y: float) -> void:
+	var basis := Basis(Vector3.UP, atan2(-d.x, -d.y))
+	var foot := p + out * MAST_OUT
+	_box_oriented(st, Vector3(foot.x, y + MAST_H * 0.5 - 0.3, foot.y), basis, Vector3(0.32, MAST_H + 0.6, 0.32), MAST_COL)
+	var arm := basis.rotated(Vector3.UP, 0.0)
+	var mid := p + out * MAST_OUT * 0.5
+	var sideways := Basis(Vector3.UP, atan2(-out.x, -out.y))
+	_box_oriented(st, Vector3(mid.x, y + CATENARY_H + 0.35, mid.y), sideways, Vector3(0.12, 0.12, MAST_OUT + 0.4), MAST_COL.darkened(0.15))
+	_box_oriented(st, Vector3(mid.x, y + CATENARY_H + 1.2, mid.y), sideways, Vector3(0.08, 0.08, MAST_OUT + 0.2), MAST_COL.darkened(0.15))
+	_box_oriented(st, Vector3(p.x, y + CATENARY_H + 0.2, p.y), arm, Vector3(0.06, 0.4, 0.06), WIRE_COL)
 
 
 ## Loop 3b: a garage door at each ramp top where R9 ended a service way (`garage_doors`): a
@@ -5051,6 +5224,16 @@ const CANDELABRA_HEAD := Vector3(0, 8.5, 0)
 ## New Town, where GUGiK models a whole block of tenements as one building (Rynek's sides are
 ## 49 and 84 OpenStreetMap houses in one model), so it stood in one colour like a modern block.
 const HISTORIC := [Vector3(-760.0, -1680.0, 200.0), Vector3(-830.0, -1920.0, 170.0)]
+## Mariensztat (the Mariensztat review, 2026-11-01): the 1948-49 estate under the escarpment
+## (Rynek Mariensztacki, Mariensztat, Sowia, Garbarska, Furmańska and lower Bednarska), small
+## pastel houses under steep red tile roofs with dormers, so it takes the Old Town's dress too.
+## A polygon, not a circle: its edges run along the streets and the party walls (Kamienica
+## Wernera's west wall, the corner of the L block at Bednarska 21-23), so no house is cut in two
+## (each of its 47 OpenStreetMap houses is wholly in or out).
+const MARIENSZTAT := [Vector2(-546.7, -1395.0), Vector2(-333.3, -1395.0), Vector2(-283.3, -1300.0),
+		Vector2(-246.7, -1236.7), Vector2(-270.0, -1223.3), Vector2(-306.7, -1260.0), Vector2(-350.0, -1233.3),
+		Vector2(-403.3, -1233.3), Vector2(-403.3, -1205.0), Vector2(-506.8, -1195.9), Vector2(-509.8, -1210.3),
+		Vector2(-534.3, -1213.4), Vector2(-544.0, -1236.5), Vector2(-546.7, -1286.7)]
 ## Their tenements' own colours where OpenStreetMap has none (ochre, salmon, cream, terracotta,
 ## pale yellow, sage, blue-grey, peach, oxblood): the rebuilt Old Town's palette.
 const TENEMENTS := ["#d9a441", "#e1968f", "#ebe1d1", "#c8733f", "#efd9a0", "#a9b98a", "#9fb6cf",
@@ -5334,12 +5517,16 @@ func _square_gables(pos: PackedVector3Array, nrm: PackedVector3Array, t: int, po
 				_add_dress(dress, extra)
 
 
-## Whether a point is within `slack` metres of a historic district (HISTORIC).
+## Whether a point is within `slack` metres of a historic district (HISTORIC), or inside
+## Mariensztat (MARIENSZTAT, whose edges already keep whole houses: no slack there).
 func _historic(at: Vector2, slack: float) -> bool:
 	for d in HISTORIC:
 		if at.distance_to(Vector2(d.x, d.y)) < d.z + slack:
 			return true
-	return false
+	if _mariensztat.is_empty():
+		_mariensztat = PackedVector2Array(MARIENSZTAT)
+	return Geometry2D.is_point_in_polygon(at, _mariensztat)
+var _mariensztat := PackedVector2Array()
 
 
 ## The named Royal Route streets' segments in this map or sector: [a, b, half width + reach].
