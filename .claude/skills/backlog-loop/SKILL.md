@@ -18,8 +18,9 @@ Take the first open item, top to bottom:
 1. What the user just asked or reported from the phone, and answers to parked questions
    (`docs/QUESTIONS.md`, "Answered"): an answer unblocks its item, which goes first.
 2. Regressions: a red `tools/verify.sh` or CI on main, a crash, a broken city path.
-3. `docs/ROADMAP.md` "The road to the 1.0 demo": the rounds in their order, each round's
-   loops as `docs/DEMO.md` section 7 lists them.
+3. `docs/ROADMAP.md` "v1.0 checklist": the open lines, P0 first as BACKLOG's audit section
+   orders them; then "The road to the 1.0 demo" for anything the checklist doesn't name. Tick
+   the line when the item lands.
 4. `docs/BACKLOG-TRIAGE.md`: fixes go with the loop named there; "sweep" items in the next sweep.
 5. `docs/BACKLOG.md`: fixes not yet triaged (the oldest section first), then notes that turned
    out to be fixes. Decisions are parked questions, not work.

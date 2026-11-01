@@ -257,7 +257,7 @@ func _check_picks(sf: Storefronts, data: Dictionary, book: Notebook, graph: Lane
 	var seen := {}
 	for v in sf.venues:
 		seen[v["id"]] = true
-		if (Storefronts.CAFES.has(v["id"]) or Storefronts.LOUNGES.has(v["id"])):
+		if (Storefronts.CAFES.has(v["id"]) or Storefronts.LOUNGES.has(v["id"]) or Storefronts.TRENDY.has(v["id"])):
 			continue
 		var name := str(at[v["id"]]["name_pl"]).to_upper()
 		var joined := " ".join(v["lines"] as Array)
@@ -270,10 +270,10 @@ func _check_picks(sf: Storefronts, data: Dictionary, book: Notebook, graph: Lane
 				break
 		_expect(ok, "venue %s: no building's wall within reach of %.0f, %.0f" % [v["id"], road.x, road.y])
 	for id: String in Storefronts.VENUES:
-		if (Storefronts.CAFES.has(id) or Storefronts.LOUNGES.has(id)):
+		if (Storefronts.CAFES.has(id) or Storefronts.LOUNGES.has(id) or Storefronts.TRENDY.has(id)):
 			continue
 		_expect(seen.has(id), "venue %s: not placed (no address, poi or road)" % id)
-	_expect(sf.venues.size() == 18 + Storefronts.CAFES.size() + Storefronts.LOUNGES.size(), "venues: %d signs (want %d: 17 venues, Glon twice, %d Coffeechairs, %d shisha lounges)" % [sf.venues.size(), 18 + Storefronts.CAFES.size() + Storefronts.LOUNGES.size(), Storefronts.CAFES.size(), Storefronts.LOUNGES.size()])
+	_expect(sf.venues.size() == 18 + Storefronts.CAFES.size() + Storefronts.LOUNGES.size() + Storefronts.TRENDY.size(), "venues: %d signs (want %d: 17 venues, Glon twice, %d Coffeechairs, %d shisha lounges, %d trend spots)" % [sf.venues.size(), 18 + Storefronts.CAFES.size() + Storefronts.LOUNGES.size() + Storefronts.TRENDY.size(), Storefronts.CAFES.size(), Storefronts.LOUNGES.size(), Storefronts.TRENDY.size()])
 	# Leżaks and metro entrances: off the lanes; one standing.
 	var standing := 0
 	for s in sf.scooters:

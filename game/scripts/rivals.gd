@@ -80,7 +80,7 @@ const FIRST_ROLL := 12.0
 const FIRST_LINES := {
 	"call": ["Synku! Babcia mruga. Do Palmy, kto pierwszy?", "Sonny! Granny's flashing you. To the Palm, first one there?"],
 	"nudge": ["Mrugnij, synku. Babcia nie ma całego dnia.", "Flash back, sonny. Granny hasn't got all day."],
-	"gone": ["Ech, młodzież. To innym razem.", "Oh, young people. Another time, then."],
+	"gone": ["Ech, ta młodzież. To innym razem.", "Kids these days. Another time, then."],
 }
 
 ## Each rival: name, tag colour, car style (models.gd), box size, and lines as

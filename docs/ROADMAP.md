@@ -6,6 +6,79 @@ The goal: the centre of Warsaw — Śródmieście, Powiśle, the Vistula and the
 National Stadium — looking and feeling like a polished indie game, playable on
 an iPhone, with driving, a helicopter, and missions.
 
+## v1.0 checklist: what is done and what is left
+
+**The one place to check progress.** Every thread that lands an item ticks its line here (`[x]`,
+the date and the PR) in the same PR, and adds any new v1.0 item it finds. Detail lives in
+docs/BACKLOG.md (the audit section at its top, then the older sections); this list only names the
+item. Updated 2026-11-01 from the audit. v1.0 = the Demo and TestFlight gates in docs/WORKFLOW.md,
+then the Launch gate.
+
+### Done (built and checked headless)
+- [x] Map: the 21 km² demo box in streamed sectors, 1 m terrain, map north (3c, 3d-1, 3d-2, 3e)
+- [x] Roads: checks C1-C10 and `check_drive` green on the Mac at the time (3a, 3b, 3b-2)
+- [x] The river off-limits (10a); the HUD at phone size (2e); the follow camera; car models (2c)
+- [x] Police I and II, city guards, the clamp (3g); traffic, trams, buses, night buses, the old tram
+- [x] Side jobs and jokes: kebab, słoiki, Podwózka, couriers, Leżak round-up, Frogs, storefronts,
+      the notebook, PÓŁNOC FM, Fotka, Spacer, KASETA, eggs (2d, MW-0 to MW-6, jobs-2)
+- [x] Demo loop: save v2 and districts, 20 Syrenki, the rival ladder and "Trzy mosty", the guided
+      first 10 minutes and the end card (3h slices 1-4); the main line and its gold star
+- [x] The full map with landmark pins and teleport; the quest stop assist
+- [x] Landmarks: the Palace, Centralna, Złote Tarasy, the towers, MSN, the Rotunda, BUW, Kopernik,
+      the stadium, Plac Piłsudskiego, the start street's stores, many churches (Mac photo checks
+      for some)
+- [x] Day, dusk and night; rain; water; synthesised sound; puddles and night water (3i part)
+- [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted
+
+### Left: the start of the game
+- [ ] Merge PR #115 (start facing the first stand, short first order, BUW roof cassette), then
+      PR #121 (the opening flyover)
+- [ ] First-scene items 4-7: pavilions and towers behind the stores, Plac Defilad's paving, tram
+      stops and kerbs on Marszałkowska, pedestrians and sound at the start
+
+### Left: map and roads
+- [ ] A full `tools/verify.sh` and `--ios` on the Mac on today's main, both city paths
+- [ ] Map checks in GitHub CI (the derived map pack as a release asset)
+- [ ] Map review C: the streets of the 3d-1 box and map north against the orthophoto
+- [ ] Loop 3e leftovers: Łazienkowski's Praga end (R8), the rail cutting, Rozdroże's tubes,
+      Nowy Zjazd's wall, deck 4; Most Łazienkowski cut by the east edge (decide)
+- [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
+
+### Left: landmarks and street details
+- [ ] The landmark lane's remaining list (BACKLOG "Landmarks lane, hand-over": the Cathedral, the
+      Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
+- [ ] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
+      Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
+
+### Left: content and feel
+- [ ] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
+- [ ] DEMO 6.3 counts: 10 roof cassettes (1 in #115), ~25 landmark cards, the second słoiki
+      station, the Old Town tourist and Łazienki peacock rescues (check each against the code)
+- [ ] Loop 3i juice: sparks and dust (no particles yet), money pops, district ambiences,
+      haptics working on the iPhone
+- [ ] Accessibility: Reduce Motion, left-handed layout, colour-blind-safe markers, text size
+      (none built yet)
+- [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
+      length, teleport rules, stop assist toggle, Palace stone colour)
+
+### Left: the phone (needs F's yes for each device run)
+- [ ] Bench on the iPhone 11 and 16 Pro Max on today's main against budget P (DEMO 7): frame,
+      draw calls, memory, `--stream-soak`; the sector-load hitch; compressed map textures
+- [ ] F's timed fresh-save run: the first 10 minutes beat by beat and the ~1 h main line; driving
+      feel, stop assist, rubber band, ghost finger, cassette size
+- [ ] A 30-minute soak with no crash or soft-lock; the HUD re-checked at 375, 390 and 440 pt
+
+### Left: TestFlight and the stores
+- [ ] F fills App Information in App Store Connect; keep or drop iPad
+- [ ] Debug flags stripped from the release build; credits and licences screen checked
+- [ ] Store screenshots re-shot after the opening lands; app icon; a short trailer
+- [ ] Deploy the support page; first TestFlight upload from the Mac; Play closed test
+- [ ] Outside players finish the first ten minutes without help (the Demo gate)
+
+### v1.0 Launch (after TestFlight)
+- [ ] Device pass iPhone 13 to current (60 fps, memory under 1.5 GB, load under 4 s), App Store
+      assets and metadata, review notes
+
 ## Where we are (v0.4)
 
 - Map: 3.55 × 1.78 km, Śródmieście to PGE Narodowy, as a diorama slab.
@@ -330,8 +403,18 @@ in). Gaps the orchestrator added on 2026-10-28, so nothing found so far falls th
 - **After the demo**: the inner districts (Śródmieście, Wola, Ochota, Mokotów, Żoliborz,
   Praga-Północ, Praga-Południe, ~122 km²) as an update delivered as background asset packs,
   then the rest of Warsaw (sizes in DEMO.md section 9).
+- **Status, 2026-11-01 (audit)**: rounds 1-7 are built and round 8 (3h) is mostly built, but
+  the Demo gate (WORKFLOW.md) is not met: the opening's last two PRs (#115, #121) are unmerged,
+  the last phone numbers are from 2026-10-29, no full Mac verify is recorded since the landmark
+  lane began, the roads were never compared with the real streets outside the old box, and nobody
+  has played a fresh save on the phone. The order from here: BACKLOG "Audit: what is verified
+  beyond the landmarks" (P0: merge the opening, a full Mac verify, the phone pass and F's timed
+  run; then roads review C, street furniture on the main line's route, the designer's text pass),
+  with the landmark lane running beside it.
 
 ### v1.0 — "Ship it"
+- Trend spots 2025–26 (docs/design/trends-2025-26.md): eight parody signs built; queue, drop quest and
+  scooter zones to follow (BACKLOG "Trends 2025–26").
 - Device pass on iPhones (11 → 17 Pro): 60 fps target, memory under 1.5 GB, load < 4 s.
 - Settings (style, controls, sound), onboarding, App Store assets, privacy, credits
   (OSM ODbL, GUGiK CC BY 4.0 for trees, ZTM data terms).
