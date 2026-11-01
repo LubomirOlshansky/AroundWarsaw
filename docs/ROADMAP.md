@@ -86,7 +86,8 @@ then the Launch gate.
 
 - [ ] Roofs across the map (F, 2026-11-01; plan docs/design/roofs.md):
   - [x] RF1-RF3 roof materials, parapets, tenement chimneys, 2026-11-01
-  - [ ] RF4 OSM-only buildings' roofs, copper and red sheet metal by district; the phone bench (Mac check done 2026-11-01)
+  - [x] RF4 OSM-only buildings' pitched roofs, copper and red sheet metal by district, 2026-11-01
+  - [ ] RF4b Powiśle roof terraces, L-shaped hips; the phone bench and a Mac look
 
 ### Left: content and feel
 - [x] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables

@@ -84,6 +84,11 @@ const COL := {
 	"rail": Color("#3d3a37"),
 }
 const FACADES := ["#e9dcc2", "#d8c6a6", "#cfc4b2", "#e3c993", "#c9b08e", "#b9bec4", "#d9b98f", "#b59c7e", "#e6dccd", "#c98f6b", "#a8a49d", "#d6a77a"]
+## RF4 (OsmRoofs): the pitched roofs' districts: aged copper, red sheet metal, ceramic tile.
+const PATINA := "#6f9c88"
+const RED_SHEET := "#93493b"
+const TILE_RED := "#a85a40"
+const MDM_REACH := 430.0   ## m from Plac Konstytucji: Marszałkowska's socialist-realist blocks
 const ROOFS := ["#8d8882", "#7d726a", "#9b9187", "#72777c", "#857a70"]
 const GLASS := ["#8fb4cb", "#9fbfd2", "#7ea4bd", "#a9c3cf"]
 const CANOPY_SUMMER := ["#4e8a3b", "#5d9a44", "#437c36", "#6aa64c", "#5a8f3e"]
@@ -4210,6 +4215,7 @@ func _build_buildings(st, keep: Array, marks) -> void:
 			continue
 		drawn.append(int(index))
 	var bottoms := _part_bottoms(list, drawn, marks)
+	var royal := _royal_segments()
 	for index in drawn:
 		var bld: Dictionary = list[index]
 		var poly := _pts(bld["p"])
@@ -4239,12 +4245,23 @@ func _build_buildings(st, keep: Array, marks) -> void:
 		for q in poly:
 			plan = plan.expand(q)
 		var skin: Dictionary = marks.skin_at(plan)
+		var pitched := {}
 		if not skin.is_empty():
 			wall = skin["wall"]
 			roof = skin["roof"]
 			_uv2.x = skin["mode"]
 		elif not glass and not _historic(plan.get_center(), 0.0):
 			_uv2.x = typed_seed(_building_type(str(bld["kind"]), poly, h), _uv2.x)
+			if not bld.has("pil") and not bld.has("cut") and mh < 1.0:
+				pitched = OsmRoofs.shape(poly, h, str(bld["kind"]))
+		# RF4: a small low house gets a pitched roof in its district's material (the walls stop
+		# at the eave, the ridge stands where the flat lid did).
+		var rise := float(pitched.get("rise", 0.0))
+		var wall_h := h - rise
+		if rise > 0.0:
+			_uv2.y = wall_h
+			if str(bld["rc"]) == "":
+				roof = _district_roof(plan.get_center(), hsh, str(bld["kind"]), royal)
 
 		var run := 0.0
 		for i in poly.size():
@@ -4259,13 +4276,13 @@ func _build_buildings(st, keep: Array, marks) -> void:
 			var bottom := ground + mh - (0.4 if mh < 0.5 else 0.0)
 			var p0 := Vector3(a.x, bottom, a.y)
 			var p1 := Vector3(b.x, bottom, b.y)
-			var p2 := Vector3(b.x, ground + h, b.y)
-			var p3 := Vector3(a.x, ground + h, a.y)
+			var p2 := Vector3(b.x, ground + wall_h, b.y)
+			var p3 := Vector3(a.x, ground + wall_h, a.y)
 			var base_col := wall.darkened(0.12) if mh < 1.0 else wall
 			var u0 := Vector2(run, mh)
 			var u1 := Vector2(run + length, mh)
-			var u2 := Vector2(run + length, h)
-			var u3 := Vector2(run, h)
+			var u2 := Vector2(run + length, wall_h)
+			var u3 := Vector2(run, wall_h)
 			_tri_shaded(st, p0, p1, p2, n, base_col, base_col, wall, u0, u1, u2)
 			_tri_shaded(st, p0, p2, p3, n, base_col, wall, wall, u0, u2, u3)
 			run += length
@@ -4275,10 +4292,64 @@ func _build_buildings(st, keep: Array, marks) -> void:
 				var g1 := ground + minf(5.0, h)
 				_wall_faces.append_array([Vector3(a.x, g0, a.y), Vector3(b.x, g0, b.y), Vector3(b.x, g1, b.y),
 						Vector3(a.x, g0, a.y), Vector3(b.x, g1, b.y), Vector3(a.x, g1, a.y)])
+		if rise > 0.0:
+			_pitched_gables(st, pitched, ground + wall_h, wall_h, wall)
 		_uv2 = Vector2(_uv2.x, -1.0)
-		_fill(st, poly, ground + h, roof)
+		if rise > 0.0:
+			_pitched_roof_slopes(st, pitched, ground + wall_h, roof)
+		else:
+			_fill(st, poly, ground + h, roof)
 		_roof_polygon(poly, ground + h, roof, wall)
 	_uv2 = Vector2.ZERO
+
+
+## RF4: the gable ends of an OsmRoofs.shape standing on the eave at `eave` (wall triangles, so
+## they take the building's windows' pattern and the wall colour; `_uv2` is still the wall's).
+func _pitched_gables(st, pitched: Dictionary, eave: float, wall_h: float, wall: Color) -> void:
+	for t: Array in pitched["gables"]:
+		var a: Vector3 = t[0] + Vector3(0.0, eave, 0.0)
+		var b: Vector3 = t[1] + Vector3(0.0, eave, 0.0)
+		var c: Vector3 = t[2] + Vector3(0.0, eave, 0.0)
+		var n := Vector3(b.z - a.z, 0.0, a.x - b.x).normalized()  # outward: to the right of a to b
+		_tri_shaded(st, a, b, c, n, wall, wall, wall, Vector2(a.x + a.z, wall_h + t[0].y), Vector2(b.x + b.z, wall_h + t[1].y),
+				Vector2(c.x + c.z, wall_h + t[2].y))
+
+
+## RF4: the roof slopes of an OsmRoofs.shape (the roof branch of the building shader, UV2.y < 0).
+func _pitched_roof_slopes(st, pitched: Dictionary, eave: float, roof: Color) -> void:
+	for t: Array in pitched["roof"]:
+		var a: Vector3 = t[0] + Vector3(0.0, eave, 0.0)
+		var b: Vector3 = t[1] + Vector3(0.0, eave, 0.0)
+		var c: Vector3 = t[2] + Vector3(0.0, eave, 0.0)
+		var n := (b - a).cross(c - a)
+		if n.length() < 0.001:
+			continue
+		n = n.normalized()
+		if n.y < 0.0:
+			n = -n
+		_tri(st, a, b, c, n, roof)
+
+
+## RF4: a pitched roof's colour by district where OpenStreetMap has none: the Royal Route's
+## palaces under copper (green with age) or red sheet metal, MDM's blocks under dark red sheet,
+## small houses under ceramic tile, the rest under painted sheet in grey or red-brown.
+func _district_roof(at: Vector2, hsh: int, kind: String, royal: Array) -> Color:
+	var pick := fposmod(hsh * 0.6180339887, 1.0)
+	var jitter := 0.92 + 0.16 * fposmod(hsh * 0.3819660113, 1.0)
+	var col: Color
+	if _on_royal_route(at.x, at.y, royal):
+		col = Color(PATINA) if pick < 0.55 else Color(RED_SHEET)
+	elif at.distance_to(Vector2(CANDELABRAS.x, CANDELABRAS.y)) < MDM_REACH:
+		col = Color(RED_SHEET).darkened(0.1)
+	elif kind == "house" or kind == "detached" or kind == "semidetached_house" or kind == "terrace":
+		col = Color(TILE_RED)
+	elif pick < 0.4:
+		col = Color(TILE_RED)
+	elif pick < 0.7:
+		col = Color(RED_SHEET)
+	else:
+		col = Color(ROOFS[hsh % ROOFS.size()])
+	return Color(col.r * jitter, col.g * jitter, col.b * jitter, 1.0)
 
 
 ## Loop 1: OpenStreetMap building parts that would float. A part is drawn from its

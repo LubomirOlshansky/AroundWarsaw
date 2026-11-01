@@ -15,8 +15,15 @@ were already real; what they lacked was material and edge detail.
       2 m or more, not round plant boxes), RF3 chimney stacks on pre-war tenements (party-wall
       rows on flat roofs, one on some pitches; mansard dormers outside the Old Town were tried
       and dropped: they read as black holes) (`roof_dress.gd`, `check_roof_dress`; no new draw call).
-- [ ] RF4: OpenStreetMap-only buildings' hipped and gabled roofs, MDM's and the Royal Route's
-      copper and red sheet metal by district, Powiśle's roof terraces.
+- [x] RF4 (2026-11-01, `osm_roofs.gd`, `check_osm_roofs`): OpenStreetMap-only buildings (no LoD2)
+      that are small (30-520 m²), low (3.5-16 m), convex and not a hall/office/school/church get a
+      hip roof, or a gable on a plain rectangle (pitch ~29°, walls stop at the eave, the ridge is
+      where the flat lid was, so the roof grid is unchanged). Colour where OSM has none: Royal
+      Route aged copper (55 %) or red sheet, MDM (430 m round Plac Konstytucji) dark red sheet,
+      houses tile red, the rest tile / red sheet / grey. Same material, no new draw call.
+- [ ] RF4b: Powiśle's roof terraces (decking, planters) and concave footprints (L-shapes stay
+      flat; needs a straight skeleton); a Mac look at the phone size on real LoD2 coverage (in the
+      cloud there is no LoD2, so every small OSM house showed it).
 - [x] Mac check on today's bake (2026-11-01): 130 draw calls before and after, 0.61 → 0.62 M
       triangles, no shimmer; tile courses show close up and fade at the default zoom.
 - [ ] The phone bench and a look on the phone (needs F's yes for a device run).

@@ -61,7 +61,8 @@ from the LoD2 planes only and does not change.
   along the party walls on flat roofs, one on some big pitches. Dormers on mansard faces were
   tried (OldTownRoofs.dress) and dropped: on the Royal Route's palaces they read as black
   holes from the helicopter.
-- **RF4 later**: OpenStreetMap-only buildings (no LoD2) get hipped or gabled roofs from their
+- **RF4 (done 2026-11-01, `game/scripts/osm_roofs.gd`)**: the OSM-only houses got hips and gables (shape and district colours: see BACKLOG "Roofs across the map"). Still open (RF4b): Powiśle's terraces, concave footprints.
+- **RF4 plan as written**: OpenStreetMap-only buildings (no LoD2) get hipped or gabled roofs from their
   footprint when small and low; MDM's and the Royal Route's copper by district; roof
   terraces with decking in Powiśle. A Mac look at the phone size for all of it.
 
