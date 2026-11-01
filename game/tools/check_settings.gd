@@ -23,9 +23,9 @@ func _initialize() -> void:
 	var fresh := Settings.new()
 	fresh.path = "user://settings_check_missing.cfg"
 	fresh.load_file()
-	var defaults := fresh.controls == 0 and fresh.traffic == Settings.NORMAL_TRAFFIC and fresh.quality == Settings.AUTO \
+	var defaults := fresh.controls == 0 and fresh.traffic == Settings.DEFAULT_TRAFFIC and fresh.quality == Settings.AUTO \
 			and fresh.master == 1.0 and fresh.music == 1.0 and fresh.effects == 1.0 and not fresh.perf and fresh.classic_follow \
-			and fresh.fps == 60 and fresh.style == 0 and not fresh.vhs and not fresh.zone_cap \
+			and fresh.fps == 60 and fresh.style == 0 and not fresh.vhs and not fresh.zone_cap and fresh.handling == 0 \
 			and not fresh.text_large and not fresh.calm and not fresh.color_safe and fresh.vibration and fresh.stop_assist \
 			and not fresh.left_handed
 	print("defaults from a missing file: %s (%s)" % ["OK" if defaults else "WRONG", fresh.summary()])
@@ -79,6 +79,7 @@ func _initialize() -> void:
 	a.style = 3
 	a.vhs = true
 	a.zone_cap = true
+	a.handling = 1
 	a.text_large = true
 	a.calm = true
 	a.color_safe = true
