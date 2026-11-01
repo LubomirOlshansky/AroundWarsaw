@@ -16,6 +16,12 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 ## Waiting
 
+- **2026-11-01 · landmarks · Old Town hotels** — Which tenements are the real Hotel Bellotto (Brukowa 12),
+  Castle Inn (Świętojańska 2) and the Rynek aparthotel? Default built: the nearest tenement to each
+  address's published spot, parody names KASZTEL INN, CANALETTO, STARÓWKA (`HOTELS` in landmarks.gd,
+  `o` and `out` per hotel). Mac look check: is each front on the right house and street face, is
+  the neon readable at night. Canaletto's front was not seen in the cloud render.
+
 Newest first. One entry per question.
 
 - **2026-11-01 · landmarks · metro entrances: Mac look check** — Built in the cloud (flat
