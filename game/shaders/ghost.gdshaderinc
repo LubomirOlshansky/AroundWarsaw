@@ -24,7 +24,9 @@ uniform float occlusion_up = 1.35;
 
 // The ellipse on screen alone (no matter which side of the vehicle): 1 in the core, 0
 // outside, soft over the rim. The look loop (2026-10-28) tightened the rim from 0.55-1.0
-// of the radius to 0.65-0.9 (the same middle, 0.775): the wide soft dither speckled roofs
+// of the radius to 0.65-0.9 (the same middle, 0.775); G5 (2026-11-01) to 0.74-0.84 and the depth
+// ramp from 1-4 m to 1-2 m: the wide halftone bands strobed as the car moved (the Bayer
+// pattern is fixed on screen, the band slides over the wall), so the dither is now a thin seam: the wide soft dither speckled roofs
 // that don't hide the car.
 float ghost_region(vec2 view_xy) {
 	if (occlusion_radius <= 0.0) {
@@ -33,7 +35,7 @@ float ghost_region(vec2 view_xy) {
 	vec2 dv = (view_xy - car_view.xy) / occlusion_radius - vec2(0.0, occlusion_lift);
 	dv.x *= 0.78;
 	float r = length(vec2(dv.x, dv.y > 0.0 ? dv.y / occlusion_up : dv.y));
-	return 1.0 - smoothstep(0.65, 0.9, r);
+	return 1.0 - smoothstep(0.74, 0.84, r);
 }
 
 // 0 outside the ghost, 1 in its core, soft in between (the dithered rim). `view_xy` is the
@@ -46,5 +48,5 @@ float ghost_fade(vec2 view_xy, vec2 world_xz) {
 	if (side > -1.0) {
 		return 0.0;
 	}
-	return ghost_region(view_xy) * smoothstep(1.0, 4.0, -side);
+	return ghost_region(view_xy) * smoothstep(1.0, 2.0, -side);
 }

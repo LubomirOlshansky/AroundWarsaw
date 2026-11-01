@@ -39,6 +39,9 @@ class FakeDialogue extends Node:
 		said.append([speaker, group, tag])
 		return ["…", "…"]
 
+	func say_ambient(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false) -> Array:
+		return say(_anchor, speaker, group, tag, _s, _a, _h, _p)
+
 	func count(group: String, tag: String) -> int:
 		var n := 0
 		for l: Array in said:
@@ -115,6 +118,11 @@ func _check_rules() -> void:
 		var n := CityLife.rider_count(row[0])
 		_expect(n == int(row[1]), "riders at %.1f: %d (want %d)" % [row[0], n, row[1]])
 	_expect(CityLife.rider_count(8.0, 2.0) <= CityLife.BIKE_CAP, "riders at --life=2 over the cap")
+	# F, 2026-11-01: the Vistula boulevards: twice the riders, capped, still 06-22 only.
+	_expect(CityLife.rider_count(12.0, 1.0, true) == 8 and CityLife.rider_count(8.0, 1.0, true) == CityLife.BLVD_RIDERS_MAX
+			and CityLife.rider_count(5.5, 1.0, true) == 0, "boulevard riders: 8 midday, %d at rush, none before 06" % CityLife.BLVD_RIDERS_MAX)
+	_expect(CityLife.rider_count(8.0, 2.0, true) + 6 <= CityLife.BIKE_CAP * 2 and CityLife.BLVD_V.x > 8.0 and CityLife.BLVD_FAST < 1.0,
+			"boulevard riders: fast ones are a share, not all")
 	var kinds := [0, 0, 0, 0]
 	for i in 100:
 		kinds[CityLife.rider_kind(i / 100.0)] += 1

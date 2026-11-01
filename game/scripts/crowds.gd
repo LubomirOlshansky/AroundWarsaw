@@ -166,6 +166,26 @@ const CHILL := {
 	"chill_koszyki": [Vector2(-884.0, 1266.0), 30, 30.0],
 	"chill_elektrownia": [Vector2(285.0, -738.0), 34, 36.0],
 }
+## F's ask (2026-11-01): the Vistula boulevards (Bulwary Wiślane, Karowa to Most Świętokrzyski and on
+## past Kopernik) full of people chilling: groups on the granite steps and benches along the river
+## edge, about 40-60 m apart, bigger by the Kopernik steps' neighbours. id -> [spot, most people,
+## radius]. Same machinery as CHILL (their level is `chill_level`: the long summer evening). The
+## spots lie on the boulevard's river edge read off the baked steps and benches *guess* (a photo
+## check on the phone is parked in QUESTIONS). city_life.gd's fast riders and dog walkers use the
+## same spots (`BULWARY_R`).
+const BULWARY := {
+	"chill_bulwary_1": [Vector2(250.0, -1010.0), 18, 30.0],
+	"chill_bulwary_2": [Vector2(330.0, -970.0), 16, 30.0],
+	"chill_bulwary_3": [Vector2(385.0, -925.0), 18, 30.0],
+	"chill_bulwary_4": [Vector2(440.0, -872.0), 20, 30.0],
+	"chill_bulwary_5": [Vector2(480.0, -835.0), 20, 28.0],
+	"chill_bulwary_6": [Vector2(540.0, -705.0), 18, 30.0],
+	"chill_bulwary_7": [Vector2(590.0, -680.0), 24, 32.0],
+	"chill_bulwary_8": [Vector2(640.0, -632.0), 18, 30.0],
+	"chill_bulwary_9": [Vector2(690.0, -590.0), 16, 30.0],
+}
+## The boulevard's reach (m) round a BULWARY spot: the view this near it is "on the boulevards".
+const BULWARY_R := 90.0
 ## KROWA 2.0, the milk bar in Norblin (our parody; a bar mleczny rebuilt as a start-up): it opens
 ## 8:00-18:00 and its line is long at lunch. Same trend-queue machinery as KUKŁA, tag "kolejka".
 const MILK := ["krowa_norblin"]
@@ -533,8 +553,10 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		_add_site(site)
 	if at.has(STEPS_ID):
 		_add_site({"id": STEPS_ID, "kind": "steps", "at": at[STEPS_ID], "max": STEPS_MAX})
-	for cid: String in CHILL:
-		var cs: Array = CHILL[cid]
+	var yards := CHILL.duplicate()
+	yards.merge(BULWARY)
+	for cid: String in yards:
+		var cs: Array = yards[cid]
 		_add_site({"id": cid, "kind": "chill", "at": cs[0], "max": int(cs[1]), "radius": float(cs[2])})
 	_add_stops(data)
 	if at.has(PLAN_C_ID):
@@ -1525,7 +1547,7 @@ func _anchor(s: Dictionary, i: int) -> Callable:
 func _say(anchor: Callable, speaker: String, group: String, tag: String, accent: Color, prefer := false) -> void:
 	if dialogue == null:
 		return
-	var l: Array = dialogue.say(anchor, speaker, group, tag, 4.0, accent, 2.2, prefer or tag != "")
+	var l: Array = dialogue.say_ambient(anchor, speaker, group, tag, 4.0, accent, 2.2, prefer or tag != "")
 	if log_on and not l.is_empty():
 		print("night: line %s/%s: %s" % [group, tag, l[0]])
 
