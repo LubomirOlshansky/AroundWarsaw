@@ -69,7 +69,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | # | Group | Objects |
 | --- | --- | --- |
 | 3.1 | On the demo's routes | Krakowskie Przedmieście's missing pieces (review 2026-11-01, BACKLOG "Mariensztat and Krakowskie Przedmieście"): DONE 2026-11-01 from the OSM outlines, no photos (specs `karmelici`, `mickiewicz`, `brama_uw`, `potocki`, `kordegarda`, `bristol`; `kazimierzowski` a kept skin; `mariensztat` M2): the Carmelite church's front, Mickiewicz's monument, the University gate, Pałac Potockich and its guardhouse, Bristol's corner dome, Mariensztat's relief panels; Mac photo checks parked (QUESTIONS); K6 done (specs `prus`, `wyszynski` as code comments, `czapski` a kept skin with a card); still open: Pałac Czapskich's own model; Teatr Narodowy, Polonia Palace, Poczta Główna, NBP, Filharmonia, Hala Koszyki, Pałac Krasińskich, Arsenał |
-| 3.2 | Churches and religious | Praga cathedral, Kościół Zbawiciela, Wizytek, Synagoga Nożyków, Katedra polowa, Cerkiew, the rest |
+| 3.2 | Churches and religious | Kościół Najświętszego Zbawiciela DONE 2026-11-01 (L3, site `zbawiciela`, spec `zbawiciela.md`, 1029 tris: the two 76 m posts and the box became a basilica with a porch and pediment, square towers through octagonal belfries to copper spires, and a dome with drum and lantern over the crossing; shapes and heights below the towers estimated, Mac photo check parked: plaster and roof colours, belfry and spire shape, dome height, porch). Left: Praga cathedral, Wizytek, Synagoga Nożyków, Katedra polowa, Cerkiew, the rest |
 | 3.3 | Stations and halls | the stations moved to 2.11; Torwar. Hala Koszyki and Elektrownia Powiśle DONE 2026-11-01 (L2 models, specs `koszyki.md`, `elektrownia.md`, 1142 and 1626 tris: brick, tall arches, the hall's glass lantern, two chimneys; Mac photo check parked: brick shade, roof shapes, number and place of the chimneys) |
 | 3.4 | Culture and civic | POLIN, Planetarium, Politechnika's main hall, Zamek Ujazdowski, the palaces (about 40) |
 | 3.5 | Other bridges | Śląsko-Dąbrowski, Gdański, Łazienkowski: generic decks today |
@@ -202,7 +202,7 @@ Handled outlines (found by `_landmark("name")`): Pałac Kultury i Nauki, Złote 
 | Frogs shop (Żabka parody) | junction corners (storefronts.gd) | `props.frogs_shop()` ~430 tris + FROGS fascia, lily-pad sign | stamp card |
 | Venue neon fascias (17+1) | storefronts.gd `_venue_neon` | rows in neon atlas | |
 | Leżak (e-scooter) + parking zone | storefronts.gd | `props.lezak()` <=120 tris; `add_scooter_zone` | |
-| Metro entrance | by metro stations | `props.add_metro_entrance` ~250 tris, own M post | |
+| Metro entrance | by metro stations | `props.add_metro_entrance` 330-830 tris (2026-11-01, M1/M2 at the 81 street `subway_entrance` pois, form by `f`: vaulted glass canopy / granite stairwell / footway passage mouth; treaded opening, handrail, red lit M post, glass lift on 3 in 5); sector mesh, no draw call added; Mac look check parked | |
 | Payphone | Plac Konstytucji | `props.add_payphone` 120 tris | |
 | Kebab stand (+named: U Zdzicha, Na Cienkim) | jobs / storefronts | `props.kebab_stand()`, `named_kebab_stand()`; pixel KEBAB board lit | |
 | Pędzik courier + bike | roads/kebab stands | `props.pedzik_rider()` <=300 tris, morph family | |

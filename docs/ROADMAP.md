@@ -31,6 +31,7 @@ then the Launch gate.
 - [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted
 
 ### Left: the start of the game
+- [x] Metro entrances modelled at the real M1/M2 stairs: vaulted glass canopies, stairwells, passage mouths, red M posts, lifts (F, 2026-11-01; Mac look check parked in QUESTIONS)
 - [x] Merge PR #115 (start facing the first stand, short first order, BUW roof cassette), then
       PR #121 (the opening flyover) (both on main; ticked 2026-11-01)
 - [ ] First-scene items 4-7: pavilions and towers behind the stores, Plac Defilad's paving, tram
@@ -62,6 +63,9 @@ then the Launch gate.
 - [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
 
 ### Left: landmarks and street details
+- [x] Marszałkowska street by street (F, 2026-11-01), pass 1: Kościół Najświętszego Zbawiciela on
+      Plac Zbawiciela as a model (spec zbawiciela.md; Mac photo check parked). Next on the street:
+      MDM's arcades and corner towers (LANDMARKS 2.8), then houses, roads and street life
 - [x] Old Town Market Square and its Syrenka (F, 2026-11-01): cobbled paving, 58 café umbrellas, the
       fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
       Mac photo check parked (QUESTIONS)

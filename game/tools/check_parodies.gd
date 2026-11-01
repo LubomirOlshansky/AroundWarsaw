@@ -582,7 +582,14 @@ func _frames(sf: Storefronts, seconds: float) -> void:
 
 func _check_meshes() -> Array[int]:
 	var out: Array[int] = []
-	for row: Array in [[Props.frogs_shop(), 600, "Frogs shop"], [Props.lezak(), 120, "Leżak"], [Props.pedzik_rider(), 300, "Pędzik rider"]]:
+	var rows: Array = [[Props.frogs_shop(), 600, "Frogs shop"], [Props.lezak(), 120, "Leżak"], [Props.pedzik_rider(), 300, "Pędzik rider"]]
+	# The metro entrances: the three forms with a lift, each into a mesh of its own (≤ 900 triangles).
+	for form: String in ["canopy", "steps", "footway"]:
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		Props.add_metro_entrance(st, Transform3D.IDENTITY, form, true)
+		rows.append([st.commit(), 900, "metro entrance " + form])
+	for row: Array in rows:
 		var m: ArrayMesh = row[0]
 		var n := 0
 		for s in m.get_surface_count():
