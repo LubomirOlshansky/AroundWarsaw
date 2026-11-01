@@ -3,6 +3,27 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## The estate, the halls and Jana Pawła II (F, 2026-11-01)
+
+F asked for Osiedle Za Żelazną Bramą, Hala Mirowska and every building along Aleja Jana Pawła II to
+be modelled, (Norblin, Browary, Koszyki and Elektrownia are the next section). Done 2026-11-01
+(cloud thread, spec `docs/landmarks/specs/zelazna.md`):
+- **Osiedle Za Żelazną Bramą**: site `zelazna`, eleven OpenStreetMap blocks (five 43.9 m slabs and
+  the 60.4 m high block between Żelazna and Sienna, five 37-41 m slabs with saw-toothed long faces
+  on Sienna's east end), the estate skin S_ESTATE (3 m panel bays, ribbon windows, coloured loggia
+  stacks), blank end walls with a stair slot, entrances with canopies, lift houses, a card. 855 tris.
+- **Hala Mirowska**: it was already a model; added ten market stalls with awnings on the square
+  side of the east front.
+- **Aleja Jana Pawła II**: every plain LoD2 building within 42 m of the boulevard takes a mid-century
+  plaster by its position (`map_builder._boulevard_dress`, both city paths). Towers and the
+  landmarks along it keep their own models.
+Left:
+- Mac photo checks, parked in QUESTIONS: the estate's real panel colours and loggia stacks (stack
+  or band), the slabs' heights against the photos, the high block's shape (its outline is a wedge),
+  the low pavilions between the slabs; the stalls' place on Plac Mirowski.
+- The boulevard's buildings are a palette, not models: next pass is street by street, the real
+  facade of each block along Jana Pawła II (Kaskada, the 1950s blocks near Rondo Daszyńskiego, the
+  Żelazna Brama corner) from the orthophoto and photos.
 
 ## Old Town Market Square, the Syrenka and the decks (F, 2026-11-01)
 

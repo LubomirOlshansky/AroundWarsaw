@@ -4544,6 +4544,7 @@ func _build_lod2(walls, marks) -> Array:
 	col = facades[0]
 	uv2 = facades[1]
 	uv2 = _typed_lod2(pos, col, uv2, building_runs)
+	col = _boulevard_dress(pos, nrm, col, building_runs)
 	var dress: Dictionary = facades[2]
 	if not walls.none:
 		_roof_dress(pos, nrm, col, uv, uv2, building_runs, dress)
@@ -5292,6 +5293,69 @@ static func _building_type(kind: String, poly: PackedVector2Array, h: float) -> 
 	if long >= 45.0 and short <= 16.0 and h >= 14.0:
 		return 2
 	return 1
+
+
+## Aleja Jana Pawła II's frontage (F, 2026-11-01): the street was laid out after the war and
+## rebuilt in the 1950s-70s, so its buildings are not the Old Town's pastel tenements nor the
+## default palette: mid-century plasters (cream, grey, ochre, sage, salmon, blue-grey, brown),
+## each building its own (a landmark's skin keeps its own: only plain LoD2 buildings are dressed).
+const BOULEVARD_NAME := "Aleja Jana Pawła II"
+const BOULEVARD_REACH := 42.0
+const BOULEVARD_PLASTERS := ["#d8cfb8", "#c9c5b8", "#d4b896", "#bfc7b4", "#d6b8a6", "#c4c9cf", "#e2dccb", "#b9a99a"]
+
+
+## The boulevard's centreline sampled every ~12 m into a grid of 48 m cells (point lists).
+func _boulevard_grid() -> Dictionary:
+	var grid := {}
+	for road in data.get("roads", []):
+		if str(road.get("name", "")) != BOULEVARD_NAME:
+			continue
+		var line := _pts(road["p"])
+		for i in range(line.size() - 1):
+			var a := line[i]
+			var b := line[i + 1]
+			var n := maxi(1, ceili(a.distance_to(b) / 12.0))
+			for k in n + 1:
+				var q := a.lerp(b, float(k) / n)
+				var key := Vector2i(floori(q.x / 48.0), floori(q.y / 48.0))
+				if not grid.has(key):
+					grid[key] = PackedVector2Array()
+				(grid[key] as PackedVector2Array).append(q)
+	return grid
+
+
+func _near_boulevard(grid: Dictionary, at: Vector2) -> bool:
+	var cx := floori(at.x / 48.0)
+	var cz := floori(at.y / 48.0)
+	for dx in range(-1, 2):
+		for dz in range(-1, 2):
+			for q: Vector2 in grid.get(Vector2i(cx + dx, cz + dz), PackedVector2Array()):
+				if q.distance_to(at) <= BOULEVARD_REACH:
+					return true
+	return false
+
+
+## Each building run (one building) within BOULEVARD_REACH of the boulevard takes a plaster by
+## its position's hash; walls only (roofs and glass towers keep theirs). Returns the colours.
+func _boulevard_dress(pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedColorArray,
+		runs: Array[Vector3i]) -> PackedColorArray:
+	var grid := _boulevard_grid()
+	if grid.is_empty():
+		return col
+	for run in runs:
+		var lo := Vector3(INF, INF, INF)
+		var hi := -lo
+		for t in range(run.x, run.y):
+			lo = lo.min(pos[t])
+			hi = hi.max(pos[t])
+		var mid := Vector2((lo.x + hi.x) * 0.5, (lo.z + hi.z) * 0.5)
+		if hi.y - lo.y < 12.0 or _historic(mid, 0.0) or not _near_boulevard(grid, mid):
+			continue
+		var plaster := Color(BOULEVARD_PLASTERS[absi(int(mid.x * 73.0 + mid.y * 31.0)) % BOULEVARD_PLASTERS.size()])
+		for t in range(run.x, run.y):
+			if nrm[t].y < 0.7 and col[t].a >= 0.9:
+				col[t] = Color(plaster.r, plaster.g, plaster.b, col[t].a)
+	return col
 
 
 ## A wall's UV2.x for type `kind` (1-3) and seed 0..1: [1, 2) in quarters; 0 keeps the seed.

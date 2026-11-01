@@ -51,6 +51,7 @@ const S_TILE := 9   # Novotel's white tiled shaft (the Rondo photos, 2026-10-31)
 const S_EASTWALL := 10  # the Eastern Wall stores: strong dark mullions every 1.5 m, a thin floor line
 const S_PUNCHED := 11   # a re-clad point block: light horizontal cladding, punched windows in bands
 const S_SLAB := 12      # a 1960s slab's long face: plaster and loggia bands
+const S_ESTATE := 13    # Osiedle Za Żelazną Bramą: large-panel bays, ribbon windows, coloured loggia stacks
 
 ## The landmarks loop (2026-10-30): the skyline's towers, so each reads as itself and not as one
 ## more blue box. Each is built from its mapped building parts (the outline `osm` names; what
@@ -275,6 +276,11 @@ const INFO := {
 	"aleksander": ["Kościół Świętego Aleksandra",
 			"Rotunda na placu Trzech Krzyży.",
 			"The rotunda on Plac Trzech Krzyży."],
+<<<<<<< HEAD
+	"zelazna": ["Osiedle Za Żelazną Bramą",
+			"Jedenaście bloków z wielkiej płyty, zaprojektowanych przez Skolimowskiego.",
+			"Eleven large-panel blocks of the 1960s-70s, designed by Jerzy Skolimowski."],
+=======
 	"norblin": ["Fabryka Norblina",
 			"Ceglane hale z szklanymi piętrami i komin. Tu się teraz siedzi.",
 			"Brick halls with glass storeys on top, and a chimney. People sit here now."],
@@ -287,6 +293,7 @@ const INFO := {
 	"elektrownia": ["Elektrownia Powiśle",
 			"Dawna elektrownia na Dobrej, dziś sklepy i jedzenie pod kominami.",
 			"The old power station on Dobra, shops and food under its chimneys."],
+>>>>>>> origin/main
 	"mirowska": ["Hala Mirowska",
 			"Ceglana hala targowa.",
 			"A brick market hall."],
@@ -645,6 +652,8 @@ func _find_sites() -> void:
 	_find_dtc()
 	# The Mac photo check (2026-11-01, specs C and D): the tower and the slabs behind the stores.
 	_find_behind()
+	# Osiedle Za Żelazną Bramą (2026-11-01): the eleven blocks between Żelazna and Jana Pawła II.
+	_find_zelazna()
 	# R5 of docs/design/start-area-real.md: the Cepelia pavilion and Zodiak.
 	_find_modern_pavilions()
 	# The railway (docs/design/railway.md, S1): Warszawa Ochota's hall and its saddle roof.
@@ -1038,6 +1047,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"slabs":
 				_id = 0
 				_build_slabs(s)
+			"zelazna":
+				_build_zelazna(s)
 			"pawilony":
 				_build_pawilony(s)
 			"cepelia":
@@ -4883,6 +4894,106 @@ func _build_slabs(site: Dictionary) -> void:
 	_mode = M_STONE
 
 
+# --- Osiedle Za Żelazną Bramą: eleven large-panel blocks ---------------------------------------
+
+## F's ask (2026-11-01): the estate between Żelazna and Aleja Jana Pawła II (Jerzy Skolimowski's,
+## 1965-72) as a model, as the halls are. Eleven OpenStreetMap blocks, found by a point inside
+## each: five 43.9 m slabs in a row from Żelazna to Sienna, the 60.4 m high block among them, and
+## the five 37-41 m slabs with the saw-toothed long faces along Sienna's east end. Each is built
+## from its own outline and height in the estate's panel skin (S_ESTATE, spec zelazna.md): pale
+## concrete panels, ribbon windows, a coloured loggia stack in every fourth bay; blank end walls
+## with a dark stair slot; a canopy and door at each long face's middle; lift and stair houses.
+const ZELAZNA_AT := [Vector2(-2085.6, 304.2), Vector2(-2034.6, 287.2), Vector2(-1979.1, 270.5),
+		Vector2(-1927.2, 255.2), Vector2(-2045.6, 348.6), Vector2(-1995.5, 322.2), Vector2(-1857.0, 316.4),
+		Vector2(-1857.9, 260.4), Vector2(-1843.5, 217.7), Vector2(-1873.1, 382.1), Vector2(-1842.6, 377.0)]
+const ZELAZNA_PANELS := ["#d2cfc6", "#cbcdc6", "#d6cfc0", "#c8cbc9"]
+const ZELAZNA_END := Color("#b9b5aa")
+const ZELAZNA_ROOF := Color("#77777a")
+const ZELAZNA_SLOT := Color("#3b4650")
+const ZELAZNA_CANOPY := Color("#8d8b86")
+
+
+func _find_zelazna() -> void:
+	var zones: Array[PackedVector2Array] = []
+	var rings: Array[PackedVector2Array] = []
+	var heights: Array[float] = []
+	for at: Vector2 in ZELAZNA_AT:
+		for bld in data["buildings"]:
+			var q := _pts(bld["p"])
+			if q.size() >= 3 and float(bld["mh"]) < 0.5 and _box_of([q]).has_point(at) and Geometry2D.is_point_in_polygon(at, q):
+				zones.append(_largest(Geometry2D.offset_polygon(q, 3.0, Geometry2D.JOIN_MITER)))
+				rings.append(q)
+				heights.append(float(bld["h"]))
+				break
+	_add_site("zelazna", zones)
+	if not sites.is_empty() and sites[-1]["key"] == "zelazna":
+		sites[-1]["outlines"] = rings
+		sites[-1]["heights"] = heights
+
+
+func _build_zelazna(site: Dictionary) -> void:
+	var k := 0
+	for z: PackedVector2Array in site["outlines"]:
+		var poly := _simplify(z, 0.6)
+		var height: float = site["heights"][k]
+		var panel := Color(ZELAZNA_PANELS[k % ZELAZNA_PANELS.size()])
+		if height > 55.0:
+			panel = Color("#bfc4c6")  # the high block: a cooler grey
+		k += 1
+		if poly.size() < 3:
+			continue
+		_g = _ground_under(poly)
+		var g := _g
+		var top := g + height
+		var axis := Vector2.ZERO
+		for i in poly.size():
+			var e := poly[(i + 1) % poly.size()] - poly[i]
+			if e.length() > axis.length():
+				axis = e
+		axis = axis.normalized()
+		var run := 0.0
+		for i in poly.size():
+			var a := poly[i]
+			var b := poly[(i + 1) % poly.size()]
+			var o := _out(poly, a, b)
+			var len := a.distance_to(b)
+			var end_wall := absf(o.dot(axis)) > 0.8
+			_mode = M_STONE if end_wall else M_SKIN + float(S_ESTATE) / 16.0
+			_wall(a, b, g - 0.4, top, o, ZELAZNA_END if end_wall else panel, run)
+			run += len
+			var d := (b - a) / maxf(len, 0.01)
+			var mid := (a + b) * 0.5
+			if end_wall and len >= 6.0:
+				# the stair slot: a dark glazed strip up the blank end.
+				var p := mid + o * 0.05
+				_mode = M_GLASS
+				_wall(p - d * 0.5, p + d * 0.5, g + 3.2, top - 3.0, o, ZELAZNA_SLOT)
+			elif not end_wall and len >= 14.0:
+				# the entrance: a dark door and a flat canopy over it.
+				var p := mid + o * 0.06
+				_mode = M_GLASS
+				_wall(p - d * 1.3, p + d * 1.3, g, g + 2.4, o, ZELAZNA_SLOT)
+				_mode = M_STONE
+				var f := mid - o * 0.1
+				var c := mid + o * 1.8
+				_prism(PackedVector2Array([f - d * 2.2, f + d * 2.2, c + d * 2.2, c - d * 2.2]), g + 2.7, g + 2.95,
+						ZELAZNA_CANOPY, ZELAZNA_CANOPY.darkened(0.1), M_STONE, M_STONE)
+		_mode = M_STONE
+		_cap(poly, top, ZELAZNA_ROOF)
+		# lift and stair houses at a third and two thirds of the long axis.
+		var c0 := _centre(poly)
+		var span := 0.0
+		for q in poly:
+			span = maxf(span, absf((q - c0).dot(axis)))
+		var across := Vector2(-axis.y, axis.x)
+		for f: float in [-0.4, 0.4]:
+			var p := c0 + axis * span * f
+			_prism(PackedVector2Array([p - axis * 2.8 - across * 2.0, p + axis * 2.8 - across * 2.0, p + axis * 2.8 + across * 2.0,
+					p - axis * 2.8 + across * 2.0]), top, top + 3.0, panel.darkened(0.08), Color("#6a6a6d"), M_STONE, M_STONE)
+		_collide(poly)
+	_mode = M_STONE
+
+
 # --- TR Warszawa's building site ----------------------------------------------------------
 
 ## F's ask (2026-10-31): the empty plot west of the museum, between its tree court and the
@@ -5705,6 +5816,8 @@ const MIROWSKA_TILE := Color("#a8493a")
 const MIROWSKA_GLASS := Color("#323a40")
 const MIROWSKA_DOOR := Color("#33271f")
 const MIROWSKA_SKY := Color("#a9bcc4")
+## The market stalls' awnings on the square (2026-11-01).
+const MIROWSKA_AWNINGS := ["#c8553a", "#3f7fa8", "#d6a53a", "#5c9a5a", "#b8607a"]
 
 
 func _find_mirowska() -> void:
@@ -5831,6 +5944,16 @@ func _build_mirowska(site: Dictionary) -> void:
 	_mode = M_GLASS_ROOF
 	_frustum(_rect(49.45, nave_v, 31.05, 5.5), g + 16.0, _rect(49.45, nave_v, 31.05, 0.3), g + 17.4, MIROWSKA_SKY, MIROWSKA_SKY)
 	_mode = M_STONE
+	# the market on the square (2026-11-01): ten trestle stalls under striped awnings in a row
+	# along the east front, a lane's width off the wall, a bench-high counter and a thin awning
+	# on each, in the stalls' mixed colours
+	for k in 10:
+		var sv := 3.4 + k * 4.1
+		var cl := Color(MIROWSKA_AWNINGS[k % MIROWSKA_AWNINGS.size()])
+		_lbox(hu + 5.0, sv, 0.8, 1.1, g + 0.0, g + 0.95, MIROWSKA_PLINTH.darkened(0.1), M_STONE, MIROWSKA_TRIM)
+		_lbox(hu + 5.0, sv, 1.0, 1.4, g + 2.2, g + 2.32, cl, M_STONE, cl.lightened(0.1))
+		for pv: float in [-1.2, 1.2]:
+			_lbox(hu + 5.9, sv + pv, 0.05, 0.05, g, g + 2.2, Color("#4a4d52"), M_STONE)
 	_collide(site["ring"])
 
 

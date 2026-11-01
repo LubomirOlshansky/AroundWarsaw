@@ -343,6 +343,7 @@ const int S_TILE = 9;
 const int S_EASTWALL = 10;
 const int S_PUNCHED = 11;
 const int S_SLAB = 12;
+const int S_ESTATE = 13;
 
 vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool cut) {
 	glow = vec3(0.0);
@@ -461,6 +462,44 @@ vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool 
 			glow = WARM * 0.5;
 		}
 		return deep;
+	} else if (s == S_ESTATE) {
+		// Osiedle Za Żelazną Bramą (2026-11-01, spec zelazna.md): a large-panel slab of the
+		// 1960s-70s, pale concrete panels in 3 m bays, a wide ribbon window in each, and in
+		// every fourth bay a loggia stack with a coloured parapet (blue, ochre or brick, by
+		// stack), dark inside; warm windows and a few lit loggias at night.
+		float pf = 2.8;
+		float wy = fract(h / pf);
+		float lvl = floor(h / pf);
+		float bay = floor(u / 3.0);
+		float wx = fract(u / 3.0);
+		vec3 panel = col * mix(0.3, 1.0, daylight);
+		if (h < pf || h > top - 0.7) {
+			return panel * (h < pf ? 0.82 : 1.05);
+		}
+		if (wy < 0.035 || wx < 0.025) {
+			return panel * 0.8;                         // the panel joints
+		}
+		if (mod(bay, 4.0) > 2.5) {
+			float hue = hash12(vec2(floor(bay / 4.0), 1.7));
+			vec3 accent = hue < 0.33 ? vec3(0.27, 0.43, 0.62) : (hue < 0.66 ? vec3(0.78, 0.6, 0.27) : vec3(0.62, 0.3, 0.24));
+			if (wy < 0.4) {
+				return srgb_to_linear(accent) * mix(0.3, 1.0, daylight);   // the coloured parapet
+			}
+			vec3 deep = col * 0.4 * mix(0.35, 1.0, daylight);
+			if (lights_on > 0.001 && hash12(vec2(bay, lvl) + 5.9) < 0.18 * lights_on) {
+				glow = WARM * 0.55;
+			}
+			return deep;
+		}
+		if (wy > 0.3 && wy < 0.78 && wx > 0.12 && wx < 0.88) {
+			vec3 pane = mix(srgb_to_linear(vec3(0.17, 0.2, 0.24)), sky * 0.4, 0.3) * mix(0.35, 1.0, daylight);
+			if (lights_on > 0.001 && hash12(vec2(bay, lvl) + 3.3) < 0.4 * lights_on) {
+				glow = WARM_PALE * 0.9;
+				return pane * 0.3;
+			}
+			return pane;
+		}
+		return panel;
 	} else if (s == S_FRAME) {
 		frame = fract(u / 3.2) < 0.14 || fract(h / 4.4) < 0.1 || h > top - 0.9;
 		frame_col = mix(silver, white, 0.5);

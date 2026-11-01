@@ -18,6 +18,11 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · landmarks · Mac photo checks: the estate and the stalls** — Built from OSM
+  outlines without photos. Check on the Mac: Osiedle Za Żelazną Bramą's real panel colours and
+  whether the loggias stack in bays or run in bands (docs/landmarks/specs/zelazna.md), the high
+  block (its outline is a wedge), the low pavilions between the slabs, and where the market
+  stalls really stand on Plac Mirowski. Also Jana Pawła II's plasters against photos.
 - **2026-11-01 · landmarks · Krakowskie Przedmieście's photo check (K1-K6, M2)** — Built from
   the OSM outlines alone, so every height and a few spots are guesses (Default built, the specs'
   "photo check" notes list them). For F on the Mac, in order of how much they could be wrong:

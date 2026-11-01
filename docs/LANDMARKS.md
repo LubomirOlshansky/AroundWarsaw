@@ -10,6 +10,20 @@ the inventory taken from the code on 2026-10-31. How a model is made: the model-
 **Detail levels** (model-from-photos skill): L1 silhouette and colour · L2 facade articulation
 (base/middle/top, window rhythm, cornices, roof shape) · L3 every identity feature in 3D.
 
+## Map status and next passes (2026-11-01)
+
+**Done on the map**: the 21 km² centre in streamed sectors with 1 m terrain; roads, lanes, markings,
+kerbs, decks and tunnels (checks C1-C10); the river and shore; the railway (stations Ochota, Powiśle,
+Stadion, catenary, trains); the Old Town, New Town and Mariensztat dressed as tenements; the start
+area as real Warsaw (signs, ground, building types); about 55 landmark sites with specs (the Palace,
+Rotunda, Tarasy, Centralna, the stadium, BUW, Kopernik, MSN, the churches, the halls Mirowska and
+Gwardii, the estate Za Żelazną Bramą, the towers); the boulevard Jana Pawła II in mid-century plasters.
+**Next passes, in order**: (1) the Mac photo checks, all parked in docs/QUESTIONS.md; (2) the chill
+spots' Mac look checks (2.12); (3) Jana Pawła II and the other boulevards block by block (2.16); (4) Krakowskie Przedmieście's
+missing pieces (3.1); (5) the P3 groups (churches, palaces, culture, bridges); (6) then street by
+street through the whole box, houses, roads and parks, until it feels alive (F's standing ask).
+Progress is ticked in docs/ROADMAP.md "v1.0 checklist".
+
 ## Part 1. The plan, by priority
 
 Photos (2026-10-31): `refs/` on the Mac holds 51 buildings, 154 free photos and 50 GUGiK
@@ -55,6 +69,8 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | 2.6c | Kościół Wizytek (Krakowskie Przedmieście) | DONE 2026-11-01 (L3 facade, stepped wing and crossing turret on the kept skin, spec `wizytki.md`, 566 tris, heights estimated, Mac photo check parked: gable shape, towers or none, turret) |
 | 2.6b | Kościół Świętej Trójcy (Lutheran, Plac Małachowskiego) | DONE 2026-10-31 (L3 model, spec `trojca.md`, 1901 tris): drum with oculi, four Tuscan porticoes, copper dome, columned lantern and cross |
 | 2.7 | Sejm (DONE 2026-11-01: hall colonnade, spec `sejm.md`, Mac photo check parked), Pałac Staszica (DONE 2026-11-01: portico, cornice, Copernicus statue, spec `staszic.md`, Mac photo check parked), Kopernik, BUW, Hala Mirowska (DONE 2026-11-01: L2 model, spec `mirowska.md`, from the mapped parts, Mac photo check parked; Hala Gwardii DONE 2026-11-01: L2 twin model, spec `gwardii.md`, bays from the outline, Mac photo check parked) | facades and roofs from the photos (Zachęta DONE 2026-10-31: model, spec `zacheta.md`, from the user's photo; Kopernik DONE 2026-11-01: L2 model, spec `kopernik.md`, log `docs/landmarks/kopernik.md`, from OSM and LoD2, then the Mac's photo check: warm strip facade with slits and bays, the copper-red planetarium drum and dome, roof craters and paths, the cantilever; BUW DONE 2026-10-31: L2 model, spec `buw.md`, log `docs/landmarks/buw.md`, from OSM: copper pages, philosophers; the roof from the orthophoto on 2026-11-01: glass field and tail, oculus, mound and pyramid, formal beds, the green band; photo check of the height and the philosophers) |
+| 2.15 | Osiedle Za Żelazną Bramą | DONE 2026-11-01 (L2 model, site `zelazna`, spec `zelazna.md`, 855 tris): eleven blocks from their OSM outlines in the estate skin S_ESTATE, blank ends with a stair slot, entrances, lift houses, a card; Mac photo check parked: panel colours, loggia stacks, the high block, the low pavilions |
+| 2.16 | Aleja Jana Pawła II's frontage | DONE 2026-11-01 (palette): `map_builder._boulevard_dress` gives each plain building within 42 m of the boulevard a mid-century plaster. Left: model the blocks one by one, street by street, from the orthophoto and photos (Kaskada, the 1950s blocks, the Żelazna Brama corner) |
 | 2.8 | MDM and Plac Konstytucji | the blocks' arcades, reliefs, the corner towers |
 | 2.9 | Towers missing from the table | PZU Tower, JM Tower, Pekao Tower, Warsaw Towers, Atlas, Prosta |
 | 2.11 | Railway stations (F, 2026-11-01; plan `docs/design/railway.md`) | Warszawa Ochota DONE 2026-11-01 (S1, L3, site `ochota`, spec `ochota.md`, 1178 tris: the hypar shell striped underneath over the glass hall on its deck over the cutting, struts, column, stairs, kiosk; Mac photo check parked: stripes, supports, stairs), Warszawa Powiśle DONE 2026-11-01 (S2, L3, site `powisle`, spec `powisle.md`, 1470 tris: the kite roof between two arches over the tunnel's mouth, the round drum under the saucer with WARSZAWA POWIŚLE in neon, X canopies on both platforms; Mac photo check parked: arches, saucer profile, canopy length), Warszawa Stadion DONE 2026-11-01 (S3a, L3, site `stadion_pkp`, spec `stadion_pkp.md`, 1294 tris: the white hall with the sail at its platform end, STADION in neon, red-and-white mosaic wind walls under metal canopies on both platforms, stair heads; Mac photo check parked), Warszawa Śródmieście DONE 2026-11-01 (S3b, L2, site `srodmiescie`, spec `srodmiescie.md`, 476 tris: the two glass stair pavilions under a deep stone fascia, ŚRÓDMIEŚCIE in blue neon; Mac photo check parked), then Wschodnia, Gdańska, the WKD entrances (S3c-e, Mac first); Centralna is 1.9 |
@@ -162,6 +178,7 @@ All with a card; check_landmarks only (except where noted). Open issue common to
 | Kościół Wszystkich Świętych | M_MONUMENT | #ddcfaa / #6e7f6e | |
 | Kościół św. Aleksandra | model (M_MONUMENT drum) | #ebe4d2 / #7f8f88 | `_build_aleksander` (spec aleksander.md, 2026-11-01): drum, windows, copper dome, lantern, cross, a six-column portico on each end; heights estimated |
 | Hala Gwardii | model (not a skin) | #a85c40 / #6d7470 | `_build_gwardii` (spec gwardii.md, 2026-11-01): Mirowska's twin, symmetric, a portal at both ends, 16 pilasters a side measured from the outline; 1212 tris |
+| Osiedle Za Żelazną Bramą | model (not a skin) | #d2cfc6 etc. / #77777a | `_build_zelazna` (spec zelazna.md, 2026-11-01): eleven blocks from their OSM outlines in S_ESTATE (panel bays, ribbon windows, loggia stacks), blank ends with a stair slot, entrances with canopies, lift houses; 855 tris |
 | Hala Mirowska | model (not a skin) | #a85c40 / #6d7470 | `_build_mirowska` (spec mirowska.md, 2026-11-01): brick walls with round-headed windows between pilasters, nave roof with glazed lantern, gable ends, four corner turrets, red-roofed west annex; 1458 tris |
 | Sejm RP | M_MONUMENT + hall model | #e2e0d8 / #8d8f8c | `_build_sejm` (spec sejm.md, 2026-11-01): plinth ring, fifteen-column curved colonnade, entablature, attic and eave cornice round the plenary hall's arc (fitted r 21.75 m, centre -> world 277.1, 967.5); heights estimated |
 | MDM (all tall unnamed blocks around Plac Konstytucji + Marszałkowska to Plac Zbawiciela) | M_MONUMENT | #cdbfa3 / #7f7b74 | `_find_mdm`, one card; candelabras = street furniture |
