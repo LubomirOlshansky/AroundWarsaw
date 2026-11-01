@@ -27,6 +27,7 @@ signal teleport(at: Vector2)
 const MapArt := preload("res://scripts/map_art.gd")
 const MapIcons := preload("res://scripts/map_icons.gd")
 const MainLine := preload("res://scripts/main_line.gd")
+const Gamepad := preload("res://scripts/gamepad.gd")  # the gamepad loop
 ## The hold to teleport: this long, the finger within HOLD_SLOP points of where it went down.
 const HOLD_S := 0.6
 const HOLD_SLOP := 12.0
@@ -792,7 +793,8 @@ func _say(lines: Array) -> void:
 func _input(event: InputEvent) -> void:
 	if not visible:
 		return
-	if event is InputEventKey and (event as InputEventKey).pressed and (event as InputEventKey).keycode == KEY_ESCAPE:
+	if (event is InputEventKey and (event as InputEventKey).pressed and (event as InputEventKey).keycode == KEY_ESCAPE) \
+			or Gamepad.closes(event):  # the gamepad loop: B, Start or Back
 		close()
 		get_viewport().set_input_as_handled()
 	elif event is InputEventScreenTouch:
