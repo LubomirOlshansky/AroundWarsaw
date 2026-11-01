@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- The department stores by the start look like they do today: "to let" boards on the emptied floors, a two-storey frog shop on the old corner store, a shoe shop, and the Scena Relax theatre's name behind them. Shop signs can now use Polish letters.
 - Four 12 km/h e-scooter streets (Złota, Zgody, Bracka, Plac Centralny) now greet you with a short notice when you drive in.
 - PADELNIA now has a line of people waiting for a court (weekday evenings and weekend mornings), and the padel crowd has jokes to tell.
 - PISTACJA DO KOŃCA now has a queue, and on Fridays 16:00-18:30 a limited drop: 36 people in line and a new "Limitka" job (queue for a box, deliver it before it melts).

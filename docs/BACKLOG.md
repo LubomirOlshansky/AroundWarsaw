@@ -230,6 +230,29 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   InterContinental and the Westin) are cold white and many, the photos show sparse warm ones
   (`#ffcf7a`, ~12 %, upper third); the landmark signs still glow inside the occlusion ghost.
 
+## The start area as real Warsaw (F, 2026-11-01)
+
+F: improve every landmark in the start area, add street details, make the shop signs (Ściana
+Wschodnia above all) like the real ones, rework the ordinary buildings to look real, match the
+road and pavement materials to photos, and add trendy 2025/26 places and jokes. Research and
+plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 checklist").
+- **R1 done 2026-11-01**: the neon atlas draws words with Polish letters through pixel_font.gd;
+  the stores' banners are now the 2025/26 mix (DO WYNAJĘCIA boards where H&M, Zara and C&A
+  left, FROGS XXL on Wars's south corner where H&M's space becomes a two-storey Żabka, KAPCIE for
+  the shoe chains on Zara's floor, WYPRZEDAŻ and ORANŻADA with their real letters); SCENA RELAX
+  on the old Kino Relax behind Junior. Only the phone shows the boards' size at the default zoom.
+- **Open:** R2 Plac Centralny's ground (grey and red slabs drawing the pre-war tenements, the
+  courtyards' reused granite setts, the 1939 street lines, lawns, 109 trees, the pond); R3
+  pavements and kerbs, red asphalt cycle paths, Złota's setts and elm alley, the fountain at the
+  old tunnel mouth, the three new crossings (orthophoto check on the Mac); R4 ordinary buildings
+  drawn by type in building.gdshader (tenement, slab, socialist-realist, office); R5 Scena Relax,
+  Zodiak and the Cepelia pavilion as models; R6 one of the trend spots (built by the trends thread,
+  docs/design/trends-2025-26.md) inside the start box and lines about the empty stores and Frogs
+  XXL; R7 street name plates, a bike dock, tram
+  stops, bollards; R8 the museum's ribbon in stretches and the stepped roofline.
+- Found: the cloud can't read Wykop (login wall) or Commons (403); the trends come from Google's
+  2025 year in search and the trade press. A Mac pass could add Wykop's own tags.
+
 ## High priority: the first scene and the Museum of Modern Art (the user, 2026-10-31)
 - **Muzeum Sztuki Nowoczesnej as it is** (the user, 2026-10-31): the new white box on Plac
   Defilad's east edge (Thomas Phifer, opened 2024). Today it is plain white LoD2 parts with no

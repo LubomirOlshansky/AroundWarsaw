@@ -55,7 +55,7 @@ Ground: the lowest terrain under each outline. Junior: 25 x 100 m; Sawa: 27 x 10
   mullions every 1.5 m, a thin spandrel line every 3.8 m, no silver bands), lit windows at night.
 - **Banners**: printed ads the curtain wall's height (to 10 m wide, 0.2 m proud of the glass):
   one on each south end, two on each east face (the faces the iso camera sees), each a colour
-  with its word in white: PROMOCJA, SAMSONG (parody), LODY, WYPRZEDAZ.
+  with its word in white: PROMOCJA, SAMSONG (parody), LODY, WYPRZEDAZ (R1 of docs/design/start-area-real.md, 2026-11-01, swaps them for the 2025/26 mix: DO WYNAJĘCIA, FROGS XXL, KAPCIE, WYPRZEDAŻ).
 - **Cornice (17-17.5 m)**: aluminium, the roof's edge.
 - **Top storey (17.5-20.5 m)**: pale panels in M_SKIN S_DARK (a fine dark grid), 3 m in from
   the edge on every side.
