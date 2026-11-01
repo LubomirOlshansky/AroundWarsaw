@@ -112,6 +112,8 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               "Biblioteka Uniwersytecka",
               # Hotel Metropol's roof sign (landmarks.gd _build_metropol_sign reads its parts' height)
               "Hotel Metropol",
+              # Ujazdowski Castle (2026-11-01): a model on its mapped outline
+              "Zamek Ujazdowski",
               # HOTEL PIURE's rooftop sign LUŹNO (landmarks.gd _build_piure_sign reads its parts' height)
               "Puro Warszawa Centrum",
               # Fabryka Norblina (landmarks.gd _find_works: its tall wing is found among the parts
