@@ -40,7 +40,9 @@ then the Launch gate.
         DO WYNAJĘCIA boards, FROGS XXL on the old H&M corner, KAPCIE, SCENA RELAX), 2026-11-01
   - [x] R2 Plac Centralny's ground (the tenements' outlines in red and grey slabs, the
         courtyards' and walks' setts; the pond and lawns were already mapped), 2026-11-01
-  - [ ] R3 pavements, granite kerbs, red cycle paths, the green Złota, the fountain, the crossings
+  - [x] R3 part 1: footways as grey concrete pavers (red cycle paths were already in), 2026-11-01
+  - [ ] R3 part 2: granite kerbs, the green Złota, the fountain at the tunnel mouth, the crossings
+        (orthophoto check on the Mac)
   - [x] R4 ordinary buildings by type (pre-war tenement, 1960s-80s slab or point block, office),
         shader only, 2026-11-01 (socialist-realist left for a later pass)
   - [ ] R5 Scena Relax, Zodiak and the Cepelia pavilion as models
