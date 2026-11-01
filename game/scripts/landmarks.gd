@@ -885,6 +885,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"wszystkich":
 				_mark_zone(s)  # the nave stays LoD2's, in its skin; the front and towers are ours
 				_build_wszystkich(s)
+			"archikatedra":
+				_mark_zone(s)  # the nave stays LoD2's, in its brick; the stepped-gable front is ours
+				_build_archikatedra(s)
 			"wizytki":
 				_mark_zone(s)  # the nave stays LoD2's, in its skin; the facade and the turret are ours
 				_build_wizytki(s)
@@ -7167,3 +7170,70 @@ func _anna_tower() -> void:
 	_frustum(_circle(c, 3.9, 8), g + 33.8, _circle(c, 3.4, 8), g + 34.5, ANNA_TRIM, ANNA_TRIM)
 	_lbox(0.0, 0.0, 0.18, 0.18, g + 34.5, g + 38.0, ANNA_GOLD, M_STONE, ANNA_GOLD)
 	_lbox(0.0, 0.0, 0.7, 0.18, g + 36.0, g + 36.4, ANNA_GOLD, M_STONE, ANNA_GOLD)
+
+
+## St John's Archcathedral (Archikatedra św. Jana Chrzciciela, Old Town): the nave stays the
+## kept LoD2 mass in brick; the model adds the front, a stepped brick gable over the nave end
+## with a tall pointed window, a pointed portal porch and pinnacles on the buttresses.
+## Spec docs/landmarks/specs/archikatedra.md.
+## Frame: origin at the front's west corner (outline point (-741.3, -1633.0)), u along the 27.6 m
+## front, +v out of it (south-west). Heights are estimates (no photo here).
+const ARCH := Vector2(-741.3, -1633.0)
+const ARCH_AXIS := Vector2(0.685, 0.729)
+const ARCH_MID := 13.8
+const ARCH_BRICK := Color("#9a4b38")
+const ARCH_TRIM := Color("#c8b393")
+const ARCH_ROOF := Color("#5e3a30")
+const ARCH_GLASS := Color("#262a2e")
+
+
+func _build_archikatedra(_site: Dictionary) -> void:
+	_o = ARCH
+	_a = ARCH_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)  # (-0.729, 0.685): out of the front, to the street
+	var m := ARCH_MID
+	_g = map.terrain_height(_w(m, 2.0).x, _w(m, 2.0).y)
+	var g := _g
+	# the portal porch: a brick block with a stone plinth, a dark pointed opening, a gable
+	_lbox(m, 1.1, 4.6, 1.6, g - 0.6, g + 1.0, ARCH_TRIM, M_STONE, ARCH_TRIM.lightened(0.04))
+	_lbox(m, 1.0, 4.4, 1.4, g + 1.0, g + 8.5, ARCH_BRICK, M_GOTHIC, ARCH_BRICK)
+	_mode = M_GLASS
+	_wall(_w(m - 1.5, 2.43), _w(m + 1.5, 2.43), g + 1.2, g + 5.4, _b, ARCH_GLASS)
+	var ka := _a
+	var kb := _b
+	_a = kb
+	_b = ka
+	_mode = M_STONE
+	_gable(2.45, 2.3, m, 1.5, g + 5.4, 2.6, ARCH_GLASS, ARCH_GLASS, false)
+	_gable(2.4, -0.2, m, 4.4, g + 8.5, 3.0, ARCH_BRICK, ARCH_ROOF)
+	_a = ka
+	_b = kb
+	# the stepped gable screen over the nave's end: four tiers, narrowing, each capped in stone
+	_mode = M_GOTHIC
+	var tiers := [[12.8, -0.6, 18.5], [9.4, 18.5, 24.0], [6.0, 24.0, 28.0], [2.6, 28.0, 31.0]]
+	for t: Array in tiers:
+		var hw := float(t[0])
+		_lbox(m, 0.55, hw, 0.8, g + float(t[1]), g + float(t[2]), ARCH_BRICK, M_GOTHIC, ARCH_BRICK)
+		_lbox(m, 0.55, hw + 0.35, 1.05, g + float(t[2]), g + float(t[2]) + 0.45, ARCH_TRIM, M_STONE, ARCH_TRIM)
+	# the great pointed window in the middle tiers
+	_mode = M_GLASS
+	_wall(_w(m - 2.1, 1.36), _w(m + 2.1, 1.36), g + 14.0, g + 22.0, _b, ARCH_GLASS)
+	_mode = M_STONE
+	var kc := _a
+	var kd := _b
+	_a = kd
+	_b = kc
+	_gable(1.375, 1.36, m, 2.1, g + 22.0, 3.4, ARCH_GLASS, ARCH_GLASS, false)
+	_a = kc
+	_b = kd
+	# pinnacles: on the tier corners and on the buttresses at the front's ends
+	for pu: float in [m - 12.6, m + 12.6]:
+		_pinnacle(pu, 0.55, 1.2, g + 18.95, 4.2, ARCH_TRIM)
+	for pu: float in [m - 9.2, m + 9.2]:
+		_pinnacle(pu, 0.55, 1.0, g + 24.45, 3.6, ARCH_TRIM)
+	for pu: float in [m - 5.8, m + 5.8]:
+		_pinnacle(pu, 0.55, 0.9, g + 28.45, 3.2, ARCH_TRIM)
+	# the cross on the top step
+	_lbox(m, 0.55, 0.14, 0.14, g + 31.45, g + 35.0, ARCH_TRIM, M_STONE, ARCH_TRIM)
+	_lbox(m, 0.55, 0.65, 0.14, g + 33.2, g + 33.6, ARCH_TRIM, M_STONE, ARCH_TRIM)
+	_collide(_rect(m, 1.0, 4.4, 1.4))
