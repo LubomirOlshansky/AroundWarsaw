@@ -2855,15 +2855,18 @@ const CEN_PILLAR := Color("#bdb8ad")
 const CEN_SHELL_U0 := -65.4
 const CEN_SHELL_V := [-28.0, -20.5, -13.55, -6.6, 0.35, 7.3, 14.25, 21.2, 28.9]
 const CEN_SHELL_ENDS := Vector2(-68.5, 68.7)
-const CEN_LOW := 15.0    # a shell's low corners: the pillars' heads
-const CEN_HIGH := 16.5   # its high corners: the slab's underside
+const CEN_LOW := 12.0    # the underside at the pillar rows: the pillars' heads (photo 1)
+const CEN_APEX := 14.2   # the arch's crown between the rows, over the hall
+const CEN_EDGE := 16.0   # the underside at the slab's long edges: the wing tips, 2 m thick
+const CEN_HIGH := 16.5   # the hall's glass goes up into the roof to here
 const CEN_TOP := 18.0
+const CEN_STEPS := 6     # profile pieces per half bay
+const CEN_END := Color("#b9b7b0")  # the shells' end faces, grey under the white fascia
 
-## The station hall's glass box under the flat overhanging slab, and between them the roof's
-## shells: hyperbolic paraboloids (saddles whose corners fall to the pillars' heads and rise
-## to the slab in turn), so the shell tier's fascia zigzags under the straight slab wherever
-## its edge shows (the two ends). At night the hall glows cool white floor by floor, the
-## shells' underside is lit, and lamps line the slab's edge.
+## The station hall's glass box under the flat overhanging slab, and under the slab the roof's
+## shells: falling from the long edges to the pillar rows like wings and arching over the hall
+## between them, the winged shape that shows at both ends. At night the hall glows cool white
+## floor by floor, the shells' underside is lit, and lamps line the slab's edge.
 func _build_centralna(site: Dictionary) -> void:
 	_o = CENTRALNA
 	_a = Vector2.from_angle(deg_to_rad(CENTRALNA_TURN))
@@ -2889,13 +2892,14 @@ func _build_centralna(site: Dictionary) -> void:
 	# The pillars that stand clear of the hall and the wings (the ends), solid for the car too.
 	for p: Vector2 in site.get("pillars", []):
 		var l := _local(p)
-		_lbox(l.x, l.y, 0.55, 0.55, g - 0.4, g + CEN_LOW, CEN_PILLAR, M_STONE)
+		_lbox(l.x, l.y, 0.55, 0.55, g - 0.4, g + CEN_LOW + 0.3, CEN_PILLAR, M_STONE)
 		_collide(_rect(l.x, l.y, 0.55, 0.55))
-	_centralna_shells(g, site.get("shells", PackedVector2Array()))
-	# The slab: straight white edges, the mapped roof colour on top in a faint checker of panels
-	# over the shells' bays (every panel cut to the slab's outline; the end ones reach past it).
+	# The slab: straight white edges down to the wing tips, the mapped roof colour on top in a
+	# faint checker of panels over the shells' bays (every panel cut to the slab's outline; the
+	# end ones reach past it).
 	var slab: PackedVector2Array = site.get("slab", _rect(0.0, 0.0, 70.0, 43.0))
-	_prism(slab, g + CEN_HIGH, g + CEN_TOP, CEN_FASCIA, none, M_STONE)
+	_centralna_shells(g, slab)
+	_prism(slab, g + CEN_EDGE, g + CEN_TOP, CEN_FASCIA, none, M_STONE)
 	_mode = M_STONE
 	var vb := [-44.0]
 	vb.append_array(CEN_SHELL_V.slice(0, 9, 2))
@@ -2930,61 +2934,80 @@ func _build_centralna(site: Dictionary) -> void:
 	_mode = M_STONE
 
 
-## The shell tier: a grid of hyperbolic paraboloids, each bay's corners alternately at the
-## pillars' heads (15 m) and the slab (16.5 m); every bay's underside (lit at night) folds once, and the tier's edge a white fascia from the zigzag up to
-## the slab (triangles: one end of every segment already touches the slab).
-func _centralna_shells(g: float, tier: PackedVector2Array) -> void:
-	var us: Array[float] = [CEN_SHELL_ENDS.x]
-	for k in 27:
-		us.append(CEN_SHELL_U0 + 5.0 * k)
-	us.append(CEN_SHELL_ENDS.y)
-	var vs: Array = CEN_SHELL_V
-	# The ends follow the tier's mapped outline (its ends bow out by up to 1.7 m), so the
-	# zigzag stands flush under the slab's end edge, where it shows.
+## The roof's underside (photo check on the Mac, 2026-11-01, refs/centralna 1-3): seen from
+## either end the shells are the station's face, a wide winged shape under the straight top.
+## Across the roof (v) the underside falls from the slab's long edges (CEN_EDGE) to the pillar
+## rows (CEN_LOW), curving like a wing, and rises between the rows in a shallow arch over the
+## hall (CEN_APEX); along u it runs straight to the slab's (bowed) ends, where a grey end face
+## fills from the curve up to the fascia. Lit at night, like the ceiling it is.
+func _centralna_shells(g: float, slab: PackedVector2Array) -> void:
+	var lo_v := INF
+	var hi_v := -INF
+	for p in slab:
+		var l := _local(p)
+		lo_v = minf(lo_v, l.y)
+		hi_v = maxf(hi_v, l.y)
+	var row0: float = CEN_SHELL_V[1]
+	var row1: float = CEN_SHELL_V[7]
+	var mid := (row0 + row1) * 0.5
+	# The profile (v, height over the ground), wing tip to wing tip, CEN_STEPS pieces a bay.
+	var prof: Array[Vector2] = []
+	for k in CEN_STEPS + 1:
+		var t := float(k) / CEN_STEPS
+		prof.append(Vector2(lerpf(lo_v, row0, t), CEN_LOW + (CEN_EDGE - CEN_LOW) * pow(1.0 - t, 0.8)))
+	for k in range(1, 2 * CEN_STEPS + 1):
+		var t := float(k) / (2 * CEN_STEPS)
+		var v := lerpf(row0, row1, t)
+		var x := (v - mid) / (row1 - mid)
+		prof.append(Vector2(v, CEN_LOW + (CEN_APEX - CEN_LOW) * (1.0 - x * x)))
+	for k in range(1, CEN_STEPS + 1):
+		var t := float(k) / CEN_STEPS
+		prof.append(Vector2(lerpf(row1, hi_v, t), CEN_LOW + (CEN_EDGE - CEN_LOW) * pow(t, 0.8)))
+	# The tips sit a hair inside the slab's long edges, where the end lines still cross it.
+	prof[0].x += 0.05
+	prof[-1].x -= 0.05
 	var ends: Array[Vector2] = []
-	for v in vs:
-		# The corners: a metre in, where the line still crosses both ends.
-		ends.append(_tier_ends(tier, clampf(float(v), float(vs[0]) + 1.0, float(vs[-1]) - 1.0)))
-	var ni := us.size() - 1
-	var corner := func(i: int, j: int) -> Vector3:
-		var u: float = ends[j].x if i == 0 else (ends[j].y if i == ni else us[i])
-		var p := _w(u, float(vs[j]))
-		return Vector3(p.x, g + (CEN_LOW if (i + j) % 2 == 0 else CEN_HIGH), p.y)
+	for q in prof:
+		ends.append(_tier_ends(slab, q.x))
 	_mode = M_LAMP
-	for j in vs.size() - 1:
-		for i in us.size() - 1:
-			var c00: Vector3 = corner.call(i, j)
-			var c10: Vector3 = corner.call(i + 1, j)
-			var c01: Vector3 = corner.call(i, j + 1)
-			var c11: Vector3 = corner.call(i + 1, j + 1)
-			# One fold along the diagonal joining the two low corners (the valley the pillars
-			# carry): seen only from under the slab, so no finer than that.
-			var lows := (i + j) % 2 == 0
-			var tris := [[c00, c10, c11], [c00, c11, c01]] if lows else [[c00, c10, c01], [c10, c11, c01]]
-			for tr in tris:
-				var n: Vector3 = (tr[1] - tr[0]).cross(tr[2] - tr[0]).normalized()
-				if n.y > 0.0:
-					n = -n
-				_tri(tr[0], tr[1], tr[2], n, CEN_SOFFIT, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
-	# The fascia round the tier: along each side, triangles from the zigzag up to the slab.
+	for k in prof.size() - 1:
+		var p0 := _w(ends[k].x, prof[k].x)
+		var p1 := _w(ends[k].y, prof[k].x)
+		var p2 := _w(ends[k + 1].y, prof[k + 1].x)
+		var p3 := _w(ends[k + 1].x, prof[k + 1].x)
+		var y0 := g + prof[k].y
+		var y1 := g + prof[k + 1].y
+		var a0 := Vector3(p0.x, y0, p0.y)
+		var a1 := Vector3(p1.x, y0, p1.y)
+		var a2 := Vector3(p2.x, y1, p2.y)
+		var a3 := Vector3(p3.x, y1, p3.y)
+		var n := (a1 - a0).cross(a3 - a0).normalized()
+		if n.y > 0.0:
+			n = -n
+		_quad(a0, a1, a2, a3, n, CEN_SOFFIT)
+	# The end faces: from the curve up to the fascia's foot, at both ends.
 	_mode = M_STONE
-	var nj := vs.size() - 1
-	var edges: Array = []  # [i0, j0, i1, j1, outward]
-	for k in ni:
-		edges.append([k, 0, k + 1, 0, -_b])
-		edges.append([k, nj, k + 1, nj, _b])
-	for k in nj:
-		edges.append([0, k, 0, k + 1, -_a])
-		edges.append([ni, k, ni, k + 1, _a])
-	for e in edges:
-		var out: Vector2 = e[4]
-		var p0: Vector3 = corner.call(e[0], e[1])
-		var p1: Vector3 = corner.call(e[2], e[3])
-		var length := Vector2(p0.x, p0.z).distance_to(Vector2(p1.x, p1.z))
-		var low_end := p0 if p0.y < p1.y else p1
-		var top := Vector3(low_end.x, g + CEN_HIGH, low_end.z)
-		_tri(p0, p1, top, Vector3(out.x, 0.0, out.y), CEN_FASCIA, Vector2(0.0, p0.y - g),
-				Vector2(length, p1.y - g), Vector2(0.0 if p0.y < p1.y else length, CEN_HIGH), CEN_HIGH)
+	for side in 2:
+		var out := -_a if side == 0 else _a
+		for k in prof.size() - 1:
+			var e0 := _w(ends[k][side], prof[k].x)
+			var e1 := _w(ends[k + 1][side], prof[k + 1].x)
+			var top := g + CEN_EDGE
+			var b0 := Vector3(e0.x, g + prof[k].y, e0.y)
+			var b1 := Vector3(e1.x, g + prof[k + 1].y, e1.y)
+			# The ends bow out: each piece faces square to its own run, outwards.
+			var run := Vector2(e1.x - e0.x, e1.y - e0.y)
+			var face := Vector2(run.y, -run.x).normalized()
+			if face.dot(out) < 0.0:
+				face = -face
+			var n := Vector3(face.x, 0.0, face.y)
+			var none := Vector2(-1, -1)
+			if prof[k].y > CEN_EDGE - 0.01:  # a wing tip: a triangle
+				_tri(b0, b1, Vector3(e1.x, top, e1.y), n, CEN_END, none, none, none, -1.0)
+			elif prof[k + 1].y > CEN_EDGE - 0.01:
+				_tri(b0, b1, Vector3(e0.x, top, e0.y), n, CEN_END, none, none, none, -1.0)
+			else:
+				_quad(b0, b1, Vector3(e1.x, top, e1.y), Vector3(e0.x, top, e0.y), n, CEN_END)
 
 
 ## Where the line v (the shell tier's local plan) crosses the tier's outline: its west and
@@ -3376,7 +3399,7 @@ func _build_europejski(site: Dictionary) -> void:
 ## The Museum of Modern Art (Thomas Phifer, 2024), first scene item 1 (2026-10-31), built to its
 ## spec docs/landmarks/specs/msn.md from the museum's OpenStreetMap parts: one long white box on
 ## a glazed ground floor behind deep white fins, a thin dark slot all round where the upper box
-## sits back, two "city room" windows, long skylights on the flat roof. Its plan frame: u along
+## sits back, the "city room" windows, a glass grid over the flat roof. Its plan frame: u along
 ## the long side (north-north-west end at u < 0), +v towards the Palace, -v Marszałkowska.
 const MSN := Vector2(-1022.4, 100.15)
 const MSN_AXIS := Vector2(0.3445, 0.9388)
@@ -3392,11 +3415,14 @@ const MSN_FINS_EAST := [-50.4, -39.4, -26.4, -18.4, -10.4, 0.4, 7.4, 15.3, 26.4,
 const MSN_FINS_WEST := [-50.4, -39.5, -32.5, -26.5, -18.5, -10.6, 0.4, 7.3, 15.2, 26.2, 33.7, 40.7, 50.3]
 ## The ends' fins, turned along u: [u, v].
 const MSN_FINS_END := [[-49.4, 3.95], [-49.4, -8.5], [49.4, 6.3], [49.4, -8.55]]
-## The glazed roof panels [u, v, half u, half v] and the light well [u, v, half side] (F's night
-## photo, 2026-10-31: big lit fields round an open square court; the layout is an estimate).
-const MSN_SKY := [[-38.5, -6.0, 8.5, 10.0], [-14.0, -11.0, 10.0, 5.0], [-14.0, 9.0, 10.0, 7.0],
-		[29.0, -10.0, 15.0, 6.0], [29.0, 10.0, 15.0, 6.0]]
-const MSN_WELL := Vector3(6.0, 0.0, 4.0)
+## The roof (photo check on the Mac, 2026-11-01, refs/msn/ortho.jpg and 2.jpg): one gridded glass
+## field over the whole roof inside a white edge MSN_SKY_EDGE wide, and two small square light
+## wells [u, v, half side] cut into it.
+const MSN_SKY_EDGE := 2.2
+const MSN_WELLS := [Vector3(5.0, 4.9, 4.0), Vector3(31.5, -0.6, 3.5)]
+## The Marszałkowska face's city-room window (refs/msn/4.jpg): a deep recess in the upper box,
+## u -1..11, 14 to 20.5 m, the glass 3 m back.
+const MSN_LOGGIA := [-1.0, 11.0, 14.0, 20.5, 3.0]
 ## The north-west corner block (OSM: u -64.3..-53.8, v 16.5..27, 26 m on an 8 m base).
 const MSN_CORNER_U := -64.3
 const MSN_CORNER_V := Vector2(16.5, 27.0)
@@ -3433,8 +3459,30 @@ func _build_msn(_site: Dictionary) -> void:
 	_mode = M_PAVILION
 	_wall(_w(0.0, MSN_HV), _w(14.0, MSN_HV), g + 16.5, g + 22.5, _b, MSN_WINDOW)
 	_wall(_w(-1.0, MSN_HV), _w(5.0, MSN_HV), g + 7.0, g + 10.5, _b, MSN_WINDOW)
-	_wall(_w(-30.0, -MSN_HV), _w(-12.0, -MSN_HV), g + 16.5, g + 22.0, -_b, MSN_WINDOW)
+	_wall(_w(37.0, -MSN_HV), _w(39.0, -MSN_HV), g + 14.5, g + 19.0, -_b, MSN_WINDOW)
 	_wall(_w(-MSN_HU, -9.0), _w(-MSN_HU, -15.0), g + 15.5, g + 22.0, -_a, MSN_WINDOW)
+	# loggia: w2, the recess on Marszałkowska. Its opening goes into _walls undrawn, so the upper
+	# box's wall is cut round it; then the glass at the back, the reveals, the sill and the head.
+	var lu0: float = MSN_LOGGIA[0]
+	var lu1: float = MSN_LOGGIA[1]
+	var ly0: float = g + MSN_LOGGIA[2]
+	var ly1: float = g + MSN_LOGGIA[3]
+	var lv := -MSN_HV + float(MSN_LOGGIA[4])
+	var lo0 := _w(lu0, -MSN_HV)
+	var lo1 := _w(lu1, -MSN_HV)
+	_walls.append(PackedFloat32Array([lo0.x, lo0.y, lo1.x, lo1.y, ly0, ly1, -_b.x, -_b.y]))
+	_wall(_w(lu0, lv), _w(lu1, lv), ly0, ly1, -_b, MSN_WINDOW)
+	_mode = M_STONE
+	_wall(_w(lu0, -MSN_HV), _w(lu0, lv), ly0, ly1, _a, MSN_WHITE.darkened(0.1))
+	_wall(_w(lu1, lv), _w(lu1, -MSN_HV), ly0, ly1, -_a, MSN_WHITE.darkened(0.18))
+	for k: Array in [[ly0, Vector3.UP, MSN_WHITE], [ly1, Vector3.DOWN, MSN_WHITE.darkened(0.25)]]:
+		var p0 := _w(lu0, -MSN_HV)
+		var p1 := _w(lu1, -MSN_HV)
+		var p2 := _w(lu1, lv)
+		var p3 := _w(lu0, lv)
+		var y: float = k[0]
+		_quad(Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), Vector3(p2.x, y, p2.y), Vector3(p3.x, y, p3.y), k[1], k[2])
+	_mode = M_PAVILION
 	_wall(_w(-MSN_HU, -11.5), _w(-MSN_HU, -14.0), g + 7.0, g + 9.5, -_a, MSN_WINDOW)
 	# corner: the full-height block standing out at the north-west corner (OSM's part at
 	# (-1062, 54), closed up to the box), solid to the ground, a glazed top a metre under the roof.
@@ -3462,21 +3510,24 @@ func _build_msn(_site: Dictionary) -> void:
 	_prism(_rect(0.0, 0.0, hu, hv), g + MSN_SLOT.x, g + MSN_SLOT.y, MSN_SLOT_GLASS, none, M_GLASS)
 	_mode = M_STONE
 	_msn_ring(MSN_HU, MSN_HV, hu, hv, g + MSN_SLOT.y, Vector3.DOWN, MSN_WHITE.darkened(0.15))
-	# upper, its roof round the light well
+	# upper
 	_prism(box, g + MSN_SLOT.y, g + MSN_H, MSN_WHITE, none, M_STONE)
-	var well := _rect(MSN_WELL.x, MSN_WELL.y, MSN_WELL.z, MSN_WELL.z)
+	# sky: the glass field over the top galleries, lit from inside at night, round the wells;
+	# drawn first so the stone roof after it keeps only the white edge.
+	var wells: Array = []
+	for w: Vector3 in MSN_WELLS:
+		wells.append(_rect(w.x, w.y, w.z, w.z))
+	_mode = M_GLASS_ROOF
+	_cap_holes(_rect(0.0, 0.0, MSN_HU - MSN_SKY_EDGE, MSN_HV - MSN_SKY_EDGE), wells, g + MSN_H, MSN_SKY_GLASS)
 	_mode = M_STONE
-	_cap_holes(box, [well], g + MSN_H, MSN_ROOF)
-	# well: an open court cut into the roof, 4 m deep, its floor in shade.
-	for i in 4:
-		var a := well[i]
-		var b := well[(i + 1) % 4]
-		_wall(a, b, g + MSN_H - 4.0, g + MSN_H, -_out(well, a, b), MSN_WHITE.darkened(0.2))
-	_cap(well, g + MSN_H - 4.0, MSN_ROOF.darkened(0.35))
-	# sky: the big glazed roof panels over the top galleries, lit from inside at night.
-	for r: Array in MSN_SKY:
-		_prism(_rect(r[0], r[1], r[2], r[3]), g + MSN_H, g + MSN_H + 0.35, MSN_WHITE, MSN_SKY_GLASS, M_STONE, M_GLASS_ROOF)
-	_mode = M_STONE
+	_cap_holes(box, wells, g + MSN_H, MSN_ROOF)
+	# wells: open courts cut into the roof, 4 m deep, their floors in shade.
+	for well: PackedVector2Array in wells:
+		for i in 4:
+			var a := well[i]
+			var b := well[(i + 1) % 4]
+			_wall(a, b, g + MSN_H - 4.0, g + MSN_H, -_out(well, a, b), MSN_WHITE.darkened(0.2))
+		_cap(well, g + MSN_H - 4.0, MSN_ROOF.darkened(0.35))
 	_collide(box)
 
 

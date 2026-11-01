@@ -19,7 +19,7 @@ Marszałkowska, the Palace of Culture behind it. What makes a passer-by say its 
 3. **One thin dark slot** all round at mid-height, where the upper box sits back 0.7 m from
    the lower one.
 4. **A few large "city room" windows** on the upper floor, looking at the Palace.
-5. **Big glazed roof panels round a light well**, glowing at night (the view from above, which
+5. **A gridded glass roof round two small light wells**, glowing at night (the view from above, which
    is the game's view).
 
 ## 2. Massing
@@ -62,20 +62,22 @@ corners; the core and the fins start 0.4 m below it so nothing floats on a slope
     7 to 10.5 m (the lower galleries);
   - **W4** on the north end (-u), v -15..-9, 15.5 to 22 m, and **W5** under it, v -14..-11.5,
     7 to 9.5 m;
-  - **W2** on the Marszałkowska face (-v), u -30..-12, 16.5 to 22 m *(photo check: not in F's
-    photo)*. The game's camera looks north, so the player sees the south end and this face.
+  - **W2** on the Marszałkowska face (-v), photo-checked on the Mac 2026-11-01 (refs/msn/4.jpg,
+    from the Świętokrzyska corner): a deep recess in the upper box at mid-face, u -1..11, 14 to
+    20.5 m, the glass 3 m back behind white reveals, sill and head; and a small window near the
+    south end, u 37..39, 14.5 to 19 m, flush. The game's camera looks north, so the player sees
+    the south end and this face.
 - **Corner block**: at the north-west corner a full-height block stands out from the box to
   the ground (OSM's part at about (-1062, 54): 26 m on an 8 m base), u -64.3..-51.85,
   v 16.5..27, solid white, its glazed top 1 m under the main roof (lit at night).
 
 ## 4. Roof
 
-Flat at 26.0 m, pale grey-white, no parapet. From F's night photo: big glazed panels over the
-top galleries, lit from inside at night, round an open square light well. Panels (u, v, size),
-0.35 m proud, M_GLASS_ROOF: (-38.5, -6) 17 x 20 m; (-14, -11) 20 x 10 m; (-14, 9) 20 x 14 m;
-(29, -10) 30 x 12 m; (29, 10) 30 x 12 m. The light well: an 8 x 8 m court at (6, 0), 4 m deep,
-its floor in shade. The panels' exact layout is an estimate from one oblique photo
-*(photo check: ortho.jpg)*. No plant on the roof.
+Flat at 26.0 m, no parapet. Photo-checked on the Mac 2026-11-01 against `refs/msn/ortho.jpg`
+(and 2.jpg, the roof's steel grid during construction): nearly the whole roof is one gridded
+glass field (M_GLASS_ROOF, lit warm at night) inside a 2.2 m white edge (#d9d8d2), with two
+small square light wells cut into it: 8 x 8 m at (5, 4.9) and 7 x 7 m at (31.5, -0.6), 4 m deep,
+their floors in shade. No plant on the roof.
 
 ## 5. Colour and material
 
@@ -103,7 +105,7 @@ box is a later item.
 
 ## 7. Detail level and budget
 
-L3 (a first-scene hero), triangle budget 500 (410 measured after the photo pass, plus about 20 %, in
+L3 (a first-scene hero), triangle budget 500 (412 measured after the Mac photo check, 410 after the first photo pass, plus about 20 %, in
 `check_mesh_quality.gd` BUDGET). Shots: `--solo=msn --solo-look=sil` and `flat` (the silhouette
 and the plain box), then in the city at day and night from the Marszałkowska side.
 
@@ -124,6 +126,7 @@ and the plain box), then in the city at day and night from the Marszałkowska si
 | w4 | flush glass panel | 6 x 6.5 m | -u end, v -15..-9, y 15.5..22 | M_PAVILION #8fa9b6 | 4 city room |
 | w5 | flush glass panel | 2.5 x 2.5 m | -u end, v -14..-11.5, y 7..9.5 | M_PAVILION #8fa9b6 | 4 city room |
 | corner | box, glazed top | 12.45 x 10.5 x 25.4 m | u -64.3..-51.85, v 16.5..27 | M_STONE #ebe9e3, top M_GLASS_ROOF | 1 white box |
-| w2 | flush glass panel | 18 x 5.5 m | -v face, u -30..-12, y 16.5..22 | M_PAVILION #8fa9b6 | 4 city room |
-| sky | 5 panels | listed in section 4, 0.35 m tall | roof, y 26..26.35 | M_STONE sides, M_GLASS_ROOF #cfd8dc tops | 5 skylights |
-| well | open court | 8 x 8 x 4 m | u 6, v 0, y 22..26 | M_STONE | 5 skylights |
+| w2 | recess: glass 3 m back, reveals, sill, head | 12 x 6.5 m | -v face, u -1..11, y 14..20.5 | M_PAVILION #8fa9b6, M_STONE | 4 city room |
+| w6 | flush glass panel | 2 x 4.5 m | -v face, u 37..39, y 14.5..19 | M_PAVILION #8fa9b6 | 4 city room |
+| sky | flat glass field with 2 holes | 99.3 x 35.4 m | roof, y 26 | M_GLASS_ROOF #cfd8dc | 5 skylights |
+| wells | 2 open courts | 8 x 8 and 7 x 7 m, 4 m deep | (5, 4.9) and (31.5, -0.6), y 22..26 | M_STONE | 5 skylights |
