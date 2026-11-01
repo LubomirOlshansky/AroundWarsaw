@@ -10,6 +10,8 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Old Town roofs are no longer one repeated pattern: slate, zinc and the odd green copper among the terracotta, dormers of different widths, skylights, tall and short chimneys, and some bare slopes.
+- The maps tell places apart: a kebab stand is a round badge with a cone, the słoiki station a triangle, the Leżak depots little houses; the full map now shows metro stations and hospitals, and its legend explains each.
 - The old VHS tape filter is now a Retro vaporwave look in Settings → Obraz: pink and teal sunset tones, a soft neon glow, scanlines and a little grain. The picture-style choice is gone; the game always draws the sharp image.
 - Marszałkowska's tram stops fill with commuters at rush hour, thin out at weekends and night, and crowd the platforms when it rains.
 - Photo mode no longer lets your car roll backwards into a building, and the pause menu's JAZDA tab has a POMOC DROGOWA button that tows you onto the nearest road if you ever get stuck.

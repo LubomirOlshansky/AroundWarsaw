@@ -33,6 +33,7 @@ const SettingsPanel := preload("res://scripts/settings_panel.gd")
 const FullMap := preload("res://scripts/full_map.gd")
 const MapArt := preload("res://scripts/map_art.gd")
 const MainLine := preload("res://scripts/main_line.gd")
+const MapIcons := preload("res://scripts/map_icons.gd")
 const ScreenPoints := preload("res://scripts/screen_points.gd")
 ## drive_controls.gd's schemes (POINT, CLASSIC, FIXED).
 const CLASSIC := 1
@@ -275,6 +276,12 @@ var _mini_final := Vector2.INF
 var _mini_final_colour := Color.WHITE
 const GARAGE_REACH := 1500.0
 var _mini_poi_colours := PackedColorArray()
+## G11: the shape of each place's mark (MapIcons.POI_*), parallel to _mini_pois; a short or empty array
+## means squares.
+var _mini_poi_shapes := PackedInt32Array()
+## G11 (2026-11-01): a place's mark by kind, so the minimap and the full map are not rows of
+## identical squares: a kebab stand a round badge with a white cone, the station a triangle, a
+## depot a little house, a scooter a dot, anything else the square.
 ## The main line (main_line.gd, set by main.gd's `_main_line_tick`): its marker (a gold star in a
 ## pulsing ring, pinned to the minimap's rim at any distance; INF: this step has no place) and its
 ## goal line [Polish, English] for the full map. Side quests keep their colours (a ringed dot for
@@ -1742,9 +1749,8 @@ func _paint_minimap_overlay() -> void:
 		var r := ((_mini_pois[i] - _mini_car) * s).rotated(_mini_yaw)
 		var far := r.length() > _mini_radius - 5.0 * pt
 		r = r.limit_length(_mini_radius - 5.0 * pt)
-		var half := (2.0 if far else 2.8) * pt
-		_tri_rect(Rect2(centre + r - Vector2.ONE * (half + 1.0 * pt), Vector2.ONE * (half + 1.0 * pt) * 2.0), OUTLINE)
-		_tri_rect(Rect2(centre + r - Vector2.ONE * half, Vector2.ONE * half * 2.0), Color(_mini_poi_colours[i], blink))
+		var half := (2.0 if far else 3.2) * pt
+		poi_mark(centre + r, half, Color(_mini_poi_colours[i], blink), _mini_poi_shapes[i] if i < _mini_poi_shapes.size() else MapIcons.POI_SQUARE)
 	# The garage loop: the garage's diamond, pinned to the rim up to GARAGE_REACH m away.
 	if _mini_garage != Vector2.INF and _mini_garage.distance_to(_mini_car) <= GARAGE_REACH:
 		var g := ((_mini_garage - _mini_car) * s).rotated(_mini_yaw).limit_length(_mini_radius - 6.0 * pt)
@@ -1820,6 +1826,39 @@ func main_star(at: Vector2, k: float) -> void:
 	_tri_ring(at, r0, r0 + 1.4 * pt * k, 0.0, TAU, ring)
 	_tri_star(at, 5.2 * pt * k, MainLine.RIM)
 	_tri_star(at, 4.0 * pt * k, MainLine.COLOUR)
+
+
+## G11: a place's mark at `at` (`half`: about half its width) in `colour`, by shape (MapIcons.POI_*), each
+## with the dark outline and, where it has one, a white glyph; triangles into the batch.
+func poi_mark(at: Vector2, half: float, colour: Color, shape: int) -> void:
+	var o := 1.0 * pt
+	var white := Color(1, 1, 1, colour.a)
+	match shape:
+		MapIcons.POI_KEBAB:
+			_tri_fan(at, half + o, 0.0, TAU, Color(OUTLINE, colour.a))
+			_tri_fan(at, half, 0.0, TAU, colour)
+			_tri(at + Vector2(0, -half * 0.62), at + Vector2(half * 0.46, half * 0.56), at + Vector2(-half * 0.46, half * 0.56), white, white, white)
+		MapIcons.POI_STATION:
+			var out := Color(OUTLINE, colour.a)
+			var e := half * 1.3 + o * 1.4
+			_tri(at + Vector2(0, -e), at + Vector2(e, e * 0.8), at + Vector2(-e, e * 0.8), out, out, out)
+			var t := half * 1.3
+			_tri(at + Vector2(0, -t), at + Vector2(t, t * 0.8), at + Vector2(-t, t * 0.8), colour, colour, colour)
+			_tri_rect(Rect2(at + Vector2(-t * 0.12, -t * 0.1), Vector2(t * 0.24, t * 0.5)), white)
+		MapIcons.POI_DEPOT:
+			var out := Color(OUTLINE, colour.a)
+			var e := half + o
+			_tri_rect(Rect2(at + Vector2(-e, -e * 0.15), Vector2(e * 2.0, e * 1.15)), out)
+			_tri(at + Vector2(-e * 1.25, -e * 0.1), at + Vector2(e * 1.25, -e * 0.1), at + Vector2(0, -e * 1.2), out, out, out)
+			_tri_rect(Rect2(at + Vector2(-half, 0.0), Vector2(half * 2.0, half * 0.95)), colour)
+			_tri(at + Vector2(-half * 1.15, 0.0), at + Vector2(half * 1.15, 0.0), at + Vector2(0, -half * 1.05), colour, colour, colour)
+			_tri_rect(Rect2(at + Vector2(-half * 0.2, half * 0.2), Vector2(half * 0.4, half * 0.75)), white)
+		MapIcons.POI_SCOOTER:
+			_tri_fan(at, half * 0.8 + o, 0.0, TAU, Color(OUTLINE, colour.a))
+			_tri_fan(at, half * 0.8, 0.0, TAU, colour)
+		_:
+			_tri_rect(Rect2(at - Vector2.ONE * (half + o), Vector2.ONE * (half + o) * 2.0), Color(OUTLINE, colour.a))
+			_tri_rect(Rect2(at - Vector2.ONE * half, Vector2.ONE * half * 2.0), colour)
 
 
 ## A side quest's target at `at` (k: its size): a dot in its colour inside a white ring, with the
@@ -1936,9 +1975,10 @@ func set_minimap_final(p: Vector2, colour: Color) -> void:
 
 
 ## Side-job places on the minimap (map coordinates), drawn as blinking squares.
-func set_minimap_pois(points: PackedVector2Array, colours: PackedColorArray) -> void:
+func set_minimap_pois(points: PackedVector2Array, colours: PackedColorArray, shapes := PackedInt32Array()) -> void:
 	_mini_pois = points
 	_mini_poi_colours = colours
+	_mini_poi_shapes = shapes
 
 
 # --- loop 2d-1: the Podwózka app's route (rides.gd) -------------------------------------------
@@ -2411,6 +2451,7 @@ func open_full_map(car_xz: Vector2, car_yaw: float, found: PackedVector2Array) -
 	full_map.target_colour = _mini_target_colour
 	full_map.side_spots = _mini_pois
 	full_map.side_colours = _mini_poi_colours
+	full_map.side_shapes = _mini_poi_shapes
 	full_map.set_main_line(_main_at, main_goal[0], main_goal[1])
 	full_map.open(car_xz, car_yaw)
 

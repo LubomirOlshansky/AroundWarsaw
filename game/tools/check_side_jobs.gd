@@ -92,7 +92,7 @@ class FakeHud extends CanvasLayer:
 	func hide_pill() -> void:
 		pass
 
-	func set_minimap_pois(points: PackedVector2Array, _c: PackedColorArray) -> void:
+	func set_minimap_pois(points: PackedVector2Array, _c: PackedColorArray, _s := PackedInt32Array()) -> void:
 		pois = points.size()
 
 
