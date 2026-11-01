@@ -51,8 +51,10 @@ func _initialize() -> void:
 	if probe.handling != Car.Handling.CRUISE:
 		_problems.append("an unknown profile did not fall back to Cruise")
 	probe.free()
-	if Car.new().handling != Car.Handling.CRUISE:
+	var fresh := Car.new()
+	if fresh.handling != Car.Handling.CRUISE:
 		_problems.append("a new car is not in Cruise")
+	fresh.free()
 	_begin()
 
 
@@ -104,6 +106,8 @@ func _physics_process(dt: float) -> bool:
 
 
 func _finish() -> bool:
+	# Freed now, not queued: nothing is left alive when the script quits (verify.sh fails on leak warnings).
+	_world.free()
 	for cs in CASES:
 		var cr: float = _results["0/%s" % cs["name"]]
 		var sp: float = _results["1/%s" % cs["name"]]
