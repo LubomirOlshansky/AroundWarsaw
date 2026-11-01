@@ -78,6 +78,16 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
 - The scene's people stand still (no gestures); the onlookers' phones are not modelled.
 - A scene on a one-lane road (none today: they need 2+ lanes so the traffic can go round).
 
+## Grand hotels (2026-11-01, hotels pass)
+- Done: Hotel Bristol's body (`bristol`: plinth, courses, cornice, slate mansard, dormers, canopied
+  door with BRISTOL in gold neon on the Krakowskie front, pediment) and Hotel Polonia Palace (`polonia`,
+  built whole, red canopy on Al. Jerozolimskie, shares its east wall with Metropol), both through
+  `_palace_hotel` (landmarks.gd), specs `bristol.md` section 9 and `polonia.md`, cards.
+- Left, all for the Mac photo check: real colours of both facades, the real storey count (Polonia 25.5 m
+  and Bristol 27.4 m are mapped or estimated), where the entrances are, the mansards' true profile;
+  the other grand hotels (Hotel Metropol 1960s block, Mercure Grand, Hotel Saski) stay generic;
+  Radisson Blu Sobieski, Sheraton, Hilton, Holiday Inn and the Ibises are plain OSM extrusions.
+
 ## Old Town hotels (2026-11-01)
 - Done: `hotel_kasztel` (Castle Inn, Plac Zamkowy), `hotel_canaletto` (Hotel Bellotto), `hotel_starowka`
   (an aparthotel on the Rynek): fronts on tenements, parody names, cards. Spots are estimates from the
@@ -121,8 +131,9 @@ the OSM outlines, no photos; specs in docs/landmarks/specs/):
 - ~~K4 Pałac Potockich~~ the court front (`potocki`, 166 tris) and the Kordegarda built whole
   (`kordegarda`, 466 tris, was a 4.3 m shed). Left: the second (southern) guardhouse is not mapped;
   Pałac Czapskich (-609,-597) stays a box.
-- ~~K5 Hotel Bristol's corner dome~~ (`bristol`, 334 tris). Left: Mac photo check that the dome
-  is on this corner, its profile and the facade's colours.
+- ~~K5 Hotel Bristol's corner dome~~ (`bristol`, tower 334 tris; its body done in the hotels pass,
+  see "Grand hotels"). Left: Mac photo check that the dome is on this corner, its profile and the
+  facade's colours.
 - ~~K6 small things~~ done 2026-11-01: the black Chopin benches (`map_builder`
   `_split_chopin_benches`), Prus's and Wyszyński's statues (`prus` 100 tris, `wyszynski` 122;
   spots from their published coordinates, facings guessed), the carriageway's granite setts

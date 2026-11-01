@@ -285,8 +285,11 @@ const INFO := {
 			"Apartamenty w kamienicy przy Rynku, dla gości z walizką na kółkach.",
 			"Apartments in a tenement on the Market, for wheeled-suitcase guests."],
 	"bristol": ["Hotel Bristol",
-			"Wielki hotel z 1901 roku, z kopułą na rogu.",
-			"A grand hotel of 1901, with a dome on its corner."],
+			"Wielki hotel z 1901 roku, z mansardą i kopułą na rogu.",
+			"A grand hotel of 1901, with a mansard and a dome on its corner."],
+	"polonia": ["Hotel Polonia Palace",
+			"Hotel z 1913 roku przy Alejach Jerozolimskich. Przetrwał powstanie.",
+			"A hotel of 1913 on Al. Jerozolimskie. It outlived the Uprising."],
 	"mariensztat": ["Rynek Mariensztacki",
 			"Osiedle odbudowane w 1949 roku; bohater filmu „Przygoda na Mariensztacie” z 1954 roku.",
 			"The estate rebuilt in 1949, and the star of the 1954 film \"Przygoda na Mariensztacie\"."],
@@ -1048,6 +1051,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_mariensztat(s)
 			"hotel_kasztel", "hotel_canaletto", "hotel_starowka":
 				_build_hotel(s)
+			"polonia":
+				_build_polonia(s)
 			"bristol":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the corner tower is ours
 				_build_bristol(s)
@@ -9463,6 +9468,7 @@ const POTOCKI_AXIS := Vector2(-0.2, -0.98)
 const KORDEGARDA := Vector2(-626.3, -947.4)
 const KORDEGARDA_AXIS := Vector2(-0.239, -0.971)
 const BRISTOL_TOWER := Vector2(-557.8, -894.0)
+const BRISTOL_H := 27.4  # the mapped roof, which the kept skin holds
 # K6 (2026-11-01): the two statues of Krakowskie Przedmieście's north end, spots projected from
 # their published coordinates (Prus 52.24173 N 21.01636 E, Twardowski Square; Wyszyński
 # 52.24112 N 21.01661 E, in front of the Visitationists' church); the facings are estimates.
@@ -9712,7 +9718,14 @@ func _build_kordegarda(site: Dictionary) -> void:
 ## round tower on its rounded corner at Krakowskie Przedmieście: a drum with pilasters, a
 ## ring cornice, a copper dome with a lantern, a spire and a ball. Its base is sunk in the
 ## roof, so a LoD2 roof a little higher or lower than OSM's 27.4 m does not open a gap.
-func _build_bristol(_site: Dictionary) -> void:
+func _build_bristol(site: Dictionary) -> void:
+	var zone: PackedVector2Array = (site["zone"] as Array)[0]
+	var ring := _simplify(zone, 0.9)
+	_palace_hotel(ring, _ground_under(ring), BRISTOL_H, {
+			"wall": Color("#e4d2b4"), "base": Color("#b9a98a"), "trim": KP_TRIM, "slate": Color("#6b6a6c"),
+			"glass": Color("#33383e"), "name": "BRISTOL", "name_w": 5.4, "board": Color("#2a2420"),
+			"tube": Color(1.0, 0.82, 0.45), "whole": false, "street_at": Vector2(-592.0, -915.0), "avoid": BRISTOL_TOWER, "avoid_r": 7.5,
+			"canopy": KP_COPPER}, PackedVector2Array())
 	var c := BRISTOL_TOWER
 	_g = map.terrain_height(c.x, c.y)
 	var g := _g
@@ -9857,6 +9870,11 @@ const HOTEL_LAMP := Color("#ffd9a0")
 
 
 func _find_hotels() -> void:
+	var polonia := _landmark("Hotel Polonia Palace")
+	if polonia.size() >= 3:
+		_add_site("polonia", [polonia])
+		if not sites.is_empty() and sites[-1]["key"] == "polonia":
+			sites[-1]["ring"] = _simplify(polonia, 0.7)
 	for h: Dictionary in HOTELS:
 		_o = h["o"]
 		_b = h["out"]
@@ -9925,3 +9943,176 @@ func _build_hotel(site: Dictionary) -> void:
 			var q := Vector2(map._roof_x0 + (i + 0.5) * cell, map._roof_z0 + (j + 0.5) * cell)
 			if Geometry2D.is_point_in_polygon(q, pick):
 				_pick[j * map._roof_nx + i] = _id
+
+
+## --- The palace hotels (F, 2026-11-01: "model the Bristol and the other hotels properly") ------
+## One builder for the two turn-of-the-century grand hotels, from their OSM outlines (no photos):
+## a rusticated plinth under a balcony band, string courses, a stepped cornice and a slate
+## mansard with a dormer every 4.4 m on the public fronts, and on the longest public front a
+## forward bay with a canopied lit door, a gilded name board and a pediment. `whole` builds the
+## mass too (Polonia Palace; the OSM outline is a low shed there), otherwise the mass is the
+## kept skin's (Bristol). `party` is a neighbour's outline (a shared wall carries no trim).
+## Specs docs/landmarks/specs/bristol.md and polonia.md.
+const POLONIA_H := 25.5
+
+
+## The ring pushed in by `d` metres at every vertex (a mitre; out when d < 0), same vertex count.
+func _inset_ring(ring: PackedVector2Array, d: float) -> PackedVector2Array:
+	var n := ring.size()
+	var out := PackedVector2Array()
+	for i in n:
+		var a := ring[(i + n - 1) % n]
+		var p := ring[i]
+		var b := ring[(i + 1) % n]
+		var n0 := _out(ring, a, p)
+		var n1 := _out(ring, p, b)
+		var den := maxf(1.0 + n0.dot(n1), 0.5)
+		out.append(p - (n0 + n1) * (d / den))
+	return out
+
+
+## A pitched roof between two same-count rings (m0 at y0 up to m1 at y1), each face turned out of
+## `ring` by its own edge, so an L-shaped plan keeps all its faces lit (`_frustum` turns them by
+## the centre, which a concave plan fools).
+func _slope(ring: PackedVector2Array, m0: PackedVector2Array, y0: float, m1: PackedVector2Array, y1: float, col: Color) -> void:
+	var n := ring.size()
+	for i in n:
+		var j := (i + 1) % n
+		var out := _out(ring, ring[i], ring[j])
+		var p0 := Vector3(m0[i].x, y0, m0[i].y)
+		var p1 := Vector3(m0[j].x, y0, m0[j].y)
+		var p2 := Vector3(m1[j].x, y1, m1[j].y)
+		var p3 := Vector3(m1[i].x, y1, m1[i].y)
+		var nrm := (p1 - p0).cross(p3 - p0).normalized()
+		if Vector2(nrm.x, nrm.z).dot(out) < 0.0:
+			nrm = -nrm
+		var l := m0[i].distance_to(m0[j])
+		_quad(p0, p1, p2, p3, nrm, col, Vector2(0, y0 - _g), Vector2(l, y0 - _g), Vector2(l, y1 - _g), Vector2(0, y1 - _g), y1 - _g)
+
+
+func _palace_hotel(ring: PackedVector2Array, g: float, h: float, spec: Dictionary, party: PackedVector2Array) -> void:
+	_g = g
+	var none := Color(0, 0, 0, 0)
+	var wall: Color = spec["wall"]
+	var base: Color = spec["base"]
+	var trim: Color = spec["trim"]
+	var slate: Color = spec["slate"]
+	var n := ring.size()
+	var shared := PackedVector2Array()
+	if party.size() >= 3:
+		var grown := Geometry2D.offset_polygon(party, 0.8, Geometry2D.JOIN_MITER)
+		if not grown.is_empty():
+			shared = grown[0]
+	var edges: Array[Dictionary] = []  # the public edges: a, b, length, out
+	for i in n:
+		var a := ring[i]
+		var b := ring[(i + 1) % n]
+		var out := _out(ring, a, b)
+		var mid := (a + b) * 0.5
+		if shared.size() >= 3 and Geometry2D.is_point_in_polygon(mid + out * 0.1, shared):
+			continue
+		edges.append({"a": a, "b": b, "len": a.distance_to(b), "out": out})
+	_mode = M_STONE
+	if spec["whole"]:
+		for k in 5:  # the rusticated courses, each with its light edge
+			var y0 := g - 0.6 + 6.0 * k / 5.0
+			var y1 := g - 0.6 + 6.0 * (k + 1) / 5.0
+			_prism(ring, y0, y1, base.darkened(0.12 if k == 0 else (0.0 if k % 2 == 1 else 0.05)), none, M_STONE)
+		_bays(ring, 0.8, 4.6, 4.2, 1.9, spec["glass"], shared)
+		_prism(ring, g + 5.4, g + h, wall, none, M_MONUMENT)
+	else:
+		var plinth := _inset_ring(ring, -0.25)
+		for k in 4:
+			_prism(plinth, g - 0.6 + 6.0 * k / 4.0, g - 0.6 + 6.0 * (k + 1) / 4.0,
+					base.darkened(0.1 if k == 0 else (0.0 if k % 2 == 1 else 0.05)), none, M_STONE)
+		_bays(ring, 0.9, 4.6, 4.2, 1.9, spec["glass"], shared)
+	_prism(_inset_ring(ring, -0.45), g + 5.4, g + 5.85, trim, trim.darkened(0.06), M_STONE, M_STONE)  # the balcony band
+	_prism(_inset_ring(ring, -0.2), g + h - 6.4, g + h - 6.05, trim, none, M_STONE)  # under the top floor
+	_prism(_inset_ring(ring, -0.35), g + h - 2.0, g + h - 1.2, trim, none, M_STONE)  # the cornice's frieze
+	_prism(_inset_ring(ring, -0.8), g + h - 1.2, g + h - 0.5, trim, trim.darkened(0.08), M_STONE, M_STONE)  # its ledge
+	_prism(_inset_ring(ring, -0.3), g + h - 0.5, g + h + 0.35, trim, none, M_STONE)  # the parapet's plinth
+	# The mansard: slate, pitched in from the parapet to a flat top.
+	var m0 := _inset_ring(ring, 0.9)
+	var m1 := _inset_ring(ring, 2.8)
+	_mode = M_STONE
+	_slope(ring, m0, g + h + 0.35, m1, g + h + 3.6, slate)
+	_cap(m1, g + h + 3.6, slate.lightened(0.06))
+	# Dormers, one every 4.4 m on each public front, each in its edge's frame (u along, v out).
+	var avoid: Vector2 = spec.get("avoid", Vector2(INF, INF))
+	var avoid_r: float = spec.get("avoid_r", 0.0)
+	var street_at: Vector2 = spec.get("street_at", Vector2.ZERO)  # when given, the front is within 30 m of it
+	var front := -1
+	var front_len := 0.0
+	for k in edges.size():
+		var e: Dictionary = edges[k]
+		var el: float = e["len"]
+		if el > front_len and (not spec.has("street_at") or ((e["a"] + e["b"]) * 0.5).distance_to(street_at) < 30.0):
+			front_len = el
+			front = k
+		if el < 9.0:
+			continue
+		_o = e["a"]
+		_b = e["out"]
+		_a = (e["b"] - e["a"]) / el
+		var cnt := floori((el - 2.0) / 4.4)
+		var u0 := (el - (cnt - 1) * 4.4) * 0.5
+		for j in cnt:
+			var u := u0 + j * 4.4
+			if _w(u, 0.0).distance_to(avoid) < avoid_r:
+				continue
+			var y := g + h + 0.35
+			_mode = M_STONE
+			_lbox(u, -1.7, 0.55, 0.6, y + 0.3, y + 2.0, wall, M_STONE, wall)
+			_hip(u, -1.7, 0.7, 0.75, y + 2.0, 0.8, slate.lightened(0.1))
+			_mode = M_GLASS
+			_wall(_w(u - 0.32, -1.07), _w(u + 0.32, -1.07), y + 0.65, y + 1.75, e["out"], spec["glass"])
+	if front < 0 or front_len < 18.0:
+		return
+	# The forward bay on the longest public front.
+	var fe: Dictionary = edges[front]
+	_o = (fe["a"] + fe["b"]) * 0.5
+	_b = fe["out"]
+	_a = (fe["b"] - fe["a"]) / front_len
+	var board: Color = spec["board"]
+	var canopy: Color = spec["canopy"]
+	_mode = M_STONE
+	_lbox(0.0, 0.5, 5.0, 0.5, g - 0.6, g + 5.4, base.darkened(0.04), M_STONE, base)
+	_lbox(0.0, 0.45, 5.0, 0.45, g + 5.4, g + h - 1.9, wall, M_MONUMENT, wall)
+	for sd: float in [-1.0, 1.0]:
+		_lbox(sd * 4.8, 0.95, 0.28, 0.12, g + 5.4, g + h - 1.9, trim, M_STONE, trim)
+		_lbox(sd * 2.1, 1.0, 0.22, 0.1, g - 0.2, g + 4.0, trim, M_STONE, trim)  # the door's surround
+	_lbox(0.0, 1.0, 2.3, 0.1, g + 3.9, g + 4.2, trim, M_STONE, trim)
+	_lbox(0.0, 0.5, 5.3, 0.55, g + h - 1.9, g + h + 0.6, trim, M_STONE, trim.darkened(0.06))
+	_mode = M_PAVILION
+	_wall(_w(-1.8, 1.04), _w(1.8, 1.04), g + 0.05, g + 3.9, _b, Color("#f3d9a8"))
+	_mode = M_STONE
+	_lbox(0.0, 2.0, 3.7, 1.1, g + 4.3, g + 4.55, canopy, M_STONE, canopy.lightened(0.12))
+	for sd: float in [-1.0, 1.0]:  # the canopy's two posts
+		_column(sd * 3.4, 2.9, 0.12, g - 0.2, g + 4.3, trim.darkened(0.3))
+		_mode = M_LAMP
+		_lbox(sd * 2.5, 1.16, 0.1, 0.1, g + 2.6, g + 3.0, HOTEL_LAMP, M_LAMP)
+		_mode = M_STONE
+	_lbox(0.0, 1.06, 3.2, 0.05, g + 4.6, g + 5.3, board, M_STONE, board.lightened(0.08))
+	var word: String = spec["name"]
+	var face := _w(0.0, 1.13)
+	signs.append([word, Vector3(face.x, g + 4.78, face.y), Vector3(_b.x, 0.0, _b.y),
+			minf(0.2, float(spec["name_w"]) / Neon.length_of(word)), spec["tube"]])
+	# The pediment, in a frame turned to face out of the bay.
+	_a = fe["out"]
+	_b = Vector2(-_a.y, _a.x)
+	_o = (fe["a"] + fe["b"]) * 0.5
+	_mode = M_STONE
+	_lbox(0.0, 0.0, 0.6, 3.6, g + h + 0.6, g + h + 2.4, wall, M_STONE, trim)
+	_gable(0.62, -0.5, 0.0, 3.7, g + h + 2.4, 1.9, wall, slate.lightened(0.05))
+
+
+## Hotel Polonia Palace (1913), Al. Jerozolimskie 45: the one grand hotel that came through the
+## Uprising standing. Built whole (the OSM outline is a low shed) from the outline's `ring`.
+func _build_polonia(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	var party := _landmark("Hotel Metropol")
+	_palace_hotel(ring, _ground_under(ring), POLONIA_H, {
+			"wall": Color("#e6d9b2"), "base": Color("#b8a888"), "trim": Color("#f2ebd8"), "slate": Color("#6e6a66"),
+			"glass": Color("#353a40"), "name": "POLONIA PALACE", "name_w": 6.6, "board": Color("#3a1f24"),
+			"tube": Color(1.0, 0.85, 0.5), "whole": true, "canopy": Color("#6b2a2f")}, party)
+	_collide(ring)
