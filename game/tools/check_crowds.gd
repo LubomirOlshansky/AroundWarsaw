@@ -259,6 +259,9 @@ func _check_sites(c: Crowds) -> void:
 	_expect(Crowds.pistacja_queue(12.0, 2) == [Crowds.PISTACJA_BASE, "queue"], "PISTACJA: a Tuesday noon line %s" % [Crowds.pistacja_queue(12.0, 2)])
 	_expect(Crowds.pistacja_queue(17.5, 5) == [Crowds.PISTACJA_MAX, "drop"], "PISTACJA: the Friday drop %s" % [Crowds.pistacja_queue(17.5, 5)])
 	_expect(not Crowds.pistacja_drop(17.5, 4) and not Crowds.pistacja_drop(18.5, 5) and Crowds.pistacja_drop(16.0, 5), "PISTACJA: the drop's window")
+	_expect(Crowds.padel_queue(18.0, 2) == [Crowds.PADEL_MAX, "padel"] and Crowds.padel_queue(10.0, 6)[0] == 10 and Crowds.padel_queue(3.0, 6)[0] == 0
+			and Crowds.padel_queue(14.0, 2)[0] == 3, "PADELNIA: its line by hour")
+	_expect(c.by_id.has(Crowds.PADEL_ID), "no crowd at PADELNIA")
 	_expect(c.by_id.has(Crowds.PISTACJA_ID), "no crowd at PISTACJA")
 	if c.by_id.has(Crowds.PISTACJA_ID):
 		var ps: Dictionary = c.sites[c.by_id[Crowds.PISTACJA_ID]]
