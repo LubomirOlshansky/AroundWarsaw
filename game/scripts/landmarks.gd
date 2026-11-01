@@ -860,6 +860,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"teatr":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the portico is ours
 				_build_teatr(s)
+			"zamek":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the stone plinth is ours
+				_build_zamek(s)
 			"tower75":
 				_id = 0  # unnamed: no card, not on the picking grid
 				_build_tower75(s)
@@ -2436,9 +2439,12 @@ func _sloped(poly: PackedVector2Array, y0: float, hi: float, lo: float, wall: Co
 ## theatre and the castle to the churches on the royal route. `mode` M_MONUMENT draws tall
 ## windows between piers (plastered and stone fronts), M_STONE a plain wall (brick, the science
 ## centre's dark slabs). Colours from photographs, a step paler than life.
+const ZAMEK_WALL := "#cf9580"  # salmon plaster (was #c87560: it read brick-red and loud)
+const ZAMEK_ROOF := "#8d6350"  # reddish-brown tile (was #6e5a4e: it went near-black on the shaded slopes)
+const ZAMEK_STONE := Color("#e2d8c4")
 const SKINS := [
 	{"key": "teatr", "osm": "Teatr Wielki", "mode": M_MONUMENT, "wall": "#ddd2b6", "roof": "#7fa894"},
-	{"key": "zamek", "osm": "Zamek Królewski", "mode": M_MONUMENT, "wall": "#c87560", "roof": "#6e5a4e"},
+	{"key": "zamek", "osm": "Zamek Królewski", "mode": M_MONUMENT, "wall": ZAMEK_WALL, "roof": ZAMEK_ROOF},
 	{"key": "barbakan", "osm": "Barbakan", "mode": M_GOTHIC, "wall": "#ab5a42", "roof": "#6b4a3c"},
 	{"key": "archikatedra", "osm": "Archikatedra pw. Świętego Jana Chrzciciela", "mode": M_GOTHIC, "wall": "#9a4b38", "roof": "#6e3a2e"},
 	{"key": "sw_anna", "osm": "Kościół pw. Świętej Anny", "mode": M_MONUMENT, "wall": "#e6dcc4", "roof": "#8a5a44"},
@@ -5068,6 +5074,34 @@ const TEATR_COLUMN := Color("#f1ead7")
 const TEATR_SCULPT := Color("#d9d2bf")
 ## Portico column centres across the front, u from the middle: eight.
 const TEATR_COLS := [-11.9, -8.5, -5.1, -1.7, 1.7, 5.1, 8.5, 11.9]
+
+
+## The Royal Castle (Zamek Królewski): the mass stays LoD2's (its pentagon round the courtyard,
+## the Clock Tower, the Senate Tower), in salmon plaster; the model adds the pale stone plinth the
+## real walls stand on, run round the mapped outline a seventy centimetres proud of the wall and stepped
+## with the escarpment (spec docs/landmarks/specs/zamek.md).
+func _build_zamek(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["zone"][0]
+	if ring.size() < 3:
+		return
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	_mode = M_STONE
+	var n := ring.size()
+	for i in n:
+		var p := ring[i]
+		var q := ring[(i + 1) % n]
+		var len := p.distance_to(q)
+		if len < 0.5:
+			continue
+		var out := _out(ring, p, q)
+		var steps := maxi(ceili(len / 6.0), 1)
+		for k in steps:
+			var a := p.lerp(q, float(k) / steps) + out * 0.7
+			var b := p.lerp(q, float(k + 1) / steps) + out * 0.7
+			_g = minf(map.terrain_height(a.x, a.y), map.terrain_height(b.x, b.y))
+			_wall(a, b, _g - 1.0, _g + 2.2, out, ZAMEK_STONE, p.distance_to(a))
 
 
 func _build_teatr(_site: Dictionary) -> void:
