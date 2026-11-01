@@ -21,6 +21,8 @@ extends Control
 ## and Obraz the FOTKA button beside TEST (closes the card and opens the photo mode: fotka.gd).
 ## F's asks (2026-10-30): Jazda gets "Strefy piesze 20 km/h · Pedestrian zones 20 km/h" Off / On
 ## under the mode (settings.gd `zone_cap`, off by default: key "zones").
+## 2026-11-01: Jazda's first column ends with "Utknąłeś? · Stuck?" and POMOC DROGOWA (closes the
+## card and tows the car onto the nearest road: main.gd `_unstuck`, key "unstuck").
 
 signal changed(key: String, value: Variant)
 signal closed
@@ -201,6 +203,14 @@ func _build() -> void:
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.custom_minimum_size.x = 240.0 * pt
 		drive[0].add_child(l)
+	# 2026-11-01 (F stuck in a building after a photo): the tow on demand, onto the nearest road.
+	_heading(drive[0], "Utknąłeś?", "Stuck?")
+	var tow := _word_button("POMOC DROGOWA", "unstuck · to the road")
+	tow.name = "unstuck"
+	tow.pressed.connect(func():
+		close()
+		changed.emit("unstuck", 1))
+	drive[0].add_child(tow)
 	_heading(drive[1], "Kamera za autem", "Camera follows the car")
 	_segments(drive[1], "camera", CAMERA)
 	_heading(drive[1], "Tryb gry", "Game mode")

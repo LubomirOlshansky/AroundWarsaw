@@ -4,7 +4,9 @@ extends SceneTree
 ## beside or behind it. A car heading into the ring at 30, 50 or 90 km/h must come to rest inside
 ## it and stay still long enough for every quest's hold, then be let go (it drives on with the gas
 ## still held); a car passing beside the ring or driving away from it, or with no ring, is never
-## touched; BRAKE held at a standstill in the ring reverses out at once. The quests' stop rings
+## touched; BRAKE held at a standstill in the ring reverses out at once. 2026-11-01: a car the game
+## holds (parked, the brake on: the photo mode's and the title's hold) stays where it stands for
+## 3 s (it reversed into the buildings behind it under the photo mode on F's iPhone). The quests' stop rings
 ## and "stopped" speeds must be the shared ones. Exits 1 on a problem.
 ##
 ##   godot --headless --path game --fixed-fps 60 --script res://tools/check_stop_assist.gd
@@ -40,6 +42,7 @@ func _initialize() -> void:
 	_tests.append({"name": "driving away 50 km/h", "v": 50.0 * KMH, "ring": Vector3(0, 0, 20), "start": Vector3.ZERO, "dur": 5.0, "want": "free"})
 	_tests.append({"name": "no ring 50 km/h", "v": 50.0 * KMH, "ring": Vector3.INF, "start": Vector3.ZERO, "dur": 5.0, "want": "free"})
 	_tests.append({"name": "reverse out", "v": 0.0, "ring": Vector3(0, 0, -2), "start": Vector3.ZERO, "dur": 2.0, "want": "reverse"})
+	_tests.append({"name": "held by the game", "v": 0.0, "ring": Vector3.INF, "start": Vector3.ZERO, "dur": 3.0, "want": "held"})
 	print("check_stop_assist: %d runs, ring %.0f m, stopped under %.1f m/s" % [_tests.size(), StopAssist.RING, StopAssist.STOP_SPEED])
 
 
@@ -101,9 +104,10 @@ func _start() -> void:
 
 func _step(_dt: float) -> void:
 	var want: String = _test["want"]
-	if want == "reverse":
+	if want == "reverse" or want == "held":
 		_car.throttle = 0.0
 		_car.braking = true
+		_car.parked = want == "held"
 	else:
 		# The gas held at the speed it came in at (a share of top speed), as a finger left on the stick.
 		_car.throttle = clampf(float(_test["v"]) / _car.max_speed, 0.0, 1.0)
@@ -150,6 +154,11 @@ func _finish() -> void:
 			line += "slowest forward speed %.1f m/s" % _log["min_fwd"]
 			if _log["min_fwd"] > -0.5:
 				bad = "BRAKE at a standstill in the ring did not reverse out"
+		"held":
+			var moved := Vector2(_car.global_position.x, _car.global_position.z).length()
+			line += "moved %.2f m in %.0f s" % [moved, _test["dur"]]
+			if moved > 0.05:
+				bad = "a parked car on the brake crept %.2f m" % moved
 	if bad != "":
 		_problems.append("%s: %s" % [name, bad])
 		line += "  <-- " + bad
