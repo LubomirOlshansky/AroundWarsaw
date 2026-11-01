@@ -3,6 +3,24 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Roofs across the map (F, 2026-11-01)
+
+Plan and lane file: docs/design/roofs.md. The LoD2 roof shapes and their aerial-photo colours
+were already real; what they lacked was material and edge detail.
+- [x] RF1 roof materials in building.gdshader: tile courses on red pitches, standing-seam sheet
+      metal on other pitches, zinc on steep mansard faces, tar-paper strips on slabs and dark
+      flat roofs, welded membrane and gravel on offices and pale ones, sedum where the photo is
+      green; detail fades with distance.
+- [x] RF2 parapets with a light coping on every flat LoD2 roof of 60 m² or more (outer edges of
+      2 m or more, not round plant boxes), RF3 chimney stacks on pre-war tenements (party-wall
+      rows on flat roofs, one on some pitches; mansard dormers outside the Old Town were tried
+      and dropped: they read as black holes) (`roof_dress.gd`, `check_roof_dress`; no new draw call).
+- [ ] RF4: OpenStreetMap-only buildings' hipped and gabled roofs, MDM's and the Royal Route's
+      copper and red sheet metal by district, Powiśle's roof terraces.
+- [x] Mac check on today's bake (2026-11-01): 130 draw calls before and after, 0.61 → 0.62 M
+      triangles, no shimmer; tile courses show close up and fade at the default zoom.
+- [ ] The phone bench and a look on the phone (needs F's yes for a device run).
+
 ## Crash scenes (F, 2026-11-01)
 
 Lane file: [docs/design/crash-scenes.md](design/crash-scenes.md). Built: `crash_scenes.gd` (a

@@ -84,6 +84,10 @@ then the Launch gate.
   - [ ] S3b-e the other stations: Śródmieście's entrances, Wschodnia, Gdańska, Ochota WKD
   - [ ] L4 Most Średnicowy's look (after a Mac photo check)
 
+- [ ] Roofs across the map (F, 2026-11-01; plan docs/design/roofs.md):
+  - [x] RF1-RF3 roof materials, parapets, tenement chimneys, 2026-11-01
+  - [ ] RF4 OSM-only buildings' roofs, copper and red sheet metal by district; the phone bench (Mac check done 2026-11-01)
+
 ### Left: content and feel
 - [x] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
       (2026-11-01, docs/design/pay-tables.md: player-neutral Polish, rematch respect +20, słoiki
