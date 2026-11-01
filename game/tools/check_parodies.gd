@@ -51,6 +51,9 @@ class FakeDialogue extends Node:
 		said.append([speaker, group, tag])
 		return ["…", "…"]
 
+	func say_ambient(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false) -> Array:
+		return say(_anchor, speaker, group, tag, _s, _a, _h, _p)
+
 	func line(group: String, tag := "", _prefer := false) -> Array:
 		said.append(["", group, tag])
 		return ["…", "…"]
@@ -65,6 +68,8 @@ class FakeDialogue extends Node:
 class FakeBubbles extends Control:
 	var n := 0
 	func say(_anchor: Variant, _who: String, _pl: String, _en: String, _s := 3.0, _a := Color.WHITE, _h := 2.0) -> void:
+		n += 1
+	func say_ambient(_anchor: Variant, _who: String, _pl: String, _en: String, _s := 3.0, _a := Color.WHITE, _h := 2.0) -> void:
 		n += 1
 
 

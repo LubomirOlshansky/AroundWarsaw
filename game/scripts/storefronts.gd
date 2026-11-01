@@ -1410,7 +1410,7 @@ func _stop_at(i: int) -> void:
 	if not r["stamp"]:
 		if _clock - _line_t > LINE_GAP and dialogue != null:
 			_line_t = _clock
-			dialogue.say(func() -> Vector3: return at3, "Frogs", "rechotka", "", 4.0, FROGS_COLOUR, 2.6)
+			dialogue.say_ambient(func() -> Vector3: return at3, "Frogs", "rechotka", "", 4.0, FROGS_COLOUR, 2.6)
 		return
 	today.append(i)
 	stamps += 1
@@ -1423,13 +1423,13 @@ func _stop_at(i: int) -> void:
 		if hud != null:
 			hud.show_note("HOT DOG GRATIS! · FREE HOT DOG!", "Karta stałego klienta: 10/10 · +%d ★" % FREE_RESPECT, FROGS_COLOUR)
 		if dialogue != null:
-			dialogue.say(func() -> Vector3: return at3, "Frogs", "rechotka", "free", 4.5, FROGS_COLOUR, 2.6, true)
+			dialogue.say_ambient(func() -> Vector3: return at3, "Frogs", "rechotka", "free", 4.5, FROGS_COLOUR, 2.6, true)
 	else:
 		print("rechotka: stamp %d (shop %d, %d today)" % [stamps, i, today.size()])
 		if hud != null:
 			hud.toast("FROGS · PIECZĄTKA %d/%d" % [stamps, STAMPS_CARD], "Frogs · stamp %d of %d" % [stamps, STAMPS_CARD])
 		if dialogue != null:
-			dialogue.say(func() -> Vector3: return at3, "Frogs", "rechotka", "stamp", 4.0, FROGS_COLOUR, 2.6, true)
+			dialogue.say_ambient(func() -> Vector3: return at3, "Frogs", "rechotka", "stamp", 4.0, FROGS_COLOUR, 2.6, true)
 	_line_t = _clock
 	if wallet != null:
 		wallet.keep["frogs_stamps"] = stamps
@@ -1526,7 +1526,7 @@ func _knock(i: int, away: Vector2, kmh: float) -> void:
 		var l: Array = dialogue.line("lezak", "knock", true)
 		if not l.is_empty():
 			var p3: Vector3 = s["at"]
-			dialogue.bubbles.say(func() -> Vector3: return p3, "", l[0], l[1], 3.5, Color("#8e44d9"), 1.6)
+			dialogue.bubbles.say_ambient(func() -> Vector3: return p3, "", l[0], l[1], 3.5, Color("#8e44d9"), 1.6)
 
 
 # --- loop jobs-2: the round-up's side (roundup_job.gd) ----------------------------------------------

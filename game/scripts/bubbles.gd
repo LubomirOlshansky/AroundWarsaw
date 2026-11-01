@@ -88,6 +88,25 @@ func say(anchor: Variant, speaker: String, line: String, subtitle := "", seconds
 	queue_redraw()
 
 
+## Ambient chatter (crowds, dog walkers, bus stops...) keeps quiet while the player drives
+## faster than AMBIENT_MUTE_KMH; quest, police and rival lines use `say` and always show.
+const AMBIENT_MUTE_KMH := 40.0
+
+## Gives the player's speed in km/h (main.gd); unset means never muted.
+var kmh: Callable
+
+
+func muted() -> bool:
+	return kmh.is_valid() and float(kmh.call()) > AMBIENT_MUTE_KMH
+
+
+## `say` for ambient chatter: dropped while the player drives fast (G16).
+func say_ambient(anchor: Variant, speaker: String, line: String, subtitle := "", seconds := 4.0,
+		accent := Color("#ffd23f"), height := 2.6) -> void:
+	if not muted():
+		say(anchor, speaker, line, subtitle, seconds, accent, height)
+
+
 ## A bubble's size with its text wrapped `width` points wide: {size, name_h, line_h}.
 func _measure(b: Dictionary, width: float) -> Dictionary:
 	var font := ThemeDB.fallback_font
