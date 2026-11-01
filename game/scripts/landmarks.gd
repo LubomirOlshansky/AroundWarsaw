@@ -566,12 +566,12 @@ func _find_sites() -> void:
 	# The museum and Plac Piłsudskiego loop (2026-10-31): the square's edges.
 	_find_plac()
 	_find_pawilony()
-	# G3 (gaulle-and-food-hype.md): LUŹNO, the date bar on HOTEL PIURE's roof, in pink, like
+	# G3 (gaulle-and-food-hype.md): LORETKA, the date bar on HOTEL PIURE's roof, in pink, like
 	# METROPOLKA: a 0.2 m zone at the roof's south-east corner keeps the hotel the map's.
 	var piure := _landmark("Puro Warszawa Centrum")
 	if piure.size() >= 3:
 		var pe := _box_of([piure]).end
-		_add_site("piure_sign", [PackedVector2Array([pe, pe + Vector2(0.2, 0), pe + Vector2(0.2, 0.2), pe + Vector2(0, 0.2)])])
+		_add_site("loretka", [PackedVector2Array([pe, pe + Vector2(0.2, 0), pe + Vector2(0.2, 0.2), pe + Vector2(0, 0.2)])])
 	var metropol := _landmark("Hotel Metropol")
 	if metropol.size() >= 3:
 		# A 0.2 m zone at the roof's south-east corner: a site's zone drops what stands in it,
@@ -881,8 +881,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_wiktoria(s)
 			"metropolsign":
 				_build_metropol_sign(s)
-			"piure_sign":
-				_build_piure_sign(s)
+			"loretka":
+				_build_loretka(s)
 			"msn":
 				_build_msn(s)
 			"tr":
@@ -4876,16 +4876,194 @@ func _build_metropol_sign(_site: Dictionary) -> void:
 	_crown_signs(outline, g + top + 3.0, "METROPOLKA", Color(0.18, 1.0, 0.36), 0.0, 0.7)
 
 
-## LUŹNO in bubblegum pink on HOTEL PIURE's roof (the rooftop bar's neon), on its long fronts.
-func _build_piure_sign(_site: Dictionary) -> void:
-	var outline := _landmark("Puro Warszawa Centrum")
+## LORETKA's summer terrace (F, 2026-11-01; the real rooftop bar's: a deck, greenery, low
+## seats, cocktails, pink neon). Colours: the deck's wood, the planters and their shrubs, the
+## poufs, the tables, the parasols, the bar's counter and its pink strip, the lift's housing,
+## the string lights' poles and bulbs.
+const LOR_DECK := Color("#8a6a4c")
+const LOR_PLANTER := Color("#3d3b38")
+const LOR_GREEN := Color("#4f7a3a")
+const LOR_POUF := Color("#e9dccb")
+const LOR_TABLE := Color("#f2efe8")
+const LOR_PARASOL := Color("#ff9fd6")
+const LOR_COUNTER := Color("#2b2a2c")
+const LOR_STRIP := Color("#ff6fc0")
+const LOR_HOUSING := Color("#e6e1d6")
+const LOR_POLE := Color("#202022")
+const LOR_BULB := Color("#ffd08a")
+const LOR_NAME := "Puro Warszawa Centrum"
+
+
+## LORETKA's terrace plan, read by this model and by crowds.gd's couples (one source, so they
+## sit on its poufs): from HOTEL PIURE's outline in `data` (empty without it, or under 15 m) the
+## frame (`o` a corner of the longest front, `a` along it, `b` inwards), the hotel's height `h`
+## over its lowest ground, the deck's span (`u0`..`u1` along, `v0`..`v1` across), the tables
+## (local [u, v]) and the seats [world point, yaw facing the table], two to a table, table by table.
+static func loretka_plan(data: Dictionary) -> Dictionary:
+	var outline := PackedVector2Array()
+	for l: Dictionary in data.get("landmarks", []):
+		if str(l.get("name", "")) == LOR_NAME:
+			var flat: Array = l["p"]
+			for i in range(0, flat.size() - 1, 2):
+				outline.append(Vector2(float(flat[i]), float(flat[i + 1])))
+	if outline.size() < 3:
+		return {}
+	var n := outline.size()
+	var best := 0
+	var longest := 0.0
+	var c := Vector2.ZERO
+	for i in n:
+		c += outline[i]
+		var l := outline[i].distance_to(outline[(i + 1) % n])
+		if l > longest:
+			longest = l
+			best = i
+	c /= float(n)
+	var o := outline[best]
+	var a := (outline[(best + 1) % n] - o).normalized()
+	var b := Vector2(-a.y, a.x)
+	if (c - o).dot(b) < 0.0:
+		b = -b
+	# The hotel's height: its tallest mapped part whose middle is inside the outline (the
+	# streamed city's index has the parts as `site_parts` only: bake_sectors.py SITE_NAMES).
+	var h := 0.0
+	for bld: Dictionary in data.get("buildings", data.get("site_parts", [])):
+		var flat: Array = bld["p"]
+		if flat.size() < 6:
+			continue
+		var m := Vector2.ZERO
+		for i in range(0, flat.size() - 1, 2):
+			m += Vector2(float(flat[i]), float(flat[i + 1]))
+		m /= float(flat.size() / 2)
+		if m.distance_to(c) < longest and Geometry2D.is_point_in_polygon(m, outline):
+			h = maxf(h, float(bld["h"]))
+	if h < 15.0:
+		return {}
+	# The deck on the front's first half, as deep as the slab is where it is thinnest there.
+	var u0 := 1.4
+	var u1 := minf(26.0, longest * 0.55)
+	var depth := INF
+	for u: float in [u0 + 0.5, (u0 + u1) * 0.5, u1 - 0.5]:
+		var from := o + a * u + b * 0.05
+		for i in n:
+			if i == best:
+				continue
+			var hit = Geometry2D.segment_intersects_segment(from, from + b * 60.0, outline[i], outline[(i + 1) % n])
+			if hit != null:
+				depth = minf(depth, from.distance_to(hit) + 0.05)
+	if depth == INF or depth < 8.0:
+		return {}
+	var v0 := 1.3
+	var v1 := depth - 1.3
+	var tables: Array = []
+	var seats: Array = []
+	var cols := 4
+	for k in cols:
+		var u := lerpf(u0 + 2.6, u1 - 4.6, float(k) / float(cols - 1))
+		for v: float in [lerpf(v0, v1, 0.3), lerpf(v0, v1, 0.72)]:
+			tables.append(Vector2(u, v))
+			for side: float in [-1.0, 1.0]:
+				var p := o + a * (u + side * 0.8) + b * v
+				var face := -a * side
+				seats.append([p, atan2(-face.x, -face.y)])
+	return {"o": o, "a": a, "b": b, "h": h, "outline": outline, "u0": u0, "u1": u1, "v0": v0, "v1": v1,
+			"tables": tables, "seats": seats}
+
+
+## LORETKA in bubblegum pink on HOTEL PIURE's roof (the rooftop bar's neon), on its long fronts,
+## and (F, 2026-11-01) its summer terrace on the roof: a wooden deck, planters of shrubs on its
+## three open edges, eight low tables with a pouf each side, four pink parasols, the bar's
+## counter with a pink strip, the lift's housing behind it, and string lights on six poles. Out
+## of the roof grid (the crowd stands on the hotel's roof height, not the poufs).
+func _build_loretka(_site: Dictionary) -> void:
+	var outline := _landmark(LOR_NAME)
 	var g := _ground_under(outline)
 	var top := 0.0
 	for bld in _parts_in(outline, func(_b: Dictionary) -> bool: return true):
 		top = maxf(top, float(bld["h"]))
 	if top < 15.0:
 		return
-	_crown_signs(outline, g + top + 2.2, "LUŹNO", Color(1.0, 0.45, 0.78), 0.0, 0.45)
+	_crown_signs(outline, g + top + 2.2, "LORETKA", Color(1.0, 0.45, 0.78), 0.0, 0.45)
+	var plan := loretka_plan(data)
+	if plan.is_empty():
+		return
+	_o = plan["o"]
+	_a = plan["a"]
+	_b = plan["b"]
+	var y := g + float(plan["h"])
+	var u0: float = plan["u0"]
+	var u1: float = plan["u1"]
+	var v0: float = plan["v0"]
+	var v1: float = plan["v1"]
+	var none := Color(0, 0, 0, 0)
+	var keep_roof := _no_roof
+	_no_roof = true
+	var d := y + 0.12  # the deck's top
+	_lbox((u0 + u1) * 0.5, (v0 + v1) * 0.5, (u1 - u0) * 0.5, (v1 - v0) * 0.5, y, d, LOR_DECK.darkened(0.2), M_STONE, LOR_DECK)
+	# Planters on the deck's open edges (the front, the back, the west end), shrubs on top.
+	var runs := [[u0 + 0.45, v0 + 0.4, u1 - 2.2, v0 + 0.4], [u0 + 0.45, v1 - 0.4, u1 - 2.2, v1 - 0.4],
+			[u0 + 0.4, v0 + 1.4, u0 + 0.4, v1 - 1.4]]
+	for r: Array in runs:
+		var along_u := absf(float(r[2]) - float(r[0])) > 0.1
+		var length := absf(float(r[2]) - float(r[0])) if along_u else absf(float(r[3]) - float(r[1]))
+		var pieces := maxi(1, roundi(length / 6.0))
+		var step := length / pieces
+		for k in pieces:
+			var cu := float(r[0]) + (step * (k + 0.5) if along_u else 0.0)
+			var cv := float(r[1]) + (0.0 if along_u else step * (k + 0.5))
+			var hu := step * 0.5 - 0.3 if along_u else 0.35
+			var hv := 0.35 if along_u else step * 0.5 - 0.3
+			_lbox(cu, cv, hu, hv, d, d + 0.55, LOR_PLANTER, M_STONE, LOR_PLANTER.darkened(0.2))
+			_lbox(cu, cv, hu - 0.08, hv - 0.08, d + 0.55, d + 1.05, LOR_GREEN, M_STONE, LOR_GREEN.lightened(0.08))
+	# The tables (a pedestal and a top) and their poufs.
+	for t: Vector2 in plan["tables"]:
+		_lbox(t.x, t.y, 0.1, 0.1, d, d + 0.42, LOR_POLE, M_STONE, none)
+		_lbox(t.x, t.y, 0.38, 0.38, d + 0.42, d + 0.48, LOR_TABLE, M_STONE, LOR_TABLE)
+		for side: float in [-1.0, 1.0]:
+			_lbox(t.x + side * 0.8, t.y, 0.24, 0.24, d, d + 0.36, LOR_POUF.darkened(0.08), M_STONE, LOR_POUF)
+	# Four parasols over the middle of each pair of tables: a pole and a low pink cone.
+	var tabs: Array = plan["tables"]
+	for k in range(0, tabs.size(), 2):
+		var m: Vector2 = (tabs[k] + tabs[k + 1]) * 0.5
+		var w := _w(m.x, m.y)
+		_beam(Vector3(w.x, d, w.y), Vector3(w.x, d + 2.55, w.y), 0.07, LOR_POLE)
+		_mode = M_STONE
+		_frustum(_circle(w, 1.7, 8), d + 2.2, _circle(w, 0.12, 8), d + 2.6, LOR_PARASOL.darkened(0.1), LOR_PARASOL)
+	# The bar: a counter across the deck's east end with a pink strip on its front, the lift's
+	# housing behind it (white render, a dark door).
+	var bu := u1 - 1.6
+	_lbox(bu, (v0 + v1) * 0.5, 0.4, (v1 - v0) * 0.5 - 2.0, d, d + 1.05, LOR_COUNTER, M_STONE, LOR_COUNTER.lightened(0.15))
+	_mode = M_LAMP
+	_lbox(bu - 0.44, (v0 + v1) * 0.5, 0.04, (v1 - v0) * 0.5 - 2.3, d + 0.75, d + 0.9, LOR_STRIP, M_LAMP, LOR_STRIP)
+	_mode = M_STONE
+	_lbox(u1 + 2.0, (v0 + v1) * 0.5, 2.0, 2.4, y, y + 3.1, LOR_HOUSING, M_STONE, LOR_HOUSING.darkened(0.1))
+	_lbox(u1 - 0.02, (v0 + v1) * 0.5, 0.04, 0.6, d, d + 2.2, LOR_COUNTER, M_STONE, none)
+	# String lights: three poles each side, a wire zig-zagging across between them, warm bulbs.
+	var ps: Array = []
+	for k in 3:
+		var u := lerpf(u0 + 1.2, u1 - 2.6, float(k) / 2.0)
+		ps.append([_w(u, v0 + 1.0), _w(u, v1 - 1.0)])
+	for pr: Array in ps:
+		for q: Vector2 in pr:
+			_beam(Vector3(q.x, d, q.y), Vector3(q.x, d + 3.0, q.y), 0.06, LOR_POLE)
+	var wires: Array = []
+	for k in 2:
+		wires.append([ps[k][0], ps[k + 1][1]])
+		wires.append([ps[k][1], ps[k + 1][0]])
+	for wr: Array in wires:
+		var p0: Vector2 = wr[0]
+		var p1: Vector2 = wr[1]
+		var a3 := Vector3(p0.x, d + 2.95, p0.y)
+		var b3 := Vector3(p1.x, d + 2.95, p1.y)
+		_beam(a3, b3, 0.025, LOR_POLE, false)
+		for j in range(1, 6):
+			var q := a3.lerp(b3, j / 6.0) + Vector3(0, -0.12, 0)
+			_mode = M_LAMP
+			_prism(PackedVector2Array([Vector2(q.x - 0.06, q.z - 0.06), Vector2(q.x + 0.06, q.z - 0.06),
+					Vector2(q.x + 0.06, q.z + 0.06), Vector2(q.x - 0.06, q.z + 0.06)]), q.y - 0.06, q.y + 0.1,
+					LOR_BULB, LOR_BULB, M_LAMP, M_LAMP)
+	_mode = M_STONE
+	_no_roof = keep_roof
 
 
 func _box_poly(r: Rect2) -> PackedVector2Array:

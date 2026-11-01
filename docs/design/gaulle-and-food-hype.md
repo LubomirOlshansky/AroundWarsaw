@@ -32,9 +32,9 @@ Książulo's "muala" becomes our own sound **MLASK** (a lip-smack).
 | QUERCUS (the roof sign) | **ROBUR** | the oak again, in Latin, same white letters, a different word | — |
 | newonce.bar | **NEWTWICE** | once → twice | — |
 | Zamieszanie | **ZAMĘT** | a synonym (stir → turmoil) | turmoil |
-| Zagrywki | **PIONEK** | a pawn: the board-game bar | pawn |
+| Zagrywki | **PRZEGRYWKI** | "plays" turned into "losing streaks": the board-game bar (F, 2026-11-01; was PIONEK) | losing streaks |
 | PURO hotel | **HOTEL PIURE** | *piure* is how Polish spells purée | mash |
-| Loreta (the rooftop bar) | **LUŹNO** | "casual, no pressure": the first-date bar | casual |
+| Loreta (the rooftop bar) | **LORETKA** | the diminutive, F's own pick (2026-11-01; was LUŹNO): the first-date bar | little Loreta |
 | Tinder | **TIMBER** (F's pick) | the falling-tree shout; "swipe" becomes *rąbnij* (chop); a pine-cone mark, brown and green, never the flame or its red-orange | — |
 | Costa Coffee | **KOSZTA COFFEE** | *koszta* = the costs; dark red-brown tube, our own cup mark | Costs Coffee |
 | Green Caffè Nero | **GREEN CAFFE NERWO** | *nerwy* = nerves; the 5×7 font has no È | Green Caffe Nerves |
@@ -75,19 +75,19 @@ At about (-171, 273), the lawn's curved cut-out north-west of the Party House's 
   dziś biura i bary." / "The Party House · A white block from 1952. Once the Party, then the stock
   exchange, now offices and bars."
 - The bars: three venue neons (storefronts.gd `CAFES`-style table `GAULLE_BARS`): **NEWTWICE**
-  (white) on the south face, **ZAMĘT** (amber) on the north-west corner, **PIONEK** (teal) on
+  (white) on the south face, **ZAMĘT** (amber) on the north-west corner, **PRZEGRYWKI** (teal) on
   the next block south; a small terrace crowd at NEWTWICE on Thu-Sat evenings.
 
-### G3 · HOTEL PIURE and LUŹNO, the TIMBER date bar (content + small model, Sonnet/Opus)
+### G3 · HOTEL PIURE and LORETKA, the TIMBER date bar (content + small model, Sonnet/Opus)
 - HOTEL PIURE on the Puro outline's crown (like CHILTON); on its roof the terrace: a pink neon
-  **LUŹNO** (bubblegum #ff7ac8 is Wiralek's: use #ff9fd6), planters, low seats, string lights.
-- Dates: from 18:00 to 01:00 a dozen figures in twos on the terrace (crowds.gd site `luzno`,
+  **LORETKA** (bubblegum #ff7ac8 is Wiralek's: use #ff9fd6), planters, low seats, string lights.
+- Dates: from 18:00 to 01:00 a dozen figures in twos on the terrace (crowds.gd site `loretka`,
   roof height from the outline), lines `timber_date` (16) when the car is near the hotel door or
   the helicopter hovers over the roof: "Na zdjęciach był wyższy. I miał psa." / "He was taller in
-  his photos. And he had a dog."; "Trzecia randka w LUŹNO w tym tygodniu. Barman już mi kibicuje."
-  / "Third date at LUŹNO this week. The barman is rooting for me now."
+  his photos. And he had a dog."; "Trzecia randka w LORETCE w tym tygodniu. Barman już mi kibicuje."
+  / "Third date at LORETKA this week. The barman is rooting for me now."
 - TIMBER itself: a billboard (signs group), two column posters, radio host lines, and Podwózka
-  passengers with the `timber` tag going to LUŹNO (lines about the match, the profile, "6'2 i
+  passengers with the `timber` tag going to LORETKA (lines about the match, the profile, "6'2 i
   Mordor"). No real app look; the mark is a pine cone.
 
 ### G4 · Coffee chains and the queues (content + crowds, Sonnet)
@@ -131,10 +131,21 @@ At about (-171, 273), the lawn's curved cut-out north-west of the Party House's 
   the denylist) joins verify and CI.
 
 ## 3b. What was built (2026-11-01)
-G1 and G2 as specified (PR #185). G2's bars, G3 and G4 as neons in `Storefronts.HYPE`, LUŹNO as
+G1 and G2 as specified (PR #185). G2's bars, G3 and G4 as neons in `Storefronts.HYPE`, LORETKA as
 the hotel's crown sign; the dates are a line at HOTEL PIURE's door (waiting for the lift), not
 yet figures on the roof. G5 lives in `trend_job.gd` (one activity at a time with the other jobs)
 with the van as one mesh; `--trend-job=6` parks it by the car. Left: BACKLOG's G3-G5 leftovers.
+
+F's follow-up (2026-11-01): the rooftop bar renamed LORETKA, the board-game bar PRZEGRYWKI. The
+terrace is built: `landmarks.gd` `loretka_plan` (one plan for the model and the crowd) lays a
+wooden deck on the west half of HOTEL PIURE's roof, planters with shrubs on its open edges, eight
+low tables with two poufs each, four pink parasols, the bar's counter with a pink strip, the lift's
+housing, string lights on six poles (930 triangles, +0 draw calls, out of the roof grid);
+crowds.gd's `terrace` site seats couples there May-September on dry evenings, 17:00-01:00 (16 on
+Friday and Saturday, 10 otherwise). `check_mesh_quality`'s ON_ROOF counts the deck as the site's
+ground. WACZEK (F: the burger chain, another name, an upside-down M): five neons in
+`Storefronts.HYPE`, a gold W over the name, at the real chain's central restaurants (their names
+on Wolt; the corners approximate); the real names are in the denylist.
 
 ## 4. Order and cost
 G1, G2 (Opus, landmark lane) → G3, G4 (Sonnet-sized content, one PR) → G5 (Opus design, then

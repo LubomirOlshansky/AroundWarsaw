@@ -52,8 +52,8 @@ real ones added to `brand_denylist.json`). One PR each:
       granite cone, the dark plinth, the marching bronze general, a card), 2026-11-01.
 - [x] G2 part 1: Dom Partii as a white stone skin with a card, ROBUR over the north-west corner,
       the courtyard's paving with its key border and the long fountain with five jets, 2026-11-01.
-- [x] G2 part 2: the bars NEWTWICE, ZAMĘT and PIONEK as neons (`Storefronts.HYPE`), 2026-11-01.
-- [x] G3 HOTEL PIURE's door neon, LUŹNO in pink on its roof (landmarks site `piure_sign`), the
+- [x] G2 part 2: the bars NEWTWICE, ZAMĘT and PRZEGRYWKI as neons (`Storefronts.HYPE`), 2026-11-01.
+- [x] G3 HOTEL PIURE's door neon, LORETKA in pink on its roof (landmarks site `loretka`), the
       evening line for the lift up to the date bar (crowds.gd, 10-16 people 18:00-01:00, tag
       `timber`), TIMBER on a billboard and a column poster, 10 date lines, radio lines, 2026-11-01.
 - [x] G4 KOSZTA COFFEE ×3, GREEN CAFFE NERWO ×2 (one on the mapped pavilion), KUKŁA ×2 with its
@@ -63,7 +63,12 @@ real ones added to `brand_denylist.json`). One PR each:
       card with a MLASK grade, the sticker back in 4 min, the place's queue at its longest for the
       day (crowds.gd `cringulo_boost`); 9 review lines, 4 owner lines, 6 fan lines, CRINGULO PIZZA
       sold out at Frogs (3 till lines, a poster), radio news; rules in `check_city_life.gd`, 2026-11-01.
-- [ ] Left from G3-G5: the dates on LUŹNO's roof itself (a roof crowd like Level 26's), the
+- [x] F's follow-up: the rooftop bar is LORETKA (was LUŹNO) with its summer terrace on the roof
+      (deck, planters, eight tables with poufs, pink parasols, the bar, string lights; landmarks
+      `loretka_plan`), couples on its poufs May-September on dry evenings (crowds.gd `terrace`,
+      10-16); the board-game bar is PRZEGRYWKI (Zagrywki parody, was PIONEK); WACZEK ×5, the burger
+      chain with an upside-down golden W, at the real chain's central restaurants, 2026-11-01.
+- [ ] Left from G3-G5: the
       Podwózka `timber` passengers, a notebook card "Kolejki", fans standing by Cringulo's van, an
       egg (the car parked by the van while he films), the van's CRINGULO TV lettering, the egg
       card; phone checks of every sign's size, the queues and the job's legs.

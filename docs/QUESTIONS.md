@@ -29,8 +29,9 @@ Newest first. One entry per question.
   the map, D-pad zoom / radio / flash. Say if any should move once you try a pad.
 - **2026-11-01 · content · parody names for the food-hype lore** — Default built: TIMBER (dating
   app, F's pick), Cringulo (food blogger, F's pick) with his grade MLASK (not the real catchphrase),
-  KUKŁA (crêpes), KOSZTA COFFEE, GREEN CAFFE NERWO, HOTEL PIURE with its rooftop bar LUŹNO, ROBUR on
-  Dom Partii's roof, the bars NEWTWICE, ZAMĘT and PIONEK. Say if any should change (fallback for
+  KUKŁA (crêpes), KOSZTA COFFEE, GREEN CAFFE NERWO, HOTEL PIURE with its rooftop bar LORETKA (F's pick), ROBUR on
+  Dom Partii's roof, the bars NEWTWICE, ZAMĘT and PRZEGRYWKI (Zagrywki: F asked for it, kept a
+  parody), the burger chain WACZEK (an upside-down W; Warsaw calls the real one "Maczek"). Say if any should change (fallback for
   Cringulo: "Mlaskacz"). docs/design/gaulle-and-food-hype.md section 2.
 
 - **2026-11-01 · visuals · pavement colour** — R3 (docs/design/start-area-real.md) made the mapped

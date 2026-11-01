@@ -101,8 +101,16 @@
       "Pasaż Wiecha: a queue for green coffee. Yes, it's tea."
     ],
     [
-      "KEBAB FM. W TIMBER rekord: tysiąc dopasowań i jedna randka. W LUŹNO.",
-      "KEBAB FM. A TIMBER record: a thousand matches, one date. At LUŹNO."
+      "KEBAB FM. W TIMBER rekord: tysiąc dopasowań i jedna randka. W LORETCE.",
+      "KEBAB FM. A TIMBER record: a thousand matches, one date. At LORETKA."
+    ],
+    [
+      "KEBAB FM. Trzecia w nocy, WACZEK na Marszałkowskiej: cała Warszawa w jednej kolejce.",
+      "KEBAB FM. 3 a.m., WACZEK on Marszałkowska: all of Warsaw in one queue."
+    ],
+    [
+      "KEBAB FM. Gra planszowa w PRZEGRYWKACH: trzy godziny, jedna kłótnia, zero zwycięzców.",
+      "KEBAB FM. A board game at PRZEGRYWKI: three hours, one row, no winners."
     ],
     [
       "Kolejka pod KUKŁĄ sięga Królewskiej. Naleśniki podobno też są.",
@@ -678,8 +686,8 @@
       "KWAŚNE WINO · IT IS NOT A BUG"
     ],
     [
-      "TIMBER · PIERWSZA RANDKA? LUŹNO",
-      "TIMBER · First date? Keep it casual (LUŹNO)"
+      "TIMBER · PIERWSZA RANDKA? LORETKA",
+      "TIMBER · First date? LORETKA, on the roof"
     ]
   ],
   "kebab_vendor": [
@@ -1970,8 +1978,8 @@
       }
     ],
     [
-      "Trzecia randka w LUŹNO w tym tygodniu. Barman mi kibicuje.",
-      "Third date at LUŹNO this week. The barman's rooting for me.",
+      "Trzecia randka w LORETCE w tym tygodniu. Barman mi kibicuje.",
+      "Third date at LORETKA this week. The barman's rooting for me.",
       {
         "only": "timber"
       }
@@ -2012,7 +2020,7 @@
       }
     ],
     [
-      "Mówił „luźno”. Przyszedł w garniturze i z prezentacją.",
+      "Mówił „na luzie”. Przyszedł w garniturze i z prezentacją.",
       "He said \"casual\". Came in a suit with a slide deck.",
       {
         "only": "timber"

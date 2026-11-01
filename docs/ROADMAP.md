@@ -84,10 +84,11 @@ then the Launch gate.
   - [x] G1 the de Gaulle statue, 2026-11-01
   - [x] G2 Dom Partii: white stone, ROBUR, the courtyard fountain, 2026-11-01
   - [x] G2 part 2: Dom Partii's bars as neons, 2026-11-01
-  - [x] G3 HOTEL PIURE, the LUŹNO date bar and TIMBER jokes, 2026-11-01
+  - [x] G3 HOTEL PIURE, the LORETKA date bar and TIMBER jokes, 2026-11-01
   - [x] G4 KOSZTA COFFEE, GREEN CAFFE NERWO, KUKŁA and the queues, 2026-11-01
   - [x] G5 Cringulo: the "Mlask" job, his pizza, fans and news, 2026-11-01
-  - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, "Kolejki" card, van fans and egg
+  - [x] LORETKA's summer terrace with couples, PRZEGRYWKI, WACZEK burger neons, 2026-11-01
+  - [ ] Leftovers (BACKLOG): Podwózka dates, "Kolejki" card, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
       pads for driving, the helicopter, the mission card, Settings, the full map and the title;
       touch unchanged. Left: real pads on the phone (beta), the bars / notebook / garage focus,

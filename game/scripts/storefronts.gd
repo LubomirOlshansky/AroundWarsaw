@@ -72,6 +72,7 @@ const SHISHA_TUBE_B := Color(0.2, 0.9, 0.95)
 ## The food-hype parodies' tubes (gaulle-and-food-hype.md 2): a dark red-brown cup café, a green
 ## café (not the real chain's shade), the crêpe place's warm yellow.
 const KOSZTA_TUBE := Color(0.95, 0.35, 0.3)
+const WACZEK_TUBE := Color(1.0, 0.78, 0.1)
 const NERWO_TUBE := Color(0.35, 1.0, 0.55)
 const KUKLA_TUBE := Color(1.0, 0.85, 0.35)
 ## The venues' fascias (vision 3.0-3.2): place id -> [the lines of the sign, tube colour, metres
@@ -116,7 +117,7 @@ const VENUES := {
 	# Rondo de Gaulle'a and the food hype (docs/design/gaulle-and-food-hype.md G2-G4).
 	"bar_newtwice": [["NEWTWICE"], Color(1.0, 1.0, 1.0), 3.0],
 	"bar_zamet": [["ZAMĘT"], Color(1.0, 0.72, 0.12), 3.0],
-	"bar_pionek": [["PIONEK"], Color(0.1, 0.9, 1.0), 2.8],
+	"bar_przegrywki": [["PRZEGRYWKI"], Color(0.1, 0.9, 1.0), 2.8],
 	"hotel_piure": [["HOTEL", "PIURE"], Color(1.0, 0.62, 0.84), 3.2],
 	"koszta_marszalkowska": [["KOSZTA", "COFFEE"], KOSZTA_TUBE, 2.8],
 	"koszta_krolewska": [["KOSZTA", "COFFEE"], KOSZTA_TUBE, 2.8],
@@ -125,6 +126,13 @@ const VENUES := {
 	"nerwo_nowy_swiat": [["GREEN CAFFE", "NERWO"], NERWO_TUBE, 2.8],
 	"kukla_marszalkowska": [["KUKŁA", "NALEŚNIKI"], KUKLA_TUBE, 2.8],
 	"kukla_nowy_swiat": [["KUKŁA", "NALEŚNIKI"], KUKLA_TUBE, 2.8],
+	# F (2026-11-01): the burger chain Warsaw calls "Maczek", ours WACZEK, its golden arches turned
+	# upside down (a W over the name), at the real chain's central restaurants.
+	"waczek_jp2": [["W", "WACZEK"], WACZEK_TUBE, 3.0],
+	"waczek_marszalkowska": [["W", "WACZEK"], WACZEK_TUBE, 3.0],
+	"waczek_swietokrzyska": [["W", "WACZEK"], WACZEK_TUBE, 3.0],
+	"waczek_plater": [["W", "WACZEK"], WACZEK_TUBE, 3.0],
+	"waczek_femina": [["W", "WACZEK"], WACZEK_TUBE, 3.0],
 }
 ## COFFEECHAIR (BACKLOG, the user 2026-10-31): a parody of a real coffee-shop chain, our own name
 ## and a warm cream tube (no logo, no chair icon of anyone's). Small cafés that are not notebook
@@ -159,15 +167,15 @@ const TRENDY := {
 	"trend_rozgniot": [52.2270, 21.0235],
 }
 ## Rondo de Gaulle'a and the food hype (docs/design/gaulle-and-food-hype.md G2-G4): the Party
-## House's bars (NEWTWICE on its south front, ZAMĘT on its north-west corner, PIONEK the board-game
-## bar on the next block), HOTEL PIURE's door on Widok (its rooftop bar LUŹNO is landmarks.gd's
+## House's bars (NEWTWICE on its south front, ZAMĘT on its north-west corner, PRZEGRYWKI the board-game
+## bar on the next block), HOTEL PIURE's door on Widok (its rooftop bar LORETKA is landmarks.gd's
 ## crown sign), the coffee chains' parodies (KOSZTA COFFEE, GREEN CAFFE NERWO: one on the mapped
 ## pavilion) and KUKŁA, the crêpe place with the queue (crowds.gd `KUKLA`). Like the cafés, not
 ## notebook places; same venue code.
 const HYPE := {
 	"bar_newtwice": [52.23065, 21.02253],
 	"bar_zamet": [52.23140, 21.02195],
-	"bar_pionek": [52.23045, 21.02205],
+	"bar_przegrywki": [52.23045, 21.02205],
 	"hotel_piure": [52.23102, 21.01510],
 	"koszta_marszalkowska": [52.2305, 21.0110],
 	"koszta_krolewska": [52.2370, 21.0165],
@@ -176,6 +184,14 @@ const HYPE := {
 	"nerwo_nowy_swiat": [52.2355, 21.0185],
 	"kukla_marszalkowska": [52.2375, 21.0110],
 	"kukla_nowy_swiat": [52.2320, 21.0198],
+	# WACZEK at the real chain's restaurants (their names on Wolt, 2026-11-01; corners approximate):
+	# Aleje Jerozolimskie at Jana Pawła II, Marszałkowska by metro Świętokrzyska, Świętokrzyska by Nowy Świat-Uniwersytet,
+	# Aleje Jerozolimskie at Emilii Plater, Aleja Solidarności by the Femina cinema.
+	"waczek_jp2": [52.2292, 20.9992],
+	"waczek_marszalkowska": [52.2352, 21.0088],
+	"waczek_swietokrzyska": [52.2364, 21.0160],
+	"waczek_plater": [52.2281, 21.0047],
+	"waczek_femina": [52.2424, 20.9980],
 }
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12

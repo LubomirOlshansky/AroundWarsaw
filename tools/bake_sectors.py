@@ -111,7 +111,7 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               "Biblioteka Uniwersytecka",
               # Hotel Metropol's roof sign (landmarks.gd _build_metropol_sign reads its parts' height)
               "Hotel Metropol",
-              # HOTEL PIURE's rooftop sign LUŹNO (landmarks.gd _build_piure_sign reads its parts' height)
+              # HOTEL PIURE's rooftop sign LORETKA (landmarks.gd _build_loretka reads its parts' height)
               "Puro Warszawa Centrum"]
 SITE_PAD = 12.0
 SITE_AREAS = [

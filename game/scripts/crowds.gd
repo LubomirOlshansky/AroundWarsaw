@@ -103,7 +103,7 @@ const PADEL_MAX := 14
 ## The food hype (docs/design/gaulle-and-food-hype.md G3, G4): KUKŁA's crêpe queue (storefront
 ## venues, Storefronts.HYPE) is never short while it is open, 9:00-21:00: 8 in the morning, 30 at
 ## lunch (12-15) and on weekend afternoons, 14 otherwise; tag "kolejka". HOTEL PIURE's door has
-## the evening line for the lift up to LUŹNO, the date bar on its roof: 18:00-01:00, 10 (16 on
+## the evening line for the lift up to LORETKA, the date bar on its roof: 18:00-01:00, 10 (16 on
 ## Friday and Saturday), in twos, tag "timber".
 const KUKLA := ["kukla_marszalkowska", "kukla_nowy_swiat"]
 ## G5: the "Cringulo effect" (trend_job.gd's "Mlask"): a reviewed place's queue at its longest
@@ -111,6 +111,12 @@ const KUKLA := ["kukla_marszalkowska", "kukla_nowy_swiat"]
 const KUKLA_MAX := 30
 const PIURE_ID := "hotel_piure"
 const PIURE_MAX := 16
+## F (2026-11-01): LORETKA's summer terrace on HOTEL PIURE's roof, couples on its poufs
+## (landmarks.gd `loretka_plan`, the same seats the model builds): May to September, dry
+## evenings 17:00-01:00, every seat on Friday and Saturday, 10 otherwise.
+const LORETKA_ID := "loretka_terrace"
+const LORETKA_WEEKNIGHT := 10
+const Landmarks := preload("res://scripts/landmarks.gd")
 const ROOF_ID := "level_26"
 ## F's asks (2026-10-30): Level 26's queue at the tower's ground-floor door (a queue site of its
 ## own, not a places.json id), its longest line (short: the lift takes eight at a time), the
@@ -378,7 +384,7 @@ static func kukla_queue(hour: float, weekday: int) -> Array:
 	return [14, "kolejka"]
 
 
-## HOTEL PIURE's line for the lift to LUŹNO now: [people, "timber"]. Evenings 18:00 to 01:00
+## HOTEL PIURE's line for the lift to LORETKA now: [people, "timber"]. Evenings 18:00 to 01:00
 ## (hours past midnight count from the evening before: 24-25), longer on Friday and Saturday.
 static func piure_queue(hour: float, weekday: int) -> Array:
 	var late := hour < 1.0
@@ -386,6 +392,17 @@ static func piure_queue(hour: float, weekday: int) -> Array:
 		return [0, ""]
 	var day := (weekday + 5) % 7 + 1 if late else weekday
 	return [PIURE_MAX if day == 5 or day == 6 else 10, "timber"]
+
+
+## LORETKA's terrace now: how many sit there (an even number: they come in twos), of `seats`.
+static func loretka_terrace(hour: float, weekday: int, month: int, rain: bool, seats: int) -> int:
+	if rain or month < 5 or month > 9:
+		return 0
+	var late := hour < 1.0
+	if not late and hour < 17.0:
+		return 0
+	var day := (weekday + 5) % 7 + 1 if late else weekday
+	return seats if day == 5 or day == 6 else mini(LORETKA_WEEKNIGHT, seats)
 
 
 ## The car at the door: near and slow, on the ground.
@@ -425,6 +442,14 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		var ll: Array = Storefronts.HYPE[vid]
 		_add_site({"id": vid, "kind": "trend", "max": PIURE_MAX if vid == PIURE_ID else KUKLA_MAX, "tag": "",
 				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
+	var lor := Landmarks.loretka_plan(data)
+	if not lor.is_empty():
+		var lo: PackedVector2Array = lor["outline"]
+		var mid := Vector2.ZERO
+		for q in lo:
+			mid += q
+		_add_site({"id": LORETKA_ID, "kind": "terrace", "at": mid / float(lo.size()), "max": (lor["seats"] as Array).size(),
+				"plan": lor})
 	if at.has(ROOF_ID):
 		_add_site({"id": ROOF_ID, "kind": "roof", "at": at[ROOF_ID], "max": ROOF_MAX, "curve": "roof"})
 		_add_site({"id": ROOF_DOOR_ID, "kind": "queue", "at": at[ROOF_ID], "max": ROOF_DOOR_MAX, "curve": "roof",
@@ -606,6 +631,8 @@ func _place_site(s: Dictionary) -> void:
 			_place_square(s)
 		"roof":
 			_place_roof(s)
+		"terrace":
+			_place_terrace(s)
 
 
 ## The points of a polyline from q (on segment j) one way along it, then straight on past its end.
@@ -751,6 +778,23 @@ static func roof_ring(at: Vector2, top: float, roof: Callable, rays: int) -> Arr
 		if last >= 0.0:
 			out.append([at + dir * (last + 0.5), dir, h])
 	return out
+
+
+## LORETKA's terrace: a seat each from the plan, on the deck (the hotel's height over its lowest
+## ground, as landmarks.gd builds it, + the deck's 0.12 m), table by table, in bright clothes.
+func _place_terrace(s: Dictionary) -> void:
+	var plan: Dictionary = s["plan"]
+	s["door"] = s["at"]
+	var g := INF
+	for q: Vector2 in plan["outline"]:
+		g = minf(g, map.terrain_height(q.x, q.y) if map != null else 0.0)
+	var y := g + float(plan["h"]) + 0.12
+	var slots: Array = []
+	var k := 0
+	for st: Array in plan["seats"]:
+		slots.append({"p": st[0], "y": y, "pose": SIT, "yaw": float(st[1]), "shirt": BRIGHT[(k * 3 + 1) % BRIGHT.size()]})
+		k += 1
+	s["slots"] = slots
 
 
 ## Level 26: the tower's outline (`roof_ring`), the figures RING_IN m inside it (on the roof
@@ -975,13 +1019,13 @@ func _figures(s: Dictionary) -> Array:
 			if bool(s.get("guitar_on", false)):
 				var face: Vector2 = s["face"]
 				out.append([_ground(s["guitar"]), atan2(-face.x, -face.y), SIT, GUITAR_SHIRT, 0.0])
-		"plan_c", "roof":
+		"plan_c", "roof", "terrace":
 			var slots: Array = s["slots"]
 			for k in mini(n, slots.size()):
 				var sl: Dictionary = slots[k]
 				var p: Vector2 = sl["p"]
 				var y := float(sl["y"]) if sl.has("y") else _ground(p).y
-				out.append([Vector3(p.x, y, p.y), sl["yaw"], STAND, Color(sl["shirt"]), rng.randf() * 0.99])
+				out.append([Vector3(p.x, y, p.y), sl["yaw"], int(sl.get("pose", STAND)), Color(sl["shirt"]), rng.randf() * 0.99])
 	if s.get("officer", Vector3.INF) != Vector3.INF:
 		out.append([s["officer"], float(s.get("officer_yaw", 0.0)), STAND, OFFICER_SHIRT, OFFICER_TROUSERS])
 	return out
@@ -1081,6 +1125,10 @@ func tick(step: float) -> void:
 					want = 0
 				else:
 					want = queue_len(int(s["max"]), str(s["curve"]), hour, weekday, k)
+			"terrace":
+				var seats := int(s["max"])
+				want = loretka_terrace(hour, weekday, month, rain, seats)
+				want = mini(2 * roundi(want * k * 0.5), seats)
 			"steps":
 				steps_lvl = steps_level(hour, month, rain, sunset)
 				want = roundi(STEPS_MAX * k * steps_lvl)

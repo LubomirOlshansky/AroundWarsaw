@@ -13,6 +13,7 @@ extends SceneTree
 ##     normal disagrees with their geometry (|cos| < 0.5), which light wrongly;
 ##   - FLOAT: connected parts (welded to 5 cm) that touch neither the ground (y <= 0.2) nor the
 ##     box of a part that does (grown 10 cm): detail hanging in the air.
+##     A site in ON_ROOF stands on a mapped roof: its lowest level counts as its ground.
 ## The defects that exist today are a ratchet in KNOWN (counts per site and kind): the check
 ## fails when a count goes ABOVE it, and says so when it went below (lower the number). New
 ## defects fail at once. Not checked (the art-director judges them): parts inside parts, T gaps.
@@ -47,6 +48,7 @@ const BUDGET := {
 	"jp2_21": 280,
 	"kopernik": 1720,
 	"lim": 300,
+	"loretka": 1120,
 	"lucka": 470,
 	"marszalkowska94": 490,
 	"mennica": 650,
@@ -106,6 +108,10 @@ const DEGENERATE_AREA := 1.0e-5
 const WELD := 20.0  ## vertices closer than 1/WELD m are one
 const TOUCH := 0.1
 const GROUND := 0.2
+## Sites that stand on a mapped building's roof (the building is the map's, not the site's): their
+## parts are supported by the site's lowest level instead of the ground (LORETKA's terrace on
+## HOTEL PIURE, F 2026-11-01).
+const ON_ROOF := ["loretka"]
 
 var problems: Array[String] = []
 var notes: Array[String] = []
@@ -255,7 +261,7 @@ func _examine(key: String, rec: Recorder) -> Dictionary:
 			out["badnormal"] += 1
 			out["at_badnormal"].append(a)
 	_zfight(rec, gn, live, out)
-	_floating(rec, live, out)
+	_floating(rec, live, out, key in ON_ROOF)
 	return out
 
 
@@ -362,7 +368,7 @@ func _poly_area(p: PackedVector2Array) -> float:
 	return absf(a) * 0.5
 
 
-func _floating(rec: Recorder, live: Array[int], out: Dictionary) -> void:
+func _floating(rec: Recorder, live: Array[int], out: Dictionary, on_roof := false) -> void:
 	# Union-find over welded vertices.
 	var parent := {}
 	var find := func(k: Vector3i) -> Vector3i:
@@ -398,8 +404,13 @@ func _floating(rec: Recorder, live: Array[int], out: Dictionary) -> void:
 		boxes[root] = bb
 	var roots: Array = boxes.keys()
 	var supported := {}
+	var base := 0.0
+	if on_roof:
+		base = INF
+		for r in roots:
+			base = minf(base, (boxes[r] as AABB).position.y)
 	for r in roots:
-		if (boxes[r] as AABB).position.y <= GROUND:
+		if (boxes[r] as AABB).position.y <= base + GROUND:
 			supported[r] = true
 	var grew := true
 	while grew:
