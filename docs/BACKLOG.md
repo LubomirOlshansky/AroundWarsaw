@@ -96,9 +96,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   windows, long skylights on the flat roof, a card. Spec and the values still to set:
   docs/design/first-scene.md "Spec for item 1". Landmarks lane: Opus spec, `object-modeler`
   builds, `art-director` accepts. **Built 2026-10-31** (site `msn`, spec
-  `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Left: the photo check on the
-  Mac (the two city-room windows' faces and sizes and the skylight count are estimates; the
-  photos in `refs/` were not reachable from the cloud), and TR Warszawa next door.
+  `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Photo-checked on the Mac
+  2026-11-01: the roof is one gridded glass field with two small wells, and the Marszałkowska
+  window is a deep recess at mid-face. Found then, left open: the mid-height dark ribbon runs only
+  in stretches on both long faces (photos 2 and 4), not all round as built; the Marszałkowska
+  face's lower box has two small windows; the upper roofline steps down near the south end.
 - **TR Warszawa's building site** (F, 2026-10-31): built as site `tr` on the empty plot west of
   the museum (a messy site: hoarding, dirt, heaps, old foundations, cabins, a digger, one
   crane). Left for the map lane: a mapped tree stands on the hoarding's north corner.
@@ -116,10 +118,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   the Copernicus Science Centre, Stadion Narodowy. **Warszawa Centralna built 2026-10-31**
   (site `centralna`, spec `docs/landmarks/specs/centralna.md`): the glass hall, the wings, the
   flat slab overhanging to 140 x 86 m and the hyperbolic paraboloid shells under it, all from
-  the OSM parts. Left: the photo check on the Mac (OSM puts the shells in a 1.5 m tier wholly
-  under the flat slab, so from the 30-degree camera they show only as a small zigzag at the
-  two ends: if the photos show more of them, say so and the tier grows; the wings' walls; warm
-  or cool hall light). **Stadion Narodowy built 2026-11-01** (site `stadium`, spec
+  the OSM parts. Photo-checked on the Mac 2026-11-01: the shells show far more than a zigzag,
+  so the underside now falls from 16 m at the long edges to 12 m at the pillar rows and arches
+  to 14.2 m over the hall, the winged shape the ends show. Still open: the wings' walls (the
+  photos show a dark band with a window strip on the hall's end, not grey glass), warm or cool
+  hall light, and the slight hypar curve along the long sides. **Stadion Narodowy built 2026-11-01** (site `stadium`, spec
   `docs/landmarks/specs/stadium.md`, PR #103's eyeball flag): the pitch was a 60 m blob under
   stands too deep; now a 105 x 68 m striped pitch along the masts' axis in two tiers with the
   boxes between, the skin red below and white above (the mapped rings), the raised rim, a
@@ -164,6 +167,14 @@ golden-image shots runtime vs `--prebuilt`,
   light), the `first` shot set, performance and the order of work: docs/design/first-scene.md.
   The dusk and night look there belongs to the thread "Match landmarks to Warsaw at dusk"; the
   hints, first order and first race to loop 3h item 6.
+  **2026-11-01 (items 3-6, part):** the Eastern Wall's stores built (site `dtc`, spec
+  `docs/landmarks/specs/dtc.md`); a start in the first scene's box (main.gd `FIRST_SCENE`) puts
+  two trams on Marszałkowska, one passing the car, one coming down the street; street furniture
+  by the start (`first_scene.gd`: kiosk, flower stall, cafés, ad columns, planters). Found: the
+  game's camera sees the east side's stores from behind their street faces, so furniture on
+  their pavements never shows (it stands on the museum's side instead). Left: the Rotunda
+  re-pass, the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
+  the tram stops and kerbs (item 5), pedestrians and sound (6-7), the photo check on the Mac.
 
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
 - **Shisha lounges** built (five parody signs, `Storefronts.LOUNGES`): only the phone can show the sign size on each wall and whether the spots read as lounges. Not notebook places; add smoky window glow or a door scene if wanted.
@@ -296,7 +307,7 @@ golden-image shots runtime vs `--prebuilt`,
   that tower, not what shows through the cut.~~ Done in sweep 2: the walk steps on through what
   the ghost has made see-through (main.gd `_pick_unghosted`; behind the Palace, a tap on the
   street seen through its cut tower picked the Palace, now nothing).
-- The Palace's roof rescue now lands on a 28 m annex roof: every tier is crowned by attics and
+- The Palace's roof rescue now lands on the 30 m north block's roof (since the 2026-11-01 re-pass built it whole): every tier is crowned by attics and
   pinnacles, so no 3 x 3 cells are flat up the tower. A rescue from the 30th-floor terrace would
   need a landing spot designed in.
 - The baked ground AO and the lamp light map still use the LoD2 footprints: Centralna's canopy
