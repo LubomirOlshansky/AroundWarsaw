@@ -32,7 +32,20 @@ const LOOPS := {
 	"tyre_roll": ["SFX", -14.0], "tyre_wet": ["SFX", -11.5], "tyre_squeal": ["SFX", -15.0],
 	"rotor": ["SFX", -3.0],
 	"city_day": ["Ambience", -7.0], "city_night": ["Ambience", -14.0], "rain": ["Ambience", -7.0],
+	# v1.0 juice: one bed per kind of district (DISTRICT_BEDS), set ~13 dB under the city bed by the
+	# files' RMS so they colour it and never cover it.
+	"amb_river": ["Ambience", -15.0], "amb_park": ["Ambience", -14.0], "amb_square": ["Ambience", -10.0],
+	"amb_yard": ["Ambience", -16.0],
 }
+## v1.0 juice: the district's own bed (districts.json ids): the river at Powiśle, trees in the
+## park, a square's talk in the Old Town and on the Royal Route, courtyards and trams in Praga
+## and Muranów. The centre, Wola and the south keep the city bed alone.
+const DISTRICT_BEDS := {
+	"powisle": "amb_river", "lazienki": "amb_park", "stare_miasto": "amb_square", "trakt": "amb_square",
+	"praga": "amb_yard", "muranow": "amb_yard",
+}
+## How fast a district bed fades in and out (per second; ~3 s to settle).
+const BED_RATE := 0.8
 ## One-shots: level (dB).
 const SHOTS := {
 	"thump_soft": -8.0, "thump_hard": -6.0, "crash": -4.0, "clang": -9.0, "jar_clink": -12.0, "jar_break": -6.0,
@@ -49,6 +62,8 @@ const SHOTS := {
 	"frog_chime": -15.0, "scooter_clatter": -12.0,
 	# The night-buses loop (buses.gd, tools/make_sfx.py): the player's own horn.
 	"horn_player": -12.0,
+	# v1.0 juice: the ting of a payment (money_pop.gd).
+	"coin": -11.0,
 	# The vintage-tram loop (old_tram.gd, tools/make_sfx.py): the old set's creak (under the bell)
 	# and its own bell (set to land where tram_bell does, by the files' RMS).
 	"tram_creak": -8.0, "old_tram_bell": -9.5,
@@ -94,6 +109,8 @@ var _hit_wait := 0.0
 var _horn_wait := 0.0
 var _jar_wait := 0.0
 var _event_wait := 12.0
+## The district bed now (a LOOPS name, "" for none): set_district.
+var _bed := ""
 var _t := 0.0
 var _duck := 0.0
 var _rng := RandomNumberGenerator.new()
@@ -219,6 +236,10 @@ func _process(dt: float) -> void:
 	_drive("city_day", daylight * (1.0 - 0.5 * raining), 1.0, dt, 1.5)
 	_drive("city_night", (1.0 - daylight) * (1.0 - 0.4 * raining), 1.0, dt, 1.5)
 	_drive("rain", raining, 1.0, dt, 1.5)
+	# The district's bed: fades under rain, at night and in the helicopter (the ground is far).
+	var bed_level := (1.0 - 0.6 * raining) * (0.5 + 0.5 * daylight) * (0.4 if flying else 1.0)
+	for b in DISTRICT_BEDS.values():
+		_drive(b, bed_level if b == _bed else 0.0, 1.0, dt, BED_RATE)
 	var duck := AMBIENCE_DUCK if radio != null and radio.station >= 0 else 0.0
 	_duck = move_toward(_duck, duck, dt * 6.0)
 	if not _silent:
@@ -293,6 +314,17 @@ func _drive(n: String, level: float, pitch: float, dt: float, rate: float) -> vo
 		_quiet[n] += dt
 		if _quiet[n] > 0.5:
 			p.stop()
+
+
+## v1.0 juice: the vehicle is in district `id` ("" outside them all): its bed fades in, the
+## last one fades out (districts.gd `current`).
+func set_district(id: String) -> void:
+	_bed = str(DISTRICT_BEDS.get(id, ""))
+
+
+## v1.0 juice: the ting of a payment, once per call (money_pop.gd).
+func coin() -> void:
+	_play2("coin", 0.0)
 
 
 ## Birds now and then by day (not in the rain); at night, rarely, a far siren or a dog.

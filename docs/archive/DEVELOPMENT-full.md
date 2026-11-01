@@ -842,6 +842,17 @@ canopy part dropped, the outbuilding behind kept; budget 900; no card may name t
 and the Królewska edge's skins: each found, the building at its point kept and in its colours,
 a card for the named two and none for the unnamed block.
 
+## Money pops and district beds (v1.0 juice, 2026-11-01)
+
+`money_pop.gd`: wallet `changed` with `gained > 0` shows a gold "+54 zł" (4 Label3D in a ring,
+billboard, unshaded, no depth test; size grows to 200 zł; rises 3 m over 1.5 s following the
+vehicle; a young pop pushes the next one up; calm mode: no pop-in and no rise) and `sfx.coin()`.
+No script runs while no pop lives. `--pop=<zl>` pays once 2 s in for shots.
+District beds: `districts.gd` emits `entered(id)`; `sfx.set_district` fades one of four loops
+(`amb_river` Powiśle, `amb_park` Ujazdów i Łazienki, `amb_square` Old Town and Royal Route,
+`amb_yard` Praga and Muranów; centre, Wola, south keep the city bed) over ~3 s, quieter in rain,
+at night and in the helicopter. All from `tools/make_sfx.py`. Check: `check_juice.gd` J6, J7.
+
 ## Water, weather and sound (v0.9)
 
 **Sound** (`sfx.gd`, every file made by `tools/make_sfx.py`: oscillators, noise and filters,
@@ -5593,6 +5604,7 @@ Command-line options (after `--`):
 | `--place=ID` | loop MW-1: start at a notebook place (`places.json` id): the sectors round its hint first, then the car on the nearest lane if that is inside the place's radius, else on the place (found within a second, standing) |
 | `--egg=<id>` | loop MW-6: the vehicle at that egg (`data/eggs.json` id, `e07` or `palma`) in its look, weather and day (`--time`, `--weather`, `--date` set for it), a motion trigger (lap, street, circle) driven along its path at 90 % of its speed limit; prints `egg: --egg=<id> <kind> at x, z (state)`, the find with its reward (`egg: found <id> <name> (k/45): +N respect[, track n][, then card ...][, kadr ... open]`) and `egg: --egg=<id> found S s after the start`; a waiting egg says what it waits for. Implies `--egg-log` |
 | `--egg-log` | loop MW-6: print `egg:` lines: each trigger met (with the state), each find and reward, with `--egg` the state every 10 s until found |
+| `--pop=<zl>` | v1.0 juice: pays that many złoty two seconds into the run, to see the money pop (`money_pop.gd`) and hear the coin. Use with `--nosave` |
 | `--district=<id>` | loop 3h slice 1: that district's "discovered" card at the districts' first check (a screenshot aid; it is also discovered if the car is in it). Use with `--nosave` |
 | `--districts=all\|none\|<id>[:jobs],…` | loop 3h slice 1: the districts discovered for this run (and the jobs done in each), in memory, no cards or rewards (the full map's shots). Use with `--nosave` |
 | `--districts-log` | loop 3h slice 1: a `districts:` line when the vehicle changes district, discovers one, and the summary at the start |

@@ -25,6 +25,9 @@ extends Node
 ## A district was discovered for the first time (its id); `card` false when quietly.
 signal discovered(id: String, card: bool)
 
+## The vehicle crossed into district `id` ("" outside them all): sfx.gd's district bed follows it.
+signal entered(id: String)
+
 const Access := preload("res://scripts/access.gd")
 const DATA_PATH := "res://data/districts.json"
 const PLACES_PATH := "res://data/places.json"
@@ -220,6 +223,7 @@ func tick(p: Vector2, away := false) -> void:
 	var id := district_at(p)
 	if id != current:
 		current = id
+		entered.emit(id)
 		if wallet != null:
 			wallet.district = id
 		if log_on:

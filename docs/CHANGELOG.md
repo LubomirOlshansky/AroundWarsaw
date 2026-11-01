@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Getting paid now pops a gold "+54 zł" over your car with a coin ting, and each district has its own quiet background sound: the river at Powiśle, trees in the park, a square's chatter in the Old Town and on the Royal Route, courtyard wind and far trams in Praga and Muranów.
 - Crashes throw sparks and dust (they glow at night), scraping along a barrier at speed trails sparks, and the phone's vibration is now strong enough to feel.
 - Nine more mixtapes lie on roofs round the city (Kopernik, the Palace terrace, the Opera, Arkadka, the modern art museum, Polin, the Sejm, the defence ministry and the National Bank): fly the helicopter over one to pick it up. The first five open the next locked PÓŁNOC FM song; the rest give respect and a card.
 - The website now shows the design wiki link on phones too: in the top bar, as a button under the hero and in the footer.

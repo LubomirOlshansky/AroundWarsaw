@@ -9,11 +9,17 @@ extends SceneTree
 ##      and everything is gone and hidden (no draw call, no script) within 2 s;
 ##   J4 a slow knock throws nothing; a long scrape reuses the ring (no growth);
 ##   J5 the sparks bounce on the road, never under it.
+##   J6 a money pop reads "+54 zł" / "+1 250 zł", grows with the pay, floats up over the vehicle
+##      and is gone (hidden, no script) within 1.6 s; a second pop comes in higher; a payment of
+##      0 or less shows nothing; calm mode keeps it still;
+##   J7 every district bed in sfx.gd names a real district and a loop that sfx.gd plays.
 ##   godot --headless --path game --script res://tools/check_juice.gd
 
 const Haptics := preload("res://scripts/haptics.gd")
 const Access := preload("res://scripts/access.gd")
 const CrashFx := preload("res://scripts/crash_fx.gd")
+const MoneyPop := preload("res://scripts/money_pop.gd")
+const Sfx := preload("res://scripts/sfx.gd")
 
 
 func _initialize() -> void:
@@ -123,6 +129,65 @@ func _initialize() -> void:
 	print("crash fx frame, all %d slots alive: %.0f µs of script" % [CrashFx.SPARKS + CrashFx.DUST, (Time.get_ticks_usec() - t0) / 10.0])
 	print("scrape: %d sparks over 200 calls, ring %d" % [fx.sparks_thrown - thrown, fx._sp_pos.size()])
 	fx.queue_free()
+
+	# J6: the money pop.
+	if MoneyPop.text_for(54) != "+54 zł" or MoneyPop.text_for(1250) != "+1 250 zł":
+		fails.append("J6 the pop's text: '%s', '%s'" % [MoneyPop.text_for(54), MoneyPop.text_for(1250)])
+	if MoneyPop.size_for(20) >= MoneyPop.size_for(200) or MoneyPop.size_for(9999) != MoneyPop.SIZE_MAX:
+		fails.append("J6 the pop doesn't grow with the pay")
+	var car_at := [Vector3(4.0, 0.0, 4.0)]
+	var mp := MoneyPop.new()
+	mp.anchor = func() -> Vector3: return car_at[0]
+	root.add_child.call_deferred(mp)
+	await process_frame
+	Access.calm = false
+	mp.pop(0)
+	mp.pop(-30)
+	if mp.shown != 0 or mp.is_processing():
+		fails.append("J6 a payment of 0 or less showed a pop")
+	mp.pop(54)
+	mp.pop(80)
+	var first := mp._labels[0]
+	var second := mp._labels[1]
+	if mp.shown != 2 or not first.visible or not mp.is_processing() or second.global_position.y <= first.global_position.y:
+		fails.append("J6 two pops didn't stack (%.2f over %.2f)" % [second.global_position.y, first.global_position.y])
+	var y0 := first.global_position.y
+	car_at[0] = Vector3(30.0, 0.0, 4.0)
+	var mf := 0
+	while mp.is_processing() and mf < 240:
+		mp._process(1.0 / 60.0)
+		mf += 1
+		if mf == 40 and (first.global_position.y <= y0 + 1.0 or absf(first.global_position.x - 30.0) > 0.01):
+			fails.append("J6 the pop didn't rise with the vehicle (y %.2f from %.2f, x %.2f)" % [first.global_position.y, y0, first.global_position.x])
+	if mp.is_processing() or first.visible or second.visible or mf > 100:
+		fails.append("J6 still showing after %d frames" % mf)
+	Access.calm = true
+	mp.pop(54)
+	var y1 := mp._labels[0].global_position.y
+	for i in 30:
+		mp._process(1.0 / 60.0)
+	if absf(mp._labels[0].global_position.y - y1) > 0.001 or mp._labels[0].scale != Vector3.ONE:
+		fails.append("J6 calm mode still moved or scaled the pop")
+	Access.calm = false
+	for i in 4:
+		mp.pop(10)
+	mp.pop(10)
+	if mp.shown != 8 or mp._labels.size() != MoneyPop.POPS:
+		fails.append("J6 the ring grew or lost a pop (%d, %d)" % [mp.shown, mp._labels.size()])
+	print("money pop: stacked, rose with the vehicle, gone after %d frames (%.2f s), calm still" % [mf, mf / 60.0])
+	mp.queue_free()
+
+	# J7: the district beds.
+	var ids := {}
+	for d in JSON.parse_string(FileAccess.get_file_as_string("res://data/districts.json"))["districts"]:
+		ids[str(d["id"])] = true
+	for id in Sfx.DISTRICT_BEDS:
+		var bed := str(Sfx.DISTRICT_BEDS[id])
+		if not ids.has(id) or not Sfx.LOOPS.has(bed) or not FileAccess.file_exists("res://audio/sfx/%s.wav.import" % bed):
+			fails.append("J7 district bed %s -> %s names a missing district, loop or file" % [id, bed])
+	if not Sfx.SHOTS.has("coin"):
+		fails.append("J7 sfx.gd has no coin")
+	print("district beds: %d districts, %d beds" % [Sfx.DISTRICT_BEDS.size(), Sfx.LOOPS.size()])
 
 	for f in fails:
 		print("  " + f)

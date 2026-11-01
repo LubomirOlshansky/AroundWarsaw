@@ -71,7 +71,7 @@ then the Launch gate.
       Town tourist and the Łazienki peacock rescues (a "tourist fainted" street rescue exists; no peacocks)
 - [x] Crash sparks and dust, phone vibration fixed in code (2026-11-01, crash_fx.gd, haptics.gd;
       the feel on the iPhone and an Android phone still to check: QUESTIONS)
-- [ ] Loop 3i juice leftovers: money pops, district ambiences
+- [x] Loop 3i juice leftovers (2026-11-01): money pops (`money_pop.gd`, a "+54 zł" over the vehicle and a coin ting; calm mode keeps it still) and district ambiences (`sfx.gd`: river, park, square, courtyard beds)
 - [x] Accessibility options (2026-11-01, Settings → DOSTĘP, `access.gd`): larger HUD text, calm
       (no flashing or shaking), colour-safe markers, vibration on/off, stop assist on/off.
       Left to do: left-handed layout, live text size, subtitles (BACKLOG)

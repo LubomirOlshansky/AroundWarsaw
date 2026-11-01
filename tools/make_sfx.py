@@ -39,6 +39,8 @@ levels (if their folder is given) to balance the buses against.
       and out
   old_tram_bell  the old set's own two-tone gong, 1.6 s: two strikes, 784 then 622 Hz, with
       the gong's inharmonic partials (lower and plainer than the modern tram_bell)
+  coin           v1.0: the money pop's two-note ting (0.7 s)
+  amb_river / amb_park / amb_square / amb_yard   v1.0: the districts' beds (sfx.gd DISTRICT_BEDS, 10 s loops)
   birds_a / birds_b       sparrow chirps, a whistled phrase (day)
   siren_far / dog_far     the night's rare distant events
   police_siren   loop 3g-2 (docs/design/police.md 10): the patrol car's two-tone siren,
@@ -1111,6 +1113,113 @@ def steps_guitar(seed):
     return biquad(body, "hp", 70.0, 0.7, True)
 
 
+# --- v1.0 juice: the money pop and the districts' ambiences (money_pop.gd, sfx.gd) -----------
+
+def coin(seed):
+    """A payment's "ka-ching": a bright two-note ting (a fifth apart, the second later and
+    longer) over a short metal tick, 0.7 s."""
+    rnd = random.Random(seed)
+    n = int(0.7 * RATE)
+    out = zeros(n)
+    for at, f, g in ((0.0, 1976.0, 0.8), (0.085, 2960.0, 1.0)):
+        sig = bell(n - int(at * RATE), [(f, 1.0, 0.22), (f * 2.76, 0.35, 0.1), (f * 5.4, 0.12, 0.04)], 0.25, rnd)
+        place(out, sig, int(at * RATE), g)
+    return fade(echo(biquad(out, "hp", 700.0, 0.7), [(0.07, 0.15)], 0.0)[:n], 0.0, 0.12)
+
+
+def _bed(seconds, seed, body):
+    """Two channels of a loop bed: `body(rnd, n, ch)` returns one channel, high-passed."""
+    rnd = random.Random(seed)
+    n = int(seconds * RATE)
+    return [biquad(body(rnd, n, ch), "hp", 30.0, 0.7, True) for ch in range(2)]
+
+
+def amb_river(seed):
+    """Powiśle: the Vistula under the boulevard: low water noise lapping in slow swells, little
+    bubbling blips on top, a far gull now and then (10 s loop)."""
+    def body(rnd, n, ch):
+        w = noise(n, rnd)
+        flow = biquad(biquad(w, "bp", 420.0, 0.5, True), "lp", 900.0, 0.6, True)
+        hush = biquad(w, "bp", 1500.0, 0.5, True)
+        out = zeros(n)
+        ph = rnd.random()
+        for i in range(n):
+            t = i / n
+            lap = 0.55 + 0.3 * math.sin(TAU * (2 * t + ph)) + 0.15 * math.sin(TAU * (5 * t + 0.3 * ch))
+            out[i] = flow[i] * lap * 0.9 + hush[i] * 0.05 * lap
+        for _ in range(26):
+            f0 = rnd.uniform(500.0, 1100.0)
+            sig = chirp(f0, f0 * rnd.uniform(1.4, 2.0), rnd.uniform(0.03, 0.07), 0.0)
+            place(out, sig, rnd.randrange(n), rnd.uniform(0.04, 0.12))
+        return out
+    return _bed(10.0, seed, body)
+
+
+def amb_park(seed):
+    """Ujazdów and Łazienki: wind in big trees (slow gusts of mid noise), leaf rustle (fast
+    soft hiss), a far blackbird phrase twice in the loop (10 s loop)."""
+    def body(rnd, n, ch):
+        w = noise(n, rnd)
+        gust = biquad(biquad(w, "bp", 380.0, 0.5, True), "lp", 700.0, 0.6, True)
+        leaf = biquad(w, "bp", 3600.0, 0.6, True)
+        out = zeros(n)
+        for i in range(n):
+            t = i / n
+            g = 0.45 + 0.35 * math.sin(TAU * (t + 0.2 * ch)) + 0.2 * math.sin(TAU * (3 * t + 0.1))
+            out[i] = gust[i] * g * 0.8 + leaf[i] * 0.05 * g * g
+        for at in (0.18, 0.67):
+            t = at
+            for f0, f1, length in ((2400, 3100, 0.14), (3100, 2200, 0.18), (2300, 3000, 0.12), (2900, 2500, 0.2)):
+                sig = chirp(f0 * rnd.uniform(0.96, 1.04), f1, length, 0.05)
+                place(out, sig, int(t * n), 0.07)
+                t += (length + 0.04) * RATE / n
+        return out
+    return _bed(10.0, seed, body)
+
+
+def amb_square(seed):
+    """The Old Town and the Royal Route: a square's soft talk (voices as band-limited noise in
+    shifting bursts), cobble footsteps ticking, a far fountain hiss (10 s loop)."""
+    def body(rnd, n, ch):
+        w = noise(n, rnd)
+        talk = biquad(biquad(w, "bp", 700.0, 0.8, True), "lp", 1600.0, 0.6, True)
+        fount = biquad(w, "bp", 2800.0, 0.5, True)
+        env, _ = swells(n, rnd, 14, 0.02)
+        out = zeros(n)
+        for i in range(n):
+            out[i] = talk[i] * (0.18 + 0.5 * env[i]) + fount[i] * 0.03
+        for _ in range(22):
+            m = int(0.018 * RATE)
+            sig = zeros(m)
+            f = rnd.uniform(700.0, 1300.0)
+            for i in range(m):
+                sig[i] = math.sin(TAU * f * i / RATE) * (1 - i / m) ** 3
+            place(out, sig, rnd.randrange(n), rnd.uniform(0.05, 0.14))
+        return out
+    return _bed(10.0, seed, body)
+
+
+def amb_yard(seed):
+    """Praga and Muranów: wind through courtyards (a thin low whistle that wanders), a heavy
+    tram or train rumbling far off twice in the loop, a far tap of metal (10 s loop)."""
+    def body(rnd, n, ch):
+        w = noise(n, rnd)
+        whistle = biquad(w, "bp", 330.0, 6.0, True)
+        wind = biquad(biquad(w, "bp", 260.0, 0.6, True), "lp", 520.0, 0.6, True)
+        rumble = biquad(biquad(w, "lp", 90.0, 0.7, True), "lp", 120.0, 0.7, True)
+        out = zeros(n)
+        for i in range(n):
+            t = i / n
+            g = 0.5 + 0.3 * math.sin(TAU * (t + 0.3 * ch)) + 0.2 * math.sin(TAU * (2 * t))
+            pass_by = math.exp(-((t - 0.3) / 0.07) ** 2) + 0.7 * math.exp(-((t - 0.78) / 0.06) ** 2)
+            out[i] = wind[i] * g * 0.6 + whistle[i] * 0.55 * g * g + rumble[i] * (0.15 + 1.1 * pass_by)
+        for _ in range(3):
+            sig = bell(int(0.5 * RATE), [(rnd.uniform(900, 1500), 1.0, 0.09), (rnd.uniform(2300, 3100), 0.4, 0.05)], 0.2, rnd)
+            place(out, sig, rnd.randrange(n), rnd.uniform(0.03, 0.07))
+        return out
+    return _bed(10.0, seed, body)
+
+
 # --- output and checks ------------------------------------------------------------
 
 def normalise(chans, peak_db):
@@ -1231,7 +1340,7 @@ def check(path, loop):
 
 LOOPS = ["engine_idle", "engine_mid", "engine_high", "tyre_roll", "tyre_wet", "tyre_squeal", "rotor",
          "city_day", "city_night", "rain", "police_siren", "club_leak", "busker", "crowd_murmur", "steps_guitar",
-         "queue_chatter"]
+         "queue_chatter", "amb_river", "amb_park", "amb_square", "amb_yard"]
 
 
 # Loop MW-5: the city's sounds (city_sounds.gd), made on their own with --only=.
@@ -1249,7 +1358,10 @@ CITY = {"club_leak": lambda: [club_leak(71)], "metro_chime": lambda: [metro_chim
         # The night-buses loop (buses.gd): the player's horn.
         "horn_player": lambda: [horn_player()],
         # The vintage-tram loop (old_tram.gd): the old set's creak and its bell.
-        "tram_creak": lambda: [tram_creak(91)], "old_tram_bell": lambda: [old_tram_bell(92)]}
+        "tram_creak": lambda: [tram_creak(91)], "old_tram_bell": lambda: [old_tram_bell(92)],
+        # v1.0 juice: the money pop (money_pop.gd) and the districts' ambiences (sfx.gd).
+        "coin": lambda: [coin(93)], "amb_river": lambda: amb_river(94), "amb_park": lambda: amb_park(95),
+        "amb_square": lambda: amb_square(96), "amb_yard": lambda: amb_yard(97)}
 
 
 def main(out_dir, radio_dir=None, only=None):

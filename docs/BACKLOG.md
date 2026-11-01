@@ -2214,7 +2214,7 @@ discovery, "?" marks and completion on the full map (DEMO G3). Left for the late
 - The district polygons are hand-drawn from the stale water data and the embankment roads; the
   river line north of Most Śląsko-Dąbrowski is extrapolated (the map lane could bake a river line).
 - The discovery card uses the note card (5.5 s); a bigger centred card or a sound of its own
-  (loop 3i's district ambiences) would make it a moment.
+  would make it a moment.
 
 ## From loop 3h slice 2 (the 20 Syrenki, 2026-10-31)
 
