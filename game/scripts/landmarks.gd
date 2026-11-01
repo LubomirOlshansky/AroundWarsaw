@@ -276,11 +276,9 @@ const INFO := {
 	"aleksander": ["Kościół Świętego Aleksandra",
 			"Rotunda na placu Trzech Krzyży.",
 			"The rotunda on Plac Trzech Krzyży."],
-<<<<<<< HEAD
 	"zelazna": ["Osiedle Za Żelazną Bramą",
 			"Jedenaście bloków z wielkiej płyty, zaprojektowanych przez Skolimowskiego.",
 			"Eleven large-panel blocks of the 1960s-70s, designed by Jerzy Skolimowski."],
-=======
 	"norblin": ["Fabryka Norblina",
 			"Ceglane hale z szklanymi piętrami i komin. Tu się teraz siedzi.",
 			"Brick halls with glass storeys on top, and a chimney. People sit here now."],
@@ -293,7 +291,6 @@ const INFO := {
 	"elektrownia": ["Elektrownia Powiśle",
 			"Dawna elektrownia na Dobrej, dziś sklepy i jedzenie pod kominami.",
 			"The old power station on Dobra, shops and food under its chimneys."],
->>>>>>> origin/main
 	"mirowska": ["Hala Mirowska",
 			"Ceglana hala targowa.",
 			"A brick market hall."],
