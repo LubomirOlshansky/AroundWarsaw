@@ -873,6 +873,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"staszic":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the portico and the statue are ours
 				_build_staszic(s)
+			"sejm":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the hall's colonnade is ours
+				_build_sejm(s)
 			"tower75":
 				_id = 0  # unnamed: no card, not on the picking grid
 				_build_tower75(s)
@@ -5318,6 +5321,68 @@ func _build_staszic(_site: Dictionary) -> void:
 	# the car meets the stylobate and the pedestal
 	_collide(_rect(m, 3.0, 7.9, 3.3))
 	_collide(_rect(su, sv, 2.0, 2.0))
+
+
+## The Sejm (Sejm RP; Skórewicz and Pniewski, 1925-1928): the mass of the complex stays LoD2's (a
+## kept skin); the model adds the plenary hall's colonnade, the famous semicircle. The mapped
+## outline of the hall is an arc 21.75 m in radius (fitted), bulging south toward Wiejska.
+## The model puts a stone plinth ring, fifteen columns under a curved entablature, and a cornice
+## at the eave round that arc. Spec docs/landmarks/specs/sejm.md.
+## Frame: origin at the arc's centre, u south (the axis of the bulge), +v west; a point at angle
+## t off the axis and radius r is (r cos t, r sin t).
+const SEJM := Vector2(277.1, 967.5)
+const SEJM_R := 21.75
+const SEJM_WALL := Color("#e2e0d8")
+const SEJM_TRIM := Color("#efece2")
+const SEJM_BASE := Color("#b4b0a4")
+const SEJM_DARK := Color("#3a3d40")
+
+
+## One slice of the arc: the ring between radii r0 and r1 from angle t0 to t1 (degrees), as a
+## prism between two heights.
+func _sejm_slice(t0: float, t1: float, r0: float, r1: float, y0: float, y1: float, col: Color, top: Color) -> void:
+	var pts := PackedVector2Array()
+	for t: float in [t0, t1]:
+		pts.append(_w(r1 * cos(deg_to_rad(t)), r1 * sin(deg_to_rad(t))))
+	for t: float in [t1, t0]:
+		pts.append(_w(r0 * cos(deg_to_rad(t)), r0 * sin(deg_to_rad(t))))
+	_prism(pts, y0, y1, col, top, M_STONE, M_STONE)
+
+
+func _build_sejm(_site: Dictionary) -> void:
+	_o = SEJM
+	_a = Vector2(0.0, 1.0)
+	_b = Vector2(-_a.y, _a.x)  # (-1, 0)
+	_g = map.terrain_height(_w(SEJM_R, 0.0).x, _w(SEJM_R, 0.0).y)
+	var g := _g
+	_mode = M_STONE
+	var half := 84.0  # the colonnade spans 168 degrees of the arc
+	var step := 12.0
+	var n := int(half * 2.0 / step)  # 14 bays, 15 columns
+	# the plinth ring and a step, then the entablature and the eave cornice, in 12-degree slices
+	for k in n:
+		var t0 := -half + step * k
+		var t1 := t0 + step
+		_sejm_slice(t0, t1, SEJM_R - 0.4, SEJM_R + 3.0, g - 0.6, g + 0.9, SEJM_BASE, SEJM_BASE.lightened(0.05))
+		_sejm_slice(t0, t1, SEJM_R - 0.4, SEJM_R + 2.6, g + 9.4, g + 10.9, SEJM_TRIM, SEJM_TRIM.lightened(0.03))
+		_sejm_slice(t0, t1, SEJM_R - 0.4, SEJM_R + 0.25, g + 10.9, g + 16.2, SEJM_WALL, SEJM_WALL)  # the attic wall
+		_sejm_slice(t0, t1, SEJM_R - 0.2, SEJM_R + 0.9, g + 16.2, g + 17.2, SEJM_TRIM, SEJM_TRIM.lightened(0.03))
+	# the colonnade
+	for k in n + 1:
+		var t := deg_to_rad(-half + step * k)
+		_column(( SEJM_R + 1.6) * cos(t), (SEJM_R + 1.6) * sin(t), 0.5, g + 0.9, g + 9.4, SEJM_TRIM)
+	# the door in the middle bay, dark between the columns
+	_mode = M_GLASS
+	var d0 := deg_to_rad(-6.0)
+	var d1 := deg_to_rad(6.0)
+	_wall(_w(SEJM_R * cos(d0), SEJM_R * sin(d0)), _w(SEJM_R * cos(d1), SEJM_R * sin(d1)), g + 0.9, g + 6.4, _a, SEJM_DARK)
+	_mode = M_STONE
+	# the car meets the plinth along the arc
+	var ring := PackedVector2Array()
+	for k in n + 1:
+		var t := deg_to_rad(-half + step * k)
+		ring.append(_w((SEJM_R + 3.0) * cos(t), (SEJM_R + 3.0) * sin(t)))
+	_collide(ring)
 
 
 ## St Alexander's church (Kościół Świętego Aleksandra; Kubicki's Pantheon-like rotunda of
