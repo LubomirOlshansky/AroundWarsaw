@@ -128,12 +128,6 @@ repeats and hints, rate-limit toasts to one per 20 s except for quest and danger
 speech bubbles above 40 km/h except police. Accept: at most 3 popups in a 5-minute free drive.
 Files: hud.gd toast, bubbles.gd, dialogue.gd, gps_moments.gd, first10.gd.
 
-**G17 · Stuck against other cars (P1, Opus).** F: "stuck with another cars". Task: reproduce
-(a car pinned against traffic or parked cars at junctions), make traffic yield or ghost through
-the player when contact lasts over 1.5 s, and tow the player to the lane after 8 s pinned with an
-unstuck toast. Accept: a check with the car pinned between two traffic cars frees itself in under
-8 s; `check_drive`, `check_steering` green. Files: car.gd, traffic.gd, main.gd.
-
 **G18 · Ujazdów and the castle (P1, Opus, landmark thread).** F: improve Ujazdów and Zamek
 Ujazdowski. One landmark thread: compare the castle's model and the park with the orthophoto and
 photos, per the landmark recipe in docs/LANDMARKS.md.
