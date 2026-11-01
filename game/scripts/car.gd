@@ -65,17 +65,32 @@ var zone_cap := INF
 @export var accel := 15.0
 @export var brake_decel := 30.0
 @export var reverse_speed := 7.0
-@export var grip := 14.0   # 2026-11-01 (F): a city drive, less slide (was 9)
-@export var drift_grip := 4.0  # braking hard no longer swings the tail (was 1.6)
+@export var grip := 16.0
+@export var drift_grip := 5.0
 ## Steering (loop 2a): the most the car turns (rad/s) is turn_cap when slow and
 ## turn_pull / speed + turn_floor at speed (turn_pull is the sideways pull, m/s²).
-@export var turn_cap := 2.0
-@export var turn_pull := 13.0
-@export var turn_floor := 0.35
+@export var turn_cap := 1.8
+@export var turn_pull := 10.0
+@export var turn_floor := 0.3
 ## Turning from a standstill with the gas fully on (rad/s); it needs ~2 m/s for full lock.
-@export var pivot := 1.5
+@export var pivot := 1.4
 ## Steering input smoothing (s).
-@export var steer_time := 0.12
+@export var steer_time := 0.14
+## How much of the gas the car answers with at once (0..1): the rest builds with the gas held,
+## so a light touch pulls away gently (Cruise 0.25, Sport 0.35).
+@export var onset := 0.25
+## G4 (F, 2026-11-01): "very drifty and sensitive, this is a city, not a racer". Two handling
+## profiles of the same car (settings.gd `handling`, Settings → Jazda): CRUISE (the default) holds
+## the road (stronger grip, a lower steering limit at speed, slower steering, a softer gas) and
+## SPORT is the loop 2a feel. `set_handling` writes the numbers; check_handling.gd measures both.
+enum Handling { CRUISE, SPORT }
+const PROFILES := {
+	Handling.CRUISE: {"grip": 16.0, "drift_grip": 5.0, "turn_cap": 1.8, "turn_pull": 10.0, "turn_floor": 0.3,
+			"pivot": 1.4, "steer_time": 0.14, "onset": 0.25},
+	Handling.SPORT: {"grip": 9.0, "drift_grip": 1.6, "turn_cap": 2.3, "turn_pull": 18.0, "turn_floor": 0.35,
+			"pivot": 1.5, "steer_time": 0.08, "onset": 0.35},
+}
+var handling := Handling.CRUISE
 ## Point-to-steer: heading error (rad) to yaw rate (rad/s), and the yaw damping.
 @export var point_gain := 6.0
 @export var yaw_damping := 0.4
@@ -449,7 +464,7 @@ func _step(dt: float) -> void:
 	elif gas > 0.0:
 		# The gas sets a speed to drive at; a light push accelerates gently.
 		if speed < top:
-			speed = minf(top, speed + accel * (0.35 + 0.65 * gas) * dt * (1.0 - 0.6 * clampf(speed / max_speed, 0.0, 1.0)))
+			speed = minf(top, speed + accel * (onset + (1.0 - onset) * gas) * dt * (1.0 - 0.6 * clampf(speed / max_speed, 0.0, 1.0)))
 		else:
 			speed = move_toward(speed, top, 4.0 * dt)
 	else:
@@ -713,6 +728,14 @@ func reset_motion() -> void:
 		if is_instance_valid(body):
 			remove_collision_exception_with(body)
 	_ghosted.clear()
+
+
+## G4: switch the handling profile (see PROFILES); anything else goes with the numbers it sets.
+func set_handling(h: int) -> void:
+	handling = (h if h in PROFILES else Handling.CRUISE) as Handling
+	var p: Dictionary = PROFILES[handling]
+	for k: String in p:
+		set(k, p[k])
 
 
 ## The most the car turns (rad/s) at `v` m/s: turn_cap when slow, turn_pull / v + turn_floor

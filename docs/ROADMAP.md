@@ -87,6 +87,11 @@ then the Launch gate.
       Al. Jerozolimskie (1202 tris, new `polonia` site and card) through one `_palace_hotel` builder;
       Europejski, Wiktoria, the Marriott, Novotel, Westin and InterContinental were already models;
       Mac look check parked (QUESTIONS, BACKLOG "Grand hotels")
+- [x] Ujazdowski Castle and the Ujazdów notebook page (F, 2026-11-01): site `ujazdowski` (four
+      copper-roofed wings round the courtyard, four round towers with spires, a lit west portal with
+      a pediment, an east bay, dormers and chimneys, 1379 tris, spec ujazdowski.md) and the notebook
+      place `zamek_ujazdowski` (chapter Retro i szyk, district Ujazdów i Łazienki, which had no
+      place); Mac look check parked (QUESTIONS)
 - [x] Old Town hotels (F, 2026-11-01): fronts on three tenements (portal, canopy, neon name, flags,
       lanterns, card), under parody names KASZTEL INN (Castle Inn), CANALETTO (Hotel Bellotto),
       STARÓWKA (an aparthotel on the Rynek); Mac look check parked (QUESTIONS, BACKLOG "Old Town hotels")
@@ -182,7 +187,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] G1 Heli and map teleport open from the first second (the guide no longer gates them)
 - [ ] G2 Calmer default traffic: Low is the default now (2026-11-01); the stepped slider is left
 - [x] G3 +/- zoom buttons on the driving screen (5 steps, saved)
-- [ ] G4 Easy city drive (first pass 2026-11-01: grip 14, drift grip 4, turn pull 13, slower steer; Cruise/Sport profile and the phone check are left): less drift, gentler steering, a Cruise handling default (Opus, feel)
+- [x] G4 Easy city drive: Cruise handling by default, Sport in Settings → Jazda → Prowadzenie, check_handling, 2026-11-01 (the phone feel check is parked in QUESTIONS)
 - [x] G5 Flicker and "lag wall" audit: the dithered fade patches, wall-like props, the metro
       entrances (what stays, what stops colliding, what goes) (Opus)
 - [ ] G6 Under-the-bridge entries (owned by the bridge joins thread; report in BACKLOG)
