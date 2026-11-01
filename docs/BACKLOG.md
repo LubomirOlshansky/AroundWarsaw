@@ -161,12 +161,6 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   shot. PR #183's head passes the look pass on the Mac (0 missing, no proxies in the view).
   check_streaming's pixels failed on main e0e02b8 (spots 3-4, 2.2-4.4 %, differing between runs):
   the speech bubbles' lines, not the city; the pixel runs now pass `--nohud` (0.24 % on 03a26dc).
-- **check_streaming's look pass fails every run, not only on a busy Mac** (found 2026-11-01, map
-  lane, Opus): `--only=pass` on an idle Mac, twice, the same frames: looking at a far target,
-  sector s_-6_0 (x -3072..-2560, z 0..512, the Warsaw HUB side) is still loading at 530 m while
-  proxies cover up to 100 % of the view's ground for 24 frames (PROXY_SHARE 5 %). Already on main
-  2d04afe, before this audit's fixes. Find which look target points there (likely one added since
-  the loading fix of 2026-10-31) and load the target's sector first.
 - **Map checks in CI**: the derived map pack as a release asset that CI downloads (or a small test
   map), so roads, drape, drive and the game runs gate every PR again ("From loop 3d-1", CI). Gap.
 
