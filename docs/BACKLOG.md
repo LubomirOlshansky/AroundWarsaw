@@ -119,7 +119,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
   the OSM parts. Left: the photo check on the Mac (OSM puts the shells in a 1.5 m tier wholly
   under the flat slab, so from the 30-degree camera they show only as a small zigzag at the
   two ends: if the photos show more of them, say so and the tier grows; the wings' walls; warm
-  or cool hall light). The others not started.
+  or cool hall light). **Stadion Narodowy built 2026-11-01** (site `stadium`, spec
+  `docs/landmarks/specs/stadium.md`, PR #103's eyeball flag): the pitch was a 60 m blob under
+  stands too deep; now a 105 x 68 m striped pitch along the masts' axis in two tiers with the
+  boxes between, the skin red below and white above (the mapped rings), the raised rim, a
+  rounded opening, the needle's hub and folded-roof drum from the OSM parts. Left: the photo
+  check on the Mac (where the red ends, the opening's size). The others not started.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
   photos per building in `refs/` (Wikimedia Commons, gitignored; fetched on the Mac, the cloud
