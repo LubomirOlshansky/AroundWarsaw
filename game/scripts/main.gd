@@ -6242,6 +6242,10 @@ func _soak_frame(dt: float) -> void:
 ## target 2-3 km off needs 5-8 sectors, ~1.2 s of loading on the iPhone 11. [from, to, since (ms)];
 ## empty: none waiting.
 const LOOK_WAIT_MS := 1500
+## The look's own length once it starts (camera_shots.gd's legs, and half a second to spare), and
+## the most between two views of its way the streamer loads for (the west-sectors fix).
+const LOOK_TIME := CameraShots.OUT_TIME + CameraShots.HOLD_TIME + CameraShots.BACK_TIME + 0.5
+const LOOK_STEP := 60.0
 var _look_queued: Array = []
 
 
@@ -6250,9 +6254,23 @@ func _queue_look(from: Vector3, to: Vector3) -> void:
 		var screen := get_viewport().get_visible_rect().size
 		moments.look_at_target(from, to, cam_yaw, camera_pitch, _view_size, screen.x / maxf(screen.y, 1.0))
 		return
-	var time := LOOK_WAIT_MS / 1000.0 + CameraShots.OUT_TIME + CameraShots.HOLD_TIME + CameraShots.BACK_TIME + 0.5
-	streamer.expect_view(to, CameraShots.TARGET_SIZE * 1.25, time)
-	streamer.expect_view((from + to) * 0.5, CameraShots.MAX_SIZE * 1.25, time, 1)
+	var time := LOOK_WAIT_MS / 1000.0 + LOOK_TIME
+	# The west-sectors fix (2026-11-01): the sectors each view of the look will show (its frustum,
+	# towers and all), not a square round the target: the target's view first, then the way there
+	# (the views between the car's, MID's and the target's, at most LOOK_STEP m apart).
+	var screen := get_viewport().get_visible_rect().size
+	var aspect := screen.x / maxf(screen.y, 1.0)
+	var kf := CameraShots.look_keys(from, to, cam_yaw, camera_pitch, _view_size, aspect)
+	var way: Array = []
+	for i in kf.size() - 1:
+		var a: Array = kf[i]
+		var c: Array = kf[i + 1]
+		var n := clampi(ceili((a[0] as Vector3).distance_to(c[0]) / LOOK_STEP), 1, 40)
+		for j in n + 1:
+			var t := float(j) / float(n)
+			way.append([(a[0] as Vector3).lerp(c[0], t), lerpf(a[1], c[1], t)])
+	streamer.expect_shot([kf[-1]], cam_yaw, camera_pitch, aspect, time)
+	streamer.expect_shot(way, cam_yaw, camera_pitch, aspect, time, 1)
 	_look_queued = [from, to, Time.get_ticks_msec()]
 
 
@@ -6269,7 +6287,9 @@ func _look_frame() -> void:
 		return
 	var screen := get_viewport().get_visible_rect().size
 	moments.look_at_target(_look_queued[0], _look_queued[1], cam_yaw, camera_pitch, _view_size, screen.x / maxf(screen.y, 1.0))
-	print("camera: the look waited %d ms for its sectors%s" % [waited, "" if streamer.expected_in(1) else " (not all in)"])
+	streamer.hold_expected(LOOK_TIME)  # the west-sectors fix: kept for the whole look, however long the wait
+	print("camera: the look waited %d ms for its %d sectors%s" % [waited, streamer.expected_keys(1).size(),
+			"" if streamer.expected_in(1) else " (not all in)"])
 	_look_queued = []
 
 
