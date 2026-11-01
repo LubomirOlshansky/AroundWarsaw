@@ -78,9 +78,13 @@ then the Launch gate.
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
 - [ ] Mariensztat and Krakowskie Przedmieście review (F, 2026-11-01; BACKLOG section):
   - [x] M1 Mariensztat's houses in pastel with red tile roofs and dormers, 2026-11-01
-  - [ ] M2 Rynek Mariensztacki's card and reliefs; M3 the escarpment and Nowy Zjazd (Mac)
-  - [ ] K1-K6 Krakowskie Przedmieście's missing pieces: the Carmelite church, Mickiewicz's
-        monument, the University gate, Pałac Potockich's guardhouses, Bristol, the statues
+  - [x] M2 Rynek Mariensztacki's card and six relief panels, 2026-11-01 (Mac photos for the real reliefs)
+  - [ ] M3 the escarpment and Nowy Zjazd's viaduct over the estate (Mac, real terrain)
+  - [x] K1-K5 the Carmelite church's front, Mickiewicz's monument, the University gate and Pałac
+        Kazimierzowski's skin, Pałac Potockich and the Kordegarda, Bristol's corner dome, 2026-11-01
+        (spots and heights estimated; Mac photo check)
+  - [ ] K6 the black Chopin benches are done 2026-11-01; Prus's and Wyszyński's statues and the
+        granite paving wait for photos
 
 - [ ] The railway (F, 2026-11-01; plan docs/design/railway.md):
   - [x] R0 design: stations, the cross-city line, trains, 2026-11-01

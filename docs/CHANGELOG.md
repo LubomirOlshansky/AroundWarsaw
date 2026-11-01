@@ -10,6 +10,8 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Krakowskie Przedmieście has more of its landmarks: the Carmelite church's front with its gilt globe, Mickiewicz's monument, the University's main gate, the Potocki palace and its guardhouse, and Hotel Bristol's dome, plus the Royal Route's black granite Chopin benches.
+- Rynek Mariensztacki is on the map with a card and relief panels on the houses of its south side.
 - The Old Town Market Square has its cobbled paving now, café gardens with umbrellas in the restaurants' colours along all four sides, and the Syrenka in her fountain: bronze, with her raised sword and round shield, on a stone pedestal behind a low stone rim.
 - People stand on the observation decks: on St Anne's bell tower terrace (with a new stone balustrade) and on the roof of Varso Tower, more of them in the afternoon, on weekends and in summer.
 - The two glass pavilions over the underground Warszawa Śródmieście station, by the Palace, now glow at night under their blue neon names.
