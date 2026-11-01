@@ -1681,11 +1681,17 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
   frame): a shot-script issue, not the map.
 
 ## From loop 3e (the structures, 2026-10-30)
-- **Most Łazienkowski's Praga end and the Czerniakowska interchange (R8)**: where two ramps of one
-  deck group part, a ramp's guard rail runs into the other's lanes and a bus brushes the slab of a
-  neighbouring piece (check_drive 28 lane spots, 2 jumps at (2125, 805); C1/C8 at the ramps' joints).
-  Spec: each ramp's rails and slab from its own piece, cut where another piece's lanes run (the
-  deck-end rule, `GUARD_END`, everywhere two pieces part), and lanes sampled on their own piece.
+- **Most Łazienkowski's Praga end and the Czerniakowska interchange (R8)**: ~~where two ramps of one
+  deck group part, a ramp's guard rail runs into the other's lanes~~ **Fixed (the joins loop,
+  2026-11-01)**: `bake_structures.py` `_clear_guards` also cuts a deck's guard rail where a bus box
+  (check_drive's 12 x 2.6 m, placed every metre on the main roads' deck lanes, `BUS_BOX`) would touch
+  it, not only within 1.4 m of a lane or 8 m of a deck's end (+100 m of rails cut over the map; check_drive
+  `--no-allow` 51 → 26 lane spots with the other fixes). **Left** (the rest of the 26 lane spots, allowlisted with
+  the reason): the loop ramps' R about 25 m bends on 4 m slabs (the 12 m box swings 0.7 m out into the
+  deck's parapet, `map_builder.gd` `_build_bridge_structures`), the neighbouring piece's slab at the
+  joint of the ramp group's pieces (slabs 0.3 m apart in height at (2116, 811)) and the ground gap lane
+  (edge 4250) between the loop ramp and the main deck: a 0.8 m step at (2125, 805). Spec for it: each
+  ramp's slab from its own piece, cut where another piece's lanes run, lanes sampled on their own piece.
 - **The rail cutting west of Centralna** stays on the 10 m grid (C3 72 under its footbridges and
   Żelazna/Towarowa, Towarowa's deck joint 0.3 m). On its 1 m level (the WKD 7 m under the grid) it is
   24,000 m² of 1 m ground sub-cells (+0.5 M vertices), and its 8 m service bridges are shorter than
@@ -1695,17 +1701,26 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
   cells, +0.89 % vertices); the deck seeds (every structure's way) would fix Nowy Zjazd's pits and
   ~40 abutment findings more for +0.4 M vertices. Draw a lowered corridor's floor as one strip and
   clip the grid's triangles round it (a few triangles a cell) instead.
-- **Plac Na Rozdrożu's tubes end short of the street over them** (OpenStreetMap ends T2-T5 a few
-  metres before the street's edge): the open road's last metres pass under the street's corridor,
-  its lanes step 0.6 m there (C8 2, C1 1, check_drive 9 lane spots at the west portals, 4 jumps at
-  the rim west of them). Spec: extend a tube under a way that crosses its open road within 15 m of
-  the portal with no shared node.
+- ~~**Plac Na Rozdrożu's tubes end short of the street over them**~~ **Fixed (the joins loop,
+  2026-11-01)**, but not by extending the tubes (no way crosses an open road within 15 m of a portal
+  in the data): the 9 lane spots at the west portals were a trench wall (`place_walls`, the cutting
+  profile of footway 127683235) whose foot stood 2 m under the tube's mouth at (45, 1641); a trench
+  wall no longer stands inside a tube's mouth. C8 2 and C1 1 stay allowed (they are the cutting
+  profile's 0.6 m steps at the rim, (−134, 1705) and (3, 1619)); check_drive's 4 jumps at the rim
+  (−143, 1719) stay allowed too.
 - **Wybrzeże Szczecińskie's deck over the Port Praski inlet (deck 4)** by Most Śląsko-Dąbrowski's
   Praga end: a bus on the outer lane at its west end brushes the neighbouring piece's parapet (the
-  gap between pieces keeps a collider where there is a drop): 6 lane spots. The new footbridge to
-  Karowa (deck 19, mapped `living_street`) still ends 2.2 m in the air at its Praga end (C6).
-- **Nowy Zjazd under the W-Z approach**: a bus on its inner lane brushes the tram approach's
-  0.6 m side wall at (−357, −1419) (6 lane spots).
+  gap between pieces keeps a collider where there is a drop): ~~6~~ 2 places left ((409, −1519) and
+  (426, −1519), 6 spots: the 2 of them at the lane edge 1272 went with the wall change, not with a
+  fix aimed at them; the rest is `map_builder.gd`'s parapet collider, 0.7 m inside the slab's
+  edge). The footbridge to Karowa (deck 21 now, mapped `living_street`) still ends 2.2 m in the
+  air at its Praga end, (304, −1554) (C6, allowed): its deck is smoothed to DECK_GRADE 6 % and its
+  last 20 m cannot reach the ground; it needs stairs or a longer ramp (the solver pins a road
+  family's lone end to the terrain but the 6 % smoothing wins).
+- ~~**Nowy Zjazd under the W-Z approach**: a bus on its inner lane brushes the tram approach's 0.6 m
+  side wall at (−357, −1419) (6 lane spots).~~ **Fixed (the joins loop, 2026-11-01)**: a low wall no
+  longer stands where a lane runs at its foot (`place_walls` `in_lane(..., top - WALL_MIN * 0.8)`:
+  the lane's ground is a WALL_MIN under the wall's top, not half a metre).
 - **check_drive's routes**: 98 now (every deck group and tunnel both ways); they found jumps at Most
   Poniatowskiego's north ramps (deck 13: 0.4-0.6 m at (920, 16) and (988, −13)), allowed with that
   reason.

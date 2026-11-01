@@ -4714,6 +4714,17 @@ landmarks lane is the table under it).
 | check_outline (O1-O5) | 120 | 0 |
 | check_lod2 (L1 doubled / L2 lost) | 16 / 81 | 15 / 73 |
 | check_drive (both paths) | 0 not allowed, 62 allowed; 98 routes | 0 not allowed, 62 allowed; 128 routes (22 through the roundabout), 0 jumps |
+
+**The joins loop (loop 3e leftovers, 2026-11-01).** `bake_structures.py`: a trench wall (`place_walls`)
+no longer stands inside a tube's mouth (its foot under `MOUTH` over the floor: Plac Na Rozdrożu's west
+portals); a low wall no longer stands where a lane runs at its foot (`in_lane` below `top - WALL_MIN * 0.8`,
+was `top - 0.5`: Nowy Zjazd); a deck's guard rail is cut where a bus box on a deck lane of its group would
+touch it (`BUS_BOX`, `BUS_STEP`, `BUS_PAD`, main roads only: lane_graph classes 0 and 1). Map numbers that
+change: retaining wall runs 1,479 → 1,473 (16,094 → 16,042 m, solid 8,976 → 8,969 m), fences, walls and guard
+rails cut from the lanes 12,813 → 12,913 m; centrum.json is the only committed bake output that moved.
+check_drive `--no-allow`: 51 lane spots → 26 (jumps 11, unchanged), allowlist 11 → 8 entries; check_roads
+0 not allowed / 304 allowed (unchanged); the bench route is not near these places: 135 draw calls, 3.04 ms.
+`check_drive.gd --who` prints the colliders a lane hit meets (the sector's one body, so only the sector).
 | Vertices (`count_vertices.gd`) | 18.70 M (meshes 11.50, instances 7.20) | 19.70 M (12.15, 7.55): +1.00 M, the extension's (0.96 M a km²); LoD2 in the box 1,549,362 → 1,548,197 vertices |
 | Probe draw calls (spawn, river, zoomed out, helicopter; 3D main / shadow) | 137, 104, 150, 220 (58/38, 36/25, 66/40, 111/74) | 138, 104, 151, 224 (58/38, 36/25, 66/41, 112/76): the city +0 (the helicopter view with `--no-traffic` 102/68 both); one more car or tram in view |
 | Probe over Rondo Radosława (`--at=-2833,-2292 --heading=60 --heli --size=150`; the car on Jana Pawła II `--at=-2790,-2200 --heading=340`) | (the map's edge) | 203 (100/68), 115 (46/28): inside the helicopter's 224 |
