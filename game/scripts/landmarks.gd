@@ -406,6 +406,8 @@ var _no_roof := false  # true: triangles go into the mesh but not the roof grid 
 ## The landmarks loop: big signs on the landmarks for map_builder's _build_landmark_signs:
 ## [word (neon_signs.gd LANDMARK_WORDS), bottom middle, outward normal, scale, tube colour].
 var signs: Array = []
+## Circles ([centre, radius]) no tree may grow in: a landmark's overhang (Powiśle's saucer).
+var tree_free: Array = []
 ## Stadion Narodowy's grass embankment (2026-11-01): the old Stadion Dziesięciolecia's earth
 ## bank below the promenade, bare ground in the map, in one band per gap between two masts
 ## (`_find_embankment`). map_builder's _build_areas lays them as grass under every mapped area,
@@ -1654,6 +1656,14 @@ func _build_palace(site: Dictionary) -> void:
 	_prism(band, g + 121.5, g + 123.0, light, Color(0, 0, 0, 0), M_STONE)
 	_mode = M_STONE
 	_cap_holes(band, [shaft], g + 123.0, light)
+	# The 30th-floor observation terrace (F, 2026-11-01): a 1.9 m ledge round the shaft at 114 m
+	# (the real gallery runs inside the walls; the ledge is the walkway the visitors need, crowds.gd
+	# DECKS `pkin_terrace`, 22.4 m from the centre) with a stone balustrade 1.1 m high.
+	for su: float in [-1.0, 1.0]:
+		_lbox(su * 21.5, 0.0, 1.9, 23.4, g + 113.5, g + 114.0, light, M_STONE, light.darkened(0.12))
+		_lbox(0.0, su * 21.5, 23.4, 1.9, g + 113.5, g + 114.0, light, M_STONE, light.darkened(0.12))
+		_lbox(su * 23.25, 0.0, 0.15, 23.4, g + 114.0, g + 115.1, light, M_STONE, light)
+		_lbox(0.0, su * 23.25, 23.4, 0.15, g + 114.0, g + 115.1, light, M_STONE, light)
 	# The shaft's top: an attic, big pinnacles on the corner piers, smaller ones between.
 	_attic(shaft, g + 139.0, 3.0, light)
 	for k in 4:
@@ -8182,7 +8192,8 @@ func _build_zodiak(site: Dictionary) -> void:
 ## docs/landmarks/specs/ochota.md; the Mac photo check sets the stripes, the supports and the
 ## stairs.
 const OCH_OSM := "Warszawa Ochota"
-const OCH_HIGH := 8.34         # the shell's two high corners over the deck
+const OCH_HIGH := 10.6         # the shell's two high corners over the deck (they shoot up)
+const OCH_SAG := 1.1           # the saddle's middle sags this far under the straight rulings' surface
 const OCH_LOW := 3.0           # its two low corners
 const OCH_OVER := 1.4          # the shell's overhang past the hall
 const OCH_SHELL := 0.16        # the shell's edge thickness
@@ -8194,6 +8205,9 @@ const OCH_BLACK := Color("#2b2c2e")
 const OCH_CONCRETE := Color("#b9b4aa")
 const OCH_GLASS := Color("#6a7c86")
 const OCH_FRAME := Color("#3a3f44")
+const OCH_NEON := Color(0.2, 0.55, 1.0)
+
+var _och_v := 1.0              # 1 or -1: which diagonal is high (the one whose far corner shows the stripes to the camera)
 
 
 func _find_ochota() -> void:
@@ -8244,9 +8258,11 @@ func _och_frame(poly: PackedVector2Array) -> Array:
 ## size h, high at (-h, -h) and (h, h), low at the other two corners.
 func _och_shell(u: float, v: float, h: float) -> float:
 	var s := (u + h) / (2.0 * h)
-	var t := (v + h) / (2.0 * h)
+	var t := (v * _och_v + h) / (2.0 * h)
 	var diag := (1.0 - s) * (1.0 - t) + s * t
-	return OCH_LOW + (OCH_HIGH - OCH_LOW) * diag
+	var a := u / h
+	var b := v / h
+	return OCH_LOW + (OCH_HIGH - OCH_LOW) * diag - OCH_SAG * (1.0 - a * a) * (1.0 - b * b)
 
 
 func _build_ochota(site: Dictionary) -> void:
@@ -8266,6 +8282,15 @@ func _build_ochota(site: Dictionary) -> void:
 	_g = g
 	var none := Color(0, 0, 0, 0)
 	var h := maxf(hu, hv) + OCH_OVER
+	# The high diagonal: the one with the corner farthest from the game's camera, so the saddle
+	# rises away from it and its whole striped top reads from the game's view.
+	var far := INF
+	_och_v = 1.0
+	for c: Vector2 in [Vector2(-h, -h), Vector2(h, h), Vector2(-h, h), Vector2(h, -h)]:
+		var d := (_w(c.x, c.y) - _o).dot(BEHIND_FACE)
+		if d < far:
+			far = d
+			_och_v = 1.0 if c.x * c.y > 0.0 else -1.0
 	# The deck: a slab from the street over the cutting, its edge beam, two piers in the cutting.
 	_mode = M_STONE
 	var deck := _rect((hu + OCH_STREET - h - 0.6) * 0.5, 0.0, (hu + OCH_STREET + h + 0.6) * 0.5, hv + 0.8)
@@ -8323,6 +8348,24 @@ func _build_ochota(site: Dictionary) -> void:
 	_och_stairs(g, hu, hv, low)
 	# The kiosk by the entrance on the street side.
 	_prism(_rect(hu + 4.0, hv - 2.5, 1.3, 1.0), g, g + 2.5, Color("#d7d2c4"), OCH_FRAME, M_PAVILION, M_STONE)
+	# The blue WARSZAWA OCHOTA letters on their steel frame by the entrance, over the street.
+	var fs := 1.0 if _a.dot(BEHIND_FACE) >= 0.0 else -1.0
+	var out := _a * fs
+	var along := Vector2(-out.y, out.x)  # leftwards as read (Neon.place: right = (out.z, -out.x))
+	var base := _w(hu + 7.5, -hv + 1.0)
+	var top_y := g + 4.2
+	var k := 0.42
+	var half := (Neon.length_of("WARSZAWA") + Neon.length_of("OCHOTA")) * k * 0.5 + 0.6
+	for sgn in [-1.0, 1.0]:
+		var p := base + along * half * float(sgn)
+		_prism(_square(p, 0.09), g - 0.2, top_y, OCH_FRAME, OCH_FRAME, M_STONE, M_STONE)
+	var b0 := base - along * half
+	var b1 := base + along * half
+	_beam(Vector3(b0.x, top_y, b0.y), Vector3(b1.x, top_y, b1.y), 0.16, OCH_FRAME)
+	for word: Array in [["WARSZAWA", 1.0], ["OCHOTA", -1.0]]:
+		var w: String = word[0]
+		var at := base + along * (float(word[1]) * (Neon.length_of(w) * k * 0.5 + 0.25))
+		signs.append([w, Vector3(at.x, top_y + 0.08, at.y), Vector3(out.x, 0.0, out.y), k, OCH_NEON])
 	_collide_span(hall, low - 1.0, g + 4.0)
 
 
@@ -8350,14 +8393,15 @@ func _och_roof(g: float, h: float) -> void:
 			var nt := (top[1] - top[0]).cross(top[3] - top[0]).normalized()
 			if nt.y < 0.0:
 				nt = -nt
-			_quad(top[0], top[1], top[2], top[3], nt, OCH_WHITE)
+			# The stripes show on top too, faintly: the game's camera never sees the underside.
+			_quad(top[0], top[1], top[2], top[3], nt, OCH_WHITE if i % 2 == 0 else OCH_WHITE.darkened(0.16))
 			var dn := Vector3(0.0, -OCH_SHELL, 0.0)
 			var stripe := OCH_BLACK if i % 2 == 0 else OCH_WHITE.darkened(0.06)
 			var keep := _no_roof
 			_no_roof = true
 			_quad(top[0] + dn, top[1] + dn, top[2] + dn, top[3] + dn, -nt, stripe)
 			_no_roof = keep
-	# The edge: four straight lines (the paraboloid's edges are its rulings).
+	# The edge, following the shell along each side.
 	var cs := [Vector2(-h, -h), Vector2(h, -h), Vector2(h, h), Vector2(-h, h)]
 	var ring := PackedVector2Array()
 	for c: Vector2 in cs:
@@ -8365,26 +8409,29 @@ func _och_roof(g: float, h: float) -> void:
 	for i in 4:
 		var c0: Vector2 = cs[i]
 		var c1: Vector2 = cs[(i + 1) % 4]
-		var a := ring[i]
-		var b := ring[(i + 1) % 4]
-		var o := _out(ring, a, b)
-		var t0 := g + _och_shell(c0.x, c0.y, h)
-		var t1 := g + _och_shell(c1.x, c1.y, h)
-		_quad(Vector3(a.x, t0 - OCH_SHELL, a.y), Vector3(b.x, t1 - OCH_SHELL, b.y), Vector3(b.x, t1, b.y), Vector3(a.x, t0, a.y),
-				Vector3(o.x, 0.0, o.y), OCH_WHITE.darkened(0.05))
+		var o := _out(ring, ring[i], ring[(i + 1) % 4])
+		for k in n:
+			var e0: Vector2 = c0.lerp(c1, float(k) / n)
+			var e1: Vector2 = c0.lerp(c1, float(k + 1) / n)
+			var a := _w(e0.x, e0.y)
+			var b := _w(e1.x, e1.y)
+			var t0 := g + _och_shell(e0.x, e0.y, h)
+			var t1 := g + _och_shell(e1.x, e1.y, h)
+			_quad(Vector3(a.x, t0 - OCH_SHELL, a.y), Vector3(b.x, t1 - OCH_SHELL, b.y), Vector3(b.x, t1, b.y), Vector3(a.x, t0, a.y),
+					Vector3(o.x, 0.0, o.y), OCH_WHITE.darkened(0.05))
 
 
 ## The two low corners on hinged concrete supports (raked struts down to the deck), and one high
 ## corner on its sliding bearing: a slim column. The other high corner is free.
 func _och_supports(g: float, h: float) -> void:
-	for c: Vector2 in [Vector2(h, -h), Vector2(-h, h)]:
+	for c: Vector2 in [Vector2(h, -h * _och_v), Vector2(-h, h * _och_v)]:
 		var top := _w(c.x, c.y)
 		var foot := _w(c.x * 0.86, c.y * 0.86)
 		var y := g + _och_shell(c.x, c.y, h) - OCH_SHELL
 		_beam(Vector3(foot.x, g, foot.y), Vector3(top.x, y, top.y), 0.55, OCH_CONCRETE)
 		_prism(_rect(c.x * 0.86, c.y * 0.86, 0.6, 0.6), g, g + 0.35, OCH_CONCRETE.darkened(0.1), OCH_CONCRETE, M_STONE, M_STONE)
-	var hc := _w(h - 0.5, h - 0.5)
-	_beam(Vector3(hc.x, g, hc.y), Vector3(hc.x, g + OCH_HIGH - OCH_SHELL - 0.3, hc.y), 0.32, OCH_FRAME)
+	var hc := _w(h - 0.5, (h - 0.5) * _och_v)
+	_beam(Vector3(hc.x, g, hc.y), Vector3(hc.x, g + _och_shell(h - 0.5, (h - 0.5) * _och_v, h) - OCH_SHELL - 0.3, hc.y), 0.32, OCH_FRAME)
 
 
 ## The stairs from the hall down to the island platform in the cutting, along the tracks (-v)
@@ -8425,13 +8472,13 @@ func _och_stairs(g: float, hu: float, hv: float, low: float) -> void:
 ## docs/landmarks/specs/powisle.md; the Mac photo check sets the arches, the saucer and the
 ## canopies' length.
 const POW_OSM := "Dworzec PKP Powiśle"
-const POW_ARCH := 7.2          # the arches' crowns over the hall's floor
-const POW_SPRING := 3.4        # the arches' springing (the roof's side edges at the arches)
-const POW_SAG := 0.9           # the roof's sag between the arches
+const POW_ARCH := 7.2          # the kite's two ends over the hall's floor (they turn up)
+const POW_SPRING := 4.4        # the roof's lowest line, across its middle
+const POW_SAG := 0.6           # how far its long sides dip under that line (the saddle)
 const POW_INSET := 1.6         # the glass hall's set-back under the roof's edges
 const POW_GRID := 10
 const POW_LOW_C := Vector2(400.8, -6.3)   # the round pavilion's centre (its OSM roof outline)
-const POW_LOW_R := 10.6        # the saucer's radius
+const POW_LOW_R := 14.6        # the saucer's radius (the Mac photo check: it overhangs the drum about twice)
 const POW_DRUM_R := 7.8        # the glass drum's radius
 const POW_DRUM_H := 3.4
 const POW_RIM := 4.5           # the saucer's rim over the floor
@@ -8443,7 +8490,8 @@ const POW_WHITE := Color("#e6e4dd")
 const POW_GREY := Color("#8d9095")
 const POW_DARK := Color("#2f3236")
 const POW_GLASS := Color("#5d717c")
-const POW_NEON := Color(1.0, 0.2, 0.25)
+const POW_NEON := Color(1.0, 0.82, 0.2)   # the round pavilion's yellow tube letters
+const POW_BLUE := Color(0.2, 0.5, 1.0)     # the upper pavilion's letters over the doors
 
 
 func _find_powisle() -> void:
@@ -8454,6 +8502,7 @@ func _find_powisle() -> void:
 	for k in POW_SIDES:
 		ring.append(POW_LOW_C + Vector2.from_angle(TAU * k / POW_SIDES) * (POW_LOW_R + 1.0))
 	_add_site("powisle", [_largest(Geometry2D.offset_polygon(q, 1.5, Geometry2D.JOIN_MITER)), ring])
+	tree_free.append([POW_LOW_C, POW_LOW_R + 1.0])
 	if sites.is_empty() or sites[-1]["key"] != "powisle":
 		return
 	sites[-1]["frame"] = _och_frame(_simplify(q, 0.4))
@@ -8467,11 +8516,12 @@ func _find_powisle() -> void:
 	sites[-1]["platforms"] = plats
 
 
-## The roof's height over the floor at local (u, v): arches at v = +-hv, the sag between them.
+## The roof's height over the floor at local (u, v): the kite sags, its two ends (u = +-hu)
+## turned up, its long sides dipping a little under the middle line (the Mac photo check).
 func _pow_roof(u: float, v: float, hu: float, hv: float) -> float:
 	var s := clampf(u / hu, -1.0, 1.0)
 	var t := clampf(v / hv, -1.0, 1.0)
-	return POW_SPRING + (POW_ARCH - POW_SPRING) * (1.0 - s * s) - POW_SAG * (1.0 - t * t)
+	return POW_SPRING + (POW_ARCH - POW_SPRING) * s * s - POW_SAG * t * t
 
 
 func _build_powisle(site: Dictionary) -> void:
@@ -8495,8 +8545,11 @@ func _pow_upper(f: Array) -> void:
 			g = maxf(g, map.terrain_height(p.x, p.y))
 	_g = g
 	var none := Color(0, 0, 0, 0)
-	# A plinth to the ground on the escarpment's falling side.
-	_prism(_rect(0.0, 0.0, hu, hv), g - 6.0, g, POW_GREY.darkened(0.2), POW_GREY.lightened(0.2), M_STONE, M_STONE)
+	# The base down to the ground on the escarpment's falling side: glazed like the hall.
+	var keep_mode := _mode
+	_prism(_rect(0.0, 0.0, hu, hv), g - 6.0, g, POW_GLASS.darkened(0.1), POW_GREY.lightened(0.2), M_PAVILION, M_STONE)
+	_mode = keep_mode
+	_mullions(_rect(0.0, 0.0, hu, hv), g - 6.0, g, 1.8, 0.05, POW_DARK)
 	# The glass hall, set back under the roof; its tops follow the roof's underside.
 	var iu := hu - POW_INSET
 	var iv := hv - POW_INSET
@@ -8549,20 +8602,31 @@ func _pow_upper(f: Array) -> void:
 			_no_roof = true
 			_quad(top[0] + dn, top[1] + dn, top[2] + dn, top[3] + dn, -nt, POW_GREY.lightened(0.15))
 			_no_roof = keep
-	# The two arches: concrete ribs along the roof's ends, springing from the ground past the
-	# corners, swept as one piece each (chained beams overlap at their joints).
+	# The dark fascia along the roof's long sides, following its sag, swept as one piece each.
 	for side in [-1.0, 1.0]:
-		var v: float = side * (hv + 0.3)
+		var v: float = side * (hv + 0.05)
 		var line: Array[Vector3] = []
-		var foot := _w(-hu - 0.8, v)
-		line.append(Vector3(foot.x, g, foot.y))
 		for k in range(0, 13):
 			var u := -hu + 2.0 * hu * k / 12.0
 			var w := _w(u, v)
-			line.append(Vector3(w.x, g + _pow_roof(u, v, hu, hv) + 0.25, w.y))
-		foot = _w(hu + 0.8, v)
-		line.append(Vector3(foot.x, g, foot.y))
-		_pow_rib(line, Vector3(_b.x, 0.0, _b.y), 0.22, POW_WHITE.darkened(0.05))
+			line.append(Vector3(w.x, g + _pow_roof(u, v, hu, hv) - 0.1, w.y))
+		_pow_rib(line, Vector3(_b.x, 0.0, _b.y), 0.2, POW_DARK)
+	# The blue WARSZAWA POWIŚLE letters over the doors, on the glass side the game's camera sees.
+	var best := -2.0
+	var face := Vector2.ZERO
+	var reach := 0.0
+	for d: Array in [[_a, iu], [-_a, iu], [_b, iv], [-_b, iv]]:
+		var dir: Vector2 = d[0]
+		if dir.dot(BEHIND_FACE) > best:
+			best = dir.dot(BEHIND_FACE)
+			face = dir
+			reach = d[1]
+	var along := Vector2(-face.y, face.x)
+	var k := 0.36
+	for word: Array in [["WARSZAWA", 1.0], ["POWIŚLE", -1.0]]:
+		var w: String = word[0]
+		var at := _o + face * reach + along * (float(word[1]) * (Neon.length_of(w) * k * 0.5 + 0.3))
+		signs.append([w, Vector3(at.x, g + 2.7, at.y), Vector3(face.x, 0.0, face.y), k, POW_BLUE])
 	_collide_span(hall, g - 6.0, g + 4.0)
 
 
@@ -8649,7 +8713,8 @@ func _pow_lower() -> void:
 	var k := minf(0.62 * POW_LOW_R / Neon.length_of("WARSZAWA"), 0.8 / (Neon.ROW_H * Neon.PIXEL))
 	for word: Array in [["WARSZAWA", 1.0], ["POWIŚLE", -1.0]]:
 		var w: String = word[0]
-		var at := c + o * (POW_LOW_R * 0.6) + along * (float(word[1]) * (Neon.length_of(w) * k * 0.5 + 0.4))
+		# Standing on the rim's edge (the Mac photo check: tube letters on top of the rim).
+		var at := c + o * (POW_LOW_R - 1.6) + along * (float(word[1]) * (Neon.length_of(w) * k * 0.5 + 0.4))
 		signs.append([w, Vector3(at.x, g + POW_RIM + 0.05, at.y), Vector3(o.x, 0.0, o.y), k, POW_NEON])
 	_collide(drum)
 

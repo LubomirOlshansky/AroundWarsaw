@@ -66,7 +66,8 @@ then the Launch gate.
       fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
       Mac photo check parked (QUESTIONS)
 - [x] People on the observation decks (F, 2026-11-01): Varso Tower's roof and St Anne's bell tower
-      terrace (with a balustrade), hours, weekends and seasons (`crowds.gd` DECKS)
+      terrace (with a balustrade), the Palace of Culture's 30th-floor terrace (114 m ledge and
+      balustrade, up to 16), hours, weekends and seasons (`crowds.gd` DECKS)
 - [ ] Old Town Market Square leftovers: per-house plaster colours and sgraffito from photos, the
       four corner streets' mouths, a card for the Museum of Warsaw house (BACKLOG "Old Town square")
 - [x] Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle as models, people chilling
@@ -90,6 +91,7 @@ then the Launch gate.
   - [x] R0 design: stations, the cross-city line, trains, 2026-11-01
   - [x] S1 Warszawa Ochota: the hyperbolic paraboloid over the glass hall on its bridge, 2026-11-01
   - [x] S2 Warszawa Powiśle: the kite pavilion, the round saucer pavilion, the X canopies, 2026-11-01
+  - [x] S1/S2 after the Mac photo check: Ochota's saddle and letters, Powiśle's sagging kite, glass base, wide saucer, yellow rim letters, 2026-11-01
   - [ ] L1 track that reads as railway (sleepers, rails, ballast shoulders)
   - [x] L2 catenary masts and wires, 2026-11-01
   - [x] L3 the tunnel's portals at Ochota and Powiśle, 2026-11-01
@@ -97,7 +99,7 @@ then the Launch gate.
   - [x] S3a Warszawa Stadion: the white hall with its sail, the red-and-white mosaic canopies, 2026-11-01
   - [x] S3b Warszawa Śródmieście: the two glass stair pavilions by the Palace, 2026-11-01
   - [ ] S3c-e the other stations: Wschodnia, Gdańska (the map's edges, Mac look first), the WKD entrances
-  - [ ] L4 Most Średnicowy's look (after a Mac photo check)
+  - [x] L4 Most Średnicowy's look: arch-truss spans on stone piers (after the Mac photo check)
 
 - [ ] Roofs across the map (F, 2026-11-01; plan docs/design/roofs.md):
   - [x] RF1-RF3 roof materials, parapets, tenement chimneys, 2026-11-01

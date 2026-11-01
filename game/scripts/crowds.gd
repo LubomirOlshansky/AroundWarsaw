@@ -74,7 +74,7 @@ const POLICE_GAP := 45.0
 const FOOT_REACH := 40.0
 const STEPS_MAX := 80
 const PLAN_C_MAX := 40
-## F's asks (2026-11-01): the observation decks. `at` is where the roof grid is read (Varso) or
+## F's asks (2026-11-01): the observation decks (Varso, St Anne's, PKiN). `at` is where the roof grid is read (Varso) or
 ## the terrace's centre (`top`: the deck's height over the ground, so a mast over it is
 ## flattened away; St Anne's: a square ring, `half` m from the centre along `axis`, at
 ## `up` m over the ground, the bell tower of landmarks.gd `_anna_tower`); `open`/`close` the
@@ -83,6 +83,10 @@ const DECKS := {
 	"varso_deck": {"at": Vector2(-1622.0, 583.0), "max": 14, "open": 10.0, "close": 22.0, "in": 1.6, "top": 234.0},
 	"anna_deck": {"at": Vector2(-689.275, -1379.575), "max": 8, "open": 10.0, "close": 19.0,
 			"half": 5.0, "axis": Vector2(0.985, -0.174), "up": 25.1, "gap": 1.9},
+	# The Palace of Culture's 30th-floor terrace (114 m), the ledge round the shaft of landmarks.gd
+	# `_build_palace`; open 10-18 (*guess*), the busiest of the three.
+	"pkin_terrace": {"at": Vector2(-1214.25, 247.3), "max": 16, "open": 10.0, "close": 18.0,
+			"half": 22.4, "axis": Vector2(0.9403, -0.3404), "up": 114.0, "gap": 3.0},
 }
 const ROOF_MAX := 16
 const DAWN_MIN := 20

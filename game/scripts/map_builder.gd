@@ -566,6 +566,7 @@ func _build_parts(marks, roofs_only: bool) -> void:
 	_build_portals(walls)
 	_build_rail_portals(walls)
 	_build_catenary(walls)
+	_build_srednicowy(walls)
 	_build_garage_doors(walls)
 	_build_guard_rails(walls)
 	_build_shore()
@@ -1628,6 +1629,173 @@ func _mast(st, p: Vector2, out: Vector2, d: Vector2, y: float) -> void:
 	_box_oriented(st, Vector3(mid.x, y + CATENARY_H + 0.35, mid.y), sideways, Vector3(0.12, 0.12, MAST_OUT + 0.4), MAST_COL.darkened(0.15))
 	_box_oriented(st, Vector3(mid.x, y + CATENARY_H + 1.2, mid.y), sideways, Vector3(0.08, 0.08, MAST_OUT + 0.2), MAST_COL.darkened(0.15))
 	_box_oriented(st, Vector3(p.x, y + CATENARY_H + 0.2, p.y), arm, Vector3(0.06, 0.4, 0.06), WIRE_COL)
+
+
+## Railway L4 (Mac photo check 2026-11-01): Most Średnicowy, the cross-city line's bridge over
+## the Vistula. The real one is steel arch-truss spans (a shallow arch for the bottom chord,
+## verticals and diagonals under the deck) on a few massive stone piers; the bake gives it the
+## rows of thin piers every road bridge gets. Over the river and the Praga floodplain those are
+## skipped (`_srednicowy_skips`) and this draws granite piers with cutwaters and the trusses
+## between them, in the walls surface (no new draw calls). Found from the deck piece that starts
+## at MS_A; a bake without it keeps the thin piers.
+const MS_A := Vector2(746.8, -389.1)
+## Along the bridge from MS_A: the stone piers (the bake's pier rows at 96, 172 ... 476 m).
+const MS_PIERS: Array[float] = [96.0, 172.0, 248.0, 324.0, 400.0, 476.0]
+## Across it (from MS_A's track, + towards the north-east side): the four truss planes, two per
+## pair of tracks, and the piers' sides.
+const MS_TRUSS: Array[float] = [-10.9, -3.5, -1.3, 5.7]
+const MS_SIDE := Vector2(-13.0, 7.8)
+const MS_HALF := 3.5        ## half a pier's thickness along the bridge
+const MS_DEPTH_END := 8.0   ## truss depth over a pier (the arch's springing)
+const MS_DEPTH_MID := 2.4   ## and at mid-span (the arch's crown)
+const MS_PANELS := 10
+const MS_STEEL := Color("#58625d")
+const MS_STONE := Color("#a59d90")
+
+
+## The bridge's frame [origin, along, across, deck group], or [] when the bake has no such deck.
+func _srednicowy_frame() -> Array:
+	for d: Dictionary in _decks:
+		if d["k"] != "rail":
+			continue
+		var pts: PackedVector2Array = d["pts"]
+		if pts[0].distance_to(MS_A) < 2.0 and pts[0].distance_to(pts[pts.size() - 1]) > 400.0:
+			var u := (pts[pts.size() - 1] - pts[0]).normalized()
+			return [pts[0], u, Vector2(-u.y, u.x), int(d["g"])]
+	return []
+
+
+## True for a bake pier the stone piers and trusses replace.
+func _srednicowy_skips(f: Array, c: Vector2) -> bool:
+	if f.is_empty():
+		return false
+	var q: Vector2 = c - f[0]
+	var s: float = q.dot(f[1])
+	var t: float = q.dot(f[2])
+	return s > MS_PIERS[0] - 20.0 and s < MS_PIERS[MS_PIERS.size() - 1] + 20.0 and t > MS_SIDE.x - 2.0 and t < MS_SIDE.y + 2.0
+
+
+func _build_srednicowy(st) -> void:
+	var f := _srednicowy_frame()
+	if f.is_empty():
+		return
+	_uv2 = Vector2(0.5, -1.0)
+	var o: Vector2 = f[0]
+	var u: Vector2 = f[1]
+	var n: Vector2 = f[2]
+	var g: int = f[3]
+	var u3 := Vector3(u.x, 0.0, u.y)
+	var n3 := Vector3(n.x, 0.0, n.y)
+	var mid_t := (MS_SIDE.x + MS_SIDE.y) * 0.5
+	for s: float in MS_PIERS:
+		var c := o + u * s + n * mid_t
+		if _in_sector and not _sector_rect.has_point(c):
+			continue
+		var top := deck_height(g, c.x, c.y) - 1.4 - MS_DEPTH_END - 0.45
+		_ms_pier(st, o, u, n, s, top)
+	for k in MS_PIERS.size() - 1:
+		var s0: float = MS_PIERS[k] + MS_HALF
+		var s1: float = MS_PIERS[k + 1] - MS_HALF
+		for t: float in MS_TRUSS:
+			var tops: Array[Vector3] = []
+			var bots: Array[Vector3] = []
+			for i in MS_PANELS + 1:
+				var a := float(i) / MS_PANELS
+				var p := o + u * lerpf(s0, s1, a) + n * t
+				var yt := deck_height(g, p.x, p.y) - 1.4
+				var depth := MS_DEPTH_MID + (MS_DEPTH_END - MS_DEPTH_MID) * pow(2.0 * a - 1.0, 2.0)
+				tops.append(Vector3(p.x, yt, p.y))
+				bots.append(Vector3(p.x, yt - depth, p.y))
+			for i in MS_PANELS:
+				var m := (tops[i] + bots[i + 1]) * 0.5
+				if _in_sector and not _sector_rect.has_point(Vector2(m.x, m.z)):
+					continue  # the sector holding the panel's middle draws it
+				_ms_strut(st, tops[i] + Vector3.DOWN * 0.4, tops[i + 1] + Vector3.DOWN * 0.4, 0.6, 0.8, n3)
+				_ms_strut(st, bots[i], bots[i + 1], 0.7, 0.9, n3)
+				if i > 0:
+					_ms_strut(st, bots[i], tops[i], 0.45, 0.45, n3)
+				# Diagonals falling towards mid-span, as in a Pratt truss.
+				if i * 2 < MS_PANELS:
+					_ms_strut(st, tops[i], bots[i + 1], 0.35, 0.35, n3)
+				else:
+					_ms_strut(st, bots[i], tops[i + 1], 0.35, 0.35, n3)
+			# The end posts over the piers.
+			for i in [0, MS_PANELS]:
+				var e: Vector3 = bots[i]
+				if not _in_sector or _sector_rect.has_point(Vector2(e.x, e.z)):
+					_ms_strut(st, bots[i] + Vector3.DOWN * 0.45, tops[i], 0.7, 0.7, n3)
+		# Cross beams between each pair's two planes at the bottom chord, every other panel point.
+		for pair in [[MS_TRUSS[0], MS_TRUSS[1]], [MS_TRUSS[2], MS_TRUSS[3]]]:
+			for i in range(1, MS_PANELS, 2):
+				var a := float(i) / MS_PANELS
+				var s := lerpf(s0, s1, a)
+				var p0 := o + u * s + n * float(pair[0])
+				var p1 := o + u * s + n * float(pair[1])
+				var pm := (p0 + p1) * 0.5
+				if _in_sector and not _sector_rect.has_point(pm):
+					continue
+				var depth := MS_DEPTH_MID + (MS_DEPTH_END - MS_DEPTH_MID) * pow(2.0 * a - 1.0, 2.0)
+				var y := deck_height(g, pm.x, pm.y) - 1.4 - depth
+				_ms_strut(st, Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), 0.4, 0.5, u3)
+	_uv2 = Vector2.ZERO
+
+
+## A steel member from a to b, w wide (along `side`, horizontal) and h deep.
+func _ms_strut(st, a: Vector3, b: Vector3, w: float, h: float, side: Vector3) -> void:
+	var z := b - a
+	var length := z.length()
+	if length < 0.05:
+		return
+	z /= length
+	var x := (side - z * side.dot(z)).normalized()
+	var basis := Basis(x, z.cross(x), z)
+	_box_oriented(st, (a + b) * 0.5, basis, Vector3(w, h, length), MS_STEEL)
+
+
+## One granite pier at s along the bridge, from below the ground to `top`: a long block across
+## the bridge's whole width with a pointed cutwater at each end, a paler cap, solid for the car.
+func _ms_pier(st, o: Vector2, u: Vector2, n: Vector2, s: float, top: float) -> void:
+	var local := [Vector2(-MS_HALF, MS_SIDE.x), Vector2(0.0, MS_SIDE.x - 2.5), Vector2(MS_HALF, MS_SIDE.x),
+			Vector2(MS_HALF, MS_SIDE.y), Vector2(0.0, MS_SIDE.y + 2.5), Vector2(-MS_HALF, MS_SIDE.y)]
+	var c := o + u * s + n * (MS_SIDE.x + MS_SIDE.y) * 0.5
+	var ground := INF
+	var poly := PackedVector2Array()
+	var cap := PackedVector2Array()
+	for q: Vector2 in local:
+		var p := o + u * (s + q.x) + n * q.y
+		poly.append(p)
+		cap.append(p + (p - c).normalized() * 0.45)
+		ground = minf(ground, terrain_height(p.x, p.y))
+	var y0 := ground - 1.5
+	var y1 := top - 0.7
+	for ring in [[poly, y0, y1, MS_STONE], [cap, y1, top, MS_STONE.lightened(0.12)]]:
+		var pts: PackedVector2Array = ring[0]
+		var lo: float = ring[1]
+		var hi: float = ring[2]
+		var col: Color = ring[3]
+		for i in pts.size():
+			var a := pts[i]
+			var b := pts[(i + 1) % pts.size()]
+			var e := (b - a).normalized()
+			var nn := Vector2(e.y, -e.x)
+			if nn.dot((a + b) * 0.5 - c) < 0.0:
+				nn = -nn
+			# Courses: the shaft in bands a shade apart every 1.2 m, as dressed stone reads.
+			var y := lo
+			var band := 0
+			while y < hi - 0.01:
+				var y2 := minf(y + 1.2, hi) if pts == poly else hi
+				var shade := col.darkened(0.06) if band % 2 == 1 else col
+				_quad(st, Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(b.x, y2, b.y), Vector3(a.x, y2, a.y),
+						Vector3(nn.x, 0.0, nn.y), shade)
+				y = y2
+				band += 1
+		_fill(st, pts, hi, col.lightened(0.05))
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		_wall_faces.append_array([Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, top, b.y),
+				Vector3(a.x, y0, a.y), Vector3(b.x, top, b.y), Vector3(a.x, top, a.y)])
 
 
 ## Loop 3b: a garage door at each ramp top where R9 ended a service way (`garage_doors`): a
@@ -3591,7 +3759,10 @@ func _build_bridge_structures(st) -> void:
 				if (piers or d["k"] == "path" or d["k"] == "tram") and drop2 > 1.0:
 					_wall_faces.append_array([Vector3(k0.x, ya - 0.2, k0.y), Vector3(k1.x, yb - 0.2, k1.y), Vector3(k1.x, yb + 1.6, k1.y),
 							Vector3(k0.x, ya - 0.2, k0.y), Vector3(k1.x, yb + 1.6, k1.y), Vector3(k0.x, ya + 1.6, k0.y)])
+	var ms := _srednicowy_frame()
 	for p: Dictionary in data.get("decks", {}).get("piers", []):
+		if _srednicowy_skips(ms, Vector2(float(p["c"][0]), float(p["c"][1]))):
+			continue  # Most Średnicowy's stone piers stand here (`_build_srednicowy`)
 		_pier(st, p, concrete.darkened(0.1))
 	_uv2 = Vector2.ZERO
 	if not _in_sector:
@@ -4762,6 +4933,16 @@ func _osm_colour(value, fallback: Color) -> Color:
 	return c.lerp(fallback, 0.3)
 
 
+## A landmark keeps this spot clear of trees (landmarks.gd tree_free: Powiśle's saucer).
+func _tree_blocked(x: float, z: float) -> bool:
+	if _marks == null:
+		return false
+	for c: Array in _marks.tree_free:
+		if Vector2(x, z).distance_to(c[0]) < float(c[1]):
+			return true
+	return false
+
+
 func _build_trees() -> void:
 	var list: Array = data.get("trees", [])
 	var canopy: Array = CANOPY_AUTUMN if season == "autumn" else CANOPY_SUMMER
@@ -4773,6 +4954,8 @@ func _build_trees() -> void:
 	for i in range(0, list.size() - 3, 4):
 		var x := float(list[i])
 		var z := float(list[i + 1])
+		if _tree_blocked(x, z):
+			continue
 		var s := float(list[i + 2])
 		var h := fposmod(sin(x * 12.9898 + z * 78.233) * 43758.5453, 1.0)
 		var t := Transform3D(Basis(Vector3.UP, h * TAU).scaled(Vector3(s, s * (0.9 + h * 0.3), s)), Vector3(x, terrain_height(x, z) - 0.2, z))
@@ -4795,6 +4978,8 @@ func _build_trees() -> void:
 	for i in range(0, real.size() - 5, 6):
 		var x := float(real[i])
 		var z := float(real[i + 1])
+		if _tree_blocked(x, z):
+			continue
 		var f := float(crowns[i / 6]) / 100.0 if i / 6 < crowns.size() else 1.0
 		var base := minf(float(real[i + 4]), float(real[i + 2]) - 1.5)
 		var top := base + (float(real[i + 2]) - base) * f
