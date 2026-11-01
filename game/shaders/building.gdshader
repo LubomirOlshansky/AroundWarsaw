@@ -343,6 +343,7 @@ const int S_TILE = 9;
 const int S_EASTWALL = 10;
 const int S_PUNCHED = 11;
 const int S_SLAB = 12;
+const int S_MIRROR = 13;
 
 vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool cut) {
 	glow = vec3(0.0);
@@ -392,6 +393,14 @@ vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool 
 		frame = fract(u / 1.5) < 0.1 || fract(h / fh) < 0.08;
 		frame_col = srgb_to_linear(vec3(0.42, 0.33, 0.2)) * mix(0.3, 1.0, daylight);
 		c = mix(c, col * mix(0.35, 1.0, daylight) * 1.15, 0.6);
+	} else if (s == S_MIRROR) {
+		// The Blue Skyscraper's reflective float glass (1991): plain blue mirror panes, the sky
+		// shining in them in slow streaks, a fine pale-silver spandrel at every floor and a
+		// hairline mullion every 2.4 m (not the gold of its first, copper-tinted cladding).
+		frame = fract(h / fh) < 0.07 || fract(u / 2.4) < 0.04;
+		frame_col = mix(silver, white, 0.3) * 0.92;
+		c = mix(c, sky * mix(0.4, 1.0, daylight), 0.28);
+		c *= 0.9 + 0.2 * value_noise(vec2(u * 0.11, h * 0.025));
 	} else if (s == S_TILE) {
 		// Novotel's shaft (the Rondo photos, 2026-10-31): white tiled panels, a hairline grid
 		// every 3.4 m by one floor, floodlit white at night, a window slit now and then.

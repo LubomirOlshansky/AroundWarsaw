@@ -113,6 +113,17 @@ then the Launch gate.
       Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
+- [ ] Plac Bankowy as in real life (F, 2026-11-02): DONE the Blue Skyscraper in blue mirror glass
+      (new skin S_MIRROR; the gold was its first copper cladding) and the palaces in their real
+      colours (kept skins `ratusz`, `wojewodzki`, `gielda`, `arsenal`, `mniszchow`, `landau`, with
+      cards). Left: pediment and stepped gables on the Treasury palace, the Jabłonowski palace on
+      Plac Teatralny, Mac photo checks (QUESTIONS, BACKLOG "Plac Bankowy")
+- [x] The river's bar barges and houseboats as models (were 14 m boxes in the water): hulls,
+      glazed decks, terraces, umbrellas, festoons, gangways, parody neon names, 2026-11-01
+- [x] The sailing marina in Port Czerniakowski (2026-11-02): club house on piles, 18 sailboats,
+  pier lamps (site `marina`); Marinka as the two-deck white party barge of F's photo
+- [ ] Mac photo check of the marina (club house colours and storeys, berth count)
+- [ ] Mac photo check of the barges (hull colours, deckhouse length and place, the terraces)
 - [ ] Mariensztat and Krakowskie Przedmieście review (F, 2026-11-01; BACKLOG section):
   - [x] M1 Mariensztat's houses in pastel with red tile roofs and dormers, 2026-11-01
   - [x] M2 Rynek Mariensztacki's card and six relief panels, 2026-11-01 (Mac photos for the real reliefs)
