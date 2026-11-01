@@ -586,3 +586,5 @@ backlog. Lasting decisions also go into BACKLOG's "Decided" sections, DEMO.md or
   kept as place names (they are also the halls' trade names); the new tower and museum are
   never named. Rename the halls descriptively ("Hala na Koszykowej")? Default built: kept.
   **Answered 2026-10-30 (F):** kept.
+- **2026-11-02 · gameplay · G12** — Rescues are on the HELI line in the spec, but most calls are street/park rescues the ambulance car does well. Default built: rescue calls follow the vehicle (flying: roof/sandbar, driving: street/park/shore, heli-only ones in violet); the notebook does not list quests yet. Make every rescue heli-only and give the car only jobs? Default built: no.
+- **2026-11-02 · gameplay · G10** — START KURS appears within 25 m of the waiting passenger and boards at once (the car is not auto-braked). Phone check: is a tap enough, or should driving through the ring start it too?
