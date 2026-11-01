@@ -70,6 +70,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | 3.4 | Culture and civic | POLIN, Planetarium, Politechnika's main hall, Zamek Ujazdowski, the palaces (about 40) |
 | 3.5 | Other bridges | Śląsko-Dąbrowski, Gdański, Łazienkowski: generic decks today |
 | 3.6 | Street furniture | kiosks, tram stop platforms, Warsaw's green bins (BACKLOG "next candidates") |
+| 3.7 | The river's barges | DONE 2026-11-01 (L2, sites `barka_wieczor`, `barka_biala`, `barka_marina`, `barka_kaskada`, `houseboats`, spec `barki.md`): the four bar barges OSM maps on the boulevards (were 14 m boxes in the water) as moored barges with raked hulls, glazed deckhouses, sun terraces with umbrellas and bars, festoons of bulbs, gangways to the bank and parody neon names; the nine houseboats with cabins. Mac photo check parked; the barges OSM lacks and the boathouses in BACKLOG "The river's barges" |
 
 **How to run it:** one item per fresh thread (CLAUDE.md "Model routing"), P0 before P1;
 inside P1 by the order above; each item's thread writes its log in `docs/landmarks/<slug>.md`

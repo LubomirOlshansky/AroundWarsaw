@@ -326,6 +326,18 @@ const INFO := {
 	"stadion_pkp": ["Warszawa Stadion",
 			"Przystanek z 1958 roku pod stadionem: biała hala z żaglem i perony w czerwono-białej mozaice.",
 			"A 1958 stop by the stadium: a white hall with a sail and platforms in red-and-white mosaic."],
+	"barka_wieczor": ["Wieczorek nad Wisłą",
+			"Barka-bar pod Starówką: przeszklony dół, taras na dachu, dwa bary i parasole.",
+			"A bar barge below the Old Town: a glazed lower deck, a roof terrace, two bars."],
+	"barka_biala": ["Biała Barka",
+			"Biała barka przy kilometrze 512: food trucki na pokładzie, scena i lampki.",
+			"The white barge at river km 512: food stalls on deck, a stage and fairy lights."],
+	"barka_marina": ["Marinka Warszawka",
+			"Barka w stylu marynarskim między Kopernikiem a kładką. Granat, biel, cień.",
+			"A nautical barge between the Copernicus Centre and the footbridge: navy and white."],
+	"barka_kaskada": ["Kaskadka",
+			"Długa czarna barka koncertowa: industrial, minimalizm i bas słyszalny na Pradze.",
+			"A long black concert barge: industrial, minimal, and bass you can hear in Praga."],
 	"pawilony": ["Pawilony",
 			"Labirynt barów wielkości kiosku za bramą przy Nowym Świecie.",
 			"A maze of kiosk-sized bars behind a gate on Nowy Świat."],
@@ -601,6 +613,8 @@ func _find_sites() -> void:
 	# S2: Warszawa Powiśle's two pavilions and the platform canopies.
 	_find_powisle()
 	_find_stadion_pkp()
+	# The river's bar barges and houseboats (2026-11-01, spec docs/landmarks/specs/barki.md).
+	_find_barges()
 	# Plac Małachowskiego and the Presidential Palace (2026-10-31): models instead of skins.
 	_find_trojca()
 	_find_zacheta()
@@ -961,6 +975,11 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_powisle(s)
 			"stadion_pkp":
 				_build_stadion_pkp(s)
+			"barka_wieczor", "barka_biala", "barka_marina", "barka_kaskada":
+				_build_barge(s)
+			"houseboats":
+				_id = 0  # private homes: no card, not on the picking grid
+				_build_houseboats(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -8545,3 +8564,431 @@ func _stp_canopy(f: Array, hall_c: Vector2, pair_mid: Vector2) -> void:
 	var na := Vector3(_a.x, 0.0, _a.y)
 	_quad(Vector3(d0.x, floor_y - 1.0, d0.y), Vector3(d1.x, floor_y - 1.0, d1.y), Vector3(d1.x, floor_y + 2.2, d1.y), Vector3(d0.x, floor_y + 2.2, d0.y), na, STP_DARK)
 	_collide(sh)
+
+
+# --- The river's barges (2026-11-01, docs/landmarks/specs/barki.md) ---------------------------
+# OpenStreetMap maps the bar barges moored along the Vistula boulevards as buildings of kind
+# "boat" (and the houseboats in the harbour on the right bank as "houseboat"), with no height:
+# the builder drew them as 14 m office blocks standing in the water. Here each becomes a moored
+# barge on its outline's oriented box: a steel hull with raked ends and an antifouling band, a
+# timber deck behind a low bulwark, a glazed deckhouse with a sun terrace on its roof, bars,
+# umbrellas over tables, festoons of warm bulbs on posts, a flag, and a gangway to the bank. The
+# signed ones carry parody names in neon (no real venue's name on a sign or a card).
+
+## OSM name (or "" for the unnamed one) -> site key; the unnamed white barge is told apart by
+## where it lies (the northernmost "boat" by the Old Town, at river km 512).
+const BARGE_NAMES := {"Wieczór nad Wisłą": "barka_wieczor", "Marina Warszawa": "barka_marina", "Kaskada": "barka_kaskada"}
+const BARGE_WHITE_AT := Vector2(-465.0, -1848.0)
+## Per barge: hull, antifouling band, deck timber, the deckhouse's frame, its glass, the roof,
+## the umbrellas, the neon word and tube, where the deckhouse sits along the hull (u0, u1 as
+## fractions of the length from the -u end), and whether its roof is a terrace with umbrellas.
+const BARGE_STYLE := {
+	"barka_wieczor": {"hull": Color("#1f2f4a"), "band": Color("#7a2a22"), "deck": Color("#9a7451"),
+			"frame": Color("#eef0ee"), "glass": Color("#5d7f8f"), "roof": Color("#b48a62"),
+			"brella": Color("#efe6cf"), "word": "WIECZOREK", "tube": Color(1.0, 0.62, 0.25),
+			"house": Vector2(0.38, 0.86), "terrace": true, "stalls": 0},
+	"barka_biala": {"hull": Color("#ecebe6"), "band": Color("#3c4148"), "deck": Color("#a07a55"),
+			"frame": Color("#f4f4f1"), "glass": Color("#6a8894"), "roof": Color("#d8d6cf"),
+			"brella": Color("#ffffff"), "word": "BARKA", "tube": Color(0.25, 0.85, 1.0),
+			"house": Vector2(0.70, 0.95), "terrace": true, "stalls": 3},
+	"barka_marina": {"hull": Color("#f1f2ef"), "band": Color("#1d3557"), "deck": Color("#b08a60"),
+			"frame": Color("#1d3557"), "glass": Color("#5f8193"), "roof": Color("#e9e7e1"),
+			"brella": Color("#22406b"), "word": "MARINKA", "tube": Color(0.3, 0.7, 1.0),
+			"house": Vector2(0.30, 0.78), "terrace": true, "stalls": 0},
+	"barka_kaskada": {"hull": Color("#1c1d1f"), "band": Color("#5b2320"), "deck": Color("#6f5a46"),
+			"frame": Color("#e6e6e2"), "glass": Color("#3d4f58"), "roof": Color("#2a2b2e"),
+			"brella": Color("#26272a"), "word": "KASKADKA", "tube": Color(1.0, 1.0, 1.0),
+			"house": Vector2(0.08, 0.72), "terrace": false, "stalls": 0},
+}
+const BARGE_FREEBOARD := 1.0   # the deck over the water
+const BARGE_DRAFT := 0.5       # the hull's bottom under the water (into the river bed's drape)
+const BARGE_BAND := 0.3        # the antifouling band's top over the water
+const BARGE_HOUSE_H := 2.8     # the deckhouse's glass storey
+const BARGE_ROOF := 0.25       # its roof slab
+const BARGE_RAIL := 1.0        # bulwarks and railings
+const BARGE_GANG_W := 1.4      # the gangway's width
+const BARGE_BULB := Color(1.0, 0.78, 0.42)
+const BARGE_BULB_2 := Color(1.0, 0.55, 0.3)
+const BARGE_POST := Color("#2b2c2f")
+const BARGE_FLAG_W := Color("#f2f2f2")
+const BARGE_FLAG_R := Color("#d4213d")
+const BARGE_STALLS := [Color("#e8b431"), Color("#d4483b"), Color("#3f9a76")]
+## The houseboats' cabins: painted timber.
+const HOUSEBOAT_WALLS := [Color("#6e4f3a"), Color("#4b6b7a"), Color("#c9c1ad"), Color("#7b8a5e"), Color("#9a4d3c")]
+
+
+func _find_barges() -> void:
+	var homes: Array[PackedVector2Array] = []
+	var white_d := INF
+	var white := PackedVector2Array()
+	var named := {}
+	for bld in data.get("buildings", []):
+		var kind := str(bld.get("kind", ""))
+		if kind != "boat" and kind != "houseboat":
+			continue
+		var q := _pts(bld["p"])
+		if q.size() < 3:
+			continue
+		if kind == "houseboat":
+			homes.append(q)
+			continue
+		var name := str(bld.get("name", ""))
+		if BARGE_NAMES.has(name):
+			named[BARGE_NAMES[name]] = q
+		elif name == "" and _centre(q).distance_to(BARGE_WHITE_AT) < white_d:
+			white_d = _centre(q).distance_to(BARGE_WHITE_AT)
+			white = q
+	if white_d < 30.0:
+		named["barka_biala"] = white
+	for key: String in ["barka_wieczor", "barka_biala", "barka_marina", "barka_kaskada"]:
+		if not named.has(key):
+			continue
+		var q: PackedVector2Array = named[key]
+		_add_site(key, [_largest(Geometry2D.offset_polygon(q, 1.0, Geometry2D.JOIN_MITER))])
+		if not sites.is_empty() and sites[-1]["key"] == key:
+			sites[-1]["frame"] = _barge_frame(q)
+	if not homes.is_empty():
+		var zone: Array = []
+		var frames: Array = []
+		for q in homes:
+			zone.append(_largest(Geometry2D.offset_polygon(q, 0.8, Geometry2D.JOIN_MITER)))
+			frames.append(_barge_frame(q))
+		_add_site("houseboats", zone)
+		if not sites.is_empty() and sites[-1]["key"] == "houseboats":
+			sites[-1]["frames"] = frames
+
+
+## An outline's smallest oriented box: [centre, u axis (the long one), v axis, half u, half v].
+func _barge_frame(poly: PackedVector2Array) -> Array:
+	var best := INF
+	var out: Array = []
+	for i in poly.size():
+		var e := poly[(i + 1) % poly.size()] - poly[i]
+		if e.length() < 0.5:
+			continue
+		var a := e.normalized()
+		var b := Vector2(-a.y, a.x)
+		var lo := Vector2(INF, INF)
+		var hi := Vector2(-INF, -INF)
+		for p in poly:
+			var l := Vector2(p.dot(a), p.dot(b))
+			lo = Vector2(minf(lo.x, l.x), minf(lo.y, l.y))
+			hi = Vector2(maxf(hi.x, l.x), maxf(hi.y, l.y))
+		var size := hi - lo
+		if size.x * size.y >= best:
+			continue
+		best = size.x * size.y
+		var c := a * (lo.x + hi.x) * 0.5 + b * (lo.y + hi.y) * 0.5
+		if size.x >= size.y:
+			out = [c, a, b, size.x * 0.5, size.y * 0.5]
+		else:
+			out = [c, b, -a, size.y * 0.5, size.x * 0.5]
+	return out
+
+
+## Set the local frame from a barge's box and return the water's level under it (the lowest
+## ground under its corners and centre: the river's drape, not the bank's).
+func _barge_set(f: Array) -> float:
+	_o = f[0]
+	_a = f[1]
+	_b = f[2]
+	var hu: float = f[3]
+	var hv: float = f[4]
+	var g := INF
+	for p in [_w(0.0, 0.0), _w(-hu, -hv), _w(hu, -hv), _w(hu, hv), _w(-hu, hv)]:
+		g = minf(g, map.terrain_height(p.x, p.y))
+	_g = g
+	return g
+
+
+## The hull's plan: the box with its ends raked (chamfered corners).
+func _barge_hull(hu: float, hv: float, r: float) -> PackedVector2Array:
+	return PackedVector2Array([_w(-hu, -hv + r), _w(-hu + r, -hv), _w(hu - r, -hv), _w(hu, -hv + r),
+			_w(hu, hv - r), _w(hu - r, hv), _w(-hu + r, hv), _w(-hu, hv - r)])
+
+
+## Which long side faces the bank (+1 or -1): the side whose points lie less far into the water.
+func _barge_shore_side(hu: float, hv: float) -> float:
+	if not map.has_method("shore_distance"):
+		return 1.0
+	var plus := 0.0
+	var minus := 0.0
+	for u in [-hu * 0.5, 0.0, hu * 0.5]:
+		var p := _w(u, hv + 4.0)
+		var m := _w(u, -hv - 4.0)
+		plus += map.shore_distance(p.x, p.y)
+		minus += map.shore_distance(m.x, m.y)
+	return 1.0 if plus <= minus else -1.0
+
+
+## A low wall (a bulwark, a railing) round a local rectangle, `t` thick, with a gap from gu0 to
+## gu1 on the side v = gs * v1 (gs 0: none). The long sides run the whole length, the ends fit
+## between them, so no two tops overlap.
+func _barge_rail(u0: float, u1: float, v0: float, v1: float, y: float, h: float, t: float, col: Color,
+		gs := 0.0, gu0 := 0.0, gu1 := 0.0) -> void:
+	var top := col.lightened(0.1)
+	for side: float in [-1.0, 1.0]:
+		var vc := (v1 - t * 0.5) if side > 0.0 else (v0 + t * 0.5)
+		if gs != 0.0 and signf(gs) == side and gu1 > gu0:
+			if gu0 - u0 > 0.3:
+				_lbox((u0 + gu0) * 0.5, vc, (gu0 - u0) * 0.5, t * 0.5, y, y + h, col, M_STONE, top)
+			if u1 - gu1 > 0.3:
+				_lbox((gu1 + u1) * 0.5, vc, (u1 - gu1) * 0.5, t * 0.5, y, y + h, col, M_STONE, top)
+		else:
+			_lbox((u0 + u1) * 0.5, vc, (u1 - u0) * 0.5, t * 0.5, y, y + h, col, M_STONE, top)
+	for end: float in [-1.0, 1.0]:
+		var uc := (u1 - t * 0.5) if end > 0.0 else (u0 + t * 0.5)
+		_lbox(uc, (v0 + v1) * 0.5, t * 0.5, (v1 - v0) * 0.5 - t, y, y + h, col, M_STONE, top)
+
+
+## A café umbrella over a small table at a local spot: the table, the pole, an eight-sided canopy.
+func _barge_umbrella(u: float, v: float, y: float, r: float, col: Color) -> void:
+	var none := Color(0, 0, 0, 0)
+	_lbox(u, v, 0.35, 0.35, y, y + 0.75, Color("#3a3029"), M_STONE, Color("#5a4a3c"))
+	_prism(_rect(u, v, 0.04, 0.04), y + 0.75, y + 2.3, BARGE_POST, none, M_STONE)
+	_mode = M_STONE
+	var ring := _circle(_w(u, v), r, 8)
+	_pyramid(ring, y + 2.15, y + 2.6, col)
+
+
+## A bar counter at a local spot (half sizes hu, hv): dark timber under a light top.
+func _barge_bar(u: float, v: float, hu: float, hv: float, y: float, wood: Color) -> void:
+	_lbox(u, v, hu, hv, y, y + 1.1, wood.darkened(0.35), M_STONE, wood.lightened(0.25))
+
+
+## A festoon of warm bulbs from p to q, sagging `sag` in the middle: the wire in short pieces
+## and a bulb at every joint (they glow at night: M_LAMP).
+func _barge_festoon(p: Vector3, q: Vector3, sag: float, n: int) -> void:
+	var prev := p
+	for k in range(1, n + 1):
+		var t := float(k) / n
+		var at := p.lerp(q, t) - Vector3.UP * sag * 4.0 * t * (1.0 - t)
+		_beam(prev, at, 0.03, BARGE_POST, false)
+		if k < n:
+			var keep := _mode
+			_mode = M_LAMP
+			var col := BARGE_BULB if k % 2 == 0 else BARGE_BULB_2
+			var sq := PackedVector2Array([Vector2(at.x - 0.07, at.z - 0.07), Vector2(at.x + 0.07, at.z - 0.07),
+					Vector2(at.x + 0.07, at.z + 0.07), Vector2(at.x - 0.07, at.z + 0.07)])
+			_prism(sq, at.y - 0.16, at.y - 0.02, col, col, M_LAMP, M_LAMP)
+			_mode = keep
+		prev = at
+
+
+## A post for the festoons at a local spot, from y up h.
+func _barge_post(u: float, v: float, y: float, h: float) -> Vector3:
+	_prism(_rect(u, v, 0.05, 0.05), y, y + h, BARGE_POST, BARGE_POST, M_STONE, M_STONE)
+	var p := _w(u, v)
+	return Vector3(p.x, y + h, p.y)
+
+
+## The gangway from the deck's edge at u on side s out to the bank: a timber ramp with two
+## handrails, from the first dry point the water map knows (4 m when it knows none).
+func _barge_gangway(u: float, s: float, hv: float, deck: float) -> void:
+	var reach := 4.0
+	var bank := deck
+	if map.has_method("shore_distance"):
+		var t := 0.5
+		while t <= 24.0:
+			var p := _w(u, s * (hv + t))
+			if map.shore_distance(p.x, p.y) <= 0.05:
+				reach = t + 1.0
+				var e := _w(u, s * (hv + reach))
+				bank = clampf(map.terrain_height(e.x, e.y) + 0.05, deck - 1.5, deck + 2.5)
+				break
+			t += 0.5
+	var w := BARGE_GANG_W * 0.5
+	var a0 := _w(u - w, s * hv)
+	var a1 := _w(u + w, s * hv)
+	var b0 := _w(u - w, s * (hv + reach))
+	var b1 := _w(u + w, s * (hv + reach))
+	var p0 := Vector3(a0.x, deck + 0.05, a0.y)
+	var p1 := Vector3(a1.x, deck + 0.05, a1.y)
+	var q0 := Vector3(b0.x, bank, b0.y)
+	var q1 := Vector3(b1.x, bank, b1.y)
+	var up := (q0 - p0).cross(p1 - p0).normalized()
+	if up.y < 0.0:
+		up = -up
+	var down := Vector3.UP * 0.18
+	var wood := Color("#8a6a4c")
+	_mode = M_STONE
+	_quad(p0, p1, q1, q0, up, wood)
+	var side := Vector3(_a.x, 0.0, _a.y)
+	_quad(p0 - down, q0 - down, q0, p0, -side, wood.darkened(0.3))
+	_quad(p1 - down, q1 - down, q1, p1, side, wood.darkened(0.3))
+	for e: Array in [[p0, q0], [p1, q1]]:
+		var ps: Vector3 = e[0]
+		var qs: Vector3 = e[1]
+		_beam(ps, ps + Vector3.UP * 1.0, 0.05, BARGE_POST)
+		_beam(qs, qs + Vector3.UP * 1.0, 0.05, BARGE_POST)
+		_beam(ps + Vector3.UP * 1.0, qs + Vector3.UP * 1.0, 0.05, Color("#c9ccd0"))
+
+
+func _build_barge(site: Dictionary) -> void:
+	var f: Array = site["frame"]
+	var sty: Dictionary = BARGE_STYLE[site["key"]]
+	var g := _barge_set(f)
+	var hu: float = f[3]
+	var hv: float = f[4]
+	var none := Color(0, 0, 0, 0)
+	var deck := g + BARGE_FREEBOARD
+	var r := minf(1.6, hv * 0.4)
+	# The hull: the antifouling band at the waterline, the hull's paint, the timber deck.
+	var hull := _barge_hull(hu, hv, r)
+	_prism(hull, g - BARGE_DRAFT, g + BARGE_BAND, sty["band"], none, M_STONE)
+	_prism(hull, g + BARGE_BAND, deck, sty["hull"], sty["deck"], M_STONE, M_STONE)
+	_collide(hull)
+	var s := _barge_shore_side(hu, hv)
+	# The deckhouse: glass between the frame's mullions, the roof slab on a small overhang.
+	var hs: Vector2 = sty["house"]
+	var u0 := -hu + 2.0 * hu * hs.x
+	var u1 := -hu + 2.0 * hu * hs.y
+	var hvh := hv - 0.8
+	var house := _rect((u0 + u1) * 0.5, 0.0, (u1 - u0) * 0.5, hvh)
+	var top := deck + BARGE_HOUSE_H
+	_prism(house, deck, top, sty["glass"], none, M_PAVILION)
+	_mode = M_STONE
+	_mullions(house, deck, top, 1.8, 0.05, sty["frame"])
+	var roof := _rect((u0 + u1) * 0.5, 0.0, (u1 - u0) * 0.5 + 0.25, hvh + 0.25)
+	_prism(roof, top, top + BARGE_ROOF, sty["frame"], sty["roof"], M_STONE, M_STONE)
+	var terr := top + BARGE_ROOF
+	# The open deck's bulwark round the hull, a gap for the gangway on the bank's side.
+	var gu := (-hu + r + u0) * 0.5 if u0 + hu > 5.0 else (u1 + hu - r) * 0.5
+	var gw := BARGE_GANG_W * 0.5 + 0.1
+	var rail: Color = (sty["hull"] as Color).lightened(0.06) if (sty["hull"] as Color).v < 0.5 else sty["band"]
+	_barge_rail(-hu + r, hu - r, -hv + 0.05, hv - 0.05, deck, BARGE_RAIL, 0.12, rail,
+			s, gu - gw, gu + gw)
+	_barge_gangway(gu, s, hv, deck)
+	# The open decks either side of the deckhouse: tables under umbrellas, a bar on the longer one.
+	var fore := Vector2(-hu + r + 0.6, u0 - 0.5)
+	var aft := Vector2(u1 + 0.5, hu - r - 0.6)
+	var big := fore if fore.y - fore.x >= aft.y - aft.x else aft
+	for span: Vector2 in [fore, aft]:
+		var length := span.y - span.x
+		if length < 3.5:
+			continue
+		var stalls: int = sty["stalls"] if span == big else 0
+		if span == big:
+			# The bar across the open deck's house end, its back to the deckhouse.
+			var bu := span.y - 0.8 if span == fore else span.x + 0.8
+			_barge_bar(bu, 0.0, 0.35, minf(hv - 1.6, 2.4), deck, sty["deck"])
+		# Food stalls along the bank's side (the white barge): coloured kiosks with a lit hatch.
+		for k in stalls:
+			var su := span.x + 1.6 + k * 3.6
+			if su + 1.4 > span.y - 2.0:
+				break
+			var col: Color = BARGE_STALLS[k % BARGE_STALLS.size()]
+			_lbox(su, -s * (hv - 1.4), 1.3, 0.9, deck, deck + 2.4, col, M_STONE, col.darkened(0.15))
+			var h0 := _w(su - 0.8, -s * (hv - 2.35))
+			var h1 := _w(su + 0.8, -s * (hv - 2.35))
+			var keep := _mode
+			_mode = M_LAMP
+			_quad(Vector3(h0.x, deck + 1.0, h0.y), Vector3(h1.x, deck + 1.0, h1.y), Vector3(h1.x, deck + 1.9, h1.y),
+					Vector3(h0.x, deck + 1.9, h0.y), Vector3(_b.x, 0.0, _b.y) * s, BARGE_BULB)
+			_mode = keep
+		# Tables under umbrellas in a row or two.
+		var start := span.x + (1.6 + stalls * 3.6 if stalls > 0 else 1.6)
+		var stop := span.y - (2.2 if span == big else 1.4)
+		var rows: Array = [0.0] if hv < 4.0 else [-hv * 0.45, hv * 0.45]
+		if stalls > 0:
+			rows = [s * hv * 0.3]
+		var u := start
+		while u <= stop:
+			for v: float in rows:
+				_barge_umbrella(u, v, deck, minf(1.3, hv * 0.38), sty["brella"])
+			u += 3.2
+		# The festoons over this deck: posts at its outer corners, strings to the deckhouse.
+		var outer := span.x + 0.3 if span == fore else span.y - 0.3
+		var inner := span.y if span == fore else span.x
+		var pa := _barge_post(outer, -hv + 0.35, deck + BARGE_RAIL, 2.2)
+		var pb := _barge_post(outer, hv - 0.35, deck + BARGE_RAIL, 2.2)
+		var ia := _w(inner, -hvh)
+		var ib := _w(inner, hvh)
+		_barge_festoon(pa, pb, 0.35, 6)
+		_barge_festoon(pa, Vector3(ib.x, top - 0.1, ib.y), 0.5, 7)
+		_barge_festoon(pb, Vector3(ia.x, top - 0.1, ia.y), 0.5, 7)
+	# The roof: a sun terrace behind a railing (umbrellas and a bar), or a plain roof with the
+	# festoons strung over it on four posts.
+	var tu0 := u0 - 0.15
+	var tu1 := u1 + 0.15
+	var tv := hvh + 0.15
+	if sty["terrace"]:
+		_barge_rail(tu0, tu1, -tv, tv, terr, BARGE_RAIL, 0.08, sty["frame"])
+		_barge_bar(tu1 - 1.0, 0.0, 0.3, minf(tv - 1.0, 2.0), terr, sty["deck"])
+		var u := tu0 + 1.8
+		while u <= tu1 - 2.8:
+			for v: float in ([0.0] if hv < 4.0 else [-tv * 0.5, tv * 0.5]):
+				_barge_umbrella(u, v, terr, minf(1.2, tv * 0.42), sty["brella"])
+			u += 3.4
+	var posts: Array[Vector3] = []
+	for c: Vector2 in [Vector2(tu0 + 0.3, -tv + 0.3), Vector2(tu1 - 0.3, -tv + 0.3), Vector2(tu1 - 0.3, tv - 0.3), Vector2(tu0 + 0.3, tv - 0.3)]:
+		posts.append(_barge_post(c.x, c.y, terr, 2.6))
+	var n := maxi(5, roundi((tu1 - tu0) / 2.5))
+	_barge_festoon(posts[0], posts[1], 0.45, n)
+	_barge_festoon(posts[3], posts[2], 0.45, n)
+	_barge_festoon(posts[0], posts[2], 0.6, n + 1)
+	# A flagpole at the -u end with the white-and-red flag.
+	var fp := _barge_post(-hu + r + 0.4, 0.0, deck, 4.2)
+	var fd := Vector3(_b.x, 0.0, _b.y) * 1.2
+	_mode = M_STONE
+	var nf := Vector3(_a.x, 0.0, _a.y)
+	_quad(fp - Vector3.UP * 0.4, fp - Vector3.UP * 0.4 + fd, fp + fd, fp, nf, BARGE_FLAG_W)
+	_quad(fp - Vector3.UP * 0.8, fp - Vector3.UP * 0.8 + fd, fp - Vector3.UP * 0.4 + fd, fp - Vector3.UP * 0.4, nf, BARGE_FLAG_R)
+	# The name in neon standing on the roof's edge, on the face the game's camera sees most
+	# (BEHIND_FACE, as the other landmarks' signs): on the river's north-south run that is the
+	# deckhouse's southern end, read by whoever drives up the boulevard.
+	var word: String = sty["word"]
+	var best := -INF
+	var at := Vector2.ZERO
+	var out := Vector2.ZERO
+	var room := 0.0
+	for face: Array in [[_a, _w(u1 + 0.11, 0.0), 2.0 * hvh], [-_a, _w(u0 - 0.11, 0.0), 2.0 * hvh],
+			[_b, _w((u0 + u1) * 0.5, hvh + 0.11), u1 - u0], [-_b, _w((u0 + u1) * 0.5, -hvh - 0.11), u1 - u0]]:
+		var d := (face[0] as Vector2).dot(BEHIND_FACE)
+		if d > best:
+			best = d
+			out = face[0]
+			at = face[1]
+			room = face[2]
+	var k := minf(0.5, (room - 1.0) / Neon.length_of(word))
+	var nrm := Vector3(out.x, 0.0, out.y)
+	var base := terr + (BARGE_RAIL if sty["terrace"] else 0.0)
+	signs.append([word, Vector3(at.x, base + 0.02, at.y), nrm, k, sty["tube"]])
+
+
+## The houseboats: a short steel hull, a timber cabin with a band of windows and a flat roof on a
+## small overhang, a railing round the open deck at one end.
+func _build_houseboats(site: Dictionary) -> void:
+	var none := Color(0, 0, 0, 0)
+	var i := 0
+	for f: Array in site["frames"]:
+		var g := _barge_set(f)
+		_walls.clear()
+		_caps.clear()
+		var hu: float = f[3]
+		var hv: float = f[4]
+		var deck := g + 0.6
+		var r := minf(0.9, hv * 0.35)
+		var hull := _barge_hull(hu, hv, r)
+		_prism(hull, g - 0.4, g + 0.15, Color("#3a2b26"), none, M_STONE)
+		_prism(hull, g + 0.15, deck, Color("#2d3238"), Color("#8f7255"), M_STONE, M_STONE)
+		_collide(hull)
+		var wall: Color = HOUSEBOAT_WALLS[i % HOUSEBOAT_WALLS.size()]
+		i += 1
+		var c0 := -hu + r + maxf(1.5, hu * 0.5)
+		var c1 := hu - r * 0.5
+		var cv := hv - 0.35
+		var cab := _rect((c0 + c1) * 0.5, 0.0, (c1 - c0) * 0.5, cv)
+		_prism(cab, deck, deck + 2.5, wall, none, M_STONE)
+		# The windows: a glass band proud of the long walls (lit at night).
+		for sd: float in [-1.0, 1.0]:
+			var w0 := _w(c0 + 0.6, sd * (cv + 0.03))
+			var w1 := _w(c1 - 0.6, sd * (cv + 0.03))
+			var keep := _mode
+			_mode = M_PAVILION
+			_quad(Vector3(w0.x, deck + 0.9, w0.y), Vector3(w1.x, deck + 0.9, w1.y), Vector3(w1.x, deck + 2.0, w1.y),
+					Vector3(w0.x, deck + 2.0, w0.y), Vector3(_b.x, 0.0, _b.y) * sd, Color("#6b8794"))
+			_mode = keep
+		_prism(_rect((c0 + c1) * 0.5, 0.0, (c1 - c0) * 0.5 + 0.3, cv + 0.3), deck + 2.5, deck + 2.7,
+				wall.darkened(0.3), Color("#3b3f44"), M_STONE, M_STONE)
+		_barge_rail(-hu + r, c0 - 0.05, -hv + 0.05, hv - 0.05, deck, 0.9, 0.06, Color("#c9ccd0"))

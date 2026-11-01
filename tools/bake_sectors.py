@@ -115,6 +115,8 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               # HOTEL PIURE's rooftop sign LUŹNO (landmarks.gd _build_piure_sign reads its parts' height)
               "Puro Warszawa Centrum"]
 SITE_PAD = 12.0
+# Building kinds landmarks.gd finds wherever they lie (the barges, 2026-11-01: _find_barges).
+SITE_KINDS = ("boat", "houseboat")
 SITE_AREAS = [
     (1250.0, -820.0, 1700.0, -370.0),       # Stadion Narodowy's masts (Rect2(1250, -820, 450, 450))
     (-1520.0, 472.5, -1320.0, 672.5),       # Warszawa Centralna (CENTRALNA ± its 146 x 92 m zone)
@@ -467,7 +469,8 @@ def main(map_dir):
             continue
         cx = sum(p[0::2]) / (len(p) // 2)
         cz = sum(p[1::2]) / (len(p) // 2)
-        if any(a[0] <= cx <= a[2] and a[1] <= cz <= a[3] for a in named + SITE_AREAS):
+        # The river's barges and houseboats (landmarks.gd _find_barges reads them by kind).
+        if bld.get("kind") in SITE_KINDS or any(a[0] <= cx <= a[2] and a[1] <= cz <= a[3] for a in named + SITE_AREAS):
             site_parts.append(bld)
     index["site_parts"] = site_parts
     index["sectors"] = {"size": SECTOR, "margin": MARGIN, "point_margin": POINT_MARGIN,

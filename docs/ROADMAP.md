@@ -64,6 +64,9 @@ then the Launch gate.
       Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
+- [x] The river's bar barges and houseboats as models (were 14 m boxes in the water): hulls,
+      glazed decks, terraces, umbrellas, festoons, gangways, parody neon names, 2026-11-01
+- [ ] Mac photo check of the barges (hull colours, deckhouse length and place, the terraces)
 
 - [ ] The railway (F, 2026-11-01; plan docs/design/railway.md):
   - [x] R0 design: stations, the cross-city line, trains, 2026-11-01
