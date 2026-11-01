@@ -258,12 +258,12 @@ plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 check
   builder COL "foot" #dddcd6, ground.gdshader layer 4), as Warsaw's pavements are, not sand;
   cycle paths were already brick red. Plazas keep their granite beige. Parked in QUESTIONS: the
   wider pavements drawn as ground/plaza areas are still beige.
-- **Open:** R3 part 2:
-  pavements and kerbs, red asphalt cycle paths, Złota's setts and elm alley, the fountain at the
+- **R6 done 2026-11-01**: the trends thread's MACZA already stands in Pasaż Wiecha behind Sawa;
+  four KEBAB FM host lines and two passenger lines joined dialogue.json (the stores to let, the
+  two-storey Frogs, Plac Centralny's vanished tenements, the matcha queue, Scena Relax).
+- **Open:** R3 part 2: granite kerbs, Złota's setts and elm alley, the fountain at the
   old tunnel mouth, the three new crossings (orthophoto check on the Mac); R5 Scena Relax,
-  Zodiak and the Cepelia pavilion as models; R6 one of the trend spots (built by the trends thread,
-  docs/design/trends-2025-26.md) inside the start box and lines about the empty stores and Frogs
-  XXL; R7 street name plates, a bike dock, tram
+  Zodiak and the Cepelia pavilion as models; R7 street name plates, a bike dock, tram
   stops, bollards; R8 the museum's ribbon in stretches and the stepped roofline.
 - Found: the cloud can't read Wykop (login wall) or Commons (403); the trends come from Google's
   2025 year in search and the trade press. A Mac pass could add Wykop's own tags.
