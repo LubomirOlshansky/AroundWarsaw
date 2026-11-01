@@ -78,6 +78,8 @@ Newest first. One entry per question.
   plaster colours, the statue's pose (sword hand, shield side, which way she faces), the rim
   wall against the mapped pond, whether Varso's visitors stand on the crown's roof. Photos of
   the square's four sides (one per house front) would let the plaster colours be set per house.
+- **2026-11-02 · content · the Zagłębie's names and Femina** — Default to build: KEBAB KRÓL MAZOWSZA, STAMBUŁ 24, DONER PASZA, U WUJKA ERDALA and the craft ZAKWAS I ROŻEN (spec `zaglebie-kebabowe.md`, section 2); Kino Femina keeps its real name with a red KINO / FEMINA fascia on the mapped building. Say if you want other names, or if the real shops' names should show instead. The Mac photo check of Femina's front is parked (BACKLOG).
+
 - **2026-11-01 · content · the Norblin milk bar's name** — Default to build: **KROWA 2.0** (a bar
   mleczny rebuilt as a start-up, sign "BAR MLECZNY / KROWA 2.0", pale-blue tube, open 8-18 with a
   long lunch line). Say if you want another name. Also parked: the Mac look check of the four
