@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- St Alexander's church on Plac Trzech Krzyży is a real rotunda now: a round drum with tall windows, a green dome with a lantern and a cross, and a six-column portico under a pediment on both ends.
 - The Staszic Palace on Krakowskie Przedmieście has a columned portico under a pediment, a stone cornice, and Copernicus sits in bronze on his granite pedestal in front of it.
 - The Holy Cross church on Krakowskie Przedmieście has its baroque front: four tall columns, a pediment, and two towers with green copper onion domes and gilt crosses.
 - The Royal Castle is paler and pinker, like its plaster in life (it was brick-red with near-black roofs), and stands on a pale stone plinth.
