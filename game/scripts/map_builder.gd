@@ -5089,6 +5089,7 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 				(grid[key] as Array).append(k)
 	if polys.is_empty():
 		return [col, uv2, dress]
+	var covered := _gable_ends(pos, nrm)
 	for t in range(0, pos.size(), 3):
 		if dropped[t / 3] or uv2[t].x >= 1.0 or col[t].a < 0.9 or nrm[t].y > 0.95 or nrm[t].y < -0.3:
 			continue  # a landmark's, glass, a flat roof or an underside
@@ -5112,11 +5113,90 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 					var extra := OldTownRoofs.dress(pos[t], pos[t + 1], pos[t + 2], nrm[t], looks[k], roofs[k],
 							fposmod(seeds[k] + t * 0.0137, 1.0))
 					if not extra.is_empty():
-						(dress["pos"] as PackedVector3Array).append_array(extra["pos"])
-						(dress["nrm"] as PackedVector3Array).append_array(extra["nrm"])
-						(dress["col"] as PackedColorArray).append_array(extra["col"])
+						_add_dress(dress, extra)
+				else:
+					_square_gables(pos, nrm, t, polys, grid, cell, looks, seeds, covered, dress)
 				break
 	return [col, uv2, dress]
+
+
+## Appends `extra` ("pos", "nrm", "col") to `dress`. Packed arrays are copies when read out of
+## a Dictionary, so they are written back.
+func _add_dress(dress: Dictionary, extra: Dictionary) -> void:
+	for key: String in ["pos", "nrm", "col"]:
+		var merged = dress[key]
+		merged.append_array(extra[key])
+		dress[key] = merged
+
+
+## The key of a horizontal edge (both ends at one height), ends in either order.
+func _edge_key(p: Vector3, q: Vector3) -> String:
+	var a := "%d,%d,%d" % [roundi(p.x * 10.0), roundi(p.y * 10.0), roundi(p.z * 10.0)]
+	var b := "%d,%d,%d" % [roundi(q.x * 10.0), roundi(q.y * 10.0), roundi(q.z * 10.0)]
+	return a + ">" + b if a < b else b + ">" + a
+
+
+## The horizontal wall edges round the Old Town square that have a triangle ABOVE them (a real
+## LoD2 gable end or a taller storey): those take no stepped gable. Returns {key: true}.
+func _gable_ends(pos: PackedVector3Array, nrm: PackedVector3Array) -> Dictionary:
+	var covered := {}
+	for t in range(0, pos.size(), 3):
+		if absf(nrm[t].y) > 0.3 or not _near_square(Vector2(pos[t].x, pos[t].z)):
+			continue
+		for i in 3:
+			var p := pos[t + i]
+			var q := pos[t + (i + 1) % 3]
+			var o := pos[t + (i + 2) % 3]
+			if absf(p.y - q.y) < 0.02 and o.y > p.y + 0.3:
+				covered[_edge_key(p, q)] = true
+	return covered
+
+
+func _near_square(at: Vector2) -> bool:
+	var d := at.distance_to(OldTownRoofs.RYNEK)
+	return d > OldTownRoofs.GABLE_NEAR and d < OldTownRoofs.GABLE_FAR
+
+
+## Stepped gables (OldTownRoofs.gable) on the top edge of a wall triangle `t` of a house round
+## the Old Town market square's east side, facing the square: one per house-width bay. Their
+## triangles join `dress` (the walls' own tile meshes, so no draw call is added).
+func _square_gables(pos: PackedVector3Array, nrm: PackedVector3Array, t: int, polys: Array[PackedVector2Array],
+		grid: Dictionary, cell: float, looks: Array[Color], seeds: Array[float], covered: Dictionary,
+		dress: Dictionary) -> void:
+	var n := Vector3(nrm[t].x, 0.0, nrm[t].z)
+	if n.length() < 0.9:
+		return  # a sloped wall: not a plain front
+	n = n.normalized()
+	for i in 3:
+		var p := pos[t + i]
+		var q := pos[t + (i + 1) % 3]
+		var o := pos[t + (i + 2) % 3]
+		if absf(p.y - q.y) > 0.02 or o.y > p.y - 0.5:
+			continue  # not a top edge
+		var mid := (p + q) * 0.5
+		var at := Vector2(mid.x, mid.z)
+		# East side only (right of the square's centre), the front turned towards the square.
+		if not _near_square(at) or at.x < OldTownRoofs.RYNEK.x + 8.0 or covered.has(_edge_key(p, q)):
+			continue
+		if n.dot(Vector3(OldTownRoofs.RYNEK.x - mid.x, 0.0, OldTownRoofs.RYNEK.y - mid.z).normalized()) < 0.6:
+			continue
+		var length := p.distance_to(q)
+		var bays := maxi(1, roundi(length / OldTownRoofs.GABLE_BAY))
+		for k in bays:
+			var a := p.lerp(q, float(k) / bays)
+			var b := p.lerp(q, float(k + 1) / bays)
+			var bm := (a + b) * 0.5
+			var probe := Vector2(bm.x, bm.z) - Vector2(n.x, n.z)
+			var wall := Color("#d9c9a8")
+			var seed := fposmod(float(k) * 0.37 + bm.x * 0.013, 1.0)
+			for h in grid.get(Vector2i(floori(probe.x / cell), floori(probe.y / cell)), []):
+				if Geometry2D.is_point_in_polygon(probe, polys[h]):
+					wall = looks[h]
+					seed = seeds[h]
+					break
+			var extra := OldTownRoofs.gable(a, b, n, wall, seed)
+			if not extra.is_empty():
+				_add_dress(dress, extra)
 
 
 ## Whether a point is within `slack` metres of a historic district (HISTORIC).

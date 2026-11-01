@@ -42,6 +42,42 @@ func _initialize() -> void:
 	_expect(OldTownRoofs.dress(p0, p0 + Vector3(2, 0, 0), p0 + Vector3(0, 1, 2), n, wall, tile, 0.3).is_empty(), "small: none")
 	_expect(OldTownRoofs.dress(p0, p1, p0 + Vector3(6, 0.01, 0.4), n, wall, tile, 0.3).is_empty(), "thin: none")
 	_expect(OldTownRoofs.dress(p0, p1, p2, Vector3.UP, wall, tile, 0.3).is_empty(), "flat: none")
+	# Stepped gables: a 9 m front facing +z on a wall top at y = 12.
+	var ga := Vector3(0, 12, 0)
+	var gb := Vector3(9, 12, 0)
+	var gn := Vector3(0, 0, 1)
+	for sd in [0.1, 0.6]:
+		var g := OldTownRoofs.gable(ga, gb, gn, wall, sd)
+		_expect(not g.is_empty(), "a 9 m front takes a gable")
+		var gp: PackedVector3Array = g["pos"]
+		var gm: PackedVector3Array = g["nrm"]
+		_expect(gp.size() % 3 == 0 and gp.size() == gm.size() and gp.size() <= 300, "gable arrays agree, stay small (%d vertices)" % gp.size())
+		var top := 0.0
+		for i in gp.size():
+			top = maxf(top, gp[i].y - 12.0)
+			_expect(gp[i].y >= 11.99 and gp[i].x >= -0.01 and gp[i].x <= 9.01, "gable stays on its wall: %s" % gp[i])
+			_expect(gp[i].z > -0.5 and gp[i].z < 0.2, "gable thin and at the wall: %s" % gp[i])
+		_expect(top > 2.5 and top < 5.0, "gable rises 2.5 to 5 m (%.1f)" % top)
+		for t in range(0, gp.size(), 3):
+			var gf := (gp[t + 1] - gp[t]).cross(gp[t + 2] - gp[t]).normalized()
+			_expect(gf.dot(gm[t]) > 0.99, "gable winding matches the normal")
+	_expect(OldTownRoofs.gable(ga, ga + Vector3(3, 0, 0), gn, wall, 0.3).is_empty(), "a 3 m front takes none")
+	# Through the builder: a 20 m east-side wall facing the square takes gables in the dress arrays.
+	var mb = load("res://scripts/map_builder.gd").new()
+	var wp := PackedVector3Array([Vector3(-760, 0, -1780), Vector3(-760, 0, -1760), Vector3(-760, 14, -1760),
+			Vector3(-760, 0, -1780), Vector3(-760, 14, -1760), Vector3(-760, 14, -1780)])
+	var wn := PackedVector3Array()
+	var wc := PackedColorArray()
+	var wu := PackedVector2Array()
+	for i in 6:
+		wn.append(Vector3(-1, 0, 0))
+		wc.append(Color.WHITE)
+		wu.append(Vector2.ZERO)
+	mb.data = {"buildings": [{"p": [-766, -1782, -754, -1782, -754, -1758, -766, -1758], "c": "", "kind": "apartments",
+			"h": 14, "mh": 0, "rc": "", "name": ""}]}
+	var built: Array = mb._tenement_facades(wp, wn, wc, wu, PackedByteArray([0, 0]))
+	_expect((built[2]["pos"] as PackedVector3Array).size() >= 3 * 3 * 20, "the builder adds the square's gables")
+	mb.free()
 	if failed == 0:
 		print("check_old_town_roofs: OK")
 	quit(failed)
