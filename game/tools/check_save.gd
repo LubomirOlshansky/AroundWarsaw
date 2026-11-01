@@ -15,11 +15,16 @@ extends SceneTree
 ## - a missing file gives the defaults and version 0;
 ## - settings.cfg: a file without `[meta]` loads as version 1 and the next save writes 2; a newer
 ##   one is never overwritten; --nosave writes nothing.
+## - save and resume (2026-10-31): the [session] spot's round trip, remember_spot's 5 m rule,
+##   has_progress, start_over (a copy of the old file as save.prev.cfg, then wiped; never for a
+##   newer file; nothing written under --nosave), and the title's choice: KONTYNUUJ, NOWA GRA's
+##   question, NIE back, TAK emitting new_game, and the keys.
 ## Never touches the real user://save.cfg or settings.cfg; deletes its scratch files.
 ##   godot --headless --path game --script res://tools/check_save.gd
 
 const Wallet := preload("res://scripts/wallet.gd")
 const Settings := preload("res://scripts/settings.gd")
+const Title := preload("res://scripts/title.gd")
 const SCRATCH := "user://check_save.cfg"
 const SCRATCH_NEW := "user://check_save_newer.cfg"
 const SCRATCH_OFF := "user://check_save_nosave.cfg"
@@ -36,6 +41,9 @@ func _initialize() -> void:
 	_nosave()
 	_missing()
 	_settings()
+	_resume()
+	await process_frame  # the title's _ready runs inside the tree's first frame
+	_title()
 	_clean()
 	if _problems == 0:
 		print("check_save: OK")
@@ -243,8 +251,101 @@ func _settings() -> void:
 	_expect(not FileAccess.file_exists(off.path), "settings: --nosave wrote a file")
 
 
+func _resume() -> void:
+	var w := Wallet.new()
+	w.path = SCRATCH
+	w.load_save()
+	w.reset()
+	_expect(not w.has_progress() and w.resume_spot().is_empty(), "a wiped save has progress: %s" % w.summary())
+	_expect(w.remember_spot(Vector3(-696.0, 31.2, -1279.0), 1.25, false, 1793000000), "the first spot not written")
+	_expect(not w.remember_spot(Vector3(-693.0, 31.2, -1279.0), 0.5, false, 1793000005), "a spot 3 m away was written")
+	_expect(w.remember_spot(Vector3(-693.0, 31.2, -1279.0), 0.5, true, 1793000006), "into a tunnel (same place) not written")
+	_expect(w.remember_spot(Vector3(-680.0, 31.2, -1279.0), 0.5, true, 1793000010), "a spot 13 m away not written")
+	_expect(w.has_progress(), "a kept spot is not progress")
+	var b := Wallet.new()
+	b.path = SCRATCH
+	b.load_save()
+	var spot := b.resume_spot()
+	_expect(spot.size() == 3 and (spot[0] as Vector3).is_equal_approx(Vector3(-680.0, 0.0, -1279.0)) and is_equal_approx(float(spot[1]), 0.5)
+			and spot[2] == true and int(b.session.get("at", 0)) == 1793000010, "the spot's round trip: %s" % [spot])
+	b.pay(40, 2, "kebab")
+	b.free()
+	w.free()
+	# NOWA GRA: the old file copied to save.prev.cfg, then everything wiped and written.
+	var before := FileAccess.get_file_as_string(SCRATCH)
+	var c := Wallet.new()
+	c.path = SCRATCH
+	c.load_save()
+	_expect(c.zl == 40 and c.has_progress(), "before the new game: %s" % c.summary())
+	_expect(c.start_over(), "start_over refused")
+	_expect(FileAccess.get_file_as_string(c.previous_path()) == before, "the old save not kept as %s" % c.previous_path())
+	_expect(c.zl == 0 and not c.has_progress(), "start_over left %s" % c.summary())
+	var d := Wallet.new()
+	d.path = SCRATCH
+	d.load_save()
+	_expect(d.zl == 0 and d.resume_spot().is_empty() and d.jobs.is_empty(), "after a new game the file has %s" % d.summary())
+	c.free()
+	d.free()
+	# A newer build's file: never wiped.
+	var cfg := ConfigFile.new()
+	cfg.set_value("save", "version", Wallet.VERSION + 1)
+	cfg.set_value("wallet", "zl", 500)
+	cfg.save(SCRATCH_NEW)
+	var n := Wallet.new()
+	n.path = SCRATCH_NEW
+	n.load_save()
+	_expect(not n.start_over() and n.zl == 500 and not FileAccess.file_exists(n.previous_path()), "a newer save was wiped")
+	n.free()
+	# --nosave: start_over writes nothing, remember_spot neither.
+	var off := Wallet.new()
+	off.persistent = false
+	off.path = SCRATCH_OFF
+	if FileAccess.file_exists(SCRATCH_OFF):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(SCRATCH_OFF))
+	off.remember_spot(Vector3(1.0, 0.0, 2.0), 0.0, false, 1)
+	off.start_over()
+	_expect(not FileAccess.file_exists(SCRATCH_OFF) and not FileAccess.file_exists(off.previous_path()), "--nosave wrote on a new game")
+	off.free()
+
+
+func _title() -> void:
+	var t := Title.new()
+	root.add_child(t)
+	var asked := [0]
+	t.new_game.connect(func() -> void: asked[0] += 1)
+	t.can_resume = true
+	t.resume_line = "1 240 zł · respekt 87"
+	t.set_ready()
+	_expect(t._prompt.text == "KONTYNUUJ" and t._new_btn.visible and t._line.visible and not t._yes_btn.visible,
+			"the choice: '%s', NOWA GRA %s" % [t._prompt.text, t._new_btn.visible])
+	_expect(t._pick(KEY_ENTER, Vector2.INF) == "continue" and t._pick(KEY_N, Vector2.INF) == "new", "the choice's keys")
+	_expect(t._pick(KEY_NONE, t._new_btn.get_global_rect().get_center()) == "new", "a tap on NOWA GRA")
+	_expect(t._pick(KEY_NONE, Vector2(5.0, 5.0)) == "continue", "a tap elsewhere is not continue")
+	t.choose("new")
+	_expect(t.screen == Title.CONFIRM and t._prompt.text == "ZACZĄĆ OD NOWA?" and t._yes_btn.visible and t._no_btn.visible
+			and not t._new_btn.visible, "the question: '%s'" % t._prompt.text)
+	_expect(t._pick(KEY_ENTER, Vector2.INF) == "" and t._pick(KEY_ESCAPE, Vector2.INF) == "no" and t._pick(KEY_Y, Vector2.INF) == "yes",
+			"the question's keys")
+	_expect(t._pick(KEY_NONE, t._yes_btn.get_global_rect().get_center()) == "yes"
+			and t._pick(KEY_NONE, t._no_btn.get_global_rect().get_center()) == "no", "taps on TAK / NIE")
+	_expect(t._yes_btn.get_global_rect().intersection(t._no_btn.get_global_rect()).get_area() <= 0.0, "TAK and NIE overlap")
+	t.choose("no")
+	_expect(t.screen == Title.CHOICE and t._new_btn.visible and asked[0] == 0, "NIE: not back to the choice")
+	t.choose("new")
+	t.choose("yes")
+	_expect(asked[0] == 1, "TAK: new_game emitted %d times" % asked[0])
+	t.free()
+	# No save to resume: the old "tap to drive", no buttons.
+	var f := Title.new()
+	root.add_child(f)
+	f.set_ready()
+	_expect(f._prompt.text == "DOTKNIJ, BY JECHAĆ" and not f._new_btn.visible and not f._line.visible, "a fresh save's title: '%s'" % f._prompt.text)
+	f.free()
+
+
 func _clean() -> void:
 	for p in [SCRATCH, SCRATCH_NEW, SCRATCH_OFF, SCRATCH_SET, "user://check_save.v1.cfg", "user://check_save_nosave.v1.cfg",
-			"user://check_save_newer.v3.cfg", "user://check_save_settings_off.cfg", "user://check_save_missing.cfg"]:
+			"user://check_save_newer.v3.cfg", "user://check_save_settings_off.cfg", "user://check_save_missing.cfg",
+			"user://check_save.prev.cfg", "user://check_save_newer.prev.cfg", "user://check_save_nosave.prev.cfg"]:
 		if FileAccess.file_exists(p):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(p))

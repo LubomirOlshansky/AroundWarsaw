@@ -23,6 +23,32 @@ Newest first. One entry per question.
   the Mac may say more) and the four philosophers' columns stand on Dobra before the copper
   pages (the orthophoto can't show them). The roof follows the orthophoto since 2026-11-01.
   Default built: those. F to check against a photo or the street (docs/landmarks/buw.md).
+- **2026-11-01 · landmarks · the Palace's stone colour** — The Mac photo check (PR #128) finds the
+  Palace's stone too warm: the photos show a cooler grey-beige (about #cfc6b5 in sun) than the
+  game's sandstone #d8c49c (SANDSTONE in landmarks.gd, also the LoD2 bake's colour). Default
+  built: the warm sandstone kept (it carries the golden-hour landing shot and the Dusk floodlight).
+  Alternative: move SANDSTONE towards #cfc6b5 and re-shoot the landing.
+
+- **2026-11-01 · landmarks · Copernicus Science Centre** — Built from OpenStreetMap and LoD2
+  alone (the photos in `refs/` are on the Mac): the block is LoD2's 13 m (OSM says 7.6), its
+  panels dark grey-brown with windows scattered like pixels, the river corner hangs 5 m over a
+  glazed ground floor, the planetarium is a black faceted boulder to 11.5 m, the garden is
+  lawns between straight paths. Default built: those. F to check against the photos
+  (docs/landmarks/kopernik.md).
+
+- **2026-10-31 · driving · quest stop assist** — Every pickup and drop-off (rescue, Podwózka,
+  kebab and słoiki doors, "Na czasie", the Leżak depot) now has a 9 m ring (was 6-7), counts
+  under ~16 km/h as stopped (was 4-9 km/h), and the car brakes itself into the ring when it heads
+  in and holds still ~1.5 s; BRAKE at a standstill reverses out. Always on, no setting. Default
+  built: that. Alternatives: a setting to switch the auto-brake off, or the assist only on touch
+  controls (keyboard players get it too now).
+- **2026-10-31 · gameplay · the main line** (docs/design/main-line.md) — The main line is the
+  guide (first 10 min), then the ladder's next rival (a gold star on the minimap and the full map,
+  pinned to the rim at any distance), then the final at night; the respect gates are lowered to
+  0/100/220/340/480/640 and 850 (was ... 850 and 1100) so the final comes in about an hour, an
+  estimate from the pay tables. Default built: that. To check: F times a fresh save on the phone;
+  whether the on-screen edge arrow should also show the star, and whether a short goal line belongs
+  on the driving screen (today it is on the full map only).
 
 - **2026-10-31 · gameplay · the game map** — Teleport: free and unlimited, by holding a spot for
   0.6 s; refused during a race, a job, a rescue, a police chase and the first-drive guide. The

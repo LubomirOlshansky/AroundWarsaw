@@ -618,3 +618,106 @@ static func named_kebab_stand(name: String) -> ArrayMesh:
 	PixelFont.add_quads(st, name, Vector3(w * 0.5, top, -0.075), Vector3.LEFT, Vector3.DOWN, px, gold, LIT_SIGN)
 	PixelFont.add_quads(st, name, Vector3(-w * 0.5, top, 0.075), Vector3.RIGHT, Vector3.DOWN, px, gold, LIT_SIGN)
 	return st.commit()
+
+
+# --- the first scene's street (first-scene.md items 4 and 5) -------------------------------------
+
+## A newspaper kiosk, 2.6 m wide and 1.9 m deep, its front (the hatch) towards -z: a green steel
+## box on a dark plinth, a wide hatch lit at night with a rack of magazines under it, a flat roof
+## overhanging all round, and PRASA (press) in cream pixel letters on the front fascia. ~240 tris.
+static func add_kiosk(st: SurfaceTool, xf: Transform3D) -> void:
+	var green := Color("#2f6b4f")
+	var cream := Color("#efe6cf")
+	var dark := Color("#2b2730")
+	_xbox(st, xf, Vector3(0, 0.1, 0), Vector3(2.6, 0.2, 1.9), dark)
+	_xbox(st, xf, Vector3(0, 1.2, 0), Vector3(2.5, 2.0, 1.8), green)
+	_xbox(st, xf, Vector3(0, 1.45, -0.91), Vector3(1.9, 0.75, 0.04), Color("#f3cf8a"), LIT_WINDOW)
+	_xbox(st, xf, Vector3(0, 1.04, -1.02), Vector3(2.1, 0.06, 0.26), cream)
+	# The rack: rows of magazine covers in the hatch's lower half and on the side.
+	var covers := [Color("#e07a5f"), Color("#81b29a"), Color("#f2cc8f"), Color("#9db4d8"), Color("#e8a6b8"), Color("#f4f1de")]
+	for k in 6:
+		_xbox(st, xf, Vector3(-0.85 + k * 0.34, 0.68, -0.93), Vector3(0.26, 0.34, 0.03), covers[k])
+		_xbox(st, xf, Vector3(1.27, 0.95 + (k % 3) * 0.36, -0.55 + floorf(k / 3.0) * 0.5), Vector3(0.03, 0.3, 0.4), covers[(k + 2) % 6])
+	_xbox(st, xf, Vector3(0, 2.28, 0), Vector3(2.9, 0.16, 2.2), cream)
+	_xbox(st, xf, Vector3(0, 2.02, -0.92), Vector3(2.5, 0.36, 0.04), cream)
+	var px := 0.06
+	var word := "PRASA"
+	var tw := PixelFont.width(word) * px
+	var top := 2.02 + (PixelFont.BODY + 3.5) * px
+	PixelFont.add_quads(st, word, xf * Vector3(tw * 0.5, top, -0.95), xf.basis.orthonormalized() * Vector3.LEFT,
+			Vector3.DOWN, px, Color("#1f4a36"), LIT_SIGN)
+
+
+## A round concrete planter (Warsaw's street bowls), 1.2 m across and 0.6 m tall, full of
+## flowers of one colour among green leaves. ~110 tris.
+static func add_planter(st: SurfaceTool, xf: Transform3D, flower: Color) -> void:
+	var stone := Color("#b9b5ac")
+	var turn := Basis(Vector3.UP, PI / 4.0)
+	_xbox(st, xf, Vector3(0, 0.3, 0), Vector3(1.2, 0.6, 0.62), stone)
+	_xbox(st, xf, Vector3(0, 0.3, 0), Vector3(0.62, 0.6, 1.2), stone)
+	obox(st, xf * Vector3(0, 0.3, 0), (xf.basis * turn).orthonormalized(), Vector3(1.05, 0.6, 1.05), stone)
+	_xbox(st, xf, Vector3(0, 0.66, 0), Vector3(0.95, 0.14, 0.95), Color("#4f7a3a"))
+	for p: Vector3 in [Vector3(-0.25, 0, -0.2), Vector3(0.22, 0, -0.25), Vector3(0.0, 0, 0.05), Vector3(-0.22, 0, 0.27), Vector3(0.27, 0, 0.22)]:
+		_xbox(st, xf, p + Vector3(0, 0.82, 0), Vector3(0.2, 0.16, 0.2), flower)
+
+
+## A café table for two under a square parasol, 2.6 m across: a round-ish table, two chairs,
+## the pole and a two-tier canopy in `canopy` with a cream valance. ~150 tris.
+static func add_cafe_set(st: SurfaceTool, xf: Transform3D, canopy: Color) -> void:
+	var metal := Color("#3a3b3f")
+	var top := Color("#e9e4d8")
+	_xbox(st, xf, Vector3(0, 0.37, 0), Vector3(0.08, 0.74, 0.08), metal)
+	_xbox(st, xf, Vector3(0, 0.75, 0), Vector3(0.7, 0.04, 0.7), top)
+	for z: float in [-0.6, 0.6]:
+		_xbox(st, xf, Vector3(0, 0.23, z), Vector3(0.42, 0.46, 0.4), Color("#8a5a34"))
+		_xbox(st, xf, Vector3(0, 0.62, z + signf(z) * 0.18), Vector3(0.42, 0.42, 0.05), Color("#8a5a34"))
+	_xbox(st, xf, Vector3(0, 1.3, 0), Vector3(0.06, 2.6, 0.06), metal)
+	_xbox(st, xf, Vector3(0, 2.35, 0), Vector3(2.6, 0.08, 2.6), canopy)
+	_xbox(st, xf, Vector3(0, 2.47, 0), Vector3(1.5, 0.16, 1.5), canopy.lightened(0.08))
+	for k in 4:
+		var side := Basis(Vector3.UP, k * PI / 2.0)
+		obox(st, xf * (side * Vector3(0, 2.24, 1.29)), (xf.basis * side).orthonormalized(), Vector3(2.6, 0.16, 0.03), Color("#f4efe2"))
+
+
+## A flower stall (a kwiaciarnia's table on the pavement), 2.2 m wide: a green trestle with rows
+## of buckets of flowers stepping up to the back, a striped awning on four posts, KWIATY on a
+## board over the front. ~330 tris.
+static func add_flower_stall(st: SurfaceTool, xf: Transform3D) -> void:
+	var green := Color("#3e6b4a")
+	var cream := Color("#f4efe2")
+	var bucket := Color("#5d6b74")
+	_xbox(st, xf, Vector3(0, 0.4, 0), Vector3(2.2, 0.8, 1.2), green)
+	var blooms := [Color("#e63946"), Color("#f4a261"), Color("#ffd23f"), Color("#e8a6b8"), Color("#f4f1de"), Color("#9b5de5")]
+	for row in 3:
+		for k in 5:
+			var p := Vector3(-0.84 + k * 0.42, 0.8 + row * 0.18, -0.4 + row * 0.38)
+			_xbox(st, xf, p + Vector3(0, 0.12, 0), Vector3(0.3, 0.24, 0.3), bucket)
+			_xbox(st, xf, p + Vector3(0, 0.34, 0), Vector3(0.36, 0.22, 0.34), blooms[(k + row * 2) % blooms.size()])
+	for x: float in [-1.15, 1.15]:
+		for z: float in [-0.7, 0.7]:
+			_xbox(st, xf, Vector3(x, 1.1, z), Vector3(0.06, 2.2, 0.06), Color("#3a3b3f"))
+	for k in 6:
+		_xbox(st, xf, Vector3(-1.0 + k * 0.4, 2.2 + (0.05 if k % 2 == 0 else 0.0), -0.05), Vector3(0.4, 0.06, 1.7),
+				Color("#c8282a") if k % 2 == 0 else cream)
+	_xbox(st, xf, Vector3(0, 2.45, -0.88), Vector3(1.7, 0.4, 0.05), cream)
+	var px := 0.07
+	var word := "KWIATY"
+	var tw := PixelFont.width(word) * px
+	var top := 2.45 + (PixelFont.BODY + 3.5) * px
+	PixelFont.add_quads(st, word, xf * Vector3(tw * 0.5, top, -0.92), xf.basis.orthonormalized() * Vector3.LEFT,
+			Vector3.DOWN, px, Color("#c8282a"), LIT_SIGN)
+
+
+## An advertising column (a litfaza): a green foot, an eight-sided drum of posters in `poster`
+## with a pale band, and a dark green cap with a finial; 1.2 m across, 3.3 m tall. ~110 tris.
+static func add_ad_column(st: SurfaceTool, xf: Transform3D, poster: Color) -> void:
+	var green := Color("#28503c")
+	var turn := (xf.basis * Basis(Vector3.UP, PI / 8.0)).orthonormalized()
+	var turn2 := (xf.basis * Basis(Vector3.UP, -PI / 8.0)).orthonormalized()
+	obox(st, xf * Vector3(0, 0.25, 0), turn, Vector3(1.3, 0.5, 1.3), green)
+	obox(st, xf * Vector3(0, 1.55, 0), turn, Vector3(1.15, 2.1, 1.15), poster)
+	obox(st, xf * Vector3(0, 1.55, 0), turn2, Vector3(1.15, 2.1, 1.15), poster.lightened(0.15))
+	obox(st, xf * Vector3(0, 2.2, 0), turn, Vector3(1.18, 0.3, 1.18), Color("#f4f1de"))
+	obox(st, xf * Vector3(0, 2.75, 0), turn2, Vector3(1.4, 0.2, 1.4), green)
+	obox(st, xf * Vector3(0, 2.95, 0), turn, Vector3(1.0, 0.25, 1.0), green)
+	_xbox(st, xf, Vector3(0, 3.25, 0), Vector3(0.12, 0.35, 0.12), Color("#c9a44a"))

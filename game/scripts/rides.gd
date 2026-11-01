@@ -20,6 +20,7 @@ extends Node
 
 const Rules := preload("res://scripts/ride_rules.gd")
 const Beacon := preload("res://scripts/beacon.gd")
+const StopAssist := preload("res://scripts/stop_assist.gd")
 const Props := preload("res://scripts/props.gd")
 const Models := preload("res://scripts/models.gd")
 const Missions := preload("res://scripts/missions.gd")
@@ -41,11 +42,11 @@ const QUIRK_SHARE := 0.35
 ## Passenger types (*guess*): normal 65 %, GPS believer 25 %, in a hurry 10 %.
 const BELIEVER_SHARE := 0.25
 const HURRY_SHARE := 0.10
-const BOARD := 7.0
-const BOARD_SPEED := 2.5
+const BOARD := StopAssist.RING
+const BOARD_SPEED := StopAssist.STOP_SPEED
 const BOARD_HOLD := 1.0
-const ARRIVE := 7.0
-const ARRIVE_SPEED := 2.5
+const ARRIVE := StopAssist.RING
+const ARRIVE_SPEED := StopAssist.STOP_SPEED
 ## A quirk's waypoint counts as driven within REACH; Nawigacja speaks SAY_AT from it; a believer
 ## grumbles once the car is within PASSED of the waypoint's distance to the door, without it.
 const REACH := 15.0
@@ -292,6 +293,16 @@ func target_position() -> Vector3:
 		var near: bool = _flat(car.global_position, _ride["pin"]) < 30.0 or _flat(car.global_position, _ride["board"]) < 70.0
 		return _ride["board"] if near else _ride["pin"]
 	return _ride["ring"]
+
+
+## Where the car should stop now (stop_assist.gd): the passenger once the arrow points at them
+## (never the pin, which is only roughly where they wait), then the door.
+func stop_spot() -> Vector3:
+	if state == State.RIDE:
+		return _ride["ring"]
+	if state == State.PICKUP and target_position() == _ride["board"]:
+		return _ride["board"]
+	return Vector3.INF
 
 
 func target_colour() -> Color:

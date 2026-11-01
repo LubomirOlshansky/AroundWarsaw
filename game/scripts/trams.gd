@@ -599,8 +599,10 @@ func out_of_sight(p: Vector2) -> Array[Tram]:
 
 ## Puts tram `tram` on the track nearest `p`, its head `ahead` m along the rails from the point
 ## nearest p (--old-tram), standing still; false if no track piece is long enough. The other
-## trams keep their places (one that is in the way is left for the trams' own spacing).
-func place_near(tram: Tram, p: Vector2, ahead := 30.0) -> bool:
+## trams keep their places (one that is in the way is left for the trams' own spacing). With a
+## `way` (a unit direction), only a track running that way (the first scene: one tram each way
+## up Marszałkowska), and the tram rolls off at `speed` m/s.
+func place_near(tram: Tram, p: Vector2, ahead := 30.0, way := Vector2.ZERO, speed := 0.0) -> bool:
 	var best := -1
 	var best_s := 0.0
 	var best_d := INF
@@ -608,6 +610,8 @@ func place_near(tram: Tram, p: Vector2, ahead := 30.0) -> bool:
 		if _len[i] < 40.0:
 			continue
 		var near := _project(i, p)
+		if way != Vector2.ZERO and _dir(i, near.x).dot(way) < 0.8:
+			continue
 		if near.y < best_d:
 			best_d = near.y
 			best = i
@@ -622,7 +626,7 @@ func place_near(tram: Tram, p: Vector2, ahead := 30.0) -> bool:
 		tram.trail.insert(0, prev)
 		back += _len[prev]
 	tram.s = s
-	tram.v = 0.0
+	tram.v = speed
 	tram.dwell = 0.0
 	tram.served = -1
 	tram.next = _pick_next(best)

@@ -10,6 +10,7 @@ extends Node
 ## rides.gd and this script see each other's `busy`).
 
 const Beacon := preload("res://scripts/beacon.gd")
+const StopAssist := preload("res://scripts/stop_assist.gd")
 const Missions := preload("res://scripts/missions.gd")
 const CityLife := preload("res://scripts/city_life.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
@@ -21,11 +22,11 @@ const OFFER_R := 60.0
 const OFFER_LIFE := 10.0
 ## A slot offers again after this long (s).
 const SLOT_COOL := 240.0
-const PICKUP := 7.0
-const PICKUP_SPEED := 2.5
-const PICKUP_HOLD := 2.0
-const ARRIVE := 7.0
-const ARRIVE_SPEED := 2.5
+const PICKUP := StopAssist.RING
+const PICKUP_SPEED := StopAssist.STOP_SPEED
+const PICKUP_HOLD := 1.5
+const ARRIVE := StopAssist.RING
+const ARRIVE_SPEED := StopAssist.STOP_SPEED
 const LIMIT := 360.0
 const BASE := 25
 const PER_KM := 8
@@ -123,6 +124,11 @@ func has_target() -> bool:
 
 func target_position() -> Vector3:
 	return order["ring"] if state == State.PICKUP else order["door_ring"]
+
+
+## Where the car should stop now (stop_assist.gd): the queue, then the door.
+func stop_spot() -> Vector3:
+	return target_position() if has_target() else Vector3.INF
 
 
 func target_colour() -> Color:
@@ -281,8 +287,8 @@ func _pickup_tick(dt: float) -> void:
 			return
 	else:
 		_hold = 0.0
-	hud.show_status("NA CZASIE · ODBIÓR", "", "%d m" % roundi(d), "Stań przy kolejce na 2 s", _hold / PICKUP_HOLD, COLOUR, "", {},
-			"Stop by the queue for 2 s")
+	hud.show_status("NA CZASIE · ODBIÓR", "", "%d m" % roundi(d), "Stań przy kolejce", _hold / PICKUP_HOLD, COLOUR, "", {},
+			"Stop by the queue")
 
 
 func _deliver_tick(dt: float) -> void:

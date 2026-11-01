@@ -19,6 +19,9 @@
 # under what covers it whole, no hole where it was left out, the ground on the height rule.
 # `streets` runs tools/check_streets.py (map review B): poles on the asphalt, zebras off it,
 # grass medians on tram tracks (S1, S2, S4 FAIL; S3, medians in a junction, is reported).
+# `stopassist` runs game/tools/check_stop_assist.gd (2026-10-31): the car brakes itself into a
+# quest's ring from 30-90 km/h and holds for the quest's hold, never touches a car passing or driving
+# away, lets BRAKE reverse out; the quests share the ring and "stopped" (no map; CI too).
 # `spec` runs tools/check_spec.py (LANDMARKS 0.4): the landmark specs are complete.
 # `pois` runs tools/check_pois.py (content POIs, 2026-10-31): the baked corner shops, metro
 # entrances, bike docks, Leżaks and zones (Q1-Q6: none on the carriageway, a crossing, a kerb ramp,
@@ -69,7 +72,8 @@
 # once; no map at all (CI too).
 # Loop 3h slice 1: `save` runs game/tools/check_save.gd: save v2 (a version-1 fixture built in the
 # check migrates keeping every section, a backup of the old file, the round trip, a newer file never
-# overwritten, --nosave writes nothing, settings.cfg's version); `districts` runs
+# overwritten, --nosave writes nothing, settings.cfg's version; save and resume: the [session] spot,
+# NOWA GRA's wipe and its save.prev.cfg copy, the title's KONTYNUUJ / NOWA GRA / TAK / NIE); `districts` runs
 # game/tools/check_districts.gd: the districts' data, coverage and ties, discovery, the "?" marks,
 # completion and the full map's fog; neither needs a map (CI too). Loop 3h slice 2: `syrenki` runs
 # game/tools/check_syrenki.gd: the 20 Syrenki's data and words, a find, the reward ladder (the paints
@@ -87,6 +91,9 @@
 # `first10-run` (not in --quick, ~12 min) is the headless replay: --first10 --autopilot plays the
 # first 10 minutes on the real city (the stand, the guided order, Halina's race, the trap, the
 # call, the helicopter, the tape, Powiśle, the garage) and passes on `first10: OK`.
+# The main line (2026-10-31): `mainline` runs game/tools/check_main_line.gd: main_line.gd's step from
+# the facts in each chapter (the guide, the ladder, the final, the jobs to the end card), its words
+# and the ladder's pacing (the side quests' respect to the final); no map (CI too).
 # `streaming` runs game/tools/check_streaming.gd
 # (loop 3c) WITH a renderer (a window opens for a minute or two): every sector built from its
 # file is the whole city, vertex for vertex; 10 spots rendered with --monolithic and with the
@@ -119,8 +126,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois spec lod2 drape ground drive drive-prebuilt steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder first10 endcard parodies jobs2 couriers rides cost landmarks sites meshq sfx radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois spec drape drive steering settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder first10 endcard parodies jobs2 couriers rides cost landmarks sites meshq sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois spec lod2 drape ground drive drive-prebuilt steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder first10 mainline endcard parodies jobs2 couriers rides cost landmarks sites meshq sfx radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois spec drape drive steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder first10 mainline endcard parodies jobs2 couriers rides cost landmarks sites meshq sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -619,6 +626,8 @@ for s in $want; do
 		drive) check drive '^check_drive:' --script res://tools/check_drive.gd ;;
 		drive-prebuilt) check drive-prebuilt '^check_drive:' --script res://tools/check_drive.gd -- --prebuilt ;;
 		steering) check steering 'check_steering:' --fixed-fps 60 --script res://tools/check_steering.gd ;;
+		# The quest stop assist: the car brakes itself into a quest's ring and holds for the hold.
+		stopassist) check stopassist '^check_stop_assist:' --fixed-fps 60 --script res://tools/check_stop_assist.gd ;;
 		settings) check settings '^settings:' --script res://tools/check_settings.gd ;;
 		# Loop G1: model id -> tier, the pixel image at the phones' sizes; the governor's rules.
 		tiers) check tiers '^check_tiers:' --script res://tools/check_tiers.gd ;;
@@ -649,6 +658,7 @@ for s in $want; do
 		syrenki) check syrenki '^syrenki:' --script res://tools/check_syrenki.gd ;;
 		ladder) check ladder '^ladder:' --script res://tools/check_ladder.gd ;;
 		first10) check first10 '^first10:' --script res://tools/check_first10.gd ;;
+		mainline) check mainline '^main_line:' --script res://tools/check_main_line.gd ;;
 		endcard) check endcard '^end_card:' --script res://tools/check_end_card.gd ;;
 		life-soak) life_soak ;;
 		# Loop 2d-1: Podwózka's star and pay tables, the streak and the cancel rules, its lines.

@@ -3,12 +3,28 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Quest pickups and drop-offs too hard to stop on (the user, 2026-10-31)
+- **Landed** (thread "Make quest pickup and dropoff easier"): stop_assist.gd, one shared 9 m
+  ring and ~16 km/h "stopped" for every car stop zone, and car.gd's stop assist (brakes into the
+  ring when heading in, holds for the quest's hold, never touches a car passing by;
+  check_stop_assist.gd). Left: F to feel it on the phone (is the glide-in too firm or too
+  soft: StopAssist.DECEL 9 m/s²; does a 9 m ring reach across the road at narrow doors).
+
 ## Top priority: a game-like full map with teleport (the user, 2026-10-31)
 - **Landed** (thread "Make the map fun and game-like"): the full map in its own poster style
   (map_art.gd), 25 landmark pins (map_icons.gd), hold 0.6 s to teleport, the cards behind ≡.
   Left: street names along the main roads close in; F to judge the icons and colours on the
   phone (maybe hand-drawn or PixelLab icon art later); the first open on an older phone (the
   art is made on a worker thread at start, ~0.1-0.7 s on a computer).
+
+## High priority: the main line and quest markers (the user, 2026-10-31)
+- **Landed** (thread "Shape main line and quest markers", docs/design/main-line.md): the main line
+  in three chapters (the guide, the ladder, the final) as `main_line.gd`; its marker a gold star on
+  the minimap (pinned to the rim at any distance) and the full map (a goal card under the title, a
+  legend); side quests keep a ringed dot in their colour and the start squares (now on the full map
+  too); the ladder's gates lowered to 0/100/220/340/480/640/850 for a ~1 h main line.
+  Left: a timed fresh-save run on the phone (the hour is an estimate); the edge arrow on the screen
+  could carry the star too; maybe a short goal line on the driving screen (QUESTIONS.md).
 
 ## High priority: landmark and skyscraper models (the user, 2026-10-30)
 - **The user dislikes how several models look** (2026-10-30): Złote Tarasy, Złota 44 and the
@@ -80,9 +96,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   windows, long skylights on the flat roof, a card. Spec and the values still to set:
   docs/design/first-scene.md "Spec for item 1". Landmarks lane: Opus spec, `object-modeler`
   builds, `art-director` accepts. **Built 2026-10-31** (site `msn`, spec
-  `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Left: the photo check on the
-  Mac (the two city-room windows' faces and sizes and the skylight count are estimates; the
-  photos in `refs/` were not reachable from the cloud), and TR Warszawa next door.
+  `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Photo-checked on the Mac
+  2026-11-01: the roof is one gridded glass field with two small wells, and the Marszałkowska
+  window is a deep recess at mid-face. Found then, left open: the mid-height dark ribbon runs only
+  in stretches on both long faces (photos 2 and 4), not all round as built; the Marszałkowska
+  face's lower box has two small windows; the upper roofline steps down near the south end.
 - **TR Warszawa's building site** (F, 2026-10-31): built as site `tr` on the empty plot west of
   the museum (a messy site: hoarding, dirt, heaps, old foundations, cabins, a digger, one
   crane). Left for the map lane: a mapped tree stands on the hoarding's north corner.
@@ -100,15 +118,29 @@ Small problems that agents reported or that showed up in screenshots. They are f
   the Copernicus Science Centre, Stadion Narodowy. **Warszawa Centralna built 2026-10-31**
   (site `centralna`, spec `docs/landmarks/specs/centralna.md`): the glass hall, the wings, the
   flat slab overhanging to 140 x 86 m and the hyperbolic paraboloid shells under it, all from
-  the OSM parts. Left: the photo check on the Mac (OSM puts the shells in a 1.5 m tier wholly
-  under the flat slab, so from the 30-degree camera they show only as a small zigzag at the
-  two ends: if the photos show more of them, say so and the tier grows; the wings' walls; warm
-  or cool hall light). **The University Library built 2026-10-31** (site `buw`, spec
+  the OSM parts. Photo-checked on the Mac 2026-11-01: the shells show far more than a zigzag,
+  so the underside now falls from 16 m at the long edges to 12 m at the pillar rows and arches
+  to 14.2 m over the hall, the winged shape the ends show. Still open: the wings' walls (the
+  photos show a dark band with a window strip on the hall's end, not grey glass), warm or cool
+  hall light, and the slight hypar curve along the long sides. **Stadion Narodowy built 2026-11-01** (site `stadium`, spec
+  `docs/landmarks/specs/stadium.md`, PR #103's eyeball flag): the pitch was a 60 m blob under
+  stands too deep; now a 105 x 68 m striped pitch along the masts' axis in two tiers with the
+  boxes between, the skin red below and white above (the mapped rings), the raised rim, a
+  rounded opening, the needle's hub and folded-roof drum from the OSM parts. The Mac photo
+  check (same day) is applied: staggered red and silver panels on a smooth ramp, the dark
+  glass concourse under the skin, a polycarbonate ring round the opening, thicker spikes.
+  **The Copernicus Science Centre built 2026-11-01** (site `kopernik`,
+  spec `docs/landmarks/specs/kopernik.md`, log `docs/landmarks/kopernik.md`): the long dark
+  block to LoD2's 13 m with windows scattered like pixels, the river corner hanging over a
+  glazed ground floor, the low glass wings, the roof garden, and the black faceted
+  planetarium. Left: the photo check on the Mac (the panels and windows, the overhang's depth,
+  the planetarium's height, the garden's real paths). **The University Library built 2026-10-31** (site `buw`, spec
   `docs/landmarks/specs/buw.md`, log `docs/landmarks/buw.md`): the copper plates with their
   lines of text on Dobra, the four philosophers on columns, the roof garden from the mapped
   lawns, the glass roofs and the band; the roof redone from the orthophoto on 2026-11-01.
   Left: the height (LoD2 may say more than OSM's 10.9 m), which front the philosophers stand
-  at, the south garden's winding paths and shrubs. The others not started.
+  at, the south garden's winding paths and shrubs.
+  The others not started.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
   photos per building in `refs/` (Wikimedia Commons, gitignored; fetched on the Mac, the cloud
@@ -141,11 +173,17 @@ golden-image shots runtime vs `--prebuilt`,
   light), the `first` shot set, performance and the order of work: docs/design/first-scene.md.
   The dusk and night look there belongs to the thread "Match landmarks to Warsaw at dusk"; the
   hints, first order and first race to loop 3h item 6.
+  **2026-11-01 (items 3-6, part):** the Eastern Wall's stores built (site `dtc`, spec
+  `docs/landmarks/specs/dtc.md`); a start in the first scene's box (main.gd `FIRST_SCENE`) puts
+  two trams on Marszałkowska, one passing the car, one coming down the street; street furniture
+  by the start (`first_scene.gd`: kiosk, flower stall, cafés, ad columns, planters). Found: the
+  game's camera sees the east side's stores from behind their street faces, so furniture on
+  their pavements never shows (it stands on the museum's side instead). Left: the Rotunda
+  re-pass, the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
+  the tram stops and kerbs (item 5), pedestrians and sound (6-7), the photo check on the Mac.
 
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
-- **Coffeechair cafés** (the user, 2026-10-31): a parody of the Coffeedesk coffee shops,
-  small branded cafés round the city with their own sign ("COFFEECHAIR", a chair for the desk),
-  for the content lane (shop signs and fascias). Brand rules: parody name and look only.
+- **Shisha lounges** built (five parody signs, `Storefronts.LOUNGES`): only the phone can show the sign size on each wall and whether the spots read as lounges. Not notebook places; add smoky window glow or a door scene if wanted.
 - **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;
   the designer (`game-designer`, Sonnet for the text) specs it, `warsaw-tone` rules apply (real
   brands only as parodies, affectionate, Polish with English).
@@ -275,7 +313,7 @@ golden-image shots runtime vs `--prebuilt`,
   that tower, not what shows through the cut.~~ Done in sweep 2: the walk steps on through what
   the ghost has made see-through (main.gd `_pick_unghosted`; behind the Palace, a tap on the
   street seen through its cut tower picked the Palace, now nothing).
-- The Palace's roof rescue now lands on a 28 m annex roof: every tier is crowned by attics and
+- The Palace's roof rescue now lands on the 30 m north block's roof (since the 2026-11-01 re-pass built it whole): every tier is crowned by attics and
   pinnacles, so no 3 x 3 cells are flat up the tower. A rescue from the 30th-floor terrace would
   need a landing spot designed in.
 - The baked ground AO and the lamp light map still use the LoD2 footprints: Centralna's canopy

@@ -464,9 +464,11 @@ class Landmarks:
         def centre(q):
             return (sum(p[0] for p in q) / len(q), sum(p[1] for p in q) / len(q))
 
-        # The University Library (spec buw.md) collides along its outline like these (its
-        # copper plates and columns on Dobra have small car walls of their own as well).
+        # The Copernicus Science Centre and its planetarium (spec kopernik.md) collide along
+        # their outlines, the overhanging corner included; the University Library (spec buw.md)
+        # along its outline too (its copper plates and columns on Dobra have car walls of their own).
         for key, name in (("palace", "Pałac Kultury i Nauki"), ("rotunda", "Rotunda PKO"), ("varso", "Varso Tower"),
+                          ("kopernik", "Centrum Nauki Kopernik"), ("kopernik", "Planetarium Niebo Kopernika"),
                           ("buw", "Biblioteka Uniwersytecka")):
             if len(lm.get(name, [])) >= 3:
                 self.zones.append((key, [lm[name]], []))

@@ -341,31 +341,34 @@ vec3 glass_wall(vec3 col, float u, float h, float top, float sp, float fh, float
 	return c;
 }
 
-// Stadion Narodowy's skin: two families of strips woven diagonally, red over white,
-// then white over red; dark gaps where the stands show through.
-vec3 weave(float u, float h, out vec3 glow) {
+// Stadion Narodowy's skin: panels of mesh in staggered rows (3.2 x 1.6 m, each row shifted
+// by half a panel), thin dark joints between them. Each panel is red or light silver, silver
+// more often the higher it is (the Mac photo check, 2026-11-01: about 17 % at the foot, half
+// at 60 % of the height, 88 % at the top, never all of one colour), so the flag's colours
+// blend up the basket. `top` is the skin's top over the street.
+vec3 weave(float u, float h, float top, out vec3 glow) {
 	glow = vec3(0.0);
-	float w = 4.2;
-	float a = (u + h * 0.9) / w;
-	float b = (u - h * 0.9) / w;
-	float fa = fract(a);
-	float fb = fract(b);
-	bool in_a = fa > 0.08 && fa < 0.92;
-	bool in_b = fb > 0.08 && fb < 0.92;
+	float pw = 3.2;
+	float ph = 1.6;
+	float row = floor(h / ph);
+	float x = u / pw + 0.5 * mod(row, 2.0);
+	float col_i = floor(x);
+	float fx = fract(x);
+	float fy = fract(h / ph);
 	vec3 red = srgb_to_linear(vec3(0.78, 0.12, 0.16));
-	vec3 white = srgb_to_linear(vec3(0.9, 0.9, 0.88));
+	vec3 silver = srgb_to_linear(vec3(0.81, 0.82, 0.816));
 	vec3 gap = srgb_to_linear(vec3(0.16, 0.15, 0.17));
-	bool a_over = mod(floor(a) + floor(b), 2.0) < 1.0;
-	vec3 c;
-	if (in_a && (a_over || !in_b)) {
-		c = red * (0.85 + 0.3 * abs(fa - 0.5));
-	} else if (in_b) {
-		c = white * (0.82 + 0.3 * abs(fb - 0.5));
-	} else {
+	float f = clamp(((row + 0.5) * ph / max(top, 1.0) - 0.15) / 0.85, 0.0, 1.0);
+	float p_silver = mix(0.17, 0.88, f);
+	float n = hash12(vec2(col_i, row) + 0.37);
+	vec3 c = n < p_silver ? silver : red;
+	// The mesh catches the light unevenly: panel by panel, and darker at its lower edge.
+	c *= (0.88 + 0.16 * hash12(vec2(col_i, row) + 5.11)) * (0.9 + 0.1 * fy);
+	if (fx < 0.04 || fy < 0.07) {
 		c = gap;
 	}
 	if (lights_on > 0.001) {
-		// Lit from inside at night: the red strips glow, the white ones catch the light.
+		// Lit from inside at night: the red panels glow, the silver ones catch the light.
 		glow = (c == gap ? vec3(0.0) : c * (c.r > c.g * 2.0 ? 1.6 : 0.9)) * 0.75;
 	}
 	return c;
@@ -466,7 +469,7 @@ vec3 landmark(int mode, float param, vec3 col, vec2 uv, float top, bool wall, ve
 		}
 		return col;
 	} else if (mode == M_WEAVE) {
-		return wall ? weave(uv.x, uv.y, glow) : col;
+		return wall ? weave(uv.x, uv.y, top, glow) : col;
 	} else if (mode == M_GLASS_ROOF) {
 		return glass_roof(col, wp.xz, glow);
 	} else if (mode == M_PAVILION) {
