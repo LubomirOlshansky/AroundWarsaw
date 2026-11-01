@@ -11,8 +11,10 @@ someone writes its lines.
 
 ## 2026-11-01
 - The two glass pavilions over the underground Warszawa Śródmieście station, by the Palace, now glow at night under their blue neon names.
+- Roofs look like Warsaw's: red tiles, painted sheet metal with seams, zinc mansards, tar paper on the blocks, pale membranes and green sedum on offices, low parapets round flat roofs and rows of brick chimneys on the old tenements.
 - Racing a rival you have already beaten still pays the stake but gives less respect, so the next rival opens by playing the city, not by beating Pani Halina again; mum's jars pay a little less; and the characters now talk to you the same way whoever you are.
-- Now and then a fender bender blocks a lane somewhere ahead: two dented cars, a police car with its lights flashing and a yellow ambulance, the drivers arguing over who had the green while people film it for the estate's group. Traffic queues and squeezes past, and KEBAB FM reads it out in the traffic news.
+- Now and then a fender bender blocks a lane somewhere ahead: two dented cars, a police car with its lights flashing and a yellow ambulance, the drivers arguing over who had the green while people film it for the estate's group. Traffic queues and squeezes past, and KEBAB FM reads it out in the traffic news. The ambulance now has its siren on, and the scene shows as an amber dot on the minimap and the map.
+- The police talk to you without "pan": the same warnings and jokes, for whoever is driving.
 - Larger text in Settings → DOSTĘP now changes the HUD text straight away, no restart needed.
 - Mariensztat, the little 1949 square under the Old Town's escarpment, now looks like itself: pastel houses under red tile roofs with dormers and chimneys.
 - The colour-blind option now also changes the green "win" and red "fail" cards and badges to blue and orange-red, so they are easy to tell apart.

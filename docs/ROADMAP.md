@@ -85,6 +85,10 @@ then the Launch gate.
   - [ ] S3c-e the other stations: Wschodnia, Gdańska (the map's edges, Mac look first), the WKD entrances
   - [ ] L4 Most Średnicowy's look (after a Mac photo check)
 
+- [ ] Roofs across the map (F, 2026-11-01; plan docs/design/roofs.md):
+  - [x] RF1-RF3 roof materials, parapets, tenement chimneys, 2026-11-01
+  - [ ] RF4 OSM-only buildings' roofs, copper and red sheet metal by district; the phone bench (Mac check done 2026-11-01)
+
 ### Left: content and feel
 - [x] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
       (2026-11-01, docs/design/pay-tables.md: player-neutral Polish, rematch respect +20, słoiki
@@ -119,8 +123,9 @@ then the Launch gate.
 - [x] Crash scenes (F, 2026-11-01, `crash_scenes.gd`, `check_crash_scenes`, PR "crash scenes"):
       every few minutes a fender bender ahead on a main road, two wrecks in the kerb lane, a
       police car with its lights and a yellow ambulance, the drivers arguing, people filming,
-      KEBAB FM's traffic news; traffic queues and goes round. Left: the phone's look, a siren
-      sound, a minimap marker (docs/design/crash-scenes.md)
+      KEBAB FM's traffic news; traffic queues and goes round. Siren at the ambulance and an amber
+      minimap / full-map dot added (2026-11-01). Left: the phone's look and a phone check of
+      the siren level and the dot (docs/design/crash-scenes.md)
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
 
