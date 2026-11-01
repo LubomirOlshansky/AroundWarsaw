@@ -558,6 +558,7 @@ func _find_sites() -> void:
 	# Plac Małachowskiego and the Presidential Palace (2026-10-31): models instead of skins.
 	_find_trojca()
 	_find_zacheta()
+	_find_mirowska()
 	_find_prezydencki()
 	# St Alexander's church (2026-11-01): a model instead of a skin.
 	_find_aleksander()
@@ -853,6 +854,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_trojca(s)
 			"zacheta":
 				_build_zacheta(s)
+			"mirowska":
+				_build_mirowska(s)
 			"prezydencki":
 				_build_prezydencki(s)
 			"aleksander":
@@ -2464,7 +2467,6 @@ const SKINS := [
 	{"key": "sw_krzyz", "osm": "Kościół pw. Świętego Krzyża", "mode": M_MONUMENT, "wall": "#e3d9c0", "roof": "#5d6e64"},
 	{"key": "staszic", "osm": "Pałac Staszica", "mode": M_MONUMENT, "wall": "#e2d6b8", "roof": "#5f6f6a"},
 	{"key": "wszystkich", "osm": "Kościół Wszystkich Świętych", "mode": M_MONUMENT, "wall": "#ddcfaa", "roof": "#6e7f6e"},
-	{"key": "mirowska", "osm": "Hala Mirowska", "mode": M_STONE, "wall": "#a85c40", "roof": "#6d7470"},
 	{"key": "sejm", "osm": "Sejm RP", "mode": M_MONUMENT, "wall": "#e2e0d8", "roof": "#8d8f8c"},
 ]
 
@@ -5069,6 +5071,157 @@ func _build_zacheta(site: Dictionary) -> void:
 	for s: float in [-1.0, 1.0]:
 		_collide(_rect(s * 7.0, 3.0, 0.7, 0.7))
 
+
+
+## Hala Mirowska (Stefan Szyller and Czesław Domaniewski, 1899-1901), the western of the twin
+## market halls on Plac Mirowski: a red-brick hall, 97 x 44 m, its main front to the east, to the
+## square. Massing from the mapped parts (spec docs/landmarks/specs/mirowska.md): brick walls 10 m
+## high round the whole hall with round-headed windows between cream pilasters, a cornice, the
+## nave's gabled roof (ridge 14.5 m) with a glazed lantern on top (17 m), thin tall gable ends
+## (18 m, a pinnacle each) between four corner turrets with pyramid caps, and a low arcaded
+## annex at the west end under a steep red tile roof (10 m). Frame: origin at the south-west
+## corner, u east along the long side, +v to the north across the hall.
+const MIROWSKA := Vector2(-1857.4, -501.8)
+const MIROWSKA_AXIS := Vector2(0.970, -0.242)
+const MIROWSKA_HU := 97.4
+const MIROWSKA_HV := 43.6
+const MIROWSKA_BRICK := Color("#a85c40")
+const MIROWSKA_TRIM := Color("#d6ccb4")
+const MIROWSKA_PLINTH := Color("#857e74")
+const MIROWSKA_ROOF := Color("#6d7470")
+const MIROWSKA_NAVE := Color("#8b948f")
+const MIROWSKA_CAP := Color("#6f7f78")
+const MIROWSKA_TILE := Color("#a8493a")
+const MIROWSKA_GLASS := Color("#323a40")
+const MIROWSKA_DOOR := Color("#33271f")
+const MIROWSKA_SKY := Color("#a9bcc4")
+
+
+func _find_mirowska() -> void:
+	var outline := _landmark("Hala Mirowska")
+	if outline.size() >= 3:
+		_add_site("mirowska", [outline])
+		if not sites.is_empty() and sites[-1]["key"] == "mirowska":
+			sites[-1]["ring"] = outline
+
+
+## A round-headed panel on a wall: a rectangle up to the spring line and a four-segment half
+## disc above it. `at` is the foot centre in plan, `along` the wall's direction, `out` its
+## outward normal, `proud` how far it stands off the wall (against z-fighting).
+func _arch_panel(at: Vector2, along: Vector2, out: Vector2, hw: float, y0: float, spring: float, col: Color,
+		proud: float, mode: float) -> void:
+	var keep := _mode
+	_mode = mode
+	var p := at + out * proud
+	_wall(p - along * hw, p + along * hw, y0, spring, out, col)
+	var n := Vector3(out.x, 0.0, out.y)
+	var t := Vector3(along.x, 0.0, along.y)
+	var c := Vector3(p.x, spring, p.y)
+	var top := spring + hw - _g
+	var prev := c + t * hw
+	for k in range(1, 5):
+		var ang := PI * k / 4.0
+		var q := c + (t * cos(ang) + Vector3.UP * sin(ang)) * hw
+		var a0 := PI * (k - 1) / 4.0
+		_tri(c, prev, q, n, col, Vector2(hw, spring - _g),
+				Vector2(hw + cos(a0) * hw, spring - _g + sin(a0) * hw),
+				Vector2(hw + cos(ang) * hw, spring - _g + sin(ang) * hw), top)
+		prev = q
+	_mode = keep
+
+
+## A round-headed window: a cream surround behind a dark glass pane.
+func _arch_win(at: Vector2, along: Vector2, out: Vector2, hw: float, y0: float, spring: float,
+		glass := MIROWSKA_GLASS) -> void:
+	_arch_panel(at, along, out, hw + 0.3, y0 - 0.25, spring, MIROWSKA_TRIM, 0.04, M_STONE)
+	_arch_panel(at, along, out, hw, y0, spring, glass, 0.08, M_GLASS)
+
+
+func _build_mirowska(site: Dictionary) -> void:
+	_o = MIROWSKA
+	_a = MIROWSKA_AXIS.normalized()
+	_b = Vector2(_a.y, -_a.x)  # to the north, across the hall
+	var hu := MIROWSKA_HU
+	var hv := MIROWSKA_HV
+	var body := _rect(hu * 0.5, hv * 0.5, hu * 0.5, hv * 0.5)
+	_g = _ground_under(body)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	var nave_v := hv * 0.5
+	var nave_hw := 13.3
+	var bay := (85.4 - 12.5) / 16.0
+	# windows first, so the walls behind them stay whole (they stand off the wall by cm)
+	for side in 2:
+		var v := 0.0 if side == 0 else hv
+		var out := -_b if side == 0 else _b
+		for k in 18:
+			_arch_win(_w(12.5 + (k + 0.5) * bay, v), _a, out, 1.15, g + 2.4, g + 6.6)
+		for u: float in [4.2, 8.6]:  # the annex's arcade on its long sides
+			_arch_win(_w(u, v), _a, out, 0.75, g + 1.1, g + 2.6)
+	# the east front: a portal in the middle bay between six windows
+	var pitch := hv / 7.0
+	for k in 7:
+		var v := (k + 0.5) * pitch
+		if k == 3:
+			_arch_win(_w(hu, v), _b, _a, 1.7, g + 1.3, g + 5.6, MIROWSKA_DOOR)
+		else:
+			_arch_win(_w(hu, v), _b, _a, 1.3, g + 2.4, g + 6.6)
+	# the west face: the arcade of the annex
+	for k in 8:
+		_arch_win(_w(0.0, (k + 0.5) * hv / 8.0), _b, -_a, 0.8, g + 1.1, g + 2.6)
+	# the thin tall gable ends: a big window in each
+	_arch_win(_w(90.1, nave_v), _b, _a, 1.8, g + 11.0, g + 13.8)
+	_arch_win(_w(7.7, nave_v), _b, -_a, 1.8, g + 11.0, g + 13.8)
+	# the walls: brick, 10 m, flat grey roof (the nave stands on it)
+	_mode = M_STONE
+	var main := _rect((12.5 + hu) * 0.5, hv * 0.5, (hu - 12.5) * 0.5, hv * 0.5)
+	_prism(main, g - 0.5, g + 10.0, MIROWSKA_BRICK, MIROWSKA_ROOF, M_STONE, M_STONE)
+	# the annex: low brick walls under a steep red hipped roof
+	_prism(_rect(6.25, hv * 0.5, 6.25, hv * 0.5), g - 0.5, g + 4.0, MIROWSKA_BRICK, none, M_STONE, M_STONE)
+	_hip(6.25, hv * 0.5, 6.4, hv * 0.5 + 0.15, g + 4.0, 6.0, MIROWSKA_TILE)
+	# plinth: four thin boxes round the foot
+	_lbox(hu * 0.5, -0.1, hu * 0.5 + 0.2, 0.2, g - 0.5, g + 1.2, MIROWSKA_PLINTH, M_STONE, MIROWSKA_PLINTH.lightened(0.05))
+	_lbox(hu * 0.5, hv + 0.1, hu * 0.5 + 0.2, 0.2, g - 0.5, g + 1.2, MIROWSKA_PLINTH, M_STONE, MIROWSKA_PLINTH.lightened(0.05))
+	_lbox(hu + 0.1, hv * 0.5, 0.2, hv * 0.5 - 0.2, g - 0.5, g + 1.2, MIROWSKA_PLINTH, M_STONE, MIROWSKA_PLINTH.lightened(0.05))
+	_lbox(-0.1, hv * 0.5, 0.2, hv * 0.5 - 0.2, g - 0.5, g + 1.2, MIROWSKA_PLINTH, M_STONE, MIROWSKA_PLINTH.lightened(0.05))
+	# the cornice along the main block's three outer sides
+	_lbox((12.5 + hu) * 0.5, -0.17, (hu - 12.5) * 0.5 + 0.35, 0.35, g + 9.0, g + 10.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+	_lbox((12.5 + hu) * 0.5, hv + 0.17, (hu - 12.5) * 0.5 + 0.35, 0.35, g + 9.0, g + 10.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+	_lbox(hu + 0.17, hv * 0.5, 0.35, hv * 0.5 - 0.35, g + 9.0, g + 10.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+	# pilasters between the bays: along both long sides and across the east front
+	var pil: Array[float] = []
+	for k in 17:
+		pil.append(12.5 + k * bay)
+	pil.append_array([90.0, 94.5, hu - 0.25])
+	for u: float in pil:
+		_lbox(u, -0.15, 0.25, 0.15, g + 1.2, g + 9.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+		_lbox(u, hv + 0.15, 0.25, 0.15, g + 1.2, g + 9.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+	for k in 8:
+		var v := clampf(k * pitch, 0.25, hv - 0.25)
+		_lbox(hu + 0.15, v, 0.15, 0.25, g + 1.2, g + 9.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+	# the portal's steps
+	for k in 3:
+		_lbox(hu + 0.4 + (2 - k) * 0.4, nave_v, 0.4 + (2 - k) * 0.4, 2.6, g - 0.5, g + 0.4 * (k + 1), MIROWSKA_PLINTH, M_STONE,
+				MIROWSKA_PLINTH.lightened(0.05))
+	# the nave's gabled roof and its tall gable ends
+	_gable(88.7, 9.1, nave_v, nave_hw, g + 10.0, 4.5, MIROWSKA_BRICK, MIROWSKA_NAVE)
+	_gable(90.1, 88.7, nave_v, nave_hw, g + 10.0, 8.0, MIROWSKA_BRICK, MIROWSKA_TRIM)
+	_gable(7.7, 9.1, nave_v, nave_hw, g + 10.0, 8.0, MIROWSKA_BRICK, MIROWSKA_TRIM)
+	_pinnacle(89.4, nave_v, 0.9, g + 17.8, 2.2, MIROWSKA_TRIM)
+	_pinnacle(8.4, nave_v, 0.9, g + 17.8, 2.2, MIROWSKA_TRIM)
+	# four corner turrets with pyramid caps
+	for cu: float in [10.1, 88.0]:
+		for cv: float in [11.3, hv - 11.3]:
+			_lbox(cu, cv, 2.5, 2.4, g + 10.0, g + 14.4, MIROWSKA_BRICK, M_STONE, none)
+			_lbox(cu, cv, 2.65, 2.55, g + 14.2, g + 15.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+			_mode = M_STONE
+			_pyramid(_rect(cu, cv, 2.7, 2.6), g + 15.0, g + 18.8, MIROWSKA_CAP)
+	# the lantern along the ridge: glass sides on the slope, a glass roof
+	_lbox(49.45, nave_v, 31.05, 5.5, g + 12.4, g + 16.0, MIROWSKA_SKY, M_GLASS, none)
+	_mode = M_GLASS_ROOF
+	_frustum(_rect(49.45, nave_v, 31.05, 5.5), g + 16.0, _rect(49.45, nave_v, 31.05, 0.3), g + 17.4, MIROWSKA_SKY, MIROWSKA_SKY)
+	_mode = M_STONE
+	_collide(site["ring"])
 
 
 ## Teatr Wielki (Antonio Corazzi, 1825-1833): the opera's mass stays LoD2's (a kept skin), and the
