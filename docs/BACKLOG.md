@@ -3,6 +3,24 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## The Mac App Store version and gamepads (F, 2026-11-01)
+
+Lane file: [docs/store/mac-and-gamepad.md](store/mac-and-gamepad.md). F wants the game ready for
+the Mac and for gamepads, and the Mac in the beta plan. Built: gamepad support (`gamepad.gd`,
+`check_gamepad.gd`): Xbox / PlayStation / MFi pads drive, fly, press the mission card, open
+Settings (focus ring, LB / RB tabs) and the full map; the title takes A / Y / B; the touch pedals
+hide while the pad is used and come back on a touch. Left:
+- Gamepad on real pads (iPhone and Mac): the button indices are checked on synthetic events only.
+- Gamepad gaps: Settings' volume bars, the notebook page and the garage card take no pad focus;
+  the full map has no stick pan / teleport; no per-family glyphs; no rumble.
+- Mac App Store version (post-v1.0 by default, QUESTIONS): macOS export preset, sandbox
+  entitlements and signing, keyboard and mouse controls (a keys card, click-to-point, `--no-touch`
+  by default), window and resolution settings, Mac store screenshots (2880 × 1800), the Mac's
+  bench (Apple Silicon and Intel).
+- Beta plan for the Mac: macOS TestFlight builds, the export and signing, a universal purchase on
+  the existing record (recommended) or a separate Mac record, the .pkg upload through Transporter
+  or Xcode (notarization only for outside the store); gamepad testing in every round.
+
 ## Accessibility follow-ups (2026-11-01)
 
 Built: Settings → DOSTĘP (`game/scripts/access.gd`, kept in `[access]` of settings.cfg): larger HUD
