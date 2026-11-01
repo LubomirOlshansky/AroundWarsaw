@@ -376,12 +376,25 @@ golden-image shots runtime vs `--prebuilt`,
   canopies, Widok Towers' green grid); only the phone can show the teeth and the signs' size. Left: the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
   the tram stops and kerbs (item 5), pedestrians and sound (6-7), the photo check on the Mac.
 
+## Packs: running clubs, cycling packs, coffee raves, big guys with tiny dogs (F, 2026-11-01)
+Built (`packs.gd`, docs/design/packs.md): three parody running clubs and two road-cycling packs out
+and back on real pavements and cycle paths, coffee raves outside the COFFEECHAIR cafés (booth, DJ
+Espresso, dancers), a third of the dog walkers big guys with tiny dogs, 58 new lines with parody
+gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
+- Only the phone can show whether a pack reads at the default zoom and what it costs there
+  (bench in the cloud: llvmpipe only).
+- Packs ignore the car (no swerve, no bump; the dawn crowd's rule); TEMPO NA KAWĘ's loop zigzags
+  between the pavements on either side in places (corners joined within 4 m).
+- A beat from the rave booth (sfx.gd positional voice), a rave notebook card or egg, a DJ crate
+  courier job, a radio mention.
+
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
 - **Shisha lounges** built (five parody signs, `Storefronts.LOUNGES`): only the phone can show the sign size on each wall and whether the spots read as lounges. Not notebook places; add smoky window glow or a door scene if wanted.
 - **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;
   the designer (`game-designer`, Sonnet for the text) specs it, `warsaw-tone` rules apply (real
   brands only as parodies, affectionate, Polish with English).
-- **Coffee raves** (poranne kawowe imprezy): daytime, sober-ish dance mornings, a flat white in
+- **Coffee raves** (built 2026-11-01 at the COFFEECHAIR cafés, see Packs above; the venues, queue,
+  notebook card and DJ job ideas here are still open) (poranne kawowe imprezy): daytime, sober-ish dance mornings, a flat white in
   one hand and a DJ on a pallet stage. Real Warsaw has them in cafes, courtyards and on the
   Vistula boulevards (Sunday 10:00-14:00). Fiction: a morning counterpart to the five clubs. Two
   or three parody venues, e.g. **Kawa Zero** (a courtyard in Praga), **Flat Biały** (a
