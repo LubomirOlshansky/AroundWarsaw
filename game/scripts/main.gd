@@ -105,6 +105,8 @@ const Settings := preload("res://scripts/settings.gd")
 const BenchStats := preload("res://scripts/bench.gd")
 const ScreenPoints := preload("res://scripts/screen_points.gd")
 const Splash := preload("res://scripts/splash.gd")
+const CrashFx := preload("res://scripts/crash_fx.gd")
+const Haptics := preload("res://scripts/haptics.gd")
 const Tiers := preload("res://scripts/tiers.gd")
 const Governor := preload("res://scripts/governor.gd")
 ## Loop 3g-1: the police (police.gd; its block below, "loop 3g-1: the police").
@@ -593,6 +595,8 @@ var _meter_top := {"Master": -200.0, "Music": -200.0, "SFX": -200.0, "Ambience":
 ## running (a rescue, a delivery, a race) carries on.
 const TOW_DELAY := 1.0
 var splash: Splash
+## v1.0 juice: sparks and dust where the car hits or scrapes (crash_fx.gd).
+var crash_fx: CrashFx
 ## Seconds left until the tow (< 0: no tow waiting); when the car went in (the clock, s).
 var _tow_wait := -1.0
 var _splash_at := 0.0
@@ -847,6 +851,9 @@ func _remember_frame(dt: float, now := false) -> void:
 func _notification(what: int) -> void:
 	if what in [NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_WM_CLOSE_REQUEST]:
 		_remember_frame(0.0, true)
+	elif what in [NOTIFICATION_APPLICATION_RESUMED, NOTIFICATION_APPLICATION_FOCUS_IN]:
+		# iOS stops the haptic engine in the background: start it again now, not in a crash's frame.
+		Haptics.warm()
 
 
 func _on_new_game() -> void:
@@ -1049,6 +1056,11 @@ func _build_world() -> void:
 	world.add_child(skids)
 	splash = Splash.new()
 	world.add_child(splash)
+	crash_fx = CrashFx.new()
+	world.add_child(crash_fx)
+	car.impact.connect(_on_car_impact)
+	car.scraped.connect(func(at: Vector3, normal: Vector3, speed: float) -> void:
+		crash_fx.scrape(at, normal, car.vel, speed, car.global_position.y))
 
 	heli = Heli.new()
 	heli.ground_height = map.ground_height
@@ -4012,6 +4024,14 @@ func _water_frame(dt: float) -> void:
 		_last_dry_yaw = car.rotation.y
 
 
+## v1.0 juice: the car hit something (car.impact): sparks and dust at the contact; a car, a
+## tram or a guard rail is metal (more sparks, less dust).
+func _on_car_impact(collider: Object, speed: float) -> void:
+	var metal := collider is AnimatableBody3D or (sfx != null and sfx.near_rail(car.hit_point))
+	crash_fx.crash(car.hit_point, car.hit_normal, car.vel, speed, car.global_position.y, metal)
+	print("crash fx: %s hit at %d km/h, %d sparks so far, frame %d" % ["metal" if metal else "solid", roundi(speed * 3.6), crash_fx.sparks_thrown, frame])
+
+
 ## Loop 10a: the car rolled into the water (car.splashed): the splash, its sound and a buzz,
 ## and the tow on its way.
 func _on_car_splashed(speed: float) -> void:
@@ -4488,6 +4508,7 @@ func _process(dt: float) -> void:
 	_read_input(dt)
 	_moment_frame(dt)  # loop MW-6: --egg, --tape, --fotka and the VHS of a tape
 	_water_frame(dt)
+	Haptics.tick(dt, not flying and absf(car.forward_speed) > 3.0)
 	if autopilot or _bench_ghost != null:
 		_autopilot(dt)
 	_update_camera(dt)
