@@ -5217,9 +5217,11 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 						col[t + v] = looks[k]
 						uv2[t + v].x = seeds[k]
 				if pitched:
-					# Old Town roof detail (OldTownRoofs): a dormer, now and then a chimney.
+					# Old Town roof detail (OldTownRoofs): a dormer, now and then a chimney. The
+					# seed from the slope's place, not its index (a sector's batch numbers its
+					# triangles differently from the whole map's: check_streaming's identity).
 					var extra := OldTownRoofs.dress(pos[t], pos[t + 1], pos[t + 2], nrm[t], looks[k], roofs[k],
-							fposmod(seeds[k] + t * 0.0137, 1.0))
+							fposmod(seeds[k] + pos[t].x * 0.0731 + pos[t].z * 0.0417, 1.0))
 					if not extra.is_empty():
 						_add_dress(dress, extra)
 				else:

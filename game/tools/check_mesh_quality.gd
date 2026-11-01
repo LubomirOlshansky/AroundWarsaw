@@ -123,6 +123,9 @@ class StubMap:
 	func ground_height(_x: float, _z: float) -> float:
 		return 0.0
 
+	func tunnel_floor_under(_x: float, _z: float) -> float:
+		return NAN
+
 	func _roof_triangle(_a: Vector3, _b: Vector3, _c: Vector3, _is_roof: bool, _col := Color(0, 0, 0, 0)) -> void:
 		pass
 

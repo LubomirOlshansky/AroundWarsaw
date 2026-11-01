@@ -108,7 +108,9 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               # the Copernicus Science Centre (2026-11-01): its low wings and the overhanging corner
               "Centrum Nauki Kopernik",
               # the University Library (2026-10-31): its roof houses and round lights
-              "Biblioteka Uniwersytecka"]
+              "Biblioteka Uniwersytecka",
+              # Hotel Metropol's roof sign (landmarks.gd _build_metropol_sign reads its parts' height)
+              "Hotel Metropol"]
 SITE_PAD = 12.0
 SITE_AREAS = [
     (1250.0, -820.0, 1700.0, -370.0),       # Stadion Narodowy's masts (Rect2(1250, -820, 450, 450))
@@ -120,6 +122,13 @@ SITE_AREAS = [
     (-2700.0, 560.0, -2655.0, 650.0),       # The Warsaw HUB's towers (landmarks.gd TOWERS "at")
     (-650.0, -790.0, -630.0, -765.0),       # Plac Piłsudskiego's south-east block (landmarks.gd KROLEWSKA_BLOCK)
     (-3105.0, -2455.0, -2920.0, -2335.0),   # map north: the Forest tower's office block (unnamed in OSM; docs/DEMO.md 2.2)
+    # behind the Eastern Wall (landmarks.gd _find_behind): the 75 m tower and the four 1960s
+    # slabs, unnamed in OSM, found by the outline under TOWER75_AT and SLAB_AT (their bboxes)
+    (-837.0, 245.0, -804.0, 270.0),
+    (-875.0, 66.0, -851.0, 108.0),
+    (-874.0, 149.0, -841.0, 215.0),
+    (-826.0, 185.0, -800.0, 229.0),
+    (-793.0, 287.0, -764.0, 333.0),
 ]
 
 
