@@ -2614,8 +2614,29 @@ func _build_stadium(site: Dictionary) -> void:
 		inset.append(vo - (vo - c).normalized() * 1.5)
 		foot.append(map.terrain_height(vi.x, vi.y) - 1.0)
 	var hole: PackedVector2Array = oblong.call(70.0, 54.0, 4.0)
-	# The skin: two bands, its weave continuous all the way round (the shader turns it from
-	# red to white with the height).
+	# The concourse: a dark glass curtain wall set back behind the masts' feet, from the
+	# crest to 7.5 m (the Mac photo check, 2026-11-01); the skin starts over it.
+	_mode = M_GLASS
+	var glass := PackedVector2Array()
+	for k in n:
+		glass.append(c + ((inner[k] as Vector2) - c) * 0.935)
+	var grun := 0.0
+	for k in n:
+		var k1 := (k + 1) % n
+		var gl := glass[k].distance_to(glass[k1])
+		var go := (glass[k] + glass[k1]) * 0.5 - c
+		var y0 := minf(foot[k], foot[k1]) - 0.5
+		var y1 := maxf(foot[k], foot[k1]) + 7.5
+		_quad(Vector3(glass[k].x, y0, glass[k].y), Vector3(glass[k1].x, y0, glass[k1].y),
+				Vector3(glass[k1].x, y1, glass[k1].y), Vector3(glass[k].x, y1, glass[k].y),
+				Vector3(go.x, 0.0, go.y).normalized(), Color("#2b3440"),
+				Vector2(grun, y0 - street), Vector2(grun + gl, y0 - street), Vector2(grun + gl, y1 - street),
+				Vector2(grun, y1 - street), y1 - street)
+		grun += gl
+	for k in n:
+		foot[k] += 7.0
+	# The skin: two bands, its panels continuous all the way round (the shader turns them
+	# from red to silver with the height).
 	_mode = M_WEAVE
 	var run := 0.0
 	for k in n:
@@ -2676,10 +2697,14 @@ func _build_stadium(site: Dictionary) -> void:
 		var p1 := Vector3(inset[k1].x, roof_y, inset[k1].y)
 		var p2 := Vector3(hole[k1].x, hole_y, hole[k1].y)
 		var p3 := Vector3(hole[k].x, hole_y, hole[k].y)
+		# The last 7 m before the opening are grey-blue polycarbonate (the Mac photo check).
+		var g0 := p3 + (p0 - p3) * (7.0 / p0.distance_to(p3))
+		var g1 := p2 + (p1 - p2) * (7.0 / p1.distance_to(p2))
 		var nr := (p1 - p0).cross(p3 - p0).normalized()
 		if nr.y < 0.0:
 			nr = -nr
-		_quad(p0, p1, p2, p3, nr, Color("#f4f4f1") if k % 2 == 0 else Color("#eaebe8"))
+		_quad(p0, p1, g1, g0, nr, Color("#f4f4f1") if k % 2 == 0 else Color("#eaebe8"))
+		_quad(g0, g1, p2, p3, nr, Color("#8f9aa3") if k % 2 == 0 else Color("#98a2aa"))
 	# The bowl, from the pitch out: advertising boards, the lower tier of red seats, a grey
 	# gangway, the dark glass of the boxes, then the upper tier up under the roof. Every
 	# sixth wedge is a lighter aisle.
@@ -2752,6 +2777,9 @@ func _build_stadium(site: Dictionary) -> void:
 		var a := Vector3(vi.x, foot[k], vi.y)
 		var b := Vector3(vo.x, street + 60.0, vo.y)
 		_beam(a, b, 0.55, Color("#e4e6ea"))
+		# The spike over the rim, thicker: the stadium's silhouette from the street.
+		var s0 := a.lerp(b, (rim_y - 1.0 - a.y) / (b.y - a.y))
+		_beam(s0, b + (b - a).normalized() * 0.4, 1.0, Color("#f2f3f5"))
 	# The needle (mapped 30-100 m): a white spindle through a dark hub ring where the cables
 	# meet (37-43 m, 15.6 m across), the folded roof stored in a white drum above it (55-63 m,
 	# 21 m across), and a red light on its tip; a cable from the hub to every third mast's

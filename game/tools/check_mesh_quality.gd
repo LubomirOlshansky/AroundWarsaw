@@ -60,7 +60,7 @@ const BUDGET := {
 	"spektrum": 990,
 	"spire": 1290,
 	"tr": 500,
-	"stadium": 3470,
+	"stadium": 4750,
 	"swieto": 240,
 	"tarasy": 5700,
 	"trojca": 2300,

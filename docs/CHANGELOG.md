@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Stadion Narodowy's facade now looks like the real one: rows of red and silver panels, more silver towards the top, over a dark glass entrance level, with stronger spikes on the skyline.
 - Stadion Narodowy is rebuilt from the real map data: its woven skin is red below and white above like the flag, a full-size striped pitch sits in two tiers of red seats, and the needle over the pitch carries the folded roof.
 
 ## 2026-10-31
