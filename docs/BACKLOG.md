@@ -226,6 +226,13 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   map"). Gap / not verified.
 
 ### P2: store release (store lane, Sonnet; F's forms)
+- **Done (2026-11-01):** the release build reads no command-line flags (`release.gd`: an export with
+  the release template, the TestFlight archive or the Play AAB, ignores `--at=`, `--shots=`,
+  `--bench` and the rest; the debug export and the checks keep them), and Settings → DŹWIĘK →
+  LICENCJE shows the credits and licences (`credits.gd`: OpenStreetMap ODbL, GUGiK, the trees'
+  CC BY 4.0, Godot and the four shipped add-ons, every radio track from radio.json).
+  `check_credits` (verify and CI) keeps the page, the add-on folders, radio.json and CREDITS.md in
+  step. Left: the page seen on the phone (scrolling with a finger at 375 pt).
 - TestFlight is paused until F fills App Information in App Store Connect; no build is uploaded.
   iPad kept or dropped; the support page needs a deploy; the store screenshots predate the demo
   map, the new HUD and the opening and need a re-shoot after #115/#121 ("From the store listings").

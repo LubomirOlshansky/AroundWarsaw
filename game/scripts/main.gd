@@ -41,6 +41,7 @@ extends Node
 ## Loop G1b: --last-session=struggled|calm starts Auto as if the last session at the sharp image
 ## struggled (the ×2 fallback) or was calm (the sharp image), and writes nothing of it.
 
+const Release := preload("res://scripts/release.gd")  # DEMO 3j: no flags in a release build
 const Access := preload("res://scripts/access.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
@@ -3209,10 +3210,10 @@ func _police_flag(arg: String) -> void:
 ## The game's own options. Loop 2b: a launcher can swallow the "--" (devicectl on an iPhone):
 ## then they arrive among the engine's own; ours never share a name with those. Every parser of
 ## game flags reads this (loop G0+: the streaming flags read only the user args, so on the phone
-## --stream-soak and --stream-log did nothing and the soak never ran).
+## --stream-soak and --stream-log did nothing and the soak never ran). A release build reads none
+## (release.gd: the testing flags are stripped from what players get).
 static func game_args() -> PackedStringArray:
-	var args := OS.get_cmdline_user_args()
-	return args if not args.is_empty() else OS.get_cmdline_args()
+	return Release.game_args()
 
 
 func _parse_args() -> void:

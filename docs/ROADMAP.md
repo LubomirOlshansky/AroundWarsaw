@@ -31,8 +31,8 @@ then the Launch gate.
 - [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted
 
 ### Left: the start of the game
-- [ ] Merge PR #115 (start facing the first stand, short first order, BUW roof cassette), then
-      PR #121 (the opening flyover)
+- [x] Merge PR #115 (start facing the first stand, short first order, BUW roof cassette), then
+      PR #121 (the opening flyover) (both on main; ticked 2026-11-01)
 - [ ] First-scene items 4-7: pavilions and towers behind the stores, Plac Defilad's paving, tram
       stops and kerbs on Marszałkowska, pedestrians and sound at the start
 - [ ] The start area as real Warsaw (F, 2026-11-01; plan docs/design/start-area-real.md):
@@ -116,7 +116,9 @@ then the Launch gate.
 
 ### Left: TestFlight and the stores
 - [ ] F fills App Information in App Store Connect; keep or drop iPad
-- [ ] Debug flags stripped from the release build; credits and licences screen checked
+- [x] Debug flags stripped from the release build; credits and licences screen checked
+      (2026-11-01, `release.gd`, Settings → DŹWIĘK → LICENCJE `credits.gd`, `check_credits`; the page
+      on the phone still to see)
 - [ ] Store screenshots re-shot after the opening lands; app icon; a short trailer
 - [ ] Deploy the support page; first TestFlight upload from the Mac; Play closed test
 - [ ] Gamepad testing in the beta: an Xbox, PlayStation or MFi pad on the iPhone (beta-testing.md)

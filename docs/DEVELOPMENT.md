@@ -9,6 +9,7 @@ Earlier docs and code comments that cite `DEVELOPMENT.md "<section>"` mean that 
 ## The few things to know without opening it
 
 - **Run the game:** `cd game && godot --path . -- --nosave` plus a quit flag (`--quit-after N`, `--shots=`); flags are in the archive section "Test flags" (search `| \`--demo\``).
+- **Release builds read no flags** (`game/scripts/release.gd`): only the debug export (Xcode Run, `device_run.sh`) and the editor binary take test flags; a TestFlight archive or the Play AAB ignores them (`check_credits`).
 - **Verify:** `tools/verify.sh [--quick|--ios|--only=a,b]`; CI runs the no-map subset.
 - **Performance budgets:** the phone's frame grows with draw calls, not triangles; the numbers are in the section "Performance budgets" (the 2 KB table is the gate for anything per-frame).
 - **Map:** derived files are not committed; `tools/setup_map.sh` makes them; `python3 -I tools/check_map_data.py` after any re-bake ("Map data").
