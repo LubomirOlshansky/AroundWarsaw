@@ -330,6 +330,14 @@ in). Gaps the orchestrator added on 2026-10-28, so nothing found so far falls th
 - **After the demo**: the inner districts (Śródmieście, Wola, Ochota, Mokotów, Żoliborz,
   Praga-Północ, Praga-Południe, ~122 km²) as an update delivered as background asset packs,
   then the rest of Warsaw (sizes in DEMO.md section 9).
+- **Status, 2026-11-01 (audit)**: rounds 1-7 are built and round 8 (3h) is mostly built, but
+  the Demo gate (WORKFLOW.md) is not met: the opening's last two PRs (#115, #121) are unmerged,
+  the last phone numbers are from 2026-10-29, no full Mac verify is recorded since the landmark
+  lane began, the roads were never compared with the real streets outside the old box, and nobody
+  has played a fresh save on the phone. The order from here: BACKLOG "Audit: what is verified
+  beyond the landmarks" (P0: merge the opening, a full Mac verify, the phone pass and F's timed
+  run; then roads review C, street furniture on the main line's route, the designer's text pass),
+  with the landmark lane running beside it.
 
 ### v1.0 — "Ship it"
 - Device pass on iPhones (11 → 17 Pro): 60 fps target, memory under 1.5 GB, load < 4 s.
