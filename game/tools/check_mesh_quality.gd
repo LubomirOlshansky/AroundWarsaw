@@ -29,6 +29,8 @@ const BUDGET := {
 	"kordegarda": 560,
 	"mickiewicz": 340,
 	"potocki": 200,
+	"prus": 250,
+	"wyszynski": 300,
 	"arkadia": 1440,
 	"blekitny": 910,
 	"bridge": 110,

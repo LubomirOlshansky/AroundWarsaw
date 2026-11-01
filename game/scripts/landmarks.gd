@@ -251,6 +251,15 @@ const INFO := {
 	"karmelici": ["Kościół Karmelitów",
 			"Rokokowo-klasycystyczna fasada z końca XVIII wieku, ze złotym globem na szczycie.",
 			"A late-18th-century front with a gilt globe on top."],
+	"czapski": ["Pałac Czapskich",
+			"Barokowy pałac Krasińskich-Czapskich, dziś Akademia Sztuk Pięknych.",
+			"The baroque Krasiński-Czapski palace, now the Academy of Fine Arts."],
+	"prus": ["Pomnik Bolesława Prusa",
+			"Pisarz z laską za plecami, z brązu, 3,6 m, na skwerze Twardowskiego.",
+			"The novelist, bronze, 3.6 m, cane behind his back, on Twardowski Square."],
+	"wyszynski": ["Pomnik Kardynała Wyszyńskiego",
+			"Prymas Tysiąclecia na tronie, z brązu, przed kościołem Wizytek.",
+			"The Primate seated in bronze before the Visitationists' church."],
 	"mickiewicz": ["Pomnik Adama Mickiewicza",
 			"Poeta z 1898 roku na wysokim cokole, na skwerze przy Krakowskim Przedmieściu.",
 			"The poet, 1898, on a tall pedestal in the square on Krakowskie Przedmieście."],
@@ -1013,6 +1022,10 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_karmelici(s)
 			"mickiewicz":
 				_build_mickiewicz(s)
+			"prus":
+				_build_prus(s)
+			"wyszynski":
+				_build_wyszynski(s)
 			"brama_uw":
 				_build_brama_uw(s)
 			"potocki":
@@ -2667,6 +2680,7 @@ const SKINS := [
 	{"key": "wszystkich", "osm": "Kościół Wszystkich Świętych", "mode": M_MONUMENT, "wall": "#ddcfaa", "roof": "#6e7f6e"},
 	{"key": "wizytki", "osm": "Kościół Wizytek", "mode": M_MONUMENT, "wall": "#ecdfc0", "roof": "#6d8f7f"},
 	{"key": "karmelici", "osm": "Kościół Wniebowzięcia Najświętszej Maryi Panny i świętego Józefa Oblubieńca", "mode": M_MONUMENT, "wall": "#e2d8c0", "roof": "#7d8a7c"},
+	{"key": "czapski", "osm": "Pałac Czapskich", "mode": M_MONUMENT, "wall": "#e4cfae", "roof": "#6b5f5a"},
 	{"key": "potocki", "osm": "Pałac Potockich", "mode": M_MONUMENT, "wall": "#e8d9a8", "roof": "#7a6e68"},
 	{"key": "bristol", "osm": "Hotel Bristol", "mode": M_MONUMENT, "wall": "#e4d2b4", "roof": "#6a5a52"},
 	{"key": "kazimierzowski", "osm": "Pałac Kazimierzowski", "mode": M_MONUMENT, "wall": "#e6d9ac", "roof": "#6e6a62"},
@@ -9436,18 +9450,26 @@ const POTOCKI_AXIS := Vector2(-0.2, -0.98)
 const KORDEGARDA := Vector2(-626.3, -947.4)
 const KORDEGARDA_AXIS := Vector2(-0.239, -0.971)
 const BRISTOL_TOWER := Vector2(-557.8, -894.0)
+# K6 (2026-11-01): the two statues of Krakowskie Przedmieście's north end, spots projected from
+# their published coordinates (Prus 52.24173 N 21.01636 E, Twardowski Square; Wyszyński
+# 52.24112 N 21.01661 E, in front of the Visitationists' church); the facings are estimates.
+const PRUS := Vector2(-519.7, -860.3)
+const WYSZYNSKI := Vector2(-503.0, -792.6)
+const STREET_AXIS := Vector2(0.37, 0.93)  # along Krakowskie Przedmieście here (south); +v is west
 const KP_STONE := Color("#e2d8c0")
 const KP_TRIM := Color("#f1eadb")
 const KP_BASE := Color("#b3a994")
 const KP_GOLD := Color("#c9a24a")
 const KP_DARK := Color("#3a3d40")
-const KP_BRONZE := Color("#4a4a42")
+const KP_BRONZE := Color("#5e5c4c")
 const KP_GRANITE := Color("#8d8a86")
 const KP_COPPER := Color("#6f9382")
 
 
 func _find_krakowskie() -> void:
 	_add_site("mickiewicz", [_circle(MICK, 5.2, 16)])
+	_add_site("prus", [_circle(PRUS, 3.2, 12)])
+	_add_site("wyszynski", [_circle(WYSZYNSKI, 3.6, 12)])
 	_o = BRAMA
 	_a = BRAMA_AXIS.normalized()
 	_b = Vector2(-_a.y, _a.x)
@@ -9740,3 +9762,52 @@ func _build_mariensztat(_site: Dictionary) -> void:
 			_lbox(s * 1.1, 0.12, 0.18, 0.12, g + 7.3, g + 7.8, MZ_FRAME, M_STONE, MZ_FRAME)
 		var c := _w(0.0, 0.23)
 		_disc(Vector3(c.x, g + 7.8, c.y), Vector3(_b.x, 0.0, _b.y), 0.7, 8, MZ_FRAME)
+
+
+## Bolesław Prus's statue (Anna Kamieńska-Łapińska, 1977) on Twardowski Square: 3.6 m of bronze,
+## an old man standing slightly bent in a long coat, hands and cane behind his back, on a low
+## granite base. K6; the facing (towards the street) is an estimate. Spec prus.md.
+func _build_prus(_site: Dictionary) -> void:
+	_o = PRUS
+	_a = STREET_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_g = map.terrain_height(PRUS.x, PRUS.y)
+	var g := _g
+	_mode = M_STONE
+	_lbox(0.0, 0.0, 1.5, 1.5, g - 0.3, g + 0.35, KP_GRANITE, M_STONE, KP_GRANITE.lightened(0.06))
+	_lbox(0.0, 0.0, 1.2, 1.2, g + 0.35, g + 0.6, KP_GRANITE.lightened(0.05), M_STONE, KP_GRANITE.lightened(0.1))
+	var c := _w(0.0, 0.0)
+	var top := g + 0.6
+	_frustum(_circle(c, 0.5, 8), top, _circle(c, 0.42, 8), top + 1.6, KP_BRONZE)  # the long coat
+	_frustum(_circle(c, 0.42, 8), top + 1.6, _circle(c, 0.3, 8), top + 2.4, KP_BRONZE)  # the shoulders
+	_frustum(_circle(c, 0.3, 8), top + 2.4, _circle(c, 0.14, 8), top + 2.6, KP_BRONZE)  # the neck
+	_prism(_circle(_w(0.1, 0.0), 0.2, 8), top + 2.6, top + 3.0, KP_BRONZE, KP_BRONZE, M_STONE, M_STONE)
+	_lbox(-0.45, 0.0, 0.1, 0.12, top + 0.1, top + 1.5, KP_BRONZE, M_STONE, KP_BRONZE)  # the cane behind
+	_collide(_rect(0.0, 0.0, 1.5, 1.5))
+
+
+## Cardinal Stefan Wyszyński's statue (Andrzej Renes, 1987) before the Visitationists' church:
+## the Primate seated, bronze, on a granite pedestal with a wide slab for candles and flowers.
+## K6; the facing (west, to the street) is an estimate. Spec wyszynski.md.
+func _build_wyszynski(_site: Dictionary) -> void:
+	_o = WYSZYNSKI
+	_a = STREET_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_g = map.terrain_height(WYSZYNSKI.x, WYSZYNSKI.y)
+	var g := _g
+	_mode = M_STONE
+	var robe := Color("#5e5c4c")
+	for k in 2:  # two steps, the pedestal, the slab
+		_lbox(0.0, 0.0, 3.2 - 0.6 * k, 3.2 - 0.6 * k, g - 0.3 + 0.2 * k, g + 0.2 * (k + 1), KP_GRANITE, M_STONE,
+				KP_GRANITE.lightened(0.05))
+	_lbox(0.0, 0.0, 1.9, 1.9, g + 0.4, g + 1.9, KP_GRANITE.lightened(0.06), M_STONE, KP_GRANITE.lightened(0.1))
+	_lbox(0.0, 0.2, 2.6, 2.2, g + 1.9, g + 2.2, KP_GRANITE.lightened(0.04), M_STONE, KP_GRANITE.lightened(0.1))
+	var top := g + 2.2
+	_lbox(-0.2, 0.0, 0.5, 1.1, top, top + 1.6, robe, M_STONE, robe)  # the throne's back
+	_lbox(0.2, 0.0, 1.0, 1.1, top, top + 0.8, robe, M_STONE, robe)  # the seat and robe
+	_lbox(0.55, 0.0, 0.5, 0.9, top + 0.0, top + 0.5, robe, M_STONE, robe)  # the hem on the knees
+	var c := _w(0.0, 0.0)
+	_frustum(_circle(c, 0.5, 8), top + 0.8, _circle(c, 0.38, 8), top + 1.7, robe)  # chest
+	_prism(_circle(_w(0.1, 0.0), 0.17, 8), top + 1.7, top + 2.1, robe, robe, M_STONE, M_STONE)  # head
+	_lbox(0.45, 0.3, 0.4, 0.14, top + 1.2, top + 1.3, robe, M_STONE, robe)  # the hand at the chin
+	_collide(_rect(0.0, 0.0, 3.2, 3.2))
