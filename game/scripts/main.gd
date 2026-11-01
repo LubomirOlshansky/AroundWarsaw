@@ -4047,11 +4047,11 @@ func _on_setting(key: String, value: Variant) -> void:
 			settings.zone_cap = int(value) == 1
 			zone_cap_on = settings.zone_cap
 		"text_large", "calm", "color_safe", "vibration", "stop_assist", "left_handed":
-			# Accessibility (access.gd). Text size shows from the next launch (the HUD is built once);
-			# the left-handed layout at once.
+			# Accessibility (access.gd): all of it shows at once, text size included.
 			settings.set(key, int(value) == 1)
 			Access.apply(settings)
 			hud.set_left_handed(Access.left_handed)
+			hud.apply_text_scale()
 		"master", "music", "effects":
 			settings.set(key, float(value))
 			Sfx.set_levels(settings.master, settings.music, settings.effects)

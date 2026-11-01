@@ -506,6 +506,18 @@ func _on_resize() -> void:
 
 # --- pieces ----------------------------------------------------------------------------------
 
+## Every label made by `_label`, so `apply_text_scale` can resize them live (Settings → text size).
+var _scaled_labels: Array[Label] = []
+
+
+## Re-apply `Access.text_scale` to every HUD label at once (no restart). Dead labels are dropped.
+func apply_text_scale() -> void:
+	_scaled_labels = _scaled_labels.filter(func(l: Label) -> bool: return is_instance_valid(l))
+	for l in _scaled_labels:
+		l.add_theme_font_size_override("font_size", _px(float(l.get_meta("base_pt")) * Access.text_scale))
+	_mark()
+
+
 ## A font size in pixels for a size in points.
 func _px(points: float) -> int:
 	return maxi(1, roundi(points * pt))
@@ -514,6 +526,8 @@ func _px(points: float) -> int:
 ## A label on the type scale; `outline` for text that sits on the city rather than a panel.
 func _label(points: float, colour: Color, outline := false) -> Label:
 	var l := Label.new()
+	l.set_meta("base_pt", points)
+	_scaled_labels.append(l)
 	l.add_theme_font_size_override("font_size", _px(points * Access.text_scale))
 	l.add_theme_color_override("font_color", colour)
 	if outline:
