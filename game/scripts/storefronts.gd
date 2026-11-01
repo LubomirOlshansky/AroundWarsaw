@@ -106,6 +106,14 @@ const VENUES := {
 	"shisha_chmurka": [["CHMURKA"], SHISHA_TUBE, 2.8],
 	"shisha_mgielka": [["MGIEŁKA"], SHISHA_TUBE_B, 2.8],
 	"shisha_zaduch": [["ZADYM"], SHISHA_TUBE, 2.8],
+	"trend_macza": [["MACZA"], Color(0.45, 1.0, 0.4), 2.8],
+	"trend_pistacja": [["PISTACJA", "DO KOŃCA"], Color(0.7, 1.0, 0.35), 2.8],
+	"trend_zebus": [["ZĘBUŚ"], Color(1.0, 0.45, 0.8), 2.8],
+	"trend_padelnia": [["PADELNIA"], Color(0.1, 0.9, 1.0), 2.8],
+	"trend_kwasne_wino": [["KWAŚNE", "WINO"], Color(1.0, 0.1, 0.4), 2.8],
+	"trend_nie_tutaj": [["NIE", "TUTAJ"], Color(1.0, 1.0, 1.0), 2.6],
+	"trend_popup": [["POP-UP", "DO PIĄTKU"], Color(1.0, 0.85, 0.35), 2.8],
+	"trend_rozgniot": [["ROZGNIOT"], Color(1.0, 0.55, 0.15), 2.8],
 }
 ## COFFEECHAIR (BACKLOG, the user 2026-10-31): a parody of a real coffee-shop chain, our own name
 ## and a warm cream tube (no logo, no chair icon of anyone's). Small cafés that are not notebook
@@ -125,6 +133,19 @@ const LOUNGES := {
 	"shisha_chmurka": [52.2262, 21.0212],
 	"shisha_mgielka": [52.2342, 21.0107],
 	"shisha_zaduch": [52.2241, 21.0236],
+}
+## 2025-26 trend spots (docs/design/trends-2025-26.md): matcha, the pistachio-chocolate queue, the
+## fanged plush, padel, natural wine, the secret bar, the pop-up, the smash burger. Original names,
+## in Śródmieście side streets; like the cafés, not notebook places, same venue code.
+const TRENDY := {
+	"trend_macza": [52.2318, 21.0125],
+	"trend_pistacja": [52.2287, 21.0189],
+	"trend_zebus": [52.2362, 21.0140],
+	"trend_padelnia": [52.2255, 21.0260],
+	"trend_kwasne_wino": [52.2344, 21.0210],
+	"trend_nie_tutaj": [52.2379, 21.0190],
+	"trend_popup": [52.2296, 21.0137],
+	"trend_rozgniot": [52.2270, 21.0235],
 }
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
@@ -240,7 +261,7 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for table: Dictionary in [CAFES, LOUNGES]:
+	for table: Dictionary in [CAFES, LOUNGES, TRENDY]:
 		for id: String in table:
 			var ll: Array = table[id]
 			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
