@@ -10,7 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-10-31
-- The University Library on Dobra is rebuilt: its copper pages covered in old writing, four philosophers on columns at the door, glass roofs, and the real shape of its roof garden, where the first mixtape waits.
+- The University Library on Dobra is rebuilt: its copper pages covered in old writing, four philosophers on columns at the door, and its roof garden as it looks from the air: the big glass roof with a walkway across it, flower beds round a little plaza, a grassy mound with a glass pyramid, the round glass oculus, and the green band round the edge. The first mixtape waits up there.
 - Warszawa Centralna is rebuilt from the real map data: the glass hall under its wide, flat overhanging roof, the roof's saddle-shaped shells on rows of pillars, the lower wings at both ends, and at night the hall glowing white under a line of lamps.
 - The website's first city picture is new: Plac Defilad from above at golden hour, with the Palace, the new Museum of Modern Art and the building site beside it.
 - Beside the museum, the plot for the new TR Warszawa theatre is now a messy building site: a fence with black tarp, dug-up ground and old foundations, spoil heaps, cabins, a digger and a tower crane with a red light at night.

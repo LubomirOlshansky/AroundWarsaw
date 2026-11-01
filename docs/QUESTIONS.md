@@ -20,9 +20,9 @@ Newest first. One entry per question.
 
 - **2026-10-31 · landmarks · University Library (BUW)** — Built from OpenStreetMap alone (no
   free photo, the cloud reaches neither Commons nor GUGiK): the block is OSM's 10.9 m (LoD2 on
-  the Mac may say more), the four philosophers' columns stand on Dobra before the copper pages,
-  and the glass roofs pitch about 25 degrees so the cassette lands in the garden. Default
-  built: those. F to check against a photo or the street (docs/landmarks/buw.md).
+  the Mac may say more) and the four philosophers' columns stand on Dobra before the copper
+  pages (the orthophoto can't show them). The roof follows the orthophoto since 2026-11-01.
+  Default built: those. F to check against a photo or the street (docs/landmarks/buw.md).
 
 - **2026-10-31 · gameplay · the game map** — Teleport: free and unlimited, by holding a spot for
   0.6 s; refused during a race, a job, a rescue, a police chase and the first-drive guide. The
