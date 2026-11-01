@@ -68,6 +68,7 @@ const Dialogue := preload("res://scripts/dialogue.gd")
 const Jobs := preload("res://scripts/jobs.gd")
 ## Loop 2d-1: Podwózka, the app-taxi side job.
 const Rides := preload("res://scripts/rides.gd")
+const Lines := preload("res://scripts/quest_lines.gd")
 const Eggs := preload("res://scripts/eggs.gd")
 ## Loop MW-1: MOJA WARSZAWA, the city notebook.
 const Notebook := preload("res://scripts/notebook.gd")
@@ -1164,6 +1165,7 @@ func _build_world() -> void:
 	_set_flying(false)
 
 	missions = Missions.new()
+	missions.line_split = start_mission == 0  # G12: calls follow the vehicle (quest_lines.gd)
 	add_child(missions)
 	missions.setup(map, data, world, hud)
 	missions.player = car.global_position
@@ -5239,7 +5241,7 @@ func _show_target() -> void:
 		_new_target("race", f)
 		return
 	# Loop MW-4: the "Na czasie" job's queue, then its door.
-	if trend_job != null and trend_job.has_target():
+	if trend_job != null and trend_job.has_target() and Lines.shows(Lines.Line.CAR, flying):
 		var tp: Vector3 = trend_job.target_position()
 		var at_t := _vehicle_position()
 		var mt := roundi(Vector2(tp.x - at_t.x, tp.z - at_t.z).length())
@@ -5249,7 +5251,7 @@ func _show_target() -> void:
 		_new_target("job", tp)
 		return
 	# Loop 2d-1: a Podwózka ride's pin, passenger or door.
-	if rides != null and rides.has_target():
+	if rides != null and rides.has_target() and Lines.shows(Lines.Line.CAR, flying):
 		var rp: Vector3 = rides.target_position()
 		var at_r := _vehicle_position()
 		var mr := roundi(Vector2(rp.x - at_r.x, rp.z - at_r.z).length())
@@ -5258,7 +5260,7 @@ func _show_target() -> void:
 		_put_target(Vector2(rp.x, rp.z), rides.target_colour(), _guide_on())
 		_new_target("job", rp)
 		return
-	if jobs != null and jobs.has_target():
+	if jobs != null and jobs.has_target() and Lines.shows(Lines.Line.CAR, flying):
 		var j: Vector3 = jobs.target_position()
 		var at_j := _vehicle_position()
 		var mj := roundi(Vector2(j.x - at_j.x, j.z - at_j.z).length())
