@@ -815,12 +815,12 @@ a car joins. A clipboard-scribble sound for the clamp.
 | --- | --- | --- |
 | 0:00 | Title, tap anywhere. The car on Marszałkowska by the Palace, day, the radio playing | Exists |
 | 0:05 | Driving. A ghost finger only if there is no touch for 4 s | New hint |
-| 0:15 | A dashed ring and a kebab steam icon 150 m ahead (the Marszałkowska/Świętokrzyska stand) | Exists, plus a guaranteed first order |
-| 0:30 | The first order: a hand-picked 700 m delivery past the Rotunda. The customer's punchline, money pops | New "first order" |
+| 0:15 | A dashed ring and a kebab steam icon ahead (the Marszałkowska/Świętokrzyska stand; 2026-10-31, the first-10 polish: a new save starts on the northbound side by the Museum of Modern Art, facing the stand ~350 m up the street) | Exists, plus a guaranteed first order |
+| 0:30 | The first order: ~~a hand-picked 700 m delivery past the Rotunda~~ a short, easy one (2026-10-31, the first-10 polish: ~230 m straight on up Marszałkowska, no turn to find; the first one was 926 m with a U-turn). The customer's punchline, money pops | New "first order" |
 | 1:30 | ~~Seba~~ **Pani Halina** rolls up behind and flashes: FLASH LIGHTS back. An 800 m race to the Palm, which she is tuned to lose narrowly (2026-10-31, loop 3h slice 4: Halina is the ladder's first rung, so the first race counts on the ladder and Seba stays the final's boss, making "Trzy mosty" the payoff) | Exists + a first-race tuning (rivals.gd `first_band`) |
 | 3:00 | The first speed trap on the way back: a caution, two jokes, the roosters explained in one line | New (police) |
 | 4:00 | A rescue call (street, car): the hospital, the escort, and the helicopter unlocked | Exists + gating |
-| 6:00 | Helicopter over the river: a cassette on the boulevard roof, a new song | New collectible |
+| 6:00 | Helicopter over the river: a cassette on the boulevard roof, a new song (2026-10-31: the first mixtape lies on the University Library's roof by the boulevards, cassettes.gd) | New collectible |
 | 8:00 | "Powiśle discovered": the district card, 3 question marks on the map | New district system |
 | 10:00 | The garage marker appears in Praga ("Warsztat u Mirka"): spend the złoty on a paint job | New garage |
 
@@ -843,7 +843,7 @@ pacing: docs/design/main-line.md (2026-10-31).
 | Rescues | As now, over the whole area; new kinds: an Old Town tourist with a sprained ankle, a Łazienki peacock on a roof (helicopter) | Extend |
 | Police | 5.2 to 5.4 | New |
 | Collectibles | **20 Syrenki** (little invented mermaid figurines hidden round the city; the real statues count too), **10 cassettes** (7 new radio loops from `make_music.py`), **15 eggs** (5 exist + the Praga bears, Łazienki's peacocks, the pigeons of Plac Zamkowy, the "best view of Warsaw" joke on the Palace, a police car stuck in its own roadworks, a race up and down a multi-storey car park by Arkadia, the Old Town's horse carriage, a tram fan at Plac Bankowy, Plac Zbawiciela's café queue, the "new Mordor" commuter march at Rondo Daszyńskiego), billboards 5 → 10, posters 24 | 5 eggs exist |
-| Landmark cards | ~25 (7 now) | Extend |
+| Landmark cards | ~25 (72 now, 2026-11-01) | Done |
 
 **Progression.**
 

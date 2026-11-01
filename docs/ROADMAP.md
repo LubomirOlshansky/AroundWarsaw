@@ -65,8 +65,10 @@ then the Launch gate.
 
 ### Left: content and feel
 - [ ] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
-- [ ] DEMO 6.3 counts: 10 roof cassettes (1 in #115), ~25 landmark cards, the second słoiki
-      station, the Old Town tourist and Łazienki peacock rescues (check each against the code)
+- [x] DEMO 6.3 counts, cassettes and landmark cards (2026-11-01): 10 roof cassettes in
+      `cassettes.json` (9 new), and 72 landmark cards already in `landmarks.gd` INFO (target ~25)
+- [ ] DEMO 6.3 counts, rescues and słoiki: the second słoiki station (jobs.gd has one), the Old
+      Town tourist and the Łazienki peacock rescues (a "tourist fainted" street rescue exists; no peacocks)
 - [ ] Loop 3i juice: sparks and dust (no particles yet), money pops, district ambiences,
       haptics working on the iPhone
 - [x] Accessibility options (2026-11-01, Settings → DOSTĘP, `access.gd`): larger HUD text, calm
@@ -428,7 +430,7 @@ in). Gaps the orchestrator added on 2026-10-28, so nothing found so far falls th
 
 ### v1.0 — "Ship it"
 - Trend spots 2025–26 (docs/design/trends-2025-26.md): eight parody signs built; PISTACJA queue and
-  Friday "Limitka" drop job built (2026-11-01, phone check open); PADELNIA queue and eight padel lines built (docs/design/padel.md; characters, notebook lore and the "Czwarty" quest to follow); scooter zones built (toast only, 2026-11-01) (BACKLOG "Trends 2025–26").
+  Friday "Limitka" drop job built (2026-11-01, phone check open); PADELNIA queue, padel characters, a notebook place and the "Czwarty" job built (docs/design/padel.md; roof court and pro shop to follow); scooter zones built (toast only, 2026-11-01) (BACKLOG "Trends 2025–26").
 - Device pass on iPhones (11 → 17 Pro): 60 fps target, memory under 1.5 GB, load < 4 s.
 - Settings (style, controls, sound), onboarding, App Store assets, privacy, credits
   (OSM ODbL, GUGiK CC BY 4.0 for trees, ZTM data terms).
