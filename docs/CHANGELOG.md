@@ -9,6 +9,9 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-01
+- The Copernicus Science Centre by the river is rebuilt: a long dark block with windows scattered like pixels that glow at night, a corner hanging over the glass entrance, a garden of lawns and paths on its roof, and the black, faceted planetarium beside it.
+
 ## 2026-10-31
 - New: five COFFEECHAIR cafés in Śródmieście (Foksal, Chmielna, Krakowskie Przedmieście, Plac Trzech Krzyży, Hoża), each with a warm neon sign.
 - Picking up and dropping off is much easier: the rings are bigger, you don't need to stop dead, and the car brakes by itself into the ring and waits there while the passenger gets in or out.

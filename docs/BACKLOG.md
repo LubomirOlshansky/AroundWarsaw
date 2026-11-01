@@ -119,7 +119,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
   the OSM parts. Left: the photo check on the Mac (OSM puts the shells in a 1.5 m tier wholly
   under the flat slab, so from the 30-degree camera they show only as a small zigzag at the
   two ends: if the photos show more of them, say so and the tier grows; the wings' walls; warm
-  or cool hall light). The others not started.
+  or cool hall light). **The Copernicus Science Centre built 2026-11-01** (site `kopernik`,
+  spec `docs/landmarks/specs/kopernik.md`, log `docs/landmarks/kopernik.md`): the long dark
+  block to LoD2's 13 m with windows scattered like pixels, the river corner hanging over a
+  glazed ground floor, the low glass wings, the roof garden, and the black faceted
+  planetarium. Left: the photo check on the Mac (the panels and windows, the overhang's depth,
+  the planetarium's height, the garden's real paths). The others not started.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
   photos per building in `refs/` (Wikimedia Commons, gitignored; fetched on the Mac, the cloud

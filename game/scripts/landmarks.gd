@@ -195,8 +195,8 @@ const INFO := {
 			"Opera Narodowa. Gmach Antonia Corazziego z 1833 roku.",
 			"The National Opera. Antonio Corazzi's building of 1833."],
 	"kopernik": ["Centrum Nauki Kopernik",
-			"Centrum nauki otwarte w 2010 roku. Na dachu ogród.",
-			"A science centre, opened in 2010. A garden on its roof."],
+			"Otwarte w 2010 roku. Na dachu ogród, obok czarne planetarium.",
+			"Opened in 2010. A garden on the roof, the black planetarium beside it."],
 	"buw": ["Biblioteka Uniwersytecka",
 			"Zielona miedź na ścianach, ogród na dachu.",
 			"Green copper on its walls, a garden on its roof."],
@@ -380,6 +380,8 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return Color(PLAC_WALLS[key])
 	if MALACHOWSKI_WALLS.has(key):
 		return Color(MALACHOWSKI_WALLS[key])
+	if key == "kopernik":
+		return KOP_WALL
 	return fallback
 
 
@@ -527,6 +529,8 @@ func _find_sites() -> void:
 	_find_trojca()
 	_find_zacheta()
 	_find_prezydencki()
+	# The Copernicus Science Centre and its planetarium (2026-11-01): a model instead of a skin.
+	_find_kopernik()
 
 
 ## Warszawa Centralna (spec docs/landmarks/specs/centralna.md, 2026-10-31): OpenStreetMap maps
@@ -757,6 +761,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_zacheta(s)
 			"prezydencki":
 				_build_prezydencki(s)
+			"kopernik":
+				_build_kopernik(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -2180,7 +2186,6 @@ func _sloped(poly: PackedVector2Array, y0: float, hi: float, lo: float, wall: Co
 ## centre's dark slabs). Colours from photographs, a step paler than life.
 const SKINS := [
 	{"key": "teatr", "osm": "Teatr Wielki", "mode": M_MONUMENT, "wall": "#ddd2b6", "roof": "#7fa894"},
-	{"key": "kopernik", "osm": "Centrum Nauki Kopernik", "mode": M_STONE, "wall": "#5f5a54", "roof": "#6f9a4c"},
 	{"key": "buw", "osm": "Biblioteka Uniwersytecka", "mode": M_STONE, "wall": "#7f9e8a", "roof": "#6a9a52"},
 	{"key": "zamek", "osm": "Zamek Królewski", "mode": M_MONUMENT, "wall": "#c87560", "roof": "#6e5a4e"},
 	{"key": "barbakan", "osm": "Barbakan", "mode": M_GOTHIC, "wall": "#ab5a42", "roof": "#6b4a3c"},
@@ -4319,3 +4324,243 @@ func _build_prezydencki(site: Dictionary) -> void:
 	_beam(Vector3(arm0.x, g + 6.95, arm0.y), Vector3(arm1.x, g + 7.7, arm1.y), 0.09, PREZ_BRONZE)
 	_collide(_rect(su, sv, 3.0, 1.6))
 	_collide(site["ring"])
+
+
+# --- Centrum Nauki Kopernik ---------------------------------------------------------------------
+
+## The Copernicus Science Centre on Wybrzeże Kościuszkowskie (RAr-2, opened 2010; spec
+## docs/landmarks/specs/kopernik.md, 2026-11-01): one long dark block over the Wisłostrada
+## tunnel, as big as its outline and as tall as GUGiK's LoD2 roof (13 m over the street; OSM
+## says 7.6), its walls dark grey-brown panels with windows scattered over them like pixels,
+## lit warm at night. The river corner hangs over a glazed ground floor (OSM's part from 3.3 m),
+## the west corner and the link to the planetarium are low glass wings, and the flat roof is a
+## garden: raised lawns between paved paths. Beside it the planetarium (2011): a black faceted
+## boulder, lower than the centre's roof.
+const KOP_ROOF := 13.0           # the roof over the street on the city side (LoD2)
+const KOP_LIFT := 5.0            # the river corner's soffit over its own ground (OSM 3.3 of 7.6, scaled)
+const KOP_LOW := 4.5             # the low glass wings over the street
+const KOP_PLANET_WALL := 6.5     # the planetarium's upright walls, then its facets
+const KOP_PLANET_TOP := 11.5     # its apex over its own ground (photo check)
+const KOP_PATH_AXIS := Vector2(0.6248, 0.7810)  # the long city front, to the south-east
+const KOP_WALL := Color("#5f5a54")
+const KOP_PANEL := Color("#57524c")  # the parapet's darker band
+const KOP_WINDOW := Color("#3b4347")
+const KOP_LIT := Color("#8fa3a8")    # the glazed wings and the ground floor under the overhang
+const KOP_DECK := Color("#a49e92")   # the roof's paths
+const KOP_KERB := Color("#7d786e")
+const KOP_LAWN := Color("#6f9a4c")
+const KOP_MEADOW := Color("#87a659")
+const KOP_PLANET := Color("#24272b")
+const KOP_PLANET_FACET := Color("#30343a")
+
+
+func _find_kopernik() -> void:
+	var outline := _landmark("Centrum Nauki Kopernik")
+	if outline.size() < 3:
+		return
+	var planet := _landmark("Planetarium Niebo Kopernika")
+	_add_site("kopernik", [outline, planet])
+	if sites.is_empty() or sites[-1]["key"] != "kopernik":
+		return
+	var site: Dictionary = sites[-1]
+	site["ring"] = outline
+	site["planet"] = planet
+	var low: Array[PackedVector2Array] = []
+	for bld in _parts_in(outline, func(b2: Dictionary) -> bool: return float(b2["h"]) > float(b2["mh"])):
+		var q := _pts(bld["p"])
+		if float(bld["h"]) < 5.0:
+			low.append(q)  # the west corner's wing, the link to the planetarium
+		elif float(bld["mh"]) > 1.0:
+			site["lifted"] = q  # the river corner, on its glazed ground floor
+	site["low"] = low
+
+
+func _build_kopernik(site: Dictionary) -> void:
+	var outline: PackedVector2Array = site["ring"]
+	_g = _ground_under(outline)
+	var g := _g
+	var street := -INF
+	for q in outline:
+		street = maxf(street, map.terrain_height(q.x, q.y))
+	var top := street + KOP_ROOF
+	# The block: the outline less its low wings, straightened.
+	var body := outline
+	for q: PackedVector2Array in site.get("low", []):
+		var cut := _largest(Geometry2D.clip_polygons(body, q))
+		if cut.size() >= 3:
+			body = cut
+	body = _simplify(body, 0.8)
+	# The river corner hangs over its ground floor: `under` stands on the ground, `hang` is the
+	# corner over the soffit (the two split the block's fronts between them exactly).
+	var lifted: PackedVector2Array = site.get("lifted", PackedVector2Array())
+	var under := body
+	var hang := PackedVector2Array()
+	var soffit := top
+	if lifted.size() >= 3:
+		var rest := _largest(Geometry2D.clip_polygons(body, lifted))
+		var over := _largest(Geometry2D.clip_polygons(body, rest)) if rest.size() >= 3 else PackedVector2Array()
+		if rest.size() >= 3 and over.size() >= 3 and absf(_area(over)) > 50.0:
+			under = rest
+			hang = over
+			soffit = minf(_ground_under(lifted) + KOP_LIFT, top - 4.0)
+	_mode = M_STONE
+	for i in under.size():
+		var a := under[i]
+		var b := under[(i + 1) % under.size()]
+		var mid := (a + b) * 0.5
+		var out := _out(under, a, b)
+		if _kop_edge_dist(body, mid) < 0.3:
+			_kop_windows(a, b, out, map.terrain_height(mid.x, mid.y) + 1.4, top - 1.0, i)
+			_wall(a, b, g - 0.4, top, out, KOP_WALL)
+		else:
+			# set back under the overhang: the glazed ground floor, lit at night
+			_mode = M_PAVILION
+			_wall(a, b, g - 0.4, soffit, out, KOP_LIT)
+			_mode = M_STONE
+	for i in hang.size():
+		var a := hang[i]
+		var b := hang[(i + 1) % hang.size()]
+		var mid := (a + b) * 0.5
+		if _kop_edge_dist(body, mid) < 0.3:
+			var out := _out(hang, a, b)
+			_kop_windows(a, b, out, soffit + 1.4, top - 1.0, 100 + i)
+			_wall(a, b, soffit, top, out, KOP_WALL)
+	if hang.size() >= 3:
+		_kop_soffit(hang, soffit, KOP_PANEL)
+	# The low glass wings (lit at night), their roofs paved.
+	for q: PackedVector2Array in site.get("low", []):
+		var wing := _simplify(q, 0.4)
+		_prism(wing, g - 0.4, street + KOP_LOW, KOP_LIT, KOP_DECK, M_PAVILION, M_STONE)
+	_collide(outline)
+	_kop_roof(body, top)
+	var planet: PackedVector2Array = site.get("planet", PackedVector2Array())
+	if planet.size() >= 3:
+		_kop_planet(planet)
+
+
+## A front's windows: dark panes 7 cm out of the wall, two to six metres wide, scattered over
+## the panels by a steady hash so no two fronts repeat (the facade's "pixels"); lit warm at
+## night (M_PAVILION).
+func _kop_windows(a: Vector2, b: Vector2, out: Vector2, y0: float, y1: float, edge: int) -> void:
+	var length := a.distance_to(b)
+	if length < 4.0:
+		return
+	var e := (b - a) / length
+	var p0 := a + out * 0.07
+	_mode = M_PAVILION
+	var row := 0
+	var y := y0
+	while y + 1.6 <= y1:
+		var t := 1.0 + fposmod(_kop_hash(float(edge), float(row)) * 7.0, 2.0)
+		while t < length - 2.0:
+			var cells := 1 + floori(_kop_hash(float(edge) + t, float(row) + 0.5) * 3.0)
+			var w := minf(2.0 * cells, length - 1.0 - t)
+			if _kop_hash(t * 0.37 + float(row), float(edge) * 1.3) < 0.42 and w >= 1.5:
+				_wall(p0 + e * t, p0 + e * (t + w), y, y + 1.6, out, KOP_WINDOW)
+			t += w + 2.0
+		y += 2.6
+		row += 1
+	_mode = M_STONE
+
+
+## The distance from p to a ring's edges.
+func _kop_edge_dist(ring: PackedVector2Array, p: Vector2) -> float:
+	var best := INF
+	for i in ring.size():
+		var c := Geometry2D.get_closest_point_to_segment(p, ring[i], ring[(i + 1) % ring.size()])
+		best = minf(best, c.distance_to(p))
+	return best
+
+
+## A flat ceiling (faces down) over a polygon: the overhang's underside.
+func _kop_soffit(poly: PackedVector2Array, y: float, col: Color) -> void:
+	for q in Geometry2D.merge_polygons(poly, PackedVector2Array()):
+		if q.size() < 3 or Geometry2D.is_polygon_clockwise(q):
+			continue
+		var idx := Geometry2D.triangulate_polygon(q)
+		for i in range(0, idx.size(), 3):
+			var a := q[idx[i]]
+			var b := q[idx[i + 1]]
+			var c := q[idx[i + 2]]
+			if absf((b - a).cross(c - a)) < 0.001:
+				continue
+			_tri(Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(c.x, y, c.y), Vector3.DOWN, col,
+					Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0, false)
+
+
+## The roof garden: the deck paved, a parapet, and raised lawns between a path along the
+## block and four across it.
+func _kop_roof(body: PackedVector2Array, top: float) -> void:
+	_cap(body, top, KOP_DECK)
+	_parapet(body, top, 0.9, KOP_PANEL)
+	var inner := _largest(Geometry2D.offset_polygon(body, -3.0, Geometry2D.JOIN_MITER))
+	if inner.size() < 3:
+		return
+	_o = _centre(body)
+	_a = KOP_PATH_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	var beds: Array[PackedVector2Array] = [_simplify(inner, 0.8)]
+	var paths: Array[PackedVector2Array] = [_rect(0.0, 2.0, 120.0, 1.6)]
+	for u: float in [-44.0, -14.0, 14.0, 40.0]:
+		paths.append(_rect(u, 0.0, 1.4, 120.0))
+	for path in paths:
+		var next: Array[PackedVector2Array] = []
+		for bed in beds:
+			for piece in Geometry2D.clip_polygons(bed, path):
+				if piece.size() >= 3 and not Geometry2D.is_polygon_clockwise(piece):
+					next.append(piece)
+		beds = next
+	var k := 0
+	for bed in beds:
+		if absf(_area(bed)) < 20.0:
+			continue
+		var lawn := KOP_LAWN if k % 2 == 0 else KOP_MEADOW
+		_prism(_simplify(bed, 0.5), top, top + 0.45, KOP_KERB, lawn, M_STONE, M_STONE)
+		k += 1
+
+
+## The planetarium: a black boulder, upright walls on its outline (straightened, convex), then
+## facets of different heights leaning in to an apex towards the river.
+func _kop_planet(planet: PackedVector2Array) -> void:
+	var ring := _kop_convex(_simplify(planet, 1.2))
+	_g = _ground_under(planet)
+	var g := _g
+	_prism(ring, g - 0.4, g + KOP_PLANET_WALL, KOP_PLANET, Color(0, 0, 0, 0), M_STONE)
+	var c := _centre(ring)
+	var apex := Vector3(c.x + 3.0, g + KOP_PLANET_TOP, c.y - 2.0)
+	var n := ring.size()
+	var mids := PackedVector3Array()
+	for i in n:
+		var p := ring[i].lerp(c, 0.45)
+		mids.append(Vector3(p.x, g + KOP_PLANET_WALL + 1.8 + 1.6 * _kop_hash(float(i), 7.0), p.y))
+	_mode = M_STONE
+	for i in n:
+		var j := (i + 1) % n
+		var a := Vector3(ring[i].x, g + KOP_PLANET_WALL, ring[i].y)
+		var b := Vector3(ring[j].x, g + KOP_PLANET_WALL, ring[j].y)
+		var tint := KOP_PLANET_FACET.lightened(0.06 * _kop_hash(float(i), 2.0))
+		_kop_face(a, b, mids[j], tint)
+		_kop_face(a, mids[j], mids[i], tint.darkened(0.05))
+		_kop_face(mids[i], mids[j], apex, KOP_PLANET_FACET)
+	_collide(planet)
+
+
+## A triangle of the boulder's top, facing up.
+func _kop_face(a: Vector3, b: Vector3, d: Vector3, col: Color) -> void:
+	var nrm := (b - a).cross(d - a).normalized()
+	if nrm.y < 0.0:
+		nrm = -nrm  # every facet of the top faces the sky
+	_tri(a, b, d, nrm, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+
+
+## A ring's convex hull, open and counter-clockwise like the outlines.
+func _kop_convex(q: PackedVector2Array) -> PackedVector2Array:
+	var h := Geometry2D.convex_hull(q)
+	if h.size() > 1 and h[0].is_equal_approx(h[-1]):
+		h.resize(h.size() - 1)
+	return h
+
+
+## A steady pseudo-random number in [0, 1) (the windows, the facets).
+func _kop_hash(a: float, b: float) -> float:
+	return fposmod(sin(a * 12.9898 + b * 78.233) * 43758.5453, 1.0)

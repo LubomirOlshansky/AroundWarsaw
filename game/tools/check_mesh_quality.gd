@@ -39,6 +39,7 @@ const BUDGET := {
 	"hub_c": 90,
 	"ilmet": 180,
 	"jp2_21": 280,
+	"kopernik": 560,
 	"lim": 300,
 	"lucka": 470,
 	"marszalkowska94": 490,
