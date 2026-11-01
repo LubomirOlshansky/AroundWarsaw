@@ -18,6 +18,11 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · landmarks · University Library (BUW)** — Built from OpenStreetMap alone (no
+  free photo, the cloud reaches neither Commons nor GUGiK): the block is OSM's 10.9 m (LoD2 on
+  the Mac may say more) and the four philosophers' columns stand on Dobra before the copper
+  pages (the orthophoto can't show them). The roof follows the orthophoto since 2026-11-01.
+  Default built: those. F to check against a photo or the street (docs/landmarks/buw.md).
 - **2026-11-01 · landmarks · the Palace's stone colour** — The Mac photo check (PR #128) finds the
   Palace's stone too warm: the photos show a cooler grey-beige (about #cfc6b5 in sun) than the
   game's sandstone #d8c49c (SANDSTONE in landmarks.gd, also the LoD2 bake's colour). Default

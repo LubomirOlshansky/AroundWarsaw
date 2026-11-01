@@ -134,7 +134,13 @@ Small problems that agents reported or that showed up in screenshots. They are f
   block to LoD2's 13 m with windows scattered like pixels, the river corner hanging over a
   glazed ground floor, the low glass wings, the roof garden, and the black faceted
   planetarium. Left: the photo check on the Mac (the panels and windows, the overhang's depth,
-  the planetarium's height, the garden's real paths). The others not started.
+  the planetarium's height, the garden's real paths). **The University Library built 2026-10-31** (site `buw`, spec
+  `docs/landmarks/specs/buw.md`, log `docs/landmarks/buw.md`): the copper plates with their
+  lines of text on Dobra, the four philosophers on columns, the roof garden from the mapped
+  lawns, the glass roofs and the band; the roof redone from the orthophoto on 2026-11-01.
+  Left: the height (LoD2 may say more than OSM's 10.9 m), which front the philosophers stand
+  at, the south garden's winding paths and shrubs.
+  The others not started.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
   photos per building in `refs/` (Wikimedia Commons, gitignored; fetched on the Mac, the cloud
