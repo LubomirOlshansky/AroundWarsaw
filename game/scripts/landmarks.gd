@@ -1094,13 +1094,41 @@ func _ground_under(poly: PackedVector2Array) -> float:
 ## lantern to 188, crown to 204, the gilded spire to 237 m); the plan below is those
 ## parts' outlines in the Palace's frame (metres from the clock tier's centre).
 const P_WINGS := [
-	# u0, v0, u1, v1, top: the four corner pavilions, the north and south annexes,
-	# the east entrance block (from the parts of 22.5 and 30 m).
-	[-79.5, 68.7, -53.0, 119.7, 24.0], [-81.0, -120.9, -53.7, -70.5, 24.0],
-	[53.9, -121.0, 80.4, -69.8, 24.0], [55.5, 68.3, 82.1, 119.4, 24.0],
-	[-17.7, 44.5, 17.3, 64.7, 30.0], [-17.6, -68.1, 16.5, -50.2, 30.0],
-	[28.0, -10.6, 46.4, 12.1, 25.0],
+	# u0, v0, u1, v1, top: the four corner pavilions and the east entrance block (the parts
+	# of 22.5 m; spec docs/landmarks/specs/palace.md).
+	[-79.5, 68.7, -53.0, 119.7, 22.5], [-81.0, -120.9, -53.7, -70.5, 22.5],
+	[53.9, -121.0, 80.4, -69.8, 22.5], [55.5, 68.3, 82.1, 119.4, 22.5],
+	[28.0, -10.6, 46.4, 12.1, 22.5],
 ]
+## The north and south blocks (30 m) that join the tower to the annexes: their mapped
+## outlines, from the tower's faces out to the annexes' ends.
+const P_BLOCKS := [
+	[[-7.7, 64.6], [-12.4, 64.6], [-12.4, 60.3], [-17.7, 60.3], [-17.8, 44.5], [-13.5, 44.5], [-13.4, 34.1],
+			[-13.5, 21.4], [-10.3, 21.4], [-10.3, 20.0], [10.5, 20.1], [10.5, 21.6], [14.0, 21.6], [14.1, 34.1],
+			[14.0, 45.4], [17.2, 45.4], [17.3, 60.1], [12.2, 60.1], [12.3, 64.6], [7.7, 64.7]],
+	[[-12.2, -63.9], [-12.3, -68.2], [11.1, -68.0], [11.1, -63.7], [16.5, -63.7], [16.5, -49.9], [14.2, -49.9],
+			[14.2, -21.8], [9.8, -21.7], [9.8, -20.2], [-10.6, -20.2], [-10.6, -21.8], [-15.0, -21.8], [-15.1, -50.2],
+			[-17.6, -50.2], [-17.6, -63.9]],
+]
+## The tower's first tier (18-67 m): the shaft's plan with a corner tower on each corner.
+const P_TIER := [[-21.7, 10.8], [-20.4, 10.7], [-20.5, -10.3], [-22.3, -10.3], [-22.3, -17.6], [-32.6, -17.7],
+		[-32.5, -35.4], [-15.1, -35.4], [-15.0, -21.8], [-10.6, -21.8], [-10.6, -20.2], [9.8, -20.2], [9.8, -21.7],
+		[14.2, -21.8], [14.2, -35.8], [31.8, -35.7], [31.8, -17.7], [20.9, -17.7], [21.0, -9.3], [19.7, -9.3],
+		[19.8, 10.8], [21.2, 10.7], [21.2, 16.6], [31.8, 16.6], [31.8, 34.2], [14.1, 34.1], [14.0, 21.6],
+		[10.5, 21.6], [10.5, 20.1], [-10.3, 20.0], [-10.3, 21.4], [-13.4, 21.4], [-13.4, 34.1], [-31.6, 34.1],
+		[-31.6, 16.6], [-21.6, 16.7]]
+## The corner towers of the first tier: u0, v0, u1, v1.
+const P_CORNERS := [[-32.6, -35.4, -15.0, -17.7], [14.2, -35.8, 31.8, -17.7], [14.1, 16.6, 31.8, 34.2],
+		[-31.6, 16.6, -13.4, 34.1]]
+## The shaft (67-139 m): heavy corner piers, each face's middle bay set back 1.3-1.8 m.
+const P_SHAFT := [[-21.6, 16.7], [-21.7, 10.8], [-20.4, 10.7], [-20.5, -10.3], [-22.3, -10.3], [-22.3, -21.9],
+		[-10.6, -21.8], [-10.6, -20.2], [9.8, -20.2], [9.8, -21.7], [21.0, -21.7], [21.0, -9.3], [19.7, -9.3],
+		[19.8, 10.8], [21.2, 10.7], [21.2, 21.6], [10.5, 21.6], [10.5, 20.1], [-10.3, 20.0], [-10.3, 21.4],
+		[-21.7, 21.3]]
+## The shaft's set-back middle bays, one per face: centre u, centre v, normal u, normal v,
+## half width along the face.
+const P_BAYS := [[19.75, 0.75, 1.0, 0.0, 10.0], [-20.45, 0.2, -1.0, 0.0, 10.4], [0.1, 20.05, 0.0, 1.0, 10.4],
+		[-0.4, -20.2, 0.0, -1.0, 10.2]]
 ## The courtyards (the relation's inner rings).
 const P_COURTS := [
 	[[-68.4, 40.7], [-67.6, 40.7], [-67.6, 36.1], [-48.8, 36.2], [-48.8, 32.8], [-34.4, 32.9], [-34.4, 65.1],
@@ -1108,9 +1136,14 @@ const P_COURTS := [
 	[[-69.2, -41.8], [-69.2, -64.4], [-49.4, -64.3], [-49.4, -65.4], [-34.8, -65.4], [-34.7, -33.5],
 			[-49.1, -33.5], [-49.1, -37.4], [-67.9, -37.4], [-67.9, -41.8]],
 ]
-## The Congress Hall: its block (west end) and the drum's centre and radius.
-const P_HALL := [[-89.3, 25.3], [-80.2, 25.3], [-80.2, 33.3], [-65.0, 33.4], [-65.0, 20.9], [-55.4, 18.8],
-		[-55.3, -20.0], [-65.8, -22.5], [-65.8, -34.2], [-80.5, -34.2], [-80.5, -26.7], [-89.0, -26.8]]
+## The Congress Hall (west end): its mapped outline, the block and the auditorium's
+## half-round end towards Emilii Plater.
+const P_HALL := [[-93.6, 24.6], [-97.3, 23.1], [-101.6, 20.3], [-104.4, 18.0], [-107.7, 14.2], [-110.0, 10.0],
+		[-111.8, 5.7], [-112.7, 1.3], [-112.6, -2.6], [-111.9, -6.8], [-110.5, -10.8], [-108.8, -14.4],
+		[-106.6, -17.3], [-104.2, -20.2], [-101.2, -22.4], [-97.2, -24.6], [-93.3, -26.0], [-89.0, -26.8],
+		[-80.5, -26.7], [-80.5, -34.2], [-65.8, -34.1], [-65.7, -22.4], [-63.3, -22.5], [-63.3, -20.0],
+		[-55.3, -20.0], [-55.3, 18.8], [-62.4, 18.8], [-62.4, 20.9], [-65.1, 20.9], [-65.0, 33.4], [-80.3, 33.3],
+		[-80.3, 25.3], [-89.3, 25.3]]
 
 
 func _palace_frame() -> void:
@@ -1133,6 +1166,15 @@ func _palace_frame() -> void:
 	_o = Vector2(-1214.25, 247.3)
 	_a = Vector2(0.9403, -0.3404)
 	_b = Vector2(0.3404, 0.9403)
+
+
+## Whether plan point p lies on a ring's outline (within 0.4 m): an edge there is shared.
+func _on_ring(p: Vector2, ring: PackedVector2Array) -> bool:
+	for i in ring.size():
+		var q := Geometry2D.get_closest_point_to_segment(p, ring[i], ring[(i + 1) % ring.size()])
+		if q.distance_to(p) < 0.4:
+			return true
+	return false
 
 
 func _lpoly(pts: Array) -> PackedVector2Array:
@@ -1175,7 +1217,7 @@ func _build_palace(site: Dictionary) -> void:
 	_attic(outer, g + 18.0, 1.6, light)
 	_collide(outer)
 
-	# Wings: corner pavilions, the annexes beside the tower, the entrance block.
+	# Wings: the corner pavilions and the entrance block.
 	for w in P_WINGS:
 		var poly := _lpoly([[w[0], w[1]], [w[2], w[1]], [w[2], w[3]], [w[0], w[3]]])
 		_prism(poly, g + 17.0, g + w[4], stone, roof, M_MONUMENT, M_STONE)
@@ -1186,26 +1228,51 @@ func _build_palace(site: Dictionary) -> void:
 			var cv: float = w[1] if k < 2 else w[3]
 			_pinnacle(cu, cv, 1.4, g + w[4], 4.2, light)
 
-	# The Congress Hall: its block and the drum round the auditorium, a shallow roof.
+	# The tower: its first tier (to 67 m) and the shaft (to 139 m) on their mapped plans.
+	var tier := _lpoly(P_TIER)
+	var shaft := _lpoly(P_SHAFT)
+
+	# The north and south blocks (30 m) between the tower and the annexes; no wall where they
+	# meet the tower (it would hide inside it).
+	for blk in P_BLOCKS:
+		var poly := _lpoly(blk)
+		_mode = M_MONUMENT
+		var run2 := 0.0
+		for i in poly.size():
+			var a := poly[i]
+			var b := poly[(i + 1) % poly.size()]
+			if not _on_ring((a + b) * 0.5, tier):
+				_wall(a, b, g + 17.0, g + 30.0, _out(poly, a, b), stone, run2)
+			run2 += a.distance_to(b)
+		_mode = M_STONE
+		for piece in Geometry2D.clip_polygons(poly, tier):
+			if not Geometry2D.is_polygon_clockwise(piece):
+				_cap(piece, g + 30.0, roof)
+		# The parapet only round the outer end (the open part beside the tower stays bare).
+		var outer_end := PackedVector2Array()
+		for q in blk:
+			if absf(float(q[1])) > 40.0:
+				outer_end.append(_w(q[0], q[1]))
+		_attic(outer_end, g + 30.0, 1.4, light, false)
+		var far: float = 60.2 if float(blk[0][1]) > 0.0 else -63.8
+		var near: float = 45.0 if float(blk[0][1]) > 0.0 else -50.0
+		for cu in [-17.6, 17.2]:
+			_pinnacle(cu, far, 1.6, g + 30.0, 5.0, light)
+			_pinnacle(cu, near, 1.6, g + 30.0, 5.0, light)
+
+	# The Congress Hall: its mapped block with the half-round end, a shallow dome over the
+	# auditorium.
 	var hall := _lpoly(P_HALL)
-	_prism(hall, g + 17.0, g + 23.0, stone, roof, M_MONUMENT, M_STONE)
-	_attic(hall, g + 23.0, 1.2, light, false)
-	var drum := PackedVector2Array()
-	var drum_top := PackedVector2Array()
-	for k in 24:
-		var t := -PI * 0.5 + PI * k / 23.0
-		drum.append(_w(-89.0 - cos(t) * 31.0, sin(t) * 31.0))
-		drum_top.append(_w(-89.0 - cos(t) * 22.0, sin(t) * 22.0))
-	_mode = M_MONUMENT
-	_frustum(drum, g + 18.0, drum_top, g + 23.0, stone)
-	_mode = M_STONE
+	_prism(hall, g + 17.0, g + 22.5, stone, roof, M_MONUMENT, M_STONE)
+	_attic(hall, g + 22.5, 1.2, light)
 	var dome := PackedVector2Array()
 	var dome_top := PackedVector2Array()
 	for k in 16:
 		var t := TAU * k / 16.0
-		dome.append(_w(-86.0 + cos(t) * 21.0, sin(t) * 24.0))
-		dome_top.append(_w(-86.0 + cos(t) * 10.0, sin(t) * 12.0))
-	_frustum(dome, g + 23.0, dome_top, g + 29.0, Color("#9a9283"), Color("#a59d8e"))
+		dome.append(_w(-86.0 + cos(t) * 20.0, -0.75 + sin(t) * 23.0))
+		dome_top.append(_w(-86.0 + cos(t) * 9.0, -0.75 + sin(t) * 11.0))
+	_mode = M_STONE
+	_frustum(dome, g + 22.5, dome_top, g + 28.0, Color("#9a9283"), Color("#a59d8e"))
 
 	# The east portico: columns before the entrance block, an entablature on them.
 	for k in 8:
@@ -1213,58 +1280,53 @@ func _build_palace(site: Dictionary) -> void:
 		_lbox(53.4, cv, 0.55, 0.55, g, g + 13.5, light, M_STONE)
 	_lbox(53.4, 0.0, 1.4, 10.6, g + 13.5, g + 15.6, stone, M_STONE, light)
 
-	# The tower. Tier one: the core and its four corner towers to 67 m.
-	var core := _rect(-0.25, -0.15, 21.45, 21.75)
-	_prism(core, g + 17.0, g + 139.0, stone, roof, M_MONUMENT, M_STONE)
-	for k in 4:
-		var su := -1.0 if k % 2 == 0 else 1.0
-		var sv := -1.0 if k < 2 else 1.0
-		var cu := su * 22.9
-		var cv := sv * 26.0
-		var corner := _rect(cu, cv, 9.0, 9.0)
-		_prism(corner, g + 17.0, g + 67.0, stone, roof, M_MONUMENT, M_STONE)
+	# Tier one: walls to 67 m, a roof only on the corner towers (the shaft stands on the rest).
+	_mode = M_MONUMENT
+	var run1 := 0.0
+	for i in tier.size():
+		var a := tier[i]
+		var b := tier[(i + 1) % tier.size()]
+		_wall(a, b, g + 17.0, g + 67.0, _out(tier, a, b), stone, run1)
+		run1 += a.distance_to(b)
+	_mode = M_STONE
+	for piece in Geometry2D.clip_polygons(tier, shaft):
+		if not Geometry2D.is_polygon_clockwise(piece) and absf(_area(piece)) > 4.0:
+			_cap(piece, g + 67.0, roof)
+	for cr in P_CORNERS:
+		var cu: float = (cr[0] + cr[2]) * 0.5
+		var cv: float = (cr[1] + cr[3]) * 0.5
+		var hu: float = (cr[2] - cr[0]) * 0.5
+		var hv: float = (cr[3] - cr[1]) * 0.5
+		var corner := _rect(cu, cv, hu, hv)
 		_attic(corner, g + 67.0, 2.2, light)
 		for q in 4:
-			_pinnacle(cu + (-7.6 if q % 2 == 0 else 7.6), cv + (-7.6 if q < 2 else 7.6), 1.8, g + 67.0, 7.0, light)
+			var pu: float = cu + (-hu + 1.3 if q % 2 == 0 else hu - 1.3)
+			var pv: float = cv + (-hv + 1.3 if q < 2 else hv - 1.3)
+			if not Geometry2D.is_point_in_polygon(_w(pu, pv), shaft):
+				_pinnacle(pu, pv, 1.8, g + 67.0, 7.0, light)
 		# A small stepped crown on each corner tower.
 		_prism(_rect(cu, cv, 4.5, 4.5), g + 67.0, g + 73.0, light, roof, M_STONE, M_STONE)
 		_pinnacle(cu, cv, 2.2, g + 73.0, 9.0, light)
-	# Vertical ribs up the shaft, so it reads as the Palace's ribbed stone.
-	for side in 4:
-		for k in 7:
-			var t := -15.0 + k * 5.0
-			var ru := 0.0
-			var rv := 0.0
-			var hu := 0.45
-			var hv := 0.45
-			match side:
-				0:
-					ru = 21.6
-					rv = t
-					hu = 0.5
-				1:
-					ru = -22.1
-					rv = t
-					hu = 0.5
-				2:
-					ru = t
-					rv = 21.9
-					hv = 0.5
-				3:
-					ru = t
-					rv = -22.3
-					hv = 0.5
-			_lbox(ru, rv, hu, hv, g + 67.0, g + 136.0, light, M_STONE)
-	# The shaft's top: an attic, big corner pinnacles, smaller ones between.
-	_attic(core, g + 139.0, 3.0, light)
+
+	# The shaft: heavy corner piers and a set-back middle bay on each face, ribbed in stone.
+	_prism(shaft, g + 67.0, g + 139.0, stone, roof, M_MONUMENT, M_STONE)
+	for bay in P_BAYS:
+		var nu: float = bay[2]
+		var nv: float = bay[3]
+		for k in 5:
+			var t: float = -bay[4] + bay[4] * 0.2 + k * bay[4] * 0.4
+			var ru: float = bay[0] + nu * 0.45 + absf(nv) * t
+			var rv: float = bay[1] + nv * 0.45 + absf(nu) * t
+			_lbox(ru, rv, 0.45 if nu != 0.0 else 0.5, 0.45 if nv != 0.0 else 0.5, g + 67.0, g + 136.0, light, M_STONE)
+	# The shaft's top: an attic, big pinnacles on the corner piers, smaller ones between.
+	_attic(shaft, g + 139.0, 3.0, light)
 	for k in 4:
 		var su := -1.0 if k % 2 == 0 else 1.0
 		var sv := -1.0 if k < 2 else 1.0
-		_pinnacle(su * 19.5, sv * 19.5, 3.4, g + 139.0, 14.0, light)
-	# (Once per side: the loop above drew each of these twice, a z-fighting duplicate.)
+		_pinnacle(su * 18.8, sv * 18.8, 3.4, g + 139.0, 14.0, light)
 	for sd in [-1.0, 1.0]:
-		_pinnacle(sd * 19.5, 0.0, 2.0, g + 139.0, 8.0, light)
-		_pinnacle(0.0, sd * 19.5, 2.0, g + 139.0, 8.0, light)
+		_pinnacle(sd * 18.0, 0.0, 2.0, g + 139.0, 8.0, light)
+		_pinnacle(0.0, sd * 18.0, 2.0, g + 139.0, 8.0, light)
 	# A stepped plinth for the clock tier.
 	_prism(_rect(0.0, 0.0, 12.5, 12.5), g + 139.0, g + 143.0, stone, roof, M_STONE, M_STONE)
 	_attic(_rect(0.0, 0.0, 12.5, 12.5), g + 143.0, 1.6, light)

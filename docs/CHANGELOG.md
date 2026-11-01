@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- The Palace of Culture is reshaped from the real map data: the tower now rises from full-height wings on its north and south sides, its shaft has heavy corner piers around ribbed middle bays, and the Congress Hall keeps to its real rounded outline.
 - Stadion Narodowy is rebuilt from the real map data: its woven skin is red below and white above like the flag, a full-size striped pitch sits in two tiers of red seats, and the needle over the pitch carries the folded roof.
 
 ## 2026-10-31

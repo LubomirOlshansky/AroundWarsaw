@@ -289,9 +289,12 @@ golden-image shots runtime vs `--prebuilt`,
   that tower, not what shows through the cut.~~ Done in sweep 2: the walk steps on through what
   the ghost has made see-through (main.gd `_pick_unghosted`; behind the Palace, a tap on the
   street seen through its cut tower picked the Palace, now nothing).
-- The Palace's roof rescue now lands on a 28 m annex roof: every tier is crowned by attics and
+- The Palace's roof rescue now lands on the 30 m north block's roof (since the 2026-11-01 re-pass built it whole): every tier is crowned by attics and
   pinnacles, so no 3 x 3 cells are flat up the tower. A rescue from the 30th-floor terrace would
   need a landing spot designed in.
+- Palace photo check on the Mac (spec docs/landmarks/specs/palace.md): whether the shaft steps in at
+  the 30th-floor terrace (114 m; OSM has one shaft 67-139 m), the crown's patina and the spire's gold,
+  the Congress Hall's roof, the east portico's width and columns.
 - The baked ground AO and the lamp light map still use the LoD2 footprints: Centralna's canopy
   (wider than the LoD2 hall) casts no AO, and lamp pools are not cut by the stadium's skin.
 - Most Poniatowskiego's towers have no mapped height: plinth to 1.2 m over the deck, top 15 m
