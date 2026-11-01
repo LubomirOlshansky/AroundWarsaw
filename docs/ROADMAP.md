@@ -88,7 +88,8 @@ then the Launch gate.
   - [x] L3 the tunnel's portals at Ochota and Powiśle, 2026-11-01
   - [x] T1 trains through the city (suburban, city line, long-distance), `check_trains`, 2026-11-01
   - [x] S3a Warszawa Stadion: the white hall with its sail, the red-and-white mosaic canopies, 2026-11-01
-  - [ ] S3b-e the other stations: Śródmieście's entrances, Wschodnia, Gdańska, Ochota WKD
+  - [x] S3b Warszawa Śródmieście: the two glass stair pavilions by the Palace, 2026-11-01
+  - [ ] S3c-e the other stations: Wschodnia, Gdańska (the map's edges, Mac look first), the WKD entrances
   - [ ] L4 Most Średnicowy's look (after a Mac photo check)
 
 - [ ] Roofs across the map (F, 2026-11-01; plan docs/design/roofs.md):

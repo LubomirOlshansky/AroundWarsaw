@@ -114,7 +114,12 @@ Plan: docs/design/railway.md. One PR per item, in this order:
 - ~~S3a Warszawa Stadion~~ Done 2026-11-01 (site `stadion_pkp`, spec `stadion_pkp.md`, 1294 tris).
   Left: Mac photo check (the sail's shape and height, the glazing, the canopies' length, the
   mosaic's pattern).
-- S3b-e the other stations: Śródmieście's entrances, Wschodnia and Gdańska at the edges, Ochota WKD.
+- ~~S3b Warszawa Śródmieście~~ Done 2026-11-01 (site `srodmiescie`, spec `srodmiescie.md`, 476 tris).
+  Left: Mac photo check (the glazing, the fascia, the lettering).
+- S3c-e: Wschodnia and Gdańska sit at the map's east and north edges, where cloud shots show no
+  ground (Mac look first); the WKD entrances (Śródmieście WKD's "propeller" roof, Ochota WKD):
+  the OSM outlines there don't match the descriptions (a 90 m, 2.5 m shelter by Centralna; the
+  platforms by Ochota are tram stops), so they wait for photos.
 - L4 Most Średnicowy's look, after a Mac photo check.
 - Photo checks on the Mac for every station model (built from published descriptions).
   **Mac photo check, 2026-11-01** (main 03a26dc; Commons photos in refs/ochota, powisle,
