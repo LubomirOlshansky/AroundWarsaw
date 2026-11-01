@@ -148,6 +148,12 @@ const DODGE_HOP := 2
 const WAIT_MAX := 2
 const WAIT_SPOTS := [Vector2(2.75, -0.35), Vector2(-2.75, -0.35), Vector2(3.9, -0.6), Vector2(-3.9, -0.6)]
 const RIDER_BASE := 4
+## F's ask (2026-11-01): the Vistula boulevards (Crowds.BULWARY) full of fast cyclists: with the view
+## within Crowds.BULWARY_R of a spot there, twice the riders (at most BLVD_RIDERS_MAX), and
+## BLVD_FAST of them ride the boulevard hard (BLVD_V m/s, 30-41 km/h; the others 4-6 as ever).
+const BLVD_RIDERS_MAX := 16
+const BLVD_FAST := 0.45
+const BLVD_V := Vector2(8.5, 11.5)
 const RIDE_HOURS := [6.0, 22.0]
 const RUSH := [[7.0, 9.5], [16.0, 19.0]]
 ## The bike family's shapes: a commuter, a Rowerilo bike, a cargo bike (each ridden), a parked
@@ -409,6 +415,8 @@ var _heights := {}
 var _stops := {}
 var _dogs: Array[Mover] = []
 var _riders: Array[Mover] = []
+## The view is on the Vistula boulevards (Crowds.BULWARY): more and faster riders.
+var _on_blvd := false
 var _pedziks: Array[Mover] = []
 ## Loop couriers: the kerb riders (Pędzik too: their slots in the Pedzik MultiMesh follow _pedziks').
 var _kerbers: Array[Mover] = []
@@ -571,11 +579,11 @@ static func horn_reaction(now: float, last_bark: float, last_line: float) -> Arr
 
 
 ## Cyclists by the view at `hour`.
-static func rider_count(hour: float, k := 1.0) -> int:
+static func rider_count(hour: float, k := 1.0, boulevard := false) -> int:
 	if hour < float(RIDE_HOURS[0]) or hour >= float(RIDE_HOURS[1]):
 		return 0
-	var base := RIDER_BASE * (2 if in_hours(RUSH, hour) else 1)
-	return mini(roundi(base * k), roundi(RIDERS_MAX * maxf(k, 1.0)))
+	var base := RIDER_BASE * (2 if in_hours(RUSH, hour) else 1) * (2 if boulevard else 1)
+	return mini(roundi(base * k), roundi((BLVD_RIDERS_MAX if boulevard else RIDERS_MAX) * maxf(k, 1.0)))
 
 
 ## A rider's kind from a roll 0..1: 55 % commuters, 30 % Rowerilo, 15 % cargo *guess*.
@@ -824,6 +832,9 @@ func setup(places: Array, data: Dictionary, seed_value := 4404) -> void:
 			_zones.append(_at[id])
 		if "runners" in (_tags[id] as Array) or "promenade" in (_tags[id] as Array):
 			_run_zones.append(_at[id])
+	# F's ask: dog walkers (twice as many) and fast riders on the Vistula boulevards.
+	for id: String in Crowds.BULWARY:
+		_zones.append(Crowds.BULWARY[id][0])
 	for poi: Dictionary in data.get("pois", []):
 		if str(poi.get("k", "")) == "park":
 			_run_zones.append(Vector2(float(poi["x"]), float(poi["z"])))
@@ -1591,6 +1602,12 @@ func tick(step: float) -> void:
 		if eye.distance_to(z) < ZONE_R:
 			zone = true
 			break
+	var blvd := false
+	for id: String in Crowds.BULWARY:
+		if eye.distance_to(Crowds.BULWARY[id][0]) < Crowds.BULWARY_R + float(Crowds.BULWARY[id][2]):
+			blvd = true
+			break
+	_on_blvd = blvd
 	var run_zone := false
 	for z in _run_zones:
 		if eye.distance_to(z) < RUN_ZONE_R:
@@ -1599,7 +1616,7 @@ func tick(step: float) -> void:
 	# The movers: spawn up to the count near the view, drop the far ones.
 	var car2 := p2 if vp != Vector3.INF and not bool(veh[2]) else Vector2.INF
 	_keep(_dogs, dog_count(_hour, zone, amount), "dog", eye, car2)
-	_keep(_riders, rider_count(_hour, amount), "rider", eye, car2)
+	_keep(_riders, rider_count(_hour, amount, blvd), "rider", eye, car2)
 	_keep(_pedziks, pedzik_count(_hour, amount) if pedzik_on else 0, "pedzik", eye, car2)
 	_keep(_kerbers, kerb_count(_hour, amount) if pedzik_on and graph != null else 0, "kerb", eye, car2)
 	_keep(_runners, runner_count(_hour, run_zone, amount), "runner", eye, car2)
@@ -1904,6 +1921,8 @@ func _spawn(kind: String, eye: Vector2) -> Mover:
 				m.shirt = Color(BIG_SHIRTS[_rng.randi() % BIG_SHIRTS.size()])
 		"rider":
 			m.v = _rng.randf_range(4.0, 6.0)
+			if _on_blvd and _rng.randf() < BLVD_FAST:
+				m.v = _rng.randf_range(BLVD_V.x, BLVD_V.y)
 			m.off = _rng.randf_range(-0.3, 0.3)
 			m.shape = rider_kind(_rng.randf())
 			m.shirt = Color(SHIRTS[_rng.randi() % SHIRTS.size()])

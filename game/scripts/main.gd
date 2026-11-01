@@ -615,6 +615,9 @@ var drags: Array[PackedInt32Array] = []
 ## The helicopter's stick or keys are held (the follow camera waits, like Point).
 var _heli_held := false
 var _heli_release := 99.0
+## The held stick's screen direction and the camera's yaw when it was set (as drive_controls.gd's).
+var _heli_set_aim := Vector2.ZERO
+var _heli_set_yaw := 0.0
 var _perf_wait := 0.0
 var _clock_minute := -1
 ## --sound-check: play every sound once and print the bus meters (sfx.gd).
@@ -5440,15 +5443,24 @@ func _read_heli_input(left: bool, right: bool, up: bool, down: bool, dt: float) 
 	if not hud.stick_active() and pad_stick != Vector2.ZERO:
 		stick = pad_stick
 	var aim := Vector2(float(right) - float(left), float(down) - float(up))
-	# Loop 2a: while the stick or a key is held the follow camera waits (as in Point), so a
-	# held direction doesn't turn with the view.
-	_heli_held = hud.stick_active() or pad_stick != Vector2.ZERO or aim != Vector2.ZERO
+		_heli_held = hud.stick_active() or pad_stick != Vector2.ZERO or aim != Vector2.ZERO
 	_heli_release = 0.0 if _heli_held else _heli_release + dt
 	if stick.length() > 0.2:
 		aim = stick.normalized() * clampf((stick.length() - 0.2) / 0.8, 0.0, 1.0)
 	elif aim != Vector2.ZERO:
 		aim = aim.normalized()
-	heli.input_dir = _screen_to_world(aim)
+	# The camera follows the helicopter while the stick is held (as the car's Point does), so a
+	# held direction keeps the world direction it meant when it was set; pointing REAIM° or more
+	# away means the screen as it is now.
+	var yaw := cam_yaw
+	if aim == Vector2.ZERO:
+		_heli_set_aim = Vector2.ZERO
+	else:
+		if _heli_set_aim == Vector2.ZERO or absf(rad_to_deg(aim.angle_to(_heli_set_aim))) >= Controls.REAIM:
+			_heli_set_aim = aim
+			_heli_set_yaw = cam_yaw
+		yaw = _heli_set_yaw
+	heli.input_dir = Controls.screen_to_world(aim, yaw) if aim != Vector2.ZERO else Vector3.ZERO
 	var climb := float(Input.is_physical_key_pressed(KEY_SPACE)) \
 			- float(Input.is_physical_key_pressed(KEY_SHIFT) or Input.is_physical_key_pressed(KEY_F))
 	heli.climb = clampf(climb + hud.climb + Gamepad.climb(), -1.0, 1.0)  # the pad: RT up, LT down
@@ -5864,8 +5876,8 @@ func _update_camera(dt: float) -> void:
 		# (drive_controls.gd FOLLOW_HELD keeps a held direction from turning with it).
 		var heading := rad_to_deg(vehicle.rotation.y)
 		if flying:
-			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, true, _heli_held, _heli_release,
-					FollowCamera.FULL_SPEED_HELI, dt)
+			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, false, _heli_held, _heli_release,
+					FollowCamera.FULL_SPEED_HELI, dt, FollowCamera.RETURN_GAIN)
 		else:
 			var classic := controls.scheme == Controls.CLASSIC
 			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, controls.camera_waits(), controls.held,
