@@ -35,7 +35,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# HOTEL PIURE's rooftop date bar (G3).
 		"LUŹNO",
 		# The railway (docs/design/railway.md, S2): the round pavilion's letters at Powiśle.
-		"WARSZAWA", "POWIŚLE"]
+		"WARSZAWA", "POWIŚLE",
+		# S3a: Warszawa Stadion's roof letters.
+		"STADION"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

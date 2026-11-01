@@ -323,6 +323,9 @@ const INFO := {
 	"powisle": ["Warszawa Powiśle",
 			"Stacja z 1963 roku: pawilon-latawiec nad wylotem tunelu i okrągły pawilon, dziś kultowy bar.",
 			"A 1963 station: a kite pavilion over the tunnel's mouth and a round pavilion, now a cult bar."],
+	"stadion_pkp": ["Warszawa Stadion",
+			"Przystanek z 1958 roku pod stadionem: biała hala z żaglem i perony w czerwono-białej mozaice.",
+			"A 1958 stop by the stadium: a white hall with a sail and platforms in red-and-white mosaic."],
 	"pawilony": ["Pawilony",
 			"Labirynt barów wielkości kiosku za bramą przy Nowym Świecie.",
 			"A maze of kiosk-sized bars behind a gate on Nowy Świat."],
@@ -597,6 +600,7 @@ func _find_sites() -> void:
 	_find_ochota()
 	# S2: Warszawa Powiśle's two pavilions and the platform canopies.
 	_find_powisle()
+	_find_stadion_pkp()
 	# Plac Małachowskiego and the Presidential Palace (2026-10-31): models instead of skins.
 	_find_trojca()
 	_find_zacheta()
@@ -955,6 +959,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_ochota(s)
 			"powisle":
 				_build_powisle(s)
+			"stadion_pkp":
+				_build_stadion_pkp(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -8352,3 +8358,190 @@ func _pow_canopy(f: Array) -> void:
 			var p1 := _w(u, s * w)
 			# The foot goes down into the platform's slab (it stands on the map's platform).
 			_beam(Vector3(p0.x, floor_y - 1.0, p0.y), Vector3(p1.x, top, p1.y), 0.16, POW_DARK)
+
+
+# --- Warszawa Stadion (the railway S3a, docs/landmarks/specs/stadion_pkp.md) ---------------
+# Romanowicz and Szymaniak's stop of 1955-58 by the old stadium, renovated for Euro 2012: a low
+# white ticket hall at street level south of the platforms, its platform-side end a curved white
+# "sail", the passage under the tracks, and two long side platforms whose canopies have glazed
+# wind walls over a red-and-white mosaic (the National Stadium's colours) and a perforated metal
+# roof. Built from the hall's OSM outline and the two platforms' outlines; shapes from texts.
+
+const STP_OSM := "Dworzec PKP Warszawa Stadion"
+const STP_SAIL := Rect2(1385.5, -1322.5, 12.6, 4.2)   # where the hall's curved end lies (its OSM arc)
+const STP_HALL_H := 3.9        # the glass walls' top over the plinth's foot
+const STP_ROOF := 0.5          # the roof slab
+const STP_EAVE := 0.8          # its overhang
+const STP_SAIL_H := 6.8        # the sail's tips over the ground
+const STP_SAIL_DIP := 1.1      # how far its middle dips under the tips
+const STP_SAIL_LEAN := 1.4     # how far its top leans out towards the platforms
+const STP_CANOPY := 96.0       # each canopy's length from the platform's hall end
+const STP_CANOPY_H := 3.8      # the canopy roof over the platform
+const STP_PANEL := 2.0         # the mosaic's panels
+const STP_WHITE := Color("#ecebe6")
+const STP_GLASS := Color("#56707e")
+const STP_RED := Color("#c4252b")
+const STP_METAL := Color("#b3b7bb")
+const STP_DARK := Color("#2d3034")
+const STP_NEON := Color(1.0, 0.18, 0.22)
+
+
+func _find_stadion_pkp() -> void:
+	var q := _landmark(STP_OSM)
+	if q.size() < 3:
+		return
+	_add_site("stadion_pkp", [_largest(Geometry2D.offset_polygon(q, 1.5, Geometry2D.JOIN_MITER))])
+	if sites.is_empty() or sites[-1]["key"] != "stadion_pkp":
+		return
+	sites[-1]["hall"] = q
+	# The two side platforms north of the hall (their frames, nearest end first).
+	var c := _centre(q)
+	var plats: Array = []
+	for pl in data.get("platforms", []):
+		var p := _pts(pl["p"])
+		if p.size() < 3:
+			continue
+		var f := _och_frame(_simplify(p, 0.3))
+		var hu: float = f[3]
+		var near := minf((f[0] + f[1] * hu).distance_to(c), (f[0] - f[1] * hu).distance_to(c))
+		if near < 60.0 and hu > 40.0:
+			plats.append(f)
+	sites[-1]["platforms"] = plats
+
+
+func _build_stadion_pkp(site: Dictionary) -> void:
+	var q: PackedVector2Array = site["hall"]
+	var c := _centre(q)
+	var g := INF
+	for p in q:
+		g = minf(g, map.terrain_height(p.x, p.y))
+	_g = g
+	var none := Color(0, 0, 0, 0)
+	var hall := _simplify(q, 0.15)
+	if Geometry2D.is_polygon_clockwise(hall):
+		hall.reverse()
+	# The plinth, the glass walls with their mullions, the white roof slab on its overhang.
+	_prism(hall, g - 0.6, g + 0.5, STP_WHITE.darkened(0.2), none, M_STONE)
+	var keep := _mode
+	_prism(hall, g + 0.5, g + STP_HALL_H, STP_GLASS, none, M_PAVILION)
+	_mode = keep
+	_mullions(hall, g + 0.5, g + STP_HALL_H, 1.8, 0.05, STP_DARK)
+	var roof := _largest(Geometry2D.offset_polygon(hall, STP_EAVE, Geometry2D.JOIN_MITER))
+	_prism(roof, g + STP_HALL_H, g + STP_HALL_H + STP_ROOF, STP_WHITE, STP_WHITE.darkened(0.08), M_STONE, M_STONE)
+	_soffit(roof, g + STP_HALL_H, STP_WHITE.darkened(0.25))
+	_stp_sail(q, g)
+	# STADION in red neon standing on the roof, facing the game's camera.
+	var o := BEHIND_FACE.normalized()
+	var k := 0.5
+	var at := c + o * 4.0
+	signs.append(["STADION", Vector3(at.x, g + STP_HALL_H + STP_ROOF + 0.05, at.y), Vector3(o.x, 0.0, o.y), k, STP_NEON])
+	_collide(hall)
+	var plats: Array = site.get("platforms", [])
+	var pair_mid := Vector2.ZERO
+	for f: Array in plats:
+		pair_mid += (f[0] as Vector2) / plats.size()
+	for f: Array in plats:
+		_stp_canopy(f, c, pair_mid)
+
+
+## The sail: a curved white wall along the hall's concave end, its tips high, its middle lower,
+## its top leaning out over the forecourt towards the platforms; both faces and the top edge.
+func _stp_sail(q: PackedVector2Array, g: float) -> void:
+	var arc := PackedVector2Array()
+	for p in q:
+		if STP_SAIL.has_point(p):
+			arc.append(p)
+	if arc.size() < 3:
+		return
+	arc = _simplify(arc, 0.12) if arc.size() > 8 else arc
+	var a0 := arc[0]
+	var a1 := arc[arc.size() - 1]
+	var chord := a1 - a0
+	var out := Vector2(-chord.y, chord.x).normalized()
+	var mid := (a0 + a1) * 0.5
+	if (_centre(q) - mid).dot(out) > 0.0:
+		out = -out
+	var n := arc.size()
+	var top := PackedVector3Array()
+	var foot := PackedVector3Array()
+	for i in n:
+		var t := float(i) / (n - 1)
+		var e := (2.0 * t - 1.0) * (2.0 * t - 1.0)
+		var h := STP_SAIL_H - STP_SAIL_DIP * (1.0 - e)
+		var lean := out * STP_SAIL_LEAN * (0.6 + 0.4 * (1.0 - e))
+		foot.append(Vector3(arc[i].x, g - 0.3, arc[i].y))
+		top.append(Vector3(arc[i].x + lean.x, g + h, arc[i].y + lean.y))
+	var d := Vector3(out.x, 0.0, out.y) * 0.22
+	_mode = M_STONE
+	for i in n - 1:
+		var nrm := (top[i + 1] - foot[i]).cross(foot[i + 1] - foot[i]).normalized()
+		if Vector2(nrm.x, nrm.z).dot(out) < 0.0:
+			nrm = -nrm
+		_quad(foot[i], foot[i + 1], top[i + 1], top[i], nrm, STP_WHITE)
+		_quad(foot[i] - d, foot[i + 1] - d, top[i + 1] - d, top[i] - d, -nrm, STP_WHITE.darkened(0.12))
+		_quad(top[i], top[i + 1], top[i + 1] - d, top[i] - d, Vector3.UP, STP_WHITE.lightened(0.05))
+
+
+## One platform's canopy from its hall end: posts along the outer edge, the wind wall there (the
+## red-and-white mosaic below, glass above), the perforated metal roof over the whole width, and
+## the stair head down to the passage under the tracks at the hall end.
+func _stp_canopy(f: Array, hall_c: Vector2, pair_mid: Vector2) -> void:
+	_o = f[0]
+	_a = f[1]
+	_b = f[2]
+	var hu: float = f[3]
+	var hv: float = f[4]
+	if hv > 9.0:
+		return
+	# u runs from the hall end (-hu) along the platform; v = +1 is the outer side.
+	if (_o + _a * hu).distance_to(hall_c) < (_o - _a * hu).distance_to(hall_c):
+		_a = -_a
+		_b = -_b
+	# The outer side: away from the tracks between the two side platforms (the side facing the
+	# pair's middle is the inner one).
+	var other := -1.0 if (_w(0.0, 1.0) - _o).dot(pair_mid - _o) > 0.0 else 1.0
+	var len := minf(STP_CANOPY, hu * 2.0 - 4.0)
+	var u0 := -hu + 1.0
+	var u1 := u0 + len
+	var floor_y: float = map.terrain_height(_o.x, _o.y) + 0.9
+	var top := floor_y + STP_CANOPY_H
+	var none := Color(0, 0, 0, 0)
+	var half := hv + 0.3
+	var slab := PackedVector2Array([_w(u0, -half), _w(u1, -half), _w(u1, half), _w(u0, half)])
+	_prism(slab, top, top + 0.25, STP_METAL.darkened(0.1), STP_METAL, M_STONE, M_STONE)
+	_soffit(slab, top, STP_METAL.darkened(0.35))
+	var v := other * (hv - 0.35)
+	var n := maxi(2, roundi(len / 8.0))
+	for k in n + 1:
+		var u := u0 + 0.4 + (len - 0.8) * k / n
+		_prism(_rect(u, v, 0.14, 0.14), floor_y - 1.0, top, STP_DARK, none, M_STONE)
+	# The wind wall just inside the posts: the mosaic panels (two rows, chequered) facing the
+	# tracks and out, glass from 2.4 m up to the roof.
+	var vin := v - other * 0.2
+	var nin := Vector3(_b.x, 0.0, _b.y) * -other
+	var m := maxi(1, roundi(len / STP_PANEL))
+	var e0 := _w(u0, vin)
+	var e1 := _w(u1, vin)
+	for face in 2:
+		var vv := vin + (other * 0.12 if face == 1 else 0.0)
+		var nf := nin if face == 0 else -nin
+		for row in 2:
+			var y0 := floor_y + 1.2 * row - (1.0 if row == 0 else 0.0)
+			var y1 := floor_y + 1.2 * (row + 1)
+			for k in m:
+				var p0 := _w(u0 + len * k / m, vv)
+				var p1 := _w(u0 + len * (k + 1) / m, vv)
+				var col := STP_RED if (k + row) % 2 == 0 else STP_WHITE
+				_quad(Vector3(p0.x, y0, p0.y), Vector3(p1.x, y0, p1.y), Vector3(p1.x, y1, p1.y), Vector3(p0.x, y1, p0.y), nf, col)
+	_mode = M_STONE
+	for s in [1.0, -1.0]:
+		var nn: Vector3 = nin * float(s)
+		_quad(Vector3(e0.x, floor_y + 2.4, e0.y), Vector3(e1.x, floor_y + 2.4, e1.y), Vector3(e1.x, top, e1.y), Vector3(e0.x, top, e0.y), nn, STP_GLASS.lightened(0.1))
+	# The stair head at the hall end: a white box with a dark opening facing along the platform.
+	var sh := _rect(u0 + 4.5, -other * 0.6, 3.5, 1.6)
+	_prism(sh, floor_y - 1.0, floor_y + 2.6, STP_WHITE, STP_WHITE.darkened(0.05), M_STONE, M_STONE)
+	var d0 := _w(u0 + 8.08, -other * 0.6 - 1.2)
+	var d1 := _w(u0 + 8.08, -other * 0.6 + 1.2)
+	var na := Vector3(_a.x, 0.0, _a.y)
+	_quad(Vector3(d0.x, floor_y - 1.0, d0.y), Vector3(d1.x, floor_y - 1.0, d1.y), Vector3(d1.x, floor_y + 2.2, d1.y), Vector3(d0.x, floor_y + 2.2, d0.y), na, STP_DARK)
+	_collide(sh)

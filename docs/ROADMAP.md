@@ -73,7 +73,8 @@ then the Launch gate.
   - [x] L2 catenary masts and wires, 2026-11-01
   - [x] L3 the tunnel's portals at Ochota and Powiśle, 2026-11-01
   - [x] T1 trains through the city (suburban, city line, long-distance), `check_trains`, 2026-11-01
-  - [ ] S3 the other stations: Stadion, Śródmieście's entrances, Wschodnia, Gdańska, Ochota WKD
+  - [x] S3a Warszawa Stadion: the white hall with its sail, the red-and-white mosaic canopies, 2026-11-01
+  - [ ] S3b-e the other stations: Śródmieście's entrances, Wschodnia, Gdańska, Ochota WKD
   - [ ] L4 Most Średnicowy's look (after a Mac photo check)
 
 ### Left: content and feel
