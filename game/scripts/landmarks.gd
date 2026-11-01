@@ -91,7 +91,7 @@ const TOWERS := [
 	{"key": "platinum_a", "osm": "Platinum Tower A", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
 	{"key": "platinum_b", "osm": "Platinum Tower B", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
 	{"key": "lucka", "osm": "Łucka City", "style": S_RIBBON, "glass": "#7c8c98", "roof": "#bfc3c3"},
-	{"key": "widok", "osm": "Widok Towers", "style": S_FINS, "glass": "#4f677b", "roof": "#8d969c"},
+	{"key": "widok", "osm": "Widok Towers", "style": S_GRID, "glass": "#5d8478", "roof": "#8d969c"},
 ]
 
 const SANDSTONE := Color("#d8c49c")   # the Palace (bake_gugik.py LANDMARKS)
@@ -1623,9 +1623,26 @@ func _wave(p: Vector2, domes: Array) -> float:
 
 # --- the Rotunda ------------------------------------------------------------------------------
 
-## A round glass pavilion on the corner of Marszałkowska and Al. Jerozolimskie: a granite
-## plinth, two storeys of glass lit from inside, a white roof that overhangs, rises gently
-## and opens in a glass oculus, ribbed like the old one.
+## The Mac photo check (2026-11-01, spec docs/landmarks/specs/rotunda.md): green-grey glass
+## floor to eave between 52 silver mullions, one transom near the top; a folded-plate crown in
+## brushed silver (48 radial folds whose ends make the eave's ring of downward teeth) rising
+## gently to a raised oculus with a metal kerb and a glazed top in a 4 x 4 grid; the main
+## entrance on the south under a flat canopy, a smaller one on the plaza (north-west), two
+## triangular plates on the roof's edge, and the bank's parody name either side of the south door.
+const ROT_GLASS := Color("#5e7f7a")    # #4d6f6b in shade, #6f8f8a lit
+const ROT_SILVER := Color("#c3c8cc")
+const ROT_FOLD_LIGHT := Color("#d4d8db")
+const ROT_FOLD_DARK := Color("#b0b6bb")
+const ROT_TOOTH := Color("#e4e7e9")   # the eave's teeth, white-silver
+const ROT_BAYS := 52
+const ROT_FOLDS := 48
+const ROT_EAVE := 10.8      # the glass's top and the soffit, over the ground
+const ROT_RIDGE := 12.3     # a fold's ridge at the eave (the teeth hang 1.5 m to ROT_EAVE)
+const ROT_OCULUS := 5.4     # the oculus's radius (10.8 m across)
+const ROT_SOUTH := Vector2(0, 1)
+const ROT_PLAZA := Vector2(-0.7071, -0.7071)
+
+
 func _build_rotunda(site: Dictionary) -> void:
 	var poly: PackedVector2Array = site["zone"][0]
 	var c := _centre(poly)
@@ -1635,88 +1652,150 @@ func _build_rotunda(site: Dictionary) -> void:
 	r /= poly.size()
 	_g = _ground_under(poly)
 	var g := _g
-	var seg := 48
-	var ring := func(radius: float) -> PackedVector2Array:
-		var out := PackedVector2Array()
-		for k in seg:
-			out.append(c + Vector2.from_angle(TAU * k / seg) * radius)
-		return out
-	# Plinth, glass drum, the band under the roof's edge (a lit strip at night).
-	_prism(ring.call(r + 0.25), g - 0.4, g + 0.7, Color("#56565c"), Color(0, 0, 0, 0), M_STONE)
-	_prism(ring.call(r), g + 0.7, g + 10.6, Color("#9cc4d4"), Color(0, 0, 0, 0), M_PAVILION)
-	_prism(ring.call(r + 0.05), g + 10.6, g + 11.0, Color("#fff2d6"), Color(0, 0, 0, 0), M_LAMP)
-	# The roof: an overhanging white edge, then a shallow cone up to the oculus, in ribs.
-	var edge := r + 2.2
-	_prism(ring.call(edge), g + 11.0, g + 12.2, Color("#eceae4"), Color(0, 0, 0, 0), M_STONE)
+	var none := Color(0, 0, 0, 0)
+	# The drum: one bay of the 52 centred on the south door, a mullion at every corner.
+	var step := TAU / ROT_BAYS
+	var a0 := ROT_SOUTH.angle() + 0.5 * step
+	var drum := PackedVector2Array()
+	for k in ROT_BAYS:
+		drum.append(c + Vector2.from_angle(a0 + k * step) * r)
+	_prism(drum, g - 0.4, g + 0.3, Color("#55585c"), none, M_STONE)
+	_prism(drum, g + 0.3, g + ROT_EAVE, ROT_GLASS, none, M_PAVILION + 0.75)
 	_mode = M_STONE
-	var under: PackedVector2Array = ring.call(edge)
-	var inner: PackedVector2Array = ring.call(r)
-	for k in seg:
-		var a := under[k]
-		var b := under[(k + 1) % seg]
-		var ai := inner[k]
-		var bi := inner[(k + 1) % seg]
-		_quad(Vector3(a.x, g + 11.0, a.y), Vector3(b.x, g + 11.0, b.y), Vector3(bi.x, g + 11.0, bi.y), Vector3(ai.x, g + 11.0, ai.y),
-				Vector3.DOWN, Color("#c9c7c0"))
-	var cone_out: PackedVector2Array = ring.call(edge)
-	var cone_in: PackedVector2Array = ring.call(5.2)
-	for k in seg:
-		var a := cone_out[k]
-		var b := cone_out[(k + 1) % seg]
-		var ai := cone_in[k]
-		var bi := cone_in[(k + 1) % seg]
-		var p0 := Vector3(a.x, g + 12.2, a.y)
-		var p1 := Vector3(b.x, g + 12.2, b.y)
-		var p2 := Vector3(bi.x, g + 13.6, bi.y)
-		var p3 := Vector3(ai.x, g + 13.6, ai.y)
-		var n := (p1 - p0).cross(p3 - p0).normalized()
-		if n.y < 0.0:
-			n = -n
-		_quad(p0, p1, p2, p3, n, Color("#f3f1ea") if k % 2 == 0 else Color("#dcdad3"))
-	# The oculus: a raised glass ring with a shallow glass cap.
-	_prism(ring.call(5.2), g + 13.6, g + 14.5, Color("#8fb6c6"), Color(0, 0, 0, 0), M_PAVILION)
+	for p in drum:
+		_rot_fin(c, p, g + 0.3, g + ROT_EAVE, 0.09, 0.32, ROT_SILVER)
+	_rot_crown(c, r, g)
+	# The entrances: glazed doors under a flat silver canopy, a transom over the doors.
+	_rot_door(c, r, g, ROT_SOUTH, 3, 8.0, 2.0, 4.0)
+	_rot_door(c, r, g, ROT_PLAZA, 2, 5.0, 1.5, 3.6)
+	# The bank's name (a parody), white on the glass either side of the south door.
+	for s: float in [-1.0, 1.0]:
+		var d := ROT_SOUTH.rotated(s * 0.56)
+		var at := c + d * (r + 0.1)
+		signs.append(["BANK POLSKA", Vector3(at.x, g + 5.2, at.y), Vector3(d.x, 0.0, d.y), 0.4, Color(0.95, 0.97, 1.0)])
+	_collide(drum)
+
+
+## A mullion standing proud of the glass at plan point p: its face and two sides.
+func _rot_fin(c: Vector2, p: Vector2, y0: float, y1: float, half: float, depth: float, col: Color) -> void:
+	var o := (p - c).normalized()
+	var t := Vector2(-o.y, o.x)
+	var a := p - t * half
+	var b := p + t * half
+	var a2 := a + o * depth
+	var b2 := b + o * depth
+	var n := Vector3(o.x, 0, o.y)
+	var tn := Vector3(t.x, 0, t.y)
+	_quad(Vector3(a2.x, y0, a2.y), Vector3(b2.x, y0, b2.y), Vector3(b2.x, y1, b2.y), Vector3(a2.x, y1, a2.y), n, col)
+	_quad(Vector3(b.x, y0, b.y), Vector3(b2.x, y0, b2.y), Vector3(b2.x, y1, b2.y), Vector3(b.x, y1, b.y), tn, col.darkened(0.08))
+	_quad(Vector3(a.x, y0, a.y), Vector3(a2.x, y0, a2.y), Vector3(a2.x, y1, a2.y), Vector3(a.x, y1, a.y), -tn, col.darkened(0.08))
+
+
+## The folded-plate roof: 48 folds from the eave to the oculus, a ridge and a valley each, the
+## valleys dropping to the eave so the plates' ends make a ring of downward teeth; a recessed
+## dark fascia behind the teeth, the soffit under the overhang, the oculus's kerb and glazed
+## top, and the two triangular plates on the edge (north-east and south-west).
+func _rot_crown(c: Vector2, r: float, g: float) -> void:
+	var edge := r + 2.2
+	var fold := TAU / ROT_FOLDS
+	var a0 := ROT_SOUTH.angle()
+	var top := g + 14.4    # a ridge at the oculus
+	var low := g + 14.0    # a valley at the oculus
+	_mode = M_STONE
+	for k in ROT_FOLDS:
+		var ar := a0 + k * fold
+		var av := ar + 0.5 * fold
+		var ar2 := ar + fold
+		var re := c + Vector2.from_angle(ar) * edge
+		var ve := c + Vector2.from_angle(av) * edge
+		var re2 := c + Vector2.from_angle(ar2) * edge
+		var ri := c + Vector2.from_angle(ar) * ROT_OCULUS
+		var vi := c + Vector2.from_angle(av) * ROT_OCULUS
+		var ri2 := c + Vector2.from_angle(ar2) * ROT_OCULUS
+		var p_re := Vector3(re.x, g + ROT_RIDGE, re.y)
+		var p_ve := Vector3(ve.x, g + ROT_EAVE, ve.y)
+		var p_re2 := Vector3(re2.x, g + ROT_RIDGE, re2.y)
+		var p_ri := Vector3(ri.x, top, ri.y)
+		var p_vi := Vector3(vi.x, low, vi.y)
+		var p_ri2 := Vector3(ri2.x, top, ri2.y)
+		for f: Array in [[p_re, p_ve, p_vi, p_ri, ROT_FOLD_LIGHT], [p_ve, p_re2, p_ri2, p_vi, ROT_FOLD_DARK]]:
+			_rot_up_tri(f[0], f[1], f[2], f[4])
+			_rot_up_tri(f[0], f[2], f[3], f[4])
+		# The teeth: the plates' ends, white-silver, seen as downward triangles from the street;
+		# behind them (between two teeth) the dark fascia closes the edge down to the soffit.
+		var o := Vector3(cos(av), 0, sin(av))
+		_tri(p_re, p_re2, p_ve, o, ROT_TOOTH, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+		var re_low := Vector3(re.x, g + ROT_EAVE, re.y)
+		var back := c + Vector2.from_angle(ar) * (edge - 0.5)
+		var back2 := c + Vector2.from_angle(ar2) * (edge - 0.5)
+		var dark := Color("#6d7378")
+		_quad(Vector3(back.x, g + ROT_EAVE, back.y), Vector3(back2.x, g + ROT_EAVE, back2.y),
+				Vector3(back2.x, g + ROT_RIDGE, back2.y), Vector3(back.x, g + ROT_RIDGE, back.y), o, dark)
+		# The soffit: the overhang's underside, from the glass out to the edge.
+		var si := c + Vector2.from_angle(ar) * (r - 0.2)
+		var si2 := c + Vector2.from_angle(ar2) * (r - 0.2)
+		_quad(Vector3(si.x, g + ROT_EAVE, si.y), Vector3(si2.x, g + ROT_EAVE, si2.y), Vector3(re2.x, g + ROT_EAVE, re2.y),
+				re_low, Vector3.DOWN, Color("#b9bec2"))
+	# The oculus: a metal kerb 1 m over the folds, a glazed top in a 4 x 4 grid.
+	var ring := _circle(c, ROT_OCULUS, 24)
+	_prism(ring, low - 0.1, top + 0.9, ROT_SILVER, Color(0, 0, 0, 0), M_STONE)
+	var glass_y := top + 0.9
 	_mode = M_GLASS_ROOF
-	_pyramid(ring.call(5.2), g + 14.5, g + 15.6, Color("#86aebf"))
-	_collide(ring.call(r + 0.25))
-	_rotunda_night(c, r, g)
-
-
-## The Rondo photos (2026-10-31): the Rotunda's white zigzag crown (24 teeth, 3 m, standing on
-## the roof's rim), red and blue light glowing in the glass under it (every sixth and every
-## sixth-plus-three bay) and the bank's name, a parody (BANK POLSKA), lit white on the glass at
-## the south and east faces.
-func _rotunda_night(c: Vector2, r: float, g: float) -> void:
-	var teeth := 24
-	var edge := r + 2.2
-	var white := Color("#ffffff")
+	_cap(ring, glass_y, Color("#8fb0ad"))
 	_mode = M_STONE
-	for k in teeth:
-		var a0 := TAU * k / teeth
-		var a1 := TAU * (k + 1) / teeth
-		var pa := c + Vector2.from_angle(a0) * edge
-		var pb := c + Vector2.from_angle(a1) * edge
-		var pm := c + Vector2.from_angle((a0 + a1) * 0.5) * edge
-		var va := Vector3(pa.x, g + 12.2, pa.y)
-		var vb := Vector3(pb.x, g + 12.2, pb.y)
-		var vt := Vector3(pm.x, g + 15.2, pm.y)
-		var n := (vb - va).cross(vt - va).normalized()
-		if n.dot(Vector3(pm.x - c.x, 0.0, pm.y - c.y)) < 0.0:
-			n = -n
-		var none := Vector2(-1, -1)
-		_tri(va, vb, vt, n, white, none, none, none, -1.0)
-		_tri(vb, va, vt, -n, white.darkened(0.15), none, none, none, -1.0)
-	for k in teeth:
-		if k % 6 != 1 and k % 6 != 4:
-			continue
-		var a0 := TAU * k / teeth
-		var a1 := TAU * (k + 1) / teeth
-		var tint := Color("#3b63d8") if k % 12 < 6 else Color("#d8433a")
-		var wedge := PackedVector2Array([c + Vector2.from_angle(a0) * (r - 0.4), c + Vector2.from_angle(a1) * (r - 0.4),
-				c + Vector2.from_angle(a1) * (r + 0.06), c + Vector2.from_angle(a0) * (r + 0.06)])
-		_prism(wedge, g + 6.0, g + 10.4, tint, Color(0, 0, 0, 0), M_LAMP)
-	for d: Vector2 in [Vector2(0, 1), Vector2(1, 0)]:
-		var at := c + d * (r + 0.3)
-		signs.append(["BANK POLSKA", Vector3(at.x, g + 2.4, at.y), Vector3(d.x, 0.0, d.y), 0.9, Color(0.95, 0.97, 1.0)])
+	for i in range(1, 4):
+		var off := -ROT_OCULUS + i * ROT_OCULUS * 0.5
+		var span := sqrt(ROT_OCULUS * ROT_OCULUS - off * off) - 0.2
+		for d: Vector2 in [Vector2(1, 0), Vector2(0, 1)]:
+			var across := Vector2(-d.y, d.x)
+			var m := c + across * off
+			_prism(PackedVector2Array([m - d * span - across * 0.12, m + d * span - across * 0.12,
+					m + d * span + across * 0.12, m - d * span + across * 0.12]),
+					glass_y, glass_y + 0.18 + (0.02 if d.x > 0.5 else 0.0), ROT_SILVER, ROT_SILVER, M_STONE, M_STONE)
+	# The two triangular plates standing on the edge, north-east and south-west.
+	for d: Vector2 in [Vector2(0.7071, -0.7071), Vector2(-0.7071, 0.7071)]:
+		var t := Vector2(-d.y, d.x)
+		var base := c + d * (edge - 0.6)
+		var pa := Vector3((base - t * 2.6).x, g + ROT_RIDGE - 0.4, (base - t * 2.6).y)
+		var pb := Vector3((base + t * 2.6).x, g + ROT_RIDGE - 0.4, (base + t * 2.6).y)
+		var pt := Vector3(base.x, g + ROT_RIDGE + 3.4, base.y)
+		var n := Vector3(d.x, 0, d.y)
+		var nn := Vector2(-1, -1)
+		_tri(pa, pb, pt, n, Color("#a9b0b5"), nn, nn, nn, -1.0)
+		_tri(pb, pa, pt, -n, Color("#8e959a"), nn, nn, nn, -1.0)
+
+
+## A roof triangle with its normal pointing up (a fold's facet).
+func _rot_up_tri(a: Vector3, b: Vector3, c: Vector3, col: Color) -> void:
+	var n := (b - a).cross(c - a).normalized()
+	if n.y < 0.0:
+		n = -n
+	_tri(a, b, c, n, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+
+
+## An entrance facing `d`: `bays` dark glass doors (centred on d) to 3.2 m, a silver transom
+## over them, and a flat canopy `wide` by `deep` at `at` m.
+func _rot_door(c: Vector2, r: float, g: float, d: Vector2, bays: int, wide: float, deep: float, at: float) -> void:
+	var step := TAU / ROT_BAYS
+	var mid := d.angle()
+	var first := mid - 0.5 * bays * step
+	_mode = M_STONE
+	for k in bays:
+		var p0 := c + Vector2.from_angle(first + k * step) * (r + 0.1)
+		var p1 := c + Vector2.from_angle(first + (k + 1) * step) * (r + 0.1)
+		var o := Vector2.from_angle(first + (k + 0.5) * step)
+		var n := Vector3(o.x, 0, o.y)
+		_quad(Vector3(p0.x, g + 0.3, p0.y), Vector3(p1.x, g + 0.3, p1.y), Vector3(p1.x, g + 3.2, p1.y), Vector3(p0.x, g + 3.2, p0.y),
+				n, Color("#2e3a39"))
+		var q0 := c + Vector2.from_angle(first + k * step) * (r + 0.22)
+		var q1 := c + Vector2.from_angle(first + (k + 1) * step) * (r + 0.22)
+		_quad(Vector3(q0.x, g + 3.2, q0.y), Vector3(q1.x, g + 3.2, q1.y), Vector3(q1.x, g + 3.5, q1.y), Vector3(q0.x, g + 3.5, q0.y),
+				n, ROT_SILVER)
+	var t := Vector2(-d.y, d.x)
+	var near := c + d * (r - 0.4)
+	var far := c + d * (r + deep)
+	_prism(PackedVector2Array([near - t * wide * 0.5, near + t * wide * 0.5, far + t * wide * 0.5, far - t * wide * 0.5]),
+			g + at, g + at + 0.35, ROT_SILVER, ROT_SILVER.lightened(0.08), M_STONE, M_STONE)
 
 
 # --- Varso Tower ------------------------------------------------------------------------------
