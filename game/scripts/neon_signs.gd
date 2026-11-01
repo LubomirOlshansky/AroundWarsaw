@@ -39,7 +39,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# S3a: Warszawa Stadion's roof letters.
 		"STADION",
 		# S3b: Warszawa Śródmieście's pavilions.
-		"ŚRÓDMIEŚCIE"]
+		"ŚRÓDMIEŚCIE",
+		# The Mac photo check (2026-11-01): Ochota's letters by the entrance.
+		"OCHOTA"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

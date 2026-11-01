@@ -155,13 +155,19 @@ Plan: docs/design/railway.md. One PR per item, in this order:
     paraboloid with a clear sag, stripes visible from the game camera; the blue WARSZAWA OCHOTA
     letters on their frame by the entrance. From the default camera the hall hides behind the
     tower next to it (look at it from the south-west).
+    **Fixed 2026-11-01:** the saddle (high corners 10.6 m, a 1.1 m sag), stripes on top too, the
+    blue letters on their frame. Left: the camera hides it behind the tower.
   - **Powiśle, upper pavilion:** the roof curves the wrong way. The model's roof is a barrel
     (convex, up in the middle); the real "kite" sags (concave, dark fascia, the two ends up),
     over a fully glazed front. The model's grey solid base should be glass with the blue
     WARSZAWA POWIŚLE letters over the doors. The small white tower beside it is in the photos.
+    **Fixed 2026-11-01:** the sagging kite with a dark fascia, the glass base, the blue letters.
+    Left: the small white tower.
   - **Powiśle, round pavilion:** reads right at night (lit drum, saucer, neon). The real saucer
     overhangs the drum far more (about twice its radius), and the neon is yellow tube letters on
     top of the rim, not red on the disc. Hidden by trees from the low south view.
+    **Fixed 2026-11-01:** saucer r 14.6 m, yellow letters standing on the rim's edge, no trees
+    under the saucer.
   - **Stadion:** the platform canopies with red-and-white glass walls match the photos well. The
     pavilion reads as a plain white box; the sail and mosaic still to compare.
   - **Most Średnicowy (L4):** the model is a flat deck on many thin paired posts. The real bridge
