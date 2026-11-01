@@ -15,6 +15,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
+- **2026-11-01 · landmarks · Ujazdowski Castle** — Mac look check for Zamek Ujazdowski (`ujazdowski`): the facade's real colour (built cream), the copper roofs and tower caps (spire to 26.5 m), the entrance side (built west, onto the park path), the courtyard (built open; OSM maps an 8.8 m roof patch in it), the east bay. Also the `--prebuilt` look and bench. Built: the model in cream with copper roofs; look shots in the thread. Phone: drive Al. Ujazdowskie south to the castle, stop in its ring for the notebook card.
 - **2026-11-01 · landmarks · Grand hotels** — Mac look check for Hotel Bristol (colour of the facade, mansard, door position on Krakowskie Przedmieście) and Hotel Polonia Palace (colour, 25.5 m height, door on Al. Jerozolimskie); built: sand and cream walls, grey slate mansards, door at the middle of the longest street front.
 
 - **2026-11-01 · landmarks · Old Town hotels** — Which tenements are the real Hotel Bellotto (Brukowa 12),
