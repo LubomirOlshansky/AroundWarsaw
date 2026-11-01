@@ -74,6 +74,8 @@ const BUDGET := {
 	"varso": 1680,
 	"wcf": 190,
 	"widok": 450,
+	"pzu": 900,
+	"jm": 900,
 	"wiktoria": 230,
 	"wtt": 1640,
 	"zacheta": 720,
