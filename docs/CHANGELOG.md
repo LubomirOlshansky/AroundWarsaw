@@ -11,7 +11,7 @@ someone writes its lines.
 
 ## 2026-11-01
 - The Old Town Market Square has its cobbled paving now, café gardens with umbrellas in the restaurants' colours along all four sides, and the Syrenka in her fountain: bronze, with her raised sword and round shield, on a stone pedestal behind a low stone rim.
-- People stand on the observation decks: on St Anne's bell tower terrace (with a new stone balustrade) and on the roof of Varso Tower, more of them in the afternoon, on weekends and in summer.
+- People stand on the observation decks: on St Anne's bell tower terrace (with a new stone balustrade), on the Palace of Culture's 30th-floor terrace and on the roof of Varso Tower, more of them in the afternoon, on weekends and in summer.
 - The two glass pavilions over the underground Warszawa Śródmieście station, by the Palace, now glow at night under their blue neon names.
 - Fabryka Norblina, Browary Warszawskie, Hala Koszyki and the Elektrownia Powiśle are modelled now: brick halls with tall arches, glass storeys on top, chimneys, and people chilling in their yards. In Norblin there is a line to a milk bar called KROWA 2.0.
 - Now and then a fender bender blocks a lane somewhere ahead: two dented cars, a police car with its lights flashing and a yellow ambulance, the drivers arguing over who had the green while people film it for the estate's group. Traffic queues and squeezes past, and KEBAB FM reads it out in the traffic news.

@@ -66,7 +66,8 @@ then the Launch gate.
       fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
       Mac photo check parked (QUESTIONS)
 - [x] People on the observation decks (F, 2026-11-01): Varso Tower's roof and St Anne's bell tower
-      terrace (with a balustrade), hours, weekends and seasons (`crowds.gd` DECKS)
+      terrace (with a balustrade), the Palace of Culture's 30th-floor terrace (114 m ledge and
+      balustrade, up to 16), hours, weekends and seasons (`crowds.gd` DECKS)
 - [ ] Old Town Market Square leftovers: per-house plaster colours and sgraffito from photos, the
       four corner streets' mouths, a card for the Museum of Warsaw house (BACKLOG "Old Town square")
 - [x] Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle as models, people chilling
