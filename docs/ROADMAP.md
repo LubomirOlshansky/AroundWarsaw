@@ -41,8 +41,8 @@ then the Launch gate.
   - [ ] R2 Plac Centralny's ground (the tenements' outlines in grey and red slabs, the setts,
         the pond, the trees)
   - [ ] R3 pavements, granite kerbs, red cycle paths, the green Złota, the fountain, the crossings
-  - [ ] R4 ordinary buildings by type (pre-war tenement, 1960s-70s slab, socialist-realist,
-        office), shader only
+  - [x] R4 ordinary buildings by type (pre-war tenement, 1960s-80s slab or point block, office),
+        shader only, 2026-11-01 (socialist-realist left for a later pass)
   - [ ] R5 Scena Relax, Zodiak and the Cepelia pavilion as models
   - [ ] R6 one of the 2025/26 trend spots (built elsewhere, trends-2025-26.md) inside the start
         box, and the empty-stores jokes in the lines

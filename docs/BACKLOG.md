@@ -241,11 +241,17 @@ plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 check
   left, FROGS XXL on Wars's south corner where H&M's space becomes a two-storey Żabka, KAPCIE for
   the shoe chains on Zara's floor, WYPRZEDAŻ and ORANŻADA with their real letters); SCENA RELAX
   on the old Kino Relax behind Junior. Only the phone shows the boards' size at the default zoom.
+- **R4 done 2026-11-01**: ordinary buildings outside the Old Town are drawn by type
+  (map_builder.gd `_building_type`, building.gdshader `typed_facade`): pre-war tenements (a
+  rusticated shop floor, a string course, tall windows in light surrounds, a heavy cornice),
+  1960s-80s slabs and point blocks (pale panels, dark joints, loggia stacks), post-war offices
+  (ribbon windows). The type comes from the OSM kind, height and footprint (a guess, not a
+  survey). Left: a socialist-realist type for MDM and Marszałkowska south, per-street checks
+  against photos on the Mac, and the tenements' own plaster colours outside the Old Town.
 - **Open:** R2 Plac Centralny's ground (grey and red slabs drawing the pre-war tenements, the
   courtyards' reused granite setts, the 1939 street lines, lawns, 109 trees, the pond); R3
   pavements and kerbs, red asphalt cycle paths, Złota's setts and elm alley, the fountain at the
-  old tunnel mouth, the three new crossings (orthophoto check on the Mac); R4 ordinary buildings
-  drawn by type in building.gdshader (tenement, slab, socialist-realist, office); R5 Scena Relax,
+  old tunnel mouth, the three new crossings (orthophoto check on the Mac); R5 Scena Relax,
   Zodiak and the Cepelia pavilion as models; R6 one of the trend spots (built by the trends thread,
   docs/design/trends-2025-26.md) inside the start box and lines about the empty stores and Frogs
   XXL; R7 street name plates, a bike dock, tram
