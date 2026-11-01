@@ -75,6 +75,8 @@ const ON_OFF := [["Wył.", "Off"], ["Wł.", "On"]]
 const FPS := [["60", "płynnie · smooth"], ["30", "bateria · battery"]]
 ## Loop MW-6: the game's mode (settings.gd `wander`).
 const MODE := [["Miasto", "City"], ["Spacer", "Wander"]]
+## G4: the car's handling (settings.gd `handling`, car.gd PROFILES).
+const HANDLING := [["Spokojnie", "Cruise"], ["Sportowo", "Sport"]]
 const LEVELS := [["master", "Głośność", "Volume"], ["music", "Radio", "Radio"], ["effects", "Efekty", "Effects"]]
 
 ## Loop 2e: pixels per point and the safe area in pixels (from the HUD, screen_points.gd).
@@ -222,18 +224,20 @@ func _build() -> void:
 		drive[0].add_child(l)
 	_heading(drive[1], "Kamera za autem", "Camera follows the car")
 	_segments(drive[1], "camera", CAMERA)
-	_heading(drive[1], "Tryb gry", "Game mode")
-	_segments(drive[1], "wander", MODE)
+	_heading(drive[1], "Prowadzenie", "Handling")
+	_segments(drive[1], "handling", HANDLING)
 	_heading(drive[1], "Strefy piesze 20 km/h", "Pedestrian zones 20 km/h")
 	_segments(drive[1], "zones", ON_OFF)
 	# Świat · World.
-	var world := _page(body, 1)
+	var world := _page(body, 2)
 	_heading(world[0], "Pora dnia", "Time of day")
 	_segments(world[0], "time", TIME)
 	_heading(world[0], "Pogoda", "Weather")
 	_segments(world[0], "weather", WEATHER)
 	_heading(world[0], "Ruch uliczny", "Traffic")
 	_segments(world[0], "traffic", TRAFFIC)
+	_heading(world[1], "Tryb gry", "Game mode")
+	_segments(world[1], "wander", MODE)
 	# Obraz · Picture. Loop G1: in three rows (Quality's five choices made the two columns too
 	# wide for the SE): Style and VHS; Quality; Frame rate and the overlay with TEST.
 	# 2026-11-01 (F): the Style picker is gone (always the sharp image); the old VHS tape is now

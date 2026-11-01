@@ -176,7 +176,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] G1 Heli and map teleport open from the first second (the guide no longer gates them)
 - [ ] G2 Calmer default traffic: Low is the default now (2026-11-01); the stepped slider is left
 - [x] G3 +/- zoom buttons on the driving screen (5 steps, saved)
-- [ ] G4 Easy city drive (first pass 2026-11-01: grip 14, drift grip 4, turn pull 13, slower steer; Cruise/Sport profile and the phone check are left): less drift, gentler steering, a Cruise handling default (Opus, feel)
+- [x] G4 Easy city drive: Cruise handling by default, Sport in Settings → Jazda → Prowadzenie, check_handling, 2026-11-01 (the phone feel check is parked in QUESTIONS)
 - [ ] G5 Flicker and "lag wall" audit: the dithered fade patches, wall-like props, the metro
       entrances (what stays, what stops colliding, what goes) (Opus)
 - [ ] G6 Under-the-bridge entries (owned by the bridge joins thread; report in BACKLOG)
