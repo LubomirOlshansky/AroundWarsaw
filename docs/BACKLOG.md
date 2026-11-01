@@ -174,6 +174,9 @@ Plan: docs/design/railway.md. One PR per item, in this order:
     under the saucer.
   - **Stadion:** the platform canopies with red-and-white glass walls match the photos well. The
     pavilion reads as a plain white box; the sail and mosaic still to compare.
+    **Fixed 2026-11-01:** the hall's roof sweeps up 1.5 m towards the sail, which now stands
+    8.2 m at its tips over the raised end, with a glass clerestory under the rising slab and
+    bigger STADION letters. Left for the Mac: the sail's real shape and the mosaic against refs.
   - **Most Średnicowy (L4):** the model is a flat deck on many thin paired posts. The real bridge
     is steel arch-truss spans (shallow arches with diagonal webs under the deck) on a few massive
     stone piers, with catenary masts along it. Model those spans and fewer, wider piers.
@@ -190,6 +193,9 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   - **Bench with trains and wires:** the bench route does not pass the railway (130 draw calls,
     0.61 M triangles, no late frames; trains 0.03 ms of script). `--bench --at=` near Ochota
     gives the same route. A bench spot on the line (with a train in view) is still to add.
+    **Fixed 2026-11-01:** two `--probe` spots with a train in view (`--at=X,Z --train=X,Z`):
+    Powiśle (171,89) and Most Średnicowy (1148,-720); cloud 158 / 119 draw calls (archive
+    "Performance budgets", the godot-mobile-perf skill). Left: the same two on the Mac and phone.
 
 ## The Mac App Store version and gamepads (F, 2026-11-01)
 
