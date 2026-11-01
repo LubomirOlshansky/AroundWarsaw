@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- The website now shows the design wiki link on phones too: in the top bar, as a button under the hero and in the footer.
 - New padel side job "Czwarty": on busy evenings the court needs a fourth player, so fetch one from across town before the booking ends. Padel also has its own page in the notebook, and the coach, the receptionist and the boss now chat in the court queue.
 - The department stores by the start look like they do today: "to let" boards on the emptied floors, a two-storey frog shop on the old corner store, a shoe shop, and the Scena Relax theatre's name behind them. Shop signs can now use Polish letters.
 - Four 12 km/h e-scooter streets (Złota, Zgody, Bracka, Plac Centralny) now greet you with a short notice when you drive in.
