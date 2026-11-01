@@ -81,12 +81,22 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   gwardii, wizytki, wszystkich, zamek) missed sections. After the fix 69 of 70 steps pass (places
   WARN as before; roads, map data, first10, first10-run, endcard, opening, cassettes, parodies,
   both city paths PASS; `--ios` export and unsigned build PASS). Left: the next item.
-- **check_streaming's look pass fails every run, not only on a busy Mac** (found 2026-11-01, map
-  lane, Opus): `--only=pass` on an idle Mac, twice, the same frames: looking at a far target,
-  sector s_-6_0 (x -3072..-2560, z 0..512, the Warsaw HUB side) is still loading at 530 m while
-  proxies cover up to 100 % of the view's ground for 24 frames (PROXY_SHARE 5 %). Already on main
-  2d04afe, before this audit's fixes. Find which look target points there (likely one added since
-  the loading fix of 2026-10-31) and load the target's sector first.
+- **check_streaming's look pass: the fix to confirm on the Mac** (found 2026-11-01, map lane,
+  Opus; fixed in the cloud the same day). The cause: a look at a new target pre-loaded a square
+  round the target (±137 m) and round the halfway view (±275 m), but the real view is turned 45°
+  and tipped 30° (a 110 m view covers ±147 m on the map, more with the towers behind it the view
+  test counts), so s_-6_0 west of the look at -2400, 600 only started loading once the camera got
+  there; and the expectation ran out on the wall clock (4.9 s), so on frames slower than real time
+  it ended before the look did. Now `main.gd` `_queue_look` hands the streamer every view of the
+  look (`CameraShots.look_keys`: the car's, MID's, the target's, and the way between them every
+  60 m) and `sector_streamer.gd` `expect_shot` wants each sector whose box meets one of those
+  orthographic frusta (the target's first); the expectation runs on the game's clock and is held
+  for the whole look once it starts (`hold_expected`). The look waits for 3-14 sectors (was a
+  square's 2-6). Cloud (llvmpipe, ~3 fps, loads 2-9 s each, so every look hits the 1.5 s cap):
+  look pass 206 → 34 frames with a proxy in the view, 153 → 27 over 5 %; the third look (the
+  failing one) 40 → 0. **Confirm on the Mac**: `tools/verify.sh --only=streaming` (or the pass
+  alone: `cd game && godot --path . --resolution 1280x720 --script res://tools/check_streaming.gd
+  -- --only=pass --passes=look`); if it still fails, the next step is a longer LOOK_WAIT_MS.
 - **Map checks in CI**: the derived map pack as a release asset that CI downloads (or a small test
   map), so roads, drape, drive and the game runs gate every PR again ("From loop 3d-1", CI). Gap.
 

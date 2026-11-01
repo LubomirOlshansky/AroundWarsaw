@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- When the camera flies off to show a new job across town, the city there is ready when it arrives instead of grey stand-in blocks.
 - Marszałkowska by the start has Warsaw's navy street name plates at the corners, glass shelters and a ticket machine on the tram island, a city bike dock and bollards along Plac Centralny.
 - The glass Cepelia pavilion at Rondo Dmowskiego (now a book and vinyl store) and the Zodiak pavilion in Pasaż Wiecha stand as their real modernist glass boxes.
 - Running clubs now jog through the centre in packs of 20-28, road cyclists ride the cycle paths in pelotons with jokes about their carbon bikes, coffee raves pop up outside COFFEECHAIR cafés by day, and some very big guys walk very tiny dogs.
