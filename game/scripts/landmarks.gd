@@ -332,6 +332,9 @@ const INFO := {
 	"dom_partii": ["Dom Partii",
 			"Biały gmach z 1952 roku. Była partia, giełda, dziś biura i bary.",
 			"A white block from 1952. Once the Party, then the stock exchange, now offices and bars."],
+	"deski": ["WTS DeSki",
+			"Klub przy Zaruskiego nad Wisłą: kort ziemny, hardy i dwa nowe, szklane do padla.",
+			"The club on Zaruskiego by the Vistula: clay, hard courts and two new glass ones for padel."],
 	"gaulle": ["Pomnik generała de Gaulle'a",
 			"Maszeruje Alejami od 2005 roku. Kopia tego z Paryża.",
 			"Marching down the Avenues since 2005. A copy of the one in Paris."],
@@ -643,6 +646,7 @@ func _find_sites() -> void:
 	_find_skins()
 	_find_zygmunt()
 	_find_gaulle()
+	_find_deski()
 	_find_dom_partii()
 	_find_rynek()
 	_find_arkadia()
@@ -961,6 +965,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_zygmunt(s)
 			"gaulle":
 				_build_gaulle(s)
+			"deski":
+				_build_deski(s)
 			"dom_partii_extras":
 				_build_dom_partii(s)
 			"rynek":
@@ -10246,3 +10252,167 @@ func _build_polonia(site: Dictionary) -> void:
 			"glass": Color("#353a40"), "name": "POLONIA PALACE", "name_w": 6.6, "board": Color("#3a1f24"),
 			"tube": Color(1.0, 0.85, 0.5), "whole": true, "canopy": Color("#6b2a2f")}, party)
 	_collide(ring)
+
+
+# --- WTS DeSki: the tennis club with the padel courts (F, 2026-11-01) -----------------------------
+
+## WTS DeSki (Warszawskie Towarzystwo Sportowe "DeSki", Zaruskiego 8, by Most Łazienkowski):
+## a real club with clay and hard tennis courts and, newest, an outdoor double padel court that
+## is open round the clock. The twelve mapped pitches are its tennis courts (OSM `pitch` quads);
+## the model dresses them (clay or hard surface, white lines, nets, posts), swaps the two
+## south-eastern ones for the glass padel pair (blue surface, glass back walls, posts, floodlights)
+## and puts players on three courts: four at padel, two at tennis, two more at padel two. The
+## clubhouse keeps its mapped box and gets the DESKI tube on its roof. Lore: docs/design/padel.md.
+const DESKI_PITCHES := [
+	[1508.6, 966.3, 1516.4, 963.7, 1521.8, 979.9, 1514.1, 982.5],
+	[1500.1, 979.7, 1507.4, 976.0, 1515.2, 991.3, 1508.0, 995.0],
+	[1500.4, 927.3, 1507.4, 923.1, 1516.3, 937.7, 1509.3, 942.0],
+	[1518.6, 963.5, 1526.3, 961.0, 1531.6, 977.3, 1523.8, 979.8],
+	[1467.8, 947.1, 1474.8, 942.9, 1483.8, 957.5, 1476.8, 961.8],
+	[1478.3, 941.0, 1485.3, 936.8, 1494.2, 951.4, 1487.3, 955.7],
+	[1489.5, 959.6, 1496.7, 955.8, 1504.7, 970.9, 1497.5, 974.7],
+	[1478.6, 965.5, 1485.8, 961.8, 1493.9, 976.9, 1486.6, 980.7],
+	[1510.5, 945.1, 1517.5, 940.8, 1526.5, 955.5, 1519.5, 959.7],
+]
+const DESKI_PADEL := [Vector2(1521.0, 992.0), Vector2(1532.0, 988.6)]
+const DESKI_AXIS := Vector2(0.322, 0.947)
+const DESKI_CLUBHOUSE := [Vector2(1491.7, 913.2), Vector2(1498.8, 909.0), Vector2(1503.2, 920.8), Vector2(1499.3, 923.0),
+		Vector2(1491.5, 925.8), Vector2(1486.8, 917.4)]
+const DESKI_CLUBHOUSE_H := 7.6
+const DESKI_CLAY := Color("#b5573a")
+const DESKI_HARD := Color("#3e7396")
+const DESKI_PADEL_BLUE := Color("#2c68b0")
+const DESKI_LINE := Color("#f1efe6")
+const DESKI_GLASS := Color("#a9c7d4")
+const DESKI_FRAME := Color("#2b3138")
+const DESKI_SHIRTS := [Color("#e8e04a"), Color("#ef5a8a"), Color("#f4f4f0"), Color("#3fb6a8"), Color("#ff8a2a"), Color("#8a6ae0")]
+const DESKI_SKIN := Color("#d9a984")
+
+
+func _find_deski() -> void:
+	# A 0.2 m zone at the clubhouse's corner: the mapped box stays; the courts are only drawn on.
+	var c := Vector2(1503.2, 920.8)
+	_add_site("deski", [PackedVector2Array([c, c + Vector2(0.2, 0), c + Vector2(0.2, 0.2), c + Vector2(0, 0.2)])])
+	sites[-1]["box"] = Rect2(1460.0, 905.0, 85.0, 100.0)
+
+
+func _deski_frame(c: Vector2, axis: Vector2) -> void:
+	_o = c
+	_a = axis
+	_b = Vector2(-axis.y, axis.x)
+
+
+func _build_deski(_site: Dictionary) -> void:
+	_no_roof = true
+	_mode = M_STONE
+	var none := Color(0, 0, 0, 0)
+	var n := 0
+	for q: Array in DESKI_PITCHES:
+		var c := Vector2(0.0, 0.0)
+		for k in 4:
+			c += Vector2(q[k * 2], q[k * 2 + 1]) * 0.25
+		_deski_frame(c, DESKI_AXIS)
+		var g: float = map.terrain_height(c.x, c.y)
+		var hard := n % 3 == 2
+		_deski_tennis(g, DESKI_HARD if hard else DESKI_CLAY, n)
+		n += 1
+	var pn := 0
+	for pc: Vector2 in DESKI_PADEL:
+		_deski_frame(pc, DESKI_AXIS)
+		var g: float = map.terrain_height(pc.x, pc.y)
+		_deski_padel(g, pn)
+		pn += 1
+	# Floodlights on the pair's four outer corners.
+	var mid := (DESKI_PADEL[0] + DESKI_PADEL[1]) * 0.5
+	_deski_frame(mid, DESKI_AXIS)
+	var gm: float = map.terrain_height(mid.x, mid.y)
+	for su: float in [-1.0, 1.0]:
+		for sv: float in [-1.0, 1.0]:
+			var u := su * 11.2
+			var v := sv * 11.2
+			_lbox(u, v, 0.12, 0.12, gm, gm + 7.0, DESKI_FRAME.lightened(0.08), M_STONE)
+			_lbox(u, v - sv * 0.35, 0.5, 0.4, gm + 7.0, gm + 7.3, Color("#fff4cf"), M_LAMP)
+	# The clubhouse's tube.
+	var ring := PackedVector2Array(DESKI_CLUBHOUSE)
+	var gc := _ground_under(ring)
+	_crown_signs(ring, gc + DESKI_CLUBHOUSE_H + 0.6, "DESKI", Color(0.25, 0.85, 1.0), 0.0, 0.6)
+	for pc2: Vector2 in DESKI_PADEL:
+		_deski_frame(pc2, DESKI_AXIS)
+		_collide(_rect(0.0, 0.0, 10.0, 5.0))
+	_no_roof = false
+
+
+## One tennis court in the current frame: surface, lines, net and posts; players on two of them.
+func _deski_tennis(g: float, surface: Color, idx: int) -> void:
+	_lbox(0.0, 0.0, 9.2, 4.9, g - 0.2, g + 0.04, surface.darkened(0.12), M_STONE, surface.darkened(0.12))
+	_lbox(0.0, 0.0, 8.6, 4.3, g + 0.04, g + 0.06, surface, M_STONE, surface)
+	var lc := DESKI_LINE
+	for sv: float in [-1.0, 1.0]:
+		_lbox(0.0, sv * 3.5, 8.0, 0.05, g + 0.06, g + 0.075, lc, M_STONE, lc)
+	for su: float in [-1.0, 1.0]:
+		_lbox(su * 8.0, 0.0, 0.05, 3.5, g + 0.06, g + 0.075, lc, M_STONE, lc)
+		_lbox(su * 5.4, 0.0, 0.04, 2.6, g + 0.06, g + 0.075, lc, M_STONE, lc)
+	_lbox(0.0, 0.0, 5.4, 0.04, g + 0.06, g + 0.075, lc, M_STONE, lc)
+	# The net and its two posts.
+	_lbox(0.0, 0.0, 0.03, 4.1, g + 0.5, g + 1.0, Color("#e9e9e4"), M_STONE)
+	for sv: float in [-1.0, 1.0]:
+		_lbox(0.0, sv * 4.2, 0.06, 0.06, g, g + 1.07, DESKI_FRAME, M_STONE)
+	if idx == 0 or idx == 4:
+		_deski_player(Vector2(-7.0, -1.2), 0.0, g + 0.06, idx, false)
+		_deski_player(Vector2(7.0, 1.0), PI, g + 0.06, idx + 3, false)
+
+
+## One padel court in the current frame: 10 x 20 m of blue, white lines, glass back walls and
+## glass on the first 4 m of the sides, a mesh fence between (posts and a top rail), the net.
+func _deski_padel(g: float, idx: int) -> void:
+	_lbox(0.0, 0.0, 10.3, 5.3, g - 0.2, g + 0.04, DESKI_PADEL_BLUE.darkened(0.3), M_STONE, DESKI_PADEL_BLUE.darkened(0.3))
+	# The surface is lit: the court is open round the clock, its floodlights glow at night.
+	_prism(_rect(0.0, 0.0, 10.0, 5.0), g + 0.04, g + 0.06, DESKI_PADEL_BLUE.darkened(0.25), DESKI_PADEL_BLUE.darkened(0.25), M_LAMP, M_LAMP)
+	var lc := DESKI_LINE
+	for sv: float in [-1.0, 1.0]:
+		_lbox(0.0, sv * 4.85, 9.9, 0.05, g + 0.06, g + 0.075, lc, M_STONE, lc)
+	for su: float in [-1.0, 1.0]:
+		_lbox(su * 9.85, 0.0, 0.05, 5.0, g + 0.06, g + 0.075, lc, M_STONE, lc)
+		_lbox(su * 6.95, 0.0, 0.04, 4.9, g + 0.06, g + 0.075, lc, M_STONE, lc)
+	_lbox(0.0, 0.0, 6.95, 0.04, g + 0.06, g + 0.075, lc, M_STONE, lc)
+	# The net.
+	_lbox(0.0, 0.0, 0.03, 5.0, g + 0.55, g + 0.95, Color("#4a525a"), M_STONE)
+	_lbox(0.0, 0.0, 0.04, 5.0, g + 0.93, g + 0.97, DESKI_LINE, M_STONE)
+	# Glass: the back walls (10 m), the sides' first 4 m at each end; 3 m high, a dark frame on top.
+	var gl := DESKI_GLASS
+	for su: float in [-1.0, 1.0]:
+		_lbox(su * 10.1, 0.0, 0.05, 5.2, g, g + 3.0, gl, M_STONE, DESKI_FRAME)
+		for sv: float in [-1.0, 1.0]:
+			_lbox(su * 8.0, sv * 5.2, 2.0, 0.04, g, g + 3.0, gl, M_STONE, DESKI_FRAME)
+			# the mesh above and between: three posts and a rail
+			_lbox(su * 3.5, sv * 5.2, 0.05, 0.05, g, g + 3.0, DESKI_FRAME, M_STONE)
+			_lbox(0.0, sv * 5.2, 5.0, 0.03, g + 2.9, g + 3.0, DESKI_FRAME, M_STONE)
+		_lbox(su * 10.1, 0.0, 0.07, 5.25, g + 3.0, g + 3.08, DESKI_FRAME, M_STONE)
+	# The players: padel court 0 has four, court 1 two.
+	var spots := [Vector2(-6.0, -2.4), Vector2(-5.5, 2.5), Vector2(6.0, -2.4), Vector2(5.5, 2.5)]
+	for k in (4 if idx == 0 else 2):
+		var sp: Vector2 = spots[k] if idx == 0 else spots[k * 2]
+		_deski_player(sp, 0.0 if sp.x < 0.0 else PI, g + 0.06, idx * 4 + k, true)
+
+
+## A player standing at local (u, v) facing the net (yaw 0: towards +u), racket arm out. 1.75 m,
+## about 50 triangles. `padel`: a short racket, otherwise a longer one.
+func _deski_player(at: Vector2, yaw: float, y: float, seed_n: int, padel: bool) -> void:
+	var fwd := _a * cos(yaw) + _b * sin(yaw)
+	var side := Vector2(-fwd.y, fwd.x)
+	var pos := _w(at.x, at.y)
+	var shirt: Color = DESKI_SHIRTS[seed_n % DESKI_SHIRTS.size()]
+	var shorts := Color("#232a3a")
+	for sd: float in [-1.0, 1.0]:
+		var foot := pos + side * 0.14 * sd + fwd * 0.1 * sd
+		_beam(Vector3(pos.x + side.x * 0.1 * sd, y + 0.95, pos.y + side.y * 0.1 * sd), Vector3(foot.x, y + 0.04, foot.y), 0.15, shorts)
+	var torso_c := pos + fwd * 0.05
+	_beam(Vector3(torso_c.x, y + 0.95, torso_c.y), Vector3(torso_c.x, y + 1.5, torso_c.y), 0.34, shirt)
+	_beam(Vector3(pos.x, y + 1.52, pos.y), Vector3(pos.x, y + 1.75, pos.y), 0.2, DESKI_SKIN)
+	# Arms: the left down, the right out front holding the racket.
+	var hand := pos + fwd * 0.55 + side * 0.25
+	_beam(Vector3(pos.x + side.x * 0.2, y + 1.45, pos.y + side.y * 0.2), Vector3(hand.x, y + 1.15, hand.y), 0.1, DESKI_SKIN)
+	var lh := pos - side * 0.3
+	_beam(Vector3(pos.x - side.x * 0.2, y + 1.45, pos.y - side.y * 0.2), Vector3(lh.x, y + 0.9, lh.y), 0.1, DESKI_SKIN)
+	var tip := hand + fwd * (0.3 if padel else 0.5)
+	_beam(Vector3(hand.x, y + 1.15, hand.y), Vector3(tip.x, y + 1.3, tip.y), 0.35 if padel else 0.28, Color("#e8483c") if padel else Color("#2b2f36"))

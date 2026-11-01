@@ -2072,6 +2072,33 @@
         "queue"
       ],
       "district": "lazienki"
+    },
+    {
+      "id": "deski",
+      "chapter": "trendy",
+      "name_pl": "Klub DeSki",
+      "name_en": "The DeSki club",
+      "osm": "WTS DeSki, Zaruskiego 8: twelve mapped tennis pitches by Most Łazienkowski, two glass padel courts added (landmarks.gd DESKI)",
+      "near": [
+        52.22515,
+        21.04563
+      ],
+      "radius": 70,
+      "fact": [
+        "DeSki nad Wisłą od 40 lat: tenis, squash, żagle. Padel świeci w nocy.",
+        "DeSki has played by the Vistula for 40 years: tennis, squash, sails. Padel has lights all night."
+      ],
+      "joke": [
+        "Tenis mówi: to nie to samo. Padel mówi: ściana mnie rozumie.",
+        "Tennis says: not the same. Padel says: the wall gets me."
+      ],
+      "tags": [
+        "venue",
+        "padel",
+        "tennis",
+        "vistula"
+      ],
+      "district": "lazienki"
     }
   ]
 }

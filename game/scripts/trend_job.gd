@@ -72,6 +72,10 @@ const CZ_FROM := 400.0
 const CZ_TO := 1500.0
 const CZ_MIN_QUEUE := 10
 const CZ_COLOUR := Color("#2fd0e0")
+## The same request at WTS DeSki's padel courts (landmarks.gd DESKI, docs/design/padel.md): the club's
+## gate on the Zaruskiego service road, open 7:00-23:00; Pani Basia's friends play there.
+const DESKI_GATE := Vector2(1475.0, 985.0)
+const DESKI_HOURS := [7.0, 23.0]
 const CZ_PLAYERS := ["Prezes z Mokotowa", "Pani Basia", "Trener Dominik", "kuzyn Kuby", "Ola z recepcji", "Michał od Excela"]
 ## "Mlask" (G5): the van's spots (places.json ids) by weekday, its hours, the offer's reach, the
 ## legs' limits, the pay *guess*.
@@ -300,6 +304,10 @@ func _look() -> void:
 			_cool[-1] = _session + SLOT_COOL
 			if offer_drop():
 				return
+	if hour >= DESKI_HOURS[0] and hour < DESKI_HOURS[1] and p.distance_to(DESKI_GATE) <= OFFER_R and _session >= float(_cool.get(-4, 0.0)):
+		_cool[-4] = _session + SLOT_COOL
+		if offer_czwarty(true):
+			return
 	if crowds != null and crowds.by_id.has(Crowds.PADEL_ID) and int(Crowds.padel_queue(hour, life.weekday_now())[0]) >= CZ_MIN_QUEUE:
 		var psite: Dictionary = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]
 		if p.distance_to(psite["door"]) <= OFFER_R and _session >= float(_cool.get(-2, 0.0)):
@@ -382,34 +390,49 @@ func offer_drop() -> bool:
 
 ## The "Czwarty" request at PADELNIA (--trend-job=5 too): the pickup is the player's door, the
 ## delivery the court's kerb. False if no kerb or door fits.
-func offer_czwarty() -> bool:
-	if crowds == null or not crowds.by_id.has(Crowds.PADEL_ID):
-		return false
-	var site: Dictionary = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]
-	var door: Vector2 = site["door"]
-	var out: Vector2 = site["out"]
-	var k: Dictionary = jobs._kerb(door, door - out * 4.0, 3.5, [1.4, 2.2, 3.0])
-	if k.is_empty():
-		return false
-	var kerb: Vector2 = (k["centre"] as Vector2) + (k["side"] as Vector2) * 2.0
+func offer_czwarty(deski := false) -> bool:
+	var door := DESKI_GATE
+	var out := Vector2(-1.0, 0.0)
+	var venue := "WTS DeSki"
+	if not deski:
+		if crowds == null or not crowds.by_id.has(Crowds.PADEL_ID):
+			return false
+		var site: Dictionary = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]
+		door = site["door"]
+		out = site["out"]
+		venue = "PADELNIA"
+	var k: Dictionary = {}
+	var kerb := door
+	if deski:
+		# The club's service road is not in the lane graph: the gate itself is the stop, the
+		# nearest lane (the bridge deck at worst) anchors the road length of the fetch.
+		var hit := graph.snap(door, 80.0, Vector2.ZERO, false, false)
+		if hit.is_empty():
+			return false
+		k = {"edge": int(hit[0]), "s": float(hit[2])}
+	else:
+		k = jobs._kerb(door, door - out * 4.0, 3.5, [1.4, 2.2, 3.0])
+		if k.is_empty():
+			return false
+		kerb = (k["centre"] as Vector2) + (k["side"] as Vector2) * 2.0
 	var rng := RandomNumberGenerator.new()
 	rng.seed = done * 4001 + 29
 	var from: Dictionary = jobs._pick_address(k["edge"], k["s"], kerb, CZ_FROM, CZ_TO, rng, func(_a: Dictionary) -> bool: return true)
 	if from.is_empty():
 		if log_on:
-			print("trend job: no door %.0f-%.0f m from PADELNIA" % [CZ_FROM, CZ_TO])
+			print("trend job: no door %.0f-%.0f m from %s" % [CZ_FROM, CZ_TO, venue])
 		return false
 	order = {"kind": "czwarty", "slot": -1, "word": "PADEL", "day": 0, "ring": from["ring"],
-			"door_ring": Vector3(kerb.x, graph.surface(k["edge"], kerb), kerb.y), "road": float(from["road"]),
-			"name": "PADELNIA", "customer": CZ_PLAYERS[rng.randi() % CZ_PLAYERS.size()], "from": str(from["name"])}
+			"door_ring": Vector3(kerb.x, map.terrain_height(kerb.x, kerb.y) if deski else graph.surface(k["edge"], kerb), kerb.y),
+			"road": float(from["road"]), "name": venue, "customer": CZ_PLAYERS[rng.randi() % CZ_PLAYERS.size()], "from": str(from["name"])}
 	state = State.OFFER
 	_t = 0.0
-	hud.show_side_card("CZWARTY · PADELNIA", "Grają we trzech. Zabierz %s spod %s i dowieź na kort w 7 min." % [order["customer"], order["from"]],
-			PackedStringArray(["ACCEPT", "SKIP"]), CZ_COLOUR, "Fourth player · PADELNIA",
+	hud.show_side_card("CZWARTY · " + venue.to_upper(), "Grają we trzech. Zabierz %s spod %s i dowieź na kort w 7 min." % [order["customer"], order["from"]],
+			PackedStringArray(["ACCEPT", "SKIP"]), CZ_COLOUR, "Fourth player · " + venue,
 			"Three players are waiting. Fetch %s from %s and bring them to the court in 7 min." % [order["customer"], order["from"]])
 	hud.ticker_out()
 	if log_on:
-		print("trend job: czwarty offer at PADELNIA: %s from %s, %.0f m by road" % [order["customer"], order["from"], order["road"]])
+		print("trend job: czwarty offer at %s: %s from %s, %.0f m by road" % [venue, order["customer"], order["from"], order["road"]])
 	return true
 
 
@@ -807,6 +830,8 @@ func _arrive_cz() -> void:
 	wallet.pay(int(r["zl"]), int(r["respect"]), "trend")
 	done += 1
 	var line := ["Jesteśmy w czterech! Ściana nas nie zje.", "Four of us! The wall won't eat us."]
+	if str(order["name"]) == "WTS DeSki":
+		line = ["Czwarty jest! Pani Basia wpisała nas na kort przy Wiśle. Ściana nie ucieknie.", "The fourth is here! Pani Basia booked us the court by the Vistula. The wall isn't going anywhere."]
 	if not on_time:
 		line = ["Zagraliśmy w trzech. Piłka i tak wróciła.", "We played three-a-side. The ball came back anyway."]
 	var head := "CZWARTY · +%d zł" % int(r["zl"])
@@ -818,7 +843,7 @@ func _arrive_cz() -> void:
 	_beacon.waving = false
 	_beacon.place(order["door_ring"], ARRIVE - 0.5, false, true)
 	hud.show_side_card(head, body, PackedStringArray(["OK"]), CZ_COLOUR, "Fourth player · +%d zł" % int(r["zl"]), body_en)
-	print("trend job: delivered %s (Czwarty) to PADELNIA in %.0f s (%s): +%d zł (base %d, tip %d), +%d respect" % [order["customer"], _clock,
+	print("trend job: delivered %s (Czwarty) to %s in %.0f s (%s): +%d zł (base %d, tip %d), +%d respect" % [order["customer"], order["name"], _clock,
 			"on time" if on_time else "late", int(r["zl"]), int(r["base"]), int(r["tip"]), int(r["respect"])])
 
 

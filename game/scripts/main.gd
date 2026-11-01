@@ -422,7 +422,7 @@ var _sunsets := {}
 ## --life=0|1|2 (none, normal, double; the Low tier halves it), --dogs-log, --trend-log,
 ## --life-log, --life-soak (the car driven at the dogs and riders, overlaps counted), --zajac
 ## (Live, Wednesday 28 October 2026 at 18:59, the car by Kolka's start; with --autopilot it paces
-## the club), --trend-day=N (the trend cycle's day number), --trend-job[=slot] (the request at a
+## the club), --trend-day=N (the trend cycle's day number), --trend-job[=slot, 5 padel court, 6 van, 7 DeSki] (the request at a
 ## Wiralek slot, 1-3).
 var life: CityLife
 var trend_job: TrendJob
@@ -2423,6 +2423,13 @@ func _life_start() -> void:
 			if not trend_job.offer_mlask(true):
 				print("trend job: --trend-job=6: no request (no van spot or new place)")
 			return
+		if trend_job_flag == 7:
+			# "Czwarty" at WTS DeSki's padel courts (landmarks.gd DESKI), whatever the clock.
+			_put_car_near(TrendJob.DESKI_GATE, 40.0)
+			life.tick(0.0)
+			if not trend_job.offer_czwarty(true):
+				print("trend job: --trend-job=7: no request (no kerb or door fits)")
+			return
 		if trend_job_flag == 5 and crowds != null and crowds.by_id.has(Crowds.PADEL_ID):
 			var cd: Vector2 = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]["door"]
 			_put_car_near(cd, 60.0)
@@ -3592,7 +3599,7 @@ func _parse_args() -> void:
 		elif arg.begins_with("--trend-day="):
 			trend_day_flag = maxi(0, int(arg.trim_prefix("--trend-day=")))
 		elif arg == "--trend-job" or arg.begins_with("--trend-job="):
-			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 6)
+			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 7)
 			trend_log = true
 		elif arg.begins_with("--club="):
 			# Loop MW-3: the car at a club's door (places.json id or name), no title.
