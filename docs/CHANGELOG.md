@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- The Grand Theatre (Teatr Wielki) has its famous front: a portico of eight tall columns on a stepped stone base, under a heavy beam and a crowned top with statues.
 - Stadion Narodowy now stands on its green embankment: the grass slopes of the old stadium's bank run down to the streets all round, and the paved promenade at the stadium's foot sits on the ground instead of hanging in the air.
 - The Copernicus Science Centre's roof now has all seven skylights where they really are, including the glass pyramid and a dark stair tower, and the planetarium has more facets and a dark glass ring round its white dome.
 - The Copernicus Science Centre now matches the photos: warm striped walls with tall windows, the copper-red planetarium with its white dome, skylight craters and winding paths in the roof garden, and a dark wing hanging over the court.

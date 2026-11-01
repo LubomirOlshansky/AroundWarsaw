@@ -65,6 +65,7 @@ const BUDGET := {
 	"tr": 500,
 	"stadium": 4750,
 	"swieto": 240,
+	"teatr": 600,
 	"tarasy": 5700,
 	"trojca": 2300,
 	"unit": 1160,

@@ -843,6 +843,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_buw(s)
 			"kopernik":
 				_build_kopernik(s)
+			"teatr":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the portico is ours
+				_build_teatr(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -4629,6 +4632,60 @@ func _build_zacheta(site: Dictionary) -> void:
 	_collide(_rect(0.0, 2.0, 7.8, 2.0))
 	for s: float in [-1.0, 1.0]:
 		_collide(_rect(s * 7.0, 3.0, 0.7, 0.7))
+
+
+
+## Teatr Wielki (Antonio Corazzi, 1825-1833): the opera's mass stays LoD2's (a kept skin), and the
+## model adds what LoD2 flattens, the front on Plac Teatralny: a high rusticated base with wide
+## steps, the portico of eight Ionic columns under a heavy entablature and an attic crowned by a
+## sculpture group. Spec docs/landmarks/specs/teatr.md.
+## Frame: origin at the front's west end on the outline (the front runs 96.4 m), u along the
+## front, +v out of it (south-east, to the square).
+const TEATR := Vector2(-903.1, -952.5)
+const TEATR_AXIS := Vector2(0.7956, -0.6058)
+const TEATR_MID := 48.2
+const TEATR_STONE := Color("#eee6d0")
+const TEATR_BASE := Color("#cdc3a9")
+const TEATR_COLUMN := Color("#f1ead7")
+const TEATR_SCULPT := Color("#d9d2bf")
+## Portico column centres across the front, u from the middle: eight.
+const TEATR_COLS := [-11.9, -8.5, -5.1, -1.7, 1.7, 5.1, 8.5, 11.9]
+
+
+func _build_teatr(_site: Dictionary) -> void:
+	_o = TEATR
+	_a = TEATR_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)  # (0.606, 0.796): out of the front, to the square
+	var m := TEATR_MID
+	_g = map.terrain_height(_w(m, 3.0).x, _w(m, 3.0).y)
+	var g := _g
+	var light := TEATR_STONE.lightened(0.04)
+	_mode = M_STONE
+	# the base, as deep as the portico, and steps across it
+	_lbox(m, 3.5, 15.2, 3.5, g - 0.6, g + 3.4, TEATR_BASE, M_STONE, light)
+	for k in 5:
+		var depth := (k + 1) * 0.8
+		_lbox(m, 7.0 + depth * 0.5, 12.5, depth * 0.5, g - 0.6, g + 2.5 - 0.5 * k, TEATR_BASE, M_STONE,
+				TEATR_BASE.lightened(0.04))
+	# eight Ionic columns on the base
+	for u: float in TEATR_COLS:
+		_column(m + u, 4.6, 0.62, g + 3.4, g + 14.6, TEATR_COLUMN)
+	# the entablature, back to the wall, then the attic and its sculpture group
+	_lbox(m, 3.0, 14.0, 3.2, g + 14.6, g + 16.0, light, M_STONE, light)
+	_lbox(m, 3.0, 14.3, 3.4, g + 16.0, g + 17.2, TEATR_STONE, M_STONE, light)
+	_lbox(m, 3.0, 14.6, 3.7, g + 17.2, g + 17.7, light, M_STONE, light)
+	_lbox(m, 2.0, 13.4, 2.0, g + 17.7, g + 20.3, TEATR_STONE, M_STONE, light)
+	_lbox(m, 2.0, 13.8, 2.3, g + 20.3, g + 20.7, light, M_STONE, light)
+	for grp: Array in [[-9.0, 1.4, 2.4], [-4.5, 1.6, 3.2], [0.0, 2.0, 4.6], [4.5, 1.6, 3.2], [9.0, 1.4, 2.4]]:
+		_lbox(m + float(grp[0]), 2.0, float(grp[1]), 0.9, g + 20.7, g + 20.7 + float(grp[2]), TEATR_SCULPT, M_STONE,
+				TEATR_SCULPT)
+	# the portico's back wall (proud of LoD2's), and the doors in it, in shade between the columns
+	_lbox(m, -0.1, 13.6, 0.2, g + 3.4, g + 14.6, TEATR_STONE.darkened(0.06), M_STONE, TEATR_STONE)
+	_mode = M_GLASS
+	for u: float in [-6.8, -3.4, 0.0, 3.4, 6.8]:
+		_wall(_w(m + u - 1.0, 0.13), _w(m + u + 1.0, 0.13), g + 3.6, g + 8.0, _b, Color("#3a3d40"))
+	_mode = M_STONE
+	_collide(_rect(m, 4.0, 15.0, 6.0))
 
 
 ## The Presidential Palace (Pałac Prezydencki; Aigner's classical rebuilding, 1818-1819) on
