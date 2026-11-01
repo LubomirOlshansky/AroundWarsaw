@@ -194,6 +194,24 @@ func _build() -> void:
 
 	# Jazda · Driving.
 	var drive := _page(body, 2)
+	# G14 (F, 2026-11-01): the two rescue buttons at the top of the first tab, where they are found:
+	# the tow onto the nearest road, and a new game (two taps: the second wipes the progress).
+	var rescue := HBoxContainer.new()
+	rescue.add_theme_constant_override("separation", _px(8))
+	drive[0].add_child(rescue)
+	var tow := _word_button("POMOC DROGOWA", "stuck? · tow to the road")
+	tow.name = "unstuck"
+	tow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tow.pressed.connect(func():
+		close()
+		changed.emit("unstuck", 1))
+	rescue.add_child(tow)
+	_new_game_button = _word_button("NOWA GRA", "reset progress")
+	_new_game_button.name = "new_game"
+	_new_game_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_new_game_button.pressed.connect(_on_new_game_pressed)
+	rescue.add_child(_new_game_button)
+
 	_heading(drive[0], "Sterowanie", "Controls")
 	_segments(drive[0], "drive", DRIVE)
 	_say_pl = _text("", T_SUB, INK)
@@ -202,14 +220,6 @@ func _build() -> void:
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.custom_minimum_size.x = 240.0 * pt
 		drive[0].add_child(l)
-	# 2026-11-01 (F stuck in a building after a photo): the tow on demand, onto the nearest road.
-	_heading(drive[0], "Utknąłeś?", "Stuck?")
-	var tow := _word_button("POMOC DROGOWA", "unstuck · to the road")
-	tow.name = "unstuck"
-	tow.pressed.connect(func():
-		close()
-		changed.emit("unstuck", 1))
-	drive[0].add_child(tow)
 	_heading(drive[1], "Kamera za autem", "Camera follows the car")
 	_segments(drive[1], "camera", CAMERA)
 	_heading(drive[1], "Tryb gry", "Game mode")
@@ -617,6 +627,29 @@ func _flat_button(label: String, points: float) -> Button:
 
 ## A 44 pt button with the Polish word (15 pt) over the English one (11 pt); its width follows
 ## the words.
+var _new_game_button: Button
+var _new_game_armed := false
+
+
+## NOWA GRA in the settings: the first tap asks, the second (within 4 s) wipes the save.
+func _on_new_game_pressed() -> void:
+	if not _new_game_armed:
+		_new_game_armed = true
+		_set_word_button(_new_game_button, "NA PEWNO?", "tap again: wipes progress")
+		get_tree().create_timer(4.0).timeout.connect(_disarm_new_game)
+		return
+	_new_game_armed = false
+	close()
+	changed.emit("new_game", 1)
+
+
+func _disarm_new_game() -> void:
+	if _new_game_armed:
+		_new_game_armed = false
+		_set_word_button(_new_game_button, "NOWA GRA", "reset progress")
+
+
+
 func _word_button(pl: String, en: String) -> Button:
 	var b := _flat_button("", T_BODY)
 	b.custom_minimum_size = Vector2(touch * 1.45, touch)
@@ -633,6 +666,13 @@ func _word_button(pl: String, en: String) -> Button:
 	b.add_child(words)
 	_fit_words(b, pl, en)
 	return b
+
+
+## A word button's two lines changed (the words are its first child's labels).
+func _set_word_button(b: Button, pl: String, en: String) -> void:
+	var words := b.get_child(0)
+	(words.get_child(0) as Label).text = pl
+	(words.get_child(1) as Label).text = en
 
 
 ## The words set the button's width (a Button doesn't size to its children); measured with the

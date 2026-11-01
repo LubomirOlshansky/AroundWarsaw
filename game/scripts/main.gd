@@ -591,7 +591,7 @@ var _stress_t0 := 0
 ## traffic level, and the command-line values that win over the saved ones (-1: none).
 var controls := Controls.new()
 var settings := Settings.new()
-var traffic_level := Settings.NORMAL_TRAFFIC
+var traffic_level := Settings.DEFAULT_TRAFFIC
 ## -2: no --quality= (Tiers.AUTO is -1).
 var _flag_quality := -2
 var _flag_controls := -1
@@ -1159,6 +1159,7 @@ func _build_world() -> void:
 	hud.setup_minimap(data, map.map_outline(), map.outside)  # map north: the L, not the box
 	hud.map_landmarks = map.landmark_info  # the full map's landmark icons (map_icons.gd)
 	hud.vehicle_pressed.connect(_toggle_vehicle)
+	hud.zoom_pressed.connect(_zoom_view)  # G3: the − and + buttons
 	hud.tapped.connect(_on_tap)
 	_set_flying(false)
 
@@ -3954,8 +3955,6 @@ func _teleport_refusal() -> Array:
 		return ["Nie teraz: trwa akcja ratunkowa", "Not now: a rescue is on"]
 	if police != null and police.chasing():
 		return ["Nie teraz: policja siedzi ci na ogonie", "Not now: the police are on your tail"]
-	if first10 != null and first10.guide and not first10.fired.has("done"):
-		return ["Najpierw pierwsza jazda", "Finish the first drive first"]
 	return []
 
 
@@ -4067,6 +4066,9 @@ func _on_setting(key: String, value: Variant) -> void:
 			return
 		"unstuck":
 			_unstuck.call_deferred()
+			return
+		"new_game":
+			_on_new_game.call_deferred()  # G14: NOWA GRA in the settings (confirmed by two taps)
 			return
 		"wander":
 			settings.wander = int(value) == 1
