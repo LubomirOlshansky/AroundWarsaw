@@ -3,6 +3,23 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Norblin, Browary, Koszyki, Elektrownia (F, 2026-11-01)
+
+Built (specs `docs/landmarks/specs/norblin.md`, `browary.md`, `koszyki.md`, `elektrownia.md`):
+the four sites as L2 models on their mapped outlines, `chill_*` crowds in their yards
+(`crowds.gd` CHILL, `chill_level`) and KROWA 2.0, the milk bar queue on Norblin's Żelazna front
+(`MILK`, `milk_queue`, venue sign in `storefronts.gd`). Open, for the Mac look check (no photos in
+the cloud, the cloud's picture of each place is thin):
+- Norblin: which wings are historic brick and which new; the chimney's real place; the door of the
+  milk bar (the lat/lon is a guess on the Żelazna front, 33 m from Żelazna 59A).
+- Browary: roofs (pitched, not flat), the Brama's arch, the chimney's count and place, the real
+  heights (OSM gives 37 m for the gate block, built at 30).
+- Koszyki: the real roof (iron truss under glass) and the 1909 facade's details on Koszykowa.
+- Elektrownia: the hall roofs, the chimneys' number and place, the heights (OSM 14 m, built 19 m).
+- The chill spots: the yards' spot coordinates (CHILL in `crowds.gd`) and the look of the groups
+  on the Mac; bubbles for the chill crowds (none yet).
+- KROWA 2.0 is our parody name; F may want another (QUESTIONS).
+
 ## Crash scenes (F, 2026-11-01)
 
 Lane file: [docs/design/crash-scenes.md](design/crash-scenes.md). Built: `crash_scenes.gd` (a
