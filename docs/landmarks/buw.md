@@ -31,11 +31,28 @@ Spec: [specs/buw.md](specs/buw.md). Site key `buw` (`landmarks.gd` `_find_buw`, 
   PR #115's code).
 - `check_mesh_quality` 0 defects, 2144 tris, budget 2600.
 
+## 2026-11-01: pass 3, LoD2's height and the south garden (cloud, from the Mac's re-check of main ba4a12d)
+
+- The Mac's GUGiK LoD2: the deck is ~15 m over the 84.4 m base (64 % of the roof), the glass
+  ridges 16-17 m, a lower 10 m part (6.5 %) the court in the south notch. The deck went from
+  10.9 to 15 m and everything on the roof with it; the plates rise to 17.6 m.
+- The mound is a solid dark green hill (22 x 34 m, to 18 m) with the teal glass pyramid on its
+  flat top. The vents were missing: the old code looked for an edge that the outline's winding
+  never gave; now the four mapped round parts on the north-east band are copper drums.
+- The south garden: four 2.5 m paths split the lawns into beds of dark shrub, heather and lawn;
+  five white pavilions, three by the glass tail; four small white domes on brown rings; the
+  oculus's paved ring 4 m. The court (Collegium Iuridicum II) is part of the site: glass walls
+  to 10 m, a green roof, a skylight. The walkway now runs from the field's west corner across
+  to the pavilions, a second short one over the tail; the band over the notch is 3 m and
+  greener, heather between it and the deck.
+- `check_mesh_quality` 0 defects, 2431 tris, budget 2900. The cassette (PR #115's code)
+  lands at (99, -958) on the hill by the pyramid, 18 m.
+
 ## Still differs / photo check on the Mac
 
-- The height: 10.9 m is OpenStreetMap's; LoD2 (on the Mac) may say more.
 - Which front the philosophers stand at (built on Dobra, before the copper pages; the
-  orthophoto can't tell).
-- The garden's south half is the mapped lawns, without the winding paths and shrubs.
+  orthophoto can't tell; the Mac check kept them).
+- The south beds' plants are a hash of shrub, heather and lawn, not the real planting.
+- The four mapped vents at the north corner stand outside the outline: the city's plain drums.
 - The plates' count, width and how far they rise over the roof.
 - The other fronts: how much is glass, how much trellis and greenery.
