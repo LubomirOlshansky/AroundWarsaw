@@ -5096,6 +5096,14 @@ home screen).
 | Draw calls: zoomed out (the same + `--size=220`) | 190 | 215 | 300 |
 | Draw calls: helicopter (`--at=1300,-420 --heading=60 --heli --size=150`) | 245 | 270 | 360 |
 | Draw calls at any view, ever | | 500 | 500 |
+
+**Railway spots** (2026-11-01, the railway lane): two `--probe` views on the line, each with a
+train brought into view by `--train=X,Z` (the same X,Z as `--at`): Powiśle station and its
+tunnel mouth (`--at=171,89 --train=171,89`) and Most Średnicowy from Wybrzeże Szczecińskie
+(`--at=1148,-720 --train=1148,-720`). Cloud lavapipe at 1266×585, High, day: 158 and 119 draw
+calls (main pass 58 / 50, shadow 65 / 34), 0.64 / 0.51 M triangles in all passes, trains' script
+0.26 ms on the cloud CPU. The Mac's and the phone's numbers are still to take (under the 200
+ceiling for a default view).
 | Triangles, main pass (spawn / zoomed out) | 0.25 M / 0.36 M | 0.32 M / 0.50 M | 0.45 M / 0.70 M |
 | Triangles, shadow pass (spawn / zoomed out) | 0.14 M / 0.27 M | 0.18 M / 0.35 M | 0.25 M / 0.45 M |
 | Scripts, all systems (`scripts … ms` at the spawn, Mac) | 0.6–0.9 ms | 1.0 ms | 1.3 ms |

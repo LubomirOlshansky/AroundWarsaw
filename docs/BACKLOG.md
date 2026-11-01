@@ -189,6 +189,9 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   - **Bench with trains and wires:** the bench route does not pass the railway (130 draw calls,
     0.61 M triangles, no late frames; trains 0.03 ms of script). `--bench --at=` near Ochota
     gives the same route. A bench spot on the line (with a train in view) is still to add.
+    **Fixed 2026-11-01:** two `--probe` spots with a train in view (`--at=X,Z --train=X,Z`):
+    Powiśle (171,89) and Most Średnicowy (1148,-720); cloud 158 / 119 draw calls (archive
+    "Performance budgets", the godot-mobile-perf skill). Left: the same two on the Mac and phone.
 
 ## The Mac App Store version and gamepads (F, 2026-11-01)
 
