@@ -183,14 +183,14 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] G7 Old Town roofs less repetitive (the dormer and tile pattern) (Sonnet)
 - [ ] G8 Bus stops on the kerb; buses dwell about ten seconds, people get off and on, people wait (Opus)
 - [ ] G9 Street furniture (chairs, benches) placed where it belongs, not at random (Sonnet)
-- [ ] G10 Podwózka off the main line: a visible rider icon and a START RIDE button with clear directions (Opus)
+- [x] G10 Podwózka off the main line: a visible rider icon and a START RIDE button with clear directions (Opus) · 2026-11-02, START KURS button within 25 m, bigger "!"; phone check open
 - [ ] G11 Better map icons on the minimap and the full map (Sonnet)
-- [ ] G12 Separate quest lines: helicopter quests and car quests, each with its own list and map colour (Opus)
+- [x] G12 Separate quest lines: helicopter quests and car quests, each with its own list and map colour (Opus) · 2026-11-02, first pass: rescue calls follow the vehicle, heli colour, car arrows hide while flying; the notebook list and the car/heli split of mixed rescues are parked
 - [ ] G13 Upgrade shop: Audi TT parody (faster car), nitro, tuning, paid in zł (Opus design, Sonnet content)
 - [x] G14 POMOC DROGOWA (unstuck) and NOWA GRA (two-tap reset) at the top of Settings → Jazda (quick win)
 - [x] G15 Stop assist works better: bigger quest start and end rings, looser "stopped", longer look-ahead (quick win; phone check)
 - [x] G16 Fewer text popups while driving on the road: ambient bubbles muted above 40 km/h, ambient toasts one per 20 s, traffic is a slider (2026-11-01, Sonnet)
-- [ ] G17 Car stuck against other cars: traffic collision pushes, then auto-unstuck from cars (Opus)
+- [x] G17 Car stuck against other cars: held against traffic 1.5 s it ghosts through them for 3 s, tow after 8 s among cars (2026-11-02, check_steering `car_sandwich`)
 - [ ] G18 Park Ujazdowski and Zamek Ujazdowski (the castle) improved: its own landmark thread (Opus)
 
 ### Left: the phone (needs F's yes for each device run)

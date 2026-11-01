@@ -80,27 +80,11 @@ cafe terraces (the storefront's frontage, 1.5 m deep, on paving), benches on foo
 walk or park path, never within 1 m of a lane. Accept: a check lists every chair/bench and fails
 any on a lane, in water or inside a wall. Files: street_details.gd, props.gd, storefronts.gd.
 
-**G10 · Podwózka off the main line, with a clear start (P1, Opus).** Today (`rides.gd`): a
-request card for 10 s, the pickup is a teal pin and you must stop within 7 m (a waiting passenger
-waves 30-60 m away). F: too hard to catch. Task: a visible rider marker (icon over the person, a
-bigger teal "!", on the minimap and full map); inside 25 m a START RIDE button appears and the
-ride begins on tap (the car auto-brakes as in stop assist); then the beacon and a direction arrow
-to the drop-off, with the distance. Podwózka never counts toward the main line. Accept: from 25 m a
-tap starts the ride within 1 s; no 7 m ring needed; `check_rides`, `check_stop_assist` green.
-Files: rides.gd, ride_rules.gd, hud.gd, stop_assist.gd, main_line.gd. Dialogue Manager not used.
-
 **G11 · Better map icons (P2, Sonnet).** The minimaps show identical black-and-yellow "?" squares
 and orange squares for everything (7138, 7134). Task: a distinct icon per kind (job, rider, food,
 garage, landmark, heli pad, bus, metro, quest star) by shape and colour (colour-safe mode kept),
 larger on the full map, with a legend. Accept: shots of both maps; one atlas (no extra draw
 calls). Files: map_icons.gd, full_map.gd, hud.gd minimap.
-
-**G12 · Separate heli and car quests (P2, Opus design).** Today rescues, jobs and the main line
-share one list. Task: CAR (kebab, Podwózka, couriers, races) and HELI (rescues, rooftop pickups,
-the cassette, sightseeing) with their own marker colours; flying shows only heli quests, driving
-only car quests; the main line stays one path. Accept: the notebook lists both; no car quest
-completes from the heli and the reverse. Files: missions.gd, jobs.gd, main_line.gd, notebook.gd,
-map_icons.gd.
 
 **G13 · Upgrade shop (P2, Opus design, Sonnet content).** Today the garage (`garage.gd`, Warsztat
 u Mirka) sells paints only. Task: a second tab "Części i auta": (1) a faster car, a parody of the
@@ -122,11 +106,6 @@ well; make the start and end points bigger and add assistance to pickup". Task: 
 "stopped" under 6 m/s, look-ahead 60 m, aim 3 m inside. Left for the phone: is it enough, or
 should a pickup start by driving through the ring without stopping (G10). Files: stop_assist.gd.
 
-**G17 · Stuck against other cars (P1, Opus).** F: "stuck with another cars". Task: reproduce
-(a car pinned against traffic or parked cars at junctions), make traffic yield or ghost through
-the player when contact lasts over 1.5 s, and tow the player to the lane after 8 s pinned with an
-unstuck toast. Accept: a check with the car pinned between two traffic cars frees itself in under
-8 s; `check_drive`, `check_steering` green. Files: car.gd, traffic.gd, main.gd.
 
 **G18 · Ujazdów and the castle (P1, Opus, landmark thread).** F: improve Ujazdów and Zamek
 Ujazdowski. One landmark thread: compare the castle's model and the park with the orthophoto and
