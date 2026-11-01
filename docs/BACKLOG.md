@@ -248,8 +248,13 @@ plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 check
   (ribbon windows). The type comes from the OSM kind, height and footprint (a guess, not a
   survey). Left: a socialist-realist type for MDM and Marszałkowska south, per-street checks
   against photos on the Mac, and the tenements' own plaster colours outside the Old Town.
-- **Open:** R2 Plac Centralny's ground (grey and red slabs drawing the pre-war tenements, the
-  courtyards' reused granite setts, the 1939 street lines, lawns, 109 trees, the pond); R3
+- **R2 done 2026-11-01**: Plac Centralny's paving in ground.gdshader (`centralny`): inside the
+  square (Marszałkowska's frame, south and west of the museum) the plazas show the lost
+  tenements as plots outlined in red and grey slabs, pale slabs where the houses stood and warm
+  setts in their courtyards; the mapped walks are granite setts. The pond and lawns were
+  already in the map. The plots follow the old grid's rhythm, not a survey: the orthophoto on
+  the Mac should set the real outlines (and the square's edge, now a straight cut).
+- **Open:** R3
   pavements and kerbs, red asphalt cycle paths, Złota's setts and elm alley, the fountain at the
   old tunnel mouth, the three new crossings (orthophoto check on the Mac); R5 Scena Relax,
   Zodiak and the Cepelia pavilion as models; R6 one of the trend spots (built by the trends thread,

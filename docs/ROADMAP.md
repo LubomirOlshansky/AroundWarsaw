@@ -38,8 +38,8 @@ then the Launch gate.
 - [ ] The start area as real Warsaw (F, 2026-11-01; plan docs/design/start-area-real.md):
   - [x] R1 the Eastern Wall's signs as they are in 2025/26 (Polish letters in the neon font,
         DO WYNAJĘCIA boards, FROGS XXL on the old H&M corner, KAPCIE, SCENA RELAX), 2026-11-01
-  - [ ] R2 Plac Centralny's ground (the tenements' outlines in grey and red slabs, the setts,
-        the pond, the trees)
+  - [x] R2 Plac Centralny's ground (the tenements' outlines in red and grey slabs, the
+        courtyards' and walks' setts; the pond and lawns were already mapped), 2026-11-01
   - [ ] R3 pavements, granite kerbs, red cycle paths, the green Złota, the fountain, the crossings
   - [x] R4 ordinary buildings by type (pre-war tenement, 1960s-80s slab or point block, office),
         shader only, 2026-11-01 (socialist-realist left for a later pass)

@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Plac Centralny by the museum is paved like the real square: the outlines of the lost pre-war houses in red and grey stone, their courtyards and the old streets in granite setts.
 - Ordinary buildings now look like their kind: old tenements get cornices, window surrounds and a rusticated shop floor, communist-era blocks get panel joints and loggias, offices get ribbon windows.
 - Crashes throw sparks and dust (they glow at night), scraping along a barrier at speed trails sparks, and the phone's vibration is now strong enough to feel.
 - Nine more mixtapes lie on roofs round the city (Kopernik, the Palace terrace, the Opera, Arkadka, the modern art museum, Polin, the Sejm, the defence ministry and the National Bank): fly the helicopter over one to pick it up. The first five open the next locked PÓŁNOC FM song; the rest give respect and a card.

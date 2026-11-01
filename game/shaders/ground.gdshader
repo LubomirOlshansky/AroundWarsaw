@@ -86,6 +86,57 @@ float joints(vec2 p, float size, float width) {
 	return 1.0 - step(width, min(d.x, d.y));
 }
 
+// R2 of docs/design/start-area-real.md (2026-11-01): Plac Centralny, the square laid in 2024-25
+// south and west of the Museum of Modern Art, paves the lost pre-war quarter into the ground:
+// the tenements' outlines in red and grey slabs, their courtyards in reused granite setts, and
+// its walks (the mapped footways, which follow the 1939 streets) in granite setts. Drawn inside
+// the square, in Marszałkowska's frame (first_scene.gd FRAME_O / FRAME_S / FRAME_T: s metres
+// north along the street, t metres east of it). The plots follow the old grid's direction and
+// rhythm, not a surveyed plan (the orthophoto check on the Mac sets them exactly).
+const vec2 CENTRALNY_O = vec2(-937.0, 210.1);
+const vec2 CENTRALNY_S = vec2(-0.34917, -0.93706);
+const vec2 CENTRALNY_T = vec2(0.93706, -0.34917);
+const vec4 CENTRALNY_BOX = vec4(-45.0, 92.0, -245.0, -23.0);   // s0, s1, t0, t1
+const float PLOT_WIDE = 19.0;    // a tenement's frontage (along s)
+const float PLOT_DEEP = 24.0;    // a plot's depth (along t): the house and its courtyard
+const float HOUSE_DEEP = 15.0;   // the house's own depth from the plot's front
+
+// Plac Centralny's stones at the point wp on a plaza (walk = false) or a footway (walk = true):
+// the colour (sRGB), or alpha 0 outside the square.
+vec4 centralny(vec2 wp, bool walk) {
+	vec2 r = wp - CENTRALNY_O;
+	float s = dot(r, CENTRALNY_S);
+	float t = dot(r, CENTRALNY_T);
+	if (s < CENTRALNY_BOX.x || s > CENTRALNY_BOX.y || t < CENTRALNY_BOX.z || t > CENTRALNY_BOX.w) {
+		return vec4(0.0);
+	}
+	vec2 p = vec2(s, t);
+	if (walk) {
+		// The walks: granite setts in rows.
+		vec2 cell = floor(p / vec2(0.2, 0.15));
+		float j = joints(p, 0.18, 0.02);
+		return vec4(vec3(0.62, 0.6, 0.57) * (0.92 + 0.14 * hash12(cell)) * (1.0 - 0.15 * j), 1.0);
+	}
+	float ks = fract(s / PLOT_WIDE) * PLOT_WIDE;
+	float kt = fract(t / PLOT_DEEP) * PLOT_DEEP;
+	float edge = min(min(ks, PLOT_WIDE - ks), min(kt, PLOT_DEEP - kt));
+	bool house = kt < HOUSE_DEEP;
+	if (edge < 0.6 || (abs(kt - HOUSE_DEEP) < 0.3)) {
+		// The outline: red slabs, every other plot's grey.
+		bool red = mod(floor(s / PLOT_WIDE) + floor(t / PLOT_DEEP), 2.0) < 1.0;
+		vec3 c = red ? vec3(0.66, 0.38, 0.32) : vec3(0.52, 0.52, 0.51);
+		return vec4(c * (0.95 + 0.08 * hash12(floor(wp * 2.0))), 1.0);
+	}
+	if (house) {
+		// Where a house stood: large pale grey slabs.
+		float j = joints(p, 1.2, 0.04);
+		return vec4(vec3(0.78, 0.77, 0.74) * (0.96 + 0.06 * hash12(floor(p / 1.2))) * (1.0 - 0.1 * j), 1.0);
+	}
+	// Its courtyard: reused setts, warmer.
+	float j = joints(p, 0.24, 0.03);
+	return vec4(vec3(0.7, 0.65, 0.58) * (0.92 + 0.12 * hash12(floor(p / 0.24))) * (1.0 - 0.15 * j), 1.0);
+}
+
 void fragment() {
 	vec3 base = srgb_to_linear(COLOR.rgb);
 	vec2 wp = world_pos.xz;
@@ -106,6 +157,11 @@ void fragment() {
 		float size = id == 4 ? 1.2 : 2.4;
 		vec2 cell = floor(street / size);
 		shade = 0.96 + 0.07 * hash12(cell) - 0.08 * joints(street, size, 0.09);
+		vec4 stones = centralny(wp, id == 4);
+		if (stones.a > 0.0) {
+			base = srgb_to_linear(stones.rgb);
+			shade = 1.0;
+		}
 	} else if (id == 6) {
 		// Asphalt: fine grain, a little lighter wear, darker repair patches.
 		float grain = hash12(floor(wp * 6.0));
