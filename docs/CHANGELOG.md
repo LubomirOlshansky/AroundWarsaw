@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- With a game controller you can now set the volumes, browse the city notebook, pick a paint at the garage, and pan, zoom and teleport on the full map.
 - The game now plays with a game controller (Xbox, PlayStation or MFi): drive, fly, open Settings and the map; touch works as before.
 - General de Gaulle now marches on his tall dark plinth by the Palm's roundabout, on his stepped circle, and the white Party House behind him has its roof sign (ROBUR) and its courtyard fountain.
 - Marszałkowska by the start has Warsaw's navy street name plates at the corners, glass shelters and a ticket machine on the tram island, a city bike dock and bollards along Plac Centralny.

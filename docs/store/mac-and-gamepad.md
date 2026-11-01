@@ -58,9 +58,12 @@ toast names RT / LT; the first finger on the screen brings the pedals back on th
 Left for the gamepad (BACKLOG):
 - [ ] Try a real Xbox, DualSense and an MFi pad on the iPhone and the Mac (only a device shows
       it: the button indices are checked on synthetic events only). Part of the beta below.
-- [ ] Settings' volume bars (drawn, not Buttons) and the notebook page's drawn targets take no
-      pad focus yet; the garage card's buttons neither.
-- [ ] The full map: pan with the stick, zoom with the triggers, teleport with A.
+- [x] Settings' volume bars, the notebook page and the garage card take pad focus (2026-11-01):
+      a focused bar steps 0.1 on the D-pad's left / right; the notebook has its own cursor over its
+      drawn targets (the nearest one each way, A opens, B comes back to the card it left); the
+      garage opens on the paint worn, B or Start closes it. Opened by a finger, nothing takes focus.
+- [x] The full map with the pad (2026-11-01): the left stick pans, RT / LT zoom, A held on the
+      cross at the centre teleports there; the hint says so.
 - [ ] Button glyphs per family (A / cross) in the HUD's hints; rumble on crashes
       (`Input.start_joy_vibration` behind Settings' vibration switch, through haptics.gd).
 

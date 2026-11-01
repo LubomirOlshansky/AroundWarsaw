@@ -84,12 +84,19 @@ var _cols := PackedColorArray()
 var _idx := PackedInt32Array()
 ## Words to draw after the boxes, by size: size -> [[pos, text, colour, width, align, lines]].
 var _words := {}
+## The gamepad follow-ups: the pad's cursor over the drawn targets ("kind:value" of a hit) while
+## the page has focus (settings_panel.gd `pad_focus` gives it FOCUS_ALL), and the cursor to come
+## back to when an open card is left.
+var cursor := ""
+var _cursor_back := ""
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	custom_minimum_size = Vector2(MIN_W, ROW + GAP + AREA) * pt
 	gui_input.connect(_on_input)
+	focus_entered.connect(queue_redraw)
+	focus_exited.connect(queue_redraw)
 
 
 func _px(points: float) -> int:
@@ -195,25 +202,95 @@ func hit_rects() -> Dictionary:
 
 
 func _on_input(e: InputEvent) -> void:
+	if has_focus() and _pad_input(e):
+		accept_event()
+		queue_redraw()
+		return
 	var mb := e as InputEventMouseButton
 	if mb == null or not mb.pressed or mb.button_index != MOUSE_BUTTON_LEFT:
 		return
 	for h: Array in _hits:
 		if (h[0] as Rect2).has_point(mb.position):
-			match str(h[1]):
-				"chapter":
-					chapter = int(h[2])
-					card = ""
-					page = 0
-				"card":
-					card = str(h[2])
-				"back":
-					card = ""
-				"page":
-					page += int(h[2])
+			activate(h)
 			accept_event()
 			queue_redraw()
 			return
+
+
+## A tap or the pad's A on a target: [Rect2, kind, value].
+func activate(h: Array) -> void:
+	match str(h[1]):
+		"chapter":
+			chapter = int(h[2])
+			card = ""
+			page = 0
+		"card":
+			_cursor_back = cursor
+			card = str(h[2])
+		"back":
+			card = ""
+			cursor = _cursor_back
+		"page":
+			page += int(h[2])
+
+
+## The gamepad follow-ups: the D-pad / stick moves the cursor to the nearest target that way, A
+## opens it, B leaves an open card. False (not taken) when nothing lies that way, so the focus
+## moves on to the tabs, or for B on the grid, so the card closes.
+func _pad_input(e: InputEvent) -> bool:
+	for d: Array in [["ui_left", Vector2.LEFT], ["ui_right", Vector2.RIGHT], ["ui_up", Vector2.UP], ["ui_down", Vector2.DOWN]]:
+		if e.is_action_pressed(d[0], true):
+			return move_cursor(d[1])
+	if e.is_action_pressed("ui_accept"):
+		var h := cursor_hit()
+		if not h.is_empty():
+			activate(h)
+		return not h.is_empty()
+	if e.is_action_pressed("ui_cancel") and card != "":
+		activate([Rect2(), "back", ""])
+		return true
+	return false
+
+
+static func hit_key(h: Array) -> String:
+	return "%s:%s" % [h[1], h[2]]
+
+
+## The target under the cursor: its own, else an open card's WRÓĆ, else the first.
+func cursor_hit() -> Array:
+	var back: Array = []
+	for h: Array in _hits:
+		if hit_key(h) == cursor:
+			return h
+		if str(h[1]) == "back":
+			back = h
+	if not back.is_empty():
+		return back
+	return _hits[0] if not _hits.is_empty() else []
+
+
+## Moves the cursor to the closest target whose centre lies `dir` of the cursor's (across counts
+## double); false when there is none.
+func move_cursor(dir: Vector2) -> bool:
+	var at := cursor_hit()
+	if at.is_empty():
+		return false
+	var c := (at[0] as Rect2).get_center()
+	var best: Array = []
+	var best_score := INF
+	for h: Array in _hits:
+		var d := (h[0] as Rect2).get_center() - c
+		var along := d.dot(dir)
+		if along <= 1.0:
+			continue
+		var score := along + absf(d.cross(dir)) * 2.0
+		if score < best_score:
+			best_score = score
+			best = h
+	if best.is_empty():
+		return false
+	cursor = hit_key(best)
+	return true
 
 
 # --- drawing -------------------------------------------------------------------------------
@@ -245,6 +322,11 @@ func _draw() -> void:
 		_photo = null
 		_photo_id = ""
 	_flush()
+	if has_focus():
+		# The gamepad follow-ups: the cursor's ring (only while the pad has the page: +1 draw call).
+		var h := cursor_hit()
+		if not h.is_empty():
+			draw_rect((h[0] as Rect2).grow(2.0 * pt), ACCENT, false, maxf(2.0, 2.0 * pt))
 
 
 func _chapters_row() -> void:

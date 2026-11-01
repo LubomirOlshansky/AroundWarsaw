@@ -89,8 +89,9 @@ then the Launch gate.
   - [ ] G5 Cringulo: the "Mlask" job, his pizza, fans and news
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
       pads for driving, the helicopter, the mission card, Settings, the full map and the title;
-      touch unchanged. Left: real pads on the phone (beta), the bars / notebook / garage focus,
-      the full map's stick pan (docs/store/mac-and-gamepad.md)
+      touch unchanged. Follow-ups done the same day: the volume bars, the notebook, the garage
+      and the full map (stick pan, RT / LT zoom, A teleport). Left: real pads on the phone (beta),
+      glyphs, rumble (docs/store/mac-and-gamepad.md)
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
 

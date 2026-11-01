@@ -31,6 +31,12 @@ const Gamepad := preload("res://scripts/gamepad.gd")  # the gamepad loop
 ## The hold to teleport: this long, the finger within HOLD_SLOP points of where it went down.
 const HOLD_S := 0.6
 const HOLD_SLOP := 12.0
+## The gamepad follow-ups: the left stick pans (points a second, the stick full over), RT / LT
+## zoom in / out (e-folds a second), and holding A teleports to the cross at the screen's centre
+## (the hold's "finger": PAD_HOLD).
+const PAD_PAN := 520.0
+const PAD_ZOOM := 1.4
+const PAD_HOLD := 99
 ## The icons' badge radius in points, and the zoom (metres across the screen's height) under
 ## which their names show.
 const ICON_R := 13.0
@@ -320,10 +326,22 @@ func open(at: Vector2, yaw: float) -> void:
 	_note_t = 0.0
 	_note.visible = false
 	_hint.visible = true
+	_hint_words()
 	visible = true
 	_fit()
 	ppm = clampf(_view().y / START_M, _ppm_min(), _ppm_max())
 	_place()
+
+
+## The hint card's words: the fingers', or the pad's while the pad is used (gamepad.gd).
+func _hint_words() -> void:
+	var box: VBoxContainer = _hint.get_child(0)
+	if Gamepad.in_use():
+		(box.get_child(0) as Label).text = "Przytrzymaj A, by się przenieść pod krzyżyk"
+		(box.get_child(1) as Label).text = "Hold A to jump to the cross · left stick pans · RT / LT zoom"
+	else:
+		(box.get_child(0) as Label).text = "Przytrzymaj miejsce, by się tam przenieść"
+		(box.get_child(1) as Label).text = "Hold a spot to jump there · drag · pinch"
 
 
 ## Shows or hides the districts' and the ladder's cards (the ≡ button).
@@ -648,6 +666,16 @@ func _paint() -> void:
 	hud._tri_fan(c, 9.5 * pt, 0.0, TAU, Color(1, 1, 1, 0.95))
 	hud._tri(tip, c - d * 6.0 * pt + side * 6.0 * pt, notch, ARROW, ARROW, ARROW)
 	hud._tri(tip, notch, c - d * 6.0 * pt - side * 6.0 * pt, ARROW, ARROW, ARROW)
+	if Gamepad.in_use():
+		# The gamepad follow-ups: the cross A teleports to (in the batch: +0 draw calls).
+		var m := _view() * 0.5
+		for arm: Vector2 in [Vector2(1, 0), Vector2(0, 1)]:
+			var a := arm * 10.0 * pt
+			var w := Vector2(arm.y, arm.x)
+			for pair: Array in [[2.4, hud.OUTLINE], [1.0, Color(1, 1, 1, 0.95)]]:
+				var t: Vector2 = w * float(pair[0]) * pt
+				var col: Color = pair[1]
+				hud._tri_quad(m - a - t, m + a - t, m + a + t, m - a + t, [col, col, col, col])
 	# The hold: a ring filling round the finger, a pin in it.
 	if _hold_index >= 0 and _hold_t > 0.08:
 		var k := clampf(_hold_t / HOLD_S, 0.0, 1.0)
@@ -738,6 +766,7 @@ func _process(dt: float) -> void:
 		if _note_t <= 0.0:
 			_note.visible = false
 			_fit()
+	_pad_frame(dt)
 	if main_at != Vector2.INF and _hold_index < 0:
 		_overlay.queue_redraw()  # the star's ring pulses (one batch, the game paused under it)
 		_legend_art.queue_redraw()
@@ -747,6 +776,22 @@ func _process(dt: float) -> void:
 	if _hold_t >= HOLD_S:
 		_finish_hold()
 	_overlay.queue_redraw()
+
+
+## The gamepad follow-ups: the stick pans, RT / LT zoom about the centre (the cross); a move
+## cancels A's hold, as a drag cancels a finger's.
+func _pad_frame(dt: float) -> void:
+	var s := Gamepad.stick()
+	var z := Gamepad.climb()
+	if s == Vector2.ZERO and absf(z) < 0.05:
+		return
+	if s != Vector2.ZERO:
+		centre += s * PAD_PAN * pt * dt / ppm
+	if absf(z) >= 0.05:
+		ppm = clampf(ppm * exp(z * PAD_ZOOM * dt), _ppm_min(), _ppm_max())
+	if _hold_index == PAD_HOLD:
+		_cancel_hold()
+	_place()
 
 
 ## The hold began at `at` (px): a refusal shows at once (no ring) when a teleport isn't allowed.
@@ -796,6 +841,13 @@ func _input(event: InputEvent) -> void:
 	if (event is InputEventKey and (event as InputEventKey).pressed and (event as InputEventKey).keycode == KEY_ESCAPE) \
 			or Gamepad.closes(event):  # the gamepad loop: B, Start or Back
 		close()
+		get_viewport().set_input_as_handled()
+	elif event is InputEventJoypadButton and (event as InputEventJoypadButton).button_index == JOY_BUTTON_A:
+		# The gamepad follow-ups: A held is a finger held on the cross.
+		if event.is_pressed() and _hold_index < 0:
+			_start_hold(PAD_HOLD, _view() * 0.5)
+		elif not event.is_pressed() and _hold_index == PAD_HOLD:
+			_cancel_hold()
 		get_viewport().set_input_as_handled()
 	elif event is InputEventScreenTouch:
 		var t := event as InputEventScreenTouch

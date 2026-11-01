@@ -59,7 +59,11 @@ static var last_other := 0
 
 
 ## Adds the pad's actions once (main.gd `_ready`; the check calls it too). Device -1: any pad.
+static var _installed := false
+
+
 static func install() -> void:
+	_installed = true
 	for action: String in STICK_ACTIONS:
 		_add(action, DEAD, _axis(STICK_ACTIONS[action][0], STICK_ACTIONS[action][1]))
 	_add(GAS, TRIGGER, _axis(JOY_AXIS_TRIGGER_RIGHT, 1.0))
@@ -102,19 +106,27 @@ static func _axis(axis: JoyAxis, dir: float) -> InputEventJoypadMotion:
 ## The left stick in screen space (-1..1, x right, y down, like hud.gd's `stick`), dead zone
 ## taken out and rescaled so the throw past it still reaches 1.
 static func stick() -> Vector2:
+	if not _installed:
+		install()  # a card read before main.gd ran (tools/check_hud.gd builds the HUD alone)
 	return Input.get_vector("pad_left", "pad_right", "pad_up", "pad_down")
 
 
 static func gas() -> bool:
+	if not _installed:
+		install()  # a card read before main.gd ran (tools/check_hud.gd builds the HUD alone)
 	return Input.is_action_pressed(GAS)
 
 
 static func brake() -> bool:
+	if not _installed:
+		install()  # a card read before main.gd ran (tools/check_hud.gd builds the HUD alone)
 	return Input.is_action_pressed(BRAKE)
 
 
 ## The helicopter's height: RT up, LT down (-1..1, analogue).
 static func climb() -> float:
+	if not _installed:
+		install()  # a card read before main.gd ran (tools/check_hud.gd builds the HUD alone)
 	return Input.get_action_strength(GAS) - Input.get_action_strength(BRAKE)
 
 
@@ -142,6 +154,45 @@ static func note(event: InputEvent) -> void:
 	elif event is InputEventScreenTouch or event is InputEventKey or event is InputEventMouseButton:
 		_seq += 1
 		last_other = _seq
+
+
+## The accent ring a pad-focused control wears (settings, garage; the bars and the notebook draw
+## their own in the same colour).
+const RING := Color("#ffd23f")
+
+
+static func ring(pt: float) -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.draw_center = false
+	box.border_color = RING
+	box.set_border_width_all(maxi(2, roundi(2.0 * pt)))
+	box.set_corner_radius_all(roundi(6.0 * pt))
+	box.set_expand_margin_all(2.0 * pt)
+	return box
+
+
+## Every Button under `root` takes pad focus (the D-pad / stick moves it, A presses) with the ring.
+## Only called once the pad opened a card, so touch never sees a focus ring.
+static func focus_all(root: Node, pt: float) -> void:
+	var box := ring(pt)
+	for b in root.find_children("*", "Button", true, false):
+		(b as Button).focus_mode = Control.FOCUS_ALL
+		(b as Button).add_theme_stylebox_override("focus", box)
+
+
+## Back to touch's way (a card opened by a finger after the pad): no Button under `root` takes focus.
+static func focus_none(root: Node) -> void:
+	for b in root.find_children("*", "Button", true, false):
+		(b as Button).focus_mode = Control.FOCUS_NONE
+
+
+## Drops the focus if it is inside `root` (a card closing).
+static func drop_focus(root: Control) -> void:
+	if not root.is_inside_tree():
+		return
+	var focused := root.get_viewport().gui_get_focus_owner()
+	if focused != null and (focused == root or root.is_ancestor_of(focused)):
+		focused.release_focus()
 
 
 ## True when the pad was used last: the HUD hides the touch pedals and shows the pad's words.

@@ -11,8 +11,9 @@ the Mac and for gamepads, and the Mac in the beta plan. Built: gamepad support (
 Settings (focus ring, LB / RB tabs) and the full map; the title takes A / Y / B; the touch pedals
 hide while the pad is used and come back on a touch. Left:
 - Gamepad on real pads (iPhone and Mac): the button indices are checked on synthetic events only.
-- Gamepad gaps: Settings' volume bars, the notebook page and the garage card take no pad focus;
-  the full map has no stick pan / teleport; no per-family glyphs; no rumble.
+- Gamepad gaps: no per-family glyphs (A / cross) in the hints; no rumble. (The volume bars, the
+  notebook page, the garage card and the full map's stick pan / zoom / A teleport were done
+  2026-11-01, check_gamepad P9-P12.)
 - Mac App Store version (post-v1.0 by default, QUESTIONS): macOS export preset, sandbox
   entitlements and signing, keyboard and mouse controls (a keys card, click-to-point, `--no-touch`
   by default), window and resolution settings, Mac store screenshots (2880 × 1800), the Mac's

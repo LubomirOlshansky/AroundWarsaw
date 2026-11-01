@@ -383,6 +383,12 @@ func open(state: Dictionary) -> void:
 	_fit()
 	if Gamepad.in_use():
 		pad_focus()
+	elif _built:
+		Gamepad.focus_none(_card)
+		for key in _bars:
+			(_bars[key] as Control).focus_mode = Control.FOCUS_NONE
+		if notebook_page != null:
+			notebook_page.focus_mode = Control.FOCUS_NONE
 
 
 ## The gamepad loop: the card's buttons take focus (the D-pad or the left stick moves it, A
@@ -391,15 +397,13 @@ func open(state: Dictionary) -> void:
 func pad_focus() -> void:
 	if not _built:
 		return
-	var ring := StyleBoxFlat.new()
-	ring.draw_center = false
-	ring.border_color = ACCENT
-	ring.set_border_width_all(maxi(2, roundi(2.0 * pt)))
-	ring.set_corner_radius_all(roundi(6.0 * pt))
-	ring.set_expand_margin_all(2.0 * pt)
-	for b in _card.find_children("*", "Button", true, false):
-		(b as Button).focus_mode = Control.FOCUS_ALL
-		(b as Button).add_theme_stylebox_override("focus", ring)
+	Gamepad.focus_all(_card, pt)
+	# The follow-ups: the volume bars (D-pad left / right step them) and the notebook's page (its
+	# own cursor over the drawn targets, notebook_page.gd) take focus too.
+	for key in _bars:
+		(_bars[key] as Control).focus_mode = Control.FOCUS_ALL
+	if notebook_page != null:
+		notebook_page.focus_mode = Control.FOCUS_ALL
 	focus_target().grab_focus()
 
 
@@ -430,9 +434,7 @@ func sync(state: Dictionary) -> void:
 func close() -> void:
 	if not visible:
 		return
-	var focused := get_viewport().gui_get_focus_owner() if is_inside_tree() else null
-	if focused != null and _card.is_ancestor_of(focused):
-		focused.release_focus()
+	Gamepad.drop_focus(_card)
 	visible = false
 	closed.emit()
 
@@ -664,7 +666,16 @@ func _level(parent: Node, key: String, pl: String, en: String) -> void:
 	bar.custom_minimum_size = Vector2(200.0 * pt, touch)
 	bar.mouse_filter = Control.MOUSE_FILTER_STOP
 	bar.draw.connect(_draw_bar.bind(bar, key))
+	bar.name = "%s_bar" % key
+	bar.focus_entered.connect(bar.queue_redraw)
+	bar.focus_exited.connect(bar.queue_redraw)
 	bar.gui_input.connect(func(e: InputEvent):
+		# The gamepad follow-ups: focused (pad_focus), D-pad / stick left and right step it by 0.1
+		# (as − and + do); up and down move on.
+		if bar.has_focus() and (e.is_action_pressed("ui_left", true) or e.is_action_pressed("ui_right", true)):
+			_set_level(key, float(_values.get(key, 1.0)) + (-0.1 if e.is_action_pressed("ui_left", true) else 0.1))
+			bar.accept_event()
+			return
 		var at := -1.0
 		if e is InputEventMouseButton and (e as InputEventMouseButton).pressed:
 			at = (e as InputEventMouseButton).position.x
@@ -696,6 +707,8 @@ func _draw_bar(bar: Control, key: String) -> void:
 	var pad := 6.0 * pt
 	var h := 9.0 * pt
 	var track := Rect2(Vector2(pad, bar.size.y - h - 8.0 * pt), Vector2(bar.size.x - pad * 2.0, h))
+	if bar.has_focus():
+		bar.draw_rect(Rect2(Vector2.ZERO, bar.size).grow(1.0 * pt), Gamepad.RING, false, maxf(2.0, 2.0 * pt))
 	bar.draw_rect(track.grow(1.2 * pt), Color("#1d1b19"))
 	bar.draw_rect(track, Color(1, 1, 1, 0.1))
 	# Ten steps, lit up to the level: cyan to pink, the vaporwave way.
