@@ -3877,9 +3877,15 @@ const DTC_ROOF := Color("#4f5559")      # the main roof
 const DTC_TOP_ROOF := Color("#5d6468")  # the top storey's roof
 const DTC_SKY := Color("#cfd8dc")       # the roof lights, lit at night
 const DTC_SIGN := Color(1.0, 0.86, 0.55)
-## The printed ad banners (A4): a word (generic or a parody) and the poster's colour.
-const DTC_BANNERS := [["PROMOCJA", Color("#c8322e")], ["SAMSONG", Color("#1f3f8f")], ["LODY", Color("#e0a21c")],
-		["WYPRZEDAZ", Color("#2c8a57")], ["SAMSONG", Color("#252a33")], ["PROMOCJA", Color("#8a2b7a")]]
+## The printed ad banners (A4), as the stores are in 2025/26 (R1, docs/design/start-area-real.md):
+## a word (generic or a parody) and the poster's colour, per store (DTC's order) the south end's
+## first, then the east face's two. H&M (Poland's oldest, on Wars's corner by Widok and Pasaż
+## Wiecha) closed in October 2025 and that corner becomes a two-storey Żabka: FROGS XXL. Zara's
+## floor went to the shoe chains (KAPCIE); the units C&A and others left wear DO WYNAJĘCIA boards.
+const DTC_BANNERS := [
+	[["KAPCIE", Color("#d2232a")], ["DO WYNAJĘCIA", Color("#f2efe6"), Color("#c8322e")], ["WYPRZEDAŻ", Color("#2c8a57")]],
+	[["DO WYNAJĘCIA", Color("#f2efe6"), Color("#c8322e")], ["SAMSONG", Color("#1f3f8f")], ["DO WYNAJĘCIA", Color("#f2efe6"), Color("#c8322e")]],
+	[["FROGS XXL", Color("#4fae3b")], ["LODY", Color("#e0a21c")], ["PROMOCJA", Color("#8a2b7a")]]]
 func _find_dtc() -> void:
 	var zone: Array[PackedVector2Array] = []
 	for d: Dictionary in DTC:
@@ -3933,6 +3939,35 @@ func _build_dtc(_site: Dictionary) -> void:
 		_dtc_sign(outline, str(d["sign"]), g + DTC_BODY)
 		_collide(shop)
 	_mode = M_STONE
+	_dtc_relax()
+
+
+## R1 (docs/design/start-area-real.md): the old Kino Relax behind Junior (Złota 8, 1970, Poland's
+## first 70 mm cinema), heritage-listed and reopened as the theatre Scena Relax: its name in
+## letters on the roof edge the start's camera sees. Only a sign (the building stays the map's).
+const RELAX_WORD := "SCENA RELAX"
+const RELAX_PINK := Color(1.0, 0.32, 0.5)
+func _dtc_relax() -> void:
+	var outline := _landmark("Scena Relax")
+	if outline.size() < 3:
+		return
+	var best := -1
+	var best_score := 0.0
+	for i in outline.size():
+		var a := outline[i]
+		var b := outline[(i + 1) % outline.size()]
+		var score := _out(outline, a, b).dot(DTC_SOUTH) * minf(a.distance_to(b), 20.0)
+		if score > best_score:
+			best_score = score
+			best = i
+	if best < 0:
+		return
+	var a := outline[best]
+	var b := outline[(best + 1) % outline.size()]
+	var o := _out(outline, a, b)
+	var mid := (a + b) * 0.5
+	var k := minf(0.8 * a.distance_to(b) / Neon.length_of(RELAX_WORD), 1.8 / (Neon.ROW_H * Neon.PIXEL))
+	signs.append([RELAX_WORD, Vector3(mid.x, _ground_under(outline) + 10.5, mid.y), Vector3(o.x, 0.0, o.y), k, RELAX_PINK])
 
 
 ## The top storey's plan: the outline drawn in 3 m, then cut back to DTC_TOP_END from each end
@@ -4066,7 +4101,7 @@ func _dtc_banners(outline: PackedVector2Array, g: float, store: int) -> void:
 		var dir := (b - a).normalized()
 		var spots: Array = [0.5] if want == DTC_SOUTH else [0.3, 0.68]
 		for f: float in spots:
-			var spec: Array = DTC_BANNERS[(store * 3 + placed) % DTC_BANNERS.size()]
+			var spec: Array = DTC_BANNERS[store % DTC_BANNERS.size()][placed % 3]
 			placed += 1
 			var w := minf(10.0, best_len * (0.7 if spots.size() == 1 else 0.34))
 			var m := a.lerp(b, f)
@@ -4080,9 +4115,23 @@ func _dtc_banners(outline: PackedVector2Array, g: float, store: int) -> void:
 			_quad(Vector3(q0.x, y0, q0.y), Vector3(q1.x, y0, q1.y), Vector3(q1.x, y1, q1.y), Vector3(q0.x, y1, q0.y), n, col)
 			_quad(Vector3(q0.x, y1, q0.y), Vector3(q1.x, y1, q1.y), Vector3(p1.x, y1, p1.y), Vector3(p0.x, y1, p0.y), Vector3.UP, col.darkened(0.2))
 			var word: String = spec[0]
-			var k := minf(0.8 * w / Neon.length_of(word), 1.6 / (Neon.ROW_H * Neon.PIXEL))
 			var at := m + o * 0.25
-			signs.append([word, Vector3(at.x, (y0 + y1) * 0.5 - 1.0, at.y), Vector3(o.x, 0.0, o.y), k, Color(1, 1, 1)])
+			# A to-let board is white with red letters (the agents' boards), the rest white letters.
+			var ink: Color = spec[2] if spec.size() > 2 else Color(1, 1, 1)
+			# Letters up to 2.4 m (R1: the 1.6 m ones read small at the default zoom); a two-word
+			# board that would come out smaller than that on one line takes two (DO / WYNAJĘCIA).
+			var cap := 2.4 / (Neon.ROW_H * Neon.PIXEL)
+			var lines: Array = [word]
+			if " " in word and 0.8 * w / Neon.length_of(word) < cap:
+				lines = Array(word.split(" "))
+			var k := cap
+			for l: String in lines:
+				k = minf(k, 0.8 * w / Neon.length_of(l))
+			var step := Neon.ROW_H * Neon.PIXEL * k
+			var y := (y0 + y1) * 0.5 - 0.5 * step * lines.size()
+			for i in range(lines.size() - 1, -1, -1):
+				signs.append([lines[i], Vector3(at.x, y, at.y), Vector3(o.x, 0.0, o.y), k, ink])
+				y += step
 
 
 ## The store's name on the roof over its south end (the face the game's camera sees from the
@@ -4149,7 +4198,7 @@ const SLAB_AT := [Vector2(-862.0, 86.0), Vector2(-853.0, 190.0), Vector2(-813.0,
 const SLAB_BILLBOARD := 1     # the slab behind Sawa (index in SLAB_AT)
 const SLAB_PLASTER := Color("#d8c9a6")
 const SLAB_END := Color("#c9a96a")
-const SLAB_WORD := "ORANZADA"
+const SLAB_WORD := "ORANŻADA"
 ## Faces the game's camera sees most (south and east): signs face the one nearest this.
 const BEHIND_FACE := Vector2(0.349, 0.937)
 

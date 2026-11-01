@@ -19,7 +19,7 @@ Newest first. One entry per question.
 
 - **2026-11-01 · landmarks · the Eastern Wall stores' banners and west names** — The photo
   check's optional items: printed ad banners (A4) are built on the faces the game's camera sees
-  (each south end and east face, 3 per store: PROMOCJA, SAMSONG, LODY, WYPRZEDAZ), not on the
+  (each south end and east face, 3 per store; since 2026-11-01 the 2025/26 mix: DO WYNAJĘCIA, FROGS XXL, KAPCIE, SAMSONG, LODY, PROMOCJA, WYPRZEDAŻ), not on the
   street (west) faces where the real ones hang, because the iso camera never sees those. The
   second small name on the west top-storey face (A6) is not built for the same reason. Default
   built: those. Alternatives: no banners, or banners on the west faces too.
