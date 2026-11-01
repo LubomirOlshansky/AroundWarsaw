@@ -2209,6 +2209,8 @@ func _build_crash_scenes() -> void:
 	crash_scenes.dialogue = dialogue
 	crash_scenes.police = police
 	crash_scenes.radio = radio
+	crash_scenes.sfx = sfx
+	crash_scenes.hud = hud
 	crash_scenes.log_on = crash_log
 	crash_scenes.enabled = _crash_auto or crash_flag != ""
 	crash_scenes.focus = func() -> Vector3: return cam_focus
