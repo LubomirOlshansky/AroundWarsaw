@@ -167,6 +167,14 @@ golden-image shots runtime vs `--prebuilt`,
   light), the `first` shot set, performance and the order of work: docs/design/first-scene.md.
   The dusk and night look there belongs to the thread "Match landmarks to Warsaw at dusk"; the
   hints, first order and first race to loop 3h item 6.
+  **2026-11-01 (items 3-6, part):** the Eastern Wall's stores built (site `dtc`, spec
+  `docs/landmarks/specs/dtc.md`); a start in the first scene's box (main.gd `FIRST_SCENE`) puts
+  two trams on Marszałkowska, one passing the car, one coming down the street; street furniture
+  by the start (`first_scene.gd`: kiosk, flower stall, cafés, ad columns, planters). Found: the
+  game's camera sees the east side's stores from behind their street faces, so furniture on
+  their pavements never shows (it stands on the museum's side instead). Left: the Rotunda
+  re-pass, the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
+  the tram stops and kerbs (item 5), pedestrians and sound (6-7), the photo check on the Mac.
 
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
 - **Shisha lounges** built (five parody signs, `Storefronts.LOUNGES`): only the phone can show the sign size on each wall and whether the spots read as lounges. Not notebook places; add smoky window glow or a door scene if wanted.
