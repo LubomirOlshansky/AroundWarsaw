@@ -95,6 +95,11 @@ const TOWERS := [
 	{"key": "platinum_b", "osm": "Platinum Tower B", "style": S_RIBBON, "glass": "#6b7f8e", "roof": "#c4c8c8"},
 	{"key": "lucka", "osm": "Łucka City", "style": S_RIBBON, "glass": "#7c8c98", "roof": "#bfc3c3"},
 	{"key": "widok", "osm": "Widok Towers", "style": S_GRID, "glass": "#5d8478", "roof": "#8d969c"},
+	# The PZU Tower's two stepped glass volumes (92 and 97 m, one round-topped) in pale
+	# green-blue glass with ribbon bands, and its slim white mast (106 m). JM Tower's grey fins
+	# stand on dark navy glass (a dozen small mapped pilasters in #bfbfc4: kept as mapped).
+	{"key": "pzu", "osm": "PZU Tower", "style": S_RIBBON, "glass": "#8fb5bd", "roof": "#c4cccf"},
+	{"key": "jm", "osm": "JM Tower", "style": S_FINS, "glass": "#2b4560", "roof": "#7d878e", "mapped": true},
 ]
 
 const SANDSTONE := Color("#d8c49c")   # the Palace (bake_gugik.py LANDMARKS)
@@ -197,6 +202,10 @@ const INFO := {
 	"platinum_b": ["Platinum Tower B", "83 m.", "83 m."],
 	"lucka": ["Łucka City", "103 m przy Łuckiej.", "103 m on Łucka."],
 	"widok": ["Widok Towers", "95 m przy Alejach Jerozolimskich.", "95 m on Al. Jerozolimskie."],
+	"pzu": ["Wieża PZU", "Biurowiec przy Alejach Jana Pawła II: dwie szklane bryły, jedna z okrągłym szczytem.",
+			"An office tower on Al. Jana Pawła II: two glass volumes, one with a round top."],
+	"jm": ["JM Tower", "Biurowiec przy Alejach Jerozolimskich, ciemne szkło i szare żebra.",
+			"An office tower on Al. Jerozolimskie, dark glass and grey fins."],
 	"teatr": ["Teatr Wielki",
 			"Opera Narodowa. Gmach Antonia Corazziego z 1833 roku.",
 			"The National Opera. Antonio Corazzi's building of 1833."],
