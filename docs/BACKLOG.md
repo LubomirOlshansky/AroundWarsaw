@@ -34,14 +34,6 @@ hidden in cinematic moments and photo mode; they call `_zoom_view`. Accept: five
 the five steps and save; no overlap with the pill, wallet or minimap at 2532x1170 and 2868x1320
 (shots). Files: hud.gd (new signals), main.gd.
 
-**G4 · Easy city driving (P1, Opus, feel).** F: "very drifty and sensitive; it's a city, not a
-racer". Task: a Cruise handling profile as the default: lower steering rate at speed, speed-
-sensitive steering limit, stronger lateral grip (less slide), gentler yaw response, softer
-throttle onset; keep a Sport profile for the old feel (Settings → Jazda). Accept: check_steering
-at `--fixed-fps 60` green; a lane change at 50 km/h and a 90° corner at 25 km/h with full lock held
-do not slide (`slip` under a set value, new check); phone check parked. Files: car.gd,
-drive_controls.gd, settings*.gd, check_steering.gd, archive "Driving".
-
 **G5 · Flicker and "lag wall" audit (DONE 2026-11-01).** Finding: the flicker in IMG 7138, 7137
 and 7135 is the occlusion ghost's halftone rim on building walls beside the car, not z-fighting.
 The Bayer pattern is fixed on screen while the band slides over the wall, so it strobes. Fix
