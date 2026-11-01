@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- All Saints church on Plac Grzybowski now has its front and two domed towers.
 - Hala Mirowska is a proper red-brick market hall: round-headed windows between cream pilasters, four corner turrets, tall gable ends, a glazed lantern along the roof and a portal on the Plac Mirowski front.
 - Hala Gwardii is a proper red-brick market hall too: Mirowska's twin, with a portal at both ends, cream pilasters, corner turrets and a glazed lantern.
 - The Sejm on Wiejska has its curved front: the semicircular plenary hall wears a stone plinth and a sweep of fifteen tall columns under a curved cornice.

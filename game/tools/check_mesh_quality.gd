@@ -80,6 +80,7 @@ const BUDGET := {
 	"unit": 1160,
 	"varso": 1680,
 	"wcf": 190,
+	"wszystkich": 950,
 	"widok": 450,
 	"pzu": 900,
 	"jm": 900,
