@@ -17,6 +17,15 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · map · the start area's last two items need the Mac** — R8 and R3 part 2 of
+  docs/design/start-area-real.md can't be placed from the cloud (no photos, no orthophoto there).
+  R8: from refs/msn/2.jpg and 4.jpg, where the museum's mid-height dark ribbon runs and where it
+  breaks on each long face (metres from the north end), and how far and where the roofline steps
+  down near the south end. R3 part 2: from the orthophoto, the kerb line, Złota's sett street and
+  elm alley, the fountain at the old tunnel mouth and the three new crossings on Marszałkowska.
+  Default built: the ribbon all round, the flat roofline, today's kerbs and crossings. A Mac
+  session with the photos (model-from-photos skill) can measure and build both.
+
 - **2026-11-01 · visuals · pavement colour** — R3 (docs/design/start-area-real.md) made the mapped
   footways Warsaw's grey concrete pavers. The wide pavements and squares drawn as plaza areas
   stay the warm granite beige the game always had. Default built: grey footways only.
