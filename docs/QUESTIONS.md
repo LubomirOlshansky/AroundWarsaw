@@ -28,6 +28,10 @@ Newest first. One entry per question.
   plaster colours, the statue's pose (sword hand, shield side, which way she faces), the rim
   wall against the mapped pond, whether Varso's visitors stand on the crown's roof. Photos of
   the square's four sides (one per house front) would let the plaster colours be set per house.
+- **2026-11-01 · content · the Norblin milk bar's name** — Default to build: **KROWA 2.0** (a bar
+  mleczny rebuilt as a start-up, sign "BAR MLECZNY / KROWA 2.0", pale-blue tube, open 8-18 with a
+  long lunch line). Say if you want another name. Also parked: the Mac look check of the four
+  sites (BACKLOG "Norblin, Browary, Koszyki, Elektrownia").
 
 - **2026-11-01 · content · the trains' parody names** — Default to build: KOLEJE MAZOWE (the
   green and white suburban units), SKiM (the red and yellow city line), INTERSZYBKO (the
@@ -92,6 +96,13 @@ Newest first. One entry per question.
   four mapped vents at the north corner stand outside the outline as the city's plain drums.
   Default built: those. F to check against a photo or the street (docs/landmarks/buw.md).
 
+- **2026-11-01 · landmarks · Ministerstwo Finansów** — Built from the outline and public facts only
+  (no photo): pale pink-grey stone, rusticated ground floor, three storeys of bays, a cornice, a
+  central risalit with three doors, hipped roofs on the two south pavilions (the court's fountain is
+  the map's own). Mac photo check wanted: the real colour, whether the pavilions and the entrance
+  rise above the roofline, the window rhythm and the entrance's column or pilaster count. Default
+  built as above (spec docs/landmarks/specs/mf.md).
+
 - **2026-11-01 · landmarks · the Palace's stone colour** — The Mac photo check (PR #128) finds the
   Palace's stone too warm: the photos show a cooler grey-beige (about #cfc6b5 in sun) than the
   game's sandstone #d8c49c (SANDSTONE in landmarks.gd, also the LoD2 bake's colour). Default
@@ -140,7 +151,8 @@ Newest first. One entry per question.
   the Palm unless it is over 1.6 km by road. Default built: that.
 - **2026-10-31 · gameplay · loop 3h slice 4** — The end card's "10 jobs" are every paid job kind
   (kebab, słoiki, rescue, Podwózka, round-up, "Na czasie") but races and the courier's bonus; old
-  saves count from their totals. Default built: that.
+  saves count from their totals. Default built: that; kept by the designer pass
+  (2026-11-01, docs/design/pay-tables.md).
 - **2026-10-31 · gameplay · loop 3h slice 4** — In the guide, Mirek's garage waits for 9:30 (and the
   first earnings), then its toast and an arrow; outside the guide it opens at the first earnings as
   before. Default built: that.
@@ -149,7 +161,8 @@ Newest first. One entry per question.
   0:10. Default built: the arrow. For the first-scene thread: a spawn facing north, or a nearer stand.
 - **2026-10-31 · content · loop 3h slice 4** — New words: the guide's toasts (first10.gd LINES),
   Halina's three first-race lines (rivals.gd FIRST_LINES), the ghost finger's hint and the end card
-  ("Dzięki za grę! … a Palma… dalej sztuczna."). Default built: mine, for the designer's review.
+  ("Dzięki za grę! … a Palma… dalej sztuczna."). Default built: mine, reviewed in the designer
+  pass of 2026-11-01 (player-neutral Polish, docs/design/pay-tables.md).
 - **2026-10-31 · visuals · the dusk loop** — Dusk now matches the user's 16:20 photos: an overcast blue hour (slate-blue sky, flat cool light, no sun shadows, a soft glow) instead of the pink-violet sunset; Dawn, which reuses Dusk's palette, turns blue too. Default built: that. Alternative: keep the pink sunset as Dusk and add the blue hour as a sixth look.
 - **2026-10-31 · landmarks · the dusk loop** — The towers' lit names are parodies: PREZYDENT (the Marriott tower's crown), SAMSONG (its band, as on the Spire), NOWOTEL, WESTYNKA, CHILTON, INTERKONTI. Rondo 1's tenants, PHN and the Bank Polski tower got no lit name (not sure which building wears which; no network to check). Default built: that. Alternative: name those too.
 - **2026-10-31 · design · the first scene** — Where the game starts (the street the player sees first, to be polished for a "wow"). Default planned: Marszałkowska by Plac Defilad (the Palace, the new Museum of Modern Art, the Eastern Wall, the towers), where the spawn and the first-10-minutes script already are. Alternatives: Plac Zamkowy and the Old Town, Rondo Daszyńskiego's towers, Most Świętokrzyski. Plan: docs/design/first-scene.md.
@@ -158,7 +171,7 @@ Newest first. One entry per question.
 - **2026-10-31 · gameplay · loop 3h slice 3** — Ladder thresholds 0/100/250/400/600/850, the final 1100 respect; race wins +100; the final pays 500 zł + 250 respect (rematches too). Default built: that, numbers for the designer to tune.
 - **2026-10-31 · gameplay · loop 3h slice 3** — Rival pace: Halina 1.25, Słoik 1.3, Bartek 1.35, Seba 1.4, Zbyszek 1.45, Mike 1.5 (× the street's limit; was 1.45 for all); Seba in the final 1.45. Default built: those, guesses until F races Halina on the phone.
 - **2026-10-31 · gameplay · loop 3h slice 3** — Once the final is open, at night Seba waits at the start held still (so his own rung can't be re-raced at night). Default built: that. Alternative: he cruises and only the marker waits.
-- **2026-10-31 · content · loop 3h slice 3** — Six refusal lines (one per rival) and Seba's four final lines (`rivals.gd` RIVALS `refuse`, FINAL_LINES). Default built: mine, for the designer's review.
+- **2026-10-31 · content · loop 3h slice 3** — Six refusal lines (one per rival) and Seba's four final lines (`rivals.gd` RIVALS `refuse`, FINAL_LINES). Default built: mine, reviewed in the designer pass of 2026-11-01.
 - **2026-10-31 · gameplay · loop 3h slice 4** — DEMO 6.2's first race: **decided, Pani Halina** (the
   ladder's first rung, stake 60; a win counts as her rung beaten), so Seba stays the boss of the
   final "Trzy mosty". DEMO 6.2's 1:30 row says so. Alternative: a Seba race outside the ladder.

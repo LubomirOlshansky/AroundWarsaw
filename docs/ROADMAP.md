@@ -26,7 +26,7 @@ then the Launch gate.
 - [x] The full map with landmark pins and teleport; the quest stop assist
 - [x] Landmarks: the Palace, Centralna, Złote Tarasy, the towers, MSN, the Rotunda, BUW, Kopernik,
       the stadium, Plac Piłsudskiego, the start street's stores, many churches (Mac photo checks
-      for some)
+      for some), the Ministry of Finance (2026-11-01, spec `mf.md`; Mac photo check parked)
 - [x] Day, dusk and night; rain; water; synthesised sound; puddles and night water (3i part)
 - [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted
 
@@ -69,6 +69,9 @@ then the Launch gate.
       terrace (with a balustrade), hours, weekends and seasons (`crowds.gd` DECKS)
 - [ ] Old Town Market Square leftovers: per-house plaster colours and sgraffito from photos, the
       four corner streets' mouths, a card for the Museum of Warsaw house (BACKLOG "Old Town square")
+- [x] Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle as models, people chilling
+      in their yards and KROWA 2.0, the milk bar queue in Norblin (F, 2026-11-01; specs
+      `norblin.md`, `browary.md`, `koszyki.md`, `elektrownia.md`; Mac look check parked)
 - [ ] The landmark lane's remaining list (BACKLOG "Landmarks lane, hand-over": the Cathedral, the
       Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
@@ -91,8 +94,14 @@ then the Launch gate.
   - [ ] S3b-e the other stations: Śródmieście's entrances, Wschodnia, Gdańska, Ochota WKD
   - [ ] L4 Most Średnicowy's look (after a Mac photo check)
 
+- [ ] Roofs across the map (F, 2026-11-01; plan docs/design/roofs.md):
+  - [x] RF1-RF3 roof materials, parapets, tenement chimneys, 2026-11-01
+  - [ ] RF4 OSM-only buildings' roofs, copper and red sheet metal by district; the phone bench (Mac check done 2026-11-01)
+
 ### Left: content and feel
-- [ ] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
+- [x] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
+      (2026-11-01, docs/design/pay-tables.md: player-neutral Polish, rematch respect +20, słoiki
+      40 + 30 a jar; the hour and the pay still to be timed on the phone by F)
 - [x] DEMO 6.3 counts, cassettes and landmark cards (2026-11-01): 10 roof cassettes in
       `cassettes.json` (9 new), and 72 landmark cards already in `landmarks.gd` INFO (target ~25)
 - [ ] DEMO 6.3 counts, rescues and słoiki: the second słoiki station (jobs.gd has one), the Old
@@ -120,6 +129,12 @@ then the Launch gate.
       pads for driving, the helicopter, the mission card, Settings, the full map and the title;
       touch unchanged. Left: real pads on the phone (beta), the bars / notebook / garage focus,
       the full map's stick pan (docs/store/mac-and-gamepad.md)
+- [x] Crash scenes (F, 2026-11-01, `crash_scenes.gd`, `check_crash_scenes`, PR "crash scenes"):
+      every few minutes a fender bender ahead on a main road, two wrecks in the kerb lane, a
+      police car with its lights and a yellow ambulance, the drivers arguing, people filming,
+      KEBAB FM's traffic news; traffic queues and goes round. Siren at the ambulance and an amber
+      minimap / full-map dot added (2026-11-01). Left: the phone's look and a phone check of
+      the siren level and the dot (docs/design/crash-scenes.md)
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
 

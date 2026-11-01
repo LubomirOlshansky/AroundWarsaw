@@ -787,6 +787,10 @@ func _on_bumped(d, speed: float) -> void:
 	if flying or speed < BUMP:
 		return
 	var u = _unit_of.get(d)
+	if u != null and u.role() == "crash":
+		# The crash scenes: the scene's car stays put; the offence is anyone's (a ram's chase
+		# goes to the nearest other unit).
+		u = null
 	_offence("ram" if speed > RAM else "bump", u)
 
 
@@ -998,7 +1002,7 @@ func _nearest_unit():
 	var best = null
 	for u in _units:
 		# Loop 3g-2: never the guards' car (guards never call the police) nor the escort.
-		if u.driver != null and not u.role() in ["guard", "guard_follow", "escort", "club"] and (best == null or u.dist < best.dist):
+		if u.driver != null and not u.role() in ["guard", "guard_follow", "escort", "club", "crash"] and (best == null or u.dist < best.dist):
 			best = u
 	return best
 
@@ -1076,6 +1080,33 @@ func _clubs_tick() -> void:
 				c["unit"] = u
 		elif dist > TRAP_BAND + 100.0 and u.driver != null and not traffic.on_screen(u.driver.pos, 2.0):
 			traffic.remove(u.driver)
+
+
+# --- the crash scenes ------------------------------------------------------------------------
+
+## The crash scenes (crash_scenes.gd, 2026-11-01): a car of the police family parked at a scene
+## at `at` heading `yaw`, standing in lane `lane` of edge e at s (the traffic stops behind it and
+## goes round): shape 0 the patrol car, 2 the ambulance. A unit of role "crash" (lights on, sees
+## nothing, starts nothing, never a chaser). Null if the pool is out.
+func scene_car(e: int, lane: int, s: float, at: Vector3, yaw: float, shape: int):
+	if _free.is_empty():
+		return null
+	var d = traffic.add_police(e, lane, s, shape)
+	if d == null:
+		return null
+	var u = _bind(d, "crash")
+	if u == null:
+		traffic.remove(d)
+		return null
+	traffic.park(d, e, s, at, yaw, lane)
+	traffic.set_lights(d, true)
+	return d
+
+
+## The scene's car goes (out of sight: crash_scenes.gd only clears a scene the view can't see).
+func scene_leave(d) -> void:
+	if d != null and d.active:
+		traffic.remove(d)
 
 
 # --- blocker and roadblock -------------------------------------------------------------------
@@ -1778,7 +1809,8 @@ func _halos_frame() -> void:
 			var at: Vector3 = d.pos + right * (1.6 if side == 1 else -1.6) + Vector3(0, 0.2, 0)
 			var col := Color(0, 0, 0, 0)
 			if steady or left_on == (side == 0):
-				col = HALO_BLUE if side == 0 else (HALO_SAFE if Access.color_safe else HALO_RED)
+				# The crash scenes: the ambulance (shape 2) has two blue lamps.
+				col = HALO_BLUE if side == 0 or d.shape == 2 else (HALO_SAFE if Access.color_safe else HALO_RED)
 				if steady:
 					col.a *= 0.5
 			_halo_put(n, at, HALO_SIZE, col)

@@ -104,6 +104,10 @@ const SIREN_SLOW := 8.3
 ## Cars this far ahead of a police car with its lights on (same way) give way, for this long.
 const YIELD_REACH := 30.0
 const YIELD_TIME := 3.0
+## The crash scenes: a car stopped within PARKED_LOOK m behind a parked car in its lane changes
+## lane after PARKED_WAIT s (the queue drives round the scene, one by one).
+const PARKED_LOOK := 12.0
+const PARKED_WAIT := 1.6
 ## Pole lamps: red, amber, green.
 const LAMP_ON := [Color("#ff3b2f"), Color("#ffb21e"), Color("#43ff6e")]
 const LAMP_OFF := Color("#2a2c2e")
@@ -953,11 +957,11 @@ func _take_police(shape: int) -> Driver:
 	d.slot = _free_slots[Kind.POLICE][_free_slots[Kind.POLICE].size() - 1]
 	_free_slots[Kind.POLICE].resize(_free_slots[Kind.POLICE].size() - 1)
 	_counts[Kind.POLICE] += 1
-	var look: Dictionary = {"size": Vector3(1.85, 1.62, 4.7)} if shape == 0 else {"size": Vector3(1.63, 1.43, 4.14)}
-	d.size = look["size"]
+	# The crash scenes: shape 2 the ambulance (the panel van; models.gd police_mesh()).
+	d.size = [Vector3(1.85, 1.62, 4.7), Vector3(1.63, 1.43, 4.14), Vector3(1.98, 2.56, 5.2)][clampi(shape, 0, 2)]
 	d.length = d.size.z
 	d.shape = shape
-	d.paint = Models.POLICE_WHITE if shape == 0 else Models.GUARD_MUSTARD
+	d.paint = [Models.POLICE_WHITE, Models.GUARD_MUSTARD, Models.AMBULANCE_YELLOW][clampi(shape, 0, 2)]
 	d.speed_factor = 0.95
 	d.accel_factor = 1.0
 	d.ghost = false
@@ -1016,6 +1020,51 @@ func park(d: Driver, e: int, s: float, at: Vector3, yaw: float, block_lane := -1
 	d.park_yaw = yaw
 	d.clip = 1.0
 	d.visible = on_screen(d.pos, d.size.y)
+
+
+## The crash scenes (crash_scenes.gd): a traffic car of shape `shape` (models.gd TRAFFIC[CAR])
+## in `paint`, parked at `at` heading `yaw` and standing in lane `block_lane` of edge e at s (as
+## park()): a wreck. Kept until drop_parked(); null if the pool is out.
+func add_parked_car(e: int, s: float, at: Vector3, yaw: float, block_lane: int, shape: int, paint: Color) -> Driver:
+	if _free_slots[Kind.CAR].is_empty() or _free.is_empty():
+		return null
+	var d: Driver = _free.pop_back()
+	d.kind = Kind.CAR
+	d.slot = _free_slots[Kind.CAR][_free_slots[Kind.CAR].size() - 1]
+	_free_slots[Kind.CAR].resize(_free_slots[Kind.CAR].size() - 1)
+	_counts[Kind.CAR] += 1
+	var shapes: Array = Models.TRAFFIC[Kind.CAR]
+	d.shape = clampi(shape, 0, shapes.size() - 1)
+	d.size = shapes[d.shape]["size"]
+	d.length = d.size.z
+	d.paint = paint
+	d.speed_factor = 1.0
+	d.accel_factor = 1.0
+	d.persistent = true
+	d.ghost = false
+	d.node = null
+	d.core_only = false
+	_start(d, e, block_lane, s)
+	park(d, e, s, at, yaw, block_lane)
+	return d
+
+
+## The crash scenes: a wreck from add_parked_car() leaves (back to the pool).
+func drop_parked(d: Driver) -> void:
+	if d == null or not d.active:
+		return
+	d.persistent = false
+	d.parked = false
+	_release(d)
+
+
+## The crash scenes: true if lane (e, lane) has nobody from s0 to s1 (with `room` m either side).
+func lane_free(e: int, lane: int, s0: float, s1: float, room: float) -> bool:
+	for o in _lane_cars[graph.e_lane0[e] + lane]:
+		var ls: float = (o as Driver).ls
+		if ls > s0 - room and ls < s1 + room:
+			return false
+	return true
 
 
 ## Loop 3g-1: a parked police car pulls out onto lane (e, lane) at s, the traffic's way.
@@ -1373,6 +1422,8 @@ func _drive(d: Driver, dt: float) -> void:
 		v0 = minf(v0, SIREN_SLOW)  # loop 3g-1: through a red, slowly, with the siren
 	var gap := INF
 	var lead_v := 0.0
+	# The crash scenes: the car ahead is parked in the lane (a wreck, the scene's police car).
+	var lead_parked := false
 	# The lane it is in (or curving into); the ghost reads lanes without being in them.
 	var lane_id: int = d.next_reg if d.in_conn else graph.e_lane0[e] + d.lane
 	if d.squeeze <= 0.0:
@@ -1382,6 +1433,7 @@ func _drive(d: Driver, dt: float) -> void:
 				if g < gap:
 					gap = g
 					lead_v = o.v
+					lead_parked = o.parked
 		if not d.in_conn and d.next_reg >= 0:
 			var base: float = graph.e_s1[e] - d.s + d.conn_len - graph.e_s0[d.next_edge]
 			for o in _lane_cars[d.next_reg]:
@@ -1390,6 +1442,7 @@ func _drive(d: Driver, dt: float) -> void:
 					if g < gap:
 						gap = g
 						lead_v = o.v
+						lead_parked = false
 	var leader_gap := gap
 	var player_gap := INF
 	if not d.ghost:
@@ -1439,6 +1492,12 @@ func _drive(d: Driver, dt: float) -> void:
 		if floori((d.blocked + 8.0) / 10.0) != floori((was + 8.0) / 10.0) and d.kind != Kind.POLICE:
 			blocked_by_player.emit(d)
 		if d.blocked > 2.5 and _change_lane(d, 14.0):
+			d.blocked = 0.0
+	elif not d.ghost and lead_parked and leader_gap < PARKED_LOOK and leader_gap <= gap + 0.01 and d.v < 0.5:
+		# The crash scenes: a wreck or the scene's car stands in the lane: queue, then go round it
+		# when the next lane has room (every waiting car in turn, PARKED_WAIT s after it stopped).
+		d.blocked += dt
+		if d.blocked > PARKED_WAIT and _change_lane(d, 12.0):
 			d.blocked = 0.0
 	if d.yield_t > 0.0 and d.route.is_empty() and not d.in_conn and d.lane < graph.e_lanes[e] - 1:
 		# Loop 3g-1: over to the kerb lane for the police car behind.

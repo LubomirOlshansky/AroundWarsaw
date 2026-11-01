@@ -35,7 +35,8 @@ only side quests show.
 
 ## 2. Pacing: the final inside the first hour
 
-A race win gives +100 respect. Before this change the gates were 0/100/250/400/600/850 and 1100
+A rung's first race win gives +100 respect (a rematch +20 since the designer pass of 2026-11-01,
+docs/design/pay-tables.md, so re-racing Halina is no shortcut). Before this change the gates were 0/100/250/400/600/850 and 1100
 for the final: six wins give 600, so the side quests had to bring about **500** respect. A side
 quest gives 10 (a hot kebab), 15 (Na czasie, a cassette, an escape), 30 (słoiki, a courier race),
 40 (a rescue, the round-up): about 10 respect a minute for a player who mixes them, so ~50 minutes
