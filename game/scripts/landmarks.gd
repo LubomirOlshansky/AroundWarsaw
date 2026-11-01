@@ -284,6 +284,9 @@ const INFO := {
 	"sejm": ["Sejm RP",
 			"Przy Wiejskiej.",
 			"On Wiejska."],
+	"mf": ["Ministerstwo Finansów",
+			"Gmach z lat 1953–56 przy Świętokrzyskiej. Tu liczą cudze pieniądze.",
+			"1953–56 on Świętokrzyska: where the country's money is counted."],
 	"muzeum": ["Muzeum Narodowe",
 			"Gmach z lat 1927–1938 przy Alejach Jerozolimskich.",
 			"The museum's building of 1927–1938 on Al. Jerozolimskie."],
@@ -438,6 +441,8 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return BUW_GLASS
 	if key == "kopernik":
 		return KOP_WALL
+	if key == "mf":
+		return MF_WALL
 	return fallback
 
 
@@ -613,6 +618,8 @@ func _find_sites() -> void:
 	_find_buw()
 	# The Copernicus Science Centre and its planetarium (2026-11-01): a model instead of a skin.
 	_find_kopernik()
+	# The Ministry of Finance (2026-11-01): a model instead of the mapped box.
+	_find_mf()
 
 
 ## Warszawa Centralna (spec docs/landmarks/specs/centralna.md, 2026-10-31): OpenStreetMap maps
@@ -919,6 +926,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_buw(s)
 			"kopernik":
 				_build_kopernik(s)
+			"mf":
+				_build_mf(s)
 			"teatr":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the portico is ours
 				_build_teatr(s)
@@ -8545,3 +8554,87 @@ func _stp_canopy(f: Array, hall_c: Vector2, pair_mid: Vector2) -> void:
 	var na := Vector3(_a.x, 0.0, _a.y)
 	_quad(Vector3(d0.x, floor_y - 1.0, d0.y), Vector3(d1.x, floor_y - 1.0, d1.y), Vector3(d1.x, floor_y + 2.2, d1.y), Vector3(d0.x, floor_y + 2.2, d0.y), na, STP_DARK)
 	_collide(sh)
+
+
+# --- Ministerstwo Finansów (the landmarks lane, 2026-11-01, spec docs/landmarks/specs/mf.md) -----
+
+## The Ministry of Finance, Świętokrzyska 12 (Stanisław Bieńkuński and Stanisław Rychłowski,
+## 1953-1956; socialist realism with art déco, "Renaissance and Baroque palace principles" in
+## pale pink-grey Suchedniów sandstone and terrazzo plaster; a monument since 2012). Its mapped
+## outline is a comb: two wings reaching south to Świętokrzyska round a court with a round
+## fountain, the 83 m central block with its entrance in the middle of the south face, the long
+## north-west wing. The model lifts that outline (`_simplify`d) on a rusticated ground floor,
+## three storeys of tall bays, a cornice, an attic parapet and a dark flat roof; the central
+## entrance is a risalit with six pilasters, three doors, steps and a raised attic; each wing
+## ends in a hipped-roof pavilion; the court's fountain is the map's own. Heights are the
+## map's (17.5 m); the pavilions' roofs, the risalit's rise and the colours are a first pass
+## for the Mac photo check.
+const MF_TOP := 17.5
+const MF_FACE_E := Vector2(-506.7, -409.1)   # the central block's south face, east end
+const MF_FACE_W := Vector2(-586.1, -384.4)   # ... and west end
+const MF_BARS := [[Vector2(-464.2, -336.0), Vector2(-497.5, -325.0)], [Vector2(-545.4, -310.1), Vector2(-578.8, -300.1)]]
+const MF_BAR_DEPTH := 13.0
+const MF_WALL := Color("#d9ccc4")
+const MF_BASE := Color("#b9aca3")
+const MF_LIGHT := Color("#e7ded8")
+const MF_ROOF := Color("#6b716f")
+const MF_GLASS := Color("#3b4650")
+const MF_DOOR := Color("#34393d")
+func _find_mf() -> void:
+	var outline := _landmark("Ministerstwo Finansów")
+	if outline.size() < 3:
+		return
+	_add_site("mf", [outline])
+	if not sites.is_empty() and sites[-1]["key"] == "mf":
+		sites[-1]["ring"] = _simplify(outline, 1.8)
+
+
+func _build_mf(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	var h := MF_TOP
+	var none := Color(0, 0, 0, 0)
+	# The central entrance's frame: u along the south face (east to west), +v out into the court.
+	_o = (MF_FACE_E + MF_FACE_W) * 0.5
+	_a = (MF_FACE_W - MF_FACE_E).normalized()
+	_b = Vector2(_a.y, -_a.x)
+	var porch := _rect(0.0, 1.2, 13.0, 3.0)
+	# windows first (7 cm proud), so the walls behind them stay whole
+	_bays(ring, 1.0, 4.1, 3.6, 1.4, MF_GLASS, porch)
+	_bays(ring, 5.5, 14.0, 3.6, 1.7, MF_GLASS, porch)
+	_mode = M_STONE
+	_prism(ring, g - 0.6, g + 4.6, MF_BASE, none, M_STONE)
+	_prism(ring, g + 4.6, g + h, MF_WALL, MF_ROOF, M_STONE, M_STONE)
+	# the string course over the rusticated floor, the cornice and the attic parapet
+	var course := _largest(Geometry2D.offset_polygon(ring, 0.15, Geometry2D.JOIN_MITER))
+	_prism(course, g + 4.6, g + 5.0, MF_LIGHT, MF_LIGHT, M_STONE, M_STONE)
+	var eave := _largest(Geometry2D.offset_polygon(ring, 0.45, Geometry2D.JOIN_MITER))
+	_prism(eave, g + h - 2.3, g + h - 1.6, MF_LIGHT, MF_LIGHT, M_STONE, M_STONE)
+	_parapet(ring, g + h, 1.1, MF_LIGHT)
+	# the central risalit: rusticated below, six pilasters, three doors, a raised attic
+	_lbox(0.0, 0.45, 12.0, 1.95, g - 0.6, g + 4.6, MF_BASE, M_STONE, none)
+	_lbox(0.0, 0.45, 12.0, 1.95, g + 4.6, g + h + 2.0, MF_WALL, M_STONE, none)
+	_lbox(0.0, 0.5, 12.5, 2.45, g + h + 2.0, g + h + 2.8, MF_LIGHT, M_STONE, MF_LIGHT)
+	_mode = M_GLASS
+	for u: float in [-9.0, -4.5, 0.0, 4.5, 9.0]:
+		_wall(_w(u - 0.85, 2.43), _w(u + 0.85, 2.43), g + 5.5, g + 14.0, _b, MF_GLASS, 0.1)
+	for u: float in [-9.0, 9.0]:
+		_wall(_w(u - 0.7, 2.43), _w(u + 0.7, 2.43), g + 1.0, g + 4.1, _b, MF_GLASS, 0.1)
+	_mode = M_STONE
+	for u: float in [-4.5, 0.0, 4.5]:
+		_wall(_w(u - 1.2, 2.43), _w(u + 1.2, 2.43), g + 0.4, g + 4.0, _b, MF_DOOR)
+	for u: float in [-11.25, -6.75, -2.25, 2.25, 6.75, 11.25]:
+		_lbox(u, 2.75, 0.45, 0.35, g + 4.6, g + h + 2.0, MF_LIGHT, M_STONE, MF_LIGHT)
+	for k in 3:
+		_lbox(0.0, 2.4 + (3 - k) * 0.5, 10.0, (3 - k) * 0.5, g - 0.6, g + 0.18 * (k + 1), MF_LIGHT, M_STONE, MF_LIGHT)
+	# the wings' south pavilions: hipped dark roofs over the transverse bars
+	for bar: Array in MF_BARS:
+		var a: Vector2 = bar[0]
+		var b: Vector2 = bar[1]
+		var e := (b - a).normalized()
+		_a = e
+		_b = Vector2(e.y, -e.x)
+		_o = (a + b) * 0.5 - _b * (MF_BAR_DEPTH * 0.5)
+		_hip(0.0, 0.0, a.distance_to(b) * 0.5 - 0.7, MF_BAR_DEPTH * 0.5 - 0.7, g + h + 1.1, 3.4, MF_ROOF.lightened(0.15))
+	_collide(ring)

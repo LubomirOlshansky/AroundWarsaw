@@ -26,7 +26,7 @@ then the Launch gate.
 - [x] The full map with landmark pins and teleport; the quest stop assist
 - [x] Landmarks: the Palace, Centralna, Złote Tarasy, the towers, MSN, the Rotunda, BUW, Kopernik,
       the stadium, Plac Piłsudskiego, the start street's stores, many churches (Mac photo checks
-      for some)
+      for some), the Ministry of Finance (2026-11-01, spec `mf.md`; Mac photo check parked)
 - [x] Day, dusk and night; rain; water; synthesised sound; puddles and night water (3i part)
 - [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted
 

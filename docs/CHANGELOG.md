@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- The Ministry of Finance on Świętokrzyska is a landmark: the 1950s pale pink-grey palace round its court, the three-door entrance in the middle under its raised attic, the hipped pavilions at the wings' ends; tap it for its card.
 - Now and then a fender bender blocks a lane somewhere ahead: two dented cars, a police car with its lights flashing and a yellow ambulance, the drivers arguing over who had the green while people film it for the estate's group. Traffic queues and squeezes past, and KEBAB FM reads it out in the traffic news.
 - Larger text in Settings → DOSTĘP now changes the HUD text straight away, no restart needed.
 - Mariensztat, the little 1949 square under the Old Town's escarpment, now looks like itself: pastel houses under red tile roofs with dormers and chimneys.
