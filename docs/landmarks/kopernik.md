@@ -20,7 +20,31 @@ Spec: [specs/kopernik.md](specs/kopernik.md). Site key `kopernik` (`landmarks.gd
   (the prebuilt path).
 - Scores: none yet (no photos in the cloud; art-director pass waits for the Mac).
 
-## Still differs / photo check on the Mac
+## 2026-11-01: the Mac's photo check applied (cloud thread)
+
+The Mac session compared the first model with the photos in `refs/`; its findings, applied:
+- The planetarium is copper-red perforated metal, not black: a faceted drum with leaning walls,
+  its roof edge just over the block's roof (about 18 m over its own ground), a chamfered ring
+  round a glazed clerestory (glowing at night) and a white dome about 17 m across. No apex.
+- The block's fronts are vertical strips in warm, varied tones (dusty rose, beige-grey, grey, a
+  few copper-red), with tall slits and multi-storey glazed bays, some slanted, not dark panels
+  with pixel windows. The south-east end is glass behind a light steel frame of galleries and
+  stairs.
+- The roof garden: meandering paths round mixed beds (greens, ochre, dark shrub), concrete
+  skylight craters (five of the seven fit the garden's width; one with a glazed pyramid), a
+  teal glass strip on the city side of the southern half, a small glass pavilion at the south.
+- A dark strip cantilevers 12 m over the court on the planetarium's side.
+- Card: "obok miedzianoczerwone planetarium" / "the copper-red planetarium beside it".
+- Checks: `check_mesh_quality` 0 defects, 1428 tris, budget 1720; `check_spec` OK.
+
+## Still differs / photo check on the Mac (after the second pass)
+
+- Two of the seven craters don't fit where the garden narrows (the north end).
+- The steel frame's stairs; the south-east end stands close to the car park's building.
+- The court under the cantilever is the map's paving.
+- The river corner's glazed ground floor (kept, parked by the Mac check).
+
+## Still differs / photo check on the Mac (first pass, now answered above)
 
 - The panels: colour, pattern, and how many windows (built: about four in ten slots).
 - The overhang: which corner, how deep, how high (built: OSM's river corner, soffit 5 m).

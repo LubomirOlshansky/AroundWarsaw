@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- The Copernicus Science Centre now matches the photos: warm striped walls with tall windows, the copper-red planetarium with its white dome, skylight craters and winding paths in the roof garden, and a dark wing hanging over the court.
 - The Copernicus Science Centre by the river is rebuilt: a long dark block with windows scattered like pixels that glow at night, a corner hanging over the glass entrance, a garden of lawns and paths on its roof, and the black, faceted planetarium beside it.
 - Stadion Narodowy's facade now looks like the real one: rows of red and silver panels, more silver towards the top, over a dark glass entrance level, with stronger spikes on the skyline.
 - Stadion Narodowy is rebuilt from the real map data: its woven skin is red below and white above like the flag, a full-size striped pitch sits in two tiers of red seats, and the needle over the pitch carries the folded roof.
