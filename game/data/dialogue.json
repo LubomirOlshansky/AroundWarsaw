@@ -1305,7 +1305,7 @@
   ],
   "police_warn": [
     [
-      "Pan w małym aucie! Wolniej, bo suszarka się przegrzeje.",
+      "Małe auto, wolniej! Suszarka się przegrzeje.",
       "You in the little car! Slow down, the radar gun (the \"hair dryer\") is overheating.",
       {
         "only": "speed"
@@ -1396,11 +1396,11 @@
       }
     ],
     [
-      "Kontrola drogowa. Wie pan, czemu pana zatrzymałem? Ja tak średnio.",
+      "Kontrola drogowa. Wiesz, czemu cię zatrzymałem? Ja tak średnio.",
       "Traffic check. Do you know why I stopped you? I'm not entirely sure myself."
     ],
     [
-      "Wie pan, ile pan jechał? Ja też nie. Suszarka się zawiesiła.",
+      "Wiesz, ile jechałeś? Ja też nie. Suszarka się zawiesiła.",
       "Do you know how fast you were going? Me neither. The hair dryer froze.",
       {
         "only": "trap"
@@ -1434,7 +1434,7 @@
       }
     ],
     [
-      "Kebab stygnie, panie władzo!",
+      "Kebab stygnie, władzo!",
       "The kebab's getting cold, officer!",
       {
         "only": "kebab"
@@ -1447,14 +1447,14 @@
       "A caution. Next time, a fine. Or another caution, we'll see."
     ],
     [
-      "Pouczam pana. Kacper, zapisz w zeszycie. Ładnie, nie jak ostatnio.",
+      "Pouczenie. Kacper, zapisz w zeszycie. Ładnie, nie jak ostatnio.",
       "Consider yourself cautioned. Kacper, put it in the notebook. Neatly, not like last time.",
       {
         "only": "police"
       }
     ],
     [
-      "Piąte pouczenie dzisiaj. Jeszcze jedno i dostaje pan kubek.",
+      "Piąte pouczenie dzisiaj. Jeszcze jedno i dostajesz kubek.",
       "Fifth caution today. One more and you get a mug.",
       {
         "only": "fifth"

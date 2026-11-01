@@ -71,6 +71,9 @@ var walkers: Node3D
 var dialogue: Node
 var police: Node
 var radio: Node
+## The sound (sfx.gd scene_siren) and the HUD (set_scene_mark); both optional.
+var sfx: Node
+var hud: Node
 ## The view's focus and the player's vehicle: [position, km/h, flying].
 var focus: Callable
 var vehicle: Callable
@@ -139,6 +142,7 @@ func step(dt: float) -> void:
 		wait = _rng.randf_range(GAP.x, GAP.y)
 		_log("next scene in %.0f s" % wait)
 		return
+	_report(over)
 	if dist < TALK_REACH and not bool(v[2]):
 		scene["talk"] = float(scene["talk"]) - dt
 		if float(scene["talk"]) <= 0.0:
@@ -335,10 +339,27 @@ func seen() -> bool:
 	return traffic.on_screen(Vector3(m.x, graph.height(int(scene["e"]), float(scene["s0"]) + SPAN * 0.5), m.y), 2.0)
 
 
+## Tells the minimap and the sound where the scene is (the siren stops when the scene is over).
+func _report(over: bool) -> void:
+	var m: Vector2 = scene["mid"]
+	if hud != null:
+		hud.set_scene_mark(m)
+	if sfx != null:
+		if over:
+			sfx.scene_siren(Vector3.INF)
+		else:
+			var amb = scene["drivers"][-1] if not scene["drivers"].is_empty() else null
+			sfx.scene_siren(amb.pos if amb != null else Vector3(m.x, 1.5, m.y))
+
+
 ## Takes the scene away (its vehicles back to their pools, its people gone).
 func clear() -> void:
 	if scene.is_empty():
 		return
+	if hud != null:
+		hud.set_scene_mark(Vector2.INF)
+	if sfx != null:
+		sfx.scene_siren(Vector3.INF)
 	for d in scene["drivers"]:
 		_drop(d)
 	if walkers != null:
