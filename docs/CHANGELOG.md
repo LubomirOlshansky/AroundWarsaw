@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Warszawa Stadion's ticket hall no longer reads as a white box: its roof sweeps up into a taller white sail over the forecourt, with bigger red STADION letters.
 - Most Średnicowy, the railway bridge over the Vistula, now stands on massive granite piers with pointed cutwaters, its tracks carried on steel arch trusses between them.
 - Warszawa Ochota's roof is a deep saddle now, its corners shooting up over the striped shell, with the blue WARSZAWA OCHOTA letters by the door; Powiśle's kite roof sags between its turned-up ends over a glass base, and the round bar's saucer spreads wide with yellow letters on its rim.
 - Krakowskie Przedmieście has more of its landmarks: the Carmelite church's front with its gilt globe, Mickiewicz's monument, the University's main gate, the Potocki palace and its guardhouse, and Hotel Bristol's dome, plus the Royal Route's black granite Chopin benches.

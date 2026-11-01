@@ -170,6 +170,9 @@ Plan: docs/design/railway.md. One PR per item, in this order:
     under the saucer.
   - **Stadion:** the platform canopies with red-and-white glass walls match the photos well. The
     pavilion reads as a plain white box; the sail and mosaic still to compare.
+    **Fixed 2026-11-01:** the hall's roof sweeps up 1.5 m towards the sail, which now stands
+    8.2 m at its tips over the raised end, with a glass clerestory under the rising slab and
+    bigger STADION letters. Left for the Mac: the sail's real shape and the mosaic against refs.
   - **Most Średnicowy (L4):** the model is a flat deck on many thin paired posts. The real bridge
     is steel arch-truss spans (shallow arches with diagonal webs under the deck) on a few massive
     stone piers, with catenary masts along it. Model those spans and fewer, wider piers.

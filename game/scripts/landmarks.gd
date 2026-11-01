@@ -8743,7 +8743,12 @@ const STP_SAIL := Rect2(1385.5, -1322.5, 12.6, 4.2)   # where the hall's curved 
 const STP_HALL_H := 3.9        # the glass walls' top over the plinth's foot
 const STP_ROOF := 0.5          # the roof slab
 const STP_EAVE := 0.8          # its overhang
-const STP_SAIL_H := 6.8        # the sail's tips over the ground
+const STP_SAIL_H := 8.2        # the sail's tips over the ground (over the roof's raised end)
+const STP_RISE := 1.5          # how far the roof sweeps up towards the sail
+var _stp_axis := Vector2.UP    # the hall's axis towards the sail (set by _stp_roof)
+var _stp_lo := 0.0
+var _stp_hi := 1.0
+var _stp_g := 0.0
 const STP_SAIL_DIP := 1.1      # how far its middle dips under the tips
 const STP_SAIL_LEAN := 1.4     # how far its top leans out towards the platforms
 const STP_CANOPY := 96.0       # each canopy's length from the platform's hall end
@@ -8798,14 +8803,13 @@ func _build_stadion_pkp(site: Dictionary) -> void:
 	_mode = keep
 	_mullions(hall, g + 0.5, g + STP_HALL_H, 1.8, 0.05, STP_DARK)
 	var roof := _largest(Geometry2D.offset_polygon(hall, STP_EAVE, Geometry2D.JOIN_MITER))
-	_prism(roof, g + STP_HALL_H, g + STP_HALL_H + STP_ROOF, STP_WHITE, STP_WHITE.darkened(0.08), M_STONE, M_STONE)
-	_soffit(roof, g + STP_HALL_H, STP_WHITE.darkened(0.25))
+	_stp_roof(hall, roof, g)
 	_stp_sail(q, g)
-	# STADION in red neon standing on the roof, facing the game's camera.
+	# STADION in red neon standing on the roof's low end, facing the game's camera.
 	var o := BEHIND_FACE.normalized()
-	var k := 0.5
+	var k := 0.68
 	var at := c + o * 4.0
-	signs.append(["STADION", Vector3(at.x, g + STP_HALL_H + STP_ROOF + 0.05, at.y), Vector3(o.x, 0.0, o.y), k, STP_NEON])
+	signs.append(["STADION", Vector3(at.x, _stp_roof_y(at) + 0.05, at.y), Vector3(o.x, 0.0, o.y), k, STP_NEON])
 	_collide(hall)
 	var plats: Array = site.get("platforms", [])
 	var pair_mid := Vector2.ZERO
@@ -8813,6 +8817,89 @@ func _build_stadion_pkp(site: Dictionary) -> void:
 		pair_mid += (f[0] as Vector2) / plats.size()
 	for f: Array in plats:
 		_stp_canopy(f, c, pair_mid)
+
+
+## The hall's roof (Mac photo check 2026-11-01: the flat slab read as a plain white box): one
+## white slab that sweeps up towards the sail's end, STP_RISE over its length (a parabola), so the
+## hall and the sail read as one form lifting towards the platforms. The glass rises with it as a
+## clerestory; the slab in 2 m cells clipped to the eaves' outline, a fascia round its edge and a
+## grey soffit under it.
+func _stp_roof(hall: PackedVector2Array, roof: PackedVector2Array, g: float) -> void:
+	var c := _centre(hall)
+	var sail := STP_SAIL.get_center()
+	_stp_axis = (sail - c).normalized()
+	_stp_lo = INF
+	_stp_hi = -INF
+	for p in roof:
+		_stp_lo = minf(_stp_lo, p.dot(_stp_axis))
+		_stp_hi = maxf(_stp_hi, p.dot(_stp_axis))
+	_stp_g = g
+	var side := Vector2(-_stp_axis.y, _stp_axis.x)
+	var s_lo := INF
+	var s_hi := -INF
+	for p in roof:
+		s_lo = minf(s_lo, p.dot(side))
+		s_hi = maxf(s_hi, p.dot(side))
+	var nu := maxi(2, ceili((_stp_hi - _stp_lo) / 3.0))
+	var nv := maxi(1, ceili((s_hi - s_lo) / 7.0))
+	var top_col := STP_WHITE
+	var under := STP_WHITE.darkened(0.25)
+	_mode = M_STONE
+	for i in nu:
+		for j in nv:
+			var u0 := lerpf(_stp_lo, _stp_hi, float(i) / nu)
+			var u1 := lerpf(_stp_lo, _stp_hi, float(i + 1) / nu)
+			var v0 := lerpf(s_lo, s_hi, float(j) / nv)
+			var v1 := lerpf(s_lo, s_hi, float(j + 1) / nv)
+			var cell := PackedVector2Array([_stp_axis * u0 + side * v0, _stp_axis * u1 + side * v0,
+					_stp_axis * u1 + side * v1, _stp_axis * u0 + side * v1])
+			for piece: PackedVector2Array in Geometry2D.intersect_polygons(cell, roof):
+				var idx := Geometry2D.triangulate_polygon(piece)
+				for t in range(0, idx.size() - 2, 3):
+					var tri: Array[Vector3] = []
+					for m in 3:
+						var p := piece[idx[t + m]]
+						tri.append(Vector3(p.x, _stp_roof_y(p), p.y))
+					var nrm := (tri[1] - tri[0]).cross(tri[2] - tri[0]).normalized()
+					if nrm.y < 0.0:
+						nrm = -nrm
+					# Faint seams: every other cell a shade greyer, as the slab's panels read.
+					var col := top_col if (i + j) % 2 == 0 else top_col.darkened(0.025)
+					_tri(tri[0], tri[1], tri[2], nrm, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+					var d := Vector3.DOWN * STP_ROOF
+					_tri(tri[0] + d, tri[1] + d, tri[2] + d, -nrm, under, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0, false)
+	# The fascia round the slab's edge and the clerestory glass from the walls' top up to it.
+	for ring in [[roof, STP_ROOF, STP_WHITE.darkened(0.08), M_STONE], [hall, -1.0, STP_GLASS, M_PAVILION]]:
+		var poly: PackedVector2Array = ring[0]
+		_mode = ring[3]
+		for i in poly.size():
+			var a := poly[i]
+			var b := poly[(i + 1) % poly.size()]
+			var e := b - a
+			var n := maxi(1, ceili(e.length() / 3.0))
+			var out := Vector2(e.y, -e.x).normalized()
+			if out.dot((a + b) * 0.5 - c) < 0.0:
+				out = -out
+			for k in n:
+				var p0 := a + e * (float(k) / n)
+				var p1 := a + e * (float(k + 1) / n)
+				var y0 := _stp_roof_y(p0)
+				var y1 := _stp_roof_y(p1)
+				var lo0: float = y0 - float(ring[1]) if float(ring[1]) > 0.0 else g + STP_HALL_H
+				var lo1: float = y1 - float(ring[1]) if float(ring[1]) > 0.0 else g + STP_HALL_H
+				var top0: float = y0 if float(ring[1]) > 0.0 else y0 - STP_ROOF
+				var top1: float = y1 if float(ring[1]) > 0.0 else y1 - STP_ROOF
+				if top0 - lo0 < 0.02 and top1 - lo1 < 0.02:
+					continue
+				_quad(Vector3(p0.x, lo0, p0.y), Vector3(p1.x, lo1, p1.y), Vector3(p1.x, top1, p1.y),
+						Vector3(p0.x, top0, p0.y), Vector3(out.x, 0.0, out.y), ring[2])
+	_mode = M_STONE
+
+
+## The roof's top over a point: STP_HALL_H + STP_ROOF at its far end, STP_RISE more at the sail's.
+func _stp_roof_y(p: Vector2) -> float:
+	var t := clampf((p.dot(_stp_axis) - _stp_lo) / maxf(_stp_hi - _stp_lo, 0.1), 0.0, 1.0)
+	return _stp_g + STP_HALL_H + STP_ROOF + STP_RISE * t * t
 
 
 ## The sail: a curved white wall along the hall's concave end, its tips high, its middle lower,
