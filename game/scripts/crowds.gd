@@ -90,6 +90,9 @@ const DECKS := {
 	# `_build_palace`; open 10-18 (*guess*), the busiest of the three.
 	"pkin_terrace": {"at": Vector2(-1214.25, 247.3), "max": 16, "open": 10.0, "close": 18.0,
 			"half": 22.4, "axis": Vector2(0.9403, -0.3404), "up": 114.0, "gap": 3.0},
+	# The Forest's roof terrace (F, 2026-11-01) on its 27.4 m wing, landmarks.gd `_forest_terrace`;
+	# open 11-23 (*guess*), people inside the glass balustrade and the planters.
+	"forest_terrace": {"at": Vector2(-2947.0, -2407.0), "max": 14, "open": 11.0, "close": 23.0, "in": 2.6, "top": 27.4},
 }
 const ROOF_MAX := 16
 ## F's ask (2026-11-01, Marszałkowska street by street): people waiting on the tram platforms of
