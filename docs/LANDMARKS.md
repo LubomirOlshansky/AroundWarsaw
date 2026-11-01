@@ -48,7 +48,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | --- | --- | --- |
 | 2.1 | Kościół św. Anny | DONE 2026-11-01 (L3 front with four-column portico, pediment, flanking wings, and the bell tower's trim on the kept skin, spec `anna.md`, 514 tris, heights estimated, Mac photo check parked: column count, door, tower cap) |
 | 2.2 | Teatr Wielki | the colonnade and the portico on Plac Teatralny |
-| 2.3 | Old Town and New Town tenements | dormers and chimneys DONE 2026-11-01; stepped attic gables on the market square's east side DONE 2026-11-01 (`OldTownRoofs.gable`); the New Town and the other sides stay open (map lane: `_tenement_facades`, the LoD2 roofs) |
+| 2.3 | Old Town and New Town tenements | dormers and chimneys DONE 2026-11-01; stepped attic gables on the market square's east side DONE 2026-11-01 (`OldTownRoofs.gable`); the New Town and the other sides stay open (map lane: `_tenement_facades`, the LoD2 roofs); Mariensztat joined the dress 2026-11-01 (`MARIENSZTAT` polygon, Mac look check parked) |
 | 2.4 | Archikatedra, Barbakan | the Cathedral's stepped gable; the Barbican's towers and walls |
 | 2.5 | Pałac Prezydencki | DONE 2026-10-31 (model, spec `docs/landmarks/specs/prezydencki.md`, 868 tris): wings round the forecourt, portico, Poniatowski's statue, lions, gate, guardhouses; photo check on the Mac |
 | 2.6 | Kościół Świętego Krzyża, Wszystkich Świętych, św. Aleksandra | Holy Cross DONE 2026-11-01 (L3 front and towers on the kept skin, spec `docs/landmarks/specs/krzyz.md`, 934 tris; Mac photo check parked: column and door count, helm shape, the crossing's dome). St Alexander DONE 2026-11-01 (L2 model replacing the skin: drum, windows, dome, lantern, two six-column porticoes, spec `aleksander.md`, 1218 tris, heights estimated, Mac photo check parked: which end has the portico, column count, the bell towers). All Saints DONE 2026-11-01 (L3 front and twin copper-domed towers on the kept skin, spec `wszystkich.md`, 788 tris, heights estimated, Mac photo check parked: tower height and dome shape, portal count) |
@@ -64,7 +64,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 
 | # | Group | Objects |
 | --- | --- | --- |
-| 3.1 | On the demo's routes | Teatr Narodowy, Hotel Bristol, Polonia Palace, Poczta Główna, NBP, Filharmonia, Hala Koszyki, Pałac Krasińskich, Arsenał |
+| 3.1 | On the demo's routes | Krakowskie Przedmieście's missing pieces (review 2026-11-01, BACKLOG "Mariensztat and Krakowskie Przedmieście"): the Carmelite church, Mickiewicz's monument, the University gate and Pałac Kazimierzowski, Pałac Potockich's guardhouses, Pałac Czapskich; Teatr Narodowy, Hotel Bristol, Polonia Palace, Poczta Główna, NBP, Filharmonia, Hala Koszyki, Pałac Krasińskich, Arsenał |
 | 3.2 | Churches and religious | Praga cathedral, Kościół Zbawiciela, Wizytek, Synagoga Nożyków, Katedra polowa, Cerkiew, the rest |
 | 3.3 | Stations and halls | the stations moved to 2.11; Torwar, Elektrownia Powiśle |
 | 3.4 | Culture and civic | POLIN, Planetarium, Politechnika's main hall, Zamek Ujazdowski, the palaces (about 40) |
@@ -164,7 +164,7 @@ All with a card; check_landmarks only (except where noted). Open issue common to
 | Dom bez Kantów | window seed 0.37 (modernist rows) | #d3cec2 / #85837e | PLAC_SKINS; check_sites (skin) ; colours are guesses |
 | Departament Wojskowej Służby Zdrowia | M_MONUMENT | #dccfb2 / #7c7871 | PLAC_SKINS; check_sites (skin) |
 | Unnamed block at Królewska (-660,-790) "krolewska" | M_MONUMENT | #d9d0bb / #7f7c76 | NO card, not on picking grid |
-Plus the Old Town / New Town tenements: `map_builder._tenement_facades` (each LoD2 wall takes colour + window seed of the OSM house under it, 9-colour palette, tile-red roofs; HISTORIC circles (-760,-1680,r200), (-830,-1920,r170); churches excluded). No gables/dormers.
+Plus the Old Town / New Town tenements: `map_builder._tenement_facades` (each LoD2 wall takes colour + window seed of the OSM house under it, 9-colour palette, tile-red roofs; HISTORIC circles (-760,-1680,r200), (-830,-1920,r170), plus the MARIENSZTAT polygon (2026-11-01: the 1949 estate's 47 houses, edges along streets and party walls so no house is split); churches excluded). Dormers and chimneys on the slopes (OldTownRoofs.dress), stepped gables on the Old Town square's east side only.
 
 #### 1d. Other bridges (map, no landmark site)
 Decks are generic: `map_builder._build_bridge_structures` + `_decks`/`_deck_gaps`, `_build_guard_rails`, `_build_banks`, `_build_fill_sides`, approaches `fills`, abutments from bake_roads/bake_structures; concrete #b8b2a7, piers for road/rail. Which named bridges exist in the map: ? (no names in decks data; the DEVELOPMENT.md mentions Poniatowski and Świętokrzyski only; Gdański, Łazienkowski, Śląsko-Dąbrowski, Siekierkowski are probably in bbox but have no model and no card: ?). Backlog items: "stadium, the bridges" are in the re-pass list.

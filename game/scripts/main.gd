@@ -41,6 +41,7 @@ extends Node
 ## Loop G1b: --last-session=struggled|calm starts Auto as if the last session at the sharp image
 ## struggled (the ×2 fallback) or was calm (the sharp image), and writes nothing of it.
 
+const Release := preload("res://scripts/release.gd")  # DEMO 3j: no flags in a release build
 const Access := preload("res://scripts/access.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
@@ -115,6 +116,7 @@ const Governor := preload("res://scripts/governor.gd")
 const Police := preload("res://scripts/police.gd")
 const Buses := preload("res://scripts/buses.gd")
 const OldTram := preload("res://scripts/old_tram.gd")
+const CrashScenes := preload("res://scripts/crash_scenes.gd")
 ## Packs (docs/design/packs.md): running clubs, cycling packs and coffee raves.
 const Packs := preload("res://scripts/packs.gd")
 ## The garage loop: Warsztat u Mirka and its paint jobs (garage.gd, its card garage_card.gd).
@@ -291,6 +293,8 @@ var start_in_tunnel := false
 ## fragments magenta and every other building green; 2: the ghost cut fully, no dither)
 ## and prints the ghost's ellipse in screen pixels with every screenshot.
 var ghost_debug := 0
+## --left-handed: the left-handed layout for this run (Settings → DOSTĘP keeps it otherwise).
+var _flag_left_handed := false
 ## --lift=M: aim the camera M metres above the vehicle (close-ups of tall landmarks).
 var cam_lift := 0.0
 ## The ghosted footprint's sunlight: given back in full above GHOST_SUN_HIGH degrees of
@@ -427,6 +431,14 @@ var honk_frames: Array[int] = []
 ## The vintage-tram loop (old_tram.gd): the old two-car set on summer weekends, E39; flags
 ## --old-tram (the set now near the car; =follow: and the car kept behind it), --tram-log.
 var old_tram: OldTram
+## Crash scenes (crash_scenes.gd, 2026-11-01): a fender bender with a police car and an ambulance
+## now and then on a road ahead; in a normal launch only (test runs repeat). Flags --crash=now (a
+## scene 45-80 m ahead at the start, for shots), --crash=X,Z (one on the fitting road nearest that
+## point), --crash=on (the timer in a test run too), --crash=0 (none), --crash-log.
+var crash_scenes: CrashScenes
+var crash_flag := ""
+var crash_log := false
+var _crash_auto := false
 var old_tram_flag := ""
 var tram_log := false
 ## Packs (packs.gd): running clubs, cycling packs, coffee raves; flags --packs=0 (none), --packs-now
@@ -1115,6 +1127,7 @@ func _build_world() -> void:
 	hud.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(hud)
 	hud.set_scheme(controls.scheme)
+	hud.set_left_handed(Access.left_handed)  # accessibility (2026-11-01)
 	hud.set_touch_off(no_touch)  # desktop: --no-touch
 	hud.settings_pressed.connect(_open_settings)
 	hud.settings_panel.changed.connect(_on_setting)
@@ -1239,6 +1252,7 @@ func _build_world() -> void:
 	_build_city_life(data, world)
 	_build_buses(data, world)
 	_build_old_tram(world)
+	_build_crash_scenes()
 	_build_storefronts(data, world)
 	_build_packs(data, world)
 	_build_first10()
@@ -2177,6 +2191,39 @@ func _build_buses(data: Dictionary, world: Node3D) -> void:
 	hud.horn_pressed.connect(func() -> void: buses.honk())
 	if night_hub_flag:
 		buses.force()
+
+
+# --- the crash scenes -------------------------------------------------------------------------
+
+## The crash scenes (crash_scenes.gd) on the traffic's lane graph, with the police's cars and the
+## pedestrians' scene figures. None with --no-traffic or --crash=0.
+func _build_crash_scenes() -> void:
+	if traffic == null or crash_flag == "0":
+		return
+	crash_scenes = CrashScenes.new()
+	crash_scenes.name = "CrashScenes"
+	crash_scenes.traffic = traffic
+	crash_scenes.graph = graph
+	crash_scenes.map = map
+	crash_scenes.walkers = walkers
+	crash_scenes.dialogue = dialogue
+	crash_scenes.police = police
+	crash_scenes.radio = radio
+	crash_scenes.log_on = crash_log
+	crash_scenes.enabled = _crash_auto or crash_flag != ""
+	crash_scenes.focus = func() -> Vector3: return cam_focus
+	crash_scenes.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	add_child(crash_scenes)
+	crash_scenes.setup()
+	var xz := crash_flag.split(",")
+	if crash_flag == "now" or xz.size() == 2:
+		var p := car.global_position
+		var f := -car.global_transform.basis.z
+		var at := Vector2(float(xz[0]), float(xz[1])) if xz.size() == 2 else Vector2.INF
+		crash_scenes.place(Vector2(p.x, p.z), Vector2(f.x, f.z).normalized(), true, at)
 
 
 # --- the vintage-tram loop --------------------------------------------------------------------
@@ -3209,10 +3256,10 @@ func _police_flag(arg: String) -> void:
 ## The game's own options. Loop 2b: a launcher can swallow the "--" (devicectl on an iPhone):
 ## then they arrive among the engine's own; ours never share a name with those. Every parser of
 ## game flags reads this (loop G0+: the streaming flags read only the user args, so on the phone
-## --stream-soak and --stream-log did nothing and the soak never ran).
+## --stream-soak and --stream-log did nothing and the soak never ran). A release build reads none
+## (release.gd: the testing flags are stripped from what players get).
 static func game_args() -> PackedStringArray:
-	var args := OS.get_cmdline_user_args()
-	return args if not args.is_empty() else OS.get_cmdline_args()
+	return Release.game_args()
 
 
 func _parse_args() -> void:
@@ -3220,6 +3267,8 @@ func _parse_args() -> void:
 	for arg in game_args():
 		if arg == "--demo":
 			demo = true
+		elif arg == "--left-handed":
+			_flag_left_handed = true  # accessibility (2026-11-01): the mirrored controls, for shots
 		elif arg.begins_with("--shots="):
 			for s in arg.trim_prefix("--shots=").split(","):
 				shots.append(int(s))
@@ -3474,6 +3523,10 @@ func _parse_args() -> void:
 			night_hub_flag = true
 		elif arg == "--bus-log":
 			bus_log = true
+		elif arg.begins_with("--crash="):
+			crash_flag = arg.trim_prefix("--crash=")
+		elif arg == "--crash-log":
+			crash_log = true
 		elif arg == "--old-tram" or arg.begins_with("--old-tram="):
 			old_tram_flag = "follow" if arg == "--old-tram=follow" else "now"
 		elif arg.begins_with("--train="):
@@ -3654,6 +3707,8 @@ func _parse_args() -> void:
 	var test_run := DisplayServer.get_name() == "headless" or not shots.is_empty() or bench or probe or autopilot \
 			or demo or cam_test != "" or _water_test_at != Vector2.INF or ram_test > 0 or tram_watch >= 0
 	_governor_on = _flag_governor == 1 if _flag_governor >= 0 else not test_run
+	# The crash scenes' timer: a normal launch only (a test run with --crash=on or =now too).
+	_crash_auto = not test_run
 	# Loop G1b: test runs (and --last-session=) never write Auto's image state, even with the
 	# governor on and without --nosave.
 	_image_write = not test_run and _flag_last_session == ""
@@ -3665,6 +3720,8 @@ func _load_settings() -> void:
 	settings.persistent = not no_save
 	settings.load_file()
 	Access.apply(settings)
+	if _flag_left_handed:
+		Access.left_handed = true
 	if not _flag_size:
 		base_size = settings.view
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
@@ -3920,7 +3977,8 @@ func _settings_state() -> Dictionary:
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
 			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on),
 			"text_large": int(settings.text_large), "calm": int(settings.calm), "color_safe": int(settings.color_safe),
-			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist)}
+			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist),
+			"left_handed": int(settings.left_handed)}
 
 
 func _close_settings() -> void:
@@ -3988,10 +4046,12 @@ func _on_setting(key: String, value: Variant) -> void:
 		"zones":
 			settings.zone_cap = int(value) == 1
 			zone_cap_on = settings.zone_cap
-		"text_large", "calm", "color_safe", "vibration", "stop_assist":
-			# Accessibility (access.gd). Text size shows from the next launch (the HUD is built once).
+		"text_large", "calm", "color_safe", "vibration", "stop_assist", "left_handed":
+			# Accessibility (access.gd): all of it shows at once, text size included.
 			settings.set(key, int(value) == 1)
 			Access.apply(settings)
+			hud.set_left_handed(Access.left_handed)
+			hud.apply_text_scale()
 		"master", "music", "effects":
 			settings.set(key, float(value))
 			Sfx.set_levels(settings.master, settings.music, settings.effects)
@@ -4204,6 +4264,7 @@ func _build_lineup(parent: Node3D) -> void:
 		[taxis, 0, "#f2f2ee", -10.0, 0.0, 0.0, "taxi"], [taxis, 1, "#2b2c2f", -6.6, 0.0, 0.0, "podwozka"],
 		[police, 0, Models.POLICE_WHITE.to_html(false), -3.3, 0.0, 0.0, "police"],
 		[police, 1, Models.GUARD_MUSTARD.to_html(false), 3.3, 0.0, 0.0, "guard"],
+		[police, 2, Models.AMBULANCE_YELLOW.to_html(false), 0.0, -4.7, 0.0, "ambulance"],
 		[vans, 0, "#e9e9e6", 6.7, 0.0, 0.0, "panel van"], [vans, 1, "#d8d2c2", 10.3, 0.0, 0.0, "box van"],
 		[cars, 0, "#b8bcc0", -4.8, 7.5, 0.0, "hatch"], [cars, 1, "#24324a", -1.6, 7.5, 0.0, "saloon"],
 		[cars, 2, "#4c6650", 1.6, 7.5, 0.0, "estate"], [cars, 3, "#2b2c2f", 4.8, 7.5, 0.0, "suv"],
@@ -4860,6 +4921,8 @@ func _make_stats() -> BenchStats:
 		b.systems["city life"] = [life, "spent_usec", true]  # loop MW-4
 	if buses != null:
 		b.systems["buses"] = [buses, "spent_usec", true]  # the night-buses loop
+	if crash_scenes != null:
+		b.systems["crash scenes"] = [crash_scenes, "spent_usec", true]
 	if old_tram != null:
 		b.systems["old tram"] = [old_tram, "spent_usec", true]  # the vintage-tram loop
 	if storefronts != null:

@@ -3,6 +3,57 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Crash scenes (F, 2026-11-01)
+
+Lane file: [docs/design/crash-scenes.md](design/crash-scenes.md). Built: `crash_scenes.gd` (a
+fender bender every 3-5 minutes ahead on a main road: two wrecks, the police car, the ambulance as
+the police family's shape 2, seven people, the `crash_scene` lines, KEBAB FM's `crash` lines),
+traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WAIT),
+`check_crash_scenes.gd` in verify and CI, `--crash=now|X,Z|on|0`, `--crash-log`. Left:
+- The phone's look (the ambulance's lettering and band at phone size, the halos at night) and a
+  bench on the device with a scene in view (+0 draw calls by construction; cloud bench below).
+- A siren or hazard-light sound at the scene (sfx.gd has the police siren only for chases).
+- A minimap or full-map marker for the scene (today only the radio names the street).
+- Wrecks have no hazard lights or broken glass; nobody waves the traffic on.
+- The scene's people stand still (no gestures); the onlookers' phones are not modelled.
+- A scene on a one-lane road (none today: they need 2+ lanes so the traffic can go round).
+
+## Mariensztat and Krakowskie Przedmieście: review (F, 2026-11-01)
+
+F asked whether Mariensztat and Krakowskie Przedmieście are modelled well. Cloud shots (OSM
+buildings only, no LoD2 or terrain in the cloud) compared with what the places are known to look like.
+
+**Mariensztat** (Rynek Mariensztacki at (-482,-1366)): the street plan is right (Rynek, Mariensztat,
+Sowia, Garbarska, Furmańska, lower Bednarska), the square has its paving, planters and fountain
+ring, but the houses were generic: modern facade colours and grey roofs, no landmark card, nothing
+that says "1949 estate". Real Mariensztat is small 2-3 storey houses in pastel plaster under steep
+red tile roofs with dormers.
+- ~~M1 Mariensztat dressed like the Old Town~~ Done 2026-11-01: `map_builder` MARIENSZTAT polygon
+  joins `_historic`, so its 47 houses take the tenement palette, red tiles, dormers and chimneys
+  (LoD2 path; load time only, +0 draw calls). Left: Mac look check (roof pitch from LoD2, the
+  palette against photos, the 20.8 m house at (-388,-1362) that OSM tags taller than its neighbours).
+- M2 a landmark card for Rynek Mariensztacki (the 1949 estate, the first socialist-realist square,
+  the 1954 film "Przygoda na Mariensztacie") and its relief panels and
+  well/fountain from photos (Mac).
+- M3 the escarpment, the W-Z tunnel's mouth and Nowy Zjazd's viaduct over the estate: check on the
+  Mac with real terrain (the cloud has none).
+
+**Krakowskie Przedmieście** (x -717..-434, z -1333..-465): well covered. Models: the Castle and
+Sigismund's Column at the north end, St Anne's (portico and bell tower), the Visitationists, the
+Presidential Palace, Hotel Europejski, Staszic Palace with Copernicus, Holy Cross; historic
+lanterns and street furniture along the whole street. Still generic boxes:
+- K1 the Carmelite church (Kościół Wniebowzięcia NMP i św. Józefa, (-582,-1036)): the facade with
+  its globe-topped attic; spec from photos.
+- K2 Mickiewicz's monument in Skwer Mickiewicza (lawn centred about (-627,-1074)): figure on a
+  tall pedestal with its fence and corner lanterns; the exact spot and height need the orthophoto
+  or a photo (Mac).
+- K3 the University gate (Brama Główna UW) and Pałac Kazimierzowski behind it.
+- K4 Pałac Potockich (-679,-946) with its two guardhouses (Kordegarda is mapped as a 4.3 m shed);
+  Pałac Czapskich (-609,-597).
+- K5 Hotel Bristol (-543,-917): the corner tower's dome and the facade (already in LANDMARKS 3.1).
+- K6 small things: Prus's and Cardinal Wyszyński's statues, the black Chopin benches, the
+  granite paving of the carriageway.
+
 ## The railway: stations, the cross-city line, trains (F, 2026-11-01)
 
 Plan: docs/design/railway.md. One PR per item, in this order:
@@ -54,12 +105,22 @@ Built: Settings → DOSTĘP (`game/scripts/access.gd`, kept in `[access]` of set
 text (x1.25, read when the HUD is built: shows after a restart), calm (patrol-car lights steady, no
 VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue), vibration on/off
 (every buzz goes through `Access.buzz`), stop assist on/off. Left:
-- Left-handed control layout (steering on the right, GAS and BRAKE on the left).
-- Text size that follows the phone's own setting, and live (no restart); the panels with fixed
-  layouts (cards, bubbles) need a check at x1.25 on the SE.
+- ~~Left-handed control layout~~ Done (2026-11-01): Settings → DOSTĘP → "Dla leworęcznych"
+  (`access.gd left_handed`, `hud.gd set_left_handed`, at once, no restart; flag `--left-handed`):
+  BRAKE, GAS, the horn and the helicopter's pads bottom left, the stick's side (the right 60 %)
+  and Classic's strip on the right, the credit line bottom right; `check_hud` runs a left-handed
+  pass (10 states x 6 screens). Left: the feel on the phone; in this layout the bottom card can
+  sit lower (nothing on the right pushes it up), so the radio ticker waits for room more often.
+- Text size that follows the phone's own setting (the toggle itself is live since 2026-11-01);
+  the panels with fixed layouts (cards, bubbles) need a check at x1.25 on the SE.
 - Subtitles: nothing is voiced yet; revisit when speech or radio talk with words lands.
 - ~~Crash sparks buzz through `Access.buzz`~~ Done (2026-11-01: crash_fx.gd shakes nothing; the
-  car's knock goes through haptics.gd, which keeps `Access.vibration`). Colour-safe still to cover the HUD's green badges and the red fail colour.
+  car's knock goes through haptics.gd, which keeps `Access.vibration`). ~~Colour-safe still to cover the HUD's green badges and the red fail colour.~~ Done
+  (2026-11-01): `Access.tint` turns the success green blue and the fail red a lighter vermilion in
+  the cards, the status panel and its 1ST badge, banners, notes, the ticker, the target arrow, the
+  minimap target and the speech bubbles (`check_settings` "colour-safe tint" covers every script's
+  green and red constant). Left: 3D markers other than the drop-off beacon (race and rescue
+  rings) and a look on the phone.
 
 ## Ground vertex compression, to re-apply on the Mac (stale PR #53 triage, 2026-11-01)
 - PR #53 (commit b343d60, branch `claude/project-thread-ldyr9u`) stores the ground's meshes with
@@ -156,6 +217,16 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   gwardii, wizytki, wszystkich, zamek) missed sections. After the fix 69 of 70 steps pass (places
   WARN as before; roads, map data, first10, first10-run, endcard, opening, cassettes, parodies,
   both city paths PASS; `--ios` export and unsigned build PASS). Left: the next item.
+  The same day on the Mac: bench (M4 Pro, pinned at 120 fps) 130 draw calls, 0.61 M triangles,
+  no late frames of 600; the opening flyover renders (over the Palace, down to the car, Halina's
+  first line); the ten roof cassettes on the real map all have a spot, each roof within 0.81 m
+  over 6 m, and the helicopter lands on every one at the spot's height (Teatr Wielki's is the fly
+  tower, 47 m up). Street details rendered by day at Nowy Świat and the boulevards (stalls, cafés,
+  planters read at the default zoom); Tamka and Praga need closer framing. The trend signs (#157)
+  did not show at their projected points from 55 m: their wall spots still need a framed night
+  shot. PR #183's head passes the look pass on the Mac (0 missing, no proxies in the view).
+  check_streaming's pixels failed on main e0e02b8 (spots 3-4, 2.2-4.4 %, differing between runs):
+  the speech bubbles' lines, not the city; the pixel runs now pass `--nohud` (0.24 % on 03a26dc).
 - **Map checks in CI**: the derived map pack as a release asset that CI downloads (or a small test
   map), so roads, drape, drive and the game runs gate every PR again ("From loop 3d-1", CI). Gap.
 
@@ -210,9 +281,13 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
 ### P1: main line and side quests (game-designer, Opus for the review)
 - Every activity has a headless check (rides, side jobs, couriers, ladder, syrenki, eggs, garage,
   police, main line, end card); none has been played end to end by a person on the phone, and the
-  pay tables are first guesses (BACKLOG-TRIAGE "Decisions"). The guide's lines, Halina's lines and
-  the end card are unreviewed ("From loop 3h slice 4"); the end card's "10 jobs" definition and the
-  trap's koguty line are open. A designer pass over all player-facing text and pay, then F's run.
+  pay tables were first guesses. **Designer pass done (2026-11-01, docs/design/pay-tables.md)**: a
+  desk model of złoty and respect a minute per activity; a rematch now gives +20 respect (was +100,
+  a shortcut past every gate), słoiki pay 40 + 30 a jar (was 50 + 35); the guide's, Halina's, the
+  end card's and the final's words made player-neutral; "10 jobs" kept as every paid job kind; the
+  koguty line was already in the first contact. Left: F's timed run on the phone (the hour, the
+  pay), and the police's "pan" outside the first contact (formal, assumes a man; ~20 lines in
+  dialogue.json `police_*`), a content pass of its own.
 - The DEMO 6.3 counts left: the second słoiki station (jobs.gd has one) and the Łazienki peacock
   rescue (none yet; the Old Town tourist is a "fainted" street rescue in missions.gd). The 10 roof
   cassettes and the landmark cards (72 vs ~25) are done (2026-11-01).
@@ -225,6 +300,13 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   map"). Gap / not verified.
 
 ### P2: store release (store lane, Sonnet; F's forms)
+- **Done (2026-11-01):** the release build reads no command-line flags (`release.gd`: an export with
+  the release template, the TestFlight archive or the Play AAB, ignores `--at=`, `--shots=`,
+  `--bench` and the rest; the debug export and the checks keep them), and Settings → DŹWIĘK →
+  LICENCJE shows the credits and licences (`credits.gd`: OpenStreetMap ODbL, GUGiK, the trees'
+  CC BY 4.0, Godot and the four shipped add-ons, every radio track from radio.json).
+  `check_credits` (verify and CI) keeps the page, the add-on folders, radio.json and CREDITS.md in
+  step. Left: the page seen on the phone (scrolling with a finger at 375 pt).
 - TestFlight is paused until F fills App Information in App Store Connect; no build is uploaded.
   iPad kept or dropped; the support page needs a deploy; the store screenshots predate the demo
   map, the new HUD and the opening and need a re-shoot after #115/#121 ("From the store listings").
@@ -2409,8 +2491,8 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
 - **Feel on the phone**: the rubber band's numbers (pace 1.15, 25 m, 0.4-1.5) come from a 1-D model;
   F's runs should say whether Halina is close enough to feel like a race and never obviously
   waiting. The ghost finger's place and gesture likewise (it sits on the stick's side, lower left).
-- **No "6.2" beat for "two jokes, the roosters explained in one line"** of the trap: the first
-  contact's own conversation (police.dialogue) is what plays; the designer could add the koguty line.
+- ~~**No "6.2" beat for "two jokes, the roosters explained in one line"** of the trap~~: the first
+  contact already says it ("Koguty na dachu to my…", police.dialogue); checked in the designer pass.
 - ~~**The cassette is KASETA's then card** on the boulevards (a ground spot, not a roof).~~ Done in the
   first-10 polish: a mixtape on the University Library's roof (cassettes.gd, cassettes.json), taken
   from the helicopter, opens the next PÓŁNOC FM track; the beat's arrow points there. The other nine
@@ -2422,8 +2504,8 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
 - ~~The guide's words (`first10.gd` LINES, Halina's FIRST_LINES, the end card) need a designer
   review~~ (done 2026-11-01: grammar fixes (stary śmigłowiec), "To już koniec dema", tone kept;
   only text changed, not run in Godot here).
-- The end card counts every paid job kind but races and the courier bonus; DEMO's "10 jobs" might
-  mean kebab-style jobs only.
+- ~~The end card counts every paid job kind but races and the courier bonus; DEMO's "10 jobs" might
+  mean kebab-style jobs only.~~ Kept as it is by the designer pass (docs/design/pay-tables.md).
 - **The NaN car (unexplained)**: once in ~10 headless replays the player car's position went NaN at
   the first rescue's pickup (~248 s, right as Powiśle was discovered); 20 later replays were clean.
   car.gd `_keep_finite` now puts the car back at its last good transform and logs `car: state not a
