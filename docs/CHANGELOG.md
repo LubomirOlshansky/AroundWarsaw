@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Port Czerniakowski has a real sailing harbour: the box in the water is a white club house on piles with a red roof, a flag and a lit PRZYSTAŃ sign, with sailboats in the berths between the piers, along the dam and on buoys in the basin. Marinka, the party barge under Most Świętokrzyski, is a two-deck white boat with a canopied upper deck and strings of lights.
 - The bar barges on the Vistula are real boats now: steel hulls with glazed decks, sun terraces under umbrellas, strings of warm bulbs, a gangway to the boulevard and their names in neon (Wieczorek nad Wisłą, Biała Barka, Marinka, Kaskadka); the houseboats in the harbour got cabins too.
 - The old VHS tape filter is now a Retro vaporwave look in Settings → Obraz: pink and teal sunset tones, a soft neon glow, scanlines and a little grain. The picture-style choice is gone; the game always draws the sharp image.
 - Marszałkowska's tram stops fill with commuters at rush hour, thin out at weekends and night, and crowd the platforms when it rains.

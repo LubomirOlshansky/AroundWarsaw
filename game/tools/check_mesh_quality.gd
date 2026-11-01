@@ -100,6 +100,7 @@ const BUDGET := {
 	"barka_marina": 2240,
 	"barka_kaskada": 1880,
 	"houseboats": 1080,
+	"marina": 5200,
 	"stadion_pkp": 1900,
 	"srodmiescie": 580,
 	"stadium": 4750,

@@ -19,7 +19,9 @@ bulbs, a gangway to the boulevard. Four of them, under parody names:
 - `barka_biala` "Biała Barka" (the unnamed `boat` north of it, the white BarKa at river km 512):
   white hull, food stalls on the open deck, a short deckhouse with a terrace at its far end.
 - `barka_marina` "Marinka Warszawka" (OSM "Marina Warszawa", between the Copernicus Centre and
-  the footbridge, 40 x 11 m): nautical white and navy, navy umbrellas.
+  the footbridge, 40 x 11 m): F's photo (2026-11-02) shows it as a two-deck white party barge, so
+  it is: a white glazed lower storey with warm windows, an open upper deck under a canopy on
+  slim posts with bulbs strung along the eaves, tables, an orange neon MARINKA on the canopy.
 - `barka_kaskada` "Kaskadka" (OSM "Kaskada", 55 x 9 m): a long black concert barge, black and
   white, industrial: a long deckhouse with a plain roof under festoons.
 - `houseboats`: nine private houseboats in the right bank's harbour (no card).

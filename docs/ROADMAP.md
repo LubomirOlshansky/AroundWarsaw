@@ -99,6 +99,9 @@ then the Launch gate.
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
 - [x] The river's bar barges and houseboats as models (were 14 m boxes in the water): hulls,
       glazed decks, terraces, umbrellas, festoons, gangways, parody neon names, 2026-11-01
+- [x] The sailing marina in Port Czerniakowski (2026-11-02): club house on piles, 18 sailboats,
+  pier lamps (site `marina`); Marinka as the two-deck white party barge of F's photo
+- [ ] Mac photo check of the marina (club house colours and storeys, berth count)
 - [ ] Mac photo check of the barges (hull colours, deckhouse length and place, the terraces)
 - [ ] Mariensztat and Krakowskie Przedmieście review (F, 2026-11-01; BACKLOG section):
   - [x] M1 Mariensztat's houses in pastel with red tile roofs and dormers, 2026-11-01

@@ -137,6 +137,7 @@ SITE_AREAS = [
     (-874.0, 149.0, -841.0, 215.0),
     (-826.0, 185.0, -800.0, 229.0),
     (-793.0, 287.0, -764.0, 333.0),
+    (1575.0, 1570.0, 1605.0, 1610.0),       # the sailing marina's club house (landmarks.gd MARINA_AT, unnamed in OSM)
 ]
 
 

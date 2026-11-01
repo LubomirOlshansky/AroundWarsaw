@@ -407,6 +407,9 @@ const INFO := {
 	"barka_marina": ["Marinka Warszawka",
 			"Barka w stylu marynarskim między Kopernikiem a kładką. Granat, biel, cień.",
 			"A nautical barge between the Copernicus Centre and the footbridge: navy and white."],
+	"marina": ["Przystań w Porcie Czerniakowskim",
+			"Port żeglarski przy Zaruskiego: klubowy domek, pomosty i jachty, które zimują tu od pokoleń.",
+			"The sailing harbour by Zaruskiego street: a club house, finger piers and yachts that have wintered here for generations."],
 	"barka_kaskada": ["Kaskadka",
 			"Długa czarna barka koncertowa: industrial, minimalizm i bas słyszalny na Pradze.",
 			"A long black concert barge: industrial, minimal, and bass you can hear in Praga."],
@@ -692,6 +695,7 @@ func _find_sites() -> void:
 	_find_stadion_pkp()
 	# The river's bar barges and houseboats (2026-11-01, spec docs/landmarks/specs/barki.md).
 	_find_barges()
+	_find_marina()
 	_find_srodmiescie()
 	# Plac Małachowskiego and the Presidential Palace (2026-10-31): models instead of skins.
 	_find_trojca()
@@ -1106,6 +1110,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_stadion_pkp(s)
 			"barka_wieczor", "barka_biala", "barka_marina", "barka_kaskada":
 				_build_barge(s)
+			"marina":
+				_build_marina(s)
 			"houseboats":
 				_id = 0  # private homes: no card, not on the picking grid
 				_build_houseboats(s)
@@ -9211,10 +9217,12 @@ const BARGE_STYLE := {
 			"frame": Color("#f4f4f1"), "glass": Color("#6a8894"), "roof": Color("#d8d6cf"),
 			"brella": Color("#ffffff"), "word": "BARKA", "tube": Color(0.25, 0.85, 1.0),
 			"house": Vector2(0.70, 0.95), "terrace": true, "stalls": 3},
+	# The two-deck white party barge below Most Świętokrzyski (F's photo, 2026-11-02): a white
+	# lower storey with warm windows, an open upper deck behind a railing under a canopy, bulbs.
 	"barka_marina": {"hull": Color("#f1f2ef"), "band": Color("#1d3557"), "deck": Color("#b08a60"),
-			"frame": Color("#1d3557"), "glass": Color("#5f8193"), "roof": Color("#e9e7e1"),
-			"brella": Color("#22406b"), "word": "MARINKA", "tube": Color(0.3, 0.7, 1.0),
-			"house": Vector2(0.30, 0.78), "terrace": true, "stalls": 0},
+			"frame": Color("#f5f4ee"), "glass": Color("#b9805a"), "roof": Color("#e9e7e1"),
+			"brella": Color("#22406b"), "word": "MARINKA", "tube": Color(1.0, 0.55, 0.3),
+			"house": Vector2(0.14, 0.92), "terrace": true, "stalls": 0, "canopy": true},
 	"barka_kaskada": {"hull": Color("#1c1d1f"), "band": Color("#5b2320"), "deck": Color("#6f5a46"),
 			"frame": Color("#e6e6e2"), "glass": Color("#3d4f58"), "roof": Color("#2a2b2e"),
 			"brella": Color("#26272a"), "word": "KASKADKA", "tube": Color(1.0, 1.0, 1.0),
@@ -9532,21 +9540,43 @@ func _build_barge(site: Dictionary) -> void:
 	var tu0 := u0 - 0.15
 	var tu1 := u1 + 0.15
 	var tv := hvh + 0.15
+	var canopy_top := terr
 	if sty["terrace"]:
 		_barge_rail(tu0, tu1, -tv, tv, terr, BARGE_RAIL, 0.08, sty["frame"])
 		_barge_bar(tu1 - 1.0, 0.0, 0.3, minf(tv - 1.0, 2.0), terr, sty["deck"])
 		var u := tu0 + 1.8
-		while u <= tu1 - 2.8:
+		while u <= tu1 - 2.8 and not sty.get("canopy", false):
 			for v: float in ([0.0] if hv < 4.0 else [-tv * 0.5, tv * 0.5]):
 				_barge_umbrella(u, v, terr, minf(1.2, tv * 0.42), sty["brella"])
 			u += 3.4
-	var posts: Array[Vector3] = []
-	for c: Vector2 in [Vector2(tu0 + 0.3, -tv + 0.3), Vector2(tu1 - 0.3, -tv + 0.3), Vector2(tu1 - 0.3, tv - 0.3), Vector2(tu0 + 0.3, tv - 0.3)]:
-		posts.append(_barge_post(c.x, c.y, terr, 2.6))
-	var n := maxi(5, roundi((tu1 - tu0) / 2.5))
-	_barge_festoon(posts[0], posts[1], 0.45, n)
-	_barge_festoon(posts[3], posts[2], 0.45, n)
-	_barge_festoon(posts[0], posts[2], 0.6, n + 1)
+		if sty.get("canopy", false):
+			# The upper deck's canopy: slim posts every 2.6 m along both long sides, a pale roof
+			# slab with a small overhang, and bulbs strung along its eaves; tables under it.
+			var ch := 2.6
+			canopy_top = terr + ch + 0.2
+			var pu := tu0 + 0.4
+			while pu <= tu1 - 0.3:
+				for sd: float in [-1.0, 1.0]:
+					_prism(_rect(pu, sd * (tv - 0.12), 0.05, 0.05), terr, terr + ch, sty["frame"], sty["frame"], M_STONE, M_STONE)
+				pu += 2.6
+			_prism(_rect((tu0 + tu1) * 0.5, 0.0, (tu1 - tu0) * 0.5 + 0.4, tv + 0.3), terr + ch, canopy_top,
+					sty["frame"], sty["roof"], M_STONE, M_STONE)
+			for sd: float in [-1.0, 1.0]:
+				_barge_festoon(Vector3(_w(tu0, sd * (tv + 0.2)).x, terr + ch - 0.05, _w(tu0, sd * (tv + 0.2)).y),
+						Vector3(_w(tu1, sd * (tv + 0.2)).x, terr + ch - 0.05, _w(tu1, sd * (tv + 0.2)).y), 0.3, maxi(6, roundi((tu1 - tu0) / 1.8)))
+			var tu := tu0 + 2.0
+			while tu <= tu1 - 3.2:
+				for v: float in [-tv * 0.5, tv * 0.5]:
+					_lbox(tu, v, 0.45, 0.45, terr, terr + 0.75, Color("#3a3029"), M_STONE, Color("#5a4a3c"))
+				tu += 2.8
+	if not sty.get("canopy", false):
+		var posts: Array[Vector3] = []
+		for c: Vector2 in [Vector2(tu0 + 0.3, -tv + 0.3), Vector2(tu1 - 0.3, -tv + 0.3), Vector2(tu1 - 0.3, tv - 0.3), Vector2(tu0 + 0.3, tv - 0.3)]:
+			posts.append(_barge_post(c.x, c.y, terr, 2.6))
+		var n := maxi(5, roundi((tu1 - tu0) / 2.5))
+		_barge_festoon(posts[0], posts[1], 0.45, n)
+		_barge_festoon(posts[3], posts[2], 0.45, n)
+		_barge_festoon(posts[0], posts[2], 0.6, n + 1)
 	# A flagpole at the -u end with the white-and-red flag.
 	var fp := _barge_post(-hu + r + 0.4, 0.0, deck, 4.2)
 	var fd := Vector3(_b.x, 0.0, _b.y) * 1.2
@@ -9572,7 +9602,7 @@ func _build_barge(site: Dictionary) -> void:
 			room = face[2]
 	var k := minf(0.5, (room - 1.0) / Neon.length_of(word))
 	var nrm := Vector3(out.x, 0.0, out.y)
-	var base := terr + (BARGE_RAIL if sty["terrace"] else 0.0)
+	var base := canopy_top + 0.3 if sty.get("canopy", false) else terr + (BARGE_RAIL if sty["terrace"] else 0.0)
 	signs.append([word, Vector3(at.x, base + 0.02, at.y), nrm, k, sty["tube"]])
 
 
@@ -9612,6 +9642,179 @@ func _build_houseboats(site: Dictionary) -> void:
 		_prism(_rect((c0 + c1) * 0.5, 0.0, (c1 - c0) * 0.5 + 0.3, cv + 0.3), deck + 2.5, deck + 2.7,
 				wall.darkened(0.3), Color("#3b3f44"), M_STONE, M_STONE)
 		_barge_rail(-hu + r, c0 - 0.05, -hv + 0.05, hv - 0.05, deck, 0.9, 0.06, Color("#c9ccd0"))
+# --- The sailing marina in Port Czerniakowski (2026-11-02, spec docs/landmarks/specs/przystan.md) ---
+## F's ask: the "przystań dla żaglówek" at the harbour on the Czerniakowska bank. OpenStreetMap
+## maps its club house as an unnamed 14 m "building" standing in the water at the dam's west end,
+## and the finger piers of the small south basin only as footpaths. The model: the club house on
+## its outline (white walls, a glazed upper floor, a red hipped roof, a flagpole, a neon name),
+## lit pier-end lamps, sailboats berthed between the fingers and along the dam, and more on
+## buoys in the big basin, all bows to the wind. Built from the map's own outline and the water
+## map (no photos in the cloud: the Mac check settles colours and the berth count).
+const MARINA_AT := Vector2(1588.5, 1589.0)  # inside the unnamed club house
+const MARINA_BOX := Rect2(1535.0, 1480.0, 130.0, 215.0)
+## Berths between the fingers: centre z of each slip, and the x of its boats' centres.
+const MARINA_SLIPS := [[1641.2, [1601.0, 1611.5]], [1647.2, [1601.0, 1611.0]], [1652.8, [1601.5, 1610.5]], [1658.5, [1601.5, 1608.0]]]
+## Boats lying along the dam's north face (z, x) and on buoys in the basin (x, z).
+const MARINA_DAM := [Vector2(1593.0, 1614.2), Vector2(1604.5, 1614.2), Vector2(1616.0, 1614.2), Vector2(1627.5, 1614.2), Vector2(1639.0, 1614.4)]
+const MARINA_BUOYS := [Vector2(1618.0, 1470.0), Vector2(1640.0, 1492.0), Vector2(1620.0, 1515.0), Vector2(1645.0, 1535.0),
+		Vector2(1624.0, 1556.0), Vector2(1598.0, 1530.0), Vector2(1636.0, 1572.0), Vector2(1604.0, 1580.0)]
+const MARINA_LAMPS := [Vector2(1621.0, 1638.6), Vector2(1620.0, 1644.8), Vector2(1615.0, 1650.1), Vector2(1617.0, 1655.9), Vector2(1611.0, 1661.7)]
+const MARINA_HULLS := [Color("#f2f2ee"), Color("#1f3a5f"), Color("#f2f2ee"), Color("#a3262a"), Color("#e8e0c8"), Color("#2e6e6a"), Color("#f2f2ee"), Color("#3b3f46")]
+const MARINA_WALL := Color("#efeee8")
+const MARINA_ROOF := Color("#a4412e")
+const MARINA_TRIM := Color("#1f3a5f")
+const MARINA_NEON := Color(0.3, 0.75, 1.0)
+const MARINA_WIND := Vector2(0.45, -0.89)  # the boats' bows: into the wind from the north-north-east
+
+
+func _find_marina() -> void:
+	var q := _tallest_at(MARINA_AT)
+	if q.size() < 3:
+		return
+	var zone: Array = [_largest(Geometry2D.offset_polygon(q, 1.0, Geometry2D.JOIN_MITER))]
+	# Tiny zones at the corners of the marina's extent keep the site's box over every boat (a
+	# site's zone drops what stands in it, and nothing's centre stands in a 0.2 m square).
+	for c: Vector2 in [MARINA_BOX.position, MARINA_BOX.end, Vector2(MARINA_BOX.position.x, MARINA_BOX.end.y),
+			Vector2(MARINA_BOX.end.x, MARINA_BOX.position.y)]:
+		zone.append(PackedVector2Array([c, c + Vector2(0.2, 0.0), c + Vector2(0.2, 0.2), c + Vector2(0.0, 0.2)]))
+	_add_site("marina", zone)
+	if not sites.is_empty() and sites[-1]["key"] == "marina":
+		sites[-1]["club"] = q
+
+
+## True where the water map says there is open water (a boat's centre wants a metre of it).
+func _marina_wet(p: Vector2, margin: float) -> bool:
+	return not map.has_method("shore_distance") or map.shore_distance(p.x, p.y) > margin
+
+
+func _build_marina(site: Dictionary) -> void:
+	_marina_club(site["club"])
+	var n := 0
+	# Berths: boats along x with the bow to the east, two to a slip where the water goes on.
+	for slip: Array in MARINA_SLIPS:
+		for x: float in slip[1]:
+			var c := Vector2(x, slip[0])
+			if _marina_wet(c, 1.2) and _marina_wet(c + Vector2(4.0, 0.0), 0.6) and _marina_wet(c - Vector2(4.0, 0.0), 0.6):
+				_sailboat(c, Vector2.RIGHT, 8.4 + 0.3 * (n % 3), n)
+				n += 1
+	# Alongside the dam, bows to the west, the head of the harbour.
+	for c: Vector2 in MARINA_DAM:
+		if _marina_wet(c, 0.8):
+			_sailboat(c, Vector2.LEFT, 9.0 + 0.4 * (n % 3), n)
+			n += 1
+	# On buoys in the big basin, all bows into the wind, each a little off the next.
+	for c: Vector2 in MARINA_BUOYS:
+		if _marina_wet(c, 8.0):
+			var d := MARINA_WIND.rotated(0.18 * float(n % 5 - 2)).normalized()
+			_sailboat(c, d, 8.6 + 0.8 * (n % 4), n)
+			_marina_buoy(c + d * 7.5)
+			n += 1
+	for c: Vector2 in MARINA_LAMPS:
+		_marina_lamp(c)
+
+
+## One sailboat on the water at `c`, bow towards `d`: a hull with a dark sheer band and a deck, a
+## doghouse, a mast with a forestay and a furled sail on the boom.
+func _sailboat(c: Vector2, d: Vector2, length: float, i: int) -> void:
+	var g: float = map.terrain_height(c.x, c.y)
+	_g = g
+	var none := Color(0, 0, 0, 0)
+	var a := d.normalized()
+	var b := Vector2(-a.y, a.x)
+	var hl := length * 0.5
+	var hb := length * 0.15
+	var hull := PackedVector2Array([c + a * hl, c + a * hl * 0.45 + b * hb, c - a * hl * 0.8 + b * hb, c - a * hl + b * hb * 0.7,
+			c - a * hl - b * hb * 0.7, c - a * hl * 0.8 - b * hb, c + a * hl * 0.45 - b * hb])
+	var col: Color = MARINA_HULLS[i % MARINA_HULLS.size()]
+	_prism(hull, g - 0.35, g + 0.35, col.darkened(0.25), none, M_STONE)
+	_prism(hull, g + 0.35, g + 0.85, col, Color("#c9a77a"), M_STONE, M_STONE)
+	var cab := PackedVector2Array([c + a * hl * 0.15 + b * hb * 0.6, c - a * hl * 0.5 + b * hb * 0.6,
+			c - a * hl * 0.5 - b * hb * 0.6, c + a * hl * 0.15 - b * hb * 0.6])
+	_prism(cab, g + 0.85, g + 1.35, Color("#e9e8e2"), Color("#d9d8d0"), M_STONE, M_STONE)
+	var m0 := c + a * hl * 0.12
+	var top := Vector3(m0.x, g + length * 1.15, m0.y)
+	_beam(Vector3(m0.x, g + 0.85, m0.y), top, 0.1, Color("#c9ced2"))
+	var bow := c + a * hl * 0.92
+	_beam(Vector3(bow.x, g + 0.85, bow.y), top, 0.03, Color("#8a9096"), false)
+	var boom_end := c - a * hl * 0.85
+	_beam(Vector3(m0.x, g + 1.5, m0.y), Vector3(boom_end.x, g + 1.55, boom_end.y), 0.1, Color("#c9ced2"))
+	_beam(Vector3(m0.x, g + 1.75, m0.y), Vector3(boom_end.x, g + 1.75, boom_end.y), 0.34, Color("#f0eadb"))
+
+
+## A mooring buoy: a small red drum on the water.
+func _marina_buoy(p: Vector2) -> void:
+	_g = map.terrain_height(p.x, p.y)
+	var ring := _circle(p, 0.35, 6)
+	_prism(ring, _g - 0.1, _g + 0.35, Color("#d4483b"), Color("#d4483b"), M_STONE, M_STONE)
+
+
+## A pier-end lamp: a post with a warm lantern (it glows at night).
+func _marina_lamp(p: Vector2) -> void:
+	var g: float = map.terrain_height(p.x, p.y)
+	_g = g
+	var sq := PackedVector2Array([p + Vector2(-0.05, -0.05), p + Vector2(0.05, -0.05), p + Vector2(0.05, 0.05), p + Vector2(-0.05, 0.05)])
+	_prism(sq, g, g + 2.2, BARGE_POST, BARGE_POST, M_STONE, M_STONE)
+	var lan := PackedVector2Array([p + Vector2(-0.14, -0.14), p + Vector2(0.14, -0.14), p + Vector2(0.14, 0.14), p + Vector2(-0.14, 0.14)])
+	var keep := _mode
+	_mode = M_LAMP
+	_prism(lan, g + 2.2, g + 2.55, BARGE_BULB, BARGE_BULB, M_LAMP, M_LAMP)
+	_mode = keep
+
+
+## The club house on its mapped outline: piles into the water, white walls with a glazed upper
+## band, a red hipped roof, a flagpole, and the name in neon on the face the camera sees.
+func _marina_club(outline: PackedVector2Array) -> void:
+	var none := Color(0, 0, 0, 0)
+	var f := _barge_frame(outline)
+	if f.is_empty():
+		return
+	_barge_set(f)
+	var hu: float = f[3]
+	var hv: float = f[4]
+	var low := INF
+	var quay := -INF
+	for p in outline:
+		var h: float = map.terrain_height(p.x, p.y)
+		low = minf(low, h)
+		quay = maxf(quay, h)
+	quay = maxf(quay, low + 0.8)
+	_g = low
+	_prism(outline, low - 0.8, quay, Color("#5b5650"), Color("#8a7a62"), M_STONE, M_STONE)
+	var walls := _largest(Geometry2D.offset_polygon(outline, -0.3, Geometry2D.JOIN_MITER))
+	if walls.size() < 3:
+		walls = outline
+	var eave := quay + 5.4
+	_prism(walls, quay, quay + 2.7, MARINA_WALL, none, M_STONE)
+	_prism(walls, quay + 2.7, eave, Color("#6e8a96"), none, M_PAVILION)
+	_mullions(walls, quay + 2.7, eave, 1.6, 0.05, MARINA_WALL)
+	_mode = M_STONE
+	_prism(_rect(0.0, 0.0, hu + 0.5, hv + 0.5), eave, eave + 0.25, MARINA_TRIM, MARINA_ROOF, M_STONE, M_STONE)
+	_hip(0.0, 0.0, hu + 0.45, hv + 0.45, eave + 0.25, 2.6, MARINA_ROOF)
+	var fp := _w(-hu + 0.8, -hv + 0.8)
+	var base := Vector3(fp.x, quay + 0.2, fp.y)
+	_beam(base, base + Vector3.UP * 9.0, 0.12, Color("#c9ced2"))
+	var nf := Vector3(_a.x, 0.0, _a.y)
+	var fd := Vector3(_b.x, 0.0, _b.y) * 1.5
+	_quad(base + Vector3.UP * 8.0, base + Vector3.UP * 8.0 + fd, base + Vector3.UP * 9.0 + fd, base + Vector3.UP * 9.0, nf, BARGE_FLAG_W)
+	_quad(base + Vector3.UP * 7.0, base + Vector3.UP * 7.0 + fd, base + Vector3.UP * 8.0 + fd, base + Vector3.UP * 8.0, nf, BARGE_FLAG_R)
+	var best := -INF
+	var at := Vector2.ZERO
+	var out := Vector2.ZERO
+	var room := 0.0
+	for face: Array in [[_a, _w(hu + 0.55, 0.0), 2.0 * hv], [-_a, _w(-hu - 0.55, 0.0), 2.0 * hv],
+			[_b, _w(0.0, hv + 0.55), 2.0 * hu], [-_b, _w(0.0, -hv - 0.55), 2.0 * hu]]:
+		var d := (face[0] as Vector2).dot(BEHIND_FACE)
+		if d > best:
+			best = d
+			out = face[0]
+			at = face[1]
+			room = face[2]
+	var word := "PRZYSTAŃ"
+	var k := minf(0.5, (room - 1.0) / Neon.length_of(word))
+	signs.append([word, Vector3(at.x, quay + 3.0, at.y), Vector3(out.x, 0.0, out.y), k, MARINA_NEON])
+	_collide(outline)
+
+
 # --- Warszawa Śródmieście (the railway S3b, docs/landmarks/specs/srodmiescie.md) --------------
 # The cross-city line's underground station by the Palace (1963): above ground only two long
 # pavilions by Romanowicz and Szymaniak, "oversized shelters" over the stairs down to the

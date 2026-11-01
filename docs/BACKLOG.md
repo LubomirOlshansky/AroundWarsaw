@@ -386,6 +386,8 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   which barge is which (the unnamed `boat` north of Wieczór is taken as the white BarKa).
 - OSM maps only four of the boulevards' barges: River Cafe, Dworzec Wodny, Dzień i Noc, Kalima,
   Nowa Fala, WIR and the others are missing; add them as map points (a bake) or by hand.
+- ~~The unnamed 14 m "building" in Port Czerniakowski's water~~ Done 2026-11-02: it is the marina's club house (site `marina`, spec przystan.md) with sailboats; Marinka is a two-deck white barge. Mac photo check: club house colours and storeys, the real berth count, whether the finger piers hold the boats the way the model has them (OSM maps the piers only as footpaths).
+- The marina's boats float with no wake or reflection; masts have no lights at night (only the pier lamps glow).
 - The 12 `boathouse` sheds by the harbours (Port Czerniakowski, the Praga side) and the "yes"
   building at the harbour's mouth still stand 14 m tall (OSM gives no height): a sensible height
   in the bake, or small models.
