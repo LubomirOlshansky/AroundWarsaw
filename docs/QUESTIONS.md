@@ -24,6 +24,13 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · driving · photo mode and POMOC DROGOWA: phone check** — Fixed in the cloud
+  (headless check and a game run: the car moved 0.00 m under Fotka; the button towed it onto the
+  lane). Default built: the button is the last row of JAZDA's left column, always available on
+  the ground (also mid-job or mid-chase; in the water it calls the water tow, in the air it does
+  nothing). Phone check: open FOTKA by a wall for a minute and close it, the car stays; press
+  POMOC DROGOWA, the card closes and the car is on the road with the "Towed free" toast.
+
 - **2026-11-01 · landmarks · metro entrances: Mac look check** — Built in the cloud (flat
   ground). Default built: `Props.add_metro_entrance` per bake form (`canopy` vaulted glass over
   steel ribs with a red lit fascia, `steps` granite stairwell, `footway` stepped concrete walls),

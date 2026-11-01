@@ -378,6 +378,9 @@ var first_race_flag := false
 var tape: Tape
 var spacer: Spacer
 var fotka: Fotka
+## Where the car stood when Fotka opened (Transform3D.IDENTITY: not open): put back on close, so
+## nothing that happened while the camera was away (a push from traffic) leaves it elsewhere.
+var _fotka_car := Transform3D.IDENTITY
 var egg_flag := ""
 var egg_log := false
 var found_eggs := ""
@@ -2644,7 +2647,7 @@ func _build_moments(data: Dictionary, world: Node3D) -> void:
 			fotka.post_quad = c
 	add_child(fotka)
 	fotka.setup(places, spots)
-	fotka.closed.connect(func() -> void: _cut_camera())
+	fotka.closed.connect(_on_fotka_closed)
 	if hud.settings_panel != null:
 		var page: Control = hud.settings_panel.get("notebook_page")
 		hud.settings_panel.set("notebook_eggs", egg_book)
@@ -2977,7 +2980,25 @@ func _open_fotka() -> void:
 	car.forward_speed = 0.0
 	fotka.safe = hud.safe_rect()
 	fotka.pt = hud.pt
+	_fotka_car = car.global_transform
 	fotka.open(_vehicle_position(), cam_yaw, camera_pitch, cam.size)
+
+
+## Fotka closed (2026-11-01, F stuck in a building after a photo on the iPhone): the car back
+## where it stood when Fotka opened, stopped, then the camera cut to it. The hold parks the car
+## now (_read_input), so it no longer reverses while the camera is away; this is the backstop.
+func _on_fotka_closed() -> void:
+	if _fotka_car != Transform3D.IDENTITY and not flying:
+		var moved := car.global_position.distance_to(_fotka_car.origin)
+		car.global_transform = _fotka_car
+		car.vel = Vector3.ZERO
+		car.velocity = Vector3.ZERO
+		car.forward_speed = 0.0
+		car.reset_physics_interpolation()
+		if photo_log:
+			print("fotka: car put back (it had moved %.2f m)" % moved)
+	_fotka_car = Transform3D.IDENTITY
+	_cut_camera()
 
 
 ## The car on the lane nearest `at` (within `reach` m), else on the point itself.
@@ -4049,6 +4070,9 @@ func _on_setting(key: String, value: Variant) -> void:
 		"fotka":
 			_open_fotka.call_deferred()
 			return
+		"unstuck":
+			_unstuck.call_deferred()
+			return
 		"wander":
 			settings.wander = int(value) == 1
 			if spacer != null:
@@ -4074,7 +4098,24 @@ func _on_setting(key: String, value: Variant) -> void:
 func _on_car_stuck() -> void:
 	if flying or autopilot or car.in_water:
 		return
-	# Back onto the nearest lane, facing its way (else just the nearest free spot).
+	_tow_to_lane("car stuck")
+
+
+## The pause card's POMOC DROGOWA · unstuck button (JAZDA tab, 2026-11-01): the same tow as a
+## pinned car's, asked for by the player (stuck inside a wall, where nothing pins it). In the
+## water the water's own tow does it; in the air there is nothing to free.
+func _unstuck() -> void:
+	if flying or title != null or not _started:
+		return
+	if car.in_water:
+		_tow_out_of_water()
+		return
+	car.reset_motion()
+	_tow_to_lane("unstuck")
+
+
+## The car onto the nearest lane facing its way (else just the nearest free spot), stopped.
+func _tow_to_lane(why: String) -> void:
 	var at := car.global_position
 	var yaw := car.rotation.y
 	var lane := _lane_spot(at, yaw)
@@ -4089,7 +4130,7 @@ func _on_car_stuck() -> void:
 	car.reset_physics_interpolation()
 	hud.toast("Pomoc drogowa: wyciągnięci!", "Towed free")
 	_cut_camera()
-	print("car stuck: moved to %.1f, %.1f" % [spot.x, spot.z])
+	print("%s: moved to %.1f, %.1f" % [why, spot.x, spot.z])
 
 
 ## The nearest lane to `at` on its level (not a deck overhead, nor a road under the bridge it is
@@ -5331,12 +5372,15 @@ func _read_input(dt: float) -> void:
 		car.parked = true
 		controls.release()
 		return
-	# Loop MW-6: Fotka holds the car (and the helicopter) still; the city goes on.
+	# Loop MW-6: Fotka holds the car (and the helicopter) still; the city goes on. Parked, not
+	# just braking: a held brake at a standstill reverses (car.gd), and the car backed into the
+	# buildings behind it for as long as Fotka was open (F, 2026-11-01).
 	if fotka != null and fotka.is_open():
 		car.target_dir = Vector3.ZERO
 		car.steer = 0.0
 		car.throttle = 0.0
 		car.braking = true
+		car.parked = true
 		controls.release()
 		heli.input_dir = Vector3.ZERO
 		heli.climb = 0.0

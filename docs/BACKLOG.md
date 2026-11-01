@@ -423,6 +423,9 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   never felt on the phone ("From the driving-feel loop", QUESTIONS 2026-10-31). Comes with F's
   playthrough above.
 - The NaN car is unexplained (once in ~10 replays; "From loop 3h slice 4"; PR #115 adds a log).
+- On the phone: Fotka by a wall for a minute leaves the car where it stood, and JAZDA's POMOC
+  DROGOWA tows it onto the road (fixed and checked headless 2026-11-01; QUESTIONS). Every hold of
+  the car (title, Fotka, flying, police) now parks it, so none reverses at 7 m/s any more.
 
 ### P1: main line and side quests (game-designer, Opus for the review)
 - Every activity has a headless check (rides, side jobs, couriers, ladder, syrenki, eggs, garage,
