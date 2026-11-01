@@ -71,7 +71,22 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
 - **A full `tools/verify.sh` and `tools/verify.sh --ios` on the Mac on today's main**, both city
   paths (runtime and `--prebuilt`), plus `python3 -I tools/check_roads.py` and
   `python3 -I tools/check_map_data.py`. Every landmark PR since 2026-10-31 changed geometry next to
-  roads (zones, plinths, forecourts) and only `check_mesh_quality` ran on them. Not verified.
+  roads (zones, plinths, forecourts) and only `check_mesh_quality` ran on them. **Done on the Mac
+  2026-11-01** (main 00a90fb): the first run had 5 FAILs, all fixed in one PR: the prebuilt bake
+  refused (the slabs and tower behind the stores and Hotel Metropol's roof sign had no
+  SITE_AREAS / SITE_NAMES line), the sectors' Old Town buildings differed from the whole map's
+  (dormers seeded by triangle index), the Copernicus Centre's collision ring reached the buses in
+  Tunel Wisłostrady, check_landmarks failed PZU (hidden behind Q22 from the camera), BUW (its
+  tallest cell a neighbour's roof) and Złote Tarasy (flown over at 45 m), and five specs (anna,
+  gwardii, wizytki, wszystkich, zamek) missed sections. After the fix 69 of 70 steps pass (places
+  WARN as before; roads, map data, first10, first10-run, endcard, opening, cassettes, parodies,
+  both city paths PASS; `--ios` export and unsigned build PASS). Left: the next item.
+- **check_streaming's look pass fails every run, not only on a busy Mac** (found 2026-11-01, map
+  lane, Opus): `--only=pass` on an idle Mac, twice, the same frames: looking at a far target,
+  sector s_-6_0 (x -3072..-2560, z 0..512, the Warsaw HUB side) is still loading at 530 m while
+  proxies cover up to 100 % of the view's ground for 24 frames (PROXY_SHARE 5 %). Already on main
+  2d04afe, before this audit's fixes. Find which look target points there (likely one added since
+  the loading fix of 2026-10-31) and load the target's sector first.
 - **Map checks in CI**: the derived map pack as a release asset that CI downloads (or a small test
   map), so roads, drape, drive and the game runs gate every PR again ("From loop 3d-1", CI). Gap.
 
