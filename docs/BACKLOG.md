@@ -268,8 +268,8 @@ plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 check
   Scena Relax keeps R1's pink sign on its mapped building. Both have info cards. Only the phone
   shows the signs' size at the default zoom.
 - **Open:** R3 part 2: granite kerbs, Złota's setts and elm alley, the fountain at the
-  old tunnel mouth, the three new crossings (orthophoto check on the Mac); R7 street name plates, a bike dock, tram
-  stops, bollards; R8 the museum's ribbon in stretches and the stepped roofline.
+  old tunnel mouth, the three new crossings (orthophoto check on the Mac); R7 street name plates, a bike
+  dock, tram stops, bollards; R8 the museum's ribbon in stretches and the stepped roofline.
 - Found: the cloud can't read Wykop (login wall) or Commons (403); the trends come from Google's
   2025 year in search and the trade press. A Mac pass could add Wykop's own tags.
 
