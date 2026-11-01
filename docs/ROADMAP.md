@@ -122,8 +122,9 @@ then the Launch gate.
 - [x] Crash scenes (F, 2026-11-01, `crash_scenes.gd`, `check_crash_scenes`, PR "crash scenes"):
       every few minutes a fender bender ahead on a main road, two wrecks in the kerb lane, a
       police car with its lights and a yellow ambulance, the drivers arguing, people filming,
-      KEBAB FM's traffic news; traffic queues and goes round. Left: the phone's look, a siren
-      sound, a minimap marker (docs/design/crash-scenes.md)
+      KEBAB FM's traffic news; traffic queues and goes round. Siren at the ambulance and an amber
+      minimap / full-map dot added (2026-11-01). Left: the phone's look and a phone check of
+      the siren level and the dot (docs/design/crash-scenes.md)
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
 

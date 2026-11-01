@@ -30,8 +30,9 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
 `check_crash_scenes.gd` in verify and CI, `--crash=now|X,Z|on|0`, `--crash-log`. Left:
 - The phone's look (the ambulance's lettering and band at phone size, the halos at night) and a
   bench on the device with a scene in view (+0 draw calls by construction; cloud bench below).
-- A siren or hazard-light sound at the scene (sfx.gd has the police siren only for chases).
-- A minimap or full-map marker for the scene (today only the radio names the street).
+- Phone check of the new scene siren (sfx.scene_siren, the chase siren at -20 dB from the
+  ambulance, a voice of its own) and the amber minimap / full-map dot (hud.set_scene_mark):
+  level, and whether the dot reads at phone size. No hazard-light tick yet.
 - Wrecks have no hazard lights or broken glass; nobody waves the traffic on.
 - The scene's people stand still (no gestures); the onlookers' phones are not modelled.
 - A scene on a one-lane road (none today: they need 2+ lanes so the traffic can go round).
@@ -299,8 +300,7 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   a shortcut past every gate), słoiki pay 40 + 30 a jar (was 50 + 35); the guide's, Halina's, the
   end card's and the final's words made player-neutral; "10 jobs" kept as every paid job kind; the
   koguty line was already in the first contact. Left: F's timed run on the phone (the hour, the
-  pay), and the police's "pan" outside the first contact (formal, assumes a man; ~20 lines in
-  dialogue.json `police_*`), a content pass of its own.
+  pay). The police's "pan" lines outside the first contact are player-neutral now (2026-11-01).
 - The DEMO 6.3 counts left: the second słoiki station (jobs.gd has one) and the Łazienki peacock
   rescue (none yet; the Old Town tourist is a "fainted" street rescue in missions.gd). The 10 roof
   cassettes and the landmark cards (72 vs ~25) are done (2026-11-01).

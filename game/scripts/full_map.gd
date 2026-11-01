@@ -69,6 +69,8 @@ var safe := Rect2()
 var car := Vector2.ZERO
 var car_yaw := 0.0
 var unknown := PackedVector2Array()
+## A crash scene (hud.set_scene_mark), Vector2.INF for none.
+var scene_mark := Vector2.INF
 var found := PackedVector2Array()
 var target := Vector2.INF
 ## The garage loop: Warsztat u Mirka's diamond (INF: not shown yet).
@@ -624,6 +626,11 @@ func _paint() -> void:
 		var at := to_screen(q)
 		if view.has_point(at):
 			hud._tri_question(at, 1.6)
+	if scene_mark != Vector2.INF:
+		var at := to_screen(scene_mark)
+		if view.has_point(at):
+			hud._tri_fan(at, 4.4 * pt, 0.0, TAU, hud.OUTLINE)
+			hud._tri_fan(at, 3.2 * pt, 0.0, TAU, hud.SCENE_AMBER)
 	if garage != Vector2.INF:
 		var g := to_screen(garage)
 		if view.has_point(g):
