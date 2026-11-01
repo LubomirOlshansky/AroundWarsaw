@@ -10,8 +10,12 @@ Order: plac Bankowy to plac Zbawiciela. Pass 1 (cloud, Sonnet): Kościół Najś
 modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
 - Mac photo check of the church: plaster and roof colours, belfry and spire shapes, the dome's
   height, whether the porch is a portico or a recess (all estimated; towers' 76 m is mapped).
-- Next on the street: MDM's arcades, reliefs and corner towers (LANDMARKS 2.8), the church's
-  night lighting, Plac Zbawiciela's rotunda-side cafés, houses and roads street by street.
+- Pass 2 (cloud, Sonnet, 2026-11-01): MDM modelled on the kept skin (site `mdm`, spec `mdm.md`,
+  2002 tris): ground-floor arcades on the facades facing the square and the axis, four corner
+  towers with hipped attics and spires, a terracotta relief on each tower's square face. Mac look
+  check parked (QUESTIONS): arcade rhythm and depth, tower heights, the real reliefs.
+- Next on the street: the church's night lighting, Plac Zbawiciela's rotunda-side cafés, the
+  reliefs' real subjects, Marszałkowska's houses, roads and street life street by street.
 
 ## Old Town Market Square, the Syrenka and the decks (F, 2026-11-01)
 

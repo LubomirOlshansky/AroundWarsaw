@@ -1087,6 +1087,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_stadion_pkp(s)
 			"srodmiescie":
 				_build_srodmiescie(s)
+			"mdm":
+				_mark_zone(s)  # the blocks stay LoD2's, in their skin; the arcades, towers and reliefs are ours
+				_build_mdm(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -2783,6 +2786,149 @@ func _find_mdm() -> void:
 	_add_site("mdm", zone)
 	if not sites.is_empty() and sites[-1]["key"] == "mdm":
 		sites[-1]["skin"] = {"mode": M_MONUMENT, "wall": MDM_STONE, "roof": MDM_ROOF}
+
+
+## MDM's arcades, corner towers and reliefs (spec docs/landmarks/specs/mdm.md, LANDMARKS 2.8).
+## The blocks stay LoD2's in their skin; on top of them:
+## - a ground-floor arcade (podcienia) on every long facade that looks at the square or the
+##   Marszałkowska axis: square piers every ~5.4 m under a flat entablature, dark shopfronts
+##   behind, a cornice on the front edge;
+## - four corner towers at the blocks' ends where Marszałkowska meets the square (two blocks'
+##   south ends in the north, the two gate blocks in the south): two stepped stages, a hipped
+##   attic and a spire, a terracotta relief panel on the face that looks at the square.
+## The frame is the street's grid: u along Marszałkowska (SSE), v across (WSW).
+const MDM_A := Vector2(0.349, 0.937)
+const MDM_TRIM := Color("#e6dcc4")
+const MDM_PIER := Color("#d8ccb0")
+const MDM_DARK := Color("#34383b")
+const MDM_GOLD := Color("#c9a24a")
+const MDM_ARCADE_DEPTH := 2.9
+const MDM_BAY := 5.4
+## Towers: [centre, block height, half size along the street, half size across].
+const MDM_TOWERS := [
+	[Vector2(-458.6, 1286.5), 30.7, 5.8, 7.5],   # east block's south end
+	[Vector2(-588.8, 1334.4), 30.7, 5.8, 8.5],   # west block's south end
+	[Vector2(-499.5, 1388.5), 27.4, 7.5, 5.8],   # the south gate, west
+	[Vector2(-462.0, 1374.3), 27.4, 7.5, 5.8],   # the south gate, east
+]
+
+
+func _build_mdm(site: Dictionary) -> void:
+	_a = MDM_A
+	_b = Vector2(-MDM_A.y, MDM_A.x)
+	_mode = M_STONE
+	var zone: Array = site["zone"]
+	for poly: PackedVector2Array in zone:
+		_mdm_arcades(_simplify(poly, 0.8), zone)
+	for t: Array in MDM_TOWERS:
+		_mdm_tower(t[0], float(t[1]), float(t[2]), float(t[3]))
+
+
+## The arcades along one block's facades that look at the square or the axis.
+func _mdm_arcades(poly: PackedVector2Array, zone: Array) -> void:
+	var n := poly.size()
+	for i in n:
+		var p0 := poly[i]
+		var p1 := poly[(i + 1) % n]
+		var length := p0.distance_to(p1)
+		if length < 14.0:
+			continue
+		var out := _out(poly, p0, p1)
+		var mid := (p0 + p1) * 0.5
+		var target := Geometry2D.get_closest_point_to_segment(mid, MDM_SQUARE, MDM_SOUTH)
+		if mid.distance_to(target) > 100.0 or out.dot((target - mid).normalized()) < 0.55:
+			continue
+		var blocked := false
+		for z: PackedVector2Array in zone:
+			if Geometry2D.is_point_in_polygon(mid + out * 3.0, z):
+				blocked = true
+				break
+		if blocked:
+			continue
+		_mdm_arcade(p0, p1, out)
+
+
+## One arcade along p0 → p1 (the facade), reaching `out` from it. Frame: u along the facade, v out.
+func _mdm_arcade(p0: Vector2, p1: Vector2, out: Vector2) -> void:
+	var length := p0.distance_to(p1)
+	var e := (p1 - p0) / length
+	_o = p0
+	_a = e
+	_b = out
+	_g = minf(map.terrain_height(p0.x, p0.y), map.terrain_height(p1.x, p1.y))
+	var g := _g
+	var bays := maxi(int(round(length / MDM_BAY)), 2)
+	var step := length / bays
+	_mode = M_STONE
+	# the piers, the end ones kept a half bay in so two arcades meeting at a corner do not clash
+	for k in range(1, bays):
+		_lbox(k * step, MDM_ARCADE_DEPTH - 0.6, 0.55, 0.55, g - 0.5, g + 5.6, MDM_PIER, M_STONE, MDM_TRIM)
+	# the entablature over the walk, a cornice on its front edge
+	_lbox(length * 0.5, MDM_ARCADE_DEPTH * 0.5 - 0.1, length * 0.5 - 0.3, MDM_ARCADE_DEPTH * 0.5 + 0.2, g + 5.6, g + 6.3, MDM_TRIM, M_STONE, MDM_TRIM)
+	_lbox(length * 0.5, MDM_ARCADE_DEPTH + 0.05, length * 0.5 - 0.3, 0.15, g + 6.3, g + 6.7, MDM_TRIM, M_STONE, MDM_TRIM)
+	# shopfronts in each bay, dark between pilasters
+	_mode = M_GLASS
+	for k in bays:
+		_wall(_w(k * step + 1.0, 0.3), _w((k + 1) * step - 1.0, 0.3), g - 0.3, g + 4.6, _b, MDM_DARK)
+	_mode = M_STONE
+	# cars meet the arcade's front line
+	_collide(PackedVector2Array([_w(0.4, 0.0), _w(length - 0.4, 0.0), _w(length - 0.4, MDM_ARCADE_DEPTH), _w(0.4, MDM_ARCADE_DEPTH)]))
+
+
+## One corner tower on a block's end (the base sunk 1.5 m into the roof): two windowed stages
+## with pilasters and cornices, a hipped attic, a spire; the face towards the square carries a
+## relief panel.
+func _mdm_tower(c: Vector2, block_h: float, ha: float, hb: float) -> void:
+	_o = c
+	_a = MDM_A
+	_b = Vector2(-MDM_A.y, MDM_A.x)
+	_g = map.terrain_height(c.x, c.y)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	var y0 := g + block_h - 1.5
+	_mode = M_STONE
+	# a hidden core inside the block ties the tower to the ground (the mesh check's floating-parts rule)
+	_lbox(0.0, 0.0, ha - 0.8, hb - 0.8, g - 0.5, y0 + 1.0, MDM_STONE, M_STONE, MDM_STONE)
+	# stage 1: the shaft, pilasters on its corners, a cornice
+	_prism(_rect(0.0, 0.0, ha, hb), y0, y0 + 10.5, MDM_STONE, none, M_MONUMENT)
+	for su: float in [-1.0, 1.0]:
+		for sv: float in [-1.0, 1.0]:
+			_lbox(su * (ha + 0.15), sv * (hb + 0.15), 0.55, 0.55, y0 + 1.5, y0 + 10.5, MDM_TRIM, M_STONE, MDM_TRIM)
+	_lbox(0.0, 0.0, ha + 0.6, hb + 0.6, y0 + 10.5, y0 + 11.5, MDM_TRIM, M_STONE, MDM_TRIM)
+	# stage 2: narrower, windowed, a cornice
+	_prism(_rect(0.0, 0.0, ha - 1.3, hb - 1.3), y0 + 11.5, y0 + 18.0, MDM_STONE, none, M_MONUMENT)
+	_lbox(0.0, 0.0, ha - 0.5, hb - 0.5, y0 + 18.0, y0 + 19.0, MDM_TRIM, M_STONE, MDM_TRIM)
+	# the hipped attic, a spire with a gilt ball
+	_frustum(_rect(0.0, 0.0, ha - 1.2, hb - 1.2), y0 + 19.0, _rect(0.0, 0.0, 0.5, 0.5), y0 + 25.0, MDM_ROOF, MDM_ROOF)
+	_lbox(0.0, 0.0, 0.18, 0.18, y0 + 25.0, y0 + 31.0, MDM_GOLD, M_STONE, MDM_GOLD)
+	_lbox(0.0, 0.0, 0.5, 0.5, y0 + 27.0, y0 + 27.8, MDM_GOLD, M_STONE, MDM_GOLD)
+	# the relief on the face towards the square: a framed terracotta field, a pale sun, two figures
+	var look := (MDM_SQUARE - c).normalized()
+	var faces := [[Vector2(1, 0), ha], [Vector2(-1, 0), ha], [Vector2(0, 1), hb], [Vector2(0, -1), hb]]
+	var best := 0
+	var best_d := -2.0
+	for k in faces.size():
+		var f: Vector2 = faces[k][0]
+		var wd := _a * f.x + _b * f.y
+		if wd.dot(look) > best_d:
+			best_d = wd.dot(look)
+			best = k
+	var f: Vector2 = faces[best][0]
+	var half: float = faces[best][1]
+	var yc := y0 + 6.2
+	# Thin boxes on the face: `across` along it, `out` away from the tower, half sizes in the
+	# same two directions (a face on the u axis is crossed along v and the other way round).
+	var tang := Vector2(-f.y, f.x)
+	var on_u := absf(f.x) > 0.5
+	var panel := func(across: float, out: float, h_across: float, h_out: float, y_lo: float, y_hi: float, col: Color) -> void:
+		var at := tang * across + f * out
+		_lbox(at.x, at.y, h_out if on_u else h_across, h_across if on_u else h_out, y_lo, y_hi, col, M_STONE, col)
+	panel.call(0.0, half + 0.1, 2.15, 0.15, yc - 3.0, yc + 3.0, MZ_FRAME)
+	panel.call(0.0, half + 0.25, 1.7, 0.15, yc - 2.6, yc + 2.6, MZ_FIELD)
+	panel.call(0.0, half + 0.4, 0.6, 0.1, yc + 0.9, yc + 2.1, MZ_FRAME)
+	for sd: float in [-1.0, 1.0]:
+		panel.call(sd * 0.8, half + 0.4, 0.3, 0.1, yc - 2.2, yc + 0.6, MZ_FRAME)
+	_mode = M_STONE
 
 
 # --- Kolumna Zygmunta (the landmarks loop, Old Town) ---------------------------------------------

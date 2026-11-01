@@ -30,6 +30,7 @@ const BUDGET := {
 	"hotel_starowka": 330,
 	"karmelici": 450,
 	"kordegarda": 560,
+	"mdm": 2400,
 	"mickiewicz": 340,
 	"potocki": 200,
 	"prus": 250,
