@@ -340,6 +340,8 @@ in). Gaps the orchestrator added on 2026-10-28, so nothing found so far falls th
   with the landmark lane running beside it.
 
 ### v1.0 — "Ship it"
+- Trend spots 2025–26 (docs/design/trends-2025-26.md): eight parody signs built; queue, drop quest and
+  scooter zones to follow (BACKLOG "Trends 2025–26").
 - Device pass on iPhones (11 → 17 Pro): 60 fps target, memory under 1.5 GB, load < 4 s.
 - Settings (style, controls, sound), onboarding, App Store assets, privacy, credits
   (OSM ODbL, GUGiK CC BY 4.0 for trees, ZTM data terms).

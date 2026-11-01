@@ -3,6 +3,15 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Trends 2025–26 (F, 2026-11-01)
+
+Spec and sources: `docs/design/trends-2025-26.md`. Built: eight parody trend spots (`Storefronts.TRENDY`).
+- [ ] Wykop/X/TikTok skim (cloud could not fetch them); adjust the trend list.
+- [ ] Queue crowd and a "limited drop" side quest at PISTACJA DO KOŃCA.
+- [ ] E-scooter 12 km/h zones (rules of 3 June 2026) as slow zones with signs.
+- [ ] Lines about matcha, padel, natural wine in dialogue.json (PL + EN, Polish ≤ 70 chars).
+- [ ] Phone check: sign sizes and placement of the eight new spots (not run: no Godot in the cloud).
+
 ## Audit: what is verified beyond the landmarks (2026-11-01)
 
 F asked whether the roads, the street details and the start of the game are really checked, or
