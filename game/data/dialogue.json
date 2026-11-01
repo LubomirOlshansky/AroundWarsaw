@@ -1794,6 +1794,27 @@
       {
         "only": "padel"
       }
+    ],
+    [
+      "Trener Dominik: nie biegaj, ustaw się. Znowu.",
+      "Coach Dominik: don't run, position yourself. Again.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Pani Basia: wolny kort? Tylko w poniedziałek o szóstej.",
+      "Basia at the desk: a free court? Only Monday at six.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Prezes z Mokotowa: trzy rakiety, zero meczów. Grupa działa.",
+      "The Mokotów boss: three rackets, no matches. The group chat thrives.",
+      {
+        "only": "padel"
+      }
     ]
   ],
   "runners": [

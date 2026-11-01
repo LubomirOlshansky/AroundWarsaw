@@ -2248,6 +2248,13 @@ func _life_start() -> void:
 					Vector2(car.global_position.x, car.global_position.z).distance_to(Vector2(ap.x, ap.z))])
 	if trend_job_flag > 0 and trend_job != null:
 		var i := trend_job_flag - 1
+		if trend_job_flag == 5 and crowds != null and crowds.by_id.has(Crowds.PADEL_ID):
+			var cd: Vector2 = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]["door"]
+			_put_car_near(cd, 60.0)
+			life.tick(0.0)
+			if not trend_job.offer_czwarty():
+				print("trend job: --trend-job=5: no request (no kerb or door fits)")
+			return
 		if trend_job_flag == 4 and crowds != null and crowds.by_id.has(Crowds.PISTACJA_ID):
 			# The limited drop at PISTACJA, whatever the clock (no "sold out").
 			var pd: Vector2 = crowds.sites[crowds.by_id[Crowds.PISTACJA_ID]]["door"]
@@ -3356,7 +3363,7 @@ func _parse_args() -> void:
 		elif arg.begins_with("--trend-day="):
 			trend_day_flag = maxi(0, int(arg.trim_prefix("--trend-day=")))
 		elif arg == "--trend-job" or arg.begins_with("--trend-job="):
-			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 4)
+			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 5)
 			trend_log = true
 		elif arg.begins_with("--club="):
 			# Loop MW-3: the car at a club's door (places.json id or name), no title.

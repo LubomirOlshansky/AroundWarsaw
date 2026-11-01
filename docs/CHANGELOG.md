@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- New padel side job "Czwarty": on busy evenings the court needs a fourth player, so fetch one from across town before the booking ends. Padel also has its own page in the notebook, and the coach, the receptionist and the boss now chat in the court queue.
 - Four 12 km/h e-scooter streets (Złota, Zgody, Bracka, Plac Centralny) now greet you with a short notice when you drive in.
 - PADELNIA now has a line of people waiting for a court (weekday evenings and weekend mornings), and the padel crowd has jokes to tell.
 - PISTACJA DO KOŃCA now has a queue, and on Fridays 16:00-18:30 a limited drop: 36 people in line and a new "Limitka" job (queue for a box, deliver it before it melts).
