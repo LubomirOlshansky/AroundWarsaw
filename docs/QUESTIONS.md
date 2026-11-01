@@ -18,18 +18,23 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-10-31 · landmarks · University Library (BUW)** — Built from OpenStreetMap alone (no
+  free photo, the cloud reaches neither Commons nor GUGiK): the block is OSM's 10.9 m (LoD2 on
+  the Mac may say more) and the four philosophers' columns stand on Dobra before the copper
+  pages (the orthophoto can't show them). The roof follows the orthophoto since 2026-11-01.
+  Default built: those. F to check against a photo or the street (docs/landmarks/buw.md).
 - **2026-11-01 · landmarks · the Palace's stone colour** — The Mac photo check (PR #128) finds the
   Palace's stone too warm: the photos show a cooler grey-beige (about #cfc6b5 in sun) than the
   game's sandstone #d8c49c (SANDSTONE in landmarks.gd, also the LoD2 bake's colour). Default
   built: the warm sandstone kept (it carries the golden-hour landing shot and the Dusk floodlight).
   Alternative: move SANDSTONE towards #cfc6b5 and re-shoot the landing.
 
-- **2026-11-01 · landmarks · Copernicus Science Centre** — Built from OpenStreetMap and LoD2
-  alone (the photos in `refs/` are on the Mac): the block is LoD2's 13 m (OSM says 7.6), its
-  panels dark grey-brown with windows scattered like pixels, the river corner hangs 5 m over a
-  glazed ground floor, the planetarium is a black faceted boulder to 11.5 m, the garden is
-  lawns between straight paths. Default built: those. F to check against the photos
-  (docs/landmarks/kopernik.md).
+- **2026-11-01 · landmarks · Copernicus Science Centre** — The Mac's photo check is applied
+  (copper-red planetarium drum and dome, warm strip facade, craters and paths on the roof, the
+  cantilever), and the re-check's roof layout (all seven craters, 2 + 3 + 2 with the stair head)
+  and faceted planetarium with its dark clerestory. Still parked: the river corner's glazed
+  ground floor (kept as built), the steel frame's stairs. Details:
+  docs/landmarks/kopernik.md.
 
 - **2026-10-31 · driving · quest stop assist** — Every pickup and drop-off (rescue, Podwózka,
   kebab and słoiki doors, "Na czasie", the Leżak depot) now has a 9 m ring (was 6-7), counts
