@@ -3,9 +3,8 @@ extends Node3D
 ## storefronts and parodies, built at runtime from the data both city paths have (the lane graph,
 ## the `address` and `kebab` pois, the notebook's places), never baked into the sector scenes.
 ##  - **Frogs** (parodies.md 2; ids stay `rechotka`): frog-green corner shops on the ground floor
-##    of buildings at junctions (an address's door within JUNCTION_REACH m of a junction of three
-##    or more ways), 70 m apart, at most 24 a km² in the hero districts and 10 elsewhere, at most 2
-##    in the Old Town, none on a landmark; the two triple corners (Marszałkowska × Świętokrzyska and
+##    of the real corner shops of the chain (the bake's OSM `convenience` pois with `fr`, 70 m
+##    apart, none on a landmark); the two triple corners (Marszałkowska × Świętokrzyska and
 ##    Plac Zbawiciela: three Frogs on one junction, the spacing waived, egg `easter_rechotka`).
 ##    The facade itself comes from the city's own wall colliders when the shop's sector has
 ##    loaded: a ray from the road point at the door towards the building (the wall and its
@@ -17,12 +16,13 @@ extends Node3D
 ##    cafés make 18 signs; Syreni Szept is closed and dark): rows added to neon_signs.gd's atlas
 ##    (this script's `venue_atlas`, so the sector scenes stay as baked), each sign an instance in
 ##    its sector's own Neon MultiMesh (+0 draw calls), 0.14 m off the wall the ray found.
-##  - **Leżak** (5): dumped e-scooters on the pavements by the junctions, lying (1 in 30 at a
-##    Frogs door), the empty parking zones (one per ~400 m in the hero districts; the one by Metro
-##    Nowy Świat-Uniwersytet holds a standing Leżak: egg `easter_lezak`); the car within 1.2 m
-##    pushes one 1-3 m (never onto a lane), a clatter and the `lezak` `knock` aside once a minute.
-##  - **Metro entrances** (vision 3.5): two or three canopies with an M post on the pavements by
-##    each station place of the notebook's metro chapter.
+##  - **Leżak** (5): dumped e-scooters from the bake's `scooter` pois (lying, on a bench, in the
+##    grass, on a shelter roof; 1 in 30 Frogs doors also has one), the empty parking zones from
+##    `scooter_zone` (the one by Metro Nowy Świat-Uniwersytet holds a standing Leżak: egg
+##    `easter_lezak`); the car within 1.2 m pushes one 1-3 m (never onto a lane), a clatter and
+##    the `lezak` `knock` aside once a minute.
+##  - **Metro entrances** (vision 3.5): a canopy with an M post at each street `subway_entrance`
+##    poi, facing its `yaw`.
 ##  - **Kebab** (6.1): U ZDZICHA and NA CIENKIM name boards on the stands nearest those places,
 ##    the vendors' `zdzich`, `cienkim`, `hala`, `stadium` tags (jobs.gd draws the other stands in
 ##    a MultiMesh per tile); **billboards** (6.2): the four new `signs` lines (eggs.gd's
@@ -43,15 +43,9 @@ const EggBook := preload("res://scripts/egg_book.gd")
 ## The sector size (the city's 512 m tiles: map_builder.gd SECTOR).
 const TILE := 512.0
 const TICK := 0.5
-## Frogs (parodies.md 2.2): an address's road point this near a junction node anchors a shop.
+## Frogs (parodies.md 2.2): a triple corner's address road point this near a junction node anchors a shop.
 const JUNCTION_REACH := 26.0
 const SPACING := 70.0
-const HERO_PER_KM2 := 24
-const OTHER_PER_KM2 := 10
-## The hero districts (DEMO 2.3: Śródmieście, the Royal Route, the Old Town, Powiśle, Praga and the
-## stadium), as the map's rectangle east of Emilii Plater (metres).
-const HERO := Rect2(-1500.0, -2050.0, 3700.0, 3800.0)
-const OLDTOWN_MAX := 2
 ## The triple corners (place ids of the notebook: their junctions).
 const TRIPLES := ["swietokrzyska_metro", "plac_zbawiciela"]
 const TRIPLE_REACH := 40.0
@@ -129,23 +123,12 @@ const LOUNGES := {
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
 const VENUE_PX_MIN := 0.08
-## Leżak (5.2; *guess*): scooters a km² in the hero districts and elsewhere, the zones' spacing.
-const LEZAK_HERO := 30
-const LEZAK_OTHER := 12
-const ZONE_SPACING := 400.0
 const KNOCK_R := 1.2
-## How far a Leżak keeps from a lane's middle (lane_graph.gd snap's reach).
-const LANE_CLEAR := 2.0
 const KNOCK_GAP := 60.0
 const LEZAK_CELL := 16.0
-## The metro stations (notebook places) and the entrances each gets.
-const STATIONS := ["ratusz_arsenal", "swietokrzyska_metro", "patelnia", "politechnika", "rondo_onz",
-		"nowy_swiat_uniwersytet", "stadion_metro", "centrum_nauki_kopernik", "rondo_daszynskiego"]
-const METRO_PER := 3
 ## Loop jobs-2: the payphone's place (E40) and how far from its point it may stand (m).
 const PHONE_PLACE := "plac_konstytucji"
 const PHONE_REACH := 70.0
-const METRO_REACH := 70.0
 ## The named kebab stands (6.1): place id -> [the board's words, the vendor's tag]; other tags by
 ## the stand's nearest place.
 const NAMED_STANDS := {"u_zdzicha": ["U ZDZICHA", "zdzich"], "na_cienkim": ["NA CIENKIM", "cienkim"]}
@@ -248,17 +231,13 @@ func setup(data: Dictionary, places: Array) -> void:
 	for v in venues:
 		avoid.append(v["road"])
 	var polys := landmark_index(data.get("landmarks", []))
-	var oldtown: Array[PackedVector2Array] = []
-	for z: Dictionary in data.get("ped_zones", []):
-		if str(z.get("z", "")) == "oldtown":
-			oldtown.append(_pts(z["p"]))
-	shops = pick_shops(addrs, jpos, triple_at, polys, oldtown, avoid)
+	shops = pick_shops(addrs, convenience_list(data.get("pois", [])), jpos, triple_at, polys, avoid)
 	var nt := 0
 	for s in shops:
 		if s["triple"] != "" and not s["spare"]:
 			nt += 1
-	_pick_scooters(jpos, at)
-	_pick_metros(at)
+	_load_scooters(data.get("pois", []))
+	_load_metros(data.get("pois", []))
 	_pick_payphone(at)
 	for i in shops.size():
 		_add_to_key("shops", shops[i]["key"], i)
@@ -333,6 +312,20 @@ static func address_list(pois: Array) -> Array[Dictionary]:
 	return out
 
 
+## The `convenience` pois of the Frogs' chain (`fr`): [{name "", road (the road point at the door),
+## bld (the shop), h (its shuffle key), triple "", spare false, real true}].
+static func convenience_list(pois: Array) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for p: Dictionary in pois:
+		if str(p.get("k", "")) != "convenience" or int(p.get("fr", 0)) != 1 or not p.has("door"):
+			continue
+		var d: Array = p["door"]
+		var r := Vector2(float(d[0]), float(d[1]))
+		out.append({"name": "", "road": r, "bld": Vector2(float(p["x"]), float(p["z"])), "j": r, "triple": "", "h": _hash(r),
+				"spare": false, "real": true})
+	return out
+
+
 ## The lane graph's junctions: nodes with three or more ways, none on a bridge, deck or tunnel.
 static func junctions(g) -> PackedVector2Array:
 	var out := PackedVector2Array()
@@ -394,16 +387,14 @@ static func on_landmark(index: Dictionary, p: Vector2) -> bool:
 	return false
 
 
-static func per_km2(p: Vector2) -> int:
-	return HERO_PER_KM2 if HERO.has_point(p) else OTHER_PER_KM2
-
-
 ## The Frogs (parodies.md 2.2): the triple corners first (three addresses on different corners
-## of the junction, each corner at least 60 degrees round from the others), then the addresses
-## by a junction in a fixed shuffled order, 70 m apart, within the density per km² cell, not on
-## a landmark or by a kebab stand or a venue (`avoid`, 20 m), at most OLDTOWN_MAX in the Old Town.
-static func pick_shops(addrs: Array[Dictionary], jpos: PackedVector2Array, triples: Dictionary, lm: Dictionary,
-		oldtown: Array[PackedVector2Array], avoid: PackedVector2Array) -> Array[Dictionary]:
+## of the junction, each corner at least 60 degrees round from the others), then the real corner
+## shops of the chain (`real`: `convenience_list`, the bake's OSM shop=convenience pois) in a fixed
+## shuffled order, SPACING m apart, not on a landmark or by a kebab stand or a venue (`avoid`,
+## 20 m). Content-POIs switch: the address fill by a junction, the density a km² and the Old Town
+## cap are gone, the shops are where OSM has them.
+static func pick_shops(addrs: Array[Dictionary], real: Array[Dictionary], jpos: PackedVector2Array, triples: Dictionary,
+		lm: Dictionary, avoid: PackedVector2Array) -> Array[Dictionary]:
 	var jgrid := {}
 	for q in jpos:
 		var c := Vector2i(floori(q.x / 64.0), floori(q.y / 64.0))
@@ -475,22 +466,26 @@ static func pick_shops(addrs: Array[Dictionary], jpos: PackedVector2Array, tripl
 			used[nk[1]] = true
 			if angles.size() == 6:
 				break
-	# The rest, in their shuffled order.
+	# The rest: the real corner shops of the Frogs' chain (`convenience` pois with `fr`), in a
+	# fixed shuffled order, SPACING m from any Frogs already picked.
 	var order: Array = []
-	for k in cands.size():
-		if not used.has(k) and not cands[k].has("corner"):
-			order.append([cands[k]["h"], k])
+	for k in real.size():
+		order.append([real[k]["h"], k])
 	order.sort()
-	var cells := {}
 	var sgrid := {}
 	for s in out:
-		_count(cells, sgrid, s["road"])
-	var in_old := 0
+		_stand(sgrid, s["road"])
 	for ok: Array in order:
-		var cd: Dictionary = cands[ok[1]]
+		var cd: Dictionary = real[ok[1]]
 		var r: Vector2 = cd["road"]
-		var cell := Vector2i(floori(r.x / 1000.0), floori(r.y / 1000.0))
-		if int(cells.get(cell, 0)) >= per_km2(r):
+		if on_landmark(lm, cd["bld"]):
+			continue
+		var near_avoid := false
+		for v in avoid:
+			if v.distance_to(r) < 20.0:
+				near_avoid = true
+				break
+		if near_avoid:
 			continue
 		var c := Vector2i(floori(r.x / SPACING), floori(r.y / SPACING))
 		var close := false
@@ -501,26 +496,19 @@ static func pick_shops(addrs: Array[Dictionary], jpos: PackedVector2Array, tripl
 						close = true
 		if close:
 			continue
-		var old := false
-		for poly in oldtown:
-			if Geometry2D.is_point_in_polygon(cd["bld"], poly) or Geometry2D.is_point_in_polygon(r, poly):
-				old = true
-				break
-		if old:
-			if in_old >= OLDTOWN_MAX:
-				continue
-			in_old += 1
-		out.append(cd.duplicate())
-		_count(cells, sgrid, r)
+		var s := cd.duplicate()
+		# For the GPS's turn: the nearest junction within 80 m (else the shop's own point).
+		var bj := nearest_point(jpos, r, 80.0)
+		s["j"] = bj if bj != Vector2.INF else r
+		out.append(s)
+		_stand(sgrid, r)
 	for s in out:
 		s["key"] = key_of(s["road"])
 		s["state"] = 0
 	return out
 
 
-static func _count(cells: Dictionary, sgrid: Dictionary, r: Vector2) -> void:
-	var cell := Vector2i(floori(r.x / 1000.0), floori(r.y / 1000.0))
-	cells[cell] = int(cells.get(cell, 0)) + 1
+static func _stand(sgrid: Dictionary, r: Vector2) -> void:
 	var c := Vector2i(floori(r.x / SPACING), floori(r.y / SPACING))
 	if not sgrid.has(c):
 		sgrid[c] = []
@@ -979,83 +967,32 @@ func _pavement(e: int, s: float, extra: float) -> Vector2:
 	return p
 
 
-## The Leżaks: by the junctions in a fixed shuffled order (one or two on a pavement by a way out
-## of it, 12-20 m along), up to the density a km² cell; the zones every ZONE_SPACING m in the hero
-## districts with two or three lying round each; the zone nearest Metro Nowy Świat-Uniwersytet
-## has the one standing Leżak (easter_lezak).
-func _pick_scooters(jpos: PackedVector2Array, at: Dictionary) -> void:
-	if graph == null or map == null:
+## The Leżaks and the zones from the bake's pois (content-POIs switch, DEVELOPMENT.md "Content POIs"):
+## `scooter_zone` (the 3 m side along `yaw`; `egg` marks the easter_lezak one, which is `standing`)
+## and `scooter` (`p` the pose: `stand` upright, `roof` at `h` m over the ground, every other lies;
+## `zn` its zone's index in the zone list). The bake keeps them off carriageways, crossings, kerb
+## ramps and solids (`tools/check_pois.py`), so no runtime test.
+func _load_scooters(pois: Array) -> void:
+	if map == null:
 		return
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 5205
-	var order: Array = []
-	for n in graph.node_pos.size():
-		if graph.node_out[n].size() + graph.node_in[n].size() >= 5:
-			order.append([_hash(graph.node_pos[n] * 0.37), n])
-	order.sort()
-	var cells := {}
-	var zgrid: Array[Vector2] = []
-	var nsw: Vector2 = at["nowy_swiat_uniwersytet"]["at"] if at.has("nowy_swiat_uniwersytet") else Vector2.INF
-	for o: Array in order:
-		var n: int = o[1]
-		var np: Vector2 = graph.node_pos[n]
-		var cell := Vector2i(floori(np.x / 1000.0), floori(np.y / 1000.0))
-		var cap := LEZAK_HERO if HERO.has_point(np) else LEZAK_OTHER
-		if int(cells.get(cell, 0)) >= cap:
+	for p: Dictionary in pois:
+		if str(p.get("k", "")) != "scooter_zone":
 			continue
-		var outs: PackedInt32Array = graph.node_out[n]
-		if outs.is_empty():
+		var x := float(p["x"])
+		var z := float(p["z"])
+		zones.append({"at": Vector3(x, map.ground_height(x, z), z), "yaw": float(p["yaw"]), "key": key_of(Vector2(x, z)),
+				"standing": str(p.get("egg", "")) == "easter_lezak", "d": 0.0})
+	for p: Dictionary in pois:
+		if str(p.get("k", "")) != "scooter":
 			continue
-		var e: int = outs[rng.randi() % outs.size()]
-		if graph.e_bridge[e] == 1 or graph.e_dk[e] >= 0 or graph.e_tn[e] >= 0 or graph.e_len[e] < 30.0:
-			continue
-		var s := rng.randf_range(12.0, 20.0)
-		var p := _pavement(e, s, rng.randf_range(1.2, 2.6))
-		if p == Vector2.INF:
-			continue
-		var zone := -1
-		if HERO.has_point(p) and rng.randf() < 0.25:
-			var far := true
-			for z in zgrid:
-				if z.distance_to(p) < ZONE_SPACING:
-					far = false
-					break
-			if far:
-				zone = zones.size()
-				zgrid.append(p)
-				var d: Vector2 = graph.direction(e, s)
-				var g: float = map.ground_height(p.x, p.y)
-				zones.append({"at": Vector3(p.x, g, p.y), "yaw": atan2(d.x, d.y), "key": key_of(p), "standing": false,
-						"d": nsw.distance_to(p) if nsw != Vector2.INF else INF})
-		var g2: float = map.ground_height(p.x, p.y)
-		if zone >= 0:
-			# The joke: the zone is empty, they lie round it.
-			var z: Dictionary = zones[zone]
-			var zb := Basis(Vector3.UP, float(z["yaw"]))
-			for k in rng.randi_range(2, 3):
-				var off := zb * Vector3(rng.randf_range(-2.6, 2.6), 0.0, (1.3 if k % 2 == 0 else -1.3) + rng.randf_range(-0.2, 0.3))
-				var q := Vector3(p.x, g2, p.y) + off
-				_add_scooter(Vector3(q.x, map.ground_height(q.x, q.z), q.z), rng.randf() * TAU, false, zone)
-		else:
-			for k in (2 if rng.randf() < 0.3 else 1):
-				var q := Vector3(p.x, g2, p.y) + Vector3(rng.randf_range(-1.0, 1.0), 0.0, rng.randf_range(-1.0, 1.0)) * float(k)
-				_add_scooter(Vector3(q.x, map.ground_height(q.x, q.z), q.z), rng.randf() * TAU, false, -1)
-		cells[cell] = int(cells.get(cell, 0)) + 1
-	# The standing one, in the zone nearest Nowy Świat-Uniwersytet.
-	var best := -1
-	for i in zones.size():
-		if best < 0 or float(zones[i]["d"]) < float(zones[best]["d"]):
-			best = i
-	if best >= 0:
-		zones[best]["standing"] = true
-		var z: Dictionary = zones[best]
-		_add_scooter(z["at"] + Basis(Vector3.UP, float(z["yaw"])) * Vector3(0.6, 0.0, 0.0), float(z["yaw"]), true, best)
+		var x := float(p["x"])
+		var z := float(p["z"])
+		var y: float = map.ground_height(x, z) + (float(p.get("h", 0.0)) if str(p.get("p", "")) == "roof" else 0.0)
+		var zn := int(p.get("zn", -1))
+		_add_scooter(Vector3(x, y, z), float(p["yaw"]), str(p.get("p", "")) == "stand", zn if zn < zones.size() else -1)
 
 
 func _add_scooter(at: Vector3, yaw: float, up: bool, zone: int) -> void:
-	# Never on a carriageway (parodies.md 5.2): a scatter that lands within LANE_CLEAR of a lane goes.
-	if not up and graph != null and not graph.snap(Vector2(at.x, at.z), LANE_CLEAR).is_empty():
-		return
 	var i := scooters.size()
 	var k := key_of(Vector2(at.x, at.z))
 	scooters.append({"at": at, "yaw": yaw, "up": up, "key": k, "zone": zone})
@@ -1108,54 +1045,19 @@ func _write_lezaks(key: Vector2i) -> void:
 	mmi.multimesh = _static_mm(_lezak_mesh, xfs)
 
 
-## The metro entrances: by each station place, up to METRO_PER on the pavements beside the
-## lanes within METRO_REACH m, 25 m apart, facing along the street.
-func _pick_metros(at: Dictionary) -> void:
-	if graph == null or map == null:
+## The metro entrances from the bake's `subway_entrance` pois (content-POIs switch): `yaw` is the
+## way down (the canopy's open front faces away from it), `st` the station's name; the ones that
+## open off an underground passage only (`u`) have no street canopy.
+func _load_metros(pois: Array) -> void:
+	if map == null:
 		return
-	for id: String in STATIONS:
-		if not at.has(id):
+	for p: Dictionary in pois:
+		if str(p.get("k", "")) != "subway_entrance" or int(p.get("u", 0)) == 1:
 			continue
-		var c: Vector2 = at[id]["at"]
-		var cands: Array = []
-		var seen := {}
-		for dx in range(-1, 2):
-			for dz in range(-1, 2):
-				var key: int = graph.cell_key(c + Vector2(dx, dz) * 60.0)
-				if seen.has(key) or not graph.grid.has(key):
-					continue
-				seen[key] = true
-				for e: int in graph.grid[key]:
-					if graph.e_bridge[e] == 1 or graph.e_dk[e] >= 0 or graph.e_tn[e] >= 0:
-						continue
-					var s0: float = graph.project(e, c)
-					for ds in [-30.0, -15.0, 0.0, 15.0, 30.0]:
-						var s: float = clampf(s0 + ds, graph.e_s0[e] + 3.0, graph.e_s1[e] - 3.0)
-						var q: Vector2 = graph.point_at(e, s)
-						if q.distance_to(c) < METRO_REACH + 8.0:
-							cands.append([q.distance_to(c), e, s])
-		# Nearest first, and the pavement test (a snap and a height) only until three stand.
-		cands.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
-		var got: Array[Vector2] = []
-		for cd: Array in cands:
-			var p := _pavement(cd[1], cd[2], 2.8)
-			if p == Vector2.INF or p.distance_to(c) > METRO_REACH:
-				continue
-			var clash := false
-			for q in got:
-				if q.distance_to(p) < 25.0:
-					clash = true
-					break
-			for m in metros:
-				if Vector2(m["at"].x, m["at"].z).distance_to(p) < 25.0:
-					clash = true
-			if clash:
-				continue
-			got.append(p)
-			var d: Vector2 = graph.direction(cd[1], cd[2])
-			metros.append({"at": Vector3(p.x, map.ground_height(p.x, p.y), p.y), "yaw": atan2(d.x, d.y), "station": id, "key": key_of(p)})
-			if got.size() >= METRO_PER:
-				break
+		var x := float(p["x"])
+		var z := float(p["z"])
+		metros.append({"at": Vector3(x, map.ground_height(x, z), z), "yaw": float(p["yaw"]), "station": str(p.get("st", "")),
+				"ref": str(p.get("ref", "")), "key": key_of(Vector2(x, z))})
 
 
 ## Loop jobs-2: the payphone's spot: on the pavement by Plac Konstytucji's nearest lanes (2.4 m past

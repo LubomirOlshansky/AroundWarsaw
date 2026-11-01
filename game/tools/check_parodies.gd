@@ -208,15 +208,8 @@ func _check_rules() -> void:
 
 func _check_picks(sf: Storefronts, data: Dictionary, book: Notebook, graph: LaneGraph) -> void:
 	_expect(sf.triple_at.size() == Storefronts.TRIPLES.size(), "triple corners: %d junctions found (want %d)" % [sf.triple_at.size(), Storefronts.TRIPLES.size()])
-	_expect(sf.shops.size() >= 150, "Frogs: %d picked (want 150 or more)" % sf.shops.size())
-	var jpos := Storefronts.junctions(graph)
+	_expect(sf.shops.size() >= 130, "Frogs: %d picked (want 130 or more)" % sf.shops.size())
 	var lm := Storefronts.landmark_index(data.get("landmarks", []))
-	var cells := {}
-	var old := 0
-	var oldtown: Array[PackedVector2Array] = []
-	for z: Dictionary in data.get("ped_zones", []):
-		if str(z.get("z", "")) == "oldtown":
-			oldtown.append(Storefronts._pts(z["p"]))
 	var per_triple := {}
 	var plain: Array[Vector2] = []
 	for s in sf.shops:
@@ -227,22 +220,16 @@ func _check_picks(sf: Storefronts, data: Dictionary, book: Notebook, graph: Lane
 				_triple_n += 1
 			continue
 		plain.append(r)
-		var j := Storefronts.nearest_point(jpos, r, Storefronts.JUNCTION_REACH + 0.01)
-		_expect(j != Vector2.INF, "Frogs %s at %.0f, %.0f: no junction within %.0f m" % [s["name"], r.x, r.y, Storefronts.JUNCTION_REACH])
-		_expect(not Storefronts.on_landmark(lm, s["bld"]), "Frogs %s on a landmark" % s["name"])
-		var cell := Vector2i(floori(r.x / 1000.0), floori(r.y / 1000.0))
-		cells[cell] = int(cells.get(cell, 0)) + 1
-		for poly in oldtown:
-			if Geometry2D.is_point_in_polygon(r, poly) or Geometry2D.is_point_in_polygon(s["bld"], poly):
-				old += 1
-				break
+		_expect(s.get("real", false), "Frogs at %.0f, %.0f is not a real convenience shop" % [r.x, r.y])
+		_expect(not Storefronts.on_landmark(lm, s["bld"]), "Frogs at %.0f, %.0f on a landmark" % [r.x, r.y])
 	for i in plain.size():
 		for k in range(i + 1, plain.size()):
 			_expect(plain[i].distance_to(plain[k]) >= Storefronts.SPACING - 0.01, "Frogs %.0f m apart at %.0f, %.0f" % [plain[i].distance_to(plain[k]), plain[i].x, plain[i].y])
-	for c: Vector2i in cells:
-		var mid := (Vector2(c) + Vector2(0.5, 0.5)) * 1000.0
-		_expect(int(cells[c]) <= Storefronts.HERO_PER_KM2, "Frogs: %d in the km² at %s" % [cells[c], c])
-	_expect(old <= Storefronts.OLDTOWN_MAX, "Frogs: %d in the Old Town (at most %d)" % [old, Storefronts.OLDTOWN_MAX])
+	# Every plain Frogs is a `fr` convenience poi of the data.
+	var fr_pois := 0
+	for p: Dictionary in data.get("pois", []):
+		fr_pois += int(str(p.get("k", "")) == "convenience" and int(p.get("fr", 0)) == 1)
+	_expect(plain.size() >= fr_pois * 0.8 and plain.size() <= fr_pois, "Frogs: %d plain of %d convenience pois with fr" % [plain.size(), fr_pois])
 	for id: String in Storefronts.TRIPLES:
 		_expect(int(per_triple.get(id, 0)) == 3, "triple corner %s: %d Frogs (want 3)" % [id, per_triple.get(id, 0)])
 		var angs: Array[float] = []
@@ -294,17 +281,27 @@ func _check_picks(sf: Storefronts, data: Dictionary, book: Notebook, graph: Lane
 		standing += int(s["up"])
 		_expect(graph.snap(Vector2(p.x, p.z), 2.0).is_empty(), "Leżak on a lane at %.1f, %.1f" % [p.x, p.z])
 	_expect(standing == 1, "Leżaks: %d standing (want 1, easter_lezak)" % standing)
-	_expect(sf.scooters.size() >= 100 and sf.zones.size() >= 5, "Leżaks: %d in %d zones" % [sf.scooters.size(), sf.zones.size()])
-	var per_station := {}
+	var nz := 0
+	var nl := 0
+	var nm := 0
+	for p: Dictionary in data.get("pois", []):
+		var k := str(p.get("k", ""))
+		nz += int(k == "scooter_zone")
+		nl += int(k == "scooter")
+		nm += int(k == "subway_entrance" and int(p.get("u", 0)) != 1)
+	_expect(sf.scooters.size() == nl and sf.zones.size() == nz, "Leżaks: %d in %d zones (the data has %d and %d)" % [sf.scooters.size(), sf.zones.size(), nl, nz])
+	_expect(sf.metros.size() == nm and nm >= 60, "metro entrances: %d (the data has %d street ones)" % [sf.metros.size(), nm])
+	var stood := 0
+	for z in sf.zones:
+		stood += int(z["standing"])
+	_expect(stood == 1, "zones: %d standing (want 1)" % stood)
+	var roofs := 0
+	for s in sf.scooters:
+		var p: Vector3 = s["at"]
+		roofs += int(p.y > sf.map.ground_height(p.x, p.z) + 2.0)
+	_expect(roofs == 12, "Leżaks: %d on a shelter roof (want 12)" % roofs)
 	for m in sf.metros:
-		var p: Vector3 = m["at"]
-		per_station[m["station"]] = int(per_station.get(m["station"], 0)) + 1
-		_expect(graph.snap(Vector2(p.x, p.z), 2.0).is_empty(), "metro entrance on a lane at %.1f, %.1f" % [p.x, p.z])
-		_expect(Vector2(p.x, p.z).distance_to(at[m["station"]]["at"]) <= Storefronts.METRO_REACH + 0.01, "metro entrance %.0f m from %s" % [
-				Vector2(p.x, p.z).distance_to(at[m["station"]]["at"]), m["station"]])
-	for id: String in Storefronts.STATIONS:
-		_expect(int(per_station.get(id, 0)) >= 1 and int(per_station.get(id, 0)) <= Storefronts.METRO_PER,
-				"metro %s: %d entrances (want 1-%d)" % [id, per_station.get(id, 0), Storefronts.METRO_PER])
+		_expect(str(m["station"]) != "", "a metro entrance without a station")
 	for id: String in Storefronts.NAMED_STANDS:
 		_expect(at.has(id), "named kebab stand %s: no place" % id)
 	for id: String in Storefronts.STAND_TAGS:
