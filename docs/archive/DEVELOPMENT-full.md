@@ -4607,6 +4607,21 @@ runtime path, medians of 3 interleaved): 8.33 → 8.33 ms, scripts 0.90 → 0.90
 check_streaming runs the seven passes in part (d): heli, car, heli-low and switch may miss
 nothing; start, look and jump may show no proxy over 5 % of the view's ground; jump may load at once.
 
+**The west sectors (2026-11-01).** The look pass failed on every Mac run (s_-6_0 loading at
+530 m from the view's centre during the look at -2400, 600). `_queue_look`'s two squares (±137 m
+round the target, ±275 m round the halfway view) were smaller than the views: turned 45° and
+tipped 30°, a 110 m view covers ±147 m on the map before the towers behind it, which the view
+test counts. And the expectation ran out on the wall clock, so on frames slower than real time it
+ended mid-look. Now `CameraShots.look_keys` gives the look's views (the car's, MID's, the
+target's), `_queue_look` adds the way between them every `LOOK_STEP` (60 m), and the streamer's
+`expect_shot` wants every sector whose box meets one of those orthographic frusta
+(`ortho_planes`; the target's view at rank 0, the way at rank 1, in the order the camera passes
+them). The expectation runs on the streamer's game clock and `hold_expected` keeps it for the
+whole look once it starts. The look now waits for 3-14 sectors. Cloud look pass (llvmpipe, about
+3 fps, 2-9 s a load): 206 → 34 frames with a proxy in the view, 153 → 27 over 5 %, the look at
+-2400, 600 40 → 0. Mac (`tools/verify.sh --only=streaming`, head 39c0ca2): the look pass
+0 missing, no proxy in the view.
+
 ## Map north: Rondo Radosława, Arkadia and Forest (2026-10-31)
 
 The user asked for Rondo Radosława with its flag, Arkadia and the Forest tower. The map grows north

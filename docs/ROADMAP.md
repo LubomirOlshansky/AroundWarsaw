@@ -54,6 +54,8 @@ then the Launch gate.
 ### Left: map and roads
 - [ ] A full `tools/verify.sh` and `--ios` on the Mac on today's main, both city paths
 - [ ] Map checks in GitHub CI (the derived map pack as a release asset)
+- [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views
+      shows), 2026-11-01, PR #183
 - [ ] Map review C: the streets of the 3d-1 box and map north against the orthophoto
 - [ ] Loop 3e leftovers: Łazienkowski's Praga end (R8), the rail cutting, Rozdroże's tubes,
       Nowy Zjazd's wall, deck 4; Most Łazienkowski cut by the east edge (decide)
