@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Roofs look like Warsaw's: red tiles, painted sheet metal with seams, zinc mansards, tar paper on the blocks, pale membranes and green sedum on offices, low parapets round flat roofs and rows of brick chimneys on the old tenements.
 - New side job "Mlask": Cringulo the food reviewer parks his cream van somewhere in the centre. Fetch him a bite from a new place, bring it while it's warm, read his review, then take his sticker back to the place and watch the queue explode.
 - Warsaw loves a queue: the KUKŁA crêpe place always has one, couples wait for the lift to LUŹNO, the pink rooftop date bar on HOTEL PIURE, and new neons light up KOSZTA COFFEE, GREEN CAFFE NERWO and the Party House's bars. Plus jokes about TIMBER dates and Cringulo's sold-out pizza at Frogs.
 - The game now plays with a game controller (Xbox, PlayStation or MFi): drive, fly, open Settings and the map; touch works as before.

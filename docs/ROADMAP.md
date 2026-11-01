@@ -65,6 +65,10 @@ then the Launch gate.
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
 
+- [ ] Roofs across the map (F, 2026-11-01; plan docs/design/roofs.md):
+  - [x] RF1-RF3 roof materials, parapets, tenement chimneys, 2026-11-01
+  - [ ] RF4 OSM-only buildings' roofs, copper and red sheet metal by district; Mac look and phone bench
+
 ### Left: content and feel
 - [ ] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
 - [x] DEMO 6.3 counts, cassettes and landmark cards (2026-11-01): 10 roof cassettes in
