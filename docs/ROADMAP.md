@@ -70,8 +70,8 @@ then the Launch gate.
   - [x] S1 Warszawa Ochota: the hyperbolic paraboloid over the glass hall on its bridge, 2026-11-01
   - [x] S2 Warszawa Powiśle: the kite pavilion, the round saucer pavilion, the X canopies, 2026-11-01
   - [ ] L1 track that reads as railway (sleepers, rails, ballast shoulders)
-  - [ ] L2 catenary masts and wires
-  - [ ] L3 the tunnel's portals at Ochota and Powiśle
+  - [x] L2 catenary masts and wires, 2026-11-01
+  - [x] L3 the tunnel's portals at Ochota and Powiśle, 2026-11-01
   - [x] T1 trains through the city (suburban, city line, long-distance), `check_trains`, 2026-11-01
   - [ ] S3 the other stations: Stadion, Śródmieście's entrances, Wschodnia, Gdańska, Ochota WKD
   - [ ] L4 Most Średnicowy's look (after a Mac photo check)

@@ -11,12 +11,13 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   stairs; Powiśle's arches, the saucer's profile, the canopies' length, the neon's letters); the
   stairs from the round pavilion up to the platforms; a WARSZAWA OCHOTA sign if the real one has it.
 - L1 track that reads as railway: sleepers, raised rails, ballast shoulders (no new draw calls).
-- L2 catenary: masts as one MultiMesh, the wires in one mesh, portal frames over the fans.
-- L3 the tunnel's mouths: west of Centralna (x -1924) and under the Powiśle pavilion (x 171).
+- ~~L2 catenary, L3 the tunnel's mouths~~ Done 2026-11-01 (`map_builder` `_build_catenary`,
+  `_build_rail_portals`, in the walls surface: +0 draw calls). Left: portal frames over the station
+  fans; the museum sidings by Towarowa get wires too (real ones mostly have none); Mac check that
+  trains at the west mouth pass under the Towarowa junction (the cloud's terrain shows them at grade).
 - ~~T1 trains~~ Done 2026-11-01 (`trains.gd`, `check_trains.gd` in verify, `--train=X,Z`). Left:
   the parody names on the cars' sides (no text on vehicle meshes yet); a horn and the rumble on
-  the bridge (sfx); headlight pools at night; trains vanish at the tunnel mouths until L3 builds
-  the portals; a timetable (today: a new train every 8-30 s after one leaves, 5 at most).
+  the bridge (sfx); headlight pools at night; a timetable (today: a new train every 8-30 s after one leaves, 5 at most).
 - S3 the other stations: Stadion, Śródmieście's entrances, Wschodnia and Gdańska at the edges,
   Ochota WKD.
 - L4 Most Średnicowy's look, after a Mac photo check.
