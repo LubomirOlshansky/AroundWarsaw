@@ -1525,7 +1525,7 @@ func _anchor(s: Dictionary, i: int) -> Callable:
 func _say(anchor: Callable, speaker: String, group: String, tag: String, accent: Color, prefer := false) -> void:
 	if dialogue == null:
 		return
-	var l: Array = dialogue.say(anchor, speaker, group, tag, 4.0, accent, 2.2, prefer or tag != "")
+	var l: Array = dialogue.say_ambient(anchor, speaker, group, tag, 4.0, accent, 2.2, prefer or tag != "")
 	if log_on and not l.is_empty():
 		print("night: line %s/%s: %s" % [group, tag, l[0]])
 

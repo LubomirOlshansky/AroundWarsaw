@@ -15,6 +15,7 @@ someone writes its lines.
 ## 2026-11-01
 - Warsaw's flat prices get the joke they deserve: KEBAB FM, passengers, Podwózka riders, angry drivers and three developer billboards (KLATKA, METRAŻ, KREDYT) all grumble about studios that cost a fortune and mortgages that outlive you.
 
+- Fewer texts while driving: street chatter stays quiet above 40 km/h and little hints come at most every 20 seconds. Traffic in Settings is now a slider.
 - Podwózka is easier to catch: the waiting passenger's "!" is bigger, and within 25 m a START KURS button starts the ride at once (no stopping in a ring), with the destination and distance on the toast. Rescues now follow your vehicle: in the helicopter you get roof and sandbar calls (violet marker), in the car street and park calls, and car jobs hide their arrow while you fly.
 - The helicopter and the map teleport are open from the first second; traffic starts calmer; the car grips the road more and slides less; zoom buttons (+ / −) next to the minimap; POMOC DROGOWA and NOWA GRA at the top of Settings; bigger pickup rings.
 - The see-through fade on buildings beside the car is a thin seam now, so walls no longer flicker at the road edge.
