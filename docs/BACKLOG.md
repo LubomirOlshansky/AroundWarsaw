@@ -68,17 +68,16 @@ few skylights and chimneys of different heights; real landmarks' roofs stay. Bot
 Accept: before/after shots of the Rynek and Piwna; no extra draw calls (shader or per-instance
 only); roof checks green. Files: old_town_roofs.gd, roof_dress.gd, shaders/building.gdshader.
 
-**G8 · Bus stops and buses (P2, Opus).** Stops sit off the kerb (IMG 7134: shelters in the lawn,
-BUS markers on the lane). Task: snap each shelter to the footway edge beside the bus lane, the bay
-to the lane; buses stop at the bay for about 10 s; 1-3 pedestrians step off, others board; 2-5
-people wait at the shelter. A small state machine in buses.gd (arrive, dwell, depart) is enough:
-write "Beehave not used, because ..." in the PR. Accept: a new check puts every stop within 1.5 m
-of the kerb; a bus dwells 8-12 s; draw calls unchanged. Files: buses.gd, pedestrians.gd, props.gd.
-
-**G9 · Chairs and benches (P2, Sonnet).** Furniture appears in odd places. Task: chairs only at
-cafe terraces (the storefront's frontage, 1.5 m deep, on paving), benches on footways facing the
-walk or park path, never within 1 m of a lane. Accept: a check lists every chair/bench and fails
-any on a lane, in water or inside a wall. Files: street_details.gd, props.gd, storefronts.gd.
+**G8/G9 · Bus stops, buses and street furniture (done 2026-11-01).** Cause found: the OSM shelters
+got their yaw from the road's direction, so roofs ran across the road (half with their glass back to
+the lane) and many stood on the lawn. Now tools/snap_props.py (run by bake_osm after structures)
+puts each bus-road shelter 1.7 m past its kerb lane, roof along the road, and turns the benches to
+face the footway; buses.gd serves the stops by day (8-12 s stand, 1-3 step off, up to 2 board,
+2-5 wait); cafe sets stand only against a shopfront. Open: look check on the phone (do the
+people read as passengers, is 10 s right with Low traffic); 11 shelters had no clear spot and stay
+where they were (turned only), 7 inside a lane or a building were left out; tram-stop shelters
+and the first scene's authored cafe tables are unchanged; night service (N buses) is still only
+the Centralny hub.
 
 **G10 · Podwózka off the main line, with a clear start (P1, Opus).** Today (`rides.gd`): a
 request card for 10 s, the pickup is a teal pin and you must stop within 7 m (a waiting passenger

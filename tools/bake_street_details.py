@@ -68,6 +68,9 @@ MAX_SECTOR = 70
 SECTOR = 512.0
 PROBE_FROM, PROBE_TO, PROBE_STEP = 1.5, 8.0, 0.5
 STOP_REACH = 40.0
+# G9: a café set's centre this far from the nearest building outline (the solids keep 2.25 m clear
+# of a wall for its 1.7 m footprint): the shop's own frontage, a terrace at most 2 m deep.
+CAFE_FRONT = (2.25, 4.3)
 
 
 def h01(*key):
@@ -107,6 +110,19 @@ class Placer:
         self.items = []
         self.by_kind = {}
         self.sector = {}
+        # G9 (2026-11-01): a café set stands on paving against a shopfront, never on a lawn.
+        self.green = P.Polys()
+        for a in data.get("areas", []):
+            if a["k"] in ("grass", "park", "pitch", "water"):
+                self.green.add(P.pairs(a["p"]), a["k"])
+
+    def frontage(self, x, z):
+        """True if (x, z) is on paving CAFE_FRONT m from a building's front: not in a park or a lawn,
+        not nearer the wall than a parasol's reach, not farther than a terrace's depth."""
+        if self.green.inside(x, z):
+            return False
+        gap = self.solids.segs.dist(x, z, "building")
+        return CAFE_FRONT[0] <= gap <= CAFE_FRONT[1]
 
     def excluded(self, x, z):
         if FIRST_SCENE[0] <= x <= FIRST_SCENE[2] and FIRST_SCENE[1] <= z <= FIRST_SCENE[3]:
@@ -150,14 +166,14 @@ class Placer:
         key = (int(x // SECTOR), int(z // SECTOR))
         self.sector[key] = self.sector.get(key, 0) + 1
 
-    def pavement(self, kind, ax, az, tx, tz, nx, nz, half_w, lateral=0.0):
+    def pavement(self, kind, ax, az, tx, tz, nx, nz, half_w, lateral=0.0, ok=None):
         """The first clear pavement point out from the road's edge on the normal's side, at `lateral`
         m along the road from (ax, az): (x, z) or None."""
         d = half_w + PROBE_FROM
         while d <= half_w + PROBE_TO:
             x = ax + tx * lateral + nx * d
             z = az + tz * lateral + nz * d
-            if self.clear(kind, x, z):
+            if self.clear(kind, x, z) and (ok is None or ok(x, z)):
                 return x, z
             d += PROBE_STEP
         return None
@@ -187,7 +203,7 @@ def cluster(pl, ch, road, side, x0, z0, tx, tz, nx, nz, w, anchor_key, corner):
     r = h01(*anchor_key, "kind")
 
     def put(kind, lateral, colour=""):
-        at = pl.pavement(kind, x0, z0, tx, tz, nx, nz, half, lateral)
+        at = pl.pavement(kind, x0, z0, tx, tz, nx, nz, half, lateral, pl.frontage if kind == "cafe" else None)
         if at is None:
             return None
         pl.add(kind, at[0], at[1], face, colour)
@@ -215,10 +231,10 @@ def cluster(pl, ch, road, side, x0, z0, tx, tz, nx, nz, w, anchor_key, corner):
         else:
             n = 2 + int(h01(*anchor_key, "n") * 2)
             first = -3.5 * (n - 1) * 0.5
-            put("planter", first - 4.0, pick(FLOWERS, *anchor_key, "pa"))
-            for k in range(n):
-                put("cafe", first + 3.5 * k, pick(PARASOLS, *anchor_key, "cafe", k))
-            put("planter", first + 3.5 * (n - 1) + 4.0, pick(FLOWERS, *anchor_key, "pb"))
+            sets = [put("cafe", first + 3.5 * k, pick(PARASOLS, *anchor_key, "cafe", k)) for k in range(n)]
+            if any(sets):   # G9: the planters only flank a terrace that stands against a shopfront
+                put("planter", first - 4.0, pick(FLOWERS, *anchor_key, "pa"))
+                put("planter", first + 3.5 * (n - 1) + 4.0, pick(FLOWERS, *anchor_key, "pb"))
     else:   # river: the boulevard side only (the buildings/areas side has no free pavement)
         if r < 0.3:
             put("cart", 0.0, pick(AWNINGS, *anchor_key, "a"))

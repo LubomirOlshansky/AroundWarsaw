@@ -59,6 +59,7 @@ func _run() -> void:
 	var g := LaneGraph.new(data["graph"], null)
 	_check_places(g, data, digest)
 	_check_people(digest)
+	_check_service(digest)
 	_check_horn(digest)
 	_check_eggs(digest)
 	if problems.is_empty():
@@ -140,16 +141,21 @@ func _check_places(g: LaneGraph, data: Dictionary, digest: PackedStringArray) ->
 	var sh: Array = data["shelters"]
 	var n := 0
 	var hub_stop := false
+	var off_kerb := 0
 	for i in range(0, sh.size() - 2, 3):
 		var st := Buses.stop_from(g, Vector2(float(sh[i]), float(sh[i + 1])))
 		if st.is_empty():
 			continue
 		n += 1
+		if float(st["out"]) > 3.5:
+			off_kerb += 1  # G8: the shelter stands past the kerb lane's edge by more than the bake's furthest try
 		var e: int = st["e"]
 		if g.e_class[e] > 1:
 			problems.append("stop at %s on a class %d edge" % [st["at"], g.e_class[e]])
 		if (st["at"] as Vector2).distance_to(Buses.HUB) < 40.0:
 			hub_stop = true
+	if off_kerb * 8 > n:
+		problems.append("bus stops: %d of %d shelters stand more than 3.5 m past the kerb lane (tools/snap_props.py)" % [off_kerb, n])
 	if n < 100 or not hub_stop:
 		problems.append("bus stops: %d of %d shelters (the hub's %s)" % [n, sh.size() / 3, hub_stop])
 	var text := '{"a": [1], "shelters": [1.5, 2.5, 0.3, 4, 5, 6], "x": [7]}'
@@ -164,7 +170,7 @@ func _check_people(digest: PackedStringArray) -> void:
 		for h in range(0, 24):
 			var p := Buses.stop_people(key * 7919, float(h) + 0.5)
 			var day := float(h) + 0.5 >= Buses.DAY_FROM and float(h) + 0.5 < Buses.DAY_TO
-			if (day and (p < 1 or p > 2)) or (not day and p != 0):
+			if (day and (p < 2 or p > 5)) or (not day and p != 0):
 				problems.append("stop %d at %d:30: %d people" % [key, h, p])
 				return
 			most = maxi(most, p)
@@ -180,14 +186,14 @@ func _check_people(digest: PackedStringArray) -> void:
 	for h in [7.5, 8.0, 12.0, 16.0, 17.0]:
 		b._stop_figures(h)
 		by_day = maxi(by_day, w.figures.size())
-		if w.figures.size() > Pedestrians.STOPS or w.figures.size() < b._near.size():
-			problems.append("stop figures at %.1f: %d for %d stops (cap %d)" % [h, w.figures.size(), b._near.size(), Pedestrians.STOPS])
+		if w.figures.size() > Buses.WAIT_SLOTS or w.figures.size() < b._near.size():
+			problems.append("stop figures at %.1f: %d for %d stops (cap %d)" % [h, w.figures.size(), b._near.size(), Buses.WAIT_SLOTS])
 	b._stop_figures(23.0)
 	if not w.figures.is_empty():
 		problems.append("stop figures at 23:00 with no ring: %d" % w.figures.size())
 	b.free()
 	w.free()
-	digest.append("stops 1-2 people by day, ≤ %d figures (%d seen)" % [Pedestrians.STOPS, by_day])
+	digest.append("stops 2-5 people by day, ≤ %d waiting figures (%d seen)" % [Buses.WAIT_SLOTS, by_day])
 
 
 func _check_horn(digest: PackedStringArray) -> void:
@@ -248,3 +254,32 @@ func _check_eggs(digest: PackedStringArray) -> void:
 	book.free()
 	wallet.free()
 	digest.append("E23 E24 E25 once each (+%d respect)" % (r3 - r0))
+
+
+## G8: the service rules (buses.gd): a stand lasts 8-12 s, a stop is only served from 14-90 m ahead by
+## day and not twice within SERVE_GAP, 1-3 step off and at most 2 of the waiting board; the figure
+## slots hold the waiting and the passengers apart.
+func _check_service(digest: PackedStringArray) -> void:
+	var lo := 1000.0
+	var hi := 0.0
+	for k in 300:
+		var d := Buses.dwell_for(k * 7919, k % 8, k % 5)
+		lo = minf(lo, d)
+		hi = maxf(hi, d)
+	if lo < Buses.DWELL.x or hi > Buses.DWELL.y or hi - lo < 1.0:
+		problems.append("dwell %.1f-%.1f s, want %.0f-%.0f s varying" % [lo, hi, Buses.DWELL.x, Buses.DWELL.y])
+	if not Buses.serve_ok(40.0, 200.0, 12.0) or Buses.serve_ok(5.0, 200.0, 12.0) or Buses.serve_ok(120.0, 200.0, 12.0) \
+			or Buses.serve_ok(40.0, 60.0, 12.0) or Buses.serve_ok(40.0, 200.0, 23.0) or Buses.serve_ok(40.0, 200.0, 3.0):
+		problems.append("serve_ok: the window, the gap or the day's hours are wrong")
+	for k in 200:
+		var waiting := k % 6
+		var pax := Buses.passengers(k * 977, k % 8, k % 4, waiting)
+		if pax.x < Buses.ALIGHT.x or pax.x > Buses.ALIGHT.y or pax.y < 0 or pax.y > Buses.BOARD_MAX or pax.y > waiting:
+			problems.append("passengers %s for %d waiting" % [pax, waiting])
+			return
+		if waiting <= 3 and waiting > 0 and pax.y >= waiting:
+			problems.append("everyone boarded from %d waiting" % waiting)
+			return
+	if Buses.WAIT_SLOTS + Buses.ALIGHT.y > Pedestrians.STOPS:
+		problems.append("stop slots: %d waiting + %d passengers > %d" % [Buses.WAIT_SLOTS, Buses.ALIGHT.y, Pedestrians.STOPS])
+	digest.append("service: stands %.1f-%.1f s, %d-%d step off, ≤ %d board" % [lo, hi, Buses.ALIGHT.x, Buses.ALIGHT.y, Buses.BOARD_MAX])

@@ -443,6 +443,10 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     import bake_structures
     map_dir = os.path.dirname(os.path.abspath(dst))
     bake_structures.add_structures(out, map_dir, json.load(open(os.path.join(map_dir, "terrain.json"))))
+    # G8/G9 (2026-11-01): shelters onto the kerb of their bus road, turned roof along it; benches
+    # turned to face the walk (tools/snap_props.py; the same code runs on a baked map).
+    import snap_props
+    snap_props.apply(out)
     # Loop "content POIs" (2026-10-31): the corner shops, metro entrances, city bike docks, the
     # places' missing addresses and the Leżaks with their zones, appended after every older poi
     # on the finished data (they keep clear of its solids; tools/bake_street_pois.py).
