@@ -4,6 +4,19 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Parks (F, 2026-11-01)
+
+Built in the cloud (flat ground, no Mac photos): `park_details.gd` from `tools/bake_park_details.py`
+(206 items, 8 cells, 0 new materials). Open:
+- Łazienki Królewskie lies south of the map's edge (z ~ 1740+): the Palace on the Isle, the Chopin
+  monument, the peacocks and the squirrels need the map extended south first (map-engineer, Opus).
+  The prop `peacock` is built and waits.
+- Placement is by rule on the OSM geometry (statues along alleys, anchors snapped to free spots):
+  the carousel stands about 40 m from the plaza circle it was aimed at; check real spots with photos.
+- People and animals are still pieces (no walking, no bobbing ducks): moving ones go through the
+  city_life guests if the look check asks for them.
+- Phone bench of the park cells (one draw call a cell in view) not run.
+
 ## Old Town Market Square, the Syrenka and the decks (F, 2026-11-01)
 
 Built in a cloud thread with no photos (spec docs/landmarks/specs/rynek.md, LANDMARKS 2.12).

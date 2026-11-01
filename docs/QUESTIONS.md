@@ -18,6 +18,9 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · map · Łazienki Królewskie** — The Palace on the Isle (about x 784, z 2101) and the Chopin monument (about x 307, z 2012) are 280-370 m south of the map's edge (z 1736). Default built: the three parks inside the map got their pieces; the `peacock` prop waits. Alternative: extend the map south (map-engineer, Opus), then add the palace, the monument, peacocks and squirrels.
+- **2026-11-01 · visuals · parks: Mac look check** — Built in the cloud on flat ground. Please look at the carousel (`--at=-1571,-1475`), the Park Ujazdowski pond with its swans and bridge (`--at=165,1450`), Saski's statues (`--at=-946,-627`): are the pieces' scale and the spots right, do the seated people read on the benches. Default built: as is.
+
 - **2026-11-01 · map · the land past the map's edge: Mac look check** — Built in the cloud,
   where the ground is flat. Default built (`scripts/map_edge.gd`): bare ground in the city's
   ground colour for the first ~40 m past the outline, then scrub green, fading into the sky's

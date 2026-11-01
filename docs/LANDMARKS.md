@@ -70,6 +70,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | 3.2 | Churches and religious | Praga cathedral, Kościół Zbawiciela, Wizytek, Synagoga Nożyków, Katedra polowa, Cerkiew, the rest |
 | 3.3 | Stations and halls | the stations moved to 2.11; Torwar. Hala Koszyki and Elektrownia Powiśle DONE 2026-11-01 (L2 models, specs `koszyki.md`, `elektrownia.md`, 1142 and 1626 tris: brick, tall arches, the hall's glass lantern, two chimneys; Mac photo check parked: brick shade, roof shapes, number and place of the chimneys) |
 | 3.4 | Culture and civic | POLIN, Planetarium, Politechnika's main hall, Zamek Ujazdowski, the palaces (about 40) |
+| 3.7 | Parks (F, 2026-11-01) | Ogród Saski, Ogród Krasińskich, Park Ujazdowski: DONE 2026-11-01 (`park_details.gd`: statues, fountain, carousel, playground, gazebo, pergolas, sundial, footbridge, ducks, swans, squirrels, seated people, picnics, yoga; Mac look check parked). Łazienki (Palace on the Isle, Chopin monument) is off the map: QUESTIONS |
 | 3.5 | Other bridges | Śląsko-Dąbrowski, Gdański, Łazienkowski: generic decks today |
 | 3.6 | Street furniture | kiosks, tram stop platforms, Warsaw's green bins (BACKLOG "next candidates") |
 

@@ -85,6 +85,8 @@ const Cassettes := preload("res://scripts/cassettes.gd")
 const FirstScene := preload("res://scripts/first_scene.gd")
 ## Street details along the main line (street_details.gd, tools/bake_street_details.py).
 const StreetDetails := preload("res://scripts/street_details.gd")
+## Park details: statues, a carousel, ducks, people on the benches (park_details.gd, tools/bake_park_details.py).
+const ParkDetails := preload("res://scripts/park_details.gd")
 ## Loop 3h slice 3: the final race's route (the start's hint for --trzy-mosty).
 const TrzyMosty := preload("res://scripts/trzy_mosty.gd")
 const Ladder := preload("res://scripts/ladder.gd")
@@ -1198,6 +1200,7 @@ func _build_world() -> void:
 	_build_cassettes(world)
 	_build_first_scene(world)
 	_build_street_details(world)
+	_build_park_details(world)
 	_build_garage(world)
 	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
 	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
@@ -1408,6 +1411,18 @@ func _build_street_details(world: Node3D) -> void:
 	sd.map = map
 	world.add_child(sd)
 	sd.build()
+
+
+## Park details (park_details.gd): the pieces of Ogród Saski, Ogród Krasińskich and Park
+## Ujazdowski, on both city paths.
+func _build_park_details(world: Node3D) -> void:
+	if solo_site != "":
+		return
+	var pd := ParkDetails.new()
+	pd.name = "ParkDetails"
+	pd.map = map
+	world.add_child(pd)
+	pd.build()
 
 
 ## First scene (docs/design/first-scene.md item 6): a start on Marszałkowska between

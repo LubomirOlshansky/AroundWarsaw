@@ -111,6 +111,8 @@
 # Street details (2026-11-01): `streetdetails` runs tools/check_street_details.py (the baked props along
 # the main line against the map: stale file, blocked spots, budget, kiosk spacing); `streetmesh` runs
 # game/tools/check_street_details.gd (every kind builds as one surface, a cell's triangle budget); CI too.
+# Park details (2026-11-01): `parkdetails` runs tools/check_park_details.py (the baked park pieces against the map: stale file,
+# blocked spots, budget); `parkmesh` runs game/tools/check_park_details.gd (every kind builds as one surface); CI too.
 # The main line (2026-10-31): `mainline` runs game/tools/check_main_line.gd: main_line.gd's step from
 # the facts in each chapter (the guide, the ladder, the final, the jobs to the end card), its words
 # and the ladder's pacing (the side quests' respect to the final); no map (CI too).
@@ -146,8 +148,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails streetmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings credits tiers governor hud places edge eggs tape crowds life buses crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs roofdress sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh spec drape drive steering stopassist settings credits tiers governor hud places edge eggs tape crowds life buses crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs roofdress sites meshq sfx juice gamepad radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails streetmesh parkdetails parkmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings credits tiers governor hud places edge eggs tape crowds life buses crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs roofdress sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh parkdetails parkmesh spec drape drive steering stopassist settings credits tiers governor hud places edge eggs tape crowds life buses crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs roofdress sites meshq sfx juice gamepad radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -622,6 +624,16 @@ for s in $want; do
 				0) row PASS "streetdetails" $secs "check_street_details: OK · $counts" ;;
 				*) row FAIL "streetdetails" $secs "$(grep '^check_street_details: ' $logs/streetdetails.log | tail -1) · $counts ($logs/streetdetails.log)" ;;
 			esac ;;
+		parkdetails)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/check_park_details.py > $logs/parkdetails.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			case $code in
+				0) row PASS "parkdetails" $secs "$(tail -1 $logs/parkdetails.log)" ;;
+				*) row FAIL "parkdetails" $secs "$(tail -1 $logs/parkdetails.log) ($logs/parkdetails.log)" ;;
+			esac ;;
+		parkmesh) check parkmesh '^park_details:' --script res://tools/check_park_details.gd ;;
 		streetmesh) check streetmesh '^street_details:' --script res://tools/check_street_details.gd ;;
 		# Landmark specs (LANDMARKS 0.4): every docs/landmarks/specs/*.md has all eight sections, a
 		# detail level, a triangle budget and a filled parts table (tools/check_spec.py; ~0.1 s).
