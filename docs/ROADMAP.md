@@ -72,6 +72,12 @@ then the Launch gate.
 - [x] People on the observation decks (F, 2026-11-01): Varso Tower's roof and St Anne's bell tower
       terrace (with a balustrade), the Palace of Culture's 30th-floor terrace (114 m ledge and
       balustrade, up to 16), hours, weekends and seasons (`crowds.gd` DECKS)
+- [x] The grand hotels (F, 2026-11-01, hotels pass): Hotel Bristol's body on its kept skin (rusticated
+      plinth, string courses, cornice, slate mansard with dormers, a canopied door with the gilded
+      name on Krakowskie Przedmieście, pediment, 2013 tris) and Hotel Polonia Palace built whole on
+      Al. Jerozolimskie (1202 tris, new `polonia` site and card) through one `_palace_hotel` builder;
+      Europejski, Wiktoria, the Marriott, Novotel, Westin and InterContinental were already models;
+      Mac look check parked (QUESTIONS, BACKLOG "Grand hotels")
 - [x] Old Town hotels (F, 2026-11-01): fronts on three tenements (portal, canopy, neon name, flags,
       lanterns, card), under parody names KASZTEL INN (Castle Inn), CANALETTO (Hotel Bellotto),
       STARÓWKA (an aparthotel on the Rynek); Mac look check parked (QUESTIONS, BACKLOG "Old Town hotels")
