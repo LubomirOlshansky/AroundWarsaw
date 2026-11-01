@@ -79,6 +79,8 @@ const Districts := preload("res://scripts/districts.gd")
 const Syrenki := preload("res://scripts/syrenki.gd")
 ## First scene items 4-5: the kiosk, stall, cafés and planters by the start (first_scene.gd).
 const FirstScene := preload("res://scripts/first_scene.gd")
+## Street details along the main line (street_details.gd, tools/bake_street_details.py).
+const StreetDetails := preload("res://scripts/street_details.gd")
 ## Loop 3h slice 3: the final race's route (the start's hint for --trzy-mosty).
 const TrzyMosty := preload("res://scripts/trzy_mosty.gd")
 const Ladder := preload("res://scripts/ladder.gd")
@@ -1111,6 +1113,7 @@ func _build_world() -> void:
 	_build_districts()
 	_build_syrenki(world)
 	_build_first_scene(world)
+	_build_street_details(world)
 	_build_garage(world)
 	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
 	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
@@ -1302,6 +1305,18 @@ func _build_first_scene(world: Node3D) -> void:
 	fs.map = map
 	world.add_child(fs)
 	fs.build()
+
+
+## Street details along the main line (street_details.gd): kiosks, stalls, cafés, planters and
+## stop kits on the pavements of the streets the main line uses, on both city paths.
+func _build_street_details(world: Node3D) -> void:
+	if solo_site != "":
+		return
+	var sd := StreetDetails.new()
+	sd.name = "StreetDetails"
+	sd.map = map
+	world.add_child(sd)
+	sd.build()
 
 
 ## First scene (docs/design/first-scene.md item 6): a start on Marszałkowska between

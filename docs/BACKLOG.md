@@ -16,6 +16,16 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
 - Crash sparks and screen shake (another loop) must multiply by `Access.shake()` and buzz through
   `Access.buzz`; colour-safe still to cover the HUD's green badges and the red fail colour.
 
+## Ground vertex compression, to re-apply on the Mac (stale PR #53 triage, 2026-11-01)
+- PR #53 (commit b343d60, branch `claude/project-thread-ldyr9u`) stores the ground's meshes with
+  `Mesh.ARRAY_FLAG_COMPRESS_ATTRIBUTES` (`chunked_surface.gd` `meshes(flags)`, `map_builder.gd`
+  `_add_mesh(..., flags)` for the flat layer; `bake_city.gd` skips empty sectors' proxies when
+  counting). On the Mac then: sectors 95.7 -> 75.0 MB, vertex buffers 147 -> 120 MB, frame time the
+  same. The branch has an unrelated history (from before the repo was rewritten), so it cannot be
+  merged; the diff is 3 small hunks and no longer applies cleanly to `map_builder.gd`. Left: re-apply
+  by hand on a Mac session (full definition of done: re-bake, `verify.sh`, shots and bench), then
+  close #53. Buildings stay uncompressed (windows come from UVs in metres).
+
 ## Trends 2025–26 (F, 2026-11-01)
 
 Spec and sources: `docs/design/trends-2025-26.md`. Built: eight parody trend spots (`Storefronts.TRENDY`).
@@ -90,13 +100,17 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   cut by the east edge ("From loop 3d-1", a decision).
 
 ### P1: street details beyond the start (content/map, Sonnet with an Opus spec)
-- **Street furniture along the main line's route.** `first_scene.gd` dresses only the start; the
-  rest of the city has the generic props from OpenStreetMap. Wanted, in the order the main line
-  passes them: Krakowskie Przedmieście and Nowy Świat, the Old
-  Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego: tram stops with platforms and
-  shelters, bollards, crossings' signals, signs, bins, café gardens, kiosks. Mind the camera rule
-  (props on east-side pavements are hidden; memory note first-scene-street). The landmarks lane
-  listed "then street furniture" on 2026-10-30; nobody started it. Gap.
+- **Landed** (2026-11-01, thread "Add street details along the main route", spec
+  docs/design/street-details.md): `tools/bake_street_details.py` places ~370 kiosks (PRASA), flower
+  stalls (KWIATY), café sets, planters, ad columns, bollards, two ice-cream carts (LODY) and stop
+  posts / a ticket machine (BILETY) on the pavements of eight corridors (Marszałkowska,
+  Jerozolimskie, Nowy Świat, Tamka and Karowa, the boulevards, Prosta, Praga, Poniatowskiego) into
+  `game/data/street_details.json`; `street_details.gd` builds one shadowless mesh per 512 m cell on
+  both city paths. Checks: `streetdetails` (placement against the map) and `streetmesh`.
+  **Left:** not seen in a render yet (no GPU/terrain in the cloud): shots at Nowy Świat, Tamka, the
+  boulevards and Targowa on the Mac; the bench and the phone look (size, clutter, night); the
+  corridor waypoints are the spec's rough lines (Praga gets few props); the camera rule (props on
+  east-side pavements are hidden) is not applied; stop kits are only at the map's shelters.
 - Knocking light furniture about like the cones; parked cars and shelters solid ("From the
   driving-feel loop"). Gap, low.
 
@@ -264,8 +278,9 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   `docs/landmarks/specs/buw.md`, log `docs/landmarks/buw.md`): the copper plates with their
   lines of text on Dobra, the four philosophers on columns, the roof garden from the mapped
   lawns, the glass roofs and the band; the roof redone from the orthophoto on 2026-11-01.
-  Left: the height (LoD2 may say more than OSM's 10.9 m), which front the philosophers stand
-  at, the south garden's winding paths and shrubs.
+  Pass 3 (2026-11-01, the Mac's LoD2 check): the deck at 15 m, the hill, the vents, the south
+  garden's paths and beds, the court on Collegium Iuridicum II. Left: the north corner's four
+  vents (outside the outline, the city's drums).
   The others not started.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
@@ -1953,7 +1968,7 @@ golden-image shots runtime vs `--prebuilt`,
   frames the same code passed. Fix (map lane): wait in frames, or run the pass on a frame budget
   that doesn't change with the machine; the iPhone 11's 60 Hz is the case that counts.
 
-- **The content lane's switch** (storefronts.gd, roundup_job.gd, props.gd; none of it built):
+- **The content lane's switch** (storefronts.gd, 2026-10-31: **built** in loop content-POIs-switch, see ROADMAP; bike docks and the other `convenience` shops are not used yet; roundup_job.gd and props.gd needed no change):
   the Leżaks from the `scooter` pois (`p` the pose: `lie` on its side as today; `stand` upright;
   `roof` at `h` 2.6 m over the ground; `grass`, `bench`, `hedge`, `frogs` lie like `lie`) instead
   of `_pick_scooters`, the zones' paint from `scooter_zone` (3 m along `yaw`), the standing one
@@ -2243,3 +2258,15 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
   HUD's room, so the layout left it unplaced. Now two Polish lines (the credits and the repo as one
   shared line) and the English paragraph; a layout assertion in check_end_card would catch it again.
 - `first10-run` takes ~5 min in the container (3.4× real time headless); it stays out of `--quick`.
+## From the Pawilony loop (landmarks lane, 2026-10-31)
+
+- The Pawilony are a site now (`landmarks.gd` `_build_pawilony`, spec `docs/landmarks/specs/pawilony.md`):
+  37 pavilions cut from the two OpenStreetMap strips, 1740 triangles (budget 2100). Built without
+  photos (the cloud has none): the art-director's check against `refs/pawilony/` on the Mac is open,
+  and the gate sign's spot (-285.0, 111.5) is measured from the OSM outline, not the LoD2 front.
+- Not built: string lights across the passages (they would hang in the air: the FLOAT check), the
+  courtyard's own tables and crowd at night, graffiti.
+- **F's ask (2026-10-31): shisha lounges.** Small night spots with neon, like the Pawilony: a few
+  hookah lounges (under made-up names, no real ones) on the centre's night streets, each a lit
+  front with a neon word (a new word like SZISZA in the neon font, which has no Ł/Ó/Ś yet) and maybe
+  a notebook place in `places.json`. Content lane (game-designer for names and spots).
