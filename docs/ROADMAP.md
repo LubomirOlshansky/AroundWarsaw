@@ -56,8 +56,9 @@ then the Launch gate.
       station, the Old Town tourist and Łazienki peacock rescues (check each against the code)
 - [ ] Loop 3i juice: sparks and dust (no particles yet), money pops, district ambiences,
       haptics working on the iPhone
-- [ ] Accessibility: Reduce Motion, left-handed layout, colour-blind-safe markers, text size
-      (none built yet)
+- [x] Accessibility options (2026-11-01, Settings → DOSTĘP, `access.gd`): larger HUD text, calm
+      (no flashing or shaking), colour-safe markers, vibration on/off, stop assist on/off.
+      Left to do: left-handed layout, live text size, subtitles (BACKLOG)
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
 

@@ -28,6 +28,7 @@ extends CanvasLayer
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
 
+const Access := preload("res://scripts/access.gd")
 const SettingsPanel := preload("res://scripts/settings_panel.gd")
 const FullMap := preload("res://scripts/full_map.gd")
 const MapArt := preload("res://scripts/map_art.gd")
@@ -511,7 +512,7 @@ func _px(points: float) -> int:
 ## A label on the type scale; `outline` for text that sits on the city rather than a panel.
 func _label(points: float, colour: Color, outline := false) -> Label:
 	var l := Label.new()
-	l.add_theme_font_size_override("font_size", _px(points))
+	l.add_theme_font_size_override("font_size", _px(points * Access.text_scale))
 	l.add_theme_color_override("font_color", colour)
 	if outline:
 		l.add_theme_color_override("font_outline_color", OUTLINE)

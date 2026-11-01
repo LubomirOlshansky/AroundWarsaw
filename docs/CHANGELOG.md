@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- A new Settings tab, DOSTĘP (Access): larger text, a calm screen with no flashing, colour-safe markers, vibration off, and the pick-up stop assist off.
 - St Anne's church at the start of Krakowskie Przedmieście has its classical front: four tall columns under a pediment with a cross, side wings, and a trimmed bell tower.
 - The Visitationists' church on Krakowskie Przedmieście has its cream rococo front: pilasters, a stepped curved gable with statues and a cross, a lower side wing and a small copper turret.
 - All Saints church on Plac Grzybowski now has its front and two domed towers.
