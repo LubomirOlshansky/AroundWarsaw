@@ -54,6 +54,7 @@ const Skids := preload("res://scripts/skids.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const Traffic := preload("res://scripts/traffic.gd")
 const Trams := preload("res://scripts/trams.gd")
+const Trains := preload("res://scripts/trains.gd")
 const Pedestrians := preload("res://scripts/pedestrians.gd")
 const Rivals := preload("res://scripts/rivals.gd")
 const Bubbles := preload("res://scripts/bubbles.gd")
@@ -167,6 +168,10 @@ var hud: CanvasLayer
 var graph: LaneGraph
 var traffic: Traffic
 var trams: Trams
+## The railway (docs/design/railway.md T1): trains on the cross-city line and the ring line.
+var trains: Trains
+## --train=X,Z: a train put on the track nearest that point at the start (shots).
+var train_at := Vector2.INF
 var walkers: Pedestrians
 var rivals: Rivals
 ## Loop 3g-1: the police (null with --no-police or no traffic) and their flags.
@@ -1334,6 +1339,11 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	trams.traffic = traffic
 	traffic.trams = trams
 	_first_scene_trams()
+	trains = Trains.new()
+	world.add_child(trains)
+	trains.setup(map, data)
+	if train_at != Vector2.INF:
+		trains.place_near(train_at)
 	walkers = Pedestrians.new()
 	world.add_child(walkers)
 	walkers.setup(map, cam, traffic, data)
@@ -3466,6 +3476,10 @@ func _parse_args() -> void:
 			bus_log = true
 		elif arg == "--old-tram" or arg.begins_with("--old-tram="):
 			old_tram_flag = "follow" if arg == "--old-tram=follow" else "now"
+		elif arg.begins_with("--train="):
+			var xz := arg.trim_prefix("--train=").split(",")
+			if xz.size() == 2:
+				train_at = Vector2(float(xz[0]), float(xz[1]))
 		elif arg == "--tram-log":
 			tram_log = true
 		elif arg.begins_with("--packs="):
@@ -4760,6 +4774,11 @@ func _feed_life(pos: Vector3) -> void:
 	traffic.player_on_road = not flying
 	trams.player_pos = ground
 	trams.player_on_road = not flying
+	if trains != null:
+		trains.player_pos = ground
+		trains.player_on_road = not flying
+		trains.view_at = traffic.view_centre
+		trains.view_reach = maxf(traffic.view_half.x, traffic.view_half.y) * 1.5 + 150.0
 	rivals.flying = flying
 
 
@@ -4820,6 +4839,8 @@ func _make_stats() -> BenchStats:
 		b.systems["traffic"] = [traffic, "last_usec", false]
 		b.systems["traffic bodies"] = [traffic, "spent_usec", true]
 		b.systems["trams"] = [trams, "last_usec", false]
+		if trains != null:
+			b.systems["trains"] = [trains, "last_usec", false]
 		b.systems["people"] = [walkers, "last_usec", false]
 		b.systems["rivals"] = [rivals, "spent_usec", true]
 		b.counts["cars on screen"] = func() -> int: return traffic.visible_count
