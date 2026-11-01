@@ -13,6 +13,9 @@ const BRICK := Color("#8c4a3a")
 const SINK := 0.45           ## m, a chimney's foot under the slope
 const NO_UV := Vector2(-1.0, -1.0)
 const RYNEK := Vector2(-812.4, -1753.8)  ## the market square's centre (OSM place node)
+const PLAC := Vector2(-724.2, -1465.4)  ## Plac Zamkowy (Sigismund's Column)
+const PLAC_NEAR := 18.0      ## m, the plac's ring of fronts: inner and outer radius (gables of three kinds)
+const PLAC_FAR := 92.0
 const GABLE_NEAR := 22.0     ## m, the stepped-gable ring round the square: inner and outer radius
 const GABLE_FAR := 72.0
 const GABLE_BAY := 8.0       ## m, a house front's usual width: one gable per bay
@@ -180,4 +183,61 @@ static func gable(a: Vector3, b: Vector3, n: Vector3, wall: Color, seed: float) 
 	var wf := n * 0.09
 	_tri(out, wl + wf, wr + wf, wr + wf + up * 0.6, GLASS, inside)
 	_tri(out, wl + wf, wr + wf + up * 0.6, wl + wf + up * 0.6, GLASS, inside)
+	return {"pos": PackedVector3Array(out["pos"]), "nrm": PackedVector3Array(out["nrm"]), "col": PackedColorArray(out["col"])}
+
+
+## The attic gable of a house on Plac Zamkowy, in one of three kinds by its seed so a row of
+## fronts does not repeat: 0 the stepped gable (`gable`), 1 a triangular pediment with a
+## cornice and an oculus, 2 a curved (segmental) gable with a round window. Same arguments
+## and result as `gable`.
+static func plac_gable(a: Vector3, b: Vector3, n: Vector3, wall: Color, seed: float) -> Dictionary:
+	var kind := int(fposmod(seed * 17.0, 1.0) * 3.0)
+	if kind == 0:
+		return gable(a, b, n, wall, seed)
+	var out := {"pos": [], "nrm": [], "col": []}
+	var span := b - a
+	var width := span.length()
+	if width < GABLE_MIN:
+		return {}
+	var along := span / width
+	var mid := (a + b) * 0.5
+	var up := Vector3.UP
+	var front := n * 0.05
+	var back := -n * (DEPTH - 0.05)
+	var inside := mid - n * 4.0 + up * 1.5
+	var face := wall.lerp(FRAME, 0.25)
+	var cap := wall.darkened(0.3)
+	var half := width * 0.5
+	# The profile from the left foot to the right foot: a pediment is two straight rakes, a
+	# curved gable an arc of the same rise.
+	var rise := minf(half * (0.55 if kind == 1 else 0.5), 3.2)
+	var prof: Array[Vector3] = []
+	var steps := 2 if kind == 1 else 6
+	for i in steps + 1:
+		var t := float(i) / steps  # 0..1 across
+		var x := (t - 0.5) * 2.0
+		var y := rise * (1.0 - absf(x)) if kind == 1 else rise * (1.0 - x * x)
+		prof.append(mid + along * (x * half) + up * y)
+	var base_l := mid - along * half
+	var base_r := mid + along * half
+	# Fan the front and back faces from the foot line up to the profile.
+	for off: Vector3 in [front, back]:
+		for i in prof.size() - 1:
+			_tri(out, base_l + off, prof[i] + off, prof[i + 1] + off, face, inside)
+			_tri(out, base_l + off, prof[i + 1] + off, base_r + off, face, inside)
+	# A coping along the rake, its two sides and top as one band.
+	for i in prof.size() - 1:
+		var p0 := prof[i]
+		var p1 := prof[i + 1]
+		_tri(out, p0 + front, p1 + front, p1 + back, cap, inside)
+		_tri(out, p0 + front, p1 + back, p0 + back, cap, inside)
+	# A cornice strip along the foot (the gable's bottom edge, a little proud).
+	var cn := n * 0.14
+	_tri(out, base_l + cn, base_r + cn, base_r + cn + up * 0.28, cap, inside)
+	_tri(out, base_l + cn, base_r + cn + up * 0.28, base_l + cn + up * 0.28, cap, inside)
+	# An oculus (a dark square on the diagonal reads as a round window from the street).
+	var wr := minf(0.55, width * 0.08)
+	var wc := mid + up * (rise * 0.38 + 0.35) + n * 0.09
+	_tri(out, wc - along * wr, wc + up * wr, wc + along * wr, GLASS, inside)
+	_tri(out, wc - along * wr, wc + along * wr, wc - up * wr, GLASS, inside)
 	return {"pos": PackedVector3Array(out["pos"]), "nrm": PackedVector3Array(out["nrm"]), "col": PackedColorArray(out["col"])}

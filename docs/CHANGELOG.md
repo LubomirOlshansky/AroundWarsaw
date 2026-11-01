@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Twenty-two more churches stand as real buildings with towers, steep roofs and a front door instead of plain boxes, and the houses round Plac Zamkowy are painted in Old Town pastels with a mix of gable shapes.
 - Marszałkowska's tram stops fill with commuters at rush hour, thin out at weekends and night, and crowd the platforms when it rains.
 - Photo mode no longer lets your car roll backwards into a building, and the pause menu's JAZDA tab has a POMOC DROGOWA button that tows you onto the nearest road if you ever get stuck.
 - Hotel Bristol and Hotel Polonia Palace are real buildings now: slate mansards with dormers, balcony bands and cornices, and a lit canopied door with a name board (BRISTOL in gold) on Krakowskie Przedmieście and Aleje Jerozolimskie.

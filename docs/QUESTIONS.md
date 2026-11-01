@@ -25,6 +25,16 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · landmarks · church kit and Plac Zamkowy: Mac look check** — Built in the cloud
+  from outlines alone (docs/design/churches.md, spec churches.md). Defaults: the front is the
+  outline's end nearest a street; towers, caps and colours by a guessed style per church
+  (`CHURCHES` in landmarks.gd). Check on the Mac: for each of the 22 kit churches, which end is
+  the real front, how many towers and which cap, the plaster or brick colour; fix the entry in
+  `CHURCHES` (`out` flips the front, `towers`, `cap`, `wall`, `roof`). Plac Zamkowy: do the new
+  gables (stepped, pediment, curved) stand on the right houses' top edges on the real LoD2 walls,
+  and do the pastels look right next to the Castle's brick. Phone: frame cost of the Old Town with
+  the extra gables.
+
 - **2026-11-01 · driving · photo mode and POMOC DROGOWA: phone check** — Fixed in the cloud
   (headless check and a game run: the car moved 0.00 m under Fotka; the button towed it onto the
   lane). Default built: the button is the last row of JAZDA's left column, always available on

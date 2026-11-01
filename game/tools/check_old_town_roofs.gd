@@ -63,6 +63,27 @@ func _initialize() -> void:
 			var gf := (gp[t + 1] - gp[t]).cross(gp[t + 2] - gp[t]).normalized()
 			_expect(gf.dot(gm[t]) > 0.99, "gable winding matches the normal")
 	_expect(OldTownRoofs.gable(ga, ga + Vector3(3, 0, 0), gn, wall, 0.3).is_empty(), "a 3 m front takes none")
+	# Plac Zamkowy's gables: the three kinds (stepped, pediment, curved) by seed, each solid,
+	# on its wall, wound outward, rising a believable height; a 3 m front takes none.
+	var kinds := {}
+	for sd in [0.01, 0.2, 0.4, 0.6, 0.8, 0.95]:
+		var pg := OldTownRoofs.plac_gable(ga, gb, gn, wall, sd)
+		_expect(not pg.is_empty(), "plac: a 9 m front takes a gable (seed %.2f)" % sd)
+		var pp: PackedVector3Array = pg["pos"]
+		var pn: PackedVector3Array = pg["nrm"]
+		_expect(pp.size() % 3 == 0 and pp.size() == pn.size() and pp.size() <= 400, "plac gable arrays agree (%d vertices)" % pp.size())
+		var ptop := 0.0
+		for i in pp.size():
+			ptop = maxf(ptop, pp[i].y - 12.0)
+			_expect(pp[i].y >= 11.99 and pp[i].x >= -0.01 and pp[i].x <= 9.01, "plac gable stays on its wall: %s" % pp[i])
+			_expect(pp[i].z > -0.5 and pp[i].z < 0.2, "plac gable thin and at the wall: %s" % pp[i])
+		_expect(ptop > 2.0 and ptop < 5.0, "plac gable rises 2 to 5 m (%.1f)" % ptop)
+		kinds[int(fposmod(sd * 17.0, 1.0) * 3.0)] = true
+		for t in range(0, pp.size(), 3):
+			var pf := (pp[t + 1] - pp[t]).cross(pp[t + 2] - pp[t]).normalized()
+			_expect(pf.dot(pn[t]) > 0.99, "plac gable winding matches the normal")
+	_expect(kinds.size() == 3, "the test seeds cover all three plac gable kinds (%d)" % kinds.size())
+	_expect(OldTownRoofs.plac_gable(ga, ga + Vector3(3, 0, 0), gn, wall, 0.3).is_empty(), "plac: a 3 m front takes none")
 	# Through the builder: a 20 m east-side wall facing the square takes gables in the dress arrays.
 	var mb = load("res://scripts/map_builder.gd").new()
 	var wp := PackedVector3Array([Vector3(-760, 0, -1780), Vector3(-760, 0, -1760), Vector3(-760, 14, -1760),
