@@ -149,6 +149,10 @@ then the Launch gate.
       `Hud.apply_text_scale`). Left to do: subtitles (BACKLOG)
 - [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
+- [x] Vistula boulevards full of life (F, 2026-11-01, `crowds.gd` BULWARY, `city_life.gd`): nine
+      chill spots along the river edge (groups on the steps and benches, evening-heavy, summer,
+      rain-thin), twice the dog walkers and runners-zone riders, twice the cyclists with 45 % riding
+      hard (30-41 km/h). Left: e-scooters (needs a fifth bike-family shape), the phone's look and cost
 - [ ] Rondo de Gaulle'a and the food hype (F, 2026-11-01; spec docs/design/gaulle-and-food-hype.md):
   - [x] Design and the parody names, 2026-11-01
   - [x] G1 the de Gaulle statue, 2026-11-01
