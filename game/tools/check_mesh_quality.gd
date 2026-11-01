@@ -96,6 +96,7 @@ const BUDGET := {
 	"stadium": 4750,
 	"swieto": 240,
 	"teatr": 600,
+	"teresy": 280,
 	"sw_krzyz": 1100,
 	"sejm": 1400,
 	"staszic": 360,
