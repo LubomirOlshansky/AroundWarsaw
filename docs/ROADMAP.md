@@ -115,6 +115,11 @@ then the Launch gate.
       pads for driving, the helicopter, the mission card, Settings, the full map and the title;
       touch unchanged. Left: real pads on the phone (beta), the bars / notebook / garage focus,
       the full map's stick pan (docs/store/mac-and-gamepad.md)
+- [x] Crash scenes (F, 2026-11-01, `crash_scenes.gd`, `check_crash_scenes`, PR "crash scenes"):
+      every few minutes a fender bender ahead on a main road, two wrecks in the kerb lane, a
+      police car with its lights and a yellow ambulance, the drivers arguing, people filming,
+      KEBAB FM's traffic news; traffic queues and goes round. Left: the phone's look, a siren
+      sound, a minimap marker (docs/design/crash-scenes.md)
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
 
