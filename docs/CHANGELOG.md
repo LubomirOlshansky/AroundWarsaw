@@ -54,6 +54,7 @@ someone writes its lines.
 - Złote Tarasy is rebuilt as one landmark: the golden glass wave over the terraced mall, the Lumen offices curving round it, the Skylight tower with a crown that glows at night, and the round glass drum by the station.
 - Plac Małachowskiego and the Presidential Palace are real buildings now: Holy Trinity's white rotunda with its four columned porches, green dome and tall lantern; Zachęta in white with its two big columns, sculpted pediment, steps and lamps; the Presidential Palace's wings round the forecourt, a columned portico, Prince Poniatowski on horseback, and four stone lions at the gate.
 - The new Museum of Modern Art on Plac Defilad is now its own building: the long white box floating on a glass lobby behind white fins, a thin dark slot round the middle, big windows that glow at night, skylights on the roof, and an info card.
+- The Pawilony behind Nowy Świat: a maze of tiny one-storey bars, each a different colour, with lit windows, warm bulbs and little neon signs (PIWO, SHOTY, KARAOKE...), and a PAWILONY sign over the gate on Nowy Świat.
 - The towers and the Palace of Culture no longer flicker: overlapping walls and roofs were drawn twice, and now they are drawn once. The look is the same.
 - A new, shorter website: the newest screenshots, three missions, open source, a word from the author.
 - A new automatic check looks at every landmark model for flickering surfaces, zero-size faces, floating parts and too many triangles, so these get caught before anyone looks at a screenshot.

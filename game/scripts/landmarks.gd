@@ -305,6 +305,9 @@ const INFO := {
 	"grob": ["Grób Nieznanego Żołnierza",
 			"Trzy łuki ocalałe z Pałacu Saskiego. Wieczny ogień i warta.",
 			"Three arches left of the Saxon Palace. An eternal flame, a guard."],
+	"pawilony": ["Pawilony",
+			"Labirynt barów wielkości kiosku za bramą przy Nowym Świecie.",
+			"A maze of kiosk-sized bars behind a gate on Nowy Świat."],
 	"mdm": ["MDM",
 			"Marszałkowska Dzielnica Mieszkaniowa, socrealizm z lat 1950–1952.",
 			"The socialist-realist housing district of 1950–1952."],
@@ -548,6 +551,7 @@ func _find_sites() -> void:
 	_find_swieto()
 	# The museum and Plac Piłsudskiego loop (2026-10-31): the square's edges.
 	_find_plac()
+	_find_pawilony()
 	var metropol := _landmark("Hotel Metropol")
 	if metropol.size() >= 3:
 		# A 0.2 m zone at the roof's south-east corner: a site's zone drops what stands in it,
@@ -903,6 +907,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"slabs":
 				_id = 0
 				_build_slabs(s)
+			"pawilony":
+				_build_pawilony(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -7167,3 +7173,164 @@ func _anna_tower() -> void:
 	_frustum(_circle(c, 3.9, 8), g + 33.8, _circle(c, 3.4, 8), g + 34.5, ANNA_TRIM, ANNA_TRIM)
 	_lbox(0.0, 0.0, 0.18, 0.18, g + 34.5, g + 38.0, ANNA_GOLD, M_STONE, ANNA_GOLD)
 	_lbox(0.0, 0.0, 0.7, 0.18, g + 36.0, g + 36.4, ANNA_GOLD, M_STONE, ANNA_GOLD)
+# --- Pawilony (Nowy Świat 22/28, 2026-10-31) -------------------------------------------------
+
+## The Pawilony: the maze of tiny one-storey bar pavilions behind the gate at Nowy Świat 22/28
+## (docs/landmarks/specs/pawilony.md). OpenStreetMap maps them as two strips named "Pawilony za
+## Nowym Światem"; each strip is cut along its length into pavilions 3.4-5.6 m wide and
+## 2.7-3.6 m tall (seeded by position, the same every run), the 12 m west strip into two rows
+## back to back. Each pavilion: its own patched colour, a flat tar roof with an eave over the
+## front, a fascia, a dark door, a lit window or a closed shutter; a small neon word on most
+## fronts, warm bulbs under the others' eaves; PAWILONY over the gate on Nowy Świat.
+const PAW_OSM := "Pawilony za Nowym Światem"
+const PAW_WALLS := ["#b84a3a", "#d9a441", "#3f6e8c", "#5d8a5a", "#e5ddcc", "#7a5a8c", "#c96f4a", "#4a4f55"]
+## Roofs: tar paper, grey felt, rusty sheet, mossy felt, so from above the strip is a patchwork.
+const PAW_ROOFS := ["#3b3a38", "#5f5d57", "#7a5f4c", "#4f5c50", "#6e6a64"]
+const PAW_PLINTH := Color("#2c2c2c")
+const PAW_DOOR := Color("#1f2124")
+const PAW_SHUTTER := Color("#8e9196")
+const PAW_GLASS := Color(1.0, 0.82, 0.55)
+const PAW_BULB := Color(1.0, 0.86, 0.55)
+const PAW_MIN_W := 3.4
+const PAW_MAX_W := 5.6
+const PAW_MIN_H := 2.7
+const PAW_MAX_H := 3.6
+const PAW_ROW := 8.0          # a strip wider than this is two rows back to back
+const PAW_EAVE := 0.3
+const PAW_WORDS := ["PIWO", "BAR", "SHOTY", "KLUB", "DISCO", "KARAOKE", "OTWARTE"]
+const PAW_TUBES := [Color(1.0, 0.1, 0.55), Color(0.1, 0.9, 1.0), Color(0.62, 0.25, 1.0),
+		Color(1.0, 0.72, 0.12), Color(0.2, 1.0, 0.45)]
+const PAW_SIGN_K := 0.4       # a word's scale: 0.88 m tall (less on a narrow front)
+## The gate: the tenement's front on Nowy Świat where the passage goes in (the footpath through
+## it), its outward normal (west, to the street), the sign's height and scale.
+const PAW_GATE := Vector2(-285.0, 111.5)
+const PAW_GATE_OUT := Vector2(-0.94, 0.34)
+const PAW_GATE_UP := 5.5   # over the ground floor's shop signs (the tenement has a KEBAB 24H)
+const PAW_GATE_K := 0.55
+
+
+func _find_pawilony() -> void:
+	var strips: Array = []
+	for l in data.get("landmarks", []):
+		if l["name"] == PAW_OSM:
+			var q := _pts(l["p"])
+			if q.size() >= 3:
+				strips.append(q)
+	if strips.is_empty():
+		return
+	_add_site("pawilony", strips)
+	if not sites.is_empty() and sites[-1]["key"] == "pawilony":
+		sites[-1]["strips"] = strips
+
+
+## A seeded 0..1 from a strip, a pavilion and a salt (the same every run and every sector).
+func _paw_rand(strip: int, unit: int, salt: int) -> float:
+	var x := sin(float(unit) * 12.9898 + float(strip) * 78.233 + float(salt) * 37.719) * 43758.5453
+	return x - floorf(x)
+
+
+func _build_pawilony(site: Dictionary) -> void:
+	var strips: Array = site["strips"]
+	for k in strips.size():
+		var poly: PackedVector2Array = strips[k]
+		# The strip's frame: u along its longest edge, v across.
+		var longest := 0.0
+		for i in poly.size():
+			var e := poly[(i + 1) % poly.size()] - poly[i]
+			if e.length() > longest:
+				longest = e.length()
+				_a = e.normalized()
+		_b = Vector2(-_a.y, _a.x)
+		_o = _centre(poly)
+		var lo := Vector2(INF, INF)
+		var hi := -lo
+		for q in poly:
+			lo = lo.min(_local(q))
+			hi = hi.max(_local(q))
+		# Rows: [v of the back, v of the front, which way the front faces (+1: +v)].
+		var rows: Array = []
+		if hi.y - lo.y > PAW_ROW:
+			var mid := (lo.y + hi.y) * 0.5
+			rows.append([mid, lo.y, -1.0])
+			rows.append([mid, hi.y, 1.0])
+		else:
+			# One row: its front to the north (the footpath along the south-east strip).
+			var s := -1.0 if _b.y > 0.0 else 1.0
+			rows.append([hi.y if s < 0.0 else lo.y, lo.y if s < 0.0 else hi.y, s])
+		for r in rows.size():
+			_paw_row(k * 2 + r, lo.x, hi.x, rows[r][0], rows[r][1], rows[r][2])
+		_collide(poly)
+	# The gate's sign on Nowy Świat.
+	var gy: float = map.terrain_height(PAW_GATE.x, PAW_GATE.y) + PAW_GATE_UP
+	signs.append(["PAWILONY", Vector3(PAW_GATE.x, gy, PAW_GATE.y), Vector3(PAW_GATE_OUT.x, 0.0, PAW_GATE_OUT.y),
+			PAW_GATE_K, Color(1.0, 0.92, 0.8)])
+
+
+## One row of pavilions from u0 to u1, back at v = vb, front at v = vf facing `side` (+-v).
+func _paw_row(strip: int, u0: float, u1: float, vb: float, vf: float, side: float) -> void:
+	var cuts: Array[float] = [u0]
+	var u := u0
+	var n := 0
+	while true:
+		var w := lerpf(PAW_MIN_W, PAW_MAX_W, _paw_rand(strip, n, 1))
+		if u1 - (u + w) < PAW_MIN_W:
+			break
+		u += w
+		cuts.append(u)
+		n += 1
+	cuts.append(u1)
+	var out := _b * side
+	var n3 := Vector3(out.x, 0.0, out.y)
+	for i in cuts.size() - 1:
+		var a := cuts[i]
+		var b := cuts[i + 1]
+		var plan := PackedVector2Array([_w(a, vb), _w(b, vb), _w(b, vf), _w(a, vf)])
+		var g := _ground_under(plan)
+		_g = g
+		var top := g + lerpf(PAW_MIN_H, PAW_MAX_H, _paw_rand(strip, i, 2))
+		var wall := Color(PAW_WALLS[int(_paw_rand(strip, i, 3) * PAW_WALLS.size()) % PAW_WALLS.size()])
+		var roof := Color(PAW_ROOFS[int(_paw_rand(strip, i, 10) * PAW_ROOFS.size()) % PAW_ROOFS.size()])
+		var none := Color(0, 0, 0, 0)
+		_prism(plan, g - 0.3, g, PAW_PLINTH, none, M_STONE)
+		_prism(plan, g, top, wall, roof, M_STONE, M_STONE)
+		# The eave over the front.
+		var eave := PackedVector2Array([_w(a, vf), _w(b, vf), _w(b, vf + side * PAW_EAVE), _w(a, vf + side * PAW_EAVE)])
+		_prism(eave, top - 0.12, top + 0.05, roof.darkened(0.15), roof.lightened(0.05), M_STONE, M_STONE)
+		# The fascia, then the door and the window (or shutter) below it, a little proud of the wall.
+		var f := vf + side * 0.09
+		var p := vf + side * 0.05
+		# A bar with a sign has its fascia lit (a light box), the others a plain board.
+		var signed := _paw_rand(strip, i, 7) < 0.67
+		_mode = M_PAVILION if signed else M_STONE
+		_wall(_w(a + 0.2, f), _w(b - 0.2, f), top - 0.52, top - 0.14, out,
+				wall.lerp(Color.WHITE, 0.45) if signed else wall.darkened(0.25))
+		_mode = M_STONE
+		var left := _paw_rand(strip, i, 4) < 0.5
+		var d0 := a + 0.5 if left else b - 1.5
+		_wall(_w(d0, p), _w(d0 + 1.0, p), g, g + 2.0, out, PAW_DOOR)
+		var ww := minf(lerpf(1.4, 2.4, _paw_rand(strip, i, 5)), (b - a) - 2.6)
+		var w0 := d0 + 1.4 if left else d0 - 0.4 - ww
+		var lit := _paw_rand(strip, i, 6) < 0.7
+		_mode = M_PAVILION if lit else M_STONE
+		_wall(_w(w0, p), _w(w0 + ww, p), g + 0.9, g + 2.0, out, PAW_GLASS if lit else PAW_SHUTTER)
+		_mode = M_STONE
+		# A neon word on most fronts, standing on the eave's front edge (under the eave the
+		# game's camera, 30-40 degrees down, can't see it), warm bulbs under the others' eaves.
+		var mid := (a + b) * 0.5
+		if signed:
+			var word: String = PAW_WORDS[int(_paw_rand(strip, i, 8) * PAW_WORDS.size()) % PAW_WORDS.size()]
+			var tube: Color = PAW_TUBES[int(_paw_rand(strip, i, 9) * PAW_TUBES.size()) % PAW_TUBES.size()]
+			var k := minf(PAW_SIGN_K, (b - a - 0.4) / Neon.length_of(word))
+			var at := _w(mid, vf + side * (PAW_EAVE + 0.02 - 0.4))
+			signs.append([word, Vector3(at.x, top + 0.05, at.y), n3, k, tube])
+			# The sign's board behind it, so from behind the word isn't seen backwards.
+			var half := Neon.length_of(word) * k * 0.5
+			var board := PackedVector2Array([_w(mid - half, vf + side * 0.05), _w(mid + half, vf + side * 0.05),
+					_w(mid + half, vf + side * PAW_EAVE), _w(mid - half, vf + side * PAW_EAVE)])
+			_prism(board, top + 0.05, top + 0.05 + Neon.ROW_H * Neon.PIXEL * k, PAW_DOOR, PAW_DOOR, M_STONE, M_STONE)
+		else:
+			_mode = M_LAMP
+			for t: float in [0.25, 0.5, 0.75]:
+				var c := lerpf(a, b, t)
+				_prism(_rect(c, vf + side * 0.17, 0.08, 0.08), top - 0.28, top - 0.12, PAW_BULB, PAW_BULB, M_LAMP, M_LAMP)
+			_mode = M_STONE
