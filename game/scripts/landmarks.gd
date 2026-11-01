@@ -701,8 +701,6 @@ func _find_sites() -> void:
 	_find_mf()
 	# Powiśle, street by street (2026-11-01): Ostrogski Castle and the Chopin Institute, Tamka 41.
 	_find_ostrogski()
-
-
 	# The Powiśle parish church (2026-11-01): a model instead of the mapped box.
 	_find_teresy()
 	# The Powiśle boulevards (2026-11-01): the riverside Syrenka, the water station, the Kaskada.
