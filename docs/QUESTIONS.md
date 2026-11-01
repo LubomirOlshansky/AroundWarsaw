@@ -26,7 +26,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
-- **2026-11-01 · gameplay pass · phone checks** — F's six screenshots drive BACKLOG "Gameplay pass" G1-G13. Phone checks: (G1) a fresh save shows HELI at 0:00 and the map hold teleports; (G2) the Low default feels calm and the slider moves it; (G3) the zoom buttons clear the minimap and the pill; (G4) is Cruise easy enough (grip 16, turn pull 10, steer 0.14 s, soft gas; lane change at 50 km/h slides under 1.1 m/s), is Sport still wanted, and do Settings → Jazda → Prowadzenie and the moved Tryb gry (now in Świat) read well; (G5) which wall-like blocks F meant (a photo of one helps). Defaults built: heli and teleport free, Low traffic, Cruise handling.
+- **2026-11-01 · gameplay pass · phone checks** — F's six screenshots drive BACKLOG "Gameplay pass" G1-G13. Phone checks: (G1) a fresh save shows HELI at 0:00 and the map hold teleports; (G2) the Low default feels calm and the slider moves it; (G3) the zoom buttons clear the minimap and the pill; (G4) is Cruise easy enough (grip 16, turn pull 10, steer 0.14 s, soft gas; lane change at 50 km/h slides under 1.1 m/s), is Sport still wanted, how the Czułość slider (0.6x to 1.4x turn rate, middle = as is) feels at both ends, and do Settings → Jazda → Prowadzenie and the moved Tryb gry (now in Świat) read well; (G5) which wall-like blocks F meant (a photo of one helps). Defaults built: heli and teleport free, Low traffic, Cruise handling.
 
 - **2026-11-01 · driving · photo mode and POMOC DROGOWA: phone check** — Fixed in the cloud
   (headless check and a game run: the car moved 0.00 m under Fotka; the button towed it onto the

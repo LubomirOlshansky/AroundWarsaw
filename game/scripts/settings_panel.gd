@@ -222,6 +222,7 @@ func _build() -> void:
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.custom_minimum_size.x = 240.0 * pt
 		drive[0].add_child(l)
+	_level(drive[0], "sensitivity", "Czułość", "Steering", 120.0)
 	_heading(drive[1], "Kamera za autem", "Camera follows the car")
 	_segments(drive[1], "camera", CAMERA)
 	_heading(drive[1], "Prowadzenie", "Handling")
@@ -744,7 +745,7 @@ func _say(scheme: int) -> void:
 
 
 ## A volume: the words, −, a bar (tap or drag along it) and +.
-func _level(parent: Node, key: String, pl: String, en: String) -> void:
+func _level(parent: Node, key: String, pl: String, en: String, bar_width := 200.0) -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", _px(8))
 	parent.add_child(row)
@@ -762,7 +763,7 @@ func _level(parent: Node, key: String, pl: String, en: String) -> void:
 	minus.pressed.connect(func(): _set_level(key, float(_values.get(key, 1.0)) - 0.1))
 	row.add_child(minus)
 	var bar := Control.new()
-	bar.custom_minimum_size = Vector2(200.0 * pt, touch)
+	bar.custom_minimum_size = Vector2(bar_width * pt, touch)
 	bar.mouse_filter = Control.MOUSE_FILTER_STOP
 	bar.draw.connect(_draw_bar.bind(bar, key))
 	bar.gui_input.connect(func(e: InputEvent):

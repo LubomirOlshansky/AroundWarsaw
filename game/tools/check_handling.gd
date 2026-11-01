@@ -111,6 +111,23 @@ func _finish() -> bool:
 			_problems.append("Cruise %s slides %.2f m/s (limit %.1f)" % [cs["name"], cr, CRUISE_SLIP])
 		if cr > sp + 0.01:
 			_problems.append("Cruise %s slides more than Sport (%.2f vs %.2f)" % [cs["name"], cr, sp])
+	# The sensitivity slider: its left end turns less than the middle, which turns less than its right end.
+	var gains: Array[float] = []
+	for lv in [0.0, 0.5, 1.0]:
+		var sc := Car.new()
+		sc.set_sensitivity(lv)
+		gains.append(sc.max_turn(10.0) )
+		sc.free()
+	print("  max turn at 36 km/h by sensitivity 0 / 0.5 / 1: %.2f / %.2f / %.2f rad/s" % [gains[0], gains[1], gains[2]])
+	if not (gains[0] < gains[1] and gains[1] < gains[2]):
+		_problems.append("the sensitivity slider does not order the steering (%s)" % [gains])
+	var mid := Car.new()
+	if not is_equal_approx(mid.steer_gain, 1.0):
+		_problems.append("a new car's steering gain is not 1.0")
+	mid.set_sensitivity(0.5)
+	if not is_equal_approx(mid.steer_gain, 1.0):
+		_problems.append("sensitivity 0.5 is not the profile as is")
+	mid.free()
 	# The gas: a quarter push for 1 s reaches a lower speed in Cruise than in Sport.
 	var cruise_v := _pull_away(Car.Handling.CRUISE)
 	var sport_v := _pull_away(Car.Handling.SPORT)

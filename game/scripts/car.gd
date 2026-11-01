@@ -89,6 +89,12 @@ const PROFILES := {
 			"pivot": 1.5, "steer_time": 0.08, "onset": 0.35},
 }
 var handling := Handling.CRUISE
+## F (2026-11-01): "adjustments of the car's reactions, like the sensitivity of the driving" (Settings
+## → Jazda, settings.gd `sensitivity` 0..1, 0.5 the profile as is). A multiplier on how hard the
+## wheel turns the car and how fast it answers: SENS_MIN at the slider's left end, SENS_MAX at its right.
+const SENS_MIN := 0.6
+const SENS_MAX := 1.4
+var steer_gain := 1.0
 ## Point-to-steer: heading error (rad) to yaw rate (rad/s), and the yaw damping.
 @export var point_gain := 6.0
 @export var yaw_damping := 0.4
@@ -428,7 +434,7 @@ func _step(dt: float) -> void:
 				top = minf(top, maxf(speed, TURN_CRAWL))
 	else:
 		_turn_side = 0.0
-	steer_now = lerpf(steer_now, clampf(s, -1.0, 1.0), 1.0 - exp(-dt / steer_time))
+	steer_now = lerpf(steer_now, clampf(s, -1.0, 1.0), 1.0 - exp(-dt / (steer_time / steer_gain)))
 	var yaw := steer_now * max_turn(absf(speed), maxf(gas, throttle)) * backwards
 	rotate_y(yaw * dt)
 	yaw_rate = yaw
@@ -668,6 +674,11 @@ func reset_motion() -> void:
 	_car_push = 0.0
 
 
+## F: the steering sensitivity slider (0..1, 0.5 = 1.0) sets `steer_gain`.
+func set_sensitivity(level: float) -> void:
+	steer_gain = lerpf(SENS_MIN, SENS_MAX, clampf(level, 0.0, 1.0))
+
+
 ## G4: switch the handling profile (see PROFILES); anything else goes with the numbers it sets.
 func set_handling(h: int) -> void:
 	handling = (h if h in PROFILES else Handling.CRUISE) as Handling
@@ -681,7 +692,7 @@ func set_handling(h: int) -> void:
 func max_turn(v: float, gas := 0.0) -> float:
 	var w := minf(turn_cap, turn_pull / maxf(v, 0.1) + turn_floor)
 	var roll := clampf(v / 2.0, 0.0, 1.0)
-	return maxf(w * roll, pivot * gas * (1.0 - roll))
+	return maxf(w * roll, pivot * gas * (1.0 - roll)) * steer_gain
 
 
 ## Pinned against a wall: turn the car out of it (towards where the player wants to go,
