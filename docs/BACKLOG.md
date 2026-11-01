@@ -2208,9 +2208,12 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
   control and `car.gd` / `sfx.horn`) then needs one line: `life.horn(car.global_position)`.~~
   Done in the night-buses loop: the HUD's horn left of the brake and B (`buses.gd` `honk`, no
   `car.gd` change).
-- **No Rowerilo docks in the map data**: the bake has no `amenity=bicycle_rental` POIs, so the
-  only dock is the `rowerilo_dock` place (9 bikes). Map lane: bake the docks as POIs (kind
-  `bike_dock`) and `city_life.gd` `_place_fixed` can put a row at each.
+- ~~**No Rowerilo docks in the map data**~~ Done (2026-11-01): the 92 `bicycle_rental` pois each get
+  a dock (`storefronts.gd` `_load_docks`, `Props.add_bike_dock`, 4-8 bikes from `l`, 6 unmapped) in the
+  sector's StreetProps mesh (+0 draw calls where it stands, +1 in a sector with no other prop).
+  `check_parodies` counts them. Open: Mac look check (row direction and kerb clearance against the
+  real stands; headless check only, no render in the cloud), and the old single `rowerilo_dock`
+  place in `city_life.gd` can now go or move to a real dock.
 - **E28's "to a dock"** is simplified to "follow a Rowerilo rider 400 m" (the rider then docks
   off screen): with docks in the data the rider could ride to the nearest one. Open Question.
 - ~~**No rider MultiMesh to share** (MW-2's Pędzik riders aren't built): the bikes are their own
