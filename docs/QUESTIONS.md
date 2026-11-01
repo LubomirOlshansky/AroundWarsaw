@@ -17,6 +17,12 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · visuals · pavement colour** — R3 (docs/design/start-area-real.md) made the mapped
+  footways Warsaw's grey concrete pavers. The wide pavements and squares drawn as plaza areas
+  stay the warm granite beige the game always had. Default built: grey footways only.
+  Alternatives: grey for every pavement and square (more like the street, less warm), or back to
+  beige footways.
+
 - **2026-11-01 · driving · does the vibration feel right on the phones?** — Crash sparks and the
   vibration fix (haptics.gd) were built and checked without a phone. Default built: every buzz at
   least 45 ms at 55 % strength, a crash up to 160 ms at full strength, on by default with the

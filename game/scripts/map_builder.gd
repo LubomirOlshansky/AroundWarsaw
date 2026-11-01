@@ -76,7 +76,8 @@ const COL := {
 	"water": Color("#5ea8d8"),
 	"road": Color("#4f535a"),
 	"road_minor": Color("#62666c"),
-	"foot": Color("#e6e0d2"),
+	# R3 of docs/design/start-area-real.md: Warsaw's footways are light grey concrete, not sand.
+	"foot": Color("#dddcd6"),
 	"cycle": Color("#c86e5c"),
 	"mark": Color("#f4f1e8"),
 	"rail": Color("#3d3a37"),

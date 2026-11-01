@@ -254,7 +254,11 @@ plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 check
   setts in their courtyards; the mapped walks are granite setts. The pond and lawns were
   already in the map. The plots follow the old grid's rhythm, not a survey: the orthophoto on
   the Mac should set the real outlines (and the square's edge, now a straight cut).
-- **Open:** R3
+- **R3 part 1 done 2026-11-01**: footways are light grey concrete pavers in running bond (map
+  builder COL "foot" #dddcd6, ground.gdshader layer 4), as Warsaw's pavements are, not sand;
+  cycle paths were already brick red. Plazas keep their granite beige. Parked in QUESTIONS: the
+  wider pavements drawn as ground/plaza areas are still beige.
+- **Open:** R3 part 2:
   pavements and kerbs, red asphalt cycle paths, Złota's setts and elm alley, the fountain at the
   old tunnel mouth, the three new crossings (orthophoto check on the Mac); R5 Scena Relax,
   Zodiak and the Cepelia pavilion as models; R6 one of the trend spots (built by the trends thread,

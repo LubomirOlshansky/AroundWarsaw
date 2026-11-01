@@ -157,6 +157,14 @@ void fragment() {
 		float size = id == 4 ? 1.2 : 2.4;
 		vec2 cell = floor(street / size);
 		shade = 0.96 + 0.07 * hash12(cell) - 0.08 * joints(street, size, 0.09);
+		if (id == 4) {
+			// R3: a footway is Warsaw's grey concrete pavers in running bond (0.6 x 0.3 m).
+			vec2 q = street / vec2(0.6, 0.3);
+			q.x += 0.5 * mod(floor(q.y), 2.0);
+			vec2 f = abs(fract(q) - 0.5);
+			float joint = step(0.44, f.x) + step(0.4, f.y);
+			shade = 0.95 + 0.07 * hash12(floor(q)) - 0.07 * min(joint, 1.0);
+		}
 		vec4 stones = centralny(wp, id == 4);
 		if (stones.a > 0.0) {
 			base = srgb_to_linear(stones.rgb);
