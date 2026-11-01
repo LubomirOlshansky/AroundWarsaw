@@ -866,6 +866,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"sw_krzyz":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the facade and towers are ours
 				_build_krzyz(s)
+			"staszic":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the portico and the statue are ours
+				_build_staszic(s)
 			"tower75":
 				_id = 0  # unnamed: no card, not on the picking grid
 				_build_tower75(s)
@@ -5240,6 +5243,78 @@ func _krzyz_tower(cu: float) -> void:
 	_lbox(cu, cv, 0.18, 0.18, g + 45.6, g + 48.6, KRZYZ_GOLD, M_STONE, KRZYZ_GOLD)
 	_lbox(cu, cv, 0.7, 0.18, g + 47.2, g + 47.6, KRZYZ_GOLD, M_STONE, KRZYZ_GOLD)
 
+
+
+## The Staszic Palace (Pałac Staszica; Corazzi, 1820-1823) on Krakowskie Przedmieście, east side
+## across from the University: the mass stays LoD2's (a kept skin); the model adds the plinth band
+## and cornice along the street front, a portico of four columns under a pediment at the
+## middle, and Thorvaldsen's seated Copernicus on his granite pedestal in front. Spec
+## docs/landmarks/specs/staszic.md. Frame: origin at the front's north corner on the outline,
+## u south along the front (53 m, straight), +v out of it to the street (west).
+const STASZIC := Vector2(-415.8, -405.5)
+const STASZIC_AXIS := Vector2(0.166, 0.986)
+const STASZIC_MID := 14.0
+const STASZIC_WALL := Color("#e2d6b8")
+const STASZIC_TRIM := Color("#f0e9d6")
+const STASZIC_BASE := Color("#b9ae96")
+const STASZIC_ROOF := Color("#5f6f6a")
+const STASZIC_DOOR := Color("#3a3d40")
+const STASZIC_GRANITE := Color("#8f8b85")
+const STASZIC_BRONZE := Color("#4a4f46")
+const STASZIC_GOLD := Color("#c9a24a")
+
+
+func _build_staszic(_site: Dictionary) -> void:
+	_o = STASZIC
+	_a = STASZIC_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)  # (-0.986, 0.166): out of the front, to the street (west)
+	var m := STASZIC_MID
+	_g = map.terrain_height(_w(m, 3.0).x, _w(m, 3.0).y)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	_mode = M_STONE
+	# the plinth band and the cornice along the whole front
+	_lbox(26.75, 0.2, 26.75, 0.3, g - 0.6, g + 1.4, STASZIC_BASE, M_STONE, STASZIC_BASE.lightened(0.05))
+	_lbox(27.5, 0.25, 25.5, 0.7, g + 15.2, g + 16.0, STASZIC_TRIM, M_STONE, STASZIC_TRIM)
+	for pu: float in [2.6, 51.0]:  # corner pilasters carry the cornice
+		_lbox(pu, 0.2, 0.7, 0.3, g + 1.4, g + 15.2, STASZIC_TRIM, M_STONE, STASZIC_TRIM)
+	# the portico: stylobate, two steps, four columns, entablature, pediment, three doors
+	_lbox(m, 3.0, 7.9, 3.3, g - 0.6, g + 1.2, STASZIC_BASE, M_STONE, STASZIC_BASE.lightened(0.05))
+	_lbox(m, 6.7, 6.9, 0.55, g - 0.6, g + 0.65, STASZIC_BASE, M_STONE, STASZIC_BASE.lightened(0.04))
+	_mode = M_GLASS
+	for u: float in [-3.6, 0.0, 3.6]:
+		_wall(_w(m + u - 1.1, 0.4), _w(m + u + 1.1, 0.4), g + 1.4, g + 6.2, _b, STASZIC_DOOR)
+	_mode = M_STONE
+	for u: float in [-5.4, -1.8, 1.8, 5.4]:
+		_column(m + u, 4.3, 0.55, g + 1.2, g + 10.7, STASZIC_TRIM)
+	_lbox(m, 2.8, 7.3, 2.6, g + 10.7, g + 11.7, STASZIC_WALL, M_STONE, STASZIC_TRIM)
+	_lbox(m, 2.8, 7.6, 2.8, g + 11.7, g + 12.2, STASZIC_TRIM, M_STONE, STASZIC_TRIM)
+	var ka := _a
+	var kb := _b
+	_a = kb
+	_b = ka
+	_gable(5.4, 0.3, m, 7.4, g + 12.2, 2.4, STASZIC_WALL, STASZIC_ROOF)
+	_a = ka
+	_b = kb
+	var oc := _w(m, 5.45)
+	_disc(Vector3(oc.x, g + 13.4, oc.y), Vector3(_b.x, 0.0, _b.y), 0.6, 8, STASZIC_DOOR)
+	# Copernicus: granite steps and pedestal, the robed figure seated, an armillary sphere
+	var su := m
+	var sv := 15.0
+	_lbox(su, sv, 2.0, 2.0, g - 0.4, g + 0.3, STASZIC_GRANITE, M_STONE, STASZIC_GRANITE.lightened(0.05))
+	_lbox(su, sv, 1.55, 1.55, g + 0.3, g + 0.7, STASZIC_GRANITE, M_STONE, STASZIC_GRANITE.lightened(0.05))
+	_lbox(su, sv, 1.0, 1.0, g + 0.7, g + 2.6, STASZIC_GRANITE.lightened(0.1), M_STONE, none)
+	_lbox(su, sv, 1.2, 1.2, g + 2.6, g + 2.9, STASZIC_GRANITE, M_STONE, STASZIC_GRANITE.lightened(0.05))
+	_lbox(su, sv, 0.55, 0.45, g + 2.9, g + 3.7, STASZIC_BRONZE, M_STONE, STASZIC_BRONZE.lightened(0.05))
+	_lbox(su - 0.05, sv, 0.36, 0.3, g + 3.7, g + 4.6, STASZIC_BRONZE, M_STONE, STASZIC_BRONZE.lightened(0.05))
+	_lbox(su - 0.05, sv, 0.17, 0.17, g + 4.6, g + 4.95, STASZIC_BRONZE, M_STONE, STASZIC_BRONZE)
+	var arm0 := _w(su - 0.1, sv + 0.3)
+	var arm1 := _w(su - 0.4, sv + 1.05)
+	_beam(Vector3(arm0.x, g + 4.2, arm0.y), Vector3(arm1.x, g + 4.1, arm1.y), 0.1, STASZIC_BRONZE)
+	_lbox(su - 0.4, sv + 1.15, 0.2, 0.2, g + 3.95, g + 4.35, STASZIC_GOLD, M_STONE, STASZIC_GOLD)
+	# the car meets the stylobate and the pedestal
+	_collide(_rect(m, 3.0, 7.9, 3.3))
+	_collide(_rect(su, sv, 2.0, 2.0))
 
 
 ## The Presidential Palace (Pałac Prezydencki; Aigner's classical rebuilding, 1818-1819) on
