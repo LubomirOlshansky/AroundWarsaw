@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Mariensztat, the little 1949 square under the Old Town's escarpment, now looks like itself: pastel houses under red tile roofs with dormers and chimneys.
 - When the camera flies off to show a new job across town, the city there is ready when it arrives instead of grey stand-in blocks.
 - Warszawa Stadion station is a landmark: the white 1950s hall with its curved sail and the platforms' walls in the stadium's red-and-white mosaic.
 - The railway has its overhead wires now, hung from grey masts along the tracks, and the cross-city tunnel has concrete mouths where the trains disappear.
