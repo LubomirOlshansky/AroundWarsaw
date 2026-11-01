@@ -6,12 +6,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 ## The railway: stations, the cross-city line, trains (F, 2026-11-01)
 
 Plan: docs/design/railway.md. One PR per item, in this order:
-- S1 Warszawa Ochota as a landmark (site `ochota`): the hyperbolic paraboloid roof (two corners at
-  8.34 m, striped mosaic underneath) over the 17.25 m glass hall on its bridge over the cutting,
-  the stairs to the platform, the kiosk.
-- S2 Warszawa Powiśle (site `powisle`): the upper "kite" pavilion over the tunnel's east portal,
-  the round lower pavilion with its inverted-dome roof and neon (the café-club), the platforms' X
-  canopies.
+- ~~S1 Warszawa Ochota and S2 Warszawa Powiśle as landmarks~~ Done 2026-11-01 (sites `ochota`,
+  `powisle`, specs in docs/landmarks/specs/). Left: Mac photo checks (Ochota's stripes, supports and
+  stairs; Powiśle's arches, the saucer's profile, the canopies' length, the neon's letters); the
+  stairs from the round pavilion up to the platforms; a WARSZAWA OCHOTA sign if the real one has it.
 - L1 track that reads as railway: sleepers, raised rails, ballast shoulders (no new draw calls).
 - L2 catenary: masts as one MultiMesh, the wires in one mesh, portal frames over the fans.
 - L3 the tunnel's mouths: west of Centralna (x -1924) and under the Powiśle pavilion (x 171).
