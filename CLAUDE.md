@@ -82,7 +82,8 @@ tools/export_android.sh [--skip-city|--apk]   # the signed Play AAB
   parsed in `main.gd` and noted in the archive's flags table.
 - **Docs bookkeeping: BACKLOG** (fixed removed, found added), plus ONE plain line under the day
   in `docs/CHANGELOG.md` only for a change the player or visitor can see (it feeds the live
-  /progress/ page). No ROADMAP row.
+  /progress/ page), and the item's line ticked (or added) in ROADMAP "v1.0 checklist" in the
+  same PR, so progress stays checkable in one place. No progress-log row.
 - **Definition of done** is light or full by change kind (docs/WORKFLOW.md): light for content,
   text, site, docs, polish; full (verify, shots, bench, `--ios`) for gameplay, geometry and
   anything per-frame. Name what only the phone can show.
