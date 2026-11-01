@@ -182,6 +182,11 @@ func _check_trends() -> void:
 	# The brief's line: day 2 since the epoch, slot 1 is on day 3 with a queue of 20.
 	var s := CityLife.slot_state(2, 0)
 	_expect(int(s["day"]) == 3 and int(s["queue"]) == 20, "trend: slot 1 day %d queue %d (want day 3 queue 20)" % [s["day"], s["queue"]])
+	# The limited drop: 40 zł + 10 zł a km, a 15 zł tip on time, half and nothing late.
+	var dp := TrendJob.drop_pay(2000.0, true)
+	var dl := TrendJob.drop_pay(2000.0, false)
+	_expect(int(dp["base"]) == 60 and int(dp["zl"]) == 75 and int(dp["respect"]) == TrendJob.DROP_RESPECT, "drop pay on time: %s" % [dp])
+	_expect(int(dl["zl"]) == 30 and int(dl["respect"]) == 0 and int(dl["tip"]) == 0, "drop pay late: %s" % [dl])
 	# Each slot runs days 1-8 in turn, the queue by day, the word until WKRÓTCE.
 	for slot in 3:
 		var last_trend := -1

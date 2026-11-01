@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- PISTACJA DO KOŃCA now has a queue, and on Fridays 16:00-18:30 a limited drop: 36 people in line and a new "Limitka" job (queue for a box, deliver it before it melts).
 - A new Settings tab, DOSTĘP (Access): larger text, a calm screen with no flashing, colour-safe markers, vibration off, and the pick-up stop assist off.
 - New: eight joke posters on advertising columns and five street signs about the 2025–26 fads (matcha, padel, sour wine, the pistachio queue, the 12 km/h scooter rule).
 - Kiosks, flower stalls, café tables, planters, ice-cream carts and tram stop signs now line the streets of the main route, not only the start.

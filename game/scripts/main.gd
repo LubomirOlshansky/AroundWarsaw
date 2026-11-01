@@ -2202,7 +2202,7 @@ func _build_city_life(data: Dictionary, world: Node3D) -> void:
 		trend_job.log_on = trend_log
 		add_child(trend_job)
 		trend_job.setup({"hud": hud, "dialogue": dialogue, "wallet": wallet, "missions": missions, "rivals": rivals, "jobs": jobs,
-				"rides": rides, "graph": graph, "map": map, "car": car, "life": life}, at, world)
+				"rides": rides, "graph": graph, "map": map, "car": car, "life": life, "crowds": crowds}, at, world)
 		jobs.trend = trend_job
 		if spacer != null:
 			trend_job.quiet = spacer.on
@@ -2243,6 +2243,15 @@ func _life_start() -> void:
 					Vector2(car.global_position.x, car.global_position.z).distance_to(Vector2(ap.x, ap.z))])
 	if trend_job_flag > 0 and trend_job != null:
 		var i := trend_job_flag - 1
+		if trend_job_flag == 4 and crowds != null and crowds.by_id.has(Crowds.PISTACJA_ID):
+			# The limited drop at PISTACJA, whatever the clock (no "sold out").
+			var pd: Vector2 = crowds.sites[crowds.by_id[Crowds.PISTACJA_ID]]["door"]
+			_put_car_near(pd, 60.0)
+			life.tick(0.0)
+			trend_job.force_drop = true
+			if not trend_job.offer_drop():
+				print("trend job: --trend-job=4: no request (no kerb or door fits)")
+			return
 		var door: Vector2 = life.slot_doors[i] if i < life.slot_doors.size() else Vector2.INF
 		if door == Vector2.INF:
 			push_warning("--trend-job=%d: no such slot" % trend_job_flag)
@@ -3342,7 +3351,7 @@ func _parse_args() -> void:
 		elif arg.begins_with("--trend-day="):
 			trend_day_flag = maxi(0, int(arg.trim_prefix("--trend-day=")))
 		elif arg == "--trend-job" or arg.begins_with("--trend-job="):
-			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 3)
+			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 4)
 			trend_log = true
 		elif arg.begins_with("--club="):
 			# Loop MW-3: the car at a club's door (places.json id or name), no title.
