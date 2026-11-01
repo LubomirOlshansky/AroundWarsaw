@@ -1070,6 +1070,7 @@ func _build_world() -> void:
 	world.add_child(_xray)
 	_xray.setup(car)
 	car.stuck.connect(_on_car_stuck)
+	car.jammed.connect(_on_car_stuck)  # G17: 8 s among traffic cars
 	car.water_at = map.in_water
 	car.kerb_feel = map.kerb_feel  # loop 3b-2: kerbs, islands and medians the car feels
 	car.splashed.connect(_on_car_splashed)

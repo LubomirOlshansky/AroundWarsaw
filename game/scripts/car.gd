@@ -54,6 +54,8 @@ const SCRAPE_EVERY := 0.07
 var _scrape_wait := 0.0
 ## Loop 2a: pinned twice within a few seconds; the game moves the car to a free spot.
 signal stuck
+## G17 (2026-11-02): jammed among traffic cars for JAM_TIME s (never fixed walls); the game tows it.
+signal jammed
 ## Loop 10a: rolled into the water, at `speed` m/s (once; the game splashes and tows it out).
 signal splashed(speed: float)
 
@@ -100,6 +102,13 @@ const SLIP_HIT := 0.35
 ## Pushing into a car or a tram (not fixed) this long with the gas on and going nowhere: steer
 ## round it as round a wall.
 const CAR_PUSH_TIME := 0.35
+## G17 ("stuck with another cars"): held against a traffic car or tram this long with the gas on
+## and going nowhere, the car ghosts through it for GHOST_TIME s (a collision exception, never
+## for walls); still among cars within JAM_RADIUS m of where it began after JAM_TIME s, `jammed`.
+const GHOST_PUSH_TIME := 1.5
+const GHOST_TIME := 3.0
+const JAM_TIME := 8.0
+const JAM_RADIUS := 4.0
 ## The driving-feel loop (the ram test): the share of the speed going into a car or a tram that
 ## is kept for the next frame (it was none: a rear-ended car stopped the player dead).
 const CAR_KEEP := 0.5
@@ -194,6 +203,13 @@ var _wall_normals := PackedVector3Array()
 var _wall_side := 0.0
 ## The driving-feel loop: how long it has pushed into a car or tram going nowhere (s).
 var _car_push := 0.0
+## G17: the traffic cars and trams the car ghosts through (body -> seconds left), and how long it
+## has been among cars near `_jam_at` (s).
+var _ghosted := {}
+var _jam := 0.0
+var _car_hold := 0.0
+var _hold_at := Vector2.ZERO
+var _jam_at := Vector2.ZERO
 ## The driving-feel loop: seconds since the last kerb jolt.
 var _kerb_wait := KERB_GAP
 var _pinned := 0.0
@@ -509,6 +525,26 @@ func _step(dt: float) -> void:
 			_car_push += dt
 		elif fixed:
 			_car_push = 0.0
+		# G17: held among traffic cars (touching only them, under 1.5 m from where it began),
+		# however much it jiggles between them: the speed alone flips above and below 2 m/s.
+		var here_xz := Vector2(global_position.x, global_position.z)
+		if not fixed and not parked and (gas > 0.1 or target_dir != Vector3.ZERO):
+			if _car_hold <= 0.0 or here_xz.distance_to(_hold_at) > 1.5:
+				_hold_at = here_xz
+				_car_hold = dt
+			else:
+				_car_hold += dt
+		else:
+			_car_hold = 0.0
+		if _car_hold > GHOST_PUSH_TIME:
+			# G17: held against traffic this long: pass through those cars for a moment.
+			for k in hits:
+				var body := get_slide_collision(k).get_collider() as PhysicsBody3D
+				if body != null:
+					if not _ghosted.has(body):
+						add_collision_exception_with(body)
+					_ghosted[body] = GHOST_TIME
+			_car_hold = 0.0
 		# v1.0 juice: sparks while sliding along something fixed at speed.
 		_scrape_wait -= dt
 		if fixed and not slipped and _scrape_wait <= 0.0 and slid.length() > 6.0:
@@ -545,6 +581,7 @@ func _step(dt: float) -> void:
 		if _contact <= 0.0:
 			_wall_side = 0.0
 			_car_push = 0.0
+			_car_hold = 0.0
 	vel.y = 0.0
 	global_position.y = ground_height.call(global_position.x, global_position.z, global_position.y)
 	_feel_kerbs(dt)
@@ -578,6 +615,25 @@ func _step(dt: float) -> void:
 		_pinned = 0.0
 		if _contact <= 0.0:
 			_wall_normals.clear()
+
+	# G17: the ghosting runs out; among cars for JAM_TIME s near one spot: ask the game for a tow.
+	for body: PhysicsBody3D in _ghosted.keys():
+		_ghosted[body] -= dt
+		if _ghosted[body] <= 0.0 or not is_instance_valid(body):
+			_ghosted.erase(body)
+			if is_instance_valid(body):
+				remove_collision_exception_with(body)
+	if trying and (_car_hold > 0.0 or _car_push > 0.0 or not _ghosted.is_empty()) and _fixed_contact <= 0.0:
+		if _jam <= 0.0 or here.distance_to(_jam_at) > JAM_RADIUS:
+			_jam_at = here
+			_jam = dt
+		else:
+			_jam += dt
+			if _jam >= JAM_TIME:
+				_jam = 0.0
+				jammed.emit()
+	else:
+		_jam = 0.0
 
 	# Lean into turns and squat under braking, just for the look.
 	var lean := clampf(lateral.dot(global_transform.basis.x) * 0.012, -0.08, 0.08)
@@ -651,6 +707,12 @@ func reset_motion() -> void:
 	_fixed_contact = 0.0
 	_wall_normals.clear()
 	_car_push = 0.0
+	_car_hold = 0.0
+	_jam = 0.0
+	for body: PhysicsBody3D in _ghosted.keys():
+		if is_instance_valid(body):
+			remove_collision_exception_with(body)
+	_ghosted.clear()
 
 
 ## The most the car turns (rad/s) at `v` m/s: turn_cap when slow, turn_pull / v + turn_floor
