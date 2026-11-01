@@ -60,6 +60,8 @@ const Y_AREA := 0.02
 ## Each green kind's height over Y_AREA (merging loop 3c): a fixed order where they overlap,
 ## park under grass under pitch, all under the sand (0.006 and up) and over the plazas (0).
 const GREEN_Y := {"park": 0.003, "grass": 0.004, "pitch": 0.005}
+## The stadium's grass embankment (_build_areas) under the plazas (Y_AREA) and over the ground.
+const BANK_Y := -0.008
 const Y_PATH := 0.04
 const Y_ROAD := 0.06
 const Y_MARK := 0.08
@@ -261,6 +263,7 @@ func build(path: String, building_mat: ShaderMaterial, flat_mat: ShaderMaterial)
 	_setup(JSON.parse_string(FileAccess.get_file_as_string(path)), building_mat, flat_mat)
 	# v0.8: the landmarks replace whatever LoD2 or OpenStreetMap lump stood in their place.
 	var marks := Landmarks.new(self, data)
+	_marks = marks
 	landmark_info = marks.info
 	_build_parts(marks, false)
 	_build_collision()
@@ -2725,6 +2728,12 @@ func _build_areas(st) -> void:
 	# terrain grid's own triangles (_fill_on_grid), so the bare earth never pokes through;
 	# the beaches' sand (bake_banks.py) goes in under the water, which covers any of it
 	# mapped past the edge.
+	# Stadion Narodowy's grass embankment (landmarks.gd `embankment`): under every mapped
+	# area, a few millimetres over the bare ground, so only the bank's bare slopes turn green.
+	if _marks != null:
+		_layer = L_GREEN
+		for poly: PackedVector2Array in _marks.embankment:
+			_fill_on_grid(st, poly, Y_AREA + BANK_Y, COL["grass"])
 	for pass_kind in ["plaza", "green", "sand", "water"]:
 		if pass_kind == "sand":
 			_layer = L_SAND
