@@ -18,6 +18,16 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · store release · the Mac version** — Default: the native Mac App Store version is
+  post-v1.0 (after the iPhone demo and TestFlight), on the same App Store Connect record as a
+  universal purchase. Two calls for F: (1) say if the Mac should come before v1.0; (2) the iPhone
+  build can also be offered on Apple Silicon Macs as it is (Pricing and Availability → "iPhone and
+  iPad Apps on Apple Silicon Macs"): keep it on for the beta, or off until the native Mac build?
+  Default: decide after trying the first TestFlight build on the Mac. Lane:
+  docs/store/mac-and-gamepad.md.
+- **2026-11-01 · driving · the gamepad's buttons** — Default built (gamepad.gd): RT gas, LT or B
+  brake, Y car / helicopter, A / X the mission card, LB / RB turn the view, Start Settings, Back
+  the map, D-pad zoom / radio / flash. Say if any should move once you try a pad.
 - **2026-11-01 · content · parody names for the food-hype lore** — Default built: TIMBER (dating
   app, F's pick), Cringulo (food blogger, F's pick) with his grade MLASK (not the real catchphrase),
   KUKŁA (crêpes), KOSZTA COFFEE, GREEN CAFFE NERWO, HOTEL PIURE with its rooftop bar LUŹNO, ROBUR on
