@@ -559,6 +559,8 @@ func _find_sites() -> void:
 	_find_trojca()
 	_find_zacheta()
 	_find_prezydencki()
+	# St Alexander's church (2026-11-01): a model instead of a skin.
+	_find_aleksander()
 	# The University Library (2026-10-31): a model instead of a skin.
 	_find_buw()
 	# The Copernicus Science Centre and its planetarium (2026-11-01): a model instead of a skin.
@@ -853,6 +855,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_zacheta(s)
 			"prezydencki":
 				_build_prezydencki(s)
+			"aleksander":
+				_build_aleksander(s)
 			"buw":
 				_build_buw(s)
 			"kopernik":
@@ -2457,7 +2461,6 @@ const SKINS := [
 	{"key": "sw_krzyz", "osm": "Kościół pw. Świętego Krzyża", "mode": M_MONUMENT, "wall": "#e3d9c0", "roof": "#5d6e64"},
 	{"key": "staszic", "osm": "Pałac Staszica", "mode": M_MONUMENT, "wall": "#e2d6b8", "roof": "#5f6f6a"},
 	{"key": "wszystkich", "osm": "Kościół Wszystkich Świętych", "mode": M_MONUMENT, "wall": "#ddcfaa", "roof": "#6e7f6e"},
-	{"key": "aleksander", "osm": "Kościół Świętego Aleksandra", "mode": M_MONUMENT, "wall": "#ebe4d2", "roof": "#7f8f88"},
 	{"key": "mirowska", "osm": "Hala Mirowska", "mode": M_STONE, "wall": "#a85c40", "roof": "#6d7470"},
 	{"key": "sejm", "osm": "Sejm RP", "mode": M_MONUMENT, "wall": "#e2e0d8", "roof": "#8d8f8c"},
 ]
@@ -5317,6 +5320,101 @@ func _build_staszic(_site: Dictionary) -> void:
 	_collide(_rect(su, sv, 2.0, 2.0))
 
 
+## St Alexander's church (Kościół Świętego Aleksandra; Kubicki's Pantheon-like rotunda of
+## 1818-1826 on Plac Trzech Krzyży): a model instead of a skin. A drum 11.3 m in radius under a
+## copper dome with a small lantern and a cross, a pedimented portico of six columns on each end of
+## the long axis (the mapped outline is mirrored: 12.8 m wide, 18.0 m out to the north end, 17.4 m
+## to the south). Spec docs/landmarks/specs/aleksander.md. Centre and radius are a circle fitted
+## to the outline's arcs; heights are estimates (no LoD2 in the cloud).
+## Frame: origin at the rotunda's centre, u along the long axis to the north (Nowy Świat), +v east.
+const ALEKS := Vector2(-110.8, 541.7)
+const ALEKS_AXIS := Vector2(-0.232, -0.973)
+const ALEKS_R := 11.3
+const ALEKS_HALF := 6.4         # the porticoes' half width
+const ALEKS_ENDS := [18.0, -17.4]
+const ALEKS_WALL := Color("#ebe4d2")
+const ALEKS_TRIM := Color("#f3eee0")
+const ALEKS_BASE := Color("#b5ab97")
+const ALEKS_COPPER := Color("#7f8f88")
+const ALEKS_DARK := Color("#3a3f42")
+const ALEKS_GOLD := Color("#c9a24a")
+## The dome's profile over the attic: [radius, height above ground].
+const ALEKS_DOME := [[10.4, 17.0], [9.9, 19.0], [8.8, 21.0], [7.3, 22.8], [5.6, 24.2], [3.8, 25.2], [2.8, 25.6]]
+
+
+func _find_aleksander() -> void:
+	var outline := _landmark("Kościół Świętego Aleksandra")
+	if outline.size() >= 3:
+		_add_site("aleksander", [outline])
+		if not sites.is_empty() and sites[-1]["key"] == "aleksander":
+			sites[-1]["ring"] = outline
+
+
+func _build_aleksander(_site: Dictionary) -> void:
+	_o = ALEKS
+	_a = ALEKS_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	var c := ALEKS
+	var r := ALEKS_R
+	_g = _ground_under(_circle(c, r, 8))
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	var light := ALEKS_TRIM
+	# plinth, drum, cornice, attic
+	_prism(_circle(c, r + 0.3, 24), g - 0.5, g + 1.0, ALEKS_BASE, ALEKS_BASE, M_STONE, M_STONE)
+	_prism(_circle(c, r, 24), g + 1.0, g + 13.5, ALEKS_WALL, none, M_MONUMENT)
+	_prism(_circle(c, r + 0.45, 24), g + 13.5, g + 14.4, light, light, M_STONE, M_STONE)
+	_prism(_circle(c, r - 0.5, 24), g + 14.4, g + 17.0, ALEKS_WALL, ALEKS_WALL.darkened(0.08), M_STONE, M_STONE)
+	# tall windows round the drum, between the two porticoes (not on the ends' axis)
+	_mode = M_GLASS
+	for k in 12:
+		var ang := deg_to_rad(15.0 + 30.0 * k)
+		var out := _a * cos(ang) + _b * sin(ang)
+		var tan := Vector2(out.y, -out.x)
+		var p := c + out * (r * cos(PI / 24.0) + 0.07)
+		_wall(p - tan * 0.6, p + tan * 0.6, g + 5.0, g + 10.2, out, ALEKS_DARK)
+	_mode = M_STONE
+	# dome
+	for k in ALEKS_DOME.size() - 1:
+		var da: Array = ALEKS_DOME[k]
+		var db: Array = ALEKS_DOME[k + 1]
+		var col := ALEKS_COPPER.lerp(ALEKS_COPPER.lightened(0.12), float(k) / ALEKS_DOME.size())
+		_frustum(_circle(c, da[0], 24), g + float(da[1]), _circle(c, db[0], 24), g + float(db[1]), col)
+	# lantern: a base, the windowed drum, a cornice, the cap, a ball and the cross
+	_prism(_circle(c, 2.9, 12), g + 25.4, g + 26.3, ALEKS_BASE, ALEKS_BASE, M_STONE, M_STONE)
+	_prism(_circle(c, 2.3, 12), g + 26.3, g + 30.0, ALEKS_TRIM, none, M_MONUMENT)
+	_prism(_circle(c, 2.8, 12), g + 30.0, g + 30.6, light, light, M_STONE, M_STONE)
+	_frustum(_circle(c, 2.6, 12), g + 30.6, _circle(c, 0.3, 12), g + 33.0, ALEKS_COPPER.lightened(0.06), ALEKS_COPPER)
+	_prism(_circle(c, 0.4, 6), g + 33.0, g + 33.7, ALEKS_GOLD, ALEKS_GOLD, M_STONE, M_STONE)
+	_lbox(0.0, 0.0, 0.1, 0.1, g + 33.7, g + 37.0, ALEKS_GOLD, M_STONE, ALEKS_GOLD)
+	_lbox(0.0, 0.0, 0.1, 0.65, g + 35.6, g + 35.84, ALEKS_GOLD, M_STONE, ALEKS_GOLD)
+	# the two porticoes: a cella, a stylobate, six columns, an entablature, a pediment, a door
+	var ring := _circle(c, r + 0.3, 24)
+	for end: float in ALEKS_ENDS:
+		var sgn := signf(end)
+		var face := absf(end)
+		var back := face - 4.4
+		var mid := sgn * (r - 2.0 + back) * 0.5
+		var half := (back - r + 2.0) * 0.5
+		var hv := ALEKS_HALF
+		# the door first, so the cella wall stays whole (7 cm proud of it)
+		_mode = M_GLASS
+		var du := sgn * (back + 0.07)
+		_wall(_w(du, sgn * 1.1), _w(du, -sgn * 1.1), g + 0.9, g + 5.6, _a * sgn, ALEKS_DARK)
+		_mode = M_STONE
+		_lbox(mid, 0.0, half, hv - 0.4, g - 0.5, g + 11.0, ALEKS_WALL, M_MONUMENT, ALEKS_WALL.darkened(0.08))
+		_lbox(sgn * (back + 2.2), 0.0, 2.2, hv, g - 0.5, g + 0.8, ALEKS_BASE, M_STONE, ALEKS_BASE.lightened(0.08))
+		for v: float in [-5.8, -3.6, -1.2, 1.2, 3.6, 5.8]:
+			_column(sgn * (face - 1.0), v, 0.42, g + 0.8, g + 9.4, ALEKS_TRIM)
+		_lbox(sgn * (back + 2.25), 0.0, 2.25, hv, g + 9.4, g + 10.9, light, M_STONE, ALEKS_WALL.darkened(0.08))
+		_gable(sgn * (face + 0.05), sgn * (r - 2.0), 0.0, hv + 0.1, g + 10.9, 2.3, ALEKS_WALL, ALEKS_COPPER, false)
+		var arm := _rect(sgn * (r - 2.0 + face) * 0.5, 0.0, (face - r + 2.0) * 0.5, hv)
+		var merged := Geometry2D.merge_polygons(ring, arm)
+		if not merged.is_empty():
+			ring = _largest(merged)
+	_collide(ring)
+
+
 ## The Presidential Palace (Pałac Prezydencki; Aigner's classical rebuilding, 1818-1819) on
 ## Krakowskie Przedmieście: the main block across the back of the forecourt with a portico of
 ## four giant columns under a pediment, two long wings to the street ending in pavilions with
@@ -5324,7 +5422,7 @@ func _build_staszic(_site: Dictionary) -> void:
 ## guardhouses, and Thorvaldsen's Prince Józef Poniatowski on horseback in the forecourt.
 ## Frame: u from the main block's front towards the street (WNW), v across (v < 0 north).
 ## The far skyline's colour of each (sector_proxies.gd, through `tower_colour`).
-const MALACHOWSKI_WALLS := {"trojca": "#e9e7e1", "zacheta": "#ebeae4", "prezydencki": "#efe9da"}
+const MALACHOWSKI_WALLS := {"trojca": "#e9e7e1", "zacheta": "#ebeae4", "prezydencki": "#efe9da", "aleksander": "#ebe4d2"}
 const PREZ := Vector2(-514.0, -1005.5)
 const PREZ_AXIS := Vector2(-0.9089, 0.4170)
 const PREZ_WALL := Color("#efe9da")
