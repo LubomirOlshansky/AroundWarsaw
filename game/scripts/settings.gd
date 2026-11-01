@@ -28,13 +28,14 @@ const TRAFFIC := [0.1, 0.22, 0.38, 1.0]
 const PEOPLE := [0.45, 0.65, 0.8, 1.0]
 const TRAFFIC_NAMES := ["Almost empty", "Low", "Normal", "Busy"]
 const TRAFFIC_KEYS := ["empty", "low", "normal", "busy"]
-const NORMAL_TRAFFIC := 2
+## The default for a fresh save: Low (F, 2026-11-01: the default was too heavy). Saves keep their choice.
+const DEFAULT_TRAFFIC := 1
 
 ## drive_controls.gd: POINT, CLASSIC, FIXED.
 var controls := 0
 ## Classic only: the camera follows the car (CAM toggles it); Point always follows, Fixed never.
 var classic_follow := true
-var traffic := NORMAL_TRAFFIC
+var traffic := DEFAULT_TRAFFIC
 ## tiers.gd: AUTO (-1, the default since loop G1: the level Auto picks for the device) or
 ## Low, Medium, High, Ultra (0-3). A file saved before G1 (no `tiers` key) that says High
 ## loads as Auto, once: High was the default then, not a choice; the next save marks the file.

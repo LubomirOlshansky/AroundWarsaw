@@ -63,17 +63,17 @@ var zone_cap := INF
 @export var accel := 15.0
 @export var brake_decel := 30.0
 @export var reverse_speed := 7.0
-@export var grip := 9.0
-@export var drift_grip := 1.6
+@export var grip := 14.0   # 2026-11-01 (F): a city drive, less slide (was 9)
+@export var drift_grip := 4.0  # braking hard no longer swings the tail (was 1.6)
 ## Steering (loop 2a): the most the car turns (rad/s) is turn_cap when slow and
 ## turn_pull / speed + turn_floor at speed (turn_pull is the sideways pull, m/s²).
-@export var turn_cap := 2.3
-@export var turn_pull := 18.0
+@export var turn_cap := 2.0
+@export var turn_pull := 13.0
 @export var turn_floor := 0.35
 ## Turning from a standstill with the gas fully on (rad/s); it needs ~2 m/s for full lock.
 @export var pivot := 1.5
 ## Steering input smoothing (s).
-@export var steer_time := 0.08
+@export var steer_time := 0.12
 ## Point-to-steer: heading error (rad) to yaw rate (rad/s), and the yaw damping.
 @export var point_gain := 6.0
 @export var yaw_damping := 0.4
