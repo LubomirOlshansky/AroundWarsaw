@@ -81,6 +81,7 @@ const BUDGET := {
 	"varso": 1680,
 	"wcf": 190,
 	"wszystkich": 950,
+	"wizytki": 690,
 	"widok": 450,
 	"pzu": 900,
 	"jm": 900,
