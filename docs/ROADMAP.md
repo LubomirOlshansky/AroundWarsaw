@@ -183,6 +183,11 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] G11 Better map icons on the minimap and the full map (Sonnet)
 - [ ] G12 Separate quest lines: helicopter quests and car quests, each with its own list and map colour (Opus)
 - [ ] G13 Upgrade shop: Audi TT parody (faster car), nitro, tuning, paid in zł (Opus design, Sonnet content)
+- [ ] G14 POMOC DROGOWA (unstuck) and NOWA GRA (two-tap reset) at the top of Settings → Jazda (quick win)
+- [ ] G15 Stop assist works better: bigger quest start and end rings, looser "stopped", longer look-ahead (quick win; phone check)
+- [ ] G16 Fewer text popups while driving on the road: toasts and speech bubbles only for what matters (Sonnet)
+- [ ] G17 Car stuck against other cars: traffic collision pushes, then auto-unstuck from cars (Opus)
+- [ ] G18 Park Ujazdowski and Zamek Ujazdowski (the castle) improved: its own landmark thread (Opus)
 
 ### Left: the phone (needs F's yes for each device run)
 - [ ] Bench on the iPhone 11 and 16 Pro Max on today's main against budget P (DEMO 7): frame,

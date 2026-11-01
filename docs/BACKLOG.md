@@ -110,8 +110,36 @@ Prices so a first purchase is reachable after about 15 minutes of jobs. New car 
 (G4 first). Accept: purchases saved (save migration), a stat card, `check_garage` extended, bench
 for the new model. Files: garage.gd, garage_card.gd, car.gd, models.gd, wallet.gd. Dialogue: none.
 
+**G14 · Unstuck and reset easy to find (P0, quick win).** F: "in Settings there should be reset
+game, and unstuck: if the user is stuck in textures, click and move to the main road". POMOC
+DROGOWA (PR #231) lived at the bottom of the Jazda tab. Task: both buttons in a row at the top of
+Settings → Jazda (the first tab); NOWA GRA asks a second tap within 4 s, then wipes the save
+(`_on_new_game`). Later: show a "stuck? tow" toast when the car has been pinned for 8 s.
+Files: settings_panel.gd, main.gd.
+
+**G15 · Stop assist and quest rings (P0, quick win).** F: "pomoc przy zatrzymaniu is not working
+well; make the start and end points bigger and add assistance to pickup". Task: ring 9 → 13 m,
+"stopped" under 6 m/s, look-ahead 60 m, aim 3 m inside. Left for the phone: is it enough, or
+should a pickup start by driving through the ring without stopping (G10). Files: stop_assist.gd.
+
+**G16 · Fewer texts while driving (P2, Sonnet).** F: "less texts when the user goes on the road".
+Task: count the toasts and bubbles per minute in a 5-minute drive (a log), merge or drop the
+repeats and hints, rate-limit toasts to one per 20 s except for quest and danger lines, no
+speech bubbles above 40 km/h except police. Accept: at most 3 popups in a 5-minute free drive.
+Files: hud.gd toast, bubbles.gd, dialogue.gd, gps_moments.gd, first10.gd.
+
+**G17 · Stuck against other cars (P1, Opus).** F: "stuck with another cars". Task: reproduce
+(a car pinned against traffic or parked cars at junctions), make traffic yield or ghost through
+the player when contact lasts over 1.5 s, and tow the player to the lane after 8 s pinned with an
+unstuck toast. Accept: a check with the car pinned between two traffic cars frees itself in under
+8 s; `check_drive`, `check_steering` green. Files: car.gd, traffic.gd, main.gd.
+
+**G18 · Ujazdów and the castle (P1, Opus, landmark thread).** F: improve Ujazdów and Zamek
+Ujazdowski. One landmark thread: compare the castle's model and the park with the orthophoto and
+photos, per the landmark recipe in docs/LANDMARKS.md.
+
 Split for parallel threads: G4 (driving), G5 (collisions and flicker), G8+G9 (street life),
-G10+G12 (quests), G13 (shop, after G4), G7+G11 (visual content). G1-G3 are done by this thread.
+G10+G12 (quests), G13 (shop, after G4), G7+G11 (visual content), G16 (text), G17 (traffic), G18 (Ujazdów). G1-G4, G14 and G15 are done by this thread.
 
 ## Marszałkowska street by street (F, 2026-11-01)
 
