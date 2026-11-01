@@ -3781,7 +3781,8 @@ func _load_settings() -> void:
 		scheme = Controls.FIXED
 	controls.scheme = scheme
 	follow = scheme == Controls.POINT or (scheme == Controls.CLASSIC and settings.classic_follow and not _flag_fixed)
-	style_index = _flag_style if _flag_style >= 0 else settings.style
+	# 2026-11-01 (F): no style picker any more, always Sharp (--style= stays for tests).
+	style_index = _flag_style if _flag_style >= 0 else 0
 	vhs = _flag_vhs or settings.vhs
 	print("settings: %s (%s)" % [settings.summary(), ProjectSettings.globalize_path(Settings.PATH) if not no_save else "not saved"])
 
@@ -4038,12 +4039,6 @@ func _on_setting(key: String, value: Variant) -> void:
 		"camera":
 			if (int(value) == 0) != follow:
 				_toggle_follow()
-			hud.settings_panel.sync(_settings_state())
-		"style":
-			style_index = clampi(int(value), 0, STYLES.size() - 1)
-			settings.style = style_index
-			_apply_style()
-			# Loop G1b: Auto's button says what it draws with this style.
 			hud.settings_panel.sync(_settings_state())
 		"vhs":
 			_set_vhs(int(value) == 1)
@@ -4642,13 +4637,6 @@ func _inject_clicks() -> void:
 			m.global_position = m.position
 			m.relative = Vector2(d[3], d[4]) / 10.0
 			Input.parse_input_event(m)
-
-
-func _next_style() -> void:
-	style_index = (style_index + 1) % STYLES.size()
-	settings.style = style_index
-	settings.save()
-	_apply_style()
 
 
 func _apply_style() -> void:
@@ -5745,8 +5733,6 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_rotate_camera(1)
 			KEY_C:
 				_toggle_follow()
-			KEY_T:
-				_next_style()
 			KEY_H:
 				_toggle_vehicle()
 			KEY_B:
