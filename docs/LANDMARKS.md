@@ -51,7 +51,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | 2.3 | Old Town and New Town tenements | dormers and chimneys DONE 2026-11-01; stepped attic gables on the market square's east side DONE 2026-11-01 (`OldTownRoofs.gable`); the New Town and the other sides stay open (map lane: `_tenement_facades`, the LoD2 roofs) |
 | 2.4 | Archikatedra, Barbakan | the Cathedral's stepped gable; the Barbican's towers and walls |
 | 2.5 | Pałac Prezydencki | DONE 2026-10-31 (model, spec `docs/landmarks/specs/prezydencki.md`, 868 tris): wings round the forecourt, portico, Poniatowski's statue, lions, gate, guardhouses; photo check on the Mac |
-| 2.6 | Kościół Świętego Krzyża, Wszystkich Świętych, św. Aleksandra | twin towers; the towers; the rotunda and dome |
+| 2.6 | Kościół Świętego Krzyża, Wszystkich Świętych, św. Aleksandra | Holy Cross DONE 2026-11-01 (L3 front and towers on the kept skin, spec `docs/landmarks/specs/krzyz.md`, 934 tris; Mac photo check parked: column and door count, helm shape, the crossing's dome). Open: Wszystkich Świętych (the towers), św. Aleksandra (the rotunda and dome) |
 | 2.6b | Kościół Świętej Trójcy (Lutheran, Plac Małachowskiego) | DONE 2026-10-31 (L3 model, spec `trojca.md`, 1901 tris): drum with oculi, four Tuscan porticoes, copper dome, columned lantern and cross |
 | 2.7 | Sejm, Pałac Staszica, Kopernik, BUW, Hala Mirowska | facades and roofs from the photos (Zachęta DONE 2026-10-31: model, spec `zacheta.md`, from the user's photo; Kopernik DONE 2026-11-01: L2 model, spec `kopernik.md`, log `docs/landmarks/kopernik.md`, from OSM and LoD2, then the Mac's photo check: warm strip facade with slits and bays, the copper-red planetarium drum and dome, roof craters and paths, the cantilever; BUW DONE 2026-10-31: L2 model, spec `buw.md`, log `docs/landmarks/buw.md`, from OSM: copper pages, philosophers; the roof from the orthophoto on 2026-11-01: glass field and tail, oculus, mound and pyramid, formal beds, the green band; photo check of the height and the philosophers) |
 | 2.8 | MDM and Plac Konstytucji | the blocks' arcades, reliefs, the corner towers |
@@ -149,7 +149,7 @@ All with a card; check_landmarks only (except where noted). Open issue common to
 | Archikatedra św. Jana | M_GOTHIC | #9a4b38 / #6e3a2e | |
 | Kościół św. Anny | M_MONUMENT | #e6dcc4 / #8a5a44 | portico + pediment + bell tower to model (centre -658,-1350) |
 | Pałac Prezydencki | M_MONUMENT | #ece3cc / #6a7a77 | facade to model |
-| Kościół Świętego Krzyża | M_MONUMENT | #e3d9c0 / #5d6e64 | towers, columns to model |
+| Kościół Świętego Krzyża | M_MONUMENT + front model | #e3d9c0 / #5d6e64 | `_build_krzyz` (spec krzyz.md, 2026-11-01): four-column portico, upper storey, pediment, two towers with copper onion helms; dome over the crossing not modelled |
 | Pałac Staszica | M_MONUMENT | #e2d6b8 / #5f6f6a | |
 | Zachęta | M_MONUMENT | #d9b98c / #7d7466 | |
 | Kościół Wszystkich Świętych | M_MONUMENT | #ddcfaa / #6e7f6e | |

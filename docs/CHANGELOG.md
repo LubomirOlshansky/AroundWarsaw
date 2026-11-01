@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- The Holy Cross church on Krakowskie Przedmieście has its baroque front: four tall columns, a pediment, and two towers with green copper onion domes and gilt crosses.
 - The Royal Castle is paler and pinker, like its plaster in life (it was brick-red with near-black roofs), and stands on a pale stone plinth.
 - The PZU Tower and JM Tower on the Jana Pawła II and Jerozolimskie axes get their own glass: pale ribbon bands and a white mast, dark glass with grey fins.
 - Old Town roofs grow small gabled dormers with cream frames and dark windows, and some carry a brick chimney.

@@ -863,6 +863,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"zamek":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the stone plinth is ours
 				_build_zamek(s)
+			"sw_krzyz":
+				_mark_zone(s)  # the mass stays LoD2's, in its skin; the facade and towers are ours
+				_build_krzyz(s)
 			"tower75":
 				_id = 0  # unnamed: no card, not on the picking grid
 				_build_tower75(s)
@@ -5138,6 +5141,105 @@ func _build_teatr(_site: Dictionary) -> void:
 		_wall(_w(m + u - 1.0, 0.13), _w(m + u + 1.0, 0.13), g + 3.6, g + 8.0, _b, Color("#3a3d40"))
 	_mode = M_STONE
 	_collide(_rect(m, 4.0, 15.0, 6.0))
+
+
+## The Church of the Holy Cross (Kościół Świętego Krzyża; Bellotti's baroque facade, 1679-1696) on
+## Krakowskie Przedmieście: the nave stays LoD2's (a kept skin); the model adds the street
+## front, a central block with four giant columns and statues on the entablature, an upper
+## storey and a pediment, between two square towers with belfries and copper onion helms
+## with lanterns and crosses. Spec docs/landmarks/specs/krzyz.md.
+## Frame: origin at the front's south end on the outline, u north along the front (31 m),
+## +v out of it to the street (east); the towers reach back to v -8.7.
+const KRZYZ := Vector2(-456.1, -510.0)
+const KRZYZ_AXIS := Vector2(-0.323, -0.946)
+const KRZYZ_MID := 15.65
+const KRZYZ_WALL := Color("#e6dcc2")
+const KRZYZ_TRIM := Color("#f1ebdc")
+const KRZYZ_BASE := Color("#bdb39c")
+const KRZYZ_COPPER := Color("#6a9a8a")
+const KRZYZ_GOLD := Color("#c9a24a")
+const KRZYZ_DOOR := Color("#3a3d40")
+
+
+func _build_krzyz(_site: Dictionary) -> void:
+	_o = KRZYZ
+	_a = KRZYZ_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)  # (0.946, -0.323): out of the front, to the street
+	var m := KRZYZ_MID
+	_g = map.terrain_height(_w(m, 1.0).x, _w(m, 1.0).y)
+	var g := _g
+	_mode = M_STONE
+	for cu: float in [4.4, 2.0 * m - 4.4]:
+		_krzyz_tower(cu)
+	# the central block: a stone ground floor with the doors, the upper storey in windows
+	_lbox(m, 0.125, 6.75, 0.225, g - 0.6, g + 12.9, KRZYZ_WALL, M_STONE, KRZYZ_WALL)
+	_lbox(m, 0.3, 6.75, 0.3, g + 13.0, g + 21.0, KRZYZ_WALL, M_MONUMENT, KRZYZ_WALL)
+	_lbox(m, 0.3, 7.0, 0.5, g - 0.6, g + 1.6, KRZYZ_BASE, M_STONE, KRZYZ_BASE.lightened(0.05))
+	_mode = M_GLASS
+	for u: float in [-3.8, 0.0, 3.8]:
+		_wall(_w(m + u - 1.1, 0.38), _w(m + u + 1.1, 0.38), g + 1.8, g + 6.4, _b, KRZYZ_DOOR)
+	_mode = M_STONE
+	# the stylobate and three steps, the four columns, the entablature with a statue over each
+	_lbox(m, 1.5, 6.9, 1.4, g - 0.6, g + 1.2, KRZYZ_BASE, M_STONE, KRZYZ_BASE.lightened(0.05))
+	for k in 2:
+		_lbox(m, 3.0 + 0.6 * k, 6.3 - 0.4 * k, 0.5 + 0.6 * k, g - 0.6, g + 0.8 - 0.4 * k, KRZYZ_BASE, M_STONE,
+				KRZYZ_BASE.lightened(0.04))
+	for u: float in [-5.6, -2.0, 2.0, 5.6]:
+		_column(m + u, 1.7, 0.58, g + 1.2, g + 11.2, KRZYZ_TRIM)
+		_lbox(m + u, 1.7, 0.5, 0.5, g + 13.0, g + 15.4, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+	_lbox(m, 1.4, 7.0, 1.9, g + 11.2, g + 12.4, KRZYZ_WALL, M_STONE, KRZYZ_TRIM)
+	_lbox(m, 1.4, 7.4, 2.1, g + 12.4, g + 13.0, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+	# the top: cornice, the big pediment with an oculus, a cross on the apex
+	_lbox(m, 0.5, 7.2, 1.0, g + 21.0, g + 21.9, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+	var ka := _a
+	var kb := _b
+	_a = kb
+	_b = ka
+	_gable(1.5, -0.3, m, 7.0, g + 21.9, 3.2, KRZYZ_WALL, KRZYZ_COPPER)
+	_a = ka
+	_b = kb
+	var oc := _w(m, 1.55)
+	_disc(Vector3(oc.x, g + 23.9, oc.y), Vector3(_b.x, 0.0, _b.y), 0.8, 8, KRZYZ_DOOR)
+	_lbox(m, 0.5, 0.15, 0.15, g + 25.1, g + 27.6, KRZYZ_GOLD, M_STONE, KRZYZ_GOLD)
+	_lbox(m, 0.5, 0.7, 0.15, g + 26.4, g + 26.8, KRZYZ_GOLD, M_STONE, KRZYZ_GOLD)
+	# the car meets the stylobate and the columns
+	_collide(_rect(m, 1.5, 6.9, 1.4))
+
+
+## One of the two towers: plinth, shaft with a window band, cornice, belfry between corner
+## piers, then the copper helm: an octagonal drum, the onion swell, the lantern, a cap and a
+## gilt ball and cross (48.5 m to the tip).
+func _krzyz_tower(cu: float) -> void:
+	var g := _g
+	var cv := -4.2
+	_lbox(cu, cv, 4.55, 4.75, g - 0.6, g + 1.6, KRZYZ_BASE, M_STONE, KRZYZ_BASE.lightened(0.05))
+	_lbox(cu, cv, 4.3, 4.5, g + 1.6, g + 13.0, KRZYZ_WALL, M_STONE, KRZYZ_WALL)
+	_lbox(cu, cv, 4.55, 4.75, g + 13.0, g + 13.8, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+	_lbox(cu, cv, 4.3, 4.5, g + 13.8, g + 22.0, KRZYZ_WALL, M_STONE, KRZYZ_WALL)
+	_mode = M_GLASS
+	_wall(_w(cu - 0.8, 0.33), _w(cu + 0.8, 0.33), g + 16.4, g + 20.4, _b, KRZYZ_DOOR)
+	_wall(_w(cu - 0.8, -8.73), _w(cu + 0.8, -8.73), g + 16.4, g + 20.4, -_b, KRZYZ_DOOR)
+	_mode = M_STONE
+	_lbox(cu, cv, 4.7, 4.9, g + 22.0, g + 22.8, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+	_lbox(cu, cv, 4.5, 4.7, g + 22.8, g + 23.4, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+	# the belfry: open arches (the monument shader's windows) between four corner piers
+	_lbox(cu, cv, 3.6, 3.8, g + 23.4, g + 31.4, KRZYZ_WALL, M_MONUMENT, KRZYZ_WALL)
+	for su: float in [-1.0, 1.0]:
+		for sv: float in [-1.0, 1.0]:
+			_lbox(cu + su * 3.5, cv + sv * 3.7, 0.55, 0.55, g + 23.4, g + 31.4, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+	_lbox(cu, cv, 4.1, 4.3, g + 31.4, g + 32.3, KRZYZ_TRIM, M_STONE, KRZYZ_TRIM)
+	# the helm
+	var c := _w(cu, cv)
+	_mode = M_STONE
+	var prof := [[3.4, 32.3], [3.4, 34.4], [4.0, 35.5], [3.0, 37.6], [1.8, 39.8], [1.2, 40.5]]
+	for k in prof.size() - 1:
+		_frustum(_circle(c, float(prof[k][0]), 8), g + float(prof[k][1]), _circle(c, float(prof[k + 1][0]), 8),
+				g + float(prof[k + 1][1]), KRZYZ_COPPER.lightened(0.03 * k), KRZYZ_COPPER)
+	_prism(_circle(c, 1.1, 8), g + 40.5, g + 43.5, KRZYZ_TRIM, KRZYZ_COPPER, M_MONUMENT, M_STONE)
+	_frustum(_circle(c, 1.4, 8), g + 43.5, _circle(c, 0.25, 8), g + 45.6, KRZYZ_COPPER, KRZYZ_COPPER)
+	_lbox(cu, cv, 0.18, 0.18, g + 45.6, g + 48.6, KRZYZ_GOLD, M_STONE, KRZYZ_GOLD)
+	_lbox(cu, cv, 0.7, 0.18, g + 47.2, g + 47.6, KRZYZ_GOLD, M_STONE, KRZYZ_GOLD)
+
 
 
 ## The Presidential Palace (Pałac Prezydencki; Aigner's classical rebuilding, 1818-1819) on
