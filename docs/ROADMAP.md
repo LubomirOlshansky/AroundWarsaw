@@ -38,15 +38,17 @@ then the Launch gate.
 - [ ] The start area as real Warsaw (F, 2026-11-01; plan docs/design/start-area-real.md):
   - [x] R1 the Eastern Wall's signs as they are in 2025/26 (Polish letters in the neon font,
         DO WYNAJĘCIA boards, FROGS XXL on the old H&M corner, KAPCIE, SCENA RELAX), 2026-11-01
-  - [ ] R2 Plac Centralny's ground (the tenements' outlines in grey and red slabs, the setts,
-        the pond, the trees)
-  - [ ] R3 pavements, granite kerbs, red cycle paths, the green Złota, the fountain, the crossings
-  - [ ] R4 ordinary buildings by type (pre-war tenement, 1960s-70s slab, socialist-realist,
-        office), shader only
-  - [ ] R5 Scena Relax, Zodiak and the Cepelia pavilion as models
-  - [ ] R6 one of the 2025/26 trend spots (built elsewhere, trends-2025-26.md) inside the start
-        box, and the empty-stores jokes in the lines
-  - [ ] R7 street details in the box (street name plates, bike dock, tram stops, bollards)
+  - [x] R2 Plac Centralny's ground (the tenements' outlines in red and grey slabs, the
+        courtyards' and walks' setts; the pond and lawns were already mapped), 2026-11-01
+  - [x] R3 part 1: footways as grey concrete pavers (red cycle paths were already in), 2026-11-01
+  - [ ] R3 part 2: granite kerbs, the green Złota, the fountain at the tunnel mouth, the crossings
+        (orthophoto check on the Mac)
+  - [x] R4 ordinary buildings by type (pre-war tenement, 1960s-80s slab or point block, office),
+        shader only, 2026-11-01 (socialist-realist left for a later pass)
+  - [x] R5 Scena Relax, Zodiak and the Cepelia pavilion as models
+  - [x] R6 a trend spot in the start box (MACZA in Pasaż Wiecha, built by the trends thread) and
+        six lines on the empty stores, Frogs XXL, Plac Centralny, Scena Relax, 2026-11-01
+  - [x] R7 street details in the box (street name plates, bike dock, tram stops, bollards), 2026-11-01
   - [ ] R8 landmark polish left in the box (the museum's ribbon and roofline)
 
 ### Left: map and roads
@@ -69,11 +71,14 @@ then the Launch gate.
       `cassettes.json` (9 new), and 72 landmark cards already in `landmarks.gd` INFO (target ~25)
 - [ ] DEMO 6.3 counts, rescues and słoiki: the second słoiki station (jobs.gd has one), the Old
       Town tourist and the Łazienki peacock rescues (a "tourist fainted" street rescue exists; no peacocks)
-- [ ] Loop 3i juice: sparks and dust (no particles yet), money pops, district ambiences,
-      haptics working on the iPhone
+- [x] Crash sparks and dust, phone vibration fixed in code (2026-11-01, crash_fx.gd, haptics.gd;
+      the feel on the iPhone and an Android phone still to check: QUESTIONS)
+- [ ] Loop 3i juice leftovers: money pops, district ambiences
 - [x] Accessibility options (2026-11-01, Settings → DOSTĘP, `access.gd`): larger HUD text, calm
       (no flashing or shaking), colour-safe markers, vibration on/off, stop assist on/off.
       Left to do: left-handed layout, live text size, subtitles (BACKLOG)
+- [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
+      at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
 
@@ -401,9 +406,9 @@ in). Gaps the orchestrator added on 2026-10-28, so nothing found so far falls th
   3j: triage each item (fix, fold into a loop, or drop with a reason), mechanical fixes on
   Sonnet, judgment ones on Opus. Small known ones: `check_landmarks.gd` exits 0 on failure;
   README's two `bake_osm.py` command lines.
-- **Haptics on the iPhone** (`Could not vibrate using haptic engine`): rule out the phone's
-  settings, then a small iOS plugin with `UIImpactFeedbackGenerator`. Device-gated, Opus.
-  With loop 3i (juice) at the latest.
+- **Haptics on the iPhone**: done in code 2026-11-01 (haptics.gd: the log line is printed on
+  success too; the buzzes were too short and soft). A `UIImpactFeedbackGenerator` plugin only if
+  the phone check says they still can't be felt.
 - **2D art with PixelLab**, spread over the loops that need it: HUD and minimap icons in 2e,
   shop signs, posters and billboards in 2d, dialogue portraits (rivals, police, customers,
   the radio host) in 3g/3h, the app icon and store art in 3j. Up to 50 generations a loop.

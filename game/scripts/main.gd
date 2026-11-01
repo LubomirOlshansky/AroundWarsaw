@@ -105,12 +105,16 @@ const Settings := preload("res://scripts/settings.gd")
 const BenchStats := preload("res://scripts/bench.gd")
 const ScreenPoints := preload("res://scripts/screen_points.gd")
 const Splash := preload("res://scripts/splash.gd")
+const CrashFx := preload("res://scripts/crash_fx.gd")
+const Haptics := preload("res://scripts/haptics.gd")
 const Tiers := preload("res://scripts/tiers.gd")
 const Governor := preload("res://scripts/governor.gd")
 ## Loop 3g-1: the police (police.gd; its block below, "loop 3g-1: the police").
 const Police := preload("res://scripts/police.gd")
 const Buses := preload("res://scripts/buses.gd")
 const OldTram := preload("res://scripts/old_tram.gd")
+## Packs (docs/design/packs.md): running clubs, cycling packs and coffee raves.
+const Packs := preload("res://scripts/packs.gd")
 ## The garage loop: Warsztat u Mirka and its paint jobs (garage.gd, its card garage_card.gd).
 const Garage := preload("res://scripts/garage.gd")
 ## Loop 3h slice 4: the guided first 10 minutes and the end card.
@@ -419,6 +423,12 @@ var honk_frames: Array[int] = []
 var old_tram: OldTram
 var old_tram_flag := ""
 var tram_log := false
+## Packs (packs.gd): running clubs, cycling packs, coffee raves; flags --packs=0 (none), --packs-now
+## (every club and rave on whatever the clock, the packs near the car timed to pass it), --packs-log.
+var packs: Packs
+var packs_flag := 1
+var packs_now := false
+var packs_log := false
 ## The garage loop (garage.gd): Warsztat u Mirka on Brzeska; flags --paint=<id> (the car starts in
 ## that paint, owned for the run), --garage (the car in the garage's ring, the card open; the
 ## garage shown whatever the wallet), --garage-log (`garage:` lines).
@@ -593,6 +603,8 @@ var _meter_top := {"Master": -200.0, "Music": -200.0, "SFX": -200.0, "Ambience":
 ## running (a rescue, a delivery, a race) carries on.
 const TOW_DELAY := 1.0
 var splash: Splash
+## v1.0 juice: sparks and dust where the car hits or scrapes (crash_fx.gd).
+var crash_fx: CrashFx
 ## Seconds left until the tow (< 0: no tow waiting); when the car went in (the clock, s).
 var _tow_wait := -1.0
 var _splash_at := 0.0
@@ -847,6 +859,9 @@ func _remember_frame(dt: float, now := false) -> void:
 func _notification(what: int) -> void:
 	if what in [NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_WM_CLOSE_REQUEST]:
 		_remember_frame(0.0, true)
+	elif what in [NOTIFICATION_APPLICATION_RESUMED, NOTIFICATION_APPLICATION_FOCUS_IN]:
+		# iOS stops the haptic engine in the background: start it again now, not in a crash's frame.
+		Haptics.warm()
 
 
 func _on_new_game() -> void:
@@ -1049,6 +1064,11 @@ func _build_world() -> void:
 	world.add_child(skids)
 	splash = Splash.new()
 	world.add_child(splash)
+	crash_fx = CrashFx.new()
+	world.add_child(crash_fx)
+	car.impact.connect(_on_car_impact)
+	car.scraped.connect(func(at: Vector3, normal: Vector3, speed: float) -> void:
+		crash_fx.scrape(at, normal, car.vel, speed, car.global_position.y))
 
 	heli = Heli.new()
 	heli.ground_height = map.ground_height
@@ -1212,6 +1232,7 @@ func _build_world() -> void:
 	_build_buses(data, world)
 	_build_old_tram(world)
 	_build_storefronts(data, world)
+	_build_packs(data, world)
 	_build_first10()
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
@@ -1423,6 +1444,8 @@ func _set_quality(choice: int) -> void:
 	if crowds != null:
 		crowds.amount = _crowd_scale()
 		crowds.refresh()
+	if packs != null:
+		packs.amount = _crowd_scale()
 	if life != null:
 		life.amount = float(life_flag) * (0.5 if quality == Tiers.LOW else 1.0)
 	RenderingServer.directional_shadow_atlas_set_size(qs["shadow_size"], true)
@@ -1991,6 +2014,33 @@ func _guide_start() -> void:
 
 ## Loop 3h slice 4: the director of the first 10 minutes and the end card (first10.gd). The guide
 ## runs in a normal launch on a fresh save, or with --first10; never in other test runs.
+## The packs (packs.gd) after the storefronts (the COFFEECHAIR cafés' pavements for the raves).
+## None with --packs=0 or --crowd=0.
+func _build_packs(data: Dictionary, world: Node3D) -> void:
+	if packs_flag == 0 or crowd_flag == 0:
+		return
+	packs = Packs.new()
+	packs.name = "Packs"
+	packs.map = map
+	packs.dialogue = dialogue
+	packs.hud = hud
+	packs.log_on = packs_log
+	packs.amount = _crowd_scale()
+	packs.force = packs_now
+	if packs_now:
+		packs.force_near = Vector2(car.global_position.x, car.global_position.z)
+	packs.clock = tod.local_clock
+	packs.focus = func() -> Vector3: return cam_focus
+	packs.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	if traffic != null:
+		packs.on_screen = traffic.on_screen
+	world.add_child(packs)
+	packs.setup(data, storefronts.venues if storefronts != null else [])
+
+
 func _build_first10() -> void:
 	first10 = First10.new()
 	first10.name = "First10"
@@ -3406,6 +3456,12 @@ func _parse_args() -> void:
 			old_tram_flag = "follow" if arg == "--old-tram=follow" else "now"
 		elif arg == "--tram-log":
 			tram_log = true
+		elif arg.begins_with("--packs="):
+			packs_flag = clampi(int(arg.trim_prefix("--packs=")), 0, 1)
+		elif arg == "--packs-now":
+			packs_now = true
+		elif arg == "--packs-log":
+			packs_log = true
 		elif arg.begins_with("--honk="):
 			for f in arg.trim_prefix("--honk=").split(",", false):
 				honk_frames.append(int(f))
@@ -4012,6 +4068,14 @@ func _water_frame(dt: float) -> void:
 		_last_dry_yaw = car.rotation.y
 
 
+## v1.0 juice: the car hit something (car.impact): sparks and dust at the contact; a car, a
+## tram or a guard rail is metal (more sparks, less dust).
+func _on_car_impact(collider: Object, speed: float) -> void:
+	var metal := collider is AnimatableBody3D or (sfx != null and sfx.near_rail(car.hit_point))
+	crash_fx.crash(car.hit_point, car.hit_normal, car.vel, speed, car.global_position.y, metal)
+	print("crash fx: %s hit at %d km/h, %d sparks so far, frame %d" % ["metal" if metal else "solid", roundi(speed * 3.6), crash_fx.sparks_thrown, frame])
+
+
 ## Loop 10a: the car rolled into the water (car.splashed): the splash, its sound and a buzz,
 ## and the tow on its way.
 func _on_car_splashed(speed: float) -> void:
@@ -4488,6 +4552,7 @@ func _process(dt: float) -> void:
 	_read_input(dt)
 	_moment_frame(dt)  # loop MW-6: --egg, --tape, --fotka and the VHS of a tape
 	_water_frame(dt)
+	Haptics.tick(dt, not flying and absf(car.forward_speed) > 3.0)
 	if autopilot or _bench_ghost != null:
 		_autopilot(dt)
 	_update_camera(dt)
@@ -4766,6 +4831,8 @@ func _make_stats() -> BenchStats:
 		b.systems["old tram"] = [old_tram, "spent_usec", true]  # the vintage-tram loop
 	if storefronts != null:
 		b.systems["storefronts"] = [storefronts, "spent_usec", true]  # loop MW-2
+	if packs != null:
+		b.systems["packs"] = [packs, "spent_usec", true]  # running clubs, cycling packs, raves
 	if egg_book != null:
 		b.systems["eggs+tape+spacer"] = [self, "_moments_usec", false]  # loop MW-6
 	if districts != null:

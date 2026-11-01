@@ -10,7 +10,15 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Marszałkowska by the start has Warsaw's navy street name plates at the corners, glass shelters and a ticket machine on the tram island, a city bike dock and bollards along Plac Centralny.
+- The glass Cepelia pavilion at Rondo Dmowskiego (now a book and vinyl store) and the Zodiak pavilion in Pasaż Wiecha stand as their real modernist glass boxes.
+- Running clubs now jog through the centre in packs of 20-28, road cyclists ride the cycle paths in pelotons with jokes about their carbon bikes, coffee raves pop up outside COFFEECHAIR cafés by day, and some very big guys walk very tiny dogs.
+- Footpaths are now grey concrete pavers like Warsaw's pavements.
+- Plac Centralny by the museum is paved like the real square: the outlines of the lost pre-war houses in red and grey stone, their courtyards and the old streets in granite setts.
+- Ordinary buildings now look like their kind: old tenements get cornices, window surrounds and a rusticated shop floor, communist-era blocks get panel joints and loggias, offices get ribbon windows.
+- Crashes throw sparks and dust (they glow at night), scraping along a barrier at speed trails sparks, and the phone's vibration is now strong enough to feel.
 - Nine more mixtapes lie on roofs round the city (Kopernik, the Palace terrace, the Opera, Arkadka, the modern art museum, Polin, the Sejm, the defence ministry and the National Bank): fly the helicopter over one to pick it up. The first five open the next locked PÓŁNOC FM song; the rest give respect and a card.
+- The website now shows the design wiki link on phones too: in the top bar, as a button under the hero and in the footer.
 - New padel side job "Czwarty": on busy evenings the court needs a fourth player, so fetch one from across town before the booking ends. Padel also has its own page in the notebook, and the coach, the receptionist and the boss now chat in the court queue.
 - The department stores by the start look like they do today: "to let" boards on the emptied floors, a two-storey frog shop on the old corner store, a shoe shop, and the Scena Relax theatre's name behind them. Shop signs can now use Polish letters.
 - Four 12 km/h e-scooter streets (Złota, Zgody, Bracka, Plac Centralny) now greet you with a short notice when you drive in.

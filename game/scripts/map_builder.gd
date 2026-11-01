@@ -76,7 +76,8 @@ const COL := {
 	"water": Color("#5ea8d8"),
 	"road": Color("#4f535a"),
 	"road_minor": Color("#62666c"),
-	"foot": Color("#e6e0d2"),
+	# R3 of docs/design/start-area-real.md: Warsaw's footways are light grey concrete, not sand.
+	"foot": Color("#dddcd6"),
 	"cycle": Color("#c86e5c"),
 	"mark": Color("#f4f1e8"),
 	"rail": Color("#3d3a37"),
@@ -4069,6 +4070,8 @@ func _build_buildings(st, keep: Array, marks) -> void:
 			wall = skin["wall"]
 			roof = skin["roof"]
 			_uv2.x = skin["mode"]
+		elif not glass and not _historic(plan.get_center(), 0.0):
+			_uv2.x = typed_seed(_building_type(str(bld["kind"]), poly, h), _uv2.x)
 
 		var run := 0.0
 		for i in poly.size():
@@ -4323,6 +4326,8 @@ func _build_lod2(walls, marks) -> Array:
 	# bake writes each building's triangles in one run sharing its style seed (UV2.x).
 	var dropped := PackedByteArray()
 	dropped.resize(count / 3)
+	# R4: each kept building's triangle run, typed after the historic districts' pass.
+	var building_runs: Array[Vector3i] = []
 	var t0 := 0
 	var ri := 0
 	while t0 < count:
@@ -4359,10 +4364,13 @@ func _build_lod2(walls, marks) -> Array:
 				for t in range(t0, t1):
 					col[t] = skin["roof"] if nrm[t].y >= 0.7 else skin["wall"]
 					uv2[t].x = skin["mode"]
+			else:
+				building_runs.append(Vector3i(t0, t1, 0))
 		t0 = t1
 	var facades := _tenement_facades(pos, nrm, col, uv2, dropped)
 	col = facades[0]
 	uv2 = facades[1]
+	uv2 = _typed_lod2(pos, col, uv2, building_runs)
 	var dress: Dictionary = facades[2]
 	# Split into tiles by triangle, like the other city meshes (not on the roof pass).
 	var tiles := {}
@@ -5049,6 +5057,106 @@ const TENEMENTS := ["#d9a441", "#e1968f", "#ebe1d1", "#c8733f", "#efd9a0", "#a9b
 const TILES := ["#9c4a35", "#a85a3e", "#8a4434", "#b0603f", "#94503c"]
 ## Kinds whose walls keep their own colour there (the churches: a skin or brick of their own).
 const NOT_TENEMENTS := ["church", "cathedral", "chapel", "monastery", "convent", "religious"]
+
+
+## R4 of docs/design/start-area-real.md (2026-11-01): an ordinary building's type for the facade
+## shader (building.gdshader typed_facade), from its OpenStreetMap kind, footprint and height:
+## 1 a pre-war tenement (kamienica: 10-26 m, the city's usual block), 2 a 1960s-80s large-panel
+## slab or point block (26 m and up, or a long thin bar 14 m and up), 3 a post-war office with
+## ribbon windows (offices, shops, hotels, ministries 12 m and up), 0 untyped (the seed's look:
+## sheds, schools, low houses and the rest).
+const TYPED_HOMES := ["yes", "apartments", "residential", "house", "retail"]
+const TYPED_OFFICES := ["office", "commercial", "government", "hotel"]
+static func _building_type(kind: String, poly: PackedVector2Array, h: float) -> int:
+	if h < 8.0:
+		return 0
+	if TYPED_OFFICES.has(kind):
+		return 3 if h >= 12.0 else 0
+	if not TYPED_HOMES.has(kind):
+		return 0
+	if h >= 26.0:
+		return 2
+	if h < 10.0:
+		return 0
+	# The footprint's least-area box along one of its own edges: a long thin bar is a slab.
+	var best := Vector2(INF, INF)
+	for i in poly.size():
+		var e := poly[(i + 1) % poly.size()] - poly[i]
+		if e.length() < 2.0:
+			continue
+		var d := e.normalized()
+		var lo := Vector2(INF, INF)
+		var hi := -lo
+		for q in poly:
+			var r := Vector2(q.dot(d), q.dot(Vector2(-d.y, d.x)))
+			lo = lo.min(r)
+			hi = hi.max(r)
+		var size := hi - lo
+		if size.x * size.y < best.x * best.y:
+			best = size
+	var long := maxf(best.x, best.y)
+	var short := minf(best.x, best.y)
+	if long >= 45.0 and short <= 16.0 and h >= 14.0:
+		return 2
+	return 1
+
+
+## A wall's UV2.x for type `kind` (1-3) and seed 0..1: [1, 2) in quarters; 0 keeps the seed.
+static func typed_seed(kind: int, seed: float) -> float:
+	if kind <= 0:
+		return seed
+	return 1.0 + 0.25 * float(kind - 1) + 0.24 * clampf(seed, 0.0, 0.999)
+
+
+## R4 for the LoD2 buildings: each run (one building) takes the type of the OpenStreetMap house
+## under its middle, its height from its own triangles. Glass walls, landmarks' skins and the
+## historic districts (_tenement_facades) keep theirs. Load time only, both city paths.
+func _typed_lod2(pos: PackedVector3Array, col: PackedColorArray, uv2: PackedVector2Array,
+		runs: Array[Vector3i]) -> PackedVector2Array:
+	var cell := 48.0
+	var grid := {}
+	var polys: Array[PackedVector2Array] = []
+	var kinds: Array[String] = []
+	for bld in data.get("buildings", []):
+		var p: Array = bld["p"]
+		if p.size() < 6 or not (TYPED_HOMES.has(str(bld["kind"])) or TYPED_OFFICES.has(str(bld["kind"]))):
+			continue
+		var poly := _pts(p)
+		var box := Rect2(poly[0], Vector2.ZERO)
+		for q in poly:
+			box = box.expand(q)
+		var k := polys.size()
+		polys.append(poly)
+		kinds.append(str(bld["kind"]))
+		for gx in range(floori(box.position.x / cell), floori(box.end.x / cell) + 1):
+			for gz in range(floori(box.position.y / cell), floori(box.end.y / cell) + 1):
+				var key := Vector2i(gx, gz)
+				if not grid.has(key):
+					grid[key] = []
+				(grid[key] as Array).append(k)
+	for run in runs:
+		var lo := Vector3(INF, INF, INF)
+		var hi := -lo
+		for t in range(run.x, run.y):
+			lo = lo.min(pos[t])
+			hi = hi.max(pos[t])
+		var mid := Vector2((lo.x + hi.x) * 0.5, (lo.z + hi.z) * 0.5)
+		if _historic(mid, 0.0):
+			continue
+		var found := -1
+		for k in grid.get(Vector2i(floori(mid.x / cell), floori(mid.y / cell)), []):
+			if Geometry2D.is_point_in_polygon(mid, polys[k]):
+				found = k
+				break
+		if found < 0:
+			continue
+		var kind := _building_type(kinds[found], polys[found], hi.y - lo.y)
+		if kind == 0:
+			continue
+		for t in range(run.x, run.y):
+			if uv2[t].x < 1.0 and col[t].a >= 0.9:
+				uv2[t].x = typed_seed(kind, uv2[t].x)
+	return uv2
 
 
 ## The historic districts: each LoD2 wall in them takes the colour and window seed of the

@@ -13,8 +13,8 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
 - Text size that follows the phone's own setting, and live (no restart); the panels with fixed
   layouts (cards, bubbles) need a check at x1.25 on the SE.
 - Subtitles: nothing is voiced yet; revisit when speech or radio talk with words lands.
-- Crash sparks and screen shake (another loop) must multiply by `Access.shake()` and buzz through
-  `Access.buzz`; colour-safe still to cover the HUD's green badges and the red fail colour.
+- ~~Crash sparks buzz through `Access.buzz`~~ Done (2026-11-01: crash_fx.gd shakes nothing; the
+  car's knock goes through haptics.gd, which keeps `Access.vibration`). Colour-safe still to cover the HUD's green badges and the red fail colour.
 
 ## Ground vertex compression, to re-apply on the Mac (stale PR #53 triage, 2026-11-01)
 - PR #53 (commit b343d60, branch `claude/project-thread-ldyr9u`) stores the ground's meshes with
@@ -256,15 +256,42 @@ plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 check
   left, FROGS XXL on Wars's south corner where H&M's space becomes a two-storey Żabka, KAPCIE for
   the shoe chains on Zara's floor, WYPRZEDAŻ and ORANŻADA with their real letters); SCENA RELAX
   on the old Kino Relax behind Junior. Only the phone shows the boards' size at the default zoom.
-- **Open:** R2 Plac Centralny's ground (grey and red slabs drawing the pre-war tenements, the
-  courtyards' reused granite setts, the 1939 street lines, lawns, 109 trees, the pond); R3
-  pavements and kerbs, red asphalt cycle paths, Złota's setts and elm alley, the fountain at the
-  old tunnel mouth, the three new crossings (orthophoto check on the Mac); R4 ordinary buildings
-  drawn by type in building.gdshader (tenement, slab, socialist-realist, office); R5 Scena Relax,
-  Zodiak and the Cepelia pavilion as models; R6 one of the trend spots (built by the trends thread,
-  docs/design/trends-2025-26.md) inside the start box and lines about the empty stores and Frogs
-  XXL; R7 street name plates, a bike dock, tram
-  stops, bollards; R8 the museum's ribbon in stretches and the stepped roofline.
+- **R4 done 2026-11-01**: ordinary buildings outside the Old Town are drawn by type
+  (map_builder.gd `_building_type`, building.gdshader `typed_facade`): pre-war tenements (a
+  rusticated shop floor, a string course, tall windows in light surrounds, a heavy cornice),
+  1960s-80s slabs and point blocks (pale panels, dark joints, loggia stacks), post-war offices
+  (ribbon windows). The type comes from the OSM kind, height and footprint (a guess, not a
+  survey). Left: a socialist-realist type for MDM and Marszałkowska south, per-street checks
+  against photos on the Mac, and the tenements' own plaster colours outside the Old Town.
+- **R2 done 2026-11-01**: Plac Centralny's paving in ground.gdshader (`centralny`): inside the
+  square (Marszałkowska's frame, south and west of the museum) the plazas show the lost
+  tenements as plots outlined in red and grey slabs, pale slabs where the houses stood and warm
+  setts in their courtyards; the mapped walks are granite setts. The pond and lawns were
+  already in the map. The plots follow the old grid's rhythm, not a survey: the orthophoto on
+  the Mac should set the real outlines (and the square's edge, now a straight cut).
+- **R3 part 1 done 2026-11-01**: footways are light grey concrete pavers in running bond (map
+  builder COL "foot" #dddcd6, ground.gdshader layer 4), as Warsaw's pavements are, not sand;
+  cycle paths were already brick red. Plazas keep their granite beige. Parked in QUESTIONS: the
+  wider pavements drawn as ground/plaza areas are still beige.
+- **R6 done 2026-11-01**: the trends thread's MACZA already stands in Pasaż Wiecha behind Sawa;
+  four KEBAB FM host lines and two passenger lines joined dialogue.json (the stores to let, the
+  two-storey Frogs, Plac Centralny's vanished tenements, the matcha queue, Scena Relax).
+- **R5 done 2026-11-01**: the Cepelia pavilion at Rondo Dmowskiego is a site (landmarks.gd
+  "cepelia"): a recessed glass shop floor, a frame band, a glass upper storey with mullions, a
+  white edge and the red EMPIRYK sign (the book and vinyl store, a parody). Zodiak in Pasaż
+  Wiecha is a low glass room under a thin overhanging roof slab on posts with its ZODIAK sign.
+  Scena Relax keeps R1's pink sign on its mapped building. Both have info cards. Only the phone
+  shows the signs' size at the default zoom.
+- **R7 done 2026-11-01**: first_scene.gd ITEMS gained Warsaw's street name plates (navy, white
+  letters, the red district strip, on poles at Widok, Sienkiewicza and Fangora), the tram island
+  north of the museum (two glass shelters, a stop post, a ticket machine; the map had the
+  platform but no shelter), a city bike dock (ROWERY,
+  a parody, on Plac Centralny's edge) and three bollard rows along the west kerb. Same mesh (one
+  draw call), but it now reaches the spawn end, so the bench's opening view counts it and its
+  shadow: draw calls 130 -> 132. Props: add_street_plates, add_bike_dock, add_tram_shelter. The plates on the
+  buildings' corners (where Warsaw mostly hangs them) wait for the Mac photo check.
+- **Open:** R3 part 2: granite kerbs, Złota's setts and elm alley, the fountain at the
+  old tunnel mouth, the three new crossings (orthophoto check on the Mac); R8 the museum's ribbon in stretches and the stepped roofline.
 - Found: the cloud can't read Wykop (login wall) or Commons (403); the trends come from Google's
   2025 year in search and the trade press. A Mac pass could add Wykop's own tags.
 
@@ -371,12 +398,25 @@ golden-image shots runtime vs `--prebuilt`,
   canopies, Widok Towers' green grid); only the phone can show the teeth and the signs' size. Left: the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
   the tram stops and kerbs (item 5), pedestrians and sound (6-7), the photo check on the Mac.
 
+## Packs: running clubs, cycling packs, coffee raves, big guys with tiny dogs (F, 2026-11-01)
+Built (`packs.gd`, docs/design/packs.md): three parody running clubs and two road-cycling packs out
+and back on real pavements and cycle paths, coffee raves outside the COFFEECHAIR cafés (booth, DJ
+Espresso, dancers), a third of the dog walkers big guys with tiny dogs, 58 new lines with parody
+gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
+- Only the phone can show whether a pack reads at the default zoom and what it costs there
+  (bench in the cloud: llvmpipe only).
+- Packs ignore the car (no swerve, no bump; the dawn crowd's rule); TEMPO NA KAWĘ's loop zigzags
+  between the pavements on either side in places (corners joined within 4 m).
+- A beat from the rave booth (sfx.gd positional voice), a rave notebook card or egg, a DJ crate
+  courier job, a radio mention.
+
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
 - **Shisha lounges** built (five parody signs, `Storefronts.LOUNGES`): only the phone can show the sign size on each wall and whether the spots read as lounges. Not notebook places; add smoky window glow or a door scene if wanted.
 - **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;
   the designer (`game-designer`, Sonnet for the text) specs it, `warsaw-tone` rules apply (real
   brands only as parodies, affectionate, Polish with English).
-- **Coffee raves** (poranne kawowe imprezy): daytime, sober-ish dance mornings, a flat white in
+- **Coffee raves** (built 2026-11-01 at the COFFEECHAIR cafés, see Packs above; the venues, queue,
+  notebook card and DJ job ideas here are still open) (poranne kawowe imprezy): daytime, sober-ish dance mornings, a flat white in
   one hand and a DJ on a pallet stage. Real Warsaw has them in cafes, courtyards and on the
   Vistula boulevards (Sunday 10:00-14:00). Fiction: a morning counterpart to the five clubs. Two
   or three parody venues, e.g. **Kawa Zero** (a courtyard in Praga), **Flat Biały** (a
@@ -649,9 +689,19 @@ golden-image shots runtime vs `--prebuilt`,
   `export_presets.cfg` (not a secret, decided: BACKLOG-TRIAGE "Decided since") (tidied 2026-10-30, checked in the code).
 - Device-run permission in CLAUDE.md stays per loop ("when the user said so for the current
   loop"); the user allowed phone test builds on 2026-10-28.
-- Haptics fail on the phone: `Could not vibrate using haptic engine: (null)` in the device log
-  (nine `Input.vibrate_handheld` calls). Rule out Low Power Mode / System Haptics off first;
-  else a small iOS plugin with `UIImpactFeedbackGenerator`.
+- ~~Haptics fail on the phone~~ Fixed in code 2026-11-01: Godot 4.7.2's iOS template
+  (apple_embedded.mm) logs `Could not vibrate using haptic engine: %@` after every buzz, so
+  `(null)` means no error. The buzzes were 25-40 ms at 0.3-0.5 as continuous events, too faint to
+  feel. haptics.gd now floors every buzz at 45 ms / 0.55 (cap 220 ms), merges buzzes 70 ms apart,
+  scales the car's knock 50-160 ms by the hit, and starts the engine without waiting at load, on
+  resume and every 6 s while driving. Still to check on the phones (device run): the feel, and
+  no hitch on the first crash after a pause. If still not felt: a `UIImpactFeedbackGenerator`
+  plugin (needs Xcode on the Mac).
+- Crash sparks and dust (crash_fx.gd, 2026-11-01): checked by screenshots on the cloud's
+  software renderer (day: an orange burst and dust, night: a white glow). Not seen yet: the
+  prebuilt city path (the cloud's map data is stale: bake_city fails on the site slabs, not this
+  change), the phone's frame during a crash (2 draw calls and ~77 µs of script on a desktop
+  core while particles live; zero when idle).
 - ~~The once-only `ERROR: Mouse is not supported by this display server.`~~ Duplicate of the
   loop 2b entry above (tidied 2026-10-30, checked in the code).
 

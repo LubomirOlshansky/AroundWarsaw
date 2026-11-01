@@ -103,7 +103,7 @@ func _run() -> void:
 func _check_rules() -> void:
 	# [hour, zone, want walkers]
 	for row: Array in [[5.0, false, 0], [6.4, true, 0], [6.5, false, 5], [7.5, true, 10], [8.99, false, 5], [9.0, true, 0],
-			[13.0, true, 0], [18.9, false, 0], [19.0, false, 5], [22.4, true, 10], [22.5, true, 0], [2.0, true, 0]]:
+			[13.0, true, 10], [14.5, true, 0], [18.9, false, 0], [19.0, false, 5], [22.4, true, 10], [22.5, true, 0], [2.0, true, 0]]:
 		var n := CityLife.dog_count(row[0], row[1])
 		_expect(n == int(row[2]), "dog walkers at %.2f (zone %s): %d (want %d)" % [row[0], row[1], n, row[2]])
 	_expect(CityLife.dog_count(7.5, true, 0.5) == 5, "the Low tier halves the walkers: %d" % CityLife.dog_count(7.5, true, 0.5))

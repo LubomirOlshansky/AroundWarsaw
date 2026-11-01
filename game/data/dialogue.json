@@ -83,6 +83,22 @@
     [
       "Frogs. Otwarte dziś, jutro i na wszelki wypadek pojutrze.",
       "Frogs: open today, tomorrow, and the day after, just in case."
+    ],
+    [
+      "Domy towarowe: trzy piętra do wynajęcia. Widok gratis.",
+      "The department stores: three floors to let. The view's free."
+    ],
+    [
+      "Na Marszałkowskiej otwierają Frogs na dwa piętra. Hot dog z windą.",
+      "A two-storey Frogs is opening on Marszałkowska. Hot dogs with a lift."
+    ],
+    [
+      "Plac Centralny: stoisz na kamienicy, której już nie ma.",
+      "Plac Centralny: you're standing on a tenement that isn't there any more."
+    ],
+    [
+      "Pasaż Wiecha: kolejka po zieloną kawę. Tak, to herbata.",
+      "Pasaż Wiecha: a queue for green coffee. Yes, it's tea."
     ]
   ],
   "kebab_order": [
@@ -304,6 +320,14 @@
     [
       "Za rok też będę mówić, że jestem stąd.",
       "In a year I'll be saying I'm from here too."
+    ],
+    [
+      "Kiedyś kupowałam tu kurtkę. Teraz można wynająć całe piętro.",
+      "I used to buy a jacket here. Now you can rent the whole floor."
+    ],
+    [
+      "Teatr w dawnym kinie, kino w telefonie. Wszystko się zgadza.",
+      "A theatre in the old cinema, the cinema on your phone. It all adds up."
     ]
   ],
   "podwozka_request": [
@@ -1882,6 +1906,55 @@
       {
         "only": "influencer"
       }
+    ],
+    [
+      "To nie jest mój pies. To ja jestem jego ochroniarzem.",
+      "This isn't my dog. I'm his bodyguard.",
+      {
+        "only": "tiny"
+      }
+    ],
+    [
+      "Nazywa się Tytan. Waży dwa kilo. Gryzie za trzech.",
+      "His name's Titan. He weighs two kilos. Bites like three.",
+      {
+        "only": "tiny"
+      }
+    ],
+    [
+      "Siłownia o szóstej, spacer z Pusią o siódmej. Rutyna.",
+      "Gym at six, a walk with Pusia at seven. Routine.",
+      {
+        "only": "tiny"
+      }
+    ],
+    [
+      "Smycz różowa, bo on tak wybrał. Szanuję.",
+      "Pink lead, because he chose it. Respect.",
+      {
+        "only": "tiny"
+      }
+    ],
+    [
+      "Wyglądam groźnie, ale wszyscy patrzą na niego.",
+      "I look scary, but everyone's looking at him.",
+      {
+        "only": "tiny"
+      }
+    ],
+    [
+      "Mamy takie same bluzy. Bez komentarza.",
+      "We've got matching hoodies. No comment.",
+      {
+        "only": "tiny"
+      }
+    ],
+    [
+      "Zwolnij, bo zaszczeka. A wtedy obaj się boimy.",
+      "Slow down or he'll bark. Then we're both scared.",
+      {
+        "only": "tiny"
+      }
     ]
   ],
   "cyclists": [
@@ -2179,6 +2252,255 @@
       "Gold is for those who know the city's secrets. Come back with five.",
       {
         "only": "locked"
+      }
+    ]
+  ],
+  "run_club": [
+    [
+      "Jak nie ma tego na Szpanie, to biegu nie było.",
+      "If it's not on Szpan, the run never happened."
+    ],
+    [
+      "Garnek pisze, że mam dziś regenerację. Garnek nie zna mojego trenera.",
+      "My Garnek watch says rest day. Garnek hasn't met my coach."
+    ],
+    [
+      "Tempo konwersacyjne! Czyli gadamy o tempie.",
+      "Conversational pace! So we talk about pace."
+    ],
+    [
+      "Najpierw rozgrzewka, potem zdjęcie grupowe, potem może bieg.",
+      "Warm-up first, then the group photo, then maybe a run."
+    ],
+    [
+      "Trzeci raz w tym tygodniu. Kolana wysłały mi maila.",
+      "Third time this week. My knees sent me an email."
+    ],
+    [
+      "Kto zgubił żel energetyczny o smaku pierogów?",
+      "Who dropped the pierogi-flavoured energy gel?"
+    ],
+    [
+      "Nowe buty z płytką karbonową. Teraz spóźniam się szybciej.",
+      "New carbon-plate shoes. Now I'm late faster."
+    ],
+    [
+      "Run club to nowy Tinder. Tylko wszyscy są spoceni.",
+      "Run club is the new dating app. Everyone's just sweatier."
+    ],
+    [
+      "Biegniemy po bajgla. To cały plan treningowy.",
+      "We're running for a bagel. That's the whole training plan."
+    ],
+    [
+      "Mordor do siedemnastej, maraton od siedemnastej pięć.",
+      "Mordor till five, marathon from five past."
+    ],
+    [
+      "Lewa wolna! Lewa! No dobra, chodnik jest jeden.",
+      "On your left! Left! Fine, there's only one pavement."
+    ],
+    [
+      "Mijamy turystów na Krakowskim. To nasze interwały.",
+      "We overtake the tourists on Krakowskie. Those are our intervals."
+    ],
+    [
+      "Auto za nami? Dobra, pokażmy mu tempo cztery trzydzieści.",
+      "A car behind us? Right, let's show it a 4:30 pace.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Panie kierowco, to tylko pięć kilometrów. Plus zdjęcie.",
+      "Sir, it's only five kilometres. Plus the photo.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Nie trąb, mamy przerwę na selfie.",
+      "Don't honk, it's our selfie break.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Auto robi nam za zająca? Niech wrzuci to na Szpana.",
+      "The car's pacing us? Tell it to post it on Szpan.",
+      {
+        "only": "car"
+      }
+    ]
+  ],
+  "peleton": [
+    [
+      "Mój Wąwóz waży sześć osiem. Swojej wagi nie podam.",
+      "My Wąwóz weighs 6.8 kg. I won't tell you mine."
+    ],
+    [
+      "Cegła Aero: tnie wiatr jak… cegła.",
+      "The Cegła Aero: slices through the wind like… a brick."
+    ],
+    [
+      "Karbonowa rama, karbonowe koła, karbonowy kredyt.",
+      "Carbon frame, carbon wheels, carbon loan."
+    ],
+    [
+      "Średnia trzydzieści dwa. Z wiatrem. Z górki. Raz.",
+      "Average 32 km/h. Tailwind. Downhill. Once."
+    ],
+    [
+      "Kawa na postoju to nie przerwa. To element treningu.",
+      "The coffee stop isn't a break. It's part of the training."
+    ],
+    [
+      "Watów mam mało, ale skarpetki najlepsze w peletonie.",
+      "Not many watts, but the best socks in the pack."
+    ],
+    [
+      "Garnek mówi: strefa trzecia. Serce mówi: strefa kanapy.",
+      "Garnek says zone three. My heart says zone sofa."
+    ],
+    [
+      "Ten odcinek to segment na Szpanie. Jestem tu królem. Od wtorku.",
+      "This stretch is a Szpan segment. I'm king here. Since Tuesday."
+    ],
+    [
+      "Elektroniczne przerzutki. Bateria padła, jadę na jednym biegu.",
+      "Electronic shifting. Battery's dead, so it's one gear."
+    ],
+    [
+      "Golone łydki to aerodynamika. Twierdzę tak od dwóch sezonów.",
+      "Shaved calves are aerodynamics. I've claimed so for two seasons."
+    ],
+    [
+      "Specjał za dwadzieścia tysięcy, a wyprzedziła mnie babcia na Rowerilo.",
+      "A 20,000 zł Specjał, and a granny on a Rowerilo passed me."
+    ],
+    [
+      "Lycra w kolorach klubu. Przepraszamy oczy kierowców.",
+      "Lycra in club colours. Our apologies to drivers' eyes."
+    ],
+    [
+      "Rower kosztował jak kawalerka. Za to parkuję go w salonie.",
+      "The bike cost as much as a studio flat. At least it lives in the lounge."
+    ],
+    [
+      "Mówię żonie, że to używany Wąwóz. Używany przez kogoś bardzo bogatego.",
+      "I tell my wife it's a used Wąwóz. Used by someone very rich."
+    ],
+    [
+      "Auto na ogonie! Zmiana na prowadzeniu!",
+      "Car on our tail! Swap the lead!",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Panie, tu idzie trzysta watów. Proszę nie dmuchać.",
+      "Mate, we're pushing 300 watts. Please don't breathe on us.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Jedzie nam na kole. Niech chociaż da zmianę.",
+      "It's drafting us. It could at least take a turn up front.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Uwaga, auto! Nie dotykać kół, są warte mieszkanie.",
+      "Car! Don't touch the wheels, they're worth a flat.",
+      {
+        "only": "car"
+      }
+    ]
+  ],
+  "coffee_rave": [
+    [
+      "Rave o dziewiątej rano. Zero procentów, dwa shoty espresso.",
+      "A rave at 9 a.m. Zero booze, two shots of espresso."
+    ],
+    [
+      "Mleko owsiane, bity sto dwadzieścia osiem, zero kaca.",
+      "Oat milk, 128 bpm, zero hangover."
+    ],
+    [
+      "Przyszedłem po flat white, zostałem na trzy sety.",
+      "Came for a flat white, stayed for three sets."
+    ],
+    [
+      "W klubie już bym spał. Tu dopiero się budzę.",
+      "At a club I'd be asleep by now. Here I'm only waking up."
+    ],
+    [
+      "Mamy wózki, słuchawki dla dzieci i drop o jedenastej.",
+      "We've got prams, kids' ear defenders and a drop at eleven."
+    ],
+    [
+      "Tańczę do południa, a potem call o dwunastej.",
+      "I dance till noon, then a call at twelve."
+    ],
+    [
+      "Kolejka do baristy jest dłuższa niż do klubu w sobotę.",
+      "The barista queue's longer than a club's on a Saturday."
+    ],
+    [
+      "Mój zegarek myśli, że biegam. Nie wyprowadzam go z błędu.",
+      "My watch thinks I'm running. I'm not telling it."
+    ],
+    [
+      "Cappuccino w jednej ręce, druga w górze. Klasyka.",
+      "Cappuccino in one hand, the other in the air. A classic."
+    ],
+    [
+      "Kofeina, bas i słońce. Zdrowy tryb życia.",
+      "Caffeine, bass and sunshine. A healthy lifestyle."
+    ],
+    [
+      "Bramkarza nie ma. Jest barista i on też ocenia.",
+      "There's no bouncer. There's a barista, and he judges too."
+    ],
+    [
+      "Mój terapeuta poleca taniec. Mój barista poleca drugie espresso.",
+      "My therapist recommends dancing. My barista recommends a second espresso."
+    ],
+    [
+      "Następny kawałek: remiks ekspresu ciśnieniowego.",
+      "Next track: an espresso-machine remix.",
+      {
+        "only": "dj"
+      }
+    ],
+    [
+      "Trąbisz do rytmu? Dawaj, wezmę cię na sampla!",
+      "Honking in time? Go on, I'll sample you!",
+      {
+        "only": "dj"
+      }
+    ],
+    [
+      "Zwalniasz? Słusznie. Tu jest strefa tańca, nie strefa parkowania.",
+      "Slowing down? Good. This is a dance zone, not a parking zone.",
+      {
+        "only": "dj"
+      }
+    ],
+    [
+      "DJ Espresso w domu! Dwa shoty basu dla kierowcy!",
+      "DJ Espresso in the house! Two shots of bass for the driver!",
+      {
+        "only": "dj"
+      }
+    ],
+    [
+      "Grałbym do rana, ale kawiarnię zamykają o piętnastej.",
+      "I'd play till dawn, but the café shuts at three.",
+      {
+        "only": "dj"
       }
     ]
   ]
