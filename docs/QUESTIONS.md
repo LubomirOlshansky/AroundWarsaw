@@ -18,6 +18,17 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · landmarks · Krakowskie Przedmieście's photo check (K1-K6, M2)** — Built from
+  the OSM outlines alone, so every height and a few spots are guesses (Default built, the specs'
+  "photo check" notes list them). For F on the Mac, in order of how much they could be wrong:
+  (1) Mickiewicz's monument: where on the lawn (today the lawn's centre) and which way it faces;
+  (2) the University gate: whether the entrance is at (-494,-684) (the east frontage by Pałac
+  Tyszkiewiczów-Potockich), its width and pylons; (3) Hotel Bristol: is the dome on the rounded
+  north-east corner, and its height; (4) the Carmelite front's colours and number of pilasters;
+  (5) Potocki's court front and the Kordegarda's height and roof; (6) Prus's and Wyszyński's
+  statues' spots (not built); (7) Mariensztat's real reliefs' subjects and places, and the
+  Rynek's well or fountain.
+
 - **2026-11-01 · content · the trains' parody names** — Default to build: KOLEJE MAZOWE (the
   green and white suburban units), SKiM (the red and yellow city line), INTERSZYBKO (the
   long-distance coaches). Say if any should change. docs/design/railway.md section 4.

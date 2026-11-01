@@ -17,27 +17,33 @@ red tile roofs with dormers.
   joins `_historic`, so its 47 houses take the tenement palette, red tiles, dormers and chimneys
   (LoD2 path; load time only, +0 draw calls). Left: Mac look check (roof pitch from LoD2, the
   palette against photos, the 20.8 m house at (-388,-1362) that OSM tags taller than its neighbours).
-- M2 a landmark card for Rynek Mariensztacki (the 1949 estate, the first socialist-realist square,
-  the 1954 film "Przygoda na Mariensztacie") and its relief panels and
-  well/fountain from photos (Mac).
+- ~~M2 Rynek Mariensztacki's card and reliefs~~ Done 2026-11-01 (site `mariensztat`, spec
+  `mariensztat.md`, 540 tris): six relief panels (frame, terracotta field, sun, two figures) on the
+  south row's faces, and the card. Left: Mac photos for the real reliefs' subjects, number and
+  places, and the square's well or fountain (the map's fountain ring stays).
 - M3 the escarpment, the W-Z tunnel's mouth and Nowy Zjazd's viaduct over the estate: check on the
   Mac with real terrain (the cloud has none).
 
 **Krakowskie Przedmieście** (x -717..-434, z -1333..-465): well covered. Models: the Castle and
 Sigismund's Column at the north end, St Anne's (portico and bell tower), the Visitationists, the
 Presidential Palace, Hotel Europejski, Staszic Palace with Copernicus, Holy Cross; historic
-lanterns and street furniture along the whole street. Still generic boxes:
-- K1 the Carmelite church (Kościół Wniebowzięcia NMP i św. Józefa, (-582,-1036)): the facade with
-  its globe-topped attic; spec from photos.
-- K2 Mickiewicz's monument in Skwer Mickiewicza (lawn centred about (-627,-1074)): figure on a
-  tall pedestal with its fence and corner lanterns; the exact spot and height need the orthophoto
-  or a photo (Mac).
-- K3 the University gate (Brama Główna UW) and Pałac Kazimierzowski behind it.
-- K4 Pałac Potockich (-679,-946) with its two guardhouses (Kordegarda is mapped as a 4.3 m shed);
-  Pałac Czapskich (-609,-597).
-- K5 Hotel Bristol (-543,-917): the corner tower's dome and the facade (already in LANDMARKS 3.1).
-- K6 small things: Prus's and Cardinal Wyszyński's statues, the black Chopin benches, the
-  granite paving of the carriageway.
+lanterns and street furniture along the whole street. 2026-11-01 (K1-K5, K6 in part; all from
+the OSM outlines, no photos; specs in docs/landmarks/specs/):
+- ~~K1 the Carmelite church~~ the front on the kept skin (`karmelici`, 374 tris).
+- ~~K2 Mickiewicz's monument~~ (`mickiewicz`, 282 tris). Left: the exact spot on the lawn (today
+  the lawn's centre), its facing, the fence and corner lanterns' real shape (Mac photo).
+- ~~K3 the University gate~~ (`brama_uw`, 458 tris; Pałac Kazimierzowski is a kept skin with a
+  card, `kazimierzowski`). Left: the gate's true spot and width (today a guess at the campus
+  entrance in the east frontage near (-494,-684)), the palace's own model.
+- ~~K4 Pałac Potockich~~ the court front (`potocki`, 166 tris) and the Kordegarda built whole
+  (`kordegarda`, 466 tris, was a 4.3 m shed). Left: the second (southern) guardhouse is not mapped;
+  Pałac Czapskich (-609,-597) stays a box.
+- ~~K5 Hotel Bristol's corner dome~~ (`bristol`, 334 tris). Left: Mac photo check that the dome
+  is on this corner, its profile and the facade's colours.
+- K6 small things: the black Chopin benches are done (`map_builder` `_split_chopin_benches`: the
+  benches within 14 m of Krakowskie Przedmieście and Nowy Świat take a black granite model, +1
+  instanced mesh per tile that has any). Left: Prus's and Cardinal Wyszyński's statues (spots
+  need photos or the orthophoto) and the carriageway's granite paving.
 
 ## The railway: stations, the cross-city line, trains (F, 2026-11-01)
 

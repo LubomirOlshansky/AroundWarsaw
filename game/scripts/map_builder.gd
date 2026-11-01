@@ -4943,6 +4943,14 @@ func _make_shared() -> void:
 	for x in [-0.7, 0.7]:
 		_box(bench, Vector3(x, 0.22, 0), Vector3(0.08, 0.44, 0.45), Color("#2e3033"))
 	_shared["bench"] = bench.commit()
+	# The Chopin bench: black granite, a plain seat and a low back, the steel button on the arm.
+	var chopin := SurfaceTool.new()
+	chopin.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var granite := Color("#26282b")
+	_box(chopin, Vector3(0, 0.3, 0), Vector3(1.8, 0.6, 0.5), granite)
+	_box(chopin, Vector3(0, 0.8, 0.22), Vector3(1.8, 0.4, 0.1), granite)
+	_box(chopin, Vector3(0.82, 0.64, -0.1), Vector3(0.14, 0.04, 0.14), Color("#c4c8cc"))
+	_shared["bench_chopin"] = chopin.commit()
 	var bin := SurfaceTool.new()
 	bin.begin(Mesh.PRIMITIVE_TRIANGLES)
 	_box(bin, Vector3(0, 0.45, 0), Vector3(0.45, 0.9, 0.45), Color("#3e5a44"))
@@ -5753,7 +5761,9 @@ func _build_props() -> void:
 	_make_shared()
 	var metal: Material = _shared["prop_metal"]
 	var none: Array[Color] = []
-	_props(_shared["bench"], metal, data.get("benches", []), 0.0, none, true)
+	var split := _split_chopin_benches(data.get("benches", []))
+	_props(_shared["bench"], metal, split[0], 0.0, none, true)
+	_props(_shared["bench_chopin"], metal, split[1], 0.0, none, true)
 	_props(_shared["bin"], metal, data.get("bins", []), 0.0, none, true)
 	_props(_shared["rack"], metal, data.get("bikes", []), 0.0, none, true)
 	var tints: Array[Color] = []
@@ -5766,6 +5776,47 @@ func _build_props() -> void:
 	glows.resize(shelters.size() / 3)
 	glows.fill(SHELTER_GLOW)
 	_props(_shared["shelter"], _shared["fixture"], shelters, 4.0, none, false, glows)
+
+
+## The Royal Route's black granite benches (the Chopin benches, with the button that plays him):
+## the benches within CHOPIN_REACH m of Krakowskie Przedmieście or Nowy Świat, split from the
+## rest as [other triples, Chopin triples]. A 32 m grid of the two streets' segments keeps it
+## to a few thousand lookups at load.
+const CHOPIN_REACH := 14.0
+const CHOPIN_STREETS := ["Krakowskie Przedmieście", "Nowy Świat"]
+
+
+func _split_chopin_benches(list: Array) -> Array:
+	var cells := {}
+	for r: Dictionary in data.get("roads", []):
+		if not CHOPIN_STREETS.has(str(r.get("name", ""))):
+			continue
+		var p: Array = r["p"]
+		for i in range(0, p.size() - 3, 2):
+			var seg := [float(p[i]), float(p[i + 1]), float(p[i + 2]), float(p[i + 3])]
+			var x0 := floori((minf(seg[0], seg[2]) - CHOPIN_REACH) / 32.0)
+			var x1 := floori((maxf(seg[0], seg[2]) + CHOPIN_REACH) / 32.0)
+			var z0 := floori((minf(seg[1], seg[3]) - CHOPIN_REACH) / 32.0)
+			var z1 := floori((maxf(seg[1], seg[3]) + CHOPIN_REACH) / 32.0)
+			for cx in range(x0, x1 + 1):
+				for cz in range(z0, z1 + 1):
+					var key := Vector2i(cx, cz)
+					if not cells.has(key):
+						cells[key] = []
+					(cells[key] as Array).append(seg)
+	var rest := []
+	var chopin := []
+	for i in range(0, list.size() - 2, 3):
+		var at := Vector2(float(list[i]), float(list[i + 1]))
+		var near := false
+		for seg: Array in cells.get(Vector2i(floori(at.x / 32.0), floori(at.y / 32.0)), []):
+			var c := Geometry2D.get_closest_point_to_segment(at, Vector2(seg[0], seg[1]), Vector2(seg[2], seg[3]))
+			if c.distance_to(at) <= CHOPIN_REACH:
+				near = true
+				break
+		var dest: Array = chopin if near else rest
+		dest.append_array([list[i], list[i + 1], list[i + 2]])
+	return [rest, chopin]
 
 
 ## Instances of one prop at (x, z, yaw) triples; props bigger than `solid` metres
