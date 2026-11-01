@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- St Anne's church at the start of Krakowskie Przedmieście has its classical front: four tall columns under a pediment with a cross, side wings, and a trimmed bell tower.
 - The Visitationists' church on Krakowskie Przedmieście has its cream rococo front: pilasters, a stepped curved gable with statues and a cross, a lower side wing and a small copper turret.
 - All Saints church on Plac Grzybowski now has its front and two domed towers.
 - Hala Mirowska is a proper red-brick market hall: round-headed windows between cream pilasters, four corner turrets, tall gable ends, a glazed lantern along the roof and a portal on the Plac Mirowski front.

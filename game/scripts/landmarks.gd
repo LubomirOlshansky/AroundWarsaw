@@ -888,6 +888,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"wizytki":
 				_mark_zone(s)  # the nave stays LoD2's, in its skin; the facade and the turret are ours
 				_build_wizytki(s)
+			"sw_anna":
+				_mark_zone(s)  # the nave stays LoD2's, in its skin; the portico and the bell tower's trim are ours
+				_build_anna(s)
 			"staszic":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the portico and the statue are ours
 				_build_staszic(s)
@@ -7065,3 +7068,102 @@ func _wiz_wing(cu: float, fv: float, hu: float) -> void:
 	for sd: float in [-1.0, 1.0]:
 		_lbox(cu + sd * (hu - 0.4), fv - 0.1, 0.4, 0.3, g + 0.0, g + 13.2, WIZ_TRIM, M_STONE, WIZ_TRIM)
 	_lbox(cu, fv - 0.5, hu + 0.1, 0.9, g + 13.2, g + 14.1, WIZ_TRIM, M_STONE, WIZ_TRIM)
+
+
+## St Anne's church (Kościół św. Anny; Aigner's classical front, 1786-1788) at the start of
+## Krakowskie Przedmieście: the nave stays LoD2's (a kept skin); the model adds the front, a
+## stone plinth, flanking wings with window storeys, a central block with a portico of four
+## Corinthian-style columns under a pediment and a gilt cross, and trims Kubicki's free-standing
+## bell tower (the separate square building to the north: cornices, corner pilasters,
+## louvres, a cornice over the octagon and a gilt cross). Spec docs/landmarks/specs/anna.md.
+## Frame: origin at the front's north end on the outline, u south along the front (25.5 m),
+## +v out of it to the street (west).
+const ANNA := Vector2(-689.3, -1358.2)
+const ANNA_AXIS := Vector2(0.245, 0.969)
+const ANNA_MID := 12.75
+const ANNA_WALL := Color("#e9dfc6")
+const ANNA_TRIM := Color("#f4eedd")
+const ANNA_BASE := Color("#b9ae96")
+const ANNA_ROOF := Color("#6f5a4e")
+const ANNA_GOLD := Color("#c9a24a")
+const ANNA_DOOR := Color("#3a3d40")
+
+
+func _build_anna(_site: Dictionary) -> void:
+	_o = ANNA
+	_a = ANNA_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)  # (-0.969, 0.245): out of the front, to the street (west)
+	var m := ANNA_MID
+	_g = map.terrain_height(_w(m, 2.0).x, _w(m, 2.0).y)
+	var g := _g
+	_mode = M_STONE
+	# the plinth band and the flanking wings: a stone ground floor, a window storey, a cornice
+	_lbox(m, 0.3, m + 0.2, 0.4, g - 0.6, g + 1.3, ANNA_BASE, M_STONE, ANNA_BASE.lightened(0.05))
+	for cu: float in [4.0, 2.0 * m - 4.0]:
+		_lbox(cu, 0.0, 4.0, 0.3, g + 1.3, g + 6.2, ANNA_WALL, M_STONE, ANNA_WALL)
+		_lbox(cu, 0.0, 4.0, 0.3, g + 6.2, g + 12.6, ANNA_WALL, M_MONUMENT, ANNA_WALL)
+		_lbox(cu, 0.2, 4.2, 0.55, g + 12.6, g + 13.4, ANNA_TRIM, M_STONE, ANNA_TRIM)
+		for su: float in [-1.0, 1.0]:  # pilasters at the wing's ends
+			_lbox(cu + su * 3.7, 0.35, 0.3, 0.2, g + 1.3, g + 12.6, ANNA_TRIM, M_STONE, ANNA_TRIM)
+	# the central block, behind the portico: wall, a dark door and two side niches
+	_lbox(m, -0.1, 7.6, 0.4, g + 1.3, g + 13.4, ANNA_WALL, M_STONE, ANNA_WALL)
+	_mode = M_GLASS
+	_wall(_w(m - 1.3, 0.32), _w(m + 1.3, 0.32), g + 1.3, g + 6.3, _b, ANNA_DOOR)
+	for u: float in [-4.6, 4.6]:
+		_wall(_w(m + u - 0.8, 0.32), _w(m + u + 0.8, 0.32), g + 3.0, g + 7.6, _b, ANNA_DOOR)
+	_mode = M_STONE
+	# the portico: stylobate, three steps, four columns, entablature and a pediment
+	_lbox(m, 2.2, 7.0, 2.2, g - 0.6, g + 1.3, ANNA_BASE, M_STONE, ANNA_BASE.lightened(0.05))
+	for k in 2:
+		_lbox(m, 4.5 + 0.6 * k, 5.4 - 0.5 * k, 0.4 + 0.6 * k, g - 0.6, g + 0.95 - 0.5 * k, ANNA_BASE, M_STONE,
+				ANNA_BASE.lightened(0.04))
+	for u: float in [-5.4, -1.8, 1.8, 5.4]:
+		_column(m + u, 3.0, 0.6, g + 1.3, g + 11.8, ANNA_TRIM)
+	_lbox(m, 2.2, 7.2, 2.2, g + 11.8, g + 12.9, ANNA_WALL, M_STONE, ANNA_TRIM)
+	_lbox(m, 2.2, 7.5, 2.4, g + 12.9, g + 13.5, ANNA_TRIM, M_STONE, ANNA_TRIM)
+	var ka := _a
+	var kb := _b
+	_a = kb
+	_b = ka
+	_gable(4.4, -0.3, m, 7.4, g + 13.5, 3.8, ANNA_WALL, ANNA_ROOF)
+	_a = ka
+	_b = kb
+	var oc := _w(m, 4.45)
+	_disc(Vector3(oc.x, g + 15.4, oc.y), Vector3(_b.x, 0.0, _b.y), 0.9, 8, ANNA_DOOR)
+	_lbox(m, 2.2, 0.15, 0.15, g + 17.3, g + 20.0, ANNA_GOLD, M_STONE, ANNA_GOLD)
+	_lbox(m, 2.2, 0.7, 0.15, g + 18.6, g + 19.0, ANNA_GOLD, M_STONE, ANNA_GOLD)
+	# the car meets the steps and the stylobate
+	_collide(_rect(m, 4.5, 5.4, 0.4))
+	_collide(_rect(m, 2.2, 7.0, 2.2))
+	_anna_tower()
+
+
+## The bell tower's trim (the square building north of the church, about 10.4 m a side, 25 m
+## high, with a copper octagon to 33.8 m): a stone plinth, a string course, corner pilasters,
+## dark louvres, a heavy cornice, then a ring and a gilt cross over the octagon.
+func _anna_tower() -> void:
+	_o = Vector2(-689.275, -1379.575)
+	_a = Vector2(0.985, -0.174).normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_g = map.terrain_height(_o.x, _o.y)
+	var g := _g
+	_mode = M_STONE
+	var h := 5.35  # half the square's side, a little out of the wall
+	_lbox(0.0, 0.0, h + 0.3, h + 0.3, g - 0.6, g + 1.4, ANNA_BASE, M_STONE, ANNA_BASE.lightened(0.05))
+	_lbox(0.0, 0.0, h + 0.15, h + 0.15, g + 11.6, g + 12.2, ANNA_TRIM, M_STONE, ANNA_TRIM)
+	for su: float in [-1.0, 1.0]:
+		for sv: float in [-1.0, 1.0]:
+			_lbox(su * (h - 0.2), sv * (h - 0.2), 0.55, 0.55, g + 1.4, g + 24.0, ANNA_TRIM, M_STONE, ANNA_TRIM)
+	_mode = M_GLASS
+	for side: Vector2 in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+		var fa := _w(side.x * (h + 0.1) - side.y * 1.0, side.y * (h + 0.1) + side.x * 1.0)
+		var fb := _w(side.x * (h + 0.1) + side.y * 1.0, side.y * (h + 0.1) - side.x * 1.0)
+		_wall(fa, fb, g + 15.0, g + 21.0, Vector2(side.x * _a.x + side.y * _b.x, side.x * _a.y + side.y * _b.y), ANNA_DOOR)
+	_mode = M_STONE
+	_lbox(0.0, 0.0, h + 0.5, h + 0.5, g + 24.0, g + 25.1, ANNA_TRIM, M_STONE, ANNA_TRIM)
+	_lbox(0.0, 0.0, h + 0.3, h + 0.3, g + 23.2, g + 24.0, ANNA_WALL, M_STONE, ANNA_WALL)
+	var c := _w(0.0, 0.0)
+	_prism(_circle(c, 2.9, 8), g + 25.1, g + 33.8, ANNA_ROOF, ANNA_ROOF, M_STONE, M_STONE)  # hidden in the octagon: holds the ring up
+	_frustum(_circle(c, 3.9, 8), g + 33.8, _circle(c, 3.4, 8), g + 34.5, ANNA_TRIM, ANNA_TRIM)
+	_lbox(0.0, 0.0, 0.18, 0.18, g + 34.5, g + 38.0, ANNA_GOLD, M_STONE, ANNA_GOLD)
+	_lbox(0.0, 0.0, 0.7, 0.18, g + 36.0, g + 36.4, ANNA_GOLD, M_STONE, ANNA_GOLD)

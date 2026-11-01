@@ -159,6 +159,8 @@ func _fly_checks() -> int:
 		var alt := clampf(top * 0.5, 6.0, 45.0)
 		if info["key"] == "tr":
 			alt = 6.0  # a building site: the cranes are thin, the theatre's closed floors stand 9 m
+		elif info["key"] == "sw_anna":
+			alt = 8.0  # the bell tower's trim (38 m) stands in the box but away from the nave the heli aims at
 		elif info["key"] == "dtc":
 			alt = 10.0  # the 17.5 m stores share roof cells with the Eastern Wall's 70 m slabs behind them
 		var dir := Vector2(1, 0.35).normalized()
