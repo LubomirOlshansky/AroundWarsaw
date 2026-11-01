@@ -510,7 +510,7 @@ func _hub_tick(hour: float, day: int, view: Vector2, car: Vector2, flying: bool)
 			ring["bubble"] = true
 			var at: Vector3 = bays[0]["at"]
 			if dialogue != null:
-				dialogue.say(func() -> Vector3: return at + Vector3(0, 3.6, 0), "", "bus_stop", "night", 4.0, BUBBLE, 2.2, true)
+				dialogue.say_ambient(func() -> Vector3: return at + Vector3(0, 3.6, 0), "", "bus_stop", "night", 4.0, BUBBLE, 2.2, true)
 			if log_on:
 				print("buses: the car at the ring, %d buses standing" % n)
 		if egg_book != null and not egg_book.is_found("e23") and probe.is_valid():
@@ -742,7 +742,7 @@ func _call_bus(i: int, car3: Vector3) -> void:
 		# vision.md's E24: the `bus_stop` request line (index 2, "Stoję na przystanku na żądanie").
 		var l: Array = dialogue.lines["bus_stop"][2]
 		if dialogue.bubbles != null:
-			dialogue.bubbles.say(func() -> Vector3: return car3 + Vector3(0, 2.2, 0), "", l[0], l[1], 4.0, BUBBLE, 2.2)
+			dialogue.bubbles.say_ambient(func() -> Vector3: return car3 + Vector3(0, 2.2, 0), "", l[0], l[1], 4.0, BUBBLE, 2.2)
 	if pick == null:
 		if log_on:
 			print("buses: no bus can come to the stop at %.0f, %.0f" % [at.x, at.y])
@@ -856,7 +856,7 @@ func _stop_bubble(car: Vector2, kmh: float, flying: bool, hour: float) -> void:
 		var q := at + side * 1.2
 		var y: float = map.ground_height(q.x, q.y) if map != null else 0.0
 		var night := not (hour >= DAY_FROM and hour < DAY_TO)
-		dialogue.say(func() -> Vector3: return Vector3(q.x, y + 2.0, q.y), "", "bus_stop", "night" if night else "", 4.0, BUBBLE, 2.2, night)
+		dialogue.say_ambient(func() -> Vector3: return Vector3(q.x, y + 2.0, q.y), "", "bus_stop", "night" if night else "", 4.0, BUBBLE, 2.2, night)
 		if log_on:
 			print("buses: a bus_stop line at the stop at %.0f, %.0f" % [at.x, at.y])
 		return

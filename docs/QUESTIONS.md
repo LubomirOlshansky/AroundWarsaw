@@ -16,6 +16,9 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 ## Waiting
 - **2026-11-01 · landmarks · Ujazdowski Castle** — Mac look check for Zamek Ujazdowski (`ujazdowski`): the facade's real colour (built cream), the copper roofs and tower caps (spire to 26.5 m), the entrance side (built west, onto the park path), the courtyard (built open; OSM maps an 8.8 m roof patch in it), the east bay. Also the `--prebuilt` look and bench. Built: the model in cream with copper roofs; look shots in the thread. Phone: drive Al. Ujazdowskie south to the castle, stop in its ring for the notebook card.
+- **2026-11-01 · driving · Heli camera** — Phone feel check: does the helicopter's camera now turn with it while the stick is held (gain 1.1, as the car's Point), without the held direction circling? Built: camera follows while flying; a held direction keeps the screen it was set against, re-aimed at 20° (like drive_controls.gd). Not run in Godot (none in the cloud).
+- **2026-11-01 · visuals · Bulwary life** — Phone look check: do the groups on the boulevard's steps and benches (Karowa to Kopernik, evening) sit where people would, and do the fast cyclists (30-41 km/h) read as fast, not as a glitch? Built: 9 chill spots, 45 % fast riders; default kept.
+- **2026-11-01 · visuals · Retro filter** — Phone look check: does the new vaporwave Retro filter (Settings → Obraz, V key; the old VHS tape) read as 80s Miami neon, not muddy, by day and at night? Default built: pink and teal split-tone, soft bloom, light scanlines and grain; the Styl obrazu picker is removed (always Ostry). Where: PR "Rework retro filter".
 - **2026-11-01 · landmarks · Grand hotels** — Mac look check for Hotel Bristol (colour of the facade, mansard, door position on Krakowskie Przedmieście) and Hotel Polonia Palace (colour, 25.5 m height, door on Al. Jerozolimskie); built: sand and cream walls, grey slate mansards, door at the middle of the longest street front.
 
 - **2026-11-01 · landmarks · Old Town hotels** — Which tenements are the real Hotel Bellotto (Brukowa 12),
@@ -25,6 +28,8 @@ One session per lane. Add a row when you start an item, remove it when the item 
   the neon readable at night. Canaletto's front was not seen in the cloud render.
 
 Newest first. One entry per question.
+
+- **2026-11-01 · gameplay pass · phone checks** — F's six screenshots drive BACKLOG "Gameplay pass" G1-G13. Phone checks: (G1) a fresh save shows HELI at 0:00 and the map hold teleports; (G2) the Low default feels calm and the slider moves it; (G3) the zoom buttons clear the minimap and the pill; (G4) is Cruise easy enough, is Sport still wanted; (G5) which wall-like blocks F meant (a photo of one helps). Defaults built: heli and teleport free, Low traffic, Cruise handling.
 
 - **2026-11-01 · driving · photo mode and POMOC DROGOWA: phone check** — Fixed in the cloud
   (headless check and a game run: the car moved 0.00 m under Fotka; the button towed it onto the
@@ -584,3 +589,5 @@ backlog. Lasting decisions also go into BACKLOG's "Decided" sections, DEMO.md or
   kept as place names (they are also the halls' trade names); the new tower and museum are
   never named. Rename the halls descriptively ("Hala na Koszykowej")? Default built: kept.
   **Answered 2026-10-30 (F):** kept.
+- **2026-11-02 · gameplay · G12** — Rescues are on the HELI line in the spec, but most calls are street/park rescues the ambulance car does well. Default built: rescue calls follow the vehicle (flying: roof/sandbar, driving: street/park/shore, heli-only ones in violet); the notebook does not list quests yet. Make every rescue heli-only and give the car only jobs? Default built: no.
+- **2026-11-02 · gameplay · G10** — START KURS appears within 25 m of the waiting passenger and boards at once (the car is not auto-braked). Phone check: is a tap enough, or should driving through the ring start it too?

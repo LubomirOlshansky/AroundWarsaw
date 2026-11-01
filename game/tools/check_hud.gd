@@ -60,11 +60,43 @@ func _initialize() -> void:
 	_run()
 
 
+## G16: while driving fast ambient bubbles are dropped and ambient toasts come one per 20 s.
+func _check_quiet_driving() -> void:
+	var hud: CanvasLayer = Hud.new()
+	root.add_child(hud)
+	var b: Control = Bubbles.new()
+	b.pt = hud.pt
+	var kmh: Array[float] = [60.0]
+	b.kmh = func() -> float: return kmh[0]
+	b.project = func(p: Vector3) -> Vector2: return Vector2(p.x, p.y)
+	root.add_child(b)
+	b.say_ambient(Vector3.ZERO, "", "x", "y")
+	if b.count() != 0:
+		problems.append("G16: an ambient bubble showed at 60 km/h")
+	b.say(Vector3.ZERO, "", "x", "y")
+	if b.count() != 1:
+		problems.append("G16: a quest bubble was dropped at 60 km/h")
+	b.clear()
+	kmh[0] = 30.0
+	b.say_ambient(Vector3.ZERO, "", "x", "y")
+	if b.count() != 1:
+		problems.append("G16: an ambient bubble was dropped at 30 km/h")
+	hud.set_speed(40)
+	hud.ambient_toast("a", "a")
+	hud._toast_left = 0.0
+	hud.ambient_toast("b", "b")
+	if hud._toast.text != "a":
+		problems.append("G16: a second ambient toast within 20 s showed while driving")
+	hud.queue_free()
+	b.queue_free()
+
+
 func _run() -> void:
 	await process_frame  # the tree is ready for nodes only once the first frame runs
 	var states := 0
 	for screen in SCREENS:
 		states += await _check_screen(screen)
+	_check_quiet_driving()
 	for w in _waits:
 		print("  waits for room: %s" % w)
 	if problems.is_empty():

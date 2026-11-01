@@ -148,6 +148,22 @@
       {
         "only": "crash"
       }
+    ],
+    [
+      "Rynek mieszkaniowy: ceny w centrum spadły o całe zero procent. Tak, pięć lat z rzędu.",
+      "Housing market: central prices fell by a full zero percent. Yes, five years in a row."
+    ],
+    [
+      "KEBAB FM radzi: kawalerka na Woli to nie mieszkanie, to subskrypcja. Płacisz, a i tak nie jest twoja.",
+      "KEBAB FM tip: a studio in Wola isn't a flat, it's a subscription. You pay, and it's still not yours."
+    ],
+    [
+      "Pytanie słuchacza: czy da się kupić mieszkanie w Warszawie? Odpowiadamy: da się, jeśli się urodzisz w nim w 1987.",
+      "Listener question: can you buy a flat in Warsaw? We say yes, if you were born in it in 1987."
+    ],
+    [
+      "Dom Wielkiego Kredytu zaprasza na dzień otwarty. Wstęp wolny, wyjście po trzydziestu latach.",
+      "Dom Wielkiego Kredytu invites you to an open day. Free entry, exit after thirty years."
     ]
   ],
   "kebab_order": [
@@ -377,6 +393,22 @@
     [
       "Teatr w dawnym kinie, kino w telefonie. Wszystko się zgadza.",
       "A theatre in the old cinema, the cinema on your phone. It all adds up."
+    ],
+    [
+      "Dwa pokoje na Woli za 800 tysięcy. Jeden to balkon.",
+      "Two rooms in Wola for 800,000. One of them is the balcony."
+    ],
+    [
+      "Mój kredyt ma już wnuki.",
+      "My mortgage already has grandchildren."
+    ],
+    [
+      "Wynajmuję pokój z widokiem na Pałac. Widok jest, pokoju nie.",
+      "I rent a room with a view of the Palace. The view's real, the room isn't."
+    ],
+    [
+      "Deweloper: „klimatyczne wnętrze”. To była komórka lokatorska.",
+      "Developer: \"atmospheric interior\". It was a storage cupboard."
     ]
   ],
   "podwozka_request": [
@@ -402,6 +434,14 @@
       {
         "only": "club"
       }
+    ],
+    [
+      "Uwagi: „oglądam mieszkanie, proszę czekać, nie stać mnie na wyjście”.",
+      "Note: \"viewing a flat, please wait, I may not be able to afford to leave\"."
+    ],
+    [
+      "Uwagi: „do dewelopera, mam kredyt i zero rozsądku”.",
+      "Note: \"to the developer's, I've got a mortgage and no sense\"."
     ]
   ],
   "podwozka_pickup": [
@@ -522,6 +562,21 @@
       {
         "only": "club"
       }
+    ],
+    [
+      "Jadę na kawalerkę. 12 metrów, 17 osób w kolejce.",
+      "Off to view a studio. 12 m², 17 people in the queue.",
+      {
+        "only": "hurry"
+      }
+    ],
+    [
+      "Nie przez Mokotów. Zobaczę ceny i się rozmyślę.",
+      "Not through Mokotów. I'll see the prices and change my mind."
+    ],
+    [
+      "Czynsz mam tak wysoki, że sąsiad z góry to współlokator.",
+      "My rent's so high the upstairs neighbour is basically a flatmate."
     ]
   ],
   "podwozka_rating": [
@@ -623,6 +678,14 @@
     [
       "Ej, stoję tu od samej Pragi!",
       "Hey, I've been stuck here since Praga!"
+    ],
+    [
+      "Ten parking kosztuje jak kawalerka! Nie parkuj mi tu!",
+      "This parking space costs as much as a studio! Not here!"
+    ],
+    [
+      "Zaparkował pan w czyimś salonie. Tu metr to majątek!",
+      "You've parked in somebody's living room. A metre is a fortune here!"
     ]
   ],
   "signs": [
@@ -701,6 +764,18 @@
     [
       "TIMBER · PIERWSZA RANDKA? LUŹNO",
       "TIMBER · First date? Keep it casual (LUŹNO)"
+    ],
+    [
+      "KLATKA DEWELOPER · 12 M2 Z WIDOKIEM NA 12 M2",
+      "KLATKA DEVELOPER · 12 M2 WITH A VIEW OF 12 M2"
+    ],
+    [
+      "METRAŻ · KAWALERKA OD 1,2 MLN",
+      "METRAŻ · STUDIOS FROM 1.2M"
+    ],
+    [
+      "KREDYT NA 40 LAT · BALKON GRATIS",
+      "40-YEAR MORTGAGE · BALCONY FREE"
     ]
   ],
   "kebab_vendor": [
@@ -2210,6 +2285,10 @@
       {
         "only": "tiny"
       }
+    ],
+    [
+      "Pies ma większe mieszkanie niż ja. Z ogrzewaniem.",
+      "The dog has a bigger flat than me. Heated."
     ]
   ],
   "cyclists": [
