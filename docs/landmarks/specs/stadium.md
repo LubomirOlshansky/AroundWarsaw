@@ -15,8 +15,8 @@ Gerkan, Marg und Partner's national stadium (opened 2012 for Euro 2012) on the P
 the bowl of the old Tenth-Anniversary Stadium's embankment. What makes a passer-by say its
 name:
 
-1. **The woven basket in the flag's colours**: a skin of red and silver strips woven
-   diagonally, leaning out from the embankment to the roof, red below and white above.
+1. **The basket in the flag's colours**: a skin of red and silver mesh panels in staggered
+   rows, leaning out from the embankment to the roof, red below and white above.
 2. **The ring of masts**: 72 slim white masts leaning out with the skin and spiking above
    the roof's rim.
 3. **The white roof round an open middle**: a membrane ring sloping down from a raised rim to
@@ -51,21 +51,27 @@ radius); the pitch at the terrain under the centre.
 
 - **Promenade (crest)**: a paved ring on the old embankment's crest, 0.96 to 1.17 x the inner
   masts' radius, in two greys every three masts.
-- **Skin (crest to 41 m)**: two bands (the lower one leaning out, the upper one leaning out
-  more and tipped down) of M_WEAVE: strips 4.2 m apart, crossing diagonally, one over the
-  other in turn, dark gaps between them. Each strip between two crossings is red or white;
-  white more often the higher it is (none under 21 m, all over 35 m: the mapped red rings
-  22-33 m, white 33-44 m), so the two colours weave into each other mid-height *(photo check:
-  where the red ends, and whether the silver strips read white or grey)*.
+- **Concourse (crest to 7.5 m)**: a dark glass curtain wall with lighter mullions (M_GLASS
+  #2b3440), set back behind the masts' feet at 0.935 x their radius (Mac photo check
+  2026-11-01).
+- **Skin (7 m over the crest to 41 m)**: two bands (the lower one leaning out, the upper one
+  leaning out more and tipped down) of M_WEAVE: mesh panels 3.2 x 1.6 m in staggered rows
+  (each row shifted half a panel), thin dark joints. Each panel is red or light silver
+  (#cfd1d0); silver more often the higher it is, a smooth ramp with no all-of-one-colour
+  band: about 17 % at the foot, half at 60 % of the height, 88 % at the top (Mac photo check
+  2026-11-01: the first pass's diagonal diamonds and its red-to-white split at 21-35 m were
+  off; the real panels are horizontal rectangles).
 - **Masts**: square white beams 0.55 m, from the inner mast's foot to the outer mast's tip at
-  60 m, crossing the skin.
+  60 m, crossing the skin; over the rim each spike is a 1 m beam (the street silhouette).
 - **Roof rim (42.4-46.2 m)**: a vertical light grey band over the skin, its top 2.2 m over the
   membrane, its inside sloping down to the membrane; its soffit back to the skin's top.
 
 ## 4. Roof
 
 The fixed roof: a white membrane in 72 panels (two tones in turn, the radial cables' rhythm)
-falling from the rim's inner foot at 44 m to the opening at 40.5 m. The opening is a rounded
+falling from the rim's inner foot at 44 m to the opening at 40.5 m; its last 7 m before the
+opening are grey-blue polycarbonate (#8f9aa3 / #98a2aa). The opening's size and axis were
+confirmed on the Mac (2026-11-01). The opening is a rounded
 rectangle along the pitch (the retractable roof, stored in the needle's drum, is open). The
 needle hangs at the centre: the spindle from 30 m, the dark hub ring at 37-43 m where 24
 cables from the opening's edge meet, the white drum of the folded roof at 55-61 m (cones to
@@ -76,8 +82,10 @@ dark cables from the hub across the membrane to the rim are gone (they read as c
 
 | Part | Colour | Material code |
 | --- | --- | --- |
-| Skin | red #c71f29, white #e6e6e0, gaps #29262b (shader) | M_WEAVE |
-| Masts | #e4e6ea | M_STONE |
+| Skin | red #c71f29, silver #cfd1d0, joints #29262b (shader) | M_WEAVE |
+| Concourse glass | #2b3440 | M_GLASS |
+| Polycarbonate ring | #8f9aa3 / #98a2aa | M_MEMBRANE |
+| Masts, spikes | #e4e6ea, #f2f3f5 | M_STONE |
 | Promenade | #cbc6ba / #c3beb2 | M_STONE |
 | Rim | outside #dcdee2, inside #c9ccd1, soffit #9da1a8 | M_STONE |
 | Membrane | #f4f4f1 / #eaebe8 | M_MEMBRANE |
@@ -103,18 +111,22 @@ red-and-white woven skin."
 
 ## 7. Detail level and budget
 
-L3 (a hero: the skyline over the river and the race finish), triangle budget 3470 (the
-existing `check_mesh_quality.gd` BUDGET; 3094 measured after this pass: the bowl 720, the
-masts 576, the skin 288, the roof 432, the promenade 432, the pitch and its lines about 90,
-the needle and cables about 400). Shots: `--solo=stadium --solo-look=sil` and `flat` (the
+L3 (a hero: the skyline over the river and the race finish), triangle budget 4750 in
+`check_mesh_quality.gd` (3958 measured plus 20 %; raised from 3470 on purpose for the photo
+check's parts: the spikes 576, the concourse glass 144, the polycarbonate ring 144. The bowl
+720, the masts 576, the skin 288, the roof 432, the promenade 432, the pitch and its lines
+about 90, the needle and cables about 400). Shots: `--solo=stadium --solo-look=sil` and `flat` (the
 `first` set), then in the city at day and night from the west.
 
 ## 8. Parts table
 
 | id | shape | size | position | material | feature |
 | --- | --- | --- | --- | --- | --- |
-| skin | 2 bands of 72 quads | 0.965 x inner radius to 0.62 inner-to-outer, crest to 41 m | round the bowl | M_WEAVE | 1 woven basket |
+| skin | 2 bands of 72 quads | 0.965 x inner radius to 0.62 inner-to-outer, crest + 7 m to 41 m | round the bowl | M_WEAVE | 1 woven basket |
 | masts | 72 square beams | 0.55 m, foot to 60 m | inner mast to outer mast | M_STONE #e4e6ea | 2 ring of masts |
+| spikes | 72 square beams | 1 m, rim to 60 m | the masts' tops | M_STONE #f2f3f5 | 2 ring of masts |
+| concourse | 72 glass quads | crest to 7.5 m | 0.935 x inner radius | M_GLASS #2b3440 | 1 woven basket |
+| polycarbonate | 72 sloping quads | 7 m wide | the opening's edge | M_MEMBRANE #8f9aa3 | 3 white roof |
 | promenade | 3 rings of 72 quads | 0.96 to 1.17 x inner radius | the crest | M_STONE #cbc6ba | 1 woven basket |
 | rim | 72 x (face, slope, soffit) | 42.4 to 46.2 m | 1.5 m outside the outer masts | M_STONE #dcdee2 | 3 white roof |
 | membrane | 72 sloping quads | 44 to 40.5 m | rim to opening | M_MEMBRANE #f4f4f1 | 3 white roof |

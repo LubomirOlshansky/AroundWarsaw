@@ -123,8 +123,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
   `docs/landmarks/specs/stadium.md`, PR #103's eyeball flag): the pitch was a 60 m blob under
   stands too deep; now a 105 x 68 m striped pitch along the masts' axis in two tiers with the
   boxes between, the skin red below and white above (the mapped rings), the raised rim, a
-  rounded opening, the needle's hub and folded-roof drum from the OSM parts. Left: the photo
-  check on the Mac (where the red ends, the opening's size). The others not started.
+  rounded opening, the needle's hub and folded-roof drum from the OSM parts. The Mac photo
+  check (same day) is applied: staggered red and silver panels on a smooth ramp, the dark
+  glass concourse under the skin, a polycarbonate ring round the opening, thicker spikes.
+  The others not started.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
   photos per building in `refs/` (Wikimedia Commons, gitignored; fetched on the Mac, the cloud
