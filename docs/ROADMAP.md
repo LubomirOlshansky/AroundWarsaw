@@ -47,7 +47,7 @@ then the Launch gate.
 ### Left: landmarks and street details
 - [ ] The landmark lane's remaining list (BACKLOG "Landmarks lane, hand-over": the Cathedral, the
       Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
-- [ ] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
+- [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
 
 ### Left: content and feel
