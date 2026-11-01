@@ -100,6 +100,17 @@ const PISTACJA_DROP := [16.0, 18.5]
 ## venue like PISTACJA, so a site of its own.
 const PADEL_ID := "trend_padelnia"
 const PADEL_MAX := 14
+## The food hype (docs/design/gaulle-and-food-hype.md G3, G4): KUKŁA's crêpe queue (storefront
+## venues, Storefronts.HYPE) is never short while it is open, 9:00-21:00: 8 in the morning, 30 at
+## lunch (12-15) and on weekend afternoons, 14 otherwise; tag "kolejka". HOTEL PIURE's door has
+## the evening line for the lift up to LUŹNO, the date bar on its roof: 18:00-01:00, 10 (16 on
+## Friday and Saturday), in twos, tag "timber".
+const KUKLA := ["kukla_marszalkowska", "kukla_nowy_swiat"]
+## G5: the "Cringulo effect" (trend_job.gd's "Mlask"): a reviewed place's queue at its longest
+## while it's open, for the rest of that game day, tag "cringulo" (the fans' `viral` lines).
+const KUKLA_MAX := 30
+const PIURE_ID := "hotel_piure"
+const PIURE_MAX := 16
 const ROOF_ID := "level_26"
 ## F's asks (2026-10-30): Level 26's queue at the tower's ground-floor door (a queue site of its
 ## own, not a places.json id), its longest line (short: the lift takes eight at a time), the
@@ -145,6 +156,9 @@ const POLICE_BUBBLE := Color("#8fb0ff")
 ## The pose of a figure.
 enum { STAND, SIT, BROAD }
 
+## The "Cringulo effect": trend site id -> the weekday it was reviewed on (cringulo_boost).
+var cringulo := {}
+var _weekday_now := 0
 ## The view's focus (the camera's), -> Vector3.
 var focus: Callable
 ## The game clock, -> {hour, weekday} (time_of_day.gd local_clock).
@@ -342,6 +356,38 @@ static func padel_queue(hour: float, weekday: int) -> Array:
 	return [3, "padel"]
 
 
+## The "Cringulo effect" on a trend site (a Wiralek slot or KUKŁA) for today: its queue at its
+## longest while it is open, and the fans' lines (trend_job.gd's "Mlask").
+func cringulo_boost(id: String) -> void:
+	if by_id.has(id):
+		cringulo[id] = _weekday_now
+		var s: Dictionary = sites[by_id[id]]
+		s["next"] = 0.0
+		if log_on:
+			print("night: the Cringulo effect at %s" % id)
+
+
+## KUKŁA's line now: [people, "kolejka"]. Warsaw queues: never under 8 while it's open.
+static func kukla_queue(hour: float, weekday: int) -> Array:
+	if hour < 9.0 or hour >= 21.0:
+		return [0, ""]
+	if hour < 11.0:
+		return [8, "kolejka"]
+	if (hour >= 12.0 and hour < 15.0) or (weekday >= 6 and hour >= 13.0 and hour < 18.0):
+		return [KUKLA_MAX, "kolejka"]
+	return [14, "kolejka"]
+
+
+## HOTEL PIURE's line for the lift to LUŹNO now: [people, "timber"]. Evenings 18:00 to 01:00
+## (hours past midnight count from the evening before: 24-25), longer on Friday and Saturday.
+static func piure_queue(hour: float, weekday: int) -> Array:
+	var late := hour < 1.0
+	if not late and hour < 18.0:
+		return [0, ""]
+	var day := (weekday + 5) % 7 + 1 if late else weekday
+	return [PIURE_MAX if day == 5 or day == 6 else 10, "timber"]
+
+
 ## The car at the door: near and slow, on the ground.
 static func car_at_door(dist: float, kmh: float, flying: bool) -> bool:
 	return not flying and dist <= CAR_NEAR and kmh < CAR_KMH
@@ -374,6 +420,10 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 	for vid: String in [PISTACJA_ID, PADEL_ID]:
 		var ll: Array = Storefronts.TRENDY[vid]
 		_add_site({"id": vid, "kind": "trend", "max": PISTACJA_MAX if vid == PISTACJA_ID else PADEL_MAX, "tag": "",
+				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
+	for vid: String in KUKLA + [PIURE_ID]:
+		var ll: Array = Storefronts.HYPE[vid]
+		_add_site({"id": vid, "kind": "trend", "max": PIURE_MAX if vid == PIURE_ID else KUKLA_MAX, "tag": "",
 				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
 	if at.has(ROOF_ID):
 		_add_site({"id": ROOF_ID, "kind": "roof", "at": at[ROOF_ID], "max": ROOF_MAX, "curve": "roof"})
@@ -1004,6 +1054,7 @@ func tick(step: float) -> void:
 	var cal: Dictionary = calendar.call() if calendar.is_valid() else {}
 	var hour := float(now["hour"])
 	var weekday := int(now["weekday"])
+	_weekday_now = weekday
 	var live := bool(cal.get("live", false))
 	var month := int(cal.get("month", 7)) if live else 7
 	var rain := bool(cal.get("rain", false))
@@ -1042,8 +1093,14 @@ func tick(step: float) -> void:
 					q = pistacja_queue(hour, weekday)
 				elif s["id"] == PADEL_ID:
 					q = padel_queue(hour, weekday)
+				elif s["id"] in KUKLA:
+					q = kukla_queue(hour, weekday)
+				elif s["id"] == PIURE_ID:
+					q = piure_queue(hour, weekday)
 				elif trend.is_valid():
 					q = trend.call(str(s["id"]))
+				if int(q[0]) > 0 and int(cringulo.get(str(s["id"]), -1)) == weekday:
+					q = [int(s["max"]), "cringulo"]
 				want = mini(roundi(int(q[0]) * k), int(s["max"]) * 2)
 				s["tag"] = str(q[1])
 		s["want"] = want

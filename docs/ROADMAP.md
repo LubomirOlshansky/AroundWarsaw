@@ -94,10 +94,15 @@ then the Launch gate.
   - [x] Design and the parody names, 2026-11-01
   - [x] G1 the de Gaulle statue, 2026-11-01
   - [x] G2 Dom Partii: white stone, ROBUR, the courtyard fountain, 2026-11-01
-  - [ ] G2 part 2: Dom Partii's bars as neons
-  - [ ] G3 HOTEL PIURE, the LUŹNO date bar and TIMBER jokes
-  - [ ] G4 KOSZTA COFFEE, GREEN CAFFE NERWO, KUKŁA and the queues
-  - [ ] G5 Cringulo: the "Mlask" job, his pizza, fans and news
+  - [x] G2 part 2: Dom Partii's bars as neons, 2026-11-01
+  - [x] G3 HOTEL PIURE, the LUŹNO date bar and TIMBER jokes, 2026-11-01
+  - [x] G4 KOSZTA COFFEE, GREEN CAFFE NERWO, KUKŁA and the queues, 2026-11-01
+  - [x] G5 Cringulo: the "Mlask" job, his pizza, fans and news, 2026-11-01
+  - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, "Kolejki" card, van fans and egg
+- [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
+      pads for driving, the helicopter, the mission card, Settings, the full map and the title;
+      touch unchanged. Left: real pads on the phone (beta), the bars / notebook / garage focus,
+      the full map's stick pan (docs/store/mac-and-gamepad.md)
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
 
@@ -113,11 +118,23 @@ then the Launch gate.
 - [ ] Debug flags stripped from the release build; credits and licences screen checked
 - [ ] Store screenshots re-shot after the opening lands; app icon; a short trailer
 - [ ] Deploy the support page; first TestFlight upload from the Mac; Play closed test
+- [ ] Gamepad testing in the beta: an Xbox, PlayStation or MFi pad on the iPhone (beta-testing.md)
 - [ ] Outside players finish the first ten minutes without help (the Demo gate)
 
 ### v1.0 Launch (after TestFlight)
 - [ ] Device pass iPhone 13 to current (60 fps, memory under 1.5 GB, load under 4 s), App Store
       assets and metadata, review notes
+
+### After v1.0: the Mac App Store version (F, 2026-11-01; docs/store/mac-and-gamepad.md)
+- [ ] Decide: the iPhone build on Apple Silicon Macs for the beta (an App Store Connect switch)
+- [ ] macOS export preset and `tools/export_macos.sh` (same bundle ID, universal binary)
+- [ ] Sandbox entitlements and signing (Apple Distribution, Mac Installer Distribution)
+- [ ] Keyboard and mouse controls (keys card, click-to-point, no touch pedals on a Mac)
+- [ ] Window and resolution settings (resizable, full screen, Retina, the HUD from the window)
+- [ ] Mac store screenshots (2880 × 1800) and the Mac's bench (Apple Silicon and Intel)
+- [ ] Beta: macOS TestFlight builds; the macOS export and signing; universal purchase on the
+      existing record (or a separate Mac record); the .pkg upload through Transporter or Xcode
+      (notarization only for outside the store); gamepad testing on the Mac
 
 ## Where we are (v0.4)
 

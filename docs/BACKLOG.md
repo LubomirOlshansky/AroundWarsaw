@@ -22,6 +22,24 @@ Plan: docs/design/railway.md. One PR per item, in this order:
 - L4 Most Średnicowy's look, after a Mac photo check.
 - Photo checks on the Mac for every station model (built from published descriptions).
 
+## The Mac App Store version and gamepads (F, 2026-11-01)
+
+Lane file: [docs/store/mac-and-gamepad.md](store/mac-and-gamepad.md). F wants the game ready for
+the Mac and for gamepads, and the Mac in the beta plan. Built: gamepad support (`gamepad.gd`,
+`check_gamepad.gd`): Xbox / PlayStation / MFi pads drive, fly, press the mission card, open
+Settings (focus ring, LB / RB tabs) and the full map; the title takes A / Y / B; the touch pedals
+hide while the pad is used and come back on a touch. Left:
+- Gamepad on real pads (iPhone and Mac): the button indices are checked on synthetic events only.
+- Gamepad gaps: Settings' volume bars, the notebook page and the garage card take no pad focus;
+  the full map has no stick pan / teleport; no per-family glyphs; no rumble.
+- Mac App Store version (post-v1.0 by default, QUESTIONS): macOS export preset, sandbox
+  entitlements and signing, keyboard and mouse controls (a keys card, click-to-point, `--no-touch`
+  by default), window and resolution settings, Mac store screenshots (2880 × 1800), the Mac's
+  bench (Apple Silicon and Intel).
+- Beta plan for the Mac: macOS TestFlight builds, the export and signing, a universal purchase on
+  the existing record (recommended) or a separate Mac record, the .pkg upload through Transporter
+  or Xcode (notarization only for outside the store); gamepad testing in every round.
+
 ## Accessibility follow-ups (2026-11-01)
 
 Built: Settings → DOSTĘP (`game/scripts/access.gd`, kept in `[access]` of settings.cfg): larger HUD
@@ -53,14 +71,24 @@ real ones added to `brand_denylist.json`). One PR each:
       granite cone, the dark plinth, the marching bronze general, a card), 2026-11-01.
 - [x] G2 part 1: Dom Partii as a white stone skin with a card, ROBUR over the north-west corner,
       the courtyard's paving with its key border and the long fountain with five jets, 2026-11-01.
-- [ ] G2 part 2: the bars NEWTWICE, ZAMĘT and PIONEK as neons (with G3/G4's venue table).
-- [ ] G3 HOTEL PIURE and its rooftop date bar LUŹNO (pink neon, terrace, dates in twos), TIMBER
-      (the dating-app parody) on a billboard, posters, radio and `timber_date` lines.
-- [ ] G4 coffee-chain parodies KOSZTA COFFEE and GREEN CAFFE NERWO, the crêpe place KUKŁA with an
-      all-day queue, `kolejka` and `kawa_sieciowa` lines, a "Kolejki" notebook card.
-- [ ] G5 Cringulo (the food-blogger parody): his van, the "Mlask" job (order at a new place, bring
-      it while warm, his review card, take his MLASK sticker back, the place's queue jumps),
-      CRINGULO PIZZA sold out at Frogs, radio news, fans, an egg; `check_cringulo.gd`. Opus design.
+- [x] G2 part 2: the bars NEWTWICE, ZAMĘT and PIONEK as neons (`Storefronts.HYPE`), 2026-11-01.
+- [x] G3 HOTEL PIURE's door neon, LUŹNO in pink on its roof (landmarks site `piure_sign`), the
+      evening line for the lift up to the date bar (crowds.gd, 10-16 people 18:00-01:00, tag
+      `timber`), TIMBER on a billboard and a column poster, 10 date lines, radio lines, 2026-11-01.
+- [x] G4 KOSZTA COFFEE ×3, GREEN CAFFE NERWO ×2 (one on the mapped pavilion), KUKŁA ×2 with its
+      all-day queue (8-30, tag `kolejka`), 8 queue lines, radio lines, a KUKŁA poster, 2026-11-01.
+- [x] G5 Cringulo: his cream van at one of four spots by weekday (11-21), the "Mlask" job in
+      `trend_job.gd` (`--trend-job=6`): fetch from a new place, bring it warm in 5 min, his review
+      card with a MLASK grade, the sticker back in 4 min, the place's queue at its longest for the
+      day (crowds.gd `cringulo_boost`); 9 review lines, 4 owner lines, 6 fan lines, CRINGULO PIZZA
+      sold out at Frogs (3 till lines, a poster), radio news; rules in `check_city_life.gd`, 2026-11-01.
+- [ ] Left from G3-G5: the dates on LUŹNO's roof itself (a roof crowd like Level 26's), the
+      Podwózka `timber` passengers, a notebook card "Kolejki", fans standing by Cringulo's van, an
+      egg (the car parked by the van while he films), the van's CRINGULO TV lettering, the egg
+      card; phone checks of every sign's size, the queues and the job's legs.
+- [ ] Roof rescues name the roof by its OSM name, which can be a real brand (a hotel or café
+      chain: Puro, Green Caffè Nero, Hilton…): show a parody or a street name instead (missions.gd
+      `_find_roofs`; found 2026-11-01).
 - [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the
       skin on the LoD2 model; KUKŁA/KOSZTA/NERWO spots on the real streets.
 - [x] `Tinder` in a run-club line replaced by TIMBER (it would fail the new denylist entry).

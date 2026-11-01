@@ -287,6 +287,13 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton:
 		go = (event as InputEventMouseButton).pressed
 		at = (event as InputEventMouseButton).position
+	elif event is InputEventJoypadButton:
+		# The gamepad loop: A or Start is Enter, Y is NOWA GRA (N), B is NIE (Esc).
+		var b := event as InputEventJoypadButton
+		go = b.pressed
+		key = pad_key(b.button_index, screen == CONFIRM)
+		if key == KEY_NONE and go:
+			return  # a stick click or a shoulder: not a pick
 	if not go:
 		return
 	get_viewport().set_input_as_handled()
@@ -296,6 +303,21 @@ func _input(event: InputEvent) -> void:
 		dismiss()
 		return
 	choose(_pick(key, at))
+
+
+## The gamepad loop: the key a pad button stands for on the title (KEY_NONE: no job here). On
+## the question A is TAK (Y) and B is NIE; otherwise A / Start continue, Y starts anew, B does nothing.
+static func pad_key(button: JoyButton, confirm: bool) -> Key:
+	match button:
+		JOY_BUTTON_A:
+			return KEY_Y if confirm else KEY_ENTER
+		JOY_BUTTON_START:
+			return KEY_ENTER
+		JOY_BUTTON_Y:
+			return KEY_NONE if confirm else KEY_N
+		JOY_BUTTON_B:
+			return KEY_ESCAPE if confirm else KEY_NONE
+	return KEY_NONE
 
 
 ## Save and resume: what a key or a tap at `at` picks on the screen shown: "continue", "new",

@@ -261,6 +261,16 @@ func _check_sites(c: Crowds) -> void:
 	_expect(not Crowds.pistacja_drop(17.5, 4) and not Crowds.pistacja_drop(18.5, 5) and Crowds.pistacja_drop(16.0, 5), "PISTACJA: the drop's window")
 	_expect(Crowds.padel_queue(18.0, 2) == [Crowds.PADEL_MAX, "padel"] and Crowds.padel_queue(10.0, 6)[0] == 10 and Crowds.padel_queue(3.0, 6)[0] == 0
 			and Crowds.padel_queue(14.0, 2)[0] == 3, "PADELNIA: its line by hour")
+	# The food hype (gaulle-and-food-hype.md G3, G4): KUKŁA's line is never under 8 while open,
+	# HOTEL PIURE's lift line to LUŹNO is an evening one, past midnight counted from the evening.
+	_expect(Crowds.kukla_queue(8.5, 2)[0] == 0 and Crowds.kukla_queue(21.5, 2)[0] == 0, "KUKŁA: a line outside 9-21")
+	_expect(Crowds.kukla_queue(13.0, 3) == [Crowds.KUKLA_MAX, "kolejka"] and Crowds.kukla_queue(16.0, 7)[0] == Crowds.KUKLA_MAX
+			and Crowds.kukla_queue(16.0, 2)[0] == 14 and Crowds.kukla_queue(9.5, 2)[0] == 8, "KUKŁA: its line by hour")
+	_expect(Crowds.piure_queue(17.0, 5)[0] == 0 and Crowds.piure_queue(20.0, 2) == [10, "timber"]
+			and Crowds.piure_queue(20.0, 5)[0] == Crowds.PIURE_MAX and Crowds.piure_queue(0.5, 7)[0] == Crowds.PIURE_MAX
+			and Crowds.piure_queue(0.5, 1)[0] == 10 and Crowds.piure_queue(1.5, 6)[0] == 0, "HOTEL PIURE: its line by hour")
+	for vid: String in Crowds.KUKLA + [Crowds.PIURE_ID]:
+		_expect(c.by_id.has(vid), "no crowd at %s" % vid)
 	_expect(c.by_id.has(Crowds.PADEL_ID), "no crowd at PADELNIA")
 	_expect(c.by_id.has(Crowds.PISTACJA_ID), "no crowd at PISTACJA")
 	if c.by_id.has(Crowds.PISTACJA_ID):

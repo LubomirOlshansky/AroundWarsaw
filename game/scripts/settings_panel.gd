@@ -45,6 +45,7 @@ const TABS := [["JAZDA", "driving"], ["ŚWIAT", "world"], ["OBRAZ", "picture"], 
 const NOTEBOOK_TAB := 4
 const ACCESS_TAB := 5
 const NotebookPage := preload("res://scripts/notebook_page.gd")
+const Gamepad := preload("res://scripts/gamepad.gd")  # the gamepad loop
 const DRIVE := [["Wskaż", "Point"], ["Klasycznie", "Classic"]]
 ## Loop 2e: the camera choice, explicit (it was the CAM button, easy to switch off unnoticed):
 ## on, it follows the car (Point; Classic's default), off it stays put (Fixed camera; Classic
@@ -380,6 +381,31 @@ func open(state: Dictionary) -> void:
 	visible = true
 	set_tab(_tab)  # loop MW-1: the notebook's count and page as they are now
 	_fit()
+	if Gamepad.in_use():
+		pad_focus()
+
+
+## The gamepad loop: the card's buttons take focus (the D-pad or the left stick moves it, A
+## presses, LB / RB change the tab, B or Start closes), with an accent ring on the focused one.
+## Only once the pad opened the card: touch never sees a focus ring.
+func pad_focus() -> void:
+	if not _built:
+		return
+	var ring := StyleBoxFlat.new()
+	ring.draw_center = false
+	ring.border_color = ACCENT
+	ring.set_border_width_all(maxi(2, roundi(2.0 * pt)))
+	ring.set_corner_radius_all(roundi(6.0 * pt))
+	ring.set_expand_margin_all(2.0 * pt)
+	for b in _card.find_children("*", "Button", true, false):
+		(b as Button).focus_mode = Control.FOCUS_ALL
+		(b as Button).add_theme_stylebox_override("focus", ring)
+	focus_target().grab_focus()
+
+
+## The button the pad's focus starts on: the open tab's.
+func focus_target() -> Button:
+	return _tabs[_tab]
 
 
 ## The current values again (after a change that moves another row: Classic's camera).
@@ -404,6 +430,9 @@ func sync(state: Dictionary) -> void:
 func close() -> void:
 	if not visible:
 		return
+	var focused := get_viewport().gui_get_focus_owner() if is_inside_tree() else null
+	if focused != null and _card.is_ancestor_of(focused):
+		focused.release_focus()
 	visible = false
 	closed.emit()
 
@@ -440,6 +469,22 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	var key := event as InputEventKey
 	if visible and key and key.pressed and not key.echo and key.physical_keycode == KEY_ESCAPE:
 		close()
+		get_viewport().set_input_as_handled()
+
+
+## The gamepad loop: B, Start or Back close the card; LB / RB change the tab.
+func _unhandled_input(event: InputEvent) -> void:
+	if not visible:
+		return
+	if Gamepad.closes(event):
+		close()
+		get_viewport().set_input_as_handled()
+		return
+	var b := event as InputEventJoypadButton
+	if b != null and b.pressed and b.button_index in [JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_RIGHT_SHOULDER]:
+		var step := -1 if b.button_index == JOY_BUTTON_LEFT_SHOULDER else 1
+		set_tab(wrapi(_tab + step, 0, TABS.size()))
+		pad_focus()
 		get_viewport().set_input_as_handled()
 
 

@@ -99,6 +99,34 @@
     [
       "Pasaż Wiecha: kolejka po zieloną kawę. Tak, to herbata.",
       "Pasaż Wiecha: a queue for green coffee. Yes, it's tea."
+    ],
+    [
+      "KEBAB FM. W TIMBER rekord: tysiąc dopasowań i jedna randka. W LUŹNO.",
+      "KEBAB FM. A TIMBER record: a thousand matches, one date. At LUŹNO."
+    ],
+    [
+      "Kolejka pod KUKŁĄ sięga Królewskiej. Naleśniki podobno też są.",
+      "The KUKŁA queue reaches Królewska. Rumour says there are crêpes too."
+    ],
+    [
+      "Latte w KOSZTA COFFEE podrożało. Nazwa w końcu się zgadza.",
+      "The KOSZTA COFFEE latte went up again. Finally the name fits."
+    ],
+    [
+      "Słuchacz pyta: czy w GREEN CAFFE NERWO piszą imię dobrze? Nie.",
+      "A listener asks if GREEN CAFFE NERWO spells names right. No."
+    ],
+    [
+      "Pilne: Cringulo zjadł pierogi na Mokotowie. Kolejka już na Puławskiej.",
+      "Breaking: Cringulo ate pierogi in Mokotów. The queue's on Puławska."
+    ],
+    [
+      "Pizza Cringula znowu wyprzedana. Frogsy proszą: nie stójcie w drzwiach.",
+      "Cringulo's pizza is sold out again. Frogs asks: don't block the door."
+    ],
+    [
+      "Cringulo dał trzy mlaski. Lokal zamknięty z powodu remontu. Duszy.",
+      "Cringulo gave three smacks. The place is closed for repairs. Of the soul."
     ]
   ],
   "kebab_order": [
@@ -648,6 +676,10 @@
     [
       "KWAŚNE WINO · TO NIE BŁĄD",
       "KWAŚNE WINO · IT IS NOT A BUG"
+    ],
+    [
+      "TIMBER · PIERWSZA RANDKA? LUŹNO",
+      "TIMBER · First date? Keep it casual (LUŹNO)"
     ]
   ],
   "kebab_vendor": [
@@ -1212,6 +1244,40 @@
           "TUTAJ.",
           "DRZWI ZA",
           "ROGIEM"
+        ]
+      }
+    ],
+    [
+      "TIMBER · RĄBNIJ W PRAWO",
+      "TIMBER · Chop right",
+      {
+        "poster": [
+          "TIMBER",
+          "RĄBNIJ",
+          "W PRAWO"
+        ]
+      }
+    ],
+    [
+      "KUKŁA · KOLEJKA OD 9:00",
+      "KUKŁA · Queue from 9:00",
+      {
+        "poster": [
+          "KUKŁA",
+          "KOLEJKA",
+          "OD 9:00"
+        ]
+      }
+    ],
+    [
+      "CRINGULO PIZZA · TŁUSTA PEPA · TYLKO WE FROGS",
+      "Cringulo pizza · Fat Pepa · only at Frogs",
+      {
+        "poster": [
+          "CRINGULO",
+          "PIZZA",
+          "TŁUSTA",
+          "PEPA"
         ]
       }
     ]
@@ -1839,6 +1905,174 @@
       {
         "only": "padel"
       }
+    ],
+    [
+      "W Warszawie kolejka to recenzja. Im dłuższa, tym lepsza.",
+      "In Warsaw a queue is a review. The longer, the better.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "Stoję, bo ktoś stał. Ktoś stał, bo ja stałem.",
+      "I'm queuing because someone was. They were because I was.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "PRL nauczył, Instagram utrwalił.",
+      "The old days taught us to queue. Instagram made it stick.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "Naleśnik za 19 zł i godzina w kolejce. Bezcenne.",
+      "A 19 zł crêpe and an hour in line. Priceless.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "Nie wiem, co tu dają. Ale kolejka wygląda na pewną.",
+      "No idea what they sell. But the queue looks trustworthy.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "Pusta knajpa obok? Podejrzane. Stoimy tu.",
+      "An empty place next door? Suspicious. We stay here.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "Kolejka w KUKLE to jak tramwaj: zaraz będzie następna.",
+      "The KUKŁA queue is like the tram: another one's right behind.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "Byłem tu wczoraj. Przyszedłem sprawdzić, czy kolejka jest.",
+      "I was here yesterday. Came to check the queue's still here.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "Na zdjęciach był wyższy. I miał psa.",
+      "He was taller in his photos. And he had a dog.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Trzecia randka w LUŹNO w tym tygodniu. Barman mi kibicuje.",
+      "Third date at LUŹNO this week. The barman's rooting for me.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Rąbnęłam go w prawo, bo stał przed Pałacem. Bez Pałacu: nic.",
+      "Chopped right because he posed by the Palace. Without it: nothing.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "„Lubię podróże i dobrą kawę”. Jak wszyscy w TIMBER.",
+      "\"I like travel and good coffee.\" Like everyone on TIMBER.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Pracuje w Mordorze, mieszka w Wilanowie. Czyli nie ma czasu.",
+      "Works in Mordor, lives in Wilanów. So: never has time.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Randka na dachu. Jak nie wyjdzie, to chociaż widok wyszedł.",
+      "A rooftop date. If it fails, at least the view didn't.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Czekamy na windę na randkę. Romantycznie, co?",
+      "Queuing for the lift to a date. Romantic, right?",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Mówił „luźno”. Przyszedł w garniturze i z prezentacją.",
+      "He said \"casual\". Came in a suit with a slide deck.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Dopasowanie o 2:00, randka o 19:00, ghosting o 23:00.",
+      "Matched at 2 a.m., date at 7 p.m., ghosted by 11.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Ma 6'2. W centymetrach wyszło 176.",
+      "Said 6'2. In centimetres it came to 176.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Stoję od szóstej. Cringulo dał tu dziewięć mlasków.",
+      "Been here since six. Cringulo gave it nine smacks.",
+      {
+        "only": "cringulo"
+      }
+    ],
+    [
+      "Nie jestem głodny. Jestem fanem.",
+      "I'm not hungry. I'm a fan.",
+      {
+        "only": "cringulo"
+      }
+    ],
+    [
+      "Zamówię to samo co Cringulo. Nie wiem co, ale to samo.",
+      "I'll have what Cringulo had. Don't know what. The same.",
+      {
+        "only": "cringulo"
+      }
+    ],
+    [
+      "Mlask, mlask. Tak się mówi. Wiem z filmiku.",
+      "Smack, smack. That's how you say it. I saw the video.",
+      {
+        "only": "cringulo"
+      }
+    ],
+    [
+      "Była tu wczoraj cisza. Potem wyszedł odcinek.",
+      "It was dead quiet yesterday. Then the episode came out.",
+      {
+        "only": "cringulo"
+      }
+    ],
+    [
+      "Mam koszulkę z jego twarzą. Z tyłu: „na grubaska”.",
+      "I've got the shirt with his face. On the back: \"go chunky\".",
+      {
+        "only": "cringulo"
+      }
     ]
   ],
   "runners": [
@@ -2101,6 +2335,18 @@
       {
         "only": "free"
       }
+    ],
+    [
+      "Pizzy Cringula nie ma od wtorku. Pytają co pięć minut.",
+      "No Cringulo pizza since Tuesday. They ask every five minutes."
+    ],
+    [
+      "TŁUSTA PEPA wyprzedana. SEROWY GRUBAS też. Został hot dog.",
+      "FAT PEPA's sold out. CHEESY CHONK too. There's a hot dog."
+    ],
+    [
+      "Pan po Pepę? Dostawa w czwartek. Kolejka od środy.",
+      "Here for the Pepa? Delivery Thursday. Queue from Wednesday."
     ]
   ],
   "easter_rechotka": [
@@ -2502,6 +2748,89 @@
       {
         "only": "dj"
       }
+    ]
+  ],
+  "cringulo_review": [
+    [
+      "Ciasto chrupie, sos jest, ser ciągnie się jak kredyt.",
+      "The crust crunches, there's sauce, the cheese stretches like a mortgage.",
+      {
+        "only": "warm"
+      }
+    ],
+    [
+      "Pierwszy gryz: o, panie. Drugi gryz: o, PANIE.",
+      "First bite: oh, man. Second bite: oh, MAN.",
+      {
+        "only": "warm"
+      }
+    ],
+    [
+      "Za 29 zł? Za 29 zł to ja bym się ożenił z tym farszem.",
+      "For 29 zł? For 29 zł I'd marry this filling.",
+      {
+        "only": "warm"
+      }
+    ],
+    [
+      "Mięso soczyste, frytki chrupią. Kierowca dowiózł, szacun.",
+      "Juicy meat, crunchy fries. The driver delivered, respect.",
+      {
+        "only": "warm"
+      }
+    ],
+    [
+      "Zjadłem. Zjadłbym drugi raz. To jest recenzja.",
+      "I ate it. I'd eat it again. That is the review.",
+      {
+        "only": "warm"
+      }
+    ],
+    [
+      "Sos czosnkowy w normie. Czyli za dużo. Czyli idealnie.",
+      "Garlic sauce at normal levels. So too much. So perfect.",
+      {
+        "only": "warm"
+      }
+    ],
+    [
+      "Letnie. Jak moja kariera w telewizji.",
+      "Lukewarm. Like my TV career.",
+      {
+        "only": "cold"
+      }
+    ],
+    [
+      "Zimne jak poranek na Pradze. Kierowco, co się stało?",
+      "Cold as a Praga morning. Driver, what happened?",
+      {
+        "only": "cold"
+      }
+    ],
+    [
+      "Wystygło po drodze. Danie może dobre, kurier słaby.",
+      "It went cold on the way. Maybe the food's good, the courier isn't.",
+      {
+        "only": "cold"
+      }
+    ]
+  ],
+  "cringulo_owner": [
+    [
+      "Cringulo nas polecił? Otwieram drugą kasę.",
+      "Cringulo recommends us? Opening a second till."
+    ],
+    [
+      "Przyklejam na szybie. Jutro kolejka do Pałacu.",
+      "Sticking it on the window. Tomorrow the queue reaches the Palace."
+    ],
+    [
+      "Mlask od Cringula? Mama będzie dumna. Kucharz płacze.",
+      "A smack from Cringulo? Mum will be proud. The chef is crying."
+    ],
+    [
+      "Dziękuję! Podnoszę ceny, zanim fani dojadą.",
+      "Thank you! Raising prices before the fans arrive."
     ]
   ]
 }
