@@ -5610,6 +5610,9 @@ Command-line options (after `--`):
 | `--trend-job[=1\|2\|3\|4]` | loop MW-4: start by that Wiralek slot (1 Plac Zbawiciela, 2 Chmielna, 3 Tamka; 4: PISTACJA's "Limitka" drop job, whatever the clock) with its "Na czasie" request offered; with `--autopilot` accepted and driven; implies `--trend-log` |
 | `--night-hub` | night-buses loop: a gathering of night buses at Dworzec Centralny now, whatever the time (with `--time=night`, the N signs too); its buses park at their bays at once |
 | `--old-tram` / `--old-tram=follow` | vintage-tram loop: the old two-car set now, on the track nearest the car, whatever the time (it stays); `=follow`: and the car (no collisions) kept 22 m behind its tail, so the view goes with it and E39's 300 m count runs |
+| `--packs=0` | packs (docs/design/packs.md): no running clubs, cycling packs or coffee raves (`--crowd=0` drops them too) |
+| `--packs-now` | packs: every club and every COFFEECHAIR café's rave on whatever the clock says; each pack whose loop passes within 300 m of the car's start is timed to stream past it a few seconds in (shots) |
+| `--packs-log` | packs: print `packs:` lines: the routes' lengths, each club setting off and going home, each rave with its booth's position, the minute's summary (where each pack's head is), every line and meeting |
 | `--tram-log` | vintage-tram loop: print `old tram:` lines: each run taken out of sight and turned modern, the follow count every 50 m and its resets, E39 |
 | `--bus-log` | night-buses loop: print `buses:` lines: the hub's bays and stops, each gathering and ring bus, the car at the ring, the race to the Palm, each honk and called bus, the stop lines, a summary every 20 s |
 | `--honk=F1,F2,...` | night-buses loop: the player honks on those frames (as the horn button; rate-limited) |
