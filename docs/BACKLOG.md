@@ -267,9 +267,16 @@ plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 check
   Wiecha is a low glass room under a thin overhanging roof slab on posts with its ZODIAK sign.
   Scena Relax keeps R1's pink sign on its mapped building. Both have info cards. Only the phone
   shows the signs' size at the default zoom.
+- **R7 done 2026-11-01**: first_scene.gd ITEMS gained Warsaw's street name plates (navy, white
+  letters, the red district strip, on poles at Widok, Sienkiewicza and Fangora), the tram island
+  north of the museum (two glass shelters, a stop post, a ticket machine; the map had the
+  platform but no shelter), a city bike dock (ROWERY,
+  a parody, on Plac Centralny's edge) and three bollard rows along the west kerb. Same mesh (one
+  draw call), but it now reaches the spawn end, so the bench's opening view counts it and its
+  shadow: draw calls 130 -> 132. Props: add_street_plates, add_bike_dock, add_tram_shelter. The plates on the
+  buildings' corners (where Warsaw mostly hangs them) wait for the Mac photo check.
 - **Open:** R3 part 2: granite kerbs, Złota's setts and elm alley, the fountain at the
-  old tunnel mouth, the three new crossings (orthophoto check on the Mac); R7 street name plates, a bike
-  dock, tram stops, bollards; R8 the museum's ribbon in stretches and the stepped roofline.
+  old tunnel mouth, the three new crossings (orthophoto check on the Mac); R8 the museum's ribbon in stretches and the stepped roofline.
 - Found: the cloud can't read Wykop (login wall) or Commons (403); the trends come from Google's
   2025 year in search and the trade press. A Mac pass could add Wykop's own tags.
 
