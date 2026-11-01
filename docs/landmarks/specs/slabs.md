@@ -38,7 +38,7 @@ The zone is each outline grown 3 m (the LoD2 models stand a little off them).
 ## 4. Roof
 
 Flat, #8c8a84; two lift and stair houses in plaster with roofs #7d7b75. On the slab behind
-Sawa a steel frame (posts every ~8 m, two rails) with a dark blue panel and ORANZADA (a generic
+Sawa a steel frame (posts every ~8 m, two rails) with a dark blue panel and ORANŻADA (a generic
 drink, not a brand) in orange, lit day and night, 5.5 m tall.
 
 ## 5. Colour and material

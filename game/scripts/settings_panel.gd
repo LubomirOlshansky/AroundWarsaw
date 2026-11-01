@@ -39,9 +39,11 @@ const T_LABEL := 11.0
 ## Loop MW-1: the notebook tab's title size (hud.gd T_TITLE).
 const T_NOTES := 17.0
 
-const TABS := [["JAZDA", "driving"], ["ŚWIAT", "world"], ["OBRAZ", "picture"], ["DŹWIĘK", "sound"], ["ZESZYT", "notebook"]]
-## Loop MW-1: the notebook's tab.
+const TABS := [["JAZDA", "driving"], ["ŚWIAT", "world"], ["OBRAZ", "picture"], ["DŹWIĘK", "sound"], ["ZESZYT", "notebook"], ["DOSTĘP", "access"]]
+## Loop MW-1: the notebook's tab. The accessibility tab comes last (index 5) so the notebook keeps
+## its index 4.
 const NOTEBOOK_TAB := 4
+const ACCESS_TAB := 5
 const NotebookPage := preload("res://scripts/notebook_page.gd")
 const DRIVE := [["Wskaż", "Point"], ["Klasycznie", "Classic"]]
 ## Loop 2e: the camera choice, explicit (it was the CAM button, easy to switch off unnoticed):
@@ -168,6 +170,7 @@ func _build() -> void:
 		var b := _word_button(TABS[i][0], TABS[i][1])
 		b.toggle_mode = true
 		b.name = "tab_%s" % TABS[i][1]
+		_tighten(b, TABS[i][0], TABS[i][1])
 		b.pressed.connect(set_tab.bind(i))
 		head.add_child(b)
 		_tabs.append(b)
@@ -243,6 +246,21 @@ func _build() -> void:
 	for l in LEVELS:
 		_level(sound[0], l[0], l[1], l[2])
 
+	# DOSTĘP · Access (access.gd): built here so the card is sized for it, moved after the
+	# notebook's page below (the notebook keeps tab 4).
+	var access_at := _pages.size()
+	var access := _page(body, 2)
+	_heading(access[0], "Duży tekst", "Larger text (after restart)")
+	_segments(access[0], "text_large", ON_OFF)
+	_heading(access[0], "Spokojny obraz", "Calm: no flashing or shaking")
+	_segments(access[0], "calm", ON_OFF)
+	_heading(access[0], "Kolory dla daltonistów", "Colour-safe markers")
+	_segments(access[0], "color_safe", ON_OFF)
+	_heading(access[1], "Wibracje", "Vibration")
+	_segments(access[1], "vibration", ON_OFF)
+	_heading(access[1], "Pomoc przy zatrzymaniu", "Stop assist at pick-ups")
+	_segments(access[1], "stop_assist", ON_OFF)
+
 	# The body is as big as the biggest page, so the card keeps its size from tab to tab.
 	var biggest := Vector2.ZERO
 	for p in _pages:
@@ -261,6 +279,8 @@ func _build() -> void:
 	notebook_page.kadr = notebook_kadr
 	body.add_child(notebook_page)
 	_pages.append(notebook_page)
+	_pages.append(_pages[access_at])
+	_pages.remove_at(access_at)
 	notebook_page.size = notebook_page.custom_minimum_size
 	if _target != "":
 		notebook_page.show_target(_target)
@@ -520,6 +540,15 @@ func _fit_words(b: Button, pl: String, en: String) -> void:
 	var w := maxf(font.get_string_size(pl, HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_BODY)).x,
 			font.get_string_size(en, HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_LABEL)).x) + 24.0 * pt
 	b.custom_minimum_size.x = maxf(touch * 1.45, w)
+
+
+## The six tabs share one row: their buttons are as wide as their words need plus a little, not
+## the 1.45 x 44 pt of the option buttons (still 44 pt tall, and never narrower than 44 pt).
+func _tighten(b: Button, pl: String, en: String) -> void:
+	var font := ThemeDB.fallback_font
+	var w := maxf(font.get_string_size(pl, HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_BODY)).x,
+			font.get_string_size(en, HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_LABEL)).x) + 12.0 * pt
+	b.custom_minimum_size.x = maxf(touch, w)
 
 
 ## Loop G1b: the Auto button's English line, "auto · High ostry" (the sharp image), "auto · High

@@ -24,6 +24,7 @@ extends SceneTree
 
 const CityLife := preload("res://scripts/city_life.gd")
 const TrendJob := preload("res://scripts/trend_job.gd")
+const ScooterZones := preload("res://scripts/scooter_zones.gd")
 const Notebook := preload("res://scripts/notebook.gd")
 const EggBook := preload("res://scripts/egg_book.gd")
 const Wallet := preload("res://scripts/wallet.gd")
@@ -68,6 +69,7 @@ func _run() -> void:
 	await process_frame
 	_check_rules()
 	_check_trends()
+	_check_scooter_zones()
 	_check_pay()
 	_check_zajac()
 	_check_fat_thursday()
@@ -176,12 +178,33 @@ func _check_horn(life: Node, dlg: FakeDialogue) -> void:
 
 # 3. -------------------------------------------------------------------------------------------
 
+func _check_scooter_zones() -> void:
+	var sz := ScooterZones.new()
+	_expect(sz.at(100000.0, 100000.0) == "", "scooter zones: a far point is inside one")
+	for id: String in ScooterZones.ZONES:
+		var z: Array = ScooterZones.ZONES[id]
+		var c := Notebook.project([52.234, 21.024], float(z[0]), float(z[1]))
+		_expect(sz.at(c.x, c.y) == id, "scooter zone %s: its centre reads %s" % [id, sz.at(c.x, c.y)])
+		_expect(sz.at(c.x + ScooterZones.RADIUS + 5.0, c.y) != id, "scooter zone %s: outside its radius" % id)
+		_expect(ScooterZones.toast_for(id).size() == 2, "scooter zone %s: toast" % id)
+
+
 func _check_trends() -> void:
 	_expect(CityLife.day_number(20260105) == 0 and CityLife.day_number(20260108) == 3 and CityLife.day_number(20270105) == 365,
 			"day numbers: %d %d %d" % [CityLife.day_number(20260105), CityLife.day_number(20260108), CityLife.day_number(20270105)])
 	# The brief's line: day 2 since the epoch, slot 1 is on day 3 with a queue of 20.
 	var s := CityLife.slot_state(2, 0)
 	_expect(int(s["day"]) == 3 and int(s["queue"]) == 20, "trend: slot 1 day %d queue %d (want day 3 queue 20)" % [s["day"], s["queue"]])
+	# The limited drop: 40 zł + 10 zł a km, a 15 zł tip on time, half and nothing late.
+	var dp := TrendJob.drop_pay(2000.0, true)
+	var dl := TrendJob.drop_pay(2000.0, false)
+	_expect(int(dp["base"]) == 60 and int(dp["zl"]) == 75 and int(dp["respect"]) == TrendJob.DROP_RESPECT, "drop pay on time: %s" % [dp])
+	_expect(int(dl["zl"]) == 30 and int(dl["respect"]) == 0 and int(dl["tip"]) == 0, "drop pay late: %s" % [dl])
+	# "Czwarty": 45 zł + 8 zł a km there and back, tip 15 on time, half and nothing late.
+	var cp := TrendJob.cz_pay(1500.0, true)
+	var cl := TrendJob.cz_pay(1500.0, false)
+	_expect(int(cp["base"]) == 69 and int(cp["zl"]) == 84 and int(cp["respect"]) == TrendJob.CZ_RESPECT, "czwarty pay on time: %s" % [cp])
+	_expect(int(cl["zl"]) == 35 and int(cl["respect"]) == 0, "czwarty pay late: %s" % [cl])
 	# Each slot runs days 1-8 in turn, the queue by day, the word until WKRÓTCE.
 	for slot in 3:
 		var last_trend := -1

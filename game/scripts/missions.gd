@@ -12,6 +12,7 @@ extends Node
 ## Loop 3g-2 (police.md 8.1): a call was accepted (police.gd ends a chase).
 signal accepted
 
+const Access := preload("res://scripts/access.gd")
 const Beacon := preload("res://scripts/beacon.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 
@@ -29,6 +30,9 @@ const OPEN_RADIUS := 4.5     # street spots need this much open sky for the heli
 const EDGE_PAD := 40.0
 const PICKUP_COLOUR := Color("#ffc23a")
 const DROPOFF_COLOUR := Color("#56d68a")
+## Colour-safe (access.gd): the drop-off turns blue, so pickup and drop-off differ in more than
+## green against amber.
+const DROPOFF_SAFE := Color("#4aa3ff")
 const FAIL_COLOUR := Color("#e2574c")
 
 enum Kind { STREET, ROOF, RIVER, PARK }
@@ -106,7 +110,7 @@ func setup(map_node: Node3D, data: Dictionary, world: Node3D, hud_layer: CanvasL
 	_pickup.setup(PICKUP_COLOUR, Color("#e8762e"))
 	_dropoff = Beacon.new()
 	world.add_child(_dropoff)
-	_dropoff.setup(DROPOFF_COLOUR, Color("#f2efe8"))
+	_dropoff.setup(_dropoff_colour(), Color("#f2efe8"))
 	_dropoff.waving = false
 	hud.card_pressed.connect(_on_card)
 	hud.pill_pressed.connect(func(): offer(number + 1))
@@ -249,7 +253,7 @@ func _ring() -> void:
 	# Sweep 2: the buzz is timed so the phone's log shows the call's hitch is gone (it was
 	# the haptic engine starting inside this frame: warm_haptics()).
 	var t0 := Time.get_ticks_usec()
-	Input.vibrate_handheld(40, 0.5)
+	Access.buzz(40, 0.5)
 	print("rescue call ringing (buzz %.1f ms)" % ((Time.get_ticks_usec() - t0) / 1000.0))
 
 
@@ -312,8 +316,12 @@ func stop_spot() -> Vector3:
 	return target_position()
 
 
+func _dropoff_colour() -> Color:
+	return DROPOFF_SAFE if Access.color_safe else DROPOFF_COLOUR
+
+
 func target_colour() -> Color:
-	return PICKUP_COLOUR if state == State.PICKUP else DROPOFF_COLOUR
+	return PICKUP_COLOUR if state == State.PICKUP else _dropoff_colour()
 
 
 ## True while the person still waits somewhere only the helicopter reaches.
@@ -385,7 +393,7 @@ func _picked_up() -> void:
 	var h: Dictionary = _mission["hospital"]
 	_dropoff.place(h["pos"], CAR_REACH)
 	hud.toast("Zabrani! Teraz: " + h["name"], "Picked up! Now to " + h["name"])
-	Input.vibrate_handheld(60, 0.6)
+	Access.buzz(60, 0.6)
 	if dialogue != null and vehicle_anchor.is_valid():
 		dialogue.say(vehicle_anchor, _mission["who"], "rescue_person", _tag(), 4.5, PICKUP_COLOUR, 0.0)
 
@@ -422,11 +430,11 @@ func _finish(success: bool, why: Array) -> void:
 		_pickup.place(at + Vector3(1.6, 0, 0.8), HELI_REACH, false, true)
 		hud.show_card("URATOWANI", "Cali i zdrowi: %s.\nCzas %s z %s · punkty +%d (razem %d) · +%d zł" % [
 				_mission["hospital"]["name"], _clock(_limit - _time_left), _clock(_limit), score, total_score, pay],
-				PackedStringArray(["NEXT CALL", "FREE ROAM"]), DROPOFF_COLOUR, false, "Rescued",
+				PackedStringArray(["NEXT CALL", "FREE ROAM"]), _dropoff_colour(), false, "Rescued",
 				"Safe and sound at the hospital: time, score and pay above.")
-		Input.vibrate_handheld(120, 0.8)
+		Access.buzz(120, 0.8)
 		if dialogue != null:
-			dialogue.say(_dropoff, "Ratownik", "rescue_done", "", 5.0, DROPOFF_COLOUR, 3.6)
+			dialogue.say(_dropoff, "Ratownik", "rescue_done", "", 5.0, _dropoff_colour(), 3.6)
 	else:
 		_pickup.visible = false
 		_dropoff.visible = false

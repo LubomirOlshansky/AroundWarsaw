@@ -96,19 +96,19 @@ const END_JOBS := 10
 const REPO := "github.com/LubomirOlshansky/AroundWarsaw"
 const END_TITLE := ["DZIĘKI ZA GRĘ!", "Thanks for playing!"]
 const END_BODY := [
-	"To był koniec dema. Trzy mosty twoje, kebaby dowiezione, a Palma… dalej sztuczna.",
-	"That was the end of the demo. Three bridges won, kebabs delivered, and the Palm… still fake.",
+	"To już koniec dema. Trzy mosty twoje, kebaby dowiezione, a Palma… dalej sztuczna.",
+	"That's the end of the demo. Three bridges won, kebabs delivered, and the Palm… still fake.",
 ]
-const END_FREE := ["Miasto zostaje otwarte: jeździsz dalej, wszystko odblokowane.",
-	"The city stays open: drive on, everything unlocked."]
+const END_FREE := ["Miasto zostaje otwarte: jedź dokąd chcesz, wszystko odblokowane.",
+	"The city stays open: go wherever you like, everything unlocked."]
 ## One line for both languages (the card has room for one): the data, the licence, the code.
 const END_CREDITS := "© OpenStreetMap (ODbL), GUGiK · MIT"
 const END_BUTTON := "JEDŹ DALEJ|FREE ROAM"
 const END_COLOUR := Color("#ffd23f")
 ## The director's words, [Polish, English] (each at most 70 characters).
 const LINES := {
-	"stand": ["Kebab przy Świętokrzyskiej ma dla ciebie pierwsze zamówienie", "The kebab stand by Świętokrzyska has your first order"],
-	"heli": ["Pogotowie lotnicze pożycza ci starego śmigłowca: HELI", "The air ambulance lends you its old helicopter: HELI"],
+	"stand": ["Kebab przy Świętokrzyskiej czeka z twoim pierwszym zamówieniem", "The kebab stand by Świętokrzyska is waiting with your first order"],
+	"heli": ["Pogotowie lotnicze pożycza ci stary śmigłowiec: HELI", "The air ambulance lends you its old helicopter: HELI"],
 	"heli_locked": ["Helikopter? Najpierw jedno wezwanie ratunkowe.", "The helicopter comes after your first rescue call."],
 	"tape": ["Na dachu BUW leży kaseta z muzyką. Leć po nią helikopterem.", "A mixtape lies on the BUW roof: fly the helicopter to it."],
 	"tape_ground": ["Na bulwarach czeka KASETA. Zwolnij przy niej.", "A time tape waits on the boulevards: slow down by it."],

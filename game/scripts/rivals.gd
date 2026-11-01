@@ -23,6 +23,7 @@ extends Node
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
 
+const Access := preload("res://scripts/access.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const Traffic := preload("res://scripts/traffic.gd")
 const Models := preload("res://scripts/models.gd")
@@ -80,7 +81,7 @@ const FIRST_ROLL := 12.0
 const FIRST_LINES := {
 	"call": ["Synku! Babcia mruga. Do Palmy, kto pierwszy?", "Sonny! Granny's flashing you. To the Palm, first one there?"],
 	"nudge": ["Mrugnij, synku. Babcia nie ma całego dnia.", "Flash back, sonny. Granny hasn't got all day."],
-	"gone": ["Ech, młodzież. To innym razem.", "Oh, young people. Another time, then."],
+	"gone": ["Ech, ta młodzież. To innym razem.", "Kids these days. Another time, then."],
 }
 
 ## Each rival: name, tag colour, car style (models.gd), box size, and lines as
@@ -674,7 +675,7 @@ func _go() -> void:
 		traffic.race_to(d, _finish["node"], _dist)
 	if _ghost != null:
 		_ghost.held = false
-	Input.vibrate_handheld(80, 0.7)
+	Access.buzz(80, 0.7)
 
 
 ## Who is in front and the race status; the finish decides it.
@@ -800,7 +801,7 @@ func _finish_race(won: bool, why: String) -> void:
 				PackedStringArray(["OK"]), WIN_COLOUR, false, "Win · 1st",
 				"You beat %s to %s in %s%s. %s +%d zł (the stake%s) · respect +100%s" % [
 				who, _finish["name"], _clock(_race_time), record, line[1], stake, bonus_en, total])
-		Input.vibrate_handheld(150, 0.9)
+		Access.buzz(150, 0.9)
 	else:
 		var short := roundi(_player_remaining())
 		var reason := why if why != "" else "%s got to %s first. You were %d m short after %s." % [who, _finish["name"], short, _clock(_race_time)]
@@ -1193,7 +1194,7 @@ func _track_final(dt: float) -> void:
 			if not flying and final_route.passed(_cp, at):
 				print("trzy mosty: checkpoint %d/%d %s at %.1f s" % [_cp + 1, final_route.checkpoints.size(), final_route.checkpoints[_cp]["pl"], _race_time])
 				_cp += 1
-				Input.vibrate_handheld(40, 0.5)
+				Access.buzz(40, 0.5)
 				hud.toast("MOST %d/3 · %s" % [_cp, final_route.checkpoints[_cp - 1]["pl"]], "bridge %d/3 · %s" % [_cp, final_route.checkpoints[_cp - 1]["en"]])
 				if _cp < final_route.checkpoints.size():
 					_beacon.place(final_target(), TrzyMosty.CHECK_RADIUS - 6.0)
@@ -1277,7 +1278,7 @@ func _finish_final(won: bool, why: String) -> void:
 				PackedStringArray(["OK"]), FINAL_COLOUR, false, "Three bridges · Win",
 				"%sThree times over the Vistula and first to the Stadium in %s%s. %s +%d zł · respect +%d%s" % [
 				crown_en, _clock(_race_time), record, line[1], stake, Ladder.FINAL_GAIN, total])
-		Input.vibrate_handheld(200, 1.0)
+		Access.buzz(200, 1.0)
 	else:
 		var gave_up := why != ""
 		hud.show_card("TRZY MOSTY · PRZEGRANA", "%s\n„%s”\nRewanż: Rondo Daszyńskiego, w nocy." % [

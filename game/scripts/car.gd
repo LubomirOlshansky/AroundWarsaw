@@ -34,6 +34,7 @@ extends CharacterBody3D
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
 
+const Access := preload("res://scripts/access.gd")
 const StopAssist := preload("res://scripts/stop_assist.gd")
 const Models := preload("res://scripts/models.gd")
 
@@ -311,7 +312,7 @@ func _keep_finite() -> void:
 ## the line of travel through the ring), so driving past or away is never touched.
 func _assist_cap(speed: float, fwd: Vector3, dt: float) -> float:
 	assisting = false
-	if assist_at == Vector3.INF or parked or in_water or assist_reach <= 0.0:
+	if assist_at == Vector3.INF or parked or in_water or assist_reach <= 0.0 or not Access.stop_assist:
 		_assist_spent = false
 		_assist_held = 0.0
 		return INF
@@ -462,7 +463,7 @@ func _step(dt: float) -> void:
 			_sound_cooldown = 0.35
 		if lost > 4.0 and _bump_cooldown <= 0.0:
 			# A short buzz on the phone for a real hit, not for scraping along a wall.
-			Input.vibrate_handheld(clampi(int(lost * 6.0), 25, 90), clampf(lost / 15.0, 0.3, 1.0))
+			Access.buzz(clampi(int(lost * 6.0), 25, 90), clampf(lost / 15.0, 0.3, 1.0))
 			_bump_cooldown = 0.35
 		var n := Vector3.ZERO
 		var slid := vel

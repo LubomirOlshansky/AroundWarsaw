@@ -26,6 +26,7 @@ extends Node
 ## Loop MW-5: a chapter's last card was found (its id); main.gd opens a PÓŁNOC FM track.
 signal chapter_done(chapter_id: String)
 
+const Access := preload("res://scripts/access.gd")
 const PLACES_PATH := "res://data/places.json"
 ## The bake's flat projection (tools/bake_osm.py): metres a degree.
 const M_PER_DEG_LAT := 110574.0
@@ -430,7 +431,7 @@ func record(id: String, date := 0) -> bool:
 		hud.toast("NOWY WPIS · %s" % place["name_pl"], "NEW ENTRY · %s · %d/%d" % [place["name_en"], k, chapter_places(ci).size()])
 	if blip.is_valid():
 		blip.call()
-	Input.vibrate_handheld(25, 0.3)
+	Access.buzz(25, 0.3)
 	var cid := str(chapter["id"])
 	if k >= chapter_places(ci).size() and not wallet.chapters_done.has(cid):
 		wallet.chapters_done[cid] = wallet.notes[id]

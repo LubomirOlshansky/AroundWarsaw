@@ -21,6 +21,7 @@ extends Node
 ## 0 otherwise. Per frame only while a race runs: the rider's step (a few vector ops) and the rank
 ## at 5 Hz (a lane snap and a lookup). Nothing runs when no race is on.
 
+const Access := preload("res://scripts/access.gd")
 const Crowds := preload("res://scripts/crowds.gd")
 const Props := preload("res://scripts/props.gd")
 const Models := preload("res://scripts/models.gd")
@@ -264,7 +265,7 @@ func accept() -> bool:
 			decent_wins(path_len, road, speed) * 100.0])
 	if _go.is_valid():
 		_go.call()
-	Input.vibrate_handheld(80, 0.7)
+	Access.buzz(80, 0.7)
 	return true
 
 

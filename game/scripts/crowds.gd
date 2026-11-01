@@ -39,6 +39,8 @@ extends Node3D
 
 const Models := preload("res://scripts/models.gd")
 const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
+const Notebook := preload("res://scripts/notebook.gd")
+const Storefronts := preload("res://scripts/storefronts.gd")
 
 ## Seconds between two ticks of the logic.
 const TICK := 0.5
@@ -84,6 +86,20 @@ const CLUBS := {
 ## Loop MW-4: the trend queues (places.json ids) and their longest line (vision 3.4: day 1's 30,
 ## Fat Thursday's 60 at Lukrownia).
 const TRENDS := {"wiralek_zbawiciela": 30, "wiralek_chmielna": 30, "wiralek_tamka": 30, "lukrownia": 60}
+## Trend follow-up (docs/design/trends-2025-26.md): PISTACJA DO KOŃCA's queue is a site of its own
+## (a storefront venue, not a places.json id): `PISTACJA_BASE` people in the shop's hours, and
+## `PISTACJA_MAX` in the Friday "limited drop" (`PISTACJA_DROP` hours *guess*).
+const PISTACJA_ID := "trend_pistacja"
+const PISTACJA_BASE := 7
+const PISTACJA_MAX := 36
+const PISTACJA_HOURS := [10.0, 22.0]
+const PISTACJA_DROP_DAY := 5
+const PISTACJA_DROP := [16.0, 18.5]
+## PADELNIA's line (docs/design/padel.md): people waiting for a court on weekday evenings
+## (17-23) and weekend mornings (9-13), tag "padel" (its `viral` lines). It is a storefront
+## venue like PISTACJA, so a site of its own.
+const PADEL_ID := "trend_padelnia"
+const PADEL_MAX := 14
 const ROOF_ID := "level_26"
 ## F's asks (2026-10-30): Level 26's queue at the tower's ground-floor door (a queue site of its
 ## own, not a places.json id), its longest line (short: the lift takes eight at a time), the
@@ -298,6 +314,34 @@ static func police_time(hour: float, weekday: int) -> bool:
 	return hour < 8.0 and night_day(hour, weekday) in [5, 6]
 
 
+## Is PISTACJA's limited drop on (Friday, 16:00-18:30)?
+static func pistacja_drop(hour: float, weekday: int) -> bool:
+	return weekday == PISTACJA_DROP_DAY and hour >= float(PISTACJA_DROP[0]) and hour < float(PISTACJA_DROP[1])
+
+
+## PISTACJA's line now: [people, the `viral` tag]. Nobody before 10:00 or after 22:00; a short
+## "queue" line by day; the drop's full line, tag "drop", with a ramp over its first half hour.
+static func pistacja_queue(hour: float, weekday: int) -> Array:
+	if hour < float(PISTACJA_HOURS[0]) or hour >= float(PISTACJA_HOURS[1]):
+		return [0, ""]
+	if pistacja_drop(hour, weekday):
+		var ramp := clampf((hour - float(PISTACJA_DROP[0])) / 0.5, 0.0, 1.0)
+		return [roundi(lerpf(float(PISTACJA_BASE), float(PISTACJA_MAX), ramp)), "drop"]
+	return [PISTACJA_BASE, "queue"]
+
+
+## PADELNIA's line now: [people, "padel"]. Booked-out evenings (Monday-Friday 17-23), a weekend
+## morning wave (Saturday and Sunday 9-13), and three at the desk the rest of the open hours.
+static func padel_queue(hour: float, weekday: int) -> Array:
+	if hour < 8.0 or hour >= 23.0:
+		return [0, ""]
+	if weekday <= 5 and hour >= 17.0:
+		return [PADEL_MAX, "padel"]
+	if weekday >= 6 and hour >= 9.0 and hour < 13.0:
+		return [PADEL_MAX * 3 / 4, "padel"]
+	return [3, "padel"]
+
+
 ## The car at the door: near and slow, on the ground.
 static func car_at_door(dist: float, kmh: float, flying: bool) -> bool:
 	return not flying and dist <= CAR_NEAR and kmh < CAR_KMH
@@ -327,6 +371,10 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 	for id: String in TRENDS:
 		if at.has(id):
 			_add_site({"id": id, "kind": "trend", "at": at[id], "max": int(TRENDS[id]), "tag": ""})
+	for vid: String in [PISTACJA_ID, PADEL_ID]:
+		var ll: Array = Storefronts.TRENDY[vid]
+		_add_site({"id": vid, "kind": "trend", "max": PISTACJA_MAX if vid == PISTACJA_ID else PADEL_MAX, "tag": "",
+				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
 	if at.has(ROOF_ID):
 		_add_site({"id": ROOF_ID, "kind": "roof", "at": at[ROOF_ID], "max": ROOF_MAX, "curve": "roof"})
 		_add_site({"id": ROOF_DOOR_ID, "kind": "queue", "at": at[ROOF_ID], "max": ROOF_DOOR_MAX, "curve": "roof",
@@ -989,7 +1037,13 @@ func tick(step: float) -> void:
 				plan_lvl = plan_c_level(hour, weekday, month, rain)
 				want = roundi(PLAN_C_MAX * k * plan_lvl)
 			"trend":
-				var q: Array = trend.call(str(s["id"])) if trend.is_valid() else [0, ""]
+				var q: Array = [0, ""]
+				if s["id"] == PISTACJA_ID:
+					q = pistacja_queue(hour, weekday)
+				elif s["id"] == PADEL_ID:
+					q = padel_queue(hour, weekday)
+				elif trend.is_valid():
+					q = trend.call(str(s["id"]))
 				want = mini(roundi(int(q[0]) * k), int(s["max"]) * 2)
 				s["tag"] = str(q[1])
 		s["want"] = want
