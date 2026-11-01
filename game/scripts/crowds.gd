@@ -95,6 +95,11 @@ const PISTACJA_MAX := 36
 const PISTACJA_HOURS := [10.0, 22.0]
 const PISTACJA_DROP_DAY := 5
 const PISTACJA_DROP := [16.0, 18.5]
+## PADELNIA's line (docs/design/padel.md): people waiting for a court on weekday evenings
+## (17-23) and weekend mornings (9-13), tag "padel" (its `viral` lines). It is a storefront
+## venue like PISTACJA, so a site of its own.
+const PADEL_ID := "trend_padelnia"
+const PADEL_MAX := 14
 const ROOF_ID := "level_26"
 ## F's asks (2026-10-30): Level 26's queue at the tower's ground-floor door (a queue site of its
 ## own, not a places.json id), its longest line (short: the lift takes eight at a time), the
@@ -325,6 +330,18 @@ static func pistacja_queue(hour: float, weekday: int) -> Array:
 	return [PISTACJA_BASE, "queue"]
 
 
+## PADELNIA's line now: [people, "padel"]. Booked-out evenings (Monday-Friday 17-23), a weekend
+## morning wave (Saturday and Sunday 9-13), and three at the desk the rest of the open hours.
+static func padel_queue(hour: float, weekday: int) -> Array:
+	if hour < 8.0 or hour >= 23.0:
+		return [0, ""]
+	if weekday <= 5 and hour >= 17.0:
+		return [PADEL_MAX, "padel"]
+	if weekday >= 6 and hour >= 9.0 and hour < 13.0:
+		return [PADEL_MAX * 3 / 4, "padel"]
+	return [3, "padel"]
+
+
 ## The car at the door: near and slow, on the ground.
 static func car_at_door(dist: float, kmh: float, flying: bool) -> bool:
 	return not flying and dist <= CAR_NEAR and kmh < CAR_KMH
@@ -354,9 +371,10 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 	for id: String in TRENDS:
 		if at.has(id):
 			_add_site({"id": id, "kind": "trend", "at": at[id], "max": int(TRENDS[id]), "tag": ""})
-	var ll: Array = Storefronts.TRENDY[PISTACJA_ID]
-	_add_site({"id": PISTACJA_ID, "kind": "trend", "max": PISTACJA_MAX, "tag": "",
-			"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
+	for vid: String in [PISTACJA_ID, PADEL_ID]:
+		var ll: Array = Storefronts.TRENDY[vid]
+		_add_site({"id": vid, "kind": "trend", "max": PISTACJA_MAX if vid == PISTACJA_ID else PADEL_MAX, "tag": "",
+				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
 	if at.has(ROOF_ID):
 		_add_site({"id": ROOF_ID, "kind": "roof", "at": at[ROOF_ID], "max": ROOF_MAX, "curve": "roof"})
 		_add_site({"id": ROOF_DOOR_ID, "kind": "queue", "at": at[ROOF_ID], "max": ROOF_DOOR_MAX, "curve": "roof",
@@ -1022,6 +1040,8 @@ func tick(step: float) -> void:
 				var q: Array = [0, ""]
 				if s["id"] == PISTACJA_ID:
 					q = pistacja_queue(hour, weekday)
+				elif s["id"] == PADEL_ID:
+					q = padel_queue(hour, weekday)
 				elif trend.is_valid():
 					q = trend.call(str(s["id"]))
 				want = mini(roundi(int(q[0]) * k), int(s["max"]) * 2)
