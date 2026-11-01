@@ -717,10 +717,8 @@ func _build_mermaid(at: Vector3, yaw: float) -> void:
 	add_child(node)
 	node.global_position = at
 	node.rotation.y = yaw
-	var mi := MeshInstance3D.new()
-	mi.mesh = Props.mermaid()
-	mi.material_override = Models.material()
-	node.add_child(mi)
+	# The statue itself is the "syrenka_powisle" landmark (landmarks.gd), on a plinth at this
+	# spot; the egg keeps only the trigger and the night floodlight.
 	var body := StaticBody3D.new()
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
