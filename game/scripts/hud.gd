@@ -121,6 +121,7 @@ const PINCH_STICK := 0.15
 ## Loop 3h slice 4: the ghost finger's gesture, once every this many seconds.
 const FINGER_LOOP := 1.8
 signal vehicle_pressed
+signal zoom_pressed(steps: int)       # G3 (2026-11-01): the − (+1, wider) and + (-1, closer) buttons
 signal card_pressed(index: int)       # a button on the mission card
 signal pill_pressed                   # the context button: a rescue call that came in
 signal context_pressed(owner: String) # loop 2d-1: the context button, whoever showed it
@@ -174,6 +175,8 @@ var _gear: Button
 var _speed: Label
 var _speed_text := ""
 var _vehicle_button: Button
+var _zoom_out_button: Button
+var _zoom_in_button: Button
 var _radio_button: Button
 ## Seconds RADIO is held before it skips to the station's next track (2026-10-30: the phone's
 ## skip; a tap still changes the station). Long enough that a slow tap isn't a skip.
@@ -474,6 +477,16 @@ func _ready() -> void:
 		_radio_skipped = false)
 	_vehicle_button = _chip(self, "HELI", "helicopter")
 	_vehicle_button.pressed.connect(func(): vehicle_pressed.emit())
+	# G3 (F, 2026-11-01): pinch is hard to discover, so − and + sit beside the speed (the car's
+	# view only: the helicopter has its own height pads).
+	_zoom_out_button = _chip(self, "−", "", Color(0, 0, 0, 0))
+	_zoom_out_button.name = "zoom_out"
+	_zoom_out_button.pressed.connect(func(): zoom_pressed.emit(1))
+	_zoom_in_button = _chip(self, "+", "", Color(0, 0, 0, 0))
+	_zoom_in_button.name = "zoom_in"
+	_zoom_in_button.pressed.connect(func(): zoom_pressed.emit(-1))
+	for zb: Button in [_zoom_out_button, _zoom_in_button]:
+		_set_chip(zb, zb.get_child(0).get_child(0).text, "", 44.0)
 
 	_credit = _label(T_LABEL, Color(1, 1, 1, 0.88), true)
 	_credit.text = "© OpenStreetMap contributors · 3D buildings, aerial photo, terrain: GUGiK"
@@ -659,6 +672,15 @@ func _layout_fixed() -> void:
 		_minimap.position = Vector2(x0, below)
 		_minimap.size = Vector2.ONE * MINI_D * pt
 		_mini_overlay.size = _minimap.size
+		# G3: the zoom buttons stand in a column right of the minimap (the top row has no room
+		# beside a centred context button on a small phone).
+		var zy := _minimap.position.y
+		var zx := _minimap.position.x + _minimap.size.x + 6.0 * pt
+		for zb: Button in [_zoom_in_button, _zoom_out_button]:
+			zb.visible = not flying
+			zb.size = zb.custom_minimum_size
+			zb.position = Vector2(zx, zy)
+			zy += zb.size.y + 6.0 * pt
 		below = _minimap.position.y + _minimap.size.y + 6.0 * pt
 	_wallet.position = Vector2(x0, below)
 	_wallet.size = Vector2(_wallet_width(), 30.0 * pt)
@@ -669,7 +691,7 @@ func _layout_fixed() -> void:
 	_credit.position = Vector2(credit_x, _safe.end.y - 3.0 * pt - _credit.size.y)
 	_top_y = (ROW_Y + ROW_H + GAP) * pt
 	_col_y = _wallet.position.y + _wallet.size.y + GAP * pt
-	_col_right = maxf(_wallet.position.x + _wallet.size.x, below - 6.0 * pt if _minimap == null else _minimap.position.x + _minimap.size.x) + GAP * pt
+	_col_right = maxf(_wallet.position.x + _wallet.size.x, below - 6.0 * pt if _minimap == null else _minimap.position.x + _minimap.size.x + (0.0 if flying else 6.0 * pt + _zoom_in_button.size.x)) + GAP * pt
 	# Loop 3g-1: the koguty beside the wallet, on its row.
 	_koguty.position = Vector2(_wallet.position.x + _wallet.size.x + 6.0 * pt, _wallet.position.y)
 	_koguty.size = Vector2(KOGUTY_W * pt, _wallet.size.y)
@@ -690,7 +712,7 @@ func _layout() -> void:
 	_taken.clear()
 	_placed.clear()
 	_unplaced.clear()
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _minimap, _wallet, _credit, _koguty]:
+	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _minimap, _wallet, _credit, _koguty]:
 		if c != null and c.visible:
 			_taken.append(Rect2(c.position, c.size))
 	_taken.append(_speed_rect())
@@ -887,7 +909,7 @@ func touch_targets() -> Dictionary:
 	if _dirty:
 		_layout()
 	var out := {}
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _challenge]:
+	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _challenge]:
 		if c.is_visible_in_tree():
 			out[c.name] = c.get_global_rect()
 	for c: Control in [_card, _status, _bench_card] + _panel_spots.keys():
@@ -915,7 +937,7 @@ func named_rects() -> Dictionary:
 	if _dirty:
 		_layout()
 	var out := {}
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _minimap, _wallet, _credit, _koguty]:
+	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _minimap, _wallet, _credit, _koguty]:
 		if c != null and c.visible:
 			out[c.name] = Rect2(c.position, c.size)
 	out["speed"] = _speed_rect()
@@ -1500,6 +1522,7 @@ func _frame(dt: float) -> void:
 ## the car back.
 func set_flying(on: bool) -> void:
 	flying = on
+	_mark()
 	_set_chip(_vehicle_button, "AUTO" if on else "HELI", "car" if on else "helicopter")
 	brake = false
 	_brake_index = -1
@@ -1531,7 +1554,7 @@ func set_minimap_target(xz: Vector2, colour: Color) -> void:
 
 ## Touches on the buttons and cards belong to them, not to the stick.
 func _over_panel(p: Vector2) -> bool:
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _card, _status, _challenge, _bench_card]:
+	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _card, _status, _challenge, _bench_card]:
 		if c != null and c.visible and c.get_global_rect().has_point(p):
 			return true
 	return false
