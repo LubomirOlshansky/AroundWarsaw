@@ -15,8 +15,23 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
+- **2026-11-01 · landmarks · Grand hotels** — Mac look check for Hotel Bristol (colour of the facade, mansard, door position on Krakowskie Przedmieście) and Hotel Polonia Palace (colour, 25.5 m height, door on Al. Jerozolimskie); built: sand and cream walls, grey slate mansards, door at the middle of the longest street front.
+
+- **2026-11-01 · landmarks · Old Town hotels** — Which tenements are the real Hotel Bellotto (Brukowa 12),
+  Castle Inn (Świętojańska 2) and the Rynek aparthotel? Default built: the nearest tenement to each
+  address's published spot, parody names KASZTEL INN, CANALETTO, STARÓWKA (`HOTELS` in landmarks.gd,
+  `o` and `out` per hotel). Mac look check: is each front on the right house and street face, is
+  the neon readable at night. Canaletto's front was not seen in the cloud render.
 
 Newest first. One entry per question.
+
+- **2026-11-01 · landmarks · metro entrances: Mac look check** — Built in the cloud (flat
+  ground). Default built: `Props.add_metro_entrance` per bake form (`canopy` vaulted glass over
+  steel ribs with a red lit fascia, `steps` granite stairwell, `footway` stepped concrete walls),
+  treads painted down the dark opening (the terrain has no hole, so the stairs are drawn, not cut),
+  a 3.4 m red M post, a glass lift on 3 in 5 (hash of the position, not a real lift list). For F on
+  the Mac: do the canopies sit right on slopes, is the red M readable at the default zoom, should
+  every canopy have a lift, are the 3 `u` passage-only entrances fine without a canopy.
 
 - **2026-11-01 · map · the land past the map's edge: Mac look check** — Built in the cloud,
   where the ground is flat. Default built (`scripts/map_edge.gd`): bare ground in the city's

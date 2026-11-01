@@ -159,8 +159,8 @@ func _run() -> void:
 	var tick_us := _check_hooks(sf, dlg, hud, wallet, eggs)
 	var tris := _check_meshes()
 	if problems.is_empty():
-		print("check_parodies: OK (stamp card, detour once, couriers; %d Frogs, %d at 2 triple corners, %d venues, %d Leżaks in %d zones, %d metro entrances; no brand, lines ≤ 70, font; wall %.2f m; stamps, free hot dog once, knock, eggs easter_rechotka easter_lezak once; setup %.0f ms, hook %.1f µs a frame; Frogs %d, Leżak %d, Pędzik %d triangles)" % [
-				sf.shops.size(), _triple_n, sf.venues.size(), sf.scooters.size(), sf.zones.size(), sf.metros.size(), wall,
+		print("check_parodies: OK (stamp card, detour once, couriers; %d Frogs, %d at 2 triple corners, %d venues, %d Leżaks in %d zones, %d metro entrances, %d Rowerilo docks; no brand, lines ≤ 70, font; wall %.2f m; stamps, free hot dog once, knock, eggs easter_rechotka easter_lezak once; setup %.0f ms, hook %.1f µs a frame; Frogs %d, Leżak %d, Pędzik %d triangles)" % [
+				sf.shops.size(), _triple_n, sf.venues.size(), sf.scooters.size(), sf.zones.size(), sf.metros.size(), sf.docks.size(), wall,
 				setup_ms, tick_us, tris[0], tris[1], tris[2]])
 		quit(0)
 	else:
@@ -294,6 +294,12 @@ func _check_picks(sf: Storefronts, data: Dictionary, book: Notebook, graph: Lane
 		nm += int(k == "subway_entrance" and int(p.get("u", 0)) != 1)
 	_expect(sf.scooters.size() == nl and sf.zones.size() == nz, "Leżaks: %d in %d zones (the data has %d and %d)" % [sf.scooters.size(), sf.zones.size(), nl, nz])
 	_expect(sf.metros.size() == nm and nm >= 60, "metro entrances: %d (the data has %d street ones)" % [sf.metros.size(), nm])
+	var nd := 0
+	for p: Dictionary in data.get("pois", []):
+		nd += int(str(p.get("k", "")) == "bicycle_rental")
+	_expect(sf.docks.size() == nd and nd >= 80, "Rowerilo docks: %d (the data has %d)" % [sf.docks.size(), nd])
+	for d in sf.docks:
+		_expect(int(d["n"]) >= 4 and int(d["n"]) <= 8, "a dock with %d bikes" % int(d["n"]))
 	var stood := 0
 	for z in sf.zones:
 		stood += int(z["standing"])
@@ -576,7 +582,14 @@ func _frames(sf: Storefronts, seconds: float) -> void:
 
 func _check_meshes() -> Array[int]:
 	var out: Array[int] = []
-	for row: Array in [[Props.frogs_shop(), 600, "Frogs shop"], [Props.lezak(), 120, "Leżak"], [Props.pedzik_rider(), 300, "Pędzik rider"]]:
+	var rows: Array = [[Props.frogs_shop(), 600, "Frogs shop"], [Props.lezak(), 120, "Leżak"], [Props.pedzik_rider(), 300, "Pędzik rider"]]
+	# The metro entrances: the three forms with a lift, each into a mesh of its own (≤ 900 triangles).
+	for form: String in ["canopy", "steps", "footway"]:
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		Props.add_metro_entrance(st, Transform3D.IDENTITY, form, true)
+		rows.append([st.commit(), 900, "metro entrance " + form])
+	for row: Array in rows:
 		var m: ArrayMesh = row[0]
 		var n := 0
 		for s in m.get_surface_count():

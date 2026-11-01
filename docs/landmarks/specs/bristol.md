@@ -35,7 +35,7 @@ No collision of its own (the hotel's mapped walls are the car's). Card: "Hotel B
 
 ## 7. Detail level and budget
 
-L2; 334 triangles measured, budget 400 (`check_mesh_quality.gd`).
+L2; 2013 triangles measured (tower and body), budget 2450 (`check_mesh_quality.gd`).
 
 Shot: `--at=-557.8,-894 --yaw=245 --pitch=-22 --size=45 --nohud --no-ghost`.
 
@@ -49,3 +49,11 @@ Shot: `--at=-557.8,-894 --yaw=245 --pitch=-22 --size=45 --nohud --no-ghost`.
 | dome | 3 frustums | r 3.9 m to 1.4 m | 33.2..37.4 m | M_STONE | 4 roof |
 | lantern | prism | r 0.9 m, 1.6 m high | 38..39.6 m | M_MONUMENT | 4 roof |
 | spire, ball | frustums | r 1 m to 0.1 m; ball r 0.5 m | 39.6..43.4 m | M_STONE | 4 roof |
+
+## 9. The hotel's body (hotels pass, 2026-11-01)
+
+The mass was a kept skin with only the corner tower ours; the shared `_palace_hotel` builder now adds the rest on the mapped outline (simplified 0.9 m): the rusticated plinth with dark ground-floor openings, the balcony band, string course, cornice, a slate mansard (#5a5855) with a hipped dormer every 4.4 m (none within 7.5 m of the tower), and on the longest public front (the Krakowskie Przedmieście side) a forward bay with the lit door, a copper canopy (#6f9382) on two posts, a dark board with BRISTOL in gold neon and a pediment. Trim #f1eadb, wall and plinth as in section 5. Budget 2450 triangles now (2013 measured, the tower's 334 included); see `polonia.md` for the shared rows of the parts table.
+
+| id | shape | size | position | material | feature |
+| --- | --- | --- | --- | --- | --- |
+| body | `_palace_hotel` | see polonia.md rows | the outline | M_STONE, M_GLASS | 3 facade, 4 roof |

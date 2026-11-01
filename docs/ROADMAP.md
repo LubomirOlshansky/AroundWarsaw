@@ -31,6 +31,7 @@ then the Launch gate.
 - [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted
 
 ### Left: the start of the game
+- [x] Metro entrances modelled at the real M1/M2 stairs: vaulted glass canopies, stairwells, passage mouths, red M posts, lifts (F, 2026-11-01; Mac look check parked in QUESTIONS)
 - [x] Merge PR #115 (start facing the first stand, short first order, BUW roof cassette), then
       PR #121 (the opening flyover) (both on main; ticked 2026-11-01)
 - [ ] First-scene items 4-7: pavilions and towers behind the stores, Plac Defilad's paving, tram
@@ -65,12 +66,24 @@ then the Launch gate.
 - [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
 
 ### Left: landmarks and street details
+- [x] Marszałkowska street by street (F, 2026-11-01), pass 1: Kościół Najświętszego Zbawiciela on
+      Plac Zbawiciela as a model (spec zbawiciela.md; Mac photo check parked). Next on the street:
+      MDM's arcades and corner towers (LANDMARKS 2.8), then houses, roads and street life
 - [x] Old Town Market Square and its Syrenka (F, 2026-11-01): cobbled paving, 58 café umbrellas, the
       fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
       Mac photo check parked (QUESTIONS)
 - [x] People on the observation decks (F, 2026-11-01): Varso Tower's roof and St Anne's bell tower
       terrace (with a balustrade), the Palace of Culture's 30th-floor terrace (114 m ledge and
       balustrade, up to 16), hours, weekends and seasons (`crowds.gd` DECKS)
+- [x] The grand hotels (F, 2026-11-01, hotels pass): Hotel Bristol's body on its kept skin (rusticated
+      plinth, string courses, cornice, slate mansard with dormers, a canopied door with the gilded
+      name on Krakowskie Przedmieście, pediment, 2013 tris) and Hotel Polonia Palace built whole on
+      Al. Jerozolimskie (1202 tris, new `polonia` site and card) through one `_palace_hotel` builder;
+      Europejski, Wiktoria, the Marriott, Novotel, Westin and InterContinental were already models;
+      Mac look check parked (QUESTIONS, BACKLOG "Grand hotels")
+- [x] Old Town hotels (F, 2026-11-01): fronts on three tenements (portal, canopy, neon name, flags,
+      lanterns, card), under parody names KASZTEL INN (Castle Inn), CANALETTO (Hotel Bellotto),
+      STARÓWKA (an aparthotel on the Rynek); Mac look check parked (QUESTIONS, BACKLOG "Old Town hotels")
 - [ ] Old Town Market Square leftovers: per-house plaster colours and sgraffito from photos, the
       four corner streets' mouths, a card for the Museum of Warsaw house (BACKLOG "Old Town square")
 - [x] Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle as models, people chilling
@@ -111,6 +124,7 @@ then the Launch gate.
   - [ ] RF4 OSM-only buildings' roofs, copper and red sheet metal by district; the phone bench (Mac check done 2026-11-01)
 
 ### Left: content and feel
+- [x] ROWERILO city-bike docks (the Veturilo parody) at the 92 mapped `bicycle_rental` spots, a terminal and 4-8 bikes each, in the sector street-prop mesh (2026-11-01; Mac look check parked)
 - [x] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
       (2026-11-01, docs/design/pay-tables.md: player-neutral Polish, rematch respect +20, słoiki
       40 + 30 a jar; the hour and the pay still to be timed on the phone by F)
