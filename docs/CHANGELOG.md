@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- The Visitationists' church on Krakowskie Przedmieście has its cream rococo front: pilasters, a stepped curved gable with statues and a cross, a lower side wing and a small copper turret.
 - All Saints church on Plac Grzybowski now has its front and two domed towers.
 - Hala Mirowska is a proper red-brick market hall: round-headed windows between cream pilasters, four corner turrets, tall gable ends, a glazed lantern along the roof and a portal on the Plac Mirowski front.
 - Hala Gwardii is a proper red-brick market hall too: Mirowska's twin, with a portal at both ends, cream pilasters, corner turrets and a glazed lantern.

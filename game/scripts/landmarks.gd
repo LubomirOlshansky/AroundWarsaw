@@ -245,6 +245,9 @@ const INFO := {
 	"wszystkich": ["Kościół Wszystkich Świętych",
 			"Przy placu Grzybowskim.",
 			"On Plac Grzybowski."],
+	"wizytki": ["Kościół Wizytek",
+			"Rokokowa fasada z 1761 roku, tuż przy Krakowskim Przedmieściu.",
+			"A rococo facade of 1761, right on Krakowskie Przedmieście."],
 	"aleksander": ["Kościół Świętego Aleksandra",
 			"Rotunda na placu Trzech Krzyży.",
 			"The rotunda on Plac Trzech Krzyży."],
@@ -882,6 +885,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"wszystkich":
 				_mark_zone(s)  # the nave stays LoD2's, in its skin; the front and towers are ours
 				_build_wszystkich(s)
+			"wizytki":
+				_mark_zone(s)  # the nave stays LoD2's, in its skin; the facade and the turret are ours
+				_build_wizytki(s)
 			"staszic":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the portico and the statue are ours
 				_build_staszic(s)
@@ -2476,6 +2482,7 @@ const SKINS := [
 	{"key": "sw_krzyz", "osm": "Kościół pw. Świętego Krzyża", "mode": M_MONUMENT, "wall": "#e3d9c0", "roof": "#5d6e64"},
 	{"key": "staszic", "osm": "Pałac Staszica", "mode": M_MONUMENT, "wall": "#e2d6b8", "roof": "#5f6f6a"},
 	{"key": "wszystkich", "osm": "Kościół Wszystkich Świętych", "mode": M_MONUMENT, "wall": "#ddcfaa", "roof": "#6e7f6e"},
+	{"key": "wizytki", "osm": "Kościół Wizytek", "mode": M_MONUMENT, "wall": "#ecdfc0", "roof": "#6d8f7f"},
 	{"key": "sejm", "osm": "Sejm RP", "mode": M_MONUMENT, "wall": "#e2e0d8", "roof": "#8d8f8c"},
 ]
 
@@ -6966,3 +6973,95 @@ func _wsz_tower(cu: float) -> void:
 	_frustum(_circle(c, 1.3, 8), g + 48.0, _circle(c, 0.2, 8), g + 52.5, WSZ_COPPER, WSZ_COPPER)
 	_lbox(cu, cv, 0.18, 0.18, g + 52.5, g + 58.0, WSZ_GOLD, M_STONE, WSZ_GOLD)
 	_lbox(cu, cv, 0.7, 0.18, g + 55.4, g + 55.8, WSZ_GOLD, M_STONE, WSZ_GOLD)
+
+
+## The Visitationists' church (Kościół Wizytek; Karol Bay and Jakub Fontana, 1728-1761) on
+## Krakowskie Przedmieście: the nave stays LoD2's (a kept skin); the model adds the street
+## facade, a two-storey central block with pilasters, a stepped portal and a stepped, curved
+## gable with statues, a lower stepped wing to the north, and a small copper turret over the
+## crossing. Spec docs/landmarks/specs/wizytki.md.
+## Frame: origin at the front's north-east corner on the outline, u along the front (14.2 m,
+## towards the north-north-west), +v out of it to the street (east-north-east).
+const WIZ := Vector2(-431.0, -804.7)
+const WIZ_AXIS := Vector2(-0.527, -0.850)
+const WIZ_MID := 7.1
+const WIZ_WALL := Color("#ecdfc0")
+const WIZ_TRIM := Color("#f6f0e0")
+const WIZ_BASE := Color("#b9ae96")
+const WIZ_COPPER := Color("#6d8f7f")
+const WIZ_GOLD := Color("#c9a24a")
+const WIZ_DOOR := Color("#3a3d40")
+
+
+func _build_wizytki(_site: Dictionary) -> void:
+	_o = WIZ
+	_a = WIZ_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)  # (0.85, -0.527): out of the front, to the street
+	var m := WIZ_MID
+	_g = map.terrain_height(_w(m, 1.0).x, _w(m, 1.0).y)
+	var g := _g
+	_mode = M_STONE
+	# the central block: a stone ground floor, a window storey above
+	_lbox(m, -0.7, 7.1, 0.7, g - 0.6, g + 11.0, WIZ_WALL, M_STONE, WIZ_WALL)
+	_lbox(m, -0.6, 6.9, 0.6, g + 11.0, g + 18.0, WIZ_WALL, M_MONUMENT, WIZ_WALL)
+	_lbox(m, 0.0, 7.3, 0.55, g - 0.6, g + 1.2, WIZ_BASE, M_STONE, WIZ_BASE.lightened(0.05))
+	# the portal: a dark door under a small cornice, three steps
+	_mode = M_GLASS
+	_wall(_w(m - 1.3, 0.6), _w(m + 1.3, 0.6), g + 1.2, g + 5.6, _b, WIZ_DOOR)
+	_mode = M_STONE
+	_lbox(m, 0.5, 1.9, 0.25, g + 5.6, g + 6.3, WIZ_TRIM, M_STONE, WIZ_TRIM)
+	for k in 3:
+		_lbox(m, 1.0 + 0.5 * k, 3.4 - 0.5 * k, 0.5 + 0.5 * (2 - k), g - 0.6, g + 0.15 + 0.35 * (2 - k), WIZ_BASE,
+				M_STONE, WIZ_BASE.lightened(0.04))
+	# pilasters on both storeys, the entablature between them, the cornice on top
+	for u: float in [-6.2, -2.2, 2.2, 6.2]:
+		_lbox(m + u, 0.2, 0.45, 0.3, g + 1.2, g + 11.0, WIZ_TRIM, M_STONE, WIZ_TRIM)
+		_lbox(m + u, 0.2, 0.4, 0.3, g + 11.8, g + 18.0, WIZ_TRIM, M_STONE, WIZ_TRIM)
+	_lbox(m, 0.3, 7.4, 0.7, g + 11.0, g + 11.8, WIZ_TRIM, M_STONE, WIZ_TRIM)
+	_lbox(m, 0.3, 7.4, 0.9, g + 18.0, g + 18.9, WIZ_TRIM, M_STONE, WIZ_TRIM)
+	# the curved gable, in three narrowing tiers with volutes, a small pediment and a cross
+	_lbox(m, -0.2, 5.6, 0.7, g + 18.9, g + 20.7, WIZ_WALL, M_STONE, WIZ_WALL)
+	_lbox(m, -0.2, 4.0, 0.7, g + 20.7, g + 22.4, WIZ_WALL, M_STONE, WIZ_WALL)
+	_lbox(m, -0.2, 2.5, 0.7, g + 22.4, g + 23.8, WIZ_WALL, M_STONE, WIZ_WALL)
+	for sd: float in [-1.0, 1.0]:  # the volutes at the tier steps
+		_lbox(m + sd * 6.3, 0.0, 0.7, 0.55, g + 18.9, g + 20.2, WIZ_TRIM, M_STONE, WIZ_TRIM)
+		_lbox(m + sd * 4.8, 0.0, 0.8, 0.55, g + 20.7, g + 21.8, WIZ_TRIM, M_STONE, WIZ_TRIM)
+		_lbox(m + sd * 6.9, 0.3, 0.3, 0.3, g + 18.9, g + 21.0, WIZ_TRIM, M_STONE, WIZ_TRIM)  # statue plinth
+		_lbox(m + sd * 6.9, 0.3, 0.2, 0.2, g + 21.0, g + 22.0, WIZ_TRIM, M_STONE, WIZ_TRIM)  # the figure
+	var ka := _a
+	var kb := _b
+	_a = kb
+	_b = ka
+	_gable(0.5, -0.9, m, 2.5, g + 23.8, 1.5, WIZ_WALL, WIZ_COPPER)
+	_a = ka
+	_b = kb
+	var oc := _w(m, 0.55)
+	_disc(Vector3(oc.x, g + 21.5, oc.y), Vector3(_b.x, 0.0, _b.y), 0.8, 8, WIZ_DOOR)
+	_lbox(m, 0.0, 0.15, 0.15, g + 25.3, g + 27.6, WIZ_GOLD, M_STONE, WIZ_GOLD)
+	_lbox(m, 0.0, 0.65, 0.15, g + 26.5, g + 26.9, WIZ_GOLD, M_STONE, WIZ_GOLD)
+	# the stepped north wing: two lower faces following the outline (5.8 and 12.2 m back)
+	_wiz_wing(-3.3, -5.5, 3.3)
+	_wiz_wing(-11.25, -11.9, 4.65)
+	# the turret over the crossing: octagonal drum, a copper cap, a lantern and a cross
+	var c := _w(3.3, -24.0)
+	var top := g + 23.0
+	_prism(_circle(c, 2.5, 8), g - 0.6, top, WIZ_WALL, WIZ_COPPER, M_MONUMENT, M_STONE)
+	_frustum(_circle(c, 2.9, 8), top, _circle(c, 2.9, 8), top + 0.6, WIZ_TRIM, WIZ_TRIM)
+	_frustum(_circle(c, 2.6, 8), top + 0.6, _circle(c, 1.0, 8), top + 3.6, WIZ_COPPER, WIZ_COPPER)
+	_prism(_circle(c, 0.9, 8), top + 3.6, top + 5.2, WIZ_TRIM, WIZ_COPPER, M_MONUMENT, M_STONE)
+	_frustum(_circle(c, 1.1, 8), top + 5.2, _circle(c, 0.15, 8), top + 6.8, WIZ_COPPER, WIZ_COPPER)
+	_lbox(3.3, -24.0, 0.12, 0.12, top + 6.8, top + 8.6, WIZ_GOLD, M_STONE, WIZ_GOLD)
+	_lbox(3.3, -24.0, 0.5, 0.12, top + 7.7, top + 8.0, WIZ_GOLD, M_STONE, WIZ_GOLD)
+	# the car meets the steps and the plinth
+	_collide(_rect(m, 1.5, 3.4, 1.0))
+
+
+## One face of the lower north wing at depth `fv` (centre `cu`, half width `hu`): a stone
+## ground floor, a window storey, pilasters at the ends and a cornice, 14 m up.
+func _wiz_wing(cu: float, fv: float, hu: float) -> void:
+	var g := _g
+	_lbox(cu, fv - 0.8, hu, 0.8, g - 0.6, g + 5.0, WIZ_WALL, M_STONE, WIZ_WALL)
+	_lbox(cu, fv - 0.7, hu - 0.1, 0.7, g + 5.0, g + 13.2, WIZ_WALL, M_MONUMENT, WIZ_WALL)
+	for sd: float in [-1.0, 1.0]:
+		_lbox(cu + sd * (hu - 0.4), fv - 0.1, 0.4, 0.3, g + 0.0, g + 13.2, WIZ_TRIM, M_STONE, WIZ_TRIM)
+	_lbox(cu, fv - 0.5, hu + 0.1, 0.9, g + 13.2, g + 14.1, WIZ_TRIM, M_STONE, WIZ_TRIM)
