@@ -276,8 +276,9 @@ func setup_streamed(index: Dictionary, building_mat: ShaderMaterial, flat_mat: S
 	_out = self
 	_setup(index, building_mat, flat_mat)
 	index_data = index
+	# `areas`: the lawns of the University Library's roof garden (landmarks.gd _find_buw).
 	_marks = Landmarks.new(self, {"landmarks": index.get("landmarks", []), "towers": index.get("towers", []),
-			"buildings": index.get("site_parts", [])})
+			"buildings": index.get("site_parts", []), "areas": index.get("areas", [])})
 	landmark_info = _marks.info
 	_pick.resize(_roof_nx * _roof_nz)
 	_pick.fill(0)

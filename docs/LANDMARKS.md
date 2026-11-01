@@ -53,7 +53,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | 2.5 | Pałac Prezydencki | DONE 2026-10-31 (model, spec `docs/landmarks/specs/prezydencki.md`, 868 tris): wings round the forecourt, portico, Poniatowski's statue, lions, gate, guardhouses; photo check on the Mac |
 | 2.6 | Kościół Świętego Krzyża, Wszystkich Świętych, św. Aleksandra | twin towers; the towers; the rotunda and dome |
 | 2.6b | Kościół Świętej Trójcy (Lutheran, Plac Małachowskiego) | DONE 2026-10-31 (L3 model, spec `trojca.md`, 1901 tris): drum with oculi, four Tuscan porticoes, copper dome, columned lantern and cross |
-| 2.7 | Sejm, Pałac Staszica, Kopernik, BUW, Hala Mirowska | facades and roofs from the photos (Zachęta DONE 2026-10-31: model, spec `zacheta.md`, from the user's photo; Kopernik DONE 2026-11-01: L2 model, spec `kopernik.md`, log `docs/landmarks/kopernik.md`, from OSM and LoD2, then the Mac's photo check: warm strip facade with slits and bays, the copper-red planetarium drum and dome, roof craters and paths, the cantilever) |
+| 2.7 | Sejm, Pałac Staszica, Kopernik, BUW, Hala Mirowska | facades and roofs from the photos (Zachęta DONE 2026-10-31: model, spec `zacheta.md`, from the user's photo; Kopernik DONE 2026-11-01: L2 model, spec `kopernik.md`, log `docs/landmarks/kopernik.md`, from OSM and LoD2, then the Mac's photo check: warm strip facade with slits and bays, the copper-red planetarium drum and dome, roof craters and paths, the cantilever; BUW DONE 2026-10-31: L2 model, spec `buw.md`, log `docs/landmarks/buw.md`, from OSM: copper pages, philosophers; the roof from the orthophoto on 2026-11-01: glass field and tail, oculus, mound and pyramid, formal beds, the green band; photo check of the height and the philosophers) |
 | 2.8 | MDM and Plac Konstytucji | the blocks' arcades, reliefs, the corner towers |
 | 2.9 | Towers missing from the table | PZU Tower, JM Tower, Pekao Tower, Warsaw Towers, Atlas, Prosta |
 | 2.10 | Dom bez Kantów, Departament, the Królewska block | colours from photos (guesses today); a name for the block |
@@ -101,6 +101,7 @@ Checks: `check_landmarks.gd` runs on the full map for EVERY site that has a card
 | Hotel Wiktoria (parody of Sofitel Victoria) | Królewska | hotel (parody) | `_build_wiktoria`: dark-glass podium S_DARK under stone fascia, ribbon slab S_BANDS, plant room | yes (parody only) | check_sites BUDGET 900 | Slab 30 m / podium 8 m / 18 m deep are estimates |
 | Arkadka (Westfield Arkadia) | Rondo Radosława | mall | `_build_arkadia`: outline lifted as block, lit glass storey + pale panels to 21 m, roof-deck, 37 m tower with ARKADKA sign | yes | check_landmarks | Roof car-park race (DEMO 6.4) needs modelling |
 | Forest (office) | north of Rondo Radosława | office | `_find_forest` (box) + `_build_forest`: tallest part = 120 m dark green glass tower with fins, other wings pale glass bands, planted roofs | yes | check_landmarks | none |
+| Biblioteka Uniwersytecka (BUW) | Powiśle, Dobra | library | `_find_buw` + `_buw_beds` + `_build_buw`: glass block to OSM's 10.9 m, 12 copper plates with text lines on Dobra, 4 philosophers on columns, the green band, the roof from the orthophoto: flat glass field and tail (out of the roof grid, so the cassette lands on the garden), oculus, mound and glass pyramid, formal beds, pavilions, vents (spec buw.md) | yes | check_landmarks, check_mesh_quality | photo check on the Mac: height, the philosophers' front |
 | Centrum Nauki Kopernik + Planetarium | Powiśle, Wybrzeże Kościuszkowskie | science centre | `_find_kopernik` + `_build_kopernik`: block to LoD2's 13 m in warm panel strips with slits and glazed bays (`_kop_front`), glass SE end with a steel frame (`_kop_frame`), dark cantilever (`_kop_cantilever`), roof garden with craters, teal strip, pavilion (`_kop_roof`), copper-red faceted planetarium drum with clerestory and dome (`_kop_planet`) (spec kopernik.md, Mac photo check applied) | yes | check_landmarks, check_mesh_quality | two craters don't fit the north end; the frame's stairs |
 | Flaga na rondzie Radosława | Rondo Radosława | monument/prop | `_build_flag`: steel mast 57.8 m + 16x10 m flag in light wind (not in OSM; circle zone) | yes | check_landmarks | none |
 
@@ -141,7 +142,6 @@ All with a card; check_landmarks only (except where noted). Open issue common to
 | Name | Mode | Wall / roof | Note |
 |---|---|---|---|
 | Teatr Wielki | M_MONUMENT | #ddd2b6 / #7fa894 | no portico |
-| Biblioteka Uniwersytecka (BUW) | M_STONE | #7f9e8a / #6a9a52 | no rooftop garden detail |
 | Zamek Królewski | M_MONUMENT | #c87560 / #6e5a4e | no tower/clock |
 | Barbakan | M_GOTHIC | #ab5a42 / #6b4a3c | |
 | Archikatedra św. Jana | M_GOTHIC | #9a4b38 / #6e3a2e | |
