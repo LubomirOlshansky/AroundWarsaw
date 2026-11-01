@@ -344,6 +344,9 @@ const INFO := {
 	"powisle": ["Warszawa Powiśle",
 			"Stacja z 1963 roku: pawilon-latawiec nad wylotem tunelu i okrągły pawilon, dziś kultowy bar.",
 			"A 1963 station: a kite pavilion over the tunnel's mouth and a round pavilion, now a cult bar."],
+	"srodmiescie": ["Warszawa Śródmieście",
+			"Dwa szklane pawilony z 1963 roku nad schodami do podziemnej stacji linii średnicowej.",
+			"Two 1963 glass pavilions over the stairs down to the cross-city line's underground station."],
 	"stadion_pkp": ["Warszawa Stadion",
 			"Przystanek z 1958 roku pod stadionem: biała hala z żaglem i perony w czerwono-białej mozaice.",
 			"A 1958 stop by the stadium: a white hall with a sail and platforms in red-and-white mosaic."],
@@ -625,6 +628,7 @@ func _find_sites() -> void:
 	# S2: Warszawa Powiśle's two pavilions and the platform canopies.
 	_find_powisle()
 	_find_stadion_pkp()
+	_find_srodmiescie()
 	# Plac Małachowskiego and the Presidential Palace (2026-10-31): models instead of skins.
 	_find_trojca()
 	_find_zacheta()
@@ -1003,6 +1007,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_powisle(s)
 			"stadion_pkp":
 				_build_stadion_pkp(s)
+			"srodmiescie":
+				_build_srodmiescie(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -8799,6 +8805,67 @@ func _stp_canopy(f: Array, hall_c: Vector2, pair_mid: Vector2) -> void:
 	_quad(Vector3(d0.x, floor_y - 1.0, d0.y), Vector3(d1.x, floor_y - 1.0, d1.y), Vector3(d1.x, floor_y + 2.2, d1.y), Vector3(d0.x, floor_y + 2.2, d0.y), na, STP_DARK)
 	_collide(sh)
 
+
+# --- Warszawa Śródmieście (the railway S3b, docs/landmarks/specs/srodmiescie.md) --------------
+# The cross-city line's underground station by the Palace (1963): above ground only two long
+# pavilions by Romanowicz and Szymaniak, "oversized shelters" over the stairs down to the
+# platforms. Built from their two OSM outlines as glass halls under a deep light fascia and a
+# thin roof, the station's name on the side the camera sees.
+
+const SRD_OSM := "PKP Warszawa Śródmieście"
+const SRD_GLASS_H := 4.4       # the glass hall over the ground
+const SRD_TOP := 6.9           # the fascia's top (the OSM height is 7 m)
+const SRD_OVER := 0.7          # the fascia's overhang past the glass
+const SRD_STONE := Color("#dcd8cd")
+const SRD_PLINTH := Color("#4a4b4d")
+const SRD_GLASS := Color("#4f6a78")
+const SRD_DARK := Color("#2a2c2f")
+const SRD_NEON := Color(0.25, 0.75, 1.0)
+
+
+func _find_srodmiescie() -> void:
+	var halls: Array = []
+	for l in data.get("landmarks", []):
+		if l["name"] == SRD_OSM:
+			var q := _pts(l["p"])
+			if q.size() >= 3:
+				halls.append(_simplify(q, 0.3))
+	if halls.is_empty():
+		return
+	var zones: Array = []
+	for q: PackedVector2Array in halls:
+		zones.append(_largest(Geometry2D.offset_polygon(q, 1.5, Geometry2D.JOIN_MITER)))
+	_add_site("srodmiescie", zones)
+	if not sites.is_empty() and sites[-1]["key"] == "srodmiescie":
+		sites[-1]["halls"] = halls
+
+
+func _build_srodmiescie(site: Dictionary) -> void:
+	var none := Color(0, 0, 0, 0)
+	for q: PackedVector2Array in site["halls"]:
+		var hall := q.duplicate()
+		if Geometry2D.is_polygon_clockwise(hall):
+			hall.reverse()
+		var g := INF
+		for p in hall:
+			g = minf(g, map.terrain_height(p.x, p.y))
+		_g = g
+		_prism(hall, g - 0.6, g + 0.4, SRD_PLINTH, none, M_STONE)
+		var keep := _mode
+		_prism(hall, g + 0.4, g + SRD_GLASS_H, SRD_GLASS, none, M_PAVILION)
+		_mode = keep
+		_mullions(hall, g + 0.4, g + SRD_GLASS_H, 1.6, 0.05, SRD_DARK)
+		var top := _largest(Geometry2D.offset_polygon(hall, SRD_OVER, Geometry2D.JOIN_MITER))
+		_prism(top, g + SRD_GLASS_H, g + SRD_TOP, SRD_STONE, SRD_STONE.darkened(0.1), M_STONE, M_STONE)
+		_soffit(top, g + SRD_GLASS_H, SRD_STONE.darkened(0.3))
+		# The name on the middle of the long side the game's camera sees.
+		var f := _och_frame(hall)
+		var side: Vector2 = f[2]
+		if side.dot(BEHIND_FACE) < 0.0:
+			side = -side
+		var at: Vector2 = f[0] + side * (float(f[4]) + SRD_OVER)
+		signs.append(["ŚRÓDMIEŚCIE", Vector3(at.x, g + SRD_GLASS_H + 0.55, at.y), Vector3(side.x, 0.0, side.y), 0.5, SRD_NEON])
+		_collide(hall)
 
 # --- The brick works: Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle -------------
 ## F's ask (2026-11-01): the four old-industry-turned-hangout sites of the west and south as

@@ -83,6 +83,7 @@ const BUDGET := {
 	"ochota": 1420,
 	"powisle": 1770,
 	"stadion_pkp": 1560,
+	"srodmiescie": 580,
 	"stadium": 4750,
 	"swieto": 240,
 	"teatr": 600,
