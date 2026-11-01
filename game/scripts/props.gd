@@ -721,3 +721,61 @@ static func add_ad_column(st: SurfaceTool, xf: Transform3D, poster: Color) -> vo
 	obox(st, xf * Vector3(0, 2.75, 0), turn2, Vector3(1.4, 0.2, 1.4), green)
 	obox(st, xf * Vector3(0, 2.95, 0), turn, Vector3(1.0, 0.25, 1.0), green)
 	_xbox(st, xf, Vector3(0, 3.25, 0), Vector3(0.12, 0.35, 0.12), Color("#c9a44a"))
+
+
+## A row of `n` street bollards (a dark steel post 0.9 m tall with a pale band, 1.5 m apart along
+## x), the row centred on `xf`. ~25 triangles a post. (Street details, docs/design/street-details.md.)
+static func add_bollards(st: SurfaceTool, xf: Transform3D, n := 4) -> void:
+	for k in n:
+		var x := (k - (n - 1) * 0.5) * 1.5
+		_xbox(st, xf, Vector3(x, 0.45, 0), Vector3(0.16, 0.9, 0.16), Color("#2b2f36"))
+		_xbox(st, xf, Vector3(x, 0.78, 0), Vector3(0.18, 0.08, 0.18), Color("#e8e3d4"))
+
+
+## A stop post (a tram or bus stop's pole): a 2.6 m grey pole, a round yellow-green plate facing the
+## street and a timetable box under it. ~70 triangles.
+static func add_stop_post(st: SurfaceTool, xf: Transform3D) -> void:
+	_xbox(st, xf, Vector3(0, 1.3, 0), Vector3(0.08, 2.6, 0.08), Color("#5d6168"))
+	_xbox(st, xf, Vector3(0, 2.5, -0.06), Vector3(0.5, 0.5, 0.04), Color("#c9d94a"))
+	_xbox(st, xf, Vector3(0, 2.5, -0.09), Vector3(0.3, 0.3, 0.03), Color("#2b2f36"))
+	_xbox(st, xf, Vector3(0, 1.75, -0.08), Vector3(0.4, 0.55, 0.05), Color("#eeeadc"))
+
+
+## A ticket machine (BILETY, tickets): a 1.7 m grey-and-yellow box with a lit screen and the word in
+## pixel letters on its head. ~120 triangles.
+static func add_ticket_machine(st: SurfaceTool, xf: Transform3D) -> void:
+	_xbox(st, xf, Vector3(0, 0.85, 0), Vector3(0.6, 1.7, 0.45), Color("#6d7076"))
+	_xbox(st, xf, Vector3(0, 1.25, -0.23), Vector3(0.4, 0.3, 0.03), Color("#9fe0c8"), LIT_WINDOW)
+	_xbox(st, xf, Vector3(0, 0.85, -0.23), Vector3(0.4, 0.12, 0.03), Color("#e6c23a"))
+	_xbox(st, xf, Vector3(0, 1.62, -0.23), Vector3(0.52, 0.16, 0.03), Color("#e6c23a"))
+	var px := 0.025
+	var word := "BILETY"
+	var tw := PixelFont.width(word) * px
+	PixelFont.add_quads(st, word, xf * Vector3(tw * 0.5, 1.62 + (PixelFont.BODY + 3.5) * px * 0.5, -0.26),
+			xf.basis.orthonormalized() * Vector3.LEFT, Vector3.DOWN, px, Color("#2b2f36"), LIT_SIGN)
+
+
+## An ice-cream cart (LODY, ice cream): a white box on two wheels with a striped awning on two
+## posts and the word on a board; 1.6 m wide. ~200 triangles.
+static func add_ice_cream_cart(st: SurfaceTool, xf: Transform3D, awning: Color) -> void:
+	var cream := Color("#f4efe2")
+	_xbox(st, xf, Vector3(0, 0.75, 0), Vector3(1.6, 0.9, 1.0), cream)
+	_xbox(st, xf, Vector3(0, 1.22, -0.05), Vector3(1.5, 0.06, 0.9), Color("#9db4d8"))
+	for x: float in [-0.85, 0.85]:
+		_xbox(st, xf, Vector3(x, 0.3, 0.1), Vector3(0.08, 0.6, 0.6), Color("#2b2f36"))
+		_xbox(st, xf, Vector3(x * 0.55, 1.65, -0.45), Vector3(0.05, 1.0, 0.05), Color("#3a3b3f"))
+	for k in 5:
+		_xbox(st, xf, Vector3(-0.8 + k * 0.4, 2.2 + (0.04 if k % 2 == 0 else 0.0), -0.1), Vector3(0.4, 0.05, 1.4), awning if k % 2 == 0 else cream)
+	_xbox(st, xf, Vector3(0, 0.95, -0.52), Vector3(1.0, 0.3, 0.03), awning.lightened(0.2))
+	var px := 0.06
+	var word := "LODY"
+	var tw := PixelFont.width(word) * px
+	PixelFont.add_quads(st, word, xf * Vector3(tw * 0.5, 0.95 + (PixelFont.BODY + 3.5) * px * 0.5, -0.55),
+			xf.basis.orthonormalized() * Vector3.LEFT, Vector3.DOWN, px, Color("#2b2f36"), LIT_SIGN)
+
+
+## A flat dark quad 2 cm over the paving, `half` (x, z) metres each way: the contact shadow of a
+## tall prop whose mesh casts no sun shadow (street_details.gd draws it under kiosks, stalls,
+## cafés, carts and columns). 2 triangles.
+static func add_contact_pad(st: SurfaceTool, xf: Transform3D, half: Vector2) -> void:
+	_xbox(st, xf, Vector3(0, 0.02, 0), Vector3(half.x * 2.0, 0.02, half.y * 2.0), Color("#6f6b68"))

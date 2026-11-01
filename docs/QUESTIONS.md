@@ -10,9 +10,8 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 | Lane | Item | Session | Since |
 | --- | --- | --- | --- |
-| visuals | Loop 3i items: rain and night looks (PR #7 puddles over markings, PR #11 night water), then reflections and the remaining 3i look items | cloud thread "Set up project and work through game backlog" | 2026-10-30 |
-| landmarks | Landmark models, third pass: the low-rise landmarks (Teatr Wielki, Zamek, Barbakan, Kopernik, BUW, churches, Sejm), then street furniture | cloud thread "Improve landmark and skyscraper models" | 2026-10-30 |
-| map | Free: the next map item by priority (3d-1, 3d-2a, 3d-2b, 3e, the loading fix, map north and the content POIs landed) | thread "Finish the demo map extension" | 2026-10-30 |
+| landmarks | One landmark per thread (now the Cathedral and the Barbican); order in BACKLOG "Landmarks lane, hand-over" | fresh Sonnet threads | 2026-10-31 |
+| all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
 
@@ -20,15 +19,17 @@ Newest first. One entry per question.
 
 - **2026-11-01 · landmarks · the Eastern Wall stores' banners and west names** — The photo
   check's optional items: printed ad banners (A4) are built on the faces the game's camera sees
-  (each south end and east face, 3 per store: PROMOCJA, SAMSONG, LODY, WYPRZEDAZ), not on the
+  (each south end and east face, 3 per store; since 2026-11-01 the 2025/26 mix: DO WYNAJĘCIA, FROGS XXL, KAPCIE, SAMSONG, LODY, PROMOCJA, WYPRZEDAŻ), not on the
   street (west) faces where the real ones hang, because the iso camera never sees those. The
   second small name on the west top-storey face (A6) is not built for the same reason. Default
   built: those. Alternatives: no banners, or banners on the west faces too.
 
-- **2026-10-31 · landmarks · University Library (BUW)** — Built from OpenStreetMap alone (no
-  free photo, the cloud reaches neither Commons nor GUGiK): the block is OSM's 10.9 m (LoD2 on
-  the Mac may say more) and the four philosophers' columns stand on Dobra before the copper
-  pages (the orthophoto can't show them). The roof follows the orthophoto since 2026-11-01.
+
+- **2026-10-31 · landmarks · University Library (BUW)** — The four philosophers' columns stand
+  on Dobra before the copper pages (the orthophoto can't show them; the Mac check kept them).
+  The height follows LoD2 since 2026-11-01 (deck 15 m), the roof the orthophoto. Open: the
+  south garden's beds are drawn as shrub, heather or lawn by a hash, not plant by plant; the
+  four mapped vents at the north corner stand outside the outline as the city's plain drums.
   Default built: those. F to check against a photo or the street (docs/landmarks/buw.md).
 
 - **2026-11-01 · landmarks · the Palace's stone colour** — The Mac photo check (PR #128) finds the
@@ -48,8 +49,8 @@ Newest first. One entry per question.
   kebab and słoiki doors, "Na czasie", the Leżak depot) now has a 9 m ring (was 6-7), counts
   under ~16 km/h as stopped (was 4-9 km/h), and the car brakes itself into the ring when it heads
   in and holds still ~1.5 s; BRAKE at a standstill reverses out. Always on, no setting. Default
-  built: that. Alternatives: a setting to switch the auto-brake off, or the assist only on touch
-  controls (keyboard players get it too now).
+  built: that, plus (2026-11-01) a Settings → DOSTĘP switch to turn the auto-brake off (default on).
+  Still open: the assist only on touch controls (keyboard players get it too).
 - **2026-10-31 · gameplay · the main line** (docs/design/main-line.md) — The main line is the
   guide (first 10 min), then the ladder's next rival (a gold star on the minimap and the full map,
   pinned to the rim at any distance), then the final at night; the respect gates are lowered to

@@ -3,6 +3,149 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Accessibility follow-ups (2026-11-01)
+
+Built: Settings → DOSTĘP (`game/scripts/access.gd`, kept in `[access]` of settings.cfg): larger HUD
+text (x1.25, read when the HUD is built: shows after a restart), calm (patrol-car lights steady, no
+VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue), vibration on/off
+(every buzz goes through `Access.buzz`), stop assist on/off. Left:
+- Left-handed control layout (steering on the right, GAS and BRAKE on the left).
+- Text size that follows the phone's own setting, and live (no restart); the panels with fixed
+  layouts (cards, bubbles) need a check at x1.25 on the SE.
+- Subtitles: nothing is voiced yet; revisit when speech or radio talk with words lands.
+- Crash sparks and screen shake (another loop) must multiply by `Access.shake()` and buzz through
+  `Access.buzz`; colour-safe still to cover the HUD's green badges and the red fail colour.
+
+## Ground vertex compression, to re-apply on the Mac (stale PR #53 triage, 2026-11-01)
+- PR #53 (commit b343d60, branch `claude/project-thread-ldyr9u`) stores the ground's meshes with
+  `Mesh.ARRAY_FLAG_COMPRESS_ATTRIBUTES` (`chunked_surface.gd` `meshes(flags)`, `map_builder.gd`
+  `_add_mesh(..., flags)` for the flat layer; `bake_city.gd` skips empty sectors' proxies when
+  counting). On the Mac then: sectors 95.7 -> 75.0 MB, vertex buffers 147 -> 120 MB, frame time the
+  same. The branch has an unrelated history (from before the repo was rewritten), so it cannot be
+  merged; the diff is 3 small hunks and no longer applies cleanly to `map_builder.gd`. Left: re-apply
+  by hand on a Mac session (full definition of done: re-bake, `verify.sh`, shots and bench), then
+  close #53. Buildings stay uncompressed (windows come from UVs in metres).
+
+## Trends 2025–26 (F, 2026-11-01)
+
+Spec and sources: `docs/design/trends-2025-26.md`. Built: eight parody trend spots (`Storefronts.TRENDY`).
+- [ ] Wykop/X/TikTok skim (cloud could not fetch them); adjust the trend list.
+- [ ] Phone check of the PISTACJA queue (Friday 16:00-18:30 drop, 36 people) and the "Limitka" job (`--trend-job=4`): line on the footway, 5 s wait, 5 min delivery. Built 2026-11-01.
+- [ ] Padel thread (F, 2026-11-01; docs/design/padel.md): queue at PADELNIA and eight lines built; still to build: notebook lore entries, Trener Dominik / Pani Basia / Prezes z Mokotowa as voices, the "Czwarty" side quest, a roof court. Phone check of PADELNIA's queue.
+- [ ] E-scooter 12 km/h zones: four discs built (Złota, Zgody, Bracka, Plac Centralny; `scooter_zones.gd`, centres *guess*, toast on entry, car not capped). Still open: check the centres against the real streets, scooter riders that slow down, a zone pill.
+- [x] Lines about matcha, padel, natural wine, queue, scooter rules: 8 column posters and 5 signs in dialogue.json (PL + EN).
+- [ ] Phone check: do the new column posters read (rows ≤ 8 letters)? Not run, no Godot in the cloud.
+- [ ] Phone check: sign sizes and placement of the eight new spots (not run: no Godot in the cloud).
+
+## Audit: what is verified beyond the landmarks (2026-11-01)
+
+F asked whether the roads, the street details and the start of the game are really checked, or
+whether only the landmarks are left. They are not: most of the game is **built and passes its
+headless checks**, but much of it was **never seen on the phone or compared with the real city**,
+and two finished pieces of the opening never merged. Three kinds of status below: *verified* (a
+check or F's eyes confirmed it), *built, not verified* (works in a check, never played on the
+phone or compared with photos), *gap* (not built). Items in the order to take them; the lane and
+model are the coordinator's suggestion. Older sections below keep their detail; this list points
+to them instead of repeating it.
+
+**State of the evidence.** The last real iPhone numbers are from 2026-10-29 (loop G0+, iPhone 11),
+before the map north, ~45 landmark sites, MW-2..MW-6, the night buses, the ladder and the guide.
+GitHub CI runs only the map-free checks ("From loop 3d-1", CI); the cloud's map data is stale, so
+cloud threads have run the roads, drape, drive and landmarks checks against a failing baseline and
+compared with main instead of passing them (memory note, PRs #117 #125). No full
+`tools/verify.sh` on the Mac is recorded since the landmark lane began (~195 commits on main since
+2026-10-31).
+
+### P0: the start of the game (gameplay, Opus)
+- **Merge the unmerged opening.** PR #115 (start facing the Świętokrzyska stand, a 226 m first
+  order instead of 926 m with a U-turn, the first roof cassette on BUW) and PR #121 (the 7.5 s
+  opening flyover over the Palace, stacked on #115) were finished on 2026-10-31 and are still
+  open. Main today starts facing south with the stand behind the car. Rebase both on main, re-run
+  their checks (`first10`, `first10-run`, `opening`, `cassettes`, `save`, `hud`), merge #115 then
+  #121. Built, not verified on the phone.
+- **The first scene's open items** (design/first-scene.md items 4-7; BACKLOG "High priority: the
+  first scene"): the pavilions and towers behind the Eastern Wall stores, Plac Defilad's paving and
+  park strip, the tram stops and kerbs on Marszałkowska, pedestrians and sound at the start. Gap.
+
+### P0: the whole build checked again (map and performance, Opus; needs the Mac)
+- **A full `tools/verify.sh` and `tools/verify.sh --ios` on the Mac on today's main**, both city
+  paths (runtime and `--prebuilt`), plus `python3 -I tools/check_roads.py` and
+  `python3 -I tools/check_map_data.py`. Every landmark PR since 2026-10-31 changed geometry next to
+  roads (zones, plinths, forecourts) and only `check_mesh_quality` ran on them. Not verified.
+- **Map checks in CI**: the derived map pack as a release asset that CI downloads (or a small test
+  map), so roads, drape, drive and the game runs gate every PR again ("From loop 3d-1", CI). Gap.
+
+### P0: the phone pass (performance, Opus; needs F's yes for a device run)
+- **Bench on the iPhone 11 and the 16 Pro Max on today's main**: default view, zoomed out, the
+  helicopter over the centre, day and night, against budget P (DEMO.md 7): frame time, draw calls,
+  memory line, plus a `--stream-soak`. The parked phone questions ride along: the sector-load
+  hitch, static memory before the beta, the compressed map textures (QUESTIONS 2026-10-30). Not
+  verified since 2026-10-29.
+- **A timed fresh-save playthrough by F** (after #115/#121 merge): the first 10 minutes beat by
+  beat (DEMO 6.2), then the main line toward the final (~1 h is an estimate from the pay tables).
+  It answers the parked feel questions at once: Halina's rubber band, the ghost finger's place,
+  the stop assist's glide-in, the cassette's size from the helicopter, the flyover's length, the
+  Rotunda's teeth and the store signs' size. Not verified.
+
+### P1: roads against real Warsaw (map, Opus)
+- **Map review C, the streets of the demo box.** `check_roads.py` (C1-C10) and `check_streets`
+  prove the roads are consistent with OpenStreetMap and drivable, not that they look like the real
+  streets. Map reviews A and B (2026-10-29) compared bridges and some streets of the old, smaller
+  map; the 3d-1 box (Praga, Powiśle south, Łazienki's edge, Muranów) and map north never had a
+  street review. Wanted: per district, the game's top view over the GUGiK orthophoto (as done for
+  BUW, `buw/ortho_on_game_grid.png`) for lane counts, markings, tram tracks, crossings, kerbs and
+  islands; a list of what differs; fixes in the bake. The orthophoto comes from the Mac (the cloud
+  gets 403). Gap.
+- Already listed and still open: lines inside junctions not checked against photos and the dark
+  Jerozolimskie / Nowy Świat at night ("From map review B"); the loop 3e structures (Łazienkowski's
+  Praga end R8, the rail cutting, Rozdroże's tubes, Nowy Zjazd's wall, deck 4); Most Łazienkowski
+  cut by the east edge ("From loop 3d-1", a decision).
+
+### P1: street details beyond the start (content/map, Sonnet with an Opus spec)
+- **Landed** (2026-11-01, thread "Add street details along the main route", spec
+  docs/design/street-details.md): `tools/bake_street_details.py` places ~370 kiosks (PRASA), flower
+  stalls (KWIATY), café sets, planters, ad columns, bollards, two ice-cream carts (LODY) and stop
+  posts / a ticket machine (BILETY) on the pavements of eight corridors (Marszałkowska,
+  Jerozolimskie, Nowy Świat, Tamka and Karowa, the boulevards, Prosta, Praga, Poniatowskiego) into
+  `game/data/street_details.json`; `street_details.gd` builds one shadowless mesh per 512 m cell on
+  both city paths. Checks: `streetdetails` (placement against the map) and `streetmesh`.
+  **Left:** not seen in a render yet (no GPU/terrain in the cloud): shots at Nowy Świat, Tamka, the
+  boulevards and Targowa on the Mac; the bench and the phone look (size, clutter, night); the
+  corridor waypoints are the spec's rough lines (Praga gets few props); the camera rule (props on
+  east-side pavements are hidden) is not applied; stop kits are only at the map's shelters.
+- Knocking light furniture about like the cones; parked cars and shelters solid ("From the
+  driving-feel loop"). Gap, low.
+
+### P1: driving and collisions (gameplay, Opus)
+- Built and checked headless (`check_steering`, `check_drive` 98 routes, `check_stop_assist`,
+  `check_water`), tuned on the flat test ground; the corner slip, the shove and the stop assist were
+  never felt on the phone ("From the driving-feel loop", QUESTIONS 2026-10-31). Comes with F's
+  playthrough above.
+- The NaN car is unexplained (once in ~10 replays; "From loop 3h slice 4"; PR #115 adds a log).
+
+### P1: main line and side quests (game-designer, Opus for the review)
+- Every activity has a headless check (rides, side jobs, couriers, ladder, syrenki, eggs, garage,
+  police, main line, end card); none has been played end to end by a person on the phone, and the
+  pay tables are first guesses (BACKLOG-TRIAGE "Decisions"). The guide's lines, Halina's lines and
+  the end card are unreviewed ("From loop 3h slice 4"); the end card's "10 jobs" definition and the
+  trap's koguty line are open. A designer pass over all player-facing text and pay, then F's run.
+- The DEMO 6.3 counts left: 10 roof cassettes (#115 brings the first), ~25 landmark cards, the
+  second słoiki station, the Old Town tourist and Łazienki peacock rescues. Check each against the
+  code and list what is missing. Partly a gap.
+
+### P2: UI
+- The HUD was sized on 2026-10-28; since then the ≡ map button, the goal star, district cards,
+  the ladder and the end card arrived. Re-run `check_hud` sizes and shots at 375, 390 and 440 pt
+  wide. Not verified.
+- The full map: street names close in, icons judged on the phone ("Top priority: a game-like full
+  map"). Gap / not verified.
+
+### P2: store release (store lane, Sonnet; F's forms)
+- TestFlight is paused until F fills App Information in App Store Connect; no build is uploaded.
+  iPad kept or dropped; the support page needs a deploy; the store screenshots predate the demo
+  map, the new HUD and the opening and need a re-shoot after #115/#121 ("From the store listings").
+  Waiting on F, then the Mac.
+
 ## Quest pickups and drop-offs too hard to stop on (the user, 2026-10-31)
 - **Landed** (thread "Make quest pickup and dropoff easier"): stop_assist.gd, one shared 9 m
   ring and ~16 km/h "stopped" for every car stop zone, and car.gd's stop assist (brakes into the
@@ -87,6 +230,29 @@ Small problems that agents reported or that showed up in screenshots. They are f
   InterContinental and the Westin) are cold white and many, the photos show sparse warm ones
   (`#ffcf7a`, ~12 %, upper third); the landmark signs still glow inside the occlusion ghost.
 
+## The start area as real Warsaw (F, 2026-11-01)
+
+F: improve every landmark in the start area, add street details, make the shop signs (Ściana
+Wschodnia above all) like the real ones, rework the ordinary buildings to look real, match the
+road and pavement materials to photos, and add trendy 2025/26 places and jokes. Research and
+plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 checklist").
+- **R1 done 2026-11-01**: the neon atlas draws words with Polish letters through pixel_font.gd;
+  the stores' banners are now the 2025/26 mix (DO WYNAJĘCIA boards where H&M, Zara and C&A
+  left, FROGS XXL on Wars's south corner where H&M's space becomes a two-storey Żabka, KAPCIE for
+  the shoe chains on Zara's floor, WYPRZEDAŻ and ORANŻADA with their real letters); SCENA RELAX
+  on the old Kino Relax behind Junior. Only the phone shows the boards' size at the default zoom.
+- **Open:** R2 Plac Centralny's ground (grey and red slabs drawing the pre-war tenements, the
+  courtyards' reused granite setts, the 1939 street lines, lawns, 109 trees, the pond); R3
+  pavements and kerbs, red asphalt cycle paths, Złota's setts and elm alley, the fountain at the
+  old tunnel mouth, the three new crossings (orthophoto check on the Mac); R4 ordinary buildings
+  drawn by type in building.gdshader (tenement, slab, socialist-realist, office); R5 Scena Relax,
+  Zodiak and the Cepelia pavilion as models; R6 one of the trend spots (built by the trends thread,
+  docs/design/trends-2025-26.md) inside the start box and lines about the empty stores and Frogs
+  XXL; R7 street name plates, a bike dock, tram
+  stops, bollards; R8 the museum's ribbon in stretches and the stepped roofline.
+- Found: the cloud can't read Wykop (login wall) or Commons (403); the trends come from Google's
+  2025 year in search and the trade press. A Mac pass could add Wykop's own tags.
+
 ## High priority: the first scene and the Museum of Modern Art (the user, 2026-10-31)
 - **Muzeum Sztuki Nowoczesnej as it is** (the user, 2026-10-31): the new white box on Plac
   Defilad's east edge (Thomas Phifer, opened 2024). Today it is plain white LoD2 parts with no
@@ -137,8 +303,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   `docs/landmarks/specs/buw.md`, log `docs/landmarks/buw.md`): the copper plates with their
   lines of text on Dobra, the four philosophers on columns, the roof garden from the mapped
   lawns, the glass roofs and the band; the roof redone from the orthophoto on 2026-11-01.
-  Left: the height (LoD2 may say more than OSM's 10.9 m), which front the philosophers stand
-  at, the south garden's winding paths and shrubs.
+  Pass 3 (2026-11-01, the Mac's LoD2 check): the deck at 15 m, the hill, the vents, the south
+  garden's paths and beds, the court on Collegium Iuridicum II. Left: the north corner's four
+  vents (outside the outline, the city's drums).
   The others not started.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
@@ -1826,7 +1993,7 @@ golden-image shots runtime vs `--prebuilt`,
   frames the same code passed. Fix (map lane): wait in frames, or run the pass on a frame budget
   that doesn't change with the machine; the iPhone 11's 60 Hz is the case that counts.
 
-- **The content lane's switch** (storefronts.gd, roundup_job.gd, props.gd; none of it built):
+- **The content lane's switch** (storefronts.gd, 2026-10-31: **built** in loop content-POIs-switch, see ROADMAP; bike docks and the other `convenience` shops are not used yet; roundup_job.gd and props.gd needed no change):
   the Leżaks from the `scooter` pois (`p` the pose: `lie` on its side as today; `stand` upright;
   `roof` at `h` 2.6 m over the ground; `grass`, `bench`, `hedge`, `frogs` lie like `lie`) instead
   of `_pick_scooters`, the zones' paint from `scooter_zone` (3 m along `yaw`), the standing one
@@ -2102,8 +2269,9 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
 - **The cassette is KASETA's then card** on the boulevards (a ground spot, not a roof), and its
   "new song" is the next locked PÓŁNOC FM track (track 3 on a fresh save). A real cassette
   collectible on a roof (DEMO 6.2, 6.3 "10 cassettes") is still to come; then the beat points there.
-- The guide's words (`first10.gd` LINES, Halina's FIRST_LINES, the end card) were written in this
-  slice: the game-designer should review them.
+- ~~The guide's words (`first10.gd` LINES, Halina's FIRST_LINES, the end card) need a designer
+  review~~ (done 2026-11-01: grammar fixes (stary śmigłowiec), "To już koniec dema", tone kept;
+  only text changed, not run in Godot here).
 - The end card counts every paid job kind but races and the courier bonus; DEMO's "10 jobs" might
   mean kebab-style jobs only.
 - **The NaN car (unexplained)**: once in ~10 headless replays the player car's position went NaN at
@@ -2115,3 +2283,15 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
   HUD's room, so the layout left it unplaced. Now two Polish lines (the credits and the repo as one
   shared line) and the English paragraph; a layout assertion in check_end_card would catch it again.
 - `first10-run` takes ~5 min in the container (3.4× real time headless); it stays out of `--quick`.
+## From the Pawilony loop (landmarks lane, 2026-10-31)
+
+- The Pawilony are a site now (`landmarks.gd` `_build_pawilony`, spec `docs/landmarks/specs/pawilony.md`):
+  37 pavilions cut from the two OpenStreetMap strips, 1740 triangles (budget 2100). Built without
+  photos (the cloud has none): the art-director's check against `refs/pawilony/` on the Mac is open,
+  and the gate sign's spot (-285.0, 111.5) is measured from the OSM outline, not the LoD2 front.
+- Not built: string lights across the passages (they would hang in the air: the FLOAT check), the
+  courtyard's own tables and crowd at night, graffiti.
+- **F's ask (2026-10-31): shisha lounges.** Small night spots with neon, like the Pawilony: a few
+  hookah lounges (under made-up names, no real ones) on the centre's night streets, each a lit
+  front with a neon word (a new word like SZISZA in the neon font, which has no Ł/Ó/Ś yet) and maybe
+  a notebook place in `places.json`. Content lane (game-designer for names and spots).

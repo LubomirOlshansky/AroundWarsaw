@@ -6,6 +6,93 @@ The goal: the centre of Warsaw — Śródmieście, Powiśle, the Vistula and the
 National Stadium — looking and feeling like a polished indie game, playable on
 an iPhone, with driving, a helicopter, and missions.
 
+## v1.0 checklist: what is done and what is left
+
+**The one place to check progress.** Every thread that lands an item ticks its line here (`[x]`,
+the date and the PR) in the same PR, and adds any new v1.0 item it finds. Detail lives in
+docs/BACKLOG.md (the audit section at its top, then the older sections); this list only names the
+item. Updated 2026-11-01 from the audit. v1.0 = the Demo and TestFlight gates in docs/WORKFLOW.md,
+then the Launch gate.
+
+### Done (built and checked headless)
+- [x] Map: the 21 km² demo box in streamed sectors, 1 m terrain, map north (3c, 3d-1, 3d-2, 3e)
+- [x] Roads: checks C1-C10 and `check_drive` green on the Mac at the time (3a, 3b, 3b-2)
+- [x] The river off-limits (10a); the HUD at phone size (2e); the follow camera; car models (2c)
+- [x] Police I and II, city guards, the clamp (3g); traffic, trams, buses, night buses, the old tram
+- [x] Side jobs and jokes: kebab, słoiki, Podwózka, couriers, Leżak round-up, Frogs, storefronts,
+      the notebook, PÓŁNOC FM, Fotka, Spacer, KASETA, eggs (2d, MW-0 to MW-6, jobs-2)
+- [x] Demo loop: save v2 and districts, 20 Syrenki, the rival ladder and "Trzy mosty", the guided
+      first 10 minutes and the end card (3h slices 1-4); the main line and its gold star
+- [x] The full map with landmark pins and teleport; the quest stop assist
+- [x] Landmarks: the Palace, Centralna, Złote Tarasy, the towers, MSN, the Rotunda, BUW, Kopernik,
+      the stadium, Plac Piłsudskiego, the start street's stores, many churches (Mac photo checks
+      for some)
+- [x] Day, dusk and night; rain; water; synthesised sound; puddles and night water (3i part)
+- [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted
+
+### Left: the start of the game
+- [ ] Merge PR #115 (start facing the first stand, short first order, BUW roof cassette), then
+      PR #121 (the opening flyover)
+- [ ] First-scene items 4-7: pavilions and towers behind the stores, Plac Defilad's paving, tram
+      stops and kerbs on Marszałkowska, pedestrians and sound at the start
+- [ ] The start area as real Warsaw (F, 2026-11-01; plan docs/design/start-area-real.md):
+  - [x] R1 the Eastern Wall's signs as they are in 2025/26 (Polish letters in the neon font,
+        DO WYNAJĘCIA boards, FROGS XXL on the old H&M corner, KAPCIE, SCENA RELAX), 2026-11-01
+  - [ ] R2 Plac Centralny's ground (the tenements' outlines in grey and red slabs, the setts,
+        the pond, the trees)
+  - [ ] R3 pavements, granite kerbs, red cycle paths, the green Złota, the fountain, the crossings
+  - [ ] R4 ordinary buildings by type (pre-war tenement, 1960s-70s slab, socialist-realist,
+        office), shader only
+  - [ ] R5 Scena Relax, Zodiak and the Cepelia pavilion as models
+  - [ ] R6 one of the 2025/26 trend spots (built elsewhere, trends-2025-26.md) inside the start
+        box, and the empty-stores jokes in the lines
+  - [ ] R7 street details in the box (street name plates, bike dock, tram stops, bollards)
+  - [ ] R8 landmark polish left in the box (the museum's ribbon and roofline)
+
+### Left: map and roads
+- [ ] A full `tools/verify.sh` and `--ios` on the Mac on today's main, both city paths
+- [ ] Map checks in GitHub CI (the derived map pack as a release asset)
+- [ ] Map review C: the streets of the 3d-1 box and map north against the orthophoto
+- [ ] Loop 3e leftovers: Łazienkowski's Praga end (R8), the rail cutting, Rozdroże's tubes,
+      Nowy Zjazd's wall, deck 4; Most Łazienkowski cut by the east edge (decide)
+- [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
+
+### Left: landmarks and street details
+- [ ] The landmark lane's remaining list (BACKLOG "Landmarks lane, hand-over": the Cathedral, the
+      Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
+- [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
+      Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
+
+### Left: content and feel
+- [ ] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
+- [ ] DEMO 6.3 counts: 10 roof cassettes (1 in #115), ~25 landmark cards, the second słoiki
+      station, the Old Town tourist and Łazienki peacock rescues (check each against the code)
+- [ ] Loop 3i juice: sparks and dust (no particles yet), money pops, district ambiences,
+      haptics working on the iPhone
+- [x] Accessibility options (2026-11-01, Settings → DOSTĘP, `access.gd`): larger HUD text, calm
+      (no flashing or shaking), colour-safe markers, vibration on/off, stop assist on/off.
+      Left to do: left-handed layout, live text size, subtitles (BACKLOG)
+- [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
+      length, teleport rules, stop assist toggle, Palace stone colour)
+
+### Left: the phone (needs F's yes for each device run)
+- [ ] Bench on the iPhone 11 and 16 Pro Max on today's main against budget P (DEMO 7): frame,
+      draw calls, memory, `--stream-soak`; the sector-load hitch; compressed map textures
+- [ ] F's timed fresh-save run: the first 10 minutes beat by beat and the ~1 h main line; driving
+      feel, stop assist, rubber band, ghost finger, cassette size
+- [ ] A 30-minute soak with no crash or soft-lock; the HUD re-checked at 375, 390 and 440 pt
+
+### Left: TestFlight and the stores
+- [ ] F fills App Information in App Store Connect; keep or drop iPad
+- [ ] Debug flags stripped from the release build; credits and licences screen checked
+- [ ] Store screenshots re-shot after the opening lands; app icon; a short trailer
+- [ ] Deploy the support page; first TestFlight upload from the Mac; Play closed test
+- [ ] Outside players finish the first ten minutes without help (the Demo gate)
+
+### v1.0 Launch (after TestFlight)
+- [ ] Device pass iPhone 13 to current (60 fps, memory under 1.5 GB, load under 4 s), App Store
+      assets and metadata, review notes
+
 ## Where we are (v0.4)
 
 - Map: 3.55 × 1.78 km, Śródmieście to PGE Narodowy, as a diorama slab.
@@ -330,8 +417,18 @@ in). Gaps the orchestrator added on 2026-10-28, so nothing found so far falls th
 - **After the demo**: the inner districts (Śródmieście, Wola, Ochota, Mokotów, Żoliborz,
   Praga-Północ, Praga-Południe, ~122 km²) as an update delivered as background asset packs,
   then the rest of Warsaw (sizes in DEMO.md section 9).
+- **Status, 2026-11-01 (audit)**: rounds 1-7 are built and round 8 (3h) is mostly built, but
+  the Demo gate (WORKFLOW.md) is not met: the opening's last two PRs (#115, #121) are unmerged,
+  the last phone numbers are from 2026-10-29, no full Mac verify is recorded since the landmark
+  lane began, the roads were never compared with the real streets outside the old box, and nobody
+  has played a fresh save on the phone. The order from here: BACKLOG "Audit: what is verified
+  beyond the landmarks" (P0: merge the opening, a full Mac verify, the phone pass and F's timed
+  run; then roads review C, street furniture on the main line's route, the designer's text pass),
+  with the landmark lane running beside it.
 
 ### v1.0 — "Ship it"
+- Trend spots 2025–26 (docs/design/trends-2025-26.md): eight parody signs built; PISTACJA queue and
+  Friday "Limitka" drop job built (2026-11-01, phone check open); PADELNIA queue and eight padel lines built (docs/design/padel.md; characters, notebook lore and the "Czwarty" quest to follow); scooter zones built (toast only, 2026-11-01) (BACKLOG "Trends 2025–26").
 - Device pass on iPhones (11 → 17 Pro): 60 fps target, memory under 1.5 GB, load < 4 s.
 - Settings (style, controls, sound), onboarding, App Store assets, privacy, credits
   (OSM ODbL, GUGiK CC BY 4.0 for trees, ZTM data terms).
@@ -496,3 +593,5 @@ and how to verify. Every agent must:
 | 2026-10-31 | first scene 1: MSN | The Museum of Modern Art on Plac Defilad as a model (site `msn`, L3, 336 tris, `check_mesh_quality` 0 defects): the white box on its glazed lobby behind 29 white fins (all from the museum's OSM 3D parts), the thin dark slot where the upper box sits back 0.7 m, two city-room windows lit warm at night, three long skylights, a card. Spec `docs/landmarks/specs/msn.md` (the first in that folder; `check_spec.py` now skips the folder's README). `shots.sh --set=first` adds `first_msn_flat/sil`. Built from OSM and the brief in a cloud thread: the photo check against `refs/` is still to do on the Mac. |
 | 2026-10-31 | TR Warszawa's site + MSN from F's photo | F's ask: the empty plot west of the museum (between its tree court and the Palace; site `tr`, u -62..16, v 46..100 in the museum's frame) as a messy building site, nothing built yet: a hoarding (black tarp on the museum side, a gate in it, green boards round the rest), dug-up dirt, spoil heaps, a grid of old foundation walls, stacked cabins, a skip, pallets and steel, a small digger and one tower crane with a red lamp lit at night; a card. 416 tris (budget 500). The museum from F's night photo: the north-west corner block standing out to the ground (OSM's part at (-1062, 54)), five big glazed roof panels lit at night round an open light well (replacing the three strips), windows moved to where the photo shows them (W1, W3 on the Plac Defilad face, W4, W5 on the north end); 410 tris (budget 500). 0 mesh defects; `check_landmarks` flies the helicopter at 6 m over the site. |
 | 2026-10-31 | loop 3h slice 4 | The guided first 10 minutes and the end card (gameplay-dev, Opus; the demo loop's fourth slice, `docs/design/loop-3h-handover.md` items 6-7; DEMO 6.2, 6.3 "The end of the demo"). **Built**: `first10.gd` (new: a director on a fresh save, 5 Hz, its rules static and map-free; each 6.2 beat met by the player or fired by it, waiting while anything else is on: the ghost finger after 4 s without a touch, the arrow to the Świętokrzyska stand, its guided order past the Rotunda (Aleje Jerozolimskie 33, 926 m by road: no door past the Rotunda is nearer), **Pani Halina** (decided: the ladder's first rung, not Seba) rolling up behind 6 s after the first delivery for a race to the Palm with a rubber band she loses narrowly, the police's first contact (armed by the director at 4:30 without a race), the first call held to 3:45, the helicopter after the first rescue, the boulevard KASETA and a PÓŁNOC FM track, the Powiśle arrow, Mirek's garage at 9:30; the save's new `[intro]` section; the end card once "Trzy mosty" is won and 10 jobs are done: "Dzięki za grę! / Thanks for playing!", the credits, the repo's name, "Jedź dalej · Free roam"), hooks in `jobs.gd` (`pin_first`, `first_pick`), `rivals.gd` (`call_first`, `first_band`), `hud.gd` (the finger, the HELI chip, a two-word button), `missions.gd` (`held`, `ring_in`), `garage.gd` (`held`), `police.gd` (`arm_first_contact`), `wallet.gd` (`intro`, `jobs_done`), main.gd (`--first10`, `--end-card`, `--first-race`). `check_first10.gd` and `check_end_card.gd` join `verify.sh` (quick) and CI; `first10-run`, the headless replay, joins the full list (10/10 clean). A safety net in car.gd: a car state that stops being a number (seen once in ~10 replays at the first rescue's pickup, cause not found) is put back at its last good transform, logged. Bench (headless): frame 6.95 → 6.92 ms, scripts 3.65 → 3.23 ms (noise), first10 0.00 ms; +0 draw calls while driving (the finger draws on the HUD's existing pad). Details: DEVELOPMENT.md "The first 10 minutes and the end card", BACKLOG "From loop 3h slice 4". |
+| 2026-10-31 | loop content-POIs switch | `storefronts.gd` reads the baked content POIs: the Frogs from the 163 `convenience` `fr` shops, the Leżaks and zones from `scooter`/`scooter_zone`, the metro canopies from `subway_entrance` (facing `yaw`, not `u`); the runtime picks that failed the bake's rules (108 Leżaks, 14 canopies) are gone. `check_parodies.gd` pinned to the data. Not built: bike docks, the other `convenience` shops. |
+| 2026-10-31 | landmarks: Pawilony | F's "add the pawilony warszawskie" (Opus thread). The bar pavilions behind Nowy Świat 22/28 as a site: `landmarks.gd` `_find_pawilony`/`_build_pawilony` from the two OSM strips "Pawilony za Nowym Światem", 37 pavilions, a card, 7 new neon words + PAWILONY over the gate (`neon_signs.gd` LANDMARK_WORDS). Spec `docs/landmarks/specs/pawilony.md` (check_spec OK; `check_spec.py` no longer reads the specs README). check_mesh_quality 1740 tris (budget 2100), zero defects; check_sites OK. Flat, silhouette and night shots rendered in the cloud (lavapipe), no photos: art-director check open. |

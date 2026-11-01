@@ -473,6 +473,11 @@ class Landmarks:
             if len(lm.get(name, [])) >= 3:
                 self.zones.append((key, [lm[name]], []))
                 self.colliders.append((key, lm[name]))
+        # The library's court in the south notch: Collegium Iuridicum II, built by the site (pass 3).
+        for b in blds:
+            if b.get("name") == "Collegium Iuridicum II" and len(b["p"]) >= 6:
+                self.zones.append(("buw", [pairs(b["p"])], []))
+                self.colliders.append(("buw", pairs(b["p"])))
         tar = lm.get("Złote Tarasy", [])
         if len(tar) >= 3:
             # The whole complex inside its outline is the landmark (spec tarasy.md): the domes
