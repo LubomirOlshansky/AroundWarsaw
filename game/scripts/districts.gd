@@ -25,6 +25,7 @@ extends Node
 ## A district was discovered for the first time (its id); `card` false when quietly.
 signal discovered(id: String, card: bool)
 
+const Access := preload("res://scripts/access.gd")
 const DATA_PATH := "res://data/districts.json"
 const PLACES_PATH := "res://data/places.json"
 const EGGS_PATH := "res://data/eggs.json"
@@ -266,7 +267,7 @@ func show_card(id: String) -> void:
 		hud.show_note(t[0], t[1], CARD_COLOUR)
 	if blip.is_valid():
 		blip.call()
-	Input.vibrate_handheld(40, 0.4)
+	Access.buzz(40, 0.4)
 
 
 ## [title, body] of district `id`'s card.

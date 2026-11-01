@@ -290,8 +290,8 @@ func _check_screen(screen: Vector2i) -> int:
 	hud.open_settings({"controls": 1, "follow": false, "traffic": 2, "quality": 0, "auto": "Medium ostry", "master": 1.0, "music": 0.5,
 			"effects": 1.0, "perf": 0, "fps": 0, "style": 0, "vhs": 0, "weather": 0, "time": 0})
 	var panel: Control = hud.settings_panel
-	# Loop MW-1: the five tabs, then the notebook with a found card open and one not found yet.
-	var views := [0, 1, 2, 3, 4, "lusterko", "milosc_hipoteczna", "eggs", "e07", "e03", "e40", "tape", "t_defilad_2012",
+	# Loop MW-1: the tabs (access last, index 5), then the notebook with a found card open and one not found yet.
+	var views := [0, 1, 2, 3, 5, 4, "lusterko", "milosc_hipoteczna", "eggs", "e07", "e03", "e40", "tape", "t_defilad_2012",
 			"t_stadion_2010", "kadr", "k01", "k10"]
 	for t in views:
 		if t is String:

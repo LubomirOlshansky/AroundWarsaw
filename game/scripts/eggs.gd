@@ -17,6 +17,7 @@ extends Node3D
 ## them; driving past one shows its text with the English underneath. Loop 1: one
 ## advertising column in six wears a joke poster (`column_posters`), read the same way.
 
+const Access := preload("res://scripts/access.gd")
 const Props := preload("res://scripts/props.gd")
 const Models := preload("res://scripts/models.gd")
 const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
@@ -628,7 +629,7 @@ func _barriers(dt: float) -> void:
 					if _knock_wait <= 0.0:
 						_knock_wait = 0.25
 						_car.vel *= KNOCK_KEEP
-						Input.vibrate_handheld(25, 0.3)
+						Access.buzz(25, 0.3)
 		if v.length_squared() > 0.0001:
 			node.global_position += v * dt
 			node.rotation.y += float(k["spin"]) * dt
