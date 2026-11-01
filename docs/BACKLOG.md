@@ -96,9 +96,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   windows, long skylights on the flat roof, a card. Spec and the values still to set:
   docs/design/first-scene.md "Spec for item 1". Landmarks lane: Opus spec, `object-modeler`
   builds, `art-director` accepts. **Built 2026-10-31** (site `msn`, spec
-  `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Left: the photo check on the
-  Mac (the two city-room windows' faces and sizes and the skylight count are estimates; the
-  photos in `refs/` were not reachable from the cloud), and TR Warszawa next door.
+  `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Photo-checked on the Mac
+  2026-11-01: the roof is one gridded glass field with two small wells, and the Marszałkowska
+  window is a deep recess at mid-face. Found then, left open: the mid-height dark ribbon runs only
+  in stretches on both long faces (photos 2 and 4), not all round as built; the Marszałkowska
+  face's lower box has two small windows; the upper roofline steps down near the south end.
 - **TR Warszawa's building site** (F, 2026-10-31): built as site `tr` on the empty plot west of
   the museum (a messy site: hoarding, dirt, heaps, old foundations, cabins, a digger, one
   crane). Left for the map lane: a mapped tree stands on the hoarding's north corner.
