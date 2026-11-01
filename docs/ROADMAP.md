@@ -170,6 +170,28 @@ then the Launch gate.
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
 
+### Left: the gameplay pass (F, 2026-11-01, six phone screenshots; detail and acceptance in docs/BACKLOG.md "Gameplay pass")
+Beta goal: a visitor explores the city with everything open, an easy city drive, a calm street.
+- [ ] G1 Heli and map teleport open from the first second (the guide no longer gates them)
+- [ ] G2 Calmer default traffic (Low) and the traffic setting found and adjustable (Settings, Świat)
+- [ ] G3 +/- zoom buttons on the driving screen (5 steps, saved)
+- [ ] G4 Easy city drive: less drift, gentler steering, a Cruise handling default (Opus, feel)
+- [ ] G5 Flicker and "lag wall" audit: the dithered fade patches, wall-like props, the metro
+      entrances (what stays, what stops colliding, what goes) (Opus)
+- [ ] G6 Under-the-bridge entries (owned by the bridge joins thread; report in BACKLOG)
+- [ ] G7 Old Town roofs less repetitive (the dormer and tile pattern) (Sonnet)
+- [ ] G8 Bus stops on the kerb; buses dwell about ten seconds, people get off and on, people wait (Opus)
+- [ ] G9 Street furniture (chairs, benches) placed where it belongs, not at random (Sonnet)
+- [ ] G10 Podwózka off the main line: a visible rider icon and a START RIDE button with clear directions (Opus)
+- [ ] G11 Better map icons on the minimap and the full map (Sonnet)
+- [ ] G12 Separate quest lines: helicopter quests and car quests, each with its own list and map colour (Opus)
+- [ ] G13 Upgrade shop: Audi TT parody (faster car), nitro, tuning, paid in zł (Opus design, Sonnet content)
+- [ ] G14 POMOC DROGOWA (unstuck) and NOWA GRA (two-tap reset) at the top of Settings → Jazda (quick win)
+- [ ] G15 Stop assist works better: bigger quest start and end rings, looser "stopped", longer look-ahead (quick win; phone check)
+- [ ] G16 Fewer text popups while driving on the road: toasts and speech bubbles only for what matters (Sonnet)
+- [ ] G17 Car stuck against other cars: traffic collision pushes, then auto-unstuck from cars (Opus)
+- [ ] G18 Park Ujazdowski and Zamek Ujazdowski (the castle) improved: its own landmark thread (Opus)
+
 ### Left: the phone (needs F's yes for each device run)
 - [ ] Bench on the iPhone 11 and 16 Pro Max on today's main against budget P (DEMO 7): frame,
       draw calls, memory, `--stream-soak`; the sector-load hitch; compressed map textures

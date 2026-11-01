@@ -4,6 +4,143 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Gameplay pass (F, 2026-11-01, six phone screenshots)
+
+F played on the phone and asked for an easier, calmer, more open beta: "a city, not racing; most
+users will just explore". Each item: what F saw, what the code does today, the task, acceptance,
+files, model. Order = priority. G1-G3 are quick wins (own PRs); the rest are separate threads.
+
+**G1 · Heli and teleport open from the start (P0, Sonnet, quick win).** Today `first10.gd`
+`heli_locked()` blocks the HELI chip and H key until the first rescue (or 7:00), and
+`main.gd _teleport_refusal()` refuses the full map's hold-to-teleport during the guide ("Finish the
+first drive first"). F: it's a beta, let explorers use both. Task: no gate on a fresh save for
+either; the guide's heli beat (toast, tape arrow) stays as a hint. Races, jobs, rescues and police
+chases still refuse the teleport. Accept: fresh save shows HELI in the top row at 0:00, H takes
+off, a map hold teleports; `check_hud`, `check_first10`, `check_settings` pass. Files: first10.gd,
+main.gd, hud.gd, game/tools/check_hud.gd.
+
+**G2 · Traffic: calmer default and a findable control (P0, Sonnet, quick win).** The setting
+exists (Settings → Świat → "Ruch uliczny", four steps) but defaults to Normal (about 17 cars on
+screen) and F did not find it. Task: default to Low for new saves (`Settings.NORMAL_TRAFFIC` → 1;
+old saves keep their choice); change the control to a stepped slider with a live label. Accept:
+fresh save reads "Mało"; a slider drag changes density at once; saved. Files: settings.gd,
+settings_panel.gd, main.gd `_apply_traffic`, check_settings.gd. Note: police opts take
+`traffic_level` as an index, so the slider stays stepped.
+
+**G3 · +/- zoom buttons (P0, Sonnet, quick win).** Zoom is pinch only (`main.gd _zoom_view(±1)`,
+5 view steps in `follow_camera.gd`; the on-screen buttons left in loop 2e). Pinch is not
+discoverable. Task: two small round buttons under the speed readout, touch size, safe-area edge,
+hidden in cinematic moments and photo mode; they call `_zoom_view`. Accept: five taps each way walk
+the five steps and save; no overlap with the pill, wallet or minimap at 2532x1170 and 2868x1320
+(shots). Files: hud.gd (new signals), main.gd.
+
+**G4 · Easy city driving (P1, Opus, feel).** F: "very drifty and sensitive; it's a city, not a
+racer". Task: a Cruise handling profile as the default: lower steering rate at speed, speed-
+sensitive steering limit, stronger lateral grip (less slide), gentler yaw response, softer
+throttle onset; keep a Sport profile for the old feel (Settings → Jazda). Accept: check_steering
+at `--fixed-fps 60` green; a lane change at 50 km/h and a 90° corner at 25 km/h with full lock held
+do not slide (`slip` under a set value, new check); phone check parked. Files: car.gd,
+drive_controls.gd, settings*.gd, check_steering.gd, archive "Driving".
+
+**G5 · Flicker and "lag wall" audit (P1, Opus).** Screenshots: (a) dithered fade patches on
+building walls beside the car (the occlusion fade; reads as flicker at the road edge, IMG 7138,
+7137, 7135), (b) wall-like blocks at the metro mouths (the vaulted M1/M2 canopies and stairwells),
+(c) stair walls and low retaining walls by the road (7136), (d) road-edge geometry that pops.
+Task: list every prop and wall kind that is solid and decide per kind: stays solid (buildings,
+high kerbs, bollards), becomes non-colliding (metro canopies and stairs beside the road,
+planters, signs, low walls under 0.4 m, fences) or is removed; tune the fade dither so it doesn't
+strobe at the road edge; run a two-frame flicker probe on the start box, Marszałkowska and the
+bridge ramps. Accept: a table in this file (kind, decision, why); the car drives through nothing
+it shouldn't and stops on nothing it shouldn't; `check_drive`, `check_roads` green. Files:
+street_details.gd, props.gd, map_builder.gd, car.gd collision layers, shaders/building.gdshader.
+
+**G6 · Going under bridges at entries (P1, owner: the "Finish remaining bridge joins" thread).**
+F: "when I was entering the bridge I went down under it". Not touched here. For that thread:
+reproduce at the ramps of the Poniatowski, Świętokrzyski, Śląsko-Dąbrowski, Gdański and
+Łazienkowski bridges and the Średnicowy flyover (7138 shows a flyover with a road below): the lane
+graph's or the ground's height at the approach lets the car under the deck. Accept: the car stays
+on the ramp across every bridge entry in check_drive's bridge pass.
+
+**G7 · Old Town roofs repetitive (P2, Sonnet).** IMG 7135: every tenement carries the same brown
+tile, the same small dormers in the same rows, the same chimney pots. Task: vary tile colour (4-5
+related tones), dormer count, size and spacing by a per-building hash, some flat or tin roofs, a
+few skylights and chimneys of different heights; real landmarks' roofs stay. Both city paths.
+Accept: before/after shots of the Rynek and Piwna; no extra draw calls (shader or per-instance
+only); roof checks green. Files: old_town_roofs.gd, roof_dress.gd, shaders/building.gdshader.
+
+**G8 · Bus stops and buses (P2, Opus).** Stops sit off the kerb (IMG 7134: shelters in the lawn,
+BUS markers on the lane). Task: snap each shelter to the footway edge beside the bus lane, the bay
+to the lane; buses stop at the bay for about 10 s; 1-3 pedestrians step off, others board; 2-5
+people wait at the shelter. A small state machine in buses.gd (arrive, dwell, depart) is enough:
+write "Beehave not used, because ..." in the PR. Accept: a new check puts every stop within 1.5 m
+of the kerb; a bus dwells 8-12 s; draw calls unchanged. Files: buses.gd, pedestrians.gd, props.gd.
+
+**G9 · Chairs and benches (P2, Sonnet).** Furniture appears in odd places. Task: chairs only at
+cafe terraces (the storefront's frontage, 1.5 m deep, on paving), benches on footways facing the
+walk or park path, never within 1 m of a lane. Accept: a check lists every chair/bench and fails
+any on a lane, in water or inside a wall. Files: street_details.gd, props.gd, storefronts.gd.
+
+**G10 · Podwózka off the main line, with a clear start (P1, Opus).** Today (`rides.gd`): a
+request card for 10 s, the pickup is a teal pin and you must stop within 7 m (a waiting passenger
+waves 30-60 m away). F: too hard to catch. Task: a visible rider marker (icon over the person, a
+bigger teal "!", on the minimap and full map); inside 25 m a START RIDE button appears and the
+ride begins on tap (the car auto-brakes as in stop assist); then the beacon and a direction arrow
+to the drop-off, with the distance. Podwózka never counts toward the main line. Accept: from 25 m a
+tap starts the ride within 1 s; no 7 m ring needed; `check_rides`, `check_stop_assist` green.
+Files: rides.gd, ride_rules.gd, hud.gd, stop_assist.gd, main_line.gd. Dialogue Manager not used.
+
+**G11 · Better map icons (P2, Sonnet).** The minimaps show identical black-and-yellow "?" squares
+and orange squares for everything (7138, 7134). Task: a distinct icon per kind (job, rider, food,
+garage, landmark, heli pad, bus, metro, quest star) by shape and colour (colour-safe mode kept),
+larger on the full map, with a legend. Accept: shots of both maps; one atlas (no extra draw
+calls). Files: map_icons.gd, full_map.gd, hud.gd minimap.
+
+**G12 · Separate heli and car quests (P2, Opus design).** Today rescues, jobs and the main line
+share one list. Task: CAR (kebab, Podwózka, couriers, races) and HELI (rescues, rooftop pickups,
+the cassette, sightseeing) with their own marker colours; flying shows only heli quests, driving
+only car quests; the main line stays one path. Accept: the notebook lists both; no car quest
+completes from the heli and the reverse. Files: missions.gd, jobs.gd, main_line.gd, notebook.gd,
+map_icons.gd.
+
+**G13 · Upgrade shop (P2, Opus design, Sonnet content).** Today the garage (`garage.gd`, Warsztat
+u Mirka) sells paints only. Task: a second tab "Części i auta": (1) a faster car, a parody of the
+Audi TT (low coupe, parody name and badge, about 2,500 zł); (2) nitro: a short boost button with a
+refill timer, about 600 zł; (3) tyres (grip) and engine (top speed) levels 1-3, 150-400 zł each.
+Prices so a first purchase is reachable after about 15 minutes of jobs. New car handles as Cruise
+(G4 first). Accept: purchases saved (save migration), a stat card, `check_garage` extended, bench
+for the new model. Files: garage.gd, garage_card.gd, car.gd, models.gd, wallet.gd. Dialogue: none.
+
+**G14 · Unstuck and reset easy to find (P0, quick win).** F: "in Settings there should be reset
+game, and unstuck: if the user is stuck in textures, click and move to the main road". POMOC
+DROGOWA (PR #231) lived at the bottom of the Jazda tab. Task: both buttons in a row at the top of
+Settings → Jazda (the first tab); NOWA GRA asks a second tap within 4 s, then wipes the save
+(`_on_new_game`). Later: show a "stuck? tow" toast when the car has been pinned for 8 s.
+Files: settings_panel.gd, main.gd.
+
+**G15 · Stop assist and quest rings (P0, quick win).** F: "pomoc przy zatrzymaniu is not working
+well; make the start and end points bigger and add assistance to pickup". Task: ring 9 → 13 m,
+"stopped" under 6 m/s, look-ahead 60 m, aim 3 m inside. Left for the phone: is it enough, or
+should a pickup start by driving through the ring without stopping (G10). Files: stop_assist.gd.
+
+**G16 · Fewer texts while driving (P2, Sonnet).** F: "less texts when the user goes on the road".
+Task: count the toasts and bubbles per minute in a 5-minute drive (a log), merge or drop the
+repeats and hints, rate-limit toasts to one per 20 s except for quest and danger lines, no
+speech bubbles above 40 km/h except police. Accept: at most 3 popups in a 5-minute free drive.
+Files: hud.gd toast, bubbles.gd, dialogue.gd, gps_moments.gd, first10.gd.
+
+**G17 · Stuck against other cars (P1, Opus).** F: "stuck with another cars". Task: reproduce
+(a car pinned against traffic or parked cars at junctions), make traffic yield or ghost through
+the player when contact lasts over 1.5 s, and tow the player to the lane after 8 s pinned with an
+unstuck toast. Accept: a check with the car pinned between two traffic cars frees itself in under
+8 s; `check_drive`, `check_steering` green. Files: car.gd, traffic.gd, main.gd.
+
+**G18 · Ujazdów and the castle (P1, Opus, landmark thread).** F: improve Ujazdów and Zamek
+Ujazdowski. One landmark thread: compare the castle's model and the park with the orthophoto and
+photos, per the landmark recipe in docs/LANDMARKS.md.
+
+Split for parallel threads: G4 (driving), G5 (collisions and flicker), G8+G9 (street life),
+G10+G12 (quests), G13 (shop, after G4), G7+G11 (visual content), G16 (text), G17 (traffic), G18 (Ujazdów). G1-G4, G14 and G15 are done by this thread.
+
 ## Marszałkowska street by street (F, 2026-11-01)
 
 Order: plac Bankowy to plac Zbawiciela. Pass 1 (cloud, Sonnet): Kościół Najświętszego Zbawiciela
