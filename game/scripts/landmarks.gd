@@ -50,6 +50,7 @@ const S_FRAME := 8
 const S_TILE := 9   # Novotel's white tiled shaft (the Rondo photos, 2026-10-31)
 const S_EASTWALL := 10  # the Eastern Wall stores: strong dark mullions every 1.5 m, a thin floor line
 const S_PUNCHED := 11   # a re-clad point block: light horizontal cladding, punched windows in bands
+const S_SLAB := 12      # a 1960s slab's long face: plaster and loggia bands
 
 ## The landmarks loop (2026-10-30): the skyline's towers, so each reads as itself and not as one
 ## more blue box. Each is built from its mapped building parts (the outline `osm` names; what
@@ -853,6 +854,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"tower75":
 				_id = 0  # unnamed: no card, not on the picking grid
 				_build_tower75(s)
+			"slabs":
+				_id = 0
+				_build_slabs(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -4093,6 +4097,11 @@ const TOWER75_PODIUM := 7.0
 const TOWER75_CLAD := Color("#d9dcdc")
 const TOWER75_GLASS := Color("#3e4e5e")
 const TOWER75_WORD := "KOKA-KOLKA"
+const SLAB_AT := [Vector2(-862.0, 86.0), Vector2(-853.0, 190.0), Vector2(-813.0, 207.0), Vector2(-778.0, 308.0)]
+const SLAB_BILLBOARD := 1     # the slab behind Sawa (index in SLAB_AT)
+const SLAB_PLASTER := Color("#d8c9a6")
+const SLAB_END := Color("#c9a96a")
+const SLAB_WORD := "ORANZADA"
 ## Faces the game's camera sees most (south and east): signs face the one nearest this.
 const BEHIND_FACE := Vector2(0.349, 0.937)
 
@@ -4112,6 +4121,16 @@ func _find_behind() -> void:
 	if tower.size() >= 3:
 		_add_site("tower75", [_largest(Geometry2D.offset_polygon(tower, 3.0, Geometry2D.JOIN_MITER))])
 		sites[-1]["outline"] = tower
+	var slabs: Array[PackedVector2Array] = []
+	var outlines: Array[PackedVector2Array] = []
+	for at: Vector2 in SLAB_AT:
+		var q := _outline_at(at)
+		if q.size() >= 3:
+			slabs.append(_largest(Geometry2D.offset_polygon(q, 3.0, Geometry2D.JOIN_MITER)))
+			outlines.append(q)
+	_add_site("slabs", slabs)
+	if not sites.is_empty() and sites[-1]["key"] == "slabs":
+		sites[-1]["outlines"] = outlines
 
 
 ## The edge of `poly` whose outward normal is nearest `want`, among the longer edges.
@@ -4186,6 +4205,55 @@ func _build_tower75(site: Dictionary) -> void:
 		if side >= 0 and side != face:
 			_roof_frame(shaft, side, top, 0.8, 3.2, "LODY", Color(1, 1, 1), 0.45, Color("#2a6fb0"))
 	_collide(outline)
+
+
+func _build_slabs(site: Dictionary) -> void:
+	var k := 0
+	for z: PackedVector2Array in site["outlines"]:
+		var poly := _simplify(z, 0.6)
+		if poly.size() < 3:
+			k += 1
+			continue
+		_g = _ground_under(poly)
+		var g := _g
+		var top := g + 37.3
+		# Walls: the long faces in plaster with their loggia bands, the ends plain ochre.
+		var longest := 0.0
+		for i in poly.size():
+			longest = maxf(longest, poly[i].distance_to(poly[(i + 1) % poly.size()]))
+		var run := 0.0
+		for i in poly.size():
+			var a := poly[i]
+			var b := poly[(i + 1) % poly.size()]
+			var long_face := a.distance_to(b) > longest * 0.5
+			_mode = M_SKIN + float(S_SLAB) / 16.0 if long_face else M_STONE
+			_wall(a, b, g - 0.4, top, _out(poly, a, b), SLAB_PLASTER if long_face else SLAB_END, run)
+			run += a.distance_to(b)
+		_mode = M_STONE
+		_cap(poly, top, Color("#8c8a84"))
+		# The roof: lift and stair houses along the slab's long axis.
+		var axis := Vector2.ZERO
+		for i in poly.size():
+			var e := poly[(i + 1) % poly.size()] - poly[i]
+			if e.length() > axis.length():
+				axis = e
+		axis = axis.normalized()
+		var c := _centre(poly)
+		var span := 0.0
+		for q in poly:
+			span = maxf(span, absf((q - c).dot(axis)))
+		for f: float in [-0.45, 0.45]:
+			var p := c + axis * span * f
+			var across := Vector2(-axis.y, axis.x)
+			_prism(PackedVector2Array([p - axis * 3.0 - across * 2.2, p + axis * 3.0 - across * 2.2, p + axis * 3.0 + across * 2.2,
+					p - axis * 3.0 + across * 2.2]), top, top + 3.2, SLAB_PLASTER.darkened(0.06), Color("#7d7b75"), M_STONE, M_STONE)
+		if k == SLAB_BILLBOARD:
+			var face := _edge_facing(poly, BEHIND_FACE, 15.0)
+			if face >= 0:
+				_roof_frame(poly, face, top, 4.5, 5.5, SLAB_WORD, Color(1.0, 0.62, 0.15), minf(0.9, 25.0 / poly[face].distance_to(poly[(face + 1) % poly.size()])), Color("#1d3d6b"))
+		_collide(poly)
+		k += 1
+	_mode = M_STONE
 
 
 # --- TR Warszawa's building site ----------------------------------------------------------

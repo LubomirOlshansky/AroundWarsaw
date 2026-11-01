@@ -194,6 +194,7 @@ const int S_FRAME = 8;
 const int S_TILE = 9;
 const int S_EASTWALL = 10;
 const int S_PUNCHED = 11;
+const int S_SLAB = 12;
 
 vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool cut) {
 	glow = vec3(0.0);
@@ -282,6 +283,36 @@ vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool 
 			return mix(srgb_to_linear(vec3(0.16, 0.19, 0.23)), sky * 0.5, refl) * mix(0.35, 1.0, daylight);
 		}
 		return rim ? white : clad;
+	} else if (s == S_SLAB) {
+		// A 1960s residential slab's long face (2026-11-01): pale plaster, a continuous loggia
+		// band on every floor (a light balustrade, a dark recess with windows between thin
+		// piers); warm windows and some lit balconies at night.
+		float pf = 2.85;
+		float wy = fract(h / pf);
+		float lvl = floor(h / pf);
+		float bay = floor(u / 3.6);
+		float wx = fract(u / 3.6);
+		vec3 plaster = col * mix(0.3, 1.0, daylight);
+		if (h < pf || h > top - 0.6) {
+			return plaster * (h < pf ? 0.86 : 1.06);
+		}
+		if (wy < 0.33) {
+			return srgb_to_linear(vec3(0.9, 0.88, 0.83)) * mix(0.3, 1.0, daylight);
+		}
+		if (wy > 0.9 || wx < 0.07) {
+			return plaster * 0.92;
+		}
+		vec3 deep = col * 0.55 * mix(0.35, 1.0, daylight);
+		if (abs(wx - 0.55) < 0.18 && wy > 0.45 && wy < 0.84) {
+			deep = mix(srgb_to_linear(vec3(0.17, 0.19, 0.22)), sky * 0.4, 0.3) * mix(0.35, 1.0, daylight);
+			if (lights_on > 0.001 && hash12(vec2(bay, lvl) + 4.1) < 0.45 * lights_on) {
+				glow = WARM_PALE * 0.9;
+				return deep * 0.3;
+			}
+		} else if (lights_on > 0.001 && hash12(vec2(bay, lvl) + 8.3) < 0.1 * lights_on) {
+			glow = WARM * 0.5;
+		}
+		return deep;
 	} else if (s == S_FRAME) {
 		frame = fract(u / 3.2) < 0.14 || fract(h / 4.4) < 0.1 || h > top - 0.9;
 		frame_col = mix(silver, white, 0.5);

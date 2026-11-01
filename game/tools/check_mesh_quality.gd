@@ -60,6 +60,7 @@ const BUDGET := {
 	"rotunda": 1380,
 	"skyliner": 400,
 	"skysawa": 170,
+	"slabs": 270,
 	"spektrum": 990,
 	"spire": 1290,
 	"tr": 500,
