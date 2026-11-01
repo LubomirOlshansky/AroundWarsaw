@@ -85,6 +85,9 @@ const PARKED_PAINT := ["#e9e9e6", "#b8bcc0", "#6f7378", "#2b2c2f", "#2f4566", "#
 ## Loop 2c, for loop 3g: the police car's and the city guards' paint (police.md section 9).
 const POLICE_WHITE := Color("#f2f2ee")
 const GUARD_MUSTARD := Color("#e3b33a")
+## The crash scenes: the ambulance's paint and its red band and lettering.
+const AMBULANCE_YELLOW := Color("#f2cf1d")
+const AMBULANCE_RED := Color("#d9262c")
 
 static var _material: ShaderMaterial
 static var _glow_material: ShaderMaterial
@@ -728,16 +731,25 @@ static func bus_mesh() -> ArrayMesh:
 ## doors, "POLICJA" in the pixel font on it (readable only zoomed in) and a light bar whose
 ## blue and red lamps blink in turns (BLINK); shape 1 the guards' car, the same estate at
 ## 0.88 scale, mustard (GUARD_MUSTARD) with a dark red band and two amber lamps.
+## The crash scenes (crash_scenes.gd, 2026-11-01): shape 2 the ambulance (karetka), the panel
+## van in AMBULANCE_YELLOW with a red band, "AMBULANS" in red above it and two blue lamps, so the
+## scene's ambulance rides in the POLICE MultiMesh with the patrol car (+0 draw calls).
 static func police_mesh() -> ArrayMesh:
-	return family([_police(false), _police(true)])
+	return family([_police(0), _police(1), _police(2)])
 
 
-static func _police(guard: bool) -> Shape:
+## Shape `which` of the police family: 0 the patrol estate, 1 the guards' car, 2 the ambulance.
+## Every shape adds the same parts in the same order (family() morphs between them); a part
+## another shape owns is hidden.
+static func _police(which: int) -> Shape:
+	var guard := which == 1
+	var amb := which == 2
 	var s := Shape.new()
 	if guard:
 		s.xform = Transform3D(Basis.from_scale(Vector3.ONE * 0.88), Vector3.ZERO)
-	var p := spec("estate")
-	p.merge({"L": 4.7, "rails": false}, true)
+	var p := spec("panel van" if amb else "estate")
+	if not amb:
+		p.merge({"L": 4.7, "rails": false}, true)
 	_vehicle(s, p, fin(Color.WHITE, PAINT))
 	var W: float = p["W"]
 	var roof_y: float = p["roof_y"]
@@ -748,40 +760,56 @@ static func _police(guard: bool) -> Shape:
 	var z1: float = p["axle_r"] - 0.42
 	var y0 := 0.44
 	var y1 := 0.88
-	s.keep_if(not guard, mid)
+	s.keep_if(which == 0, mid)
 	for sgn: float in [-1.0, 1.0]:
 		s.side_rect(sgn * (W + 0.01), sgn, y0, y1, z0, z1, fin(Color("#1f4fd8")))
 	s.keep_if(guard, mid)
 	for sgn: float in [-1.0, 1.0]:
 		s.side_rect(sgn * (W + 0.01), sgn, y0 + 0.08, y1 - 0.08, z0, z1, fin(Color("#7a2430")))
-	# The light bar: a dark base, then the police's two lenses or the guards' one.
+	# The ambulance's red band, low along the whole side between the arches.
+	s.keep_if(amb, mid)
+	for sgn: float in [-1.0, 1.0]:
+		s.side_rect(sgn * (W + 0.01), sgn, 0.46, 0.6, z0 - 0.3, z1 + 0.3, fin(AMBULANCE_RED))
+	# The light bar: a dark base, then the police's two lenses, the guards' one, the ambulance's.
 	s.show()
 	s.box(bar, Vector3(1.36, 0.07, 0.28), fin(GRILLE))
-	s.keep_if(not guard, mid)
+	s.keep_if(which == 0, mid)
 	s.box(bar + Vector3(-0.35, 0.08, 0.0), Vector3(0.6, 0.1, 0.24), fin(Color("#3d7bff"), BLINK, 0.0))
 	s.box(bar + Vector3(0.35, 0.08, 0.0), Vector3(0.6, 0.1, 0.24), fin(Color("#ff3b3b"), BLINK, 0.5))
 	# The guards' bar: two amber lamps, in one beat (a light bar, not a taxi's sign).
 	s.keep_if(guard, mid)
 	s.box(bar + Vector3(-0.35, 0.08, 0.0), Vector3(0.6, 0.1, 0.24), fin(Color("#ffb21e"), BLINK, 0.0))
 	s.box(bar + Vector3(0.35, 0.08, 0.0), Vector3(0.6, 0.1, 0.24), fin(Color("#ffb21e"), BLINK, 0.0))
+	# The ambulance's bar: two blue lamps taking turns.
+	s.keep_if(amb, mid)
+	s.box(bar + Vector3(-0.35, 0.08, 0.0), Vector3(0.6, 0.1, 0.24), fin(Color("#3d7bff"), BLINK, 0.0))
+	s.box(bar + Vector3(0.35, 0.08, 0.0), Vector3(0.6, 0.1, 0.24), fin(Color("#3d7bff"), BLINK, 0.5))
 	# POLICJA on the band, both sides reading from the front of the letters (left side front
 	# to back, right side back to front), 5 cm pixels.
-	s.keep_if(not guard, mid)
+	s.keep_if(which == 0, mid)
+	_side_text(s, "POLICJA", W, (z0 + z1) * 0.5, (y0 + y1) * 0.5, fin(POLICE_WHITE))
+	# AMBULANS in red above the ambulance's band, on the box behind the cab.
+	s.keep_if(amb, mid)
+	_side_text(s, "AMBULANS", W, (z0 + z1) * 0.5 + 0.3, 0.84, fin(AMBULANCE_RED))
+	s.show()
+	return s
+
+
+## `text` in the pixel font (5 cm pixels) on both sides of a body of half-width W, centred at
+## (zc, yc), reading from the front of the letters on each side.
+static func _side_text(s: Shape, text: String, W: float, zc: float, yc: float, f: Array) -> void:
 	var px := 0.05
-	var text := "POLICJA"
 	var wide := PixelFont.width(text) * px
 	for sgn: float in [-1.0, 1.0]:
 		# Seen from +x the text runs towards -z, from -x towards +z.
 		var x := sgn * (W + 0.02)
-		var start := (z0 + z1) * 0.5 + sgn * wide * 0.5
-		var top := (y0 + y1) * 0.5 + 3.5 * px + PixelFont.BODY * px
+		var start := zc + sgn * wide * 0.5
+		var top := yc + 3.5 * px + PixelFont.BODY * px
 		PixelFont.each_pixel(text, 0, func(col: int, row: int) -> void:
 			var za := start - sgn * col * px
 			var zb := za - sgn * px
 			var yt := top - row * px
-			s.side_rect(x, sgn, yt - px, yt, minf(za, zb), maxf(za, zb), fin(POLICE_WHITE)))
-	s.show()
-	return s
+			s.side_rect(x, sgn, yt - px, yt, minf(za, zb), maxf(za, zb), f))
 
 
 ## Loop 2c: the parked cars' mesh (map_builder.gd, and main.gd for a city.scn baked before
