@@ -40,6 +40,8 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"WARSZAWA", "POWIŚLE",
 		# S3a: Warszawa Stadion's roof letters.
 		"STADION",
+		# The river's bar barges (docs/landmarks/specs/barki.md): parodies of their names.
+		"WIECZOREK", "BARKA", "MARINKA", "KASKADKA", "PRZYSTAŃ",
 		# S3b: Warszawa Śródmieście's pavilions.
 		"ŚRÓDMIEŚCIE",
 		# The Mac photo check (2026-11-01): Ochota's letters by the entrance.

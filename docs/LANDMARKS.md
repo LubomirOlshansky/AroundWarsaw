@@ -77,6 +77,8 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | 3.4 | Culture and civic | POLIN, Planetarium, Politechnika's main hall, Zamek Ujazdowski, the palaces (about 40) |
 | 3.5 | Other bridges | Śląsko-Dąbrowski, Gdański, Łazienkowski: generic decks today |
 | 3.6 | Street furniture | kiosks, tram stop platforms, Warsaw's green bins (BACKLOG "next candidates") |
+| 3.7 | The river's barges | DONE 2026-11-01 (L2, sites `barka_wieczor`, `barka_biala`, `barka_marina`, `barka_kaskada`, `houseboats`, spec `barki.md`): the four bar barges OSM maps on the boulevards (were 14 m boxes in the water) as moored barges with raked hulls, glazed deckhouses, sun terraces with umbrellas and bars, festoons of bulbs, gangways to the bank and parody neon names; the nine houseboats with cabins. Mac photo check parked; the barges OSM lacks and the boathouses in BACKLOG "The river's barges" |
+| 3.8 | The sailing marina in Port Czerniakowski | DONE 2026-11-02 (L2, site `marina`, spec `przystan.md`): the unnamed 14 m "building" in the water (the harbour's club house) is a white club house on piles with a glazed band, a red hipped roof, a flagpole and a PRZYSTAŃ neon, with 18 sailboats on the finger-pier slips, along the dam and on buoys, and five lit pier-end lamps. Also: Marinka (`barka_marina`) is the two-deck white party barge of F's photo (open canopied upper deck, bulbs, orange neon). Mac photo check parked |
 
 **How to run it:** one item per fresh thread (CLAUDE.md "Model routing"), P0 before P1;
 inside P1 by the order above; each item's thread writes its log in `docs/landmarks/<slug>.md`
@@ -135,7 +137,7 @@ Checks: `check_landmarks.gd` runs on the full map for EVERY site that has a card
 | Mennica Legacy Tower | S_FINS | crest slope | - |
 | Generation Park Y | S_DARK | crest slope | - |
 | Skysawa | S_BANDS | - | - |
-| Błękitny Wieżowiec | S_GOLD | gold glass | - |
+| Błękitny Wieżowiec | S_MIRROR | blue reflective float glass (2026-11-02; was gold: that was its first copper cladding), cool podium, grey roof | Mac photo check: blue tone, spandrel width |
 | Warszawskie Centrum Finansowe | S_DARK | - | Bank Polski/PHN crown unlit |
 | Centrum LIM (Marriott; "PREZYDENT" sign, SAMSONG on mid band) | S_GRID | `_marriott`: dark bands, lattice mast, red lamp; crown name | lit cells too cold/many |
 | Chałubińskiego 8 | S_FINS | mapped colours kept | antenna / dark-glass refit unlit |

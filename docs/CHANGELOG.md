@@ -11,11 +11,14 @@ someone writes its lines.
 
 ## 2026-11-02
 - Warsaw's classic cinemas light up their marquees: Kino Muranów, Atlantic, Luna, Kultura, Elektronik, Femina and the Kinoteka in the Palace.
+- Plac Bankowy looks like the real square: the Blue Skyscraper is blue mirror glass (not gold), and the city hall palace, the Voivodeship wing, the old Stock Exchange and Bank, the Arsenal and two small palaces wear their real colours (yellow palace with white columns).
 - Gdański Business Center near Dworzec Gdański is built: the blue glass tower with its slanted crown and the glass blocks with white floor bands and dark top floors, their tenants as parody logos (AWIWA, NIELZEN).
 - The helicopter's camera now turns with it while you fly, like the car's, instead of swinging round only after you stop.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
+- Port Czerniakowski has a real sailing harbour: the box in the water is a white club house on piles with a red roof, a flag and a lit PRZYSTAŃ sign, with sailboats in the berths between the piers, along the dam and on buoys in the basin. Marinka, the party barge under Most Świętokrzyski, is a two-deck white boat with a canopied upper deck and strings of lights.
+- The bar barges on the Vistula are real boats now: steel hulls with glazed decks, sun terraces under umbrellas, strings of warm bulbs, a gangway to the boulevard and their names in neon (Wieczorek nad Wisłą, Biała Barka, Marinka, Kaskadka); the houseboats in the harbour got cabins too.
 - Warsaw's flat prices get the joke they deserve: KEBAB FM, passengers, Podwózka riders, angry drivers and three developer billboards (KLATKA, METRAŻ, KREDYT) all grumble about studios that cost a fortune and mortgages that outlive you.
 
 - Fewer texts while driving: street chatter stays quiet above 40 km/h and little hints come at most every 20 seconds. Traffic in Settings is now a slider.
