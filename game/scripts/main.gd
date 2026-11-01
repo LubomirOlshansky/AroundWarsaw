@@ -292,6 +292,8 @@ var start_in_tunnel := false
 ## fragments magenta and every other building green; 2: the ghost cut fully, no dither)
 ## and prints the ghost's ellipse in screen pixels with every screenshot.
 var ghost_debug := 0
+## --left-handed: the left-handed layout for this run (Settings → DOSTĘP keeps it otherwise).
+var _flag_left_handed := false
 ## --lift=M: aim the camera M metres above the vehicle (close-ups of tall landmarks).
 var cam_lift := 0.0
 ## The ghosted footprint's sunlight: given back in full above GHOST_SUN_HIGH degrees of
@@ -1116,6 +1118,7 @@ func _build_world() -> void:
 	hud.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(hud)
 	hud.set_scheme(controls.scheme)
+	hud.set_left_handed(Access.left_handed)  # accessibility (2026-11-01)
 	hud.set_touch_off(no_touch)  # desktop: --no-touch
 	hud.settings_pressed.connect(_open_settings)
 	hud.settings_panel.changed.connect(_on_setting)
@@ -3221,6 +3224,8 @@ func _parse_args() -> void:
 	for arg in game_args():
 		if arg == "--demo":
 			demo = true
+		elif arg == "--left-handed":
+			_flag_left_handed = true  # accessibility (2026-11-01): the mirrored controls, for shots
 		elif arg.begins_with("--shots="):
 			for s in arg.trim_prefix("--shots=").split(","):
 				shots.append(int(s))
@@ -3666,6 +3671,8 @@ func _load_settings() -> void:
 	settings.persistent = not no_save
 	settings.load_file()
 	Access.apply(settings)
+	if _flag_left_handed:
+		Access.left_handed = true
 	if not _flag_size:
 		base_size = settings.view
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
@@ -3921,7 +3928,8 @@ func _settings_state() -> Dictionary:
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
 			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on),
 			"text_large": int(settings.text_large), "calm": int(settings.calm), "color_safe": int(settings.color_safe),
-			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist)}
+			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist),
+			"left_handed": int(settings.left_handed)}
 
 
 func _close_settings() -> void:
@@ -3989,10 +3997,12 @@ func _on_setting(key: String, value: Variant) -> void:
 		"zones":
 			settings.zone_cap = int(value) == 1
 			zone_cap_on = settings.zone_cap
-		"text_large", "calm", "color_safe", "vibration", "stop_assist":
-			# Accessibility (access.gd). Text size shows from the next launch (the HUD is built once).
+		"text_large", "calm", "color_safe", "vibration", "stop_assist", "left_handed":
+			# Accessibility (access.gd). Text size shows from the next launch (the HUD is built once);
+			# the left-handed layout at once.
 			settings.set(key, int(value) == 1)
 			Access.apply(settings)
+			hud.set_left_handed(Access.left_handed)
 		"master", "music", "effects":
 			settings.set(key, float(value))
 			Sfx.set_levels(settings.master, settings.music, settings.effects)

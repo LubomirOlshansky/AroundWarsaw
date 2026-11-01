@@ -272,6 +272,8 @@ func _build() -> void:
 	_segments(access[1], "vibration", ON_OFF)
 	_heading(access[1], "Pomoc przy zatrzymaniu", "Stop assist at pick-ups")
 	_segments(access[1], "stop_assist", ON_OFF)
+	_heading(access[1], "Dla leworęcznych", "Left-handed: pedals on the left")
+	_segments(access[1], "left_handed", ON_OFF)
 
 	# The body is as big as the biggest page, so the card keeps its size from tab to tab.
 	var biggest := Vector2.ZERO

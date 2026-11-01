@@ -14,6 +14,9 @@ extends RefCounted
 ##                  Input.vibrate_handheld call goes through it, on to haptics.gd (the floor a
 ##                  hand feels, the iOS engine kept warm; car.gd's knock calls haptics.gd directly).
 ##   stop_assist    false: the quest stop assist (stop_assist.gd) leaves the car alone.
+##   left_handed    true: the pedals, the horn and the helicopter's pads bottom left, the stick's
+##                  half of the screen and Classic's steering strip on the right (hud.gd
+##                  `set_left_handed`, applied by main.gd at once, no restart).
 
 const LARGE_TEXT := 1.25
 
@@ -22,6 +25,7 @@ static var calm := false
 static var color_safe := false
 static var vibration := true
 static var stop_assist := true
+static var left_handed := false
 
 
 ## Take the values from the saved settings (settings.gd).
@@ -31,6 +35,7 @@ static func apply(s: RefCounted) -> void:
 	color_safe = s.color_safe
 	vibration = s.vibration
 	stop_assist = s.stop_assist
+	left_handed = s.left_handed
 
 
 ## A buzz on the phone (milliseconds, strength 0..1) unless vibration is off; haptics.gd raises
