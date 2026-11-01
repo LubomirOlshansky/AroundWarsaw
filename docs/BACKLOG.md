@@ -78,6 +78,14 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
 - The scene's people stand still (no gestures); the onlookers' phones are not modelled.
 - A scene on a one-lane road (none today: they need 2+ lanes so the traffic can go round).
 
+## Old Town hotels (2026-11-01)
+- Done: `hotel_kasztel` (Castle Inn, Plac Zamkowy), `hotel_canaletto` (Hotel Bellotto), `hotel_starowka`
+  (an aparthotel on the Rynek): fronts on tenements, parody names, cards. Spots are estimates from the
+  published addresses, no photos. Left: Mac look check (which house, which street face, the board's
+  size against the lane), real facade photos, Le Régina/Mamaison and the other New Town hotels (the
+  map has no New Town data north of Freta), PURO Stare Miasto (-1094,-1018) has a mapped hotel
+  building but no front, the unnamed 4.3 m hotel at (-819,-1419).
+
 ## Mariensztat and Krakowskie Przedmieście: review (F, 2026-11-01)
 
 F asked whether Mariensztat and Krakowskie Przedmieście are modelled well. Cloud shots (OSM

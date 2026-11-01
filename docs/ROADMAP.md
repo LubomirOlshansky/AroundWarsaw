@@ -68,6 +68,9 @@ then the Launch gate.
 - [x] People on the observation decks (F, 2026-11-01): Varso Tower's roof and St Anne's bell tower
       terrace (with a balustrade), the Palace of Culture's 30th-floor terrace (114 m ledge and
       balustrade, up to 16), hours, weekends and seasons (`crowds.gd` DECKS)
+- [x] Old Town hotels (F, 2026-11-01): fronts on three tenements (portal, canopy, neon name, flags,
+      lanterns, card), under parody names KASZTEL INN (Castle Inn), CANALETTO (Hotel Bellotto),
+      STARÓWKA (an aparthotel on the Rynek); Mac look check parked (QUESTIONS, BACKLOG "Old Town hotels")
 - [ ] Old Town Market Square leftovers: per-house plaster colours and sgraffito from photos, the
       four corner streets' mouths, a card for the Museum of Warsaw house (BACKLOG "Old Town square")
 - [x] Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle as models, people chilling

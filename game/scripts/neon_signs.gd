@@ -41,7 +41,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# S3b: Warszawa Śródmieście's pavilions.
 		"ŚRÓDMIEŚCIE",
 		# The Mac photo check (2026-11-01): Ochota's letters by the entrance.
-		"OCHOTA"]
+		"OCHOTA",
+		# The Old Town hotels' names (parodies of Castle Inn and Hotel Bellotto, an aparthotel).
+		"KASZTEL INN", "CANALETTO", "STARÓWKA"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)
