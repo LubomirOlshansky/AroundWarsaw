@@ -10,6 +10,8 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- New side job "Mlask": Cringulo the food reviewer parks his cream van somewhere in the centre. Fetch him a bite from a new place, bring it while it's warm, read his review, then take his sticker back to the place and watch the queue explode.
+- Warsaw loves a queue: the KUKŁA crêpe place always has one, couples wait for the lift to LUŹNO, the pink rooftop date bar on HOTEL PIURE, and new neons light up KOSZTA COFFEE, GREEN CAFFE NERWO and the Party House's bars. Plus jokes about TIMBER dates and Cringulo's sold-out pizza at Frogs.
 - General de Gaulle now marches on his tall dark plinth by the Palm's roundabout, on his stepped circle, and the white Party House behind him has its roof sign (ROBUR) and its courtyard fountain.
 - Marszałkowska by the start has Warsaw's navy street name plates at the corners, glass shelters and a ticket machine on the tram island, a city bike dock and bollards along Plac Centralny.
 - The glass Cepelia pavilion at Rondo Dmowskiego (now a book and vinyl store) and the Zodiak pavilion in Pasaż Wiecha stand as their real modernist glass boxes.

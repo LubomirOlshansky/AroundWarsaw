@@ -83,10 +83,11 @@ then the Launch gate.
   - [x] Design and the parody names, 2026-11-01
   - [x] G1 the de Gaulle statue, 2026-11-01
   - [x] G2 Dom Partii: white stone, ROBUR, the courtyard fountain, 2026-11-01
-  - [ ] G2 part 2: Dom Partii's bars as neons
-  - [ ] G3 HOTEL PIURE, the LUŹNO date bar and TIMBER jokes
-  - [ ] G4 KOSZTA COFFEE, GREEN CAFFE NERWO, KUKŁA and the queues
-  - [ ] G5 Cringulo: the "Mlask" job, his pizza, fans and news
+  - [x] G2 part 2: Dom Partii's bars as neons, 2026-11-01
+  - [x] G3 HOTEL PIURE, the LUŹNO date bar and TIMBER jokes, 2026-11-01
+  - [x] G4 KOSZTA COFFEE, GREEN CAFFE NERWO, KUKŁA and the queues, 2026-11-01
+  - [x] G5 Cringulo: the "Mlask" job, his pizza, fans and news, 2026-11-01
+  - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, "Kolejki" card, van fans and egg
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
 

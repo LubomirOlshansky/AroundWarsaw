@@ -31,7 +31,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# R5: the Cepelia pavilion's book and vinyl store (a parody) and Zodiak.
 		"EMPIRYK", "ZODIAK",
 		# Dom Partii's roof sign (docs/design/gaulle-and-food-hype.md G2): the oak in Latin again.
-		"ROBUR"]
+		"ROBUR",
+		# HOTEL PIURE's rooftop date bar (G3).
+		"LUŹNO"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

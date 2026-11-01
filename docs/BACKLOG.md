@@ -34,14 +34,24 @@ real ones added to `brand_denylist.json`). One PR each:
       granite cone, the dark plinth, the marching bronze general, a card), 2026-11-01.
 - [x] G2 part 1: Dom Partii as a white stone skin with a card, ROBUR over the north-west corner,
       the courtyard's paving with its key border and the long fountain with five jets, 2026-11-01.
-- [ ] G2 part 2: the bars NEWTWICE, ZAMĘT and PIONEK as neons (with G3/G4's venue table).
-- [ ] G3 HOTEL PIURE and its rooftop date bar LUŹNO (pink neon, terrace, dates in twos), TIMBER
-      (the dating-app parody) on a billboard, posters, radio and `timber_date` lines.
-- [ ] G4 coffee-chain parodies KOSZTA COFFEE and GREEN CAFFE NERWO, the crêpe place KUKŁA with an
-      all-day queue, `kolejka` and `kawa_sieciowa` lines, a "Kolejki" notebook card.
-- [ ] G5 Cringulo (the food-blogger parody): his van, the "Mlask" job (order at a new place, bring
-      it while warm, his review card, take his MLASK sticker back, the place's queue jumps),
-      CRINGULO PIZZA sold out at Frogs, radio news, fans, an egg; `check_cringulo.gd`. Opus design.
+- [x] G2 part 2: the bars NEWTWICE, ZAMĘT and PIONEK as neons (`Storefronts.HYPE`), 2026-11-01.
+- [x] G3 HOTEL PIURE's door neon, LUŹNO in pink on its roof (landmarks site `piure_sign`), the
+      evening line for the lift up to the date bar (crowds.gd, 10-16 people 18:00-01:00, tag
+      `timber`), TIMBER on a billboard and a column poster, 10 date lines, radio lines, 2026-11-01.
+- [x] G4 KOSZTA COFFEE ×3, GREEN CAFFE NERWO ×2 (one on the mapped pavilion), KUKŁA ×2 with its
+      all-day queue (8-30, tag `kolejka`), 8 queue lines, radio lines, a KUKŁA poster, 2026-11-01.
+- [x] G5 Cringulo: his cream van at one of four spots by weekday (11-21), the "Mlask" job in
+      `trend_job.gd` (`--trend-job=6`): fetch from a new place, bring it warm in 5 min, his review
+      card with a MLASK grade, the sticker back in 4 min, the place's queue at its longest for the
+      day (crowds.gd `cringulo_boost`); 9 review lines, 4 owner lines, 6 fan lines, CRINGULO PIZZA
+      sold out at Frogs (3 till lines, a poster), radio news; rules in `check_city_life.gd`, 2026-11-01.
+- [ ] Left from G3-G5: the dates on LUŹNO's roof itself (a roof crowd like Level 26's), the
+      Podwózka `timber` passengers, a notebook card "Kolejki", fans standing by Cringulo's van, an
+      egg (the car parked by the van while he films), the van's CRINGULO TV lettering, the egg
+      card; phone checks of every sign's size, the queues and the job's legs.
+- [ ] Roof rescues name the roof by its OSM name, which can be a real brand (a hotel or café
+      chain: Puro, Green Caffè Nero, Hilton…): show a parody or a street name instead (missions.gd
+      `_find_roofs`; found 2026-11-01).
 - [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the
       skin on the LoD2 model; KUKŁA/KOSZTA/NERWO spots on the real streets.
 - [x] `Tinder` in a run-club line replaced by TIMBER (it would fail the new denylist entry).
