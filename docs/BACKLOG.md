@@ -129,9 +129,9 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   pay tables are first guesses (BACKLOG-TRIAGE "Decisions"). The guide's lines, Halina's lines and
   the end card are unreviewed ("From loop 3h slice 4"); the end card's "10 jobs" definition and the
   trap's koguty line are open. A designer pass over all player-facing text and pay, then F's run.
-- The DEMO 6.3 counts left: 10 roof cassettes (#115 brings the first), ~25 landmark cards, the
-  second słoiki station, the Old Town tourist and Łazienki peacock rescues. Check each against the
-  code and list what is missing. Partly a gap.
+- The DEMO 6.3 counts left: the second słoiki station (jobs.gd has one) and the Łazienki peacock
+  rescue (none yet; the Old Town tourist is a "fainted" street rescue in missions.gd). The 10 roof
+  cassettes and the landmark cards (72 vs ~25) are done (2026-11-01).
 
 ### P2: UI
 - The HUD was sized on 2026-10-28; since then the ≡ map button, the goal star, district cards,
@@ -339,6 +339,12 @@ golden-image shots runtime vs `--prebuilt`,
   light), the `first` shot set, performance and the order of work: docs/design/first-scene.md.
   The dusk and night look there belongs to the thread "Match landmarks to Warsaw at dusk"; the
   hints, first order and first race to loop 3h item 6.
+  **Item 2 (the opening shot) built 2026-10-31, merged 2026-11-01**: the start (PR #115) and the
+  first launch's flyover over the Palace down to the car (docs/design/opening-flyover.md), both
+  on main together after the start-area rebuild (same start spot, so the trams and street
+  furniture of the first scene are in the flyover's last frames). Left: its length and
+  the stand's arrow timing on the phone (QUESTIONS), and whether the wide views hitch while the
+  proxies swap to sectors on an older iPhone.
   **2026-11-01 (items 3-6, part):** the Eastern Wall's stores built (site `dtc`, spec
   `docs/landmarks/specs/dtc.md`); a start in the first scene's box (main.gd `FIRST_SCENE`) puts
   two trams on Marszałkowska, one passing the car, one coming down the street; street furniture
@@ -2257,18 +2263,28 @@ arrow to the Świętokrzyska stand, the guided order past the Rotunda, Pani Hali
 Palm with a rubber band, the first contact's fallback, the held first call, the helicopter after the
 first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at 10:00; the save's
 `[intro]`) and the end card ("Dzięki za grę!", free roam after). Left:
-- **The opening shot is the other thread's**: the spawn faces south on Marszałkowska while the
-  Świętokrzyska stand is ~530 m north of it (behind the car), so 6.2's "ring 150 m ahead" is an arrow
-  at 0:10 instead. When the first-scene thread sets the spawn and heading, a spawn facing north (or
-  the stand moved, `jobs.FIRST_STAND`) puts the ring on screen at once.
+- ~~**The opening shot is the other thread's**: the spawn faces south on Marszałkowska while the
+  Świętokrzyska stand is ~530 m north of it (behind the car).~~ Done in the first-10 polish: a run
+  that gets the guide starts at `First10.START` (northbound, level with the Museum of Modern Art,
+  facing the stand ~350 m ahead); the map's spawn is unchanged for the bench and the other runs. The
+  first-scene thread can still move that start point and heading by eye (`First10.START`,
+  `START_HEADING`).
+- ~~The first order is 926 m (Aleje Jerozolimskie 33, past the Rotunda, a U-turn away).~~ Done in the
+  first-10 polish: Marszałkowska 142, 226 m straight on from the stand; Halina waits until 1:15
+  (`RACE_EARLIEST`) so the race stays in 6.2's window.
 - **Feel on the phone**: the rubber band's numbers (pace 1.15, 25 m, 0.4-1.5) come from a 1-D model;
   F's runs should say whether Halina is close enough to feel like a race and never obviously
   waiting. The ghost finger's place and gesture likewise (it sits on the stick's side, lower left).
 - **No "6.2" beat for "two jokes, the roosters explained in one line"** of the trap: the first
   contact's own conversation (police.dialogue) is what plays; the designer could add the koguty line.
-- **The cassette is KASETA's then card** on the boulevards (a ground spot, not a roof), and its
-  "new song" is the next locked PÓŁNOC FM track (track 3 on a fresh save). A real cassette
-  collectible on a roof (DEMO 6.2, 6.3 "10 cassettes") is still to come; then the beat points there.
+- ~~**The cassette is KASETA's then card** on the boulevards (a ground spot, not a roof).~~ Done in the
+  first-10 polish: a mixtape on the University Library's roof (cassettes.gd, cassettes.json), taken
+  from the helicopter, opens the next PÓŁNOC FM track; the beat's arrow points there. The other nine
+  of DEMO 6.3's "10 cassettes" are in (2026-11-01: c02 to c10, roofs found by `missions.roof_spot`,
+  not placed by any map-free check: an unplaced one logs `cassettes: ...no flat roof`, look for it on
+  the phone; only five songs are locked, so the later tapes give respect and a card); the
+  cassette is a static box model (a slow spin or bob would be a shader, the visuals lane's); the
+  words of c01_buw and the new tape line were written in that thread (the game-designer should review).
 - ~~The guide's words (`first10.gd` LINES, Halina's FIRST_LINES, the end card) need a designer
   review~~ (done 2026-11-01: grammar fixes (stary śmigłowiec), "To już koniec dema", tone kept;
   only text changed, not run in Godot here).
@@ -2279,6 +2295,12 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
   car.gd `_keep_finite` now puts the car back at its last good transform and logs `car: state not a
   number` (`nan_recoveries`); the replay also fails fast on a NaN. If that line ever shows up in a
   log, its position and velocity are the lead.
+  The first-10 polish: 30 more replays (18 on the new start, order and cassette) showed no NaN. Read
+  and ruled out: the terrain, apron, deck and tunnel heights (no division by a zero length on the
+  committed map's aprons), the autopilots' slides (each divides by a length > 0.5 m). The warning
+  now also prints the state the physics step began with (transform, velocity, target_dir, steer,
+  steer_now, yaw_rate, throttle, braking, parked, collision mask, in water): a NaN going in means
+  another script wrote it, a finite one means car.gd's own step made it.
 - The end card first didn't show at all: its four Polish lines plus English were taller than the
   HUD's room, so the layout left it unplaced. Now two Polish lines (the credits and the repo as one
   shared line) and the English paragraph; a layout assertion in check_end_card would catch it again.
