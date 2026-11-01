@@ -80,7 +80,9 @@ then the Launch gate.
   - [ ] L4 Most Średnicowy's look (after a Mac photo check)
 
 ### Left: content and feel
-- [ ] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
+- [x] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
+      (2026-11-01, docs/design/pay-tables.md: player-neutral Polish, rematch respect +20, słoiki
+      40 + 30 a jar; the hour and the pay still to be timed on the phone by F)
 - [x] DEMO 6.3 counts, cassettes and landmark cards (2026-11-01): 10 roof cassettes in
       `cassettes.json` (9 new), and 72 landmark cards already in `landmarks.gd` INFO (target ~25)
 - [ ] DEMO 6.3 counts, rescues and słoiki: the second słoiki station (jobs.gd has one), the Old

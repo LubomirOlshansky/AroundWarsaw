@@ -416,7 +416,8 @@ at the hospital. Out of time: TRY AGAIN, NEXT CALL or FREE ROAM.
   stress them, and a jar breaks when the stress fills (the jars rattle first and the passenger
   warns you). A full stop from 50 km/h or a corner at 30 km/h is fine; slamming the brakes from
   90 or throwing it round a corner at 50 is not. The passenger chats on the way (`passenger`);
-  pay is 50 zł + 35 zł a jar, +30 respect with all six.
+  pay is 40 zł + 30 zł a jar (50 + 35 until the designer pass of 2026-11-01,
+  docs/design/pay-tables.md), +30 respect with all six.
 - **One activity at a time**: a job starts only with no rescue or race under way and not from
   the helicopter; while it runs, rescue calls and race challenges wait, and the helicopter
   stays parked (the order rides in the car).

@@ -1361,8 +1361,8 @@
   ],
   "police_stop": [
     [
-      "Rutynowa kontrola. Spokojnie, nic pan nie zrobił. Jeszcze.",
-      "Routine check. Relax, you haven't done anything. Yet.",
+      "Rutynowa kontrola. Spokojnie, wszystko w porządku. Na razie.",
+      "Routine check. Relax, everything's in order. For now.",
       {
         "only": "routine"
       }

@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Racing a rival you have already beaten still pays the stake but gives less respect, so the next rival opens by playing the city, not by beating Pani Halina again; mum's jars pay a little less; and the characters now talk to you the same way whoever you are.
 - The colour-blind option now also changes the green "win" and red "fail" cards and badges to blue and orange-red, so they are easy to tell apart.
 - Left-handed? Settings → DOSTĘP swaps the controls: brake, gas, horn and the helicopter's buttons go to the left, steering to the right.
 - Settings has an "About" page now (Sound → LICENCJE): who made the map data, the engine, the add-ons and every song on the radio, with their licences.
