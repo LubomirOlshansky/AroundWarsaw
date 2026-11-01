@@ -212,7 +212,7 @@ func _check_screen(screen: Vector2i) -> int:
 					hud.set_koguty(1, 1)
 					hud.set_pedals_hidden(true)
 					# The longest opener with the longest English (the caution's) and the two widest replies.
-					talk.show_line("Posterunkowy Kacper", "Kontrola drogowa. Wie pan, czemu pana zatrzymałem? Ja tak średnio.",
+					talk.show_line("Posterunkowy Kacper", "Kontrola drogowa. Wiesz, czemu cię zatrzymałem? Ja tak średnio.",
 							"Consider yourself cautioned. Kacper, put it in the notebook. Neatly, not like last time.",
 							[["Przepraszam, już nie będę.", "Sorry, won't happen again."], ["Suszarka? Mam krótkie włosy.", "Hair dryer? But I've got short hair."]])
 					hud.show_panel(talk, true)
