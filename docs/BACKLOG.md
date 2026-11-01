@@ -34,14 +34,6 @@ hidden in cinematic moments and photo mode; they call `_zoom_view`. Accept: five
 the five steps and save; no overlap with the pill, wallet or minimap at 2532x1170 and 2868x1320
 (shots). Files: hud.gd (new signals), main.gd.
 
-**G4 · Easy city driving (P1, Opus, feel).** F: "very drifty and sensitive; it's a city, not a
-racer". Task: a Cruise handling profile as the default: lower steering rate at speed, speed-
-sensitive steering limit, stronger lateral grip (less slide), gentler yaw response, softer
-throttle onset; keep a Sport profile for the old feel (Settings → Jazda). Accept: check_steering
-at `--fixed-fps 60` green; a lane change at 50 km/h and a 90° corner at 25 km/h with full lock held
-do not slide (`slip` under a set value, new check); phone check parked. Files: car.gd,
-drive_controls.gd, settings*.gd, check_steering.gd, archive "Driving".
-
 **G5 · Flicker and "lag wall" audit (DONE 2026-11-01).** Finding: the flicker in IMG 7138, 7137
 and 7135 is the occlusion ghost's halftone rim on building walls beside the car, not z-fighting.
 The Bayer pattern is fixed on screen while the band slides over the wall, so it strobes. Fix
@@ -230,6 +222,15 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
 - Wrecks have no hazard lights or broken glass; nobody waves the traffic on.
 - The scene's people stand still (no gestures); the onlookers' phones are not modelled.
 - A scene on a one-lane road (none today: they need 2+ lanes so the traffic can go round).
+
+## Ujazdowski Castle (2026-11-01)
+- Done: site `ujazdowski` (landmarks.gd `_build_ujazdowski`, spec `ujazdowski.md`) and the notebook place
+  `zamek_ujazdowski` (district Ujazdów i Łazienki had none).
+- Left: Mac photo check (colour, tower caps, entrance side, courtyard); the district still has no egg and
+  only this one place besides the padel court; Ujazdowski Park (paths, benches, the pond), the Botanic Garden,
+  Chopin's monument and the Trasa Łazienkowska trench are the next steps (DEMO 2.3 rows B).
+- The cloud's bake_city prints the same site mismatches as main (now 17 with `ujazdowski`): the Mac's
+  full re-bake settles them.
 
 ## Grand hotels (2026-11-01, hotels pass)
 - Done: Hotel Bristol's body (`bristol`: plinth, courses, cornice, slate mansard, dormers, canopied
@@ -2741,7 +2742,7 @@ discovery, "?" marks and completion on the full map (DEMO G3). Left for the late
   hint finger, the first order, the first race, the `--first10` replay check), **the end card** (can
   read `percent_total()` and the discovered count)~~ (done in slice 4, see below; the end card doesn't
   show the districts' %).
-- Ujazdów i Łazienki has no notebook place or egg (the park lies south of the map; only the Sejm is
+- Ujazdów i Łazienki has one notebook place (Ujazdów Castle, 2026-11-01) besides the padel court and no egg (the park lies south of the map; only the Sejm is
   in it): completion there is its 2 jobs, and it shows no "?" marks. The designer (places for the
   Sejm, Ujazdowski Castle, Plac na Rozdrożu) or the map lane (the park) would fill it. Wola has 2
   places, Stare Miasto 4: thin for "3 ?" for long.
