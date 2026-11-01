@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-10-31
+- New: five COFFEECHAIR cafés in Śródmieście (Foksal, Chmielna, Krakowskie Przedmieście, Plac Trzech Krzyży, Hoża), each with a warm neon sign.
 - Picking up and dropping off is much easier: the rings are bigger, you don't need to stop dead, and the car brakes by itself into the ring and waits there while the passenger gets in or out.
 - The game remembers where you left the car: on the next launch the title offers "KONTYNUUJ" to carry on from there, or "NOWA GRA" to start over (it asks first, since a new game wipes your money and finds).
 - The story now stands out from the side jobs: the next main-line goal is a gold star on the minimap (always at its edge when far away) and on the full map, with a goal line under the map's title; side jobs keep their coloured dots and squares, and a small legend says which is which. The rival ladder asks for less respect, so the final race comes within about an hour.

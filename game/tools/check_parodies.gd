@@ -270,6 +270,8 @@ func _check_picks(sf: Storefronts, data: Dictionary, book: Notebook, graph: Lane
 	var seen := {}
 	for v in sf.venues:
 		seen[v["id"]] = true
+		if Storefronts.CAFES.has(v["id"]):
+			continue
 		var name := str(at[v["id"]]["name_pl"]).to_upper()
 		var joined := " ".join(v["lines"] as Array)
 		_expect(joined == name or name.begins_with(joined + " "), "venue %s: the sign says \"%s\", places.json \"%s\"" % [v["id"], joined, name])
@@ -281,8 +283,10 @@ func _check_picks(sf: Storefronts, data: Dictionary, book: Notebook, graph: Lane
 				break
 		_expect(ok, "venue %s: no building's wall within reach of %.0f, %.0f" % [v["id"], road.x, road.y])
 	for id: String in Storefronts.VENUES:
+		if Storefronts.CAFES.has(id):
+			continue
 		_expect(seen.has(id), "venue %s: not placed (no address, poi or road)" % id)
-	_expect(sf.venues.size() == 18, "venues: %d signs (want 18: 17 venues, Glon twice)" % sf.venues.size())
+	_expect(sf.venues.size() == 18 + Storefronts.CAFES.size(), "venues: %d signs (want %d: 17 venues, Glon twice, %d Coffeechairs)" % [sf.venues.size(), 18 + Storefronts.CAFES.size(), Storefronts.CAFES.size()])
 	# Leżaks and metro entrances: off the lanes; one standing.
 	var standing := 0
 	for s in sf.scooters:
