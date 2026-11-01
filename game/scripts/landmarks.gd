@@ -4682,7 +4682,11 @@ func _build_prezydencki(site: Dictionary) -> void:
 ## long glass roof over the central hall (the bare band between the mapped lawns) with its
 ## trusses, a second glass roof, two round lights and three copper roof houses (mapped parts).
 ## The cassette of the first ten minutes lies on the garden: the only flat roof here.
-const BUW_ROOF := 10.9                  # the roof garden's mapped parts
+## Pass 3 (the Mac's LoD2, 2026-11-01): the deck at 15 m (OpenStreetMap's 10.9 is the court's
+## height), the glass ridges about 17 m; the court in the south notch is the 10 m roof of
+## Collegium Iuridicum II, built here as a lower garden with its own skylight.
+const BUW_ROOF := 15.0                  # GUGiK LoD2: 64 % of the roof at ~15 m
+const BUW_COURT := 10.0                 # LoD2's lower part, the notch's court
 const BUW_FRONT := Vector2(-15.1, -965.9)  # the outline's west corner, where Dobra's plates start
 const BUW_FRONT_AXIS := Vector2(0.667, 0.745)  # along Dobra, to the south-east
 const BUW_HALL := Vector2(59.8, -953.95)  # the long glass roof's centre (the bare band)
@@ -4695,10 +4699,42 @@ const BUW_HALL_SIZE := Vector2(28.2, 11.9)  # half sizes along and across
 const BUW_FIELD := [Vector2(7.0, -980.0), Vector2(19.0, -982.0), Vector2(33.6, -958.7), Vector2(81.0, -977.6),
 		Vector2(88.8, -955.5), Vector2(39.6, -935.5), Vector2(45.0, -914.0), Vector2(40.5, -914.5),
 		Vector2(35.0, -925.5), Vector2(23.8, -940.0), Vector2(14.5, -958.0)]
-const BUW_WALK := [Vector2(24.0, -972.0), Vector2(46.0, -929.0)]
+## the walkways over the glass: the long one from the field's west corner across to the
+## pavilions by the tail, a short one over the tail by the stair house
+const BUW_WALKS := [[Vector2(33.6, -958.7), Vector2(42.4, -933.5)], [Vector2(23.3, -973.0), Vector2(15.5, -952.7)]]
 const BUW_PLAZA := Vector3(54.5, -989.0, 4.5)  # x, z, radius
-const BUW_MOUND := Vector3(101.0, -954.0, 11.0)
-const BUW_PAVILIONS := [Vector2(66.5, -935.5), Vector2(43.5, -929.0), Vector2(109.0, -961.0)]
+## the hill between the glass field and the oculus: centre, half sizes across and along the
+## field's short side (BUW_HALL_AXIS, its normal); the glass pyramid (a mapped part) on its top
+const BUW_MOUND := Vector2(99.8, -953.0)
+const BUW_MOUND_SIZE := Vector2(11.0, 17.0)
+## white pavilions: x, z, half width (along BUW_HALL_AXIS), half length (across it)
+const BUW_PAVILIONS := [Vector4(44.6, -927.9, 2.2, 3.6), Vector4(51.5, -933.0, 2.2, 2.8),
+		Vector4(58.9, -936.0, 1.8, 2.0), Vector4(89.2, -951.0, 2.0, 3.0), Vector4(108.8, -960.0, 2.0, 3.0)]
+## the small white domes on brown rings along the south lawn
+const BUW_DOMES := [Vector2(64.4, -936.4), Vector2(70.2, -940.3), Vector2(77.5, -943.0), Vector2(84.1, -946.5)]
+## the south garden's paths (2.5 m, the deck's paving between the beds): the main one from the
+## oculus's ring west along the notch to the south-west corner, a loop round the notch's
+## corner, one up to the field's east corner, one round the pavilions
+const BUW_PATHS := [
+	[Vector2(113.0, -942.5), Vector2(104.0, -944.5), Vector2(97.0, -943.5), Vector2(90.0, -940.5), Vector2(82.0, -938.0),
+			Vector2(74.5, -935.5), Vector2(68.0, -932.5), Vector2(62.0, -928.0), Vector2(55.5, -925.0), Vector2(51.5, -921.0),
+			Vector2(51.5, -915.5)],
+	[Vector2(97.0, -943.5), Vector2(99.5, -936.0), Vector2(103.0, -930.0), Vector2(109.0, -927.5), Vector2(116.5, -931.0),
+			Vector2(119.0, -937.5)],
+	[Vector2(86.0, -939.0), Vector2(87.5, -944.5), Vector2(92.0, -948.0)],
+	[Vector2(62.0, -928.0), Vector2(56.5, -929.0), Vector2(48.5, -937.0), Vector2(44.5, -941.5)],
+]
+const BUW_PATH_W := 2.5
+const BUW_RING_W := 4.0      # the paved ring round the oculus
+## the south notch over the court: the band is narrower and greener there (the Mac's check)
+const BUW_NOTCH := [Vector2(56.0, -921.0), Vector2(93.5, -941.0), Vector2(101.5, -925.0), Vector2(107.0, -913.0),
+		Vector2(79.0, -898.5), Vector2(64.0, -906.0)]
+const BUW_NOTCH_W := 3.0
+const BUW_NOTCH_BAND := Color("#4f9068")
+const BUW_SHRUB := Color("#3f5e36")
+const BUW_HEATHER := Color("#7b5d6a")
+const BUW_HILL := Color("#456f3a")
+const BUW_EARTH := Color("#7a5a44")
 const BUW_FLOWERS := [Color("#d9c23e"), Color("#d9873a")]
 const BUW_WHITE := Color("#e2e0d6")
 const BUW_BAND_W := 6.0     # the sloped band round the roof's edge: its width
@@ -4725,13 +4761,20 @@ func _find_buw() -> void:
 	var outline := _landmark("Biblioteka Uniwersytecka")
 	if outline.size() < 3:
 		return
-	_add_site("buw", [outline])
+	# the court in the south notch: Collegium Iuridicum II's roof, part of the library's garden
+	var court := PackedVector2Array()
+	for bld in data["buildings"]:
+		if bld.get("name", "") == "Collegium Iuridicum II":
+			court = _pts(bld["p"])
+	_add_site("buw", [outline, court] if court.size() >= 3 else [outline])
 	if sites.is_empty() or sites[-1]["key"] != "buw":
 		return
 	var site: Dictionary = sites[-1]
 	site["ring"] = outline
+	site["court"] = court
 	var houses: Array[Dictionary] = []
 	var rounds: Array[Vector3] = []  # x, z, radius
+	var vents: Array[Vector3] = []
 	for bld in _parts_in(outline, func(b2: Dictionary) -> bool: return float(b2["h"]) > float(b2["mh"])):
 		var q := _pts(bld["p"])
 		var area := absf(_area(q))
@@ -4740,10 +4783,14 @@ func _find_buw() -> void:
 		elif q.size() >= 19 and area < 300.0:
 			var c := _centre(q)
 			rounds.append(Vector3(c.x, c.y, sqrt(area / PI)))
+		elif q.size() >= 10 and area < 25.0:
+			var c := _centre(q)
+			vents.append(Vector3(c.x, c.y, sqrt(area / PI)))  # the round ventilators on the band
 		elif Geometry2D.is_point_in_polygon(BUW_LIGHT, q):
 			site["light"] = q
 	site["houses"] = houses
 	site["rounds"] = rounds
+	site["vents"] = vents
 	if houses.is_empty() or rounds.is_empty():
 		# The streamed city has the parts only from index.json's site_parts: an index split
 		# before the library joined bake_sectors.py's SITE_NAMES lacks them.
@@ -4761,9 +4808,16 @@ func _buw_beds(site: Dictionary) -> Array:
 	var inner := _largest(Geometry2D.offset_polygon(ring, -BUW_BAND_W))
 	var keep_off: Array[PackedVector2Array] = []
 	keep_off.append(_grow(PackedVector2Array(BUW_FIELD), 0.5))
-	keep_off.append(_circle(Vector2(BUW_MOUND.x, BUW_MOUND.y), BUW_MOUND.z, 16))
-	for pv: Vector2 in BUW_PAVILIONS:
-		keep_off.append(_circle(pv, 2.8, 8))
+	keep_off.append(_buw_ellipse(1.0, 16))
+	for pv: Vector4 in BUW_PAVILIONS:
+		keep_off.append(_grow(_buw_pavilion(pv), 0.6))
+	for d: Vector2 in BUW_DOMES:
+		keep_off.append(_circle(d, 2.8, 8))
+	# the south garden's paths: the deck shows between the beds they split
+	for line: Array in BUW_PATHS:
+		for piece in Geometry2D.offset_polyline(PackedVector2Array(line), BUW_PATH_W * 0.5, Geometry2D.JOIN_ROUND, Geometry2D.END_ROUND):
+			if not Geometry2D.is_polygon_clockwise(piece):
+				keep_off.append(_simplify(piece, 0.3))
 	# the formal garden (its own grid of square beds, below) and its round plaza
 	var formal := _buw_formal(inner)
 	var beds: Array = []
@@ -4774,7 +4828,7 @@ func _buw_beds(site: Dictionary) -> Array:
 	if light.size() >= 3:
 		keep_off.append(light)
 	for r: Vector3 in site["rounds"]:
-		keep_off.append(_circle(Vector2(r.x, r.y), r.z + 2.7, 16))
+		keep_off.append(_circle(Vector2(r.x, r.y), r.z + (BUW_RING_W + 0.3 if r.z > 6.0 else 2.7), 16))
 	for h: Dictionary in site["houses"]:
 		keep_off.append(_pts(h["p"]))
 	var areas: Array = []
@@ -4803,9 +4857,39 @@ func _buw_beds(site: Dictionary) -> Array:
 					continue
 				var bed := _simplify(p, 0.4)
 				if bed.size() >= 3:
-					beds.append([bed, ar[2]])
+					beds.append([bed, _buw_bed_colour(bed, ar[2])])
 					drawn.append(p)
 	return beds
+
+
+## The south half's beds (south of the glass field and the hill, the orthophoto): dark shrubs,
+## purple-brown heather or lawn, by a steady hash of the bed's centre; the rest keep the map's.
+func _buw_bed_colour(bed: PackedVector2Array, mapped: Color) -> Color:
+	var c := _centre(bed)
+	var b := Vector2(-BUW_HALL_AXIS.y, BUW_HALL_AXIS.x)
+	if (c - BUW_HALL).dot(b) < BUW_HALL_SIZE.y + 2.0 or c.x > 118.0:
+		return mapped
+	var h := _buw_hash(roundf(c.x), roundf(c.y))
+	return BUW_SHRUB if h < 0.34 else (BUW_HEATHER if h < 0.67 else BUW_LAWN)
+
+
+## The hill's outline grown by `by` (an ellipse in the field's frame).
+func _buw_ellipse(by: float, n: int) -> PackedVector2Array:
+	var a := BUW_HALL_AXIS
+	var b := Vector2(-a.y, a.x)
+	var out := PackedVector2Array()
+	for k in n:
+		var t := TAU * float(k) / float(n)
+		out.append(BUW_MOUND + a * cos(t) * BUW_MOUND_SIZE.x * by + b * sin(t) * BUW_MOUND_SIZE.y * by)
+	return out
+
+
+## A pavilion's plan: a rectangle along the field's frame.
+func _buw_pavilion(v: Vector4) -> PackedVector2Array:
+	var a := BUW_HALL_AXIS
+	var b := Vector2(-a.y, a.x)
+	var c := Vector2(v.x, v.y)
+	return PackedVector2Array([c - a * v.z - b * v.w, c + a * v.z - b * v.w, c + a * v.z + b * v.w, c - a * v.z + b * v.w])
 
 
 ## The formal north part of the garden (the orthophoto): between the glass field's north-west
@@ -4909,6 +4993,7 @@ func _build_buw(site: Dictionary) -> void:
 	_collide(outline)
 	_buw_front(g, ring)
 	_buw_roof(site, g)
+	_buw_court(site, g)
 
 
 ## The band round the roof (the Mac's orthophoto, 2026-11-01): patina-green sloped glass and
@@ -4921,13 +5006,21 @@ func _buw_band(outline: PackedVector2Array, top: float) -> void:
 	var n := ring.size()
 	# each corner's inner point on the bisector (mitred, at most twice the width away)
 	var inner: Array[Vector2] = []
+	var deep: Array[Vector2] = []  # the deck's edge (BUW_BAND_W - 1 in), for the notch's heather
+	var notch := PackedVector2Array(BUW_NOTCH)
+	var narrow: Array[bool] = []
 	for i in n:
 		var p := ring[i]
 		var n0 := -_out(ring, ring[(i + n - 1) % n], p)
 		var n1 := -_out(ring, p, ring[(i + 1) % n])
 		var bis := (n0 + n1).normalized()
 		var c := bis.dot(n1)
-		inner.append(p + bis * minf(BUW_BAND_W / maxf(c, 0.05), BUW_BAND_W * 2.0))
+		# narrower over the notch's court (the Mac's check, pass 3)
+		narrow.append(Geometry2D.is_point_in_polygon(p, notch))
+		var w := BUW_NOTCH_W if narrow[i] else BUW_BAND_W
+		inner.append(p + bis * minf(w / maxf(c, 0.05), w * 2.0))
+		var wd := maxf(w, BUW_BAND_W - 0.6)
+		deep.append(p + bis * minf(wd / maxf(c, 0.05), wd * 2.0))
 	_mode = M_GLASS_ROOF
 	for i in n:
 		var j := (i + 1) % n
@@ -4940,12 +5033,24 @@ func _buw_band(outline: PackedVector2Array, top: float) -> void:
 			# its neighbours' quads cover it
 			continue
 		# two triangles with their own normals (a mitred quad need not be flat)
+		var col := BUW_NOTCH_BAND if narrow[i] and narrow[j] else BUW_BAND
 		for tr in [[pa, pb, qb], [pa, qb, qa]]:
 			var nrm: Vector3 = (tr[1] - tr[0]).cross(tr[2] - tr[0]).normalized()
 			if nrm.y < 0.0:
 				nrm = -nrm
-			_tri(tr[0], tr[1], tr[2], nrm, BUW_BAND, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+			_tri(tr[0], tr[1], tr[2], nrm, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
 	_mode = M_STONE
+	# Over the notch the band is narrower: heather between it and the deck (cut to what the deck
+	# leaves bare by _cap).
+	for i in n:
+		var j := (i + 1) % n
+		if not (narrow[i] or narrow[j]) or (inner[j] - inner[i]).dot(ring[j] - ring[i]) <= 0.0:
+			continue
+		var q := PackedVector2Array([inner[i], inner[j], deep[j], deep[i]])
+		if Geometry2D.is_polygon_clockwise(q):
+			q.reverse()
+		if absf(_area(q)) > 0.5:
+			_cap(q, top, BUW_HEATHER)
 
 
 ## Dobra: the copper plates with their lines of text, the doors under the middle two, the four
@@ -4962,14 +5067,14 @@ func _buw_front(g: float, ring: PackedVector2Array) -> void:
 		var y0 := g + 4.5 if door else g - 0.4
 		var tint := 1.0 + 0.04 * (_buw_hash(float(k), 3.0) * 2.0 - 1.0)
 		var plate := Color(BUW_COPPER.r * tint, BUW_COPPER.g * tint, BUW_COPPER.b * tint)
-		_lbox((u0 + u1) * 0.5, 0.4, 2.5, 0.2, y0, g + 13.5, plate, M_STONE, plate.darkened(0.15))
+		_lbox((u0 + u1) * 0.5, 0.4, 2.5, 0.2, y0, top + 2.6, plate, M_STONE, plate.darkened(0.15))
 		if not door:
 			_collide(_rect((u0 + u1) * 0.5, 0.4, 2.5, 0.2))
 		# lines of text, left-aligned, each its own length
 		_mode = M_STONE
 		var row := 0
 		var y := maxf(2.0, y0 - g + 1.0)
-		while y < 12.7:
+		while y < BUW_ROOF + 1.8:
 			var length := 4.4 * (0.45 + 0.55 * _buw_hash(float(k), float(row)))
 			_wall(_w(u0 + 0.3, 0.64), _w(u0 + 0.3 + length, 0.64), g + y, g + y + 0.25, _b, BUW_INK)
 			y += 0.9
@@ -5003,8 +5108,9 @@ func _buw_front(g: float, ring: PackedVector2Array) -> void:
 
 
 ## The roof garden: the mapped lawns as low beds on the deck (kept off the glass roofs and the
-## roof houses), the long glass roof and its trusses, the second glass roof, the round lights,
-## the copper roof houses.
+## roof houses), the glass field and its walkways, the second glass roof, the hill with the glass
+## pyramid, the oculus in its paved ring, the ventilators, the pavilions and the roof houses.
+## Heights from GUGiK's LoD2 (pass 3): the deck at 15 m, the glass at 16-17 m.
 func _buw_roof(site: Dictionary, g: float) -> void:
 	var top := g + BUW_ROOF
 	var none := Color(0, 0, 0, 0)
@@ -5013,45 +5119,44 @@ func _buw_roof(site: Dictionary, g: float) -> void:
 	for bed: Array in site.get("beds", []):
 		_cap(bed[0], top + 0.12, bed[1])
 	# The glass field over the central hall and its tail down the Dobra side (the orthophoto):
-	# nearly flat glass in a fine grid on a low copper curb, the walkway's dark line across it.
+	# nearly flat glass in a fine grid on a copper curb, the walkways' dark lines across it.
 	# Out of the roof grid: a flat roof the cassette must not pick.
 	var field := PackedVector2Array(BUW_FIELD)
-	_prism(field, top, top + 0.7, BUW_PATINA, none, M_STONE)
+	_prism(field, top, top + 1.6, BUW_PATINA, none, M_STONE)
 	_no_roof = true
 	_mode = M_GLASS_ROOF
-	_cap(field, top + 0.7, BUW_SKY)
+	_cap(field, top + 1.6, BUW_SKY)
 	_mode = M_STONE
-	var w0: Vector2 = BUW_WALK[0]
-	var w1: Vector2 = BUW_WALK[1]
-	var side := (w1 - w0).normalized().orthogonal() * 1.0
-	_quad(Vector3(w0.x - side.x, top + 0.82, w0.y - side.y), Vector3(w1.x - side.x, top + 0.82, w1.y - side.y),
-			Vector3(w1.x + side.x, top + 0.82, w1.y + side.y), Vector3(w0.x + side.x, top + 0.82, w0.y + side.y), Vector3.UP, BUW_DARK)
+	for walk: Array in BUW_WALKS:
+		var w0: Vector2 = walk[0]
+		var w1: Vector2 = walk[1]
+		var side := (w1 - w0).normalized().orthogonal() * 1.0
+		_prism(PackedVector2Array([w0 - side, w1 - side, w1 + side, w0 + side]), top + 1.0, top + 1.75,
+				BUW_DARK, BUW_DARK, M_STONE, M_STONE)
 	# The second glass roof: the same flat fine grid on its mapped part.
 	if light.size() >= 3:
 		var lr := _hull(light)
-		_prism(lr, top, top + 0.6, BUW_PATINA, none, M_STONE)
+		_prism(lr, top, top + 1.2, BUW_PATINA, none, M_STONE)
 		_mode = M_GLASS_ROOF
-		_cap(lr, top + 0.6, BUW_SKY)
+		_cap(lr, top + 1.2, BUW_SKY)
 		_mode = M_STONE
 	_no_roof = false
-	# The mound in the middle of the garden, the small glass pyramid on its top (OSM's 6 m part).
-	var mc := Vector2(BUW_MOUND.x, BUW_MOUND.y)
-	var mr := BUW_MOUND.z
-	_frustum(_circle(mc, mr, 16), top, _circle(mc, mr * 0.6, 16), top + 1.6, BUW_PARK)
-	_frustum(_circle(mc, mr * 0.6, 16), top + 1.6, _circle(mc, mr * 0.38, 16), top + 2.4, BUW_PARK, BUW_PARK)
-	# Six round ventilators on the north-east band (the orthophoto).
-	var ne := _buw_ne_edge(site["ring"])
-	if ne.size() == 2:
-		var inward := -_out(site["ring"], ne[0], ne[1])
-		for k in 6:
-			var p: Vector2 = ne[0].lerp(ne[1], 0.5 + 0.08 * k) + inward * 3.0
-			_prism(_circle(p, 1.1, 8), top - 1.4, top + 1.2, BUW_PATINA, BUW_PATINA.darkened(0.25), M_STONE, M_STONE)
-	# The white pavilions in the garden's south half.
-	for pv: Vector2 in BUW_PAVILIONS:
-		_prism(_circle(pv, 2.2, 6), top, top + 2.6, BUW_WHITE, BUW_WHITE.darkened(0.08), M_STONE, M_STONE)
+	# The hill between the field and the oculus (the Mac's check): a solid dark green mound, the
+	# small teal glass pyramid (OSM's 6 m part) on its flat top.
+	_frustum(_buw_ellipse(1.0, 16), top, _buw_ellipse(0.62, 16), top + 2.0, BUW_HILL)
+	_frustum(_buw_ellipse(0.62, 16), top + 2.0, _buw_ellipse(0.32, 16), top + 3.0, BUW_HILL, BUW_HILL)
+	# The ventilators: the mapped round parts on the north-east band, copper drums with dark tops.
+	for v: Vector3 in site.get("vents", []):
+		_prism(_circle(Vector2(v.x, v.y), maxf(v.z, 1.1), 10), top - 1.6, top + 1.4, BUW_PATINA, BUW_DARK, M_STONE, M_STONE)
+	# The white pavilions, and the small white domes on brown rings along the south lawn.
+	for pv: Vector4 in BUW_PAVILIONS:
+		_prism(_buw_pavilion(pv), top, top + 2.6, BUW_WHITE, BUW_WHITE.darkened(0.08), M_STONE, M_STONE)
+	for d: Vector2 in BUW_DOMES:
+		_cap(_circle(d, 2.4, 10), top + 0.2, BUW_EARTH)
+		_frustum(_circle(d, 1.0, 8), top + 0.2, _circle(d, 0.55, 8), top + 0.9, BUW_WHITE, BUW_WHITE)
 	# The round lights (the Mac's orthophoto): the big one a glazed oculus, low, with a dark
-	# middle, in a paved ring path; the small one a glass cone in the lawn. The oculus's glass
-	# stays out of the roof grid (it is flat enough to land on: the cassette goes to the garden).
+	# middle, in a 4 m paved ring path; the small one a glass cone in a planted hump. The
+	# oculus's glass stays out of the roof grid (the cassette goes to the garden).
 	for r: Vector3 in site.get("rounds", []):
 		var c := Vector2(r.x, r.y)
 		if r.z > 6.0:
@@ -5061,53 +5166,64 @@ func _buw_roof(site: Dictionary, g: float) -> void:
 				var d1 := Vector2.from_angle(TAU * (k + 1) / sides)
 				var i0 := c + d0 * r.z
 				var i1 := c + d1 * r.z
-				var o0 := c + d0 * (r.z + 2.2)
-				var o1 := c + d1 * (r.z + 2.2)
+				var o0 := c + d0 * (r.z + BUW_RING_W)
+				var o1 := c + d1 * (r.z + BUW_RING_W)
 				_quad(Vector3(i0.x, top + 0.14, i0.y), Vector3(o0.x, top + 0.14, o0.y), Vector3(o1.x, top + 0.14, o1.y),
 						Vector3(i1.x, top + 0.14, i1.y), Vector3.UP, BUW_PAVING)
-			_prism(_circle(c, r.z, sides), top, top + 0.5, BUW_PATINA, none, M_STONE)
+			_prism(_circle(c, r.z, sides), top, top + 0.6, BUW_PATINA, none, M_STONE)
 			_no_roof = true
 			_mode = M_GLASS_ROOF
-			_frustum(_circle(c, r.z, sides), top + 0.5, _circle(c, r.z * 0.35, sides), top + 1.1, BUW_SKY)
+			_frustum(_circle(c, r.z, sides), top + 0.6, _circle(c, r.z * 0.35, sides), top + 1.6, BUW_SKY)
 			_mode = M_STONE
-			_cap(_circle(c, r.z * 0.35, sides), top + 1.1, BUW_DARK)
+			_cap(_circle(c, r.z * 0.35, sides), top + 1.6, BUW_DARK)
 			_no_roof = false
 		else:
-			# a round planted hump, a small glass cone in its middle
 			_frustum(_circle(c, r.z + 2.0, 12), top, _circle(c, 1.6, 12), top + 1.4, BUW_PARK)
 			_mode = M_GLASS_ROOF
 			_pyramid(_circle(c, 1.6, 12), top + 1.4, top + 2.6, BUW_SKY)
 			_mode = M_STONE
-	# The mapped roof parts: the 6 m one is the glass pyramid on the mound, the long one the
+	# The mapped roof parts: the 6 m one is the glass pyramid on the hill, the long one the
 	# glass strip along the north-west edge, the small one by Dobra a white stair house.
 	for h: Dictionary in site.get("houses", []):
 		var q := _hull(_pts(h["p"]))
 		var area := absf(_area(q))
-		if area < 60.0 and q.size() <= 5 and _centre(q).distance_to(mc) < mr:
+		if area < 60.0 and q.size() <= 5 and Geometry2D.is_point_in_polygon(_centre(q), _buw_ellipse(0.32, 16)):
 			_mode = M_GLASS_ROOF
-			_pyramid(q, top + 2.4, top + 5.2, BUW_SKY)
+			_pyramid(q, top + 3.0, top + 5.0, BUW_SKY.lerp(Color("#5fb3ad"), 0.5))
 			_mode = M_STONE
 		elif area > 120.0:
-			_prism(q, top, top + 1.0, BUW_PATINA, none, M_STONE)
+			_prism(q, top, top + 0.8, BUW_PATINA, none, M_STONE)
 			_mode = M_GLASS_ROOF
-			_pyramid(q, top + 1.0, top + 2.6, BUW_SKY)
+			_pyramid(q, top + 0.8, top + 2.2, BUW_SKY)
 			_mode = M_STONE
 		else:
 			var hh := g + maxf(float(h["h"]), BUW_ROOF + 3.1)
 			_prism(q, top, hh, BUW_WHITE, BUW_WHITE.darkened(0.1), M_STONE, M_STONE)
 
 
-## The outline's north-east side (its longest edge facing that way), for the ventilators.
-func _buw_ne_edge(ring: PackedVector2Array) -> Array:
-	var best: Array = []
-	var length := 0.0
-	for i in ring.size():
-		var a := ring[i]
-		var b := ring[(i + 1) % ring.size()]
-		if _out(ring, a, b).dot(Vector2(0.78, -0.63)) > 0.9 and a.distance_to(b) > length:
-			length = a.distance_to(b)
-			best = [a, b]
-	return best
+## The court in the south notch (the Mac's LoD2, pass 3): Collegium Iuridicum II's 10 m roof,
+## green, part of the garden, with its own small glass skylight; glass walls like the library's.
+func _buw_court(site: Dictionary, g: float) -> void:
+	var court: PackedVector2Array = site.get("court", PackedVector2Array())
+	if court.size() < 3:
+		return
+	var y := g + BUW_COURT
+	_mode = M_GLASS
+	_prism(court, g - 0.4, y, BUW_GLASS, Color(0, 0, 0, 0), M_GLASS)
+	_mode = M_STONE
+	_cap(court, y, BUW_PARK)
+	# a paved path along it and the skylight at its west end (the orthophoto)
+	var inner := _largest(Geometry2D.offset_polygon(court, -1.5))
+	for piece in Geometry2D.offset_polyline(PackedVector2Array([Vector2(78.0, -912.5), Vector2(99.0, -914.5)]), 0.9):
+		for p in Geometry2D.intersect_polygons(piece, inner):
+			if not Geometry2D.is_polygon_clockwise(p):
+				_cap(p, y + 0.08, BUW_PAVING)
+	var sky := _circle(Vector2(74.5, -912.2), 2.2, 4)
+	_prism(sky, y, y + 0.5, BUW_PATINA, Color(0, 0, 0, 0), M_STONE)
+	_mode = M_GLASS_ROOF
+	_pyramid(sky, y + 0.5, y + 1.8, BUW_SKY)
+	_mode = M_STONE
+	_collide(court)
 
 
 ## A polygon's convex hull, open (a pyramid over a concave ring folds over itself).

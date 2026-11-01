@@ -138,8 +138,9 @@ Small problems that agents reported or that showed up in screenshots. They are f
   `docs/landmarks/specs/buw.md`, log `docs/landmarks/buw.md`): the copper plates with their
   lines of text on Dobra, the four philosophers on columns, the roof garden from the mapped
   lawns, the glass roofs and the band; the roof redone from the orthophoto on 2026-11-01.
-  Left: the height (LoD2 may say more than OSM's 10.9 m), which front the philosophers stand
-  at, the south garden's winding paths and shrubs.
+  Pass 3 (2026-11-01, the Mac's LoD2 check): the deck at 15 m, the hill, the vents, the south
+  garden's paths and beds, the court on Collegium Iuridicum II. Left: the north corner's four
+  vents (outside the outline, the city's drums).
   The others not started.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
