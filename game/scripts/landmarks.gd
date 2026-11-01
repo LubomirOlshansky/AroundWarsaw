@@ -300,6 +300,11 @@ var _mode := M_STONE
 ## The landmarks loop: big signs on the landmarks for map_builder's _build_landmark_signs:
 ## [word (neon_signs.gd LANDMARK_WORDS), bottom middle, outward normal, scale, tube colour].
 var signs: Array = []
+## Stadion Narodowy's grass embankment (2026-11-01): the old Stadion Dziesięciolecia's earth
+## bank below the promenade, bare ground in the map, in one band per gap between two masts
+## (`_find_embankment`). map_builder's _build_areas lays them as grass under every mapped area,
+## so the plazas, lawns, steps, paths and roads on the bank stay on top.
+var embankment: Array[PackedVector2Array] = []
 var _g := 0.0          # the landmark's ground height
 var _id := 0           # landmark id for the picking grid (0: none)
 var _pick := PackedByteArray()
@@ -689,6 +694,64 @@ func _find_stadium() -> void:
 	sites[-1]["inner"] = inner
 	sites[-1]["outer"] = outer
 	sites[-1]["centre"] = centre
+	_find_embankment(inner, centre)
+
+
+## How far out the grass embankment starts, in inner-mast radii: under the mapped plaza and
+## the lawns round the stadium (the plaza's outer edge is at 1.2 to 1.35), so the band shows
+## only where they end and the bank falls to the streets.
+const BANK_FROM := 1.15
+## How far out the bank may reach, in inner-mast radii.
+const BANK_TO := 1.75
+## A ray whose ground falls less than this (metres) has no bank (a road ramp, a bridge).
+const BANK_DROP := 2.0
+
+
+## The embankment's bands. Along each mast's ray from the centre, in 2 m steps from BANK_FROM:
+## the bank's slope starts where the ground falls at least 15 % over the next 4 m once it is
+## 2.5 m under the start (under the plaza's terrace, so its inner slope with the lawns and
+## stairs does not count), and its foot is where it flattens to under 9 % (the street, the
+## car parks, the river walk start there). A band per gap between two masts, from BANK_FROM
+## out to the feet (a 3-ray median, so a stair or a ramp in the terrain makes no notch).
+func _find_embankment(inner: Array[Vector2], c: Vector2) -> void:
+	var n := inner.size()
+	var reach := PackedFloat32Array()
+	reach.resize(n)
+	for k in n:
+		var d := inner[k] - c
+		var r := d.length()
+		var dir := d / r
+		var start: float = map.terrain_height(c.x + dir.x * r * BANK_FROM, c.y + dir.y * r * BANK_FROM)
+		var steep := false
+		var foot := r * BANK_TO
+		var t := r * BANK_FROM
+		while t <= r * BANK_TO:
+			var h0: float = map.terrain_height(c.x + dir.x * t, c.y + dir.y * t)
+			var drop: float = h0 - map.terrain_height(c.x + dir.x * (t + 4.0), c.y + dir.y * (t + 4.0))
+			if not steep:
+				steep = h0 < start - 2.5 and drop >= 0.6
+			elif drop < 0.35:
+				foot = t
+				break
+			t += 2.0
+		var fell: float = start - map.terrain_height(c.x + dir.x * foot, c.y + dir.y * foot)
+		reach[k] = foot if steep and fell >= BANK_DROP else r * BANK_FROM
+	embankment.clear()
+	for k in n:
+		var k1 := (k + 1) % n
+		var ra := _median3(reach[(k + n - 1) % n], reach[k], reach[k1])
+		var rb := _median3(reach[k], reach[k1], reach[(k + 2) % n])
+		var da := (inner[k] - c).normalized()
+		var db := (inner[k1] - c).normalized()
+		var ia := (inner[k] - c).length() * BANK_FROM
+		var ib := (inner[k1] - c).length() * BANK_FROM
+		if ra - ia < 1.0 and rb - ib < 1.0:
+			continue
+		embankment.append(PackedVector2Array([c + da * ia, c + db * ib, c + db * maxf(rb, ib + 0.5), c + da * maxf(ra, ia + 0.5)]))
+
+
+static func _median3(a: float, b: float, c: float) -> float:
+	return maxf(minf(a, b), minf(maxf(a, b), c))
 
 
 # --- building -------------------------------------------------------------------------
@@ -2559,6 +2622,11 @@ func _mark_zone(site: Dictionary) -> void:
 ## The outline at every angle comes from the mapped masts; heights from the mapped parts
 ## (roof rim 44-46.2 m, mast tips 60 m, upper tier 19-38.5 m, hub 37-43 m, folded roof
 ## 55-63 m, needle 30-100 m, over the street round it).
+## The promenade's inner and outer edges, in inner-mast radii (the concourse glass is at 0.935).
+const PROM_FROM := 0.955
+const PROM_TO := 1.04
+
+
 func _build_stadium(site: Dictionary) -> void:
 	var inner: Array = site["inner"]
 	var outer: Array = site["outer"]
@@ -2663,23 +2731,35 @@ func _build_stadium(site: Dictionary) -> void:
 				Vector2(run + len0, ym1 - street), Vector2(run + len0, skin_top - street), Vector2(run, skin_top - street), skin_top - street)
 		run += len0
 	_collide(base)
-	# The promenade on the old embankment's crest, round the skin's foot.
+	# The promenade at the masts' feet on the old embankment's crest, from the concourse's
+	# glass out to the mapped plaza (its lawns and stairs down the bank start there), in two
+	# greys every three masts, a kerb down to the ground on its outer edge. Each corner sits
+	# over the highest ground round it (the crest is a ridge between the 10 m grid's points).
 	_mode = M_STONE
+	var deck := PackedFloat32Array()
+	for k in n:
+		var hi := -INF
+		for j in [-1, 0, 1]:
+			var dj: Vector2 = (inner[(k + j + n) % n] as Vector2) - c
+			var dk: Vector2 = (inner[k] as Vector2) - c
+			var ray: Vector2 = (dk + dj) * 0.5 if j != 0 else dk
+			for s in [PROM_FROM, 0.98, 1.0, 1.02, PROM_TO]:
+				hi = maxf(hi, map.terrain_height(c.x + ray.x * s, c.y + ray.y * s))
+		deck.append(hi + 0.2)
 	for k in n:
 		var k1 := (k + 1) % n
-		var rings := [0.96, 1.03, 1.1, 1.17]
-		for q in rings.size() - 1:
-			var s0: float = rings[q]
-			var s1: float = rings[q + 1]
-			var a0: Vector2 = c + ((inner[k] as Vector2) - c) * s0
-			var b0: Vector2 = c + ((inner[k1] as Vector2) - c) * s0
-			var a1: Vector2 = c + ((inner[k] as Vector2) - c) * s1
-			var b1: Vector2 = c + ((inner[k1] as Vector2) - c) * s1
-			var pts := [a0, b0, b1, a1]
-			var v3: Array[Vector3] = []
-			for v: Vector2 in pts:
-				v3.append(Vector3(v.x, maxf(map.terrain_height(v.x, v.y), foot[k] - 1.5) + 0.25, v.y))
-			_quad(v3[0], v3[1], v3[2], v3[3], Vector3.UP, Color("#cbc6ba") if (k / 3) % 2 == 0 else Color("#c3beb2"))
+		var a0: Vector2 = c + ((inner[k] as Vector2) - c) * PROM_FROM
+		var b0: Vector2 = c + ((inner[k1] as Vector2) - c) * PROM_FROM
+		var a1: Vector2 = c + ((inner[k] as Vector2) - c) * PROM_TO
+		var b1: Vector2 = c + ((inner[k1] as Vector2) - c) * PROM_TO
+		var tone := Color("#cbc6ba") if (k / 3) % 2 == 0 else Color("#c3beb2")
+		_quad(Vector3(a0.x, deck[k], a0.y), Vector3(b0.x, deck[k1], b0.y), Vector3(b1.x, deck[k1], b1.y),
+				Vector3(a1.x, deck[k], a1.y), Vector3.UP, tone)
+		var ka := minf(map.terrain_height(a1.x, a1.y), deck[k]) - 0.3
+		var kb := minf(map.terrain_height(b1.x, b1.y), deck[k1]) - 0.3
+		var ko := (a1 + b1) * 0.5 - c
+		_quad(Vector3(a1.x, ka, a1.y), Vector3(b1.x, kb, b1.y), Vector3(b1.x, deck[k1], b1.y), Vector3(a1.x, deck[k], a1.y),
+				Vector3(ko.x, 0.0, ko.y).normalized(), Color("#a9a59b"))
 	# The roof: the raised rim (its outer face over the skin, its inner face sloping to the
 	# membrane), its soffit back to the skin's top, then the membrane down to the open middle
 	# in panels.

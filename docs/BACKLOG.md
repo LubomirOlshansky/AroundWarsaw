@@ -305,8 +305,6 @@ golden-image shots runtime vs `--prebuilt`,
   over it, a guess; Varso I and II stay OSM extrusions (loop 1 lowered Varso 2's floating
   80-90 m top to the ground; Varso 1's 71-81 m top rests on its 71 m part for a little over
   half its footprint and overhangs a 10 m part for the rest, so it stays).
-- Stadion Narodowy's embankment is bare terrain with its mapped surfaces (patchy beige and
-  grass) outside the paved promenade ring.
 - The title skyline's Varso stays shorter than the Palace (in the city it is 310 m to 237 m).
 
 ## From v0.9 (water, weather, sound)

@@ -49,8 +49,12 @@ radius); the pitch at the terrain under the centre.
 
 ## 3. Facade, base to top
 
-- **Promenade (crest)**: a paved ring on the old embankment's crest, 0.96 to 1.17 x the inner
-  masts' radius, in two greys every three masts.
+- **Promenade (crest)**: a paved ring at the masts' feet on the old embankment's crest, 0.955
+  to 1.04 x the inner masts' radius (the mapped plaza, its lawns and its stairs down the bank
+  start there), in two greys every three masts, each corner 0.2 m over the highest ground
+  round it, a kerb (#a9a59b) down into the ground on its outer edge (2026-11-01: it was 0.96
+  to 1.17 at the skin's foot height, so after the concourse raised the skin it floated up to
+  10 m over the bank).
 - **Concourse (crest to 7.5 m)**: a dark glass curtain wall with lighter mullions (M_GLASS
   #2b3440), set back behind the masts' feet at 0.935 x their radius (Mac photo check
   2026-11-01).
@@ -101,8 +105,14 @@ No new material, no draw call of its own: everything goes into the city's buildi
 
 ## 6. Ground and night
 
-The embankment round the promenade stays the map's terrain with its mapped surfaces (BACKLOG:
-bare in places). The car collides with the skin's foot ring. At night the skin glows from
+The embankment round the promenade is the map's terrain with its mapped surfaces (the plaza
+on the terrace at about 8 m over the streets, its lawns and stairs). Its outer slope, bare
+ground in the map, is grass (2026-11-01): `_find_embankment` finds the slope along each
+mast's ray on the terrain (from 1.15 x the inner masts' radius, where the ground falls 15 %
+or more once 2.5 m under the start, to its foot where it flattens under 9 %, at most 1.75 x)
+and map_builder lays a band per mast gap on the ground grid under every mapped area (the
+plaza, lawns, stairs, paths and roads stay on top). The terrain is unchanged, so the roads
+and the drivable ground meet as before. The car collides with the skin's foot ring. At night the skin glows from
 inside (the red strips more, the white ones catch the light), the membrane gives a faint warm
 glow and the needle's tip is red. Card (kept): "Stadion Narodowy", PL "Otwarty w 2012 roku na
 Euro 2012, w misie dawnego Stadionu Dziesięciolecia. Biało-czerwona plecionka fasady.", EN
@@ -114,7 +124,8 @@ red-and-white woven skin."
 L3 (a hero: the skyline over the river and the race finish), triangle budget 4750 in
 `check_mesh_quality.gd` (3958 measured plus 20 %; raised from 3470 on purpose for the photo
 check's parts: the spikes 576, the concourse glass 144, the polycarbonate ring 144. The bowl
-720, the masts 576, the skin 288, the roof 432, the promenade 432, the pitch and its lines
+720, the masts 576, the skin 288, the roof 432, the promenade 288 since the embankment pass
+(3814 in all), the pitch and its lines
 about 90, the needle and cables about 400). Shots: `--solo=stadium --solo-look=sil` and `flat` (the
 `first` set), then in the city at day and night from the west.
 
@@ -127,7 +138,8 @@ about 90, the needle and cables about 400). Shots: `--solo=stadium --solo-look=s
 | spikes | 72 square beams | 1 m, rim to 60 m | the masts' tops | M_STONE #f2f3f5 | 2 ring of masts |
 | concourse | 72 glass quads | crest to 7.5 m | 0.935 x inner radius | M_GLASS #2b3440 | 1 woven basket |
 | polycarbonate | 72 sloping quads | 7 m wide | the opening's edge | M_MEMBRANE #8f9aa3 | 3 white roof |
-| promenade | 3 rings of 72 quads | 0.96 to 1.17 x inner radius | the crest | M_STONE #cbc6ba | 1 woven basket |
+| promenade | 72 quads and 72 kerb quads | 0.955 to 1.04 x inner radius | the crest | M_STONE #cbc6ba, kerb #a9a59b | 1 woven basket |
+| embankment | 1 grass band per mast gap (the ground's flat layer, not the site mesh) | 1.15 x inner radius to the slope's foot | the outer slope | ground L_GREEN #8fbd58 | the old stadium's bowl |
 | rim | 72 x (face, slope, soffit) | 42.4 to 46.2 m | 1.5 m outside the outer masts | M_STONE #dcdee2 | 3 white roof |
 | membrane | 72 sloping quads | 44 to 40.5 m | rim to opening | M_MEMBRANE #f4f4f1 | 3 white roof |
 | bowl | 5 rings of 72 quads | 122 x 84 m to 0.86 x inner radius, 0.4 to 38.5 m | under the roof | M_STONE #c42a31 | 5 seats |
