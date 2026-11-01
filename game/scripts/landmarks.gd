@@ -275,6 +275,15 @@ const INFO := {
 	"kordegarda": ["Kordegarda",
 			"Dawna wartownia przy pałacu Potockich, dziś galeria sztuki.",
 			"The palace's old guardhouse, today an art gallery."],
+	"hotel_kasztel": ["Kasztel Inn",
+			"Mały hotel w kamienicy tuż przy placu Zamkowym i Świętojańskiej.",
+			"A small hotel in a tenement by Castle Square and Świętojańska."],
+	"hotel_canaletto": ["Hotel Canaletto",
+			"Hotel w starej kamienicy, nazwany od malarza widoków Warszawy.",
+			"A hotel in an old tenement, named for the painter of Warsaw's views."],
+	"hotel_starowka": ["Rezydencja Starówka",
+			"Apartamenty w kamienicy przy Rynku, dla gości z walizką na kółkach.",
+			"Apartments in a tenement on the Market, for wheeled-suitcase guests."],
 	"bristol": ["Hotel Bristol",
 			"Wielki hotel z 1901 roku, z kopułą na rogu.",
 			"A grand hotel of 1901, with a dome on its corner."],
@@ -683,6 +692,8 @@ func _find_sites() -> void:
 	_find_kopernik()
 	_find_krakowskie()
 	_find_mariensztat()
+	# F's ask (2026-11-01): the Old Town hotels, as fronts on the tenements.
+	_find_hotels()
 	# F's ask (2026-11-01): Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle.
 	_find_works()
 	# The Ministry of Finance (2026-11-01): a model instead of the mapped box.
@@ -1042,6 +1053,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_kordegarda(s)
 			"mariensztat":
 				_build_mariensztat(s)
+			"hotel_kasztel", "hotel_canaletto", "hotel_starowka":
+				_build_hotel(s)
 			"bristol":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the corner tower is ours
 				_build_bristol(s)
@@ -9941,3 +9954,104 @@ func _build_wyszynski(_site: Dictionary) -> void:
 	_prism(_circle(_w(0.1, 0.0), 0.17, 8), top + 1.7, top + 2.1, robe, robe, M_STONE, M_STONE)  # head
 	_lbox(0.45, 0.3, 0.4, 0.14, top + 1.2, top + 1.3, robe, M_STONE, robe)  # the hand at the chin
 	_collide(_rect(0.0, 0.0, 3.2, 3.2))
+
+
+# --- Old Town hotels -----------------------------------------------------------------------
+
+## The Old Town hotels (F, 2026-11-01: "what about hotels in old town?"). OpenStreetMap maps
+## none of them as a building (they are rooms in tenements), so each hotel is a **front** put on
+## the street-facing facade of the tenement nearest a published spot: a portal (two pilasters,
+## an architrave and a warm glass door), a flat canopy, a dark fascia board with its name in
+## neon (HOTEL over the name), two flag arms and two lanterns. The house itself stays the map's
+## (the zone is the strip in front of the facade, so nothing is dropped). Names are parodies:
+## Castle Inn becomes KASZTEL INN, Hotel Bellotto (the painter's real surname) CANALETTO, an
+## aparthotel on the Market Square STARÓWKA. The spots are estimates (no photo is reachable from
+## the cloud): the Mac look check waits in QUESTIONS. Each entry: key, "o" the middle of the
+## facade edge (found offline: the tenement within 45 m of the published spot, its edge nearest
+## a street, from centrum.json; constants, so a streamed sector needs no building data), "out"
+## the facade's outward normal, the name, the board and canopy colours, the tube colour and the
+## flag's stripes from the facade out.
+const HOTELS := [
+	{"key": "hotel_kasztel", "o": Vector2(-705.6, -1580.7), "out": Vector2(-0.732186, 0.681105),
+			"word": "KASZTEL INN", "board": "#1f2a44", "canopy": "#2b3350", "tube": Color(1.0, 0.82, 0.4),
+			"flag": ["#f2efe8", "#d6283a"]},
+	{"key": "hotel_canaletto", "o": Vector2(-860.7, -1774.25), "out": Vector2(-0.765613, 0.643301),
+			"word": "CANALETTO", "board": "#5a1f26", "canopy": "#3b2326", "tube": Color(1.0, 0.9, 0.62),
+			"flag": ["#2f8a4a", "#f2efe8", "#d6283a"]},
+	{"key": "hotel_starowka", "o": Vector2(-779.85, -1769.15), "out": Vector2(-0.755688, 0.654932),
+			"word": "STARÓWKA", "board": "#27443a", "canopy": "#233a32", "tube": Color(1.0, 0.7, 0.5),
+			"flag": ["#f2efe8", "#d6283a"]},
+]
+const HOTEL_TRIM := Color("#e6dcc8")
+const HOTEL_LAMP := Color("#ffd9a0")
+
+
+func _find_hotels() -> void:
+	for h: Dictionary in HOTELS:
+		_o = h["o"]
+		_b = h["out"]
+		_a = Vector2(-_b.y, _b.x)
+		# The strip in front of the facade, 6 m wide: the house behind is not touched.
+		_add_site(h["key"], [_rect(0.0, 0.95, 3.0, 0.95)])
+
+
+## One hotel front in the frame `_find_hotels` set: u along the facade, v out of it.
+func _build_hotel(site: Dictionary) -> void:
+	var spec: Dictionary = {}
+	for h: Dictionary in HOTELS:
+		if h["key"] == site["key"]:
+			spec = h
+	if spec.is_empty():
+		return
+	_o = spec["o"]
+	_b = spec["out"]
+	_a = Vector2(-_b.y, _b.x)
+	_g = map.terrain_height(_o.x, _o.y)
+	var g := _g
+	var board := Color(spec["board"])
+	var canopy := Color(spec["canopy"])
+	_mode = M_STONE
+	# The portal: two pilasters and the architrave, 0.4 m into the facade line and out of it, so
+	# a LoD2 wall a little off OSM's edge still meets them.
+	for sd: float in [-1.0, 1.0]:
+		_lbox(sd * 1.5, 0.0, 0.3, 0.4, g - 0.2, g + 3.4, HOTEL_TRIM, M_STONE, HOTEL_TRIM)
+	_lbox(0.0, 0.0, 1.8, 0.45, g + 3.0, g + 3.4, HOTEL_TRIM, M_STONE, HOTEL_TRIM)
+	# The door: warm glass between the pilasters, lit from inside at night.
+	_mode = M_PAVILION
+	_wall(_w(-1.2, 0.3), _w(1.2, 0.3), g + 0.05, g + 3.0, _b, Color("#f3d9a8"))
+	# The canopy over it, and the board above that.
+	_mode = M_STONE
+	_lbox(0.0, 0.7, 2.2, 0.6, g + 3.3, g + 3.55, canopy, M_STONE, canopy.lightened(0.1))
+	_lbox(0.0, 0.0, 2.3, 0.3, g + 3.5, g + 5.7, board, M_STONE, board.lightened(0.08))
+	# The flag arms at the board's ends, each with its stripes hanging in the plane of the arm.
+	var stripes: Array = spec["flag"]
+	for sd: float in [-1.0, 1.0]:
+		_lbox(sd * 2.2, 0.6, 0.04, 0.6, g + 5.7, g + 5.8, HOTEL_TRIM.darkened(0.45), M_STONE)
+		var w := 0.9 / stripes.size()
+		for n in stripes.size():
+			_lbox(sd * 2.2, 0.2 + w * (n + 0.5), 0.02, w * 0.5, g + 4.55, g + 5.75, Color(stripes[n]), M_STONE)
+		# A lantern on the pilaster's outer face.
+		_mode = M_LAMP
+		_lbox(sd * 1.9, 0.3, 0.12, 0.12, g + 2.5, g + 2.9, HOTEL_LAMP, M_LAMP)
+		_mode = M_STONE
+	# The name: HOTEL over it, in neon on the board's face (map_builder's _build_landmark_signs).
+	var word: String = spec["word"]
+	var o3 := Vector3(_b.x, 0.0, _b.y)
+	var k := minf(0.34, 4.2 / Neon.length_of(word))
+	var face := _w(0.0, 0.3 - 0.4 + 0.03)
+	signs.append(["HOTEL", Vector3(face.x, g + 4.95, face.y), o3, 0.25, Color(1.0, 0.45, 0.45)])
+	signs.append([word, Vector3(face.x, g + 3.85, face.y), o3, k, spec["tube"]])
+	_collide(_rect(0.0, 0.0, 2.0, 0.4))
+	# Tapping the house's front (12 m wide, 7 m deep behind the facade, 2 m out) opens the card.
+	var pick := _rect(0.0, -2.5, 6.0, 4.5)
+	var cell: float = map.ROOF_CELL
+	var box := _box_of([pick])
+	var i0 := maxi(floori((box.position.x - map._roof_x0) / cell), 0)
+	var i1 := mini(floori((box.end.x - map._roof_x0) / cell), map._roof_nx - 1)
+	var j0 := maxi(floori((box.position.y - map._roof_z0) / cell), 0)
+	var j1 := mini(floori((box.end.y - map._roof_z0) / cell), map._roof_nz - 1)
+	for j in range(j0, j1 + 1):
+		for i in range(i0, i1 + 1):
+			var q := Vector2(map._roof_x0 + (i + 0.5) * cell, map._roof_z0 + (j + 0.5) * cell)
+			if Geometry2D.is_point_in_polygon(q, pick):
+				_pick[j * map._roof_nx + i] = _id

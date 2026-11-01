@@ -87,6 +87,14 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
 - The scene's people stand still (no gestures); the onlookers' phones are not modelled.
 - A scene on a one-lane road (none today: they need 2+ lanes so the traffic can go round).
 
+## Old Town hotels (2026-11-01)
+- Done: `hotel_kasztel` (Castle Inn, Plac Zamkowy), `hotel_canaletto` (Hotel Bellotto), `hotel_starowka`
+  (an aparthotel on the Rynek): fronts on tenements, parody names, cards. Spots are estimates from the
+  published addresses, no photos. Left: Mac look check (which house, which street face, the board's
+  size against the lane), real facade photos, Le Régina/Mamaison and the other New Town hotels (the
+  map has no New Town data north of Freta), PURO Stare Miasto (-1094,-1018) has a mapped hotel
+  building but no front, the unnamed 4.3 m hotel at (-819,-1419).
+
 ## Mariensztat and Krakowskie Przedmieście: review (F, 2026-11-01)
 
 F asked whether Mariensztat and Krakowskie Przedmieście are modelled well. Cloud shots (OSM
@@ -2217,9 +2225,12 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
   control and `car.gd` / `sfx.horn`) then needs one line: `life.horn(car.global_position)`.~~
   Done in the night-buses loop: the HUD's horn left of the brake and B (`buses.gd` `honk`, no
   `car.gd` change).
-- **No Rowerilo docks in the map data**: the bake has no `amenity=bicycle_rental` POIs, so the
-  only dock is the `rowerilo_dock` place (9 bikes). Map lane: bake the docks as POIs (kind
-  `bike_dock`) and `city_life.gd` `_place_fixed` can put a row at each.
+- ~~**No Rowerilo docks in the map data**~~ Done (2026-11-01): the 92 `bicycle_rental` pois each get
+  a dock (`storefronts.gd` `_load_docks`, `Props.add_bike_dock`, 4-8 bikes from `l`, 6 unmapped) in the
+  sector's StreetProps mesh (+0 draw calls where it stands, +1 in a sector with no other prop).
+  `check_parodies` counts them. Open: Mac look check (row direction and kerb clearance against the
+  real stands; headless check only, no render in the cloud), and the old single `rowerilo_dock`
+  place in `city_life.gd` can now go or move to a real dock.
 - **E28's "to a dock"** is simplified to "follow a Rowerilo rider 400 m" (the rider then docks
   off screen): with docks in the data the rider could ride to the nearest one. Open Question.
 - ~~**No rider MultiMesh to share** (MW-2's Pędzik riders aren't built): the bikes are their own
@@ -2341,8 +2352,8 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
 - **Stamp reach** is 8 m from the door point (parodies.md 2.4 says 6): the door point is 1 m out
   from the wall and a car on the near lane stops a pavement's width plus half a lane away
   (`--rechotka` stops 6.4 m from Krucza 51's door). Open Question in the MW-2 report.
-- **The metro M** is a cream M on a navy square: generic, no operator's logo; at the default
-  view it is a few pixels. The art director may want it bigger or red.
+- ~~**The metro M** is a cream M on a navy square~~ (done 2026-11-01: a red lit square on a 3.4 m
+  post, plus a red fascia on the canopies; still our own shape, no operator logo).
 
 ## From the content-POIs loop (map lane, 2026-10-31)
 
