@@ -86,6 +86,11 @@ then the Launch gate.
       Al. Jerozolimskie (1202 tris, new `polonia` site and card) through one `_palace_hotel` builder;
       Europejski, Wiktoria, the Marriott, Novotel, Westin and InterContinental were already models;
       Mac look check parked (QUESTIONS, BACKLOG "Grand hotels")
+- [x] Ujazdowski Castle and the Ujazdów notebook page (F, 2026-11-01): site `ujazdowski` (four
+      copper-roofed wings round the courtyard, four round towers with spires, a lit west portal with
+      a pediment, an east bay, dormers and chimneys, 1379 tris, spec ujazdowski.md) and the notebook
+      place `zamek_ujazdowski` (chapter Retro i szyk, district Ujazdów i Łazienki, which had no
+      place); Mac look check parked (QUESTIONS)
 - [x] Old Town hotels (F, 2026-11-01): fronts on three tenements (portal, canopy, neon name, flags,
       lanterns, card), under parody names KASZTEL INN (Castle Inn), CANALETTO (Hotel Bellotto),
       STARÓWKA (an aparthotel on the Rynek); Mac look check parked (QUESTIONS, BACKLOG "Old Town hotels")

@@ -24,6 +24,7 @@ someone writes its lines.
 - The Vistula boulevards are full of life: groups sitting and chatting along the river on summer evenings, more dog walkers, and cyclists tearing along the bike path.
 - Marszałkowska's tram stops fill with commuters at rush hour, thin out at weekends and night, and crowd the platforms when it rains.
 - Photo mode no longer lets your car roll backwards into a building, and the pause menu's JAZDA tab has a POMOC DROGOWA button that tows you onto the nearest road if you ever get stuck.
+- Ujazdowski Castle is a real castle now: four copper-roofed wings round a courtyard, a round tower with a spire at each corner and a lit portal on the west side. It is also a new page in the Moja Warszawa notebook, the first one in Ujazdów.
 - Hotel Bristol and Hotel Polonia Palace are real buildings now: slate mansards with dormers, balcony bands and cornices, and a lit canopied door with a name board (BRISTOL in gold) on Krakowskie Przedmieście and Aleje Jerozolimskie.
 - The Church of the Holiest Saviour on Plac Zbawiciela is a real church now: two tall towers with green copper spires, a dome over the crossing and a porch with a pediment, with a card.
 

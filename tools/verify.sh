@@ -28,7 +28,7 @@
 # in anything solid or off the map; the density, the egg zone, the odd shares).
 # `tiers` and `governor` (loop G1): the device tiers and the pixel image's size rule, and the
 # frame governor's rules on scripted frames.
-# Loop MW-1: `places` runs game/tools/check_places.gd: MOJA WARSZAWA's 76 places (Polish +
+# Loop MW-1: `places` runs game/tools/check_places.gd: MOJA WARSZAWA's 77 places (Polish +
 # English, the 70 characters, the demo box, the brand denylist, reachability as a WARN) and the
 # notebook's finding and reward rules on synthetic inputs; it reads only centrum.json (CI too).
 # The L-shaped map loop: `edge` runs game/tools/check_edge.gd: the helicopter's clamp along the
