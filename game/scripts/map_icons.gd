@@ -111,6 +111,7 @@ const ICONS := [
 	["muzeum", "portico", CULTURE, "Muzeum Narodowe", "National Museum"],
 	["prezydencki", "portico", ROYAL, "Pałac Prezydencki", "Presidential Palace"],
 	["mirowska", "hall", SHOP, "Hala Mirowska", "Mirowska Hall"],
+	["gwardii", "hall", SHOP, "Hala Gwardii", "Gwardii Hall"],
 	["arkadia", "bag", SHOP, "Arkadka", "Arkadka mall"],
 	["flaga", "flaga", FUN, "Flaga", "the Flag"],
 ]

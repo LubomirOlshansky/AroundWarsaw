@@ -251,6 +251,9 @@ const INFO := {
 	"mirowska": ["Hala Mirowska",
 			"Ceglana hala targowa.",
 			"A brick market hall."],
+	"gwardii": ["Hala Gwardii",
+			"Ceglana hala przy Żelaznej Bramie, bliźniaczka Mirowskiej.",
+			"A brick market hall by Żelazna Brama, Mirowska's twin."],
 	"arkadia": ["Arkadka",
 			"Największe centrum handlowe w mieście, przy rondzie Radosława.",
 			"The city's biggest mall, by Rondo Radosława."],
@@ -559,6 +562,7 @@ func _find_sites() -> void:
 	_find_trojca()
 	_find_zacheta()
 	_find_mirowska()
+	_find_gwardii()
 	_find_prezydencki()
 	# St Alexander's church (2026-11-01): a model instead of a skin.
 	_find_aleksander()
@@ -856,6 +860,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_zacheta(s)
 			"mirowska":
 				_build_mirowska(s)
+			"gwardii":
+				_build_gwardii(s)
 			"prezydencki":
 				_build_prezydencki(s)
 			"aleksander":
@@ -5220,6 +5226,124 @@ func _build_mirowska(site: Dictionary) -> void:
 	_lbox(49.45, nave_v, 31.05, 5.5, g + 12.4, g + 16.0, MIROWSKA_SKY, M_GLASS, none)
 	_mode = M_GLASS_ROOF
 	_frustum(_rect(49.45, nave_v, 31.05, 5.5), g + 16.0, _rect(49.45, nave_v, 31.05, 0.3), g + 17.4, MIROWSKA_SKY, MIROWSKA_SKY)
+	_mode = M_STONE
+	_collide(site["ring"])
+
+
+## Hala Gwardii (Stefan Szyller and Czesław Domaniewski, 1899-1901), the eastern twin of Hala
+## Mirowska on the other side of Plac Mirowski, 96.8 x 44.1 m, long axis the same as its twin's.
+## OSM maps only the outline (no 3D parts) but maps it down to the pilasters, so the bays here are
+## measured from it (spec docs/landmarks/specs/gwardii.md): the hall is symmetric end to end, a
+## portal in the middle of both short ends, 15 pilasters on each long side. It reuses Mirowska's
+## helpers, colours and massing (nave, lantern, gable ends, turrets) and drops the annex.
+## Frame: origin at the south-west corner, u east along the long side, +v to the north.
+const GWARDII := Vector2(-1712.77, -537.24)
+const GWARDII_HU := 96.8
+const GWARDII_HV := 44.1
+## Pilaster centres along a long side, from the west end to the middle; the east half mirrors them.
+const GWARDII_PILASTERS: Array[float] = [1.0, 7.5, 11.1, 18.3, 24.95, 31.65, 38.25, 45.1]
+## Window centres along a long side, west half; the east half mirrors them, plus one at the middle.
+const GWARDII_BAYS: Array[float] = [14.7, 21.6, 28.3, 35.0, 41.7]
+## Pilaster centres across a short end, from the south to the middle; the north half mirrors them.
+const GWARDII_END_PILASTERS: Array[float] = [1.0, 7.4, 18.1]
+
+
+func _find_gwardii() -> void:
+	var outline := _landmark("Hala Gwardii")
+	if outline.size() >= 3:
+		_add_site("gwardii", [outline])
+		if not sites.is_empty() and sites[-1]["key"] == "gwardii":
+			sites[-1]["ring"] = outline
+
+
+func _build_gwardii(site: Dictionary) -> void:
+	_o = GWARDII
+	_a = MIROWSKA_AXIS.normalized()
+	_b = Vector2(_a.y, -_a.x)  # to the north, across the hall
+	var hu := GWARDII_HU
+	var hv := GWARDII_HV
+	var body := _rect(hu * 0.5, hv * 0.5, hu * 0.5, hv * 0.5)
+	_g = _ground_under(body)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	var nave_v := hv * 0.5
+	var nave_hw := 13.3
+	var mid := hu * 0.5
+	# window and pilaster positions along a long side, mirrored about the middle
+	var wins: Array[float] = []
+	for u in GWARDII_BAYS:
+		wins.append(u)
+		wins.append(hu - u)
+	wins.append(mid)
+	var pils: Array[float] = []
+	for u in GWARDII_PILASTERS:
+		pils.append(u)
+		pils.append(hu - u)
+	var end_pils: Array[float] = []
+	for v in GWARDII_END_PILASTERS:
+		end_pils.append(v)
+		end_pils.append(hv - v)
+	# windows first, so the walls behind them stay whole (they stand off the wall by cm)
+	for side in 2:
+		var v := 0.0 if side == 0 else hv
+		var out := -_b if side == 0 else _b
+		for u in wins:
+			_arch_win(_w(u, v), _a, out, 1.15, g + 2.4, g + 6.6)
+		for u: float in [4.25, hu - 4.25]:  # the corner bays are narrower
+			_arch_win(_w(u, v), _a, out, 0.9, g + 2.4, g + 6.6)
+	# both short ends: a portal in the middle bay between two windows each side
+	for end in 2:
+		var u := 0.0 if end == 0 else hu
+		var out := -_a if end == 0 else _a
+		for cv: float in [4.2, 12.75, 31.35, hv - 4.2]:
+			var small := cv < 6.0 or cv > hv - 6.0
+			_arch_win(_w(u, cv), _b, out, 0.9 if small else 1.3, g + 2.4, g + 6.6)
+		_arch_win(_w(u, nave_v), _b, out, 1.7, g + 1.3, g + 5.6, MIROWSKA_DOOR)
+	# the thin tall gable ends: a big window in each
+	_arch_win(_w(89.1, nave_v), _b, _a, 1.8, g + 11.0, g + 13.8)
+	_arch_win(_w(7.7, nave_v), _b, -_a, 1.8, g + 11.0, g + 13.8)
+	# the walls: brick, 10 m, flat grey roof (the nave stands on it)
+	_mode = M_STONE
+	_prism(body, g - 0.5, g + 10.0, MIROWSKA_BRICK, MIROWSKA_ROOF, M_STONE, M_STONE)
+	# plinth: four thin boxes round the foot
+	_lbox(mid, -0.1, mid + 0.2, 0.2, g - 0.5, g + 1.2, MIROWSKA_PLINTH, M_STONE, MIROWSKA_PLINTH.lightened(0.05))
+	_lbox(mid, hv + 0.1, mid + 0.2, 0.2, g - 0.5, g + 1.2, MIROWSKA_PLINTH, M_STONE, MIROWSKA_PLINTH.lightened(0.05))
+	_lbox(hu + 0.1, nave_v, 0.2, nave_v - 0.2, g - 0.5, g + 1.2, MIROWSKA_PLINTH, M_STONE, MIROWSKA_PLINTH.lightened(0.05))
+	_lbox(-0.1, nave_v, 0.2, nave_v - 0.2, g - 0.5, g + 1.2, MIROWSKA_PLINTH, M_STONE, MIROWSKA_PLINTH.lightened(0.05))
+	# the cornice round all four sides
+	_lbox(mid, -0.17, mid + 0.35, 0.35, g + 9.0, g + 10.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+	_lbox(mid, hv + 0.17, mid + 0.35, 0.35, g + 9.0, g + 10.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+	_lbox(hu + 0.17, nave_v, 0.35, nave_v - 0.35, g + 9.0, g + 10.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+	_lbox(-0.17, nave_v, 0.35, nave_v - 0.35, g + 9.0, g + 10.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+	# pilasters between the bays (the outline's own jogs): both long sides and both ends
+	for u in pils:
+		_lbox(u, -0.15, 0.6, 0.15, g + 1.2, g + 9.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+		_lbox(u, hv + 0.15, 0.6, 0.15, g + 1.2, g + 9.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+	for v in end_pils:
+		_lbox(-0.15, v, 0.15, 0.6, g + 1.2, g + 9.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+		_lbox(hu + 0.15, v, 0.15, 0.6, g + 1.2, g + 9.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+	# the portals' steps, both ends
+	for k in 3:
+		var e := 0.4 + (2 - k) * 0.4
+		_lbox(hu + e, nave_v, e, 2.6, g - 0.5, g + 0.4 * (k + 1), MIROWSKA_PLINTH, M_STONE, MIROWSKA_PLINTH.lightened(0.05))
+		_lbox(-e, nave_v, e, 2.6, g - 0.5, g + 0.4 * (k + 1), MIROWSKA_PLINTH, M_STONE, MIROWSKA_PLINTH.lightened(0.05))
+	# the nave's gabled roof and its two tall gable ends
+	_gable(87.7, 9.1, nave_v, nave_hw, g + 10.0, 4.5, MIROWSKA_BRICK, MIROWSKA_NAVE)
+	_gable(89.1, 87.7, nave_v, nave_hw, g + 10.0, 8.0, MIROWSKA_BRICK, MIROWSKA_TRIM)
+	_gable(7.7, 9.1, nave_v, nave_hw, g + 10.0, 8.0, MIROWSKA_BRICK, MIROWSKA_TRIM)
+	_pinnacle(88.4, nave_v, 0.9, g + 17.8, 2.2, MIROWSKA_TRIM)
+	_pinnacle(8.4, nave_v, 0.9, g + 17.8, 2.2, MIROWSKA_TRIM)
+	# four corner turrets with pyramid caps
+	for cu: float in [10.1, hu - 10.1]:
+		for cv: float in [11.3, hv - 11.3]:
+			_lbox(cu, cv, 2.5, 2.4, g + 10.0, g + 14.4, MIROWSKA_BRICK, M_STONE, none)
+			_lbox(cu, cv, 2.65, 2.55, g + 14.2, g + 15.0, MIROWSKA_TRIM, M_STONE, MIROWSKA_TRIM)
+			_mode = M_STONE
+			_pyramid(_rect(cu, cv, 2.7, 2.6), g + 15.0, g + 18.8, MIROWSKA_CAP)
+	# the lantern along the ridge: glass sides on the slope, a glass roof
+	_lbox(mid, nave_v, 31.05, 5.5, g + 12.4, g + 16.0, MIROWSKA_SKY, M_GLASS, none)
+	_mode = M_GLASS_ROOF
+	_frustum(_rect(mid, nave_v, 31.05, 5.5), g + 16.0, _rect(mid, nave_v, 31.05, 0.3), g + 17.4, MIROWSKA_SKY, MIROWSKA_SKY)
 	_mode = M_STONE
 	_collide(site["ring"])
 
