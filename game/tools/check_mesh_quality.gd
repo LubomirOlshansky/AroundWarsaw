@@ -50,6 +50,7 @@ const BUDGET := {
 	"lucka": 470,
 	"marszalkowska94": 490,
 	"mennica": 650,
+	"mf": 1870,
 	"mirowska": 1750,
 	"msn": 500,
 	"metropolitan": 3100,
