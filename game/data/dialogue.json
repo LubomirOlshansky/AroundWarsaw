@@ -2094,6 +2094,83 @@
       {
         "only": "cringulo"
       }
+    ],
+    [
+      "Lody w listopadzie? A co, już nie wolno?",
+      "Ice cream in November? What, is that banned now?",
+      {
+        "only": "lody_zima"
+      }
+    ],
+    [
+      "Minus trzy, szalik, rożek. Tak się żyje.",
+      "Minus three, a scarf and a cone. That's living.",
+      {
+        "only": "lody_zima"
+      }
+    ],
+    [
+      "Zimą lody są mniej roztopione. Samo zdrowie.",
+      "In winter ice cream melts less. Pure health.",
+      {
+        "only": "lody_zima"
+      }
+    ],
+    [
+      "Dwadzieścia osób w puchówkach po gałkę pistacji. Normalny wtorek.",
+      "Twenty people in puffer jackets for one scoop of pistachio. A normal Tuesday.",
+      {
+        "only": "lody_zima"
+      }
+    ],
+    [
+      "Śnieg pada, kolejka stoi. Dalej, dalej!",
+      "Snow falls, the queue stands. Dalej, dalej!",
+      {
+        "only": "lody_zima"
+      }
+    ],
+    [
+      "Rękawiczki zdejmuję tylko do rożka.",
+      "I only take my gloves off for the cone.",
+      {
+        "only": "lody_zima"
+      }
+    ],
+    [
+      "Babcia mówiła: nie jedz lodów zimą. Babcia stoi trzecia w kolejce.",
+      "Grandma said: no ice cream in winter. Grandma is third in line.",
+      {
+        "only": "lody_zima"
+      }
+    ],
+    [
+      "Dalej, dalej! Kolejka sama się nie przesunie.",
+      "Dalej, dalej! The queue won't move itself.",
+      {
+        "only": "lody"
+      }
+    ],
+    [
+      "Smak dnia: pistacja. Smak każdego dnia: pistacja.",
+      "Flavour of the day: pistachio. Flavour of every day: pistachio.",
+      {
+        "only": "lody"
+      }
+    ],
+    [
+      "Lato w Powiślu: gałka lodów i godzina nad Wisłą.",
+      "Summer in Powiśle: one scoop and an hour by the Vistula.",
+      {
+        "only": "lody"
+      }
+    ],
+    [
+      "Dwie gałki, trzydzieści minut. Rachunek się zgadza.",
+      "Two scoops, thirty minutes. The maths works.",
+      {
+        "only": "lody"
+      }
     ]
   ],
   "runners": [

@@ -160,6 +160,15 @@ const CHILL := {
 ## 8:00-18:00 and its line is long at lunch. Same trend-queue machinery as KUKŁA, tag "kolejka".
 const MILK := ["krowa_norblin"]
 const MILK_MAX := 26
+## DALEJ DALLA GELATO, the Powiśle ice-cream parlour (F, 2026-11-01; "dalej" = move along, the
+## queue's word): the joke is that Poland queues for lody all year. Open 11:00-21:00, never under
+## 12 in the queue even in snow (tag "lody_zima", the crowd in winter coats), 24 on summer
+## afternoons and weekends (tag "lody"). Same trend-queue machinery as KUKŁA.
+const GELATO := ["dalej_gelato"]
+const GELATO_MAX := 24
+const GELATO_WINTER_MIN := 12
+## The winter queue's coats: black and navy puffers, a mustard one, a cream one, a red scarf's worth.
+const COATS := ["#1f1f22", "#1c2230", "#2b2c2f", "#3a3b3f", "#c9a23a", "#e8e4d8", "#8a2b2b", "#2f4f4a"]
 ## vision 4.5's hour curves (the hour's whole part; missing hours are 0). Lusterko's 09-12 is 0.5
 ## on a Sunday only (`queue_factor`).
 const CURVES := {
@@ -195,6 +204,7 @@ enum { STAND, SIT, BROAD }
 ## The "Cringulo effect": trend site id -> the weekday it was reviewed on (cringulo_boost).
 var cringulo := {}
 var _weekday_now := 0
+var _month_now := 7
 ## The view's focus (the camera's), -> Vector3.
 var focus: Callable
 ## The game clock, -> {hour, weekday} (time_of_day.gd local_clock).
@@ -376,6 +386,19 @@ static func milk_queue(hour: float, weekday: int) -> Array:
 	return [10, "kolejka"]
 
 
+## DALEJ DALLA GELATO's line now: [people, tag]. 11:00-21:00; a winter month (Nov-Mar) keeps at
+## least GELATO_WINTER_MIN and peaks at 18 on a weekend afternoon (tag "lody_zima"); summer peaks
+## at GELATO_MAX in the afternoon (tag "lody").
+static func gelato_queue(hour: float, weekday: int, month: int) -> Array:
+	if hour < 11.0 or hour >= 21.0:
+		return [0, ""]
+	var winter := month >= 11 or month <= 3
+	var peak := (hour >= 14.0 and hour < 19.0) or weekday >= 6
+	if winter:
+		return [18 if peak and weekday >= 6 else GELATO_WINTER_MIN, "lody_zima"]
+	return [GELATO_MAX if peak else 14, "lody"]
+
+
 ## The dawn crowd is out: 05:00-09:00 on a Saturday or Sunday in Live, or in the Dawn look.
 static func dawn_time(hour: float, weekday: int, live: bool, look: String) -> bool:
 	if hour < 5.0 or hour >= 9.0:
@@ -486,9 +509,9 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		var ll: Array = Storefronts.TRENDY[vid]
 		_add_site({"id": vid, "kind": "trend", "max": PISTACJA_MAX if vid == PISTACJA_ID else PADEL_MAX, "tag": "",
 				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
-	for vid: String in KUKLA + [PIURE_ID] + MILK:
+	for vid: String in KUKLA + [PIURE_ID] + MILK + GELATO:
 		var ll: Array = Storefronts.HYPE[vid]
-		_add_site({"id": vid, "kind": "trend", "max": PIURE_MAX if vid == PIURE_ID else (MILK_MAX if vid in MILK else KUKLA_MAX), "tag": "",
+		_add_site({"id": vid, "kind": "trend", "max": PIURE_MAX if vid == PIURE_ID else (MILK_MAX if vid in MILK else (GELATO_MAX if vid in GELATO else KUKLA_MAX)), "tag": "",
 				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
 	if at.has(ROOF_ID):
 		_add_site({"id": ROOF_ID, "kind": "roof", "at": at[ROOF_ID], "max": ROOF_MAX, "curve": "roof"})
@@ -1101,8 +1124,10 @@ func _figures(s: Dictionary) -> Array:
 			for k in mini(n, line.size() - 1):
 				var p := line[k] + Vector2(rng.randf_range(-0.12, 0.12), rng.randf_range(-0.12, 0.12))
 				var to := (line[maxi(k - 1, 0)] - line[k + 1]).normalized()
-				out.append([_ground(p), atan2(-to.x, -to.y) + rng.randf_range(-0.5, 0.5), STAND,
-						Color(BRIGHT[rng.randi() % BRIGHT.size()]), rng.randf() * 0.99])
+				var shirt := Color(BRIGHT[rng.randi() % BRIGHT.size()])
+				if str(s["id"]) in GELATO and (_month_now >= 11 or _month_now <= 3):
+					shirt = Color(COATS[rng.randi() % COATS.size()])
+				out.append([_ground(p), atan2(-to.x, -to.y) + rng.randf_range(-0.5, 0.5), STAND, shirt, rng.randf() * 0.99])
 		"steps":
 			var slots: Array = s["slots"]
 			for k in mini(n, slots.size()):
@@ -1193,6 +1218,7 @@ func tick(step: float) -> void:
 	_weekday_now = weekday
 	var live := bool(cal.get("live", false))
 	var month := int(cal.get("month", 7)) if live else 7
+	_month_now = month
 	var rain := bool(cal.get("rain", false))
 	var look := str(cal.get("look", "Day"))
 	var sunset := float(cal.get("sunset", 19.5))
@@ -1238,6 +1264,8 @@ func tick(step: float) -> void:
 					q = kukla_queue(hour, weekday)
 				elif s["id"] in MILK:
 					q = milk_queue(hour, weekday)
+				elif s["id"] in GELATO:
+					q = gelato_queue(hour, weekday, month)
 				elif s["id"] == PIURE_ID:
 					q = piure_queue(hour, weekday)
 				elif trend.is_valid():

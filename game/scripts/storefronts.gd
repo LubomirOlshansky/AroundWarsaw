@@ -75,6 +75,8 @@ const KOSZTA_TUBE := Color(0.95, 0.35, 0.3)
 const NERWO_TUBE := Color(0.35, 1.0, 0.55)
 const KUKLA_TUBE := Color(1.0, 0.85, 0.35)
 const KROWA_TUBE := Color(0.62, 0.86, 1.0)
+## DALEJ DALLA GELATO, the Powiśle ice-cream parlour with the all-year queue: pistachio mint.
+const DALEJ_TUBE := Color(0.55, 1.0, 0.8)
 ## The venues' fascias (vision 3.0-3.2): place id -> [the lines of the sign, tube colour, metres
 ## up (the sign's bottom)]. The words are the parody names of places.json (Glon na Powiślu: GLON).
 const VENUES := {
@@ -128,6 +130,8 @@ const VENUES := {
 	"kukla_nowy_swiat": [["KUKŁA", "NALEŚNIKI"], KUKLA_TUBE, 2.8],
 	# The milk bar in Norblin (F, 2026-11-01): a bar mleczny rebuilt as a start-up, cream and blue.
 	"krowa_norblin": [["BAR MLECZNY", "KROWA 2.0"], KROWA_TUBE, 2.8],
+	# The Powiśle gelateria (F, 2026-11-01): Poles queue for lody in winter too.
+	"dalej_gelato": [["DALEJ DALLA", "GELATO LODY"], DALEJ_TUBE, 2.8],
 }
 ## COFFEECHAIR (BACKLOG, the user 2026-10-31): a parody of a real coffee-shop chain, our own name
 ## and a warm cream tube (no logo, no chair icon of anyone's). Small cafés that are not notebook
@@ -181,6 +185,8 @@ const HYPE := {
 	"kukla_nowy_swiat": [52.2320, 21.0198],
 	# KROWA 2.0, the milk bar on the Żelazna front of Norblin (the Mac look check parks the door).
 	"krowa_norblin": [52.23367, 20.99107],
+	# DALEJ DALLA GELATO on Tamka at Powiśle (the Mac look check parks the door).
+	"dalej_gelato": [52.237885, 21.027375],
 }
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
