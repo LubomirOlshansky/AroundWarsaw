@@ -68,13 +68,6 @@ reproduce at the ramps of the Poniatowski, Świętokrzyski, Śląsko-Dąbrowski,
 graph's or the ground's height at the approach lets the car under the deck. Accept: the car stays
 on the ramp across every bridge entry in check_drive's bridge pass.
 
-**G7 · Old Town roofs repetitive (P2, Sonnet).** IMG 7135: every tenement carries the same brown
-tile, the same small dormers in the same rows, the same chimney pots. Task: vary tile colour (4-5
-related tones), dormer count, size and spacing by a per-building hash, some flat or tin roofs, a
-few skylights and chimneys of different heights; real landmarks' roofs stay. Both city paths.
-Accept: before/after shots of the Rynek and Piwna; no extra draw calls (shader or per-instance
-only); roof checks green. Files: old_town_roofs.gd, roof_dress.gd, shaders/building.gdshader.
-
 **G8 · Bus stops and buses (P2, Opus).** Stops sit off the kerb (IMG 7134: shelters in the lawn,
 BUS markers on the lane). Task: snap each shelter to the footway edge beside the bus lane, the bay
 to the lane; buses stop at the bay for about 10 s; 1-3 pedestrians step off, others board; 2-5
@@ -87,11 +80,6 @@ cafe terraces (the storefront's frontage, 1.5 m deep, on paving), benches on foo
 walk or park path, never within 1 m of a lane. Accept: a check lists every chair/bench and fails
 any on a lane, in water or inside a wall. Files: street_details.gd, props.gd, storefronts.gd.
 
-**G11 · Better map icons (P2, Sonnet).** The minimaps show identical black-and-yellow "?" squares
-and orange squares for everything (7138, 7134). Task: a distinct icon per kind (job, rider, food,
-garage, landmark, heli pad, bus, metro, quest star) by shape and colour (colour-safe mode kept),
-larger on the full map, with a legend. Accept: shots of both maps; one atlas (no extra draw
-calls). Files: map_icons.gd, full_map.gd, hud.gd minimap.
 
 **G13 · Upgrade shop (P2, Opus design, Sonnet content).** Today the garage (`garage.gd`, Warsztat
 u Mirka) sells paints only. Task: a second tab "Części i auta": (1) a faster car, a parody of the
@@ -119,7 +107,7 @@ Ujazdowski. One landmark thread: compare the castle's model and the park with th
 photos, per the landmark recipe in docs/LANDMARKS.md.
 
 Split for parallel threads: G4 (driving), G5 (collisions and flicker), G8+G9 (street life),
-G10+G12 (quests), G13 (shop, after G4), G7+G11 (visual content), G16 (text), G17 (traffic), G18 (Ujazdów). G1-G4, G14 and G15 are done by this thread.
+G10+G12 (quests), G13 (shop, after G4), G16 (text), G17 (traffic), G18 (Ujazdów). G1-G4, G14 and G15 are done by this thread.
 
 ## Plac Bankowy as in real life (F, 2026-11-02)
 

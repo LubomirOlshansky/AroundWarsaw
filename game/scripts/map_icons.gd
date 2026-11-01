@@ -11,6 +11,13 @@ extends RefCounted
 ## element may be a colour key ("ink" when left out): ink (the silhouette's cream), dark (the
 ## rim), red, green, badge (the badge's own colour: to cut a hole).
 
+## G11: the shapes of the side-job places' marks (hud.gd `poi_mark`; the minimap and the full map).
+const POI_SQUARE := 0
+const POI_KEBAB := 1
+const POI_STATION := 2
+const POI_DEPOT := 3
+const POI_SCOOTER := 4
+
 const INK := Color("#fff8e8")
 const DARK := Color("#1d1a24")
 const RED := Color("#e0313c")
@@ -26,6 +33,9 @@ const BRIDGE := Color("#1f7fc0")
 const SPORT := Color("#e2483c")
 const SHOP := Color("#f07b1f")
 const FUN := Color("#e04b93")
+## G11: the underground's and the hospitals' (not landmarks: the ordinary places the car needs).
+const METRO := Color("#3a3f9a")
+const HOSPITAL := Color("#f4f1ea")
 
 const _PORTICO := [["t", -0.72, -0.28, 0.72, -0.28, 0.0, -0.66], ["r", -0.66, -0.28, 0.66, -0.14],
 		["r", -0.56, -0.14, -0.4, 0.44], ["r", -0.22, -0.14, -0.06, 0.44], ["r", 0.06, -0.14, 0.22, 0.44],
@@ -81,6 +91,9 @@ const SHAPES := {
 	"palm": [["q", -0.06, 0.72, 0.1, 0.72, 0.1, -0.38, 0.0, -0.38], ["t", 0.04, -0.42, -0.72, -0.2, -0.4, -0.58, "green"],
 		["t", 0.04, -0.42, 0.76, -0.2, 0.44, -0.6, "green"], ["t", 0.04, -0.42, -0.2, -0.86, 0.22, -0.84, "green"],
 		["t", 0.04, -0.42, -0.62, 0.06, -0.62, -0.3, "green"], ["t", 0.04, -0.42, 0.68, 0.08, 0.7, -0.28, "green"]],
+	"metro": [["r", -0.62, -0.5, -0.4, 0.56], ["r", 0.4, -0.5, 0.62, 0.56],
+		["q", -0.62, -0.5, -0.36, -0.5, 0.0, 0.1, 0.0, 0.46], ["q", 0.62, -0.5, 0.36, -0.5, 0.0, 0.1, 0.0, 0.46]],
+	"hospital": [["r", -0.2, -0.64, 0.2, 0.64, "red"], ["r", -0.64, -0.2, 0.64, 0.2, "red"]],
 	"hall": [["r", -0.66, -0.06, 0.66, 0.6], ["t", -0.76, -0.06, 0.76, -0.06, 0.0, -0.6],
 		["h", -0.34, 0.6, 0.16, "badge"], ["h", 0.0, 0.6, 0.2, "badge"], ["h", 0.34, 0.6, 0.16, "badge"]],
 }
@@ -134,6 +147,34 @@ static func place(info: Array, palm: Array, bridges: Dictionary) -> Array[Dictio
 	for row: Array in ICONS:
 		if at.has(row[0]):
 			out.append({"key": row[0], "at": at[row[0]], "shape": row[1], "colour": row[2], "pl": row[3], "en": row[4]})
+	return out
+
+
+## G11: the ordinary places' pins, after the landmarks (they give way where pins crowd): one metro
+## pin for each cluster of subway entrances within 160 m (at their mean), one for each hospital.
+## `pois` is centrum.json's list ({k, x, z, name}).
+static func place_extras(pois: Array) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var clusters: Array[Dictionary] = []
+	for p: Dictionary in pois:
+		var at := Vector2(float(p.get("x", 0.0)), float(p.get("z", 0.0)))
+		match str(p.get("k", "")):
+			"subway_entrance":
+				var hit := false
+				for c in clusters:
+					if (c["sum"] as Vector2 / float(c["n"])).distance_to(at) < 160.0:
+						c["sum"] = (c["sum"] as Vector2) + at
+						c["n"] = int(c["n"]) + 1
+						hit = true
+						break
+				if not hit:
+					clusters.append({"sum": at, "n": 1})
+			"hospital":
+				var name := str(p.get("name", "Szpital"))
+				out.append({"key": "hospital", "at": at, "shape": "hospital", "colour": HOSPITAL, "pl": name, "en": name})
+	for c in clusters:
+		out.append({"key": "metro", "at": (c["sum"] as Vector2) / float(c["n"]), "shape": "metro", "colour": METRO,
+				"pl": "Metro", "en": "Metro"})
 	return out
 
 

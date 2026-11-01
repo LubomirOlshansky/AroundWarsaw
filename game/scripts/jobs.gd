@@ -21,6 +21,7 @@ extends Node
 var spent_usec := 0
 
 const Access := preload("res://scripts/access.gd")
+const MapIcons := preload("res://scripts/map_icons.gd")
 const Beacon := preload("res://scripts/beacon.gd")
 const StopAssist := preload("res://scripts/stop_assist.gd")
 const Models := preload("res://scripts/models.gd")
@@ -582,19 +583,23 @@ func _show_places(on: bool, again := false) -> void:
 		(_station["marker"] as Node3D).visible = on
 	var pts := PackedVector2Array()
 	var colours := PackedColorArray()
+	var shapes := PackedInt32Array()
 	if on:
 		for s in _stands:
 			pts.append(Vector2(s["ring"].x, s["ring"].z))
 			colours.append(KEBAB_COLOUR)
+			shapes.append(MapIcons.POI_KEBAB)
 		if not _station.is_empty():
 			pts.append(Vector2(_station["ring"].x, _station["ring"].z))
 			colours.append(SLOIK_COLOUR)
+			shapes.append(MapIcons.POI_STATION)
 	# Loop jobs-2: the Leżak depots at night.
 	if roundup != null and roundup._shown and not round_busy():
 		for q: Vector2 in roundup.depot_points():
 			pts.append(q)
 			colours.append(roundup.COLOUR)
-	hud.set_minimap_pois(pts, colours)
+			shapes.append(MapIcons.POI_DEPOT)
+	hud.set_minimap_pois(pts, colours, shapes)
 
 
 ## Loop jobs-2: the round-up's depots came on or went (night, a job): the minimap squares again.
