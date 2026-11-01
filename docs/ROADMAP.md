@@ -27,6 +27,7 @@ then the Launch gate.
 - [x] Landmarks: the Palace, Centralna, Złote Tarasy, the towers, MSN, the Rotunda, BUW, Kopernik,
       the stadium, Plac Piłsudskiego, the start street's stores, many churches (Mac photo checks
       for some), the Ministry of Finance (2026-11-01, spec `mf.md`; Mac photo check parked)
+- [x] Flat-price jokes: radio, passengers, Podwózka, traffic, dog walkers and three developer billboards (F, 2026-11-01; text only, billboard spots need a Mac look)
 - [x] Retro vaporwave filter replaces the VHS tape look; the Styl obrazu picker removed, always Sharp (2026-11-01; phone look check parked in QUESTIONS)
 - [x] Day, dusk and night; rain; water; synthesised sound; puddles and night water (3i part)
 - [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted
@@ -154,6 +155,10 @@ then the Launch gate.
       `Hud.apply_text_scale`). Left to do: subtitles (BACKLOG)
 - [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
+- [x] Vistula boulevards full of life (F, 2026-11-01, `crowds.gd` BULWARY, `city_life.gd`): nine
+      chill spots along the river edge (groups on the steps and benches, evening-heavy, summer,
+      rain-thin), twice the dog walkers and runners-zone riders, twice the cyclists with 45 % riding
+      hard (30-41 km/h). Left: e-scooters (needs a fifth bike-family shape), the phone's look and cost
 - [ ] Rondo de Gaulle'a and the food hype (F, 2026-11-01; spec docs/design/gaulle-and-food-hype.md):
   - [x] Design and the parody names, 2026-11-01
   - [x] G1 the de Gaulle statue, 2026-11-01
@@ -182,7 +187,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] G2 Calmer default traffic: Low is the default now (2026-11-01); the stepped slider is left
 - [x] G3 +/- zoom buttons on the driving screen (5 steps, saved)
 - [ ] G4 Easy city drive (first pass 2026-11-01: grip 14, drift grip 4, turn pull 13, slower steer; Cruise/Sport profile and the phone check are left): less drift, gentler steering, a Cruise handling default (Opus, feel)
-- [ ] G5 Flicker and "lag wall" audit: the dithered fade patches, wall-like props, the metro
+- [x] G5 Flicker and "lag wall" audit: the dithered fade patches, wall-like props, the metro
       entrances (what stays, what stops colliding, what goes) (Opus)
 - [ ] G6 Under-the-bridge entries (owned by the bridge joins thread; report in BACKLOG)
 - [ ] G7 Old Town roofs less repetitive (the dormer and tile pattern) (Sonnet)
@@ -194,7 +199,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] G13 Upgrade shop: Audi TT parody (faster car), nitro, tuning, paid in zł (Opus design, Sonnet content)
 - [x] G14 POMOC DROGOWA (unstuck) and NOWA GRA (two-tap reset) at the top of Settings → Jazda (quick win)
 - [x] G15 Stop assist works better: bigger quest start and end rings, looser "stopped", longer look-ahead (quick win; phone check)
-- [ ] G16 Fewer text popups while driving on the road: toasts and speech bubbles only for what matters (Sonnet)
+- [x] G16 Fewer text popups while driving on the road: ambient bubbles muted above 40 km/h, ambient toasts one per 20 s, traffic is a slider (2026-11-01, Sonnet)
 - [x] G17 Car stuck against other cars: held against traffic 1.5 s it ghosts through them for 3 s, tow after 8 s among cars (2026-11-02, check_steering `car_sandwich`)
 - [ ] G18 Park Ujazdowski and Zamek Ujazdowski (the castle) improved: its own landmark thread (Opus)
 
