@@ -10,9 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
-<<<<<<< HEAD
 - When the camera flies off to show a new job across town, the city there is ready when it arrives instead of grey stand-in blocks.
-=======
 - Warszawa Stadion station is a landmark: the white 1950s hall with its curved sail and the platforms' walls in the stadium's red-and-white mosaic.
 - The railway has its overhead wires now, hung from grey masts along the tracks, and the cross-city tunnel has concrete mouths where the trains disappear.
 - Trains run through the city: green-and-white suburban units, the red city line and long grey-blue expresses come out of the cross-city tunnel and the map's edges, stop at Ochota, Powiśle and Stadion, and roll over the bridge.
@@ -21,7 +19,6 @@ someone writes its lines.
 - Warsaw loves a queue: the KUKŁA crêpe place always has one, couples wait for the lift to LUŹNO, the pink rooftop date bar on HOTEL PIURE, and new neons light up KOSZTA COFFEE, GREEN CAFFE NERWO and the Party House's bars. Plus jokes about TIMBER dates and Cringulo's sold-out pizza at Frogs.
 - The game now plays with a game controller (Xbox, PlayStation or MFi): drive, fly, open Settings and the map; touch works as before.
 - General de Gaulle now marches on his tall dark plinth by the Palm's roundabout, on his stepped circle, and the white Party House behind him has its roof sign (ROBUR) and its courtyard fountain.
->>>>>>> origin/main
 - Marszałkowska by the start has Warsaw's navy street name plates at the corners, glass shelters and a ticket machine on the tram island, a city bike dock and bollards along Plac Centralny.
 - The glass Cepelia pavilion at Rondo Dmowskiego (now a book and vinyl store) and the Zodiak pavilion in Pasaż Wiecha stand as their real modernist glass boxes.
 - Running clubs now jog through the centre in packs of 20-28, road cyclists ride the cycle paths in pelotons with jokes about their carbon bikes, coffee raves pop up outside COFFEECHAIR cafés by day, and some very big guys walk very tiny dogs.
