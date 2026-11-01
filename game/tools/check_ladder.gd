@@ -97,7 +97,12 @@ func _data() -> void:
 	_expect(Ladder.threshold(Ladder.FINAL) == 850, "the final needs %d" % Ladder.threshold(Ladder.FINAL))
 	_expect(is_equal_approx(Ladder.pace(0).x, 1.25) and is_equal_approx(Ladder.pace(5).x, 1.5), "pace Halina %.2f, Mike %.2f" % [Ladder.pace(0).x, Ladder.pace(5).x])
 	_expect(Ladder.rung_of("Nobody") == -1 and is_equal_approx(Ladder.pace(-1).x, Ladder.DEFAULT_PACE), "an unknown rival")
-	_summary["data"] = "stakes %s, pace %.2f-%.2f" % [stakes, Ladder.pace(0).x, Ladder.pace(5).x]
+	# The designer pass (docs/design/pay-tables.md): the full respect once per rung, a rematch less.
+	_expect(Ladder.race_gain(0, true) == 100 and Ladder.race_gain(5, true) == 100, "a first win's respect")
+	_expect(Ladder.race_gain(Ladder.FINAL, true) == Ladder.FINAL_GAIN, "the final's first win")
+	_expect(Ladder.race_gain(0, false) == Ladder.REMATCH_GAIN and Ladder.race_gain(Ladder.FINAL, false) == Ladder.REMATCH_GAIN, "a rematch's respect")
+	_expect(Ladder.REMATCH_GAIN * 3 < Ladder.WIN_GAIN, "a rematch pays %d respect, near a job's, not a rung's" % Ladder.REMATCH_GAIN)
+	_summary["data"] = "stakes %s, pace %.2f-%.2f, respect +%d first win, +%d rematch" % [stakes, Ladder.pace(0).x, Ladder.pace(5).x, Ladder.WIN_GAIN, Ladder.REMATCH_GAIN]
 
 
 func _gating() -> void:
