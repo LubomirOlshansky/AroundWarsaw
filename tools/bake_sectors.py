@@ -113,7 +113,10 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               # Hotel Metropol's roof sign (landmarks.gd _build_metropol_sign reads its parts' height)
               "Hotel Metropol",
               # HOTEL PIURE's rooftop sign LUŹNO (landmarks.gd _build_piure_sign reads its parts' height)
-              "Puro Warszawa Centrum"]
+              "Puro Warszawa Centrum",
+              # Fabryka Norblina (landmarks.gd _find_works: its tall wing is found among the parts
+              # under the outline OSM names "Modsen")
+              "Modsen"]
 SITE_PAD = 12.0
 SITE_AREAS = [
     (1250.0, -820.0, 1700.0, -370.0),       # Stadion Narodowy's masts (Rect2(1250, -820, 450, 450))

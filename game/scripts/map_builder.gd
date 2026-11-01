@@ -4762,6 +4762,16 @@ func _osm_colour(value, fallback: Color) -> Color:
 	return c.lerp(fallback, 0.3)
 
 
+## A landmark keeps this spot clear of trees (landmarks.gd tree_free: Powiśle's saucer).
+func _tree_blocked(x: float, z: float) -> bool:
+	if _marks == null:
+		return false
+	for c: Array in _marks.tree_free:
+		if Vector2(x, z).distance_to(c[0]) < float(c[1]):
+			return true
+	return false
+
+
 func _build_trees() -> void:
 	var list: Array = data.get("trees", [])
 	var canopy: Array = CANOPY_AUTUMN if season == "autumn" else CANOPY_SUMMER
@@ -4773,6 +4783,8 @@ func _build_trees() -> void:
 	for i in range(0, list.size() - 3, 4):
 		var x := float(list[i])
 		var z := float(list[i + 1])
+		if _tree_blocked(x, z):
+			continue
 		var s := float(list[i + 2])
 		var h := fposmod(sin(x * 12.9898 + z * 78.233) * 43758.5453, 1.0)
 		var t := Transform3D(Basis(Vector3.UP, h * TAU).scaled(Vector3(s, s * (0.9 + h * 0.3), s)), Vector3(x, terrain_height(x, z) - 0.2, z))
@@ -4795,6 +4807,8 @@ func _build_trees() -> void:
 	for i in range(0, real.size() - 5, 6):
 		var x := float(real[i])
 		var z := float(real[i + 1])
+		if _tree_blocked(x, z):
+			continue
 		var f := float(crowns[i / 6]) / 100.0 if i / 6 < crowns.size() else 1.0
 		var base := minf(float(real[i + 4]), float(real[i + 2]) - 1.5)
 		var top := base + (float(real[i + 2]) - base) * f
