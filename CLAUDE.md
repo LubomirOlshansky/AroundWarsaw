@@ -36,7 +36,10 @@ file dumps, logs and shot sets; keep the summary. Say which model each delegatio
 The work never stops for a question: park it in `docs/QUESTIONS.md` with the default that was
 built, and take the next item by priority (backlog-loop skill). One item per thread, one session
 per area (driving, map, visuals, content, performance, landing, store); check open PRs, recent
-main commits and "In progress" first. A cloud session merges its own PR once every check is green.
+main commits and "In progress" first. A cloud session merges its own PR once every check is green. When an item is done, check
+ROADMAP "v1.0 checklist" for the next open line; if nothing is left, go street by street through
+the centre (F, 2026-11-01): analyse every landmark and improve the houses, roads, parks and
+everything else, with our best approaches, until the city feels alive and real.
 Irreversible things, paid tools, device runs and store submissions wait for the user's yes.
 
 ## Hard rules

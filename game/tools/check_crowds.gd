@@ -83,6 +83,7 @@ func _run() -> void:
 	root.add_child(dlg)
 	var c: Crowds = _make(book.places, data, dlg, 1.0)
 	_check_sites(c)
+	_check_decks(c, data)
 	_check_level26(c, book, data)
 	_check_door(c, dlg)
 	var cost := _check_dawn(c, data)
@@ -252,6 +253,33 @@ func _check_level26(c: Crowds, book: Notebook, data: Dictionary) -> void:
 
 
 # 4. -------------------------------------------------------------------------------------------
+
+func _check_decks(c: Crowds, data: Dictionary) -> void:
+	# F's asks (2026-11-01): the observation decks. Closed outside their hours, fullest on a dry
+	# summer weekend's late afternoon, a weekday and the winter thinner, rain a fifth.
+	_expect(Crowds.deck_level(9.5, 6, 7, false, 10.0, 22.0) == 0.0 and Crowds.deck_level(22.0, 6, 7, false, 10.0, 22.0) == 0.0
+			and Crowds.deck_level(19.0, 6, 7, false, 10.0, 19.0) == 0.0, "decks: closed outside their hours")
+	_expect(Crowds.deck_count(14, 17.0, 6, 7, false, 10.0, 22.0) == 14, "decks: Varso full on a summer Saturday at 17:00")
+	var weekday := Crowds.deck_count(14, 17.0, 2, 7, false, 10.0, 22.0)
+	var winter := Crowds.deck_count(14, 17.0, 6, 1, false, 10.0, 22.0)
+	var wet := Crowds.deck_count(14, 17.0, 6, 7, true, 10.0, 22.0)
+	_expect(weekday > 0 and weekday < 14 and winter > 0 and winter < weekday and wet > 0 and wet <= 3,
+			"decks: a weekday %d, winter %d, rain %d of 14" % [weekday, winter, wet])
+	_expect(Crowds.deck_level(10.25, 6, 7, false, 10.0, 22.0) < Crowds.deck_level(13.0, 6, 7, false, 10.0, 22.0), "decks: the opening ramp")
+	for id in Crowds.DECKS:
+		_expect(c.by_id.has(id), "no deck crowd at %s" % id)
+	# Varso's deck reads the roof grid at a point inside its crown (a mapped part 200 m or more up).
+	var at: Vector2 = Crowds.DECKS["varso_deck"]["at"]
+	var tall := 0.0
+	for b: Dictionary in data.get("buildings", []):
+		var flat: Array = b.get("p", [])
+		var poly := PackedVector2Array()
+		for k in range(0, flat.size() - 1, 2):
+			poly.append(Vector2(float(flat[k]), float(flat[k + 1])))
+		if poly.size() >= 3 and Geometry2D.is_point_in_polygon(at, poly):
+			tall = maxf(tall, float(b.get("h", 0.0)))
+	_expect(tall >= 200.0, "the Varso deck's point is under a %.0f m part (200 m or more)" % tall)
+
 
 func _check_sites(c: Crowds) -> void:
 	# Trend follow-up: PISTACJA's line, its Friday drop and its site on a footway.
