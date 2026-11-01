@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Gdański Business Center near Dworzec Gdański is built: the blue glass tower with its slanted crown and the glass blocks with white floor bands and dark top floors, their tenants as parody logos (AWIWA, NIELZEN).
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01

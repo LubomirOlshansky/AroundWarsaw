@@ -15,6 +15,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
+- **2026-11-02 · landmarks · Gdański Business Center** — Mac look check (site `gbc`, spec `gbc.md`): is this the right complex (tower at Inflancka, 74 m, two 45 m blocks, a 31 m block), the tower crown's slant direction and depth, the blocks' colour (pale blue-green here), logo boxes (AWIWA on the tower, NIELZEN on the blocks; the plaza between them is the map's own, unplanted extras not built). Default built from OSM and the four photos.
 - **2026-11-01 · visuals · Retro filter** — Phone look check: does the new vaporwave Retro filter (Settings → Obraz, V key; the old VHS tape) read as 80s Miami neon, not muddy, by day and at night? Default built: pink and teal split-tone, soft bloom, light scanlines and grain; the Styl obrazu picker is removed (always Ostry). Where: PR "Rework retro filter".
 - **2026-11-01 · landmarks · Grand hotels** — Mac look check for Hotel Bristol (colour of the facade, mansard, door position on Krakowskie Przedmieście) and Hotel Polonia Palace (colour, 25.5 m height, door on Al. Jerozolimskie); built: sand and cream walls, grey slate mansards, door at the middle of the longest street front.
 

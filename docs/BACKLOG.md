@@ -4,6 +4,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Gdański Business Center (F, 2026-11-02)
+
+- Built (PR in this change, site `gbc`). Open: Mac photo check (QUESTIONS); the plaza's planters, the lit lobby's glazing detail and the KPMG-style second logo on the tower are not built. Found: `bake_city` failed on main for the church of the Saviour (its SITE_AREAS box was missing); fixed in `tools/bake_sectors.py`.
+
 ## Gameplay pass (F, 2026-11-01, six phone screenshots)
 
 F played on the phone and asked for an easier, calmer, more open beta: "a city, not racing; most
