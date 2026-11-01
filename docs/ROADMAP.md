@@ -69,6 +69,9 @@ then the Launch gate.
 - [x] Marszałkowska street by street (F, 2026-11-01), pass 1: Kościół Najświętszego Zbawiciela on
       Plac Zbawiciela as a model (spec zbawiciela.md; Mac photo check parked). Next on the street:
       MDM's arcades and corner towers (LANDMARKS 2.8), then houses, roads and street life
+- [x] Marszałkowska street by street, pass 2 (F, 2026-11-01): commuters waiting on the street's
+      12 tram platforms (rush hours, thin weekends, fuller in rain; check_crowds). Open: houses,
+      shopfronts, crossings (BACKLOG "Marszałkowska street by street")
 - [x] Old Town Market Square and its Syrenka (F, 2026-11-01): cobbled paving, 58 café umbrellas, the
       fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
       Mac photo check parked (QUESTIONS)
