@@ -14,6 +14,8 @@ someone writes its lines.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
+- The football ground on Łazienkowska is a real stadium now (as "Stadion Leguminy"): a panelled facade under a red and green band, a white roof round an open middle, white, green and red stands round a striped pitch, floodlight masts at the corners and LEGUMINA in green neon, with a card.
+
 - Warsaw's flat prices get the joke they deserve: KEBAB FM, passengers, Podwózka riders, angry drivers and three developer billboards (KLATKA, METRAŻ, KREDYT) all grumble about studios that cost a fortune and mortgages that outlive you.
 
 - Fewer texts while driving: street chatter stays quiet above 40 km/h and little hints come at most every 20 seconds. Traffic in Settings is now a slider.

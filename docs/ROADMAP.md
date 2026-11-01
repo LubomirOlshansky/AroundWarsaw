@@ -68,6 +68,7 @@ then the Launch gate.
 - [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
 
 ### Left: landmarks and street details
+- [x] Stadion Leguminy (Legia's ground on Łazienkowska, F, 2026-11-01): modelled from the mapped bowl outline (site `legia`, spec legia.md); Mac photo check parked (QUESTIONS)
 - [x] Marszałkowska street by street (F, 2026-11-01), pass 1: Kościół Najświętszego Zbawiciela on
       Plac Zbawiciela as a model (spec zbawiciela.md; Mac photo check parked). Next on the street:
       MDM's arcades and corner towers (LANDMARKS 2.8), then houses, roads and street life

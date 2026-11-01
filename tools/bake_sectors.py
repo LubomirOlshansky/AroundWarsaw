@@ -125,6 +125,7 @@ SITE_AREAS = [
     (-1520.0, 472.5, -1320.0, 672.5),       # Warszawa Centralna (CENTRALNA ± its 146 x 92 m zone)
     (910.0, -165.0, 950.0, -105.0),         # Most Poniatowskiego's towers (the fallback search)
     (1398.0, -332.0, 1443.0, -267.0),
+    (1085.0, 1470.0, 1120.0, 1515.0),       # Stadion Leguminy's bowl (landmarks.gd LEGIA_AT, the 27 m outline: its vertices average near 1100, 1492)
     (-7.0, 235.0, 13.0, 255.0),             # Muzeum Narodowe (its outline's centre, by landmarks.gd MUZEUM)
     (-680.0, 1180.0, -350.0, 1620.0),       # MDM (Plac Konstytucji to Plac Zbawiciela, landmarks.gd _find_mdm)
     (-2700.0, 560.0, -2655.0, 650.0),       # The Warsaw HUB's towers (landmarks.gd TOWERS "at")
