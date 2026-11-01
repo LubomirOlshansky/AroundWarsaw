@@ -44,6 +44,11 @@ const TABS := [["JAZDA", "driving"], ["ŚWIAT", "world"], ["OBRAZ", "picture"], 
 ## its index 4.
 const NOTEBOOK_TAB := 4
 const ACCESS_TAB := 5
+## DEMO 3j: the credits page, after the tabs' pages; no tab of its own (DŹWIĘK → LICENCJE opens it,
+## and its tab stays lit).
+const CREDITS_PAGE := 6
+const SOUND_TAB := 3
+const Credits := preload("res://scripts/credits.gd")
 const NotebookPage := preload("res://scripts/notebook_page.gd")
 const Gamepad := preload("res://scripts/gamepad.gd")  # the gamepad loop
 const DRIVE := [["Wskaż", "Point"], ["Klasycznie", "Classic"]]
@@ -243,9 +248,15 @@ func _build() -> void:
 		changed.emit("fotka", 1))
 	perf_row.add_child(photo)
 	# Dźwięk · Sound.
-	var sound := _page(body, 1)
+	var sound := _page(body, 2)
 	for l in LEVELS:
 		_level(sound[0], l[0], l[1], l[2])
+	# DEMO 3j: the credits and licences (credits.gd), a page of their own opened from here.
+	_heading(sound[1], "O grze", "About")
+	var about := _word_button("LICENCJE", "credits · licences")
+	about.name = "credits"
+	about.pressed.connect(show_credits)
+	sound[1].add_child(about)
 
 	# DOSTĘP · Access (access.gd): built here so the card is sized for it, moved after the
 	# notebook's page below (the notebook keeps tab 4).
@@ -261,6 +272,8 @@ func _build() -> void:
 	_segments(access[1], "vibration", ON_OFF)
 	_heading(access[1], "Pomoc przy zatrzymaniu", "Stop assist at pick-ups")
 	_segments(access[1], "stop_assist", ON_OFF)
+	_heading(access[1], "Dla leworęcznych", "Left-handed: pedals on the left")
+	_segments(access[1], "left_handed", ON_OFF)
 
 	# The body is as big as the biggest page, so the card keeps its size from tab to tab.
 	var biggest := Vector2.ZERO
@@ -283,6 +296,7 @@ func _build() -> void:
 	_pages.append(_pages[access_at])
 	_pages.remove_at(access_at)
 	notebook_page.size = notebook_page.custom_minimum_size
+	_credits_page(body)
 	if _target != "":
 		notebook_page.show_target(_target)
 	set_tab(_tab)
@@ -326,24 +340,58 @@ func _rows(parent: Control, cells: Array[int]) -> Array[VBoxContainer]:
 	return out
 
 
-## Shows tab `i` (0 Driving, 1 World, 2 Picture, 3 Sound).
+## Shows tab `i` (0 Driving, 1 World, 2 Picture, 3 Sound, 4 Notebook, 5 Access; 6 the credits page).
 func set_tab(i: int) -> void:
-	_tab = clampi(i, 0, TABS.size() - 1)
+	_tab = clampi(i, 0, CREDITS_PAGE if _built else TABS.size() - 1)
 	if not _built:
 		return
+	var lit := SOUND_TAB if _tab == CREDITS_PAGE else _tab
 	for k in _pages.size():
 		_pages[k].visible = k == _tab
-		_tabs[k].set_pressed_no_signal(k == _tab)
+	for k in _tabs.size():
+		_tabs[k].set_pressed_no_signal(k == lit)
 	# Loop MW-1: the notebook's tab has its own size and title.
 	var on_notes := _tab == NOTEBOOK_TAB
+	var on_credits := _tab == CREDITS_PAGE
 	_body.custom_minimum_size = notebook_page.custom_minimum_size if on_notes else _settings_size
-	_title.text = "MOJA WARSZAWA" if on_notes else "USTAWIENIA"
+	_title.text = "MOJA WARSZAWA" if on_notes else ("O GRZE" if on_credits else "USTAWIENIA")
 	_title.add_theme_font_size_override("font_size", _px(T_NOTES if on_notes else T_HEAD))
-	_subtitle.text = _notes_count() if on_notes else "gra wstrzymana"
-	_subtitle_en.text = "the city notebook" if on_notes else "game paused"
+	_subtitle.text = _notes_count() if on_notes else ("licencje i autorzy" if on_credits else "gra wstrzymana")
+	_subtitle_en.text = "the city notebook" if on_notes else ("credits and licences" if on_credits else "game paused")
 	if on_notes:
 		notebook_page.queue_redraw()
 	_fit()
+
+
+## DEMO 3j: shows the credits and licences (DŹWIĘK → LICENCJE; any tab goes back).
+func show_credits() -> void:
+	set_tab(CREDITS_PAGE)
+	if Gamepad.in_use():
+		pad_focus()
+
+
+## DEMO 3j: the credits page: credits.gd's sections in a column that scrolls (a finger drag or
+## the pad), as big as the settings pages so the card keeps its size.
+func _credits_page(body: Control) -> void:
+	var scroll := ScrollContainer.new()
+	scroll.name = "credits_page"
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size = _settings_size
+	scroll.custom_minimum_size = _settings_size
+	body.add_child(scroll)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", _px(4))
+	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	col.custom_minimum_size.x = _settings_size.x - 16.0 * pt
+	scroll.add_child(col)
+	for s in Credits.sections():
+		_heading(col, s[0], s[1])
+		for line in s[2]:
+			var l := _text(String(line), T_SUB, INK)
+			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			l.custom_minimum_size.x = col.custom_minimum_size.x
+			col.add_child(l)
+	_pages.append(scroll)
 
 
 ## Loop MW-1: "zeszyt miasta · 12/72" (the line under MOJA WARSZAWA).
@@ -405,7 +453,7 @@ func pad_focus() -> void:
 
 ## The button the pad's focus starts on: the open tab's.
 func focus_target() -> Button:
-	return _tabs[_tab]
+	return _tabs[SOUND_TAB if _tab == CREDITS_PAGE else _tab]
 
 
 ## The current values again (after a change that moves another row: Classic's camera).

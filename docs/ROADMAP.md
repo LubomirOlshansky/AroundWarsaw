@@ -31,8 +31,8 @@ then the Launch gate.
 - [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted
 
 ### Left: the start of the game
-- [ ] Merge PR #115 (start facing the first stand, short first order, BUW roof cassette), then
-      PR #121 (the opening flyover)
+- [x] Merge PR #115 (start facing the first stand, short first order, BUW roof cassette), then
+      PR #121 (the opening flyover) (both on main; ticked 2026-11-01)
 - [ ] First-scene items 4-7: pavilions and towers behind the stores, Plac Defilad's paving, tram
       stops and kerbs on Marszałkowska, pedestrians and sound at the start
 - [ ] The start area as real Warsaw (F, 2026-11-01; plan docs/design/start-area-real.md):
@@ -54,6 +54,8 @@ then the Launch gate.
 ### Left: map and roads
 - [ ] A full `tools/verify.sh` and `--ios` on the Mac on today's main, both city paths
 - [ ] Map checks in GitHub CI (the derived map pack as a release asset)
+- [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views
+      shows), 2026-11-01, PR #183
 - [ ] Map review C: the streets of the 3d-1 box and map north against the orthophoto
 - [ ] Loop 3e leftovers: Łazienkowski's Praga end (R8), the rail cutting, Rozdroże's tubes,
       Nowy Zjazd's wall, deck 4; Most Łazienkowski cut by the east edge (decide)
@@ -67,6 +69,11 @@ then the Launch gate.
 - [x] The river's bar barges and houseboats as models (were 14 m boxes in the water): hulls,
       glazed decks, terraces, umbrellas, festoons, gangways, parody neon names, 2026-11-01
 - [ ] Mac photo check of the barges (hull colours, deckhouse length and place, the terraces)
+- [ ] Mariensztat and Krakowskie Przedmieście review (F, 2026-11-01; BACKLOG section):
+  - [x] M1 Mariensztat's houses in pastel with red tile roofs and dormers, 2026-11-01
+  - [ ] M2 Rynek Mariensztacki's card and reliefs; M3 the escarpment and Nowy Zjazd (Mac)
+  - [ ] K1-K6 Krakowskie Przedmieście's missing pieces: the Carmelite church, Mickiewicz's
+        monument, the University gate, Pałac Potockich's guardhouses, Bristol, the statues
 
 - [ ] The railway (F, 2026-11-01; plan docs/design/railway.md):
   - [x] R0 design: stations, the cross-city line, trains, 2026-11-01
@@ -91,7 +98,9 @@ then the Launch gate.
 - [ ] Loop 3i juice leftovers: money pops, district ambiences
 - [x] Accessibility options (2026-11-01, Settings → DOSTĘP, `access.gd`): larger HUD text, calm
       (no flashing or shaking), colour-safe markers, vibration on/off, stop assist on/off.
-      Left to do: left-handed layout, live text size, subtitles (BACKLOG)
+      Left-handed layout added 2026-11-01 (DOSTĘP, `--left-handed`); colour-safe now also covers the
+      HUD's win green and fail red (2026-11-01, `Access.tint`). Text size now live (2026-11-01,
+      `Hud.apply_text_scale`). Left to do: subtitles (BACKLOG)
 - [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
 - [ ] Rondo de Gaulle'a and the food hype (F, 2026-11-01; spec docs/design/gaulle-and-food-hype.md):
@@ -107,6 +116,11 @@ then the Launch gate.
       pads for driving, the helicopter, the mission card, Settings, the full map and the title;
       touch unchanged. Left: real pads on the phone (beta), the bars / notebook / garage focus,
       the full map's stick pan (docs/store/mac-and-gamepad.md)
+- [x] Crash scenes (F, 2026-11-01, `crash_scenes.gd`, `check_crash_scenes`, PR "crash scenes"):
+      every few minutes a fender bender ahead on a main road, two wrecks in the kerb lane, a
+      police car with its lights and a yellow ambulance, the drivers arguing, people filming,
+      KEBAB FM's traffic news; traffic queues and goes round. Left: the phone's look, a siren
+      sound, a minimap marker (docs/design/crash-scenes.md)
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
 
@@ -119,7 +133,9 @@ then the Launch gate.
 
 ### Left: TestFlight and the stores
 - [ ] F fills App Information in App Store Connect; keep or drop iPad
-- [ ] Debug flags stripped from the release build; credits and licences screen checked
+- [x] Debug flags stripped from the release build; credits and licences screen checked
+      (2026-11-01, `release.gd`, Settings → DŹWIĘK → LICENCJE `credits.gd`, `check_credits`; the page
+      on the phone still to see)
 - [ ] Store screenshots re-shot after the opening lands; app icon; a short trailer
 - [ ] Deploy the support page; first TestFlight upload from the Mac; Play closed test
 - [ ] Gamepad testing in the beta: an Xbox, PlayStation or MFi pad on the iPhone (beta-testing.md)

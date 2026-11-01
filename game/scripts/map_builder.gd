@@ -5222,6 +5222,16 @@ const CANDELABRA_HEAD := Vector3(0, 8.5, 0)
 ## New Town, where GUGiK models a whole block of tenements as one building (Rynek's sides are
 ## 49 and 84 OpenStreetMap houses in one model), so it stood in one colour like a modern block.
 const HISTORIC := [Vector3(-760.0, -1680.0, 200.0), Vector3(-830.0, -1920.0, 170.0)]
+## Mariensztat (the Mariensztat review, 2026-11-01): the 1948-49 estate under the escarpment
+## (Rynek Mariensztacki, Mariensztat, Sowia, Garbarska, Furmańska and lower Bednarska), small
+## pastel houses under steep red tile roofs with dormers, so it takes the Old Town's dress too.
+## A polygon, not a circle: its edges run along the streets and the party walls (Kamienica
+## Wernera's west wall, the corner of the L block at Bednarska 21-23), so no house is cut in two
+## (each of its 47 OpenStreetMap houses is wholly in or out).
+const MARIENSZTAT := [Vector2(-546.7, -1395.0), Vector2(-333.3, -1395.0), Vector2(-283.3, -1300.0),
+		Vector2(-246.7, -1236.7), Vector2(-270.0, -1223.3), Vector2(-306.7, -1260.0), Vector2(-350.0, -1233.3),
+		Vector2(-403.3, -1233.3), Vector2(-403.3, -1205.0), Vector2(-506.8, -1195.9), Vector2(-509.8, -1210.3),
+		Vector2(-534.3, -1213.4), Vector2(-544.0, -1236.5), Vector2(-546.7, -1286.7)]
 ## Their tenements' own colours where OpenStreetMap has none (ochre, salmon, cream, terracotta,
 ## pale yellow, sage, blue-grey, peach, oxblood): the rebuilt Old Town's palette.
 const TENEMENTS := ["#d9a441", "#e1968f", "#ebe1d1", "#c8733f", "#efd9a0", "#a9b98a", "#9fb6cf",
@@ -5482,12 +5492,16 @@ func _square_gables(pos: PackedVector3Array, nrm: PackedVector3Array, t: int, po
 				_add_dress(dress, extra)
 
 
-## Whether a point is within `slack` metres of a historic district (HISTORIC).
+## Whether a point is within `slack` metres of a historic district (HISTORIC), or inside
+## Mariensztat (MARIENSZTAT, whose edges already keep whole houses: no slack there).
 func _historic(at: Vector2, slack: float) -> bool:
 	for d in HISTORIC:
 		if at.distance_to(Vector2(d.x, d.y)) < d.z + slack:
 			return true
-	return false
+	if _mariensztat.is_empty():
+		_mariensztat = PackedVector2Array(MARIENSZTAT)
+	return Geometry2D.is_point_in_polygon(at, _mariensztat)
+var _mariensztat := PackedVector2Array()
 
 
 ## The named Royal Route streets' segments in this map or sector: [a, b, half width + reach].

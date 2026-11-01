@@ -1,7 +1,8 @@
 extends SceneTree
 ## The Old Town's roof detail (scripts/old_town_roofs.gd): a dormer and now and then a chimney
 ## on a big pitched roof triangle, none on a small or a flat one; every piece stays on or above
-## the slope, faces outward, and stays small (the budget: no more than 40 vertices a slope).
+## the slope, faces outward, and stays small (the budget: no more than 40 vertices a slope);
+## Mariensztat counts as a historic district (map_builder MARIENSZTAT).
 ##   godot --headless --path game --script res://tools/check_old_town_roofs.gd
 
 var failed := 0
@@ -77,6 +78,28 @@ func _initialize() -> void:
 			"h": 14, "mh": 0, "rc": "", "name": ""}]}
 	var built: Array = mb._tenement_facades(wp, wn, wc, wu, PackedByteArray([0, 0]))
 	_expect((built[2]["pos"] as PackedVector3Array).size() >= 3 * 3 * 20, "the builder adds the square's gables")
+	# Mariensztat (MARIENSZTAT) is a historic district too: Rynek Mariensztacki and its houses in,
+	# St Anne's up the escarpment and the Bednarska school beyond the estate out, and a
+	# house's 12 x 8 m slope there takes its tiles and a dormer.
+	_expect(mb._historic(Vector2(-481.9, -1365.6), 0.0), "Rynek Mariensztacki is historic")
+	_expect(mb._historic(Vector2(-394.7, -1327.3), 0.0), "Mariensztat 11A is historic")
+	_expect(not mb._historic(Vector2(-655.0, -1350.0), 0.0), "St Anne's is not Mariensztat")
+	_expect(not mb._historic(Vector2(-367.0, -1212.0), 0.0), "the music school on Bednarska is not")
+	_expect(Geometry2D.triangulate_polygon(PackedVector2Array(mb.MARIENSZTAT)).size() > 0, "Mariensztat's outline is a simple polygon")
+	var mx := -486.0
+	var mz := -1335.0
+	var sp := PackedVector3Array([Vector3(mx, 10.0, mz), Vector3(mx + 12.0, 10.0, mz), Vector3(mx + 12.0, 10.0 + 8.0 * rise, mz + 8.0)])
+	var sn := (sp[1] - sp[0]).cross(sp[2] - sp[0]).normalized()
+	if sn.y < 0.0:
+		sp = PackedVector3Array([sp[0], sp[2], sp[1]])
+		sn = -sn
+	var sc := PackedColorArray([Color.WHITE, Color.WHITE, Color.WHITE])
+	mb.data = {"buildings": [{"p": [mx - 1, mz - 1, mx + 13, mz - 1, mx + 13, mz + 9, mx - 1, mz + 9], "c": "",
+			"kind": "apartments", "h": 11, "mh": 0, "rc": "", "name": ""}]}
+	var marien: Array = mb._tenement_facades(sp, PackedVector3Array([sn, sn, sn]), sc,
+			PackedVector2Array([Vector2.ZERO, Vector2.ZERO, Vector2.ZERO]), PackedByteArray([0]))
+	_expect(not (marien[0] as PackedColorArray)[0].is_equal_approx(Color.WHITE), "a Mariensztat roof takes its tiles")
+	_expect((marien[2]["pos"] as PackedVector3Array).size() > 0, "a Mariensztat roof takes a dormer")
 	mb.free()
 	if failed == 0:
 		print("check_old_town_roofs: OK")

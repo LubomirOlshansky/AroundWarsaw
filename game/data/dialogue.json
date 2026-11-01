@@ -1,5 +1,5 @@
 {
-  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json.",
+  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json. Crash scenes (crash_scenes.gd, 2026-11-01): crash_scene \"driver\", \"officer\", \"medic\", \"gawker\" (bubbles at a fender bender); radio_host \"crash\" ({street}: the road's name, starting the line).",
   "radio_host": [
     [
       "KEBAB FM, 87,3. Na Marszałkowskiej znowu remont. Czyli wszystko po staremu.",
@@ -127,6 +127,27 @@
     [
       "Cringulo dał trzy mlaski. Lokal zamknięty z powodu remontu. Duszy.",
       "Cringulo gave three smacks. The place is closed for repairs. Of the soul."
+    ],
+    [
+      "{street}: stłuczka. Policja i karetka na miejscu, kierowcy wciąż się kłócą, kto miał zielone.",
+      "{street}: a fender bender. Police and an ambulance are there; the drivers are still arguing over who had the green.",
+      {
+        "only": "crash"
+      }
+    ],
+    [
+      "Uwaga, {street}: dwa auta pocałowały się zderzakami. Prawy pas zajęty, objazd obok.",
+      "Heads up, {street}: two cars kissed bumpers. Right lane blocked, go round it.",
+      {
+        "only": "crash"
+      }
+    ],
+    [
+      "Słuchacze donoszą: {street}, stłuczka. Gapiów więcej niż aut. Prosimy nie zwalniać, żeby nagrać.",
+      "Listeners report: {street}, a fender bender. More onlookers than cars. Please don't slow down to film it.",
+      {
+        "only": "crash"
+      }
     ]
   ],
   "kebab_order": [
@@ -2831,6 +2852,183 @@
     [
       "Dziękuję! Podnoszę ceny, zanim fani dojadą.",
       "Thank you! Raising prices before the fans arrive."
+    ]
+  ],
+  "crash_scene": [
+    [
+      "To pan we mnie wjechał!",
+      "You drove into me!",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Ja?! Pan hamował na zielonym!",
+      "Me?! You braked on a green!",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Mam kamerkę. Wszystko jest nagrane.",
+      "I've got a dashcam. It's all on tape.",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "A ja mam szwagra w ubezpieczeniach.",
+      "Well, my brother-in-law works in insurance.",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Spisujemy oświadczenie czy dzwonię po żonę?",
+      "Do we write a statement, or do I call my wife?",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Zderzak był nowy! Z giełdy na Bartyckiej!",
+      "That bumper was new! From the Bartycka market!",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Kierunkowskaz pan ma. Używać pan nie umie.",
+      "You've got an indicator. You just can't use it.",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Jeżdżę po Warszawie trzydzieści lat!",
+      "I've been driving in Warsaw for thirty years!",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "I to widać, panie. I to widać.",
+      "And it shows, mister. It really shows.",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Ja tu tylko na chwilkę skręcałem.",
+      "I was only turning for a sec.",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Proszę się rozejść, nie ma na co patrzeć.",
+      "Move along, nothing to see here.",
+      {
+        "only": "officer"
+      }
+    ],
+    [
+      "Dokumenty proszę. Obaj. I bez krzyków.",
+      "Documents, please. Both of you. And no shouting.",
+      {
+        "only": "officer"
+      }
+    ],
+    [
+      "Kto zaczął? Nikt? Jak zawsze.",
+      "Who started it? Nobody? As always.",
+      {
+        "only": "officer"
+      }
+    ],
+    [
+      "Objazd lewym pasem! Proszę nie zwalniać!",
+      "Detour by the left lane! Don't slow down!",
+      {
+        "only": "officer"
+      }
+    ],
+    [
+      "Trąbienie nic nie pomoże, proszę pana.",
+      "Honking won't help, sir.",
+      {
+        "only": "officer"
+      }
+    ],
+    [
+      "Nikomu nic nie jest. Poza dumą.",
+      "Nobody's hurt. Except their pride.",
+      {
+        "only": "medic"
+      }
+    ],
+    [
+      "Proszę głęboko oddychać. I przestać krzyczeć.",
+      "Breathe deeply, please. And stop shouting.",
+      {
+        "only": "medic"
+      }
+    ],
+    [
+      "Herbatki z termosu? Na nerwy najlepsza.",
+      "Tea from the thermos? Best thing for nerves.",
+      {
+        "only": "medic"
+      }
+    ],
+    [
+      "Ciśnienie 180 na 110. Od kłótni, nie od wypadku.",
+      "Blood pressure 180 over 110. From the row, not the crash.",
+      {
+        "only": "medic"
+      }
+    ],
+    [
+      "Nagrywam! Będą wyświetlenia!",
+      "I'm filming! This'll get views!",
+      {
+        "only": "gawker"
+      }
+    ],
+    [
+      "Halo, mamo? Nadaję na żywo z miejsca zdarzenia!",
+      "Hello, Mum? I'm live from the scene!",
+      {
+        "only": "gawker"
+      }
+    ],
+    [
+      "Pionowo nagrywać czy poziomo?",
+      "Do I film it upright or sideways?",
+      {
+        "only": "gawker"
+      }
+    ],
+    [
+      "Zaraz wrzucę na grupę osiedla.",
+      "Posting it to the estate's group in a sec.",
+      {
+        "only": "gawker"
+      }
+    ],
+    [
+      "Ja tylko patrzę. Zawodowo.",
+      "I'm just watching. Professionally.",
+      {
+        "only": "gawker"
+      }
+    ],
+    [
+      "Ten po lewej winny. Ja to czuję.",
+      "The one on the left's to blame. I can feel it.",
+      {
+        "only": "gawker"
+      }
     ]
   ]
 }
