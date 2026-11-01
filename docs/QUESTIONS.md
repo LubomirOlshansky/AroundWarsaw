@@ -26,7 +26,8 @@ Newest first. One entry per question.
   Tyszkiewiczów-Potockich), its width and pylons; (3) Hotel Bristol: is the dome on the rounded
   north-east corner, and its height; (4) the Carmelite front's colours and number of pilasters;
   (5) Potocki's court front and the Kordegarda's height and roof; (6) Prus's and Wyszyński's
-  statues' spots (not built); (7) Mariensztat's real reliefs' subjects and places, and the
+  statues (built from published coordinates, facings guessed): spots, facings, bronze colour;
+  the granite setts' extent and tone on Krakowskie Przedmieście; Pałac Czapskich's colour; (7) Mariensztat's real reliefs' subjects and places, and the
   Rynek's well or fountain.
 - **2026-11-01 · landmarks · the Old Town Market Square, the Syrenka and the decks: Mac look check**
   Built in the cloud with no photos (free-licence sources are not reachable from there). Default

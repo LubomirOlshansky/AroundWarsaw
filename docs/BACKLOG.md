@@ -114,10 +114,14 @@ the OSM outlines, no photos; specs in docs/landmarks/specs/):
   Pałac Czapskich (-609,-597) stays a box.
 - ~~K5 Hotel Bristol's corner dome~~ (`bristol`, 334 tris). Left: Mac photo check that the dome
   is on this corner, its profile and the facade's colours.
-- K6 small things: the black Chopin benches are done (`map_builder` `_split_chopin_benches`: the
-  benches within 14 m of Krakowskie Przedmieście and Nowy Świat take a black granite model, +1
-  instanced mesh per tile that has any). Left: Prus's and Cardinal Wyszyński's statues (spots
-  need photos or the orthophoto) and the carriageway's granite paving.
+- ~~K6 small things~~ done 2026-11-01: the black Chopin benches (`map_builder`
+  `_split_chopin_benches`), Prus's and Wyszyński's statues (`prus` 100 tris, `wyszynski` 122;
+  spots from their published coordinates, facings guessed), the carriageway's granite setts
+  (`ground.gdshader` `kp_setts_at`: a 15-point centreline of Krakowskie Przedmieście, 7 m
+  half-width, asphalt fragments only, box test first; no draw call) and Pałac Czapskich as a
+  kept skin with a card (`czapski`). Left: Mac look check (QUESTIONS), the Czapski palace's
+  own model (its outline is far west of the street line, so the front's direction needs a
+  photo), the setts' extent beyond Nowy Świat's top.
 
 ## The railway: stations, the cross-city line, trains (F, 2026-11-01)
 

@@ -83,8 +83,8 @@ then the Launch gate.
   - [x] K1-K5 the Carmelite church's front, Mickiewicz's monument, the University gate and Pałac
         Kazimierzowski's skin, Pałac Potockich and the Kordegarda, Bristol's corner dome, 2026-11-01
         (spots and heights estimated; Mac photo check)
-  - [ ] K6 the black Chopin benches are done 2026-11-01; Prus's and Wyszyński's statues and the
-        granite paving wait for photos
+  - [x] K6 the black Chopin benches, Prus's and Wyszyński's statues, the granite setts on the
+        carriageway, Pałac Czapskich's skin and card, 2026-11-01 (Mac look check)
 
 - [ ] The railway (F, 2026-11-01; plan docs/design/railway.md):
   - [x] R0 design: stations, the cross-city line, trains, 2026-11-01
