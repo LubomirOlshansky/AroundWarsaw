@@ -151,6 +151,16 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   gwardii, wizytki, wszystkich, zamek) missed sections. After the fix 69 of 70 steps pass (places
   WARN as before; roads, map data, first10, first10-run, endcard, opening, cassettes, parodies,
   both city paths PASS; `--ios` export and unsigned build PASS). Left: the next item.
+  The same day on the Mac: bench (M4 Pro, pinned at 120 fps) 130 draw calls, 0.61 M triangles,
+  no late frames of 600; the opening flyover renders (over the Palace, down to the car, Halina's
+  first line); the ten roof cassettes on the real map all have a spot, each roof within 0.81 m
+  over 6 m, and the helicopter lands on every one at the spot's height (Teatr Wielki's is the fly
+  tower, 47 m up). Street details rendered by day at Nowy Świat and the boulevards (stalls, cafés,
+  planters read at the default zoom); Tamka and Praga need closer framing. The trend signs (#157)
+  did not show at their projected points from 55 m: their wall spots still need a framed night
+  shot. PR #183's head passes the look pass on the Mac (0 missing, no proxies in the view).
+  check_streaming's pixels failed on main e0e02b8 (spots 3-4, 2.2-4.4 %, differing between runs):
+  the speech bubbles' lines, not the city; the pixel runs now pass `--nohud` (0.24 % on 03a26dc).
 - **check_streaming's look pass fails every run, not only on a busy Mac** (found 2026-11-01, map
   lane, Opus): `--only=pass` on an idle Mac, twice, the same frames: looking at a far target,
   sector s_-6_0 (x -3072..-2560, z 0..512, the Warsaw HUB side) is still loading at 530 m while
