@@ -30,6 +30,8 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"WYPRZEDAŻ", "DO WYNAJĘCIA", "DO", "WYNAJĘCIA", "FROGS XXL", "FROGS", "XXL", "KAPCIE", "SCENA RELAX",
 		# R5: the Cepelia pavilion's book and vinyl store (a parody) and Zodiak.
 		"EMPIRYK", "ZODIAK",
+		# Gdański Business Center: parodies of two tenants' logos on the tower and the blocks.
+		"AWIWA", "NIELZEN",
 		# Dom Partii's roof sign (docs/design/gaulle-and-food-hype.md G2): the oak in Latin again.
 		"ROBUR",
 		# HOTEL PIURE's rooftop date bar (G3).
@@ -38,6 +40,8 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"WARSZAWA", "POWIŚLE",
 		# S3a: Warszawa Stadion's roof letters.
 		"STADION",
+		# The river's bar barges (docs/landmarks/specs/barki.md): parodies of their names.
+		"WIECZOREK", "BARKA", "MARINKA", "KASKADKA", "PRZYSTAŃ",
 		# S3b: Warszawa Śródmieście's pavilions.
 		"ŚRÓDMIEŚCIE",
 		# The Mac photo check (2026-11-01): Ochota's letters by the entrance.

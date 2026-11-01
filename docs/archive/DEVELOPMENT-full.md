@@ -1566,7 +1566,7 @@ and started Core Haptics' engine inside the call's frame (the call's 61–117 ms
 phones; the log's `haptics:` line at load, and `rescue call ringing (buzz N ms)`).
 
 **Moved into Settings** (four tabs, so the panel fits a phone 390 pt tall without shrinking):
-Jazda · Driving (G4, 2026-11-01: car.gd PROFILES, Cruise default and Sport = the loop 2a numbers, `Prowadzenie · Handling`, settings.gd `handling`, tools/check_handling.gd; "Tryb gry" moved to Świat): Controls (Point / Classic, with a line on what the scheme does) and "Kamera za
+Jazda · Driving (G4, 2026-11-01: car.gd PROFILES, Cruise default and Sport = the loop 2a numbers, `Prowadzenie · Handling`, `Czułość · Steering` slider (settings.gd `sensitivity` 0..1, car.gd `steer_gain` 0.6..1.4), settings.gd `handling`, tools/check_handling.gd; "Tryb gry" moved to Świat): Controls (Point / Classic, with a line on what the scheme does) and "Kamera za
 autem · Camera follows the car" On / Off (the old CAM button, now with its state in view: the
 user had switched Classic's following off without noticing; Point with it off is the Fixed
 camera scheme; C still toggles it and a toast says which way; loop MW-6 "Tryb gry · Game mode";
