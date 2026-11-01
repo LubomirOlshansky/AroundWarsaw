@@ -57,7 +57,7 @@ const BUDGET := {
 	"prezydencki": 1050,
 	"q22": 960,
 	"rondo1": 630,
-	"rotunda": 1060,
+	"rotunda": 1380,
 	"skyliner": 400,
 	"skysawa": 170,
 	"spektrum": 990,

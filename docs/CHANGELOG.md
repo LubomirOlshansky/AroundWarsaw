@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- The Rotunda looks like the real one: green-grey glass between slim silver mullions, a silver folded roof whose edge hangs in a ring of teeth, a raised glass skylight in the middle, flat canopies over its doors, and the tower beside it is now a green glass grid.
 - The Grand Theatre (Teatr Wielki) has its famous front: a portico of eight tall columns on a stepped stone base, under a heavy beam and a crowned top with statues.
 - Stadion Narodowy now stands on its green embankment: the grass slopes of the old stadium's bank run down to the streets all round, and the paved promenade at the stadium's foot sits on the ground instead of hanging in the air.
 - The Copernicus Science Centre's roof now has all seven skylights where they really are, including the glass pyramid and a dark stair tower, and the planetarium has more facets and a dark glass ring round its white dome.

@@ -25,7 +25,7 @@ const ROOF := Color("#857a70")
 const WALL := Color("#cfc4b2")
 const ROAD := Color("#4f535a")
 ## Landmarks' skyline colours by landmarks.gd site key.
-const LANDMARK := {"palace": Color("#d8c49c"), "tarasy": Color("#8fb4cb"), "rotunda": Color("#9cc4d4"),
+const LANDMARK := {"palace": Color("#d8c49c"), "tarasy": Color("#8fb4cb"), "rotunda": Color("#bcc2c6"),
 		"varso": Color("#5f7f9f"), "stadium": Color("#c9473b"), "centralna": Color("#a9adb0"),
 		"poniatowski": Color("#b9b09a"), "muzeum": Color("#c9bfa9"),
 		"mdm": Color("#cdbfa3")}

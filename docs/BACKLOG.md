@@ -178,8 +178,10 @@ golden-image shots runtime vs `--prebuilt`,
   two trams on Marszałkowska, one passing the car, one coming down the street; street furniture
   by the start (`first_scene.gd`: kiosk, flower stall, cafés, ad columns, planters). Found: the
   game's camera sees the east side's stores from behind their street faces, so furniture on
-  their pavements never shows (it stands on the museum's side instead). Left: the Rotunda
-  re-pass, the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
+  their pavements never shows (it stands on the museum's side instead). **2026-11-01 (Mac photo
+  check, spec B):** the Rotunda re-pass done (spec `docs/landmarks/specs/rotunda.md`: green-grey
+  glass between 52 silver mullions, the folded-plate crown with its teeth, the oculus, the
+  canopies, Widok Towers' green grid); only the phone can show the teeth and the signs' size. Left: the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
   the tram stops and kerbs (item 5), pedestrians and sound (6-7), the photo check on the Mac.
 
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)

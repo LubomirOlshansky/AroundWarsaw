@@ -477,6 +477,21 @@ vec3 landmark(int mode, float param, vec3 col, vec2 uv, float top, bool wall, ve
 		if (!wall) {
 			return col;
 		}
+		if (param > 0.6) {
+			// param 0.75: the Rotunda (the Mac photo check, 2026-11-01): green-grey panes floor
+			// to eave (its silver mullions are geometry), one transom near the top, a little sky
+			// in the glass; lit warm from inside at night, nearly every pane.
+			float refl = clamp(uv.y / max(top, 1.0), 0.0, 1.0) * 0.22 + 0.14 * value_noise(vec2(uv.x * 0.06, uv.y * 0.05));
+			vec3 g = mix(col * mix(0.4, 1.0, daylight), srgb_to_linear(sky_colour) * mix(0.4, 1.0, daylight), refl);
+			if (top > 3.0 && uv.y > top - 1.55 && uv.y < top - 1.3) {
+				return srgb_to_linear(vec3(0.76, 0.78, 0.8)) * mix(0.3, 1.0, daylight);
+			}
+			if (lights_on > 0.001) {
+				glow = vec3(1.0, 0.86, 0.62) * (0.8 + 0.3 * hash12(vec2(floor(uv.x / 2.07), floor(uv.y / 5.0))));
+				g *= 0.4;
+			}
+			return g;
+		}
 		vec3 c = glass_wall(col, uv.x, uv.y, top, 1.6, 4.2, 0.0, glow);
 		if (lights_on > 0.001 && fract(uv.x / 1.6) > 0.1 && fract(uv.x / 1.6) < 0.9 && fract(uv.y / 4.2) > 0.06) {
 			// param 0: warm (the Rotunda), 0.5: cool white (Varso's crown).
