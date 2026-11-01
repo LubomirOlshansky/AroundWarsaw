@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- The 1960s housing blocks behind the department stores are pale cream with long balcony bands, ochre end walls and lift houses on their roofs, and one carries a big lit billboard.
 - Behind the department stores, the tall block between Sawa and Wars is now a light, re-clad 1970s tower with rows of small windows, a dark glass base and big red letters on its roof.
 - The three department stores by the start look like the real ones: dark blue-grey glass in a tall grid, a deep dark shop floor under the overhang, small skylights and curved vents on the roofs, and big printed ad banners on their walls.
 - The Rotunda looks like the real one: green-grey glass between slim silver mullions, a silver folded roof whose edge hangs in a ring of teeth, a raised glass skylight in the middle, flat canopies over its doors, and the tower beside it is now a green glass grid.
