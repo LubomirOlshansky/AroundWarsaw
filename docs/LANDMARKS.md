@@ -199,7 +199,7 @@ Handled outlines (found by `_landmark("name")`): Pałac Kultury i Nauki, Złote 
 | Frogs shop (Żabka parody) | junction corners (storefronts.gd) | `props.frogs_shop()` ~430 tris + FROGS fascia, lily-pad sign | stamp card |
 | Venue neon fascias (17+1) | storefronts.gd `_venue_neon` | rows in neon atlas | |
 | Leżak (e-scooter) + parking zone | storefronts.gd | `props.lezak()` <=120 tris; `add_scooter_zone` | |
-| Metro entrance | by metro stations | `props.add_metro_entrance` ~250 tris, own M post | |
+| Metro entrance | by metro stations | `props.add_metro_entrance` 330-830 tris (2026-11-01, M1/M2 at the 81 street `subway_entrance` pois, form by `f`: vaulted glass canopy / granite stairwell / footway passage mouth; treaded opening, handrail, red lit M post, glass lift on 3 in 5); sector mesh, no draw call added; Mac look check parked | |
 | Payphone | Plac Konstytucji | `props.add_payphone` 120 tris | |
 | Kebab stand (+named: U Zdzicha, Na Cienkim) | jobs / storefronts | `props.kebab_stand()`, `named_kebab_stand()`; pixel KEBAB board lit | |
 | Pędzik courier + bike | roads/kebab stands | `props.pedzik_rider()` <=300 tris, morph family | |

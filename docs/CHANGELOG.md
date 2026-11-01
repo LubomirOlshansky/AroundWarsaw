@@ -10,6 +10,8 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+
+- The metro stations' street entrances look like the real thing now: glass-vaulted canopies, stairwells with railings and steps leading down, passage mouths, tall red lit M signs, and glass lifts beside many of them.
 - The city no longer ends in blue sky at its edges: past Warszawa Wschodnia, Dworzec Gdański and all round the map the land runs on, with a tree line, blocks of flats beyond and the tracks and roads heading out, all fading into the distance.
 - Warszawa Stadion's ticket hall no longer reads as a white box: its roof sweeps up into a taller white sail over the forecourt, with bigger red STADION letters.
 - Krakowskie Przedmieście's carriageway is granite setts now, and Bolesław Prus and Cardinal Wyszyński stand in bronze at the street's north end; the Czapski palace has its own cream stone and a card.
