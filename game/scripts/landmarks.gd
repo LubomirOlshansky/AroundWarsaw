@@ -5161,11 +5161,16 @@ const KOP_SKYGLASS := Color("#2f3a40")
 const KOP_KERB := Color("#9c968b")
 const KOP_BEDS := ["#6f9a4c", "#87a659", "#b39a5a", "#4f6b3a", "#7ea052"]
 const KOP_DOME := Color("#eeeeea")
-## The roof's seven skylight craters: along the block (a share of its half length, the north-west
-## end negative), across it (metres from the middle line, + to the city side), radius. Two in the
-## north third, three in the middle, two in the south; the fourth has a glazed pyramid.
-const KOP_CRATERS := [Vector3(-0.74, 9.0, 6.5), Vector3(-0.5, -10.0, 7.0), Vector3(-0.2, 11.0, 7.5),
-		Vector3(0.0, -9.0, 6.0), Vector3(0.2, 12.0, 7.0), Vector3(0.5, -8.0, 6.5), Vector3(0.74, 6.0, 7.0)]
+## The roof's seven raised features, from the Mac's re-check against the orthophoto: (u along the
+## block to the south-east, v across it to the city side, both in metres from the world origin in
+## the KOP_PATH_AXIS frame; radius; kind 0 a hexagonal crater with a dark glazed centre, 1 the
+## crater with the glazed pyramid, 2 a dark octagonal stair and lift head). The wide north part
+## (roof inset u -528..-484, v -854..-760) holds two big craters 24 m in from the river wall and,
+## 39 m further to the city, a row of three kept just clear of the planetarium notch's corner;
+## the south wing (u -484..-404, v -803..-760) two more down its middle, 55 m apart.
+const KOP_CRATERS := [Vector4(-518.5, -834.0, 7.8, 0), Vector4(-493.5, -834.0, 7.8, 0),
+		Vector4(-519.5, -795.0, 7.0, 0), Vector4(-503.0, -795.0, 7.5, 1), Vector4(-488.0, -795.0, 4.5, 2),
+		Vector4(-467.0, -781.5, 7.0, 0), Vector4(-412.0, -781.5, 6.0, 0)]
 
 
 func _find_kopernik() -> void:
@@ -5423,17 +5428,17 @@ func _kop_roof(body: PackedVector2Array, top: float) -> void:
 	for q in body:
 		half = maxf(half, absf(_local(q).x))
 	var keep: Array[PackedVector2Array] = []
-	for c: Vector3 in KOP_CRATERS:
-		var u := c.x * half
-		var span := _kop_span(inner, u)
-		var r := minf(c.z, (span.y - span.x) * 0.5 - 1.5)
-		if r < 4.5:
+	for c: Vector4 in KOP_CRATERS:
+		var p := _a * c.x + _b * c.y
+		var kind := int(c.w)
+		if not _kop_inside(_circle(p, c.z + 0.5, 8), inner):
 			continue
-		var v := clampf(c.y, span.x + r + 1.5, span.y - r - 1.5)
-		var p := _w(u, v)
-		if _kop_inside(_circle(p, r + 1.0, 8), inner):
-			_kop_crater(p, r, top, c == KOP_CRATERS[3])
-			keep.append(_circle(p, r + 0.8, 8))
+		if kind == 2:
+			var head := _circle(p, c.z, 8)
+			_prism(head, top, top + 2.6, KOP_CONCRETE.darkened(0.25), KOP_SKYGLASS, M_STONE, M_STONE)
+		else:
+			_kop_crater(p, c.z, top, kind == 1)
+		keep.append(_circle(p, c.z + 0.8, 8))
 	# the teal strip: along the city side of the southern half, 3 m in from the garden's edge
 	var su := half * 0.42
 	var sv := minf(_kop_span(inner, su - half * 0.26).y, _kop_span(inner, su + half * 0.26).y) - 4.8
@@ -5445,7 +5450,11 @@ func _kop_roof(body: PackedVector2Array, top: float) -> void:
 	var pu := half * 0.8
 	var pspan := _kop_span(inner, pu)
 	var pav := _rect(pu, (pspan.x + pspan.y) * 0.5, 3.5, 2.5)
-	if _kop_inside(pav, inner):
+	var clear := true
+	for k0 in keep:
+		if not Geometry2D.intersect_polygons(pav, k0).is_empty():
+			clear = false
+	if clear and _kop_inside(pav, inner):
 		_prism(pav, top, top + 3.4, KOP_LIT, KOP_PANEL, M_PAVILION, M_STONE)
 		keep.append(_rect(pu, (pspan.x + pspan.y) * 0.5, 4.5, 3.5))
 	# meandering paths: two along the block, six across it
@@ -5526,12 +5535,12 @@ func _kop_inside(r: PackedVector2Array, ring: PackedVector2Array) -> bool:
 	return true
 
 
-## A skylight crater: a raised octagon of beige concrete sloping in to a flat rim round a dark
+## A skylight crater: a raised hexagon of beige concrete sloping in to a flat rim round a dark
 ## glazed opening (or a glazed pyramid).
 func _kop_crater(c: Vector2, r: float, top: float, pyramid: bool) -> void:
-	var base := _circle(c, r, 8)
-	var rim := _circle(c, r * 0.72, 8)
-	var hole := _circle(c, r * 0.52, 8)
+	var base := _circle(c, r, 6)
+	var rim := _circle(c, r * 0.72, 6)
+	var hole := _circle(c, r * 0.52, 6)
 	_mode = M_STONE
 	_kop_band(base, top, rim, top + 1.6, KOP_CONCRETE)
 	_kop_band(rim, top + 1.6, hole, top + 1.6, KOP_CONCRETE.lightened(0.06))
@@ -5547,7 +5556,7 @@ func _kop_crater(c: Vector2, r: float, top: float, pyramid: bool) -> void:
 ## leaning in to a roof edge just over the block's roof, a chamfer, a flat ring round a glazed
 ## clerestory (glowing faintly at night), and a white dome about 17 m across.
 func _kop_planet(planet: PackedVector2Array, block_top: float) -> void:
-	var ring := _kop_convex(_simplify(planet, 1.2))
+	var ring := _kop_chamfer(_kop_convex(_simplify(_kop_convex(planet), 3.0)), 0.18)
 	_g = _ground_under(planet)
 	var g := _g
 	var c := _centre(ring)
@@ -5574,25 +5583,40 @@ func _kop_planet(planet: PackedVector2Array, block_top: float) -> void:
 				Vector2(0, -0.4), Vector2(l, -0.4), Vector2(l, edge - g), Vector2(0, edge - g), edge - g)
 	var chamfer := _kop_scaled(ring, c, 0.84)
 	_kop_band(lean, edge, chamfer, edge + 0.9, KOP_FACET)
-	var inner_s := 9.6 / maxf(mean, 1.0)
-	var clere := _kop_scaled(ring, c, inner_s)
-	_kop_band(chamfer, edge + 0.9, clere, edge + 0.9, KOP_COPPER_DARK.darkened(0.1))
-	_mode = M_PAVILION
-	for i in n:
-		var j := (i + 1) % n
-		_wall(clere[i], clere[j], edge + 0.9, edge + 2.5, _out(clere, clere[i], clere[j]), KOP_LIT)
-	_mode = M_STONE
+	# a flat copper ring, then the dark clerestory ring (4.5 m wide, rising to the dome's foot,
+	# glowing faintly at night), then the white dome, 17 m across
 	var dome_s := 8.5 / maxf(mean, 1.0)
-	var y := edge + 2.5
-	var prev := clere
+	var clere_s := 13.0 / maxf(mean, 1.0)
+	var clere := _kop_scaled(ring, c, clere_s)
+	_kop_band(chamfer, edge + 0.9, clere, edge + 0.9, KOP_COPPER_DARK.darkened(0.1))
+	var foot := _kop_scaled(ring, c, dome_s)
+	_mode = M_PAVILION
+	_kop_band(clere, edge + 0.9, foot, edge + 2.0, KOP_SKYGLASS)
+	_mode = M_STONE
+	var y := edge + 2.0
+	var prev := foot
 	var prev_y := y
-	for step: Vector2 in [Vector2(1.0, 0.0), Vector2(0.87, 2.4), Vector2(0.6, 4.2), Vector2(0.3, 5.1)]:
+	for step: Vector2 in [Vector2(0.87, 2.4), Vector2(0.6, 4.2), Vector2(0.3, 5.1)]:
 		var cur := _kop_scaled(ring, c, dome_s * step.x)
 		_kop_band(prev, prev_y, cur, y + step.y, KOP_DOME)
 		prev = cur
 		prev_y = y + step.y
 	_pyramid(prev, prev_y, y + 5.5, KOP_DOME)
 	_collide(planet)
+
+
+## A convex ring with every corner cut: each corner becomes two, `share` of the way along its
+## two edges (the planetarium's chamfered facets: five corners become ten sides).
+func _kop_chamfer(ring: PackedVector2Array, share: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	var n := ring.size()
+	for i in n:
+		var prev := ring[(i + n - 1) % n]
+		var cur := ring[i]
+		var next := ring[(i + 1) % n]
+		out.append(cur.lerp(prev, share))
+		out.append(cur.lerp(next, share))
+	return out
 
 
 ## A ring scaled towards c.
