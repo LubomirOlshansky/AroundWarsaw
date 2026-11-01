@@ -18,8 +18,10 @@ Plan: docs/design/railway.md. One PR per item, in this order:
 - ~~T1 trains~~ Done 2026-11-01 (`trains.gd`, `check_trains.gd` in verify, `--train=X,Z`). Left:
   the parody names on the cars' sides (no text on vehicle meshes yet); a horn and the rumble on
   the bridge (sfx); headlight pools at night; a timetable (today: a new train every 8-30 s after one leaves, 5 at most).
-- S3 the other stations: Stadion, Śródmieście's entrances, Wschodnia and Gdańska at the edges,
-  Ochota WKD.
+- ~~S3a Warszawa Stadion~~ Done 2026-11-01 (site `stadion_pkp`, spec `stadion_pkp.md`, 1294 tris).
+  Left: Mac photo check (the sail's shape and height, the glazing, the canopies' length, the
+  mosaic's pattern).
+- S3b-e the other stations: Śródmieście's entrances, Wschodnia and Gdańska at the edges, Ochota WKD.
 - L4 Most Średnicowy's look, after a Mac photo check.
 - Photo checks on the Mac for every station model (built from published descriptions).
 
