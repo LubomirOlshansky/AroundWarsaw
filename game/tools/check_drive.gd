@@ -86,6 +86,8 @@ var _allow: Array = []
 var allowed := 0
 ## Loop 3e: --no-allow (count every finding) and --routes=N (more routes than ROUTES).
 var no_allow := false
+## --who: print the colliders each lane hit meets (parent/name), to see which piece a bus brushes.
+var who := false
 var routes_max := ROUTES
 
 
@@ -99,6 +101,8 @@ func _initialize() -> void:
 			dump_path = a.trim_prefix("--dump=")
 		elif a == "--no-allow":
 			no_allow = true
+		elif a == "--who":
+			who = true
 		elif a.begins_with("--routes="):
 			routes_max = int(a.trim_prefix("--routes="))
 		elif a.begins_with("--debug="):
@@ -208,6 +212,12 @@ func _sweep() -> int:
 						((q.shape as BoxShape3D)).size = Vector3(size.x, size.y, length)
 						q.transform = Transform3D(Basis(Vector3.UP, atan2(-dir.x, -dir.y)), Vector3(centre.x, y + LIFT + size.y * 0.5, centre.y))
 						if not space.intersect_shape(q, 1).is_empty():
+							if who:
+								var names: Array = []
+								for r in space.intersect_shape(q, 6):
+									var co: Object = r["collider"]
+									names.append("%s/%s" % [co.get_parent().name if co is Node and (co as Node).get_parent() != null else "?", (co as Node).name if co is Node else "?"])
+								print("  WHO %s (%.1f, %.1f) edge %d: %s" % [kind, p.x, p.y, e, ", ".join(names)])
 							if _allowed("lane", p):
 								allowed += 1
 								continue
