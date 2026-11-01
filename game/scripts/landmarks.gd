@@ -290,6 +290,9 @@ const INFO := {
 	"polonia": ["Hotel Polonia Palace",
 			"Hotel z 1913 roku przy Alejach Jerozolimskich. Przetrwał powstanie.",
 			"A hotel of 1913 on Al. Jerozolimskie. It outlived the Uprising."],
+	"ujazdowski": ["Zamek Ujazdowski",
+			"Z 1624 roku, zburzony w 1944, odbudowany. Dziś sztuka współczesna.",
+			"Built 1624, razed 1944, rebuilt. Now a centre for modern art."],
 	"mariensztat": ["Rynek Mariensztacki",
 			"Osiedle odbudowane w 1949 roku; bohater filmu „Przygoda na Mariensztacie” z 1954 roku.",
 			"The estate rebuilt in 1949, and the star of the 1954 film \"Przygoda na Mariensztacie\"."],
@@ -323,6 +326,9 @@ const INFO := {
 	"forest": ["Forest",
 			"Biurowiec z zielonymi tarasami i 120-metrową wieżą.",
 			"An office block of planted terraces and a 120 m tower."],
+	"gbc": ["Gdański Business Center",
+			"Biurowce przy Inflanckiej: szklana wieża ze ściętym czubkiem i dwa dziesięciopiętrowe bloki z białymi pasami pięter.",
+			"The offices on Inflancka: a glass tower with a slanted crown and two ten-storey blocks with white floor bands."],
 	"flaga": ["Flaga na rondzie Radosława",
 			"Biało-czerwona na maszcie wysokim na prawie 58 m.",
 			"The white-and-red on a mast almost 58 m tall."],
@@ -508,6 +514,8 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return Color(PLAC_WALLS[key])
 	if MALACHOWSKI_WALLS.has(key):
 		return Color(MALACHOWSKI_WALLS[key])
+	if key == "gbc":
+		return GBC_GLASS
 	if key == "buw":
 		return BUW_GLASS
 	if key == "kopernik":
@@ -647,6 +655,7 @@ func _find_sites() -> void:
 	_find_rynek()
 	_find_arkadia()
 	_find_forest()
+	_find_gbc()
 	_find_flag()
 	_find_swieto()
 	# The museum and Plac Piłsudskiego loop (2026-10-31): the square's edges.
@@ -697,6 +706,7 @@ func _find_sites() -> void:
 	_find_mariensztat()
 	# F's ask (2026-11-01): the Old Town hotels, as fronts on the tenements.
 	_find_hotels()
+	_find_ujazdowski()
 	# F's ask (2026-11-01): Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle.
 	_find_works()
 	# The Ministry of Finance (2026-11-01): a model instead of the mapped box.
@@ -971,6 +981,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_arkadia(s)
 			"forest":
 				_build_forest(s)
+			"gbc":
+				_build_gbc(s)
 			"flaga":
 				_build_flag(s)
 			"swieto":
@@ -1060,6 +1072,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_hotel(s)
 			"polonia":
 				_build_polonia(s)
+			"ujazdowski":
+				_build_ujazdowski(s)
 			"bristol":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the corner tower is ours
 				_build_bristol(s)
@@ -3535,6 +3549,65 @@ func _forest_terrace(poly: PackedVector2Array, y: float) -> void:
 							y + 2.6, y + 3.3, FOREST_PARASOL[(k / 2) % FOREST_PARASOL.size()])
 				k += 1
 	_no_roof = false
+
+
+## Gdański Business Center (Inflancka, by Dworzec Gdański; spec docs/landmarks/specs/gbc.md):
+## a 74 m glass tower whose crown is cut on a slant, and the 45 m and 31 m blocks beside it,
+## built from their mapped parts (the box is also bake_sectors.py SITE_AREAS). The tower is blue
+## glass in a fine grid; the blocks are ten storeys of glass between white floor bands, a dark
+## top floor that overhangs a little, and the tenants' logos on it (parodies: AWIWA, NIELZEN).
+const GBC_BOX := Rect2(-2175.0, -2520.0, 230.0, 185.0)
+const GBC_GLASS := Color("#5f86ae")
+const GBC_BLOCK := Color("#7f9fa6")
+const GBC_DARK := Color("#2a2d33")
+const GBC_ROOF := Color("#9ba1a5")
+func _find_gbc() -> void:
+	var zone: Array = []
+	var parts: Array = []
+	for bld in data["buildings"]:
+		var q := _pts(bld["p"])
+		if q.size() >= 3 and GBC_BOX.has_point(_centre(q)) and float(bld["h"]) >= 25.0:
+			zone.append(q)
+			parts.append(bld)
+	_add_site("gbc", zone)
+	if not sites.is_empty() and sites[-1]["key"] == "gbc":
+		sites[-1]["parts"] = parts
+
+
+func _build_gbc(site: Dictionary) -> void:
+	var parts: Array = site["parts"]
+	var tallest := 0.0
+	_g = INF
+	for bld in parts:
+		tallest = maxf(tallest, float(bld["h"]))
+		_g = minf(_g, _ground_under(_pts(bld["p"])))
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	for bld in parts:
+		var poly := _pts(bld["p"])
+		var h := float(bld["h"])
+		if h >= tallest - 0.5:
+			# The tower: a lit lobby, blue glass in a fine grid, a crown cut on a slant with a
+			# dark band under its high edge.
+			var drop := 7.5
+			var shoulder := g + h - drop - 3.0
+			_prism(poly, g - 0.4, g + 5.0, GBC_GLASS.lightened(0.15), none, M_PAVILION)
+			_prism(poly, g + 5.0, shoulder, GBC_GLASS, GBC_DARK, M_SKIN + S_GRID / 16.0, M_STONE)
+			var band := Geometry2D.offset_polygon(poly, 0.35)
+			var ring: PackedVector2Array = band[0] if not band.is_empty() else poly
+			_sloped(_simplify(ring, 0.6), shoulder, g + h, g + h - drop, GBC_DARK, GBC_ROOF, M_STONE)
+			_crown_signs(poly, g + h - drop, "AWIWA", Color(0.96, 0.97, 1.0), 2.6, 0.45)
+		else:
+			# A ten-storey block: lit lobby, glass between white floor bands, a dark top floor
+			# that overhangs 0.5 m, a pale roof, one logo on the long faces facing the camera.
+			var crown := 3.8
+			_prism(poly, g - 0.4, g + 5.0, GBC_BLOCK.lightened(0.2), none, M_PAVILION)
+			_prism(poly, g + 5.0, g + h - crown, GBC_BLOCK, none, M_SKIN + S_RIBBON / 16.0)
+			var top := Geometry2D.offset_polygon(poly, 0.5)
+			var ring: PackedVector2Array = top[0] if not top.is_empty() else poly
+			_prism(ring, g + h - crown, g + h, GBC_DARK, GBC_ROOF, M_STONE, M_STONE)
+			_crown_signs(ring, g + h, "NIELZEN", Color(0.9, 0.96, 1.0), 1.0, 0.4)
+		_collide(poly)
 
 
 ## Rondo Radosława's flag (not in OpenStreetMap; the surface model's 57.8 m column in the
@@ -10492,3 +10565,145 @@ func _build_polonia(site: Dictionary) -> void:
 			"glass": Color("#353a40"), "name": "POLONIA PALACE", "name_w": 6.6, "board": Color("#3a1f24"),
 			"tube": Color(1.0, 0.85, 0.5), "whole": true, "canopy": Color("#6b2a2f")}, party)
 	_collide(ring)
+
+
+# --- Zamek Ujazdowski ---------------------------------------------------------------------------
+
+## Ujazdowski Castle (F, 2026-11-01: "improve Ujazdów and the castle on it"). Baroque, built for
+## Sigismund III in 1619-24, razed in 1944, rebuilt from 1975 as the Centre for Contemporary Art.
+## Four steep-roofed wings round a square courtyard, a round tower with a copper cap at each
+## outer corner, a forward portal in the west wing and a wide projecting bay in the east one,
+## over the escarpment. OSM maps the outline (towers as bumps), the eaves (8.8 m), the ridges
+## (15 m) and the copper roofs; the courtyard, the portal and the tower caps are our estimates
+## (no photo from the cloud). Frame: u along the north wall (2.25 degrees off east), +v south.
+## Spec docs/landmarks/specs/ujazdowski.md.
+const UJ_O := Vector2(460.5, 1601.7)
+const UJ_ANGLE := 0.03927
+const UJ_WALL := Color("#ece4d0")
+const UJ_STONE := Color("#bdb4a0")
+const UJ_TRIM := Color("#f5efe0")
+const UJ_COPPER := Color("#8fae9b")
+const UJ_EAVE := 9.0
+const UJ_TOWERS := [Vector2(-28.2, -26.5), Vector2(24.0, -26.5), Vector2(24.0, 26.5), Vector2(-28.2, 26.5)]
+## The four wings: u centre, v centre, half u, half v (west, east, north, south).
+const UJ_WINGS := [Vector4(-22.4, 0.25, 5.0, 25.75), Vector4(18.6, 0.25, 5.0, 25.75),
+		Vector4(-1.9, -20.75, 15.5, 4.75), Vector4(-1.9, 21.25, 15.5, 4.75)]
+
+
+func _find_ujazdowski() -> void:
+	var ring := _landmark("Zamek Ujazdowski")
+	if ring.size() >= 3:
+		_add_site("ujazdowski", [ring])
+
+
+func _build_ujazdowski(site: Dictionary) -> void:
+	var ring: PackedVector2Array = (site["zone"] as Array)[0]
+	var none := Color(0, 0, 0, 0)
+	_o = UJ_O
+	_a = Vector2(cos(UJ_ANGLE), sin(UJ_ANGLE))
+	_b = Vector2(-_a.y, _a.x)
+	_g = _ground_under(ring)
+	var g := _g
+	var copper_dark := UJ_COPPER.darkened(0.12)
+	for wi in UJ_WINGS.size():
+		var w: Vector4 = UJ_WINGS[wi]
+		var e := UJ_EAVE + 0.01 * wi  # a hair apart, so the wings' coplanar eaves don't z-fight
+		_lbox(w.x, w.y, w.z, w.w, g - 0.6, g + e - 0.4, UJ_WALL, M_MONUMENT, none)
+		_lbox(w.x, w.y, w.z + 0.25, w.w + 0.25, g - 0.6, g + 1.1, UJ_STONE, M_STONE)  # the plinth
+		_lbox(w.x, w.y, w.z + 0.4, w.w + 0.4, g + e - 0.8, g + e, UJ_TRIM, M_STONE)  # the cornice
+		_mode = M_STONE
+		_hip(w.x, w.y, w.z + 0.7, w.w + 0.7, g + e, 6.2, UJ_COPPER)
+	# The east wing's wide bay and its lower roof.
+	_lbox(26.45, 0.25, 2.85, 12.25, g - 0.6, g + UJ_EAVE, UJ_WALL, M_MONUMENT, none)
+	_lbox(26.45, 0.25, 3.1, 12.5, g - 0.6, g + 1.1, UJ_STONE, M_STONE)
+	_lbox(26.45, 0.25, 3.25, 12.65, g + UJ_EAVE - 0.8, g + UJ_EAVE, UJ_TRIM, M_STONE)
+	_mode = M_STONE
+	_hip(26.45, 0.25, 3.55, 13.0, g + UJ_EAVE, 3.4, UJ_COPPER)
+	# The round towers: plinth, shaft, cornice, then a flared bell, a lantern and a spire.
+	for t: Vector2 in UJ_TOWERS:
+		var c := _w(t.x, t.y)
+		_mode = M_STONE
+		_prism(_circle(c, 3.65, 8), g - 0.6, g + 1.3, UJ_STONE, none, M_STONE)
+		_prism(_circle(c, 3.35, 8), g - 0.6, g + 16.0, UJ_WALL, none, M_MONUMENT)
+		_prism(_circle(c, 3.8, 8), g + 15.1, g + 16.0, UJ_TRIM, UJ_TRIM.darkened(0.06), M_STONE, M_STONE)
+		_mode = M_STONE
+		_frustum(_circle(c, 3.9, 8), g + 16.0, _circle(c, 4.1, 8), g + 17.0, UJ_COPPER)
+		_frustum(_circle(c, 4.1, 8), g + 17.0, _circle(c, 2.3, 8), g + 19.8, UJ_COPPER)
+		_frustum(_circle(c, 2.3, 8), g + 19.8, _circle(c, 1.3, 8), g + 21.6, copper_dark)
+		_prism(_circle(c, 1.0, 8), g + 21.6, g + 23.0, UJ_TRIM, none, M_STONE)
+		_pyramid(_circle(c, 1.25, 8), g + 23.0, g + 26.5, copper_dark)
+	_portal(g)
+	_dormers(g)
+	_o = UJ_O  # the portal and the dormers turned the frame: back to the castle's own
+	_a = Vector2(cos(UJ_ANGLE), sin(UJ_ANGLE))
+	_b = Vector2(-_a.y, _a.x)
+	_mode = M_STONE
+	for ch: Vector2 in [Vector2(-22.4, -12.0), Vector2(-22.4, 13.0), Vector2(18.6, -14.0), Vector2(18.6, 14.0),
+			Vector2(-8.0, -20.75), Vector2(6.0, 21.25)]:  # six chimneys on the ridges
+		_lbox(ch.x, ch.y, 0.45, 0.45, g + 13.2, g + 16.8, UJ_STONE.darkened(0.15), M_STONE, UJ_STONE.darkened(0.3))
+	_collide(ring)
+
+
+## The west portal: three steps, a bay standing 1.2 m out, a lit door between trimmed posts and a
+## pediment over the eave, in a frame turned to face out of the wall.
+func _portal(g: float) -> void:
+	_b = -Vector2(cos(UJ_ANGLE), sin(UJ_ANGLE))  # out of the west wall
+	_a = Vector2(-_b.y, _b.x)
+	_o = _w_main(-27.4, 0.25)
+	_mode = M_STONE
+	for k in 3:
+		var d := 0.9 * (3 - k)
+		_lbox(0.0, 1.2 + d * 0.5, 3.4, d * 0.5, g - 0.4, g + 0.2 * (k + 1), UJ_STONE.lightened(0.04), M_STONE)
+	_lbox(0.0, 0.6, 4.0, 0.6, g - 0.6, g + UJ_EAVE + 1.4, UJ_WALL, M_MONUMENT, UJ_TRIM)
+	_mode = M_PAVILION
+	_wall(_w(-1.1, 1.23), _w(1.1, 1.23), g + 0.8, g + 4.6, _b, Color("#f3d9a8"))
+	_mode = M_STONE
+	for sd: float in [-1.0, 1.0]:
+		_lbox(sd * 1.5, 1.25, 0.3, 0.08, g + 0.6, g + 5.2, UJ_TRIM, M_STONE)
+		_mode = M_LAMP
+		_lbox(sd * 2.8, 1.3, 0.1, 0.1, g + 2.6, g + 3.0, HOTEL_LAMP, M_LAMP)
+		_mode = M_STONE
+	_lbox(0.0, 1.25, 1.9, 0.08, g + 4.6, g + 5.2, UJ_TRIM, M_STONE)
+	_a = _b  # the pediment's frame: u out of the wall, v across
+	_b = Vector2(-_a.y, _a.x)
+	_lbox(0.4, 0.0, 0.8, 4.3, g + UJ_EAVE + 1.4, g + UJ_EAVE + 2.0, UJ_TRIM, M_STONE)
+	_gable(1.2, -0.4, 0.0, 4.3, g + UJ_EAVE + 2.0, 2.2, UJ_TRIM, UJ_COPPER)
+
+
+## A point in the castle's own frame (the portal turns the working frame, so this one doesn't).
+func _w_main(u: float, v: float) -> Vector2:
+	var a := Vector2(cos(UJ_ANGLE), sin(UJ_ANGLE))
+	return UJ_O + a * u + Vector2(-a.y, a.x) * v
+
+
+## Hipped dormers on the four outer roof faces, one every 6 m, clear of the portal.
+func _dormers(g: float) -> void:
+	var a0 := Vector2(cos(UJ_ANGLE), sin(UJ_ANGLE))
+	var b0 := Vector2(-a0.y, a0.x)
+	# [start, end] of each face and its outward normal, in the castle frame.
+	var faces := [
+		[Vector2(-27.4, -22.0), Vector2(-27.4, 22.0), -a0],  # west
+		[Vector2(-22.0, -25.5), Vector2(19.0, -25.5), -b0],  # north
+		[Vector2(-22.0, 26.0), Vector2(19.0, 26.0), b0],     # south
+		[Vector2(23.6, -24.0), Vector2(23.6, -13.5), a0],    # east, north of the bay
+		[Vector2(23.6, 14.0), Vector2(23.6, 24.0), a0],      # east, south of the bay
+	]
+	for f in faces:
+		var p0 := _w_main((f[0] as Vector2).x, (f[0] as Vector2).y)
+		var p1 := _w_main((f[1] as Vector2).x, (f[1] as Vector2).y)
+		var out: Vector2 = f[2]
+		var flen := p0.distance_to(p1)
+		var cnt := floori(flen / 6.0) + 1
+		_o = p0
+		_b = out
+		_a = (p1 - p0) / flen
+		for j in cnt:
+			var u := flen * (j + 0.5) / cnt
+			if f[0] == Vector2(-27.4, -22.0) and absf(u - flen * 0.5) < 5.5:
+				continue  # the portal's pediment
+			var y := g + UJ_EAVE + 2.2
+			_mode = M_STONE
+			_lbox(u, -2.2, 0.55, 0.6, y, y + 2.1, UJ_WALL, M_STONE, UJ_WALL)
+			_hip(u, -2.2, 0.7, 0.75, y + 2.1, 0.8, UJ_COPPER.lightened(0.05))
+			_mode = M_GLASS
+			_wall(_w(u - 0.32, -1.59), _w(u + 0.32, -1.59), y + 0.4, y + 1.7, out, Color("#353a40"))

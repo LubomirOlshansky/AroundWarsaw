@@ -220,6 +220,10 @@ var _toast_box: PanelContainer
 var _toast: Label
 var _toast_gloss: Label
 var _toast_left := 0.0
+var _kmh := 0
+var _ambient_toast_at := -999.0
+## G16: ambient toasts (flavour, hints) come at most this often while the car is moving.
+const AMBIENT_TOAST_GAP := 20.0
 ## The performance overlay.
 var _perf: PanelContainer
 var _perf_label: Label
@@ -953,6 +957,7 @@ func named_rects() -> Dictionary:
 
 ## The speed (and the helicopter's height) beside the gear.
 func set_speed(kmh: int, metres := -1) -> void:
+	_kmh = kmh
 	var text := "%d km/h" % kmh if metres < 0 else "%d km/h · %d m" % [kmh, metres]
 	if text != _speed_text:
 		_speed_text = text
@@ -1213,6 +1218,16 @@ func _build_toast() -> void:
 ## A short line at the bottom for 3 s. Loop 10a: with `gloss`, the Polish line sits above its
 ## English gloss (smaller, the sub-text colour). Loop 2e: on a dark card, so it reads on any
 ## street by day or night.
+## A toast for flavour or a hint, not a quest or danger line: while driving it is dropped if
+## another ambient toast came in the last AMBIENT_TOAST_GAP seconds (G16).
+func ambient_toast(text: String, gloss := "") -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	if _kmh > 10 and now - _ambient_toast_at < AMBIENT_TOAST_GAP:
+		return
+	_ambient_toast_at = now
+	toast(text, gloss)
+
+
 func toast(text: String, gloss := "") -> void:
 	# A long line wraps at TOAST_W points rather than running off a phone's screen.
 	var font := ThemeDB.fallback_font

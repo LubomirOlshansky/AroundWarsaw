@@ -262,7 +262,7 @@ func _moment() -> void:
 			var t := tram
 			var anchor := func() -> Vector3:
 				return t.pos + Vector3.UP * 0.5 if t != null else Vector3.ZERO
-			dialogue.bubbles.say(anchor, "", str(line[0]), str(line[1]), 5.0, BUBBLE, 4.2)
+			dialogue.bubbles.say_ambient(anchor, "", str(line[0]), str(line[1]), 5.0, BUBBLE, 4.2)
 	if log_on:
 		print("old tram: followed %.0f m: E39 %s" % [followed, "found" if found else "(found already)"])
 

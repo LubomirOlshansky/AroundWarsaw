@@ -391,7 +391,7 @@ func _talk() -> void:
 	scene["turn"] = turn + 1
 	var i: int = TURNS[turn % TURNS.size()]
 	var tag: String = PEOPLE[i][0]
-	var l: Array = dialogue.say(_anchor(i), "", LINES, tag, 3.4, BUBBLE, 1.9, true)
+	var l: Array = dialogue.say_ambient(_anchor(i), "", LINES, tag, 3.4, BUBBLE, 1.9, true)
 	if not l.is_empty():
 		_log("%s: %s" % [tag, l[0]])
 

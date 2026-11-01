@@ -4,6 +4,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Gdański Business Center (F, 2026-11-02)
+
+- Built (PR in this change, site `gbc`). Open: Mac photo check (QUESTIONS); the plaza's planters, the lit lobby's glazing detail and the KPMG-style second logo on the tower are not built. Found: `bake_city` failed on main for the church of the Saviour (its SITE_AREAS box was missing); fixed in `tools/bake_sectors.py`.
+
 ## Gameplay pass (F, 2026-11-01, six phone screenshots)
 
 F played on the phone and asked for an easier, calmer, more open beta: "a city, not racing; most
@@ -33,14 +37,6 @@ discoverable. Task: two small round buttons under the speed readout, touch size,
 hidden in cinematic moments and photo mode; they call `_zoom_view`. Accept: five taps each way walk
 the five steps and save; no overlap with the pill, wallet or minimap at 2532x1170 and 2868x1320
 (shots). Files: hud.gd (new signals), main.gd.
-
-**G4 · Easy city driving (P1, Opus, feel).** F: "very drifty and sensitive; it's a city, not a
-racer". Task: a Cruise handling profile as the default: lower steering rate at speed, speed-
-sensitive steering limit, stronger lateral grip (less slide), gentler yaw response, softer
-throttle onset; keep a Sport profile for the old feel (Settings → Jazda). Accept: check_steering
-at `--fixed-fps 60` green; a lane change at 50 km/h and a 90° corner at 25 km/h with full lock held
-do not slide (`slip` under a set value, new check); phone check parked. Files: car.gd,
-drive_controls.gd, settings*.gd, check_steering.gd, archive "Driving".
 
 **G5 · Flicker and "lag wall" audit (DONE 2026-11-01).** Finding: the flicker in IMG 7138, 7137
 and 7135 is the occlusion ghost's halftone rim on building walls beside the car, not z-fighting.
@@ -117,11 +113,6 @@ well; make the start and end points bigger and add assistance to pickup". Task: 
 "stopped" under 6 m/s, look-ahead 60 m, aim 3 m inside. Left for the phone: is it enough, or
 should a pickup start by driving through the ring without stopping (G10). Files: stop_assist.gd.
 
-**G16 · Fewer texts while driving (P2, Sonnet).** F: "less texts when the user goes on the road".
-Task: count the toasts and bubbles per minute in a 5-minute drive (a log), merge or drop the
-repeats and hints, rate-limit toasts to one per 20 s except for quest and danger lines, no
-speech bubbles above 40 km/h except police. Accept: at most 3 popups in a 5-minute free drive.
-Files: hud.gd toast, bubbles.gd, dialogue.gd, gps_moments.gd, first10.gd.
 
 **G18 · Ujazdów and the castle (P1, Opus, landmark thread).** F: improve Ujazdów and Zamek
 Ujazdowski. One landmark thread: compare the castle's model and the park with the orthophoto and
@@ -218,6 +209,15 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
 - Wrecks have no hazard lights or broken glass; nobody waves the traffic on.
 - The scene's people stand still (no gestures); the onlookers' phones are not modelled.
 - A scene on a one-lane road (none today: they need 2+ lanes so the traffic can go round).
+
+## Ujazdowski Castle (2026-11-01)
+- Done: site `ujazdowski` (landmarks.gd `_build_ujazdowski`, spec `ujazdowski.md`) and the notebook place
+  `zamek_ujazdowski` (district Ujazdów i Łazienki had none).
+- Left: Mac photo check (colour, tower caps, entrance side, courtyard); the district still has no egg and
+  only this one place besides the padel court; Ujazdowski Park (paths, benches, the pond), the Botanic Garden,
+  Chopin's monument and the Trasa Łazienkowska trench are the next steps (DEMO 2.3 rows B).
+- The cloud's bake_city prints the same site mismatches as main (now 17 with `ujazdowski`): the Mac's
+  full re-bake settles them.
 
 ## Grand hotels (2026-11-01, hotels pass)
 - Done: Hotel Bristol's body (`bristol`: plinth, courses, cornice, slate mansard, dormers, canopied
@@ -851,6 +851,15 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
   between the pavements on either side in places (corners joined within 4 m).
 - A beat from the rave booth (sfx.gd positional voice), a rave notebook card or egg, a DJ crate
   courier job, a radio mention.
+
+## Vistula boulevards: life (F, 2026-11-01)
+Built: nine `chill_bulwary_*` spots (`Crowds.BULWARY`) along the river edge from Karowa past Kopernik,
+twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. Left:
+- E-scooters on the bike path (the bike MultiMesh family has four shapes in the shader; a fifth
+  needs actor.gdshader's shape channel widened). The marina thread owns the water side.
+- Spot coordinates are read off the baked steps/benches, not placed by eye; a phone look check
+  (QUESTIONS) may move some. Seating on the actual steps (snap a third of the sitters to
+  `steps` polylines) instead of footways.
 
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
 - **Shisha lounges** built (five parody signs, `Storefronts.LOUNGES`): only the phone can show the sign size on each wall and whether the spots read as lounges. Not notebook places; add smoky window glow or a door scene if wanted.
@@ -2721,7 +2730,7 @@ discovery, "?" marks and completion on the full map (DEMO G3). Left for the late
   hint finger, the first order, the first race, the `--first10` replay check), **the end card** (can
   read `percent_total()` and the discovered count)~~ (done in slice 4, see below; the end card doesn't
   show the districts' %).
-- Ujazdów i Łazienki has no notebook place or egg (the park lies south of the map; only the Sejm is
+- Ujazdów i Łazienki has one notebook place (Ujazdów Castle, 2026-11-01) besides the padel court and no egg (the park lies south of the map; only the Sejm is
   in it): completion there is its 2 jobs, and it shows no "?" marks. The designer (places for the
   Sejm, Ujazdowski Castle, Plac na Rozdrożu) or the map lane (the park) would fill it. Wola has 2
   places, Stare Miasto 4: thin for "3 ?" for long.

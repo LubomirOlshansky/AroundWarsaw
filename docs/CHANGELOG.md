@@ -11,17 +11,23 @@ someone writes its lines.
 
 ## 2026-11-02
 - Arkadka is redesigned: a cream-and-terracotta mall over its lit shop-front glass, glass-pyramid skylights, a roof car park full of parked cars with floodlights and stair cores, entrance canopies, and a finned entrance rotunda with the name on four faces. The Forest tower wears a BANK PEPEO sign near its crown, and its low wing has a roof terrace with parasols, tables and people from 11 to 23.
+
+- Gdański Business Center near Dworzec Gdański is built: the blue glass tower with its slanted crown and the glass blocks with white floor bands and dark top floors, their tenants as parody logos (AWIWA, NIELZEN).
+- The helicopter's camera now turns with it while you fly, like the car's, instead of swinging round only after you stop.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
 - Warsaw's flat prices get the joke they deserve: KEBAB FM, passengers, Podwózka riders, angry drivers and three developer billboards (KLATKA, METRAŻ, KREDYT) all grumble about studios that cost a fortune and mortgages that outlive you.
 
+- Fewer texts while driving: street chatter stays quiet above 40 km/h and little hints come at most every 20 seconds. Traffic in Settings is now a slider.
 - Podwózka is easier to catch: the waiting passenger's "!" is bigger, and within 25 m a START KURS button starts the ride at once (no stopping in a ring), with the destination and distance on the toast. Rescues now follow your vehicle: in the helicopter you get roof and sandbar calls (violet marker), in the car street and park calls, and car jobs hide their arrow while you fly.
-- The helicopter and the map teleport are open from the first second; traffic starts calmer; the car grips the road more and slides less; zoom buttons (+ / −) next to the minimap; POMOC DROGOWA and NOWA GRA at the top of Settings; bigger pickup rings.
+- The helicopter and the map teleport are open from the first second; traffic starts calmer; the car grips the road more and slides less, with a calm Cruise handling by default and a Sport choice in Settings → Jazda (Prowadzenie) and a steering-sensitivity slider (Czułość); zoom buttons (+ / −) next to the minimap; POMOC DROGOWA and NOWA GRA at the top of Settings; bigger pickup rings.
 - The see-through fade on buildings beside the car is a thin seam now, so walls no longer flicker at the road edge.
 - The old VHS tape filter is now a Retro vaporwave look in Settings → Obraz: pink and teal sunset tones, a soft neon glow, scanlines and a little grain. The picture-style choice is gone; the game always draws the sharp image.
+- The Vistula boulevards are full of life: groups sitting and chatting along the river on summer evenings, more dog walkers, and cyclists tearing along the bike path.
 - Marszałkowska's tram stops fill with commuters at rush hour, thin out at weekends and night, and crowd the platforms when it rains.
 - Photo mode no longer lets your car roll backwards into a building, and the pause menu's JAZDA tab has a POMOC DROGOWA button that tows you onto the nearest road if you ever get stuck.
+- Ujazdowski Castle is a real castle now: four copper-roofed wings round a courtyard, a round tower with a spire at each corner and a lit portal on the west side. It is also a new page in the Moja Warszawa notebook, the first one in Ujazdów.
 - Hotel Bristol and Hotel Polonia Palace are real buildings now: slate mansards with dormers, balcony bands and cornices, and a lit canopied door with a name board (BRISTOL in gold) on Krakowskie Przedmieście and Aleje Jerozolimskie.
 - The Church of the Holiest Saviour on Plac Zbawiciela is a real church now: two tall towers with green copper spires, a dome over the crossing and a porch with a pediment, with a card.
 
