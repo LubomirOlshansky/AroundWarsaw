@@ -192,6 +192,7 @@ const int S_DARK = 6;
 const int S_GOLD = 7;
 const int S_FRAME = 8;
 const int S_TILE = 9;
+const int S_EASTWALL = 10;
 
 vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool cut) {
 	glow = vec3(0.0);
@@ -256,6 +257,11 @@ vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool 
 			}
 		}
 		return tile;
+	} else if (s == S_EASTWALL) {
+		// The Eastern Wall's stores (the Mac photo check, 2026-11-01): a vertical-led grid, strong
+		// dark grey mullions every 1.5 m, only a thin dark spandrel line at each floor.
+		frame = fract(u / 1.5) < 0.13 || fract(h / fh) < 0.035;
+		frame_col = srgb_to_linear(vec3(0.247, 0.278, 0.298)) * mix(0.3, 1.0, daylight);
 	} else if (s == S_FRAME) {
 		frame = fract(u / 3.2) < 0.14 || fract(h / 4.4) < 0.1 || h > top - 0.9;
 		frame_col = mix(silver, white, 0.5);
