@@ -3,6 +3,16 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Ground vertex compression, to re-apply on the Mac (stale PR #53 triage, 2026-11-01)
+- PR #53 (commit b343d60, branch `claude/project-thread-ldyr9u`) stores the ground's meshes with
+  `Mesh.ARRAY_FLAG_COMPRESS_ATTRIBUTES` (`chunked_surface.gd` `meshes(flags)`, `map_builder.gd`
+  `_add_mesh(..., flags)` for the flat layer; `bake_city.gd` skips empty sectors' proxies when
+  counting). On the Mac then: sectors 95.7 -> 75.0 MB, vertex buffers 147 -> 120 MB, frame time the
+  same. The branch has an unrelated history (from before the repo was rewritten), so it cannot be
+  merged; the diff is 3 small hunks and no longer applies cleanly to `map_builder.gd`. Left: re-apply
+  by hand on a Mac session (full definition of done: re-bake, `verify.sh`, shots and bench), then
+  close #53. Buildings stay uncompressed (windows come from UVs in metres).
+
 ## Quest pickups and drop-offs too hard to stop on (the user, 2026-10-31)
 - **Landed** (thread "Make quest pickup and dropoff easier"): stop_assist.gd, one shared 9 m
   ring and ~16 km/h "stopped" for every car stop zone, and car.gd's stop assist (brakes into the
