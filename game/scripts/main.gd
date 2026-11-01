@@ -41,6 +41,7 @@ extends Node
 ## Loop G1b: --last-session=struggled|calm starts Auto as if the last session at the sharp image
 ## struggled (the ×2 fallback) or was calm (the sharp image), and writes nothing of it.
 
+const Release := preload("res://scripts/release.gd")  # DEMO 3j: no flags in a release build
 const Access := preload("res://scripts/access.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
@@ -292,6 +293,8 @@ var start_in_tunnel := false
 ## fragments magenta and every other building green; 2: the ghost cut fully, no dither)
 ## and prints the ghost's ellipse in screen pixels with every screenshot.
 var ghost_debug := 0
+## --left-handed: the left-handed layout for this run (Settings → DOSTĘP keeps it otherwise).
+var _flag_left_handed := false
 ## --lift=M: aim the camera M metres above the vehicle (close-ups of tall landmarks).
 var cam_lift := 0.0
 ## The ghosted footprint's sunlight: given back in full above GHOST_SUN_HIGH degrees of
@@ -1124,6 +1127,7 @@ func _build_world() -> void:
 	hud.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(hud)
 	hud.set_scheme(controls.scheme)
+	hud.set_left_handed(Access.left_handed)  # accessibility (2026-11-01)
 	hud.set_touch_off(no_touch)  # desktop: --no-touch
 	hud.settings_pressed.connect(_open_settings)
 	hud.settings_panel.changed.connect(_on_setting)
@@ -3252,10 +3256,10 @@ func _police_flag(arg: String) -> void:
 ## The game's own options. Loop 2b: a launcher can swallow the "--" (devicectl on an iPhone):
 ## then they arrive among the engine's own; ours never share a name with those. Every parser of
 ## game flags reads this (loop G0+: the streaming flags read only the user args, so on the phone
-## --stream-soak and --stream-log did nothing and the soak never ran).
+## --stream-soak and --stream-log did nothing and the soak never ran). A release build reads none
+## (release.gd: the testing flags are stripped from what players get).
 static func game_args() -> PackedStringArray:
-	var args := OS.get_cmdline_user_args()
-	return args if not args.is_empty() else OS.get_cmdline_args()
+	return Release.game_args()
 
 
 func _parse_args() -> void:
@@ -3263,6 +3267,8 @@ func _parse_args() -> void:
 	for arg in game_args():
 		if arg == "--demo":
 			demo = true
+		elif arg == "--left-handed":
+			_flag_left_handed = true  # accessibility (2026-11-01): the mirrored controls, for shots
 		elif arg.begins_with("--shots="):
 			for s in arg.trim_prefix("--shots=").split(","):
 				shots.append(int(s))
@@ -3714,6 +3720,8 @@ func _load_settings() -> void:
 	settings.persistent = not no_save
 	settings.load_file()
 	Access.apply(settings)
+	if _flag_left_handed:
+		Access.left_handed = true
 	if not _flag_size:
 		base_size = settings.view
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
@@ -3969,7 +3977,8 @@ func _settings_state() -> Dictionary:
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
 			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on),
 			"text_large": int(settings.text_large), "calm": int(settings.calm), "color_safe": int(settings.color_safe),
-			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist)}
+			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist),
+			"left_handed": int(settings.left_handed)}
 
 
 func _close_settings() -> void:
@@ -4037,10 +4046,12 @@ func _on_setting(key: String, value: Variant) -> void:
 		"zones":
 			settings.zone_cap = int(value) == 1
 			zone_cap_on = settings.zone_cap
-		"text_large", "calm", "color_safe", "vibration", "stop_assist":
-			# Accessibility (access.gd). Text size shows from the next launch (the HUD is built once).
+		"text_large", "calm", "color_safe", "vibration", "stop_assist", "left_handed":
+			# Accessibility (access.gd). Text size shows from the next launch (the HUD is built once);
+			# the left-handed layout at once.
 			settings.set(key, int(value) == 1)
 			Access.apply(settings)
+			hud.set_left_handed(Access.left_handed)
 		"master", "music", "effects":
 			settings.set(key, float(value))
 			Sfx.set_levels(settings.master, settings.music, settings.effects)
@@ -6294,6 +6305,10 @@ func _soak_frame(dt: float) -> void:
 ## target 2-3 km off needs 5-8 sectors, ~1.2 s of loading on the iPhone 11. [from, to, since (ms)];
 ## empty: none waiting.
 const LOOK_WAIT_MS := 1500
+## The look's own length once it starts (camera_shots.gd's legs, and half a second to spare), and
+## the most between two views of its way the streamer loads for (the west-sectors fix).
+const LOOK_TIME := CameraShots.OUT_TIME + CameraShots.HOLD_TIME + CameraShots.BACK_TIME + 0.5
+const LOOK_STEP := 60.0
 var _look_queued: Array = []
 
 
@@ -6302,9 +6317,23 @@ func _queue_look(from: Vector3, to: Vector3) -> void:
 		var screen := get_viewport().get_visible_rect().size
 		moments.look_at_target(from, to, cam_yaw, camera_pitch, _view_size, screen.x / maxf(screen.y, 1.0))
 		return
-	var time := LOOK_WAIT_MS / 1000.0 + CameraShots.OUT_TIME + CameraShots.HOLD_TIME + CameraShots.BACK_TIME + 0.5
-	streamer.expect_view(to, CameraShots.TARGET_SIZE * 1.25, time)
-	streamer.expect_view((from + to) * 0.5, CameraShots.MAX_SIZE * 1.25, time, 1)
+	var time := LOOK_WAIT_MS / 1000.0 + LOOK_TIME
+	# The west-sectors fix (2026-11-01): the sectors each view of the look will show (its frustum,
+	# towers and all), not a square round the target: the target's view first, then the way there
+	# (the views between the car's, MID's and the target's, at most LOOK_STEP m apart).
+	var screen := get_viewport().get_visible_rect().size
+	var aspect := screen.x / maxf(screen.y, 1.0)
+	var kf := CameraShots.look_keys(from, to, cam_yaw, camera_pitch, _view_size, aspect)
+	var way: Array = []
+	for i in kf.size() - 1:
+		var a: Array = kf[i]
+		var c: Array = kf[i + 1]
+		var n := clampi(ceili((a[0] as Vector3).distance_to(c[0]) / LOOK_STEP), 1, 40)
+		for j in n + 1:
+			var t := float(j) / float(n)
+			way.append([(a[0] as Vector3).lerp(c[0], t), lerpf(a[1], c[1], t)])
+	streamer.expect_shot([kf[-1]], cam_yaw, camera_pitch, aspect, time)
+	streamer.expect_shot(way, cam_yaw, camera_pitch, aspect, time, 1)
 	_look_queued = [from, to, Time.get_ticks_msec()]
 
 
@@ -6321,7 +6350,9 @@ func _look_frame() -> void:
 		return
 	var screen := get_viewport().get_visible_rect().size
 	moments.look_at_target(_look_queued[0], _look_queued[1], cam_yaw, camera_pitch, _view_size, screen.x / maxf(screen.y, 1.0))
-	print("camera: the look waited %d ms for its sectors%s" % [waited, "" if streamer.expected_in(1) else " (not all in)"])
+	streamer.hold_expected(LOOK_TIME)  # the west-sectors fix: kept for the whole look, however long the wait
+	print("camera: the look waited %d ms for its %d sectors%s" % [waited, streamer.expected_keys(1).size(),
+			"" if streamer.expected_in(1) else " (not all in)"])
 	_look_queued = []
 
 

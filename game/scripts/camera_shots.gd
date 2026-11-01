@@ -197,6 +197,20 @@ func look_at_target(car: Vector3, target: Vector3, yaw: float, pitch: float, siz
 		_leg = 0.0
 
 
+## The west-sectors fix (2026-11-01): the views look_at_target will pass through, [centre, size
+## (m tall)] from the car's to the target's (the car's, MID's when it goes over one, the shot's),
+## by the same rule, so the streamer can load what each will show before the look starts.
+static func look_keys(car: Vector3, target: Vector3, yaw: float, pitch: float, size: float, aspect: float) -> Array:
+	var b := Basis.from_euler(Vector3(deg_to_rad(pitch), deg_to_rad(yaw), 0.0))
+	var off := target - car
+	var r := absf(off.dot(b.x))
+	var u := absf(off.dot(b.y))
+	var both := maxf(maxf(u + 2.0 * MARGIN, (r + 2.0 * MARGIN) / aspect), size)
+	if both <= MAX_SIZE:
+		return [[car, size], [(car + target) * 0.5, both]]
+	return [[car, size], [(car + target) * 0.5, MAX_SIZE], [target, TARGET_SIZE]]
+
+
 ## Any touch, click or key: back to the car at once (a SKIP_TIME blend).
 func skip() -> void:
 	if _age < SKIP_GRACE:

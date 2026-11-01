@@ -64,12 +64,22 @@ Built: Settings → DOSTĘP (`game/scripts/access.gd`, kept in `[access]` of set
 text (x1.25, read when the HUD is built: shows after a restart), calm (patrol-car lights steady, no
 VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue), vibration on/off
 (every buzz goes through `Access.buzz`), stop assist on/off. Left:
-- Left-handed control layout (steering on the right, GAS and BRAKE on the left).
+- ~~Left-handed control layout~~ Done (2026-11-01): Settings → DOSTĘP → "Dla leworęcznych"
+  (`access.gd left_handed`, `hud.gd set_left_handed`, at once, no restart; flag `--left-handed`):
+  BRAKE, GAS, the horn and the helicopter's pads bottom left, the stick's side (the right 60 %)
+  and Classic's strip on the right, the credit line bottom right; `check_hud` runs a left-handed
+  pass (10 states x 6 screens). Left: the feel on the phone; in this layout the bottom card can
+  sit lower (nothing on the right pushes it up), so the radio ticker waits for room more often.
 - Text size that follows the phone's own setting, and live (no restart); the panels with fixed
   layouts (cards, bubbles) need a check at x1.25 on the SE.
 - Subtitles: nothing is voiced yet; revisit when speech or radio talk with words lands.
 - ~~Crash sparks buzz through `Access.buzz`~~ Done (2026-11-01: crash_fx.gd shakes nothing; the
-  car's knock goes through haptics.gd, which keeps `Access.vibration`). Colour-safe still to cover the HUD's green badges and the red fail colour.
+  car's knock goes through haptics.gd, which keeps `Access.vibration`). ~~Colour-safe still to cover the HUD's green badges and the red fail colour.~~ Done
+  (2026-11-01): `Access.tint` turns the success green blue and the fail red a lighter vermilion in
+  the cards, the status panel and its 1ST badge, banners, notes, the ticker, the target arrow, the
+  minimap target and the speech bubbles (`check_settings` "colour-safe tint" covers every script's
+  green and red constant). Left: 3D markers other than the drop-off beacon (race and rescue
+  rings) and a look on the phone.
 
 ## Ground vertex compression, to re-apply on the Mac (stale PR #53 triage, 2026-11-01)
 - PR #53 (commit b343d60, branch `claude/project-thread-ldyr9u`) stores the ground's meshes with
@@ -166,12 +176,16 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   gwardii, wizytki, wszystkich, zamek) missed sections. After the fix 69 of 70 steps pass (places
   WARN as before; roads, map data, first10, first10-run, endcard, opening, cassettes, parodies,
   both city paths PASS; `--ios` export and unsigned build PASS). Left: the next item.
-- **check_streaming's look pass fails every run, not only on a busy Mac** (found 2026-11-01, map
-  lane, Opus): `--only=pass` on an idle Mac, twice, the same frames: looking at a far target,
-  sector s_-6_0 (x -3072..-2560, z 0..512, the Warsaw HUB side) is still loading at 530 m while
-  proxies cover up to 100 % of the view's ground for 24 frames (PROXY_SHARE 5 %). Already on main
-  2d04afe, before this audit's fixes. Find which look target points there (likely one added since
-  the loading fix of 2026-10-31) and load the target's sector first.
+  The same day on the Mac: bench (M4 Pro, pinned at 120 fps) 130 draw calls, 0.61 M triangles,
+  no late frames of 600; the opening flyover renders (over the Palace, down to the car, Halina's
+  first line); the ten roof cassettes on the real map all have a spot, each roof within 0.81 m
+  over 6 m, and the helicopter lands on every one at the spot's height (Teatr Wielki's is the fly
+  tower, 47 m up). Street details rendered by day at Nowy Świat and the boulevards (stalls, cafés,
+  planters read at the default zoom); Tamka and Praga need closer framing. The trend signs (#157)
+  did not show at their projected points from 55 m: their wall spots still need a framed night
+  shot. PR #183's head passes the look pass on the Mac (0 missing, no proxies in the view).
+  check_streaming's pixels failed on main e0e02b8 (spots 3-4, 2.2-4.4 %, differing between runs):
+  the speech bubbles' lines, not the city; the pixel runs now pass `--nohud` (0.24 % on 03a26dc).
 - **Map checks in CI**: the derived map pack as a release asset that CI downloads (or a small test
   map), so roads, drape, drive and the game runs gate every PR again ("From loop 3d-1", CI). Gap.
 
@@ -241,6 +255,13 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   map"). Gap / not verified.
 
 ### P2: store release (store lane, Sonnet; F's forms)
+- **Done (2026-11-01):** the release build reads no command-line flags (`release.gd`: an export with
+  the release template, the TestFlight archive or the Play AAB, ignores `--at=`, `--shots=`,
+  `--bench` and the rest; the debug export and the checks keep them), and Settings → DŹWIĘK →
+  LICENCJE shows the credits and licences (`credits.gd`: OpenStreetMap ODbL, GUGiK, the trees'
+  CC BY 4.0, Godot and the four shipped add-ons, every radio track from radio.json).
+  `check_credits` (verify and CI) keeps the page, the add-on folders, radio.json and CREDITS.md in
+  step. Left: the page seen on the phone (scrolling with a finger at 375 pt).
 - TestFlight is paused until F fills App Information in App Store Connect; no build is uploaded.
   iPad kept or dropped; the support page needs a deploy; the store screenshots predate the demo
   map, the new HUD and the opening and need a re-shoot after #115/#121 ("From the store listings").
