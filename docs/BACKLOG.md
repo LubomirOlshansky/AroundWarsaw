@@ -66,7 +66,7 @@ Small problems that agents reported or that showed up in screenshots. They are f
   (`map_builder._tenement_facades`), brick Gothic for the Cathedral and the Barbican
   (`M_GOTHIC`), Sigismund's Column, map north (Arkadka with its lit sign, the Forest tower, the
   flag on Rondo Radosława) and Most Świętokrzyski's pylon and stays. **Left, for fresh threads**:
-  St Anne's classical facade (a portico of four columns and a pediment on its west face; it is
+  St Anne's classical facade (DONE 2026-11-01: `_build_anna`, spec anna.md, portico, wings and the bell tower's trim, Mac photo check parked: column count, door, tower cap; was: a portico of four columns and a pediment on its west face; it is
   a kept skin today, outline in `centrum.json` landmarks "Kościół pw. Świętej Anny", centre
   (−658, −1350), the free-standing bell tower is a separate building to its north-east), the other
   churches (Holy Cross DONE 2026-11-01: front and towers, spec krzyz.md, Mac photo check parked; All Saints (DONE 2026-11-01: front and twin towers on the kept skin, spec wszystkich.md, 788 tris, heights estimated, Mac photo check parked: tower height and dome shape, portal count), St Alexander's rotunda (DONE 2026-11-01: model, spec aleksander.md, Mac photo check parked: which end has the portico, column count, bell towers), the Visitationists DONE 2026-11-01: facade, stepped wing and turret on the kept skin, spec wizytki.md, 566 tris, heights estimated, Mac photo check parked: gable shape, towers or none, turret) and the Palace

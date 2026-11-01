@@ -46,7 +46,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 
 | # | Object | To do |
 | --- | --- | --- |
-| 2.1 | Kościół św. Anny | portico of four columns, pediment, the bell tower (BACKLOG hand-over) |
+| 2.1 | Kościół św. Anny | DONE 2026-11-01 (L3 front with four-column portico, pediment, flanking wings, and the bell tower's trim on the kept skin, spec `anna.md`, 514 tris, heights estimated, Mac photo check parked: column count, door, tower cap) |
 | 2.2 | Teatr Wielki | the colonnade and the portico on Plac Teatralny |
 | 2.3 | Old Town and New Town tenements | dormers and chimneys DONE 2026-11-01; stepped attic gables on the market square's east side DONE 2026-11-01 (`OldTownRoofs.gable`); the New Town and the other sides stay open (map lane: `_tenement_facades`, the LoD2 roofs) |
 | 2.4 | Archikatedra, Barbakan | the Cathedral's stepped gable; the Barbican's towers and walls |
@@ -148,7 +148,7 @@ All with a card; check_landmarks only (except where noted). Open issue common to
 | Zamek Królewski | M_MONUMENT | #c87560 / #6e5a4e | no tower/clock |
 | Barbakan | M_GOTHIC | #ab5a42 / #6b4a3c | |
 | Archikatedra św. Jana | M_GOTHIC | #9a4b38 / #6e3a2e | |
-| Kościół św. Anny | M_MONUMENT | #e6dcc4 / #8a5a44 | portico + pediment + bell tower to model (centre -658,-1350) |
+| Kościół św. Anny | M_MONUMENT | #e6dcc4 / #8a5a44 | `_build_anna` (spec anna.md, 2026-11-01): four-column portico, pediment, wings, bell-tower trim; 514 tris |
 | Pałac Prezydencki | M_MONUMENT | #ece3cc / #6a7a77 | facade to model |
 | Kościół Świętego Krzyża | M_MONUMENT + front model | #e3d9c0 / #5d6e64 | `_build_krzyz` (spec krzyz.md, 2026-11-01): four-column portico, upper storey, pediment, two towers with copper onion helms; dome over the crossing not modelled |
 | Pałac Staszica | M_MONUMENT + front model | #e2d6b8 / #5f6f6a | `_build_staszic` (spec staszic.md, 2026-11-01): plinth band, cornice with corner pilasters, four-column portico with pediment, Thorvaldsen's seated Copernicus; heights estimated (no LoD2 in the cloud) |
