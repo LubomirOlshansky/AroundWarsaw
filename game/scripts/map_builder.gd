@@ -4363,6 +4363,7 @@ func _build_lod2(walls, marks) -> Array:
 	var facades := _tenement_facades(pos, nrm, col, uv2, dropped)
 	col = facades[0]
 	uv2 = facades[1]
+	var dress: Dictionary = facades[2]
 	# Split into tiles by triangle, like the other city meshes (not on the roof pass).
 	var tiles := {}
 	for t in range(0, count if not walls.none else 0, 3):
@@ -4379,6 +4380,19 @@ func _build_lod2(walls, marks) -> Array:
 			(tile[2] as Array).append(col[t + k])
 			(tile[3] as Array).append(uv[t + k])
 			(tile[4] as Array).append(uv2[t + k])
+	# The Old Town's dormers and chimneys: extra triangles in the same tiles (no collision).
+	var dress_pos: PackedVector3Array = dress["pos"]
+	for t in range(0, dress_pos.size() if not walls.none else 0, 3):
+		var key := Chunked.tile_of((dress_pos[t] + dress_pos[t + 1] + dress_pos[t + 2]) / 3.0)
+		if not tiles.has(key):
+			tiles[key] = [[], [], [], [], []]
+		var tile: Array = tiles[key]
+		for k in 3:
+			(tile[0] as Array).append(dress_pos[t + k])
+			(tile[1] as Array).append((dress["nrm"] as PackedVector3Array)[t + k])
+			(tile[2] as Array).append((dress["col"] as PackedColorArray)[t + k])
+			(tile[3] as Array).append(Vector2(-1.0, -1.0))
+			(tile[4] as Array).append(Vector2(0.5, -1.0))
 	# Loop 2b: into the walls' tile meshes (same material): one draw call per tile, not two.
 	for key in tiles:
 		var tile: Array = tiles[key]
@@ -5044,6 +5058,7 @@ const NOT_TENEMENTS := ["church", "cathedral", "chapel", "monastery", "convent",
 ## arrays are copies).
 func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedColorArray,
 		uv2: PackedVector2Array, dropped: PackedByteArray) -> Array:
+	var dress := {"pos": PackedVector3Array(), "nrm": PackedVector3Array(), "col": PackedColorArray()}
 	var cell := 24.0
 	var grid := {}
 	var polys: Array[PackedVector2Array] = []
@@ -5073,7 +5088,7 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 					grid[key] = []
 				(grid[key] as Array).append(k)
 	if polys.is_empty():
-		return [col, uv2]
+		return [col, uv2, dress]
 	for t in range(0, pos.size(), 3):
 		if dropped[t / 3] or uv2[t].x >= 1.0 or col[t].a < 0.9 or nrm[t].y > 0.95 or nrm[t].y < -0.3:
 			continue  # a landmark's, glass, a flat roof or an underside
@@ -5092,8 +5107,16 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 					else:
 						col[t + v] = looks[k]
 						uv2[t + v].x = seeds[k]
+				if pitched:
+					# Old Town roof detail (OldTownRoofs): a dormer, now and then a chimney.
+					var extra := OldTownRoofs.dress(pos[t], pos[t + 1], pos[t + 2], nrm[t], looks[k], roofs[k],
+							fposmod(seeds[k] + t * 0.0137, 1.0))
+					if not extra.is_empty():
+						(dress["pos"] as PackedVector3Array).append_array(extra["pos"])
+						(dress["nrm"] as PackedVector3Array).append_array(extra["nrm"])
+						(dress["col"] as PackedColorArray).append_array(extra["col"])
 				break
-	return [col, uv2]
+	return [col, uv2, dress]
 
 
 ## Whether a point is within `slack` metres of a historic district (HISTORIC).
