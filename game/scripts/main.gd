@@ -75,6 +75,8 @@ const Fotka := preload("res://scripts/fotka.gd")
 const Districts := preload("res://scripts/districts.gd")
 ## Loop 3h slice 2: the 20 Syrenki (collectibles).
 const Syrenki := preload("res://scripts/syrenki.gd")
+## First scene items 4-5: the kiosk, stall, cafés and planters by the start (first_scene.gd).
+const FirstScene := preload("res://scripts/first_scene.gd")
 ## Loop 3h slice 3: the final race's route (the start's hint for --trzy-mosty).
 const TrzyMosty := preload("res://scripts/trzy_mosty.gd")
 const Ladder := preload("res://scripts/ladder.gd")
@@ -1008,6 +1010,7 @@ func _build_world() -> void:
 	_build_moments(data, world)
 	_build_districts()
 	_build_syrenki(world)
+	_build_first_scene(world)
 	_build_garage(world)
 	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
 	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
@@ -1166,6 +1169,7 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	trams.setup(graph, map, data)
 	trams.traffic = traffic
 	traffic.trams = trams
+	_first_scene_trams()
 	walkers = Pedestrians.new()
 	world.add_child(walkers)
 	walkers.setup(map, cam, traffic, data)
@@ -1186,6 +1190,33 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 		var hit := graph.snap(p, 60.0, Vector2(-sin(car.rotation.y), -cos(car.rotation.y)), true)
 		if not hit.is_empty():
 			_bench_ghost = traffic.add_ghost(hit[0], hit[1], hit[2])
+
+
+## First scene items 4-5 (first_scene.gd): the street furniture on Marszałkowska's east
+## pavement by the start, on both city paths.
+func _build_first_scene(world: Node3D) -> void:
+	if solo_site != "":
+		return
+	var fs := FirstScene.new()
+	fs.name = "FirstScene"
+	fs.map = map
+	world.add_child(fs)
+	fs.build()
+
+
+## First scene (docs/design/first-scene.md item 6): a start on Marszałkowska between
+## Świętokrzyska and the Eastern Wall's stores puts a tram in the first frame: one northbound
+## rolling up from behind the car (it passes in the first seconds), one southbound coming down
+## the street ahead. They are two of the city's trams, taken from where they were.
+const FIRST_SCENE := Rect2(-1080.0, -160.0, 200.0, 420.0)
+const MARSZALKOWSKA_NORTH := Vector2(-0.349, -0.937)
+func _first_scene_trams() -> void:
+	var at := Vector2(car.global_position.x, car.global_position.z)
+	if not FIRST_SCENE.has_point(at) or trams.trams.size() < 2:
+		return
+	var up_ok := trams.place_near(trams.trams[0], at, -18.0, MARSZALKOWSKA_NORTH, 7.0)
+	var down_ok := trams.place_near(trams.trams[1], at + MARSZALKOWSKA_NORTH * 110.0, 0.0, -MARSZALKOWSKA_NORTH, 8.0)
+	print("first scene: trams up %s, down %s" % [up_ok, down_ok])
 
 
 ## v0.9: the sound (sfx.gd), fed by the car's knocks, the trams' bells, the drivers'

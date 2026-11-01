@@ -278,6 +278,9 @@ const INFO := {
 	"tr": ["Plac budowy TR Warszawa",
 			"Ogrodzony plac pod nowy gmach teatru TR Warszawa, obok białego muzeum.",
 			"The fenced plot for TR Warszawa's new theatre, next to the white museum."],
+	"dtc": ["Domy Towarowe Centrum",
+			"Trzy szklane domy towarowe Ściany Wschodniej, 1962–1970. Nazwy po Warsie i Sawie z legendy.",
+			"The Eastern Wall's three glass department stores, 1962–1970, named after the legend's Wars and Sawa."],
 	"grob": ["Grób Nieznanego Żołnierza",
 			"Trzy łuki ocalałe z Pałacu Saskiego. Wieczny ogień i warta.",
 			"Three arches left of the Saxon Palace. An eternal flame, a guard."],
@@ -523,6 +526,8 @@ func _find_sites() -> void:
 	# First scene item 1 (2026-10-31): the Museum of Modern Art on Plac Defilad.
 	_find_msn()
 	_find_tr()
+	# First scene item 3 (2026-10-31): the Eastern Wall's three glass department stores.
+	_find_dtc()
 	# Plac Małachowskiego and the Presidential Palace (2026-10-31): models instead of skins.
 	_find_trojca()
 	_find_zacheta()
@@ -751,6 +756,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_msn(s)
 			"tr":
 				_build_tr(s)
+			"dtc":
+				_build_dtc(s)
 			"trojca":
 				_build_trojca(s)
 			"zacheta":
@@ -3411,6 +3418,142 @@ func _msn_ring(hu: float, hv: float, iu: float, iv: float, y: float, n: Vector3,
 		var p2 := _w(r[2], r[3])
 		var p3 := _w(r[0], r[3])
 		_quad(Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), Vector3(p2.x, y, p2.y), Vector3(p3.x, y, p3.y), n, col)
+
+
+# --- Domy Towarowe Centrum (the Eastern Wall) ----------------------------------------------
+
+## First scene item 3 (spec docs/landmarks/specs/dtc.md, 2026-10-31): the three glass department
+## stores on Marszałkowska's east side, right of the car at the start (Junior beside it, Sawa and
+## Wars behind), built from their OpenStreetMap parts: the recessed glazed shop floor (mh 0,
+## 5.5 m, its mapped piers), the cantilevered curtain-wall box over it (5.5 to 17.5 m, the
+## landmark's outline), an aluminium fascia at the slab and a cornice at the roof, a set-back top
+## storey, and each store's name on the roof as a lit parody sign facing the street.
+const DTC := [{"osm": "Junior", "sign": "JUNIOREK"}, {"osm": "Sawa", "sign": "SAWKA"}, {"osm": "Wars", "sign": "WARSIK"}]
+const DTC_BASE := 5.5        # the shop floor's top (OSM part h 5.5)
+const DTC_FASCIA := 0.8      # the slab edge over the shop windows
+const DTC_BODY := 17.5       # the curtain wall's top (OSM part h 17.5)
+const DTC_CORNICE := 0.5
+const DTC_TOP := 3.0         # the top storey (OSM parts 17.5 to 20.5)
+const DTC_TOP_IN := 3.0      # and how far it stands back from the edge (photo check)
+const DTC_RECESS := 1.5      # the shop floor's set-back where no part is mapped
+## Down Marszałkowska (south-south-east) from the stores: the game's camera looks up the street,
+## so the stores' south ends face it.
+const DTC_SOUTH := Vector2(0.349, 0.937)
+const DTC_SHOP := Color("#bcd8cf")      # the shop windows (OSM #B2E1C7), lit warm at night
+const DTC_GLASS := Color("#6f9f93")     # the curtain wall's green glass (OSM #78B3A1)
+const DTC_ALU := Color("#d3d7d5")       # fascia, cornice
+const DTC_TOP_WALL := Color("#dfe1dc")  # the top storey's panels (OSM #E4E5DE)
+const DTC_ROOF := Color("#6c757a")      # (OSM #4B555F, a step paler: the frame's biggest plain area)
+const DTC_SKY := Color("#cfd8dc")       # the roof lights, lit at night
+const DTC_SIGN := Color(1.0, 0.86, 0.55)
+func _find_dtc() -> void:
+	var zone: Array[PackedVector2Array] = []
+	for d: Dictionary in DTC:
+		var outline := _landmark(d["osm"])
+		if outline.size() < 3:
+			continue
+		var grown := Geometry2D.offset_polygon(outline, 1.0, Geometry2D.JOIN_MITER)
+		zone.append(grown[0] if not grown.is_empty() else outline)
+	_add_site("dtc", zone)
+
+
+func _build_dtc(_site: Dictionary) -> void:
+	var none := Color(0, 0, 0, 0)
+	var skin := M_SKIN + float(S_BANDS) / 16.0
+	for d: Dictionary in DTC:
+		var outline := _landmark(d["osm"])
+		if outline.size() < 3:
+			continue
+		_g = _ground_under(outline)
+		var g := _g
+		# shop: the glazed ground floor, its mapped outline (the piers are its jogs) or the box
+		# drawn in.
+		var shop := PackedVector2Array()
+		for part in _parts_in(outline, func(b: Dictionary) -> bool: return float(b["mh"]) < 0.5 and float(b["h"]) < DTC_BASE + 1.0):
+			var q := _pts(part["p"])
+			if _area(q) > _area(shop):
+				shop = q
+		if _area(shop) < _area(outline) * 0.5:
+			var drawn := Geometry2D.offset_polygon(outline, -DTC_RECESS, Geometry2D.JOIN_MITER)
+			shop = drawn[0] if not drawn.is_empty() else outline
+		_prism(shop, g - 0.4, g + DTC_BASE, DTC_SHOP, none, M_PAVILION)
+		# body: the fascia over the shops, the green curtain wall, the cornice and the roof.
+		_prism(outline, g + DTC_BASE, g + DTC_BASE + DTC_FASCIA, DTC_ALU, none, M_STONE)
+		_prism(outline, g + DTC_BASE + DTC_FASCIA, g + DTC_BODY - DTC_CORNICE, DTC_GLASS, none, skin)
+		_prism(outline, g + DTC_BODY - DTC_CORNICE, g + DTC_BODY, DTC_ALU, DTC_ROOF, M_STONE, M_STONE)
+		# soffit: the cantilever's underside round the shop floor (seen from the pavement).
+		_mode = M_STONE
+		_soffit(outline, g + DTC_BASE, DTC_ALU.darkened(0.25))
+		# top: the set-back top storey.
+		var top := Geometry2D.offset_polygon(outline, -DTC_TOP_IN, Geometry2D.JOIN_MITER)
+		if not top.is_empty():
+			_prism(top[0], g + DTC_BODY, g + DTC_BODY + DTC_TOP, DTC_TOP_WALL, DTC_ROOF.lightened(0.06),
+					M_SKIN + float(S_DARK) / 16.0, M_STONE)
+			# roof: a row of skylights down the middle of the top storey's roof (lit at night), and
+			# air-handling units between them, along the store.
+			var c := _centre(top[0])
+			var y := g + DTC_BODY + DTC_TOP
+			var reach := _box_of([top[0]]).size.length() * 0.5
+			var across := Vector2(-DTC_SOUTH.y, DTC_SOUTH.x)
+			for n in range(-8, 9):
+				var p := c + DTC_SOUTH * (n * 7.0)
+				if absf(n * 7.0) > reach or not Geometry2D.is_point_in_polygon(p, top[0]):
+					continue
+				if n % 3 == 0:
+					_prism(_square(p + across * 4.0, 1.4), y, y + 1.4, Color("#a3aaac"), Color("#8d9497"), M_STONE, M_STONE)
+					continue
+				var sky := PackedVector2Array([p - DTC_SOUTH * 2.6 - across * 1.4, p + DTC_SOUTH * 2.6 - across * 1.4,
+						p + DTC_SOUTH * 2.6 + across * 1.4, p - DTC_SOUTH * 2.6 + across * 1.4])
+				_prism(sky, y, y + 0.45, DTC_ALU, DTC_SKY, M_STONE, M_GLASS_ROOF)
+		_dtc_sign(outline, str(d["sign"]), g + DTC_BODY)
+		_collide(shop)
+	_mode = M_STONE
+
+
+## The store's name on the roof over its south end (the face the game's camera sees from the
+## street): a lit parody sign on a frame, the word over 75 % of the end (letters 3.2 m at most),
+## standing on the cornice.
+func _dtc_sign(outline: PackedVector2Array, word: String, y: float) -> void:
+	var best := -1
+	var best_score := 0.0
+	for i in outline.size():
+		var a := outline[i]
+		var b := outline[(i + 1) % outline.size()]
+		var score := _out(outline, a, b).dot(DTC_SOUTH) * minf(a.distance_to(b), 12.0)
+		if score > best_score:
+			best_score = score
+			best = i
+	if best < 0:
+		return
+	var a := outline[best]
+	var b := outline[(best + 1) % outline.size()]
+	var o := _out(outline, a, b)
+	var mid := (a + b) * 0.5 - o * 1.0
+	var k := minf(0.75 * a.distance_to(b) / Neon.length_of(word), 3.2 / (Neon.ROW_H * Neon.PIXEL))
+	var tall := Neon.ROW_H * Neon.PIXEL * k
+	# The frame: two posts and a rail behind the letters.
+	var d := (b - a).normalized()
+	var half := 0.5 * k * Neon.length_of(word) + 0.3
+	for s: float in [-half, half]:
+		var p := mid + d * s - o * 0.4
+		_prism(_square(p, 0.15), y, y + tall + 0.6, DTC_ALU.darkened(0.3), DTC_ALU.darkened(0.3), M_STONE, M_STONE)
+	var r0 := mid - d * half - o * 0.4
+	var r1 := mid + d * half - o * 0.4
+	_prism(PackedVector2Array([r0 - o * 0.1, r1 - o * 0.1, r1 + o * 0.1, r0 + o * 0.1]), y + 0.2, y + 0.5,
+			DTC_ALU.darkened(0.3), DTC_ALU.darkened(0.3), M_STONE, M_STONE)
+	signs.append([word, Vector3(mid.x, y + 0.5, mid.y), Vector3(o.x, 0.0, o.y), k, DTC_SIGN])
+
+
+## The underside of a box at y over its whole outline, facing down (an overhang's soffit; the part
+## over the inner floor is its ceiling, never seen).
+func _soffit(outer: PackedVector2Array, y: float, col: Color) -> void:
+	var idx := Geometry2D.triangulate_polygon(outer)
+	for i in range(0, idx.size() - 2, 3):
+		var p0 := outer[idx[i]]
+		var p1 := outer[idx[i + 1]]
+		var p2 := outer[idx[i + 2]]
+		_tri(Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), Vector3(p2.x, y, p2.y), Vector3.DOWN, col,
+				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0, false)
 
 
 # --- TR Warszawa's building site ----------------------------------------------------------

@@ -9,6 +9,9 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
+## 2026-11-01
+- The street where the game starts is busier and richer: the three glass department stores across from the museum (Junior, Sawa and Wars, with lit names JUNIOREK, SAWKA and WARSIK on their roofs) are real buildings now, a tram rolls past the car in the first seconds and another comes down the street, and the pavement by the museum has café tables under parasols, a newspaper kiosk, a flower stall, an advertising column and flower planters.
+
 ## 2026-10-31
 - Warszawa Centralna is rebuilt from the real map data: the glass hall under its wide, flat overhanging roof, the roof's saddle-shaped shells on rows of pillars, the lower wings at both ends, and at night the hall glowing white under a line of lamps.
 - The website's first city picture is new: Plac Defilad from above at golden hour, with the Palace, the new Museum of Modern Art and the building site beside it.
