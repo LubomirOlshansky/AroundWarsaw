@@ -1114,6 +1114,7 @@ func _build_ticker() -> void:
 ## Shows a line on the now-playing ticker for a few seconds: the radio's station changes, and
 ## the radio host's lines with an English subtitle (held longer and wrapped to a readable width).
 func ticker(text: String, colour: Color, subtitle := "") -> void:
+	colour = Access.tint(colour)  # colour-safe (access.gd)
 	var font := ThemeDB.fallback_font
 	var room := minf(TICKER_W * pt, _safe.size.x * 0.5)
 	var long := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_BODY)).x > room \
@@ -1305,6 +1306,7 @@ func _build_mission_panels() -> void:
 ## the title and text in Polish, `title_en` and `body_en` under them in English.
 func show_card(title: String, body: String, buttons: PackedStringArray, accent: Color, bottom := false,
 		title_en := "", body_en := "") -> void:
+	accent = Access.tint(accent)  # colour-safe (access.gd)
 	# Loop 2d-1: any other card is the centred one again.
 	if _card_side and not _side_call:
 		_card_side = false
@@ -1347,6 +1349,7 @@ func hide_card() -> void:
 ## Polish, `hint_en` under it in English.
 func show_status(title: String, clock: String, distance: String, hint: String, progress: float, accent: Color,
 		badge := "", icons := {}, hint_en := "") -> void:
+	accent = Access.tint(accent)  # colour-safe (access.gd)
 	if icons != _icons:
 		if icons.is_empty() != _icons.is_empty():
 			_mark()
@@ -1355,7 +1358,7 @@ func show_status(title: String, clock: String, distance: String, hint: String, p
 		_status_icons.queue_redraw()
 	_status_badge.text = badge
 	_status_badge.visible = badge != ""
-	_status_badge.add_theme_color_override("font_color", Color("#56d68a") if badge == "1ST" else ACCENT)
+	_status_badge.add_theme_color_override("font_color", Access.tint(Access.GREEN) if badge == "1ST" else ACCENT)
 	_status_title.text = title
 	_status_title.add_theme_color_override("font_color", accent)
 	_status_clock.text = clock + "    " + distance
@@ -1375,6 +1378,7 @@ func hide_status() -> void:
 
 ## The button that challenges the rival in front (key L does the same): Polish over English.
 func show_challenge(text: String, accent: Color, gloss := "flash your lights to race (L)") -> void:
+	accent = Access.tint(accent)  # colour-safe (access.gd)
 	var top := (_challenge.get_child(0) as Control).get_child(0) as Label
 	if top.text != text:
 		_set_chip(_challenge, text, gloss, 240.0)
@@ -1388,6 +1392,7 @@ func hide_challenge() -> void:
 
 ## A big line across the middle of the screen: the race countdown.
 func show_banner(text: String, colour: Color) -> void:
+	colour = Access.tint(colour)  # colour-safe (access.gd)
 	if _banner.text != text:
 		_banner.text = text
 		_mark()
@@ -1492,6 +1497,7 @@ func set_flying(on: bool) -> void:
 ## The mission target as seen on screen (`at` in screen pixels); an arrow on the screen edge
 ## points to it when it's off screen.
 func set_target(at: Vector2, label: String, colour: Color, show: bool) -> void:
+	colour = Access.tint(colour)  # colour-safe (access.gd)
 	if show or _target_visible:
 		_overlay.queue_redraw()
 	_target_visible = show
@@ -1501,6 +1507,7 @@ func set_target(at: Vector2, label: String, colour: Color, show: bool) -> void:
 
 
 func set_minimap_target(xz: Vector2, colour: Color) -> void:
+	colour = Access.tint(colour)  # colour-safe (access.gd)
 	_mini_target = xz
 	_mini_target_colour = colour
 
@@ -1917,6 +1924,7 @@ func set_minimap_pois(points: PackedVector2Array, colours: PackedColorArray) -> 
 ## The same card, recipe and point sizes; the next show_card() puts it back in the middle.
 func show_side_card(title: String, body: String, buttons: PackedStringArray, accent: Color, title_en := "",
 		body_en := "") -> void:
+	accent = Access.tint(accent)  # colour-safe (access.gd)
 	_card_side = true
 	_set_card_width(side_card_width())
 	_side_call = true
@@ -2100,6 +2108,7 @@ static func _money(amount: int) -> String:
 
 ## A small card under the wallet for a few seconds (an easter egg found).
 func show_note(title: String, body: String, colour: Color) -> void:
+	colour = Access.tint(colour)  # colour-safe (access.gd)
 	_set_note_width()  # landmark card fix
 	_note_title.text = title
 	_note_title.add_theme_color_override("font_color", colour.lerp(Color.WHITE, 0.2))
