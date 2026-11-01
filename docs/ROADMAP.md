@@ -108,6 +108,7 @@ then the Launch gate.
   - [ ] RF4 OSM-only buildings' roofs, copper and red sheet metal by district; the phone bench (Mac check done 2026-11-01)
 
 ### Left: content and feel
+- [x] ROWERILO city-bike docks (the Veturilo parody) at the 92 mapped `bicycle_rental` spots, a terminal and 4-8 bikes each, in the sector street-prop mesh (2026-11-01; Mac look check parked)
 - [x] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
       (2026-11-01, docs/design/pay-tables.md: player-neutral Polish, rematch respect +20, słoiki
       40 + 30 a jar; the hour and the pay still to be timed on the phone by F)
