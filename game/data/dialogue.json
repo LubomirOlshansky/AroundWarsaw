@@ -1710,6 +1710,111 @@
       {
         "only": "late"
       }
+    ],
+    [
+      "Drop o 16:00. Pistacja się skończy przed moją kolejką. Zawsze tak jest.",
+      "Drop at 4 pm. The pistachio will run out before my turn. Always does.",
+      {
+        "only": "drop"
+      }
+    ],
+    [
+      "Piętnaście zł za pudełko, z którego zjem dwie kostki. Warto.",
+      "Fifteen zł for a box, I'll eat two squares. Worth it.",
+      {
+        "only": "drop"
+      }
+    ],
+    [
+      "Mama pyta, po co stoję. Mówię: to limitowane.",
+      "Mum asks why I'm standing here. I say: it's limited.",
+      {
+        "only": "drop"
+      }
+    ],
+    [
+      "Przed mną czterdzieści osób. Wszystkie nagrywają.",
+      "Forty people ahead of me. All filming.",
+      {
+        "only": "drop"
+      }
+    ],
+    [
+      "Siatka? Nie. Ściana. Tu piłka wraca, jak spam.",
+      "Net? No. Wall. Here the ball comes back, like spam.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Trener mówi: nie biegaj, ustaw się. Płacę za to 200 zł.",
+      "Coach says: don't run, position yourself. I pay 200 zł for that.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Kupiłem rakietę. Jest piękna. Jeszcze nie grałem.",
+      "Bought a racket. It's beautiful. Haven't played yet.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Wczoraj tenis, dziś padel. Jutro nie wiem. Chyba pickleball.",
+      "Tennis yesterday, padel today. Tomorrow, no idea. Pickleball maybe.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Rezerwacja za trzy tygodnie. Ale mam bluzę klubową.",
+      "Booking is three weeks out. But I have the club hoodie.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Gramy dla zdrowia. I żeby wrzucić story z kortu.",
+      "We play for health. And to post a court story.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Na korcie byłem czwarty. Na zdjęciu pierwszy.",
+      "Fourth on the court. First in the photo.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Padel to szachy z piłką. Przegrywam w obu.",
+      "Padel is chess with a ball. I lose at both.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Trener Dominik: nie biegaj, ustaw się. Znowu.",
+      "Coach Dominik: don't run, position yourself. Again.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Pani Basia: wolny kort? Tylko w poniedziałek o szóstej.",
+      "Basia at the desk: a free court? Only Monday at six.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Prezes z Mokotowa: trzy rakiety, zero meczów. Grupa działa.",
+      "The Mokotów boss: three rackets, no matches. The group chat thrives.",
+      {
+        "only": "padel"
+      }
     ]
   ],
   "runners": [

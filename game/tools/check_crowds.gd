@@ -254,6 +254,20 @@ func _check_level26(c: Crowds, book: Notebook, data: Dictionary) -> void:
 # 4. -------------------------------------------------------------------------------------------
 
 func _check_sites(c: Crowds) -> void:
+	# Trend follow-up: PISTACJA's line, its Friday drop and its site on a footway.
+	_expect(Crowds.pistacja_queue(9.0, 5)[0] == 0 and Crowds.pistacja_queue(22.5, 5)[0] == 0, "PISTACJA: a line outside 10-22")
+	_expect(Crowds.pistacja_queue(12.0, 2) == [Crowds.PISTACJA_BASE, "queue"], "PISTACJA: a Tuesday noon line %s" % [Crowds.pistacja_queue(12.0, 2)])
+	_expect(Crowds.pistacja_queue(17.5, 5) == [Crowds.PISTACJA_MAX, "drop"], "PISTACJA: the Friday drop %s" % [Crowds.pistacja_queue(17.5, 5)])
+	_expect(not Crowds.pistacja_drop(17.5, 4) and not Crowds.pistacja_drop(18.5, 5) and Crowds.pistacja_drop(16.0, 5), "PISTACJA: the drop's window")
+	_expect(Crowds.padel_queue(18.0, 2) == [Crowds.PADEL_MAX, "padel"] and Crowds.padel_queue(10.0, 6)[0] == 10 and Crowds.padel_queue(3.0, 6)[0] == 0
+			and Crowds.padel_queue(14.0, 2)[0] == 3, "PADELNIA: its line by hour")
+	_expect(c.by_id.has(Crowds.PADEL_ID), "no crowd at PADELNIA")
+	_expect(c.by_id.has(Crowds.PISTACJA_ID), "no crowd at PISTACJA")
+	if c.by_id.has(Crowds.PISTACJA_ID):
+		var ps: Dictionary = c.sites[c.by_id[Crowds.PISTACJA_ID]]
+		_expect(not c.nearest_foot(ps["at"], Crowds.FOOT_REACH).is_empty(), "PISTACJA: no footway within %.0f m" % Crowds.FOOT_REACH)
+		_expect(ps.has("door") and ps.has("line") and (ps["line"] as PackedVector2Array).size() >= Crowds.PISTACJA_MAX + 1,
+				"PISTACJA: a line of %d spots for %d" % [(ps["line"] as PackedVector2Array).size() if ps.has("line") else 0, Crowds.PISTACJA_MAX])
 	for id in ["lusterko", "smola", "jasna_0", "lombard", "milosc_hipoteczna", "schodki_kopernik", "plan_c", "level_26", Crowds.ROOF_DOOR_ID]:
 		_expect(c.by_id.has(id), "no crowd at %s" % id)
 	for s in c.sites:

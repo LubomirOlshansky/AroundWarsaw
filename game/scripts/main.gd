@@ -46,6 +46,7 @@ const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
 const TunnelXray := preload("res://scripts/tunnel_xray.gd")
 const PedZones := preload("res://scripts/ped_zones.gd")
+const ScooterZones := preload("res://scripts/scooter_zones.gd")
 const Heli := preload("res://scripts/heli.gd")
 const Hud := preload("res://scripts/hud.gd")
 const Missions := preload("res://scripts/missions.gd")
@@ -77,6 +78,7 @@ const Fotka := preload("res://scripts/fotka.gd")
 const Districts := preload("res://scripts/districts.gd")
 ## Loop 3h slice 2: the 20 Syrenki (collectibles).
 const Syrenki := preload("res://scripts/syrenki.gd")
+const Cassettes := preload("res://scripts/cassettes.gd")
 ## First scene items 4-5: the kiosk, stall, cafés and planters by the start (first_scene.gd).
 const FirstScene := preload("res://scripts/first_scene.gd")
 ## Street details along the main line (street_details.gd, tools/bake_street_details.py).
@@ -143,6 +145,10 @@ var cam: Camera3D
 var car: CharacterBody3D
 ## Loop 3d-1: the pedestrian zones (ped_zones.gd), where the car is capped at 20 km/h.
 var ped_zones: RefCounted
+## The 12 km/h e-scooter streets (scooter_zones.gd): a toast on entering one.
+var scooter_zones := ScooterZones.new()
+var _scooter_zone := ""
+var _scooter_toast_at := -999.0
 var _zone := ""
 ## F's asks (2026-10-30): whether the zones cap the car at all (Settings → JAZDA, off by default:
 ## settings.gd `zone_cap`), and --zone-cap / --no-zone-cap for one run (-1: the setting).
@@ -336,6 +342,8 @@ var districts_log := false
 ## --syrenki=all|none|<n>|<id>,... (the record, in memory), --syrenka=<id|n>[:m] (the car on the street
 ## next to that Syrenka, facing it, m metres before it: 25 by default; :0 finds it at once).
 var syrenki: Syrenki
+## The first-10 polish: the mixtapes on roofs (cassettes.gd).
+var cassettes: Cassettes
 var syrenki_log := false
 var syrenki_spec := ""
 var syrenka_flag := ""
@@ -697,6 +705,7 @@ func _ready() -> void:
 	_club_start()  # loop MW-3: --club=<id>, the same
 	if garage_flag:
 		start_at = Vector3(Garage.SPOT.x, 0.0, Garage.SPOT.y)  # the garage loop: --garage
+	_guide_start()  # the first-10 polish: a guided run starts facing the first stand
 	var no_map := _missing_map()
 	if no_map != "":
 		# Loop 3d-1: the split and the prebuilt sectors are not committed; a fresh clone makes
@@ -723,7 +732,7 @@ func _ready() -> void:
 	else:
 		radio.now_playing()
 		_fallback_toast()
-		if first10 != null:
+		if first10 != null and not _opening_on:
 			first10.begin()  # loop 3h slice 4: no title: the guide's clock starts now
 	_started = true
 
@@ -862,17 +871,44 @@ func _on_title_dismissed() -> void:
 	title = null
 	radio.now_playing()
 	_fallback_toast()
-	if first10 != null:
-		first10.begin()  # loop 3h slice 4: the guide's clock starts with the first tap
 	if cinematic_flyin:
 		_fly_in()
+	if first10 != null and not _opening_on:
+		first10.begin()  # loop 3h slice 4: the guide's clock starts with the first tap
 
 
-## Camera loop: the fly-in from over the city down to the car (camera_shots.gd).
+## The opening flyover (docs/design/opening-flyover.md): the first launch's camera flight over
+## Plac Defilad down to the car, in place of the short fly-in. Due when the guide runs in a normal
+## launch (a fresh save), or forced by --cinematic=opening. While it plays the HUD is hidden and
+## the guide's clock waits; both start when it ends (done or skipped by a tap).
+var _opening_on := false
+
+func _opening_due() -> bool:
+	if _flag_cinematic == "opening":
+		return true
+	return cinematic_flyin and not flying and _flag_cinematic == "" and first10 != null and first10.guide
+
+
+## Camera loop: the fly-in from over the city down to the car (camera_shots.gd), or the opening
+## flyover on a first launch.
 func _fly_in() -> void:
 	var vehicle: Node3D = heli if flying else car
+	if _opening_due():
+		_opening_on = true
+		hud.visible = false
+		moments.ended.connect(_on_opening_ended, CONNECT_ONE_SHOT)
+		moments.opening(vehicle.global_position, cam_yaw, camera_pitch,
+				PackedStringArray(["Śródmieście · Plac Defilad", "the centre of Warsaw"]))
+		return
 	var ahead := -vehicle.global_transform.basis.z
 	moments.fly_in(vehicle.global_position, ahead, cam_yaw, camera_pitch, _view_size)
+
+
+func _on_opening_ended(_what: String) -> void:
+	_opening_on = false
+	hud.visible = not hide_hud
+	if first10 != null:
+		first10.begin()
 
 
 ## Camera loop: the car was put somewhere else (a tow): the view goes there at once, and a
@@ -1124,6 +1160,7 @@ func _build_world() -> void:
 	_build_moments(data, world)
 	_build_districts()
 	_build_syrenki(world)
+	_build_cassettes(world)
 	_build_first_scene(world)
 	_build_street_details(world)
 	_build_garage(world)
@@ -1952,8 +1989,18 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 
 # --- the garage loop ---------------------------------------------------------------------------
 
-## Warsztat u Mirka (garage.gd): its ring on Brzeska, the car's saved paint (or --paint), the card
-## that pauses the game like the settings card.
+## The first-10 polish: a run that will get the guide (a normal launch or --first10 on a fresh
+## save, with no other start asked for) starts at First10.START, facing north up Marszałkowska to
+## the first stand. Set before the city is built, so the sectors round it come in first.
+func _guide_start() -> void:
+	if start_at != Vector3.INF or start_heading != INF or not (first10_flag or show_title):
+		return
+	if not First10.guide_due(wallet):
+		return
+	start_at = Vector3(First10.START.x, 0.0, First10.START.y)
+	start_heading = First10.START_HEADING
+
+
 ## Loop 3h slice 4: the director of the first 10 minutes and the end card (first10.gd). The guide
 ## runs in a normal launch on a fresh save, or with --first10; never in other test runs.
 func _build_first10() -> void:
@@ -1971,6 +2018,7 @@ func _build_first10() -> void:
 	first10.radio = radio
 	first10.districts = districts
 	first10.garage = garage
+	first10.cassettes = cassettes
 	first10.flying = func() -> bool: return flying
 	first10.scripted = first10_flag and autopilot
 	add_child(first10)
@@ -1981,6 +2029,8 @@ func _build_first10() -> void:
 		first10.race_at = 1.0
 
 
+## Warsztat u Mirka (garage.gd): its ring on Brzeska, the car's saved paint (or --paint), the card
+## that pauses the game like the settings card.
 func _build_garage(world: Node3D) -> void:
 	garage = Garage.new()
 	garage.name = "Garage"
@@ -2214,7 +2264,7 @@ func _build_city_life(data: Dictionary, world: Node3D) -> void:
 		trend_job.log_on = trend_log
 		add_child(trend_job)
 		trend_job.setup({"hud": hud, "dialogue": dialogue, "wallet": wallet, "missions": missions, "rivals": rivals, "jobs": jobs,
-				"rides": rides, "graph": graph, "map": map, "car": car, "life": life}, at, world)
+				"rides": rides, "graph": graph, "map": map, "car": car, "life": life, "crowds": crowds}, at, world)
 		jobs.trend = trend_job
 		if spacer != null:
 			trend_job.quiet = spacer.on
@@ -2255,6 +2305,22 @@ func _life_start() -> void:
 					Vector2(car.global_position.x, car.global_position.z).distance_to(Vector2(ap.x, ap.z))])
 	if trend_job_flag > 0 and trend_job != null:
 		var i := trend_job_flag - 1
+		if trend_job_flag == 5 and crowds != null and crowds.by_id.has(Crowds.PADEL_ID):
+			var cd: Vector2 = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]["door"]
+			_put_car_near(cd, 60.0)
+			life.tick(0.0)
+			if not trend_job.offer_czwarty():
+				print("trend job: --trend-job=5: no request (no kerb or door fits)")
+			return
+		if trend_job_flag == 4 and crowds != null and crowds.by_id.has(Crowds.PISTACJA_ID):
+			# The limited drop at PISTACJA, whatever the clock (no "sold out").
+			var pd: Vector2 = crowds.sites[crowds.by_id[Crowds.PISTACJA_ID]]["door"]
+			_put_car_near(pd, 60.0)
+			life.tick(0.0)
+			trend_job.force_drop = true
+			if not trend_job.offer_drop():
+				print("trend job: --trend-job=4: no request (no kerb or door fits)")
+			return
 		var door: Vector2 = life.slot_doors[i] if i < life.slot_doors.size() else Vector2.INF
 		if door == Vector2.INF:
 			push_warning("--trend-job=%d: no such slot" % trend_job_flag)
@@ -2501,6 +2567,24 @@ func _build_districts() -> void:
 		notes.extra_marks = districts.marks
 	if districts_log:
 		print("districts: %s" % districts.summary())
+
+
+## The first-10 polish: the mixtapes (cassettes.gd) on their landmarks' roofs (the rescue's
+## flat-roof spots), picked up from the helicopter; each opens the next PÓŁNOC FM track.
+func _build_cassettes(world: Node3D) -> void:
+	cassettes = Cassettes.new()
+	cassettes.name = "Cassettes"
+	cassettes.wallet = wallet
+	cassettes.hud = hud
+	cassettes.radio = radio
+	cassettes.world = world
+	cassettes.blip = _blip_sound
+	add_child(cassettes)
+	if not cassettes.load_data():
+		return
+	cassettes.place_all(missions.roof_spot)
+	if notes != null:
+		cassettes.probe = notes.probe
 
 
 ## Loop 3h slice 2: the 20 Syrenki (syrenki.gd) on the notebook's places and the lane graph; the
@@ -3354,7 +3438,7 @@ func _parse_args() -> void:
 		elif arg.begins_with("--trend-day="):
 			trend_day_flag = maxi(0, int(arg.trim_prefix("--trend-day=")))
 		elif arg == "--trend-job" or arg.begins_with("--trend-job="):
-			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 3)
+			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 5)
 			trend_log = true
 		elif arg.begins_with("--club="):
 			# Loop MW-3: the car at a club's door (places.json id or name), no title.
@@ -3494,7 +3578,7 @@ func _parse_args() -> void:
 		show_title = true
 	# Camera loop: the cinematic moments in a normal launch only (never with screenshots or a bench).
 	var normal := show_title and shots.is_empty() and not bench and not probe and not bench_button and not demo
-	cinematic_flyin = normal or _flag_cinematic in ["all", "flyin"]
+	cinematic_flyin = normal or _flag_cinematic in ["all", "flyin", "opening"]
 	cinematic_look = normal or _flag_cinematic in ["all", "look"]
 	# Loop G1: the governor runs in a normal launch; test runs hold it so they repeat.
 	var test_run := DisplayServer.get_name() == "headless" or not shots.is_empty() or bench or probe or autopilot \
@@ -4444,6 +4528,15 @@ func _process(dt: float) -> void:
 		print("zone: %s at %.0f km/h" % [(zone + (" (20 km/h)" if zone_cap_on else " (no cap)")) if zone != "" else "left " + _zone,
 				absf(car.forward_speed) * 3.6])
 		_zone = zone
+	var sz: String = scooter_zones.at(car.global_position.x, car.global_position.z) if not flying else ""
+	if sz != _scooter_zone:
+		_scooter_zone = sz
+		var now := Time.get_ticks_msec() / 1000.0
+		if sz != "" and hud != null and now - _scooter_toast_at >= ScooterZones.COOLDOWN:
+			_scooter_toast_at = now
+			var tw: Array = ScooterZones.toast_for(sz)
+			hud.toast(str(tw[0]), str(tw[1]))
+			print("zone: scooter %s (12 km/h for scooters)" % sz)
 	_feed_life(pos)
 	if police != null:
 		police.flying = flying  # loop 3g-1: the police ignore the helicopter
@@ -4704,6 +4797,8 @@ func _make_stats() -> BenchStats:
 		b.systems["garage"] = [garage, "spent_usec", true]  # the garage loop
 	if first10 != null:
 		b.systems["first10"] = [first10, "spent_usec", true]  # loop 3h slice 4
+	if cassettes != null:
+		b.systems["cassettes"] = [cassettes, "spent_usec", true]  # the first-10 polish
 	b.systems["sound"] = [sfx, "last_usec", false]
 	b.systems["hud+minimap"] = [hud, "spent_usec", true]
 	b.systems["bubbles"] = [bubbles, "spent_usec", true]

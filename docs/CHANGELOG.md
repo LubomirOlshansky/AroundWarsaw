@@ -11,10 +11,18 @@ someone writes its lines.
 
 ## 2026-11-01
 - Crashes throw sparks and dust (they glow at night), scraping along a barrier at speed trails sparks, and the phone's vibration is now strong enough to feel.
+- Nine more mixtapes lie on roofs round the city (Kopernik, the Palace terrace, the Opera, Arkadka, the modern art museum, Polin, the Sejm, the defence ministry and the National Bank): fly the helicopter over one to pick it up. The first five open the next locked PÓŁNOC FM song; the rest give respect and a card.
+- New padel side job "Czwarty": on busy evenings the court needs a fourth player, so fetch one from across town before the booking ends. Padel also has its own page in the notebook, and the coach, the receptionist and the boss now chat in the court queue.
+- The department stores by the start look like they do today: "to let" boards on the emptied floors, a two-storey frog shop on the old corner store, a shoe shop, and the Scena Relax theatre's name behind them. Shop signs can now use Polish letters.
+- Four 12 km/h e-scooter streets (Złota, Zgody, Bracka, Plac Centralny) now greet you with a short notice when you drive in.
+- PADELNIA now has a line of people waiting for a court (weekday evenings and weekend mornings), and the padel crowd has jokes to tell.
+- PISTACJA DO KOŃCA now has a queue, and on Fridays 16:00-18:30 a limited drop: 36 people in line and a new "Limitka" job (queue for a box, deliver it before it melts).
 - A new Settings tab, DOSTĘP (Access): larger text, a calm screen with no flashing, colour-safe markers, vibration off, and the pick-up stop assist off.
 - New: eight joke posters on advertising columns and five street signs about the 2025–26 fads (matcha, padel, sour wine, the pistachio queue, the 12 km/h scooter rule).
 - Kiosks, flower stalls, café tables, planters, ice-cream carts and tram stop signs now line the streets of the main route, not only the start.
 - New: eight trendy spots in Śródmieście with neon signs, from the 2025–26 Warsaw fads: MACZA, PISTACJA DO KOŃCA, ZĘBUŚ, PADELNIA, KWAŚNE WINO, NIE TUTAJ, POP-UP DO PIĄTKU and ROZGNIOT.
+- The first time you play, the game opens with a short camera flight over the Palace of Culture and Plac Defilad that lands behind your car. Tap to skip it.
+- A new game now starts facing the first kebab stand, the first delivery is a short hop up Marszałkowska, and the "new song" waits as a mixtape on the University Library's roof: fly the helicopter over it to pick it up.
 - St Anne's church at the start of Krakowskie Przedmieście has its classical front: four tall columns under a pediment with a cross, side wings, and a trimmed bell tower.
 - The Visitationists' church on Krakowskie Przedmieście has its cream rococo front: pilasters, a stepped curved gable with statues and a cross, a lower side wing and a small copper turret.
 - All Saints church on Plac Grzybowski now has its front and two domed towers.

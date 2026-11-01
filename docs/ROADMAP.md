@@ -35,6 +35,19 @@ then the Launch gate.
       PR #121 (the opening flyover)
 - [ ] First-scene items 4-7: pavilions and towers behind the stores, Plac Defilad's paving, tram
       stops and kerbs on Marszałkowska, pedestrians and sound at the start
+- [ ] The start area as real Warsaw (F, 2026-11-01; plan docs/design/start-area-real.md):
+  - [x] R1 the Eastern Wall's signs as they are in 2025/26 (Polish letters in the neon font,
+        DO WYNAJĘCIA boards, FROGS XXL on the old H&M corner, KAPCIE, SCENA RELAX), 2026-11-01
+  - [ ] R2 Plac Centralny's ground (the tenements' outlines in grey and red slabs, the setts,
+        the pond, the trees)
+  - [ ] R3 pavements, granite kerbs, red cycle paths, the green Złota, the fountain, the crossings
+  - [ ] R4 ordinary buildings by type (pre-war tenement, 1960s-70s slab, socialist-realist,
+        office), shader only
+  - [ ] R5 Scena Relax, Zodiak and the Cepelia pavilion as models
+  - [ ] R6 one of the 2025/26 trend spots (built elsewhere, trends-2025-26.md) inside the start
+        box, and the empty-stores jokes in the lines
+  - [ ] R7 street details in the box (street name plates, bike dock, tram stops, bollards)
+  - [ ] R8 landmark polish left in the box (the museum's ribbon and roofline)
 
 ### Left: map and roads
 - [ ] A full `tools/verify.sh` and `--ios` on the Mac on today's main, both city paths
@@ -52,8 +65,10 @@ then the Launch gate.
 
 ### Left: content and feel
 - [ ] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
-- [ ] DEMO 6.3 counts: 10 roof cassettes (1 in #115), ~25 landmark cards, the second słoiki
-      station, the Old Town tourist and Łazienki peacock rescues (check each against the code)
+- [x] DEMO 6.3 counts, cassettes and landmark cards (2026-11-01): 10 roof cassettes in
+      `cassettes.json` (9 new), and 72 landmark cards already in `landmarks.gd` INFO (target ~25)
+- [ ] DEMO 6.3 counts, rescues and słoiki: the second słoiki station (jobs.gd has one), the Old
+      Town tourist and the Łazienki peacock rescues (a "tourist fainted" street rescue exists; no peacocks)
 - [x] Crash sparks and dust, phone vibration fixed in code (2026-11-01, crash_fx.gd, haptics.gd;
       the feel on the iPhone and an Android phone still to check: QUESTIONS)
 - [ ] Loop 3i juice leftovers: money pops, district ambiences
@@ -415,8 +430,8 @@ in). Gaps the orchestrator added on 2026-10-28, so nothing found so far falls th
   with the landmark lane running beside it.
 
 ### v1.0 — "Ship it"
-- Trend spots 2025–26 (docs/design/trends-2025-26.md): eight parody signs built; queue, drop quest and
-  scooter zones to follow (BACKLOG "Trends 2025–26").
+- Trend spots 2025–26 (docs/design/trends-2025-26.md): eight parody signs built; PISTACJA queue and
+  Friday "Limitka" drop job built (2026-11-01, phone check open); PADELNIA queue, padel characters, a notebook place and the "Czwarty" job built (docs/design/padel.md; roof court and pro shop to follow); scooter zones built (toast only, 2026-11-01) (BACKLOG "Trends 2025–26").
 - Device pass on iPhones (11 → 17 Pro): 60 fps target, memory under 1.5 GB, load < 4 s.
 - Settings (style, controls, sound), onboarding, App Store assets, privacy, credits
   (OSM ODbL, GUGiK CC BY 4.0 for trees, ZTM data terms).

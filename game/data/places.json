@@ -2046,6 +2046,32 @@
       ],
       "heli_radius": 60,
       "district": "muranow"
+    },
+    {
+      "id": "padelnia",
+      "chapter": "trendy",
+      "name_pl": "Padelnia",
+      "name_en": "The padel court",
+      "osm": "a basement court with a neon sign in a Śródmieście side street (PADELNIA, Storefronts.TRENDY)",
+      "near": [
+        52.2255,
+        21.026
+      ],
+      "radius": 30,
+      "fact": [
+        "Padel wymyślono w Meksyku w 1969 roku. Gra się w czwórkę, ze ścianami.",
+        "Padel was invented in Mexico in 1969. Four players, walls included."
+      ],
+      "joke": [
+        "Kort zarezerwowany na trzy tygodnie. Bluza klubowa już jest.",
+        "Court booked three weeks out. The club hoodie is already here."
+      ],
+      "tags": [
+        "venue",
+        "padel",
+        "queue"
+      ],
+      "district": "lazienki"
     }
   ]
 }
