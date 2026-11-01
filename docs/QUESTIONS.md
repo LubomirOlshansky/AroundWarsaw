@@ -11,7 +11,6 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | Lane | Item | Session | Since |
 | --- | --- | --- | --- |
 | landmarks | One landmark per thread (now the Cathedral and the Barbican); order in BACKLOG "Landmarks lane, hand-over" | fresh Sonnet threads | 2026-10-31 |
-| landmarks, content | Rondo de Gaulle'a, Dom Partii and the food hype (G1-G5 in BACKLOG) | cloud thread "Add de Gaulle roundabout and food-hype lore" | 2026-11-01 |
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting

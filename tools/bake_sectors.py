@@ -110,7 +110,9 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               # the University Library (2026-10-31): its roof houses and round lights
               "Biblioteka Uniwersytecka",
               # Hotel Metropol's roof sign (landmarks.gd _build_metropol_sign reads its parts' height)
-              "Hotel Metropol"]
+              "Hotel Metropol",
+              # HOTEL PIURE's rooftop sign LUŹNO (landmarks.gd _build_piure_sign reads its parts' height)
+              "Puro Warszawa Centrum"]
 SITE_PAD = 12.0
 SITE_AREAS = [
     (1250.0, -820.0, 1700.0, -370.0),       # Stadion Narodowy's masts (Rect2(1250, -820, 450, 450))

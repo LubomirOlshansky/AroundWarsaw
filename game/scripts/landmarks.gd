@@ -566,6 +566,12 @@ func _find_sites() -> void:
 	# The museum and Plac Piłsudskiego loop (2026-10-31): the square's edges.
 	_find_plac()
 	_find_pawilony()
+	# G3 (gaulle-and-food-hype.md): LUŹNO, the date bar on HOTEL PIURE's roof, in pink, like
+	# METROPOLKA: a 0.2 m zone at the roof's south-east corner keeps the hotel the map's.
+	var piure := _landmark("Puro Warszawa Centrum")
+	if piure.size() >= 3:
+		var pe := _box_of([piure]).end
+		_add_site("piure_sign", [PackedVector2Array([pe, pe + Vector2(0.2, 0), pe + Vector2(0.2, 0.2), pe + Vector2(0, 0.2)])])
 	var metropol := _landmark("Hotel Metropol")
 	if metropol.size() >= 3:
 		# A 0.2 m zone at the roof's south-east corner: a site's zone drops what stands in it,
@@ -875,6 +881,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_wiktoria(s)
 			"metropolsign":
 				_build_metropol_sign(s)
+			"piure_sign":
+				_build_piure_sign(s)
 			"msn":
 				_build_msn(s)
 			"tr":
@@ -4866,6 +4874,18 @@ func _build_metropol_sign(_site: Dictionary) -> void:
 	if top < 20.0:
 		return
 	_crown_signs(outline, g + top + 3.0, "METROPOLKA", Color(0.18, 1.0, 0.36), 0.0, 0.7)
+
+
+## LUŹNO in bubblegum pink on HOTEL PIURE's roof (the rooftop bar's neon), on its long fronts.
+func _build_piure_sign(_site: Dictionary) -> void:
+	var outline := _landmark("Puro Warszawa Centrum")
+	var g := _ground_under(outline)
+	var top := 0.0
+	for bld in _parts_in(outline, func(_b: Dictionary) -> bool: return true):
+		top = maxf(top, float(bld["h"]))
+	if top < 15.0:
+		return
+	_crown_signs(outline, g + top + 2.2, "LUŹNO", Color(1.0, 0.45, 0.78), 0.0, 0.45)
 
 
 func _box_poly(r: Rect2) -> PackedVector2Array:
