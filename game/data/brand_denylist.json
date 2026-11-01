@@ -39,20 +39,41 @@
     "garmin",
     "specialized",
     "rapha",
-    "pinarello"
+    "pinarello",
+    "loreta",
+    "puro",
+    "manekin",
+    "książulo",
+    "ksiazulo",
+    "muala",
+    "fat peppa",
+    "fat cheese",
+    "costa coffee",
+    "caffè nero",
+    "caffe nero",
+    "tinder",
+    "newonce",
+    "zamieszanie",
+    "zagrywki",
+    "quercus"
   ],
   "rejected": [
     "ciemna 1",
     "na fali",
     "zadyszka",
     "nocny marek",
-    "hulajka"
+    "hulajka",
+    "tinderek",
+    "loretka",
+    "manekinek"
   ],
   "allowed_in": {
     "jasna 1": "the `address` field of places.json only (the venue there is JASNA 0)",
     "warszawa powiśle": "never on screen; the railway station is called \"stacja Powiśle\" in lines",
     "lime": "never on screen in English; the Polish fruit word is \"limonka\"",
     "tier": "game code and docs only (device tiers), never in on-screen text",
-    "bolt": "game code and docs only, never in on-screen text"
+    "bolt": "game code and docs only, never in on-screen text",
+    "zamieszanie": "never on screen: it is also the ordinary word for a stir; our bar is ZAMĘT",
+    "manekin": "never on screen: it is also the ordinary word for a shop dummy; our crêpe place is KUKŁA"
   }
 }

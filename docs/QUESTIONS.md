@@ -11,11 +11,18 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | Lane | Item | Session | Since |
 | --- | --- | --- | --- |
 | landmarks | One landmark per thread (now the Cathedral and the Barbican); order in BACKLOG "Landmarks lane, hand-over" | fresh Sonnet threads | 2026-10-31 |
+| landmarks, content | Rondo de Gaulle'a, Dom Partii and the food hype (G1-G5 in BACKLOG) | cloud thread "Add de Gaulle roundabout and food-hype lore" | 2026-11-01 |
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
 
 Newest first. One entry per question.
+
+- **2026-11-01 · content · parody names for the food-hype lore** — Default built: TIMBER (dating
+  app, F's pick), Cringulo (food blogger, F's pick) with his grade MLASK (not the real catchphrase),
+  KUKŁA (crêpes), KOSZTA COFFEE, GREEN CAFFE NERWO, HOTEL PIURE with its rooftop bar LUŹNO, ROBUR on
+  Dom Partii's roof, the bars NEWTWICE, ZAMĘT and PIONEK. Say if any should change (fallback for
+  Cringulo: "Mlaskacz"). docs/design/gaulle-and-food-hype.md section 2.
 
 - **2026-11-01 · visuals · pavement colour** — R3 (docs/design/start-area-real.md) made the mapped
   footways Warsaw's grey concrete pavers. The wide pavements and squares drawn as plaza areas
