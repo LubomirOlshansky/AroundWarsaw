@@ -48,6 +48,7 @@ const S_DARK := 6
 const S_GOLD := 7
 const S_FRAME := 8
 const S_TILE := 9   # Novotel's white tiled shaft (the Rondo photos, 2026-10-31)
+const S_EASTWALL := 10  # the Eastern Wall stores: strong dark mullions every 1.5 m, a thin floor line
 
 ## The landmarks loop (2026-10-30): the skyline's towers, so each reads as itself and not as one
 ## more blue box. Each is built from its mapped building parts (the outline `osm` names; what
@@ -3804,18 +3805,23 @@ const DTC_FASCIA := 0.8      # the slab edge over the shop windows
 const DTC_BODY := 17.5       # the curtain wall's top (OSM part h 17.5)
 const DTC_CORNICE := 0.5
 const DTC_TOP := 3.0         # the top storey (OSM parts 17.5 to 20.5)
-const DTC_TOP_IN := 3.0      # and how far it stands back from the edge (photo check)
-const DTC_RECESS := 1.5      # the shop floor's set-back where no part is mapped
+const DTC_TOP_IN := 3.0      # and how far it stands back from the long sides (the Mac photo check)
+const DTC_TOP_END := 8.0     # and from the ends (6-10 m in the photos)
+const DTC_RECESS := 4.5      # the shop floor's set-back under the cantilever (photos: 4-5 m)
 ## Down Marszałkowska (south-south-east) from the stores: the game's camera looks up the street,
 ## so the stores' south ends face it.
 const DTC_SOUTH := Vector2(0.349, 0.937)
-const DTC_SHOP := Color("#bcd8cf")      # the shop windows (OSM #B2E1C7), lit warm at night
-const DTC_GLASS := Color("#6f9f93")     # the curtain wall's green glass (OSM #78B3A1)
-const DTC_ALU := Color("#d3d7d5")       # fascia, cornice
+const DTC_SHOP := Color("#6e7f84")      # the dark shop windows deep under the cantilever, lit warm at night
+const DTC_GLASS := Color("#56656e")     # the curtain wall's dark blue-grey glass (the Mac photo check)
+const DTC_ALU := Color("#c9cdcf")       # fascia, cornice, soffit: light aluminium
 const DTC_TOP_WALL := Color("#dfe1dc")  # the top storey's panels (OSM #E4E5DE)
-const DTC_ROOF := Color("#6c757a")      # (OSM #4B555F, a step paler: the frame's biggest plain area)
+const DTC_ROOF := Color("#4f5559")      # the main roof
+const DTC_TOP_ROOF := Color("#5d6468")  # the top storey's roof
 const DTC_SKY := Color("#cfd8dc")       # the roof lights, lit at night
 const DTC_SIGN := Color(1.0, 0.86, 0.55)
+## The printed ad banners (A4): a word (generic or a parody) and the poster's colour.
+const DTC_BANNERS := [["PROMOCJA", Color("#c8322e")], ["SAMSONG", Color("#1f3f8f")], ["LODY", Color("#e0a21c")],
+		["WYPRZEDAZ", Color("#2c8a57")], ["SAMSONG", Color("#252a33")], ["PROMOCJA", Color("#8a2b7a")]]
 func _find_dtc() -> void:
 	var zone: Array[PackedVector2Array] = []
 	for d: Dictionary in DTC:
@@ -3829,55 +3835,196 @@ func _find_dtc() -> void:
 
 func _build_dtc(_site: Dictionary) -> void:
 	var none := Color(0, 0, 0, 0)
-	var skin := M_SKIN + float(S_BANDS) / 16.0
+	var skin := M_SKIN + float(S_EASTWALL) / 16.0
+	var banner_i := 0
 	for d: Dictionary in DTC:
 		var outline := _landmark(d["osm"])
 		if outline.size() < 3:
 			continue
 		_g = _ground_under(outline)
 		var g := _g
-		# shop: the glazed ground floor, its mapped outline (the piers are its jogs) or the box
-		# drawn in.
-		var shop := PackedVector2Array()
+		# shop: the dark glazed ground floor, its mapped outline (the piers are its jogs) kept at
+		# least DTC_RECESS in from the edge (the photo check: 4-5 m under the cantilever).
+		var mapped := PackedVector2Array()
 		for part in _parts_in(outline, func(b: Dictionary) -> bool: return float(b["mh"]) < 0.5 and float(b["h"]) < DTC_BASE + 1.0):
 			var q := _pts(part["p"])
-			if _area(q) > _area(shop):
-				shop = q
-		if _area(shop) < _area(outline) * 0.5:
-			var drawn := Geometry2D.offset_polygon(outline, -DTC_RECESS, Geometry2D.JOIN_MITER)
-			shop = drawn[0] if not drawn.is_empty() else outline
+			if _area(q) > _area(mapped):
+				mapped = q
+		var drawn := Geometry2D.offset_polygon(outline, -DTC_RECESS, Geometry2D.JOIN_MITER)
+		var shop: PackedVector2Array = drawn[0] if not drawn.is_empty() else outline
+		if _area(mapped) > _area(outline) * 0.5:
+			var both := _largest(Geometry2D.intersect_polygons(mapped, shop))
+			if _area(both) > _area(shop) * 0.6:
+				shop = both
 		_prism(shop, g - 0.4, g + DTC_BASE, DTC_SHOP, none, M_PAVILION)
-		# body: the fascia over the shops, the green curtain wall, the cornice and the roof.
+		# body: the fascia over the shops, the curtain wall, the cornice and the roof.
 		_prism(outline, g + DTC_BASE, g + DTC_BASE + DTC_FASCIA, DTC_ALU, none, M_STONE)
 		_prism(outline, g + DTC_BASE + DTC_FASCIA, g + DTC_BODY - DTC_CORNICE, DTC_GLASS, none, skin)
 		_prism(outline, g + DTC_BODY - DTC_CORNICE, g + DTC_BODY, DTC_ALU, DTC_ROOF, M_STONE, M_STONE)
-		# soffit: the cantilever's underside round the shop floor (seen from the pavement).
+		# soffit: the cantilever's light aluminium underside round the shop floor.
 		_mode = M_STONE
-		_soffit(outline, g + DTC_BASE, DTC_ALU.darkened(0.25))
-		# top: the set-back top storey.
-		var top := Geometry2D.offset_polygon(outline, -DTC_TOP_IN, Geometry2D.JOIN_MITER)
-		if not top.is_empty():
-			_prism(top[0], g + DTC_BODY, g + DTC_BODY + DTC_TOP, DTC_TOP_WALL, DTC_ROOF.lightened(0.06),
-					M_SKIN + float(S_DARK) / 16.0, M_STONE)
-			# roof: a row of skylights down the middle of the top storey's roof (lit at night), and
-			# air-handling units between them, along the store.
-			var c := _centre(top[0])
+		_soffit(outline, g + DTC_BASE, DTC_ALU.darkened(0.06))
+		_dtc_banners(outline, g, banner_i)
+		banner_i += 1
+		# top: the set-back top storey, 3 m in on the long sides and DTC_TOP_END at the ends.
+		var top := _dtc_top(outline)
+		if top.size() >= 3:
 			var y := g + DTC_BODY + DTC_TOP
-			var reach := _box_of([top[0]]).size.length() * 0.5
-			var across := Vector2(-DTC_SOUTH.y, DTC_SOUTH.x)
-			for n in range(-8, 9):
-				var p := c + DTC_SOUTH * (n * 7.0)
-				if absf(n * 7.0) > reach or not Geometry2D.is_point_in_polygon(p, top[0]):
-					continue
-				if n % 3 == 0:
-					_prism(_square(p + across * 4.0, 1.4), y, y + 1.4, Color("#a3aaac"), Color("#8d9497"), M_STONE, M_STONE)
-					continue
-				var sky := PackedVector2Array([p - DTC_SOUTH * 2.6 - across * 1.4, p + DTC_SOUTH * 2.6 - across * 1.4,
-						p + DTC_SOUTH * 2.6 + across * 1.4, p - DTC_SOUTH * 2.6 + across * 1.4])
-				_prism(sky, y, y + 0.45, DTC_ALU, DTC_SKY, M_STONE, M_GLASS_ROOF)
+			_prism(top, g + DTC_BODY, y, DTC_TOP_WALL, DTC_TOP_ROOF, M_SKIN + float(S_DARK) / 16.0, M_STONE)
+			_dtc_roof(top, y, d["osm"] == "Junior")
 		_dtc_sign(outline, str(d["sign"]), g + DTC_BODY)
 		_collide(shop)
 	_mode = M_STONE
+
+
+## The top storey's plan: the outline drawn in 3 m, then cut back to DTC_TOP_END from each end
+## (along the street).
+func _dtc_top(outline: PackedVector2Array) -> PackedVector2Array:
+	var inset := Geometry2D.offset_polygon(outline, -DTC_TOP_IN, Geometry2D.JOIN_MITER)
+	if inset.is_empty():
+		return PackedVector2Array()
+	var lo := INF
+	var hi := -INF
+	var c := _centre(outline)
+	for q in outline:
+		var s := (q - c).dot(DTC_SOUTH)
+		lo = minf(lo, s)
+		hi = maxf(hi, s)
+	var across := Vector2(-DTC_SOUTH.y, DTC_SOUTH.x)
+	var a := lo + DTC_TOP_END
+	var b := hi - DTC_TOP_END
+	var band := PackedVector2Array([c + DTC_SOUTH * a - across * 60.0, c + DTC_SOUTH * b - across * 60.0,
+			c + DTC_SOUTH * b + across * 60.0, c + DTC_SOUTH * a + across * 60.0])
+	return _largest(Geometry2D.intersect_polygons(inset[0], band))
+
+
+## The top storey's roof (the photo check): small square skylights in pairs and 2 x 2
+## clusters every 12 m down the middle, a few curved half-cylinder vents, and fewer, larger
+## plant boxes at the north end. Junior's roof is stepped: a lighter raised strip over its east
+## half, a light-blue glazed skylight block and more plant.
+func _dtc_roof(top: PackedVector2Array, y: float, junior: bool) -> void:
+	var c := _centre(top)
+	var across := Vector2(-DTC_SOUTH.y, DTC_SOUTH.x)
+	var lo := INF
+	var hi := -INF
+	for q in top:
+		var s := (q - c).dot(DTC_SOUTH)
+		lo = minf(lo, s)
+		hi = maxf(hi, s)
+	var mid_off := 0.0
+	if junior:
+		# The raised strip over the east half (the side away from the street).
+		var strip := _largest(Geometry2D.intersect_polygons(top, PackedVector2Array([
+				c + DTC_SOUTH * (lo - 1.0) + across * 0.5, c + DTC_SOUTH * (hi + 1.0) + across * 0.5,
+				c + DTC_SOUTH * (hi + 1.0) - across * 40.0, c + DTC_SOUTH * (lo - 1.0) - across * 40.0])))
+		if strip.size() >= 3:
+			_prism(strip, y, y + 1.2, DTC_TOP_WALL.darkened(0.08), Color("#848b8f"), M_STONE, M_STONE)
+		mid_off = 4.0   # the skylights move onto the lower west half
+		# The glazed skylight block, on the strip near the south end.
+		var gb := c + DTC_SOUTH * (hi - 14.0) - across * 4.5
+		var block := PackedVector2Array([gb - DTC_SOUTH * 5.0 - across * 2.6, gb + DTC_SOUTH * 5.0 - across * 2.6,
+				gb + DTC_SOUTH * 5.0 + across * 2.6, gb - DTC_SOUTH * 5.0 + across * 2.6])
+		_prism(block, y + 1.2, y + 2.6, Color("#a9c6d6"), Color("#b4d2e0"), M_PAVILION + 0.5, M_GLASS_ROOF)
+	var line := c + across * mid_off
+	var n := 0
+	var s := lo + 6.0
+	while s < hi - 5.0:
+		var p := line + DTC_SOUTH * s
+		if n % 4 == 2:
+			# A curved vent, its axis along the store.
+			_dtc_vent(p, y)
+		else:
+			var cluster := n % 2 == 0
+			for i in (4 if cluster else 2):
+				var off := Vector2(-1.5 if i % 2 == 0 else 1.5, -1.5 if i < 2 else 1.5)
+				if not cluster:
+					off.y = 0.0
+				var q := p + across * off.x + DTC_SOUTH * off.y
+				_prism(_rot_square(q, 1.1), y, y + 0.45, DTC_ALU, DTC_SKY, M_STONE, M_GLASS_ROOF)
+		s += 12.0
+		n += 1
+	# The plant: a few large boxes at the north end (more on Junior).
+	var boxes := 3 if junior else 2
+	for i in boxes:
+		var q := line + DTC_SOUTH * (lo + 3.5) + across * (-4.0 + i * 4.0) + (DTC_SOUTH * 6.0 if i == 2 else Vector2.ZERO)
+		if Geometry2D.is_point_in_polygon(q, top):
+			_prism(_rot_square(q, 1.7), y, y + 1.9, Color("#a3aaac"), Color("#8d9497"), M_STONE, M_STONE)
+
+
+## A square of half side h with its sides along and across the stores.
+func _rot_square(c: Vector2, h: float) -> PackedVector2Array:
+	var a := Vector2(-DTC_SOUTH.y, DTC_SOUTH.x)
+	return PackedVector2Array([c - DTC_SOUTH * h - a * h, c + DTC_SOUTH * h - a * h, c + DTC_SOUTH * h + a * h, c - DTC_SOUTH * h + a * h])
+
+
+## A curved half-cylinder vent on the roof, 2 m across and 4 m long along the store.
+func _dtc_vent(p: Vector2, y: float) -> void:
+	var a := Vector2(-DTC_SOUTH.y, DTC_SOUTH.x)
+	var seg := 6
+	var col := Color("#b4babd")
+	_mode = M_STONE
+	var e0 := p - DTC_SOUTH * 2.0
+	var e1 := p + DTC_SOUTH * 2.0
+	for k in seg:
+		var t0 := PI * k / seg
+		var t1 := PI * (k + 1) / seg
+		var o0 := a * cos(t0)
+		var o1 := a * cos(t1)
+		var h0 := sin(t0)
+		var h1 := sin(t1)
+		var nm := (t0 + t1) * 0.5
+		var n := Vector3(a.x * cos(nm), sin(nm), a.y * cos(nm))
+		_quad(Vector3((e0 + o0).x, y + h0, (e0 + o0).y), Vector3((e1 + o0).x, y + h0, (e1 + o0).y),
+				Vector3((e1 + o1).x, y + h1, (e1 + o1).y), Vector3((e0 + o1).x, y + h1, (e0 + o1).y), n, col)
+		for e: Vector2 in [e0, e1]:
+			var out := -DTC_SOUTH if e == e0 else DTC_SOUTH
+			var nn := Vector2(-1, -1)
+			_tri(Vector3(e.x, y, e.y), Vector3((e + o0).x, y + h0, (e + o0).y), Vector3((e + o1).x, y + h1, (e + o1).y),
+					Vector3(out.x, 0, out.y), col.darkened(0.1), nn, nn, nn, -1.0)
+
+
+## The photo check's printed ad banners: big parody posters the curtain wall's full height,
+## 0.2 m proud of the glass, on the faces the game's camera sees (the south end and the east
+## face), each with its word in white.
+func _dtc_banners(outline: PackedVector2Array, g: float, store: int) -> void:
+	var y0 := g + DTC_BASE + DTC_FASCIA + 0.4
+	var y1 := g + DTC_BODY - DTC_CORNICE - 0.4
+	var east := Vector2(DTC_SOUTH.y, -DTC_SOUTH.x)
+	var placed := 0
+	for want: Vector2 in [DTC_SOUTH, east]:
+		var best := -1
+		var best_len := 0.0
+		for i in outline.size():
+			var a := outline[i]
+			var b := outline[(i + 1) % outline.size()]
+			if _out(outline, a, b).dot(want) > 0.9 and a.distance_to(b) > best_len:
+				best_len = a.distance_to(b)
+				best = i
+		if best < 0 or best_len < 12.0:
+			continue
+		var a := outline[best]
+		var b := outline[(best + 1) % outline.size()]
+		var o := _out(outline, a, b)
+		var dir := (b - a).normalized()
+		var spots: Array = [0.5] if want == DTC_SOUTH else [0.3, 0.68]
+		for f: float in spots:
+			var spec: Array = DTC_BANNERS[(store * 3 + placed) % DTC_BANNERS.size()]
+			placed += 1
+			var w := minf(10.0, best_len * (0.7 if spots.size() == 1 else 0.34))
+			var m := a.lerp(b, f)
+			var p0 := m - dir * w * 0.5
+			var p1 := m + dir * w * 0.5
+			var q0 := p0 + o * 0.2
+			var q1 := p1 + o * 0.2
+			var n := Vector3(o.x, 0, o.y)
+			var col: Color = spec[1]
+			_mode = M_STONE
+			_quad(Vector3(q0.x, y0, q0.y), Vector3(q1.x, y0, q1.y), Vector3(q1.x, y1, q1.y), Vector3(q0.x, y1, q0.y), n, col)
+			_quad(Vector3(q0.x, y1, q0.y), Vector3(q1.x, y1, q1.y), Vector3(p1.x, y1, p1.y), Vector3(p0.x, y1, p0.y), Vector3.UP, col.darkened(0.2))
+			var word: String = spec[0]
+			var k := minf(0.8 * w / Neon.length_of(word), 1.6 / (Neon.ROW_H * Neon.PIXEL))
+			var at := m + o * 0.25
+			signs.append([word, Vector3(at.x, (y0 + y1) * 0.5 - 1.0, at.y), Vector3(o.x, 0.0, o.y), k, Color(1, 1, 1)])
 
 
 ## The store's name on the roof over its south end (the face the game's camera sees from the

@@ -30,7 +30,7 @@ const BUDGET := {
 	"centralna": 1650,
 	"chalubinskiego8": 1520,
 	"cosmopolitan": 110,
-	"dtc": 1500,
+	"dtc": 1730,
 	"europejski": 480,
 	"flaga": 170,
 	"forest": 130,
