@@ -81,7 +81,9 @@ const DOGS_MAX := 16
 const DOG_BASE := 5
 const DOG_ZONE := 2.0
 const ZONE_R := 450.0
-const DOG_HOURS := [[6.5, 9.0], [19.0, 22.5]]
+## F's ask (2026-11-01, docs/design/packs.md): a lunchtime walk too (12:30-14:30), so the Day
+## look's afternoon has its walkers.
+const DOG_HOURS := [[6.5, 9.0], [12.5, 14.5], [19.0, 22.5]]
 const TREE_NEAR := 3.5
 const TREE_WAIT := Vector2(3.0, 6.0)
 const HORN_R := 15.0
@@ -93,6 +95,17 @@ const LEAD := 1.6
 const DOG_SCALE := 1.35
 const BARKS := ["bark_small", "bark_mid", "bark_big"]
 const COATS := ["#7a4a2a", "#c9a46b", "#2b2622", "#e8e2d4", "#a0522d", "#d9c7a0", "#5b4636", "#f2efe8"]
+## F's ask (2026-11-01, docs/design/packs.md): a share of the walkers are big guys (broader and
+## taller, in a dark tracksuit) with a tiny dog (the fluffy shape at TINY_DOG of the walkers' dogs,
+## pale coats); a slow car near one gets his `tiny` line, at most once per TINY_GAP s.
+const BIG_SHARE := 0.35
+const BIG_SCALE := Vector3(1.32, 1.1, 1.25)
+const TINY_DOG := 0.42
+const BIG_SHIRTS := ["#1c2230", "#2b2c2f", "#25272d", "#3a3b3f", "#1f2a44"]
+const TINY_COATS := ["#f7f5ef", "#efe6cf", "#e8d3c0", "#f4e4ea"]
+const TINY_NEAR := 12.0
+const TINY_KMH := 15.0
+const TINY_GAP := 40.0
 ## The family's shapes: three dogs, the cordon's barrier.
 enum { LONG, SQUAT, FLUFFY, BARRIER }
 
@@ -259,6 +272,8 @@ class Mover:
 	var coat := Color.WHITE
 	var shirt := Color.WHITE
 	var tr := 0.0
+	## F's ask: a big guy with a tiny dog (dog_scales).
+	var big := false
 	var stops := PackedFloat32Array()
 	var bark_t := 0.0
 	## The path's points, running lengths and heights (`cached` false: read again), and the
@@ -351,6 +366,8 @@ var levels := {}
 ## Counters (the logs, the check).
 var barks := 0
 var horn_lines := 0
+## F's ask: the big guys' `tiny` lines said.
+var tiny_lines := 0
 var bells := 0
 var zajac_cheers := 0
 var zajac_paid := 0
@@ -471,6 +488,8 @@ var _g_pos := PackedVector3Array()
 var _g_yaw := PackedFloat32Array()
 var _g_shirt := PackedColorArray()
 var _g_tr := PackedFloat32Array()
+var _g_sc := PackedVector3Array()
+var _tiny_t := -TINY_GAP
 var _g_n := 0
 ## The docks in view (a bit each) whose parked bikes sit at the bike buffer's start; -1 unset.
 var _dock_key := -1
@@ -531,6 +550,14 @@ static func in_hours(windows: Array, hour: float) -> bool:
 
 ## How many dog walkers by the view at `hour` (zone: the view in Powiśle or round Plac
 ## Zbawiciela), `k` the amount.
+## A dog walker's figure and dog scales, [walker, dog]: a big guy's broad frame and tiny dog, or
+## the plain walker and the walkers' dog size.
+static func dog_scales(big: bool) -> Array:
+	if big:
+		return [BIG_SCALE, Vector3.ONE * DOG_SCALE * TINY_DOG]
+	return [Vector3.ONE, Vector3.ONE * DOG_SCALE]
+
+
 static func dog_count(hour: float, zone: bool, k := 1.0) -> int:
 	if not in_hours(DOG_HOURS, hour):
 		return 0
@@ -1643,6 +1670,8 @@ func tick(step: float) -> void:
 		_hyrax_talk(step)
 	if infl and vp != Vector3.INF:
 		_infl_tick(p2, float(veh[1]), bool(veh[2]), step)
+	if vp != Vector3.INF and not bool(veh[2]):
+		_tiny_tick(p2, float(veh[1]))
 	if aport:
 		_aport_tick(veh)
 	if dogs_log or life_log or soak or pedzik_log:
@@ -1868,6 +1897,11 @@ func _spawn(kind: String, eye: Vector2) -> Mover:
 			m.bark_t = -BARK_GAP
 			m.d2 = pts[0]
 			m.d3 = m.p3
+			if _rng.randf() < BIG_SHARE:
+				m.big = true
+				m.shape = FLUFFY
+				m.coat = Color(TINY_COATS[_rng.randi() % TINY_COATS.size()])
+				m.shirt = Color(BIG_SHIRTS[_rng.randi() % BIG_SHIRTS.size()])
 		"rider":
 			m.v = _rng.randf_range(4.0, 6.0)
 			m.off = _rng.randf_range(-0.3, 0.3)
@@ -2248,9 +2282,9 @@ func _step_dogs(dt: float, eye: Vector2, car2: Vector2, ahead: Vector2, full: bo
 		if near:
 			_clear_mover(m, DOG_K, car2, ahead)
 		if not full:
-			put(_dog_buf, idx, m.d3, m.yaw, dsc, m.coat, m.shape)
+			put(_dog_buf, idx, m.d3, m.yaw, dsc * TINY_DOG if m.big else dsc, m.coat, m.shape)
 			_dbox = _dbox.expand(m.d3)
-			put(_gbuf, idx, m.p3, m.yaw, Vector3.ONE, m.shirt, m.tr)
+			put(_gbuf, idx, m.p3, m.yaw, BIG_SCALE if m.big else Vector3.ONE, m.shirt, m.tr)
 			moved = true
 	if moved:
 		_dogs_moved = true
@@ -2515,7 +2549,7 @@ func _write_all(eye: Vector2, car2: Vector2) -> void:
 	_ball_slot = -1
 	var dsc := Vector3.ONE * DOG_SCALE
 	for d in _dogs:
-		_add_dog(d.d3, d.yaw, dsc, d.coat, d.shape)
+		_add_dog(d.d3, d.yaw, dsc * TINY_DOG if d.big else dsc, d.coat, d.shape)
 	if hyrax:
 		for i in (_hyrax["barriers"] as Array).size():
 			var b: Array = _hyrax["barriers"][i]
@@ -2641,17 +2675,19 @@ func _add_dog(at: Vector3, yaw: float, sc: Vector3, paint: Color, shape: int) ->
 
 
 ## One guest figure into the step's packed lists.
-func _fig(at: Vector3, yaw: float, shirt: Color, tr: float) -> void:
+func _fig(at: Vector3, yaw: float, shirt: Color, tr: float, sc := Vector3.ONE) -> void:
 	if _g_n >= _g_pos.size():
 		var cap := _g_pos.size() + 32
 		_g_pos.resize(cap)
 		_g_yaw.resize(cap)
 		_g_shirt.resize(cap)
 		_g_tr.resize(cap)
+		_g_sc.resize(cap)
 	_g_pos[_g_n] = at
 	_g_yaw[_g_n] = yaw
 	_g_shirt[_g_n] = shirt
 	_g_tr[_g_n] = tr
+	_g_sc[_g_n] = sc
 	_g_n += 1
 
 
@@ -2670,7 +2706,7 @@ func _write_guests(eye: Vector2, car2: Vector2, hyrax: bool, infl: bool, aport: 
 		_arm_slot = _g_n
 		_fig(pose[0], pose[1], ARM_SHIRT, 0.3)
 	for d in _dogs:
-		_fig(d.p3, d.yaw, d.shirt, d.tr)
+		_fig(d.p3, d.yaw, d.shirt, d.tr, BIG_SCALE if d.big else Vector3.ONE)
 	for r in _runners:
 		_fig(r.p3, r.yaw, r.shirt, r.tr)
 	if kolka_phase(_hour, _weekday) != "" and not _kolka.is_empty():
@@ -2721,10 +2757,10 @@ func _write_guests(eye: Vector2, car2: Vector2, hyrax: bool, infl: bool, aport: 
 		order.sort_custom(func(a: int, b: int) -> bool: return dist[a] < dist[b])
 		for i in n:
 			var o := order[i]
-			put(_gbuf, i, _g_pos[o], _g_yaw[o], Vector3.ONE, _g_shirt[o], _g_tr[o])
+			put(_gbuf, i, _g_pos[o], _g_yaw[o], _g_sc[o], _g_shirt[o], _g_tr[o])
 	else:
 		for i in n:
-			put(_gbuf, i, _g_pos[i], _g_yaw[i], Vector3.ONE, _g_shirt[i], _g_tr[i])
+			put(_gbuf, i, _g_pos[i], _g_yaw[i], _g_sc[i], _g_shirt[i], _g_tr[i])
 	for i in range(n, _guests_used):
 		for k in 12:
 			_gbuf[i * 16 + k] = 0.0
@@ -3003,6 +3039,24 @@ func horn(at: Vector3) -> void:
 				dialogue.say(func() -> Vector3: return (m["p3"] as Vector3) + Vector3(0, 2.0, 0), "", "dog_walkers", "horn", 4.0, BUBBLE, 2.2, true)
 			if dogs_log:
 				print("dogs: the walker's horn line")
+
+
+## F's ask: a big guy with a tiny dog says his `tiny` line to a slow car within TINY_NEAR, at most
+## once per TINY_GAP s.
+func _tiny_tick(p: Vector2, kmh: float) -> void:
+	if kmh >= TINY_KMH or t - _tiny_t < TINY_GAP:
+		return
+	for d in _dogs:
+		if not d.big or d.p2.distance_to(p) > TINY_NEAR:
+			continue
+		_tiny_t = t
+		tiny_lines += 1
+		var m := d
+		if dialogue != null:
+			dialogue.say(func() -> Vector3: return m.p3 + Vector3(0, 2.3, 0), "", "dog_walkers", "tiny", 4.0, BUBBLE, 2.2, true)
+		if dogs_log:
+			print("dogs: a big guy's tiny-dog line")
+		return
 
 
 ## The influencer dog: its photographers' shutter now and then, the walker's line to a slow car.

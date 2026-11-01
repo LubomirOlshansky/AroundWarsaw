@@ -67,6 +67,10 @@
 # 09-19, Live Jun-Sep) and one run an hour, the follow count and its reset, the look's draw-call
 # budget (2 car meshes, no node added), a run on the real tracks finding E39 once; centrum.json only
 # (CI too).
+# Packs (docs/design/packs.md): `packs` runs game/tools/check_packs.gd: the clubs' and raves' hours on
+# synthetic clocks, the formation, the out-and-back loops on a grid and on the real footways and
+# cycle paths, the meshes' budgets, the lines (no real brand), a node drawing the packs only near
+# the view and its cost, the big guys with tiny dogs; centrum.json only (CI too).
 # The garage loop: `garage` runs game/tools/check_garage.gd: Warsztat u Mirka's paints and rules,
 # buying and switching (10 seeded walks), the save, the car's paint, Mirek's lines, E01 and E21
 # once; no map at all (CI too).
@@ -134,8 +138,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails streetmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh spec drape drive steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails streetmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh spec drape drive steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -672,6 +676,8 @@ for s in $want; do
 		life) check life '^check_city_life:' --script res://tools/check_city_life.gd ;;
 		buses) check buses '^check_buses:' --script res://tools/check_buses.gd ;;
 		oldtram) check oldtram '^check_old_tram:' --script res://tools/check_old_tram.gd ;;
+		# Packs: running clubs, cycling packs, coffee raves, the big guys with tiny dogs.
+		packs) check packs '^check_packs:' --script res://tools/check_packs.gd ;;
 		garage) check garage '^check_garage:' --script res://tools/check_garage.gd ;;
 		save) check save '^check_save:' --script res://tools/check_save.gd ;;
 		districts) check districts '^check_districts:' --script res://tools/check_districts.gd ;;

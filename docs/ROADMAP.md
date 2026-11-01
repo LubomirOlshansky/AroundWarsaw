@@ -77,6 +77,8 @@ then the Launch gate.
 - [x] Accessibility options (2026-11-01, Settings → DOSTĘP, `access.gd`): larger HUD text, calm
       (no flashing or shaking), colour-safe markers, vibration on/off, stop assist on/off.
       Left to do: left-handed layout, live text size, subtitles (BACKLOG)
+- [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
+      at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
 
