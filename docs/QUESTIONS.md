@@ -18,6 +18,12 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · landmarks · the Palace's stone colour** — The Mac photo check (PR #128) finds the
+  Palace's stone too warm: the photos show a cooler grey-beige (about #cfc6b5 in sun) than the
+  game's sandstone #d8c49c (SANDSTONE in landmarks.gd, also the LoD2 bake's colour). Default
+  built: the warm sandstone kept (it carries the golden-hour landing shot and the Dusk floodlight).
+  Alternative: move SANDSTONE towards #cfc6b5 and re-shoot the landing.
+
 - **2026-11-01 · landmarks · Copernicus Science Centre** — Built from OpenStreetMap and LoD2
   alone (the photos in `refs/` are on the Mac): the block is LoD2's 13 m (OSM says 7.6), its
   panels dark grey-brown with windows scattered like pixels, the river corner hangs 5 m over a

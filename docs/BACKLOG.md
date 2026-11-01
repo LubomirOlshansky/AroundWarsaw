@@ -307,7 +307,7 @@ golden-image shots runtime vs `--prebuilt`,
   that tower, not what shows through the cut.~~ Done in sweep 2: the walk steps on through what
   the ghost has made see-through (main.gd `_pick_unghosted`; behind the Palace, a tap on the
   street seen through its cut tower picked the Palace, now nothing).
-- The Palace's roof rescue now lands on a 28 m annex roof: every tier is crowned by attics and
+- The Palace's roof rescue now lands on the 30 m north block's roof (since the 2026-11-01 re-pass built it whole): every tier is crowned by attics and
   pinnacles, so no 3 x 3 cells are flat up the tower. A rescue from the 30th-floor terrace would
   need a landing spot designed in.
 - The baked ground AO and the lamp light map still use the LoD2 footprints: Centralna's canopy
