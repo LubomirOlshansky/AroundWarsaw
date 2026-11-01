@@ -68,6 +68,7 @@ const Dialogue := preload("res://scripts/dialogue.gd")
 const Jobs := preload("res://scripts/jobs.gd")
 ## Loop 2d-1: Podwózka, the app-taxi side job.
 const Rides := preload("res://scripts/rides.gd")
+const Lines := preload("res://scripts/quest_lines.gd")
 const Eggs := preload("res://scripts/eggs.gd")
 ## Loop MW-1: MOJA WARSZAWA, the city notebook.
 const Notebook := preload("res://scripts/notebook.gd")
@@ -614,6 +615,9 @@ var drags: Array[PackedInt32Array] = []
 ## The helicopter's stick or keys are held (the follow camera waits, like Point).
 var _heli_held := false
 var _heli_release := 99.0
+## The held stick's screen direction and the camera's yaw when it was set (as drive_controls.gd's).
+var _heli_set_aim := Vector2.ZERO
+var _heli_set_yaw := 0.0
 var _perf_wait := 0.0
 var _clock_minute := -1
 ## --sound-check: play every sound once and print the bus meters (sfx.gd).
@@ -1071,6 +1075,7 @@ func _build_world() -> void:
 	world.add_child(_xray)
 	_xray.setup(car)
 	car.stuck.connect(_on_car_stuck)
+	car.jammed.connect(_on_car_stuck)  # G17: 8 s among traffic cars
 	car.water_at = map.in_water
 	car.kerb_feel = map.kerb_feel  # loop 3b-2: kerbs, islands and medians the car feels
 	car.splashed.connect(_on_car_splashed)
@@ -1165,12 +1170,14 @@ func _build_world() -> void:
 	_set_flying(false)
 
 	missions = Missions.new()
+	missions.line_split = start_mission == 0  # G12: calls follow the vehicle (quest_lines.gd)
 	add_child(missions)
 	missions.setup(map, data, world, hud)
 	missions.player = car.global_position
 	# Speech bubbles (anyone can talk) and everybody's lines.
 	bubbles = Bubbles.new()
 	bubbles.pt = hud.pt
+	bubbles.kmh = func() -> float: return absf(car.forward_speed) * 3.6
 	bubbles.project = func(p: Vector3) -> Vector2: return cam.unproject_position(p) * float(view.stretch_shrink)
 	hud.add_child(bubbles)
 	hud.move_child(bubbles, 1)
@@ -4711,7 +4718,7 @@ func _process(dt: float) -> void:
 		if sz != "" and hud != null and now - _scooter_toast_at >= ScooterZones.COOLDOWN:
 			_scooter_toast_at = now
 			var tw: Array = ScooterZones.toast_for(sz)
-			hud.toast(str(tw[0]), str(tw[1]))
+			hud.ambient_toast(str(tw[0]), str(tw[1]))
 			print("zone: scooter %s (12 km/h for scooters)" % sz)
 	_feed_life(pos)
 	if police != null:
@@ -5243,7 +5250,7 @@ func _show_target() -> void:
 		_new_target("race", f)
 		return
 	# Loop MW-4: the "Na czasie" job's queue, then its door.
-	if trend_job != null and trend_job.has_target():
+	if trend_job != null and trend_job.has_target() and Lines.shows(Lines.Line.CAR, flying):
 		var tp: Vector3 = trend_job.target_position()
 		var at_t := _vehicle_position()
 		var mt := roundi(Vector2(tp.x - at_t.x, tp.z - at_t.z).length())
@@ -5253,7 +5260,7 @@ func _show_target() -> void:
 		_new_target("job", tp)
 		return
 	# Loop 2d-1: a Podwózka ride's pin, passenger or door.
-	if rides != null and rides.has_target():
+	if rides != null and rides.has_target() and Lines.shows(Lines.Line.CAR, flying):
 		var rp: Vector3 = rides.target_position()
 		var at_r := _vehicle_position()
 		var mr := roundi(Vector2(rp.x - at_r.x, rp.z - at_r.z).length())
@@ -5262,7 +5269,7 @@ func _show_target() -> void:
 		_put_target(Vector2(rp.x, rp.z), rides.target_colour(), _guide_on())
 		_new_target("job", rp)
 		return
-	if jobs != null and jobs.has_target():
+	if jobs != null and jobs.has_target() and Lines.shows(Lines.Line.CAR, flying):
 		var j: Vector3 = jobs.target_position()
 		var at_j := _vehicle_position()
 		var mj := roundi(Vector2(j.x - at_j.x, j.z - at_j.z).length())
@@ -5440,15 +5447,24 @@ func _read_heli_input(left: bool, right: bool, up: bool, down: bool, dt: float) 
 	if not hud.stick_active() and pad_stick != Vector2.ZERO:
 		stick = pad_stick
 	var aim := Vector2(float(right) - float(left), float(down) - float(up))
-	# Loop 2a: while the stick or a key is held the follow camera waits (as in Point), so a
-	# held direction doesn't turn with the view.
-	_heli_held = hud.stick_active() or pad_stick != Vector2.ZERO or aim != Vector2.ZERO
+		_heli_held = hud.stick_active() or pad_stick != Vector2.ZERO or aim != Vector2.ZERO
 	_heli_release = 0.0 if _heli_held else _heli_release + dt
 	if stick.length() > 0.2:
 		aim = stick.normalized() * clampf((stick.length() - 0.2) / 0.8, 0.0, 1.0)
 	elif aim != Vector2.ZERO:
 		aim = aim.normalized()
-	heli.input_dir = _screen_to_world(aim)
+	# The camera follows the helicopter while the stick is held (as the car's Point does), so a
+	# held direction keeps the world direction it meant when it was set; pointing REAIM° or more
+	# away means the screen as it is now.
+	var yaw := cam_yaw
+	if aim == Vector2.ZERO:
+		_heli_set_aim = Vector2.ZERO
+	else:
+		if _heli_set_aim == Vector2.ZERO or absf(rad_to_deg(aim.angle_to(_heli_set_aim))) >= Controls.REAIM:
+			_heli_set_aim = aim
+			_heli_set_yaw = cam_yaw
+		yaw = _heli_set_yaw
+	heli.input_dir = Controls.screen_to_world(aim, yaw) if aim != Vector2.ZERO else Vector3.ZERO
 	var climb := float(Input.is_physical_key_pressed(KEY_SPACE)) \
 			- float(Input.is_physical_key_pressed(KEY_SHIFT) or Input.is_physical_key_pressed(KEY_F))
 	heli.climb = clampf(climb + hud.climb + Gamepad.climb(), -1.0, 1.0)  # the pad: RT up, LT down
@@ -5664,7 +5680,7 @@ func _pick_unghosted(origin: Vector3, dir: Vector3) -> int:
 		dv.x *= 0.78
 		if dv.y > 0.0:
 			dv.y /= float(_shader_value(building_mat, "occlusion_up", 1.35))
-		region = 1.0 - smoothstep(0.65, 0.9, dv.length())
+		region = 1.0 - smoothstep(0.74, 0.84, dv.length())
 	if region < GHOST_PICK or dir.y > -0.01:
 		return map.pick_landmark(origin, dir)
 	var occ: Vector4 = _shader_value(building_mat, "occluder", Vector4(0, 0, 0, -1))
@@ -5675,7 +5691,7 @@ func _pick_unghosted(origin: Vector3, dir: Vector3) -> int:
 		var top: float = map.roof_height(q.x, q.z)
 		if top != MapBuilder.NO_ROOF and q.y <= top:
 			var side := (Vector2(q.x, q.z) - Vector2(occ.x, occ.y)).dot(Vector2(occ.z, occ.w))
-			if region * smoothstep(1.0, 4.0, -side) < GHOST_PICK:
+			if region * smoothstep(1.0, 2.0, -side) < GHOST_PICK:
 				return map.landmark_at(q.x, q.z)
 		if q.y < map.terrain_height(q.x, q.z) - 0.5:
 			return -1
@@ -5864,8 +5880,8 @@ func _update_camera(dt: float) -> void:
 		# (drive_controls.gd FOLLOW_HELD keeps a held direction from turning with it).
 		var heading := rad_to_deg(vehicle.rotation.y)
 		if flying:
-			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, true, _heli_held, _heli_release,
-					FollowCamera.FULL_SPEED_HELI, dt)
+			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, false, _heli_held, _heli_release,
+					FollowCamera.FULL_SPEED_HELI, dt, FollowCamera.RETURN_GAIN)
 		else:
 			var classic := controls.scheme == Controls.CLASSIC
 			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, controls.camera_waits(), controls.held,

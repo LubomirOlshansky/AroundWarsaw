@@ -34,17 +34,28 @@ hidden in cinematic moments and photo mode; they call `_zoom_view`. Accept: five
 the five steps and save; no overlap with the pill, wallet or minimap at 2532x1170 and 2868x1320
 (shots). Files: hud.gd (new signals), main.gd.
 
-**G5 · Flicker and "lag wall" audit (P1, Opus).** Screenshots: (a) dithered fade patches on
-building walls beside the car (the occlusion fade; reads as flicker at the road edge, IMG 7138,
-7137, 7135), (b) wall-like blocks at the metro mouths (the vaulted M1/M2 canopies and stairwells),
-(c) stair walls and low retaining walls by the road (7136), (d) road-edge geometry that pops.
-Task: list every prop and wall kind that is solid and decide per kind: stays solid (buildings,
-high kerbs, bollards), becomes non-colliding (metro canopies and stairs beside the road,
-planters, signs, low walls under 0.4 m, fences) or is removed; tune the fade dither so it doesn't
-strobe at the road edge; run a two-frame flicker probe on the start box, Marszałkowska and the
-bridge ramps. Accept: a table in this file (kind, decision, why); the car drives through nothing
-it shouldn't and stops on nothing it shouldn't; `check_drive`, `check_roads` green. Files:
-street_details.gd, props.gd, map_builder.gd, car.gd collision layers, shaders/building.gdshader.
+**G5 · Flicker and "lag wall" audit (DONE 2026-11-01).** Finding: the flicker in IMG 7138, 7137
+and 7135 is the occlusion ghost's halftone rim on building walls beside the car, not z-fighting.
+The Bayer pattern is fixed on screen while the band slides over the wall, so it strobes. Fix
+(`ghost.gdshaderinc`, mirrored in `main.gd` `_pick_unghosted`): the rim is 0.74-0.84 of the radius
+(was 0.65-0.9) and the depth ramp 1-2 m (was 1-4 m), a thin seam instead of a wide halftone band.
+The 7136 block is a sunken metro stair; metro canopies and stairs have no collider at all
+(`Props.add_metro_entrance` is mesh only), so the car never stops on them. Collision table:
+
+| Kind | Decision | Why |
+| --- | --- | --- |
+| Buildings, LoD2 walls, viaduct piers, garage doors | solid | real walls |
+| Cutting and retaining walls (`_build_walls`) | solid | a drop beside the road |
+| Barrier `wall` 1.9 m, `hedge` 1.2 m, `fence` 1.6 m | solid | they bound yards; a car through them looks wrong |
+| Barrier `platform` (stop, 0.25 m) | no collision | kerb height, already so |
+| Metro entrances, stairs, canopies, lifts | no collision (mesh only) | beside the road, pure dressing |
+| Kiosk, stall, ice-cream cart | solid (small boxes) | stand on the pavement edge |
+| Bollards, posts, ticket machines, columns | no collision | already so |
+| Trees (trunk 1.3 m+), parked cars | solid | already so |
+| Guard rails, bridge parapets | solid only over a drop | already so |
+
+Open: a phone check of the thinner seam (the cloud has no phone); whether the 1.2 m hedges should
+also go non-colliding is F's call.
 
 **G6 · Going under bridges at entries (P1, owner: the "Finish remaining bridge joins" thread).**
 F: "when I was entering the bridge I went down under it". Not touched here. For that thread:
@@ -72,27 +83,11 @@ cafe terraces (the storefront's frontage, 1.5 m deep, on paving), benches on foo
 walk or park path, never within 1 m of a lane. Accept: a check lists every chair/bench and fails
 any on a lane, in water or inside a wall. Files: street_details.gd, props.gd, storefronts.gd.
 
-**G10 · Podwózka off the main line, with a clear start (P1, Opus).** Today (`rides.gd`): a
-request card for 10 s, the pickup is a teal pin and you must stop within 7 m (a waiting passenger
-waves 30-60 m away). F: too hard to catch. Task: a visible rider marker (icon over the person, a
-bigger teal "!", on the minimap and full map); inside 25 m a START RIDE button appears and the
-ride begins on tap (the car auto-brakes as in stop assist); then the beacon and a direction arrow
-to the drop-off, with the distance. Podwózka never counts toward the main line. Accept: from 25 m a
-tap starts the ride within 1 s; no 7 m ring needed; `check_rides`, `check_stop_assist` green.
-Files: rides.gd, ride_rules.gd, hud.gd, stop_assist.gd, main_line.gd. Dialogue Manager not used.
-
 **G11 · Better map icons (P2, Sonnet).** The minimaps show identical black-and-yellow "?" squares
 and orange squares for everything (7138, 7134). Task: a distinct icon per kind (job, rider, food,
 garage, landmark, heli pad, bus, metro, quest star) by shape and colour (colour-safe mode kept),
 larger on the full map, with a legend. Accept: shots of both maps; one atlas (no extra draw
 calls). Files: map_icons.gd, full_map.gd, hud.gd minimap.
-
-**G12 · Separate heli and car quests (P2, Opus design).** Today rescues, jobs and the main line
-share one list. Task: CAR (kebab, Podwózka, couriers, races) and HELI (rescues, rooftop pickups,
-the cassette, sightseeing) with their own marker colours; flying shows only heli quests, driving
-only car quests; the main line stays one path. Accept: the notebook lists both; no car quest
-completes from the heli and the reverse. Files: missions.gd, jobs.gd, main_line.gd, notebook.gd,
-map_icons.gd.
 
 **G13 · Upgrade shop (P2, Opus design, Sonnet content).** Today the garage (`garage.gd`, Warsztat
 u Mirka) sells paints only. Task: a second tab "Części i auta": (1) a faster car, a parody of the
@@ -114,17 +109,6 @@ well; make the start and end points bigger and add assistance to pickup". Task: 
 "stopped" under 6 m/s, look-ahead 60 m, aim 3 m inside. Left for the phone: is it enough, or
 should a pickup start by driving through the ring without stopping (G10). Files: stop_assist.gd.
 
-**G16 · Fewer texts while driving (P2, Sonnet).** F: "less texts when the user goes on the road".
-Task: count the toasts and bubbles per minute in a 5-minute drive (a log), merge or drop the
-repeats and hints, rate-limit toasts to one per 20 s except for quest and danger lines, no
-speech bubbles above 40 km/h except police. Accept: at most 3 popups in a 5-minute free drive.
-Files: hud.gd toast, bubbles.gd, dialogue.gd, gps_moments.gd, first10.gd.
-
-**G17 · Stuck against other cars (P1, Opus).** F: "stuck with another cars". Task: reproduce
-(a car pinned against traffic or parked cars at junctions), make traffic yield or ghost through
-the player when contact lasts over 1.5 s, and tow the player to the lane after 8 s pinned with an
-unstuck toast. Accept: a check with the car pinned between two traffic cars frees itself in under
-8 s; `check_drive`, `check_steering` green. Files: car.gd, traffic.gd, main.gd.
 
 **G18 · Ujazdów and the castle (P1, Opus, landmark thread).** F: improve Ujazdów and Zamek
 Ujazdowski. One landmark thread: compare the castle's model and the park with the orthophoto and
@@ -854,6 +838,15 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
   between the pavements on either side in places (corners joined within 4 m).
 - A beat from the rave booth (sfx.gd positional voice), a rave notebook card or egg, a DJ crate
   courier job, a radio mention.
+
+## Vistula boulevards: life (F, 2026-11-01)
+Built: nine `chill_bulwary_*` spots (`Crowds.BULWARY`) along the river edge from Karowa past Kopernik,
+twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. Left:
+- E-scooters on the bike path (the bike MultiMesh family has four shapes in the shader; a fifth
+  needs actor.gdshader's shape channel widened). The marina thread owns the water side.
+- Spot coordinates are read off the baked steps/benches, not placed by eye; a phone look check
+  (QUESTIONS) may move some. Seating on the actual steps (snap a third of the sitters to
+  `steps` polylines) instead of footways.
 
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
 - **Shisha lounges** built (five parody signs, `Storefronts.LOUNGES`): only the phone can show the sign size on each wall and whether the spots read as lounges. Not notebook places; add smoky window glow or a door scene if wanted.

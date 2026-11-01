@@ -88,6 +88,8 @@ var _card: PanelContainer
 var _groups := {}
 var _bars := {}
 var _values := {}
+## G16: stepped sliders (traffic): key -> bar; the chosen step is in `_values`.
+var _stepbars := {}
 var _say_pl: Label
 var _say_en: Label
 var _tabs: Array[Button] = []
@@ -235,7 +237,7 @@ func _build() -> void:
 	_heading(world[0], "Pogoda", "Weather")
 	_segments(world[0], "weather", WEATHER)
 	_heading(world[0], "Ruch uliczny", "Traffic")
-	_segments(world[0], "traffic", TRAFFIC)
+	_steps(world[0], "traffic", TRAFFIC)
 	_heading(world[1], "Tryb gry", "Game mode")
 	_segments(world[1], "wander", MODE)
 	# Obraz · Picture. Loop G1: in three rows (Quality's five choices made the two columns too
@@ -492,6 +494,9 @@ func sync(state: Dictionary) -> void:
 	_set_auto_name(str(state.get("auto", _auto_name)))
 	for key in _groups:
 		_select(key, int(values.get(key, 0)))
+	for key in _stepbars:
+		_values[key] = int(values.get(key, 0))
+		(_stepbars[key] as Control).queue_redraw()
 	for key in _bars:
 		_values[key] = float(state.get(key, 1.0))
 		(_bars[key] as Control).queue_redraw()
@@ -729,6 +734,52 @@ func _segments(parent: Node, key: String, options: Array) -> void:
 		row.add_child(b)
 		buttons.append(b)
 	_groups[key] = buttons
+
+
+## A slider with one notch per option (tap or drag along the bar), the chosen words beneath.
+func _steps(parent: Node, key: String, options: Array) -> void:
+	var bar := Control.new()
+	bar.name = "%s_slider" % key
+	bar.custom_minimum_size = Vector2(260.0 * pt, touch + 22.0 * pt)
+	bar.mouse_filter = Control.MOUSE_FILTER_STOP
+	bar.draw.connect(_draw_steps.bind(bar, key, options))
+	bar.gui_input.connect(func(e: InputEvent):
+		var at := -1.0
+		if e is InputEventMouseButton and (e as InputEventMouseButton).pressed:
+			at = (e as InputEventMouseButton).position.x
+		elif e is InputEventMouseMotion and ((e as InputEventMouseMotion).button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
+			at = (e as InputEventMouseMotion).position.x
+		if at >= 0.0:
+			var pad := 14.0 * pt
+			var f := clampf((at - pad) / maxf(bar.size.x - pad * 2.0, 1.0), 0.0, 1.0)
+			var i := roundi(f * (options.size() - 1))
+			if i != int(_values.get(key, -1)):
+				_values[key] = i
+				bar.queue_redraw()
+				changed.emit(key, i))
+	parent.add_child(bar)
+	_stepbars[key] = bar
+	_values[key] = 0
+
+
+func _draw_steps(bar: Control, key: String, options: Array) -> void:
+	var v := int(_values.get(key, 0))
+	var n := options.size()
+	var pad := 14.0 * pt
+	var y := touch * 0.5
+	var x0 := pad
+	var span := maxf(bar.size.x - pad * 2.0, 1.0)
+	var h := 9.0 * pt
+	bar.draw_rect(Rect2(x0 - 1.2 * pt, y - h * 0.5 - 1.2 * pt, span + 2.4 * pt, h + 2.4 * pt), Color("#1d1b19"))
+	bar.draw_rect(Rect2(x0, y - h * 0.5, span, h), Color(1, 1, 1, 0.1))
+	var lit := span * float(v) / maxf(n - 1.0, 1.0)
+	bar.draw_rect(Rect2(x0, y - h * 0.5, lit, h), Color("#5fd4ff").lerp(Color("#ff4fd8"), float(v) / maxf(n - 1.0, 1.0)))
+	for k in n:
+		var cx := x0 + span * float(k) / maxf(n - 1.0, 1.0)
+		bar.draw_circle(Vector2(cx, y), (9.0 if k == v else 4.5) * pt, Color("#fff4d6") if k == v else Color(1, 1, 1, 0.5))
+	var font := ThemeDB.fallback_font
+	var words: Array = options[clampi(v, 0, n - 1)]
+	bar.draw_string(font, Vector2(x0, touch + 12.0 * pt), "%s · %s" % [words[0], words[1]], HORIZONTAL_ALIGNMENT_LEFT, -1, _px(T_SUB), SUB)
 
 
 func _select(key: String, index: int) -> void:
