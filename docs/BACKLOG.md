@@ -23,9 +23,10 @@ Open:
   round the rim.
 - Varso's deck: visitors stand on the crown's roof ring (roof grid, spire flattened away); the real
   Varso Observation Deck is glazed at ~230 m. St Anne's terrace is at the tower's cornice (25 m);
-  the real one is at ~40 m. Opening hours are guesses (10-22 and 10-19). PKiN's 30th-floor terrace
-  (114 m, `docs/landmarks/specs/palace.md`) has no visitors yet (the roof ring needs an explicit
-  deck height: `DECKS` `top`).
+  the real one is at ~40 m. Opening hours are guesses (10-22, 10-19 and 10-18). PKiN's 30th-floor
+  terrace (114 m) has up to 16 visitors on a 1.9 m ledge with a balustrade round the shaft (the
+  real gallery runs inside the walls, so the ledge is a stand-in; Mac look check parked: ledge
+  depth, spacing, whether it reads as a step in the silhouette).
 ## Norblin, Browary, Koszyki, Elektrownia (F, 2026-11-01)
 
 Built (specs `docs/landmarks/specs/norblin.md`, `browary.md`, `koszyki.md`, `elektrownia.md`):

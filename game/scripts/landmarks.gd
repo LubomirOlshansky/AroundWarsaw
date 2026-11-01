@@ -1641,6 +1641,14 @@ func _build_palace(site: Dictionary) -> void:
 	_prism(band, g + 121.5, g + 123.0, light, Color(0, 0, 0, 0), M_STONE)
 	_mode = M_STONE
 	_cap_holes(band, [shaft], g + 123.0, light)
+	# The 30th-floor observation terrace (F, 2026-11-01): a 1.9 m ledge round the shaft at 114 m
+	# (the real gallery runs inside the walls; the ledge is the walkway the visitors need, crowds.gd
+	# DECKS `pkin_terrace`, 22.4 m from the centre) with a stone balustrade 1.1 m high.
+	for su: float in [-1.0, 1.0]:
+		_lbox(su * 21.5, 0.0, 1.9, 23.4, g + 113.5, g + 114.0, light, M_STONE, light.darkened(0.12))
+		_lbox(0.0, su * 21.5, 23.4, 1.9, g + 113.5, g + 114.0, light, M_STONE, light.darkened(0.12))
+		_lbox(su * 23.25, 0.0, 0.15, 23.4, g + 114.0, g + 115.1, light, M_STONE, light)
+		_lbox(0.0, su * 23.25, 23.4, 0.15, g + 114.0, g + 115.1, light, M_STONE, light)
 	# The shaft's top: an attic, big pinnacles on the corner piers, smaller ones between.
 	_attic(shaft, g + 139.0, 3.0, light)
 	for k in 4:
