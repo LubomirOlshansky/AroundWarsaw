@@ -10,6 +10,12 @@ Order: plac Bankowy to plac Zbawiciela. Pass 1 (cloud, Sonnet): Kościół Najś
 modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
 - Mac photo check of the church: plaster and roof colours, belfry and spire shapes, the dome's
   height, whether the porch is a portico or a recess (all estimated; towers' 76 m is mapped).
+- Pass 2 (cloud, Sonnet): people waiting on Marszałkowska's 12 mapped tram platforms (`crowds.gd`
+  `stop` sites, commute curve). Mac/phone look check: do the groups read as commuters at the
+  stops, facing is random (not toward the track), the density on the narrow islands, and
+  whether the `ped_zones` walkers also fill them. Still open on the street: facade, shopfront
+  and roof polish house by house, tram-stop benches and ticket machines on the north half,
+  crossings against real photos.
 - Next on the street: MDM's arcades, reliefs and corner towers (LANDMARKS 2.8), the church's
   night lighting, Plac Zbawiciela's rotunda-side cafés, houses and roads street by street.
 

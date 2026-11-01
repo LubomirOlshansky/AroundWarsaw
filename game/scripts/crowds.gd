@@ -22,6 +22,9 @@ extends Node3D
 ##    Level 26) and on St Anne's bell tower terrace (the gallery round the octagon, 25 m up, the
 ##    model's balustrade): open 10-22 and 10-19, the afternoon and evening busier, weekends,
 ##    summer and dry weather fuller (`deck_level`); standing, facing out over the city;
+##  - **Marszałkowska's tram platforms** (F, 2026-11-01): people waiting on every mapped platform
+##    beside the street (`stop` sites, `stop_level`: the commute curve 7-9 and 15-18, thin on a
+##    weekend, fuller in rain), standing figures in the same MultiMeshes;
 ##  - **the dawn crowd** (Sat/Sun 05:00-09:00, Live or the Dawn look): 20-40 walkers in twos and
 ##    threes on footway routes from Lusterko, Smoła and Jasna 0 to the Palm, Metro Nowy
 ##    Świat-Uniwersytet, the nearest tram platforms and two kebab stands (A* over the footways
@@ -89,6 +92,13 @@ const DECKS := {
 			"half": 22.4, "axis": Vector2(0.9403, -0.3404), "up": 114.0, "gap": 3.0},
 }
 const ROOF_MAX := 16
+## F's ask (2026-11-01, Marszałkowska street by street): people waiting on the tram platforms of
+## Marszałkowska. A platform (centrum.json `platforms`) within STOP_REACH m of a road named
+## `STOP_STREET` gets a site; its most people = area / STOP_AREA, at most STOP_MAX.
+const STOP_STREET := "Marszałkowska"
+const STOP_REACH := 25.0
+const STOP_AREA := 22.0
+const STOP_MAX := 12
 const DAWN_MIN := 20
 const DAWN_MAX := 40
 ## The night's minute log (--night-log).
@@ -171,6 +181,9 @@ const CURVES := {
 	# *guess*: lunch crowd, the long summer evening on the benches, thinning after 23:00
 	"chill": {11: 0.25, 12: 0.4, 13: 0.5, 14: 0.5, 15: 0.55, 16: 0.7, 17: 0.85, 18: 1.0, 19: 1.0, 20: 1.0, 21: 0.9,
 			22: 0.7, 23: 0.45, 0: 0.2},
+	# *guess*: the commute, 7-9 and 15-18 on a working day, a thin shopping day on a weekend
+	"commute": {5: 0.15, 6: 0.4, 7: 0.9, 8: 1.0, 9: 0.7, 10: 0.4, 11: 0.35, 12: 0.4, 13: 0.4, 14: 0.5, 15: 0.8,
+			16: 1.0, 17: 1.0, 18: 0.8, 19: 0.5, 20: 0.35, 21: 0.25, 22: 0.2, 23: 0.1},
 	# *guess*: 20 walkers at the edges of 05-09, 40 at the peak
 	"dawn": {5: 0.5, 6: 1.0, 7: 1.0, 8: 0.4},
 }
@@ -230,7 +243,7 @@ var spent_usec := 0
 var rejections := 0
 var car_lines := 0
 var dawn_lines := 0
-## The crowds' sites: {id, kind (queue, roof, steps, plan_c, chill), at, n, want, max, ...}.
+## The crowds' sites: {id, kind (queue, roof, steps, plan_c, chill, deck, stop), at, n, want, max, ...}.
 var sites: Array[Dictionary] = []
 var by_id := {}
 ## The dawn crowd: its routes (after the worker thread) and walkers.
@@ -362,6 +375,23 @@ static func deck_level(hour: float, weekday: int, month: int, rain: bool, open: 
 
 static func deck_count(max_n: int, hour: float, weekday: int, month: int, rain: bool, open: float, close: float, k := 1.0) -> int:
 	return roundi(max_n * k * deck_level(hour, weekday, month, rain, open, close))
+## Marszałkowska's tram platforms: the commute curve, a weekend (Sat 0.6, Sun 0.4) and rain
+## (people wait, so the platforms fill: x1.2, capped at 1).
+static func stop_level(hour: float, weekday: int, rain: bool) -> float:
+	var w := 1.0 if weekday <= 5 else (0.6 if weekday == 6 else 0.4)
+	return minf(curve_at("commute", hour) * w * (1.2 if rain else 1.0), 1.0)
+
+
+## A polygon's area (m², flat x, z pairs).
+static func poly_area(flat: Array) -> float:
+	var n := flat.size() / 2
+	var a := 0.0
+	for i in n:
+		var j := (i + 1) % n
+		a += float(flat[2 * i]) * float(flat[2 * j + 1]) - float(flat[2 * j]) * float(flat[2 * i + 1])
+	return absf(a) * 0.5
+
+
 ## The chill yards' level 0..1 (hour curve; winter keeps a third of the summer, rain 0.15 *guess*).
 static func chill_level(hour: float, month: int, rain: bool) -> float:
 	return curve_at("chill", hour) * maxf(month_factor(month), 0.35) * (0.15 if rain else 1.0)
@@ -506,6 +536,7 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 	for cid: String in CHILL:
 		var cs: Array = CHILL[cid]
 		_add_site({"id": cid, "kind": "chill", "at": cs[0], "max": int(cs[1]), "radius": float(cs[2])})
+	_add_stops(data)
 	if at.has(PLAN_C_ID):
 		_add_site({"id": PLAN_C_ID, "kind": "plan_c", "at": at[PLAN_C_ID], "max": PLAN_C_MAX})
 	# The dawn crowd's ends: the palm, the metro, kebab stands and tram platforms near the clubs.
@@ -559,6 +590,39 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		kinds[s["kind"]] = int(kinds.get(s["kind"], 0)) + 1
 	print("crowds: %d sites %s, %d footways near them, the dawn crowd %d clubs → %d ends, amount %.2f" % [
 			sites.size(), kinds, _foot.size(), from.size(), ends.size(), amount])
+
+
+## The tram platforms beside STOP_STREET: one `stop` site each (poly, centre, most people).
+func _add_stops(data: Dictionary) -> void:
+	var segs: Array = []
+	for r: Dictionary in data.get("roads", []):
+		if str(r.get("name", "")) != STOP_STREET:
+			continue
+		var p: Array = r["p"]
+		for i in range(0, p.size() - 3, 2):
+			segs.append([Vector2(float(p[i]), float(p[i + 1])), Vector2(float(p[i + 2]), float(p[i + 3]))])
+	var idx := 0
+	for pl: Dictionary in data.get("platforms", []):
+		var flat: Array = pl.get("p", [])
+		if flat.size() < 6:
+			continue
+		var c := Vector2.ZERO
+		var poly := PackedVector2Array()
+		for i in range(0, flat.size() - 1, 2):
+			var v := Vector2(float(flat[i]), float(flat[i + 1]))
+			poly.append(v)
+			c += v
+		c /= float(poly.size())
+		var near := false
+		for sg: Array in segs:
+			var cp := Geometry2D.get_closest_point_to_segment(c, sg[0], sg[1])
+			if cp.distance_to(c) <= STOP_REACH:
+				near = true
+				break
+		var cap := clampi(roundi(poly_area(flat) / STOP_AREA), 0, STOP_MAX)
+		if near and cap >= 3:
+			_add_site({"id": "stop_marsz_%d" % idx, "kind": "stop", "at": c, "poly": poly, "max": cap})
+			idx += 1
 
 
 func _add_site(s: Dictionary) -> void:
@@ -679,6 +743,8 @@ func _place_site(s: Dictionary) -> void:
 			_place_steps(s)
 		"plan_c", "chill":
 			_place_square(s)
+		"stop":
+			_place_stop(s)
 		"roof":
 			_place_roof(s)
 		"deck":
@@ -807,6 +873,38 @@ func _place_square(s: Dictionary) -> void:
 			slots.append({"p": p, "pose": SIT if chill and i % 3 == 0 else STAND, "yaw": i * 1.3, "shirt": BRIGHT[i % BRIGHT.size()]})
 	s["slots"] = slots
 	s["door"] = at
+
+
+## A tram platform: groups of 1-3 waiting people at seeded points inside the polygon (0.8 m from
+## its edge is not checked: the polygons are the mapped islands, narrower than they look), all
+## facing the platform's long axis' nearer side, as people watch for the tram.
+func _place_stop(s: Dictionary) -> void:
+	var poly: PackedVector2Array = s["poly"]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(str(s["id"]))
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for v in poly:
+		lo = lo.min(v)
+		hi = hi.max(v)
+	var slots: Array = []
+	var cap := int(s["max"])
+	var tries := 0
+	while slots.size() < cap and tries < 600:
+		tries += 1
+		var mid := Vector2(rng.randf_range(lo.x, hi.x), rng.randf_range(lo.y, hi.y))
+		if not Geometry2D.is_point_in_polygon(mid, poly):
+			continue
+		var g := rng.randi_range(1, 3)
+		var yaw := rng.randf() * TAU
+		for i in g:
+			var p := mid + Vector2.from_angle(TAU * i / g + yaw) * 0.5
+			if slots.size() < cap * 2 and Geometry2D.is_point_in_polygon(p, poly):
+				slots.append({"p": p, "yaw": yaw + rng.randf_range(-0.6, 0.6), "shirt": BRIGHT[rng.randi() % BRIGHT.size()]})
+		if slots.size() >= cap * 2:
+			break
+	s["slots"] = slots
+	s["door"] = s["at"]
 
 
 ## F's asks (2026-10-30): the tower's outline round `at` from the roof grid (`roof`: (x, z) ->
@@ -1111,7 +1209,7 @@ func _figures(s: Dictionary) -> Array:
 			if bool(s.get("guitar_on", false)):
 				var face: Vector2 = s["face"]
 				out.append([_ground(s["guitar"]), atan2(-face.x, -face.y), SIT, GUITAR_SHIRT, 0.0])
-		"plan_c", "roof", "chill", "deck":
+		"plan_c", "roof", "chill", "deck", "stop":
 			var slots: Array = s["slots"]
 			for k in mini(n, slots.size()):
 				var sl: Dictionary = slots[k]
@@ -1228,6 +1326,8 @@ func tick(step: float) -> void:
 						float(s["open"]), float(s["close"]), k)
 			"chill":
 				want = roundi(int(s["max"]) * k * chill_level(hour, month, rain))
+			"stop":
+				want = roundi(int(s["max"]) * k * stop_level(hour, weekday, rain))
 			"trend":
 				var q: Array = [0, ""]
 				if s["id"] == PISTACJA_ID:
