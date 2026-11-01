@@ -66,6 +66,11 @@ then the Launch gate.
       Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
+- [ ] Mariensztat and Krakowskie Przedmieście review (F, 2026-11-01; BACKLOG section):
+  - [x] M1 Mariensztat's houses in pastel with red tile roofs and dormers, 2026-11-01
+  - [ ] M2 Rynek Mariensztacki's card and reliefs; M3 the escarpment and Nowy Zjazd (Mac)
+  - [ ] K1-K6 Krakowskie Przedmieście's missing pieces: the Carmelite church, Mickiewicz's
+        monument, the University gate, Pałac Potockich's guardhouses, Bristol, the statues
 
 - [ ] The railway (F, 2026-11-01; plan docs/design/railway.md):
   - [x] R0 design: stations, the cross-city line, trains, 2026-11-01
@@ -93,8 +98,8 @@ then the Launch gate.
 - [x] Accessibility options (2026-11-01, Settings → DOSTĘP, `access.gd`): larger HUD text, calm
       (no flashing or shaking), colour-safe markers, vibration on/off, stop assist on/off.
       Left-handed layout added 2026-11-01 (DOSTĘP, `--left-handed`); colour-safe now also covers the
-      HUD's win green and fail red (2026-11-01, `Access.tint`). Left to do: live text size,
-      subtitles (BACKLOG)
+      HUD's win green and fail red (2026-11-01, `Access.tint`). Text size now live (2026-11-01,
+      `Hud.apply_text_scale`). Left to do: subtitles (BACKLOG)
 - [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
 - [ ] Rondo de Gaulle'a and the food hype (F, 2026-11-01; spec docs/design/gaulle-and-food-hype.md):

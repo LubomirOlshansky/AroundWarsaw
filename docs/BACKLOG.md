@@ -3,6 +3,42 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Mariensztat and Krakowskie Przedmieście: review (F, 2026-11-01)
+
+F asked whether Mariensztat and Krakowskie Przedmieście are modelled well. Cloud shots (OSM
+buildings only, no LoD2 or terrain in the cloud) compared with what the places are known to look like.
+
+**Mariensztat** (Rynek Mariensztacki at (-482,-1366)): the street plan is right (Rynek, Mariensztat,
+Sowia, Garbarska, Furmańska, lower Bednarska), the square has its paving, planters and fountain
+ring, but the houses were generic: modern facade colours and grey roofs, no landmark card, nothing
+that says "1949 estate". Real Mariensztat is small 2-3 storey houses in pastel plaster under steep
+red tile roofs with dormers.
+- ~~M1 Mariensztat dressed like the Old Town~~ Done 2026-11-01: `map_builder` MARIENSZTAT polygon
+  joins `_historic`, so its 47 houses take the tenement palette, red tiles, dormers and chimneys
+  (LoD2 path; load time only, +0 draw calls). Left: Mac look check (roof pitch from LoD2, the
+  palette against photos, the 20.8 m house at (-388,-1362) that OSM tags taller than its neighbours).
+- M2 a landmark card for Rynek Mariensztacki (the 1949 estate, the first socialist-realist square,
+  the 1954 film "Przygoda na Mariensztacie") and its relief panels and
+  well/fountain from photos (Mac).
+- M3 the escarpment, the W-Z tunnel's mouth and Nowy Zjazd's viaduct over the estate: check on the
+  Mac with real terrain (the cloud has none).
+
+**Krakowskie Przedmieście** (x -717..-434, z -1333..-465): well covered. Models: the Castle and
+Sigismund's Column at the north end, St Anne's (portico and bell tower), the Visitationists, the
+Presidential Palace, Hotel Europejski, Staszic Palace with Copernicus, Holy Cross; historic
+lanterns and street furniture along the whole street. Still generic boxes:
+- K1 the Carmelite church (Kościół Wniebowzięcia NMP i św. Józefa, (-582,-1036)): the facade with
+  its globe-topped attic; spec from photos.
+- K2 Mickiewicz's monument in Skwer Mickiewicza (lawn centred about (-627,-1074)): figure on a
+  tall pedestal with its fence and corner lanterns; the exact spot and height need the orthophoto
+  or a photo (Mac).
+- K3 the University gate (Brama Główna UW) and Pałac Kazimierzowski behind it.
+- K4 Pałac Potockich (-679,-946) with its two guardhouses (Kordegarda is mapped as a 4.3 m shed);
+  Pałac Czapskich (-609,-597).
+- K5 Hotel Bristol (-543,-917): the corner tower's dome and the facade (already in LANDMARKS 3.1).
+- K6 small things: Prus's and Cardinal Wyszyński's statues, the black Chopin benches, the
+  granite paving of the carriageway.
+
 ## The railway: stations, the cross-city line, trains (F, 2026-11-01)
 
 Plan: docs/design/railway.md. One PR per item, in this order:
@@ -55,8 +91,8 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
   and Classic's strip on the right, the credit line bottom right; `check_hud` runs a left-handed
   pass (10 states x 6 screens). Left: the feel on the phone; in this layout the bottom card can
   sit lower (nothing on the right pushes it up), so the radio ticker waits for room more often.
-- Text size that follows the phone's own setting, and live (no restart); the panels with fixed
-  layouts (cards, bubbles) need a check at x1.25 on the SE.
+- Text size that follows the phone's own setting (the toggle itself is live since 2026-11-01);
+  the panels with fixed layouts (cards, bubbles) need a check at x1.25 on the SE.
 - Subtitles: nothing is voiced yet; revisit when speech or radio talk with words lands.
 - ~~Crash sparks buzz through `Access.buzz`~~ Done (2026-11-01: crash_fx.gd shakes nothing; the
   car's knock goes through haptics.gd, which keeps `Access.vibration`). ~~Colour-safe still to cover the HUD's green badges and the red fail colour.~~ Done
