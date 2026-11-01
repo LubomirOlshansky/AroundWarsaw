@@ -40,6 +40,7 @@ const Neon := preload("res://scripts/neon_signs.gd")
 const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
 const Notebook := preload("res://scripts/notebook.gd")
 const EggBook := preload("res://scripts/egg_book.gd")
+const Zaglebie := preload("res://scripts/zaglebie.gd")
 
 ## The sector size (the city's 512 m tiles: map_builder.gd SECTOR).
 const TILE := 512.0
@@ -129,6 +130,13 @@ const VENUES := {
 	"kukla_nowy_swiat": [["KUKŁA", "NALEŚNIKI"], KUKLA_TUBE, 2.8],
 	# The milk bar in Norblin (F, 2026-11-01): a bar mleczny rebuilt as a start-up, cream and blue.
 	"krowa_norblin": [["BAR MLECZNY", "KROWA 2.0"], KROWA_TUBE, 2.8],
+	# Zagłębie Kebabowe on Al. Solidarności (zaglebie.gd): Kino Femina's fascia and the five shops'.
+	"zag_femina": [["KINO", "FEMINA"], Color(1.0, 0.3, 0.35), 4.6],
+	"zag_krol": [["KEBAB KRÓL", "MAZOWSZA"], Color(1.0, 0.72, 0.12), 2.8],
+	"zag_stambul": [["STAMBUŁ 24"], Color(0.1, 0.9, 1.0), 2.8],
+	"zag_pasza": [["DONER", "PASZA"], Color(1.0, 0.1, 0.4), 2.8],
+	"zag_erdal": [["U WUJKA", "ERDALA"], Color(0.2, 1.0, 0.45), 2.8],
+	"zag_rozen": [["ZAKWAS", "I ROŻEN", "CRAFT KEBAB"], Color(1.0, 0.85, 0.35), 2.8],
 }
 ## COFFEECHAIR (BACKLOG, the user 2026-10-31): a parody of a real coffee-shop chain, our own name
 ## and a warm cream tube (no logo, no chair icon of anyone's). Small cafés that are not notebook
@@ -183,6 +191,14 @@ const HYPE := {
 	# KROWA 2.0, the milk bar on the Żelazna front of Norblin (the Mac look check parks the door).
 	"krowa_norblin": [52.23367, 20.99107],
 }
+## Zagłębie Kebabowe's venue anchors: id -> [lat, lon] (Femina and the five shops' doors).
+static func zaglebie_table() -> Dictionary:
+	var t := {Zaglebie.FEMINA_ID: Zaglebie.FEMINA}
+	for sh: Dictionary in Zaglebie.SHOPS:
+		t[sh["id"]] = sh["ll"]
+	return t
+
+
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
 const VENUE_PX_MIN := 0.08
@@ -290,7 +306,7 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE]:
+	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, zaglebie_table()]:
 		for id: String in table:
 			var ll: Array = table[id]
 			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
