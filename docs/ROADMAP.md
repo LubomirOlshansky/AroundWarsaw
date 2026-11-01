@@ -67,8 +67,8 @@ then the Launch gate.
 
 - [ ] The railway (F, 2026-11-01; plan docs/design/railway.md):
   - [x] R0 design: stations, the cross-city line, trains, 2026-11-01
-  - [ ] S1 Warszawa Ochota: the hyperbolic paraboloid over the glass hall on its bridge
-  - [ ] S2 Warszawa Powiśle: the kite pavilion, the round saucer pavilion, the X canopies
+  - [x] S1 Warszawa Ochota: the hyperbolic paraboloid over the glass hall on its bridge, 2026-11-01
+  - [x] S2 Warszawa Powiśle: the kite pavilion, the round saucer pavilion, the X canopies, 2026-11-01
   - [ ] L1 track that reads as railway (sleepers, rails, ballast shoulders)
   - [ ] L2 catenary masts and wires
   - [ ] L3 the tunnel's portals at Ochota and Powiśle

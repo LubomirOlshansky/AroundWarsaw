@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Two 1960s railway stations are landmarks now: Warszawa Ochota's white concrete saddle roof floating over its glass hall above the tracks, and Warszawa Powiśle's kite-roofed pavilion over the tunnel's mouth, its round "UFO" pavilion with the red neon, and the X-shaped canopies on the platforms.
 - New side job "Mlask": Cringulo the food reviewer parks his cream van somewhere in the centre. Fetch him a bite from a new place, bring it while it's warm, read his review, then take his sticker back to the place and watch the queue explode.
 - Warsaw loves a queue: the KUKŁA crêpe place always has one, couples wait for the lift to LUŹNO, the pink rooftop date bar on HOTEL PIURE, and new neons light up KOSZTA COFFEE, GREEN CAFFE NERWO and the Party House's bars. Plus jokes about TIMBER dates and Cringulo's sold-out pizza at Frogs.
 - The game now plays with a game controller (Xbox, PlayStation or MFi): drive, fly, open Settings and the map; touch works as before.

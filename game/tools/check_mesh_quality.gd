@@ -73,6 +73,8 @@ const BUDGET := {
 	"tower75": 220,
 	"cepelia": 900,
 	"zodiak": 600,
+	"ochota": 1420,
+	"powisle": 1770,
 	"stadium": 4750,
 	"swieto": 240,
 	"teatr": 600,
