@@ -10,7 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
-- The Palace of Culture is reshaped from the real map data: the tower now rises from full-height wings on its north and south sides, its shaft has heavy corner piers around ribbed middle bays, and the Congress Hall keeps to its real rounded outline.
+- The Palace of Culture is reshaped from the real map data: the tower now rises from full-height wings on its north and south sides, its shaft has heavy corner piers around ribbed middle bays, the Congress Hall has its real rounded outline and flat stepped grey roof, and the main entrance has a wider portico.
 - The street where the game starts is busier and richer: the three glass department stores across from the museum (Junior, Sawa and Wars, with lit names JUNIOREK, SAWKA and WARSIK on their roofs) are real buildings now, a tram rolls past the car in the first seconds and another comes down the street, and the pavement by the museum has café tables under parasols, a newspaper kiosk, a flower stall, an advertising column and flower planters.
 - The Copernicus Science Centre by the river is rebuilt: a long dark block with windows scattered like pixels that glow at night, a corner hanging over the glass entrance, a garden of lawns and paths on its roof, and the black, faceted planetarium beside it.
 - Stadion Narodowy's facade now looks like the real one: rows of red and silver panels, more silver towards the top, over a dark glass entrance level, with stronger spikes on the skyline.

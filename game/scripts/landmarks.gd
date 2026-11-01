@@ -98,6 +98,9 @@ const SANDSTONE := Color("#d8c49c")   # the Palace (bake_gugik.py LANDMARKS)
 const SANDSTONE_LIGHT := Color("#e6d6b2")
 const PATINA := Color("#9fbcae")
 const GOLD := Color("#e8b632")
+const SPIRE_GOLD := Color("#d4a640")    # the Palace's spire (Mac photo check 2026-11-01)
+const SPIRE_BRONZE := Color("#5a4630")  # the dark bronze lantern at the spire's foot
+const HALL_METAL := Color("#8d9398")    # the Congress Hall's flat stepped metal roof
 
 ## The info cards: name, then Polish and English lines. Facts kept to what is certain.
 const INFO := {
@@ -1273,25 +1276,25 @@ func _build_palace(site: Dictionary) -> void:
 			_pinnacle(cu, far, 1.6, g + 30.0, 5.0, light)
 			_pinnacle(cu, near, 1.6, g + 30.0, 5.0, light)
 
-	# The Congress Hall: its mapped block with the half-round end, a shallow dome over the
-	# auditorium.
+	# The Congress Hall: its mapped block with the half-round end under a flat grey metal roof
+	# in concentric steps (Mac photo check 2026-11-01): the roof at the wall top, a raised
+	# drum about 48 m across over the auditorium, its flat top with a small vent cap.
 	var hall := _lpoly(P_HALL)
-	_prism(hall, g + 17.0, g + 22.5, stone, roof, M_MONUMENT, M_STONE)
+	_prism(hall, g + 17.0, g + 22.5, stone, HALL_METAL, M_MONUMENT, M_STONE)
 	_attic(hall, g + 22.5, 1.2, light)
-	var dome := PackedVector2Array()
-	var dome_top := PackedVector2Array()
+	var drum := PackedVector2Array()
 	for k in 16:
 		var t := TAU * k / 16.0
-		dome.append(_w(-86.0 + cos(t) * 20.0, -0.75 + sin(t) * 23.0))
-		dome_top.append(_w(-86.0 + cos(t) * 9.0, -0.75 + sin(t) * 11.0))
-	_mode = M_STONE
-	_frustum(dome, g + 22.5, dome_top, g + 28.0, Color("#9a9283"), Color("#a59d8e"))
+		drum.append(_w(-86.0 + cos(t) * 24.0, -0.75 + sin(t) * 23.5))
+	_prism(drum, g + 22.5, g + 26.0, HALL_METAL.darkened(0.12), HALL_METAL.lightened(0.06), M_STONE, M_STONE)
+	_lbox(-86.0, -0.75, 2.0, 2.0, g + 26.0, g + 27.0, HALL_METAL.darkened(0.2), M_STONE)
 
-	# The east portico: columns before the entrance block, an entablature on them.
-	for k in 8:
-		var cv := -9.6 + k * 2.74
-		_lbox(53.4, cv, 0.55, 0.55, g, g + 13.5, light, M_STONE)
-	_lbox(53.4, 0.0, 1.4, 10.6, g + 13.5, g + 15.6, stone, M_STONE, light)
+	# The east portico (Mac photo check 2026-11-01: about 25 m wide): six columns before the
+	# entrance, an entablature on them.
+	for k in 6:
+		var cv := -12.0 + k * 4.8
+		_lbox(53.4, cv, 0.65, 0.65, g, g + 13.5, light, M_STONE)
+	_lbox(53.4, 0.0, 1.5, 12.8, g + 13.5, g + 15.6, stone, M_STONE, light)
 
 	# Tier one: walls to 67 m, a roof only on the corner towers (the shaft stands on the rest).
 	_mode = M_MONUMENT
@@ -1330,7 +1333,14 @@ func _build_palace(site: Dictionary) -> void:
 			var t: float = -bay[4] + bay[4] * 0.2 + k * bay[4] * 0.4
 			var ru: float = bay[0] + nu * 0.45 + absf(nv) * t
 			var rv: float = bay[1] + nv * 0.45 + absf(nu) * t
-			_lbox(ru, rv, 0.45 if nu != 0.0 else 0.5, 0.45 if nv != 0.0 else 0.5, g + 67.0, g + 136.0, light, M_STONE)
+			_lbox(ru, rv, 0.45 if nu != 0.0 else 0.5, 0.45 if nv != 0.0 else 0.5, g + 67.0, g + 121.5, light, M_STONE)
+			_lbox(ru, rv, 0.45 if nu != 0.0 else 0.5, 0.45 if nv != 0.0 else 0.5, g + 123.0, g + 136.0, light, M_STONE)
+	# A thin cornice band about five storeys under the top (Mac photo check 2026-11-01: the
+	# shaft keeps one width up to its top cornice; no step at the 114 m terrace).
+	var band: PackedVector2Array = Geometry2D.offset_polygon(shaft, 0.6, Geometry2D.JOIN_MITER)[0]
+	_prism(band, g + 121.5, g + 123.0, light, Color(0, 0, 0, 0), M_STONE)
+	_mode = M_STONE
+	_cap_holes(band, [shaft], g + 123.0, light)
 	# The shaft's top: an attic, big pinnacles on the corner piers, smaller ones between.
 	_attic(shaft, g + 139.0, 3.0, light)
 	for k in 4:
@@ -1374,13 +1384,14 @@ func _build_palace(site: Dictionary) -> void:
 	# The crown: a patina pyramid, then the gilded spire to 237 m.
 	_mode = M_STONE
 	_frustum(_rect(0.0, 0.0, 6.0, 6.0), g + 188.0, _rect(0.0, 0.0, 2.4, 2.4), g + 203.0, PATINA)
+	# The spire's foot: a dark bronze lantern (Mac photo check 2026-11-01), then the gold spire.
+	_prism(_rect(0.0, 0.0, 1.8, 1.8), g + 200.5, g + 208.0, SPIRE_BRONZE, SPIRE_BRONZE, M_STONE, M_STONE)
 	_mode = M_GOLD
-	_prism(_rect(0.0, 0.0, 1.8, 1.8), g + 200.5, g + 208.0, GOLD, GOLD, M_GOLD, M_GOLD)
-	_frustum(_rect(0.0, 0.0, 1.6, 1.6), g + 208.0, _rect(0.0, 0.0, 0.9, 0.9), g + 222.0, GOLD)
-	_frustum(_rect(0.0, 0.0, 0.9, 0.9), g + 222.0, _rect(0.0, 0.0, 0.15, 0.15), g + 237.0, GOLD)
+	_frustum(_rect(0.0, 0.0, 1.6, 1.6), g + 208.0, _rect(0.0, 0.0, 0.9, 0.9), g + 222.0, SPIRE_GOLD)
+	_frustum(_rect(0.0, 0.0, 0.9, 0.9), g + 222.0, _rect(0.0, 0.0, 0.15, 0.15), g + 237.0, SPIRE_GOLD)
 	# Two rings on the spire.
-	_prism(_rect(0.0, 0.0, 1.3, 1.3), g + 214.0, g + 215.0, GOLD, GOLD, M_GOLD, M_GOLD)
-	_prism(_rect(0.0, 0.0, 1.0, 1.0), g + 225.0, g + 225.8, GOLD, GOLD, M_GOLD, M_GOLD)
+	_prism(_rect(0.0, 0.0, 1.3, 1.3), g + 214.0, g + 215.0, SPIRE_GOLD, SPIRE_GOLD, M_GOLD, M_GOLD)
+	_prism(_rect(0.0, 0.0, 1.0, 1.0), g + 225.0, g + 225.8, SPIRE_GOLD, SPIRE_GOLD, M_GOLD, M_GOLD)
 
 
 ## A clock dial facing `n` (plan, unit) centred at plan point c, height y: a cream disc
