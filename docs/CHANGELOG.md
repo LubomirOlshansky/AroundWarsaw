@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-01
 - New: eight joke posters on advertising columns and five street signs about the 2025–26 fads (matcha, padel, sour wine, the pistachio queue, the 12 km/h scooter rule).
+- Kiosks, flower stalls, café tables, planters, ice-cream carts and tram stop signs now line the streets of the main route, not only the start.
 - New: eight trendy spots in Śródmieście with neon signs, from the 2025–26 Warsaw fads: MACZA, PISTACJA DO KOŃCA, ZĘBUŚ, PADELNIA, KWAŚNE WINO, NIE TUTAJ, POP-UP DO PIĄTKU and ROZGNIOT.
 - St Anne's church at the start of Krakowskie Przedmieście has its classical front: four tall columns under a pediment with a cross, side wings, and a trimmed bell tower.
 - The Visitationists' church on Krakowskie Przedmieście has its cream rococo front: pilasters, a stepped curved gable with statues and a cross, a lower side wing and a small copper turret.
