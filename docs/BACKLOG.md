@@ -154,6 +154,7 @@ golden-image shots runtime vs `--prebuilt`,
   hints, first order and first race to loop 3h item 6.
 
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
+- **Shisha lounges** built (five parody signs, `Storefronts.LOUNGES`): only the phone can show the sign size on each wall and whether the spots read as lounges. Not notebook places; add smoky window glow or a door scene if wanted.
 - **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;
   the designer (`game-designer`, Sonnet for the text) specs it, `warsaw-tone` rules apply (real
   brands only as parodies, affectionate, Polish with English).

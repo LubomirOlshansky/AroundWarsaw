@@ -73,6 +73,8 @@ const FREE_RESPECT := 10
 const LINE_GAP := 60.0
 const FROGS_COLOUR := Color("#4fae3b")
 const CAFE_TUBE := Color(1.0, 0.78, 0.45)
+const SHISHA_TUBE := Color(0.72, 0.3, 1.0)
+const SHISHA_TUBE_B := Color(0.2, 0.9, 0.95)
 ## The venues' fascias (vision 3.0-3.2): place id -> [the lines of the sign, tube colour, metres
 ## up (the sign's bottom)]. The words are the parody names of places.json (Glon na Powiślu: GLON).
 const VENUES := {
@@ -99,6 +101,11 @@ const VENUES := {
 	"coffeechair_krakowskie": [["COFFEE", "CHAIR"], CAFE_TUBE, 2.8],
 	"coffeechair_trzech_krzyzy": [["COFFEE", "CHAIR"], CAFE_TUBE, 2.8],
 	"coffeechair_hoza": [["COFFEE", "CHAIR"], CAFE_TUBE, 2.8],
+	"shisha_dymek": [["DYMEK"], SHISHA_TUBE, 2.8],
+	"shisha_opar": [["OPAR"], SHISHA_TUBE_B, 2.8],
+	"shisha_chmurka": [["CHMURKA"], SHISHA_TUBE, 2.8],
+	"shisha_mgielka": [["MGIEŁKA"], SHISHA_TUBE_B, 2.8],
+	"shisha_zaduch": [["ZADYM"], SHISHA_TUBE, 2.8],
 }
 ## COFFEECHAIR (BACKLOG, the user 2026-10-31): a parody of a real coffee-shop chain, our own name
 ## and a warm cream tube (no logo, no chair icon of anyone's). Small cafés that are not notebook
@@ -109,6 +116,15 @@ const CAFES := {
 	"coffeechair_krakowskie": [52.2398, 21.0158],
 	"coffeechair_trzech_krzyzy": [52.2201, 21.0243],
 	"coffeechair_hoza": [52.2208, 21.0185],
+}
+## Shisha lounges (BACKLOG): original names (smoke, haze, cloud), violet or teal neon that glows
+## at night, in Śródmieście side streets. Like the cafés, not notebook places; same venue code.
+const LOUNGES := {
+	"shisha_dymek": [52.2350, 21.0172],
+	"shisha_opar": [52.2271, 21.0148],
+	"shisha_chmurka": [52.2262, 21.0212],
+	"shisha_mgielka": [52.2342, 21.0107],
+	"shisha_zaduch": [52.2241, 21.0236],
 }
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
@@ -224,9 +240,10 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for id: String in CAFES:
-		var ll: Array = CAFES[id]
-		with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
+	for table: Dictionary in [CAFES, LOUNGES]:
+		for id: String in table:
+			var ll: Array = table[id]
+			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
 	venues = venue_list(with_cafes, addrs, graph)
 	for v in venues:
 		avoid.append(v["road"])
