@@ -21,6 +21,7 @@ extends Node
 ##   in the district's % on the full map.
 ## Cost: the 5 Hz look (`spent_usec`: the bench's "syrenki" line).
 
+const Access := preload("res://scripts/access.gd")
 const Districts := preload("res://scripts/districts.gd")
 const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
 const Notebook := preload("res://scripts/notebook.gd")
@@ -388,7 +389,7 @@ func collect(id: String, date := 0) -> bool:
 	_note("SYRENKA %d/%d · MERMAID" % [count, entries.size()], "%s\n%s\n%s" % [name[0], line[0], line[1]])
 	if blip.is_valid():
 		blip.call()
-	Input.vibrate_handheld(40, 0.4)
+	Access.buzz(40, 0.4)
 	_set_instance(by_id[id])
 	if log_on:
 		print("syrenki: found %s (%d/%d), +%d respect" % [id, count, entries.size(), respect])

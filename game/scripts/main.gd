@@ -41,6 +41,7 @@ extends Node
 ## Loop G1b: --last-session=struggled|calm starts Auto as if the last session at the sharp image
 ## struggled (the ×2 fallback) or was calm (the sharp image), and writes nothing of it.
 
+const Access := preload("res://scripts/access.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
 const TunnelXray := preload("res://scripts/tunnel_xray.gd")
@@ -78,6 +79,8 @@ const Districts := preload("res://scripts/districts.gd")
 const Syrenki := preload("res://scripts/syrenki.gd")
 ## First scene items 4-5: the kiosk, stall, cafés and planters by the start (first_scene.gd).
 const FirstScene := preload("res://scripts/first_scene.gd")
+## Street details along the main line (street_details.gd, tools/bake_street_details.py).
+const StreetDetails := preload("res://scripts/street_details.gd")
 ## Loop 3h slice 3: the final race's route (the start's hint for --trzy-mosty).
 const TrzyMosty := preload("res://scripts/trzy_mosty.gd")
 const Ladder := preload("res://scripts/ladder.gd")
@@ -1110,6 +1113,7 @@ func _build_world() -> void:
 	_build_districts()
 	_build_syrenki(world)
 	_build_first_scene(world)
+	_build_street_details(world)
 	_build_garage(world)
 	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
 	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
@@ -1301,6 +1305,18 @@ func _build_first_scene(world: Node3D) -> void:
 	fs.map = map
 	world.add_child(fs)
 	fs.build()
+
+
+## Street details along the main line (street_details.gd): kiosks, stalls, cafés, planters and
+## stop kits on the pavements of the streets the main line uses, on both city paths.
+func _build_street_details(world: Node3D) -> void:
+	if solo_site != "":
+		return
+	var sd := StreetDetails.new()
+	sd.name = "StreetDetails"
+	sd.map = map
+	world.add_child(sd)
+	sd.build()
 
 
 ## First scene (docs/design/first-scene.md item 6): a start on Marszałkowska between
@@ -2186,7 +2202,7 @@ func _build_city_life(data: Dictionary, world: Node3D) -> void:
 		trend_job.log_on = trend_log
 		add_child(trend_job)
 		trend_job.setup({"hud": hud, "dialogue": dialogue, "wallet": wallet, "missions": missions, "rivals": rivals, "jobs": jobs,
-				"rides": rides, "graph": graph, "map": map, "car": car, "life": life}, at, world)
+				"rides": rides, "graph": graph, "map": map, "car": car, "life": life, "crowds": crowds}, at, world)
 		jobs.trend = trend_job
 		if spacer != null:
 			trend_job.quiet = spacer.on
@@ -2227,6 +2243,15 @@ func _life_start() -> void:
 					Vector2(car.global_position.x, car.global_position.z).distance_to(Vector2(ap.x, ap.z))])
 	if trend_job_flag > 0 and trend_job != null:
 		var i := trend_job_flag - 1
+		if trend_job_flag == 4 and crowds != null and crowds.by_id.has(Crowds.PISTACJA_ID):
+			# The limited drop at PISTACJA, whatever the clock (no "sold out").
+			var pd: Vector2 = crowds.sites[crowds.by_id[Crowds.PISTACJA_ID]]["door"]
+			_put_car_near(pd, 60.0)
+			life.tick(0.0)
+			trend_job.force_drop = true
+			if not trend_job.offer_drop():
+				print("trend job: --trend-job=4: no request (no kerb or door fits)")
+			return
 		var door: Vector2 = life.slot_doors[i] if i < life.slot_doors.size() else Vector2.INF
 		if door == Vector2.INF:
 			push_warning("--trend-job=%d: no such slot" % trend_job_flag)
@@ -2590,6 +2615,8 @@ func _look_now() -> String:
 
 ## KASETA: the VHS overlay for `seconds`, then the setting again.
 func _vhs_pulse(seconds: float) -> void:
+	if Access.calm:
+		return  # access.gd: no flashing
 	_vhs_until = _clock + seconds
 	var keep := vhs
 	_set_vhs(true)
@@ -3324,7 +3351,7 @@ func _parse_args() -> void:
 		elif arg.begins_with("--trend-day="):
 			trend_day_flag = maxi(0, int(arg.trim_prefix("--trend-day=")))
 		elif arg == "--trend-job" or arg.begins_with("--trend-job="):
-			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 3)
+			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 4)
 			trend_log = true
 		elif arg.begins_with("--club="):
 			# Loop MW-3: the car at a club's door (places.json id or name), no title.
@@ -3480,6 +3507,7 @@ func _parse_args() -> void:
 func _load_settings() -> void:
 	settings.persistent = not no_save
 	settings.load_file()
+	Access.apply(settings)
 	if not _flag_size:
 		base_size = settings.view
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
@@ -3733,7 +3761,9 @@ func _settings_state() -> Dictionary:
 			"auto": auto_name,
 			"master": settings.master, "music": settings.music, "effects": settings.effects, "perf": int(show_perf),
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
-			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on)}
+			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on),
+			"text_large": int(settings.text_large), "calm": int(settings.calm), "color_safe": int(settings.color_safe),
+			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist)}
 
 
 func _close_settings() -> void:
@@ -3801,6 +3831,10 @@ func _on_setting(key: String, value: Variant) -> void:
 		"zones":
 			settings.zone_cap = int(value) == 1
 			zone_cap_on = settings.zone_cap
+		"text_large", "calm", "color_safe", "vibration", "stop_assist":
+			# Accessibility (access.gd). Text size shows from the next launch (the HUD is built once).
+			settings.set(key, int(value) == 1)
+			Access.apply(settings)
 		"master", "music", "effects":
 			settings.set(key, float(value))
 			Sfx.set_levels(settings.master, settings.music, settings.effects)
@@ -3910,7 +3944,7 @@ func _on_car_splashed(speed: float) -> void:
 	splash.burst(p, speed, car.vel)
 	if sfx != null:
 		sfx.splash(speed)
-	Input.vibrate_handheld(80, clampf(speed / 15.0, 0.4, 1.0))
+	Access.buzz(80, clampf(speed / 15.0, 0.4, 1.0))
 	_tow_wait = TOW_DELAY
 	_splash_at = _clock
 	if water_test == 2:

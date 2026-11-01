@@ -22,6 +22,8 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"PROMOCJA", "LODY",
 		# The tower and the slab behind the stores (specs C and D): a parody and a drink.
 		"KOKA-KOLKA", "ORANŻADA",
+		# The Pawilony (2026-10-31): the bars' little words and the gate's name.
+		"PIWO", "BAR", "SHOTY", "DISCO", "KARAOKE", "OTWARTE", "PAWILONY",
 		# The start area as real Warsaw (R1, docs/design/start-area-real.md, 2026-11-01): the
 		# Eastern Wall as it is in 2025/26, half empty after H&M, Zara and C&A left, the H&M
 		# corner turning into a two-storey Frogs, a shoe chain on Zara's floor.

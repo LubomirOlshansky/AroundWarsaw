@@ -18,6 +18,7 @@ extends Node
 ## Cancel: the ✕ any time, or the passenger after 3 × the ETA: no pay, the streak ends. The
 ## police loop calls on_pulled_over() (one star).
 
+const Access := preload("res://scripts/access.gd")
 const Rules := preload("res://scripts/ride_rules.gd")
 const Beacon := preload("res://scripts/beacon.gd")
 const StopAssist := preload("res://scripts/stop_assist.gd")
@@ -1045,7 +1046,7 @@ func _arrive() -> void:
 			"comment": comment, "pay": pay, "rating": _rating(), "why": _why()})
 	_result_card = [text, COLOUR if final >= 4.0 else FAIL_COLOUR]
 	_result_in = RESULT_AFTER
-	Input.vibrate_handheld(120, 0.8)
+	Access.buzz(120, 0.8)
 	print("podwózka done: %s to %s in %.1f s, %.1f stars, paid %d zł (wallet %d zł)" % [_ride["name"], _ride["dest"],
 			_rules.clock, final, pay["total"], wallet.zl])
 	_log("pay %d zł (fare %d, tip %d, streak %d) · MNOŻNIK ×%.1f · respect +%d · wallet %d -> %d zł · rating %.2f -> %.2f · streak %d -> %d" % [

@@ -12,7 +12,8 @@ Warsaw"). It extends docs/design/first-scene.md (items 4-7 there are folded in h
 to Aleje Jerozolimskie (about 600 × 350 m), plus Złota and the Rondo Dmowskiego corners.
 
 **Owners elsewhere** (don't touch): the street furniture along the main line's route outside
-the box (another thread), the Cathedral and the Barbican (landmarks lane), the opening flyover
+the box (another thread, docs/design/street-details.md), the trend spots and their jokes
+(docs/design/trends-2025-26.md), the Cathedral and the Barbican (landmarks lane), the opening flyover
 and the guided start (PR #155).
 
 ## 1. What the real place looks like now (research, 2026-11-01)
@@ -84,7 +85,7 @@ press and the Warsaw city guides instead of Wykop's own pages.
 | R3 | **Pavements, kerbs and cycle paths** | Grey slab pavements and granite kerbs, red asphalt cycle paths, Złota's setts and elm alley, the fountain at the old tunnel mouth, the new crossings; checked on the orthophoto on the Mac | map (Opus) |
 | R4 | **Ordinary buildings by type** | The facade shader draws a type, not just a seed: pre-war tenement (tall floors, window surrounds, a heavy cornice, rusticated ground floor, ochre/cream/grey plaster), 1960s-70s slab (panel joints, loggia bands, pale grey), socialist-realist (stone, arcades), modern office (curtain wall, exists). Picked from height, footprint and OSM kind, with a hand list for the start box. Shader only: +0 draw calls | visuals (Opus) |
 | R5 | **Scena Relax, Zodiak, Cepelia** | The old cinema's RELAX letters on Złota 8 (R1 puts the sign up), the Zodiak pavilion in Pasaż Wiecha, the Cepelia glass pavilion and its book-and-vinyl store (parody name) at Rondo Dmowskiego | landmarks (Sonnet with a spec) |
-| R6 | **Trendy places 2025/26** | A matcha bar with a queue, a blind-box plush shop with a queue (an original toothy creature), a pistachio "Dubai" dessert stand, a bubble-tea counter; notebook entries and bubbles for each; radio and passenger lines about the empty stores, Frogs taking over, the clean transport zone, matcha | content (Sonnet), warsaw-tone |
+| R6 | **Trendy places 2025/26** | Mostly built by the trends thread the same day (docs/design/trends-2025-26.md: MACZA, PISTACJA DO KOŃCA, ZĘBUŚ and five more, posters, the Limitka drop). Left here: at least one of those spots inside the start box, plus the Eastern Wall jokes (the empty stores, Frogs XXL) in the radio and passenger lines | content (Sonnet), warsaw-tone |
 | R7 | **Street details in the box** | Warsaw's street name plates on corners, a city bike dock, the tram stops' platforms and shelters on Marszałkowska, bollards, bins, the Plac Centralny benches (first-scene item 5) | content + object-modeler |
 | R8 | **Landmark polish left in the box** | The museum's mid-height ribbon in stretches and the stepped roofline (BACKLOG MSN), the Palace's parked stone colour question, the Rotunda's teeth on the phone | landmarks |
 

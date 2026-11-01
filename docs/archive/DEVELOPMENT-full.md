@@ -4071,15 +4071,19 @@ missing lines merged, none changed), `eggs.json` (`easter_rechotka`, `easter_lez
 Everything is built at runtime from the data, on both city paths (the prebuilt sectors hold
 none of it); nothing new casts a sun shadow.
 
-- **Where things stand.** The baked data had no `shop=convenience`, `subway_entrance`,
-  `bicycle_rental` or `scooter` pois (BACKLOG "From loop MW-2": the map lane's list; baked since
-  2026-10-31, "Content POIs", the switch to them is the content lane's next loop), so
-  `storefronts.gd` picks from what it has: the 3,332 address pois (`door` is the road point,
-  `x, z` the building), the lane graph's junctions and the notebook's resolved places.
-- **Frogs** (parodies.md 2): an address within 26 m of a junction (`JUNCTION_REACH`), off the
-  landmarks and 20 m from the kebab pois and the venues, 70 m apart (`SPACING`), at most 24 a km²
-  in the hero districts and 10 elsewhere, two in the Old Town; a fixed shuffle (no randomness at
-  run time). **Triple corners**: Świętokrzyska × Marszałkowska and Plac Zbawiciela (`TRIPLES`),
+- **Where things stand (switch built 2026-10-31).** `storefronts.gd` reads the baked content POIs
+  ("Content POIs" below): the Frogs are the 163 `convenience` pois with `fr` (the chain), 70 m
+  apart (134 picked, plus the triple corners' 8 with spares; the wall rays decide which stand), not on a landmark or by a kebab stand or venue; the triple corners still come
+  from the addresses and the junction's twelve sites. The Leżaks are the 468 `scooter` pois (`stand`
+  upright, `roof` at `h` m over the ground, every other pose lies) and the zones the 56
+  `scooter_zone` pois (the `egg` one holds the standing Leżak); the metro canopies are the street
+  `subway_entrance` pois (not `u`), the open front away from `yaw` (the way down), `st` the
+  station. The old runtime picks (junction scatter, `_pavement` for the entrances, the density
+  caps) are gone, and with them the 108 Leżaks and 14 canopies that failed `check_pois.py`.
+  Bike docks and the non-`fr` `convenience` shops are not used yet.
+- **Frogs** (parodies.md 2): the real `fr` shops (above), off the landmarks and 20 m from the
+  kebab pois and the venues, 70 m apart (`SPACING`); a fixed shuffle (no randomness at
+  run time). The triple corners' addresses stand within 26 m of a junction (`JUNCTION_REACH`). **Triple corners**: Świętokrzyska × Marszałkowska and Plac Zbawiciela (`TRIPLES`),
   three Frogs 60° apart round one junction, from the addresses and then twelve sites round the
   junction looked for out to 80 m (`CORNER_FAR`), with spares that stand only if one of the
   three finds no wall. 248 picked, ~200 placed (a Frogs needs a wall).
@@ -5603,7 +5607,7 @@ Command-line options (after `--`):
 | `--life-log` | loop MW-4: print `life:` lines: the index, the minute's summary (riders, runners, Kolka, Hyrax, bells, the Zając), the bell, E28's follow, the Zając |
 | `--zajac` | loop MW-4: Live on Wednesday 2026-10-28 at 19:00 (`--clock=` and a Wednesday `--date=` change them), the car by Kolka's start (free roam, no title); with `--autopilot` the car paces the club 10 m to its side from 19:00 (the Zając: `life: zajac paid +40 respect (E29)`) |
 | `--trend-day=N` | loop MW-4: the Wiralek cycle's day number (0 = slot 1 on day 1, slot 2 on day 3, slot 3 on day 5; 88 = all three on day 1) instead of Live's date or the session's |
-| `--trend-job[=1\|2\|3]` | loop MW-4: start by that Wiralek slot (1 Plac Zbawiciela, 2 Chmielna, 3 Tamka) with its "Na czasie" request offered; with `--autopilot` accepted and driven; implies `--trend-log` |
+| `--trend-job[=1\|2\|3\|4]` | loop MW-4: start by that Wiralek slot (1 Plac Zbawiciela, 2 Chmielna, 3 Tamka; 4: PISTACJA's "Limitka" drop job, whatever the clock) with its "Na czasie" request offered; with `--autopilot` accepted and driven; implies `--trend-log` |
 | `--night-hub` | night-buses loop: a gathering of night buses at Dworzec Centralny now, whatever the time (with `--time=night`, the N signs too); its buses park at their bays at once |
 | `--old-tram` / `--old-tram=follow` | vintage-tram loop: the old two-car set now, on the track nearest the car, whatever the time (it stays); `=follow`: and the car (no collisions) kept 22 m behind its tail, so the view goes with it and E39's 300 m count runs |
 | `--tram-log` | vintage-tram loop: print `old tram:` lines: each run taken out of sight and turned modern, the follow count every 50 m and its resets, E39 |

@@ -41,6 +41,7 @@ extends Node
 
 signal found(id: String)
 
+const Access := preload("res://scripts/access.gd")
 const EGGS_PATH := "res://data/eggs.json"
 const DIALOGUE_PATH := "res://data/dialogue.json"
 const CHECK_EVERY := 0.5
@@ -607,7 +608,7 @@ func record(id: String, date := 0) -> bool:
 		hud.notebook_changed()
 	if blip.is_valid():
 		blip.call()
-	Input.vibrate_handheld(30, 0.4)
+	Access.buzz(30, 0.4)
 	found.emit(id)
 	return true
 

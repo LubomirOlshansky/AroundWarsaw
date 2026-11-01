@@ -24,10 +24,12 @@ Newest first. One entry per question.
   second small name on the west top-storey face (A6) is not built for the same reason. Default
   built: those. Alternatives: no banners, or banners on the west faces too.
 
-- **2026-10-31 · landmarks · University Library (BUW)** — Built from OpenStreetMap alone (no
-  free photo, the cloud reaches neither Commons nor GUGiK): the block is OSM's 10.9 m (LoD2 on
-  the Mac may say more) and the four philosophers' columns stand on Dobra before the copper
-  pages (the orthophoto can't show them). The roof follows the orthophoto since 2026-11-01.
+
+- **2026-10-31 · landmarks · University Library (BUW)** — The four philosophers' columns stand
+  on Dobra before the copper pages (the orthophoto can't show them; the Mac check kept them).
+  The height follows LoD2 since 2026-11-01 (deck 15 m), the roof the orthophoto. Open: the
+  south garden's beds are drawn as shrub, heather or lawn by a hash, not plant by plant; the
+  four mapped vents at the north corner stand outside the outline as the city's plain drums.
   Default built: those. F to check against a photo or the street (docs/landmarks/buw.md).
 
 - **2026-11-01 · landmarks · the Palace's stone colour** — The Mac photo check (PR #128) finds the
@@ -47,8 +49,8 @@ Newest first. One entry per question.
   kebab and słoiki doors, "Na czasie", the Leżak depot) now has a 9 m ring (was 6-7), counts
   under ~16 km/h as stopped (was 4-9 km/h), and the car brakes itself into the ring when it heads
   in and holds still ~1.5 s; BRAKE at a standstill reverses out. Always on, no setting. Default
-  built: that. Alternatives: a setting to switch the auto-brake off, or the assist only on touch
-  controls (keyboard players get it too now).
+  built: that, plus (2026-11-01) a Settings → DOSTĘP switch to turn the auto-brake off (default on).
+  Still open: the assist only on touch controls (keyboard players get it too).
 - **2026-10-31 · gameplay · the main line** (docs/design/main-line.md) — The main line is the
   guide (first 10 min), then the ladder's next rival (a gold star on the minimap and the full map,
   pinned to the rim at any distance), then the final at night; the respect gates are lowered to

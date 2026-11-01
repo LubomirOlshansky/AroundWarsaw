@@ -37,6 +37,7 @@ var spent_usec := 0
 ## The night-buses loop (E25, buses.gd): times a speed trap caught the player speeding past it.
 var trap_flashes := 0
 
+const Access := preload("res://scripts/access.gd")
 const Unit := preload("res://scripts/police/police_unit.gd")
 const Talk := preload("res://scripts/police/police_talk.gd")
 const Balloon := preload("res://scripts/police/police_balloon.gd")
@@ -138,6 +139,8 @@ const OFFICER_TROUSERS := 0.1
 const HALO_SIZE := 5.0
 const HALO_BLUE := Color(0.24, 0.48, 1.0, 1.0)
 const HALO_RED := Color(1.0, 0.23, 0.23, 0.8)
+## Colour-safe: white instead of red beside the blue.
+const HALO_SAFE := Color(1.0, 0.97, 0.88, 0.8)
 const SEARCHLIGHT := 9.0
 ## Test drivers (--police-auto, the soak's roaming autopilot).
 const ESCAPE_TOP := 30.0
@@ -1761,6 +1764,8 @@ func _halos_frame() -> void:
 	var n := 0
 	var t := Time.get_ticks_msec() * 0.001
 	var left_on := fmod(t * 2.5, 1.0) >= 0.5
+	# Calm (access.gd): both pools burn steady and softer, no alternating flash.
+	var steady := Access.calm
 	for u in _units:
 		var d = u.driver
 		# Loop 3g-2: the guards' amber beacon has no blue and red pools.
@@ -1771,7 +1776,12 @@ func _halos_frame() -> void:
 		var right := Vector3(c, 0.0, -s)
 		for side in 2:
 			var at: Vector3 = d.pos + right * (1.6 if side == 1 else -1.6) + Vector3(0, 0.2, 0)
-			_halo_put(n, at, HALO_SIZE, (HALO_BLUE if side == 0 else HALO_RED) if (left_on == (side == 0)) else Color(0, 0, 0, 0))
+			var col := Color(0, 0, 0, 0)
+			if steady or left_on == (side == 0):
+				col = HALO_BLUE if side == 0 else (HALO_SAFE if Access.color_safe else HALO_RED)
+				if steady:
+					col.a *= 0.5
+			_halo_put(n, at, HALO_SIZE, col)
 			n += 1
 	if level >= 3 and chasing():
 		var p := car.global_position
