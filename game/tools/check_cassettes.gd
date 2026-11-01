@@ -108,12 +108,14 @@ func _flow() -> void:
 	var hud: StubHud = f[2]
 	var radio: StubRadio = f[3]
 	var roof := Vector3(100.0, 30.0, -900.0)
-	var spots := {First10.CASSETTE_ID: roof}
-	_expect(c.place_all(func(name: String) -> Vector3:
-		for e in c.entries:
-			if e["roof"] == name and spots.has(e["id"]):
-				return spots[e["id"]]
-		return Vector3.INF) == 1, "the guide's cassette placed, the rest (no roof given) left out")
+	# Every cassette gets a roof spot 300 m apart (a roof that is not found logs a warning, which
+	# verify.sh counts as a failure; the map-free check keeps that path out).
+	var spots := {}
+	for k in c.entries.size():
+		var e: Dictionary = c.entries[k]
+		spots[e["roof"]] = roof if e["id"] == First10.CASSETTE_ID else Vector3(100.0 + 300.0 * (k + 1), 30.0, -900.0)
+	_expect(c.place_all(func(name: String) -> Vector3: return spots.get(name, Vector3.INF)) == c.entries.size(),
+			"every cassette placed on its roof")
 	var i := c.index_of(First10.CASSETTE_ID)
 	_expect(c.at(i) == roof, "at its roof spot: %s" % c.at(i))
 	c.tick(roof + Vector3(40.0, 5.0, 0.0), true)
@@ -132,7 +134,7 @@ func _flow() -> void:
 	_expect(hud.notes.size() == 1 and radio.opened.size() == 1, "a second look over it does nothing")
 	for e in c.entries:
 		if e["id"] != First10.CASSETTE_ID:
-			_expect(c.at(c.index_of(str(e["id"]))) == Vector3.INF, "%s without a roof: not placed" % e["id"])
+			_expect(not c.is_taken(str(e["id"])), "%s, 300 m or more away: not taken by the other's pickup" % e["id"])
 	c.free()
 	w.free()
 	hud.free()
