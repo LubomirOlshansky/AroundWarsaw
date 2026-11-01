@@ -9,11 +9,45 @@ that day here, in plain words a player would understand (no file names, no spoil
 rows in the progress log but no section here is listed automatically from the log's labels until
 someone writes its lines.
 
-## 2026-10-31
+## 2026-11-01
 - The first time you play, the game opens with a short camera flight over the Palace of Culture and Plac Defilad that lands behind your car. Tap to skip it.
 - A new game now starts facing the first kebab stand, the first delivery is a short hop up Marszałkowska, and the "new song" waits as a mixtape on the University Library's roof: fly the helicopter over it to pick it up.
+- St Anne's church at the start of Krakowskie Przedmieście has its classical front: four tall columns under a pediment with a cross, side wings, and a trimmed bell tower.
+- The Visitationists' church on Krakowskie Przedmieście has its cream rococo front: pilasters, a stepped curved gable with statues and a cross, a lower side wing and a small copper turret.
+- All Saints church on Plac Grzybowski now has its front and two domed towers.
+- Hala Mirowska is a proper red-brick market hall: round-headed windows between cream pilasters, four corner turrets, tall gable ends, a glazed lantern along the roof and a portal on the Plac Mirowski front.
+- Hala Gwardii is a proper red-brick market hall too: Mirowska's twin, with a portal at both ends, cream pilasters, corner turrets and a glazed lantern.
+- The Sejm on Wiejska has its curved front: the semicircular plenary hall wears a stone plinth and a sweep of fifteen tall columns under a curved cornice.
+- St Alexander's church on Plac Trzech Krzyży is a real rotunda now: a round drum with tall windows, a green dome with a lantern and a cross, and a six-column portico under a pediment on both ends.
+- The Staszic Palace on Krakowskie Przedmieście has a columned portico under a pediment, a stone cornice, and Copernicus sits in bronze on his granite pedestal in front of it.
+- The Holy Cross church on Krakowskie Przedmieście has its baroque front: four tall columns, a pediment, and two towers with green copper onion domes and gilt crosses.
+- The Royal Castle is paler and pinker, like its plaster in life (it was brick-red with near-black roofs), and stands on a pale stone plinth.
+- The PZU Tower and JM Tower on the Jana Pawła II and Jerozolimskie axes get their own glass: pale ribbon bands and a white mast, dark glass with grey fins.
+- Old Town roofs grow small gabled dormers with cream frames and dark windows, and some carry a brick chimney.
+- The houses on the east side of the Old Town market square get stepped attic gables facing the square.
+- The 1960s housing blocks behind the department stores are pale cream with long balcony bands, ochre end walls and lift houses on their roofs, and one carries a big lit billboard.
+- Behind the department stores, the tall block between Sawa and Wars is now a light, re-clad 1970s tower with rows of small windows, a dark glass base and big red letters on its roof.
+- The three department stores by the start look like the real ones: dark blue-grey glass in a tall grid, a deep dark shop floor under the overhang, small skylights and curved vents on the roofs, and big printed ad banners on their walls.
+- The Rotunda looks like the real one: green-grey glass between slim silver mullions, a silver folded roof whose edge hangs in a ring of teeth, a raised glass skylight in the middle, flat canopies over its doors, and the tower beside it is now a green glass grid.
+- The Grand Theatre (Teatr Wielki) has its famous front: a portico of eight tall columns on a stepped stone base, under a heavy beam and a crowned top with statues.
+- Stadion Narodowy now stands on its green embankment: the grass slopes of the old stadium's bank run down to the streets all round, and the paved promenade at the stadium's foot sits on the ground instead of hanging in the air.
+- The Copernicus Science Centre's roof now has all seven skylights where they really are, including the glass pyramid and a dark stair tower, and the planetarium has more facets and a dark glass ring round its white dome.
+- The Copernicus Science Centre now matches the photos: warm striped walls with tall windows, the copper-red planetarium with its white dome, skylight craters and winding paths in the roof garden, and a dark wing hanging over the court.
+- The Palace of Culture is reshaped from the real map data: the tower now rises from full-height wings on its north and south sides, its shaft has heavy corner piers around ribbed middle bays, the Congress Hall has its real rounded outline and flat stepped grey roof, and the main entrance has a wider portico.
+- The street where the game starts is busier and richer: the three glass department stores across from the museum (Junior, Sawa and Wars, with lit names JUNIOREK, SAWKA and WARSIK on their roofs) are real buildings now, a tram rolls past the car in the first seconds and another comes down the street, and the pavement by the museum has café tables under parasols, a newspaper kiosk, a flower stall, an advertising column and flower planters.
+- The Copernicus Science Centre by the river is rebuilt: a long dark block with windows scattered like pixels that glow at night, a corner hanging over the glass entrance, a garden of lawns and paths on its roof, and the black, faceted planetarium beside it.
+- Stadion Narodowy's facade now looks like the real one: rows of red and silver panels, more silver towards the top, over a dark glass entrance level, with stronger spikes on the skyline.
+- Stadion Narodowy is rebuilt from the real map data: its woven skin is red below and white above like the flag, a full-size striped pitch sits in two tiers of red seats, and the needle over the pitch carries the folded roof.
+- The Museum of Modern Art's roof is now one big glass grid with two small light wells, as seen from above, and its window on Marszałkowska is a deep cut in the white wall.
+- Warszawa Centralna's roof now shows its famous winged shells at both ends: the underside sweeps down from the edges to the pillars and arches over the hall.
+
+## 2026-10-31
+- New: five shisha lounges in Śródmieście side streets (DYMEK, OPAR, CHMURKA, MGIEŁKA, ZADYM), each with a violet or teal neon sign that glows at night.
+- New: five COFFEECHAIR cafés in Śródmieście (Foksal, Chmielna, Krakowskie Przedmieście, Plac Trzech Krzyży, Hoża), each with a warm neon sign.
+- Picking up and dropping off is much easier: the rings are bigger, you don't need to stop dead, and the car brakes by itself into the ring and waits there while the passenger gets in or out.
 - The game remembers where you left the car: on the next launch the title offers "KONTYNUUJ" to carry on from there, or "NOWA GRA" to start over (it asks first, since a new game wipes your money and finds).
 - The story now stands out from the side jobs: the next main-line goal is a gold star on the minimap (always at its edge when far away) and on the full map, with a goal line under the map's title; side jobs keep their coloured dots and squares, and a small legend says which is which. The rival ladder asks for less respect, so the final race comes within about an hour.
+- The University Library on Dobra is rebuilt: its copper pages covered in old writing, four philosophers on columns at the door, and its roof garden as it looks from the air: the big glass roof with a walkway across it, flower beds round a little plaza, a grassy mound with a glass pyramid, the round glass oculus, and the green band round the edge. The first mixtape waits up there.
 - Warszawa Centralna is rebuilt from the real map data: the glass hall under its wide, flat overhanging roof, the roof's saddle-shaped shells on rows of pillars, the lower wings at both ends, and at night the hall glowing white under a line of lamps.
 - The website's first city picture is new: Plac Defilad from above at golden hour, with the Palace, the new Museum of Modern Art and the building site beside it.
 - Beside the museum, the plot for the new TR Warszawa theatre is now a messy building site: a fence with black tarp, dug-up ground and old foundations, spoil heaps, cabins, a digger and a tower crane with a red light at night.

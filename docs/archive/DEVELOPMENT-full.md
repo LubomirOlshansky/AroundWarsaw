@@ -569,7 +569,13 @@ outlines and parts centred in it (and their neon shop signs). Checked over the G
   red stands with grey gangways down to a striped pitch, the needle hanging over the centre
   (30-100 m, a red light on its tip) on its cables, a paved promenade on the crest. The
   embankment is the terrain (the old Stadion Dziesięciolecia's bowl); the mapped 14 m podium
-  that covered the bowl is dropped.
+  that covered the bowl is dropped. **The grass embankment** (2026-11-01, `landmarks.gd`
+  `_find_embankment`, laid by `map_builder.gd` `_build_areas` at `BANK_Y`): along each mast's
+  ray the bank's slope is found on the terrain (from 1.15 x the inner masts' radius: the
+  ground falls 15 % or more once 2.5 m under the start, its foot where it flattens under 9 %,
+  cap 1.75 x), and a grass band per mast gap is laid on the ground's grid under every mapped
+  area, so only the bare slopes turn green; the plaza, its lawns and stairs, paths and roads
+  stay on top. No new draw call (the flat layer), the terrain and the drive are unchanged.
 - **Warszawa Centralna** (mapped in 3D, its outline underground): a 140 x 57 m roof of
   hyperbolic-paraboloid shells on the mapped pillars (saddles whose corners rise and fall in
   turn, so the eaves zigzag), the glass hall under it, the canopy round it to 140 x 86 m.

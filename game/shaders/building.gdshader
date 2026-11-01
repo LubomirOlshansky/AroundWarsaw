@@ -192,6 +192,9 @@ const int S_DARK = 6;
 const int S_GOLD = 7;
 const int S_FRAME = 8;
 const int S_TILE = 9;
+const int S_EASTWALL = 10;
+const int S_PUNCHED = 11;
+const int S_SLAB = 12;
 
 vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool cut) {
 	glow = vec3(0.0);
@@ -256,6 +259,60 @@ vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool 
 			}
 		}
 		return tile;
+	} else if (s == S_EASTWALL) {
+		// The Eastern Wall's stores (the Mac photo check, 2026-11-01): a vertical-led grid, strong
+		// dark grey mullions every 1.5 m, only a thin dark spandrel line at each floor.
+		frame = fract(u / 1.5) < 0.13 || fract(h / fh) < 0.035;
+		frame_col = srgb_to_linear(vec3(0.247, 0.278, 0.298)) * mix(0.3, 1.0, daylight);
+	} else if (s == S_PUNCHED) {
+		// A re-clad 1970s point block (the start area's 75 m tower, 2026-11-01): light horizontal
+		// metal cladding, punched windows in bands (2 x 1.4 m every 3.2 m, white frames, dark
+		// glass), warm at night.
+		float pf = 2.95;
+		float wx = fract(u / 3.2);
+		float wy = fract(h / pf);
+		float lvl = floor(h / pf);
+		vec3 clad = col * mix(0.3, 1.0, daylight) * (fract(h / 0.74) < 0.06 ? 0.9 : 1.0);
+		bool win = abs(wx - 0.5) < 0.3125 && wy > 0.3 && wy < 0.775;
+		bool rim = abs(wx - 0.5) < 0.345 && wy > 0.27 && wy < 0.805;
+		if (win) {
+			if (lights_on > 0.001 && hash12(vec2(floor(u / 3.2), lvl) + 2.9) < 0.42 * lights_on) {
+				glow = WARM_PALE * 0.95;
+				return c * 0.3;
+			}
+			return mix(srgb_to_linear(vec3(0.16, 0.19, 0.23)), sky * 0.5, refl) * mix(0.35, 1.0, daylight);
+		}
+		return rim ? white : clad;
+	} else if (s == S_SLAB) {
+		// A 1960s residential slab's long face (2026-11-01): pale plaster, a continuous loggia
+		// band on every floor (a light balustrade, a dark recess with windows between thin
+		// piers); warm windows and some lit balconies at night.
+		float pf = 2.85;
+		float wy = fract(h / pf);
+		float lvl = floor(h / pf);
+		float bay = floor(u / 3.6);
+		float wx = fract(u / 3.6);
+		vec3 plaster = col * mix(0.3, 1.0, daylight);
+		if (h < pf || h > top - 0.6) {
+			return plaster * (h < pf ? 0.86 : 1.06);
+		}
+		if (wy < 0.33) {
+			return srgb_to_linear(vec3(0.9, 0.88, 0.83)) * mix(0.3, 1.0, daylight);
+		}
+		if (wy > 0.9 || wx < 0.07) {
+			return plaster * 0.92;
+		}
+		vec3 deep = col * 0.55 * mix(0.35, 1.0, daylight);
+		if (abs(wx - 0.55) < 0.18 && wy > 0.45 && wy < 0.84) {
+			deep = mix(srgb_to_linear(vec3(0.17, 0.19, 0.22)), sky * 0.4, 0.3) * mix(0.35, 1.0, daylight);
+			if (lights_on > 0.001 && hash12(vec2(bay, lvl) + 4.1) < 0.45 * lights_on) {
+				glow = WARM_PALE * 0.9;
+				return deep * 0.3;
+			}
+		} else if (lights_on > 0.001 && hash12(vec2(bay, lvl) + 8.3) < 0.1 * lights_on) {
+			glow = WARM * 0.5;
+		}
+		return deep;
 	} else if (s == S_FRAME) {
 		frame = fract(u / 3.2) < 0.14 || fract(h / 4.4) < 0.1 || h > top - 0.9;
 		frame_col = mix(silver, white, 0.5);
@@ -341,31 +398,34 @@ vec3 glass_wall(vec3 col, float u, float h, float top, float sp, float fh, float
 	return c;
 }
 
-// Stadion Narodowy's skin: two families of strips woven diagonally, red over white,
-// then white over red; dark gaps where the stands show through.
-vec3 weave(float u, float h, out vec3 glow) {
+// Stadion Narodowy's skin: panels of mesh in staggered rows (3.2 x 1.6 m, each row shifted
+// by half a panel), thin dark joints between them. Each panel is red or light silver, silver
+// more often the higher it is (the Mac photo check, 2026-11-01: about 17 % at the foot, half
+// at 60 % of the height, 88 % at the top, never all of one colour), so the flag's colours
+// blend up the basket. `top` is the skin's top over the street.
+vec3 weave(float u, float h, float top, out vec3 glow) {
 	glow = vec3(0.0);
-	float w = 4.2;
-	float a = (u + h * 0.9) / w;
-	float b = (u - h * 0.9) / w;
-	float fa = fract(a);
-	float fb = fract(b);
-	bool in_a = fa > 0.08 && fa < 0.92;
-	bool in_b = fb > 0.08 && fb < 0.92;
+	float pw = 3.2;
+	float ph = 1.6;
+	float row = floor(h / ph);
+	float x = u / pw + 0.5 * mod(row, 2.0);
+	float col_i = floor(x);
+	float fx = fract(x);
+	float fy = fract(h / ph);
 	vec3 red = srgb_to_linear(vec3(0.78, 0.12, 0.16));
-	vec3 white = srgb_to_linear(vec3(0.9, 0.9, 0.88));
+	vec3 silver = srgb_to_linear(vec3(0.81, 0.82, 0.816));
 	vec3 gap = srgb_to_linear(vec3(0.16, 0.15, 0.17));
-	bool a_over = mod(floor(a) + floor(b), 2.0) < 1.0;
-	vec3 c;
-	if (in_a && (a_over || !in_b)) {
-		c = red * (0.85 + 0.3 * abs(fa - 0.5));
-	} else if (in_b) {
-		c = white * (0.82 + 0.3 * abs(fb - 0.5));
-	} else {
+	float f = clamp(((row + 0.5) * ph / max(top, 1.0) - 0.15) / 0.85, 0.0, 1.0);
+	float p_silver = mix(0.17, 0.88, f);
+	float n = hash12(vec2(col_i, row) + 0.37);
+	vec3 c = n < p_silver ? silver : red;
+	// The mesh catches the light unevenly: panel by panel, and darker at its lower edge.
+	c *= (0.88 + 0.16 * hash12(vec2(col_i, row) + 5.11)) * (0.9 + 0.1 * fy);
+	if (fx < 0.04 || fy < 0.07) {
 		c = gap;
 	}
 	if (lights_on > 0.001) {
-		// Lit from inside at night: the red strips glow, the white ones catch the light.
+		// Lit from inside at night: the red panels glow, the silver ones catch the light.
 		glow = (c == gap ? vec3(0.0) : c * (c.r > c.g * 2.0 ? 1.6 : 0.9)) * 0.75;
 	}
 	return c;
@@ -466,13 +526,28 @@ vec3 landmark(int mode, float param, vec3 col, vec2 uv, float top, bool wall, ve
 		}
 		return col;
 	} else if (mode == M_WEAVE) {
-		return wall ? weave(uv.x, uv.y, glow) : col;
+		return wall ? weave(uv.x, uv.y, top, glow) : col;
 	} else if (mode == M_GLASS_ROOF) {
 		return glass_roof(col, wp.xz, glow);
 	} else if (mode == M_PAVILION) {
 		// A glass drum lit from inside: busy at night, nearly every bay.
 		if (!wall) {
 			return col;
+		}
+		if (param > 0.6) {
+			// param 0.75: the Rotunda (the Mac photo check, 2026-11-01): green-grey panes floor
+			// to eave (its silver mullions are geometry), one transom near the top, a little sky
+			// in the glass; lit warm from inside at night, nearly every pane.
+			float refl = clamp(uv.y / max(top, 1.0), 0.0, 1.0) * 0.22 + 0.14 * value_noise(vec2(uv.x * 0.06, uv.y * 0.05));
+			vec3 g = mix(col * mix(0.4, 1.0, daylight), srgb_to_linear(sky_colour) * mix(0.4, 1.0, daylight), refl);
+			if (top > 3.0 && uv.y > top - 1.55 && uv.y < top - 1.3) {
+				return srgb_to_linear(vec3(0.76, 0.78, 0.8)) * mix(0.3, 1.0, daylight);
+			}
+			if (lights_on > 0.001) {
+				glow = vec3(1.0, 0.86, 0.62) * (0.8 + 0.3 * hash12(vec2(floor(uv.x / 2.07), floor(uv.y / 5.0))));
+				g *= 0.4;
+			}
+			return g;
 		}
 		vec3 c = glass_wall(col, uv.x, uv.y, top, 1.6, 4.2, 0.0, glow);
 		if (lights_on > 0.001 && fract(uv.x / 1.6) > 0.1 && fract(uv.x / 1.6) < 0.9 && fract(uv.y / 4.2) > 0.06) {

@@ -33,6 +33,39 @@ Newest first. One entry per question.
 - **2026-10-31 · gameplay · first-10 polish** — The first mixtape lies on the University Library's
   roof (the roof garden by the boulevards) and gives the next PÓŁNOC FM track, +10 respect. Default
   built: that. Alternative: the Copernicus Science Centre's roof, right on the boulevards.
+
+- **2026-11-01 · landmarks · the Eastern Wall stores' banners and west names** — The photo
+  check's optional items: printed ad banners (A4) are built on the faces the game's camera sees
+  (each south end and east face, 3 per store: PROMOCJA, SAMSONG, LODY, WYPRZEDAZ), not on the
+  street (west) faces where the real ones hang, because the iso camera never sees those. The
+  second small name on the west top-storey face (A6) is not built for the same reason. Default
+  built: those. Alternatives: no banners, or banners on the west faces too.
+
+- **2026-10-31 · landmarks · University Library (BUW)** — Built from OpenStreetMap alone (no
+  free photo, the cloud reaches neither Commons nor GUGiK): the block is OSM's 10.9 m (LoD2 on
+  the Mac may say more) and the four philosophers' columns stand on Dobra before the copper
+  pages (the orthophoto can't show them). The roof follows the orthophoto since 2026-11-01.
+  Default built: those. F to check against a photo or the street (docs/landmarks/buw.md).
+
+- **2026-11-01 · landmarks · the Palace's stone colour** — The Mac photo check (PR #128) finds the
+  Palace's stone too warm: the photos show a cooler grey-beige (about #cfc6b5 in sun) than the
+  game's sandstone #d8c49c (SANDSTONE in landmarks.gd, also the LoD2 bake's colour). Default
+  built: the warm sandstone kept (it carries the golden-hour landing shot and the Dusk floodlight).
+  Alternative: move SANDSTONE towards #cfc6b5 and re-shoot the landing.
+
+- **2026-11-01 · landmarks · Copernicus Science Centre** — The Mac's photo check is applied
+  (copper-red planetarium drum and dome, warm strip facade, craters and paths on the roof, the
+  cantilever), and the re-check's roof layout (all seven craters, 2 + 3 + 2 with the stair head)
+  and faceted planetarium with its dark clerestory. Still parked: the river corner's glazed
+  ground floor (kept as built), the steel frame's stairs. Details:
+  docs/landmarks/kopernik.md.
+
+- **2026-10-31 · driving · quest stop assist** — Every pickup and drop-off (rescue, Podwózka,
+  kebab and słoiki doors, "Na czasie", the Leżak depot) now has a 9 m ring (was 6-7), counts
+  under ~16 km/h as stopped (was 4-9 km/h), and the car brakes itself into the ring when it heads
+  in and holds still ~1.5 s; BRAKE at a standstill reverses out. Always on, no setting. Default
+  built: that. Alternatives: a setting to switch the auto-brake off, or the assist only on touch
+  controls (keyboard players get it too now).
 - **2026-10-31 · gameplay · the main line** (docs/design/main-line.md) — The main line is the
   guide (first 10 min), then the ladder's next rival (a gold star on the minimap and the full map,
   pinned to the rim at any distance), then the final at night; the respect gates are lowered to

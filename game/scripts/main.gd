@@ -77,6 +77,8 @@ const Districts := preload("res://scripts/districts.gd")
 ## Loop 3h slice 2: the 20 Syrenki (collectibles).
 const Syrenki := preload("res://scripts/syrenki.gd")
 const Cassettes := preload("res://scripts/cassettes.gd")
+## First scene items 4-5: the kiosk, stall, cafés and planters by the start (first_scene.gd).
+const FirstScene := preload("res://scripts/first_scene.gd")
 ## Loop 3h slice 3: the final race's route (the start's hint for --trzy-mosty).
 const TrzyMosty := preload("res://scripts/trzy_mosty.gd")
 const Ladder := preload("res://scripts/ladder.gd")
@@ -109,6 +111,7 @@ const OldTram := preload("res://scripts/old_tram.gd")
 const Garage := preload("res://scripts/garage.gd")
 ## Loop 3h slice 4: the guided first 10 minutes and the end card.
 const First10 := preload("res://scripts/first10.gd")
+const StopAssist := preload("res://scripts/stop_assist.gd")
 const MainLine := preload("res://scripts/main_line.gd")
 const MAP_PATH := "res://map/centrum.json"
 
@@ -1138,6 +1141,7 @@ func _build_world() -> void:
 	_build_districts()
 	_build_syrenki(world)
 	_build_cassettes(world)
+	_build_first_scene(world)
 	_build_garage(world)
 	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
 	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
@@ -1296,6 +1300,7 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	trams.setup(graph, map, data)
 	trams.traffic = traffic
 	traffic.trams = trams
+	_first_scene_trams()
 	walkers = Pedestrians.new()
 	world.add_child(walkers)
 	walkers.setup(map, cam, traffic, data)
@@ -1316,6 +1321,33 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 		var hit := graph.snap(p, 60.0, Vector2(-sin(car.rotation.y), -cos(car.rotation.y)), true)
 		if not hit.is_empty():
 			_bench_ghost = traffic.add_ghost(hit[0], hit[1], hit[2])
+
+
+## First scene items 4-5 (first_scene.gd): the street furniture on Marszałkowska's east
+## pavement by the start, on both city paths.
+func _build_first_scene(world: Node3D) -> void:
+	if solo_site != "":
+		return
+	var fs := FirstScene.new()
+	fs.name = "FirstScene"
+	fs.map = map
+	world.add_child(fs)
+	fs.build()
+
+
+## First scene (docs/design/first-scene.md item 6): a start on Marszałkowska between
+## Świętokrzyska and the Eastern Wall's stores puts a tram in the first frame: one northbound
+## rolling up from behind the car (it passes in the first seconds), one southbound coming down
+## the street ahead. They are two of the city's trams, taken from where they were.
+const FIRST_SCENE := Rect2(-1080.0, -160.0, 200.0, 420.0)
+const MARSZALKOWSKA_NORTH := Vector2(-0.349, -0.937)
+func _first_scene_trams() -> void:
+	var at := Vector2(car.global_position.x, car.global_position.z)
+	if not FIRST_SCENE.has_point(at) or trams.trams.size() < 2:
+		return
+	var up_ok := trams.place_near(trams.trams[0], at, -18.0, MARSZALKOWSKA_NORTH, 7.0)
+	var down_ok := trams.place_near(trams.trams[1], at + MARSZALKOWSKA_NORTH * 110.0, 0.0, -MARSZALKOWSKA_NORTH, 8.0)
+	print("first scene: trams up %s, down %s" % [up_ok, down_ok])
 
 
 ## v0.9: the sound (sfx.gd), fed by the car's knocks, the trams' bells, the drivers'
@@ -1924,8 +1956,6 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 
 # --- the garage loop ---------------------------------------------------------------------------
 
-## Warsztat u Mirka (garage.gd): its ring on Brzeska, the car's saved paint (or --paint), the card
-## that pauses the game like the settings card.
 ## The first-10 polish: a run that will get the guide (a normal launch or --first10 on a fresh
 ## save, with no other start asked for) starts at First10.START, facing north up Marszałkowska to
 ## the first stand. Set before the city is built, so the sectors round it come in first.
@@ -1966,6 +1996,8 @@ func _build_first10() -> void:
 		first10.race_at = 1.0
 
 
+## Warsztat u Mirka (garage.gd): its ring on Brzeska, the car's saved paint (or --paint), the card
+## that pauses the game like the settings card.
 func _build_garage(world: Node3D) -> void:
 	garage = Garage.new()
 	garage.name = "Garage"
@@ -4476,6 +4508,7 @@ func _process(dt: float) -> void:
 		hud.set_speed(roundi(absf(car.forward_speed) * 3.6))
 		missions.tick(dt, pos, car.vel.length(), false)
 	_show_target()
+	_stop_assist()
 	_main_line_tick(dt)
 	var heading: float = heli.rotation.y if flying else car.rotation.y
 	hud.update_minimap(Vector2(pos.x, pos.z), heading, deg_to_rad(cam_yaw))
@@ -4866,6 +4899,24 @@ func _view_census() -> String:
 
 func _vehicle_position() -> Vector3:
 	return heli.global_position if flying else car.global_position
+
+
+## The quest stop assist (stop_assist.gd): hands the car the ring of the errand on now, in the
+## arrow's order (a race has none), so it brakes itself into it.
+func _stop_assist() -> void:
+	var at := Vector3.INF
+	if flying or (rivals != null and rivals.has_target()):
+		pass
+	elif trend_job != null and trend_job.has_target():
+		at = trend_job.stop_spot()
+	elif rides != null and rides.has_target():
+		at = rides.stop_spot()
+	elif jobs != null and jobs.has_target():
+		at = jobs.stop_spot()
+	elif missions.has_target():
+		at = missions.stop_spot()
+	car.assist_at = at
+	car.assist_reach = StopAssist.RING
 
 
 ## The main line (main_line.gd): the active target is the main line's (_put_target), and its step

@@ -100,9 +100,15 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               "Warsaw Trade Tower", "Skyliner", "Warsaw Unit", "Mennica Legacy Tower", "Generation Park Y",
               "Skysawa", "Błękitny Wieżowiec", "Warszawskie Centrum Finansowe", "Centrum LIM", "Chałubińskiego 8",
               "Spektrum Tower", "The Bridge", "Hilton Warsaw City", "The Westin Warsaw", "Novotel Warszawa Centrum",
-              "Central Tower", "Ilmet", "Platinum Tower A", "Platinum Tower B", "Łucka City", "Widok Towers",
+              "Central Tower", "Ilmet", "Platinum Tower A", "Platinum Tower B", "Łucka City", "Widok Towers", "PZU Tower", "JM Tower",
               # map north (2026-10-31): Arkadia, for the landmarks lane (docs/DEMO.md 2.2)
-              "Westfield Arkadia"]
+              "Westfield Arkadia",
+              # first scene item 3 (2026-10-31): the Eastern Wall's stores (landmarks.gd DTC)
+              "Junior", "Sawa", "Wars",
+              # the Copernicus Science Centre (2026-11-01): its low wings and the overhanging corner
+              "Centrum Nauki Kopernik",
+              # the University Library (2026-10-31): its roof houses and round lights
+              "Biblioteka Uniwersytecka"]
 SITE_PAD = 12.0
 SITE_AREAS = [
     (1250.0, -820.0, 1700.0, -370.0),       # Stadion Narodowy's masts (Rect2(1250, -820, 450, 450))

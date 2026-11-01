@@ -21,6 +21,7 @@ extends Node
 var spent_usec := 0
 
 const Beacon := preload("res://scripts/beacon.gd")
+const StopAssist := preload("res://scripts/stop_assist.gd")
 const Models := preload("res://scripts/models.gd")
 const Props := preload("res://scripts/props.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
@@ -31,8 +32,8 @@ const SLOIK_COLOUR := Color("#4fd8c4")
 const FAIL_COLOUR := Color("#e2574c")
 const PULL_IN := 7.0          # stop in this ring to start a job...
 const PULL_IN_SPEED := 8.0    # ...going slower than this (m/s): pulling in, not passing
-const ARRIVE := 7.0           # the door's ring
-const ARRIVE_SPEED := 2.5
+const ARRIVE := StopAssist.RING          # the door's ring
+const ARRIVE_SPEED := StopAssist.STOP_SPEED
 const ORDER_MIN := 400.0
 const ORDER_MAX := 1500.0
 ## Across the river it is "basically the centre": the customer's word, not the map's.
@@ -471,6 +472,13 @@ func target_position() -> Vector3:
 	if round_busy():
 		return roundup.target_position()
 	return _order["ring"]
+
+
+## Where the car should stop now (stop_assist.gd): the door, or the round-up's depot to unload.
+func stop_spot() -> Vector3:
+	if round_busy():
+		return roundup.stop_spot()
+	return _order["ring"] if state == State.DELIVER else Vector3.INF
 
 
 func target_colour() -> Color:

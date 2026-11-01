@@ -3,6 +3,13 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Quest pickups and drop-offs too hard to stop on (the user, 2026-10-31)
+- **Landed** (thread "Make quest pickup and dropoff easier"): stop_assist.gd, one shared 9 m
+  ring and ~16 km/h "stopped" for every car stop zone, and car.gd's stop assist (brakes into the
+  ring when heading in, holds for the quest's hold, never touches a car passing by;
+  check_stop_assist.gd). Left: F to feel it on the phone (is the glide-in too firm or too
+  soft: StopAssist.DECEL 9 m/s²; does a 9 m ring reach across the road at narrow doors).
+
 ## Top priority: a game-like full map with teleport (the user, 2026-10-31)
 - **Landed** (thread "Make the map fun and game-like"): the full map in its own poster style
   (map_art.gd), 25 landmark pins (map_icons.gd), hold 0.6 s to teleport, the cards behind ≡.
@@ -52,20 +59,19 @@ Small problems that agents reported or that showed up in screenshots. They are f
   Europejski's are estimates to set from photos; the Królewska-edge colours are guesses; the
   unnamed south-east block has no card (its name isn't mapped); the Metropolitan's passages are
   dark panels, not open; the army museum's yard placement is a guess (east courtyard).
-  Next candidates: tram stop platforms, kiosks (not in the baked data yet), Warsaw's green bins. **Left**: PZU Tower and JM Tower (oddly mapped) keep the
-  generic glass, and any model the user names next (docs/QUESTIONS.md).
+  Next candidates: tram stop platforms, kiosks (not in the baked data yet), Warsaw's green bins. **Left**: PZU Tower and JM Tower are towers since 2026-11-01 (first pass, colours to check on a Mac photo), and any model the user names next (docs/QUESTIONS.md).
   **Landmarks lane, hand-over (2026-10-31)**: since the first passes the lane also landed: the Rondo
   Daszyńskiego towers (The Warsaw HUB found by a point, `_tallest_at`; sloped crowns), the Old
   Town's and New Town's tenements split into their OSM houses' colours and tile roofs
   (`map_builder._tenement_facades`), brick Gothic for the Cathedral and the Barbican
   (`M_GOTHIC`), Sigismund's Column, map north (Arkadka with its lit sign, the Forest tower, the
   flag on Rondo Radosława) and Most Świętokrzyski's pylon and stays. **Left, for fresh threads**:
-  St Anne's classical facade (a portico of four columns and a pediment on its west face; it is
+  St Anne's classical facade (DONE 2026-11-01: `_build_anna`, spec anna.md, portico, wings and the bell tower's trim, Mac photo check parked: column count, door, tower cap; was: a portico of four columns and a pediment on its west face; it is
   a kept skin today, outline in `centrum.json` landmarks "Kościół pw. Świętej Anny", centre
   (−658, −1350), the free-standing bell tower is a separate building to its north-east), the other
-  churches (Holy Cross, All Saints, St Alexander's rotunda, the Visitationists) and the Palace
-  on the Isle's neighbours, Staszic's facade (a colour-only skin today; Zachęta, Holy Trinity
-  and the Presidential Palace became models on 2026-10-31, specs in docs/landmarks/specs/), the Old Town's gables and dormers (the LoD2 roofs have none), PZU/JM Tower. How the
+  churches (Holy Cross DONE 2026-11-01: front and towers, spec krzyz.md, Mac photo check parked; All Saints (DONE 2026-11-01: front and twin towers on the kept skin, spec wszystkich.md, 788 tris, heights estimated, Mac photo check parked: tower height and dome shape, portal count), St Alexander's rotunda (DONE 2026-11-01: model, spec aleksander.md, Mac photo check parked: which end has the portico, column count, bell towers), the Visitationists DONE 2026-11-01: facade, stepped wing and turret on the kept skin, spec wizytki.md, 566 tris, heights estimated, Mac photo check parked: gable shape, towers or none, turret) and the Palace
+  on the Isle's neighbours, the Sejm's hall colonnade (DONE 2026-11-01: curved colonnade, entablature and cornice on the kept skin, spec sejm.md, Mac photo check parked: column count, eave height, entrance, wings), Hala Mirowska (DONE 2026-11-01: model from the mapped parts, spec mirowska.md, Mac photo check parked: the real brick colour, the front's door count, whether the lantern shows; Hala Gwardii DONE 2026-11-01: symmetric twin, bays measured from its outline, spec gwardii.md, 1212 tris, Mac photo check parked: real brick colour, door count on the long sides, lantern glow), Staszic's facade (DONE 2026-11-01: portico, cornice and Copernicus's statue on the kept skin, spec staszic.md, Mac photo check parked: portico centre, column and door count, real eave height; Zachęta, Holy Trinity
+  and the Presidential Palace became models on 2026-10-31, specs in docs/landmarks/specs/) (PZU/JM Tower done 2026-11-01). (The Old Town's dormers and chimneys, 2026-11-01: `old_town_roofs.gd`, one per big roof slope, no new draw call; a Mac look on the real roofs is still open. The market square's east side got stepped attic gables, 2026-11-01: `OldTownRoofs.gable`, one per ~8 m house bay on walls facing the square, skipped where LoD2 has its own gable end; no new draw call; Mac look open: stage proportions, the volute scrolls a real gable has, and whether the dormers show, since the first dress arrays were copies and are now written back.) How the
   lane works: `landmarks.gd` sites (`TOWERS`, `SKINS`, fixed-position circle zones like
   `_find_zygmunt`), each needs a card in `INFO` and `check_landmarks`; a site found in
   `data["buildings"]` also needs its box in `bake_sectors.py` `SITE_AREAS`; after a change
@@ -89,9 +95,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   windows, long skylights on the flat roof, a card. Spec and the values still to set:
   docs/design/first-scene.md "Spec for item 1". Landmarks lane: Opus spec, `object-modeler`
   builds, `art-director` accepts. **Built 2026-10-31** (site `msn`, spec
-  `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Left: the photo check on the
-  Mac (the two city-room windows' faces and sizes and the skylight count are estimates; the
-  photos in `refs/` were not reachable from the cloud), and TR Warszawa next door.
+  `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Photo-checked on the Mac
+  2026-11-01: the roof is one gridded glass field with two small wells, and the Marszałkowska
+  window is a deep recess at mid-face. Found then, left open: the mid-height dark ribbon runs only
+  in stretches on both long faces (photos 2 and 4), not all round as built; the Marszałkowska
+  face's lower box has two small windows; the upper roofline steps down near the south end.
 - **TR Warszawa's building site** (F, 2026-10-31): built as site `tr` on the empty plot west of
   the museum (a messy site: hoarding, dirt, heaps, old foundations, cabins, a digger, one
   crane). Left for the map lane: a mapped tree stands on the hoarding's north corner.
@@ -109,10 +117,29 @@ Small problems that agents reported or that showed up in screenshots. They are f
   the Copernicus Science Centre, Stadion Narodowy. **Warszawa Centralna built 2026-10-31**
   (site `centralna`, spec `docs/landmarks/specs/centralna.md`): the glass hall, the wings, the
   flat slab overhanging to 140 x 86 m and the hyperbolic paraboloid shells under it, all from
-  the OSM parts. Left: the photo check on the Mac (OSM puts the shells in a 1.5 m tier wholly
-  under the flat slab, so from the 30-degree camera they show only as a small zigzag at the
-  two ends: if the photos show more of them, say so and the tier grows; the wings' walls; warm
-  or cool hall light). The others not started.
+  the OSM parts. Photo-checked on the Mac 2026-11-01: the shells show far more than a zigzag,
+  so the underside now falls from 16 m at the long edges to 12 m at the pillar rows and arches
+  to 14.2 m over the hall, the winged shape the ends show. Still open: the wings' walls (the
+  photos show a dark band with a window strip on the hall's end, not grey glass), warm or cool
+  hall light, and the slight hypar curve along the long sides. **Stadion Narodowy built 2026-11-01** (site `stadium`, spec
+  `docs/landmarks/specs/stadium.md`, PR #103's eyeball flag): the pitch was a 60 m blob under
+  stands too deep; now a 105 x 68 m striped pitch along the masts' axis in two tiers with the
+  boxes between, the skin red below and white above (the mapped rings), the raised rim, a
+  rounded opening, the needle's hub and folded-roof drum from the OSM parts. The Mac photo
+  check (same day) is applied: staggered red and silver panels on a smooth ramp, the dark
+  glass concourse under the skin, a polycarbonate ring round the opening, thicker spikes.
+  **The Copernicus Science Centre built 2026-11-01** (site `kopernik`,
+  spec `docs/landmarks/specs/kopernik.md`, log `docs/landmarks/kopernik.md`): the long dark
+  block to LoD2's 13 m with windows scattered like pixels, the river corner hanging over a
+  glazed ground floor, the low glass wings, the roof garden, and the black faceted
+  planetarium. Left: the photo check on the Mac (the panels and windows, the overhang's depth,
+  the planetarium's height, the garden's real paths). **The University Library built 2026-10-31** (site `buw`, spec
+  `docs/landmarks/specs/buw.md`, log `docs/landmarks/buw.md`): the copper plates with their
+  lines of text on Dobra, the four philosophers on columns, the roof garden from the mapped
+  lawns, the glass roofs and the band; the roof redone from the orthophoto on 2026-11-01.
+  Left: the height (LoD2 may say more than OSM's 10.9 m), which front the philosophers stand
+  at, the south garden's winding paths and shrubs.
+  The others not started.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
   photos per building in `refs/` (Wikimedia Commons, gitignored; fetched on the Mac, the cloud
@@ -145,15 +172,25 @@ golden-image shots runtime vs `--prebuilt`,
   light), the `first` shot set, performance and the order of work: docs/design/first-scene.md.
   The dusk and night look there belongs to the thread "Match landmarks to Warsaw at dusk"; the
   hints, first order and first race to loop 3h item 6.
-  **Item 2 (the opening shot) built 2026-10-31**: the start (PR #115) and the first launch's
-  flyover over the Palace down to the car (docs/design/opening-flyover.md). Left: its length and
+  **Item 2 (the opening shot) built 2026-10-31, merged 2026-11-01**: the start (PR #115) and the
+  first launch's flyover over the Palace down to the car (docs/design/opening-flyover.md), both
+  on main together after the start-area rebuild (same start spot, so the trams and street
+  furniture of the first scene are in the flyover's last frames). Left: its length and
   the stand's arrow timing on the phone (QUESTIONS), and whether the wide views hitch while the
   proxies swap to sectors on an older iPhone.
+  **2026-11-01 (items 3-6, part):** the Eastern Wall's stores built (site `dtc`, spec
+  `docs/landmarks/specs/dtc.md`); a start in the first scene's box (main.gd `FIRST_SCENE`) puts
+  two trams on Marszałkowska, one passing the car, one coming down the street; street furniture
+  by the start (`first_scene.gd`: kiosk, flower stall, cafés, ad columns, planters). Found: the
+  game's camera sees the east side's stores from behind their street faces, so furniture on
+  their pavements never shows (it stands on the museum's side instead). **2026-11-01 (Mac photo
+  check, spec B):** the Rotunda re-pass done (spec `docs/landmarks/specs/rotunda.md`: green-grey
+  glass between 52 silver mullions, the folded-plate crown with its teeth, the oculus, the
+  canopies, Widok Towers' green grid); only the phone can show the teeth and the signs' size. Left: the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
+  the tram stops and kerbs (item 5), pedestrians and sound (6-7), the photo check on the Mac.
 
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
-- **Coffeechair cafés** (the user, 2026-10-31): a parody of the Coffeedesk coffee shops,
-  small branded cafés round the city with their own sign ("COFFEECHAIR", a chair for the desk),
-  for the content lane (shop signs and fascias). Brand rules: parody name and look only.
+- **Shisha lounges** built (five parody signs, `Storefronts.LOUNGES`): only the phone can show the sign size on each wall and whether the spots read as lounges. Not notebook places; add smoky window glow or a door scene if wanted.
 - **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;
   the designer (`game-designer`, Sonnet for the text) specs it, `warsaw-tone` rules apply (real
   brands only as parodies, affectionate, Polish with English).
@@ -283,7 +320,7 @@ golden-image shots runtime vs `--prebuilt`,
   that tower, not what shows through the cut.~~ Done in sweep 2: the walk steps on through what
   the ghost has made see-through (main.gd `_pick_unghosted`; behind the Palace, a tap on the
   street seen through its cut tower picked the Palace, now nothing).
-- The Palace's roof rescue now lands on a 28 m annex roof: every tier is crowned by attics and
+- The Palace's roof rescue now lands on the 30 m north block's roof (since the 2026-11-01 re-pass built it whole): every tier is crowned by attics and
   pinnacles, so no 3 x 3 cells are flat up the tower. A rescue from the 30th-floor terrace would
   need a landing spot designed in.
 - The baked ground AO and the lamp light map still use the LoD2 footprints: Centralna's canopy
@@ -292,8 +329,6 @@ golden-image shots runtime vs `--prebuilt`,
   over it, a guess; Varso I and II stay OSM extrusions (loop 1 lowered Varso 2's floating
   80-90 m top to the ground; Varso 1's 71-81 m top rests on its 71 m part for a little over
   half its footprint and overhangs a 10 m part for the rest, so it stays).
-- Stadion Narodowy's embankment is bare terrain with its mapped surfaces (patchy beige and
-  grass) outside the paved promenade ring.
 - The title skyline's Varso stays shorter than the Palace (in the city it is 310 m to 237 m).
 
 ## From v0.9 (water, weather, sound)

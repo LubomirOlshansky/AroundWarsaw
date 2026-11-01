@@ -10,7 +10,13 @@ const WORDS := ["KEBAB 24H", "BAR MLECZNY", "APTEKA", "KWIATY", "HOTEL", "KANTOR
 ## The landmarks loop: words only the landmarks wear (never a shop's), after WORDS in the atlas:
 ## the parody of the brand on Warsaw Spire's crown, the mall by Rondo Radosława's.
 const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA", "CHILTON", "INTERKONTI", "N", "O", "W", "T", "E", "L", "BANK POLSKA",
-		"METROPOLKA", "ENELMEDIK", "ACORN", "HOTELS", "--"]
+		"METROPOLKA", "ENELMEDIK", "ACORN", "HOTELS", "--",
+		# First scene item 3: the Eastern Wall's stores (parodies of their roof names).
+		"JUNIOREK", "SAWKA", "WARSIK",
+		# The stores' printed ad banners (the Mac photo check, 2026-11-01).
+		"PROMOCJA", "LODY", "WYPRZEDAZ",
+		# The tower and the slab behind the stores (specs C and D): a parody and a drink.
+		"KOKA-KOLKA", "ORANZADA"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)
@@ -31,6 +37,7 @@ const FONT := {
 	"E": ["#####", "#....", "#....", "####.", "#....", "#....", "#####"],
 	"H": ["#...#", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
 	"I": [".###.", "..#..", "..#..", "..#..", "..#..", "..#..", ".###."],
+	"J": ["..###", "...#.", "...#.", "...#.", "#..#.", "#..#.", ".##.."],
 	"K": ["#...#", "#..#.", "#.#..", "##...", "#.#..", "#..#.", "#...#"],
 	"L": ["#....", "#....", "#....", "#....", "#....", "#....", "#####"],
 	"M": ["#...#", "##.##", "#.#.#", "#.#.#", "#...#", "#...#", "#...#"],

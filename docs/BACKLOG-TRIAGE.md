@@ -13,7 +13,7 @@ BACKLOG.md at this snapshot; loops that change BACKLOG.md move them, so match by
 | 3a roads-bake (running) | The shore is left open 6 m beside bridge decks in the bake; move the builder's fill into `bake_shore` (241) |
 | 3b roads-builder | Kerbs, islands and medians are flat to the car (46); cramped turn arrows, roundabout arrows (50); Rondo Dmowskiego's spiral markings (52); chevrons point the wrong way (55); medians only between one-way pairs (56); deck pieces > 3 m apart show the river (58). **Done in loop 3b-2** (2026-10-28), except medians on two-way roads: none is mapped on today's map (counted 0; kept in BACKLOG for loop 3d) |
 | 3d demo-bake | The Praga streets join only through an off-map link (42; the bigger box should connect them; else decide a link); the terrain stops 5–9 m short of the edges (48); Most Świętokrzyski ends in the air and its last lanes sit at water level at the rim (60, 255; the new box takes the whole bridge) |
-| 3f landmarks | AO and lamp map use LoD2 footprints (Centralna's canopy, the stadium's skin) (91); the stadium's embankment (97); outlines on a cut building's inner faces (144) |
+| 3f landmarks | AO and lamp map use LoD2 footprints (Centralna's canopy, the stadium's skin) (91); outlines on a cut building's inner faces (144) |
 | 2d jokes and side jobs | Kebab kiosks drawn over benches and bins (38) |
 | 3g police (traffic AI shared) | Cars overlap in busy junctions; an off-screen rival drives through traffic (7); trams nose to nose with crossing cars (9); AI drives through knocked barriers (33); AI ignores bus lanes (53) |
 | 3h demo loop (tuning) | Only two race finishes from the spawn (11); rescue time limits untuned (19) |

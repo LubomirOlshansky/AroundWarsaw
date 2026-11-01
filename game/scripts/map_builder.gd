@@ -60,6 +60,8 @@ const Y_AREA := 0.02
 ## Each green kind's height over Y_AREA (merging loop 3c): a fixed order where they overlap,
 ## park under grass under pitch, all under the sand (0.006 and up) and over the plazas (0).
 const GREEN_Y := {"park": 0.003, "grass": 0.004, "pitch": 0.005}
+## The stadium's grass embankment (_build_areas) under the plazas (Y_AREA) and over the ground.
+const BANK_Y := -0.008
 const Y_PATH := 0.04
 const Y_ROAD := 0.06
 const Y_MARK := 0.08
@@ -261,6 +263,7 @@ func build(path: String, building_mat: ShaderMaterial, flat_mat: ShaderMaterial)
 	_setup(JSON.parse_string(FileAccess.get_file_as_string(path)), building_mat, flat_mat)
 	# v0.8: the landmarks replace whatever LoD2 or OpenStreetMap lump stood in their place.
 	var marks := Landmarks.new(self, data)
+	_marks = marks
 	landmark_info = marks.info
 	_build_parts(marks, false)
 	_build_collision()
@@ -276,8 +279,9 @@ func setup_streamed(index: Dictionary, building_mat: ShaderMaterial, flat_mat: S
 	_out = self
 	_setup(index, building_mat, flat_mat)
 	index_data = index
+	# `areas`: the lawns of the University Library's roof garden (landmarks.gd _find_buw).
 	_marks = Landmarks.new(self, {"landmarks": index.get("landmarks", []), "towers": index.get("towers", []),
-			"buildings": index.get("site_parts", [])})
+			"buildings": index.get("site_parts", []), "areas": index.get("areas", [])})
 	landmark_info = _marks.info
 	_pick.resize(_roof_nx * _roof_nz)
 	_pick.fill(0)
@@ -2724,6 +2728,12 @@ func _build_areas(st) -> void:
 	# terrain grid's own triangles (_fill_on_grid), so the bare earth never pokes through;
 	# the beaches' sand (bake_banks.py) goes in under the water, which covers any of it
 	# mapped past the edge.
+	# Stadion Narodowy's grass embankment (landmarks.gd `embankment`): under every mapped
+	# area, a few millimetres over the bare ground, so only the bank's bare slopes turn green.
+	if _marks != null:
+		_layer = L_GREEN
+		for poly: PackedVector2Array in _marks.embankment:
+			_fill_on_grid(st, poly, Y_AREA + BANK_Y, COL["grass"])
 	for pass_kind in ["plaza", "green", "sand", "water"]:
 		if pass_kind == "sand":
 			_layer = L_SAND
@@ -4353,6 +4363,7 @@ func _build_lod2(walls, marks) -> Array:
 	var facades := _tenement_facades(pos, nrm, col, uv2, dropped)
 	col = facades[0]
 	uv2 = facades[1]
+	var dress: Dictionary = facades[2]
 	# Split into tiles by triangle, like the other city meshes (not on the roof pass).
 	var tiles := {}
 	for t in range(0, count if not walls.none else 0, 3):
@@ -4369,6 +4380,19 @@ func _build_lod2(walls, marks) -> Array:
 			(tile[2] as Array).append(col[t + k])
 			(tile[3] as Array).append(uv[t + k])
 			(tile[4] as Array).append(uv2[t + k])
+	# The Old Town's dormers and chimneys: extra triangles in the same tiles (no collision).
+	var dress_pos: PackedVector3Array = dress["pos"]
+	for t in range(0, dress_pos.size() if not walls.none else 0, 3):
+		var key := Chunked.tile_of((dress_pos[t] + dress_pos[t + 1] + dress_pos[t + 2]) / 3.0)
+		if not tiles.has(key):
+			tiles[key] = [[], [], [], [], []]
+		var tile: Array = tiles[key]
+		for k in 3:
+			(tile[0] as Array).append(dress_pos[t + k])
+			(tile[1] as Array).append((dress["nrm"] as PackedVector3Array)[t + k])
+			(tile[2] as Array).append((dress["col"] as PackedColorArray)[t + k])
+			(tile[3] as Array).append(Vector2(-1.0, -1.0))
+			(tile[4] as Array).append(Vector2(0.5, -1.0))
 	# Loop 2b: into the walls' tile meshes (same material): one draw call per tile, not two.
 	for key in tiles:
 		var tile: Array = tiles[key]
@@ -5034,6 +5058,7 @@ const NOT_TENEMENTS := ["church", "cathedral", "chapel", "monastery", "convent",
 ## arrays are copies).
 func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedColorArray,
 		uv2: PackedVector2Array, dropped: PackedByteArray) -> Array:
+	var dress := {"pos": PackedVector3Array(), "nrm": PackedVector3Array(), "col": PackedColorArray()}
 	var cell := 24.0
 	var grid := {}
 	var polys: Array[PackedVector2Array] = []
@@ -5063,7 +5088,8 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 					grid[key] = []
 				(grid[key] as Array).append(k)
 	if polys.is_empty():
-		return [col, uv2]
+		return [col, uv2, dress]
+	var covered := _gable_ends(pos, nrm)
 	for t in range(0, pos.size(), 3):
 		if dropped[t / 3] or uv2[t].x >= 1.0 or col[t].a < 0.9 or nrm[t].y > 0.95 or nrm[t].y < -0.3:
 			continue  # a landmark's, glass, a flat roof or an underside
@@ -5082,8 +5108,95 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 					else:
 						col[t + v] = looks[k]
 						uv2[t + v].x = seeds[k]
+				if pitched:
+					# Old Town roof detail (OldTownRoofs): a dormer, now and then a chimney.
+					var extra := OldTownRoofs.dress(pos[t], pos[t + 1], pos[t + 2], nrm[t], looks[k], roofs[k],
+							fposmod(seeds[k] + t * 0.0137, 1.0))
+					if not extra.is_empty():
+						_add_dress(dress, extra)
+				else:
+					_square_gables(pos, nrm, t, polys, grid, cell, looks, seeds, covered, dress)
 				break
-	return [col, uv2]
+	return [col, uv2, dress]
+
+
+## Appends `extra` ("pos", "nrm", "col") to `dress`. Packed arrays are copies when read out of
+## a Dictionary, so they are written back.
+func _add_dress(dress: Dictionary, extra: Dictionary) -> void:
+	for key: String in ["pos", "nrm", "col"]:
+		var merged = dress[key]
+		merged.append_array(extra[key])
+		dress[key] = merged
+
+
+## The key of a horizontal edge (both ends at one height), ends in either order.
+func _edge_key(p: Vector3, q: Vector3) -> String:
+	var a := "%d,%d,%d" % [roundi(p.x * 10.0), roundi(p.y * 10.0), roundi(p.z * 10.0)]
+	var b := "%d,%d,%d" % [roundi(q.x * 10.0), roundi(q.y * 10.0), roundi(q.z * 10.0)]
+	return a + ">" + b if a < b else b + ">" + a
+
+
+## The horizontal wall edges round the Old Town square that have a triangle ABOVE them (a real
+## LoD2 gable end or a taller storey): those take no stepped gable. Returns {key: true}.
+func _gable_ends(pos: PackedVector3Array, nrm: PackedVector3Array) -> Dictionary:
+	var covered := {}
+	for t in range(0, pos.size(), 3):
+		if absf(nrm[t].y) > 0.3 or not _near_square(Vector2(pos[t].x, pos[t].z)):
+			continue
+		for i in 3:
+			var p := pos[t + i]
+			var q := pos[t + (i + 1) % 3]
+			var o := pos[t + (i + 2) % 3]
+			if absf(p.y - q.y) < 0.02 and o.y > p.y + 0.3:
+				covered[_edge_key(p, q)] = true
+	return covered
+
+
+func _near_square(at: Vector2) -> bool:
+	var d := at.distance_to(OldTownRoofs.RYNEK)
+	return d > OldTownRoofs.GABLE_NEAR and d < OldTownRoofs.GABLE_FAR
+
+
+## Stepped gables (OldTownRoofs.gable) on the top edge of a wall triangle `t` of a house round
+## the Old Town market square's east side, facing the square: one per house-width bay. Their
+## triangles join `dress` (the walls' own tile meshes, so no draw call is added).
+func _square_gables(pos: PackedVector3Array, nrm: PackedVector3Array, t: int, polys: Array[PackedVector2Array],
+		grid: Dictionary, cell: float, looks: Array[Color], seeds: Array[float], covered: Dictionary,
+		dress: Dictionary) -> void:
+	var n := Vector3(nrm[t].x, 0.0, nrm[t].z)
+	if n.length() < 0.9:
+		return  # a sloped wall: not a plain front
+	n = n.normalized()
+	for i in 3:
+		var p := pos[t + i]
+		var q := pos[t + (i + 1) % 3]
+		var o := pos[t + (i + 2) % 3]
+		if absf(p.y - q.y) > 0.02 or o.y > p.y - 0.5:
+			continue  # not a top edge
+		var mid := (p + q) * 0.5
+		var at := Vector2(mid.x, mid.z)
+		# East side only (right of the square's centre), the front turned towards the square.
+		if not _near_square(at) or at.x < OldTownRoofs.RYNEK.x + 8.0 or covered.has(_edge_key(p, q)):
+			continue
+		if n.dot(Vector3(OldTownRoofs.RYNEK.x - mid.x, 0.0, OldTownRoofs.RYNEK.y - mid.z).normalized()) < 0.6:
+			continue
+		var length := p.distance_to(q)
+		var bays := maxi(1, roundi(length / OldTownRoofs.GABLE_BAY))
+		for k in bays:
+			var a := p.lerp(q, float(k) / bays)
+			var b := p.lerp(q, float(k + 1) / bays)
+			var bm := (a + b) * 0.5
+			var probe := Vector2(bm.x, bm.z) - Vector2(n.x, n.z)
+			var wall := Color("#d9c9a8")
+			var seed := fposmod(float(k) * 0.37 + bm.x * 0.013, 1.0)
+			for h in grid.get(Vector2i(floori(probe.x / cell), floori(probe.y / cell)), []):
+				if Geometry2D.is_point_in_polygon(probe, polys[h]):
+					wall = looks[h]
+					seed = seeds[h]
+					break
+			var extra := OldTownRoofs.gable(a, b, n, wall, seed)
+			if not extra.is_empty():
+				_add_dress(dress, extra)
 
 
 ## Whether a point is within `slack` metres of a historic district (HISTORIC).
