@@ -14,6 +14,7 @@ const CityMaps := preload("res://scripts/city_maps.gd")
 ## Loop 2c: the parked cars' mesh and paints come from the vehicles' models (one source).
 const Models := preload("res://scripts/models.gd")
 const Trains := preload("res://scripts/trains.gd")
+const MapEdge := preload("res://scripts/map_edge.gd")
 ## Tile size for instanced things (trees, lamps, parked cars). Loop 2b: 512 m (was 256): one
 ## MultiMesh is one draw call, and the iPhone pays per draw call, not per instance.
 const INSTANCE_TILE := 512.0
@@ -295,6 +296,9 @@ func setup_streamed(index: Dictionary, building_mat: ShaderMaterial, flat_mat: S
 	_index_raised()
 	_make_shared()
 	_build_edge_walls()
+	var edge: Node3D = MapEdge.build(self)
+	if edge != null:
+		add_child(edge)
 
 
 ## Loop 3c: each sector's lowest ground (- 20 m: tunnels, the river bed) and its highest roof

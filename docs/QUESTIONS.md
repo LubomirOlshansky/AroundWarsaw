@@ -24,6 +24,15 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · map · the land past the map's edge: Mac look check** — Built in the cloud,
+  where the ground is flat. Default built (`scripts/map_edge.gd`): bare ground in the city's
+  ground colour for the first ~40 m past the outline, then scrub green, fading into the sky's
+  colour by 520 m; a tree line 10-70 m out; low blocks (8-30 m, a few to 60 m) 90-400 m out
+  with lit windows at night; the rails and the main roads run 320 / 240 m on. On the Mac please
+  look at Warszawa Wschodnia (`--at=1950,-1990`) and Dworzec Gdański (`--at=-2009,-2740`) by day
+  and night: does the ring meet the real ground without a step or a gap, does the fade read as
+  distance (not fog), are the blocks the right scale. Shots of the cloud look are in the PR.
+
 - **2026-11-01 · landmarks · Krakowskie Przedmieście's photo check (K1-K6, M2)** — Built from
   the OSM outlines alone, so every height and a few spots are guesses (Default built, the specs'
   "photo check" notes list them). For F on the Mac, in order of how much they could be wrong:

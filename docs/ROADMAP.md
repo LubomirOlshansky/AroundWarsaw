@@ -102,6 +102,7 @@ then the Launch gate.
   - [x] S3a Warszawa Stadion: the white hall with its sail, the red-and-white mosaic canopies, 2026-11-01; the roof sweeping up into a taller sail after the Mac photo check
   - [x] S3b Warszawa Śródmieście: the two glass stair pavilions by the Palace, 2026-11-01
   - [ ] S3c-e the other stations: Wschodnia, Gdańska (the map's edges, Mac look first), the WKD entrances
+  - [x] The map's edges: the land runs on past the outline (ground fading into the sky, a tree line, blocks beyond, the rails and roads running out), Wschodnia and Gdańska first, 2026-11-01; the Mac look check parked
   - [x] L4 Most Średnicowy's look: arch-truss spans on stone piers (after the Mac photo check)
   - [x] Probe spots on the line with a train in view (Powiśle, Most Średnicowy), 2026-11-01; the phone's numbers still to take
 
@@ -110,6 +111,7 @@ then the Launch gate.
   - [ ] RF4 OSM-only buildings' roofs, copper and red sheet metal by district; the phone bench (Mac check done 2026-11-01)
 
 ### Left: content and feel
+- [x] ROWERILO city-bike docks (the Veturilo parody) at the 92 mapped `bicycle_rental` spots, a terminal and 4-8 bikes each, in the sector street-prop mesh (2026-11-01; Mac look check parked)
 - [x] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
       (2026-11-01, docs/design/pay-tables.md: player-neutral Polish, rematch respect +20, słoiki
       40 + 30 a jar; the hour and the pay still to be timed on the phone by F)
