@@ -177,7 +177,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] G2 Calmer default traffic (Low) and the traffic setting found and adjustable (Settings, Świat)
 - [ ] G3 +/- zoom buttons on the driving screen (5 steps, saved)
 - [ ] G4 Easy city drive: less drift, gentler steering, a Cruise handling default (Opus, feel)
-- [ ] G5 Flicker and "lag wall" audit: the dithered fade patches, wall-like props, the metro
+- [x] G5 Flicker and "lag wall" audit: the dithered fade patches, wall-like props, the metro
       entrances (what stays, what stops colliding, what goes) (Opus)
 - [ ] G6 Under-the-bridge entries (owned by the bridge joins thread; report in BACKLOG)
 - [ ] G7 Old Town roofs less repetitive (the dormer and tile pattern) (Sonnet)
