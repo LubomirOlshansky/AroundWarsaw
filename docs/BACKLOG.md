@@ -847,6 +847,15 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
 - A beat from the rave booth (sfx.gd positional voice), a rave notebook card or egg, a DJ crate
   courier job, a radio mention.
 
+## Vistula boulevards: life (F, 2026-11-01)
+Built: nine `chill_bulwary_*` spots (`Crowds.BULWARY`) along the river edge from Karowa past Kopernik,
+twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. Left:
+- E-scooters on the bike path (the bike MultiMesh family has four shapes in the shader; a fifth
+  needs actor.gdshader's shape channel widened). The marina thread owns the water side.
+- Spot coordinates are read off the baked steps/benches, not placed by eye; a phone look check
+  (QUESTIONS) may move some. Seating on the actual steps (snap a third of the sitters to
+  `steps` polylines) instead of footways.
+
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
 - **Shisha lounges** built (five parody signs, `Storefronts.LOUNGES`): only the phone can show the sign size on each wall and whether the spots read as lounges. Not notebook places; add smoky window glow or a door scene if wanted.
 - **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;

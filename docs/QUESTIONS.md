@@ -15,6 +15,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
+- **2026-11-01 · visuals · Bulwary life** — Phone look check: do the groups on the boulevard's steps and benches (Karowa to Kopernik, evening) sit where people would, and do the fast cyclists (30-41 km/h) read as fast, not as a glitch? Built: 9 chill spots, 45 % fast riders; default kept.
 - **2026-11-01 · visuals · Retro filter** — Phone look check: does the new vaporwave Retro filter (Settings → Obraz, V key; the old VHS tape) read as 80s Miami neon, not muddy, by day and at night? Default built: pink and teal split-tone, soft bloom, light scanlines and grain; the Styl obrazu picker is removed (always Ostry). Where: PR "Rework retro filter".
 - **2026-11-01 · landmarks · Grand hotels** — Mac look check for Hotel Bristol (colour of the facade, mansard, door position on Krakowskie Przedmieście) and Hotel Polonia Palace (colour, 25.5 m height, door on Al. Jerozolimskie); built: sand and cream walls, grey slate mansards, door at the middle of the longest street front.
 
