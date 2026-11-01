@@ -41,5 +41,9 @@ nearest that point), `--crash=on` (the timer in a test run), `--crash=0` (none),
 
 ## Left
 
-See docs/BACKLOG.md "Crash scenes": the phone's look, a sound, a map marker, hazard lights and
-glass, gestures, one-lane roads.
+Built since: the ambulance's siren (`sfx.scene_siren`, the chase siren's stream at -20 dB on its own
+voice, stops when the scene is over) and an amber dot on the minimap and the full map
+(`hud.set_scene_mark`), both fed by `crash_scenes.gd` each tick.
+
+See docs/BACKLOG.md "Crash scenes": the phone's look and check of the siren and dot, hazard lights
+and glass, gestures, one-lane roads.

@@ -41,6 +41,8 @@ uniform float windows = 1.0;
 uniform vec4 floodlit = vec4(0.0, 0.0, -1.0, 0.0);
 varying vec3 world_pos;
 varying vec2 style;
+// The roofs lane: the plane's world normal (a roof's slope and which way it falls).
+varying vec3 world_n;
 
 const float BAYER[16] = float[16](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
 
@@ -57,6 +59,7 @@ const vec3 INNER_NIGHT = vec3(0.15, 0.15, 0.24);
 
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	world_n = (MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz;
 	style = UV2;
 }
 
@@ -774,6 +777,96 @@ vec3 floodlight(vec3 col, float h, float top) {
 	return col * light * 1.3;
 }
 
+// The roofs lane (docs/design/roofs.md, RF1): a thin line every `period` metres along x,
+// `w` wide, as coverage 0..1. A line thinner than a pixel fades to its average share instead
+// of shimmering (the phone's distance views).
+float roof_lines(float x, float period, float w) {
+	float aa = max(fwidth(x), 0.0001);
+	float d = abs(fract(x / period + 0.5) - 0.5) * period;
+	float ww = max(w, aa);
+	return (1.0 - smoothstep(ww * 0.5, ww * 0.5 + aa, d)) * (w / ww);
+}
+
+// RF1: a roof plane's material from its slope (`n`, world), the building's R4 type and seed
+// (style.x) and its aerial-photo colour (`srgb`, as the bake gave it): red or orange pitches
+// are ceramic tile courses, other pitches sheet metal with standing seams down the slope,
+// steep faces zinc; flat roofs are tar-paper strips on the slabs and dark roofs, a light
+// membrane with welded seams and gravel on offices and pale roofs, sedum where the photo is
+// green. Detail fades out where a pixel is wider than it (fwidth).
+vec3 roof_surface(vec3 col, vec3 srgb, vec3 n, float sx) {
+	vec2 xz = world_pos.xz;
+	col *= 0.94 + 0.08 * value_noise(xz * 1.7) + 0.04 * hash12(floor(xz * 5.0));
+	if (n.y < 0.3) {
+		return col; // a plant box's side, a parapet, a dormer, a chimney
+	}
+	int kind = (sx >= 1.0 && sx < 2.0) ? int((sx - 1.0) * 4.0) + 1 : 0;
+	float seed = sx >= 1.0 ? fract((sx - 1.0) * 4.0) : fract(sx);
+	float red = srgb.r - max(srgb.g, srgb.b);
+	float green = srgb.g - max(srgb.r, srgb.b);
+	float lum = dot(srgb, vec3(0.3, 0.59, 0.11));
+	if (n.y < 0.97) {
+		vec2 fall = normalize(n.xz);
+		float s = dot(xz, fall) / n.y;              // metres down the slope
+		float a = dot(xz, vec2(-fall.y, fall.x));    // metres along the eaves
+		float px = fwidth(s);
+		if (red > 0.05 && n.y > 0.5) {
+			// Ceramic tiles: courses across the slope, each tile's foot casting a shadow on the
+			// course below it, staggered joints, a little colour from tile to tile.
+			float row = s / 0.36;
+			float fr = fract(row);
+			float off = mod(floor(row), 2.0) * 0.5;
+			float tile = floor(a / 0.26 + off);
+			float shade = mix(0.62, 1.04, smoothstep(0.0, 0.3, fr)) * (1.0 - 0.18 * roof_lines(a + off * 0.26, 0.26, 0.03));
+			shade *= 0.94 + 0.12 * hash12(vec2(floor(row), tile));
+			col *= mix(0.9, shade, 1.0 - smoothstep(0.1, 0.24, px));
+		} else {
+			// Sheet metal (blacha), or zinc on a steep mansard face: standing seams down the
+			// slope, each sheet its own shade of paint or patina, rain streaks below the ridge.
+			bool steep = n.y < 0.62;
+			float sheet = steep ? 0.45 : 0.6;
+			float seam = roof_lines(a, sheet, 0.05);
+			float streak = value_noise(vec2(a * 2.3, s * 0.22) + seed * 17.0);
+			float shade = (0.92 + 0.14 * hash12(vec2(floor(a / sheet), seed * 97.0))) * (0.93 + 0.1 * streak);
+			shade += seam * 0.4 - roof_lines(a + 0.07, sheet, 0.06) * 0.25;
+			col *= mix(1.0, shade, 1.0 - smoothstep(0.15, 0.35, px));
+			if (steep && red < 0.05) {
+				col = mix(col, srgb_to_linear(vec3(0.5, 0.52, 0.54)) * (0.9 + 0.1 * streak), 0.15);
+			}
+		}
+		return col;
+	}
+	float px = fwidth(xz.x) + fwidth(xz.y);
+	float detail = 1.0 - smoothstep(0.2, 0.45, px);
+	// Flat roofs lie along one of the map's axes, picked by the building's seed.
+	vec2 q = seed < 0.5 ? xz : xz.yx;
+	if (green > 0.025) {
+		// Sedum and grass: clumps of green with a few rust-red patches and bare gravel.
+		float clump = value_noise(xz * 1.3 + seed * 11.0) * 0.6 + value_noise(xz * 4.1) * 0.4;
+		vec3 leaf = mix(col * vec3(0.8, 1.05, 0.7), col * vec3(1.15, 1.2, 0.85), clump);
+		leaf = mix(leaf, col * vec3(1.25, 0.75, 0.6), smoothstep(0.78, 0.9, value_noise(xz * 0.7 + 3.1)) * 0.6);
+		return mix(col, leaf, 0.5 + 0.5 * detail);
+	}
+	if (kind == T_SLAB || (kind != T_OFFICE && lum < 0.3)) {
+		// Tar paper (papa): one-metre strips with a dark lapped edge, patched here and there,
+		// darker where the water stands.
+		float lap = roof_lines(q.x, 1.0, 0.08);
+		float patch = step(0.86, hash12(vec2(floor(q.x), floor(q.y / 3.0)) + seed * 41.0));
+		float shade = (1.0 - 0.3 * lap) * (1.0 - 0.12 * patch) * (1.0 - 0.1 * smoothstep(0.55, 0.8, value_noise(xz * 0.3)));
+		return col * mix(0.95, shade, detail);
+	}
+	if (kind == T_OFFICE || lum > 0.42) {
+		// A membrane: two-metre sheets with welded seams, the odd pond stain, gravel ballast.
+		float weld = roof_lines(q.x, 2.0, 0.06);
+		float stain = smoothstep(0.6, 0.85, value_noise(xz * 0.22 + seed * 5.0));
+		float stones = hash12(floor(xz * 9.0));
+		float shade = (1.0 + 0.2 * weld) * (1.0 - 0.1 * stain) * (0.94 + 0.1 * stones);
+		return col * mix(1.0, shade, detail);
+	}
+	// Gravel over concrete slabs: a grid of pavers, a fine speckle.
+	float joints = max(roof_lines(q.x, 1.2, 0.04), roof_lines(q.y, 1.2, 0.04));
+	return col * mix(0.97, (1.0 - 0.18 * joints) * (0.93 + 0.12 * hash12(floor(xz * 7.0))), detail);
+}
+
 void fragment() {
 	vec3 col = srgb_to_linear(COLOR.rgb);
 	vec3 glow = vec3(0.0);
@@ -790,8 +883,8 @@ void fragment() {
 			discard;
 		}
 	} else if (!walls) {
-		// Roofs: gravel and membrane grain.
-		col *= 0.94 + 0.08 * value_noise(world_pos.xz * 1.7) + 0.04 * hash12(floor(world_pos.xz * 5.0));
+		// Roofs: their material (RF1, docs/design/roofs.md).
+		col = roof_surface(col, COLOR.rgb, normalize(world_n), style.x);
 	} else if (windows > 0.5 && style.x >= 1.0 && COLOR.a >= 0.75) {
 		float f = (style.x - 1.0) * 4.0;
 		col = typed_facade(int(f) + 1, col, UV.x, UV.y, fract(f), style.y, glow);

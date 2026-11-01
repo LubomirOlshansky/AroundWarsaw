@@ -26,7 +26,7 @@ then the Launch gate.
 - [x] The full map with landmark pins and teleport; the quest stop assist
 - [x] Landmarks: the Palace, Centralna, Złote Tarasy, the towers, MSN, the Rotunda, BUW, Kopernik,
       the stadium, Plac Piłsudskiego, the start street's stores, many churches (Mac photo checks
-      for some)
+      for some), the Ministry of Finance (2026-11-01, spec `mf.md`; Mac photo check parked)
 - [x] Day, dusk and night; rain; water; synthesised sound; puddles and night water (3i part)
 - [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted
 
@@ -62,6 +62,17 @@ then the Launch gate.
 - [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
 
 ### Left: landmarks and street details
+- [x] Old Town Market Square and its Syrenka (F, 2026-11-01): cobbled paving, 58 café umbrellas, the
+      fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
+      Mac photo check parked (QUESTIONS)
+- [x] People on the observation decks (F, 2026-11-01): Varso Tower's roof and St Anne's bell tower
+      terrace (with a balustrade), the Palace of Culture's 30th-floor terrace (114 m ledge and
+      balustrade, up to 16), hours, weekends and seasons (`crowds.gd` DECKS)
+- [ ] Old Town Market Square leftovers: per-house plaster colours and sgraffito from photos, the
+      four corner streets' mouths, a card for the Museum of Warsaw house (BACKLOG "Old Town square")
+- [x] Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle as models, people chilling
+      in their yards and KROWA 2.0, the milk bar queue in Norblin (F, 2026-11-01; specs
+      `norblin.md`, `browary.md`, `koszyki.md`, `elektrownia.md`; Mac look check parked)
 - [ ] The landmark lane's remaining list (BACKLOG "Landmarks lane, hand-over": the Cathedral, the
       Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
@@ -71,13 +82,15 @@ then the Launch gate.
   - [x] Hala Mirowska: market stalls on the square, 2026-11-01 (the hall itself was done)
   - [x] Aleja Jana Pawła II: mid-century plasters on every plain building along it, 2026-11-01
   - [ ] Mac photo checks for the estate and the stalls (QUESTIONS); then the boulevard street by street
-  - [ ] Chill spots with people and the queue: Norblin (with the milk-bar queue under a parody
-        name), Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle
 - [ ] Mariensztat and Krakowskie Przedmieście review (F, 2026-11-01; BACKLOG section):
   - [x] M1 Mariensztat's houses in pastel with red tile roofs and dormers, 2026-11-01
-  - [ ] M2 Rynek Mariensztacki's card and reliefs; M3 the escarpment and Nowy Zjazd (Mac)
-  - [ ] K1-K6 Krakowskie Przedmieście's missing pieces: the Carmelite church, Mickiewicz's
-        monument, the University gate, Pałac Potockich's guardhouses, Bristol, the statues
+  - [x] M2 Rynek Mariensztacki's card and six relief panels, 2026-11-01 (Mac photos for the real reliefs)
+  - [ ] M3 the escarpment and Nowy Zjazd's viaduct over the estate (Mac, real terrain)
+  - [x] K1-K5 the Carmelite church's front, Mickiewicz's monument, the University gate and Pałac
+        Kazimierzowski's skin, Pałac Potockich and the Kordegarda, Bristol's corner dome, 2026-11-01
+        (spots and heights estimated; Mac photo check)
+  - [ ] K6 the black Chopin benches are done 2026-11-01; Prus's and Wyszyński's statues and the
+        granite paving wait for photos
 
 - [ ] The railway (F, 2026-11-01; plan docs/design/railway.md):
   - [x] R0 design: stations, the cross-city line, trains, 2026-11-01
@@ -88,11 +101,18 @@ then the Launch gate.
   - [x] L3 the tunnel's portals at Ochota and Powiśle, 2026-11-01
   - [x] T1 trains through the city (suburban, city line, long-distance), `check_trains`, 2026-11-01
   - [x] S3a Warszawa Stadion: the white hall with its sail, the red-and-white mosaic canopies, 2026-11-01
-  - [ ] S3b-e the other stations: Śródmieście's entrances, Wschodnia, Gdańska, Ochota WKD
+  - [x] S3b Warszawa Śródmieście: the two glass stair pavilions by the Palace, 2026-11-01
+  - [ ] S3c-e the other stations: Wschodnia, Gdańska (the map's edges, Mac look first), the WKD entrances
   - [ ] L4 Most Średnicowy's look (after a Mac photo check)
 
+- [ ] Roofs across the map (F, 2026-11-01; plan docs/design/roofs.md):
+  - [x] RF1-RF3 roof materials, parapets, tenement chimneys, 2026-11-01
+  - [ ] RF4 OSM-only buildings' roofs, copper and red sheet metal by district; the phone bench (Mac check done 2026-11-01)
+
 ### Left: content and feel
-- [ ] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
+- [x] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
+      (2026-11-01, docs/design/pay-tables.md: player-neutral Polish, rematch respect +20, słoiki
+      40 + 30 a jar; the hour and the pay still to be timed on the phone by F)
 - [x] DEMO 6.3 counts, cassettes and landmark cards (2026-11-01): 10 roof cassettes in
       `cassettes.json` (9 new), and 72 landmark cards already in `landmarks.gd` INFO (target ~25)
 - [ ] DEMO 6.3 counts, rescues and słoiki: the second słoiki station (jobs.gd has one), the Old
@@ -123,8 +143,9 @@ then the Launch gate.
 - [x] Crash scenes (F, 2026-11-01, `crash_scenes.gd`, `check_crash_scenes`, PR "crash scenes"):
       every few minutes a fender bender ahead on a main road, two wrecks in the kerb lane, a
       police car with its lights and a yellow ambulance, the drivers arguing, people filming,
-      KEBAB FM's traffic news; traffic queues and goes round. Left: the phone's look, a siren
-      sound, a minimap marker (docs/design/crash-scenes.md)
+      KEBAB FM's traffic news; traffic queues and goes round. Siren at the ambulance and an amber
+      minimap / full-map dot added (2026-11-01). Left: the phone's look and a phone check of
+      the siren level and the dot (docs/design/crash-scenes.md)
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
 

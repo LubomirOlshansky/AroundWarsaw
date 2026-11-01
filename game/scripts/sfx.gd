@@ -56,6 +56,8 @@ const SHOTS := {
 ## Loop 3g-2: the siren loop (one positional voice) and its level there.
 const SIREN := "police_siren"
 const SIREN_DB := -13.0
+## A crash scene's ambulance: the same wail, quieter (it stands still, nobody is chasing).
+const SCENE_SIREN_DB := -20.0
 const VOICES_3D := 6
 const VOICES_2D := 4
 ## Positional sounds: full level within UNIT metres of the listener, gone past REACH.
@@ -493,6 +495,7 @@ func _meter(label: String, seconds: float) -> void:
 # the tram bell and the soft knock). The escape's chord is still the tram bell, pitched.
 
 var _siren_voice: AudioStreamPlayer3D
+var _scene_voice: AudioStreamPlayer3D
 
 
 ## The siren on the nearest chaser: one positional voice of the six (taken like a one-shot's,
@@ -522,6 +525,37 @@ func police_siren(at: Vector3) -> void:
 	_siren_voice.global_position = at
 	if not _siren_voice.playing:
 		_siren_voice.play()
+
+## The crash scene's siren (crash_scenes.gd): a voice of its own at `at`, Vector3.INF stops it.
+func scene_siren(at: Vector3) -> void:
+	if _silent or _pool3.is_empty():
+		return
+	if at == Vector3.INF:
+		if _scene_voice != null and _scene_voice.stream == _streams.get(SIREN):
+			_scene_voice.stop()
+		_scene_voice = null
+		return
+	if _scene_voice == null or _scene_voice.stream != _streams.get(SIREN):
+		var ear := focus + Vector3.UP * LISTENER_UP
+		var far := -1.0
+		for p in _pool3:
+			if p == _siren_voice:
+				continue
+			if not p.playing:
+				_scene_voice = p
+				break
+			var dp := p.global_position.distance_to(ear)
+			if dp > far:
+				far = dp
+				_scene_voice = p
+		if _scene_voice == null:
+			return
+		_scene_voice.stop()
+		_scene_voice.stream = _streams.get(SIREN)
+		_scene_voice.volume_db = SCENE_SIREN_DB
+	_scene_voice.global_position = at
+	if not _scene_voice.playing:
+		_scene_voice.play()
 
 
 ## A police cue (2D): "whoop" (a unit warns or joins), "megaphone" (before its line), "whistle"

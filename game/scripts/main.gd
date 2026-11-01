@@ -2004,7 +2004,7 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 	if city_sounds != null:
 		for st: Dictionary in crowds.sites:
 			var site := st
-			if site["kind"] in ["queue", "steps", "plan_c"]:
+			if site["kind"] in ["queue", "steps", "plan_c", "chill"]:
 				var at: Vector2 = site["door"]
 				city_sounds.add_crowd(str(site["id"]), "murmur", Vector3(at.x, map.ground_height(at.x, at.y), at.y),
 						func() -> bool: return int(site["n"]) >= 4)
@@ -2209,6 +2209,8 @@ func _build_crash_scenes() -> void:
 	crash_scenes.dialogue = dialogue
 	crash_scenes.police = police
 	crash_scenes.radio = radio
+	crash_scenes.sfx = sfx
+	crash_scenes.hud = hud
 	crash_scenes.log_on = crash_log
 	crash_scenes.enabled = _crash_auto or crash_flag != ""
 	crash_scenes.focus = func() -> Vector3: return cam_focus
