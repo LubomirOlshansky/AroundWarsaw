@@ -91,6 +91,9 @@
 # `first10-run` (not in --quick, ~12 min) is the headless replay: --first10 --autopilot plays the
 # first 10 minutes on the real city (the stand, the guided order, Halina's race, the trap, the
 # call, the helicopter, the tape, Powiśle, the garage) and passes on `first10: OK`.
+# Street details (2026-11-01): `streetdetails` runs tools/check_street_details.py (the baked props along
+# the main line against the map: stale file, blocked spots, budget, kiosk spacing); `streetmesh` runs
+# game/tools/check_street_details.gd (every kind builds as one surface, a cell's triangle budget); CI too.
 # The main line (2026-10-31): `mainline` runs game/tools/check_main_line.gd: main_line.gd's step from
 # the facts in each chapter (the guide, the ladder, the final, the jobs to the end card), its words
 # and the ladder's pacing (the side quests' respect to the final); no map (CI too).
@@ -126,8 +129,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois spec lod2 drape ground drive drive-prebuilt steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder first10 mainline endcard parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois spec drape drive steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder first10 mainline endcard parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails streetmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder first10 mainline endcard parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh spec drape drive steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram garage save districts syrenki ladder first10 mainline endcard parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -591,6 +594,18 @@ for s in $want; do
 				0) row PASS "pois" $secs "check_pois: OK · $counts" ;;
 				*) row FAIL "pois" $secs "$(grep '^check_pois: ' $logs/pois.log | tail -1) · $counts ($logs/pois.log)" ;;
 			esac ;;
+		streetdetails)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/check_street_details.py > $logs/streetdetails.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			counts=$(grep -m1 '^check_street_details counts:' $logs/streetdetails.log)
+			counts=${counts#check_street_details counts: }
+			case $code in
+				0) row PASS "streetdetails" $secs "check_street_details: OK · $counts" ;;
+				*) row FAIL "streetdetails" $secs "$(grep '^check_street_details: ' $logs/streetdetails.log | tail -1) · $counts ($logs/streetdetails.log)" ;;
+			esac ;;
+		streetmesh) check streetmesh '^street_details:' --script res://tools/check_street_details.gd ;;
 		# Landmark specs (LANDMARKS 0.4): every docs/landmarks/specs/*.md has all eight sections, a
 		# detail level, a triangle budget and a filled parts table (tools/check_spec.py; ~0.1 s).
 		spec)
