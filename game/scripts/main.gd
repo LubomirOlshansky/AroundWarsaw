@@ -309,6 +309,8 @@ var no_ao := false
 ## Load the prebuilt sectors like the exported game does (loop 3c: map/sectors/*.scn, index.res,
 ## proxies.scn; only rebuilt by tools/bake_city.gd), not build them from their files.
 var prebuilt := false
+## --no-map-edge: without the land past the map's edge (map_edge.gd), for a before/after probe.
+var _flag_no_map_edge := false
 var _started := false
 ## Time of day (N / TIME / --time=), the radio (R / RADIO / --radio=), the VHS
 ## overlay (V / VHS / --vhs) and the title screen (skipped by the testing flags).
@@ -1039,6 +1041,10 @@ func _build_world() -> void:
 	if not monolithic:
 		data = _open_streamed_city(world, flat_mat)
 		flat_mat = map.flat_material
+		if _flag_no_map_edge:
+			var edge := map.get_node_or_null("MapEdge")
+			if edge != null:
+				edge.free()
 	else:
 		map = MapBuilder.new()
 		world.add_child(map)
@@ -3372,6 +3378,8 @@ func _parse_args() -> void:
 		elif arg == "--probe":
 			probe = true
 			free_roam = true
+		elif arg == "--no-map-edge":
+			_flag_no_map_edge = true
 		elif arg.begins_with("--exp="):
 			_exp = arg.trim_prefix("--exp=").split(",")
 		elif arg.begins_with("--time="):

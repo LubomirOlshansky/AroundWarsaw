@@ -144,8 +144,9 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   mosaic's pattern).
 - ~~S3b Warszawa Śródmieście~~ Done 2026-11-01 (site `srodmiescie`, spec `srodmiescie.md`, 476 tris).
   Left: Mac photo check (the glazing, the fascia, the lettering).
-- S3c-e: Wschodnia and Gdańska sit at the map's east and north edges, where cloud shots show no
-  ground (Mac look first); the WKD entrances (Śródmieście WKD's "propeller" roof, Ochota WKD):
+- S3c-e: Wschodnia and Gdańska sit at the map's east and north edges (the land past the edge is
+  drawn since 2026-11-01, below; the cloud shots' missing ground inside the map is the cloud's flat
+  ground quad, not the Mac's); the WKD entrances (Śródmieście WKD's "propeller" roof, Ochota WKD):
   the OSM outlines there don't match the descriptions (a 90 m, 2.5 m shelter by Centralna; the
   platforms by Ochota are tram stops), so they wait for photos.
 - ~~L4 Most Średnicowy's look, after a Mac photo check.~~ Built 2026-11-01 (below).
@@ -190,6 +191,14 @@ Plan: docs/design/railway.md. One PR per item, in this order:
     strips with odd shadow patches. At Gdańska the north edge reads as a flat brown band ending at
     the sky behind the footbridge. Both need an edge treatment (ground and track running on past
     the edge, or the camera kept back from it); low priority, both stations are mostly off-map.
+    **Fixed 2026-11-01:** `scripts/map_edge.gd` rings the whole outline (both city paths): the
+    ground runs on 700 m (the river where the edge cuts it) and fades into the background's
+    colour (`edge_haze`, set by time_of_day.gd), a tree line 10-70 m out, three loose rows of
+    blocks 90-400 m out (windows, some lit at night), and the rails (83 ends) and main roads
+    running on past the edge. 100k triangles in 1 km pieces, no shadows: at the edge +1-2 draw
+    calls (`--probe --no-map-edge` for the before), nothing in the centre. Left for the Mac: the
+    look with the real terrain (the ring takes the ground's height at the nearest outline point),
+    the tan-to-scrub ground beside the real edge ground, the blocks' scale.
   - **Bench with trains and wires:** the bench route does not pass the railway (130 draw calls,
     0.61 M triangles, no late frames; trains 0.03 ms of script). `--bench --at=` near Ochota
     gives the same route. A bench spot on the line (with a train in view) is still to add.
