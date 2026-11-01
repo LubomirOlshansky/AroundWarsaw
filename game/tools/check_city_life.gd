@@ -24,6 +24,7 @@ extends SceneTree
 
 const CityLife := preload("res://scripts/city_life.gd")
 const TrendJob := preload("res://scripts/trend_job.gd")
+const ScooterZones := preload("res://scripts/scooter_zones.gd")
 const Notebook := preload("res://scripts/notebook.gd")
 const EggBook := preload("res://scripts/egg_book.gd")
 const Wallet := preload("res://scripts/wallet.gd")
@@ -68,6 +69,7 @@ func _run() -> void:
 	await process_frame
 	_check_rules()
 	_check_trends()
+	_check_scooter_zones()
 	_check_pay()
 	_check_zajac()
 	_check_fat_thursday()
@@ -175,6 +177,17 @@ func _check_horn(life: Node, dlg: FakeDialogue) -> void:
 
 
 # 3. -------------------------------------------------------------------------------------------
+
+func _check_scooter_zones() -> void:
+	var sz := ScooterZones.new()
+	_expect(sz.at(100000.0, 100000.0) == "", "scooter zones: a far point is inside one")
+	for id: String in ScooterZones.ZONES:
+		var z: Array = ScooterZones.ZONES[id]
+		var c := Notebook.project([52.234, 21.024], float(z[0]), float(z[1]))
+		_expect(sz.at(c.x, c.y) == id, "scooter zone %s: its centre reads %s" % [id, sz.at(c.x, c.y)])
+		_expect(sz.at(c.x + ScooterZones.RADIUS + 5.0, c.y) != id, "scooter zone %s: outside its radius" % id)
+		_expect(ScooterZones.toast_for(id).size() == 2, "scooter zone %s: toast" % id)
+
 
 func _check_trends() -> void:
 	_expect(CityLife.day_number(20260105) == 0 and CityLife.day_number(20260108) == 3 and CityLife.day_number(20270105) == 365,

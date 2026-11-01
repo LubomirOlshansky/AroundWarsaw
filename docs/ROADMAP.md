@@ -415,7 +415,7 @@ in). Gaps the orchestrator added on 2026-10-28, so nothing found so far falls th
 
 ### v1.0 — "Ship it"
 - Trend spots 2025–26 (docs/design/trends-2025-26.md): eight parody signs built; PISTACJA queue and
-  Friday "Limitka" drop job built (2026-11-01, phone check open); PADELNIA queue and eight padel lines built (docs/design/padel.md; characters, notebook lore and the "Czwarty" quest to follow); scooter zones to follow (BACKLOG "Trends 2025–26").
+  Friday "Limitka" drop job built (2026-11-01, phone check open); PADELNIA queue and eight padel lines built (docs/design/padel.md; characters, notebook lore and the "Czwarty" quest to follow); scooter zones built (toast only, 2026-11-01) (BACKLOG "Trends 2025–26").
 - Device pass on iPhones (11 → 17 Pro): 60 fps target, memory under 1.5 GB, load < 4 s.
 - Settings (style, controls, sound), onboarding, App Store assets, privacy, credits
   (OSM ODbL, GUGiK CC BY 4.0 for trees, ZTM data terms).
