@@ -23,6 +23,7 @@ const Landmarks := preload("res://scripts/landmarks.gd")
 ## Triangles a site may hold: measured on 2026-10-31 plus about 20 % (raise on purpose only).
 const BUDGET := {
 	"aleksander": 1460,
+	"ostrogski": 870,
 	"brama_uw": 550,
 	"bristol": 400,
 	"karmelici": 450,

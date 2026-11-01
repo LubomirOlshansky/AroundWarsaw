@@ -386,6 +386,9 @@ const INFO := {
 	"pawilony": ["Pawilony",
 			"Labirynt barów wielkości kiosku za bramą przy Nowym Świecie.",
 			"A maze of kiosk-sized bars behind a gate on Nowy Świat."],
+	"ostrogski": ["Zamek Ostrogskich",
+			"Pałac nad skarpą na Tamce; w nim Muzeum Fryderyka Chopina.",
+			"A palace on the Tamka escarpment, home of the Fryderyk Chopin Museum."],
 	"mdm": ["MDM",
 			"Marszałkowska Dzielnica Mieszkaniowa, socrealizm z lat 1950–1952.",
 			"The socialist-realist housing district of 1950–1952."],
@@ -682,6 +685,8 @@ func _find_sites() -> void:
 	_find_works()
 	# The Ministry of Finance (2026-11-01): a model instead of the mapped box.
 	_find_mf()
+	# Powiśle, street by street (2026-11-01): Ostrogski Castle and the Chopin Institute, Tamka 41.
+	_find_ostrogski()
 
 
 ## Warszawa Centralna (spec docs/landmarks/specs/centralna.md, 2026-10-31): OpenStreetMap maps
@@ -1067,6 +1072,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_stadion_pkp(s)
 			"srodmiescie":
 				_build_srodmiescie(s)
+			"ostrogski":
+				_build_ostrogski(s)
 			"krolewska":
 				pass  # a skin with no card: drawn by the builder, not on the picking grid
 			_:
@@ -9811,3 +9818,119 @@ func _build_wyszynski(_site: Dictionary) -> void:
 	_prism(_circle(_w(0.1, 0.0), 0.17, 8), top + 1.7, top + 2.1, robe, robe, M_STONE, M_STONE)  # head
 	_lbox(0.45, 0.3, 0.4, 0.14, top + 1.2, top + 1.3, robe, M_STONE, robe)  # the hand at the chin
 	_collide(_rect(0.0, 0.0, 3.2, 3.2))
+
+
+# --- Zamek Ostrogskich and the Chopin Institute (Tamka 41) -----------------------------------
+
+## The Ostrogski Castle (Zamek Ostrogskich; a 17th-century palace complex above the Vistula
+## escarpment, rebuilt after 1945) and, across its courtyard, the block of the Fryderyk Chopin
+## Institute (the museum): a model instead of two mapped boxes. Cream plaster walls over a stone
+## plinth, a cornice, steep red-brown hipped roofs with dormers, cross gables on the castle's
+## middle bays, a round corner turret with a cone cap, and a small columned porch at the museum's
+## door. Spec docs/landmarks/specs/ostrogski.md. Heights are estimates (no LoD2 in the cloud).
+## Frames: the castle's origin is its outline's centre, u east-north-east, +v south-south-east
+## (the long way); the museum's is its outline's centre, u west, +v north.
+const OSTROG_O := Vector2(-70.3, -274.2)
+const OSTROG_A := Vector2(0.9472, -0.3206)
+const CHOPIN_O := Vector2(-112.86, -268.13)
+const CHOPIN_A := Vector2(-0.9877, 0.1565)
+const OSTROG_WALL := Color("#e4d3ae")
+const OSTROG_TRIM := Color("#efe6d0")
+const OSTROG_BASE := Color("#a89d89")
+const OSTROG_ROOF := Color("#8a4a3a")
+const OSTROG_DARK := Color("#3a3f42")
+const OSTROG_GOLD := Color("#c9a24a")
+const OSTROG_EAVE := 10.0
+
+
+func _find_ostrogski() -> void:
+	var castle := _landmark("Zamek Ostrogskich")
+	var museum := _landmark("Narodowy Instytut Fryderyka Chopina")
+	if castle.size() >= 3 and museum.size() >= 3:
+		_add_site("ostrogski", [castle, museum])
+
+
+func _build_ostrogski(site: Dictionary) -> void:
+	var zone: Array = site["zone"]
+	var castle: PackedVector2Array = zone[0]
+	var museum: PackedVector2Array = zone[1]
+	# --- the castle
+	_o = OSTROG_O
+	_a = OSTROG_A.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_g = _ground_under(castle)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	_body(castle, g, OSTROG_EAVE)
+	_hip(0.0, 0.0, 8.2, 12.9, g + OSTROG_EAVE + 0.6, 6.0, OSTROG_ROOF)
+	# cross gables on the middle bays, both faces
+	for sgn: float in [-1.0, 1.0]:
+		_gable(sgn * 7.95, 0.0, 0.0, 5.7, g + OSTROG_EAVE + 0.6, 4.6, OSTROG_WALL, OSTROG_ROOF, false)
+		_mode = M_GLASS
+		_wall(_w(sgn * 7.97, -1.4), _w(sgn * 7.97, 1.4), g + OSTROG_EAVE + 1.2, g + OSTROG_EAVE + 3.6, _a * sgn, OSTROG_DARK)
+		_mode = M_STONE
+	# dormers on the wings' long slopes
+	for sgn: float in [-1.0, 1.0]:
+		for v: float in [-9.5, -7.2, 7.2, 9.5]:
+			_dormer(sgn, 5.6, v, g + OSTROG_EAVE + 0.6, 8.2, 12.9, 6.0)
+	# the turret on the north-west corner: a drum, a cornice, a cone cap, a ball
+	var tc := _w(-6.4, -11.8)
+	_prism(_circle(tc, 2.3, 10), g - 1.0, g + 13.6, OSTROG_WALL, none, M_MONUMENT)
+	_prism(_circle(tc, 2.75, 10), g + 13.6, g + 14.3, OSTROG_TRIM, OSTROG_TRIM, M_STONE, M_STONE)
+	_frustum(_circle(tc, 2.6, 10), g + 14.3, _circle(tc, 0.25, 10), g + 21.0, OSTROG_ROOF.lightened(0.04), OSTROG_ROOF)
+	_prism(_circle(tc, 0.35, 6), g + 21.0, g + 21.7, OSTROG_GOLD, OSTROG_GOLD, M_STONE, M_STONE)
+	# two chimneys on the ridge
+	for v: float in [-3.2, 3.2]:
+		_lbox(0.0, v, 0.55, 0.55, g + 15.0, g + 18.4, OSTROG_BASE.lightened(0.1), M_STONE, OSTROG_BASE)
+	_collide(castle)
+	# --- the museum
+	_o = CHOPIN_O
+	_a = CHOPIN_A.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_g = _ground_under(museum)
+	g = _g
+	_body(museum, g, 9.2)
+	_hip(0.0, 0.0, 11.9, 9.3, g + 9.8, 5.0, OSTROG_ROOF.darkened(0.04))
+	_lbox(0.0, 0.0, 0.5, 0.5, g + 13.0, g + 16.2, OSTROG_BASE.lightened(0.1), M_STONE, OSTROG_BASE)
+	for sgn: float in [-1.0, 1.0]:
+		for v: float in [-5.5, 5.5]:
+			_dormer(sgn, 6.2, v, g + 9.8, 11.9, 9.3, 5.0)
+	# the porch at the museum's door on the courtyard side (u < 0)
+	var pv := 2.0
+	_mode = M_GLASS
+	_wall(_w(-10.32, pv - 1.0), _w(-10.32, pv + 1.0), g + 0.4, g + 4.1, -_a, OSTROG_DARK)
+	_mode = M_STONE
+	_lbox(-11.5, pv, 1.5, 2.4, g - 0.8, g + 0.4, OSTROG_BASE, M_STONE, OSTROG_BASE.lightened(0.06))
+	for v: float in [-1.45, 1.45]:
+		_column(-12.5, pv + v, 0.3, g + 0.4, g + 4.7, OSTROG_TRIM)
+	_lbox(-11.5, pv, 1.5, 2.4, g + 4.7, g + 5.3, OSTROG_TRIM, M_STONE, OSTROG_TRIM)
+	var ma := _a
+	var mb := _b
+	_a = -ma
+	_b = -mb
+	_gable(-12.9, -10.2, -pv, 2.3, g + 5.3, 1.2, OSTROG_WALL, OSTROG_ROOF)
+	_a = ma
+	_b = mb
+	_collide(museum)
+
+
+## The walls both blocks share: a stone plinth, the plastered storeys (M_MONUMENT draws the
+## tall windows) and a cornice, round a mapped outline.
+func _body(ring: PackedVector2Array, g: float, eave: float) -> void:
+	_prism(ring, g - 1.0, g + 1.0, OSTROG_BASE, OSTROG_BASE, M_STONE, M_STONE)
+	_prism(ring, g + 1.0, g + eave, OSTROG_WALL, Color(0, 0, 0, 0), M_MONUMENT)
+	var cornice := _largest(Geometry2D.offset_polygon(ring, 0.35, Geometry2D.JOIN_MITER))
+	_prism(cornice, g + eave, g + eave + 0.6, OSTROG_TRIM, OSTROG_ROOF.darkened(0.1), M_STONE, M_STONE)
+
+
+## A dormer on a hipped roof's long slope (the slope on side `sgn` along u): a small box with a
+## dark window and a gable roof. `y` is the eaves, `hu`/`hv` the roof's half sizes, `rise` its height.
+func _dormer(sgn: float, u: float, v: float, y: float, hu: float, hv: float, rise: float) -> void:
+	var short := minf(hu, hv) - 0.15
+	var ry := y + rise * minf(hu - u, hv - absf(v)) / short
+	var uf := u + 0.6
+	_lbox(sgn * u, v, 0.6, 0.55, ry - 0.9, ry + 1.5, OSTROG_WALL, M_STONE, OSTROG_WALL)
+	_mode = M_GLASS
+	_wall(_w(sgn * (uf + 0.02), v - 0.3), _w(sgn * (uf + 0.02), v + 0.3), ry - 0.2, ry + 1.2, _a * sgn, OSTROG_DARK)
+	_mode = M_STONE
+	_gable(sgn * (uf + 0.05), sgn * (u - 0.6), v, 0.62, ry + 1.5, 0.8, OSTROG_WALL, OSTROG_ROOF)
