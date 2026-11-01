@@ -54,8 +54,9 @@ then the Launch gate.
 - [ ] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
 - [ ] DEMO 6.3 counts: 10 roof cassettes (1 in #115), ~25 landmark cards, the second słoiki
       station, the Old Town tourist and Łazienki peacock rescues (check each against the code)
-- [ ] Loop 3i juice: sparks and dust (no particles yet), money pops, district ambiences,
-      haptics working on the iPhone
+- [x] Crash sparks and dust, phone vibration fixed in code (2026-11-01, crash_fx.gd, haptics.gd;
+      the feel on the iPhone and an Android phone still to check: QUESTIONS)
+- [ ] Loop 3i juice leftovers: money pops, district ambiences
 - [x] Accessibility options (2026-11-01, Settings → DOSTĘP, `access.gd`): larger HUD text, calm
       (no flashing or shaking), colour-safe markers, vibration on/off, stop assist on/off.
       Left to do: left-handed layout, live text size, subtitles (BACKLOG)
@@ -386,9 +387,9 @@ in). Gaps the orchestrator added on 2026-10-28, so nothing found so far falls th
   3j: triage each item (fix, fold into a loop, or drop with a reason), mechanical fixes on
   Sonnet, judgment ones on Opus. Small known ones: `check_landmarks.gd` exits 0 on failure;
   README's two `bake_osm.py` command lines.
-- **Haptics on the iPhone** (`Could not vibrate using haptic engine`): rule out the phone's
-  settings, then a small iOS plugin with `UIImpactFeedbackGenerator`. Device-gated, Opus.
-  With loop 3i (juice) at the latest.
+- **Haptics on the iPhone**: done in code 2026-11-01 (haptics.gd: the log line is printed on
+  success too; the buzzes were too short and soft). A `UIImpactFeedbackGenerator` plugin only if
+  the phone check says they still can't be felt.
 - **2D art with PixelLab**, spread over the loops that need it: HUD and minimap icons in 2e,
   shop signs, posters and billboards in 2d, dialogue portraits (rivals, police, customers,
   the radio host) in 3g/3h, the app icon and store art in 3j. Up to 50 generations a loop.

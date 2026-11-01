@@ -13,8 +13,8 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
 - Text size that follows the phone's own setting, and live (no restart); the panels with fixed
   layouts (cards, bubbles) need a check at x1.25 on the SE.
 - Subtitles: nothing is voiced yet; revisit when speech or radio talk with words lands.
-- Crash sparks and screen shake (another loop) must multiply by `Access.shake()` and buzz through
-  `Access.buzz`; colour-safe still to cover the HUD's green badges and the red fail colour.
+- ~~Crash sparks buzz through `Access.buzz`~~ Done (2026-11-01: crash_fx.gd shakes nothing; the
+  car's knock goes through haptics.gd, which keeps `Access.vibration`). Colour-safe still to cover the HUD's green badges and the red fail colour.
 
 ## Ground vertex compression, to re-apply on the Mac (stale PR #53 triage, 2026-11-01)
 - PR #53 (commit b343d60, branch `claude/project-thread-ldyr9u`) stores the ground's meshes with
@@ -604,9 +604,19 @@ golden-image shots runtime vs `--prebuilt`,
   `export_presets.cfg` (not a secret, decided: BACKLOG-TRIAGE "Decided since") (tidied 2026-10-30, checked in the code).
 - Device-run permission in CLAUDE.md stays per loop ("when the user said so for the current
   loop"); the user allowed phone test builds on 2026-10-28.
-- Haptics fail on the phone: `Could not vibrate using haptic engine: (null)` in the device log
-  (nine `Input.vibrate_handheld` calls). Rule out Low Power Mode / System Haptics off first;
-  else a small iOS plugin with `UIImpactFeedbackGenerator`.
+- ~~Haptics fail on the phone~~ Fixed in code 2026-11-01: Godot 4.7.2's iOS template
+  (apple_embedded.mm) logs `Could not vibrate using haptic engine: %@` after every buzz, so
+  `(null)` means no error. The buzzes were 25-40 ms at 0.3-0.5 as continuous events, too faint to
+  feel. haptics.gd now floors every buzz at 45 ms / 0.55 (cap 220 ms), merges buzzes 70 ms apart,
+  scales the car's knock 50-160 ms by the hit, and starts the engine without waiting at load, on
+  resume and every 6 s while driving. Still to check on the phones (device run): the feel, and
+  no hitch on the first crash after a pause. If still not felt: a `UIImpactFeedbackGenerator`
+  plugin (needs Xcode on the Mac).
+- Crash sparks and dust (crash_fx.gd, 2026-11-01): checked by screenshots on the cloud's
+  software renderer (day: an orange burst and dust, night: a white glow). Not seen yet: the
+  prebuilt city path (the cloud's map data is stale: bake_city fails on the site slabs, not this
+  change), the phone's frame during a crash (2 draw calls and ~77 µs of script on a desktop
+  core while particles live; zero when idle).
 - ~~The once-only `ERROR: Mouse is not supported by this display server.`~~ Duplicate of the
   loop 2b entry above (tidied 2026-10-30, checked in the code).
 

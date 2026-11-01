@@ -17,6 +17,13 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · driving · does the vibration feel right on the phones?** — Crash sparks and the
+  vibration fix (haptics.gd) were built and checked without a phone. Default built: every buzz at
+  least 45 ms at 55 % strength, a crash up to 160 ms at full strength, on by default with the
+  DOSTĘP switch to turn it off. Needs a device run on the iPhone (and an Android phone if one is at
+  hand): crash into a few cars and walls, take a job; say if it's too weak, too strong or missing,
+  and whether the first crash after a pause hitches.
+
 - **2026-11-01 · landmarks · the Eastern Wall stores' banners and west names** — The photo
   check's optional items: printed ad banners (A4) are built on the faces the game's camera sees
   (each south end and east face, 3 per store: PROMOCJA, SAMSONG, LODY, WYPRZEDAZ), not on the

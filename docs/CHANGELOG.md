@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Crashes throw sparks and dust (they glow at night), scraping along a barrier at speed trails sparks, and the phone's vibration is now strong enough to feel.
 - A new Settings tab, DOSTĘP (Access): larger text, a calm screen with no flashing, colour-safe markers, vibration off, and the pick-up stop assist off.
 - New: eight joke posters on advertising columns and five street signs about the 2025–26 fads (matcha, padel, sour wine, the pistachio queue, the 12 km/h scooter rule).
 - Kiosks, flower stalls, café tables, planters, ice-cream carts and tram stop signs now line the streets of the main route, not only the start.
