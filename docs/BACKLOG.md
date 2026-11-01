@@ -1736,6 +1736,12 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
   wall no longer stands inside a tube's mouth. C8 2 and C1 1 stay allowed (they are the cutting
   profile's 0.6 m steps at the rim, (−134, 1705) and (3, 1619)); check_drive's 4 jumps at the rim
   (−143, 1719) stay allowed too.
+- **Joins follow-up (2026-11-02, cloud)**: `check_landmarks` Warszawa Stadion and Elektrownia Powiśle
+  failed the helicopter test only because it aimed at the box middle (open air): it now aims at the
+  tallest cell (the check, not the map). `check_places` WARN for most_slasko_dabrowski (65 m from a
+  lane) fixed by moving its `near` onto the bridge. The three geometry leftovers below were NOT
+  touched: the cloud has no terrain.json, so `drop` (the parapet collider's test) and the deck
+  heights differ from the Mac and check_drive cannot confirm a fix there; do them on the Mac.
 - **Wybrzeże Szczecińskie's deck over the Port Praski inlet (deck 4)** by Most Śląsko-Dąbrowski's
   Praga end: a bus on the outer lane at its west end brushes the neighbouring piece's parapet (the
   gap between pieces keeps a collider where there is a drop): ~~6~~ 2 places left ((409, −1519) and

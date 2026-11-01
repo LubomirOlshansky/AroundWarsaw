@@ -62,6 +62,10 @@ then the Launch gate.
       Rozdroże's portal wall, Nowy Zjazd's wall (check_drive `--no-allow` 51 → 26 lane spots; 3 of
       11 allowlist entries gone). Open: the loop ramps' parapets and slabs at Łazienkowski's Praga
       end, deck 4's parapet, the footbridge's Praga end (BACKLOG "From loop 3e")
+- [x] Verify cleanups after the joins (2026-11-02): `landmarks` heli test aims Warszawa Stadion and
+      Elektrownia Powiśle at their tallest cell (the box middle is open air), the Most
+      Śląsko-Dąbrowski place hint sits on the bridge (`places` WARN gone). Still needs a Mac run
+      (no terrain in the cloud): Łazienkowski's slab edges, deck 4's parapet, the Karowa footbridge's end
 - [ ] Loop 3e leftovers still open: the rail cutting, Most Łazienkowski cut by the east edge (decide)
 - [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
 
