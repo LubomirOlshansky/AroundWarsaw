@@ -604,6 +604,26 @@
     [
       "LEŻAK · PARKING? JAKI PARKING?",
       "LEŻAK · PARKING? WHAT PARKING?"
+    ],
+    [
+      "MACZA · ZIELONO, DROGO, MODNIE",
+      "MACZA · GREEN, PRICEY, TRENDY"
+    ],
+    [
+      "PISTACJA DO KOŃCA · KOLEJKA OD RANA",
+      "PISTACJA DO KOŃCA · QUEUE FROM THE MORNING"
+    ],
+    [
+      "PADELNIA · RAKIETA W CENIE GODZINY",
+      "PADELNIA · RACKET INCLUDED IN THE HOUR"
+    ],
+    [
+      "STREFA 12 KM/H · HULAJNOGI, ZWOLNIJ",
+      "12 KM/H ZONE · E-SCOOTERS, SLOW DOWN"
+    ],
+    [
+      "KWAŚNE WINO · TO NIE BŁĄD",
+      "KWAŚNE WINO · IT IS NOT A BUG"
     ]
   ],
   "kebab_vendor": [
@@ -1072,6 +1092,102 @@
           "SYGNAŁ",
           "GPS.",
           "PODWÓZKA"
+        ]
+      }
+    ],
+    [
+      "MATCHA NA WYNOS. ZIELONO NA DUSZY.",
+      "Matcha to go. Green in the soul.",
+      {
+        "poster": [
+          "MACZA",
+          "NA WYNOS",
+          "ZIELONO",
+          "NA DUSZY"
+        ]
+      }
+    ],
+    [
+      "SZUKAM PARTNERA DO PADLA. DOSŁOWNIE.",
+      "Looking for a padel partner. Literally.",
+      {
+        "poster": [
+          "SZUKAM",
+          "PARTNERA",
+          "DO PADLA",
+          "PADEL"
+        ]
+      }
+    ],
+    [
+      "WINO KWAŚNE? TO ZAMIERZONE.",
+      "Sour wine? It is on purpose.",
+      {
+        "poster": [
+          "WINO",
+          "KWAŚNE?",
+          "TO JEST",
+          "CELOWE"
+        ]
+      }
+    ],
+    [
+      "POP-UP DO PIĄTKU. TEN SAM CO W ZESZŁYM ROKU.",
+      "Pop-up until Friday. The same one as last year.",
+      {
+        "poster": [
+          "POP-UP",
+          "DO PIĄT-",
+          "KU. TEN",
+          "SAM."
+        ]
+      }
+    ],
+    [
+      "KOLEJKA DO PISTACJI: DZIŚ TYLKO 2 GODZINY.",
+      "Pistachio queue: only 2 hours today.",
+      {
+        "poster": [
+          "PISTACJA",
+          "KOLEJKA",
+          "TYLKO",
+          "2 GODZ."
+        ]
+      }
+    ],
+    [
+      "HULAJNOGA 12 KM/H. SŁOWO HARCERZA.",
+      "E-scooter 12 km/h. Scout's honour.",
+      {
+        "poster": [
+          "HULAJ-",
+          "NOGA",
+          "12 KM/H",
+          "PODOBNO"
+        ]
+      }
+    ],
+    [
+      "KASK DO 16 LAT. MANDAT 100 ZŁ.",
+      "Helmet under 16. Fine: 100 zł.",
+      {
+        "poster": [
+          "KASK",
+          "DO 16",
+          "LAT. BO",
+          "MANDAT"
+        ]
+      }
+    ],
+    [
+      "DOKĄD? NIE TUTAJ. DRZWI ZA ROGIEM.",
+      "Where? Not here. Door is round the corner.",
+      {
+        "poster": [
+          "NIE",
+          "TUTAJ.",
+          "DRZWI ZA",
+          "ROGIEM"
         ]
       }
     ]

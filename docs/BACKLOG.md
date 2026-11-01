@@ -20,7 +20,8 @@ Spec and sources: `docs/design/trends-2025-26.md`. Built: eight parody trend spo
 - [ ] Phone check of the PISTACJA queue (Friday 16:00-18:30 drop, 36 people) and the "Limitka" job (`--trend-job=4`): line on the footway, 5 s wait, 5 min delivery. Built 2026-11-01.
 - [ ] Padel lore thread (F, 2026-11-01): lore entries, characters, dialogue jokes, a court location or side quest.
 - [ ] E-scooter 12 km/h zones (rules of 3 June 2026) as slow zones with signs.
-- [ ] Lines about matcha, padel, natural wine in dialogue.json (PL + EN, Polish ≤ 70 chars).
+- [x] Lines about matcha, padel, natural wine, queue, scooter rules: 8 column posters and 5 signs in dialogue.json (PL + EN).
+- [ ] Phone check: do the new column posters read (rows ≤ 8 letters)? Not run, no Godot in the cloud.
 - [ ] Phone check: sign sizes and placement of the eight new spots (not run: no Godot in the cloud).
 
 ## Audit: what is verified beyond the landmarks (2026-11-01)
