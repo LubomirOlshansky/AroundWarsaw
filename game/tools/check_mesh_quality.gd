@@ -38,6 +38,7 @@ const BUDGET := {
 	"gpy": 250,
 	"grob": 340,
 	"grzybowska63": 500,
+	"gwardii": 1450,
 	"hub_b": 100,
 	"hub_c": 90,
 	"ilmet": 180,
