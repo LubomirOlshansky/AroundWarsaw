@@ -5,6 +5,11 @@ extends RefCounted
 ## MultiMesh (neon.gdshader): the instance colour is the tube colour, the custom
 ## data picks the word and how it is mounted (on a dark plate or bare on the wall).
 ## The map builder adds them under a "Neon" node, which the game hides by day.
+## A word with a letter this font lacks (the Polish ones: DO WYNAJĘCIA, ORANŻADA) is drawn with
+## pixel_font.gd's glyphs instead, their accents in the row's top padding, as storefronts.gd's
+## venue rows are.
+
+const PixelFont := preload("res://scripts/pixel_font.gd")
 
 const WORDS := ["KEBAB 24H", "BAR MLECZNY", "APTEKA", "KWIATY", "HOTEL", "KANTOR", "PIZZA", "KLUB", "NOCNY"]
 ## The landmarks loop: words only the landmarks wear (never a shop's), after WORDS in the atlas:
@@ -14,11 +19,15 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# First scene item 3: the Eastern Wall's stores (parodies of their roof names).
 		"JUNIOREK", "SAWKA", "WARSIK",
 		# The stores' printed ad banners (the Mac photo check, 2026-11-01).
-		"PROMOCJA", "LODY", "WYPRZEDAZ",
+		"PROMOCJA", "LODY",
 		# The tower and the slab behind the stores (specs C and D): a parody and a drink.
-		"KOKA-KOLKA", "ORANZADA",
+		"KOKA-KOLKA", "ORANŻADA",
 		# The Pawilony (2026-10-31): the bars' little words and the gate's name.
-		"PIWO", "BAR", "SHOTY", "DISCO", "KARAOKE", "OTWARTE", "PAWILONY"]
+		"PIWO", "BAR", "SHOTY", "DISCO", "KARAOKE", "OTWARTE", "PAWILONY",
+		# The start area as real Warsaw (R1, docs/design/start-area-real.md, 2026-11-01): the
+		# Eastern Wall as it is in 2025/26, half empty after H&M, Zara and C&A left, the H&M
+		# corner turning into a two-storey Frogs, a shoe chain on Zara's floor.
+		"WYPRZEDAŻ", "DO WYNAJĘCIA", "DO", "WYNAJĘCIA", "FROGS XXL", "FROGS", "XXL", "KAPCIE", "SCENA RELAX"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)
@@ -62,6 +71,8 @@ const FONT := {
 
 ## Width of a word in font pixels (5 per letter, 1 between letters, 3 for a space).
 static func word_width(word: String) -> int:
+	if not own_font(word):
+		return PixelFont.width(word)
 	var w := 0
 	for i in word.length():
 		if i > 0:
@@ -81,6 +92,11 @@ static func atlas() -> ImageTexture:
 		var word: String = all[r]
 		var x := PAD
 		var tube := {}
+		if not own_font(word):
+			PixelFont.each_pixel(word, PAD, func(px: int, row: int) -> void:
+				if px < ATLAS_W:
+					tube[Vector2i(px, r * ROW_H + row)] = true)
+			word = ""
 		for i in word.length():
 			if i > 0:
 				x += 1
@@ -107,6 +123,14 @@ static func atlas() -> ImageTexture:
 		for p in tube:
 			img.set_pixelv(p, Color(1, 1, 0, 1))
 	return ImageTexture.create_from_image(img)
+
+
+## Whether every letter of `word` is in this file's FONT (else pixel_font.gd draws it).
+static func own_font(word: String) -> bool:
+	for ch in word:
+		if ch != " " and not FONT.has(ch):
+			return false
+	return true
 
 
 ## The atlas rows: the shop words, then the landmarks' words.

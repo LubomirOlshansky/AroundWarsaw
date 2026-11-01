@@ -35,6 +35,19 @@ then the Launch gate.
       PR #121 (the opening flyover)
 - [ ] First-scene items 4-7: pavilions and towers behind the stores, Plac Defilad's paving, tram
       stops and kerbs on Marszałkowska, pedestrians and sound at the start
+- [ ] The start area as real Warsaw (F, 2026-11-01; plan docs/design/start-area-real.md):
+  - [x] R1 the Eastern Wall's signs as they are in 2025/26 (Polish letters in the neon font,
+        DO WYNAJĘCIA boards, FROGS XXL on the old H&M corner, KAPCIE, SCENA RELAX), 2026-11-01
+  - [ ] R2 Plac Centralny's ground (the tenements' outlines in grey and red slabs, the setts,
+        the pond, the trees)
+  - [ ] R3 pavements, granite kerbs, red cycle paths, the green Złota, the fountain, the crossings
+  - [ ] R4 ordinary buildings by type (pre-war tenement, 1960s-70s slab, socialist-realist,
+        office), shader only
+  - [ ] R5 Scena Relax, Zodiak and the Cepelia pavilion as models
+  - [ ] R6 one of the 2025/26 trend spots (built elsewhere, trends-2025-26.md) inside the start
+        box, and the empty-stores jokes in the lines
+  - [ ] R7 street details in the box (street name plates, bike dock, tram stops, bollards)
+  - [ ] R8 landmark polish left in the box (the museum's ribbon and roofline)
 
 ### Left: map and roads
 - [ ] A full `tools/verify.sh` and `--ios` on the Mac on today's main, both city paths
