@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- The Old Town has hotels: Kasztel Inn by Castle Square, Hotel Canaletto and the Rezydencja Starówka on the Market now have a door with a lit entrance, a canopy, a neon name and flags, and a card when you tap them.
 - Warszawa Stadion's ticket hall no longer reads as a white box: its roof sweeps up into a taller white sail over the forecourt, with bigger red STADION letters.
 - Krakowskie Przedmieście's carriageway is granite setts now, and Bolesław Prus and Cardinal Wyszyński stand in bronze at the street's north end; the Czapski palace has its own cream stone and a card.
 - Most Średnicowy, the railway bridge over the Vistula, now stands on massive granite piers with pointed cutwaters, its tracks carried on steel arch trusses between them.
