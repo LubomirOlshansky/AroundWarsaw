@@ -269,6 +269,12 @@ const INFO := {
 	"swieto": ["Most Świętokrzyski",
 			"Most wantowy z 2000 roku: jeden pylon, wanty w jednej płaszczyźnie.",
 			"A cable-stayed bridge of 2000: one pylon, its stays in one plane."],
+	"dom_partii": ["Dom Partii",
+			"Biały gmach z 1952 roku. Była partia, giełda, dziś biura i bary.",
+			"A white block from 1952. Once the Party, then the stock exchange, now offices and bars."],
+	"gaulle": ["Pomnik generała de Gaulle'a",
+			"Maszeruje Alejami od 2005 roku. Kopia tego z Paryża.",
+			"Marching down the Avenues since 2005. A copy of the one in Paris."],
 	"zygmunt": ["Kolumna Zygmunta",
 			"Najstarszy świecki pomnik Warszawy, z 1644 roku.",
 			"Warsaw's oldest secular monument, of 1644."],
@@ -551,6 +557,8 @@ func _find_sites() -> void:
 	_find_mdm()
 	_find_skins()
 	_find_zygmunt()
+	_find_gaulle()
+	_find_dom_partii()
 	_find_arkadia()
 	_find_forest()
 	_find_flag()
@@ -843,6 +851,10 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_towers(s)
 			"zygmunt":
 				_build_zygmunt(s)
+			"gaulle":
+				_build_gaulle(s)
+			"dom_partii_extras":
+				_build_dom_partii(s)
 			"arkadia":
 				_build_arkadia(s)
 			"forest":
@@ -2526,6 +2538,9 @@ const SKINS := [
 	{"key": "wszystkich", "osm": "Kościół Wszystkich Świętych", "mode": M_MONUMENT, "wall": "#ddcfaa", "roof": "#6e7f6e"},
 	{"key": "wizytki", "osm": "Kościół Wizytek", "mode": M_MONUMENT, "wall": "#ecdfc0", "roof": "#6d8f7f"},
 	{"key": "sejm", "osm": "Sejm RP", "mode": M_MONUMENT, "wall": "#e2e0d8", "roof": "#8d8f8c"},
+	# Dom Partii (F's photo, 2026-11-01): the white stone block at Rondo de Gaulle'a; its extras
+	# (the roof sign, the courtyard) are the site `dom_partii_extras`.
+	{"key": "dom_partii", "osm": "Centrum Bankowo-Finansowe", "mode": M_MONUMENT, "wall": "#ebe8df", "roof": "#8e9091"},
 ]
 
 
@@ -2653,6 +2668,148 @@ func _build_zygmunt(_site: Dictionary) -> void:
 	var sabre := PackedVector2Array([c + Vector2(-0.34, 0.1), c + Vector2(-0.3, 0.1), c + Vector2(-0.3, 0.95), c + Vector2(-0.34, 0.95)])
 	_prism(sabre, g + 19.55, g + 19.65, ZYGMUNT_BRONZE, ZYGMUNT_BRONZE, M_STONE, M_STONE)
 	_collide(_circle(c, 3.4, 8))
+
+# --- The de Gaulle statue by Rondo de Gaulle'a (F's photo, 2026-11-01) ---------------------------
+
+## Jean Cardot's marching general (a copy of the Paris one, unveiled 15 May 2005) in front of the
+## Party House, north-west of its north wing, where the lawn's curved cut-out is mapped. OSM has
+## no 3D parts for it, so it is built by hand like Sigismund's Column (spec
+## docs/design/gaulle-and-food-hype.md G1, from F's photo): curved granite steps with cobbled
+## rings between them, a low granite cone, the tall dark granite plinth (its long side along the
+## walk) and the general in dark bronze, 3.3 m, walking west in his long coat and kepi.
+const GAULLE := Vector2(-171.0, 273.0)
+const GAULLE_WALK := Vector2(-1.0, 0.0)
+const GAULLE_STEP := Color("#b3b5b6")
+const GAULLE_COBBLE := Color("#76777a")
+const GAULLE_CONE := Color("#77777a")
+const GAULLE_GRANITE := Color("#4c4d51")
+const GAULLE_BRONZE := Color("#4a463d")
+const GAULLE_PLINTH_H := 4.2
+func _find_gaulle() -> void:
+	_add_site("gaulle", [_circle(GAULLE, 4.4, 16)])
+
+
+func _build_gaulle(_site: Dictionary) -> void:
+	var c := GAULLE
+	_g = _ground_under(_circle(c, 6.0, 8))
+	var g := _g
+	# The rings, outside in: three steps up, a cobbled band, one more step, a cobbled band.
+	var rings := [[8.0, 0.15, GAULLE_STEP], [7.6, 0.3, GAULLE_STEP], [7.2, 0.45, GAULLE_STEP], [6.8, 0.47, GAULLE_COBBLE],
+			[5.9, 0.62, GAULLE_STEP], [5.5, 0.64, GAULLE_COBBLE]]
+	for r: Array in rings:
+		var col: Color = r[2]
+		_prism(_circle(c, float(r[0]), 32), g - 0.3, g + float(r[1]), col.darkened(0.06), col, M_STONE, M_STONE)
+	# The low cone, cobbled on top.
+	_mode = M_STONE
+	_frustum(_circle(c, 4.4, 24), g + 0.64, _circle(c, 3.2, 24), g + 1.1, GAULLE_CONE, GAULLE_COBBLE.darkened(0.1))
+	# The plinth in the walk's frame (u along the walk, v to his left), a faint joint at a third.
+	_o = c
+	_a = GAULLE_WALK
+	_b = Vector2(-_a.y, _a.x)
+	var top := g + 1.1 + GAULLE_PLINTH_H
+	_lbox(0.0, 0.0, 1.35, 0.9, g + 1.0, g + 2.45, GAULLE_GRANITE, M_STONE, GAULLE_GRANITE)
+	_lbox(0.0, 0.0, 1.33, 0.88, g + 2.45, top, GAULLE_GRANITE.lightened(0.03), M_STONE, GAULLE_GRANITE.darkened(0.05))
+	_gaulle_figure(top, 3.3)
+	_collide(_circle(c, 4.4, 16))
+
+
+## The general, `h` m tall from his soles at `y`, in the frame _o/_a/_b (u forward): legs apart
+## in mid-stride, the coat to the knee, the near arm forward, the other back, the kepi.
+func _gaulle_figure(y: float, h: float) -> void:
+	var k := h / 3.3
+	var bz := GAULLE_BRONZE
+	var none := Color(0, 0, 0, 0)
+	# Legs: the front foot ahead, the back one pushing off; a shoe each.
+	for side: float in [1.0, -1.0]:
+		var hip := _w(0.0, 0.14 * side)
+		var foot := _w(0.5 * side * k, 0.15 * side)
+		var lift := 0.0 if side > 0.0 else 0.08 * k
+		_beam(Vector3(hip.x, y + 1.62 * k, hip.y), Vector3(foot.x, y + lift + 0.08 * k, foot.y), 0.24 * k, bz)
+		var toe := _w((0.5 * side + 0.16) * k, 0.15 * side)
+		_beam(Vector3(foot.x, y + lift + 0.06 * k, foot.y), Vector3(toe.x, y + 0.06 * k, toe.y), 0.15 * k, bz.darkened(0.1))
+	# The long coat: a flared skirt, the body, the shoulders.
+	_mode = M_STONE
+	_frustum(_rect(0.0, 0.0, 0.34 * k, 0.33 * k), y + 1.0 * k, _rect(0.0, 0.0, 0.23 * k, 0.27 * k), y + 1.75 * k, bz)
+	_prism(_rect(0.0, 0.0, 0.2 * k, 0.27 * k), y + 1.75 * k, y + 2.5 * k, bz, none, M_STONE)
+	_frustum(_rect(0.0, 0.0, 0.2 * k, 0.29 * k), y + 2.5 * k, _rect(0.0, 0.0, 0.14 * k, 0.18 * k), y + 2.66 * k, bz, bz)
+	# Arms swing against the legs: the right forward, the left back, from the shoulders.
+	for side: float in [1.0, -1.0]:
+		var sh := _w(0.0, 0.31 * side * k)
+		var hand := _w(-0.32 * side * k, 0.36 * side * k)
+		_beam(Vector3(sh.x, y + 2.55 * k, sh.y), Vector3(hand.x, y + 1.72 * k, hand.y), 0.13 * k, bz)
+	# The neck, the head and the kepi with its peak forward.
+	_prism(_rect(0.0, 0.0, 0.06 * k, 0.06 * k), y + 2.62 * k, y + 2.72 * k, bz, none, M_STONE)
+	_prism(_rect(0.02 * k, 0.0, 0.11 * k, 0.1 * k), y + 2.72 * k, y + 2.98 * k, bz, none, M_STONE)
+	_prism(_circle(_w(0.0, 0.0), 0.12 * k, 8), y + 2.98 * k, y + 3.16 * k, bz.darkened(0.08), bz.darkened(0.12), M_STONE, M_STONE)
+	_prism(_rect(0.15 * k, 0.0, 0.07 * k, 0.1 * k), y + 2.98 * k, y + 3.0 * k, bz.darkened(0.15), bz.darkened(0.15), M_STONE, M_STONE)
+
+
+# --- Dom Partii (F's photos, 2026-11-01) --------------------------------------------------------
+
+## The Party House (1948-1952, Nowy Świat 6/12, today Centrum Bankowo-Finansowe): its massing is
+## the mapped one (OSM parts here, LoD2 on the Mac) in white stone (SKINS `dom_partii`); this site
+## adds what the map lacks (spec docs/design/gaulle-and-food-hype.md G2): ROBUR in white tube
+## letters over the north-west corner (the roof sign's parody), and the courtyard: pale paving
+## with a dark key border round a lighter field, the long eight-sided fountain (the mapped
+## outline) with a granite rim, its pool and five jets along its axis. Its zone is a 0.2 m square
+## in the courtyard (nothing mapped stands there), so the skin keeps the building.
+const DOM_COURT := [Vector2(-140.9, 306.1), Vector2(-99.7, 293.8), Vector2(-83.4, 348.6), Vector2(-124.4, 360.8)]
+const DOM_FOUNTAIN := Vector2(-112.2, 327.3)
+const DOM_AXIS := Vector2(0.266, 0.964)
+const DOM_NW := Vector2(-161.1, 294.6)     # the outline's north-west corner
+const DOM_TOP := 24.1                      # the mapped wings' height (OSM)
+const DOM_PAVING := Color("#d8d4ca")
+const DOM_KEY := Color("#6e6b66")
+const DOM_FIELD := Color("#c9c4b8")
+const DOM_GRANITE := Color("#8f8d88")
+const DOM_POOL := Color("#4f7f8c")
+const DOM_JET := Color("#dff3f8")
+const DOM_SIGN := Color(0.95, 0.97, 1.0)
+func _find_dom_partii() -> void:
+	var c := DOM_FOUNTAIN + Vector2(-6.0, 0.0)
+	_add_site("dom_partii_extras", [PackedVector2Array([c, c + Vector2(0.2, 0), c + Vector2(0.2, 0.2), c + Vector2(0, 0.2)])])
+
+
+func _build_dom_partii(_site: Dictionary) -> void:
+	var court := PackedVector2Array(DOM_COURT)
+	_g = _ground_under(court)
+	var g := _g
+	_mode = M_STONE
+	_cap(court, g + 0.04, DOM_PAVING)
+	for inset: Array in [[1.6, 0.07, DOM_KEY], [2.4, 0.1, DOM_FIELD]]:
+		var shrunk := Geometry2D.offset_polygon(court, -float(inset[0]), Geometry2D.JOIN_MITER)
+		if not shrunk.is_empty():
+			_cap(shrunk[0], g + float(inset[1]), inset[2])
+	# The fountain: a long octagon round the mapped pool, a granite rim, the water, five jets.
+	_o = DOM_FOUNTAIN
+	_a = DOM_AXIS
+	_b = Vector2(-_a.y, _a.x)
+	var oct := PackedVector2Array()
+	for p: Vector2 in [Vector2(-10.6, -1.6), Vector2(-8.6, -3.4), Vector2(8.6, -3.4), Vector2(10.6, -1.6),
+			Vector2(10.6, 1.6), Vector2(8.6, 3.4), Vector2(-8.6, 3.4), Vector2(-10.6, 1.6)]:
+		oct.append(_w(p.x, p.y))
+	var rim := Geometry2D.offset_polygon(oct, 0.45, Geometry2D.JOIN_MITER)
+	if not rim.is_empty():
+		_prism(rim[0], g - 0.2, g + 0.5, DOM_GRANITE, DOM_GRANITE.lightened(0.1), M_STONE, M_STONE)
+	_prism(oct, g + 0.5, g + 0.52, DOM_POOL, DOM_POOL, M_STONE, M_STONE)
+	for u: float in [-6.0, -3.0, 0.0, 3.0, 6.0]:
+		var j := _w(u, 0.0)
+		_beam(Vector3(j.x, g + 0.52, j.y), Vector3(j.x, g + (2.2 if u == 0.0 else 1.4), j.y), 0.16, DOM_JET)
+	# ROBUR over the north-west corner, on its north and west fronts, a little in from the corner.
+	var outline := _landmark("Centrum Bankowo-Finansowe")
+	if outline.size() < 3:
+		return
+	var top := g + DOM_TOP
+	var centre := _centre(outline)
+	for far: Vector2 in [Vector2(-88.7, 273.2), Vector2(-135.2, 381.4)]:
+		var along := (far - DOM_NW).normalized()
+		var o := Vector2(-along.y, along.x)
+		if o.dot(DOM_NW - centre) < 0.0:
+			o = -o
+		var k := 1.5
+		var mid := DOM_NW + along * (Neon.length_of("ROBUR") * k * 0.5 + 2.5) - o * 0.6
+		signs.append(["ROBUR", Vector3(mid.x, top + 0.6, mid.y), Vector3(o.x, 0.0, o.y), k, DOM_SIGN])
+
 
 # --- Map north: Arkadia, the Forest tower, Rondo Radosława's flag (the landmarks loop) -----------
 
