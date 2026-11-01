@@ -66,6 +66,13 @@ then the Launch gate.
       Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
+- [ ] The estate, the halls and Jana Pawła II (F, 2026-11-01; BACKLOG section):
+  - [x] Osiedle Za Żelazną Bramą: eleven blocks as a model with its own skin, 2026-11-01
+  - [x] Hala Mirowska: market stalls on the square, 2026-11-01 (the hall itself was done)
+  - [x] Aleja Jana Pawła II: mid-century plasters on every plain building along it, 2026-11-01
+  - [ ] Mac photo checks for the estate and the stalls (QUESTIONS); then the boulevard street by street
+  - [ ] Chill spots with people and the queue: Norblin (with the milk-bar queue under a parody
+        name), Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle
 - [ ] Mariensztat and Krakowskie Przedmieście review (F, 2026-11-01; BACKLOG section):
   - [x] M1 Mariensztat's houses in pastel with red tile roofs and dormers, 2026-11-01
   - [ ] M2 Rynek Mariensztacki's card and reliefs; M3 the escarpment and Nowy Zjazd (Mac)

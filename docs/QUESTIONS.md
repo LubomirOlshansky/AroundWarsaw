@@ -18,6 +18,14 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · landmarks · Mac photo checks: the estate and the stalls** — Built from OSM
+  outlines without photos. Check on the Mac: Osiedle Za Żelazną Bramą's real panel colours and
+  whether the loggias stack in bays or run in bands (docs/landmarks/specs/zelazna.md), the high
+  block (its outline is a wedge), the low pavilions between the slabs, and where the market
+  stalls really stand on Plac Mirowski. Also Jana Pawła II's plasters against photos.
+- **2026-11-01 · content · the milk bar's parody name at Norblin** — Default when the chill-spot
+  thread builds it: BAR MLECZNY MLEKO-MANIA with a queue of regulars. Say if it should change.
+
 - **2026-11-01 · content · the trains' parody names** — Default to build: KOLEJE MAZOWE (the
   green and white suburban units), SKiM (the red and yellow city line), INTERSZYBKO (the
   long-distance coaches). Say if any should change. docs/design/railway.md section 4.
