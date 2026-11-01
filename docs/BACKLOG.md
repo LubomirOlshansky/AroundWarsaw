@@ -119,7 +119,14 @@ Small problems that agents reported or that showed up in screenshots. They are f
   the OSM parts. Left: the photo check on the Mac (OSM puts the shells in a 1.5 m tier wholly
   under the flat slab, so from the 30-degree camera they show only as a small zigzag at the
   two ends: if the photos show more of them, say so and the tier grows; the wings' walls; warm
-  or cool hall light). **The Copernicus Science Centre built 2026-11-01** (site `kopernik`,
+  or cool hall light). **Stadion Narodowy built 2026-11-01** (site `stadium`, spec
+  `docs/landmarks/specs/stadium.md`, PR #103's eyeball flag): the pitch was a 60 m blob under
+  stands too deep; now a 105 x 68 m striped pitch along the masts' axis in two tiers with the
+  boxes between, the skin red below and white above (the mapped rings), the raised rim, a
+  rounded opening, the needle's hub and folded-roof drum from the OSM parts. The Mac photo
+  check (same day) is applied: staggered red and silver panels on a smooth ramp, the dark
+  glass concourse under the skin, a polycarbonate ring round the opening, thicker spikes.
+  **The Copernicus Science Centre built 2026-11-01** (site `kopernik`,
   spec `docs/landmarks/specs/kopernik.md`, log `docs/landmarks/kopernik.md`): the long dark
   block to LoD2's 13 m with windows scattered like pixels, the river corner hanging over a
   glazed ground floor, the low glass wings, the roof garden, and the black faceted
@@ -159,6 +166,7 @@ golden-image shots runtime vs `--prebuilt`,
   hints, first order and first race to loop 3h item 6.
 
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
+- **Shisha lounges** built (five parody signs, `Storefronts.LOUNGES`): only the phone can show the sign size on each wall and whether the spots read as lounges. Not notebook places; add smoky window glow or a door scene if wanted.
 - **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;
   the designer (`game-designer`, Sonnet for the text) specs it, `warsaw-tone` rules apply (real
   brands only as parodies, affectionate, Polish with English).

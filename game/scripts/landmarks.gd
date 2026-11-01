@@ -2551,12 +2551,14 @@ func _mark_zone(site: Dictionary) -> void:
 
 # --- Stadion Narodowy -------------------------------------------------------------------------
 
-## The bowl in the old stadium's embankment: a woven red-and-white skin leaning out like a
-## basket from the embankment's crest to the roof's edge, 72 masts leaning with it and
-## spiking above the roof, a white membrane roof ringing the open middle, the stands
-## (red seats) falling to the pitch, and the needle hanging over the centre on its cables.
+## The bowl in the old stadium's embankment (spec docs/landmarks/specs/stadium.md): a woven
+## skin leaning out like a basket from the embankment's crest to the roof's edge, red below
+## and white above like the flag, 72 masts leaning with it and spiking above the roof, a
+## raised white rim and a membrane roof ringing the open middle, two tiers of red seats round
+## a striped pitch, and the needle with the folded roof hanging over the centre on its cables.
 ## The outline at every angle comes from the mapped masts; heights from the mapped parts
-## (roof edge 44 m, mast tips 60 m, needle 30-100 m, over the street round it).
+## (roof rim 44-46.2 m, mast tips 60 m, upper tier 19-38.5 m, hub 37-43 m, folded roof
+## 55-63 m, needle 30-100 m, over the street round it).
 func _build_stadium(site: Dictionary) -> void:
 	var inner: Array = site["inner"]
 	var outer: Array = site["outer"]
@@ -2569,13 +2571,42 @@ func _build_stadium(site: Dictionary) -> void:
 	_g = street
 	var pitch: float = map.terrain_height(c.x, c.y)
 	var roof_y := street + 44.0
+	var rim_y := street + 46.2
 	var skin_top := street + 41.0
+	# The pitch's long axis: the masts' principal axis (the outline is an oval round it).
+	var sxx := 0.0
+	var sxy := 0.0
+	var syy := 0.0
+	for v in inner:
+		var dd := (v as Vector2) - c
+		sxx += dd.x * dd.x
+		sxy += dd.x * dd.y
+		syy += dd.y * dd.y
+	var axis := Vector2.from_angle(0.5 * atan2(2.0 * sxy, sxx - syy))
+	var across := Vector2(-axis.y, axis.x)
+	var dirs: Array[Vector2] = []
+	for v in inner:
+		dirs.append(((v as Vector2) - c).normalized())
+	# A rounded rectangle round the pitch (half-sizes along and across the axis), sampled at
+	# the masts' angles so every ring of the bowl meets the next one quad by quad.
+	var oblong := func(half_a: float, half_b: float, power: float) -> PackedVector2Array:
+		var ring := PackedVector2Array()
+		for d: Vector2 in dirs:
+			var x := absf(d.dot(axis)) / half_a
+			var y := absf(d.dot(across)) / half_b
+			ring.append(c + d * pow(pow(x, power) + pow(y, power), -1.0 / power))
+		return ring
+	var scaled := func(s: float) -> PackedVector2Array:
+		var ring := PackedVector2Array()
+		for v in inner:
+			ring.append(c + ((v as Vector2) - c) * s)
+		return ring
 	# Rings at every mast angle.
 	var base := PackedVector2Array()   # the skin's foot, on the crest
 	var mid := PackedVector2Array()    # the basket's belly
 	var top := PackedVector2Array()    # the skin's top, under the roof edge
 	var edge := PackedVector2Array()   # the roof's outer edge
-	var hole := PackedVector2Array()   # the roof's inner edge
+	var inset := PackedVector2Array()  # the rim's inner foot, where the membrane starts
 	var foot := PackedFloat32Array()
 	for k in n:
 		var vi: Vector2 = inner[k]
@@ -2585,9 +2616,32 @@ func _build_stadium(site: Dictionary) -> void:
 		mid.append(vi + (vo - vi) * 0.25)
 		top.append(vi + (vo - vi) * 0.62)
 		edge.append(vo + (vo - c).normalized() * 1.5)
-		hole.append(c + d * 0.47)
+		inset.append(vo - (vo - c).normalized() * 1.5)
 		foot.append(map.terrain_height(vi.x, vi.y) - 1.0)
-	# The skin: two bands, its weave continuous all the way round.
+	var hole: PackedVector2Array = oblong.call(70.0, 54.0, 4.0)
+	# The concourse: a dark glass curtain wall set back behind the masts' feet, from the
+	# crest to 7.5 m (the Mac photo check, 2026-11-01); the skin starts over it.
+	_mode = M_GLASS
+	var glass := PackedVector2Array()
+	for k in n:
+		glass.append(c + ((inner[k] as Vector2) - c) * 0.935)
+	var grun := 0.0
+	for k in n:
+		var k1 := (k + 1) % n
+		var gl := glass[k].distance_to(glass[k1])
+		var go := (glass[k] + glass[k1]) * 0.5 - c
+		var y0 := minf(foot[k], foot[k1]) - 0.5
+		var y1 := maxf(foot[k], foot[k1]) + 7.5
+		_quad(Vector3(glass[k].x, y0, glass[k].y), Vector3(glass[k1].x, y0, glass[k1].y),
+				Vector3(glass[k1].x, y1, glass[k1].y), Vector3(glass[k].x, y1, glass[k].y),
+				Vector3(go.x, 0.0, go.y).normalized(), Color("#2b3440"),
+				Vector2(grun, y0 - street), Vector2(grun + gl, y0 - street), Vector2(grun + gl, y1 - street),
+				Vector2(grun, y1 - street), y1 - street)
+		grun += gl
+	for k in n:
+		foot[k] += 7.0
+	# The skin: two bands, its panels continuous all the way round (the shader turns them
+	# from red to silver with the height).
 	_mode = M_WEAVE
 	var run := 0.0
 	for k in n:
@@ -2626,86 +2680,101 @@ func _build_stadium(site: Dictionary) -> void:
 			for v: Vector2 in pts:
 				v3.append(Vector3(v.x, maxf(map.terrain_height(v.x, v.y), foot[k] - 1.5) + 0.25, v.y))
 			_quad(v3[0], v3[1], v3[2], v3[3], Vector3.UP, Color("#cbc6ba") if (k / 3) % 2 == 0 else Color("#c3beb2"))
-	# The roof: an edge band, then the membrane down to the open middle, in panels.
-	_mode = M_STONE
+	# The roof: the raised rim (its outer face over the skin, its inner face sloping to the
+	# membrane), its soffit back to the skin's top, then the membrane down to the open middle
+	# in panels.
 	for k in n:
 		var k1 := (k + 1) % n
 		var o := (edge[k] + edge[k1]) * 0.5 - c
+		var on := Vector3(o.x, 0, o.y).normalized()
 		_quad(Vector3(edge[k].x, roof_y - 1.6, edge[k].y), Vector3(edge[k1].x, roof_y - 1.6, edge[k1].y),
-				Vector3(edge[k1].x, roof_y, edge[k1].y), Vector3(edge[k].x, roof_y, edge[k].y),
-				Vector3(o.x, 0, o.y).normalized(), Color("#d9dbdf"))
+				Vector3(edge[k1].x, rim_y, edge[k1].y), Vector3(edge[k].x, rim_y, edge[k].y), on, Color("#dcdee2"))
+		_quad(Vector3(edge[k].x, rim_y, edge[k].y), Vector3(edge[k1].x, rim_y, edge[k1].y),
+				Vector3(inset[k1].x, roof_y, inset[k1].y), Vector3(inset[k].x, roof_y, inset[k].y),
+				(Vector3.UP * 1.5 - on * 2.2).normalized(), Color("#c9ccd1"))
 		_quad(Vector3(edge[k].x, roof_y - 1.6, edge[k].y), Vector3(edge[k1].x, roof_y - 1.6, edge[k1].y),
 				Vector3(top[k1].x, skin_top, top[k1].y), Vector3(top[k].x, skin_top, top[k].y), Vector3.DOWN, Color("#9da1a8"))
 	_mode = M_MEMBRANE
 	var hole_y := roof_y - 3.5
 	for k in n:
 		var k1 := (k + 1) % n
-		var p0 := Vector3(edge[k].x, roof_y, edge[k].y)
-		var p1 := Vector3(edge[k1].x, roof_y, edge[k1].y)
+		var p0 := Vector3(inset[k].x, roof_y, inset[k].y)
+		var p1 := Vector3(inset[k1].x, roof_y, inset[k1].y)
 		var p2 := Vector3(hole[k1].x, hole_y, hole[k1].y)
 		var p3 := Vector3(hole[k].x, hole_y, hole[k].y)
+		# The last 7 m before the opening are grey-blue polycarbonate (the Mac photo check).
+		var g0 := p3 + (p0 - p3) * (7.0 / p0.distance_to(p3))
+		var g1 := p2 + (p1 - p2) * (7.0 / p1.distance_to(p2))
 		var nr := (p1 - p0).cross(p3 - p0).normalized()
 		if nr.y < 0.0:
 			nr = -nr
-		_quad(p0, p1, p2, p3, nr, Color("#f4f4f1") if k % 2 == 0 else Color("#eaebe8"))
-	# The stands, falling from under the roof's inner edge to the pitch: red seats with
-	# grey gangway rings.
+		_quad(p0, p1, g1, g0, nr, Color("#f4f4f1") if k % 2 == 0 else Color("#eaebe8"))
+		_quad(g0, g1, p2, p3, nr, Color("#8f9aa3") if k % 2 == 0 else Color("#98a2aa"))
+	# The bowl, from the pitch out: advertising boards, the lower tier of red seats, a grey
+	# gangway, the dark glass of the boxes, then the upper tier up under the roof. Every
+	# sixth wedge is a lighter aisle.
 	_mode = M_STONE
-	var tiers := [[0.5, hole_y - 2.0, Color("#b4232c")], [0.43, street + 22.0, Color("#8e8a88")],
-			[0.41, street + 21.0, Color("#c42a31")], [0.33, pitch + 4.0, Color("#8e8a88")],
-			[0.315, pitch + 3.0, Color("#c42a31")], [0.25, pitch + 0.4, Color("#4f8a3a")]]
-	var prev_s := 0.5
-	var prev_y: float = hole_y - 2.0
-	for t in range(1, tiers.size()):
-		var s: float = tiers[t][0]
-		var y: float = tiers[t][1]
-		var col: Color = tiers[t - 1][2]
+	var seat := Color("#c42a31")
+	var bowl := [
+		[oblong.call(61.0, 42.0, 8.0), pitch + 0.4, Color("#2d3138")],
+		[oblong.call(61.0, 42.0, 8.0), pitch + 1.4, seat],
+		[oblong.call(78.0, 59.0, 6.0), pitch + 13.0, Color("#8e8a88")],
+		[oblong.call(81.0, 62.0, 6.0), pitch + 13.0, Color("#3d4652")],
+		[oblong.call(81.0, 62.0, 6.0), pitch + 19.0, seat],
+		[scaled.call(0.86), street + 38.5, Color()]]
+	for t in range(1, bowl.size()):
+		var r0: PackedVector2Array = bowl[t - 1][0]
+		var y0: float = bowl[t - 1][1]
+		var col: Color = bowl[t - 1][2]
+		var r1: PackedVector2Array = bowl[t][0]
+		var y1: float = bowl[t][1]
 		for k in n:
 			var k1 := (k + 1) % n
-			var a0: Vector2 = c + ((inner[k] as Vector2) - c) * prev_s
-			var b0: Vector2 = c + ((inner[k1] as Vector2) - c) * prev_s
-			var a1: Vector2 = c + ((inner[k] as Vector2) - c) * s
-			var b1: Vector2 = c + ((inner[k1] as Vector2) - c) * s
-			var p0 := Vector3(a0.x, prev_y, a0.y)
-			var p1 := Vector3(b0.x, prev_y, b0.y)
-			var p2 := Vector3(b1.x, y, b1.y)
-			var p3 := Vector3(a1.x, y, a1.y)
+			var p0 := Vector3(r0[k].x, y0, r0[k].y)
+			var p1 := Vector3(r0[k1].x, y0, r0[k1].y)
+			var p2 := Vector3(r1[k1].x, y1, r1[k1].y)
+			var p3 := Vector3(r1[k].x, y1, r1[k].y)
 			var nr := (p1 - p0).cross(p3 - p0).normalized()
-			if nr.y < 0.0:
+			if absf(nr.y) < 0.2:
+				# A wall (the boards, the boxes): faces the pitch.
+				var mid2 := (r0[k] + r0[k1]) * 0.5 - c
+				if Vector2(nr.x, nr.z).dot(mid2) > 0.0:
+					nr = -nr
+			elif nr.y < 0.0:
 				nr = -nr
-			_quad(p0, p1, p2, p3, nr, col if k % 6 != 0 else col.lightened(0.25))
-		prev_s = s
-		prev_y = y
-	# The pitch: grass in stripes, inside the last tier, and its white lines.
-	var field := PackedVector2Array()
-	for k in n:
-		field.append(c + ((inner[k] as Vector2) - c) * 0.25)
-	_cap(field, pitch + 0.4, Color("#4f8a3a"))
-	var axis := Vector2.RIGHT
-	var far := 0.0
-	for v in inner:
-		var dd := (v as Vector2) - c
-		if dd.length() > far:
-			far = dd.length()
-			axis = dd.normalized()
-	var across := Vector2(-axis.y, axis.x)
+			var aisle := k % 6 == 0 and col == seat
+			_quad(p0, p1, p2, p3, nr, col.lightened(0.25) if aisle else col)
+	# The pitch: grass out to the boards, mown in stripes across it, and its white lines.
+	var rim0: PackedVector2Array = bowl[0][0]
+	_cap(rim0, pitch + 0.4, Color("#4f8a3a"))
+	var flat := func(a: Vector2, b: Vector2, w: float, y: float, col: Color) -> void:
+		var s := (b - a).normalized().orthogonal() * w * 0.5
+		_quad(Vector3(a.x - s.x, y, a.y - s.y), Vector3(b.x - s.x, y, b.y - s.y), Vector3(b.x + s.x, y, b.y + s.y),
+				Vector3(a.x + s.x, y, a.y + s.y), Vector3.UP, col)
+	var at := func(x: float, y: float) -> Vector2: return c + axis * x + across * y
+	for b in 12:
+		if b % 2 == 0:
+			var x0 := -52.5 + b * 8.75
+			flat.call(at.call(x0, 0.0), at.call(x0 + 8.75, 0.0), 68.0, pitch + 0.43, Color("#5a9643"))
+	# Lines at three heights 3 cm apart, so lines that cross never share a plane.
 	var line := Color("#f2f2ee")
-	var y_line := pitch + 0.45
-	for seg in [[-52.0, -34.0, 52.0, -34.0], [-52.0, 34.0, 52.0, 34.0], [-52.0, -34.0, -52.0, 34.0], [52.0, -34.0, 52.0, 34.0], [0.0, -34.0, 0.0, 34.0]]:
-		var a := c + axis * float(seg[0]) + across * float(seg[1])
-		var b := c + axis * float(seg[2]) + across * float(seg[3])
-		var w := (b - a).normalized().orthogonal() * 0.35
-		# Lines that cross share a square of grass; the long ones (along the pitch) take it,
-		# the short ones stop at their edge (z-fighting fix: flat quads at one height).
-		var along := (b - a).normalized()
-		if absf(float(seg[1]) - float(seg[3])) > 1.0:
-			a += along * 0.35
-			b -= along * 0.35
-		else:
-			a -= along * 0.35
-			b += along * 0.35
-		_quad(Vector3(a.x - w.x, y_line, a.y - w.y), Vector3(b.x - w.x, y_line, b.y - w.y), Vector3(b.x + w.x, y_line, b.y + w.y),
-				Vector3(a.x + w.x, y_line, a.y + w.y), Vector3.UP, line)
+	var y_long := pitch + 0.47
+	var y_short := pitch + 0.50
+	var y_box := pitch + 0.53
+	for side: float in [-1.0, 1.0]:
+		flat.call(at.call(-52.5, side * 34.0), at.call(52.5, side * 34.0), 0.6, y_long, line)
+		flat.call(at.call(side * 52.5, -34.3), at.call(side * 52.5, 34.3), 0.6, y_short, line)
+		# The penalty area: 16.5 m deep, 40.3 m wide; its front at the third height.
+		flat.call(at.call(side * 52.2, -20.15), at.call(side * 36.0, -20.15), 0.6, y_long, line)
+		flat.call(at.call(side * 52.2, 20.15), at.call(side * 36.0, 20.15), 0.6, y_long, line)
+		flat.call(at.call(side * 36.0, -20.45), at.call(side * 36.0, 20.45), 0.6, y_box, line)
+	flat.call(at.call(0.0, -34.3), at.call(0.0, 34.3), 0.6, y_short, line)
+	for k in 16:
+		var a0: float = TAU * k / 16.0
+		var a1: float = TAU * (k + 1) / 16.0
+		# Neighbouring arcs overlap at their joints: every other one 3 cm higher.
+		flat.call(at.call(cos(a0) * 9.15, sin(a0) * 9.15), at.call(cos(a1) * 9.15, sin(a1) * 9.15), 0.6,
+				y_box + (k % 2) * 0.03, line)
 	# The masts: from the foot of the skin, leaning out with it, spiking over the roof.
 	for k in n:
 		var vi: Vector2 = inner[k]
@@ -2713,20 +2782,27 @@ func _build_stadium(site: Dictionary) -> void:
 		var a := Vector3(vi.x, foot[k], vi.y)
 		var b := Vector3(vo.x, street + 60.0, vo.y)
 		_beam(a, b, 0.55, Color("#e4e6ea"))
-	# The needle: a white spindle hanging over the centre, a dark hub ring where the
-	# cables meet, a red light on its tip; cables to the roof's inner edge.
+		# The spike over the rim, thicker: the stadium's silhouette from the street.
+		var s0 := a.lerp(b, (rim_y - 1.0 - a.y) / (b.y - a.y))
+		_beam(s0, b + (b - a).normalized() * 0.4, 1.0, Color("#f2f3f5"))
+	# The needle (mapped 30-100 m): a white spindle through a dark hub ring where the cables
+	# meet (37-43 m, 15.6 m across), the folded roof stored in a white drum above it (55-63 m,
+	# 21 m across), and a red light on its tip; a cable from the hub to every third mast's
+	# angle on the roof's inner edge.
 	var steel := Color("#f1f1ee")
-	var ring8 := func(radius: float) -> PackedVector2Array:
-		var out := PackedVector2Array()
+	var ring10 := func(radius: float) -> PackedVector2Array:
+		var ring := PackedVector2Array()
 		for k in 10:
-			out.append(c + Vector2.from_angle(TAU * k / 10.0) * radius)
-		return out
-	_frustum(ring8.call(0.6), street + 30.0, ring8.call(1.6), street + 37.0, steel)
-	_prism(ring8.call(5.0), street + 37.0, street + 43.0, Color("#2c2d31"), Color("#3a3b40"), M_STONE, M_STONE)
-	_frustum(ring8.call(1.6), street + 43.0, ring8.call(9.0), street + 55.0, steel)
-	_frustum(ring8.call(9.0), street + 55.0, ring8.call(1.2), street + 66.0, steel)
-	_frustum(ring8.call(1.2), street + 66.0, ring8.call(0.3), street + 99.0, steel)
-	_prism(ring8.call(0.45), street + 99.0, street + 100.5, Color("#ff3b30"), Color("#ff6a5c"), M_LAMP, M_LAMP)
+			ring.append(c + Vector2.from_angle(TAU * k / 10.0) * radius)
+		return ring
+	_frustum(ring10.call(0.6), street + 30.0, ring10.call(1.0), street + 37.0, steel)
+	_prism(ring10.call(7.8), street + 37.0, street + 43.0, Color("#2c2d31"), Color("#3a3b40"), M_STONE, M_STONE)
+	_frustum(ring10.call(1.0), street + 43.0, ring10.call(1.2), street + 51.5, steel)
+	_frustum(ring10.call(1.2), street + 51.5, ring10.call(10.5), street + 55.0, steel)
+	_frustum(ring10.call(10.5), street + 55.0, ring10.call(10.5), street + 61.0, Color("#e6e7e4"))
+	_frustum(ring10.call(10.5), street + 61.0, ring10.call(1.6), street + 63.5, steel, steel)
+	_frustum(ring10.call(1.0), street + 63.5, ring10.call(0.3), street + 99.0, steel)
+	_prism(ring10.call(0.45), street + 99.0, street + 100.5, Color("#ff3b30"), Color("#ff6a5c"), M_LAMP, M_LAMP)
 	var hub := Vector3(c.x, street + 40.0, c.y)
 	var keep_id := _id
 	_id = 0
@@ -2735,9 +2811,6 @@ func _build_stadium(site: Dictionary) -> void:
 		# A few cm of height apart at the hub, so neighbours' flat tops don't z-fight there.
 		var lift := Vector3(0.0, (k / 3 % 5) * 0.03, 0.0)
 		_beam(hub + lift, Vector3(h.x, hole_y, h.y), 0.18, Color("#c8cbd0"), false)
-	for k in range(0, n, n / 4):
-		var e: Vector2 = edge[k]
-		_beam(hub + Vector3(0, 2.0, 0), Vector3(e.x, roof_y, e.y), 0.25, Color("#2c2d31"), false)
 	_id = keep_id
 
 

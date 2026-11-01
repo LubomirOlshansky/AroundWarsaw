@@ -11,8 +11,11 @@ someone writes its lines.
 
 ## 2026-11-01
 - The Copernicus Science Centre by the river is rebuilt: a long dark block with windows scattered like pixels that glow at night, a corner hanging over the glass entrance, a garden of lawns and paths on its roof, and the black, faceted planetarium beside it.
+- Stadion Narodowy's facade now looks like the real one: rows of red and silver panels, more silver towards the top, over a dark glass entrance level, with stronger spikes on the skyline.
+- Stadion Narodowy is rebuilt from the real map data: its woven skin is red below and white above like the flag, a full-size striped pitch sits in two tiers of red seats, and the needle over the pitch carries the folded roof.
 
 ## 2026-10-31
+- New: five shisha lounges in Śródmieście side streets (DYMEK, OPAR, CHMURKA, MGIEŁKA, ZADYM), each with a violet or teal neon sign that glows at night.
 - New: five COFFEECHAIR cafés in Śródmieście (Foksal, Chmielna, Krakowskie Przedmieście, Plac Trzech Krzyży, Hoża), each with a warm neon sign.
 - Picking up and dropping off is much easier: the rings are bigger, you don't need to stop dead, and the car brakes by itself into the ring and waits there while the passenger gets in or out.
 - The game remembers where you left the car: on the next launch the title offers "KONTYNUUJ" to carry on from there, or "NOWA GRA" to start over (it asks first, since a new game wipes your money and finds).
