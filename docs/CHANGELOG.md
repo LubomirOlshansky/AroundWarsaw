@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- Hala Mirowska is a proper red-brick market hall: round-headed windows between cream pilasters, four corner turrets, tall gable ends, a glazed lantern along the roof and a portal on the Plac Mirowski front.
 - The Sejm on Wiejska has its curved front: the semicircular plenary hall wears a stone plinth and a sweep of fifteen tall columns under a curved cornice.
 - St Alexander's church on Plac Trzech Krzyży is a real rotunda now: a round drum with tall windows, a green dome with a lantern and a cross, and a six-column portico under a pediment on both ends.
 - The Staszic Palace on Krakowskie Przedmieście has a columned portico under a pediment, a stone cornice, and Copernicus sits in bronze on his granite pedestal in front of it.
