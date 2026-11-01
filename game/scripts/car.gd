@@ -35,6 +35,7 @@ extends CharacterBody3D
 var spent_usec := 0
 
 const Access := preload("res://scripts/access.gd")
+const Haptics := preload("res://scripts/haptics.gd")
 const StopAssist := preload("res://scripts/stop_assist.gd")
 const Models := preload("res://scripts/models.gd")
 
@@ -43,6 +44,14 @@ const Models := preload("res://scripts/models.gd")
 signal bumped(collider: Object, speed: float)
 ## A hit worth a sound (v0.9, sfx.gd): fired where the haptics are, once per knock.
 signal impact(collider: Object, speed: float)
+## v1.0 juice: sliding along something fixed at `speed` m/s, at most SCRAPE_EVERY s apart
+## (crash_fx.gd throws a few sparks from `at`, the contact, out along `normal`).
+signal scraped(at: Vector3, normal: Vector3, speed: float)
+## v1.0 juice: where the last `impact` touched and the contact's normal (crash_fx.gd's sparks).
+var hit_point := Vector3.ZERO
+var hit_normal := Vector3.BACK
+const SCRAPE_EVERY := 0.07
+var _scrape_wait := 0.0
 ## Loop 2a: pinned twice within a few seconds; the game moves the car to a free spot.
 signal stuck
 ## Loop 10a: rolled into the water, at `speed` m/s (once; the game splashes and tows it out).
@@ -165,6 +174,8 @@ var forward_speed := 0.0
 var nan_recoveries := 0
 var _good_xform := Transform3D.IDENTITY
 var _good_seen := false
+## The state as the last physics step began (the NaN report says what went in).
+var _pre_step: Array = []
 ## Sideways speed in m/s; high when the tail slides (skid marks, the tyres' squeal).
 var slip := 0.0
 ## 0..1, how wet the road is (weather.gd): a little less grip and braking in the rain.
@@ -275,6 +286,7 @@ func _process(dt: float) -> void:
 
 func _physics_process(dt: float) -> void:
 	var t0 := Time.get_ticks_usec()
+	_pre_step = [global_transform, vel, target_dir, steer, steer_now, yaw_rate, throttle, braking, parked, collision_mask, in_water]
 	_step(dt)
 	_keep_finite()
 	spent_usec += Time.get_ticks_usec() - t0
@@ -293,8 +305,8 @@ func _keep_finite() -> void:
 		_good_seen = true
 		return
 	nan_recoveries += 1
-	push_warning("car: state not a number (pos %s, vel %s), put back at %s (recovery %d)"
-			% [x.origin, vel, _good_xform.origin, nan_recoveries])
+	push_warning("car: state not a number (pos %s, vel %s, basis z %s, fwd speed %s), put back at %s (recovery %d); the step began with %s"
+			% [x.origin, vel, x.basis.z, forward_speed, _good_xform.origin, nan_recoveries, _pre_step])
 	vel = Vector3.ZERO
 	velocity = Vector3.ZERO
 	forward_speed = 0.0
@@ -456,11 +468,13 @@ func _step(dt: float) -> void:
 		_bump_cooldown -= dt
 		_sound_cooldown -= dt
 		if lost > 2.5 and _sound_cooldown <= 0.0:
+			hit_point = hit.get_position()
+			hit_normal = hit.get_normal()
 			impact.emit(hit.get_collider(), lost)
 			_sound_cooldown = 0.35
 		if lost > 4.0 and _bump_cooldown <= 0.0:
 			# A short buzz on the phone for a real hit, not for scraping along a wall.
-			Access.buzz(clampi(int(lost * 6.0), 25, 90), clampf(lost / 15.0, 0.3, 1.0))
+			Haptics.knock(lost)
 			_bump_cooldown = 0.35
 		var n := Vector3.ZERO
 		var slid := vel
@@ -495,6 +509,11 @@ func _step(dt: float) -> void:
 			_car_push += dt
 		elif fixed:
 			_car_push = 0.0
+		# v1.0 juice: sparks while sliding along something fixed at speed.
+		_scrape_wait -= dt
+		if fixed and not slipped and _scrape_wait <= 0.0 and slid.length() > 6.0:
+			_scrape_wait = SCRAPE_EVERY
+			scraped.emit(hit.get_position(), hit.get_normal(), slid.length())
 		# What slides along the wall is kept, less a little scrape (loop 2a; it lost 8 % a frame).
 		vel = slid * exp(-SCRAPE * dt)
 		if not fixed and not slipped:

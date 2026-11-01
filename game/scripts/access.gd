@@ -11,8 +11,8 @@ extends RefCounted
 ##   color_safe     true: markers that told green from amber or red from blue by hue alone get
 ##                  a second cue (the drop-off beacon turns blue, the patrol lights white/blue).
 ##   vibration      false: `buzz` does nothing. THE hook for the phone's haptics: every
-##                  Input.vibrate_handheld call goes through it (crash sparks and vibration,
-##                  built in another loop, call `Access.buzz` too).
+##                  Input.vibrate_handheld call goes through it, on to haptics.gd (the floor a
+##                  hand feels, the iOS engine kept warm; car.gd's knock calls haptics.gd directly).
 ##   stop_assist    false: the quest stop assist (stop_assist.gd) leaves the car alone.
 
 const LARGE_TEXT := 1.25
@@ -33,10 +33,11 @@ static func apply(s: RefCounted) -> void:
 	stop_assist = s.stop_assist
 
 
-## A buzz on the phone (milliseconds, strength 0..1) unless vibration is off.
+## A buzz on the phone (milliseconds, strength 0..1) unless vibration is off; haptics.gd raises
+## it to a strength the hand feels and keeps iOS's haptic engine warm (v1.0 juice).
 static func buzz(ms: int, strength: float) -> void:
 	if vibration:
-		Input.vibrate_handheld(ms, strength)
+		load("res://scripts/haptics.gd").buzz(ms, strength)
 
 
 ## 1 for a normal run, 0 with `calm`: multiply any screen shake by it.

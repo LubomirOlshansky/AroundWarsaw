@@ -338,6 +338,11 @@ func impact(collider: Object, speed: float) -> void:
 		_play2("crash", gain)
 
 
+## v1.0 juice: true near a guard rail (crash_fx.gd's sparks: metal throws more of them).
+func near_rail(p: Vector3) -> bool:
+	return _near_rail(p)
+
+
 func _near_rail(p: Vector3) -> bool:
 	var c := Vector2i(floori(p.x / 4.0), floori(p.z / 4.0))
 	for dz in range(-1, 2):

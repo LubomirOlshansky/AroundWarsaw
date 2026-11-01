@@ -13,8 +13,8 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
 - Text size that follows the phone's own setting, and live (no restart); the panels with fixed
   layouts (cards, bubbles) need a check at x1.25 on the SE.
 - Subtitles: nothing is voiced yet; revisit when speech or radio talk with words lands.
-- Crash sparks and screen shake (another loop) must multiply by `Access.shake()` and buzz through
-  `Access.buzz`; colour-safe still to cover the HUD's green badges and the red fail colour.
+- ~~Crash sparks buzz through `Access.buzz`~~ Done (2026-11-01: crash_fx.gd shakes nothing; the
+  car's knock goes through haptics.gd, which keeps `Access.vibration`). Colour-safe still to cover the HUD's green badges and the red fail colour.
 
 ## Ground vertex compression, to re-apply on the Mac (stale PR #53 triage, 2026-11-01)
 - PR #53 (commit b343d60, branch `claude/project-thread-ldyr9u`) stores the ground's meshes with
@@ -31,7 +31,7 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
 Spec and sources: `docs/design/trends-2025-26.md`. Built: eight parody trend spots (`Storefronts.TRENDY`).
 - [ ] Wykop/X/TikTok skim (cloud could not fetch them); adjust the trend list.
 - [ ] Phone check of the PISTACJA queue (Friday 16:00-18:30 drop, 36 people) and the "Limitka" job (`--trend-job=4`): line on the footway, 5 s wait, 5 min delivery. Built 2026-11-01.
-- [ ] Padel thread (F, 2026-11-01; docs/design/padel.md): queue at PADELNIA and eight lines built; still to build: notebook lore entries, Trener Dominik / Pani Basia / Prezes z Mokotowa as voices, the "Czwarty" side quest, a roof court. Phone check of PADELNIA's queue.
+- [ ] Padel thread (F, 2026-11-01; docs/design/padel.md): built: PADELNIA queue, 11 lines (Trener Dominik, Pani Basia, Prezes z Mokotowa speak in the queue), a notebook place, the "Czwarty" job (`--trend-job=5`). Still to build: more notebook lore, the roof court "Ściana Płaczu", the Pro Shop. Phone check of the queue and the job.
 - [ ] E-scooter 12 km/h zones: four discs built (Złota, Zgody, Bracka, Plac Centralny; `scooter_zones.gd`, centres *guess*, toast on entry, car not capped). Still open: check the centres against the real streets, scooter riders that slow down, a zone pill.
 - [x] Lines about matcha, padel, natural wine, queue, scooter rules: 8 column posters and 5 signs in dialogue.json (PL + EN).
 - [ ] Phone check: do the new column posters read (rows ≤ 8 letters)? Not run, no Godot in the cloud.
@@ -129,9 +129,9 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   pay tables are first guesses (BACKLOG-TRIAGE "Decisions"). The guide's lines, Halina's lines and
   the end card are unreviewed ("From loop 3h slice 4"); the end card's "10 jobs" definition and the
   trap's koguty line are open. A designer pass over all player-facing text and pay, then F's run.
-- The DEMO 6.3 counts left: 10 roof cassettes (#115 brings the first), ~25 landmark cards, the
-  second słoiki station, the Old Town tourist and Łazienki peacock rescues. Check each against the
-  code and list what is missing. Partly a gap.
+- The DEMO 6.3 counts left: the second słoiki station (jobs.gd has one) and the Łazienki peacock
+  rescue (none yet; the Old Town tourist is a "fainted" street rescue in missions.gd). The 10 roof
+  cassettes and the landmark cards (72 vs ~25) are done (2026-11-01).
 
 ### P2: UI
 - The HUD was sized on 2026-10-28; since then the ≡ map button, the goal star, district cards,
@@ -230,6 +230,44 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   InterContinental and the Westin) are cold white and many, the photos show sparse warm ones
   (`#ffcf7a`, ~12 %, upper third); the landmark signs still glow inside the occlusion ghost.
 
+## The start area as real Warsaw (F, 2026-11-01)
+
+F: improve every landmark in the start area, add street details, make the shop signs (Ściana
+Wschodnia above all) like the real ones, rework the ordinary buildings to look real, match the
+road and pavement materials to photos, and add trendy 2025/26 places and jokes. Research and
+plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 checklist").
+- **R1 done 2026-11-01**: the neon atlas draws words with Polish letters through pixel_font.gd;
+  the stores' banners are now the 2025/26 mix (DO WYNAJĘCIA boards where H&M, Zara and C&A
+  left, FROGS XXL on Wars's south corner where H&M's space becomes a two-storey Żabka, KAPCIE for
+  the shoe chains on Zara's floor, WYPRZEDAŻ and ORANŻADA with their real letters); SCENA RELAX
+  on the old Kino Relax behind Junior. Only the phone shows the boards' size at the default zoom.
+- **R4 done 2026-11-01**: ordinary buildings outside the Old Town are drawn by type
+  (map_builder.gd `_building_type`, building.gdshader `typed_facade`): pre-war tenements (a
+  rusticated shop floor, a string course, tall windows in light surrounds, a heavy cornice),
+  1960s-80s slabs and point blocks (pale panels, dark joints, loggia stacks), post-war offices
+  (ribbon windows). The type comes from the OSM kind, height and footprint (a guess, not a
+  survey). Left: a socialist-realist type for MDM and Marszałkowska south, per-street checks
+  against photos on the Mac, and the tenements' own plaster colours outside the Old Town.
+- **R2 done 2026-11-01**: Plac Centralny's paving in ground.gdshader (`centralny`): inside the
+  square (Marszałkowska's frame, south and west of the museum) the plazas show the lost
+  tenements as plots outlined in red and grey slabs, pale slabs where the houses stood and warm
+  setts in their courtyards; the mapped walks are granite setts. The pond and lawns were
+  already in the map. The plots follow the old grid's rhythm, not a survey: the orthophoto on
+  the Mac should set the real outlines (and the square's edge, now a straight cut).
+- **R3 part 1 done 2026-11-01**: footways are light grey concrete pavers in running bond (map
+  builder COL "foot" #dddcd6, ground.gdshader layer 4), as Warsaw's pavements are, not sand;
+  cycle paths were already brick red. Plazas keep their granite beige. Parked in QUESTIONS: the
+  wider pavements drawn as ground/plaza areas are still beige.
+- **R6 done 2026-11-01**: the trends thread's MACZA already stands in Pasaż Wiecha behind Sawa;
+  four KEBAB FM host lines and two passenger lines joined dialogue.json (the stores to let, the
+  two-storey Frogs, Plac Centralny's vanished tenements, the matcha queue, Scena Relax).
+- **Open:** R3 part 2: granite kerbs, Złota's setts and elm alley, the fountain at the
+  old tunnel mouth, the three new crossings (orthophoto check on the Mac); R5 Scena Relax,
+  Zodiak and the Cepelia pavilion as models; R7 street name plates, a bike dock, tram
+  stops, bollards; R8 the museum's ribbon in stretches and the stepped roofline.
+- Found: the cloud can't read Wykop (login wall) or Commons (403); the trends come from Google's
+  2025 year in search and the trade press. A Mac pass could add Wykop's own tags.
+
 ## High priority: the first scene and the Museum of Modern Art (the user, 2026-10-31)
 - **Muzeum Sztuki Nowoczesnej as it is** (the user, 2026-10-31): the new white box on Plac
   Defilad's east edge (Thomas Phifer, opened 2024). Today it is plain white LoD2 parts with no
@@ -316,6 +354,12 @@ golden-image shots runtime vs `--prebuilt`,
   light), the `first` shot set, performance and the order of work: docs/design/first-scene.md.
   The dusk and night look there belongs to the thread "Match landmarks to Warsaw at dusk"; the
   hints, first order and first race to loop 3h item 6.
+  **Item 2 (the opening shot) built 2026-10-31, merged 2026-11-01**: the start (PR #115) and the
+  first launch's flyover over the Palace down to the car (docs/design/opening-flyover.md), both
+  on main together after the start-area rebuild (same start spot, so the trams and street
+  furniture of the first scene are in the flyover's last frames). Left: its length and
+  the stand's arrow timing on the phone (QUESTIONS), and whether the wide views hitch while the
+  proxies swap to sectors on an older iPhone.
   **2026-11-01 (items 3-6, part):** the Eastern Wall's stores built (site `dtc`, spec
   `docs/landmarks/specs/dtc.md`); a start in the first scene's box (main.gd `FIRST_SCENE`) puts
   two trams on Marszałkowska, one passing the car, one coming down the street; street furniture
@@ -618,9 +662,19 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
   `export_presets.cfg` (not a secret, decided: BACKLOG-TRIAGE "Decided since") (tidied 2026-10-30, checked in the code).
 - Device-run permission in CLAUDE.md stays per loop ("when the user said so for the current
   loop"); the user allowed phone test builds on 2026-10-28.
-- Haptics fail on the phone: `Could not vibrate using haptic engine: (null)` in the device log
-  (nine `Input.vibrate_handheld` calls). Rule out Low Power Mode / System Haptics off first;
-  else a small iOS plugin with `UIImpactFeedbackGenerator`.
+- ~~Haptics fail on the phone~~ Fixed in code 2026-11-01: Godot 4.7.2's iOS template
+  (apple_embedded.mm) logs `Could not vibrate using haptic engine: %@` after every buzz, so
+  `(null)` means no error. The buzzes were 25-40 ms at 0.3-0.5 as continuous events, too faint to
+  feel. haptics.gd now floors every buzz at 45 ms / 0.55 (cap 220 ms), merges buzzes 70 ms apart,
+  scales the car's knock 50-160 ms by the hit, and starts the engine without waiting at load, on
+  resume and every 6 s while driving. Still to check on the phones (device run): the feel, and
+  no hitch on the first crash after a pause. If still not felt: a `UIImpactFeedbackGenerator`
+  plugin (needs Xcode on the Mac).
+- Crash sparks and dust (crash_fx.gd, 2026-11-01): checked by screenshots on the cloud's
+  software renderer (day: an orange burst and dust, night: a white glow). Not seen yet: the
+  prebuilt city path (the cloud's map data is stale: bake_city fails on the site slabs, not this
+  change), the phone's frame during a crash (2 draw calls and ~77 µs of script on a desktop
+  core while particles live; zero when idle).
 - ~~The once-only `ERROR: Mouse is not supported by this display server.`~~ Duplicate of the
   loop 2b entry above (tidied 2026-10-30, checked in the code).
 
@@ -2247,18 +2301,28 @@ arrow to the Świętokrzyska stand, the guided order past the Rotunda, Pani Hali
 Palm with a rubber band, the first contact's fallback, the held first call, the helicopter after the
 first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at 10:00; the save's
 `[intro]`) and the end card ("Dzięki za grę!", free roam after). Left:
-- **The opening shot is the other thread's**: the spawn faces south on Marszałkowska while the
-  Świętokrzyska stand is ~530 m north of it (behind the car), so 6.2's "ring 150 m ahead" is an arrow
-  at 0:10 instead. When the first-scene thread sets the spawn and heading, a spawn facing north (or
-  the stand moved, `jobs.FIRST_STAND`) puts the ring on screen at once.
+- ~~**The opening shot is the other thread's**: the spawn faces south on Marszałkowska while the
+  Świętokrzyska stand is ~530 m north of it (behind the car).~~ Done in the first-10 polish: a run
+  that gets the guide starts at `First10.START` (northbound, level with the Museum of Modern Art,
+  facing the stand ~350 m ahead); the map's spawn is unchanged for the bench and the other runs. The
+  first-scene thread can still move that start point and heading by eye (`First10.START`,
+  `START_HEADING`).
+- ~~The first order is 926 m (Aleje Jerozolimskie 33, past the Rotunda, a U-turn away).~~ Done in the
+  first-10 polish: Marszałkowska 142, 226 m straight on from the stand; Halina waits until 1:15
+  (`RACE_EARLIEST`) so the race stays in 6.2's window.
 - **Feel on the phone**: the rubber band's numbers (pace 1.15, 25 m, 0.4-1.5) come from a 1-D model;
   F's runs should say whether Halina is close enough to feel like a race and never obviously
   waiting. The ghost finger's place and gesture likewise (it sits on the stick's side, lower left).
 - **No "6.2" beat for "two jokes, the roosters explained in one line"** of the trap: the first
   contact's own conversation (police.dialogue) is what plays; the designer could add the koguty line.
-- **The cassette is KASETA's then card** on the boulevards (a ground spot, not a roof), and its
-  "new song" is the next locked PÓŁNOC FM track (track 3 on a fresh save). A real cassette
-  collectible on a roof (DEMO 6.2, 6.3 "10 cassettes") is still to come; then the beat points there.
+- ~~**The cassette is KASETA's then card** on the boulevards (a ground spot, not a roof).~~ Done in the
+  first-10 polish: a mixtape on the University Library's roof (cassettes.gd, cassettes.json), taken
+  from the helicopter, opens the next PÓŁNOC FM track; the beat's arrow points there. The other nine
+  of DEMO 6.3's "10 cassettes" are in (2026-11-01: c02 to c10, roofs found by `missions.roof_spot`,
+  not placed by any map-free check: an unplaced one logs `cassettes: ...no flat roof`, look for it on
+  the phone; only five songs are locked, so the later tapes give respect and a card); the
+  cassette is a static box model (a slow spin or bob would be a shader, the visuals lane's); the
+  words of c01_buw and the new tape line were written in that thread (the game-designer should review).
 - ~~The guide's words (`first10.gd` LINES, Halina's FIRST_LINES, the end card) need a designer
   review~~ (done 2026-11-01: grammar fixes (stary śmigłowiec), "To już koniec dema", tone kept;
   only text changed, not run in Godot here).
@@ -2269,6 +2333,12 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
   car.gd `_keep_finite` now puts the car back at its last good transform and logs `car: state not a
   number` (`nan_recoveries`); the replay also fails fast on a NaN. If that line ever shows up in a
   log, its position and velocity are the lead.
+  The first-10 polish: 30 more replays (18 on the new start, order and cassette) showed no NaN. Read
+  and ruled out: the terrain, apron, deck and tunnel heights (no division by a zero length on the
+  committed map's aprons), the autopilots' slides (each divides by a length > 0.5 m). The warning
+  now also prints the state the physics step began with (transform, velocity, target_dir, steer,
+  steer_now, yaw_rate, throttle, braking, parked, collision mask, in water): a NaN going in means
+  another script wrote it, a finite one means car.gd's own step made it.
 - The end card first didn't show at all: its four Polish lines plus English were taller than the
   HUD's room, so the layout left it unplaced. Now two Polish lines (the credits and the repo as one
   shared line) and the English paragraph; a layout assertion in check_end_card would catch it again.

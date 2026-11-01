@@ -46,7 +46,7 @@ about 600 × 350 m, plus the Palace as the backdrop. In priority order:
 | # | Item | What | Lane / agent |
 | --- | --- | --- | --- |
 | 1 | **Muzeum Sztuki Nowoczesnej** | The white box as it is (BACKLOG, high priority; spec below) | landmarks: Opus spec, `object-modeler`, `art-director` |
-| 2 | **The opening shot** | The spawn point and heading, the fly-in's path ending on that frame, a skip by tap | gameplay-dev (Opus) |
+| 2 | **The opening shot** | The spawn point and heading, the fly-in's path ending on that frame, a skip by tap. **Built 2026-10-31**: the start (PR #115) and the flyover (docs/design/opening-flyover.md) | gameplay-dev (Opus) |
 | 3 | **The Eastern Wall** | Domy Towarowe Centrum (the three glass stores and the pavilions in front) and the Rotunda: real shapes, parody names and lit signs | landmarks + content (signs) |
 | 4 | **Plac Defilad's ground** | The square's paving and the new park strip (A-A Collective) in front of the museum, trees, benches, lamps; the metro entrances (Centrum, Świętokrzyska) | object-modeler; map-engineer if the ground areas change |
 | 5 | **Marszałkowska's street** | Clean kerbs, crossings, the tram tracks and stops, bus shelters, the kiosk and the kebab stand reading well up close | map lane (markings) + object-modeler (props) |

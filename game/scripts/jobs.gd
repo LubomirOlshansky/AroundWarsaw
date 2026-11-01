@@ -50,12 +50,12 @@ const CORNER_FREE := 14.0
 const BUMP_FREE := 3.0
 ## Loop 3h slice 4 (docs/DEMO.md 6.2, 0:30): the guided first order. The stand by the
 ## Marszałkowska × Świętokrzyska corner (the stand nearest FIRST_STAND), its first order a door
-## about FIRST_ROAD m by road past the Rotunda (south of FIRST_PAST: the round pavilion on Rondo
-## Dmowskiego), the one nearest that length (first10.gd pins it; any other stand's first order is
-## an ordinary one).
+## on FIRST_STREET about FIRST_ROAD m on by road, straight on from the stand (first10.gd pins it;
+## any other stand's first order is an ordinary one). The first-10 polish: a short, easy first job
+## (it was ~920 m past the Rotunda, a U-turn and two junctions away).
 const FIRST_STAND := Vector2(-1060.0, -230.0)
-const FIRST_PAST := Vector2(-852.0, 334.0)
-const FIRST_ROAD := 700.0
+const FIRST_STREET := "Marszałkowska"
+const FIRST_ROAD := 300.0
 const CUSTOMERS := ["Ania", "Kasia", "Ola", "Magda", "Zosia", "Ewa", "Basia", "Marta",
 		"Tomek", "Kuba", "Piotrek", "Michał", "Paweł", "Marek", "Wojtek", "Krzysiek"]
 const NEWCOMERS := ["Kuba", "Ola", "Bartek", "Kasia", "Michał", "Magda"]
@@ -607,7 +607,7 @@ func _release() -> void:
 # --- kebab -------------------------------------------------------------------------------
 
 ## Order n from stand i (the same n always gives the same order). Loop 3h slice 4: `first`, the
-## guided first order: the door nearest FIRST_ROAD m by road past the Rotunda (first_pick).
+## guided first order: a short trip straight on up the stand's street (first_pick).
 func _make_kebab_order(i: int, n: int, first := false) -> Dictionary:
 	var s := _stands[i]
 	var rng := RandomNumberGenerator.new()
@@ -1076,32 +1076,22 @@ func first_stand() -> int:
 	return best
 
 
-## The guided first order's door from stand `i`: south of FIRST_PAST (past the Rotunda, within
-## 450 m of it east or west), the trip nearest FIRST_ROAD m (450-1200 m by road, from either
-## carriageway by the stand); {} if none. (On the demo map the nearest such door, Aleje
-## Jerozolimskie 33, is ~920 m by road from the Świętokrzyska stand.)
+## The guided first order's door from stand `i`: a door on FIRST_STREET (the stand's own street:
+## no turn to find), the trip nearest FIRST_ROAD m on from the stand's lane (150-600 m by road, no
+## turning round); any door in that reach if the street has none; {} if none at all.
 func first_pick(i: int) -> Dictionary:
 	if i < 0 or i >= _stands.size():
 		return {}
 	var s := _stands[i]
 	var from := Vector2(s["ring"].x, s["ring"].z)
-	var past := func(a: Dictionary) -> bool:
-		var door: Vector2 = a["door"]
-		return door.y > FIRST_PAST.y + 40.0 and absf(door.x - FIRST_PAST.x) < 450.0 and a["d"] != "praga"
-	var pick := _pick_address(s["edge"], s["s"], from, FIRST_ROAD - 250.0, FIRST_ROAD + 500.0, _rng, past, FIRST_ROAD)
-	# The stand may sit on the far carriageway (by Świętokrzyska it is the northbound one): the
-	# player turns round, so the trip is measured from the other way's lane too, the nearer kept.
-	var dir := graph.direction(int(s["edge"]), float(s["s"]))
-	var other := graph.snap(from, 30.0, -dir, true)
-	if not other.is_empty() and int(other[0]) != int(s["edge"]):
-		var back := _pick_address(int(other[0]), float(other[2]), from, FIRST_ROAD - 250.0, FIRST_ROAD + 500.0, _rng, past, FIRST_ROAD)
-		if not back.is_empty() and (pick.is_empty() or absf(float(back["road"]) - FIRST_ROAD) < absf(float(pick["road"]) - FIRST_ROAD)):
-			pick = back
-	var n := 0
-	for a in _addresses:
-		if past.call(a):
-			n += 1
-	print("jobs: the guided first order from stand %d: %d doors past the Rotunda, %s" % [i, n,
+	var street := func(a: Dictionary) -> bool:
+		return String(a["name"]).begins_with(FIRST_STREET) and a["d"] != "praga"
+	var lo := FIRST_ROAD - 150.0
+	var hi := FIRST_ROAD + 300.0
+	var pick := _pick_address(s["edge"], s["s"], from, lo, hi, _rng, street, FIRST_ROAD)
+	if pick.is_empty():
+		pick = _pick_address(s["edge"], s["s"], from, lo, hi, _rng, func(a: Dictionary) -> bool: return a["d"] != "praga", FIRST_ROAD)
+	print("jobs: the guided first order from stand %d: %s" % [i,
 			"%s, %d m by road" % [pick["name"], roundi(float(pick["road"]))] if not pick.is_empty() else "none in reach"])
 	return pick
 

@@ -50,6 +50,19 @@ const DROP_FROM := 500.0
 const DROP_TO := 1800.0
 const DROP_COLOUR := Color("#8fc46a")
 const DROP_FRIENDS := ["Zuzia", "Bartek", "Magda", "Kuba", "Iga", "Olek"]
+## "Czwarty" (docs/design/padel.md): PADELNIA's fourth player. Fetch a player from a door 400-1500 m
+## away and bring them to the court's door in 7 minutes. 45 zł + 8 zł a km (there and back), +14
+## respect, a 15 zł tip *guess*; late: half, no tip, no respect.
+const CZ_BASE := 45
+const CZ_PER_KM := 8
+const CZ_TIP := 15
+const CZ_RESPECT := 14
+const CZ_LIMIT := 420.0
+const CZ_FROM := 400.0
+const CZ_TO := 1500.0
+const CZ_MIN_QUEUE := 10
+const CZ_COLOUR := Color("#2fd0e0")
+const CZ_PLAYERS := ["Prezes z Mokotowa", "Pani Basia", "Trener Dominik", "kuzyn Kuby", "Ola z recepcji", "Michał od Excela"]
 const DEST_ID := "rondo_daszynskiego"
 const DEST_R := 300.0
 const RESULT_LIFE := 10.0
@@ -113,6 +126,13 @@ static func drop_pay(road_m: float, on_time: bool) -> Dictionary:
 	var base := DROP_BASE + roundi(DROP_PER_KM * road_m / 1000.0)
 	var tip := DROP_TIP if on_time else 0
 	return {"zl": (base if on_time else roundi(base * 0.5)) + tip, "base": base, "tip": tip, "respect": DROP_RESPECT if on_time else 0}
+
+
+## The "Czwarty" pay for `road_m` metres by road (one way): {zl, base, tip, respect}.
+static func cz_pay(road_m: float, on_time: bool) -> Dictionary:
+	var base := CZ_BASE + roundi(CZ_PER_KM * 2.0 * road_m / 1000.0)
+	var tip := CZ_TIP if on_time else 0
+	return {"zl": (base if on_time else roundi(base * 0.5)) + tip, "base": base, "tip": tip, "respect": CZ_RESPECT if on_time else 0}
 
 
 ## An open slot offers the job: its shop open, the trend on days 1-7 (state: slot_state's).
@@ -231,6 +251,12 @@ func _look() -> void:
 			_cool[-1] = _session + SLOT_COOL
 			if offer_drop():
 				return
+	if crowds != null and crowds.by_id.has(Crowds.PADEL_ID) and int(Crowds.padel_queue(hour, life.weekday_now())[0]) >= CZ_MIN_QUEUE:
+		var psite: Dictionary = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]
+		if p.distance_to(psite["door"]) <= OFFER_R and _session >= float(_cool.get(-2, 0.0)):
+			_cool[-2] = _session + SLOT_COOL
+			if offer_czwarty():
+				return
 	for i in life.slot_doors.size():
 		var door: Vector2 = life.slot_doors[i]
 		if door == Vector2.INF or p.distance_to(door) > OFFER_R or _session < float(_cool.get(i, 0.0)):
@@ -305,6 +331,43 @@ func offer_drop() -> bool:
 	return true
 
 
+## The "Czwarty" request at PADELNIA (--trend-job=5 too): the pickup is the player's door, the
+## delivery the court's kerb. False if no kerb or door fits.
+func offer_czwarty() -> bool:
+	if crowds == null or not crowds.by_id.has(Crowds.PADEL_ID):
+		return false
+	var site: Dictionary = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]
+	var door: Vector2 = site["door"]
+	var out: Vector2 = site["out"]
+	var k: Dictionary = jobs._kerb(door, door - out * 4.0, 3.5, [1.4, 2.2, 3.0])
+	if k.is_empty():
+		return false
+	var kerb: Vector2 = (k["centre"] as Vector2) + (k["side"] as Vector2) * 2.0
+	var rng := RandomNumberGenerator.new()
+	rng.seed = done * 4001 + 29
+	var from: Dictionary = jobs._pick_address(k["edge"], k["s"], kerb, CZ_FROM, CZ_TO, rng, func(_a: Dictionary) -> bool: return true)
+	if from.is_empty():
+		if log_on:
+			print("trend job: no door %.0f-%.0f m from PADELNIA" % [CZ_FROM, CZ_TO])
+		return false
+	order = {"kind": "czwarty", "slot": -1, "word": "PADEL", "day": 0, "ring": from["ring"],
+			"door_ring": Vector3(kerb.x, graph.surface(k["edge"], kerb), kerb.y), "road": float(from["road"]),
+			"name": "PADELNIA", "customer": CZ_PLAYERS[rng.randi() % CZ_PLAYERS.size()], "from": str(from["name"])}
+	state = State.OFFER
+	_t = 0.0
+	hud.show_side_card("CZWARTY · PADELNIA", "Grają we trzech. Zabierz %s spod %s i dowieź na kort w 7 min." % [order["customer"], order["from"]],
+			PackedStringArray(["ACCEPT", "SKIP"]), CZ_COLOUR, "Fourth player · PADELNIA",
+			"Three players are waiting. Fetch %s from %s and bring them to the court in 7 min." % [order["customer"], order["from"]])
+	hud.ticker_out()
+	if log_on:
+		print("trend job: czwarty offer at PADELNIA: %s from %s, %.0f m by road" % [order["customer"], order["from"], order["road"]])
+	return true
+
+
+func _is_cz() -> bool:
+	return str(order.get("kind", "")) == "czwarty"
+
+
 func _is_drop() -> bool:
 	return str(order.get("kind", "")) == "drop"
 
@@ -335,11 +398,13 @@ func _accept() -> void:
 	missions.paused = true
 	hud.hide_pill()
 	hud.hide_challenge()
-	_beacon.recolour(DROP_COLOUR if _is_drop() else COLOUR)
+	_beacon.recolour(DROP_COLOUR if _is_drop() else (CZ_COLOUR if _is_cz() else COLOUR))
 	_beacon.waving = false
 	_beacon.place(order["ring"], PICKUP - 0.5, true, false)
 	if _is_drop():
 		hud.toast("Limitka: stań w kolejce po pudełko", "Limited drop: join the queue for a box")
+	elif _is_cz():
+		hud.toast("Czwarty: jedź po gracza", "Fourth player: go and fetch them")
 	else:
 		hud.toast("Na czasie: odbiór przy kolejce", "On trend: pick up by the queue")
 	if log_on:
@@ -361,7 +426,9 @@ func _pickup_tick(dt: float) -> void:
 			_t = 0.0
 			_beacon.waving = true
 			_beacon.place(order["door_ring"], ARRIVE - 0.5)
-			if drop:
+			if _is_cz():
+				hud.toast("Jest! Na kort, grają bez ciebie", "Got them! To the court, they're starting without you")
+			elif drop:
 				hud.toast("Ostatnie pudełko! Zanim się roztopi", "The last box! Before it melts")
 			else:
 				hud.toast("Odbiór na aplikację: kolejka przepuszcza kuriera", "App pickup: the queue lets the courier through")
@@ -374,6 +441,10 @@ func _pickup_tick(dt: float) -> void:
 		hud.show_status("LIMITKA · KOLEJKA", "", "%d m" % roundi(d), "Stań w kolejce", _hold / hold_for, DROP_COLOUR, "", {},
 				"Wait in the queue")
 		return
+	if _is_cz():
+		hud.show_status("CZWARTY · ODBIÓR", "", "%d m" % roundi(d), "Stań pod drzwiami gracza", _hold / PICKUP_HOLD, CZ_COLOUR, "", {},
+				"Stop at the player's door")
+		return
 	hud.show_status("NA CZASIE · ODBIÓR", "", "%d m" % roundi(d), "Stań przy kolejce", _hold / PICKUP_HOLD, COLOUR, "", {},
 			"Stop by the queue")
 
@@ -385,14 +456,15 @@ func _deliver_tick(dt: float) -> void:
 		_arrive()
 		return
 	var drop := _is_drop()
-	var limit := DROP_LIMIT if drop else LIMIT
-	var tint := DROP_COLOUR if drop else COLOUR
+	var cz := _is_cz()
+	var limit := DROP_LIMIT if drop else (CZ_LIMIT if cz else LIMIT)
+	var tint := DROP_COLOUR if drop else (CZ_COLOUR if cz else COLOUR)
 	var left := limit - _clock
 	var clock := ("%d:%02d" % [int(left) / 60, int(left) % 60]) if left > 0.0 else "+%d:%02d" % [int(-left) / 60, int(-left) % 60]
-	var hint := (["Jedź do zielonego światła", "Head for the green beacon"] if drop else ["Jedź do różowego światła", "Head for the pink beacon"]) if d > 40.0 else ["Stań pod drzwiami", "Stop at the door"]
+	var hint := (["Jedź do turkusowego światła", "Head for the teal beacon"] if cz else ["Jedź do zielonego światła", "Head for the green beacon"] if drop else ["Jedź do różowego światła", "Head for the pink beacon"]) if d > 40.0 else ["Stań pod drzwiami", "Stop at the door"]
 	if left <= 0.0:
 		hint = ["Spóźnione, ale dowieź", "Late, but deliver it"]
-	hud.show_status(("LIMITKA → %s" if drop else "NA CZASIE → %s") % order["name"], clock, "%d m" % roundi(d), hint[0],
+	hud.show_status(("CZWARTY → %s" if cz else "LIMITKA → %s" if drop else "NA CZASIE → %s") % order["name"], clock, "%d m" % roundi(d), hint[0],
 			clampf(_clock / limit, 0.0, 1.0), tint if left > 0.0 else FAIL_COLOUR, "", {}, hint[1])
 
 
@@ -404,6 +476,9 @@ func _arrive() -> void:
 	_beacon.place(order["door_ring"], ARRIVE - 0.5, false, true)
 	if _is_drop():
 		_arrive_drop()
+		return
+	if _is_cz():
+		_arrive_cz()
 		return
 	var on_time := _clock <= LIMIT
 	var r := pay(float(order["road"]), int(order["day"]), on_time)
@@ -425,6 +500,27 @@ func _arrive() -> void:
 	print("trend job: delivered %s to %s in %.0f s (%s, trend day %d): +%d zł (base %d, tip %d), +%d respect%s" % [order["word"],
 			order["name"], _clock, "on time" if on_time else "late", int(order["day"]), int(r["zl"]), int(r["base"]), int(r["tip"]),
 			int(r["respect"]), ", \"to już niemodne\"" if bool(r["out"]) else ""])
+
+
+func _arrive_cz() -> void:
+	var on_time := _clock <= CZ_LIMIT
+	var r := cz_pay(float(order["road"]), on_time)
+	wallet.pay(int(r["zl"]), int(r["respect"]), "trend")
+	done += 1
+	var line := ["Jesteśmy w czterech! Ściana nas nie zje.", "Four of us! The wall won't eat us."]
+	if not on_time:
+		line = ["Zagraliśmy w trzech. Piłka i tak wróciła.", "We played three-a-side. The ball came back anyway."]
+	var head := "CZWARTY · +%d zł" % int(r["zl"])
+	var body := "„%s” · %s\n+%d zł (napiwek %d zł), +%d szacunku" % [line[0], order["customer"], int(r["zl"]), int(r["tip"]), int(r["respect"])]
+	var body_en := "\"%s\"\n+%d zł (tip %d zł), +%d respect" % [line[1], int(r["zl"]), int(r["tip"]), int(r["respect"])]
+	state = State.RESULT
+	_t = 0.0
+	hud.hide_status()
+	_beacon.waving = false
+	_beacon.place(order["door_ring"], ARRIVE - 0.5, false, true)
+	hud.show_side_card(head, body, PackedStringArray(["OK"]), CZ_COLOUR, "Fourth player · +%d zł" % int(r["zl"]), body_en)
+	print("trend job: delivered %s (Czwarty) to PADELNIA in %.0f s (%s): +%d zł (base %d, tip %d), +%d respect" % [order["customer"], _clock,
+			"on time" if on_time else "late", int(r["zl"]), int(r["base"]), int(r["tip"]), int(r["respect"])])
 
 
 func _arrive_drop() -> void:

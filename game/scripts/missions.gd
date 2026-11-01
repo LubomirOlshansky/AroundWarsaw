@@ -13,6 +13,7 @@ extends Node
 signal accepted
 
 const Access := preload("res://scripts/access.gd")
+const Haptics := preload("res://scripts/haptics.gd")
 const Beacon := preload("res://scripts/beacon.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 
@@ -23,6 +24,7 @@ const CAR_STOPPED := StopAssist.STOP_SPEED  # ...going no faster than this (m/s)
 const HELI_REACH := 8.0      # hover or land this close...
 const HELI_LOW := 4.0        # ...with the skids no higher above the person than this
 const MIN_ROOF := 20.0       # a roof rescue is at least this high above the street
+const ROOF_LOW := 6.0        # cassettes.gd: a roof for a cassette is at least this high
 const OPEN_RADIUS := 4.5     # street spots need this much open sky for the helicopter
 ## Map north: rescue spots keep this far inside the map's outline (map_builder.gd `in_map`; it was
 ## the bounding box shrunk by as much, which let a spot fall in the corner left outside).
@@ -65,6 +67,8 @@ const KIDS := ["Staś", "Zuzia", "Antek", "Hania"]
 
 ## Kind -> places: {kind, name, short, text, pos, heli, child}.
 var _places := {}
+## Landmark name -> its outlines (PackedVector2Array each), for `roof_spot`.
+var _outlines := {}
 var _hospitals: Array[Dictionary] = []
 var _mission: Dictionary = {}
 var _success := false
@@ -227,16 +231,10 @@ func call_in() -> float:
 const HAPTICS_LEAD := 2.0
 
 
-## Builds the haptic engine if it isn't yet and starts it without waiting (the engine's
-## singleton exists on iPhone builds only; elsewhere this does nothing). True when it ran.
+## Builds the haptic engine if it isn't yet and starts it without waiting (haptics.gd warm();
+## the engine's singleton exists on iPhone builds only; elsewhere this does nothing). True when it ran.
 static func warm_haptics() -> bool:
-	for n: String in ["AppleEmbedded", "iOS"]:
-		if Engine.has_singleton(n):
-			var ios := Engine.get_singleton(n)
-			if ios.has_method("start_haptic_engine"):
-				ios.call("start_haptic_engine")
-				return true
-	return false
+	return Haptics.warm()
 # --- end sweep 2 ---------------------------------------------------------------------------
 
 
@@ -490,7 +488,11 @@ func _find_roofs(landmarks: Array) -> void:
 	var best := {}
 	for l in landmarks:
 		var name: String = l["name"]
-		var spot := _flat_roof(_pts(l["p"]))
+		var poly := _pts(l["p"])
+		if not _outlines.has(name):
+			_outlines[name] = []
+		(_outlines[name] as Array).append(poly)
+		var spot := _flat_roof(poly)
 		if spot == Vector3.INF or (best.has(name) and (best[name]["pos"] as Vector3).y >= spot.y):
 			continue
 		var up := roundi(spot.y - map.ground_height(spot.x, spot.z))
@@ -501,9 +503,24 @@ func _find_roofs(landmarks: Array) -> void:
 	_places[Kind.ROOF].append_array(best.values())
 
 
+## The first-10 polish (cassettes.gd): the roof spot of the landmark `name`: the rescue's own pick
+## (its highest flat spot), else the highest flat spot at least ROOF_LOW m up (a roof too low for a
+## rescue, like the University Library's garden roof); Vector3.INF if it has none.
+func roof_spot(name: String) -> Vector3:
+	for p: Dictionary in _places.get(Kind.ROOF, []):
+		if p["name"] == name:
+			return p["pos"]
+	var best := Vector3.INF
+	for poly: PackedVector2Array in _outlines.get(name, []):
+		var spot := _flat_roof(poly, ROOF_LOW)
+		if spot != Vector3.INF and (best == Vector3.INF or spot.y > best.y):
+			best = spot
+	return best
+
+
 ## The highest spot on a building's roof that is flat enough to land on (the
 ## cells around it within a metre of it), or Vector3.INF.
-func _flat_roof(poly: PackedVector2Array) -> Vector3:
+func _flat_roof(poly: PackedVector2Array, min_up := MIN_ROOF) -> Vector3:
 	if poly.size() < 3:
 		return Vector3.INF
 	var lo := poly[0]
@@ -521,7 +538,7 @@ func _flat_roof(poly: PackedVector2Array) -> Vector3:
 			var p := Vector2(x, z)
 			var h: float = map.roof_height(x, z)
 			if h > best_h and map.in_map(p, -EDGE_PAD) and Geometry2D.is_point_in_polygon(p, poly) \
-					and h - map.ground_height(x, z) >= MIN_ROOF and _is_flat(x, z, h, cell):
+					and h - map.ground_height(x, z) >= min_up and _is_flat(x, z, h, cell):
 				best_h = h
 				best = Vector3(x, h, z)
 			x += cell

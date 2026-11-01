@@ -83,6 +83,22 @@
     [
       "Frogs. Otwarte dziś, jutro i na wszelki wypadek pojutrze.",
       "Frogs: open today, tomorrow, and the day after, just in case."
+    ],
+    [
+      "Domy towarowe: trzy piętra do wynajęcia. Widok gratis.",
+      "The department stores: three floors to let. The view's free."
+    ],
+    [
+      "Na Marszałkowskiej otwierają Frogs na dwa piętra. Hot dog z windą.",
+      "A two-storey Frogs is opening on Marszałkowska. Hot dogs with a lift."
+    ],
+    [
+      "Plac Centralny: stoisz na kamienicy, której już nie ma.",
+      "Plac Centralny: you're standing on a tenement that isn't there any more."
+    ],
+    [
+      "Pasaż Wiecha: kolejka po zieloną kawę. Tak, to herbata.",
+      "Pasaż Wiecha: a queue for green coffee. Yes, it's tea."
     ]
   ],
   "kebab_order": [
@@ -304,6 +320,14 @@
     [
       "Za rok też będę mówić, że jestem stąd.",
       "In a year I'll be saying I'm from here too."
+    ],
+    [
+      "Kiedyś kupowałam tu kurtkę. Teraz można wynająć całe piętro.",
+      "I used to buy a jacket here. Now you can rent the whole floor."
+    ],
+    [
+      "Teatr w dawnym kinie, kino w telefonie. Wszystko się zgadza.",
+      "A theatre in the old cinema, the cinema on your phone. It all adds up."
     ]
   ],
   "podwozka_request": [
@@ -1791,6 +1815,27 @@
     [
       "Padel to szachy z piłką. Przegrywam w obu.",
       "Padel is chess with a ball. I lose at both.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Trener Dominik: nie biegaj, ustaw się. Znowu.",
+      "Coach Dominik: don't run, position yourself. Again.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Pani Basia: wolny kort? Tylko w poniedziałek o szóstej.",
+      "Basia at the desk: a free court? Only Monday at six.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Prezes z Mokotowa: trzy rakiety, zero meczów. Grupa działa.",
+      "The Mokotów boss: three rackets, no matches. The group chat thrives.",
       {
         "only": "padel"
       }

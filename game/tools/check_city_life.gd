@@ -200,6 +200,11 @@ func _check_trends() -> void:
 	var dl := TrendJob.drop_pay(2000.0, false)
 	_expect(int(dp["base"]) == 60 and int(dp["zl"]) == 75 and int(dp["respect"]) == TrendJob.DROP_RESPECT, "drop pay on time: %s" % [dp])
 	_expect(int(dl["zl"]) == 30 and int(dl["respect"]) == 0 and int(dl["tip"]) == 0, "drop pay late: %s" % [dl])
+	# "Czwarty": 45 zł + 8 zł a km there and back, tip 15 on time, half and nothing late.
+	var cp := TrendJob.cz_pay(1500.0, true)
+	var cl := TrendJob.cz_pay(1500.0, false)
+	_expect(int(cp["base"]) == 69 and int(cp["zl"]) == 84 and int(cp["respect"]) == TrendJob.CZ_RESPECT, "czwarty pay on time: %s" % [cp])
+	_expect(int(cl["zl"]) == 35 and int(cl["respect"]) == 0, "czwarty pay late: %s" % [cl])
 	# Each slot runs days 1-8 in turn, the queue by day, the word until WKRÓTCE.
 	for slot in 3:
 		var last_trend := -1
