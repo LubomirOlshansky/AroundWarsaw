@@ -13,6 +13,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import cycleways  # noqa: E402  (cycle paths: gaps closed, split ways joined, corners smoothed)
 import bake_roads  # noqa: E402  (v0.75: carriageways, decks, markings, kerbs)
 from map_shape import Shape  # noqa: E402  (map north: the box with its north extension)
 
@@ -313,6 +314,8 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     tunnel_roads = clip_lines(tunnel_roads, rect)
     roads, garages = garage_ramps(roads, os.path.join(os.path.dirname(os.path.abspath(dst)), "terrain.json"))
     paths = clip_lines(paths, rect)
+    paths, cyc = cycleways.tidy(paths)   # gaps closed, split ways joined, spikes and sharp corners smoothed
+    print(f"cycle paths tidied: {cyc}")
     trams = clip_lines(trams, rect)
     areas = [dict(a, p=flat(c)) for a in areas
              for c in [clip_polygon(list(zip(a["p"][0::2], a["p"][1::2])), rect)] if len(c) >= 3]

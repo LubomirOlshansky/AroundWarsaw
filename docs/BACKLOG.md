@@ -4,6 +4,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Bike paths (F, 2026-11-02)
+
+- Fixed: gaps under 3 m between cycle path ends, ways split into pieces, spikes and sharp corners (`tools/cycleways.py`; riders turned back at every gap).
+- Open: about 600 cycle path ends still stop 3-8 m from the next path (many are the two sides of a street: needs a crossing, not a snap); ride them on the Mac against OSM; the cyclecross ways (398) and the 19 deck paths are untouched; riders' side offset jumps at a join.
+
 ## Gdański Business Center (F, 2026-11-02)
 
 - Built (PR in this change, site `gbc`). Open: Mac photo check (QUESTIONS); the plaza's planters, the lit lobby's glazing detail and the KPMG-style second logo on the tower are not built. Found: `bake_city` failed on main for the church of the Saviour (its SITE_AREAS box was missing); fixed in `tools/bake_sectors.py`.
