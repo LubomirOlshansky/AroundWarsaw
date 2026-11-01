@@ -137,6 +137,34 @@ vec4 centralny(vec2 wp, bool walk) {
 	return vec4(vec3(0.7, 0.65, 0.58) * (0.92 + 0.12 * hash12(floor(p / 0.24))) * (1.0 - 0.15 * j), 1.0);
 }
 
+// K6 (2026-11-01): the carriageway of Krakowskie Przedmieście (and the top of Nowy Świat) is
+// granite setts, not asphalt. KP_LINE is the street's centreline from the map (a 15-point
+// simplification of the mapped ways, from the Castle Square end to Nowy Świat); the setts show
+// where an asphalt fragment lies within KP_HALF of it. The box test keeps the cost off every
+// other road.
+const vec4 KP_BOX = vec4(-740.0, -440.0, -1350.0, -450.0);   // x0, x1, z0, z1
+const float KP_HALF = 7.0;
+const vec2 KP_LINE[15] = vec2[15](
+	vec2(-717.0, -1333.0), vec2(-696.0, -1279.0), vec2(-680.0, -1206.0), vec2(-666.0, -1095.0),
+	vec2(-650.0, -1041.0), vec2(-621.0, -973.0), vec2(-600.0, -922.0), vec2(-577.0, -867.0),
+	vec2(-555.0, -812.0), vec2(-530.0, -752.0), vec2(-500.0, -673.0), vec2(-471.0, -600.0),
+	vec2(-446.0, -534.0), vec2(-436.0, -493.0), vec2(-434.0, -465.0));
+
+// 1 where wp lies on Krakowskie Przedmieście's carriageway, else 0.
+float kp_setts_at(vec2 wp) {
+	if (wp.x < KP_BOX.x || wp.x > KP_BOX.y || wp.y < KP_BOX.z || wp.y > KP_BOX.w) {
+		return 0.0;
+	}
+	float best = 1e4;
+	for (int i = 0; i < 14; i++) {
+		vec2 a = KP_LINE[i];
+		vec2 ab = KP_LINE[i + 1] - a;
+		float t = clamp(dot(wp - a, ab) / dot(ab, ab), 0.0, 1.0);
+		best = min(best, length(wp - a - ab * t));
+	}
+	return 1.0 - smoothstep(KP_HALF - 0.4, KP_HALF, best);
+}
+
 void fragment() {
 	vec3 base = srgb_to_linear(COLOR.rgb);
 	vec2 wp = world_pos.xz;
@@ -175,6 +203,18 @@ void fragment() {
 		float grain = hash12(floor(wp * 6.0));
 		float patch = smoothstep(0.63, 0.7, value_noise(wp * 0.11 + 3.7));
 		shade = 0.95 + 0.07 * grain - 0.06 * patch + 0.04 * n1;
+		if (kp_setts_at(wp) > 0.5) {
+			// Granite setts, 0.12 x 0.1 m in rows broken like bricks; each stone its own grey
+			// or warm pink; dark joints.
+			vec2 q = wp / vec2(0.12, 0.1);
+			q.x += 0.5 * mod(floor(q.y), 2.0);
+			vec2 f = abs(fract(q) - 0.5);
+			float joint = step(0.42, f.x) + step(0.4, f.y);
+			float pick = hash12(floor(q));
+			vec3 stone = mix(vec3(0.6, 0.59, 0.57), vec3(0.7, 0.62, 0.58), step(0.7, pick));
+			base = srgb_to_linear(stone);
+			shade = 0.9 + 0.2 * hash12(floor(q) + 7.3) - 0.22 * min(joint, 1.0);
+		}
 	} else if (id == 1) {
 		// Grass: soft lighter and darker patches with a slight hue drift. The look loop:
 		// calmer, the lime read louder than the car: less yellow, and less chroma.
