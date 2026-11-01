@@ -416,7 +416,8 @@ at the hospital. Out of time: TRY AGAIN, NEXT CALL or FREE ROAM.
   stress them, and a jar breaks when the stress fills (the jars rattle first and the passenger
   warns you). A full stop from 50 km/h or a corner at 30 km/h is fine; slamming the brakes from
   90 or throwing it round a corner at 50 is not. The passenger chats on the way (`passenger`);
-  pay is 50 zł + 35 zł a jar, +30 respect with all six.
+  pay is 40 zł + 30 zł a jar (50 + 35 until the designer pass of 2026-11-01,
+  docs/design/pay-tables.md), +30 respect with all six.
 - **One activity at a time**: a job starts only with no rescue or race under way and not from
   the helicopter; while it runs, rescue calls and race challenges wait, and the helicopter
   stays parked (the order rides in the car).
@@ -4713,6 +4714,17 @@ landmarks lane is the table under it).
 | check_outline (O1-O5) | 120 | 0 |
 | check_lod2 (L1 doubled / L2 lost) | 16 / 81 | 15 / 73 |
 | check_drive (both paths) | 0 not allowed, 62 allowed; 98 routes | 0 not allowed, 62 allowed; 128 routes (22 through the roundabout), 0 jumps |
+
+**The joins loop (loop 3e leftovers, 2026-11-01).** `bake_structures.py`: a trench wall (`place_walls`)
+no longer stands inside a tube's mouth (its foot under `MOUTH` over the floor: Plac Na Rozdrożu's west
+portals); a low wall no longer stands where a lane runs at its foot (`in_lane` below `top - WALL_MIN * 0.8`,
+was `top - 0.5`: Nowy Zjazd); a deck's guard rail is cut where a bus box on a deck lane of its group would
+touch it (`BUS_BOX`, `BUS_STEP`, `BUS_PAD`, main roads only: lane_graph classes 0 and 1). Map numbers that
+change: retaining wall runs 1,479 → 1,473 (16,094 → 16,042 m, solid 8,976 → 8,969 m), fences, walls and guard
+rails cut from the lanes 12,813 → 12,913 m; centrum.json is the only committed bake output that moved.
+check_drive `--no-allow`: 51 lane spots → 26 (jumps 11, unchanged), allowlist 11 → 8 entries; check_roads
+0 not allowed / 304 allowed (unchanged); the bench route is not near these places: 135 draw calls, 3.04 ms.
+`check_drive.gd --who` prints the colliders a lane hit meets (the sector's one body, so only the sector).
 | Vertices (`count_vertices.gd`) | 18.70 M (meshes 11.50, instances 7.20) | 19.70 M (12.15, 7.55): +1.00 M, the extension's (0.96 M a km²); LoD2 in the box 1,549,362 → 1,548,197 vertices |
 | Probe draw calls (spawn, river, zoomed out, helicopter; 3D main / shadow) | 137, 104, 150, 220 (58/38, 36/25, 66/40, 111/74) | 138, 104, 151, 224 (58/38, 36/25, 66/41, 112/76): the city +0 (the helicopter view with `--no-traffic` 102/68 both); one more car or tram in view |
 | Probe over Rondo Radosława (`--at=-2833,-2292 --heading=60 --heli --size=150`; the car on Jana Pawła II `--at=-2790,-2200 --heading=340`) | (the map's edge) | 203 (100/68), 115 (46/28): inside the helicopter's 224 |
@@ -5095,6 +5107,14 @@ home screen).
 | Draw calls: zoomed out (the same + `--size=220`) | 190 | 215 | 300 |
 | Draw calls: helicopter (`--at=1300,-420 --heading=60 --heli --size=150`) | 245 | 270 | 360 |
 | Draw calls at any view, ever | | 500 | 500 |
+
+**Railway spots** (2026-11-01, the railway lane): two `--probe` views on the line, each with a
+train brought into view by `--train=X,Z` (the same X,Z as `--at`): Powiśle station and its
+tunnel mouth (`--at=171,89 --train=171,89`) and Most Średnicowy from Wybrzeże Szczecińskie
+(`--at=1148,-720 --train=1148,-720`). Cloud lavapipe at 1266×585, High, day: 158 and 119 draw
+calls (main pass 58 / 50, shadow 65 / 34), 0.64 / 0.51 M triangles in all passes, trains' script
+0.26 ms on the cloud CPU. The Mac's and the phone's numbers are still to take (under the 200
+ceiling for a default view).
 | Triangles, main pass (spawn / zoomed out) | 0.25 M / 0.36 M | 0.32 M / 0.50 M | 0.45 M / 0.70 M |
 | Triangles, shadow pass (spawn / zoomed out) | 0.14 M / 0.27 M | 0.18 M / 0.35 M | 0.25 M / 0.45 M |
 | Scripts, all systems (`scripts … ms` at the spawn, Mac) | 0.6–0.9 ms | 1.0 ms | 1.3 ms |
@@ -5661,6 +5681,7 @@ Command-line options (after `--`):
 | `--clicks=X:Y:F,...` / `--drag=X:Y:F:DX:DY:F2` | loop 2a testing aids: a click at screen pixel X,Y on frame F; a finger down at X,Y on frame F, moved by DX,DY over ten frames, lifted on frame F2 (through the real input path) |
 | `--lift=M` | loop 1: aim the camera M metres above the vehicle (close-ups of tall landmarks: `--at=-1206,244 --lift=156 --yaw=110 --size=24 --lines=1080` looks at the Palace clock's east dial) |
 | `--probe` | loop 2b: stand where `--at` / `--heading` put the car (free roam), let 240 frames (or 8 s) pass, measure the next `--bench-frames` (default 600, or `--bench-seconds`, default 30) and print the bench's lines plus what is in view (nodes, instances, shadow casters, materials, shaders, kinds); quits |
+| `--no-map-edge` | railway lane (2026-11-01): the city without the land past the map's edge (`map_edge.gd`: the ring of ground, tree line, far blocks and the rails and roads running on), for a before/after `--probe` at the edge |
 | `--bench-frames=N` / `--bench-seconds=S` | loop 2b: frames to measure for `--bench` / `--probe` (default 600) and a time cap (default 30 s; with `--bench-button`, the BENCH run's length, default 55 s) |
 | `--bench-button` | loop 2b: press TEST · BENCH at frame 60 (the phone's run, at the current settings and cap) |
 | `--fps=N` | loop 2b: cap the frame rate for this run (0: none; else the setting, 60 or 30). `--bench` and `--probe` run uncapped, headless runs too |

@@ -19,9 +19,11 @@ under a perforated metal roof.
 ## 2. Massing
 
 - Hall: the OSM outline, a 0.5 m plinth, glass walls to 3.9 m, a 0.5 m white roof slab with a
-  0.8 m overhang.
-- Sail: along the outline's curved end (STP_SAIL), a white wall from the ground to 6.8 m at the
-  tips and 5.7 m in the middle, its top leaning 0.8-1.4 m out towards the platforms.
+  0.8 m overhang that sweeps up 1.5 m towards the sail's end (after the Mac photo check, where
+  the flat slab read as a plain white box).
+- Sail: along the outline's curved end (STP_SAIL), a white wall from the ground to 8.2 m at the
+  tips and 7.1 m in the middle (above the roof's raised end), its top leaning 0.8-1.4 m out
+  towards the platforms.
 - Platforms: the map's two side platforms; a canopy 96 m long from each platform's hall end.
 
 ## 3. Facade, base to top
@@ -34,7 +36,9 @@ under a perforated metal roof.
 
 ## 4. Roof
 
-- Hall: flat, white, its soffit grey.
+- Hall: one white slab rising along the hall towards the sail (a parabola, STP_RISE 1.5 m), in
+  faint 3 m panels, a fascia round its edge, a glass clerestory from the walls' top up to it, its
+  soffit grey.
 - Canopies: a 0.25 m light metal slab over the platform's whole width plus 0.3 m.
 
 ## 5. Colour and material
@@ -51,7 +55,7 @@ stair heads.
 
 ## 7. Detail level and budget
 
-L3, budget 1560 triangles (in `check_mesh_quality.gd`; built 1294).
+L3, budget 1900 triangles (in `check_mesh_quality.gd`; built 1648).
 
 ## 8. Parts table
 
@@ -59,8 +63,8 @@ L3, budget 1560 triangles (in `check_mesh_quality.gd`; built 1294).
 | --- | --- | --- | --- | --- | --- |
 | plinth | prism | the outline, 0.5 m | the hall | grey | the hall's base |
 | hall | glass prism + mullions | the outline, 3.9 m | (1391, -1328) | M_PAVILION | the ticket hall |
-| roof | slab | outline + 0.8 m, 0.5 m | over the hall | white | the flat roof |
-| sail | curved wall | 6.8 m tips, 5.7 m middle, lean 1.4 m | the outline's curved end | white | the sail |
+| roof | swept slab | outline + 0.8 m, 0.5 m, rising 1.5 m | over the hall | white | the roof lifting into the sail |
+| sail | curved wall | 8.2 m tips, 7.1 m middle, lean 1.4 m | the outline's curved end | white | the sail |
 | neon | sign | STADION | on the roof, camera side | red neon | the station's letters |
 | canopies | slab + posts | 96 m x platform width, 3.8 m high | each platform's hall end | metal / dark steel | the platform roofs |
 | mosaic | panels | 2 m x 1.2 m, two rows | each canopy's outer edge | red / white | the stadium's colours |

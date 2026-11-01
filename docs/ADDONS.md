@@ -17,3 +17,4 @@ runtime by `police.gd`; editor plugin off, so no import plugin and no autoload).
 export's manifest; docs/archive/DEVELOPMENT-full.md "Android (Google Play)"). Candidates when a loop
 needs them: Folder Import Rules, Lente photo mode, the In-app Review and Share plugins.
 
+When to use Beehave and Dialogue Manager (decision rules and build patterns): skills `beehave-trees` and `dialogue-scenes` in `.claude/skills/`.

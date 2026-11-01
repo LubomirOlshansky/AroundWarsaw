@@ -632,11 +632,18 @@ func _float(dt: float) -> void:
 func leave_water() -> void:
 	in_water = false
 	_sink = 0.0
+	reset_motion()
+
+
+## Stopped, with nothing of the last contact kept (no pin, no wall, no bounce): a car the game
+## has just moved (the water's tow, the pause card's unstuck button, 2026-11-01).
+func reset_motion() -> void:
 	_body.position.y = 0.0
 	_bounce = 0.0
 	_last_xz = Vector2.INF
 	_body.rotation = Vector3.ZERO
 	vel = Vector3.ZERO
+	velocity = Vector3.ZERO
 	forward_speed = 0.0
 	steer_now = 0.0
 	_pinned = 0.0

@@ -11,7 +11,7 @@ extends Control
 ##     "Kamera za autem · Camera follows the car" On / Off (the old CAM button, now with its
 ##     state in view; Point with the camera off is the Fixed camera scheme);
 ##   Świat · World: Time of day (the old TIME button), Weather (RAIN), Traffic;
-##   Obraz · Picture: Style (STYLE), Quality (loop G1: Auto, the default, then Low, Medium,
+##   Obraz · Picture: Quality (loop G1: Auto, the default, then Low, Medium,
 ##     High, Ultra; Auto's English line names the level it picked here), VHS tape (VHS), Frame
 ##     rate, the performance overlay and the TEST bench;
 ##   Dźwięk · Sound: volume, radio, effects (− and + in tenths, or drag along the bar).
@@ -21,6 +21,8 @@ extends Control
 ## and Obraz the FOTKA button beside TEST (closes the card and opens the photo mode: fotka.gd).
 ## F's asks (2026-10-30): Jazda gets "Strefy piesze 20 km/h · Pedestrian zones 20 km/h" Off / On
 ## under the mode (settings.gd `zone_cap`, off by default: key "zones").
+## 2026-11-01: Jazda's first column ends with "Utknąłeś? · Stuck?" and POMOC DROGOWA (closes the
+## card and tows the car onto the nearest road: main.gd `_unstuck`, key "unstuck").
 
 signal changed(key: String, value: Variant)
 signal closed
@@ -66,7 +68,6 @@ const CONTROLS_SAY := [
 const TIME := [["Dzień", "Day"], ["Zmierzch", "Dusk"], ["Noc", "Night"], ["Na żywo", "Live"], ["Świt", "Dawn"]]
 const WEATHER := [["Pogodnie", "Clear"], ["Deszcz", "Rain"]]
 const TRAFFIC := [["Pustawo", "Almost empty"], ["Mało", "Low"], ["Normalnie", "Normal"], ["Tłoczno", "Busy"]]
-const STYLE := [["Ostry", "Sharp"], ["Drobny", "Fine"], ["Czysty", "Clean"], ["Toporny", "Chunky"]]
 ## Loop G1: index 0 is Auto (settings.gd AUTO), then the levels (tiers.gd LOW..ULTRA) one up.
 const QUALITY := [["Auto", "auto"], ["Niska", "Low"], ["Średnia", "Medium"], ["Wysoka", "High"], ["Ultra", "Ultra"]]
 const ON_OFF := [["Wył.", "Off"], ["Wł.", "On"]]
@@ -201,6 +202,14 @@ func _build() -> void:
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.custom_minimum_size.x = 240.0 * pt
 		drive[0].add_child(l)
+	# 2026-11-01 (F stuck in a building after a photo): the tow on demand, onto the nearest road.
+	_heading(drive[0], "Utknąłeś?", "Stuck?")
+	var tow := _word_button("POMOC DROGOWA", "unstuck · to the road")
+	tow.name = "unstuck"
+	tow.pressed.connect(func():
+		close()
+		changed.emit("unstuck", 1))
+	drive[0].add_child(tow)
 	_heading(drive[1], "Kamera za autem", "Camera follows the car")
 	_segments(drive[1], "camera", CAMERA)
 	_heading(drive[1], "Tryb gry", "Game mode")
@@ -217,21 +226,21 @@ func _build() -> void:
 	_segments(world[0], "traffic", TRAFFIC)
 	# Obraz · Picture. Loop G1: in three rows (Quality's five choices made the two columns too
 	# wide for the SE): Style and VHS; Quality; Frame rate and the overlay with TEST.
-	var picture := _rows(body, [2, 1, 2])
-	_heading(picture[0], "Styl obrazu", "Style")
-	_segments(picture[0], "style", STYLE)
-	_heading(picture[1], "Kaseta VHS", "VHS tape")
-	_segments(picture[1], "vhs", ON_OFF)
-	_heading(picture[2], "Jakość obrazu", "Quality")
+	# 2026-11-01 (F): the Style picker is gone (always the sharp image); the old VHS tape is now
+	# the "Retro" vaporwave filter (vhs.gdshader), the one switch left in the first row.
+	var picture := _rows(body, [1, 1, 2])
+	_heading(picture[0], "Retro · vaporwave", "Retro filter")
+	_segments(picture[0], "vhs", ON_OFF)
+	_heading(picture[1], "Jakość obrazu", "Quality")
 	var quality := QUALITY.duplicate(true)
 	quality[0][1] = "auto · %s" % _auto_name
-	_segments(picture[2], "quality", quality)
-	_heading(picture[3], "Klatki na sekundę", "Frame rate")
-	_segments(picture[3], "fps", FPS)
-	_heading(picture[4], "Licznik wydajności", "Performance overlay")
+	_segments(picture[1], "quality", quality)
+	_heading(picture[2], "Klatki na sekundę", "Frame rate")
+	_segments(picture[2], "fps", FPS)
+	_heading(picture[3], "Licznik wydajności", "Performance overlay")
 	var perf_row := HBoxContainer.new()
 	perf_row.add_theme_constant_override("separation", _px(6))
-	picture[4].add_child(perf_row)
+	picture[3].add_child(perf_row)
 	_segments(perf_row, "perf", ON_OFF)
 	# Loop 2b: a minute on the bench route, then a result card to copy (main.gd).
 	var bench := _word_button("TEST", "bench · 1 min")

@@ -83,6 +83,7 @@ func _run() -> void:
 	root.add_child(dlg)
 	var c: Crowds = _make(book.places, data, dlg, 1.0)
 	_check_sites(c)
+	_check_decks(c, data)
 	_check_level26(c, book, data)
 	_check_door(c, dlg)
 	var cost := _check_dawn(c, data)
@@ -253,6 +254,33 @@ func _check_level26(c: Crowds, book: Notebook, data: Dictionary) -> void:
 
 # 4. -------------------------------------------------------------------------------------------
 
+func _check_decks(c: Crowds, data: Dictionary) -> void:
+	# F's asks (2026-11-01): the observation decks. Closed outside their hours, fullest on a dry
+	# summer weekend's late afternoon, a weekday and the winter thinner, rain a fifth.
+	_expect(Crowds.deck_level(9.5, 6, 7, false, 10.0, 22.0) == 0.0 and Crowds.deck_level(22.0, 6, 7, false, 10.0, 22.0) == 0.0
+			and Crowds.deck_level(19.0, 6, 7, false, 10.0, 19.0) == 0.0, "decks: closed outside their hours")
+	_expect(Crowds.deck_count(14, 17.0, 6, 7, false, 10.0, 22.0) == 14, "decks: Varso full on a summer Saturday at 17:00")
+	var weekday := Crowds.deck_count(14, 17.0, 2, 7, false, 10.0, 22.0)
+	var winter := Crowds.deck_count(14, 17.0, 6, 1, false, 10.0, 22.0)
+	var wet := Crowds.deck_count(14, 17.0, 6, 7, true, 10.0, 22.0)
+	_expect(weekday > 0 and weekday < 14 and winter > 0 and winter < weekday and wet > 0 and wet <= 3,
+			"decks: a weekday %d, winter %d, rain %d of 14" % [weekday, winter, wet])
+	_expect(Crowds.deck_level(10.25, 6, 7, false, 10.0, 22.0) < Crowds.deck_level(13.0, 6, 7, false, 10.0, 22.0), "decks: the opening ramp")
+	for id in Crowds.DECKS:
+		_expect(c.by_id.has(id), "no deck crowd at %s" % id)
+	# Varso's deck reads the roof grid at a point inside its crown (a mapped part 200 m or more up).
+	var at: Vector2 = Crowds.DECKS["varso_deck"]["at"]
+	var tall := 0.0
+	for b: Dictionary in data.get("buildings", []):
+		var flat: Array = b.get("p", [])
+		var poly := PackedVector2Array()
+		for k in range(0, flat.size() - 1, 2):
+			poly.append(Vector2(float(flat[k]), float(flat[k + 1])))
+		if poly.size() >= 3 and Geometry2D.is_point_in_polygon(at, poly):
+			tall = maxf(tall, float(b.get("h", 0.0)))
+	_expect(tall >= 200.0, "the Varso deck's point is under a %.0f m part (200 m or more)" % tall)
+
+
 func _check_sites(c: Crowds) -> void:
 	# Trend follow-up: PISTACJA's line, its Friday drop and its site on a footway.
 	_expect(Crowds.pistacja_queue(9.0, 5)[0] == 0 and Crowds.pistacja_queue(22.5, 5)[0] == 0, "PISTACJA: a line outside 10-22")
@@ -266,6 +294,20 @@ func _check_sites(c: Crowds) -> void:
 	_expect(Crowds.kukla_queue(8.5, 2)[0] == 0 and Crowds.kukla_queue(21.5, 2)[0] == 0, "KUKŁA: a line outside 9-21")
 	_expect(Crowds.kukla_queue(13.0, 3) == [Crowds.KUKLA_MAX, "kolejka"] and Crowds.kukla_queue(16.0, 7)[0] == Crowds.KUKLA_MAX
 			and Crowds.kukla_queue(16.0, 2)[0] == 14 and Crowds.kukla_queue(9.5, 2)[0] == 8, "KUKŁA: its line by hour")
+	# F, 2026-11-01: KROWA 2.0, the milk bar in Norblin, and the chill yards.
+	_expect(Crowds.milk_queue(7.5, 2)[0] == 0 and Crowds.milk_queue(18.5, 2)[0] == 0 and Crowds.milk_queue(13.0, 3) == [Crowds.MILK_MAX, "kolejka"]
+			and Crowds.milk_queue(10.0, 3)[0] == 10 and Crowds.milk_queue(13.0, 7)[0] < Crowds.MILK_MAX, "KROWA 2.0: its line by hour")
+	_expect(Crowds.chill_level(19.0, 7, false) == 1.0 and Crowds.chill_level(8.0, 7, false) == 0.0
+			and Crowds.chill_level(19.0, 1, false) > 0.3 and Crowds.chill_level(19.0, 7, true) < 0.2, "chill yards: evening full, morning empty, winter a third, rain few")
+	_expect(Crowds.stop_level(8.0, 2, false) == 1.0 and Crowds.stop_level(8.0, 7, false) < 0.5
+			and Crowds.stop_level(3.0, 2, false) == 0.0 and Crowds.stop_level(11.0, 2, true) > Crowds.stop_level(11.0, 2, false),
+			"Marszałkowska platforms: rush hour full, Sunday thin, night empty, rain fuller")
+	var stops := 0
+	for ss: Dictionary in c.sites:
+		if ss["kind"] == "stop":
+			stops += 1
+			_expect(not (ss["slots"] as Array).is_empty(), "%s: no slots on its platform" % ss["id"])
+	_expect(stops >= 4, "Marszałkowska: only %d tram platforms with a crowd" % stops)
 	_expect(Crowds.piure_queue(17.0, 5)[0] == 0 and Crowds.piure_queue(20.0, 2) == [10, "timber"]
 			and Crowds.piure_queue(20.0, 5)[0] == Crowds.PIURE_MAX and Crowds.piure_queue(0.5, 7)[0] == Crowds.PIURE_MAX
 			and Crowds.piure_queue(0.5, 1)[0] == 10 and Crowds.piure_queue(1.5, 6)[0] == 0, "HOTEL PIURE: its line by hour")

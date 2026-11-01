@@ -306,6 +306,9 @@ func _apply(look: Dictionary) -> void:
 	env.background_color = (look["background"] as Color).lerp(Color("#8d97a4"), 0.6 * grey)
 	if plain_background.a > 0.0:
 		env.background_color = plain_background
+	# The land past the map's edge fades into the background (map_edge.gd), linear as emitted.
+	var bg := env.background_color.srgb_to_linear()
+	RenderingServer.global_shader_parameter_set("edge_haze", Vector3(bg.r, bg.g, bg.b))
 	env.ambient_light_color = (look["ambient"] as Color).lerp(Color("#aab1bd"), 0.4 * grey)
 	env.ambient_light_energy = look["ambient_energy"] * (1.0 + 0.18 * r)
 	sun.light_color = look["sun"]

@@ -22,7 +22,8 @@ extends SceneTree
 const Landmarks := preload("res://scripts/landmarks.gd")
 const Chunked := preload("res://scripts/chunked_surface.gd")
 ## Triangles a site may hold (the museum and Plac loop's own models).
-const BUDGET := {"muzeum": 2500, "europejski": 1500, "grob": 600, "metropolitan": 3200, "wiktoria": 900}
+const BUDGET := {"muzeum": 2500, "europejski": 1500, "grob": 600, "metropolitan": 3200, "wiktoria": 900,
+		"hotel_kasztel": 400, "hotel_canaletto": 400, "hotel_starowka": 400, "polonia": 1450}
 ## The Królewska edge's skins: key -> a point in a building the skin must cover.
 const SKINNED := {"bez_kantow": Vector2(-580.0, -785.0), "departament": Vector2(-596.0, -702.0),
 		"krolewska": Vector2(-660.0, -790.0)}
@@ -181,6 +182,10 @@ func _check_site(marks, map: StubMap, key: String) -> void:
 			marks._build_metropolitan(s)
 		"wiktoria":
 			marks._build_wiktoria(s)
+		"polonia":
+			marks._build_polonia(s)
+		"hotel_kasztel", "hotel_canaletto", "hotel_starowka":
+			marks._build_hotel(s)
 	marks._id = 0
 	var tris := rec.pos.size() / 3
 	var reach: Rect2 = (s["box"] as Rect2).grow(Landmarks.SITE_REACH)

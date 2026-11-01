@@ -21,8 +21,9 @@ extends Node3D
 ##    `scooter_zone` (the one by Metro Nowy Świat-Uniwersytet holds a standing Leżak: egg
 ##    `easter_lezak`); the car within 1.2 m pushes one 1-3 m (never onto a lane), a clatter and
 ##    the `lezak` `knock` aside once a minute.
-##  - **Metro entrances** (vision 3.5): a canopy with an M post at each street `subway_entrance`
-##    poi, facing its `yaw`.
+##  - **Metro entrances** (vision 3.5): at each street `subway_entrance` poi, facing its `yaw`, in
+##    the form its `f` says (glass-vault canopy, granite stairwell, footway passage mouth) with a
+##    treaded opening, a red M post and, on 3 in 5, a glass lift (`Props.add_metro_entrance`).
 ##  - **Kebab** (6.1): U ZDZICHA and NA CIENKIM name boards on the stands nearest those places,
 ##    the vendors' `zdzich`, `cienkim`, `hala`, `stadium` tags (jobs.gd draws the other stands in
 ##    a MultiMesh per tile); **billboards** (6.2): the four new `signs` lines (eggs.gd's
@@ -74,6 +75,7 @@ const SHISHA_TUBE_B := Color(0.2, 0.9, 0.95)
 const KOSZTA_TUBE := Color(0.95, 0.35, 0.3)
 const NERWO_TUBE := Color(0.35, 1.0, 0.55)
 const KUKLA_TUBE := Color(1.0, 0.85, 0.35)
+const KROWA_TUBE := Color(0.62, 0.86, 1.0)
 ## The venues' fascias (vision 3.0-3.2): place id -> [the lines of the sign, tube colour, metres
 ## up (the sign's bottom)]. The words are the parody names of places.json (Glon na Powiślu: GLON).
 const VENUES := {
@@ -125,6 +127,8 @@ const VENUES := {
 	"nerwo_nowy_swiat": [["GREEN CAFFE", "NERWO"], NERWO_TUBE, 2.8],
 	"kukla_marszalkowska": [["KUKŁA", "NALEŚNIKI"], KUKLA_TUBE, 2.8],
 	"kukla_nowy_swiat": [["KUKŁA", "NALEŚNIKI"], KUKLA_TUBE, 2.8],
+	# The milk bar in Norblin (F, 2026-11-01): a bar mleczny rebuilt as a start-up, cream and blue.
+	"krowa_norblin": [["BAR MLECZNY", "KROWA 2.0"], KROWA_TUBE, 2.8],
 }
 ## COFFEECHAIR (BACKLOG, the user 2026-10-31): a parody of a real coffee-shop chain, our own name
 ## and a warm cream tube (no logo, no chair icon of anyone's). Small cafés that are not notebook
@@ -176,6 +180,8 @@ const HYPE := {
 	"nerwo_nowy_swiat": [52.2355, 21.0185],
 	"kukla_marszalkowska": [52.2375, 21.0110],
 	"kukla_nowy_swiat": [52.2320, 21.0198],
+	# KROWA 2.0, the milk bar on the Żelazna front of Norblin (the Mac look check parks the door).
+	"krowa_norblin": [52.23367, 20.99107],
 }
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
@@ -226,6 +232,8 @@ var venues: Array[Dictionary] = []
 var scooters: Array[Dictionary] = []
 var zones: Array[Dictionary] = []
 var metros: Array[Dictionary] = []
+## The city-bike docks (ROWERILO) from the bake's `bicycle_rental` pois: `at`, `yaw` along the row, `n` bikes.
+var docks: Array[Dictionary] = []
 ## Loop jobs-2 (E40, vision 3.9 T17): the old card payphone at Plac Konstytucji {at: Vector3, yaw, key}
 ## ({} when the place or a pavement spot isn't found); in its sector's street-prop mesh.
 var payphone := {}
@@ -295,6 +303,7 @@ func setup(data: Dictionary, places: Array) -> void:
 			nt += 1
 	_load_scooters(data.get("pois", []))
 	_load_metros(data.get("pois", []))
+	_load_docks(data.get("pois", []))
 	_pick_payphone(at)
 	for i in shops.size():
 		_add_to_key("shops", shops[i]["key"], i)
@@ -306,8 +315,10 @@ func setup(data: Dictionary, places: Array) -> void:
 		_add_to_key("zones", zones[i]["key"], i)
 	for i in metros.size():
 		_add_to_key("metros", metros[i]["key"], i)
+	for i in docks.size():
+		_add_to_key("docks", docks[i]["key"], i)
 	if not payphone.is_empty() and not _by_key.has(payphone["key"]):
-		_by_key[payphone["key"]] = {"shops": [], "venues": [], "scooters": [], "zones": [], "metros": []}
+		_by_key[payphone["key"]] = {"shops": [], "venues": [], "scooters": [], "zones": [], "metros": [], "docks": []}
 	_shop_mesh = Props.frogs_shop()
 	_lezak_mesh = Props.lezak()
 	_build_atlas()
@@ -324,7 +335,7 @@ func setup(data: Dictionary, places: Array) -> void:
 		if not payphone.is_empty():
 			egg_book.move_egg("e40", Vector2(payphone["at"].x, payphone["at"].z))
 	counts = {"frogs": shops.size(), "triple": nt, "venues": venues.size(), "lezak": scooters.size(), "zones": zones.size(),
-			"metro": metros.size()}
+			"metro": metros.size(), "docks": docks.size()}
 	print("storefronts: %d Frogs (%d on %d triple corners), %d venue signs, %d Leżaks, %d zones, %d metro entrances, in %.1f ms" % [
 			shops.size(), nt, triple_at.size(), venues.size(), scooters.size(), zones.size(), metros.size(), (Time.get_ticks_usec() - t0) / 1000.0])
 	# Sectors already in.
@@ -337,7 +348,7 @@ func setup(data: Dictionary, places: Array) -> void:
 
 func _add_to_key(kind: String, key: Vector2i, i: int) -> void:
 	if not _by_key.has(key):
-		_by_key[key] = {"shops": [], "venues": [], "scooters": [], "zones": [], "metros": []}
+		_by_key[key] = {"shops": [], "venues": [], "scooters": [], "zones": [], "metros": [], "docks": []}
 	(_by_key[key][kind] as Array).append(i)
 
 
@@ -1114,7 +1125,24 @@ func _load_metros(pois: Array) -> void:
 		var x := float(p["x"])
 		var z := float(p["z"])
 		metros.append({"at": Vector3(x, map.ground_height(x, z), z), "yaw": float(p["yaw"]), "station": str(p.get("st", "")),
-				"ref": str(p.get("ref", "")), "key": key_of(Vector2(x, z))})
+				"ref": str(p.get("ref", "")), "key": key_of(Vector2(x, z)), "form": str(p.get("f", "canopy")),
+				"lift": (int(absf(x * 7.0 + z * 13.0)) % 5) < 3})
+
+
+## The Rowerilo docks from the bake's `bicycle_rental` pois (`yaw` along the rack row, `l` its length
+## when mapped as an area): a row of 4-8 bikes (`l` / 0.85 m, 6 when unmapped) and a terminal. They are
+## drawn into the sector's StreetProps mesh, so they add no draw call where that mesh already stands.
+func _load_docks(pois: Array) -> void:
+	if map == null:
+		return
+	for p: Dictionary in pois:
+		if str(p.get("k", "")) != "bicycle_rental":
+			continue
+		var x := float(p["x"])
+		var z := float(p["z"])
+		var n := clampi(int(float(p["l"]) / 0.85) if p.has("l") else 6, 4, 8)
+		docks.append({"at": Vector3(x, map.ground_height(x, z), z), "yaw": float(p.get("yaw", 0.0)), "n": n,
+				"key": key_of(Vector2(x, z))})
 
 
 ## Loop jobs-2: the payphone's spot: on the pavement by Plac Konstytucji's nearest lanes (2.4 m past
@@ -1174,7 +1202,7 @@ func _pick_payphone(at: Dictionary) -> void:
 func _build_props(key: Vector2i, root: Node3D) -> void:
 	var b: Dictionary = _by_key[key]
 	var phone: bool = not payphone.is_empty() and payphone["key"] == key
-	if (b["metros"] as Array).is_empty() and (b["zones"] as Array).is_empty() and not phone:
+	if (b["metros"] as Array).is_empty() and (b["zones"] as Array).is_empty() and (b["docks"] as Array).is_empty() and not phone:
 		return
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -1182,13 +1210,18 @@ func _build_props(key: Vector2i, root: Node3D) -> void:
 	var first := true
 	for i: int in b["metros"]:
 		var m := metros[i]
-		Props.add_metro_entrance(st, Transform3D(Basis(Vector3.UP, float(m["yaw"])), m["at"]))
+		Props.add_metro_entrance(st, Transform3D(Basis(Vector3.UP, float(m["yaw"])), m["at"]), m["form"], m["lift"])
 		box = AABB(m["at"], Vector3.ZERO) if first else box.expand(m["at"])
 		first = false
 	for i: int in b["zones"]:
 		var z := zones[i]
 		Props.add_scooter_zone(st, Transform3D(Basis(Vector3.UP, float(z["yaw"])), z["at"]))
 		box = AABB(z["at"], Vector3.ZERO) if first else box.expand(z["at"])
+		first = false
+	for i: int in b["docks"]:
+		var d := docks[i]
+		Props.add_bike_dock(st, Transform3D(Basis(Vector3.UP, float(d["yaw"])), d["at"]), int(d["n"]))
+		box = AABB(d["at"], Vector3.ZERO) if first else box.expand(d["at"])
 		first = false
 	if phone:
 		Props.add_payphone(st, Transform3D(Basis(Vector3.UP, float(payphone["yaw"])), payphone["at"]))

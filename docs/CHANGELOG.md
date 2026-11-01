@@ -11,7 +11,32 @@ someone writes its lines.
 
 ## 2026-11-01
 - The bar barges on the Vistula are real boats now: steel hulls with glazed decks, sun terraces under umbrellas, strings of warm bulbs, a gangway to the boulevard and their names in neon (Wieczorek nad Wisłą, Biała Barka, Marinka, Kaskadka); the houseboats in the harbour got cabins too.
+- The old VHS tape filter is now a Retro vaporwave look in Settings → Obraz: pink and teal sunset tones, a soft neon glow, scanlines and a little grain. The picture-style choice is gone; the game always draws the sharp image.
+- Marszałkowska's tram stops fill with commuters at rush hour, thin out at weekends and night, and crowd the platforms when it rains.
+- Photo mode no longer lets your car roll backwards into a building, and the pause menu's JAZDA tab has a POMOC DROGOWA button that tows you onto the nearest road if you ever get stuck.
+- Hotel Bristol and Hotel Polonia Palace are real buildings now: slate mansards with dormers, balcony bands and cornices, and a lit canopied door with a name board (BRISTOL in gold) on Krakowskie Przedmieście and Aleje Jerozolimskie.
+- The Church of the Holiest Saviour on Plac Zbawiciela is a real church now: two tall towers with green copper spires, a dome over the crossing and a porch with a pediment, with a card.
+
+- The metro stations' street entrances look like the real thing now: glass-vaulted canopies, stairwells with railings and steps leading down, passage mouths, tall red lit M signs, and glass lifts beside many of them.
+- The Old Town has hotels: Kasztel Inn by Castle Square, Hotel Canaletto and the Rezydencja Starówka on the Market now have a door with a lit entrance, a canopy, a neon name and flags, and a card when you tap them.
+- ROWERILO city-bike docks now stand at the real station spots across the city: a row of mint bikes and a glowing terminal on the pavement.
+- The city no longer ends in blue sky at its edges: past Warszawa Wschodnia, Dworzec Gdański and all round the map the land runs on, with a tree line, blocks of flats beyond and the tracks and roads heading out, all fading into the distance.
+- Warszawa Stadion's ticket hall no longer reads as a white box: its roof sweeps up into a taller white sail over the forecourt, with bigger red STADION letters.
+- Krakowskie Przedmieście's carriageway is granite setts now, and Bolesław Prus and Cardinal Wyszyński stand in bronze at the street's north end; the Czapski palace has its own cream stone and a card.
+- Most Średnicowy, the railway bridge over the Vistula, now stands on massive granite piers with pointed cutwaters, its tracks carried on steel arch trusses between them.
+- Warszawa Ochota's roof is a deep saddle now, its corners shooting up over the striped shell, with the blue WARSZAWA OCHOTA letters by the door; Powiśle's kite roof sags between its turned-up ends over a glass base, and the round bar's saucer spreads wide with yellow letters on its rim.
+- Krakowskie Przedmieście has more of its landmarks: the Carmelite church's front with its gilt globe, Mickiewicz's monument, the University's main gate, the Potocki palace and its guardhouse, and Hotel Bristol's dome, plus the Royal Route's black granite Chopin benches.
+- Rynek Mariensztacki is on the map with a card and relief panels on the houses of its south side.
+- The Old Town Market Square has its cobbled paving now, café gardens with umbrellas in the restaurants' colours along all four sides, and the Syrenka in her fountain: bronze, with her raised sword and round shield, on a stone pedestal behind a low stone rim.
+- People stand on the observation decks: on St Anne's bell tower terrace (with a new stone balustrade), on the Palace of Culture's 30th-floor terrace and on the roof of Varso Tower, more of them in the afternoon, on weekends and in summer.
+- The two glass pavilions over the underground Warszawa Śródmieście station, by the Palace, now glow at night under their blue neon names.
+- Fabryka Norblina, Browary Warszawskie, Hala Koszyki and the Elektrownia Powiśle are modelled now: brick halls with tall arches, glass storeys on top, chimneys, and people chilling in their yards. In Norblin there is a line to a milk bar called KROWA 2.0.
 - Now and then a fender bender blocks a lane somewhere ahead: two dented cars, a police car with its lights flashing and a yellow ambulance, the drivers arguing over who had the green while people film it for the estate's group. Traffic queues and squeezes past, and KEBAB FM reads it out in the traffic news.
+- The Ministry of Finance on Świętokrzyska is a landmark: the 1950s pale pink-grey palace round its court, the three-door entrance in the middle under its raised attic, the hipped pavilions at the wings' ends; tap it for its card.
+- Roofs look like Warsaw's: red tiles, painted sheet metal with seams, zinc mansards, tar paper on the blocks, pale membranes and green sedum on offices, low parapets round flat roofs and rows of brick chimneys on the old tenements.
+- Racing a rival you have already beaten still pays the stake but gives less respect, so the next rival opens by playing the city, not by beating Pani Halina again; mum's jars pay a little less; and the characters now talk to you the same way whoever you are.
+- Now and then a fender bender blocks a lane somewhere ahead: two dented cars, a police car with its lights flashing and a yellow ambulance, the drivers arguing over who had the green while people film it for the estate's group. Traffic queues and squeezes past, and KEBAB FM reads it out in the traffic news. The ambulance now has its siren on, and the scene shows as an amber dot on the minimap and the map.
+- The police talk to you without "pan": the same warnings and jokes, for whoever is driving.
 - Larger text in Settings → DOSTĘP now changes the HUD text straight away, no restart needed.
 - Mariensztat, the little 1949 square under the Old Town's escarpment, now looks like itself: pastel houses under red tile roofs with dormers and chimneys.
 - The colour-blind option now also changes the green "win" and red "fail" cards and badges to blue and orange-red, so they are easy to tell apart.

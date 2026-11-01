@@ -146,8 +146,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails streetmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings credits tiers governor hud places edge eggs tape crowds life buses crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh spec drape drive steering stopassist settings credits tiers governor hud places edge eggs tape crowds life buses crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice gamepad radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails streetmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings credits tiers governor hud places edge eggs tape crowds life buses crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs roofdress sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh spec drape drive steering stopassist settings credits tiers governor hud places edge eggs tape crowds life buses crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs roofdress sites meshq sfx juice gamepad radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -709,6 +709,8 @@ for s in $want; do
 		cost) check cost '^check_cost_cuts:' --script res://tools/check_cost_cuts.gd ;;
 		# The Old Town's dormers and chimneys (scripts/old_town_roofs.gd): on the slope, outward, small.
 		oldtownroofs) check oldtownroofs '^check_old_town_roofs:' --script res://tools/check_old_town_roofs.gd ;;
+		# The roofs lane (scripts/roof_dress.gd): parapets on outer edges only, tenement chimneys, the budget.
+		roofdress) check roofdress '^check_roof_dress:' --script res://tools/check_roof_dress.gd ;;
 		landmarks) check landmarks '^landmark check:' --script res://tools/check_landmarks.gd ;;
 		# The museum and Plac loop: Muzeum Narodowe, Hotel Europejski and the Tomb from centrum.json
 		# alone (found, what they replace, triangles, one material, cards; no terrain or sectors).

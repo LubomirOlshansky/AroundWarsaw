@@ -26,11 +26,13 @@ then the Launch gate.
 - [x] The full map with landmark pins and teleport; the quest stop assist
 - [x] Landmarks: the Palace, Centralna, Złote Tarasy, the towers, MSN, the Rotunda, BUW, Kopernik,
       the stadium, Plac Piłsudskiego, the start street's stores, many churches (Mac photo checks
-      for some)
+      for some), the Ministry of Finance (2026-11-01, spec `mf.md`; Mac photo check parked)
+- [x] Retro vaporwave filter replaces the VHS tape look; the Styl obrazu picker removed, always Sharp (2026-11-01; phone look check parked in QUESTIONS)
 - [x] Day, dusk and night; rain; water; synthesised sound; puddles and night water (3i part)
 - [x] Landing page, design wiki and /progress/ live; store texts and privacy manifest drafted
 
 ### Left: the start of the game
+- [x] Metro entrances modelled at the real M1/M2 stairs: vaulted glass canopies, stairwells, passage mouths, red M posts, lifts (F, 2026-11-01; Mac look check parked in QUESTIONS)
 - [x] Merge PR #115 (start facing the first stand, short first order, BUW roof cassette), then
       PR #121 (the opening flyover) (both on main; ticked 2026-11-01)
 - [ ] First-scene items 4-7: pavilions and towers behind the stores, Plac Defilad's paving, tram
@@ -57,11 +59,40 @@ then the Launch gate.
 - [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views
       shows), 2026-11-01, PR #183
 - [ ] Map review C: the streets of the 3d-1 box and map north against the orthophoto
-- [ ] Loop 3e leftovers: Łazienkowski's Praga end (R8), the rail cutting, Rozdroże's tubes,
-      Nowy Zjazd's wall, deck 4; Most Łazienkowski cut by the east edge (decide)
+- [x] Bridge and tunnel joins (loop 3e leftovers): rails cut where a bus box touches them,
+      Rozdroże's portal wall, Nowy Zjazd's wall (check_drive `--no-allow` 51 → 26 lane spots; 3 of
+      11 allowlist entries gone). Open: the loop ramps' parapets and slabs at Łazienkowski's Praga
+      end, deck 4's parapet, the footbridge's Praga end (BACKLOG "From loop 3e")
+- [ ] Loop 3e leftovers still open: the rail cutting, Most Łazienkowski cut by the east edge (decide)
 - [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
 
 ### Left: landmarks and street details
+- [x] Marszałkowska street by street (F, 2026-11-01), pass 1: Kościół Najświętszego Zbawiciela on
+      Plac Zbawiciela as a model (spec zbawiciela.md; Mac photo check parked). Next on the street:
+      MDM's arcades and corner towers (LANDMARKS 2.8), then houses, roads and street life
+- [x] Marszałkowska street by street, pass 2 (F, 2026-11-01): commuters waiting on the street's
+      12 tram platforms (rush hours, thin weekends, fuller in rain; check_crowds). Open: houses,
+      shopfronts, crossings (BACKLOG "Marszałkowska street by street")
+- [x] Old Town Market Square and its Syrenka (F, 2026-11-01): cobbled paving, 58 café umbrellas, the
+      fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
+      Mac photo check parked (QUESTIONS)
+- [x] People on the observation decks (F, 2026-11-01): Varso Tower's roof and St Anne's bell tower
+      terrace (with a balustrade), the Palace of Culture's 30th-floor terrace (114 m ledge and
+      balustrade, up to 16), hours, weekends and seasons (`crowds.gd` DECKS)
+- [x] The grand hotels (F, 2026-11-01, hotels pass): Hotel Bristol's body on its kept skin (rusticated
+      plinth, string courses, cornice, slate mansard with dormers, a canopied door with the gilded
+      name on Krakowskie Przedmieście, pediment, 2013 tris) and Hotel Polonia Palace built whole on
+      Al. Jerozolimskie (1202 tris, new `polonia` site and card) through one `_palace_hotel` builder;
+      Europejski, Wiktoria, the Marriott, Novotel, Westin and InterContinental were already models;
+      Mac look check parked (QUESTIONS, BACKLOG "Grand hotels")
+- [x] Old Town hotels (F, 2026-11-01): fronts on three tenements (portal, canopy, neon name, flags,
+      lanterns, card), under parody names KASZTEL INN (Castle Inn), CANALETTO (Hotel Bellotto),
+      STARÓWKA (an aparthotel on the Rynek); Mac look check parked (QUESTIONS, BACKLOG "Old Town hotels")
+- [ ] Old Town Market Square leftovers: per-house plaster colours and sgraffito from photos, the
+      four corner streets' mouths, a card for the Museum of Warsaw house (BACKLOG "Old Town square")
+- [x] Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle as models, people chilling
+      in their yards and KROWA 2.0, the milk bar queue in Norblin (F, 2026-11-01; specs
+      `norblin.md`, `browary.md`, `koszyki.md`, `elektrownia.md`; Mac look check parked)
 - [ ] The landmark lane's remaining list (BACKLOG "Landmarks lane, hand-over": the Cathedral, the
       Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
@@ -71,24 +102,42 @@ then the Launch gate.
 - [ ] Mac photo check of the barges (hull colours, deckhouse length and place, the terraces)
 - [ ] Mariensztat and Krakowskie Przedmieście review (F, 2026-11-01; BACKLOG section):
   - [x] M1 Mariensztat's houses in pastel with red tile roofs and dormers, 2026-11-01
-  - [ ] M2 Rynek Mariensztacki's card and reliefs; M3 the escarpment and Nowy Zjazd (Mac)
-  - [ ] K1-K6 Krakowskie Przedmieście's missing pieces: the Carmelite church, Mickiewicz's
-        monument, the University gate, Pałac Potockich's guardhouses, Bristol, the statues
+  - [x] M2 Rynek Mariensztacki's card and six relief panels, 2026-11-01 (Mac photos for the real reliefs)
+  - [ ] M3 the escarpment and Nowy Zjazd's viaduct over the estate (Mac, real terrain)
+  - [x] K1-K5 the Carmelite church's front, Mickiewicz's monument, the University gate and Pałac
+        Kazimierzowski's skin, Pałac Potockich and the Kordegarda, Bristol's corner dome, 2026-11-01
+        (spots and heights estimated; Mac photo check)
+  - [x] K6 the black Chopin benches, Prus's and Wyszyński's statues, the granite setts on the
+        carriageway, Pałac Czapskich's skin and card, 2026-11-01 (Mac look check)
 
 - [ ] The railway (F, 2026-11-01; plan docs/design/railway.md):
   - [x] R0 design: stations, the cross-city line, trains, 2026-11-01
   - [x] S1 Warszawa Ochota: the hyperbolic paraboloid over the glass hall on its bridge, 2026-11-01
   - [x] S2 Warszawa Powiśle: the kite pavilion, the round saucer pavilion, the X canopies, 2026-11-01
+  - [x] S1/S2 after the Mac photo check: Ochota's saddle and letters, Powiśle's sagging kite, glass base, wide saucer, yellow rim letters, 2026-11-01
   - [ ] L1 track that reads as railway (sleepers, rails, ballast shoulders)
   - [x] L2 catenary masts and wires, 2026-11-01
   - [x] L3 the tunnel's portals at Ochota and Powiśle, 2026-11-01
   - [x] T1 trains through the city (suburban, city line, long-distance), `check_trains`, 2026-11-01
-  - [x] S3a Warszawa Stadion: the white hall with its sail, the red-and-white mosaic canopies, 2026-11-01
-  - [ ] S3b-e the other stations: Śródmieście's entrances, Wschodnia, Gdańska, Ochota WKD
-  - [ ] L4 Most Średnicowy's look (after a Mac photo check)
+  - [x] S3a Warszawa Stadion: the white hall with its sail, the red-and-white mosaic canopies, 2026-11-01; the roof sweeping up into a taller sail after the Mac photo check
+  - [x] S3b Warszawa Śródmieście: the two glass stair pavilions by the Palace, 2026-11-01
+  - [ ] S3c-e the other stations: Wschodnia, Gdańska (the map's edges, Mac look first), the WKD entrances
+  - [x] The map's edges: the land runs on past the outline (ground fading into the sky, a tree line, blocks beyond, the rails and roads running out), Wschodnia and Gdańska first, 2026-11-01; the Mac look check parked
+  - [x] L4 Most Średnicowy's look: arch-truss spans on stone piers (after the Mac photo check)
+  - [x] Probe spots on the line with a train in view (Powiśle, Most Średnicowy), 2026-11-01; the phone's numbers still to take
+
+- [ ] Roofs across the map (F, 2026-11-01; plan docs/design/roofs.md):
+  - [x] RF1-RF3 roof materials, parapets, tenement chimneys, 2026-11-01
+  - [ ] RF4 OSM-only buildings' roofs, copper and red sheet metal by district; the phone bench (Mac check done 2026-11-01)
 
 ### Left: content and feel
-- [ ] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
+- [x] Photo mode no longer lets the car reverse into buildings (its hold parks the car and puts it
+      back on close), and the pause card's JAZDA tab has POMOC DROGOWA · unstuck, the tow to the
+      nearest road on demand (F stuck after a photo on the iPhone, 2026-11-01; phone check parked)
+- [x] ROWERILO city-bike docks (the Veturilo parody) at the 92 mapped `bicycle_rental` spots, a terminal and 4-8 bikes each, in the sector street-prop mesh (2026-11-01; Mac look check parked)
+- [x] Designer pass over the guide's lines, Halina's lines, the end card, the pay tables
+      (2026-11-01, docs/design/pay-tables.md: player-neutral Polish, rematch respect +20, słoiki
+      40 + 30 a jar; the hour and the pay still to be timed on the phone by F)
 - [x] DEMO 6.3 counts, cassettes and landmark cards (2026-11-01): 10 roof cassettes in
       `cassettes.json` (9 new), and 72 landmark cards already in `landmarks.gd` INFO (target ~25)
 - [ ] DEMO 6.3 counts, rescues and słoiki: the second słoiki station (jobs.gd has one), the Old
@@ -119,10 +168,33 @@ then the Launch gate.
 - [x] Crash scenes (F, 2026-11-01, `crash_scenes.gd`, `check_crash_scenes`, PR "crash scenes"):
       every few minutes a fender bender ahead on a main road, two wrecks in the kerb lane, a
       police car with its lights and a yellow ambulance, the drivers arguing, people filming,
-      KEBAB FM's traffic news; traffic queues and goes round. Left: the phone's look, a siren
-      sound, a minimap marker (docs/design/crash-scenes.md)
+      KEBAB FM's traffic news; traffic queues and goes round. Siren at the ambulance and an amber
+      minimap / full-map dot added (2026-11-01). Left: the phone's look and a phone check of
+      the siren level and the dot (docs/design/crash-scenes.md)
 - [ ] Settle the parked questions in docs/QUESTIONS.md that change the build (start light, flyover
       length, teleport rules, stop assist toggle, Palace stone colour)
+
+### Left: the gameplay pass (F, 2026-11-01, six phone screenshots; detail and acceptance in docs/BACKLOG.md "Gameplay pass")
+Beta goal: a visitor explores the city with everything open, an easy city drive, a calm street.
+- [ ] G1 Heli and map teleport open from the first second (the guide no longer gates them)
+- [ ] G2 Calmer default traffic (Low) and the traffic setting found and adjustable (Settings, Świat)
+- [ ] G3 +/- zoom buttons on the driving screen (5 steps, saved)
+- [ ] G4 Easy city drive: less drift, gentler steering, a Cruise handling default (Opus, feel)
+- [ ] G5 Flicker and "lag wall" audit: the dithered fade patches, wall-like props, the metro
+      entrances (what stays, what stops colliding, what goes) (Opus)
+- [ ] G6 Under-the-bridge entries (owned by the bridge joins thread; report in BACKLOG)
+- [ ] G7 Old Town roofs less repetitive (the dormer and tile pattern) (Sonnet)
+- [ ] G8 Bus stops on the kerb; buses dwell about ten seconds, people get off and on, people wait (Opus)
+- [ ] G9 Street furniture (chairs, benches) placed where it belongs, not at random (Sonnet)
+- [ ] G10 Podwózka off the main line: a visible rider icon and a START RIDE button with clear directions (Opus)
+- [ ] G11 Better map icons on the minimap and the full map (Sonnet)
+- [ ] G12 Separate quest lines: helicopter quests and car quests, each with its own list and map colour (Opus)
+- [ ] G13 Upgrade shop: Audi TT parody (faster car), nitro, tuning, paid in zł (Opus design, Sonnet content)
+- [ ] G14 POMOC DROGOWA (unstuck) and NOWA GRA (two-tap reset) at the top of Settings → Jazda (quick win)
+- [ ] G15 Stop assist works better: bigger quest start and end rings, looser "stopped", longer look-ahead (quick win; phone check)
+- [ ] G16 Fewer text popups while driving on the road: toasts and speech bubbles only for what matters (Sonnet)
+- [ ] G17 Car stuck against other cars: traffic collision pushes, then auto-unstuck from cars (Opus)
+- [ ] G18 Park Ujazdowski and Zamek Ujazdowski (the castle) improved: its own landmark thread (Opus)
 
 ### Left: the phone (needs F's yes for each device run)
 - [ ] Bench on the iPhone 11 and 16 Pro Max on today's main against budget P (DEMO 7): frame,
@@ -427,7 +499,7 @@ verify, a look at every before/after and the phone budget; locals get it early.
 | --- | --- | --- | --- |
 | 1 | **3d-1 merge** (on its last check) | The 20.1 km² demo map (Rondo Daszyńskiego → stadium, MDM → Barbakan, Most Łazienkowski), 1 m terrain, derived files out of git; then the iPhone 11 pass and the first Play internal testers | 1 |
 | 2 | **3d-2, map engine** | Ground cut back under roads + coarser ground on flat land; far levels with low buildings painted flat; look-ahead streaming; the one-frame-per-load hitch split in the bake | 5–8 |
-| 3 | **3e, structures** | The W-Z tunnel, Most Śląsko-Dąbrowski, Trasa Łazienkowska, the Wybrzeże trench, Wiadukt Markiewicza, the rail cutting. *Loop 3e (2026-10-30): the portals, tubes and trenches done; the interchanges (R8), the rail cutting and Rozdroże's tube ends left (BACKLOG "From loop 3e")* | 4–7 |
+| 3 | **3e, structures** | The W-Z tunnel, Most Śląsko-Dąbrowski, Trasa Łazienkowska, the Wybrzeże trench, Wiadukt Markiewicza, the rail cutting. *Loop 3e (2026-10-30): the portals, tubes and trenches done; the interchanges (R8), the rail cutting and Rozdroże's tube ends left (BACKLOG "From loop 3e"); the joins loop (2026-11-01) took Rozdroże's portals, Nowy Zjazd and most of the interchange's rails* | 4–7 |
 | 4 | **3f, landmark factory + facades** | A builder kit; tier A (10) + tier B (~30) + churches by rule, each capped, with a real LOD1, baked into the sectors, a card and a pin, chosen by the user from a gallery; facade families and glass on ordinary buildings | 15–22 |
 | 5 | **MW-0 – MW-2, Moja Warszawa I** (2d-2 folded in) | places.json and the lines; the MOJA WARSZAWA notebook; shop fronts with the near-miss parodies, metro entrances, Frogs (was Rechotka), kebab stands, billboards | 10–14 |
 | 6 | **MW-3 + 3g-2, night, river, police II** | Club queues, the door, the dawn crowd, the river steps; city guards in the Old Town, the clamp, escorts, chase framing | 8–12 |

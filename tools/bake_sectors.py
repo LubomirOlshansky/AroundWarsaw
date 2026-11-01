@@ -113,7 +113,10 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               # Hotel Metropol's roof sign (landmarks.gd _build_metropol_sign reads its parts' height)
               "Hotel Metropol",
               # HOTEL PIURE's rooftop sign LUŹNO (landmarks.gd _build_piure_sign reads its parts' height)
-              "Puro Warszawa Centrum"]
+              "Puro Warszawa Centrum",
+              # Fabryka Norblina (landmarks.gd _find_works: its tall wing is found among the parts
+              # under the outline OSM names "Modsen")
+              "Modsen"]
 SITE_PAD = 12.0
 # Building kinds landmarks.gd finds wherever they lie (the barges, 2026-11-01: _find_barges).
 SITE_KINDS = ("boat", "houseboat")

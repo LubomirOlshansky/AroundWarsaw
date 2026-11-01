@@ -3,6 +3,217 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+
+## Gameplay pass (F, 2026-11-01, six phone screenshots)
+
+F played on the phone and asked for an easier, calmer, more open beta: "a city, not racing; most
+users will just explore". Each item: what F saw, what the code does today, the task, acceptance,
+files, model. Order = priority. G1-G3 are quick wins (own PRs); the rest are separate threads.
+
+**G1 · Heli and teleport open from the start (P0, Sonnet, quick win).** Today `first10.gd`
+`heli_locked()` blocks the HELI chip and H key until the first rescue (or 7:00), and
+`main.gd _teleport_refusal()` refuses the full map's hold-to-teleport during the guide ("Finish the
+first drive first"). F: it's a beta, let explorers use both. Task: no gate on a fresh save for
+either; the guide's heli beat (toast, tape arrow) stays as a hint. Races, jobs, rescues and police
+chases still refuse the teleport. Accept: fresh save shows HELI in the top row at 0:00, H takes
+off, a map hold teleports; `check_hud`, `check_first10`, `check_settings` pass. Files: first10.gd,
+main.gd, hud.gd, game/tools/check_hud.gd.
+
+**G2 · Traffic: calmer default and a findable control (P0, Sonnet, quick win).** The setting
+exists (Settings → Świat → "Ruch uliczny", four steps) but defaults to Normal (about 17 cars on
+screen) and F did not find it. Task: default to Low for new saves (`Settings.NORMAL_TRAFFIC` → 1;
+old saves keep their choice); change the control to a stepped slider with a live label. Accept:
+fresh save reads "Mało"; a slider drag changes density at once; saved. Files: settings.gd,
+settings_panel.gd, main.gd `_apply_traffic`, check_settings.gd. Note: police opts take
+`traffic_level` as an index, so the slider stays stepped.
+
+**G3 · +/- zoom buttons (P0, Sonnet, quick win).** Zoom is pinch only (`main.gd _zoom_view(±1)`,
+5 view steps in `follow_camera.gd`; the on-screen buttons left in loop 2e). Pinch is not
+discoverable. Task: two small round buttons under the speed readout, touch size, safe-area edge,
+hidden in cinematic moments and photo mode; they call `_zoom_view`. Accept: five taps each way walk
+the five steps and save; no overlap with the pill, wallet or minimap at 2532x1170 and 2868x1320
+(shots). Files: hud.gd (new signals), main.gd.
+
+**G4 · Easy city driving (P1, Opus, feel).** F: "very drifty and sensitive; it's a city, not a
+racer". Task: a Cruise handling profile as the default: lower steering rate at speed, speed-
+sensitive steering limit, stronger lateral grip (less slide), gentler yaw response, softer
+throttle onset; keep a Sport profile for the old feel (Settings → Jazda). Accept: check_steering
+at `--fixed-fps 60` green; a lane change at 50 km/h and a 90° corner at 25 km/h with full lock held
+do not slide (`slip` under a set value, new check); phone check parked. Files: car.gd,
+drive_controls.gd, settings*.gd, check_steering.gd, archive "Driving".
+
+**G5 · Flicker and "lag wall" audit (P1, Opus).** Screenshots: (a) dithered fade patches on
+building walls beside the car (the occlusion fade; reads as flicker at the road edge, IMG 7138,
+7137, 7135), (b) wall-like blocks at the metro mouths (the vaulted M1/M2 canopies and stairwells),
+(c) stair walls and low retaining walls by the road (7136), (d) road-edge geometry that pops.
+Task: list every prop and wall kind that is solid and decide per kind: stays solid (buildings,
+high kerbs, bollards), becomes non-colliding (metro canopies and stairs beside the road,
+planters, signs, low walls under 0.4 m, fences) or is removed; tune the fade dither so it doesn't
+strobe at the road edge; run a two-frame flicker probe on the start box, Marszałkowska and the
+bridge ramps. Accept: a table in this file (kind, decision, why); the car drives through nothing
+it shouldn't and stops on nothing it shouldn't; `check_drive`, `check_roads` green. Files:
+street_details.gd, props.gd, map_builder.gd, car.gd collision layers, shaders/building.gdshader.
+
+**G6 · Going under bridges at entries (P1, owner: the "Finish remaining bridge joins" thread).**
+F: "when I was entering the bridge I went down under it". Not touched here. For that thread:
+reproduce at the ramps of the Poniatowski, Świętokrzyski, Śląsko-Dąbrowski, Gdański and
+Łazienkowski bridges and the Średnicowy flyover (7138 shows a flyover with a road below): the lane
+graph's or the ground's height at the approach lets the car under the deck. Accept: the car stays
+on the ramp across every bridge entry in check_drive's bridge pass.
+
+**G7 · Old Town roofs repetitive (P2, Sonnet).** IMG 7135: every tenement carries the same brown
+tile, the same small dormers in the same rows, the same chimney pots. Task: vary tile colour (4-5
+related tones), dormer count, size and spacing by a per-building hash, some flat or tin roofs, a
+few skylights and chimneys of different heights; real landmarks' roofs stay. Both city paths.
+Accept: before/after shots of the Rynek and Piwna; no extra draw calls (shader or per-instance
+only); roof checks green. Files: old_town_roofs.gd, roof_dress.gd, shaders/building.gdshader.
+
+**G8 · Bus stops and buses (P2, Opus).** Stops sit off the kerb (IMG 7134: shelters in the lawn,
+BUS markers on the lane). Task: snap each shelter to the footway edge beside the bus lane, the bay
+to the lane; buses stop at the bay for about 10 s; 1-3 pedestrians step off, others board; 2-5
+people wait at the shelter. A small state machine in buses.gd (arrive, dwell, depart) is enough:
+write "Beehave not used, because ..." in the PR. Accept: a new check puts every stop within 1.5 m
+of the kerb; a bus dwells 8-12 s; draw calls unchanged. Files: buses.gd, pedestrians.gd, props.gd.
+
+**G9 · Chairs and benches (P2, Sonnet).** Furniture appears in odd places. Task: chairs only at
+cafe terraces (the storefront's frontage, 1.5 m deep, on paving), benches on footways facing the
+walk or park path, never within 1 m of a lane. Accept: a check lists every chair/bench and fails
+any on a lane, in water or inside a wall. Files: street_details.gd, props.gd, storefronts.gd.
+
+**G10 · Podwózka off the main line, with a clear start (P1, Opus).** Today (`rides.gd`): a
+request card for 10 s, the pickup is a teal pin and you must stop within 7 m (a waiting passenger
+waves 30-60 m away). F: too hard to catch. Task: a visible rider marker (icon over the person, a
+bigger teal "!", on the minimap and full map); inside 25 m a START RIDE button appears and the
+ride begins on tap (the car auto-brakes as in stop assist); then the beacon and a direction arrow
+to the drop-off, with the distance. Podwózka never counts toward the main line. Accept: from 25 m a
+tap starts the ride within 1 s; no 7 m ring needed; `check_rides`, `check_stop_assist` green.
+Files: rides.gd, ride_rules.gd, hud.gd, stop_assist.gd, main_line.gd. Dialogue Manager not used.
+
+**G11 · Better map icons (P2, Sonnet).** The minimaps show identical black-and-yellow "?" squares
+and orange squares for everything (7138, 7134). Task: a distinct icon per kind (job, rider, food,
+garage, landmark, heli pad, bus, metro, quest star) by shape and colour (colour-safe mode kept),
+larger on the full map, with a legend. Accept: shots of both maps; one atlas (no extra draw
+calls). Files: map_icons.gd, full_map.gd, hud.gd minimap.
+
+**G12 · Separate heli and car quests (P2, Opus design).** Today rescues, jobs and the main line
+share one list. Task: CAR (kebab, Podwózka, couriers, races) and HELI (rescues, rooftop pickups,
+the cassette, sightseeing) with their own marker colours; flying shows only heli quests, driving
+only car quests; the main line stays one path. Accept: the notebook lists both; no car quest
+completes from the heli and the reverse. Files: missions.gd, jobs.gd, main_line.gd, notebook.gd,
+map_icons.gd.
+
+**G13 · Upgrade shop (P2, Opus design, Sonnet content).** Today the garage (`garage.gd`, Warsztat
+u Mirka) sells paints only. Task: a second tab "Części i auta": (1) a faster car, a parody of the
+Audi TT (low coupe, parody name and badge, about 2,500 zł); (2) nitro: a short boost button with a
+refill timer, about 600 zł; (3) tyres (grip) and engine (top speed) levels 1-3, 150-400 zł each.
+Prices so a first purchase is reachable after about 15 minutes of jobs. New car handles as Cruise
+(G4 first). Accept: purchases saved (save migration), a stat card, `check_garage` extended, bench
+for the new model. Files: garage.gd, garage_card.gd, car.gd, models.gd, wallet.gd. Dialogue: none.
+
+**G14 · Unstuck and reset easy to find (P0, quick win).** F: "in Settings there should be reset
+game, and unstuck: if the user is stuck in textures, click and move to the main road". POMOC
+DROGOWA (PR #231) lived at the bottom of the Jazda tab. Task: both buttons in a row at the top of
+Settings → Jazda (the first tab); NOWA GRA asks a second tap within 4 s, then wipes the save
+(`_on_new_game`). Later: show a "stuck? tow" toast when the car has been pinned for 8 s.
+Files: settings_panel.gd, main.gd.
+
+**G15 · Stop assist and quest rings (P0, quick win).** F: "pomoc przy zatrzymaniu is not working
+well; make the start and end points bigger and add assistance to pickup". Task: ring 9 → 13 m,
+"stopped" under 6 m/s, look-ahead 60 m, aim 3 m inside. Left for the phone: is it enough, or
+should a pickup start by driving through the ring without stopping (G10). Files: stop_assist.gd.
+
+**G16 · Fewer texts while driving (P2, Sonnet).** F: "less texts when the user goes on the road".
+Task: count the toasts and bubbles per minute in a 5-minute drive (a log), merge or drop the
+repeats and hints, rate-limit toasts to one per 20 s except for quest and danger lines, no
+speech bubbles above 40 km/h except police. Accept: at most 3 popups in a 5-minute free drive.
+Files: hud.gd toast, bubbles.gd, dialogue.gd, gps_moments.gd, first10.gd.
+
+**G17 · Stuck against other cars (P1, Opus).** F: "stuck with another cars". Task: reproduce
+(a car pinned against traffic or parked cars at junctions), make traffic yield or ghost through
+the player when contact lasts over 1.5 s, and tow the player to the lane after 8 s pinned with an
+unstuck toast. Accept: a check with the car pinned between two traffic cars frees itself in under
+8 s; `check_drive`, `check_steering` green. Files: car.gd, traffic.gd, main.gd.
+
+**G18 · Ujazdów and the castle (P1, Opus, landmark thread).** F: improve Ujazdów and Zamek
+Ujazdowski. One landmark thread: compare the castle's model and the park with the orthophoto and
+photos, per the landmark recipe in docs/LANDMARKS.md.
+
+Split for parallel threads: G4 (driving), G5 (collisions and flicker), G8+G9 (street life),
+G10+G12 (quests), G13 (shop, after G4), G7+G11 (visual content), G16 (text), G17 (traffic), G18 (Ujazdów). G1-G4, G14 and G15 are done by this thread.
+
+## Marszałkowska street by street (F, 2026-11-01)
+
+Order: plac Bankowy to plac Zbawiciela. Pass 1 (cloud, Sonnet): Kościół Najświętszego Zbawiciela
+modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
+- Mac photo check of the church: plaster and roof colours, belfry and spire shapes, the dome's
+  height, whether the porch is a portico or a recess (all estimated; towers' 76 m is mapped).
+- Pass 2 (cloud, Sonnet): people waiting on Marszałkowska's 12 mapped tram platforms (`crowds.gd`
+  `stop` sites, commute curve). Mac/phone look check: do the groups read as commuters at the
+  stops, facing is random (not toward the track), the density on the narrow islands, and
+  whether the `ped_zones` walkers also fill them. Still open on the street: facade, shopfront
+  and roof polish house by house, tram-stop benches and ticket machines on the north half,
+  crossings against real photos.
+- Next on the street: MDM's arcades, reliefs and corner towers (LANDMARKS 2.8), the church's
+  night lighting, Plac Zbawiciela's rotunda-side cafés, houses and roads street by street.
+
+## Old Town Market Square, the Syrenka and the decks (F, 2026-11-01)
+
+Built in a cloud thread with no photos (spec docs/landmarks/specs/rynek.md, LANDMARKS 2.12).
+Open:
+- **Photo check on the Mac** (QUESTIONS): the paving, the umbrella colours, the statue's pose and
+  pedestal, the rim wall against the mapped pond.
+- The houses' plaster colours: the Rynek's four sides use the generic historic palette; real
+  fronts (Dekert, Fukier, the Museum of Warsaw's houses) need photos for per-house colours,
+  sgraffito and the real stepped gables on the other three sides (`OldTownRoofs.gable` does the
+  east side only).
+- The umbrellas are one row on the 7 m line, drive-through, with no night light; a second row,
+  café lights at night and a few people sitting under them would make the square busier.
+- The statue is 6.4 m tall (taller than life, for the camera); if the photos say she should be
+  smaller, scale `_syrenka_figure` and the pedestal heights together.
+- The fountain's rim is a collider now (the car meets a wall, not the pond); the pedestrians
+  still wade through the pond's map polygon (they avoid water by a distance rule): make them walk
+  round the rim.
+- Varso's deck: visitors stand on the crown's roof ring (roof grid, spire flattened away); the real
+  Varso Observation Deck is glazed at ~230 m. St Anne's terrace is at the tower's cornice (25 m);
+  the real one is at ~40 m. Opening hours are guesses (10-22, 10-19 and 10-18). PKiN's 30th-floor
+  terrace (114 m) has up to 16 visitors on a 1.9 m ledge with a balustrade round the shaft (the
+  real gallery runs inside the walls, so the ledge is a stand-in; Mac look check parked: ledge
+  depth, spacing, whether it reads as a step in the silhouette).
+## Norblin, Browary, Koszyki, Elektrownia (F, 2026-11-01)
+
+Built (specs `docs/landmarks/specs/norblin.md`, `browary.md`, `koszyki.md`, `elektrownia.md`):
+the four sites as L2 models on their mapped outlines, `chill_*` crowds in their yards
+(`crowds.gd` CHILL, `chill_level`) and KROWA 2.0, the milk bar queue on Norblin's Żelazna front
+(`MILK`, `milk_queue`, venue sign in `storefronts.gd`). Open, for the Mac look check (no photos in
+the cloud, the cloud's picture of each place is thin):
+- Norblin: which wings are historic brick and which new; the chimney's real place; the door of the
+  milk bar (the lat/lon is a guess on the Żelazna front, 33 m from Żelazna 59A).
+- Browary: roofs (pitched, not flat), the Brama's arch, the chimney's count and place, the real
+  heights (OSM gives 37 m for the gate block, built at 30).
+- Koszyki: the real roof (iron truss under glass) and the 1909 facade's details on Koszykowa.
+- Elektrownia: the hall roofs, the chimneys' number and place, the heights (OSM 14 m, built 19 m).
+- The chill spots: the yards' spot coordinates (CHILL in `crowds.gd`) and the look of the groups
+  on the Mac; bubbles for the chill crowds (none yet).
+- KROWA 2.0 is our parody name; F may want another (QUESTIONS).
+
+## Roofs across the map (F, 2026-11-01)
+
+Plan and lane file: docs/design/roofs.md. The LoD2 roof shapes and their aerial-photo colours
+were already real; what they lacked was material and edge detail.
+- [x] RF1 roof materials in building.gdshader: tile courses on red pitches, standing-seam sheet
+      metal on other pitches, zinc on steep mansard faces, tar-paper strips on slabs and dark
+      flat roofs, welded membrane and gravel on offices and pale ones, sedum where the photo is
+      green; detail fades with distance.
+- [x] RF2 parapets with a light coping on every flat LoD2 roof of 60 m² or more (outer edges of
+      2 m or more, not round plant boxes), RF3 chimney stacks on pre-war tenements (party-wall
+      rows on flat roofs, one on some pitches; mansard dormers outside the Old Town were tried
+      and dropped: they read as black holes) (`roof_dress.gd`, `check_roof_dress`; no new draw call).
+- [ ] RF4: OpenStreetMap-only buildings' hipped and gabled roofs, MDM's and the Royal Route's
+      copper and red sheet metal by district, Powiśle's roof terraces.
+- [x] Mac check on today's bake (2026-11-01): 130 draw calls before and after, 0.61 → 0.62 M
+      triangles, no shimmer; tile courses show close up and fade at the default zoom.
+- [ ] The phone bench and a look on the phone (needs F's yes for a device run).
+
 ## Crash scenes (F, 2026-11-01)
 
 Lane file: [docs/design/crash-scenes.md](design/crash-scenes.md). Built: `crash_scenes.gd` (a
@@ -12,11 +223,30 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
 `check_crash_scenes.gd` in verify and CI, `--crash=now|X,Z|on|0`, `--crash-log`. Left:
 - The phone's look (the ambulance's lettering and band at phone size, the halos at night) and a
   bench on the device with a scene in view (+0 draw calls by construction; cloud bench below).
-- A siren or hazard-light sound at the scene (sfx.gd has the police siren only for chases).
-- A minimap or full-map marker for the scene (today only the radio names the street).
+- Phone check of the new scene siren (sfx.scene_siren, the chase siren at -20 dB from the
+  ambulance, a voice of its own) and the amber minimap / full-map dot (hud.set_scene_mark):
+  level, and whether the dot reads at phone size. No hazard-light tick yet.
 - Wrecks have no hazard lights or broken glass; nobody waves the traffic on.
 - The scene's people stand still (no gestures); the onlookers' phones are not modelled.
 - A scene on a one-lane road (none today: they need 2+ lanes so the traffic can go round).
+
+## Grand hotels (2026-11-01, hotels pass)
+- Done: Hotel Bristol's body (`bristol`: plinth, courses, cornice, slate mansard, dormers, canopied
+  door with BRISTOL in gold neon on the Krakowskie front, pediment) and Hotel Polonia Palace (`polonia`,
+  built whole, red canopy on Al. Jerozolimskie, shares its east wall with Metropol), both through
+  `_palace_hotel` (landmarks.gd), specs `bristol.md` section 9 and `polonia.md`, cards.
+- Left, all for the Mac photo check: real colours of both facades, the real storey count (Polonia 25.5 m
+  and Bristol 27.4 m are mapped or estimated), where the entrances are, the mansards' true profile;
+  the other grand hotels (Hotel Metropol 1960s block, Mercure Grand, Hotel Saski) stay generic;
+  Radisson Blu Sobieski, Sheraton, Hilton, Holiday Inn and the Ibises are plain OSM extrusions.
+
+## Old Town hotels (2026-11-01)
+- Done: `hotel_kasztel` (Castle Inn, Plac Zamkowy), `hotel_canaletto` (Hotel Bellotto), `hotel_starowka`
+  (an aparthotel on the Rynek): fronts on tenements, parody names, cards. Spots are estimates from the
+  published addresses, no photos. Left: Mac look check (which house, which street face, the board's
+  size against the lane), real facade photos, Le Régina/Mamaison and the other New Town hotels (the
+  map has no New Town data north of Freta), PURO Stare Miasto (-1094,-1018) has a mapped hotel
+  building but no front, the unnamed 4.3 m hotel at (-819,-1419).
 
 ## Mariensztat and Krakowskie Przedmieście: review (F, 2026-11-01)
 
@@ -32,27 +262,38 @@ red tile roofs with dormers.
   joins `_historic`, so its 47 houses take the tenement palette, red tiles, dormers and chimneys
   (LoD2 path; load time only, +0 draw calls). Left: Mac look check (roof pitch from LoD2, the
   palette against photos, the 20.8 m house at (-388,-1362) that OSM tags taller than its neighbours).
-- M2 a landmark card for Rynek Mariensztacki (the 1949 estate, the first socialist-realist square,
-  the 1954 film "Przygoda na Mariensztacie") and its relief panels and
-  well/fountain from photos (Mac).
+- ~~M2 Rynek Mariensztacki's card and reliefs~~ Done 2026-11-01 (site `mariensztat`, spec
+  `mariensztat.md`, 540 tris): six relief panels (frame, terracotta field, sun, two figures) on the
+  south row's faces, and the card. Left: Mac photos for the real reliefs' subjects, number and
+  places, and the square's well or fountain (the map's fountain ring stays).
 - M3 the escarpment, the W-Z tunnel's mouth and Nowy Zjazd's viaduct over the estate: check on the
   Mac with real terrain (the cloud has none).
 
 **Krakowskie Przedmieście** (x -717..-434, z -1333..-465): well covered. Models: the Castle and
 Sigismund's Column at the north end, St Anne's (portico and bell tower), the Visitationists, the
 Presidential Palace, Hotel Europejski, Staszic Palace with Copernicus, Holy Cross; historic
-lanterns and street furniture along the whole street. Still generic boxes:
-- K1 the Carmelite church (Kościół Wniebowzięcia NMP i św. Józefa, (-582,-1036)): the facade with
-  its globe-topped attic; spec from photos.
-- K2 Mickiewicz's monument in Skwer Mickiewicza (lawn centred about (-627,-1074)): figure on a
-  tall pedestal with its fence and corner lanterns; the exact spot and height need the orthophoto
-  or a photo (Mac).
-- K3 the University gate (Brama Główna UW) and Pałac Kazimierzowski behind it.
-- K4 Pałac Potockich (-679,-946) with its two guardhouses (Kordegarda is mapped as a 4.3 m shed);
-  Pałac Czapskich (-609,-597).
-- K5 Hotel Bristol (-543,-917): the corner tower's dome and the facade (already in LANDMARKS 3.1).
-- K6 small things: Prus's and Cardinal Wyszyński's statues, the black Chopin benches, the
-  granite paving of the carriageway.
+lanterns and street furniture along the whole street. 2026-11-01 (K1-K5, K6 in part; all from
+the OSM outlines, no photos; specs in docs/landmarks/specs/):
+- ~~K1 the Carmelite church~~ the front on the kept skin (`karmelici`, 374 tris).
+- ~~K2 Mickiewicz's monument~~ (`mickiewicz`, 282 tris). Left: the exact spot on the lawn (today
+  the lawn's centre), its facing, the fence and corner lanterns' real shape (Mac photo).
+- ~~K3 the University gate~~ (`brama_uw`, 458 tris; Pałac Kazimierzowski is a kept skin with a
+  card, `kazimierzowski`). Left: the gate's true spot and width (today a guess at the campus
+  entrance in the east frontage near (-494,-684)), the palace's own model.
+- ~~K4 Pałac Potockich~~ the court front (`potocki`, 166 tris) and the Kordegarda built whole
+  (`kordegarda`, 466 tris, was a 4.3 m shed). Left: the second (southern) guardhouse is not mapped;
+  Pałac Czapskich (-609,-597) stays a box.
+- ~~K5 Hotel Bristol's corner dome~~ (`bristol`, tower 334 tris; its body done in the hotels pass,
+  see "Grand hotels"). Left: Mac photo check that the dome is on this corner, its profile and the
+  facade's colours.
+- ~~K6 small things~~ done 2026-11-01: the black Chopin benches (`map_builder`
+  `_split_chopin_benches`), Prus's and Wyszyński's statues (`prus` 100 tris, `wyszynski` 122;
+  spots from their published coordinates, facings guessed), the carriageway's granite setts
+  (`ground.gdshader` `kp_setts_at`: a 15-point centreline of Krakowskie Przedmieście, 7 m
+  half-width, asphalt fragments only, box test first; no draw call) and Pałac Czapskich as a
+  kept skin with a card (`czapski`). Left: Mac look check (QUESTIONS), the Czapski palace's
+  own model (its outline is far west of the street line, so the front's direction needs a
+  photo), the setts' extent beyond Nowy Świat's top.
 
 ## The railway: stations, the cross-city line, trains (F, 2026-11-01)
 
@@ -72,9 +313,69 @@ Plan: docs/design/railway.md. One PR per item, in this order:
 - ~~S3a Warszawa Stadion~~ Done 2026-11-01 (site `stadion_pkp`, spec `stadion_pkp.md`, 1294 tris).
   Left: Mac photo check (the sail's shape and height, the glazing, the canopies' length, the
   mosaic's pattern).
-- S3b-e the other stations: Śródmieście's entrances, Wschodnia and Gdańska at the edges, Ochota WKD.
-- L4 Most Średnicowy's look, after a Mac photo check.
+- ~~S3b Warszawa Śródmieście~~ Done 2026-11-01 (site `srodmiescie`, spec `srodmiescie.md`, 476 tris).
+  Left: Mac photo check (the glazing, the fascia, the lettering).
+- S3c-e: Wschodnia and Gdańska sit at the map's east and north edges (the land past the edge is
+  drawn since 2026-11-01, below; the cloud shots' missing ground inside the map is the cloud's flat
+  ground quad, not the Mac's); the WKD entrances (Śródmieście WKD's "propeller" roof, Ochota WKD):
+  the OSM outlines there don't match the descriptions (a 90 m, 2.5 m shelter by Centralna; the
+  platforms by Ochota are tram stops), so they wait for photos.
+- ~~L4 Most Średnicowy's look, after a Mac photo check.~~ Built 2026-11-01 (below).
 - Photo checks on the Mac for every station model (built from published descriptions).
+  **Mac photo check, 2026-11-01** (main 03a26dc; Commons photos in refs/ochota, powisle,
+  stadion_station, most_srednicowy, wschodnia, gdanska, each with SOURCES.md):
+  - **Ochota:** the glass hall, the deck over the cutting and the black-and-white band read right.
+    The roof is wrong. The model is one tilted plane (a wedge), but the real shell is a deep saddle:
+    two opposite corners shoot up, the middle sags well below them, and the grey-and-white stripes
+    on its underside are the station's signature from the street. Fix: a real hyperbolic
+    paraboloid with a clear sag, stripes visible from the game camera; the blue WARSZAWA OCHOTA
+    letters on their frame by the entrance. From the default camera the hall hides behind the
+    tower next to it (look at it from the south-west).
+    **Fixed 2026-11-01:** the saddle (high corners 10.6 m, a 1.1 m sag), stripes on top too, the
+    blue letters on their frame. Left: the camera hides it behind the tower.
+  - **Powiśle, upper pavilion:** the roof curves the wrong way. The model's roof is a barrel
+    (convex, up in the middle); the real "kite" sags (concave, dark fascia, the two ends up),
+    over a fully glazed front. The model's grey solid base should be glass with the blue
+    WARSZAWA POWIŚLE letters over the doors. The small white tower beside it is in the photos.
+    **Fixed 2026-11-01:** the sagging kite with a dark fascia, the glass base, the blue letters.
+    Left: the small white tower.
+  - **Powiśle, round pavilion:** reads right at night (lit drum, saucer, neon). The real saucer
+    overhangs the drum far more (about twice its radius), and the neon is yellow tube letters on
+    top of the rim, not red on the disc. Hidden by trees from the low south view.
+    **Fixed 2026-11-01:** saucer r 14.6 m, yellow letters standing on the rim's edge, no trees
+    under the saucer.
+  - **Stadion:** the platform canopies with red-and-white glass walls match the photos well. The
+    pavilion reads as a plain white box; the sail and mosaic still to compare.
+    **Fixed 2026-11-01:** the hall's roof sweeps up 1.5 m towards the sail, which now stands
+    8.2 m at its tips over the raised end, with a glass clerestory under the rising slab and
+    bigger STADION letters. Left for the Mac: the sail's real shape and the mosaic against refs.
+  - **Most Średnicowy (L4):** the model is a flat deck on many thin paired posts. The real bridge
+    is steel arch-truss spans (shallow arches with diagonal webs under the deck) on a few massive
+    stone piers, with catenary masts along it. Model those spans and fewer, wider piers.
+    **Fixed 2026-11-01:** `map_builder._build_srednicowy`: six granite piers with cutwaters
+    (the bake's pier rows at 96-476 m along the bridge) and five 69 m arch-truss spans between
+    them (four truss planes, Pratt diagonals, an arched bottom chord 8 m deep over the piers and
+    2.4 m at the crown); the thin posts there are skipped, the bank approaches keep theirs.
+    Left for the Mac: the spans' count and depth against refs/most_srednicowy, the paint colour.
+  - **Map edges:** at Warszawa Wschodnia the yard runs straight into the blue void (looking east
+    from the station the world visibly ends a few tracks away), and the platforms show as pale
+    strips with odd shadow patches. At Gdańska the north edge reads as a flat brown band ending at
+    the sky behind the footbridge. Both need an edge treatment (ground and track running on past
+    the edge, or the camera kept back from it); low priority, both stations are mostly off-map.
+    **Fixed 2026-11-01:** `scripts/map_edge.gd` rings the whole outline (both city paths): the
+    ground runs on 700 m (the river where the edge cuts it) and fades into the background's
+    colour (`edge_haze`, set by time_of_day.gd), a tree line 10-70 m out, three loose rows of
+    blocks 90-400 m out (windows, some lit at night), and the rails (83 ends) and main roads
+    running on past the edge. 100k triangles in 1 km pieces, no shadows: at the edge +1-2 draw
+    calls (`--probe --no-map-edge` for the before), nothing in the centre. Left for the Mac: the
+    look with the real terrain (the ring takes the ground's height at the nearest outline point),
+    the tan-to-scrub ground beside the real edge ground, the blocks' scale.
+  - **Bench with trains and wires:** the bench route does not pass the railway (130 draw calls,
+    0.61 M triangles, no late frames; trains 0.03 ms of script). `--bench --at=` near Ochota
+    gives the same route. A bench spot on the line (with a train in view) is still to add.
+    **Fixed 2026-11-01:** two `--probe` spots with a train in view (`--at=X,Z --train=X,Z`):
+    Powiśle (171,89) and Most Średnicowy (1148,-720); cloud 158 / 119 draw calls (archive
+    "Performance budgets", the godot-mobile-perf skill). Left: the same two on the Mac and phone.
 
 ## The river's barges (F, 2026-11-01)
 
@@ -237,6 +538,10 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   shot. PR #183's head passes the look pass on the Mac (0 missing, no proxies in the view).
   check_streaming's pixels failed on main e0e02b8 (spots 3-4, 2.2-4.4 %, differing between runs):
   the speech bubbles' lines, not the city; the pixel runs now pass `--nohud` (0.24 % on 03a26dc).
+  PR #194 (roof dress) on the Mac: draw calls 130 before and after, triangles 0.61 to 0.62 M,
+  2 frames of 600 at 17.7-25 ms (0 before); at phone size (2532x1170) the tile courses show on
+  the Old Town's pitched roofs up close and fade out at the default zoom, flat roofs get faint
+  seams and lighter parapet rims; no shimmer seen in stills (motion is for the phone).
 - **Map checks in CI**: the derived map pack as a release asset that CI downloads (or a small test
   map), so roads, drape, drive and the game runs gate every PR again ("From loop 3d-1", CI). Gap.
 
@@ -287,13 +592,19 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   never felt on the phone ("From the driving-feel loop", QUESTIONS 2026-10-31). Comes with F's
   playthrough above.
 - The NaN car is unexplained (once in ~10 replays; "From loop 3h slice 4"; PR #115 adds a log).
+- On the phone: Fotka by a wall for a minute leaves the car where it stood, and JAZDA's POMOC
+  DROGOWA tows it onto the road (fixed and checked headless 2026-11-01; QUESTIONS). Every hold of
+  the car (title, Fotka, flying, police) now parks it, so none reverses at 7 m/s any more.
 
 ### P1: main line and side quests (game-designer, Opus for the review)
 - Every activity has a headless check (rides, side jobs, couriers, ladder, syrenki, eggs, garage,
   police, main line, end card); none has been played end to end by a person on the phone, and the
-  pay tables are first guesses (BACKLOG-TRIAGE "Decisions"). The guide's lines, Halina's lines and
-  the end card are unreviewed ("From loop 3h slice 4"); the end card's "10 jobs" definition and the
-  trap's koguty line are open. A designer pass over all player-facing text and pay, then F's run.
+  pay tables were first guesses. **Designer pass done (2026-11-01, docs/design/pay-tables.md)**: a
+  desk model of złoty and respect a minute per activity; a rematch now gives +20 respect (was +100,
+  a shortcut past every gate), słoiki pay 40 + 30 a jar (was 50 + 35); the guide's, Halina's, the
+  end card's and the final's words made player-neutral; "10 jobs" kept as every paid job kind; the
+  koguty line was already in the first contact. Left: F's timed run on the phone (the hour, the
+  pay). The police's "pan" lines outside the first contact are player-neutral now (2026-11-01).
 - The DEMO 6.3 counts left: the second słoiki station (jobs.gd has one) and the Łazienki peacock
   rescue (none yet; the Old Town tourist is a "fainted" street rescue in missions.gd). The 10 roof
   cassettes and the landmark cards (72 vs ~25) are done (2026-11-01).
@@ -385,7 +696,7 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   a kept skin today, outline in `centrum.json` landmarks "Kościół pw. Świętej Anny", centre
   (−658, −1350), the free-standing bell tower is a separate building to its north-east), the other
   churches (Holy Cross DONE 2026-11-01: front and towers, spec krzyz.md, Mac photo check parked; All Saints (DONE 2026-11-01: front and twin towers on the kept skin, spec wszystkich.md, 788 tris, heights estimated, Mac photo check parked: tower height and dome shape, portal count), St Alexander's rotunda (DONE 2026-11-01: model, spec aleksander.md, Mac photo check parked: which end has the portico, column count, bell towers), the Visitationists DONE 2026-11-01: facade, stepped wing and turret on the kept skin, spec wizytki.md, 566 tris, heights estimated, Mac photo check parked: gable shape, towers or none, turret) and the Palace
-  on the Isle's neighbours, the Sejm's hall colonnade (DONE 2026-11-01: curved colonnade, entablature and cornice on the kept skin, spec sejm.md, Mac photo check parked: column count, eave height, entrance, wings), Hala Mirowska (DONE 2026-11-01: model from the mapped parts, spec mirowska.md, Mac photo check parked: the real brick colour, the front's door count, whether the lantern shows; Hala Gwardii DONE 2026-11-01: symmetric twin, bays measured from its outline, spec gwardii.md, 1212 tris, Mac photo check parked: real brick colour, door count on the long sides, lantern glow), Staszic's facade (DONE 2026-11-01: portico, cornice and Copernicus's statue on the kept skin, spec staszic.md, Mac photo check parked: portico centre, column and door count, real eave height; Zachęta, Holy Trinity
+  on the Isle's neighbours, the Ministry of Finance (DONE 2026-11-01: model, spec mf.md, 1555 tris, from the outline and public facts, Mac photo check parked: real colour, pavilions and entrance rise, bay rhythm), the Sejm's hall colonnade (DONE 2026-11-01: curved colonnade, entablature and cornice on the kept skin, spec sejm.md, Mac photo check parked: column count, eave height, entrance, wings), Hala Mirowska (DONE 2026-11-01: model from the mapped parts, spec mirowska.md, Mac photo check parked: the real brick colour, the front's door count, whether the lantern shows; Hala Gwardii DONE 2026-11-01: symmetric twin, bays measured from its outline, spec gwardii.md, 1212 tris, Mac photo check parked: real brick colour, door count on the long sides, lantern glow), Staszic's facade (DONE 2026-11-01: portico, cornice and Copernicus's statue on the kept skin, spec staszic.md, Mac photo check parked: portico centre, column and door count, real eave height; Zachęta, Holy Trinity
   and the Presidential Palace became models on 2026-10-31, specs in docs/landmarks/specs/) (PZU/JM Tower done 2026-11-01). (The Old Town's dormers and chimneys, 2026-11-01: `old_town_roofs.gd`, one per big roof slope, no new draw call; a Mac look on the real roofs is still open. The market square's east side got stepped attic gables, 2026-11-01: `OldTownRoofs.gable`, one per ~8 m house bay on walls facing the square, skipped where LoD2 has its own gable end; no new draw call; Mac look open: stage proportions, the volute scrolls a real gable has, and whether the dormers show, since the first dress arrays were copies and are now written back.) How the
   lane works: `landmarks.gd` sites (`TOWERS`, `SKINS`, fixed-position circle zones like
   `_find_zygmunt`), each needs a card in `INFO` and `check_landmarks`; a site found in
@@ -1399,7 +1710,8 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
   platform instead (the nearest `platforms` edge on the track's side).
 - **River piers** (art): Most Poniatowskiego (an arch bridge on masonry piers) and Most
   Średnicowy stand on the same thin concrete posts as the viaducts; a river-pier style (wider,
-  stone, cutwaters) would read more like Warsaw. A design call.
+  stone, cutwaters) would read more like Warsaw. A design call. (Most Średnicowy has its stone
+  piers since 2026-11-01; Poniatowskiego is still open.)
 - Most Świętokrzyski, the Jana Pawła II viaduct and the Wisłostrada tunnel end at the map's rim
   (the diorama's void beyond): the bigger map moves the rim past them (known, DEMO.md 4.4).
 
@@ -1558,11 +1870,17 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
   frame): a shot-script issue, not the map.
 
 ## From loop 3e (the structures, 2026-10-30)
-- **Most Łazienkowski's Praga end and the Czerniakowska interchange (R8)**: where two ramps of one
-  deck group part, a ramp's guard rail runs into the other's lanes and a bus brushes the slab of a
-  neighbouring piece (check_drive 28 lane spots, 2 jumps at (2125, 805); C1/C8 at the ramps' joints).
-  Spec: each ramp's rails and slab from its own piece, cut where another piece's lanes run (the
-  deck-end rule, `GUARD_END`, everywhere two pieces part), and lanes sampled on their own piece.
+- **Most Łazienkowski's Praga end and the Czerniakowska interchange (R8)**: ~~where two ramps of one
+  deck group part, a ramp's guard rail runs into the other's lanes~~ **Fixed (the joins loop,
+  2026-11-01)**: `bake_structures.py` `_clear_guards` also cuts a deck's guard rail where a bus box
+  (check_drive's 12 x 2.6 m, placed every metre on the main roads' deck lanes, `BUS_BOX`) would touch
+  it, not only within 1.4 m of a lane or 8 m of a deck's end (+100 m of rails cut over the map; check_drive
+  `--no-allow` 51 → 26 lane spots with the other fixes). **Left** (the rest of the 26 lane spots, allowlisted with
+  the reason): the loop ramps' R about 25 m bends on 4 m slabs (the 12 m box swings 0.7 m out into the
+  deck's parapet, `map_builder.gd` `_build_bridge_structures`), the neighbouring piece's slab at the
+  joint of the ramp group's pieces (slabs 0.3 m apart in height at (2116, 811)) and the ground gap lane
+  (edge 4250) between the loop ramp and the main deck: a 0.8 m step at (2125, 805). Spec for it: each
+  ramp's slab from its own piece, cut where another piece's lanes run, lanes sampled on their own piece.
 - **The rail cutting west of Centralna** stays on the 10 m grid (C3 72 under its footbridges and
   Żelazna/Towarowa, Towarowa's deck joint 0.3 m). On its 1 m level (the WKD 7 m under the grid) it is
   24,000 m² of 1 m ground sub-cells (+0.5 M vertices), and its 8 m service bridges are shorter than
@@ -1572,17 +1890,26 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
   cells, +0.89 % vertices); the deck seeds (every structure's way) would fix Nowy Zjazd's pits and
   ~40 abutment findings more for +0.4 M vertices. Draw a lowered corridor's floor as one strip and
   clip the grid's triangles round it (a few triangles a cell) instead.
-- **Plac Na Rozdrożu's tubes end short of the street over them** (OpenStreetMap ends T2-T5 a few
-  metres before the street's edge): the open road's last metres pass under the street's corridor,
-  its lanes step 0.6 m there (C8 2, C1 1, check_drive 9 lane spots at the west portals, 4 jumps at
-  the rim west of them). Spec: extend a tube under a way that crosses its open road within 15 m of
-  the portal with no shared node.
+- ~~**Plac Na Rozdrożu's tubes end short of the street over them**~~ **Fixed (the joins loop,
+  2026-11-01)**, but not by extending the tubes (no way crosses an open road within 15 m of a portal
+  in the data): the 9 lane spots at the west portals were a trench wall (`place_walls`, the cutting
+  profile of footway 127683235) whose foot stood 2 m under the tube's mouth at (45, 1641); a trench
+  wall no longer stands inside a tube's mouth. C8 2 and C1 1 stay allowed (they are the cutting
+  profile's 0.6 m steps at the rim, (−134, 1705) and (3, 1619)); check_drive's 4 jumps at the rim
+  (−143, 1719) stay allowed too.
 - **Wybrzeże Szczecińskie's deck over the Port Praski inlet (deck 4)** by Most Śląsko-Dąbrowski's
   Praga end: a bus on the outer lane at its west end brushes the neighbouring piece's parapet (the
-  gap between pieces keeps a collider where there is a drop): 6 lane spots. The new footbridge to
-  Karowa (deck 19, mapped `living_street`) still ends 2.2 m in the air at its Praga end (C6).
-- **Nowy Zjazd under the W-Z approach**: a bus on its inner lane brushes the tram approach's
-  0.6 m side wall at (−357, −1419) (6 lane spots).
+  gap between pieces keeps a collider where there is a drop): ~~6~~ 2 places left ((409, −1519) and
+  (426, −1519), 6 spots: the 2 of them at the lane edge 1272 went with the wall change, not with a
+  fix aimed at them; the rest is `map_builder.gd`'s parapet collider, 0.7 m inside the slab's
+  edge). The footbridge to Karowa (deck 21 now, mapped `living_street`) still ends 2.2 m in the
+  air at its Praga end, (304, −1554) (C6, allowed): its deck is smoothed to DECK_GRADE 6 % and its
+  last 20 m cannot reach the ground; it needs stairs or a longer ramp (the solver pins a road
+  family's lone end to the terrain but the 6 % smoothing wins).
+- ~~**Nowy Zjazd under the W-Z approach**: a bus on its inner lane brushes the tram approach's 0.6 m
+  side wall at (−357, −1419) (6 lane spots).~~ **Fixed (the joins loop, 2026-11-01)**: a low wall no
+  longer stands where a lane runs at its foot (`place_walls` `in_lane(..., top - WALL_MIN * 0.8)`:
+  the lane's ground is a WALL_MIN under the wall's top, not half a metre).
 - **check_drive's routes**: 98 now (every deck group and tunnel both ways); they found jumps at Most
   Poniatowskiego's north ramps (deck 13: 0.4-0.6 m at (920, 16) and (988, −13)), allowed with that
   reason.
@@ -2085,9 +2412,12 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
   control and `car.gd` / `sfx.horn`) then needs one line: `life.horn(car.global_position)`.~~
   Done in the night-buses loop: the HUD's horn left of the brake and B (`buses.gd` `honk`, no
   `car.gd` change).
-- **No Rowerilo docks in the map data**: the bake has no `amenity=bicycle_rental` POIs, so the
-  only dock is the `rowerilo_dock` place (9 bikes). Map lane: bake the docks as POIs (kind
-  `bike_dock`) and `city_life.gd` `_place_fixed` can put a row at each.
+- ~~**No Rowerilo docks in the map data**~~ Done (2026-11-01): the 92 `bicycle_rental` pois each get
+  a dock (`storefronts.gd` `_load_docks`, `Props.add_bike_dock`, 4-8 bikes from `l`, 6 unmapped) in the
+  sector's StreetProps mesh (+0 draw calls where it stands, +1 in a sector with no other prop).
+  `check_parodies` counts them. Open: Mac look check (row direction and kerb clearance against the
+  real stands; headless check only, no render in the cloud), and the old single `rowerilo_dock`
+  place in `city_life.gd` can now go or move to a real dock.
 - **E28's "to a dock"** is simplified to "follow a Rowerilo rider 400 m" (the rider then docks
   off screen): with docks in the data the rider could ride to the nearest one. Open Question.
 - ~~**No rider MultiMesh to share** (MW-2's Pędzik riders aren't built): the bikes are their own
@@ -2209,8 +2539,8 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
 - **Stamp reach** is 8 m from the door point (parodies.md 2.4 says 6): the door point is 1 m out
   from the wall and a car on the near lane stops a pavement's width plus half a lane away
   (`--rechotka` stops 6.4 m from Krucza 51's door). Open Question in the MW-2 report.
-- **The metro M** is a cream M on a navy square: generic, no operator's logo; at the default
-  view it is a few pixels. The art director may want it bigger or red.
+- ~~**The metro M** is a cream M on a navy square~~ (done 2026-11-01: a red lit square on a 3.4 m
+  post, plus a red fascia on the canopies; still our own shape, no operator logo).
 
 ## From the content-POIs loop (map lane, 2026-10-31)
 
@@ -2441,8 +2771,9 @@ Closed: the Syrenki (syrenki.gd: 20 figurines by the kerb, the find, the reward 
   slow spin or bob for the diamond (a shader: the visuals lane) would read better still.
 - Placed by rule, not by eye: look at each on the street (the kerb side, trees, benches, a
   building's wall in a narrow street); `--syrenka=<id>` puts the car in front of one.
-- No Syrenka on a bridge or in a tunnel (ground streets only); the real statue on the Old Town
-  Market Square stands on the street ring, not in the square itself.
+- No Syrenka on a bridge or in a tunnel (ground streets only); the figurines are small kerb
+  Syrenki, not the statue (the Old Town Market Square's bronze Syrenka is a landmark model since
+  2026-11-01, `syrenka` site).
 - The reward cards queue in `syrenki.gd`; the HUD's note card shows one at a time (a find while
   another card is up waits for it).
 - Garage card: ten paints in two rows of five; on the smallest phone check it still fits.
@@ -2497,8 +2828,8 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
 - **Feel on the phone**: the rubber band's numbers (pace 1.15, 25 m, 0.4-1.5) come from a 1-D model;
   F's runs should say whether Halina is close enough to feel like a race and never obviously
   waiting. The ghost finger's place and gesture likewise (it sits on the stick's side, lower left).
-- **No "6.2" beat for "two jokes, the roosters explained in one line"** of the trap: the first
-  contact's own conversation (police.dialogue) is what plays; the designer could add the koguty line.
+- ~~**No "6.2" beat for "two jokes, the roosters explained in one line"** of the trap~~: the first
+  contact already says it ("Koguty na dachu to my…", police.dialogue); checked in the designer pass.
 - ~~**The cassette is KASETA's then card** on the boulevards (a ground spot, not a roof).~~ Done in the
   first-10 polish: a mixtape on the University Library's roof (cassettes.gd, cassettes.json), taken
   from the helicopter, opens the next PÓŁNOC FM track; the beat's arrow points there. The other nine
@@ -2510,8 +2841,8 @@ first rescue, the boulevard tape and its song, the Powiśle arrow, the garage at
 - ~~The guide's words (`first10.gd` LINES, Halina's FIRST_LINES, the end card) need a designer
   review~~ (done 2026-11-01: grammar fixes (stary śmigłowiec), "To już koniec dema", tone kept;
   only text changed, not run in Godot here).
-- The end card counts every paid job kind but races and the courier bonus; DEMO's "10 jobs" might
-  mean kebab-style jobs only.
+- ~~The end card counts every paid job kind but races and the courier bonus; DEMO's "10 jobs" might
+  mean kebab-style jobs only.~~ Kept as it is by the designer pass (docs/design/pay-tables.md).
 - **The NaN car (unexplained)**: once in ~10 headless replays the player car's position went NaN at
   the first rescue's pickup (~248 s, right as Powiśle was discovered); 20 later replays were clean.
   car.gd `_keep_finite` now puts the car back at its last good transform and logs `car: state not a

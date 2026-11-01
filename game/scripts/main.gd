@@ -309,6 +309,8 @@ var no_ao := false
 ## Load the prebuilt sectors like the exported game does (loop 3c: map/sectors/*.scn, index.res,
 ## proxies.scn; only rebuilt by tools/bake_city.gd), not build them from their files.
 var prebuilt := false
+## --no-map-edge: without the land past the map's edge (map_edge.gd), for a before/after probe.
+var _flag_no_map_edge := false
 var _started := false
 ## Time of day (N / TIME / --time=), the radio (R / RADIO / --radio=), the VHS
 ## overlay (V / VHS / --vhs) and the title screen (skipped by the testing flags).
@@ -376,6 +378,9 @@ var first_race_flag := false
 var tape: Tape
 var spacer: Spacer
 var fotka: Fotka
+## Where the car stood when Fotka opened (Transform3D.IDENTITY: not open): put back on close, so
+## nothing that happened while the camera was away (a push from traffic) leaves it elsewhere.
+var _fotka_car := Transform3D.IDENTITY
 var egg_flag := ""
 var egg_log := false
 var found_eggs := ""
@@ -1039,6 +1044,10 @@ func _build_world() -> void:
 	if not monolithic:
 		data = _open_streamed_city(world, flat_mat)
 		flat_mat = map.flat_material
+		if _flag_no_map_edge:
+			var edge := map.get_node_or_null("MapEdge")
+			if edge != null:
+				edge.free()
 	else:
 		map = MapBuilder.new()
 		world.add_child(map)
@@ -2004,7 +2013,7 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 	if city_sounds != null:
 		for st: Dictionary in crowds.sites:
 			var site := st
-			if site["kind"] in ["queue", "steps", "plan_c"]:
+			if site["kind"] in ["queue", "steps", "plan_c", "chill"]:
 				var at: Vector2 = site["door"]
 				city_sounds.add_crowd(str(site["id"]), "murmur", Vector3(at.x, map.ground_height(at.x, at.y), at.y),
 						func() -> bool: return int(site["n"]) >= 4)
@@ -2209,6 +2218,8 @@ func _build_crash_scenes() -> void:
 	crash_scenes.dialogue = dialogue
 	crash_scenes.police = police
 	crash_scenes.radio = radio
+	crash_scenes.sfx = sfx
+	crash_scenes.hud = hud
 	crash_scenes.log_on = crash_log
 	crash_scenes.enabled = _crash_auto or crash_flag != ""
 	crash_scenes.focus = func() -> Vector3: return cam_focus
@@ -2636,7 +2647,7 @@ func _build_moments(data: Dictionary, world: Node3D) -> void:
 			fotka.post_quad = c
 	add_child(fotka)
 	fotka.setup(places, spots)
-	fotka.closed.connect(func() -> void: _cut_camera())
+	fotka.closed.connect(_on_fotka_closed)
 	if hud.settings_panel != null:
 		var page: Control = hud.settings_panel.get("notebook_page")
 		hud.settings_panel.set("notebook_eggs", egg_book)
@@ -2969,7 +2980,25 @@ func _open_fotka() -> void:
 	car.forward_speed = 0.0
 	fotka.safe = hud.safe_rect()
 	fotka.pt = hud.pt
+	_fotka_car = car.global_transform
 	fotka.open(_vehicle_position(), cam_yaw, camera_pitch, cam.size)
+
+
+## Fotka closed (2026-11-01, F stuck in a building after a photo on the iPhone): the car back
+## where it stood when Fotka opened, stopped, then the camera cut to it. The hold parks the car
+## now (_read_input), so it no longer reverses while the camera is away; this is the backstop.
+func _on_fotka_closed() -> void:
+	if _fotka_car != Transform3D.IDENTITY and not flying:
+		var moved := car.global_position.distance_to(_fotka_car.origin)
+		car.global_transform = _fotka_car
+		car.vel = Vector3.ZERO
+		car.velocity = Vector3.ZERO
+		car.forward_speed = 0.0
+		car.reset_physics_interpolation()
+		if photo_log:
+			print("fotka: car put back (it had moved %.2f m)" % moved)
+	_fotka_car = Transform3D.IDENTITY
+	_cut_camera()
 
 
 ## The car on the lane nearest `at` (within `reach` m), else on the point itself.
@@ -3370,6 +3399,8 @@ func _parse_args() -> void:
 		elif arg == "--probe":
 			probe = true
 			free_roam = true
+		elif arg == "--no-map-edge":
+			_flag_no_map_edge = true
 		elif arg.begins_with("--exp="):
 			_exp = arg.trim_prefix("--exp=").split(",")
 		elif arg.begins_with("--time="):
@@ -3750,7 +3781,8 @@ func _load_settings() -> void:
 		scheme = Controls.FIXED
 	controls.scheme = scheme
 	follow = scheme == Controls.POINT or (scheme == Controls.CLASSIC and settings.classic_follow and not _flag_fixed)
-	style_index = _flag_style if _flag_style >= 0 else settings.style
+	# 2026-11-01 (F): no style picker any more, always Sharp (--style= stays for tests).
+	style_index = _flag_style if _flag_style >= 0 else 0
 	vhs = _flag_vhs or settings.vhs
 	print("settings: %s (%s)" % [settings.summary(), ProjectSettings.globalize_path(Settings.PATH) if not no_save else "not saved"])
 
@@ -4008,12 +4040,6 @@ func _on_setting(key: String, value: Variant) -> void:
 			if (int(value) == 0) != follow:
 				_toggle_follow()
 			hud.settings_panel.sync(_settings_state())
-		"style":
-			style_index = clampi(int(value), 0, STYLES.size() - 1)
-			settings.style = style_index
-			_apply_style()
-			# Loop G1b: Auto's button says what it draws with this style.
-			hud.settings_panel.sync(_settings_state())
 		"vhs":
 			_set_vhs(int(value) == 1)
 			settings.vhs = vhs
@@ -4038,6 +4064,9 @@ func _on_setting(key: String, value: Variant) -> void:
 			return
 		"fotka":
 			_open_fotka.call_deferred()
+			return
+		"unstuck":
+			_unstuck.call_deferred()
 			return
 		"wander":
 			settings.wander = int(value) == 1
@@ -4064,7 +4093,24 @@ func _on_setting(key: String, value: Variant) -> void:
 func _on_car_stuck() -> void:
 	if flying or autopilot or car.in_water:
 		return
-	# Back onto the nearest lane, facing its way (else just the nearest free spot).
+	_tow_to_lane("car stuck")
+
+
+## The pause card's POMOC DROGOWA · unstuck button (JAZDA tab, 2026-11-01): the same tow as a
+## pinned car's, asked for by the player (stuck inside a wall, where nothing pins it). In the
+## water the water's own tow does it; in the air there is nothing to free.
+func _unstuck() -> void:
+	if flying or title != null or not _started:
+		return
+	if car.in_water:
+		_tow_out_of_water()
+		return
+	car.reset_motion()
+	_tow_to_lane("unstuck")
+
+
+## The car onto the nearest lane facing its way (else just the nearest free spot), stopped.
+func _tow_to_lane(why: String) -> void:
 	var at := car.global_position
 	var yaw := car.rotation.y
 	var lane := _lane_spot(at, yaw)
@@ -4079,7 +4125,7 @@ func _on_car_stuck() -> void:
 	car.reset_physics_interpolation()
 	hud.toast("Pomoc drogowa: wyciągnięci!", "Towed free")
 	_cut_camera()
-	print("car stuck: moved to %.1f, %.1f" % [spot.x, spot.z])
+	print("%s: moved to %.1f, %.1f" % [why, spot.x, spot.z])
 
 
 ## The nearest lane to `at` on its level (not a deck overhead, nor a road under the bridge it is
@@ -4591,13 +4637,6 @@ func _inject_clicks() -> void:
 			m.global_position = m.position
 			m.relative = Vector2(d[3], d[4]) / 10.0
 			Input.parse_input_event(m)
-
-
-func _next_style() -> void:
-	style_index = (style_index + 1) % STYLES.size()
-	settings.style = style_index
-	settings.save()
-	_apply_style()
 
 
 func _apply_style() -> void:
@@ -5321,12 +5360,15 @@ func _read_input(dt: float) -> void:
 		car.parked = true
 		controls.release()
 		return
-	# Loop MW-6: Fotka holds the car (and the helicopter) still; the city goes on.
+	# Loop MW-6: Fotka holds the car (and the helicopter) still; the city goes on. Parked, not
+	# just braking: a held brake at a standstill reverses (car.gd), and the car backed into the
+	# buildings behind it for as long as Fotka was open (F, 2026-11-01).
 	if fotka != null and fotka.is_open():
 		car.target_dir = Vector3.ZERO
 		car.steer = 0.0
 		car.throttle = 0.0
 		car.braking = true
+		car.parked = true
 		controls.release()
 		heli.input_dir = Vector3.ZERO
 		heli.climb = 0.0
@@ -5691,8 +5733,6 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_rotate_camera(1)
 			KEY_C:
 				_toggle_follow()
-			KEY_T:
-				_next_style()
 			KEY_H:
 				_toggle_vehicle()
 			KEY_B:
