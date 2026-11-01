@@ -118,10 +118,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   the Copernicus Science Centre, Stadion Narodowy. **Warszawa Centralna built 2026-10-31**
   (site `centralna`, spec `docs/landmarks/specs/centralna.md`): the glass hall, the wings, the
   flat slab overhanging to 140 x 86 m and the hyperbolic paraboloid shells under it, all from
-  the OSM parts. Left: the photo check on the Mac (OSM puts the shells in a 1.5 m tier wholly
-  under the flat slab, so from the 30-degree camera they show only as a small zigzag at the
-  two ends: if the photos show more of them, say so and the tier grows; the wings' walls; warm
-  or cool hall light). **Stadion Narodowy built 2026-11-01** (site `stadium`, spec
+  the OSM parts. Photo-checked on the Mac 2026-11-01: the shells show far more than a zigzag,
+  so the underside now falls from 16 m at the long edges to 12 m at the pillar rows and arches
+  to 14.2 m over the hall, the winged shape the ends show. Still open: the wings' walls (the
+  photos show a dark band with a window strip on the hall's end, not grey glass), warm or cool
+  hall light, and the slight hypar curve along the long sides. **Stadion Narodowy built 2026-11-01** (site `stadium`, spec
   `docs/landmarks/specs/stadium.md`, PR #103's eyeball flag): the pitch was a 60 m blob under
   stands too deep; now a 105 x 68 m striped pitch along the masts' axis in two tiers with the
   boxes between, the skin red below and white above (the mapped rings), the raised rim, a

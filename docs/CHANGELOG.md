@@ -12,6 +12,7 @@ someone writes its lines.
 ## 2026-11-01
 - Stadion Narodowy is rebuilt from the real map data: its woven skin is red below and white above like the flag, a full-size striped pitch sits in two tiers of red seats, and the needle over the pitch carries the folded roof.
 - The Museum of Modern Art's roof is now one big glass grid with two small light wells, as seen from above, and its window on Marszałkowska is a deep cut in the white wall.
+- Warszawa Centralna's roof now shows its famous winged shells at both ends: the underside sweeps down from the edges to the pillars and arches over the hall.
 
 ## 2026-10-31
 - New: five shisha lounges in Śródmieście side streets (DYMEK, OPAR, CHMURKA, MGIEŁKA, ZADYM), each with a violet or teal neon sign that glows at night.
