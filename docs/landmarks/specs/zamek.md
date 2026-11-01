@@ -18,7 +18,21 @@ The rebuilt Royal Castle (destroyed 1944, rebuilt 1971-1984) on Plac Zamkowy.
 
 Unchanged: the kept LoD2 mass (tallest cell 45 m at (-672, -1520), the Clock Tower).
 
-## 3. What this pass changed
+## 3. Facade
+
+The walls are the kept LoD2 skin (`SKINS` row, mode M_MONUMENT) in one salmon plaster, #cf9580,
+with the monument shader's window pattern; no dressings are built. The one model part is the
+pale stone plinth (#e2d8c4, M_STONE) run round the whole mapped outline: a wall 0.7 m proud of
+the outline, from 1 m under the terrain to 2.2 m over it, cut every 6 m so it follows the
+escarpment *(photo check: height of the real base)*.
+
+## 4. Roof
+
+The roofs are the LoD2 skin's, in one reddish-brown tile, #8d6350 (M_STONE): the steep ranges
+round the courtyard, the hipped roofs on the Vistula side, the Clock Tower and the Senate Tower.
+No roof geometry is added. *(photo check: the Clock Tower's roof colour, see the last section)*
+
+## 5. What this pass changed
 
 - **Wall** #c87560 → #cf9580. The old colour read brick-red under the day sun, louder than the
   plaster in any photo of the castle.
@@ -28,7 +42,7 @@ Unchanged: the kept LoD2 mass (tallest cell 45 m at (-672, -1520), the Clock Tow
   6 m, a stone wall 0.7 m proud of the outline (LoD2's walls stand up to ~0.6 m inside it), from 1 m
   under the terrain to 2.2 m over it, so it steps with the slope. 312 triangles.
 
-## 4. Colour and material
+## 6. Colour and material
 
 | Part | Colour | Material code |
 | --- | --- | --- |
@@ -36,17 +50,25 @@ Unchanged: the kept LoD2 mass (tallest cell 45 m at (-672, -1520), the Clock Tow
 | Roofs (skin) | #8d6350 | M_STONE |
 | Plinth | #e2d8c4 | M_STONE |
 
-## 5. Ground and night
+## 7. Ground and night
 
 Collision unchanged (LoD2's). Card (kept): "Zamek Królewski", PL "Zniszczony w 1944 roku, odbudowany
 w latach 1971–1984."
 
-## 6. Detail level and budget
+## 8. Detail level and budget
 
 L2, triangle budget 340 (312 measured, `check_mesh_quality.gd`). Shots: city, from Plac Zamkowy
 (`--at=-640,-1480 --heading=0 --size=160 --no-ghost`).
 
-## 7. Open *(photo check)*
+## 9. Parts table
+
+| id | shape | size | position | material | feature |
+| --- | --- | --- | --- | --- | --- |
+| walls | LoD2 skin | the mapped mass, tallest 45 m | the outline | M_MONUMENT | 2 massing |
+| roofs | LoD2 skin | the mapped roof cells | on the walls | M_STONE | 4 roof |
+| plinth | wall pieces, 127 vertices | 6 m or less long, 3.2 m high, 0.7 m proud | round the outline | M_STONE | 3 plinth |
+
+## 10. Open *(photo check)*
 
 - Whether the Clock Tower's roof is copper-green or tile.
 - White stone quoins and window surrounds, a cornice band: not built (needs the eave height per

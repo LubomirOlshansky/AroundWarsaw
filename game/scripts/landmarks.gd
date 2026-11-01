@@ -1216,10 +1216,31 @@ func _collide(ring: PackedVector2Array) -> void:
 	for i in ring.size():
 		var a := ring[i]
 		var b := ring[(i + 1) % ring.size()]
-		var ga: float = map.terrain_height(a.x, a.y) - 1.0
-		var gb: float = map.terrain_height(b.x, b.y) - 1.0
-		map._wall_faces.append_array([Vector3(a.x, ga, a.y), Vector3(b.x, gb, b.y), Vector3(b.x, gb + 6.0, b.y),
-				Vector3(a.x, ga, a.y), Vector3(b.x, gb + 6.0, b.y), Vector3(a.x, ga + 6.0, a.y)])
+		# An edge over a tunnel goes in 4 m pieces, each foot kept out of the traffic below.
+		var steps := 1
+		var n := ceili(a.distance_to(b) / 4.0)
+		for k in range(1, n):
+			if not is_nan(map.tunnel_floor_under(lerpf(a.x, b.x, float(k) / n), lerpf(a.y, b.y, float(k) / n))):
+				steps = n
+				break
+		var p0 := a
+		var g0: float = _collide_foot(a)
+		for k in range(1, steps + 1):
+			var p1 := a.lerp(b, float(k) / steps)
+			var g1: float = _collide_foot(p1)
+			map._wall_faces.append_array([Vector3(p0.x, g0, p0.y), Vector3(p1.x, g1, p1.y), Vector3(p1.x, g1 + 6.0, p1.y),
+					Vector3(p0.x, g0, p0.y), Vector3(p1.x, g1 + 6.0, p1.y), Vector3(p0.x, g0 + 6.0, p0.y)])
+			p0 = p1
+			g0 = g1
+
+
+## The foot of a landmark's collision ring: a metre under the ground, but never down into a
+## tunnel's traffic (the Copernicus Science Centre stands over Tunel Wisłostrady: its ring's
+## edges from the river side's lower ground reached the buses' roofs, check_drive 2026-11-01).
+func _collide_foot(p: Vector2) -> float:
+	var foot: float = map.terrain_height(p.x, p.y) - 1.0
+	var floor_y: float = map.tunnel_floor_under(p.x, p.y)
+	return foot if is_nan(floor_y) else maxf(foot, floor_y + 4.6)
 
 
 ## Loop 3b: car collision along a ring between two heights.

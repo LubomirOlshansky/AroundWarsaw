@@ -53,6 +53,14 @@ func _check() -> int:
 		# A tap from the game's camera angle (30° down) aimed just under the cell's top.
 		var aim := Vector3(at.x, tallest - 1.0, at.y)
 		var tap: int = map.pick_landmark(aim + Vector3(0.0, 500.0, 866.0), Vector3(0.0, -0.5, -0.866))
+		# Hidden from the camera by a building in front (the PZU Tower behind Q22) or a
+		# neighbour's roof in the cell next to it (BUW's east edge): a tap from straight above.
+		var above := ""
+		if tap != k:
+			var hid := tap
+			tap = map.pick_landmark(Vector3(at.x, tallest + 500.0, at.y), Vector3.DOWN)
+			if tap == k:
+				above = " (from above: %s in front)" % (map.landmark_info[hid]["name"] if hid >= 0 else "a neighbour's roof")
 		# A car driving in from 12 directions (2 m steps at bumper height over the ground,
 		# from 220 m out to the centre, or from past the site's far corner when it is bigger,
 		# such as Arkadia's 300 m block): does a wall stop it before the middle?
@@ -73,7 +81,7 @@ func _check() -> int:
 					break
 				r -= 2.0
 		print("%-22s tallest cell %5.1f m above ground at %s · tap finds %s · car rays stopped %d/12" % [
-				info["name"], tallest - ground, at.round(), "it" if tap == k else "id %d" % tap, hits])
+				info["name"], tallest - ground, at.round(), ("it" + above) if tap == k else "id %d" % tap, hits])
 		# A bridge's pylon stands in the median between two carriageways: a car from along the
 		# deck passes beside it, so Most Świętokrzyski needs fewer stopped rays.
 		var need := 6 if info["key"] == "swieto" else 10
@@ -163,6 +171,8 @@ func _fly_checks() -> int:
 			alt = 8.0  # the bell tower's trim (38 m) stands in the box but away from the nave the heli aims at
 		elif info["key"] == "dtc":
 			alt = 10.0  # the 17.5 m stores share roof cells with the Eastern Wall's 70 m slabs behind them
+		elif info["key"] == "tarasy":
+			alt = 15.0  # the wave stands 30 m; the towers in its box (110 m) would lift the heli over it
 		var dir := Vector2(1, 0.35).normalized()
 		var start := c + dir * maxf(box.size.length() * 0.5 + 60.0, 160.0)
 		heli.place(Vector3(start.x, map.ground_height(start.x, start.y) + alt, start.y), 0.0, alt)
