@@ -18,6 +18,9 @@ const GUESTS := 48
 ## The night-buses loop: people waiting at the bus stops (buses.gd `set_stop`), after the guests:
 ## +0 draw calls.
 const STOPS := 8
+## The crash scenes (crash_scenes.gd `set_scene`): the people at a crash, after the stop figures:
+## the two drivers, the officer, the paramedic and the onlookers filming. +0 draw calls.
+const SCENE := 7
 const CELL := 48.0
 const MARGIN := 20.0
 const SHIRTS := ["#d8432f", "#2f6fb5", "#e0b23a", "#3b8f5a", "#f2efe8", "#7a4fa8", "#e57aa0", "#2b2c2f", "#c96b2c", "#5aa9c9", "#9c2f3a", "#e8e4d8"]
@@ -74,6 +77,8 @@ var _guests_new := false
 ## The night-buses loop: the stop figures' instances (STOPS × 16), the buffer's tail.
 var _stop_buf := PackedFloat32Array()
 var _stops_new := false
+## The crash scenes: the scene's people (SCENE × 16), after the stop figures.
+var _scene_buf := PackedFloat32Array()
 var _rng := RandomNumberGenerator.new()
 
 
@@ -155,13 +160,15 @@ func setup(map_node: Node3D, camera: Camera3D, traffic_node: Node3D, data: Dicti
 	_mm.use_custom_data = true
 	InstanceBuffers.prepare(_mm)
 	_mm.mesh = Models.person_mesh()
-	_mm.instance_count = MAX + FIXED + GUESTS + STOPS
+	_mm.instance_count = MAX + FIXED + GUESTS + STOPS + SCENE
 	# Loop MW-4: the whole demo map (the guests stand at Plac Zbawiciela, z 1600, and beyond).
 	_mm.custom_aabb = AABB(Vector3(-6000, -300, -6000), Vector3(12000, 900, 12000))
-	_buf.resize((MAX + FIXED + GUESTS + STOPS) * 16)
+	_buf.resize((MAX + FIXED + GUESTS + STOPS + SCENE) * 16)
 	_buf.fill(0.0)
 	_stop_buf.resize(STOPS * 16)
 	_stop_buf.fill(0.0)
+	_scene_buf.resize(SCENE * 16)
+	_scene_buf.fill(0.0)
 	var mat := Models.material().duplicate() as ShaderMaterial
 	mat.set_shader_parameter("walk", 0.16)
 	var mmi := MultiMeshInstance3D.new()
@@ -331,6 +338,22 @@ func clear_stop(i: int) -> void:
 	_stops_new = true
 
 
+## The crash scenes: scene person `i` (0..SCENE-1) at `at` facing `yaw` (as set_fixed).
+func set_scene(i: int, at: Vector3, yaw: float, shirt: Color, trousers: float) -> void:
+	var c := cos(yaw)
+	var s := sin(yaw)
+	var row := PackedFloat32Array([c, 0.0, s, at.x, 0.0, 1.0, 0.0, at.y, -s, 0.0, c, at.z, shirt.r, shirt.g, shirt.b, trousers])
+	for k in 16:
+		_scene_buf[i * 16 + k] = row[k]
+	_stops_new = true
+
+
+func clear_scene(i: int) -> void:
+	for k in 12:
+		_scene_buf[i * 16 + k] = 0.0
+	_stops_new = true
+
+
 ## The night-buses loop (the player's horn): walkers within `r` m of `at` walking towards it turn
 ## round. Returns how many did.
 func startle(at: Vector2, r: float) -> int:
@@ -386,6 +409,7 @@ func _process(dt: float) -> void:
 		_buf.resize((MAX + FIXED) * 16)
 		_buf.append_array(_guest_buf)
 		_buf.append_array(_stop_buf)
+		_buf.append_array(_scene_buf)
 	InstanceBuffers.send(_mm.get_rid(), _buf)
 	last_usec = Time.get_ticks_usec() - t0
 

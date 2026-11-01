@@ -323,6 +323,7 @@ var _strip_plate: StyleBoxFlat
 ## rooster for an off-screen chaser, the lizak paddle over a speed trap's officer), the chasers
 ## and known traps on the minimap, and panels other scripts lay out here (the pull-over card).
 const POLICE_BLUE := Color("#1f4fd8")
+const SCENE_AMBER := Color("#ffb020")
 const LENS_BLUE := Color("#3d7bff")
 const LENS_RED := Color("#ff3b3b")
 var _police_pill: PanelContainer
@@ -339,6 +340,8 @@ var _edge_roosters := PackedVector2Array()
 var _lizak := Vector2.INF
 var _police_marks := PackedVector2Array()
 var _trap_marks := PackedVector2Array()
+## A crash scene (crash_scenes.gd): Vector2.INF when there is none.
+var _scene_mark := Vector2.INF
 ## Panels added by other scripts (`add_panel`): their spot, "top" or "bottom".
 var _panel_spots := {}
 ## The pedals are away while a pull-over holds the car (its card takes the bottom of the screen).
@@ -506,6 +509,18 @@ func _on_resize() -> void:
 
 # --- pieces ----------------------------------------------------------------------------------
 
+## Every label made by `_label`, so `apply_text_scale` can resize them live (Settings → text size).
+var _scaled_labels: Array[Label] = []
+
+
+## Re-apply `Access.text_scale` to every HUD label at once (no restart). Dead labels are dropped.
+func apply_text_scale() -> void:
+	_scaled_labels = _scaled_labels.filter(func(l: Label) -> bool: return is_instance_valid(l))
+	for l in _scaled_labels:
+		l.add_theme_font_size_override("font_size", _px(float(l.get_meta("base_pt")) * Access.text_scale))
+	_mark()
+
+
 ## A font size in pixels for a size in points.
 func _px(points: float) -> int:
 	return maxi(1, roundi(points * pt))
@@ -514,6 +529,8 @@ func _px(points: float) -> int:
 ## A label on the type scale; `outline` for text that sits on the city rather than a panel.
 func _label(points: float, colour: Color, outline := false) -> Label:
 	var l := Label.new()
+	l.set_meta("base_pt", points)
+	_scaled_labels.append(l)
 	l.add_theme_font_size_override("font_size", _px(points * Access.text_scale))
 	l.add_theme_color_override("font_color", colour)
 	if outline:
@@ -1753,6 +1770,13 @@ func _paint_minimap_overlay() -> void:
 		var r := ((q - _mini_car) * s).rotated(_mini_yaw)
 		if r.length() < _mini_radius - 6.0 * pt:
 			_tri_question(centre + r)
+	if _scene_mark != Vector2.INF:
+		# A crash scene: an amber dot with a white ring, pulsing slowly (not the chasers' flicker).
+		var r := ((_scene_mark - _mini_car) * s).rotated(_mini_yaw)
+		if r.length() < _mini_radius - 5.0 * pt:
+			var pulse := 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.006)
+			_tri_fan(centre + r, (3.6 + pulse) * pt, 0.0, TAU, Color.WHITE)
+			_tri_fan(centre + r, 2.6 * pt, 0.0, TAU, SCENE_AMBER)
 	var flip := int(Time.get_ticks_msec() / 200) % 2 == 0
 	for i in _police_marks.size():
 		var r := ((_police_marks[i] - _mini_car) * s).rotated(_mini_yaw)
@@ -2377,6 +2401,7 @@ func open_full_map(car_xz: Vector2, car_yaw: float, found: PackedVector2Array) -
 	move_child(full_map, -1)
 	full_map.night = _night
 	full_map.unknown = _mini_unknown
+	full_map.scene_mark = _scene_mark
 	full_map.found = found
 	full_map.target = _mini_target
 	full_map.garage = _mini_garage
@@ -3127,6 +3152,11 @@ func _tri_flush(item: CanvasItem) -> void:
 func set_police_marks(chasers: PackedVector2Array, traps: PackedVector2Array) -> void:
 	_police_marks = chasers
 	_trap_marks = traps
+
+
+## The crash scene's spot (map x, z) on the minimap and the full map, or Vector2.INF for none.
+func set_scene_mark(at: Vector2) -> void:
+	_scene_mark = at
 
 
 ## Lays out a panel another script made (the pull-over card) like the HUD's own passing panels,

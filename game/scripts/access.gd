@@ -3,8 +3,8 @@ extends RefCounted
 ## game reads them: settings.gd keeps them in the file, main.gd calls `apply` after loading and
 ## after each change, and the rest of the game only reads the statics here. Settings → ŁATWOŚĆ
 ## (settings_panel.gd) is where the player changes them.
-##   text_scale     1.0, or LARGE_TEXT: the HUD's text (hud.gd `_label`) one step bigger; read
-##                  when the HUD is built, so a change shows after the next launch.
+##   text_scale     1.0, or LARGE_TEXT: the HUD's text (hud.gd `_label`) one step bigger;
+##                  hud.gd `apply_text_scale` re-sizes every label at once when it changes.
 ##   calm           true: no flashing or shaking: the patrol cars' lights burn steady instead of
 ##                  alternating, the VHS pulse and the headlight flash stay off, and anything
 ##                  that shakes the screen asks `shake()`, which is 0 then.

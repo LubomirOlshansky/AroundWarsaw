@@ -74,6 +74,7 @@ const SHISHA_TUBE_B := Color(0.2, 0.9, 0.95)
 const KOSZTA_TUBE := Color(0.95, 0.35, 0.3)
 const NERWO_TUBE := Color(0.35, 1.0, 0.55)
 const KUKLA_TUBE := Color(1.0, 0.85, 0.35)
+const KROWA_TUBE := Color(0.62, 0.86, 1.0)
 ## The venues' fascias (vision 3.0-3.2): place id -> [the lines of the sign, tube colour, metres
 ## up (the sign's bottom)]. The words are the parody names of places.json (Glon na Powiślu: GLON).
 const VENUES := {
@@ -125,6 +126,8 @@ const VENUES := {
 	"nerwo_nowy_swiat": [["GREEN CAFFE", "NERWO"], NERWO_TUBE, 2.8],
 	"kukla_marszalkowska": [["KUKŁA", "NALEŚNIKI"], KUKLA_TUBE, 2.8],
 	"kukla_nowy_swiat": [["KUKŁA", "NALEŚNIKI"], KUKLA_TUBE, 2.8],
+	# The milk bar in Norblin (F, 2026-11-01): a bar mleczny rebuilt as a start-up, cream and blue.
+	"krowa_norblin": [["BAR MLECZNY", "KROWA 2.0"], KROWA_TUBE, 2.8],
 }
 ## COFFEECHAIR (BACKLOG, the user 2026-10-31): a parody of a real coffee-shop chain, our own name
 ## and a warm cream tube (no logo, no chair icon of anyone's). Small cafés that are not notebook
@@ -176,6 +179,8 @@ const HYPE := {
 	"nerwo_nowy_swiat": [52.2355, 21.0185],
 	"kukla_marszalkowska": [52.2375, 21.0110],
 	"kukla_nowy_swiat": [52.2320, 21.0198],
+	# KROWA 2.0, the milk bar on the Żelazna front of Norblin (the Mac look check parks the door).
+	"krowa_norblin": [52.23367, 20.99107],
 }
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12

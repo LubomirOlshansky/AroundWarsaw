@@ -4545,6 +4545,8 @@ func _build_lod2(walls, marks) -> Array:
 	uv2 = facades[1]
 	uv2 = _typed_lod2(pos, col, uv2, building_runs)
 	var dress: Dictionary = facades[2]
+	if not walls.none:
+		_roof_dress(pos, nrm, col, uv, uv2, building_runs, dress)
 	# Split into tiles by triangle, like the other city meshes (not on the roof pass).
 	var tiles := {}
 	for t in range(0, count if not walls.none else 0, 3):
@@ -5348,6 +5350,29 @@ func _typed_lod2(pos: PackedVector3Array, col: PackedColorArray, uv2: PackedVect
 			if uv2[t].x < 1.0 and col[t].a >= 0.9:
 				uv2[t].x = typed_seed(kind, uv2[t].x)
 	return uv2
+
+
+## The roofs lane (docs/design/roofs.md, RF2-RF3): each kept LoD2 building's parapets,
+## tenement chimneys (RoofDress) into `dress`, the walls' own tile meshes.
+## Its R4 type from the UV2 _typed_lod2 gave its walls. Load time only, both city paths.
+func _roof_dress(pos: PackedVector3Array, nrm: PackedVector3Array, col: PackedColorArray,
+		uv: PackedVector2Array, uv2: PackedVector2Array, runs: Array[Vector3i], dress: Dictionary) -> void:
+	var before := RoofDress.triangles
+	for run in runs:
+		var kind := 0
+		var lo := Vector2(INF, INF)
+		var hi := -lo
+		for t in range(run.x, run.y, 3):
+			lo = lo.min(Vector2(pos[t].x, pos[t].z))
+			hi = hi.max(Vector2(pos[t].x, pos[t].z))
+			if kind == 0 and uv2[t].x >= 1.0 and uv2[t].x < 2.0:
+				kind = int((uv2[t].x - 1.0) * 4.0) + 1
+		var extra := RoofDress.building(pos, nrm, col, uv, run.x, run.y, kind, _historic((lo + hi) * 0.5, 0.0))
+		if not (extra["pos"] as PackedVector3Array).is_empty():
+			_add_dress(dress, extra)
+	if not _in_sector:
+		print("roofs: %d parapet edges, %d chimneys, %d triangles (RF2-RF3)" % [RoofDress.parapets,
+				RoofDress.chimneys, RoofDress.triangles - before])
 
 
 ## The historic districts: each LoD2 wall in them takes the colour and window seed of the

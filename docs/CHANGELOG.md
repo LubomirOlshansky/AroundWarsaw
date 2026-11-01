@@ -12,6 +12,14 @@ someone writes its lines.
 ## 2026-11-01
 - Krakowskie Przedmieście has more of its landmarks: the Carmelite church's front with its gilt globe, Mickiewicz's monument, the University's main gate, the Potocki palace and its guardhouse, and Hotel Bristol's dome, plus the Royal Route's black granite Chopin benches.
 - Rynek Mariensztacki is on the map with a card and relief panels on the houses of its south side.
+- Fabryka Norblina, Browary Warszawskie, Hala Koszyki and the Elektrownia Powiśle are modelled now: brick halls with tall arches, glass storeys on top, chimneys, and people chilling in their yards. In Norblin there is a line to a milk bar called KROWA 2.0.
+- Now and then a fender bender blocks a lane somewhere ahead: two dented cars, a police car with its lights flashing and a yellow ambulance, the drivers arguing over who had the green while people film it for the estate's group. Traffic queues and squeezes past, and KEBAB FM reads it out in the traffic news.
+- The Ministry of Finance on Świętokrzyska is a landmark: the 1950s pale pink-grey palace round its court, the three-door entrance in the middle under its raised attic, the hipped pavilions at the wings' ends; tap it for its card.
+- Roofs look like Warsaw's: red tiles, painted sheet metal with seams, zinc mansards, tar paper on the blocks, pale membranes and green sedum on offices, low parapets round flat roofs and rows of brick chimneys on the old tenements.
+- Racing a rival you have already beaten still pays the stake but gives less respect, so the next rival opens by playing the city, not by beating Pani Halina again; mum's jars pay a little less; and the characters now talk to you the same way whoever you are.
+- Now and then a fender bender blocks a lane somewhere ahead: two dented cars, a police car with its lights flashing and a yellow ambulance, the drivers arguing over who had the green while people film it for the estate's group. Traffic queues and squeezes past, and KEBAB FM reads it out in the traffic news. The ambulance now has its siren on, and the scene shows as an amber dot on the minimap and the map.
+- The police talk to you without "pan": the same warnings and jokes, for whoever is driving.
+- Larger text in Settings → DOSTĘP now changes the HUD text straight away, no restart needed.
 - Mariensztat, the little 1949 square under the Old Town's escarpment, now looks like itself: pastel houses under red tile roofs with dormers and chimneys.
 - The colour-blind option now also changes the green "win" and red "fail" cards and badges to blue and orange-red, so they are easy to tell apart.
 - Left-handed? Settings → DOSTĘP swaps the controls: brake, gas, horn and the helicopter's buttons go to the left, steering to the right.
