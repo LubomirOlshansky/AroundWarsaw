@@ -11,7 +11,12 @@ someone writes its lines.
 
 ## 2026-11-01
 - The Palace of Culture is reshaped from the real map data: the tower now rises from full-height wings on its north and south sides, its shaft has heavy corner piers around ribbed middle bays, and the Congress Hall keeps to its real rounded outline.
+- The street where the game starts is busier and richer: the three glass department stores across from the museum (Junior, Sawa and Wars, with lit names JUNIOREK, SAWKA and WARSIK on their roofs) are real buildings now, a tram rolls past the car in the first seconds and another comes down the street, and the pavement by the museum has café tables under parasols, a newspaper kiosk, a flower stall, an advertising column and flower planters.
+- The Copernicus Science Centre by the river is rebuilt: a long dark block with windows scattered like pixels that glow at night, a corner hanging over the glass entrance, a garden of lawns and paths on its roof, and the black, faceted planetarium beside it.
+- Stadion Narodowy's facade now looks like the real one: rows of red and silver panels, more silver towards the top, over a dark glass entrance level, with stronger spikes on the skyline.
 - Stadion Narodowy is rebuilt from the real map data: its woven skin is red below and white above like the flag, a full-size striped pitch sits in two tiers of red seats, and the needle over the pitch carries the folded roof.
+- The Museum of Modern Art's roof is now one big glass grid with two small light wells, as seen from above, and its window on Marszałkowska is a deep cut in the white wall.
+- Warszawa Centralna's roof now shows its famous winged shells at both ends: the underside sweeps down from the edges to the pillars and arches over the hall.
 
 ## 2026-10-31
 - New: five shisha lounges in Śródmieście side streets (DYMEK, OPAR, CHMURKA, MGIEŁKA, ZADYM), each with a violet or teal neon sign that glows at night.

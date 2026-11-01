@@ -464,7 +464,10 @@ class Landmarks:
         def centre(q):
             return (sum(p[0] for p in q) / len(q), sum(p[1] for p in q) / len(q))
 
-        for key, name in (("palace", "Pałac Kultury i Nauki"), ("rotunda", "Rotunda PKO"), ("varso", "Varso Tower")):
+        # The Copernicus Science Centre and its planetarium (spec kopernik.md) collide along
+        # their outlines, the overhanging corner included.
+        for key, name in (("palace", "Pałac Kultury i Nauki"), ("rotunda", "Rotunda PKO"), ("varso", "Varso Tower"),
+                          ("kopernik", "Centrum Nauki Kopernik"), ("kopernik", "Planetarium Niebo Kopernika")):
             if len(lm.get(name, [])) >= 3:
                 self.zones.append((key, [lm[name]], []))
                 self.colliders.append((key, lm[name]))

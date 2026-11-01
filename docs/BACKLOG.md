@@ -96,9 +96,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   windows, long skylights on the flat roof, a card. Spec and the values still to set:
   docs/design/first-scene.md "Spec for item 1". Landmarks lane: Opus spec, `object-modeler`
   builds, `art-director` accepts. **Built 2026-10-31** (site `msn`, spec
-  `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Left: the photo check on the
-  Mac (the two city-room windows' faces and sizes and the skylight count are estimates; the
-  photos in `refs/` were not reachable from the cloud), and TR Warszawa next door.
+  `docs/landmarks/specs/msn.md`, from the museum's OSM 3D parts). Photo-checked on the Mac
+  2026-11-01: the roof is one gridded glass field with two small wells, and the Marszałkowska
+  window is a deep recess at mid-face. Found then, left open: the mid-height dark ribbon runs only
+  in stretches on both long faces (photos 2 and 4), not all round as built; the Marszałkowska
+  face's lower box has two small windows; the upper roofline steps down near the south end.
 - **TR Warszawa's building site** (F, 2026-10-31): built as site `tr` on the empty plot west of
   the museum (a messy site: hoarding, dirt, heaps, old foundations, cabins, a digger, one
   crane). Left for the map lane: a mapped tree stands on the hoarding's north corner.
@@ -116,15 +118,23 @@ Small problems that agents reported or that showed up in screenshots. They are f
   the Copernicus Science Centre, Stadion Narodowy. **Warszawa Centralna built 2026-10-31**
   (site `centralna`, spec `docs/landmarks/specs/centralna.md`): the glass hall, the wings, the
   flat slab overhanging to 140 x 86 m and the hyperbolic paraboloid shells under it, all from
-  the OSM parts. Left: the photo check on the Mac (OSM puts the shells in a 1.5 m tier wholly
-  under the flat slab, so from the 30-degree camera they show only as a small zigzag at the
-  two ends: if the photos show more of them, say so and the tier grows; the wings' walls; warm
-  or cool hall light). **Stadion Narodowy built 2026-11-01** (site `stadium`, spec
+  the OSM parts. Photo-checked on the Mac 2026-11-01: the shells show far more than a zigzag,
+  so the underside now falls from 16 m at the long edges to 12 m at the pillar rows and arches
+  to 14.2 m over the hall, the winged shape the ends show. Still open: the wings' walls (the
+  photos show a dark band with a window strip on the hall's end, not grey glass), warm or cool
+  hall light, and the slight hypar curve along the long sides. **Stadion Narodowy built 2026-11-01** (site `stadium`, spec
   `docs/landmarks/specs/stadium.md`, PR #103's eyeball flag): the pitch was a 60 m blob under
   stands too deep; now a 105 x 68 m striped pitch along the masts' axis in two tiers with the
   boxes between, the skin red below and white above (the mapped rings), the raised rim, a
-  rounded opening, the needle's hub and folded-roof drum from the OSM parts. Left: the photo
-  check on the Mac (where the red ends, the opening's size). The others not started.
+  rounded opening, the needle's hub and folded-roof drum from the OSM parts. The Mac photo
+  check (same day) is applied: staggered red and silver panels on a smooth ramp, the dark
+  glass concourse under the skin, a polycarbonate ring round the opening, thicker spikes.
+  **The Copernicus Science Centre built 2026-11-01** (site `kopernik`,
+  spec `docs/landmarks/specs/kopernik.md`, log `docs/landmarks/kopernik.md`): the long dark
+  block to LoD2's 13 m with windows scattered like pixels, the river corner hanging over a
+  glazed ground floor, the low glass wings, the roof garden, and the black faceted
+  planetarium. Left: the photo check on the Mac (the panels and windows, the overhang's depth,
+  the planetarium's height, the garden's real paths). The others not started.
 - **Models from real photos, more detail** (the user, 2026-10-31): specs were written from the
   OSM outline, LoD2 heights and memory; nobody compared a model with a photo. Now: reference
   photos per building in `refs/` (Wikimedia Commons, gitignored; fetched on the Mac, the cloud
@@ -157,6 +167,14 @@ golden-image shots runtime vs `--prebuilt`,
   light), the `first` shot set, performance and the order of work: docs/design/first-scene.md.
   The dusk and night look there belongs to the thread "Match landmarks to Warsaw at dusk"; the
   hints, first order and first race to loop 3h item 6.
+  **2026-11-01 (items 3-6, part):** the Eastern Wall's stores built (site `dtc`, spec
+  `docs/landmarks/specs/dtc.md`); a start in the first scene's box (main.gd `FIRST_SCENE`) puts
+  two trams on Marszałkowska, one passing the car, one coming down the street; street furniture
+  by the start (`first_scene.gd`: kiosk, flower stall, cafés, ad columns, planters). Found: the
+  game's camera sees the east side's stores from behind their street faces, so furniture on
+  their pavements never shows (it stands on the museum's side instead). Left: the Rotunda
+  re-pass, the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
+  the tram stops and kerbs (item 5), pedestrians and sound (6-7), the photo check on the Mac.
 
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
 - **Shisha lounges** built (five parody signs, `Storefronts.LOUNGES`): only the phone can show the sign size on each wall and whether the spots read as lounges. Not notebook places; add smoky window glow or a door scene if wanted.
