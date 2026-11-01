@@ -31,8 +31,9 @@ Newest first. One entry per question.
 
 - **2026-11-01 · landmarks · Copernicus Science Centre** — The Mac's photo check is applied
   (copper-red planetarium drum and dome, warm strip facade, craters and paths on the roof, the
-  cantilever). Still parked: the river corner's glazed ground floor (kept as built), two craters
-  that don't fit the narrow north end, the steel frame's stairs. Details:
+  cantilever), and the re-check's roof layout (all seven craters, 2 + 3 + 2 with the stair head)
+  and faceted planetarium with its dark clerestory. Still parked: the river corner's glazed
+  ground floor (kept as built), the steel frame's stairs. Details:
   docs/landmarks/kopernik.md.
 
 - **2026-10-31 · driving · quest stop assist** — Every pickup and drop-off (rescue, Podwózka,

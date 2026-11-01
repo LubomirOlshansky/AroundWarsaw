@@ -37,9 +37,20 @@ The Mac session compared the first model with the photos in `refs/`; its finding
 - Card: "obok miedzianoczerwone planetarium" / "the copper-red planetarium beside it".
 - Checks: `check_mesh_quality` 0 defects, 1428 tris, budget 1720; `check_spec` OK.
 
-## Still differs / photo check on the Mac (after the second pass)
+## Third pass, 2026-11-01 (the Mac's re-check of main 7973386)
 
-- Two of the seven craters don't fit where the garden narrows (the north end).
+- The roof's seven features laid out 2 + 3 + 2 as in the orthophoto: two big hexagonal craters
+  (15.6 m) 24 m in from the river wall of the wide north part, 25 m apart; 39 m further to the
+  city a row of a crater on the outer edge, the glazed-pyramid crater and a small dark octagonal
+  stair and lift head (9 m, not a crater); two more (14 and 12 m) down the south wing, 55 m apart.
+  Craters are hexagons now. The row sits 8 m nearer the city than measured on the photo so it
+  clears the planetarium notch's corner.
+- The planetarium: its outline simplified to about ten sides with chamfered corners, and a dark
+  glass clerestory ring (4.5 m wide, glowing at night) between the copper top and the white dome.
+- Checks: `check_mesh_quality` 0 defects, 1478 tris, budget 1720.
+
+## Still differs / photo check on the Mac (after the third pass)
+
 - The steel frame's stairs; the south-east end stands close to the car park's building.
 - The court under the cantilever is the map's paving.
 - The river corner's glazed ground floor (kept, parked by the Mac check).

@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-01
+- The Copernicus Science Centre's roof now has all seven skylights where they really are, including the glass pyramid and a dark stair tower, and the planetarium has more facets and a dark glass ring round its white dome.
 - The Copernicus Science Centre now matches the photos: warm striped walls with tall windows, the copper-red planetarium with its white dome, skylight craters and winding paths in the roof garden, and a dark wing hanging over the court.
 - The Palace of Culture is reshaped from the real map data: the tower now rises from full-height wings on its north and south sides, its shaft has heavy corner piers around ribbed middle bays, the Congress Hall has its real rounded outline and flat stepped grey roof, and the main entrance has a wider portico.
 - The street where the game starts is busier and richer: the three glass department stores across from the museum (Junior, Sawa and Wars, with lit names JUNIOREK, SAWKA and WARSIK on their roofs) are real buildings now, a tram rolls past the car in the first seconds and another comes down the street, and the pavement by the museum has café tables under parasols, a newspaper kiosk, a flower stall, an advertising column and flower planters.

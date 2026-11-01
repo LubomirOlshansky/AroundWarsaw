@@ -33,7 +33,7 @@ under the outline, about -12.6 m; the river side lies 4 m lower).
 | River corner | OSM part x 325..369, z -950..-904 | soffit 5 m over its own ground, to 13 m | OSM part h 7.6, mh 3.3 (kept, parked) |
 | Cantilever | 12 m out of the block's longest front facing the planetarium, 3 m short of its ends, clear of the planetarium by 3 m | 8 m to 13 m | Mac photo check |
 | West wing, link | OSM parts x 253..272 / 329..363 | ground to 4.5 m over the street | OSM parts h 4.3 |
-| Planetarium | its outline (convex), about 44 x 38 m | walls leaning in 5 % to 13.8 m over the street (about 17.8 m over its own ground), chamfer to +0.9, clerestory 1.6 m, dome 5.5 m more | Mac photo check |
+| Planetarium | its outline (convex, about ten sides with chamfered corners), about 44 x 38 m | walls leaning in 5 % to 13.8 m over the street (about 17.8 m over its own ground), chamfer to +0.9, clerestory ring 4.5 m wide, dome 5.5 m more | Mac photo check |
 
 ## 3. Facade, base to top
 
@@ -54,15 +54,16 @@ under the outline, about -12.6 m; the river side lies 4 m lower).
 
 Flat at 13 m, paved light grey (the paths). Inset 3 m: two meandering paths along the block
 and six across it (2.6 m wide, sine-wave lines) cut the garden into beds 0.4 m high with a kerb,
-each a colour from mixed greens, ochre and dark shrub. Seven skylight craters (KOP_CRATERS: two
-in the north third, three in the middle, two in the south), octagons 9-15 m across of beige
-concrete sloping 1.6 m up to a flat rim round a dark glazed opening, the fourth with a glazed
-pyramid; each placed in the garden's width at its spot along the block, smaller where the
-garden is narrow, left out where under 9 m fits (five are built today). A teal glass strip
+each a colour from mixed greens, ochre and dark shrub. Seven roof features (KOP_CRATERS, absolute in the roof frame), laid out 2 + 3 + 2 from the
+orthophoto: two big craters 24 m in from the river wall of the wide north part, 25 m apart; a row
+39 m further to the city of a crater on the outer edge, the crater with the glazed pyramid and,
+just beside it, a dark octagonal stair and lift head (9 m, 2.6 m high, not a crater); two craters
+down the middle of the south wing, 55 m apart. Craters are hexagons 12-16 m across of beige
+concrete sloping 1.6 m up to a flat rim round a dark glazed opening. A teal glass strip
 along the city side of the southern half (3.6 m wide, 0.9 m high); a glass pavilion near the
 south end (7 x 5 m, 3.4 m). The planetarium's top: a chamfer up 0.9 m to a flat copper ring,
-the clerestory's glass ring (radius 9.6 m) and the white dome (8.5 m radius, 5.5 m high,
-faceted like the drum).
+a dark glass clerestory ring sloping up from 13 m to 8.5 m radius (about 4.5 m wide), and the
+white dome (8.5 m radius, 5.5 m high, faceted like the drum).
 
 ## 5. Colour and material
 
@@ -88,13 +89,13 @@ The squares, the boulevard, the tunnel and the ramps stay the map's; the court u
 cantilever is the map's paving *(photo check: light paving there)*. The car collides with the
 centre's outline and the planetarium's. The dog's ball (egg "Aport") lands on the roof's
 highest flat spot (the pavilion's roof). At night the slits, bays and glass walls glow, the
-planetarium's clerestory ring glows faintly, its copper takes the boulevard's lamps. Card:
+planetarium's dark clerestory ring glows faintly, its copper takes the boulevard's lamps. Card:
 "Centrum Nauki Kopernik", PL "Otwarte w 2010 roku. Ogród na dachu, obok miedzianoczerwone
 planetarium.", EN "Opened in 2010. A roof garden, the copper-red planetarium beside it."
 
 ## 7. Detail level and budget
 
-L2, triangle budget 1720 (1428 measured, plus about 20 %, in `check_mesh_quality.gd` BUDGET).
+L2, triangle budget 1720 (1478 measured, plus about 20 %, in `check_mesh_quality.gd` BUDGET).
 Shots: `--solo=kopernik --solo-look=flat` and `sil` (the `first` set), then in the city by day
 and night from the river side.
 
@@ -109,6 +110,6 @@ and night from the river side.
 | corner | mapped corner over a glazed floor | 5-13 m | the river corner | M_STONE, M_PAVILION | 1 |
 | wings | 2 mapped glass prisms | 0-4.5 m | the city corner, the link | M_PAVILION | 5 night |
 | garden | beds between meandering paths | 0.4 m, 2 paths along, 6 across | the roof, inset 3 m | M_STONE beds | 3 roof garden |
-| craters | octagonal frustums | 9-15 m across, 1.6 m | the roof | M_STONE #d3c9b6, M_GLASS_ROOF | 3 roof garden |
+| craters | 6 hexagonal frustums, 1 octagonal stair head | 12-16 m across, 1.6 m; head 9 m, 2.6 m | the roof, 2 + 3 + 2 | M_STONE #d3c9b6, M_GLASS_ROOF | 3 roof garden |
 | strip_pavilion | glass prism, glass box | 3.6 m x 0.5 of the block; 7 x 5 x 3.4 m | the roof's south half | M_GLASS_ROOF, M_PAVILION | 3 roof garden |
 | planetarium | leaning faceted drum, chamfer, ring, clerestory, dome | 44 x 38 m, to 13.8 m over the street + dome | its outline | M_STONE coppers, M_PAVILION, dome #eeeeea | 2 copper drum, 5 night |
