@@ -12,6 +12,9 @@ extends SceneTree
 ## SOLID_PLATFORM, PLATFORM_ROAD_CLEAR) and
 ## the scrape scales with how hard the car presses in (car.gd SCRAPE_PRESS).
 ##
+## PT-4 (2026-11-02): hard stops on Marszałkowska by Rondo Dmowskiego, among the underpass stairs;
+## after the roundabout's rebuild (site `rondo`) the lanes up to the ring drive clean.
+##
 ## (Head on into the platform's 3 m end the car stops, as at any wall, and is turned out.)
 ##
 ## Prints one line per spot and `check_stuck_spots: OK`, or the failures and exit 1. ~10 s on the Mac.
@@ -30,6 +33,10 @@ const SPOTS := [
 	[-1001.2, -5.0, -20.0, 27.0, 4.0, 0.8, "PT-1 Marszałkowska, the left side clipping the tram platform's north tip"],
 	[-1025.0, -45.0, -20.0, 27.0, 4.0, 0.9, "PT-1 Marszałkowska, the tram tracks west of the platform"],
 	[-1025.0, -45.0, -12.0, 27.0, 4.0, 0.5, "PT-1 Marszałkowska, off the tram tracks into the platform's side (the dead stop on the shelter)"],
+	[-797.9, 527.0, -20.0, 25.0, 1.8, 0.8, "PT-4 Marszałkowska north to Rondo Dmowskiego, the inner lane past the south-east stairs"],
+	[-795.0, 526.0, -20.0, 25.0, 1.8, 0.8, "PT-4 Marszałkowska north to Rondo Dmowskiego, the middle lane"],
+	[-792.2, 525.0, -20.0, 25.0, 1.8, 0.8, "PT-4 Marszałkowska north to Rondo Dmowskiego, the kerb lane"],
+	[-874.9, 395.1, 160.0, 25.0, 1.8, 0.8, "PT-4 Marszałkowska south to Rondo Dmowskiego, past the north-west stairs"],
 ]
 ## Sectors within this of a spot are loaded.
 const REACH := 300.0

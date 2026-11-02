@@ -58,14 +58,27 @@ REACH = 38.0                     # a road is on a corridor when its middle is th
 ROAD_KINDS = {"primary", "secondary", "tertiary", "unclassified", "residential", "living_street", "trunk"}
 NOT_NAMES = {"Wybrzeże Szczecińskie", "Nowy Zjazd"}
 FIRST_SCENE = (-1080.0 - 30.0, -160.0 - 30.0, -880.0 + 30.0, 260.0 + 30.0)   # main.gd FIRST_SCENE grown by 30 m
-DISCS = [(-852.0, 334.0, 40.0)]   # the Rotunda (jobs.gd FIRST_PAST); the Palm is added from the map
+DISCS = [(-852.0, 334.0, 40.0),   # the Rotunda (jobs.gd FIRST_PAST); the Palm is added from the map
+         (-836.4, 461.0, 29.0)]   # Rondo Dmowskiego's island (landmarks.gd RONDO_C): beds and tracks, no pavement
+# Rondo Dmowskiego (F's photos, 2026-11-02, docs/landmarks/specs/rondo-dmowskiego.md): the street furniture
+# round the roundabout, placed by hand on its corners' paving before the walk along the corridors
+# (a flower stall 93 m south and the mapped ad columns already stand near, and keep their spacing):
+# [kind, x, z, colour]; each faces the island. The east Jerozolimskie tram island (no mapped
+# shelter) gets a shelter beside its kit's bench (platform_kits, RONDO_SHELTER).
+RONDO_C = (-836.4, 461.0)
+RONDO = [
+    ("kiosk", -885.2, 442.9, ""),           # north-west, by the Patelnia's stairs: PRASA
+    ("cart", -872.6, 503.6, "#e63946"),     # south-west: ice cream
+]
+RONDO_SHELTER = 80.0     # a stop kit this near the island gets a shelter too
+RONDO_SHELTER_OFF = 5.0  # along the island from the bench
 LANDMARK_CLEAR = 6.0
 # Props: footprint radius (m), own-kind spacing (m), poster/awning colours.
 RADIUS = {"kiosk": 2.2, "stall": 1.9, "cafe": 1.7, "planter": 0.9, "column": 1.2, "bollards": 1.0,
-          "cart": 1.4, "post": 0.5, "ticket": 0.7, "bench": 1.0, "heater": 0.45}
+          "cart": 1.4, "post": 0.5, "ticket": 0.7, "bench": 1.0, "heater": 0.45, "shelter": 2.2}
 SPACING = {"kiosk": 250.0, "stall": 250.0, "column": 150.0, "cart": 400.0}
 SOLID = ("kiosk", "stall", "cart")
-KINDS = ["kiosk", "stall", "cafe", "planter", "column", "bollards", "cart", "post", "ticket", "bench", "heater"]
+KINDS = ["kiosk", "stall", "cafe", "planter", "column", "bollards", "cart", "post", "ticket", "bench", "heater", "shelter"]
 # A stop kit on a tram island (a platform with no mapped shelter) carries this colour: the prop
 # stands on the slab (street_details.gd lifts it PLATFORM_TOP). Marszałkowska pass, 2026-11-02.
 ON_PLATFORM = "platform"
@@ -349,7 +362,10 @@ def platform_kits(pl, roads):
         qx, qz = a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u
         dl = math.hypot(cx - qx, cz - qz) or 1.0
         face = ((cx - qx) / dl, (cz - qz) / dl)
-        for kind, off in (("bench", 0.0), ("post", -KIT_OFFSET), ("ticket", KIT_OFFSET)):
+        kit = [("bench", 0.0), ("post", -KIT_OFFSET), ("ticket", KIT_OFFSET)]
+        if math.hypot(cx - RONDO_C[0], cz - RONDO_C[1]) < RONDO_SHELTER:
+            kit.append(("shelter", RONDO_SHELTER_OFF))
+        for kind, off in kit:
             x, z = cx + tx * off, cz + tz * off
             if not P.point_in_poly(x, z, poly):
                 continue
@@ -405,6 +421,17 @@ def square_terraces(pl):
                     pl.add("planter", px, pz, (nx, nz), pick(FLOWERS, "zb", k, sd))
         n += placed
     return n
+
+
+def rondo_items(pl):
+    """The hand-placed furniture round Rondo Dmowskiego (RONDO), facing the island; a spot the map
+    has since filled is left out (and said)."""
+    for kind, x, z, colour in RONDO:
+        if not pl.clear(kind, x, z):
+            print("street details: Rondo Dmowskiego's %s at %.1f, %.1f is blocked: left out" % (kind, x, z))
+            continue
+        d = math.hypot(x - RONDO_C[0], z - RONDO_C[1]) or 1.0
+        pl.add(kind, x, z, ((x - RONDO_C[0]) / d, (z - RONDO_C[1]) / d), colour)
 
 
 # Zielona Świętokrzyska (Krajobraz K4; RS Architektura Krajobrazu, 2018, Marszałkowska to Nowy
@@ -464,6 +491,7 @@ def zielona_planters(pl):
 
 def bake(data):
     pl = Placer(data)
+    rondo_items(pl)
     roads = corridor_roads(data)
     for ch, r in roads:
         p = P.pairs(r["p"])

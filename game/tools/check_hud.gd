@@ -126,6 +126,7 @@ func _check_screen(screen: Vector2i) -> int:
 	var talk: Control = PoliceBalloon.new()
 	talk.pt = hud.pt
 	hud.add_panel(talk, "bottom")
+	hud.set_radio_skip(true)  # beta radio: DALEJ under RADIO (a station with several songs)
 	await process_frame
 	var pt: float = hud.pt
 	var safe: Rect2 = hud.safe_rect()

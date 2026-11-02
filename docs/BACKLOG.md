@@ -3,6 +3,39 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Beta radio (F, 2026-11-02)
+
+- PÓŁNOC FM is out of the beta lineup, but the tape, the cassettes and eggs still unlock "a PÓŁNOC FM track" the player can't tune to (QUESTIONS, default: leave it).
+- KEBAB FM and MORDOR FM still play one synth loop each until F's songs arrive (docs/MUSIC.md "The beta radio"); remove the loops from radio.json then.
+## Rondo Dmowskiego and the metro entrances (F, 2026-11-02)
+
+F sent two aerials, a night aerial and the city's traffic plan of Rondo Dmowskiego and asked for the
+roundabout and the metro entrances round it. Done 2026-11-02 (cloud thread, site `rondo`, spec
+`docs/landmarks/specs/rondo-dmowskiego.md`):
+- **The island**: grey granite paving in concentric bands over the four mapped lawns between the tram
+  cross, a crescent flower bed per quarter (red or purple in a yellow rim) and a shrub bed in an
+  orange rim; the laser scan's trees on it removed (`tree_free`); the PRASA kiosk and two planters the
+  street-details bake had put on the island moved off (`DISCS`).
+- **The underpass stairs**: Metro Centrum's blue polycarbonate "tubes" over all twelve walled
+  stairwells (blue arches, closed deep end, red M post at the mouth glowing at night), and the same
+  `tube` form for the three Centrum `subway_entrance` stairs by the Patelnia (`Props`, storefronts).
+- **The Patelnia mural**: an original colourful pattern on the north face of its 1.9 m south wall.
+- **Street furniture**: a PRASA kiosk by the Patelnia stairs, an ice-cream cart in the south-west and
+  a tram shelter on the east Jerozolimskie island (`bake_street_details.py` RONDO; new kind `shelter`).
+- **Drive test**: the ring's four sides and Marszałkowska by the south-east stairs (playtest suspect
+  PT-4) are SPOTS in `check_drive.gd`.
+Left:
+- Mac look check (QUESTIONS): bed colours and sizes against the orthophoto, the tubes' height and
+  blue, whether every stairwell really has a tube (some may be open stairs), the mural's place.
+- The underpass itself (shops, the passage to the metro) is not modelled: the camera never sees it.
+- The crossings the city added in 2022 at the four arms are the road bake's; a zebra check against
+  the plan (Widok, Poznańska, Nowogrodzka, Parkingowa) belongs with "Roads against real Warsaw".
+- The occlusion ghost cuts the island's paving and beds on the camera's side when a tower hides the car
+  (they are in the building material, like every landmark): the lawn shows through in the ghost's
+  circle. A ground-level exemption in `building.gdshader` (by UV2.y, the height above ground) would
+  fix it for every site's ground dressing (Dom Partii's court, Plac Defilad).
+- The stairwell walls are the map's 1.9 m walls (`lines` k wall): real balustrades are about 1 m.
+  Lowering them is a map-builder change for every mapped wall, not done here.
 ## Map checks in GitHub CI (2026-11-02)
 
 - Done: the `map` job in `.github/workflows/verify.yml`. The GUGiK-derived files (lod2.bin, lod2.json,
@@ -54,17 +87,23 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
 - [ ] K2 ul. Chmielna, Nowy Świat to Pasaż Wiecha (2024): granite slabs, 95 trees (two rows of
   elms before Plac Pięciu Rogów), 64 benches and chairs, the small fountain by Kino Atlantic,
   Ali's square (map, Opus spec; Sonnet build; a new PLACE in `planted_trees.py`).
-- [ ] K3 Varso Place: street planting on Chmielna's side, roof terraces on Varso 1/2, trees on
-  the tower's deck, and a parody name sign (default VERSO PLACE; never the real mark). Opus spec
-  from photos, Sonnet build.
+- [x] K3 Varso Place (spec docs/landmarks/specs/varso_place.md): the sky garden on the tower's
+  205 m roof (16 hawthorns, dwarf pines, benches, glass balustrade), planted terraces on Varso 1's
+  71 m and Varso 2's 80 and 72 m roofs (site `varso_place`), the VERSO PLACE name stone and the
+  60 t erratic on the corner plaza by Al. Jana Pawła II, 6 young trees in Chmielna's bare beds
+  (`planted_trees.py` PLACE `varso`). Open for the Mac (QUESTIONS): the photo check of every
+  part; not built: the lobby's 12 olive trees, Varso 1's 7th-floor terrace, the raised crossing.
 - [x] K4 Zielona Świętokrzyska (2018): built, see docs/design/krajobraz-places.md (open for the Mac: a street photo
   compare of the planters' places; trees stay as scanned).
-- [ ] K5 Rondo Daszyńskiego plazas: Skyliner's green passage (forest-like three tiers, wooden
-  benches on terraces), Generation Park's and Mennica Legacy Tower's plazas (Sonnet, Opus spec).
+- [x] K5 Rondo Daszyńskiego plazas (2026-11-02): 121 young trees (birch, linden, hornbeam, a few
+  pines, rowan), 51 shrub beds and 11 benches in the open ground round Skyliner, Generation Park
+  and Mennica Legacy Tower (`tools/plaza_gardens.py`, spec docs/design/rondo-plazas.md). Open for
+  the Mac (QUESTIONS): the groves against photos, the wooden benches on terraces (flat ground here).
 - [ ] K6 Browary Warszawskie's Central Garden over the Leżakownia and Norblin's candelabra
   planes and climbers (Sonnet; with "Norblin, Browary" below).
-- [ ] K7 Bulwary Wiślane stages 1-2: the 6 floating pavilions, the splash pool, the Vistula fish,
-  the amphitheatre and trampolines, checked against the orthophoto (Sonnet).
+- [x] K7 Bulwary Wiślane stages 1-2 (2026-11-02, site `bulwary_basen`, spec bulwary_basen.md): the
+  splash pool and 3 fish (the 6 pavilions are the boulevard dressing, PR #310). Left: the amphitheatre, trampolines and the "living river"
+  garden (not in OSM, need the orthophoto), and the Mac look check (QUESTIONS).
 - [x] K8 Arkadia's playground (Al. Jana Pawła II 82, 2018), 2026-11-02: one new park piece
   `ropecourse` (ribbon rope course, three flush trampolines, timber bench-sculpture, three lamps on
   a cable; ~520 tris, solid) in the green strip west of Arkadka (new park "arkadia" in

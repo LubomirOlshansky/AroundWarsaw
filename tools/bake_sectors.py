@@ -96,6 +96,9 @@ SECTOR_ONLY = {"buildings", "markings", "carriage", "symbols", "sand", "sandbars
 # _find_towers, _palace_frame). tools/bake_city.gd checks the sites found from `site_parts`
 # against the whole map's, so a landmark added there without a line here fails the bake.
 SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "Rotunda PKO", "Varso Tower",
+              # Varso Place (Krajobraz K3, 2026-11-02): the roof terraces on Varso 1 and 2 (landmarks.gd
+              # _build_varso_place reads their parts' heights; the buildings stay the map's)
+              "Varso I", "Varso II",
               # the skyline's towers (landmarks.gd TOWERS, the landmarks loop)
               "Złota 44", "Warsaw Spire", "Q22", "Rondo 1", "InterContinental", "Cosmopolitan",
               "Warsaw Trade Tower", "Skyliner", "Warsaw Unit", "Mennica Legacy Tower", "Generation Park Y",

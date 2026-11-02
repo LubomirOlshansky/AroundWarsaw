@@ -32,11 +32,16 @@ then the Launch gate.
 - [x] Warsaw Spire rebuilt to the real shape (F's photos, 2026-11-02; spec `spire.md`): a shaft that widens
       upward over a lit glass lobby, a domed roof with a fin and two masts, the mirrored entrance canopy on
       V legs, the two curved 15-storey wings and the paved plaza; Mac look check parked (QUESTIONS)
+- [x] Rondo Dmowskiego as it is: the paved island with its four crescent flower beds round the tram cross,
+      Metro Centrum's blue tubes over all twelve underpass stairs and the Patelnia's, the Patelnia mural, a
+      kiosk, a cart and the east tram shelter (F, 2026-11-02; spec `rondo-dmowskiego.md`; Mac look check parked)
 - [x] Arkadka redesign, roof car park, BANK PEPEO sign and the Forest roof terrace (F, 2026-11-01; spec `arkadia.md`; Mac photo check parked)
 
 
 - [x] Powiśle streets: eight small neon-signed shops on Tamka, Dobra, Browarna, Topiel and Solec (F, 2026-11-02; signs only, positions need a Mac look)
 - [x] Classic cinemas: seven neon marquees, Muranów, Atlantic, Luna, Kultura, Elektronik, Femina, Kinoteka (F, 2026-11-02; signs only, positions need a Mac look)
+- [x] Beta radio: KEBAB FM + MORDOR FM lineup, DALEJ skip button, the host's start greeting with weather (F, 2026-11-02); Suno/ElevenLabs prompts in `docs/MUSIC.md`
+- [ ] Beta radio songs: 8 vaporwave for KEBAB FM, 8 minimal techno for MORDOR FM, idents (F generates on a paid plan; `tools/add_music.py`)
 - [x] Gdański Business Center (tower, two blocks, parody logos; 2026-11-02, spec `gbc.md`; Mac photo check parked)
 - [x] Flat-price jokes: radio, passengers, Podwózka, traffic, dog walkers and three developer billboards (F, 2026-11-01; text only, billboard spots need a Mac look)
 - [x] Pokorna 2 remodelled as a block of flats: loggia windows, balconies, warm plaster (F, 2026-11-02, site `pokorna2`; Mac look check in QUESTIONS)
@@ -96,9 +101,12 @@ then the Launch gate.
 ### Left: landmarks and street details
 - [ ] Krajobraz places (F, 2026-11-02; docs/design/krajobraz-places.md, BACKLOG "Krajobraz places"): the newest public spaces as built
   - [x] K1 ul. Bracka's woonerf: its 22 missing young trees planted in the mapped beds (33 in all)
+  - [x] K3 Varso Place: the sky garden of 16 hawthorns on the tower's 205 m roof, planted terraces on Varso 1 and 2, the VERSO PLACE sign and the erratic on the corner plaza, 6 young trees in Chmielna's bare beds (spec varso_place.md; Mac photo check in QUESTIONS)
+  - [x] K7 Bulwary Wiślane: the splash pool and three fish (site `bulwary_basen`, spec bulwary_basen.md; the pavilions are the boulevard dressing lane)
   - [x] K8 Arkadia's playground: a rope course with trampolines, a bench-sculpture and cable lamps beside Arkadka (2026-11-02)
   - [x] K4 Zielona Świętokrzyska: 17 planters on the pavements where the scanned trees leave a gap (2026-11-02)
-  - [ ] K2 Chmielna, K3 Varso Place, K5 Rondo Daszyńskiego plazas, K6 Browary/Norblin gardens, K7 the boulevards' pavilions, K9 the stadium's grounds; K10 Muzeum Historii Polski is off the map (QUESTIONS)
+  - [x] K5 Rondo Daszyńskiego plazas: three tiers of planting and benches round Skyliner, Generation Park and Mennica Legacy Tower (2026-11-02)
+  - [ ] K2 Chmielna, K6 Browary/Norblin gardens, K9 the stadium's grounds; K10 Muzeum Historii Polski is off the map (QUESTIONS)
 - [x] Stadion Leguminy (Legia's ground on Łazienkowska, F, 2026-11-01): modelled from the mapped bowl outline (site `legia`, spec legia.md); Mac photo check parked (QUESTIONS)
 
 - [x] All churches designed by one set of rules (F, 2026-11-01; rules and inventory in
