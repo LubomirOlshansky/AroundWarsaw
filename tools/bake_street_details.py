@@ -46,6 +46,10 @@ CORRIDORS = [
     ("C6", "avenue", [(-2644, 412), (-2149, 242), (-1671, 75), (-1181, -94)]),
     ("C7", "avenue", [(73, -1835), (900, -1800), (1321, -1948)]),
     ("C8", "avenue", [(1417, -292), (1722, -391), (1611, -372), (1496, -601)]),
+    # Marszałkowska street by street (F, 2026-11-01): the rest of the street, north of C1 (past
+    # Plac Bankowy, whose own thread owns the square) and south of the Rotunda to Plac Zbawiciela.
+    ("C9", "avenue", [(-1337, -615), (-1238, -520), (-1166, -465), (-1126, -350), (-1091, -256)]),
+    ("C10", "avenue", [(-872, 411), (-792, 544), (-750, 669), (-672, 876), (-594, 1095)]),
 ]
 REACH = 38.0                     # a road is on a corridor when its middle is this near the waypoints' line
 ROAD_KINDS = {"primary", "secondary", "tertiary", "unclassified", "residential", "living_street", "trunk"}
@@ -55,10 +59,19 @@ DISCS = [(-852.0, 334.0, 40.0)]   # the Rotunda (jobs.gd FIRST_PAST); the Palm i
 LANDMARK_CLEAR = 6.0
 # Props: footprint radius (m), own-kind spacing (m), poster/awning colours.
 RADIUS = {"kiosk": 2.2, "stall": 1.9, "cafe": 1.7, "planter": 0.9, "column": 1.2, "bollards": 1.0,
-          "cart": 1.4, "post": 0.5, "ticket": 0.7}
+          "cart": 1.4, "post": 0.5, "ticket": 0.7, "bench": 1.0}
 SPACING = {"kiosk": 250.0, "stall": 250.0, "column": 150.0, "cart": 400.0}
 SOLID = ("kiosk", "stall", "cart")
-KINDS = ["kiosk", "stall", "cafe", "planter", "column", "bollards", "cart", "post", "ticket"]
+KINDS = ["kiosk", "stall", "cafe", "planter", "column", "bollards", "cart", "post", "ticket", "bench"]
+# A stop kit on a tram island (a platform with no mapped shelter) carries this colour: the prop
+# stands on the slab (street_details.gd lifts it PLATFORM_TOP). Marszałkowska pass, 2026-11-02.
+ON_PLATFORM = "platform"
+# An island lies inside the carriageway polygon is edged by its own kerb and lies beside the tram tracks; everything else still blocks a kit piece.
+PLATFORM_SKIP = ("shelter", "platform", "island", "carriageway", "kerb", "tram track", "ballast")
+PLATFORM_R = 0.5         # the clearance of a kit piece on the slab (it is 2-3 m wide)
+KIT_AREA = 150.0         # a platform smaller than this (m2) is no stop
+KIT_SHELTER_GAP = 25.0   # a mapped shelter this near already has its kit
+KIT_OFFSET = 9.0         # the post and the ticket machine stand this far from the bench along the island
 FLOWERS = ["#e63946", "#ffd23f", "#9b5de5", "#f4a261", "#e8a6b8"]
 PARASOLS = ["#2f6b4f", "#f4f1de", "#24324a", "#c8282a", "#e07a5f"]
 POSTERS = ["#e07a5f", "#9db4d8", "#e8d36a", "#81b29a", "#e8a6b8"]
@@ -273,6 +286,58 @@ def stop_kits(pl, roads):
     return n
 
 
+def platform_kits(pl, roads):
+    """Tram islands on a corridor road with no mapped shelter near: a bench in the middle, a stop post
+    at one end and a ticket machine at the other (all on the slab, facing the tracks)."""
+    data = pl.data
+    sh = data.get("shelters", [])
+    segs = []
+    for ch, r in roads:
+        p = P.pairs(r["p"])
+        segs.extend(zip(p, p[1:]))
+    n = 0
+    for plat in data.get("platforms", []):
+        poly = P.pairs(plat["p"])
+        if len(poly) < 3 or abs(P._area(poly)) < KIT_AREA:
+            continue
+        cx = sum(q[0] for q in poly) / len(poly)
+        cz = sum(q[1] for q in poly) / len(poly)
+        if pl.excluded(cx, cz):
+            continue
+        if any(math.hypot(sh[i] - cx, sh[i + 1] - cz) < KIT_SHELTER_GAP for i in range(0, len(sh) - 2, 3)):
+            continue
+        best = None
+        for a, b in segs:
+            d = P.seg_dist(cx, cz, a, b)
+            if d < STOP_REACH and (best is None or d < best[0]):
+                best = (d, a, b)
+        if best is None:
+            continue
+        # the island's long axis = its longest edge
+        edge = max(zip(poly, poly[1:] + poly[:1]), key=lambda e: math.hypot(e[1][0] - e[0][0], e[1][1] - e[0][1]))
+        ln = math.hypot(edge[1][0] - edge[0][0], edge[1][1] - edge[0][1]) or 1.0
+        tx, tz = (edge[1][0] - edge[0][0]) / ln, (edge[1][1] - edge[0][1]) / ln
+        _, a, b = best
+        sl = math.hypot(b[0] - a[0], b[1] - a[1]) or 1.0
+        u = max(0.0, min(1.0, ((cx - a[0]) * (b[0] - a[0]) + (cz - a[1]) * (b[1] - a[1])) / (sl * sl)))
+        qx, qz = a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u
+        dl = math.hypot(cx - qx, cz - qz) or 1.0
+        face = ((cx - qx) / dl, (cz - qz) / dl)
+        for kind, off in (("bench", 0.0), ("post", -KIT_OFFSET), ("ticket", KIT_OFFSET)):
+            x, z = cx + tx * off, cz + tz * off
+            if not P.point_in_poly(x, z, poly):
+                continue
+            if min(P.seg_dist(x, z, p, q) for p, q in zip(poly, poly[1:] + poly[:1])) < 0.7:
+                continue   # the slab's edge (its kerb) is no place for a prop
+            if len(pl.items) >= MAX_ITEMS:
+                continue
+            if pl.solids.blocked(x, z, PLATFORM_R, skip=PLATFORM_SKIP) is not None:
+                continue
+            pl.add(kind, x, z, face, ON_PLATFORM)
+            n += 1
+    return n
+
+
 def bake(data):
     pl = Placer(data)
     roads = corridor_roads(data)
@@ -300,7 +365,7 @@ def bake(data):
                     pos += 70.0 + h01(round(a[0]), round(a[1]), round(pos), side) * 40.0
                 walked[side] = pos
             run += ln
-    stops = stop_kits(pl, roads)
+    stops = stop_kits(pl, roads) + platform_kits(pl, roads)
     items = sorted(pl.items, key=lambda i: (i[1], i[2], i[0]))
     return items, stops
 

@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Marszałkowska has more street life: flower planters, bollards, kiosks and ad columns along the whole street, and tram stops with a bench, a stop sign and a ticket machine.
 - The Kebab Boost nitro now burns: two flames out of the tail, a whoosh and a short buzz when it lights.
 - You can now play in Polish or in English, not both at once: pick POLSKI or ENGLISH on the title screen or in Settings → Dźwięk → Język. The game remembers it and starts in your phone's language the first time.
 - The bike paths are smoother: small gaps in them are closed, paths OpenStreetMap had cut into pieces run on as one, and spikes and sharp corners are rounded, so riders ride on from one path to the next instead of turning back.

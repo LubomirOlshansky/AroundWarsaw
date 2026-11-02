@@ -42,7 +42,9 @@ def main():
         if pl.excluded(x, z):
             bad.append("%s at %.1f,%.1f is in an excluded area" % (kind, x, z))
         skip = ("shelter", "platform", "island") if kind in ("post", "ticket") else ()
-        why = pl.solids.blocked(x, z, B.RADIUS[kind] - 0.05, skip=skip)
+        if colour == B.ON_PLATFORM:
+            skip = B.PLATFORM_SKIP
+        why = pl.solids.blocked(x, z, (B.PLATFORM_R if colour == B.ON_PLATFORM else B.RADIUS[kind]) - 0.05, skip=skip)
         # a prop is checked against the others by the bake (the items list); here against the map
         if why:
             bad.append("%s at %.1f,%.1f is blocked by %s" % (kind, x, z, why))

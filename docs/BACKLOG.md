@@ -175,9 +175,15 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
 - Pass 2 (cloud, Sonnet): people waiting on Marszałkowska's 12 mapped tram platforms (`crowds.gd`
   `stop` sites, commute curve). Mac/phone look check: do the groups read as commuters at the
   stops, facing is random (not toward the track), the density on the narrow islands, and
-  whether the `ped_zones` walkers also fill them. Still open on the street: facade, shopfront
-  and roof polish house by house, tram-stop benches and ticket machines on the north half,
-  crossings against real photos.
+  whether the `ped_zones` walkers also fill them.
+- Pass 3 (cloud, Sonnet, 2026-11-02): street details (`bake_street_details.py`) now cover the
+  whole street: corridors C9 (Bankowy side to Świętokrzyska) and C10 (the Rotunda to Zbawiciela)
+  add planters, bollards, kiosks and columns; tram islands with no mapped shelter within 25 m get
+  a bench, a stop post and a ticket machine on the slab (`street_details.gd` lifts them 1 m).
+  Plac Bankowy itself is left to its own item. Mac/phone look check parked in QUESTIONS. Still
+  open on the street: facade, shopfront and roof polish house by house (needs photos), crossings
+  against real photos, the island kits only fit where the slab is wide enough (most islands
+  got no kit: a fence, wall or the tracks leave no room).
 - Next on the street: MDM's arcades, reliefs and corner towers (LANDMARKS 2.8), the church's
   night lighting, Plac Zbawiciela's rotunda-side cafés, houses and roads street by street.
 

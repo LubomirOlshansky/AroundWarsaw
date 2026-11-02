@@ -886,6 +886,18 @@ static func add_stop_post(st: SurfaceTool, xf: Transform3D) -> void:
 	_xbox(st, xf, Vector3(0, 1.75, -0.08), Vector3(0.4, 0.55, 0.05), Color("#eeeadc"))
 
 
+## A tram-stop bench (ławka): a 1.8 m slatted seat and back on two graphite feet, the back to
+## +z (away from the street), like the stop kits. ~60 triangles.
+static func add_stop_bench(st: SurfaceTool, xf: Transform3D) -> void:
+	var wood := Color("#8a6a45")
+	var graphite := Color("#33363b")
+	_xbox(st, xf, Vector3(0, 0.46, 0.0), Vector3(1.8, 0.06, 0.42), wood)
+	_xbox(st, xf, Vector3(0, 0.78, 0.22), Vector3(1.8, 0.34, 0.05), wood)
+	for x in [-0.78, 0.78]:
+		_xbox(st, xf, Vector3(x, 0.22, 0.0), Vector3(0.07, 0.44, 0.4), graphite)
+		_xbox(st, xf, Vector3(x, 0.6, 0.22), Vector3(0.07, 0.6, 0.07), graphite)
+
+
 ## A ticket machine (BILETY, tickets): a 1.7 m grey-and-yellow box with a lit screen and the word in
 ## pixel letters on its head. ~120 triangles.
 static func add_ticket_machine(st: SurfaceTool, xf: Transform3D) -> void:
