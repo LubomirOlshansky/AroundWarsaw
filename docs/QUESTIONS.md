@@ -138,6 +138,7 @@ Newest first. One entry per question.
   and night: does the ring meet the real ground without a step or a gap, does the fade read as
   distance (not fog), are the blocks the right scale. Shots of the cloud look are in the PR.
 
+- **2026-11-02 · landmarks · Krakowskie Przedmieście: one Mac gather for everything K1-K6 left** — The cloud has no photos (`refs/` is empty here), so by the photos-only rule nothing more is modelled until a Mac session fills `refs/krakowskie/` (Commons photos + GUGiK ortho, SOURCES.md, a REPORT.md in game coordinates). Wanted, in order: (1) Mickiewicz's spot and facing; (2) the University gate's true spot and width, Pałac Kazimierzowski's front; (3) Bristol's dome corner and facade colours; (4) Pałac Czapskich's front direction and colour (own model: landmarks thread); (5) the southern Potocki guardhouse; (6) the Carmelite front's pilasters; (7) the granite setts' extent beyond Nowy Świat's top; (8) awnings, café gardens (Bristol, Europejski), the carriage rank for the street-by-street pass. Default built: everything as in the entry below. POLIN, the monuments pass and the Castle are other threads' and are left out.
 - **2026-11-01 · landmarks · Krakowskie Przedmieście's photo check (K1-K6, M2)** — Built from
   the OSM outlines alone, so every height and a few spots are guesses (Default built, the specs'
   "photo check" notes list them). For F on the Mac, in order of how much they could be wrong:
