@@ -92,7 +92,9 @@ then the Launch gate.
 - [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views
       shows), 2026-11-01, PR #183
 - [x] Bike paths smoothed (F, 2026-11-02, `tools/cycleways.py`, run by bake_osm): 195 gaps closed, 218 split ways joined, 52 ends on a line, 68 corners rounded; Mac look and ride check parked, comparison with OSM and the 3-8 m gaps left
-- [ ] Map review C: the streets of the 3d-1 box and map north against the orthophoto
+- [x] Map review C: the streets of the 3d-1 box and map north against the orthophoto (2026-11-02):
+      one-lane one-way streets 3 m → 5.5-6.5 m (283 ways), split legs kept one lane; alignment fine.
+      two-lane streets 6 → 7 m (423 ways). Open: lane lines and zebras need the 0.1 m photo (BACKLOG "From map review C")
 - [x] Bridge and tunnel joins (loop 3e leftovers): rails cut where a bus box touches them,
       Rozdroże's portal wall, Nowy Zjazd's wall (check_drive `--no-allow` 51 → 26 lane spots; 3 of
       11 allowlist entries gone). Open: the loop ramps' parapets and slabs at Łazienkowski's Praga

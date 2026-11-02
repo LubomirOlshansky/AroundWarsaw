@@ -929,14 +929,12 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   Rotunda's teeth and the store signs' size. Not verified.
 
 ### P1: roads against real Warsaw (map, Opus)
-- **Map review C, the streets of the demo box.** `check_roads.py` (C1-C10) and `check_streets`
-  prove the roads are consistent with OpenStreetMap and drivable, not that they look like the real
-  streets. Map reviews A and B (2026-10-29) compared bridges and some streets of the old, smaller
-  map; the 3d-1 box (Praga, Powiśle south, Łazienki's edge, Muranów) and map north never had a
-  street review. Wanted: per district, the game's top view over the GUGiK orthophoto (as done for
-  BUW, `buw/ortho_on_game_grid.png`) for lane counts, markings, tram tracks, crossings, kerbs and
-  islands; a list of what differs; fixes in the bake. The orthophoto comes from the Mac (the cloud
-  gets 403). Gap.
+- ~~**Map review C, the streets of the demo box.**~~ Done 2026-11-02 (Opus; "From map review C"): the
+  game's roads over the GUGiK orthophoto in every district of the box and map north (district sheets
+  and a width measure across every street), and the worst mismatch fixed in the bake: one-lane one-way
+  streets were 3 m strips (505 ways, 31 km: Mokotowska, Wilcza, Hoża, Żurawia, Noakowskiego...) and are
+  now the street's default width, 5.5 m (6.5 m tertiary), split legs round an island kept at one lane;
+  two-lane two-way streets 6 → 7 m (423 ways, F's yes).
 - Already listed and still open: lines inside junctions not checked against photos and the dark
   Jerozolimskie / Nowy Świat at night ("From map review B"); the loop 3e structures (Łazienkowski's
   Praga end R8, the rail cutting, Rozdroże's tubes, Nowy Zjazd's wall, deck 4); Most Łazienkowski
@@ -2139,6 +2137,33 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   piers since 2026-11-01; Poniatowskiego is still open.)
 - Most Świętokrzyski, the Jana Pawła II viaduct and the Wisłostrada tunnel end at the map's rim
   (the diorama's void beyond): the bigger map moves the rim past them (known, DEMO.md 4.4).
+
+## From map review C (the streets against the orthophoto, 2026-11-02)
+- **Fixed**: `bake_roads.py` `road_width`: a `lanes=1` one-way residential, unclassified or tertiary
+  street (not a bridge or tunnel) is at least `DEFAULT_WIDTH` wide (283 ways widened); the legs of a
+  street split round an island or a narrow median (another one-way the other way within 14 m along
+  30 % of it, `mark_split_legs`, 222 ways) stay one lane. Zebras 12,215 → 12,701 m of asphalt.
+  check_roads 0 not allowed, check_streets S1 0.
+- **Fixed**: the bake crashed on main in `_blurred` (a joined bike path of one point); skipped.
+- **Fixed (F said yes, 2026-11-02)**: two-way streets with `lanes=2` (residential, tertiary,
+  unclassified; not bridges or tunnels) were 6.0 m and measure ~7.5 m over the photo: now at least
+  `TWO_LANE_STREET` 7.0 m (423 ways). Zebras on the asphalt 12,701 → 12,982 m; medians unchanged; young Krajobraz trees on ul. Pereca by Skyliner no longer fit beside the wider carriageway (two trees).
+- **Measured, open**: one-lane links (`*_link`, 3.25 m) read 4.5-5 m (shoulders); left, they ride the
+  deck solver.
+- **Alignment**: OSM sits on the photo within ~2 m everywhere looked at (Praga, Powiśle, Łazienki's edge,
+  Muranów, map north); no street needed moving. Tram tracks, islands and junction shapes match.
+- **Can't be judged from this photo**: lane lines, zebra stripes, kerbs and arrows. The demo's photo is
+  0.87 m/px and not a true orthophoto (towers lean over the streets, deep shadows). Needs GUGiK's
+  0.1 m tiles (the WMS answers 403 to the cloud and to the Mac's sandbox; the Mac's own shell may reach it).
+- **Bakes in the cloud**: with the Mac's `data/work/demo`, `lod2.*`, `terrain.json` and the 1 m
+  `data/raw/demo/gugik` copied in, the cloud's bake differs from the Mac's in small ways before any
+  change (cycle paths 20,459 vs 20,460 pieces, a few walls and fills): a floating-point difference in
+  `cycleways.py` / the structures, not traced.
+
+- **Found on main, not fixed here**: `check_landmarks` fails on `bulwary_basen` (the splash pool): the
+  helicopter at 6 m is not blocked over it (main's own centrum too, 2026-11-02). Also: a corner shop on
+  car-free Złota (-831, 96) has its door on Złota in main's committed bake, but a fresh bake puts it on
+  Zgoda (car_free runs before the street POIs); check_parodies' 80 % is now rounded down for that.
 
 ## From map review B (the streets, 2026-10-29)
 - Lines inside junctions mapped without a junction-box area: ~1.6 km of edge line and 0.4 km of
