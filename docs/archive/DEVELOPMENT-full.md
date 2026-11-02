@@ -5284,7 +5284,10 @@ still hold, with the paths above.
    `bake_osm.py` after `snap_props`, idempotent, also a command line tool on a baked map) adds
    the young trees planted since into their mapped beds, per place in its `PLACES` (Krajobraz
    places, 2026-11-02: ul. Bracka's woonerf, +22 to its 11 scanned young trees, 33 in all;
-   `trees3d` 268,992 → 269,124 values, `trees3d_crown` 44,832 → 44,854).
+   `trees3d` 268,992 → 269,124 values, `trees3d_crown` 44,832 → 44,854). K6 (2026-11-02) adds
+   places with fixed `spots` (Norblin's court: 5 candelabra planes, 15.5 m) or a staggered
+   `lattice` (Browary's Central Garden bed, counted to 18 trees with the 4 scanned ones): +17
+   trees, `trees3d` 269,226, `trees3d_crown` 44,871.
 1. OpenStreetMap (Overpass) → `data/raw/osm_wide.json` (the whole map: roads, trees, lamps,
    traffic lights, car parks, street furniture), then
    `W=data/raw/osm_wide.json && python3 -I tools/bake_osm.py $W $W game/map/centrum.json $W $W`.

@@ -18,6 +18,7 @@ someone writes its lines.
 - Cringulo's cream van now carries CRINGULO TV in dark letters on both sides.
 - Evening rides in Podwózka sometimes carry a first-date passenger from the dating app TIMBER, heading for the LORETKA roof bar. Cringulo's van now has a handful of fans standing behind it, chatting, and parking right by the van while he films finds a new easter egg.
 - Powiśle's Piano House now has a keyboard for a front, white keys and black window strips, and Cube House next door is a white cube with its bays stepping out floor by floor.
+- Norblin's court now has its five big multi-stem plane trees, and Browary Warszawskie's Central Garden is planted with lindens, hornbeams and planes.
 - The police keep up with a tuned car: a bought Ołdi TT or a better engine no longer leaves every patrol behind, so the nitro is the way to open a gap. On a gamepad the nitro is LB or RB, and the right stick turns the view.
 - The notebook MOJA WARSZAWA has a new card, "Kolejki" (The queues), found by the KUKŁA pancake window on Nowy Świat; it fills the "Queueing for the trend" chapter to ten.
 - Plac Zbawiciela comes alive: four neon cafés round the roundabout (Kawa Zbawienie, Szarlotka na rogu, Plan Z and Po mszy Spritz) with parasol terraces in front of the blocks, and the Church of the Holiest Saviour is lit at night: gilded crosses, a glowing stained-glass rose, lanterns at the porch and floodlamps up the front.

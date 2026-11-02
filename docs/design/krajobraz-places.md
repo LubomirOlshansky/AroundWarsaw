@@ -118,6 +118,10 @@ the walls, garden terraces upstairs. **Game:** both are L2 sites (BACKLOG "Norbl
 add the candelabra planes and the Central Garden, and fold in that section's Mac checks.
 Sonnet.
 
+**Done 2026-11-02:** `tools/planted_trees.py` places 5 candelabra planes (15.5 m) in Norblin's court and 12
+trees (lindens, hornbeams, planes) in a staggered grid over Browary's mapped garden bed. Left: wall climbers,
+upstairs terraces, slab levels (Mac photo check).
+
 ## K7 Bulwary Wiślane, stages 1 and 2
 
 Stage 1 (2015): 1 km from Podzamcze to Most Śląsko-Dąbrowski. Stage 2 (2017): Śląsko-Dąbrowski to

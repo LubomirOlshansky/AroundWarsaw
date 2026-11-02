@@ -23,8 +23,10 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
   big planters (Sonnet, small).
 - [ ] K5 Rondo Daszyńskiego plazas: Skyliner's green passage (forest-like three tiers, wooden
   benches on terraces), Generation Park's and Mennica Legacy Tower's plazas (Sonnet, Opus spec).
-- [ ] K6 Browary Warszawskie's Central Garden over the Leżakownia and Norblin's candelabra
-  planes and climbers (Sonnet; with "Norblin, Browary" below).
+- [x] K6 Browary Warszawskie's Central Garden and Norblin's candelabra planes, 2026-11-02:
+  `planted_trees.py` places `spots`/`lattice` (5 planes, 12 garden trees). Left: Norblin's wall
+  climbers and upstairs terraces, Browary's slab levels and vault lights (Mac photo check, no
+  system for wall climbers yet).
 - [ ] K7 Bulwary Wiślane stages 1-2: the 6 floating pavilions, the splash pool, the Vistula fish,
   the amphitheatre and trampolines, checked against the orthophoto (Sonnet).
 - [ ] K8 Arkadia's playground (Al. Jana Pawła II 82, 2018): the ribbon rope course, trampolines,

@@ -49,8 +49,16 @@ SPECIES = {
     "maple": [7.0, 2.0, 2.4],         # klon
     "cherry": [5.6, 1.9, 1.9],        # wiśnia (ozdobna)
     "bird_cherry": [6.2, 1.8, 2.1],   # czeremcha
+    # Browary's Central Garden (planted 2021, 5 years on) and Norblin's court (big stock set in 2021).
+    "linden": [9.0, 2.7, 2.8],        # lipa
+    "hornbeam": [8.2, 2.3, 2.5],      # grab
+    "garden_plane": [10.5, 3.2, 3.2], # platan
+    "candelabra": [15.5, 4.6, 4.0],   # multi-stem plane trained as a candelabra (Norblin)
 }
 
+# A place with "spots" ([x, z, species] each) plants exactly those; one with "lattice" (spacing in
+# m) plants a staggered grid inside its zone, up to "target" trees, both through the same clear-
+# of-solids test as the beds. Neither counts the scanned trees: they are placed by hand.
 PLACES = [
     {
         "id": "bracka",
@@ -61,6 +69,26 @@ PLACES = [
                  (-520.0, 268.0), (-562.0, 252.0)],
         "target": 33,
         "mix": ["plane", "maple", "cherry", "plane", "bird_cherry", "maple", "cherry", "plane"],
+    },
+    {
+        "id": "norblin",
+        "name": "Fabryka Norblina, the court (the candelabra planes, 2021)",
+        # The court inside the U of the halls (x -2290..-2245, z 62..100) round the chapel (-2257, 72):
+        # five multi-stem planes on the court's axis, the site's landmark.
+        "zone": [(-2290.0, 66.0), (-2250.0, 56.0), (-2238.0, 90.0), (-2268.0, 100.0), (-2278.0, 92.0)],
+        "spots": [(-2272.0, 70.0, "candelabra"), (-2270.0, 83.0, "candelabra"), (-2257.0, 88.0, "candelabra"),
+                  (-2246.0, 82.0, "candelabra"), (-2279.0, 76.0, "candelabra")],
+    },
+    {
+        "id": "browary",
+        "name": "Browary Warszawskie, the Central Garden over the Leżakownia (2021)",
+        # The mapped garden bed between Biura przy Warzelni and the diagonal wing (x -2480..-2440,
+        # z -123..-79): trees on slabs in a staggered grid, lindens, hornbeams and planes.
+        "zone": [(-2495.0, -121.0), (-2462.0, -125.0), (-2442.0, -92.0), (-2440.0, -82.0), (-2476.0, -76.0),
+                 (-2500.0, -90.0)],
+        "lattice": 8.0,
+        "target": 18,  # counting the scanned trees already in the bed (4)
+        "mix": ["linden", "hornbeam", "garden_plane", "linden", "hornbeam"],
     },
 ]
 
@@ -95,9 +123,53 @@ def _spots(bed, n):
     return [(cx + dx * 0.4, cz + dz * 0.4), (cx - dx * 0.4, cz - dz * 0.4)]
 
 
+def _hand_plant(data, place, solids=None):
+    """The new trees of a place with fixed "spots" or a "lattice": each must be clear of the
+    solids and of every tree already there (scanned or planted) by TREE_GAP."""
+    solids = solids or P.Solids(data)
+    trees = data.get("trees3d", [])
+    taken = [(trees[i], trees[i + 1]) for i in range(0, len(trees) - 5, 6)]
+    zone = place["zone"]
+    if "spots" in place:
+        cand = [(x, z, k) for x, z, k in place["spots"]]
+    else:
+        step = place["lattice"]
+        xs = [p[0] for p in zone]
+        zs = [p[1] for p in zone]
+        mix = place["mix"]
+        cand = []
+        row = 0
+        z = min(zs)
+        while z <= max(zs):
+            x = min(xs) + (step * 0.5 if row % 2 else 0.0)
+            while x <= max(xs):
+                if _inside(x, z, zone):
+                    cand.append((x, z, mix[int(_hash01(x, z, 1) * len(mix)) % len(mix)]))
+                x += step
+            z += step * 0.87
+            row += 1
+    out = []
+    # "target" counts every tree in the zone, so a second run (which sees the first's) adds nothing.
+    have = sum(1 for tx, tz in taken if _inside(tx, tz, zone)) if "lattice" in place else 0
+    for x, z, kind in cand:
+        if have + len(out) >= place.get("target", len(cand)):
+            break
+        if any(math.hypot(x - tx, z - tz) < (SAME if "spots" in place else TREE_GAP) for tx, tz in taken):
+            continue
+        if solids.blocked(x, z, CLEAR + (1.0 if kind == "candelabra" else 0.0), skip=("tree",)):
+            continue
+        top, radius, base = SPECIES[kind]
+        k = 0.92 + _hash01(x, z, 2) * 0.16
+        out.append([round(x, 1), round(z, 1), round(top * k, 1), round(radius * k, 1), round(base * k, 1), 0])
+        taken.append((x, z))
+    return out
+
+
 def plant(data, place, solids=None):
     """The new trees for one place, [x, z, top, radius, base, 0] each (not yet in the data)."""
     zone = place["zone"]
+    if "spots" in place or "lattice" in place:
+        return _hand_plant(data, place, solids)
     trees = data.get("trees3d", [])
     near = [(trees[i], trees[i + 1], trees[i + 2]) for i in range(0, len(trees) - 5, 6)
             if _inside(trees[i], trees[i + 1], zone)]
