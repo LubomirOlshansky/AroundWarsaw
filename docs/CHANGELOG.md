@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-02
 - The notebook MOJA WARSZAWA has a new card, "Kolejki" (The queues), found by the KUKŁA pancake window on Nowy Świat; it fills the "Queueing for the trend" chapter to ten.
+- Plac Zbawiciela comes alive: four neon cafés round the roundabout (Kawa Zbawienie, Szarlotka na rogu, Plan Z and Po mszy Spritz) with parasol terraces in front of the blocks, and the Church of the Holiest Saviour is lit at night: gilded crosses, a glowing stained-glass rose, lanterns at the porch and floodlamps up the front.
 - Krakowskie Przedmieście gets eight neon shopfronts along the royal route: an amber and silver shop, a chemist under the column, royal ice cream, sheet music and records, a reading café, pierogi at Bona's, mermaid souvenirs and an exchange office by the Castle.
 - Helicopter rescues on hotel and café roofs now name our parody places, not real chains.
 - The Barbican is now a proper brick gatehouse: a crenellated wall in a curve with four turrets under steep conical roofs.

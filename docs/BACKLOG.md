@@ -220,8 +220,14 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   2002 tris): ground-floor arcades on the facades facing the square and the axis, four corner
   towers with hipped attics and spires, a terracotta relief on each tower's square face. Mac look
   check parked (QUESTIONS): arcade rhythm and depth, tower heights, the real reliefs.
-- Next on the street: the church's night lighting, Plac Zbawiciela's rotunda-side cafés, the
-  reliefs' real subjects, Marszałkowska's houses, roads and street life street by street.
+- Pass 5 (cloud, Sonnet, 2026-11-02): Plac Zbawiciela's cafés and the church at night. Four neon cafés
+  (`Storefronts.ZBAWICIELA`: KAWA ZBAWIENIE, SZARLOTKA NA ROGU, PLAN Z, PO MSZY SPRITZ) and six parasol
+  terraces round the ring (`bake_street_details.py` TERRACES, 15 café sets, planters at the row ends);
+  the church gets lit gilt crosses and balls, a stained rose that glows, four porch lanterns and 12
+  floodlamps (1199 tris, budget 1250). Open: Mac look check (QUESTIONS), the signs on the real doors,
+  heaters and awnings on the terraces, a café crowd (crowds.gd zone), the floodlit plaster wash.
+- Next on the street: the reliefs' real subjects, Marszałkowska's houses, roads and street life
+  street by street.
 - Pass 2 (cloud, Sonnet): people waiting on Marszałkowska's 12 mapped tram platforms (`crowds.gd`
   `stop` sites, commute curve). Mac/phone look check: do the groups read as commuters at the
   stops, facing is random (not toward the track), the density on the narrow islands, and
@@ -238,8 +244,8 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   milk bar, dry cleaner, watchmaker, pastry shop, optician, florist, haberdashery, herbalist; check_parodies OK).
   Needs F's photos / Mac look check (QUESTIONS): doors at the real shops, per-house plaster colours and
   cornices, the crossings against real photos; Plac Bankowy's end.
-- Next on the street: the church's night lighting, Plac Zbawiciela's rotunda-side cafés, houses and
-  roads street by street.
+- Next on the street: houses and roads street by street (the church's night lighting and the
+  square's cafés are done, pass 5).
 
 ## Nowy Świat (F, 2026-11-01)
 
