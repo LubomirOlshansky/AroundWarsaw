@@ -453,6 +453,10 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     # turned to face the walk (tools/snap_props.py; the same code runs on a baked map).
     import snap_props
     snap_props.apply(out)
+    # F (2026-11-02): streets closed to cars since OpenStreetMap drew them (Złota's linear park):
+    # their roads out, their graph edges car-free, a pedestrian zone, the new trees (tools/car_free.py).
+    import car_free
+    print("car_free: " + car_free.apply(out))
     # Krajobraz places (2026-11-02): the young trees of the newest streets that the laser scan
     # predates (ul. Bracka's woonerf), before the content POIs, which keep clear of trees.
     import planted_trees

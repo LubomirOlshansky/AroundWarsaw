@@ -56,11 +56,13 @@ MAP = os.path.join(ROOT, "game", "map")
 # Krajobraz K2 (2026-11-02, planted_trees.py PLACE chmielna): 45,046 (+65 young trees in ul.
 # Chmielna's tree pits, 85 in its band). Before: 269886 / 44981. Then 45,045: the K5 plaza tree
 # through a lying scooter by Skyliner taken out (plaza_gardens.py keeps POI_GAP from POIs now).
+# Skwer Linearny na Złotej (F, 2026-11-02, tools/car_free.py): 45,081 (+36 young limes on Złota's
+# new park). Before: 270270 / 45045.
 # Map review C (2026-11-02): 4,572 again: with the one-lane one-way streets at their real width that
-# Leżak finds a clear spot by the Centralny stop. 45,043 trees: two young trees on ul. Pereca by the Skyliner
+# Leżak finds a clear spot by the Centralny stop. 45,079 trees: two young trees on ul. Pereca by the Skyliner
 # plaza drop where the two-lane street is 7 m now and their trunks would touch the carriageway.
-# Before: 270270 / 4571 / 45045.
-EXPECTED = {"trees3d": 270258, "pois": 4572, "trees3d_crown": 45043}
+# Before: 270486 / 4571 / 45081.
+EXPECTED = {"trees3d": 270474, "pois": 4572, "trees3d_crown": 45079}
 # docs/DEMO.md 7 row 7: the lane graph's strongly connected share at least this.
 SCC_SHARE = 0.95
 
