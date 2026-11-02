@@ -4,6 +4,13 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Level 26 rooftop club (F, 2026-11-01)
+
+Built: the club's furniture on the Atlas Tower crown (site `level26_club`); the crowd, band, queue,
+bass and hours were already there. Open: Mac look check (deck size against the real roof, the
+sign's side), the bass is a ground-level emitter (a rooftop one would reach the heli), laser beams
+at night were skipped (they read as poles by day).
+
 ## Gameplay pass (F, 2026-11-01, six phone screenshots)
 
 F played on the phone and asked for an easier, calmer, more open beta: "a city, not racing; most

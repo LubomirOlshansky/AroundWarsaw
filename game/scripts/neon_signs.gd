@@ -43,7 +43,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# The Mac photo check (2026-11-01): Ochota's letters by the entrance.
 		"OCHOTA",
 		# The Old Town hotels' names (parodies of Castle Inn and Hotel Bellotto, an aparthotel).
-		"KASZTEL INN", "CANALETTO", "STARÓWKA"]
+		"KASZTEL INN", "CANALETTO", "STARÓWKA",
+		# Level 26, the rooftop club on the Atlas Tower.
+		"LEVEL 26"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

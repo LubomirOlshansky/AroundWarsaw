@@ -116,6 +116,8 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               "Zamek Ujazdowski",
               # HOTEL PIURE's rooftop sign LUŹNO (landmarks.gd _build_piure_sign reads its parts' height)
               "Puro Warszawa Centrum",
+              # Level 26, the rooftop club on the Atlas Tower (landmarks.gd _build_level26_club reads its crown)
+              "Atlas Tower",
               # Fabryka Norblina (landmarks.gd _find_works: its tall wing is found among the parts
               # under the outline OSM names "Modsen")
               "Modsen"]

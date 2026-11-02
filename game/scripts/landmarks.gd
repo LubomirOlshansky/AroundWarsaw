@@ -30,6 +30,7 @@ const Neon := preload("res://scripts/neon_signs.gd")  # the dusk loop: sign size
 const M_PAVILION := 8.0   # glass lit from inside: + 0 warm (the Rotunda), + 0.5 cool (Varso's crown)
 const M_ATTIC := 9.0      # a parapet cut into merlons; fraction = its height / 10 m
 const M_LAMP := 10.0      # glows at night
+const VIOLET_SIGN := Color(0.62, 0.25, 1.0)  # Level 26's neon, as neon_signs.gd VIOLET
 const M_MEMBRANE := 11.0  # the stadium's roof membrane
 const M_GLASS := 12.0     # curtain wall with mullions (Varso)
 const M_SKIN := 13.0      # a tower's own skin; fraction = style / 16 (S_*, building.gdshader skin())
@@ -661,6 +662,12 @@ func _find_sites() -> void:
 	if piure.size() >= 3:
 		var pe := _box_of([piure]).end
 		_add_site("piure_sign", [PackedVector2Array([pe, pe + Vector2(0.2, 0), pe + Vector2(0.2, 0.2), pe + Vector2(0, 0.2)])])
+	# Level 26 (F, 2026-11-01): the rooftop club on the Atlas Tower, Al. Jerozolimskie 123A. The tower
+	# stays the map's own; a 0.2 m zone at its bounding box's corner makes it a site.
+	var atlas := _landmark("Atlas Tower")
+	if atlas.size() >= 3:
+		var ae := _box_of([atlas]).end
+		_add_site("level26_club", [PackedVector2Array([ae, ae + Vector2(0.2, 0), ae + Vector2(0.2, 0.2), ae + Vector2(0, 0.2)])])
 	var metropol := _landmark("Hotel Metropol")
 	if metropol.size() >= 3:
 		# A 0.2 m zone at the roof's south-east corner: a site's zone drops what stands in it,
@@ -993,6 +1000,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_metropol_sign(s)
 			"piure_sign":
 				_build_piure_sign(s)
+			"level26_club":
+				_build_level26_club(s)
 			"msn":
 				_build_msn(s)
 			"tr":
@@ -5259,6 +5268,158 @@ func _build_piure_sign(_site: Dictionary) -> void:
 	if top < 15.0:
 		return
 	_crown_signs(outline, g + top + 2.2, "LUŹNO", Color(1.0, 0.45, 0.78), 0.0, 0.45)
+
+
+## Level 26 (F, 2026-11-01), the rooftop club on the Atlas Tower: on the roof of the tower's crown
+## (the 4 m top storey OSM maps over the main roof, 116 m) a dark timber deck inside a glass
+## balustrade, a bar with a glowing back wall at one end, the DJ booth under a lighting truss with an
+## LED wall and speaker stacks at the other, lounge sofas between, planters, festoon lamps on posts
+## and the name LEVEL 26 in violet neon. The people are crowds.gd's roof crowd (`level_26`), the bass
+## city_sounds.gd's `club` tag, the hours places.json's. Everything is drawn with `_no_roof`, so the
+## roof grid (where the crowd stands, where the violet band hangs) stays the tower's own.
+func _build_level26_club(_site: Dictionary) -> void:
+	var outline := _landmark("Atlas Tower")
+	var crown := PackedVector2Array()
+	var crown_h := 0.0
+	var best := 0.0
+	for bld in _parts_in(outline, func(b: Dictionary) -> bool: return float(b["h"]) >= 100.0 and float(b["mh"]) >= 100.0):
+		var q := _pts(bld["p"])
+		if absf(_area(q)) > best:
+			best = absf(_area(q))
+			crown = q
+			crown_h = float(bld["h"])
+	if crown.size() < 3 or best < 150.0:
+		return
+	var g := _ground_under(outline)
+	var y := g + crown_h
+	var deck := _largest(Geometry2D.offset_polygon(crown, -1.8, Geometry2D.JOIN_MITER))
+	if deck.size() < 3:
+		return
+	var keep_roof := _no_roof
+	_no_roof = true
+	var none := Color(0, 0, 0, 0)
+	var violet := Color("#a35cff")
+	var pink := Color("#ff3d9a")
+	var cyan := Color("#35e0ff")
+	var warm := Color("#ffc873")
+	var dark := Color("#1f1c26")
+	# The deck's axes: along its longest edge (d) and across (n); its extent along each.
+	var d := Vector2(1, 0)
+	var longest := 0.0
+	for i in deck.size():
+		var e := deck[(i + 1) % deck.size()] - deck[i]
+		if e.length() > longest:
+			longest = e.length()
+			d = e.normalized()
+	var n := Vector2(-d.y, d.x)
+	var c0 := _centre(deck)
+	var u0 := INF
+	var u1 := -INF
+	var v0 := INF
+	var v1 := -INF
+	for q in deck:
+		var r := q - c0
+		u0 = minf(u0, r.dot(d))
+		u1 = maxf(u1, r.dot(d))
+		v0 = minf(v0, r.dot(n))
+		v1 = maxf(v1, r.dot(n))
+	var inner := _largest(Geometry2D.offset_polygon(deck, -0.5, Geometry2D.JOIN_MITER))
+	if inner.size() < 3:
+		inner = deck
+	# A rectangle `hu` long along `axis` and `hv` across, centred on a point.
+	var orect := func(c: Vector2, axis: Vector2, hu: float, hv: float) -> PackedVector2Array:
+		var m := Vector2(-axis.y, axis.x)
+		return PackedVector2Array([c - axis * hu - m * hv, c + axis * hu - m * hv, c + axis * hu + m * hv, c - axis * hu + m * hv])
+	var fits := func(r: PackedVector2Array) -> bool:
+		for q in r:
+			if not Geometry2D.is_point_in_polygon(q, inner):
+				return false
+		return true
+	# The floor, then the glass balustrade round it.
+	_mode = M_STONE
+	_prism(deck, y, y + 0.12, Color("#4a3a30"), Color("#5a4636"), M_STONE, M_STONE)
+	_parapet(deck, y + 0.12, 1.1, Color("#b9d3e3"))
+	y += 0.12
+	# Where things stand: fractions of the deck's extent, nudged across until they fit.
+	var spot := func(uf: float, vf: float, hu: float, hv: float, axis: Vector2) -> Vector2:
+		for k in [0.0, 1.0, -1.0, 2.0, -2.0, 3.0, -3.0, 4.0, -4.0]:
+			var p: Vector2 = c0 + d * lerpf(u0, u1, uf) + n * (lerpf(v0, v1, vf) + k)
+			if fits.call(orect.call(p, axis, hu, hv)):
+				return p
+		return Vector2(INF, INF)
+	# The bar at the low end, its front toward the deck (+d).
+	var bar: Vector2 = spot.call(0.14, 0.5, 0.9, 3.4, n)
+	if bar.x < INF:
+		_prism(orect.call(bar, n, 3.3, 0.55), y, y + 1.1, dark, Color("#3a3446"), M_STONE, M_STONE)
+		_prism(orect.call(bar + d * 0.57, n, 3.1, 0.03), y + 0.25, y + 0.85, violet, violet, M_LAMP, M_LAMP)
+		_prism(orect.call(bar - d * 1.4, n, 3.3, 0.15), y, y + 2.3, dark, dark.lightened(0.1), M_STONE, M_STONE)
+		for k in 3:
+			_prism(orect.call(bar - d * 1.24, n, 3.0, 0.03), y + 1.0 + 0.5 * k, y + 1.08 + 0.5 * k,
+					[pink, cyan, violet][k], [pink, cyan, violet][k], M_LAMP, M_LAMP)
+		for k in 6:
+			_prism(_square(bar + d * 1.25 + n * (-2.5 + k), 0.22), y, y + 0.78, Color("#2b2733"), pink if k % 2 == 0 else cyan,
+					M_STONE, M_LAMP)
+	# The DJ booth at the high end, under a truss, facing the deck (-d).
+	var dj: Vector2 = spot.call(0.86, 0.5, 1.4, 2.4, n)
+	if dj.x < INF:
+		_prism(orect.call(dj, n, 1.7, 0.6), y, y + 1.15, dark, Color("#3a3446"), M_STONE, M_STONE)
+		_prism(orect.call(dj - d * 0.61, n, 1.5, 0.03), y + 0.2, y + 1.0, cyan, cyan, M_LAMP, M_LAMP)
+		_prism(orect.call(dj + d * 1.5, n, 2.4, 0.1), y + 0.9, y + 3.9, pink, pink, M_LAMP, M_LAMP)
+		for su: float in [-1.0, 1.0]:
+			_prism(_square(dj + n * (su * 2.7) - d * 0.3, 0.1), y, y + 4.2, Color("#8a8f98"), Color("#8a8f98"), M_STONE, M_STONE)
+			_prism(orect.call(dj + n * (su * 3.9) + d * 0.3, d, 0.45, 0.45), y, y + 2.0, Color("#15141a"), Color("#26242d"), M_STONE, M_STONE)
+		_prism(orect.call(dj - d * 0.3, n, 2.8, 0.1), y + 4.0, y + 4.25, Color("#8a8f98"), Color("#8a8f98"), M_STONE, M_STONE)
+		for k in 5:
+			_prism(_square(dj - d * 0.45 + n * (-2.2 + 1.1 * k), 0.18), y + 3.6, y + 4.0, [pink, cyan, violet, warm, pink][k],
+					[pink, cyan, violet, warm, pink][k], M_LAMP, M_LAMP)
+	# Lounge sofas and tables between, in two rows.
+	var seat := [[0.36, 0.22], [0.36, 0.78], [0.62, 0.22], [0.62, 0.78]]
+	for s in seat:
+		var p: Vector2 = spot.call(float(s[0]), float(s[1]), 1.2, 1.0, d)
+		if p.x >= INF:
+			continue
+		var face := (c0 - p).dot(n)
+		var f := n * (1.0 if face > 0.0 else -1.0)
+		_prism(orect.call(p, d, 1.1, 0.45), y, y + 0.5, Color("#3a2a55"), Color("#5a3d88"), M_STONE, M_STONE)
+		_prism(orect.call(p - f * 0.5, d, 1.1, 0.12), y + 0.5, y + 0.95, Color("#3a2a55"), Color("#4a3470"), M_STONE, M_STONE)
+		var t := p + f * 1.5
+		_prism(_square(t, 0.4), y, y + 0.4, dark, Color("#3a3446"), M_STONE, M_STONE)
+		_prism(_square(t, 0.1), y + 0.4, y + 0.55, warm, warm, M_LAMP, M_LAMP)
+	# Planters along both long sides.
+	for uf: float in [0.25, 0.5, 0.75]:
+		for vf: float in [0.04, 0.96]:
+			var p: Vector2 = spot.call(uf, vf, 0.8, 0.3, d)
+			if p.x < INF:
+				_prism(orect.call(p, d, 0.8, 0.3), y, y + 0.6, Color("#5a4a3a"), Color("#2f6b3a"), M_STONE, M_STONE)
+				_prism(orect.call(p, d, 0.65, 0.22), y + 0.6, y + 1.5, Color("#2f6b3a"), Color("#3e8a4a"), M_STONE, M_STONE)
+	# Festoon lamps: posts about every 9 m on the inner ring, a warm bulb on each and two between.
+	var ring_len := 0.0
+	for i in inner.size():
+		ring_len += inner[i].distance_to(inner[(i + 1) % inner.size()])
+	var posts: Array[Vector2] = []
+	var step := maxf(ring_len / maxf(roundf(ring_len / 9.0), 4.0), 4.0)
+	var walked := 0.0
+	var next := 0.0
+	for i in inner.size():
+		var a := inner[i]
+		var b := inner[(i + 1) % inner.size()]
+		var el := a.distance_to(b)
+		while next <= walked + el and posts.size() < 16:
+			posts.append(a.lerp(b, (next - walked) / maxf(el, 0.001)))
+			next += step
+		walked += el
+	for k in posts.size():
+		var p: Vector2 = posts[k]
+		_prism(_square(p, 0.06), y, y + 2.9, Color("#4a4a52"), Color("#4a4a52"), M_STONE, M_STONE)
+		_prism(_square(p, 0.15), y + 2.9, y + 3.2, warm, warm, M_LAMP, M_LAMP)
+		var q: Vector2 = posts[(k + 1) % posts.size()]
+		if p.distance_to(q) < step * 1.6:
+			for m in [1.0 / 3.0, 2.0 / 3.0]:
+				var w := p.lerp(q, m)
+				_prism(_square(w, 0.1), y + 2.75, y + 2.95, warm, warm, M_LAMP, M_LAMP)
+	# The name, in violet, standing on the crown's south and east edges.
+	_crown_signs(crown, y + 2.6, "LEVEL 26", VIOLET_SIGN, 0.0, 0.5)
+	_no_roof = keep_roof
 
 
 func _box_poly(r: Rect2) -> PackedVector2Array:

@@ -94,6 +94,10 @@ then the Launch gate.
 - [x] Old Town hotels (F, 2026-11-01): fronts on three tenements (portal, canopy, neon name, flags,
       lanterns, card), under parody names KASZTEL INN (Castle Inn), CANALETTO (Hotel Bellotto),
       STARÓWKA (an aparthotel on the Rynek); Mac look check parked (QUESTIONS, BACKLOG "Old Town hotels")
+- [x] Level 26, the rooftop club on the Atlas Tower (F, 2026-11-01): a deck with a glass
+      balustrade on the crown (116 m), a bar, a DJ booth under a lighting truss with an LED wall
+      and speakers, lounge sofas, planters, festoon lamps, the name in violet neon; the people,
+      violet band, door queue, bass and hours were already there. Mac look check parked
 - [ ] Old Town Market Square leftovers: per-house plaster colours and sgraffito from photos, the
       four corner streets' mouths, a card for the Museum of Warsaw house (BACKLOG "Old Town square")
 - [x] Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle as models, people chilling

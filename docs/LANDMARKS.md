@@ -149,7 +149,7 @@ Checks: `check_landmarks.gd` runs on the full map for EVERY site that has a card
 | Widok Towers | S_GRID (green glass #5d8478, white grid; Mac photo check 2026-11-01) | - | - |
 | PZU Tower | S_RIBBON (pale green-blue glass #8fb5bd; 2026-11-01, spec `pzu_jm.md`) | - | - |
 | JM Tower | S_FINS on dark navy glass, mapped grey pilasters (spec `pzu_jm.md`) | - | - |
-Not covered: Pekao Tower, Warsaw Towers, Atlas Tower, Prosta Tower, V Tower, Concept Tower, Sienna Center etc. (generic).
+Atlas Tower: the map's own tower plus the Level 26 rooftop club on its crown (landmarks.gd `_build_level26_club`, site `level26_club`). Not covered: Pekao Tower, Warsaw Towers, Prosta Tower, V Tower, Concept Tower, Sienna Center etc. (generic).
 
 #### 1c. Skin-only (kept LoD2/OSM massing, own wall + roof colour + facade mode; `SKINS` via `_find_skins`, `skin_at`, `_mark_zone`)
 All with a card; check_landmarks only (except where noted). Open issue common to all (BACKLOG "Left"): colour-only, no portico/gables/towers modelled.
