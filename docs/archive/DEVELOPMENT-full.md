@@ -5284,9 +5284,17 @@ still hold, with the paths above.
    `bake_osm.py` after `snap_props`, idempotent, also a command line tool on a baked map) adds
    the young trees planted since into their mapped beds, per place in its `PLACES` (Krajobraz
    places, 2026-11-02: ul. Bracka's woonerf, +22 to its 11 scanned young trees, 33 in all;
-   `trees3d` 268,992 → 269,124 values, `trees3d_crown` 44,832 → 44,854; K2 ul. Chmielna, one
-   young tree per mapped tree pit, +65 to the 20 scanned in its band, 85 in all, `trees3d` →
-   269,514, `trees3d_crown` → 44,919, and its two pedestrian areas re-tagged `granite`).
+   `trees3d` 268,992 → 269,124 values, `trees3d_crown` 44,832 → 44,854).
+   `tools/plaza_gardens.py` (same hook, right after it; K5, 2026-11-02, spec
+   docs/design/rondo-plazas.md) plants the open ground round Skyliner, Generation Park and Mennica
+   Legacy Tower: +121 young trees (`trees3d` → 269,850 values, `trees3d_crown` → 44,975), 51
+   "park" beds in `areas`, 11 benches; `plaza_gardens` in the map lists the places done, so it
+   is idempotent.
+   K3 (2026-11-02, `planted_trees.py` PLACE `varso`): +6 young trees in Chmielna's bare beds by
+   Varso Place (`trees3d` → 269,886, `trees3d_crown` → 44,981).
+   K2 (2026-11-02, `planted_trees.py` PLACE `chmielna`): one young tree per mapped tree pit on
+   ul. Chmielna, +65 to the 20 scanned in its band, 85 in all (`trees3d` → 270,276,
+   `trees3d_crown` → 45,046), and its two pedestrian areas re-tagged `granite`.
 1. OpenStreetMap (Overpass) → `data/raw/osm_wide.json` (the whole map: roads, trees, lamps,
    traffic lights, car parks, street furniture), then
    `W=data/raw/osm_wide.json && python3 -I tools/bake_osm.py $W $W game/map/centrum.json $W $W`.
@@ -5706,6 +5714,7 @@ Command-line options (after `--`):
 | `--lift=M` | loop 1: aim the camera M metres above the vehicle (close-ups of tall landmarks: `--at=-1206,244 --lift=156 --yaw=110 --size=24 --lines=1080` looks at the Palace clock's east dial) |
 | `--probe` | loop 2b: stand where `--at` / `--heading` put the car (free roam), let 240 frames (or 8 s) pass, measure the next `--bench-frames` (default 600, or `--bench-seconds`, default 30) and print the bench's lines plus what is in view (nodes, instances, shadow casters, materials, shaders, kinds); quits |
 | `--no-map-edge` | railway lane (2026-11-01): the city without the land past the map's edge (`map_edge.gd`: the ring of ground, tree line, far blocks and the rails and roads running on), for a before/after `--probe` at the edge |
+| `--no-edge-roadworks` | edge roadworks (2026-11-02): the city without the roadworks closing the roads at the map's edge (`edge_roadworks.gd`: meshes, halos and their colliders; the edge wall stays and the traffic still stops at the lines), for a before/after `--probe` at an edge |
 | `--bench-frames=N` / `--bench-seconds=S` | loop 2b: frames to measure for `--bench` / `--probe` (default 600) and a time cap (default 30 s; with `--bench-button`, the BENCH run's length, default 55 s) |
 | `--bench-button` | loop 2b: press TEST · BENCH at frame 60 (the phone's run, at the current settings and cap) |
 | `--fps=N` | loop 2b: cap the frame rate for this run (0: none; else the setting, 60 or 30). `--bench` and `--probe` run uncapped, headless runs too |

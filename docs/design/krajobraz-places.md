@@ -107,7 +107,16 @@ stone rim, the shrub and perennial planting's colour in the beds, the lighting i
 For the Mac pass (QUESTIONS): the orthophoto against the trees, the granite's tone, the stone's
 spot and the square's official name on the plate.
 
-## K3 Varso Place
+## K3 Varso Place (built 2026-11-02)
+
+**Built** (spec `docs/landmarks/specs/varso_place.md`, from HB Reavis', ZinCo's and Eurobuild's
+pages; no photo reachable from the cloud): the sky garden on the tower's 205 m roof (16 round
+hawthorns, the number HB Reavis gives, dwarf pines, benches, a glass balustrade), planted terraces
+on Varso 1 (71 m) and Varso 2 (80 and 72 m) in the new site `varso_place`, the VERSO PLACE name
+stone and the 60 t erratic on the corner plaza by Al. Jana Pawła II, and 6 young trees in the
+beds the scan left bare (`planted_trees.py` PLACE `varso`). Mac photo check in QUESTIONS.
+
+The plan as written:
 
 Chmielna 69-73 (HB Reavis; Foster + Partners, HRA, Benoy, Epstein), 2022, the deck 2024. The
 studio's garden "in the clouds" on Varso Tower's roof at ~230 m (large nursery trees on a
@@ -120,7 +129,16 @@ Chmielna, terraces on Varso 1/2's roofs, a few trees on the crown's deck (triang
 mesh), and a parody name sign at the plaza (default **VERSO PLACE**, warsaw-tone; never the real
 mark). Opus spec from photos (model-from-photos), Sonnet build.
 
-## K4 Zielona Świętokrzyska
+## K4 Zielona Świętokrzyska (built 2026-11-02)
+
+**Built:** the scan has 166 trees within 14 m of ul. Świętokrzyska (x -1665 to -280), against the 194
+planted in 2018, so about 28 are missing (or merged into one crown). Trees stay as scanned; no tree is invented.
+`zielona_planters` in tools/bake_street_details.py walks the Marszałkowska to Nowy Świat stretch (x -1100 to -275)
+every 8 m on both sides, takes the first clear pavement point and puts a `planter` there unless a trunk is within
+5 m or another planter within 10 m: 17 planters (street_details.json 422 to 439 items). Not rendered in the cloud
+(no Godot there); the check_street_details gates pass.
+
+The original plan text follows.
 
 2018: 194 trees along the whole street, greenery in big planters where trees could not go,
 structural soil over the utilities, the carriageway narrowed and parking removed. **Game:** 166
@@ -162,6 +180,8 @@ Al. Jana Pawła II 82, 2018: a ribbon-like rope course joining the zones (slide,
 swings), trampolines, a rope bridge, water play for the youngest, shade trees, a big wooden
 bench-sculpture with sockets, lamps strung on cables. **Game:** Arkadka is a hand-built site; the
 playground is not there. Build it from the kit (`park_details` has `playground`). Sonnet, small.
+
+**Built 2026-11-02.** A new park piece `ropecourse` (`park_props_play.gd`): rubber floor, ribbon loops, three trampolines, bench-sculpture, three cable lamps; anchored in the green strip west of Arkadka (park "arkadia"). The mall keeps its parody name Arkadka.
 
 ## K9 Stadion Narodowy grounds
 

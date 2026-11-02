@@ -25,6 +25,7 @@ import sys
 
 SNAP_END = 3.0
 SNAP_LINE = 2.5
+SNAP_KEEP = 1.0   # no snap leaves a way's two ends closer than this (it would fold onto itself)
 MIN_STEP = 0.4
 SPIKE_DEG = 150.0
 SPIKE_LEG = 3.0
@@ -99,6 +100,7 @@ def _snap(ways, stats):
         ends[(i, 0)] = w[0]
         ends[(i, 1)] = w[-1]
     moved = {}
+    group = {}    # (way, end) -> the set of ends snapped to one point with it
     for (i, e), pt in sorted(ends.items()):
         best = None
         for j in grid.near(pt):
@@ -115,9 +117,23 @@ def _snap(ways, stats):
             tgt = moved.get((j, f)) or ((pt[0] + q[0]) / 2.0, (pt[1] + q[1]) / 2.0)
             moved[(i, e)] = tgt
             moved[(j, f)] = tgt
-            stats["gaps"] += 1
+            g = group.get((j, f), {(j, f)}) | group.get((i, e), {(i, e)})
+            for k in g:
+                group[k] = g
+    # A short way whose two ends both moved can land on one point and vanish (2026-11-02: 35 links
+    # went, one of them the 2.8 m piece under a zebra at (-92, 1720), check_streets S2): no end of
+    # such a way moves, nor any end snapped together with it (the gap there stays open).
+    for i, w in enumerate(ways):
+        a, b = moved.get((i, 0), w[0]), moved.get((i, 1), w[-1])
+        if math.hypot(a[0] - b[0], a[1] - b[1]) < SNAP_KEEP <= math.hypot(w[0][0] - w[-1][0], w[0][1] - w[-1][1]):
+            for k in group.get((i, 0), set()) | group.get((i, 1), set()):
+                moved.pop(k, None)
     for (i, e), tgt in moved.items():
-        ways[i][0 if e == 0 else -1] = (round(tgt[0], 1), round(tgt[1], 1))
+        w = ways[i]
+        tgt = (round(tgt[0], 1), round(tgt[1], 1))
+        if tgt != (w[0] if e == 0 else w[-1]):
+            stats["gaps"] += 0.5   # each closed gap moves two ends
+        w[0 if e == 0 else -1] = tgt
     # a free end just off another path's line: onto it, and the line gets the point
     grid = _Grid(ways)
     ends_now = {pt for w in ways for pt in (w[0], w[-1])}
@@ -134,6 +150,9 @@ def _snap(ways, stats):
                 continue
             d, ci, s, q = best
             q = (round(q[0], 1), round(q[1], 1))
+            o = w[-1] if e == 0 else w[0]
+            if math.hypot(q[0] - o[0], q[1] - o[1]) < SNAP_KEEP:
+                continue
             tgt = ways[idx[ci]]
             if math.hypot(q[0] - tgt[s][0], q[1] - tgt[s][1]) > 0.05 and math.hypot(q[0] - tgt[s + 1][0], q[1] - tgt[s + 1][1]) > 0.05:
                 tgt.insert(s + 1, q)
@@ -247,7 +266,7 @@ def main(argv):
     before = [p for p in data["paths"] if p.get("k") == "cycle"]
     data["paths"], stats = tidy(data["paths"])
     after = [p for p in data["paths"] if p.get("k") == "cycle"]
-    print(f"cycleways: {len(before)} -> {len(after)} ways; {stats['gaps']} gaps closed, {stats['tees']} ends put on a line, "
+    print(f"cycleways: {len(before)} -> {len(after)} ways; {stats['gaps']:.0f} gaps closed, {stats['tees']} ends put on a line, "
           f"{stats['joined']} ways joined, {stats['spikes']} spikes cut, {stats['corners']} corners rounded")
     if not dry:
         with open(src, "w") as f:

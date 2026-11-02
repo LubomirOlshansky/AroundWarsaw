@@ -11,7 +11,8 @@ about 33 young trees. This module plants the rest on the finished map data: bake
 also a command line tool for a map that is already baked, as the cloud has no OSM download.
 
 Each PLACE names its zone (game x, z), its target number of young trees counting the scanned
-young ones already there (a tree no taller than YOUNG_MAX m), and its species mix. One tree
+young ones already there (a tree no taller than YOUNG_MAX m), its species mix, and which `areas`
+kinds count as beds (default "park"; Chmielna's beds by Varso are mapped as "grass"). One tree
 goes into every bed of at least BED_MIN m² that has no tree within TREE_GAP m, a second into a
 bed of at least BED_TWO m² when it fits, until the target is reached; a spot must be clear of
 buildings, carriageways, benches, racks, lamps and other poles (bake_street_pois.Solids).
@@ -31,6 +32,9 @@ Sources for Bracka: krajobraz.com.pl/projekt/ul-bracka/ (Al. Jerozolimskie to Kr
 for Zarząd Terenów Publicznych), whiteMAD 26.04.2024 (33 trees replacing a temporary car park:
 planes, bird cherry, cherries, maples), Architektura & Biznes (a woonerf, "nearly 40" trees,
 benches and racks, a triangular square under the trees).
+Sources for Varso: Wikipedia "Varso" (new pavements, lamps, benches, bike stands, shrubs and
+trees round Chmielna), Eurobuild CEE "Chmielna zyska przy Varso" (almost 200 m of Chmielna,
+wider pavements, greener), ZinCo's Varso Place reference (~4,000 m² of green on the garage slabs).
 """
 import json
 import math
@@ -82,6 +86,20 @@ PLACES = [
                  (-520.0, 268.0), (-562.0, 252.0)],
         "target": 33,
         "mix": ["plane", "maple", "cherry", "plane", "bird_cherry", "maple", "cherry", "plane"],
+    },
+    {
+        "id": "varso",
+        "name": "ul. Chmielna by Varso Place, Al. Jana Pawła II to Varso 2's west end (2022)",
+        # The south pavement between Chmielna's carriageway and the fronts of Varso Tower, Varso 1
+        # and Varso 2: the street beds OSM maps as grass along Varso 1 and 2 (10-38 m² each). The
+        # 2023 scan has 15 trees here, all of 11 m or more (the nursery stock planted with the
+        # buildings); the beds it left bare get one young tree each (docs/landmarks/specs/varso_place.md S1).
+        "zone": [(-1596.0, 532.0), (-1603.0, 527.0), (-1690.0, 560.0), (-1768.0, 590.0), (-1830.0, 612.0),
+                 (-1822.0, 630.0), (-1790.0, 622.0), (-1745.0, 606.0), (-1700.0, 588.0), (-1660.0, 570.0),
+                 (-1620.0, 553.0), (-1598.0, 560.0)],
+        "target": 6,
+        "beds": ("park", "grass"),
+        "mix": ["maple", "plane", "maple", "bird_cherry"],
     },
     {
         "id": "chmielna",
@@ -217,7 +235,7 @@ def plant(data, place, solids=None):
     pois = [(p["x"], p["z"]) for p in data.get("pois", []) if p.get("k") != "address"]
     beds = []
     for a in data.get("areas", []):
-        if a["k"] != "park":
+        if a["k"] not in place.get("beds", ("park",)):
             continue
         poly = list(zip(a["p"][0::2], a["p"][1::2]))
         cx = sum(p[0] for p in poly) / len(poly)

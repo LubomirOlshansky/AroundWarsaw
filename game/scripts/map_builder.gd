@@ -15,6 +15,7 @@ const CityMaps := preload("res://scripts/city_maps.gd")
 const Models := preload("res://scripts/models.gd")
 const Trains := preload("res://scripts/trains.gd")
 const MapEdge := preload("res://scripts/map_edge.gd")
+const EdgeRoadworks := preload("res://scripts/edge_roadworks.gd")
 ## Tile size for instanced things (trees, lamps, parked cars). Loop 2b: 512 m (was 256): one
 ## MultiMesh is one draw call, and the iPhone pays per draw call, not per instance.
 const INSTANCE_TILE := 512.0
@@ -304,6 +305,10 @@ func setup_streamed(index: Dictionary, building_mat: ShaderMaterial, flat_mat: S
 	var edge: Node3D = MapEdge.build(self)
 	if edge != null:
 		add_child(edge)
+	# 2026-11-02: roadworks close every road that leaves the map (edge_roadworks.gd).
+	var works: Node3D = EdgeRoadworks.build(self)
+	if works != null:
+		add_child(works)
 
 
 ## Loop 3c: each sector's lowest ground (- 20 m: tunnels, the river bed) and its highest roof
@@ -4140,8 +4145,57 @@ func _box_oriented(st, centre: Vector3, basis: Basis, size: Vector3, col: Color)
 
 
 ## Tram and bus stop islands and railway platforms: raised concrete slabs.
+## PT-1 (2026-11-02): a platform at least SOLID_PLATFORM high (OSM railway=platform: 0.9 m, the
+## stations' and some tram stops', like Centrum's on Marszałkowska) is solid at its edges. The car
+## used to drive inside the slab (drive_height doesn't lift it 0.9 m) and stop dead on the shelter
+## standing on it, boxed in by the fence along the kerb. The low 0.25 m stop islands stay drivable.
+const SOLID_PLATFORM := 0.5
+## An edge whose ends or middle lie within a road's half width plus this of its centre line is
+## left open (check_drive: OSM's tram platforms overlap the outer lanes of Prosta, Niepodległości,
+## Okopowa..., where a wall would stop traffic and the car in lane 0). The fence or kerb is there.
+const PLATFORM_ROAD_CLEAR := 1.8
+
+
+## The road centre-line segments near the high platforms (a, b, reach), for _by_road.
+func _platform_roads() -> Array:
+	var box := Rect2()
+	var any := false
+	for a in data.get("platforms", []):
+		if float(a["h"]) < SOLID_PLATFORM:
+			continue
+		for q in _pts(a["p"]):
+			if any:
+				box = box.expand(q)
+			else:
+				box = Rect2(q, Vector2.ZERO)
+				any = true
+	var out := []
+	if not any:
+		return out
+	box = box.grow(30.0)
+	for r in data.get("roads", []):
+		var pts := _pts(r["p"])
+		var reach := float(r.get("w", 6.0)) * 0.5 + PLATFORM_ROAD_CLEAR
+		for i in pts.size() - 1:
+			var seg := Rect2(pts[i], Vector2.ZERO).expand(pts[i + 1])
+			if seg.intersects(box, true):
+				out.append([pts[i], pts[i + 1], reach])
+	return out
+
+
+## Whether a platform edge runs along or across a road (see PLATFORM_ROAD_CLEAR; across: Powiśle
+## station's platforms are drawn at the ground and reach over Wybrzeże Kościuszkowskie).
+func _by_road(p0: Vector2, p1: Vector2, roads: Array) -> bool:
+	for r: Array in roads:
+		var c := Geometry2D.get_closest_points_between_segments(p0, p1, r[0], r[1])
+		if c[0].distance_to(c[1]) < float(r[2]):
+			return true
+	return false
+
+
 func _build_platforms(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
+	var roads := _platform_roads()
 	for a in data.get("platforms", []):
 		var poly := _pts(a["p"])
 		if poly.size() < 3:
@@ -4161,6 +4215,11 @@ func _build_platforms(st) -> void:
 			var n := Vector3(e.y, 0.0, -e.x).normalized()
 			_quad(st, Vector3(p0.x, ground - 0.3, p0.y), Vector3(p1.x, ground - 0.3, p1.y),
 					Vector3(p1.x, ground + h + 0.1, p1.y), Vector3(p0.x, ground + h + 0.1, p0.y), n, col.darkened(0.12))
+			if h >= SOLID_PLATFORM and not _by_road(p0, p1, roads):
+				var b0 := Vector3(p0.x, terrain_height(p0.x, p0.y) - 0.3, p0.y)
+				var b1 := Vector3(p1.x, terrain_height(p1.x, p1.y) - 0.3, p1.y)
+				var up := Vector3(0.0, ground + h + 1.6 - minf(b0.y, b1.y), 0.0)
+				_wall_faces.append_array([b0, b1, b1 + up, b0, b1 + up, b0 + up])
 	_uv2 = Vector2.ZERO
 
 
