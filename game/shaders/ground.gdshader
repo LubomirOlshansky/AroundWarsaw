@@ -86,6 +86,85 @@ float joints(vec2 p, float size, float width) {
 	return 1.0 - step(width, min(d.x, d.y));
 }
 
+// R2 of docs/design/start-area-real.md (2026-11-01): Plac Centralny, the square laid in 2024-25
+// south and west of the Museum of Modern Art, paves the lost pre-war quarter into the ground:
+// the tenements' outlines in red and grey slabs, their courtyards in reused granite setts, and
+// its walks (the mapped footways, which follow the 1939 streets) in granite setts. Drawn inside
+// the square, in Marszałkowska's frame (first_scene.gd FRAME_O / FRAME_S / FRAME_T: s metres
+// north along the street, t metres east of it). The plots follow the old grid's direction and
+// rhythm, not a surveyed plan (the orthophoto check on the Mac sets them exactly).
+const vec2 CENTRALNY_O = vec2(-937.0, 210.1);
+const vec2 CENTRALNY_S = vec2(-0.34917, -0.93706);
+const vec2 CENTRALNY_T = vec2(0.93706, -0.34917);
+const vec4 CENTRALNY_BOX = vec4(-45.0, 92.0, -245.0, -23.0);   // s0, s1, t0, t1
+const float PLOT_WIDE = 19.0;    // a tenement's frontage (along s)
+const float PLOT_DEEP = 24.0;    // a plot's depth (along t): the house and its courtyard
+const float HOUSE_DEEP = 15.0;   // the house's own depth from the plot's front
+
+// Plac Centralny's stones at the point wp on a plaza (walk = false) or a footway (walk = true):
+// the colour (sRGB), or alpha 0 outside the square.
+vec4 centralny(vec2 wp, bool walk) {
+	vec2 r = wp - CENTRALNY_O;
+	float s = dot(r, CENTRALNY_S);
+	float t = dot(r, CENTRALNY_T);
+	if (s < CENTRALNY_BOX.x || s > CENTRALNY_BOX.y || t < CENTRALNY_BOX.z || t > CENTRALNY_BOX.w) {
+		return vec4(0.0);
+	}
+	vec2 p = vec2(s, t);
+	if (walk) {
+		// The walks: granite setts in rows.
+		vec2 cell = floor(p / vec2(0.2, 0.15));
+		float j = joints(p, 0.18, 0.02);
+		return vec4(vec3(0.62, 0.6, 0.57) * (0.92 + 0.14 * hash12(cell)) * (1.0 - 0.15 * j), 1.0);
+	}
+	float ks = fract(s / PLOT_WIDE) * PLOT_WIDE;
+	float kt = fract(t / PLOT_DEEP) * PLOT_DEEP;
+	float edge = min(min(ks, PLOT_WIDE - ks), min(kt, PLOT_DEEP - kt));
+	bool house = kt < HOUSE_DEEP;
+	if (edge < 0.6 || (abs(kt - HOUSE_DEEP) < 0.3)) {
+		// The outline: red slabs, every other plot's grey.
+		bool red = mod(floor(s / PLOT_WIDE) + floor(t / PLOT_DEEP), 2.0) < 1.0;
+		vec3 c = red ? vec3(0.66, 0.38, 0.32) : vec3(0.52, 0.52, 0.51);
+		return vec4(c * (0.95 + 0.08 * hash12(floor(wp * 2.0))), 1.0);
+	}
+	if (house) {
+		// Where a house stood: large pale grey slabs.
+		float j = joints(p, 1.2, 0.04);
+		return vec4(vec3(0.78, 0.77, 0.74) * (0.96 + 0.06 * hash12(floor(p / 1.2))) * (1.0 - 0.1 * j), 1.0);
+	}
+	// Its courtyard: reused setts, warmer.
+	float j = joints(p, 0.24, 0.03);
+	return vec4(vec3(0.7, 0.65, 0.58) * (0.92 + 0.12 * hash12(floor(p / 0.24))) * (1.0 - 0.15 * j), 1.0);
+}
+
+// K6 (2026-11-01): the carriageway of Krakowskie Przedmieście (and the top of Nowy Świat) is
+// granite setts, not asphalt. KP_LINE is the street's centreline from the map (a 15-point
+// simplification of the mapped ways, from the Castle Square end to Nowy Świat); the setts show
+// where an asphalt fragment lies within KP_HALF of it. The box test keeps the cost off every
+// other road.
+const vec4 KP_BOX = vec4(-740.0, -440.0, -1350.0, -450.0);   // x0, x1, z0, z1
+const float KP_HALF = 7.0;
+const vec2 KP_LINE[15] = vec2[15](
+	vec2(-717.0, -1333.0), vec2(-696.0, -1279.0), vec2(-680.0, -1206.0), vec2(-666.0, -1095.0),
+	vec2(-650.0, -1041.0), vec2(-621.0, -973.0), vec2(-600.0, -922.0), vec2(-577.0, -867.0),
+	vec2(-555.0, -812.0), vec2(-530.0, -752.0), vec2(-500.0, -673.0), vec2(-471.0, -600.0),
+	vec2(-446.0, -534.0), vec2(-436.0, -493.0), vec2(-434.0, -465.0));
+
+// 1 where wp lies on Krakowskie Przedmieście's carriageway, else 0.
+float kp_setts_at(vec2 wp) {
+	if (wp.x < KP_BOX.x || wp.x > KP_BOX.y || wp.y < KP_BOX.z || wp.y > KP_BOX.w) {
+		return 0.0;
+	}
+	float best = 1e4;
+	for (int i = 0; i < 14; i++) {
+		vec2 a = KP_LINE[i];
+		vec2 ab = KP_LINE[i + 1] - a;
+		float t = clamp(dot(wp - a, ab) / dot(ab, ab), 0.0, 1.0);
+		best = min(best, length(wp - a - ab * t));
+	}
+	return 1.0 - smoothstep(KP_HALF - 0.4, KP_HALF, best);
+}
+
 void fragment() {
 	vec3 base = srgb_to_linear(COLOR.rgb);
 	vec2 wp = world_pos.xz;
@@ -106,11 +185,36 @@ void fragment() {
 		float size = id == 4 ? 1.2 : 2.4;
 		vec2 cell = floor(street / size);
 		shade = 0.96 + 0.07 * hash12(cell) - 0.08 * joints(street, size, 0.09);
+		if (id == 4) {
+			// R3: a footway is Warsaw's grey concrete pavers in running bond (0.6 x 0.3 m).
+			vec2 q = street / vec2(0.6, 0.3);
+			q.x += 0.5 * mod(floor(q.y), 2.0);
+			vec2 f = abs(fract(q) - 0.5);
+			float joint = step(0.44, f.x) + step(0.4, f.y);
+			shade = 0.95 + 0.07 * hash12(floor(q)) - 0.07 * min(joint, 1.0);
+		}
+		vec4 stones = centralny(wp, id == 4);
+		if (stones.a > 0.0) {
+			base = srgb_to_linear(stones.rgb);
+			shade = 1.0;
+		}
 	} else if (id == 6) {
 		// Asphalt: fine grain, a little lighter wear, darker repair patches.
 		float grain = hash12(floor(wp * 6.0));
 		float patch = smoothstep(0.63, 0.7, value_noise(wp * 0.11 + 3.7));
 		shade = 0.95 + 0.07 * grain - 0.06 * patch + 0.04 * n1;
+		if (kp_setts_at(wp) > 0.5) {
+			// Granite setts, 0.12 x 0.1 m in rows broken like bricks; each stone its own grey
+			// or warm pink; dark joints.
+			vec2 q = wp / vec2(0.12, 0.1);
+			q.x += 0.5 * mod(floor(q.y), 2.0);
+			vec2 f = abs(fract(q) - 0.5);
+			float joint = step(0.42, f.x) + step(0.4, f.y);
+			float pick = hash12(floor(q));
+			vec3 stone = mix(vec3(0.6, 0.59, 0.57), vec3(0.7, 0.62, 0.58), step(0.7, pick));
+			base = srgb_to_linear(stone);
+			shade = 0.9 + 0.2 * hash12(floor(q) + 7.3) - 0.22 * min(joint, 1.0);
+		}
 	} else if (id == 1) {
 		// Grass: soft lighter and darker patches with a slight hue drift. The look loop:
 		// calmer, the lime read louder than the car: less yellow, and less chroma.

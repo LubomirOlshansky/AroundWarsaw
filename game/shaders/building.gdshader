@@ -41,6 +41,8 @@ uniform float windows = 1.0;
 uniform vec4 floodlit = vec4(0.0, 0.0, -1.0, 0.0);
 varying vec3 world_pos;
 varying vec2 style;
+// The roofs lane: the plane's world normal (a roof's slope and which way it falls).
+varying vec3 world_n;
 
 const float BAYER[16] = float[16](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
 
@@ -57,6 +59,7 @@ const vec3 INNER_NIGHT = vec3(0.15, 0.15, 0.24);
 
 void vertex() {
 	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	world_n = (MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz;
 	style = UV2;
 }
 
@@ -162,6 +165,151 @@ vec3 facade(vec3 col, float u, float h, float seed, float top, bool glass, out v
 	return col;
 }
 
+// R4 of docs/design/start-area-real.md (2026-11-01): ordinary buildings drawn by their type,
+// not only their seed. map_builder.gd (_building_type) tags a wall's UV2.x in [1, 2): the type
+// in quarters (1 a pre-war tenement, 2 a 1960s-80s slab or point block, 3 a post-war office
+// with ribbon windows) and the seed in the rest of the quarter. Untyped walls keep [0, 1).
+const int T_TENEMENT = 1;
+const int T_SLAB = 2;
+const int T_OFFICE = 3;
+
+// A pane's colour by day, and a lit room at night: the same rules as facade()'s windows.
+vec3 typed_pane(vec3 col, vec2 cell, float seed, bool office, out vec3 glow) {
+	glow = vec3(0.0);
+	float pane = hash12(cell + seed * 31.0);
+	vec3 glass_col = mix(srgb_to_linear(vec3(0.22, 0.27, 0.34)), srgb_to_linear(vec3(0.55, 0.66, 0.77)), pane * pane);
+	if (lights_on > 0.001) {
+		float busy = 0.35 + 1.3 * fract(seed * 17.31);
+		float share = (office ? 0.42 : 0.34) * busy;
+		if (hash12(cell * 1.37 + seed * 59.0 + 7.7) < share * lights_on) {
+			glow = room(hash12(cell + seed * 13.0), office, cell) * (1.05 + 0.5 * hash12(cell + 2.2));
+			return mix(col * 0.5, glass_col, 0.66) * 0.35;
+		}
+		glass_col *= mix(0.45, 1.0, daylight);
+	}
+	return mix(col * 0.45, glass_col, 0.7);
+}
+
+vec3 typed_facade(int kind, vec3 col, float u, float h, float seed, float top, out vec3 glow) {
+	glow = vec3(0.0);
+	bool night = lights_on > 0.001;
+	if (kind == T_TENEMENT) {
+		// A pre-war tenement (kamienica): a tall rusticated shop floor, a string course, tall
+		// windows with light plaster surrounds and sills, a heavy cornice with its shadow.
+		float g = 4.4 + 0.5 * fract(seed * 7.13);    // the ground floor
+		float fh = 3.6 + 0.6 * fract(seed * 3.31);   // upper floors
+		float sp = 2.7 + 0.7 * fract(seed * 5.71);   // window axes
+		if (top > 6.0 && h > top - 0.9) {
+			return col * 1.16;                          // the cornice
+		}
+		if (top > 6.0 && h > top - 1.15) {
+			return col * 0.62;                          // its shadow
+		}
+		float fx = fract(u / sp);
+		if (h < g) {
+			float fy = h / g;
+			bool shop = fy > 0.08 && fy < 0.74 && abs(fx - 0.5) < 0.36;
+			vec3 window_col = mix(col * 0.45, srgb_to_linear(vec3(0.2, 0.24, 0.28)), 0.75);
+			if (night && shop) {
+				vec2 unit = vec2(floor(u / sp), seed * 77.0);
+				if (hash12(unit) < 0.72 * lights_on) {
+					glow = (hash12(unit + 5.1) < 0.65 ? WARM_PALE : vec3(0.9, 0.92, 1.0)) * 1.35;
+					return window_col * 0.6;
+				}
+			}
+			if (shop) {
+				return window_col;
+			}
+			if (fy > 0.8) {
+				return col * 0.8;                       // the fascia
+			}
+			return fract(h / 0.42) < 0.12 ? col * 0.84 : col * 0.97;   // rustication
+		}
+		if (h < g + 0.32) {
+			return col * 1.12;                          // the string course
+		}
+		float y = h - g;
+		float fy = fract(y / fh);
+		vec2 cell = vec2(floor(u / sp), floor(y / fh));
+		float wx = abs(fx - 0.5);
+		float wy = abs(fy - 0.5);
+		bool win = wx < 0.17 && wy < 0.3;
+		if (win) {
+			return typed_pane(col, cell, seed, false, glow);
+		}
+		if (wx < 0.23 && wy < 0.36) {
+			return col * 1.14;                          // the surround
+		}
+		if (wx < 0.25 && fy > 0.08 && fy < 0.13) {
+			return col * 0.78;                          // the sill's shadow
+		}
+		return col;
+	}
+	if (kind == T_SLAB) {
+		// A large-panel slab or point block: pale panels with dark joints, wide windows,
+		// stacks of loggias in some bays.
+		col = mix(col, srgb_to_linear(vec3(0.82, 0.81, 0.77)), 0.35);
+		float fh = 2.8;
+		float sp = 3.0 + 0.6 * fract(seed * 5.37);
+		float fy = fract(h / fh);
+		float fx = fract(u / sp);
+		vec2 cell = vec2(floor(u / sp), floor(h / fh));
+		if (top > 6.0 && h > top - 0.6) {
+			return col * 0.92;                          // the attic band
+		}
+		if (h < fh) {
+			// The ground floor: dark service doors and windows, set back a little.
+			bool door = abs(fx - 0.5) < 0.3 && fy < 0.75;
+			return door ? col * 0.42 : col * 0.86;
+		}
+		bool loggia = hash12(vec2(floor(u / sp), seed * 19.0)) < 0.28 + 0.2 * fract(seed * 3.7);
+		if (loggia) {
+			// The loggia: a deep shadowed recess over a parapet with the window at its back.
+			if (fy < 0.36) {
+				return col * (abs(fx - 0.5) < 0.47 ? 0.9 : 1.0);   // the parapet
+			}
+			if (abs(fx - 0.5) < 0.46) {
+				if (abs(fx - 0.5) < 0.3 && fy < 0.88) {
+					return typed_pane(col * 0.6, cell, seed, false, glow) * 0.8;
+				}
+				return col * 0.5;
+			}
+		}
+		if (fy < 0.04 || abs(fx - 0.5) > 0.49) {
+			return col * 0.72;                          // the panel joints
+		}
+		if (abs(fx - 0.5) < 0.3 && fy > 0.32 && fy < 0.82) {
+			return typed_pane(col, cell, seed, false, glow);
+		}
+		return col;
+	}
+	// T_OFFICE: a post-war office: continuous ribbon windows between spandrel bands.
+	float fh = 3.6 + 0.3 * fract(seed * 7.1);
+	float fy = fract(h / fh);
+	vec2 cell = vec2(floor(u / 1.5), floor(h / fh));
+	if (top > 6.0 && h > top - 0.8) {
+		return col * 1.08;
+	}
+	if (h < fh) {
+		bool glazed = fy > 0.05 && fy < 0.8 && fract(u / 1.5) > 0.06;
+		if (glazed) {
+			if (night && hash12(vec2(floor(u / 6.0), seed * 77.0)) < 0.7 * lights_on) {
+				glow = vec3(0.9, 0.92, 1.0) * 1.2;
+				return col * 0.3;
+			}
+			return mix(col * 0.4, srgb_to_linear(vec3(0.2, 0.24, 0.29)), 0.8);
+		}
+		return col * 0.75;
+	}
+	if (fy > 0.36 && fy < 0.92) {
+		if (fract(u / 1.5) < 0.06) {
+			return col * 0.6;                           // the mullions
+		}
+		return typed_pane(col, vec2(floor(u / 4.5), cell.y), seed, true, glow);
+	}
+	return col;
+}
+
 // Landmark materials (landmarks.gd). Codes match landmarks.gd's M_* constants.
 const int M_MONUMENT = 2;
 const int M_STONE = 3;
@@ -195,6 +343,7 @@ const int S_TILE = 9;
 const int S_EASTWALL = 10;
 const int S_PUNCHED = 11;
 const int S_SLAB = 12;
+const int S_MIRROR = 13;
 
 vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool cut) {
 	glow = vec3(0.0);
@@ -244,6 +393,14 @@ vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool 
 		frame = fract(u / 1.5) < 0.1 || fract(h / fh) < 0.08;
 		frame_col = srgb_to_linear(vec3(0.42, 0.33, 0.2)) * mix(0.3, 1.0, daylight);
 		c = mix(c, col * mix(0.35, 1.0, daylight) * 1.15, 0.6);
+	} else if (s == S_MIRROR) {
+		// The Blue Skyscraper's reflective float glass (1991): plain blue mirror panes, the sky
+		// shining in them in slow streaks, a fine pale-silver spandrel at every floor and a
+		// hairline mullion every 2.4 m (not the gold of its first, copper-tinted cladding).
+		frame = fract(h / fh) < 0.07 || fract(u / 2.4) < 0.04;
+		frame_col = mix(silver, white, 0.3) * 0.92;
+		c = mix(c, sky * mix(0.4, 1.0, daylight), 0.28);
+		c *= 0.9 + 0.2 * value_noise(vec2(u * 0.11, h * 0.025));
 	} else if (s == S_TILE) {
 		// Novotel's shaft (the Rondo photos, 2026-10-31): white tiled panels, a hairline grid
 		// every 3.4 m by one floor, floodlit white at night, a window slit now and then.
@@ -590,6 +747,96 @@ vec3 floodlight(vec3 col, float h, float top) {
 	return col * light * 1.3;
 }
 
+// The roofs lane (docs/design/roofs.md, RF1): a thin line every `period` metres along x,
+// `w` wide, as coverage 0..1. A line thinner than a pixel fades to its average share instead
+// of shimmering (the phone's distance views).
+float roof_lines(float x, float period, float w) {
+	float aa = max(fwidth(x), 0.0001);
+	float d = abs(fract(x / period + 0.5) - 0.5) * period;
+	float ww = max(w, aa);
+	return (1.0 - smoothstep(ww * 0.5, ww * 0.5 + aa, d)) * (w / ww);
+}
+
+// RF1: a roof plane's material from its slope (`n`, world), the building's R4 type and seed
+// (style.x) and its aerial-photo colour (`srgb`, as the bake gave it): red or orange pitches
+// are ceramic tile courses, other pitches sheet metal with standing seams down the slope,
+// steep faces zinc; flat roofs are tar-paper strips on the slabs and dark roofs, a light
+// membrane with welded seams and gravel on offices and pale roofs, sedum where the photo is
+// green. Detail fades out where a pixel is wider than it (fwidth).
+vec3 roof_surface(vec3 col, vec3 srgb, vec3 n, float sx) {
+	vec2 xz = world_pos.xz;
+	col *= 0.94 + 0.08 * value_noise(xz * 1.7) + 0.04 * hash12(floor(xz * 5.0));
+	if (n.y < 0.3) {
+		return col; // a plant box's side, a parapet, a dormer, a chimney
+	}
+	int kind = (sx >= 1.0 && sx < 2.0) ? int((sx - 1.0) * 4.0) + 1 : 0;
+	float seed = sx >= 1.0 ? fract((sx - 1.0) * 4.0) : fract(sx);
+	float red = srgb.r - max(srgb.g, srgb.b);
+	float green = srgb.g - max(srgb.r, srgb.b);
+	float lum = dot(srgb, vec3(0.3, 0.59, 0.11));
+	if (n.y < 0.97) {
+		vec2 fall = normalize(n.xz);
+		float s = dot(xz, fall) / n.y;              // metres down the slope
+		float a = dot(xz, vec2(-fall.y, fall.x));    // metres along the eaves
+		float px = fwidth(s);
+		if (red > 0.05 && n.y > 0.5) {
+			// Ceramic tiles: courses across the slope, each tile's foot casting a shadow on the
+			// course below it, staggered joints, a little colour from tile to tile.
+			float row = s / 0.36;
+			float fr = fract(row);
+			float off = mod(floor(row), 2.0) * 0.5;
+			float tile = floor(a / 0.26 + off);
+			float shade = mix(0.62, 1.04, smoothstep(0.0, 0.3, fr)) * (1.0 - 0.18 * roof_lines(a + off * 0.26, 0.26, 0.03));
+			shade *= 0.94 + 0.12 * hash12(vec2(floor(row), tile));
+			col *= mix(0.9, shade, 1.0 - smoothstep(0.1, 0.24, px));
+		} else {
+			// Sheet metal (blacha), or zinc on a steep mansard face: standing seams down the
+			// slope, each sheet its own shade of paint or patina, rain streaks below the ridge.
+			bool steep = n.y < 0.62;
+			float sheet = steep ? 0.45 : 0.6;
+			float seam = roof_lines(a, sheet, 0.05);
+			float streak = value_noise(vec2(a * 2.3, s * 0.22) + seed * 17.0);
+			float shade = (0.92 + 0.14 * hash12(vec2(floor(a / sheet), seed * 97.0))) * (0.93 + 0.1 * streak);
+			shade += seam * 0.4 - roof_lines(a + 0.07, sheet, 0.06) * 0.25;
+			col *= mix(1.0, shade, 1.0 - smoothstep(0.15, 0.35, px));
+			if (steep && red < 0.05) {
+				col = mix(col, srgb_to_linear(vec3(0.5, 0.52, 0.54)) * (0.9 + 0.1 * streak), 0.15);
+			}
+		}
+		return col;
+	}
+	float px = fwidth(xz.x) + fwidth(xz.y);
+	float detail = 1.0 - smoothstep(0.2, 0.45, px);
+	// Flat roofs lie along one of the map's axes, picked by the building's seed.
+	vec2 q = seed < 0.5 ? xz : xz.yx;
+	if (green > 0.025) {
+		// Sedum and grass: clumps of green with a few rust-red patches and bare gravel.
+		float clump = value_noise(xz * 1.3 + seed * 11.0) * 0.6 + value_noise(xz * 4.1) * 0.4;
+		vec3 leaf = mix(col * vec3(0.8, 1.05, 0.7), col * vec3(1.15, 1.2, 0.85), clump);
+		leaf = mix(leaf, col * vec3(1.25, 0.75, 0.6), smoothstep(0.78, 0.9, value_noise(xz * 0.7 + 3.1)) * 0.6);
+		return mix(col, leaf, 0.5 + 0.5 * detail);
+	}
+	if (kind == T_SLAB || (kind != T_OFFICE && lum < 0.3)) {
+		// Tar paper (papa): one-metre strips with a dark lapped edge, patched here and there,
+		// darker where the water stands.
+		float lap = roof_lines(q.x, 1.0, 0.08);
+		float patch = step(0.86, hash12(vec2(floor(q.x), floor(q.y / 3.0)) + seed * 41.0));
+		float shade = (1.0 - 0.3 * lap) * (1.0 - 0.12 * patch) * (1.0 - 0.1 * smoothstep(0.55, 0.8, value_noise(xz * 0.3)));
+		return col * mix(0.95, shade, detail);
+	}
+	if (kind == T_OFFICE || lum > 0.42) {
+		// A membrane: two-metre sheets with welded seams, the odd pond stain, gravel ballast.
+		float weld = roof_lines(q.x, 2.0, 0.06);
+		float stain = smoothstep(0.6, 0.85, value_noise(xz * 0.22 + seed * 5.0));
+		float stones = hash12(floor(xz * 9.0));
+		float shade = (1.0 + 0.2 * weld) * (1.0 - 0.1 * stain) * (0.94 + 0.1 * stones);
+		return col * mix(1.0, shade, detail);
+	}
+	// Gravel over concrete slabs: a grid of pavers, a fine speckle.
+	float joints = max(roof_lines(q.x, 1.2, 0.04), roof_lines(q.y, 1.2, 0.04));
+	return col * mix(0.97, (1.0 - 0.18 * joints) * (0.93 + 0.12 * hash12(floor(xz * 7.0))), detail);
+}
+
 void fragment() {
 	vec3 col = srgb_to_linear(COLOR.rgb);
 	vec3 glow = vec3(0.0);
@@ -606,8 +853,11 @@ void fragment() {
 			discard;
 		}
 	} else if (!walls) {
-		// Roofs: gravel and membrane grain.
-		col *= 0.94 + 0.08 * value_noise(world_pos.xz * 1.7) + 0.04 * hash12(floor(world_pos.xz * 5.0));
+		// Roofs: their material (RF1, docs/design/roofs.md).
+		col = roof_surface(col, COLOR.rgb, normalize(world_n), style.x);
+	} else if (windows > 0.5 && style.x >= 1.0 && COLOR.a >= 0.75) {
+		float f = (style.x - 1.0) * 4.0;
+		col = typed_facade(int(f) + 1, col, UV.x, UV.y, fract(f), style.y, glow);
 	} else if (windows > 0.5) {
 		col = facade(col, UV.x, UV.y, style.x, style.y, COLOR.a < 0.75, glow);
 	}

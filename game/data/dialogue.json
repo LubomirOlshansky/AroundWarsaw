@@ -1,5 +1,5 @@
 {
-  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json.",
+  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json. Crash scenes (crash_scenes.gd, 2026-11-01): crash_scene \"driver\", \"officer\", \"medic\", \"gawker\" (bubbles at a fender bender); radio_host \"crash\" ({street}: the road's name, starting the line).",
   "radio_host": [
     [
       "KEBAB FM, 87,3. Na Marszałkowskiej znowu remont. Czyli wszystko po staremu.",
@@ -83,6 +83,87 @@
     [
       "Frogs. Otwarte dziś, jutro i na wszelki wypadek pojutrze.",
       "Frogs: open today, tomorrow, and the day after, just in case."
+    ],
+    [
+      "Domy towarowe: trzy piętra do wynajęcia. Widok gratis.",
+      "The department stores: three floors to let. The view's free."
+    ],
+    [
+      "Na Marszałkowskiej otwierają Frogs na dwa piętra. Hot dog z windą.",
+      "A two-storey Frogs is opening on Marszałkowska. Hot dogs with a lift."
+    ],
+    [
+      "Plac Centralny: stoisz na kamienicy, której już nie ma.",
+      "Plac Centralny: you're standing on a tenement that isn't there any more."
+    ],
+    [
+      "Pasaż Wiecha: kolejka po zieloną kawę. Tak, to herbata.",
+      "Pasaż Wiecha: a queue for green coffee. Yes, it's tea."
+    ],
+    [
+      "KEBAB FM. W TIMBER rekord: tysiąc dopasowań i jedna randka. W LUŹNO.",
+      "KEBAB FM. A TIMBER record: a thousand matches, one date. At LUŹNO."
+    ],
+    [
+      "Kolejka pod KUKŁĄ sięga Królewskiej. Naleśniki podobno też są.",
+      "The KUKŁA queue reaches Królewska. Rumour says there are crêpes too."
+    ],
+    [
+      "Latte w KOSZTA COFFEE podrożało. Nazwa w końcu się zgadza.",
+      "The KOSZTA COFFEE latte went up again. Finally the name fits."
+    ],
+    [
+      "Słuchacz pyta: czy w GREEN CAFFE NERWO piszą imię dobrze? Nie.",
+      "A listener asks if GREEN CAFFE NERWO spells names right. No."
+    ],
+    [
+      "Pilne: Cringulo zjadł pierogi na Mokotowie. Kolejka już na Puławskiej.",
+      "Breaking: Cringulo ate pierogi in Mokotów. The queue's on Puławska."
+    ],
+    [
+      "Pizza Cringula znowu wyprzedana. Frogsy proszą: nie stójcie w drzwiach.",
+      "Cringulo's pizza is sold out again. Frogs asks: don't block the door."
+    ],
+    [
+      "Cringulo dał trzy mlaski. Lokal zamknięty z powodu remontu. Duszy.",
+      "Cringulo gave three smacks. The place is closed for repairs. Of the soul."
+    ],
+    [
+      "{street}: stłuczka. Policja i karetka na miejscu, kierowcy wciąż się kłócą, kto miał zielone.",
+      "{street}: a fender bender. Police and an ambulance are there; the drivers are still arguing over who had the green.",
+      {
+        "only": "crash"
+      }
+    ],
+    [
+      "Uwaga, {street}: dwa auta pocałowały się zderzakami. Prawy pas zajęty, objazd obok.",
+      "Heads up, {street}: two cars kissed bumpers. Right lane blocked, go round it.",
+      {
+        "only": "crash"
+      }
+    ],
+    [
+      "Słuchacze donoszą: {street}, stłuczka. Gapiów więcej niż aut. Prosimy nie zwalniać, żeby nagrać.",
+      "Listeners report: {street}, a fender bender. More onlookers than cars. Please don't slow down to film it.",
+      {
+        "only": "crash"
+      }
+    ],
+    [
+      "Rynek mieszkaniowy: ceny w centrum spadły o całe zero procent. Tak, pięć lat z rzędu.",
+      "Housing market: central prices fell by a full zero percent. Yes, five years in a row."
+    ],
+    [
+      "KEBAB FM radzi: kawalerka na Woli to nie mieszkanie, to subskrypcja. Płacisz, a i tak nie jest twoja.",
+      "KEBAB FM tip: a studio in Wola isn't a flat, it's a subscription. You pay, and it's still not yours."
+    ],
+    [
+      "Pytanie słuchacza: czy da się kupić mieszkanie w Warszawie? Odpowiadamy: da się, jeśli się urodzisz w nim w 1987.",
+      "Listener question: can you buy a flat in Warsaw? We say yes, if you were born in it in 1987."
+    ],
+    [
+      "Dom Wielkiego Kredytu zaprasza na dzień otwarty. Wstęp wolny, wyjście po trzydziestu latach.",
+      "Dom Wielkiego Kredytu invites you to an open day. Free entry, exit after thirty years."
     ]
   ],
   "kebab_order": [
@@ -304,6 +385,30 @@
     [
       "Za rok też będę mówić, że jestem stąd.",
       "In a year I'll be saying I'm from here too."
+    ],
+    [
+      "Kiedyś kupowałam tu kurtkę. Teraz można wynająć całe piętro.",
+      "I used to buy a jacket here. Now you can rent the whole floor."
+    ],
+    [
+      "Teatr w dawnym kinie, kino w telefonie. Wszystko się zgadza.",
+      "A theatre in the old cinema, the cinema on your phone. It all adds up."
+    ],
+    [
+      "Dwa pokoje na Woli za 800 tysięcy. Jeden to balkon.",
+      "Two rooms in Wola for 800,000. One of them is the balcony."
+    ],
+    [
+      "Mój kredyt ma już wnuki.",
+      "My mortgage already has grandchildren."
+    ],
+    [
+      "Wynajmuję pokój z widokiem na Pałac. Widok jest, pokoju nie.",
+      "I rent a room with a view of the Palace. The view's real, the room isn't."
+    ],
+    [
+      "Deweloper: „klimatyczne wnętrze”. To była komórka lokatorska.",
+      "Developer: \"atmospheric interior\". It was a storage cupboard."
     ]
   ],
   "podwozka_request": [
@@ -329,6 +434,14 @@
       {
         "only": "club"
       }
+    ],
+    [
+      "Uwagi: „oglądam mieszkanie, proszę czekać, nie stać mnie na wyjście”.",
+      "Note: \"viewing a flat, please wait, I may not be able to afford to leave\"."
+    ],
+    [
+      "Uwagi: „do dewelopera, mam kredyt i zero rozsądku”.",
+      "Note: \"to the developer's, I've got a mortgage and no sense\"."
     ]
   ],
   "podwozka_pickup": [
@@ -449,6 +562,21 @@
       {
         "only": "club"
       }
+    ],
+    [
+      "Jadę na kawalerkę. 12 metrów, 17 osób w kolejce.",
+      "Off to view a studio. 12 m², 17 people in the queue.",
+      {
+        "only": "hurry"
+      }
+    ],
+    [
+      "Nie przez Mokotów. Zobaczę ceny i się rozmyślę.",
+      "Not through Mokotów. I'll see the prices and change my mind."
+    ],
+    [
+      "Czynsz mam tak wysoki, że sąsiad z góry to współlokator.",
+      "My rent's so high the upstairs neighbour is basically a flatmate."
     ]
   ],
   "podwozka_rating": [
@@ -550,6 +678,14 @@
     [
       "Ej, stoję tu od samej Pragi!",
       "Hey, I've been stuck here since Praga!"
+    ],
+    [
+      "Ten parking kosztuje jak kawalerka! Nie parkuj mi tu!",
+      "This parking space costs as much as a studio! Not here!"
+    ],
+    [
+      "Zaparkował pan w czyimś salonie. Tu metr to majątek!",
+      "You've parked in somebody's living room. A metre is a fortune here!"
     ]
   ],
   "signs": [
@@ -624,6 +760,22 @@
     [
       "KWAŚNE WINO · TO NIE BŁĄD",
       "KWAŚNE WINO · IT IS NOT A BUG"
+    ],
+    [
+      "TIMBER · PIERWSZA RANDKA? LUŹNO",
+      "TIMBER · First date? Keep it casual (LUŹNO)"
+    ],
+    [
+      "KLATKA DEWELOPER · 12 M2 Z WIDOKIEM NA 12 M2",
+      "KLATKA DEVELOPER · 12 M2 WITH A VIEW OF 12 M2"
+    ],
+    [
+      "METRAŻ · KAWALERKA OD 1,2 MLN",
+      "METRAŻ · STUDIOS FROM 1.2M"
+    ],
+    [
+      "KREDYT NA 40 LAT · BALKON GRATIS",
+      "40-YEAR MORTGAGE · BALCONY FREE"
     ]
   ],
   "kebab_vendor": [
@@ -669,6 +821,76 @@
       "There was a market here, and there still is. I'm the new guy: twenty years now.",
       {
         "only": "hala"
+      }
+    ],
+    [
+      "Zestaw Królewski: trzy mięsa i korona z sałaty. Jedź!",
+      "The Royal Set: three meats and a lettuce crown. Go!",
+      {
+        "only": "zag_krol"
+      }
+    ],
+    [
+      "Pasza gniewa się na Stambuł, a Król na obu. Ty jedź.",
+      "Pasha's cross with Istanbul, King with both. You just drive.",
+      {
+        "only": "zag_krol"
+      }
+    ],
+    [
+      "U nas otwarte całą dobę. Szczególnie w święta.",
+      "Open round the clock here. Especially on holidays.",
+      {
+        "only": "zag_stambul"
+      }
+    ],
+    [
+      "Po północy porcja większa, napiwek też. Tradycja od 2009.",
+      "After midnight, bigger portions and bigger tips. Since 2009.",
+      {
+        "only": "zag_stambul"
+      }
+    ],
+    [
+      "Szybki Pasza: kebab stygnie, zanim powiesz „czosnkowy”.",
+      "Quick Pasha: the kebab cools before you say \"garlic\".",
+      {
+        "only": "zag_pasza"
+      }
+    ],
+    [
+      "Król ma korony, ja mam rożen. Dowieź i zobacz, kto tu rządzi.",
+      "The King has crowns, I have a spit. Deliver and see who rules.",
+      {
+        "only": "zag_pasza"
+      }
+    ],
+    [
+      "To dla rodziny, więc porządnie. Wujek Erdal pamięta kierowców.",
+      "For family, so do it right. Uncle Erdal remembers drivers.",
+      {
+        "only": "zag_erdal"
+      }
+    ],
+    [
+      "Napiwek od rodziny podwójny, ale ciocia liczy minuty.",
+      "Family tips double, but Auntie counts the minutes.",
+      {
+        "only": "zag_erdal"
+      }
+    ],
+    [
+      "Mięso marynowane na zakwasie. Tak, na zakwasie. Serio.",
+      "Meat marinated in sourdough. Yes, sourdough. Really.",
+      {
+        "only": "zag_rozen"
+      }
+    ],
+    [
+      "Kroję ręcznie, na zamówienie. Szybko? Pasza naprzeciwko.",
+      "Hand-carved to order. In a hurry? Pasha's across the way.",
+      {
+        "only": "zag_rozen"
       }
     ]
   ],
@@ -1190,11 +1412,45 @@
           "ROGIEM"
         ]
       }
+    ],
+    [
+      "TIMBER · RĄBNIJ W PRAWO",
+      "TIMBER · Chop right",
+      {
+        "poster": [
+          "TIMBER",
+          "RĄBNIJ",
+          "W PRAWO"
+        ]
+      }
+    ],
+    [
+      "KUKŁA · KOLEJKA OD 9:00",
+      "KUKŁA · Queue from 9:00",
+      {
+        "poster": [
+          "KUKŁA",
+          "KOLEJKA",
+          "OD 9:00"
+        ]
+      }
+    ],
+    [
+      "CRINGULO PIZZA · TŁUSTA PEPA · TYLKO WE FROGS",
+      "Cringulo pizza · Fat Pepa · only at Frogs",
+      {
+        "poster": [
+          "CRINGULO",
+          "PIZZA",
+          "TŁUSTA",
+          "PEPA"
+        ]
+      }
     ]
   ],
   "police_warn": [
     [
-      "Pan w małym aucie! Wolniej, bo suszarka się przegrzeje.",
+      "Małe auto, wolniej! Suszarka się przegrzeje.",
       "You in the little car! Slow down, the radar gun (the \"hair dryer\") is overheating.",
       {
         "only": "speed"
@@ -1271,8 +1527,8 @@
   ],
   "police_stop": [
     [
-      "Rutynowa kontrola. Spokojnie, nic pan nie zrobił. Jeszcze.",
-      "Routine check. Relax, you haven't done anything. Yet.",
+      "Rutynowa kontrola. Spokojnie, wszystko w porządku. Na razie.",
+      "Routine check. Relax, everything's in order. For now.",
       {
         "only": "routine"
       }
@@ -1285,11 +1541,11 @@
       }
     ],
     [
-      "Kontrola drogowa. Wie pan, czemu pana zatrzymałem? Ja tak średnio.",
+      "Kontrola drogowa. Wiesz, czemu cię zatrzymałem? Ja tak średnio.",
       "Traffic check. Do you know why I stopped you? I'm not entirely sure myself."
     ],
     [
-      "Wie pan, ile pan jechał? Ja też nie. Suszarka się zawiesiła.",
+      "Wiesz, ile jechałeś? Ja też nie. Suszarka się zawiesiła.",
       "Do you know how fast you were going? Me neither. The hair dryer froze.",
       {
         "only": "trap"
@@ -1323,7 +1579,7 @@
       }
     ],
     [
-      "Kebab stygnie, panie władzo!",
+      "Kebab stygnie, władzo!",
       "The kebab's getting cold, officer!",
       {
         "only": "kebab"
@@ -1336,14 +1592,14 @@
       "A caution. Next time, a fine. Or another caution, we'll see."
     ],
     [
-      "Pouczam pana. Kacper, zapisz w zeszycie. Ładnie, nie jak ostatnio.",
+      "Pouczenie. Kacper, zapisz w zeszycie. Ładnie, nie jak ostatnio.",
       "Consider yourself cautioned. Kacper, put it in the notebook. Neatly, not like last time.",
       {
         "only": "police"
       }
     ],
     [
-      "Piąte pouczenie dzisiaj. Jeszcze jedno i dostaje pan kubek.",
+      "Piąte pouczenie dzisiaj. Jeszcze jedno i dostajesz kubek.",
       "Fifth caution today. One more and you get a mug.",
       {
         "only": "fifth"
@@ -1815,6 +2071,174 @@
       {
         "only": "padel"
       }
+    ],
+    [
+      "W Warszawie kolejka to recenzja. Im dłuższa, tym lepsza.",
+      "In Warsaw a queue is a review. The longer, the better.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "Stoję, bo ktoś stał. Ktoś stał, bo ja stałem.",
+      "I'm queuing because someone was. They were because I was.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "PRL nauczył, Instagram utrwalił.",
+      "The old days taught us to queue. Instagram made it stick.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "Naleśnik za 19 zł i godzina w kolejce. Bezcenne.",
+      "A 19 zł crêpe and an hour in line. Priceless.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "Nie wiem, co tu dają. Ale kolejka wygląda na pewną.",
+      "No idea what they sell. But the queue looks trustworthy.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "Pusta knajpa obok? Podejrzane. Stoimy tu.",
+      "An empty place next door? Suspicious. We stay here.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "Kolejka w KUKLE to jak tramwaj: zaraz będzie następna.",
+      "The KUKŁA queue is like the tram: another one's right behind.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "Byłem tu wczoraj. Przyszedłem sprawdzić, czy kolejka jest.",
+      "I was here yesterday. Came to check the queue's still here.",
+      {
+        "only": "kolejka"
+      }
+    ],
+    [
+      "Na zdjęciach był wyższy. I miał psa.",
+      "He was taller in his photos. And he had a dog.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Trzecia randka w LUŹNO w tym tygodniu. Barman mi kibicuje.",
+      "Third date at LUŹNO this week. The barman's rooting for me.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Rąbnęłam go w prawo, bo stał przed Pałacem. Bez Pałacu: nic.",
+      "Chopped right because he posed by the Palace. Without it: nothing.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "„Lubię podróże i dobrą kawę”. Jak wszyscy w TIMBER.",
+      "\"I like travel and good coffee.\" Like everyone on TIMBER.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Pracuje w Mordorze, mieszka w Wilanowie. Czyli nie ma czasu.",
+      "Works in Mordor, lives in Wilanów. So: never has time.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Randka na dachu. Jak nie wyjdzie, to chociaż widok wyszedł.",
+      "A rooftop date. If it fails, at least the view didn't.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Czekamy na windę na randkę. Romantycznie, co?",
+      "Queuing for the lift to a date. Romantic, right?",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Mówił „luźno”. Przyszedł w garniturze i z prezentacją.",
+      "He said \"casual\". Came in a suit with a slide deck.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Dopasowanie o 2:00, randka o 19:00, ghosting o 23:00.",
+      "Matched at 2 a.m., date at 7 p.m., ghosted by 11.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Ma 6'2. W centymetrach wyszło 176.",
+      "Said 6'2. In centimetres it came to 176.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Stoję od szóstej. Cringulo dał tu dziewięć mlasków.",
+      "Been here since six. Cringulo gave it nine smacks.",
+      {
+        "only": "cringulo"
+      }
+    ],
+    [
+      "Nie jestem głodny. Jestem fanem.",
+      "I'm not hungry. I'm a fan.",
+      {
+        "only": "cringulo"
+      }
+    ],
+    [
+      "Zamówię to samo co Cringulo. Nie wiem co, ale to samo.",
+      "I'll have what Cringulo had. Don't know what. The same.",
+      {
+        "only": "cringulo"
+      }
+    ],
+    [
+      "Mlask, mlask. Tak się mówi. Wiem z filmiku.",
+      "Smack, smack. That's how you say it. I saw the video.",
+      {
+        "only": "cringulo"
+      }
+    ],
+    [
+      "Była tu wczoraj cisza. Potem wyszedł odcinek.",
+      "It was dead quiet yesterday. Then the episode came out.",
+      {
+        "only": "cringulo"
+      }
+    ],
+    [
+      "Mam koszulkę z jego twarzą. Z tyłu: „na grubaska”.",
+      "I've got the shirt with his face. On the back: \"go chunky\".",
+      {
+        "only": "cringulo"
+      }
     ]
   ],
   "runners": [
@@ -1882,6 +2306,59 @@
       {
         "only": "influencer"
       }
+    ],
+    [
+      "To nie jest mój pies. To ja jestem jego ochroniarzem.",
+      "This isn't my dog. I'm his bodyguard.",
+      {
+        "only": "tiny"
+      }
+    ],
+    [
+      "Nazywa się Tytan. Waży dwa kilo. Gryzie za trzech.",
+      "His name's Titan. He weighs two kilos. Bites like three.",
+      {
+        "only": "tiny"
+      }
+    ],
+    [
+      "Siłownia o szóstej, spacer z Pusią o siódmej. Rutyna.",
+      "Gym at six, a walk with Pusia at seven. Routine.",
+      {
+        "only": "tiny"
+      }
+    ],
+    [
+      "Smycz różowa, bo on tak wybrał. Szanuję.",
+      "Pink lead, because he chose it. Respect.",
+      {
+        "only": "tiny"
+      }
+    ],
+    [
+      "Wyglądam groźnie, ale wszyscy patrzą na niego.",
+      "I look scary, but everyone's looking at him.",
+      {
+        "only": "tiny"
+      }
+    ],
+    [
+      "Mamy takie same bluzy. Bez komentarza.",
+      "We've got matching hoodies. No comment.",
+      {
+        "only": "tiny"
+      }
+    ],
+    [
+      "Zwolnij, bo zaszczeka. A wtedy obaj się boimy.",
+      "Slow down or he'll bark. Then we're both scared.",
+      {
+        "only": "tiny"
+      }
+    ],
+    [
+      "Pies ma większe mieszkanie niż ja. Z ogrzewaniem.",
+      "The dog has a bigger flat than me. Heated."
     ]
   ],
   "cyclists": [
@@ -2028,6 +2505,18 @@
       {
         "only": "free"
       }
+    ],
+    [
+      "Pizzy Cringula nie ma od wtorku. Pytają co pięć minut.",
+      "No Cringulo pizza since Tuesday. They ask every five minutes."
+    ],
+    [
+      "TŁUSTA PEPA wyprzedana. SEROWY GRUBAS też. Został hot dog.",
+      "FAT PEPA's sold out. CHEESY CHONK too. There's a hot dog."
+    ],
+    [
+      "Pan po Pepę? Dostawa w czwartek. Kolejka od środy.",
+      "Here for the Pepa? Delivery Thursday. Queue from Wednesday."
     ]
   ],
   "easter_rechotka": [
@@ -2097,6 +2586,41 @@
     ]
   ],
   "garage": [
+    [
+      "Pod maskę zajrzymy. Kasa na ladę.",
+      "We'll look under the bonnet. Cash on the counter.",
+      {
+        "only": "parts"
+      }
+    ],
+    [
+      "Ołdi TT. Niski, szybki, nie pytaj skąd go mam.",
+      "The Owdy TT. Low, fast, don't ask where I got it.",
+      {
+        "only": "tt"
+      }
+    ],
+    [
+      "Kebab Boost: pachnie czosnkiem, ciągnie jak holownik.",
+      "Kebab Boost: smells of garlic, pulls like a tug.",
+      {
+        "only": "nitro"
+      }
+    ],
+    [
+      "Dokręcone. Pierwsza śruba gratis, reszta za złotówki.",
+      "Tightened. First bolt free, the rest for złoty.",
+      {
+        "only": "part"
+      }
+    ],
+    [
+      "Lepiej już nie będzie. Chyba że kupisz nowe auto.",
+      "It won't get better. Unless you buy a new car.",
+      {
+        "only": "max"
+      }
+    ],
     [
       "Wjeżdżaj. Tylko nie na kanał, tam śpi kot.",
       "Drive in. Just not over the pit, the cat sleeps there.",
@@ -2179,6 +2703,559 @@
       "Gold is for those who know the city's secrets. Come back with five.",
       {
         "only": "locked"
+      }
+    ]
+  ],
+  "run_club": [
+    [
+      "Jak nie ma tego na Szpanie, to biegu nie było.",
+      "If it's not on Szpan, the run never happened."
+    ],
+    [
+      "Garnek pisze, że mam dziś regenerację. Garnek nie zna mojego trenera.",
+      "My Garnek watch says rest day. Garnek hasn't met my coach."
+    ],
+    [
+      "Tempo konwersacyjne! Czyli gadamy o tempie.",
+      "Conversational pace! So we talk about pace."
+    ],
+    [
+      "Najpierw rozgrzewka, potem zdjęcie grupowe, potem może bieg.",
+      "Warm-up first, then the group photo, then maybe a run."
+    ],
+    [
+      "Trzeci raz w tym tygodniu. Kolana wysłały mi maila.",
+      "Third time this week. My knees sent me an email."
+    ],
+    [
+      "Kto zgubił żel energetyczny o smaku pierogów?",
+      "Who dropped the pierogi-flavoured energy gel?"
+    ],
+    [
+      "Nowe buty z płytką karbonową. Teraz spóźniam się szybciej.",
+      "New carbon-plate shoes. Now I'm late faster."
+    ],
+    [
+      "Run club to nowy Timber. Tylko wszyscy są spoceni.",
+      "Run club is the new dating app. Everyone's just sweatier."
+    ],
+    [
+      "Biegniemy po bajgla. To cały plan treningowy.",
+      "We're running for a bagel. That's the whole training plan."
+    ],
+    [
+      "Mordor do siedemnastej, maraton od siedemnastej pięć.",
+      "Mordor till five, marathon from five past."
+    ],
+    [
+      "Lewa wolna! Lewa! No dobra, chodnik jest jeden.",
+      "On your left! Left! Fine, there's only one pavement."
+    ],
+    [
+      "Mijamy turystów na Krakowskim. To nasze interwały.",
+      "We overtake the tourists on Krakowskie. Those are our intervals."
+    ],
+    [
+      "Auto za nami? Dobra, pokażmy mu tempo cztery trzydzieści.",
+      "A car behind us? Right, let's show it a 4:30 pace.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Panie kierowco, to tylko pięć kilometrów. Plus zdjęcie.",
+      "Sir, it's only five kilometres. Plus the photo.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Nie trąb, mamy przerwę na selfie.",
+      "Don't honk, it's our selfie break.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Auto robi nam za zająca? Niech wrzuci to na Szpana.",
+      "The car's pacing us? Tell it to post it on Szpan.",
+      {
+        "only": "car"
+      }
+    ]
+  ],
+  "peleton": [
+    [
+      "Mój Wąwóz waży sześć osiem. Swojej wagi nie podam.",
+      "My Wąwóz weighs 6.8 kg. I won't tell you mine."
+    ],
+    [
+      "Cegła Aero: tnie wiatr jak… cegła.",
+      "The Cegła Aero: slices through the wind like… a brick."
+    ],
+    [
+      "Karbonowa rama, karbonowe koła, karbonowy kredyt.",
+      "Carbon frame, carbon wheels, carbon loan."
+    ],
+    [
+      "Średnia trzydzieści dwa. Z wiatrem. Z górki. Raz.",
+      "Average 32 km/h. Tailwind. Downhill. Once."
+    ],
+    [
+      "Kawa na postoju to nie przerwa. To element treningu.",
+      "The coffee stop isn't a break. It's part of the training."
+    ],
+    [
+      "Watów mam mało, ale skarpetki najlepsze w peletonie.",
+      "Not many watts, but the best socks in the pack."
+    ],
+    [
+      "Garnek mówi: strefa trzecia. Serce mówi: strefa kanapy.",
+      "Garnek says zone three. My heart says zone sofa."
+    ],
+    [
+      "Ten odcinek to segment na Szpanie. Jestem tu królem. Od wtorku.",
+      "This stretch is a Szpan segment. I'm king here. Since Tuesday."
+    ],
+    [
+      "Elektroniczne przerzutki. Bateria padła, jadę na jednym biegu.",
+      "Electronic shifting. Battery's dead, so it's one gear."
+    ],
+    [
+      "Golone łydki to aerodynamika. Twierdzę tak od dwóch sezonów.",
+      "Shaved calves are aerodynamics. I've claimed so for two seasons."
+    ],
+    [
+      "Specjał za dwadzieścia tysięcy, a wyprzedziła mnie babcia na Rowerilo.",
+      "A 20,000 zł Specjał, and a granny on a Rowerilo passed me."
+    ],
+    [
+      "Lycra w kolorach klubu. Przepraszamy oczy kierowców.",
+      "Lycra in club colours. Our apologies to drivers' eyes."
+    ],
+    [
+      "Rower kosztował jak kawalerka. Za to parkuję go w salonie.",
+      "The bike cost as much as a studio flat. At least it lives in the lounge."
+    ],
+    [
+      "Mówię żonie, że to używany Wąwóz. Używany przez kogoś bardzo bogatego.",
+      "I tell my wife it's a used Wąwóz. Used by someone very rich."
+    ],
+    [
+      "Auto na ogonie! Zmiana na prowadzeniu!",
+      "Car on our tail! Swap the lead!",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Panie, tu idzie trzysta watów. Proszę nie dmuchać.",
+      "Mate, we're pushing 300 watts. Please don't breathe on us.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Jedzie nam na kole. Niech chociaż da zmianę.",
+      "It's drafting us. It could at least take a turn up front.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Uwaga, auto! Nie dotykać kół, są warte mieszkanie.",
+      "Car! Don't touch the wheels, they're worth a flat.",
+      {
+        "only": "car"
+      }
+    ]
+  ],
+  "coffee_rave": [
+    [
+      "Rave o dziewiątej rano. Zero procentów, dwa shoty espresso.",
+      "A rave at 9 a.m. Zero booze, two shots of espresso."
+    ],
+    [
+      "Mleko owsiane, bity sto dwadzieścia osiem, zero kaca.",
+      "Oat milk, 128 bpm, zero hangover."
+    ],
+    [
+      "Przyszedłem po flat white, zostałem na trzy sety.",
+      "Came for a flat white, stayed for three sets."
+    ],
+    [
+      "W klubie już bym spał. Tu dopiero się budzę.",
+      "At a club I'd be asleep by now. Here I'm only waking up."
+    ],
+    [
+      "Mamy wózki, słuchawki dla dzieci i drop o jedenastej.",
+      "We've got prams, kids' ear defenders and a drop at eleven."
+    ],
+    [
+      "Tańczę do południa, a potem call o dwunastej.",
+      "I dance till noon, then a call at twelve."
+    ],
+    [
+      "Kolejka do baristy jest dłuższa niż do klubu w sobotę.",
+      "The barista queue's longer than a club's on a Saturday."
+    ],
+    [
+      "Mój zegarek myśli, że biegam. Nie wyprowadzam go z błędu.",
+      "My watch thinks I'm running. I'm not telling it."
+    ],
+    [
+      "Cappuccino w jednej ręce, druga w górze. Klasyka.",
+      "Cappuccino in one hand, the other in the air. A classic."
+    ],
+    [
+      "Kofeina, bas i słońce. Zdrowy tryb życia.",
+      "Caffeine, bass and sunshine. A healthy lifestyle."
+    ],
+    [
+      "Bramkarza nie ma. Jest barista i on też ocenia.",
+      "There's no bouncer. There's a barista, and he judges too."
+    ],
+    [
+      "Mój terapeuta poleca taniec. Mój barista poleca drugie espresso.",
+      "My therapist recommends dancing. My barista recommends a second espresso."
+    ],
+    [
+      "Następny kawałek: remiks ekspresu ciśnieniowego.",
+      "Next track: an espresso-machine remix.",
+      {
+        "only": "dj"
+      }
+    ],
+    [
+      "Trąbisz do rytmu? Dawaj, wezmę cię na sampla!",
+      "Honking in time? Go on, I'll sample you!",
+      {
+        "only": "dj"
+      }
+    ],
+    [
+      "Zwalniasz? Słusznie. Tu jest strefa tańca, nie strefa parkowania.",
+      "Slowing down? Good. This is a dance zone, not a parking zone.",
+      {
+        "only": "dj"
+      }
+    ],
+    [
+      "DJ Espresso w domu! Dwa shoty basu dla kierowcy!",
+      "DJ Espresso in the house! Two shots of bass for the driver!",
+      {
+        "only": "dj"
+      }
+    ],
+    [
+      "Grałbym do rana, ale kawiarnię zamykają o piętnastej.",
+      "I'd play till dawn, but the café shuts at three.",
+      {
+        "only": "dj"
+      }
+    ]
+  ],
+  "cringulo_review": [
+    [
+      "Ciasto chrupie, sos jest, ser ciągnie się jak kredyt.",
+      "The crust crunches, there's sauce, the cheese stretches like a mortgage.",
+      {
+        "only": "warm"
+      }
+    ],
+    [
+      "Pierwszy gryz: o, panie. Drugi gryz: o, PANIE.",
+      "First bite: oh, man. Second bite: oh, MAN.",
+      {
+        "only": "warm"
+      }
+    ],
+    [
+      "Za 29 zł? Za 29 zł to ja bym się ożenił z tym farszem.",
+      "For 29 zł? For 29 zł I'd marry this filling.",
+      {
+        "only": "warm"
+      }
+    ],
+    [
+      "Mięso soczyste, frytki chrupią. Kierowca dowiózł, szacun.",
+      "Juicy meat, crunchy fries. The driver delivered, respect.",
+      {
+        "only": "warm"
+      }
+    ],
+    [
+      "Zjadłem. Zjadłbym drugi raz. To jest recenzja.",
+      "I ate it. I'd eat it again. That is the review.",
+      {
+        "only": "warm"
+      }
+    ],
+    [
+      "Sos czosnkowy w normie. Czyli za dużo. Czyli idealnie.",
+      "Garlic sauce at normal levels. So too much. So perfect.",
+      {
+        "only": "warm"
+      }
+    ],
+    [
+      "Letnie. Jak moja kariera w telewizji.",
+      "Lukewarm. Like my TV career.",
+      {
+        "only": "cold"
+      }
+    ],
+    [
+      "Zimne jak poranek na Pradze. Kierowco, co się stało?",
+      "Cold as a Praga morning. Driver, what happened?",
+      {
+        "only": "cold"
+      }
+    ],
+    [
+      "Wystygło po drodze. Danie może dobre, kurier słaby.",
+      "It went cold on the way. Maybe the food's good, the courier isn't.",
+      {
+        "only": "cold"
+      }
+    ]
+  ],
+  "cringulo_owner": [
+    [
+      "Cringulo nas polecił? Otwieram drugą kasę.",
+      "Cringulo recommends us? Opening a second till."
+    ],
+    [
+      "Przyklejam na szybie. Jutro kolejka do Pałacu.",
+      "Sticking it on the window. Tomorrow the queue reaches the Palace."
+    ],
+    [
+      "Mlask od Cringula? Mama będzie dumna. Kucharz płacze.",
+      "A smack from Cringulo? Mum will be proud. The chef is crying."
+    ],
+    [
+      "Dziękuję! Podnoszę ceny, zanim fani dojadą.",
+      "Thank you! Raising prices before the fans arrive."
+    ]
+  ],
+  "crash_scene": [
+    [
+      "To pan we mnie wjechał!",
+      "You drove into me!",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Ja?! Pan hamował na zielonym!",
+      "Me?! You braked on a green!",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Mam kamerkę. Wszystko jest nagrane.",
+      "I've got a dashcam. It's all on tape.",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "A ja mam szwagra w ubezpieczeniach.",
+      "Well, my brother-in-law works in insurance.",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Spisujemy oświadczenie czy dzwonię po żonę?",
+      "Do we write a statement, or do I call my wife?",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Zderzak był nowy! Z giełdy na Bartyckiej!",
+      "That bumper was new! From the Bartycka market!",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Kierunkowskaz pan ma. Używać pan nie umie.",
+      "You've got an indicator. You just can't use it.",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Jeżdżę po Warszawie trzydzieści lat!",
+      "I've been driving in Warsaw for thirty years!",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "I to widać, panie. I to widać.",
+      "And it shows, mister. It really shows.",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Ja tu tylko na chwilkę skręcałem.",
+      "I was only turning for a sec.",
+      {
+        "only": "driver"
+      }
+    ],
+    [
+      "Proszę się rozejść, nie ma na co patrzeć.",
+      "Move along, nothing to see here.",
+      {
+        "only": "officer"
+      }
+    ],
+    [
+      "Dokumenty proszę. Obaj. I bez krzyków.",
+      "Documents, please. Both of you. And no shouting.",
+      {
+        "only": "officer"
+      }
+    ],
+    [
+      "Kto zaczął? Nikt? Jak zawsze.",
+      "Who started it? Nobody? As always.",
+      {
+        "only": "officer"
+      }
+    ],
+    [
+      "Objazd lewym pasem! Proszę nie zwalniać!",
+      "Detour by the left lane! Don't slow down!",
+      {
+        "only": "officer"
+      }
+    ],
+    [
+      "Trąbienie nic nie pomoże, proszę pana.",
+      "Honking won't help, sir.",
+      {
+        "only": "officer"
+      }
+    ],
+    [
+      "Nikomu nic nie jest. Poza dumą.",
+      "Nobody's hurt. Except their pride.",
+      {
+        "only": "medic"
+      }
+    ],
+    [
+      "Proszę głęboko oddychać. I przestać krzyczeć.",
+      "Breathe deeply, please. And stop shouting.",
+      {
+        "only": "medic"
+      }
+    ],
+    [
+      "Herbatki z termosu? Na nerwy najlepsza.",
+      "Tea from the thermos? Best thing for nerves.",
+      {
+        "only": "medic"
+      }
+    ],
+    [
+      "Ciśnienie 180 na 110. Od kłótni, nie od wypadku.",
+      "Blood pressure 180 over 110. From the row, not the crash.",
+      {
+        "only": "medic"
+      }
+    ],
+    [
+      "Nagrywam! Będą wyświetlenia!",
+      "I'm filming! This'll get views!",
+      {
+        "only": "gawker"
+      }
+    ],
+    [
+      "Halo, mamo? Nadaję na żywo z miejsca zdarzenia!",
+      "Hello, Mum? I'm live from the scene!",
+      {
+        "only": "gawker"
+      }
+    ],
+    [
+      "Pionowo nagrywać czy poziomo?",
+      "Do I film it upright or sideways?",
+      {
+        "only": "gawker"
+      }
+    ],
+    [
+      "Zaraz wrzucę na grupę osiedla.",
+      "Posting it to the estate's group in a sec.",
+      {
+        "only": "gawker"
+      }
+    ],
+    [
+      "Ja tylko patrzę. Zawodowo.",
+      "I'm just watching. Professionally.",
+      {
+        "only": "gawker"
+      }
+    ],
+    [
+      "Ten po lewej winny. Ja to czuję.",
+      "The one on the left's to blame. I can feel it.",
+      {
+        "only": "gawker"
+      }
+    ]
+  ],
+  "zaglebie": [
+    [
+      "Zagłębie Kebabowe: pięć budek, jedna aleja, wojna o sos.",
+      "Kebab Basin: five shops, one avenue, a sauce war.",
+      {
+        "only": "welcome"
+      }
+    ],
+    [
+      "Pod Feminą pięć kebabów, każdy ma „najlepszy sos”.",
+      "Five kebabs by Femina, each with \"the best sauce\".",
+      {
+        "only": "welcome"
+      }
+    ],
+    [
+      "Z seansu prosto do Zagłębia. Z Feminy wszyscy wychodzą głodni.",
+      "From the film to the Basin. Femina empties hungry.",
+      {
+        "only": "welcome"
+      }
+    ],
+    [
+      "Legenda: nikt nie zjadł dnia w pięciu budkach. Szlak Szpili czeka.",
+      "Legend: nobody ate at all five in a day. The Skewer Trail awaits.",
+      {
+        "only": "welcome"
+      }
+    ],
+    [
+      "Pasza z Królem milczą od sporu o czosnkowy. Erdal pośredniczy.",
+      "Pasha and King haven't spoken since the garlic dispute. Erdal mediates.",
+      {
+        "only": "welcome"
+      }
+    ],
+    [
+      "Rzemieślniczy kebab: zakwas, rożen i kolejka. Z hasztagiem.",
+      "The craft kebab: sourdough, a spit and a queue. With a hashtag.",
+      {
+        "only": "welcome"
       }
     ]
   ]

@@ -41,6 +41,8 @@ extends Node
 ## Loop G1b: --last-session=struggled|calm starts Auto as if the last session at the sharp image
 ## struggled (the ×2 fallback) or was calm (the sharp image), and writes nothing of it.
 
+const Lang := preload("res://scripts/lang.gd")  # one language at a time (2026-11-02)
+const Release := preload("res://scripts/release.gd")  # DEMO 3j: no flags in a release build
 const Access := preload("res://scripts/access.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 const Car := preload("res://scripts/car.gd")
@@ -54,6 +56,7 @@ const Skids := preload("res://scripts/skids.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const Traffic := preload("res://scripts/traffic.gd")
 const Trams := preload("res://scripts/trams.gd")
+const Trains := preload("res://scripts/trains.gd")
 const Pedestrians := preload("res://scripts/pedestrians.gd")
 const Rivals := preload("res://scripts/rivals.gd")
 const Bubbles := preload("res://scripts/bubbles.gd")
@@ -66,6 +69,7 @@ const Dialogue := preload("res://scripts/dialogue.gd")
 const Jobs := preload("res://scripts/jobs.gd")
 ## Loop 2d-1: Podwózka, the app-taxi side job.
 const Rides := preload("res://scripts/rides.gd")
+const Lines := preload("res://scripts/quest_lines.gd")
 const Eggs := preload("res://scripts/eggs.gd")
 ## Loop MW-1: MOJA WARSZAWA, the city notebook.
 const Notebook := preload("res://scripts/notebook.gd")
@@ -99,6 +103,7 @@ const TrendJob := preload("res://scripts/trend_job.gd")
 const RoundupJob := preload("res://scripts/roundup_job.gd")
 const Weather := preload("res://scripts/weather.gd")
 const Controls := preload("res://scripts/drive_controls.gd")
+const Gamepad := preload("res://scripts/gamepad.gd")  # the gamepad loop
 const FollowCamera := preload("res://scripts/follow_camera.gd")
 const CameraShots := preload("res://scripts/camera_shots.gd")
 const Settings := preload("res://scripts/settings.gd")
@@ -114,6 +119,9 @@ const Governor := preload("res://scripts/governor.gd")
 const Police := preload("res://scripts/police.gd")
 const Buses := preload("res://scripts/buses.gd")
 const OldTram := preload("res://scripts/old_tram.gd")
+const CrashScenes := preload("res://scripts/crash_scenes.gd")
+## Packs (docs/design/packs.md): running clubs, cycling packs and coffee raves.
+const Packs := preload("res://scripts/packs.gd")
 ## The garage loop: Warsztat u Mirka and its paint jobs (garage.gd, its card garage_card.gd).
 const Garage := preload("res://scripts/garage.gd")
 ## Loop 3h slice 4: the guided first 10 minutes and the end card.
@@ -165,6 +173,10 @@ var hud: CanvasLayer
 var graph: LaneGraph
 var traffic: Traffic
 var trams: Trams
+## The railway (docs/design/railway.md T1): trains on the cross-city line and the ring line.
+var trains: Trains
+## --train=X,Z: a train put on the track nearest that point at the start (shots).
+var train_at := Vector2.INF
 var walkers: Pedestrians
 var rivals: Rivals
 ## Loop 3g-1: the police (null with --no-police or no traffic) and their flags.
@@ -284,6 +296,10 @@ var start_in_tunnel := false
 ## fragments magenta and every other building green; 2: the ghost cut fully, no dither)
 ## and prints the ghost's ellipse in screen pixels with every screenshot.
 var ghost_debug := 0
+## --left-handed: the left-handed layout for this run (Settings → DOSTĘP keeps it otherwise).
+var _flag_left_handed := false
+## --lang=pl|en: the language for this run (not saved), over the saved choice and the phone's.
+var _flag_lang := ""
 ## --lift=M: aim the camera M metres above the vehicle (close-ups of tall landmarks).
 var cam_lift := 0.0
 ## The ghosted footprint's sunlight: given back in full above GHOST_SUN_HIGH degrees of
@@ -298,6 +314,8 @@ var no_ao := false
 ## Load the prebuilt sectors like the exported game does (loop 3c: map/sectors/*.scn, index.res,
 ## proxies.scn; only rebuilt by tools/bake_city.gd), not build them from their files.
 var prebuilt := false
+## --no-map-edge: without the land past the map's edge (map_edge.gd), for a before/after probe.
+var _flag_no_map_edge := false
 var _started := false
 ## Time of day (N / TIME / --time=), the radio (R / RADIO / --radio=), the VHS
 ## overlay (V / VHS / --vhs) and the title screen (skipped by the testing flags).
@@ -367,6 +385,9 @@ var first_race_flag := false
 var tape: Tape
 var spacer: Spacer
 var fotka: Fotka
+## Where the car stood when Fotka opened (Transform3D.IDENTITY: not open): put back on close, so
+## nothing that happened while the camera was away (a push from traffic) leaves it elsewhere.
+var _fotka_car := Transform3D.IDENTITY
 var egg_flag := ""
 var egg_log := false
 var found_eggs := ""
@@ -422,8 +443,22 @@ var honk_frames: Array[int] = []
 ## The vintage-tram loop (old_tram.gd): the old two-car set on summer weekends, E39; flags
 ## --old-tram (the set now near the car; =follow: and the car kept behind it), --tram-log.
 var old_tram: OldTram
+## Crash scenes (crash_scenes.gd, 2026-11-01): a fender bender with a police car and an ambulance
+## now and then on a road ahead; in a normal launch only (test runs repeat). Flags --crash=now (a
+## scene 45-80 m ahead at the start, for shots), --crash=X,Z (one on the fitting road nearest that
+## point), --crash=on (the timer in a test run too), --crash=0 (none), --crash-log.
+var crash_scenes: CrashScenes
+var crash_flag := ""
+var crash_log := false
+var _crash_auto := false
 var old_tram_flag := ""
 var tram_log := false
+## Packs (packs.gd): running clubs, cycling packs, coffee raves; flags --packs=0 (none), --packs-now
+## (every club and rave on whatever the clock, the packs near the car timed to pass it), --packs-log.
+var packs: Packs
+var packs_flag := 1
+var packs_now := false
+var packs_log := false
 ## The garage loop (garage.gd): Warsztat u Mirka on Brzeska; flags --paint=<id> (the car starts in
 ## that paint, owned for the run), --garage (the car in the garage's ring, the card open; the
 ## garage shown whatever the wallet), --garage-log (`garage:` lines).
@@ -432,6 +467,9 @@ var paint_flag := ""
 var garage_flag := false
 ## --garage=ring: the car 16 m short of the ring (the ring in view, no card).
 var garage_ring_only := false
+## G13: --garage=parts opens the card on the parts tab; --upgrades=all|tt|nitro starts with them.
+var garage_parts := false
+var upgrades_flag := ""
 var garage_log := false
 var life_flag := 1
 var dogs_log := false
@@ -457,6 +495,8 @@ var pedzik_kerb := false
 var armchair_flag := false
 var start_sloik := -1
 var start_heat := -1.0
+## Testing (loop Zagłębie): --craft=plain, the autopilot takes the plain kebab at the craft shop.
+var craft_plain := false
 # --- loop 2d-1: Podwózka (rides.gd) and its testing flags ---
 var rides: Rides
 ## --ride=N: ride N's request, the car by its passenger; --ride-quirk=, --passenger=, --stars=X
@@ -563,7 +603,7 @@ var _stress_t0 := 0
 ## traffic level, and the command-line values that win over the saved ones (-1: none).
 var controls := Controls.new()
 var settings := Settings.new()
-var traffic_level := Settings.NORMAL_TRAFFIC
+var traffic_level := Settings.DEFAULT_TRAFFIC
 ## -2: no --quality= (Tiers.AUTO is -1).
 var _flag_quality := -2
 var _flag_controls := -1
@@ -586,6 +626,9 @@ var drags: Array[PackedInt32Array] = []
 ## The helicopter's stick or keys are held (the follow camera waits, like Point).
 var _heli_held := false
 var _heli_release := 99.0
+## The held stick's screen direction and the camera's yaw when it was set (as drive_controls.gd's).
+var _heli_set_aim := Vector2.ZERO
+var _heli_set_yaw := 0.0
 var _perf_wait := 0.0
 var _clock_minute := -1
 ## --sound-check: play every sound once and print the bus meters (sfx.gd).
@@ -660,6 +703,7 @@ var _cam_turn_max := 0.0
 
 func _ready() -> void:
 	_parse_args()
+	Gamepad.install()  # the gamepad loop: the pad's stick and trigger actions
 	_parse_stream_args()  # loop 3c (the sectors block at the end of this file)
 	_load_settings()
 	# The audio buses first: the radio plays on Music from the title screen on.
@@ -671,6 +715,7 @@ func _ready() -> void:
 	if show_title:
 		title = Title.new()
 		title.touch_off = no_touch  # desktop: --no-touch
+		title.language_chosen.connect(_on_language_chosen)
 		add_child(title)
 	else:
 		loading = _loading_card()
@@ -729,7 +774,7 @@ func _ready() -> void:
 		title.dismissed.connect(_on_title_dismissed)
 		title.new_game.connect(_on_new_game)
 		title.can_resume = (wallet.has_progress() and wallet.persistent and not wallet.newer) or title_choice in ["ask", "new"] or not resume_flag.is_empty()
-		title.resume_line = "%s · respekt %d" % [Wallet.money(wallet.zl), wallet.respect]
+		title.resume_line = _resume_line()
 		title.auto_go = _new_game_pending
 		_new_game_pending = false
 		# The loading fix: "tap to drive" once the sectors round the start are in (_title_frame).
@@ -928,12 +973,13 @@ func _cut_camera() -> void:
 		fcam.stop_turning()
 
 
-## Camera loop: any touch, click or key skips a cinematic moment.
+## Camera loop: any touch, click, key or pad button skips a cinematic moment.
 func _input(event: InputEvent) -> void:
+	_note_pad(event)
 	if moments == null or not moments.playing():
 		return
 	var go := false
-	if event is InputEventScreenTouch or event is InputEventMouseButton:
+	if event is InputEventScreenTouch or event is InputEventMouseButton or event is InputEventJoypadButton:
 		go = event.is_pressed()
 	elif event is InputEventKey:
 		go = event.is_pressed() and not event.is_echo()
@@ -1016,6 +1062,10 @@ func _build_world() -> void:
 	if not monolithic:
 		data = _open_streamed_city(world, flat_mat)
 		flat_mat = map.flat_material
+		if _flag_no_map_edge:
+			var edge := map.get_node_or_null("MapEdge")
+			if edge != null:
+				edge.free()
 	else:
 		map = MapBuilder.new()
 		world.add_child(map)
@@ -1033,11 +1083,14 @@ func _build_world() -> void:
 	ped_zones = PedZones.new(data.get("ped_zones", []))
 	car = Car.new()
 	car.ground_height = map.drive_height
+	car.set_sensitivity(settings.sensitivity)
+	car.set_handling(settings.handling)  # G4: Cruise by default, Sport from Settings → Jazda
 	world.add_child(car)
 	_xray = TunnelXray.new()
 	world.add_child(_xray)
 	_xray.setup(car)
 	car.stuck.connect(_on_car_stuck)
+	car.jammed.connect(_on_car_stuck)  # G17: 8 s among traffic cars
 	car.water_at = map.in_water
 	car.kerb_feel = map.kerb_feel  # loop 3b-2: kerbs, islands and medians the car feels
 	car.splashed.connect(_on_car_splashed)
@@ -1107,6 +1160,7 @@ func _build_world() -> void:
 	hud.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(hud)
 	hud.set_scheme(controls.scheme)
+	hud.set_left_handed(Access.left_handed)  # accessibility (2026-11-01)
 	hud.set_touch_off(no_touch)  # desktop: --no-touch
 	hud.settings_pressed.connect(_open_settings)
 	hud.settings_panel.changed.connect(_on_setting)
@@ -1129,16 +1183,19 @@ func _build_world() -> void:
 	hud.setup_minimap(data, map.map_outline(), map.outside)  # map north: the L, not the box
 	hud.map_landmarks = map.landmark_info  # the full map's landmark icons (map_icons.gd)
 	hud.vehicle_pressed.connect(_toggle_vehicle)
+	hud.zoom_pressed.connect(_zoom_view)  # G3: the − and + buttons
 	hud.tapped.connect(_on_tap)
 	_set_flying(false)
 
 	missions = Missions.new()
+	missions.line_split = start_mission == 0  # G12: calls follow the vehicle (quest_lines.gd)
 	add_child(missions)
 	missions.setup(map, data, world, hud)
 	missions.player = car.global_position
 	# Speech bubbles (anyone can talk) and everybody's lines.
 	bubbles = Bubbles.new()
 	bubbles.pt = hud.pt
+	bubbles.kmh = func() -> float: return absf(car.forward_speed) * 3.6
 	bubbles.project = func(p: Vector3) -> Vector2: return cam.unproject_position(p) * float(view.stretch_shrink)
 	hud.add_child(bubbles)
 	hud.move_child(bubbles, 1)
@@ -1238,7 +1295,9 @@ func _build_world() -> void:
 	_build_city_life(data, world)
 	_build_buses(data, world)
 	_build_old_tram(world)
+	_build_crash_scenes()
 	_build_storefronts(data, world)
+	_build_packs(data, world)
 	_build_first10()
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
@@ -1337,6 +1396,11 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	trams.traffic = traffic
 	traffic.trams = trams
 	_first_scene_trams()
+	trains = Trains.new()
+	world.add_child(trains)
+	trains.setup(map, data)
+	if train_at != Vector2.INF:
+		trains.place_near(train_at)
 	walkers = Pedestrians.new()
 	world.add_child(walkers)
 	walkers.setup(map, cam, traffic, data)
@@ -1410,6 +1474,10 @@ func _build_sound(data: Dictionary, world: Node3D) -> void:
 	world.add_child(sfx)
 	sfx.setup(data)
 	car.impact.connect(sfx.impact)
+	# G13b: the nitro lights with a whoosh and a short strong buzz.
+	car.nitro_started.connect(func() -> void:
+		sfx.play_at("nitro_whoosh", car.global_position)
+		Access.buzz(90, 0.8))
 	if trams != null:
 		trams.bell.connect(sfx.tram_bell)
 	if traffic != null:
@@ -1450,6 +1518,8 @@ func _set_quality(choice: int) -> void:
 	if crowds != null:
 		crowds.amount = _crowd_scale()
 		crowds.refresh()
+	if packs != null:
+		packs.amount = _crowd_scale()
 	if life != null:
 		life.amount = float(life_flag) * (0.5 if quality == Tiers.LOW else 1.0)
 	RenderingServer.directional_shadow_atlas_set_size(qs["shadow_size"], true)
@@ -1738,7 +1808,7 @@ func _start_phone_bench() -> void:
 		if hit.is_empty():
 			busy = "Brak trasy · No route"
 	if busy != "":
-		hud.toast(busy)
+		hud.toast(Lang.split(busy))
 		return
 	_phone_saved = {"at": car.global_transform, "mask": car.collision_mask, "size": base_size,
 			"wallet": [wallet.zl, wallet.respect, wallet.jobs.duplicate(true), wallet.best.duplicate(true),
@@ -1828,6 +1898,7 @@ func _build_side_jobs(data: Dictionary, world: Node3D) -> void:
 			"rivals": rivals, "graph": graph, "traffic": traffic, "map": map, "car": car, "tod": tod}
 	jobs = Jobs.new()
 	jobs.autopilot = autopilot
+	jobs.craft_plain = craft_plain
 	if start_heat >= 0.0:
 		jobs.start_heat = start_heat
 	add_child(jobs)
@@ -1981,7 +2052,7 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 	if city_sounds != null:
 		for st: Dictionary in crowds.sites:
 			var site := st
-			if site["kind"] in ["queue", "steps", "plan_c"]:
+			if site["kind"] in ["queue", "steps", "plan_c", "chill"]:
 				var at: Vector2 = site["door"]
 				city_sounds.add_crowd(str(site["id"]), "murmur", Vector3(at.x, map.ground_height(at.x, at.y), at.y),
 						func() -> bool: return int(site["n"]) >= 4)
@@ -2018,6 +2089,33 @@ func _guide_start() -> void:
 
 ## Loop 3h slice 4: the director of the first 10 minutes and the end card (first10.gd). The guide
 ## runs in a normal launch on a fresh save, or with --first10; never in other test runs.
+## The packs (packs.gd) after the storefronts (the COFFEECHAIR cafés' pavements for the raves).
+## None with --packs=0 or --crowd=0.
+func _build_packs(data: Dictionary, world: Node3D) -> void:
+	if packs_flag == 0 or crowd_flag == 0:
+		return
+	packs = Packs.new()
+	packs.name = "Packs"
+	packs.map = map
+	packs.dialogue = dialogue
+	packs.hud = hud
+	packs.log_on = packs_log
+	packs.amount = _crowd_scale()
+	packs.force = packs_now
+	if packs_now:
+		packs.force_near = Vector2(car.global_position.x, car.global_position.z)
+	packs.clock = tod.local_clock
+	packs.focus = func() -> Vector3: return cam_focus
+	packs.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	if traffic != null:
+		packs.on_screen = traffic.on_screen
+	world.add_child(packs)
+	packs.setup(data, storefronts.venues if storefronts != null else [])
+
+
 func _build_first10() -> void:
 	first10 = First10.new()
 	first10.name = "First10"
@@ -2072,7 +2170,15 @@ func _build_garage(world: Node3D) -> void:
 	if paint_flag != "":
 		garage.preset(paint_flag)
 	garage.force = garage_flag
+	if garage_parts:
+		garage.start_tab = "parts"
 	garage.setup(world)
+	if upgrades_flag != "":
+		garage.preset_upgrades(upgrades_flag)
+	garage.upgraded.connect(func(id: String) -> void:
+		if id == "nitro":
+			hud.toast("Nitro gotowe: przytrzymaj błyskawicę przy klaksonie (klawisz N).",
+					"Nitro fitted: hold the bolt by the horn (N key)."))
 	if garage_flag:
 		_put_at_garage()
 	garage.opened.connect(func() -> void:
@@ -2141,6 +2247,41 @@ func _build_buses(data: Dictionary, world: Node3D) -> void:
 	hud.horn_pressed.connect(func() -> void: buses.honk())
 	if night_hub_flag:
 		buses.force()
+
+
+# --- the crash scenes -------------------------------------------------------------------------
+
+## The crash scenes (crash_scenes.gd) on the traffic's lane graph, with the police's cars and the
+## pedestrians' scene figures. None with --no-traffic or --crash=0.
+func _build_crash_scenes() -> void:
+	if traffic == null or crash_flag == "0":
+		return
+	crash_scenes = CrashScenes.new()
+	crash_scenes.name = "CrashScenes"
+	crash_scenes.traffic = traffic
+	crash_scenes.graph = graph
+	crash_scenes.map = map
+	crash_scenes.walkers = walkers
+	crash_scenes.dialogue = dialogue
+	crash_scenes.police = police
+	crash_scenes.radio = radio
+	crash_scenes.sfx = sfx
+	crash_scenes.hud = hud
+	crash_scenes.log_on = crash_log
+	crash_scenes.enabled = _crash_auto or crash_flag != ""
+	crash_scenes.focus = func() -> Vector3: return cam_focus
+	crash_scenes.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	add_child(crash_scenes)
+	crash_scenes.setup()
+	var xz := crash_flag.split(",")
+	if crash_flag == "now" or xz.size() == 2:
+		var p := car.global_position
+		var f := -car.global_transform.basis.z
+		var at := Vector2(float(xz[0]), float(xz[1])) if xz.size() == 2 else Vector2.INF
+		crash_scenes.place(Vector2(p.x, p.z), Vector2(f.x, f.z).normalized(), true, at)
 
 
 # --- the vintage-tram loop --------------------------------------------------------------------
@@ -2320,6 +2461,15 @@ func _life_start() -> void:
 					Vector2(car.global_position.x, car.global_position.z).distance_to(Vector2(ap.x, ap.z))])
 	if trend_job_flag > 0 and trend_job != null:
 		var i := trend_job_flag - 1
+		if trend_job_flag == 6:
+			# "Mlask" (G5): Cringulo's van parked by the car, his request at once (KUKŁA by Nowy
+			# Świat if no Wiralek slot is new enough).
+			if crowds != null and crowds.by_id.has(Crowds.KUKLA[1]):
+				_put_car_near(crowds.sites[crowds.by_id[Crowds.KUKLA[1]]]["door"], 120.0)
+			life.tick(0.0)
+			if not trend_job.offer_mlask(true):
+				print("trend job: --trend-job=6: no request (no van spot or new place)")
+			return
 		if trend_job_flag == 5 and crowds != null and crowds.by_id.has(Crowds.PADEL_ID):
 			var cd: Vector2 = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]["door"]
 			_put_car_near(cd, 60.0)
@@ -2544,7 +2694,7 @@ func _build_moments(data: Dictionary, world: Node3D) -> void:
 			fotka.post_quad = c
 	add_child(fotka)
 	fotka.setup(places, spots)
-	fotka.closed.connect(func() -> void: _cut_camera())
+	fotka.closed.connect(_on_fotka_closed)
 	if hud.settings_panel != null:
 		var page: Control = hud.settings_panel.get("notebook_page")
 		hud.settings_panel.set("notebook_eggs", egg_book)
@@ -2879,7 +3029,25 @@ func _open_fotka() -> void:
 	car.forward_speed = 0.0
 	fotka.safe = hud.safe_rect()
 	fotka.pt = hud.pt
+	_fotka_car = car.global_transform
 	fotka.open(_vehicle_position(), cam_yaw, camera_pitch, cam.size)
+
+
+## Fotka closed (2026-11-01, F stuck in a building after a photo on the iPhone): the car back
+## where it stood when Fotka opened, stopped, then the camera cut to it. The hold parks the car
+## now (_read_input), so it no longer reverses while the camera is away; this is the backstop.
+func _on_fotka_closed() -> void:
+	if _fotka_car != Transform3D.IDENTITY and not flying:
+		var moved := car.global_position.distance_to(_fotka_car.origin)
+		car.global_transform = _fotka_car
+		car.vel = Vector3.ZERO
+		car.velocity = Vector3.ZERO
+		car.forward_speed = 0.0
+		car.reset_physics_interpolation()
+		if photo_log:
+			print("fotka: car put back (it had moved %.2f m)" % moved)
+	_fotka_car = Transform3D.IDENTITY
+	_cut_camera()
 
 
 ## The car on the lane nearest `at` (within `reach` m), else on the point itself.
@@ -3166,10 +3334,10 @@ func _police_flag(arg: String) -> void:
 ## The game's own options. Loop 2b: a launcher can swallow the "--" (devicectl on an iPhone):
 ## then they arrive among the engine's own; ours never share a name with those. Every parser of
 ## game flags reads this (loop G0+: the streaming flags read only the user args, so on the phone
-## --stream-soak and --stream-log did nothing and the soak never ran).
+## --stream-soak and --stream-log did nothing and the soak never ran). A release build reads none
+## (release.gd: the testing flags are stripped from what players get).
 static func game_args() -> PackedStringArray:
-	var args := OS.get_cmdline_user_args()
-	return args if not args.is_empty() else OS.get_cmdline_args()
+	return Release.game_args()
 
 
 func _parse_args() -> void:
@@ -3177,6 +3345,10 @@ func _parse_args() -> void:
 	for arg in game_args():
 		if arg == "--demo":
 			demo = true
+		elif arg.begins_with("--lang="):
+			_flag_lang = arg.trim_prefix("--lang=")  # pl or en, for shots and checks
+		elif arg == "--left-handed":
+			_flag_left_handed = true  # accessibility (2026-11-01): the mirrored controls, for shots
 		elif arg.begins_with("--shots="):
 			for s in arg.trim_prefix("--shots=").split(","):
 				shots.append(int(s))
@@ -3278,6 +3450,8 @@ func _parse_args() -> void:
 		elif arg == "--probe":
 			probe = true
 			free_roam = true
+		elif arg == "--no-map-edge":
+			_flag_no_map_edge = true
 		elif arg.begins_with("--exp="):
 			_exp = arg.trim_prefix("--exp=").split(",")
 		elif arg.begins_with("--time="):
@@ -3322,6 +3496,8 @@ func _parse_args() -> void:
 			start_sloik = maxi(0, int(arg.trim_prefix("--sloik="))) if arg.contains("=") else 0
 		elif arg.begins_with("--heat="):
 			start_heat = clampf(float(arg.trim_prefix("--heat=")), 0.0, 1.0)
+		elif arg == "--craft=plain":
+			craft_plain = true
 		# --- loop 2d-1: Podwózka's flags ---
 		elif arg.begins_with("--ride="):
 			start_ride = maxi(0, int(arg.trim_prefix("--ride=")))
@@ -3431,10 +3607,24 @@ func _parse_args() -> void:
 			night_hub_flag = true
 		elif arg == "--bus-log":
 			bus_log = true
+		elif arg.begins_with("--crash="):
+			crash_flag = arg.trim_prefix("--crash=")
+		elif arg == "--crash-log":
+			crash_log = true
 		elif arg == "--old-tram" or arg.begins_with("--old-tram="):
 			old_tram_flag = "follow" if arg == "--old-tram=follow" else "now"
+		elif arg.begins_with("--train="):
+			var xz := arg.trim_prefix("--train=").split(",")
+			if xz.size() == 2:
+				train_at = Vector2(float(xz[0]), float(xz[1]))
 		elif arg == "--tram-log":
 			tram_log = true
+		elif arg.begins_with("--packs="):
+			packs_flag = clampi(int(arg.trim_prefix("--packs=")), 0, 1)
+		elif arg == "--packs-now":
+			packs_now = true
+		elif arg == "--packs-log":
+			packs_log = true
 		elif arg.begins_with("--honk="):
 			for f in arg.trim_prefix("--honk=").split(",", false):
 				honk_frames.append(int(f))
@@ -3455,7 +3645,7 @@ func _parse_args() -> void:
 		elif arg.begins_with("--trend-day="):
 			trend_day_flag = maxi(0, int(arg.trim_prefix("--trend-day=")))
 		elif arg == "--trend-job" or arg.begins_with("--trend-job="):
-			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 5)
+			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 6)
 			trend_log = true
 		elif arg.begins_with("--club="):
 			# Loop MW-3: the car at a club's door (places.json id or name), no title.
@@ -3464,14 +3654,17 @@ func _parse_args() -> void:
 			free_roam = true
 		elif arg.begins_with("--paint="):
 			paint_flag = arg.trim_prefix("--paint=")  # the garage loop
-		elif arg == "--garage" or arg == "--garage=ring":
+		elif arg == "--garage" or arg == "--garage=ring" or arg == "--garage=parts":
 			garage_flag = true
 			garage_ring_only = arg == "--garage=ring"
+			garage_parts = arg == "--garage=parts"
 			garage_log = true
 			show_title = false
 			free_roam = true
 		elif arg == "--garage-log":
 			garage_log = true
+		elif arg.begins_with("--upgrades="):
+			upgrades_flag = arg.trim_prefix("--upgrades=")  # G13: all | tt | nitro, for this run
 		elif arg.begins_with("--egg="):
 			egg_flag = arg.trim_prefix("--egg=")
 		elif arg.begins_with("--district="):
@@ -3603,6 +3796,8 @@ func _parse_args() -> void:
 	var test_run := DisplayServer.get_name() == "headless" or not shots.is_empty() or bench or probe or autopilot \
 			or demo or cam_test != "" or _water_test_at != Vector2.INF or ram_test > 0 or tram_watch >= 0
 	_governor_on = _flag_governor == 1 if _flag_governor >= 0 else not test_run
+	# The crash scenes' timer: a normal launch only (a test run with --crash=on or =now too).
+	_crash_auto = not test_run
 	# Loop G1b: test runs (and --last-session=) never write Auto's image state, even with the
 	# governor on and without --nosave.
 	_image_write = not test_run and _flag_last_session == ""
@@ -3613,7 +3808,10 @@ func _parse_args() -> void:
 func _load_settings() -> void:
 	settings.persistent = not no_save
 	settings.load_file()
+	Lang.set_code(_flag_lang if _flag_lang in Lang.CODES else Lang.resolve(settings.lang))
 	Access.apply(settings)
+	if _flag_left_handed:
+		Access.left_handed = true
 	if not _flag_size:
 		base_size = settings.view
 	model_name = _flag_model if _flag_model != "" else OS.get_model_name()
@@ -3642,7 +3840,8 @@ func _load_settings() -> void:
 		scheme = Controls.FIXED
 	controls.scheme = scheme
 	follow = scheme == Controls.POINT or (scheme == Controls.CLASSIC and settings.classic_follow and not _flag_fixed)
-	style_index = _flag_style if _flag_style >= 0 else settings.style
+	# 2026-11-01 (F): no style picker any more, always Sharp (--style= stays for tests).
+	style_index = _flag_style if _flag_style >= 0 else 0
 	vhs = _flag_vhs or settings.vhs
 	print("settings: %s (%s)" % [settings.summary(), ProjectSettings.globalize_path(Settings.PATH) if not no_save else "not saved"])
 
@@ -3814,8 +4013,6 @@ func _teleport_refusal() -> Array:
 		return ["Nie teraz: trwa akcja ratunkowa", "Not now: a rescue is on"]
 	if police != null and police.chasing():
 		return ["Nie teraz: policja siedzi ci na ogonie", "Not now: the police are on your tail"]
-	if first10 != null and first10.guide and not first10.fired.has("done"):
-		return ["Najpierw pierwsza jazda", "Finish the first drive first"]
 	return []
 
 
@@ -3867,9 +4064,34 @@ func _settings_state() -> Dictionary:
 			"auto": auto_name,
 			"master": settings.master, "music": settings.music, "effects": settings.effects, "perf": int(show_perf),
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
-			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on),
+			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on), "handling": settings.handling, "sensitivity": settings.sensitivity,
 			"text_large": int(settings.text_large), "calm": int(settings.calm), "color_safe": int(settings.color_safe),
-			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist)}
+			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist),
+			"left_handed": int(settings.left_handed), "lang": maxi(0, Lang.CODES.find(Lang.code))}
+
+
+## The save's line on the title screen: "1 240 zł · respekt 87" in the chosen language.
+func _resume_line() -> String:
+	return "%s · %s %d" % [Wallet.money(wallet.zl), Lang.pick("respekt", "respect"), wallet.respect]
+
+
+## The title's POLSKI / ENGLISH buttons: keep the choice (a --nosave run keeps it for the session
+## only) and renew the line under the prompt.
+func _on_language_chosen(code: String) -> void:
+	_set_language(code)
+	if title != null and wallet != null:
+		title.resume_line = _resume_line()
+
+
+## One language at a time (lang.gd): the choice is saved and every surface that was built in the
+## old language is made again (the settings panel at once; the full map when it next opens).
+func _set_language(code: String) -> void:
+	Lang.set_code(code)
+	settings.lang = code
+	settings.save()
+	print("language: %s" % code)
+	if hud != null:
+		hud.language_changed(_settings_state())
 
 
 func _close_settings() -> void:
@@ -3899,12 +4121,6 @@ func _on_setting(key: String, value: Variant) -> void:
 			if (int(value) == 0) != follow:
 				_toggle_follow()
 			hud.settings_panel.sync(_settings_state())
-		"style":
-			style_index = clampi(int(value), 0, STYLES.size() - 1)
-			settings.style = style_index
-			_apply_style()
-			# Loop G1b: Auto's button says what it draws with this style.
-			hud.settings_panel.sync(_settings_state())
 		"vhs":
 			_set_vhs(int(value) == 1)
 			settings.vhs = vhs
@@ -3930,17 +4146,33 @@ func _on_setting(key: String, value: Variant) -> void:
 		"fotka":
 			_open_fotka.call_deferred()
 			return
+		"unstuck":
+			_unstuck.call_deferred()
+			return
+		"new_game":
+			_on_new_game.call_deferred()  # G14: NOWA GRA in the settings (confirmed by two taps)
+			return
 		"wander":
 			settings.wander = int(value) == 1
 			if spacer != null:
 				spacer.set_on(settings.wander)
+		"sensitivity":
+			settings.sensitivity = clampf(float(value), 0.0, 1.0)
+			car.set_sensitivity(settings.sensitivity)
+		"handling":
+			settings.handling = clampi(int(value), 0, 1)
+			car.set_handling(settings.handling)
 		"zones":
 			settings.zone_cap = int(value) == 1
 			zone_cap_on = settings.zone_cap
-		"text_large", "calm", "color_safe", "vibration", "stop_assist":
-			# Accessibility (access.gd). Text size shows from the next launch (the HUD is built once).
+		"text_large", "calm", "color_safe", "vibration", "stop_assist", "left_handed":
+			# Accessibility (access.gd): all of it shows at once, text size included.
 			settings.set(key, int(value) == 1)
 			Access.apply(settings)
+			hud.set_left_handed(Access.left_handed)
+			hud.apply_text_scale()
+		"lang":
+			_set_language(Lang.CODES[clampi(int(value), 0, Lang.CODES.size() - 1)])
 		"master", "music", "effects":
 			settings.set(key, float(value))
 			Sfx.set_levels(settings.master, settings.music, settings.effects)
@@ -3953,7 +4185,24 @@ func _on_setting(key: String, value: Variant) -> void:
 func _on_car_stuck() -> void:
 	if flying or autopilot or car.in_water:
 		return
-	# Back onto the nearest lane, facing its way (else just the nearest free spot).
+	_tow_to_lane("car stuck")
+
+
+## The pause card's POMOC DROGOWA · unstuck button (JAZDA tab, 2026-11-01): the same tow as a
+## pinned car's, asked for by the player (stuck inside a wall, where nothing pins it). In the
+## water the water's own tow does it; in the air there is nothing to free.
+func _unstuck() -> void:
+	if flying or title != null or not _started:
+		return
+	if car.in_water:
+		_tow_out_of_water()
+		return
+	car.reset_motion()
+	_tow_to_lane("unstuck")
+
+
+## The car onto the nearest lane facing its way (else just the nearest free spot), stopped.
+func _tow_to_lane(why: String) -> void:
 	var at := car.global_position
 	var yaw := car.rotation.y
 	var lane := _lane_spot(at, yaw)
@@ -3968,7 +4217,7 @@ func _on_car_stuck() -> void:
 	car.reset_physics_interpolation()
 	hud.toast("Pomoc drogowa: wyciągnięci!", "Towed free")
 	_cut_camera()
-	print("car stuck: moved to %.1f, %.1f" % [spot.x, spot.z])
+	print("%s: moved to %.1f, %.1f" % [why, spot.x, spot.z])
 
 
 ## The nearest lane to `at` on its level (not a deck overhead, nor a road under the bridge it is
@@ -4153,6 +4402,7 @@ func _build_lineup(parent: Node3D) -> void:
 		[taxis, 0, "#f2f2ee", -10.0, 0.0, 0.0, "taxi"], [taxis, 1, "#2b2c2f", -6.6, 0.0, 0.0, "podwozka"],
 		[police, 0, Models.POLICE_WHITE.to_html(false), -3.3, 0.0, 0.0, "police"],
 		[police, 1, Models.GUARD_MUSTARD.to_html(false), 3.3, 0.0, 0.0, "guard"],
+		[police, 2, Models.AMBULANCE_YELLOW.to_html(false), 0.0, -4.7, 0.0, "ambulance"],
 		[vans, 0, "#e9e9e6", 6.7, 0.0, 0.0, "panel van"], [vans, 1, "#d8d2c2", 10.3, 0.0, 0.0, "box van"],
 		[cars, 0, "#b8bcc0", -4.8, 7.5, 0.0, "hatch"], [cars, 1, "#24324a", -1.6, 7.5, 0.0, "saloon"],
 		[cars, 2, "#4c6650", 1.6, 7.5, 0.0, "estate"], [cars, 3, "#2b2c2f", 4.8, 7.5, 0.0, "suv"],
@@ -4481,13 +4731,6 @@ func _inject_clicks() -> void:
 			Input.parse_input_event(m)
 
 
-func _next_style() -> void:
-	style_index = (style_index + 1) % STYLES.size()
-	settings.style = style_index
-	settings.save()
-	_apply_style()
-
-
 func _apply_style() -> void:
 	var style: Dictionary = STYLES[style_index]
 	var screen := get_viewport().get_visible_rect().size
@@ -4554,7 +4797,7 @@ func _process(dt: float) -> void:
 		if sz != "" and hud != null and now - _scooter_toast_at >= ScooterZones.COOLDOWN:
 			_scooter_toast_at = now
 			var tw: Array = ScooterZones.toast_for(sz)
-			hud.toast(str(tw[0]), str(tw[1]))
+			hud.ambient_toast(str(tw[0]), str(tw[1]))
 			print("zone: scooter %s (12 km/h for scooters)" % sz)
 	_feed_life(pos)
 	if police != null:
@@ -4723,6 +4966,11 @@ func _feed_life(pos: Vector3) -> void:
 	traffic.player_on_road = not flying
 	trams.player_pos = ground
 	trams.player_on_road = not flying
+	if trains != null:
+		trains.player_pos = ground
+		trains.player_on_road = not flying
+		trains.view_at = traffic.view_centre
+		trains.view_reach = maxf(traffic.view_half.x, traffic.view_half.y) * 1.5 + 150.0
 	rivals.flying = flying
 
 
@@ -4783,6 +5031,8 @@ func _make_stats() -> BenchStats:
 		b.systems["traffic"] = [traffic, "last_usec", false]
 		b.systems["traffic bodies"] = [traffic, "spent_usec", true]
 		b.systems["trams"] = [trams, "last_usec", false]
+		if trains != null:
+			b.systems["trains"] = [trains, "last_usec", false]
 		b.systems["people"] = [walkers, "last_usec", false]
 		b.systems["rivals"] = [rivals, "spent_usec", true]
 		b.counts["cars on screen"] = func() -> int: return traffic.visible_count
@@ -4802,10 +5052,14 @@ func _make_stats() -> BenchStats:
 		b.systems["city life"] = [life, "spent_usec", true]  # loop MW-4
 	if buses != null:
 		b.systems["buses"] = [buses, "spent_usec", true]  # the night-buses loop
+	if crash_scenes != null:
+		b.systems["crash scenes"] = [crash_scenes, "spent_usec", true]
 	if old_tram != null:
 		b.systems["old tram"] = [old_tram, "spent_usec", true]  # the vintage-tram loop
 	if storefronts != null:
 		b.systems["storefronts"] = [storefronts, "spent_usec", true]  # loop MW-2
+	if packs != null:
+		b.systems["packs"] = [packs, "spent_usec", true]  # running clubs, cycling packs, raves
 	if egg_book != null:
 		b.systems["eggs+tape+spacer"] = [self, "_moments_usec", false]  # loop MW-6
 	if districts != null:
@@ -5075,7 +5329,7 @@ func _show_target() -> void:
 		_new_target("race", f)
 		return
 	# Loop MW-4: the "Na czasie" job's queue, then its door.
-	if trend_job != null and trend_job.has_target():
+	if trend_job != null and trend_job.has_target() and Lines.shows(Lines.Line.CAR, flying):
 		var tp: Vector3 = trend_job.target_position()
 		var at_t := _vehicle_position()
 		var mt := roundi(Vector2(tp.x - at_t.x, tp.z - at_t.z).length())
@@ -5085,7 +5339,7 @@ func _show_target() -> void:
 		_new_target("job", tp)
 		return
 	# Loop 2d-1: a Podwózka ride's pin, passenger or door.
-	if rides != null and rides.has_target():
+	if rides != null and rides.has_target() and Lines.shows(Lines.Line.CAR, flying):
 		var rp: Vector3 = rides.target_position()
 		var at_r := _vehicle_position()
 		var mr := roundi(Vector2(rp.x - at_r.x, rp.z - at_r.z).length())
@@ -5094,7 +5348,7 @@ func _show_target() -> void:
 		_put_target(Vector2(rp.x, rp.z), rides.target_colour(), _guide_on())
 		_new_target("job", rp)
 		return
-	if jobs != null and jobs.has_target():
+	if jobs != null and jobs.has_target() and Lines.shows(Lines.Line.CAR, flying):
 		var j: Vector3 = jobs.target_position()
 		var at_j := _vehicle_position()
 		var mj := roundi(Vector2(j.x - at_j.x, j.z - at_j.z).length())
@@ -5198,12 +5452,15 @@ func _read_input(dt: float) -> void:
 		car.parked = true
 		controls.release()
 		return
-	# Loop MW-6: Fotka holds the car (and the helicopter) still; the city goes on.
+	# Loop MW-6: Fotka holds the car (and the helicopter) still; the city goes on. Parked, not
+	# just braking: a held brake at a standstill reverses (car.gd), and the car backed into the
+	# buildings behind it for as long as Fotka was open (F, 2026-11-01).
 	if fotka != null and fotka.is_open():
 		car.target_dir = Vector3.ZERO
 		car.steer = 0.0
 		car.throttle = 0.0
 		car.braking = true
+		car.parked = true
 		controls.release()
 		heli.input_dir = Vector3.ZERO
 		heli.climb = 0.0
@@ -5233,7 +5490,18 @@ func _read_input(dt: float) -> void:
 	# Loop 2a: the scheme maps the stick, keys and pedals (drive_controls.gd): Point / Fixed
 	# point in screen space (the camera waits while held), Classic steers car-relative.
 	var keys := {"left": left, "right": right, "up": gas, "down": down, "brake": space}
-	controls.drive(car, hud.stick, hud.stick_active(), keys, hud.gas, hud.brake, cam_yaw, dt)
+	# The gamepad loop: the pad's left stick stands in for the touch stick while no finger is on it;
+	# RT is GAS, LT or B is BRAKE (gamepad.gd).
+	var stick: Vector2 = hud.stick
+	var stick_on: bool = hud.stick_active()
+	var pad_stick := Gamepad.stick()
+	if not stick_on and pad_stick != Vector2.ZERO:
+		stick = pad_stick
+		stick_on = true
+	controls.drive(car, stick, stick_on, keys, hud.gas or Gamepad.gas(), hud.brake or Gamepad.brake(), cam_yaw, dt)
+	# G13: the nitro (bought at the garage): the disc by the horn, N or Shift on a keyboard.
+	car.nitro_hold = car.nitro_owned and (hud.nitro_held or Input.is_physical_key_pressed(KEY_N) or Input.is_physical_key_pressed(KEY_SHIFT))
+	hud.set_nitro(car.nitro_owned, car.nitro_charge)
 	# Loop 3g-1: a pull-over holds the car; the police's test drivers (--police-auto, --trap with
 	# --pedal=gas, the soak's roaming autopilot) drive it.
 	if police != null and police.control_car(car, dt):
@@ -5257,19 +5525,31 @@ func _read_input(dt: float) -> void:
 ## Shift (or F) or the ▲ ▼ pads climb and sink.
 func _read_heli_input(left: bool, right: bool, up: bool, down: bool, dt: float) -> void:
 	var stick: Vector2 = hud.stick
+	var pad_stick := Gamepad.stick()  # the gamepad loop
+	if not hud.stick_active() and pad_stick != Vector2.ZERO:
+		stick = pad_stick
 	var aim := Vector2(float(right) - float(left), float(down) - float(up))
-	# Loop 2a: while the stick or a key is held the follow camera waits (as in Point), so a
-	# held direction doesn't turn with the view.
-	_heli_held = hud.stick_active() or aim != Vector2.ZERO
+	_heli_held = hud.stick_active() or pad_stick != Vector2.ZERO or aim != Vector2.ZERO
 	_heli_release = 0.0 if _heli_held else _heli_release + dt
 	if stick.length() > 0.2:
 		aim = stick.normalized() * clampf((stick.length() - 0.2) / 0.8, 0.0, 1.0)
 	elif aim != Vector2.ZERO:
 		aim = aim.normalized()
-	heli.input_dir = _screen_to_world(aim)
+	# The camera follows the helicopter while the stick is held (as the car's Point does), so a
+	# held direction keeps the world direction it meant when it was set; pointing REAIM° or more
+	# away means the screen as it is now.
+	var yaw := cam_yaw
+	if aim == Vector2.ZERO:
+		_heli_set_aim = Vector2.ZERO
+	else:
+		if _heli_set_aim == Vector2.ZERO or absf(rad_to_deg(aim.angle_to(_heli_set_aim))) >= Controls.REAIM:
+			_heli_set_aim = aim
+			_heli_set_yaw = cam_yaw
+		yaw = _heli_set_yaw
+	heli.input_dir = Controls.screen_to_world(aim, yaw) if aim != Vector2.ZERO else Vector3.ZERO
 	var climb := float(Input.is_physical_key_pressed(KEY_SPACE)) \
 			- float(Input.is_physical_key_pressed(KEY_SHIFT) or Input.is_physical_key_pressed(KEY_F))
-	heli.climb = clampf(climb + hud.climb, -1.0, 1.0)
+	heli.climb = clampf(climb + hud.climb + Gamepad.climb(), -1.0, 1.0)  # the pad: RT up, LT down
 	if heli_stick != Vector2.ZERO:
 		heli.input_dir = Vector3(heli_stick.x, 0.0, heli_stick.y).limit_length(1.0)
 	if demo and not autopilot:
@@ -5353,7 +5633,10 @@ func _toggle_vehicle() -> void:
 		return
 	if not flying:
 		_take_off(Heli.CRUISE)
-		hud.toast("Helikopter: kieruj palcem, ▲ ▼ to wysokość", "Helicopter: steer with the stick, ▲ ▼ (Space / Shift) for height")
+		if Gamepad.in_use():
+			hud.toast("Helikopter: lewa gałka kieruje, RT / LT to wysokość", "Helicopter: steer with the left stick, RT / LT for height")
+		else:
+			hud.toast("Helikopter: kieruj palcem, ▲ ▼ to wysokość", "Helicopter: steer with the stick, ▲ ▼ (Space / Shift) for height")
 		return
 	if heli.landing:
 		heli.landing = false
@@ -5479,7 +5762,7 @@ func _pick_unghosted(origin: Vector3, dir: Vector3) -> int:
 		dv.x *= 0.78
 		if dv.y > 0.0:
 			dv.y /= float(_shader_value(building_mat, "occlusion_up", 1.35))
-		region = 1.0 - smoothstep(0.65, 0.9, dv.length())
+		region = 1.0 - smoothstep(0.74, 0.84, dv.length())
 	if region < GHOST_PICK or dir.y > -0.01:
 		return map.pick_landmark(origin, dir)
 	var occ: Vector4 = _shader_value(building_mat, "occluder", Vector4(0, 0, 0, -1))
@@ -5490,7 +5773,7 @@ func _pick_unghosted(origin: Vector3, dir: Vector3) -> int:
 		var top: float = map.roof_height(q.x, q.z)
 		if top != MapBuilder.NO_ROOF and q.y <= top:
 			var side := (Vector2(q.x, q.z) - Vector2(occ.x, occ.y)).dot(Vector2(occ.z, occ.w))
-			if region * smoothstep(1.0, 4.0, -side) < GHOST_PICK:
+			if region * smoothstep(1.0, 2.0, -side) < GHOST_PICK:
 				return map.landmark_at(q.x, q.z)
 		if q.y < map.terrain_height(q.x, q.z) - 0.5:
 			return -1
@@ -5529,6 +5812,11 @@ func _on_pinch(ratio: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not _started or title != null:
 		return
+	var pad := Gamepad.command(event)
+	if pad != "":
+		_pad_command(pad)
+		get_viewport().set_input_as_handled()
+		return
 	var wheel := event as InputEventMouseButton
 	if wheel and wheel.pressed:
 		if wheel.button_index == MOUSE_BUTTON_WHEEL_UP:
@@ -5549,8 +5837,6 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_rotate_camera(1)
 			KEY_C:
 				_toggle_follow()
-			KEY_T:
-				_next_style()
 			KEY_H:
 				_toggle_vehicle()
 			KEY_B:
@@ -5558,14 +5844,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				if buses != null and not flying:
 					buses.honk()
 			KEY_M:
-				# Loop 2d-1: a Podwózka request or result first.
-				if (rides == null or not rides.primary()) and (jobs == null or not jobs.primary()) \
-						and (trend_job == null or not trend_job.primary()):
-					missions.primary()
+				_primary()
 			KEY_K:
-				if (rides == null or not rides.secondary()) and (jobs == null or not jobs.secondary()) \
-						and (trend_job == null or not trend_job.secondary()):
-					missions.secondary()
+				_secondary()
 			KEY_N:
 				_blip_sound()
 				tod.next()
@@ -5594,13 +5875,73 @@ func _unhandled_key_input(event: InputEvent) -> void:
 				_blip_sound()
 				_set_quality(Tiers.AUTO if quality_choice >= Tiers.ULTRA else quality_choice + 1)
 			KEY_L:
-				# Loop jobs-2: the courier's challenge first (only while it is up).
-				if (jobs == null or not jobs.flash()) and rivals != null:
-					rivals.flash()
+				_flash()
 			KEY_MINUS:
 				_zoom_view(1)
 			KEY_EQUAL:
 				_zoom_view(-1)
+
+
+## M / the pad's A: the mission card's first button (loop 2d-1: a Podwózka request or result first).
+func _primary() -> void:
+	if (rides == null or not rides.primary()) and (jobs == null or not jobs.primary()) \
+			and (trend_job == null or not trend_job.primary()):
+		missions.primary()
+
+
+## K / the pad's X: the mission card's second button.
+func _secondary() -> void:
+	if (rides == null or not rides.secondary()) and (jobs == null or not jobs.secondary()) \
+			and (trend_job == null or not trend_job.secondary()):
+		missions.secondary()
+
+
+## L / the D-pad's left: flash the lights (loop jobs-2: the courier's challenge first, only while
+## it is up).
+func _flash() -> void:
+	if (jobs == null or not jobs.flash()) and rivals != null:
+		rivals.flash()
+
+
+## The gamepad loop: a button press (gamepad.gd `command`) does what its key does.
+func _pad_command(what: String) -> void:
+	match what:
+		"primary":
+			_primary()
+		"secondary":
+			_secondary()
+		"vehicle":
+			_toggle_vehicle()
+		"rotate_left":
+			_rotate_camera(-1)
+		"rotate_right":
+			_rotate_camera(1)
+		"follow":
+			_toggle_follow()
+		"horn":
+			if buses != null and not flying:
+				buses.honk()
+		"zoom_in":
+			_zoom_view(-1)
+		"zoom_out":
+			_zoom_view(1)
+		"radio":
+			radio.next()
+		"flash":
+			_flash()
+		"map":
+			_open_full_map()
+		"settings":
+			_open_settings()
+
+
+## The gamepad loop: the pad used last hides the touch pedals and pads (and the HUD speaks of the
+## pad's buttons); a finger on the screen brings them back at once (hud.gd `_input`).
+func _note_pad(event: InputEvent) -> void:
+	var was := Gamepad.in_use()
+	Gamepad.note(event)
+	if hud != null and Gamepad.in_use() != was:
+		hud.set_pad_mode(Gamepad.in_use(), no_touch)
 
 
 func _screen_to_world(s: Vector2) -> Vector3:
@@ -5621,8 +5962,8 @@ func _update_camera(dt: float) -> void:
 		# (drive_controls.gd FOLLOW_HELD keeps a held direction from turning with it).
 		var heading := rad_to_deg(vehicle.rotation.y)
 		if flying:
-			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, true, _heli_held, _heli_release,
-					FollowCamera.FULL_SPEED_HELI, dt)
+			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, false, _heli_held, _heli_release,
+					FollowCamera.FULL_SPEED_HELI, dt, FollowCamera.RETURN_GAIN)
 		else:
 			var classic := controls.scheme == Controls.CLASSIC
 			cam_yaw = fcam.follow_yaw(cam_yaw, heading, speed, controls.camera_waits(), controls.held,
@@ -5647,13 +5988,13 @@ func _update_camera(dt: float) -> void:
 		_view_size = fcam.zoom_step(_view_size, heli_view, heli_zoom, dt)
 		focus_rate = 3.5
 	else:
-		var zoom := base_size * FollowCamera.SPEED_ZOOM * clampf(speed / car.max_speed, 0.0, 1.0)
+		var zoom := base_size * FollowCamera.SPEED_ZOOM * clampf(speed / (car.max_speed * car.top_mult), 0.0, 1.0)
 		size = base_size + zoom
 		_view_size = fcam.zoom_step(_view_size, base_size, zoom, dt)
 	# The look-ahead along the way it goes, and the dead zone's window (follow_camera.gd).
 	var forward := Vector3(-basis.z.x, 0.0, -basis.z.z).normalized() \
 			if follow and not flying and controls.scheme == Controls.CLASSIC else Vector3.ZERO
-	var lead := fcam.lead_step(heli.vel if flying else car.vel, Heli.MAX_SPEED if flying else car.max_speed,
+	var lead := fcam.lead_step(heli.vel if flying else car.vel, Heli.MAX_SPEED if flying else car.max_speed * car.top_mult,
 			_view_size, dt, forward)
 	cam_focus = fcam.focus_step(cam_focus, focus + lead, basis, _view_size, focus_rate, dt)
 
@@ -6108,6 +6449,10 @@ func _soak_frame(dt: float) -> void:
 ## target 2-3 km off needs 5-8 sectors, ~1.2 s of loading on the iPhone 11. [from, to, since (ms)];
 ## empty: none waiting.
 const LOOK_WAIT_MS := 1500
+## The look's own length once it starts (camera_shots.gd's legs, and half a second to spare), and
+## the most between two views of its way the streamer loads for (the west-sectors fix).
+const LOOK_TIME := CameraShots.OUT_TIME + CameraShots.HOLD_TIME + CameraShots.BACK_TIME + 0.5
+const LOOK_STEP := 60.0
 var _look_queued: Array = []
 
 
@@ -6116,9 +6461,23 @@ func _queue_look(from: Vector3, to: Vector3) -> void:
 		var screen := get_viewport().get_visible_rect().size
 		moments.look_at_target(from, to, cam_yaw, camera_pitch, _view_size, screen.x / maxf(screen.y, 1.0))
 		return
-	var time := LOOK_WAIT_MS / 1000.0 + CameraShots.OUT_TIME + CameraShots.HOLD_TIME + CameraShots.BACK_TIME + 0.5
-	streamer.expect_view(to, CameraShots.TARGET_SIZE * 1.25, time)
-	streamer.expect_view((from + to) * 0.5, CameraShots.MAX_SIZE * 1.25, time, 1)
+	var time := LOOK_WAIT_MS / 1000.0 + LOOK_TIME
+	# The west-sectors fix (2026-11-01): the sectors each view of the look will show (its frustum,
+	# towers and all), not a square round the target: the target's view first, then the way there
+	# (the views between the car's, MID's and the target's, at most LOOK_STEP m apart).
+	var screen := get_viewport().get_visible_rect().size
+	var aspect := screen.x / maxf(screen.y, 1.0)
+	var kf := CameraShots.look_keys(from, to, cam_yaw, camera_pitch, _view_size, aspect)
+	var way: Array = []
+	for i in kf.size() - 1:
+		var a: Array = kf[i]
+		var c: Array = kf[i + 1]
+		var n := clampi(ceili((a[0] as Vector3).distance_to(c[0]) / LOOK_STEP), 1, 40)
+		for j in n + 1:
+			var t := float(j) / float(n)
+			way.append([(a[0] as Vector3).lerp(c[0], t), lerpf(a[1], c[1], t)])
+	streamer.expect_shot([kf[-1]], cam_yaw, camera_pitch, aspect, time)
+	streamer.expect_shot(way, cam_yaw, camera_pitch, aspect, time, 1)
 	_look_queued = [from, to, Time.get_ticks_msec()]
 
 
@@ -6135,7 +6494,9 @@ func _look_frame() -> void:
 		return
 	var screen := get_viewport().get_visible_rect().size
 	moments.look_at_target(_look_queued[0], _look_queued[1], cam_yaw, camera_pitch, _view_size, screen.x / maxf(screen.y, 1.0))
-	print("camera: the look waited %d ms for its sectors%s" % [waited, "" if streamer.expected_in(1) else " (not all in)"])
+	streamer.hold_expected(LOOK_TIME)  # the west-sectors fix: kept for the whole look, however long the wait
+	print("camera: the look waited %d ms for its %d sectors%s" % [waited, streamer.expected_keys(1).size(),
+			"" if streamer.expected_in(1) else " (not all in)"])
 	_look_queued = []
 
 

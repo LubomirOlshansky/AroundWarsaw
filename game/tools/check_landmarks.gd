@@ -53,6 +53,14 @@ func _check() -> int:
 		# A tap from the game's camera angle (30° down) aimed just under the cell's top.
 		var aim := Vector3(at.x, tallest - 1.0, at.y)
 		var tap: int = map.pick_landmark(aim + Vector3(0.0, 500.0, 866.0), Vector3(0.0, -0.5, -0.866))
+		# Hidden from the camera by a building in front (the PZU Tower behind Q22) or a
+		# neighbour's roof in the cell next to it (BUW's east edge): a tap from straight above.
+		var above := ""
+		if tap != k:
+			var hid := tap
+			tap = map.pick_landmark(Vector3(at.x, tallest + 500.0, at.y), Vector3.DOWN)
+			if tap == k:
+				above = " (from above: %s in front)" % (map.landmark_info[hid]["name"] if hid >= 0 else "a neighbour's roof")
 		# A car driving in from 12 directions (2 m steps at bumper height over the ground,
 		# from 220 m out to the centre, or from past the site's far corner when it is bigger,
 		# such as Arkadia's 300 m block): does a wall stop it before the middle?
@@ -73,7 +81,7 @@ func _check() -> int:
 					break
 				r -= 2.0
 		print("%-22s tallest cell %5.1f m above ground at %s · tap finds %s · car rays stopped %d/12" % [
-				info["name"], tallest - ground, at.round(), "it" if tap == k else "id %d" % tap, hits])
+				info["name"], tallest - ground, at.round(), ("it" + above) if tap == k else "id %d" % tap, hits])
 		# A bridge's pylon stands in the median between two carriageways: a car from along the
 		# deck passes beside it, so Most Świętokrzyski needs fewer stopped rays.
 		var need := 6 if info["key"] == "swieto" else 10
@@ -150,19 +158,29 @@ func _fly_checks() -> int:
 		root.add_child(heli)
 		# Fly at half the landmark's height (45 m at most), so it has to stop at its walls.
 		var top := 0.0
+		var top_at := c
 		for dz in range(0, int(box.size.y) + 1, 4):
 			for dx in range(0, int(box.size.x) + 1, 4):
 				var x := box.position.x + dx
 				var z := box.position.y + dz
 				if map.landmark_at(x, z) == k:
-					top = maxf(top, map.roof_height(x, z) - map.terrain_height(x, z))
+					var h: float = map.roof_height(x, z) - map.terrain_height(x, z)
+					if h > top:
+						top = h
+						top_at = Vector2(x, z)
+		if info["key"] in ["elektrownia", "stadion_pkp"]:
+			c = top_at  # open yards and platforms: the box's middle is air, aim at the tallest cell
 		var alt := clampf(top * 0.5, 6.0, 45.0)
 		if info["key"] == "tr":
 			alt = 6.0  # a building site: the cranes are thin, the theatre's closed floors stand 9 m
 		elif info["key"] == "sw_anna":
 			alt = 8.0  # the bell tower's trim (38 m) stands in the box but away from the nave the heli aims at
+		elif str(info["key"]).begins_with("church_"):
+			alt = 6.0  # the kit's towers (25-34 m) stand at the front, away from the nave the heli aims at (eave 7.5 m and up)
 		elif info["key"] == "dtc":
 			alt = 10.0  # the 17.5 m stores share roof cells with the Eastern Wall's 70 m slabs behind them
+		elif info["key"] == "tarasy":
+			alt = 15.0  # the wave stands 30 m; the towers in its box (110 m) would lift the heli over it
 		var dir := Vector2(1, 0.35).normalized()
 		var start := c + dir * maxf(box.size.length() * 0.5 + 60.0, 160.0)
 		heli.place(Vector3(start.x, map.ground_height(start.x, start.y) + alt, start.y), 0.0, alt)
