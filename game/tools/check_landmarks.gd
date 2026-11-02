@@ -158,12 +158,18 @@ func _fly_checks() -> int:
 		root.add_child(heli)
 		# Fly at half the landmark's height (45 m at most), so it has to stop at its walls.
 		var top := 0.0
+		var top_at := c
 		for dz in range(0, int(box.size.y) + 1, 4):
 			for dx in range(0, int(box.size.x) + 1, 4):
 				var x := box.position.x + dx
 				var z := box.position.y + dz
 				if map.landmark_at(x, z) == k:
-					top = maxf(top, map.roof_height(x, z) - map.terrain_height(x, z))
+					var h: float = map.roof_height(x, z) - map.terrain_height(x, z)
+					if h > top:
+						top = h
+						top_at = Vector2(x, z)
+		if info["key"] in ["elektrownia", "stadion_pkp"]:
+			c = top_at  # open yards and platforms: the box's middle is air, aim at the tallest cell
 		var alt := clampf(top * 0.5, 6.0, 45.0)
 		if info["key"] == "tr":
 			alt = 6.0  # a building site: the cranes are thin, the theatre's closed floors stand 9 m
