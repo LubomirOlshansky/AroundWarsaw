@@ -168,6 +168,56 @@ static func add_playground(st: SurfaceTool, xf: Transform3D, colour: Color) -> v
 	_xbox(st, xf, Vector3(rx, 0.86, rz - 0.15), Vector3(0.5, 0.04, 0.04), steel)
 
 
+# --- the Arkadia rope course ----------------------------------------------------------
+
+## Arkadia's playground (Al. Jana Pawła II 82, 2018), 14 x 9 m: a rubber floor, a ribbon of
+## rope-and-timber loops that winds over it (in `colour`, with teal and magenta bands), three
+## in-ground trampolines, a long wooden bench-sculpture with a curled end, and three lamps
+## strung on a cable. Long side along x. ~520 tris.
+static func add_ropecourse(st: SurfaceTool, xf: Transform3D, colour: Color) -> void:
+	var timber := Color("#a8794a")
+	var steel := Color("#7d8791")
+	var bands: Array[Color] = [colour, Color("#1fa2a0"), Color("#c23b80")]
+	_xbox(st, xf, Vector3(0, 0.02, 0), Vector3(14.0, 0.04, 9.0), Color("#8f4a3a"))
+	# The ribbon: 22 short beams along a sine path, lifted into loops, with a post every fourth.
+	var prev := Vector3.ZERO
+	for i in 23:
+		var t := float(i) / 22.0
+		var x := -6.0 + t * 12.0
+		var z := -1.2 + sin(t * TAU * 1.5) * 2.0
+		var y := 0.9 + absf(sin(t * TAU * 2.0)) * 1.1
+		var p := Vector3(x, y, z)
+		if i > 0:
+			_xbeam(st, xf, prev, p, 0.32, 0.16, bands[(i / 3) % 3])
+		if i % 4 == 0:
+			_xbox(st, xf, Vector3(x, y * 0.5, z), Vector3(0.12, y, 0.12), steel)
+		prev = p
+	# Cargo-net hammock between the first two posts.
+	_xbeam(st, xf, Vector3(-6.0, 0.7, -1.2), Vector3(-6.0, 0.7, 1.8), 0.5, 0.04, colour.darkened(0.2))
+	# Three flush trampolines in a row on the south side: frame, black bed.
+	for k in 3:
+		var tx := -3.6 + float(k) * 3.4
+		_xbox(st, xf, Vector3(tx, 0.06, 3.2), Vector3(2.1, 0.12, 2.1), Color("#4a4d52"))
+		_xbox(st, xf, Vector3(tx, 0.13, 3.2), Vector3(1.7, 0.02, 1.7), Color("#1f2226"))
+	# The bench-sculpture: a 9 m timber run that steps up, a backrest at the curled end.
+	for k in 5:
+		var bx := -4.5 + float(k) * 2.0
+		var bh := 0.4 + float(k) * 0.08
+		_xbox(st, xf, Vector3(bx, bh * 0.5, -3.6), Vector3(1.9, bh, 0.6), timber.darkened(0.05 * float(k)))
+	_xbeam(st, xf, Vector3(4.6, 0.9, -3.9), Vector3(5.6, 1.9, -3.3), 0.5, 0.16, timber)
+	# Lamps on a cable: three posts, a sagging cable and hanging lamp heads.
+	var lamps: Array[Vector3] = [Vector3(-6.4, 0, 4.2), Vector3(0.0, 0, 4.4), Vector3(6.4, 0, 4.2)]
+	for l in lamps:
+		_xbox(st, xf, l + Vector3(0, 2.2, 0), Vector3(0.1, 4.4, 0.1), steel)
+	for k in 2:
+		var a := lamps[k] + Vector3(0, 4.3, 0)
+		var b := lamps[k + 1] + Vector3(0, 4.3, 0)
+		var mid := (a + b) * 0.5 + Vector3(0, -0.5, 0)
+		_xbeam(st, xf, a, mid, 0.03, 0.03, steel)
+		_xbeam(st, xf, mid, b, 0.03, 0.03, steel)
+		_xbox(st, xf, mid + Vector3(0, -0.3, 0), Vector3(0.28, 0.28, 0.28), Color("#fff1c2"))
+
+
 # --- the gazebo -----------------------------------------------------------------------
 
 ## An open wooden park gazebo / bandstand, 4.4 m across: an 8-sided platform, eight posts to

@@ -79,7 +79,50 @@ Chmielna", "ugliest pathway"), Eurobuild ("Nowe oblicze Chmielnej", 2024-12-30).
 scanned trees, then plant the missing ones with `planted_trees.py` (a new PLACE), add the
 fountain and Ali's square (a plate), and a granite paving tint. Opus spec (map), Sonnet build.
 
-## K3 Varso Place
+**More facts (2026-11-02):** Super Express lists 88 trees from Pasaż Wiecha to Nowy Świat: 57
+elms, 24 planes, 5 cherries, a linden and a black locust, with 32 large shrubs and 7,500 plants;
+the trees placed so the fronts stay in view and the café gardens fit, rain kept for their roots.
+Ali's memorial stone (2019) stands "at the corner of Pasaż Wiecha and Chmielna" (dzieje.pl).
+
+**The game before.** OpenStreetMap already has the new layout: 72 beds in the band (`areas`
+kind "park"), most of them 2.4-8 m² tree pits along both sides every 8-10 m, and the bigger
+fenced beds of the two squares (Kino Atlantic's, 20-62 m², and the one at Pasaż Wiecha); the
+fountain by Kino Atlantic (an OSM `amenity=fountain` node, a 2.8 m pool); the two pedestrian
+areas drawn as the ordinary warm paving. The 2023 scan has 20 trees in the band, most of them
+the Atlantic square's old ones (10-15 m).
+
+**Built (2026-11-02).** `planted_trees.py` place `chmielna`, given by the street's centre line
+and a 13 m half-width: one young tree per tree pit of 2.4 m² or more, two in a square's bed of
+20 m² or more, the beds' low fences allowed; species by the distance along the street (planes
+and a cherry on Ali's square, planes with a linden and a cherry on Atlantic's, elms only from
+there to Plac Pięciu Rogów, elms with the odd plane, cherry and black locust east of it). 65
+trees, 85 in the band (the pits next to Plac Pięciu Rogów's carriageway and a passage stay
+empty); the street's two pedestrian areas re-tagged `granite` (map_builder.gd SURFACE_STYLE
+`#c9c7c1`, no new material or draw call). At the Pasaż Wiecha corner, in first_scene.gd: Ali's
+memorial stone (props.gd `add_memorial_stone`, a granite boulder with a bronze plaque) and two
+plate posts, PASAŻ WIECHA / CHMIELNA and SKWER BROWNE'A.
+
+**K2b (2026-11-02):** `planted_trees.py furnish` brings the band to 64 benches (OSM had 4): a seat
+every 7.5 m along the street, alternate sides, the first spot 2.6-8 m off the middle that is off
+the beds, 2.3 m from trees, 1.8 m from POIs, 3.6 m from another bench and 16 m from Nowy Świat
+(whose benches are the Chopin ones), facing the street. One bench model, so chairs and long
+benches are benches. The Atlantic fountain's 2.8 m pool already has the stone edge every
+fountain gets (map_builder `_build_banks`), so no new rim.
+
+**Not done:** the shrub and perennial planting's colour in the beds, the lighting in the ground.
+For the Mac pass (QUESTIONS): the orthophoto against the trees, the granite's tone, the stone's
+spot and the square's official name on the plate.
+
+## K3 Varso Place (built 2026-11-02)
+
+**Built** (spec `docs/landmarks/specs/varso_place.md`, from HB Reavis', ZinCo's and Eurobuild's
+pages; no photo reachable from the cloud): the sky garden on the tower's 205 m roof (16 round
+hawthorns, the number HB Reavis gives, dwarf pines, benches, a glass balustrade), planted terraces
+on Varso 1 (71 m) and Varso 2 (80 and 72 m) in the new site `varso_place`, the VERSO PLACE name
+stone and the 60 t erratic on the corner plaza by Al. Jana Pawła II, and 6 young trees in the
+beds the scan left bare (`planted_trees.py` PLACE `varso`). Mac photo check in QUESTIONS.
+
+The plan as written:
 
 Chmielna 69-73 (HB Reavis; Foster + Partners, HRA, Benoy, Epstein), 2022, the deck 2024. The
 studio's garden "in the clouds" on Varso Tower's roof at ~230 m (large nursery trees on a
@@ -92,7 +135,16 @@ Chmielna, terraces on Varso 1/2's roofs, a few trees on the crown's deck (triang
 mesh), and a parody name sign at the plaza (default **VERSO PLACE**, warsaw-tone; never the real
 mark). Opus spec from photos (model-from-photos), Sonnet build.
 
-## K4 Zielona Świętokrzyska
+## K4 Zielona Świętokrzyska (built 2026-11-02)
+
+**Built:** the scan has 166 trees within 14 m of ul. Świętokrzyska (x -1665 to -280), against the 194
+planted in 2018, so about 28 are missing (or merged into one crown). Trees stay as scanned; no tree is invented.
+`zielona_planters` in tools/bake_street_details.py walks the Marszałkowska to Nowy Świat stretch (x -1100 to -275)
+every 8 m on both sides, takes the first clear pavement point and puts a `planter` there unless a trunk is within
+5 m or another planter within 10 m: 17 planters (street_details.json 422 to 439 items). Not rendered in the cloud
+(no Godot there); the check_street_details gates pass.
+
+The original plan text follows.
 
 2018: 194 trees along the whole street, greenery in big planters where trees could not go,
 structural soil over the utilities, the carriageway narrowed and parking removed. **Game:** 166
@@ -134,6 +186,8 @@ Al. Jana Pawła II 82, 2018: a ribbon-like rope course joining the zones (slide,
 swings), trampolines, a rope bridge, water play for the youngest, shade trees, a big wooden
 bench-sculpture with sockets, lamps strung on cables. **Game:** Arkadka is a hand-built site; the
 playground is not there. Build it from the kit (`park_details` has `playground`). Sonnet, small.
+
+**Built 2026-11-02.** A new park piece `ropecourse` (`park_props_play.gd`): rubber floor, ribbon loops, three trampolines, bench-sculpture, three cable lamps; anchored in the green strip west of Arkadka (park "arkadia"). The mall keeps its parody name Arkadka.
 
 ## K9 Stadion Narodowy grounds
 

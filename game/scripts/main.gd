@@ -318,6 +318,9 @@ var no_ao := false
 var prebuilt := false
 ## --no-map-edge: without the land past the map's edge (map_edge.gd), for a before/after probe.
 var _flag_no_map_edge := false
+## --no-edge-roadworks: without the roadworks closing the roads at the map's edge (edge_roadworks.gd;
+## their colliders go too, the edge wall stays), for a before/after probe.
+var _flag_no_edge_roadworks := false
 var _started := false
 ## Time of day (N / TIME / --time=), the radio (R / RADIO / --radio=), the VHS
 ## overlay (V / VHS / --vhs) and the title screen (skipped by the testing flags).
@@ -933,6 +936,7 @@ func _on_title_dismissed() -> void:
 	dialogue.host_on = true
 	title = null
 	radio.now_playing()
+	_radio_greeting()
 	_fallback_toast()
 	if cinematic_flyin:
 		_fly_in()
@@ -1081,6 +1085,10 @@ func _build_world() -> void:
 			var edge := map.get_node_or_null("MapEdge")
 			if edge != null:
 				edge.free()
+		if _flag_no_edge_roadworks:
+			var works := map.get_node_or_null("EdgeRoadworks")
+			if works != null:
+				works.free()
 	else:
 		map = MapBuilder.new()
 		world.add_child(map)
@@ -1187,7 +1195,11 @@ func _build_world() -> void:
 	hud.radio_pressed.connect(radio.next)
 	hud.radio_skip_pressed.connect(radio.next_track)
 	hud.perf_gesture.connect(func(): _set_perf(not show_perf); settings.perf = show_perf; settings.save())
-	radio.station_changed.connect(func(_i: int, _s: Dictionary): hud.set_radio_name(radio.label()))
+	radio.station_changed.connect(_on_station_changed)
+	# Beta radio: the next key beside RADIO while the station has another song.
+	radio.track_changed.connect(func(_i: Dictionary, _t: Dictionary, _n: bool): hud.set_radio_skip(radio.can_skip()))
+	radio.track_unlocked.connect(func(_n: int, _t: Dictionary, _w: String): hud.set_radio_skip(radio.can_skip()))
+	_on_station_changed(radio.station, radio.stations[radio.station] if radio.station >= 0 else {})
 	radio.ticker.connect(hud.ticker)
 	hud.set_radio_name(radio.label())
 	hud.visible = not hide_hud
@@ -2877,6 +2889,25 @@ func _apply_spacer(on: bool) -> void:
 		police.gentle = on
 
 
+## Beta radio: the RADIO chip follows the station: its name, its colour, the next key.
+func _on_station_changed(_index: int, info: Dictionary) -> void:
+	hud.set_radio_name(radio.label())
+	hud.set_radio_skip(radio.can_skip())
+	hud.set_radio_colour(info.get("colour", Color.WHITE) if not info.is_empty() else Color("#c9c4d8"))
+
+
+## Beta radio (2026-11-02): when the title goes, the host says good morning (or evening) to
+## Warsaw with the weather and the temperature for the game's hour and month, 4 s after the
+## station's caption.
+func _radio_greeting() -> void:
+	await get_tree().create_timer(4.0).timeout
+	if not is_inside_tree() or radio == null or dialogue == null:
+		return
+	var st := _egg_state()
+	var day: int = int(st["date"]) % 100 if int(st["date"]) > 0 else int(Time.get_date_dict_from_system()["day"])
+	dialogue.greet(float(st["hour"]), bool(st["rain"]), int(st["month"]), day)
+
+
 ## The eggs' probe (egg_book.gd `tick`, tape.gd's E36/E37): the vehicle and the game clock.
 func _egg_state() -> Dictionary:
 	var pos := _vehicle_position()
@@ -3506,6 +3537,8 @@ func _parse_args() -> void:
 			free_roam = true
 		elif arg == "--no-map-edge":
 			_flag_no_map_edge = true
+		elif arg == "--no-edge-roadworks":
+			_flag_no_edge_roadworks = true
 		elif arg.begins_with("--exp="):
 			_exp = arg.trim_prefix("--exp=").split(",")
 		elif arg.begins_with("--time="):

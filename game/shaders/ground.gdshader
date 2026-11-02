@@ -137,6 +137,28 @@ vec4 centralny(vec2 wp, bool walk) {
 	return vec4(vec3(0.7, 0.65, 0.58) * (0.92 + 0.12 * hash12(floor(p / 0.24))) * (1.0 - 0.15 * j), 1.0);
 }
 
+// First-scene item 4 (2026-11-02): around the start (Marszałkowska from Rondo Dmowskiego to
+// the tram stop north of the museum: both pavements, the paving round the museum, Pasaż Wiecha
+// behind the stores; the frame above) the wide pavements, drawn as plazas, `paving` surfaces or
+// bare ground, are Warsaw's grey concrete and granite, not the warm beige and sand the rest of
+// the map keeps (the city-wide choice is parked in QUESTIONS.md), a touch cooler than R3's
+// footways so they still read grey in the warm day light. Plac Centralny keeps its own stones.
+// START_BOX is s0, s1, t0, t1; the grey fades out over START_FADE metres at its edge.
+const vec4 START_BOX = vec4(-265.0, 365.0, -80.0, 95.0);
+const float START_FADE = 12.0;
+const vec3 START_PLAZA = vec3(0.8, 0.8, 0.785);
+const vec3 START_PAVING = vec3(0.835, 0.835, 0.82);
+
+// The start's frame at wp: x = s, y = t, z = how much of its grey applies (0 outside the box,
+// 1 inside its faded edge).
+vec3 start_frame(vec2 wp) {
+	vec2 r = wp - CENTRALNY_O;
+	float s = dot(r, CENTRALNY_S);
+	float t = dot(r, CENTRALNY_T);
+	float k = min(min(s - START_BOX.x, START_BOX.y - s), min(t - START_BOX.z, START_BOX.w - t));
+	return vec3(s, t, clamp(k / START_FADE, 0.0, 1.0));
+}
+
 // K6 (2026-11-01): the carriageway of Krakowskie Przedmieście (and the top of Nowy Świat) is
 // granite setts, not asphalt. KP_LINE is the street's centreline from the map (a 15-point
 // simplification of the mapped ways, from the Castle Square end to Nowy Świat); the setts show
@@ -197,6 +219,11 @@ void fragment() {
 		if (stones.a > 0.0) {
 			base = srgb_to_linear(stones.rgb);
 			shade = 1.0;
+		} else {
+			float grey = start_frame(wp).z;
+			if (grey > 0.0) {
+				base = mix(base, srgb_to_linear(id == 2 ? START_PLAZA : START_PAVING), grey);
+			}
 		}
 	} else if (id == 6) {
 		// Asphalt: fine grain, a little lighter wear, darker repair patches.
@@ -255,6 +282,21 @@ void fragment() {
 		vec2 tile = floor(street / 2.0);
 		vec3 rubber[3] = vec3[3](vec3(0.78, 0.45, 0.35), vec3(0.45, 0.6, 0.75), vec3(0.55, 0.7, 0.45));
 		base = srgb_to_linear(rubber[int(hash12(tile) * 30.0) % 3]);
+	} else if (id <= 0) {
+		// Bare ground: in the start box it is pavement, grey concrete slabs (0.5 m, laid along
+		// Marszałkowska) like the footways.
+		vec3 f = start_frame(wp);
+		if (f.z > 0.0) {
+			vec2 q = f.xy / 0.5;
+			vec2 e = abs(fract(q) - 0.5);
+			float joint = step(0.43, max(e.x, e.y));
+			base = mix(base, srgb_to_linear(START_PAVING), f.z);
+			shade = mix(shade, 0.95 + 0.06 * hash12(floor(q)) - 0.07 * joint, f.z);
+		}
+	} else if (id == 20) {
+		// First-scene item 5: a tactile pad at a crossing: rows of studs 0.1 m apart.
+		vec2 q = fract(wp / 0.1) - 0.5;
+		shade = 0.9 + 0.12 * step(length(q), 0.28);
 	} else if (id == 14) {
 		shade = 0.95 + 0.06 * hash12(floor(wp * 4.0)); // traffic island concrete
 	} else if (id == 19) {

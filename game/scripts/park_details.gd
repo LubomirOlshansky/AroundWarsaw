@@ -21,13 +21,13 @@ const CELL := 512.0
 ## Footprint halves (x, z) of the contact pad under a tall piece (shadows are off for the mesh).
 const PAD := {"statue": Vector2(0.9, 0.9), "fountain": Vector2(3.2, 3.2), "carousel": Vector2(2.7, 2.7),
 		"playground": Vector2(3.4, 3.0), "gazebo": Vector2(2.4, 2.4), "sundial": Vector2(0.7, 0.7),
-		"pergola": Vector2(3.2, 1.6)}
+		"pergola": Vector2(3.2, 1.6), "ropecourse": Vector2(7.0, 4.5)}
 ## Half sizes (x, z) of the car's box for the solid pieces.
 const SOLID := {"statue": Vector2(0.8, 0.8), "fountain": Vector2(3.0, 3.0), "carousel": Vector2(2.5, 2.5),
-		"playground": Vector2(3.2, 2.8), "gazebo": Vector2(2.2, 2.2), "sundial": Vector2(0.55, 0.55)}
+		"playground": Vector2(3.2, 2.8), "gazebo": Vector2(2.2, 2.2), "sundial": Vector2(0.55, 0.55), "ropecourse": Vector2(6.0, 4.0)}
 ## Which file builds which kind (all `add_<kind>(st, xf, colour)`).
 const WATER_KINDS := ["duck", "swan", "footbridge", "fountain", "rowboat"]
-const PLAY_KINDS := ["carousel", "playground", "gazebo", "sundial", "pergola"]
+const PLAY_KINDS := ["carousel", "playground", "gazebo", "sundial", "pergola", "ropecourse"]
 const LIFE_KINDS := ["seated", "picnic", "peacock", "squirrel", "statue", "yoga"]
 ## Per-sector and total limits; check_park_details.gd holds the file to them.
 const MAX_ITEMS := 700
@@ -68,6 +68,7 @@ static func add_item(st: SurfaceTool, kind: String, xf: Transform3D, colour: Str
 		"playground": Play.add_playground(st, xf, c)
 		"gazebo": Play.add_gazebo(st, xf, c)
 		"sundial": Play.add_sundial(st, xf, c)
+		"ropecourse": Play.add_ropecourse(st, xf, c)
 		"pergola": Play.add_pergola(st, xf, c)
 		"seated": Life.add_seated(st, xf, c)
 		"picnic": Life.add_picnic(st, xf, c)

@@ -185,6 +185,9 @@ var _vehicle_button: Button
 var _zoom_out_button: Button
 var _zoom_in_button: Button
 var _radio_button: Button
+## Beta radio (2026-11-02): DALEJ · NEXT under RADIO while the station has more than one song
+## (the hold on RADIO and Shift+R stay); set_radio_skip shows it.
+var _skip_button: Button
 ## Seconds RADIO is held before it skips to the station's next track (2026-10-30: the phone's
 ## skip; a tap still changes the station). Long enough that a slow tap isn't a skip.
 const RADIO_HOLD := 0.5
@@ -497,6 +500,20 @@ func _ready() -> void:
 		if not _radio_skipped:
 			radio_pressed.emit()
 		_radio_skipped = false)
+	# Beta radio (F, 2026-11-02): a retro player's "next" key joined to the RADIO chip, one
+	# segmented plate: [KEBAB FM | ▶▶|]. Drawn (two triangles and a bar), no font glyph.
+	_skip_button = Button.new()
+	_skip_button.name = "radio_next"
+	_skip_button.focus_mode = Control.FOCUS_NONE
+	_skip_button.flat = true
+	_skip_button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	_skip_button.custom_minimum_size = Vector2(TOUCH, TOUCH) * pt
+	_skip_button.draw.connect(_draw_skip)
+	_skip_button.button_down.connect(_skip_button.queue_redraw)
+	_skip_button.button_up.connect(_skip_button.queue_redraw)
+	_skip_button.pressed.connect(func(): radio_skip_pressed.emit())
+	_skip_button.visible = false
+	add_child(_skip_button)
 	_vehicle_button = _chip(self, "HELI", "HELI")
 	_vehicle_button.pressed.connect(func(): vehicle_pressed.emit())
 	# G3 (F, 2026-11-01): pinch is hard to discover, so − and + sit beside the speed (the car's
@@ -683,12 +700,14 @@ func _layout_fixed() -> void:
 	_speed.size = _speed.get_combined_minimum_size()
 	_speed.position = Vector2(x0 + (TOUCH + 8.0) * pt, y + (ROW_H * pt - _speed.size.y) * 0.5)
 	var right := _safe.end.x - EDGE * pt
-	for b: Button in [_vehicle_button, _radio_button]:
+	for b: Button in [_vehicle_button, _skip_button, _radio_button]:
 		if not b.visible:
 			continue  # loop 3h slice 4: the HELI chip waits for the first rescue
 		b.size = b.custom_minimum_size
 		b.position = Vector2(right - b.size.x, y)
-		right = b.position.x - GAP * pt
+		# Beta radio: the next key sits flush against RADIO (one plate, a hairline between).
+		right = b.position.x - (0.0 if b == _skip_button else GAP * pt)
+	_style_radio_plate()
 	_pill.size = _pill.custom_minimum_size
 	_pill.position = Vector2(_safe.get_center().x - _pill.size.x * 0.5, y)
 	var below := (ROW_Y + ROW_H + GAP) * pt
@@ -736,7 +755,7 @@ func _layout() -> void:
 	_taken.clear()
 	_placed.clear()
 	_unplaced.clear()
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _minimap, _wallet, _credit, _koguty]:
+	for c: Control in [_gear, _pill, _radio_button, _skip_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _minimap, _wallet, _credit, _koguty]:
 		if c != null and c.visible:
 			_taken.append(Rect2(c.position, c.size))
 	_taken.append(_speed_rect())
@@ -935,7 +954,7 @@ func touch_targets() -> Dictionary:
 	if _dirty:
 		_layout()
 	var out := {}
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _challenge]:
+	for c: Control in [_gear, _pill, _radio_button, _skip_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _challenge]:
 		if c.is_visible_in_tree():
 			out[c.name] = c.get_global_rect()
 	for c: Control in [_card, _status, _bench_card] + _panel_spots.keys():
@@ -965,7 +984,7 @@ func named_rects() -> Dictionary:
 	if _dirty:
 		_layout()
 	var out := {}
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _minimap, _wallet, _credit, _koguty]:
+	for c: Control in [_gear, _pill, _radio_button, _skip_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _minimap, _wallet, _credit, _koguty]:
 		if c != null and c.visible:
 			out[c.name] = Rect2(c.position, c.size)
 	out["speed"] = _speed_rect()
@@ -987,6 +1006,57 @@ func set_speed(kmh: int, metres := -1) -> void:
 		_speed_text = text
 		_speed.text = text
 		_speed.size = _speed.get_combined_minimum_size()
+
+
+## Beta radio: the next key shows while the tuned station has another song to skip to.
+func set_radio_skip(on: bool) -> void:
+	if _skip_button.visible != on:
+		_skip_button.visible = on
+		_mark()
+
+
+## Beta radio: the tuned station's colour: its name on the chip in it (like a car radio's
+## display), and the next key's arrows.
+var _radio_colour := INK
+
+
+func set_radio_colour(c: Color) -> void:
+	_radio_colour = c
+	var top := _radio_button.get_child(0).get_child(0) as Label
+	top.add_theme_color_override("font_color", c)
+	_skip_button.queue_redraw()
+
+
+## RADIO's plate squares its right corners while the next key is joined to it.
+func _style_radio_plate() -> void:
+	var r := 0 if _skip_button.visible else roundi(10.0 * pt)
+	for st in ["normal", "hover", "disabled", "pressed", "hover_pressed"]:
+		var box := _radio_button.get_theme_stylebox(st) as StyleBoxFlat
+		if box != null and box.corner_radius_top_right != r:
+			box = box.duplicate() as StyleBoxFlat
+			box.corner_radius_top_right = r
+			box.corner_radius_bottom_right = r
+			_radio_button.add_theme_stylebox_override(st, box)
+
+
+## Beta radio: the next key, a retro player's ▶▶| in the card recipe: the plate with its right
+## corners rounded, a hairline on its left where it meets RADIO, the arrows in the station colour.
+func _draw_skip() -> void:
+	var sz := _skip_button.size
+	var held := _skip_button.is_pressed()
+	var box := _box(Color(1, 0.82, 0.25, 0.3) if held else CARD_BG, ACCENT if held else Color(1, 1, 1, 0.22), 2.0 if held else 1.0)
+	box.corner_radius_top_left = 0
+	box.corner_radius_bottom_left = 0
+	_skip_button.draw_style_box(box, Rect2(Vector2.ZERO, sz))
+	var ink := ACCENT if held else _radio_colour
+	var c := sz * 0.5
+	var h := 7.0 * pt
+	var w := 6.5 * pt
+	var x0 := c.x - w - 2.0 * pt
+	for k in 2:
+		var x := x0 + k * w
+		_skip_button.draw_colored_polygon(PackedVector2Array([Vector2(x, c.y - h), Vector2(x + w, c.y), Vector2(x, c.y + h)]), ink)
+	_skip_button.draw_rect(Rect2(x0 + 2.0 * w, c.y - h, 2.2 * pt, 2.0 * h), ink)
 
 
 func set_radio_name(station_name: String) -> void:
@@ -1620,7 +1690,7 @@ func set_minimap_target(xz: Vector2, colour: Color) -> void:
 
 ## Touches on the buttons and cards belong to them, not to the stick.
 func _over_panel(p: Vector2) -> bool:
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _card, _status, _challenge, _bench_card]:
+	for c: Control in [_gear, _pill, _radio_button, _skip_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _card, _status, _challenge, _bench_card]:
 		if c != null and c.visible and c.get_global_rect().has_point(p):
 			return true
 	return false
