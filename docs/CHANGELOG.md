@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- The Barbican is now a proper brick gatehouse: a crenellated wall in a curve with four turrets under steep conical roofs.
 - Nowy Świat's houses now each have their own plaster (ivory, butter, ochre, salmon, sage, powder blue), its café terraces have patio heaters between the tables, and people fill the terraces at lunch and into the evening.
 - Marszałkowska gets eight neon shopfronts of old trades: a milk bar, a dry cleaner, a watchmaker, a pastry shop, an optician, a florist, a haberdashery and a herbalist.
 - Nowy Świat gets eight neon shopfronts between the Palm and Karowa: a doughnut shop, ice cream with no queue, a bookshop café, an antiquarian, a boutique, a wine bar, an unfathomable gallery and an exchange office.
