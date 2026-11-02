@@ -256,7 +256,7 @@ then the Launch gate.
   - [x] S1 Warszawa Ochota: the hyperbolic paraboloid over the glass hall on its bridge, 2026-11-01
   - [x] S2 Warszawa Powiśle: the kite pavilion, the round saucer pavilion, the X canopies, 2026-11-01
   - [x] S1/S2 after the Mac photo check: Ochota's saddle and letters, Powiśle's sagging kite, glass base, wide saucer, yellow rim letters, 2026-11-01
-  - [ ] L1 track that reads as railway (sleepers, rails, ballast shoulders)
+  - [x] L1 track that reads as railway: pale ballast shoulders, concrete sleepers, bright rail heads, 2026-11-02
   - [x] L2 catenary masts and wires, 2026-11-01
   - [x] L3 the tunnel's portals at Ochota and Powiśle, 2026-11-01
   - [x] T1 trains through the city (suburban, city line, long-distance), `check_trains`, 2026-11-01
