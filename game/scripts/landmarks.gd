@@ -489,6 +489,12 @@ const INFO := {
 	"srodmiescie": ["Warszawa Śródmieście",
 			"Dwa szklane pawilony z 1963 roku nad schodami do podziemnej stacji linii średnicowej.",
 			"Two 1963 glass pavilions over the stairs down to the cross-city line's underground station."],
+	"wkd_srodmiescie": ["Warszawa Śródmieście WKD",
+			"Końcówka kolejki WKD w wykopie przy Alejach: dwa betonowe śmigła nad schodami w dół.",
+			"The WKD commuter line's terminus in a cutting by the Aleje: two concrete propellers over the stairs down."],
+	"wkd_ochota": ["Warszawa Ochota WKD",
+			"Przystanek kolejki WKD w wykopie przy placu Zawiszy: ciężki betonowy dach na nogach w kształcie litery V.",
+			"The WKD stop in the cutting by Plac Zawiszy: a heavy concrete roof on V-shaped legs."],
 	"stadion_pkp": ["Warszawa Stadion",
 			"Przystanek z 1958 roku pod stadionem: biała hala z żaglem i perony w czerwono-białej mozaice.",
 			"A 1958 stop by the stadium: a white hall with a sail and platforms in red-and-white mosaic."],
@@ -845,6 +851,8 @@ func _find_sites() -> void:
 	_find_marina()
 	_find_bulwary_pool()
 	_find_srodmiescie()
+	# The railway S3c-e (2026-11-02): the WKD stops, from the Mac photo gather.
+	_find_wkd()
 	# Plac Małachowskiego and the Presidential Palace (2026-10-31): models instead of skins.
 	_find_trojca()
 	_find_zacheta()
@@ -1326,6 +1334,10 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_bulwary_pool(s)
 			"srodmiescie":
 				_build_srodmiescie(s)
+			"wkd_srodmiescie":
+				_build_wkd_srodmiescie(s)
+			"wkd_ochota":
+				_build_wkd_ochota(s)
 			"ostrogski":
 				_build_ostrogski(s)
 
@@ -12525,6 +12537,259 @@ func _build_srodmiescie(site: Dictionary) -> void:
 		var at: Vector2 = f[0] + side * (float(f[4]) + SRD_OVER)
 		signs.append(["ŚRÓDMIEŚCIE", Vector3(at.x, g + SRD_GLASS_H + 0.55, at.y), Vector3(side.x, 0.0, side.y), 0.5, SRD_NEON])
 		_collide(hall)
+
+# --- The WKD stations (the railway S3c-e, docs/landmarks/photo-reports/wkd_*.md) -------------
+## The WKD commuter line's two stops on the map, built from F's Mac photo gather (Commons photos
+## and the GUGiK orthophoto, 2026-11-02). Śródmieście WKD, the terminus in an open cutting by the
+## Aleje: above ground only two free-standing concrete "propellers", two long tapering wings on
+## one raked wedge pier and a slim post, over the stairs down; a white parapet box round each
+## stair, the name board on the west one. Ochota WKD, in the cross-city cutting by Plac Zawiszy:
+## a heavy concrete slab on V-shaped legs over the island platform (OpenStreetMap maps the slab
+## as a 5 m "retail" box, which the site replaces), blue benches, a stair up at the west end.
+## The board shows the place name, and the logo is two plain arrows: no operator's brand.
+
+## The propellers' pier spots and which side the cutting lies on (+1: the frame's +v, south).
+const WKD_SRD := [[Vector2(-1722.0, 728.0), 1.0], [Vector2(-1632.0, 711.0), -1.0]]
+const WKD_SRD_A := Vector2(0.945, -0.327)  # along the cutting (its rails), east-north-east
+const WKD_WING := 9.6           # the hub to a wing's tip
+const WKD_WING_S := [0.0, 0.2, 0.4, 0.6, 0.75, 0.88, 0.96, 1.0]   # sections along a wing (of WKD_WING)
+const WKD_WING_HW := [2.0, 1.75, 1.5, 1.25, 1.05, 0.85, 0.6, 0.25]  # their half widths: a rounded tip
+const WKD_SLAB_Y := 4.0         # the slab's top over the walk at the hub; the tips rise 0.45 m
+const WKD_CONCRETE := Color("#a39a8d")
+const WKD_UNDER := Color("#7e766b")
+const WKD_EDGE := Color("#b9b1a4")
+const WKD_PARAPET := Color("#e6e4df")
+const WKD_STAIR := Color("#3c3d3f")
+const WKD_BOARD := Color("#3a3c40")
+const WKD_RED := Color("#d22a2f")
+const WKD_BLUE := Color("#2a4f9e")
+const WKD_SIGN := Color(0.92, 0.95, 1.0)
+## Ochota WKD: the slab's frame along the platform (OSM's island platform between the two tracks).
+const WKD_OCH_O := Vector2(-2355.1, 951.2)
+const WKD_OCH_A := Vector2(0.9455, -0.3253)
+const WKD_OCH_HU := 24.5        # the slab's half length
+const WKD_OCH_HV := 3.3         # its half width (the platform is 5.4 m wide)
+const WKD_OCH_CLEAR := 3.5      # the platform's top to the slab's underside
+const WKD_OCH_SLAB := 0.65
+const WKD_OCH_GREY := Color("#9e9a92")
+const WKD_OCH_TOP := Color("#857866")   # brown on the orthophoto
+const WKD_OCH_EDGE := Color("#8b4a3a")  # the platform's red-brown edge strip
+const WKD_OCH_BENCH := Color("#2f5e9e")
+
+
+func _find_wkd() -> void:
+	var zones: Array = []
+	for p: Array in WKD_SRD:
+		_wkd_srd_frame(p)
+		zones.append(_rect(0.0, 0.0, WKD_WING + 0.6, 3.2))
+	_add_site("wkd_srodmiescie", zones)
+	_wkd_och_frame()
+	# The zone holds the mapped slab's middle (the 5 m box over the platform) and the stair.
+	_add_site("wkd_ochota", [_rect(-2.0, 0.0, WKD_OCH_HU + 10.0, WKD_OCH_HV + 0.5)])
+
+
+## A propeller's frame: the pier spot, u along the cutting, +v towards the cutting.
+func _wkd_srd_frame(p: Array) -> void:
+	_o = p[0]
+	_a = WKD_SRD_A
+	_b = Vector2(-_a.y, _a.x) * float(p[1])
+
+
+func _wkd_och_frame() -> void:
+	_o = WKD_OCH_O
+	_a = WKD_OCH_A
+	_b = Vector2(-_a.y, _a.x)
+
+
+func _build_wkd_srodmiescie(_site: Dictionary) -> void:
+	var none := Color(0, 0, 0, 0)
+	for k in WKD_SRD.size():
+		var p: Array = WKD_SRD[k]
+		_wkd_srd_frame(p)
+		var g := -INF
+		for q in [_w(-2.0, -2.5), _w(2.0, -2.5), _w(0.0, 0.0)]:
+			g = maxf(g, map.terrain_height(q.x, q.y))
+		_g = g
+		var top := g + WKD_SLAB_Y
+		# The parapet box round the stair: white, waist high, open at the east end where the
+		# stair starts; the dark well inside with its steps.
+		var hu := 3.6
+		var hv := 1.7
+		_lbox(-hu, 0.0, 0.12, hv, g - 0.5, g + 1.05, WKD_PARAPET, M_STONE, WKD_PARAPET)
+		_lbox(0.0, -hv, hu, 0.12, g - 0.5, g + 1.05, WKD_PARAPET, M_STONE, WKD_PARAPET)
+		_lbox(0.0, hv, hu, 0.12, g - 0.5, g + 1.05, WKD_PARAPET, M_STONE, WKD_PARAPET)
+		_mode = M_STONE
+		_cap(_rect(0.0, 0.0, hu - 0.12, hv - 0.12), g + 0.04, WKD_STAIR)
+		for s in 6:
+			var u := hu - 0.9 - s * 1.05
+			_cap(_rect(u, 0.0, 0.08, hv - 0.2), g + 0.06, WKD_STAIR.lightened(0.25))
+		_collide(_rect(0.0, 0.0, hu + 0.12, hv + 0.12))
+		# The raked wedge pier on the far side from the cutting, wider at the top, and the slim
+		# post under the other wing.
+		var foot := _rect(-1.5, -2.5, 0.3, 0.3)
+		var head := _rect(-1.0, -2.5, 0.95, 0.3)
+		_mode = M_STONE
+		_frustum(foot, g - 0.5, head, top - 0.4, WKD_CONCRETE.darkened(0.06))
+		_prism(_circle(_w(6.2, -0.6 + 0.5 * 6.2 / WKD_WING), 0.13, 6), g - 0.5, top - 0.3, WKD_EDGE, none, M_STONE)
+		_collide(_rect(-1.25, -2.5, 0.6, 0.35))
+		_wkd_wings(top)
+		# The logo on the pier's walk side: a white octagon, a red arrow over a blue one.
+		_wkd_logo(_w(-1.25, -2.5) - _b * 0.33, g + 2.5, -_b, 0.5)
+		# The west one carries the name board, on its slab on the side the camera sees.
+		if k == 0:
+			var face := _b if _b.dot(BEHIND_FACE) > 0.0 else -_b
+			var sv := 0.3 * signf(face.dot(_b))
+			var word := "ŚRÓDMIEŚCIE"
+			_lbox(-4.3, sv, 3.6, 0.08, top - 0.05, top + 0.75, WKD_BOARD, M_STONE, WKD_BOARD)
+			var at := _w(-4.3, sv) + face * 0.1
+			var size := minf(0.32, 6.6 / Neon.length_of(word))
+			signs.append([word, Vector3(at.x, top + 0.12, at.y), Vector3(face.x, 0.0, face.y), size, WKD_SIGN])
+
+
+## The two wings as one slab: tapering to rounded tips, the tips raised, thin at the edge and
+## thicker at the hub; the wings set off the axis in opposite ways (a propeller in plan).
+func _wkd_wings(top: float) -> void:
+	var secs: Array = []   # [u, v centre, half width, top y, bottom y]
+	var n: int = WKD_WING_S.size()
+	for i in range(n - 1, -1, -1):
+		secs.append(_wkd_sec(-1.0, i, top))
+	for i in range(1, n):
+		secs.append(_wkd_sec(1.0, i, top))
+	var keep := _mode
+	_mode = M_STONE
+	var corner := func(s: Array, side: float, up: bool) -> Vector3:
+		var q := _w(float(s[0]), float(s[1]) + float(s[2]) * side)
+		return Vector3(q.x, float(s[3]) if up else float(s[4]), q.y)
+	for i in secs.size() - 1:
+		var s0: Array = secs[i]
+		var s1: Array = secs[i + 1]
+		var l0: Vector3 = corner.call(s0, -1.0, true)
+		var r0: Vector3 = corner.call(s0, 1.0, true)
+		var l1: Vector3 = corner.call(s1, -1.0, true)
+		var r1: Vector3 = corner.call(s1, 1.0, true)
+		var lb0: Vector3 = corner.call(s0, -1.0, false)
+		var rb0: Vector3 = corner.call(s0, 1.0, false)
+		var lb1: Vector3 = corner.call(s1, -1.0, false)
+		var rb1: Vector3 = corner.call(s1, 1.0, false)
+		_wkd_face(l0, r0, r1, l1, Vector3.UP, WKD_CONCRETE)
+		_wkd_face(lb0, rb0, rb1, lb1, Vector3.DOWN, WKD_UNDER)
+		var mid := (l0 + r0 + l1 + r1) * 0.25
+		_wkd_face(l0, l1, lb1, lb0, l0 - mid, WKD_EDGE)
+		_wkd_face(r0, r1, rb1, rb0, r0 - mid, WKD_EDGE)
+	for e in [0, secs.size() - 1]:
+		var s: Array = secs[e]
+		var out := _a * signf(float(s[0]))
+		_wkd_face(corner.call(s, -1.0, true), corner.call(s, 1.0, true), corner.call(s, 1.0, false),
+				corner.call(s, -1.0, false), Vector3(out.x, 0.0, out.y), WKD_EDGE)
+	_mode = keep
+
+
+## A wing's section i on the side `dir` (-1 west, +1 east).
+func _wkd_sec(dir: float, i: int, top: float) -> Array:
+	var s: float = WKD_WING_S[i]
+	var y := top + 0.45 * s * s
+	return [dir * s * WKD_WING, -0.6 + 0.5 * s * dir, float(WKD_WING_HW[i]), y, y - lerpf(0.55, 0.2, s)]
+
+
+## A quad whose normal is its own geometry's, turned to the side `toward` points to.
+func _wkd_face(a: Vector3, b: Vector3, c: Vector3, d: Vector3, toward: Vector3, col: Color) -> void:
+	var n := (c - a).cross(d - b)
+	if n.length() < 1e-6:
+		return
+	n = n.normalized()
+	if n.dot(toward) < 0.0:
+		n = -n
+	_quad(a, b, c, d, n, col)
+
+
+## The logo plate: a white octagon of radius r facing `out` with its middle at (c, y), a red arrow
+## pointing one way over a blue one pointing back.
+func _wkd_logo(c: Vector2, y: float, out: Vector2, r: float) -> void:
+	var keep := _mode
+	_mode = M_STONE
+	var n := Vector3(out.x, 0.0, out.y).normalized()
+	var side := Vector3(-n.z, 0.0, n.x)
+	var o := Vector3(c.x, y, c.y) + n * 0.03
+	var at := func(x: float, h: float, lift: float) -> Vector3:
+		return o + side * x + Vector3.UP * h + n * lift
+	var ring: Array[Vector3] = []
+	for k in 8:
+		var t := TAU * (k + 0.5) / 8.0
+		ring.append(at.call(cos(t) * r, sin(t) * r, 0.0))
+	for k in range(1, 7):
+		_tri(ring[0], ring[k], ring[k + 1], n, Color.WHITE, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0, false)
+	for arrow: Array in [[1.0, 0.28, WKD_RED], [-1.0, -0.28, WKD_BLUE]]:
+		var d: float = arrow[0]
+		var h: float = float(arrow[1]) * r
+		var col: Color = arrow[2]
+		var w := 0.09 * r
+		_quad(at.call(-0.55 * r * d, h - w, 0.02), at.call(0.15 * r * d, h - w, 0.02),
+				at.call(0.15 * r * d, h + w, 0.02), at.call(-0.55 * r * d, h + w, 0.02), n, col)
+		_tri(at.call(0.15 * r * d, h - 0.22 * r, 0.02), at.call(0.6 * r * d, h, 0.02), at.call(0.15 * r * d, h + 0.22 * r, 0.02),
+				n, col, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0, false)
+	_mode = keep
+
+
+func _build_wkd_ochota(_site: Dictionary) -> void:
+	_wkd_och_frame()
+	# The platform's top as map_builder draws it (its lowest corner + 0.9 + 0.1).
+	var ground := INF
+	for a in data.get("platforms", []):
+		var q := _pts(a["p"])
+		if q.size() >= 3 and Geometry2D.is_point_in_polygon(_o, q):
+			for p in q:
+				ground = minf(ground, map.terrain_height(p.x, p.y))
+	if ground == INF:
+		ground = _ground_under(_rect(0.0, 0.0, 20.0, 2.0))
+	_g = ground
+	var pt := ground + 1.0
+	var under := pt + WKD_OCH_CLEAR
+	var top := under + WKD_OCH_SLAB
+	var none := Color(0, 0, 0, 0)
+	# The slab: rough grey edges, brown on top, darker underneath.
+	var slab := _rect(0.0, 0.0, WKD_OCH_HU, WKD_OCH_HV)
+	_prism(slab, under, top, WKD_OCH_GREY, WKD_OCH_TOP, M_STONE, M_STONE)
+	_soffit(slab, under, WKD_OCH_GREY.darkened(0.3))
+	# The V legs along the platform's middle every 8 m: two raked legs meeting at the floor
+	# (their feet down in the platform, so they stand on its ground).
+	var u := -20.0
+	while u <= 20.5:
+		for d: float in [-1.0, 1.0]:
+			_mode = M_STONE
+			_frustum(_rect(u + d * 0.12, 0.0, 0.14, 0.2), ground, _rect(u + d * 0.78, 0.0, 0.17, 0.22), under,
+					WKD_OCH_GREY.lightened(0.05))
+		u += 8.0
+	# The red-brown edge strips down both sides of the platform, blue benches between the legs.
+	_mode = M_STONE
+	for v: float in [-2.35, 2.35]:
+		_cap(_rect(0.0, v, 25.0, 0.2), pt + 0.03, WKD_OCH_EDGE)
+	for b: float in [-16.0, -8.0, 0.0, 8.0, 16.0]:
+		_lbox(b, 0.0, 0.9, 0.22, ground, pt + 0.45, WKD_OCH_BENCH, M_STONE, WKD_OCH_BENCH.lightened(0.1))
+	# The blue timetable board on two posts.
+	_lbox(4.0, 0.0, 0.6, 0.05, pt + 1.0, pt + 2.1, WKD_OCH_BENCH, M_STONE, WKD_OCH_BENCH)
+	for s: float in [-0.5, 0.5]:
+		_lbox(4.0 + s, 0.0, 0.04, 0.04, ground, pt + 1.0, WKD_BOARD, M_STONE, none)
+	# The stair up from the platform's west end to Al. Jerozolimskie and Towarowa: a flight of
+	# 0.17 m steps between two low walls, rising west to the street.
+	var street: float = map.terrain_height(_w(-36.0, 3.0).x, _w(-36.0, 3.0).y)
+	var rise := maxf(street - pt, 1.0)
+	var steps := clampi(ceili(rise / 0.17), 6, 40)
+	var tread := 0.3
+	var u0 := -WKD_OCH_HU - 1.5
+	for s in steps:
+		var y1 := pt + rise * float(s + 1) / steps
+		var ua := u0 - s * tread
+		var ring := PackedVector2Array([_w(ua, -1.2), _w(ua - tread, -1.2), _w(ua - tread, 1.2), _w(ua, 1.2)])
+		_prism(ring, ground, y1, WKD_OCH_GREY.darkened(0.15), WKD_OCH_GREY.lightened(0.1), M_STONE, M_STONE)
+	var u1 := u0 - steps * tread
+	for v: float in [-1.35, 1.35]:
+		var wall := PackedVector2Array([_w(u0, v - 0.15), _w(u1, v - 0.15), _w(u1, v + 0.15), _w(u0, v + 0.15)])
+		_prism(wall, ground, pt + rise + 1.0, WKD_OCH_GREY, WKD_OCH_GREY.lightened(0.08), M_STONE, M_STONE)
+	# A totem with the logo at the stair head.
+	_lbox(u1 - 0.6, 1.9, 0.12, 0.12, ground, pt + rise + 2.6, WKD_BOARD, M_STONE, WKD_BOARD)
+	var face := _b if _b.dot(BEHIND_FACE) > 0.0 else -_b
+	_wkd_logo(_w(u1 - 0.6, 1.9) + face * 0.12, pt + rise + 2.1, face, 0.45)
+
 
 # --- The brick works: Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle -------------
 ## F's ask (2026-11-01): the four old-industry-turned-hangout sites of the west and south as
