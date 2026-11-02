@@ -156,6 +156,17 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
   yard, at spots clear of walls, roads, lamps and the scanned trees. Left (Mac photo check, QUESTIONS):
   the real positions (the Leżakownia's vaults, the candelabras' places), the climbers on the walls
   and the garden terraces upstairs (not modelled), and the tree count in the Browary yard.
+  **Rebuilt 2026-11-02 from the Mac's photo reports** (docs/landmarks/photo-reports/norblin.md,
+  browary.md, GUGiK ortho): the first pass had put Norblin (model and planes) on the wrong block,
+  OSM's "Modsen" north of Łucka. Now the site stands on "Plater" and "Galwan", their two courts are
+  carved open (`planted_trees.py` COURTS), 4 candelabra planes stand in the court north of the glass
+  street with young trees on Żelazna, along the glass street and in the west court; green sedum roofs
+  with plant rooms and the terraces upstairs; the guessed chimney is gone. Browary's Central Garden
+  has 22 crowns (the scan's 5 and 17 young ones) round an S-shaped gravel path with two café
+  clearings (white tables, dark-blue parasols), 4 trees by Willa Schielego, sedum roofs on the office
+  blocks and a roof garden on the north slab; the 12 trees misplaced on the yard west of the lawn are
+  gone. Left: climbers (no photo), the glass street's roof (the map's 2018 LoD2 halls stand where the
+  ortho shows the street), the AK memorial boulder (not located), the Grzybowska plaza's granite grid.
 - [x] K7 Bulwary Wiślane stages 1-2 (2026-11-02, site `bulwary_basen`, spec bulwary_basen.md): the
   splash pool and 3 fish (the 6 pavilions are the boulevard dressing, PR #310). Left: the amphitheatre, trampolines and the "living river"
   garden (not in OSM, need the orthophoto), and the Mac look check (QUESTIONS).
@@ -630,8 +641,9 @@ the four sites as L2 models on their mapped outlines, `chill_*` crowds in their 
 (`crowds.gd` CHILL, `chill_level`) and KROWA 2.0, the milk bar queue on Norblin's Żelazna front
 (`MILK`, `milk_queue`, venue sign in `storefronts.gd`). Open, for the Mac look check (no photos in
 the cloud, the cloud's picture of each place is thin):
-- Norblin: which wings are historic brick and which new; the chimney's real place; the door of the
-  milk bar (the lat/lon is a guess on the Żelazna front, 33 m from Żelazna 59A).
+- Norblin: which wings are historic brick and which new; the door of the milk bar (moved with the
+  site onto Plater's Żelazna front, 2026-11-02, still a guess). The chimney was dropped (the photo
+  report's ortho shows none); Verit, the low block on Prosta, is still the map's plain building.
 - Browary: roofs (pitched, not flat), the Brama's arch, the chimney's count and place, the real
   heights (OSM gives 37 m for the gate block, built at 30).
 - Koszyki: the real roof (iron truss under glass) and the 1909 facade's details on Koszykowa.

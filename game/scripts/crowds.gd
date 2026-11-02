@@ -210,7 +210,7 @@ const PLAN_C_ID := "plan_c"
 ## yard), most people, radius to look for footways (m)]. A spot that finds no footway puts its
 ## people in a loose spiral round the point.
 const CHILL := {
-	"chill_norblin": [Vector2(-2262.0, 56.0), 30, 34.0],
+	"chill_norblin": [Vector2(-2236.0, 204.0), 30, 34.0],  # the court's mouth on the glass street (photo report)
 	"chill_browary": [Vector2(-2503.0, -100.0), 36, 36.0],
 	"chill_koszyki": [Vector2(-884.0, 1266.0), 30, 30.0],
 	"chill_elektrownia": [Vector2(285.0, -738.0), 34, 36.0],

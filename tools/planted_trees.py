@@ -87,6 +87,33 @@ CHMIELNA = [(-851.0, 253.2), (-809.3, 238.8), (-751.2, 218.7), (-703.5, 203.6), 
             (-433.3, 117.0), (-389.8, 101.8), (-324.9, 79.0), (-312.3, 74.6)]
 
 
+# Browary Warszawskie's Central Garden (photo report browary.md): the curving gravel path in an S
+# from the south gate (between two of the scanned trees) to the north slab, 2.4 m wide, and the
+# two clearings beside its bends with the white café tables and dark-blue parasols. landmarks.gd draws them from the
+# same numbers (BROWARY_PATH, BROWARY_CLEARINGS): keep the two lists equal.
+BROWARY_PATH = [(-2459.0, -84.0), (-2456.4, -87.3), (-2454.7, -90.6), (-2454.3, -93.6), (-2455.5, -96.4),
+                (-2458.1, -99.0), (-2461.5, -101.5), (-2464.9, -104.0), (-2467.5, -106.6), (-2468.7, -109.4),
+                (-2468.3, -112.4), (-2466.6, -115.7), (-2464.0, -119.0)]
+BROWARY_CLEARINGS = [(-2459.4, -93.2), (-2463.6, -109.8)]
+PATH_CLEAR = 2.6       # a trunk this far from the path's centre line
+CLEARING_R = 3.8       # and this far from a clearing's middle
+PATHS = {"browary": (BROWARY_PATH, BROWARY_CLEARINGS)}
+
+# Courts OpenStreetMap maps inside a building's outline (multipolygon holes the bake drops), from
+# the Mac's photo reports. Each is carved out of the outline as a notch from the nearest wall:
+# [building name, the court's middle, half width along that wall, depth from the wall (m), and
+# optionally the point on the wall the notch leaves from (else the wall's nearest point)]. The
+# same notch goes out of the building and of its landmark outline, so the car, the trees, the
+# crowds and landmarks.gd's model all see the open court. Fabryka Norblina's (norblin.md): the
+# court of candelabra planes north of the glass street, in "Plater", and the west block's small
+# garden court, in "Galwan"; both open onto the glass street (*guess*: the ortho shows the courts,
+# not whether a passage closes them).
+COURTS = [
+    ["Plater", (-2232.0, 181.5), 8.0, 30.0],
+    # (Galwan's nearest outline point is a corner: the notch leaves from its south wall.)
+    ["Galwan", (-2310.5, 211.5), 6.5, 30.0, (-2303.6, 229.7)],
+]
+
 PLACES = [
     {
         "id": "bracka",
@@ -162,30 +189,85 @@ PLACES = [
         "willow_min_area": 1500.0,    # a lawn at least this big (m²) takes a group
     },
     {
-        # K6: Fabryka Norblina's court (2021): the big multi-stem planes trained as candelabras are
-        # the site's landmark. The court is the open ground inside the three wings.
+        # K6, rebuilt from the Mac's photo report (docs/landmarks/photo-reports/norblin.md, GUGiK
+        # ortho, 2026-11-02): Fabryka Norblina's court of big multi-stem planes trained as
+        # candelabras, 3-4 broad crowns (7-9 m across) at x -2239..-2225, z 173..190, in the yard
+        # north of the glass street. OSM maps the yard inside the outline of the office block
+        # "Plater"; COURTS carves it out first. (The first K6 pass planted them in the court of
+        # "Modsen", north of ul. Łucka: the wrong block.)
         "id": "norblin",
         "name": "Fabryka Norblina's court (candelabra planes, 2021)",
         "kind": "garden",
-        "centre": (-2262.0, 56.0),
-        "radius": 26.0,
-        "count": 5,
-        "step": 5.0,
-        "gap": 9.0,                   # candelabras stand well apart
+        "zone": [(-2240.0, 172.0), (-2223.0, 172.0), (-2223.0, 191.0), (-2240.0, 191.0)],
+        "target": 4,
+        "step": 1.0,
+        "gap": 7.0,                   # candelabras stand well apart
         "mix": ["candelabra"],
     },
     {
-        # K6: Browary Warszawskie's Central Garden over the Leżakownia and the two-level plaza
-        # beside it (2021): lindens, birches and maples in the open ground of the yard.
+        # The report's other Norblin trees: a row of young trees along the Żelazna front, small
+        # trees in planters on the glass street's south side, and the west block's small garden
+        # court (carved out of "Galwan" by COURTS).
+        "id": "norblin_zelazna",
+        "name": "Fabryka Norblina, the young trees on the Żelazna front",
+        "kind": "garden",
+        "zone": [(-2193.0, 201.0), (-2183.0, 201.0), (-2183.0, 228.0), (-2193.0, 228.0)],
+        "target": 4,
+        "step": 1.0,
+        "gap": 6.0,
+        "mix": ["linden", "maple"],
+    },
+    {
+        "id": "norblin_street",
+        "name": "Fabryka Norblina, the planters along the glass street",
+        "kind": "garden",
+        "zone": [(-2280.0, 222.0), (-2220.0, 222.0), (-2220.0, 237.0), (-2280.0, 237.0)],
+        "target": 4,
+        "step": 1.0,
+        "gap": 9.0,
+        "mix": ["cherry", "bird_cherry"],
+    },
+    {
+        "id": "norblin_west",
+        "name": "Fabryka Norblina, the west block's garden court",
+        "kind": "garden",
+        "zone": [(-2317.0, 204.0), (-2304.0, 204.0), (-2304.0, 219.0), (-2317.0, 219.0)],
+        "target": 2,
+        "step": 1.0,
+        "gap": 5.0,
+        "mix": ["birch", "garden_maple"],
+    },
+    {
+        # K6, rebuilt from the Mac's photo report (docs/landmarks/photo-reports/browary.md, GUGiK
+        # ortho, 2026-11-02): Browary Warszawskie's Central Garden on the slab over the Leżakownia,
+        # the lawn OSM maps as a park at x -2480..-2440, z -123..-79, densely planted with about
+        # 20-25 young lindens, birches and maples (3-6 m crowns) round an S-shaped gravel path
+        # (BROWARY_PATH) with café tables in two clearings (BROWARY_CLEARINGS). 22 crowns in all,
+        # counting the scan's five along the south edge. (The first K6 pass planted 12 on the
+        # paved yard west of the lawn.)
         "id": "browary",
         "name": "Browary Warszawskie's Central Garden (2021)",
         "kind": "garden",
-        "centre": (-2503.0, -100.0),
-        "radius": 24.0,
-        "count": 12,
-        "step": 4.0,
-        "gap": 5.5,
+        "zone": [(-2471.2, -79.4), (-2480.3, -114.9), (-2476.3, -115.8), (-2476.4, -116.4),
+                 (-2448.1, -122.9), (-2440.1, -88.2), (-2441.3, -88.0), (-2441.2, -87.3)],
+        "inset": 1.6,                 # trunks this far inside the lawn's edge
+        "target": 22,
+        "step": 1.0,
+        "gap": 4.4,
+        "path": "browary",
+        "spread": True,
         "mix": ["garden_linden", "birch", "garden_maple", "garden_linden", "birch"],
+    },
+    {
+        # The report's tree group south-east of the garden, by Willa Schielego.
+        "id": "browary_se",
+        "name": "Browary Warszawskie, the tree group by Willa Schielego",
+        "kind": "garden",
+        "zone": [(-2440.0, -76.0), (-2418.0, -76.0), (-2418.0, -58.0), (-2440.0, -58.0)],
+        "target": 4,
+        "step": 1.0,
+        "gap": 4.5,
+        "mix": ["garden_linden", "garden_maple"],
     },
 ]
 
@@ -396,16 +478,30 @@ def plant_grounds(data, place, solids=None):
 
 
 def plant_garden(data, place, solids=None):
-    """A court or yard garden (K6): up to `count` trees on a ring-first grid round the centre, at
-    spots clear of buildings, roads, lamps and the scanned trees (TREE_GAP, or `gap` apart from
-    each other). Deterministic."""
-    cx, cz = place["centre"]
-    r = place["radius"]
+    """A court or yard garden (K6): trees on a ring-first grid round the centre (or, with a `zone`,
+    round the zone's middle and only inside it, `inset` m from its edge), at spots clear of
+    buildings, roads, lamps and the scanned trees (TREE_GAP, or `gap` apart from each other), and
+    of the place's `path` (PATHS). `count` trees, or with `target` as many as bring the zone's
+    trees to that number. Deterministic."""
+    zone = place.get("zone")
+    if zone:
+        xs, zs = [p[0] for p in zone], [p[1] for p in zone]
+        cx, cz = (min(xs) + max(xs)) * 0.5, (min(zs) + max(zs)) * 0.5
+        r = math.hypot(max(xs) - min(xs), max(zs) - min(zs)) * 0.5
+    else:
+        cx, cz = place["centre"]
+        r = place["radius"]
     step = place["step"]
+    inset = place.get("inset", 0.0)
     solids = solids or P.Solids(data)
     trees = data.get("trees3d", [])
     taken = [(trees[i], trees[i + 1]) for i in range(0, len(trees) - 5, 6)
              if math.hypot(trees[i] - cx, trees[i + 1] - cz) < r + 10]
+    count = place.get("count", 0)
+    if zone and "target" in place:
+        count = place["target"] - sum(1 for x, z in taken if _inside(x, z, zone))
+    path, clearings = PATHS.get(place.get("path"), ([], []))
+    edges = list(zip(zone, zone[1:] + zone[:1])) if zone else []
     pois = [(p["x"], p["z"]) for p in data.get("pois", []) if p.get("k") != "address"]
     cands = []
     n = int(r / step)
@@ -413,26 +509,135 @@ def plant_garden(data, place, solids=None):
         for j in range(-n, n + 1):
             x, z = cx + i * step, cz + j * step
             d = math.hypot(x - cx, z - cz)
-            if d <= r:
-                cands.append((round(d, 3), x, z))
+            if d > r:
+                continue
+            if zone and not _inside(x, z, zone):
+                continue
+            if inset and any(P.seg_dist(x, z, a, b) < inset for a, b in edges):
+                continue
+            cands.append((round(d, 3), x, z))
     cands.sort()
+
+    def clear(x, z):
+        """The spot is free of the place's path and clearings, POIs and every solid."""
+        if any(P.seg_dist(x, z, a, b) < PATH_CLEAR for a, b in zip(path, path[1:])):
+            return False
+        if any(math.hypot(x - qx, z - qz) < CLEARING_R for qx, qz in clearings):
+            return False
+        if any(math.hypot(x - px, z - pz) < 1.5 for px, pz in pois):
+            return False
+        return not solids.blocked(x, z, CLEAR + 0.6, skip=("tree",))
+
+    cands = [c for c in cands if clear(c[1], c[2])]
     out = []
     mine = []
+    if place.get("spread"):
+        # A garden, not a court: each tree goes where it is farthest from every tree so far
+        # (the scanned ones and this place's), so the crowns spread over the whole lawn.
+        pts = [(x, z) for x, z in taken if math.hypot(x - cx, z - cz) < r + 3.0]
+        while len(out) < count:
+            best = None
+            for i, (_, x, z) in enumerate(cands):
+                d = min((math.hypot(x - px, z - pz) for px, pz in pts), default=1e9)
+                if d >= max(place["gap"], TREE_GAP) and (best is None or d > best[0]):
+                    best = (d, x, z)
+            if best is None:
+                break
+            _, x, z = best
+            mix = place["mix"]
+            out.append(_tree(x, z, mix[int(_hash01(x, z, 1) * len(mix)) % len(mix)]))
+            pts.append((x, z))
+        return out
     for _, x, z in cands:
-        if len(out) >= place["count"]:
+        if len(out) >= count:
             break
         if any(math.hypot(x - tx, z - tz) < TREE_GAP for tx, tz in taken):
             continue
         if any(math.hypot(x - tx, z - tz) < place["gap"] for tx, tz in mine):
             continue
-        if any(math.hypot(x - px, z - pz) < 1.5 for px, pz in pois):
-            continue
-        if solids.blocked(x, z, CLEAR + 0.6, skip=("tree",)):
-            continue
         mix = place["mix"]
         out.append(_tree(x, z, mix[int(_hash01(x, z, 1) * len(mix)) % len(mix)]))
         mine.append((x, z))
     return out
+
+
+def _notch(ring, court, half, depth, wall=None):
+    """The ring with a notch cut from its nearest wall to `court`: `half` m either side along the
+    wall, `depth` m in. None when the court's middle is not inside the ring (carved already)."""
+    if not _inside(court[0], court[1], ring):
+        return None
+    n = len(ring)
+    best = None
+    for i in range(n):
+        (ax, az), (bx, bz) = ring[i], ring[(i + 1) % n]
+        ex, ez = bx - ax, bz - az
+        ln = ex * ex + ez * ez
+        u = max(0.0, min(1.0, ((court[0] - ax) * ex + (court[1] - az) * ez) / ln))
+        px, pz = ax + ex * u, az + ez * u
+        d = math.hypot(court[0] - px, court[1] - pz)
+        if best is None or d < best[0]:
+            best = (d, px, pz)
+    _, bx0, bz0 = best
+    if wall:
+        bx0, bz0 = wall
+    k = math.hypot(court[0] - bx0, court[1] - bz0)
+    nx, nz = (court[0] - bx0) / k, (court[1] - bz0) / k                # into the building
+    tx, tz = -nz, nx                                                   # along the wall
+
+    def tn(p):
+        return (p[0] - bx0) * tx + (p[1] - bz0) * tz, (p[0] - bx0) * nx + (p[1] - bz0) * nz
+
+    def cut(i):
+        """Where edge i crosses the notch's sides near the wall: [(t at the side, point)]."""
+        a, b = ring[i], ring[(i + 1) % n]
+        (ta, na), (tb, nb) = tn(a), tn(b)
+        hits = []
+        for side in (-half, half):
+            if (ta - side) * (tb - side) < 0:
+                k = (side - ta) / (tb - ta)
+                if abs(na + (nb - na) * k) < 4.0:
+                    hits.append((k, side, (a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k)))
+        return sorted(hits)
+
+    out = []
+    inside_notch = False
+    for i in range(n):
+        p = ring[i]
+        t, nn = tn(p)
+        if not (inside_notch or (abs(t) < half and abs(nn) < 4.0)):
+            out.append(p)
+        for _, side, q in cut(i):
+            if not inside_notch:
+                out.append(q)
+                out.append((bx0 + tx * side + nx * depth, bz0 + tz * side + nz * depth))
+                inside_notch = True
+            else:
+                out.append((bx0 + tx * side + nx * depth, bz0 + tz * side + nz * depth))
+                out.append(q)
+                inside_notch = False
+    if inside_notch or len(out) < len(ring) - 20:
+        return None
+    return [(round(x, 1), round(z, 1)) for x, z in out]
+
+
+def carve(data, verbose=True):
+    """Cuts every COURT out of its building's and landmark's outline; returns how many changed.
+    Idempotent: a court that is open already is left alone."""
+    changed = 0
+    for name, court, half, depth, *wall in COURTS:
+        for key in ("buildings", "landmarks"):
+            for b in data.get(key, []):
+                if b.get("name") != name:
+                    continue
+                ring = list(zip(b["p"][0::2], b["p"][1::2]))
+                new = _notch(ring, court, half, depth, wall[0] if wall else None)
+                if new is None:
+                    continue
+                b["p"] = [v for q in new for v in q]
+                changed += 1
+                if verbose:
+                    print(f"planted trees: court carved out of {key[:-1]} {name}")
+    return changed
 
 
 def plant(data, place, solids=None):
@@ -578,6 +783,7 @@ def apply(data, verbose=True):
     crowns = data.setdefault("trees3d_crown", [])
     have = [(trees[i], trees[i + 1]) for i in range(0, len(trees) - 5, 6)]
     added = 0
+    carve(data, verbose)
     done = data.setdefault("planted_places", [])
     for place in PLACES:
         if place.get("kind") in ("grounds", "garden") and place["id"] in done:
@@ -620,9 +826,12 @@ def main(argv):
             path = arg
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
-    before = json.dumps([data.get("surfaces", []), data.get("benches", [])])
+    def state():
+        return json.dumps([data.get("surfaces", []), data.get("benches", []),
+                           [b["p"] for b in data.get("buildings", []) + data.get("landmarks", []) if b.get("name") in [c[0] for c in COURTS]]])
+    before = state()
     n = apply(data)
-    if (n or json.dumps([data.get("surfaces", []), data.get("benches", [])]) != before) and not dry:
+    if (n or state() != before) and not dry:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
         print(f"wrote {path}")

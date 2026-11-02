@@ -12543,7 +12543,20 @@ const WORKS_ROOF := Color("#5d6366")
 const WORKS_GLASS := Color("#2f3a40")
 const WORKS_TOP := Color("#9db4be")
 const WORKS_MODERN := Color("#b3a894")
-const NORBLIN_PT := Vector2(-2273.0, 58.0)  # inside the tall mapped wing (43.9 m)
+## Fabryka Norblina, rebuilt from the Mac's photo report (docs/landmarks/photo-reports/norblin.md,
+## GUGiK ortho, 2026-11-02): the factory is the block between Łucka, Żelazna and Prosta that OSM
+## maps as the office buildings "Plater" (east) and "Galwan" (west); the first pass stood on
+## "Modsen" north of Łucka, the wrong block. Both outlines come with their courts carved out
+## (tools/planted_trees.py COURTS). Their OSM height (50 m) is the glazed storeys' top.
+const NORBLIN_BLOCKS := ["Plater", "Galwan"]
+const NORBLIN_PT := Vector2(-2262.0, 190.0)
+const NORBLIN_H := 50.0
+const NORBLIN_SEDUM := Color("#7c8f55")   # the report's green sedum roofs (Browary's too)
+const NORBLIN_EDGE := Color("#5e7444")    # the planted edge round them
+const NORBLIN_PLANT := Color("#8b9094")   # roof plant rooms
+## The garden terraces upstairs on the north-west block (report: x -2290..-2275, z 140..160 and
+## x -2315..-2300, z 135..150; each pulled onto the roof when the outline lies a few metres off).
+const NORBLIN_TERRACES := [Vector2(-2283.0, 150.0), Vector2(-2307.0, 146.0)]
 const BROWARY_NAMES := ["Warzelnia", "Laboratorium", "Biura przy Bramie", "Biura przy Warzelni", "Biura przy Willi", "Willa Schielego"]
 
 
@@ -12558,12 +12571,23 @@ func _landmark_near(name: String, at: Vector2, reach: float) -> PackedVector2Arr
 
 
 func _find_works() -> void:
-	var nor := _landmark("Modsen")
-	if nor.size() >= 3:
-		_add_site("norblin", [nor])
+	var blocks: Array = []
+	var nor_zone: Array = []
+	for n: String in NORBLIN_BLOCKS:
+		var q := _landmark_near(n, NORBLIN_PT, 200.0)
+		if q.size() >= 3:
+			# OSM traces every pilaster (Galwan has 130 corners): the walls go on the outline
+			# simplified to 1.2 m (the court notches' corners stay).
+			var simple := _simplify(q, 1.2)
+			blocks.append(simple if simple.size() >= 3 else q)
+			# The court notch can take the outline's centre out of it: the hull keeps the
+			# plain block replaced (landmark pitfalls, Piano House).
+			nor_zone.append(q)
+			nor_zone.append(Geometry2D.convex_hull(q))
+	if not blocks.is_empty():
+		_add_site("norblin", nor_zone)
 		if sites[-1]["key"] == "norblin":
-			sites[-1]["ring"] = nor
-			sites[-1]["wing"] = _tallest_at(NORBLIN_PT)
+			sites[-1]["blocks"] = blocks
 	var rings: Array = []
 	var roles: Array = []
 	for n: String in BROWARY_NAMES:
@@ -12632,13 +12656,13 @@ func _works_walls(ring: PackedVector2Array, h: float, brick: Color, rows: Array,
 
 
 ## Glazed storeys on a ring: inset 1.8 m, curtain glass in `storeys` of 3.6 m from y, a flat roof.
-func _works_top(ring: PackedVector2Array, y: float, storeys: int) -> void:
+func _works_top(ring: PackedVector2Array, y: float, storeys: int, roof := WORKS_ROOF) -> void:
 	var inner := _grown(ring, -1.8)
 	if inner.size() < 3:
 		return
 	var h := storeys * 3.6
 	_mode = M_GLASS
-	_prism(inner, y, y + h, WORKS_TOP, WORKS_ROOF, M_GLASS, M_STONE)
+	_prism(inner, y, y + h, WORKS_TOP, roof, M_GLASS, M_STONE)
 	_parapet(inner, y + h, 0.7, WORKS_TRIM)
 	_mode = M_STONE
 
@@ -12692,37 +12716,59 @@ func _long_axis(ring: PackedVector2Array) -> Array:
 
 
 func _build_norblin(site: Dictionary) -> void:
-	var ring: PackedVector2Array = site["ring"]
-	_g = _ground_under(ring)
-	var g := _g
-	# The restored halls: brick, two rows of arched windows, three glazed storeys over them.
-	_works_walls(ring, 12.0, WORKS_BRICK, [[1.3, 5.0, 1.15], [7.0, 10.4, 1.05]], 4.2)
-	_works_top(ring, g + 12.0, 3)
-	# The tall mapped wing (43.9 m): two more glazed storeys over the glass.
-	var wing: PackedVector2Array = site.get("wing", PackedVector2Array())
-	if wing.size() >= 3:
-		_works_top(wing, g + 12.0 + 3.0 * 3.6, 2)
-	# The chimney in the court: the point of the ring's box farthest from every wall.
-	var box := _box_of([ring])
-	var best := box.get_center()
-	var room := 0.0
-	var x := box.position.x
-	while x < box.end.x:
-		var z := box.position.y
-		while z < box.end.y:
-			var p := Vector2(x, z)
-			if not Geometry2D.is_point_in_polygon(p, ring):
-				var d := INF
-				for i in ring.size():
-					var cp := Geometry2D.get_closest_point_to_segment(p, ring[i], ring[(i + 1) % ring.size()])
-					d = minf(d, cp.distance_to(p))
-				if d > room and d < 30.0:
-					room = d
-					best = p
-			z += 2.0
-		x += 2.0
-	_works_chimney(best, 36.0, 1.5, WORKS_BRICK)
-	_collide(ring)
+	for ring: PackedVector2Array in site["blocks"]:
+		_g = _ground_under(ring)
+		var g := _g
+		# The restored halls: brick, two rows of arched windows (round the courts too), and the
+		# glazed office storeys over them up to the mapped height, under a green sedum roof.
+		_works_walls(ring, 12.0, WORKS_BRICK, [[1.3, 5.0, 1.15], [7.0, 10.4, 1.05]], 4.2)
+		var storeys := maxi(1, roundi((NORBLIN_H - 12.0) / 3.6))
+		_works_top(ring, g + 12.0, storeys, NORBLIN_EDGE)
+		var roof_y := g + 12.0 + storeys * 3.6
+		_norblin_roof(ring, roof_y)
+		_collide(ring)
+	# No chimney: the report's ortho shows none over the block (the first pass guessed one).
+
+
+## A green roof on the glazed storeys of `ring` (top at y): the sedum field a step up inside a
+## 1.4 m planted edge, two grey plant rooms, and the garden terraces upstairs where a terrace spot
+## (NORBLIN_TERRACES) is near: planters with small trees.
+func _norblin_roof(ring: PackedVector2Array, y: float) -> void:
+	var inner := _grown(ring, -3.2)
+	if inner.size() < 3:
+		return
+	_mode = M_STONE
+	_prism(inner, y, y + 0.12, NORBLIN_EDGE, NORBLIN_SEDUM, M_STONE, M_STONE)
+	# Plant rooms on the long axis, a third in from each end.
+	var ax := _long_axis(inner)
+	var o: Vector2 = ax[0]
+	var a: Vector2 = ax[1]
+	var b: Vector2 = ax[2]
+	for f: float in [0.3, 0.62]:
+		var c := o + a * float(ax[3]) * f + b * float(ax[4]) * 0.5
+		if Geometry2D.is_point_in_polygon(c, inner):
+			var box := PackedVector2Array([c - a * 3.0 - b * 2.0, c + a * 3.0 - b * 2.0, c + a * 3.0 + b * 2.0, c - a * 3.0 + b * 2.0])
+			_prism(box, y + 0.12, y + 2.8, NORBLIN_PLANT, NORBLIN_PLANT.darkened(0.1), M_STONE, M_STONE)
+	var keep := _no_roof
+	_no_roof = true
+	for t: Vector2 in NORBLIN_TERRACES:
+		var at := t
+		if not Geometry2D.is_point_in_polygon(at, inner):
+			var best := INF
+			for i in inner.size():
+				var cp := Geometry2D.get_closest_point_to_segment(t, inner[i], inner[(i + 1) % inner.size()])
+				if cp.distance_to(t) < best:
+					best = cp.distance_to(t)
+					at = cp + (_centre(inner) - cp).normalized() * 2.5
+			if best > 9.0:
+				continue
+		# A timber deck with four planters round it, a small tree in each.
+		_prism(_square(at, 3.4), y + 0.12, y + 0.22, VARSO_DECK, VARSO_DECK, M_STONE, M_STONE)
+		for k in 4:
+			var p := at + Vector2.from_angle(TAU * k / 4.0 + 0.6) * 3.0
+			_prism(_square(p, 0.6), y + 0.12, y + 0.75, NORBLIN_PLANT, NORBLIN_EDGE, M_STONE, M_STONE)
+			_varso_tree(p, y + 0.75, 2.8 + 0.3 * (k % 2), 0.95)
+	_no_roof = keep
 
 
 func _build_browary(site: Dictionary) -> void:
@@ -12748,10 +12794,78 @@ func _build_browary(site: Dictionary) -> void:
 				# The office blocks between the old walls: warm grey, brick-coloured base, glass bays.
 				h = 22.0 if role == "Biura przy Warzelni" else 30.0
 				_prism(_grown(ring, 0.2), g - 0.6, g + 3.0, WORKS_BRICK, WORKS_BRICK, M_STONE, M_STONE)
-				_prism(ring, g - 0.6, g + h, WORKS_MODERN, WORKS_ROOF, M_STONE, M_STONE)
+				# The photo report: almost every Browary block has a green sedum roof with
+				# planted edges (the planted edge is the roof, the sedum field a step up).
+				_prism(ring, g - 0.6, g + h, WORKS_MODERN, NORBLIN_EDGE, M_STONE, M_STONE)
 				_parapet(ring, g + h, 0.8, WORKS_TRIM)
 				_bays(ring, 3.4, h - 1.2, 3.0, 1.9, WORKS_GLASS)
+				var sedum := _grown(ring, -1.6)
+				if sedum.size() >= 3:
+					_prism(sedum, g + h, g + h + 0.12, NORBLIN_EDGE, NORBLIN_SEDUM, M_STONE, M_STONE)
+					if role == "Biura przy Warzelni":
+						_browary_roof_garden(sedum, g + h + 0.12)
 		_collide(ring)
+	_browary_garden()
+
+
+## Browary Warszawskie's Central Garden (photo report browary.md, the GUGiK ortho, 2026-11-02):
+## the S-shaped gravel path from the south gate to the north slab and the two clearings with white
+## café tables, chairs and dark-blue parasols. The same numbers as tools/planted_trees.py
+## BROWARY_PATH and BROWARY_CLEARINGS, which keep the garden's 22 trees off them.
+const BROWARY_PATH := [Vector2(-2459.0, -84.0), Vector2(-2456.4, -87.3), Vector2(-2454.7, -90.6),
+		Vector2(-2454.3, -93.6), Vector2(-2455.5, -96.4), Vector2(-2458.1, -99.0), Vector2(-2461.5, -101.5),
+		Vector2(-2464.9, -104.0), Vector2(-2467.5, -106.6), Vector2(-2468.7, -109.4), Vector2(-2468.3, -112.4),
+		Vector2(-2466.6, -115.7), Vector2(-2464.0, -119.0)]
+const BROWARY_CLEARINGS := [Vector2(-2459.4, -93.2), Vector2(-2463.6, -109.8)]
+const BROWARY_GRAVEL := Color("#cbbd9e")
+const BROWARY_WHITE := Color("#e9e6df")
+const BROWARY_BLUE := Color("#24385a")
+## The roof garden on the north slab (report: x -2470..-2410, z -150..-130): a gravel walk down
+## its length and two small garden houses.
+const BROWARY_ROOF_WALK := [Vector2(-2472.0, -133.0), Vector2(-2412.0, -148.0)]
+const BROWARY_ROOF_HOUSES := [Vector2(-2460.0, -138.5), Vector2(-2424.0, -147.0)]
+
+
+func _browary_garden() -> void:
+	var g := map.terrain_height(-2460.0, -100.0) as float
+	var none := Color(0, 0, 0, 0)
+	# The path and the clearings beside its two bends, in gravel.
+	var pieces: Array[PackedVector2Array] = []
+	for i in BROWARY_PATH.size() - 1:
+		var a: Vector2 = BROWARY_PATH[i]
+		var b: Vector2 = BROWARY_PATH[i + 1]
+		var t := (b - a).normalized() * 0.6
+		var o := Vector2(-t.y, t.x) * 2.0  # 1.2 m each side
+		pieces.append(PackedVector2Array([a - t - o, b + t - o, b + t + o, a - t + o]))
+	for c: Vector2 in BROWARY_CLEARINGS:
+		pieces.append(_circle(c, 3.6, 10))
+	_mode = M_STONE
+	_no_roof = true
+	for pc in pieces:
+		_cap(pc, g + 0.06, BROWARY_GRAVEL)  # _cap clips each piece by the ones before it
+	# Two white tables in each clearing, two chairs each, a dark-blue parasol over the pair.
+	for c: Vector2 in BROWARY_CLEARINGS:
+		for side: float in [-1.0, 1.0]:
+			var p := c + Vector2(side * 1.4, 0.0)
+			_prism(_circle(p, 0.45, 6), g + 0.06, g + 0.75, BROWARY_WHITE, BROWARY_WHITE, M_STONE, M_STONE)
+			for q: Vector2 in [p + Vector2(0.0, -0.85), p + Vector2(0.0, 0.85)]:
+				_prism(_square(q, 0.22), g + 0.06, g + 0.48, BROWARY_WHITE.darkened(0.08), BROWARY_WHITE, M_STONE, M_STONE)
+		_prism(_circle(c, 0.05, 4), g + 0.06, g + 2.4, Color("#c9cdd0"), none, M_STONE)
+		_mode = M_STONE
+		_pyramid(_circle(c, 2.2, 8), g + 2.4, g + 3.0, BROWARY_BLUE)
+	_no_roof = false
+
+
+func _browary_roof_garden(roof: PackedVector2Array, y: float) -> void:
+	var a: Vector2 = BROWARY_ROOF_WALK[0]
+	var b: Vector2 = BROWARY_ROOF_WALK[1]
+	var o := (b - a).normalized().orthogonal() * 0.8
+	for q: PackedVector2Array in Geometry2D.intersect_polygons(PackedVector2Array([a - o, b - o, b + o, a + o]), roof):
+		if q.size() >= 3 and not Geometry2D.is_polygon_clockwise(q):
+			_prism(q, y, y + 0.06, BROWARY_GRAVEL, BROWARY_GRAVEL, M_STONE, M_STONE)
+	for c: Vector2 in BROWARY_ROOF_HOUSES:
+		if Geometry2D.is_point_in_polygon(c, roof):
+			_prism(_square(c, 1.5), y, y + 2.6, WORKS_MODERN, WORKS_ROOF, M_STONE, M_STONE)
 
 
 func _build_koszyki(site: Dictionary) -> void:

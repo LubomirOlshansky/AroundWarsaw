@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Fabryka Norblina stands on its real block between Łucka, Żelazna and Prosta, with its court of big candelabra plane trees open off the glass street and green roofs with garden terraces; Browary's Central Garden is a dense little wood of 22 young trees round a winding gravel path with café tables under dark-blue parasols, and the office blocks have green roofs.
 - Sliding along a building no longer wedges the car in a gap or a notch between two houses (it got stuck and towed by the glass corner on the Chmielna square): the car slides on past them everywhere in the city.
 - The POLIN museum in Muranów stands as it is: a box of grey-green glass fins split by the tall sand-coloured canyon of its entrance, a glazed slot across the roof and a big glass lens on the west side, with the Ghetto Heroes Monument on the square in front, its bronze fighters, steps and menorahs.
 - In your first race Pani Halina waits at the start until you move, and if you sit still she tells you to step on it and follow the pink arrow, with a finger showing how to drive.

@@ -149,6 +149,7 @@ then the Launch gate.
   - [x] K2b Chmielna's 64 benches (2026-11-02; the Atlantic fountain's rim was already there)
   - [x] K9 the stadium's grounds: tree rows on the four entrance avenues, pollarded willow groups (80 trees)
   - [x] K6 Browary's Central Garden yard (12 young trees) and Norblin's court (5 candelabra planes), 2026-11-02 (Mac photo check of the places; wall climbers and upstairs terraces not modelled)
+  - [x] K6 rebuilt from the Mac's photo reports, 2026-11-02: Norblin moved onto its real block (Plater, Galwan) with its courts open, 4 candelabra planes and 8 more young trees, green roofs and the terraces upstairs; Browary's Central Garden at 22 trees round an S-shaped gravel path with café clearings, sedum roofs and the north slab's roof garden (climbers and the glass street's roof left)
   - [ ] K10 Muzeum Historii Polski is off the map (QUESTIONS)
 - [x] Stadion Leguminy (Legia's ground on Łazienkowska, F, 2026-11-01): modelled from the mapped bowl outline (site `legia`, spec legia.md); Mac photo check parked (QUESTIONS)
 
