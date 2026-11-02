@@ -49,6 +49,15 @@ Early morning city ambience in Central Europe, a tram passing with a two-tone be
 
 ## 3. The announcer
 
+**The opening line (F, 2026-11-02): one clip, the same every time**, short (about 8 s), sunny,
+over the opening only; the weather variants below are for later.
+
+```
+[cheerfully] Dzień dobry, Warszawo! [short pause] [warmly] Słońce nad Pałacem, szyby w dół, miasto czeka. [playfully] Miłego dnia!
+```
+
+### Later: the full set
+
 One woman's voice for the greeting at the start: a radio presenter, warm and smiling. She does
 **not** name the station (F, 2026-11-02): just Warsaw, the weather and a good wish. The
 temperature stays on the ticker (the game picks it for the month and hour), so her clips fit
