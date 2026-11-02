@@ -174,7 +174,7 @@ func _check_screen(screen: Vector2i) -> int:
 			match state:
 				"call came in":
 					hud.show_pill("WEZWANIE", "rescue call")
-					hud.toast("Wezwanie ratunkowe!", "A rescue call came in: tap WEZWANIE")
+					hud.toast("Wezwanie ratunkowe!", "A rescue call came in: tap the button at the top.")
 				"call card":
 					hud.show_card("WEZWANIE 1 · RATUNEK NA ULICY", call_pl, PackedStringArray(["ACCEPT", "SKIP", "LATER"]),
 							Color("#ffc23a"), false, "Call 1 · street rescue", call_en)
