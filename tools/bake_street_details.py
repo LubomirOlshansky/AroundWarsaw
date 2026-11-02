@@ -394,7 +394,10 @@ def square_terraces(pl):
         for j in range(sets):
             lat = first + 3.5 * j
             px, pz = x + tx * lat, z + tz * lat
-            if pl.clear("cafe", px, pz) and len(pl.items) < MAX_ITEMS:
+            # the same rule as every café set (check_stops K5): against a shopfront, on paving
+            gap = pl.solids.segs.dist(px, pz, "building")
+            front = CAFE_FRONT[0] <= gap <= CAFE_FRONT[1] and not pl.green.inside(px, pz)
+            if front and pl.clear("cafe", px, pz) and len(pl.items) < MAX_ITEMS:
                 pl.add("cafe", px, pz, (nx, nz), pick(PARASOLS, "zb", k, j))
                 placed += 1
         if placed:
