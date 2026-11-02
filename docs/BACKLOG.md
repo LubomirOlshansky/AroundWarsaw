@@ -27,10 +27,10 @@ Left:
 ## Playtest bugs (Autopilot, 2026-11-02)
 
 The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, status); fix
-threads take its confirmed rows one by one. Open now: PT-2 and PT-3 (suspects from the first
-Śródmieście run: a cluster of near-stops north-east of Plac Defilad, the car 29 m below its start
-height); run 2 records their exact positions. PT-1 (the dead stop at Centrum's tram stop) fixed
-2026-11-02; every new PT spot joins `game/tools/check_stuck_spots.gd`.
+threads take its confirmed rows one by one. After two runs: PT-2, PT-4 (Rondo Dmowskiego) and PT-5 (side
+streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug). PT-1 (a dead stop on Marszałkowska
+at Centrum's tram stop, 3 runs) fixed 2026-11-02; every new PT spot joins
+`game/tools/check_stuck_spots.gd`.
 - Found with PT-1: a free spot (`main.gd _free_car_spot`, a tow) only tests the box against the
   wall faces, so a spot fully inside a solid outline (a building, now a 0.9 m platform) counts as
   free. Not seen in play; reject spots inside platforms and footprints if it shows up.
@@ -174,9 +174,14 @@ levels 1-3 at 150-400 zł. Saved in the [garage] section (no version bump). Left
 - **G13a (P2, phone).** Is the pricing right (first part after a few jobs, the nitro after about 15
   minutes, the TT as the goal), does the nitro feel good and is the bolt easy to hit with the thumb,
   does the TT read as a coupe from the 80 m view? Tune `upgrades.gd` and car.gd `NITRO_*` after F's run.
-- **G13b (P3, Sonnet).** Done 2026-11-02: two tail flames (one see-through mesh, only while it burns), a `nitro_whoosh` and a buzz when it lights (`car.nitro_started`; `--pedal=nitro` for shots); the phone must judge the flame size and the buzz. Left:
-  gamepads have no nitro button (X is "secondary"); the police chase speeds were not retuned for
-  the TT's 130 km/h (a TT with the engine at level 3 outruns every patrol car).
+- **G13b (P3, Sonnet).** Done 2026-11-02: two tail flames (one see-through mesh, only while it burns), a `nitro_whoosh` and a buzz when it lights (`car.nitro_started`; `--pedal=nitro` for shots); the phone must judge the flame size and the buzz.
+- **G13c (done 2026-11-02).** The chasers and the escort drive at 0.8 of the player's own top
+  speed (police.gd `chase_top`: model x engine; was a fixed 24 m/s, which a TT at engine 3,
+  145 km/h, left standing); the nitro's lift is left out, so a burn opens a quick gap
+  (check_police "chase pace"). The pad's nitro is LB or RB held; the view's turn moved from the
+  shoulders to right-stick flicks (check_gamepad P9). The keyboard's nitro is Shift only: N also
+  switched the time of day. Left: the pad's nitro has no tank ring while the touch HUD is hidden
+  (pad mode); the phone feel of a TT chase (QUESTIONS).
 
 **G14 · Unstuck and reset easy to find (P0, quick win).** F: "in Settings there should be reset
 game, and unstuck: if the user is stuck in textures, click and move to the main road". POMOC
@@ -463,8 +468,10 @@ Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue sign
   the castle's turret corner and entrance; the church's front, tower and colours; the Syrenka's
   plinth against the flood wall (its corner touches the plinth in the cloud render); what Kaskada
   is; a tree on Kaskada's deck.
-- Left: boulevard dressing (deck strips, bar containers), Piano House, Cube House, Hortus, Moderna
-  Powiśle, Tamka's and Dobra's tenements and street details.
+- Left: boulevard dressing (deck strips, bar containers), Hortus, Moderna Powiśle, Tamka's and
+  Dobra's tenements and street details. (Piano House and Cube House DONE 2026-11-02, specs
+  `piano_house.md`, `cube_house.md`; Mac photo check: Piano House's real facade rhythm and whether
+  its top floor is set back; where Cube House's real bays or loggias are and its colours.)
 - `check_landmarks` stops in the cloud (no terrain data); run it on the Mac.
 - L1 track that reads as railway: sleepers, raised rails, ballast shoulders (no new draw calls).
 - ~~L2 catenary, L3 the tunnel's mouths~~ Done 2026-11-01 (`map_builder` `_build_catenary`,
@@ -636,10 +643,13 @@ real ones added to `brand_denylist.json`). One PR each:
       10-16); the board-game bar is PRZEGRYWKI (Zagrywki parody, was PIONEK); WACZEK ×5, the burger
       chain with an upside-down golden W, at the real chain's central restaurants, 2026-11-01.
 - [x] The notebook card "Kolejki" (place `kolejki`, chapter Kolejka po trend, at KUKŁA on Nowy Świat), 2026-11-02.
-- [ ] Left from G3-G5: the
-      Podwózka `timber` passengers, fans standing by Cringulo's van, an
-      egg (the car parked by the van while he films), the van's CRINGULO TV lettering, the egg
-      card; phone checks of every sign's size, the queues and the job's legs.
+- [x] Left from G3-G5, done 2026-11-02: Podwózka `timber` passengers (evenings 18-01, 20 % of
+      normal rides, 3 request and 4 ride lines; `rides.gd`), five fans behind Cringulo's van with
+      `viral` "cringulo" bubbles, and the egg `easter_mlask` (the car stopped within 9 m of the van
+      for 3 s while he is out; `trend_job.gd`, 48 cards now).
+- [ ] Still left: the van's CRINGULO TV lettering; Mac look check of the fans' spot behind the van
+      (the side of the kerb), the egg's wording; phone checks of every sign's size, the queues and
+      the job's legs.
 - [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the
       skin on the LoD2 model; KUKŁA/KOSZTA/NERWO spots on the real streets.
 - [x] `Tinder` in a run-club line replaced by TIMBER (it would fail the new denylist entry).

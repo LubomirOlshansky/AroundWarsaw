@@ -54,6 +54,7 @@ const S_PUNCHED := 11   # a re-clad point block: light horizontal cladding, punc
 const S_MIRROR := 13    # the Blue Skyscraper's blue reflective float glass
 const S_SLAB := 12      # a 1960s slab's long face: plaster and loggia bands
 const S_ESTATE := 14    # Osiedle Za Żelazną Bramą: large-panel bays, ribbon windows, coloured loggia stacks
+const S_KEYS := 15      # Piano House: white plaster, dark window strips in a keyboard's 2-and-3 rhythm
 
 ## The landmarks loop (2026-10-30): the skyline's towers, so each reads as itself and not as one
 ## more blue box. Each is built from its mapped building parts (the outline `osm` names; what
@@ -404,6 +405,12 @@ const INFO := {
 	"dworzec_wodny": ["Dworzec Wodny",
 			"Niski pawilon na nabrzeżu: szkło i drewno nad samą Wisłą.",
 			"A low pavilion on the quay: glass and timber right over the Vistula."],
+	"piano_house": ["Piano House",
+			"Dom na Zajęczej, tuż pod Akademią Muzyczną. Elewacja jak klawiatura: białe klawisze, czarne okna.",
+			"Flats on Zajęcza, just below the music university. The front is a keyboard: white keys, black windows."],
+	"cube_house": ["Cube House",
+			"Biała kostka przy Topieli, z wykuszami jak wysunięte szuflady.",
+			"A white cube on Topiel, its bays sticking out like half-open drawers."],
 	"kaskada": ["Kaskada",
 			"Statek przycumowany do bulwarów. Zimą stoi, latem się kołysze.",
 			"A vessel moored to the boulevards. Still in winter, rocking in summer."],
@@ -822,6 +829,9 @@ func _find_sites() -> void:
 	_find_aleksander()
 	# The Barbican (2026-11-02): a model instead of a skin.
 	_find_barbakan()
+	# Powiśle's new flats (2026-11-02): Piano House and Cube House, models from their outlines.
+	_find_piano_house()
+	_find_cube_house()
 	# Plac Zbawiciela (Marszałkowska street by street, 2026-11-01): the basilica, a model.
 	_find_zbawiciela()
 	# F's ask (2026-11-01): every church designed by the same rules (the church kit).
@@ -1159,6 +1169,10 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_aleksander(s)
 			"barbakan":
 				_build_barbakan(s)
+			"piano_house":
+				_build_piano_house(s)
+			"cube_house":
+				_build_cube_house(s)
 			"zbawiciela":
 				_build_zbawiciela(s)
 			"buw":
@@ -7602,6 +7616,131 @@ func _build_barbakan(site: Dictionary) -> void:
 ## A thin square post at world point c (a finial).
 func _lbox_at(c: Vector2, half: float, y0: float, y1: float, col: Color) -> void:
 	_prism(_circle(c, half, 4), y0, y1, col, col, M_STONE, M_STONE)
+
+
+## Piano House (Zajęcza by Topiel, Powiśle; flats of the 2010s below the music university): a model
+## instead of a plain block. The mapped outline (an L with a saw-toothed west front of 1-2 m
+## steps) rises to 17.8 m in white plaster with dark window strips in a piano keyboard's rhythm
+## (S_KEYS), a glazed ground floor; the top floor is set back 1.6 m in dark glass under a flat
+## roof. Spec docs/landmarks/specs/piano_house.md. Heights from OSM (20.8 m), the rest estimated.
+const PIANO_WHITE := Color("#eeece6")
+const PIANO_GLASS := Color("#3a4250")
+const PIANO_ROOF := Color("#8d9094")
+const PIANO_BODY := 17.8
+const PIANO_TOP := 20.8
+
+
+func _find_piano_house() -> void:
+	var outline := _landmark("Piano House")
+	if outline.size() >= 3:
+		# The L's centre (both the corner mean and the box centre) falls in its open corner, outside
+		# the outline, so the zone adds the hull: the plain block it replaces goes (nothing else
+		# stands in the corner).
+		_add_site("piano_house", [outline, Geometry2D.convex_hull(outline)])
+		if not sites.is_empty() and sites[-1]["key"] == "piano_house":
+			sites[-1]["ring"] = _simplify(outline, 0.35)
+
+
+func _build_piano_house(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	if ring.size() < 3:
+		return
+	_o = Vector2.ZERO
+	_a = Vector2(1, 0)
+	_b = Vector2(0, 1)
+	_g = _ground_under(ring)
+	var g := _g
+	_prism(ring, g - 1.5, g + PIANO_BODY, PIANO_WHITE, PIANO_ROOF, M_SKIN + float(S_KEYS) / 16.0, M_STONE)
+	# the set-back top floor: the outline pulled in 1.6 m (the saw teeth fall away), dark glass
+	var inner := Geometry2D.offset_polygon(_simplify(ring, 1.2), -1.6, Geometry2D.JOIN_MITER)
+	for q: PackedVector2Array in inner:
+		if q.size() >= 3 and absf(_area(q)) > 20.0:
+			_prism(q, g + PIANO_BODY, g + PIANO_TOP, PIANO_GLASS, PIANO_ROOF, M_SKIN + float(S_DARK) / 16.0, M_STONE)
+	_collide(ring)
+
+
+## Cube House (Topiel by Leszczyńska, Powiśle): a model instead of a plain block. A white
+## eight-storey cube (27.4 m, from OSM) with punched windows (S_PUNCHED), and on every face a
+## staircase of boxed bays, one per floor, stepping left and right (the "cubes"). The mapped
+## jog on one face (a full-height bay) is kept and carries its boxes on its front. Spec docs/landmarks/specs/cube_house.md.
+const CUBE_WHITE := Color("#e9e7e1")
+const CUBE_BAY := Color("#b3aca0")
+const CUBE_ROOF := Color("#86898c")
+const CUBE_HEIGHT := 27.4
+const CUBE_FLOOR := 2.95
+const CUBE_BAY_W := 2.8
+const CUBE_BAY_OUT := 1.1
+
+
+func _find_cube_house() -> void:
+	var outline := _landmark("Cube House")
+	if outline.size() >= 3:
+		_add_site("cube_house", [outline])
+		if not sites.is_empty() and sites[-1]["key"] == "cube_house":
+			sites[-1]["ring"] = _simplify(outline, 0.35)
+
+
+func _build_cube_house(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	if ring.size() < 3:
+		return
+	# the local frame: u along the longest edge, v across; the box of the outline in it
+	var longest := 0.0
+	for i in ring.size():
+		var e := ring[(i + 1) % ring.size()] - ring[i]
+		if e.length() > longest:
+			longest = e.length()
+			_a = e.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_o = _centre(ring)
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for q in ring:
+		var l := _local(q)
+		lo = lo.min(l)
+		hi = hi.max(l)
+	_g = _ground_under(ring)
+	var g := _g
+	_prism(ring, g - 1.5, g + CUBE_HEIGHT, CUBE_WHITE, CUBE_ROOF, M_SKIN + float(S_PUNCHED) / 16.0, M_STONE)
+	# a thin plain parapet band round the roof
+	_prism(Geometry2D.offset_polygon(ring, 0.12, Geometry2D.JOIN_MITER)[0], g + CUBE_HEIGHT - 0.5, g + CUBE_HEIGHT + 0.6,
+			CUBE_WHITE.lightened(0.04), CUBE_WHITE, M_STONE, M_STONE)
+	# the bays: on each face one box per floor from the first, stepping between two spots along
+	# the face (on the jogged face, the entrance bay's front, the spots close in to stay on it)
+	var faces := [[Vector2(0, -1), lo.y, hi.x - lo.x], [Vector2(1, 0), hi.x, hi.y - lo.y], [Vector2(-1, 0), lo.x, hi.y - lo.y],
+			[Vector2(0, 1), hi.y, hi.x - lo.x]]
+	# a bay's half width, and its half depth with 0.5 m sunk into the wall (the faces lean a little
+	# off the frame)
+	var half := CUBE_BAY_W * 0.5
+	var depth := (CUBE_BAY_OUT + 0.5) * 0.5
+	for f: Array in faces:
+		var n: Vector2 = f[0]
+		var plane: float = f[1]
+		var span: float = f[2]
+		var spread := 0.25 if _cube_face_straight(ring, n, plane) else 0.15
+		for k in range(1, int(CUBE_HEIGHT / CUBE_FLOOR) - 1):
+			var t := span * spread * (1.0 if k % 2 == 0 else -1.0)
+			var along := Vector2(n.y, n.x).abs()
+			var mid := (lo + hi) * 0.5
+			var c := mid * along + along * t + n * (CUBE_BAY_OUT - depth) + n.abs() * plane
+			var y0 := g + k * CUBE_FLOOR + 0.15
+			_lbox(c.x, c.y, half if n.y != 0.0 else depth, depth if n.y != 0.0 else half, y0, y0 + CUBE_FLOOR - 0.3,
+					CUBE_BAY, M_SKIN + float(S_PUNCHED) / 16.0, CUBE_BAY.darkened(0.1))
+	_collide(ring)
+
+
+## Whether a face of the Cube House (normal n in its local frame, at `plane`) runs straight: every
+## corner on that side of the outline lies within 0.6 m of the plane.
+func _cube_face_straight(ring: PackedVector2Array, n: Vector2, plane: float) -> bool:
+	var near := 0
+	for q in ring:
+		var l := _local(q)
+		var d := l.dot(n) - plane * (n.x + n.y)
+		if absf(d) < 0.6:
+			near += 1
+		elif l.dot(n) > 0.0 and absf(d) < 2.5:
+			return false
+	return near >= 2
 
 
 func _build_teatr(_site: Dictionary) -> void:

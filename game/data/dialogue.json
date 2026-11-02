@@ -467,6 +467,27 @@
     [
       "Uwagi: „do dewelopera, mam kredyt i zero rozsądku”.",
       "Note: \"to the developer's, I've got a mortgage and no sense\"."
+    ],
+    [
+      "Uwagi: „pierwsza randka z TIMBERA, proszę nie komentować”.",
+      "Note: \"first date from TIMBER, please don't comment\".",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Uwagi: „jedziemy do LORETKI, ona napisała, że lubi dachy”.",
+      "Note: \"off to LORETKA, she wrote she likes rooftops\".",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Uwagi: „mam 40 dopasowań i jedną randkę, nie psuj tego”.",
+      "Note: \"40 matches and one date, don't ruin it\".",
+      {
+        "only": "timber"
+      }
     ]
   ],
   "podwozka_pickup": [
@@ -602,6 +623,34 @@
     [
       "Czynsz mam tak wysoki, że sąsiad z góry to współlokator.",
       "My rent's so high the upstairs neighbour is basically a flatmate."
+    ],
+    [
+      "Rąbnęła w prawo! Pierwszy raz w życiu ktoś rąbnął w prawo.",
+      "She chopped right! First time in my life anyone has.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Jak wyglądam? Na zdjęciu miałem dziesięć lat mniej i psa.",
+      "How do I look? In the photo I had ten fewer years and a dog.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Jeśli zapyta o hobby, powiem: jazda po Warszawie.",
+      "If she asks about hobbies, I'll say: driving around Warsaw.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Można jechać wolniej? Napisała, że będzie za dwadzieścia minut.",
+      "Can we go slower? She texted she'll be twenty minutes.",
+      {
+        "only": "timber"
+      }
     ]
   ],
   "podwozka_rating": [
