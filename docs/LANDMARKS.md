@@ -17,7 +17,7 @@ kerbs, decks and tunnels (checks C1-C10); the river and shore; the railway (stat
 Stadion, catenary, trains); the Old Town, New Town and Mariensztat dressed as tenements; the start
 area as real Warsaw (signs, ground, building types); about 55 landmark sites with specs (the Palace,
 Rotunda, Tarasy, Centralna, the stadium, BUW, Kopernik, MSN, the churches, the halls Mirowska and
-Gwardii, the estate Za Żelazną Bramą, the towers); the boulevard Jana Pawła II in mid-century plasters.
+Gwardii, the estate Za Żelazną Bramą, the towers, Dom pod Orłami over Złota's new linear park); the boulevard Jana Pawła II in mid-century plasters.
 **Next passes, in order**: (1) the Mac photo checks, all parked in docs/QUESTIONS.md; (2) the chill
 spots' Mac look checks (2.12); (3) Jana Pawła II and the other boulevards block by block (2.16); (4) Krakowskie Przedmieście's
 missing pieces (3.1); (5) the P3 groups (churches, palaces, culture, bridges); (6) then street by
@@ -121,6 +121,7 @@ Checks: `check_landmarks.gd` runs on the full map for EVERY site that has a card
 | Name (game / real) | Area | Category | Built how | Card | Check / budget | Open issues |
 |---|---|---|---|---|---|---|
 | Pałac Kultury i Nauki | Śródmieście | landmark model | `_build_palace` (spec palace.md): tiers from OSM parts (P_WINGS, P_BLOCKS, P_TIER, P_SHAFT, P_COURTS, P_HALL), M_MONUMENT, M_STONE pinnacles, M_GOLD spire to 237 m, `_dial` clocks (M_DIAL, hands from shader, Warsaw time), M_ATTIC; Congress Hall drum | yes | check_landmarks (+ roof-rescue / spire-cell probe), check_mesh_quality | Roof rescue lands on the 30 m block; photo check on the Mac |
+| Dom pod Orłami | Jasna x Zgoda, over Złota's linear park | landmark model | `_build_orly` (spec orly.md, F's photo 2026-11-02): the OSM outline in mottled sandstone, windows by bay, two round corner towers stepping up in drums to bronze eagles, low pediment and flagpole, attic oculi, parody letters KRAJOWA / RADA SPÓŁDZIELNI ORŁÓW | yes | check_mesh_quality (1600) | Mac look check |
 | Złote Tarasy | Śródmieście | landmark model | `_build_tarasy` + `_tarasy_wave`: the whole complex from its OSM parts (spec tarasy.md): the wave, lit rim walls, podium, Lumen, Skylight + crown, drum | yes | check_landmarks, check_mesh_quality | photo check on the Mac |
 | Rotunda (Rotunda PKO) | Marszałkowska x Al. Jerozolimskie | landmark model | `_build_rotunda` (spec rotunda.md, Mac photo check 2026-11-01): green-grey glass drum (M_PAVILION + 0.75) between 52 silver fins, folded-plate crown of 48 folds whose ends hang as teeth, oculus kerb and gridded glass top, south and north-west canopies, two triangular roof plates, BANK POLSKA (parody) either side of the south door | yes | check_landmarks, check_mesh_quality | the drum keeps the mapped Ø 34 m (photos 35-37 m) |
 | Rynek Starego Miasta | Stare Miasto | square model | `_build_rynek` (spec rynek.md, 2026-11-01): cobbled paving (border, field, disc), 58 café umbrellas by restaurant colour, built `_no_roof`; the houses are `_tenement_facades` and `OldTownRoofs` | yes | check_mesh_quality (3100) | photo check on the Mac |
