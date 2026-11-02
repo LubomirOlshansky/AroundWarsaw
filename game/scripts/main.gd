@@ -478,11 +478,14 @@ var packs_flag := 1
 var packs_now := false
 var packs_log := false
 ## Kibice (fans.gd): the fans by Stadion Leguminy; flags --fans=0 (none), --fans-now (out whatever the
-## clock), --fans-log.
+## clock), --fans-log, --fans-phase= and --fans-result= (the match day's walkers).
 var fans: Fans
 var fans_flag := 1
 var fans_now := false
 var fans_log := false
+## --fans-phase=arrive|match|leave and --fans-result=win|draw: the match day's walkers for shots.
+var fans_phase := ""
+var fans_result := ""
 ## Wellness circles (wellness.gd); flags --wellness=0 (none), --wellness-now (every spot on at any hour), --wellness-log.
 var wellness: Wellness
 var wellness_flag := 1
@@ -2233,6 +2236,8 @@ func _build_fans(data: Dictionary, world: Node3D) -> void:
 	fans.log_on = fans_log
 	fans.amount = _crowd_scale()
 	fans.force = fans_now
+	fans.force_phase = fans_phase
+	fans.force_result = fans_result
 	fans.clock = tod.local_clock
 	fans.focus = func() -> Vector3: return cam_focus
 	fans.vehicle = func() -> Array:
@@ -3843,6 +3848,10 @@ func _parse_args() -> void:
 			fans_now = true
 		elif arg == "--fans-log":
 			fans_log = true
+		elif arg.begins_with("--fans-phase="):
+			fans_phase = arg.trim_prefix("--fans-phase=")
+		elif arg.begins_with("--fans-result="):
+			fans_result = arg.trim_prefix("--fans-result=")
 		elif arg.begins_with("--wellness="):
 			wellness_flag = clampi(int(arg.trim_prefix("--wellness=")), 0, 1)
 		elif arg == "--wellness-now":

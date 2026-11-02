@@ -338,6 +338,7 @@ then the Launch gate.
   - [ ] #2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu (Sonnet, one `circle` crowd spot thread)
   - [ ] #5 more queues and #6 KRINGULA PIZZA (extends the food-hype lane)
   - [x] #7 friendly Legia fans near Stadion Leguminy, 2026-11-02 (PR #336, `fans.gd`; phone look and cost open)
+  - [x] Kibice match day: fans walking in from the stops before kick-off and home after a win or a draw, 2026-11-02 (`fans.gd` ROUTES; stop names and phone look in QUESTIONS)
   - [ ] #9 bike-path network compared with the real one (Opus)
   - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
