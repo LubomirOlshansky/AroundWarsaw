@@ -97,6 +97,9 @@ then the Launch gate.
 - [x] Marszałkowska street by street, pass 2 (F, 2026-11-01): commuters waiting on the street's
       12 tram platforms (rush hours, thin weekends, fuller in rain; check_crowds). Open: houses,
       shopfronts, crossings (BACKLOG "Marszałkowska street by street")
+- [x] Nowy Świat street by street (F, 2026-11-02), pass 1: eight neon shopfronts (pastry, ice cream,
+      bookshop café, antiquarian, boutique, wine bar, gallery, exchange). Open: houses, café
+      gardens, crowds, Mac look check (BACKLOG "Nowy Świat street by street")
 - [x] Marszałkowska street by street, pass 3 (F, 2026-11-02): street details on the whole street (planters,
       bollards, kiosks and columns north of Świętokrzyska and south of the Rotunda; tram-island benches,
       stop posts and ticket machines where no shelter is mapped). Open: facades and shopfronts house by
