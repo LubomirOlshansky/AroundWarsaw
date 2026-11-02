@@ -17,6 +17,35 @@ Open:
   map data, so no route ends there (the HUB's does). A pass over the footways round Plac
   Europejski would add it.
 - Office life elsewhere: Rondo ONZ and Rondo 1, Plac Europejski's lunch queues.
+## Krajobraz places (F, 2026-11-02)
+
+F's ask: research the RS Architektura Krajobrazu projects inside the map (krajobraz.com.pl
+"wybrane": Bracka, Chmielna, Muzeum Historii Polski, Varso Place and the rest) with news and
+photos as well as the studio's pages, and bring each place up to how it looks now. Research,
+sources, the game's state and the build plan per place: docs/design/krajobraz-places.md. One
+fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
+- [x] K1 ul. Bracka (Al. Jerozolimskie to Krucza, the 2024 woonerf): 22 young trees planted in
+  its mapped beds (`tools/planted_trees.py`, 33 young trees in all, as the article counts).
+  Open for the Mac (QUESTIONS): the paving's colour, the beds' planting, a matched street photo.
+- [ ] K2 ul. Chmielna, Nowy Świat to Pasaż Wiecha (2024): granite slabs, 95 trees (two rows of
+  elms before Plac Pięciu Rogów), 64 benches and chairs, the small fountain by Kino Atlantic,
+  Ali's square (map, Opus spec; Sonnet build; a new PLACE in `planted_trees.py`).
+- [ ] K3 Varso Place: street planting on Chmielna's side, roof terraces on Varso 1/2, trees on
+  the tower's deck, and a parody name sign (default VERSO PLACE; never the real mark). Opus spec
+  from photos, Sonnet build.
+- [ ] K4 Zielona Świętokrzyska (2018): count the scanned trees against the 194 planted, add the
+  big planters (Sonnet, small).
+- [ ] K5 Rondo Daszyńskiego plazas: Skyliner's green passage (forest-like three tiers, wooden
+  benches on terraces), Generation Park's and Mennica Legacy Tower's plazas (Sonnet, Opus spec).
+- [ ] K6 Browary Warszawskie's Central Garden over the Leżakownia and Norblin's candelabra
+  planes and climbers (Sonnet; with "Norblin, Browary" below).
+- [ ] K7 Bulwary Wiślane stages 1-2: the 6 floating pavilions, the splash pool, the Vistula fish,
+  the amphitheatre and trampolines, checked against the orthophoto (Sonnet).
+- [ ] K8 Arkadia's playground (Al. Jana Pawła II 82, 2018): the ribbon rope course, trampolines,
+  the wooden bench-sculpture, lamps on cables (Sonnet, small).
+- [ ] K9 Stadion Narodowy's grounds: entrance avenues, tree rows, pollarded willows (Sonnet, small).
+- [ ] K10 Muzeum Historii Polski (Cytadela) lies ~0.7 km north of the map's north edge: parked
+  in QUESTIONS (grow the map or a skyline stand-in).
 
 ## The estate, the halls and Jana Pawła II (F, 2026-11-01)
 
@@ -45,7 +74,7 @@ The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, s
 threads take its confirmed rows one by one. After two runs: PT-1 confirmed (a dead stop on
 Marszałkowska just north of the start, in 3 runs), PT-2, PT-4 (Rondo Dmowskiego) and PT-5 (side
 streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug). Run 3 (the Śródmieście grid): PT-6 the guide's bubble
-covers the minimap and +/- buttons. Design question for the driving lane: a hit from 108 km/h
+covers the minimap and +/- buttons (not reproduced on main: check_hud sweep clean; needs the frame, 2026-11-02). Design question for the driving lane: a hit from 108 km/h
 stops the car dead in 0.2-0.4 s with no slide; is that the arcade feel we want, or should it
 bounce or slide off a wall?
 
