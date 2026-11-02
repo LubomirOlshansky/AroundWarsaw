@@ -425,7 +425,7 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   stairs from the round pavilion up to the platforms; a WARSZAWA OCHOTA sign if the real one has it.
 
 ## Krakowskie Przedmieście street by street (F, 2026-11-02), pass 1
-Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, venue count 101 in check_parodies), original names, at the mapped house numbers 20/22, 19, 27, 56, 45, 58/60, 64, 69. Open:
+Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue signs in check_parodies), original names, at the mapped house numbers 20/22, 19, 27, 56, 45, 58/60, 64, 69. Open:
 - Mac look check of the eight signs (QUESTIONS); move them to real doors.
 - Shop awnings, café gardens (Bristol, Europejski, Czytelnik-style), a horse carriage rank, pavement details: need photos.
 - Left from K1-K6: the second Potocki guardhouse, Pałac Czapskich's own model (landmarks thread owns models).
