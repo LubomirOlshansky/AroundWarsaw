@@ -1,5 +1,5 @@
 {
-  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json. Crash scenes (crash_scenes.gd, 2026-11-01): crash_scene \"driver\", \"officer\", \"medic\", \"gawker\" (bubbles at a fender bender); radio_host \"crash\" ({street}: the road's name, starting the line).",
+  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json. Crash scenes (crash_scenes.gd, 2026-11-01): crash_scene \"driver\", \"officer\", \"medic\", \"gawker\" (bubbles at a fender bender); radio_host \"crash\" ({street}: the road's name, starting the line). Beta radio (2026-11-02): the host's greeting when the game starts (dialogue.gd greeting) = radio_hello_morning / _day / _evening / _night + radio_weather_warm / _mild / _cold / _rain ({station}: the tuned station, \"KEBAB FM, 87,3\"; {t}: the temperature, \"20 stopni\" / \"20 degrees\") + radio_bye (\"morning\", \"day\", \"evening\", \"night\").",
   "radio_host": [
     [
       "KEBAB FM, 87,3. Na Marszałkowskiej znowu remont. Czyli wszystko po staremu.",
@@ -3481,6 +3481,156 @@
       "The craft kebab: sourdough, a spit and a queue. With a hashtag.",
       {
         "only": "welcome"
+      }
+    ]
+  ],
+  "radio_hello_morning": [
+    [
+      "Dzień dobry, Warszawo! Tu {station}.",
+      "Good morning, Warsaw! This is {station}."
+    ],
+    [
+      "Dzień dobry, Warszawo! Kawa w dłoń, gramy.",
+      "Good morning, Warsaw! Coffee in hand, here we go."
+    ],
+    [
+      "Dzień dobry, Warszawo! Wstaliście? My prawie.",
+      "Good morning, Warsaw! Up already? We almost are."
+    ]
+  ],
+  "radio_hello_day": [
+    [
+      "Dzień dobry, Warszawo! Tu {station}.",
+      "Good afternoon, Warsaw! This is {station}."
+    ],
+    [
+      "Dzień dobry, Warszawo! Gramy dalej.",
+      "Good afternoon, Warsaw! Still playing."
+    ],
+    [
+      "Dzień dobry wszystkim w korku i poza nim!",
+      "Good afternoon to everyone in traffic and out of it!"
+    ]
+  ],
+  "radio_hello_evening": [
+    [
+      "Dobry wieczór, Warszawo! Tu {station}.",
+      "Good evening, Warsaw! This is {station}."
+    ],
+    [
+      "Dobry wieczór! Neony się zapalają.",
+      "Good evening! The neons are coming on."
+    ]
+  ],
+  "radio_hello_night": [
+    [
+      "Dobry wieczór, nocna Warszawo! Tu {station}.",
+      "Good evening, Warsaw by night! This is {station}."
+    ],
+    [
+      "Witamy wszystkich, którzy nie śpią.",
+      "Welcome to everyone still awake."
+    ]
+  ],
+  "radio_weather_warm": [
+    [
+      "Pogoda na dziś: słonecznie, przyjemne {t}.",
+      "Today's weather: sunny, a pleasant {t}."
+    ],
+    [
+      "Pogoda: ciepło, {t}. Palma na rondzie jak w domu.",
+      "Weather: warm, {t}. The palm on the roundabout feels at home."
+    ],
+    [
+      "Za oknem {t} i słońce nad Pałacem.",
+      "{t} outside and sun over the Palace."
+    ]
+  ],
+  "radio_weather_mild": [
+    [
+      "Pogoda na dziś: {t}, w sam raz na przejażdżkę.",
+      "Today's weather: {t}, just right for a drive."
+    ],
+    [
+      "Trochę chmur, trochę słońca, {t}.",
+      "Some clouds, some sun, {t}."
+    ]
+  ],
+  "radio_weather_cold": [
+    [
+      "Pogoda na dziś: chłodno, {t}. Ciepły kebab wskazany.",
+      "Today's weather: chilly, {t}. A warm kebab advised."
+    ],
+    [
+      "Za oknem {t}. Ogrzewanie na full.",
+      "{t} outside. Heating on full."
+    ]
+  ],
+  "radio_weather_rain": [
+    [
+      "Pogoda: pada, {t}. Wycieraczki w rytm muzyki.",
+      "Weather: rain, {t}. Wipers to the beat."
+    ],
+    [
+      "Pogoda na dziś: deszcz, {t}. Jedźcie ostrożnie.",
+      "Today's weather: rain, {t}. Drive carefully."
+    ]
+  ],
+  "radio_bye": [
+    [
+      "Życzymy miłego dnia!",
+      "Have a lovely day!",
+      {
+        "only": "morning"
+      }
+    ],
+    [
+      "Życzę miłego dnia i zielonej fali!",
+      "Have a lovely day and green lights all the way!",
+      {
+        "only": "morning"
+      }
+    ],
+    [
+      "Miłego dnia!",
+      "Have a lovely day!",
+      {
+        "only": "day"
+      }
+    ],
+    [
+      "Życzę miłego dnia i wolnego miejsca parkingowego!",
+      "Have a lovely day and a free parking space!",
+      {
+        "only": "day"
+      }
+    ],
+    [
+      "Miłego wieczoru!",
+      "Have a lovely evening!",
+      {
+        "only": "evening"
+      }
+    ],
+    [
+      "Życzę miłego wieczoru i zielonej fali na Marszałkowskiej!",
+      "Have a lovely evening and green lights on Marszałkowska!",
+      {
+        "only": "evening"
+      }
+    ],
+    [
+      "Spokojnej nocy za kółkiem!",
+      "Have a calm night behind the wheel!",
+      {
+        "only": "night"
+      }
+    ],
+    [
+      "Miłej nocy, jedźcie bezpiecznie!",
+      "Have a good night, drive safe!",
+      {
+        "only": "night"
       }
     ]
   ]

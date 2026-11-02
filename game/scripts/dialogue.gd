@@ -212,6 +212,68 @@ func _speak(group: String) -> void:
 		radio.announce(l[0], l[1])
 
 
+## Beta radio (2026-11-02): Warsaw's typical afternoon high by month (°C, Jan..Dec); the
+## greeting's temperature is this, 6 lower at night, give or take 2 by the date.
+const WARSAW_HIGH := [1, 3, 8, 15, 20, 23, 25, 25, 19, 13, 7, 2]
+
+
+## Beta radio: the host's hello when the game starts: a hello for the hour, the weather with a
+## temperature for the month and the hour, and a sign-off (radio_hello_*, radio_weather_*,
+## radio_bye in dialogue.json). [Polish, English].
+func greeting(hour: float, rain: bool, month: int, day: int, station := "KEBAB FM, 87,3") -> Array:
+	var part := "night"
+	if hour >= 5.0 and hour < 11.0:
+		part = "morning"
+	elif hour >= 11.0 and hour < 18.0:
+		part = "day"
+	elif hour >= 18.0 and hour < 22.0:
+		part = "evening"
+	var t := int(WARSAW_HIGH[clampi(month, 1, 12) - 1])
+	if hour < 7.0 or hour >= 21.0:
+		t -= 6
+	t += posmod(day * 7 + month * 3, 5) - 2
+	var sky := "rain" if rain else ("warm" if t >= 18 else ("mild" if t >= 8 else "cold"))
+	var hello := line("radio_hello_" + part)
+	var weather := line("radio_weather_" + sky)
+	var bye := line("radio_bye", part)
+	var out := ["", ""]
+	for l: Array in [hello, weather, bye]:
+		for k in 2:
+			if l.size() > k:
+				var s := String(l[k]).replace("{t}", stopnie(t) if k == 0 else degrees(t))
+				s = s.replace("{station}", station if k == 0 else station.replace(",", "."))
+				out[k] = (String(out[k]) + " " + s).strip_edges()
+	return out
+
+
+## "20 stopni", "22 stopnie", "1 stopień", "minus 3 stopnie".
+static func stopnie(t: int) -> String:
+	var n := absi(t)
+	var word := "stopni"
+	if n == 1:
+		word = "stopień"
+	elif n % 10 >= 2 and n % 10 <= 4 and (n % 100 < 12 or n % 100 > 14):
+		word = "stopnie"
+	return ("minus %d %s" % [n, word]) if t < 0 else ("%d %s" % [n, word])
+
+
+static func degrees(t: int) -> String:
+	return ("minus %d degree%s" % [absi(t), "" if absi(t) == 1 else "s"]) if t < 0 else ("%d degree%s" % [t, "" if t == 1 else "s"])
+
+
+## Beta radio: the host says the greeting now, and his next line waits a full gap after it.
+func greet(hour: float, rain: bool, month: int, day: int) -> void:
+	if radio == null or radio.station < 0 or _host_group() != "radio_host":
+		return
+	var info: Dictionary = radio.stations[radio.station] if "stations" in radio else {}
+	var l := greeting(hour, rain, month, day, ("%s, %s" % [info["name"], info["freq"]]) if not info.is_empty() else "KEBAB FM, 87,3")
+	if String(l[0]) == "":
+		return
+	_host_t = 0.0
+	_host_next = _rng.randf_range(HOST_GAP.x, HOST_GAP.y)
+	radio.announce(l[0], l[1])
+
+
 ## Loop MW-5: PÓŁNOC FM's ident, the `radio_polnoc` line that names the station ("86,0").
 func ident() -> Array:
 	for l: Array in lines.get("radio_polnoc", []):

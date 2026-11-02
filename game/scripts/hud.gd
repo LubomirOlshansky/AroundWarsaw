@@ -185,6 +185,9 @@ var _vehicle_button: Button
 var _zoom_out_button: Button
 var _zoom_in_button: Button
 var _radio_button: Button
+## Beta radio (2026-11-02): DALEJ · NEXT under RADIO while the station has more than one song
+## (the hold on RADIO and Shift+R stay); set_radio_skip shows it.
+var _skip_button: Button
 ## Seconds RADIO is held before it skips to the station's next track (2026-10-30: the phone's
 ## skip; a tap still changes the station). Long enough that a slow tap isn't a skip.
 const RADIO_HOLD := 0.5
@@ -497,6 +500,10 @@ func _ready() -> void:
 		if not _radio_skipped:
 			radio_pressed.emit()
 		_radio_skipped = false)
+	_skip_button = _chip(self, "DALEJ", "NEXT")
+	_skip_button.name = "radio_next"
+	_skip_button.pressed.connect(func(): radio_skip_pressed.emit())
+	_skip_button.visible = false
 	_vehicle_button = _chip(self, "HELI", "HELI")
 	_vehicle_button.pressed.connect(func(): vehicle_pressed.emit())
 	# G3 (F, 2026-11-01): pinch is hard to discover, so − and + sit beside the speed (the car's
@@ -689,6 +696,9 @@ func _layout_fixed() -> void:
 		b.size = b.custom_minimum_size
 		b.position = Vector2(right - b.size.x, y)
 		right = b.position.x - GAP * pt
+	# Beta radio: DALEJ in the top row, left of RADIO (under it took the room the cards need on an SE).
+	_skip_button.size = _skip_button.custom_minimum_size
+	_skip_button.position = Vector2(right - _skip_button.size.x, y)
 	_pill.size = _pill.custom_minimum_size
 	_pill.position = Vector2(_safe.get_center().x - _pill.size.x * 0.5, y)
 	var below := (ROW_Y + ROW_H + GAP) * pt
@@ -736,7 +746,7 @@ func _layout() -> void:
 	_taken.clear()
 	_placed.clear()
 	_unplaced.clear()
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _minimap, _wallet, _credit, _koguty]:
+	for c: Control in [_gear, _pill, _radio_button, _skip_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _minimap, _wallet, _credit, _koguty]:
 		if c != null and c.visible:
 			_taken.append(Rect2(c.position, c.size))
 	_taken.append(_speed_rect())
@@ -935,7 +945,7 @@ func touch_targets() -> Dictionary:
 	if _dirty:
 		_layout()
 	var out := {}
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _challenge]:
+	for c: Control in [_gear, _pill, _radio_button, _skip_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _challenge]:
 		if c.is_visible_in_tree():
 			out[c.name] = c.get_global_rect()
 	for c: Control in [_card, _status, _bench_card] + _panel_spots.keys():
@@ -965,7 +975,7 @@ func named_rects() -> Dictionary:
 	if _dirty:
 		_layout()
 	var out := {}
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _minimap, _wallet, _credit, _koguty]:
+	for c: Control in [_gear, _pill, _radio_button, _skip_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _minimap, _wallet, _credit, _koguty]:
 		if c != null and c.visible:
 			out[c.name] = Rect2(c.position, c.size)
 	out["speed"] = _speed_rect()
@@ -989,6 +999,13 @@ func set_speed(kmh: int, metres := -1) -> void:
 		_speed.size = _speed.get_combined_minimum_size()
 
 
+## Beta radio: DALEJ shows while the tuned station has another song to skip to.
+func set_radio_skip(on: bool) -> void:
+	if _skip_button.visible != on:
+		_skip_button.visible = on
+		_mark()
+
+
 func set_radio_name(station_name: String) -> void:
 	_radio_name = station_name
 	# One line: the station (its own name is the same in both languages), or RADIO off.
@@ -1004,6 +1021,7 @@ var _radio_name := "OFF"
 ## map when it next opens.
 func language_changed(state: Dictionary) -> void:
 	set_radio_name(_radio_name)
+	_set_chip(_skip_button, "DALEJ", "NEXT")
 	_set_chip(_vehicle_button, "AUTO" if flying else "HELI", "CAR" if flying else "HELI")
 	if settings_panel != null:
 		settings_panel.rebuild.call_deferred(state)
@@ -1620,7 +1638,7 @@ func set_minimap_target(xz: Vector2, colour: Color) -> void:
 
 ## Touches on the buttons and cards belong to them, not to the stick.
 func _over_panel(p: Vector2) -> bool:
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _card, _status, _challenge, _bench_card]:
+	for c: Control in [_gear, _pill, _radio_button, _skip_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _card, _status, _challenge, _bench_card]:
 		if c != null and c.visible and c.get_global_rect().has_point(p):
 			return true
 	return false

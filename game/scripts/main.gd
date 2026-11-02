@@ -933,6 +933,7 @@ func _on_title_dismissed() -> void:
 	dialogue.host_on = true
 	title = null
 	radio.now_playing()
+	_radio_greeting()
 	_fallback_toast()
 	if cinematic_flyin:
 		_fly_in()
@@ -1187,7 +1188,11 @@ func _build_world() -> void:
 	hud.radio_pressed.connect(radio.next)
 	hud.radio_skip_pressed.connect(radio.next_track)
 	hud.perf_gesture.connect(func(): _set_perf(not show_perf); settings.perf = show_perf; settings.save())
-	radio.station_changed.connect(func(_i: int, _s: Dictionary): hud.set_radio_name(radio.label()))
+	radio.station_changed.connect(func(_i: int, _s: Dictionary): hud.set_radio_name(radio.label()); hud.set_radio_skip(radio.can_skip()))
+	# Beta radio: DALEJ · NEXT under RADIO while the station has another song.
+	radio.track_changed.connect(func(_i: Dictionary, _t: Dictionary, _n: bool): hud.set_radio_skip(radio.can_skip()))
+	radio.track_unlocked.connect(func(_n: int, _t: Dictionary, _w: String): hud.set_radio_skip(radio.can_skip()))
+	hud.set_radio_skip(radio.can_skip())
 	radio.ticker.connect(hud.ticker)
 	hud.set_radio_name(radio.label())
 	hud.visible = not hide_hud
@@ -2875,6 +2880,18 @@ func _apply_spacer(on: bool) -> void:
 		rivals.quiet = on
 	if police != null:
 		police.gentle = on
+
+
+## Beta radio (2026-11-02): when the title goes, the host says good morning (or evening) to
+## Warsaw with the weather and the temperature for the game's hour and month, 4 s after the
+## station's caption.
+func _radio_greeting() -> void:
+	await get_tree().create_timer(4.0).timeout
+	if not is_inside_tree() or radio == null or dialogue == null:
+		return
+	var st := _egg_state()
+	var day: int = int(st["date"]) % 100 if int(st["date"]) > 0 else int(Time.get_date_dict_from_system()["day"])
+	dialogue.greet(float(st["hour"]), bool(st["rain"]), int(st["month"]), day)
 
 
 ## The eggs' probe (egg_book.gd `tick`, tape.gd's E36/E37): the vehicle and the game clock.
