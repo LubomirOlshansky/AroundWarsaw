@@ -101,8 +101,9 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
   the Mac (QUESTIONS): the groves against photos, the wooden benches on terraces (flat ground here).
 - [ ] K6 Browary Warszawskie's Central Garden over the Leżakownia and Norblin's candelabra
   planes and climbers (Sonnet; with "Norblin, Browary" below).
-- [ ] K7 Bulwary Wiślane stages 1-2: the 6 floating pavilions, the splash pool, the Vistula fish,
-  the amphitheatre and trampolines, checked against the orthophoto (Sonnet).
+- [x] K7 Bulwary Wiślane stages 1-2 (2026-11-02, site `bulwary_basen`, spec bulwary_basen.md): the
+  splash pool and 3 fish (the 6 pavilions are the boulevard dressing, PR #310). Left: the amphitheatre, trampolines and the "living river"
+  garden (not in OSM, need the orthophoto), and the Mac look check (QUESTIONS).
 - [x] K8 Arkadia's playground (Al. Jana Pawła II 82, 2018), 2026-11-02: one new park piece
   `ropecourse` (ribbon rope course, three flush trampolines, timber bench-sculpture, three lamps on
   a cable; ~520 tris, solid) in the green strip west of Arkadka (new park "arkadia" in
