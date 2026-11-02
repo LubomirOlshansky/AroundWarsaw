@@ -33,6 +33,7 @@ extends Node3D
 ## the street props (metro entrances, zones), children of the sector's root (gone with it); no sun
 ## shadow. Nothing runs per frame but a 2 Hz tick (stamps) and the car's 16 m cell of scooters.
 
+const Lang := preload("res://scripts/lang.gd")
 const Models := preload("res://scripts/models.gd")
 const Props := preload("res://scripts/props.gd")
 const PixelFont := preload("res://scripts/pixel_font.gd")
@@ -1405,7 +1406,7 @@ func _stop_at(i: int) -> void:
 		if wallet != null:
 			wallet.add_respect(FREE_RESPECT)
 		if hud != null:
-			hud.show_note("HOT DOG GRATIS! · FREE HOT DOG!", "Karta stałego klienta: 10/10 · +%d ★" % FREE_RESPECT, FROGS_COLOUR)
+			hud.show_note(Lang.pick("HOT DOG GRATIS!", "FREE HOT DOG!"), Lang.pick("Karta stałego klienta: 10/10 · +%d ★", "Loyalty card: 10/10 · +%d ★") % FREE_RESPECT, FROGS_COLOUR)
 		if dialogue != null:
 			dialogue.say_ambient(func() -> Vector3: return at3, "Frogs", "rechotka", "free", 4.5, FROGS_COLOUR, 2.6, true)
 	else:

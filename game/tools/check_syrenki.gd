@@ -119,8 +119,8 @@ func _flow() -> void:
 	_expect(hud.notes.size() == 1, "%d cards for the first find" % hud.notes.size())
 	if hud.notes.size() == 1:
 		var body := str(hud.notes[0][1]).split("\n")
-		_expect(hud.notes[0][0] == "SYRENKA 1/20 · MERMAID" and body.size() == 3 and body[0] == s.entries[0]["name"][0]
-				and body[2] == s.entries[0]["line"][1], "the card: %s" % [hud.notes[0]])
+		_expect(hud.notes[0][0] == "SYRENKA 1/20" and body.size() == 2 and body[0] == s.entries[0]["name"][0]
+				and body[1] == s.entries[0]["line"][0], "the card: %s" % [hud.notes[0]])
 	s.tick(_at(s, 0))
 	_expect(w.syrenki.size() == 1 and w.respect == 5 and hud.notes.size() == 1, "a repeat find counted")
 	s.tick(_at(s, 1) + Vector3(8.0, 0.0, 0.0))

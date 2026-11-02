@@ -17,6 +17,8 @@ extends Node3D
 ## a share of the pixels stays, and that share fades in and out. No shadow. The nearest-spot
 ## check runs twice a second; per frame only while a ghost fades.
 
+const Lang := preload("res://scripts/lang.gd")
+
 signal played(card_id: String)
 
 const CARDS_PATH := "res://data/then_cards.json"
@@ -443,7 +445,7 @@ func play(i: int) -> void:
 		stamp(id)
 		wallet.pay(0, RESPECT)
 	if hud != null:
-		hud.show_note("KASETA · %d%s" % [int(s["year"]), " · +%d ★" % RESPECT if first else ""], "%s\n%s" % [line[0], line[1]], TAPE_COLOUR)
+		hud.show_note("%s · %d%s" % [Lang.pick("KASETA", "TAPE"), int(s["year"]), " · +%d ★" % RESPECT if first else ""], Lang.pick(line[0], line[1]), TAPE_COLOUR)
 	if blip.is_valid() and first:
 		blip.call()
 	print("tape: %d %s ghost ok (%d boxes)%s" % [i + 1, id, ghost_boxes_n, ", first time: +%d respect" % RESPECT if first else ""])

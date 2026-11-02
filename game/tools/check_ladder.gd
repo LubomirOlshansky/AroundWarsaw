@@ -20,6 +20,7 @@ extends SceneTree
 ##   godot --headless --path game --script res://tools/check_ladder.gd
 
 const Ladder := preload("res://scripts/ladder.gd")
+const Lang := preload("res://scripts/lang.gd")
 const TrzyMosty := preload("res://scripts/trzy_mosty.gd")
 const Rivals := preload("res://scripts/rivals.gd")
 const Wallet := preload("res://scripts/wallet.gd")
@@ -140,7 +141,10 @@ func _gating() -> void:
 	_expect(l.is_open(Ladder.FINAL) and l.open_count() == 7, "the final at 850")
 	day = l.rows(false)
 	var night: Array = l.rows(true)
-	_expect(str(day[6][0]).contains("w nocy · at night") and str(night[6][0]).contains("Rondo Daszyńskiego"), "the final's row: %s / %s" % [day[6][0], night[6][0]])
+	_expect(str(day[6][0]).contains("w nocy") and not str(day[6][0]).contains("at night") and str(night[6][0]).contains("Rondo Daszyńskiego"), "the final's row: %s / %s" % [day[6][0], night[6][0]])
+	Lang.set_code("en")
+	_expect(str(l.rows(false)[6][0]).contains("at night") and not str(l.rows(false)[6][0]).contains("w nocy"), "the final's row in English: %s" % [l.rows(false)[6][0]])
+	Lang.set_code("pl")
 	_expect(str(day[0][0]).begins_with("★ ") and day[0][1] == "won", "a beaten row: %s" % [day[0]])
 	_expect(not l.final_won() and l.win(Ladder.FINAL, 20261031) and l.final_won() and l.next_rung() == Ladder.FINAL + 1, "the final won")
 	_expect(not l.win(Ladder.FINAL), "the final won twice")

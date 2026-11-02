@@ -17,6 +17,7 @@ extends Node3D
 ## them; driving past one shows its text with the English underneath. Loop 1: one
 ## advertising column in six wears a joke poster (`column_posters`), read the same way.
 
+const Lang := preload("res://scripts/lang.gd")
 const Access := preload("res://scripts/access.gd")
 const Props := preload("res://scripts/props.gd")
 const Models := preload("res://scripts/models.gd")
@@ -1022,6 +1023,6 @@ func _found(id: String) -> void:
 		return
 	if wallet == null or not wallet.find_egg(id):
 		return
-	hud.show_note("SEKRET %d/%d · EASTER EGG" % [wallet.eggs_found(), Wallet.EGGS.size()],
-			"%s\n%s" % [EGGS_PL.get(id, ""), Wallet.EGGS[id]], EGG_COLOUR)
+	hud.show_note(Lang.pick("SEKRET %d/%d", "EASTER EGG %d/%d") % [wallet.eggs_found(), Wallet.EGGS.size()],
+			Lang.pick(EGGS_PL.get(id, ""), Wallet.EGGS[id]), EGG_COLOUR)
 	print("easter egg found: %s (%d/%d)" % [id, wallet.eggs_found(), Wallet.EGGS.size()])

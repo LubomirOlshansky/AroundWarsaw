@@ -20,6 +20,8 @@ extends Node
 ## picks a station this session (`picked`), the radio follows the clock: PÓŁNOC FM on air, KEBAB
 ## FM otherwise. --radio-log prints the tunes, tracks, host lines, unlocks and air changes.
 
+const Lang := preload("res://scripts/lang.gd")
+
 signal station_changed(index: int, station: Dictionary)
 ## A line for the now-playing ticker: a station change, a new track, or a host's line with
 ## its English subtitle (held longer).
@@ -303,7 +305,7 @@ func caption() -> String:
 	if track.is_empty():
 		return text
 	if is_rerun():
-		text += "  ·  powtórka"  # loop MW-5: PÓŁNOC FM by day
+		text += "  ·  " + Lang.pick("powtórka, Kuba wraca o 22:00", "rerun, Kuba is back at 22:00")  # loop MW-5: PÓŁNOC FM by day
 	text += "  ·  " + String(track["title"])
 	if String(track["artist"]) != "":
 		text += " (%s)" % track["artist"]
@@ -337,7 +339,7 @@ func announce(text: String, subtitle := "") -> void:
 		_last_host_s = _play_s
 		_log("host (%s, %s): %s" % [gap, info.get("name", "off"), text])
 	var head := "%s %s:  " % [info["freq"], info["name"]] if station >= 0 else ""
-	ticker.emit(head + text, info["colour"] if station >= 0 else Color("#c9c4d8"), subtitle)
+	ticker.emit(head + Lang.pick(text, subtitle), info["colour"] if station >= 0 else Color("#c9c4d8"), "")
 
 
 # --- loop MW-5: PÓŁNOC FM, the clock and the locked tracks --------------------------------
@@ -405,7 +407,7 @@ func is_rerun() -> bool:
 
 ## The ticker's English line under the caption (reruns only).
 func caption_sub() -> String:
-	return "rerun · the host is back at 22:00" if is_rerun() else ""
+	return ""  # one language: the rerun note is in the caption itself
 
 
 ## Which group of dialogue.json the host reads on the tuned station: "radio_polnoc" on PÓŁNOC

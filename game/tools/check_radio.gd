@@ -276,7 +276,7 @@ func _check_polnoc(problems: Array[String]) -> void:
 	if not radio.is_rerun() or absf(radio.level_db() - (Radio.VOLUME_DB + Radio.RERUN_DB)) > 0.01 or radio.host_group() != "":
 		problems.append("PÓŁNOC FM by day: rerun %s, level %.1f dB (want %.1f), host '%s' (want silent)" % [
 				radio.is_rerun(), radio.level_db(), Radio.VOLUME_DB + Radio.RERUN_DB, radio.host_group()])
-	if not radio.caption().contains("powtórka") or radio.caption_sub() == "":
+	if not radio.caption().contains("powtórka") or radio.caption_sub() != "":
 		problems.append("PÓŁNOC FM by day: the caption '%s' / '%s' doesn't say rerun" % [radio.caption(), radio.caption_sub()])
 	look.assign(["Night", 1.5])
 	radio.check_air()

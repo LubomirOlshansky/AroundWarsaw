@@ -41,6 +41,7 @@ extends Node
 
 signal found(id: String)
 
+const Lang := preload("res://scripts/lang.gd")
 const Access := preload("res://scripts/access.gd")
 const EGGS_PATH := "res://data/eggs.json"
 const DIALOGUE_PATH := "res://data/dialogue.json"
@@ -603,8 +604,8 @@ func record(id: String, date := 0) -> bool:
 			(", " + ", ".join(extra)) if not extra.is_empty() else ""])
 	if hud != null:
 		var words := reward_text(e)
-		hud.show_note("SEKRET %d/%d · EASTER EGG" % [found_total(), eggs.size()],
-				"%s\n%s\n%s" % [name[0], name[1] if str(name[1]) != str(name[0]) else words[1], words[0]], EGG_COLOUR)
+		hud.show_note(Lang.pick("SEKRET %d/%d", "EASTER EGG %d/%d") % [found_total(), eggs.size()],
+				"%s\n%s" % [Lang.pick(name[0], name[1]), Lang.pick(words[0], words[1])], EGG_COLOUR)
 		hud.notebook_changed()
 	if blip.is_valid():
 		blip.call()
