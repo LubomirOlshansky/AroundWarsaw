@@ -3,6 +3,22 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## City inventory (F, 2026-11-02)
+
+docs/CITY_INVENTORY.md lists every characteristic place in the box, ranked, with its status; Part 3
+is the order of the next threads. Found while building it:
+- **Monuments are almost missing.** OSM's memorial and statue points are not in `centrum.json`, so only
+  the hand-built ones exist (Zygmunt, Grób, Mickiewicz, Kopernik, Prus, Wyszyński, de Gaulle, the
+  Syrenki). Nike, Słowacki, Starzyński, Mały Powstaniec, Kiliński, Plac Piłsudskiego's, the Uprising
+  monument, Umschlagplatz, the Eastern memorial, Reagan, Dmowski, Witos, Skłodowska-Curie and Sapera are ✗.
+  The OSM points are now cached in `docs/inventory/osm_candidates.json` (tools/city_list.py, 2026-11-02;
+  CITY_INVENTORY Part 2 lists 216 monuments and sculptures, 26 murals, 267 bars and about 690 plaques by
+  street); a bake of them into `pois` would place them; each still needs a model from photos.
+- **Rule:** a tier S or A model starts from photos (F's or `refs/` on the Mac). About 50 outline builds wait
+  for their Mac photo check (QUESTIONS); their photo re-pass is Part 3 item 9.
+- 455 named OSM outlines (tier C: tenements, offices, embassies) are plain blocks; street passes take them
+  street by street from Part 2.
+
 ## Site analytics (F, 2026-11-02)
 
 - After the next `wrangler deploy`: F checks Cloudflare -> Websites -> aroundwarsaw.app -> Analytics & Logs -> Traffic shows visits. If the Worker deploy fails on the Analytics Engine binding (needs it enabled once in the dashboard: Workers & Pages -> Analytics Engine), enable it and redeploy.
@@ -195,6 +211,7 @@ during Pani Halina's prompt: she was put in front of the car, fixed 2026-11-02);
 - Found with PT-1: head on into a solid platform's end the car stops like at any wall and is
   turned out after 1.5 s (Centrum's north tip faces the left lane of Marszałkowska).
 PT-9 (bubbles) fixed 2026-11-02: the tail of a bubble kept clear of the HUD ended in the air (a 22 pt stub) and pointed down even when its speaker was above; it now runs to the speaker, and a half-typed line keeps the wrapping of the whole line. The radio ticker's cut-off at the left edge (run 10, 1266x585) fixed 2026-11-02: it slid in from off screen; now it eases a few points inside the safe area and fades (`check_hud` checks every step of the slide). Still open: the KEBAB status label over BRAKE and the sound button did not reproduce in `check_hud` at 6 sizes nor in run 10 (`pt` is fixed when the HUD is built and not updated by a later window resize: a suspect, not shown); needs a frame with the window size.
+PT-13 (the order card went away without a tap) fixed 2026-11-02: it was the order's designed start after 9 s, unexplained; the card's GO now counts those seconds down.
 PT-10 (the order tracker over bubbles) fixed 2026-11-02: the target pointer draws under the speech bubbles and the panels and goes faint under the banner or a bubble; the edge arrow slides along the edge clear of bubbles and panels, and its distance sits past the arrow by the label's own size (`check_hud`: draw order, 72 directions, a bubble in the arrow's spot). Phone look open.
 
 ## Skwer Linearny na Złotej and Dom pod Orłami (F, 2026-11-02)

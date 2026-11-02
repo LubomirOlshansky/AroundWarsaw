@@ -346,6 +346,14 @@ func _check_sites(c: Crowds) -> void:
 		if not sl.is_empty():
 			_expect(float(sl[0]["y"]) > 20.0, "LORETKA's terrace: seats at %.1f m (on the roof?)" % float(sl[0]["y"]))
 	_expect(c.by_id.has(Crowds.GELATO[0]), "no crowd at DALEJ DALLA GELATO")
+	# F's ideas #5/#6: KRINGULA PIZZA's huge line and the hyped coffee chains' morning lines.
+	_expect(c.by_id.has(Crowds.KRINGULA[0]) and c.by_id.has(Crowds.COFFEE[0]), "no crowd at KRINGULA PIZZA or the coffee chains")
+	_expect(Crowds.kringula_queue(11.0, 2)[0] == 0 and Crowds.kringula_queue(23.5, 2)[0] == 0
+			and Crowds.kringula_queue(13.0, 2) == [Crowds.KRINGULA_MIN, "kringula"]
+			and Crowds.kringula_queue(19.0, 5) == [Crowds.KRINGULA_MAX, "kringula"]
+			and Crowds.kringula_queue(16.0, 7) == [Crowds.KRINGULA_MAX, "kringula"], "KRINGULA PIZZA: its line by hour")
+	_expect(Crowds.coffee_queue(6.0, 2)[0] == 0 and Crowds.coffee_queue(8.0, 2) == [Crowds.COFFEE_MAX, "kolejka"]
+			and Crowds.coffee_queue(8.0, 6)[0] == Crowds.COFFEE_MAX / 2, "coffee chains: the morning line")
 	_expect(c.by_id.has(Crowds.ZAKWAS_ID), "no crowd at ZAKWAS I ROŻEN")
 	_expect(Crowds.zakwas_queue(11.0, 2)[0] == 0 and Crowds.zakwas_queue(13.0, 2) == [8, "zakwas"]
 			and Crowds.zakwas_queue(20.0, 5) == [Crowds.ZAKWAS_MAX, "zakwas"]
