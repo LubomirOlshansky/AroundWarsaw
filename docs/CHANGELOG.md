@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- The race card names where you are racing in full ("pod Palmę") instead of cutting it off, and tells you to drive there, with the pink arrow showing the way.
 - The first rescue call tells you which way to go: the card gives the distance and compass direction to the person who needs help.
 - The narrow one-way streets of the centre (Mokotowska, Wilcza, Hoża, Żurawia and about 280 more) are as wide as the real ones now, room for the parked cars, instead of a lane-wide strip, and the two-lane side streets are a metre wider, as on the aerial photo.
 - Złota 44 looks like itself: a white tower with fine grey stripes whose south-east corner sweeps out like a wing to a sharp tip, a dark glass crown on the roof and a garden on the low block at its feet.

@@ -357,6 +357,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [ ] F's timed fresh-save run: the first 10 minutes beat by beat and the ~1 h main line; driving
       feel, stop assist, rubber band, ghost finger, cassette size
 - [x] Rescue call card says where the person is (PT-12, 2026-11-02): distance and compass direction on the card, English hint no longer quotes the Polish label
+- [x] Race card shows its goal in full and tells the player to drive (PT-11, 2026-11-02): "WYŚCIG · POD PALMĘ", hint "Jedź pod Palmę! … Różowa strzałka pokaże drogę."
 - [ ] A 30-minute soak with no crash or soft-lock; the HUD re-checked at 375, 390 and 440 pt (PT-9 bubble tails fixed 2026-11-02, `check_hud` covers them; the phone look is open)
 
 ### Left: TestFlight and the stores
