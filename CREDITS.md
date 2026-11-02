@@ -76,6 +76,9 @@ with Godot Engine (MIT, <https://godotengine.org/license>).
 
 Each add-on lives in `game/addons/<name>/` with its own licence file, unchanged.
 
+- **Autopilot** by the Aura team (ramenvr), version 1.0.0, Apache License 2.0, fonts under the SIL
+  Open Font License, <https://github.com/ramenvr/autopilot>. A development-only playtest plugin: it
+  lets an AI player drive the game in the editor to find bugs; it is not part of any build.
 - **Phantom Camera** by Marcus Skov (Ramokz), version 0.11.0.3, MIT licence
   (`game/addons/phantom_camera/LICENSE`), <https://store.godotengine.org/asset/ramokz/phantom-camera/>
   (source: <https://github.com/ramokz/phantom-camera>). It moves the camera in the cinematic

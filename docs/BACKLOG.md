@@ -24,6 +24,13 @@ Left:
 - The boulevard's buildings are a palette, not models: next pass is street by street, the real
   facade of each block along Jana Pawła II (Kaskada, the 1950s blocks near Rondo Daszyńskiego, the
   Żelazna Brama corner) from the orthophoto and photos.
+## Playtest bugs (Autopilot, 2026-11-02)
+
+The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, status); fix
+threads take its confirmed rows one by one. Open now: PT-1 to PT-3 (suspects from the first
+Śródmieście run: a dead stop east of the start, a cluster of near-stops north-east of Plac
+Defilad, the car 29 m below its start height); run 2 records their exact positions.
+
 ## Pokorna 2 (F, 2026-11-02)
 
 - Pokorna 2 remodelled as flats (site `pokorna2`, spec pokorna2.md). Open: Mac look check (QUESTIONS); the Gdański Business Center thread works nearby (Dworzec Gdański), keep its site zone clear of the outline at (-2123, -2217).
@@ -220,8 +227,14 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   2002 tris): ground-floor arcades on the facades facing the square and the axis, four corner
   towers with hipped attics and spires, a terracotta relief on each tower's square face. Mac look
   check parked (QUESTIONS): arcade rhythm and depth, tower heights, the real reliefs.
-- Next on the street: the church's night lighting, Plac Zbawiciela's rotunda-side cafés, the
-  reliefs' real subjects, Marszałkowska's houses, roads and street life street by street.
+- Pass 5 (cloud, Sonnet, 2026-11-02): Plac Zbawiciela's cafés and the church at night. Four neon cafés
+  (`Storefronts.ZBAWICIELA`: KAWA ZBAWIENIE, SZARLOTKA NA ROGU, PLAN Z, PO MSZY SPRITZ) and six parasol
+  terraces round the ring (`bake_street_details.py` TERRACES, 15 café sets, planters at the row ends);
+  the church gets lit gilt crosses and balls, a stained rose that glows, four porch lanterns and 12
+  floodlamps (1199 tris, budget 1250). Open: Mac look check (QUESTIONS), the signs on the real doors,
+  heaters and awnings on the terraces, a café crowd (crowds.gd zone), the floodlit plaster wash.
+- Next on the street: the reliefs' real subjects, Marszałkowska's houses, roads and street life
+  street by street.
 - Pass 2 (cloud, Sonnet): people waiting on Marszałkowska's 12 mapped tram platforms (`crowds.gd`
   `stop` sites, commute curve). Mac/phone look check: do the groups read as commuters at the
   stops, facing is random (not toward the track), the density on the narrow islands, and
@@ -238,8 +251,8 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   milk bar, dry cleaner, watchmaker, pastry shop, optician, florist, haberdashery, herbalist; check_parodies OK).
   Needs F's photos / Mac look check (QUESTIONS): doors at the real shops, per-house plaster colours and
   cornices, the crossings against real photos; Plac Bankowy's end.
-- Next on the street: the church's night lighting, Plac Zbawiciela's rotunda-side cafés, houses and
-  roads street by street.
+- Next on the street: houses and roads street by street (the church's night lighting and the
+  square's cafés are done, pass 5).
 
 ## Nowy Świat (F, 2026-11-01)
 
@@ -431,6 +444,12 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   stairs; Powiśle's arches, the saucer's profile, the canopies' length, the neon's letters); the
   stairs from the round pavilion up to the platforms; a WARSZAWA OCHOTA sign if the real one has it.
 
+## Krakowskie Przedmieście street by street (F, 2026-11-02), pass 1
+Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue signs in check_parodies), original names, at the mapped house numbers 20/22, 19, 27, 56, 45, 58/60, 64, 69. Open:
+- Mac look check of the eight signs (QUESTIONS); move them to real doors.
+- Shop awnings, café gardens (Bristol, Europejski, Czytelnik-style), a horse carriage rank, pavement details: need photos.
+- Left from K1-K6: the second Potocki guardhouse, Pałac Czapskich's own model (landmarks thread owns models).
+
 ## Powiśle street by street (F, 2026-11-01)
 - Built: Ostrogski Castle + Chopin Institute, the Teresy church, the boulevard Syrenka, Dworzec
   Wodny, Kaskada, DALEJ DALLA GELATO (specs in docs/landmarks/specs/).
@@ -543,8 +562,10 @@ the Mac and for gamepads, and the Mac in the beta plan. Built: gamepad support (
 Settings (focus ring, LB / RB tabs) and the full map; the title takes A / Y / B; the touch pedals
 hide while the pad is used and come back on a touch. Left:
 - Gamepad on real pads (iPhone and Mac): the button indices are checked on synthetic events only.
-- Gamepad gaps: Settings' volume bars, the notebook page and the garage card take no pad focus;
-  the full map has no stick pan / teleport; no per-family glyphs; no rumble.
+- Gamepad gaps: no per-family glyphs (A / cross) in the hints; no rumble. (The volume bars, the
+  notebook page, the garage card and the full map's stick pan / zoom / A teleport were done
+  2026-11-01, check_gamepad P9-P12; the map's pad hint is one line in the player's language
+  since the language work, 2026-11-02.)
 - Mac App Store version (post-v1.0 by default, QUESTIONS): macOS export preset, sandbox
   entitlements and signing, keyboard and mouse controls (a keys card, click-to-point, `--no-touch`
   by default), window and resolution settings, Mac store screenshots (2880 × 1800), the Mac's
@@ -610,13 +631,11 @@ real ones added to `brand_denylist.json`). One PR each:
       `loretka_plan`), couples on its poufs May-September on dry evenings (crowds.gd `terrace`,
       10-16); the board-game bar is PRZEGRYWKI (Zagrywki parody, was PIONEK); WACZEK ×5, the burger
       chain with an upside-down golden W, at the real chain's central restaurants, 2026-11-01.
+- [x] The notebook card "Kolejki" (place `kolejki`, chapter Kolejka po trend, at KUKŁA on Nowy Świat), 2026-11-02.
 - [ ] Left from G3-G5: the
-      Podwózka `timber` passengers, a notebook card "Kolejki", fans standing by Cringulo's van, an
+      Podwózka `timber` passengers, fans standing by Cringulo's van, an
       egg (the car parked by the van while he films), the van's CRINGULO TV lettering, the egg
       card; phone checks of every sign's size, the queues and the job's legs.
-- [ ] Roof rescues name the roof by its OSM name, which can be a real brand (a hotel or café
-      chain: Puro, Green Caffè Nero, Hilton…): show a parody or a street name instead (missions.gd
-      `_find_roofs`; found 2026-11-01).
 - [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the
       skin on the LoD2 model; KUKŁA/KOSZTA/NERWO spots on the real streets.
 - [x] `Tinder` in a run-club line replaced by TIMBER (it would fail the new denylist entry).
