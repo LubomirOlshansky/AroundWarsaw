@@ -32,7 +32,7 @@ extends Node
 ## 0.6-3 km off and back) and from jumps (a tow, a race start). Now the view is tested wherever it
 ## reaches (its frustum cut to the map's heights as a rectangle on the map, not 1,800 m round the
 ## focus); the order of loads is the sectors in the view now (nearest the view's centre first),
-## then those a coming view needs (`expect_view`: main.gd holds the look until they are in, at
+## then those a coming view needs (`expect_shot`: main.gd holds the look until they are in, at
 ## most 1.5 s), then the rest by the look-ahead; a worker busy with a later class gives its sector
 ## up for one in the view; for a few frames after a jump the sectors whose ground is in the view
 ## load at once with the car's; under the title screen a sector's pieces load all at once
@@ -128,14 +128,19 @@ const URGENT_PIECES := 4
 const HURRY_PIECES := 64
 var hurry := false
 ## The loading fix: the order of loads. A sector in the camera's view now goes first (nearest the
-## view's centre first), then one a view about to come needs (expect_view: a look at a new target),
+## view's centre first), then one a view about to come needs (expect_shot: a look at a new target),
 ## then the rest the focus wants (nearest the point the look-ahead puts it). A worker loading a
 ## sector of a later class gives it up (back in the queue) when one of the first two waits.
 const FIRST_SEEN := 0.0
 const FIRST_EXPECTED := 1000.0
 const FIRST_REST := 2000.0
-## The loading fix: views about to come: [rect on the map, until (usec)].
+## The loading fix: views about to come: [{sector: its order within them}, until (the streamer's
+## clock, s), rank]. The west-sectors fix (2026-11-01): the sectors are the ones the views'
+## frusta meet (expect_shot), not a square round the target, and the clock is the game's.
 var _expect: Array = []
+## The west-sectors fix: the game's time (s), summed from the frames' deltas: an expectation lasts
+## as long as the look it was made for (which runs on the game's clock), however slow the frames.
+var _clock := 0.0
 ## The loading fix: frames left after a jump (a forced load) in which a sector whose ground is in
 ## the view loads at once too (the cut shows the city, not its proxies), and how many did.
 const JUMP_FRAMES := 3
@@ -380,8 +385,8 @@ func update(focus: Vector3, car: Vector3, cam: Camera3D) -> void:
 			forced += 1
 			_load_now(key)
 			_jump_left = JUMP_FRAMES
-	var now := Time.get_ticks_usec()
-	while not _expect.is_empty() and int(_expect[0][1]) < now:
+	_clock += get_process_delta_time()
+	while not _expect.is_empty() and float(_expect[0][1]) < _clock:
 		_expect.pop_front()
 	var centre := _view_centre()
 	var first_waits := false
@@ -412,9 +417,10 @@ func update(focus: Vector3, car: Vector3, cam: Camera3D) -> void:
 		var expected := false
 		var expect_prio := INF
 		for e: Array in _expect:
-			if _square_meets(key, 0.0, e[0]):
+			var order: Variant = (e[0] as Dictionary).get(key)
+			if order != null:
 				expected = true
-				expect_prio = minf(expect_prio, float(e[2]) * 100.0 + (Vector2(key) + Vector2(0.5, 0.5)).distance_squared_to((e[0] as Rect2).get_center() / SECTOR))
+				expect_prio = minf(expect_prio, float(e[2]) * 100.0 + float(order))
 				want = true
 				keep = true
 		# And where the focus will be: its square, the view moved there. A quarter of the sectors a
@@ -1091,13 +1097,59 @@ func _square_meets(key: Vector2i, grow: float, rect: Rect2) -> bool:
 	return x0 < rect.end.x and x0 + SECTOR + 2.0 * grow > rect.position.x and z0 < rect.end.y and z0 + SECTOR + 2.0 * grow > rect.position.y
 
 
-## The loading fix: a view about to come (a look at a new target, camera_shots.gd): the sectors
-## within `half` metres of `at` (a square: the camera may turn) are wanted, before all but the ones
-## in the view now, for `seconds`; a lower `rank` first (the target before the way there).
-func expect_view(at: Vector3, half: float, seconds: float, rank := 0) -> void:
-	var r := Rect2(at.x - half, at.z - half, half * 2.0, half * 2.0)
-	_expect.append([r, Time.get_ticks_usec() + int(seconds * 1e6), rank])
-	_expect.sort_custom(func(a: Array, b: Array) -> bool: return int(a[1]) < int(b[1]))
+## The west-sectors fix (2026-11-01): the views a look at a new target will show (camera_shots.gd:
+## orthographic, turned `yaw` and tipped `pitch` degrees, `aspect` wide), each [centre, size (m
+## tall)] in the order the camera passes them: every sector whose box (its ground to its tallest
+## roof) meets one of their frusta is wanted, as the view's own test will want it once the camera
+## is there (a square round the target missed the corners of a view turned 45° and tipped 30°, and
+## the towers behind it: s_-6_0 west of a look at -2400, 600 loaded after the camera arrived).
+## In order: the views' order, then the nearest their centres.
+func expect_shot(views: Array, yaw: float, pitch: float, aspect: float, seconds: float, rank := 0) -> void:
+	var want := {}
+	for i in views.size():
+		var at: Vector3 = views[i][0]
+		var planes := ortho_planes(at, float(views[i][1]), yaw, pitch, aspect)
+		for key in keys:
+			if not want.has(key) and _in_view(key, 0.0, planes):
+				want[key] = float(i) + (Vector2(key) + Vector2(0.5, 0.5)).distance_squared_to(Vector2(at.x, at.z) / SECTOR) * 0.01
+	_add_expect(want, seconds, rank)
+
+
+func _add_expect(want: Dictionary, seconds: float, rank: int) -> void:
+	_expect.append([want, _clock + seconds, rank])
+	_expect.sort_custom(func(a: Array, b: Array) -> bool: return float(a[1]) < float(b[1]))
+
+
+## The west-sectors fix: the views about to come last at least `seconds` more (main.gd, when the
+## look it held for its sectors starts: the wait is over, the look itself is still to run).
+func hold_expected(seconds: float) -> void:
+	for e: Array in _expect:
+		e[1] = maxf(float(e[1]), _clock + seconds)
+	_expect.sort_custom(func(a: Array, b: Array) -> bool: return float(a[1]) < float(b[1]))
+
+
+## The sectors the views about to come want (of rank `max_rank` or lower), for the log and checks.
+func expected_keys(max_rank := 1 << 20) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	for e: Array in _expect:
+		if int(e[2]) <= max_rank:
+			for key: Vector2i in e[0]:
+				if not out.has(key):
+					out.append(key)
+	return out
+
+
+## The west-sectors fix: an orthographic view's four side planes (facing out, as Camera3D's
+## get_frustum: a point is inside where normal . p <= d), centred on `at`, `size` m tall,
+## `aspect` times as wide, the camera turned `yaw` and tipped `pitch` degrees (camera_shots.gd's
+## basis). No near or far plane: a sector's box is bounded in height, so the column meets it only
+## round the view's ground.
+static func ortho_planes(at: Vector3, size: float, yaw: float, pitch: float, aspect: float) -> Array[Plane]:
+	var b := Basis.from_euler(Vector3(deg_to_rad(pitch), deg_to_rad(yaw), 0.0))
+	var hw := size * aspect * 0.5
+	var hh := size * 0.5
+	return [Plane(b.x, b.x.dot(at) + hw), Plane(-b.x, -b.x.dot(at) + hw),
+			Plane(b.y, b.y.dot(at) + hh), Plane(-b.y, -b.y.dot(at) + hh)]
 
 
 ## The loading fix: whether every sector the views about to come need (of rank `max_rank` or
@@ -1106,8 +1158,8 @@ func expected_in(max_rank := 1 << 20) -> bool:
 	for e: Array in _expect:
 		if int(e[2]) > max_rank:
 			continue
-		for key in keys:
-			if _state[key]["s"] != IN and _square_meets(key, 0.0, e[0]):
+		for key: Vector2i in e[0]:
+			if _state[key]["s"] != IN:
 				return false
 	return true
 

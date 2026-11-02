@@ -1,0 +1,126 @@
+{
+  "_doc": "Mixtapes on roofs (cassettes.gd, docs/DEMO.md 6.2 '6:00' and 6.3 '10 cassettes'). Each lies on the roof of a landmark (`roof`: its name in centrum.json's landmarks, the rescue's flat-roof spot) and opens the next locked PÓŁNOC FM track when picked up from the helicopter. `name` and `line` are [Polish, English]. The first one is the guide's 6:00 beat (first10.gd).",
+  "respect": 10,
+  "cassettes": [
+    {
+      "id": "c01_buw",
+      "roof": "Biblioteka Uniwersytecka",
+      "name": [
+        "Dach BUW",
+        "The BUW roof"
+      ],
+      "line": [
+        "Ktoś zostawił kasetę w ogrodzie na dachu biblioteki. Cicho, czytelnia pod spodem.",
+        "Someone left a mixtape in the library's roof garden. Quiet: the reading room is below."
+      ]
+    },
+    {
+      "id": "c02_kopernik",
+      "roof": "Centrum Nauki Kopernik",
+      "name": [
+        "Dach Kopernika",
+        "The Kopernik roof"
+      ],
+      "line": [
+        "W ogrodzie nad Wisłą leży kaseta: „do słuchania przy planetarium”.",
+        "A mixtape lies in the garden over the Vistula: \"for listening by the planetarium\"."
+      ]
+    },
+    {
+      "id": "c03_palac",
+      "roof": "Pałac Kultury i Nauki",
+      "name": [
+        "Taras Pałacu",
+        "The Palace terrace"
+      ],
+      "line": [
+        "Na tarasie Pałacu leży kaseta. Najlepszy widok? Stąd nie widać Pałacu.",
+        "A tape on the Palace terrace. The best view of Warsaw: you can't see the Palace."
+      ]
+    },
+    {
+      "id": "c04_teatr_wielki",
+      "roof": "Teatr Wielki",
+      "name": [
+        "Dach Opery",
+        "The Opera roof"
+      ],
+      "line": [
+        "Nad sceną Teatru Wielkiego ktoś schował kasetę. Bis!",
+        "Someone hid a mixtape above the Teatr Wielki stage. Encore!"
+      ]
+    },
+    {
+      "id": "c05_arkadia",
+      "roof": "Westfield Arkadia",
+      "name": [
+        "Dach Arkadki",
+        "The Arkadka roof"
+      ],
+      "line": [
+        "Na dachu Arkadki czeka kaseta. Zakupy mogą poczekać.",
+        "A mixtape waits on Arkadka's roof. Shopping can wait."
+      ]
+    },
+    {
+      "id": "c06_msn",
+      "roof": "Muzeum Sztuki Nowoczesnej",
+      "name": [
+        "Dach MSN",
+        "The MSN roof"
+      ],
+      "line": [
+        "Na dachu muzeum jest eksponat bez tabliczki: kaseta. Wolno dotykać.",
+        "An unlabelled exhibit on the museum's roof: a mixtape. You may touch."
+      ]
+    },
+    {
+      "id": "c07_polin",
+      "roof": "Muzeum Historii Żydów Polskich Polin",
+      "name": [
+        "Dach Polina",
+        "The Polin roof"
+      ],
+      "line": [
+        "Nad szklaną bryłą Polina na Muranowie leży kaseta. Cicho tu.",
+        "Above Polin's glass block in Muranów lies a mixtape. Quiet here."
+      ]
+    },
+    {
+      "id": "c08_sejm",
+      "roof": "Sejm RP",
+      "name": [
+        "Dach Sejmu",
+        "The Sejm roof"
+      ],
+      "line": [
+        "Na dachu Sejmu leży kaseta. Jedyna rzecz, co do której wszyscy się zgadzają.",
+        "A mixtape on the Sejm's roof. The one thing everybody agrees on."
+      ]
+    },
+    {
+      "id": "c09_mon",
+      "roof": "Ministerstwo Obrony Narodowej",
+      "name": [
+        "Dach MON",
+        "The MON roof"
+      ],
+      "line": [
+        "Wielki płaski dach przy Ujazdowskich, a na nim kaseta. Bez alarmu.",
+        "A big flat roof by Ujazdowskie, and a mixtape on it. No alarm."
+      ]
+    },
+    {
+      "id": "c10_nbp",
+      "roof": "Narodowy Bank Polski",
+      "name": [
+        "Dach NBP",
+        "The NBP roof"
+      ],
+      "line": [
+        "Na dachu Narodowego Banku Polskiego leży kaseta. Skarb bez kolejki.",
+        "A mixtape on the National Bank of Poland's roof. Treasure, no queue."
+      ]
+    }
+  ]
+}

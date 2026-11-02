@@ -13,7 +13,9 @@ extends Node
 signal accepted
 
 const Access := preload("res://scripts/access.gd")
+const Haptics := preload("res://scripts/haptics.gd")
 const Beacon := preload("res://scripts/beacon.gd")
+const Lines := preload("res://scripts/quest_lines.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
 
 const StopAssist := preload("res://scripts/stop_assist.gd")
@@ -23,6 +25,7 @@ const CAR_STOPPED := StopAssist.STOP_SPEED  # ...going no faster than this (m/s)
 const HELI_REACH := 8.0      # hover or land this close...
 const HELI_LOW := 4.0        # ...with the skids no higher above the person than this
 const MIN_ROOF := 20.0       # a roof rescue is at least this high above the street
+const ROOF_LOW := 6.0        # cassettes.gd: a roof for a cassette is at least this high
 const OPEN_RADIUS := 4.5     # street spots need this much open sky for the helicopter
 ## Map north: rescue spots keep this far inside the map's outline (map_builder.gd `in_map`; it was
 ## the bounding box shrunk by as much, which let a spot fall in the corner left outside).
@@ -65,6 +68,8 @@ const KIDS := ["Staś", "Zuzia", "Antek", "Hania"]
 
 ## Kind -> places: {kind, name, short, text, pos, heli, child}.
 var _places := {}
+## Landmark name -> its outlines (PackedVector2Array each), for `roof_spot`.
+var _outlines := {}
 var _hospitals: Array[Dictionary] = []
 var _mission: Dictionary = {}
 var _success := false
@@ -82,6 +87,10 @@ var calls_off := false
 ## Loop 3h slice 4: the guided first 10 minutes (first10.gd) hold the first call until its beat
 ## (about 4:00, after the first race): the countdown stands still while this is on.
 var held := false
+## G12: the calls that come in by themselves follow the vehicle (flying: heli-only places;
+## driving: places the car reaches). Off for --mission and the checks, which ask for a kind.
+var line_split := false
+var _flying := false
 
 
 func setup(map_node: Node3D, data: Dictionary, world: Node3D, hud_layer: CanvasLayer) -> void:
@@ -154,6 +163,7 @@ func accept() -> void:
 	hud.hide_card()
 	_dropoff.visible = false
 	_pickup.waving = true
+	_pickup.recolour(target_colour())
 	_pickup.place(_mission["pos"], HELI_REACH if _mission["heli"] else CAR_REACH)
 	hud.toast("Jedziemy! " + ("Tylko helikopterem." if _mission["heli"] else "Autem albo helikopterem."),
 			"Go! " + ("Take the helicopter." if _mission["heli"] else "Car or helicopter."))
@@ -227,16 +237,10 @@ func call_in() -> float:
 const HAPTICS_LEAD := 2.0
 
 
-## Builds the haptic engine if it isn't yet and starts it without waiting (the engine's
-## singleton exists on iPhone builds only; elsewhere this does nothing). True when it ran.
+## Builds the haptic engine if it isn't yet and starts it without waiting (haptics.gd warm();
+## the engine's singleton exists on iPhone builds only; elsewhere this does nothing). True when it ran.
 static func warm_haptics() -> bool:
-	for n: String in ["AppleEmbedded", "iOS"]:
-		if Engine.has_singleton(n):
-			var ios := Engine.get_singleton(n)
-			if ios.has_method("start_haptic_engine"):
-				ios.call("start_haptic_engine")
-				return true
-	return false
+	return Haptics.warm()
 # --- end sweep 2 ---------------------------------------------------------------------------
 
 
@@ -318,7 +322,9 @@ func _dropoff_colour() -> Color:
 
 
 func target_colour() -> Color:
-	return PICKUP_COLOUR if state == State.PICKUP else _dropoff_colour()
+	if state == State.PICKUP:
+		return Lines.HELI_COLOUR if bool(_mission.get("heli", false)) else PICKUP_COLOUR
+	return _dropoff_colour()
 
 
 ## True while the person still waits somewhere only the helicopter reaches.
@@ -330,6 +336,7 @@ func needs_heli() -> bool:
 ## (the bottom of the skids for the helicopter), `speed` its speed in m/s.
 func tick(dt: float, pos: Vector3, speed: float, flying: bool) -> void:
 	player = pos
+	_flying = flying
 	if state == State.CLOSED and not paused and _call_in >= 0.0 and not calls_off and not held:
 		# Sweep 2: start the haptic engine a moment before the call (it stops itself when idle).
 		if _call_in >= HAPTICS_LEAD and _call_in - dt < HAPTICS_LEAD:
@@ -444,11 +451,15 @@ func _finish(success: bool, why: Array) -> void:
 ## (a seeded pick, so the same start gives the same call), and a hospital.
 func _make(n: int) -> Dictionary:
 	var kind: int = ORDER[(n - 1) % ORDER.size()]
+	if line_split:
+		kind = Lines.kind_for(kind, _flying)
 	var list: Array = _places[kind]
 	if list.is_empty():
 		list = _places[Kind.STREET]
 	var rng := RandomNumberGenerator.new()
 	rng.seed = n * 7919 + 17
+	if line_split:
+		list = Lines.prefer(list, _flying)
 	var by_distance := list.duplicate()
 	by_distance.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return _flat(player, a["pos"]) < _flat(player, b["pos"]))
 	var near := by_distance.filter(func(p: Dictionary) -> bool: return _flat(player, p["pos"]) >= 150.0 and _flat(player, p["pos"]) <= 1100.0)
@@ -490,7 +501,11 @@ func _find_roofs(landmarks: Array) -> void:
 	var best := {}
 	for l in landmarks:
 		var name: String = l["name"]
-		var spot := _flat_roof(_pts(l["p"]))
+		var poly := _pts(l["p"])
+		if not _outlines.has(name):
+			_outlines[name] = []
+		(_outlines[name] as Array).append(poly)
+		var spot := _flat_roof(poly)
 		if spot == Vector3.INF or (best.has(name) and (best[name]["pos"] as Vector3).y >= spot.y):
 			continue
 		var up := roundi(spot.y - map.ground_height(spot.x, spot.z))
@@ -501,9 +516,24 @@ func _find_roofs(landmarks: Array) -> void:
 	_places[Kind.ROOF].append_array(best.values())
 
 
+## The first-10 polish (cassettes.gd): the roof spot of the landmark `name`: the rescue's own pick
+## (its highest flat spot), else the highest flat spot at least ROOF_LOW m up (a roof too low for a
+## rescue, like the University Library's garden roof); Vector3.INF if it has none.
+func roof_spot(name: String) -> Vector3:
+	for p: Dictionary in _places.get(Kind.ROOF, []):
+		if p["name"] == name:
+			return p["pos"]
+	var best := Vector3.INF
+	for poly: PackedVector2Array in _outlines.get(name, []):
+		var spot := _flat_roof(poly, ROOF_LOW)
+		if spot != Vector3.INF and (best == Vector3.INF or spot.y > best.y):
+			best = spot
+	return best
+
+
 ## The highest spot on a building's roof that is flat enough to land on (the
 ## cells around it within a metre of it), or Vector3.INF.
-func _flat_roof(poly: PackedVector2Array) -> Vector3:
+func _flat_roof(poly: PackedVector2Array, min_up := MIN_ROOF) -> Vector3:
 	if poly.size() < 3:
 		return Vector3.INF
 	var lo := poly[0]
@@ -521,7 +551,7 @@ func _flat_roof(poly: PackedVector2Array) -> Vector3:
 			var p := Vector2(x, z)
 			var h: float = map.roof_height(x, z)
 			if h > best_h and map.in_map(p, -EDGE_PAD) and Geometry2D.is_point_in_polygon(p, poly) \
-					and h - map.ground_height(x, z) >= MIN_ROOF and _is_flat(x, z, h, cell):
+					and h - map.ground_height(x, z) >= min_up and _is_flat(x, z, h, cell):
 				best_h = h
 				best = Vector3(x, h, z)
 			x += cell

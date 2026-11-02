@@ -30,12 +30,14 @@ sport is mostly about the hoodie, the story from the court and finding a fourth 
 3. "W Warszawie jest więcej kortów niż drużyn i więcej drużyn niż graczy."
 4. "Pierwsza zasada padla: nie mów, że to tenis."
 
-## Side quest (backlog)
+## Side quest (built: "Czwarty", `trend_job.gd`, `--trend-job=5`)
 "Czwarty": a courier-style job. The Fourth Player at PADELNIA's door asks the car to fetch
 three players from Powiśle, Mokotów and Praga before the booking ends in 25 min. Pay 45 zł,
 tip "bluza klubowa" egg. Reuses the trend job's pickup and a three-stop route.
 
-## Built so far (this PR)
+## Built so far
 Queue at PADELNIA by hour with eight lines; lines in `dialogue.json` "viral" (tag "padel"):
 wall as spam, coach, unplayed racket, tennis-padel-pickleball, three-week booking, the story
 photo, fourth on court, chess with a ball.
+
+Then: three character lines in the queue, a notebook place `padelnia` (chapter "trendy"), and the "Czwarty" job (fetch a player 400-1500 m away, bring them to the court in 7 min; 45 zł + 8 zł a km there and back, +14 respect). Offered when the car is within 60 m of PADELNIA's door and its line has 10 or more people.
