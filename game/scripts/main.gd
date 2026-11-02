@@ -2439,6 +2439,7 @@ func _build_city_life(data: Dictionary, world: Node3D) -> void:
 		trend_job.setup({"hud": hud, "dialogue": dialogue, "wallet": wallet, "missions": missions, "rivals": rivals, "jobs": jobs,
 				"rides": rides, "graph": graph, "map": map, "car": car, "life": life, "crowds": crowds}, at, world)
 		jobs.trend = trend_job
+		trend_job.egg = func(id: String) -> bool: return egg_book != null and egg_book.fire(id, _egg_state())
 		if spacer != null:
 			trend_job.quiet = spacer.on
 	if zajac_flag or trend_job_flag > 0 or armchair_flag:
