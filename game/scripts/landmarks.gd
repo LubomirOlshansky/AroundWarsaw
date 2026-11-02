@@ -417,6 +417,12 @@ const INFO := {
 	"hortus": ["Hortus",
 			"Biura i kamienica wokół ogrodu, tam gdzie stała fabryka cukierków. Hortus to po łacinie ogród.",
 			"Offices and a tenement-style block round a garden, where a sweet factory stood. Hortus is Latin for garden."],
+	"pomnik_powstania": ["Pomnik Powstania Warszawskiego",
+			"Wincenty Kućma, 1989. Powstańcy wybiegają spod walących się murów; obok zejście do kanału.",
+			"Wincenty Kućma, 1989. Insurgents run out from under falling walls; beside them, the descent into the sewers."],
+	"krasinski": ["Pałac Krasińskich",
+			"Barok Tylmana z Gameren, 1677–1683. Dziś zbiory specjalne Biblioteki Narodowej.",
+			"Tylman van Gameren's baroque palace, 1677–1683. Today the National Library's special collections."],
 	"moderna": ["Modernka Powiśle",
 			"Od frontu odnowiona przedwojenna kamienica, z tyłu nowe szkło i penthouse'y. Wisła trzysta kroków stąd.",
 			"A restored pre-war tenement at the front, new glass and penthouses behind. The Vistula is three hundred steps away."],
@@ -465,6 +471,12 @@ const INFO := {
 	"grob": ["Grób Nieznanego Żołnierza",
 			"Trzy łuki ocalałe z Pałacu Saskiego. Wieczny ogień i warta.",
 			"Three arches left of the Saxon Palace. An eternal flame, a guard."],
+	"polin": ["POLIN Muzeum Historii Żydów Polskich",
+			"Muzeum z 2013 roku: szklana bryła przecięta kanionem holu, naprzeciw Pomnika Bohaterów Getta.",
+			"The 2013 museum: a glass box split by the canyon of its hall, facing the Ghetto Heroes Monument."],
+	"getto": ["Pomnik Bohaterów Getta",
+			"Natan Rapaport, 1948: pomnik bojowników powstania w getcie warszawskim z 1943 roku.",
+			"Nathan Rapoport, 1948: the memorial to the fighters of the 1943 Warsaw Ghetto Uprising."],
 	"orly": ["Dom pod Orłami",
 			"Jasna 1, 1912–17: dwa orły na narożnych wieżach patrzą na nowy skwer na Złotej.",
 			"Jasna 1, 1912–17: two eagles on the corner towers look down on Złota's new park."],
@@ -827,6 +839,8 @@ func _find_sites() -> void:
 	_find_modern_pavilions()
 	# Skwer Linearny na Złotej (F's photo, 2026-11-02): Dom pod Orłami over the new square.
 	_find_orly()
+	# Muranów (2026-11-02, spec polin.md): POLIN and the Ghetto Heroes Monument before it.
+	_find_polin()
 	# The railway (docs/design/railway.md, S1): Warszawa Ochota's hall and its saddle roof.
 	_find_ochota()
 	# S2: Warszawa Powiśle's two pavilions and the platform canopies.
@@ -853,6 +867,9 @@ func _find_sites() -> void:
 	# Powiśle (2026-11-02): Hortus on Topiel and Moderna on Zajęcza, models from their outlines.
 	_find_hortus()
 	_find_moderna()
+	# Plac Krasińskich (CITY_INVENTORY 22 and 79, 2026-11-02): the Uprising Monument and the palace.
+	_find_pomnik_powstania()
+	_find_krasinski()
 	# Plac Zbawiciela (Marszałkowska street by street, 2026-11-01): the basilica, a model.
 	_find_zbawiciela()
 	# F's ask (2026-11-01): every church designed by the same rules (the church kit).
@@ -1202,6 +1219,10 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_hortus(s)
 			"moderna":
 				_build_moderna(s)
+			"pomnik_powstania":
+				_build_pomnik_powstania(s)
+			"krasinski":
+				_build_krasinski(s)
 			"zbawiciela":
 				_build_zbawiciela(s)
 			"buw":
@@ -1296,6 +1317,10 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_zodiak(s)
 			"orly":
 				_build_orly(s)
+			"polin":
+				_build_polin(s)
+			"getto":
+				_build_getto(s)
 			"ochota":
 				_build_ochota(s)
 			"powisle":
@@ -14885,3 +14910,812 @@ func _bulwary_fish(u: float, v: float, flen: float, yaw: float, col: Color, g: f
 	# The dorsal fin over the shoulder, a small raised sail.
 	var sh: Vector3 = pt.call(0.4)
 	_beam(sh + Vector3.UP * flen * 0.06, sh + Vector3.UP * flen * 0.2 + (tail - head).normalized() * flen * 0.05, 0.025 * flen, col.darkened(0.15))
+
+
+# --- Plac Krasińskich: Pomnik Powstania Warszawskiego and Pałac Krasińskich --------------------
+
+## The Warsaw Uprising Monument (Wincenty Kućma and Jacek Budyn, 1989; spec
+## docs/landmarks/specs/pomnik_powstania.md, from the Mac's Commons photos and GUGiK ortho,
+## 2026-11-02). Two bronze groups at the Supreme Court's foot, 26 m apart: "Szturmujący" (north),
+## insurgents running out of a broken brick wall under two huge tilted granite slabs, on a
+## granite landing beside the wide steps up to the court's colonnade; "Przejście kanałami"
+## (south, on the paved square's west edge), a priest and soldiers going down a sewer manhole.
+## Frame: u along the court's wall (bearing 67, ENE), +v the groups' front (SSE, to the square).
+## OpenStreetMap maps only the big group's outline (way 1327606552) and a nameless 4x5 m way for
+## the small one, neither a building: the zone is a 0.2 m square in front of the landing, so the
+## site drops nothing of the map.
+const PP := Vector2(-1235.0, -1700.0)        # the big group's centre (the OSM outline's)
+const PP_AXIS := Vector2(0.9205, -0.3907)    # u: bearing 67
+const PP_LANDING := 0.6                      # the landing over the ground at PP
+const PP_KANALY := Vector2(-1234.5, -1674.0) # the small group's centre (ortho)
+const PP_KANALY_FWD := Vector2(0.766, 0.643) # the small group faces SE, bearing ~130
+const PP_GRANITE := Color("#c5c7ba")
+const PP_GRANITE_TOP := Color("#d6d8d3")
+const PP_GRANITE_SHADE := Color("#9a9f9b")
+const PP_BRONZE := Color("#3b3628")
+const PP_BRONZE_DARK := Color("#2a261f")
+const PP_STEPS := Color("#cfd0ca")
+const PP_SETTS := Color("#8f8a8a")
+const PP_MANHOLE := Color("#1f1d1a")
+const PP_LAMP := Color("#ffb066")
+## The ruin's brick wall in bronze, in pieces of broken height: [cu, hu, top over the landing].
+const PP_WALL := [[-6.6, 0.9, 2.6], [-5.0, 0.8, 3.6], [-3.5, 0.8, 3.1], [3.3, 0.9, 3.8], [5.0, 0.8, 2.9], [6.6, 0.8, 2.2]]
+## The "rubble city" between the slabs: vertical bronze blocks [cu, cv, hu, hv, top].
+const PP_RUBBLE := [[-2.2, -0.9, 0.55, 0.7, 4.6], [-1.2, -1.2, 0.45, 0.6, 5.6], [-0.2, -0.8, 0.5, 0.75, 4.1],
+		[0.8, -1.3, 0.45, 0.55, 5.2], [1.8, -0.9, 0.5, 0.7, 4.4]]
+## The fighters running out of the wall: [cu, cv, heading u, heading v, pose] (0 running, 1 kneeling
+## with a rifle, 2 running with a rifle raised).
+const PP_FIGHTERS := [[-7.0, 0.9, -0.6, 0.8, 0], [-5.6, 1.6, -0.35, 0.94, 2], [-3.4, 1.2, -0.1, 1.0, 0],
+		[-2.0, 2.3, 0.0, 1.0, 1], [-0.6, 1.3, 0.05, 1.0, 2], [0.9, 2.1, 0.15, 1.0, 0], [2.3, 1.1, 0.2, 0.98, 0],
+		[3.9, 1.9, 0.3, 0.95, 2], [5.4, 1.1, 0.45, 0.9, 0], [6.8, 2.0, 0.6, 0.8, 1], [7.6, 0.8, 0.7, 0.7, 2]]
+
+
+func _find_pomnik_powstania() -> void:
+	# Only where the square is (the start-area-sized test maps have no Plac Krasińskich).
+	if _landmark("Pałac Krasińskich").size() < 3:
+		return
+	var p := PP + Vector2(0.39, 0.92) * 6.5
+	_add_site("pomnik_powstania", [PackedVector2Array([p, p + Vector2(0.2, 0), p + Vector2(0.2, 0.2), p + Vector2(0, 0.2)])])
+
+
+func _build_pomnik_powstania(_site: Dictionary) -> void:
+	_o = PP
+	_a = PP_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_g = map.terrain_height(PP.x, PP.y)
+	var land := _g + PP_LANDING
+	var foot := minf(_g, minf(map.terrain_height(_w(-20.0, 6.0).x, _w(-20.0, 6.0).y),
+			map.terrain_height(_w(0.0, 7.0).x, _w(0.0, 7.0).y))) - 0.6
+	# the landing the big group stands on, level with the top of the court's steps
+	_lbox(0.0, 0.0, 9.0, 3.4, foot, land, PP_GRANITE_SHADE, M_STONE, PP_GRANITE_TOP)
+	# four treads down from its front edge to the square
+	for k in 4:
+		var top := land - 0.17 * (k + 1)
+		_lbox(0.0, 3.4 + 0.45 * k + 0.225, 9.0, 0.225, foot, top, PP_STEPS.darkened(0.05), M_STONE, PP_STEPS)
+	# the wide flight west of it, rising towards the colonnade (risers along u)
+	for k in 8:
+		var v0 := 4.0 - 1.5 * (k + 1)
+		var top := land - 0.19 * (7 - k)
+		_lbox(-18.0, v0 + 0.75, 9.0, 0.75, foot, top, PP_STEPS.darkened(0.05), M_STONE, PP_STEPS)
+	_collide(_rect(-9.0, -0.5, 18.0, 5.6))
+	# the broken brick wall in bronze, the gap in the middle where the fighters come out
+	for wpc: Array in PP_WALL:
+		_lbox(wpc[0], -1.6, wpc[1], 0.55, land, land + float(wpc[2]), PP_BRONZE_DARK, M_STONE, PP_BRONZE)
+	for r: Array in PP_RUBBLE:
+		_lbox(r[0], r[1], r[2], r[3], land, land + float(r[4]), PP_BRONZE_DARK, M_STONE, PP_BRONZE)
+	# the two tilted slabs: the short high one leaning west, the long one east, broad faces to the square
+	var up := Vector3(_a.x, 0.0, _a.y)
+	var front := Vector3(_b.x, 0.0, _b.y)
+	var bl := _w(-4.2, -1.4)
+	_pp_slab(Vector3(bl.x, land + 1.0, bl.y), (-up * 0.5 + front * 0.18 + Vector3.UP).normalized(), front, 9.0, 4.8, 1.2)
+	var br := _w(4.4, -1.5)
+	_pp_slab(Vector3(br.x, land + 1.2, br.y), (up * 0.46 + front * 0.15 + Vector3.UP).normalized(), front, 10.5, 5.6, 1.3)
+	# the insurgents
+	for f: Array in PP_FIGHTERS:
+		_pp_fighter(_w(f[0], f[1]), _a * float(f[2]) + _b * float(f[3]), land, 2.3, int(f[4]))
+	# up-lights at the front edge, warm on the bronze at night
+	for u: float in [-5.0, 0.0, 5.0]:
+		var keep := _mode
+		_mode = M_LAMP
+		_prism(_rect(u, 3.1, 0.18, 0.12), land, land + 0.16, PP_LAMP, PP_LAMP, M_LAMP, M_LAMP)
+		_mode = keep
+	# "Przejście kanałami": the low stone block, the manhole at its front, the priest, three soldiers
+	var c := PP_KANALY
+	var fwd := PP_KANALY_FWD.normalized()
+	var side := Vector2(-fwd.y, fwd.x)
+	var gk: float = map.terrain_height(c.x, c.y)
+	var keep_o := _o
+	var keep_a := _a
+	var keep_b := _b
+	_o = c
+	_a = fwd
+	_b = side
+	_g = gk
+	_lbox(0.0, 0.0, 3.4, 4.6, gk - 0.4, gk + 0.06, PP_SETTS, M_STONE, PP_SETTS)
+	_lbox(-0.6, 0.0, 0.8, 1.4, gk + 0.06, gk + 0.8, PP_GRANITE_SHADE, M_STONE, PP_GRANITE)
+	_mode = M_STONE
+	_prism(_circle(_w(1.1, 0.4), 0.45, 8), gk + 0.06, gk + 0.12, PP_MANHOLE, PP_MANHOLE, M_STONE, M_STONE)
+	# the broken stepped slab lying in the bed in front, the "sewer cover" debris
+	_lbox(2.4, -2.2, 1.2, 0.8, gk + 0.06, gk + 0.38, PP_BRONZE, M_STONE, PP_BRONZE.lightened(0.08))
+	_lbox(2.0, -2.0, 0.7, 0.5, gk + 0.38, gk + 0.62, PP_BRONZE, M_STONE, PP_BRONZE.lightened(0.08))
+	_pp_priest(_w(-0.6, -0.9), fwd, gk + 0.8)
+	_pp_fighter(_w(-0.4, 0.8), fwd, gk + 0.8, 2.3, 3)
+	_pp_fighter(_w(0.5, -0.2), (fwd + side * 0.4).normalized(), gk + 0.06, 2.3, 1)
+	_pp_fighter(_w(1.1, 0.4), fwd, gk - 0.75, 2.3, 4)
+	_collide(_rect(0.0, 0.0, 1.6, 1.7))
+	_o = keep_o
+	_a = keep_a
+	_b = keep_b
+
+
+## A tilted granite slab: from `base` along `up` for `length`, `width` across (in the plane of
+## up and the world's up), `thick` along `face` (its broad face's normal, roughly).
+func _pp_slab(base: Vector3, up: Vector3, face: Vector3, length: float, width: float, thick: float) -> void:
+	var t := (face - up * face.dot(up)).normalized()
+	var s := up.cross(t).normalized()
+	var hw := s * width * 0.5
+	var ht := t * thick * 0.5
+	var top := base + up * length
+	var keep := _mode
+	_mode = M_STONE
+	var c := [base - hw - ht, base + hw - ht, base + hw + ht, base - hw + ht]
+	var d := [top - hw - ht, top + hw - ht, top + hw + ht, top - hw + ht]
+	var cols := [PP_GRANITE_SHADE, PP_GRANITE, PP_GRANITE, PP_GRANITE]
+	for k in 4:
+		var a0: Vector3 = c[k]
+		var a1: Vector3 = c[(k + 1) % 4]
+		var mid := (a0 + a1) * 0.5 - base
+		_quad(a0, a1, d[(k + 1) % 4], d[k], mid.normalized(), cols[k])
+	_quad(d[0], d[1], d[2], d[3], up, PP_GRANITE_TOP)
+	_quad(c[0], c[1], c[2], c[3], -up, PP_GRANITE_SHADE)
+	_mode = keep
+
+
+## One bronze insurgent at `at` heading `fwd`, standing on y, `h` tall. Poses: 0 running, 1
+## kneeling with a rifle, 2 running with a rifle raised, 3 bending down over the manhole,
+## 4 half in the manhole (only the chest and arms show).
+func _pp_fighter(at: Vector2, fwd: Vector2, y: float, h: float, pose: int) -> void:
+	var keep_o := _o
+	var keep_a := _a
+	var keep_b := _b
+	_o = at
+	_a = fwd.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	var k := h / 2.3
+	var bz := PP_BRONZE
+	var none := Color(0, 0, 0, 0)
+	var p := func(u: float, v: float, yy: float) -> Vector3:
+		var w := _w(u * k, v * k)
+		return Vector3(w.x, y + yy * k, w.y)
+	var hip: Vector3
+	var sh: Vector3
+	match pose:
+		1:
+			hip = p.call(0.0, 0.0, 0.62)
+			sh = p.call(0.12, 0.0, 1.35)
+			_beam(p.call(0.0, 0.16, 0.6), p.call(0.42, 0.16, 0.55), 0.2 * k, bz)    # thigh forward
+			_beam(p.call(0.42, 0.16, 0.55), p.call(0.45, 0.16, 0.0), 0.18 * k, bz)  # shin down
+			_beam(p.call(0.0, -0.16, 0.6), p.call(-0.1, -0.16, 0.08), 0.2 * k, bz)  # knee on the ground
+			_beam(p.call(-0.1, -0.16, 0.08), p.call(-0.55, -0.16, 0.06), 0.16 * k, bz)
+		3:
+			hip = p.call(-0.2, 0.0, 1.0)
+			sh = p.call(0.45, 0.0, 1.3)
+			for sd: float in [1.0, -1.0]:
+				_beam(p.call(-0.2, 0.15 * sd, 1.0), p.call(-0.25 + 0.15 * sd, 0.18 * sd, 0.0), 0.2 * k, bz)
+		4:
+			hip = p.call(0.0, 0.0, 0.5)
+			sh = p.call(0.0, 0.0, 1.35)
+		_:
+			hip = p.call(0.1, 0.0, 1.02)
+			sh = p.call(0.32, 0.0, 1.72)
+			_beam(p.call(0.1, 0.14, 1.0), p.call(0.55, 0.15, 0.05), 0.2 * k, bz)    # front leg
+			_beam(p.call(0.1, -0.14, 1.0), p.call(-0.45, -0.15, 0.18), 0.2 * k, bz) # back leg pushing off
+			_beam(p.call(-0.45, -0.15, 0.18), p.call(-0.6, -0.15, 0.05), 0.14 * k, bz)
+	# the quilted jacket: a thick torso from the hip to the shoulders
+	_beam(hip, sh, 0.46 * k, bz)
+	# the head and the helmet
+	var head := sh + Vector3.UP * 0.2 * k + (sh - hip).normalized() * 0.05 * k
+	var hp := Vector2(head.x, head.z)
+	_mode = M_STONE
+	_prism(_circle(hp, 0.11 * k, 6), head.y - 0.08 * k, head.y + 0.12 * k, bz.lightened(0.08), none, M_STONE)
+	_prism(_circle(hp, 0.16 * k, 6), head.y + 0.08 * k, head.y + 0.2 * k, PP_BRONZE_DARK, PP_BRONZE_DARK, M_STONE, M_STONE)
+	# the arms and what they hold
+	var sl := sh + Vector3(_b.x, 0.0, _b.y) * 0.24 * k
+	var sr := sh - Vector3(_b.x, 0.0, _b.y) * 0.24 * k
+	var fw := Vector3(_a.x, 0.0, _a.y)
+	match pose:
+		1, 2:
+			var butt := sh - Vector3(_b.x, 0.0, _b.y) * 0.08 * k + fw * 0.3 * k + Vector3.UP * (0.05 if pose == 1 else 0.25) * k
+			var muzzle := butt + fw * 1.1 * k + Vector3.UP * (0.08 if pose == 1 else 0.55) * k
+			_beam(sr, butt + fw * 0.35 * k, 0.11 * k, bz)
+			_beam(sl, butt + fw * 0.65 * k + Vector3.UP * 0.05 * k, 0.11 * k, bz)
+			_beam(butt, muzzle, 0.07 * k, PP_BRONZE_DARK)
+		3, 4:
+			for s: Vector3 in [sl, sr]:
+				_beam(s, s + fw * 0.55 * k - Vector3.UP * 0.5 * k, 0.11 * k, bz)
+		_:
+			_beam(sl, sl + fw * 0.5 * k + Vector3.UP * 0.25 * k, 0.11 * k, bz)    # an arm flung forward
+			_beam(sr, sr - fw * 0.35 * k - Vector3.UP * 0.4 * k, 0.11 * k, bz)    # the other swinging back
+	_o = keep_o
+	_a = keep_a
+	_b = keep_b
+
+
+## The priest of "Przejście kanałami": standing, bareheaded, in a long robe, hands joined.
+func _pp_priest(at: Vector2, fwd: Vector2, y: float) -> void:
+	var keep_o := _o
+	var keep_a := _a
+	var keep_b := _b
+	_o = at
+	_a = fwd.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	var bz := PP_BRONZE
+	var none := Color(0, 0, 0, 0)
+	_mode = M_STONE
+	_frustum(_rect(0.0, 0.0, 0.42, 0.5), y, _rect(0.0, 0.0, 0.26, 0.34), y + 1.75, bz, none)
+	_frustum(_rect(0.0, 0.0, 0.26, 0.34), y + 1.75, _rect(0.0, 0.0, 0.2, 0.3), y + 2.15, bz, bz)
+	_prism(_circle(_w(0.03, 0.0), 0.13, 6), y + 2.15, y + 2.45, bz.lightened(0.08), bz.lightened(0.05), M_STONE, M_STONE)
+	var hands := _w(0.35, 0.0)
+	for sd: float in [1.0, -1.0]:
+		var s := _w(0.0, 0.3 * sd)
+		_beam(Vector3(s.x, y + 2.05, s.y), Vector3(hands.x, y + 1.7, hands.y), 0.13, bz)
+	_o = keep_o
+	_a = keep_a
+	_b = keep_b
+
+
+## Pałac Krasińskich (Tylman van Gameren, 1677-1683; spec docs/landmarks/specs/krasinski.md, from
+## the Mac's Commons photos and GUGiK ortho, 2026-11-02): the white baroque palace on the square,
+## its long axis NNW-SSE, the street front to the ENE, the garden front to Ogród Krasińskich.
+## Three storeys over a plinth under a balustrade with vases, a mint-green copper hip roof with
+## dormers and chimneys, a central risalit on both fronts under a pediment full of relief with a
+## statue on its apex and on its feet, four corner pavilions under pyramid roofs, the loggia arches
+## of the street front's wings, the balcony porch over the main door.
+## Frame (the OSM outline's minimum rectangle, 77.6 x 29.7 m): u along the axis to the SSE,
+## +v to the garden (WSW), so the street front is at v = -13.8.
+const KRAS := Vector2(-1374.23, -1687.33)
+const KRAS_AXIS := Vector2(0.5592, 0.8290)
+const KRAS_EAVES := 16.0       # LoD2: the walls' top ~16.5 m with the cornice
+const KRAS_RISE := 5.2         # LoD2: the ridge ~21.5 m
+const KRAS_WALL := Color("#e6e5e0")
+const KRAS_TRIM := Color("#c3c5bc")
+const KRAS_RELIEF := Color("#b9bbba")
+const KRAS_ROOF := Color("#80ad95")
+const KRAS_LEAD := Color("#a0a7ac")
+const KRAS_DARK := Color("#1d2a3a")
+const KRAS_DOOR := Color("#5e432f")
+const KRAS_STATUE := Color("#cfd0cb")
+## The plan, in the frame above: the main block, the four corner pavilions, the two risalits:
+## [cu, cv, hu, hv].
+const KRAS_BODY := [0.0, -0.45, 34.3, 13.35]
+const KRAS_PAVILIONS := [[-34.4, -10.2, 4.3, 4.1], [-34.4, 10.4, 4.3, 4.4], [34.4, -10.2, 4.3, 4.1], [34.4, 10.4, 4.3, 4.4]]
+const KRAS_RISALITS := [[0.0, -13.9, 10.4, 0.9], [0.0, 13.6, 10.2, 0.8]]
+
+
+func _find_krasinski() -> void:
+	var outline := _landmark("Pałac Krasińskich")
+	if outline.size() < 3:
+		return
+	_add_site("krasinski", [outline, Geometry2D.convex_hull(outline)])
+	if not sites.is_empty() and sites[-1]["key"] == "krasinski":
+		sites[-1]["ring"] = outline
+
+
+func _build_krasinski(site: Dictionary) -> void:
+	_o = KRAS
+	_a = KRAS_AXIS.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	var plan: Array[PackedVector2Array] = [_rect(KRAS_BODY[0], KRAS_BODY[1], KRAS_BODY[2], KRAS_BODY[3])]
+	for r: Array in KRAS_PAVILIONS + KRAS_RISALITS:
+		plan.append(_rect(r[0], r[1], r[2], r[3]))
+	var ring: PackedVector2Array = plan[0]
+	for k in range(1, plan.size()):
+		var merged := Geometry2D.merge_polygons(ring, plan[k])
+		ring = _largest(merged)
+	_g = _ground_under(ring)
+	var g := _g
+	var top := g + KRAS_EAVES
+	var none := Color(0, 0, 0, 0)
+	# the walls with the window rhythm, the plinth, the string course over the ground floor
+	_prism(ring, g - 0.8, top, KRAS_WALL, none, M_MONUMENT, M_STONE)
+	_kras_band(ring, 0.15, g - 0.8, g + 0.9, KRAS_TRIM.darkened(0.05), none)
+	_kras_band(ring, 0.12, g + 5.0, g + 5.35, KRAS_TRIM, none)
+	# the cornice (its top the lead walkway behind the balustrade) and the balustrade
+	_kras_band(ring, 0.45, top, top + 0.5, KRAS_TRIM, KRAS_LEAD)
+	var rail := Geometry2D.offset_polygon(ring, 0.3, Geometry2D.JOIN_MITER)
+	if not rail.is_empty():
+		_parapet(rail[0], top + 0.5, 0.85, KRAS_TRIM)
+	# vases on the balustrade along both long fronts, one every ~3.3 m
+	for v: float in [-14.4, 13.3]:
+		var u := -32.0
+		while u <= 32.01:
+			if absf(u) > 11.5:
+				_lbox(u, v + (-0.45 if v < 0.0 else 0.45), 0.22, 0.22, top + 1.35, top + 2.0, KRAS_TRIM.lightened(0.05), M_STONE, KRAS_TRIM)
+			u += 3.3
+	# the copper roof: the main hip over the block inside the walkways, pyramids on the pavilions
+	_hip(0.0, -0.6, 34.0, 10.6, top + 0.5, KRAS_RISE, KRAS_ROOF)
+	for pv: Array in KRAS_PAVILIONS:
+		_mode = M_STONE
+		_pyramid(_rect(pv[0], pv[1], float(pv[2]) - 0.2, float(pv[3]) - 0.2), top + 0.5, top + 0.5 + KRAS_RISE + 0.6, KRAS_ROOF.darkened(0.04))
+	# dormers along both long slopes (dark louvres) and the white chimneys
+	for side: float in [-1.0, 1.0]:
+		for u: float in [-27.0, -20.0, -14.0, 14.0, 20.0, 27.0]:
+			var dv := -0.6 + side * 8.0
+			var y0 := top + 0.5 + KRAS_RISE * (2.6 / 10.6) - 0.3
+			_lbox(u, dv, 0.65, 0.55, y0, y0 + 1.1, KRAS_ROOF.darkened(0.1), M_STONE, KRAS_ROOF.darkened(0.1))
+			var face := _w(u, dv + side * 0.62)
+			var e := _a * 0.45
+			var n := _b * side
+			_quad(Vector3(face.x - e.x, y0 + 0.25, face.y - e.y), Vector3(face.x + e.x, y0 + 0.25, face.y + e.y),
+					Vector3(face.x + e.x, y0 + 0.95, face.y + e.y), Vector3(face.x - e.x, y0 + 0.95, face.y - e.y),
+					Vector3(n.x, 0.0, n.y), KRAS_DARK)
+		for u: float in [-24.0, -12.5, 12.5, 24.0]:
+			var cv := -0.6 + side * 4.5
+			_lbox(u, cv, 0.55, 0.55, top + 3.0, top + 5.6, Color("#e5e5e0"), M_STONE, KRAS_TRIM)
+	# the pediments over both risalits, with the relief's recessed field and the statues
+	for r: Array in KRAS_RISALITS:
+		var out := signf(r[1])
+		var face_v: float = float(r[1]) + out * float(r[3])
+		_kras_pediment(face_v, out, float(r[2]) + 0.4, top + 0.5)
+	# the street front: the loggia's round arches in the wings, the porch, the steps, the door
+	for u: float in [-19.0, -16.0, -13.0, 13.0, 16.0, 19.0]:
+		_kras_arch(u, -13.8, -1.0, g + 6.0, g + 9.6, 1.1)
+	for u: float in [-19.0, -16.0, -13.0, 13.0, 16.0, 19.0]:
+		_kras_arch(u, -13.8, -1.0, g + 1.0, g + 3.6, 0.9)
+	_kras_arch(0.0, -14.8, -1.0, g + 6.2, g + 9.8, 1.0)
+	_kras_door(0.0, -14.8, -1.0, g)
+	for u: float in [-2.6, -1.3, 1.3, 2.6]:
+		_column(u, -16.1, 0.28, g + 0.3, g + 5.0, KRAS_TRIM)
+	_lbox(0.0, -15.75, 3.4, 0.95, g + 5.0, g + 5.45, KRAS_TRIM, M_STONE, KRAS_TRIM.lightened(0.05))
+	_parapet(_rect(0.0, -15.75, 3.3, 0.85), g + 5.45, 0.8, KRAS_TRIM)
+	for k in 3:
+		_lbox(0.0, -16.9 - 0.4 * k, 4.2, 0.2 + 0.2 * k, g - 0.5, g + 0.3 - 0.1 * k, KRAS_TRIM, M_STONE, KRAS_TRIM.lightened(0.04))
+	# the garden front: the garden door under a small balcony, the arches of the wings' ground floor
+	_kras_door(0.0, 14.4, 1.0, g)
+	_lbox(0.0, 15.0, 2.2, 0.6, g + 4.6, g + 5.0, KRAS_TRIM, M_STONE, KRAS_TRIM.lightened(0.05))
+	_parapet(_rect(0.0, 15.0, 2.1, 0.5), g + 5.0, 0.75, KRAS_TRIM)
+	for u: float in [13.5, 16.5, 19.5, 22.5, -13.5, -16.5, -19.5]:
+		_kras_arch(u, 12.9, 1.0, g + 1.0, g + 3.6, 0.9)
+	for k in 3:
+		_lbox(0.0, 15.2 + 0.4 * k, 3.4, 0.2 + 0.2 * k, g - 0.5, g + 0.3 - 0.1 * k, KRAS_TRIM, M_STONE, KRAS_TRIM.lightened(0.04))
+	_collide(site["ring"])
+
+
+## A band round the ring grown `grow` m, from y0 to y1: a plinth, a string course, the cornice.
+func _kras_band(ring: PackedVector2Array, grow: float, y0: float, y1: float, col: Color, cap: Color) -> void:
+	var r := Geometry2D.offset_polygon(ring, grow, Geometry2D.JOIN_MITER)
+	if not r.is_empty():
+		_prism(r[0], y0, y1, col, cap, M_STONE, M_STONE)
+
+
+## A pediment on the face v = `face_v` (outward sign `out`), `hw` wide each side of u = 0, from y:
+## the triangle, its roof slopes back into the main roof, the recessed relief field, a statue on
+## the apex and one on each foot.
+func _kras_pediment(face_v: float, out: float, hw: float, y: float) -> void:
+	var keep_a := _a
+	var keep_b := _b
+	# a frame turned so the pediment faces +u (as _gable wants): u' = out * v, v' = u
+	_a = keep_b * out
+	_b = keep_a
+	var h := 5.4
+	_gable(absf(face_v) + 0.45, absf(face_v) - 9.0, 0.0, hw, y, h, KRAS_TRIM, KRAS_ROOF, false)
+	# the relief field: a darker triangle 0.12 m proud, inside the frame's mouldings
+	var fu := absf(face_v) + 0.57
+	var l := _w(fu, -hw + 1.2)
+	var rr := _w(fu, hw - 1.2)
+	var ap := _w(fu, 0.0)
+	var keep := _mode
+	_mode = M_STONE
+	_tri(Vector3(l.x, y + 0.45, l.y), Vector3(rr.x, y + 0.45, rr.y), Vector3(ap.x, y + h - 0.85, ap.y),
+			Vector3(_a.x, 0.0, _a.y), KRAS_RELIEF, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	_mode = keep
+	# the statues: the apex figure on a pedestal, a figure on each foot
+	_kras_statue(absf(face_v) - 0.2, 0.0, y + h - 0.3, 3.6)
+	for sd: float in [-1.0, 1.0]:
+		_kras_statue(absf(face_v) - 0.1, sd * (hw - 0.6), y + 0.2, 2.5)
+	_a = keep_a
+	_b = keep_b
+
+
+## A stone statue on a pedestal at (u, v), standing on y, `h` tall with the pedestal: one arm raised.
+func _kras_statue(u: float, v: float, y: float, h: float) -> void:
+	var col := KRAS_STATUE
+	_lbox(u, v, 0.45, 0.45, y, y + h * 0.22, KRAS_TRIM, M_STONE, KRAS_TRIM.lightened(0.05))
+	_mode = M_STONE
+	_frustum(_rect(u, v, 0.32, 0.36), y + h * 0.22, _rect(u, v, 0.2, 0.25), y + h * 0.8, col, col)
+	_prism(_circle(_w(u, v), 0.14, 6), y + h * 0.8, y + h * 0.92, col, col.lightened(0.05), M_STONE, M_STONE)
+	var s := _w(u, v + 0.24)
+	var hand := _w(u + 0.15, v + 0.4)
+	_beam(Vector3(s.x, y + h * 0.76, s.y), Vector3(hand.x, y + h * 1.02, hand.y), 0.12, col)
+
+
+## A round-headed opening drawn on the face v = `fv` (outward sign `out`): dark glass from y0 to
+## the springing y1, a half disc of 6 pieces over it.
+func _kras_arch(u: float, fv: float, out: float, y0: float, y1: float, hw: float) -> void:
+	var v := fv + out * 0.06
+	var n := Vector3(_b.x, 0.0, _b.y) * out
+	var keep := _mode
+	_mode = M_STONE
+	var a := _w(u - hw, v)
+	var b := _w(u + hw, v)
+	_quad(Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, y1, b.y), Vector3(a.x, y1, a.y), n, KRAS_DARK)
+	var c := _w(u, v)
+	var cc := Vector3(c.x, y1, c.y)
+	for k in 6:
+		var t0 := PI * k / 6.0
+		var t1 := PI * (k + 1) / 6.0
+		var p0 := _w(u + cos(t0) * hw, v)
+		var p1 := _w(u + cos(t1) * hw, v)
+		_tri(cc, Vector3(p0.x, y1 + sin(t0) * hw, p0.y), Vector3(p1.x, y1 + sin(t1) * hw, p1.y), n, KRAS_DARK,
+				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	_mode = keep
+
+
+## A carved double door in a stone portal on the face v = `fv`.
+func _kras_door(u: float, fv: float, out: float, g: float) -> void:
+	_lbox(u, fv + out * 0.1, 1.6, 0.1, g + 0.3, g + 4.6, KRAS_TRIM, M_STONE, KRAS_TRIM)
+	var v := fv + out * 0.26
+	var n := Vector3(_b.x, 0.0, _b.y) * out
+	var a := _w(u - 1.1, v)
+	var b := _w(u + 1.1, v)
+	var keep := _mode
+	_mode = M_STONE
+	_quad(Vector3(a.x, g + 0.3, a.y), Vector3(b.x, g + 0.3, b.y), Vector3(b.x, g + 4.0, b.y), Vector3(a.x, g + 4.0, a.y), n, KRAS_DOOR)
+	_mode = keep
+
+
+# --- POLIN and the Ghetto Heroes Monument (Muranów, 2026-11-02) ----------------------------------
+
+## Muzeum Historii Żydów Polskich POLIN (Lahdelma & Mahlamäki, 2013; spec
+## docs/landmarks/specs/polin.md), from the Mac's reference set refs/polin/ (25 Commons photos,
+## the GUGiK ortho, REPORT.md) and the LoD2 roof: an 18 m box of grey-green glass fins with one
+## curved cut through it: the canyon, a tall wedge 15 m wide at the foot and 3.5 m at the top on
+## the east front, the glazed slot across the roof with its south lip lifted, and the big glazed
+## "lens" on the west front. Frame: u along the east front from the north corner southwards,
+## +v into the building; origin the canyon's centre on the front.
+const POLIN_O := Vector2(-2067.3, -1704.1)
+const POLIN_U := Vector2(0.508, 0.861)
+const POLIN_H := 18.0                     # photos and the ortho's shadows; LoD2 26.0 over ground 8.0
+const POLIN_DEPTH := 9.0                  # where the canyon's glass stands, from the front
+## The canyon's sides at the foot and at the roof (u at v = 0, 3, 6, 9): the north wall curves
+## and flares into the plaza, the south side is a straight plane leaning back.
+const POLIN_N_FOOT := [-7.5, -4.8, -3.2, -2.5]
+const POLIN_N_TOP := [-1.6, -1.5, -1.4, -1.2]
+const POLIN_S_FOOT := [7.5, 5.8, 4.2, 2.5]
+const POLIN_S_TOP := [1.9, 1.7, 1.4, 1.2]
+## The glazed slot across the roof (the ortho), on to ~7.5 m inside the west front.
+const POLIN_SLOT := [Vector2(-2075.0, -1699.5), Vector2(-2089.0, -1698.7), Vector2(-2100.0, -1692.0),
+		Vector2(-2111.0, -1684.4), Vector2(-2122.0, -1674.5)]
+const POLIN_SLOT_HW := 1.1
+const POLIN_LIP_UP := 2.5                 # the slot's south lip over the roof (LoD2 2.3, shadow 3-3.5)
+const POLIN_LIP_W := 11.0
+const POLIN_LENS := Vector2(-2132.0, -1680.0)
+const POLIN_LENS_HW := 18.5
+const POLIN_LENS_TOP := 13.5
+const POLIN_FINS := Color("#8a9ba0")      # grey-green glass fins (mid; lit #adb3ad, shade #566466)
+const POLIN_CANYON := Color("#a39378")    # warm sand cast concrete
+const POLIN_FLOOR := Color("#d6cfbf")     # pale travertine in the canyon's mouth
+const POLIN_ROOF := Color("#bcbcb6")
+const POLIN_TEAL := Color("#4f8584")      # the glass band crowning the roof edge
+const POLIN_PLINTH := Color("#a9a7a0")    # board-marked concrete under the west and north fronts
+const POLIN_DOOR := Color("#4a3f33")      # deep-set bronze-dark glazing, warm at night
+const POLIN_LENS_GLASS := Color("#6f8590")
+const POLIN_DARK := Color("#2b2f33")
+
+
+func _find_polin() -> void:
+	var q := _landmark("Muzeum Historii Żydów Polskich Polin")
+	if q.size() >= 3:
+		_add_site("polin", [_largest(Geometry2D.offset_polygon(q, 1.0, Geometry2D.JOIN_MITER))])
+		if not sites.is_empty() and sites[-1]["key"] == "polin":
+			sites[-1]["ring"] = _simplify(q, 0.6)
+	_o = GETTO_O
+	_a = GETTO_A
+	_b = GETTO_B
+	_add_site("getto", [_rect(0.0, 0.0, 15.0, 8.0)])
+
+
+## The canyon's side point k (0..3) at the foot or the roof, in the plan.
+func _polin_side(north: bool, top: bool, k: int) -> Vector2:
+	var us: Array = (POLIN_N_TOP if top else POLIN_N_FOOT) if north else (POLIN_S_TOP if top else POLIN_S_FOOT)
+	return _w(float(us[k]), POLIN_DEPTH * k / 3.0)
+
+
+func _polin_frame() -> void:
+	_o = POLIN_O
+	_a = POLIN_U
+	_b = Vector2(-0.861, 0.508)   # into the building (west-south-west)
+
+
+func _build_polin(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	var top := g + POLIN_H
+	_polin_frame()
+	# The cut in plan: the canyon's foot from 3 m outside the front to its glass, then the slot.
+	var cut := PackedVector2Array([_w(-7.5, -3.0)])
+	for k in 4:
+		cut.append(_polin_side(true, false, k))
+	var left := PackedVector2Array()
+	var right := PackedVector2Array()
+	for i in range(1, POLIN_SLOT.size()):
+		var p: Vector2 = POLIN_SLOT[i]
+		var prev: Vector2 = POLIN_SLOT[i - 1]
+		var n := (p - prev).normalized()
+		var side := Vector2(-n.y, n.x)
+		if side.dot(Vector2(0.483, 0.876)) < 0.0:
+			side = -side   # towards the lip (south-east)
+		if i == 1:
+			left.append(prev - side * POLIN_SLOT_HW)
+			right.append(prev + side * POLIN_SLOT_HW)
+		left.append(p - side * POLIN_SLOT_HW)
+		right.append(p + side * POLIN_SLOT_HW)
+	var slot := left.duplicate()
+	for i in range(right.size() - 1, -1, -1):
+		slot.append(right[i])
+	var notch := cut.duplicate()
+	for k in range(3, -1, -1):
+		notch.append(_polin_side(false, false, k))
+	notch.append(_w(7.5, -3.0))
+	var hole := Geometry2D.merge_polygons(notch, slot)
+	var both: PackedVector2Array = _largest(hole)
+	var on_cut := func(p: Vector2) -> bool:
+		for i in both.size():
+			if Geometry2D.get_closest_point_to_segment(p, both[i], both[(i + 1) % both.size()]).distance_to(p) < 0.05:
+				return true
+		return false
+	var west := Vector2(-0.861, 0.508)
+	var north := Vector2(-0.478, -0.878)
+	for piece in Geometry2D.clip_polygons(ring, both):
+		if piece.size() < 3 or Geometry2D.is_polygon_clockwise(piece):
+			continue
+		var run := 0.0
+		for i in piece.size():
+			var a := piece[i]
+			var b := piece[(i + 1) % piece.size()]
+			var out := _out(piece, a, b)
+			var mid := (a + b) * 0.5
+			if on_cut.call(mid):
+				# the slot's walls show only down to its glass; the canyon's are drawn sloping below
+				if Geometry2D.is_point_in_polygon(mid, _grown(slot, 0.05)) and not Geometry2D.is_point_in_polygon(mid, _grown(notch, -0.05)):
+					_mode = M_STONE
+					_wall(a, b, top - 1.0, top, out, POLIN_ROOF.darkened(0.1))
+			else:
+				var foot := g - 0.4
+				if out.dot(west) > 0.7 or out.dot(north) > 0.7:
+					_mode = M_STONE
+					_wall(a, b, g - 0.4, g + 1.5, out, POLIN_PLINTH, run)
+					foot = g + 1.5
+				_mode = M_SKIN + S_FINS / 16.0
+				_wall(a, b, foot, top, out, POLIN_FINS, run)
+			run += a.distance_to(b)
+		_mode = M_STONE
+		_cap(piece, top, POLIN_ROOF)
+	_parapet(ring, top, 1.2, POLIN_TEAL)
+	_polin_canyon(g, top)
+	# the slot's glass, sunk a metre
+	_mode = M_PAVILION
+	var sunk := Geometry2D.clip_polygons(slot, notch)
+	for q in sunk:
+		if q.size() >= 3 and not Geometry2D.is_polygon_clockwise(q):
+			_cap(q, top - 1.0, POLIN_LENS_GLASS)
+	_polin_lip(g, top)
+	_polin_lens(ring, g)
+	_polin_roof_kit(top)
+	_collide(ring)
+
+
+## The canyon: its two leaning walls from the foot line to the roof line, the strips of roof over
+## them, the end faces on the front, the deep-set glass and the pale floor in its mouth.
+func _polin_canyon(g: float, top: float) -> void:
+	_polin_frame()
+	for north: bool in [true, false]:
+		for k in 3:
+			var f0 := _polin_side(north, false, k)
+			var f1 := _polin_side(north, false, k + 1)
+			var t0 := _polin_side(north, true, k)
+			var t1 := _polin_side(north, true, k + 1)
+			var a := Vector3(f0.x, g - 0.4, f0.y)
+			var b := Vector3(f1.x, g - 0.4, f1.y)
+			var c := Vector3(t1.x, top, t1.y)
+			var d := Vector3(t0.x, top, t0.y)
+			var nrm := (b - a).cross(d - a).normalized()
+			var gap := _w(0.0, POLIN_DEPTH * (k + 0.5) / 3.0)
+			if Vector2(nrm.x, nrm.z).dot(gap - (f0 + f1) * 0.5) < 0.0:
+				nrm = -nrm
+			_mode = M_STONE
+			_quad(a, b, c, d, nrm, POLIN_CANYON if k % 2 == 0 else POLIN_CANYON.darkened(0.04))
+			# the roof over the overhang
+			_quad(Vector3(f0.x, top, f0.y), Vector3(f1.x, top, f1.y), c, d, Vector3.UP, POLIN_ROOF)
+		# the wall's end on the front: the triangle the lean leaves, in fins
+		var ff := _polin_side(north, false, 0)
+		var tf := _polin_side(north, true, 0)
+		var out := -_b
+		_mode = M_SKIN + S_FINS / 16.0
+		_tri(Vector3(ff.x, g - 0.4, ff.y), Vector3(tf.x, top, tf.y), Vector3(ff.x, top, ff.y), Vector3(out.x, 0.0, out.y),
+				POLIN_FINS, Vector2(0, -0.4), Vector2(ff.distance_to(tf), POLIN_H), Vector2(0, POLIN_H), POLIN_H)
+	# the deep-set glazing across the canyon at its depth, and the end faces either side of it
+	var nf := _polin_side(true, false, 3)
+	var sf := _polin_side(false, false, 3)
+	var nt := _polin_side(true, true, 3)
+	var stt := _polin_side(false, true, 3)
+	var face := Vector3(-_b.x, 0.0, -_b.y)
+	_mode = M_PAVILION
+	_quad(Vector3(nf.x, g - 0.2, nf.y), Vector3(sf.x, g - 0.2, sf.y), Vector3(stt.x, top - 1.0, stt.y), Vector3(nt.x, top - 1.0, nt.y),
+			face, POLIN_DOOR)
+	# the floor of the mouth, from 3 m in front of the front to the glass
+	_mode = M_STONE
+	var floor_ring := PackedVector2Array([_w(-7.5, -3.0), _w(-7.5, 0.0)])
+	for k in range(1, 4):
+		floor_ring.append(_polin_side(true, false, k))
+	for k in range(3, 0, -1):
+		floor_ring.append(_polin_side(false, false, k))
+	floor_ring.append(_w(7.5, 0.0))
+	floor_ring.append(_w(7.5, -3.0))
+	_cap(floor_ring, g + 0.04, POLIN_FLOOR)
+
+
+## The slot's south lip: a ribbed grey wedge on the roof, POLIN_LIP_UP over it at the slot,
+## falling back to the roof over POLIN_LIP_W, its face over the slot in the same grey.
+func _polin_lip(g: float, top: float) -> void:
+	var inner: Array[Vector3] = []
+	var outer: Array[Vector3] = []
+	for i in range(1, POLIN_SLOT.size()):
+		var p: Vector2 = POLIN_SLOT[i]
+		var prev: Vector2 = POLIN_SLOT[i - 1]
+		var n := (p - prev).normalized()
+		var side := Vector2(-n.y, n.x)
+		if side.dot(Vector2(0.483, 0.876)) < 0.0:
+			side = -side
+		var w := POLIN_LIP_W * (0.55 if i == POLIN_SLOT.size() - 1 else 1.0)
+		if i == 1:
+			var q0 := prev + side * POLIN_SLOT_HW
+			inner.append(Vector3(q0.x, top + POLIN_LIP_UP, q0.y))
+			var o0 := q0 + side * w
+			outer.append(Vector3(o0.x, top, o0.y))
+		var q := p + side * POLIN_SLOT_HW
+		inner.append(Vector3(q.x, top + POLIN_LIP_UP, q.y))
+		var o := q + side * w
+		outer.append(Vector3(o.x, top, o.y))
+	var n := inner.size()
+	for i in n - 1:
+		var a := inner[i]
+		var b := inner[i + 1]
+		var c := outer[i + 1]
+		var d := outer[i]
+		var nrm := (b - a).cross(d - a).normalized()
+		if nrm.y < 0.0:
+			nrm = -nrm
+		_mode = M_STONE
+		_quad(a, b, c, d, nrm, POLIN_ROOF.darkened(0.05))
+		var a2 := Vector2(a.x, a.z)
+		var b2 := Vector2(b.x, b.z)
+		var e := (b2 - a2).normalized()
+		var face := Vector2(-e.y, e.x)
+		if face.dot(Vector2(d.x, d.z) - a2) > 0.0:
+			face = -face
+		_wall(a2, b2, top, top + POLIN_LIP_UP, face, POLIN_ROOF.darkened(0.15))
+	for k: int in [0, n - 1]:
+		var t := inner[k]
+		var foot := Vector3(t.x, top, t.z)
+		var far := outer[k]
+		var other := inner[1] if k == 0 else inner[n - 2]
+		var nrm := (far - foot).cross(t - foot).normalized()
+		if nrm.dot(t - other) < 0.0:
+			nrm = -nrm
+		_tri(foot, far, t, nrm, POLIN_ROOF.darkened(0.12), Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+
+
+## The west front's lens: where the cut comes out, a glazed eye about 37 m wide from near the
+## ground to 13.5 m, 10 cm proud of the fins, with a thin dark curved lip; warm-lit at night.
+func _polin_lens(ring: PackedVector2Array, g: float) -> void:
+	var best := INF
+	var at := Vector2.ZERO
+	var dir := Vector2.ZERO
+	var out := Vector2.ZERO
+	for i in ring.size():
+		var a := ring[i]
+		var b := ring[(i + 1) % ring.size()]
+		var c := Geometry2D.get_closest_point_to_segment(POLIN_LENS, a, b)
+		if c.distance_to(POLIN_LENS) < best and a.distance_to(b) > 10.0:
+			best = c.distance_to(POLIN_LENS)
+			at = c
+			dir = (b - a).normalized()
+			out = _out(ring, a, b)
+	var nrm := Vector3(out.x, 0.0, out.y)
+	var seg := 14
+	var curve := func(t: float) -> float:
+		return POLIN_LENS_TOP * sqrt(maxf(0.0, 1.0 - t * t))
+	for k in seg:
+		var t0 := (-1.0 + 2.0 * k / seg) * 0.985
+		var t1 := (-1.0 + 2.0 * (k + 1) / seg) * 0.985
+		var p0 := at + dir * t0 * POLIN_LENS_HW + out * 0.1
+		var p1 := at + dir * t1 * POLIN_LENS_HW + out * 0.1
+		var y0: float = g + 0.6
+		var h0: float = curve.call(t0)
+		var h1: float = curve.call(t1)
+		_mode = M_PAVILION
+		_quad(Vector3(p0.x, y0, p0.y), Vector3(p1.x, y0, p1.y), Vector3(p1.x, y0 + h1 - 0.35, p1.y),
+				Vector3(p0.x, y0 + h0 - 0.35, p0.y), nrm, POLIN_LENS_GLASS)
+		# the dark lip along the curve
+		var q0 := p0 + out * 0.05
+		var q1 := p1 + out * 0.05
+		_mode = M_STONE
+		_quad(Vector3(q0.x, y0 + h0 - 0.4, q0.y), Vector3(q1.x, y0 + h1 - 0.4, q1.y),
+				Vector3(q1.x, y0 + h1, q1.y), Vector3(q0.x, y0 + h0, q0.y), nrm, POLIN_DARK)
+
+
+## What stands on the roof (the ortho): the plant room with six round fans, the lift and plant
+## box, two groups of blue skylights.
+func _polin_roof_kit(top: float) -> void:
+	_polin_frame()
+	_o = Vector2(-2105.0, -1728.5)
+	_lbox(0.0, 0.0, 6.5, 3.5, top, top + 2.6, Color("#9c9e9a"), M_STONE, Color("#8f918d"))
+	for k in 6:
+		_prism(_circle(_w(-5.0 + 2.0 * k, 0.0), 0.8, 8), top + 2.6, top + 2.9, Color("#6d706e"), Color("#3f4241"), M_STONE, M_STONE)
+	_o = Vector2(-2096.0, -1702.0)
+	_lbox(0.0, 0.0, 3.6, 3.6, top, top + 3.0, Color("#a3a5a1"), M_STONE, Color("#959793"))
+	for c: Vector2 in [Vector2(-2111.5, -1715.0), Vector2(-2103.5, -1709.5)]:
+		_o = c
+		_lbox(0.0, 0.0, 2.2, 1.4, top, top + 0.5, Color("#3f4448"), M_STONE, Color("#4a6f96"))
+
+
+## Pomnik Bohaterów Getta (Natan Rapaport, 1948), from refs/polin/ (photos d00-d12, the ortho):
+## on a 30 x 16 m paved platform in the plaza before the canyon, a wall of dark grey-green
+## labradorite 9.5 m wide, 3 m deep and 11 m tall, leaning in a little, on a black plinth; the
+## fighters' bronze in a tall recess in a granite frame on its west face (towards the museum)
+## over five low black steps and a flower bed; the deportation relief in stone on the back;
+## menorahs on polished granite blocks at the ends of the steps and one with a flame at the
+## wall's foot. Frame: u along the platform's long axis, +v west-south-west to the museum.
+const GETTO_O := Vector2(-2031.0, -1741.0)
+const GETTO_A := Vector2(0.457, 0.889)
+const GETTO_B := Vector2(-0.889, 0.457)
+const GETTO_WALL_V := -0.5
+const GETTO_PAVE := Color("#a8a8a2")
+const GETTO_BORDER := Color("#7c7d79")
+const GETTO_BLACK := Color("#25272a")
+const GETTO_STONE := Color("#5a5e5d")      # labradorite, between lit #85868b and shade #4d5154
+const GETTO_FRAME := Color("#a8a8a2")
+const GETTO_BRONZE := Color("#3a3a36")
+const GETTO_RELIEF := Color("#8f8a80")
+
+
+func _build_getto(_site: Dictionary) -> void:
+	_o = GETTO_O
+	_a = GETTO_A
+	_b = GETTO_B
+	_g = _ground_under(_rect(0.0, 0.0, 15.0, 8.0))
+	var g := _g
+	# the platform: a darker border round lighter slabs
+	_lbox(0.0, 0.0, 15.0, 8.0, g - 0.4, g + 0.12, GETTO_BORDER, M_STONE, GETTO_BORDER)
+	_mode = M_STONE
+	_cap(_rect(0.0, 0.0, 13.8, 6.8), g + 0.14, GETTO_PAVE)
+	var base := g + 0.14
+	var front := GETTO_WALL_V + 1.5
+	# five low black steps on the west, then the flower bed along the lowest
+	for k in 5:
+		var reach := 4.6 - 0.9 * k
+		_lbox(0.0, front + reach * 0.5, 7.5, reach * 0.5, base, base + 0.16 * (k + 1), GETTO_BLACK, M_STONE, GETTO_BLACK.lightened(0.04))
+	_lbox(0.0, front + 5.0, 7.5, 0.4, base, base + 0.25, Color("#3f6a33"), M_STONE, Color("#58803f"))
+	var step_top := base + 0.8
+	# the plinth and the wall, leaning in a little
+	_lbox(0.0, GETTO_WALL_V, 5.0, 1.75, base, step_top + 0.5, GETTO_BLACK, M_STONE, GETTO_BLACK)
+	var y0 := step_top + 0.5
+	_mode = M_STONE
+	_frustum(_rect(0.0, GETTO_WALL_V, 4.75, 1.5), y0, _rect(0.0, GETTO_WALL_V, 4.5, 1.3), step_top + 11.0, GETTO_STONE, GETTO_STONE.darkened(0.05))
+	# the fighters: a granite frame round a tall bronze recess with the figures standing out
+	_lbox(0.0, front + 0.06, 1.9, 0.12, y0 + 0.9, y0 + 8.4, GETTO_FRAME, M_STONE, GETTO_FRAME)
+	_lbox(0.0, front + 0.2, 1.5, 0.06, y0 + 1.2, y0 + 8.1, GETTO_BRONZE, M_STONE, GETTO_BRONZE)
+	var figures := [[-1.1, 5.2], [-0.55, 6.4], [0.0, 6.8], [0.55, 6.0], [1.1, 4.8]]
+	for f: Array in figures:
+		_lbox(float(f[0]), front + 0.38, 0.22, 0.12, y0 + 1.3, y0 + 1.3 + float(f[1]), GETTO_BRONZE.lightened(0.08), M_STONE, GETTO_BRONZE)
+	# the deportation relief on the back: stone bas-relief in a rough frame
+	var back := GETTO_WALL_V - 1.5
+	_lbox(0.0, back - 0.08, 3.2, 0.12, y0 + 2.6, y0 + 6.6, GETTO_FRAME, M_STONE, GETTO_FRAME)
+	_lbox(0.0, back - 0.24, 3.0, 0.06, y0 + 2.8, y0 + 6.4, GETTO_RELIEF, M_STONE, GETTO_RELIEF)
+	# menorahs: two on polished blocks at the steps' ends, one with a flame at the wall's foot
+	for u: float in [-6.25, 6.25]:
+		_lbox(u, front + 4.6, 0.75, 0.75, base, base + 1.0, GETTO_BLACK, M_STONE, GETTO_BLACK.lightened(0.06))
+		_menorah(_w(u, front + 4.6), base + 1.0, 1.0)
+	_menorah(_w(0.0, front + 1.6), step_top, 0.7)
+	var fl := _w(0.0, front + 1.6)
+	_prism(_square(fl, 0.12), step_top + 1.35, step_top + 1.6, Color("#ffb347"), Color("#ffd27a"), M_LAMP, M_LAMP)
+	_collide(_rect(0.0, front - 1.0, 8.0, 4.8))
+
+
+## A seven-branched bronze candlestick standing at p on y, `s` its scale (1 = 2 m tall), the arms
+## across the frame's u.
+func _menorah(p: Vector2, y: float, s: float) -> void:
+	var foot := Vector3(p.x, y, p.y)
+	var up := Vector3.UP * s
+	var side := Vector3(_a.x, 0.0, _a.y) * s
+	_beam(foot, foot + up * 1.9, 0.12 * s, GETTO_BRONZE)
+	_beam(foot - side * 0.3, foot + side * 0.3, 0.14 * s, GETTO_BRONZE)
+	for k in 3:
+		var r := 0.28 * (k + 1)
+		var low := 0.95 - 0.22 * k
+		for sd: float in [-1.0, 1.0]:
+			var elbow := foot + up * low + side * sd * r
+			_beam(foot + up * low, elbow, 0.08 * s, GETTO_BRONZE)
+			_beam(elbow, foot + up * 1.9 + side * sd * r, 0.08 * s, GETTO_BRONZE)

@@ -41,6 +41,8 @@ then the Launch gate.
 - [x] Powiśle streets: eight small neon-signed shops on Tamka, Dobra, Browarna, Topiel and Solec (F, 2026-11-02; signs only, positions need a Mac look)
 - [x] Classic cinemas: seven neon marquees, Muranów, Atlantic, Luna, Kultura, Elektronik, Femina, Kinoteka (F, 2026-11-02; signs only, positions need a Mac look)
 - [x] Beta radio: KEBAB FM + MORDOR FM lineup, DALEJ skip button, the host's start greeting with weather (F, 2026-11-02); Suno/ElevenLabs prompts in `docs/MUSIC.md`
+- [x] POLIN and the Ghetto Heroes Monument from photos gathered on the Mac (refs/polin: 25 Commons photos, the ortho, a measured report) and the LoD2 roof: the glass-fin box, the canyon, the roof slot and the west lens; the monument with its reliefs and menorahs (2026-11-02, spec `polin.md`; F's look check parked)
+- [x] Plac Krasińskich from photos gathered on the Mac (refs/pomnik_powstania, refs/krasinski: 31 Commons photos, the ortho, measured reports) and LoD2: the Warsaw Uprising Monument (the storming insurgents under the two falling slabs, the descent into the sewers) and Pałac Krasińskich (white walls, green copper roof, pediments with statues, corner pavilions, loggias, porch) (2026-11-02, specs `pomnik_powstania.md`, `krasinski.md`; F's look check parked)
 - [ ] Beta radio songs: 8 vaporwave for KEBAB FM, 8 minimal techno for MORDOR FM, idents (F generates on a paid plan; `tools/add_music.py`)
 - [x] Gdański Business Center (tower, two blocks, parody logos; 2026-11-02, spec `gbc.md`; Mac photo check parked)
 - [x] Złota 44 rebuilt from F's photos: the flaring wing, the sharp tip, the glass crown box, white banded cladding, the podium garden (2026-11-02, spec `zlota44.md`; Mac photo check parked)
@@ -91,18 +93,22 @@ then the Launch gate.
 - [ ] Free-play playtest plan P1-P10 run with Autopilot and every confirmed PT bug fixed
       (F, 2026-11-02; docs/PLAYTEST.md; setup and Autopilot plugin done 2026-11-02)
   - [x] PT-1 dead stop at Centrum's tram stop on Marszałkowska, 2026-11-02 (PR #289)
+  - [x] PT-7 car pinned and towed at the Chmielna square's glass corner (notches and slits in building fronts bridged city-wide), 2026-11-02
+  - [x] PT-2 (NE of Plac Defilad) and PT-5 (side streets west of Marszałkowska) not reproduced, 2026-11-02: ~680 swept road lines clean, six guard lines in `check_stuck_spots.gd`
   - [x] PT-8 Pani Halina rolled up in front of the car on narrow Hoża and pinned it for her whole prompt, 2026-11-02 (`check_ladder`)
   - [x] PT-13 the first order card started without a tap: GO counts down to the order's own start, 2026-11-02
   - [x] PT-9 radio ticker cut off at the left edge at 2.16:1, and PT-10 the order tracker over speech bubbles and its distance into its arrow, 2026-11-02 (`check_hud`; phone look open)
 - [x] Larger HUD text fits the phones (2026-11-02, this PR): panels with no room step their own text down (never below normal), `check_hud` large-text pass is a gate
 - [ ] The phone's own text size drives the HUD: needs a native read (BACKLOG "Accessibility follow-ups")
 - [ ] A full `tools/verify.sh` and `--ios` on the Mac on today's main, both city paths
+- [x] The NaN car (2026-11-02): not reproduced (5 more first-10 replays, now frame-identical each run), `check_finite` sweeps every map height, lane and junction curve and the car's step; a NaN input no longer freezes the car for good (car.gd `_clean_inputs`)
 - [x] Map checks in GitHub CI (the derived map pack as a release asset, `tools/map_pack.py`, the `map` job), 2026-11-02 (release `map-pack-1` to publish)
   - [x] verify --quick clean in the cloud with the map pack: the K7 splash pool flown over by design in `check_landmarks`, park and street details re-stamped and `parkdetails`, `streetdetails`, `stops` in CI quick, the prebuilt bake under xvfb-run (or skipped as a WARN with no display), 2026-11-02
 - [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views
       shows), 2026-11-01, PR #183
 - [x] Bike paths smoothed (F, 2026-11-02, `tools/cycleways.py`, run by bake_osm): 195 gaps closed, 218 split ways joined, 52 ends on a line, 68 corners rounded; Mac look and ride check parked, comparison with OSM and the 3-8 m gaps left
-- [x] Bike path markings (F's idea #9, 2026-11-02): white square edges on the cycle crossings (P-11), 660 bike pictograms on the paths (`tools/bike_marks.py`); the OSM comparison (`tools/compare_cycleways.py`) waits for a run on the Mac
+- [x] Bike path markings (F's idea #9, 2026-11-02): white square edges on the cycle crossings (P-11), 660 bike pictograms on the paths (`tools/bike_marks.py`)
+- [x] Bike network matched to OSM (F's idea #9, 2026-11-02, `tools/compare_cycleways.py`): paths, crossings and lanes all drawn; contraflow streets, bus lanes open to bikes and sharrows painted (`tools/bike_network.py`)
 - [x] Map review C: the streets of the 3d-1 box and map north against the orthophoto (2026-11-02):
       one-lane one-way streets 3 m → 5.5-6.5 m (283 ways), split legs kept one lane; alignment fine.
       two-lane streets 6 → 7 m (423 ways). Open: lane lines and zebras need the 0.1 m photo (BACKLOG "From map review C")
@@ -361,10 +367,11 @@ then the Launch gate.
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
       pads for driving, the helicopter, the mission card, Settings, the full map and the title;
       touch unchanged. Follow-ups done the same day: the volume bars, the notebook, the garage
-      and the full map (stick pan, RT / LT zoom, A teleport). Left: real pads on the phone (beta),
-      glyphs, rumble (docs/store/mac-and-gamepad.md)
-      touch unchanged. Left: real pads on the phone (beta), the bars / notebook / garage focus,
-      the full map's stick pan (docs/store/mac-and-gamepad.md)
+      and the full map (stick pan, RT / LT zoom, A teleport). Button names per pad family
+      (PlayStation ×, R2 / L2; Nintendo B / A, ZR / ZL; Xbox and MFi A, RT / LT) in every pad hint
+      and the pad's rumble for every buzz while it is in use (2026-11-02, `Gamepad.fmt`,
+      haptics.gd; `check_gamepad` P14, `check_juice` J2). Left: real pads on the phone (beta),
+      the Nintendo layout guess (docs/store/mac-and-gamepad.md)
 - [x] Crash scenes (F, 2026-11-01, `crash_scenes.gd`, `check_crash_scenes`, PR "crash scenes"):
       every few minutes a fender bender ahead on a main road, two wrecks in the kerb lane, a
       police car with its lights and a yellow ambulance, the drivers arguing, people filming,
@@ -407,6 +414,8 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
       feel, stop assist, rubber band, ghost finger, cassette size
 - [x] Rescue call card says where the person is (PT-12, 2026-11-02): distance and compass direction on the card, English hint no longer quotes the Polish label
 - [x] Race card shows its goal in full and tells the player to drive (PT-11, 2026-11-02): "WYŚCIG · POD PALMĘ", hint "Jedź pod Palmę! … Różowa strzałka pokaże drogę."
+- [x] First race waits for a new player and tells them to drive (PT-11 design half, 2026-11-02): Halina holds at the line until the car moves, GAZ! banner + ghost finger + her line after 2 s still, a nudge if stopped mid-race; heli, tape, Powiśle and garage beats pass the headless first10 replay
+- [ ] P2 by hand on the Mac (Autopilot): fly to the BUW cassette and drive to Mirek's garage as a new player would
 - [ ] A 30-minute soak with no crash or soft-lock; the HUD re-checked at 375, 390 and 440 pt (PT-9 bubble tails fixed 2026-11-02, `check_hud` covers them; the phone look is open)
 
 ### Left: TestFlight and the stores
