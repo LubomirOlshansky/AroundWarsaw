@@ -3,6 +3,30 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Map checks in GitHub CI (2026-11-02)
+
+- Done: the `map` job in `.github/workflows/verify.yml`. The GUGiK-derived files (lod2.bin, lod2.json,
+  terrain.json) are a release asset, the map pack (`tools/map_pack.py make|fetch|check`,
+  `tools/map_pack.json` pins its hash); CI fetches it, builds the split and the prebuilt sectors
+  (`tools/setup_map.sh` with lavapipe under Xvfb) and runs the map, road, street, drape, drive,
+  landmark and water checks and the plain, prebuilt and ram runs. `tools/setup_map.sh` fetches the
+  pack itself when the files are missing, so cloud threads get the real map too. Main pushes no
+  longer cancel each other (one concurrency group per commit). `spec` joined the quick job.
+- Found and fixed on the way (both red on main, unseen): `legia.md` missed six spec sections
+  (check_spec), and #258's cycle-path snap folded 35 short links onto one point, one of them under a
+  zebra at (-92, 1720) (check_streets S2); `tools/cycleways.py` now never snaps a way's two ends
+  together, and centrum.json's cycle paths are re-tidied from the pre-#258 input
+  (street_details.json's source hash follows). check_landmarks failed the four bar barges (rays
+  from the water side, the heli at 6 m over 6.7 m decks): barges now need 5 of 12 rays and the
+  heli flies at 4 m. Before CI these stayed unseen since #205/#248/#258. After merging today's main:
+  archikatedra.md and ostrogski.md had no parts table, a Plac Zbawiciela café set stood off its
+  shopfront (check_stops K5; `square_terraces` now uses the same CAFE_FRONT rule, 45 sets), Dworzec
+  Wodny needs the barges' bank-side rays, and the heli aims at Zamek Ostrogskich's tallest cell (its
+  box's middle is the courtyard).
+- Open: F publishes release `map-pack-1` (until then the map job skips with a warning). A required
+  check: GitHub Settings → Rules → a ruleset on main requiring `quick` and `map`, so a PR can't merge
+  on red or before its run ends (#261 did). After a full bake that changes lod2 or terrain:
+  `python3 -I tools/map_pack.py make`, publish, commit `tools/map_pack.json`.
 ## Rondo Daszyńskiego office crowd (F, 2026-11-02)
 
 Built (`crowds.gd` OFFICE, `office_level`, `_office`; dialogue group `office`, 65 lines tagged
@@ -291,7 +315,8 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   floodlamps (1199 tris, budget 1250). Open: Mac look check (QUESTIONS), the signs on the real doors,
   heaters and awnings on the terraces, a café crowd (crowds.gd zone), the floodlit plaster wash.
   Fixed 2026-11-02: verify `stops` failed on main since this pass (K5, a set 5 m off the east-end
-  shopfront); terraces now take only `Placer.frontage` spots and two rows moved 1 m in, all 16 stand.
+  shopfront). #282 added the shopfront test (two sets dropped); #302 uses `Placer.frontage` and moves
+  two rows 1 m in, so all 16 sets stand again.
 - Next on the street: the reliefs' real subjects, Marszałkowska's houses, roads and street life
   street by street.
 - Pass 2 (cloud, Sonnet): people waiting on Marszałkowska's 12 mapped tram platforms (`crowds.gd`
@@ -739,7 +764,7 @@ to them instead of repeating it.
 
 **State of the evidence.** The last real iPhone numbers are from 2026-10-29 (loop G0+, iPhone 11),
 before the map north, ~45 landmark sites, MW-2..MW-6, the night buses, the ladder and the guide.
-GitHub CI runs only the map-free checks ("From loop 3d-1", CI); the cloud's map data is stale, so
+GitHub CI ran only the map-free checks until 2026-11-02 (now a `map` job, top section); the cloud's map data was stale, so
 cloud threads have run the roads, drape, drive and landmarks checks against a failing baseline and
 compared with main instead of passing them (memory note, PRs #117 #125). No full
 `tools/verify.sh` on the Mac is recorded since the landmark lane began (~195 commits on main since
@@ -785,8 +810,8 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   2 frames of 600 at 17.7-25 ms (0 before); at phone size (2532x1170) the tile courses show on
   the Old Town's pitched roofs up close and fade out at the default zoom, flat roofs get faint
   seams and lighter parapet rims; no shimmer seen in stills (motion is for the phone).
-- **Map checks in CI**: the derived map pack as a release asset that CI downloads (or a small test
-  map), so roads, drape, drive and the game runs gate every PR again ("From loop 3d-1", CI). Gap.
+- ~~**Map checks in CI**~~ **Done (2026-11-02)**: the map pack as a release asset and the `map` job
+  (section "Map checks in GitHub CI" at the top); waits on F publishing `map-pack-1`.
 
 ### P0: the phone pass (performance, Opus; needs F's yes for a device run)
 - **Bench on the iPhone 11 and the 16 Pro Max on today's main**: default view, zoomed out, the

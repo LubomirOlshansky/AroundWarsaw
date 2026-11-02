@@ -144,7 +144,8 @@
 # gets --fixed-fps 60 so a run covers the same game time on any Mac and its outcome repeats).
 # A run passes when Godot exits 0 and prints no ERROR / WARNING lines; autopilot runs also
 # report their outcome (WARN if the job, race or rescue hadn't finished when the run ended).
-# Nothing here downloads anything, writes the save or settings, or talks to a phone.
+# Nothing here writes the save or settings or talks to a phone; the only download is the map pack
+# (tools/setup_map.sh, when game/map has no lod2/terrain files; NW_MAP_PACK=off skips it).
 # What it can't check: screenshots (tools/shots.sh, then look), the bench, the phone.
 #
 # Exit code: 0 when nothing FAILED (WARN is allowed), 1 otherwise, 2 for a usage error.
