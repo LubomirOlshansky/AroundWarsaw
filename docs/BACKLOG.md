@@ -932,6 +932,7 @@ on Tamka, Dobra, Browarna, Topiel and Solec. Left:
 - Mac look check (QUESTIONS); doors, window light and a terrace for Flat Biały, the stairwell bar behind Altana.
 - The tenements' ground floors, the Dobra and Tamka kerbs and pavements, trees and street furniture street by street; Czerwonego Krzyża and Ludna have no sign yet.
 - Syrenka's statue by the foot of Tamka still only an egg (3h-syrenki).
+- Doors, terraces and ground floors need a props pass (café tables and umbrellas as one MultiMesh, doors with window glow); no terrace helper exists yet and it adds geometry, so full definition of done (bench, shots): an Opus thread with a renderer, not a light cloud change.
 
 ## Vistula boulevards: life (F, 2026-11-01)
 Built: nine `chill_bulwary_*` spots (`Crowds.BULWARY`) along the river edge from Karowa past Kopernik,
