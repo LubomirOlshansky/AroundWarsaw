@@ -60,7 +60,7 @@ chases still refuse the teleport. Accept: fresh save shows HELI in the top row a
 off, a map hold teleports; `check_hud`, `check_first10`, `check_settings` pass. Files: first10.gd,
 main.gd, hud.gd, game/tools/check_hud.gd.
 
-**G2 · Traffic: calmer default and a findable control (P0, Sonnet, quick win).** The setting
+**G2 · Traffic: calmer default and a findable control (done 2026-11-02: Low by default, stepped slider in Settings → Świat).** The setting
 exists (Settings → Świat → "Ruch uliczny", four steps) but defaults to Normal (about 17 cars on
 screen) and F did not find it. Task: default to Low for new saves (`Settings.NORMAL_TRAFFIC` → 1;
 old saves keep their choice); change the control to a stepped slider with a live label. Accept:
@@ -125,7 +125,7 @@ levels 1-3 at 150-400 zł. Saved in the [garage] section (no version bump). Left
 - **G13a (P2, phone).** Is the pricing right (first part after a few jobs, the nitro after about 15
   minutes, the TT as the goal), does the nitro feel good and is the bolt easy to hit with the thumb,
   does the TT read as a coupe from the 80 m view? Tune `upgrades.gd` and car.gd `NITRO_*` after F's run.
-- **G13b (P3, Sonnet).** The nitro has no flame or sound yet (a tail glow, a whoosh, a haptic buzz);
+- **G13b (P3, Sonnet).** Done 2026-11-02: two tail flames (one see-through mesh, only while it burns), a `nitro_whoosh` and a buzz when it lights (`car.nitro_started`; `--pedal=nitro` for shots); the phone must judge the flame size and the buzz. Left:
   gamepads have no nitro button (X is "secondary"); the police chase speeds were not retuned for
   the TT's 130 km/h (a TT with the engine at level 3 outruns every patrol car).
 

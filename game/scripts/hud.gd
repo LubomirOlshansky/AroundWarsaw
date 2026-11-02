@@ -2501,6 +2501,10 @@ func hold_pedal(which: String) -> void:
 	elif which == "brake":
 		_brake_index = 97
 		brake = true
+	elif which == "nitro":  # G13b: gas and the nitro disc, for shots of the flame
+		_gas_index = 98
+		gas = true
+		nitro_held = true
 	_pad.queue_redraw()
 
 
