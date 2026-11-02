@@ -18,6 +18,9 @@ var spent_usec := 0
 const PATH := "res://data/dialogue.json"
 const SHOUT_GAP := 9.0          # seconds between two drivers' shouts
 const HOST_GAP := Vector2(60.0, 120.0)
+## Beta radio (F, 2026-11-02): the lines between songs on KEBAB FM and MORDOR FM are rarer, a
+## surprise every 4 to 5 minutes (PÓŁNOC FM's host Kuba keeps HOST_GAP).
+const CITY_GAP := Vector2(240.0, 300.0)
 ## Loop radio-playlists: the chance the host speaks between two songs, and how long after the
 ## new title's caption (it holds 4.5 s) he does.
 const HOST_BETWEEN := 0.5
@@ -60,7 +63,7 @@ func _ready() -> void:
 		for key in parsed:
 			if not String(key).begins_with("_"):
 				lines[key] = parsed[key]
-	_host_next = host_first if host_first >= 0.0 else _rng.randf_range(HOST_GAP.x, HOST_GAP.y)
+	_host_next = host_first if host_first >= 0.0 else _rng.randf_range(_gap().x, _gap().y)
 
 
 ## A line of `group` as [Polish, English] (plus its notes, if any), or [] if the
@@ -159,7 +162,7 @@ func on_station_changed(_index: int, _station: Dictionary) -> void:
 	_host_t = 0.0
 	_ident = true
 	if host_first < 0.0:
-		_host_next = _rng.randf_range(HOST_GAP.x, HOST_GAP.y)
+		_host_next = _rng.randf_range(_gap().x, _gap().y)
 
 
 ## Loop radio-playlists: between two songs (one ran out on its own: `natural`) the host
@@ -167,7 +170,7 @@ func on_station_changed(_index: int, _station: Dictionary) -> void:
 ## host_hold (a Podwózka card) and the title screen still keep him quiet.
 func on_track_changed(_info: Dictionary, _track: Dictionary, natural: bool) -> void:
 	# Loop MW-5: not sooner than HOST_GAP.x after his last line.
-	if natural and host_first < 0.0 and _rng.randf() < HOST_BETWEEN and _host_t >= HOST_GAP.x - HOST_AFTER_TITLE:
+	if natural and host_first < 0.0 and _rng.randf() < HOST_BETWEEN and _host_t >= _gap().x - HOST_AFTER_TITLE:
 		_host_t = maxf(_host_t, _host_next - HOST_AFTER_TITLE)
 
 
@@ -192,6 +195,14 @@ func _frame(dt: float) -> void:
 		_speak(group)
 
 
+## The gap between two host lines on the tuned station: CITY_GAP for the radio_host jokes,
+## HOST_GAP for PÓŁNOC FM's Kuba.
+func _gap() -> Vector2:
+	if radio == null or radio.station < 0 or _host_group() == "radio_host":
+		return CITY_GAP
+	return HOST_GAP
+
+
 ## Loop MW-5: the group the host reads now ("" = silent): the radio's host_group(), or
 ## "radio_host" for a radio without one (the checks' fakes).
 func _host_group() -> String:
@@ -201,7 +212,7 @@ func _host_group() -> String:
 func _speak(group: String) -> void:
 	_host_t = 0.0
 	host_first = -1.0
-	_host_next = _rng.randf_range(HOST_GAP.x, HOST_GAP.y)
+	_host_next = _rng.randf_range(_gap().x, _gap().y)
 	var l: Array = []
 	if group == "radio_polnoc" and _ident:
 		l = ident()
@@ -267,7 +278,7 @@ func greet(hour: float, rain: bool, month: int, day: int) -> void:
 	if String(l[0]) == "":
 		return
 	_host_t = 0.0
-	_host_next = _rng.randf_range(HOST_GAP.x, HOST_GAP.y)
+	_host_next = _rng.randf_range(_gap().x, _gap().y)
 	radio.announce(l[0], l[1])
 
 
