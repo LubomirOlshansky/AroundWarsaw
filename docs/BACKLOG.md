@@ -422,10 +422,17 @@ helicopter" (missions.gd `request_call`: a roof or sandbar call on the card now)
 nearest cassettes not taken. A tapped place becomes the quest pin (main.gd `quest_pin`: the arrow
 and minimap dot in its colour while nothing else is on; gone within 25 m, a cassette when taken);
 tapped again it goes. Empty while a race, job or rescue is on. `--quest-pick=N` for runs. Left:
-- **G12b (P2).** The pad has no way into the card (A is the teleport hold): X to switch tabs and the
-  d-pad to pick a row. Phone look: are four rows enough, is the card in the way of the map.
-- **G12c (P3).** More quest kinds on the lists: the ladder's next rival (they challenge in traffic,
-  no fixed place), the "Na czasie" queue, the Mlask job, the peacock; the active quest as a row.
+- **G12b: done (2026-11-02).** The pad's way into the card (full_map.gd `pad_quest`): X switches
+  the tab (its first row picked out), the D-pad up / down moves the pick in the pad's yellow ring (a
+  place's row centres the map on it), Y takes it as a tap; A stays the teleport hold. The card shows
+  the keys while the pad is used. Left: phone look (are four rows enough, is the card in the map's way).
+- **G12c: done (2026-11-02).** AUTO also lists the open "Na czasie" slots, Cringulo's van (Mlask) and
+  the Friday PISTACJA drop (trend_job.gd `offer_places`, only places not cooling down), the ladder's
+  next rival where they cruise now (the pin follows them, quest_lines.gd `MOVING`) or Seba's start for
+  "Trzy mosty" at night; HELI the peacock's roof call while Pan Paw is up (missions.gd
+  `request_peacock`, from anywhere). The quest under way is one "Teraz · ..." row on the vehicle's
+  tab; tapped, the map looks at its target. Left: PADELNIA's "Czwarty" and the Deski calls are not
+  listed (they come by phone or need a queue); a row per running job kind (now one generic name).
 
 **G13 · Upgrade shop: done (2026-11-02).** Warsztat u Mirka's card has a second tab, "Części i auta":
 the Ołdi TT (2,500 zł, faster, a lower coupe model), the nitro "Kebab Boost" (600 zł; a bolt disc left

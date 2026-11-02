@@ -5,7 +5,8 @@ extends SceneTree
 ## takes the HELI colour and a rescue the car reaches the amber pickup; the ride start button's
 ## reach is wider than the stop ring (G10). G12 part 2, the ZADANIA lists: each tab lists only its
 ## line, requests first, then places nearest first, one per group (three cassettes), at most
-## MAX_ROWS; the distance text and compass point; the pin is reached within PIN_REACH. Prints `check_quest_lines: OK`, exits 1 on a problem.
+## MAX_ROWS; the distance text and compass point; the pin is reached within PIN_REACH. G12c: the
+## quest under way leads its tab. G12b: the pad's D-pad pick (`pad_move`) wraps round. Prints `check_quest_lines: OK`, exits 1 on a problem.
 ##   godot --headless --path game --script res://tools/check_quest_lines.gd
 
 const Lines := preload("res://scripts/quest_lines.gd")
@@ -79,3 +80,16 @@ func _lists() -> void:
 	_expect("the pin is not reached farther", not Lines.pin_reached(e[4], Vector2(-50 + Lines.PIN_REACH + 5.0, 0)))
 	_expect("a request is never 'reached'", not Lines.pin_reached(e[3], Vector2.ZERO))
 	_expect("no pin is never reached", not Lines.pin_reached({}, Vector2.ZERO))
+	# G12c: the quest under way leads its tab, with its distance; a moving group is named.
+	var now := Lines.entry("now", "now", Lines.Line.CAR, "Teraz · zlecenie", "Now · job", Vector2(0, -500), c, Lines.NOW)
+	var with_now := Lines.rows(e + [now], Lines.Line.CAR, Vector2.ZERO)
+	_expect("the quest under way leads the tab (%s)" % [with_now.map(func(r: Dictionary) -> String: return str(r["id"]))],
+			str(with_now[0]["id"]) == "now" and with_now[0]["far"] == ["500 m płn.", "500 m N"])
+	_expect("a rival's pin moves with them", "rival" in Lines.MOVING)
+	# G12b: the pad's pick: the first step down picks the first row, up the last; it wraps round.
+	_expect("pad: down from none is row 0", Lines.pad_move(-1, 4, 1) == 0)
+	_expect("pad: up from none is the last row", Lines.pad_move(-1, 4, -1) == 3)
+	_expect("pad: down from the last wraps to 0", Lines.pad_move(3, 4, 1) == 0)
+	_expect("pad: up from 0 wraps to the last", Lines.pad_move(0, 4, -1) == 3)
+	_expect("pad: an empty tab picks nothing", Lines.pad_move(0, 0, 1) == -1)
+	_expect("pad: a pick past a shrunk tab restarts", Lines.pad_move(5, 2, 1) == 0)

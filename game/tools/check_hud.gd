@@ -583,6 +583,41 @@ func _check_quest_card(fm: Control, where: String, pt: float, safe: Rect2) -> vo
 	fm.pick_row(0)  # the rescue call: a request closes the map
 	if got.size() != 3 or str(got[2].get("action", "")) != "call" or fm.visible:
 		problems.append("%s: a request did not emit and close the map" % where)
+	# G12b: the pad's way into the card: X switches the tab and picks its first row, the D-pad
+	# moves the pick (a place centres the map), Y takes it; the pad's words show on the card.
+	hud_pad(true)
+	(fm.hud as CanvasLayer).open_full_map(Vector2(10.0, 20.0), 0.5, PackedVector2Array([Vector2(100.0, 50.0)]))
+	fm.set_quests(e, L.Line.CAR)
+	await process_frame
+	if fm.get("_quests").find_child("pad_keys", true, false) == null:
+		problems.append("%s: the ZADANIA card shows no pad keys while the pad is used" % where)
+	var rs_pad: Dictionary = fm.rects()
+	if rs_pad.has("quests") and not safe.grow(0.5).encloses(rs_pad["quests"]):
+		problems.append("%s: the ZADANIA card with the pad's keys %s is outside the safe area" % [where, _pts(rs_pad["quests"], pt)])
+	_pad_press(fm, JOY_BUTTON_X)
+	if fm.quest_line != L.Line.HELI or fm.quest_pad != 0:
+		problems.append("%s: pad X did not switch to HELI with row 0 picked (%d, %d)" % [where, fm.quest_line, fm.quest_pad])
+	_pad_press(fm, JOY_BUTTON_DPAD_DOWN)
+	if fm.quest_pad != 1 or fm.centre.distance_to(Vector2(900, -100)) > 1.0:
+		problems.append("%s: pad down did not pick the cassette and look at it (%d)" % [where, fm.quest_pad])
+	var before := got.size()
+	_pad_press(fm, JOY_BUTTON_Y)
+	if got.size() != before + 1 or str(fm.quest_pick.get("id", "")) != "c1":
+		problems.append("%s: pad Y did not take the picked row" % where)
+	_pad_press(fm, JOY_BUTTON_DPAD_UP)
+	_pad_press(fm, JOY_BUTTON_DPAD_UP)
+	if fm.quest_pad != 1:
+		problems.append("%s: pad up did not wrap round (%d)" % [where, fm.quest_pad])
+	# G12c: the quest under way: one row, tapped it only looks at the target.
+	var now := L.entry("now", "now", L.Line.CAR, "Teraz · zlecenie na czasie", "Now · on-trend job", Vector2(-600, 200),
+			Color("#ff7ac8"), L.NOW)
+	fm.set_quests([now], L.Line.CAR)
+	await process_frame
+	var n0 := got.size()
+	fm.pick_row(0)
+	if got.size() != n0 or not fm.visible or fm.centre.distance_to(Vector2(-600, 200)) > 1.0:
+		problems.append("%s: the quest under way's row did not just look at its target" % where)
+	hud_pad(false)
 	fm.quest_picked.disconnect(on_pick)
 	fm.set_quests([], L.Line.CAR)
 	var hud: CanvasLayer = fm.hud
@@ -590,6 +625,26 @@ func _check_quest_card(fm: Control, where: String, pt: float, safe: Rect2) -> vo
 	await process_frame
 	if verbose:
 		print("  %s: ZADANIA %s" % [where, _pts(rs["quests"], pt)])
+
+
+## G12b: a gamepad button press through the full map's input (as the pad sends it).
+func _pad_press(fm: Control, button: JoyButton) -> void:
+	var ev := InputEventJoypadButton.new()
+	ev.button_index = button
+	ev.pressed = true
+	fm._input(ev)
+
+
+## G12b: makes the pad (or a finger) the last input used (gamepad.gd `in_use`).
+func hud_pad(on: bool) -> void:
+	const Pad := preload("res://scripts/gamepad.gd")
+	if on:
+		var ev := InputEventJoypadButton.new()
+		ev.button_index = JOY_BUTTON_LEFT_SHOULDER
+		ev.pressed = true
+		Pad.note(ev)
+	else:
+		Pad.note(InputEventScreenTouch.new())
 
 
 ## F's ask (2026-10-31): the full map's hold to teleport. Held HOLD_S still, it emits `teleport`

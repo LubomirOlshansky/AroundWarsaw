@@ -180,6 +180,9 @@ var quest_line := 0
 var quest_pick: Dictionary = {}
 var quest_rows: Array = []
 var _quest_buttons: Array[Button] = []
+## G12b: the row the gamepad has picked out (-1: none; the D-pad moves it, Y takes it, X switches
+## the tab). A is still the teleport hold, so the card never takes A.
+var quest_pad := -1
 var _tab_buttons: Array[Button] = []
 ## Row and tab heights in points (MIN_TOUCH, 44 pt: four rows still fit under the buttons at 375 pt).
 const ROW_H := 44.0
@@ -655,6 +658,7 @@ func set_quests(entries: Array, line: int, pick_id := "") -> void:
 	quest_entries = entries
 	quest_line = line
 	quest_pick = {}
+	quest_pad = -1
 	for e: Dictionary in entries:
 		if str(e["id"]) == pick_id and pick_id != "":
 			quest_pick = e
@@ -701,6 +705,17 @@ func _fill_quests() -> void:
 		tabs.add_child(b)
 		_tab_buttons.append(b)
 	quest_rows = Lines.rows(quest_entries, quest_line, car)
+	quest_pad = mini(quest_pad, quest_rows.size() - 1)
+	if Gamepad.in_use():
+		# G12b: the pad's words for the card (A stays the teleport hold).
+		var keys := Label.new()
+		keys.name = "pad_keys"
+		keys.text = Lang.pick("X: AUTO / HELI · krzyżak: wybór · Y: bierz", "X: CAR / HELI · D-pad: pick · Y: take")
+		keys.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		keys.custom_minimum_size.x = QUEST_W * pt
+		keys.add_theme_font_size_override("font_size", _px(T_SUB))
+		keys.add_theme_color_override("font_color", Gamepad.RING)
+		box.add_child(keys)
 	if quest_rows.is_empty():
 		var none := Label.new()
 		none.text = Lang.pick("Na razie nic. Skończ to, co trwa, albo zajrzyj później.",
@@ -720,9 +735,10 @@ func _fill_quests() -> void:
 		b.custom_minimum_size = Vector2(QUEST_W, ROW_H) * pt
 		b.add_theme_font_size_override("font_size", _px(T_SUB))
 		var picked := str(r["id"]) == str(quest_pick.get("id", ""))
+		var padded := i == quest_pad
 		var far := Lang.pick(str(r["far"][0]), str(r["far"][1]))
 		var name := Lang.pick(str(r["pl"]), str(r["en"]))
-		b.text = ("%s · %s" % [name, far]) if far != "" else "%s ›" % name
+		b.text = ("%s · %s" % [name, far]) if far != "" else ("%s ›" % name if str(r["action"]) != Lines.NOW else name)
 		b.add_theme_color_override("font_color", Color("#fbf7ee"))
 		b.add_theme_color_override("font_hover_color", Color("#fbf7ee"))
 		b.add_theme_color_override("font_pressed_color", Color("#fbf7ee"))
@@ -735,6 +751,11 @@ func _fill_quests() -> void:
 			sb.border_width_left = _px(6)
 			if picked:
 				sb.set_border_width_all(_px(2))
+				sb.border_width_left = _px(6)
+			if padded:
+				# G12b: the pad's pick wears the pad's accent ring (gamepad.gd RING).
+				sb.border_color = Gamepad.RING
+				sb.set_border_width_all(_px(3))
 				sb.border_width_left = _px(6)
 			sb.content_margin_left = 12.0 * pt
 			sb.content_margin_right = 6.0 * pt
@@ -759,12 +780,53 @@ func show_line(line: int) -> void:
 		_fill_quests()
 
 
+## G12b: a gamepad button on the ZADANIA card: X switches the tab (its first row picked out), the
+## D-pad up / down moves the pick (a place's row centres the map on it, as a look before taking
+## it), Y takes the row picked out as a tap would. True when the card used the press.
+func pad_quest(button: int) -> bool:
+	if not _quests.visible:
+		return false
+	match button:
+		JOY_BUTTON_X:
+			show_line(Lines.Line.HELI if quest_line == Lines.Line.CAR else Lines.Line.CAR)
+			pad_select(0)
+		JOY_BUTTON_DPAD_DOWN:
+			pad_select(1)
+		JOY_BUTTON_DPAD_UP:
+			pad_select(-1)
+		JOY_BUTTON_Y:
+			if quest_pad >= 0:
+				pick_row(quest_pad)
+		_:
+			return false
+	return true
+
+
+## G12b: moves the pad's pick `dir` rows (0: the first row, or none on an empty tab).
+func pad_select(dir: int) -> void:
+	quest_pad = Lines.pad_move(quest_pad if dir != 0 else -1, quest_rows.size(), 1 if dir == 0 else dir)
+	if quest_pad >= 0:
+		var r: Dictionary = quest_rows[quest_pad]
+		if r["at"] != Vector2.INF:
+			centre = r["at"]
+	if _built:
+		_fill_quests()
+		_place()
+
+
 ## Row `i` of the tab shown was tapped: a request closes the map and starts (main.gd); a place
 ## becomes the quest pin and the map centres on it, or, picked already, the pin goes.
 func pick_row(i: int) -> void:
 	if i < 0 or i >= quest_rows.size():
 		return
 	var r: Dictionary = quest_rows[i]
+	if str(r["action"]) == Lines.NOW:
+		# G12c: the quest under way: the map looks at its target; nothing else changes.
+		if r["at"] != Vector2.INF:
+			centre = r["at"]
+			_place()
+		print("full map: quest under way %s" % r["id"])
+		return
 	if str(r["action"]) != "":
 		print("full map: quest request %s" % r["id"])
 		quest_picked.emit(r)
@@ -1036,6 +1098,9 @@ func _input(event: InputEvent) -> void:
 			or Gamepad.closes(event):  # the gamepad loop: B, Start or Back
 		close()
 		get_viewport().set_input_as_handled()
+	elif event is InputEventJoypadButton and (event as InputEventJoypadButton).pressed \
+			and pad_quest((event as InputEventJoypadButton).button_index):
+		get_viewport().set_input_as_handled()  # G12b: X, Y and the D-pad's up / down on the ZADANIA card
 	elif event is InputEventJoypadButton and (event as InputEventJoypadButton).button_index == JOY_BUTTON_A:
 		# The gamepad follow-ups: A held is a finger held on the cross.
 		if event.is_pressed() and _hold_index < 0:

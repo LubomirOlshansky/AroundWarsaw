@@ -4262,16 +4262,40 @@ func _open_full_map() -> void:
 ## the słoiki stations and the Leżak depots (jobs.gd `offer_places`), Warsztat u Mirka, and "ask for
 ## a ride" (Podwózka's rule). HELI: the cassettes on the roofs not taken, and "a rescue call" (one
 ## only the helicopter reaches). Nothing while a race, a job or a rescue is on.
+## G12c: AUTO also lists the open "Na czasie" slots, Cringulo's van (Mlask) and the Friday drop
+## (trend_job.gd `offer_places`), and the ladder's next rival where they cruise now (or Seba's start
+## for "Trzy mosty" at night); HELI the peacock's roof call while Pan Paw is still up there. While a
+## race, a job, a ride or a rescue is on, its one row ("Teraz · ...") leads the vehicle's tab.
 func _quest_entries() -> Array:
 	var out: Array = []
+	var now := _quest_now()
+	if not now.is_empty():
+		return [now]
 	if (rivals != null and rivals.busy()) or (missions != null and missions.has_target()):
 		return out
-	if jobs != null:
-		for p: Dictionary in jobs.offer_places():
-			out.append(Lines.entry("%s_%.0f_%.0f" % [p["group"], p["at"].x, p["at"].y], str(p["group"]), Lines.Line.CAR,
-					str(p["name"][0]), str(p["name"][1]), p["at"], p["colour"]))
-		if jobs.busy():
-			return out
+	var places: Array = jobs.offer_places() if jobs != null else []
+	if trend_job != null and (jobs == null or not jobs.busy()) and (rides == null or not rides.busy()):
+		places.append_array(trend_job.offer_places())
+	for p: Dictionary in places:
+		out.append(Lines.entry("%s_%.0f_%.0f" % [p["group"], p["at"].x, p["at"].y], str(p["group"]), Lines.Line.CAR,
+				str(p["name"][0]), str(p["name"][1]), p["at"], p["colour"]))
+	if jobs != null and jobs.busy():
+		return out
+	if rivals != null and rivals.ladder != null and wallet != null:
+		var nxt: int = rivals.ladder.next_rung()
+		# Pani Halina (rung 0) comes to the player in the guided first race, so she is listed only
+		# once that race is behind them.
+		if nxt < Ladder.FINAL and rivals.ladder.is_open(nxt) and (nxt > 0 or str(rivals.first_result) != ""):
+			var who := str(Ladder.RUNGS[nxt]["rival"])
+			var r_at: Vector2 = rivals.rival_at(who)
+			if r_at != Vector2.INF:
+				var re := Lines.entry("rival", "rival", Lines.Line.CAR, "Rywal · %s" % who, "Rival · %s" % who, r_at,
+						Rivals.RACE_COLOUR)
+				re["who"] = who
+				out.append(re)
+		elif nxt == Ladder.FINAL and rivals.start_marker() != Vector2.INF:
+			out.append(Lines.entry("final", "final", Lines.Line.CAR, "Trzy mosty · Seba czeka", "Three bridges · Seba waits",
+					rivals.start_marker(), Rivals.FINAL_COLOUR))
 	if rides != null and rides.can_request():
 		out.append(Lines.entry("ride", "ride", Lines.Line.CAR, "Podwózka · poproś o kurs", "Podwózka · ask for a ride",
 				Vector2.INF, Rides.COLOUR, "ride"))
@@ -4281,6 +4305,9 @@ func _quest_entries() -> Array:
 	if missions != null and missions.can_request():
 		out.append(Lines.entry("call", "call", Lines.Line.HELI, "Wezwanie · ratunek z helikoptera",
 				"Rescue call · by helicopter", Vector2.INF, Lines.HELI_COLOUR, "call"))
+		if missions.peacock_open():
+			out.append(Lines.entry("peacock", "peacock", Lines.Line.HELI, "Pan Paw · utknął na dachu",
+					"Mr Peacock · stuck on a roof", Vector2.INF, Lines.HELI_COLOUR, "peacock"))
 	if cassettes != null and cassettes.ready_ok:
 		for c: Dictionary in cassettes.entries:
 			var at: Vector3 = c.get("pos", Vector3.INF)
@@ -4290,6 +4317,39 @@ func _quest_entries() -> Array:
 			out.append(Lines.entry("cassette_" + str(c["id"]), "cassette", Lines.Line.HELI, "Kaseta · %s" % nm[0],
 					"Cassette · %s" % nm[1], Vector2(at.x, at.z), Cassettes.COLOUR))
 	return out
+
+
+## G12c: the row for what is under way ({} when nothing is): a race, a job (Na czasie, Mlask,
+## Limitka, Czwarty...), a ride, a side job or a rescue, on the vehicle's own tab, with its target.
+func _quest_now() -> Dictionary:
+	var what: Array = []
+	var at := Vector3.INF
+	var colour := Color.WHITE
+	if rivals != null and rivals.has_target():
+		what = ["Teraz · Trzy mosty", "Now · Three bridges"] if rivals.final_on else ["Teraz · wyścig do mety", "Now · race to the finish"]
+		at = rivals.target_position()
+		colour = rivals.target_colour()
+	elif trend_job != null and trend_job.has_target():
+		what = ["Teraz · zlecenie na czasie", "Now · on-trend job"]
+		at = trend_job.target_position()
+		colour = trend_job.target_colour()
+	elif rides != null and rides.has_target():
+		what = ["Teraz · Podwózka", "Now · Podwózka ride"]
+		at = rides.target_position()
+		colour = rides.target_colour()
+	elif jobs != null and jobs.has_target():
+		what = ["Teraz · zlecenie", "Now · job"]
+		at = jobs.target_position()
+		colour = jobs.target_colour()
+	elif missions != null and missions.has_target():
+		what = ["Teraz · akcja ratunkowa", "Now · rescue"]
+		at = missions.target_position()
+		colour = missions.target_colour()
+	if what.is_empty():
+		return {}
+	var line := Lines.Line.HELI if flying else Lines.Line.CAR
+	var xz := Vector2(at.x, at.z) if at != Vector3.INF else Vector2.INF
+	return Lines.entry("now", "now", line, str(what[0]), str(what[1]), xz, colour, Lines.NOW)
 
 
 ## G12 part 2: a row of the ZADANIA card: a request starts now (the map has closed: a ride's
@@ -4302,6 +4362,11 @@ func _on_quest_picked(e: Dictionary) -> void:
 		"call":
 			missions.request_call(true)
 			quest_pin = {}
+		"peacock":
+			missions.request_peacock()
+			quest_pin = {}
+		Lines.NOW:
+			return  # G12c: the quest under way keeps its own arrow
 		_:
 			quest_pin = e
 	print("quest list: %s" % (str(e["id"]) if not e.is_empty() else "pin off"))
@@ -5713,6 +5778,12 @@ func _show_target() -> void:
 		var at_q := _vehicle_position()
 		var cassette := str(quest_pin["group"]) == "cassette"
 		var cid := str(quest_pin["id"]).trim_prefix("cassette_")
+		if str(quest_pin["group"]) in Lines.MOVING and rivals != null:
+			# G12c: the rival's pin follows them through traffic.
+			var moved: Vector2 = rivals.rival_at(str(quest_pin.get("who", "")))
+			if moved != Vector2.INF:
+				quest_pin["at"] = moved
+				qp = moved
 		if (cassettes.is_taken(cid) if cassette else Lines.pin_reached(quest_pin, Vector2(at_q.x, at_q.z))):
 			print("quest list: pin %s reached" % quest_pin["id"])
 			quest_pin = {}
