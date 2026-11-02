@@ -537,6 +537,18 @@ func _on_context(owner: String) -> void:
 		hud.toast("Szukam kursu…", "Finding you a ride…")
 
 
+## G12 part 2: the AUTO list may offer "ask for a ride" now (the PODWÓZKA button's rule: in the
+## car, nothing else on, past the first FIRST_OFFER seconds).
+func can_request() -> bool:
+	return state == State.IDLE and _free() and _session >= FIRST_OFFER
+
+
+## G12 part 2: the AUTO list's request: as a tap on PODWÓZKA (a request within PILL_DELAY s).
+func request() -> void:
+	if can_request():
+		_on_context("ride")
+
+
 ## A request from near where the car is.
 func _offer_here() -> void:
 	var p := Vector2(car.global_position.x, car.global_position.z)

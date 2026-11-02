@@ -42,6 +42,7 @@ extends Node
 ## struggled (the ×2 fallback) or was calm (the sharp image), and writes nothing of it.
 
 const Lang := preload("res://scripts/lang.gd")  # one language at a time (2026-11-02)
+const EdgeRoadworks := preload("res://scripts/edge_roadworks.gd")  # rebuilt on a language change
 const Release := preload("res://scripts/release.gd")  # DEMO 3j: no flags in a release build
 const Access := preload("res://scripts/access.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
@@ -126,6 +127,11 @@ const OldTram := preload("res://scripts/old_tram.gd")
 const CrashScenes := preload("res://scripts/crash_scenes.gd")
 ## Packs (docs/design/packs.md): running clubs, cycling packs and coffee raves.
 const Packs := preload("res://scripts/packs.gd")
+## Kibice (docs/design/city-life-satire.md 7): friendly fans by Stadion Leguminy on match evenings.
+const Fans := preload("res://scripts/fans.gd")
+const LoudCars := preload("res://scripts/loud_cars.gd")
+## Wellness circles (docs/design/city-life-satire.md): sound healing, techno yoga, the 40+ club, park kung-fu.
+const Wellness := preload("res://scripts/wellness.gd")
 ## The garage loop: Warsztat u Mirka and its paint jobs (garage.gd, its card garage_card.gd).
 const Garage := preload("res://scripts/garage.gd")
 ## Loop 3h slice 4: the guided first 10 minutes and the end card.
@@ -463,9 +469,29 @@ var tram_log := false
 ## Packs (packs.gd): running clubs, cycling packs, coffee raves; flags --packs=0 (none), --packs-now
 ## (every club and rave on whatever the clock, the packs near the car timed to pass it), --packs-log.
 var packs: Packs
+## City-life satire #1 (loud_cars.gd): the car meet at Browary and the loud supercars in traffic.
+## --loud=N: at most N loud cars at once (default 3; 0: none, and no meet); --loud-log prints
+## their revs and lines.
+var loud_cars: LoudCars
+var loud_flag := 3
+var loud_log := false
 var packs_flag := 1
 var packs_now := false
 var packs_log := false
+## Kibice (fans.gd): the fans by Stadion Leguminy; flags --fans=0 (none), --fans-now (out whatever the
+## clock), --fans-log, --fans-phase= and --fans-result= (the match day's walkers).
+var fans: Fans
+var fans_flag := 1
+var fans_now := false
+var fans_log := false
+## --fans-phase=arrive|match|leave and --fans-result=win|draw: the match day's walkers for shots.
+var fans_phase := ""
+var fans_result := ""
+## Wellness circles (wellness.gd); flags --wellness=0 (none), --wellness-now (every spot on at any hour), --wellness-log.
+var wellness: Wellness
+var wellness_flag := 1
+var wellness_now := false
+var wellness_log := false
 ## The garage loop (garage.gd): Warsztat u Mirka on Brzeska; flags --paint=<id> (the car starts in
 ## that paint, owned for the run), --garage (the car in the garage's ring, the card open; the
 ## garage shown whatever the wallet), --garage-log (`garage:` lines).
@@ -508,6 +534,9 @@ var start_heat := -1.0
 var craft_plain := false
 # --- loop 2d-1: Podwózka (rides.gd) and its testing flags ---
 var rides: Rides
+## G12 part 2: the quest pin, a place picked on the full map's ZADANIA card (quest_lines.gd entry;
+## {} none): the arrow and minimap dot point at it while nothing else is on, until it is reached.
+var quest_pin: Dictionary = {}
 ## --ride=N: ride N's request, the car by its passenger; --ride-quirk=, --passenger=, --stars=X
 ## (the live rating's start), --ignore-app (the autopilot drives the shortest road, not the
 ## app's), --parody-log (`ride:` and `gps:` lines).
@@ -623,6 +652,9 @@ var open_settings_at_start := false
 ## F's asks (2026-10-30): --fullmap opens the full-screen map at the start (screenshots).
 var open_map_at_start := false
 var fullmap_span := 0.0
+## G12 part 2, --quest-pick=N (tests, shots): the full map opens at the start and row N of the
+## ZADANIA tab shown (the vehicle's) is tapped; a place's pick then closes the map.
+var quest_pick_flag := -1
 var map_jump := Vector2.INF
 var hold_stick := Vector2.INF
 var hold_pedal := ""
@@ -1328,6 +1360,9 @@ func _build_world() -> void:
 	_build_crash_scenes()
 	_build_storefronts(data, world)
 	_build_packs(data, world)
+	_build_fans(data, world)
+	_build_loud_cars(world)
+	_build_wellness(world)
 	_build_first10()
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
@@ -1592,6 +1627,10 @@ func _set_quality(choice: int) -> void:
 		crowds.refresh()
 	if packs != null:
 		packs.amount = _crowd_scale()
+	if fans != null:
+		fans.amount = _crowd_scale()
+	if wellness != null:
+		wellness.amount = _crowd_scale()
 	if life != null:
 		life.amount = float(life_flag) * (0.5 if quality == Tiers.LOW else 1.0)
 	RenderingServer.directional_shadow_atlas_set_size(qs["shadow_size"], true)
@@ -2105,6 +2144,7 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 	crowds.sounds = city_sounds
 	crowds.log_on = night_log
 	crowds.amount = _crowd_scale()
+	crowds.meet_on = loud_flag != 0
 	crowds.clock = tod.local_clock
 	crowds.focus = func() -> Vector3: return cam_focus
 	crowds.vehicle = func() -> Array:
@@ -2186,6 +2226,81 @@ func _build_packs(data: Dictionary, world: Node3D) -> void:
 		packs.on_screen = traffic.on_screen
 	world.add_child(packs)
 	packs.setup(data, storefronts.venues if storefronts != null else [])
+
+
+## The fans by Stadion Leguminy (fans.gd), after the police (the patrol car by the gate) and the
+## city's sounds (the chant). None with --fans=0 or --crowd=0.
+func _build_fans(data: Dictionary, world: Node3D) -> void:
+	if fans_flag == 0 or crowd_flag == 0:
+		return
+	fans = Fans.new()
+	fans.name = "Fans"
+	fans.map = map
+	fans.dialogue = dialogue
+	fans.hud = hud
+	fans.police = police
+	fans.sounds = city_sounds
+	fans.log_on = fans_log
+	fans.amount = _crowd_scale()
+	fans.force = fans_now
+	fans.force_phase = fans_phase
+	fans.force_result = fans_result
+	fans.clock = tod.local_clock
+	fans.focus = func() -> Vector3: return cam_focus
+	fans.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	if traffic != null:
+		fans.on_screen = traffic.on_screen
+	world.add_child(fans)
+	fans.setup(data)
+	hud.horn_pressed.connect(func() -> void:
+		if fans != null and not flying:
+			fans.honk(car.global_position))
+## City-life satire #1 (loud_cars.gd): the meet at Browary on both city paths, and the loud
+## cars in traffic (none with --no-traffic). None at all with --loud=0.
+func _build_loud_cars(world: Node3D) -> void:
+	if traffic != null:
+		traffic.loud_target = loud_flag
+	if loud_flag == 0:
+		return
+	loud_cars = LoudCars.new()
+	loud_cars.name = "LoudCars"
+	loud_cars.traffic = traffic
+	loud_cars.sfx = sfx
+	loud_cars.dialogue = dialogue
+	loud_cars.radio = radio
+	loud_cars.map = map
+	loud_cars.log_on = loud_log
+	loud_cars.focus = func() -> Vector3: return cam_focus
+	world.add_child(loud_cars)
+	loud_cars.setup()
+
+
+## The wellness circles (wellness.gd): none with --wellness=0 or --crowd=0.
+func _build_wellness(world: Node3D) -> void:
+	if wellness_flag == 0 or crowd_flag == 0:
+		return
+	wellness = Wellness.new()
+	wellness.name = "Wellness"
+	wellness.map = map
+	wellness.dialogue = dialogue
+	wellness.sounds = city_sounds
+	wellness.hud = hud
+	wellness.log_on = wellness_log
+	wellness.amount = _crowd_scale()
+	wellness.force = wellness_now
+	wellness.clock = tod.local_clock
+	wellness.focus = func() -> Vector3: return cam_focus
+	wellness.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	if traffic != null:
+		wellness.on_screen = traffic.on_screen
+	world.add_child(wellness)
+	wellness.setup()
 
 
 func _build_first10() -> void:
@@ -3689,6 +3804,9 @@ func _parse_args() -> void:
 			# 2026-10-31: the full map's hold-to-teleport to x,z once the drive starts (tests).
 			var xz := arg.trim_prefix("--map-jump=").split(",")
 			map_jump = Vector2(float(xz[0]), float(xz[1]))
+		elif arg.begins_with("--quest-pick="):
+			quest_pick_flag = int(arg.trim_prefix("--quest-pick="))
+			open_map_at_start = true
 		elif arg == "--fullmap" or arg.begins_with("--fullmap="):
 			open_map_at_start = true
 			# --fullmap=M (2026-10-31): open it M metres across the screen's height (shots).
@@ -3717,6 +3835,10 @@ func _parse_args() -> void:
 			crash_flag = arg.trim_prefix("--crash=")
 		elif arg == "--crash-log":
 			crash_log = true
+		elif arg.begins_with("--loud="):
+			loud_flag = clampi(int(arg.trim_prefix("--loud=")), 0, 16)
+		elif arg == "--loud-log":
+			loud_log = true
 		elif arg == "--old-tram" or arg.begins_with("--old-tram="):
 			old_tram_flag = "follow" if arg == "--old-tram=follow" else "now"
 		elif arg.begins_with("--train="):
@@ -3731,6 +3853,22 @@ func _parse_args() -> void:
 			packs_now = true
 		elif arg == "--packs-log":
 			packs_log = true
+		elif arg.begins_with("--fans="):
+			fans_flag = clampi(int(arg.trim_prefix("--fans=")), 0, 1)
+		elif arg == "--fans-now":
+			fans_now = true
+		elif arg == "--fans-log":
+			fans_log = true
+		elif arg.begins_with("--fans-phase="):
+			fans_phase = arg.trim_prefix("--fans-phase=")
+		elif arg.begins_with("--fans-result="):
+			fans_result = arg.trim_prefix("--fans-result=")
+		elif arg.begins_with("--wellness="):
+			wellness_flag = clampi(int(arg.trim_prefix("--wellness=")), 0, 1)
+		elif arg == "--wellness-now":
+			wellness_now = true
+		elif arg == "--wellness-log":
+			wellness_log = true
 		elif arg.begins_with("--honk="):
 			for f in arg.trim_prefix("--honk=").split(",", false):
 				honk_frames.append(int(f))
@@ -4103,10 +4241,135 @@ func _open_full_map() -> void:
 				syrenki.entries.size() if syrenki != null else 0)  # loop 3h slice 1 (+ slice 2: the Syrenki line)
 	if rivals != null:
 		hud.full_map.set_ladder(rivals.ladder_rows())  # loop 3h slice 3: the DRABINKA card
+	hud.full_map.set_quests(_quest_entries(), Lines.Line.HELI if flying else Lines.Line.CAR,
+			str(quest_pin.get("id", "")))  # G12 part 2: the ZADANIA card
 	if not hud.full_map.closed.is_connected(_close_full_map):
 		hud.full_map.closed.connect(_close_full_map)
 		hud.full_map.teleport.connect(_teleport_from_map)
+		hud.full_map.quest_picked.connect(_on_quest_picked)
+	if quest_pick_flag >= 0:
+		var rows: Array = hud.full_map.quest_rows
+		print("quest list: %d rows on the %s tab: %s" % [rows.size(), "HELI" if flying else "AUTO",
+				", ".join(rows.map(func(r: Dictionary) -> String: return "%s %s" % [r["id"], r["far"][1]]))])
+		hud.full_map.pick_row(quest_pick_flag)
+		quest_pick_flag = -1
+		if hud.full_map.is_open():
+			hud.full_map.close()
 		hud.full_map.can_teleport = _teleport_refusal
+
+
+## G12 part 2: what the ZADANIA card lists now (quest_lines.gd entries). AUTO: the kebab stands,
+## the słoiki stations and the Leżak depots (jobs.gd `offer_places`), Warsztat u Mirka, and "ask for
+## a ride" (Podwózka's rule). HELI: the cassettes on the roofs not taken, and "a rescue call" (one
+## only the helicopter reaches). Nothing while a race, a job or a rescue is on.
+## G12c: AUTO also lists the open "Na czasie" slots, Cringulo's van (Mlask) and the Friday drop
+## (trend_job.gd `offer_places`), and the ladder's next rival where they cruise now (or Seba's start
+## for "Trzy mosty" at night); HELI the peacock's roof call while Pan Paw is still up there. While a
+## race, a job, a ride or a rescue is on, its one row ("Teraz · ...") leads the vehicle's tab.
+func _quest_entries() -> Array:
+	var out: Array = []
+	var now := _quest_now()
+	if not now.is_empty():
+		return [now]
+	if (rivals != null and rivals.busy()) or (missions != null and missions.has_target()):
+		return out
+	var places: Array = jobs.offer_places() if jobs != null else []
+	if trend_job != null and (jobs == null or not jobs.busy()) and (rides == null or not rides.busy()):
+		places.append_array(trend_job.offer_places())
+	for p: Dictionary in places:
+		out.append(Lines.entry("%s_%.0f_%.0f" % [p["group"], p["at"].x, p["at"].y], str(p["group"]), Lines.Line.CAR,
+				str(p["name"][0]), str(p["name"][1]), p["at"], p["colour"]))
+	if jobs != null and jobs.busy():
+		return out
+	if rivals != null and rivals.ladder != null and wallet != null:
+		var nxt: int = rivals.ladder.next_rung()
+		# Pani Halina (rung 0) comes to the player in the guided first race, so she is listed only
+		# once that race is behind them.
+		if nxt < Ladder.FINAL and rivals.ladder.is_open(nxt) and (nxt > 0 or str(rivals.first_result) != ""):
+			var who := str(Ladder.RUNGS[nxt]["rival"])
+			var r_at: Vector2 = rivals.rival_at(who)
+			if r_at != Vector2.INF:
+				var re := Lines.entry("rival", "rival", Lines.Line.CAR, "Rywal · %s" % who, "Rival · %s" % who, r_at,
+						Rivals.RACE_COLOUR)
+				re["who"] = who
+				out.append(re)
+		elif nxt == Ladder.FINAL and rivals.start_marker() != Vector2.INF:
+			out.append(Lines.entry("final", "final", Lines.Line.CAR, "Trzy mosty · Seba czeka", "Three bridges · Seba waits",
+					rivals.start_marker(), Rivals.FINAL_COLOUR))
+	if rides != null and rides.can_request():
+		out.append(Lines.entry("ride", "ride", Lines.Line.CAR, "Podwózka · poproś o kurs", "Podwózka · ask for a ride",
+				Vector2.INF, Rides.COLOUR, "ride"))
+	if garage != null and garage.at != Vector3.INF:
+		out.append(Lines.entry("garage", "garage", Lines.Line.CAR, "Warsztat u Mirka", "Mirek's garage",
+				Vector2(garage.at.x, garage.at.z), Garage.GARAGE_COLOUR))
+	if missions != null and missions.can_request():
+		out.append(Lines.entry("call", "call", Lines.Line.HELI, "Wezwanie · ratunek z helikoptera",
+				"Rescue call · by helicopter", Vector2.INF, Lines.HELI_COLOUR, "call"))
+		if missions.peacock_open():
+			out.append(Lines.entry("peacock", "peacock", Lines.Line.HELI, "Pan Paw · utknął na dachu",
+					"Mr Peacock · stuck on a roof", Vector2.INF, Lines.HELI_COLOUR, "peacock"))
+	if cassettes != null and cassettes.ready_ok:
+		for c: Dictionary in cassettes.entries:
+			var at: Vector3 = c.get("pos", Vector3.INF)
+			if at == Vector3.INF or cassettes.is_taken(str(c["id"])):
+				continue
+			var nm: Array = c.get("name", ["", ""])
+			out.append(Lines.entry("cassette_" + str(c["id"]), "cassette", Lines.Line.HELI, "Kaseta · %s" % nm[0],
+					"Cassette · %s" % nm[1], Vector2(at.x, at.z), Cassettes.COLOUR))
+	return out
+
+
+## G12c: the row for what is under way ({} when nothing is): a race, a job (Na czasie, Mlask,
+## Limitka, Czwarty...), a ride, a side job or a rescue, on the vehicle's own tab, with its target.
+func _quest_now() -> Dictionary:
+	var what: Array = []
+	var at := Vector3.INF
+	var colour := Color.WHITE
+	if rivals != null and rivals.has_target():
+		what = ["Teraz · Trzy mosty", "Now · Three bridges"] if rivals.final_on else ["Teraz · wyścig do mety", "Now · race to the finish"]
+		at = rivals.target_position()
+		colour = rivals.target_colour()
+	elif trend_job != null and trend_job.has_target():
+		what = ["Teraz · zlecenie na czasie", "Now · on-trend job"]
+		at = trend_job.target_position()
+		colour = trend_job.target_colour()
+	elif rides != null and rides.has_target():
+		what = ["Teraz · Podwózka", "Now · Podwózka ride"]
+		at = rides.target_position()
+		colour = rides.target_colour()
+	elif jobs != null and jobs.has_target():
+		what = ["Teraz · zlecenie", "Now · job"]
+		at = jobs.target_position()
+		colour = jobs.target_colour()
+	elif missions != null and missions.has_target():
+		what = ["Teraz · akcja ratunkowa", "Now · rescue"]
+		at = missions.target_position()
+		colour = missions.target_colour()
+	if what.is_empty():
+		return {}
+	var line := Lines.Line.HELI if flying else Lines.Line.CAR
+	var xz := Vector2(at.x, at.z) if at != Vector3.INF else Vector2.INF
+	return Lines.entry("now", "now", line, str(what[0]), str(what[1]), xz, colour, Lines.NOW)
+
+
+## G12 part 2: a row of the ZADANIA card: a request starts now (the map has closed: a ride's
+## request, or a heli rescue call's card), a place becomes the quest pin ({}: the pin goes).
+func _on_quest_picked(e: Dictionary) -> void:
+	match str(e.get("action", "")):
+		"ride":
+			rides.request()
+			quest_pin = {}
+		"call":
+			missions.request_call(true)
+			quest_pin = {}
+		"peacock":
+			missions.request_peacock()
+			quest_pin = {}
+		Lines.NOW:
+			return  # G12c: the quest under way keeps its own arrow
+		_:
+			quest_pin = e
+	print("quest list: %s" % (str(e["id"]) if not e.is_empty() else "pin off"))
 
 
 ## F's ask (2026-10-31): why a hold on the full map can't teleport now ([pl, en]), or [] when it
@@ -4200,6 +4463,9 @@ func _set_language(code: String) -> void:
 	print("language: %s" % code)
 	if hud != null:
 		hud.language_changed(_settings_state())
+	# The roadworks' boards at the map's edge carry their words in the meshes (edge_roadworks.gd).
+	if map != null:
+		EdgeRoadworks.rebuild(map)
 
 
 func _close_settings() -> void:
@@ -5205,6 +5471,10 @@ func _make_stats() -> BenchStats:
 		b.systems["storefronts"] = [storefronts, "spent_usec", true]  # loop MW-2
 	if packs != null:
 		b.systems["packs"] = [packs, "spent_usec", true]  # running clubs, cycling packs, raves
+	if fans != null:
+		b.systems["fans"] = [fans, "spent_usec", true]  # the fans by Stadion Leguminy
+	if wellness != null:
+		b.systems["wellness"] = [wellness, "spent_usec", true]  # sound healing, techno yoga, 40+ club, kung-fu
 	if egg_book != null:
 		b.systems["eggs+tape+spacer"] = [self, "_moments_usec", false]  # loop MW-6
 	if districts != null:
@@ -5502,6 +5772,31 @@ func _show_target() -> void:
 		_put_target(Vector2(j.x, j.z), jobs.target_colour(), _guide_on())
 		_new_target("job", j)
 		return
+	# G12 part 2: the quest pin picked on the full map, while nothing else is on; reached, it goes.
+	if not quest_pin.is_empty() and not missions.has_target():
+		var qp: Vector2 = quest_pin["at"]
+		var at_q := _vehicle_position()
+		var cassette := str(quest_pin["group"]) == "cassette"
+		var cid := str(quest_pin["id"]).trim_prefix("cassette_")
+		if str(quest_pin["group"]) in Lines.MOVING and rivals != null:
+			# G12c: the rival's pin follows them through traffic.
+			var moved: Vector2 = rivals.rival_at(str(quest_pin.get("who", "")))
+			if moved != Vector2.INF:
+				quest_pin["at"] = moved
+				qp = moved
+		if (cassettes.is_taken(cid) if cassette else Lines.pin_reached(quest_pin, Vector2(at_q.x, at_q.z))):
+			print("quest list: pin %s reached" % quest_pin["id"])
+			quest_pin = {}
+		elif Lines.shows(int(quest_pin["line"]), flying):
+			var mq := roundi(Vector2(qp.x - at_q.x, qp.y - at_q.z).length())
+			var yq: float = map.ground_height(qp.x, qp.y) + 3.5
+			if cassette:
+				yq = cassettes.at(cassettes.index_of(cid)).y + 3.5
+			var on_q := cam.unproject_position(Vector3(qp.x, yq, qp.y)) * float(view.stretch_shrink)
+			var cq: Color = quest_pin["colour"]
+			hud.set_target(on_q, "%d m" % mq, cq, mq > 12)
+			_put_target(qp, cq, false)
+			return
 	# Loop 3h slice 4: the guide's arrow (the first stand, the boulevard tape, Powiśle, the garage).
 	if not missions.has_target() and first10 != null and first10.hint_shown():
 		var fp: Vector3 = first10.hint_at

@@ -112,6 +112,21 @@ prebuilt sectors with a renderer; check both city paths.
   the fountain at the old tunnel mouth (R3 part 2, the orthophoto on the Mac). Only the phone
   shows whether the pads and the platform lines read at the default zoom.
 
+### Items 4 and 5, the rest as built (2026-11-02)
+
+- **Lowered kerbs** (map_builder.gd `_lowered_kerb`, with `_tactile_pad`): at each zebra end that
+  has a tactile pad, a concrete wedge 3.6 m wide climbs from the road, 0.55 m before the kerb line,
+  to the granite top and runs flat to the pad, covering the kerb's dark face where the crossing
+  meets it. City-wide, 4 triangles a pad in the flat mesh, +0 draw calls. Drawn only; the car's
+  kerb feel is unchanged.
+- **The park strip** (first_scene.gd ITEMS `bench`, `lamp`): four 2.4 m larch benches facing the
+  street and three slim park lamps on the museum's pavement strip (west of the tree row), clear of
+  the café sets, kiosk and stall. The trees, grass and paths are the map's.
+- **Not done: the pavilions and towers behind the stores.** East of Marszałkowska between s 184
+  and 246 the OSM footprints fill the block (the towers 34-40 m, the 3 m pavilions at t 70-82), no
+  free ground for props, and the game's camera sees it from behind the stores. It needs photos
+  (refs/, Mac) first.
+
 ### Items 6 and 7 as built (2026-11-02)
 
 - **People standing** at the start's furniture (`crowds.gd` `FIRST_SCENE`, the chill machinery):
