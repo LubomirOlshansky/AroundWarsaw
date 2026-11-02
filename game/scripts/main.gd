@@ -87,6 +87,8 @@ const Cassettes := preload("res://scripts/cassettes.gd")
 const FirstScene := preload("res://scripts/first_scene.gd")
 ## Street details along the main line (street_details.gd, tools/bake_street_details.py).
 const StreetDetails := preload("res://scripts/street_details.gd")
+## Park details: statues, a carousel, ducks, people on the benches (park_details.gd, tools/bake_park_details.py).
+const ParkDetails := preload("res://scripts/park_details.gd")
 ## Loop 3h slice 3: the final race's route (the start's hint for --trzy-mosty).
 const TrzyMosty := preload("res://scripts/trzy_mosty.gd")
 const Ladder := preload("res://scripts/ladder.gd")
@@ -111,6 +113,7 @@ const BenchStats := preload("res://scripts/bench.gd")
 const ScreenPoints := preload("res://scripts/screen_points.gd")
 const Splash := preload("res://scripts/splash.gd")
 const CrashFx := preload("res://scripts/crash_fx.gd")
+const MoneyPop := preload("res://scripts/money_pop.gd")
 const Haptics := preload("res://scripts/haptics.gd")
 const Tiers := preload("res://scripts/tiers.gd")
 const Governor := preload("res://scripts/governor.gd")
@@ -354,6 +357,8 @@ var egg_book: EggBook
 ## memory), --districts-log.
 var districts: Districts
 var district_card := ""
+## --pop=<zl>: pays that much two seconds into the run, to see the money pop (money_pop.gd).
+var pop_flag := 0
 var districts_spec := ""
 var districts_log := false
 ## Loop 3h slice 2: the Syrenki (syrenki.gd) and their flags: --syrenki-log (placements and finds),
@@ -491,6 +496,8 @@ var pedzik_kerb := false
 ## Loop jobs-2: --armchair (the armchair man out today at any hour, the car on the lane by him).
 var armchair_flag := false
 var start_sloik := -1
+## --sloik-station=N: the station of --sloik (0 Dworzec Centralny, 1 Dworzec Gdański).
+var start_sloik_station := 0
 var start_heat := -1.0
 ## Testing (loop Zagłębie): --craft=plain, the autopilot takes the plain kebab at the craft shop.
 var craft_plain := false
@@ -640,6 +647,8 @@ const TOW_DELAY := 1.0
 var splash: Splash
 ## v1.0 juice: sparks and dust where the car hits or scrapes (crash_fx.gd).
 var crash_fx: CrashFx
+## v1.0 juice: the "+54 zł" that floats up over the vehicle on a payment (money_pop.gd).
+var money_pop: MoneyPop
 ## Seconds left until the tow (< 0: no tow waiting); when the car went in (the clock, s).
 var _tow_wait := -1.0
 var _splash_at := 0.0
@@ -1111,6 +1120,9 @@ func _build_world() -> void:
 	world.add_child(splash)
 	crash_fx = CrashFx.new()
 	world.add_child(crash_fx)
+	money_pop = MoneyPop.new()
+	money_pop.anchor = func() -> Vector3: return _vehicle_position()
+	world.add_child(money_pop)
 	car.impact.connect(_on_car_impact)
 	car.scraped.connect(func(at: Vector3, normal: Vector3, speed: float) -> void:
 		crash_fx.scrape(at, normal, car.vel, speed, car.global_position.y))
@@ -1203,6 +1215,13 @@ func _build_world() -> void:
 	missions.vehicle_anchor = func() -> Vector3: return _vehicle_position() + Vector3(0, 4.0 if flying else 2.2, 0)
 	hud.set_wallet(wallet.zl, wallet.respect)
 	wallet.changed.connect(hud.set_wallet)
+	wallet.changed.connect(func(_zl: int, _respect: int, gained: int) -> void:
+		if gained > 0:
+			money_pop.pop(gained)
+			if sfx != null:
+				sfx.coin())
+	if pop_flag > 0:
+		get_tree().create_timer(2.0).timeout.connect(func() -> void: wallet.pay(pop_flag))
 	if data.has("graph"):
 		graph = LaneGraph.new(data["graph"], map)
 	if debug_roads:
@@ -1220,6 +1239,7 @@ func _build_world() -> void:
 	_build_cassettes(world)
 	_build_first_scene(world)
 	_build_street_details(world)
+	_build_park_details(world)
 	_build_garage(world)
 	# Loop MW-5: a PÓŁNOC FM track opened (a chapter, an egg, --unlock=N): a toast.
 	radio.track_unlocked.connect(func(_n: int, track: Dictionary, _why: String) -> void:
@@ -1250,7 +1270,7 @@ func _build_world() -> void:
 		jobs.start_kebab(start_kebab)
 		cam_focus = car.global_position
 	elif jobs != null and start_sloik >= 0:
-		jobs.start_sloik(start_sloik)
+		jobs.start_sloik(start_sloik, start_sloik_station)
 		cam_focus = car.global_position
 	elif rides != null and start_ride >= 0:
 		rides.start_ride(start_ride)  # loop 2d-1
@@ -1430,6 +1450,18 @@ func _build_street_details(world: Node3D) -> void:
 	sd.map = map
 	world.add_child(sd)
 	sd.build()
+
+
+## Park details (park_details.gd): the pieces of Ogród Saski, Ogród Krasińskich and Park
+## Ujazdowski, on both city paths.
+func _build_park_details(world: Node3D) -> void:
+	if solo_site != "":
+		return
+	var pd := ParkDetails.new()
+	pd.name = "ParkDetails"
+	pd.map = map
+	world.add_child(pd)
+	pd.build()
 
 
 ## First scene (docs/design/first-scene.md item 6): a start on Marszałkowska between
@@ -2702,6 +2734,8 @@ func _build_districts() -> void:
 	districts.hud = hud
 	districts.log_on = districts_log
 	districts.blip = _blip_sound
+	if sfx != null:
+		districts.entered.connect(sfx.set_district)
 	districts.force_card = district_card
 	add_child(districts)
 	var points := {}
@@ -3475,6 +3509,8 @@ func _parse_args() -> void:
 			roundup_flag = true
 		elif arg == "--armchair":
 			armchair_flag = true
+		elif arg.begins_with("--sloik-station="):
+			start_sloik_station = maxi(0, int(arg.trim_prefix("--sloik-station=")))
 		elif arg == "--sloik" or arg.begins_with("--sloik="):
 			start_sloik = maxi(0, int(arg.trim_prefix("--sloik="))) if arg.contains("=") else 0
 		elif arg.begins_with("--heat="):
@@ -3652,6 +3688,8 @@ func _parse_args() -> void:
 			egg_flag = arg.trim_prefix("--egg=")
 		elif arg.begins_with("--district="):
 			district_card = arg.trim_prefix("--district=")
+		elif arg.begins_with("--pop="):
+			pop_flag = int(arg.trim_prefix("--pop="))
 		elif arg.begins_with("--districts="):
 			districts_spec = arg.trim_prefix("--districts=")
 		elif arg == "--districts-log":
@@ -3748,7 +3786,7 @@ func _parse_args() -> void:
 	if start_ride >= 0 or place_flag != "" or roundup_flag or district_card != "" or syrenka_flag != "" or trzy_mosty_flag:
 		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place; loop 3h: --district=)
 	# Loop MW-6: and the eggs', the tape's and Fotka's flags; --egg sets its moment's time.
-	if egg_flag != "" or tape_flag != "" or fotka_flag or spacer_hint >= 0.0:
+	if egg_flag != "" or tape_flag != "" or fotka_flag or spacer_hint >= 0.0 or pop_flag > 0:
 		show_title = false
 	if first10_flag or end_card_flag or first_race_flag:
 		show_title = false  # loop 3h slice 4: --first10 and --end-card are test runs

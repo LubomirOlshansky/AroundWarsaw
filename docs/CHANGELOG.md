@@ -10,6 +10,9 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- The Barbican is now a proper brick gatehouse: a crenellated wall in a curve with four turrets under steep conical roofs.
+- Nowy Świat's houses now each have their own plaster (ivory, butter, ochre, salmon, sage, powder blue), its café terraces have patio heaters between the tables, and people fill the terraces at lunch and into the evening.
+- Marszałkowska gets eight neon shopfronts of old trades: a milk bar, a dry cleaner, a watchmaker, a pastry shop, an optician, a florist, a haberdashery and a herbalist.
 - Nowy Świat gets eight neon shopfronts between the Palm and Karowa: a doughnut shop, ice cream with no queue, a bookshop café, an antiquarian, a boutique, a wine bar, an unfathomable gallery and an exchange office.
 - Police chases can be escaped for real: the patrol cars are a little slower than you now, so a flat-out run opens a gap and the chase ends at 100 m. And the radiowozy look like the real ones: a silver Toyota-style estate with the blue POLICJA band, checker strips and a blue bonnet, and a silver police van.
 - Marszałkowska has more street life: flower planters, bollards, kiosks and ad columns along the whole street, and tram stops with a bench, a stop sign and a ticket machine.
@@ -35,6 +38,15 @@ someone writes its lines.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
+- Osiedle Za Żelazną Bramą now stands as eleven proper concrete blocks with ribbon windows and coloured balconies, Hala Mirowska has its market stalls on the square, and the buildings along Aleja Jana Pawła II each wear their own post-war plaster.
+- The parks are alive: Ogród Saski, Ogród Krasińskich and Park Ujazdowski have statues, a carousel, a playground, a gazebo, swans and ducks on the ponds, squirrels, picnics, a yoga class and people sitting on the benches.
+- A second słoiki station at Dworzec Gdański: a newcomer with mum's jars wants a ride to a flat in Muranów, and the stations show on the minimap. And a peacock has escaped from Łazienki onto a roof by Ujazdów: when a roof call comes in while you are in the south, "Pan Paw" is the one waiting up there for the helicopter.
+- Nowy Świat is one long café terrace now: umbrellas, tables and flower tubs line both pavements from Świętokrzyska towards the de Gaulle roundabout, and six of its houses (the Zamoyski palace, the Mikulski, Bürger and Jasiński tenements, the Kossakowski palace) have their own colours and a card.
+- Getting paid now pops a gold "+54 zł" over your car with a coin ting, and each district has its own quiet background sound: the river at Powiśle, trees in the park, a square's chatter in the Old Town and on the Royal Route, courtyard wind and far trams in Praga and Muranów.
+- Powiśle has more to look at: the Ostrogski Castle with the Chopin Museum on Tamka, the parish church, the Syrenka statue on the boulevard, the water station and the Kaskada boat.
+- A new ice-cream parlour on Tamka, DALEJ DALLA GELATO: the queue stands all year, and in winter everyone queues in puffer jackets.
+- St John's Cathedral in the Old Town has its brick front: a stepped gable with a tall pointed window, stone pinnacles and a small gabled porch.
+- MDM on Plac Konstytucji looks like the socialist-realist district now: arcades along the ground floor of the blocks facing the square and Marszałkowska, and four stone towers with pointed roofs at the corners, each with a terracotta relief.
 - Most Śląsko-Dąbrowski's "find it" spot now sits on the bridge itself, where a car can reach it.
 - The football ground on Łazienkowska is a real stadium now (as "Stadion Leguminy"): a panelled facade under a red and green band, a white roof round an open middle, white, green and red stands round a striped pitch, floodlight masts at the corners and LEGUMINA in green neon, with a card.
 

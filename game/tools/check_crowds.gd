@@ -302,6 +302,14 @@ func _check_sites(c: Crowds) -> void:
 			and Crowds.milk_queue(10.0, 3)[0] == 10 and Crowds.milk_queue(13.0, 7)[0] < Crowds.MILK_MAX, "KROWA 2.0: its line by hour")
 	_expect(Crowds.chill_level(19.0, 7, false) == 1.0 and Crowds.chill_level(8.0, 7, false) == 0.0
 			and Crowds.chill_level(19.0, 1, false) > 0.3 and Crowds.chill_level(19.0, 7, true) < 0.2, "chill yards: evening full, morning empty, winter a third, rain few")
+	# Nowy Świat pass 2: the café street's chill spots are sites with people.
+	_expect(Crowds.NOWY_SWIAT.size() >= 4 and Crowds.NOWY_SWIAT.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
+			"Nowy Świat: %d chill spots are sites" % Crowds.NOWY_SWIAT.size())
+	# F, 2026-11-01: DALEJ DALLA GELATO, the Powiśle gelateria: a line in snow too.
+	_expect(Crowds.gelato_queue(10.0, 2, 7)[0] == 0 and Crowds.gelato_queue(21.5, 2, 7)[0] == 0
+			and Crowds.gelato_queue(16.0, 2, 7) == [Crowds.GELATO_MAX, "lody"]
+			and Crowds.gelato_queue(12.0, 2, 1) == [Crowds.GELATO_WINTER_MIN, "lody_zima"]
+			and Crowds.gelato_queue(16.0, 7, 12)[0] > Crowds.GELATO_WINTER_MIN, "DALEJ DALLA GELATO: its line by hour, winter too")
 	# F, 2026-11-01: the Vistula boulevards' chill spots.
 	_expect(Crowds.BULWARY.size() >= 8 and Crowds.BULWARY.values().all(func(v: Array) -> bool: return int(v[1]) > 0 and float(v[2]) > 0.0),
 			"Bulwary: %d chill spots with people and a radius" % Crowds.BULWARY.size())
@@ -319,6 +327,7 @@ func _check_sites(c: Crowds) -> void:
 			and Crowds.piure_queue(0.5, 1)[0] == 10 and Crowds.piure_queue(1.5, 6)[0] == 0, "HOTEL PIURE: its line by hour")
 	for vid: String in Crowds.KUKLA + [Crowds.PIURE_ID]:
 		_expect(c.by_id.has(vid), "no crowd at %s" % vid)
+	_expect(c.by_id.has(Crowds.GELATO[0]), "no crowd at DALEJ DALLA GELATO")
 	_expect(c.by_id.has(Crowds.PADEL_ID), "no crowd at PADELNIA")
 	_expect(c.by_id.has(Crowds.PISTACJA_ID), "no crowd at PISTACJA")
 	if c.by_id.has(Crowds.PISTACJA_ID):
