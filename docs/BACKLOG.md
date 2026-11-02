@@ -32,6 +32,73 @@ Left:
   fix it for every site's ground dressing (Dom Partii's court, Plac Defilad).
 - The stairwell walls are the map's 1.9 m walls (`lines` k wall): real balustrades are about 1 m.
   Lowering them is a map-builder change for every mapped wall, not done here.
+## Map checks in GitHub CI (2026-11-02)
+
+- Done: the `map` job in `.github/workflows/verify.yml`. The GUGiK-derived files (lod2.bin, lod2.json,
+  terrain.json) are a release asset, the map pack (`tools/map_pack.py make|fetch|check`,
+  `tools/map_pack.json` pins its hash); CI fetches it, builds the split and the prebuilt sectors
+  (`tools/setup_map.sh` with lavapipe under Xvfb) and runs the map, road, street, drape, drive,
+  landmark and water checks and the plain, prebuilt and ram runs. `tools/setup_map.sh` fetches the
+  pack itself when the files are missing, so cloud threads get the real map too. Main pushes no
+  longer cancel each other (one concurrency group per commit). `spec` joined the quick job.
+- Found and fixed on the way (both red on main, unseen): `legia.md` missed six spec sections
+  (check_spec), and #258's cycle-path snap folded 35 short links onto one point, one of them under a
+  zebra at (-92, 1720) (check_streets S2); `tools/cycleways.py` now never snaps a way's two ends
+  together, and centrum.json's cycle paths are re-tidied from the pre-#258 input
+  (street_details.json's source hash follows). check_landmarks failed the four bar barges (rays
+  from the water side, the heli at 6 m over 6.7 m decks): barges now need 5 of 12 rays and the
+  heli flies at 4 m. Before CI these stayed unseen since #205/#248/#258. After merging today's main:
+  archikatedra.md and ostrogski.md had no parts table, a Plac Zbawiciela café set stood off its
+  shopfront (check_stops K5; `square_terraces` now uses the same CAFE_FRONT rule, 45 sets), Dworzec
+  Wodny needs the barges' bank-side rays, and the heli aims at Zamek Ostrogskich's tallest cell (its
+  box's middle is the courtyard).
+- Open: F publishes release `map-pack-1` (until then the map job skips with a warning). A required
+  check: GitHub Settings → Rules → a ruleset on main requiring `quick` and `map`, so a PR can't merge
+  on red or before its run ends (#261 did). After a full bake that changes lod2 or terrain:
+  `python3 -I tools/map_pack.py make`, publish, commit `tools/map_pack.json`.
+## Rondo Daszyńskiego office crowd (F, 2026-11-02)
+
+Built (`crowds.gd` OFFICE, `office_level`, `_office`; dialogue group `office`, 65 lines tagged
+morning, lunch, evening, rain; check_crowds step 10): the office crowd on weekday rush hours.
+Open:
+- Phone look check and a bench on the rondo at 08:30 (QUESTIONS).
+- Props: lanyards, laptop bags and coffee cups are only in the lines; a figure with a bag or cup
+  needs a variant of the shared person mesh (a mesh/draw-call decision, not done).
+- The walkers' routes end at a kerb and restart elsewhere (the dawn crowd's behaviour), so a pop
+  is possible in view; a looping or two-way route would hide it.
+- The Spire's and the HUB's foyers: no footway links the rondo's exits to the Spire's foyer in the
+  map data, so no route ends there (the HUB's does). A pass over the footways round Plac
+  Europejski would add it.
+- Office life elsewhere: Rondo ONZ and Rondo 1, Plac Europejski's lunch queues.
+## Krajobraz places (F, 2026-11-02)
+
+F's ask: research the RS Architektura Krajobrazu projects inside the map (krajobraz.com.pl
+"wybrane": Bracka, Chmielna, Muzeum Historii Polski, Varso Place and the rest) with news and
+photos as well as the studio's pages, and bring each place up to how it looks now. Research,
+sources, the game's state and the build plan per place: docs/design/krajobraz-places.md. One
+fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
+- [x] K1 ul. Bracka (Al. Jerozolimskie to Krucza, the 2024 woonerf): 22 young trees planted in
+  its mapped beds (`tools/planted_trees.py`, 33 young trees in all, as the article counts).
+  Open for the Mac (QUESTIONS): the paving's colour, the beds' planting, a matched street photo.
+- [ ] K2 ul. Chmielna, Nowy Świat to Pasaż Wiecha (2024): granite slabs, 95 trees (two rows of
+  elms before Plac Pięciu Rogów), 64 benches and chairs, the small fountain by Kino Atlantic,
+  Ali's square (map, Opus spec; Sonnet build; a new PLACE in `planted_trees.py`).
+- [ ] K3 Varso Place: street planting on Chmielna's side, roof terraces on Varso 1/2, trees on
+  the tower's deck, and a parody name sign (default VERSO PLACE; never the real mark). Opus spec
+  from photos, Sonnet build.
+- [ ] K4 Zielona Świętokrzyska (2018): count the scanned trees against the 194 planted, add the
+  big planters (Sonnet, small).
+- [ ] K5 Rondo Daszyńskiego plazas: Skyliner's green passage (forest-like three tiers, wooden
+  benches on terraces), Generation Park's and Mennica Legacy Tower's plazas (Sonnet, Opus spec).
+- [ ] K6 Browary Warszawskie's Central Garden over the Leżakownia and Norblin's candelabra
+  planes and climbers (Sonnet; with "Norblin, Browary" below).
+- [ ] K7 Bulwary Wiślane stages 1-2: the 6 floating pavilions, the splash pool, the Vistula fish,
+  the amphitheatre and trampolines, checked against the orthophoto (Sonnet).
+- [ ] K8 Arkadia's playground (Al. Jana Pawła II 82, 2018): the ribbon rope course, trampolines,
+  the wooden bench-sculpture, lamps on cables (Sonnet, small).
+- [ ] K9 Stadion Narodowy's grounds: entrance avenues, tree rows, pollarded willows (Sonnet, small).
+- [ ] K10 Muzeum Historii Polski (Cytadela) lies ~0.7 km north of the map's north edge: parked
+  in QUESTIONS (grow the map or a skyline stand-in).
 
 ## The estate, the halls and Jana Pawła II (F, 2026-11-01)
 
@@ -57,12 +124,17 @@ Left:
 ## Playtest bugs (Autopilot, 2026-11-02)
 
 The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, status); fix
-threads take its confirmed rows one by one. After two runs: PT-1 confirmed (a dead stop on
-Marszałkowska just north of the start, in 3 runs), PT-2, PT-4 (Rondo Dmowskiego) and PT-5 (side
+threads take its confirmed rows one by one. After two runs: PT-1 fixed 2026-11-02 (a dead stop on
+Marszałkowska at Centrum's tram stop; every new PT spot joins `game/tools/check_stuck_spots.gd`), PT-2, PT-4 (Rondo Dmowskiego) and PT-5 (side
 streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug). Run 3 (the Śródmieście grid): PT-6 the guide's bubble
-covers the minimap and +/- buttons. Design question for the driving lane: a hit from 108 km/h
+covers the minimap and +/- buttons (not reproduced on main: check_hud sweep clean; needs the frame, 2026-11-02). Design question for the driving lane: a hit from 108 km/h
 stops the car dead in 0.2-0.4 s with no slide; is that the arcade feel we want, or should it
 bounce or slide off a wall?
+- Found with PT-1: a free spot (`main.gd _free_car_spot`, a tow) only tests the box against the
+  wall faces, so a spot fully inside a solid outline (a building, now a 0.9 m platform) counts as
+  free. Not seen in play; reject spots inside platforms and footprints if it shows up.
+- Found with PT-1: head on into a solid platform's end the car stops like at any wall and is
+  turned out after 1.5 s (Centrum's north tip faces the left lane of Marszałkowska).
 
 ## Pokorna 2 (F, 2026-11-02)
 
@@ -267,10 +339,13 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   check parked (QUESTIONS): arcade rhythm and depth, tower heights, the real reliefs.
 - Pass 5 (cloud, Sonnet, 2026-11-02): Plac Zbawiciela's cafés and the church at night. Four neon cafés
   (`Storefronts.ZBAWICIELA`: KAWA ZBAWIENIE, SZARLOTKA NA ROGU, PLAN Z, PO MSZY SPRITZ) and six parasol
-  terraces round the ring (`bake_street_details.py` TERRACES, 15 café sets, planters at the row ends);
+  terraces round the ring (`bake_street_details.py` TERRACES, 16 café sets, planters at the row ends);
   the church gets lit gilt crosses and balls, a stained rose that glows, four porch lanterns and 12
   floodlamps (1199 tris, budget 1250). Open: Mac look check (QUESTIONS), the signs on the real doors,
   heaters and awnings on the terraces, a café crowd (crowds.gd zone), the floodlit plaster wash.
+  Fixed 2026-11-02: verify `stops` failed on main since this pass (K5, a set 5 m off the east-end
+  shopfront). #282 added the shopfront test (two sets dropped); #302 uses `Placer.frontage` and moves
+  two rows 1 m in, so all 16 sets stand again.
 - Next on the street: the reliefs' real subjects, Marszałkowska's houses, roads and street life
   street by street.
 - Pass 2 (cloud, Sonnet): people waiting on Marszałkowska's 12 mapped tram platforms (`crowds.gd`
@@ -691,7 +766,7 @@ Spec: `docs/design/zaglebie-kebabowe.md`. Built: five parody kebab shops by Kino
 neon fascias, twists), the craft kebab's choice card, Szlak Szpili, the welcome lore. Left:
 - Mac photo check: Femina's real front (colour, marquee) and the shops' real frontage; a marquee
   or poster board over Femina's door would make it read as a cinema from the car.
-- A queue outside ZAKWAS I ROŻEN (crowds.gd, like KROWA 2.0). (KEBAB FM lines about the basin done 2026-11-02.)
+- ~~A queue outside ZAKWAS I ROŻEN~~ Done 2026-11-02 (`crowds.gd` `zakwas_queue`: 12:00-24:00, 8 in line, 14-18 on evenings, tag `zakwas` with four bubble lines; the phone's look is open). (KEBAB FM lines about the basin done 2026-11-02.)
 - The phone: feel of the craft kebab's 6 s wait, the five stands' spacing (23 m apart).
 
 ## Trends 2025–26 (F, 2026-11-01)
@@ -718,7 +793,7 @@ to them instead of repeating it.
 
 **State of the evidence.** The last real iPhone numbers are from 2026-10-29 (loop G0+, iPhone 11),
 before the map north, ~45 landmark sites, MW-2..MW-6, the night buses, the ladder and the guide.
-GitHub CI runs only the map-free checks ("From loop 3d-1", CI); the cloud's map data is stale, so
+GitHub CI ran only the map-free checks until 2026-11-02 (now a `map` job, top section); the cloud's map data was stale, so
 cloud threads have run the roads, drape, drive and landmarks checks against a failing baseline and
 compared with main instead of passing them (memory note, PRs #117 #125). No full
 `tools/verify.sh` on the Mac is recorded since the landmark lane began (~195 commits on main since
@@ -764,8 +839,8 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   2 frames of 600 at 17.7-25 ms (0 before); at phone size (2532x1170) the tile courses show on
   the Old Town's pitched roofs up close and fade out at the default zoom, flat roofs get faint
   seams and lighter parapet rims; no shimmer seen in stills (motion is for the phone).
-- **Map checks in CI**: the derived map pack as a release asset that CI downloads (or a small test
-  map), so roads, drape, drive and the game runs gate every PR again ("From loop 3d-1", CI). Gap.
+- ~~**Map checks in CI**~~ **Done (2026-11-02)**: the map pack as a release asset and the `map` job
+  (section "Map checks in GitHub CI" at the top); waits on F publishing `map-pack-1`.
 
 ### P0: the phone pass (performance, Opus; needs F's yes for a device run)
 - **Bench on the iPhone 11 and the 16 Pro Max on today's main**: default view, zoomed out, the
