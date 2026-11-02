@@ -49,7 +49,9 @@ MAP = os.path.join(ROOT, "game", "map")
 # G8 (2026-11-01): 4,571: one lying Leżak at the Centralny stop had no clear spot once its shelter stood on the kerb (tools/snap_props.py).
 # Krajobraz places (2026-11-02, tools/planted_trees.py, appended after the scanned trees): 44,854
 # trees (+22 young trees in ul. Bracka's woonerf, planted after the scan). Before: 268992 / 44832.
-EXPECTED = {"trees3d": 269124, "pois": 4571, "trees3d_crown": 44854}
+# Krajobraz K5 (2026-11-02, tools/plaza_gardens.py): 44,975 trees (+121 in the plazas of Skyliner,
+# Generation Park and Mennica Legacy Tower; 18+21+12 beds in areas, 11 benches). Before: 269124 / 44854.
+EXPECTED = {"trees3d": 269850, "pois": 4571, "trees3d_crown": 44975}
 # docs/DEMO.md 7 row 7: the lane graph's strongly connected share at least this.
 SCC_SHARE = 0.95
 
