@@ -44,6 +44,11 @@ const DISTRICT_BEDS := {
 	"powisle": "amb_river", "lazienki": "amb_park", "stare_miasto": "amb_square", "trakt": "amb_square",
 	"praga": "amb_yard", "muranow": "amb_yard",
 }
+## First scene item 7 (docs/design/first-scene.md, 2026-11-02): the start's box (main.gd FIRST_SCENE,
+## Plac Defilad and Marszałkowska by the museum) has the square's talk under the city bed while the
+## view is on it, though Śródmieście has no district bed of its own (a district's bed wins).
+var square_box := Rect2()
+const SQUARE_BED := "amb_square"
 ## How fast a district bed fades in and out (per second; ~3 s to settle).
 const BED_RATE := 0.8
 ## One-shots: level (dB).
@@ -242,8 +247,9 @@ func _process(dt: float) -> void:
 	_drive("rain", raining, 1.0, dt, 1.5)
 	# The district's bed: fades under rain, at night and in the helicopter (the ground is far).
 	var bed_level := (1.0 - 0.6 * raining) * (0.5 + 0.5 * daylight) * (0.4 if flying else 1.0)
+	var bed := bed_now()
 	for b in DISTRICT_BEDS.values():
-		_drive(b, bed_level if b == _bed else 0.0, 1.0, dt, BED_RATE)
+		_drive(b, bed_level if b == bed else 0.0, 1.0, dt, BED_RATE)
 	var duck := AMBIENCE_DUCK if radio != null and radio.station >= 0 else 0.0
 	_duck = move_toward(_duck, duck, dt * 6.0)
 	if not _silent:
@@ -318,6 +324,14 @@ func _drive(n: String, level: float, pitch: float, dt: float, rate: float) -> vo
 		_quiet[n] += dt
 		if _quiet[n] > 0.5:
 			p.stop()
+
+
+## The district bed the ear is under now (a LOOPS name, "" for none): the district's, else the
+## start box's square (first scene item 7).
+func bed_now() -> String:
+	if _bed == "" and square_box.has_point(Vector2(focus.x, focus.z)):
+		return SQUARE_BED
+	return _bed
 
 
 ## v1.0 juice: the vehicle is in district `id` ("" outside them all): its bed fades in, the

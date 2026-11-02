@@ -335,6 +335,7 @@ func _process(dt: float) -> void:
 		tram.rear = _back_point(tram, length)
 	for tram in trams:
 		_move(tram, dt)
+	_greet_step(dt)
 	# Only trams that could be seen get their cars placed (moving physics bodies
 	# costs more than the rest); the others just keep track of their head.
 	var centre := Vector2(player_pos.x, player_pos.z)
@@ -537,6 +538,34 @@ func _pose(tram: Tram) -> void:
 
 
 # --- the vintage-tram loop (old_tram.gd) ------------------------------------------------------
+
+## First scene item 7 (docs/design/first-scene.md, 2026-11-02): the first seconds of play ring a
+## tram bell. Each tram in `list` rings once as its middle passes within GREET_R m of the player's
+## car (moving, not braking for it: that rings anyway), the first of them only, for `seconds`.
+const GREET_R := 14.0
+var _greet: Array[Tram] = []
+var _greet_t := 0.0
+## How many greeting bells rang (the check reads it).
+var greeted := 0
+
+
+func greet(list: Array[Tram], seconds: float) -> void:
+	_greet = list
+	_greet_t = seconds
+
+
+func _greet_step(dt: float) -> void:
+	if _greet_t <= 0.0:
+		return
+	_greet_t -= dt
+	var me := Vector2(player_pos.x, player_pos.z)
+	for tram in _greet:
+		if tram.v > 2.0 and tram.mid.distance_to(me) < GREET_R:
+			_ring(tram)
+			greeted += 1
+			_greet_t = 0.0
+			return
+
 
 ## The bell as a tram leaves a stop or brakes for the car: the old tram's own (old_bell).
 func _ring(tram: Tram) -> void:

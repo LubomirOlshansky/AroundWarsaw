@@ -34,7 +34,7 @@ over one thing systematically: every kerb of a square, every ramp), **verify** (
 | --- | --- | --- | --- | --- | --- |
 | P1 | Start: Plac Defilad, Marszałkowska, Świętokrzyska | explore | stuck spots, kerbs, tram islands, the Palace forecourt | 2026-11-02 (runs 1, 2) | PT-1 confirmed, PT-4 and PT-2 suspects, PT-3 closed; only Marszałkowska driven: next run forces the other streets |
 | P2 | The first 10 minutes as a new player (title → language → guide stand → first job) | goal | prompts that trap, a step the guide never explains, a dead end | – | – |
-| P3 | Śródmieście grid: Jerozolimskie, Nowy Świat, Chmielna, Krucza, Mokotowska | explore | stuck spots, invisible walls, parked cars that pin | – | – |
+| P3 | Śródmieście grid: Jerozolimskie, Nowy Świat, Chmielna, Krucza, Mokotowska | explore | stuck spots, invisible walls, parked cars that pin | 2026-11-02 (run 3) | partial: Jerozolimskie, Chmielna, part of Nowy Świat; the 4 framed stops were off the road (walls, a building corner: right to stop), PT-6 new; next: Krucza, Mokotowska, Świętokrzyska, Królewska one run each |
 | P4 | Krakowskie Przedmieście, Plac Zamkowy, Old Town (the narrow streets) | test | every gate, bollard, the Castle Square slope | – | – |
 | P5 | Bridges and ramps: Śląsko-Dąbrowski, Poniatowskiego, the W-Z tunnel, Wisłostrada | test | falling through decks, snapping heights, ramp ends | – | – |
 | P6 | Powiśle and the river edge (boulevards, barges, the off-limits river) | explore | water tow, stuck at the embankment, under-deck entries (G6) | – | – |
@@ -68,6 +68,8 @@ keeping to `shots/autopilot/`, never into git) · **status** (suspect → confir
 | PT-3 | P1 | Dobra at the foot of the Powiśle escarpment (`--at=375,-396`) | the car 29 m below its start height | – | run 1 trace3 t=339; terrain there is -15.3 m, the car -14.6 m | closed (not a bug: low ground) |
 | PT-4 | P1 | Marszałkowska by Rondo Dmowskiego (`--at=-807,494`; x -790..-860, z 406..494) | hard stops at 29, 20, 13, 15 m/s, then a full stop; reversing freed it | S2 | run 20261102-122308 episode 2 | suspect |
 | PT-5 | P3 | side streets west of Marszałkowska (x -1690..-2960, z 30..415; worst `--at=-2447,205`) | 28 hard stops, 10 stucks freed in 1.6-8.6 s, while the agent wandered off its route | S3? | run 20261102-122308 `run2-events-ep1.jsonl` | suspect (low: off-route wandering) |
+| PT-6 | P3 | the HUD, any street | the guide's speech bubble ("On your left! Left! ...") covers the minimap and the +/- buttons for ~4 s | S3 | run 20261102-125901 frames | confirmed (frames); check at phone size |
+| R3 | P3 | Jerozolimskie by Plac Defilad (`-1053,235`, `-1117,248`), Szpitalna corner (`-584,154`), the excavation by Fangora (`-1141,27`) | hard stops at 108 km/h | – | run 20261102-125901 frames | closed (not bugs: 30 m off the road into a car park wall and a barrier, a building corner on a living street; at the pit the car follows the dug ground, the terrain grid doesn't) |
 
 No run so far put the car under the ground (it stayed 0.7-1.0 m above the terrain at every
 logged event in run 2).

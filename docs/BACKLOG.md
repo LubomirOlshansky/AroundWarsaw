@@ -27,10 +27,12 @@ Left:
 ## Playtest bugs (Autopilot, 2026-11-02)
 
 The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, status); fix
-threads take its confirmed rows one by one. After two runs: PT-2, PT-4 (Rondo Dmowskiego) and PT-5 (side
-streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug). PT-1 (a dead stop on Marszałkowska
-at Centrum's tram stop, 3 runs) fixed 2026-11-02; every new PT spot joins
-`game/tools/check_stuck_spots.gd`.
+threads take its confirmed rows one by one. After two runs: PT-1 fixed 2026-11-02 (a dead stop on
+Marszałkowska at Centrum's tram stop; every new PT spot joins `game/tools/check_stuck_spots.gd`), PT-2, PT-4 (Rondo Dmowskiego) and PT-5 (side
+streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug). Run 3 (the Śródmieście grid): PT-6 the guide's bubble
+covers the minimap and +/- buttons. Design question for the driving lane: a hit from 108 km/h
+stops the car dead in 0.2-0.4 s with no slide; is that the arcade feel we want, or should it
+bounce or slide off a wall?
 - Found with PT-1: a free spot (`main.gd _free_car_spot`, a tow) only tests the box against the
   wall faces, so a spot fully inside a solid outline (a building, now a 0.9 m platform) counts as
   free. Not seen in play; reject spots inside platforms and footprints if it shows up.
@@ -272,7 +274,7 @@ Done (N1): `bake_street_details.py` DENSE puts a café cluster every 11-17 m on 
 with stop kits). Skins and cards for Pałac Zamoyskich, Kamienice Mikulskiego 53 and 55, Kamienica
 Bürgera, Kamienica Jasińskiego and Pałac Kossakowskich (landmarks.gd SKINS, INFO).
 - **N2 (open):** colours and card texts are estimates, no photos in the cloud (Mac look check);
-  a pastry-shop parody for the old confectioner's near Nowy Świat 35; Chmielna's and Foksal's mouths;
+  shops done 2026-11-02 (BLIKLINA OD 1869 near no. 35, Chmielna, Foksal; positions estimated, move to real doors);
   the tenement fronts and café gardens' real extent from orthophoto; a night look of the terraces.
 - Not benched (cloud, no GPU): +68 props in the street-details batch, no new material or draw call.
 
@@ -468,10 +470,12 @@ Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue sign
   the castle's turret corner and entrance; the church's front, tower and colours; the Syrenka's
   plinth against the flood wall (its corner touches the plinth in the cloud render); what Kaskada
   is; a tree on Kaskada's deck.
-- Left: boulevard dressing (deck strips, bar containers), Hortus, Moderna Powiśle, Tamka's and
-  Dobra's tenements and street details. (Piano House and Cube House DONE 2026-11-02, specs
-  `piano_house.md`, `cube_house.md`; Mac photo check: Piano House's real facade rhythm and whether
-  its top floor is set back; where Cube House's real bays or loggias are and its colours.)
+- Left: boulevard dressing (deck strips, bar containers), Tamka's and Dobra's tenements and street
+  details. (Piano House and Cube House DONE 2026-11-02, specs `piano_house.md`, `cube_house.md`;
+  Mac photo check: Piano House's real facade rhythm and whether its top floor is set back; where
+  Cube House's real bays or loggias are and its colours. Hortus and Moderna DONE 2026-11-02, specs
+  `hortus.md`, `moderna.md`; Mac photo check: Hortus's glass and frame colours, its piers, the
+  Drewniana flats' plaster and roof; which part of Moderna is the old tenement and their heights.)
 - `check_landmarks` stops in the cloud (no terrain data); run it on the Mac.
 - L1 track that reads as railway: sleepers, raised rails, ballast shoulders (no new draw calls).
 - ~~L2 catenary, L3 the tunnel's mouths~~ Done 2026-11-01 (`map_builder` `_build_catenary`,
@@ -647,7 +651,9 @@ real ones added to `brand_denylist.json`). One PR each:
       normal rides, 3 request and 4 ride lines; `rides.gd`), five fans behind Cringulo's van with
       `viral` "cringulo" bubbles, and the egg `easter_mlask` (the car stopped within 9 m of the van
       for 3 s while he is out; `trend_job.gd`, 48 cards now).
-- [ ] Still left: the van's CRINGULO TV lettering; Mac look check of the fans' spot behind the van
+- [x] The van's CRINGULO TV lettering (pixel font, dark, both flanks under the pink band; a second
+      surface, +424 tris, check budget 800), 2026-11-02.
+- [ ] Still left: Mac look check of the lettering's size and the fans' spot behind the van
       (the side of the kerb), the egg's wording; phone checks of every sign's size, the queues and
       the job's legs.
 - [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the
@@ -660,7 +666,7 @@ Spec: `docs/design/zaglebie-kebabowe.md`. Built: five parody kebab shops by Kino
 neon fascias, twists), the craft kebab's choice card, Szlak Szpili, the welcome lore. Left:
 - Mac photo check: Femina's real front (colour, marquee) and the shops' real frontage; a marquee
   or poster board over Femina's door would make it read as a cinema from the car.
-- A queue outside ZAKWAS I ROŻEN (crowds.gd, like KROWA 2.0) and KEBAB FM lines about the basin.
+- A queue outside ZAKWAS I ROŻEN (crowds.gd, like KROWA 2.0). (KEBAB FM lines about the basin done 2026-11-02.)
 - The phone: feel of the craft kebab's 6 s wait, the five stands' spacing (23 m apart).
 
 ## Trends 2025–26 (F, 2026-11-01)
@@ -668,7 +674,7 @@ neon fascias, twists), the craft kebab's choice card, Szlak Szpili, the welcome 
 Spec and sources: `docs/design/trends-2025-26.md`. Built: eight parody trend spots (`Storefronts.TRENDY`).
 - [ ] Wykop/X/TikTok skim (cloud could not fetch them); adjust the trend list.
 - [ ] Phone check of the PISTACJA queue (Friday 16:00-18:30 drop, 36 people) and the "Limitka" job (`--trend-job=4`): line on the footway, 5 s wait, 5 min delivery. Built 2026-11-01.
-- [ ] Padel thread (F, 2026-11-01; docs/design/padel.md): built: PADELNIA queue, 11 lines (Trener Dominik, Pani Basia, Prezes z Mokotowa speak in the queue), a notebook place, the "Czwarty" job (`--trend-job=5`). Still to build: more notebook lore, the roof court "Ściana Płaczu", the Pro Shop. Phone check of the queue and the job.
+- [ ] Padel thread (F, 2026-11-01; docs/design/padel.md): built: PADELNIA queue, 11 lines (Trener Dominik, Pani Basia, Prezes z Mokotowa speak in the queue), a notebook place, the "Czwarty" job (`--trend-job=5`). DESKA (2026-11-02, parody of WTS DeSki): built on Zaruskiego (a closed tennis hall over four mapped pitches, one outdoor glass padel court with 4 players, floodlights, DESKA neon, notebook place `deski`, 3 padel lines, "Czwarty" as a friend's phone call that sends you by car or helicopter to its gate, `--trend-job=7`); phone check of the look and of the gate offer, Mac photo check of the court colours and the clubhouse, the call rings after 150 s of play then every 20 min, 8:00-22:00 (feel open); the lane graph has no road at the gate. Still to build: more notebook lore, the roof court "Ściana Płaczu", the Pro Shop. Phone check of the queue and the job.
 - [ ] E-scooter 12 km/h zones: four discs built (Złota, Zgody, Bracka, Plac Centralny; `scooter_zones.gd`, centres *guess*, toast on entry, car not capped). Still open: check the centres against the real streets, scooter riders that slow down, a zone pill.
 - [x] Lines about matcha, padel, natural wine, queue, scooter rules: 8 column posters and 5 signs in dialogue.json (PL + EN).
 - [ ] Phone check: do the new column posters read (rows ≤ 8 letters)? Not run, no Godot in the cloud.
@@ -700,9 +706,10 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   open. Main today starts facing south with the stand behind the car. Rebase both on main, re-run
   their checks (`first10`, `first10-run`, `opening`, `cassettes`, `save`, `hud`), merge #115 then
   #121. Built, not verified on the phone.
-- **The first scene's open items** (design/first-scene.md items 4-7; BACKLOG "High priority: the
+- **The first scene's open items** (design/first-scene.md items 4-5; BACKLOG "High priority: the
   first scene"): the pavilions and towers behind the Eastern Wall stores, Plac Defilad's paving and
-  park strip, the tram stops and kerbs on Marszałkowska, pedestrians and sound at the start. Gap.
+  park strip, the tram stops and kerbs on Marszałkowska. Gap. Items 6-7 (pedestrians and sound at
+  the start) built 2026-11-02, phone check parked.
 
 ### P0: the whole build checked again (map and performance, Opus; needs the Mac)
 - **A full `tools/verify.sh` and `tools/verify.sh --ios` on the Mac on today's main**, both city
@@ -1063,7 +1070,11 @@ golden-image shots runtime vs `--prebuilt`,
   check, spec B):** the Rotunda re-pass done (spec `docs/landmarks/specs/rotunda.md`: green-grey
   glass between 52 silver mullions, the folded-plate crown with its teeth, the oculus, the
   canopies, Widok Towers' green grid); only the phone can show the teeth and the signs' size. Left: the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
-  the tram stops and kerbs (item 5), pedestrians and sound (6-7), the photo check on the Mac.
+  the tram stops and kerbs (item 5), the photo check on the Mac. **Items 6-7 (life and sound) built
+  2026-11-02** (first-scene.md "Items 6 and 7 as built"). Found then, open: the café sitters sit on
+  the footway by the tables, not on the chairs (a seat list per café set would fix it); the
+  "a few cars" part of item 6 is left to the Low traffic default (G2), no boost at the start; the
+  title screen itself still shows the trams wherever they went while it was up.
 
 ## Packs: running clubs, cycling packs, coffee raves, big guys with tiny dogs (F, 2026-11-01)
 Built (`packs.gd`, docs/design/packs.md): three parody running clubs and two road-cycling packs out
@@ -1113,7 +1124,7 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   kebab district) and the Kinoteka at the Palace's west wing. Independent halls keep their real names
   (place names, not brands); the multiplex chains stay out. Left: Iluzjon (Narbutta, Mokotów, south of
   the map), Kino Wisła (location unverified), the evening queue and repertory board, notebook cards,
-  poster-board facades, dialogue lines.
+  poster-board facades. (KEBAB FM radio lines about the cinemas and the Basin done 2026-11-02, 8 untagged `radio_host` lines.)
 - **Arthouse cinemas** (kina studyjne): small screens in old halls, a bar, a repertory board.
   Parody names for the real ones: **Kino Muranek** (for Muranów), **Iluzja** (Iluzjon),
   **Kultura 24** (Kultura), **Elektroniczne** (Elektronik), **Kinoteka Pałacowa** (Kinoteka, in

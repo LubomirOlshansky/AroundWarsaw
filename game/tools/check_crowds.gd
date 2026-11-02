@@ -17,6 +17,10 @@ extends SceneTree
 ##   7. the levels the eggs read, and the eggs E03 E04 E10 E14 E15 firing on synthetic inputs
 ##      only with their crowd (E15 on its third different day), each reward once;
 ##   8. the tick's cost;
+##  10. first scene item 6 (2026-11-02): the start's street sites (FIRST_SCENE) by its furniture,
+##      every figure on a footway within the site's reach and inside main.gd's FIRST_SCENE box, the
+##      `street` curve never empty from 8 to 21, thinner in rain and winter, people there at the
+##      Day look's 14:00, the café sites with sitters and the kiosk's all standing;
 ##   9. F's asks (2026-10-30): Level 26 stands on the tower (its place inside a building part of
 ##      100 m or more in the map data), its door queue on a footway, the roof ring on a synthetic
 ##      tower (every ray on the facade or at most a cell outside it, one height).
@@ -86,6 +90,7 @@ func _run() -> void:
 	root.add_child(dlg)
 	var c: Crowds = _make(book.places, data, dlg, 1.0)
 	_check_sites(c)
+	_check_first_scene(c)
 	_check_decks(c, data)
 	_check_level26(c, book, data)
 	_check_door(c, dlg)
@@ -371,6 +376,55 @@ func _check_sites(c: Crowds) -> void:
 
 
 # 5. -------------------------------------------------------------------------------------------
+
+# 10. -------------------------------------------------------------------------------------------
+
+## The first frame's box (main.gd FIRST_SCENE: Plac Defilad and Marszałkowska by the start).
+const START_BOX := Rect2(-1080.0, -160.0, 200.0, 420.0)
+
+func _check_first_scene(c: Crowds) -> void:
+	for h in range(8, 22):
+		_expect(Crowds.street_level(float(h), 7, false) >= 0.5, "first scene: the street at %d:00 is %.2f (want 0.5+ from 8 to 21)" % [h, Crowds.street_level(float(h), 7, false)])
+	_expect(Crowds.street_level(14.0, 1, false) < Crowds.street_level(14.0, 7, false)
+			and Crowds.street_level(14.0, 1, false) >= 0.5, "first scene: January at 14:00 %.2f (want under July, 0.5+)" % Crowds.street_level(14.0, 1, false))
+	_expect(Crowds.street_level(14.0, 7, true) < Crowds.street_level(14.0, 7, false) * 0.5, "first scene: rain thins the street")
+	_expect(Crowds.street_level(3.0, 7, false) == 0.0, "first scene: nobody standing at 3:00")
+	var saved_now := now.duplicate()
+	var saved_cal := cal.duplicate()
+	# The Day look: Friday 14:00, July, dry.
+	now = {"hour": 14.0, "weekday": 5}
+	cal = {"live": false, "month": 7, "date": 0, "look": "Day", "rain": false, "sunset": 19.5}
+	_run_ticks(c, 2.0)
+	var people := 0
+	for fid: String in Crowds.FIRST_SCENE:
+		if not c.by_id.has(fid):
+			problems.append("first scene: no site %s" % fid)
+			continue
+		var s: Dictionary = c.sites[int(c.by_id[fid])]
+		var at: Vector2 = s["at"]
+		_expect(START_BOX.has_point(at), "first scene: %s at %s is outside the start box" % [fid, at])
+		var slots: Array = s["slots"]
+		_expect(slots.size() >= int(s["max"]), "first scene: %s has %d spots for %d people" % [fid, slots.size(), int(s["max"])])
+		var sitters := 0
+		for sl: Dictionary in slots:
+			var p: Vector2 = sl["p"]
+			sitters += int(int(sl.get("pose", Crowds.STAND)) == Crowds.SIT)
+			if p.distance_to(at) > float(s["radius"]) + 1.0:
+				problems.append("first scene: %s has a figure %.1f m out (reach %.0f)" % [fid, p.distance_to(at), float(s["radius"])])
+				break
+			if c.nearest_foot(p, 1.0).is_empty():
+				problems.append("first scene: %s has a figure off the footways at %s" % [fid, p])
+				break
+		var sits: bool = Crowds.FIRST_SCENE[fid][4]
+		_expect(sitters > 0 if sits else sitters == 0, "first scene: %s has %d sitters (sits: %s)" % [fid, sitters, sits])
+		_expect(int(s["want"]) >= 4, "first scene: %s wants %d people on a July Friday at 14:00 (want 4+)" % [fid, int(s["want"])])
+		people += int(s["want"])
+	if verbose:
+		print("first scene: %d people standing at the start's furniture at 14:00" % people)
+	now = saved_now
+	cal = saved_cal
+	_run_ticks(c, 2.0)
+
 
 func _run_ticks(c: Crowds, seconds: float) -> void:
 	var n := int(seconds / Crowds.TICK)
