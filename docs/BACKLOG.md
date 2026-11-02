@@ -707,6 +707,14 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
 ### P1: main line and side quests (game-designer, Opus for the review)
 - Every activity has a headless check (rides, side jobs, couriers, ladder, syrenki, eggs, garage,
   police, main line, end card); none has been played end to end by a person on the phone, and the
+  pay tables are first guesses (BACKLOG-TRIAGE "Decisions"). The guide's lines, Halina's lines and
+  the end card are unreviewed ("From loop 3h slice 4"); the end card's "10 jobs" definition and the
+  trap's koguty line are open. A designer pass over all player-facing text and pay, then F's run.
+- The DEMO 6.3 counts are done (2026-11-01): 10 roof cassettes, 72 landmark cards, the second
+  słoiki station (Dworzec Gdański, `--sloik --sloik-station=1`) and the Łazienki peacock rescue. Not
+  seen in a run yet (the cloud has no city): the Gdański ring and person on the kerb, the
+  Muranów drive, and the peacock's roof (Zamek Ujazdowski, else the nearest roof); the peacock call
+  needs the player within 2.6 km of it, so it never shows from the north; Łazienki itself is off the map.
   pay tables were first guesses. **Designer pass done (2026-11-01, docs/design/pay-tables.md)**: a
   desk model of złoty and respect a minute per activity; a rematch now gives +20 respect (was +100,
   a shortcut past every gate), słoiki pay 40 + 30 a jar (was 50 + 35); the guide's, Halina's, the
