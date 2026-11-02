@@ -3,6 +3,10 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Pokorna 2 (F, 2026-11-02)
+
+- Pokorna 2 remodelled as flats (site `pokorna2`, spec pokorna2.md). Open: Mac look check (QUESTIONS); the Gdański Business Center thread works nearby (Dworzec Gdański), keep its site zone clear of the outline at (-2123, -2217).
+
 
 ## Stadion Leguminy (F, 2026-11-01)
 - Built from the mapped outline only (spec legia.md). Left: Mac photo check (QUESTIONS), the real stands' shape and the concourse side, entrances and tickets booths, club shop, the car park on the east side, the 20 m west stand as its own mass.
