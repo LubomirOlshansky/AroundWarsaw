@@ -25,9 +25,15 @@ is the order of the next threads. Found while building it:
   obelisks, Ogród Saski's 19 allegories at their real spots instead of 16 random ones) and 520 sandstone
   wall plaques with candles (Tchorek's Uprising plaques and the rest), built in park_details' per-cell
   meshes (+3 draw calls on the bench route). Checks `monuments` and `monumentmesh`.
-- **Monuments pass, part 2 (open):** photo builds of Nike, Słowacki, Starzyński, Mały Powstaniec, Kiliński,
-  Plac Piłsudskiego's (Piłsudski, Smolensk, Kaczyński), the Eastern memorial and Umschlagplatz from Mac photos
-  (refs/); each lands as a site and joins `bake_monuments.SKIP`. Then rows 113-116 and 142.
+- ~~**Monuments pass, part 2:** photo builds of Nike, Słowacki, Starzyński, Mały Powstaniec, Kiliński, the Eastern
+  memorial and Umschlagplatz~~ Done 2026-11-02 from the Mac's photo reports (docs/landmarks/photo-reports/):
+  sites `nike`, `slowacki`, `starzynski`, `maly_powstaniec`, `kilinski`, `umschlagplatz`, `pomnik_wschod` in
+  landmarks.gd (120-1064 tris each, no draw call of their own), all in `bake_monuments.SKIP` (811 generic pieces
+  left). Low ones get their own heli height in check_landmarks (LOW_MONUMENTS). Open: F's look on the Mac
+  (QUESTIONS); Nike's facing is the photos' best guess (north-east); the reliefs (Umschlagplatz's broken trees,
+  the names inside, the sleepers' place names) are plain fields, not lettering.
+- **Monuments pass, part 3 (open):** Plac Piłsudskiego's (Piłsudski, Smolensk, Kaczyński; `pilsudskiego.md` photo
+  report is in), then rows 113-116 and 142.
 - **Plaques without a wall:** 49 OSM plaques have no drawn wall within 12 m (free-standing ones, courtyards)
   and are left out; a post-mounted plaque piece would place them. A plaque's wall is the LoD2 footprint, so
   a deep shop recess can leave it on a pier rather than the door's wall (fine so far in shots).

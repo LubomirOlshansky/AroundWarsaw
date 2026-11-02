@@ -12,6 +12,9 @@ extends SceneTree
 ## fly over them, not to be stopped. bulwary_basen (K7, 2026-11-02): the splash pool, its 0.3 m
 ## rim and fish on 0.55 m plinths, under 2 m in all.
 const FLY_OVER := ["bulwary_basen"]
+## Monuments lower than the heli's 6 m floor (the monuments pass, part 2): it flies at this height
+## instead, so their bronze and stone have to stop it.
+const LOW_MONUMENTS := {"maly_powstaniec": 1.5, "starzynski": 2.5, "umschlagplatz": 2.5, "pomnik_wschod": 3.0}
 
 var map: Node3D
 var _frames := 0
@@ -177,8 +180,8 @@ func _fly_checks() -> int:
 					if h > top:
 						top = h
 						top_at = Vector2(x, z)
-		if info["key"] in ["elektrownia", "stadion_pkp", "ostrogski"]:
-			c = top_at  # open yards and platforms (Ostrogski's courtyard between its two blocks): the box's middle is air, aim at the tallest cell
+		if info["key"] in ["elektrownia", "stadion_pkp", "ostrogski", "umschlagplatz", "pomnik_wschod"]:
+			c = top_at  # open yards and platforms (Ostrogski's courtyard between its two blocks, Umschlagplatz's open enclosure, the Eastern memorial's long low track): the box's middle is air, aim at the tallest cell
 		var alt := clampf(top * 0.5, 6.0, 45.0)
 		if info["key"] == "tr":
 			alt = 6.0  # a building site: the cranes are thin, the theatre's closed floors stand 9 m
@@ -193,7 +196,9 @@ func _fly_checks() -> int:
 		elif info["key"] == "syrenka_powisle" or info["key"] == "dworzec_wodny":
 			alt = 3.0  # the statue stands 5 m, the water station's roof 4 m: a 6 m heli flies over them
 		elif info["key"] == "tarasy":
-			alt = 15.0  # the wave stands 30 m; the towers in its box (110 m) would lift the heli over it
+			alt = 15.0
+		elif LOW_MONUMENTS.has(info["key"]):
+			alt = LOW_MONUMENTS[info["key"]]  # the wave stands 30 m; the towers in its box (110 m) would lift the heli over it
 		var dir := Vector2(1, 0.35).normalized()
 		var start := c + dir * maxf(box.size.length() * 0.5 + 60.0, 160.0)
 		heli.place(Vector3(start.x, map.ground_height(start.x, start.y) + alt, start.y), 0.0, alt)
