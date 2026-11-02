@@ -518,8 +518,12 @@ func _check_shop_car() -> void:
 	_expect("nitro without owning", bool(car.get("nitro_on")), false)
 	g.choose_item("nitro")
 	_expect("car owns the nitro", bool(car.get("nitro_owned")), true)
+	var lit := [0]
+	car.connect("nitro_started", func() -> void: lit[0] += 1)
 	car.call("_nitro_tick", 0.1)
 	_expect("nitro on", bool(car.get("nitro_on")), true)
+	car.call("_nitro_tick", 0.1)
+	_expect("nitro_started fires once per burn (G13b)", lit[0], 1)
 	if absf(float(car.call("top_speed")) - float(car.get("max_speed")) * Car.NITRO_TOP) > 0.01:
 		problems.append("car: top speed %.1f with the nitro on" % float(car.call("top_speed")))
 	var t := 0.0
