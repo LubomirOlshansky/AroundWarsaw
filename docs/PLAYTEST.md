@@ -32,7 +32,7 @@ over one thing systematically: every kerb of a square, every ramp), **verify** (
 
 | # | Area | Kind | What to look for | Last run | Result |
 | --- | --- | --- | --- | --- | --- |
-| P1 | Start: Plac Defilad, Marszałkowska, Świętokrzyska | explore | stuck spots, kerbs, tram islands, the Palace forecourt | 2026-11-02 (run 1) | 3 suspects (PT-1..PT-3), positions lost; run 2 pending |
+| P1 | Start: Plac Defilad, Marszałkowska, Świętokrzyska | explore | stuck spots, kerbs, tram islands, the Palace forecourt | 2026-11-02 (runs 1, 2) | PT-1 confirmed, PT-4 and PT-2 suspects, PT-3 closed; only Marszałkowska driven: next run forces the other streets |
 | P2 | The first 10 minutes as a new player (title → language → guide stand → first job) | goal | prompts that trap, a step the guide never explains, a dead end | – | – |
 | P3 | Śródmieście grid: Jerozolimskie, Nowy Świat, Chmielna, Krucza, Mokotowska | explore | stuck spots, invisible walls, parked cars that pin | – | – |
 | P4 | Krakowskie Przedmieście, Plac Zamkowy, Old Town (the narrow streets) | test | every gate, bollard, the Castle Square slope | – | – |
@@ -63,9 +63,14 @@ keeping to `shots/autopilot/`, never into git) · **status** (suspect → confir
 
 | id | Row | Place (`--at=`) | What happens | Sev | Evidence | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| PT-1 | P1 | ~100 m east of the start (kit 95,-1032; Godot coords from run 2) | 108 km/h to a dead stop, then 15 s crawling; the built-in unstick fired once and didn't free it | S2 | run 20261102-115157 trace1 t=19.8-38.6 | suspect |
-| PT-2 | P1 | a block NE of Plac Defilad (kit x 360-430, y -280..380) | ~10 near-stops in a minute; unsticks rose 1 → 23 over the run | S2 | run 20261102-115157 trace2 t=240-300 | suspect |
-| PT-3 | P1 | kit (396,375) | the car 29 m below its start height: under the ground, or just lower terrain? | S1? | run 20261102-115157 trace3 t=339 | suspect |
+| PT-1 | P1 | Marszałkowska, west kerb line just north of the start (`--at=-1019,-45 --heading=-20`; seen at x -1005..-1032, z -95..83) | 24-30 m/s to ~0 in under a second; the same line in 3 runs (run 1 once, run 2 three times); reversing frees it | S2 | runs 20261102-115157 trace1 t=19.8; 20261102-122308 `run2-events-all.jsonl` | confirmed (repeats); cause unknown: kerb, tram island or a traffic car |
+| PT-2 | P1 | a block NE of Plac Defilad (run 1 kit x 360-430, y -280..380; Godot coords unknown) | ~10 near-stops in a minute; unsticks 1 → 23 over run 1 | S2 | run 20261102-115157 trace2 t=240-300 | suspect (run 2 never went there) |
+| PT-3 | P1 | Dobra at the foot of the Powiśle escarpment (`--at=375,-396`) | the car 29 m below its start height | – | run 1 trace3 t=339; terrain there is -15.3 m, the car -14.6 m | closed (not a bug: low ground) |
+| PT-4 | P1 | Marszałkowska by Rondo Dmowskiego (`--at=-807,494`; x -790..-860, z 406..494) | hard stops at 29, 20, 13, 15 m/s, then a full stop; reversing freed it | S2 | run 20261102-122308 episode 2 | suspect |
+| PT-5 | P3 | side streets west of Marszałkowska (x -1690..-2960, z 30..415; worst `--at=-2447,205`) | 28 hard stops, 10 stucks freed in 1.6-8.6 s, while the agent wandered off its route | S3? | run 20261102-122308 `run2-events-ep1.jsonl` | suspect (low: off-route wandering) |
+
+No run so far put the car under the ground (it stayed 0.7-1.0 m above the terrain at every
+logged event in run 2).
 
 ## 4. From a run to a fix (the loop)
 

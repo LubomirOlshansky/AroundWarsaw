@@ -27,9 +27,9 @@ Left:
 ## Playtest bugs (Autopilot, 2026-11-02)
 
 The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, status); fix
-threads take its confirmed rows one by one. Open now: PT-1 to PT-3 (suspects from the first
-Śródmieście run: a dead stop east of the start, a cluster of near-stops north-east of Plac
-Defilad, the car 29 m below its start height); run 2 records their exact positions.
+threads take its confirmed rows one by one. After two runs: PT-1 confirmed (a dead stop on
+Marszałkowska just north of the start, in 3 runs), PT-2, PT-4 (Rondo Dmowskiego) and PT-5 (side
+streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug).
 
 ## Pokorna 2 (F, 2026-11-02)
 
