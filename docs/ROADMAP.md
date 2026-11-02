@@ -110,6 +110,9 @@ then the Launch gate.
       bollards, kiosks and columns north of Świętokrzyska and south of the Rotunda; tram-island benches,
       stop posts and ticket machines where no shelter is mapped). Open: facades and shopfronts house by
       house, crossings against photos (BACKLOG "Marszałkowska street by street")
+- [x] Marszałkowska street by street, pass 4 (F, 2026-11-02): eight neon shopfronts of old trades on
+      mapped house numbers (milk bar, dry cleaner, watchmaker, pastry, optician, florist, haberdashery,
+      herbalist). Open: house plaster/cornices and crossings need photos (QUESTIONS, BACKLOG)
 - [x] Old Town Market Square and its Syrenka (F, 2026-11-01): cobbled paving, 58 café umbrellas, the
       fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
       Mac photo check parked (QUESTIONS)
@@ -141,6 +144,13 @@ then the Launch gate.
 - [x] Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle as models, people chilling
       in their yards and KROWA 2.0, the milk bar queue in Norblin (F, 2026-11-01; specs
       `norblin.md`, `browary.md`, `koszyki.md`, `elektrownia.md`; Mac look check parked)
+- [x] Powiśle street by street, 2026-11-01 (F): Zamek Ostrogskich with the Chopin Institute
+      (`ostrogski`, 724 tris), the parish church of St Thérèse (`teresy`, 228), the boulevard's
+      Syrenka statue, Dworzec Wodny and Kaskada (`syrenka_powisle`, `dworzec_wodny`, `kaskada`),
+      and DALEJ DALLA GELATO, the gelateria parody whose queue stands all year, in winter coats
+      from November (`crowds.gd` GELATO; Mac look check parked)
+- [ ] Powiśle left: boulevard dressing (deck strips, bar containers), Piano House, Cube House,
+      Hortus, Moderna, Dobra and Tamka's tenements, the Mac photo checks (BACKLOG "Powiśle street by street")
 - [ ] The landmark lane's remaining list (BACKLOG "Landmarks lane, hand-over": the Cathedral, the
       Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
