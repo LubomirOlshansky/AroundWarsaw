@@ -106,6 +106,10 @@ then the Launch gate.
 - [x] Nowy Świat street by street (F, 2026-11-02), pass 1: eight neon shopfronts (pastry, ice cream,
       bookshop café, antiquarian, boutique, wine bar, gallery, exchange). Open: houses, café
       gardens, crowds, Mac look check (BACKLOG "Nowy Świat street by street")
+- [x] Nowy Świat street by street, pass 2 (F, 2026-11-02): per-house plaster colours (map_builder
+      `NOWY_PASTELS`, both city paths), patio heaters on the café terraces (street details kind
+      `heater`), chill crowds at four terraces (`Crowds.NOWY_SWIAT`). Open: real awnings, houses
+      and the north end against photos (BACKLOG "Nowy Świat street by street")
 - [x] Marszałkowska street by street, pass 3 (F, 2026-11-02): street details on the whole street (planters,
       bollards, kiosks and columns north of Świętokrzyska and south of the Rotunda; tram-island benches,
       stop posts and ticket machines where no shelter is mapped). Open: facades and shopfronts house by
@@ -155,6 +159,11 @@ then the Launch gate.
       Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
+- [ ] The estate, the halls and Jana Pawła II (F, 2026-11-01; BACKLOG section):
+  - [x] Osiedle Za Żelazną Bramą: eleven blocks as a model with its own skin, 2026-11-01
+  - [x] Hala Mirowska: market stalls on the square, 2026-11-01 (the hall itself was done)
+  - [x] Aleja Jana Pawła II: mid-century plasters on every plain building along it, 2026-11-01
+  - [ ] Mac photo checks for the estate and the stalls (QUESTIONS); then the boulevard street by street
 - [ ] Nowy Świat street by street (F, 2026-11-01; BACKLOG "Nowy Świat"):
   - [x] N1 café terraces along the whole street (about three times as many) and six named houses with skins and cards, 2026-11-01
   - [ ] N2 Mac look check, Café Blikle-style pastry shop parody, Chmielna and Foksal corners, Pałac Staszica to the rondo's tenement fronts from photos
@@ -191,6 +200,8 @@ then the Launch gate.
   - [x] S3a Warszawa Stadion: the white hall with its sail, the red-and-white mosaic canopies, 2026-11-01; the roof sweeping up into a taller sail after the Mac photo check
   - [x] S3b Warszawa Śródmieście: the two glass stair pavilions by the Palace, 2026-11-01
   - [ ] S3c-e the other stations: Wschodnia, Gdańska (the map's edges, Mac look first), the WKD entrances
+  - [x] Parks come alive (2026-11-01, `park_details.gd`, `tools/bake_park_details.py`): Ogród Saski, Ogród Krasińskich, Park Ujazdowski and the castle's park get sandstone statues, a fountain, a carousel, a playground, a gazebo, pergolas, a sundial, a footbridge, ducks and swans, squirrels, people on the benches, picnics and a yoga class; the Mac look check parked
+  - [ ] Łazienki Królewskie (Palace on the Isle, Chopin monument, peacocks): south of the map's edge, waits for a map extension (QUESTIONS)
   - [x] The map's edges: the land runs on past the outline (ground fading into the sky, a tree line, blocks beyond, the rails and roads running out), Wschodnia and Gdańska first, 2026-11-01; the Mac look check parked
   - [x] L4 Most Średnicowy's look: arch-truss spans on stone piers (after the Mac photo check)
   - [x] Probe spots on the line with a train in view (Powiśle, Most Średnicowy), 2026-11-01; the phone's numbers still to take
