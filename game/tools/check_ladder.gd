@@ -20,6 +20,7 @@ extends SceneTree
 ##   godot --headless --path game --script res://tools/check_ladder.gd
 
 const Ladder := preload("res://scripts/ladder.gd")
+const Lang := preload("res://scripts/lang.gd")
 const TrzyMosty := preload("res://scripts/trzy_mosty.gd")
 const Rivals := preload("res://scripts/rivals.gd")
 const Wallet := preload("res://scripts/wallet.gd")
@@ -97,7 +98,12 @@ func _data() -> void:
 	_expect(Ladder.threshold(Ladder.FINAL) == 850, "the final needs %d" % Ladder.threshold(Ladder.FINAL))
 	_expect(is_equal_approx(Ladder.pace(0).x, 1.25) and is_equal_approx(Ladder.pace(5).x, 1.5), "pace Halina %.2f, Mike %.2f" % [Ladder.pace(0).x, Ladder.pace(5).x])
 	_expect(Ladder.rung_of("Nobody") == -1 and is_equal_approx(Ladder.pace(-1).x, Ladder.DEFAULT_PACE), "an unknown rival")
-	_summary["data"] = "stakes %s, pace %.2f-%.2f" % [stakes, Ladder.pace(0).x, Ladder.pace(5).x]
+	# The designer pass (docs/design/pay-tables.md): the full respect once per rung, a rematch less.
+	_expect(Ladder.race_gain(0, true) == 100 and Ladder.race_gain(5, true) == 100, "a first win's respect")
+	_expect(Ladder.race_gain(Ladder.FINAL, true) == Ladder.FINAL_GAIN, "the final's first win")
+	_expect(Ladder.race_gain(0, false) == Ladder.REMATCH_GAIN and Ladder.race_gain(Ladder.FINAL, false) == Ladder.REMATCH_GAIN, "a rematch's respect")
+	_expect(Ladder.REMATCH_GAIN * 3 < Ladder.WIN_GAIN, "a rematch pays %d respect, near a job's, not a rung's" % Ladder.REMATCH_GAIN)
+	_summary["data"] = "stakes %s, pace %.2f-%.2f, respect +%d first win, +%d rematch" % [stakes, Ladder.pace(0).x, Ladder.pace(5).x, Ladder.WIN_GAIN, Ladder.REMATCH_GAIN]
 
 
 func _gating() -> void:
@@ -135,7 +141,10 @@ func _gating() -> void:
 	_expect(l.is_open(Ladder.FINAL) and l.open_count() == 7, "the final at 850")
 	day = l.rows(false)
 	var night: Array = l.rows(true)
-	_expect(str(day[6][0]).contains("w nocy · at night") and str(night[6][0]).contains("Rondo Daszyńskiego"), "the final's row: %s / %s" % [day[6][0], night[6][0]])
+	_expect(str(day[6][0]).contains("w nocy") and not str(day[6][0]).contains("at night") and str(night[6][0]).contains("Rondo Daszyńskiego"), "the final's row: %s / %s" % [day[6][0], night[6][0]])
+	Lang.set_code("en")
+	_expect(str(l.rows(false)[6][0]).contains("at night") and not str(l.rows(false)[6][0]).contains("w nocy"), "the final's row in English: %s" % [l.rows(false)[6][0]])
+	Lang.set_code("pl")
 	_expect(str(day[0][0]).begins_with("★ ") and day[0][1] == "won", "a beaten row: %s" % [day[0]])
 	_expect(not l.final_won() and l.win(Ladder.FINAL, 20261031) and l.final_won() and l.next_rung() == Ladder.FINAL + 1, "the final won")
 	_expect(not l.win(Ladder.FINAL), "the final won twice")

@@ -15,6 +15,7 @@ extends Node
 ## camera's turn, so the stick means the same direction on screen during a moment.
 ## Between moments the host isn't run at all (main.gd moves the camera itself): no cost.
 
+const Lang := preload("res://scripts/lang.gd")
 const PCamHost := preload("res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd")
 const PCam := preload("res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd")
 const PCamTween := preload("res://addons/phantom_camera/scripts/resources/tween_resource.gd")
@@ -195,6 +196,20 @@ func look_at_target(car: Vector3, target: Vector3, yaw: float, pitch: float, siz
 			_leg_time = OUT_TIME * 0.5
 			print("camera: look at the target %.0f m away, over a %.0f m view halfway" % [off.length(), MAX_SIZE])
 		_leg = 0.0
+
+
+## The west-sectors fix (2026-11-01): the views look_at_target will pass through, [centre, size
+## (m tall)] from the car's to the target's (the car's, MID's when it goes over one, the shot's),
+## by the same rule, so the streamer can load what each will show before the look starts.
+static func look_keys(car: Vector3, target: Vector3, yaw: float, pitch: float, size: float, aspect: float) -> Array:
+	var b := Basis.from_euler(Vector3(deg_to_rad(pitch), deg_to_rad(yaw), 0.0))
+	var off := target - car
+	var r := absf(off.dot(b.x))
+	var u := absf(off.dot(b.y))
+	var both := maxf(maxf(u + 2.0 * MARGIN, (r + 2.0 * MARGIN) / aspect), size)
+	if both <= MAX_SIZE:
+		return [[car, size], [(car + target) * 0.5, both]]
+	return [[car, size], [(car + target) * 0.5, MAX_SIZE], [target, TARGET_SIZE]]
 
 
 ## Any touch, click or key: back to the car at once (a SKIP_TIME blend).
@@ -456,10 +471,12 @@ func _make_caption(lines: PackedStringArray) -> void:
 	big.variation_embolden = 1.1
 	big.variation_transform = Transform2D(Vector2(1.0, 0.0), Vector2(-0.2, 1.0), Vector2.ZERO)
 	big.spacing_glyph = int(h * 0.006)
-	_caption_box.add_child(_caption_label("WARSZAWA", big, h * 0.095, Color.WHITE))
+	_caption_box.add_child(_caption_label(Lang.pick("WARSZAWA", "WARSAW"), big, h * 0.095, Color.WHITE))
 	var colours := [Color("#ffd23f"), Color("#c9c2d8")]
-	for i in mini(lines.size(), 2):
-		_caption_box.add_child(_caption_label(lines[i], ThemeDB.fallback_font, h * (0.05 if i == 0 else 0.04), colours[i]))
+	if lines.size() >= 1:
+		# One language: the place in Polish or in English (lang.gd).
+		var shown := Lang.pick(lines[0], lines[1] if lines.size() > 1 else "")
+		_caption_box.add_child(_caption_label(shown, ThemeDB.fallback_font, h * 0.05, colours[0]))
 
 
 func _caption_label(text: String, font: Font, px: float, colour: Color) -> Label:

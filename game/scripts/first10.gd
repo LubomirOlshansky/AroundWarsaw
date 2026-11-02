@@ -17,7 +17,7 @@ extends Node
 ## | race | 1:30 | RACE_AFTER s after the first delivery's card, not before RACE_EARLIEST (or at RACE_LATEST without one) Pani Halina rolls up behind and flashes (rivals.gd `call_first`): the ladder's first rung, a race to the Palm she loses narrowly; declined, she tries twice more, RACE_RETRY s apart |
 ## | trap | 3:00 | the police's scripted first contact (police.gd), armed by the race; without a race the director arms it at TRAP_LATEST |
 ## | rescue | 4:00 | the first call is held (missions.gd `held`) until RESCUE_AT and the race (or RESCUE_LATEST), then rings RESCUE_RING s later |
-## | heli | ~5:00 | the helicopter (the HELI chip and H) waits for the first rescue done (or a helicopter-only call, or HELI_LATEST) |
+## | heli | ~5:00 | a hint toast for the helicopter (open from the first second since 2026-11-01; HELI and H are never locked) |
 ## | tape | 6:00 | the arrow to the mixtape on the University Library's roof (cassettes.gd, CASSETTE_ID), picked up from the helicopter: it opens the next PÓŁNOC FM track ("a new song"); without it, KASETA on the boulevards (TAPE_ID) as before |
 ## | powisle | 8:00 | "Powiśle discovered" comes from districts.gd; not by POWISLE_AT, the arrow to Powiśle |
 ## | garage | 10:00 | Mirek's garage (garage.gd `held`) waits for GARAGE_AT and the first earnings, then its toast and an arrow |
@@ -99,19 +99,19 @@ const END_BODY := [
 	"To już koniec dema. Trzy mosty twoje, kebaby dowiezione, a Palma… dalej sztuczna.",
 	"That's the end of the demo. Three bridges won, kebabs delivered, and the Palm… still fake.",
 ]
-const END_FREE := ["Miasto zostaje otwarte: jedź dokąd chcesz, wszystko odblokowane.",
-	"The city stays open: go wherever you like, everything unlocked."]
+const END_FREE := ["Miasto zostaje otwarte: jedź, dokąd chcesz. Syrenki i kasety czekają.",
+	"The city stays open: drive wherever you like. Syrenki and tapes still wait."]
 ## One line for both languages (the card has room for one): the data, the licence, the code.
 const END_CREDITS := "© OpenStreetMap (ODbL), GUGiK · MIT"
 const END_BUTTON := "JEDŹ DALEJ|FREE ROAM"
 const END_COLOUR := Color("#ffd23f")
 ## The director's words, [Polish, English] (each at most 70 characters).
 const LINES := {
-	"stand": ["Kebab przy Świętokrzyskiej czeka z twoim pierwszym zamówieniem", "The kebab stand by Świętokrzyska is waiting with your first order"],
+	"stand": ["Kebab przy Świętokrzyskiej czeka z twoim pierwszym zamówieniem.", "The kebab stand by Świętokrzyska has your first order."],
 	"heli": ["Pogotowie lotnicze pożycza ci stary śmigłowiec: HELI", "The air ambulance lends you its old helicopter: HELI"],
 	"heli_locked": ["Helikopter? Najpierw jedno wezwanie ratunkowe.", "The helicopter comes after your first rescue call."],
 	"tape": ["Na dachu BUW leży kaseta z muzyką. Leć po nią helikopterem.", "A mixtape lies on the BUW roof: fly the helicopter to it."],
-	"tape_ground": ["Na bulwarach czeka KASETA. Zwolnij przy niej.", "A time tape waits on the boulevards: slow down by it."],
+	"tape_ground": ["Na bulwarach czeka KASETA. Zwolnij przy niej.", "A KASETA waits on the boulevards: slow down by it."],
 	"powisle": ["Pod skarpą jest Powiśle. Zjedź w dół, do Wisły.", "Powiśle is below the escarpment: head down to the river."],
 }
 
@@ -297,8 +297,8 @@ func setup(want_guide: bool) -> void:
 			missions.held = true
 		if garage != null:
 			garage.held = true
-		if hud != null:
-			hud.set_vehicle_shown(false)
+		# 2026-11-01 (F, beta): the helicopter and the map teleport are open from the first second;
+		# the "heli" beat below stays as a hint.
 		if jobs != null:
 			_stand = jobs.first_stand()
 			if _stand >= 0:
@@ -328,7 +328,7 @@ func _process(dt: float) -> void:
 
 ## The helicopter is still locked (the guide's heli beat hasn't come).
 func heli_locked() -> bool:
-	return guide and not fired.has("heli") and not fired.has("done")
+	return false  # 2026-11-01 (F, beta): open from the start; the beat only toasts
 
 
 ## The H key or HELI while locked: the toast that says why.
