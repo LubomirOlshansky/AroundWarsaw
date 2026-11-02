@@ -126,6 +126,11 @@ const OldTram := preload("res://scripts/old_tram.gd")
 const CrashScenes := preload("res://scripts/crash_scenes.gd")
 ## Packs (docs/design/packs.md): running clubs, cycling packs and coffee raves.
 const Packs := preload("res://scripts/packs.gd")
+## Kibice (docs/design/city-life-satire.md 7): friendly fans by Stadion Leguminy on match evenings.
+const Fans := preload("res://scripts/fans.gd")
+const LoudCars := preload("res://scripts/loud_cars.gd")
+## Wellness circles (docs/design/city-life-satire.md): sound healing, techno yoga, the 40+ club, park kung-fu.
+const Wellness := preload("res://scripts/wellness.gd")
 ## The garage loop: Warsztat u Mirka and its paint jobs (garage.gd, its card garage_card.gd).
 const Garage := preload("res://scripts/garage.gd")
 ## Loop 3h slice 4: the guided first 10 minutes and the end card.
@@ -463,9 +468,26 @@ var tram_log := false
 ## Packs (packs.gd): running clubs, cycling packs, coffee raves; flags --packs=0 (none), --packs-now
 ## (every club and rave on whatever the clock, the packs near the car timed to pass it), --packs-log.
 var packs: Packs
+## City-life satire #1 (loud_cars.gd): the car meet at Browary and the loud supercars in traffic.
+## --loud=N: at most N loud cars at once (default 3; 0: none, and no meet); --loud-log prints
+## their revs and lines.
+var loud_cars: LoudCars
+var loud_flag := 3
+var loud_log := false
 var packs_flag := 1
 var packs_now := false
 var packs_log := false
+## Kibice (fans.gd): the fans by Stadion Leguminy; flags --fans=0 (none), --fans-now (out whatever the
+## clock), --fans-log.
+var fans: Fans
+var fans_flag := 1
+var fans_now := false
+var fans_log := false
+## Wellness circles (wellness.gd); flags --wellness=0 (none), --wellness-now (every spot on at any hour), --wellness-log.
+var wellness: Wellness
+var wellness_flag := 1
+var wellness_now := false
+var wellness_log := false
 ## The garage loop (garage.gd): Warsztat u Mirka on Brzeska; flags --paint=<id> (the car starts in
 ## that paint, owned for the run), --garage (the car in the garage's ring, the card open; the
 ## garage shown whatever the wallet), --garage-log (`garage:` lines).
@@ -1328,6 +1350,9 @@ func _build_world() -> void:
 	_build_crash_scenes()
 	_build_storefronts(data, world)
 	_build_packs(data, world)
+	_build_fans(data, world)
+	_build_loud_cars(world)
+	_build_wellness(world)
 	_build_first10()
 	_set_quality(quality_choice)
 	get_tree().root.size_changed.connect(_apply_style)
@@ -1592,6 +1617,10 @@ func _set_quality(choice: int) -> void:
 		crowds.refresh()
 	if packs != null:
 		packs.amount = _crowd_scale()
+	if fans != null:
+		fans.amount = _crowd_scale()
+	if wellness != null:
+		wellness.amount = _crowd_scale()
 	if life != null:
 		life.amount = float(life_flag) * (0.5 if quality == Tiers.LOW else 1.0)
 	RenderingServer.directional_shadow_atlas_set_size(qs["shadow_size"], true)
@@ -2105,6 +2134,7 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 	crowds.sounds = city_sounds
 	crowds.log_on = night_log
 	crowds.amount = _crowd_scale()
+	crowds.meet_on = loud_flag != 0
 	crowds.clock = tod.local_clock
 	crowds.focus = func() -> Vector3: return cam_focus
 	crowds.vehicle = func() -> Array:
@@ -2186,6 +2216,78 @@ func _build_packs(data: Dictionary, world: Node3D) -> void:
 		packs.on_screen = traffic.on_screen
 	world.add_child(packs)
 	packs.setup(data, storefronts.venues if storefronts != null else [])
+
+
+## The fans by Stadion Leguminy (fans.gd), after the police (the patrol car by the gate) and the
+## city's sounds (the chant). None with --fans=0 or --crowd=0.
+func _build_fans(data: Dictionary, world: Node3D) -> void:
+	if fans_flag == 0 or crowd_flag == 0:
+		return
+	fans = Fans.new()
+	fans.name = "Fans"
+	fans.map = map
+	fans.dialogue = dialogue
+	fans.hud = hud
+	fans.police = police
+	fans.sounds = city_sounds
+	fans.log_on = fans_log
+	fans.amount = _crowd_scale()
+	fans.force = fans_now
+	fans.clock = tod.local_clock
+	fans.focus = func() -> Vector3: return cam_focus
+	fans.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	if traffic != null:
+		fans.on_screen = traffic.on_screen
+	world.add_child(fans)
+	fans.setup(data)
+	hud.horn_pressed.connect(func() -> void:
+		if fans != null and not flying:
+			fans.honk(car.global_position))
+## City-life satire #1 (loud_cars.gd): the meet at Browary on both city paths, and the loud
+## cars in traffic (none with --no-traffic). None at all with --loud=0.
+func _build_loud_cars(world: Node3D) -> void:
+	if traffic != null:
+		traffic.loud_target = loud_flag
+	if loud_flag == 0:
+		return
+	loud_cars = LoudCars.new()
+	loud_cars.name = "LoudCars"
+	loud_cars.traffic = traffic
+	loud_cars.sfx = sfx
+	loud_cars.dialogue = dialogue
+	loud_cars.radio = radio
+	loud_cars.map = map
+	loud_cars.log_on = loud_log
+	loud_cars.focus = func() -> Vector3: return cam_focus
+	world.add_child(loud_cars)
+	loud_cars.setup()
+
+
+## The wellness circles (wellness.gd): none with --wellness=0 or --crowd=0.
+func _build_wellness(world: Node3D) -> void:
+	if wellness_flag == 0 or crowd_flag == 0:
+		return
+	wellness = Wellness.new()
+	wellness.name = "Wellness"
+	wellness.map = map
+	wellness.dialogue = dialogue
+	wellness.hud = hud
+	wellness.log_on = wellness_log
+	wellness.amount = _crowd_scale()
+	wellness.force = wellness_now
+	wellness.clock = tod.local_clock
+	wellness.focus = func() -> Vector3: return cam_focus
+	wellness.vehicle = func() -> Array:
+		if flying:
+			return [heli.global_position, heli.speed() * 3.6, true]
+		return [car.global_position, car.vel.length() * 3.6, false]
+	if traffic != null:
+		wellness.on_screen = traffic.on_screen
+	world.add_child(wellness)
+	wellness.setup()
 
 
 func _build_first10() -> void:
@@ -3717,6 +3819,10 @@ func _parse_args() -> void:
 			crash_flag = arg.trim_prefix("--crash=")
 		elif arg == "--crash-log":
 			crash_log = true
+		elif arg.begins_with("--loud="):
+			loud_flag = clampi(int(arg.trim_prefix("--loud=")), 0, 16)
+		elif arg == "--loud-log":
+			loud_log = true
 		elif arg == "--old-tram" or arg.begins_with("--old-tram="):
 			old_tram_flag = "follow" if arg == "--old-tram=follow" else "now"
 		elif arg.begins_with("--train="):
@@ -3731,6 +3837,18 @@ func _parse_args() -> void:
 			packs_now = true
 		elif arg == "--packs-log":
 			packs_log = true
+		elif arg.begins_with("--fans="):
+			fans_flag = clampi(int(arg.trim_prefix("--fans=")), 0, 1)
+		elif arg == "--fans-now":
+			fans_now = true
+		elif arg == "--fans-log":
+			fans_log = true
+		elif arg.begins_with("--wellness="):
+			wellness_flag = clampi(int(arg.trim_prefix("--wellness=")), 0, 1)
+		elif arg == "--wellness-now":
+			wellness_now = true
+		elif arg == "--wellness-log":
+			wellness_log = true
 		elif arg.begins_with("--honk="):
 			for f in arg.trim_prefix("--honk=").split(",", false):
 				honk_frames.append(int(f))
@@ -5205,6 +5323,10 @@ func _make_stats() -> BenchStats:
 		b.systems["storefronts"] = [storefronts, "spent_usec", true]  # loop MW-2
 	if packs != null:
 		b.systems["packs"] = [packs, "spent_usec", true]  # running clubs, cycling packs, raves
+	if fans != null:
+		b.systems["fans"] = [fans, "spent_usec", true]  # the fans by Stadion Leguminy
+	if wellness != null:
+		b.systems["wellness"] = [wellness, "spent_usec", true]  # sound healing, techno yoga, 40+ club, kung-fu
 	if egg_book != null:
 		b.systems["eggs+tape+spacer"] = [self, "_moments_usec", false]  # loop MW-6
 	if districts != null:

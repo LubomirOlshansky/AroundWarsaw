@@ -76,6 +76,10 @@
 # three shapes in one surface (the ambulance), the `crash_scene` and KEBAB FM lines, spots on the real
 # lane graph (main roads, 2+ lanes, no overlaps), the real traffic queueing and going round a scene,
 # the timer (first, life, gap); centrum.json only (CI too).
+# City-life satire #1, loud cars (2026-11-02): `loud` runs game/tools/check_loud_cars.gd: the taxis'
+# family (three shapes, one surface: the supercar), the Browary meet clear of buildings and roads, the
+# car_meet / loud_driver / KEBAB FM lines and the rev sound, the real traffic's loud cars (never over
+# the cap), the revs and the radio line once; centrum.json only (CI too).
 # The vintage-tram loop: `oldtram` runs game/tools/check_old_tram.gd: the old set's window (weekends
 # 09-19, Live Jun-Sep) and one run an hour, the follow count and its reset, the look's draw-call
 # budget (2 car meshes, no node added), a run on the real tracks finding E39 once; centrum.json only
@@ -88,6 +92,10 @@
 # synthetic clocks, the formation, the out-and-back loops on a grid and on the real footways and
 # cycle paths, the meshes' budgets, the lines (no real brand), a node drawing the packs only near
 # the view and its cost, the big guys with tiny dogs; centrum.json only (CI too).
+# Kibice (docs/design/city-life-satire.md 7): `fans` runs game/tools/check_fans.gd: the match
+# evenings, the chant's jump and the smoke, the three groups' room on the real pavements (off the
+# roads, out of the buildings), the meshes' budgets, the lines (no brand, no club, no rivals), a
+# node drawing the fans only near the stadium, the horn starting a chant; centrum.json only (CI too).
 # The garage loop: `garage` runs game/tools/check_garage.gd: Warsztat u Mirka's paints and rules,
 # buying and switching (10 seeded walks), the save, the car's paint, Mirek's lines, E01 and E21
 # once; no map at all (CI too).
@@ -160,8 +168,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec lod2 drape ground drive drive-prebuilt stuckspots stuckspots-prebuilt steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec drape drive stuckspots steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram firstlife prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec lod2 drape ground drive drive-prebuilt stuckspots stuckspots-prebuilt steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh spec drape drive stuckspots steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram firstlife prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -739,11 +747,17 @@ for s in $want; do
 		# real lane graph, the pay twists and Szlak Szpili.
 		zaglebie) check zaglebie '^check_zaglebie:' --script res://tools/check_zaglebie.gd ;;
 		crashes) check crashes '^check_crash_scenes:' --script res://tools/check_crash_scenes.gd ;;
+		# City-life satire #1: the loud cars and the Browary meet.
+		loud) check loud '^check_loud_cars:' --script res://tools/check_loud_cars.gd ;;
 		oldtram) check oldtram '^check_old_tram:' --script res://tools/check_old_tram.gd ;;
 		# The railway (docs/design/railway.md T1): the trains on the rail tracks.
 		trains) check trains '^check_trains:' --script res://tools/check_trains.gd ;;
 		# Packs: running clubs, cycling packs, coffee raves, the big guys with tiny dogs.
 		packs) check packs '^check_packs:' --script res://tools/check_packs.gd ;;
+		# Kibice: the friendly fans by Stadion Leguminy on match evenings.
+		fans) check fans '^check_fans:' --script res://tools/check_fans.gd ;;
+		# Wellness circles (docs/design/city-life-satire.md): sound healing, techno yoga, the 40+ club, park kung-fu.
+		wellness) check wellness '^check_wellness:' --script res://tools/check_wellness.gd ;;
 		garage) check garage '^check_garage:' --script res://tools/check_garage.gd ;;
 		save) check save '^check_save:' --script res://tools/check_save.gd ;;
 		districts) check districts '^check_districts:' --script res://tools/check_districts.gd ;;

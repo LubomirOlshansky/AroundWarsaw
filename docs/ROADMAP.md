@@ -91,6 +91,7 @@ then the Launch gate.
 - [ ] Free-play playtest plan P1-P10 run with Autopilot and every confirmed PT bug fixed
       (F, 2026-11-02; docs/PLAYTEST.md; setup and Autopilot plugin done 2026-11-02)
   - [x] PT-1 dead stop at Centrum's tram stop on Marszałkowska, 2026-11-02 (PR #289)
+  - [x] PT-8 Pani Halina rolled up in front of the car on narrow Hoża and pinned it for her whole prompt, 2026-11-02 (`check_ladder`)
   - [x] PT-13 the first order card started without a tap: GO counts down to the order's own start, 2026-11-02
   - [x] PT-9 radio ticker cut off at the left edge at 2.16:1, and PT-10 the order tracker over speech bubbles and its distance into its arrow, 2026-11-02 (`check_hud`; phone look open)
 - [ ] A full `tools/verify.sh` and `--ios` on the Mac on today's main, both city paths
@@ -98,6 +99,7 @@ then the Launch gate.
 - [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views
       shows), 2026-11-01, PR #183
 - [x] Bike paths smoothed (F, 2026-11-02, `tools/cycleways.py`, run by bake_osm): 195 gaps closed, 218 split ways joined, 52 ends on a line, 68 corners rounded; Mac look and ride check parked, comparison with OSM and the 3-8 m gaps left
+- [x] Bike path markings (F's idea #9, 2026-11-02): white square edges on the cycle crossings (P-11), 660 bike pictograms on the paths (`tools/bike_marks.py`); the OSM comparison (`tools/compare_cycleways.py`) waits for a run on the Mac
 - [x] Map review C: the streets of the 3d-1 box and map north against the orthophoto (2026-11-02):
       one-lane one-way streets 3 m → 5.5-6.5 m (283 ways), split legs kept one lane; alignment fine.
       two-lane streets 6 → 7 m (423 ways). Open: lane lines and zebras need the 0.1 m photo (BACKLOG "From map review C")
@@ -250,6 +252,8 @@ then the Launch gate.
   - [x] K1-K5 the Carmelite church's front, Mickiewicz's monument, the University gate and Pałac
         Kazimierzowski's skin, Pałac Potockich and the Kordegarda, Bristol's corner dome, 2026-11-01
         (spots and heights estimated; Mac photo check)
+  - [x] K6 Chopin benches, Prus and Wyszyński statues, granite setts, Pałac Czapskich's skin, 2026-11-01
+  - [ ] KP photo gather on the Mac (refs/krakowskie/, QUESTIONS 2026-11-02): then Czapski's model, the second Potocki guardhouse, awnings and café gardens
   - [x] KP street by street pass 1: eight neon shopfronts along the royal route, 2026-11-02 (Mac look check)
   - [x] K6 the black Chopin benches, Prus's and Wyszyński's statues, the granite setts on the
         carriageway, Pałac Czapskich's skin and card, 2026-11-01 (Mac look check)
@@ -304,6 +308,10 @@ then the Launch gate.
       Left-handed layout added 2026-11-01 (DOSTĘP, `--left-handed`); colour-safe now also covers the
       HUD's win green and fail red (2026-11-01, `Access.tint`). Text size now live (2026-11-01,
       `Hud.apply_text_scale`). Left to do: subtitles (BACKLOG)
+- [x] Wellness circles (F, 2026-11-02, `wellness.gd`, docs/design/wellness.md): sound healing (gong, bowls,
+      "80 zł" board), techno yoga with hamsters in rolling balls, the 40+ club "waking the little girl" turning
+      round a tree, kung-fu schools in the parks; eight lawn spots, 58 lines. Left: gong and beat sound, a Mac look
+      check, the phone's cost
 - [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
 - [x] Vistula boulevards full of life (F, 2026-11-01, `crowds.gd` BULWARY, `city_life.gd`): nine
@@ -326,6 +334,15 @@ then the Launch gate.
 - [x] Roof rescues never name a real chain (2026-11-02, `missions.gd` `ROOF_PARODIES`): Puro shows as Hotel Piure, Green Caffè Nero as Green Caffè Nerwo; headless check not run in the cloud (no Godot)
 - [x] Zagłębie Kebabowe and Kino Femina (F, 2026-11-02; spec docs/design/zaglebie-kebabowe.md): five parody kebab shops on Al. Solidarności, Femina's neon, delivery twists, the craft kebab's choice, Szlak Szpili, 2026-11-02 (the Mac photo check of Femina's front is open; a queue outside ZAKWAS I ROŻEN, 2026-11-02)
   - [x] KEBAB FM lines about the seven cinemas and the Kebab Basin, 2026-11-02 (text only; headless checks not run in the cloud)
+- [x] City-life satire #1, loud cars (F, 2026-11-02; docs/design/city-life-satire.md): a supercar meet with its crowd at the Browary gate square and up to three loud supercars in traffic that rev as they pass, KEBAB FM's "liczą obroty" line, 2026-11-02 (`check_loud_cars`; phone sound level and Mac look open)
+- [ ] City-life satire ideas (F, 2026-11-02; plans docs/design/city-life-satire.md):
+  - [x] #11 kebab MIESZANE MIESZANE neon, its evening queue and the "Mięso? Mieszane. Sos? Mieszane." lines (`check_crowds`), and #12 NOSE AGENCY sign on the Skyliner, 2026-11-02 (Godot did not run; Mac look check open)
+  - [x] #10 map-edge roadworks (PR #309)
+  - [ ] #1 loud cars at Browary Warszawskie and revving traffic (Opus)
+  - [ ] #2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu (Sonnet, one `circle` crowd spot thread)
+  - [ ] #5 more queues and #6 KRINGULA PIZZA (extends the food-hype lane)
+  - [x] #7 friendly Legia fans near Stadion Leguminy, 2026-11-02 (PR #336, `fans.gd`; phone look and cost open)
+  - [ ] #9 bike-path network compared with the real one (Opus)
   - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
       pads for driving, the helicopter, the mission card, Settings, the full map and the title;
