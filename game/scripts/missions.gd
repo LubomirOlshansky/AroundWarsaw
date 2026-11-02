@@ -158,11 +158,25 @@ func offer(n: int) -> void:
 	hud.hide_status()
 	hud.hide_pill()
 	var limit := _limit_for(_mission)
+	var where := _where(_mission["pos"])
 	hud.show_card("WEZWANIE %d · %s" % [n, TITLES_PL[_mission["kind"]]],
-			"%s\nSzpital: %s · czas %s" % [_mission["text_pl"], _mission["hospital"]["name"], _clock(limit)],
+			"%s\nOd ciebie: %s · Szpital: %s · czas %s" % [_mission["text_pl"], where[0], _mission["hospital"]["name"], _clock(limit)],
 			PackedStringArray(["ACCEPT", "SKIP", "LATER"]), PICKUP_COLOUR, false,
 			"Call %d · %s" % [n, TITLES[_mission["kind"]].to_lower()],
-			"%s Get them to the hospital in %s." % [_mission["gloss"], _clock(limit)])
+			"%s About %s of you. Get them to the hospital in %s." % [_mission["gloss"], where[1], _clock(limit)])
+
+
+const COMPASS_PL := ["na północ", "na północny wschód", "na wschód", "na południowy wschód", "na południe", "na południowy zachód", "na zachód", "na północny zachód"]
+const COMPASS_EN := ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"]
+
+
+## Where `at` lies from the player: [Polish, English] such as "ok. 420 m na północ" / "420 m north"
+## (map +x is east, -z is north). The card said only the street, so nobody knew which way to go.
+func _where(at: Vector3) -> Array:
+	var d := Vector2(at.x - player.x, at.z - player.z)
+	var metres := int(round(d.length() / 10.0)) * 10
+	var i := int(round(fposmod(rad_to_deg(atan2(d.x, -d.y)), 360.0) / 45.0)) % 8
+	return ["ok. %d m %s" % [metres, COMPASS_PL[i]], "%d m %s" % [metres, COMPASS_EN[i]]]
 
 
 ## Offers mission n and accepts it at once (the --mission flag).
@@ -269,7 +283,7 @@ func _ring() -> void:
 		return
 	state = State.RINGING
 	hud.show_pill("WEZWANIE", "rescue call")
-	hud.toast("Wezwanie ratunkowe!", "A rescue call came in: tap WEZWANIE")
+	hud.toast("Wezwanie ratunkowe!", "A rescue call came in: tap the button at the top.")
 	# Sweep 2: the buzz is timed so the phone's log shows the call's hitch is gone (it was
 	# the haptic engine starting inside this frame: warm_haptics()).
 	var t0 := Time.get_ticks_usec()

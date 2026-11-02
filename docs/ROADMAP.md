@@ -356,6 +356,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
       draw calls, memory, `--stream-soak`; the sector-load hitch; compressed map textures
 - [ ] F's timed fresh-save run: the first 10 minutes beat by beat and the ~1 h main line; driving
       feel, stop assist, rubber band, ghost finger, cassette size
+- [x] Rescue call card says where the person is (PT-12, 2026-11-02): distance and compass direction on the card, English hint no longer quotes the Polish label
 - [ ] A 30-minute soak with no crash or soft-lock; the HUD re-checked at 375, 390 and 440 pt (PT-9 bubble tails fixed 2026-11-02, `check_hud` covers them; the phone look is open)
 
 ### Left: TestFlight and the stores
