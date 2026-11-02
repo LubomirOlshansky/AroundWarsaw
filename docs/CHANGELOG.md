@@ -37,6 +37,7 @@ someone writes its lines.
 
 ## 2026-11-01
 - Osiedle Za Żelazną Bramą now stands as eleven proper concrete blocks with ribbon windows and coloured balconies, Hala Mirowska has its market stalls on the square, and the buildings along Aleja Jana Pawła II each wear their own post-war plaster.
+- The parks are alive: Ogród Saski, Ogród Krasińskich and Park Ujazdowski have statues, a carousel, a playground, a gazebo, swans and ducks on the ponds, squirrels, picnics, a yoga class and people sitting on the benches.
 - A second słoiki station at Dworzec Gdański: a newcomer with mum's jars wants a ride to a flat in Muranów, and the stations show on the minimap. And a peacock has escaped from Łazienki onto a roof by Ujazdów: when a roof call comes in while you are in the south, "Pan Paw" is the one waiting up there for the helicopter.
 - Nowy Świat is one long café terrace now: umbrellas, tables and flower tubs line both pavements from Świętokrzyska towards the de Gaulle roundabout, and six of its houses (the Zamoyski palace, the Mikulski, Bürger and Jasiński tenements, the Kossakowski palace) have their own colours and a card.
 - Getting paid now pops a gold "+54 zł" over your car with a coin ting, and each district has its own quiet background sound: the river at Powiśle, trees in the park, a square's chatter in the Old Town and on the Royal Route, courtyard wind and far trams in Praga and Muranów.
