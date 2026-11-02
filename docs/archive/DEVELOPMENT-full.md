@@ -5280,6 +5280,23 @@ still hold, with the paths above.
    and crown base. `bake_osm.py` picks the file up by itself: inside every sheet that parsed to
    the end, the laser-scanned trees (`trees3d` in `centrum.json`) replace OSM trees and the park
    fillers; elsewhere the OSM trees stay.
+   The scan is from 2023, older than the newest streets: `tools/planted_trees.py` (called by
+   `bake_osm.py` after `snap_props`, idempotent, also a command line tool on a baked map) adds
+   the young trees planted since into their mapped beds, per place in its `PLACES` (Krajobraz
+   places, 2026-11-02: ul. Bracka's woonerf, +22 to its 11 scanned young trees, 33 in all;
+   `trees3d` 268,992 → 269,124 values, `trees3d_crown` 44,832 → 44,854).
+   `tools/plaza_gardens.py` (same hook, right after it; K5, 2026-11-02, spec
+   docs/design/rondo-plazas.md) plants the open ground round Skyliner, Generation Park and Mennica
+   Legacy Tower: +121 young trees (`trees3d` → 269,850 values, `trees3d_crown` → 44,975), 51
+   "park" beds in `areas`, 11 benches; `plaza_gardens` in the map lists the places done, so it
+   is idempotent.
+   K3 (2026-11-02, `planted_trees.py` PLACE `varso`): +6 young trees in Chmielna's bare beds by
+   Varso Place (`trees3d` → 269,886, `trees3d_crown` → 44,981).
+   K2 (2026-11-02, `planted_trees.py` PLACE `chmielna`): one young tree per mapped tree pit on
+   ul. Chmielna, +65 to the 20 scanned in its band, 85 in all (`trees3d` → 270,276,
+   `trees3d_crown` → 45,046), and its two pedestrian areas re-tagged `granite`. One K5 plaza
+   tree by Skyliner stood through a lying scooter (check_pois Q4) and was taken out;
+   `plaza_gardens.py` keeps POI_GAP (1.6 m) from the map's POIs (→ 270,270 / 45,045).
 1. OpenStreetMap (Overpass) → `data/raw/osm_wide.json` (the whole map: roads, trees, lamps,
    traffic lights, car parks, street furniture), then
    `W=data/raw/osm_wide.json && python3 -I tools/bake_osm.py $W $W game/map/centrum.json $W $W`.
@@ -5699,6 +5716,7 @@ Command-line options (after `--`):
 | `--lift=M` | loop 1: aim the camera M metres above the vehicle (close-ups of tall landmarks: `--at=-1206,244 --lift=156 --yaw=110 --size=24 --lines=1080` looks at the Palace clock's east dial) |
 | `--probe` | loop 2b: stand where `--at` / `--heading` put the car (free roam), let 240 frames (or 8 s) pass, measure the next `--bench-frames` (default 600, or `--bench-seconds`, default 30) and print the bench's lines plus what is in view (nodes, instances, shadow casters, materials, shaders, kinds); quits |
 | `--no-map-edge` | railway lane (2026-11-01): the city without the land past the map's edge (`map_edge.gd`: the ring of ground, tree line, far blocks and the rails and roads running on), for a before/after `--probe` at the edge |
+| `--no-edge-roadworks` | edge roadworks (2026-11-02): the city without the roadworks closing the roads at the map's edge (`edge_roadworks.gd`: meshes, halos and their colliders; the edge wall stays and the traffic still stops at the lines), for a before/after `--probe` at an edge |
 | `--bench-frames=N` / `--bench-seconds=S` | loop 2b: frames to measure for `--bench` / `--probe` (default 600) and a time cap (default 30 s; with `--bench-button`, the BENCH run's length, default 55 s) |
 | `--bench-button` | loop 2b: press TEST · BENCH at frame 60 (the phone's run, at the current settings and cap) |
 | `--fps=N` | loop 2b: cap the frame rate for this run (0: none; else the setting, 60 or 30). `--bench` and `--probe` run uncapped, headless runs too |
@@ -5711,6 +5729,7 @@ Command-line options (after `--`):
 | `--tunnel` | loop 3b: with `--at`, start on the floor of the tunnel under that point (the car shows through the ground as a silhouette) |
 | `--drive-into-water=X,Z` | loop 10a: start at X,Z and drive flat out at the nearest water (within 120 m), the collision off until 3 m past the edge as if the car had jumped it; prints `water test:`, `water: splash at …` and `water: towed after … s …` (where to, how far from a lane, dry or not, the job / rescue / race / wallet), each with its frame. With `--kebab=0` a delivery is running (`tools/verify.sh` step `splash`) |
 | `--ram-test` | the driving-feel loop: after 2 s, the car is put 14 m behind the moving traffic car with the longest straight lane ahead, 6 m/s faster, and drives on along that lane (Point, 65 km/h); prints `ram test:` lines: the hit (speed, the rammed car shoved to), then `past it N s after the hit` or `NEVER PAST it after 10 s` (`tools/verify.sh` step `ram`, with `--no-police`) |
+| `--first-life` | first scene items 6-7 (2026-11-02): with `--at=` and `--heading=` on the start, after 15 s of play prints `first life: OK (...)` or its problems: walkers on Marszałkowska's busy pavements (6+, the boost on), people at the start's furniture (8+), a tram bell as one passes the car, the square's bed (`tools/verify.sh` step `firstlife`) |
 | `--traffic-overlaps` | the traffic loop: the traffic counts the pairs of its cars whose boxes overlap each frame and prints `traffic overlaps:` at the end (car-pair frames, how many on a junction curve, the spots and the worst one, knots given up), then `traffic tram overlaps:` (tram-car frames, with the tram moving, spots, the tram frames standing); use with `--traffic=busy --no-police` and an engine `--quit-after` |
 | `--tram-watch=N` | the traffic loop: the car (no collisions, standing still) is kept 30 m ahead of tram N and 20 m to its side, moved on as the tram draws level, so the view and the traffic go with that tram; with `--traffic-overlaps` |
 | `--no-police` | loop 3g-1: no police, traps or patrol cars |

@@ -11,12 +11,30 @@ someone writes its lines.
 
 ## 2026-11-02
 - The Royal Castle gets its Clock Tower back: dark-blue clock faces and a green copper onion helm with a lantern and spire, green-capped corner turrets, terracotta roofs, and a cream river front with a copper dome; below it Kubicki's Arcades now show their round arches, with the restored Upper Garden on top (tubbed ball trees, a fountain) and the Lower Garden's lawn, vases and fountains in front.
+- Chmielna has its benches: 64 along the street, on both sides between the young trees, facing the walk.
+- Chmielna looks as it has since 2024: grey granite underfoot, two rows of young elms down the narrow stretches and planes on the squares, 85 trees from Nowy Świat to Pasaż Wiecha, and Ali's memorial stone with its square's name plate behind the Eastern Wall.
+- The tenements of Dobra and Tamka each wear their own plaster now (sooty cream, ochre, faded rose, sage), with a cornice under the roof, a string course at the first floor and shop windows with a fascia board on the street side.
+- The first street's pavements are Warsaw grey instead of sand, every crossing ends in a strip of yellow tactile paving at the kerb, and the tram stops by the start have their edge line and tactile strip.
+- Varso Place is green on top and at its feet: a grove of round hawthorns in the tower's sky garden at 205 m, planted terraces with small trees on the two lower Varso buildings, young trees along Chmielna, and on the corner plaza a big glacial boulder and the VERSO PLACE name stone.
+- The new Vistula boulevards have their children's corner: a splash pool with jets and three leaping river fish (sturgeon, pike, perch) on stone plinths.
+- The squares round the Rondo Daszyńskiego towers are planted: a birch and pine grove with shrub beds and benches by Skyliner, linden courts between the Generation Park blocks, and a green forecourt in front of the Mennica Legacy Tower.
+- The radio for the beta: KEBAB FM and MORDOR FM only, a DALEJ button next to RADIO to skip a song, and the host says good morning to Warsaw with the weather and the temperature when the game starts.
+- Rondo Dmowskiego looks like the real one: grey paving round the tram cross with four curved flower beds in red and purple, the blue 1990s tube canopies over every underpass stair and the metro entrances by the Patelnia, a colourful mural on the Patelnia's wall, and a kiosk, an ice-cream cart and a tram shelter round it.
+- Arkadka, the mall by Rondo Radosława, gets its playground: a ribbon-like rope course, three trampolines, a long wooden bench and lamps hung on a cable.
+- Zielona Świętokrzyska has its big flower planters on the pavement wherever the street's trees leave a gap.
+- The car no longer stops dead by the Centrum tram stop on Marszałkowska: raised tram and train platforms are solid now, and brushing a fence or a wall along the road keeps most of your speed.
+- A queue now forms outside the craft kebab ZAKWAS I ROŻEN, longest on Friday and Saturday evenings, with people grumbling about the wait.
+- Bracka, the short woonerf behind CeDeT by Aleje Jerozolimskie, is green as it is today: 22 more young planes, maples and cherries in its planted beds, 33 trees in all.
+- The first street of the game is busier: people at the café tables by the museum, at the kiosk and the flower stall, more walkers on both pavements of Marszałkowska, a tram rolling past with its bell in the first seconds, the hum of the square under the city's sound, and the radio's song from its first bar on a first launch.
+- KEBAB FM now jokes about the cinemas (Muranów, Atlantic, Luna, Kultura, Elektronik, the Kinoteka) and about the Kebab Basin's sauce war.
 - Nowy Świat gets three more neon shops: an old-fashioned confectioner (BLIKLINA OD 1869), a coffee spot at Chmielna and a vinyl bar at Foksal.
 - Two more Powiśle buildings look like themselves: Hortus on Topiel, glass offices round a garden with tenement-style flats on Drewniana, and Modernka on Zajęcza, an old tenement joined to a new glass wing.
+- Rondo Daszyńskiego fills with office workers on weekday rush hours and at lunch: groups in white shirts and navy jackets wait at the metro exits and zebra crossings, more stream across the crossings towards the towers, and they chat in bubbles about KPIs, OKRs, "let's circle back" and "spotkanie które mogło być mailem".
 - Cringulo's cream van now carries CRINGULO TV in dark letters on both sides.
 - Evening rides in Podwózka sometimes carry a first-date passenger from the dating app TIMBER, heading for the LORETKA roof bar. Cringulo's van now has a handful of fans standing behind it, chatting, and parking right by the van while he films finds a new easter egg.
 - Powiśle's Piano House now has a keyboard for a front, white keys and black window strips, and Cube House next door is a white cube with its bays stepping out floor by floor.
 - The police keep up with a tuned car: a bought Ołdi TT or a better engine no longer leaves every patrol behind, so the nitro is the way to open a gap. On a gamepad the nitro is LB or RB, and the right stick turns the view.
+- The city no longer just stops at an invisible wall: every road at the edge of the map is closed by Warsaw roadworks, with red-and-white barriers, ROBOTY DROGOWE and OBJAZD signs, cones, an excavator and a site fence, and amber lamps blinking at night.
 - The notebook MOJA WARSZAWA has a new card, "Kolejki" (The queues), found by the KUKŁA pancake window on Nowy Świat; it fills the "Queueing for the trend" chapter to ten.
 - Plac Zbawiciela comes alive: four neon cafés round the roundabout (Kawa Zbawienie, Szarlotka na rogu, Plan Z and Po mszy Spritz) with parasol terraces in front of the blocks, and the Church of the Holiest Saviour is lit at night: gilded crosses, a glowing stained-glass rose, lanterns at the porch and floodlamps up the front.
 - Krakowskie Przedmieście gets eight neon shopfronts along the royal route: an amber and silver shop, a chemist under the column, royal ice cream, sheet music and records, a reading café, pierogi at Bona's, mermaid souvenirs and an exchange office by the Castle.
@@ -34,10 +52,6 @@ someone writes its lines.
 - You can now play in Polish or in English, not both at once: pick POLSKI or ENGLISH on the title screen or in Settings → Dźwięk → Język. The game remembers it and starts in your phone's language the first time.
 - The bike paths are smoother: small gaps in them are closed, paths OpenStreetMap had cut into pieces run on as one, and spikes and sharp corners are rounded, so riders ride on from one path to the next instead of turning back.
 - Arkadka is redesigned: a cream-and-terracotta mall over its lit shop-front glass, glass-pyramid skylights, a roof car park full of parked cars with floodlights and stair cores, entrance canopies, and a finned entrance rotunda with the name on four faces. The Forest tower wears a BANK PEPEO sign near its crown, and its low wing has a roof terrace with parasols, tables and people from 11 to 23.
-
-
-
-
 - Powiśle's streets get eight small neon-signed shops: Flat Biały, a bike workshop, a record shop, a bookshop, Bar Topiel, a bakery, Altana and Przy Solcu, along Tamka, Dobra, Browarna, Topiel and Solec.
 - Warsaw's classic cinemas light up their marquees: Kino Muranów, Atlantic, Luna, Kultura, Elektronik and the Kinoteka in the Palace.
 - A new corner by Kino Femina, the Zagłębie Kebabowe: five rival kebab shops on Al. Solidarności (a king, a pasha, an uncle, a night shop and a craft kebab on sourdough), each with its own neon and its own delivery twist. Deliver from all five and the Skewer Trail pays a bonus.

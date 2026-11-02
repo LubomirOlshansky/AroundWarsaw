@@ -46,6 +46,10 @@ const STATIONS := [
 	{"id": "rondo_fm", "name": "RONDO FM", "freq": "86,6", "colour": Color("#4ff0ff")},
 	{"id": "mordor_fm", "name": "MORDOR FM", "freq": "108,8", "colour": Color("#b98cff")},
 ]
+## First scene item 7 (docs/design/first-scene.md, 2026-11-02): the first launch's radio starts its
+## song at the beginning under the title (main.gd sets it for a fresh save), not somewhere in the
+## middle as a single-track station otherwise joins; cleared after the first tune.
+var from_top := false
 ## Moderate: under the (future) engine and city sounds.
 const VOLUME_DB := -9.0
 ## Loop MW-5: the late-night station's id, and the station the radio falls back to by day
@@ -66,6 +70,10 @@ var station := -1
 ## The stations as read from radio.json: {id, name, freq, colour: Color, tracks: [{file,
 ## title, artist, seconds, gain_db, licence, source}]}.
 var stations: Array[Dictionary] = []
+## Beta radio (2026-11-02): the stations R and the RADIO button cycle through, by index in
+## `stations` ("lineup" in radio.json: station ids, in order; all of them when it is missing).
+## The rest stay loaded, so --station= and the tape and cassette unlocks still reach them.
+var lineup: Array[int] = []
 ## Loop 3g-1: dB under the station's level while a conversation is on (the pull-over: -6).
 var duck_db := 0.0:
 	set(value):
@@ -148,6 +156,15 @@ func _load_stations() -> void:
 			var d := s.duplicate(true)
 			d["tracks"] = []
 			stations.append(d)
+	lineup = []
+	if data is Dictionary and data.get("lineup") is Array:
+		for id: Variant in data["lineup"]:
+			var i := station_index(String(id))
+			if i >= 0 and not lineup.has(i):
+				lineup.append(i)
+	if lineup.is_empty():
+		for i in stations.size():
+			lineup.append(i)
 	_orders = []
 	_pos = []
 	for i in stations.size():
@@ -219,6 +236,7 @@ func tune(index: int, quiet := false) -> void:
 	station = index if index >= 0 and index < stations.size() else -1
 	_settle()
 	_play_current(true)
+	from_top = false
 	if not quiet and _static.stream != null and not _silent:
 		_static.play()
 	var info: Dictionary = stations[station] if station >= 0 else {}
@@ -253,7 +271,7 @@ func _play_current(join_middle: bool) -> void:
 	if _silent or stream == null:
 		return
 	var from := 0.0
-	if single and join_middle:
+	if single and join_middle and not from_top:
 		from = fmod(Time.get_ticks_msec() * 0.001 * 7.3, maxf(stream.get_length() - 1.0, 1.0))
 	_player.play(from)
 
@@ -320,9 +338,22 @@ func now_playing() -> void:
 
 ## The next station, after the last one Off, then the first again. Loop MW-5: the player's
 ## choice (R, RADIO): the radio stops following the clock for this session.
+## Beta radio: only the stations in the lineup (a station tuned from outside it, by a flag, goes
+## to the lineup's first).
 func next() -> void:
 	picked = true
-	tune(station + 1 if station + 1 < stations.size() else -1)
+	var k := lineup.find(station)
+	if station < 0:
+		tune(lineup[0] if not lineup.is_empty() else -1)
+	elif k < 0:
+		tune(lineup[0])
+	else:
+		tune(lineup[k + 1] if k + 1 < lineup.size() else -1)
+
+
+## Beta radio: the tuned station has more than one track to skip to (the HUD's DALEJ button).
+func can_skip() -> bool:
+	return station >= 0 and unlocked_count(station) > 1
 
 
 ## The short name for the HUD button.
@@ -393,6 +424,8 @@ func check_air(force := false) -> void:
 		air_changed.emit(a)
 	if not picked:
 		var want := polnoc_index() if a else station_index(DAY_DEFAULT)
+		if not lineup.has(want):
+			want = station_index(DAY_DEFAULT)  # beta radio: PÓŁNOC FM out of the lineup
 		if want >= 0 and want != station:
 			tune(want, force)
 			return

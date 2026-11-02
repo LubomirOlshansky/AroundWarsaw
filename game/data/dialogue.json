@@ -1,5 +1,5 @@
 {
-  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json. Crash scenes (crash_scenes.gd, 2026-11-01): crash_scene \"driver\", \"officer\", \"medic\", \"gawker\" (bubbles at a fender bender); radio_host \"crash\" ({street}: the road's name, starting the line).",
+  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json. Crash scenes (crash_scenes.gd, 2026-11-01): crash_scene \"driver\", \"officer\", \"medic\", \"gawker\" (bubbles at a fender bender); radio_host \"crash\" ({street}: the road's name, starting the line). Office crowds at Rondo Daszyńskiego (crowds.gd \"office\" sites and walkers, 2026-11-02): office (\"morning\" 07-10, \"lunch\" 11-14, \"evening\" 16-19, \"rain\"; untagged anywhere): overheard corporate jokes, no brand names. Beta radio (2026-11-02): the host's greeting when the game starts (dialogue.gd greeting) = radio_hello_morning / _day / _evening / _night + radio_weather_warm / _mild / _cold / _rain ({t}: the temperature, \"20 stopni\" / \"20 degrees\") + radio_bye (\"morning\", \"day\", \"evening\", \"night\").",
   "radio_host": [
     [
       "KEBAB FM, 87,3. Na Marszałkowskiej znowu remont. Czyli wszystko po staremu.",
@@ -135,6 +135,38 @@
     [
       "Cringulo dał trzy mlaski. Lokal zamknięty z powodu remontu. Duszy.",
       "Cringulo gave three smacks. The place is closed for repairs. Of the soul."
+    ],
+    [
+      "KEBAB FM. Kino Muranów wyświetla film o gołębiu. Trzy godziny, bez dialogów, sala pełna.",
+      "KEBAB FM. Kino Muranów is showing a film about a pigeon. Three hours, no dialogue, sold out."
+    ],
+    [
+      "Atlantic na Chmielnej: seans o 20:00, a o 19:30 już cała ulica w czerni i z okularami.",
+      "Atlantic on Chmielna: the show is at 8 p.m., but by 7:30 the whole street is in black, wearing glasses."
+    ],
+    [
+      "Kino Luna na Marszałkowskiej świeci neonem do ostatniego seansu. Potem świeci dla zasady.",
+      "Kino Luna on Marszałkowska glows in neon till the last show. After that, on principle."
+    ],
+    [
+      "Kino Kultura na Krakowskim: popcorn za dwanaście, bilet za tyle, co kawa. Kultura kosztuje.",
+      "Kino Kultura on Krakowskie: popcorn twelve złoty, a ticket the price of a coffee. Culture costs."
+    ],
+    [
+      "Kinoteka w Pałacu: film o Warszawie, oglądany z Warszawy, w budynku z filmu. Zapętliliśmy się.",
+      "Kinoteka in the Palace: a film about Warsaw, watched in Warsaw, in a building from the film. We've looped."
+    ],
+    [
+      "Z Feminy wszyscy wychodzą głodni, a pięć kebabów obok to nie przypadek.",
+      "Everyone leaves Femina hungry, and five kebabs next door are no accident."
+    ],
+    [
+      "Zagłębie Kebabowe: w sporze o sos Pasza i Król nadal milczą. Erdal podaje chusteczki.",
+      "The Kebab Basin: in the sauce dispute Pasha and King are still not speaking. Erdal hands out tissues."
+    ],
+    [
+      "Kino Elektronik na Czerwonego Krzyża: seans dla trzech osób i jednego kota. Kot ocenia najsurowiej.",
+      "Kino Elektronik on Czerwonego Krzyża: a screening for three people and one cat. The cat is the harshest critic."
     ],
     [
       "{street}: stłuczka. Policja i karetka na miejscu, kierowcy wciąż się kłócą, kto miał zielone.",
@@ -2406,6 +2438,34 @@
       }
     ],
     [
+      "Zakwas trzy dni, rożen sześć godzin. Ja czekam dwadzieścia minut, więc jestem w tyle.",
+      "Sourdough for three days, the spit for six hours. I wait twenty minutes, so I'm the one falling behind.",
+      {
+        "only": "zakwas"
+      }
+    ],
+    [
+      "Pan kroi nożem, który ma imię. Ja mam tylko numerek.",
+      "The man carves with a knife that has a name. All I have is a ticket number.",
+      {
+        "only": "zakwas"
+      }
+    ],
+    [
+      "Normalny kebab jest za sześć minut. Ten jest za sześć minut i za pół życia.",
+      "A normal kebab is six minutes away. This one is six minutes and half a lifetime away.",
+      {
+        "only": "zakwas"
+      }
+    ],
+    [
+      "Stoję w kolejce po kebab bez kolejki obok. Obok. Dosłownie obok.",
+      "I'm queuing for a kebab with no queue next door. Next door. Literally.",
+      {
+        "only": "zakwas"
+      }
+    ],
+    [
       "Dalej, dalej! Kolejka sama się nie przesunie.",
       "Dalej, dalej! The queue won't move itself.",
       {
@@ -3449,6 +3509,495 @@
       "The craft kebab: sourdough, a spit and a queue. With a hashtag.",
       {
         "only": "welcome"
+      }
+    ]
+  ],
+  "office": [
+    [
+      "Mamy KPI na Q4. Q4 jest w poniedziałek. Dziś jest wtorek.",
+      "We've got KPIs for Q4. Q4 starts Monday. Today is Tuesday."
+    ],
+    [
+      "Ten OKR miał być ambitny. Jest tylko ambitnie nieosiągalny.",
+      "That OKR was meant to be ambitious. It's just ambitiously unreachable."
+    ],
+    [
+      "Wrócimy do tego, jak się „zcircle’ujemy”. Czyli nigdy.",
+      "We'll circle back to it. Meaning never."
+    ],
+    [
+      "To spotkanie mogło być mailem. Ten mail mógł być ciszą.",
+      "This meeting could have been an email. That email could have been silence."
+    ],
+    [
+      "Potrzebuję tego na wczoraj. A najlepiej na przedwczoraj.",
+      "I need this by yesterday. Better still, the day before."
+    ],
+    [
+      "Zróbmy szybki sync. Trzy kwadranse, bez agendy.",
+      "Let's do a quick sync. Forty-five minutes, no agenda."
+    ],
+    [
+      "ASAP to u nas znaczy: kiedyś, ale z wykrzyknikiem.",
+      "ASAP here means: sometime, but with an exclamation mark."
+    ],
+    [
+      "Synergia! Dwa działy, zero wyników, jedno wspólne zdjęcie.",
+      "Synergy! Two departments, zero results, one group photo."
+    ],
+    [
+      "Mamy tu paradygmat. Nikt nie wie jaki, ale jest nowy.",
+      "We have a paradigm shift here. Nobody knows which, but it's new."
+    ],
+    [
+      "Daj mi buy-in, a ja dam ci roadmapę. Z kolorami.",
+      "Give me buy-in and I'll give you a roadmap. In colours."
+    ],
+    [
+      "Nie mam bandwidthu. Mam za to czterdzieści zakładek i kawę.",
+      "No bandwidth. But I do have forty tabs and a coffee."
+    ],
+    [
+      "Zaproś mnie na call. A, już mnie zaprosiłeś. Do czterech.",
+      "Invite me to the call. Oh, you already did. To four."
+    ],
+    [
+      "Mój manager ma managera, który ma deck. Deck ma deck.",
+      "My manager has a manager who has a deck. The deck has a deck."
+    ],
+    [
+      "Zrobimy alignment i deep dive, potem alignment po dive'ie.",
+      "We'll do an alignment and a deep dive, then an alignment after the dive."
+    ],
+    [
+      "Dostaliśmy feedback. Brzmi jak komplement z przypisami.",
+      "We got feedback. Sounds like a compliment with footnotes."
+    ],
+    [
+      "Task jest in progress od marca. Progress jest w drodze.",
+      "The task has been in progress since March. The progress is on its way."
+    ],
+    [
+      "Cel kwartału: cele. Metryka: liczba slajdów o celach.",
+      "Quarter's goal: goals. Metric: number of slides about goals."
+    ],
+    [
+      "Lanyard mam, badge mam, sensu pracy szukam od poniedziałku.",
+      "Got the lanyard, got the badge, been looking for meaning since Monday."
+    ],
+    [
+      "Moja karta wstępu otwiera drzwi. Moje obowiązki nie.",
+      "My badge opens doors. My responsibilities don't."
+    ],
+    [
+      "Laptop mam, ładowarkę zostawiłem. Typowy poziom gotowości.",
+      "Laptop: yes. Charger: left it. Typical readiness level."
+    ],
+    [
+      "Pracuję hybrydowo: ciałem w biurze, głową w Chorwacji.",
+      "I work hybrid: body in the office, head in Croatia."
+    ],
+    [
+      "Dwa dni w biurze to nasz kompromis. Kompromis ma deskę do prasowania.",
+      "Two days in the office is our compromise. The compromise has an ironing board."
+    ],
+    [
+      "Hot desk mi dali. Tak gorącego jeszcze nie miałem: obcy kubek.",
+      "They gave me a hot desk. Never had one so hot: a stranger's mug."
+    ],
+    [
+      "Rezerwuję biurko od tygodnia. Biurko rezerwuje mnie od rana.",
+      "I've been booking a desk for a week. The desk's been booking me since morning."
+    ],
+    [
+      "Nie nazwałbym tego problemem. To challenge z potencjałem.",
+      "I wouldn't call it a problem. It's a challenge with potential."
+    ],
+    [
+      "Escalate? Nie, to tylko prośba. Do prezesa. Z kopią do mamy.",
+      "Escalate? No, just a request. To the CEO. With mum in copy."
+    ],
+    [
+      "Najpierw kwartalne podsumowanie, potem półroczne przeprosiny.",
+      "First the quarterly review, then the half-yearly apology."
+    ],
+    [
+      "Chciałem być astronautą. Jestem Senior Specialist Lead II.",
+      "I wanted to be an astronaut. I'm Senior Specialist Lead II."
+    ],
+    [
+      "Mój awans to „lateral move”. Czyli stoję, ale w innym pokoju.",
+      "My promotion is a 'lateral move'. I'm standing still, in a different room."
+    ],
+    [
+      "Dziewiąta w biurze to nowa dwunasta. Obiad o dziesiątej.",
+      "Nine in the office is the new twelve. Lunch at ten."
+    ],
+    [
+      "Kawa numer jeden. Do dziewiątej planuję trzy.",
+      "Coffee number one. I'm planning three before nine.",
+      {
+        "only": "morning"
+      }
+    ],
+    [
+      "Standup o dziewiątej. Tak się nazywa, bo nikt nie siedzi.",
+      "Standup at nine. Called that because nobody sits.",
+      {
+        "only": "morning"
+      }
+    ],
+    [
+      "Metro stało. Powiem, że to był ruch strategiczny.",
+      "The metro stopped. I'll call it a strategic move.",
+      {
+        "only": "morning"
+      }
+    ],
+    [
+      "Poniedziałek rano i już mam „pilne”. Wczoraj było na spokojnie.",
+      "Monday morning and I've already got an 'urgent'. Yesterday was chill.",
+      {
+        "only": "morning"
+      }
+    ],
+    [
+      "Dzień dobry! Mam dla ciebie trzy zadania i jedno „quick win”.",
+      "Good morning! I've got three tasks and one 'quick win' for you.",
+      {
+        "only": "morning"
+      }
+    ],
+    [
+      "Czy mamy kwadrans na „quick catch-up”? Mamy. Szkoda.",
+      "Got a quarter of an hour for a quick catch-up? We do. Pity.",
+      {
+        "only": "morning"
+      }
+    ],
+    [
+      "Zdążyłem na kawę, nie zdążyłem na życie. Ok, idziemy.",
+      "Made it to the coffee, not to life. Okay, let's go.",
+      {
+        "only": "morning"
+      }
+    ],
+    [
+      "Plan na dziś: nie zostać zaproszonym na nowy call.",
+      "Plan for today: not get invited to a new call.",
+      {
+        "only": "morning"
+      }
+    ],
+    [
+      "Lunch to nasze jedyne spotkanie bez slajdów.",
+      "Lunch is our only meeting without slides.",
+      {
+        "only": "lunch"
+      }
+    ],
+    [
+      "Idziemy na lunch? Ale „na szybko”. Czyli godzina i kolejka.",
+      "Lunch? But a quick one. Meaning an hour and a queue.",
+      {
+        "only": "lunch"
+      }
+    ],
+    [
+      "Sałatka za trzydzieści pięć. Za tę cenę oczekuję awansu.",
+      "A salad for thirty-five zloty. For that I expect a promotion.",
+      {
+        "only": "lunch"
+      }
+    ],
+    [
+      "Bowl, bowl albo bowl. Korpo to miska, która wzięła kredyt.",
+      "Bowl, bowl or bowl. Corporate is a bowl that took out a loan.",
+      {
+        "only": "lunch"
+      }
+    ],
+    [
+      "Lunch-and-learn: ja jem, wy się uczycie, kanapek brakuje.",
+      "Lunch-and-learn: I eat, you learn, and there aren't enough sandwiches.",
+      {
+        "only": "lunch"
+      }
+    ],
+    [
+      "W kolejce po kawę poznałem dyrektora. Dalej nie wiem, od czego.",
+      "In the coffee queue I met a director. Still don't know of what.",
+      {
+        "only": "lunch"
+      }
+    ],
+    [
+      "Mam „working lunch”. Czyli lunch z mailem w widelcu.",
+      "I've got a working lunch. A lunch with an email on the fork.",
+      {
+        "only": "lunch"
+      }
+    ],
+    [
+      "Kawa z mlekiem owsianym, bez cukru, bez nadziei.",
+      "Oat milk coffee, no sugar, no hope.",
+      {
+        "only": "lunch"
+      }
+    ],
+    [
+      "Wychodzę punktualnie. No, tak jakby: po jednym calu.",
+      "Leaving on time. Well, sort of: after one more call.",
+      {
+        "only": "evening"
+      }
+    ],
+    [
+      "Koniec dnia. Zostały mi trzy zadania i dwa pomysły na urlop.",
+      "End of the day. Three tasks left and two ideas for a holiday.",
+      {
+        "only": "evening"
+      }
+    ],
+    [
+      "Ostatni slajd i ucieczka. Jak zwykle po osiemnastej.",
+      "One last slide and out. After six, as usual.",
+      {
+        "only": "evening"
+      }
+    ],
+    [
+      "Odezwę się jutro. To znaczy: za tydzień. Obiecuję „soon”.",
+      "I'll get back to you tomorrow. Meaning in a week. I promise 'soon'.",
+      {
+        "only": "evening"
+      }
+    ],
+    [
+      "Dziś bez nadgodzin. Rozliczę je w poniedziałek, nerwami.",
+      "No overtime today. I'll settle it on Monday, in nerves.",
+      {
+        "only": "evening"
+      }
+    ],
+    [
+      "Po pracy piwo? Nie, po pracy „networking”. Piwo jest przypadkiem.",
+      "Drinks after work? No, 'networking'. The beer is a coincidence.",
+      {
+        "only": "evening"
+      }
+    ],
+    [
+      "Wyłączam laptop. Nie, nie wyłączam. Zamykam klapę i się boję.",
+      "Switching off the laptop. No I'm not. I'm closing the lid and fearing.",
+      {
+        "only": "evening"
+      }
+    ],
+    [
+      "Dziś zrobiłem dwanaście tysięcy kroków. Wszystkie do kuchni.",
+      "Did twelve thousand steps today. All to the kitchen.",
+      {
+        "only": "evening"
+      }
+    ],
+    [
+      "Umówmy się: w deszczu spotkanie jest ważniejsze niż mail.",
+      "Let's agree: in the rain, a meeting beats an email.",
+      {
+        "only": "rain"
+      }
+    ],
+    [
+      "Parasol mam, strategię nie. Biegnijmy do wieżowca.",
+      "Got an umbrella, no strategy. Run for the tower.",
+      {
+        "only": "rain"
+      }
+    ],
+    [
+      "Deszcz to też KPI: liczba kałuż na zebrze.",
+      "Rain is a KPI too: the number of puddles on the crossing.",
+      {
+        "only": "rain"
+      }
+    ],
+    [
+      "Zebra się zapaliła. Mamy dwie minuty runway'u.",
+      "The crossing's lit. We've got two minutes of runway."
+    ],
+    [
+      "Zielone! Wszyscy w jedną stronę, ustalmy KPI dla pasów.",
+      "Green! Everyone one way, let's set KPIs for the crossing."
+    ],
+    [
+      "Stoimy na pasach i prowadzimy call. Roaming w centrum.",
+      "We're on the crossing and on a call. Roaming in the centre."
+    ],
+    [
+      "Wieżowiec to nie budynek, to „kampus”. Ma dwie kawiarnie.",
+      "A tower isn't a building, it's a 'campus'. It has two cafés."
+    ],
+    [
+      "Moja wieża ma sto trzydzieści metrów i zero okien do otwarcia.",
+      "My tower is 130 metres tall with zero windows that open."
+    ],
+    [
+      "Winda jedzie godzinę. Za to mamy w niej small talk.",
+      "The lift takes an hour. At least we get small talk in it."
+    ],
+    [
+      "Mój zespół ma dziewięć osób i jedną wspólną godzinę.",
+      "My team has nine people and one hour in common."
+    ],
+    [
+      "Nasz „value proposition” to proposition, którego nie ma.",
+      "Our 'value proposition' is a proposition we don't have."
+    ]
+  ],
+  "radio_hello_morning": [
+    [
+      "Dzień dobry, Warszawo!",
+      "Good morning, Warsaw!"
+    ],
+    [
+      "Dzień dobry, Warszawo! Kawa w dłoń, ruszamy.",
+      "Good morning, Warsaw! Coffee in hand, off we go."
+    ],
+    [
+      "Dzień dobry, Warszawo! Wstaliście? My prawie.",
+      "Good morning, Warsaw! Up already? We almost are."
+    ]
+  ],
+  "radio_hello_day": [
+    [
+      "Dzień dobry, Warszawo!",
+      "Good afternoon, Warsaw!"
+    ],
+    [
+      "Dzień dobry wszystkim w korku i poza nim!",
+      "Good afternoon to everyone in traffic and out of it!"
+    ]
+  ],
+  "radio_hello_evening": [
+    [
+      "Dobry wieczór, Warszawo!",
+      "Good evening, Warsaw!"
+    ],
+    [
+      "Dobry wieczór! Neony się zapalają.",
+      "Good evening! The neons are coming on."
+    ]
+  ],
+  "radio_hello_night": [
+    [
+      "Dobry wieczór, nocna Warszawo!",
+      "Good evening, Warsaw by night!"
+    ],
+    [
+      "Witamy wszystkich, którzy nie śpią.",
+      "Welcome to everyone still awake."
+    ]
+  ],
+  "radio_weather_warm": [
+    [
+      "Pogoda na dziś: słonecznie, przyjemne {t}.",
+      "Today's weather: sunny, a pleasant {t}."
+    ],
+    [
+      "Pogoda: ciepło, {t}. Palma na rondzie jak w domu.",
+      "Weather: warm, {t}. The palm on the roundabout feels at home."
+    ],
+    [
+      "Za oknem {t} i słońce nad Pałacem.",
+      "{t} outside and sun over the Palace."
+    ]
+  ],
+  "radio_weather_mild": [
+    [
+      "Pogoda na dziś: {t}, w sam raz na przejażdżkę.",
+      "Today's weather: {t}, just right for a drive."
+    ],
+    [
+      "Trochę chmur, trochę słońca, {t}.",
+      "Some clouds, some sun, {t}."
+    ]
+  ],
+  "radio_weather_cold": [
+    [
+      "Pogoda na dziś: chłodno, {t}. Ciepły kebab wskazany.",
+      "Today's weather: chilly, {t}. A warm kebab advised."
+    ],
+    [
+      "Za oknem {t}. Ogrzewanie na full.",
+      "{t} outside. Heating on full."
+    ]
+  ],
+  "radio_weather_rain": [
+    [
+      "Pogoda: pada, {t}. Wycieraczki w rytm muzyki.",
+      "Weather: rain, {t}. Wipers to the beat."
+    ],
+    [
+      "Pogoda na dziś: deszcz, {t}. Jedźcie ostrożnie.",
+      "Today's weather: rain, {t}. Drive carefully."
+    ]
+  ],
+  "radio_bye": [
+    [
+      "Życzymy miłego dnia!",
+      "Have a lovely day!",
+      {
+        "only": "morning"
+      }
+    ],
+    [
+      "Życzę miłego dnia i zielonej fali!",
+      "Have a lovely day and green lights all the way!",
+      {
+        "only": "morning"
+      }
+    ],
+    [
+      "Miłego dnia!",
+      "Have a lovely day!",
+      {
+        "only": "day"
+      }
+    ],
+    [
+      "Życzę miłego dnia i wolnego miejsca parkingowego!",
+      "Have a lovely day and a free parking space!",
+      {
+        "only": "day"
+      }
+    ],
+    [
+      "Miłego wieczoru!",
+      "Have a lovely evening!",
+      {
+        "only": "evening"
+      }
+    ],
+    [
+      "Życzę miłego wieczoru i zielonej fali na Marszałkowskiej!",
+      "Have a lovely evening and green lights on Marszałkowska!",
+      {
+        "only": "evening"
+      }
+    ],
+    [
+      "Spokojnej nocy za kółkiem!",
+      "Have a calm night behind the wheel!",
+      {
+        "only": "night"
+      }
+    ],
+    [
+      "Miłej nocy, jedźcie bezpiecznie!",
+      "Have a good night, drive safe!",
+      {
+        "only": "night"
       }
     ]
   ]

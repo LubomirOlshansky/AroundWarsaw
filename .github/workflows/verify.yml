@@ -1,8 +1,12 @@
-# The verification steps that need no map, on every push to main and every pull request: the
-# check scripts for steering, settings, tiers, the governor, the HUD, rides, sounds, radio and
-# police, on Linux with the same Godot as the Mac (4.7.2). Since loop 3d-1 the map is not in
-# git, so the map, road, drape and drive checks and the game runs stay on the Mac's
-# tools/verify.sh, with screenshots, the bench and the phone (docs/WORKFLOW.md).
+# The verification set on every push to main and every pull request, on Linux with the same Godot
+# as the Mac (4.7.2), in two jobs:
+#   quick  the check scripts that need no map (steering, settings, tiers, the HUD, police, ...).
+#   map    the map pack (tools/map_pack.py: lod2.bin, lod2.json, terrain.json, a release asset,
+#          since loop 3d-1 took them out of git), the derived split and prebuilt sectors
+#          (tools/setup_map.sh, with a software Vulkan renderer under Xvfb), then the map, road,
+#          street, drape, drive, landmark and water checks and short game runs on both city paths.
+# Screenshots, the bench, the long autopilot runs and the phone stay on the Mac's tools/verify.sh
+# (docs/WORKFLOW.md).
 name: verify
 
 on:
@@ -11,9 +15,12 @@ on:
   pull_request:
   workflow_dispatch:
 
+# A newer push to a pull request replaces its older run; every push to main keeps its own run (one
+# group per commit), so no merge is left without a verdict (2026-11-02: several main runs were
+# cancelled by the next merge, and #261's red run went unseen).
 concurrency:
-  group: verify-${{ github.ref }}
-  cancel-in-progress: true
+  group: verify-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   GODOT_VERSION: 4.7.2
@@ -49,11 +56,12 @@ jobs:
       # the steps that need no map; the map, roads, drape, drive, landmarks and the game runs
       # stay on the Mac's tools/verify.sh. Loop MW-1: `places` reads only the committed
       # centrum.json and data/places.json, so it runs here too; loop MW-5: `sounds` too; loop
-      # MW-6: `eggs` and `tape` too; loop MW-3: `crowds` too; loop MW-4: `life` too; loop jobs-2: `jobs2` too; DEMO 6.3: `rescues` too; loop couriers: `couriers` too; the museum and Plac loop: `sites` too; the L-shaped map loop: `edge` too; loop 3h slice 1: `save` and `districts` too; slice 2: `syrenki` too; slice 3: `ladder` too; the first-10 polish: `cassettes` too; the mesh-quality check: `meshq` too; the opening flyover: `opening` too; packs: `packs` too; the gamepad loop: `gamepad` too; the roofs lane: `roofdress,osmroofs` too.
+      # MW-6: `eggs` and `tape` too; loop MW-3: `crowds` too; loop MW-4: `life` too; loop jobs-2: `jobs2` too; DEMO 6.3: `rescues` too; loop couriers: `couriers` too; the museum and Plac loop: `sites` too; the L-shaped map loop: `edge` too; loop 3h slice 1: `save` and `districts` too; slice 2: `syrenki` too; slice 3: `ladder` too; the first-10 polish: `cassettes` too; the mesh-quality check: `meshq` too; the opening flyover: `opening` too; packs: `packs` too; the gamepad loop: `gamepad` too; the roofs lane: `roofdress,tenementtrim,osmroofs` too.
       - name: tools/verify.sh, the steps that need no map
         env:
           GODOT: /home/runner/godot/godot
-        run: zsh tools/verify.sh --only=steering,handling,settings,credits,tiers,governor,hud,places,edge,eggs,tape,crowds,life,buses,crashes,oldtram,packs,garage,save,districts,syrenki,cassettes,ladder,first10,endcard,opening,parodies,jobs2,rescues,couriers,rides,roofdress,osmroofs,sites,meshq,sfx,juice,gamepad,radio,sounds,police --logs="$RUNNER_TEMP/verify"
+          NW_MAP_PACK: "off"   # the map job fetches and builds the map; this one stays map-free
+        run: zsh tools/verify.sh --only=spec,steering,handling,settings,credits,tiers,governor,hud,places,edge,eggs,tape,crowds,life,buses,crashes,oldtram,packs,garage,save,districts,syrenki,cassettes,ladder,first10,endcard,opening,parodies,jobs2,rescues,couriers,rides,roofdress,tenementtrim,osmroofs,sites,meshq,sfx,juice,gamepad,radio,sounds,police --logs="$RUNNER_TEMP/verify"
 
       - name: Keep the logs
         if: always()
@@ -62,3 +70,97 @@ jobs:
           name: verify-logs
           path: ${{ runner.temp }}/verify
           retention-days: 14
+
+  # Two halves in parallel (~15 min each on a runner, the setup included; serial they take ~30).
+  map:
+    name: map (${{ matrix.part }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - part: data and roads
+            steps: map,roads,streets,outline,pois,streetdetails,stops,streetmesh,lod2,drape,drive,drive-prebuilt,questlines,stopassist,language,cost,oldtownroofs,water-prebuilt,prebuilt
+          - part: landmarks, water and runs
+            steps: landmarks,water,plain,ram
+    steps:
+      - uses: actions/checkout@v4
+
+      # zsh for the scripts, Xvfb and Mesa's lavapipe (software Vulkan): bake_city.gd needs a
+      # renderer (--headless drops MultiMesh and texture data).
+      - name: Install zsh, Xvfb and software Vulkan
+        run: sudo apt-get update -q && sudo apt-get install -y -q zsh xvfb mesa-vulkan-drivers
+
+      - name: Cache Godot
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/godot
+          key: godot-${{ env.GODOT_VERSION }}-linux
+
+      - name: Download Godot ${{ env.GODOT_VERSION }}
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/godot && cd ~/godot
+          curl -sSfL -o godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q godot.zip && rm godot.zip
+          mv Godot_v${GODOT_VERSION}-stable_linux.x86_64 godot && chmod +x godot
+
+      - name: Cache the map pack
+        uses: actions/cache@v4
+        with:
+          path: build/map-pack
+          key: map-pack-${{ hashFiles('tools/map_pack.json') }}
+
+      # Exit 3: the pack tools/map_pack.json names is not published yet (a new pack's PR, before
+      # its release asset is up): the map checks are skipped with a warning instead of failing.
+      - name: Fetch the map pack
+        id: pack
+        run: |
+          set +e
+          python3 -I tools/map_pack.py fetch
+          code=$?
+          if [ $code -eq 3 ]; then
+            echo "::warning title=Map pack not published::the map checks were skipped (tools/map_pack.py: publish the release asset)"
+            echo "ready=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"; exit $code
+
+      # The split and the prebuilt sectors from the last run whose inputs were the same; a stale
+      # or missing set is rebuilt below (check_map_data.py --fresh compares the stamps).
+      - name: Cache the derived map files
+        if: steps.pack.outputs.ready == 'true'
+        uses: actions/cache@v4
+        with:
+          path: |
+            game/map/index.json
+            game/map/index.res
+            game/map/proxies.scn
+            game/map/sectors
+            game/map/shared
+          key: map-derived-${{ hashFiles('tools/map_pack.json', 'game/map/*.json', 'game/map/*.bin', 'tools/bake_sectors.py', 'game/tools/bake_city.gd', 'game/scripts/**', 'game/shaders/**') }}
+          restore-keys: map-derived-
+
+      - name: The split and the prebuilt sectors (tools/setup_map.sh)
+        if: steps.pack.outputs.ready == 'true'
+        env:
+          GODOT: /home/runner/godot/godot
+        run: |
+          mkdir -p build
+          xvfb-run -a -s "-screen 0 1280x720x24" zsh tools/setup_map.sh --if-needed || { tail -30 build/setup_map.log; exit 1; }
+
+      - name: tools/verify.sh, the map steps
+        if: steps.pack.outputs.ready == 'true'
+        env:
+          GODOT: /home/runner/godot/godot
+        run: zsh tools/verify.sh --only=${{ matrix.steps }} --logs="$RUNNER_TEMP/verify-map"
+
+      - name: Keep the logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-map-logs-${{ strategy.job-index }}
+          path: ${{ runner.temp }}/verify-map
+          retention-days: 14
+          if-no-files-found: ignore

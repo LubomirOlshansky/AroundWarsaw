@@ -15,6 +15,7 @@ const CityMaps := preload("res://scripts/city_maps.gd")
 const Models := preload("res://scripts/models.gd")
 const Trains := preload("res://scripts/trains.gd")
 const MapEdge := preload("res://scripts/map_edge.gd")
+const EdgeRoadworks := preload("res://scripts/edge_roadworks.gd")
 ## Tile size for instanced things (trees, lamps, parked cars). Loop 2b: 512 m (was 256): one
 ## MultiMesh is one draw call, and the iPhone pays per draw call, not per instance.
 const INSTANCE_TILE := 512.0
@@ -56,6 +57,8 @@ const L_WET := 17.0
 const L_FOAM := 18.0
 ## Loop 3b-2: the tram bed's concrete track slabs (joints across it every 3 m).
 const L_TRAMBED := 19.0
+## First-scene item 5 (2026-11-02): the tactile warning pads where a crossing meets a kerb.
+const L_TACTILE := 20.0
 
 const Y_GROUND := 0.0
 const Y_AREA := 0.02
@@ -304,6 +307,10 @@ func setup_streamed(index: Dictionary, building_mat: ShaderMaterial, flat_mat: S
 	var edge: Node3D = MapEdge.build(self)
 	if edge != null:
 		add_child(edge)
+	# 2026-11-02: roadworks close every road that leaves the map (edge_roadworks.gd).
+	var works: Node3D = EdgeRoadworks.build(self)
+	if works != null:
+		add_child(works)
 
 
 ## Loop 3c: each sector's lowest ground (- 20 m: tunnels, the river bed) and its highest roof
@@ -544,6 +551,7 @@ func _build_parts(marks, roofs_only: bool) -> void:
 		_build_markings(flat)
 		_build_symbols(flat)
 		_build_crossings(flat)
+		_build_tactile(flat)
 		_drape_bias = 0.46
 		_build_trams(flat)
 		_build_rails(flat)
@@ -3372,6 +3380,9 @@ func _build_carriageways(st) -> void:
 
 const SURFACE_STYLE := {
 	"paving": ["#ddd6c8", 4.0],
+	# Krajobraz K2 (2026-11-02): Chmielna's new granite slabs (tools/planted_trees.py re-tags its
+	# pedestrian areas), a cooler grey than the old concrete setts' warm paving.
+	"granite": ["#c9c7c1", 4.0],
 	"ballast": ["#8f887d", 15.0],
 	"flowerbed": ["#6c9844", 11.0],
 	"construction": ["#a48b6a", 12.0],
@@ -4187,8 +4198,57 @@ func _box_oriented(st, centre: Vector3, basis: Basis, size: Vector3, col: Color)
 
 
 ## Tram and bus stop islands and railway platforms: raised concrete slabs.
+## PT-1 (2026-11-02): a platform at least SOLID_PLATFORM high (OSM railway=platform: 0.9 m, the
+## stations' and some tram stops', like Centrum's on Marszałkowska) is solid at its edges. The car
+## used to drive inside the slab (drive_height doesn't lift it 0.9 m) and stop dead on the shelter
+## standing on it, boxed in by the fence along the kerb. The low 0.25 m stop islands stay drivable.
+const SOLID_PLATFORM := 0.5
+## An edge whose ends or middle lie within a road's half width plus this of its centre line is
+## left open (check_drive: OSM's tram platforms overlap the outer lanes of Prosta, Niepodległości,
+## Okopowa..., where a wall would stop traffic and the car in lane 0). The fence or kerb is there.
+const PLATFORM_ROAD_CLEAR := 1.8
+
+
+## The road centre-line segments near the high platforms (a, b, reach), for _by_road.
+func _platform_roads() -> Array:
+	var box := Rect2()
+	var any := false
+	for a in data.get("platforms", []):
+		if float(a["h"]) < SOLID_PLATFORM:
+			continue
+		for q in _pts(a["p"]):
+			if any:
+				box = box.expand(q)
+			else:
+				box = Rect2(q, Vector2.ZERO)
+				any = true
+	var out := []
+	if not any:
+		return out
+	box = box.grow(30.0)
+	for r in data.get("roads", []):
+		var pts := _pts(r["p"])
+		var reach := float(r.get("w", 6.0)) * 0.5 + PLATFORM_ROAD_CLEAR
+		for i in pts.size() - 1:
+			var seg := Rect2(pts[i], Vector2.ZERO).expand(pts[i + 1])
+			if seg.intersects(box, true):
+				out.append([pts[i], pts[i + 1], reach])
+	return out
+
+
+## Whether a platform edge runs along or across a road (see PLATFORM_ROAD_CLEAR; across: Powiśle
+## station's platforms are drawn at the ground and reach over Wybrzeże Kościuszkowskie).
+func _by_road(p0: Vector2, p1: Vector2, roads: Array) -> bool:
+	for r: Array in roads:
+		var c := Geometry2D.get_closest_points_between_segments(p0, p1, r[0], r[1])
+		if c[0].distance_to(c[1]) < float(r[2]):
+			return true
+	return false
+
+
 func _build_platforms(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
+	var roads := _platform_roads()
 	for a in data.get("platforms", []):
 		var poly := _pts(a["p"])
 		if poly.size() < 3:
@@ -4208,6 +4268,11 @@ func _build_platforms(st) -> void:
 			var n := Vector3(e.y, 0.0, -e.x).normalized()
 			_quad(st, Vector3(p0.x, ground - 0.3, p0.y), Vector3(p1.x, ground - 0.3, p1.y),
 					Vector3(p1.x, ground + h + 0.1, p1.y), Vector3(p0.x, ground + h + 0.1, p0.y), n, col.darkened(0.12))
+			if h >= SOLID_PLATFORM and not _by_road(p0, p1, roads):
+				var b0 := Vector3(p0.x, terrain_height(p0.x, p0.y) - 0.3, p0.y)
+				var b1 := Vector3(p1.x, terrain_height(p1.x, p1.y) - 0.3, p1.y)
+				var up := Vector3(0.0, ground + h + 1.6 - minf(b0.y, b1.y), 0.0)
+				_wall_faces.append_array([b0, b1, b1 + up, b0, b1 + up, b0 + up])
 	_uv2 = Vector2.ZERO
 
 
@@ -4240,6 +4305,58 @@ func _build_crossings(st) -> void:
 				_strip(st, PackedVector2Array([c - dir * 0.25, c + dir * 0.25]), 3.6, Y_MARK, COL["mark"], false)
 				t += 1.0
 	_dk = -1
+
+
+## First-scene item 5 (2026-11-02): Warsaw's crossings end in a strip of yellow tactile paving
+## on the pavement (and on the refuge islands) just past the kerb's granite top. Where a zebra's
+## end lies within TACTILE_REACH of a kerb line (the bake's kerbs and the islands' rims, the
+## index _index_raised keeps), a pad TACTILE_DEEP deep and as wide as the stripes is laid on the
+## far side of that kerb, KERB_W out. Ends with no kerb near (a crossing over a footway, a deck)
+## get none. Two triangles a pad in the flat mesh: +0 draw calls.
+const TACTILE_DEEP := 0.6
+const TACTILE_REACH := 2.6
+const TACTILE_WIDE := 3.6
+const TACTILE_COL := Color("#c6ad60")
+
+
+func _build_tactile(st) -> void:
+	if _kerb_segs.is_empty():
+		_index_raised()
+	_layer = L_TACTILE
+	for p in data["paths"]:
+		if p["k"] != "zebra" or int(p.get("dk", -1)) >= 0:
+			continue
+		var poly := _pts(p["p"])
+		var n := poly.size()
+		if n < 2 or poly[0].distance_to(poly[n - 1]) < 1.0:
+			continue
+		_tactile_pad(st, poly[0], (poly[0] - poly[1]).normalized())
+		_tactile_pad(st, poly[n - 1], (poly[n - 1] - poly[n - 2]).normalized())
+	_layer = L_GROUND
+
+
+## The pad at a zebra's end `end`, `out` pointing off the carriageway: on the kerb line nearest
+## the end along the zebra's line (from 1.5 m back inside to TACTILE_REACH beyond).
+func _tactile_pad(st, end: Vector2, out: Vector2) -> void:
+	var from := end - out * 1.5
+	var to := end + out * TACTILE_REACH
+	var best := INF
+	var hit := Vector2.ZERO
+	var c0 := Vector2i(floori(minf(from.x, to.x) / RAISE_CELL), floori(minf(from.y, to.y) / RAISE_CELL))
+	var c1 := Vector2i(floori(maxf(from.x, to.x) / RAISE_CELL), floori(maxf(from.y, to.y) / RAISE_CELL))
+	for cz in range(c0.y, c1.y + 1):
+		for cx in range(c0.x, c1.x + 1):
+			for id: int in _kerb_cells.get(Vector2i(cx, cz), PackedInt32Array()):
+				var x: Variant = Geometry2D.segment_intersects_segment(from, to, _kerb_segs[id * 2], _kerb_segs[id * 2 + 1])
+				if x != null and (x as Vector2).distance_to(end) < best:
+					best = (x as Vector2).distance_to(end)
+					hit = x
+	if best == INF:
+		return
+	var a := hit + out * KERB_W
+	var b := a + out * TACTILE_DEEP
+	var mid := (a + b) * 0.5
+	_strip(st, PackedVector2Array([a, b]), TACTILE_WIDE, Y_MARK + raise_at(mid.x, mid.y), TACTILE_COL, false)
 
 
 ## Painted lines (tools/bake_roads.py), already cut where other roads cross: edge
@@ -4489,6 +4606,8 @@ func _build_buildings(st, keep: Array, marks) -> void:
 				roof = _district_roof(plan.get_center(), hsh, str(bld["kind"]), royal)
 		if skin.is_empty() and not glass and _nowy_swiat(plan.get_center()):
 			wall = Color(NOWY_PASTELS[(hsh / 7) % NOWY_PASTELS.size()]).lerp(wall, 0.25)
+		elif skin.is_empty() and not glass and _powisle_house(bld, poly, plan.get_center()):
+			wall = Color(POWISLE_PASTELS[(hsh / 7) % POWISLE_PASTELS.size()]).lerp(wall, 0.25)
 
 		var run := 0.0
 		for i in poly.size():
@@ -5573,6 +5692,17 @@ const NOWY_PASTELS := ["#efe3c8", "#e8d49a", "#dcc08a", "#e4b5a2", "#e8c3c0", "#
 const NOWY_REACH := 30.0
 const NOWY_END_Z := 262.0
 const NOWY_STREET := "Nowy Świat"
+## Dobra and Tamka (Powiśle street by street, 2026-11-02): the pre-war tenements along the two
+## streets stand in plasters of their own, house by house (sooty cream, ochre, faded rose, sage,
+## grey, sand), not in the aerial photo's one grey, with a cornice, a string course and shop
+## fronts (TenementTrim). Within POWISLE_REACH metres of a street's centre line, tenements only
+## (R4 type 1: slabs, offices and the landmarks keep their own look). A *guess* from memory of the
+## streets until the Mac photo check (QUESTIONS).
+const POWISLE_STREETS := ["Dobra", "Tamka"]
+const POWISLE_REACH := 24.0
+const POWISLE_SHOP_REACH := 15.0
+const POWISLE_PASTELS := ["#d6cbb2", "#cdb996", "#dcc7a0", "#c9b0a0", "#b9c0aa", "#d3c0bb", "#c8ccd0", "#e0d3ab",
+		"#bda78d", "#d8bb9e"]
 
 ## Their tenements' own colours where OpenStreetMap has none (ochre, salmon, cream, terracotta,
 ## pale yellow, sage, blue-grey, peach, oxblood): the rebuilt Old Town's palette.
@@ -5788,7 +5918,8 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 	var looks: Array[Color] = []
 	var seeds: Array[float] = []
 	var roofs: Array[Color] = []
-	var plain: Array[bool] = []  # Nowy Świat's houses: the plaster only
+	var plain: Array[bool] = []  # Nowy Świat's and Dobra and Tamka's houses: the plaster only
+	var trim: Array[bool] = []  # Dobra and Tamka's: the cornice and shop fronts too
 	for bld in data.get("buildings", []):
 		var p: Array = bld["p"]
 		if p.size() < 6 or NOT_TENEMENTS.has(str(bld.get("kind", ""))):
@@ -5798,15 +5929,19 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 		for q in poly:
 			box = box.expand(q)
 		var nowy := _nowy_swiat(box.get_center())
-		if not nowy and not _historic(box.get_center(), 40.0):
+		var powisle := not nowy and _powisle_house(bld, poly, box.get_center())
+		if not nowy and not powisle and not _historic(box.get_center(), 40.0):
 			continue
 		var hsh := absi(int(poly[0].x * 73.0 + poly[0].y * 31.0))
 		var k := polys.size()
 		polys.append(poly)
-		plain.append(nowy)
+		plain.append(nowy or powisle)
+		trim.append(powisle)
 		var look := _osm_colour(bld["c"], Color(TENEMENTS[hsh % TENEMENTS.size()]))
 		if nowy:
 			look = Color(NOWY_PASTELS[(hsh / 7) % NOWY_PASTELS.size()]).lerp(look, 0.25)
+		elif powisle:
+			look = Color(POWISLE_PASTELS[(hsh / 7) % POWISLE_PASTELS.size()]).lerp(look, 0.25)
 		if box.get_center().distance_to(OldTownRoofs.PLAC) < PLAC_PALETTE_R:
 			look = Color(PLAC_PASTELS[hsh % PLAC_PASTELS.size()]).lerp(look, 0.25)
 		looks.append(look)
@@ -5839,6 +5974,8 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 						for v in 3:
 							col[t + v] = looks[k]
 							uv2[t + v].x = seeds[k]
+						if trim[k] and absf(nrm[t].y) < 0.05:
+							_powisle_trim(pos, nrm, t, looks[k], dress)
 					break
 				for v in 3:
 					if pitched:
@@ -5961,6 +6098,52 @@ func _square_gables(pos: PackedVector3Array, nrm: PackedVector3Array, t: int, po
 			var extra := OldTownRoofs.plac_gable(a, b, n, wall, seed) if on_plac else OldTownRoofs.gable(a, b, n, wall, seed)
 			if not extra.is_empty():
 				_add_dress(dress, extra)
+
+
+## Whether an OpenStreetMap house is one of Dobra's or Tamka's pre-war tenements: its centre
+## within POWISLE_REACH of either street (outside the historic districts) and R4 type 1.
+func _powisle_house(bld: Dictionary, poly: PackedVector2Array, centre: Vector2) -> bool:
+	if _historic(centre, 0.0) or _powisle_distance(centre) > POWISLE_REACH:
+		return false
+	var kind := str(bld.get("kind", ""))
+	return _building_type(kind, poly, float(bld.get("h", 0.0))) == 1
+
+
+## The distance from a point to the nearest Dobra or Tamka centre line (INF beyond 80 m).
+func _powisle_distance(at: Vector2) -> float:
+	if _powisle_segs.is_empty():
+		for r in data.get("roads", []):
+			if not POWISLE_STREETS.has(str(r.get("name", ""))) or bool(r.get("bridge", false)):
+				continue
+			var p: Array = r["p"]
+			for i in range(0, p.size() - 3, 2):
+				_powisle_segs.append([Vector2(float(p[i]), float(p[i + 1])), Vector2(float(p[i + 2]), float(p[i + 3]))])
+	var best := INF
+	for sg: Array in _powisle_segs:
+		if absf(at.x - sg[0].x) > 80.0 or absf(at.y - sg[0].y) > 80.0:
+			continue
+		best = minf(best, Geometry2D.get_closest_point_to_segment(at, sg[0], sg[1]).distance_to(at))
+	return best
+var _powisle_segs: Array = []
+
+
+## One wall triangle `t` of a Dobra or Tamka tenement: its cornice, string course and, when the
+## wall faces the street, its shop front (TenementTrim) into `dress`.
+func _powisle_trim(pos: PackedVector3Array, nrm: PackedVector3Array, t: int, plaster: Color, dress: Dictionary) -> void:
+	var n := Vector3(nrm[t].x, 0.0, nrm[t].z)
+	if n.length() < 0.9:
+		return
+	n = n.normalized()
+	var mid := (pos[t] + pos[t + 1] + pos[t + 2]) / 3.0
+	var at := Vector2(mid.x, mid.z)
+	# the wall faces the street when a point 8 m out is nearer to it than the wall itself
+	var street := _powisle_distance(at) < POWISLE_SHOP_REACH and \
+			_powisle_distance(at + Vector2(n.x, n.z) * 8.0) < _powisle_distance(at)
+	var out := {"pos": [], "nrm": [], "col": []}
+	TenementTrim.wall(out, pos[t], pos[t + 1], pos[t + 2], n, plaster, street)
+	if not (out["pos"] as Array).is_empty():
+		_add_dress(dress, {"pos": PackedVector3Array(out["pos"]), "nrm": PackedVector3Array(out["nrm"]),
+				"col": PackedColorArray(out["col"])})
 
 
 ## Whether a point is within `slack` metres of a historic district (HISTORIC), or inside

@@ -512,7 +512,8 @@ static func _xbox(st: SurfaceTool, xf: Transform3D, centre: Vector3, size: Vecto
 ## mesh at `xf` (open front at -z; the stairs go down towards +z, as the bake's `yaw` says). `form`
 ## is the bake's `f`: "canopy" (a barrel-vaulted glass canopy on steel ribs with a lit red fascia
 ## and a handrail down the middle), "steps" (an open stairwell behind a granite balustrade) or
-## "footway" (a passage mouth between two stepped concrete retaining walls). Every form has the
+## "footway" (a passage mouth between two stepped concrete retaining walls) or "tube" (Metro
+## Centrum's blue half-barrel canopy). Every form has the
 ## step treads painted down the dark opening, a red M post (a pixel-font M in a red square, our
 ## own shape, not the operator's mark; lit at night) and, when `lift`, a glass lift shaft beside it.
 ## Stays in the sector's one mesh: no extra draw call. 320-620 triangles.
@@ -539,6 +540,26 @@ static func add_metro_entrance(st: SurfaceTool, xf: Transform3D, form := "canopy
 				_xbox(st, xf, Vector3(x, 0.93, 0.0), Vector3(0.32, 0.06, 4.3), steel)
 			_xbox(st, xf, Vector3(0, 0.45, 2.0), Vector3(2.66, 0.9, 0.22), granite)
 			_xbox(st, xf, Vector3(0, 0.93, 2.0), Vector3(2.76, 0.06, 0.32), steel)
+		"tube":
+			# Metro Centrum's 1990s "tube" (F, 2026-11-02): a half barrel of milky polycarbonate on
+			# blue steel arches over the stairs, from 1.0 m, closed at the deep end (+z), a blue
+			# rim at the mouth. Rondo Dmowskiego's underpass stairs wear the same (landmarks.gd).
+			var blue := Color("#2457a8")
+			var skin := Color("#d6e4ee")
+			for x in [-1.25, 1.25]:
+				_xbox(st, xf, Vector3(x, 0.5, 0.0), Vector3(0.22, 1.0, 4.2), granite)
+			var arc: Array[Vector3] = []
+			for i in 8:
+				var a := PI * float(i) / 7.0
+				arc.append(Vector3(1.4 * cos(a), 1.0 + 1.4 * sin(a), 0.0))
+			# The closed deep end: three stacked panes roughly filling the half circle.
+			for pane: Vector3 in [Vector3(2.7, 1.0, 1.6), Vector3(2.3, 1.6, 2.05), Vector3(1.4, 2.05, 2.36)]:
+				_xbox(st, xf, Vector3(0, (pane.y + pane.z) * 0.5, 2.12), Vector3(pane.x, pane.z - pane.y, 0.04), skin, LIT_WINDOW)
+			for i in 7:
+				_xbeam(st, xf, arc[i], arc[i + 1], 4.3, 0.03, skin, LIT_WINDOW)
+				for z in [-2.1, -0.7, 0.7, 2.1]:
+					var w := 0.18 if z < -2.0 else 0.1
+					_xbeam(st, xf, arc[i] * 1.02 + Vector3(0, 0, z), arc[i + 1] * 1.02 + Vector3(0, 0, z), w, 0.1, blue)
 		"footway":
 			# Two retaining walls climbing from the mouth into the ground, handrails along them.
 			for x in [-1.2, 1.2]:
@@ -832,6 +853,18 @@ static func _street_plate(st: SurfaceTool, xf: Transform3D, centre: Vector3, nam
 		var right: Vector3 = b * Vector3(side, 0, 0)
 		var at: Vector3 = xf * Vector3(centre.x + side * -0.5 * (w - 0.16), top, centre.z + side * 0.025)
 		PixelFont.add_quads(st, name, at, right, Vector3.DOWN, px, Color("#f2f2ee"), FIXED)
+
+
+## Krajobraz K2 (ul. Chmielna, 2026-11-02): a memorial stone, a rough grey granite boulder about
+## 1.2 m wide and 0.95 m tall (two offset blocks and a cap), a dark bronze plaque on its -z face.
+## Ali's stone by Pasaż Wiecha (August Agbola Browne, 2019). ~60 triangles.
+static func add_memorial_stone(st: SurfaceTool, xf: Transform3D) -> void:
+	var granite := Color("#8e8b86")
+	_xbox(st, xf, Vector3(0, 0.38, 0), Vector3(1.2, 0.76, 0.8), granite)
+	_xbox(st, xf, Vector3(0.12, 0.7, 0.05), Vector3(0.86, 0.5, 0.66), granite.lightened(0.08))
+	_xbox(st, xf, Vector3(-0.05, 0.9, 0.08), Vector3(0.5, 0.12, 0.42), granite.darkened(0.06))
+	_xbox(st, xf, Vector3(0.02, 0.56, -0.41), Vector3(0.56, 0.36, 0.03), Color("#5a4630"))
+	_xbox(st, xf, Vector3(0.02, 0.56, -0.425), Vector3(0.46, 0.04, 0.01), Color("#b08d57"))
 
 
 ## R7: a city bike dock (a parody of the city's hire bikes): a row of `n` docked bikes, mint

@@ -450,6 +450,13 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     # turned to face the walk (tools/snap_props.py; the same code runs on a baked map).
     import snap_props
     snap_props.apply(out)
+    # Krajobraz places (2026-11-02): the young trees of the newest streets that the laser scan
+    # predates (ul. Bracka's woonerf), before the content POIs, which keep clear of trees.
+    import planted_trees
+    planted_trees.apply(out)
+    # Krajobraz places K5 (2026-11-02): the plazas of Rondo Daszyńskiego's towers (tools/plaza_gardens.py).
+    import plaza_gardens
+    plaza_gardens.apply(out)
     # Loop "content POIs" (2026-10-31): the corner shops, metro entrances, city bike docks, the
     # places' missing addresses and the Leżaks with their zones, appended after every older poi
     # on the finished data (they keep clear of its solids; tools/bake_street_pois.py).
