@@ -51,7 +51,10 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# Level 26, the rooftop club on the Atlas Tower.
 		"LEVEL 26",
 		# The hotel on Plac Zawiszy (a parody of the Radisson Blu Sobieski).
-		"RADYSŁAW BLU"]
+		"RADYSŁAW BLU",
+		# The Vistula boulevards' bar pavilions and containers (docs/landmarks/specs/bulwary.md):
+		# parody bar names and what the hatches sell.
+		"CUDAK", "POMOSTEK", "RZECZKA", "LEMONIADA", "ZAPIEKANKI"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)

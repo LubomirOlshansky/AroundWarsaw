@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- The Vistula boulevards are dressed for summer: the concrete bar pavilions on the embankment have lawn roofs, glass fronts, umbrella terraces and string lights, colourful container bars and kiosks sell beer, lemonade and zapiekanki through lit hatches, and timber deck strips with striped deck chairs line the water from the Old Town to Tamka.
 - Two more Powiśle buildings look like themselves: Hortus on Topiel, glass offices round a garden with tenement-style flats on Drewniana, and Modernka on Zajęcza, an old tenement joined to a new glass wing.
 - Cringulo's cream van now carries CRINGULO TV in dark letters on both sides.
 - Evening rides in Podwózka sometimes carry a first-date passenger from the dating app TIMBER, heading for the LORETKA roof bar. Cringulo's van now has a handful of fans standing behind it, chatting, and parking right by the van while he films finds a new easter egg.

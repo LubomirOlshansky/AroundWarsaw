@@ -462,8 +462,11 @@ Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue sign
   the castle's turret corner and entrance; the church's front, tower and colours; the Syrenka's
   plinth against the flood wall (its corner touches the plinth in the cloud render); what Kaskada
   is; a tree on Kaskada's deck.
-- Left: boulevard dressing (deck strips, bar containers), Tamka's and Dobra's tenements and street
-  details. (Piano House and Cube House DONE 2026-11-02, specs `piano_house.md`, `cube_house.md`;
+- Left: Tamka's and Dobra's tenements and street details. (Boulevard dressing DONE 2026-11-02,
+  spec `bulwary.md`: the six bar pavilions, 14 containers and kiosks, 18 deck strips with leżaki;
+  Mac photo check: the pavilions' fronts and roofs, what the Karowa boxes are, the decks' spots.
+  Not built: the stepped timber seating down to the water, beach volleyball, more containers
+  OSM does not map, a car-free kerb on the boulevards.) (Piano House and Cube House DONE 2026-11-02, specs `piano_house.md`, `cube_house.md`;
   Mac photo check: Piano House's real facade rhythm and whether its top floor is set back; where
   Cube House's real bays or loggias are and its colours. Hortus and Moderna DONE 2026-11-02, specs
   `hortus.md`, `moderna.md`; Mac photo check: Hortus's glass and frame colours, its piers, the

@@ -495,6 +495,12 @@ const INFO := {
 	"marina": ["Przystań w Porcie Czerniakowskim",
 			"Port żeglarski przy Zaruskiego: klubowy domek, pomosty i jachty, które zimują tu od pokoleń.",
 			"The sailing harbour by Zaruskiego street: a club house, finger piers and yachts that have wintered here for generations."],
+	"bulwary_pawilony": ["Pawilony na bulwarach",
+			"Betonowe pawilony wpuszczone w nabrzeże, z trawą na dachu. Latem bary, leżaki i kolejka po lemoniadę.",
+			"Concrete pavilions set into the embankment, grass on their roofs. In summer: bars, deck chairs and a queue for lemonade."],
+	"bulwary_bary": ["Kontenery na bulwarach",
+			"Kontenery z okienkiem: piwo, lemoniada, zapiekanki. Leżak obok zawsze zajęty.",
+			"Containers with a hatch: beer, lemonade, zapiekanki. The deck chair next to it is always taken."],
 	"barka_kaskada": ["Kaskadka",
 			"Długa czarna barka koncertowa: industrial, minimalizm i bas słyszalny na Pradze.",
 			"A long black concert barge: industrial, minimal, and bass you can hear in Praga."],
@@ -828,6 +834,8 @@ func _find_sites() -> void:
 	# The river's bar barges and houseboats (2026-11-01, spec docs/landmarks/specs/barki.md).
 	_find_barges()
 	_find_marina()
+	# The boulevards' dressing (2026-11-02, spec docs/landmarks/specs/bulwary.md).
+	_find_bulwar_dress()
 	_find_srodmiescie()
 	# Plac Małachowskiego and the Presidential Palace (2026-10-31): models instead of skins.
 	_find_trojca()
@@ -1294,6 +1302,13 @@ func build(surface, near := Rect2(), only := "") -> void:
 			"houseboats":
 				_id = 0  # private homes: no card, not on the picking grid
 				_build_houseboats(s)
+			"bulwary_pawilony":
+				_build_bulwar_pavilions(s)
+			"bulwary_bary":
+				_build_bulwar_bars(s)
+			"bulwary_pomosty":
+				_id = 0  # deck strips: no card, not on the picking grid
+				_build_bulwar_decks(s)
 			"srodmiescie":
 				_build_srodmiescie(s)
 			"ostrogski":
@@ -13912,3 +13927,333 @@ func _build_sobieski(site: Dictionary) -> void:
 
 func _magenta_dark() -> Color:
 	return SOBIESKI_MAGENTA.darkened(0.15)
+
+
+# --- The Vistula boulevards' dressing (2026-11-02, docs/landmarks/specs/bulwary.md) -----------
+# Powiśle's boulevards (Bulwary Wiślane, rebuilt 2017-2020) between Most Śląsko-Dąbrowski and
+# Tamka: OpenStreetMap maps the six concrete bar pavilions set into Bulwar Grzymały-Siedleckiego
+# as 4.3 m boxes, and the boulevard's bar containers and kiosks at Karowa, by the Marina barge
+# and by Kaskada as blocks up to 14 m tall. Here the pavilions get glass river fronts, green
+# roofs, terraces with umbrellas and bulbs; the containers are corrugated shipping boxes with a
+# lit hatch, an awning and deck chairs; timber deck strips with leżaki line the water's edge.
+# Parody names only (no real bar's name on a sign or a card).
+
+## Where each group's outlines lie (the bake's buildings, found by position and kind).
+const BULWAR_PAW_BOX := Rect2(-270.0, -1510.0, 250.0, 250.0)
+const BULWAR_BAR_BOXES := [Rect2(25.0, -1110.0, 40.0, 45.0), Rect2(195.0, -1068.0, 50.0, 43.0), Rect2(670.0, -575.0, 42.0, 50.0)]
+## Roughly towards the river on the left bank's run past Powiśle (plan).
+const BULWAR_RIVER := Vector2(0.747, -0.665)
+## The timber deck strips by the water: centre x, z and the shore's direction there (measured
+## from the bake's shore runs, 4.5 m in from the edge, clear of buildings, steps and roads).
+const BULWAR_DECKS := [
+	[-457.4, -1814.1, -0.532, -0.847], [-427.2, -1766.0, -0.532, -0.847], [-349.3, -1645.1, -0.552, -0.834],
+	[-315.1, -1596.7, -0.579, -0.815], [-113.5, -1366.5, -0.479, -0.878], [28.2, -1237.2, -0.772, -0.635],
+	[84.1, -1191.1, -0.762, -0.647], [127.1, -1154.6, -0.762, -0.647], [206.9, -1086.5, -0.749, -0.662],
+	[283.7, -1018.6, -0.742, -0.671], [339.4, -968.2, -0.742, -0.671], [388.0, -921.8, -0.680, -0.733],
+	[640.1, -645.1, -0.621, -0.784], [696.9, -572.0, -0.593, -0.805], [761.4, -483.3, -0.582, -0.814],
+	[808.8, -416.6, -0.575, -0.818], [840.4, -369.3, -0.583, -0.812], [880.5, -308.8, -0.573, -0.819],
+]
+const BULWAR_DECK_HU := 5.0    # a strip's half length along the shore
+const BULWAR_DECK_HV := 1.6    # its half depth
+const BULWAR_DECK_H := 0.25    # its top over the ground
+const BULWAR_CONCRETE := Color("#c3c0b8")
+const BULWAR_TIMBER := Color("#a37a52")
+const BULWAR_GREEN := Color("#6d8b4b")
+const BULWAR_GLASS := Color("#6f8c96")
+const BULWAR_PAW_H := 3.6
+## Per pavilion, north-west to south-east: its neon word ("" none), the umbrellas' canvas, and
+## whether it is open (a lit glass front and a terrace) or shuttered for the season.
+const BULWAR_PAWS := [
+	["CUDAK", Color("#f2efe6"), true],
+	["", Color("#2f6fb0"), true],
+	["POMOSTEK", Color("#e9b23c"), true],
+	["", Color("#d9483b"), false],
+	["RZECZKA", Color("#3f9a76"), true],
+	["BAR", Color("#efe6cf"), true],
+]
+## The containers' paint, in turn.
+const BULWAR_BOXES := [Color("#2f6f8f"), Color("#c8452f"), Color("#e2b23a"), Color("#3f7a4f"), Color("#e8e4da"), Color("#38404a")]
+## Per group (BULWAR_BAR_BOXES order): the neon word on its first box.
+const BULWAR_BAR_WORDS := ["PIWO", "LEMONIADA", "ZAPIEKANKI"]
+## Per group: which side of the boxes the chairs go, +1 the river's, -1 inland (measured in
+## the shots: Karowa's containers stand in the park, the others with the road behind them).
+const BULWAR_BAR_FRONT := [-1.0, 1.0, 1.0]
+## The deck chairs' canvas, in turn.
+const BULWAR_CANVAS := [Color("#2f6fb0"), Color("#ece6d4"), Color("#d9483b"), Color("#f0b429"), Color("#3f9a76")]
+
+
+func _find_bulwar_dress() -> void:
+	var paws: Array = []
+	var bars: Array = []
+	for bld in data.get("buildings", []):
+		var q := _pts(bld["p"])
+		if q.size() < 3:
+			continue
+		var c := _centre(q)
+		var kind := str(bld.get("kind", ""))
+		if kind == "pavilion" and BULWAR_PAW_BOX.has_point(c):
+			paws.append(q)
+			continue
+		for i in BULWAR_BAR_BOXES.size():
+			if (BULWAR_BAR_BOXES[i] as Rect2).has_point(c) and kind in ["pavilion", "service", "yes"]:
+				bars.append([i, q])
+				break
+	# North-west to south-east along the river, so each keeps its style on both city paths.
+	var along := func(a: PackedVector2Array, b: PackedVector2Array) -> bool:
+		return _centre(a).dot(Vector2(0.665, 0.747)) < _centre(b).dot(Vector2(0.665, 0.747))
+	paws.sort_custom(along)
+	bars.sort_custom(func(a: Array, b: Array) -> bool:
+		return a[0] < b[0] if a[0] != b[0] else along.call(a[1], b[1]))
+	if not paws.is_empty():
+		var zone: Array = []
+		var frames: Array = []
+		for q: PackedVector2Array in paws:
+			zone.append(_largest(Geometry2D.offset_polygon(q, 0.8, Geometry2D.JOIN_MITER)))
+			frames.append(_barge_frame(q))
+		_add_site("bulwary_pawilony", zone)
+		if not sites.is_empty() and sites[-1]["key"] == "bulwary_pawilony":
+			sites[-1]["frames"] = frames
+	if not bars.is_empty():
+		var zone: Array = []
+		var items: Array = []
+		for e: Array in bars:
+			zone.append(_largest(Geometry2D.offset_polygon(e[1], 0.8, Geometry2D.JOIN_MITER)))
+			items.append([e[0], _barge_frame(e[1])])
+		_add_site("bulwary_bary", zone)
+		if not sites.is_empty() and sites[-1]["key"] == "bulwary_bary":
+			sites[-1]["items"] = items
+	# The deck strips: no building stands there, the zone is just their own plan.
+	var decks: Array = []
+	for d: Array in BULWAR_DECKS:
+		var c := Vector2(d[0], d[1])
+		var t := Vector2(d[2], d[3])
+		var n := Vector2(-t.y, t.x)
+		decks.append(PackedVector2Array([c - t * BULWAR_DECK_HU - n * BULWAR_DECK_HV, c + t * BULWAR_DECK_HU - n * BULWAR_DECK_HV,
+				c + t * BULWAR_DECK_HU + n * BULWAR_DECK_HV, c - t * BULWAR_DECK_HU + n * BULWAR_DECK_HV]))
+	_add_site("bulwary_pomosty", decks)
+
+
+## Set the local frame on an outline's box (u along it, v across) with its v axis turned so
+## +v points to the river; returns the ground (the lowest under the box).
+func _bulwar_set(f: Array) -> float:
+	_o = f[0]
+	_a = f[1]
+	_b = f[2]
+	if _b.dot(BULWAR_RIVER) < 0.0:
+		_a = -_a
+		_b = -_b
+	var hu: float = f[3]
+	var hv: float = f[4]
+	_g = _ground_under(PackedVector2Array([_w(-hu, -hv), _w(hu, -hv), _w(hu, hv), _w(-hu, hv)]))
+	return _g
+
+
+## A quad seen from both sides (canvas, a flap, a leg): its own normal and the reverse.
+func _two_sided(a: Vector3, b: Vector3, c: Vector3, d: Vector3, col: Color) -> void:
+	var n := (b - a).cross(d - a).normalized()
+	_quad(a, b, c, d, n, col)
+	_quad(a, b, c, d, -n, col.darkened(0.12))
+
+
+## A leżak, the striped deck chair of the boulevards, at a local spot on height y, facing +v
+## (the river) or -v (face -1): a canvas sling from the foot rail to the raised back, a back leg.
+func _bulwar_lezak(u: float, v: float, y: float, col: Color, face := 1.0) -> void:
+	var hw := 0.28
+	var foot := v + face * 0.55
+	var mid := v
+	var back := v - face * 0.6
+	var p := func(du: float, dv: float, h: float) -> Vector3:
+		var w := _w(u + du, dv)
+		return Vector3(w.x, y + h, w.y)
+	_two_sided(p.call(-hw, foot, 0.38), p.call(hw, foot, 0.38), p.call(hw, mid, 0.22), p.call(-hw, mid, 0.22), col)
+	_two_sided(p.call(-hw, mid, 0.22), p.call(hw, mid, 0.22), p.call(hw, back, 0.86), p.call(-hw, back, 0.86), col)
+	_two_sided(p.call(-hw, back, 0.86), p.call(hw, back, 0.86), p.call(hw, back - face * 0.3, 0.0), p.call(-hw, back - face * 0.3, 0.0),
+			Color("#7a5a3e"))
+
+
+func _build_bulwar_pavilions(site: Dictionary) -> void:
+	var i := 0
+	for f: Array in site["frames"]:
+		var g := _bulwar_set(f)
+		_walls.clear()
+		_caps.clear()
+		var sty: Array = BULWAR_PAWS[i % BULWAR_PAWS.size()]
+		i += 1
+		var hu: float = f[3]
+		var hv: float = f[4]
+		var top := g + BULWAR_PAW_H
+		var body := _rect(0.0, 0.0, hu, hv)
+		# The concrete box, its roof a lawn behind a low concrete rim.
+		_prism(body, g, top, BULWAR_CONCRETE, BULWAR_GREEN, M_STONE, M_STONE)
+		_collide(body)
+		_barge_rail(-hu, hu, -hv, hv, top, 0.35, 0.25, BULWAR_CONCRETE.lightened(0.05))
+		# The river front: a glass band between concrete ends, mullions every 2.4 m; lit warm
+		# at night when the bar is open, dark grey shutters when it is not.
+		var open: bool = sty[2]
+		var gu := hu - 1.2
+		var fy0 := g + 0.3
+		var fy1 := top - 0.45
+		var fv := hv + 0.04
+		var a0 := _w(-gu, fv)
+		var a1 := _w(gu, fv)
+		var nr := Vector3(_b.x, 0.0, _b.y)
+		_mode = M_PAVILION if open else M_STONE
+		_quad(Vector3(a0.x, fy0, a0.y), Vector3(a1.x, fy0, a1.y), Vector3(a1.x, fy1, a1.y), Vector3(a0.x, fy1, a0.y), nr,
+				BULWAR_GLASS if open else Color("#5d6166"))
+		_mode = M_STONE
+		var n := maxi(2, roundi(2.0 * gu / 2.4))
+		for k in range(0, n + 1):
+			var m0 := _w(-gu + 2.0 * gu * k / n - 0.06, fv + 0.05)
+			var m1 := _w(-gu + 2.0 * gu * k / n + 0.06, fv + 0.05)
+			_quad(Vector3(m0.x, fy0, m0.y), Vector3(m1.x, fy0, m1.y), Vector3(m1.x, fy1, m1.y), Vector3(m0.x, fy1, m0.y), nr, Color("#3b3f44"))
+		# The back (the embankment's side): timber slats over the concrete, a dark door.
+		var b0 := _w(-gu, -hv - 0.04)
+		var b1 := _w(gu, -hv - 0.04)
+		_quad(Vector3(b0.x, fy0, b0.y), Vector3(b1.x, fy0, b1.y), Vector3(b1.x, fy1, b1.y), Vector3(b0.x, fy1, b0.y), -nr, BULWAR_TIMBER)
+		_lbox(gu * 0.5, -hv - 0.1, 0.6, 0.05, g, g + 2.3, Color("#2e2f31"))
+		if not open:
+			continue
+		# The terrace before the glass: a timber deck, tables under umbrellas, deck chairs at
+		# its ends, bulbs strung along the eave.
+		var dv := 1.6
+		_lbox(0.0, hv + dv, gu, dv - 0.05, g, g + 0.2, BULWAR_TIMBER, M_STONE, BULWAR_TIMBER.lightened(0.08))
+		var u := -gu + 2.4
+		var k := 0
+		while u <= gu - 2.4:
+			if k % 3 == 2:
+				_bulwar_lezak(u - 0.4, hv + dv, g + 0.2, BULWAR_CANVAS[(i + k) % BULWAR_CANVAS.size()])
+				_bulwar_lezak(u + 0.4, hv + dv, g + 0.2, BULWAR_CANVAS[(i + k + 1) % BULWAR_CANVAS.size()])
+			else:
+				_barge_umbrella(u, hv + dv, g + 0.2, 1.2, sty[1])
+			u += 3.8
+			k += 1
+		var e0 := _w(-gu, hv + 0.15)
+		var e1 := _w(gu, hv + 0.15)
+		var pieces := maxi(1, roundi(2.0 * gu / 12.0))
+		for p in pieces:
+			var t0 := float(p) / pieces
+			var t1 := float(p + 1) / pieces
+			_barge_festoon(Vector3(lerpf(e0.x, e1.x, t0), top - 0.3, lerpf(e0.y, e1.y, t0)),
+					Vector3(lerpf(e0.x, e1.x, t1), top - 0.3, lerpf(e0.y, e1.y, t1)), 0.35, 5)
+		# The bar's name in neon on its rim, on the face the game's camera sees most.
+		var word: String = sty[0]
+		if word != "":
+			_bulwar_sign(word, hu, hv, top + 0.35, Neon.colour_for(word, float(i) / 7.0))
+
+
+## A neon word standing on a box's top edge (half sizes hu, hv in the current frame), on the
+## face that looks most towards the game's camera (BEHIND_FACE), sized to fit that face.
+func _bulwar_sign(word: String, hu: float, hv: float, y: float, tube: Color) -> void:
+	var best := -INF
+	var at := Vector2.ZERO
+	var out := Vector2.ZERO
+	var room := 0.0
+	for face: Array in [[_a, _w(hu + 0.05, 0.0), 2.0 * hv], [-_a, _w(-hu - 0.05, 0.0), 2.0 * hv],
+			[_b, _w(0.0, hv + 0.05), 2.0 * hu], [-_b, _w(0.0, -hv - 0.05), 2.0 * hu]]:
+		var d := (face[0] as Vector2).dot(BEHIND_FACE)
+		if d > best:
+			best = d
+			out = face[0]
+			at = face[1]
+			room = face[2]
+	var k := minf(0.4, maxf(0.15, (room - 0.6) / Neon.length_of(word)))
+	signs.append([word, Vector3(at.x, y + 0.02, at.y), Vector3(out.x, 0.0, out.y), k, tube])
+
+
+func _build_bulwar_bars(site: Dictionary) -> void:
+	var i := 0
+	var signed := {}
+	for e: Array in site["items"]:
+		var grp: int = e[0]
+		var f: Array = e[1]
+		var g := _bulwar_set(f)
+		_walls.clear()
+		_caps.clear()
+		var hu: float = f[3]
+		var hv: float = f[4]
+		var col: Color = BULWAR_BOXES[i % BULWAR_BOXES.size()]
+		i += 1
+		var body := _rect(0.0, 0.0, hu, hv)
+		var shipping := hv < 1.6
+		# Neighbours side by side sit 6 cm apart in height so their roofs never share a plane.
+		var top := g + (2.6 if shipping else 2.8) + 0.06 * (i % 2)
+		if shipping:
+			# A shipping container: corrugated sides (ribs every 0.45 m), a darker top rail.
+			_prism(body, g, top, col, col.darkened(0.15), M_STONE, M_STONE)
+			_mullions(body, g + 0.12, top - 0.12, 0.45, 0.04, col.darkened(0.2))
+		else:
+			# A timber kiosk under a flat roof on a small overhang.
+			_prism(body, g, top, BULWAR_TIMBER.darkened(0.1), Color(0, 0, 0, 0), M_STONE)
+			_prism(_rect(0.0, 0.0, hu + 0.3, hv + 0.3), top, top + 0.2, col, col.darkened(0.1), M_STONE, M_STONE)
+		_collide(body)
+		# The hatch on the long face the camera sees most: lit inside, a flap propped over it, a
+		# counter under it, a stool or two; deck chairs and an umbrella out in front.
+		var s := 1.0 if _b.dot(BEHIND_FACE) >= 0.0 else -1.0
+		var long_u := hu >= hv
+		var hw := (hu if long_u else hv) * 0.6
+		var depth := hv if long_u else hu
+		var fn := (_b if long_u else _a) * s
+		var side := (_a if long_u else _b)
+		var c := _o + fn * (depth + 0.08)
+		var h0 := c - side * hw
+		var h1 := c + side * hw
+		var nrm := Vector3(fn.x, 0.0, fn.y)
+		_mode = M_LAMP
+		_quad(Vector3(h0.x, g + 1.05, h0.y), Vector3(h1.x, g + 1.05, h1.y), Vector3(h1.x, g + 2.0, h1.y), Vector3(h0.x, g + 2.0, h0.y),
+				nrm, Color(1.0, 0.82, 0.55))
+		_mode = M_STONE
+		var f0 := h0 + fn * 0.9
+		var f1 := h1 + fn * 0.9
+		_two_sided(Vector3(h0.x, g + 2.1, h0.y), Vector3(h1.x, g + 2.1, h1.y), Vector3(f1.x, g + 2.45, f1.y), Vector3(f0.x, g + 2.45, f0.y),
+				col.lightened(0.1))
+		var cc := _o + fn * (depth + 0.18)
+		_prism(PackedVector2Array([cc - side * hw - fn * 0.15, cc + side * hw - fn * 0.15, cc + side * hw + fn * 0.15, cc - side * hw + fn * 0.15]),
+				g, g + 1.0, col.darkened(0.3), BULWAR_TIMBER.lightened(0.1), M_STONE, M_STONE)
+		# Out on the promenade's side (BULWAR_BAR_FRONT: the river's side or the park's, away
+		# from the roads), at every other box: one umbrella and two deck chairs facing the box
+		# (side by side boxes would share the spot).
+		var sign_now := not signed.has(grp)
+		if i % 2 == 0 and not sign_now:
+			continue
+		var ps: float = BULWAR_BAR_FRONT[grp]
+		var fr := f[0] as Vector2 + _b * ps * (hv + 2.8)
+		var keep_a := _a
+		var keep_b := _b
+		_o = fr
+		_b = keep_b * ps
+		_a = Vector2(-_b.y, _b.x)
+		_barge_umbrella(-1.2, 0.0, g, 1.1, BULWAR_CANVAS[i % BULWAR_CANVAS.size()])
+		_bulwar_lezak(0.5, 0.2, g, BULWAR_CANVAS[(i + 1) % BULWAR_CANVAS.size()], -1.0)
+		_bulwar_lezak(1.3, 0.2, g, BULWAR_CANVAS[(i + 2) % BULWAR_CANVAS.size()], -1.0)
+		_o = f[0]
+		_a = keep_a
+		_b = keep_b
+		if sign_now:
+			signed[grp] = true
+			_bulwar_sign(BULWAR_BAR_WORDS[grp], hu, hv, top + (0.0 if shipping else 0.2), Neon.colour_for(BULWAR_BAR_WORDS[grp], float(grp) / 3.0))
+
+
+## The deck strips: a low timber platform on the boulevard's edge, leżaki in a row facing the
+## water, an umbrella at one end of every other strip.
+func _build_bulwar_decks(site: Dictionary) -> void:
+	var k := 0
+	for q: PackedVector2Array in site["zone"]:
+		_walls.clear()
+		_caps.clear()
+		_o = (q[0] + q[2]) * 0.5
+		_a = (q[1] - q[0]).normalized()
+		_b = (q[3] - q[0]).normalized()
+		if _b.dot(BULWAR_RIVER) < 0.0:
+			_b = -_b
+			_a = -_a
+		var g := _ground_under(q)
+		_g = g
+		var y := g + BULWAR_DECK_H
+		_lbox(0.0, 0.0, BULWAR_DECK_HU, BULWAR_DECK_HV, g, y, BULWAR_TIMBER.darkened(0.25), M_STONE, BULWAR_TIMBER)
+		var n := 4 if k % 3 != 1 else 3
+		for c in n:
+			var u := -BULWAR_DECK_HU + 1.2 + c * 1.5
+			_bulwar_lezak(u, 0.05, y, BULWAR_CANVAS[(k + c) % BULWAR_CANVAS.size()])
+		if k % 2 == 0:
+			_barge_umbrella(BULWAR_DECK_HU - 1.6, 0.0, y, 1.2, BULWAR_CANVAS[(k + 3) % BULWAR_CANVAS.size()])
+		k += 1
