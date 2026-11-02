@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- With larger text on, the mission panel, the race banner and the ride app cards now fit the smaller phones and stay clear of your car.
 - Nowy Świat and Al. Jerozolimskie are no longer dark at night: Nowy Świat has street lamps on both pavements and the avenues have their lamps closer together, so the pools of light join up along the street.
 - Park your car at the supercar meet by Browary Warszawskie and the crowd will have a word about your ride.
 - The KRINGULA PIZZA queue now has its "queue for the queue" jokes: people waiting to join the line, a man queuing for the start-of-the-queue sign.

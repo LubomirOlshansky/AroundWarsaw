@@ -850,10 +850,12 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
 - Text size that follows the phone's own setting (the toggle itself is live since 2026-11-01).
   **Two parts found 2026-11-02.** (1) Reading iOS Dynamic Type / Android font scale needs a native
   call; Godot 4.7 has no API for it, so it waits for a small iOS/Android plugin (Mac work).
-  (2) The HUD at x1.25: `check_hud` has a fifth pass (`large-text`), reported as WARN lines, not yet
-  a gate. On 844x390, 693x390 and 667x375 pt phones the status panel (rescue, kebab delivery), the
-  race banner and the ride offer/result cards find no room or sit over the car. Fix in hud.gd
-  `_layout` (wrap narrower or step the scale down per panel that fails), then make the pass a gate.
+  (2) ~~The HUD at x1.25 doesn't fit the small phones~~ Done (2026-11-02): a panel that must show
+  (status, cards, banner) and finds no room at the larger text steps its own text down 0.05 at a
+  time, never below normal (hud.gd `_fit_text`); the ride's side card also keeps off the car's
+  spot. `check_hud`'s large-text pass is a gate and lists each step-down (11 of 84 states: the
+  rescue status x1.10-1.20, the race banner x1.05-1.20, the ride cards x1.00-1.20 on 667x375).
+  Left: the look on the phone at x1.25.
   Also fixed: `apply_text_scale` errored on a freed label after a setting change.
 - Subtitles: nothing is voiced yet; revisit when speech or radio talk with words lands.
 - ~~Crash sparks buzz through `Access.buzz`~~ Done (2026-11-01: crash_fx.gd shakes nothing; the
