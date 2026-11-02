@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Rondo Dmowskiego looks like the real one: grey paving round the tram cross with four curved flower beds in red and purple, the blue 1990s tube canopies over every underpass stair and the metro entrances by the Patelnia, a colourful mural on the Patelnia's wall, and a kiosk, an ice-cream cart and a tram shelter round it.
 - Arkadka, the mall by Rondo Radosława, gets its playground: a ribbon-like rope course, three trampolines, a long wooden bench and lamps hung on a cable.
 - Zielona Świętokrzyska has its big flower planters on the pavement wherever the street's trees leave a gap.
 - The car no longer stops dead by the Centrum tram stop on Marszałkowska: raised tram and train platforms are solid now, and brushing a fence or a wall along the road keeps most of your speed.

@@ -778,6 +778,7 @@ func _find_sites() -> void:
 	_find_skins()
 	_find_zygmunt()
 	_find_gaulle()
+	_find_rondo()
 	_find_deski()
 	_find_dom_partii()
 	_find_rynek()
@@ -1279,6 +1280,9 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_pawilony(s)
 			"cepelia":
 				_build_cepelia(s)
+			"rondo":
+				_id = 0
+				_build_rondo(s)
 			"zodiak":
 				_build_zodiak(s)
 			"ochota":
@@ -3464,6 +3468,366 @@ func _gaulle_figure(y: float, h: float) -> void:
 	_prism(_rect(0.02 * k, 0.0, 0.11 * k, 0.1 * k), y + 2.72 * k, y + 2.98 * k, bz, none, M_STONE)
 	_prism(_circle(_w(0.0, 0.0), 0.12 * k, 8), y + 2.98 * k, y + 3.16 * k, bz.darkened(0.08), bz.darkened(0.12), M_STONE, M_STONE)
 	_prism(_rect(0.15 * k, 0.0, 0.07 * k, 0.1 * k), y + 2.98 * k, y + 3.0 * k, bz.darkened(0.15), bz.darkened(0.15), M_STONE, M_STONE)
+
+
+# --- Rondo Dmowskiego (F's photos and the city's traffic plan, 2026-11-02) ---------------------
+
+## The roundabout where Marszałkowska crosses Al. Jerozolimskie, over the underpass to Metro
+## Centrum (spec docs/landmarks/specs/rondo-dmowskiego.md). The map has the ring, the tram cross through
+## the middle, the four lawns between the tracks and twelve walled stairwells; this site dresses
+## them like the real place (F's aerials, 2026-11-02):
+##  - the island: grey granite paving in concentric bands round the tram cross, in each quarter
+##    one long bent flower bed (red or purple, in a yellow rim, like the summer planting) and a
+##    short inner bed of clipped shrubs in an orange rim; no trees (the photos show none; the
+##    laser scan's crowns there go: tree_free);
+##  - the underpass stairs: Metro Centrum's 1990s blue "tubes" over every stairwell, a half
+##    barrel of milky polycarbonate on blue steel arches, closed at the deep end, a red M post at
+##    the mouth (still standing in 2026: ZTM's replacement is only on paper);
+##  - the colourful mural on the Patelnia's south wall (our own pattern, not the real artwork).
+## The PRASA kiosk, the ice-cream cart and the east tram stop's shelter are street details
+## (tools/bake_street_details.py RONDO). The zone is two 0.2 m squares at the corners of it all
+## (RONDO_BOX), so nothing mapped is dropped and every sector the pieces reach builds them.
+const RONDO_C := Vector2(-836.36, 461.05)
+const RONDO_U := Vector2(0.33738, 0.94137)    # along Marszałkowska, south
+const RONDO_V := Vector2(0.94258, -0.33399)   # along Al. Jerozolimskie, east
+const RONDO_TRACK := 4.0                      # half the tram cross's width (ballast 3 m and a kerb strip)
+const RONDO_PAVING := Color("#b4b0a7")
+const RONDO_BAND := Color("#86827b")
+const RONDO_RIM := Color("#e2b23c")
+const RONDO_RIM_INNER := Color("#d97a2b")
+const RONDO_SHRUB := Color("#3f6b2f")
+const RONDO_FLOWERS := [Color("#c42b3a"), Color("#7a52b8"), Color("#c42b3a"), Color("#7a52b8")]
+const TUBE_BLUE := Color("#2457a8")
+const TUBE_SKIN := Color("#d6e4ee")
+const METRO_RED := Color("#c8171f")
+## The stairwells (centrum.json `steps` with their walled outlines, `lines` k wall): centre x, z, the
+## way up (to the open mouth), length and width of the walled well.
+const RONDO_WELLS := [
+	[-780.2, 473.9, 0.821, -0.570, 8.8, 4.6], [-850.1, 514.7, 0.357, 0.934, 9.3, 5.6],
+	[-794.8, 418.0, 0.999, -0.046, 8.7, 6.0], [-789.5, 490.9, 0.038, 0.999, 8.6, 5.6],
+	[-815.5, 412.9, -0.618, -0.786, 9.1, 6.3], [-862.0, 415.4, -0.011, -1.000, 9.6, 4.3],
+	[-793.6, 438.3, 0.991, -0.130, 8.7, 5.9], [-876.5, 484.6, -1.000, 0.012, 9.1, 3.9],
+	[-810.9, 499.4, 0.110, 0.994, 8.6, 4.0], [-884.4, 405.2, -0.204, -0.979, 8.7, 5.4],
+	[-881.5, 429.3, -0.083, 0.997, 9.6, 5.8], [-864.4, 503.9, -0.996, -0.091, 8.9, 5.7],
+]
+## The Patelnia's south wall (centrum.json `lines` k wall, 1.9 m): the mural faces the sunken
+## square (north) along its first 50 m.
+const RONDO_MURAL := [Vector2(-886.2, 424.1), Vector2(-889.3, 424.2), Vector2(-892.2, 424.4), Vector2(-894.9, 424.9),
+	Vector2(-901.4, 426.3), Vector2(-904.0, 426.6), Vector2(-906.2, 426.8), Vector2(-908.4, 426.7), Vector2(-910.7, 426.4),
+	Vector2(-913.2, 425.9), Vector2(-915.9, 425.0), Vector2(-919.0, 424.0), Vector2(-923.6, 422.8), Vector2(-926.2, 422.4),
+	Vector2(-928.8, 422.3), Vector2(-931.4, 422.3), Vector2(-933.7, 422.5), Vector2(-935.7, 422.9)]
+const MURAL_COLOURS := [Color("#f2c12e"), Color("#e8562a"), Color("#d6338a"), Color("#2fb3c9"), Color("#5bbf4a"),
+	Color("#7a4fc2"), Color("#f08fb8"), Color("#2a62d1"), Color("#ffffff"), Color("#1d1d24")]
+const MURAL_H := 1.9
+
+
+## The zone's two 0.2 m squares: the north-west and south-east corners of everything the site
+## builds (the mural's far end, the south-east stairs), so its box covers it all.
+const RONDO_BOX := [Vector2(-937.0, 400.0), Vector2(-776.0, 519.0)]
+func _find_rondo() -> void:
+	var zone: Array = []
+	for a: Vector2 in RONDO_BOX:
+		zone.append(PackedVector2Array([a, a + Vector2(0.2, 0), a + Vector2(0.2, 0.2), a + Vector2(0, 0.2)]))
+	_add_site("rondo", zone)
+	tree_free.append([RONDO_C, 27.5])
+
+
+func _build_rondo(_site: Dictionary) -> void:
+	_no_roof = true
+	_rondo_island()
+	for w: Array in RONDO_WELLS:
+		_rondo_tube(Vector2(float(w[0]), float(w[1])), Vector2(float(w[2]), float(w[3])), float(w[4]), float(w[5]))
+	_rondo_mural()
+	_no_roof = false
+
+
+## The island's edge at angle `ang` in a quarter: 25.2 m at the tracks,
+## 26.8 m on the diagonals (just over the mapped lawns' outline, 24.8-26.6 m).
+func _rondo_r(ang: float) -> float:
+	var s := sin(2.0 * ang)
+	return 25.2 + 1.6 * s * s
+
+
+## A point of quarter (sv, su) in the island's frame (v east, u south) at (v, u) >= 0.
+func _rondo_p(q: Vector2, v: float, u: float) -> Vector2:
+	return RONDO_C + RONDO_V * (v * q.x) + RONDO_U * (u * q.y)
+
+
+## A polygon of quarter `q` from local (v, u) points, counter-clockwise in the plan.
+func _rondo_poly(q: Vector2, pts: Array) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for p: Vector2 in pts:
+		out.append(_rondo_p(q, p.x, p.y))
+	if Geometry2D.is_polygon_clockwise(out):
+		out.reverse()
+	return out
+
+
+## The quarter between the tracks out to the edge, as local points (v, u).
+func _rondo_quarter_local(r_scale := 1.0, inset := 0.0) -> Array:
+	var pts: Array = [Vector2(RONDO_TRACK + inset, RONDO_TRACK + inset)]
+	for k in 13:
+		var ang := PI * 0.5 * float(k) / 12.0
+		var r := _rondo_r(ang) * r_scale - inset
+		var p := Vector2(cos(ang), sin(ang)) * r
+		pts.append(Vector2(maxf(p.x, RONDO_TRACK + inset), maxf(p.y, RONDO_TRACK + inset)))
+	return pts
+
+
+## A curved band between radii r0 and r1 over the quarter, its ends cut flat `cut` m from the
+## tracks (parallel to them): the beds' crescent shape (F's photos).
+func _rondo_band_local(r0: float, r1: float, cut: float) -> Array:
+	var pts: Array = []
+	for k in 13:
+		var ang := PI * 0.5 * float(k) / 12.0
+		pts.append(Vector2(maxf(cos(ang) * r1, cut), maxf(sin(ang) * r1, cut)))
+	for k in range(12, -1, -1):
+		var ang := PI * 0.5 * float(k) / 12.0
+		pts.append(Vector2(maxf(cos(ang) * r0, cut), maxf(sin(ang) * r0, cut)))
+	# Clamping folds the points past the cut onto it: drop the repeats.
+	var out: Array = []
+	for p: Vector2 in pts:
+		if out.is_empty() or (out[out.size() - 1] as Vector2).distance_to(p) > 0.05:
+			out.append(p)
+	return out
+
+
+func _rondo_island() -> void:
+	_id = 0
+	_g = map.terrain_height(RONDO_C.x, RONDO_C.y)
+	var g := _g
+	_mode = M_STONE
+	var quarters := [Vector2(1, 1), Vector2(-1, 1), Vector2(-1, -1), Vector2(1, -1)]
+	for qi in 4:
+		var q: Vector2 = quarters[qi]
+		# Paving over the mapped lawn, then the darker concentric bands, clipped to the quarter.
+		var quarter := _rondo_poly(q, _rondo_quarter_local())
+		_cap(quarter, g + 0.18, RONDO_PAVING)
+		for band: Vector2 in [Vector2(7.6, 8.4), Vector2(13.4, 14.0), Vector2(21.2, 21.8), Vector2(23.6, 24.2)]:
+			var ring_out := PackedVector2Array()
+			var ring_in := PackedVector2Array()
+			for k in 13:
+				var ang := PI * 0.5 * float(k) / 12.0
+				ring_out.append(_rondo_p(q, cos(ang) * band.y, sin(ang) * band.y))
+				ring_in.append(_rondo_p(q, cos(ang) * band.x, sin(ang) * band.x))
+			ring_in.reverse()
+			var strip := ring_out + ring_in
+			if Geometry2D.is_polygon_clockwise(strip):
+				strip.reverse()
+			for piece in Geometry2D.intersect_polygons(strip, quarter):
+				if piece.size() >= 3 and not Geometry2D.is_polygon_clockwise(piece):
+					_cap(piece, g + 0.21, RONDO_BAND)
+		# The long bed: a yellow rim, the flowers 0.3 m inside it, a speckle of lighter blooms.
+		var bed := _rondo_poly(q, _rondo_band_local(15.0, 19.6, 5.0))
+		_prism(bed, g, g + 0.38, RONDO_RIM.darkened(0.1), RONDO_RIM, M_STONE, M_STONE)
+		var inner := Geometry2D.offset_polygon(bed, -0.3, Geometry2D.JOIN_MITER)
+		var flowers: Color = RONDO_FLOWERS[qi]
+		for p in inner:
+			if p.size() >= 3 and not Geometry2D.is_polygon_clockwise(p):
+				_prism(p, g + 0.38, g + 0.46, flowers.darkened(0.25), flowers, M_STONE, M_STONE)
+				_rondo_speckle(p, g + 0.5, flowers.lightened(0.35), qi)
+		# The inner bed: clipped shrubs in an orange rim.
+		var small := _rondo_poly(q, _rondo_band_local(9.4, 11.8, 5.0))
+		_prism(small, g, g + 0.3, RONDO_RIM_INNER.darkened(0.1), RONDO_RIM_INNER, M_STONE, M_STONE)
+		for p in Geometry2D.offset_polygon(small, -0.28, Geometry2D.JOIN_MITER):
+			if p.size() >= 3 and not Geometry2D.is_polygon_clockwise(p):
+				_prism(p, g + 0.3, g + 0.72, RONDO_SHRUB.darkened(0.15), RONDO_SHRUB, M_STONE, M_STONE)
+
+
+## Little squares of lighter flowers on a bed's top, on a 1.3 m grid (a fixed jitter per quarter).
+func _rondo_speckle(poly: PackedVector2Array, y: float, col: Color, seed_q: int) -> void:
+	var box := _box_of([poly])
+	var x := box.position.x + 0.4
+	var row := 0
+	while x < box.end.x:
+		var z := box.position.y + 0.4 + 0.65 * float(row % 2)
+		while z < box.end.y:
+			var jx := fmod(absf(x * 12.9898 + z * 78.233 + seed_q * 3.1), 1.0) * 0.5
+			var p := Vector2(x + jx, z)
+			if Geometry2D.is_point_in_polygon(p, poly):
+				var s := 0.22
+				_quad(Vector3(p.x - s, y, p.y - s), Vector3(p.x + s, y, p.y - s), Vector3(p.x + s, y, p.y + s),
+						Vector3(p.x - s, y, p.y + s), Vector3.UP, col)
+			z += 1.3
+		x += 1.3
+		row += 1
+
+
+## One of Metro Centrum's blue tubes over a stairwell centred at `c`, `up` towards its mouth: a half
+## barrel (radius half the well less 0.1 m) springing from 1.0 m, its skin milky polycarbonate
+## (the cool pavilion glass), blue arches every ~1.5 m and a blue rim at the mouth, the deep end closed
+## by a skin half-disc, and a red M post beside the mouth. ~290 triangles.
+const TUBE_SEGS := 7
+func _rondo_tube(c: Vector2, up: Vector2, length: float, width: float) -> void:
+	_g = map.terrain_height(c.x, c.y)
+	var g := _g
+	var side := Vector2(-up.y, up.x)
+	var r := clampf(width * 0.5 - 0.1, 1.8, 2.9)
+	var y0 := g + 1.0
+	var half := length * 0.5
+	# The arc's points (local: across, height) from one side over to the other.
+	var arc: Array[Vector2] = []
+	for k in TUBE_SEGS + 1:
+		var a := PI * float(k) / float(TUBE_SEGS)
+		arc.append(Vector2(cos(a) * r, sin(a) * r))
+	var at := func(s: float, p: Vector2) -> Vector3:
+		var q := c + up * s + side * p.x
+		return Vector3(q.x, y0 + p.y, q.y)
+	# The skin: one strip per arc segment along the whole tube.
+	_mode = M_PAVILION + 0.5
+	for k in TUBE_SEGS:
+		var p0: Vector2 = arc[k]
+		var p1: Vector2 = arc[k + 1]
+		var mid := (p0 + p1) * 0.5
+		var n3: Vector3 = (at.call(0.0, mid) as Vector3) - Vector3(c.x, y0, c.y)
+		n3 = n3.normalized()
+		_quad(at.call(-half, p0), at.call(half, p0), at.call(half, p1), at.call(-half, p1), n3, TUBE_SKIN)
+	# The deep end's half-disc (facing away from the mouth).
+	var back := Vector3(-up.x, 0.0, -up.y)
+	var hub: Vector3 = at.call(-half, Vector2.ZERO)
+	for k in TUBE_SEGS:
+		_tri(hub, at.call(-half, arc[k]), at.call(-half, arc[k + 1]), back, TUBE_SKIN.darkened(0.06),
+				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	# The arches (the mouth's a little heavier) and the two sills along the walls.
+	var n_arch := maxi(3, roundi(length / 1.5) + 1)
+	for i in n_arch:
+		var s := -half + length * float(i) / float(n_arch - 1)
+		var w := 0.2 if i == n_arch - 1 else 0.12
+		_rondo_arch(at, s, w, arc, r)
+	# The two blue sills it stands on, down to the paving along the well's walls.
+	_o = c
+	_a = up
+	_b = side
+	for sx: float in [-1.0, 1.0]:
+		_lbox(0.0, r * sx, half, 0.09, g, y0 + 0.02, TUBE_BLUE.darkened(0.15), M_STONE, TUBE_BLUE)
+	# The M post at the mouth's right: a 3.2 m pole, a red square with a white M on both faces.
+	var foot := c + up * (half + 0.9) + side * (r + 0.5)
+	_beam(Vector3(foot.x, g, foot.y), Vector3(foot.x, g + 2.72, foot.y), 0.08, Color("#5b5f66"), false)
+	_o = foot
+	_a = side
+	_b = up
+	_mode = M_LAMP
+	_lbox(0.0, 0.0, 0.42, 0.05, g + 2.7, g + 3.54, METRO_RED, M_LAMP, METRO_RED)
+	for face: float in [-1.0, 1.0]:
+		_rondo_m(foot, side, up * face, g + 3.12)
+
+
+## One blue arch of a tube at `s` along it, `w` wide: an annular band 0.12 m proud of the skin,
+## its faces one strip each (segments of a rib box would share planes at the joints and flicker).
+func _rondo_arch(at: Callable, s: float, w: float, arc: Array[Vector2], r: float) -> void:
+	_mode = M_STONE
+	var k_in := (r + 0.01) / r
+	var k_out := (r + 0.13) / r
+	var p0: Vector3 = at.call(s - w * 0.5, Vector2.ZERO)
+	var p1: Vector3 = at.call(s + w * 0.5, Vector2.ZERO)
+	var axis := (p1 - p0).normalized()
+	for k in arc.size() - 1:
+		var a: Vector2 = arc[k]
+		var b: Vector2 = arc[k + 1]
+		var mid := (a + b) * 0.5
+		var hub: Vector3 = at.call(s, Vector2.ZERO)
+		var n_out: Vector3 = ((at.call(s, mid) as Vector3) - hub).normalized()
+		var fa_i: Vector3 = at.call(s - w * 0.5, a * k_in)
+		var fb_i: Vector3 = at.call(s - w * 0.5, b * k_in)
+		var fa_o: Vector3 = at.call(s - w * 0.5, a * k_out)
+		var fb_o: Vector3 = at.call(s - w * 0.5, b * k_out)
+		var ba_i: Vector3 = at.call(s + w * 0.5, a * k_in)
+		var bb_i: Vector3 = at.call(s + w * 0.5, b * k_in)
+		var ba_o: Vector3 = at.call(s + w * 0.5, a * k_out)
+		var bb_o: Vector3 = at.call(s + w * 0.5, b * k_out)
+		_quad(fa_i, fb_i, fb_o, fa_o, -axis, TUBE_BLUE)
+		_quad(ba_i, bb_i, bb_o, ba_o, axis, TUBE_BLUE)
+		_quad(fa_o, fb_o, bb_o, ba_o, n_out, TUBE_BLUE.lightened(0.08))
+
+
+## A white M (five strokes) on the red square at `c`, facing `n` (plan), its middle at `y`.
+func _rondo_m(c: Vector2, along: Vector2, n: Vector2, y: float) -> void:
+	var white := Color("#fbf7ee")
+	var nrm := Vector3(n.x, 0.0, n.y)
+	var strokes := [[-0.24, -0.24, -0.24, 0.24], [0.24, -0.24, 0.24, 0.24], [-0.24, 0.24, 0.0, 0.02], [0.24, 0.24, 0.0, 0.02]]
+	_mode = M_LAMP
+	for i in strokes.size():
+		var s: Array = strokes[i]
+		# The uprights 3.5 cm off the plate, the diagonals 3 cm further (no shared planes).
+		var p := c + n * (0.085 if i < 2 else 0.115)
+		var a := p + along * float(s[0])
+		var b := p + along * float(s[2])
+		var ya := y + float(s[1])
+		var yb := y + float(s[3])
+		var d3 := Vector3(b.x - a.x, yb - ya, b.y - a.y).normalized()
+		var off := d3.cross(nrm).normalized() * 0.045
+		var pa := Vector3(a.x, ya, a.y)
+		var pb := Vector3(b.x, yb, b.y)
+		_quad(pa - off, pb - off, pb + off, pa + off, nrm, white)
+
+
+## The mural on the Patelnia's wall, facing the square (north): bold blocks of colour, circles,
+## zigzag bands and black outlines in the 2010s Warsaw street-art palette, our own pattern (the real
+## mural is someone's artwork). Panels 0.8-2.4 m wide, each split in two or three shapes.
+func _rondo_mural() -> void:
+	var rnd := 7
+	for i in RONDO_MURAL.size() - 1:
+		var a: Vector2 = RONDO_MURAL[i]
+		var b: Vector2 = RONDO_MURAL[i + 1]
+		var length := a.distance_to(b)
+		var d := (b - a) / length
+		var out := Vector2(d.y, -d.x)
+		if out.y > 0.0:
+			out = -out  # north (towards the sunken square, -z)
+		var face := out * 0.19
+		var t := 0.0
+		while t < length - 0.05:
+			rnd = (rnd * 1103515245 + 12345) % 2147483647
+			var w := minf(0.8 + float(rnd % 16) * 0.1, length - t)
+			var p0 := a + d * t + face
+			var p1 := a + d * (t + w) + face
+			var g0: float = map.terrain_height(p0.x, p0.y)
+			var g1: float = map.terrain_height(p1.x, p1.y)
+			var base: Color = MURAL_COLOURS[rnd % 8]
+			var nrm := Vector3(out.x, 0.0, out.y)
+			_mode = M_STONE
+			_quad(Vector3(p0.x, g0 + 0.15, p0.y), Vector3(p1.x, g1 + 0.15, p1.y), Vector3(p1.x, g1 + MURAL_H - 0.08, p1.y),
+					Vector3(p0.x, g0 + MURAL_H - 0.08, p0.y), nrm, base)
+			# A shape on it: a disc, a diamond or a zigzag band, outlined in black.
+			var fg: Color = MURAL_COLOURS[((rnd >> 3) + 3) % 10]
+			if fg == base:
+				fg = MURAL_COLOURS[9]
+			var m := (p0 + p1) * 0.5 + out * 0.03
+			var gm := (g0 + g1) * 0.5
+			var kind := (rnd >> 7) % 3
+			var rad := minf(w * 0.42, 0.75)
+			var yc := gm + 0.25 + rad + float((rnd >> 9) % 3) * 0.12
+			if kind == 0:
+				_rondo_disc(m, d, nrm, yc, rad + 0.06, MURAL_COLOURS[9], 10)
+				_rondo_disc(m + out * 0.03, d, nrm, yc, rad, fg, 10)
+			elif kind == 1:
+				_rondo_disc(m, d, nrm, yc, rad + 0.06, MURAL_COLOURS[9], 4)
+				_rondo_disc(m + out * 0.03, d, nrm, yc, rad, fg, 4)
+			else:
+				var hz := gm + 0.4 + float(rnd % 5) * 0.2
+				var zz := 3 + rnd % 3
+				for k in zz:
+					var u0 := -w * 0.5 + w * float(k) / float(zz)
+					var u1 := -w * 0.5 + w * float(k + 1) / float(zz)
+					var ya := hz + (0.25 if k % 2 == 0 else -0.25)
+					var yb := hz + (-0.25 if k % 2 == 0 else 0.25)
+					var qa := m + d * u0
+					var qb := m + d * u1
+					_quad(Vector3(qa.x, ya - 0.12, qa.y), Vector3(qb.x, yb - 0.12, qb.y), Vector3(qb.x, yb + 0.12, qb.y),
+							Vector3(qa.x, ya + 0.12, qa.y), nrm, fg)
+			t += w
+
+
+## A flat disc (n sides) standing on a wall: centre `m` (plan) at height `y`, `along` the wall.
+func _rondo_disc(m: Vector2, along: Vector2, nrm: Vector3, y: float, r: float, col: Color, n: int) -> void:
+	var hub := Vector3(m.x, y, m.y)
+	for k in n:
+		var a0 := TAU * float(k) / float(n) + (PI * 0.25 if n == 4 else 0.0)
+		var a1 := TAU * float(k + 1) / float(n) + (PI * 0.25 if n == 4 else 0.0)
+		var q0 := m + along * cos(a0) * r
+		var q1 := m + along * cos(a1) * r
+		_tri(hub, Vector3(q0.x, y + sin(a0) * r, q0.y), Vector3(q1.x, y + sin(a1) * r, q1.y), nrm, col,
+				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
 
 
 # --- Dom Partii (F's photos, 2026-11-01) --------------------------------------------------------

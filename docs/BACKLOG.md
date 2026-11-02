@@ -3,6 +3,35 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Rondo Dmowskiego and the metro entrances (F, 2026-11-02)
+
+F sent two aerials, a night aerial and the city's traffic plan of Rondo Dmowskiego and asked for the
+roundabout and the metro entrances round it. Done 2026-11-02 (cloud thread, site `rondo`, spec
+`docs/landmarks/specs/rondo-dmowskiego.md`):
+- **The island**: grey granite paving in concentric bands over the four mapped lawns between the tram
+  cross, a crescent flower bed per quarter (red or purple in a yellow rim) and a shrub bed in an
+  orange rim; the laser scan's trees on it removed (`tree_free`); the PRASA kiosk and two planters the
+  street-details bake had put on the island moved off (`DISCS`).
+- **The underpass stairs**: Metro Centrum's blue polycarbonate "tubes" over all twelve walled
+  stairwells (blue arches, closed deep end, red M post at the mouth glowing at night), and the same
+  `tube` form for the three Centrum `subway_entrance` stairs by the Patelnia (`Props`, storefronts).
+- **The Patelnia mural**: an original colourful pattern on the north face of its 1.9 m south wall.
+- **Street furniture**: a PRASA kiosk by the Patelnia stairs, an ice-cream cart in the south-west and
+  a tram shelter on the east Jerozolimskie island (`bake_street_details.py` RONDO; new kind `shelter`).
+- **Drive test**: the ring's four sides and Marszałkowska by the south-east stairs (playtest suspect
+  PT-4) are SPOTS in `check_drive.gd`.
+Left:
+- Mac look check (QUESTIONS): bed colours and sizes against the orthophoto, the tubes' height and
+  blue, whether every stairwell really has a tube (some may be open stairs), the mural's place.
+- The underpass itself (shops, the passage to the metro) is not modelled: the camera never sees it.
+- The crossings the city added in 2022 at the four arms are the road bake's; a zebra check against
+  the plan (Widok, Poznańska, Nowogrodzka, Parkingowa) belongs with "Roads against real Warsaw".
+- The occlusion ghost cuts the island's paving and beds on the camera's side when a tower hides the car
+  (they are in the building material, like every landmark): the lawn shows through in the ghost's
+  circle. A ground-level exemption in `building.gdshader` (by UV2.y, the height above ground) would
+  fix it for every site's ground dressing (Dom Partii's court, Plac Defilad).
+- The stairwell walls are the map's 1.9 m walls (`lines` k wall): real balustrades are about 1 m.
+  Lowering them is a map-builder change for every mapped wall, not done here.
 ## Map checks in GitHub CI (2026-11-02)
 
 - Done: the `map` job in `.github/workflows/verify.yml`. The GUGiK-derived files (lod2.bin, lod2.json,

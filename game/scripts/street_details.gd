@@ -8,7 +8,7 @@ extends Node3D
 ## actors' material (models.gd): one draw call a cell in view, cast_shadow OFF for all of it (a
 ## contact pad on the paving under the tall props stands in for the shadow). Kiosks, stalls and the
 ## cart stop the car (one box each in one StaticBody); the rest are drive-through like the map's
-## benches. PRASA = press, KWIATY = flowers, LODY = ice cream, BILETY = tickets.
+## benches. A tram shelter stands on Rondo Dmowskiego's unsheltered east island (2026-11-02). PRASA = press, KWIATY = flowers, LODY = ice cream, BILETY = tickets.
 
 const Props := preload("res://scripts/props.gd")
 const Models := preload("res://scripts/models.gd")
@@ -70,6 +70,8 @@ static func add_item(st: SurfaceTool, kind: String, xf: Transform3D, colour: Str
 			Props.add_stop_bench(st, xf)
 		"heater":
 			Props.add_patio_heater(st, xf)
+		"shelter":
+			Props.add_tram_shelter(st, xf)
 
 
 ## Builds the meshes and the colliders; `map` gives the ground (map_builder.ground_height).
