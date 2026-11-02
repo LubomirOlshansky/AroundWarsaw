@@ -88,7 +88,14 @@ Left:
   archikatedra.md and ostrogski.md had no parts table, a Plac Zbawiciela café set stood off its
   shopfront (check_stops K5; `square_terraces` now uses the same CAFE_FRONT rule, 45 sets), Dworzec
   Wodny needs the barges' bank-side rays, and the heli aims at Zamek Ostrogskich's tallest cell (its
-  box's middle is the courtyard).
+  box's middle is the courtyard). 2026-11-02, verify --quick in the cloud with the pack (still
+  unseen in CI while the map job skips): check_landmarks failed K7's splash pool (`bulwary_basen`,
+  all under 2 m: a heli has nothing to hit), now in its FLY_OVER list (flown over, never inside);
+  park_details.json's source stamp was stale since map review C's re-bakes (items unchanged),
+  re-stamped and `parkdetails` joined the quick job; street_details.json's stamp went stale the
+  same way with K6's planted trees (items unchanged), re-stamped, and `streetdetails` and `stops`
+  moved from the skipped map job to the quick job (all three are Python on the committed map); the prebuilt bake failed with no display, so
+  `tools/verify.sh` now runs it under xvfb-run, or skips the prebuilt steps as a WARN without one.
 - Open: F publishes release `map-pack-1` (until then the map job skips with a warning). A required
   check: GitHub Settings → Rules → a ruleset on main requiring `quick` and `map`, so a PR can't merge
   on red or before its run ends (#261 did). After a full bake that changes lod2 or terrain:
@@ -274,8 +281,14 @@ Left:
   lines, a toast) or a draw (`draw` lines). Left: the real stop names and whether trams or buses
   serve the stadium (the map has no tram near it; QUESTIONS), a phone look of the walkers' size
   and the cost on the phone (+1 draw call while they walk, 0.09 ms fans scripts in the cloud
-  probe, was 0.05), walkers dodging the car (they walk through it now, like the other crowds),
-  the standing groups thinning during the match (they stay out all evening now).
+  probe, was 0.05).
+- Making way and the match built (2026-11-02): walkers and the standing groups step out of the
+  car's path (2.6 m clear, a hop with scarves up and a `dodge` line above 30 km/h), walk round a
+  stopped car and step back after; during the match the groups file in until 15 % stay (the
+  drummer and a few with a radio, `match` lines, no smoke) and come back out just before full
+  time. Left: the feel on the phone (step speed, is the hop readable at the default zoom), a fan
+  stepping aside can end up against a wall or on the road edge (no obstacle test, capped at
+  3.2 m), the walkers don't step aside for the AI traffic, only the player's car.
 
 ## Police chases and radiowozy (F, 2026-11-02)
 
@@ -388,8 +401,18 @@ The 7136 block is a sunken metro stair; metro canopies and stairs have no collid
 Open: a phone check of the thinner seam (the cloud has no phone); whether the 1.2 m hedges should
 also go non-colliding is F's call.
 
-**G6 · Going under bridges at entries (P1, owner: the "Finish remaining bridge joins" thread).**
-F: "when I was entering the bridge I went down under it". Not touched here. For that thread:
+**G6 · Going under bridges at entries: done (2026-11-02).** Found: on the lanes no bridge entry
+drops the car (check_drive's routes now also flag a car more than 1 m under its deck lane: 0). Off
+the lanes it did: the ground beside an approach's fill lies 1.5-2.4 m under the slab's end, so a
+car coming onto the ramp at an angle (20°, 3-4 m off the middle) was over the 1.2 m it may climb
+and drove on under the slab: Most Poniatowskiego's north ramps (875, −161) and (900, −89), Towarowa
+over the rail cutting (−2383, 968), Wybrzeże Szczecińskie by Śląsko-Dąbrowski (494, −1450). Fix
+(`map_builder.gd` `drive_height`, `_index_deck_feet`): on a ramp's foot (the first `DECK_FOOT`
+10 m of a road piece's end that is no joint and stands within 1.2 m of the ground) a car up to
+`DECK_FOOT_UP` 3 m under the slab climbs on (a small hop where the ground beside is low). New
+check_drive pass "entries": from every such foot, 2,190 straight drives across the deck's width at
+0° and ±20° (±40° tried: 0 too): 4 → 0 on both city paths. Left: the feel of the hop on the phone
+(F's playthrough). Was: F: "when I was entering the bridge I went down under it". For that thread:
 reproduce at the ramps of the Poniatowski, Świętokrzyski, Śląsko-Dąbrowski, Gdański and
 Łazienkowski bridges and the Średnicowy flyover (7138 shows a flyover with a road below): the lane
 graph's or the ground's height at the approach lets the car under the deck. Accept: the car stays
@@ -406,6 +429,27 @@ where they were (turned only), 7 inside a lane or a building were left out; tram
 and the first scene's authored cafe tables are unchanged; night service (N buses) is still only
 the Centralny hub.
 
+
+**G12 part 2 · The two quest lists: done (2026-11-02).** The full map's ZADANIA card (right, under
+✕ and ≡; the ≡ cards take its place): tabs ZADANIA AUTO / ZADANIA HELI, the vehicle's own first,
+at most four 44 pt rows (quest_lines.gd `rows`: requests first, then places nearest first, one per
+group, three cassettes). AUTO: the nearest kebab stand, słoiki station and Leżak depot (night),
+Warsztat u Mirka, "Podwózka · ask for a ride" (PODWÓZKA's rule). HELI: "a rescue call by
+helicopter" (missions.gd `request_call`: a roof or sandbar call on the card now) and the three
+nearest cassettes not taken. A tapped place becomes the quest pin (main.gd `quest_pin`: the arrow
+and minimap dot in its colour while nothing else is on; gone within 25 m, a cassette when taken);
+tapped again it goes. Empty while a race, job or rescue is on. `--quest-pick=N` for runs. Left:
+- **G12b: done (2026-11-02).** The pad's way into the card (full_map.gd `pad_quest`): X switches
+  the tab (its first row picked out), the D-pad up / down moves the pick in the pad's yellow ring (a
+  place's row centres the map on it), Y takes it as a tap; A stays the teleport hold. The card shows
+  the keys while the pad is used. Left: phone look (are four rows enough, is the card in the map's way).
+- **G12c: done (2026-11-02).** AUTO also lists the open "Na czasie" slots, Cringulo's van (Mlask) and
+  the Friday PISTACJA drop (trend_job.gd `offer_places`, only places not cooling down), the ladder's
+  next rival where they cruise now (the pin follows them, quest_lines.gd `MOVING`) or Seba's start for
+  "Trzy mosty" at night; HELI the peacock's roof call while Pan Paw is up (missions.gd
+  `request_peacock`, from anywhere). The quest under way is one "Teraz · ..." row on the vehicle's
+  tab; tapped, the map looks at its target. Left: PADELNIA's "Czwarty" and the Deski calls are not
+  listed (they come by phone or need a queue); a row per running job kind (now one generic name).
 
 **G13 · Upgrade shop: done (2026-11-02).** Warsztat u Mirka's card has a second tab, "Części i auta":
 the Ołdi TT (2,500 zł, faster, a lower coupe model), the nitro "Kebab Boost" (600 zł; a bolt disc left
@@ -844,10 +888,12 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
 - Text size that follows the phone's own setting (the toggle itself is live since 2026-11-01).
   **Two parts found 2026-11-02.** (1) Reading iOS Dynamic Type / Android font scale needs a native
   call; Godot 4.7 has no API for it, so it waits for a small iOS/Android plugin (Mac work).
-  (2) The HUD at x1.25: `check_hud` has a fifth pass (`large-text`), reported as WARN lines, not yet
-  a gate. On 844x390, 693x390 and 667x375 pt phones the status panel (rescue, kebab delivery), the
-  race banner and the ride offer/result cards find no room or sit over the car. Fix in hud.gd
-  `_layout` (wrap narrower or step the scale down per panel that fails), then make the pass a gate.
+  (2) ~~The HUD at x1.25 doesn't fit the small phones~~ Done (2026-11-02): a panel that must show
+  (status, cards, banner) and finds no room at the larger text steps its own text down 0.05 at a
+  time, never below normal (hud.gd `_fit_text`); the ride's side card also keeps off the car's
+  spot. `check_hud`'s large-text pass is a gate and lists each step-down (11 of 84 states: the
+  rescue status x1.10-1.20, the race banner x1.05-1.20, the ride cards x1.00-1.20 on 667x375).
+  Left: the look on the phone at x1.25.
   Also fixed: `apply_text_scale` errored on a freed label after a setting change.
 - Subtitles: nothing is voiced yet; revisit when speech or radio talk with words lands.
 - ~~Crash sparks buzz through `Access.buzz`~~ Done (2026-11-01: crash_fx.gd shakes nothing; the
@@ -1010,8 +1056,10 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   two-lane two-way streets 6 → 7 m (423 ways, F's yes).
 - Already listed and still open: lines inside junctions not checked against photos ("From map
   review B"; the dark Jerozolimskie / Nowy Świat at night fixed 2026-11-02); the loop 3e structures (Łazienkowski's
-  Praga end R8, the rail cutting, Rozdroże's tubes, Nowy Zjazd's wall, deck 4); Most Łazienkowski
-  cut by the east edge ("From loop 3d-1", a decision).
+  Praga end R8, the rail cutting, deck 4, the Karowa footbridge's Praga end; Rozdroże's tubes and
+  Nowy Zjazd's wall done); ~~Most Łazienkowski cut by the east edge~~ settled 2026-11-02 (the river
+  crossing is whole since the box reached 21.056). Both lines wait on the Mac: the junction lines
+  need the GUGiK orthophoto and the structures a re-bake from data/raw (QUESTIONS, 2026-11-02).
 
 ### P1: street details beyond the start (content/map, Sonnet with an Opus spec)
 - **Landed** (2026-11-01, thread "Add street details along the main route", spec
@@ -2258,6 +2306,11 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   lane line lie inside the clusters of junction nodes (most at Plac Trzech Krzyży (-77, 670), the
   Poniatowski ramps (1381, -344), Wał Miedzeszyński (1514, -147)); measured, not yet checked
   against the photo one by one (many are a real edge line along a wide junction's side).
+  2026-11-02: blocked in the cloud (mapy.geoportal.gov.pl and every other imagery host are refused
+  by the cloud's network, and data/work/demo/ortho.bmp is Mac-only); the Mac brief is in QUESTIONS.
+  Note for that pass: a cloud measure of lane lines inside crossing strips also counts Rondo
+  Dmowskiego's spiral lines (real) and the multi-lane fans at Jerozolimskie/Plater, so judge by the
+  overlay, not by metres.
 - ~~At night Al. Jerozolimskie at (-615, 394) and Nowy Świat at (-331, 18) read much darker than
   Marszałkowska.~~ Fixed 2026-11-02 in `tools/bake_lights.py`: the lamps it adds on unlit stretches
   stood 34 m apart a side, so the pools (lit bands 9-12 m) left gaps on the wide avenues; primary and
@@ -2388,9 +2441,11 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   data (3c's note). Loop 3d-2.
 - **The runtime path's start**: the roof pass over 88 sector files (3c measured 2 s for 32) and the
   monolithic build (`count_vertices.gd` 36 s): a cached roof grid. Loop 3d-2.
-- **Most Łazienkowski is cut by the east edge** (x 1,773 mid-river): its deck ends in the air at the
-  rim like Most Świętokrzyski's did on the first box. DEMO 2.1 said no bridge is cut; that held
-  for the 30 km² box only. Move the east edge to ~21.056 (the fetch reaches it) or accept.
+- ~~**Most Łazienkowski is cut by the east edge** (x 1,773 mid-river)~~ **Settled 2026-11-02**: the
+  box's east edge is 21.056 now (x 2,182), so the whole river crossing is in the map (the main
+  deck runs x 1,306-1,976); only the Praga approach viaducts over Wał Miedzeszyński (deck groups
+  9-11) end at the outline (x 2,182, z 744-934), where the edge roadworks (PR #309) close them on
+  the deck. No change; taking the Praga end in whole needs a fetch past 21.056 (not planned).
 - **Speed traps 5-7** (`tools/bake_traps.py`): Warsaw's blocks give straight runs of 157-195 m
   (police.md asks 250 m with no junction within 80 m: the officer stands mid-run, the junctions
   78-98 m away); trap 6's road is named Aleja Armii Ludowej in OSM (radio phrase unchanged),

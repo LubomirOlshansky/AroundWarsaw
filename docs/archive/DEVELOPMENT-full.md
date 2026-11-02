@@ -3548,6 +3548,15 @@ the rail cutting on its 1 m level (the WKD 7 m under the grid) is 24,000 m² of 
 cut along a corridor (the trench floor drawn as one strip, the grid's triangles clipped round it)
 instead of sub-cells: BACKLOG.
 
+**G6, bridge entries off the lanes (2026-11-02).** `check_drive.gd` has a third pass, "entries": from
+every road deck piece's end that is no joint and stands within 1.2 m of the ground (a ramp's foot),
+the car drives straight onto the slab from 24 m out, every 0.8 m across the deck's width, at 0° and
+±20°, its height from `drive_height` like car.gd's; a frame more than `UNDER` 1 m under the slab is
+a finding (allowlist kind `under`). The routes flag the same on a deck's lanes. Before: 4 ends (the
+ground beside the fill 1.5-2.4 m lower than the slab's end); `drive_height` now lets a car up to
+`DECK_FOOT_UP` 3 m under the slab climb on over a foot's first `DECK_FOOT` 10 m (`_index_deck_feet`,
+lazy, both paths): 0. Gameplay only (no geometry, no bake): no bench needed.
+
 ## Moja Warszawa notebook (loop MW-1, 2026-10-30)
 
 MOJA WARSZAWA, the city notebook (docs/design/vision.md 4.1): the 72 places of
@@ -5674,6 +5683,7 @@ Command-line options (after `--`):
 | `--settings` | loop 2a: open the settings panel at the start (screenshots) |
 | `--fullmap` | F's asks (2026-10-30): open the full-screen map at the start (the game paused; screenshots) |
 | `--fullmap=M` | 2026-10-31: the same, M metres across the screen's height (the game map's shots) |
+| `--quest-pick=N` | G12 part 2 (2026-11-02): open the full map at the start and tap row N of the ZADANIA tab shown (the vehicle's); a place's pick closes the map and becomes the quest pin |
 | `--map-jump=X,Z` | 2026-10-31: the full map's hold-to-teleport to X,Z at the start (prints the refusal, if any, and where the car went) |
 | `--settings-tab=N` | loop 2e: open the settings panel at tab N (0 Jazda · Driving, 1 Świat · World, 2 Obraz · Picture, 3 Dźwięk · Sound; loop MW-1: 4 Zeszyt · the notebook) |
 | `--notebook` / `--notebook=CHAPTER\|ID` | loop MW-1: open the settings card on MOJA WARSZAWA, the notebook (a chapter by id or number 1-9, or a place's card by its id; screenshots) |
