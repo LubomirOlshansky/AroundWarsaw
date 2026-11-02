@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Warsaw's monuments are on the map: about 300 statues, busts, memorial stones and talking benches stand where the real ones do, Ogród Saski's sandstone statues stand at their real spots, and 520 Uprising memorial plaques hang on the walls with candles below them.
 - A new pizzeria, KRINGULA PIZZA, with a huge queue of people who cry over the first bite, and longer morning queues at two hyped coffee chains.
 - A delivery order's GO button counts down the seconds until the order starts by itself, so it no longer seems to start without a tap.
 - On wide phones the radio's line no longer slides in cut off at the screen edge, and the orange delivery marker stays under speech bubbles and banners, with its distance clear of its arrow.
