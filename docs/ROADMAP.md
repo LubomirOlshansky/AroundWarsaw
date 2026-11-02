@@ -66,6 +66,8 @@ then the Launch gate.
   - [ ] R8 landmark polish left in the box (the museum's ribbon and roofline)
 
 ### Left: map and roads
+- [ ] Free-play playtest plan P1-P10 run with Autopilot and every confirmed PT bug fixed
+      (F, 2026-11-02; docs/PLAYTEST.md; setup and Autopilot plugin done 2026-11-02)
 - [ ] A full `tools/verify.sh` and `--ios` on the Mac on today's main, both city paths
 - [ ] Map checks in GitHub CI (the derived map pack as a release asset)
 - [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views

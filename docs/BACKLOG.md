@@ -24,6 +24,13 @@ Left:
 - The boulevard's buildings are a palette, not models: next pass is street by street, the real
   facade of each block along Jana Pawła II (Kaskada, the 1950s blocks near Rondo Daszyńskiego, the
   Żelazna Brama corner) from the orthophoto and photos.
+## Playtest bugs (Autopilot, 2026-11-02)
+
+The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, status); fix
+threads take its confirmed rows one by one. Open now: PT-1 to PT-3 (suspects from the first
+Śródmieście run: a dead stop east of the start, a cluster of near-stops north-east of Plac
+Defilad, the car 29 m below its start height); run 2 records their exact positions.
+
 ## Pokorna 2 (F, 2026-11-02)
 
 - Pokorna 2 remodelled as flats (site `pokorna2`, spec pokorna2.md). Open: Mac look check (QUESTIONS); the Gdański Business Center thread works nearby (Dworzec Gdański), keep its site zone clear of the outline at (-2123, -2217).
