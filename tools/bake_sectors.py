@@ -84,9 +84,10 @@ SECTOR_POINTS = {"trees": 4, "lamps": 2, "signals": 3, "parked": 4, "benches": 3
                  "bikes": 3, "columns": 3, "shelters": 3}
 # Small whole-map lists every sector's builder reads as they are.
 SECTOR_WHOLE = ["lod2_cuts", "lod2_open"]
-# Keys only the sectors need (the rest of centrum.json goes to the index).
+# Keys only the sectors need (the rest of centrum.json goes to the index). The rails stay in the
+# index too: trains.gd runs on the whole network (docs/design/railway.md T1).
 SECTOR_ONLY = {"buildings", "markings", "carriage", "symbols", "sand", "sandbars", "surfaces",
-               "steps", "lines", "rails", "walls", "garage_doors", "lamps", "benches", "bins",
+               "steps", "lines", "walls", "garage_doors", "lamps", "benches", "bins",
                "bikes", "shelters", "trees", "trees3d_crown"}
 
 # Where landmarks.gd looks for the building parts its sites are made of (it reads every
@@ -111,19 +112,33 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               "Biblioteka Uniwersytecka",
               # Hotel Metropol's roof sign (landmarks.gd _build_metropol_sign reads its parts' height)
               "Hotel Metropol",
+              # Ujazdowski Castle (2026-11-01): a model on its mapped outline
+              "Zamek Ujazdowski",
               # HOTEL PIURE's rooftop sign LORETKA (landmarks.gd _build_loretka reads its parts' height)
-              "Puro Warszawa Centrum"]
+              "Puro Warszawa Centrum",
+              # Level 26, the rooftop club on the Atlas Tower (landmarks.gd _build_level26_club reads its crown)
+              "Atlas Tower",
+              # Fabryka Norblina (landmarks.gd _find_works: its tall wing is found among the parts
+              # under the outline OSM names "Modsen")
+              "Modsen"]
 SITE_PAD = 12.0
+# Building kinds landmarks.gd finds wherever they lie (the barges, 2026-11-01: _find_barges).
+SITE_KINDS = ("boat", "houseboat")
 SITE_AREAS = [
     (1250.0, -820.0, 1700.0, -370.0),       # Stadion Narodowy's masts (Rect2(1250, -820, 450, 450))
     (-1520.0, 472.5, -1320.0, 672.5),       # Warszawa Centralna (CENTRALNA ± its 146 x 92 m zone)
     (910.0, -165.0, 950.0, -105.0),         # Most Poniatowskiego's towers (the fallback search)
     (1398.0, -332.0, 1443.0, -267.0),
+    (1085.0, 1470.0, 1120.0, 1515.0),       # Stadion Leguminy's bowl (landmarks.gd LEGIA_AT, the 27 m outline: its vertices average near 1100, 1492)
     (-7.0, 235.0, 13.0, 255.0),             # Muzeum Narodowe (its outline's centre, by landmarks.gd MUZEUM)
     (-680.0, 1180.0, -350.0, 1620.0),       # MDM (Plac Konstytucji to Plac Zbawiciela, landmarks.gd _find_mdm)
+    (-2690.0, 170.0, -2655.0, 215.0),       # Warsaw Spire's east wing (landmarks.gd TOWERS spire "with")
+    (-2765.0, 135.0, -2735.0, 170.0),       # and its north-west wing
     (-2700.0, 560.0, -2655.0, 650.0),       # The Warsaw HUB's towers (landmarks.gd TOWERS "at")
     (-650.0, -790.0, -630.0, -765.0),       # Plac Piłsudskiego's south-east block (landmarks.gd KROLEWSKA_BLOCK)
     (-3105.0, -2455.0, -2920.0, -2335.0),   # map north: the Forest tower's office block (unnamed in OSM; docs/DEMO.md 2.2)
+    (-2175.0, -2520.0, -1945.0, -2335.0),   # Gdański Business Center (unnamed in OSM; landmarks.gd GBC_BOX)
+    (-445.0, 1605.0, -395.0, 1680.0),       # Kościół Najświętszego Zbawiciela (landmarks.gd ZB_NAVE_AT, ZB_TOWER_AT)
     # behind the Eastern Wall (landmarks.gd _find_behind): the 75 m tower and the four 1960s
     # slabs, unnamed in OSM, found by the outline under TOWER75_AT and SLAB_AT (their bboxes)
     (-837.0, 245.0, -804.0, 270.0),
@@ -131,6 +146,33 @@ SITE_AREAS = [
     (-874.0, 149.0, -841.0, 215.0),
     (-826.0, 185.0, -800.0, 229.0),
     (-793.0, 287.0, -764.0, 333.0),
+    # Pokorna 2 (landmarks.gd _find_pokorna2): the 57 m residential block, found by the outline under POKORNA2_AT
+    (-2141.0, -2234.0, -2105.0, -2198.0),
+    (-450.0, 1580.0, -385.0, 1670.0),       # Kościół Zbawiciela's nave and towers (landmarks.gd ZB_*; MDM's box ends at z 1620)
+    # the church kit (landmarks.gd CHURCHES): the outline under each church's `at` point
+    (-853, -1629, -749, -1525),   # church_sw_marcin
+    (-1019, -1461, -938, -1380),   # church_kapucyni
+    (-676, -1276, -610, -1210),   # church_niepokalanego
+    (-1210, -1693, -1121, -1604),   # church_katedra_polowa
+    (-1060, -1881, -968, -1789),   # church_duch
+    (-1048, -1993, -930, -1875),   # church_jacek
+    (-1253, -1036, -1133, -916),   # church_antoniego
+    (-1120, -1173, -1029, -1082),   # church_alberta
+    (-1805, -1165, -1706, -1066),   # church_reformowany
+    (936, 1286, 1031, 1381),   # church_jerozolimska
+    (-1942, 276, -1846, 373),   # church_zielonoswiatkowy
+    (-1869, 936, -1784, 1021),   # church_dzieciatka
+    (-2007, -1014, -1926, -933),   # church_narodzenia
+    (-2191, -510, -2100, -419),   # church_karol
+    (-2478, -1240, -2362, -1124),   # church_augustyn
+    (-2792, -733, -2704, -645),   # church_miloserdzie
+    (-1172, 772, -1064, 879),   # church_piotr_pawel
+    (1023, 229, 1102, 308),   # church_trojca_praga
+    (1081, 813, 1173, 906),   # church_czestochowska
+    (1914, -1434, 2018, -1330),   # church_zwycieska
+    (-1058, -1559, -985, -1487),   # church_cerkiew
+    (-1609, -268, -1529, -188),   # church_nozykow
+    (1575.0, 1570.0, 1605.0, 1610.0),       # the sailing marina's club house (landmarks.gd MARINA_AT, unnamed in OSM)
 ]
 
 
@@ -466,7 +508,8 @@ def main(map_dir):
             continue
         cx = sum(p[0::2]) / (len(p) // 2)
         cz = sum(p[1::2]) / (len(p) // 2)
-        if any(a[0] <= cx <= a[2] and a[1] <= cz <= a[3] for a in named + SITE_AREAS):
+        # The river's barges and houseboats (landmarks.gd _find_barges reads them by kind).
+        if bld.get("kind") in SITE_KINDS or any(a[0] <= cx <= a[2] and a[1] <= cz <= a[3] for a in named + SITE_AREAS):
             site_parts.append(bld)
     index["site_parts"] = site_parts
     index["sectors"] = {"size": SECTOR, "margin": MARGIN, "point_margin": POINT_MARGIN,

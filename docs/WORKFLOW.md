@@ -45,6 +45,10 @@ backlog-loop skill (`.claude/skills/backlog-loop/SKILL.md`).
 - **Next item.** When a loop or a subagent's item finishes, the orchestrator picks the next
   one for that agent at once: the user's latest asks and answered questions, regressions,
   ROADMAP "The road to the 1.0 demo" in order, BACKLOG-TRIAGE, then BACKLOG.
+- **When the checklist is done** (F, 2026-11-01): check ROADMAP "v1.0 checklist" for anything
+  left to improve. If nothing is, go street by street through the centre: analyse every
+  landmark and improve the houses, roads, parks and everything else, with our best approaches
+  (photos, the landmark lane, the street details), so the city feels alive and real.
 - **Park, don't wait.** A question for the user goes into `docs/QUESTIONS.md` "Waiting" with
   its options and the safe, reversible default that was built; an item with no such default
   is marked blocked and the next item starts. The user gets the parked list in one batch.

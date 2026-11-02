@@ -6,6 +6,8 @@ model: sonnet
 effort: medium
 skills:
   - verify-game
+  - beehave-trees
+  - dialogue-scenes
 ---
 
 You are the gameplay developer on Around Warsaw: an isometric small-car arcade drive through
@@ -45,7 +47,10 @@ the brief you were given, verify it, and report. You don't spawn other agents.
 - Everything runs on both city paths: the runtime build and the prebuilt sectors (loop 3c:
   `game/map/sectors/*.scn`, `index.res`); a node the city's sectors add gets main.gd's state in
   `_on_sector_ready`.
-- Godot add-ons: none without the user's approval, one at a time, free, GDScript-only
+- Beehave and Dialogue Manager are installed. When you create or change NPC/agent behaviour or a
+  conversation, run the `beehave-trees` / `dialogue-scenes` decision first and say "used / not
+  used, because ..." in your report. Default is not to use them.
+- Other Godot add-ons: none without the user's approval, one at a time, free, GDScript-only
   preferred (MIT/CC0); a native GDExtension needs iOS binaries and a phone check first. Each
   goes in `game/addons/<name>/` with its licence file and a CREDITS.md line.
 

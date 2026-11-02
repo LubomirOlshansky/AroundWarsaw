@@ -79,8 +79,8 @@ const FIRST_AWAY := 90.0
 const FIRST_ROLL := 12.0
 ## Her words for it, [Polish, English] (each at most 70 characters).
 const FIRST_LINES := {
-	"call": ["Synku! Babcia mruga. Do Palmy, kto pierwszy?", "Sonny! Granny's flashing you. To the Palm, first one there?"],
-	"nudge": ["Mrugnij, synku. Babcia nie ma całego dnia.", "Flash back, sonny. Granny hasn't got all day."],
+	"call": ["Dziecko drogie! Babcia mruga. Do Palmy, kto pierwszy?", "Kiddo! Granny's flashing you. Race you to the Palm?"],
+	"nudge": ["Mrugnij, dziecko. Babcia nie ma całego dnia.", "Flash back, kiddo. Granny hasn't got all day."],
 	"gone": ["Ech, ta młodzież. To innym razem.", "Kids these days. Another time, then."],
 }
 
@@ -96,7 +96,7 @@ const RIVALS := [
 		"win": [["Na Pradze się tak jeździ, mordo!", "That's how we drive in Praga, buddy!"],
 			["Spoko, następnym razem dam ci fory. Może.", "Chill, next time I'll give you a head start. Maybe."]],
 		"lose": [["Ej no, gołąb mi wleciał na maskę!", "Come on, a pigeon landed on my bonnet!"],
-			["Szacun. Ale po naszej stronie Wisły byś mnie nie dogonił.", "Respect. But on our side of the Vistula you'd never catch me."]]},
+			["Szacun. Ale po naszej stronie Wisły nikt mnie nie dogoni.", "Respect. But on our side of the Vistula nobody catches me."]]},
 	{"name": "Mordor Mike", "colour": Color("#9fc2e8"), "style": 1, "size": Vector3(1.9, 1.9, 4.7), "stake": 300,
 		"about": "office guy from Mordor on Domaniewska, races like it's a deadline",
 		"refuse": ["Nie mam cię w kalendarzu. Umów się przez asystentkę.", "You're not in my calendar. Book it through my assistant."],
@@ -109,14 +109,14 @@ const RIVALS := [
 			["Okej, wrzucam to na retro. Lesson learned.", "Okay, that goes in the retro. Lesson learned."]]},
 	{"name": "Pani Halina", "colour": Color("#86d3b0"), "style": 2, "size": Vector3(1.6, 1.9, 3.4), "stake": 60,
 		"about": "a pensioner who drives far too fast, late for the bazaar",
-		"refuse": ["Synku, najpierw obiad, potem wyścigi.", "Sonny, dinner first, then racing."],
-		"approach": ["Synku, nie siedź mi tak na ogonie, babcia się spieszy!", "Sonny, don't tailgate me, Granny's in a hurry!"],
+		"refuse": ["Dziecko, najpierw obiad, potem wyścigi.", "Kiddo, dinner first, then racing."],
+		"approach": ["Dziecko, nie siedź mi tak na ogonie, babcia się spieszy!", "Kiddo, don't tailgate me, Granny's in a hurry!"],
 		"challenge": [["Spieszę się {pl}. Dogonisz babcię?", "I'm in a hurry {en}. Can you catch Granny?"],
 			["Promocja na ogórki się kończy! Jedziemy {pl}!", "The pickle sale is ending! We're going {en}!"]],
 		"win": [["W moich czasach to się jeździło, a nie wlokło!", "In my day we drove, we didn't crawl!"],
-			["Zjedz coś, synku, bo blady jesteś i wolny.", "Eat something, sonny, you're pale and slow."]],
+			["Zjedz coś, dziecko, bo blade jesteś i wolne.", "Eat something, kiddo, you're pale and slow."]],
 		"lose": [["Ech, to przez te nowe progi zwalniające.", "Oh, it's those new speed bumps."],
-			["Dobry chłopak. Masz tu pierogi na drogę.", "Good boy. Here, have some pierogi for the road."]]},
+			["Dobre dziecko. Masz tu pierogi na drogę.", "Good kid. Here, have some pierogi for the road."]]},
 	{"name": "Słoik z Radomia", "colour": Color("#ffb05a"), "style": 3, "size": Vector3(2.0, 3.0, 5.2), "stake": 90,
 		"about": "a newcomer from Radom with his mum's jars in the van",
 		"refuse": ["Mama mówi, żebym się nie ścigał z byle kim. Sorry.", "Mum says not to race just anyone. Sorry."],
@@ -177,7 +177,8 @@ var car: CharacterBody3D
 var state := State.CRUISE
 ## Rival in the current prompt or race.
 var rival := -1
-## The wallet (złoty and respect, saved); a win pays the stake and +100 respect.
+## The wallet (złoty and respect, saved); a win pays the stake and Ladder.WIN_GAIN respect the
+## first time a rung is beaten (Ladder.REMATCH_GAIN after).
 var wallet: Node
 ## The side jobs (jobs.gd): no challenges while one runs.
 var jobs: Node
@@ -780,6 +781,7 @@ func _finish_race(won: bool, why: String) -> void:
 			bonus_en = " · +20 % FOR THE ESCAPE"
 			print("race: +20 %% for the escape: %d → %d zł" % [base, stake])
 		var record := ""
+		var gain := Ladder.WIN_GAIN
 		if wallet != null:
 			var key := "race:%s" % _finish["name"]
 			var best: float = wallet.best_time(key)
@@ -787,25 +789,29 @@ func _finish_race(won: bool, why: String) -> void:
 				record = " · new best!" if best > 0.0 else ""
 			else:
 				record = " · best %s" % _clock(best)
-			wallet.pay(stake, 100, "race")
-		# Loop 3h slice 3: the ladder's rung beaten (the first time, when it was open).
+		# Loop 3h slice 3: the ladder's rung beaten (the first time, when it was open). The designer
+		# pass: only that first win gives the full respect; a rematch gives Ladder.REMATCH_GAIN.
 		var rung := Ladder.rung_of(who)
-		if ladder != null and wallet != null and ladder.win(rung, Districts.today()):
+		var first_win := ladder != null and wallet != null and ladder.win(rung, Districts.today())
+		gain = Ladder.race_gain(rung, first_win or ladder == null)
+		if wallet != null:
+			wallet.pay(stake, gain, "race")
+		if first_win:
 			print("ladder: %s beaten (%d/%d), next: %s" % [who, rung + 1, Ladder.RUNGS.size(), _rung_name(ladder.next_rung())])
 			_check_ladder()
 		var total := (" · wallet %s · respect %d" % [_money(wallet.zl), wallet.respect]) if wallet != null else ""
 		var total_pl := (" · w portfelu %s · szacunek %d" % [_money(wallet.zl), wallet.respect]) if wallet != null else ""
 		var record_pl := record.replace("new best!", "nowy rekord!").replace("best", "rekord")
-		hud.show_card("WYGRANA · 1. MIEJSCE", "Meta: %s, czas %s%s. %s za tobą.\n„%s”\n+%d zł (stawka%s) · szacunek +100%s" % [
-				_finish["name"], _clock(_race_time), record_pl, who, line[0], stake, bonus_pl, total_pl],
+		hud.show_card("WYGRANA · 1. MIEJSCE", "Meta: %s, czas %s%s. %s za tobą.\n„%s”\n+%d zł (stawka%s) · szacunek +%d%s" % [
+				_finish["name"], _clock(_race_time), record_pl, who, line[0], stake, bonus_pl, gain, total_pl],
 				PackedStringArray(["OK"]), WIN_COLOUR, false, "Win · 1st",
-				"You beat %s to %s in %s%s. %s +%d zł (the stake%s) · respect +100%s" % [
-				who, _finish["name"], _clock(_race_time), record, line[1], stake, bonus_en, total])
+				"You beat %s to %s in %s%s. %s +%d zł (the stake%s) · respect +%d%s" % [
+				who, _finish["name"], _clock(_race_time), record, line[1], stake, bonus_en, gain, total])
 		Access.buzz(150, 0.9)
 	else:
 		var short := roundi(_player_remaining())
 		var reason := why if why != "" else "%s got to %s first. You were %d m short after %s." % [who, _finish["name"], short, _clock(_race_time)]
-		var reason_pl := "Poddałeś wyścig." if why != "" else "%s pierwszy na mecie: %s. Zabrakło ci %d m, czas %s." % [
+		var reason_pl := "Wyścig poddany." if why != "" else "%s pierwszy na mecie: %s. Zabrakło ci %d m, czas %s." % [
 				who, _finish["name"], short, _clock(_race_time)]
 		hud.show_card("PRZEGRANA · 2. MIEJSCE", "%s\n„%s”" % [reason_pl, line[0]],
 				PackedStringArray(["OK"]), LOSE_COLOUR, false, "Lose · 2nd", "%s %s" % [reason, line[1]])
@@ -1256,6 +1262,7 @@ func _finish_final(won: bool, why: String) -> void:
 	if won:
 		var first := ladder != null and wallet != null and not ladder.final_won()
 		var stake := Ladder.FINAL_ZL
+		var gain := Ladder.race_gain(Ladder.FINAL, first or ladder == null)
 		if escape_bonus:
 			stake = roundi(stake * ESCAPE_BONUS)
 		var record := ""
@@ -1265,24 +1272,24 @@ func _finish_final(won: bool, why: String) -> void:
 				record = " · new best!" if best > 0.0 else ""
 			else:
 				record = " · best %s" % _clock(best)
-			wallet.pay(stake, Ladder.FINAL_GAIN, "race")
+			wallet.pay(stake, gain, "race")
 			ladder.win(Ladder.FINAL, Districts.today())
 			_check_ladder()
 		var total := (" · wallet %s · respect %d" % [_money(wallet.zl), wallet.respect]) if wallet != null else ""
 		var total_pl := (" · w portfelu %s · szacunek %d" % [_money(wallet.zl), wallet.respect]) if wallet != null else ""
 		var record_pl := record.replace("new best!", "nowy rekord!").replace("best", "rekord")
-		var crown_pl := "KRÓL NOCNEJ WARSZAWY!\n" if first else ""
-		var crown_en := "King of Warsaw by night! " if first else ""
-		hud.show_card("TRZY MOSTY · WYGRANA", "%sTrzy razy przez Wisłę i pierwszy pod Narodowym, czas %s%s.\n„%s”\n+%d zł · szacunek +%d%s" % [
-				crown_pl, _clock(_race_time), record_pl, line[0], stake, Ladder.FINAL_GAIN, total_pl],
+		var crown_pl := "KORONA NOCNEJ WARSZAWY TWOJA!\n" if first else ""
+		var crown_en := "The crown of Warsaw by night is yours! " if first else ""
+		hud.show_card("TRZY MOSTY · WYGRANA", "%sTrzy razy przez Wisłę i pierwsze miejsce pod Narodowym, czas %s%s.\n„%s”\n+%d zł · szacunek +%d%s" % [
+				crown_pl, _clock(_race_time), record_pl, line[0], stake, gain, total_pl],
 				PackedStringArray(["OK"]), FINAL_COLOUR, false, "Three bridges · Win",
 				"%sThree times over the Vistula and first to the Stadium in %s%s. %s +%d zł · respect +%d%s" % [
-				crown_en, _clock(_race_time), record, line[1], stake, Ladder.FINAL_GAIN, total])
+				crown_en, _clock(_race_time), record, line[1], stake, gain, total])
 		Access.buzz(200, 1.0)
 	else:
 		var gave_up := why != ""
 		hud.show_card("TRZY MOSTY · PRZEGRANA", "%s\n„%s”\nRewanż: Rondo Daszyńskiego, w nocy." % [
-				"Poddałeś finał." if gave_up else "%s pierwszy pod Narodowym (mosty: %d/3, czas %s)." % [who, _cp, _clock(_race_time)], line[0]],
+				"Finał poddany." if gave_up else "%s pierwszy pod Narodowym (mosty: %d/3, czas %s)." % [who, _cp, _clock(_race_time)], line[0]],
 				PackedStringArray(["OK"]), LOSE_COLOUR, false, "Three bridges · Lose",
 				"%s %s Rematch: Rondo Daszyńskiego, at night." % [
 				"You gave up the final." if gave_up else "%s got to the Stadium first (bridges %d/3, %s)." % [who, _cp, _clock(_race_time)], line[1]])

@@ -237,9 +237,10 @@ func _pixels() -> void:
 		DirAccess.make_dir_recursive_absolute(out_dir)
 		for f in DirAccess.get_files_at(out_dir):
 			DirAccess.remove_absolute(out_dir.path_join(f))
+		# --nohud: the speech bubbles' lines differ from run to run (2026-11-01), not the city.
 		var args := ["--path", ProjectSettings.globalize_path("res://"), "--rendering-method", "mobile",
 				"--resolution", "%dx%d" % [size.x, size.y], "--fixed-fps", "60", "--",
-				"--nosave", "--notitle", "--no-traffic", "--free", "--time=day", "--weather=clear", "--governor=off", "--no-input",
+				"--nosave", "--notitle", "--no-traffic", "--free", "--time=day", "--weather=clear", "--governor=off", "--no-input", "--nohud",
 				"--spots=" + "/".join(spots), "--shots=" + ",".join(frames), "--out=" + out_dir]
 		args.append_array(runs[name])
 		var output := []
