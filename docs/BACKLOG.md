@@ -212,8 +212,12 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   open on the street: facade, shopfront and roof polish house by house (needs photos), crossings
   against real photos, the island kits only fit where the slab is wide enough (most islands
   got no kit: a fence, wall or the tracks leave no room).
-- Next on the street: MDM's arcades, reliefs and corner towers (LANDMARKS 2.8), the church's
-  night lighting, Plac Zbawiciela's rotunda-side cafés, houses and roads street by street.
+- Pass 4 (cloud, Sonnet, 2026-11-02): eight neon shopfronts on mapped house numbers (`Storefronts.MARSZALKOWSKA`:
+  milk bar, dry cleaner, watchmaker, pastry shop, optician, florist, haberdashery, herbalist; check_parodies OK).
+  Needs F's photos / Mac look check (QUESTIONS): doors at the real shops, per-house plaster colours and
+  cornices, the crossings against real photos; Plac Bankowy's end.
+- Next on the street: the church's night lighting, Plac Zbawiciela's rotunda-side cafés, houses and
+  roads street by street.
 
 ## Old Town Market Square, the Syrenka and the decks (F, 2026-11-01)
 
