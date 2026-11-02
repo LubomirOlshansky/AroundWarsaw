@@ -159,8 +159,11 @@ then the Launch gate.
       Syrenka statue, Dworzec Wodny and Kaskada (`syrenka_powisle`, `dworzec_wodny`, `kaskada`),
       and DALEJ DALLA GELATO, the gelateria parody whose queue stands all year, in winter coats
       from November (`crowds.gd` GELATO; Mac look check parked)
-- [ ] Powiśle left: boulevard dressing (deck strips, bar containers), Piano House, Cube House,
-      Hortus, Moderna, Dobra and Tamka's tenements, the Mac photo checks (BACKLOG "Powiśle street by street")
+- [x] Piano House and Cube House, 2026-11-02: models from their outlines (`piano_house` 152 tris,
+      white keyboard facade, new skin `S_KEYS`, set-back glass top floor; `cube_house` 324 tris,
+      white cube with a staircase of boxed bays); specs `piano_house.md`, `cube_house.md`, Mac photo check parked
+- [ ] Powiśle left: boulevard dressing (deck strips, bar containers), Hortus, Moderna, Dobra and
+      Tamka's tenements, the Mac photo checks (BACKLOG "Powiśle street by street")
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
 - [ ] The estate, the halls and Jana Pawła II (F, 2026-11-01; BACKLOG section):
