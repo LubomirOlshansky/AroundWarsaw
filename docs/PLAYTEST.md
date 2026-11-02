@@ -38,7 +38,7 @@ over one thing systematically: every kerb of a square, every ramp), **verify** (
 | P4 | Krakowskie Przedmieście, Plac Zamkowy, Old Town (the narrow streets) | test | every gate, bollard, the Castle Square slope | – | – |
 | P5 | Bridges and ramps: Śląsko-Dąbrowski, Poniatowskiego, the W-Z tunnel, Wisłostrada | test | falling through decks, snapping heights, ramp ends | – | – |
 | P6 | Powiśle and the river edge (boulevards, barges, the off-limits river) | explore | water tow, stuck at the embankment, under-deck entries (G6) | – | – |
-| P7 | The map's edges (east yard, Gdańska, Wschodnia) | test | edge walls, falling off the map | – | – |
+| P7 | The map's edges (east yard, Gdańska, Wschodnia; since 2026-11-02 roadworks close every road there) | test | edge walls, falling off the map, a gap round the roadworks' barriers, a car wedged against them, traffic queued at them | – | – |
 | P8 | The helicopter: take-off, landing on roofs, the rescue roofs | goal | landing on landmark roofs, clipping into towers | – | – |
 | P9 | Menus: pause card, map, garage, settings, POMOC DROGOWA | test | a button that does nothing, a screen you can't leave | – | – |
 | P10 | Police chase and the clamp; crash scenes | explore | a chase that pins the car, a scene that blocks a street for good | – | – |

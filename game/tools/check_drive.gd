@@ -14,7 +14,8 @@ extends SceneTree
 ##     tunnel walls and portals, landmarks, barriers, solid props). Stepped overlap tests, not
 ##     cast_motion (it misses thin walls of the city's one big concave shape: BACKLOG "From
 ##     loop 10a"). The map's invisible edge walls are left out (traffic slides out under the
-##     rim there: the last RIM metres).
+##     rim there: the last RIM metres), and the stretches behind the edge roadworks' barriers
+##     (lane_graph.gd `e_shut` / `e_open`: no car drives there).
 ##  2. The player's car on autopilot (as main.gd's: carried along the route, its height from
 ##     map.drive_height every frame like car.gd's, from the height it had) over ROUTES fixed
 ##     routes across the bridges and tunnels (both ways over each deck group and tunnel: its
@@ -185,6 +186,10 @@ func _sweep() -> int:
 			s0 += DEAD_END
 		if _dead_end(graph.e_b[e], graph.e_reverse[e], false):
 			s1 -= DEAD_END
+		# The edge roadworks (edge_roadworks.gd): a road that leaves the map stops at its barriers
+		# (lane_graph.gd `e_shut` / `e_open`, where the traffic stops and starts).
+		s1 = minf(s1, graph.e_shut[e])
+		s0 = maxf(s0, graph.e_open[e])
 		if s1 - s0 < 0.5:
 			continue
 		for k in graph.e_lanes[e]:
