@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Park your car at the supercar meet by Browary Warszawskie and the crowd will have a word about your ride.
 - The KRINGULA PIZZA queue now has its "queue for the queue" jokes: people waiting to join the line, a man queuing for the start-of-the-queue sign.
 - The roadworks at the city's edges now speak English too: ROAD WORKS and DETOUR when you play in English.
 - Fabryka Norblina's courtyard has its big spreading plane trees, and the yard of Browary Warszawskie has a garden of lindens, birches and maples.

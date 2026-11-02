@@ -340,7 +340,7 @@ then the Launch gate.
 - [ ] City-life satire ideas (F, 2026-11-02; plans docs/design/city-life-satire.md):
   - [x] #11 kebab MIESZANE MIESZANE neon, its evening queue and the "Mięso? Mieszane. Sos? Mieszane." lines (`check_crowds`), and #12 NOSE AGENCY sign on the Skyliner, 2026-11-02 (Godot did not run; Mac look check open)
   - [x] #10 map-edge roadworks (PR #309)
-  - [ ] #1 loud cars at Browary Warszawskie and revving traffic (Opus)
+  - [x] #1 loud cars at Browary Warszawskie and revving traffic (PR #345); the crowd comments when you park at the meet (2026-11-02, tag `stop`)
   - [x] #2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu (PR #343, `wellness.gd`); gong and techno-thump sounds added 2026-11-02 (listen check parked)
   - [x] #5 more queues and #6 KRINGULA PIZZA: queues at KRINGULA, the coffee chains and MIESZANE were built earlier; the "queue for the queue" jokes added 2026-11-02 (four lines in dialogue.json, tag `kringula`; text only, Godot did not run)
   - [x] #7 friendly Legia fans near Stadion Leguminy, 2026-11-02 (PR #336, `fans.gd`; phone look and cost open)

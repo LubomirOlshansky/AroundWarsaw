@@ -215,7 +215,7 @@ func _check_lines(digest: PackedStringArray) -> void:
 			radio += 1
 			obroty = obroty or String(l[0]).contains("liczą obroty")
 			_line_ok("radio_host", l, banned, 200)
-	for want: Array in [["car_meet:", 8], ["car_meet:rev", 3], ["loud_driver:", 5]]:
+	for want: Array in [["car_meet:", 8], ["car_meet:rev", 3], ["car_meet:stop", 4], ["loud_driver:", 5]]:
 		if int(counts.get(want[0], 0)) < int(want[1]):
 			problems.append("%s: %d lines (want %d+)" % [want[0], int(counts.get(want[0], 0)), want[1]])
 	if radio < 3 or not obroty:

@@ -4443,6 +4443,34 @@
   ],
   "car_meet": [
     [
+      "Ooo, nowy! Jakie to ma koni? Cztery? Z rodzeństwem?",
+      "Ooh, a newcomer! How many horsepower? Four? With siblings?",
+      {
+        "only": "stop"
+      }
+    ],
+    [
+      "Parkuj śmiało, tylko nie obok lakieru.",
+      "Park wherever, just not next to the paint.",
+      {
+        "only": "stop"
+      }
+    ],
+    [
+      "Przyszedłeś na zlot czy się zgubiłeś? Obie opcje są OK.",
+      "Here for the meet or just lost? Both are fine.",
+      {
+        "only": "stop"
+      }
+    ],
+    [
+      "Fajna bryka. Ma jakiś nick na Instagramie?",
+      "Nice ride. Does it have a handle on Instagram?",
+      {
+        "only": "stop"
+      }
+    ],
+    [
       "Nie dotykaj! Lakier ma więcej obserwujących niż ty.",
       "Don't touch! The paint has more followers than you."
     ],
