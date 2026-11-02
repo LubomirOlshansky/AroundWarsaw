@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-02
 - Arkadka, the mall by Rondo Radosława, gets its playground: a ribbon-like rope course, three trampolines, a long wooden bench and lamps hung on a cable.
+- Zielona Świętokrzyska has its big flower planters on the pavement wherever the street's trees leave a gap.
 - The car no longer stops dead by the Centrum tram stop on Marszałkowska: raised tram and train platforms are solid now, and brushing a fence or a wall along the road keeps most of your speed.
 - A queue now forms outside the craft kebab ZAKWAS I ROŻEN, longest on Friday and Saturday evenings, with people grumbling about the wait.
 - Bracka, the short woonerf behind CeDeT by Aleje Jerozolimskie, is green as it is today: 22 more young planes, maples and cherries in its planted beds, 33 trees in all.
