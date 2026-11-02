@@ -102,8 +102,14 @@ empty); the street's two pedestrian areas re-tagged `granite` (map_builder.gd SU
 memorial stone (props.gd `add_memorial_stone`, a granite boulder with a bronze plaque) and two
 plate posts, PASAŻ WIECHA / CHMIELNA and SKWER BROWNE'A.
 
-**Not done:** the 64 benches and chairs (OSM maps 2 benches on the street; K2b), the fountain's
-stone rim, the shrub and perennial planting's colour in the beds, the lighting in the ground.
+**K2b (2026-11-02):** `planted_trees.py furnish` brings the band to 64 benches (OSM had 4): a seat
+every 7.5 m along the street, alternate sides, the first spot 2.6-8 m off the middle that is off
+the beds, 2.3 m from trees, 1.8 m from POIs, 3.6 m from another bench and 16 m from Nowy Świat
+(whose benches are the Chopin ones), facing the street. One bench model, so chairs and long
+benches are benches. The Atlantic fountain's 2.8 m pool already has the stone edge every
+fountain gets (map_builder `_build_banks`), so no new rim.
+
+**Not done:** the shrub and perennial planting's colour in the beds, the lighting in the ground.
 For the Mac pass (QUESTIONS): the orthophoto against the trees, the granite's tone, the stone's
 spot and the square's official name on the plate.
 

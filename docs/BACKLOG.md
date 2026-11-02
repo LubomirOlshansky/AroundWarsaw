@@ -89,8 +89,11 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
   pedestrian areas re-tagged as grey granite, Ali's memorial stone and a SKWER BROWNE'A plate at
   Pasaż Wiecha (first_scene.gd). The fountain by Kino Atlantic was already in the OSM data.
   Open for the Mac (QUESTIONS): orthophoto check of the trees, the granite's tone, the stone's spot.
-- [ ] K2b Chmielna's furniture: the 64 urban chairs, benches and long flowing benches (OSM has
-  only 2 benches on the street), and a stone rim for the Atlantic fountain (Sonnet, small).
+- [x] K2b Chmielna's furniture: 60 benches added to the 4 OSM has, 64 in the street's band, one
+  every ~7.5 m on alternate sides, facing the street's middle (`planted_trees.py furnish`; the game
+  has one bench model, so the urban chairs and long benches are all benches). The Atlantic
+  fountain already had its stone rim (the shore edge round every fountain, 0.45 m). Open for the
+  Mac (QUESTIONS): where the real benches stand; a long-bench model if wanted.
 - [x] K3 Varso Place (spec docs/landmarks/specs/varso_place.md): the sky garden on the tower's
   205 m roof (16 hawthorns, dwarf pines, benches, glass balustrade), planted terraces on Varso 1's
   71 m and Varso 2's 80 and 72 m roofs (site `varso_place`), the VERSO PLACE name stone and the
