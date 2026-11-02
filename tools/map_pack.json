@@ -1,0 +1,12 @@
+{
+	"version": 1,
+	"tag": "map-pack-1",
+	"asset": "map-pack-1.tar.gz",
+	"sha256": "f5527a87e5c913e2fc8f74d48fa3d2562de469029b1d3012559b9439e5c5a5d9",
+	"bytes": 11506802,
+	"files": {
+		"lod2.bin": "297faa7ba052b8374a915dff95d3de6a81f55d447aa780f131c570973d17ce8b",
+		"lod2.json": "e8f270db2ed4e839c2022dd346db43b946668fc2a21f60e978466a088059b3d8",
+		"terrain.json": "a889255cd2fd05abc88761ea0e723081ed35005e97660663b84e6542ea151068"
+	}
+}
