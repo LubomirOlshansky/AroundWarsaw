@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-02
 - Krakowskie Przedmieście gets eight neon shopfronts along the royal route: an amber and silver shop, a chemist under the column, royal ice cream, sheet music and records, a reading café, pierogi at Bona's, mermaid souvenirs and an exchange office by the Castle.
+- Helicopter rescues on hotel and café roofs now name our parody places, not real chains.
 - The Barbican is now a proper brick gatehouse: a crenellated wall in a curve with four turrets under steep conical roofs.
 - Nowy Świat's houses now each have their own plaster (ivory, butter, ochre, salmon, sage, powder blue), its café terraces have patio heaters between the tables, and people fill the terraces at lunch and into the evening.
 - Marszałkowska gets eight neon shopfronts of old trades: a milk bar, a dry cleaner, a watchmaker, a pastry shop, an optician, a florist, a haberdashery and a herbalist.

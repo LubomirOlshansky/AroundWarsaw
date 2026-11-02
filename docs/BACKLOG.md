@@ -618,9 +618,6 @@ real ones added to `brand_denylist.json`). One PR each:
       Podwózka `timber` passengers, a notebook card "Kolejki", fans standing by Cringulo's van, an
       egg (the car parked by the van while he films), the van's CRINGULO TV lettering, the egg
       card; phone checks of every sign's size, the queues and the job's legs.
-- [ ] Roof rescues name the roof by its OSM name, which can be a real brand (a hotel or café
-      chain: Puro, Green Caffè Nero, Hilton…): show a parody or a street name instead (missions.gd
-      `_find_roofs`; found 2026-11-01).
 - [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the
       skin on the LoD2 model; KUKŁA/KOSZTA/NERWO spots on the real streets.
 - [x] `Tinder` in a run-club line replaced by TIMBER (it would fail the new denylist entry).
