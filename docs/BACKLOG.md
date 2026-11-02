@@ -1940,6 +1940,7 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
 - Build time: the monolithic build 58 → 75 s (the set fills' corridor tests in `terrain_height`).
 
 ## From map north (Rondo Radosława, Arkadia, Forest; 2026-10-31)
+- ~~Arkadia roof car park and the Forest's look~~ **Done 2026-11-01** (F's ask): Arkadka redesigned and its roof car park modelled (static cars), the Forest wears BANK PEPEO and has a roof terrace with a crowd (spec `arkadia.md`). Left: Mac photo check (colours, skylights, entrances); a drivable deck for DEMO 6.4; the terrace's bar kiosk and lounge.
 - **For the landmarks lane** (docs/DEMO.md 2.1 "Hand-over"): Rondo Radosława's flag mast (not in
   OpenStreetMap; the surface model has a 57.8 m column at (−2,850, −2,295)) and the island round it,
   Forest's tower (OSM part 923445779, 120 m; drawn today as OSM blocks), Arkadia (LoD2 today; its roof

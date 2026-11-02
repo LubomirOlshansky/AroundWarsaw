@@ -403,8 +403,8 @@ Newest first. One entry per question.
 - **2026-10-31 · map · map north** — Outdated 2018 LoD2 models under much taller mapped buildings
   give way to OSM map-wide (46 models, mostly Wola: low sheds become the mapped towers as plain
   blocks), or only in the new area? Default built: map-wide.
-- **2026-10-31 · map · map north** — Arkadia's roof car park is left out of the bake: keep it out,
-  or model it for DEMO 6.4's car-park race? Default built: left out.
+- **2026-10-31 · map · map north** — Arkadia's roof car park: ~~left out of the bake~~ modelled 2026-11-01 as parked-car boxes on the deck (no ramps, no drivable deck); DEMO 6.4's car-park race would still need a drivable deck. Default built: static cars.
+- **2026-11-01 · landmarks · Arkadia and Forest** — Mac photo check: Arkadia's real facade colours (cream/terracotta is a guess), whether the roof skylights are pyramids, where the real entrances are (canopies sit on the three longest faces); the Forest terrace: which wing really has it, its real size, BANK PEPEO's real height on the tower. Default built: that.
 - **2026-10-31 · map · map north** — The flag mast on Rondo Radosława isn't in OSM: no placeholder,
   left to the landmarks lane (spot in DEMO.md 2.1). Default built: none.
 - **2026-10-31 · map · 3e** — Ground under trenches: 1 m sub-cells only at tunnel portals and
