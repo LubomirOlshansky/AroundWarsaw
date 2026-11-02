@@ -11,11 +11,13 @@ someone writes its lines.
 
 ## 2026-11-02
 - Zielona Świętokrzyska has its big flower planters on the pavement wherever the street's trees leave a gap.
+- A queue now forms outside the craft kebab ZAKWAS I ROŻEN, longest on Friday and Saturday evenings, with people grumbling about the wait.
 - Bracka, the short woonerf behind CeDeT by Aleje Jerozolimskie, is green as it is today: 22 more young planes, maples and cherries in its planted beds, 33 trees in all.
 - The first street of the game is busier: people at the café tables by the museum, at the kiosk and the flower stall, more walkers on both pavements of Marszałkowska, a tram rolling past with its bell in the first seconds, the hum of the square under the city's sound, and the radio's song from its first bar on a first launch.
 - KEBAB FM now jokes about the cinemas (Muranów, Atlantic, Luna, Kultura, Elektronik, the Kinoteka) and about the Kebab Basin's sauce war.
 - Nowy Świat gets three more neon shops: an old-fashioned confectioner (BLIKLINA OD 1869), a coffee spot at Chmielna and a vinyl bar at Foksal.
 - Two more Powiśle buildings look like themselves: Hortus on Topiel, glass offices round a garden with tenement-style flats on Drewniana, and Modernka on Zajęcza, an old tenement joined to a new glass wing.
+- Rondo Daszyńskiego fills with office workers on weekday rush hours and at lunch: groups in white shirts and navy jackets wait at the metro exits and zebra crossings, more stream across the crossings towards the towers, and they chat in bubbles about KPIs, OKRs, "let's circle back" and "spotkanie które mogło być mailem".
 - Cringulo's cream van now carries CRINGULO TV in dark letters on both sides.
 - Evening rides in Podwózka sometimes carry a first-date passenger from the dating app TIMBER, heading for the LORETKA roof bar. Cringulo's van now has a handful of fans standing behind it, chatting, and parking right by the van while he films finds a new easter egg.
 - Powiśle's Piano House now has a keyboard for a front, white keys and black window strips, and Cube House next door is a white cube with its bays stepping out floor by floor.
