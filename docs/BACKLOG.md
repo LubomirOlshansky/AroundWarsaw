@@ -702,9 +702,10 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   their checks (`first10`, `first10-run`, `opening`, `cassettes`, `save`, `hud`), merge #115 then
   #121. Built, not verified on the phone.
 - **The first scene's open items** (design/first-scene.md items 4-5; BACKLOG "High priority: the
-  first scene"): the pavilions and towers behind the Eastern Wall stores, Plac Defilad's paving and
-  park strip, the tram stops and kerbs on Marszałkowska. Gap. Items 6-7 (pedestrians and sound at
-  the start) built 2026-11-02, phone check parked.
+  first scene"): the pavilions and towers behind the Eastern Wall stores, the park strip in front of
+  the museum, lowered kerbs at the crossings. Gap. The paving, the crossings' tactile pads and the
+  tram platforms' edges were built 2026-11-02 (first-scene.md "Items 4 and 5 as built"); items 6-7
+  (pedestrians and sound at the start) built 2026-11-02; both phone checks parked.
 
 ### P0: the whole build checked again (map and performance, Opus; needs the Mac)
 - **A full `tools/verify.sh` and `tools/verify.sh --ios` on the Mac on today's main**, both city
@@ -959,7 +960,10 @@ plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 check
   draw call), but it now reaches the spawn end, so the bench's opening view counts it and its
   shadow: draw calls 130 -> 132. Props: add_street_plates, add_bike_dock, add_tram_shelter. The plates on the
   buildings' corners (where Warsaw mostly hangs them) wait for the Mac photo check.
-- **Open:** R3 part 2: granite kerbs, Złota's setts and elm alley, the fountain at the
+- **R3 part 2, in part, 2026-11-02** (first-scene items 4-5): the start box's wide pavements and
+  bare ground grey, tactile pads at the crossings, the tram platforms' edge lines. The three new
+  crossings were already mapped zebras.
+- **Open:** R3 part 2: lowered kerbs, Złota's setts and elm alley, the fountain at the
   old tunnel mouth, the three new crossings (orthophoto check on the Mac); R8 the museum's ribbon in stretches and the stepped roofline.
 - Found: the cloud can't read Wykop (login wall) or Commons (403); the trends come from Google's
   2025 year in search and the trade press. A Mac pass could add Wykop's own tags.
@@ -1070,6 +1074,13 @@ golden-image shots runtime vs `--prebuilt`,
   the footway by the tables, not on the chairs (a seat list per café set would fix it); the
   "a few cars" part of item 6 is left to the Low traffic default (G2), no boost at the start; the
   title screen itself still shows the trams wherever they went while it was up.
+  **Items 4-5, paving and kerbs, built 2026-11-02** (first-scene.md "Items 4 and 5 as built"):
+  the start box's pavements, paving and bare ground in Warsaw grey (ground.gdshader `START_BOX`),
+  yellow tactile pads where every crossing meets a kerb (city-wide, map_builder `_build_tactile`),
+  a light edge and a tactile line on the two tram platforms in the box (first_scene.gd). Found then:
+  OSM draws the stores' frontage and the square south of the museum as bare ground (they were
+  sand-coloured); a zebra's mapped end can stop 2.5 m short of the kerb (the pads look for the kerb
+  line, not the end).
 
 ## Packs: running clubs, cycling packs, coffee raves, big guys with tiny dogs (F, 2026-11-01)
 Built (`packs.gd`, docs/design/packs.md): three parody running clubs and two road-cycling packs out

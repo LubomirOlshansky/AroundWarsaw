@@ -15,6 +15,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
+- **2026-11-02 · map · Paving and kerbs at the start (first-scene items 4-5)** — Phone look at a fresh start: do the grey pavements round the start (`ground.gdshader` `START_BOX`) read as Warsaw's grey concrete, or too cold next to the warm map outside, and is the 12 m fade at the box's edge visible? Do the yellow tactile pads at the crossings and the platforms' edge and tactile lines read at the default zoom or only up close, and is their yellow too loud? Built default: the grey only in the start box, pads at every crossing city-wide, `TACTILE_COL` #c6ad60 (ground) and #b89f58 (platforms). The bench on the iPhone 11 (shader only and two triangles a pad, +0 draw calls expected).
 - **2026-11-02 · gameplay · Life and sound at the start (first-scene items 6-7)** — Phone look and listen at a fresh start: are about 35 people standing at the cafés, kiosk and paving plus the busier pavements (1.6 × walkers) lively or cluttered at the default zoom, do the café sitters read (they sit on the footway beside the tables, not on the chairs), is the tram bell heard over KEBAB FM in the first seconds, is the square's talk too loud? Also the bench at the start on the iPhone 11 (walkers' CPU, no new draw calls expected). Built default: the numbers above (`crowds.gd` `FIRST_SCENE`, `pedestrians.gd` `BUSY_BOOST`).
 - **2026-11-02 · content · CRINGULO TV lettering** — Mac/phone look check: is the 5 cm pixel lettering under the pink band readable at phone size (z offset -0.2, y 0.58 on the van's flank; `TrendJob._van_lettering`)? Default built: dark text, both flanks.
 - **2026-11-02 · map · Plac Zbawiciela cafés and church night (pass 5)** — Mac look check: the four neon cafés (`Storefronts.ZBAWICIELA`) on the real doors, the six parasol terraces in front of the MDM blocks (spots from the outlines: `TERRACES` in `bake_street_details.py`), and the church at night (lit crosses, amber rose, floodlamps; is the real church floodlit?). Built default: parody names, no heaters or awnings. Own photos of the square's real cafés would settle the doors.
@@ -169,7 +170,8 @@ Newest first. One entry per question.
 
 - **2026-11-01 · visuals · pavement colour** — R3 (docs/design/start-area-real.md) made the mapped
   footways Warsaw's grey concrete pavers. The wide pavements and squares drawn as plaza areas
-  stay the warm granite beige the game always had. Default built: grey footways only.
+  stay the warm granite beige the game always had. Default built: grey footways only; since
+  2026-11-02 the start box's plazas, paving and bare ground are grey too (first-scene items 4-5).
   Alternatives: grey for every pavement and square (more like the street, less warm), or back to
   beige footways.
 
