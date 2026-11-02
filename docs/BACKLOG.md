@@ -926,6 +926,13 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
 - A beat from the rave booth (sfx.gd positional voice), a rave notebook card or egg, a DJ crate
   courier job, a radio mention.
 
+## Powiśle streets (F, 2026-11-02)
+Built: eight original-name neon shop signs (`Storefronts.POWISLE`, same venue code as the cinemas)
+on Tamka, Dobra, Browarna, Topiel and Solec. Left:
+- Mac look check (QUESTIONS); doors, window light and a terrace for Flat Biały, the stairwell bar behind Altana.
+- The tenements' ground floors, the Dobra and Tamka kerbs and pavements, trees and street furniture street by street; Czerwonego Krzyża and Ludna have no sign yet.
+- Syrenka's statue by the foot of Tamka still only an egg (3h-syrenki).
+
 ## Vistula boulevards: life (F, 2026-11-01)
 Built: nine `chill_bulwary_*` spots (`Crowds.BULWARY`) along the river edge from Karowa past Kopernik,
 twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. Left:
