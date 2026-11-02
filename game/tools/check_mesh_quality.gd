@@ -22,6 +22,7 @@ extends SceneTree
 const Landmarks := preload("res://scripts/landmarks.gd")
 ## Triangles a site may hold: measured on 2026-10-31 plus about 20 % (raise on purpose only).
 const BUDGET := {
+	"level26_club": 860,
 	"church_alberta": 310,
 	"church_antoniego": 990,
 	"church_augustyn": 890,

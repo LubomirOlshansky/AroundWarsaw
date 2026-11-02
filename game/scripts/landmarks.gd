@@ -6003,6 +6003,9 @@ func _build_level26_club(_site: Dictionary) -> void:
 	# The floor, then the glass balustrade round it.
 	_mode = M_STONE
 	_prism(deck, y, y + 0.12, Color("#4a3a30"), Color("#5a4636"), M_STONE, M_STONE)
+	# A hidden shaft down inside the tower's walls, so the deck is one piece with the ground
+	# (check_mesh_quality's float test: nothing hangs in the air).
+	_prism(_square(c0, 0.15), g - 0.5, y + 0.06, Color("#4a3a30"), none, M_STONE, M_STONE)
 	_parapet(deck, y + 0.12, 1.1, Color("#b9d3e3"))
 	y += 0.12
 	# Where things stand: fractions of the deck's extent, nudged across until they fit.
@@ -6077,11 +6080,7 @@ func _build_level26_club(_site: Dictionary) -> void:
 		var p: Vector2 = posts[k]
 		_prism(_square(p, 0.06), y, y + 2.9, Color("#4a4a52"), Color("#4a4a52"), M_STONE, M_STONE)
 		_prism(_square(p, 0.15), y + 2.9, y + 3.2, warm, warm, M_LAMP, M_LAMP)
-		var q: Vector2 = posts[(k + 1) % posts.size()]
-		if p.distance_to(q) < step * 1.6:
-			for m in [1.0 / 3.0, 2.0 / 3.0]:
-				var w := p.lerp(q, m)
-				_prism(_square(w, 0.1), y + 2.75, y + 2.95, warm, warm, M_LAMP, M_LAMP)
+		_prism(_square(p, 0.1), y + 2.3, y + 2.5, warm, warm, M_LAMP, M_LAMP)
 	# The name, in violet, standing on the crown's south and east edges.
 	_crown_signs(crown, y + 2.6, "LEVEL 26", VIOLET_SIGN, 0.0, 0.5)
 	_no_roof = keep_roof
