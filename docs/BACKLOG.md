@@ -8,6 +8,12 @@ Small problems that agents reported or that showed up in screenshots. They are f
 - Pokorna 2 remodelled as flats (site `pokorna2`, spec pokorna2.md). Open: Mac look check (QUESTIONS); the Gdański Business Center thread works nearby (Dworzec Gdański), keep its site zone clear of the outline at (-2123, -2217).
 
 
+## Level 26 rooftop club (F, 2026-11-01)
+
+Built: the club's furniture on the Atlas Tower crown (site `level26_club`); the crowd, band, queue,
+bass and hours were already there. Open: Mac look check (deck size against the real roof, the
+sign's side), the bass is a ground-level emitter (a rooftop one would reach the heli), laser beams
+at night were skipped (they read as poles by day).
 ## Stadion Leguminy (F, 2026-11-01)
 - Built from the mapped outline only (spec legia.md). Left: Mac photo check (QUESTIONS), the real stands' shape and the concourse side, entrances and tickets booths, club shop, the car park on the east side, the 20 m west stand as its own mass.
 

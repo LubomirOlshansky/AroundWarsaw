@@ -48,6 +48,8 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"OCHOTA",
 		# The Old Town hotels' names (parodies of Castle Inn and Hotel Bellotto, an aparthotel).
 		"KASZTEL INN", "CANALETTO", "STARÓWKA",
+		# Level 26, the rooftop club on the Atlas Tower.
+		"LEVEL 26",
 		# The hotel on Plac Zawiszy (a parody of the Radisson Blu Sobieski).
 		"RADYSŁAW BLU"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
