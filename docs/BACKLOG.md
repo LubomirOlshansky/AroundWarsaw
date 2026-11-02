@@ -213,6 +213,14 @@ PT-9 (bubbles) fixed 2026-11-02: the tail of a bubble kept clear of the HUD ende
 PT-13 (the order card went away without a tap) fixed 2026-11-02: it was the order's designed start after 9 s, unexplained; the card's GO now counts those seconds down.
 PT-10 (the order tracker over bubbles) fixed 2026-11-02: the target pointer draws under the speech bubbles and the panels and goes faint under the banner or a bubble; the edge arrow slides along the edge clear of bubbles and panels, and its distance sits past the arrow by the label's own size (`check_hud`: draw order, 72 directions, a bubble in the arrow's spot). Phone look open.
 
+## POLIN and the Ghetto Heroes Monument (F, 2026-11-02)
+Built from photos gathered on the Mac (`refs/polin/`) and the LoD2 roof, spec `polin.md`. Found and left:
+- The east front's two long dark band windows (~10 m, 4-5 m up) and the small lit slot south of the canyon are not drawn.
+- The fins' letter frit and their 1.35 m rows: no skin draws them (S_FINS is the nearest; the 16 skins are full).
+- The canyon's interior (the main hall, the bridge) and the lens's mullions are not modelled; the plaza's dark inlay line, the yellow bollards and the sunken SE service stair are the map's or missing.
+- The monument's lions under the menorahs and the plaques at the relief's foot are not modelled.
+- LoD2 shows a 3 m hump over the west roof that the ortho does not: a LoD2 artefact, not built.
+
 ## Skwer Linearny na Złotej and Dom pod Orłami (F, 2026-11-02)
 
 - Built: Złota between Marszałkowska and Jasna is the linear park that opened on 3 August 2026

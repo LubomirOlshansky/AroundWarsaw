@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- The POLIN museum in Muranów stands as it is: a box of grey-green glass fins split by the tall sand-coloured canyon of its entrance, a glazed slot across the roof and a big glass lens on the west side, with the Ghetto Heroes Monument on the square in front, its bronze fighters, steps and menorahs.
 - A new pizzeria, KRINGULA PIZZA, with a huge queue of people who cry over the first bite, and longer morning queues at two hyped coffee chains.
 - A delivery order's GO button counts down the seconds until the order starts by itself, so it no longer seems to start without a tap.
 - On wide phones the radio's line no longer slides in cut off at the screen edge, and the orange delivery marker stays under speech bubbles and banners, with its distance clear of its arrow.
