@@ -637,10 +637,13 @@ real ones added to `brand_denylist.json`). One PR each:
       10-16); the board-game bar is PRZEGRYWKI (Zagrywki parody, was PIONEK); WACZEK ×5, the burger
       chain with an upside-down golden W, at the real chain's central restaurants, 2026-11-01.
 - [x] The notebook card "Kolejki" (place `kolejki`, chapter Kolejka po trend, at KUKŁA on Nowy Świat), 2026-11-02.
-- [ ] Left from G3-G5: the
-      Podwózka `timber` passengers, fans standing by Cringulo's van, an
-      egg (the car parked by the van while he films), the van's CRINGULO TV lettering, the egg
-      card; phone checks of every sign's size, the queues and the job's legs.
+- [x] Left from G3-G5, done 2026-11-02: Podwózka `timber` passengers (evenings 18-01, 20 % of
+      normal rides, 3 request and 4 ride lines; `rides.gd`), five fans behind Cringulo's van with
+      `viral` "cringulo" bubbles, and the egg `easter_mlask` (the car stopped within 9 m of the van
+      for 3 s while he is out; `trend_job.gd`, 48 cards now).
+- [ ] Still left: the van's CRINGULO TV lettering; Mac look check of the fans' spot behind the van
+      (the side of the kerb), the egg's wording; phone checks of every sign's size, the queues and
+      the job's legs.
 - [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the
       skin on the LoD2 model; KUKŁA/KOSZTA/NERWO spots on the real streets.
 - [x] `Tinder` in a run-club line replaced by TIMBER (it would fail the new denylist entry).
