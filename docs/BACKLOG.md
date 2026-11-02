@@ -187,6 +187,7 @@ during Pani Halina's prompt) suspects; PT-9 HUD overlaps confirmed.
   free. Not seen in play; reject spots inside platforms and footprints if it shows up.
 - Found with PT-1: head on into a solid platform's end the car stops like at any wall and is
   turned out after 1.5 s (Centrum's north tip faces the left lane of Marszałkowska).
+PT-9 (bubbles) fixed 2026-11-02: the tail of a bubble kept clear of the HUD ended in the air (a 22 pt stub) and pointed down even when its speaker was above; it now runs to the speaker, and a half-typed line keeps the wrapping of the whole line. Still open: the cut-off at the screen edge and the KEBAB status label over BRAKE and the sound button did not reproduce in `check_hud` at 6 sizes (`pt` is fixed when the HUD is built and not updated by a later window resize: a suspect, not shown); needs a frame with the window size.
 
 ## Pokorna 2 (F, 2026-11-02)
 

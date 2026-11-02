@@ -731,6 +731,7 @@ func _check_bubble_sweep(hud: CanvasLayer, bubbles: Control, screen: Vector2i, t
 			["Tak.", ""]]
 	var n := 0
 	var bad := 0
+	var tails := 0
 	for flying in [false, true]:
 		hud.set_flying(flying)
 		hud.clear_all()
@@ -744,8 +745,17 @@ func _check_bubble_sweep(hud: CanvasLayer, bubbles: Control, screen: Vector2i, t
 				for iy in 41:
 					bubbles.clear()
 					_say(bubbles, "Biegacz", Vector2(screen.x * (ix - 10) / 20.0, screen.y * (iy - 10) / 20.0), line[0], line[1])
-					for r in bubbles.layout().map(func(item: Array) -> Rect2: return item[2]):
+					for item in bubbles.layout():
+						var r: Rect2 = item[2]
 						n += 1
+						# PT-9: the tail runs to the speaker (when it is within reach).
+						var spot: Vector2 = item[1]
+						var gap: float = bubbles.tail_gap(spot, r)
+						if gap > 1.0 and hud.bubble_area().has_point(spot) and not r.grow(bubbles.TAIL * hud.pt * 2.0).has_point(spot) and r.get_center().distance_to(spot) < 90.0 * hud.pt:
+							tails += 1
+							if tails <= 3:
+								problems.append("%s PT-9: a bubble's tail ends %.0f px short of its speaker at %d,%d" % [
+										tag, gap, spot.x, spot.y])
 						for k in keep:
 							if (r as Rect2).intersection(k).get_area() > 1.0:
 								bad += 1
