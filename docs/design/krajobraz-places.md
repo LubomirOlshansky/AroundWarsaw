@@ -79,7 +79,16 @@ Chmielna", "ugliest pathway"), Eurobuild ("Nowe oblicze Chmielnej", 2024-12-30).
 scanned trees, then plant the missing ones with `planted_trees.py` (a new PLACE), add the
 fountain and Ali's square (a plate), and a granite paving tint. Opus spec (map), Sonnet build.
 
-## K3 Varso Place
+## K3 Varso Place (built 2026-11-02)
+
+**Built** (spec `docs/landmarks/specs/varso_place.md`, from HB Reavis', ZinCo's and Eurobuild's
+pages; no photo reachable from the cloud): the sky garden on the tower's 205 m roof (16 round
+hawthorns, the number HB Reavis gives, dwarf pines, benches, a glass balustrade), planted terraces
+on Varso 1 (71 m) and Varso 2 (80 and 72 m) in the new site `varso_place`, the VERSO PLACE name
+stone and the 60 t erratic on the corner plaza by Al. Jana Pawła II, and 6 young trees in the
+beds the scan left bare (`planted_trees.py` PLACE `varso`). Mac photo check in QUESTIONS.
+
+The plan as written:
 
 Chmielna 69-73 (HB Reavis; Foster + Partners, HRA, Benoy, Epstein), 2022, the deck 2024. The
 studio's garden "in the clouds" on Varso Tower's roof at ~230 m (large nursery trees on a

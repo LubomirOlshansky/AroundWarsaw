@@ -16,9 +16,12 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
 - [ ] K2 ul. Chmielna, Nowy Świat to Pasaż Wiecha (2024): granite slabs, 95 trees (two rows of
   elms before Plac Pięciu Rogów), 64 benches and chairs, the small fountain by Kino Atlantic,
   Ali's square (map, Opus spec; Sonnet build; a new PLACE in `planted_trees.py`).
-- [ ] K3 Varso Place: street planting on Chmielna's side, roof terraces on Varso 1/2, trees on
-  the tower's deck, and a parody name sign (default VERSO PLACE; never the real mark). Opus spec
-  from photos, Sonnet build.
+- [x] K3 Varso Place (spec docs/landmarks/specs/varso_place.md): the sky garden on the tower's
+  205 m roof (16 hawthorns, dwarf pines, benches, glass balustrade), planted terraces on Varso 1's
+  71 m and Varso 2's 80 and 72 m roofs (site `varso_place`), the VERSO PLACE name stone and the
+  60 t erratic on the corner plaza by Al. Jana Pawła II, 6 young trees in Chmielna's bare beds
+  (`planted_trees.py` PLACE `varso`). Open for the Mac (QUESTIONS): the photo check of every
+  part; not built: the lobby's 12 olive trees, Varso 1's 7th-floor terrace, the raised crossing.
 - [ ] K4 Zielona Świętokrzyska (2018): count the scanned trees against the 194 planted, add the
   big planters (Sonnet, small).
 - [ ] K5 Rondo Daszyńskiego plazas: Skyliner's green passage (forest-like three tiers, wooden
