@@ -27,6 +27,9 @@ then the Launch gate.
 - [x] Landmarks: the Palace, Centralna, Złote Tarasy, the towers, MSN, the Rotunda, BUW, Kopernik,
       the stadium, Plac Piłsudskiego, the start street's stores, many churches (Mac photo checks
       for some), the Ministry of Finance (2026-11-01, spec `mf.md`; Mac photo check parked)
+- [x] Arkadka redesign, roof car park, BANK PEPEO sign and the Forest roof terrace (F, 2026-11-01; spec `arkadia.md`; Mac photo check parked)
+
+
 - [x] Classic cinemas: seven neon marquees, Muranów, Atlantic, Luna, Kultura, Elektronik, Femina, Kinoteka (F, 2026-11-02; signs only, positions need a Mac look)
 - [x] Gdański Business Center (tower, two blocks, parody logos; 2026-11-02, spec `gbc.md`; Mac photo check parked)
 - [x] Flat-price jokes: radio, passengers, Podwózka, traffic, dog walkers and three developer billboards (F, 2026-11-01; text only, billboard spots need a Mac look)
@@ -61,6 +64,7 @@ then the Launch gate.
 - [ ] Map checks in GitHub CI (the derived map pack as a release asset)
 - [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views
       shows), 2026-11-01, PR #183
+- [x] Bike paths smoothed (F, 2026-11-02, `tools/cycleways.py`, run by bake_osm): 195 gaps closed, 218 split ways joined, 52 ends on a line, 68 corners rounded; Mac look and ride check parked, comparison with OSM and the 3-8 m gaps left
 - [ ] Map review C: the streets of the 3d-1 box and map north against the orthophoto
 - [x] Bridge and tunnel joins (loop 3e leftovers): rails cut where a bus box touches them,
       Rozdroże's portal wall, Nowy Zjazd's wall (check_drive `--no-allow` 51 → 26 lane spots; 3 of

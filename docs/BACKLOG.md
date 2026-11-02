@@ -30,6 +30,11 @@ add it to the plan." Rules and the full inventory (39 named religious buildings,
   dormer kind (hipped, round, none) and size by house seed, group dormers on a ridge line, drop
   them where a slope is under 8 m.
 
+## Bike paths (F, 2026-11-02)
+
+- Fixed: gaps under 3 m between cycle path ends, ways split into pieces, spikes and sharp corners (`tools/cycleways.py`; riders turned back at every gap).
+- Open: about 600 cycle path ends still stop 3-8 m from the next path (many are the two sides of a street: needs a crossing, not a snap); ride them on the Mac against OSM; the cyclecross ways (398) and the 19 deck paths are untouched; riders' side offset jumps at a join.
+
 ## Gdański Business Center (F, 2026-11-02)
 
 - Built (PR in this change, site `gbc`). Open: Mac photo check (QUESTIONS); the plaza's planters, the lit lobby's glazing detail and the KPMG-style second logo on the tower are not built. Found: `bake_city` failed on main for the church of the Saviour (its SITE_AREAS box was missing); fixed in `tools/bake_sectors.py`.
@@ -1966,6 +1971,7 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
 - Build time: the monolithic build 58 → 75 s (the set fills' corridor tests in `terrain_height`).
 
 ## From map north (Rondo Radosława, Arkadia, Forest; 2026-10-31)
+- ~~Arkadia roof car park and the Forest's look~~ **Done 2026-11-01** (F's ask): Arkadka redesigned and its roof car park modelled (static cars), the Forest wears BANK PEPEO and has a roof terrace with a crowd (spec `arkadia.md`). Left: Mac photo check (colours, skylights, entrances); a drivable deck for DEMO 6.4; the terrace's bar kiosk and lounge.
 - **For the landmarks lane** (docs/DEMO.md 2.1 "Hand-over"): Rondo Radosława's flag mast (not in
   OpenStreetMap; the surface model has a 57.8 m column at (−2,850, −2,295)) and the island round it,
   Forest's tower (OSM part 923445779, 120 m; drawn today as OSM blocks), Arkadia (LoD2 today; its roof

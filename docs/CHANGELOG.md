@@ -10,6 +10,12 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- The bike paths are smoother: small gaps in them are closed, paths OpenStreetMap had cut into pieces run on as one, and spikes and sharp corners are rounded, so riders ride on from one path to the next instead of turning back.
+- Arkadka is redesigned: a cream-and-terracotta mall over its lit shop-front glass, glass-pyramid skylights, a roof car park full of parked cars with floodlights and stair cores, entrance canopies, and a finned entrance rotunda with the name on four faces. The Forest tower wears a BANK PEPEO sign near its crown, and its low wing has a roof terrace with parasols, tables and people from 11 to 23.
+
+
+
+
 - Warsaw's classic cinemas light up their marquees: Kino Muranów, Atlantic, Luna, Kultura, Elektronik and the Kinoteka in the Palace.
 - A new corner by Kino Femina, the Zagłębie Kebabowe: five rival kebab shops on Al. Solidarności (a king, a pasha, an uncle, a night shop and a craft kebab on sourdough), each with its own neon and its own delivery twist. Deliver from all five and the Skewer Trail pays a bonus.
 - Plac Bankowy looks like the real square: the Blue Skyscraper is blue mirror glass (not gold), and the city hall palace, the Voivodeship wing, the old Stock Exchange and Bank, the Arsenal and two small palaces wear their real colours (yellow palace with white columns).
