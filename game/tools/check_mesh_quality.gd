@@ -139,6 +139,8 @@ const BUDGET := {
 	"orly": 1600,
 	"hotel_warszawa": 2300,
 	"cedet": 2300,
+	"polin": 450,
+	"getto": 650,
 	"ochota": 1420,
 	"powisle": 1770,
 	"barka_wieczor": 1820,

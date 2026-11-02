@@ -103,6 +103,9 @@ const TICKER_NARROW := 250.0
 ## screen counts only once they are up) instead of covering something; the performance overlay
 ## (a developer's tool) steps aside the same way when even its two-line form finds no room.
 const WAITS := ["ticker", "note", "info", "perf"]
+## Large text: how far a panel's text steps down at a time when it finds no room at the
+## player's text size (Access.LARGE_TEXT), never below the normal size.
+const FIT_STEP := 0.05
 ## A two-finger twist this far (radians) turns a fixed camera 90°.
 const TWIST := 0.7
 const INK := Color("#fbf7ee")
@@ -434,6 +437,10 @@ var _wants := {}
 var _placed := {}
 var _taken: Array[Rect2] = []
 var _unplaced: Array[String] = []
+## Large text (2026-11-02): the panels that had to step their text down to find room at the
+## player's larger text size, and the scale each took (reset at every layout, so a panel grows
+## back once there is room). See `_fit_text`.
+var _fit_scale := {}
 var _dirty := true
 var _queued := false
 ## The ticker's spot is the bottom left (it slides in); elsewhere it fades in.
@@ -571,7 +578,11 @@ var _scaled_labels: Array[Label] = []
 
 ## Re-apply `Access.text_scale` to every HUD label at once (no restart). Dead labels are dropped.
 func apply_text_scale() -> void:
-	_scaled_labels = _scaled_labels.filter(func(l: Label) -> bool: return is_instance_valid(l))
+	var alive: Array[Label] = []
+	for l in _scaled_labels:  # a freed label cannot be passed typed, so test it before use
+		if is_instance_valid(l):
+			alive.append(l)
+	_scaled_labels = alive
 	for l in _scaled_labels:
 		l.add_theme_font_size_override("font_size", _px(float(l.get_meta("base_pt")) * Access.text_scale))
 	_mark()
@@ -756,6 +767,9 @@ func _layout() -> void:
 		_perf_compact = false
 		_perf_label.text = _perf_lines()
 	_layout_fixed()
+	for c: Control in _fit_scale:
+		_scale_text(c, Access.text_scale)  # full size again: it shrinks below only if it must
+	_fit_scale.clear()
 	_taken.clear()
 	_placed.clear()
 	_unplaced.clear()
@@ -788,6 +802,8 @@ func _layout() -> void:
 			_ticker.reset_size()
 			s = c.get_combined_minimum_size()
 			at = _place(c, s, _spots(c, s))
+		if at < 0 and not String(c.name) in WAITS:
+			at = _fit_text(c)
 		c.visible = at >= 0
 		if c == _ticker:
 			_ticker_slides = at == 0
@@ -795,6 +811,43 @@ func _layout() -> void:
 			# The ticker and the note and landmark cards wait for room (their clocks stop: see
 			# WAITS); anything else is a layout fault.
 			_unplaced.append(c.name)
+
+
+## Large text (2026-11-02): a panel that must show (the status, the cards, the banner) and found
+## no room at the player's text size steps its own text down FIT_STEP at a time, as little as
+## it takes, to the normal size at most; the rest of the HUD keeps the larger text. Returns the
+## spot it took, or -1 (no room even at the normal size: a layout fault, as before).
+func _fit_text(c: Control) -> int:
+	var k := Access.text_scale
+	while k > 1.0 + 0.001:
+		k = maxf(1.0, k - FIT_STEP)
+		_scale_text(c, k)
+		_fit_scale[c] = k
+		var s := c.get_combined_minimum_size()
+		var at := _place(c, s, _spots(c, s))
+		if at >= 0:
+			return at
+	return -1
+
+
+## Every HUD label in `c` (or `c` itself) at `k` times its size on the type scale.
+func _scale_text(c: Control, k: float) -> void:
+	for l in _scaled_labels:
+		if is_instance_valid(l) and (l == c or c.is_ancestor_of(l)):
+			l.add_theme_font_size_override("font_size", _px(float(l.get_meta("base_pt")) * k))
+			l.update_minimum_size()
+	c.update_minimum_size()
+	c.reset_size()
+
+
+## For tools/check_hud.gd: the panels showing smaller text than the player's setting, and how much.
+func fitted() -> Dictionary:
+	if _dirty:
+		_layout()
+	var out := {}
+	for c: Control in _fit_scale:
+		out[String(c.name)] = _fit_scale[c]
+	return out
 
 
 ## The spots a floating panel of size `s` may take, in order: [position, DOWN or UP].
@@ -840,6 +893,11 @@ func _spots(c: Control, s: Vector2) -> Array:
 ## Returns the candidate's index, or -1.
 func _place(c: Control, s: Vector2, cands: Array) -> int:
 	var g := 6.0 * pt
+	# Loop 2d-1: the ride's side card stands beside the car, never over it (too wide for the room
+	# there at large text, it fits its text: `_fit_text`).
+	var taken := _taken.duplicate()
+	if c == _card and _card_side:
+		taken.append(car_zone())
 	for k in cands.size():
 		var r := Rect2(cands[k][0], s)
 		var flow: int = cands[k][1]
@@ -848,7 +906,7 @@ func _place(c: Control, s: Vector2, cands: Array) -> int:
 			if not _bounds.encloses(r):
 				break
 			var hit := Rect2()
-			for t in _taken:
+			for t: Rect2 in taken:
 				if r.grow(g).intersects(t):
 					hit = t
 					break
