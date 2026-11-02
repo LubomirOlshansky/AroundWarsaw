@@ -54,6 +54,8 @@ const SCRAPE_EVERY := 0.07
 var _scrape_wait := 0.0
 ## Loop 2a: pinned twice within a few seconds; the game moves the car to a free spot.
 signal stuck
+## G13b: the nitro just lit (sfx whoosh, a buzz in main.gd).
+signal nitro_started
 ## G17 (2026-11-02): jammed among traffic cars for JAM_TIME s (never fixed walls); the game tows it.
 signal jammed
 ## Loop 10a: rolled into the water, at `speed` m/s (once; the game splashes and tows it out).
@@ -262,6 +264,8 @@ var _body: Node3D
 var _headlights: Array[StandardMaterial3D] = []
 var _tails: Array[StandardMaterial3D] = []
 var _beams: Node3D
+## G13b: the nitro's flame behind the tail, shown while it burns.
+var _flame: Node3D
 var _night_beams: MeshInstance3D
 var _spot: SpotLight3D
 var _flash := 0.0
@@ -294,6 +298,8 @@ func _ready() -> void:
 	add_child(_body)
 	_beams = _make_beams()
 	_body.add_child(_beams)
+	_flame = _make_flame()
+	_body.add_child(_flame)
 	_night_beams = MeshInstance3D.new()
 	# The look loop: the player's cone a little stronger and longer than traffic's.
 	_night_beams.mesh = Models.headlight_pools(2.05, 0.58, 17.0, true, 0.52)
@@ -333,6 +339,11 @@ func flash_lights() -> void:
 
 
 func _process(dt: float) -> void:
+	# G13b: the nitro's flame flickers while it burns (one small unshaded mesh, hidden otherwise).
+	if nitro_on != _flame.visible:
+		_flame.visible = nitro_on
+	if nitro_on:
+		_flame.scale = Vector3(1.0, 1.0, 0.8 + 0.5 * absf(sin(Time.get_ticks_msec() * 0.045)) + 0.2 * randf())
 	if _flash <= 0.0 and not _beams.visible:
 		return
 	_flash -= dt
@@ -811,6 +822,8 @@ func _nitro_tick(dt: float) -> void:
 	var want := nitro_owned and nitro_hold and not _nitro_dry and not parked and not in_water \
 			and nitro_charge > 0.0 and (nitro_on or nitro_charge >= NITRO_MIN)
 	if want:
+		if not nitro_on:
+			nitro_started.emit()
 		nitro_on = true
 		nitro_charge = maxf(0.0, nitro_charge - dt / NITRO_SECONDS)
 		if nitro_charge <= 0.0:
@@ -962,6 +975,38 @@ func set_paint(body: Color, stripes: Color, body_glow := HERO_PAINT, stripes_glo
 	if _body_mesh != null:
 		_body_mesh.mesh = Models.player_meshes(Models.fin(paint, Models.HERO, paint_glow),
 				Models.fin(stripe, Models.HERO, stripe_glow), _kind())[0]
+
+
+## G13b: two flames out of the tail, orange fading to a transparent blue-white tip, drawn like the
+## beams (unshaded, see-through). The car's tail is +Z; the flames are 3 m long at scale 1.
+func _make_flame() -> Node3D:
+	var root := Node3D.new()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var ring := [Vector3(-0.24, 0.0, 0.0), Vector3(0.0, 0.22, 0.0), Vector3(0.24, 0.0, 0.0), Vector3(0.0, -0.22, 0.0)]
+	for x in [-0.45, 0.45]:
+		var base := Vector3(x, 0.42, 2.0)
+		var tip := base + Vector3(0.0, 0.05, 3.0)
+		for k in 4:
+			st.set_color(Color(1.0, 0.62, 0.15, 0.95))
+			st.add_vertex(base + ring[k])
+			st.set_color(Color(1.0, 0.62, 0.15, 0.95))
+			st.add_vertex(base + ring[(k + 1) % 4])
+			st.set_color(Color(0.55, 0.8, 1.0, 0.0))
+			st.add_vertex(tip)
+	var mi := MeshInstance3D.new()
+	mi.mesh = st.commit()
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mat.vertex_color_use_as_albedo = true
+	mat.render_priority = 1
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(mi)
+	root.visible = false
+	return root
 
 
 ## Light thrown on the road ahead while flashing: two pale fans, drawn after the

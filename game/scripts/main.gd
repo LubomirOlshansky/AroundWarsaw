@@ -1459,6 +1459,10 @@ func _build_sound(data: Dictionary, world: Node3D) -> void:
 	world.add_child(sfx)
 	sfx.setup(data)
 	car.impact.connect(sfx.impact)
+	# G13b: the nitro lights with a whoosh and a short strong buzz.
+	car.nitro_started.connect(func() -> void:
+		sfx.play_at("nitro_whoosh", car.global_position)
+		Access.buzz(90, 0.8))
 	if trams != null:
 		trams.bell.connect(sfx.tram_bell)
 	if traffic != null:
