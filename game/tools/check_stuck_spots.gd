@@ -17,6 +17,14 @@ extends SceneTree
 ##
 ## (Head on into the platform's 3 m end the car stops, as at any wall, and is turned out.)
 ##
+## PT-7 (2026-11-02): by the curved glass corner of Chmielna and Bracka (Zgoda's end) a car held
+## towards Krucza, sliding along the block's front, caught its front corner in a 3 m notch where two
+## buildings meet (-630,186) and in the 0.5 m slit and 0.3 m step between the glass building and
+## Jabłkowski's (-596,190): pinned, turned out, pinned again, towed. The playtest's camera ghosted
+## the building, so the frames showed no wall. Fixed: low collider walls across slits and small
+## notches and a taper in front of small steps (map_builder.gd `_bridge_pockets`). These spots
+## steer like the point-to-steer stick held one way (an 8th field: the compass heading held).
+##
 ## Prints one line per spot and `check_stuck_spots: OK`, or the failures and exit 1. ~10 s on the Mac.
 ##   godot --headless --path game --fixed-fps 60 --script res://tools/check_stuck_spots.gd [-- --prebuilt --verbose]
 
@@ -26,7 +34,8 @@ const IndexPack := preload("res://scripts/index_pack.gd")
 const INDEX_JSON := "res://map/index.json"
 const INDEX_SCENE := "res://map/index.res"
 
-## [x, z, compass heading, start speed m/s, seconds, the share of the start speed kept at the end, what].
+## [x, z, compass heading, start speed m/s, seconds, the share of the start speed kept at the end, what,
+## optional: the compass heading the stick points to (point-to-steer, held)].
 const SPOTS := [
 	[-1013.0, -45.0, -20.0, 27.0, 4.0, 0.9, "PT-1 Marszałkowska, the left lane along Centrum's tram-stop fence"],
 	[-1013.0, -45.0, -25.0, 27.0, 3.0, 0.85, "PT-1 Marszałkowska, drifting 5° into the tram-stop fence"],
@@ -37,6 +46,10 @@ const SPOTS := [
 	[-795.0, 526.0, -20.0, 25.0, 1.8, 0.8, "PT-4 Marszałkowska north to Rondo Dmowskiego, the middle lane"],
 	[-792.2, 525.0, -20.0, 25.0, 1.8, 0.8, "PT-4 Marszałkowska north to Rondo Dmowskiego, the kerb lane"],
 	[-874.9, 395.1, 160.0, 25.0, 1.8, 0.8, "PT-4 Marszałkowska south to Rondo Dmowskiego, past the north-west stairs"],
+	[-616.0, 180.0, 253.0, 7.0, 3.0, 0.0, "PT-7 west along Chmielna's block, the stick into it past the notch at Zgoda", 230.0],
+	[-620.0, 181.0, 253.0, 7.0, 3.0, 0.0, "PT-7 west along Chmielna's block, the stick south-west past the notch", 200.0],
+	[-612.0, 176.0, 78.0, 7.0, 3.0, 0.0, "PT-7 Chmielna east, the stick to Krucza along the glass corner (the slit)", 150.0],
+	[-606.0, 180.0, 110.0, 7.0, 3.0, 0.0, "PT-7 across the Chmielna square to Krucza, along the glass corner", 150.0],
 ]
 ## Sectors within this of a spot are loaded.
 const REACH := 300.0
@@ -87,7 +100,8 @@ func _initialize() -> void:
 	if not prebuilt:
 		map.measure_sectors()
 	IndexPack.pack(map.index_data)
-	print("check_stuck_spots: %d sectors %s in %d ms" % [n, "loaded" if prebuilt else "built", Time.get_ticks_msec() - t0])
+	print("check_stuck_spots: %d sectors %s in %d ms%s" % [n, "loaded" if prebuilt else "built", Time.get_ticks_msec() - t0,
+			"" if prebuilt else ", %d pocket walls" % map.pocket_walls])
 
 
 func _next() -> bool:
@@ -107,6 +121,9 @@ func _next() -> bool:
 	car.vel = -car.global_transform.basis.z * float(s[3])
 	car.forward_speed = float(s[3])
 	car.throttle = 1.0
+	if s.size() > 7:
+		var aim := deg_to_rad(float(s[7]))
+		car.target_dir = Vector3(sin(aim), 0.0, -cos(aim))
 	_v0 = float(s[3])
 	_t = 0
 	_stalled = 0.0
