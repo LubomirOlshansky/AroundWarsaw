@@ -47,6 +47,14 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · map · the start area's last two items need the Mac** — R8 and R3 part 2 of
+  docs/design/start-area-real.md can't be placed from the cloud (no photos, no orthophoto there).
+  R8: from refs/msn/2.jpg and 4.jpg, where the museum's mid-height dark ribbon runs and where it
+  breaks on each long face (metres from the north end), and how far and where the roofline steps
+  down near the south end. R3 part 2: from the orthophoto, the kerb line, Złota's sett street and
+  elm alley, the fountain at the old tunnel mouth and the three new crossings on Marszałkowska.
+  Default built: the ribbon all round, the flat roofline, today's kerbs and crossings. A Mac
+  session with the photos (model-from-photos skill) can measure and build both.
 - **2026-11-01 · landmarks · MDM arcades, towers, reliefs: Mac look check** — Built in the cloud
   (flat ground, no LoD2, no photo). Default built (`_build_mdm`, spec mdm.md): arcades with square
   piers every 5.4 m, 2.9 m deep, 6.7 m high on the facades that face the square or the axis; four
