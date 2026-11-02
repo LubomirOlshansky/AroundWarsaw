@@ -150,10 +150,8 @@ then the Launch gate.
 - [x] Norblin, Browary Warszawskie, Hala Koszyki, Elektrownia Powiśle as models, people chilling
       in their yards and KROWA 2.0, the milk bar queue in Norblin (F, 2026-11-01; specs
       `norblin.md`, `browary.md`, `koszyki.md`, `elektrownia.md`; Mac look check parked)
-<<<<<<< HEAD
 - [ ] The landmark lane's remaining list (BACKLOG "Landmarks lane, hand-over": the Cathedral and
       the Barbican DONE 2026-11-02, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
-=======
 - [x] Powiśle street by street, 2026-11-01 (F): Zamek Ostrogskich with the Chopin Institute
       (`ostrogski`, 724 tris), the parish church of St Thérèse (`teresy`, 228), the boulevard's
       Syrenka statue, Dworzec Wodny and Kaskada (`syrenka_powisle`, `dworzec_wodny`, `kaskada`),
@@ -161,9 +159,6 @@ then the Launch gate.
       from November (`crowds.gd` GELATO; Mac look check parked)
 - [ ] Powiśle left: boulevard dressing (deck strips, bar containers), Piano House, Cube House,
       Hortus, Moderna, Dobra and Tamka's tenements, the Mac photo checks (BACKLOG "Powiśle street by street")
-- [ ] The landmark lane's remaining list (BACKLOG "Landmarks lane, hand-over": the Cathedral, the
-      Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
->>>>>>> origin/main
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
 - [ ] The estate, the halls and Jana Pawła II (F, 2026-11-01; BACKLOG section):
@@ -192,6 +187,7 @@ then the Launch gate.
   - [x] K1-K5 the Carmelite church's front, Mickiewicz's monument, the University gate and Pałac
         Kazimierzowski's skin, Pałac Potockich and the Kordegarda, Bristol's corner dome, 2026-11-01
         (spots and heights estimated; Mac photo check)
+  - [x] KP street by street pass 1: eight neon shopfronts along the royal route, 2026-11-02 (Mac look check)
   - [x] K6 the black Chopin benches, Prus's and Wyszyński's statues, the granite setts on the
         carriageway, Pałac Czapskich's skin and card, 2026-11-01 (Mac look check)
 
