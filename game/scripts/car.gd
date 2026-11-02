@@ -133,6 +133,11 @@ const TURN_CRAWL := 6.0
 ## (rad/s), the push back off a head-on hit (share of the speed lost, at most 1.2 m/s),
 ## and how long it may sit pinned before it is turned out (s).
 const SCRAPE := 1.2
+## PT-1 (2026-11-02): the scrape scales with how hard the car presses into the wall: full at
+## SCRAPE_PRESS m/s into it, down to SCRAPE_MIN of it running parallel along a fence (it lost
+## 30 → 17 m/s in 0.8 s brushing Marszałkowska's tram-stop fence, 1.2/s of the whole speed).
+const SCRAPE_PRESS := 3.0
+const SCRAPE_MIN := 0.15
 const WALL_TURN := 3.0
 const WALL_PUSH := 0.12
 const UNSTICK_TIME := 1.5
@@ -551,6 +556,7 @@ func _step(dt: float) -> void:
 		var n := Vector3.ZERO
 		var slid := vel
 		var fixed := false
+		var press := 0.0
 		for k in hits:
 			# (An AnimatableBody3D, traffic's and the trams' bodies, is a StaticBody3D too: not fixed.)
 			var other := get_slide_collision(k).get_collider()
@@ -569,6 +575,7 @@ func _step(dt: float) -> void:
 					known = known or w.dot(nk) > 0.9
 				if not known and _wall_normals.size() < 6:
 					_wall_normals.append(nk)
+				press = maxf(press, -vel.dot(nk))
 				var into_k := slid.dot(nk)
 				if into_k < 0.0:
 					slid -= nk * into_k
@@ -606,8 +613,9 @@ func _step(dt: float) -> void:
 		if fixed and not slipped and _scrape_wait <= 0.0 and slid.length() > 6.0:
 			_scrape_wait = SCRAPE_EVERY
 			scraped.emit(hit.get_position(), hit.get_normal(), slid.length())
-		# What slides along the wall is kept, less a little scrape (loop 2a; it lost 8 % a frame).
-		vel = slid * exp(-SCRAPE * dt)
+		# What slides along the wall is kept, less a little scrape (loop 2a; it lost 8 % a frame),
+		# lighter the less it presses in (PT-1: brushing a fence along the kerb).
+		vel = slid * exp(-SCRAPE * clampf(press / SCRAPE_PRESS, SCRAPE_MIN, 1.0) * dt)
 		if not fixed and not slipped:
 			# A car or a tram gives way (traffic is shoved): keep CAR_KEEP of what went into it,
 			# not a dead stop; something that doesn't move takes the rest on the next frames.

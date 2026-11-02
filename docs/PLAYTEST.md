@@ -63,7 +63,7 @@ keeping to `shots/autopilot/`, never into git) · **status** (suspect → confir
 
 | id | Row | Place (`--at=`) | What happens | Sev | Evidence | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| PT-1 | P1 | ~100 m east of the start (kit 95,-1032; Godot coords from run 2) | 108 km/h to a dead stop, then 15 s crawling; the built-in unstick fired once and didn't free it | S2 | run 20261102-115157 trace1 t=19.8-38.6 | suspect |
+| PT-1 | P1 | Marszałkowska at the Centrum tram stop, north of the start (`--at=-1025,-45 --heading=-12`; the spot x -1005..-1032, z -95..83) | 108 km/h to a dead stop, then 15 s crawling; the built-in unstick fired once and didn't free it. **Cause** (reproduced with no traffic at all, so not a traffic car): the stop's 0.9 m platform wasn't solid, the car drove inside the slab and hit the shelter on it end on; brushing the fence along the kerb also cost 1.2/s of the whole speed. **Fix**: platforms ≥ 0.5 m are solid at their edges, the wall scrape scales with how hard the car presses in; `check_stuck_spots.gd` drives 5 lines through the spot | S2 | run 20261102-115157 trace1 t=19.8-38.6 | fixed (PR #PRNUM) |
 | PT-2 | P1 | a block NE of Plac Defilad (kit x 360-430, y -280..380) | ~10 near-stops in a minute; unsticks rose 1 → 23 over the run | S2 | run 20261102-115157 trace2 t=240-300 | suspect |
 | PT-3 | P1 | kit (396,375) | the car 29 m below its start height: under the ground, or just lower terrain? | S1? | run 20261102-115157 trace3 t=339 | suspect |
 

@@ -4137,6 +4137,13 @@ func _box_oriented(st, centre: Vector3, basis: Basis, size: Vector3, col: Color)
 
 
 ## Tram and bus stop islands and railway platforms: raised concrete slabs.
+## PT-1 (2026-11-02): a platform at least SOLID_PLATFORM high (OSM railway=platform: 0.9 m, the
+## stations' and some tram stops', like Centrum's on Marszałkowska) is solid at its edges. The car
+## used to drive inside the slab (drive_height doesn't lift it 0.9 m) and stop dead on the shelter
+## standing on it, boxed in by the fence along the kerb. The low 0.25 m stop islands stay drivable.
+const SOLID_PLATFORM := 0.5
+
+
 func _build_platforms(st) -> void:
 	_uv2 = Vector2(0.5, -1.0)
 	for a in data.get("platforms", []):
@@ -4158,6 +4165,11 @@ func _build_platforms(st) -> void:
 			var n := Vector3(e.y, 0.0, -e.x).normalized()
 			_quad(st, Vector3(p0.x, ground - 0.3, p0.y), Vector3(p1.x, ground - 0.3, p1.y),
 					Vector3(p1.x, ground + h + 0.1, p1.y), Vector3(p0.x, ground + h + 0.1, p0.y), n, col.darkened(0.12))
+			if h >= SOLID_PLATFORM:
+				var b0 := Vector3(p0.x, terrain_height(p0.x, p0.y) - 0.3, p0.y)
+				var b1 := Vector3(p1.x, terrain_height(p1.x, p1.y) - 0.3, p1.y)
+				var up := Vector3(0.0, ground + h + 1.6 - minf(b0.y, b1.y), 0.0)
+				_wall_faces.append_array([b0, b1, b1 + up, b0, b1 + up, b0 + up])
 	_uv2 = Vector2.ZERO
 
 

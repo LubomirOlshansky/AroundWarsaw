@@ -27,9 +27,15 @@ Left:
 ## Playtest bugs (Autopilot, 2026-11-02)
 
 The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, status); fix
-threads take its confirmed rows one by one. Open now: PT-1 to PT-3 (suspects from the first
-Śródmieście run: a dead stop east of the start, a cluster of near-stops north-east of Plac
-Defilad, the car 29 m below its start height); run 2 records their exact positions.
+threads take its confirmed rows one by one. Open now: PT-2 and PT-3 (suspects from the first
+Śródmieście run: a cluster of near-stops north-east of Plac Defilad, the car 29 m below its start
+height); run 2 records their exact positions. PT-1 (the dead stop at Centrum's tram stop) fixed
+2026-11-02; every new PT spot joins `game/tools/check_stuck_spots.gd`.
+- Found with PT-1: a free spot (`main.gd _free_car_spot`, a tow) only tests the box against the
+  wall faces, so a spot fully inside a solid outline (a building, now a 0.9 m platform) counts as
+  free. Not seen in play; reject spots inside platforms and footprints if it shows up.
+- Found with PT-1: head on into a solid platform's end the car stops like at any wall and is
+  turned out after 1.5 s (Centrum's north tip faces the left lane of Marszałkowska).
 
 ## Pokorna 2 (F, 2026-11-02)
 
