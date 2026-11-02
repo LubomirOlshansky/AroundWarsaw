@@ -10,6 +10,20 @@ the inventory taken from the code on 2026-10-31. How a model is made: the model-
 **Detail levels** (model-from-photos skill): L1 silhouette and colour · L2 facade articulation
 (base/middle/top, window rhythm, cornices, roof shape) · L3 every identity feature in 3D.
 
+## Map status and next passes (2026-11-01)
+
+**Done on the map**: the 21 km² centre in streamed sectors with 1 m terrain; roads, lanes, markings,
+kerbs, decks and tunnels (checks C1-C10); the river and shore; the railway (stations Ochota, Powiśle,
+Stadion, catenary, trains); the Old Town, New Town and Mariensztat dressed as tenements; the start
+area as real Warsaw (signs, ground, building types); about 55 landmark sites with specs (the Palace,
+Rotunda, Tarasy, Centralna, the stadium, BUW, Kopernik, MSN, the churches, the halls Mirowska and
+Gwardii, the estate Za Żelazną Bramą, the towers); the boulevard Jana Pawła II in mid-century plasters.
+**Next passes, in order**: (1) the Mac photo checks, all parked in docs/QUESTIONS.md; (2) the chill
+spots' Mac look checks (2.12); (3) Jana Pawła II and the other boulevards block by block (2.16); (4) Krakowskie Przedmieście's
+missing pieces (3.1); (5) the P3 groups (churches, palaces, culture, bridges); (6) then street by
+street through the whole box, houses, roads and parks, until it feels alive (F's standing ask).
+Progress is ticked in docs/ROADMAP.md "v1.0 checklist".
+
 ## Part 1. The plan, by priority
 
 Photos (2026-10-31): `refs/` on the Mac holds 51 buildings, 154 free photos and 50 GUGiK
@@ -58,6 +72,9 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | 2.6c | Kościół Wizytek (Krakowskie Przedmieście) | DONE 2026-11-01 (L3 facade, stepped wing and crossing turret on the kept skin, spec `wizytki.md`, 566 tris, heights estimated, Mac photo check parked: gable shape, towers or none, turret) |
 | 2.6b | Kościół Świętej Trójcy (Lutheran, Plac Małachowskiego) | DONE 2026-10-31 (L3 model, spec `trojca.md`, 1901 tris): drum with oculi, four Tuscan porticoes, copper dome, columned lantern and cross |
 | 2.7 | Sejm (DONE 2026-11-01: hall colonnade, spec `sejm.md`, Mac photo check parked), Pałac Staszica (DONE 2026-11-01: portico, cornice, Copernicus statue, spec `staszic.md`, Mac photo check parked), Kopernik, BUW, Hala Mirowska (DONE 2026-11-01: L2 model, spec `mirowska.md`, from the mapped parts, Mac photo check parked; Hala Gwardii DONE 2026-11-01: L2 twin model, spec `gwardii.md`, bays from the outline, Mac photo check parked) | facades and roofs from the photos (Zachęta DONE 2026-10-31: model, spec `zacheta.md`, from the user's photo; Kopernik DONE 2026-11-01: L2 model, spec `kopernik.md`, log `docs/landmarks/kopernik.md`, from OSM and LoD2, then the Mac's photo check: warm strip facade with slits and bays, the copper-red planetarium drum and dome, roof craters and paths, the cantilever; BUW DONE 2026-10-31: L2 model, spec `buw.md`, log `docs/landmarks/buw.md`, from OSM: copper pages, philosophers; the roof from the orthophoto on 2026-11-01: glass field and tail, oculus, mound and pyramid, formal beds, the green band; photo check of the height and the philosophers) |
+| 2.15 | Osiedle Za Żelazną Bramą | DONE 2026-11-01 (L2 model, site `zelazna`, spec `zelazna.md`, 855 tris): eleven blocks from their OSM outlines in the estate skin S_ESTATE, blank ends with a stair slot, entrances, lift houses, a card; Mac photo check parked: panel colours, loggia stacks, the high block, the low pavilions |
+| 2.16 | Aleja Jana Pawła II's frontage | DONE 2026-11-01 (palette): `map_builder._boulevard_dress` gives each plain building within 42 m of the boulevard a mid-century plaster. Left: model the blocks one by one, street by street, from the orthophoto and photos (Kaskada, the 1950s blocks, the Żelazna Brama corner) |
+| 2.8 | MDM and Plac Konstytucji | the blocks' arcades, reliefs, the corner towers |
 | 2.8 | MDM and Plac Konstytucji | DONE 2026-11-01 (L2 on the kept skin, site `mdm`, spec `mdm.md`, 2002 tris): ground-floor arcades (piers, entablature, dark shopfronts) on the facades facing the square and Marszałkowska, four corner towers (two stages, hipped attic, spire), a terracotta relief on each tower's square face; heights, bays and reliefs estimated, Mac photo check parked |
 | 2.9 | Towers missing from the table | PZU Tower, JM Tower, Pekao Tower, Warsaw Towers, Atlas, Prosta |
 | 2.9b | Gdański Business Center (F, 2026-11-02) | DONE 2026-11-02 (L2, site `gbc`, spec `gbc.md`, 622 tris: the 74 m tower with its slanted dark crown and AWIWA, the two 45 m blocks and the 31 m block with white bands, dark crowns and NIELZEN; Mac photo check parked) |
@@ -80,6 +97,7 @@ batch's captions (towers, churches) come from Commons titles: check the angle be
 | 3.2 | Churches and religious | Kościół Najświętszego Zbawiciela DONE 2026-11-01 (L3, site `zbawiciela`, spec `zbawiciela.md`, 1029 tris: the two 76 m posts and the box became a basilica with a porch and pediment, square towers through octagonal belfries to copper spires, and a dome with drum and lantern over the crossing; shapes and heights below the towers estimated, Mac photo check parked: plaster and roof colours, belfry and spire shape, dome height, porch). The church kit (2026-11-01, `docs/design/churches.md`, spec `churches.md`): 22 more churches as models, among them Katedra polowa, the Cerkiew, Synagoga Nożyków, St Martin, Holy Spirit, St Hyacinth and the Reformed church; Mac photo checks parked. Left: Praga cathedral, Archikatedra's tower, the monasteries |
 | 3.3 | Stations and halls | the stations moved to 2.11; Torwar. Hala Koszyki and Elektrownia Powiśle DONE 2026-11-01 (L2 models, specs `koszyki.md`, `elektrownia.md`, 1142 and 1626 tris: brick, tall arches, the hall's glass lantern, two chimneys; Mac photo check parked: brick shade, roof shapes, number and place of the chimneys) |
 | 3.4 | Culture and civic | POLIN, Planetarium, Politechnika's main hall, Zamek Ujazdowski, the palaces (about 40) |
+| 3.7 | Parks (F, 2026-11-01) | Ogród Saski, Ogród Krasińskich, Park Ujazdowski: DONE 2026-11-01 (`park_details.gd`: statues, fountain, carousel, playground, gazebo, pergolas, sundial, footbridge, ducks, swans, squirrels, seated people, picnics, yoga; Mac look check parked). Łazienki (Palace on the Isle, Chopin monument) is off the map: QUESTIONS |
 | 3.5 | Other bridges | Śląsko-Dąbrowski, Gdański, Łazienkowski: generic decks today |
 | 3.6 | Street furniture | kiosks, tram stop platforms, Warsaw's green bins (BACKLOG "next candidates") |
 | 3.7 | The river's barges | DONE 2026-11-01 (L2, sites `barka_wieczor`, `barka_biala`, `barka_marina`, `barka_kaskada`, `houseboats`, spec `barki.md`): the four bar barges OSM maps on the boulevards (were 14 m boxes in the water) as moored barges with raked hulls, glazed deckhouses, sun terraces with umbrellas and bars, festoons of bulbs, gangways to the bank and parody neon names; the nine houseboats with cabins. Mac photo check parked; the barges OSM lacks and the boathouses in BACKLOG "The river's barges" |
@@ -181,6 +199,7 @@ All with a card; check_landmarks only (except where noted). Open issue common to
 | Kościół Wszystkich Świętych | M_MONUMENT | #ddcfaa / #6e7f6e | |
 | Kościół św. Aleksandra | model (M_MONUMENT drum) | #ebe4d2 / #7f8f88 | `_build_aleksander` (spec aleksander.md, 2026-11-01): drum, windows, copper dome, lantern, cross, a six-column portico on each end; heights estimated |
 | Hala Gwardii | model (not a skin) | #a85c40 / #6d7470 | `_build_gwardii` (spec gwardii.md, 2026-11-01): Mirowska's twin, symmetric, a portal at both ends, 16 pilasters a side measured from the outline; 1212 tris |
+| Osiedle Za Żelazną Bramą | model (not a skin) | #d2cfc6 etc. / #77777a | `_build_zelazna` (spec zelazna.md, 2026-11-01): eleven blocks from their OSM outlines in S_ESTATE (panel bays, ribbon windows, loggia stacks), blank ends with a stair slot, entrances with canopies, lift houses; 855 tris |
 | Hala Mirowska | model (not a skin) | #a85c40 / #6d7470 | `_build_mirowska` (spec mirowska.md, 2026-11-01): brick walls with round-headed windows between pilasters, nave roof with glazed lantern, gable ends, four corner turrets, red-roofed west annex; 1458 tris |
 | Sejm RP | M_MONUMENT + hall model | #e2e0d8 / #8d8f8c | `_build_sejm` (spec sejm.md, 2026-11-01): plinth ring, fifteen-column curved colonnade, entablature, attic and eave cornice round the plenary hall's arc (fitted r 21.75 m, centre -> world 277.1, 967.5); heights estimated |
 | MDM (all tall unnamed blocks around Plac Konstytucji + Marszałkowska to Plac Zbawiciela) | M_MONUMENT | #cdbfa3 / #7f7b74 | `_find_mdm`, one card; `_build_mdm` (spec mdm.md, 2026-11-01): arcades, four corner towers, reliefs; candelabras = street furniture |
