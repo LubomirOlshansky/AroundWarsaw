@@ -76,6 +76,10 @@
 # three shapes in one surface (the ambulance), the `crash_scene` and KEBAB FM lines, spots on the real
 # lane graph (main roads, 2+ lanes, no overlaps), the real traffic queueing and going round a scene,
 # the timer (first, life, gap); centrum.json only (CI too).
+# City-life satire #1, loud cars (2026-11-02): `loud` runs game/tools/check_loud_cars.gd: the taxis'
+# family (three shapes, one surface: the supercar), the Browary meet clear of buildings and roads, the
+# car_meet / loud_driver / KEBAB FM lines and the rev sound, the real traffic's loud cars (never over
+# the cap), the revs and the radio line once; centrum.json only (CI too).
 # The vintage-tram loop: `oldtram` runs game/tools/check_old_tram.gd: the old set's window (weekends
 # 09-19, Live Jun-Sep) and one run an hour, the follow count and its reset, the look's draw-call
 # budget (2 car meshes, no node added), a run on the real tracks finding E39 once; centrum.json only
@@ -88,6 +92,10 @@
 # synthetic clocks, the formation, the out-and-back loops on a grid and on the real footways and
 # cycle paths, the meshes' budgets, the lines (no real brand), a node drawing the packs only near
 # the view and its cost, the big guys with tiny dogs; centrum.json only (CI too).
+# Kibice (docs/design/city-life-satire.md 7): `fans` runs game/tools/check_fans.gd: the match
+# evenings, the chant's jump and the smoke, the three groups' room on the real pavements (off the
+# roads, out of the buildings), the meshes' budgets, the lines (no brand, no club, no rivals), a
+# node drawing the fans only near the stadium, the horn starting a chant; centrum.json only (CI too).
 # The garage loop: `garage` runs game/tools/check_garage.gd: Warsztat u Mirka's paints and rules,
 # buying and switching (10 seeded walks), the save, the car's paint, Mirek's lines, E01 and E21
 # once; no map at all (CI too).
@@ -163,8 +171,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 drape ground drive drive-prebuilt stuckspots stuckspots-prebuilt steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive stuckspots steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram firstlife prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec lod2 drape ground drive drive-prebuilt stuckspots stuckspots-prebuilt steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram firstlife heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh parkdetails parkmesh monuments monumentmesh spec drape drive stuckspots steering handling stopassist questlines settings credits language tiers governor hud places edge roadworks eggs tape crowds life buses zaglebie crashes loud oldtram trains packs wellness fans garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 rescues couriers rides cost landmarks oldtownroofs roofdress tenementtrim osmroofs sites meshq sfx juice gamepad radio sounds police plain ram firstlife prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -552,12 +560,34 @@ print -r -- ""
 # Loop 3d-1: the sector split and the prebuilt sectors are derived and not committed (a fresh
 # clone has none): make them first when they are missing (tools/setup_map.sh, ~20 s, a window
 # opens). Stale ones (made from other inputs) stay a WARN of the map step, as before.
+# The prebuilt bake needs a window: on Linux with no display (a cloud container) it runs under
+# xvfb-run when there is one; with neither, the steps that need the prebuilt city are skipped as a
+# WARN instead of failing on files that were never made (2026-11-02).
+no_prebuilt=0
 if ! python3 -I $ROOT/tools/check_map_data.py --fresh > $logs/setup_map.log 2>&1 && grep -q 'missing' $logs/setup_map.log; then
 	print -r -- "note: $(head -1 $logs/setup_map.log); running tools/setup_map.sh (a window opens)"
-	if ! $ROOT/tools/setup_map.sh >> $logs/setup_map.log 2>&1; then
+	local -a wrap=()
+	if [[ $OSTYPE == linux* && -z $DISPLAY && -z $WAYLAND_DISPLAY ]]; then
+		if (( $+commands[xvfb-run] )); then
+			wrap=(xvfb-run -a -s "-screen 0 1280x720x24")
+		else
+			no_prebuilt=1
+			print -r -- "note: no display and no xvfb-run: the prebuilt city can't be baked here, its steps are skipped (install xvfb)"
+		fi
+	fi
+	if (( no_prebuilt )); then
+		python3 -I $ROOT/tools/bake_sectors.py >> $logs/setup_map.log 2>&1 \
+			|| print -r -- "note: tools/bake_sectors.py failed ($logs/setup_map.log): the game runs below will fail"
+	elif ! $wrap $ROOT/tools/setup_map.sh >> $logs/setup_map.log 2>&1; then
 		print -r -- "note: tools/setup_map.sh failed ($logs/setup_map.log): the game runs below will fail"
 	fi
 fi
+## skip_prebuilt NAME: true (and a WARN row) when the prebuilt city could not be baked here.
+skip_prebuilt() {
+	(( no_prebuilt )) || return 1
+	row WARN "$1" 0 "skipped: no display to bake the prebuilt city (install xvfb, or run on the Mac)"
+	return 0
+}
 
 for s in $want; do
 	case $s in
@@ -704,11 +734,11 @@ for s in $want; do
 		# Loop 3b: every lane for a car and a bus against the colliders; the autopilot over the
 		# bridges and tunnels (height jumps). The runtime city (the prebuilt one: --prebuilt).
 		drive) check drive '^check_drive:' --script res://tools/check_drive.gd ;;
-		drive-prebuilt) check drive-prebuilt '^check_drive:' --script res://tools/check_drive.gd -- --prebuilt ;;
+		drive-prebuilt) skip_prebuilt drive-prebuilt || check drive-prebuilt '^check_drive:' --script res://tools/check_drive.gd -- --prebuilt ;;
 		# PT bug log (docs/PLAYTEST.md): the real car through the spots a playtest found it stopping
 		# dead (PT-1: Marszałkowska's Centrum tram stop); the sectors round them, both city paths.
 		stuckspots) check stuckspots '^check_stuck_spots:' --fixed-fps 60 --script res://tools/check_stuck_spots.gd ;;
-		stuckspots-prebuilt) check stuckspots-prebuilt '^check_stuck_spots:' --fixed-fps 60 --script res://tools/check_stuck_spots.gd -- --prebuilt ;;
+		stuckspots-prebuilt) skip_prebuilt stuckspots-prebuilt || check stuckspots-prebuilt '^check_stuck_spots:' --fixed-fps 60 --script res://tools/check_stuck_spots.gd -- --prebuilt ;;
 		steering) check steering 'check_steering:' --fixed-fps 60 --script res://tools/check_steering.gd ;;
 		# The quest stop assist: the car brakes itself into a quest's ring and holds for the hold.
 		handling) check handling '^check_handling:' --fixed-fps 60 --script res://tools/check_handling.gd ;;
@@ -752,11 +782,17 @@ for s in $want; do
 		# real lane graph, the pay twists and Szlak Szpili.
 		zaglebie) check zaglebie '^check_zaglebie:' --script res://tools/check_zaglebie.gd ;;
 		crashes) check crashes '^check_crash_scenes:' --script res://tools/check_crash_scenes.gd ;;
+		# City-life satire #1: the loud cars and the Browary meet.
+		loud) check loud '^check_loud_cars:' --script res://tools/check_loud_cars.gd ;;
 		oldtram) check oldtram '^check_old_tram:' --script res://tools/check_old_tram.gd ;;
 		# The railway (docs/design/railway.md T1): the trains on the rail tracks.
 		trains) check trains '^check_trains:' --script res://tools/check_trains.gd ;;
 		# Packs: running clubs, cycling packs, coffee raves, the big guys with tiny dogs.
 		packs) check packs '^check_packs:' --script res://tools/check_packs.gd ;;
+		# Kibice: the friendly fans by Stadion Leguminy on match evenings.
+		fans) check fans '^check_fans:' --script res://tools/check_fans.gd ;;
+		# Wellness circles (docs/design/city-life-satire.md): sound healing, techno yoga, the 40+ club, park kung-fu.
+		wellness) check wellness '^check_wellness:' --script res://tools/check_wellness.gd ;;
 		garage) check garage '^check_garage:' --script res://tools/check_garage.gd ;;
 		save) check save '^check_save:' --script res://tools/check_save.gd ;;
 		districts) check districts '^check_districts:' --script res://tools/check_districts.gd ;;
@@ -793,7 +829,7 @@ for s in $want; do
 		sounds) check sounds '^city_sounds:' --script res://tools/check_city_sounds.gd ;;
 		# Loop 10a: where a car can get into the water (whole map), and the game's tow decisions.
 		water) check water '^check_water:' --script res://tools/check_water.gd ;;
-		water-prebuilt) check water-prebuilt '^check_water:' --script res://tools/check_water.gd -- --prebuilt ;;
+		water-prebuilt) skip_prebuilt water-prebuilt || check water-prebuilt '^check_water:' --script res://tools/check_water.gd -- --prebuilt ;;
 		# Loop 3c: the sectors are the whole city (meshes, pixels at 10 spots), streaming misses nothing.
 		# The loading fix (2026-10-31): seven passes now, ~13 min: at least 25 min before it's stopped.
 		streaming) STEP_LIMIT=$(( STEP_LIMIT > 1500 ? STEP_LIMIT : 1500 )) shown streaming '^check_streaming:' --script res://tools/check_streaming.gd -- --keep=$logs/streaming ;;
@@ -833,7 +869,7 @@ for s in $want; do
 		# pavements, people at the start's furniture, a tram's bell as it passes, the square's bed.
 		firstlife) game firstlife 1200 '^first life: OK' --first-life --at=-961.6,95 --heading=339.8 ;;
 		rain) game rain-night 600 "" --weather=rain --time=night ;;
-		prebuilt) game prebuilt-night 600 "" --prebuilt --time=night ;;
+		prebuilt) skip_prebuilt "run: prebuilt-night" || game prebuilt-night 600 "" --prebuilt --time=night ;;
 		classic) game classic 600 "" --controls=classic ;;
 		ios) run_ios ;;
 	esac

@@ -355,6 +355,9 @@ func _check_sites(c: Crowds) -> void:
 	_expect(Crowds.coffee_queue(6.0, 2)[0] == 0 and Crowds.coffee_queue(8.0, 2) == [Crowds.COFFEE_MAX, "kolejka"]
 			and Crowds.coffee_queue(8.0, 6)[0] == Crowds.COFFEE_MAX / 2, "coffee chains: the morning line")
 	_expect(c.by_id.has(Crowds.ZAKWAS_ID), "no crowd at ZAKWAS I ROŻEN")
+	_expect(c.by_id.has(Crowds.MIESZANE[0]) and Crowds.mieszane_queue(10.0, 2)[0] == 0
+			and Crowds.mieszane_queue(3.0, 2) == [Crowds.MIESZANE_MAX, "mieszane"]
+			and Crowds.mieszane_queue(20.0, 5)[0] > Crowds.mieszane_queue(20.0, 2)[0], "MIESZANE MIESZANE: its line by hour")
 	_expect(Crowds.zakwas_queue(11.0, 2)[0] == 0 and Crowds.zakwas_queue(13.0, 2) == [8, "zakwas"]
 			and Crowds.zakwas_queue(20.0, 5) == [Crowds.ZAKWAS_MAX, "zakwas"]
 			and Crowds.zakwas_queue(20.0, 2) == [14, "zakwas"], "ZAKWAS I ROŻEN: its line by hour")

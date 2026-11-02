@@ -19,8 +19,17 @@ extends Control
 ## and hold a spot (HOLD_S, the finger still) to teleport there: `teleport` is emitted and the map
 ## closes; main.gd puts the car on the nearest lane (the helicopter keeps its height).
 ## `can_teleport` says why not, when not (a race, a job, a rescue, the guide).
+## G12 part 2 (F, 2026-11-01: car quests and heli quests "each with its own list"): the ZADANIA card
+## on the right under the buttons, two tabs AUTO and HELI (the vehicle's own first), each listing
+## what can be started now (quest_lines.gd `rows`: requests, then places nearest first with their
+## distance and compass point). A tapped place centres the map on it and becomes the quest pin (a
+## big pin in its colour here, the arrow and minimap dot in the city: main.gd); tapped again, the
+## pin goes. A request (a ride, a rescue call) closes the map and starts. The ≡ cards take its place.
 
 signal closed
+## G12 part 2: a row of the ZADANIA card was tapped (its entry, quest_lines.gd `entry`; {}: the
+## pin was taken off).
+signal quest_picked(entry: Dictionary)
 ## The hold's spot (map metres), when the hold was held to the end.
 signal teleport(at: Vector2)
 
@@ -28,6 +37,8 @@ const Lang := preload("res://scripts/lang.gd")
 const MapArt := preload("res://scripts/map_art.gd")
 const MapIcons := preload("res://scripts/map_icons.gd")
 const MainLine := preload("res://scripts/main_line.gd")
+const Lines := preload("res://scripts/quest_lines.gd")
+const Access := preload("res://scripts/access.gd")
 const Gamepad := preload("res://scripts/gamepad.gd")  # the gamepad loop
 ## The hold to teleport: this long, the finger within HOLD_SLOP points of where it went down.
 const HOLD_S := 0.6
@@ -161,6 +172,22 @@ var _fog := PackedVector2Array()
 var _list: PanelContainer
 ## Loop 3h slice 3: the ladder's card (top right, under the ✕).
 var _ladder: PanelContainer
+## G12 part 2: the ZADANIA card, the quests given by `set_quests` (entries), the tab shown
+## (Lines.Line) and the picked place (an entry; {} none). `quest_rows` is what the tab shows now.
+var _quests: PanelContainer
+var quest_entries: Array = []
+var quest_line := 0
+var quest_pick: Dictionary = {}
+var quest_rows: Array = []
+var _quest_buttons: Array[Button] = []
+## G12b: the row the gamepad has picked out (-1: none; the D-pad moves it, Y takes it, X switches
+## the tab). A is still the teleport hold, so the card never takes A.
+var quest_pad := -1
+var _tab_buttons: Array[Button] = []
+## Row and tab heights in points (MIN_TOUCH, 44 pt: four rows still fit under the buttons at 375 pt).
+const ROW_H := 44.0
+const TAB_H := 44.0
+const QUEST_W := 236.0
 ## Its rows' colours: beaten, next, locked.
 const LADDER_COLOURS := {"won": Color("#ffd23f"), "next": Color("#fbf7ee"), "locked": Color("#8f88a0")}
 
@@ -287,6 +314,10 @@ func _build() -> void:
 	_ladder.name = "ladder"
 	_ladder.visible = false
 	add_child(_ladder)
+	_quests = _card([], [])
+	_quests.name = "quests"
+	_quests.visible = false
+	add_child(_quests)
 	_note = _card(["", ""], [T_SUB, T_SUB])
 	_note.name = "note"
 	_note.visible = false
@@ -368,6 +399,7 @@ func show_cards(on: bool) -> void:
 		return
 	_list.visible = _has_list and on
 	_ladder.visible = _has_ladder and on
+	_quests.visible = not on and not quest_entries.is_empty()
 	_fit()
 
 
@@ -417,12 +449,15 @@ func _fit() -> void:
 	_hint.size = _hint.get_combined_minimum_size()
 	_hint.position = Vector2(s.position.x + (s.size.x - _hint.size.x) * 0.5, s.end.y - m - _hint.size.y)
 	var below := _head.position.y + _head.size.y + m
+	if _quests.visible:
+		_quests.size = _quests.get_combined_minimum_size()
+		_quests.position = Vector2(s.end.x - m - _quests.size.x, _close.position.y + _close.size.y + m)
 	if _ladder.visible:
 		_ladder.size = _ladder.get_combined_minimum_size()
 		_ladder.position = Vector2(s.end.x - m - _ladder.size.x, _close.position.y + _close.size.y + m)
 	if _goal.visible:
 		# As wide as its line, but never into the ladder's card or the buttons: then it wraps.
-		var right := _ladder.position.x if _ladder.visible else _cards.position.x
+		var right := _ladder.position.x if _ladder.visible else (_quests.position.x if _quests.visible else _cards.position.x)
 		_wrap_goal(maxf(120.0 * pt, right - m - (s.position.x + m) - 24.0 * pt))
 		_goal.size = _goal.get_combined_minimum_size()
 		_goal.position = Vector2(s.position.x + m, below)
@@ -430,7 +465,8 @@ func _fit() -> void:
 	_legend.size = _legend.get_combined_minimum_size()
 	_legend.position = Vector2(s.position.x + m, s.end.y - m - _legend.size.y)
 	# A narrow screen: the legend gives way to the hold hint (they would meet at the bottom).
-	_legend.visible = _legend.position.x + _legend.size.x + m <= _hint.position.x and not _list.visible
+	_legend.visible = _legend.position.x + _legend.size.x + m <= _hint.position.x and not _list.visible \
+			and not (_quests.visible and Rect2(_legend.position, _legend.size).grow(m * 0.5).intersects(Rect2(_quests.position, _quests.size)))
 	if _list.visible:
 		_list.size = _list.get_combined_minimum_size()
 		_list.position = Vector2(s.position.x + m, below)
@@ -482,6 +518,8 @@ func rects() -> Dictionary:
 		out["districts"] = _list.get_global_rect()
 	if _ladder.visible:
 		out["ladder"] = _ladder.get_global_rect()
+	if _quests.visible:
+		out["quests"] = _quests.get_global_rect()
 	return out
 
 
@@ -614,6 +652,199 @@ func set_districts(view: Array[Dictionary], total: int, syrenki_found := 0, syre
 	_fit()
 
 
+## G12 part 2: the quests on offer now (quest_lines.gd entries), the tab to show first and the id
+## of the quest pin (""); call after open().
+func set_quests(entries: Array, line: int, pick_id := "") -> void:
+	quest_entries = entries
+	quest_line = line
+	quest_pick = {}
+	quest_pad = -1
+	for e: Dictionary in entries:
+		if str(e["id"]) == pick_id and pick_id != "":
+			quest_pick = e
+	if not _built:
+		return
+	_fill_quests()
+
+
+## Builds the ZADANIA card for `quest_line`: the two tabs (they name it), the rows (or a line saying
+## there is nothing to start).
+func _fill_quests() -> void:
+	var box: VBoxContainer = _quests.get_child(0)
+	for c in box.get_children():
+		box.remove_child(c)
+		c.queue_free()
+	_quest_buttons.clear()
+	_tab_buttons.clear()
+	box.add_theme_constant_override("separation", int(4.0 * pt))
+	box.custom_minimum_size.x = QUEST_W * pt
+	var tabs := HBoxContainer.new()
+	tabs.add_theme_constant_override("separation", int(6.0 * pt))
+	box.add_child(tabs)
+	for line in [Lines.Line.CAR, Lines.Line.HELI]:
+		var b := Button.new()
+		b.name = "tab_car" if line == Lines.Line.CAR else "tab_heli"
+		b.text = Lang.pick("ZADANIA AUTO", "CAR QUESTS") if line == Lines.Line.CAR else Lang.pick("ZADANIA HELI", "HELI QUESTS")
+		b.focus_mode = Control.FOCUS_NONE
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.custom_minimum_size.y = TAB_H * pt
+		b.add_theme_font_size_override("font_size", _px(T_SUB))
+		var on: bool = line == quest_line
+		var col: Color = _line_colour(line)
+		b.add_theme_color_override("font_color", Color("#1a1622") if on else col)
+		b.add_theme_color_override("font_hover_color", Color("#1a1622") if on else col)
+		b.add_theme_color_override("font_pressed_color", Color("#1a1622"))
+		for st in ["normal", "hover", "pressed", "focus"]:
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = col if on or st == "pressed" else Color(0.16, 0.14, 0.22, 0.95)
+			sb.set_corner_radius_all(_px(8))
+			sb.border_color = col
+			sb.set_border_width_all(_px(2))
+			b.add_theme_stylebox_override(st, sb)
+		b.pressed.connect(show_line.bind(line))
+		tabs.add_child(b)
+		_tab_buttons.append(b)
+	quest_rows = Lines.rows(quest_entries, quest_line, car)
+	quest_pad = mini(quest_pad, quest_rows.size() - 1)
+	if Gamepad.in_use():
+		# G12b: the pad's words for the card (A stays the teleport hold).
+		var keys := Label.new()
+		keys.name = "pad_keys"
+		keys.text = Lang.pick("X: AUTO / HELI · krzyżak: wybór · Y: bierz", "X: CAR / HELI · D-pad: pick · Y: take")
+		keys.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		keys.custom_minimum_size.x = QUEST_W * pt
+		keys.add_theme_font_size_override("font_size", _px(T_SUB))
+		keys.add_theme_color_override("font_color", Gamepad.RING)
+		box.add_child(keys)
+	if quest_rows.is_empty():
+		var none := Label.new()
+		none.text = Lang.pick("Na razie nic. Skończ to, co trwa, albo zajrzyj później.",
+				"Nothing to start now. Finish what's on, or look again later.")
+		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		none.custom_minimum_size.x = QUEST_W * pt
+		none.add_theme_font_size_override("font_size", _px(T_SUB))
+		none.add_theme_color_override("font_color", Color("#c9c2d8"))
+		box.add_child(none)
+	for i in quest_rows.size():
+		var r: Dictionary = quest_rows[i]
+		var b := Button.new()
+		b.name = "quest_%d" % i
+		b.focus_mode = Control.FOCUS_NONE
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.clip_text = true
+		b.custom_minimum_size = Vector2(QUEST_W, ROW_H) * pt
+		b.add_theme_font_size_override("font_size", _px(T_SUB))
+		var picked := str(r["id"]) == str(quest_pick.get("id", ""))
+		var padded := i == quest_pad
+		var far := Lang.pick(str(r["far"][0]), str(r["far"][1]))
+		var name := Lang.pick(str(r["pl"]), str(r["en"]))
+		b.text = ("%s · %s" % [name, far]) if far != "" else ("%s ›" % name if str(r["action"]) != Lines.NOW else name)
+		b.add_theme_color_override("font_color", Color("#fbf7ee"))
+		b.add_theme_color_override("font_hover_color", Color("#fbf7ee"))
+		b.add_theme_color_override("font_pressed_color", Color("#fbf7ee"))
+		var col := Access.tint(r["colour"])
+		for st in ["normal", "hover", "pressed", "focus"]:
+			var sb := StyleBoxFlat.new()
+			sb.bg_color = col.darkened(0.55) if picked or st == "pressed" else Color(0.12, 0.11, 0.17, 0.9)
+			sb.set_corner_radius_all(_px(6))
+			sb.border_color = col
+			sb.border_width_left = _px(6)
+			if picked:
+				sb.set_border_width_all(_px(2))
+				sb.border_width_left = _px(6)
+			if padded:
+				# G12b: the pad's pick wears the pad's accent ring (gamepad.gd RING).
+				sb.border_color = Gamepad.RING
+				sb.set_border_width_all(_px(3))
+				sb.border_width_left = _px(6)
+			sb.content_margin_left = 12.0 * pt
+			sb.content_margin_right = 6.0 * pt
+			b.add_theme_stylebox_override(st, sb)
+		b.pressed.connect(pick_row.bind(i))
+		box.add_child(b)
+		_quest_buttons.append(b)
+	_quests.reset_size()
+	_quests.visible = not cards_shown and not quest_entries.is_empty()
+	_fit()
+
+
+## A tab's colour: the car's amber pickup, the helicopter's violet (colour-safe aware).
+func _line_colour(line: int) -> Color:
+	return Access.tint(Lines.HELI_COLOUR if line == Lines.Line.HELI else Color("#ff8a3d"))
+
+
+## Shows the AUTO or HELI tab (Lines.Line).
+func show_line(line: int) -> void:
+	quest_line = line
+	if _built:
+		_fill_quests()
+
+
+## G12b: a gamepad button on the ZADANIA card: X switches the tab (its first row picked out), the
+## D-pad up / down moves the pick (a place's row centres the map on it, as a look before taking
+## it), Y takes the row picked out as a tap would. True when the card used the press.
+func pad_quest(button: int) -> bool:
+	if not _quests.visible:
+		return false
+	match button:
+		JOY_BUTTON_X:
+			show_line(Lines.Line.HELI if quest_line == Lines.Line.CAR else Lines.Line.CAR)
+			pad_select(0)
+		JOY_BUTTON_DPAD_DOWN:
+			pad_select(1)
+		JOY_BUTTON_DPAD_UP:
+			pad_select(-1)
+		JOY_BUTTON_Y:
+			if quest_pad >= 0:
+				pick_row(quest_pad)
+		_:
+			return false
+	return true
+
+
+## G12b: moves the pad's pick `dir` rows (0: the first row, or none on an empty tab).
+func pad_select(dir: int) -> void:
+	quest_pad = Lines.pad_move(quest_pad if dir != 0 else -1, quest_rows.size(), 1 if dir == 0 else dir)
+	if quest_pad >= 0:
+		var r: Dictionary = quest_rows[quest_pad]
+		if r["at"] != Vector2.INF:
+			centre = r["at"]
+	if _built:
+		_fill_quests()
+		_place()
+
+
+## Row `i` of the tab shown was tapped: a request closes the map and starts (main.gd); a place
+## becomes the quest pin and the map centres on it, or, picked already, the pin goes.
+func pick_row(i: int) -> void:
+	if i < 0 or i >= quest_rows.size():
+		return
+	var r: Dictionary = quest_rows[i]
+	if str(r["action"]) == Lines.NOW:
+		# G12c: the quest under way: the map looks at its target; nothing else changes.
+		if r["at"] != Vector2.INF:
+			centre = r["at"]
+			_place()
+		print("full map: quest under way %s" % r["id"])
+		return
+	if str(r["action"]) != "":
+		print("full map: quest request %s" % r["id"])
+		quest_picked.emit(r)
+		close()
+		return
+	if str(r["id"]) == str(quest_pick.get("id", "")):
+		quest_pick = {}
+		print("full map: quest pin off")
+		quest_picked.emit({})
+	else:
+		quest_pick = r
+		centre = r["at"]
+		print("full map: quest pin %s at %.0f, %.0f" % [r["id"], r["at"].x, r["at"].y])
+		quest_picked.emit(r)
+	_fill_quests()
+	_place()
+
+
 func _paint() -> void:
 	var o := _overlay
 	var view := Rect2(Vector2.ZERO, _view()).grow(20.0 * pt)
@@ -671,6 +902,8 @@ func _paint() -> void:
 	# Loop 3h slice 3's diamond at the final's start is the main line's star now.
 	if target != Vector2.INF:
 		hud.side_pin(to_screen(target), 1.5, target_colour)
+	if quest_pick.get("at", Vector2.INF) != Vector2.INF:
+		hud.side_pin(to_screen(quest_pick["at"]), 1.9, Access.tint(quest_pick["colour"]))  # G12: the quest pin
 	if main_at != Vector2.INF:
 		# The main line's star; off the screen it waits at the edge, smaller, on the way to it.
 		var mp := to_screen(main_at)
@@ -865,6 +1098,9 @@ func _input(event: InputEvent) -> void:
 			or Gamepad.closes(event):  # the gamepad loop: B, Start or Back
 		close()
 		get_viewport().set_input_as_handled()
+	elif event is InputEventJoypadButton and (event as InputEventJoypadButton).pressed \
+			and pad_quest((event as InputEventJoypadButton).button_index):
+		get_viewport().set_input_as_handled()  # G12b: X, Y and the D-pad's up / down on the ZADANIA card
 	elif event is InputEventJoypadButton and (event as InputEventJoypadButton).button_index == JOY_BUTTON_A:
 		# The gamepad follow-ups: A held is a finger held on the cross.
 		if event.is_pressed() and _hold_index < 0:
@@ -875,8 +1111,9 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventScreenTouch:
 		var t := event as InputEventScreenTouch
 		if t.pressed:
-			if _close.get_global_rect().has_point(t.position) or _cards.get_global_rect().has_point(t.position):
-				return  # the ✕ or ≡ takes it
+			if _close.get_global_rect().has_point(t.position) or _cards.get_global_rect().has_point(t.position) \
+					or (_quests.visible and _quests.get_global_rect().has_point(t.position)):
+				return  # the ✕, ≡ or the ZADANIA card takes it
 			_touches[t.index] = t.position
 			if _touches.size() == 1:
 				_start_hold(t.index, t.position)
