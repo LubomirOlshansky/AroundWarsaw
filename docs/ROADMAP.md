@@ -71,8 +71,9 @@ then the Launch gate.
   - [x] R2 Plac Centralny's ground (the tenements' outlines in red and grey slabs, the
         courtyards' and walks' setts; the pond and lawns were already mapped), 2026-11-01
   - [x] R3 part 1: footways as grey concrete pavers (red cycle paths were already in), 2026-11-01
-  - [ ] R3 part 2: granite kerbs, the green Złota, the fountain at the tunnel mouth, the crossings
-        (orthophoto check on the Mac)
+  - [ ] R3 part 2: granite kerbs, the crossings (orthophoto check on the Mac)
+  - [x] Skwer Linearny na Złotej (the green Złota, opened 3 Aug 2026): car-free, limes, stone
+        blocks, the rock fountain, benches, cafés; Dom pod Orłami as a model, 2026-11-02
   - [x] R4 ordinary buildings by type (pre-war tenement, 1960s-80s slab or point block, office),
         shader only, 2026-11-01 (socialist-realist left for a later pass)
   - [x] R5 Scena Relax, Zodiak and the Cepelia pavilion as models
@@ -112,7 +113,8 @@ then the Launch gate.
   - [x] K4 Zielona Świętokrzyska: 17 planters on the pavements where the scanned trees leave a gap (2026-11-02)
   - [x] K5 Rondo Daszyńskiego plazas: three tiers of planting and benches round Skyliner, Generation Park and Mennica Legacy Tower (2026-11-02)
   - [x] K2b Chmielna's 64 benches (2026-11-02; the Atlantic fountain's rim was already there)
-  - [ ] K6 Browary/Norblin gardens, K9 the stadium's grounds; K10 Muzeum Historii Polski is off the map (QUESTIONS)
+  - [x] K9 the stadium's grounds: tree rows on the four entrance avenues, pollarded willow groups (80 trees)
+  - [ ] K6 Browary/Norblin gardens; K10 Muzeum Historii Polski is off the map (QUESTIONS)
 - [x] Stadion Leguminy (Legia's ground on Łazienkowska, F, 2026-11-01): modelled from the mapped bowl outline (site `legia`, spec legia.md); Mac photo check parked (QUESTIONS)
 
 - [x] All churches designed by one set of rules (F, 2026-11-01; rules and inventory in
@@ -351,7 +353,7 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
       draw calls, memory, `--stream-soak`; the sector-load hitch; compressed map textures
 - [ ] F's timed fresh-save run: the first 10 minutes beat by beat and the ~1 h main line; driving
       feel, stop assist, rubber band, ghost finger, cassette size
-- [ ] A 30-minute soak with no crash or soft-lock; the HUD re-checked at 375, 390 and 440 pt
+- [ ] A 30-minute soak with no crash or soft-lock; the HUD re-checked at 375, 390 and 440 pt (PT-9 bubble tails fixed 2026-11-02, `check_hud` covers them; the phone look is open)
 
 ### Left: TestFlight and the stores
 - [ ] F fills App Information in App Store Connect; keep or drop iPad

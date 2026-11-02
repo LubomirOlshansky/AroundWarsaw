@@ -117,7 +117,9 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
   `bake_park_details.py`, 207 park items). Left: the real layout (slide, climbing frame, swings,
   the water-play corner) is not modelled, only the rope course's look; position is a guess at the
   strip, check against the orthophoto on the Mac (QUESTIONS).
-- [ ] K9 Stadion Narodowy's grounds: entrance avenues, tree rows, pollarded willows (Sonnet, small).
+- [x] K9 Stadion Narodowy's grounds: 80 young trees (lime and plane rows down both sides of the
+  four entrance avenues, groups of pollarded willows on the lawns between them), `planted_trees.py`
+  place `stadion`; shrub belts and the avenues' paving colour left for the Mac look check.
 - [ ] K10 Muzeum Historii Polski (Cytadela) lies ~0.7 km north of the map's north edge: parked
   in QUESTIONS (grow the map or a skyline stand-in).
 
@@ -187,6 +189,21 @@ during Pani Halina's prompt) suspects; PT-9 HUD overlaps confirmed.
   free. Not seen in play; reject spots inside platforms and footprints if it shows up.
 - Found with PT-1: head on into a solid platform's end the car stops like at any wall and is
   turned out after 1.5 s (Centrum's north tip faces the left lane of Marszałkowska).
+PT-9 (bubbles) fixed 2026-11-02: the tail of a bubble kept clear of the HUD ended in the air (a 22 pt stub) and pointed down even when its speaker was above; it now runs to the speaker, and a half-typed line keeps the wrapping of the whole line. Still open: the cut-off at the screen edge and the KEBAB status label over BRAKE and the sound button did not reproduce in `check_hud` at 6 sizes (`pt` is fixed when the HUD is built and not updated by a later window resize: a suspect, not shown); needs a frame with the window size.
+
+## Skwer Linearny na Złotej and Dom pod Orłami (F, 2026-11-02)
+
+- Built: Złota between Marszałkowska and Jasna is the linear park that opened on 3 August 2026
+  (`tools/car_free.py`: the old car loop, its stubs and road-bed walls out, traffic edges `cf`, a
+  20 km/h pedestrian zone, 36 young limes; `skwer_zlota.gd`: stone blocks, the rock fountain's jets,
+  benches, the curved bench by the fountain, café gardens, bollards at Jasna). Dom pod Orłami is a
+  model (site `orly`, spec orly.md): corner towers with bronze eagles, pediment, parody letters.
+- Open: Mac look check (QUESTIONS); the square in front of Dom pod Orłami and Zgoda's own
+  rebuild (pergolas, tree rows, the Philharmonic's square) are not modelled: Zgoda stays as the map
+  has it; the new trees have no baked shade in ao.bin until the next full bake on the Mac.
+- Found: OpenStreetMap already maps the 2026 lawns, tree pits, walks and both fountains, but still
+  draws the old one-way loop as a living street; any later OSM fix of the loop leaves car_free a
+  no-op (it is idempotent and matches by name and box).
 
 ## Pokorna 2 (F, 2026-11-02)
 
@@ -1124,8 +1141,9 @@ plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 check
 - **R3 part 2, in part, 2026-11-02** (first-scene items 4-5): the start box's wide pavements and
   bare ground grey, tactile pads at the crossings, the tram platforms' edge lines. The three new
   crossings were already mapped zebras.
-- **Open:** R3 part 2: lowered kerbs, Złota's setts and elm alley, the fountain at the
-  old tunnel mouth, the three new crossings (orthophoto check on the Mac); R8 the museum's ribbon in stretches and the stepped roofline.
+- **Open:** R3 part 2: lowered kerbs and Złota's setts (Złota itself is now the 2026 linear park
+  with its fountain on the old tunnel ramp, see "Skwer Linearny na Złotej" above), orthophoto check
+  on the Mac; R8 the museum's ribbon in stretches and the stepped roofline.
 - Found: the cloud can't read Wykop (login wall) or Commons (403); the trends come from Google's
   2025 year in search and the trade press. A Mac pass could add Wykop's own tags.
 

@@ -465,6 +465,9 @@ const INFO := {
 	"grob": ["Grób Nieznanego Żołnierza",
 			"Trzy łuki ocalałe z Pałacu Saskiego. Wieczny ogień i warta.",
 			"Three arches left of the Saxon Palace. An eternal flame, a guard."],
+	"orly": ["Dom pod Orłami",
+			"Jasna 1, 1912–17: dwa orły na narożnych wieżach patrzą na nowy skwer na Złotej.",
+			"Jasna 1, 1912–17: two eagles on the corner towers look down on Złota's new park."],
 	"cepelia": ["Pawilon Cepelii",
 			"Szklany pawilon z 1966 roku na rogu Alej, odnowiony w 2024: książki i winyle na trzech poziomach.",
 			"A 1966 glass pavilion on the Aleje corner, restored in 2024: books and vinyl on three levels."],
@@ -822,6 +825,8 @@ func _find_sites() -> void:
 	_find_pokorna2()
 	# R5 of docs/design/start-area-real.md: the Cepelia pavilion and Zodiak.
 	_find_modern_pavilions()
+	# Skwer Linearny na Złotej (F's photo, 2026-11-02): Dom pod Orłami over the new square.
+	_find_orly()
 	# The railway (docs/design/railway.md, S1): Warszawa Ochota's hall and its saddle roof.
 	_find_ochota()
 	# S2: Warszawa Powiśle's two pavilions and the platform canopies.
@@ -1289,6 +1294,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_rondo(s)
 			"zodiak":
 				_build_zodiak(s)
+			"orly":
+				_build_orly(s)
 			"ochota":
 				_build_ochota(s)
 			"powisle":
@@ -14614,6 +14621,179 @@ func _build_sobieski(site: Dictionary) -> void:
 
 func _magenta_dark() -> Color:
 	return SOBIESKI_MAGENTA.darkened(0.15)
+
+
+# --- Dom pod Orłami (F's photo, 2026-11-02) --------------------------------------------------------
+
+## Dom pod Orłami, Jasna 1 (Jan Heurich, 1912-17, rebuilt 1948-50; the national cooperative council
+## sits there): six storeys in mottled sandstone at the corner of Jasna and Zgoda, its front over
+## the square that Złota's linear park opened in 2026. F's photo from the square: the front of seven
+## bays between two round corner towers, each tower stepping up in three drums over the cornice to a
+## bronze eagle with spread wings; a tall ground floor with big windows and two portals, four floors
+## of mullioned windows, an attic band with a round window in a carved panel by each tower and the
+## name in metal letters in the middle (a parody here), a low pediment with a flagpole. Built over
+## the OpenStreetMap outline (the front wing on Zgoda, the Jasna wing, the west wing); heights
+## from the photo's proportions (the towers' centres 31 m apart).
+## Frame: u along the front from the west tower (u < 0) to the Jasna corner, +v out of the front.
+const ORLY_O := Vector2(-824.9, 48.35)
+const ORLY_A := Vector2(0.93706, -0.34917)
+const ORLY_FRONT := 4.3         # the front wall's v (the outline's front wavers from 3.2 to 4.4)
+const ORLY_TOWER_U := 15.6      # the towers' centres at u = ±this, v = 0
+const ORLY_TOWER_R := 3.7
+const ORLY_GROUND := 7.0        # the ground floor's top (the string course)
+const ORLY_FLOOR := 3.9         # the four upper floors
+const ORLY_CORNICE := 24.0      # the main cornice
+const ORLY_WALL := Color("#cdb48a")
+const ORLY_BASE := Color("#b99d72")
+const ORLY_LIGHT := Color("#ddcca8")
+const ORLY_ROOF := Color("#77706a")
+const ORLY_GLASS := Color("#353b42")
+const ORLY_DOOR := Color("#3a332c")
+const ORLY_BRONZE := Color("#5e5548")
+const ORLY_LETTERS := Color(0.3, 0.28, 0.25)   # dark metal letters (signs are lit day and night: kept dark)
+const ORLY_WORDS := ["KRAJOWA", "RADA SPÓŁDZIELNI ORŁÓW"]
+
+
+func _find_orly() -> void:
+	var q := _landmark("Dom pod Orłami")
+	if q.size() < 3:
+		return
+	_add_site("orly", [_largest(Geometry2D.offset_polygon(q, 1.5, Geometry2D.JOIN_MITER)), Geometry2D.convex_hull(q)])
+	if not sites.is_empty() and sites[-1]["key"] == "orly":
+		sites[-1]["ring"] = _simplify(q, 0.3)
+
+
+func _build_orly(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	_g = _ground_under(ring)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	_o = ORLY_O
+	_a = ORLY_A
+	_b = Vector2(-_a.y, _a.x)   # out of the front (Zgoda, the square)
+	# The front between the towers is one plane (the outline wavers 1 m there): a slab to v
+	# ORLY_FRONT with its windows drawn by hand, seven bays; the outline's own windows skip it.
+	var slab := _rect(0.0, ORLY_FRONT - 1.0, 12.0, 1.0)
+	var skip := _rect(0.0, ORLY_FRONT - 1.0, 12.2, 3.0)
+	# Windows first (7 cm proud), so the walls behind them stay whole.
+	_bays(ring, 1.0, 6.0, 3.5, 2.2, ORLY_GLASS, skip)
+	for k in 4:
+		var y0 := ORLY_GROUND + ORLY_FLOOR * k + 0.6
+		_bays(ring, y0, y0 + 2.5, 3.5, 1.9, ORLY_GLASS, skip)
+	_prism(ring, g - 0.6, g + ORLY_GROUND, ORLY_BASE, none, M_STONE)
+	_prism(ring, g + ORLY_GROUND, g + ORLY_CORNICE, ORLY_WALL, none, M_STONE, M_STONE)
+	# The string course over the ground floor and the cornice.
+	var course := _largest(Geometry2D.offset_polygon(ring, 0.15, Geometry2D.JOIN_MITER))
+	_prism(course, g + ORLY_GROUND - 0.1, g + ORLY_GROUND + 0.3, ORLY_LIGHT, ORLY_LIGHT, M_STONE, M_STONE)
+	var eave := _largest(Geometry2D.offset_polygon(ring, 0.45, Geometry2D.JOIN_MITER))
+	_prism(eave, g + ORLY_CORNICE - 0.5, g + ORLY_CORNICE, ORLY_LIGHT, ORLY_LIGHT, M_STONE, M_STONE)
+	# The roof a little over the cornice's top (a cap over a cap at one height keeps no hole).
+	_mode = M_STONE
+	_cap(ring, g + ORLY_CORNICE + 0.08, ORLY_ROOF)
+	_parapet(ring, g + ORLY_CORNICE, 0.6, ORLY_LIGHT)
+	# The front slab: its windows, then its base, wall, string course and cornice.
+	var front := ORLY_FRONT + 0.07
+	_mode = M_GLASS
+	for u: float in [-10.5, -7.0, 0.0, 7.0, 10.5]:
+		_wall(_w(u - 1.15, front), _w(u + 1.15, front), g + 0.9, g + 6.2, _b, ORLY_GLASS, 10.5 + u)
+	for k in 4:
+		var y0 := g + ORLY_GROUND + ORLY_FLOOR * k + 0.6
+		for j in 7:
+			var u := -10.5 + 3.5 * j
+			_wall(_w(u - 0.95, front), _w(u + 0.95, front), y0, y0 + 2.5, _b, ORLY_GLASS, 10.5 + u)
+	_mode = M_STONE
+	_prism(slab, g - 0.6, g + ORLY_GROUND, ORLY_BASE, none, M_STONE)
+	_prism(slab, g + ORLY_GROUND, g + ORLY_CORNICE - 0.5, ORLY_WALL, ORLY_LIGHT, M_STONE, M_STONE)
+	_lbox(0.0, ORLY_FRONT - 0.9, 12.05, 1.05, g + ORLY_GROUND - 0.1, g + ORLY_GROUND + 0.3, ORLY_LIGHT, M_STONE, ORLY_LIGHT)
+	_lbox(0.0, ORLY_FRONT - 0.85, 12.1, 1.15, g + ORLY_CORNICE - 0.5, g + ORLY_CORNICE + 0.05, ORLY_LIGHT, M_STONE, ORLY_LIGHT)
+	# Two portals with their stone frames between the ground floor's windows.
+	for u: float in [-3.5, 3.5]:
+		_lbox(u, ORLY_FRONT + 0.25, 1.55, 0.25, g, g + 5.4, ORLY_LIGHT, M_STONE, ORLY_LIGHT)
+		_wall(_w(u - 1.0, ORLY_FRONT + 0.58), _w(u + 1.0, ORLY_FRONT + 0.58), g, g + 4.4, _b, ORLY_DOOR)
+	# The pediment over the seven bays and its flagpole.
+	_orly_pediment(g)
+	# The attic: a round window in a carved panel by each tower.
+	for u: float in [-10.5, 10.5]:
+		_mode = M_STONE
+		_wall(_w(u - 1.6, front), _w(u + 1.6, front), g + 21.95, g + 23.45, _b, ORLY_BASE.darkened(0.08))
+		var c := _w(u, front + 0.03)
+		_disc(Vector3(c.x, g + 22.7, c.y), Vector3(_b.x, 0, _b.y), 0.66, 10, ORLY_LIGHT)
+		c = _w(u, front + 0.06)
+		_disc(Vector3(c.x, g + 22.7, c.y), Vector3(_b.x, 0, _b.y), 0.5, 10, ORLY_GLASS)
+	# The name in two rows of metal letters over the middle bays.
+	for k in ORLY_WORDS.size():
+		var word: String = ORLY_WORDS[k]
+		var mid := _w(0.0, ORLY_FRONT + 0.12)
+		var scale := 0.65 / (Neon.ROW_H * Neon.PIXEL)
+		signs.append([word, Vector3(mid.x, g + 22.75 - k * 0.8, mid.y), Vector3(_b.x, 0.0, _b.y), scale, ORLY_LETTERS])
+	# The corner towers: windows round their fronts, then three drums over the cornice and the eagle.
+	for side: float in [-1.0, 1.0]:
+		_orly_tower(Vector2(side * ORLY_TOWER_U, 0.0), side, g, ring)
+	_collide(ring)
+
+
+## Where a ray from `from` along `dir` leaves the outline (the tower's real wall), or 3.7 m out.
+func _orly_wall_at(from: Vector2, dir: Vector2, ring: PackedVector2Array) -> Vector2:
+	var best := from + dir * ORLY_TOWER_R
+	var far := 0.0
+	for i in ring.size():
+		var hit: Variant = Geometry2D.segment_intersects_segment(from, from + dir * 8.0, ring[i], ring[(i + 1) % ring.size()])
+		if hit != null and (hit as Vector2).distance_to(from) > far:
+			far = (hit as Vector2).distance_to(from)
+			best = hit
+	return best
+
+
+func _orly_pediment(g: float) -> void:
+	_mode = M_STONE
+	var hw := 11.0
+	var y := g + ORLY_CORNICE
+	var at := func(u: float, yy: float) -> Vector3:
+		var p := _w(u, ORLY_FRONT + 0.36)
+		return Vector3(p.x, yy, p.y)
+	var n := Vector3(_b.x, 0.0, _b.y)
+	_tri(at.call(-hw, y), at.call(hw, y), at.call(0.0, y + 1.7), n, ORLY_WALL, Vector2(0, y - g), Vector2(hw * 2.0, y - g),
+			Vector2(hw, y + 1.7 - g), y + 1.7 - g)
+	for side: float in [-1.0, 1.0]:
+		var e: Vector3 = at.call(side * hw, y)
+		var apex: Vector3 = at.call(0.0, y + 1.7)
+		var back := Vector3(-_b.x, 0.0, -_b.y) * 6.0
+		var slope := (Vector3(_a.x, 0.0, _a.y) * side * 1.7 + Vector3.UP * hw).normalized()
+		_quad(e, e + back, apex + back, apex, slope, ORLY_ROOF)
+	var top: Vector3 = at.call(0.0, y + 1.7)
+	_prism(_circle(Vector2(top.x, top.z) - _b * 0.4, 0.07, 5), top.y, top.y + 6.5, Color("#d9d9d4"), Color("#d9d9d4"), M_STONE, M_STONE)
+
+
+func _orly_tower(c: Vector2, side: float, g: float, ring: PackedVector2Array) -> void:
+	var at := _w(c.x, c.y)
+	var r := ORLY_TOWER_R
+	# Windows on the tower's outer three-quarter: from the front round to the side street.
+	_mode = M_GLASS
+	for k in 4:
+		var y0 := g + ORLY_GROUND + ORLY_FLOOR * k + 0.5
+		for deg: float in [20.0, 50.0, 80.0]:
+			var ang := deg_to_rad(deg)
+			var dir := (_a * side * cos(ang) + _b * sin(ang)).normalized()
+			var p := _orly_wall_at(at, dir, ring) + dir * 0.07
+			var tan := Vector2(-dir.y, dir.x)
+			_wall(p - tan * 0.55, p + tan * 0.55, y0, y0 + 2.7, dir, ORLY_GLASS, deg)
+	_mode = M_STONE
+	# The drums over the cornice, each smaller, with a light rim; the eagle's plinth.
+	var steps := [[r, ORLY_CORNICE, ORLY_CORNICE + 1.2], [r * 0.82, ORLY_CORNICE + 1.2, ORLY_CORNICE + 2.1],
+			[r * 0.62, ORLY_CORNICE + 2.1, ORLY_CORNICE + 2.8], [r * 0.34, ORLY_CORNICE + 2.8, ORLY_CORNICE + 3.4]]
+	for s: Array in steps:
+		_prism(_circle(at, float(s[0]), 14), g + float(s[1]), g + float(s[2]), ORLY_WALL.lightened(0.04), ORLY_LIGHT, M_STONE, M_STONE)
+	# The bronze eagle: body, head, and wings spread along the front, raised at the tips.
+	var y := g + ORLY_CORNICE + 3.4
+	var body := _circle(at, 0.55, 6)
+	_prism(body, y, y + 1.6, ORLY_BRONZE, ORLY_BRONZE, M_STONE, M_STONE)
+	_prism(_circle(at + _b * 0.45, 0.28, 5), y + 1.6, y + 2.1, ORLY_BRONZE, ORLY_BRONZE, M_STONE, M_STONE)
+	for w: float in [-1.0, 1.0]:
+		var root := at + _a * w * 0.35
+		var tip := at + _a * w * 2.7 - _b * 0.3
+		var n := Vector3(_b.x, 0.0, _b.y)
+		_quad(Vector3(root.x, y + 0.7, root.y), Vector3(tip.x, y + 1.8, tip.y), Vector3(tip.x, y + 2.7, tip.y),
+				Vector3(root.x, y + 1.55, root.y), n, ORLY_BRONZE)
 
 
 # --- Bulwary Wiślane, stage 2: the splash pool and the fish (K7) ---------------------------------

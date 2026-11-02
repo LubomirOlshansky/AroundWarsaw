@@ -136,6 +136,7 @@ const BUDGET := {
 	"tower75": 220,
 	"cepelia": 900,
 	"zodiak": 600,
+	"orly": 1600,
 	"ochota": 1420,
 	"powisle": 1770,
 	"barka_wieczor": 1820,
