@@ -70,6 +70,10 @@ var station := -1
 ## The stations as read from radio.json: {id, name, freq, colour: Color, tracks: [{file,
 ## title, artist, seconds, gain_db, licence, source}]}.
 var stations: Array[Dictionary] = []
+## Beta radio (2026-11-02): the stations R and the RADIO button cycle through, by index in
+## `stations` ("lineup" in radio.json: station ids, in order; all of them when it is missing).
+## The rest stay loaded, so --station= and the tape and cassette unlocks still reach them.
+var lineup: Array[int] = []
 ## Loop 3g-1: dB under the station's level while a conversation is on (the pull-over: -6).
 var duck_db := 0.0:
 	set(value):
@@ -152,6 +156,15 @@ func _load_stations() -> void:
 			var d := s.duplicate(true)
 			d["tracks"] = []
 			stations.append(d)
+	lineup = []
+	if data is Dictionary and data.get("lineup") is Array:
+		for id: Variant in data["lineup"]:
+			var i := station_index(String(id))
+			if i >= 0 and not lineup.has(i):
+				lineup.append(i)
+	if lineup.is_empty():
+		for i in stations.size():
+			lineup.append(i)
 	_orders = []
 	_pos = []
 	for i in stations.size():
@@ -325,9 +338,22 @@ func now_playing() -> void:
 
 ## The next station, after the last one Off, then the first again. Loop MW-5: the player's
 ## choice (R, RADIO): the radio stops following the clock for this session.
+## Beta radio: only the stations in the lineup (a station tuned from outside it, by a flag, goes
+## to the lineup's first).
 func next() -> void:
 	picked = true
-	tune(station + 1 if station + 1 < stations.size() else -1)
+	var k := lineup.find(station)
+	if station < 0:
+		tune(lineup[0] if not lineup.is_empty() else -1)
+	elif k < 0:
+		tune(lineup[0])
+	else:
+		tune(lineup[k + 1] if k + 1 < lineup.size() else -1)
+
+
+## Beta radio: the tuned station has more than one track to skip to (the HUD's DALEJ button).
+func can_skip() -> bool:
+	return station >= 0 and unlocked_count(station) > 1
 
 
 ## The short name for the HUD button.
@@ -398,6 +424,8 @@ func check_air(force := false) -> void:
 		air_changed.emit(a)
 	if not picked:
 		var want := polnoc_index() if a else station_index(DAY_DEFAULT)
+		if not lineup.has(want):
+			want = station_index(DAY_DEFAULT)  # beta radio: PÓŁNOC FM out of the lineup
 		if want >= 0 and want != station:
 			tune(want, force)
 			return

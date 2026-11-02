@@ -52,6 +52,8 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"LEVEL 26",
 		# The hotel on Plac Zawiszy (a parody of the Radisson Blu Sobieski).
 		"RADYSŁAW BLU",
+		# Varso Place's name stone on the corner plaza (Krajobraz K3; a parody, never the real mark).
+		"VERSO PLACE",
 		# The Vistula boulevards' bar pavilions and containers (docs/landmarks/specs/bulwary.md):
 		# parody bar names and what the hatches sell.
 		"CUDAK", "POMOSTEK", "RZECZKA", "LEMONIADA", "ZAPIEKANKI"]

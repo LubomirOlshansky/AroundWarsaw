@@ -14,7 +14,8 @@ extends SceneTree
 ##     tunnel walls and portals, landmarks, barriers, solid props). Stepped overlap tests, not
 ##     cast_motion (it misses thin walls of the city's one big concave shape: BACKLOG "From
 ##     loop 10a"). The map's invisible edge walls are left out (traffic slides out under the
-##     rim there: the last RIM metres).
+##     rim there: the last RIM metres), and the stretches behind the edge roadworks' barriers
+##     (lane_graph.gd `e_shut` / `e_open`: no car drives there).
 ##  2. The player's car on autopilot (as main.gd's: carried along the route, its height from
 ##     map.drive_height every frame like car.gd's, from the height it had) over ROUTES fixed
 ##     routes across the bridges and tunnels (both ways over each deck group and tunnel: its
@@ -54,6 +55,11 @@ const SPOTS := [
 	[-2768.0, -2180.0, "Jana Pawła II south of the ring"], [-2770.0, -2080.0, "Jana Pawła II at the old north edge"],
 	[-2905.0, -2560.0, "Jana Pawła II north of the ring"], [-2900.0, -2180.0, "Okopowa"],
 	[-2650.0, -2380.0, "Słomińskiego by Arkadia"], [-1880.0, -2560.0, "Andersa's start"],
+	# Rondo Dmowskiego (2026-11-02, landmarks.gd RONDO_*): its ring past the dressed island and the
+	# blue tubes over the underpass stairs, and Marszałkowska by the south-east stairs (PT-4).
+	[-848.2, 428.1, "Rondo Dmowskiego, the ring's north side"], [-803.4, 449.4, "Rondo Dmowskiego, the ring's east side"],
+	[-824.5, 494.0, "Rondo Dmowskiego, the ring's south side"], [-869.4, 472.7, "Rondo Dmowskiego, the ring's west side"],
+	[-798.0, 500.0, "Marszałkowska by the south-east stairs (PT-4)"],
 ]
 const SPOT_REACH := 8.0
 const ROUTE_REACH := 150.0 # each route runs this far on either side of its structure
@@ -180,6 +186,10 @@ func _sweep() -> int:
 			s0 += DEAD_END
 		if _dead_end(graph.e_b[e], graph.e_reverse[e], false):
 			s1 -= DEAD_END
+		# The edge roadworks (edge_roadworks.gd): a road that leaves the map stops at its barriers
+		# (lane_graph.gd `e_shut` / `e_open`, where the traffic stops and starts).
+		s1 = minf(s1, graph.e_shut[e])
+		s0 = maxf(s0, graph.e_open[e])
 		if s1 - s0 < 0.5:
 			continue
 		for k in graph.e_lanes[e]:

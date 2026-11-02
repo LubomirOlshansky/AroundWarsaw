@@ -50,6 +50,14 @@ per event, to its trace file:
 - Time limits on elapsed episode time, never on the game clock that keeps running.
 - Drive by waypoints along real streets (the road data in `game/map`, the codex), not compass
   headings: players follow streets.
+- **Leave out traffic bumps**: a stop with a traffic car touching the player's, or a driver's
+  "traffic" shout (dialogue.gd `_shout`: KIEROWCA, TAKSÓWKARZ...) within 2 s, is the player
+  hitting a car: correct, not a bug (runs 3-8: every framed on-road stop was one). Log the
+  shout, read `traffic` near the car each tick, or run with `--no-traffic` for map-only bugs.
+- **Finish frame-describer before `report`**: after `report` the `frames` tool refuses (run 7
+  lost its frames that way).
+- **Keep the Mac awake** for the whole run (the user's Energy settings, or `caffeinate` if the
+  permission check allows it): a sleep ends the run (run 4).
 - **Count a stop only on the road**: within the carriageway of a road in `game/map/centrum.json`
   `roads` (`p` is a flat x,z list, `w` its width). Run 3's framed hard stops were all the agent
   driving 30 m off the road into car park walls: correct collisions, not bugs. Off-road events

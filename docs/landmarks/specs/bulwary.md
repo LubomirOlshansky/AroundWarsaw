@@ -24,7 +24,7 @@ RZECZKA (no real venue's name). Cards: "Pawilony na bulwarach", "Kontenery na bu
   v axis turned to the river (`BULWAR_RIVER`).
 - Containers: an outline under 3.2 m wide is a shipping box 2.6 m tall; wider is a timber
   kiosk 2.8 m with a 0.2 m roof slab overhanging 0.3 m. Neighbours alternate 6 cm in height.
-- Deck strips: 10 x 3.2 m, 0.25 m high, 4.5 m in from the edge, at 18 spots along the left
+- Deck strips: 10 x 3.2 m, 0.25 m high, 4.5 m in from the edge, at 17 spots along the left
   bank from the Old Town to Tamka (`BULWAR_DECKS`, measured clear of buildings, steps, roads).
 
 ## 3. Facade
@@ -60,7 +60,7 @@ umbrellas are low and open, like the street furniture.
 
 L2, triangle budget 3500 at most per site (an exception to L2's 3000: `bulwary_pawilony` is six
 buildings in one site), budgets in `check_mesh_quality.gd`: bulwary_pawilony 3500 (built 2910), bulwary_bary 1760 (1462, 14
-boxes), bulwary_pomosty 1450 (1206, 18 strips).
+boxes), bulwary_pomosty 1450 (1206, 17 strips).
 
 ## 8. Parts table
 
@@ -76,5 +76,5 @@ boxes), bulwary_pomosty 1450 (1206, 18 strips).
 | container | box + ribs | the outline, 2.6 m | Karowa, by the Marina | paint | the bar containers |
 | kiosk | box + slab | the outline, 2.8 m + 0.2 m | by Kaskada, by the Marina | timber, paint | the food kiosks |
 | hatch | lit quad + flap + counter | 60 % of the long face, 1.05-2.0 m | the camera's side | M_LAMP, paint | the serving hatch |
-| deck strip | low box | 10 x 3.2 x 0.25 m | 18 spots by the water | timber | the sun decks |
+| deck strip | low box | 10 x 3.2 x 0.25 m | 17 spots by the water | timber | the sun decks |
 | neon | sign | the parody name | top edge, camera side | neon | the bars' names |

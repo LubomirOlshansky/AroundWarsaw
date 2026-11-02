@@ -168,7 +168,7 @@ def main(map_dir):
         if a["k"] == "plaza":
             g.fill(kind, ring(a["p"]), PAVING)
     for s in data.get("surfaces", []):
-        if s["k"] == "paving":
+        if s["k"] in ("paving", "granite"):
             g.fill(kind, ring(s["p"]), PAVING)
     for p in data["paths"]:
         if p["k"] in ("foot", "cycle"):
