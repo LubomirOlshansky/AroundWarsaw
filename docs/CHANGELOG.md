@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- One-way streets that bikes may ride both ways show it like in Warsaw, with a white bike and arrow against the traffic, and bike symbols mark the bus lanes open to bikes and the shared lanes.
 - Warsaw's monuments are on the map: about 300 statues, busts, memorial stones and talking benches stand where the real ones do, Ogród Saski's sandstone statues stand at their real spots, and 520 Uprising memorial plaques hang on the walls with candles below them.
 - The quest list on the full map works with a gamepad (X switches between car and helicopter quests, the D-pad picks one, Y takes it) and lists more to do: the "Na czasie" trend deliveries, Cringulo's van, the Friday pistachio drop, the next rival on the ladder (the arrow follows them through traffic), Seba's night race and the peacock stuck on a roof. While something is on, it shows at the top of the list.
 - Driving onto a bridge ramp at an angle no longer drops you under the bridge: the car climbs onto the ramp, at Most Poniatowskiego, Towarowa and the Vistula boulevard road too.

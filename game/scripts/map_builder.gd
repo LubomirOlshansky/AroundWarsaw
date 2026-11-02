@@ -4482,6 +4482,10 @@ const ARROW_LTR := [
 const BIKE := [
 	"....##..", "...#..#.", ".###....", "#..#.##.", "#..##..#", "#.#.#..#", ".#...##.",
 ]
+## The sharrow's two chevrons (P-27), pointing the way of travel.
+const CHEVRONS := [
+	"..##..", ".#..#.", "#....#", "..##..", ".#..#.", "#....#",
+]
 const BUS_TEXT := [
 	"###..#..#..###", "#..#.#..#.#...", "###..#..#..##.", "#..#.#..#....#", "###...##..###.",
 ]
@@ -4518,6 +4522,13 @@ func _build_symbols(st) -> void:
 				_pixel_shape(st, rows, at, fwd, minf(0.3, 2.7 / String(rows[0]).length()), 0.5, mirror)
 			"bike":
 				_pixel_shape(st, BIKE, at, fwd, 0.16, 0.2, false)
+				# Idea #9 (tools/bike_network.py): a contraflow street's bike has an arrow ahead
+				# of it (the riders' way, against the cars), a sharrow (P-27) two chevrons.
+				match String(m.get("on", "")):
+					"contra":
+						_pixel_shape(st, ARROW_T, at + fwd * 1.5, fwd, 0.16, 0.11, false)
+					"sharrow":
+						_pixel_shape(st, CHEVRONS, at + fwd * 1.4, fwd, 0.2, 0.2, false)
 			"bus":
 				_pixel_shape(st, BUS_TEXT, at, fwd, 0.19, 0.5, false)
 	_dk = -1
