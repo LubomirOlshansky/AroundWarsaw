@@ -661,7 +661,7 @@ Spec: `docs/design/zaglebie-kebabowe.md`. Built: five parody kebab shops by Kino
 neon fascias, twists), the craft kebab's choice card, Szlak Szpili, the welcome lore. Left:
 - Mac photo check: Femina's real front (colour, marquee) and the shops' real frontage; a marquee
   or poster board over Femina's door would make it read as a cinema from the car.
-- A queue outside ZAKWAS I ROŻEN (crowds.gd, like KROWA 2.0) and KEBAB FM lines about the basin.
+- A queue outside ZAKWAS I ROŻEN (crowds.gd, like KROWA 2.0). (KEBAB FM lines about the basin done 2026-11-02.)
 - The phone: feel of the craft kebab's 6 s wait, the five stands' spacing (23 m apart).
 
 ## Trends 2025–26 (F, 2026-11-01)
@@ -1114,7 +1114,7 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   kebab district) and the Kinoteka at the Palace's west wing. Independent halls keep their real names
   (place names, not brands); the multiplex chains stay out. Left: Iluzjon (Narbutta, Mokotów, south of
   the map), Kino Wisła (location unverified), the evening queue and repertory board, notebook cards,
-  poster-board facades, dialogue lines.
+  poster-board facades. (KEBAB FM radio lines about the cinemas and the Basin done 2026-11-02, 8 untagged `radio_host` lines.)
 - **Arthouse cinemas** (kina studyjne): small screens in old halls, a bar, a repertory board.
   Parody names for the real ones: **Kino Muranek** (for Muranów), **Iluzja** (Iluzjon),
   **Kultura 24** (Kultura), **Elektroniczne** (Elektronik), **Kinoteka Pałacowa** (Kinoteka, in
