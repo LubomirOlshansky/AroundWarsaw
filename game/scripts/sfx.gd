@@ -49,6 +49,8 @@ const SHOTS := {
 	"frog_chime": -15.0, "scooter_clatter": -12.0,
 	# The night-buses loop (buses.gd, tools/make_sfx.py): the player's own horn.
 	"horn_player": -12.0,
+	# G13b: the nitro lighting (car.gd nitro_started).
+	"nitro_whoosh": -8.0,
 	# The vintage-tram loop (old_tram.gd, tools/make_sfx.py): the old set's creak (under the bell)
 	# and its own bell (set to land where tram_bell does, by the files' RMS).
 	"tram_creak": -8.0, "old_tram_bell": -9.5,
