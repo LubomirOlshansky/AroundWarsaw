@@ -584,8 +584,7 @@ Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue sign
   the castle's turret corner and entrance; the church's front, tower and colours; the Syrenka's
   plinth against the flood wall (its corner touches the plinth in the cloud render); what Kaskada
   is; a tree on Kaskada's deck.
-- Left: boulevard dressing (deck strips, bar containers), Tamka's and Dobra's tenements and street
-  details. (Piano House and Cube House DONE 2026-11-02, specs `piano_house.md`, `cube_house.md`;
+- ~~Tamka's and Dobra's tenements~~ DONE 2026-11-02 (street dress: per-house plaster, cornice, string course, shop fronts; spec `dobra_tamka.md`; Mac look check: the real plasters, whether the shops sit where the real ones do, the gaps where houses are missing). Left: boulevard dressing (deck strips, bar containers), Dobra and Tamka kerbs, trees and furniture. (Piano House and Cube House DONE 2026-11-02, specs `piano_house.md`, `cube_house.md`;
   Mac photo check: Piano House's real facade rhythm and whether its top floor is set back; where
   Cube House's real bays or loggias are and its colours. Hortus and Moderna DONE 2026-11-02, specs
   `hortus.md`, `moderna.md`; Mac photo check: Hortus's glass and frame colours, its piers, the

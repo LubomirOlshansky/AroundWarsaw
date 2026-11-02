@@ -4493,6 +4493,8 @@ func _build_buildings(st, keep: Array, marks) -> void:
 				roof = _district_roof(plan.get_center(), hsh, str(bld["kind"]), royal)
 		if skin.is_empty() and not glass and _nowy_swiat(plan.get_center()):
 			wall = Color(NOWY_PASTELS[(hsh / 7) % NOWY_PASTELS.size()]).lerp(wall, 0.25)
+		elif skin.is_empty() and not glass and _powisle_house(bld, poly, plan.get_center()):
+			wall = Color(POWISLE_PASTELS[(hsh / 7) % POWISLE_PASTELS.size()]).lerp(wall, 0.25)
 
 		var run := 0.0
 		for i in poly.size():
@@ -5577,6 +5579,17 @@ const NOWY_PASTELS := ["#efe3c8", "#e8d49a", "#dcc08a", "#e4b5a2", "#e8c3c0", "#
 const NOWY_REACH := 30.0
 const NOWY_END_Z := 262.0
 const NOWY_STREET := "Nowy Świat"
+## Dobra and Tamka (Powiśle street by street, 2026-11-02): the pre-war tenements along the two
+## streets stand in plasters of their own, house by house (sooty cream, ochre, faded rose, sage,
+## grey, sand), not in the aerial photo's one grey, with a cornice, a string course and shop
+## fronts (TenementTrim). Within POWISLE_REACH metres of a street's centre line, tenements only
+## (R4 type 1: slabs, offices and the landmarks keep their own look). A *guess* from memory of the
+## streets until the Mac photo check (QUESTIONS).
+const POWISLE_STREETS := ["Dobra", "Tamka"]
+const POWISLE_REACH := 24.0
+const POWISLE_SHOP_REACH := 15.0
+const POWISLE_PASTELS := ["#d6cbb2", "#cdb996", "#dcc7a0", "#c9b0a0", "#b9c0aa", "#d3c0bb", "#c8ccd0", "#e0d3ab",
+		"#bda78d", "#d8bb9e"]
 
 ## Their tenements' own colours where OpenStreetMap has none (ochre, salmon, cream, terracotta,
 ## pale yellow, sage, blue-grey, peach, oxblood): the rebuilt Old Town's palette.
@@ -5792,7 +5805,8 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 	var looks: Array[Color] = []
 	var seeds: Array[float] = []
 	var roofs: Array[Color] = []
-	var plain: Array[bool] = []  # Nowy Świat's houses: the plaster only
+	var plain: Array[bool] = []  # Nowy Świat's and Dobra and Tamka's houses: the plaster only
+	var trim: Array[bool] = []  # Dobra and Tamka's: the cornice and shop fronts too
 	for bld in data.get("buildings", []):
 		var p: Array = bld["p"]
 		if p.size() < 6 or NOT_TENEMENTS.has(str(bld.get("kind", ""))):
@@ -5802,15 +5816,19 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 		for q in poly:
 			box = box.expand(q)
 		var nowy := _nowy_swiat(box.get_center())
-		if not nowy and not _historic(box.get_center(), 40.0):
+		var powisle := not nowy and _powisle_house(bld, poly, box.get_center())
+		if not nowy and not powisle and not _historic(box.get_center(), 40.0):
 			continue
 		var hsh := absi(int(poly[0].x * 73.0 + poly[0].y * 31.0))
 		var k := polys.size()
 		polys.append(poly)
-		plain.append(nowy)
+		plain.append(nowy or powisle)
+		trim.append(powisle)
 		var look := _osm_colour(bld["c"], Color(TENEMENTS[hsh % TENEMENTS.size()]))
 		if nowy:
 			look = Color(NOWY_PASTELS[(hsh / 7) % NOWY_PASTELS.size()]).lerp(look, 0.25)
+		elif powisle:
+			look = Color(POWISLE_PASTELS[(hsh / 7) % POWISLE_PASTELS.size()]).lerp(look, 0.25)
 		if box.get_center().distance_to(OldTownRoofs.PLAC) < PLAC_PALETTE_R:
 			look = Color(PLAC_PASTELS[hsh % PLAC_PASTELS.size()]).lerp(look, 0.25)
 		looks.append(look)
@@ -5843,6 +5861,8 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 						for v in 3:
 							col[t + v] = looks[k]
 							uv2[t + v].x = seeds[k]
+						if trim[k] and absf(nrm[t].y) < 0.05:
+							_powisle_trim(pos, nrm, t, looks[k], dress)
 					break
 				for v in 3:
 					if pitched:
@@ -5965,6 +5985,52 @@ func _square_gables(pos: PackedVector3Array, nrm: PackedVector3Array, t: int, po
 			var extra := OldTownRoofs.plac_gable(a, b, n, wall, seed) if on_plac else OldTownRoofs.gable(a, b, n, wall, seed)
 			if not extra.is_empty():
 				_add_dress(dress, extra)
+
+
+## Whether an OpenStreetMap house is one of Dobra's or Tamka's pre-war tenements: its centre
+## within POWISLE_REACH of either street (outside the historic districts) and R4 type 1.
+func _powisle_house(bld: Dictionary, poly: PackedVector2Array, centre: Vector2) -> bool:
+	if _historic(centre, 0.0) or _powisle_distance(centre) > POWISLE_REACH:
+		return false
+	var kind := str(bld.get("kind", ""))
+	return _building_type(kind, poly, float(bld.get("h", 0.0))) == 1
+
+
+## The distance from a point to the nearest Dobra or Tamka centre line (INF beyond 80 m).
+func _powisle_distance(at: Vector2) -> float:
+	if _powisle_segs.is_empty():
+		for r in data.get("roads", []):
+			if not POWISLE_STREETS.has(str(r.get("name", ""))) or bool(r.get("bridge", false)):
+				continue
+			var p: Array = r["p"]
+			for i in range(0, p.size() - 3, 2):
+				_powisle_segs.append([Vector2(float(p[i]), float(p[i + 1])), Vector2(float(p[i + 2]), float(p[i + 3]))])
+	var best := INF
+	for sg: Array in _powisle_segs:
+		if absf(at.x - sg[0].x) > 80.0 or absf(at.y - sg[0].y) > 80.0:
+			continue
+		best = minf(best, Geometry2D.get_closest_point_to_segment(at, sg[0], sg[1]).distance_to(at))
+	return best
+var _powisle_segs: Array = []
+
+
+## One wall triangle `t` of a Dobra or Tamka tenement: its cornice, string course and, when the
+## wall faces the street, its shop front (TenementTrim) into `dress`.
+func _powisle_trim(pos: PackedVector3Array, nrm: PackedVector3Array, t: int, plaster: Color, dress: Dictionary) -> void:
+	var n := Vector3(nrm[t].x, 0.0, nrm[t].z)
+	if n.length() < 0.9:
+		return
+	n = n.normalized()
+	var mid := (pos[t] + pos[t + 1] + pos[t + 2]) / 3.0
+	var at := Vector2(mid.x, mid.z)
+	# the wall faces the street when a point 8 m out is nearer to it than the wall itself
+	var street := _powisle_distance(at) < POWISLE_SHOP_REACH and \
+			_powisle_distance(at + Vector2(n.x, n.z) * 8.0) < _powisle_distance(at)
+	var out := {"pos": [], "nrm": [], "col": []}
+	TenementTrim.wall(out, pos[t], pos[t + 1], pos[t + 2], n, plaster, street)
+	if not (out["pos"] as Array).is_empty():
+		_add_dress(dress, {"pos": PackedVector3Array(out["pos"]), "nrm": PackedVector3Array(out["nrm"]),
+				"col": PackedColorArray(out["col"])})
 
 
 ## Whether a point is within `slack` metres of a historic district (HISTORIC), or inside

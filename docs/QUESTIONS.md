@@ -671,3 +671,5 @@ backlog. Lasting decisions also go into BACKLOG's "Decided" sections, DEMO.md or
 - Mac look check (food-hype leftovers, 2026-11-02): the five fans stand behind Cringulo's van along
   its local -Z; confirm they are on the pavement, not the road, at the four van spots; and the
   egg `easter_mlask` wording. Default built: as is.
+
+- **2026-11-02 · landmarks · Dobra and Tamka tenements** — Dressed from OSM and LoD2 alone (no photo): plasters from a sooty pastel palette, a two-step cornice, a first-floor string course and shop-glass bays with a fascia on street-facing walls (spec docs/landmarks/specs/dobra_tamka.md). Mac photo check wanted: the real plasters, which houses are really shops, where houses are missing or rebuilt. Default built: those. Alternative: plaster only, no shop fronts.
