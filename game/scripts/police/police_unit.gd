@@ -31,9 +31,9 @@ const IsPhase := preload("res://scripts/police/bt/is_phase.gd")
 const IsPullOver := preload("res://scripts/police/bt/is_pull_over.gd")
 const UnitAction := preload("res://scripts/police/bt/unit_action.gd")
 
-## Chasers: the player's top speed (30 m/s) x 0.92, traffic's acceleration x 1.2, and the gap
+## Chasers: the player's top speed (30 m/s) x 0.8 (a flat-out run opens ~6 m/s: 100 m in ~15 s), traffic's acceleration x 1.2, and the gap
 ## they keep behind the player's car (they never ram; police.md section 4).
-const CHASE_TOP := 27.6
+const CHASE_TOP := 24.0
 const CHASE_ACCEL := 1.2
 const CHASE_GAP := 10.0
 ## Searching: to the last-seen point, then round it within SEARCH_REACH at 30 km/h.

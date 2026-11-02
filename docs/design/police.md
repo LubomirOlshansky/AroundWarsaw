@@ -27,7 +27,7 @@ section 11.
   conversation that ends in a caution ("pouczenie") written in a joke notebook. Escaping pays a
   little respect. Nothing is ever taken from the wallet, nobody is arrested, nothing is rammed.
 - **Escalation.** Warning (a megaphone line) → koguty 1 → 2 → 3, each chase capped at 30 / 40 /
-  45 s ("Koniec zmiany!", end of shift) and lost at 120 m or 4 s out of sight plus 8 s of
+  45 s ("Koniec zmiany!", end of shift) and lost at 100 m or 4 s out of sight plus 8 s of
   searching. The cap is on screen, so waiting it out always works.
 - **Ties.** On a rescue the police escort you to the hospital (+10 s on the clock). A race seen
   by police pulls in a chase; escaping it adds 20 % to the stake. Kebab, słoiki and (from loop 2d)
@@ -137,7 +137,7 @@ Megaphone lines: at most one every 8 s in the whole city, and 20 s per unit.
    │                          └─ trap: LIZAK ─ stop by officer ─► PULL-OVER         ▼
    │                                    └─ drive on ─────────────► KOGUTY 1      KOGUTY 2 ── same again ──► KOGUTY 3
    │                                                                   │               │                       │
-   │                 120 m from every chaser, or no chaser sees you 4 s│               │                       │
+   │                 100 m from every chaser, or no chaser sees you 4 s│               │                       │
    │                                                                   ▼               ▼                       ▼
    │                                                    SEARCH (8 s; 4 s in a hiding spot) ── seen again within 50 m ──► back to the same level
    │                                                         │
@@ -155,7 +155,7 @@ Megaphone lines: at most one every 8 s in the whole city, and 20 s per unit.
 | KOGUTY 1 | see the diagram | escape, cap, pull-over; +1 level on a trigger | 1 chaser; cap 30 s |
 | KOGUTY 2 | in koguty 1: ram > 6 m/s, or a second unit sees the player within 60 m | as above | + 1 blocker; cap 40 s from the chase's start |
 | KOGUTY 3 | in koguty 2: the same triggers | as above | + a two-car roadblock; at night the searchlight; cap 45 s from the chase's start |
-| SEARCH | distance > 120 m from every chaser, or no chaser with sight for 4 s | 8 s pass (4 s if the player is in a hiding spot) → ESCAPED; any unit sees the player within 50 m → back to the level it was | chasers drive to the last-seen point, then wander within 150 m at 30 km/h |
+| SEARCH | distance > 100 m from every chaser, or no chaser with sight for 4 s | 8 s pass (4 s if the player is in a hiding spot) → ESCAPED; any unit sees the player within 50 m → back to the level it was | chasers drive to the last-seen point, then wander within 150 m at 30 km/h |
 | ESCAPED | search ran out | — | +15 respect (once per chase); bubble "escaped"; a race in progress is marked for +20 % |
 | END OF SHIFT | cap reached in any chase state | — | bubble "shift"; no respect bonus, nothing lost |
 | PULL-OVER | player speed < 1 m/s within 15 m of a chaser for 1.5 s; or the lizak stop | the conversation ends | ≤ 8 s (section 7); job clocks and the kebab's heat frozen during it |
@@ -164,7 +164,7 @@ Megaphone lines: at most one every 8 s in the whole city, and 20 s per unit.
 Rules that hold in every state:
 - **No level rises in the last 10 s of the cap.**
 - **Chasers never ram.** They brake to keep ≥ 10 m behind the player and stop if the player stops.
-- **Chaser speed:** the player's top speed × 0.92 (30 m/s × 0.92 ≈ 99 km/h), acceleration × 1.2 of
+- **Chaser speed:** the player's top speed × 0.8 (30 m/s × 0.8 = 24 m/s ≈ 86 km/h; 2026-11-02: at 0.92 the gap opened 2.4 m/s, so 120 m was out of reach inside the 30-45 s cap and only a lost line of sight ever escaped), acceleration × 1.2 of
   traffic; through a junction on red and round roundabouts they slow to 30 km/h with the siren
   (always a moment to gain). They stay on the lane graph: pavements, parks and the pedestrian
   zones are always a way out.
@@ -626,8 +626,8 @@ BENCH card, as README "Performance budgets" rule 9 asks.
 | Trap threshold / radar reach | limit + 20 km/h / 40 m | Most players at full throttle on a trap road trigger it; cruising at 60 in a 50 never does |
 | Patrol-car speeding threshold | limit + 25 km/h within 40 m | — |
 | Strikes to koguty 1 / fade | 2 within 45 s / one per 45 s | — |
-| Chaser speed | player top × 0.92; × 1.2 traffic acceleration; 30 km/h through reds and roundabouts | A straight escape at full speed should open 120 m in ≤ 15 s |
-| Escape | 120 m, or 4 s without sight; search 8 s (hiding 4 s) | Median chase ≤ 25 s in playtests |
+| Chaser speed | player top × 0.8; × 1.2 traffic acceleration; 30 km/h through reds and roundabouts | A straight escape at full speed should open 120 m in ≤ 15 s |
+| Escape | 100 m, or 4 s without sight; search 8 s (hiding 4 s) | Median chase ≤ 25 s in playtests |
 | Caps | 30 / 40 / 45 s by highest level | — |
 | Cooldown / start grace | 180 s / 180 s (warnings from 60 s) | ≤ 1 chase in 3 minutes |
 | Escape reward | +15 respect; race stake × 1.2 | — |

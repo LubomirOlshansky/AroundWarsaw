@@ -78,7 +78,7 @@ const NO_RISE := 10.0
 const RAM_GAP := 10.0
 ## Escape: ESCAPE_DIST from every chaser, or UNSEEN s out of sight; then SEARCH s (SEARCH_HIDDEN
 ## in a hiding spot), unless a unit sees the player again within RESEEN m.
-const ESCAPE_DIST := 120.0
+const ESCAPE_DIST := 100.0
 const UNSEEN := 4.0
 const SEARCH := 8.0
 const SEARCH_HIDDEN := 4.0

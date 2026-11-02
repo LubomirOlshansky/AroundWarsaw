@@ -250,6 +250,8 @@ var visible_count := 0
 var police_target := 0
 var police_min_dist := 0.0
 var patrol_wait := 20.0
+## Patrol cars spawned so far (every third is the van).
+var _patrol_spawns := 0
 ## The night-buses loop (vision.md 3.5): the buses show an N route sign (buses.gd sets it from
 ## the clock, 22:30-05:00). The BUS MultiMesh swaps its mesh for the bus with the sign (the
 ## same surface, material and instances: +0 draw calls, no shader change).
@@ -931,7 +933,9 @@ func _try_spawn_police() -> Driver:
 		return null
 	if not _lane_clear(e, lane, s, 16.0, q):
 		return null
-	var d := _take_police(0)
+	# Every third patrol car is the van (the silver Crafter), picked by a counter, not _rng.
+	_patrol_spawns += 1
+	var d := _take_police(3 if _patrol_spawns % 3 == 0 else 0)
 	d.patrol = true
 	d.persistent = false
 	_start(d, e, lane, s)
@@ -950,18 +954,22 @@ func _lane_clear(e: int, lane: int, s: float, room: float, q: Vector2) -> bool:
 	return true
 
 
-## A police driver from the pool (shape 0 the patrol estate, 1 the guards' car), not yet placed.
+## A police driver from the pool (shape 0 the patrol estate, 1 the guards' car, 2 the ambulance,
+## 3 the patrol van), not yet placed.
 func _take_police(shape: int) -> Driver:
 	var d: Driver = _free.pop_back()
 	d.kind = Kind.POLICE
 	d.slot = _free_slots[Kind.POLICE][_free_slots[Kind.POLICE].size() - 1]
 	_free_slots[Kind.POLICE].resize(_free_slots[Kind.POLICE].size() - 1)
 	_counts[Kind.POLICE] += 1
-	# The crash scenes: shape 2 the ambulance (the panel van; models.gd police_mesh()).
-	d.size = [Vector3(1.85, 1.62, 4.7), Vector3(1.63, 1.43, 4.14), Vector3(1.98, 2.56, 5.2)][clampi(shape, 0, 2)]
+	# The crash scenes: shape 2 the ambulance (the panel van; models.gd police_mesh()); shape 3 the
+	# patrol van (the same body, silver with the police livery).
+	d.size = [Vector3(1.85, 1.62, 4.7), Vector3(1.63, 1.43, 4.14), Vector3(1.98, 2.56, 5.2),
+			Vector3(1.98, 2.56, 5.2)][clampi(shape, 0, 3)]
 	d.length = d.size.z
 	d.shape = shape
-	d.paint = [Models.POLICE_WHITE, Models.GUARD_MUSTARD, Models.AMBULANCE_YELLOW][clampi(shape, 0, 2)]
+	d.paint = [Models.POLICE_SILVER, Models.GUARD_MUSTARD, Models.AMBULANCE_YELLOW,
+			Models.POLICE_SILVER][clampi(shape, 0, 3)]
 	d.speed_factor = 0.95
 	d.accel_factor = 1.0
 	d.ghost = false

@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Police chases can be escaped for real: the patrol cars are a little slower than you now, so a flat-out run opens a gap and the chase ends at 100 m. And the radiowozy look like the real ones: a silver Toyota-style estate with the blue POLICJA band, checker strips and a blue bonnet, and a silver police van.
 - Warsaw's classic cinemas light up their marquees: Kino Muranów, Atlantic, Luna, Kultura, Elektronik and the Kinoteka in the Palace.
 - A new corner by Kino Femina, the Zagłębie Kebabowe: five rival kebab shops on Al. Solidarności (a king, a pasha, an uncle, a night shop and a craft kebab on sourdough), each with its own neon and its own delivery twist. Deliver from all five and the Skewer Trail pays a bonus.
 - Plac Bankowy looks like the real square: the Blue Skyscraper is blue mirror glass (not gold), and the city hall palace, the Voivodeship wing, the old Stock Exchange and Bank, the Arsenal and two small palaces wear their real colours (yellow palace with white columns).

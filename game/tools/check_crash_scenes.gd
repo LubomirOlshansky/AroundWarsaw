@@ -1,7 +1,7 @@
 extends SceneTree
 ## The crash scenes (scripts/crash_scenes.gd, 2026-11-01): their rules headless, from the
 ## committed map data (map/centrum.json: the lane graph) and data/dialogue.json; seeded:
-##   1. the police family's mesh: one surface, three shapes (the patrol car, the guards' car and
+##   1. the police family's mesh: one surface, four shapes (the patrol car, the guards' car, the ambulance and the patrol van; was: the patrol car, the guards' car and
 ##      the ambulance), so the ambulance adds no draw call;
 ##   2. the lines: every speaker's tag in `crash_scene` (drivers, officer, paramedic, onlookers),
 ##      Polish and English, bubbles under 70 characters, no real brand; KEBAB FM's `crash` lines
@@ -97,7 +97,7 @@ func _check_mesh(digest: PackedStringArray) -> void:
 	# family() falls back to the first shape's own mesh (no custom channels) if the shapes differ.
 	if m.surface_get_format(0) & Mesh.ARRAY_FORMAT_CUSTOM0 == 0:
 		problems.append("police family: not a morphing family (the shapes' vertex counts differ?)")
-	digest.append("police family 3 shapes, 1 surface, %d vertices" % n)
+	digest.append("police family 4 shapes, 1 surface, %d vertices" % n)
 
 
 func _check_lines(digest: PackedStringArray) -> void:

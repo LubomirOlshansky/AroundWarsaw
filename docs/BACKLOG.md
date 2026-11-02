@@ -4,6 +4,10 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Police chases and radiowozy (F, 2026-11-02)
+
+- Built: chasers at 0.8 of the player's top speed and an escape at 100 m (the old 0.92 opened a gap of only 2.4 m/s, so 120 m was out of reach inside the 30-45 s cap); the patrol estate is silver with the blue band, checker strips and bonnet panel, and a silver Crafter-style van (shape 3 of the police family, every third patrol car). Open: the roadblock and blockers still use the estate (a van across the road would read better); the lizak officer's car; a phone look and the feel of the new chase speed (QUESTIONS).
+
 ## Gdański Business Center (F, 2026-11-02)
 
 - Built (PR in this change, site `gbc`). Open: Mac photo check (QUESTIONS); the plaza's planters, the lit lobby's glazing detail and the KPMG-style second logo on the tower are not built. Found: `bake_city` failed on main for the church of the Saviour (its SITE_AREAS box was missing); fixed in `tools/bake_sectors.py`.
