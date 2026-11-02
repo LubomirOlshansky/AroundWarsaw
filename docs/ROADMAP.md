@@ -110,6 +110,9 @@ then the Launch gate.
       bollards, kiosks and columns north of Świętokrzyska and south of the Rotunda; tram-island benches,
       stop posts and ticket machines where no shelter is mapped). Open: facades and shopfronts house by
       house, crossings against photos (BACKLOG "Marszałkowska street by street")
+- [x] Marszałkowska street by street, pass 4 (F, 2026-11-02): eight neon shopfronts of old trades on
+      mapped house numbers (milk bar, dry cleaner, watchmaker, pastry, optician, florist, haberdashery,
+      herbalist). Open: house plaster/cornices and crossings need photos (QUESTIONS, BACKLOG)
 - [x] Old Town Market Square and its Syrenka (F, 2026-11-01): cobbled paving, 58 café umbrellas, the
       fountain's rim and the bronze mermaid with sword and shield, two cards (spec rynek.md);
       Mac photo check parked (QUESTIONS)
