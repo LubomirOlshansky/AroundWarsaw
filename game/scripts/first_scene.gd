@@ -56,6 +56,13 @@ const ITEMS := [
 	["stop", 254.0, 12.3, ""], ["ticket", 288.0, 14.4, ""],
 	["bikes", 66.0, -17.6, ""],
 	["bollards", 32.0, -7.2, ""], ["bollards", 47.0, -7.2, ""], ["bollards", 75.5, -7.2, ""],
+	# Krajobraz K2 (docs/design/krajobraz-places.md, 2026-11-02): Chmielna meets Pasaż Wiecha
+	# behind the Eastern Wall, at the square named after August Agbola Browne ("Ali", jazz
+	# musician and Uprising fighter, 1 Aug 2024), with his memorial stone (2019) by its bed; the
+	# plates at the corner. Both stand on the new granite, clear of the square's tree.
+	["plates", -67.5, 68.2, "PASAŻ WIECHA|CHMIELNA"],
+	["plates", -60.4, 73.5, "SKWER BROWNE'A"],
+	["stone", -63.2, 74.1, ""],
 ]
 ## First scene item 6 (2026-11-02): Marszałkowska's two pavements from Widok to the tram stop north
 ## of the museum, [s0, s1, t0, t1] in the frame above: the west one between the museum's edge and the
@@ -82,7 +89,8 @@ const TACTILE_BAND := 0.4
 const EDGE_COL := Color("#e9e7e0")
 const TACTILE_COL := Color("#b89f58")
 ## The kiosk's and the stall's footprints for the car (half sizes).
-const SOLID := {"kiosk": Vector2(1.45, 1.1), "stall": Vector2(1.2, 0.9), "shelter": Vector2(2.15, 0.98)}
+const SOLID := {"kiosk": Vector2(1.45, 1.1), "stall": Vector2(1.2, 0.9), "shelter": Vector2(2.15, 0.98),
+		"stone": Vector2(0.6, 0.4)}
 
 var map: Node3D
 var count := 0
@@ -127,6 +135,8 @@ func build() -> void:
 				Props.add_bike_dock(st, Transform3D(xf.basis * Basis(Vector3.UP, PI * 0.5), xf.origin))
 			"bollards":
 				Props.add_bollards(st, xf, 5)
+			"stone":
+				Props.add_memorial_stone(st, xf)
 		if SOLID.has(kind):
 			var half: Vector2 = SOLID[kind]
 			var shape := CollisionShape3D.new()
