@@ -51,7 +51,9 @@ MAP = os.path.join(ROOT, "game", "map")
 # trees (+22 young trees in ul. Bracka's woonerf, planted after the scan). Before: 268992 / 44832.
 # Krajobraz K5 (2026-11-02, tools/plaza_gardens.py): 44,975 trees (+121 in the plazas of Skyliner,
 # Generation Park and Mennica Legacy Tower; 18+21+12 beds in areas, 11 benches). Before: 269124 / 44854.
-EXPECTED = {"trees3d": 269850, "pois": 4571, "trees3d_crown": 44975}
+# Krajobraz K3 (2026-11-02, planted_trees.py PLACE varso): 44,981 (+6 young trees in Chmielna's
+# bare beds by Varso Place). Before: 269850 / 44975.
+EXPECTED = {"trees3d": 269886, "pois": 4571, "trees3d_crown": 44981}
 # docs/DEMO.md 7 row 7: the lane graph's strongly connected share at least this.
 SCC_SHARE = 0.95
 

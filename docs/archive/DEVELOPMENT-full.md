@@ -5290,6 +5290,8 @@ still hold, with the paths above.
    Legacy Tower: +121 young trees (`trees3d` → 269,850 values, `trees3d_crown` → 44,975), 51
    "park" beds in `areas`, 11 benches; `plaza_gardens` in the map lists the places done, so it
    is idempotent.
+   K3 (2026-11-02, `planted_trees.py` PLACE `varso`): +6 young trees in Chmielna's bare beds by
+   Varso Place (`trees3d` → 269,886, `trees3d_crown` → 44,981).
 1. OpenStreetMap (Overpass) → `data/raw/osm_wide.json` (the whole map: roads, trees, lamps,
    traffic lights, car parks, street furniture), then
    `W=data/raw/osm_wide.json && python3 -I tools/bake_osm.py $W $W game/map/centrum.json $W $W`.

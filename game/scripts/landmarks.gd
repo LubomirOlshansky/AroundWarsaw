@@ -759,6 +759,7 @@ func _find_sites() -> void:
 	var varso := _landmark("Varso Tower")
 	if varso.size() >= 3:
 		_add_site("varso", [varso])
+	_find_varso_place()
 	_find_stadium()
 	_find_legia()
 	_find_centralna()
@@ -1120,6 +1121,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_rotunda(s)
 			"varso":
 				_build_varso(s)
+			"varso_place":
+				_build_varso_place(s)
 			"stadium":
 				_build_stadium(s)
 			"legia":
@@ -2417,6 +2420,11 @@ func _build_varso(site: Dictionary) -> void:
 			_prism(poly, g + mh - (0.4 if mh < 0.5 else 0.0), g + h, col, top_col, M_GLASS, M_STONE)
 		if mh < 0.5 and h > 30.0:
 			_collide(poly)
+	# Krajobraz K3: the sky garden on the 205 m roof, round the 230 m top (varso_place.md G1-G4).
+	for b in parts:
+		if float(b["mh"]) < 0.5 and absf(float(b["h"]) - VARSO_GARDEN_H) < 0.5:
+			for piece in _varso_open_roof(b, parts):
+				_varso_garden(piece, g + VARSO_GARDEN_H, VARSO_GARDEN)
 	if spire == Vector2.INF:
 		return
 	# The spire: a slender mast tapering to 310 m, its rings, a beacon on top.
@@ -2435,6 +2443,210 @@ func _build_varso(site: Dictionary) -> void:
 	_prism(sq.call(0.5), g + 309.0, g + 310.5, Color("#ff3b30"), Color("#ff6a5c"), M_LAMP, M_LAMP)
 	# The dusk loop: the aviation light on the spire's very top.
 	_prism(_square(spire, 0.35), g + 310.5, g + 311.2, DUSK_RED, DUSK_RED, M_LAMP, M_LAMP)
+
+
+# --- Varso Place (Krajobraz K3, docs/landmarks/specs/varso_place.md) -----------------------------
+
+## Chmielna 69-73: the planting is RS Architektura Krajobrazu's (ZinCo: ~4,000 m² of green on the
+## garage slabs and the roofs). The sky garden is on the tower's 205 m roof (16 hawthorns up to
+## 6 m, perennials, dwarf pines, timber benches; HB Reavis, 2021); Varso 2 has green terraces and
+## Varso 1 a roof terrace; a 60 t glacial erratic from the dig stands by the tower's entrance.
+## The tower's garden is built with the tower (its card); the rest is the site `varso_place`, a
+## 0.2 m zone at the erratic (nothing stands there) with a box over the three buildings, so Varso
+## I and II stay the map's own extrusions and a sector that holds any of it builds it.
+const VARSO_GARDEN_H := 205.0
+const VARSO_BOX := Rect2(-1822.0, 530.0, 236.0, 178.0)
+const VARSO_ROCK_AT := Vector2(-1600.5, 541.5)
+const VARSO_SIGN_AT := Vector2(-1597.5, 553.5)
+const VARSO_SIGN_ALONG := Vector2(0.35, 0.94)   # parallel to Al. Jana Pawła II, the letters face it
+const VARSO_LEAF := Color("#5f7f45")
+const VARSO_PINE := Color("#3d5b3b")
+const VARSO_BEDS: Array[Color] = [Color("#7b8c4e"), Color("#6c8f4f"), Color("#8a8a58")]  # perennials, lawn, grasses
+const VARSO_DECK := Color("#a58a69")
+const VARSO_GRANITE := Color("#8e8a82")
+const VARSO_TRUNK := Color("#5b4b3d")
+const VARSO_RAIL := Color("#c9dcdc")
+const VARSO_ROCK := Color("#867f74")
+const VARSO_SIGN := Color(0.97, 0.94, 0.86)
+## Each roof's planting: trees (at most), their height and crown radius, dwarf pines, benches,
+## whether the edge has planters (the terrace kind) or one big bed (the garden kind).
+const VARSO_GARDEN := {"trees": 16, "h": 5.8, "r": 2.0, "pines": 10, "benches": 4, "step": 4.6}
+const VARSO_TERRACE := {"trees": 9, "h": 4.6, "r": 1.6, "pines": 4, "benches": 2, "step": 5.2}
+
+
+func _find_varso_place() -> void:
+	if _landmark("Varso I").size() < 3 or _landmark("Varso II").size() < 3:
+		return
+	var c := VARSO_ROCK_AT
+	_add_site("varso_place", [PackedVector2Array([c, c + Vector2(0.2, 0), c + Vector2(0.2, 0.2), c + Vector2(0, 0.2)])])
+	sites[-1]["box"] = VARSO_BOX
+
+
+## The plaza's sign and the erratic (P1, P2), then the roof terraces on Varso 1 and 2 (T1-T3). No
+## card: off the picking grid, a tap on the roofs finds what it found before.
+func _build_varso_place(_site: Dictionary) -> void:
+	_id = 0
+	_varso_sign()
+	_varso_rock()
+	for name: String in ["Varso I", "Varso II"]:
+		var outline := _landmark(name)
+		if outline.size() < 3:
+			continue
+		var g := _ground_under(outline)
+		var parts := _parts_in(outline, func(b: Dictionary) -> bool: return float(b["h"]) > float(b["mh"]) + 0.5)
+		for b in parts:
+			if float(b["mh"]) > 0.5 or float(b["h"]) < 40.0:
+				continue
+			for piece in _varso_open_roof(b, parts):
+				_varso_garden(piece, g + float(b["h"]), VARSO_TERRACE)
+
+
+## The part of a flat roof nothing taller stands on or rises through (every part that starts
+## no more than a metre above it and ends higher is cut away), as pieces of at least 60 m².
+func _varso_open_roof(roof: Dictionary, parts: Array) -> Array[PackedVector2Array]:
+	var h := float(roof["h"])
+	var out: Array[PackedVector2Array] = [_pts(roof["p"])]
+	for b: Dictionary in parts:
+		if b == roof or float(b["mh"]) > h + 1.0 or float(b["h"]) <= h + 0.5:
+			continue
+		var over := _pts(b["p"])
+		var next: Array[PackedVector2Array] = []
+		for piece in out:
+			for q in Geometry2D.clip_polygons(piece, over):
+				if q.size() >= 3 and not Geometry2D.is_polygon_clockwise(q):
+					next.append(q)
+		out = next
+	return out.filter(func(q: PackedVector2Array) -> bool: return _area(q) >= 60.0)
+
+
+## A planted roof (G1-G4, T1-T3): a timber deck inside a glass balustrade, a raised bed of
+## perennials and lawn 2.5 m in from the edge, trees with round crowns in it on a grid, dwarf
+## pines between them, timber benches along the bed. Out of the roof grid (the helicopter and the
+## crowds keep reading the roof itself).
+func _varso_garden(roof: PackedVector2Array, y: float, look: Dictionary) -> void:
+	var rims := Geometry2D.offset_polygon(roof, -0.5)
+	if rims.is_empty():
+		return
+	var none := Color(0, 0, 0, 0)
+	var keep := _no_roof
+	_no_roof = true
+	_mode = M_STONE
+	for rim: PackedVector2Array in rims:
+		if rim.size() < 3 or Geometry2D.is_polygon_clockwise(rim):
+			continue
+		var rev := PackedVector2Array(rim)
+		rev.reverse()
+		_cap(rim, y + 0.12, VARSO_DECK)
+		_prism(rim, y, y + 1.1, VARSO_RAIL, none, M_PAVILION + 0.5)
+		_prism(rev, y, y + 1.1, VARSO_RAIL, none, M_PAVILION + 0.5)
+	var trees := 0
+	var pines := 0
+	var benches := 0
+	var step: float = look["step"]
+	var k := 0
+	for bed: PackedVector2Array in Geometry2D.offset_polygon(roof, -2.5):
+		if bed.size() < 3 or Geometry2D.is_polygon_clockwise(bed) or _area(bed) < 12.0:
+			continue
+		_prism(bed, y + 0.12, y + 0.55, VARSO_GRANITE, VARSO_BEDS[k % VARSO_BEDS.size()], M_STONE, M_STONE)
+		k += 1
+		# Benches: timber seats on the deck along the bed's longest edges.
+		var edges: Array = []
+		for i in bed.size():
+			edges.append([bed[i].distance_to(bed[(i + 1) % bed.size()]), i])
+		edges.sort_custom(func(a: Array, b: Array) -> bool: return a[0] > b[0])
+		for e: Array in edges:
+			if benches >= int(look["benches"]) or float(e[0]) < 4.0:
+				break
+			var a := bed[int(e[1])]
+			var b := bed[(int(e[1]) + 1) % bed.size()]
+			var t := (b - a).normalized()
+			var o := _out(bed, a, b)
+			var m := (a + b) * 0.5 + o * 0.75
+			_prism(PackedVector2Array([m - t * 1.0 - o * 0.25, m + t * 1.0 - o * 0.25, m + t * 1.0 + o * 0.25, m - t * 1.0 + o * 0.25]),
+					y + 0.12, y + 0.55, VARSO_DECK.darkened(0.25), VARSO_DECK, M_STONE, M_STONE)
+			benches += 1
+		# The trees on a grid inside the bed (a metre in), then pines in the gaps.
+		var inner := Geometry2D.offset_polygon(bed, -1.0)
+		if inner.is_empty():
+			continue
+		var area: PackedVector2Array = inner[0]
+		var lo := Vector2(INF, INF)
+		var hi := -lo
+		for q in area:
+			lo = lo.min(q)
+			hi = hi.max(q)
+		var spots: Array[Vector2] = []
+		var gaps: Array[Vector2] = []
+		var nx := floori((hi.x - lo.x) / step) + 1
+		var nz := floori((hi.y - lo.y) / step) + 1
+		var off := (hi - lo - Vector2(nx - 1, nz - 1) * step) * 0.5
+		for iz in nz:
+			for ix in nx:
+				var p := lo + off + Vector2(ix, iz) * step
+				if Geometry2D.is_point_in_polygon(p, area):
+					spots.append(p)
+				var q := p + Vector2(step, step) * 0.5
+				if Geometry2D.is_point_in_polygon(q, area):
+					gaps.append(q)
+		for p in spots:
+			if trees >= int(look["trees"]):
+				break
+			var j := 0.9 + 0.2 * fposmod(sin(p.x * 12.9898 + p.y * 78.233) * 43758.5453, 1.0)
+			_varso_tree(p, y + 0.55, float(look["h"]) * j, float(look["r"]) * j)
+			trees += 1
+		for p in gaps:
+			if pines >= int(look["pines"]):
+				break
+			_pyramid(_circle(p, 0.7, 5), y + 0.55, y + 1.9, VARSO_PINE)
+			pines += 1
+	_no_roof = keep
+
+
+## A small tree with a round crown (the hawthorns' spheres): a trunk, then two six-sided frusta
+## widening to the crown's waist and closing over it.
+func _varso_tree(p: Vector2, y: float, h: float, r: float) -> void:
+	_prism(_square(p, 0.12), y, y + h * 0.42, VARSO_TRUNK, Color(0, 0, 0, 0), M_STONE)
+	_mode = M_STONE
+	_frustum(_circle(p, r * 0.3, 6), y + h * 0.32, _circle(p, r, 6), y + h * 0.62, VARSO_LEAF.darkened(0.12))
+	_frustum(_circle(p, r, 6), y + h * 0.62, _circle(p, r * 0.4, 6), y + h, VARSO_LEAF, VARSO_LEAF.lightened(0.08))
+
+
+## P1 the plaza's name sign: a granite plinth along Al. Jana Pawła II by the tower's north-east
+## corner, VERSO PLACE (the parody name, never the real mark) in 0.7 m letters on its avenue face.
+func _varso_sign() -> void:
+	var c := VARSO_SIGN_AT
+	var t := VARSO_SIGN_ALONG.normalized()
+	var o := Vector2(t.y, -t.x)  # out of the face, towards the avenue (east-north-east)
+	_g = map.terrain_height(c.x, c.y)
+	var word := "VERSO PLACE"
+	var k := 0.7 / (Neon.ROW_H * Neon.PIXEL)  # 0.7 m letters
+	var half := 0.5 * k * Neon.length_of(word) + 0.5
+	var plinth := PackedVector2Array([c - t * half - o * 0.45, c + t * half - o * 0.45, c + t * half + o * 0.45, c - t * half + o * 0.45])
+	_prism(plinth, _g - 0.3, _g + 1.2, VARSO_GRANITE, VARSO_GRANITE.lightened(0.08), M_STONE, M_STONE)
+	_collide(plinth)
+	# map_builder sets the letters 0.4 m out from this point: 2 cm off the plinth's face.
+	var at := c + o * 0.07
+	signs.append([word, Vector3(at.x, _g + 0.25, at.y), Vector3(o.x, 0.0, o.y), k, VARSO_SIGN])
+
+
+## P2 the glacial erratic: about 60 t (some 22 m³), a rounded grey block 4.2 x 3.2 x 2.1 m on the
+## plaza by the tower's north-east corner; the car stops at it.
+func _varso_rock() -> void:
+	var c := VARSO_ROCK_AT
+	_g = map.terrain_height(c.x, c.y)
+	var ring := PackedVector2Array()
+	for i in 8:
+		var a := TAU * i / 8.0 + 0.3
+		ring.append(c + Vector2(cos(a) * 2.1, sin(a) * 1.6).rotated(0.5))
+	var mid := PackedVector2Array()
+	var top := PackedVector2Array()
+	for q in ring:
+		mid.append(c + (q - c) * 0.92)
+		top.append(c + (q - c) * 0.5)
+	_mode = M_STONE
+	_frustum(ring, _g - 0.2, mid, _g + 1.2, VARSO_ROCK)
+	_frustum(mid, _g + 1.2, top, _g + 2.1, VARSO_ROCK.lightened(0.06), VARSO_ROCK.lightened(0.1))
+	_collide(ring)
 
 
 func _osm(value, fallback: Color) -> Color:

@@ -159,7 +159,8 @@ const BUDGET := {
 	"tarasy": 5700,
 	"trojca": 2300,
 	"unit": 1160,
-	"varso": 1680,
+	"varso": 2500,
+	"varso_place": 1100,
 	"wcf": 190,
 	"wszystkich": 950,
 	"wizytki": 690,
@@ -187,6 +188,10 @@ const GROUND := 0.2
 ## parts are supported by the site's lowest level instead of the ground (LORETKA's terrace on
 ## HOTEL PIURE, F 2026-11-01).
 const ON_ROOF := ["loretka"]
+## Sites on several mapped roofs (Varso Place's terraces on Varso 1 and 2, Krajobraz K3): a part
+## is held up when its bottom lies on a mapped building's top under its middle (within GROUND).
+const ON_ROOFS := ["varso_place"]
+var _data: Dictionary = {}
 
 var problems: Array[String] = []
 var notes: Array[String] = []
@@ -250,6 +255,7 @@ func _initialize() -> void:
 	map._roof_z0 = float(bounds[1])
 	map._roof_nx = ceili((float(bounds[2]) - float(bounds[0])) / map.ROOF_CELL)
 	map._roof_nz = ceili((float(bounds[3]) - float(bounds[1])) / map.ROOF_CELL)
+	_data = data
 	var marks = Landmarks.new(map, data)
 	var keys: Array[String] = []
 	for s: Dictionary in marks.sites:
@@ -336,7 +342,7 @@ func _examine(key: String, rec: Recorder) -> Dictionary:
 			out["badnormal"] += 1
 			out["at_badnormal"].append(a)
 	_zfight(rec, gn, live, out)
-	_floating(rec, live, out, key in ON_ROOF)
+	_floating(rec, live, out, key in ON_ROOF, key in ON_ROOFS)
 	return out
 
 
@@ -443,7 +449,7 @@ func _poly_area(p: PackedVector2Array) -> float:
 	return absf(a) * 0.5
 
 
-func _floating(rec: Recorder, live: Array[int], out: Dictionary, on_roof := false) -> void:
+func _floating(rec: Recorder, live: Array[int], out: Dictionary, on_roof := false, on_roofs := false) -> void:
 	# Union-find over welded vertices.
 	var parent := {}
 	var find := func(k: Vector3i) -> Vector3i:
@@ -485,7 +491,8 @@ func _floating(rec: Recorder, live: Array[int], out: Dictionary, on_roof := fals
 		for r in roots:
 			base = minf(base, (boxes[r] as AABB).position.y)
 	for r in roots:
-		if (boxes[r] as AABB).position.y <= base + GROUND:
+		var bb: AABB = boxes[r]
+		if bb.position.y <= base + GROUND or on_roofs and _on_mapped_roof(bb):
 			supported[r] = true
 	var grew := true
 	while grew:
@@ -502,3 +509,19 @@ func _floating(rec: Recorder, live: Array[int], out: Dictionary, on_roof := fals
 		if not supported.has(r):
 			out["float"] += 1
 			out["at_float"].append((boxes[r] as AABB).position)
+
+
+## Whether a part's bottom lies on the top of a mapped building under its middle (ON_ROOFS; the
+## stub's ground is at 0, so a top is the building's height).
+func _on_mapped_roof(bb: AABB) -> bool:
+	var c := Vector2(bb.position.x + bb.size.x * 0.5, bb.position.z + bb.size.z * 0.5)
+	for bld: Dictionary in _data.get("buildings", []):
+		if absf(float(bld["h"]) - bb.position.y) > GROUND + 0.15:
+			continue
+		var q := PackedVector2Array()
+		var p: Array = bld["p"]
+		for i in range(0, p.size() - 1, 2):
+			q.append(Vector2(p[i], p[i + 1]))
+		if q.size() >= 3 and Geometry2D.is_point_in_polygon(c, q):
+			return true
+	return false
