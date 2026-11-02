@@ -682,8 +682,8 @@
       "name_en": "Most Śląsko-Dąbrowski",
       "osm": "the bridge's west end above Wybrzeże Gdańskie, by the W-Z tunnel",
       "near": [
-        52.2508,
-        21.02
+        52.2481,
+        21.0194
       ],
       "radius": 40,
       "fact": [
@@ -2070,6 +2070,31 @@
         "venue",
         "padel",
         "queue"
+      ],
+      "district": "lazienki"
+    },
+    {
+      "id": "zamek_ujazdowski",
+      "chapter": "retro",
+      "name_pl": "Zamek Ujazdowski",
+      "name_en": "Ujazdów Castle",
+      "osm": "the castle on the Ujazdów escarpment, in the middle of its courtyard (Al. Ujazdowskie 6)",
+      "near": [
+        52.2196,
+        21.0308
+      ],
+      "radius": 40,
+      "fact": [
+        "Zamek z 1624 roku. Po wojnie odbudowany niemal od zera.",
+        "A castle of 1624. Rebuilt almost from scratch after the war."
+      ],
+      "joke": [
+        "Sztuka współczesna w środku. Na zewnątrz ławka z lepszym widokiem.",
+        "Contemporary art inside. Outside, a bench with a better view."
+      ],
+      "tags": [
+        "castle",
+        "culture"
       ],
       "district": "lazienki"
     }

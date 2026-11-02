@@ -17,7 +17,7 @@ const FIXED := 12
 const GUESTS := 48
 ## The night-buses loop: people waiting at the bus stops (buses.gd `set_stop`), after the guests:
 ## +0 draw calls.
-const STOPS := 8
+const STOPS := 16
 ## The crash scenes (crash_scenes.gd `set_scene`): the people at a crash, after the stop figures:
 ## the two drivers, the officer, the paramedic and the onlookers filming. +0 draw calls.
 const SCENE := 7

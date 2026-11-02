@@ -38,6 +38,9 @@ class FakeDialogue extends Node:
 		said.append([speaker, group, tag])
 		return ["…", "…"]
 
+	func say_ambient(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false) -> Array:
+		return say(_anchor, speaker, group, tag, _s, _a, _h, _p)
+
 	func count(group: String, tag: String) -> int:
 		var n := 0
 		for l: Array in said:
@@ -304,6 +307,18 @@ func _check_sites(c: Crowds) -> void:
 			and Crowds.gelato_queue(16.0, 2, 7) == [Crowds.GELATO_MAX, "lody"]
 			and Crowds.gelato_queue(12.0, 2, 1) == [Crowds.GELATO_WINTER_MIN, "lody_zima"]
 			and Crowds.gelato_queue(16.0, 7, 12)[0] > Crowds.GELATO_WINTER_MIN, "DALEJ DALLA GELATO: its line by hour, winter too")
+	# F, 2026-11-01: the Vistula boulevards' chill spots.
+	_expect(Crowds.BULWARY.size() >= 8 and Crowds.BULWARY.values().all(func(v: Array) -> bool: return int(v[1]) > 0 and float(v[2]) > 0.0),
+			"Bulwary: %d chill spots with people and a radius" % Crowds.BULWARY.size())
+	_expect(Crowds.stop_level(8.0, 2, false) == 1.0 and Crowds.stop_level(8.0, 7, false) < 0.5
+			and Crowds.stop_level(3.0, 2, false) == 0.0 and Crowds.stop_level(11.0, 2, true) > Crowds.stop_level(11.0, 2, false),
+			"Marszałkowska platforms: rush hour full, Sunday thin, night empty, rain fuller")
+	var stops := 0
+	for ss: Dictionary in c.sites:
+		if ss["kind"] == "stop":
+			stops += 1
+			_expect(not (ss["slots"] as Array).is_empty(), "%s: no slots on its platform" % ss["id"])
+	_expect(stops >= 4, "Marszałkowska: only %d tram platforms with a crowd" % stops)
 	_expect(Crowds.piure_queue(17.0, 5)[0] == 0 and Crowds.piure_queue(20.0, 2) == [10, "timber"]
 			and Crowds.piure_queue(20.0, 5)[0] == Crowds.PIURE_MAX and Crowds.piure_queue(0.5, 7)[0] == Crowds.PIURE_MAX
 			and Crowds.piure_queue(0.5, 1)[0] == 10 and Crowds.piure_queue(1.5, 6)[0] == 0, "HOTEL PIURE: its line by hour")
