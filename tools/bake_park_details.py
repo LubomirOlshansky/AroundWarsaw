@@ -37,10 +37,10 @@ SRC_KEYS = ("roads", "carriage", "kerbs", "paths", "trams", "rails", "buildings"
             "guards", "medians", "areas", "platforms", "islands", "surfaces", "lamps", "signals", "benches",
             "bins", "bikes", "columns", "shelters", "parked", "trees3d", "pois", "landmarks")
 KINDS = ["duck", "swan", "footbridge", "fountain", "rowboat", "carousel", "playground", "gazebo", "sundial",
-         "pergola", "seated", "picnic", "peacock", "squirrel", "statue", "yoga"]
+         "pergola", "seated", "picnic", "peacock", "squirrel", "statue", "yoga", "ropecourse"]
 RADIUS = {"duck": 0.3, "swan": 0.5, "footbridge": 3.6, "fountain": 3.3, "rowboat": 1.6, "carousel": 2.8,
           "playground": 3.7, "gazebo": 2.6, "sundial": 0.8, "pergola": 3.3, "seated": 0.0, "picnic": 1.4,
-          "peacock": 0.8, "squirrel": 0.15, "statue": 1.0, "yoga": 3.0}
+          "peacock": 0.8, "squirrel": 0.15, "statue": 1.0, "yoga": 3.0, "ropecourse": 7.0}
 MAX_ITEMS = 700
 SECTOR = 512.0
 
@@ -49,6 +49,8 @@ PARKS = {
     "saski": dict(poi=(-1125.2, -691.8), seated=0.30, statues=16, picnic=4, yoga=1, squirrels=7, ducks=8, swans=2),
     "krasinski": dict(poi=(-1481.2, -1579.6), seated=0.30, statues=0, picnic=4, yoga=1, squirrels=7, ducks=9, swans=2),
     "ujazdowski": dict(poi=(109.2, 1224.0), seated=0.28, statues=0, picnic=6, yoga=1, squirrels=8, ducks=10, swans=3),
+    # The strip of green by Al. Jana Pawła II west of Arkadia (K8): the rope course plays here.
+    "arkadia": dict(poi=(-2880.0, -2640.0), seated=0.0, statues=0, picnic=0, yoga=0, squirrels=2, ducks=0, swans=0),
     "zamek": dict(poi=(380.0, 1560.0), seated=0.5, statues=0, picnic=3, yoga=0, squirrels=5, ducks=0, swans=0),
 }
 # [kind, x, z, yaw, colour, park]: where the one-off pieces stand (before the snap to a free spot).
@@ -61,6 +63,7 @@ ANCHORS = [
     ("pergola", 70.0, 1330.0, 1.5708, "#8a6a45", "ujazdowski"),
     ("footbridge", 167.0, 1479.0, 0.0, "#5a4632", "ujazdowski"),
     ("pergola", -1355.0, -1560.0, 0.0, "#8a6a45", "krasinski"),
+    ("ropecourse", -2880.0, -2640.0, 1.5708, "#e8503a", "arkadia"),
 ]
 STONE = ["#cdbf9f", "#c4b690", "#d4c8a8"]
 SHIRTS = ["#d8432f", "#2f6fb5", "#e0b23a", "#3b8f5a", "#f2efe8", "#7a4fa8", "#e57aa0", "#c96b2c", "#5aa9c9", "#9c2f3a"]

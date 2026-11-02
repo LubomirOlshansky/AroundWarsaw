@@ -8,7 +8,7 @@ extends RefCounted
 ##    Both drive on the player's profile, Cruise or Sport (car.gd PROFILES).
 ##  - **Nitro** (NITRO, 600 zł): "Kebab Boost", a button that opens the gas and lifts the top speed
 ##    and the pull for a few seconds, then refills (car.gd NITRO_*; hud.gd draws the button and its
-##    tank once it is owned; the N key on a keyboard).
+##    tank once it is owned; Shift on a keyboard, LB or RB on a pad).
 ##  - **Parts** (PARTS): tyres (grip) and engine (top speed and pull), levels 1 to 3, each level
 ##    dearer than the last (150-400 zł), kept for any car.
 ## Prices follow the jobs' pay (a kebab run about 35 zł): the first part (150 zł) is a few runs

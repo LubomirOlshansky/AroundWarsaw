@@ -55,7 +55,10 @@ pick (section 1) ─► claim the lane ─► brief + delegate (loop-brief) ─�
   session works on its branch, opens a PR per item or round, and **merges its own PR once
   every check is green** (the user's yes, 2026-10-30: a PR waiting for a merge must not stall
   the work). Never merge on red, with unanswered review comments, or with a conflict you
-  resolved by guessing; never force-push. Then start the next item from the new main.
+  resolved by guessing; never force-push. "Green" means the `verify` workflow's `quick` and `map`
+  jobs both finished with success on the PR's head commit: a run still in progress, or one for an
+  older commit, is not green (2026-11-02: #261 merged while its run was red). Then start the next
+  item from the new main.
 
 ## 3. Lanes: never two sessions in one area
 
