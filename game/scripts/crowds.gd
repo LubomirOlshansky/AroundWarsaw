@@ -278,6 +278,18 @@ const COATS := ["#1f1f22", "#1c2230", "#2b2c2f", "#3a3b3f", "#c9a23a", "#e8e4d8"
 const ZAKWAS_TAG := "zag_rozen"
 const ZAKWAS_ID := "trend_zakwas"
 const ZAKWAS_MAX := 18
+## KRINGULA PIZZA (F's list of ideas #6, 2026-11-02; a parody of the Neapolitan pizzeria Warsaw
+## queues for): the hype shop, open 12:00-23:00, never under 24 in the line, 40 at the Friday and
+## Saturday dinner hours and on a Sunday afternoon; tag "kringula" (ecstatic fans, placeholder copy,
+## the real joke is F's to write: QUESTIONS). Same trend-queue machinery as KUKŁA, so the
+## "Cringulo effect" lifts it too.
+const KRINGULA := ["kringula_pizza"]
+const KRINGULA_MAX := 40
+const KRINGULA_MIN := 24
+## The other hyped chains' morning lines (F's #5, huge queues everywhere): the green-café's pavilion
+## and KOSZTA on Marszałkowska, 7:00-11:00 on a working day 16 and a half-length line later, tag "kolejka".
+const COFFEE := ["nerwo_pawilon", "koszta_marszalkowska"]
+const COFFEE_MAX := 16
 ## vision 4.5's hour curves (the hour's whole part; missing hours are 0). Lusterko's 09-12 is 0.5
 ## on a Sunday only (`queue_factor`).
 const CURVES := {
@@ -599,6 +611,26 @@ static func zakwas_queue(hour: float, weekday: int) -> Array:
 	return [8, "zakwas"]
 
 
+## KRINGULA PIZZA's line now: [people, "kringula"]. 12:00-23:00; see KRINGULA_MAX.
+static func kringula_queue(hour: float, weekday: int) -> Array:
+	if hour < 12.0 or hour >= 23.0:
+		return [0, ""]
+	var dinner := hour >= 18.0 and hour < 22.0
+	if (dinner and (weekday == 5 or weekday == 6)) or (weekday == 7 and hour >= 14.0 and hour < 20.0):
+		return [KRINGULA_MAX, "kringula"]
+	return [34 if dinner else KRINGULA_MIN, "kringula"]
+
+
+## The hyped coffee chains' line now: [people, "kolejka"]. 7:00-18:00, the working-day morning rush
+## fullest; half-length otherwise.
+static func coffee_queue(hour: float, weekday: int) -> Array:
+	if hour < 7.0 or hour >= 18.0:
+		return [0, ""]
+	if weekday < 6 and hour < 11.0:
+		return [COFFEE_MAX, "kolejka"]
+	return [COFFEE_MAX / 2, "kolejka"]
+
+
 ## DALEJ DALLA GELATO's line now: [people, tag]. 11:00-21:00; a winter month (Nov-Mar) keeps at
 ## least GELATO_WINTER_MIN and peaks at 18 on a weekend afternoon (tag "lody_zima"); summer peaks
 ## at GELATO_MAX in the afternoon (tag "lody").
@@ -733,9 +765,20 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		var ll: Array = Storefronts.TRENDY[vid]
 		_add_site({"id": vid, "kind": "trend", "max": PISTACJA_MAX if vid == PISTACJA_ID else PADEL_MAX, "tag": "",
 				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
-	for vid: String in KUKLA + [PIURE_ID] + MILK + GELATO:
+	for vid: String in KUKLA + [PIURE_ID] + MILK + GELATO + KRINGULA + COFFEE:
 		var ll: Array = Storefronts.HYPE[vid]
-		_add_site({"id": vid, "kind": "trend", "max": PIURE_MAX if vid == PIURE_ID else (MILK_MAX if vid in MILK else (GELATO_MAX if vid in GELATO else KUKLA_MAX)), "tag": "",
+		var vmax := KUKLA_MAX
+		if vid == PIURE_ID:
+			vmax = PIURE_MAX
+		elif vid in MILK:
+			vmax = MILK_MAX
+		elif vid in GELATO:
+			vmax = GELATO_MAX
+		elif vid in KRINGULA:
+			vmax = KRINGULA_MAX
+		elif vid in COFFEE:
+			vmax = COFFEE_MAX
+		_add_site({"id": vid, "kind": "trend", "max": vmax, "tag": "",
 				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
 	var zak: Dictionary = Zaglebie.shop(ZAKWAS_TAG)
 	if not zak.is_empty():
@@ -1674,6 +1717,10 @@ func tick(step: float) -> void:
 					q = milk_queue(hour, weekday)
 				elif s["id"] in GELATO:
 					q = gelato_queue(hour, weekday, month)
+				elif s["id"] in KRINGULA:
+					q = kringula_queue(hour, weekday)
+				elif s["id"] in COFFEE:
+					q = coffee_queue(hour, weekday)
 				elif s["id"] == PIURE_ID:
 					q = piure_queue(hour, weekday)
 				elif s["id"] == ZAKWAS_ID:

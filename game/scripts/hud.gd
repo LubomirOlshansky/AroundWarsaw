@@ -1516,6 +1516,20 @@ func show_card(title: String, body: String, buttons: PackedStringArray, accent: 
 	_mark()
 
 
+## PT-13 (2026-11-02): new words on a showing card's button `index` (a job card's GO counts down
+## the seconds to the order's own start, so it no longer goes "without a tap" unexplained).
+func set_card_button(index: int, pl: String, en: String) -> void:
+	var b := _card_buttons.get_node_or_null("button%d" % index) as Button
+	if b != null and not b.is_queued_for_deletion():
+		_set_chip(b, pl, en)
+
+
+## The words on a showing card's button `index` ("" when there is none).
+func card_button_text(index: int) -> String:
+	var b := _card_buttons.get_node_or_null("button%d" % index) as Button
+	return "" if b == null else (b.get_child(0).get_child(0) as Label).text
+
+
 func hide_card() -> void:
 	_show(_card, false)
 

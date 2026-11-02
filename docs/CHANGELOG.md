@@ -11,6 +11,9 @@ someone writes its lines.
 
 ## 2026-11-02
 - Loud cars: a meet of low, wide supercars in acid colours (no badges) on the square by the Browary Warszawskie gate, with people filming them on their phones, and a few of them out on the streets, revving and crackling as they pass. KEBAB FM reports that the neighbours are counting the revs again.
+- Railway tracks now look like tracks: pale gravel shoulders, concrete sleepers and shiny rail heads.
+- A new pizzeria, KRINGULA PIZZA, with a huge queue of people who cry over the first bite, and longer morning queues at two hyped coffee chains.
+- A delivery order's GO button counts down the seconds until the order starts by itself, so it no longer seems to start without a tap.
 - On wide phones the radio's line no longer slides in cut off at the screen edge, and the orange delivery marker stays under speech bubbles and banners, with its distance clear of its arrow.
 - The race card names where you are racing in full ("pod Palmę") instead of cutting it off, and tells you to drive there, with the pink arrow showing the way.
 - The first rescue call tells you which way to go: the card gives the distance and compass direction to the person who needs help.
