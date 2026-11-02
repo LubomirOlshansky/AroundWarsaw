@@ -2910,10 +2910,14 @@ func _on_station_changed(_index: int, info: Dictionary) -> void:
 	hud.set_radio_colour(info.get("colour", Color.WHITE) if not info.is_empty() else Color("#c9c4d8"))
 
 
-## Beta radio (2026-11-02): when the title goes, the host says good morning (or evening) to
+## Beta radio (2026-11-02): when the title goes on a first start or a new game, the host says good morning (or evening) to
 ## Warsaw with the weather and the temperature for the game's hour and month, 4 s after the
 ## station's caption.
 func _radio_greeting() -> void:
+	# F (2026-11-02): only on the first start and after a new game (the same launches as the
+	# opening flyover: the first-10 guide is due), never on every launch.
+	if first10 == null or not first10.guide:
+		return
 	await get_tree().create_timer(4.0).timeout
 	if not is_inside_tree() or radio == null or dialogue == null:
 		return

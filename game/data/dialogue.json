@@ -2,8 +2,8 @@
   "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json. Crash scenes (crash_scenes.gd, 2026-11-01): crash_scene \"driver\", \"officer\", \"medic\", \"gawker\" (bubbles at a fender bender); radio_host \"crash\" ({street}: the road's name, starting the line). Office crowds at Rondo Daszyńskiego (crowds.gd \"office\" sites and walkers, 2026-11-02): office (\"morning\" 07-10, \"lunch\" 11-14, \"evening\" 16-19, \"rain\"; untagged anywhere): overheard corporate jokes, no brand names. Beta radio (2026-11-02): the host's greeting when the game starts (dialogue.gd greeting) = radio_hello_morning / _day / _evening / _night + radio_weather_warm / _mild / _cold / _rain ({t}: the temperature, \"20 stopni\" / \"20 degrees\") + radio_bye (\"morning\", \"day\", \"evening\", \"night\").",
   "radio_host": [
     [
-      "KEBAB FM, 87,3. Na Marszałkowskiej znowu remont. Czyli wszystko po staremu.",
-      "KEBAB FM, 87.3. Roadworks on Marszałkowska again. So, business as usual."
+      "Na Marszałkowskiej znowu remont. Czyli wszystko po staremu.",
+      "Roadworks on Marszałkowska again. So, business as usual."
     ],
     [
       "Korek na Rondzie Dmowskiego. Jeśli tam stoisz — pozdrawiamy, zostań z nami, mamy czas.",
@@ -101,16 +101,16 @@
       "Pasaż Wiecha: a queue for green coffee. Yes, it's tea."
     ],
     [
-      "KEBAB FM. W TIMBER rekord: tysiąc dopasowań i jedna randka. W LORETCE.",
-      "KEBAB FM. A TIMBER record: a thousand matches, one date. At LORETKA."
+      "W TIMBER rekord: tysiąc dopasowań i jedna randka. W LORETCE.",
+      "A TIMBER record: a thousand matches, one date. At LORETKA."
     ],
     [
-      "KEBAB FM. Trzecia w nocy, WACZEK na Marszałkowskiej: cała Warszawa w jednej kolejce.",
-      "KEBAB FM. 3 a.m., WACZEK on Marszałkowska: all of Warsaw in one queue."
+      "Trzecia w nocy, WACZEK na Marszałkowskiej: cała Warszawa w jednej kolejce.",
+      "3 a.m., WACZEK on Marszałkowska: all of Warsaw in one queue."
     ],
     [
-      "KEBAB FM. Gra planszowa w PRZEGRYWKACH: trzy godziny, jedna kłótnia, zero zwycięzców.",
-      "KEBAB FM. A board game at PRZEGRYWKI: three hours, one row, no winners."
+      "Gra planszowa w PRZEGRYWKACH: trzy godziny, jedna kłótnia, zero zwycięzców.",
+      "A board game at PRZEGRYWKI: three hours, one row, no winners."
     ],
     [
       "Kolejka pod KUKŁĄ sięga Królewskiej. Naleśniki podobno też są.",
@@ -137,8 +137,8 @@
       "Cringulo gave three smacks. The place is closed for repairs. Of the soul."
     ],
     [
-      "KEBAB FM. Kino Muranów wyświetla film o gołębiu. Trzy godziny, bez dialogów, sala pełna.",
-      "KEBAB FM. Kino Muranów is showing a film about a pigeon. Three hours, no dialogue, sold out."
+      "Kino Muranów wyświetla film o gołębiu. Trzy godziny, bez dialogów, sala pełna.",
+      "Kino Muranów is showing a film about a pigeon. Three hours, no dialogue, sold out."
     ],
     [
       "Atlantic na Chmielnej: seans o 20:00, a o 19:30 już cała ulica w czerni i z okularami.",
@@ -194,8 +194,8 @@
       "Housing market: central prices fell by a full zero percent. Yes, five years in a row."
     ],
     [
-      "KEBAB FM radzi: kawalerka na Woli to nie mieszkanie, to subskrypcja. Płacisz, a i tak nie jest twoja.",
-      "KEBAB FM tip: a studio in Wola isn't a flat, it's a subscription. You pay, and it's still not yours."
+      "Radzimy: kawalerka na Woli to nie mieszkanie, to subskrypcja. Płacisz, a i tak nie jest twoja.",
+      "Our tip: a studio in Wola isn't a flat, it's a subscription. You pay, and it's still not yours."
     ],
     [
       "Pytanie słuchacza: czy da się kupić mieszkanie w Warszawie? Odpowiadamy: da się, jeśli się urodzisz w nim w 1987.",
