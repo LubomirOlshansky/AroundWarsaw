@@ -77,6 +77,10 @@ const KOSZTA_TUBE := Color(0.95, 0.35, 0.3)
 const NERWO_TUBE := Color(0.35, 1.0, 0.55)
 const KUKLA_TUBE := Color(1.0, 0.85, 0.35)
 const KROWA_TUBE := Color(0.62, 0.86, 1.0)
+## The cinemas' marquee tubes: amber, a deep red and a cool white-blue, so a street of them is not one colour.
+const CINEMA_TUBE := Color(1.0, 0.72, 0.25)
+const CINEMA_TUBE_B := Color(1.0, 0.25, 0.3)
+const CINEMA_TUBE_C := Color(0.75, 0.88, 1.0)
 ## The venues' fascias (vision 3.0-3.2): place id -> [the lines of the sign, tube colour, metres
 ## up (the sign's bottom)]. The words are the parody names of places.json (Glon na Powiślu: GLON).
 const VENUES := {
@@ -130,6 +134,14 @@ const VENUES := {
 	"kukla_nowy_swiat": [["KUKŁA", "NALEŚNIKI"], KUKLA_TUBE, 2.8],
 	# The milk bar in Norblin (F, 2026-11-01): a bar mleczny rebuilt as a start-up, cream and blue.
 	"krowa_norblin": [["BAR MLECZNY", "KROWA 2.0"], KROWA_TUBE, 2.8],
+	# Warsaw's classic and arthouse cinemas (F, 2026-11-02): the real independent halls under their
+	# own names (place names, not brands; the multiplex chains stay out), amber marquee tubes.
+	"kino_muranow": [["KINO", "MURANÓW"], CINEMA_TUBE, 3.2],
+	"kino_atlantic": [["KINO", "ATLANTIC"], CINEMA_TUBE_B, 3.2],
+	"kino_luna": [["KINO", "LUNA"], CINEMA_TUBE_C, 3.2],
+	"kino_kultura": [["KINO", "KULTURA"], CINEMA_TUBE, 3.2],
+	"kino_elektronik": [["KINO", "ELEKTRONIK"], CINEMA_TUBE_B, 3.2],
+	"kino_kinoteka": [["KINOTEKA"], CINEMA_TUBE, 3.2],
 	# Zagłębie Kebabowe on Al. Solidarności (zaglebie.gd): Kino Femina's fascia and the five shops'.
 	"zag_femina": [["KINO", "FEMINA"], Color(1.0, 0.3, 0.35), 4.6],
 	"zag_krol": [["KEBAB KRÓL", "MAZOWSZA"], Color(1.0, 0.72, 0.12), 2.8],
@@ -190,6 +202,19 @@ const HYPE := {
 	"kukla_nowy_swiat": [52.2320, 21.0198],
 	# KROWA 2.0, the milk bar on the Żelazna front of Norblin (the Mac look check parks the door).
 	"krowa_norblin": [52.23367, 20.99107],
+}
+## Warsaw's classic and arthouse cinemas (F, 2026-11-02; BACKLOG "Lore: coffee raves and arthouse
+## cinemas"): Kino Muranów (Andersa 1), Atlantic (Chmielna 33), Luna (Marszałkowska 28), Kultura
+## (Krakowskie Przedmieście 21/23), Elektronik (Czerwonego Krzyża 3/5) and the Kinoteka in the Palace
+## (Kino Femina's fascia is zaglebie.gd's `zag_femina`). Like the cafés, not notebook places;
+## same venue code, the nearest road snaps the sign. Iluzjon (Narbutta, Mokotów) is south of the map.
+const CINEMAS := {
+	"kino_muranow": [52.24620, 21.00030],
+	"kino_atlantic": [52.23180, 21.01400],
+	"kino_luna": [52.22830, 21.01360],
+	"kino_kultura": [52.24060, 21.01680],
+	"kino_elektronik": [52.23480, 21.02900],
+	"kino_kinoteka": [52.23100, 21.00450],
 }
 ## Zagłębie Kebabowe's venue anchors: id -> [lat, lon] (Femina and the five shops' doors).
 static func zaglebie_table() -> Dictionary:
@@ -306,7 +331,7 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, zaglebie_table()]:
+	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, zaglebie_table()]:
 		for id: String in table:
 			var ll: Array = table[id]
 			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})

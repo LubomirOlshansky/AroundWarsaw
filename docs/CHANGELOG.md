@@ -14,6 +14,8 @@ someone writes its lines.
 
 
 
+
+- Warsaw's classic cinemas light up their marquees: Kino Muranów, Atlantic, Luna, Kultura, Elektronik and the Kinoteka in the Palace.
 - A new corner by Kino Femina, the Zagłębie Kebabowe: five rival kebab shops on Al. Solidarności (a king, a pasha, an uncle, a night shop and a craft kebab on sourdough), each with its own neon and its own delivery twist. Deliver from all five and the Skewer Trail pays a bonus.
 - Plac Bankowy looks like the real square: the Blue Skyscraper is blue mirror glass (not gold), and the city hall palace, the Voivodeship wing, the old Stock Exchange and Bank, the Arsenal and two small palaces wear their real colours (yellow palace with white columns).
 - Gdański Business Center near Dworzec Gdański is built: the blue glass tower with its slanted crown and the glass blocks with white floor bands and dark top floors, their tenants as parody logos (AWIWA, NIELZEN).
@@ -21,6 +23,8 @@ someone writes its lines.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
+- Old Town roofs are no longer one repeated pattern: slate, zinc and the odd green copper among the terracotta, dormers of different widths, skylights, tall and short chimneys, and some bare slopes.
+- The maps tell places apart: a kebab stand is a round badge with a cone, the słoiki station a triangle, the Leżak depots little houses; the full map now shows metro stations and hospitals, and its legend explains each.
 - Port Czerniakowski has a real sailing harbour: the box in the water is a white club house on piles with a red roof, a flag and a lit PRZYSTAŃ sign, with sailboats in the berths between the piers, along the dam and on buoys in the basin. Marinka, the party barge under Most Świętokrzyski, is a two-deck white boat with a canopied upper deck and strings of lights.
 - The bar barges on the Vistula are real boats now: steel hulls with glazed decks, sun terraces under umbrellas, strings of warm bulbs, a gangway to the boulevard and their names in neon (Wieczorek nad Wisłą, Biała Barka, Marinka, Kaskadka); the houseboats in the harbour got cabins too.
 - Warsaw's flat prices get the joke they deserve: KEBAB FM, passengers, Podwózka riders, angry drivers and three developer billboards (KLATKA, METRAŻ, KREDYT) all grumble about studios that cost a fortune and mortgages that outlive you.
