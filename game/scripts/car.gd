@@ -230,6 +230,8 @@ var vel := Vector3.ZERO
 var forward_speed := 0.0
 ## Times the car's state left the numbers (NaN or infinity) and was put back (loop 3h slice 4).
 var nan_recoveries := 0
+## check_finite.gd's poisoned cars: count the recoveries without the warning (it expects them).
+var nan_quiet := false
 var _good_xform := Transform3D.IDENTITY
 var _good_seen := false
 ## The state as the last physics step began (the NaN report says what went in).
@@ -361,13 +363,41 @@ func _process(dt: float) -> void:
 func _physics_process(dt: float) -> void:
 	var t0 := Time.get_ticks_usec()
 	_pre_step = [global_transform, vel, target_dir, steer, steer_now, yaw_rate, throttle, braking, parked, collision_mask, in_water]
+	_clean_inputs()
 	_step(dt)
 	_keep_finite()
 	spent_usec += Time.get_ticks_usec() - t0
 
 
+## The NaN car (2026-11-02): the stick, the steering and the pedals come from many writers (the
+## controls, the police's test drivers, the autopilots, the guide). One that is not a number would
+## turn the car by NaN (`signed_angle_to`, then `rotate_y`) and poison its rotation for good, so it
+## is dropped here, before the step, and counted with the other recoveries (check_finite.gd).
+func _clean_inputs() -> void:
+	var dirty := false
+	if not target_dir.is_finite():
+		target_dir = Vector3.ZERO
+		dirty = true
+	if not is_finite(steer):
+		steer = 0.0
+		dirty = true
+	if not is_finite(throttle):
+		throttle = 0.0
+		dirty = true
+	if not is_finite(steer_now) or not is_finite(yaw_rate):
+		steer_now = 0.0
+		yaw_rate = 0.0
+		dirty = true
+	if dirty:
+		nan_recoveries += 1
+		if not nan_quiet:
+			push_warning("car: an input was not a number (target_dir, steer, throttle or the steering state), dropped (recovery %d); the step began with %s"
+					% [nan_recoveries, _pre_step])
+
+
 ## A safety net (loop 3h slice 4): once in ~10 headless first-10 replays the car's position went
-## NaN at a rescue pickup (cause not found yet; BACKLOG "From loop 3h slice 4"), and a NaN car
+## NaN at a rescue pickup (not seen again in 55 replays since, nor found by check_finite.gd's sweep
+## of the map's heights, lanes and the car's step; BACKLOG "From loop 3h slice 4"), and a NaN car
 ## poisons everything that measures from it (every Syrenka "found", the police lookups). If the
 ## position, rotation or velocity is not a number after a step, the car goes back to its last good
 ## transform, stopped, and the event is logged once per occurrence.
@@ -379,11 +409,16 @@ func _keep_finite() -> void:
 		_good_seen = true
 		return
 	nan_recoveries += 1
-	push_warning("car: state not a number (pos %s, vel %s, basis z %s, fwd speed %s), put back at %s (recovery %d); the step began with %s"
-			% [x.origin, vel, x.basis.z, forward_speed, _good_xform.origin, nan_recoveries, _pre_step])
+	if not nan_quiet:
+		push_warning("car: state not a number (pos %s, vel %s, basis z %s, fwd speed %s), put back at %s (recovery %d); the step began with %s"
+				% [x.origin, vel, x.basis.z, forward_speed, _good_xform.origin, nan_recoveries, _pre_step])
 	vel = Vector3.ZERO
 	velocity = Vector3.ZERO
 	forward_speed = 0.0
+	steer_now = 0.0
+	yaw_rate = 0.0
+	if not _body.rotation.is_finite():
+		_body.rotation = Vector3.ZERO
 	if _good_seen:
 		global_transform = _good_xform
 	reset_physics_interpolation()
