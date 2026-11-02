@@ -17,10 +17,13 @@ extends SceneTree
 ##     the safe area and no two of them overlap; no panel was left without room (the passing
 ##     ones, the ticker, notes, bubbles and the overlay, may wait for room: listed); the passing
 ##     panels keep off the car's spot in the middle of the screen;
-##   - the settings panel and the bench card fit without being shrunk.
+##   - the settings panel and the bench card fit without being shrunk;
+##   - at larger text (x1.25) the same holds, a panel that must show stepping its own text down
+##     to find room (hud.gd `_fit_text`), never below the normal size (each step listed).
 ## Prints a line per screen and state, then `check_hud: OK` (exit 0) or the problems (exit 1).
 ##   godot --headless --path game --script res://tools/check_hud.gd [-- --verbose]
 
+const Access := preload("res://scripts/access.gd")
 const Hud := preload("res://scripts/hud.gd")
 const Bubbles := preload("res://scripts/bubbles.gd")
 ## Loop 3g-1: the pull-over card (police.gd lays it out with the HUD's panels).
@@ -53,6 +56,8 @@ var _speakers := {}
 ## Passing panels (the radio ticker, the note and landmark cards) and the performance overlay
 ## that waited for room: allowed, they show once there is some.
 var _waits: Array[String] = []
+## Large text: the panels that stepped their text down to find room (hud.gd `fitted`).
+var _fitted: Array[String] = []
 
 
 func _initialize() -> void:
@@ -99,8 +104,12 @@ func _run() -> void:
 	_check_quiet_driving()
 	for w in _waits:
 		print("  waits for room: %s" % w)
+	# The x1.25 pass is a gate (2026-11-02): a panel that must show and has no room at the larger
+	# text steps its own text down (hud.gd `_fit_text`); listed here, never below the normal size.
+	for f in _fitted:
+		print("  text stepped down: %s" % f)
 	if problems.is_empty():
-		print("check_hud: OK (%d screens, %d states; a passing panel waited for room %d times)" % [SCREENS.size(), states, _waits.size()])
+		print("check_hud: OK (%d screens, %d states; a passing panel waited for room %d times; large text stepped down %d times)" % [SCREENS.size(), states, _waits.size(), _fitted.size()])
 		quit(0)
 	else:
 		for p in problems:
@@ -146,7 +155,8 @@ func _check_screen(screen: Vector2i) -> int:
 	# Desktop: --no-touch (trailer loop, 2026-10-29): a third pass with the touch-only controls
 	# away; none may be left to press or take room.
 	# Accessibility (2026-11-01): a fourth pass in the left-handed layout (the pedals bottom left).
-	for mode in ["", "perf", "no-touch", "left-handed"]:
+	# Larger HUD text (2026-11-02): a fifth pass at Access.LARGE_TEXT (x1.25), the setting the phone's own text size will drive.
+	for mode in ["", "perf", "no-touch", "left-handed", "large-text"]:
 		var perf: bool = mode == "perf"
 		for state in ["car, Point", "car, Classic", "helicopter", "call came in", "call card", "rescued, paid",
 				"rescue, host, egg", "kebab offer", "kebab delivery", "race", "rival ahead", "landmark card", "note card", "tow toast",
@@ -159,6 +169,11 @@ func _check_screen(screen: Vector2i) -> int:
 			if mode == "left-handed" and not state in ["car, Point", "car, Classic", "helicopter", "rescue, host, egg", "kebab offer",
 					"landmark card", "police chase", "pull-over", "ride offer", "ride"]:
 				continue
+			if mode == "large-text" and not state in ["car, Point", "call came in", "call card", "rescue, host, egg", "kebab offer",
+					"kebab delivery", "race", "landmark card", "note card", "police chase", "pull-over", "ride offer", "ride", "ride result"]:
+				continue
+			Access.text_scale = Access.LARGE_TEXT if mode == "large-text" else 1.0
+			hud.apply_text_scale()
 			hud.set_left_handed(mode == "left-handed")
 			hud.clear_all()
 			bubbles.clear()
@@ -371,6 +386,8 @@ func _check_screen(screen: Vector2i) -> int:
 		count += 1
 	panel.close()
 	hud.set_left_handed(false)
+	Access.text_scale = 1.0
+	hud.apply_text_scale()
 	book.free()
 	egg_book.free()
 	tape.free()
@@ -959,6 +976,14 @@ func _check_state(hud: CanvasLayer, bubbles: Control, where: String) -> void:
 			problems.append("%s:   (the card %s pt)" % [where, hud._card.get_combined_minimum_size() / pt])
 	for n in hud.waiting():
 		_waits.append("%s in %s" % [n, where])
+	var fit: Dictionary = hud.fitted()
+	for n in fit:
+		if Access.text_scale <= 1.0:
+			problems.append("%s: %s shrank its text at the normal size" % [where, n])
+		elif float(fit[n]) < 1.0 - 0.001:
+			problems.append("%s: %s's text is below the normal size (x%.2f)" % [where, n, fit[n]])
+		else:
+			_fitted.append("%s x%.2f in %s" % [n, fit[n], where])
 	if bubbles.overlaps > 0:
 		_waits.append("%d speech bubble(s) in %s" % [bubbles.overlaps, where])
 	_check_fonts(hud, where, pt)

@@ -13,7 +13,7 @@ bubbles and KEBAB FM's "Sąsiedzi znów liczą obroty". Open:
 - The meet's spot is the paved gate square read off the map's outlines; a photo check on the Mac.
 - A continuous loud-engine loop on a loud car while it is near (now one rev per pass, 7-12 s apart),
   and exhaust flames on the overrun at night (the meet already has its headlights on).
-- The player driving into the meet: the cars are solid boxes; a crowd line when the player's car stops there.
+- Done 2026-11-02: when the player's car stands still within 16 m of the meet for 2.5 s the crowd says a `car_meet` line tagged "stop" (4 lines, once per 45 s; `loud_cars.gd` `_stop_step`). Left: the cars are solid boxes you can drive into.
 
 ## City inventory (F, 2026-11-02)
 
@@ -268,8 +268,20 @@ Left:
 - Phone look and cost near the stadium (+5 draw calls in the cloud bench); banner readability at phone size.
 - The north groups stand between the pavement and the road edge on the forecourt; check against
   photos of the real gate (Mac photo check of the stadium is already parked).
-- Fans walking to the stadium from the tram stops before kick-off, and leaving after (only standing groups now).
-- A post-match evening variant (a win: louder chant; a draw: "następnym razem").
+- Match day built (2026-11-02): walkers in bunches on four routes (the bus stops by the Trasa,
+  Łazienkowska from the west, Czerniakowska from the south) to the groups before kick-off, late
+  runners, home the other way after full time; a win (chants twice as often, scarves up, `win`
+  lines, a toast) or a draw (`draw` lines). Left: the real stop names and whether trams or buses
+  serve the stadium (the map has no tram near it; QUESTIONS), a phone look of the walkers' size
+  and the cost on the phone (+1 draw call while they walk, 0.09 ms fans scripts in the cloud
+  probe, was 0.05).
+- Making way and the match built (2026-11-02): walkers and the standing groups step out of the
+  car's path (2.6 m clear, a hop with scarves up and a `dodge` line above 30 km/h), walk round a
+  stopped car and step back after; during the match the groups file in until 15 % stay (the
+  drummer and a few with a radio, `match` lines, no smoke) and come back out just before full
+  time. Left: the feel on the phone (step speed, is the hop readable at the default zoom), a fan
+  stepping aside can end up against a wall or on the road edge (no obstacle test, capped at
+  3.2 m), the walkers don't step aside for the AI traffic, only the player's car.
 
 ## Police chases and radiowozy (F, 2026-11-02)
 
@@ -312,7 +324,7 @@ Twelve ideas, plans in docs/design/city-life-satire.md. Built: #11 MIESZANE MIES
 `kebab_mieszane`; evening queue `Crowds.MIESZANE`, "mieszane" lines in `viral`, one vendor line in `kebab_vendor`), #12 NOSE AGENCY crown sign on the Skyliner. Done before: #10 (PR #309). Open, each its own thread:
 - **Loud cars (#1, Opus)**: sports-car meet at Browary Warszawskie (generic bodies, no marques) and revving cars in traffic with a louder engine layer.
 - **Wellness circles (#2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu; Sonnet, ONE thread)**: one new crowd spot kind `circle`.
-- **Queues (#5) and KRINGULA PIZZA (#6, Sonnet)**: extend the queue sites; the brick pizzeria and its fans; the joke text goes to F (QUESTIONS).
+- Queues (#5) and KRINGULA PIZZA (#6): built, with the "kolejka w kolejce" lines (2026-11-02). Left: F rewrites the joke text if he likes (QUESTIONS), Mac look check of the queue spots.
 - Legia fans (#7): built (PR #336); what is left is in "Kibice by Stadion Leguminy".
 - **Bike paths (#9, Opus)**: compare with the real network, fill gaps by data, rider density on the main ones.
 - Small: English "UNDER CONSTRUCTION" on the edge roadworks boards; Mac look check of both new signs (the shop's door is a guess 40 m west of KEBAB KRÓL; Godot did not run in the cloud for this change).
@@ -849,8 +861,16 @@ VHS pulse), colour-safe markers (drop-off beacon blue, patrol lights white/blue)
   and Classic's strip on the right, the credit line bottom right; `check_hud` runs a left-handed
   pass (10 states x 6 screens). Left: the feel on the phone; in this layout the bottom card can
   sit lower (nothing on the right pushes it up), so the radio ticker waits for room more often.
-- Text size that follows the phone's own setting (the toggle itself is live since 2026-11-01);
-  the panels with fixed layouts (cards, bubbles) need a check at x1.25 on the SE.
+- Text size that follows the phone's own setting (the toggle itself is live since 2026-11-01).
+  **Two parts found 2026-11-02.** (1) Reading iOS Dynamic Type / Android font scale needs a native
+  call; Godot 4.7 has no API for it, so it waits for a small iOS/Android plugin (Mac work).
+  (2) ~~The HUD at x1.25 doesn't fit the small phones~~ Done (2026-11-02): a panel that must show
+  (status, cards, banner) and finds no room at the larger text steps its own text down 0.05 at a
+  time, never below normal (hud.gd `_fit_text`); the ride's side card also keeps off the car's
+  spot. `check_hud`'s large-text pass is a gate and lists each step-down (11 of 84 states: the
+  rescue status x1.10-1.20, the race banner x1.05-1.20, the ride cards x1.00-1.20 on 667x375).
+  Left: the look on the phone at x1.25.
+  Also fixed: `apply_text_scale` errored on a freed label after a setting change.
 - Subtitles: nothing is voiced yet; revisit when speech or radio talk with words lands.
 - ~~Crash sparks buzz through `Access.buzz`~~ Done (2026-11-01: crash_fx.gd shakes nothing; the
   car's knock goes through haptics.gd, which keeps `Access.vibration`). ~~Colour-safe still to cover the HUD's green badges and the red fail colour.~~ Done
@@ -1010,8 +1030,8 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   streets were 3 m strips (505 ways, 31 km: Mokotowska, Wilcza, Hoża, Żurawia, Noakowskiego...) and are
   now the street's default width, 5.5 m (6.5 m tertiary), split legs round an island kept at one lane;
   two-lane two-way streets 6 → 7 m (423 ways, F's yes).
-- Already listed and still open: lines inside junctions not checked against photos and the dark
-  Jerozolimskie / Nowy Świat at night ("From map review B"); the loop 3e structures (Łazienkowski's
+- Already listed and still open: lines inside junctions not checked against photos ("From map
+  review B"; the dark Jerozolimskie / Nowy Świat at night fixed 2026-11-02); the loop 3e structures (Łazienkowski's
   Praga end R8, the rail cutting, Rozdroże's tubes, Nowy Zjazd's wall, deck 4); Most Łazienkowski
   cut by the east edge ("From loop 3d-1", a decision).
 
@@ -1356,8 +1376,10 @@ Built (`wellness.gd`, docs/design/wellness.md; ideas 2, 3, 4 and 8 of docs/desig
 spots (Park Świętokrzyski, Skwer Kościuszki, Rondo Daszyńskiego, Browary Warszawskie, Ogród Saski, Park Ujazdowski,
 Ogród Krasińskich) in daylight hours, 58 lines (`sound_healing`, `techno_yoga`, `club_40`, `park_kungfu`), check
 `wellness`. Left:
-- No sound yet: a soft gong when the car passes a sound-healing ring and a thump near a techno row
-  (sfx.gd positional voices, one new make_sfx.py sound each).
+- ~~No sound yet~~ DONE (2026-11-02): `gong_bowls` (gong every 6 s, singing bowl between, 12 s loop) at each sound-healing
+  ring and `techno_thump` (muffled 128 BPM four-on-the-floor, 7.5 s loop) at each techno row, through city_sounds.gd's new
+  `gong` and `thump` kinds (reach 60 and 70 m, sounding while the spot is on); `check_sfx` covers both loops. Only a phone
+  or Mac listen can judge the levels (-13 / -12 dB, cloud has no ears).
 - Mac look check (QUESTIONS): the spots are read off the baked lawns, not seen; Łazienki Królewskie, Pole
   Mokotowskie and Skaryszak (the design doc's other park spots) lie outside the map.
 - Only the phone can show whether the 7-10 figures, the signs' text and the hamster balls read at the default
@@ -2258,10 +2280,16 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   lane line lie inside the clusters of junction nodes (most at Plac Trzech Krzyży (-77, 670), the
   Poniatowski ramps (1381, -344), Wał Miedzeszyński (1514, -147)); measured, not yet checked
   against the photo one by one (many are a real edge line along a wide junction's side).
-- At night Al. Jerozolimskie at (-615, 394) and Nowy Świat at (-331, 18) read much darker than
-  Marszałkowska and Świętokrzyska, though lamps are mapped along them (one per 42 m and 22 m of
-  way): not judged in review B (the pools in `lights.bin` there, sodium or LED, cut by the
-  buildings?); shots `shots/review_roads/after/n2_*`, `n4_*` (local).
+- ~~At night Al. Jerozolimskie at (-615, 394) and Nowy Świat at (-331, 18) read much darker than
+  Marszałkowska.~~ Fixed 2026-11-02 in `tools/bake_lights.py`: the lamps it adds on unlit stretches
+  stood 34 m apart a side, so the pools (lit bands 9-12 m) left gaps on the wide avenues; primary and
+  secondary streets now get one every 26 m (gap 16 m), Nowy Świat and Krakowskie Przedmieście are lit
+  from both pavements (Nowy Świat was one side, the other side's spots fell inside the 22 m gap of
+  the lamp across), and a kerb spot on asphalt steps out up to 4 m (Nowy Świat's parking bays).
+  2004 → 2455 added street lamps (lamp posts are one MultiMesh: +0 draw calls). Share of the
+  carriageway in a lit band at the review spots: Nowy Świat 52 → 88 %, Jerozolimskie 32 → 48 %.
+  Open: a phone look at night on both streets; Jerozolimskie's far pavements stay dimmer than the
+  carriageway (lamps stand at the kerb, 30 m dual carriageway).
 - `check_streets` S3 also counts real median noses at a junction's edge (Świętokrzyska by Mariańska,
   18 cross-sections): reported, not failed.
 

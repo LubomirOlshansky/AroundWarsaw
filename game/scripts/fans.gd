@@ -20,10 +20,22 @@ extends Node3D
 ##    then from the kid; a toast the first time the car meets the fans.
 ##  - **Sound**: city_sounds.gd's `chant` kind (the fan_chant loop, tools/make_sfx.py) at each group
 ##    while it is out.
+##  - **Match day** (follow-up, 2026-11-02): kick-off is KICK_AFTER h into the evening (`phase_at`).
+##    In the ARRIVE h before it fans walk (`ROUTES`) from the bus stops by the Trasa Łazienkowska
+##    and along Łazienkowska and Czerniakowska to the groups, more as kick-off nears, the last few
+##    running late; from FULL_TIME h after kick-off, for LEAVE h, they stream back the other way.
+##    The result is a win or a draw (never a loss: the joke is warm), rolled at full time: a win
+##    has the groups sing twice as often, scarves up on the way home and `win` lines; a draw has
+##    "następnym razem" (`draw`). The routes are found once on the footways and zebras (AStar2D).
+##  - **Making way** (follow-up, 2026-11-02): walkers and the groups' fans step out of the player's
+##    car's path (`dodge_target`), hop aside with the scarves up when it is fast (a `dodge` line),
+##    walk round it when it stands, and step back after. During the match most of each group goes
+##    in (`group_share`): the drummer and a few stay out with a radio (`match` lines), no smoke.
 ## Drawing: the fans one MultiMesh (the pedestrians' person mesh), their props one (a four-shape
 ## family: a scarf held up, a scarf round the neck, the officer's coffee, the foam finger), the smoke
-## puffs one, and the three groups' banners, drums and smoke sticks one mesh: +4 draw calls while the
-## view is within ACTIVE_R of the stadium on a match evening, nothing otherwise. No sun shadow, no
+## puffs one, and the three groups' banners, drums and smoke sticks one mesh, the walkers one more
+## (the person mesh with the walking legs; their scarves join the props): +5 draw calls while the
+## view is within ACTIVE_R of the stadium on a match evening (+4 when nobody walks), nothing otherwise. No sun shadow, no
 ## collision (like the coffee raves). The logic ticks at 2 Hz, the figures move at 10 Hz while near.
 ## The rules are static functions (check_fans.gd runs them on synthetic clocks and the real map).
 
@@ -34,6 +46,7 @@ const CityLife := preload("res://scripts/city_life.gd")
 const PixelFont := preload("res://scripts/pixel_font.gd")
 
 const TICK := 0.5
+## The figures move at 10 Hz (a walker steps 13 cm a move: about a pixel at the phone's zoom).
 const MOVE_TICK := 0.1
 ## Stadion Leguminy's middle (landmarks.gd LEGIA_AT): the view within ACTIVE_R of it draws the fans.
 const STADIUM := Vector2(1139.0, 1500.0)
@@ -81,6 +94,57 @@ const PUFF_SIZE := 1.0
 const SMOKE_ON := 45.0
 const SMOKE_CYCLE := 75.0
 const WIND := Vector3(0.7, 0.0, 0.35)
+## Match day: kick-off KICK_AFTER h after a window in MATCHES opens; walkers come in the ARRIVE h
+## before it (the last LATE of that running) and go home from FULL_TIME h after it for LEAVE h.
+const KICK_AFTER := 1.5
+const ARRIVE := 1.4
+const LATE := 0.08
+const FULL_TIME := 1.9
+const LEAVE := 0.7
+## The walkers' routes: from a start on the map (snapped to the nearest footway) to a group, the
+## most walking it at once. The bus stops' platforms by the Trasa Łazienkowska (there is no tram
+## near the stadium on the map), the west end of Łazienkowska (from Agrykola and Myśliwiecka) and
+## Czerniakowska from the south.
+const ROUTES := {
+	"przystanek_brama": {"from": Vector2(1331.0, 1234.0), "to": "brama", "n": 40},
+	"przystanek_naroznik": {"from": Vector2(1331.0, 1234.0), "to": "naroznik", "n": 32},
+	"lazienkowska": {"from": Vector2(822.0, 1349.0), "to": "brama", "n": 32},
+	"czerniakowska": {"from": Vector2(1470.0, 1700.0), "to": "trasa", "n": 30},
+}
+## Footway graph: points every NODE_STEP m along each footway and zebra, joined to any other
+## within JOIN m (mapped footways often stop short of the next); a route at most ROUTE_MAX m.
+const NODE_STEP := 6.0
+const JOIN := 4.0
+const ROUTE_MAX := 700.0
+## Walking (m/s, ± WALK_VAR), running late, and how far off the footway's middle (m).
+const WALK_V := 1.35
+const WALK_VAR := 0.2
+const RUN_V := 3.0
+const SIDE := 0.75
+## Walkers' lines: one on screen within LINE_VIEW every WALK_LINE_GAP s.
+const WALK_LINE_GAP := Vector2(14.0, 26.0)
+## Making way for the car (follow-up, 2026-11-02): a fan (walking or in a group) whose spot the car
+## will pass within DODGE_MISS m in the next DODGE_T s steps out sideways to DODGE_MISS + 0.4 m off
+## its path (at most DODGE_MAX m) at STEP_OUT_V m/s, and back at STEP_BACK_V once it has gone; a
+## stopped car is walked round at CAR_CLEAR m. Above SCATTER_KMH they hop aside (HOP m) faster,
+## scarves up, and someone says a `dodge` line (at most one every DODGE_LINE_GAP s). Friendly: a
+## "whoa, easy", never a fall.
+const DODGE_T := 1.4
+const DODGE_MISS := 2.2
+const DODGE_MAX := 3.2
+const CAR_CLEAR := 2.6
+const CAR_BACK := 2.5
+const STEP_OUT_V := 3.5
+const STEP_BACK_V := 1.0
+const SCATTER_KMH := 30.0
+const HOP := 0.3
+const DODGE_LINE_GAP := 12.0
+## The match itself: the groups file in through the gate over the first MATCH_IN of it until only
+## MATCH_SHARE stay outside (the drummer and a few without tickets, a radio on), and come back out
+## over the last MATCH_OUT before full time. No smoke while they are in.
+const MATCH_SHARE := 0.15
+const MATCH_IN := 0.06
+const MATCH_OUT := 0.04
 ## Colours: the fans' shirts and jackets (white, red, green and dark), the smoke (from the stick's
 ## bright pink-red to a soft pink), the bubbles, Sierżant Bogdan's hi-vis.
 const SHIRTS := ["#f2efe8", "#f2efe8", "#c4262e", "#c4262e", "#2b6e3f", "#2b6e3f", "#1c2230", "#2b2c2f", "#e8e4d8"]
@@ -131,6 +195,43 @@ var near := false
 ## (bool), officer ({} or {p, yaw}), met}.
 var groups: Array[Dictionary] = []
 var t := 0.0
+## Match day: "arrive", "match", "leave" or "" (`phase_at`), its progress 0..1, the result ("win"
+## or "draw", rolled at full time), --fans-phase= / --fans-result= for shots and checks.
+var phase := ""
+var phase_p := 0.0
+var result := ""
+var force_phase := ""
+var force_result := ""
+## Routes: {id, to (group index), pts (PackedVector2Array), ys (PackedFloat32Array), cum, len}.
+var routes: Array[Dictionary] = []
+## Walkers, in parallel arrays (a move touches every one 10 times a second): the route, metres
+## along it, speed, bunch and its trip number, out on this trip or not, metres off the footway's
+## middle, shirt, trousers, prop (-1 none, SCARF_NECK, FINGER for a kid), a bob phase, heading
+## and the route segment it was on last time.
+var walker_count := 0
+var w_route := PackedInt32Array()
+var w_s := PackedFloat32Array()
+var w_v := PackedFloat32Array()
+var w_clump := PackedInt32Array()
+var w_lap := PackedInt32Array()
+var w_show := PackedByteArray()
+var w_side := PackedFloat32Array()
+var w_shirt := PackedColorArray()
+var w_tr := PackedFloat32Array()
+var w_prop := PackedFloat32Array()
+var w_ph := PackedFloat32Array()
+var w_yaw := PackedFloat32Array()
+var w_seg := PackedInt32Array()
+## Each walker's step aside from its route (m), easing towards `dodge_target`.
+var w_off := PackedVector2Array()
+## Steps aside so far (the check, the log) and the car as last seen by move() (its speed from that).
+var dodges := 0
+var _car_prev := Vector2.INF
+var _dodge_line_at := -99.0
+var walking := 0
+var _walk_line_t := 6.0
+var _clumps := 0
+var _full_time_toast := false
 
 var _rng := RandomNumberGenerator.new()
 var _tick_t := 0.0
@@ -147,6 +248,9 @@ var _puff_mm: MultiMesh
 var _puff_mmi: MultiMeshInstance3D
 var _puff_buf := PackedFloat32Array()
 var _kit: MeshInstance3D
+var _walk_mm: MultiMesh
+var _walk_mmi: MultiMeshInstance3D
+var _walk_buf := PackedFloat32Array()
 
 
 # --- the rules (static: check_fans.gd) -----------------------------------------------------
@@ -326,6 +430,190 @@ static func layout(anchor: Vector2, n: int, foot: Array, roads: Array, blds: Arr
 			"half": half}
 
 
+# --- match day (static: check_fans.gd) -----------------------------------------------------
+
+## The match day's phase at `hour` on `weekday`: ["arrive", 0..1] in the ARRIVE h before kick-off,
+## ["match", 0..1] while the ball rolls, ["leave", 0..1] for LEAVE h from full time, ["", 0] else
+## (also the rest of a match evening, when the groups still sing but nobody walks).
+static func phase_at(hour: float, weekday: int) -> Array:
+	if not MATCHES.has(weekday):
+		return ["", 0.0]
+	var kick := float(MATCHES[weekday][0]) + KICK_AFTER
+	var a := kick - ARRIVE
+	var f := kick + FULL_TIME
+	if hour >= a and hour < kick:
+		return ["arrive", (hour - a) / ARRIVE]
+	if hour >= kick and hour < f:
+		return ["match", (hour - kick) / FULL_TIME]
+	if hour >= f and hour < f + LEAVE:
+		return ["leave", (hour - f) / LEAVE]
+	return ["", 0.0]
+
+
+## How many of a route's walkers are out (0..1) `p` into a phase: on the way in a trickle that
+## grows to a stream just before kick-off and a few running in the last LATE; on the way home
+## everyone at the whistle, thinning out.
+static func walk_density(ph: String, p: float) -> float:
+	match ph:
+		"arrive":
+			if p >= 1.0 - LATE:
+				return 0.18
+			return lerpf(0.2, 1.0, smoothstep(0.0, 0.85, p))
+		"leave":
+			return lerpf(1.0, 0.0, smoothstep(0.0, 1.0, p))
+	return 0.0
+
+
+## A bunch's dice for one trip (0..1): the friends in it come (or don't) together.
+static func clump_roll(clump: int, lap: int) -> float:
+	return fposmod(sin(clump * 12.9898 + lap * 78.233) * 43758.5453, 1.0)
+
+
+## Are the walkers running (late for kick-off)?
+static func running(ph: String, p: float) -> bool:
+	return ph == "arrive" and p >= 1.0 - LATE
+
+
+## The share of a group outside (0..1) `p` into match-day phase `ph`: all of it but during the
+## match, when most file in (MATCH_SHARE stay) and come back out just before full time.
+static func group_share(ph: String, p: float) -> float:
+	if ph != "match":
+		return 1.0
+	if p < MATCH_IN:
+		return lerpf(1.0, MATCH_SHARE, p / MATCH_IN)
+	if p > 1.0 - MATCH_OUT:
+		return lerpf(MATCH_SHARE, 1.0, (p - (1.0 - MATCH_OUT)) / MATCH_OUT)
+	return MATCH_SHARE
+
+
+## Where a fan standing (or walking) at `p` wants to be, as an offset (m), with the car at `car`
+## moving at `vel` (m/s): out of its path (DODGE_MISS + 0.4 m to the side it is already on) when the
+## car will pass within DODGE_MISS in DODGE_T s, round it at CAR_CLEAR when it stands, else ZERO.
+static func dodge_target(p: Vector2, car: Vector2, vel: Vector2) -> Vector2:
+	var rel := p - car
+	var sp := vel.length()
+	if sp < 1.0:
+		var d := rel.length()
+		if d >= CAR_CLEAR:
+			return Vector2.ZERO
+		return (rel / d if d > 0.01 else Vector2.RIGHT) * (CAR_CLEAR - d)
+	var dir := vel / sp
+	var ahead := rel.dot(dir)
+	if ahead < -CAR_BACK or ahead > sp * DODGE_T + CAR_BACK:
+		return Vector2.ZERO
+	var side := Vector2(-dir.y, dir.x)
+	var lat := rel.dot(side)
+	if absf(lat) >= DODGE_MISS:
+		return Vector2.ZERO
+	return side * (1.0 if lat >= 0.0 else -1.0) * minf(DODGE_MISS + 0.4 - absf(lat), DODGE_MAX)
+
+
+## The walkways (footways and zebras off decks) within `reach` m of `c`: [PackedVector2Array,
+## width, zebra] each.
+static func walkways(data: Dictionary, c: Vector2, reach: float) -> Array:
+	var out: Array = []
+	for p: Dictionary in data.get("paths", []):
+		var k := str(p.get("k", ""))
+		if (k != "foot" and k != "zebra") or int(p.get("dk", -1)) >= 0:
+			continue
+		var flat: Array = p["p"]
+		var pts := PackedVector2Array()
+		var close := false
+		for i in flat.size() / 2:
+			var q := Vector2(float(flat[i * 2]), float(flat[i * 2 + 1]))
+			pts.append(q)
+			close = close or q.distance_to(c) < reach
+		if close and pts.size() >= 2:
+			out.append([pts, float(p.get("w", 2.2)), k == "zebra"])
+	return out
+
+
+## The walkways as a graph: a point every NODE_STEP m, linked along each walkway and to any other
+## within JOIN m (zebras a little dearer, so a route crosses where it has to).
+static func walk_graph(ways: Array) -> AStar2D:
+	var g := AStar2D.new()
+	var ids := {}
+	var cells := {}
+	var node := func(q: Vector2, zebra: bool) -> int:
+		var key := Vector2i(roundi(q.x * 2.0), roundi(q.y * 2.0))
+		if ids.has(key):
+			return int(ids[key])
+		var id := g.get_point_count()
+		g.add_point(id, q, 1.3 if zebra else 1.0)
+		ids[key] = id
+		var cell := Vector2i(floori(q.x / JOIN), floori(q.y / JOIN))
+		if not cells.has(cell):
+			cells[cell] = []
+		(cells[cell] as Array).append(id)
+		return id
+	for w: Array in ways:
+		var pts: PackedVector2Array = w[0]
+		var zebra := bool(w[2])
+		var prev: int = node.call(pts[0], zebra)
+		for j in pts.size() - 1:
+			var a := pts[j]
+			var b := pts[j + 1]
+			var m := maxi(1, ceili(a.distance_to(b) / NODE_STEP))
+			for i in range(1, m + 1):
+				var id: int = node.call(a.lerp(b, float(i) / m), zebra)
+				if id != prev:
+					g.connect_points(prev, id)
+				prev = id
+	for cell: Vector2i in cells:
+		for id: int in cells[cell]:
+			var q := g.get_point_position(id)
+			for dx in [-1, 0, 1]:
+				for dy in [-1, 0, 1]:
+					var other := cell + Vector2i(dx, dy)
+					if not cells.has(other):
+						continue
+					for o: int in cells[other]:
+						if o > id and not g.are_points_connected(id, o) and g.get_point_position(o).distance_to(q) < JOIN:
+							g.connect_points(id, o)
+	return g
+
+
+## A route on the graph from the walkway point nearest `from` to the one nearest `to` (empty when
+## either is more than 30 m off, they don't connect, or it is longer than ROUTE_MAX).
+static func walk_route(g: AStar2D, from: Vector2, to: Vector2) -> PackedVector2Array:
+	if g.get_point_count() == 0:
+		return PackedVector2Array()
+	var a := g.get_closest_point(from)
+	var b := g.get_closest_point(to)
+	if g.get_point_position(a).distance_to(from) > 30.0 or g.get_point_position(b).distance_to(to) > 30.0:
+		return PackedVector2Array()
+	var pts := g.get_point_path(a, b)
+	if pts.size() < 2 or path_length(pts) > ROUTE_MAX:
+		return PackedVector2Array()
+	return pts
+
+
+static func path_length(pts: PackedVector2Array) -> float:
+	var l := 0.0
+	for j in pts.size() - 1:
+		l += pts[j].distance_to(pts[j + 1])
+	return l
+
+
+## The point `s` m along a route (`cum` its cumulative lengths) and the way it heads there:
+## [Vector2, Vector2 direction, segment index, fraction].
+static func along_route(pts: PackedVector2Array, cum: PackedFloat32Array, s: float) -> Array:
+	var n := pts.size()
+	var x := clampf(s, 0.0, cum[n - 1])
+	var lo := 0
+	var hi := n - 1
+	while hi - lo > 1:
+		var mid := (lo + hi) / 2
+		if cum[mid] <= x:
+			lo = mid
+		else:
+			hi = mid
+	var seg := cum[hi] - cum[lo]
+	var f := (x - cum[lo]) / seg if seg > 0.0 else 0.0
+	var d := (pts[hi] - pts[lo]).normalized() if seg > 0.0 else Vector2.UP
+	return [pts[lo].lerp(pts[hi], f), d, lo, f]
+
+
 # --- setup ---------------------------------------------------------------------------------
 
 ## The groups from the map data (roads, buildings, footways round the stadium).
@@ -353,8 +641,12 @@ func setup(data: Dictionary, seed_value := 1916) -> void:
 			elif role == "smoke":
 				shirt = HOLDER_SHIRT
 			var p := _ground(p2)
+			# Who stays outside during the match (ord < the share): the drummer always, then the fans
+			# in a random order; the kid and the smoke holders go in first.
+			var ord := 0.0 if role == "drum" else (_rng.randf_range(0.02, 0.98) if role == "fan" else 0.99)
 			slots.append({"p": p, "yaw": atan2(-look.x, -look.y), "shirt": shirt, "tr": _rng.randf() * 0.99, "role": role,
-					"ph": _rng.randf_range(-1.0, 1.0), "scarf": role == "fan" and _rng.randf() < 0.75})
+					"ph": _rng.randf_range(-1.0, 1.0), "scarf": role == "fan" and _rng.randf() < 0.75, "ord": ord,
+					"off": Vector2.ZERO})
 			if role == "smoke":
 				# The stick's top in the raised right hand (the figure faces -z: its right is +x).
 				var right := Vector2(-face.y, face.x)
@@ -364,7 +656,9 @@ func setup(data: Dictionary, seed_value := 1916) -> void:
 				"banner": lay["banner"], "back": float(lay["back"]), "half": float(lay["half"]), "text": spec["banner"],
 				"slots": slots, "tips": tips, "max": int(spec["n"]), "n": 0, "chant": 0.0,
 				"next": _rng.randf_range(2.0, 8.0), "honk_t": 0.0, "line_t": _rng.randf_range(3.0, 8.0),
-				"police": bool(spec["police"]), "officer": {}, "met": false, "smoke_ph": _rng.randf_range(0.0, SMOKE_CYCLE)})
+				"police": bool(spec["police"]), "officer": {}, "met": false, "smoke_ph": _rng.randf_range(0.0, SMOKE_CYCLE),
+				"share": 1.0, "dodging": false})
+	_setup_routes(data)
 	_build_drawing()
 	if sounds != null and sounds.has_method("add_crowd"):
 		for g in groups:
@@ -374,7 +668,69 @@ func setup(data: Dictionary, seed_value := 1916) -> void:
 	var sizes := PackedStringArray()
 	for g in groups:
 		sizes.append("%s %d" % [g["id"], (g["slots"] as Array).size()])
-	print("fans: %d groups by Stadion Leguminy (%s), amount %.2f" % [groups.size(), ", ".join(sizes), amount])
+	print("fans: %d groups by Stadion Leguminy (%s), %d routes, %d walkers, amount %.2f" % [groups.size(), ", ".join(sizes),
+			routes.size(), walker_count, amount])
+
+
+## The walkers' routes (ROUTES) on the walkways round the stadium, each ending at its group's
+## pavement point, and the walkers on them (× the --crowd scale).
+func _setup_routes(data: Dictionary) -> void:
+	var g := walk_graph(walkways(data, STADIUM, 650.0))
+	var idx := {}
+	for i in groups.size():
+		idx[groups[i]["id"]] = i
+	for id: String in ROUTES:
+		var spec: Dictionary = ROUTES[id]
+		if not idx.has(spec["to"]):
+			continue
+		var gi: int = idx[spec["to"]]
+		var pts := walk_route(g, spec["from"], groups[gi]["at"])
+		if pts.is_empty():
+			push_warning("fans: no walkway from %s to the %s group" % [id, spec["to"]])
+			continue
+		var cum := PackedFloat32Array([0.0])
+		var ys := PackedFloat32Array([_ground(pts[0]).y])
+		for j in range(1, pts.size()):
+			cum.append(cum[j - 1] + pts[j - 1].distance_to(pts[j]))
+			ys.append(_ground(pts[j]).y)
+		var ri := routes.size()
+		# The way home: the same route backwards (so a walker's cursor only ever moves forward).
+		var rpts := pts.duplicate()
+		rpts.reverse()
+		var rys := ys.duplicate()
+		rys.reverse()
+		var rcum := PackedFloat32Array([0.0])
+		for j in range(1, rpts.size()):
+			rcum.append(rcum[j - 1] + rpts[j - 1].distance_to(rpts[j]))
+		routes.append({"id": id, "to": gi, "pts": pts, "ys": ys, "cum": cum, "len": cum[cum.size() - 1],
+				"rpts": rpts, "rys": rys, "rcum": rcum})
+		# In little bunches of friends (1-4, one with a kid now and then) walking together.
+		var n := roundi(int(spec["n"]) * maxf(amount, 0.0))
+		var made := 0
+		while made < n:
+			var size := mini(1 + _rng.randi() % 4, n - made)
+			var base := _rng.randf() * cum[cum.size() - 1]
+			var v := WALK_V + _rng.randf_range(-WALK_VAR, WALK_VAR)
+			var clump := _clumps
+			_clumps += 1
+			for k in size:
+				var kid := size >= 3 and k == size - 1 and _rng.randf() < 0.5
+				w_route.append(ri)
+				w_s.append(fposmod(base + k * 0.7 + _rng.randf_range(-0.3, 0.3), cum[cum.size() - 1]))
+				w_v.append(v)
+				w_clump.append(clump)
+				w_lap.append(0)
+				w_show.append(0)
+				w_side.append(clampf((k - (size - 1) * 0.5) * 0.65 + _rng.randf_range(-0.2, 0.2), -SIDE - 0.3, SIDE + 0.3))
+				w_shirt.append(KID_SHIRT if kid else Color(SHIRTS[_rng.randi() % SHIRTS.size()]))
+				w_tr.append(_rng.randf() * 0.99)
+				w_prop.append(FINGER if kid else (SCARF_NECK if _rng.randf() < 0.7 else -1.0))
+				w_ph.append(_rng.randf_range(0.0, TAU))
+				w_yaw.append(0.0)
+				w_seg.append(0)
+				w_off.append(Vector2.ZERO)
+				walker_count += 1
+			made += size
 
 
 func _ground(p: Vector2) -> Vector3:
@@ -486,9 +842,16 @@ func _build_drawing() -> void:
 	_fan_mmi = _new_mmi(_fan_mm, "Fans", mat)
 	_fan_buf.resize(fan_cap * 16)
 	_fan_buf.fill(0.0)
-	_prop_mm = _new_mm(props_mesh(), fan_cap)
+	var walk_cap := maxi(walker_count, 1)
+	var walk_mat := Models.material().duplicate() as ShaderMaterial
+	walk_mat.set_shader_parameter("walk", 0.16)
+	_walk_mm = _new_mm(person, walk_cap)
+	_walk_mmi = _new_mmi(_walk_mm, "FanWalkers", walk_mat)
+	_walk_buf.resize(walk_cap * 16)
+	_walk_buf.fill(0.0)
+	_prop_mm = _new_mm(props_mesh(), fan_cap + walk_cap)
 	_prop_mmi = _new_mmi(_prop_mm, "FanProps", Models.material())
-	_prop_buf.resize(fan_cap * 16)
+	_prop_buf.resize((fan_cap + walk_cap) * 16)
 	_prop_buf.fill(0.0)
 	var pc := maxi(tips * PUFFS, 1)
 	_puff_mm = _new_mm(puff_mesh(), pc)
@@ -591,16 +954,23 @@ func tick(step: float) -> void:
 		_police(on)
 	for g in groups:
 		g["n"] = mini(group_count(int(g["max"]), _hour, _weekday, amount, force), (g["slots"] as Array).size())
+	_match_day()
+	for g in groups:
+		g["share"] = group_share(phase, phase_p)
 	var nr := on and eye.distance_to(STADIUM) < ACTIVE_R
 	if nr != near:
 		near = nr
 		_kit.visible = near
-		if not near:
+		if near:
+			_place_walkers()
+		else:
 			_fan_mmi.visible = false
 			_prop_mmi.visible = false
 			_puff_mmi.visible = false
+			_walk_mmi.visible = false
 	if not near:
 		return
+	_walkers_talk(step, eye, car2, float(veh[1]))
 	for g in groups:
 		g["honk_t"] = maxf(float(g["honk_t"]) - step, 0.0)
 		if float(g["chant"]) > 0.0:
@@ -615,7 +985,7 @@ func tick(step: float) -> void:
 ## A group starts singing (`why`: "" its own timer, "honk" the player's horn).
 func _start_chant(g: Dictionary, why: String) -> void:
 	g["chant"] = CHANT_LEN
-	g["next"] = _rng.randf_range(CHANT_GAP.x, CHANT_GAP.y)
+	g["next"] = _rng.randf_range(CHANT_GAP.x, CHANT_GAP.y) * (0.5 if celebrating() else 1.0)
 	g["t0"] = t
 	chants += 1
 	if log_on:
@@ -625,7 +995,12 @@ func _start_chant(g: Dictionary, why: String) -> void:
 	var at: Vector3 = _ground(g["at"])
 	if why == "honk" or _seen(at):
 		g["line_t"] = maxf(float(g["line_t"]), 6.0)
-		_say(_anchor_of(g, -1), "", "kibice", "honk" if why == "honk" else "chant", true)
+		var tag := "chant"
+		if why == "honk":
+			tag = "honk"
+		elif phase == "leave" and _rng.randf() < 0.6:
+			tag = result
+		_say(_anchor_of(g, -1), "", "kibice", tag, true)
 
 
 ## The player's horn at `at` (hud.horn_pressed): the nearest group within HONK_R sings.
@@ -642,6 +1017,111 @@ func honk(at: Vector3) -> void:
 	if not best.is_empty():
 		best["honk_t"] = HONK_GAP
 		_start_chant(best, "honk")
+
+
+## The match day's phase from the clock (or --fans-phase= with --fans-now off a match evening), the
+## result rolled at full time (or --fans-result=), and the full-time toast near the stadium.
+func _match_day() -> void:
+	var pa := phase_at(_hour, _weekday)
+	var ph: String = pa[0]
+	var pp: float = pa[1]
+	if force_phase != "" or (force and not match_on(_hour, _weekday)):
+		# Shots: the busy part of the phase (the stream just before kick-off, the crowd just after).
+		ph = force_phase if force_phase != "" else "arrive"
+		pp = {"arrive": 0.75, "match": 0.5, "leave": 0.15}.get(ph, 0.0)
+	if ph == "leave" and phase != "leave":
+		result = force_result if force_result != "" else ("draw" if _rng.randf() < 0.35 else "win")
+		_full_time_toast = false
+		if log_on:
+			print("fans: full time, a %s" % result)
+	elif ph != "leave" and ph != "" and phase == "leave":
+		result = ""
+	if log_on and ph != phase:
+		print("fans: match day %s" % (ph if ph != "" else "quiet"))
+	phase = ph
+	phase_p = pp
+	if phase == "leave" and near and not _full_time_toast and hud != null and hud.has_method("ambient_toast"):
+		_full_time_toast = true
+		if result == "win":
+			hud.ambient_toast("Koniec meczu: wygrana! Kibice wracają do domu", "Full time: a win! The fans head home")
+		else:
+			hud.ambient_toast("Koniec meczu: remis. Następnym razem!", "Full time: a draw. Next time!")
+
+
+## A win being sung home (the groups sing twice as often, the walkers lift their scarves).
+func celebrating() -> bool:
+	return phase == "leave" and result == "win"
+
+
+## Walkers on the way: on arriving near, each where it is with the phase's density.
+func _place_walkers() -> void:
+	var dens := walk_density(phase, phase_p) if on else 0.0
+	walking = 0
+	for i in walker_count:
+		w_lap[i] += 1
+		w_show[i] = 1 if clump_roll(w_clump[i], w_lap[i]) < dens else 0
+		walking += w_show[i]
+
+
+## The walkers' lines: one on screen near the view now and then (`walk`, `late`, then `win` or
+## `draw` on the way home; `car` for a slow car by them on the way in).
+func _walkers_talk(step: float, eye: Vector2, car2: Vector2, kmh: float) -> void:
+	_walk_line_t -= step
+	if _walk_line_t > 0.0 or walking == 0 or phase == "":
+		return
+	var best := -1
+	var bd := LINE_VIEW
+	for i in walker_count:
+		if w_show[i] == 0:
+			continue
+		var p := walker_at(i)
+		var d := Vector2(p.x, p.z).distance_to(eye)
+		if d < bd and _seen(p):
+			bd = d
+			best = i
+	if best < 0:
+		return
+	_walk_line_t = _rng.randf_range(WALK_LINE_GAP.x, WALK_LINE_GAP.y)
+	var p0 := walker_at(best)
+	var tag := "walk"
+	if phase == "leave":
+		tag = result
+	elif running(phase, phase_p) or phase == "match":
+		tag = "late"
+	elif car2 != Vector2.INF and car2.distance_to(Vector2(p0.x, p0.z)) < CAR_NEAR and kmh < CAR_KMH:
+		tag = "car"
+	var wk := best
+	_say(func() -> Vector3: return walker_at(wk) + Vector3(0, 2.3, 0), "", "kibice", tag, true)
+
+
+## Where walker `i` is now (on the way home it walks its route backwards); sets its heading (the
+## figure faces -z). Its segment is the one it was on last time: walkers only move forward, so it
+## is found by stepping on, not by a search.
+func walker_at(i: int) -> Vector3:
+	var r: Dictionary = routes[w_route[i]]
+	var back := phase == "leave"
+	var pts: PackedVector2Array = r["rpts"] if back else r["pts"]
+	var cum: PackedFloat32Array = r["rcum"] if back else r["cum"]
+	var ys: PackedFloat32Array = r["rys"] if back else r["ys"]
+	return _walker_on(i, pts, cum, ys)
+
+
+func _walker_on(i: int, pts: PackedVector2Array, cum: PackedFloat32Array, ys: PackedFloat32Array) -> Vector3:
+	var n := pts.size()
+	var s := clampf(w_s[i], 0.0, cum[n - 1])
+	var j := w_seg[i]
+	if j >= n - 1 or cum[j] > s:
+		j = 0
+	while j < n - 2 and cum[j + 1] <= s:
+		j += 1
+	w_seg[i] = j
+	var seg := cum[j + 1] - cum[j]
+	var f := (s - cum[j]) / seg if seg > 0.0 else 0.0
+	var a := pts[j]
+	var d := (pts[j + 1] - a) / seg if seg > 0.0 else Vector2.UP
+	var q := a + d * (s - cum[j]) + Vector2(-d.y, d.x) * w_side[i]
+	w_yaw[i] = atan2(-d.x, -d.y)
+	return Vector3(q.x, lerpf(ys[j], ys[j + 1], f), q.y)
 
 
 func _seen(at: Vector3) -> bool:
@@ -687,11 +1167,15 @@ func _talk(g: Dictionary, step: float, eye: Vector2, car2: Vector2, kmh: float) 
 	g["line_t"] = _rng.randf_range(LINE_GAP.x, LINE_GAP.y)
 	var off: Dictionary = g["officer"]
 	var roll := _rng.randf()
+	var inside := float(g["share"]) < 1.0
 	if not off.is_empty() and roll < 0.25:
 		var op: Vector3 = off["p"]
 		_say(func() -> Vector3: return op + Vector3(0, 2.2, 0), "Sierżant Bogdan", "police_kibice", "", false, POLICE_BUBBLE)
 	elif slow:
 		_say(_anchor_of(g, -1), "", "kibice", "car", true)
+	elif inside:
+		# The few left outside during the match: the radio, the stands' roar.
+		_say(_anchor_of(g, -1), "", "kibice", "match")
 	elif roll < 0.45:
 		_say(_anchor_of(g, _role_index(g, "kid")), "", "kibice", "kid")
 	else:
@@ -711,6 +1195,12 @@ func _anchor_of(g: Dictionary, i: int) -> Callable:
 	var slots: Array = g["slots"]
 	var n := mini(int(g["n"]), slots.size())
 	var k := i if i >= 0 else _rng.randi() % maxi(n, 1)
+	if i < 0 and float(g["share"]) < 1.0:
+		# During the match: one of the few still outside.
+		for j in n:
+			if float(slots[j]["ord"]) < float(g["share"]):
+				k = j
+				break
 	var p: Vector3 = slots[mini(k, slots.size() - 1)]["p"]
 	return func() -> Vector3: return p + Vector3(0, 2.3, 0)
 
@@ -727,9 +1217,28 @@ func _say(anchor: Callable, speaker: String, group: String, tag: String, prefer 
 
 ## The figures, their props and the smoke, 10 times a second while near: the jump and the scarves
 ## up in a chant, a sway between; the drummer's beat; the puffs rising from the lit sticks.
-func move(_step: float) -> void:
+func move(step: float) -> void:
 	if not near:
 		return
+	# The car (not the heli) and its velocity from the last move (a jump of > 70 m/s is a respawn).
+	var car2 := Vector2.INF
+	var cv := Vector2.ZERO
+	if vehicle.is_valid():
+		var veh: Array = vehicle.call()
+		var vp: Vector3 = veh[0]
+		if vp != Vector3.INF and not bool(veh[2]):
+			car2 = Vector2(vp.x, vp.z)
+			if _car_prev != Vector2.INF and step > 0.0:
+				cv = (car2 - _car_prev) / step
+				if cv.length() > 70.0:
+					cv = Vector2.ZERO
+	_car_prev = car2
+	var has_car := car2 != Vector2.INF
+	var reach := DODGE_MISS + cv.length() * DODGE_T + CAR_BACK + 1.0
+	var reach2 := reach * reach
+	var scatter := cv.length() * 3.6 > SCATTER_KMH
+	var out_v := STEP_OUT_V * (1.6 if scatter else 1.0) * step
+	var back_v := STEP_BACK_V * step
 	var nf := 0
 	var np := 0
 	var nu := 0
@@ -741,9 +1250,27 @@ func move(_step: float) -> void:
 		var slots: Array = g["slots"]
 		var singing := float(g["chant"]) > 0.0
 		var secs := t - float(g.get("t0", 0.0))
+		var share := float(g["share"])
+		# The group makes way only while the car is by it (or someone is still stepping back).
+		var by_car := has_car and car2.distance_to(g["at"]) < float(g["half"]) + reach + 6.0
+		var dodging := false
 		for i in mini(int(g["n"]), slots.size()):
 			var s: Dictionary = slots[i]
+			if share < 1.0 and float(s["ord"]) >= share:
+				continue
 			var p: Vector3 = s["p"]
+			var hop := 0.0
+			if by_car or bool(g["dodging"]):
+				var o: Vector2 = s["off"]
+				var want := dodge_target(Vector2(p.x, p.z), car2, cv) if by_car else Vector2.ZERO
+				var fresh := o == Vector2.ZERO
+				o = o.move_toward(want, out_v if want != Vector2.ZERO else back_v)
+				s["off"] = o
+				if o != Vector2.ZERO:
+					dodging = true
+					p += Vector3(o.x, 0.0, o.y)
+					if want != Vector2.ZERO:
+						hop = _made_way(fresh, o, want, scatter, p)
 			var role: String = s["role"]
 			var ph := float(s["ph"])
 			var y := 0.0
@@ -757,7 +1284,7 @@ func move(_step: float) -> void:
 					y = absf(sin(t * JUMP_HZ * PI)) * 0.05
 				"kid":
 					y = jump_at(secs, ph) * 0.6 if singing else 0.0
-			var at := p + Vector3(0, y, 0)
+			var at := p + Vector3(0, maxf(y, hop), 0)
 			var scale := Vector3.ONE * (0.68 if role == "kid" else 1.0)
 			CityLife.put(_fan_buf, nf, at, yaw, scale, s["shirt"], s["tr"])
 			nf += 1
@@ -767,7 +1294,7 @@ func move(_step: float) -> void:
 			if role == "kid":
 				shape = FINGER
 			elif bool(s["scarf"]):
-				shape = SCARF_UP if singing else SCARF_NECK
+				shape = SCARF_UP if singing or hop > 0.0 else SCARF_NECK
 			if shape >= 0.0:
 				CityLife.put(_prop_buf, np, at, yaw, scale, s["shirt"], shape)
 				np += 1
@@ -780,7 +1307,8 @@ func move(_step: float) -> void:
 			nf += 1
 			np += 1
 			box = box.expand(op)
-		if int(g["n"]) == 0:
+		g["dodging"] = dodging
+		if int(g["n"]) == 0 or share < 1.0:
 			continue
 		var tips: Array = g["tips"]
 		for k in tips.size():
@@ -797,9 +1325,92 @@ func move(_step: float) -> void:
 				nu += 1
 				pbox = AABB(q, Vector3.ZERO) if pfirst else pbox.expand(q)
 				pfirst = false
+	var nw := 0
+	var wbox := box
+	var wfirst := true
+	if phase == "arrive" or phase == "leave" or (phase == "match" and walking > 0):
+		# After kick-off nobody new sets off, but whoever is on the way still gets there, running.
+		var dens := walk_density(phase, phase_p)
+		var run := running(phase, phase_p) or phase == "match"
+		var party := celebrating()
+		var back := phase == "leave"
+		var speed := 1.1 if party else 1.0
+		var bob_hz := 9.0 if run else 5.5
+		var bob := 0.06 if run else 0.025
+		var kid_scale := Vector3.ONE * 0.68
+		walking = 0
+		var ri := -1
+		var pts := PackedVector2Array()
+		var cum := PackedFloat32Array()
+		var ys := PackedFloat32Array()
+		var len := 0.0
+		for i in walker_count:
+			if w_route[i] != ri:
+				ri = w_route[i]
+				var r: Dictionary = routes[ri]
+				pts = r["rpts"] if back else r["pts"]
+				cum = r["rcum"] if back else r["cum"]
+				ys = r["rys"] if back else r["ys"]
+				len = float(r["len"])
+			var s := w_s[i] + (RUN_V if run else w_v[i] * speed) * step
+			if s >= len:
+				# The end of the way (the gate, or the stop): a new bunch sets off from the start.
+				s = fposmod(s, len)
+				w_lap[i] += 1
+				w_show[i] = 1 if clump_roll(w_clump[i], w_lap[i]) < dens else 0
+			w_s[i] = s
+			if w_show[i] == 0:
+				continue
+			walking += 1
+			var at := _walker_on(i, pts, cum, ys)
+			var yaw := w_yaw[i]
+			at.y += absf(sin(t * bob_hz + w_ph[i])) * bob
+			var hop := 0.0
+			var o := w_off[i]
+			if has_car and (o != Vector2.ZERO or Vector2(at.x, at.z).distance_squared_to(car2) < reach2):
+				var want := dodge_target(Vector2(at.x, at.z), car2, cv)
+				var fresh := o == Vector2.ZERO
+				o = o.move_toward(want, out_v if want != Vector2.ZERO else back_v)
+				w_off[i] = o
+				if want != Vector2.ZERO:
+					hop = _made_way(fresh, o, want, scatter, at + Vector3(o.x, 0.0, o.y))
+			elif o != Vector2.ZERO:
+				o = o.move_toward(Vector2.ZERO, back_v)
+				w_off[i] = o
+			at += Vector3(o.x, hop, o.y)
+			var shape := w_prop[i]
+			var scale := kid_scale if shape == FINGER else Vector3.ONE
+			CityLife.put(_walk_buf, nw, at, yaw, scale, w_shirt[i], w_tr[i])
+			nw += 1
+			wbox = AABB(at, Vector3.ZERO) if wfirst else wbox.expand(at)
+			wfirst = false
+			if shape == SCARF_NECK and ((party and sin(t * 0.9 + w_ph[i] * 3.0) > 0.55) or hop > 0.0):
+				shape = SCARF_UP
+			if shape >= 0.0:
+				CityLife.put(_prop_buf, np, at, yaw, scale, w_shirt[i], shape)
+				np += 1
+				box = box.expand(at)
+	else:
+		walking = 0
+	_send(_walk_mm, _walk_mmi, _walk_buf, nw, wbox, 2.8)
 	_send(_fan_mm, _fan_mmi, _fan_buf, nf, box, 2.8)
 	_send(_prop_mm, _prop_mmi, _prop_buf, np, box, 3.2)
 	_send(_puff_mm, _puff_mmi, _puff_buf, nu, pbox, 1.2)
+
+
+## A fan stepping aside (at `o` of its `want` offset, now at `at`; `first` its first step): the hop
+## when the car is fast (m, 0 when only walking aside or once out), the count, a `dodge` line now
+## and then.
+func _made_way(first: bool, o: Vector2, want: Vector2, scatter: bool, at: Vector3) -> float:
+	if first:
+		dodges += 1
+		if scatter and t - _dodge_line_at > DODGE_LINE_GAP and _seen(at):
+			_dodge_line_at = t
+			var a := at + Vector3(0, 2.3, 0)
+			_say(func() -> Vector3: return a, "", "kibice", "dodge", true)
+	if not scatter or o.distance_squared_to(want) < 0.0001:
+		return 0.0
+	return absf(sin(t * 11.0 + at.x)) * HOP
 
 
 func _send(mm: MultiMesh, mmi: MultiMeshInstance3D, buf: PackedFloat32Array, n: int, box: AABB, up: float) -> void:
@@ -816,5 +1427,6 @@ func summary() -> String:
 	var gs := PackedStringArray()
 	for g in groups:
 		gs.append("%s %d%s" % [g["id"], g["n"], " (singing)" if float(g["chant"]) > 0.0 else ""])
-	return "%02d:%02d day %d · %s%s · %s · chants %d · lines %d · meets %d" % [int(_hour), int(fmod(_hour, 1.0) * 60.0), _weekday,
-			"out" if on else "home", ", near" if near else "", ", ".join(gs), chants, lines_said, meets]
+	return "%02d:%02d day %d · %s%s · %s · %s%s, %d walking · chants %d · lines %d · meets %d · dodges %d" % [int(_hour),
+			int(fmod(_hour, 1.0) * 60.0), _weekday, "out" if on else "home", ", near" if near else "", ", ".join(gs),
+			phase if phase != "" else "quiet", (" (%s)" % result) if result != "" else "", walking, chants, lines_said, meets, dodges]

@@ -2533,6 +2533,34 @@
       }
     ],
     [
+      "Stoję w kolejce do kolejki. Ta kolejka jest po to, żeby wejść do kolejki.",
+      "I'm queuing for the queue. This queue is for getting into the queue.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
+      "Pan z tabliczką „POCZĄTEK KOLEJKI” stoi w kolejce po tabliczkę „POCZĄTEK KOLEJKI”.",
+      "The man with the \"START OF THE QUEUE\" sign is queuing for the \"START OF THE QUEUE\" sign.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
+      "Podobno koniec kolejki jest przy Rondzie. Początek jest w następnej kolejce.",
+      "They say the end of the queue is at the Rondo. The start is in the next queue.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
+      "Dostałam numerek do numerków. Jestem czterysta trzydziesta w numerkach.",
+      "I got a ticket for the tickets. I'm four hundred and thirtieth in the tickets.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
       "Najlepsza pizza w Warszawie. Tak mówią ci, którzy już stoją.",
       "The best pizza in Warsaw. So say those already standing in line.",
       {
@@ -4415,6 +4443,34 @@
   ],
   "car_meet": [
     [
+      "Ooo, nowy! Jakie to ma koni? Cztery? Z rodzeństwem?",
+      "Ooh, a newcomer! How many horsepower? Four? With siblings?",
+      {
+        "only": "stop"
+      }
+    ],
+    [
+      "Parkuj śmiało, tylko nie obok lakieru.",
+      "Park wherever, just not next to the paint.",
+      {
+        "only": "stop"
+      }
+    ],
+    [
+      "Przyszedłeś na zlot czy się zgubiłeś? Obie opcje są OK.",
+      "Here for the meet or just lost? Both are fine.",
+      {
+        "only": "stop"
+      }
+    ],
+    [
+      "Fajna bryka. Ma jakiś nick na Instagramie?",
+      "Nice ride. Does it have a handle on Instagram?",
+      {
+        "only": "stop"
+      }
+    ],
+    [
       "Nie dotykaj! Lakier ma więcej obserwujących niż ty.",
       "Don't touch! The paint has more followers than you."
     ],
@@ -4689,6 +4745,202 @@
       "My first match! So far the sausage is the best bit.",
       {
         "only": "kid"
+      }
+    ],
+    [
+      "Idziemy na mecz! Kiełbasa czeka, drużyna też.",
+      "Off to the match! The sausage is waiting, and so is the team.",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Szalik jest, bilet jest, głos jeszcze jest.",
+      "Scarf: yes. Ticket: yes. Voice: still yes.",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Tata, a daleko jeszcze? Synku, słychać już bęben.",
+      "Dad, is it far? Son, you can already hear the drum.",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Wziąłem trzy kanapki. Mecz trwa dwa razy po czterdzieści pięć.",
+      "I packed three sandwiches. The match is two halves of forty-five.",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Z przystanku do bramy śpiewamy na rozgrzewkę.",
+      "From the stop to the gate we sing to warm up.",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Pani z kwiaciarni pyta, kto gra. My, proszę pani!",
+      "The florist asks who's playing. We are, madam!",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Biegiem! Już wychodzą na boisko!",
+      "Run! They're already walking out onto the pitch!",
+      {
+        "only": "late"
+      }
+    ],
+    [
+      "Zawsze wierni, czasem punktualni! Szybciej!",
+      "Always faithful, sometimes on time! Faster!",
+      {
+        "only": "late"
+      }
+    ],
+    [
+      "Mówiłem, żeby nie stać w kolejce po zapiekankę!",
+      "I told you not to queue for the zapiekanka!",
+      {
+        "only": "late"
+      }
+    ],
+    [
+      "Wygraliśmy! Jutro do pracy bez głosu, ale szczęśliwy.",
+      "We won! Tomorrow I'm at work with no voice, but happy.",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Trzy punkty! I jeszcze trzy pierogi na kolację.",
+      "Three points! And three pierogi for dinner.",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Tak się cieszę, że przytulę kierowcę autobusu.",
+      "I'm so happy I'll hug the bus driver.",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Mamo, wygraliśmy! Tak, zjadłem coś ciepłego.",
+      "Mum, we won! Yes, I ate something warm.",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Śpiewamy do samego przystanku, a potem w autobusie!",
+      "We sing all the way to the stop, and then on the bus!",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Remis. Ale kiełbasa była na pięć punktów.",
+      "A draw. But the sausage was worth five points.",
+      {
+        "only": "draw"
+      }
+    ],
+    [
+      "Następnym razem! Zawsze jest następny raz.",
+      "Next time! There's always a next time.",
+      {
+        "only": "draw"
+      }
+    ],
+    [
+      "Jeden punkt to też punkt. Matematyka się zgadza.",
+      "One point is still a point. The maths checks out.",
+      {
+        "only": "draw"
+      }
+    ],
+    [
+      "Remis, ale za to jaki ładny remis.",
+      "A draw, but what a lovely draw.",
+      {
+        "only": "draw"
+      }
+    ],
+    [
+      "Uwaga, auto! Spokojnie, przepuszczamy!",
+      "Car! Easy, we'll let you through!",
+      {
+        "only": "dodge"
+      }
+    ],
+    [
+      "Hop na bok! Kierowco, my tylko na mecz!",
+      "Hop aside! Driver, we're only off to the match!",
+      {
+        "only": "dodge"
+      }
+    ],
+    [
+      "Szaliki w górę, nogi w bok!",
+      "Scarves up, feet to the side!",
+      {
+        "only": "dodge"
+      }
+    ],
+    [
+      "Ej, wolniej! Tu się chodzi po kiełbasę!",
+      "Hey, slow down! People walk to the sausages here!",
+      {
+        "only": "dodge"
+      }
+    ],
+    [
+      "Przepuśćmy kierowcę, może też kibicuje.",
+      "Let the driver through, maybe they're a fan too.",
+      {
+        "only": "dodge"
+      }
+    ],
+    [
+      "Bez biletu, ale z radiem. Komentator krzyczy, my też.",
+      "No ticket, but we've got a radio. He shouts, we shout.",
+      {
+        "only": "match"
+      }
+    ],
+    [
+      "Słychać trybuny! Chyba rzut rożny. Albo przywieźli hot-dogi.",
+      "Hear the stands? Must be a corner. Or the hot dogs arrived.",
+      {
+        "only": "match"
+      }
+    ],
+    [
+      "Pilnujemy bębna, reszta ogląda. Ktoś musi.",
+      "We mind the drum, the rest are watching. Someone has to.",
+      {
+        "only": "match"
+      }
+    ],
+    [
+      "Mecz z ulicy też się liczy. Kiełbasa bliżej.",
+      "The match from the street counts too. The sausage is closer.",
+      {
+        "only": "match"
+      }
+    ],
+    [
+      "Radio się zacina, więc śpiewamy, aż wróci zasięg.",
+      "The radio keeps cutting out, so we sing till the signal's back.",
+      {
+        "only": "match"
       }
     ]
   ],

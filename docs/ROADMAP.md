@@ -94,6 +94,8 @@ then the Launch gate.
   - [x] PT-8 Pani Halina rolled up in front of the car on narrow Hoża and pinned it for her whole prompt, 2026-11-02 (`check_ladder`)
   - [x] PT-13 the first order card started without a tap: GO counts down to the order's own start, 2026-11-02
   - [x] PT-9 radio ticker cut off at the left edge at 2.16:1, and PT-10 the order tracker over speech bubbles and its distance into its arrow, 2026-11-02 (`check_hud`; phone look open)
+- [x] Larger HUD text fits the phones (2026-11-02, this PR): panels with no room step their own text down (never below normal), `check_hud` large-text pass is a gate
+- [ ] The phone's own text size drives the HUD: needs a native read (BACKLOG "Accessibility follow-ups")
 - [ ] A full `tools/verify.sh` and `--ios` on the Mac on today's main, both city paths
 - [x] Map checks in GitHub CI (the derived map pack as a release asset, `tools/map_pack.py`, the `map` job), 2026-11-02 (release `map-pack-1` to publish)
 - [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views
@@ -112,7 +114,10 @@ then the Launch gate.
       Śląsko-Dąbrowski place hint sits on the bridge (`places` WARN gone). Still needs a Mac run
       (no terrain in the cloud): Łazienkowski's slab edges, deck 4's parapet, the Karowa footbridge's end
 - [ ] Loop 3e leftovers still open: the rail cutting, Most Łazienkowski cut by the east edge (decide)
-- [ ] Junction lines checked against photos; dark Jerozolimskie and Nowy Świat at night
+- [x] Dark Jerozolimskie and Nowy Świat at night (2026-11-02): the lamp bake's added avenue lamps 26 m apart
+      a side (was 34), Nowy Świat lit from both pavements, kerb lamps step past parking bays; the street lit
+      Nowy Świat 52 → 88 %, Jerozolimskie at the review spot 32 → 48 % (Marszałkowska 43 → 51 %). Phone look open
+- [ ] Junction lines checked against photos
 
 ### Left: landmarks and street details
 - [x] City inventory, street by street (F, 2026-11-02): every characteristic place in the box ranked S/A/B
@@ -312,8 +317,8 @@ then the Launch gate.
       `Hud.apply_text_scale`). Left to do: subtitles (BACKLOG)
 - [x] Wellness circles (F, 2026-11-02, `wellness.gd`, docs/design/wellness.md): sound healing (gong, bowls,
       "80 zł" board), techno yoga with hamsters in rolling balls, the 40+ club "waking the little girl" turning
-      round a tree, kung-fu schools in the parks; eight lawn spots, 58 lines. Left: gong and beat sound, a Mac look
-      check, the phone's cost
+      round a tree, kung-fu schools in the parks; eight lawn spots, 58 lines. Gong, bowls and beat sound done
+      (2026-11-02). Left: a Mac look and listen check, the phone's cost
 - [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
 - [x] Vistula boulevards full of life (F, 2026-11-01, `crowds.gd` BULWARY, `city_life.gd`): nine
@@ -340,10 +345,12 @@ then the Launch gate.
 - [ ] City-life satire ideas (F, 2026-11-02; plans docs/design/city-life-satire.md):
   - [x] #11 kebab MIESZANE MIESZANE neon, its evening queue and the "Mięso? Mieszane. Sos? Mieszane." lines (`check_crowds`), and #12 NOSE AGENCY sign on the Skyliner, 2026-11-02 (Godot did not run; Mac look check open)
   - [x] #10 map-edge roadworks (PR #309)
-  - [ ] #1 loud cars at Browary Warszawskie and revving traffic (Opus)
-  - [ ] #2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu (Sonnet, one `circle` crowd spot thread)
-  - [ ] #5 more queues and #6 KRINGULA PIZZA (extends the food-hype lane)
+  - [x] #1 loud cars at Browary Warszawskie and revving traffic (PR #345); the crowd comments when you park at the meet (2026-11-02, tag `stop`)
+  - [x] #2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu (PR #343, `wellness.gd`); gong and techno-thump sounds added 2026-11-02 (listen check parked)
+  - [x] #5 more queues and #6 KRINGULA PIZZA: queues at KRINGULA, the coffee chains and MIESZANE were built earlier; the "queue for the queue" jokes added 2026-11-02 (four lines in dialogue.json, tag `kringula`; text only, Godot did not run)
   - [x] #7 friendly Legia fans near Stadion Leguminy, 2026-11-02 (PR #336, `fans.gd`; phone look and cost open)
+  - [x] Kibice match day: fans walking in from the stops before kick-off and home after a win or a draw, 2026-11-02 (`fans.gd` ROUTES; stop names and phone look in QUESTIONS)
+  - [x] Kibice make way for the car (walkers and groups step or hop aside, walk round a stopped car, `dodge` lines) and the groups go in during the match (15 % stay out with a radio, `match` lines), 2026-11-02 (`fans.gd` dodge_target, group_share; phone feel open)
   - [ ] #9 bike-path network compared with the real one (Opus)
   - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
