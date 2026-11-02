@@ -12,7 +12,7 @@ bubbles and KEBAB FM's "Sąsiedzi znów liczą obroty". Open:
 - Phone check: the rev's level next to the horns and the radio (set by RMS, -11 dB), the meet's look.
 - The meet's spot is the paved gate square read off the map's outlines; a photo check on the Mac.
 - A continuous loud-engine loop on a loud car while it is near (now one rev per pass, 7-12 s apart),
-  and its own exhaust flames at night.
+  and exhaust flames on the overrun at night (the meet already has its headlights on).
 - The player driving into the meet: the cars are solid boxes; a crowd line when the player's car stops there.
 
 ## Site analytics (F, 2026-11-02)
