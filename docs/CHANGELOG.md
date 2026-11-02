@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Driving onto a bridge ramp at an angle no longer drops you under the bridge: the car climbs onto the ramp, at Most Poniatowskiego, Towarowa and the Vistula boulevard road too.
 - The full map has a quest list: ZADANIA AUTO and ZADANIA HELI, each showing what you can start right now (a kebab stand, a jar station, the garage, a ride, a cassette on a roof, a helicopter rescue call) with how far it is and which way. Tap a place and an arrow leads you there; tap a ride or a rescue call and it starts.
 - With larger text on, the mission panel, the race banner and the ride app cards now fit the smaller phones and stay clear of your car.
 - Nowy Świat and Al. Jerozolimskie are no longer dark at night: Nowy Świat has street lamps on both pavements and the avenues have their lamps closer together, so the pools of light join up along the street.

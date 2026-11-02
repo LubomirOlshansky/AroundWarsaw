@@ -394,8 +394,18 @@ The 7136 block is a sunken metro stair; metro canopies and stairs have no collid
 Open: a phone check of the thinner seam (the cloud has no phone); whether the 1.2 m hedges should
 also go non-colliding is F's call.
 
-**G6 · Going under bridges at entries (P1, owner: the "Finish remaining bridge joins" thread).**
-F: "when I was entering the bridge I went down under it". Not touched here. For that thread:
+**G6 · Going under bridges at entries: done (2026-11-02).** Found: on the lanes no bridge entry
+drops the car (check_drive's routes now also flag a car more than 1 m under its deck lane: 0). Off
+the lanes it did: the ground beside an approach's fill lies 1.5-2.4 m under the slab's end, so a
+car coming onto the ramp at an angle (20°, 3-4 m off the middle) was over the 1.2 m it may climb
+and drove on under the slab: Most Poniatowskiego's north ramps (875, −161) and (900, −89), Towarowa
+over the rail cutting (−2383, 968), Wybrzeże Szczecińskie by Śląsko-Dąbrowski (494, −1450). Fix
+(`map_builder.gd` `drive_height`, `_index_deck_feet`): on a ramp's foot (the first `DECK_FOOT`
+10 m of a road piece's end that is no joint and stands within 1.2 m of the ground) a car up to
+`DECK_FOOT_UP` 3 m under the slab climbs on (a small hop where the ground beside is low). New
+check_drive pass "entries": from every such foot, 2,190 straight drives across the deck's width at
+0° and ±20° (±40° tried: 0 too): 4 → 0 on both city paths. Left: the feel of the hop on the phone
+(F's playthrough). Was: F: "when I was entering the bridge I went down under it". For that thread:
 reproduce at the ramps of the Poniatowski, Świętokrzyski, Śląsko-Dąbrowski, Gdański and
 Łazienkowski bridges and the Średnicowy flyover (7138 shows a flyover with a road below): the lane
 graph's or the ground's height at the approach lets the car under the deck. Accept: the car stays
