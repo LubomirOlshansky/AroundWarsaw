@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Speech bubbles point at whoever is talking even when the screen is busy, and a line no longer jumbles its words while it types.
 - Chmielna looks as it has since 2024: grey granite underfoot, two rows of young elms down the narrow stretches and planes on the squares, 85 trees from Nowy Świat to Pasaż Wiecha, and Ali's memorial stone with its square's name plate behind the Eastern Wall.
 - The tenements of Dobra and Tamka each wear their own plaster now (sooty cream, ochre, faded rose, sage), with a cornice under the roof, a string course at the first floor and shop windows with a fascia board on the street side.
 - The first street's pavements are Warsaw grey instead of sand, every crossing ends in a strip of yellow tactile paving at the kerb, and the tram stops by the start have their edge line and tactile strip.
