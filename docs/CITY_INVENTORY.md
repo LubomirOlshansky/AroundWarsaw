@@ -229,7 +229,7 @@ Proposed order for the next threads (photos first, see "Why some places were reb
 6. The monuments pass: Nike, Słowacki, Starzyński, Mały Powstaniec, Kiliński, Plac Piłsudskiego's (65-68), then 69, 70, 113-116.
 7. Plac Bankowy's colonnades (64).
 8. Świętokrzyska's big three: NBP, Poczta Główna, PAST-a (75, 76, 78); Filharmonia (77).
-9. Photo re-pass of the outline builds on the first ten minutes' routes: Varso, Złote Tarasy, Teatr Wielki, Krakowskie Przedmieście (7, 8, 18, 24-27).
+9. Photo re-pass of the outline builds on the first ten minutes' routes: Varso, Złote Tarasy, Teatr Wielki, Krakowskie Przedmieście (7, 8, 18, 24-27). Krakowskie Przedmieście's gather list is parked in QUESTIONS (2026-11-02).
 10. Praga's faces: the cathedral of St Michael and St Florian, Koneser, Bazar Różyckiego, Wschodnia (84-86, 73).
 
 <!-- streets:start -->
