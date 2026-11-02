@@ -11,8 +11,9 @@ is the order of the next threads. Found while building it:
   the hand-built ones exist (Zygmunt, Grób, Mickiewicz, Kopernik, Prus, Wyszyński, de Gaulle, the
   Syrenki). Nike, Słowacki, Starzyński, Mały Powstaniec, Kiliński, Plac Piłsudskiego's, the Uprising
   monument, Umschlagplatz, the Eastern memorial, Reagan, Dmowski, Witos, Skłodowska-Curie and Sapera are ✗.
-  A bake of `historic=memorial|monument` and `tourism=artwork` points (with the raw OSM export on the Mac)
-  would place them; each still needs a model from photos.
+  The OSM points are now cached in `docs/inventory/osm_candidates.json` (tools/city_list.py, 2026-11-02;
+  CITY_INVENTORY Part 2 lists 216 monuments and sculptures, 26 murals, 267 bars and about 690 plaques by
+  street); a bake of them into `pois` would place them; each still needs a model from photos.
 - **Rule:** a tier S or A model starts from photos (F's or `refs/` on the Mac). About 50 outline builds wait
   for their Mac photo check (QUESTIONS); their photo re-pass is Part 3 item 9.
 - 455 named OSM outlines (tier C: tenements, offices, embassies) are plain blocks; street passes take them
