@@ -60,11 +60,43 @@ func _initialize() -> void:
 	_run()
 
 
+## G16: while driving fast ambient bubbles are dropped and ambient toasts come one per 20 s.
+func _check_quiet_driving() -> void:
+	var hud: CanvasLayer = Hud.new()
+	root.add_child(hud)
+	var b: Control = Bubbles.new()
+	b.pt = hud.pt
+	var kmh: Array[float] = [60.0]
+	b.kmh = func() -> float: return kmh[0]
+	b.project = func(p: Vector3) -> Vector2: return Vector2(p.x, p.y)
+	root.add_child(b)
+	b.say_ambient(Vector3.ZERO, "", "x", "y")
+	if b.count() != 0:
+		problems.append("G16: an ambient bubble showed at 60 km/h")
+	b.say(Vector3.ZERO, "", "x", "y")
+	if b.count() != 1:
+		problems.append("G16: a quest bubble was dropped at 60 km/h")
+	b.clear()
+	kmh[0] = 30.0
+	b.say_ambient(Vector3.ZERO, "", "x", "y")
+	if b.count() != 1:
+		problems.append("G16: an ambient bubble was dropped at 30 km/h")
+	hud.set_speed(40)
+	hud.ambient_toast("a", "a")
+	hud._toast_left = 0.0
+	hud.ambient_toast("b", "b")
+	if hud._toast.text != "a":
+		problems.append("G16: a second ambient toast within 20 s showed while driving")
+	hud.queue_free()
+	b.queue_free()
+
+
 func _run() -> void:
 	await process_frame  # the tree is ready for nodes only once the first frame runs
 	var states := 0
 	for screen in SCREENS:
 		states += await _check_screen(screen)
+	_check_quiet_driving()
 	for w in _waits:
 		print("  waits for room: %s" % w)
 	if problems.is_empty():
@@ -110,7 +142,8 @@ func _check_screen(screen: Vector2i) -> int:
 	var perf_text := "60 fps · 16.7 ms · worst 18.2 · cap 60 fps\nCPU 11.2 + 0.3 + 14.1 ms · GPU n/a · 670 MB\ndraws 153 = 53 + 35 + 65 · 0.45 M tris\nMedium ×3 fallback · gov GPU 2/2 · CPU 2/2 · wide"
 	# Desktop: --no-touch (trailer loop, 2026-10-29): a third pass with the touch-only controls
 	# away; none may be left to press or take room.
-	for mode in ["", "perf", "no-touch"]:
+	# Accessibility (2026-11-01): a fourth pass in the left-handed layout (the pedals bottom left).
+	for mode in ["", "perf", "no-touch", "left-handed"]:
 		var perf: bool = mode == "perf"
 		for state in ["car, Point", "car, Classic", "helicopter", "call came in", "call card", "rescued, paid",
 				"rescue, host, egg", "kebab offer", "kebab delivery", "race", "rival ahead", "landmark card", "note card", "tow toast",
@@ -120,6 +153,10 @@ func _check_screen(screen: Vector2i) -> int:
 				continue
 			if mode == "no-touch" and not state in ["car, Point", "car, Classic", "helicopter", "kebab offer", "pull-over", "ride offer"]:
 				continue
+			if mode == "left-handed" and not state in ["car, Point", "car, Classic", "helicopter", "rescue, host, egg", "kebab offer",
+					"landmark card", "police chase", "pull-over", "ride offer", "ride"]:
+				continue
+			hud.set_left_handed(mode == "left-handed")
 			hud.clear_all()
 			bubbles.clear()
 			hud.set_touch_off(mode == "no-touch")
@@ -207,7 +244,7 @@ func _check_screen(screen: Vector2i) -> int:
 					hud.set_koguty(1, 1)
 					hud.set_pedals_hidden(true)
 					# The longest opener with the longest English (the caution's) and the two widest replies.
-					talk.show_line("Posterunkowy Kacper", "Kontrola drogowa. Wie pan, czemu pana zatrzymałem? Ja tak średnio.",
+					talk.show_line("Posterunkowy Kacper", "Kontrola drogowa. Wiesz, czemu cię zatrzymałem? Ja tak średnio.",
 							"Consider yourself cautioned. Kacper, put it in the notebook. Neatly, not like last time.",
 							[["Przepraszam, już nie będę.", "Sorry, won't happen again."], ["Suszarka? Mam krótkie włosy.", "Hair dryer? But I've got short hair."]])
 					hud.show_panel(talk, true)
@@ -249,6 +286,17 @@ func _check_screen(screen: Vector2i) -> int:
 			await process_frame
 			bubbles.layout()
 			_check_state(hud, bubbles, "%s %s%s" % [tag, state, " + " + mode if mode != "" else ""])
+			if mode == "left-handed" and state in ["car, Point", "car, Classic", "helicopter"]:
+				# The pressable discs all on the left half; the credit line on the right.
+				var tt: Dictionary = hud.touch_targets()
+				for k in ["brake", "gas", "horn", "climb", "sink"]:
+					if tt.has(k) and (tt[k] as Rect2).get_center().x > screen.x * 0.5:
+						problems.append("%s %s + left-handed: %s is on the right" % [tag, state, k])
+				if not hud.call("_stick_side", screen.x * 0.8, float(screen.x)) or hud.call("_stick_side", screen.x * 0.2, float(screen.x)):
+					problems.append("%s %s + left-handed: the stick's side is not the right" % [tag, state])
+				var nr: Dictionary = hud.named_rects()
+				if nr.has("credit") and (nr["credit"] as Rect2).get_center().x < screen.x * 0.5:
+					problems.append("%s %s + left-handed: the credit line is on the left, under the pedals" % [tag, state])
 			# Landmark card fix: with the ticker up and the car parked, a tapped landmark's card
 			# (and a note card) must be on screen at once, not waiting for room, and not over the car.
 			if state in ["landmark card", "note card"]:
@@ -290,8 +338,9 @@ func _check_screen(screen: Vector2i) -> int:
 	hud.open_settings({"controls": 1, "follow": false, "traffic": 2, "quality": 0, "auto": "Medium ostry", "master": 1.0, "music": 0.5,
 			"effects": 1.0, "perf": 0, "fps": 0, "style": 0, "vhs": 0, "weather": 0, "time": 0})
 	var panel: Control = hud.settings_panel
-	# Loop MW-1: the tabs (access last, index 5), then the notebook with a found card open and one not found yet.
-	var views := [0, 1, 2, 3, 5, 4, "lusterko", "milosc_hipoteczna", "eggs", "e07", "e03", "e40", "tape", "t_defilad_2012",
+	# Loop MW-1: the tabs (access last, index 5; DEMO 3j: 6 the credits page), then the notebook with a found
+	# card open and one not found yet.
+	var views := [0, 1, 2, 3, 5, 6, 4, "lusterko", "milosc_hipoteczna", "eggs", "e07", "e03", "e40", "tape", "t_defilad_2012",
 			"t_stadion_2010", "kadr", "k01", "k10"]
 	for t in views:
 		if t is String:
@@ -314,6 +363,7 @@ func _check_screen(screen: Vector2i) -> int:
 			print("  %s: %d buttons, panel %s" % [where, buttons.size(), _pts(card, pt)])
 		count += 1
 	panel.close()
+	hud.set_left_handed(false)
 	book.free()
 	egg_book.free()
 	tape.free()
@@ -605,6 +655,35 @@ func _check_garage(vp: SubViewport, hud: CanvasLayer, tag: String) -> int:
 		_check_fonts(g.card, where, pt)
 		if verbose:
 			print("  %s: card %s, action %s" % [where, _pts(card, pt), _pts(rects["action"], pt)])
+		states += 1
+	# G13: the parts tab, with every cell's state (the TT to buy, short, owned; the nitro; a maxed part).
+	g.card.show_tab("parts")
+	w.zl = 12345
+	for pick in ["tt", "nitro", "tyres", "engine", "hatch", "tt", "tyres"]:
+		if pick == "tt" and states == 9:
+			w.zl = 100  # short
+		if pick == "tyres" and states == 10:
+			w.tune = {"tyres": 3, "engine": 1}  # maxed
+			w.nitro = true
+		g.card.pick_item(pick)
+		await process_frame
+		await process_frame
+		var where2 := "%s garage parts (%s)" % [tag, pick]
+		var rects2: Dictionary = g.card.ui_rects()
+		var card2: Rect2 = rects2["card"]
+		if not safe.grow(0.5).encloses(card2):
+			problems.append("%s: the card %s sticks out of the safe area %s" % [where2, _pts(card2, pt), _pts(safe, pt)])
+		var names2 := rects2.keys()
+		names2.erase("card")
+		for a in names2.size():
+			var ra2: Rect2 = rects2[names2[a]]
+			_check_touch("%s %s" % [where2, names2[a]], ra2, pt, safe)
+			if not card2.grow(0.5).encloses(ra2):
+				problems.append("%s: %s is outside the card" % [where2, names2[a]])
+			for b in range(a + 1, names2.size()):
+				if ra2.intersection(rects2[names2[b]]).get_area() > pt * pt:
+					problems.append("%s: %s overlaps %s" % [where2, names2[a], names2[b]])
+		_check_fonts(g.card, where2, pt)
 		states += 1
 	(g.card.get("_leave") as Button).pressed.emit()
 	await process_frame

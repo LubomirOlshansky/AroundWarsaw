@@ -57,3 +57,24 @@ real tower height and dome shape, portal count, nave eave height.
 
 L3 for front and towers, L1 elsewhere; 788 triangles measured, budget 950
 (`check_mesh_quality.gd`). Shot: `--at=-1410,-165 --yaw=180 --pitch=-25 --size=60 --nohud --no-ghost`.
+
+## 8. Parts table
+
+| id | shape | size | position | material | feature |
+| --- | --- | --- | --- | --- | --- |
+| front plinth | box | 38 x 1.6 m, 2 m high | u 18.45, v 0 | M_STONE | 3 plinth |
+| screen lower | box | 21.5 x 1.5 m, 7.6 m high | u 18.45, 1.4..9 m | M_STONE | 3 facade |
+| screen upper | box | 21 x 1.4 m, 10 m high | 9..19 m | M_MONUMENT | 3 facade |
+| portals | 3 dark panes | 2.4 m wide, 1.5..6.6 m | u +-5.4 and 0 | M_GLASS | 3 facade |
+| pilasters | 4 boxes | 0.7 x 0.4 m, 6 m high | u +-2.7, +-8.1 | M_STONE | 3 facade |
+| entablature | 2 boxes | 22.2 x 1.4 m, 1 m and 0.6 m high | 7.4..9 m | M_STONE | 3 facade |
+| steps | 2 boxes | 14.4 x 2.4 m and 13.2 x 1.4 m | in front of the portals | M_STONE | 3 facade |
+| cornice | box | 22 x 1.8 m, 0.9 m high | 19..19.9 m | M_STONE | 4 roof |
+| pediment | gable plus oculus | 21.6 m wide, rise 4.4 m | 19.9..24.3 m | M_STONE | 4 roof |
+| front cross | 2 boxes | 0.3 x 2.7 m, arm 1.4 m | apex, 24.3..27 m | M_STONE | 4 roof |
+| tower shafts | 2 boxes | 8.2 x 8.6 m, 22.4 m high | u 3.85 and 33.05, v -3.75 | M_STONE | 2 massing |
+| tower windows | 4 dark panes | 1.8 m wide, 4.5 m high | 8..12.5 m, 15.5..20 m | M_GLASS | 3 towers |
+| tower bands | 2 string courses, 2 cornices | 8.2 x 8.6 m, 0.5 to 0.9 m | 7.2, 14.7, 24..25.5 m | M_STONE | 3 towers |
+| belfries | 2 boxes plus 8 piers | 6.4 x 6.8 m, 8.5 m high; piers 1.2 m | 25.5..34 m | M_MONUMENT, M_STONE | 3 towers |
+| domes | 2 octagonal frustum stacks | r 3.4 to 1.3 m | 35..44.8 m | M_STONE | 4 roof |
+| lanterns and spires | octagon prism, frustum, cross | r 1 m, 44.8..52.5 m; cross to 58 m | each tower | M_MONUMENT, M_STONE | 4 roof |

@@ -322,7 +322,7 @@ func _title() -> void:
 	_expect(t._pick(KEY_NONE, t._new_btn.get_global_rect().get_center()) == "new", "a tap on NOWA GRA")
 	_expect(t._pick(KEY_NONE, Vector2(5.0, 5.0)) == "continue", "a tap elsewhere is not continue")
 	t.choose("new")
-	_expect(t.screen == Title.CONFIRM and t._prompt.text == "ZACZĄĆ OD NOWA?" and t._yes_btn.visible and t._no_btn.visible
+	_expect(t.screen == Title.CONFIRM and t._prompt.text.begins_with("ZACZĄĆ OD NOWA?") and t._yes_btn.visible and t._no_btn.visible
 			and not t._new_btn.visible, "the question: '%s'" % t._prompt.text)
 	_expect(t._pick(KEY_ENTER, Vector2.INF) == "" and t._pick(KEY_ESCAPE, Vector2.INF) == "no" and t._pick(KEY_Y, Vector2.INF) == "yes",
 			"the question's keys")

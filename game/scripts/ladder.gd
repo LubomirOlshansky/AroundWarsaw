@@ -7,7 +7,7 @@ extends RefCounted
 ##   threshold (`RUNGS[i].respect`; the first needs neither). A beaten rung stays open (beaten
 ##   rivals are re-raced as before, the stake paid again). The final (`FINAL`, index 6) needs the
 ##   sixth rung beaten and FINAL_RESPECT.
-## - A race win gives +100 respect, so the thresholds (0, 100, 220, 340, 480, 640, 850; the main line
+## - A rung's first race win gives +100 respect (WIN_GAIN; a rematch +20), so the thresholds (0, 100, 220, 340, 480, 640, 850; the main line
 ##   retune of 2026-10-31, docs/design/main-line.md: about 250 respect from side quests in all, the
 ##   final within the first hour; it was 0/100/250/400/600/850/1100, ~500) pull the
 ##   jobs, the districts and the Syrenki in between the rungs.
@@ -17,6 +17,8 @@ extends RefCounted
 ## - **The record** is the wallet's `ladder` (rung id -> the day it was first beaten, yyyymmdd;
 ##   the save's [ladder] section, wallet.gd). The final's win is `ladder["trzy_mosty"]`
 ##   (`final_won`), for the end card of the next slice.
+
+const Lang := preload("res://scripts/lang.gd")
 
 ## The rungs: id (the save's key), the rival's name as rivals.gd RIVALS has it, the short name for
 ## the locked prompt, the stake (zł, as RIVALS), the respect it needs, and the race pace.
@@ -35,6 +37,12 @@ const FINAL_RESPECT := 850
 ## The final's pay: złoty and respect (the first win and every rematch alike).
 const FINAL_ZL := 500
 const FINAL_GAIN := 250
+## Race respect (the designer pass, 2026-11-01, docs/design/pay-tables.md): a rung's first win
+## gives WIN_GAIN, a rematch of a beaten rival (or a race the ladder doesn't count) REMATCH_GAIN, so
+## re-racing Halina (+100 in about four minutes) is no shortcut past the gates; the stake is paid
+## every time. The final's rematches give REMATCH_GAIN too.
+const WIN_GAIN := 100
+const REMATCH_GAIN := 20
 ## Seba's pace in the final (a long race: the same as Zbyszek's, a bit under Mike's).
 const FINAL_PACE := 1.45
 const FINAL_ACCEL := 1.7
@@ -57,6 +65,14 @@ static func rung_of(name: String) -> int:
 ## The respect rung `i` needs (FINAL: FINAL_RESPECT).
 static func threshold(i: int) -> int:
 	return FINAL_RESPECT if i == FINAL else int(RUNGS[i]["respect"])
+
+
+## The respect a won race on rung `i` gives: WIN_GAIN (FINAL_GAIN for the final) when `first` (the
+## rung's first win, or a race outside the ladder), REMATCH_GAIN for a rematch.
+static func race_gain(i: int, first: bool) -> int:
+	if not first:
+		return REMATCH_GAIN
+	return FINAL_GAIN if i == FINAL else WIN_GAIN
 
 
 ## The save's key of rung `i`.
@@ -157,19 +173,19 @@ func rows(night: bool) -> Array:
 		if beaten(i):
 			out.append(["★ " + text, "won"])
 		elif i == nxt:
-			out.append(["→ %s · %s" % [text, "otwarty · open" if is_open(i) else "szacunek · respect %d" % threshold(i)], "next"])
+			out.append(["→ %s · %s" % [text, Lang.pick("otwarty", "open") if is_open(i) else "%s %d" % [Lang.pick("szacunek", "respect"), threshold(i)]], "next"])
 		else:
 			out.append(["· " + text, "locked"])
-	var fin := "Finał · Trzy mosty · %d zł" % FINAL_ZL
+	var fin := Lang.pick("Finał · Trzy mosty · %d zł", "Final · Three Bridges · %d zł") % FINAL_ZL
 	if final_won():
 		out.append(["★ " + fin, "won"])
 	elif nxt == FINAL:
 		if not is_open(FINAL):
-			out.append(["→ %s · szacunek · respect %d" % [fin, FINAL_RESPECT], "next"])
+			out.append(["→ %s · %s %d" % [fin, Lang.pick("szacunek", "respect"), FINAL_RESPECT], "next"])
 		elif night:
 			out.append(["→ %s · Rondo Daszyńskiego" % fin, "next"])
 		else:
-			out.append(["→ %s · w nocy · at night" % fin, "next"])
+			out.append(["→ %s · %s" % [fin, Lang.pick("w nocy", "at night")], "next"])
 	else:
-		out.append(["· " + fin + " · w nocy · at night", "locked"])
+		out.append(["· " + fin + " · " + Lang.pick("w nocy", "at night"), "locked"])
 	return out

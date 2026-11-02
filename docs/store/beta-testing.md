@@ -26,6 +26,7 @@ Please try:
 4. Let the police catch you speeding once.
 5. Change the time and weather; try night and rain.
 6. Close the game and open it again: is your złoty still there?
+7. Got a game controller (Xbox, PlayStation or MFi)? Pair it and drive with it: left stick, RT gas, LT brake, Y for the helicopter, Start for Settings.
 
 Tell us: your iPhone model, anything that broke (with a screenshot if you can), where it got slow or hot, and the one thing you'd change.
 
@@ -44,6 +45,7 @@ Spróbuj:
 4. Daj się raz złapać policji za prędkość.
 5. Zmień porę dnia i pogodę; sprawdź noc i deszcz.
 6. Zamknij grę i otwórz ją ponownie: czy złotówki zostały?
+7. Masz pada (Xbox, PlayStation albo MFi)? Połącz go i pojeździj: lewa gałka, RT gaz, LT hamulec, Y helikopter, Start ustawienia.
 
 Napisz nam: model iPhone'a, co się zepsuło (najlepiej ze zrzutem ekranu), gdzie tnie albo grzeje, i jedną rzecz, którą byś zmienił(a).
 
@@ -77,7 +79,16 @@ internal testing), before it goes to external testers:
 - [ ] Quit from the app switcher, reopen: settings and złoty kept.
 - [ ] Portrait lock and both landscape sides: the HUD clears the notch or camera hole.
 - [ ] Haptics on a bump.
+- [ ] A gamepad (Xbox, PlayStation or MFi): drive, fly, Settings with Start, the full map with
+      Back; a finger on the screen brings the pedals back.
 - [ ] The support and privacy links in the store listing open.
+
+## The Mac in the beta
+
+The Mac joins the same TestFlight once the iPhone beta runs: macOS TestFlight builds, the macOS
+export and signing, a universal purchase on the existing record (or a separate Mac record), the
+upload through Transporter or Xcode. The steps, one per line, and the Mac's What to Test are in
+[mac-and-gamepad.md](mac-and-gamepad.md) ("The beta plan: adding the Mac").
 
 ## Who to invite
 

@@ -19,6 +19,8 @@
 # under what covers it whole, no hole where it was left out, the ground on the height rule.
 # `streets` runs tools/check_streets.py (map review B): poles on the asphalt, zebras off it,
 # grass medians on tram tracks (S1, S2, S4 FAIL; S3, medians in a junction, is reported).
+# `handling` runs game/tools/check_handling.gd (G4, 2026-11-01): Cruise's lane change and corner keep
+# the slip under a set value, Sport keeps the old feel, the gas is softer (no map; CI too).
 # `stopassist` runs game/tools/check_stop_assist.gd (2026-10-31): the car brakes itself into a
 # quest's ring from 30-90 km/h and holds for the quest's hold, never touches a car passing or driving
 # away, lets BRAKE reverse out; the quests share the ring and "stopped" (no map; CI too).
@@ -28,7 +30,7 @@
 # in anything solid or off the map; the density, the egg zone, the odd shares).
 # `tiers` and `governor` (loop G1): the device tiers and the pixel image's size rule, and the
 # frame governor's rules on scripted frames.
-# Loop MW-1: `places` runs game/tools/check_places.gd: MOJA WARSZAWA's 76 places (Polish +
+# Loop MW-1: `places` runs game/tools/check_places.gd: MOJA WARSZAWA's 77 places (Polish +
 # English, the 70 characters, the demo box, the brand denylist, reachability as a WARN) and the
 # notebook's finding and reward rules on synthetic inputs; it reads only centrum.json (CI too).
 # The L-shaped map loop: `edge` runs game/tools/check_edge.gd: the helicopter's clamp along the
@@ -63,10 +65,20 @@
 # Loop night-buses: `buses` runs game/tools/check_buses.gd: the N sign's hours and mesh, the
 # Centralny gatherings on a synthetic clock (rings of 5-8), the bays and stops, the stop figures'
 # cap, the horn's rate limit, E23/E24/E25 once each; centrum.json only (CI too).
+# Zagłębie Kebabowe (2026-11-02): `zaglebie` runs game/tools/check_zaglebie.gd: the five shops' data,
+# signs and words, places on the real lane graph, the pay twists, Szlak Szpili; centrum.json only (CI too).
+# The crash scenes (2026-11-01): `crashes` runs game/tools/check_crash_scenes.gd: the police family's
+# three shapes in one surface (the ambulance), the `crash_scene` and KEBAB FM lines, spots on the real
+# lane graph (main roads, 2+ lanes, no overlaps), the real traffic queueing and going round a scene,
+# the timer (first, life, gap); centrum.json only (CI too).
 # The vintage-tram loop: `oldtram` runs game/tools/check_old_tram.gd: the old set's window (weekends
 # 09-19, Live Jun-Sep) and one run an hour, the follow count and its reset, the look's draw-call
 # budget (2 car meshes, no node added), a run on the real tracks finding E39 once; centrum.json only
 # (CI too).
+# The railway (docs/design/railway.md T1): `trains` runs game/tools/check_trains.gd: the track graph's
+# ways in and out (the map's edges, both tunnel mouths), the cars' meshes (one surface, 400 tris), 40
+# simulated minutes: trains come and go, stop at Ochota, Powiśle and Stadion (the long-distance kind
+# never), never two on one track piece; centrum.json only (CI too).
 # Packs (docs/design/packs.md): `packs` runs game/tools/check_packs.gd: the clubs' and raves' hours on
 # synthetic clocks, the formation, the out-and-back loops on a grid and on the real footways and
 # cycle paths, the meshes' budgets, the lines (no real brand), a node drawing the packs only near
@@ -103,6 +115,8 @@
 # Street details (2026-11-01): `streetdetails` runs tools/check_street_details.py (the baked props along
 # the main line against the map: stale file, blocked spots, budget, kiosk spacing); `streetmesh` runs
 # game/tools/check_street_details.gd (every kind builds as one surface, a cell's triangle budget); CI too.
+# Bus stops (G8/G9, 2026-11-01): `stops` runs tools/check_stops.py (every bus-road shelter on the kerb and
+# turned to the road, benches facing the walk, none in a building or the water, cafe sets on a shopfront).
 # The main line (2026-10-31): `mainline` runs game/tools/check_main_line.gd: main_line.gd's step from
 # the facts in each chapter (the guide, the ladder, the final, the jobs to the end card), its words
 # and the ladder's pacing (the side quests' respect to the final); no map (CI too).
@@ -138,8 +152,8 @@ zmodload zsh/datetime
 ROOT=${0:A:h:h}
 GAME=$ROOT/game
 GODOT=${GODOT:-godot}
-STEPS_ALL=(map roads streets outline pois streetdetails streetmesh spec lod2 drape ground drive drive-prebuilt steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
-STEPS_QUICK=(map roads streets outline pois streetdetails streetmesh spec drape drive steering stopassist settings tiers governor hud places edge eggs tape crowds life buses oldtram packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs sites meshq sfx juice radio sounds police plain ram prebuilt)
+STEPS_ALL=(map roads streets outline pois streetdetails stops streetmesh spec lod2 drape ground drive drive-prebuilt steering handling stopassist questlines settings credits language tiers governor hud places edge eggs tape crowds life buses zaglebie crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs roofdress sites meshq sfx juice gamepad radio sounds water water-prebuilt streaming police plain ram heli race trzy-mosty first10-run kebab ride ride-police splash rain prebuilt classic police-runs police-soak life-soak)
+STEPS_QUICK=(map roads streets outline pois streetdetails stops streetmesh spec drape drive steering handling stopassist questlines settings credits language tiers governor hud places edge eggs tape crowds life buses zaglebie crashes oldtram trains packs garage save districts syrenki cassettes ladder first10 mainline endcard opening parodies jobs2 couriers rides cost landmarks oldtownroofs roofdress sites meshq sfx juice gamepad radio sounds police plain ram prebuilt)
 # Loop 3g-1: minutes of play in the police soak (P13; the full one is 10).
 SOAK_MINUTES=${NW_SOAK_MINUTES:-3}
 # Longest a single step may take, in seconds, before it is stopped (macOS has no `timeout`).
@@ -614,6 +628,17 @@ for s in $want; do
 				0) row PASS "streetdetails" $secs "check_street_details: OK · $counts" ;;
 				*) row FAIL "streetdetails" $secs "$(grep '^check_street_details: ' $logs/streetdetails.log | tail -1) · $counts ($logs/streetdetails.log)" ;;
 			esac ;;
+		stops)
+			t0=$EPOCHREALTIME
+			python3 -I $ROOT/tools/check_stops.py > $logs/stops.log 2>&1
+			code=$?
+			secs=$(printf '%.0f' $(( EPOCHREALTIME - t0 )))
+			counts=$(grep -m1 '^check_stops counts:' $logs/stops.log)
+			counts=${counts#check_stops counts: }
+			case $code in
+				0) row PASS "stops" $secs "check_stops: OK · $counts" ;;
+				*) row FAIL "stops" $secs "$(grep '^check_stops: ' $logs/stops.log | tail -1) · $counts ($logs/stops.log)" ;;
+			esac ;;
 		streetmesh) check streetmesh '^street_details:' --script res://tools/check_street_details.gd ;;
 		# Landmark specs (LANDMARKS 0.4): every docs/landmarks/specs/*.md has all eight sections, a
 		# detail level, a triangle budget and a filled parts table (tools/check_spec.py; ~0.1 s).
@@ -651,8 +676,15 @@ for s in $want; do
 		drive-prebuilt) check drive-prebuilt '^check_drive:' --script res://tools/check_drive.gd -- --prebuilt ;;
 		steering) check steering 'check_steering:' --fixed-fps 60 --script res://tools/check_steering.gd ;;
 		# The quest stop assist: the car brakes itself into a quest's ring and holds for the hold.
+		handling) check handling '^check_handling:' --fixed-fps 60 --script res://tools/check_handling.gd ;;
 		stopassist) check stopassist '^check_stop_assist:' --fixed-fps 60 --script res://tools/check_stop_assist.gd ;;
+		# G12: the car and heli quest lines (quest_lines.gd) and G10's START RIDE reach.
+		questlines) check questlines '^check_quest_lines:' --script res://tools/check_quest_lines.gd ;;
 		settings) check settings '^settings:' --script res://tools/check_settings.gd ;;
+		# DEMO 3j: no testing flags in a release build; the credits and licences page (no map; CI too).
+		credits) check credits '^check_credits:' --script res://tools/check_credits.gd ;;
+		# 2026-11-02: the language choice (lang.gd): one language on every screen, in Polish and in English.
+		language) check language '^check_language:' --script res://tools/check_language.gd ;;
 		# Loop G1: model id -> tier, the pixel image at the phones' sizes; the governor's rules.
 		tiers) check tiers '^check_tiers:' --script res://tools/check_tiers.gd ;;
 		governor) check governor '^check_governor:' --script res://tools/check_governor.gd ;;
@@ -675,7 +707,15 @@ for s in $want; do
 		# "Na czasie" pay, the Zając, Fat Thursday, the life eggs (E16 E18-E20 E27-E30).
 		life) check life '^check_city_life:' --script res://tools/check_city_life.gd ;;
 		buses) check buses '^check_buses:' --script res://tools/check_buses.gd ;;
+		# The crash scenes: the ambulance in the police family, the lines, the spots on the real
+		# graph, the traffic going round a scene, the timer.
+		# Zagłębie Kebabowe (docs/design/zaglebie-kebabowe.md): the five shops, their words, places on the
+		# real lane graph, the pay twists and Szlak Szpili.
+		zaglebie) check zaglebie '^check_zaglebie:' --script res://tools/check_zaglebie.gd ;;
+		crashes) check crashes '^check_crash_scenes:' --script res://tools/check_crash_scenes.gd ;;
 		oldtram) check oldtram '^check_old_tram:' --script res://tools/check_old_tram.gd ;;
+		# The railway (docs/design/railway.md T1): the trains on the rail tracks.
+		trains) check trains '^check_trains:' --script res://tools/check_trains.gd ;;
 		# Packs: running clubs, cycling packs, coffee raves, the big guys with tiny dogs.
 		packs) check packs '^check_packs:' --script res://tools/check_packs.gd ;;
 		garage) check garage '^check_garage:' --script res://tools/check_garage.gd ;;
@@ -694,6 +734,8 @@ for s in $want; do
 		cost) check cost '^check_cost_cuts:' --script res://tools/check_cost_cuts.gd ;;
 		# The Old Town's dormers and chimneys (scripts/old_town_roofs.gd): on the slope, outward, small.
 		oldtownroofs) check oldtownroofs '^check_old_town_roofs:' --script res://tools/check_old_town_roofs.gd ;;
+		# The roofs lane (scripts/roof_dress.gd): parapets on outer edges only, tenement chimneys, the budget.
+		roofdress) check roofdress '^check_roof_dress:' --script res://tools/check_roof_dress.gd ;;
 		landmarks) check landmarks '^landmark check:' --script res://tools/check_landmarks.gd ;;
 		# The museum and Plac loop: Muzeum Narodowe, Hotel Europejski and the Tomb from centrum.json
 		# alone (found, what they replace, triangles, one material, cards; no terrain or sectors).
@@ -702,6 +744,8 @@ for s in $want; do
 		sfx) check sfx '^sfx:' --script res://tools/check_sfx.gd ;;
 		# v1.0 juice: crash sparks and dust (crash_fx.gd), the buzzes' floor and switch (haptics.gd).
 		juice) check juice '^check_juice:' --script res://tools/check_juice.gd ;;
+		# The gamepad loop: Xbox / PlayStation / MFi pads (gamepad.gd) on synthetic joypad events.
+		gamepad) check gamepad '^check_gamepad:' --script res://tools/check_gamepad.gd ;;
 		radio) check radio '^radio:' --script res://tools/check_radio.gd ;;
 		sounds) check sounds '^city_sounds:' --script res://tools/check_city_sounds.gd ;;
 		# Loop 10a: where a car can get into the water (whole map), and the game's tow decisions.

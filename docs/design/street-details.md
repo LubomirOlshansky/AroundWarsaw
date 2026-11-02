@@ -42,6 +42,8 @@ station) have no fixed path; the corridors below already pass most of those fini
 | C5 | Wybrzeże Kościuszkowskie (Karowa to Most Poniatowskiego) | (-25,-1225) (162,-1057) (404,-478) (566,-22) | riverside |
 | C6 | Prosta, Rondo ONZ, Świętokrzyska (west) | (-2644,412) (-2149,242) (-1671,75) (-1181,-94) | avenue |
 | C7 | Aleja „Solidarności” and Targowa east of the river, Ząbkowska | (73,-1835) (900,-1800) (1321,-1948) | avenue (Praga) |
+| C9 | Marszałkowska north (Bankowy side to Świętokrzyska), 2026-11-02 | (-1337,-615) (-1238,-520) (-1166,-465) (-1126,-350) (-1091,-256) | avenue |
+| C10 | Marszałkowska south (the Rotunda to Zbawiciela), 2026-11-02 | (-872,411) (-792,544) (-750,669) (-672,876) (-594,1095) | avenue |
 | C8 | Aleja Poniatowskiego, Rondo Waszyngtona, Aleja Zieleniecka (to the stadium) | (1417,-292) (1722,-391) (1611,-372) (1496,-601) | avenue |
 
 Never on bridges (`bridge` true), Wybrzeże Szczecińskie (riverbank, no pavement life) or
@@ -79,6 +81,11 @@ streets. Clusters by character:
 tram stops (shelter on or within 3 m of a `platforms` polygon), a ticket machine. Both stand
 inside the shelter's own 2.6 m cleared disc (at its end, along its yaw), so they never add a new
 obstruction to a platform; no other kind goes on a platform.
+
+**Island kits (2026-11-02):** a tram island (`platforms`, 150 m2 or more) on a corridor with no
+mapped shelter within 25 m gets a `bench` in the middle, a `post` and a `ticket` 9 m either side
+along the slab, colour field `platform` (the runtime lifts them 1 m onto the slab), each at least
+0.7 m inside the outline and clear of everything but the island's own kerb, ballast and tracks.
 
 **Budget:** at most 900 items in all, 70 per 512 m sector; ~250 triangles average, 25 k per
 sector. Runtime `game/scripts/street_details.gd`, built per sector on load on both city paths
