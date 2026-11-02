@@ -24,6 +24,34 @@ Left:
 - The boulevard's buildings are a palette, not models: next pass is street by street, the real
   facade of each block along Jana Pawła II (Kaskada, the 1950s blocks near Rondo Daszyńskiego, the
   Żelazna Brama corner) from the orthophoto and photos.
+## Roadworks at the map's edges (F, 2026-11-02)
+F: "add some roadworks at the ends of the city where now the map ends". **Built** (`scripts/edge_roadworks.gd`,
+both city paths): every road that leaves the map is closed 12 m inside the outline: 237 closures from 393 road ends
+(42 big, 60 medium, the rest service lanes), each a line of red-and-white barriers with blinking amber lamps (a
+halo each at night), a B-1 no-entry disc and cones; on streets a yellow ROBOTY DROGOWE board and OBJAZD →; on
+avenues the A-14 triangle 18 m ahead, a cone taper, and behind the barriers a dug trench, sand, an orange pipe, a
+yellow excavator with a beacon, a site cabin or a TOJ TOJ (our parody of the blue toilet) and a 2 m tarp fence that
+hides the road running on past the edge. Solid: one box collider per barrier line, in front of the edge wall. The
+traffic stops at the barriers (`lane_graph.gd` `e_shut` / `e_open`: never through them, no starts behind them, a
+closed road only when nothing else is open; a waiting car leaves once out of sight; a rival or the autopilot takes
+the off-map link from the barriers). Check `check_edge_roadworks` (verify `roadworks`, CI too); `check_drive` leaves
+the closed stretches out and finds exactly what main finds. Meshes on a worker thread (0.34 M triangles in 39
+pieces of 512 m, ~1.5 s of GDScript on the cloud CPU, added within a 3 ms budget a frame). Probe at Jerozolimskie's
+west end: 90 → 93 draw calls (main 34 → 36, shadow 17 → 18), 0.39 → 0.41 M triangles.
+- [ ] Mac look check (QUESTIONS): the barriers' scale at phone zoom, the boards' text, the excavator and the fence
+      against real Warsaw roadworks; whether the big closures feel like too many of the same (55 kits, 3 tarps,
+      cabin or TOJ TOJ by a coin toss).
+- [ ] Phone: drive into a closure (the hit, the haptics, POMOC DROGOWA if wedged); the meshes' arrival a second or
+      so after the start (the player starts far from any edge).
+- [ ] A road meeting the edge at a shallow slant gets a barrier line across the road, not along the edge; a few
+      long ones look odd from above. 34 roads that run along the edge are closed 6.5 m in, just before the wall,
+      barriers and a fence only.
+- [ ] 14 service lanes that leave the map right beside a street are left to the edge wall (their barriers would
+      stand in the street's lanes); 4 short stubs in the edge band lead to no closure.
+- [ ] Traffic queues at a closure while it is on screen (a closed road is picked only when nothing else is open);
+      real drivers would turn round. A U-turn at the barriers would need a turning lane in the graph.
+- [ ] `--no-edge-roadworks` removes the meshes and colliders but the traffic still stops at the lines.
+
 ## Playtest bugs (Autopilot, 2026-11-02)
 
 The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, status); fix
