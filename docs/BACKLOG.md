@@ -641,7 +641,9 @@ real ones added to `brand_denylist.json`). One PR each:
       normal rides, 3 request and 4 ride lines; `rides.gd`), five fans behind Cringulo's van with
       `viral` "cringulo" bubbles, and the egg `easter_mlask` (the car stopped within 9 m of the van
       for 3 s while he is out; `trend_job.gd`, 48 cards now).
-- [ ] Still left: the van's CRINGULO TV lettering; Mac look check of the fans' spot behind the van
+- [x] The van's CRINGULO TV lettering (pixel font, dark, both flanks under the pink band; a second
+      surface, +424 tris, check budget 800), 2026-11-02.
+- [ ] Still left: Mac look check of the lettering's size and the fans' spot behind the van
       (the side of the kerb), the egg's wording; phone checks of every sign's size, the queues and
       the job's legs.
 - [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the

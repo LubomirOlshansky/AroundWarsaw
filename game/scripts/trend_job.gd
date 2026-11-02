@@ -88,6 +88,7 @@ const ML_RESPECT := 15
 const ML_COLOUR := Color("#ffbf5f")
 const ML_GRADES := [7.5, 8.0, 8.5, 9.0, 9.5]
 const ML_COLD_GRADE := 3.0
+const PixelFont := preload("res://scripts/pixel_font.gd")
 const VAN_CREAM := Color("#efe6cf")
 const VAN_PINK := Color("#d9467f")
 const VAN_DARK := Color("#26262b")
@@ -437,7 +438,7 @@ func offer_czwarty() -> bool:
 # --- "Mlask": Cringulo's review (G5) ----------------------------------------------------------
 
 ## The van's mesh: a cream box van, a pink band, dark windows, the big lens on the roof, in the
-## models' one material (~150 triangles). Local frame: +Z forward, origin on the ground.
+## models' one material (~150 plus the lettering). Local frame: +Z forward, origin on the ground.
 static func van_mesh() -> ArrayMesh:
 	var st := Models._begin()
 	Models.box(st, Vector3(0, 1.25, 0), Vector3(2.0, 1.9, 5.2), VAN_CREAM)
@@ -451,7 +452,43 @@ static func van_mesh() -> ArrayMesh:
 	Models.box(st, Vector3(0, 2.3, -0.4), Vector3(0.5, 0.2, 0.5), VAN_DARK)
 	Models.box(st, Vector3(0, 2.62, -0.4), Vector3(0.62, 0.44, 0.9), VAN_DARK)
 	Models.box(st, Vector3(0, 2.62, 0.12), Vector3(0.5, 0.36, 0.16), VAN_PINK)
-	return st.commit()
+	var mesh := st.commit()
+	var tx := _van_lettering("CRINGULO TV", -0.2, 0.58)
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, tx.surface_get_arrays(0))
+	return mesh
+
+
+## `text` in the pixel font (5 cm pixels, flat dark quads, a row's lit run is one quad) on both
+## flanks of the van, centred at (zc, yc), below the pink band: a second surface of the van mesh.
+static func _van_lettering(text: String, zc: float, yc: float) -> ArrayMesh:
+	var s := Models.Shape.new()
+	var f := Models.fin(VAN_DARK)
+	var px := 0.05
+	var wide := PixelFont.width(text) * px
+	var runs := {}  # row -> sorted columns
+	PixelFont.each_pixel(text, 0, func(col: int, row: int) -> void:
+		if not runs.has(row):
+			runs[row] = []
+		runs[row].append(col))
+	for sgn: float in [-1.0, 1.0]:
+		# Seen from +x the text runs towards -z, from -x towards +z.
+		var x := sgn * 1.03
+		var start := zc + sgn * wide * 0.5
+		var top := yc + 3.5 * px + PixelFont.BODY * px
+		for row: int in runs:
+			var cols: Array = runs[row]
+			cols.sort()
+			var i := 0
+			while i < cols.size():
+				var j := i
+				while j + 1 < cols.size() and int(cols[j + 1]) == int(cols[j]) + 1:
+					j += 1
+				var za := start - sgn * int(cols[i]) * px
+				var zb := start - sgn * (int(cols[j]) + 1) * px
+				var yt := top - row * px
+				s.side_rect(x, sgn, yt - px, yt, minf(za, zb), maxf(za, zb), f)
+				i = j + 1
+	return s.mesh()
 
 
 ## Five fans standing behind the van along the kerb, one holding a phone up: a single mesh in the
