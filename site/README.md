@@ -2,7 +2,8 @@
 
 The game's landing page. English at `/` (the default), Polish at `/pl/`, the privacy policy at
 `/privacy/`, support (both languages, the stores' support URL) at `/support/`. Static files, self-hosted fonts, one small script for the form, no cookies, no
-analytics.
+tracking scripts. Visits come from Cloudflare's own traffic numbers, store-button clicks from
+`worker.js` (below).
 
 | File | What |
 | --- | --- |
@@ -15,6 +16,7 @@ analytics.
 | `public/img/game/` | screenshots, `<name>.webp` (1920 px wide) and `<name>-960.webp` for phones; `img/og.jpg` is the 1200×630 link preview |
 | `public/fonts/` | Pixelify Sans (display) and Manrope (text), WOFF2, OFL licences beside them |
 | `public/_headers` | security headers (a CSP that allows only this site and Formspree), caching |
+| `worker.js` | the Worker in front of the static files: only `/go/ios` and `/go/android` run it (count the click, 302 to the store, or to `/#beta` while `IOS_URL`/`ANDROID_URL` in `wrangler.jsonc` are empty) |
 | `wrangler.jsonc` | the Cloudflare Worker that serves `public/` and owns the custom domains |
 
 Design notes: the world is the game's night city (sodium lamps, one pink neon, the car radio).
@@ -76,3 +78,17 @@ public link or the Play closed test's opt-in link
 (`https://play.google.com/apps/testing/com.olshanskysoft.nocnawarszawa`) should be on the page,
 add them to the beta section in `src/index.html` and rebuild. Play needs 12 testers for 14 days
 in a closed test before production (docs/store/play-console.md).
+
+## Visitors and store clicks (no cookies, no scripts)
+
+- **Visits**: dashboard.cloudflare.com -> pick the account -> **Websites** -> `aroundwarsaw.app`
+  -> **Analytics & Logs** -> **Traffic** (unique visitors, requests, countries, top pages;
+  server-side, so no script on the page). If it is empty, the zone is not proxied: **Web
+  Analytics** -> **Add a site** also works but needs a beacon script (and a CSP change).
+- **Store clicks**: dashboard -> **Workers & Pages** -> `aroundwarsaw` -> **Logs** (Observability):
+  one `store_click` line per click with `button`, `lang`, `country`; group by `button` to count.
+  The same clicks go to the Analytics Engine dataset `aroundwarsaw_clicks`; query it with
+  `curl https://api.cloudflare.com/client/v4/accounts/$ACCOUNT/analytics_engine/sql -H "Authorization: Bearer $TOKEN" -d "SELECT blob1 AS button, blob3 AS country, SUM(_sample_interval) AS clicks FROM aroundwarsaw_clicks GROUP BY button, country"`
+  (token with Account Analytics: Read).
+- **When the apps are listed**: put the URLs in `vars` in `wrangler.jsonc`, point the site's
+  store buttons at `/go/ios` and `/go/android`, `python3 -I tools/site_build.py`, deploy.

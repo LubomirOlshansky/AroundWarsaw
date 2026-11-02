@@ -40,6 +40,11 @@ DEFAULT_WIDTH = {
 MAIN = {"motorway", "trunk", "primary", "secondary", "tertiary",
         "motorway_link", "trunk_link", "primary_link", "secondary_link", "tertiary_link"}
 MINOR = {"service", "living_street"}
+# Map review C: one-way streets whose single mapped lane is drawn at least DEFAULT_WIDTH wide.
+ONE_LANE_STREET = {"residential", "unclassified", "tertiary"}
+TWO_LANE_STREET = 7.0  # ...and a two-way one with `lanes=2` at least this wide (F, 2026-11-02)
+SPLIT_GAP = 14.0    # ...unless another one-way runs the other way this near (centre to centre)...
+SPLIT_SHARE = 0.3  # ...along this share of the street
 # area:highway values that are road surface; hatched areas are painted on asphalt.
 CARRIAGE_KINDS = {"primary", "secondary", "tertiary", "unclassified", "residential", "service",
                   "living_street", "yes", "bus_bay", "primary_link", "secondary_link",
@@ -198,13 +203,77 @@ def road_width(t):
     elif lanes:
         n = lanes
     if n:
-        return n * lw + bl + br, bl, br
+        w = n * lw
+        if n == 1 and hw in ONE_LANE_STREET and t.get("oneway") in ("yes", "-1") and not t.get("_split_leg") \
+                and t.get("bridge") in (None, "no") and t.get("tunnel") in (None, "no"):
+            # Map review C (2026-11-02): `lanes=1` on a one-way street counts the moving lane, not the
+            # kerb-to-kerb width. Over the orthophoto these streets (Mokotowska, Wilcza, Hoża, Żurawia,
+            # Noakowskiego...) are 5.5-9 m with the parked cars, never a 3 m strip: the same width as
+            # the street with no lane count (DEFAULT_WIDTH). Not a leg of a split round an island or a
+            # narrow median (`mark_split_legs`): those are one lane wide.
+            w = max(w, DEFAULT_WIDTH[hw])
+        elif n == 2 and hw in ONE_LANE_STREET and oneway_of(t) == 0 and t.get("bridge") in (None, "no") \
+                and t.get("tunnel") in (None, "no"):
+            # Map review C, F's yes (2026-11-02): a two-way street with `lanes=2` measured ~7.5 m over
+            # the photo, not 2 x 3.0 m: drawn TWO_LANE_STREET wide.
+            w = max(w, TWO_LANE_STREET)
+        return w + bl + br, bl, br
     w = DEFAULT_WIDTH.get(hw, 5.5)
     if t.get("service") == "parking_aisle":
         w = 4.5
     elif t.get("service") == "driveway":
         w = 3.0
     return w + bl + br, bl, br
+
+
+def mark_split_legs(ways, coords, drivable):
+    """Map review C: tag (`_split_leg`) the one-lane one-way streets that run beside another one-way
+    way the other way within SPLIT_GAP metres for at least SPLIT_SHARE of their length: the legs of a
+    street split round a traffic island or a narrow median, which stay one lane wide. Returns the count."""
+    cand, segs = [], []
+    for w in ways.values():
+        t = w.get("tags", {})
+        if t.get("highway") not in drivable or t.get("area") == "yes" or oneway_of(t) == 0:
+            continue
+        pts = coords(w.get("nodes", []))
+        if oneway_of(t) < 0:
+            pts = pts[::-1]
+        for a, b in zip(pts, pts[1:]):
+            if math.dist(a, b) > 0.1:
+                segs.append((w["id"], a, b))
+        if t.get("highway") in ONE_LANE_STREET and num(t.get("lanes")) == 1:
+            cand.append((w, pts))
+    grid = {}
+    for k, (_, a, b) in enumerate(segs):
+        for ci in range(int(min(a[0], b[0]) // 16) - 1, int(max(a[0], b[0]) // 16) + 2):
+            for cj in range(int(min(a[1], b[1]) // 16) - 1, int(max(a[1], b[1]) // 16) + 2):
+                grid.setdefault((ci, cj), []).append(k)
+    marked = 0
+    for w, pts in cand:
+        total = hits = 0
+        for a, b in zip(pts, pts[1:]):
+            ln = math.dist(a, b)
+            if ln < 0.1:
+                continue
+            ux, uz = (b[0] - a[0]) / ln, (b[1] - a[1]) / ln
+            u = 1.5
+            while u < ln:
+                x, z = a[0] + ux * u, a[1] + uz * u
+                total += 1
+                for k in grid.get((int(x // 16), int(z // 16)), ()):
+                    wid, p, q = segs[k]
+                    if wid == w["id"]:
+                        continue
+                    qx, qz = q[0] - p[0], q[1] - p[1]
+                    ql = math.hypot(qx, qz)
+                    if (ux * qx + uz * qz) / ql < -0.8 and seg_dist(x, z, p, q) < SPLIT_GAP:
+                        hits += 1
+                        break
+                u += 3.0
+        if total and hits >= SPLIT_SHARE * total:
+            w.setdefault("tags", {})["_split_leg"] = True
+            marked += 1
+    return marked
 
 
 def lane_split(t, width):
@@ -1073,7 +1142,10 @@ class Roadbed:
         cum = _cum(ps)
         hs = [T.h(*p) for p in ps]
         for t in touch:
-            s0 = project_onto(ps, cum, *t)[0]
+            hit = project_onto(ps, cum, *t)
+            if hit is None:
+                continue  # a path of one point (a joined cycle path can close on itself)
+            s0 = hit[0]
             for k in range(len(ps)):
                 if abs(cum[k] - s0) > BLUR_REACH:
                     continue

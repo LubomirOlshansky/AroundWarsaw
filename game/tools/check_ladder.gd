@@ -16,7 +16,8 @@ extends SceneTree
 ## - with the committed map data (map/centrum.json; skipped without it): the three bridges are found
 ##   in the lane graph, going east, west, east; each leg routes; the shortest way from each span's
 ##   near end to its far end is the span itself; the finish is by the stadium, the start by Rondo
-##   Daszyńskiego; a checkpoint counts on the deck and not 10 m under it or 30 m aside.
+##   Daszyńskiego; a checkpoint counts on the deck and not 10 m under it or 30 m aside; PT-8: where
+##   Halina rolls up for the first race is behind the car on a lane its way, never in front.
 ##   godot --headless --path game --script res://tools/check_ladder.gd
 
 const Ladder := preload("res://scripts/ladder.gd")
@@ -59,7 +60,7 @@ func _initialize() -> void:
 	_gating()
 	_words()
 	_save()
-	_route()
+	await _route()
 	_cleanup()
 	if _problems == 0:
 		print("ladder: OK (%s)" % ", ".join(PackedStringArray(_summary.values())))
@@ -293,7 +294,46 @@ func _route() -> void:
 	_expect(Vector2(t.start_pos.x, t.start_pos.z).distance_to(TrzyMosty.START_HINT) < 100.0, "the start is %.0f m from START_HINT" % Vector2(t.start_pos.x, t.start_pos.z).distance_to(TrzyMosty.START_HINT))
 	_expect(total > 5000.0 and total < 15000.0, "the route is %.0f m" % total)
 	_summary["route"] = "%s, %.1f km" % [" → ".join(PackedStringArray(names)), total / 1000.0]
+	await process_frame  # the car below needs the tree (global_position)
+	_first_call(g)
 	map.free()
+
+
+## PT-8 (docs/PLAYTEST.md): where Halina rolls up for the first race (rivals.gd `_spot_behind`).
+## At the end of one-way Hoża by Mokotowska facing west she was put 12 m in FRONT of the car on the
+## 3 m street and held there (the car crawled into her for the whole prompt). Each case: a spot
+## [x, z, compass heading, whether a spot must be found]; a spot found must be behind the car by
+## at least half the distance asked for, on a lane running the car's way.
+func _first_call(g: LaneGraph) -> void:
+	var cases := [
+		[-125.0, 676.0, -70.0, false, "PT-8: Hoża's end facing west (two-way Hoża's lane starts 9 m ahead)"],
+		[-125.0, 676.0, 110.0, true, "PT-8: Hoża's end facing east, with the one-way"],
+		[-150.0, 682.0, 110.0, true, "two-way Hoża facing east"],
+	]
+	var r := Rivals.new()
+	var c := CharacterBody3D.new()
+	root.add_child(c)
+	r.graph = g
+	r.car = c
+	var ok := 0
+	for k: Array in cases:
+		c.global_position = Vector3(k[0], 0.0, k[1])
+		c.rotation.y = -deg_to_rad(float(k[2]))
+		var heading := Vector2(-sin(c.rotation.y), -cos(c.rotation.y))
+		for back: float in [Rivals.FIRST_BACK, 12.0]:
+			var spot: Array = r._spot_behind(back)
+			if spot.is_empty():
+				_expect(not k[3] or back < Rivals.FIRST_BACK, "%s: no spot %.0f m behind" % [k[4], back])
+				continue
+			var e: int = spot[0]
+			var q: Vector2 = g.point_at(e, float(spot[2]), g.lane_offset(e, int(spot[1])))
+			var rel := q - Vector2(k[0], k[1])
+			_expect(rel.dot(heading) <= -0.5 * back, "%s: the %.0f m spot is %.0f m ahead" % [k[4], back, rel.dot(heading)])
+			_expect(g.direction(e, float(spot[2])).dot(heading) > 0.5, "%s: the %.0f m spot's lane runs against the car" % [k[4], back])
+			ok += 1
+	c.free()
+	r.free()
+	_summary["first_call"] = "Halina's roll-up spot: %d placed behind, PT-8 none in front" % ok
 
 
 func _cleanup() -> void:
