@@ -84,6 +84,7 @@ const BUDGET := {
 	"forest": 1500,
 	"gpy": 250,
 	"gaulle": 880,
+	"rondo": 7000,
 	"gbc": 750,
 	"grob": 340,
 	"grzybowska63": 500,

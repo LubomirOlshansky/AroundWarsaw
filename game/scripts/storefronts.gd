@@ -1306,7 +1306,8 @@ func _write_lezaks(key: Vector2i) -> void:
 
 ## The metro entrances from the bake's `subway_entrance` pois (content-POIs switch): `yaw` is the
 ## way down (the canopy's open front faces away from it), `st` the station's name; the ones that
-## open off an underground passage only (`u`) have no street canopy.
+## open off an underground passage only (`u`) have no street canopy. Metro Centrum's wear its blue
+## 1990s tubes (F, 2026-11-02).
 func _load_metros(pois: Array) -> void:
 	if map == null:
 		return
@@ -1316,7 +1317,7 @@ func _load_metros(pois: Array) -> void:
 		var x := float(p["x"])
 		var z := float(p["z"])
 		metros.append({"at": Vector3(x, map.ground_height(x, z), z), "yaw": float(p["yaw"]), "station": str(p.get("st", "")),
-				"ref": str(p.get("ref", "")), "key": key_of(Vector2(x, z)), "form": str(p.get("f", "canopy")),
+				"ref": str(p.get("ref", "")), "key": key_of(Vector2(x, z)), "form": "tube" if str(p.get("st", "")) == "Centrum" else str(p.get("f", "canopy")),
 				"lift": (int(absf(x * 7.0 + z * 13.0)) % 5) < 3})
 
 
