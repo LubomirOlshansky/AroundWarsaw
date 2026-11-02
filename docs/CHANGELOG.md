@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Marszałkowska gets eight neon shopfronts of old trades: a milk bar, a dry cleaner, a watchmaker, a pastry shop, an optician, a florist, a haberdashery and a herbalist.
 - Nowy Świat gets eight neon shopfronts between the Palm and Karowa: a doughnut shop, ice cream with no queue, a bookshop café, an antiquarian, a boutique, a wine bar, an unfathomable gallery and an exchange office.
 - Police chases can be escaped for real: the patrol cars are a little slower than you now, so a flat-out run opens a gap and the chase ends at 100 m. And the radiowozy look like the real ones: a silver Toyota-style estate with the blue POLICJA band, checker strips and a blue bonnet, and a silver police van.
 - Marszałkowska has more street life: flower planters, bollards, kiosks and ad columns along the whole street, and tram stops with a bench, a stop sign and a ticket machine.
@@ -35,9 +36,10 @@ someone writes its lines.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
-<<<<<<< HEAD
 - Getting paid now pops a gold "+54 zł" over your car with a coin ting, and each district has its own quiet background sound: the river at Powiśle, trees in the park, a square's chatter in the Old Town and on the Royal Route, courtyard wind and far trams in Praga and Muranów.
-=======
+- Powiśle has more to look at: the Ostrogski Castle with the Chopin Museum on Tamka, the parish church, the Syrenka statue on the boulevard, the water station and the Kaskada boat.
+- A new ice-cream parlour on Tamka, DALEJ DALLA GELATO: the queue stands all year, and in winter everyone queues in puffer jackets.
+- St John's Cathedral in the Old Town has its brick front: a stepped gable with a tall pointed window, stone pinnacles and a small gabled porch.
 - MDM on Plac Konstytucji looks like the socialist-realist district now: arcades along the ground floor of the blocks facing the square and Marszałkowska, and four stone towers with pointed roofs at the corners, each with a terracotta relief.
 - Most Śląsko-Dąbrowski's "find it" spot now sits on the bridge itself, where a car can reach it.
 - The football ground on Łazienkowska is a real stadium now (as "Stadion Leguminy"): a panelled facade under a red and green band, a white roof round an open middle, white, green and red stands round a striped pitch, floodlight masts at the corners and LEGUMINA in green neon, with a card.
@@ -107,7 +109,6 @@ someone writes its lines.
 - Footpaths are now grey concrete pavers like Warsaw's pavements.
 - Plac Centralny by the museum is paved like the real square: the outlines of the lost pre-war houses in red and grey stone, their courtyards and the old streets in granite setts.
 - Ordinary buildings now look like their kind: old tenements get cornices, window surrounds and a rusticated shop floor, communist-era blocks get panel joints and loggias, offices get ribbon windows.
->>>>>>> origin/main
 - Crashes throw sparks and dust (they glow at night), scraping along a barrier at speed trails sparks, and the phone's vibration is now strong enough to feel.
 - Nine more mixtapes lie on roofs round the city (Kopernik, the Palace terrace, the Opera, Arkadka, the modern art museum, Polin, the Sejm, the defence ministry and the National Bank): fly the helicopter over one to pick it up. The first five open the next locked PÓŁNOC FM song; the rest give respect and a card.
 - The website now shows the design wiki link on phones too: in the top bar, as a button under the hero and in the footer.

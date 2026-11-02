@@ -212,8 +212,12 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   open on the street: facade, shopfront and roof polish house by house (needs photos), crossings
   against real photos, the island kits only fit where the slab is wide enough (most islands
   got no kit: a fence, wall or the tracks leave no room).
-- Next on the street: MDM's arcades, reliefs and corner towers (LANDMARKS 2.8), the church's
-  night lighting, Plac Zbawiciela's rotunda-side cafés, houses and roads street by street.
+- Pass 4 (cloud, Sonnet, 2026-11-02): eight neon shopfronts on mapped house numbers (`Storefronts.MARSZALKOWSKA`:
+  milk bar, dry cleaner, watchmaker, pastry shop, optician, florist, haberdashery, herbalist; check_parodies OK).
+  Needs F's photos / Mac look check (QUESTIONS): doors at the real shops, per-house plaster colours and
+  cornices, the crossings against real photos; Plac Bankowy's end.
+- Next on the street: the church's night lighting, Plac Zbawiciela's rotunda-side cafés, houses and
+  roads street by street.
 
 ## Old Town Market Square, the Syrenka and the decks (F, 2026-11-01)
 
@@ -373,6 +377,17 @@ Plan: docs/design/railway.md. One PR per item, in this order:
   `powisle`, specs in docs/landmarks/specs/). Left: Mac photo checks (Ochota's stripes, supports and
   stairs; Powiśle's arches, the saucer's profile, the canopies' length, the neon's letters); the
   stairs from the round pavilion up to the platforms; a WARSZAWA OCHOTA sign if the real one has it.
+
+## Powiśle street by street (F, 2026-11-01)
+- Built: Ostrogski Castle + Chopin Institute, the Teresy church, the boulevard Syrenka, Dworzec
+  Wodny, Kaskada, DALEJ DALLA GELATO (specs in docs/landmarks/specs/).
+- Mac look checks: the gelateria's door on Tamka (a guessed spot, 52.237885 21.027375) and its sign;
+  the castle's turret corner and entrance; the church's front, tower and colours; the Syrenka's
+  plinth against the flood wall (its corner touches the plinth in the cloud render); what Kaskada
+  is; a tree on Kaskada's deck.
+- Left: boulevard dressing (deck strips, bar containers), Piano House, Cube House, Hortus, Moderna
+  Powiśle, Tamka's and Dobra's tenements and street details.
+- `check_landmarks` stops in the cloud (no terrain data); run it on the Mac.
 - L1 track that reads as railway: sleepers, raised rails, ballast shoulders (no new draw calls).
 - ~~L2 catenary, L3 the tunnel's mouths~~ Done 2026-11-01 (`map_builder` `_build_catenary`,
   `_build_rail_portals`, in the walls surface: +0 draw calls). Left: portal frames over the station
@@ -778,6 +793,7 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   a kept skin today, outline in `centrum.json` landmarks "Kościół pw. Świętej Anny", centre
   (−658, −1350), the free-standing bell tower is a separate building to its north-east), the other
   churches (Holy Cross DONE 2026-11-01: front and towers, spec krzyz.md, Mac photo check parked; All Saints (DONE 2026-11-01: front and twin towers on the kept skin, spec wszystkich.md, 788 tris, heights estimated, Mac photo check parked: tower height and dome shape, portal count), St Alexander's rotunda (DONE 2026-11-01: model, spec aleksander.md, Mac photo check parked: which end has the portico, column count, bell towers), the Visitationists DONE 2026-11-01: facade, stepped wing and turret on the kept skin, spec wizytki.md, 566 tris, heights estimated, Mac photo check parked: gable shape, towers or none, turret) and the Palace
+  on the Isle's neighbours, the Sejm's hall colonnade (DONE 2026-11-01: curved colonnade, entablature and cornice on the kept skin, spec sejm.md, Mac photo check parked: column count, eave height, entrance, wings), Hala Mirowska (DONE 2026-11-01: model from the mapped parts, spec mirowska.md, Mac photo check parked: the real brick colour, the front's door count, whether the lantern shows; the Cathedral's front DONE 2026-11-01 (`_build_archikatedra`, spec archikatedra.md, Mac photo check parked: gable height and steps, window shape, whether a tower stands at the front; the Barbican is still open); Hala Gwardii DONE 2026-11-01: symmetric twin, bays measured from its outline, spec gwardii.md, 1212 tris, Mac photo check parked: real brick colour, door count on the long sides, lantern glow), Staszic's facade (DONE 2026-11-01: portico, cornice and Copernicus's statue on the kept skin, spec staszic.md, Mac photo check parked: portico centre, column and door count, real eave height; Zachęta, Holy Trinity
   on the Isle's neighbours, the Ministry of Finance (DONE 2026-11-01: model, spec mf.md, 1555 tris, from the outline and public facts, Mac photo check parked: real colour, pavilions and entrance rise, bay rhythm), the Sejm's hall colonnade (DONE 2026-11-01: curved colonnade, entablature and cornice on the kept skin, spec sejm.md, Mac photo check parked: column count, eave height, entrance, wings), Hala Mirowska (DONE 2026-11-01: model from the mapped parts, spec mirowska.md, Mac photo check parked: the real brick colour, the front's door count, whether the lantern shows; Hala Gwardii DONE 2026-11-01: symmetric twin, bays measured from its outline, spec gwardii.md, 1212 tris, Mac photo check parked: real brick colour, door count on the long sides, lantern glow), Staszic's facade (DONE 2026-11-01: portico, cornice and Copernicus's statue on the kept skin, spec staszic.md, Mac photo check parked: portico centre, column and door count, real eave height; Zachęta, Holy Trinity
   and the Presidential Palace became models on 2026-10-31, specs in docs/landmarks/specs/) (PZU/JM Tower done 2026-11-01). (The Old Town's dormers and chimneys, 2026-11-01: `old_town_roofs.gd`, one per big roof slope, no new draw call; a Mac look on the real roofs is still open. The market square's east side got stepped attic gables, 2026-11-01: `OldTownRoofs.gable`, one per ~8 m house bay on walls facing the square, skipped where LoD2 has its own gable end; no new draw call; Mac look open: stage proportions, the volute scrolls a real gable has, and whether the dormers show, since the first dress arrays were copies and are now written back.) How the
   lane works: `landmarks.gd` sites (`TOWERS`, `SKINS`, fixed-position circle zones like
