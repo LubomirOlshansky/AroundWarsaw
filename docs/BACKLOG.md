@@ -189,6 +189,10 @@ bounce or slide off a wall? Runs 4-8 (Krucza, Mokotowska,
 Świętokrzyska, Królewska): no wall bugs on the streets themselves (the on-road stops were bumps
 into traffic cars); PT-7 (the tow fires by the curved glass building), PT-8 (a 6 km/h crawl
 during Pani Halina's prompt) suspects; PT-9 HUD overlaps confirmed.
+- PT-11 follow-up (2026-11-02): the first race's start hold and GAZ! nudges are in (check_first10);
+  watch on the next P2 run that the nudge reads at phone size and that a red light mid-race (under
+  5 s) never triggers the stall line. The heli/tape/garage beats pass headless only; P2 by hand
+  (flying to the BUW roof, driving to Mirek) waits for an Autopilot run on the Mac.
 - Found with PT-1: a free spot (`main.gd _free_car_spot`, a tow) only tests the box against the
   wall faces, so a spot fully inside a solid outline (a building, now a 0.9 m platform) counts as
   free. Not seen in play; reject spots inside platforms and footprints if it shows up.
