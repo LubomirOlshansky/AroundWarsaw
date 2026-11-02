@@ -15,7 +15,10 @@ extends SceneTree
 ## - the first race's rubber band (rivals.gd `first_band`) in a 1-D race of 800 m: an ordinary
 ##   player (34 km/h on average) wins by 0.5 to 4 s, a fast one wins, a slow one (22 km/h) loses
 ##   by little or wins by little, one who stops for a minute loses; Halina's plain ladder pace
-##   would have beaten the ordinary player (the band is needed);
+##   would have beaten the ordinary player (the band is needed); PT-11: she waits at the line for
+##   a player who sits still after START! (`first_start_step`: wait, the GO nudge, release at
+##   FIRST_HOLD), a player still for 8 s wins like an ordinary one, and the stall nudge mid-race
+##   (`first_stall_due`) skips red-light stops, the last stretch and comes at most FIRST_STALLS times;
 ## - the words (the director's, Halina's, the end card's) in Polish and English, each line at most
 ##   70 characters (the card's at most 100), the repo's name as README has it.
 ##   godot --headless --path game --script res://tools/check_first10.gd
@@ -316,7 +319,10 @@ func _judge() -> void:
 ## A 1-D race of `road` m: the player at `speed` m/s (stopping `stop` s at the half), Halina from
 ## 12 m behind at factor × 13.9 m/s (a 50 km/h street), her factor from `band` every 0.2 s (her
 ## acceleration ~2 m/s²). Returns the player's lead at the finish in seconds (< 0: she won).
-func _race(speed: float, band: bool, stop := 0.0, road := 800.0, pace := Rivals.FIRST_PACE) -> float:
+## `late`: the player starts that many s after START!; `hold`: she waits at the line for the
+## player to move (rivals.gd `first_start_step`, PT-11).
+func _race(speed: float, band: bool, stop := 0.0, road := 800.0, pace := Rivals.FIRST_PACE, late := 0.0, hold := false) -> float:
+	var held := hold
 	var me := road
 	var her := road + 12.0
 	var v := 0.0
@@ -330,10 +336,15 @@ func _race(speed: float, band: bool, stop := 0.0, road := 800.0, pace := Rivals.
 		if k >= 0.2:
 			k = 0.0
 			factor = Rivals.first_band(her, me) if band else pace
-		var want := factor * 13.9
+		var mine := speed if t >= late else 0.0
+		if held and Rivals.first_start_step(t, mine) == "release":
+			held = false
+		var want := 0.0 if held else factor * 13.9
 		v = move_toward(v, want, 2.0 * dt)
 		her -= v * dt
-		if stop > 0.0 and me < road * 0.5 and stopped < stop:
+		if t < late:
+			pass
+		elif stop > 0.0 and me < road * 0.5 and stopped < stop:
 			stopped += dt
 		else:
 			me -= speed * dt
@@ -359,6 +370,22 @@ func _band() -> void:
 	_expect(absf(slow) <= 6.0, "a slow player (22 km/h) is within a few seconds: %.1f s" % slow)
 	_expect(stops < 0.0, "a player who stops for a minute loses: %.1f s" % stops)
 	_expect(plain < 0.0, "Halina's plain ladder pace beats the ordinary player: %.1f s" % plain)
+	# PT-11: a new player who sits still after START! (the agent in run 20261102-175913 lost so).
+	var late_new := _race(9.5, true, 0.0, 800.0, Rivals.FIRST_PACE, 8.0, true)
+	var long_s := Rivals.FIRST_HOLD + 8.0
+	var long_new := _race(9.5, true, 0.0, 800.0, Rivals.FIRST_PACE, long_s, true)
+	_expect(late_new >= 0.5 and absf(late_new - ordinary) < 1.0, "8 s still at the start, she waits: wins like an ordinary player: %.1f s" % late_new)
+	_expect(long_new > -6.0, "%.0f s still (she goes after FIRST_HOLD s): still close: %.1f s" % [long_s, long_new])
+	_expect(Rivals.first_start_step(0.5, 0.0) == "wait", "START! + 0.5 s, still: wait")
+	_expect(Rivals.first_start_step(Rivals.FIRST_IDLE + 0.1, 0.5) == "nudge", "still past FIRST_IDLE: the GO nudge")
+	_expect(Rivals.first_start_step(1.0, Rivals.FIRST_MOVE + 0.1) == "release", "the player moves: she goes")
+	_expect(Rivals.first_start_step(Rivals.FIRST_HOLD, 0.0) == "release", "FIRST_HOLD s: she goes anyway")
+	_expect(Rivals.first_stall_due(Rivals.FIRST_STALL, 0, 500.0), "stopped mid-race: the stall nudge")
+	_expect(not Rivals.first_stall_due(Rivals.FIRST_STALL - 0.5, 0, 500.0), "a short stop (a red light): no nudge")
+	_expect(not Rivals.first_stall_due(Rivals.FIRST_STALL, Rivals.FIRST_STALLS, 500.0), "at most FIRST_STALLS nudges")
+	_expect(not Rivals.first_stall_due(60.0, 0, Rivals.FIRST_EASE - 1.0), "the last stretch: no nudge")
+	_expect(Rivals.FIRST_GO_BANNER.length() <= 24, "the GO banner fits: %s" % Rivals.FIRST_GO_BANNER)
+	_summary.append("start: 8 s still %+.1f s, %.0f s still %+.1f s" % [late_new, long_s, long_new])
 	_summary.append("first race: ordinary +%.1f s, fast +%.1f s, slow %+.1f s, a stop %.0f s, unbanded %.0f s" % [ordinary, fast, slow, stops, plain])
 
 

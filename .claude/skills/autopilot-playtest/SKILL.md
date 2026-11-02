@@ -58,6 +58,13 @@ per event, to its trace file:
   lost its frames that way).
 - **Keep the Mac awake** for the whole run (the user's Energy settings, or `caffeinate` if the
   permission check allows it): a sleep ends the run (run 4).
+- **Phone shape**: the editor's game view is 16:9 and can't be resized from a run; set the root
+  window's content scale to 1266x585 (aspect keep) at the start, and log
+  `get_viewport().get_visible_rect()`. Edge cut-offs (PT-9) only show at the phone's shape.
+- **Story beats (P2)**: offer options from the guide's own state (`first10.gd` `fired`), not the
+  agent's memory, and give each beat a real drive or fly option (run 10 only waited at the race
+  and lost it). An edge check on rects misses text that slides off while it animates: look at
+  the frames.
 - **Count a stop only on the road**: within the carriageway of a road in `game/map/centrum.json`
   `roads` (`p` is a flat x,z list, `w` its width). Run 3's framed hard stops were all the agent
   driving 30 m off the road into car park walls: correct collisions, not bugs. Off-road events

@@ -14,6 +14,8 @@ const Models := preload("res://scripts/models.gd")
 const Water := preload("res://scripts/park_props_water.gd")
 const Play := preload("res://scripts/park_props_play.gd")
 const Life := preload("res://scripts/park_props_life.gd")
+## The city's OSM monuments and plaques share these per-cell meshes (monuments.gd).
+const Monuments := preload("res://scripts/monuments.gd")
 
 const FILE := "res://data/park_details.json"
 ## The cell size of one mesh (the map's sector size).
@@ -36,6 +38,8 @@ const MAX_SECTOR := 400
 var map: Node3D
 var count := 0
 var meshes := 0
+## How many of `count` are monuments and plaques (monuments.gd).
+var monuments := 0
 
 
 ## The baked items: [kind, x, z, yaw, colour] arrays, [] when the file is missing.
@@ -81,7 +85,9 @@ static func add_item(st: SurfaceTool, kind: String, xf: Transform3D, colour: Str
 ## Builds the meshes and the colliders; `map` gives the ground (map_builder.ground_height).
 func build() -> void:
 	var cells := {}
-	for item: Array in load_items():
+	var all := load_items()
+	all.append_array(Monuments.load_items())
+	for item: Array in all:
 		var key := Vector2i(int(floorf(float(item[1]) / CELL)), int(floorf(float(item[2]) / CELL)))
 		if not cells.has(key):
 			cells[key] = []
@@ -96,9 +102,15 @@ func build() -> void:
 			var z := float(item[2])
 			var xf := Transform3D(Basis(Vector3.UP, float(item[3])), Vector3(x, map.ground_height(x, z), z))
 			var kind: String = item[0]
-			add_item(st, kind, xf, str(item[4]))
-			if SOLID.has(kind):
-				var half: Vector2 = SOLID[kind]
+			var solid := SOLID
+			if item.size() > 5 and Monuments.known(kind):
+				Monuments.add_item(st, kind, xf, str(item[4]))
+				solid = Monuments.SOLID
+				monuments += 1
+			else:
+				add_item(st, kind, xf, str(item[4]))
+			if solid.has(kind):
+				var half: Vector2 = solid[kind]
 				var shape := CollisionShape3D.new()
 				var box := BoxShape3D.new()
 				box.size = Vector3(half.x * 2.0, 2.4, half.y * 2.0)

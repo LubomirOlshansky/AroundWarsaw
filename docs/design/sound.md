@@ -1,5 +1,9 @@
 # Music and voices
 
+**For now (F, 2026-11-02): music only, no words.** The beta ships the two stations' 16
+instrumentals (`docs/MUSIC.md`, "The beta radio"); the opening theme, the announcer's voice,
+jingles and vocal songs below are the plan for later.
+
 F (2026-11-02): the beta's sound. One place for every song, voice line and style, so they can
 be arranged first and generated in one go (ElevenLabs, with its MCP connector). The prompt
 library with the first ideas for every station is `docs/MUSIC.md`; this page is the plan the
@@ -9,7 +13,7 @@ beta follows.
 
 | Moment | What you hear | Status |
 | --- | --- | --- |
-| The opening (title and flyover, first launch) | **The opening theme**: its own gentle piece with the city's sounds in it, nothing from the radio | to generate; the game plays the radio there today |
+| The opening (title and flyover; the first start and after a new game only, never on every launch) | **The opening theme**: its own gentle piece with the city's sounds in it, nothing from the radio | to generate; the game plays the radio there today |
 | The first seconds of driving | The announcer's greeting (her voice), then the radio | the greeting is text on the ticker today; voice clips to generate |
 | Driving | KEBAB FM (vaporwave) or MORDOR FM (minimal techno), RADIO cycles them and Off, ▶▶| skips | built (PR #304); one synth loop each until the songs come |
 | Between songs | Station idents, the host's jokes (ticker) | idents to generate |
@@ -17,7 +21,7 @@ beta follows.
 ## 2. The opening theme
 
 **Separate from everything else in the game**: it plays only under the title and the opening
-flyover, then fades into the city as the car gets control, and the radio starts after it.
+flyover, on the first start and after a new game (F, 2026-11-02), never on a normal launch; then fades into the city as the car gets control, and the radio starts after it.
 Gentle, warm, a little wistful: the city waking up. The reference F gave (a YouTube Short)
 couldn't be played from the cloud; the description below is from F's words ("gently music with
 city sounds").
@@ -44,6 +48,15 @@ Early morning city ambience in Central Europe, a tram passing with a two-tone be
 ```
 
 ## 3. The announcer
+
+**The opening line (F, 2026-11-02): one clip, the same every time, on the first start and after a new game only** (the launches that get the opening flyover; a normal launch goes straight to the radio), short (about 12 s), sunny, with
+one city joke, over the opening only (F picked the roadworks one; no laughing tag); the weather variants below are for later.
+
+```
+[cheerfully] Dzień dobry, Warszawo! Pogoda na dziś: słonecznie i przyjemnie ciepło. Na Marszałkowskiej nowy remont, [playfully] czyli wszystko po staremu. [warmly] A naszym słuchaczom, jak zawsze, życzymy miłego dnia!
+```
+
+### Later: the full set
 
 One woman's voice for the greeting at the start: a radio presenter, warm and smiling. She does
 **not** name the station (F, 2026-11-02): just Warsaw, the weather and a good wish. The
@@ -81,16 +94,15 @@ text makes, `dialogue.gd` `greeting`), the music ducked under her. Files go in
 
 ## 4. KEBAB FM 87,3: vaporwave
 
-Eight songs and three idents: slowed 80s pop and mall funk, warm detuned synths, tape wobble,
-pink-and-cyan Warsaw at sunset. Prompts and lyrics: `docs/MUSIC.md`, "The beta radio" (KB1 to
-KB8, KB-ID1 to KB-ID3). The idents are jingles and do say the station's name.
+Eight instrumentals: slowed 80s pop and mall funk, warm detuned synths, tape wobble,
+pink-and-cyan Warsaw at sunset. Prompts: `docs/MUSIC.md`, "The beta radio" (KB1 to
+KB8, instrumental). Nothing sung or spoken names a station (F, 2026-11-02): the name is only on screen.
 
 ## 5. MORDOR FM 108,8: minimal techno
 
-Eight tracks and two idents: dark, hypnotic minimal techno for the office towers at night,
-deep rolling kick, clicky hats, metallic percussion, sparse deadpan Polish voice samples. No
-artist names in prompts (the tools refuse them). Prompts: `docs/MUSIC.md` (MD1 to MD8, MD-ID1,
-MD-ID2).
+Eight instrumentals: dark, hypnotic minimal techno for the office towers at night,
+deep rolling kick, clicky hats, metallic percussion. No
+artist names in prompts (the tools refuse them). Prompts: `docs/MUSIC.md` (MD1 to MD8, instrumental).
 
 ## 6. Making them
 

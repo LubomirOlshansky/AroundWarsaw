@@ -19,10 +19,16 @@ extends RefCounted
 ## (+ the shadow pass) and the middle of the city nothing. Built in map_builder.setup_streamed (both
 ## city paths) from the index's roads; `closures` is the same placement for the check
 ## (game/tools/check_edge_roadworks.gd).
+##
+## The boards speak the player's language (lang.gd, 2026-11-02): ROBOTY DROGOWE / OBJAZD → in
+## Polish, ROAD WORKS / DETOUR → in English (the British board's words, as wide as the Polish so
+## the board keeps its size). The text is in the meshes, so a language change in Settings builds
+## the roadworks again (`rebuild`).
 
 const Models := preload("res://scripts/models.gd")
 const Props := preload("res://scripts/props.gd")
 const PixelFont := preload("res://scripts/pixel_font.gd")
+const Lang := preload("res://scripts/lang.gd")
 
 ## The barrier line, metres inside the map's outline (the invisible edge wall is 5 m in).
 const CLOSE_IN := 12.0
@@ -378,6 +384,7 @@ static func build(mb, now := false) -> Node3D:
 	if list.is_empty():
 		return null
 	var b = (load("res://scripts/edge_roadworks.gd") as GDScript).new()
+	b._en = Lang.is_en()  # read here, not on the worker thread
 	var root: Node3D = b._colliders(list)
 	print("edge roadworks: %d closures (%d big, %d medium), placed in %d ms" % [list.size(),
 			b._count(list, Tier.BIG), b._count(list, Tier.MEDIUM), Time.get_ticks_msec() - t0])
@@ -396,8 +403,35 @@ static func build(mb, now := false) -> Node3D:
 	return root
 
 
+## The roadworks board's lines in the player's language (`en` asks for English whatever is set).
+static func works_lines(en := Lang.is_en()) -> Array:
+	return ["ROAD", "WORKS"] if en else ["ROBOTY", "DROGOWE"]
+
+
+## The detour board's line in the player's language.
+static func detour_lines(en := Lang.is_en()) -> Array:
+	return ["DETOUR →"] if en else ["OBJAZD →"]
+
+
+## The language changed (main.gd `_set_language`): the boards' words are in the meshes, so the
+## node is made again in the new language (the placement is cached on the map; the colliders come
+## back at once, the meshes over the next frames). Nothing when the map has no roadworks
+## (--no-edge-roadworks frees them, an empty map never had them).
+static func rebuild(mb) -> void:
+	var old := mb.get_node_or_null("EdgeRoadworks") as Node3D
+	if old == null:
+		return
+	mb.remove_child(old)
+	old.queue_free()
+	var works := build(mb)
+	if works != null:
+		mb.add_child(works)
+
+
 var _tris := 0
 var _task := -1
+## The boards in English: the language when `build` was called.
+var _en := false
 ## Main-thread time a frame spends adding the meshes (µs).
 const ATTACH_BUDGET_US := 3000
 
@@ -558,9 +592,9 @@ func _closure(st: SurfaceTool, xf: Transform3D, c: Dictionary, rng: RandomNumber
 			_cone(st, xf, Vector3(right * (half - 1.2 - j * 0.9), 0, -5.0 - j * 3.2))
 		_triangle_sign(st, xf, Vector3(-(half + 0.6), 0, -18.0))
 	# Boards: ROBOTY DROGOWE on the left (as the driver sees it), OBJAZD → on the right.
-	_board(st, xf, Vector3(minf(half - 1.4, 3.6), 0, -1.3), ["ROBOTY", "DROGOWE"], 0.08)
+	_board(st, xf, Vector3(minf(half - 1.4, 3.6), 0, -1.3), works_lines(_en), 0.08)
 	if tier == Tier.BIG or half >= 4.0:
-		_board(st, xf, Vector3(-minf(half - 1.3, 3.6), 0, -1.3), ["OBJAZD →"], 0.08)
+		_board(st, xf, Vector3(-minf(half - 1.3, 3.6), 0, -1.3), detour_lines(_en), 0.08)
 	var tarp: Color = TARPS[rng.randi() % TARPS.size()]
 	if bool(c.get("along", false)):
 		# A road along the edge, closed just before the wall: only the fence close behind.

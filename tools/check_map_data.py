@@ -56,7 +56,18 @@ MAP = os.path.join(ROOT, "game", "map")
 # Krajobraz K2 (2026-11-02, planted_trees.py PLACE chmielna): 45,046 (+65 young trees in ul.
 # Chmielna's tree pits, 85 in its band). Before: 269886 / 44981. Then 45,045: the K5 plaza tree
 # through a lying scooter by Skyliner taken out (plaza_gardens.py keeps POI_GAP from POIs now).
-EXPECTED = {"trees3d": 270270, "pois": 4571, "trees3d_crown": 45045}
+# Skwer Linearny na Złotej (F, 2026-11-02, tools/car_free.py): 45,081 (+36 young limes on Złota's
+# new park). Before: 270270 / 45045.
+# Krajobraz K9 (2026-11-02, planted_trees.py PLACE stadion): 45,161 (+80 trees round the Stadion
+# Narodowy: avenue rows, pollarded willows). Before: 270486 / 45081.
+# Map review C (2026-11-02): 4,572 again: with the one-lane one-way streets at their real width that
+# Leżak finds a clear spot by the Centralny stop. 45,159 trees: two young trees on ul. Pereca by the Skyliner
+# plaza drop where the two-lane street is 7 m now and their trunks would touch the carriageway.
+# Before: 270966 / 4571 / 45161.
+# Krajobraz K6 (2026-11-02, planted_trees.py PLACEs norblin and browary): 45,176 trees (+5 candelabra
+# planes in Fabryka Norblina's court, +12 lindens, birches and maples in Browary's Central Garden).
+# Before: 270954 / 45159.
+EXPECTED = {"trees3d": 271056, "pois": 4572, "trees3d_crown": 45176}
 # docs/DEMO.md 7 row 7: the lane graph's strongly connected share at least this.
 SCC_SHARE = 0.95
 

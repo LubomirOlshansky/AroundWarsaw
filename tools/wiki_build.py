@@ -399,6 +399,7 @@ NAV = [
     ("", "Home", "⌂"),
     ("pillars/", "Pillars and the loop", "◆"),
     ("progress/", "Progress", "▤"),
+    ("models/", "Model progress", "▦"),
     ("activities/", "Quests and jobs", "★"),
     ("landmarks/", "Landmarks", "▲"),
     ("places/", "Places and venues", "●"),
@@ -655,6 +656,7 @@ def page_progress(site: Site) -> dict:
         "</div>",
         '<h2 id="inventory">What is in the game today</h2>',
         table(["Content", "How many", "Source"], [[f'<a href="/{pg}">{esc(w)}</a>', esc(n), f"<code>{esc(src)}</code>"] for w, n, pg, src in inventory()]),
+        '<p><a href="/models/">Model progress</a>: every ranked place in the city, with its tier, the plan and how far its model is.</p>',
         '<h2 id="road">The road to the 1.0 demo</h2>',
         '<p>The order of work the project follows (docs/ROADMAP.md). A round is <b>done</b> when every loop in it '
         'appears in the progress log, <b>in progress</b> when some have landed or a session is on it now. '
@@ -678,6 +680,119 @@ def page_progress(site: Site) -> dict:
               "How complete each part of the game is, worked out from the roadmap, the progress log, the backlog and the eggs every time the wiki is built.",
               toc=[(2, "inventory", "What is in the game"), (2, "road", "The road to the 1.0 demo"), (2, "lanes", "Who is working on what"), (2, "backlog", "Backlog by area"), (2, "days", "Day by day"), (2, "log", "Progress log")])
     return {"rounds": (done_rounds, total_rounds), "eggs": (live, total_eggs), "backlog": (bl_fixed, bl_open + bl_fixed)}
+
+
+# ---- model progress -------------------------------------------------------------------------------
+
+# Names that never appear on the public wiki (the generator scrubs them from the inventory's text).
+SCRUB = [(re.compile(r"Pekao( Tower)?", re.I), "the bank-named tower")]
+
+# Part 1's status mark -> (stage, chip colour). "Researching" is a row whose Next cell says
+# "photos gathered" (the Mac's refs/<slug>/ and REPORT exist) or that is marked in progress.
+MODEL_STAGES = [
+    ("done_photos", "Done from photos", "ok"),
+    ("done_outline", "Done from outline", "mid"),
+    ("researching", "Researching", "mid"),
+    ("dress", "Dress only", "no"),
+    ("planned", "Planned", "no"),
+]
+
+
+def scrub(text: str) -> str:
+    for rx, repl in SCRUB:
+        text = rx.sub(repl, text)
+    return text
+
+
+def model_rows() -> list[dict]:
+    """Part 1 of docs/CITY_INVENTORY.md as dicts: num, place, street, kind, tier, mark, stage, next."""
+    text = read("docs/CITY_INVENTORY.md")
+    out, tier = [], ""
+    for ln in text.split("## Part 2")[0].splitlines():
+        m = re.match(r"### Tier (\w):", ln)
+        if m:
+            tier = m.group(1)
+            continue
+        if not tier or not re.match(r"\|\s*\d+\s*\|", ln):
+            continue
+        c = split_row(ln)
+        if len(c) < 6:
+            continue
+        mark = next((x for x in ("★", "◐", "○", "⏳", "✗") if x in c[4]), "✗")
+        nxt = c[5]
+        if mark == "★":
+            stage = "done_photos"
+        elif mark == "⏳" or "photos gathered" in nxt.lower():
+            stage = "researching"
+        elif mark == "◐":
+            stage = "done_outline"
+        elif mark == "○":
+            stage = "dress"
+        else:
+            stage = "planned"
+        out.append({"num": c[0], "place": c[1], "street": c[2], "kind": c[3], "tier": tier,
+                    "mark": mark, "stage": stage, "next": nxt})
+    return out
+
+
+def page_models(site: Site) -> int:
+    rows = model_rows()
+    names = {k: (label, kind) for k, label, kind in MODEL_STAGES}
+    n = len(rows)
+    by_stage = {k: sum(1 for r in rows if r["stage"] == k) for k, _, _ in MODEL_STAGES}
+    cards = ['<div class="cards stats">']
+    for k, label, _ in MODEL_STAGES:
+        cards.append(f'<div class="card"><div class="big">{by_stage[k]}</div>{esc(label)}{bar(by_stage[k], n)}</div>')
+    cards.append("</div>")
+
+    tier_names = {"S": "Tier S: the city's faces", "A": "Tier A: iconic, seen often", "B": "Tier B: characteristic, gives a street its identity"}
+    tier_html, toc = [], [(2, "plan", "The plan"), (2, "tiers", "By tier")]
+    for t in "SAB":
+        tr = [r for r in rows if r["tier"] == t]
+        if not tr:
+            continue
+        built = sum(1 for r in tr if r["stage"] in ("done_photos", "done_outline"))
+        photo = sum(1 for r in tr if r["stage"] == "done_photos")
+        trows = []
+        for r in tr:
+            label, kind = names[r["stage"]]
+            trows.append([esc(r["num"]), md_inline(scrub(r["place"])), esc(scrub(r["street"])), esc(scrub(r["kind"])),
+                          chip(label, kind), md_inline(scrub(r["next"]))])
+        tier_html += [
+            f'<h3 id="tier-{t.lower()}">{esc(tier_names[t])}</h3>',
+            f'<p>{photo} of {len(tr)} done from photos, {built} of {len(tr)} have a model of their own.</p>',
+            bar(built, len(tr)),
+            table(["#", "Place", "Street", "Kind", "Stage", "Next"], trows),
+        ]
+        toc.append((3, f"tier-{t.lower()}", tier_names[t]))
+
+    inv = read("docs/CITY_INVENTORY.md")
+    plan_md = md_section(inv, "Part 3.")
+    counts = re.search(r"<!-- counts:start -->\s*(.*?)\s*<!-- counts:end -->", inv, re.S)
+    body = [
+        "<p>Every characteristic place in the map box, ranked, with how far its model is. "
+        "This page is generated from <code>docs/CITY_INVENTORY.md</code> (Part 1), so it follows the inventory "
+        "on every build. " + edit_link("docs/CITY_INVENTORY.md") + "</p>",
+        '<p><b>Stages.</b> <i>Planned</i>: a plain grey block, or not in the game. <i>Researching</i>: photos gathered '
+        '(F\'s own, or <code>refs/&lt;slug&gt;/</code> with a REPORT from the Mac) or a thread is on it now. '
+        '<i>Done from outline</i>: an own model from the OpenStreetMap outline, LoD2 heights and published facts, '
+        'its photo re-pass still to do. <i>Done from photos</i>: built from photos or checked side by side with them. '
+        '<i>Dress only</i>: a colour skin, a sign or a card, no model of its own. '
+        'A row is marked <i>researching</i> when its inventory line says "photos gathered".</p>',
+        *cards,
+        '<h2 id="plan">The plan: next threads, in order</h2>',
+        "<p>Photos first, then the model, then the side-by-side check (the model-from-photos recipe).</p>",
+        md(scrub(plan_md)),
+        '<h2 id="tiers">Every place, by tier</h2>',
+        filter_box("Filter places…"),
+        *tier_html,
+    ]
+    if counts:
+        body.append("<p class=\"small\">" + md_inline(scrub(counts.group(1).replace("\n", " "))) + "</p>")
+    site.page("models/", "Model progress", "\n".join(body),
+              "Every ranked place in the city, the plan for building it and how far its model is, generated from the city inventory.",
+              toc=toc)
+    return n
 
 
 # ---- pillars -------------------------------------------------------------------------------------
@@ -1180,6 +1295,7 @@ def page_howto(site: Site) -> None:
 def page_home(site: Site, counts: dict, progress: dict) -> None:
     tiles = [
         ("activities/", "Quests and jobs", f"{counts['activities']} activities: rescues, kebab, słoiki, Podwózka, races, police…"),
+        ("models/", "Model progress", f"{counts['models']} ranked places: planned, researching, done"),
         ("landmarks/", "Landmarks", f"{counts['landmarks']} landmarks with their cards and looks"),
         ("places/", "Places and venues", f"{counts['places']} notebook places in 9 chapters"),
         ("secrets/", "Secrets", f"{counts['eggs']} eggs, {counts['kadr']} photo spots, {counts['then']} then cards"),
@@ -1230,9 +1346,10 @@ def main() -> int:
     site = Site(out)
 
     progress = page_progress(site)
+    counts_models = page_models(site)
     page_pillars(site)
     page_activities(site)
-    counts = {"activities": sum(1 for a in ACTIVITIES if (ROOT / a[2]).exists())}
+    counts = {"activities": sum(1 for a in ACTIVITIES if (ROOT / a[2]).exists()), "models": counts_models}
     counts["landmarks"] = page_landmarks(site)
     counts["places"] = page_places(site)
     counts.update(page_secrets(site))

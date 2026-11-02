@@ -30,6 +30,8 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"WYPRZEDAŻ", "DO WYNAJĘCIA", "DO", "WYNAJĘCIA", "FROGS XXL", "FROGS", "XXL", "KAPCIE", "SCENA RELAX",
 		# R5: the Cepelia pavilion's book and vinyl store (a parody) and Zodiak.
 		"EMPIRYK", "ZODIAK",
+		# Dom pod Orłami's metal letters over Złota's square (a parody of the council's name).
+		"KRAJOWA", "RADA SPÓŁDZIELNI ORŁÓW",
 		# Gdański Business Center: parodies of two tenants' logos on the tower and the blocks.
 		"AWIWA", "NIELZEN",
 		# Dom Partii's roof sign (docs/design/gaulle-and-food-hype.md G2): the oak in Latin again.
@@ -53,7 +55,9 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		# The hotel on Plac Zawiszy (a parody of the Radisson Blu Sobieski).
 		"RADYSŁAW BLU",
 		# Varso Place's name stone on the corner plaza (Krajobraz K3; a parody, never the real mark).
-		"VERSO PLACE"]
+		"VERSO PLACE",
+		# The Skyliner's crown (docs/design/city-life-satire.md #12): a small agency with a large nose.
+		"NOSE AGENCY"]
 ## Tube colours (linear, bright): pink, cyan, violet, and a few words' usual colours.
 const PINK := Color(1.0, 0.1, 0.55)
 const CYAN := Color(0.1, 0.9, 1.0)
