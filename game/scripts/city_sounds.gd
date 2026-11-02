@@ -37,8 +37,10 @@ const KINDS := {
 	# Loop MW-4: a trend queue's chatter (the Wiralek slots, Lukrownia), closer and smaller than
 	# the murmur.
 	"queue": {"file": "queue_chatter", "db": -15.0, "unit": 6.0, "reach": 40.0, "up": 1.5},
+	# The fans by Stadion Leguminy (fans.gd): a drum and a wordless crowd chant on match evenings.
+	"chant": {"file": "fan_chant", "db": -12.0, "unit": 10.0, "reach": 90.0, "up": 1.5},
 }
-const LOOPING := ["club", "busker", "murmur", "guitar", "queue"]
+const LOOPING := ["club", "busker", "murmur", "guitar", "queue", "chant"]
 ## A train below a metro entrance every 3-4 minutes (vision.md 3.5).
 const METRO_GAP := Vector2(180.0, 240.0)
 ## The Patelnia's busker from 19:00 to 22:00 (vision.md 3.10: "at 19:00").

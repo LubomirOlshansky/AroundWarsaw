@@ -63,6 +63,7 @@ the bridge approach: fans in red-white-green scarves, a drum, hand-held harmless
 fans ("Eee, gdzie jest mój bilet?"), a kid with a giant foam finger. No violence, no hooligans,
 no club crest or real chants naming a club, colours only. Only on "match" evenings; the police car
 nearby just drinks a coffee. Crowd cost: share the existing pedestrian rig.
+Built 2026-11-02 (PR #336): `fans.gd`, the details in docs/design/kibice.md.
 
 ## 9 Bike paths (Opus)
 `tools/cycleways.py` already smooths our network (BACKLOG "Bike paths"). Next: compare with the

@@ -75,6 +75,8 @@ levels (if their folder is given) to balance the buses against.
   cafe_bell      a café door's bell: three little tings, 0.9 s
   frog_chime     loop MW-2: the Frogs shop's door, a two-note croak "kum-kum" and a ting, 0.8 s
   scooter_clatter loop MW-2: a Leżak knocked over: a clank, a thud, a rattle, 0.7 s
+  fan_chant      the fans by Stadion Leguminy (fans.gd): a belly drum and a wordless crowd tune
+      in unison at 120 BPM, a cheer at the phrase's end (an 8 s loop)
 
   --only=club_leak,busker  makes just those (the city's sounds: club_leak, metro_chime,
   church_bell, busker, crowd_murmur, steps_guitar; loop MW-4's bark_small, bark_mid, bark_big,
@@ -1363,9 +1365,79 @@ def check(path, loop):
     return line
 
 
+# --- the fans by Stadion Leguminy (fans.gd) -------------------------------------------------
+
+def fan_chant(seed):
+    """Friendly fans outside a stadium, heard from the street: a bass drum carried on the belly
+    ("boom, boom, boom-boom-boom" at 120 BPM) and a crowd singing a wordless, original two-bar
+    tune in unison ("oo-oo-oo, eh-oh-eh-oh"): twenty-four voices, each a glottal pulse train at
+    its own slightly-off pitch through a vowel's two formants, the syllables on the drum's grid,
+    a cheer at the end of the phrase; the far-field roll-off of a crowd 40 m away. Periodic by
+    construction (the drum's hits wrap round, the voices are silent across the seam), 8 s."""
+    rnd = random.Random(seed)
+    n = int(8.0 * RATE)
+    beat = 0.5
+    out = zeros(n)
+    # The drum: a pitched thump (a falling sine) and a felt slap, a little off the grid.
+    def hit():
+        m = int(0.45 * RATE)
+        sig = zeros(m)
+        ph = 0.0
+        for i in range(m):
+            t = i / RATE
+            f = 58.0 + 70.0 * math.exp(-t * 28.0)
+            ph += TAU * f / RATE
+            sig[i] = math.sin(ph) * math.exp(-t * 7.5) + (rnd.uniform(-1, 1) * math.exp(-t * 90.0) * 0.35)
+        return sig
+    grid = [0.0, 1.0, 2.0, 2.5, 3.0]          # boom, boom, boom-boom-boom (a 4-beat bar)
+    for bar in range(4):
+        for k, b in enumerate(grid):
+            at = int(((bar * 4 + b) * beat + 0.12 + rnd.uniform(-0.008, 0.008)) * RATE)
+            place(out, hit(), at % n, 0.9 if k < 2 else 0.75)
+    drum = biquad(out, "lp", 900.0, 0.7, True)
+    # The tune: (start beat, length in beats, MIDI note, vowel) over 16 beats; silent from 15.
+    tune = [(0, 1, 62, "u"), (1, 1, 62, "u"), (2, 1.5, 62, "u"),
+            (4, 0.5, 64, "e"), (4.5, 0.5, 66, "o"), (5, 0.5, 64, "e"), (5.5, 1.5, 62, "o"),
+            (8, 1, 66, "u"), (9, 1, 66, "u"), (10, 1.5, 66, "u"),
+            (12, 0.5, 67, "e"), (12.5, 0.5, 66, "o"), (13, 0.5, 64, "e"), (13.5, 1.2, 62, "o")]
+    voices = zeros(n)
+    for v in range(24):
+        detune = rnd.uniform(-0.35, 0.35)            # semitones: a crowd, not a choir
+        octave = 0 if v % 3 else -12                 # some sing an octave down
+        late = rnd.uniform(0.0, 0.05)
+        gain = rnd.uniform(0.5, 1.0)
+        sig = zeros(n)
+        for (b0, length, note, vowel) in tune:
+            f0 = 440.0 * 2 ** ((note + octave + detune - 69) / 12.0)
+            i0 = int((b0 * beat + 0.12 + late) * RATE)
+            m = int(length * beat * 0.92 * RATE)
+            ph = rnd.random()
+            for i in range(m):
+                ph += f0 * (1.0 + 0.004 * math.sin(TAU * 5.0 * i / RATE)) / RATE
+                saw = 2.0 * (ph % 1.0) - 1.0
+                env = min(1.0, i / 500.0, (m - i) / 900.0)
+                sig[(i0 + i) % n] += saw * env * gain
+        voices = mix((1.0, voices), (1.0, sig))
+    # One "oh"-ish formant pair plus a brighter band for the whole crowd (from 40 m the vowels
+    # blur anyway; the tune's (note, vowel) pairs only set the pitch).
+    sung = mix((1.0, biquad(voices, "bp", 450.0, 1.6, True)), (0.7, biquad(voices, "bp", 850.0, 2.0, True)),
+               (0.25, biquad(voices, "bp", 1900.0, 3.0, True)))
+    # A cheer at the end of the phrase (beats 14.7-15.6): bright noise, rising and falling.
+    w = noise(n, rnd)
+    cheer = biquad(biquad(w, "bp", 1100.0, 0.8, True), "lp", 2400.0, 0.7, True)
+    c0 = int((14.7 * beat + 0.12) * RATE)
+    cm = int(0.9 * beat * RATE)
+    shout = zeros(n)
+    for i in range(cm):
+        shout[(c0 + i) % n] = cheer[(c0 + i) % n] * math.sin(math.pi * i / cm) ** 1.5
+    crowd = mix((0.3, sung), (0.5, shout))
+    mixd = mix((1.0, drum), (1.0, crowd))
+    return biquad(biquad(mixd, "lp", 3000.0, 0.7, True), "hp", 45.0, 0.7, True)
+
+
 LOOPS = ["engine_idle", "engine_mid", "engine_high", "tyre_roll", "tyre_wet", "tyre_squeal", "rotor",
          "city_day", "city_night", "rain", "police_siren", "club_leak", "busker", "crowd_murmur", "steps_guitar",
-         "queue_chatter", "amb_river", "amb_park", "amb_square", "amb_yard"]
+         "queue_chatter", "amb_river", "amb_park", "amb_square", "amb_yard", "fan_chant"]
 
 
 def loud_rev(seed):
@@ -1464,7 +1536,9 @@ CITY = {"club_leak": lambda: [club_leak(71)], "metro_chime": lambda: [metro_chim
         "coin": lambda: [coin(93)], "amb_river": lambda: amb_river(94), "amb_park": lambda: amb_park(95),
         "amb_square": lambda: amb_square(96), "amb_yard": lambda: amb_yard(97),
         # City-life satire #1 (loud_cars.gd): the loud cars' rev.
-        "loud_rev": lambda: [loud_rev(98)]}
+        "loud_rev": lambda: [loud_rev(98)],
+        # The fans by Stadion Leguminy (fans.gd, through city_sounds.gd's `chant`).
+        "fan_chant": lambda: [fan_chant(99)]}
 
 
 def main(out_dir, radio_dir=None, only=None):

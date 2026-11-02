@@ -337,7 +337,7 @@ then the Launch gate.
   - [ ] #1 loud cars at Browary Warszawskie and revving traffic (Opus)
   - [ ] #2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu (Sonnet, one `circle` crowd spot thread)
   - [ ] #5 more queues and #6 KRINGULA PIZZA (extends the food-hype lane)
-  - [ ] #7 friendly Legia fans near Stadion Leguminy (Opus)
+  - [x] #7 friendly Legia fans near Stadion Leguminy, 2026-11-02 (PR #336, `fans.gd`; phone look and cost open)
   - [ ] #9 bike-path network compared with the real one (Opus)
   - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi

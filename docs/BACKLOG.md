@@ -254,6 +254,17 @@ at night were skipped (they read as poles by day).
 ## Stadion Leguminy (F, 2026-11-01)
 - Built from the mapped outline only (spec legia.md). Left: Mac photo check (QUESTIONS), the real stands' shape and the concourse side, entrances and tickets booths, club shop, the car park on the east side, the 20 m west stand as its own mass.
 
+## Kibice by Stadion Leguminy (F, 2026-11-02)
+Built (`fans.gd`, design docs/design/kibice.md): three friendly groups (north gate, north-east corner,
+south side) on match evenings, scarves up on the drum, pink smoke puffs, banners, a kid with a foam
+finger, a patrol car whose officer drinks a coffee, the `fan_chant` loop, the horn starts a chant.
+Left:
+- Phone look and cost near the stadium (+5 draw calls in the cloud bench); banner readability at phone size.
+- The north groups stand between the pavement and the road edge on the forecourt; check against
+  photos of the real gate (Mac photo check of the stadium is already parked).
+- Fans walking to the stadium from the tram stops before kick-off, and leaving after (only standing groups now).
+- A post-match evening variant (a win: louder chant; a draw: "następnym razem").
+
 ## Police chases and radiowozy (F, 2026-11-02)
 
 - Built: chasers at 0.8 of the player's top speed and an escape at 100 m (the old 0.92 opened a gap of only 2.4 m/s, so 120 m was out of reach inside the 30-45 s cap); the patrol estate is silver with the blue band, checker strips and bonnet panel, and a silver Crafter-style van (shape 3 of the police family, every third patrol car). Open: the roadblock and blockers still use the estate (a van across the road would read better); the lizak officer's car; a phone look and the feel of the new chase speed (QUESTIONS).
@@ -296,7 +307,7 @@ Twelve ideas, plans in docs/design/city-life-satire.md. Built: #11 MIESZANE MIES
 - **Loud cars (#1, Opus)**: sports-car meet at Browary Warszawskie (generic bodies, no marques) and revving cars in traffic with a louder engine layer.
 - **Wellness circles (#2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu; Sonnet, ONE thread)**: one new crowd spot kind `circle`.
 - **Queues (#5) and KRINGULA PIZZA (#6, Sonnet)**: extend the queue sites; the brick pizzeria and its fans; the joke text goes to F (QUESTIONS).
-- **Legia fans (#7, Opus)**: friendly scarves, drum, pink-red harmless smoke on match evenings near Stadion Leguminy; no violence, no crest, no real chants.
+- Legia fans (#7): built (PR #336); what is left is in "Kibice by Stadion Leguminy".
 - **Bike paths (#9, Opus)**: compare with the real network, fill gaps by data, rider density on the main ones.
 - Small: English "UNDER CONSTRUCTION" on the edge roadworks boards; Mac look check of both new signs (the shop's door is a guess 40 m west of KEBAB KRÓL; Godot did not run in the cloud for this change).
 
