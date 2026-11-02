@@ -47,8 +47,14 @@ then the Launch gate.
 - [x] Metro entrances modelled at the real M1/M2 stairs: vaulted glass canopies, stairwells, passage mouths, red M posts, lifts (F, 2026-11-01; Mac look check parked in QUESTIONS)
 - [x] Merge PR #115 (start facing the first stand, short first order, BUW roof cassette), then
       PR #121 (the opening flyover) (both on main; ticked 2026-11-01)
-- [ ] First-scene items 4-7: pavilions and towers behind the stores, Plac Defilad's paving, tram
-      stops and kerbs on Marszałkowska, pedestrians and sound at the start
+- [ ] First-scene items 4-5: pavilions and towers behind the stores, Plac Defilad's paving, tram
+      stops and kerbs on Marszałkowska
+- [x] First-scene items 6-7, life and sound at the start (2026-11-02): people standing at the
+      start's cafés, kiosk and paving (crowds.gd `FIRST_SCENE`, a day-long street curve), denser
+      walkers on Marszałkowska's two pavements (pedestrians.gd `set_busy`, +0 draw calls), the two
+      trams placed when play begins so they are in the first frame after the title and the
+      flyover, a tram bell as the first passes the car, the square's talk under the city bed, the
+      first launch's song from its first bar; verify `firstlife`. Phone look and sound check parked
 - [ ] The start area as real Warsaw (F, 2026-11-01; plan docs/design/start-area-real.md):
   - [x] R1 the Eastern Wall's signs as they are in 2025/26 (Polish letters in the neon font,
         DO WYNAJĘCIA boards, FROGS XXL on the old H&M corner, KAPCIE, SCENA RELAX), 2026-11-01

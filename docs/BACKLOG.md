@@ -689,9 +689,10 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   open. Main today starts facing south with the stand behind the car. Rebase both on main, re-run
   their checks (`first10`, `first10-run`, `opening`, `cassettes`, `save`, `hud`), merge #115 then
   #121. Built, not verified on the phone.
-- **The first scene's open items** (design/first-scene.md items 4-7; BACKLOG "High priority: the
+- **The first scene's open items** (design/first-scene.md items 4-5; BACKLOG "High priority: the
   first scene"): the pavilions and towers behind the Eastern Wall stores, Plac Defilad's paving and
-  park strip, the tram stops and kerbs on Marszałkowska, pedestrians and sound at the start. Gap.
+  park strip, the tram stops and kerbs on Marszałkowska. Gap. Items 6-7 (pedestrians and sound at
+  the start) built 2026-11-02, phone check parked.
 
 ### P0: the whole build checked again (map and performance, Opus; needs the Mac)
 - **A full `tools/verify.sh` and `tools/verify.sh --ios` on the Mac on today's main**, both city
@@ -1052,7 +1053,11 @@ golden-image shots runtime vs `--prebuilt`,
   check, spec B):** the Rotunda re-pass done (spec `docs/landmarks/specs/rotunda.md`: green-grey
   glass between 52 silver mullions, the folded-plate crown with its teeth, the oculus, the
   canopies, Widok Towers' green grid); only the phone can show the teeth and the signs' size. Left: the pavilions and towers behind the stores, Plac Defilad's paving and park strip,
-  the tram stops and kerbs (item 5), pedestrians and sound (6-7), the photo check on the Mac.
+  the tram stops and kerbs (item 5), the photo check on the Mac. **Items 6-7 (life and sound) built
+  2026-11-02** (first-scene.md "Items 6 and 7 as built"). Found then, open: the café sitters sit on
+  the footway by the tables, not on the chairs (a seat list per café set would fix it); the
+  "a few cars" part of item 6 is left to the Low traffic default (G2), no boost at the start; the
+  title screen itself still shows the trams wherever they went while it was up.
 
 ## Packs: running clubs, cycling packs, coffee raves, big guys with tiny dogs (F, 2026-11-01)
 Built (`packs.gd`, docs/design/packs.md): three parody running clubs and two road-cycling packs out

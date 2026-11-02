@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- The first street of the game is busier: people at the café tables by the museum, at the kiosk and the flower stall, more walkers on both pavements of Marszałkowska, a tram rolling past with its bell in the first seconds, the hum of the square under the city's sound, and the radio's song from its first bar on a first launch.
 - The police keep up with a tuned car: a bought Ołdi TT or a better engine no longer leaves every patrol behind, so the nitro is the way to open a gap. On a gamepad the nitro is LB or RB, and the right stick turns the view.
 - The notebook MOJA WARSZAWA has a new card, "Kolejki" (The queues), found by the KUKŁA pancake window on Nowy Świat; it fills the "Queueing for the trend" chapter to ten.
 - Plac Zbawiciela comes alive: four neon cafés round the roundabout (Kawa Zbawienie, Szarlotka na rogu, Plan Z and Po mszy Spritz) with parasol terraces in front of the blocks, and the Church of the Holiest Saviour is lit at night: gilded crosses, a glowing stained-glass rose, lanterns at the porch and floodlamps up the front.
