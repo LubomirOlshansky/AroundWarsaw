@@ -5262,6 +5262,9 @@ CLI on a baked map) adds 660 `symbols` of kind `bike` marked `"on": "path"` on t
 `map_builder.gd` edges each `cyclecross` with P-11 squares (`CROSS_SQ`, `CROSS_EDGE`). No counted
 key changes. `tools/compare_cycleways.py` (reads only) measures how much of OSM's cycle network
 the map draws; it needs the raw export (`data/work/demo/osm_demo.json`).
+`tools/bike_network.py --osm <export>` (bake_osm after bike_marks) adds `bike` symbols marked
+`contra` (an arrow ahead, against the one-way), `busway` and `sharrow` (two chevrons ahead), drawn by
+`_build_symbols`; without the export it changes nothing, so the cloud keeps what the Mac's run wrote.
 
 **Map review C (2026-11-02)**: one-lane one-way streets take `DEFAULT_WIDTH` (`bake_roads.py`
 `road_width`, `mark_split_legs`), two-way `lanes=2` ones at least 7 m (`TWO_LANE_STREET`); pois 4,572 (`tools/check_map_data.py` EXPECTED; the Centralny Leżak
