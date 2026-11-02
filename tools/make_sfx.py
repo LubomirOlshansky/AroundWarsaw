@@ -75,6 +75,10 @@ levels (if their folder is given) to balance the buses against.
   cafe_bell      a café door's bell: three little tings, 0.9 s
   frog_chime     loop MW-2: the Frogs shop's door, a two-note croak "kum-kum" and a ting, 0.8 s
   scooter_clatter loop MW-2: a Leżak knocked over: a clank, a thud, a rattle, 0.7 s
+  fan_chant      the fans by Stadion Leguminy (fans.gd): a belly drum and a wordless crowd tune
+      in unison at 120 BPM, a cheer at the phrase's end (an 8 s loop)
+  gong_bowls     the sound-healing rings (wellness.gd): a gong every 6 s and a singing bowl between (a 12 s loop)
+  techno_thump   the techno-yoga speaker (wellness.gd): a muffled four-on-the-floor at 128 BPM (a 7.5 s loop)
 
   --only=club_leak,busker  makes just those (the city's sounds: club_leak, metro_chime,
   church_bell, busker, crowd_murmur, steps_guitar; loop MW-4's bark_small, bark_mid, bark_big,
@@ -1363,9 +1367,235 @@ def check(path, loop):
     return line
 
 
+# --- the fans by Stadion Leguminy (fans.gd) -------------------------------------------------
+
+def fan_chant(seed):
+    """Friendly fans outside a stadium, heard from the street: a bass drum carried on the belly
+    ("boom, boom, boom-boom-boom" at 120 BPM) and a crowd singing a wordless, original two-bar
+    tune in unison ("oo-oo-oo, eh-oh-eh-oh"): twenty-four voices, each a glottal pulse train at
+    its own slightly-off pitch through a vowel's two formants, the syllables on the drum's grid,
+    a cheer at the end of the phrase; the far-field roll-off of a crowd 40 m away. Periodic by
+    construction (the drum's hits wrap round, the voices are silent across the seam), 8 s."""
+    rnd = random.Random(seed)
+    n = int(8.0 * RATE)
+    beat = 0.5
+    out = zeros(n)
+    # The drum: a pitched thump (a falling sine) and a felt slap, a little off the grid.
+    def hit():
+        m = int(0.45 * RATE)
+        sig = zeros(m)
+        ph = 0.0
+        for i in range(m):
+            t = i / RATE
+            f = 58.0 + 70.0 * math.exp(-t * 28.0)
+            ph += TAU * f / RATE
+            sig[i] = math.sin(ph) * math.exp(-t * 7.5) + (rnd.uniform(-1, 1) * math.exp(-t * 90.0) * 0.35)
+        return sig
+    grid = [0.0, 1.0, 2.0, 2.5, 3.0]          # boom, boom, boom-boom-boom (a 4-beat bar)
+    for bar in range(4):
+        for k, b in enumerate(grid):
+            at = int(((bar * 4 + b) * beat + 0.12 + rnd.uniform(-0.008, 0.008)) * RATE)
+            place(out, hit(), at % n, 0.9 if k < 2 else 0.75)
+    drum = biquad(out, "lp", 900.0, 0.7, True)
+    # The tune: (start beat, length in beats, MIDI note, vowel) over 16 beats; silent from 15.
+    tune = [(0, 1, 62, "u"), (1, 1, 62, "u"), (2, 1.5, 62, "u"),
+            (4, 0.5, 64, "e"), (4.5, 0.5, 66, "o"), (5, 0.5, 64, "e"), (5.5, 1.5, 62, "o"),
+            (8, 1, 66, "u"), (9, 1, 66, "u"), (10, 1.5, 66, "u"),
+            (12, 0.5, 67, "e"), (12.5, 0.5, 66, "o"), (13, 0.5, 64, "e"), (13.5, 1.2, 62, "o")]
+    voices = zeros(n)
+    for v in range(24):
+        detune = rnd.uniform(-0.35, 0.35)            # semitones: a crowd, not a choir
+        octave = 0 if v % 3 else -12                 # some sing an octave down
+        late = rnd.uniform(0.0, 0.05)
+        gain = rnd.uniform(0.5, 1.0)
+        sig = zeros(n)
+        for (b0, length, note, vowel) in tune:
+            f0 = 440.0 * 2 ** ((note + octave + detune - 69) / 12.0)
+            i0 = int((b0 * beat + 0.12 + late) * RATE)
+            m = int(length * beat * 0.92 * RATE)
+            ph = rnd.random()
+            for i in range(m):
+                ph += f0 * (1.0 + 0.004 * math.sin(TAU * 5.0 * i / RATE)) / RATE
+                saw = 2.0 * (ph % 1.0) - 1.0
+                env = min(1.0, i / 500.0, (m - i) / 900.0)
+                sig[(i0 + i) % n] += saw * env * gain
+        voices = mix((1.0, voices), (1.0, sig))
+    # One "oh"-ish formant pair plus a brighter band for the whole crowd (from 40 m the vowels
+    # blur anyway; the tune's (note, vowel) pairs only set the pitch).
+    sung = mix((1.0, biquad(voices, "bp", 450.0, 1.6, True)), (0.7, biquad(voices, "bp", 850.0, 2.0, True)),
+               (0.25, biquad(voices, "bp", 1900.0, 3.0, True)))
+    # A cheer at the end of the phrase (beats 14.7-15.6): bright noise, rising and falling.
+    w = noise(n, rnd)
+    cheer = biquad(biquad(w, "bp", 1100.0, 0.8, True), "lp", 2400.0, 0.7, True)
+    c0 = int((14.7 * beat + 0.12) * RATE)
+    cm = int(0.9 * beat * RATE)
+    shout = zeros(n)
+    for i in range(cm):
+        shout[(c0 + i) % n] = cheer[(c0 + i) % n] * math.sin(math.pi * i / cm) ** 1.5
+    crowd = mix((0.3, sung), (0.5, shout))
+    mixd = mix((1.0, drum), (1.0, crowd))
+    return biquad(biquad(mixd, "lp", 3000.0, 0.7, True), "hp", 45.0, 0.7, True)
+
+
+# --- the wellness circles (wellness.gd) --------------------------------------------------------
+
+def gong_bowls(seed):
+    """City-life satire #2 (wellness.gd, through city_sounds.gd's `gong`): a sound-healing ring heard
+    from the path. A big gong struck every 6 s (inharmonic partials, a slow swell, a long wash) and
+    a singing bowl between the strokes (a sine pair a few Hz apart that beats), 12 s, periodic by
+    construction (the tails wrap round the seam), softened by the distance."""
+    rnd = random.Random(seed)
+    n = int(12.0 * RATE)
+    out = zeros(n)
+    # The gong: partials of a tam-tam (ratios not harmonic), each with its own decay.
+    base = 98.0
+    gong_parts = [(base * r, a, d) for (r, a, d) in
+                  [(1.0, 1.0, 3.2), (1.52, 0.8, 2.6), (2.31, 0.7, 2.2), (2.97, 0.55, 1.8),
+                   (3.83, 0.45, 1.5), (4.9, 0.3, 1.1), (6.2, 0.22, 0.9)]]
+    m = int(6.0 * RATE)
+    tail = bell(m, gong_parts, 0.35, rnd)
+    # A slow swell after the stroke: a gong blooms before it fades.
+    sw = int(0.6 * RATE)
+    for i in range(sw):
+        tail[i] *= 0.35 + 0.65 * (i / sw)
+    wash = biquad(noise(m, rnd), "bp", 900.0, 0.9)
+    for i in range(m):
+        tail[i] += 0.05 * wash[i] * math.exp(-i / (1.6 * RATE))
+    place(out, tail, int(0.1 * RATE), 1.0)
+    place(out, tail, int(6.1 * RATE), 0.85)
+    # The bowl: two sines 3.5 Hz apart beat slowly, rubbed in over 3 s and let go (on the seam of
+    # the gong's decay), twice with a different pitch.
+    for start, f, g in [(2.6, 432.0, 0.28), (8.3, 513.0, 0.24)]:
+        k = int(3.4 * RATE)
+        sig = zeros(k)
+        for i in range(k):
+            t = i / RATE
+            env = math.sin(math.pi * min(1.0, t / 3.4)) ** 1.4
+            sig[i] = env * (math.sin(TAU * f * t) + 0.9 * math.sin(TAU * (f + 3.5) * t)
+                            + 0.25 * math.sin(TAU * f * 2.71 * t))
+        place(out, sig, int(start * RATE), g)
+    return biquad(biquad(out, "lp", 2800.0, 0.7, True), "hp", 50.0, 0.7, True)
+
+
+def techno_thump(seed):
+    """City-life satire #3 (wellness.gd, through city_sounds.gd's `thump`): the techno-yoga speaker
+    from the pavement. 16 beats at 128 BPM (7.5 s): a four-on-the-floor kick (a falling sine), an
+    off-beat open hat, a one-note rolling bass; low-passed hard, as a small speaker heard through
+    air. Periodic (every hit lands on the grid, tails wrap)."""
+    rnd = random.Random(seed)
+    beat = 60.0 / 128.0
+    n = int(16 * beat * RATE)
+    out = zeros(n)
+    def kick():
+        k = int(0.32 * RATE)
+        sig = zeros(k)
+        ph = 0.0
+        for i in range(k):
+            t = i / RATE
+            ph += TAU * (46.0 + 110.0 * math.exp(-t * 32.0)) / RATE
+            sig[i] = math.sin(ph) * math.exp(-t * 11.0)
+        return sig
+    def hat():
+        k = int(0.09 * RATE)
+        w = biquad(noise(k, rnd), "hp", 6000.0, 0.7)
+        return [w[i] * math.exp(-i / (0.025 * RATE)) for i in range(k)]
+    def bass(f):
+        k = int(0.2 * RATE)
+        sig = zeros(k)
+        for i in range(k):
+            t = i / RATE
+            saw = 2.0 * ((f * t) % 1.0) - 1.0
+            sig[i] = saw * math.exp(-t * 9.0) * min(1.0, t * 400.0)
+        return biquad(sig, "lp", 500.0, 1.2)
+    kk, hh = kick(), hat()
+    for b in range(16):
+        place(out, kk, int(b * beat * RATE), 1.0)
+        place(out, hh, int((b + 0.5) * beat * RATE), 0.22)
+        place(out, bass(55.0 if (b // 4) % 2 == 0 else 61.7), int((b + 0.75) * beat * RATE), 0.3)
+    # A park's air under the speaker, so the pauses between hits are never dead silence.
+    air = biquad(noise(n, rnd), "lp", 700.0, 0.7, True)
+    for i in range(n):
+        out[i] += 0.05 * air[i]
+    return biquad(biquad(out, "lp", 1600.0, 0.7, True), "hp", 35.0, 0.7, True)
+
+
 LOOPS = ["engine_idle", "engine_mid", "engine_high", "tyre_roll", "tyre_wet", "tyre_squeal", "rotor",
          "city_day", "city_night", "rain", "police_siren", "club_leak", "busker", "crowd_murmur", "steps_guitar",
-         "queue_chatter", "amb_river", "amb_park", "amb_square", "amb_yard"]
+         "queue_chatter", "amb_river", "amb_park", "amb_square", "amb_yard", "fan_chant", "gong_bowls", "techno_thump"]
+
+
+def loud_rev(seed):
+    """City-life satire #1 (loud_cars.gd): a loud car's rev as it passes, an invented big
+    eight with a tuned pipe: two blips and a long pull up to the limiter, then the overrun
+    crackle (short pops of filtered noise) as the driver lifts. 2.4 s, one-shot. The firing
+    is uneven (a cross-plane burble: the gaps alternate), the pipe's resonances are low and
+    wide, and the whole thing is saturated hard: the joke is that it is too much."""
+    rnd = random.Random(seed)
+    n = int(2.4 * RATE)
+    # rpm over time: idle, blip, blip, the pull to the limiter (with a stutter), the lift.
+    keys = [(0.0, 900), (0.12, 900), (0.22, 3600), (0.36, 1300), (0.48, 4200), (0.64, 1500),
+            (0.72, 1500), (1.34, 6900), (1.40, 6400), (1.46, 6900), (1.52, 6500), (1.58, 6900),
+            (1.72, 2600), (2.4, 1000)]
+
+    def rpm_at(t):
+        for (t0, r0), (t1, r1) in zip(keys, keys[1:]):
+            if t <= t1:
+                u = (t - t0) / max(t1 - t0, 1e-6)
+                return r0 + (r1 - r0) * (u * u * (3 - 2 * u))
+        return keys[-1][1]
+
+    pulse = zeros(n)
+    rasp = zeros(n)
+    hiss = noise(n, rnd)
+    load = zeros(n)
+    ph = 0.0
+    k = 0
+    last = 900.0
+    cur = 0.35
+    for i in range(n):
+        r = rpm_at(i / RATE)
+        if i % 64 == 0:
+            # under load while the revs climb, light while they fall
+            cur = max(0.0, min(1.0, (r - last) * 0.02 + 0.35))
+            last = r
+        load[i] = cur
+        # eight cylinders: four firings a revolution, the gaps alternating long and short
+        ph += (r / 60.0 * 4.0) / RATE * (1.25 if k % 2 == 0 else 0.83)
+        if ph >= 1.0:
+            ph -= 1.0
+            k += 1
+            a = 1.0 + rnd.uniform(-0.15, 0.15)
+            width = max(3, int(RATE / (r / 60.0 * 4.0) * 0.18))
+            for j in range(min(width, n - i)):
+                pulse[i + j] += a * math.sin(math.pi * j / width) ** 2
+            burst = width * 3
+            for j in range(min(burst, n - i)):
+                rasp[i + j] += hiss[i + j] * a * (1 - j / burst) ** 2
+    body = mix(
+        (0.6, biquad(pulse, "lp", 900.0, 0.8)),
+        (1.0, biquad(pulse, "bp", 230.0, 1.6)),     # the big pipe
+        (1.2, biquad(pulse, "bp", 520.0, 1.4)),     # its resonator: the phone speaker's range
+        (0.8, biquad(pulse, "bp", 1150.0, 2.0)),
+        (0.4, biquad(pulse, "bp", 1900.0, 2.5)),    # the rasp of a straight-through box
+    )
+    roar = biquad(biquad(rasp, "bp", 950.0, 0.8), "lp", 3800.0, 0.7)
+    for i in range(n):
+        roar[i] *= 0.4 + 0.9 * load[i]
+    # the overrun: pops of noise through a low resonance after the lift (1.6-2.3 s)
+    pops = zeros(n)
+    t = 1.62
+    while t < 2.3:
+        at = int(t * RATE)
+        ln = int(rnd.uniform(0.008, 0.025) * RATE)
+        g = rnd.uniform(0.6, 1.4) * (1.0 - (t - 1.6) / 0.9)
+        for j in range(min(ln, n - at)):
+            pops[at + j] += hiss[(at + j * 7) % n] * g * (1 - j / ln)
+        t += rnd.uniform(0.03, 0.11)
+    pops = biquad(pops, "bp", 700.0, 1.2)
+    out = mix((1.0, body), (0.8, roar), (1.6, pops))
+    out = saturate(out, 2.6)
+    out = biquad(biquad(out, "lp", 4800.0, 0.7), "hp", 60.0, 0.7)
+    return fade(out, 0.01, 0.25)
 
 
 # Loop MW-5: the city's sounds (city_sounds.gd), made on their own with --only=.
@@ -1388,7 +1618,13 @@ CITY = {"club_leak": lambda: [club_leak(71)], "metro_chime": lambda: [metro_chim
         "tram_creak": lambda: [tram_creak(91)], "old_tram_bell": lambda: [old_tram_bell(92)],
         # v1.0 juice: the money pop (money_pop.gd) and the districts' ambiences (sfx.gd).
         "coin": lambda: [coin(93)], "amb_river": lambda: amb_river(94), "amb_park": lambda: amb_park(95),
-        "amb_square": lambda: amb_square(96), "amb_yard": lambda: amb_yard(97)}
+        "amb_square": lambda: amb_square(96), "amb_yard": lambda: amb_yard(97),
+        # City-life satire #1 (loud_cars.gd): the loud cars' rev.
+        "loud_rev": lambda: [loud_rev(98)],
+        # The fans by Stadion Leguminy (fans.gd, through city_sounds.gd's `chant`).
+        "fan_chant": lambda: [fan_chant(99)],
+        # The wellness circles (wellness.gd, through city_sounds.gd's `gong` and `thump`).
+        "gong_bowls": lambda: [gong_bowls(100)], "techno_thump": lambda: [techno_thump(101)]}
 
 
 def main(out_dir, radio_dir=None, only=None):

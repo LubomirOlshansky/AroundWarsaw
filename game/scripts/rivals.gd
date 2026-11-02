@@ -78,6 +78,14 @@ const FIRST_BACK := 45.0
 const FIRST_WAIT := 20.0
 const FIRST_AWAY := 90.0
 const FIRST_ROLL := 12.0
+## PT-8 (2026-11-02): she is put only on a lane within FIRST_SNAP m that runs the way the car
+## faces, at a point really behind it; with none (the wrong way up a one-way, off the road, or a
+## lane that starts just ahead) `call_first` waits and first10.gd asks again. At the end of
+## one-way Hoża by Mokotowska, facing west, it snapped (40 m reach) to two-way Hoża's westbound
+## lane starting 9 m AHEAD; `_behind` found no way in behind that lane's start and stopped there,
+## so she stood held 12 m in front of the car on the 3 m street (no room to pass) and the car
+## crawled into her at a wall's 6-7 km/h for the whole 20 s prompt.
+const FIRST_SNAP := 15.0
 ## PT-11 (the design half): after START! in the first race she waits at the line until the player
 ## moves (faster than FIRST_MOVE m/s) or FIRST_HOLD s pass, so a new player who doesn't yet know to
 ## drive is not left behind. Still after FIRST_IDLE s: the GO nudge (the banner GAZ!, the ghost
@@ -996,20 +1004,15 @@ func call_first(name := "Pani Halina") -> bool:
 			i = k
 	if i < 0:
 		return false
-	var p := Vector2(car.global_position.x, car.global_position.z)
-	var heading := Vector2(-sin(car.rotation.y), -cos(car.rotation.y))
-	var hit := graph.snap(p, 40.0, heading, true)
-	if hit.is_empty():
-		hit = graph.snap(p, 40.0, Vector2.ZERO, true)
-	if hit.is_empty():
+	var spot := _spot_behind(FIRST_BACK)
+	if spot.is_empty():
 		return false
-	var spot := _behind(int(hit[0]), int(hit[1]), float(hit[2]), FIRST_BACK)
 	var d = _drivers[i]
 	traffic.teleport(d, spot[0], spot[1], spot[2])
 	d.held = false
 	d.speed_factor = 1.3
 	d.accel_factor = 1.6
-	var goal: int = graph.e_b[int(hit[0])]
+	var goal: int = graph.e_b[int(spot[3])]  # the end of the car's own edge
 	traffic.race_to(d, goal, _distances(goal))
 	_caller = i
 	_call_t = 0.0
@@ -1018,6 +1021,28 @@ func call_first(name := "Pani Halina") -> bool:
 	rival = i
 	print("first race: %s rolls up %.0f m behind (edge %d)" % [name, FIRST_BACK, spot[0]])
 	return true
+
+
+## PT-8: a lane point about `back` m behind the car, on a lane within FIRST_SNAP m that runs the
+## way the car faces ([edge, lane, s, the car's edge]), or [] when there is none or the point
+## would not be behind the car by at least half of `back` (the lane snapped to starts just ahead
+## of it, or its road has no way in from behind: `_behind` stops at the edge's start).
+func _spot_behind(back: float) -> Array:
+	var p := Vector2(car.global_position.x, car.global_position.z)
+	var heading := _car_heading()
+	var hit := graph.snap(p, FIRST_SNAP, heading, true)
+	if hit.is_empty():
+		return []
+	var spot := _behind(int(hit[0]), int(hit[1]), float(hit[2]), back)
+	var e: int = spot[0]
+	var q: Vector2 = graph.point_at(e, float(spot[2]), graph.lane_offset(e, int(spot[1])))
+	if (q - p).dot(heading) > -0.5 * back:
+		return []
+	return spot + [int(hit[0])]
+
+
+func _car_heading() -> Vector2:
+	return Vector2(-sin(car.rotation.y), -cos(car.rotation.y))
 
 
 ## A lane point `back` m behind (e, lane, s) along the road (into the edge before when this one
@@ -1050,13 +1075,19 @@ func _first_call_tick(dt: float) -> void:
 	var gap := Vector2(d.pos.x - car.global_position.x, d.pos.z - car.global_position.z).length()
 	var other: bool = missions.has_target() or (jobs != null and jobs.busy()) or flying
 	if not _call_up and not other:
-		if gap < 14.0 or _call_t > FIRST_ROLL:
-			if gap >= 14.0:
-				# Stuck in a knot of cars or turned off: she is just there, behind.
-				var hit := graph.snap(Vector2(car.global_position.x, car.global_position.z), 40.0, Vector2.ZERO, true)
-				if not hit.is_empty():
-					var spot := _behind(int(hit[0]), int(hit[1]), float(hit[2]), 12.0)
-					traffic.teleport(d, spot[0], spot[1], spot[2])
+		# PT-8: she stops only behind the car (a player who turned round has her in front).
+		var rel := Vector2(d.pos.x - car.global_position.x, d.pos.z - car.global_position.z)
+		var close := gap < 14.0 and rel.dot(_car_heading()) < 0.0
+		if close or _call_t > FIRST_ROLL:
+			if not close:
+				# Stuck in a knot of cars, turned off or passed: she is just there, behind, on a
+				# lane the car's way; with none (turned round up a one-way) she gives up quietly.
+				var spot := _spot_behind(12.0)
+				if spot.is_empty():
+					if _call_t > FIRST_ROLL + FIRST_WAIT:
+						_first_give_up(false)
+					return
+				traffic.teleport(d, spot[0], spot[1], spot[2])
 			traffic.stop_racing(d)
 			d.held = true
 			_call_up = true
@@ -1071,15 +1102,22 @@ func _first_call_tick(dt: float) -> void:
 		_nudged = true
 		_say(_caller, FIRST_LINES["nudge"][0], FIRST_LINES["nudge"][1], 3.5)
 	if _call_t > FIRST_WAIT or (_call_up and gap > FIRST_AWAY) or other:
-		_say(_caller, FIRST_LINES["gone"][0], FIRST_LINES["gone"][1], 3.5)
 		print("first race: %s gave up waiting (%.0f s, %.0f m)" % [RIVALS[_caller]["name"], _call_t, gap])
-		d.held = false
-		traffic.stop_racing(d)
-		_cooldown[_caller] = 25.0
-		_caller = -1
-		first_result = "declined"
-		state = State.CRUISE
-		hud.hide_challenge()
+		_first_give_up(true)
+
+
+## The first race's call ends unanswered (`say`: her parting line; not when she never got there).
+func _first_give_up(say: bool) -> void:
+	var d = _drivers[_caller]
+	if say:
+		_say(_caller, FIRST_LINES["gone"][0], FIRST_LINES["gone"][1], 3.5)
+	d.held = false
+	traffic.stop_racing(d)
+	_cooldown[_caller] = 25.0
+	_caller = -1
+	first_result = "declined"
+	state = State.CRUISE
+	hud.hide_challenge()
 
 
 ## Loop 3h slice 4: the guided first race is waiting for its flash back.

@@ -110,6 +110,13 @@ const YIELD_TIME := 3.0
 ## lane after PARKED_WAIT s (the queue drives round the scene, one by one).
 const PARKED_LOOK := 12.0
 const PARKED_WAIT := 1.6
+## City-life satire #1 (loud_cars.gd, docs/design/city-life-satire.md 1): a few of the cars the
+## band spawns on main and secondary roads are loud supercars instead, at most `loud_target` at
+## once (main.gd --loud=N; 0: none), drawn in the taxis' MultiMesh (no draw call of their own).
+## Their own seeded generator, so the rest of the traffic's sequence is the same as before.
+const LOUD_CHANCE := 0.12
+const LOUD_SPEED := Vector2(1.12, 1.25)
+const LOUD_ACCEL := 1.7
 ## Pole lamps: red, amber, green.
 const LAMP_ON := [Color("#ff3b2f"), Color("#ffb21e"), Color("#43ff6e")]
 const LAMP_OFF := Color("#2a2c2e")
@@ -213,6 +220,9 @@ class Driver:
 	var halt_wait := 0.0
 	var halting := false
 	var tag := ""
+	## City-life satire #1 (loud_cars.gd): a loud supercar (kind TAXI, shape TAXI_SUPERCAR): it
+	## drives quicker and pulls away harder; loud_cars.gd revs it when it passes the view.
+	var loud := false
 
 
 signal bumped_driver(d: Driver)
@@ -288,6 +298,10 @@ var _top := PackedInt32Array([0, 0, 0, 0, 0])
 var _bodies: Array[AnimatableBody3D] = []
 var _body_driver: Array = []
 var _rng := RandomNumberGenerator.new()
+## City-life satire #1: the loud supercars out now, the most at once, their generator.
+var loud_count := 0
+var loud_target := 3
+var _loud_rng := RandomNumberGenerator.new()
 ## Loop 2c: picks the shapes, apart from _rng so where and what kind of car spawns is as before.
 var _looks := RandomNumberGenerator.new()
 var _tick := 0
@@ -366,6 +380,7 @@ func setup(lane_graph: LaneGraph, map_node: Node3D, camera: Camera3D, data: Dict
 	cam = camera
 	_rng.seed = 2026
 	_looks.seed = 2027
+	_loud_rng.seed = 2028
 	_lane_cars.resize(graph.lane_count)
 	for i in graph.lane_count:
 		_lane_cars[i] = []
@@ -697,6 +712,14 @@ func _try_spawn(anywhere: bool) -> bool:
 	while shape < shapes.size() - 1 and pick >= float(shapes[shape]["share"]):
 		pick -= float(shapes[shape]["share"])
 		shape += 1
+	# City-life satire #1: now and then a car is a loud supercar (a taxi's slot, its shape).
+	var loud := false
+	if kind == Kind.CAR and cls <= 1 and loud_count < loud_target and not _free_slots[Kind.TAXI].is_empty() \
+			and _loud_rng.randf() < LOUD_CHANCE:
+		kind = Kind.TAXI
+		shapes = Models.TRAFFIC[kind]
+		shape = Models.TAXI_SUPERCAR
+		loud = true
 	var look: Dictionary = shapes[shape]
 	var size: Vector3 = look["size"]
 	if not anywhere and on_screen(Vector3(q.x, y, q.y), size.y):
@@ -731,6 +754,12 @@ func _try_spawn(anywhere: bool) -> bool:
 	d.paint = Color(paints[_rng.randi() % paints.size()])
 	d.speed_factor = _rng.randf_range(0.85, 1.08) * (0.85 if kind == Kind.BUS else 1.0)
 	d.accel_factor = 0.7 if kind == Kind.BUS else _rng.randf_range(0.85, 1.15)
+	d.loud = loud
+	if loud:
+		loud_count += 1
+		d.paint = Color(paints[_loud_rng.randi() % paints.size()])
+		d.speed_factor = _loud_rng.randf_range(LOUD_SPEED.x, LOUD_SPEED.y)
+		d.accel_factor = LOUD_ACCEL
 	d.persistent = false
 	d.ghost = false
 	d.node = null
@@ -778,6 +807,9 @@ func _release(d: Driver) -> void:
 		_lane_cars[d.reg].erase(d)
 	d.reg = -1
 	d.active = false
+	if d.loud:
+		d.loud = false
+		loud_count -= 1
 	if d.kind < Kind.NODE and d.slot >= 0:
 		var base := d.slot * 16
 		for k in 12:
