@@ -1,0 +1,29 @@
+# One-off: publishes map-pack-1.tar.gz on this branch as release map-pack-1 (tools/map_pack.py on
+# main pins its sha256). The GitHub tools a cloud session has can't create releases, so the
+# runner's own token does it. F's go-ahead: 2026-11-02 ("use the workaround").
+name: map-pack-release
+on:
+  push:
+    branches: [map-pack]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the archive against main's tools/map_pack.json
+        run: |
+          want=$(curl -sSfL https://raw.githubusercontent.com/${{ github.repository }}/main/tools/map_pack.json | python3 -c 'import json,sys; print(json.load(sys.stdin)["sha256"])')
+          have=$(sha256sum map-pack-1.tar.gz | cut -d' ' -f1)
+          echo "want $want, have $have"; test "$want" = "$have"
+      - name: Create release map-pack-1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view map-pack-1 --repo ${{ github.repository }} > /dev/null 2>&1; then
+            echo "release map-pack-1 already exists"; exit 0
+          fi
+          gh release create map-pack-1 map-pack-1.tar.gz --repo ${{ github.repository }} --target main \
+            --title "Map pack 1" --notes "GUGiK-derived lod2.bin, lod2.json, terrain.json for CI and cloud threads (tools/map_pack.py)."
+          curl -sSfLI https://github.com/${{ github.repository }}/releases/download/map-pack-1/map-pack-1.tar.gz | head -1
