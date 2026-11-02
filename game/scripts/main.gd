@@ -431,7 +431,7 @@ var _sunsets := {}
 ## --life=0|1|2 (none, normal, double; the Low tier halves it), --dogs-log, --trend-log,
 ## --life-log, --life-soak (the car driven at the dogs and riders, overlaps counted), --zajac
 ## (Live, Wednesday 28 October 2026 at 18:59, the car by Kolka's start; with --autopilot it paces
-## the club), --trend-day=N (the trend cycle's day number), --trend-job[=slot] (the request at a
+## the club), --trend-day=N (the trend cycle's day number), --trend-job[=slot, 5 padel court, 6 van, 7 the DeSki call] (the request at a
 ## Wiralek slot, 1-3).
 var life: CityLife
 var trend_job: TrendJob
@@ -2194,8 +2194,8 @@ func _build_garage(world: Node3D) -> void:
 		garage.preset_upgrades(upgrades_flag)
 	garage.upgraded.connect(func(id: String) -> void:
 		if id == "nitro":
-			hud.toast("Nitro gotowe: przytrzymaj błyskawicę przy klaksonie (klawisz N).",
-					"Nitro fitted: hold the bolt by the horn (N key)."))
+			hud.toast("Nitro gotowe: przytrzymaj błyskawicę przy klaksonie (Shift, LB / RB na padzie).",
+					"Nitro fitted: hold the bolt by the horn (Shift, LB / RB on a pad)."))
 	if garage_flag:
 		_put_at_garage()
 	garage.opened.connect(func() -> void:
@@ -2439,6 +2439,7 @@ func _build_city_life(data: Dictionary, world: Node3D) -> void:
 		trend_job.setup({"hud": hud, "dialogue": dialogue, "wallet": wallet, "missions": missions, "rivals": rivals, "jobs": jobs,
 				"rides": rides, "graph": graph, "map": map, "car": car, "life": life, "crowds": crowds}, at, world)
 		jobs.trend = trend_job
+		trend_job.egg = func(id: String) -> bool: return egg_book != null and egg_book.fire(id, _egg_state())
 		if spacer != null:
 			trend_job.quiet = spacer.on
 	if zajac_flag or trend_job_flag > 0 or armchair_flag:
@@ -2486,6 +2487,12 @@ func _life_start() -> void:
 			life.tick(0.0)
 			if not trend_job.offer_mlask(true):
 				print("trend job: --trend-job=6: no request (no van spot or new place)")
+			return
+		if trend_job_flag == 7:
+			# "Czwarty" at WTS DeSki's padel courts (landmarks.gd DESKI), whatever the clock.
+			life.tick(0.0)
+			if not trend_job.offer_deski_call(true):
+				print("trend job: --trend-job=7: no request (no kerb or door fits)")
 			return
 		if trend_job_flag == 5 and crowds != null and crowds.by_id.has(Crowds.PADEL_ID):
 			var cd: Vector2 = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]["door"]
@@ -3664,7 +3671,7 @@ func _parse_args() -> void:
 		elif arg.begins_with("--trend-day="):
 			trend_day_flag = maxi(0, int(arg.trim_prefix("--trend-day=")))
 		elif arg == "--trend-job" or arg.begins_with("--trend-job="):
-			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 6)
+			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 7)
 			trend_log = true
 		elif arg.begins_with("--club="):
 			# Loop MW-3: the car at a club's door (places.json id or name), no title.
@@ -4831,6 +4838,7 @@ func _process(dt: float) -> void:
 		rides.away = title != null or _bench_ghost != null or _phone_bench
 		if trend_job != null:
 			trend_job.flying = flying
+			trend_job.player_pos = pos
 			trend_job.away = rides.away
 		eggs.player = pos
 		eggs.player_vel = heli.vel if flying else car.vel
@@ -5518,8 +5526,9 @@ func _read_input(dt: float) -> void:
 		stick = pad_stick
 		stick_on = true
 	controls.drive(car, stick, stick_on, keys, hud.gas or Gamepad.gas(), hud.brake or Gamepad.brake(), cam_yaw, dt)
-	# G13: the nitro (bought at the garage): the disc by the horn, N or Shift on a keyboard.
-	car.nitro_hold = car.nitro_owned and (hud.nitro_held or Input.is_physical_key_pressed(KEY_N) or Input.is_physical_key_pressed(KEY_SHIFT))
+	# G13: the nitro (bought at the garage): the disc by the horn, Shift on a keyboard, LB or RB on a
+	# pad. Not N: N switches the time of day, so holding it for the nitro also turned day to dusk.
+	car.nitro_hold = car.nitro_owned and (hud.nitro_held or Input.is_physical_key_pressed(KEY_SHIFT) or Gamepad.nitro())
 	hud.set_nitro(car.nitro_owned, car.nitro_charge)
 	# Loop 3g-1: a pull-over holds the car; the police's test drivers (--police-auto, --trap with
 	# --pedal=gas, the soak's roaming autopilot) drive it.
@@ -5836,6 +5845,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		_pad_command(pad)
 		get_viewport().set_input_as_handled()
 		return
+	var flick := Gamepad.view_flick(event)
+	if flick != 0:
+		_rotate_camera(flick)
+		get_viewport().set_input_as_handled()
+		return
 	var wheel := event as InputEventMouseButton
 	if wheel and wheel.pressed:
 		if wheel.button_index == MOUSE_BUTTON_WHEEL_UP:
@@ -5931,10 +5945,6 @@ func _pad_command(what: String) -> void:
 			_secondary()
 		"vehicle":
 			_toggle_vehicle()
-		"rotate_left":
-			_rotate_camera(-1)
-		"rotate_right":
-			_rotate_camera(1)
 		"follow":
 			_toggle_follow()
 		"horn":

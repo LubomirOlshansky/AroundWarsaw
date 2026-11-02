@@ -11,6 +11,12 @@ someone writes its lines.
 
 ## 2026-11-02
 - The Royal Castle gets its Clock Tower back: dark-blue clock faces and a green copper onion helm with a lantern and spire, green-capped corner turrets, terracotta roofs, and a cream river front with a copper dome; below it Kubicki's Arcades now show their round arches, with the restored Upper Garden on top (tubbed ball trees, a fountain) and the Lower Garden's lawn, vases and fountains in front.
+- Nowy Świat gets three more neon shops: an old-fashioned confectioner (BLIKLINA OD 1869), a coffee spot at Chmielna and a vinyl bar at Foksal.
+- Two more Powiśle buildings look like themselves: Hortus on Topiel, glass offices round a garden with tenement-style flats on Drewniana, and Modernka on Zajęcza, an old tenement joined to a new glass wing.
+- Cringulo's cream van now carries CRINGULO TV in dark letters on both sides.
+- Evening rides in Podwózka sometimes carry a first-date passenger from the dating app TIMBER, heading for the LORETKA roof bar. Cringulo's van now has a handful of fans standing behind it, chatting, and parking right by the van while he films finds a new easter egg.
+- Powiśle's Piano House now has a keyboard for a front, white keys and black window strips, and Cube House next door is a white cube with its bays stepping out floor by floor.
+- The police keep up with a tuned car: a bought Ołdi TT or a better engine no longer leaves every patrol behind, so the nitro is the way to open a gap. On a gamepad the nitro is LB or RB, and the right stick turns the view.
 - The notebook MOJA WARSZAWA has a new card, "Kolejki" (The queues), found by the KUKŁA pancake window on Nowy Świat; it fills the "Queueing for the trend" chapter to ten.
 - Plac Zbawiciela comes alive: four neon cafés round the roundabout (Kawa Zbawienie, Szarlotka na rogu, Plan Z and Po mszy Spritz) with parasol terraces in front of the blocks, and the Church of the Holiest Saviour is lit at night: gilded crosses, a glowing stained-glass rose, lanterns at the porch and floodlamps up the front.
 - Krakowskie Przedmieście gets eight neon shopfronts along the royal route: an amber and silver shop, a chemist under the column, royal ice cream, sheet music and records, a reading café, pierogi at Bona's, mermaid souvenirs and an exchange office by the Castle.
@@ -43,6 +49,7 @@ someone writes its lines.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
+- New by the Vistula: the WTS DESKA tennis club (a parody of the real club) on Zaruskiego, under Most Łazienkowski: a closed tennis hall, one outdoor glass padel court lit at night with four people playing, and a DESKA neon on the clubhouse. A friend now phones from the club: their fourth player hurt a leg at pole dance, so drive or fly to the DESKA court and play; the club has its own notebook page.
 - With a game controller you can now set the volumes, browse the city notebook, pick a paint at the garage, and pan, zoom and teleport on the full map.
 - Small houses without a detailed model now have pitched roofs, gabled or hipped: red tile, red sheet metal in MDM, and green copper or red on the Royal Route.
 - LORETKA, the pink rooftop date bar, now has its summer terrace up on the hotel roof: pink parasols, greenery, string lights and couples on summer evenings. Also new: the PRZEGRYWKI board-game bar and WACZEK burger joints with an upside-down golden W.
