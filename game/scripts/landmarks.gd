@@ -61,7 +61,8 @@ const S_SLAB := 12      # a 1960s slab's long face: plaster and loggia bands
 ## paler than life for the game's palette.
 const TOWERS := [
 	{"key": "zlota44", "osm": "Złota 44", "style": S_SAIL, "glass": "#b4c8d3", "roof": "#e4e8ea", "crest": "slope"},
-	{"key": "spire", "osm": "Warsaw Spire", "style": S_DIAMOND, "glass": "#5a8fb8", "roof": "#a3b6c4"},
+	{"key": "spire", "osm": "Warsaw Spire", "style": S_BANDS, "glass": "#5a8fb8", "roof": "#a3b6c4",
+			"with": [Vector2(-2672.0, 195.0), Vector2(-2745.0, 150.0)]},  # the two crescent wings
 	{"key": "q22", "osm": "Q22", "style": S_BANDS, "glass": "#8ba2b4", "roof": "#bcc4ca"},
 	{"key": "rondo1", "osm": "Rondo 1", "style": S_FINS, "glass": "#6f8ea4", "roof": "#a9b3b9", "crest": "frame",
 			"base_sign": "ENELMEDIK"},
@@ -140,8 +141,8 @@ const INFO := {
 			"192 m. Apartamentowiec Daniela Libeskinda: biały stalowy szkielet jak skrzydło.",
 			"192 m. Daniel Libeskind's apartment tower: a white steel frame like a wing."],
 	"spire": ["Warsaw Spire",
-			"220 m. Szklana tafla w romby. Otwarty w 2016 roku.",
-			"220 m. Glass laid in diamonds. Opened in 2016."],
+			"220 m. Szklana wieża rozszerzająca się ku górze, z płetwą na dachu, lustrzanym zadaszeniem wejścia i dwoma łukowymi skrzydłami. Otwarta w 2016 roku.",
+			"220 m. A glass tower that widens upward, with a fin on its roof, a mirrored entrance canopy and two curved wings. Opened in 2016."],
 	"q22": ["Q22",
 			"155 m. Otwarty w 2016 roku.",
 			"155 m. Opened in 2016."],
@@ -704,7 +705,10 @@ func _find_sites() -> void:
 	for t: Dictionary in TOWERS:
 		var outline := _landmark(t["osm"]) if t.has("osm") else _tallest_at(t["at"])
 		if outline.size() >= 3:
-			_add_site(t["key"], [outline])
+			var zone: Array = [outline]
+			for at: Vector2 in t.get("with", []):
+				zone.append(_tallest_at(at))  # a tower's low wings, built with it (the Spire's)
+			_add_site(t["key"], zone)
 			if not sites.is_empty() and sites[-1]["key"] == t["key"]:
 				sites[-1]["tower"] = t
 	_find_muzeum()
@@ -2337,7 +2341,14 @@ func _build_tower(site: Dictionary) -> void:
 	elif spec["key"] == "spire":
 		# Warsaw Spire: the leaf-shaped tower lofted and tapering (_spire); the two lower
 		# office buildings beside it are built from their parts.
-		_spire(zone, g, glass, roof, skin)
+		var masts: Array = []
+		for b in parts:
+			if float(b["h"]) >= 200.0:
+				masts.append(_centre(_pts(b["p"])))
+		_spire(zone, g, glass, roof, skin, masts)
+		for w in range(1, (site["zone"] as Array).size()):
+			_spire_wing(site["zone"][w])
+		_g = g
 	for k in parts.size():
 		var b: Dictionary = parts[k]
 		var poly := _pts(b["p"])
@@ -2650,17 +2661,34 @@ func _zlota_sail(g: float, glass: Color, roof: Color, skin: float) -> void:
 	_aviation(crown, func(q: Vector2) -> float: return top.call(q))
 
 
-## Warsaw Spire (the landmarks loop, after the user's phone look: "not recognisable at all").
-## OpenStreetMap maps the 180 m tower only as its outline, with the crown and masts as parts
-## floating from 180 m, so it stood as a lump. Here the leaf-shaped outline is lofted through
-## SPIRE_RINGS rings, narrowing to SPIRE_TAPER at 180 m; an open frame of fins carries the
-## crown to 196 m and a mast to 220 m; the brand's parody (SAMSONG, neon_signs.gd) glows on
-## its east and west faces near the top, as the real sign does.
+## Warsaw Spire (rebuilt 2026-11-02 from F's three photos; spec docs/landmarks/specs/spire.md).
+## OpenStreetMap maps the 180 m tower only as its outline (its widest plan, at the roof) with
+## the crown and masts as floating parts, so it stood as a narrowing lump. The real tower
+## WIDENS upward: a narrow glass lobby on slim legs, a shaft that flares to the full plan by
+## about 165 m, a domed roof and a glass fin rising above one edge. So the outline is lofted
+## through SPIRE_RINGS rings from SPIRE_BASE (the lobby's share of the plan) to 1.0; the
+## lobby is lit glass; a mirrored canopy on V legs shades the north entrance (towards Plac
+## Europejski); a fin rises on the east rim; the brand's parody (SAMSONG, neon_signs.gd)
+## glows near the top. The two 15-storey crescents flanking the plaza are `_spire_wing`.
 const SPIRE_TOP := 180.0
-const SPIRE_TAPER := 0.84
-const SPIRE_RINGS := 6
+const SPIRE_BASE := 0.74
+const SPIRE_LOBBY := 8.0
+const SPIRE_RINGS := [0.0, 8.0, 24.0, 48.0, 76.0, 104.0, 132.0, 156.0, 172.0, 180.0]
 const SPIRE_BLUE := Color(0.2, 0.42, 1.0)
-func _spire(outline: PackedVector2Array, g: float, glass: Color, roof: Color, skin: float) -> void:
+const SPIRE_LOBBY_GLASS := Color("#34505f")
+const SPIRE_MIRROR := Color("#c7d3da")
+const SPIRE_MIRROR_UNDER := Color("#7f8c96")
+const SPIRE_STEEL := Color("#aeb6bc")
+const SPIRE_WING_GLASS := Color("#4d7389")
+const SPIRE_WING_STONE := Color("#aab4ba")
+const SPIRE_PAVING := Color("#c9c4b6")
+const SPIRE_FIN_RISE := 22.0
+func _spire_k(h: float) -> float:
+	var t := clampf(h / 165.0, 0.0, 1.0)
+	return SPIRE_BASE + (1.0 - SPIRE_BASE) * (1.0 - (1.0 - t) * (1.0 - t))
+
+
+func _spire(outline: PackedVector2Array, g: float, glass: Color, roof: Color, skin: float, masts: Array) -> void:
 	var base := PackedVector2Array()
 	for q in outline:
 		if base.is_empty() or (q.distance_to(base[-1]) > 1.2 and q.distance_to(base[0]) > 1.2):
@@ -2668,23 +2696,25 @@ func _spire(outline: PackedVector2Array, g: float, glass: Color, roof: Color, sk
 	if base.size() < 3:
 		return
 	var c := _centre(base)
-	var ring := func(t: float) -> PackedVector2Array:
-		var k := 1.0 - (1.0 - SPIRE_TAPER) * pow(t, 1.5)
+	var ring := func(h: float) -> PackedVector2Array:
+		var k := _spire_k(h)
 		var out := PackedVector2Array()
 		for q in base:
 			out.append(c + (q - c) * k)
 		return out
 	var y0 := g - 0.4
 	var keep := _mode
-	_mode = skin
 	var cw := Geometry2D.is_polygon_clockwise(base)
-	for k in SPIRE_RINGS:
-		var f0 := float(k) / SPIRE_RINGS
-		var f1 := float(k + 1) / SPIRE_RINGS
-		var r0: PackedVector2Array = ring.call(f0)
-		var r1: PackedVector2Array = ring.call(f1)
-		var ya := lerpf(y0, g + SPIRE_TOP, f0)
-		var yb := lerpf(y0, g + SPIRE_TOP, f1)
+	for s in SPIRE_RINGS.size() - 1:
+		var h0: float = SPIRE_RINGS[s]
+		var h1: float = SPIRE_RINGS[s + 1]
+		var r0: PackedVector2Array = ring.call(h0)
+		var r1: PackedVector2Array = ring.call(h1)
+		var ya := g + h0 if s > 0 else y0
+		var yb := g + h1
+		# The lobby band (the first) is lit dark glass; the shaft wears the tower's skin.
+		_mode = M_PAVILION if s == 0 else skin
+		var col := SPIRE_LOBBY_GLASS if s == 0 else glass
 		var run := 0.0
 		for i in base.size():
 			var j := (i + 1) % base.size()
@@ -2692,26 +2722,174 @@ func _spire(outline: PackedVector2Array, g: float, glass: Color, roof: Color, sk
 			var o := Vector2(e.y, -e.x) if cw else Vector2(-e.y, e.x)
 			var length := r0[i].distance_to(r0[j])
 			_quad(Vector3(r0[i].x, ya, r0[i].y), Vector3(r0[j].x, ya, r0[j].y), Vector3(r1[j].x, yb, r1[j].y),
-					Vector3(r1[i].x, yb, r1[i].y), Vector3(o.x, 0.0, o.y), glass, Vector2(run, ya - _g),
+					Vector3(r1[i].x, yb, r1[i].y), Vector3(o.x, 0.0, o.y), col, Vector2(run, ya - _g),
 					Vector2(run + length, ya - _g), Vector2(run + length, yb - _g), Vector2(run, yb - _g), SPIRE_TOP)
 			run += length
 	_mode = keep
-	var top: PackedVector2Array = ring.call(1.0)
+	var top: PackedVector2Array = ring.call(SPIRE_TOP)
+	# The roof: a pale rim, then a shallow dome of two steps.
 	_prism(top, g + SPIRE_TOP - 0.5, g + SPIRE_TOP, glass, roof, skin, M_SKIN)
-	_prism(top, g + SPIRE_TOP, g + 196.0, glass, Color(0, 0, 0, 0), M_SKIN + float(S_FRAME) / 16.0)
-	var mast := PackedVector2Array([c + Vector2(-0.8, -0.8), c + Vector2(0.8, -0.8), c + Vector2(0.8, 0.8), c + Vector2(-0.8, 0.8)])
-	_prism(mast, g + SPIRE_TOP, g + 220.0, Color("#d5dade"), Color("#e8ecef"), M_STONE, M_STONE)
-	_collide(base)
-	_aviation(top, func(_q: Vector2) -> float: return g + 196.0)  # on the frame's rim (the dusk loop)
+	var dome0 := PackedVector2Array()
+	var dome1 := PackedVector2Array()
+	for q in top:
+		dome0.append(c + (q - c) * 0.93)
+		dome1.append(c + (q - c) * 0.72)
+	_frustum(top, g + SPIRE_TOP, dome0, g + SPIRE_TOP + 1.4, roof)
+	_frustum(dome0, g + SPIRE_TOP + 1.4, dome1, g + SPIRE_TOP + 2.6, roof.lightened(0.15), roof.lightened(0.2))
+	# The masts (the two OSM parts' spots), the beacons' posts.
+	for m: Vector2 in masts:
+		var post := PackedVector2Array([m + Vector2(-0.5, -0.5), m + Vector2(0.5, -0.5), m + Vector2(0.5, 0.5), m + Vector2(-0.5, 0.5)])
+		_prism(post, g + SPIRE_TOP + 2.0, g + 220.0, Color("#d5dade"), Color("#e8ecef"), M_STONE, M_STONE)
+	_collide(ring.call(0.0))
+	_aviation(top, func(_q: Vector2) -> float: return g + SPIRE_TOP + 2.6)  # the dusk loop
+	_spire_fin(top, c, g, glass)
+	var lobby: PackedVector2Array = ring.call(0.0)
+	_spire_canopy(lobby, c, g)
+	var front := INF
+	for q in lobby:
+		if absf(q.x - c.x) < 6.0:
+			front = minf(front, q.y)
+	if front < INF:
+		_spire_plaza(c, g, front)
 	# The signs, on the wide east and west faces 14 m under the roof.
-	var t := (SPIRE_TOP - 14.0) / SPIRE_TOP
-	var face: PackedVector2Array = ring.call(t)
+	var face: PackedVector2Array = ring.call(SPIRE_TOP - 14.0)
 	for d: Vector2 in [Vector2(1, 0), Vector2(-1, 0)]:
 		var reach := 0.0
 		for q in face:
 			reach = maxf(reach, (q - c).dot(d))
 		var at := c + d * reach
 		signs.append(["SAMSONG", Vector3(at.x, g + SPIRE_TOP - 18.0, at.y), Vector3(d.x, 0.0, d.y), 2.6, SPIRE_BLUE])
+
+
+## The fin (photos 1 and 2): a thin glass blade standing on the rim's east side, peaking at
+## SPIRE_FIN_RISE over the roof towards the north and falling to nothing at both ends, leaning
+## out a little. It follows the rim's own corners, so it curves with the tower.
+func _spire_fin(top: PackedVector2Array, c: Vector2, g: float, glass: Color) -> void:
+	var pts: Array[Vector2] = []
+	for q in top:
+		if q.x - c.x > 0.35 * 22.0 and absf(q.y - c.y) < 24.0:
+			pts.append(q)
+	if pts.size() < 3:
+		return
+	pts.sort_custom(func(a: Vector2, b: Vector2) -> bool: return a.y < b.y)
+	var n := pts.size()
+	var y0 := g + SPIRE_TOP + 1.0
+	var keep := _mode
+	_mode = M_SKIN + float(S_BANDS) / 16.0
+	for i in n - 1:
+		var a := pts[i]
+		var b := pts[i + 1]
+		var ta := float(i) / (n - 1)
+		var tb := float(i + 1) / (n - 1)
+		# a swept profile: 0 at the south end, the peak a third of the way from the north
+		var ha := maxf(0.6, SPIRE_FIN_RISE * _fin_profile(1.0 - ta))
+		var hb := maxf(0.6, SPIRE_FIN_RISE * _fin_profile(1.0 - tb))
+		var out := Vector2(1.0, 0.0)
+		var lean_a := out * 0.9 * (ha / SPIRE_FIN_RISE)
+		var lean_b := out * 0.9 * (hb / SPIRE_FIN_RISE)
+		var thick := out * 0.45
+		var A0 := a - thick
+		var B0 := b - thick
+		var A1 := a + thick
+		var B1 := b + thick
+		var ta3 := Vector3(a.x + lean_a.x, y0 + ha, a.y)
+		var tb3 := Vector3(b.x + lean_b.x, y0 + hb, b.y)
+		var e := (b - a).normalized()
+		var fn := Vector3(e.y, 0.0, -e.x)  # the blade's outer face: east, along the rim's normal
+		if fn.x < 0.0:
+			fn = -fn
+		var top_n := Vector3(0.9, 0.0, 0.0).cross(tb3 - ta3).normalized()
+		if top_n.y < 0.0:
+			top_n = -top_n
+		# both faces (outer then inner), then the top edge
+		_quad(Vector3(A1.x, y0, A1.y), Vector3(B1.x, y0, B1.y), tb3 + Vector3(0.45, 0, 0), ta3 + Vector3(0.45, 0, 0), fn, glass.lightened(0.25),
+				Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1), SPIRE_FIN_RISE)
+		_quad(Vector3(B0.x, y0, B0.y), Vector3(A0.x, y0, A0.y), ta3 - Vector3(0.45, 0, 0), tb3 - Vector3(0.45, 0, 0), -fn, glass.lightened(0.1),
+				Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1), SPIRE_FIN_RISE)
+		_quad(ta3 - Vector3(0.45, 0, 0), ta3 + Vector3(0.45, 0, 0), tb3 + Vector3(0.45, 0, 0), tb3 - Vector3(0.45, 0, 0), top_n, SPIRE_MIRROR,
+				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	_mode = keep
+
+
+func _fin_profile(t: float) -> float:
+	# t = 0 at the north end of the fin, 1 at the south end
+	return clampf(sin(PI * pow(clampf(t, 0.0, 1.0), 0.7)), 0.0, 1.0)
+
+
+## The mirrored canopy over the entrance (photo 3): a beak of polished steel flaring out of
+## the lobby, `out` the way the entrance faces (north, to the plaza), on four steel legs
+## in two V's; a white rim. `ring0` is the lobby's plan, `c` the tower's centre.
+func _spire_canopy(ring0: PackedVector2Array, c: Vector2, g: float) -> void:
+	var front := INF
+	for q in ring0:
+		if absf(q.x - c.x) < 6.0:
+			front = minf(front, q.y)
+	if front == INF:
+		return
+	var keep := _mode
+	_mode = M_STONE
+	var wy := front + 0.8  # the canopy's root sits just inside the glass
+	var y_in := g + 9.5
+	var IL := Vector3(c.x - 7.0, y_in, wy)
+	var IR := Vector3(c.x + 7.0, y_in, wy)
+	var OL := Vector3(c.x - 16.0, g + 15.5, wy - 11.0)
+	var OR := Vector3(c.x + 16.0, g + 15.5, wy - 11.0)
+	var AP := Vector3(c.x, g + 12.5, wy - 20.0)
+	var drop := Vector3(0.0, -1.1, 0.0)
+	var up := Vector3.UP
+	_tri(IL, OL, AP, up, SPIRE_MIRROR, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	_tri(IR, AP, OR, up, SPIRE_MIRROR, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	_tri(IL, AP, IR, up, SPIRE_MIRROR, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	_tri(IL + drop, AP + drop, OL + drop, -up, SPIRE_MIRROR_UNDER, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0, false)
+	_tri(IR + drop, OR + drop, AP + drop, -up, SPIRE_MIRROR_UNDER, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0, false)
+	_tri(IL + drop, IR + drop, AP + drop, -up, SPIRE_MIRROR_UNDER, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0, false)
+	# the rim: a white edge round the beak's front
+	for e in [[IL, OL], [OL, AP], [AP, OR], [OR, IR]]:
+		var a: Vector3 = e[0]
+		var b: Vector3 = e[1]
+		var d := Vector2(b.x - a.x, b.z - a.z).normalized()
+		_quad(a + drop, b + drop, b, a, Vector3(d.y, 0.0, -d.x), Color("#f0f3f4"),
+				Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	# four slender legs, two V's: feet on the plaza, heads under the beak
+	for sx in [-1.0, 1.0]:
+		_beam(Vector3(c.x + sx * 12.0, g, wy - 9.0), Vector3(c.x + sx * 6.0, g + 11.5, wy - 5.5), 0.7, SPIRE_STEEL, false)
+		_beam(Vector3(c.x + sx * 4.0, g, wy - 10.0), Vector3(c.x + sx * 2.5, g + 12.0, wy - 7.5), 0.7, SPIRE_STEEL, false)
+	_mode = keep
+
+
+## One of the two curved 15-storey wings (photos 2 and 3): the mapped crescent in banded glass
+## over a dark lit ground floor, a stone plant screen set back on the roof.
+func _spire_wing(poly: PackedVector2Array) -> void:
+	var p := PackedVector2Array()
+	for q in poly:
+		if p.is_empty() or (q.distance_to(p[-1]) > 1.8 and q.distance_to(p[0]) > 1.8):
+			p.append(q)
+	if p.size() < 3:
+		return
+	var g := _ground_under(p)
+	_g = g
+	_prism(p, g - 0.4, g + 5.0, Color("#2f4a5a"), SPIRE_WING_GLASS, M_PAVILION, M_STONE)
+	_prism(p, g + 5.0, g + 55.0, SPIRE_WING_GLASS, SPIRE_WING_STONE, M_SKIN + float(S_BANDS) / 16.0, M_SKIN)
+	var inner := Geometry2D.offset_polygon(p, -2.5)
+	if not inner.is_empty():
+		_prism(inner[0], g + 55.0, g + 58.0, SPIRE_WING_STONE, SPIRE_WING_STONE.lightened(0.1), M_STONE, M_STONE)
+	_collide(p)
+
+
+## The plaza in front of the tower: pale paving over a half-disc on the north side and a
+## row of low black bollards along its edge (photo 3).
+func _spire_plaza(c: Vector2, g: float, front: float) -> void:
+	var edge := Vector2(c.x, front)
+	var slab := PackedVector2Array()
+	for k in 13:
+		var a := PI * float(k) / 12.0
+		slab.append(edge + Vector2(-cos(a) * 26.0, -sin(a) * 22.0))
+	_prism(slab, g - 0.5, g + 0.03, SPIRE_PAVING, SPIRE_PAVING.lightened(0.04), M_STONE, M_STONE)
+	for k in range(1, 12):
+		var a := PI * float(k) / 12.0
+		var at := edge + Vector2(-cos(a) * 25.0, -sin(a) * 21.0)
+		var post := PackedVector2Array([at + Vector2(-0.13, -0.13), at + Vector2(0.13, -0.13), at + Vector2(0.13, 0.13), at + Vector2(-0.13, 0.13)])
+		_prism(post, g, g + 0.9, Color("#26282b"), Color("#3a3d41"), M_STONE, M_STONE)
 
 
 ## A tower's top cut on a slope: the walls rise to `hi` at the outline's far end (its longest

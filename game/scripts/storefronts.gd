@@ -87,6 +87,10 @@ const NOWY_CREAM := Color(1.0, 0.82, 0.5)
 const NOWY_ROSE := Color(1.0, 0.55, 0.7)
 const NOWY_SKY := Color(0.62, 0.86, 1.0)
 const NOWY_WINE := Color(0.95, 0.3, 0.45)
+## Powiśle's small shops: a leaf green, a brick orange and a soft lilac.
+const POWISLE_TUBE_A := Color(0.5, 0.95, 0.55)
+const POWISLE_TUBE_B := Color(1.0, 0.55, 0.3)
+const POWISLE_TUBE_C := Color(0.8, 0.62, 1.0)
 ## The venues' fascias (vision 3.0-3.2): place id -> [the lines of the sign, tube colour, metres
 ## up (the sign's bottom)]. The words are the parody names of places.json (Glon na Powiślu: GLON).
 const VENUES := {
@@ -148,6 +152,16 @@ const VENUES := {
 	"kino_kultura": [["KINO", "KULTURA"], CINEMA_TUBE, 3.2],
 	"kino_elektronik": [["KINO", "ELEKTRONIK"], CINEMA_TUBE_B, 3.2],
 	"kino_kinoteka": [["KINOTEKA"], CINEMA_TUBE, 3.2],
+	# Powiśle's streets (F, 2026-11-02): the small shops of a student and cyclist quarter, original
+	# names, one tube each, low over the door.
+	"pow_flat_bialy": [["FLAT", "BIAŁY"], CAFE_TUBE, 2.8],
+	"pow_rowerownia": [["ROWEROWNIA", "SERWIS"], POWISLE_TUBE_A, 2.8],
+	"pow_winyle": [["WINYLE", "NA SKARPIE"], POWISLE_TUBE_B, 2.8],
+	"pow_ksiegarnia": [["KSIĘGARNIA", "POD SYRENKĄ"], POWISLE_TUBE_C, 2.8],
+	"pow_bar_topiel": [["BAR", "TOPIEL"], POWISLE_TUBE_A, 2.8],
+	"pow_piekarnia": [["PIEKARNIA", "NA POWIŚLU"], CAFE_TUBE, 2.8],
+	"pow_altana": [["ALTANA"], POWISLE_TUBE_B, 2.8],
+	"pow_przy_solcu": [["PRZY SOLCU"], POWISLE_TUBE_C, 2.8],
 	# Zagłębie Kebabowe on Al. Solidarności (zaglebie.gd): Kino Femina's fascia and the five shops'.
 	# Nowy Świat's shopfronts (street-by-street pass, 2026-11-02): original names, no chains.
 	"nowy_paczki": [["PĄCZKARNIA", "TŁUSTE DNI"], NOWY_ROSE, 2.8],
@@ -230,6 +244,20 @@ const CINEMAS := {
 	"kino_kultura": [52.24060, 21.01680],
 	"kino_elektronik": [52.23480, 21.02900],
 	"kino_kinoteka": [52.23100, 21.00450],
+}
+## Powiśle's streets (F, 2026-11-02; BACKLOG "Powiśle streets"): a cafe on Tamka, a bike workshop and
+## a bakery on Dobra, a record shop and a bookshop towards the Library, a bar on Topiel, a stairwell
+## bar on Browarna and a corner shop on Solec. Original names; like the cafés, not notebook places,
+## same venue code, the nearest road snaps the sign (the Mac look check moves the doors). Spots sit on the baked Tamka, Dobra, Browarna, Topiel and Solec.
+const POWISLE := {
+	"pow_flat_bialy": [52.23719, 21.02554],
+	"pow_rowerownia": [52.23953, 21.02693],
+	"pow_winyle": [52.24085, 21.02231],
+	"pow_ksiegarnia": [52.23654, 21.02192],
+	"pow_bar_topiel": [52.23878, 21.02489],
+	"pow_piekarnia": [52.23780, 21.02893],
+	"pow_altana": [52.24161, 21.02179],
+	"pow_przy_solcu": [52.23463, 21.03380],
 }
 ## Zagłębie Kebabowe's venue anchors: id -> [lat, lon] (Femina and the five shops' doors).
 static func zaglebie_table() -> Dictionary:
@@ -360,7 +388,7 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, zaglebie_table()]:
+	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, zaglebie_table()]:
 		for id: String in table:
 			var ll: Array = table[id]
 			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
