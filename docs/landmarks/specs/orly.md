@@ -52,7 +52,39 @@ Heights come from the photo's proportions (the towers' centres 31 m apart), not 
 Wall #cdb48a, base #b99d72, cornice and frames #ddcca8 (M_STONE); roof #77706a; doors #3a332c;
 bronze #5e5548. Card "Dom pod Orłami".
 
-## 5. The square (Skwer Linearny na Złotej)
+## 5. Roof
+
+A flat roof (#77706a) at 24.08 m inside the cornice, behind a parapet to 24.6 m; the towers'
+drums and eagles stand above it, the pediment and flagpole in the middle of the front.
+
+## 6. Ground and night
+
+The ground floor sits on the terrain under the outline (`_ground_under`), with a base from -0.6 m
+so slopes never show a gap. The square's lawns and walks run up to the front (map data). At night
+the letters stay dark (signs are lit day and night, so they are dark metal on purpose); the
+windows take the city's night glow like every landmark; no floodlights.
+
+## 7. Detail level and budget
+
+L2, 1399 triangles, budget 1600 (check_mesh_quality BUDGET "orly"). Shots: from the square
+(`--solo=orly`, and in the city from Złota looking north-east).
+
+## 8. Parts table
+
+| id | shape | size | position | material | feature |
+| --- | --- | --- | --- | --- | --- |
+| walls | prism | -0.6 to 24 m | outline simplified 0.3 m | M_STONE #cdb48a | 2 massing |
+| front | slab | 24 x 1 x 24 m | v 3.3-4.3, u -12 to 12 | M_STONE #cdb48a | one plane between towers |
+| windows | quads | 1.9-2.3 x 2.5-5 m | 3.5 m bays, 7 by hand on the front | M_GLASS #353b42 | 3 facade |
+| portals | box + quad | 3.1 x 5.4 m frame, 2 x 4.4 m door | u ±3.5 on the front | M_STONE #ddcca8, door #3a332c | two entrances |
+| cornice | prism | 23.5-24 m | outline grown 0.45 m | M_STONE #ddcca8 | main cornice |
+| towers | discs | r 3.7 / 3.0 / 2.3 / 1.3 m | u ±15.6, v 0, 24-27.4 m | M_STONE | 1 identity |
+| eagles | low-poly | 5.4 m wing span | on the top drums, 27.4-30.1 m | bronze #5e5548 | 1 identity |
+| pediment | prism | 22 x 1.7 m | u -11 to 11, v 4.66 | M_STONE #ddcca8 | flagpole to 32.2 m |
+| oculi | disc in panel | r 0.66 / 0.5 m in 3.2 x 1.5 m | u ±10.5, attic band | M_STONE, M_GLASS | attic |
+| letters | sign | 0.65 m tall | 22.75 and 21.95 m, centred | sign, dark | parody name |
+
+## 9. The square (Skwer Linearny na Złotej)
 
 - **Data** (`tools/car_free.py`, run by bake_osm.py and on its own): Złota's old one-way loop,
   its service stubs, road-bed walls and fills are taken out; the three graph edges are `cf: 1`
@@ -64,7 +96,7 @@ bronze #5e5548. Card "Dom pod Orłami".
   café sets under the limes by the facades, 11 slim lamps (heads lit at night, no light pool:
   lights.bin is baked), retractable bollards across the Jasna end.
 
-## 6. Open (Mac look check, docs/QUESTIONS.md)
+## 10. Open (Mac look check, docs/QUESTIONS.md)
 
 The eagles' pose and size, the letters' size and colour, the tower drums' steps, the portals'
 spacing; the blocks, benches and cafés against the real square; whether Zgoda in front of the
