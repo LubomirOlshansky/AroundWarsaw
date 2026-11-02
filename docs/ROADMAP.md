@@ -63,7 +63,8 @@ then the Launch gate.
       crossing's kerb (map_builder.gd `_lowered_kerb`, city-wide); +0 draw calls (phone look parked)
 - [ ] First-scene items 4-5, the pavilions and towers behind the stores: the block east of
       Marszałkowska (s 184-246) is solid OSM boxes under the camera's blind side; wait for Mac photos
-      (refs/, landmarks-from-photos rule)
+      (refs/, landmarks-from-photos rule); photos gathered 2026-11-02:
+      docs/landmarks/photo-reports/dt_pawilony.md
 - [x] First-scene items 6-7, life and sound at the start (2026-11-02): people standing at the
       start's cafés, kiosk and paving (crowds.gd `FIRST_SCENE`, a day-long street curve), denser
       walkers on Marszałkowska's two pavements (pedestrians.gd `set_busy`, +0 draw calls), the two

@@ -61,7 +61,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | --- | --- | --- | --- | --- | --- |
 | 1 | Pałac Kultury i Nauki | Plac Defilad / Marszałkowska | landmark | ★ | stone colour and the 30th-floor terrace (QUESTIONS) |
 | 2 | Rotunda (OSM: Rotunda PKO) | Marszałkowska (Rondo Dmowskiego) | landmark pavilion | ★ | none |
-| 3 | Domy Towarowe Centrum: Junior, Sawa, Wars | Marszałkowska | department stores | ★ | the pavilions behind them (ROADMAP first-scene 4-5) |
+| 3 | Domy Towarowe Centrum: Junior, Sawa, Wars | Marszałkowska | department stores | ★ | photos gathered ([dt_pawilony](landmarks/photo-reports/dt_pawilony.md)); the pavilions behind them (ROADMAP first-scene 4-5) |
 | 4 | Muzeum Sztuki Nowoczesnej | Marszałkowska (Plac Defilad) | museum | ★ | R8: the ribbon and the roofline |
 | 5 | Złota 44 | Złota | upscale flats, skyscraper | ★ | Mac look check |
 | 6 | Warsaw Spire | Plac Europejski | office skyscraper | ★ | Mac look check |
@@ -72,23 +72,23 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 11 | Kolumna Zygmunta | Plac Zamkowy | monument | ◐ | photo check |
 | 12 | Rynek Starego Miasta and its Syrenka | Rynek Starego Miasta | square, statue | ◐ | photo re-pass: paving, umbrellas, the statue's pose; the north and west fronts' gables |
 | 13 | Stadion Narodowy | Aleja Zieleniecka | stadium | ★ | the bank's grass against the orthophoto |
-| 14 | Most Poniatowskiego (towers and deck) | Aleja Poniatowskiego | bridge | ◐ | **photo build**: the four towers' real heights, the arcades, balustrades |
+| 14 | Most Poniatowskiego (towers and deck) | Aleja Poniatowskiego | bridge | ◐ | photos gathered ([poniatowski](landmarks/photo-reports/poniatowski.md)); **photo build**: the four towers' real heights, the arcades, balustrades |
 | 15 | Most Świętokrzyski | Wybrzeże Kościuszkowskie | bridge | ◐ | photo check of the pylon and stays |
 | 16 | Centrum Nauki Kopernik and Planetarium (OSM: Planetarium Niebo Kopernika) | Wybrzeże Kościuszkowskie | science centre | ★ | none |
 | 17 | Biblioteka Uniwersytecka (BUW) and its roof garden | Dobra | library, garden | ★ | the philosophers and heights (no facade photo yet) |
 | 18 | Teatr Wielki and Teatr Narodowy | Plac Teatralny (Moliera, Fredry) | opera, theatre | ◐ | photo re-pass of the colonnade; Teatr Narodowy's wing is ✗ |
-| 19 | Grób Nieznanego Żołnierza and Plac Piłsudskiego | Plac Piłsudskiego | monument, square | ◐ | photo check |
+| 19 | Grób Nieznanego Żołnierza and Plac Piłsudskiego | Plac Piłsudskiego | monument, square | ◐ | photos gathered ([pilsudskiego](landmarks/photo-reports/pilsudskiego.md)); photo check |
 | 20 | Muzeum Historii Żydów Polskich Polin and Pomnik Bohaterów Getta | Mordechaja Anielewicza | museum, monument | ⏳ | the landmarks lane thread is building POLIN (do not touch) |
-| 21 | Muzeum Powstania Warszawskiego (OSM: Elektrownia Tramwajów Miejskich) | Przyokopowa / Grzybowska | museum | ✗ | **photo build**: the brick power station, the Freedom Park wall, the tower |
-| 22 | Pomnik Powstania Warszawskiego | Plac Krasińskich | monument | ✗ | **photo build**: the two bronze groups, the fallen pillars, the manhole |
+| 21 | Muzeum Powstania Warszawskiego (OSM: Elektrownia Tramwajów Miejskich) | Przyokopowa / Grzybowska | museum | ✗ | photos gathered ([mpw](landmarks/photo-reports/mpw.md)); **photo build**: the brick power station, the Freedom Park wall, the tower |
+| 22 | Pomnik Powstania Warszawskiego | Plac Krasińskich | monument | ✗ | photos gathered ([krasinskich](landmarks/photo-reports/krasinskich.md)); **photo build**: the two bronze groups, the fallen pillars, the manhole |
 | 23 | Barbakan and the city walls (OSM: Baszta Prochowa) | Nowomiejska / Podwale | fortification | ◐ | Barbakan photo check; the walls and towers along Podwale are ✗ |
 | 24 | Archikatedra św. Jana | Świętojańska | cathedral | ◐ | photo check; the tower |
 | 25 | Kościół św. Anny | Krakowskie Przedmieście | church | ◐ | photo check: columns, the bell tower |
-| 26 | Hotel Bristol and Hotel Europejski | Krakowskie Przedmieście | grand hotels | ◐ | photo re-pass of both fronts |
+| 26 | Hotel Bristol and Hotel Europejski | Krakowskie Przedmieście | grand hotels | ◐ | photos gathered ([krakowskie](landmarks/photo-reports/krakowskie.md)); photo re-pass of both fronts |
 | 27 | Pałac Prezydencki | Krakowskie Przedmieście | palace | ◐ | photo check of the portico and statue |
 | 28 | Rondo ONZ towers: Q22, Rondo 1, Cosmopolitan, InterContinental (OSM: InterContinental), Warsaw Trade Tower | Rondo ONZ / Emilii Plater / Twarda | skyscrapers | ○ | **photo build** of each crown and skin (one thread per tower, Q22 and Rondo 1 first) |
-| 29 | Hotel Warszawa (the 1934 Prudential) | Plac Powstańców Warszawy | historic skyscraper, hotel | ✗ | **photo build**: the stepped tower, the 1930s stone, the crown |
-| 30 | Cedet (Dom Towarowy CDT) | Krucza / Aleje Jerozolimskie | department store | ✗ | **photo build**: the glazed corner over the start area's crossing |
+| 29 | Hotel Warszawa (the 1934 Prudential) | Plac Powstańców Warszawy | historic skyscraper, hotel | ✗ | photos gathered ([hotel_warszawa](landmarks/photo-reports/hotel_warszawa.md)); **photo build**: the stepped tower, the 1930s stone, the crown |
+| 30 | Cedet (Dom Towarowy CDT) | Krucza / Aleje Jerozolimskie | department store | ✗ | photos gathered ([cedet](landmarks/photo-reports/cedet.md)); **photo build**: the glazed corner over the start area's crossing |
 
 ### Tier A: iconic, seen often
 
@@ -96,11 +96,11 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | --- | --- | --- | --- | --- | --- |
 | 31 | Pomnik Syreny nad Wisłą (OSM: Syrenka na Powiślu) | Wybrzeże Kościuszkowskie | statue | ◐ | photo check of the plinth |
 | 32 | Pomnik Mikołaja Kopernika and Pałac Staszica | Krakowskie Przedmieście | monument, palace | ◐ | photo check |
-| 33 | Pomnik Adama Mickiewicza | Krakowskie Przedmieście | monument | ◐ | photo check |
+| 33 | Pomnik Adama Mickiewicza | Krakowskie Przedmieście | monument | ◐ | photos gathered ([krakowskie](landmarks/photo-reports/krakowskie.md)); photo check |
 | 34 | Kościół Świętego Krzyża | Krakowskie Przedmieście | church | ◐ | photo check: the helms, the dome |
-| 35 | Brama Uniwersytetu Warszawskiego and Pałac Kazimierzowski | Krakowskie Przedmieście | gate, palace | ◐ | photo check |
-| 36 | Kościół Wizytek, Kościół Karmelitów (OSM: Kościół Wniebowzięcia Najświętszej Maryi) | Krakowskie Przedmieście | churches | ◐ | photo check |
-| 37 | Pałac Potockich, Kordegarda (OSM: Galeria Kordegarda), Pałac Czapskich | Krakowskie Przedmieście | palaces | ◐ | Czapski's own model (today a skin) |
+| 35 | Brama Uniwersytetu Warszawskiego and Pałac Kazimierzowski | Krakowskie Przedmieście | gate, palace | ◐ | photos gathered ([krakowskie](landmarks/photo-reports/krakowskie.md)); photo check |
+| 36 | Kościół Wizytek, Kościół Karmelitów (OSM: Kościół Wniebowzięcia Najświętszej Maryi) | Krakowskie Przedmieście | churches | ◐ | photos gathered ([krakowskie](landmarks/photo-reports/krakowskie.md)); photo check |
+| 37 | Pałac Potockich, Kordegarda (OSM: Galeria Kordegarda), Pałac Czapskich | Krakowskie Przedmieście | palaces | ◐ | photos gathered ([krakowskie](landmarks/photo-reports/krakowskie.md)); Czapski's own model (today a skin) |
 | 38 | Plac Zamkowy's houses and Mariensztat | Plac Zamkowy / Mariensztat | tenements | ○ | photo re-pass of the gables; Mariensztat's reliefs |
 | 39 | Old Town and New Town tenements: Kamienica Pod Bazyliszkiem, Pod Murzynkiem, Fukierowska, Baryczkowska, Pod Okrętem | Rynek Starego Miasta / Freta | tenements | ○ | photo pass per famous house (signs, portals, painted fronts) |
 | 40 | Nowy Świat tenements and palaces (Zamoyski, Mikulski, Bürger, Jasiński, Kossakowski) | Nowy Świat | tenements | ○ | photo pass of the fronts |
@@ -119,8 +119,8 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 53 | Hala Mirowska and Hala Gwardii | Plac Mirowski | market halls | ◐ | photo check: brick, lantern |
 | 54 | Hala Koszyki | Koszykowa | food hall | ◐ | photo check |
 | 55 | Elektrownia Powiśle | Dobra | shopping centre in a power station | ◐ | photo check: chimneys |
-| 56 | Fabryka Norblina (OSM: Modsen) | Prosta | shopping and offices | ◐ | photo check; K6 garden in PR #303 |
-| 57 | Browary Warszawskie (OSM: Warzelnia, Laboratorium, Willa Schielego) | Grzybowska | shopping and offices | ◐ | photo check; K6 garden in PR #303 |
+| 56 | Fabryka Norblina (OSM: Modsen) | Prosta | shopping and offices | ◐ | photos gathered ([norblin](landmarks/photo-reports/norblin.md)); photo check; K6 garden in PR #303 |
+| 57 | Browary Warszawskie (OSM: Warzelnia, Laboratorium, Willa Schielego) | Grzybowska | shopping and offices | ◐ | photos gathered ([browary](landmarks/photo-reports/browary.md)); photo check; K6 garden in PR #303 |
 | 58 | Westfield Arkadia (Arkadka) | Aleja Jana Pawła II | shopping centre | ◐ | photo check |
 | 59 | Forest | Aleja Jana Pawła II | office tower | ◐ | photo check |
 | 60 | Rondo Daszyńskiego towers: Warsaw Unit, Skyliner, The Warsaw HUB, Mennica Legacy Tower, Generation Park Y | Rondo Daszyńskiego / Prosta | office skyscrapers | ○ | **photo build** per tower (the HUB's three towers first) |
@@ -128,15 +128,15 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 62 | Centrum LIM (Marriott) and Novotel | Aleje Jerozolimskie / Marszałkowska | hotel towers | ★ | Novotel from the Rondo photos; LIM's lit cells |
 | 63 | Błękitny Wieżowiec and Plac Bankowy | Plac Bankowy | skyscraper, square | ○ | photo check of the glass |
 | 64 | Plac Bankowy's palaces: Ratusz (OSM: Urząd Miasta Stołecznego Warszawy), Mazowiecki Urząd Wojewódzki, Gmach Giełdy i Banku Polskiego, Arsenał | Plac Bankowy / Długa | palaces | ○ | **photo build** of the colonnaded front (Corazzi's buildings) |
-| 65 | Pomnik Juliusza Słowackiego and Pomnik Stefana Starzyńskiego | Plac Bankowy | monuments | ⏳ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread |
-| 66 | Pomnik Bohaterów Warszawy (Nike) | Aleja Solidarności | monument | ⏳ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread |
-| 67 | Pomnik Małego Powstańca and Pomnik Jana Kilińskiego | Podwale | monuments | ⏳ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread |
-| 68 | Pomnik Józefa Piłsudskiego, the Smolensk monuments, Pomnik Lecha Kaczyńskiego | Plac Piłsudskiego | monuments | ⏳ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread (affectionate, no politics on cards) |
-| 69 | Pomnik Poległym i Pomordowanym na Wschodzie | Muranowska | monument | ⏳ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread (the railway truck of crosses) |
-| 70 | Umschlagplatz memorial | Stawki | memorial | ⏳ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread, a quiet card |
-| 71 | Warszawa Śródmieście, Ochota, Powiśle, Stadion stations | Aleje Jerozolimskie / Wybrzeże Kościuszkowskie | stations | ★ | Śródmieście and Stadion still ◐ (photo check) |
-| 72 | Dworzec Gdański and its metro (OSM: Dworzec Warszawa Gdańska) | Słomińskiego | station | ✗ | railway S3d (Mac photos first) |
-| 73 | Warszawa Wschodnia | Lubelska | station | ✗ | railway S3c (Mac photos first) |
+| 65 | Pomnik Juliusza Słowackiego and Pomnik Stefana Starzyńskiego | Plac Bankowy | monuments | ⏳ | photos gathered ([slowacki](landmarks/photo-reports/slowacki.md), [starzynski](landmarks/photo-reports/starzynski.md)); a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread |
+| 66 | Pomnik Bohaterów Warszawy (Nike) | Aleja Solidarności | monument | ⏳ | photos gathered ([nike](landmarks/photo-reports/nike.md)); a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread |
+| 67 | Pomnik Małego Powstańca and Pomnik Jana Kilińskiego | Podwale | monuments | ⏳ | photos gathered ([maly_powstaniec](landmarks/photo-reports/maly_powstaniec.md), [kilinski](landmarks/photo-reports/kilinski.md)); a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread |
+| 68 | Pomnik Józefa Piłsudskiego, the Smolensk monuments, Pomnik Lecha Kaczyńskiego | Plac Piłsudskiego | monuments | ⏳ | photos gathered ([pilsudskiego](landmarks/photo-reports/pilsudskiego.md)); a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread (affectionate, no politics on cards) |
+| 69 | Pomnik Poległym i Pomordowanym na Wschodzie | Muranowska | monument | ⏳ | photos gathered ([pomnik_wschod](landmarks/photo-reports/pomnik_wschod.md)); a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread (the railway truck of crosses) |
+| 70 | Umschlagplatz memorial | Stawki | memorial | ⏳ | photos gathered ([umschlagplatz](landmarks/photo-reports/umschlagplatz.md)); a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread, a quiet card |
+| 71 | Warszawa Śródmieście, Ochota, Powiśle, Stadion stations | Aleje Jerozolimskie / Wybrzeże Kościuszkowskie | stations | ★ | photos gathered ([wkd_srodmiescie](landmarks/photo-reports/wkd_srodmiescie.md), [wkd_ochota](landmarks/photo-reports/wkd_ochota.md)); Śródmieście and Stadion still ◐ (photo check) |
+| 72 | Dworzec Gdański and its metro (OSM: Dworzec Warszawa Gdańska) | Słomińskiego | station | ✗ | photos gathered ([gdanska](landmarks/photo-reports/gdanska.md)); railway S3d (Mac photos first) |
+| 73 | Warszawa Wschodnia | Lubelska | station | ✗ | photos gathered ([wschodnia](landmarks/photo-reports/wschodnia.md)); railway S3c (Mac photos first) |
 | 74 | Metro stations: Centrum, Świętokrzyska, Ratusz-Arsenał, Politechnika, Rondo ONZ, Rondo Daszyńskiego, Nowy Świat-Uniwersytet, Centrum Nauki Kopernik, Stadion Narodowy, Dworzec Gdański | (84 entrances) | metro | ○ | the kit's canopies, stairwells and M posts are in; each station's own face (Świętokrzyska's glass, Nowy Świat's pavilions, Kopernik's art) is ✗ |
 | 75 | Narodowy Bank Polski | Świętokrzyska | bank | ✗ | photo build of the 1970s stone block |
 | 76 | Poczta Główna | Świętokrzyska | post office | ✗ | photo build |
