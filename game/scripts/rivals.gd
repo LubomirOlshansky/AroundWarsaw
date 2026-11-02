@@ -23,6 +23,7 @@ extends Node
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
 var spent_usec := 0
 
+const Lang := preload("res://scripts/lang.gd")
 const Access := preload("res://scripts/access.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const Traffic := preload("res://scripts/traffic.gd")
@@ -733,11 +734,15 @@ func _show_status() -> void:
 	var gap := absf(_rival_left - _player_left)
 	var at := car.global_position
 	var metres := roundi(Vector2(at.x, at.z).distance_to(Vector2(_finish["pos"].x, _finish["pos"].z)))
-	var hint := ["Uwaga…", "Get ready…"]
+	# PT-11: the card names the goal in short ("pod Palmę"), and the hint says what to do: drive there
+	# (the pink arrow shows the way), with the rival's gap after it.
+	var goal_pl: String = _finish["pl"]
+	var goal_en: String = _finish["en"]
+	var hint := ["Jedź %s! Różowa strzałka pokaże drogę." % goal_pl, "Drive %s! The pink arrow shows the way." % goal_en]
 	if state == State.RACE:
-		hint = ["%s: %d m %s" % [r["name"], roundi(gap), "za tobą" if first else "przed tobą"],
-				"%s is %d m %s" % [r["name"], roundi(gap), "behind" if first else "ahead"]]
-	hud.show_status("WYŚCIG · %s → %s" % [r["name"], _finish["name"]], _clock(_race_time), "%d m" % metres,
+		hint = ["Jedź %s! %s: %d m %s." % [goal_pl, r["name"], roundi(gap), "za tobą" if first else "przed tobą"],
+				"Drive %s! %s is %d m %s." % [goal_en, r["name"], roundi(gap), "behind" if first else "ahead"]]
+	hud.show_status("WYŚCIG · " + Lang.pick(goal_pl, goal_en).to_upper(), _clock(_race_time), "%d m" % metres,
 			hint[0], 0.0, RACE_COLOUR, ("1ST" if first else "2ND") if state == State.RACE else "", {}, hint[1])
 
 

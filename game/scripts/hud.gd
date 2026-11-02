@@ -1417,8 +1417,8 @@ func _build_mission_panels() -> void:
 	words.add_theme_constant_override("separation", 0)
 	top.add_child(words)
 	_status_title = _label(T_SUB, ACCENT)
-	_status_title.clip_text = true
-	_status_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	# PT-11: a long goal wraps onto a second line instead of ending in "...".
+	_wrap(_status_title, STATUS_W - 70.0)
 	words.add_child(_status_title)
 	_status_clock = _label(T_CLOCK, Color.WHITE)
 	words.add_child(_status_clock)
