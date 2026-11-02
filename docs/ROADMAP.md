@@ -95,6 +95,7 @@ then the Launch gate.
 - [x] check_streaming's look pass green on the Mac (a look pre-loads what each of its views
       shows), 2026-11-01, PR #183
 - [x] Bike paths smoothed (F, 2026-11-02, `tools/cycleways.py`, run by bake_osm): 195 gaps closed, 218 split ways joined, 52 ends on a line, 68 corners rounded; Mac look and ride check parked, comparison with OSM and the 3-8 m gaps left
+- [x] Bike path markings (F's idea #9, 2026-11-02): white square edges on the cycle crossings (P-11), 660 bike pictograms on the paths (`tools/bike_marks.py`); the OSM comparison (`tools/compare_cycleways.py`) waits for a run on the Mac
 - [x] Map review C: the streets of the 3d-1 box and map north against the orthophoto (2026-11-02):
       one-lane one-way streets 3 m → 5.5-6.5 m (283 ways), split legs kept one lane; alignment fine.
       two-lane streets 6 → 7 m (423 ways). Open: lane lines and zebras need the 0.1 m photo (BACKLOG "From map review C")
@@ -309,9 +310,6 @@ then the Launch gate.
       check, the phone's cost
 - [x] Packs (2026-11-01, `packs.gd`): running clubs, cycling packs with gear jokes, coffee raves
       at the COFFEECHAIR cafés, big guys with tiny dogs. Left: the phone's look and cost, a rave beat
-- [x] Kibice by Stadion Leguminy (F's idea 7, 2026-11-02, `fans.gd`): friendly fans on match
-      evenings with scarves, a drum, pink smoke and a foam finger; the horn starts a chant. Left: the
-      phone's look and cost
 - [x] Vistula boulevards full of life (F, 2026-11-01, `crowds.gd` BULWARY, `city_life.gd`): nine
       chill spots along the river edge (groups on the steps and benches, evening-heavy, summer,
       rain-thin), twice the dog walkers and runners-zone riders, twice the cyclists with 45 % riding
@@ -332,6 +330,15 @@ then the Launch gate.
 - [x] Roof rescues never name a real chain (2026-11-02, `missions.gd` `ROOF_PARODIES`): Puro shows as Hotel Piure, Green Caffè Nero as Green Caffè Nerwo; headless check not run in the cloud (no Godot)
 - [x] Zagłębie Kebabowe and Kino Femina (F, 2026-11-02; spec docs/design/zaglebie-kebabowe.md): five parody kebab shops on Al. Solidarności, Femina's neon, delivery twists, the craft kebab's choice, Szlak Szpili, 2026-11-02 (the Mac photo check of Femina's front is open; a queue outside ZAKWAS I ROŻEN, 2026-11-02)
   - [x] KEBAB FM lines about the seven cinemas and the Kebab Basin, 2026-11-02 (text only; headless checks not run in the cloud)
+- [x] City-life satire #1, loud cars (F, 2026-11-02; docs/design/city-life-satire.md): a supercar meet with its crowd at the Browary gate square and up to three loud supercars in traffic that rev as they pass, KEBAB FM's "liczą obroty" line, 2026-11-02 (`check_loud_cars`; phone sound level and Mac look open)
+- [ ] City-life satire ideas (F, 2026-11-02; plans docs/design/city-life-satire.md):
+  - [x] #11 kebab MIESZANE MIESZANE neon, its evening queue and the "Mięso? Mieszane. Sos? Mieszane." lines (`check_crowds`), and #12 NOSE AGENCY sign on the Skyliner, 2026-11-02 (Godot did not run; Mac look check open)
+  - [x] #10 map-edge roadworks (PR #309)
+  - [ ] #1 loud cars at Browary Warszawskie and revving traffic (Opus)
+  - [ ] #2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu (Sonnet, one `circle` crowd spot thread)
+  - [ ] #5 more queues and #6 KRINGULA PIZZA (extends the food-hype lane)
+  - [x] #7 friendly Legia fans near Stadion Leguminy, 2026-11-02 (PR #336, `fans.gd`; phone look and cost open)
+  - [ ] #9 bike-path network compared with the real one (Opus)
   - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
       pads for driving, the helicopter, the mission card, Settings, the full map and the title;

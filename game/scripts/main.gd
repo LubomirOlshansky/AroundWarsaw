@@ -128,6 +128,7 @@ const CrashScenes := preload("res://scripts/crash_scenes.gd")
 const Packs := preload("res://scripts/packs.gd")
 ## Kibice (docs/design/city-life-satire.md 7): friendly fans by Stadion Leguminy on match evenings.
 const Fans := preload("res://scripts/fans.gd")
+const LoudCars := preload("res://scripts/loud_cars.gd")
 ## Wellness circles (docs/design/city-life-satire.md): sound healing, techno yoga, the 40+ club, park kung-fu.
 const Wellness := preload("res://scripts/wellness.gd")
 ## The garage loop: Warsztat u Mirka and its paint jobs (garage.gd, its card garage_card.gd).
@@ -467,6 +468,12 @@ var tram_log := false
 ## Packs (packs.gd): running clubs, cycling packs, coffee raves; flags --packs=0 (none), --packs-now
 ## (every club and rave on whatever the clock, the packs near the car timed to pass it), --packs-log.
 var packs: Packs
+## City-life satire #1 (loud_cars.gd): the car meet at Browary and the loud supercars in traffic.
+## --loud=N: at most N loud cars at once (default 3; 0: none, and no meet); --loud-log prints
+## their revs and lines.
+var loud_cars: LoudCars
+var loud_flag := 3
+var loud_log := false
 var packs_flag := 1
 var packs_now := false
 var packs_log := false
@@ -1344,6 +1351,7 @@ func _build_world() -> void:
 	_build_storefronts(data, world)
 	_build_packs(data, world)
 	_build_fans(data, world)
+	_build_loud_cars(world)
 	_build_wellness(world)
 	_build_first10()
 	_set_quality(quality_choice)
@@ -2126,6 +2134,7 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 	crowds.sounds = city_sounds
 	crowds.log_on = night_log
 	crowds.amount = _crowd_scale()
+	crowds.meet_on = loud_flag != 0
 	crowds.clock = tod.local_clock
 	crowds.focus = func() -> Vector3: return cam_focus
 	crowds.vehicle = func() -> Array:
@@ -2237,6 +2246,24 @@ func _build_fans(data: Dictionary, world: Node3D) -> void:
 	hud.horn_pressed.connect(func() -> void:
 		if fans != null and not flying:
 			fans.honk(car.global_position))
+## City-life satire #1 (loud_cars.gd): the meet at Browary on both city paths, and the loud
+## cars in traffic (none with --no-traffic). None at all with --loud=0.
+func _build_loud_cars(world: Node3D) -> void:
+	if traffic != null:
+		traffic.loud_target = loud_flag
+	if loud_flag == 0:
+		return
+	loud_cars = LoudCars.new()
+	loud_cars.name = "LoudCars"
+	loud_cars.traffic = traffic
+	loud_cars.sfx = sfx
+	loud_cars.dialogue = dialogue
+	loud_cars.radio = radio
+	loud_cars.map = map
+	loud_cars.log_on = loud_log
+	loud_cars.focus = func() -> Vector3: return cam_focus
+	world.add_child(loud_cars)
+	loud_cars.setup()
 
 
 ## The wellness circles (wellness.gd): none with --wellness=0 or --crowd=0.
@@ -3792,6 +3819,10 @@ func _parse_args() -> void:
 			crash_flag = arg.trim_prefix("--crash=")
 		elif arg == "--crash-log":
 			crash_log = true
+		elif arg.begins_with("--loud="):
+			loud_flag = clampi(int(arg.trim_prefix("--loud=")), 0, 16)
+		elif arg == "--loud-log":
+			loud_log = true
 		elif arg == "--old-tram" or arg.begins_with("--old-tram="):
 			old_tram_flag = "follow" if arg == "--old-tram=follow" else "now"
 		elif arg.begins_with("--train="):

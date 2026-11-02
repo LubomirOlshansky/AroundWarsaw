@@ -3,6 +3,18 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Loud cars at Browary (F, 2026-11-02)
+
+City-life satire #1 built (`loud_cars.gd`, `check_loud_cars`): seven generic supercars at the Browary
+gate square on Haberbuscha i Schielego, the `meet` crowd round them, up to three loud supercars in
+traffic (the taxis' MultiMesh, no draw call), the `loud_rev` one-shot, `car_meet` / `loud_driver`
+bubbles and KEBAB FM's "Sąsiedzi znów liczą obroty". Open:
+- Phone check: the rev's level next to the horns and the radio (set by RMS, -11 dB), the meet's look.
+- The meet's spot is the paved gate square read off the map's outlines; a photo check on the Mac.
+- A continuous loud-engine loop on a loud car while it is near (now one rev per pass, 7-12 s apart),
+  and exhaust flames on the overrun at night (the meet already has its headlights on).
+- The player driving into the meet: the cars are solid boxes; a crowd line when the player's car stops there.
+
 ## City inventory (F, 2026-11-02)
 
 docs/CITY_INVENTORY.md lists every characteristic place in the box, ranked, with its status; Part 3
@@ -288,10 +300,24 @@ add it to the plan." Rules and the full inventory (39 named religious buildings,
   dormer kind (hipped, round, none) and size by house seed, group dormers on a ridge line, drop
   them where a slope is under 8 m.
 
+## City-life satire ideas (F, 2026-11-02)
+
+Twelve ideas, plans in docs/design/city-life-satire.md. Built: #11 MIESZANE MIESZANE neon (HYPE
+`kebab_mieszane`; evening queue `Crowds.MIESZANE`, "mieszane" lines in `viral`, one vendor line in `kebab_vendor`), #12 NOSE AGENCY crown sign on the Skyliner. Done before: #10 (PR #309). Open, each its own thread:
+- **Loud cars (#1, Opus)**: sports-car meet at Browary Warszawskie (generic bodies, no marques) and revving cars in traffic with a louder engine layer.
+- **Wellness circles (#2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu; Sonnet, ONE thread)**: one new crowd spot kind `circle`.
+- **Queues (#5) and KRINGULA PIZZA (#6, Sonnet)**: extend the queue sites; the brick pizzeria and its fans; the joke text goes to F (QUESTIONS).
+- Legia fans (#7): built (PR #336); what is left is in "Kibice by Stadion Leguminy".
+- **Bike paths (#9, Opus)**: compare with the real network, fill gaps by data, rider density on the main ones.
+- Small: English "UNDER CONSTRUCTION" on the edge roadworks boards; Mac look check of both new signs (the shop's door is a guess 40 m west of KEBAB KRÓL; Godot did not run in the cloud for this change).
+
 ## Bike paths (F, 2026-11-02)
 
 - Fixed: gaps under 3 m between cycle path ends, ways split into pieces, spikes and sharp corners (`tools/cycleways.py`; riders turned back at every gap).
-- Open: about 600 cycle path ends still stop 3-8 m from the next path (many are the two sides of a street: needs a crossing, not a snap); ride them on the Mac against OSM; the cyclecross ways (398) and the 19 deck paths are untouched; riders' side offset jumps at a join.
+- Fixed (idea #9, 2026-11-02): the cycle crossings get Warsaw's white square edges (P-11, `map_builder.gd` `_build_crossings`) and the paths 660 white bike pictograms (P-23), 282 just past a crossing facing the riders coming off it, the rest every ~110 m (`tools/bike_marks.py`, run by bake_osm after car_free, idempotent CLI).
+- Measured (2026-11-02): counting cycle crossings as joins, only 41 path ends stop 3-8 m from the next path (the old "600" counted paths only), 90 stop 8-20 m, 124 more than 20 m (map edge, or the path goes on as a footway).
+- Open (needs the raw OSM export, the Mac only): `python3 -I tools/compare_cycleways.py --list` gives the share of OSM's cycle network we draw by class (track, shared foot-and-bike path, painted lane, bus lane open to bikes, sharrows, contraflow, crossing) and the longest undrawn stretches; fix the missing links by data in the bake. Shared paths (`footway` + `bicycle=designated`) draw as footway today; Warsaw's are mostly grey pavers, but a `segregated=yes` one has a red half.
+- Open: more riders on the main routes (Wisłostrada, Marszałkowska, Świętokrzyska; city-life-satire.md #9); riders' side offset jumps at a join; the 19 deck paths untouched by cycleways.py.
 
 ## Gdański Business Center (F, 2026-11-02)
 

@@ -1440,6 +1440,80 @@ LOOPS = ["engine_idle", "engine_mid", "engine_high", "tyre_roll", "tyre_wet", "t
          "queue_chatter", "amb_river", "amb_park", "amb_square", "amb_yard", "fan_chant"]
 
 
+def loud_rev(seed):
+    """City-life satire #1 (loud_cars.gd): a loud car's rev as it passes, an invented big
+    eight with a tuned pipe: two blips and a long pull up to the limiter, then the overrun
+    crackle (short pops of filtered noise) as the driver lifts. 2.4 s, one-shot. The firing
+    is uneven (a cross-plane burble: the gaps alternate), the pipe's resonances are low and
+    wide, and the whole thing is saturated hard: the joke is that it is too much."""
+    rnd = random.Random(seed)
+    n = int(2.4 * RATE)
+    # rpm over time: idle, blip, blip, the pull to the limiter (with a stutter), the lift.
+    keys = [(0.0, 900), (0.12, 900), (0.22, 3600), (0.36, 1300), (0.48, 4200), (0.64, 1500),
+            (0.72, 1500), (1.34, 6900), (1.40, 6400), (1.46, 6900), (1.52, 6500), (1.58, 6900),
+            (1.72, 2600), (2.4, 1000)]
+
+    def rpm_at(t):
+        for (t0, r0), (t1, r1) in zip(keys, keys[1:]):
+            if t <= t1:
+                u = (t - t0) / max(t1 - t0, 1e-6)
+                return r0 + (r1 - r0) * (u * u * (3 - 2 * u))
+        return keys[-1][1]
+
+    pulse = zeros(n)
+    rasp = zeros(n)
+    hiss = noise(n, rnd)
+    load = zeros(n)
+    ph = 0.0
+    k = 0
+    last = 900.0
+    cur = 0.35
+    for i in range(n):
+        r = rpm_at(i / RATE)
+        if i % 64 == 0:
+            # under load while the revs climb, light while they fall
+            cur = max(0.0, min(1.0, (r - last) * 0.02 + 0.35))
+            last = r
+        load[i] = cur
+        # eight cylinders: four firings a revolution, the gaps alternating long and short
+        ph += (r / 60.0 * 4.0) / RATE * (1.25 if k % 2 == 0 else 0.83)
+        if ph >= 1.0:
+            ph -= 1.0
+            k += 1
+            a = 1.0 + rnd.uniform(-0.15, 0.15)
+            width = max(3, int(RATE / (r / 60.0 * 4.0) * 0.18))
+            for j in range(min(width, n - i)):
+                pulse[i + j] += a * math.sin(math.pi * j / width) ** 2
+            burst = width * 3
+            for j in range(min(burst, n - i)):
+                rasp[i + j] += hiss[i + j] * a * (1 - j / burst) ** 2
+    body = mix(
+        (0.6, biquad(pulse, "lp", 900.0, 0.8)),
+        (1.0, biquad(pulse, "bp", 230.0, 1.6)),     # the big pipe
+        (1.2, biquad(pulse, "bp", 520.0, 1.4)),     # its resonator: the phone speaker's range
+        (0.8, biquad(pulse, "bp", 1150.0, 2.0)),
+        (0.4, biquad(pulse, "bp", 1900.0, 2.5)),    # the rasp of a straight-through box
+    )
+    roar = biquad(biquad(rasp, "bp", 950.0, 0.8), "lp", 3800.0, 0.7)
+    for i in range(n):
+        roar[i] *= 0.4 + 0.9 * load[i]
+    # the overrun: pops of noise through a low resonance after the lift (1.6-2.3 s)
+    pops = zeros(n)
+    t = 1.62
+    while t < 2.3:
+        at = int(t * RATE)
+        ln = int(rnd.uniform(0.008, 0.025) * RATE)
+        g = rnd.uniform(0.6, 1.4) * (1.0 - (t - 1.6) / 0.9)
+        for j in range(min(ln, n - at)):
+            pops[at + j] += hiss[(at + j * 7) % n] * g * (1 - j / ln)
+        t += rnd.uniform(0.03, 0.11)
+    pops = biquad(pops, "bp", 700.0, 1.2)
+    out = mix((1.0, body), (0.8, roar), (1.6, pops))
+    out = saturate(out, 2.6)
+    out = biquad(biquad(out, "lp", 4800.0, 0.7), "hp", 60.0, 0.7)
+    return fade(out, 0.01, 0.25)
+
+
 # Loop MW-5: the city's sounds (city_sounds.gd), made on their own with --only=.
 CITY = {"club_leak": lambda: [club_leak(71)], "metro_chime": lambda: [metro_chime(72)],
         "church_bell": lambda: [church_bell(73)], "busker": lambda: [busker(74)],
@@ -1461,8 +1535,10 @@ CITY = {"club_leak": lambda: [club_leak(71)], "metro_chime": lambda: [metro_chim
         # v1.0 juice: the money pop (money_pop.gd) and the districts' ambiences (sfx.gd).
         "coin": lambda: [coin(93)], "amb_river": lambda: amb_river(94), "amb_park": lambda: amb_park(95),
         "amb_square": lambda: amb_square(96), "amb_yard": lambda: amb_yard(97),
+        # City-life satire #1 (loud_cars.gd): the loud cars' rev.
+        "loud_rev": lambda: [loud_rev(98)],
         # The fans by Stadion Leguminy (fans.gd, through city_sounds.gd's `chant`).
-        "fan_chant": lambda: [fan_chant(98)]}
+        "fan_chant": lambda: [fan_chant(99)]}
 
 
 def main(out_dir, radio_dir=None, only=None):
