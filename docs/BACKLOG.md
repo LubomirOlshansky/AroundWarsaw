@@ -258,7 +258,7 @@ PT-10 (the order tracker over bubbles) fixed 2026-11-02: the target pointer draw
 ## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
 Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
 `pomnik_powstania.md` and `krasinski.md` (sites `pomnik_powstania` 1514 tris, `krasinski` 1508). Found and left:
-- The Supreme Court's colonnade behind the monument is green (ribbed green glass, ~#738483); OSM tags its columns "marble #deeded", so the game draws them white and the court as plain blocks. A Sąd Najwyższy model is its own item.
+- Sąd Najwyższy's colonnade fixed 2026-11-02 (site `sad_najwyzszy`, spec `sad_najwyzszy.md`): the 54 OSM columns and their beams are green and ribbed, with the lettering band and rosette capitals. Left: the court's main block (LoD2) keeps its map look; its fronts, the roof garden, the caryatids and the night glass need a Mac photo gather (QUESTIONS).
 - The monument's heights and the groups' facing are estimates from photos (no published height, no aerial); the bronze is simplified to blocky figures. The plaza's dark granite bands, the blue-green light strips, the floor plaque, the juniper beds and the brick wall with the Kotwica on the Długa side are not drawn; the 1 August candles are not there.
 - The palace's pediment relief is a flat recessed field, the cartouche over the central window and the roof statues of the garden front are not modelled; the dormer and chimney counts are rough (the report says so). The garden's round parterre and the pond's sculpture are the park's (the fountain is already there).
 - F's look check on the Mac or the phone: the slabs' lean, the fighters' size, the roof's green.

@@ -131,6 +131,7 @@ SITE_PAD = 12.0
 # Building kinds landmarks.gd finds wherever they lie (the barges, 2026-11-01: _find_barges).
 SITE_KINDS = ("boat", "houseboat")
 SITE_AREAS = [
+    (-1345.0, -1790.0, -1200.0, -1690.0),   # Sąd Najwyższy's colonnade (landmarks.gd SN_BOX: unnamed OSM columns)
     (1250.0, -820.0, 1700.0, -370.0),       # Stadion Narodowy's masts (Rect2(1250, -820, 450, 450))
     (-1520.0, 472.5, -1320.0, 672.5),       # Warszawa Centralna (CENTRALNA ± its 146 x 92 m zone)
     (910.0, -165.0, 950.0, -105.0),         # Most Poniatowskiego's towers (the fallback search)
