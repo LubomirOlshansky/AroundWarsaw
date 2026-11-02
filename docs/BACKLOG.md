@@ -187,8 +187,8 @@ covers the minimap and +/- buttons (not reproduced on main: check_hud sweep clea
 stops the car dead in 0.2-0.4 s with no slide; is that the arcade feel we want, or should it
 bounce or slide off a wall? Runs 4-8 (Krucza, Mokotowska,
 Świętokrzyska, Królewska): no wall bugs on the streets themselves (the on-road stops were bumps
-into traffic cars); PT-7 (the tow fires by the curved glass building), PT-8 (a 6 km/h crawl
-during Pani Halina's prompt) suspects; PT-9 HUD overlaps confirmed.
+into traffic cars); PT-7 (the tow fires by the curved glass building) suspect, PT-8 (a 6 km/h crawl
+during Pani Halina's prompt: she was put in front of the car, fixed 2026-11-02); PT-9 HUD overlaps confirmed.
 - Found with PT-1: a free spot (`main.gd _free_car_spot`, a tow) only tests the box against the
   wall faces, so a spot fully inside a solid outline (a building, now a 0.9 m platform) counts as
   free. Not seen in play; reject spots inside platforms and footprints if it shows up.
