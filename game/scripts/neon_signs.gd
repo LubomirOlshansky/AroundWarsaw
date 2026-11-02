@@ -30,6 +30,8 @@ const LANDMARK_WORDS := ["SAMSONG", "ARKADKA", "PREZYDENT", "NOWOTEL", "WESTYNKA
 		"WYPRZEDAŻ", "DO WYNAJĘCIA", "DO", "WYNAJĘCIA", "FROGS XXL", "FROGS", "XXL", "KAPCIE", "SCENA RELAX",
 		# R5: the Cepelia pavilion's book and vinyl store (a parody) and Zodiak.
 		"EMPIRYK", "ZODIAK",
+		# Dom pod Orłami's metal letters over Złota's square (a parody of the council's name).
+		"KRAJOWA", "RADA SPÓŁDZIELNI ORŁÓW",
 		# Gdański Business Center: parodies of two tenants' logos on the tower and the blocks.
 		"AWIWA", "NIELZEN",
 		# Dom Partii's roof sign (docs/design/gaulle-and-food-hype.md G2): the oak in Latin again.
