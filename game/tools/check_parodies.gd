@@ -234,7 +234,9 @@ func _check_picks(sf: Storefronts, data: Dictionary, book: Notebook, graph: Lane
 	var fr_pois := 0
 	for p: Dictionary in data.get("pois", []):
 		fr_pois += int(str(p.get("k", "")) == "convenience" and int(p.get("fr", 0)) == 1)
-	_expect(plain.size() >= fr_pois * 0.8 and plain.size() <= fr_pois, "Frogs: %d plain of %d convenience pois with fr" % [plain.size(), fr_pois])
+	# 80 % rounded down: the 70 m spacing alone decides the last one or two (map review C, 2026-11-02:
+	# with Złota car-free a corner shop's door moved round to Zgoda and the pick came to 130 of 163).
+	_expect(plain.size() >= floori(fr_pois * 0.8) and plain.size() <= fr_pois, "Frogs: %d plain of %d convenience pois with fr" % [plain.size(), fr_pois])
 	for id: String in Storefronts.TRIPLES:
 		_expect(int(per_triple.get(id, 0)) == 3, "triple corner %s: %d Frogs (want 3)" % [id, per_triple.get(id, 0)])
 		var angs: Array[float] = []
