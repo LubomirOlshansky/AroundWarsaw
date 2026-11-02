@@ -117,7 +117,7 @@ Towarowa over the park `--at=-2843,190 --yaw=270`; `--prebuilt` for the sector p
 | tower frame | 4 columns + braces | 0.4 m, to 14 m | tower corners | M_STONE | 1 identity |
 | shaft | prism | 7 x 8 m, 14-27.5 m | halls' SE corner | M_STONE | 1 identity |
 | wedge | frustum | 7 m wide, 0 to 1.5 m out | shaft's east face, 12-27.5 m | M_STONE | 1 identity |
-| kotwica | 9 strokes | 4.2 x 3 m | on the wedge, 20 m | M_STONE | 1 identity |
+| kotwica | 9 strokes | 5.5 x 3.9 m | on the wedge, 20 m | M_STONE | 1 identity |
 | platform | slab + mesh rail | 9 x 9 m | 28 m | M_STONE | 1 identity |
 | cabin | box | 5 x 5 x 3.5 m | on the platform | M_STONE | 1 identity |
 | platform light | thin box | 7 x 7 m | under the platform | M_LAMP | 6 night |

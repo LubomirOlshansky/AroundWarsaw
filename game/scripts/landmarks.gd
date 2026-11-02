@@ -13099,11 +13099,11 @@ func _mpw_tower() -> void:
 		[Vector2(0.0, -1.0), Vector2(0.8, -2.1), 0.07], [Vector2(0.8, -2.1), Vector2(1.5, -0.6), 0.1],
 	]
 	for st_: Array in strokes:
-		var p: Vector2 = st_[0]
-		var q: Vector2 = st_[1]
+		var p: Vector2 = st_[0] * 1.3
+		var q: Vector2 = st_[1] * 1.3
 		var pr: float = st_[2]
 		var d := (q - p).normalized()
-		var side := Vector2(-d.y, d.x) * 0.18
+		var side := Vector2(-d.y, d.x) * 0.26
 		var ext := d * 0.12
 		var a := p - ext
 		var b := q + ext
