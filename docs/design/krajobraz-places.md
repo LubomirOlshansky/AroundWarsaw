@@ -144,6 +144,8 @@ swings), trampolines, a rope bridge, water play for the youngest, shade trees, a
 bench-sculpture with sockets, lamps strung on cables. **Game:** Arkadka is a hand-built site; the
 playground is not there. Build it from the kit (`park_details` has `playground`). Sonnet, small.
 
+**Built 2026-11-02.** A new park piece `ropecourse` (`park_props_play.gd`): rubber floor, ribbon loops, three trampolines, bench-sculpture, three cable lamps; anchored in the green strip west of Arkadka (park "arkadia"). The mall keeps its parody name Arkadka.
+
 ## K9 Stadion Narodowy grounds
 
 2012: wide entrance avenues cut through the old groves, tree rows guiding the crowds round the
