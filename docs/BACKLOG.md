@@ -1342,8 +1342,10 @@ Built (`wellness.gd`, docs/design/wellness.md; ideas 2, 3, 4 and 8 of docs/desig
 spots (Park Świętokrzyski, Skwer Kościuszki, Rondo Daszyńskiego, Browary Warszawskie, Ogród Saski, Park Ujazdowski,
 Ogród Krasińskich) in daylight hours, 58 lines (`sound_healing`, `techno_yoga`, `club_40`, `park_kungfu`), check
 `wellness`. Left:
-- No sound yet: a soft gong when the car passes a sound-healing ring and a thump near a techno row
-  (sfx.gd positional voices, one new make_sfx.py sound each).
+- ~~No sound yet~~ DONE (2026-11-02): `gong_bowls` (gong every 6 s, singing bowl between, 12 s loop) at each sound-healing
+  ring and `techno_thump` (muffled 128 BPM four-on-the-floor, 7.5 s loop) at each techno row, through city_sounds.gd's new
+  `gong` and `thump` kinds (reach 60 and 70 m, sounding while the spot is on); `check_sfx` covers both loops. Only a phone
+  or Mac listen can judge the levels (-13 / -12 dB, cloud has no ears).
 - Mac look check (QUESTIONS): the spots are read off the baked lawns, not seen; Łazienki Królewskie, Pole
   Mokotowskie and Skaryszak (the design doc's other park spots) lie outside the map.
 - Only the phone can show whether the 7-10 figures, the signs' text and the hamster balls read at the default
