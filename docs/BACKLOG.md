@@ -255,6 +255,14 @@ PT-9 (bubbles) fixed 2026-11-02: the tail of a bubble kept clear of the HUD ende
 PT-13 (the order card went away without a tap) fixed 2026-11-02: it was the order's designed start after 9 s, unexplained; the card's GO now counts those seconds down.
 PT-10 (the order tracker over bubbles) fixed 2026-11-02: the target pointer draws under the speech bubbles and the panels and goes faint under the banner or a bubble; the edge arrow slides along the edge clear of bubbles and panels, and its distance sits past the arrow by the label's own size (`check_hud`: draw order, 72 directions, a bubble in the arrow's spot). Phone look open.
 
+## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
+Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
+`pomnik_powstania.md` and `krasinski.md` (sites `pomnik_powstania` 1514 tris, `krasinski` 1508). Found and left:
+- The Supreme Court's colonnade behind the monument is green (ribbed green glass, ~#738483); OSM tags its columns "marble #deeded", so the game draws them white and the court as plain blocks. A Sąd Najwyższy model is its own item.
+- The monument's heights and the groups' facing are estimates from photos (no published height, no aerial); the bronze is simplified to blocky figures. The plaza's dark granite bands, the blue-green light strips, the floor plaque, the juniper beds and the brick wall with the Kotwica on the Długa side are not drawn; the 1 August candles are not there.
+- The palace's pediment relief is a flat recessed field, the cartouche over the central window and the roof statues of the garden front are not modelled; the dormer and chimney counts are rough (the report says so). The garden's round parterre and the pond's sculpture are the park's (the fountain is already there).
+- F's look check on the Mac or the phone: the slabs' lean, the fighters' size, the roof's green.
+
 ## POLIN and the Ghetto Heroes Monument (F, 2026-11-02)
 Built from photos gathered on the Mac (`refs/polin/`) and the LoD2 roof, spec `polin.md`. Found and left:
 - The east front's two long dark band windows (~10 m, 4-5 m up) and the small lit slot south of the canyon are not drawn.

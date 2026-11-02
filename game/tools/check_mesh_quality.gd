@@ -52,6 +52,8 @@ const BUDGET := {
 	"cube_house": 390,
 	"hortus": 590,
 	"moderna": 90,
+	"pomnik_powstania": 1820,
+	"krasinski": 1810,
 	"ostrogski": 870,
 	"brama_uw": 550,
 	"bristol": 2450,
