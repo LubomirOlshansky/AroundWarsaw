@@ -89,8 +89,11 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
   pedestrian areas re-tagged as grey granite, Ali's memorial stone and a SKWER BROWNE'A plate at
   Pasaż Wiecha (first_scene.gd). The fountain by Kino Atlantic was already in the OSM data.
   Open for the Mac (QUESTIONS): orthophoto check of the trees, the granite's tone, the stone's spot.
-- [ ] K2b Chmielna's furniture: the 64 urban chairs, benches and long flowing benches (OSM has
-  only 2 benches on the street), and a stone rim for the Atlantic fountain (Sonnet, small).
+- [x] K2b Chmielna's furniture: 60 benches added to the 4 OSM has, 64 in the street's band, one
+  every ~7.5 m on alternate sides, facing the street's middle (`planted_trees.py furnish`; the game
+  has one bench model, so the urban chairs and long benches are all benches). The Atlantic
+  fountain already had its stone rim (the shore edge round every fountain, 0.45 m). Open for the
+  Mac (QUESTIONS): where the real benches stand; a long-bench model if wanted.
 - [x] K3 Varso Place (spec docs/landmarks/specs/varso_place.md): the sky garden on the tower's
   205 m roof (16 hawthorns, dwarf pines, benches, glass balustrade), planted terraces on Varso 1's
   71 m and Varso 2's 80 and 72 m roofs (site `varso_place`), the VERSO PLACE name stone and the
@@ -175,7 +178,10 @@ Marszałkowska at Centrum's tram stop; every new PT spot joins `game/tools/check
 streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug). Run 3 (the Śródmieście grid): PT-6 the guide's bubble
 covers the minimap and +/- buttons (not reproduced on main: check_hud sweep clean; needs the frame, 2026-11-02). Design question for the driving lane: a hit from 108 km/h
 stops the car dead in 0.2-0.4 s with no slide; is that the arcade feel we want, or should it
-bounce or slide off a wall?
+bounce or slide off a wall? Runs 4-8 (Krucza, Mokotowska,
+Świętokrzyska, Królewska): no wall bugs on the streets themselves (the on-road stops were bumps
+into traffic cars); PT-7 (the tow fires by the curved glass building), PT-8 (a 6 km/h crawl
+during Pani Halina's prompt) suspects; PT-9 HUD overlaps confirmed.
 - Found with PT-1: a free spot (`main.gd _free_car_spot`, a tow) only tests the box against the
   wall faces, so a spot fully inside a solid outline (a building, now a 0.9 m platform) counts as
   free. Not seen in play; reject spots inside platforms and footprints if it shows up.

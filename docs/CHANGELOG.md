@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-02
 - The narrow one-way streets of the centre (Mokotowska, Wilcza, Hoża, Żurawia and about 280 more) are as wide as the real ones now, room for the parked cars, instead of a lane-wide strip, and the two-lane side streets are a metre wider, as on the aerial photo.
+- Chmielna has its benches: 64 along the street, on both sides between the young trees, facing the walk.
 - Chmielna looks as it has since 2024: grey granite underfoot, two rows of young elms down the narrow stretches and planes on the squares, 85 trees from Nowy Świat to Pasaż Wiecha, and Ali's memorial stone with its square's name plate behind the Eastern Wall.
 - The tenements of Dobra and Tamka each wear their own plaster now (sooty cream, ochre, faded rose, sage), with a cornice under the roof, a string course at the first floor and shop windows with a fascia board on the street side.
 - The first street's pavements are Warsaw grey instead of sand, every crossing ends in a strip of yellow tactile paving at the kerb, and the tram stops by the start have their edge line and tactile strip.
