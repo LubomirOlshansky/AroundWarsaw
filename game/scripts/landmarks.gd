@@ -435,6 +435,12 @@ const INFO := {
 	"mf": ["Ministerstwo Finansów",
 			"Gmach z lat 1953–56 przy Świętokrzyskiej. Tu liczą cudze pieniądze.",
 			"1953–56 on Świętokrzyska: where the country's money is counted."],
+	"florian": ["Katedra św. Floriana",
+			"Neogotycka katedra na Pradze, 1888–1904. Dwie wieże po 75 m widać z drugiego brzegu Wisły.",
+			"Praga's neo-Gothic cathedral, 1888–1904. Its two 75 m spires are seen from across the Vistula."],
+	"bazar": ["Bazar Różyckiego",
+			"Najstarszy bazar Warszawy, od 1882 roku. Stare budy obok nowych zielonych pawilonów. Kupisz tu wszystko.",
+			"Warsaw's oldest market, since 1882. Old sheds face the new green kiosks. Everything is for sale."],
 	"teresy": ["Kościół św. Teresy od Dzieciątka Jezus",
 			"Ceglany kościół parafialny na Powiślu, ze stromym dachem i sygnaturką.",
 			"A brick parish church in Powiśle, with a steep roof and a bell turret."],
@@ -654,6 +660,8 @@ static func tower_colour(key: String, fallback: Color) -> Color:
 		return BARB_WALL
 	if key == "teresy":
 		return TERESY_BRICK
+	if key == "florian":
+		return FL_BRICK
 	return fallback
 
 
@@ -884,6 +892,9 @@ func _find_sites() -> void:
 	_find_teresy()
 	# The Powiśle boulevards (2026-11-01): the riverside Syrenka, the water station, the Kaskada.
 	_find_bulwary()
+	# Praga (2026-11-02, the Mac's photo reports): St Florian's cathedral and Bazar Różyckiego.
+	_find_florian()
+	_find_bazar()
 
 
 ## Warszawa Centralna (spec docs/landmarks/specs/centralna.md, 2026-10-31): OpenStreetMap maps
@@ -1332,6 +1343,10 @@ func build(surface, near := Rect2(), only := "") -> void:
 
 			"teresy":
 				_build_teresy(s)
+			"florian":
+				_build_florian(s)
+			"bazar":
+				_build_bazar(s)
 			"syrenka_powisle":
 				_build_syrenka_powisle(s)
 			"dworzec_wodny":
@@ -14414,6 +14429,486 @@ func _church_onion(g: float, y: float, l_half: float, ch: Dictionary) -> void:
 	var top := base + r * float((prof[prof.size() - 1] as Array)[1])
 	_lbox(0.0, -l_half, 0.1, 0.1, top, top + 2.6, CHURCH_GOLD, M_STONE, CHURCH_GOLD)
 	_lbox(0.0, -l_half, 0.5, 0.1, top + 1.5, top + 1.75, CHURCH_GOLD, M_STONE, CHURCH_GOLD)
+
+# --- Praga: St Florian's cathedral and Bazar Różyckiego (2026-11-02, photo reports) ----------
+
+## St Florian's cathedral (Katedra św. Michała Archanioła i św. Floriana, Józef Pius Dziekoński,
+## 1888-1904, rebuilt 1947-72): the neo-Gothic red-brick basilica whose two 75 m spires are
+## Praga's mark across the river. Built from the Mac's photo report (docs/landmarks/photo-reports/
+## st_florian.md: 3 Commons photos and the GUGiK orthophoto) on the mapped outline. Spec
+## docs/landmarks/specs/florian.md. Frame: origin at the front's middle between the towers'
+## outlines, u across the front, +v out of it (west-north-west, to Plac Weteranów 1863 roku and
+## Al. Solidarności); the body runs back to the apse at v -68.6. Ground from the outline.
+const FL_O := Vector2(434.89, -1980.8)
+const FL_A := Vector2(-0.5232, 0.8522)
+const FL_OSM := "Bazylika Katedralna Świętego Michała Archanioła i Świętego Floriana Męczennika"
+const FL_BRICK := Color("#a4472e")
+const FL_BRICK_DARK := Color("#8e3c28")
+const FL_TRIM := Color("#e9e3d3")
+const FL_BASE := Color("#a8a08e")
+const FL_SLATE := Color("#4a524f")
+const FL_COPPER := Color("#5e8e76")
+const FL_DARK := Color("#2e3236")
+const FL_GOLD := Color("#c9a24a")
+const FL_STAINED := Color("#6a4a2a")
+const FL_LAMP := Color("#ffd29a")    # the warm floodlamps on the paving (photo 5)
+const FL_CYAN := Color("#9fe4ff")    # the spires' cool light (photo 5)
+const FL_WHITE := Color("#eceae4")   # St Michael on the forecourt
+const FL_TOWER_U := 10.95            # the towers' centres (OSM outlines 6.8 x 8.6 m)
+const FL_TOWER_HU := 3.4
+const FL_TOWER_HV := 4.3
+const FL_FRONT := 4.0                # the front wall between the towers
+const FL_NAVE_HU := 7.4              # the clerestory's half width
+const FL_AISLE := 13.0               # the aisles' eave
+const FL_EAVE := 24.0                # the nave's eave
+const FL_RIDGE := 35.0               # the nave's ridge (OSM height)
+const FL_SHAFT := 33.0               # the towers' brick shafts
+const FL_BELFRY := 42.0              # the white-trimmed belfry's top
+const FL_SPIRE := 71.0               # the copper spires' tips
+const FL_CROSS := 75.0               # the gilt crosses' tops (OSM height, report "~75 m")
+const FL_CROSSING := -37.0           # the transept's middle (v), the flèche over it
+const FL_TRANSEPT := Vector2(-43.0, -31.0)
+const FL_APSE := [[7.4, -60.6], [6.6, -64.4], [3.9, -67.6], [0.0, -68.6], [-3.9, -67.6], [-6.6, -64.4], [-7.4, -60.6]]
+const FL_MICHAEL_V := 12.0           # the statue on the forecourt, on the axis (spot: QUESTIONS)
+## Floodlamps in the paving, [u, v]: the front, the towers' outer faces, the transept's ends.
+const FL_FLOODS := [[-4.5, 6.0], [4.5, 6.0], [-10.9, 6.2], [10.9, 6.2], [-15.6, 0.0], [15.6, 0.0],
+		[-21.0, -37.0], [21.0, -37.0]]
+
+
+func _find_florian() -> void:
+	var outline := _landmark(FL_OSM)
+	if outline.size() >= 3:
+		_add_site("florian", [outline])
+
+
+func _build_florian(site: Dictionary) -> void:
+	_o = FL_O
+	_a = FL_A.normalized()
+	_b = Vector2(-_a.y, _a.x)  # out of the front
+	var outline: PackedVector2Array = _simplify((site["zone"] as Array)[0], 0.6)
+	_g = _ground_under(outline)
+	var g := _g
+	var none := Color(0, 0, 0, 0)
+	_mode = M_STONE
+	var plinth := _largest(Geometry2D.offset_polygon(outline, 0.3, Geometry2D.JOIN_MITER))
+	_prism(plinth, g - 0.6, g + 1.2, FL_BASE, FL_BASE.lightened(0.05), M_STONE, M_STONE)
+	# body: the clerestory from the front to the apse, the aisles, the transept, the apse
+	var back := -60.6
+	_prism(_rect(0.0, (FL_FRONT + back) * 0.5, FL_NAVE_HU, (FL_FRONT - back) * 0.5), g + 1.2, g + FL_EAVE, FL_BRICK, none, M_GOTHIC)
+	for sd: float in [-1.0, 1.0]:
+		_prism(_rect(sd * 10.75, -17.65, 3.35, 13.35), g + 1.2, g + FL_AISLE, FL_BRICK, none, M_GOTHIC)
+		_prism(_rect(sd * 13.0, -51.8, 5.6, 8.8), g + 1.2, g + FL_AISLE, FL_BRICK, none, M_GOTHIC)
+	var tc := (FL_TRANSEPT.x + FL_TRANSEPT.y) * 0.5
+	var th := (FL_TRANSEPT.y - FL_TRANSEPT.x) * 0.5
+	_prism(_rect(0.0, tc, 19.2, th), g + 1.2, g + FL_EAVE, FL_BRICK, none, M_GOTHIC)
+	var apse := PackedVector2Array()
+	for p: Array in FL_APSE:
+		apse.append(_w(p[0], p[1]))
+	_prism(apse, g + 1.2, g + FL_EAVE, FL_BRICK, none, M_GOTHIC)
+	# cornices in white stone at the eaves
+	_prism(_rect(0.0, (FL_FRONT + back) * 0.5 - 0.1, FL_NAVE_HU + 0.25, (FL_FRONT - back) * 0.5 + 0.15), g + FL_EAVE - 0.7,
+			g + FL_EAVE, FL_TRIM, none, M_STONE)
+	_prism(_rect(0.0, tc, 19.45, th + 0.2), g + FL_EAVE - 0.68, g + FL_EAVE - 0.02, FL_TRIM, none, M_STONE)
+	# roofs: the nave's long gable, the transept's cross gable, the apse's half cone, the aisles' lean-tos
+	_fl_nave_roof(back, g)
+	_gable(19.2, -19.2, tc, th, g + FL_EAVE, FL_RIDGE - FL_EAVE, FL_BRICK, FL_SLATE.lightened(0.04))
+	var apex := Vector3(_w(0.0, back).x, g + FL_RIDGE, _w(0.0, back).y)
+	for i in apse.size() - 1:
+		var p0 := Vector3(apse[i].x, g + FL_EAVE, apse[i].y)
+		var p1 := Vector3(apse[i + 1].x, g + FL_EAVE, apse[i + 1].y)
+		var n := (p1 - p0).cross(apex - p0).normalized()
+		var mid := (apse[i] + apse[i + 1]) * 0.5
+		if Vector2(n.x, n.z).dot(mid - _w(0.0, back)) < 0.0:
+			n = -n
+		_tri(p0, p1, apex, n, FL_SLATE, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+	for sd: float in [-1.0, 1.0]:
+		_fl_lean(sd * 14.1, sd * FL_NAVE_HU, -30.95, -4.3, g)
+		_fl_lean(sd * 18.6, sd * FL_NAVE_HU, back, FL_TRANSEPT.x, g, true)
+	# buttresses with stone pinnacles along the aisles
+	for sd: float in [-1.0, 1.0]:
+		for v: float in [-9.6, -15.0, -20.4, -25.8]:
+			_lbox(sd * 14.45, v, 0.35, 0.45, g + 1.2, g + FL_AISLE - 1.5, FL_BRICK_DARK, M_STONE, FL_TRIM)
+			_pinnacle(sd * 14.45, v, 0.7, g + FL_AISLE - 1.5, 3.4, FL_TRIM)
+		for v: float in [-46.5, -52.0, -57.5]:
+			_lbox(sd * 18.95, v, 0.35, 0.45, g + 1.2, g + FL_AISLE - 1.5, FL_BRICK_DARK, M_STONE, FL_TRIM)
+			_pinnacle(sd * 18.95, v, 0.7, g + FL_AISLE - 1.5, 3.4, FL_TRIM)
+	# the small turrets at the transept's corners (photo 6)
+	for sd: float in [-1.0, 1.0]:
+		for v: float in [FL_TRANSEPT.x, FL_TRANSEPT.y]:
+			var c := _w(sd * 19.4, v + (0.2 if v > tc else -0.2))
+			_prism(_circle(c, 1.0, 8), g + 1.2, g + FL_EAVE + 2.0, FL_BRICK, none, M_STONE)
+			_prism(_circle(c, 1.2, 8), g + FL_EAVE + 2.0, g + FL_EAVE + 2.5, FL_TRIM, none, M_STONE)
+			_frustum(_circle(c, 1.15, 8), g + FL_EAVE + 2.5, _circle(c, 0.08, 8), g + FL_EAVE + 7.0, FL_SLATE)
+	# the flèche over the crossing
+	var fc := _w(0.0, FL_CROSSING)
+	_prism(_circle(fc, 1.3, 8), g + FL_RIDGE - 2.5, g + FL_RIDGE + 3.0, FL_COPPER.darkened(0.1), none, M_STONE)
+	_frustum(_circle(fc, 1.5, 8), g + FL_RIDGE + 3.0, _circle(fc, 0.08, 8), g + FL_RIDGE + 14.0, FL_COPPER)
+	_lbox(0.0, FL_CROSSING, 0.1, 0.1, g + FL_RIDGE + 14.0, g + FL_RIDGE + 16.2, FL_GOLD, M_STONE, FL_GOLD)
+	_lbox(0.0, FL_CROSSING, 0.45, 0.1, g + FL_RIDGE + 15.2, g + FL_RIDGE + 15.45, FL_GOLD, M_STONE, FL_GOLD)
+	_fl_front(g)
+	for sd: float in [-1.0, 1.0]:
+		_fl_tower(sd * FL_TOWER_U, sd, g)
+	_fl_michael(g)
+	# night: the floodlamps on the paving and the rose's stained glass
+	_mode = M_LAMP
+	for f: Array in FL_FLOODS:
+		_lbox(f[0], f[1], 0.3, 0.3, g - 0.1, g + 0.3, FL_LAMP, M_LAMP, FL_LAMP)
+	var rose := _w(0.0, FL_FRONT + 0.16)
+	_disc(Vector3(rose.x, g + 17.5, rose.y), Vector3(_b.x, 0.0, _b.y), 2.4, 12, FL_STAINED)
+	_mode = M_STONE
+	_collide(outline)
+	_collide(_rect(0.0, FL_MICHAEL_V, 1.0, 1.0))
+
+
+## The nave's gable along v from the front to the apse (in the swapped frame `_gable` expects).
+func _fl_nave_roof(back: float, g: float) -> void:
+	var ka := _a
+	var kb := _b
+	_a = kb
+	_b = ka
+	_gable(FL_FRONT, back, 0.0, FL_NAVE_HU + 0.2, g + FL_EAVE, FL_RIDGE - FL_EAVE, FL_BRICK, FL_SLATE, false)
+	_a = ka
+	_b = kb
+
+
+## An aisle's lean-to roof from its eave at u_out (FL_AISLE) up to the clerestory at u_in, from
+## v0 to v1; `end` closes the v0 end with a brick triangle (the choir's open end).
+func _fl_lean(u_out: float, u_in: float, v0: float, v1: float, g: float, end := false) -> void:
+	var y0 := g + FL_AISLE
+	var y1 := g + FL_AISLE + 5.0
+	var po := _w(u_out, v0)
+	var pi := _w(u_in, v0)
+	var qo := _w(u_out, v1)
+	var qi := _w(u_in, v1)
+	var a := Vector3(po.x, y0, po.y)
+	var b := Vector3(qo.x, y0, qo.y)
+	var c := Vector3(qi.x, y1, qi.y)
+	var d := Vector3(pi.x, y1, pi.y)
+	var side := _a * signf(u_out)
+	var n := (Vector3(side.x, 0.0, side.y) * 5.0 + Vector3.UP * absf(u_out - u_in)).normalized()
+	_mode = M_STONE
+	_quad(a, b, c, d, n, FL_SLATE.lightened(0.06))
+	if end:
+		var e := Vector3(pi.x, y0, pi.y)
+		_tri(a, e, d, Vector3(-_b.x, 0.0, -_b.y), FL_BRICK, Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+
+
+## A pointed (lancet) opening on a plane: from u0 to u1 along `along` at the plane point `at`
+## (the opening's middle at the sill), facing `out`, from y0 to the springing y1 and a point
+## `peak` metres above it.
+func _fl_lancet(at: Vector2, along: Vector2, hw: float, y0: float, y1: float, peak: float, out: Vector2, col: Color) -> void:
+	var l := at - along * hw
+	var r := at + along * hw
+	var n := Vector3(out.x, 0.0, out.y)
+	_quad(Vector3(l.x, y0, l.y), Vector3(r.x, y0, r.y), Vector3(r.x, y1, r.y), Vector3(l.x, y1, l.y), n, col)
+	_tri(Vector3(l.x, y1, l.y), Vector3(r.x, y1, r.y), Vector3(at.x, y1 + peak, at.y), n, col,
+			Vector2(-1, -1), Vector2(-1, -1), Vector2(-1, -1), -1.0)
+
+
+## The front between the towers: the porch with the pointed main portal under a stone gable,
+## the string course, the rose window in a stone ring, a row of five lancets under the gable,
+## and pinnacles at the gable's foot (photo 4).
+func _fl_front(g: float) -> void:
+	var out := _b
+	# the porch: brick, a stone plinth, the pointed portal, a stone wimperg (gable) over it
+	_lbox(0.0, FL_FRONT + 0.6, 3.2, 0.6, g + 1.2, g + 9.5, FL_BRICK, M_STONE, FL_TRIM)
+	_lbox(0.0, FL_FRONT + 0.65, 3.4, 0.65, g - 0.6, g + 1.2, FL_BASE, M_STONE, FL_BASE.lightened(0.05))
+	_mode = M_STONE
+	_fl_lancet(_w(0.0, FL_FRONT + 1.23), _a, 2.3, g + 1.2, g + 6.4, 2.6, out, FL_TRIM)
+	_mode = M_GLASS
+	_fl_lancet(_w(0.0, FL_FRONT + 1.27), _a, 1.8, g + 1.2, g + 6.2, 2.1, out, FL_DARK)
+	_mode = M_STONE
+	var ka := _a
+	var kb := _b
+	_a = kb
+	_b = ka
+	_gable(FL_FRONT + 1.2, FL_FRONT, 0.0, 3.2, g + 9.5, 4.2, FL_TRIM, FL_TRIM, false)
+	_a = ka
+	_b = kb
+	_pinnacle(-3.0, FL_FRONT + 0.6, 0.6, g + 9.5, 3.4, FL_TRIM)
+	_pinnacle(3.0, FL_FRONT + 0.6, 0.6, g + 9.5, 3.4, FL_TRIM)
+	for k in 3:  # steps up to the portal
+		_lbox(0.0, FL_FRONT + 1.6 + 0.5 * k, 3.6 - 0.3 * k, 0.5 + 0.5 * (2 - k), g - 0.6, g + 0.1 + 0.35 * (2 - k), FL_BASE,
+				M_STONE, FL_BASE.lightened(0.04))
+	# the string courses and the rose
+	_lbox(0.0, FL_FRONT + 0.12, FL_NAVE_HU, 0.14, g + 12.4, g + 13.0, FL_TRIM, M_STONE, FL_TRIM)
+	var rose := _w(0.0, FL_FRONT + 0.06)
+	_disc(Vector3(rose.x, g + 17.5, rose.y), Vector3(out.x, 0.0, out.y), 3.4, 16, FL_TRIM)
+	var dark := _w(0.0, FL_FRONT + 0.11)
+	_mode = M_GLASS
+	_disc(Vector3(dark.x, g + 17.5, dark.y), Vector3(out.x, 0.0, out.y), 2.9, 16, FL_DARK)
+	# five lancets in a row in the gable, rising to the middle
+	for k in 5:
+		var u := -4.4 + 2.2 * k
+		var top := 26.4 + (2 - absi(k - 2)) * 0.9
+		_fl_lancet(_w(u, FL_FRONT + 0.05), _a, 0.55, g + 24.6, g + top, 0.9, out, FL_DARK)
+	_mode = M_STONE
+	# pinnacles at the gable's foot and a cross on its apex
+	for sd: float in [-1.0, 1.0]:
+		_pinnacle(sd * (FL_NAVE_HU - 0.2), FL_FRONT - 0.2, 1.0, g + FL_EAVE, 5.0, FL_TRIM)
+	_lbox(0.0, FL_FRONT - 0.4, 0.12, 0.12, g + FL_RIDGE - 0.4, g + FL_RIDGE + 2.8, FL_TRIM, M_STONE, FL_TRIM)
+	_lbox(0.0, FL_FRONT - 0.4, 0.6, 0.12, g + FL_RIDGE + 1.6, g + FL_RIDGE + 1.9, FL_TRIM, M_STONE, FL_TRIM)
+
+
+## A tower at u `tu` (`sd` the side, -1 or +1): the brick shaft with corner buttresses, a side
+## portal and a tall lancet, the white-trimmed belfry with twin lancets on each face, four
+## gables and four corner pinnacles round the foot of the octagonal copper spire with its
+## lucarnes, a gilt ball and cross (photos 4 and 6).
+func _fl_tower(tu: float, sd: float, g: float) -> void:
+	var none := Color(0, 0, 0, 0)
+	var hu := FL_TOWER_HU
+	var hv := FL_TOWER_HV
+	var c := _w(tu, 0.0)
+	_lbox(tu, 0.0, hu + 0.3, hv + 0.3, g - 0.6, g + 1.2, FL_BASE, M_STONE, FL_BASE.lightened(0.05))
+	_prism(_rect(tu, 0.0, hu, hv), g + 1.2, g + FL_SHAFT, FL_BRICK, none, M_GOTHIC)
+	for cu: float in [-1.0, 1.0]:
+		for cv: float in [-1.0, 1.0]:
+			if cv < 0.0 and cu * sd < 0.0:
+				continue  # the inner back corner stands in the nave
+			var bu := tu + cu * (hu + 0.1)
+			var bv := cv * (hv + 0.1)
+			_lbox(bu, bv, 0.5, 0.5, g + 1.2, g + FL_SHAFT - 4.0, FL_BRICK_DARK, M_STONE, FL_TRIM)
+			_pinnacle(bu, bv, 0.9, g + FL_SHAFT - 4.0, 4.6, FL_TRIM)
+	for y: float in [12.4, 24.0]:
+		_lbox(tu, 0.0, hu + 0.15, hv + 0.15, g + y, g + y + 0.6, FL_TRIM, M_STONE, FL_TRIM)
+	# the side portal and the tall lancets on the front and the outer face
+	var front := _b
+	var side := _a * sd
+	_mode = M_GLASS
+	_fl_lancet(_w(tu, hv + 0.04), _a, 1.2, g + 1.2, g + 5.6, 1.4, front, FL_DARK)
+	_fl_lancet(_w(tu, hv + 0.04), _a, 0.8, g + 14.5, g + 21.0, 1.2, front, FL_DARK)
+	_fl_lancet(_w(tu + sd * (hu + 0.04), 0.0), _b, 0.8, g + 14.5, g + 21.0, 1.2, side, FL_DARK)
+	_mode = M_STONE
+	# the belfry: a white band, brick between trim, twin lancets on each face, a parapet
+	_lbox(tu, 0.0, hu + 0.25, hv + 0.25, g + FL_SHAFT - 0.4, g + FL_SHAFT + 0.4, FL_TRIM, M_STONE, FL_TRIM)
+	_prism(_rect(tu, 0.0, hu, hv), g + FL_SHAFT + 0.4, g + FL_BELFRY, FL_BRICK, none, M_STONE)
+	for f in 4:
+		var nrm: Vector2 = [_b, -_b, _a, -_a][f]
+		var along: Vector2 = [_a, _a, _b, _b][f]
+		var reach := hv if f < 2 else hu
+		var span := hu if f < 2 else hv
+		var mid := c + nrm * (reach + 0.04)
+		_fl_lancet(mid, along, span - 0.4, g + FL_SHAFT + 1.0, g + FL_BELFRY - 2.6, 1.8, nrm, FL_TRIM)
+		_mode = M_GLASS
+		for s2: float in [-1.0, 1.0]:
+			_fl_lancet(mid + nrm * 0.03 + along * s2 * span * 0.38, along, span * 0.26, g + FL_SHAFT + 1.4, g + FL_BELFRY - 3.0,
+					1.2, nrm, FL_DARK)
+		_mode = M_STONE
+	_lbox(tu, 0.0, hu + 0.3, hv + 0.3, g + FL_BELFRY, g + FL_BELFRY + 0.8, FL_TRIM, M_STONE, FL_TRIM)
+	var y := g + FL_BELFRY + 0.8
+	# four gables round the spire's foot, then the corner pinnacles
+	_gable(tu + hu, tu - hu, 0.0, hv - 0.4, y, 4.2, FL_BRICK, FL_SLATE)
+	var ka := _a
+	var kb := _b
+	_a = kb
+	_b = ka
+	_gable(hv, -hv, tu, hu - 0.4, y, 4.2, FL_BRICK, FL_SLATE)
+	_a = ka
+	_b = kb
+	for cu: float in [-1.0, 1.0]:
+		for cv: float in [-1.0, 1.0]:
+			_pinnacle(tu + cu * (hu - 0.05), cv * (hv - 0.05), 1.0, y, 6.4, FL_TRIM)
+	# the octagonal copper spire, four lucarnes on it, the gilt ball and the cross
+	var r0 := minf(hu, hv) * 0.95
+	var sy := g + FL_SPIRE
+	_frustum(_circle(c, r0, 8), y, _circle(c, 0.12, 8), sy, FL_COPPER)
+	var ly := y + 8.0
+	var lr := r0 * (1.0 - (ly - y) / (sy - y)) + 0.1
+	for f in 4:
+		var d: Vector2 = [_b, -_b, _a, -_a][f]
+		var lc := _local(c + d * lr)
+		_lbox(lc.x, lc.y, 0.42, 0.42, ly, ly + 1.5, FL_COPPER.darkened(0.12), M_STONE, FL_COPPER)
+		_pyramid(_rect(lc.x, lc.y, 0.5, 0.5), ly + 1.5, ly + 2.5, FL_COPPER.lightened(0.06))
+	_prism(_circle(c, 0.38, 6), sy - 0.3, sy + 0.45, FL_GOLD, FL_GOLD, M_STONE, M_STONE)
+	_lbox(tu, 0.0, 0.12, 0.12, sy + 0.45, g + FL_CROSS, FL_GOLD, M_STONE, FL_GOLD)
+	_lbox(tu, 0.0, 0.7, 0.12, g + FL_CROSS - 1.6, g + FL_CROSS - 1.3, FL_GOLD, M_STONE, FL_GOLD)
+	# night: the spire's cool light from the belfry's parapet corners
+	_mode = M_LAMP
+	for cu: float in [-1.0, 1.0]:
+		for cv: float in [-1.0, 1.0]:
+			_lbox(tu + cu * (hu - 0.6), cv * (hv - 0.6), 0.16, 0.16, y, y + 0.35, FL_CYAN, M_LAMP, FL_CYAN)
+	_mode = M_STONE
+	_collide(_rect(tu, 0.0, hu + 0.3, hv + 0.3))
+
+
+## St Michael on the forecourt (photo 5): a white figure with spread wings and a raised spear on a
+## stone pedestal, on the axis before the porch (the spot is parked in QUESTIONS).
+func _fl_michael(g: float) -> void:
+	var v := FL_MICHAEL_V
+	var none := Color(0, 0, 0, 0)
+	_lbox(0.0, v, 0.95, 0.95, g - 0.4, g + 0.5, FL_BASE, M_STONE, FL_BASE.lightened(0.05))
+	_lbox(0.0, v, 0.7, 0.7, g + 0.5, g + 2.6, FL_TRIM, M_STONE, FL_TRIM)
+	var c := _w(0.0, v)
+	_frustum(_circle(c, 0.45, 6), g + 2.6, _circle(c, 0.3, 6), g + 4.3, FL_WHITE, none)
+	_prism(_circle(c, 0.2, 6), g + 4.3, g + 4.75, FL_WHITE, FL_WHITE, M_STONE, M_STONE)
+	for sd: float in [-1.0, 1.0]:  # the wings, raised behind the shoulders
+		_lbox(sd * 0.5, v - 0.25, 0.32, 0.06, g + 3.5, g + 5.2, FL_WHITE, M_STONE, FL_WHITE)
+	_lbox(0.42, v + 0.15, 0.05, 0.05, g + 3.2, g + 5.9, FL_WHITE.darkened(0.25), M_STONE, FL_WHITE)  # the spear
+
+
+## Bazar Różyckiego (Targowa, since 1882): Warsaw's oldest market. From the Mac's photo report
+## (docs/landmarks/photo-reports/bazar_rozyckiego.md: one 2023 photo and the orthophoto): the old
+## stalls, a dense patchwork of low tin- and tarp-roofed sheds with awnings and crates, face the
+## 2023 rebuild's grid of dark green box kiosks with flat white-edged roofs across narrow lanes.
+## OpenStreetMap maps the stalls as 26 retail outlines 4.3 m tall; the 16 regular 5.7 x 9.7 and
+## 5.8 x 11.7 m boxes are the new kiosks, the rest the old stall rows (cut into stalls 2.6-4.2 m
+## wide, seeded by position). Spec docs/landmarks/specs/bazar.md.
+const BAZAR_BOX := Rect2(1025.0, -2032.0, 110.0, 70.0)
+const BAZAR_KIOSK := Color("#2f6b55")
+const BAZAR_KIOSK_ROOF := Color("#3b7a62")
+const BAZAR_FASCIA := Color("#e9ece6")
+const BAZAR_SHUTTER := Color("#9a9c98")
+const BAZAR_GLASS := Color(1.0, 0.84, 0.58)
+const BAZAR_DOOR := Color("#23262a")
+const BAZAR_PLINTH := Color("#5a5854")
+## The old stalls' walls (faded paint, sheet metal) and roofs (tin, blue tarp, rust, grey felt).
+const BAZAR_WALLS := ["#b9b2a2", "#8f9a9e", "#c7b98f", "#7f8f7a", "#a46d52", "#d6d0c2", "#6f7d8c"]
+const BAZAR_ROOFS := ["#7d8084", "#3f6fa8", "#8a5638", "#5e5d59", "#9a9a94", "#4f7fb0", "#6e4a36"]
+## Awnings (striped canvas reads as one colour from above) and the crates' wood.
+const BAZAR_AWNINGS := ["#c0392b", "#2e6da4", "#e0b33a", "#3f8f5a", "#e7e2d6"]
+const BAZAR_CRATE := Color("#a7814f")
+
+
+func _find_bazar() -> void:
+	var stalls: Array = []
+	var kiosks: Array = []
+	for bld in data["buildings"]:
+		if bld.get("kind", "") != "retail" or float(bld["h"]) > 5.0:
+			continue
+		var q := _pts(bld["p"])
+		if q.size() < 3 or not BAZAR_BOX.has_point(_centre(q)):
+			continue
+		if _bazar_kiosk(q):
+			kiosks.append(q)
+		else:
+			stalls.append(q)
+	if stalls.is_empty() and kiosks.is_empty():
+		return
+	_add_site("bazar", stalls + kiosks)
+	if not sites.is_empty() and sites[-1]["key"] == "bazar":
+		sites[-1]["stalls"] = stalls
+		sites[-1]["kiosks"] = kiosks
+
+
+## A new kiosk: a four-cornered box of 45-75 m^2 with right angles.
+func _bazar_kiosk(q: PackedVector2Array) -> bool:
+	if q.size() != 4:
+		return false
+	var area := absf(_area(q))
+	if area < 45.0 or area > 75.0:
+		return false
+	for i in 4:
+		var e0 := (q[(i + 1) % 4] - q[i]).normalized()
+		var e1 := (q[(i + 2) % 4] - q[(i + 1) % 4]).normalized()
+		if absf(e0.dot(e1)) > 0.08:
+			return false
+	return true
+
+
+## A seeded 0..1 from a stall's position and a salt (the same every run and every sector).
+func _bazar_rand(p: Vector2, salt: int) -> float:
+	var x := sin(p.x * 12.9898 + p.y * 78.233 + float(salt) * 37.719) * 43758.5453
+	return x - floorf(x)
+
+
+func _build_bazar(site: Dictionary) -> void:
+	for q: PackedVector2Array in site["kiosks"]:
+		_bazar_kiosk_box(q)
+	for q: PackedVector2Array in site["stalls"]:
+		_bazar_row(q)
+
+
+## The frame of a ring: u along its longest edge, from the ring's centre.
+func _bazar_frame(q: PackedVector2Array) -> Rect2:
+	var longest := 0.0
+	for i in q.size():
+		var e := q[(i + 1) % q.size()] - q[i]
+		if e.length() > longest:
+			longest = e.length()
+			_a = e.normalized()
+	_b = Vector2(-_a.y, _a.x)
+	_o = _centre(q)
+	var lo := Vector2(INF, INF)
+	var hi := -lo
+	for p in q:
+		lo = lo.min(_local(p))
+		hi = hi.max(_local(p))
+	return Rect2(lo, hi - lo)
+
+
+## A 2023 kiosk: a dark green box under a flat roof with a white edge that overhangs a little,
+## three shop units along each long side, a lit window or a grey roller shutter each.
+func _bazar_kiosk_box(q: PackedVector2Array) -> void:
+	var r := _bazar_frame(q)
+	var g := _ground_under(q)
+	_g = g
+	var none := Color(0, 0, 0, 0)
+	var top := g + 3.1
+	var plan := _rect(r.get_center().x, r.get_center().y, r.size.x * 0.5, r.size.y * 0.5)
+	_prism(plan, g - 0.3, g + 0.15, BAZAR_PLINTH, none, M_STONE)
+	_prism(plan, g + 0.15, top, BAZAR_KIOSK, none, M_STONE)
+	var roof := _rect(r.get_center().x, r.get_center().y, r.size.x * 0.5 + 0.35, r.size.y * 0.5 + 0.35)
+	_prism(roof, top, top + 0.3, BAZAR_FASCIA, BAZAR_KIOSK_ROOF, M_STONE, M_STONE)
+	var units := 3 if r.size.x > 8.0 else 2
+	var uw := r.size.x / units
+	for sv: float in [-1.0, 1.0]:
+		var v := r.get_center().y + sv * (r.size.y * 0.5 + 0.04)
+		for k in units:
+			var u0 := r.position.x + uw * k + 0.25
+			var u1 := r.position.x + uw * (k + 1) - 0.25
+			var lit := _bazar_rand(_w(u0, v), 3) < 0.6
+			_mode = M_PAVILION if lit else M_STONE
+			_wall(_w(u0, v), _w(u1, v), g + 0.35, g + 2.5, _b * sv, BAZAR_GLASS if lit else BAZAR_SHUTTER)
+	_mode = M_STONE
+	_collide(plan)
+
+
+## An old stall row: the outline cut into stalls 2.6-4.2 m wide along its length, each clipped to
+## the outline, its own height, faded wall and patched roof; on a whole (rectangular) stall an
+## awning over one long side and a stack of crates before it.
+func _bazar_row(q: PackedVector2Array) -> void:
+	var r := _bazar_frame(q)
+	var u := r.position.x
+	while u < r.end.x - 0.5:
+		var w := lerpf(2.6, 4.2, _bazar_rand(_w(u, 0.0), 1))
+		var u1 := minf(u + w, r.end.x)
+		if r.end.x - u1 < 1.8:
+			u1 = r.end.x
+		var cell := _rect((u + u1) * 0.5, r.get_center().y, (u1 - u) * 0.5, r.size.y * 0.5 + 0.5)
+		var pieces := Geometry2D.intersect_polygons(cell, q)
+		var spot := _w(u, r.position.y)
+		if not pieces.is_empty():
+			var piece := _largest(pieces)
+			if piece.size() >= 3 and absf(_area(piece)) > 2.0:
+				var g := _ground_under(piece)
+				_g = g
+				var top := g + lerpf(2.5, 3.3, _bazar_rand(spot, 2))
+				var wall := Color(BAZAR_WALLS[int(_bazar_rand(spot, 3) * BAZAR_WALLS.size()) % BAZAR_WALLS.size()])
+				var roof := Color(BAZAR_ROOFS[int(_bazar_rand(spot, 4) * BAZAR_ROOFS.size()) % BAZAR_ROOFS.size()])
+				_prism(piece, g - 0.2, top, wall, roof, M_STONE, M_STONE)
+				var whole := absf(_area(piece)) > 0.9 * (u1 - u) * r.size.y
+				if whole and r.size.y < 14.0:
+					var sv := -1.0 if _bazar_rand(spot, 5) < 0.5 else 1.0
+					var edge := r.get_center().y + sv * r.size.y * 0.5
+					var col := Color(BAZAR_AWNINGS[int(_bazar_rand(spot, 6) * BAZAR_AWNINGS.size()) % BAZAR_AWNINGS.size()])
+					var a0 := _w(u + 0.15, edge)
+					var a1 := _w(u1 - 0.15, edge)
+					var b0 := _w(u + 0.15, edge + sv * 1.3)
+					var b1 := _w(u1 - 0.15, edge + sv * 1.3)
+					var hi := top - 0.35
+					var lo := top - 0.9
+					var n := (Vector3(_b.x, 0.0, _b.y) * sv * 0.55 + Vector3.UP * 1.3).normalized()
+					_quad(Vector3(a0.x, hi, a0.y), Vector3(a1.x, hi, a1.y), Vector3(b1.x, lo, b1.y), Vector3(b0.x, lo, b0.y), n, col)
+					# the shop front under it: a dark opening, or a closed shutter
+					var open := _bazar_rand(spot, 7) < 0.7
+					_wall(_w(u + 0.4, edge + sv * 0.03), _w(u1 - 0.4, edge + sv * 0.03), g + 0.3, lo - 0.1, _b * sv,
+							BAZAR_DOOR if open else BAZAR_SHUTTER)
+					if open and _bazar_rand(spot, 8) < 0.6:
+						var cu := lerpf(u + 0.7, u1 - 0.7, _bazar_rand(spot, 9))
+						_lbox(cu, edge + sv * 0.75, 0.35, 0.28, g, g + 0.55, BAZAR_CRATE, M_STONE, BAZAR_CRATE.lightened(0.1))
+				_collide(piece)
+		u = u1
+
 
 # --- Zamek Ujazdowski ---------------------------------------------------------------------------
 
