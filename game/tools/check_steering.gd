@@ -117,6 +117,12 @@ func _plan() -> void:
 			_add({"name": "car_clip", "schemes": [s], "v0": 40 * KMH, "dur": 4.0, "kind": "wall", "heading": 0.0,
 					"cars": [[Vector3(1.3, 0.85, -14), Vector3(1.8, 1.5, 4.2)]], "past": -18.0})
 		if not legacy and s != "classic":
+			# G17: boxed in by four stopped cars (0.3 m of air ahead and behind, side by side): ghosts through the one
+			# ahead after 1.5 s and is past it well inside the 8 s a tow would take.
+			_add({"name": "car_sandwich", "schemes": [s], "v0": 0.0, "dur": 8.0, "kind": "wall", "heading": 0.0,
+					"cars": [[Vector3(0, 0.85, -4.4), Vector3(1.8, 1.5, 4.2)], [Vector3(0, 0.85, 4.4), Vector3(1.8, 1.5, 4.2)],
+					[Vector3(-1.85, 0.85, 0), Vector3(1.8, 1.5, 4.2)], [Vector3(1.85, 0.85, 0), Vector3(1.8, 1.5, 4.2)]],
+					"past": -10.0, "pin_max": 3.0})
 			_add({"name": "car_behind", "schemes": [s], "v0": 25 * KMH, "dur": 7.0, "kind": "wall", "heading": 0.0,
 					"cars": [[Vector3(0, 0.85, -12), Vector3(1.8, 1.5, 4.2)]], "past": -16.0})
 	if legacy:
@@ -713,7 +719,7 @@ func _m_wall() -> String:
 		# The corner is at (0, -14).
 		var d := Vector2(float(end["x"]), float(end["z"]) + 14.0).length()
 		out = ", %.1f m from the corner at the end" % d
-	var ok := end_speed >= 2.0 and longest <= 2.0
+	var ok := end_speed >= 2.0 and longest <= float(_test.get("pin_max", 2.0))
 	if _test.has("past"):
 		# The driving-feel loop: got past the thing (north of `past`) by the end, and how soon.
 		var past_t := -1.0
