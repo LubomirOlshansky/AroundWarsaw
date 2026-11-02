@@ -11,6 +11,7 @@ someone writes its lines.
 
 ## 2026-11-02
 - Police chases can be escaped for real: the patrol cars are a little slower than you now, so a flat-out run opens a gap and the chase ends at 100 m. And the radiowozy look like the real ones: a silver Toyota-style estate with the blue POLICJA band, checker strips and a blue bonnet, and a silver police van.
+- Marszałkowska has more street life: flower planters, bollards, kiosks and ad columns along the whole street, and tram stops with a bench, a stop sign and a ticket machine.
 - Level 26, the rooftop club on the Atlas Tower, is finally a club: a deck up on the roof with a glass balustrade, a glowing bar, a DJ booth under a lighting truss with an LED wall and speakers, lounge sofas, planters, warm festoon lamps and its name in violet neon, with the crowd dancing round it after 22:00
 - Pokorna 2, the tall block by Muranów, now reads as a block of flats: a window in every bay, a balcony and railing on every floor, warm plaster and a lift house on the roof.
 - Warsaw Spire has its real shape: a glass tower that widens upward from a lit lobby, a fin over its roof, the mirrored entrance canopy on V-shaped legs, its two curved 15-storey wings and the plaza in front.
