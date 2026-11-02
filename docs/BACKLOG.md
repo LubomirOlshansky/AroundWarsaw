@@ -57,8 +57,8 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
 - [ ] K3 Varso Place: street planting on Chmielna's side, roof terraces on Varso 1/2, trees on
   the tower's deck, and a parody name sign (default VERSO PLACE; never the real mark). Opus spec
   from photos, Sonnet build.
-- [ ] K4 Zielona Świętokrzyska (2018): count the scanned trees against the 194 planted, add the
-  big planters (Sonnet, small).
+- [x] K4 Zielona Świętokrzyska (2018): built, see docs/design/krajobraz-places.md (open for the Mac: a street photo
+  compare of the planters' places; trees stay as scanned).
 - [ ] K5 Rondo Daszyńskiego plazas: Skyliner's green passage (forest-like three tiers, wooden
   benches on terraces), Generation Park's and Mennica Legacy Tower's plazas (Sonnet, Opus spec).
 - [ ] K6 Browary Warszawskie's Central Garden over the Leżakownia and Norblin's candelabra
