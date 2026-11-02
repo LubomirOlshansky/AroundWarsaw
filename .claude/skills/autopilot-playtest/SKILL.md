@@ -50,7 +50,12 @@ per event, to its trace file:
 - Time limits on elapsed episode time, never on the game clock that keeps running.
 - Drive by waypoints along real streets (the road data in `game/map`, the codex), not compass
   headings: players follow streets.
-- After the run, frame-describer on the frames of every stop and height event.
+- **One street per option**, forced in turn (run 2's agent picked Marszałkowska every time and
+  never drove the other eight). A steering deadband of about 14° keeps it on the street.
+- A **stuck** is under 1.2 m/s for over 2 s with the gas held; when one lasts 10 s, reverse or
+  `--at=` back to the route and go on, so a trap costs time but doesn't end the run.
+- After the run, frame-describer on the frames of every stop and height event: a hard stop can
+  be a kerb, a tram island or just a traffic car, and only the picture tells.
 
 Don't change the project's files during a run; the game is acted on only through play.
 
@@ -66,7 +71,9 @@ Don't change the project's files during a run; the game is acted on only through
 4. Hand confirmed bugs to the coordinator (in a project thread: `message_coordinator`), one bug
    or one street's small batch per message, with the PT ids: the coordinator starts one fix
    thread per bug. Never fix in the playtest thread.
-5. Fix threads: prove the cause, fix, add the spot to a check where one fits, set `fixed (PR)`.
+5. Re-run the rows of an area whenever its map geometry changes (a bake, new kerbs, decks,
+   props): clipping and out-of-bounds bugs come back with geometry.
+6. Fix threads: prove the cause (with and without `--no-traffic`), fix, add the spot to a check where one fits, set `fixed (PR)`.
    The next run of that row sets `verified` or reopens it.
 
 ## Gotchas
