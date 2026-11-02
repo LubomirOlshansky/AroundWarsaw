@@ -3,6 +3,36 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Krajobraz places (F, 2026-11-02)
+
+F's ask: research the RS Architektura Krajobrazu projects inside the map (krajobraz.com.pl
+"wybrane": Bracka, Chmielna, Muzeum Historii Polski, Varso Place and the rest) with news and
+photos as well as the studio's pages, and bring each place up to how it looks now. Research,
+sources, the game's state and the build plan per place: docs/design/krajobraz-places.md. One
+fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
+- [x] K1 ul. Bracka (Al. Jerozolimskie to Krucza, the 2024 woonerf): 22 young trees planted in
+  its mapped beds (`tools/planted_trees.py`, 33 young trees in all, as the article counts).
+  Open for the Mac (QUESTIONS): the paving's colour, the beds' planting, a matched street photo.
+- [ ] K2 ul. Chmielna, Nowy Świat to Pasaż Wiecha (2024): granite slabs, 95 trees (two rows of
+  elms before Plac Pięciu Rogów), 64 benches and chairs, the small fountain by Kino Atlantic,
+  Ali's square (map, Opus spec; Sonnet build; a new PLACE in `planted_trees.py`).
+- [ ] K3 Varso Place: street planting on Chmielna's side, roof terraces on Varso 1/2, trees on
+  the tower's deck, and a parody name sign (default VERSO PLACE; never the real mark). Opus spec
+  from photos, Sonnet build.
+- [ ] K4 Zielona Świętokrzyska (2018): count the scanned trees against the 194 planted, add the
+  big planters (Sonnet, small).
+- [ ] K5 Rondo Daszyńskiego plazas: Skyliner's green passage (forest-like three tiers, wooden
+  benches on terraces), Generation Park's and Mennica Legacy Tower's plazas (Sonnet, Opus spec).
+- [ ] K6 Browary Warszawskie's Central Garden over the Leżakownia and Norblin's candelabra
+  planes and climbers (Sonnet; with "Norblin, Browary" below).
+- [ ] K7 Bulwary Wiślane stages 1-2: the 6 floating pavilions, the splash pool, the Vistula fish,
+  the amphitheatre and trampolines, checked against the orthophoto (Sonnet).
+- [ ] K8 Arkadia's playground (Al. Jana Pawła II 82, 2018): the ribbon rope course, trampolines,
+  the wooden bench-sculpture, lamps on cables (Sonnet, small).
+- [ ] K9 Stadion Narodowy's grounds: entrance avenues, tree rows, pollarded willows (Sonnet, small).
+- [ ] K10 Muzeum Historii Polski (Cytadela) lies ~0.7 km north of the map's north edge: parked
+  in QUESTIONS (grow the map or a skyline stand-in).
+
 ## The estate, the halls and Jana Pawła II (F, 2026-11-01)
 
 F asked for Osiedle Za Żelazną Bramą, Hala Mirowska and every building along Aleja Jana Pawła II to
