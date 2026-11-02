@@ -135,7 +135,7 @@ const PADEL_MAX := 14
 ## The food hype (docs/design/gaulle-and-food-hype.md G3, G4): KUKŁA's crêpe queue (storefront
 ## venues, Storefronts.HYPE) is never short while it is open, 9:00-21:00: 8 in the morning, 30 at
 ## lunch (12-15) and on weekend afternoons, 14 otherwise; tag "kolejka". HOTEL PIURE's door has
-## the evening line for the lift up to LUŹNO, the date bar on its roof: 18:00-01:00, 10 (16 on
+## the evening line for the lift up to LORETKA, the date bar on its roof: 18:00-01:00, 10 (16 on
 ## Friday and Saturday), in twos, tag "timber".
 const KUKLA := ["kukla_marszalkowska", "kukla_nowy_swiat"]
 ## G5: the "Cringulo effect" (trend_job.gd's "Mlask"): a reviewed place's queue at its longest
@@ -143,6 +143,12 @@ const KUKLA := ["kukla_marszalkowska", "kukla_nowy_swiat"]
 const KUKLA_MAX := 30
 const PIURE_ID := "hotel_piure"
 const PIURE_MAX := 16
+## F (2026-11-01): LORETKA's summer terrace on HOTEL PIURE's roof, couples on its poufs
+## (landmarks.gd `loretka_plan`, the same seats the model builds): May to September, dry
+## evenings 17:00-01:00, every seat on Friday and Saturday, 10 otherwise.
+const LORETKA_ID := "loretka_terrace"
+const LORETKA_WEEKNIGHT := 10
+const Landmarks := preload("res://scripts/landmarks.gd")
 const ROOF_ID := "level_26"
 ## F's asks (2026-10-30): Level 26's queue at the tower's ground-floor door (a queue site of its
 ## own, not a places.json id), its longest line (short: the lift takes eight at a time), the
@@ -187,12 +193,31 @@ const BULWARY := {
 	"chill_bulwary_8": [Vector2(640.0, -632.0), 18, 30.0],
 	"chill_bulwary_9": [Vector2(690.0, -590.0), 16, 30.0],
 }
+## Nowy Świat pass 2 (2026-11-02): the café street's pavements, people at the terraces and between
+## the shops, on the chill curve (a lunch crowd that fills towards a long evening). id -> [spot (the
+## café terraces the street details put on its pavement), most people, radius]. The same machinery
+## as CHILL. Spots read off street_details.json's café sets.
+const NOWY_SWIAT := {
+	"chill_nowy_1": [Vector2(-412.0, -296.0), 12, 20.0],
+	"chill_nowy_2": [Vector2(-380.0, -331.0), 12, 20.0],
+	"chill_nowy_3": [Vector2(-386.0, -231.0), 10, 20.0],
+	"chill_nowy_4": [Vector2(-356.0, -72.0), 12, 22.0],
+}
 ## The boulevard's reach (m) round a BULWARY spot: the view this near it is "on the boulevards".
 const BULWARY_R := 90.0
 ## KROWA 2.0, the milk bar in Norblin (our parody; a bar mleczny rebuilt as a start-up): it opens
 ## 8:00-18:00 and its line is long at lunch. Same trend-queue machinery as KUKŁA, tag "kolejka".
 const MILK := ["krowa_norblin"]
 const MILK_MAX := 26
+## DALEJ DALLA GELATO, the Powiśle ice-cream parlour (F, 2026-11-01; "dalej" = move along, the
+## queue's word): the joke is that Poland queues for lody all year. Open 11:00-21:00, never under
+## 12 in the queue even in snow (tag "lody_zima", the crowd in winter coats), 24 on summer
+## afternoons and weekends (tag "lody"). Same trend-queue machinery as KUKŁA.
+const GELATO := ["dalej_gelato"]
+const GELATO_MAX := 24
+const GELATO_WINTER_MIN := 12
+## The winter queue's coats: black and navy puffers, a mustard one, a cream one, a red scarf's worth.
+const COATS := ["#1f1f22", "#1c2230", "#2b2c2f", "#3a3b3f", "#c9a23a", "#e8e4d8", "#8a2b2b", "#2f4f4a"]
 ## vision 4.5's hour curves (the hour's whole part; missing hours are 0). Lusterko's 09-12 is 0.5
 ## on a Sunday only (`queue_factor`).
 const CURVES := {
@@ -231,6 +256,7 @@ enum { STAND, SIT, BROAD }
 ## The "Cringulo effect": trend site id -> the weekday it was reviewed on (cringulo_boost).
 var cringulo := {}
 var _weekday_now := 0
+var _month_now := 7
 ## The view's focus (the camera's), -> Vector3.
 var focus: Callable
 ## The game clock, -> {hour, weekday} (time_of_day.gd local_clock).
@@ -429,6 +455,19 @@ static func milk_queue(hour: float, weekday: int) -> Array:
 	return [10, "kolejka"]
 
 
+## DALEJ DALLA GELATO's line now: [people, tag]. 11:00-21:00; a winter month (Nov-Mar) keeps at
+## least GELATO_WINTER_MIN and peaks at 18 on a weekend afternoon (tag "lody_zima"); summer peaks
+## at GELATO_MAX in the afternoon (tag "lody").
+static func gelato_queue(hour: float, weekday: int, month: int) -> Array:
+	if hour < 11.0 or hour >= 21.0:
+		return [0, ""]
+	var winter := month >= 11 or month <= 3
+	var peak := (hour >= 14.0 and hour < 19.0) or weekday >= 6
+	if winter:
+		return [18 if peak and weekday >= 6 else GELATO_WINTER_MIN, "lody_zima"]
+	return [GELATO_MAX if peak else 14, "lody"]
+
+
 ## The dawn crowd is out: 05:00-09:00 on a Saturday or Sunday in Live, or in the Dawn look.
 static func dawn_time(hour: float, weekday: int, live: bool, look: String) -> bool:
 	if hour < 5.0 or hour >= 9.0:
@@ -496,7 +535,7 @@ static func kukla_queue(hour: float, weekday: int) -> Array:
 	return [14, "kolejka"]
 
 
-## HOTEL PIURE's line for the lift to LUŹNO now: [people, "timber"]. Evenings 18:00 to 01:00
+## HOTEL PIURE's line for the lift to LORETKA now: [people, "timber"]. Evenings 18:00 to 01:00
 ## (hours past midnight count from the evening before: 24-25), longer on Friday and Saturday.
 static func piure_queue(hour: float, weekday: int) -> Array:
 	var late := hour < 1.0
@@ -504,6 +543,17 @@ static func piure_queue(hour: float, weekday: int) -> Array:
 		return [0, ""]
 	var day := (weekday + 5) % 7 + 1 if late else weekday
 	return [PIURE_MAX if day == 5 or day == 6 else 10, "timber"]
+
+
+## LORETKA's terrace now: how many sit there (an even number: they come in twos), of `seats`.
+static func loretka_terrace(hour: float, weekday: int, month: int, rain: bool, seats: int) -> int:
+	if rain or month < 5 or month > 9:
+		return 0
+	var late := hour < 1.0
+	if not late and hour < 17.0:
+		return 0
+	var day := (weekday + 5) % 7 + 1 if late else weekday
+	return seats if day == 5 or day == 6 else mini(LORETKA_WEEKNIGHT, seats)
 
 
 ## The car at the door: near and slow, on the ground.
@@ -539,10 +589,18 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		var ll: Array = Storefronts.TRENDY[vid]
 		_add_site({"id": vid, "kind": "trend", "max": PISTACJA_MAX if vid == PISTACJA_ID else PADEL_MAX, "tag": "",
 				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
-	for vid: String in KUKLA + [PIURE_ID] + MILK:
+	for vid: String in KUKLA + [PIURE_ID] + MILK + GELATO:
 		var ll: Array = Storefronts.HYPE[vid]
-		_add_site({"id": vid, "kind": "trend", "max": PIURE_MAX if vid == PIURE_ID else (MILK_MAX if vid in MILK else KUKLA_MAX), "tag": "",
+		_add_site({"id": vid, "kind": "trend", "max": PIURE_MAX if vid == PIURE_ID else (MILK_MAX if vid in MILK else (GELATO_MAX if vid in GELATO else KUKLA_MAX)), "tag": "",
 				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
+	var lor := Landmarks.loretka_plan(data)
+	if not lor.is_empty():
+		var lo: PackedVector2Array = lor["outline"]
+		var mid := Vector2.ZERO
+		for q in lo:
+			mid += q
+		_add_site({"id": LORETKA_ID, "kind": "terrace", "at": mid / float(lo.size()), "max": (lor["seats"] as Array).size(),
+				"plan": lor})
 	if at.has(ROOF_ID):
 		_add_site({"id": ROOF_ID, "kind": "roof", "at": at[ROOF_ID], "max": ROOF_MAX, "curve": "roof"})
 		_add_site({"id": ROOF_DOOR_ID, "kind": "queue", "at": at[ROOF_ID], "max": ROOF_DOOR_MAX, "curve": "roof",
@@ -558,6 +616,7 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		_add_site({"id": STEPS_ID, "kind": "steps", "at": at[STEPS_ID], "max": STEPS_MAX})
 	var yards := CHILL.duplicate()
 	yards.merge(BULWARY)
+	yards.merge(NOWY_SWIAT)
 	for cid: String in yards:
 		var cs: Array = yards[cid]
 		_add_site({"id": cid, "kind": "chill", "at": cs[0], "max": int(cs[1]), "radius": float(cs[2])})
@@ -772,6 +831,8 @@ func _place_site(s: Dictionary) -> void:
 			_place_stop(s)
 		"roof":
 			_place_roof(s)
+		"terrace":
+			_place_terrace(s)
 		"deck":
 			_place_deck(s)
 
@@ -956,6 +1017,23 @@ static func roof_ring(at: Vector2, top: float, roof: Callable, rays: int) -> Arr
 		if last >= 0.0:
 			out.append([at + dir * (last + 0.5), dir, h])
 	return out
+
+
+## LORETKA's terrace: a seat each from the plan, on the deck (the hotel's height over its lowest
+## ground, as landmarks.gd builds it, + the deck's 0.12 m), table by table, in bright clothes.
+func _place_terrace(s: Dictionary) -> void:
+	var plan: Dictionary = s["plan"]
+	s["door"] = s["at"]
+	var g := INF
+	for q: Vector2 in plan["outline"]:
+		g = minf(g, map.terrain_height(q.x, q.y) if map != null else 0.0)
+	var y := g + float(plan["h"]) + 0.12
+	var slots: Array = []
+	var k := 0
+	for st: Array in plan["seats"]:
+		slots.append({"p": st[0], "y": y, "pose": SIT, "yaw": float(st[1]), "shirt": BRIGHT[(k * 3 + 1) % BRIGHT.size()]})
+		k += 1
+	s["slots"] = slots
 
 
 ## Level 26: the tower's outline (`roof_ring`), the figures RING_IN m inside it (on the roof
@@ -1224,8 +1302,10 @@ func _figures(s: Dictionary) -> Array:
 			for k in mini(n, line.size() - 1):
 				var p := line[k] + Vector2(rng.randf_range(-0.12, 0.12), rng.randf_range(-0.12, 0.12))
 				var to := (line[maxi(k - 1, 0)] - line[k + 1]).normalized()
-				out.append([_ground(p), atan2(-to.x, -to.y) + rng.randf_range(-0.5, 0.5), STAND,
-						Color(BRIGHT[rng.randi() % BRIGHT.size()]), rng.randf() * 0.99])
+				var shirt := Color(BRIGHT[rng.randi() % BRIGHT.size()])
+				if str(s["id"]) in GELATO and (_month_now >= 11 or _month_now <= 3):
+					shirt = Color(COATS[rng.randi() % COATS.size()])
+				out.append([_ground(p), atan2(-to.x, -to.y) + rng.randf_range(-0.5, 0.5), STAND, shirt, rng.randf() * 0.99])
 		"steps":
 			var slots: Array = s["slots"]
 			for k in mini(n, slots.size()):
@@ -1234,13 +1314,13 @@ func _figures(s: Dictionary) -> Array:
 			if bool(s.get("guitar_on", false)):
 				var face: Vector2 = s["face"]
 				out.append([_ground(s["guitar"]), atan2(-face.x, -face.y), SIT, GUITAR_SHIRT, 0.0])
-		"plan_c", "roof", "chill", "deck", "stop":
+		"plan_c", "roof", "terrace", "chill", "deck", "stop":
 			var slots: Array = s["slots"]
 			for k in mini(n, slots.size()):
 				var sl: Dictionary = slots[k]
 				var p: Vector2 = sl["p"]
 				var y := float(sl["y"]) if sl.has("y") else _ground(p).y
-				out.append([Vector3(p.x, y, p.y), sl["yaw"], STAND, Color(sl["shirt"]), rng.randf() * 0.99])
+				out.append([Vector3(p.x, y, p.y), sl["yaw"], int(sl.get("pose", STAND)), Color(sl["shirt"]), rng.randf() * 0.99])
 	if s.get("officer", Vector3.INF) != Vector3.INF:
 		out.append([s["officer"], float(s.get("officer_yaw", 0.0)), STAND, OFFICER_SHIRT, OFFICER_TROUSERS])
 	return out
@@ -1316,6 +1396,7 @@ func tick(step: float) -> void:
 	_weekday_now = weekday
 	var live := bool(cal.get("live", false))
 	var month := int(cal.get("month", 7)) if live else 7
+	_month_now = month
 	var rain := bool(cal.get("rain", false))
 	var look := str(cal.get("look", "Day"))
 	var sunset := float(cal.get("sunset", 19.5))
@@ -1340,6 +1421,10 @@ func tick(step: float) -> void:
 					want = 0
 				else:
 					want = queue_len(int(s["max"]), str(s["curve"]), hour, weekday, k)
+			"terrace":
+				var seats := int(s["max"])
+				want = loretka_terrace(hour, weekday, month, rain, seats)
+				want = mini(2 * roundi(want * k * 0.5), seats)
 			"steps":
 				steps_lvl = steps_level(hour, month, rain, sunset)
 				want = roundi(STEPS_MAX * k * steps_lvl)
@@ -1363,6 +1448,8 @@ func tick(step: float) -> void:
 					q = kukla_queue(hour, weekday)
 				elif s["id"] in MILK:
 					q = milk_queue(hour, weekday)
+				elif s["id"] in GELATO:
+					q = gelato_queue(hour, weekday, month)
 				elif s["id"] == PIURE_ID:
 					q = piure_queue(hour, weekday)
 				elif trend.is_valid():

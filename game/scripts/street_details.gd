@@ -18,11 +18,11 @@ const FILE := "res://data/street_details.json"
 const CELL := 512.0
 ## Footprint halves (x, z) of the pad under a tall prop, and of the car's box for the solid ones.
 const PAD := {"kiosk": Vector2(1.6, 1.2), "stall": Vector2(1.4, 1.0), "cafe": Vector2(1.4, 1.4),
-		"cart": Vector2(1.0, 0.7), "column": Vector2(0.7, 0.7)}
+		"cart": Vector2(1.0, 0.7), "column": Vector2(0.7, 0.7), "heater": Vector2(0.4, 0.4)}
 const SOLID := {"kiosk": Vector2(1.45, 1.1), "stall": Vector2(1.2, 0.9), "cart": Vector2(0.9, 0.6)}
 ## Per-sector and total limits (the budget in the spec); check_street_details.gd holds the file to them.
 const MAX_ITEMS := 900
-const MAX_SECTOR := 70
+const MAX_SECTOR := 100
 ## A stop kit item whose colour is this stands on a tram island (map `platforms`: a 0.9 m slab and
 ## its 0.1 m top above the lowest ground of its outline), not on the paving.
 const ON_PLATFORM := "platform"
@@ -68,6 +68,8 @@ static func add_item(st: SurfaceTool, kind: String, xf: Transform3D, colour: Str
 			Props.add_ticket_machine(st, xf)
 		"bench":
 			Props.add_stop_bench(st, xf)
+		"heater":
+			Props.add_patio_heater(st, xf)
 
 
 ## Builds the meshes and the colliders; `map` gives the ground (map_builder.ground_height).

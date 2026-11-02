@@ -10,13 +10,18 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 | Lane | Item | Session | Since |
 | --- | --- | --- | --- |
-| landmarks | One landmark per thread (now the Cathedral and the Barbican); order in BACKLOG "Landmarks lane, hand-over" | fresh Sonnet threads | 2026-10-31 |
+| landmarks | One landmark per thread (the Cathedral and the Barbican are done; Poniatowski, MDM and the missing towers wait on photos, see Waiting); order in BACKLOG "Landmarks lane, hand-over" | fresh Sonnet threads | 2026-10-31 |
 | landmarks, map, gameplay | The railway: stations, track, catenary, trains (docs/design/railway.md) | cloud thread "Build railway stations and city rail lines" | 2026-11-01 |
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
+- **2026-11-02 · map · Plac Zbawiciela cafés and church night (pass 5)** — Mac look check: the four neon cafés (`Storefronts.ZBAWICIELA`) on the real doors, the six parasol terraces in front of the MDM blocks (spots from the outlines: `TERRACES` in `bake_street_details.py`), and the church at night (lit crosses, amber rose, floodlamps; is the real church floodlit?). Built default: parody names, no heaters or awnings. Own photos of the square's real cafés would settle the doors.
 - **2026-11-02 · content · Nowy Świat shopfronts** — Mac look check for the eight signs (`Storefronts.NOWY_SWIAT`): each sits on a wall chosen from the road line, not a real door, so move any that land on a gap, a side street or the wrong side; are the pastel tubes readable at dusk beside the KUKŁA and NERWO signs? Still open (needs photos/orthophoto): per-house plaster colours, real shop awnings, café gardens, the Visitation and Staszic ends. Default built: neon only, no queues, no notebook cards.
+- **2026-11-02 · content · Krakowskie Przedmieście shopfronts** — Mac look check for the eight signs (`Storefronts.KRAKOWSKIE`): each sits on the wall nearest a mapped house number, not a real door, so move any that land on a gap, a side street or the wrong side. Open (photos): real awnings, café gardens, a carriage rank. Default built: neon only, no queues, no notebook cards.
+- **2026-11-02 · landmarks · Most Poniatowskiego deck, MDM blocks, missing towers** — three lane items stopped for lack of photos (the cloud has none and no LoD2): (1) 1.8 the bridge's steel arches and balustrades: the deck is `map_builder` geometry and the towers are already built (`_build_towers`), so arches need real photos of the span; (2) 2.8 MDM and Plac Konstytucji arcades, reliefs, corner towers; (3) 2.9 Pekao Tower, Warsaw Towers, Prosta Tower, V Tower: the OSM towers have no names, so which tall outline is which needs your word or a photo (never name Bank Pekao: parody name please). Default built: nothing; the generic towers stay. Send a few free or own photos per item and a thread builds them.
+- **2026-11-02 · content · Nowy Świat shopfronts** — Mac look check for the eight signs (`Storefronts.NOWY_SWIAT`): each sits on a wall chosen from the road line, not a real door, so move any that land on a gap, a side street or the wrong side; are the pastel tubes readable at dusk beside the KUKŁA and NERWO signs? Still open (needs photos/orthophoto): whether the new per-house plaster palette (`NOWY_PASTELS`, pass 2, a guess) matches the real houses, real shop awnings, café gardens, the Visitation and Staszic ends. Default built: neon only, no queues, no notebook cards.
 - **2026-11-02 · gameplay · Police chases** — Phone check: with chasers at 0.8 of your top speed and the escape at 100 m, does a flat-out run lose them in about 15 s without feeling free? (`CHASE_TOP` in `police/police_unit.gd`, `ESCAPE_DIST` in `police.gd`.) And a look at the new silver radiowóz estate and the silver police van against the photos: band height, checker strip, bonnet panel, the van's black mesh window. Built default: 24 m/s, 100 m.
+- **2026-11-02 · map · Marszałkowska shopfronts (pass 4)** — Mac look check of the eight neon signs (milk bar, dry cleaner, watchmaker, pastry shop, optician, florist, haberdashery, herbalist) on Marszałkowska 140, 124, 85, 83, 62, 58, 53, 43: on a wall, readable, at a plausible door? Also your own photos for per-house plaster colours, cornices and the zebras/cycle crossings (no free photos in the cloud). Default built: signs snapped to the mapped addresses.
 - **2026-11-02 · map · Marszałkowska street details** — Mac/phone look check: the new tram-island kits (a bench, a stop post, a ticket machine on the slab of the islands by Świętokrzyska and south of the Rotunda; are they on the slab, not sunk or floating, and facing the tracks?), the planters, bollards, kiosks and columns now on Marszałkowska north of Świętokrzyska and south of the Rotunda (C9, C10: clutter or life at camera size 80?). Also photos for the crossings (zebras and the cycle crossings against real Marszałkowska), the facades and shopfronts house by house. Default built: the bake's placement.
 - **2026-11-01 · landmarks · Stadion Leguminy** — Mac look check for the Legia ground on Łazienkowska (built in the cloud with no photo): facade colours (default: light-grey and graphite panels under a graphite band, a red line and a green band), the roof's opening size (default 160 x 122 m round the pitch), seat colours (default white, green, red blocks), where the four floodlight masts really stand, and whether the south and east LEGUMINA signs read at night. The 20 m west stand and the 5.4 m footprint are not modelled separately. Parody name chosen because the club name is a brand; say if the real place name should be used.
 
@@ -46,6 +51,21 @@ One session per lane. Add a row when you start an item, remove it when the item 
 
 Newest first. One entry per question.
 
+- **2026-11-01 · landmarks · Mac photo checks: the estate and the stalls** — Built from OSM
+  outlines without photos. Check on the Mac: Osiedle Za Żelazną Bramą's real panel colours and
+  whether the loggias stack in bays or run in bands (docs/landmarks/specs/zelazna.md), the high
+  block (its outline is a wedge), the low pavilions between the slabs, and where the market
+  stalls really stand on Plac Mirowski. Also Jana Pawła II's plasters against photos.
+- **2026-11-01 · map · Łazienki Królewskie** — The Palace on the Isle (about x 784, z 2101) and the Chopin monument (about x 307, z 2012) are 280-370 m south of the map's edge (z 1736). Default built: the three parks inside the map got their pieces; the `peacock` prop waits. Alternative: extend the map south (map-engineer, Opus), then add the palace, the monument, peacocks and squirrels.
+- **2026-11-01 · visuals · parks: Mac look check** — Built in the cloud on flat ground. Please look at the carousel (`--at=-1571,-1475`), the Park Ujazdowski pond with its swans and bridge (`--at=165,1450`), Saski's statues (`--at=-946,-627`): are the pieces' scale and the spots right, do the seated people read on the benches. Default built: as is.
+- **2026-11-01 · map · the start area's last two items need the Mac** — R8 and R3 part 2 of
+  docs/design/start-area-real.md can't be placed from the cloud (no photos, no orthophoto there).
+  R8: from refs/msn/2.jpg and 4.jpg, where the museum's mid-height dark ribbon runs and where it
+  breaks on each long face (metres from the north end), and how far and where the roofline steps
+  down near the south end. R3 part 2: from the orthophoto, the kerb line, Złota's sett street and
+  elm alley, the fountain at the old tunnel mouth and the three new crossings on Marszałkowska.
+  Default built: the ribbon all round, the flat roofline, today's kerbs and crossings. A Mac
+  session with the photos (model-from-photos skill) can measure and build both.
 - **2026-11-01 · landmarks · MDM arcades, towers, reliefs: Mac look check** — Built in the cloud
   (flat ground, no LoD2, no photo). Default built (`_build_mdm`, spec mdm.md): arcades with square
   piers every 5.4 m, 2.9 m deep, 6.7 m high on the facades that face the square or the axis; four
@@ -137,8 +157,9 @@ Newest first. One entry per question.
   the map, D-pad zoom / radio / flash. Say if any should move once you try a pad.
 - **2026-11-01 · content · parody names for the food-hype lore** — Default built: TIMBER (dating
   app, F's pick), Cringulo (food blogger, F's pick) with his grade MLASK (not the real catchphrase),
-  KUKŁA (crêpes), KOSZTA COFFEE, GREEN CAFFE NERWO, HOTEL PIURE with its rooftop bar LUŹNO, ROBUR on
-  Dom Partii's roof, the bars NEWTWICE, ZAMĘT and PIONEK. Say if any should change (fallback for
+  KUKŁA (crêpes), KOSZTA COFFEE, GREEN CAFFE NERWO, HOTEL PIURE with its rooftop bar LORETKA (F's pick), ROBUR on
+  Dom Partii's roof, the bars NEWTWICE, ZAMĘT and PRZEGRYWKI (Zagrywki: F asked for it, kept a
+  parody), the burger chain WACZEK (an upside-down W; Warsaw calls the real one "Maczek"). Say if any should change (fallback for
   Cringulo: "Mlaskacz"). docs/design/gaulle-and-food-hype.md section 2.
 
 - **2026-11-01 · visuals · pavement colour** — R3 (docs/design/start-area-real.md) made the mapped
