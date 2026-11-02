@@ -44,6 +44,8 @@ const WIDE := 320.0
 const MAX_WAIT := 6.0
 const PAD := 8.0
 const TAIL := 10.0
+## PT-9: the longest tail, in points: a bubble that had to move away from its speaker still points at it.
+const REACH := 150.0
 ## The HUD's card recipe (hud.gd CARD_BG) and its text colours.
 const CARD_BG := Color(0.07, 0.06, 0.1, 0.94)
 const INK := Color("#fbf7ee")
@@ -341,13 +343,12 @@ func _clear(rect: Rect2, placed: Array[Rect2], area: Rect2) -> Array:
 	return [best, best_d < INF]
 
 
-func _draw_bubble(b: Dictionary, font: Font, at: Vector2, rect: Rect2, m: Dictionary) -> void:
-	var age: float = b["age"]
-	var alpha := clampf((float(b["life"]) - age) / FADE, 0.0, 1.0) * clampf(age / 0.12, 0.0, 1.0)
-	var size: Vector2 = m["size"]
-	var tail := TAIL * pt
-	# The tail: from the edge facing the speaker (the lower edge, unless the bubble had to
-	# move beside it), towards the speaker, shortened when far.
+## PT-9: the tail of a bubble at `rect` for a speaker at `at`: [foot, outward direction, tip].
+## It leaves the edge facing the speaker (the lower edge, unless the bubble had to move beside
+## it) and runs all the way to the speaker, up to REACH points (a bubble kept clear of the HUD
+## used to get a stub of 22 pt that ended in the air away from its car); further, it points the
+## way and stops there.
+func tail_geometry(at: Vector2, rect: Rect2) -> Array:
 	var inner := rect.grow(-10.0 * pt)
 	var out := Vector2(0, 1)
 	var foot := Vector2(clampf(at.x, inner.position.x, inner.end.x), rect.end.y - 1.0 * pt)
@@ -357,9 +358,29 @@ func _draw_bubble(b: Dictionary, font: Font, at: Vector2, rect: Rect2, m: Dictio
 	elif at.y < rect.end.y and at.x < rect.position.x:
 		out = Vector2(-1, 0)
 		foot = Vector2(rect.position.x + 1.0 * pt, clampf(at.y, inner.position.y, inner.end.y))
-	var tip := foot + (at - foot).limit_length(tail * 2.2)
+	elif at.y < rect.position.y:
+		# The bubble sits below its speaker (kept clear of the HUD): the tail goes up.
+		out = Vector2(0, -1)
+		foot = Vector2(clampf(at.x, inner.position.x, inner.end.x), rect.position.y + 1.0 * pt)
+	var tip := foot + (at - foot).limit_length(REACH * pt)
 	if (tip - foot).dot(out) < 3.0 * pt:
-		tip = foot + out * tail
+		tip = foot + out * TAIL * pt
+	return [foot, out, tip]
+
+
+## How far the tail's tip is from the speaker (0 when it reaches); for tools/check_hud.gd.
+func tail_gap(at: Vector2, rect: Rect2) -> float:
+	return (tail_geometry(at, rect)[2] as Vector2).distance_to(at)
+
+
+func _draw_bubble(b: Dictionary, font: Font, at: Vector2, rect: Rect2, m: Dictionary) -> void:
+	var age: float = b["age"]
+	var alpha := clampf((float(b["life"]) - age) / FADE, 0.0, 1.0) * clampf(age / 0.12, 0.0, 1.0)
+	var size: Vector2 = m["size"]
+	var geo := tail_geometry(at, rect)
+	var foot: Vector2 = geo[0]
+	var tip: Vector2 = geo[2]
+	var out: Vector2 = geo[1]
 	var side := Vector2(-out.y, out.x) * 5.0 * pt
 	draw_colored_polygon(PackedVector2Array([foot - side * 1.3, foot + side * 1.3, tip + (tip - foot).normalized() * 1.2 * pt]),
 			Color(1, 1, 1, 0.3 * alpha))
@@ -379,10 +400,28 @@ func _draw_bubble(b: Dictionary, font: Font, at: Vector2, rect: Rect2, m: Dictio
 				Color(accent.lerp(Color.WHITE, 0.15), alpha))
 		y += float(m["name_h"])
 	var line: String = b["line"]
-	var shown := line.substr(0, int(age * TYPE_RATE)) if age < float(b["typing"]) else line
 	var ls := _px(LINE_SIZE)
-	draw_multiline_string(font, Vector2(x, y + font.get_ascent(ls)), shown, HORIZONTAL_ALIGNMENT_LEFT, w + 1.0, ls, -1, Color(INK, alpha))
+	if age < float(b["typing"]):
+		_draw_typing(font, Vector2(x, y), line, int(age * TYPE_RATE), w + 1.0, ls, Color(INK, alpha))
+	else:
+		draw_multiline_string(font, Vector2(x, y + font.get_ascent(ls)), line, HORIZONTAL_ALIGNMENT_LEFT, w + 1.0, ls, -1, Color(INK, alpha))
 	y += float(m["line_h"]) + 2.0 * pt
 	if b["sub"] != "" and age >= float(b["typing"]) * 0.5:
 		var ss := _px(SUB_SIZE)
 		draw_multiline_string(font, Vector2(x, y + font.get_ascent(ss)), b["sub"], HORIZONTAL_ALIGNMENT_LEFT, w + 1.0, ss, -1, Color(SUB, alpha))
+
+
+## PT-9: the first `n` characters of `line`, on the lines of the WHOLE line. Wrapping only the typed
+## prefix moved a half-typed word down to the next line and back, so a bubble showed words cut off
+## and jumping about; here every word stays where it will end up.
+func _draw_typing(font: Font, top: Vector2, line: String, n: int, width: float, size: int, colour: Color) -> void:
+	var para := TextParagraph.new()
+	para.add_string(line, font, size)
+	para.width = width
+	var y := top.y
+	for i in para.get_line_count():
+		var r := para.get_line_range(i)
+		var shown := clampi(n - r.x, 0, r.y - r.x)
+		if shown > 0:
+			draw_string(font, Vector2(top.x, y + para.get_line_ascent(i)), line.substr(r.x, shown), HORIZONTAL_ALIGNMENT_LEFT, -1, size, colour)
+		y += para.get_line_size(i).y
