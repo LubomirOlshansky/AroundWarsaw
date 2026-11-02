@@ -50,7 +50,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 **C** texture (named tenements, offices, embassies, small institutions) in Part 2 only.
 
 <!-- counts:start -->
-**Counts** (Part 1, 144 ranked rows): ★ 18 photo builds · ◐ 54 outline builds · ○ 23 dress only · ⏳ 8 in progress · ✗ 41 not done. Part 2 adds 543 named outlines (tier C): 19 with a model of their own, 74 dressed or named in the game, 450 plain blocks. From OpenStreetMap points (the monuments and plaques stand as generic pieces from tools/bake_monuments.py since 2026-11-02, the rest are not baked): 216 monuments and sculptures, 26 murals, 267 bars and clubs, 102 museums and galleries, 38 theatres and cinemas, 4 malls, 34 hotels, 688 plaques and memorial stones (the named office buildings are already outlines above).
+**Counts** (Part 1, 144 ranked rows): ★ 20 photo builds · ◐ 54 outline builds · ○ 23 dress only · ⏳ 8 in progress · ✗ 39 not done. Part 2 adds 543 named outlines (tier C): 19 with a model of their own, 74 dressed or named in the game, 450 plain blocks. From OpenStreetMap points (the monuments and plaques stand as generic pieces from tools/bake_monuments.py since 2026-11-02, the rest are not baked): 216 monuments and sculptures, 26 murals, 267 bars and clubs, 102 museums and galleries, 38 theatres and cinemas, 4 malls, 34 hotels, 688 plaques and memorial stones (the named office buildings are already outlines above).
 <!-- counts:end -->
 
 ## Part 1. The ranked list
