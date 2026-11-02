@@ -89,6 +89,8 @@ var main_pl := ""
 var main_en := ""
 var side_spots := PackedVector2Array()
 var side_colours := PackedColorArray()
+## G11: each place's shape (hud.gd POI_*), parallel to side_spots.
+var side_shapes := PackedInt32Array()
 ## The minimap's night (kept for hud.gd; the full map has one look day and night).
 var night := 0.0
 ## Loop 3h slice 1: districts.gd `view()` (names, label point, polygons, found, pct) and the total %.
@@ -127,8 +129,9 @@ var _legend_icons: Array[Control] = []
 ## The legend's icons are drawn here, on top of its card (the overlay is under the cards).
 var _legend_art: Control
 ## The legend's rows: [Polish · English]; their icons in order: the star, the ringed dot, the
-## square, the "?".
-const LEGEND := ["główny wątek · main line", "zlecenie · side job", "start zlecenia · job spot", "nieodkryte · not found yet"]
+## kebab stand's badge, the station's triangle, the garage's diamond, the metro's pin, the "?".
+const LEGEND := ["główny wątek · main line", "zlecenie · side job", "kebab · kebab stand", "stacja · job station",
+		"warsztat · garage", "metro · underground", "nieodkryte · not found yet"]
 ## For checks: the last spot teleported to (INF: none).
 var last_teleport := Vector2.INF
 var _overlay: Control
@@ -179,6 +182,7 @@ func _build() -> void:
 	_minor_mesh = m["minor"]
 	_edge_mesh = m["edge"]
 	icons = MapIcons.place(landmarks, data.get("palm", []), prepared["bridges"])
+	icons.append_array(MapIcons.place_extras(data.get("pois", [])))
 	prepared = {}  # its arrays are in the meshes now
 	print("full map: built in %.0f ms, %d icons" % [(Time.get_ticks_usec() - t0) / 1000.0, icons.size()])
 	_paper = ColorRect.new()
@@ -454,7 +458,7 @@ func rects() -> Dictionary:
 
 ## The legend's icons, in its rows' order, on top of its card (one batch of their own).
 func _paint_legend() -> void:
-	if not _legend.visible or _legend_icons.size() != 4:
+	if not _legend.visible or _legend_icons.size() != LEGEND.size():
 		return
 	var ic: Array[Vector2] = []
 	for c in _legend_icons:
@@ -462,10 +466,11 @@ func _paint_legend() -> void:
 	hud._tri_begin()
 	hud.main_star(ic[0], 1.2)
 	hud.side_pin(ic[1], 1.2, Color("#ff8a3d"))  # jobs.gd KEBAB_COLOUR
-	var half := 3.4 * pt
-	hud._tri_rect(Rect2(ic[2] - Vector2.ONE * (half + 1.2 * pt), Vector2.ONE * (half + 1.2 * pt) * 2.0), hud.OUTLINE)
-	hud._tri_rect(Rect2(ic[2] - Vector2.ONE * half, Vector2.ONE * half * 2.0), Color("#ff8a3d"))
-	hud._tri_question(ic[3], 1.3)
+	hud.poi_mark(ic[2], 5.4 * pt, Color("#ff8a3d"), MapIcons.POI_KEBAB)
+	hud.poi_mark(ic[3], 5.4 * pt, Color("#4fd8c4"), MapIcons.POI_STATION)  # jobs.gd SLOIK_COLOUR
+	hud._tri_diamond(ic[4], 4.6 * pt, Color("#5aa0ff"))  # garage.gd GARAGE_COLOUR
+	MapIcons.paint(hud, "metro", MapIcons.METRO, ic[5] + Vector2(0.0, 8.0 * pt), 6.2 * pt)
+	hud._tri_question(ic[6], 1.3)
 	hud._tri_flush(_legend_art)
 
 
@@ -613,10 +618,8 @@ func _paint() -> void:
 	for i in side_spots.size():
 		var at := to_screen(side_spots[i])
 		if view.has_point(at):
-			var half := 3.6 * pt
-			hud._tri_rect(Rect2(at - Vector2.ONE * (half + 1.2 * pt), Vector2.ONE * (half + 1.2 * pt) * 2.0), hud.OUTLINE)
-			hud._tri_rect(Rect2(at - Vector2.ONE * half, Vector2.ONE * half * 2.0),
-					side_colours[i] if i < side_colours.size() else Color.WHITE)
+			hud.poi_mark(at, 5.2 * pt, side_colours[i] if i < side_colours.size() else Color.WHITE,
+					side_shapes[i] if i < side_shapes.size() else MapIcons.POI_SQUARE)
 	for q in found:
 		var at := to_screen(q)
 		if view.has_point(at):

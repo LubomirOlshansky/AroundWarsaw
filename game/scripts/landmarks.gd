@@ -3261,7 +3261,12 @@ func _syrenka_figure(y: float) -> void:
 ## entrance with the parody of its name, ARKADKA, on both faces. One card.
 const ARKADIA_TOWER := Vector2(-2778.0, -2470.0)
 const ARKADIA_TOP := 21.0
-const ARKADIA_WALL := Color("#dcd9d2")
+const ARKADIA_SHOP := 5.6
+const ARKADIA_CREAM := Color("#e6dccb")
+const ARKADIA_TERRA := Color("#c47a55")
+const ARKADIA_STRIP_GAP := 70.0
+const ARKADIA_DECK_REACH := 200.0
+const ARKADIA_CARS_MAX := 1500
 const ARKADIA_ROOF := Color("#77797a")
 const ARKADIA_RED := Color(1.0, 0.18, 0.22)
 func _find_arkadia() -> void:
@@ -3271,14 +3276,17 @@ func _find_arkadia() -> void:
 
 
 func _build_arkadia(site: Dictionary) -> void:
-	var poly: PackedVector2Array = site["zone"][0]
+	var poly := _simplify(site["zone"][0], 1.5)
 	_g = _ground_under(poly)
 	var g := _g
 	var none := Color(0, 0, 0, 0)
-	_prism(poly, g - 0.5, g + 5.0, Color("#a9c6d2"), none, M_PAVILION)
-	_prism(poly, g + 5.0, g + ARKADIA_TOP - 1.0, ARKADIA_WALL, none, M_STONE)
-	_prism(poly, g + ARKADIA_TOP - 1.0, g + ARKADIA_TOP, Color("#9ea2a4"), ARKADIA_ROOF, M_STONE, M_STONE)
-	# The malls' glass roofs: three long skylights along the block's long axis over the deck.
+	# Three bands (docs/landmarks/specs/arkadia.md): the lit shop-front glass, cream plaster
+	# with punched windows, and a terracotta band under the roof deck's cornice.
+	_prism(poly, g - 0.5, g + ARKADIA_SHOP, Color("#a9c6d2"), none, M_PAVILION)
+	_prism(poly, g + ARKADIA_SHOP, g + ARKADIA_TOP - 4.0, ARKADIA_CREAM, none, M_SKIN + S_PUNCHED / 16.0)
+	_prism(poly, g + ARKADIA_TOP - 4.0, g + ARKADIA_TOP - 1.0, ARKADIA_TERRA, none, M_STONE)
+	_prism(poly, g + ARKADIA_TOP - 1.0, g + ARKADIA_TOP, Color("#e9e4d8"), ARKADIA_ROOF, M_STONE, M_STONE)
+	_arkadia_parapet(poly, g)
 	var c := _centre(poly)
 	var sxx := 0.0
 	var szz := 0.0
@@ -3289,8 +3297,9 @@ func _build_arkadia(site: Dictionary) -> void:
 		sxz += (q.x - c.x) * (q.y - c.y)
 	var axis := Vector2.from_angle(0.5 * atan2(2.0 * sxz, sxx - szz))
 	var across := Vector2(-axis.y, axis.x)
+	# The malls' glass roofs: three long skylights over the deck, each a row of glass pyramids.
 	for k: int in [-1, 0, 1]:
-		var m := c + across * (k * 70.0)
+		var m := c + across * (k * ARKADIA_STRIP_GAP)
 		var strip := PackedVector2Array([m - axis * 200.0 - across * 5.0, m + axis * 200.0 - across * 5.0,
 				m + axis * 200.0 + across * 5.0, m - axis * 200.0 + across * 5.0])
 		for piece: PackedVector2Array in Geometry2D.intersect_polygons(strip, poly):
@@ -3298,15 +3307,168 @@ func _build_arkadia(site: Dictionary) -> void:
 			var pc := _centre(piece)
 			for q in piece:
 				inner.append(q + (pc - q).normalized() * 6.0)  # off the deck's edge
-			_prism(inner, g + ARKADIA_TOP, g + ARKADIA_TOP + 1.6, Color("#9fc0cf"), Color("#8fb3c4"), M_PAVILION, M_GLASS_ROOF)
-	# The entrance tower: glass below, a white box above with the sign; a little proud of the block.
-	var t := _circle(ARKADIA_TOWER, 9.9, 4)
+			_prism(inner, g + ARKADIA_TOP, g + ARKADIA_TOP + 0.8, Color("#9fc0cf"), Color("#8fb3c4"), M_PAVILION, M_GLASS_ROOF)
+			var ic := _centre(inner)
+			var n_pyr := maxi(int(_span(inner, axis) / 18.0), 1)
+			for i in n_pyr:
+				var t := (i + 0.5) / n_pyr - 0.5
+				var pm := ic + axis * (t * _span(inner, axis))
+				if Geometry2D.is_point_in_polygon(pm, inner):
+					var ring := PackedVector2Array([pm - axis * 7.0 - across * 3.6, pm + axis * 7.0 - across * 3.6,
+							pm + axis * 7.0 + across * 3.6, pm - axis * 7.0 + across * 3.6])
+					_mode = M_GLASS_ROOF
+					_pyramid(ring, g + ARKADIA_TOP + 0.8, g + ARKADIA_TOP + 4.6, Color("#a7c8d6"))
+	# The roof car park (the deck holds the city's biggest car park): cars in back-to-back rows.
+	_mode = M_STONE
+	_arkadia_cars(poly, g, c, axis, across)
+	# Four stair and lift cores at the deck's corners and a mast of floodlights every 45 m.
+	_arkadia_cores(poly, g, c)
+	# The entrance rotunda: glass drum, twelve white fins, a crown with the name on four faces.
+	var t := _circle(ARKADIA_TOWER, 9.9, 12)
 	_prism(t, g + ARKADIA_TOP, g + 30.0, Color("#9fc0cf"), none, M_PAVILION)
 	_prism(t, g + 30.0, g + 37.0, Color("#f1efe9"), Color("#d8d6d0"), M_STONE, M_STONE)
-	for d: Vector2 in [Vector2(0.0, 1.0), Vector2(0.0, -1.0)]:
+	for k in 12:
+		var d := Vector2.from_angle(TAU * k / 12.0 + 0.26)
+		var tn := Vector2(-d.y, d.x)
+		var p := ARKADIA_TOWER + d * 9.7
+		_prism(PackedVector2Array([p - tn * 0.22, p + tn * 0.22, p + tn * 0.22 + d * 0.6, p - tn * 0.22 + d * 0.6]),
+				g + ARKADIA_TOP, g + 30.0, Color("#f1efe9"), Color("#f1efe9"), M_STONE, M_STONE)
+	_prism(_circle(ARKADIA_TOWER, 10.4, 12), g + 29.4, g + 29.8, Color("#d8d6d0"), Color("#d8d6d0"), M_STONE, M_STONE)
+	for d: Vector2 in [Vector2(0.0, 1.0), Vector2(0.0, -1.0), Vector2(1.0, 0.0), Vector2(-1.0, 0.0)]:
 		var at := ARKADIA_TOWER + d * 7.0
 		signs.append(["ARKADKA", Vector3(at.x, g + 31.4, at.y), Vector3(d.x, 0.0, d.y), 1.15, ARKADIA_RED])
+	# Entrances: a flat canopy on two posts over the middle of the three longest faces, with the name.
+	var order: Array = []
+	for i in poly.size():
+		order.append([poly[i].distance_to(poly[(i + 1) % poly.size()]), i])
+	order.sort_custom(func(x: Array, y: Array) -> bool: return x[0] > y[0])
+	for e in mini(3, order.size()):
+		var i: int = order[e][1]
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		var tn := (b - a).normalized()
+		var on := _out(poly, a, b)
+		var mid := (a + b) * 0.5
+		var cano := PackedVector2Array([mid - tn * 8.0, mid + tn * 8.0, mid + tn * 8.0 + on * 3.4, mid - tn * 8.0 + on * 3.4])
+		_prism(cano, g + 4.7, g + 5.2, Color("#3c4448"), Color("#4a5357"), M_STONE, M_STONE)
+		for sgn: float in [-1.0, 1.0]:
+			var pp := mid + tn * (7.4 * sgn) + on * 3.0
+			_prism(_circle(pp, 0.18, 4), g, g + 4.7, Color("#c9cdd0"), none, M_STONE)
+		var sp := mid + on * 0.08
+		signs.append(["ARKADKA", Vector3(sp.x, g + 7.4, sp.y), Vector3(on.x, 0.0, on.y), 0.7, ARKADIA_RED])
 	_collide(poly)
+
+
+## Arkadia's width of a plan polygon along `dir`.
+func _span(poly: PackedVector2Array, dir: Vector2) -> float:
+	var lo := INF
+	var hi := -INF
+	for q in poly:
+		var d := q.dot(dir)
+		lo = minf(lo, d)
+		hi = maxf(hi, d)
+	return hi - lo
+
+
+## The roof deck's parapet: a 1.1 m wall round it, seen from the street and from above.
+func _arkadia_parapet(poly: PackedVector2Array, g: float) -> void:
+	var inset := Geometry2D.offset_polygon(poly, -0.4)
+	if inset.size() != 1:
+		return
+	var inner: PackedVector2Array = inset[0]
+	var rev := PackedVector2Array(inner)
+	rev.reverse()
+	var y := g + ARKADIA_TOP
+	_prism(poly, y, y + 1.1, Color("#e9e4d8"), Color(0, 0, 0, 0), M_STONE)
+	_prism(rev, y, y + 1.1, Color("#d6d1c4"), Color(0, 0, 0, 0), M_STONE)
+	_cap_holes(poly, [inner], y + 1.1, Color("#f2eee4"))
+
+
+## Parked cars on the deck: back-to-back rows of bays 2.7 m wide, 4.6 m long, a 5.9 m drive aisle
+## between each pair, a seeded half of the bays filled in muted colours. Straight into the mesh
+## (not the roof grid): `_prism` would test every car against all walls.
+func _arkadia_cars(poly: PackedVector2Array, g: float, c: Vector2, axis: Vector2, across: Vector2) -> void:
+	var inset := Geometry2D.offset_polygon(poly, -5.0)
+	if inset.is_empty():
+		return
+	var deck: PackedVector2Array = inset[0]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2004
+	var paints: Array[Color] = [Color("#c9ccd0"), Color("#2f3438"), Color("#e6e6e2"), Color("#6c7a8a"), Color("#8f2f2f"),
+			Color("#394a63"), Color("#a9a49a"), Color("#4d5a4a")]
+	_no_roof = true
+	var y := g + ARKADIA_TOP
+	var made := 0
+	var s := -ARKADIA_DECK_REACH
+	while s < ARKADIA_DECK_REACH and made < ARKADIA_CARS_MAX:
+		var blk := -ARKADIA_DECK_REACH
+		while blk < ARKADIA_DECK_REACH:
+			for row in 2:
+				var v := blk + 2.4 + row * 4.8
+				var near_strip := false
+				for k: int in [-1, 0, 1]:
+					if absf(v - k * ARKADIA_STRIP_GAP) < 9.0:
+						near_strip = true
+				var p := c + axis * s + across * v
+				if not near_strip and rng.randf() < 0.55 and Geometry2D.is_point_in_polygon(p, deck) \
+						and p.distance_to(ARKADIA_TOWER) > 16.0 and made < ARKADIA_CARS_MAX:
+					_car(p, axis, across, y, paints[rng.randi() % paints.size()])
+					made += 1
+			blk += 15.5
+		s += 2.7
+	_no_roof = false
+
+
+## A parked car: a 1.8 x 4.2 m box, 1.45 m high, its long side along `across`, cabin a darker lid.
+func _car(p: Vector2, axis: Vector2, across: Vector2, y: float, col: Color) -> void:
+	var hw := axis * 0.9
+	var hl := across * 2.1
+	var q := [p - hw - hl, p + hw - hl, p + hw + hl, p - hw + hl]
+	for i in 4:
+		var a: Vector2 = q[i]
+		var b: Vector2 = q[(i + 1) % 4]
+		var mid := (a + b) * 0.5
+		var n2 := (mid - p).normalized()
+		_quad(Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(b.x, y + 1.45, b.y), Vector3(a.x, y + 1.45, a.y),
+				Vector3(n2.x, 0.0, n2.y), col)
+	_quad(Vector3(q[0].x, y + 1.45, q[0].y), Vector3(q[1].x, y + 1.45, q[1].y), Vector3(q[2].x, y + 1.45, q[2].y),
+			Vector3(q[3].x, y + 1.45, q[3].y), Vector3.UP, col.darkened(0.25))
+
+
+## Four cores (stair and lift boxes, 8 x 8 m, 3.6 m over the deck) pulled in from the deck's extreme
+## corners, and floodlight masts (6.5 m, a lit head) on a 45 m grid along the deck.
+func _arkadia_cores(poly: PackedVector2Array, g: float, c: Vector2) -> void:
+	var inset := Geometry2D.offset_polygon(poly, -14.0)
+	if inset.is_empty():
+		return
+	var deck: PackedVector2Array = inset[0]
+	var y := g + ARKADIA_TOP
+	var picks: Array[Vector2] = []
+	for dir: Vector2 in [Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1), Vector2(-1, -1)]:
+		var best := deck[0]
+		for q in deck:
+			if q.dot(dir) > best.dot(dir):
+				best = q
+		picks.append(best)
+	for p in picks:
+		if p.distance_to(ARKADIA_TOWER) > 24.0:
+			_prism(PackedVector2Array([p + Vector2(-4, -4), p + Vector2(4, -4), p + Vector2(4, 4), p + Vector2(-4, 4)]),
+					y, y + 3.6, Color("#e2ddd0"), Color("#9b9d9e"), M_STONE, M_STONE)
+	var gx := floorf(_span(deck, Vector2.RIGHT) / 45.0)
+	var lo := Vector2(INF, INF)
+	for q in deck:
+		lo = lo.min(q)
+	_no_roof = true
+	var n := 0
+	for ix in int(gx) + 1:
+		for iz in int(floorf(_span(deck, Vector2.DOWN) / 45.0)) + 1:
+			var p := lo + Vector2(ix * 45.0, iz * 45.0)
+			if Geometry2D.is_point_in_polygon(p, deck) and p.distance_to(ARKADIA_TOWER) > 20.0 and n < 40:
+				_prism(_circle(p, 0.14, 4), y, y + 6.5, Color("#8d9296"), Color("#8d9296"), M_STONE, M_STONE)
+				_prism(PackedVector2Array([p + Vector2(-0.7, -0.25), p + Vector2(0.7, -0.25), p + Vector2(0.7, 0.25), p + Vector2(-0.7, 0.25)]),
+						y + 6.5, y + 6.8, Color("#fff4d6"), Color("#fff4d6"), M_LAMP, M_LAMP)
+				n += 1
+	_no_roof = false
 
 
 ## The Forest (2023): an office block of stepped wings whose roofs are planted terraces, and
@@ -3317,6 +3479,9 @@ const FOREST_BOX := Rect2(-3105.0, -2455.0, 185.0, 120.0)
 const FOREST_GLASS := Color("#5f7d74")
 const FOREST_LOW := Color("#8fa9a0")
 const FOREST_GREEN := Color("#5d8f45")
+const FOREST_BANK := Color(1.0, 0.72, 0.45)   # BANK PEPEO's warm white (not the real bank's red)
+const FOREST_TIMBER := Color("#a98457")
+const FOREST_PARASOL: Array[Color] = [Color("#f1ece0"), Color("#d9a441"), Color("#e8e2d2"), Color("#5f8f8a")]
 func _find_forest() -> void:
 	var zone: Array = []
 	var parts: Array = []
@@ -3347,15 +3512,96 @@ func _build_forest(site: Dictionary) -> void:
 			_prism(poly, g + mh, g + h, FOREST_GLASS, Color("#4f5a58"), M_SKIN + S_FINS / 16.0, M_STONE)
 			# A dark crown band.
 			_prism(poly, g + h, g + h + 1.2, Color("#3d4645"), Color(0, 0, 0, 0), M_STONE)
+			_forest_bank_sign(poly, g, h)
 		else:
 			_prism(poly, g + mh, g + h, FOREST_LOW, FOREST_GREEN, M_SKIN + S_BANDS / 16.0, M_STONE)
-			# The planted edge: a hedge round each terrace.
-			var c := _centre(poly)
-			var hedge := PackedVector2Array()
-			for q in poly:
-				hedge.append(q + (c - q).normalized() * 0.6)
-			_prism(hedge, g + h, g + h + 0.9, FOREST_GREEN.darkened(0.15), FOREST_GREEN.lightened(0.08), M_STONE, M_STONE)
+			if h >= 20.0:
+				_forest_terrace(poly, g + h)
+			else:
+				# The planted edge: a hedge round each terrace.
+				var c := _centre(poly)
+				var hedge := PackedVector2Array()
+				for q in poly:
+					hedge.append(q + (c - q).normalized() * 0.6)
+				_prism(hedge, g + h, g + h + 0.9, FOREST_GREEN.darkened(0.15), FOREST_GREEN.lightened(0.08), M_STONE, M_STONE)
 		_collide(poly)
+
+
+## The bank's name on the tower (F, 2026-11-01): BANK PEPEO, a parody of the real bank that has
+## its head office in this tower, in warm white on the two long faces and the south end, near the
+## crown. `at` is the tower's centre; each sign sits on the face the ray from it leaves through.
+func _forest_bank_sign(poly: PackedVector2Array, g: float, h: float) -> void:
+	var c := _centre(poly)
+	for d: Vector2 in [Vector2(0.0, -1.0), Vector2(0.0, 1.0), Vector2(1.0, 0.0), Vector2(-1.0, 0.0)]:
+		var far := -1.0
+		for i in poly.size():
+			var hit: Variant = Geometry2D.segment_intersects_segment(c, c + d * 120.0, poly[i], poly[(i + 1) % poly.size()])
+			if hit != null:
+				far = maxf(far, c.distance_to(hit as Vector2))
+		if far > 0.0:
+			var at := c + d * (far + 0.1)
+			# 1.9 on the long faces (about 23 m of letters), the same on the ends.
+			signs.append(["BANK PEPEO", Vector3(at.x, g + h - 7.0, at.y), Vector3(d.x, 0.0, d.y), 1.9, FOREST_BANK])
+
+
+## The Forest's roof terrace (F, 2026-11-01), on the 27 m wing: a timber deck inside a glass
+## balustrade, planters with small trees along it, parasols over round tables, all kept out of the
+## roof grid so the crowd's spots (crowds.gd DECKS `forest_terrace`) still read the block's roof.
+func _forest_terrace(poly: PackedVector2Array, y: float) -> void:
+	var none := Color(0, 0, 0, 0)
+	var edge := Geometry2D.offset_polygon(poly, -0.5)
+	if edge.size() != 1:
+		return
+	var rim: PackedVector2Array = edge[0]
+	var rev := PackedVector2Array(rim)
+	rev.reverse()
+	_no_roof = true
+	_mode = M_STONE
+	_cap(rim, y + 0.1, FOREST_TIMBER)
+	_prism(rim, y, y + 1.1, Color("#c9dcdc"), none, M_PAVILION + 0.5)
+	_prism(rev, y, y + 1.1, Color("#c9dcdc"), none, M_PAVILION + 0.5)
+	# Planters with a small tree every ~7 m along the glass.
+	var run := 0.0
+	var next := 3.0
+	for i in rim.size():
+		var a := rim[i]
+		var b := rim[(i + 1) % rim.size()]
+		var e := (b - a)
+		var len_e := e.length()
+		var t := e / maxf(len_e, 0.01)
+		var inward := -_out(rim, a, b)
+		while next < run + len_e - 1.0:
+			var p := a + t * (next - run) + inward * 0.9
+			_prism(PackedVector2Array([p - t * 1.1 - inward * 0.4, p + t * 1.1 - inward * 0.4, p + t * 1.1 + inward * 0.4, p - t * 1.1 + inward * 0.4]),
+					y + 0.1, y + 0.8, Color("#8a8f8c"), FOREST_GREEN.darkened(0.2), M_STONE, M_STONE)
+			_mode = M_STONE
+			_pyramid(_circle(p, 0.75, 6), y + 0.8, y + 3.0, FOREST_GREEN.lightened(0.05))
+			next += 7.0
+		run += len_e
+	# Parasols over round tables on a 9 m grid inside the planters, with a bar kiosk at the south end.
+	var inner := Geometry2D.offset_polygon(poly, -4.5)
+	if not inner.is_empty():
+		var area: PackedVector2Array = inner[0]
+		var lo := Vector2(INF, INF)
+		for q in area:
+			lo = lo.min(q)
+		var k := 0
+		for ix in 6:
+			for iz in 8:
+				var p := lo + Vector2(ix * 7.5 + 2.0, iz * 7.5 + 2.0)
+				if not Geometry2D.is_point_in_polygon(p, area):
+					continue
+				_prism(_circle(p, 0.55, 6), y + 0.1, y + 0.8, Color("#d9d3c6"), Color("#d9d3c6"), M_STONE, M_STONE)
+				for tc in 3:
+					var q := p + Vector2.from_angle(TAU * tc / 3.0 + 0.4) * 1.2
+					_prism(_circle(q, 0.25, 4), y + 0.1, y + 0.5, Color("#6e7a73"), Color("#6e7a73"), M_STONE, M_STONE)
+				if k % 2 == 0:
+					_prism(_circle(p, 0.05, 4), y + 0.8, y + 2.6, Color("#c9cdd0"), none, M_STONE)
+					_mode = M_STONE
+					_pyramid(PackedVector2Array([p + Vector2(-1.7, -1.7), p + Vector2(1.7, -1.7), p + Vector2(1.7, 1.7), p + Vector2(-1.7, 1.7)]),
+							y + 2.6, y + 3.3, FOREST_PARASOL[(k / 2) % FOREST_PARASOL.size()])
+				k += 1
+	_no_roof = false
 
 
 ## Gdański Business Center (Inflancka, by Dworzec Gdański; spec docs/landmarks/specs/gbc.md):

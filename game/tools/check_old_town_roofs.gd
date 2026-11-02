@@ -22,9 +22,14 @@ func _initialize() -> void:
 	var tile := Color("#9c4a35")
 	var chimneys := 0
 	var slopes := 0
-	for s in 40:
+	var bare := 0
+	var sizes := {}
+	for s in 120:
 		var d := OldTownRoofs.dress(p0, p1, p2, n, wall, tile, fposmod(s * 0.137, 1.0))
-		_expect(not d.is_empty(), "a big slope takes a dormer")
+		if d.is_empty():
+			bare += 1  # G7: some slopes carry nothing
+			continue
+		sizes[(d["pos"] as PackedVector3Array).size()] = true
 		var pos: PackedVector3Array = d["pos"]
 		var nrm: PackedVector3Array = d["nrm"]
 		_expect(pos.size() % 3 == 0 and pos.size() == nrm.size() and pos.size() == (d["col"] as PackedColorArray).size(), "arrays agree")
@@ -39,6 +44,15 @@ func _initialize() -> void:
 			var face := (pos[t + 1] - pos[t]).cross(pos[t + 2] - pos[t]).normalized()
 			_expect(face.dot(nrm[t]) > 0.99, "winding matches the normal")
 	_expect(chimneys > 0 and chimneys < slopes, "some slopes, not all, get a chimney (%d of %d)" % [chimneys, slopes])
+	# G7: the dress varies: some slopes bare, most dressed, and many different shapes and sizes.
+	_expect(bare > 3 and bare < 40, "a few slopes stay bare (%d of 120)" % bare)
+	_expect(sizes.size() >= 4, "slopes carry different pieces (%d distinct vertex counts)" % sizes.size())
+	var mb0 = load("res://scripts/map_builder.gd").new()
+	var tones := {}
+	for h in 400:
+		tones[mb0._tile_colour(h * 37 + 5).to_html(false)] = true
+	_expect(tones.size() >= 40, "roofs take many tones (%d)" % tones.size())
+	mb0.free()
 	# A small triangle, a thin one and a flat one take none.
 	_expect(OldTownRoofs.dress(p0, p0 + Vector3(2, 0, 0), p0 + Vector3(0, 1, 2), n, wall, tile, 0.3).is_empty(), "small: none")
 	_expect(OldTownRoofs.dress(p0, p1, p0 + Vector3(6, 0.01, 0.4), n, wall, tile, 0.3).is_empty(), "thin: none")
