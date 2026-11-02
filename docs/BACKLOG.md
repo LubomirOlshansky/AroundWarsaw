@@ -266,6 +266,14 @@ Built from photos gathered on the Mac (`refs/hotel_warszawa/`, `refs/cedet/`) an
   plant are not modelled; the ground-floor tenants' fascias (parodies) and the red neon at the east corner
   are not there.
 
+## Plac Krasińskich: the Uprising Monument and the palace (CITY_INVENTORY 22 and 79, 2026-11-02)
+Built from photos gathered on the Mac (`refs/pomnik_powstania/`, `refs/krasinski/`) and LoD2, specs
+`pomnik_powstania.md` and `krasinski.md` (sites `pomnik_powstania` 1514 tris, `krasinski` 1508). Found and left:
+- The Supreme Court's colonnade behind the monument is green (ribbed green glass, ~#738483); OSM tags its columns "marble #deeded", so the game draws them white and the court as plain blocks. A Sąd Najwyższy model is its own item.
+- The monument's heights and the groups' facing are estimates from photos (no published height, no aerial); the bronze is simplified to blocky figures. The plaza's dark granite bands, the blue-green light strips, the floor plaque, the juniper beds and the brick wall with the Kotwica on the Długa side are not drawn; the 1 August candles are not there.
+- The palace's pediment relief is a flat recessed field, the cartouche over the central window and the roof statues of the garden front are not modelled; the dormer and chimney counts are rough (the report says so). The garden's round parterre and the pond's sculpture are the park's (the fountain is already there).
+- F's look check on the Mac or the phone: the slabs' lean, the fighters' size, the roof's green.
+
 ## POLIN and the Ghetto Heroes Monument (F, 2026-11-02)
 Built from photos gathered on the Mac (`refs/polin/`) and the LoD2 roof, spec `polin.md`. Found and left:
 - The east front's two long dark band windows (~10 m, 4-5 m up) and the small lit slot south of the canyon are not drawn.
@@ -898,7 +906,9 @@ the Mac and for gamepads, and the Mac in the beta plan. Built: gamepad support (
 Settings (focus ring, LB / RB tabs) and the full map; the title takes A / Y / B; the touch pedals
 hide while the pad is used and come back on a touch. Left:
 - Gamepad on real pads (iPhone and Mac): the button indices are checked on synthetic events only.
-- Gamepad gaps: no per-family glyphs (A / cross) in the hints; no rumble. (The volume bars, the
+- ~~Gamepad gaps: no per-family glyphs (A / cross) in the hints; no rumble.~~ Done (2026-11-02):
+  `Gamepad.fmt` names the buttons per pad family, haptics.gd rumbles the pad while it is in use.
+  Left: the rumble's strength and the Nintendo button order on a real pad (beta). (The volume bars, the
   notebook page, the garage card and the full map's stick pan / zoom / A teleport were done
   2026-11-01, check_gamepad P9-P12; the map's pad hint is one line in the player's language
   since the language work, 2026-11-02.)
