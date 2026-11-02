@@ -1010,6 +1010,11 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   could carry the star too; maybe a short goal line on the driving screen (QUESTIONS.md).
 
 ## High priority: landmark and skyscraper models (the user, 2026-10-30)
+- **Złota 44 rebuilt from F's photos** (2026-11-02, spec `docs/landmarks/specs/zlota44.md`):
+  the old blue box with diagonal "exoskeleton" lines and its top high at the wrong (north) end is
+  gone; the wing, the tip at the south-east, the crown box, the white staggered cladding and the
+  podium garden are built. Left: the Mac photo check (QUESTIONS), and a look at the tower's far
+  skyline stand-in (not checked in this pass).
 - **The user dislikes how several models look** (2026-10-30): Złote Tarasy, Złota 44 and the
   other skyscrapers (Varso, Pałac Kultury, Warsaw Spire, Q22), Muzeum Narodowe (and Stadion
   Narodowy), the bus stops, and other weak models. Goal: keep the game's own pixel and

@@ -172,7 +172,7 @@ const BUDGET := {
 	"wiktoria": 230,
 	"wtt": 1640,
 	"zacheta": 720,
-	"zlota44": 500,
+	"zlota44": 1800,
 	"zygmunt": 280,
 }
 ## Known defects per site: {"zfight": n, "degenerate": n, "badnormal": n, "float": n}.

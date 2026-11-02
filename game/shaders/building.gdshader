@@ -327,7 +327,7 @@ const int M_GOTHIC = 14;
 
 // The towers' own skins (landmarks.gd TOWERS, the landmarks loop): M_SKIN's fraction picks the
 // pattern (style / 16), the vertex colour is the glass. Each reads as its tower from the
-// street and the air: Złota 44's white exoskeleton, Warsaw Spire's diamonds, Q22's silver
+// street and the air: Złota 44's white banded cladding, Warsaw Spire's diamonds, Q22's silver
 // floor bands, Rondo 1's fins, the hotel's white grid, Cosmopolitan's balcony slabs, dark
 // glass, gold glass, and an open frame (Rondo 1's crown: the panes are cut away).
 const int S_SAIL = 0;
@@ -363,11 +363,18 @@ vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool 
 	vec3 frame_col = silver;
 	float lit = 0.3;
 	if (s == S_SAIL) {
-		// White steel: floor bands every fourth floor and two families of long diagonals.
-		float d1 = fract((u + h * 0.55) / 22.0);
-		float d2 = fract((u - h * 0.55) / 22.0);
-		frame = d1 < 0.045 || d2 < 0.045 || fract(h / (fh * 4.0)) < 0.07 || fract(u / 1.6) < 0.1;
-		frame_col = white;
+		// Złota 44 (rebuilt 2026-11-02 from F's photos): silver-white aluminium cassettes, about
+		// 60 % of the face, in a band at every floor (3.55 m) with glass between. Each 4.5 m
+		// panel picks its own window, a tall pane, the usual slot or none, so the stripes break
+		// and stagger across the face like the real cladding; thin white mullions every 1.5 m.
+		fh = 3.55;
+		level = floor(h / fh);
+		float fy = fract(h / fh);
+		float r = hash12(vec2(floor(u / 4.5) + 17.0, level));
+		float lo = r < 0.25 ? 0.22 : 0.5;
+		float hi = r > 0.86 ? 0.0 : 0.9;
+		frame = fy < lo || fy > hi || fract(u / 1.5) < 0.05;
+		frame_col = white * (0.97 + 0.06 * hash12(vec2(floor(u / 1.5), level)));
 	} else if (s == S_DIAMOND) {
 		float d1 = fract((u + h) / 5.2);
 		float d2 = fract((u - h) / 5.2);

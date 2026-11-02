@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Złota 44 looks like itself: a white tower with fine grey stripes whose south-east corner sweeps out like a wing to a sharp tip, a dark glass crown on the roof and a garden on the low block at its feet.
 - Chmielna has its benches: 64 along the street, on both sides between the young trees, facing the walk.
 - Chmielna looks as it has since 2024: grey granite underfoot, two rows of young elms down the narrow stretches and planes on the squares, 85 trees from Nowy Świat to Pasaż Wiecha, and Ali's memorial stone with its square's name plate behind the Eastern Wall.
 - The tenements of Dobra and Tamka each wear their own plaster now (sooty cream, ochre, faded rose, sage), with a cornice under the roof, a string course at the first floor and shop windows with a fascia board on the street side.
