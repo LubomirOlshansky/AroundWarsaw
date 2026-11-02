@@ -8,6 +8,11 @@ extends SceneTree
 ## and their info (bounds) for tools/overlay_landmarks.py, which lays them over the
 ## orthophoto.
 
+## Sites that are only ground-level dressing (no part over about 2 m): the heli test expects it to
+## fly over them, not to be stopped. bulwary_basen (K7, 2026-11-02): the splash pool, its 0.3 m
+## rim and fish on 0.55 m plinths, under 2 m in all.
+const FLY_OVER := ["bulwary_basen"]
+
 var map: Node3D
 var _frames := 0
 
@@ -220,11 +225,14 @@ func _fly_checks() -> int:
 				landed = true  # heli.gd clears `landing` as it touches down
 				break
 		var ground: float = map.ground_height(spot.x, spot.y)
-		var ok := blocked and not inside and landed and absf(heli.global_position.y - ground) < 0.6
+		# A site that is all ground-level dressing (FLY_OVER) has no wall to stop the heli: it must
+		# fly over it (never inside) and land beside it, like any other.
+		var over: bool = info["key"] in FLY_OVER
+		var ok := (blocked != over) and not inside and landed and absf(heli.global_position.y - ground) < 0.6
 		if not ok:
 			print("  blocked %s, went inside %s, landed %s, skids %.2f m over the ground" % [blocked, inside, landed, heli.global_position.y - ground])
 		print("%-22s heli at %d m: %s, stopped %d m from the middle, %d m up; landed beside it %d m from the middle: %s" % [
-				info["name"], roundi(alt), "blocked" if blocked else "NOT blocked", roundi(Vector2(stop.x, stop.z).distance_to(c)),
+				info["name"], roundi(alt), ("blocked" if blocked else "NOT blocked") + (" (flown over by design)" if over else ""), roundi(Vector2(stop.x, stop.z).distance_to(c)),
 				roundi(stop.y - g0), roundi(spot.distance_to(c)), "yes" if landed else "NO"])
 		if not ok:
 			failures += 1

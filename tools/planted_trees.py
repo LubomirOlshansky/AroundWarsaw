@@ -66,6 +66,17 @@ SPECIES = {
     "elm": [7.8, 1.6, 2.6],           # wiąz (a narrow street cultivar)
     "linden": [7.0, 2.0, 2.4],        # lipa
     "robinia": [6.8, 2.0, 2.6],       # robinia
+    # The stadium's grounds (K9, 2012, ten years on): lime and plane rows on the avenues and the
+    # pollarded willows of the Mazovian landscape (a short trunk, a broad knobbly head).
+    "linden_row": [9.4, 2.7, 3.1],    # lipa
+    "plane_row": [10.2, 3.0, 3.4],    # platan
+    "willow": [6.4, 2.9, 2.0],        # wierzba głowiasta
+    # Norblin and Browary (K6, 2021): the court's multi-stem planes trained as candelabras (a short
+    # trunk, a broad head), and the Central Garden's lindens, birches and maples over the vaults.
+    "candelabra": [10.5, 3.6, 3.0],   # platan kandelabrowy
+    "garden_linden": [7.2, 2.4, 2.4],   # lipa
+    "birch": [8.0, 1.9, 2.8],         # brzoza
+    "garden_maple": [7.0, 2.2, 2.3],  # klon
 }
 
 # ul. Chmielna, Nowy Świat to Pasaż Wiecha (RS Architektura Krajobrazu for ZTP, opened 2024): the
@@ -133,6 +144,48 @@ PLACES = [
             [296.0, 600.0, ["elm", "elm", "elm", "elm", "plane", "elm", "elm", "cherry", "elm", "robinia",
                             "elm", "elm", "plane"]],
         ],
+    },
+    {
+        # K9: GMP's grounds round the Stadion Narodowy (landscape: RS Architektura Krajobrazu, 2012):
+        # tree rows along the wide entrance avenues (the mapped plazas that run out of the bowl)
+        # and groups of pollarded willows on the lawns between the avenues.
+        "id": "stadion",
+        "name": "Stadion Narodowy grounds (avenues and willows, 2012)",
+        "kind": "grounds",
+        "centre": (1480.5, -605.1),
+        "ring": (150.0, 330.0),       # metres from the centre: the grounds' zone
+        "row_step": 9.0,              # trunk spacing along an avenue's edge
+        "row_inset": 1.4,             # how far inside the plaza's long edge the row stands
+        "row_mix": ["linden_row", "linden_row", "plane_row"],
+        "willow_groups": 9,
+        "willow_gap": 45.0,           # groups at least this far apart
+        "willow_min_area": 1500.0,    # a lawn at least this big (m²) takes a group
+    },
+    {
+        # K6: Fabryka Norblina's court (2021): the big multi-stem planes trained as candelabras are
+        # the site's landmark. The court is the open ground inside the three wings.
+        "id": "norblin",
+        "name": "Fabryka Norblina's court (candelabra planes, 2021)",
+        "kind": "garden",
+        "centre": (-2262.0, 56.0),
+        "radius": 26.0,
+        "count": 5,
+        "step": 5.0,
+        "gap": 9.0,                   # candelabras stand well apart
+        "mix": ["candelabra"],
+    },
+    {
+        # K6: Browary Warszawskie's Central Garden over the Leżakownia and the two-level plaza
+        # beside it (2021): lindens, birches and maples in the open ground of the yard.
+        "id": "browary",
+        "name": "Browary Warszawskie's Central Garden (2021)",
+        "kind": "garden",
+        "centre": (-2503.0, -100.0),
+        "radius": 24.0,
+        "count": 12,
+        "step": 4.0,
+        "gap": 5.5,
+        "mix": ["garden_linden", "birch", "garden_maple", "garden_linden", "birch"],
     },
 ]
 
@@ -233,8 +286,161 @@ def zone_of(place):
     return Line(place["line"]).zone(place["half"])
 
 
+def _poly(a):
+    return list(zip(a["p"][0::2], a["p"][1::2]))
+
+
+def plant_grounds(data, place, solids=None):
+    """A rowed-and-willowed park round a landmark: a tree row down both long edges of every plaza
+    strip in the ring (the entrance avenues), and groups of pollarded willows on the biggest
+    lawns. Skips any spot near an existing tree (so a second run adds nothing)."""
+    cx, cz = place["centre"]
+    lo, hi = place["ring"]
+    solids = solids or P.Solids(data)
+    trees = data.get("trees3d", [])
+    taken = [(trees[i], trees[i + 1]) for i in range(0, len(trees) - 5, 6)
+             if lo - 40 < math.hypot(trees[i] - cx, trees[i + 1] - cz) < hi + 40]
+    pois = [(p["x"], p["z"]) for p in data.get("pois", []) if p.get("k") != "address"]
+    out = []
+
+    def ok(x, z, poly=None):
+        r = math.hypot(x - cx, z - cz)
+        if r < lo - 30 or r > hi:
+            return False
+        if poly is not None and not _inside(x, z, poly):
+            return False
+        if any(math.hypot(x - tx, z - tz) < TREE_GAP for tx, tz in taken):
+            return False
+        if any(math.hypot(x - px, z - pz) < 1.5 for px, pz in pois):
+            return False
+        return not solids.blocked(x, z, CLEAR, skip=("tree",))
+
+    # Avenues: the plaza strips (long, narrow) inside the ring.
+    for a in sorted(data.get("areas", []), key=lambda a: a["p"][:2]):
+        if a["k"] != "plaza":
+            continue
+        poly = _poly(a)
+        mx = sum(p[0] for p in poly) / len(poly)
+        mz = sum(p[1] for p in poly) / len(poly)
+        if not lo - 30 < math.hypot(mx - cx, mz - cz) < hi:
+            continue
+        # principal axis by the covariance of the vertices
+        sxx = sum((p[0] - mx) ** 2 for p in poly)
+        szz = sum((p[1] - mz) ** 2 for p in poly)
+        sxz = sum((p[0] - mx) * (p[1] - mz) for p in poly)
+        ang = 0.5 * math.atan2(2 * sxz, sxx - szz)
+        ux, uz = math.cos(ang), math.sin(ang)
+        vx, vz = -uz, ux
+        us = [(p[0] - mx) * ux + (p[1] - mz) * uz for p in poly]
+        vs = [(p[0] - mx) * vx + (p[1] - mz) * vz for p in poly]
+        length, width = max(us) - min(us), max(vs) - min(vs)
+        if length < 40.0 or length < width * 1.6:
+            continue
+        step = place["row_step"]
+        n = int((length - 6.0) / step) + 1
+        for side in (-1.0, 1.0):
+            for i in range(n):
+                u = min(us) + 3.0 + i * step
+                # walk in from the side's extreme until inside the plaza
+                v = max(vs) if side > 0 else min(vs)
+                for _ in range(int(width * 2) + 1):
+                    if _inside(mx + u * ux + v * vx, mz + u * uz + v * vz, poly):
+                        break
+                    v -= side * 0.5
+                v -= side * place["row_inset"]
+                x, z = mx + u * ux + v * vx, mz + u * uz + v * vz
+                if not ok(x, z, poly):
+                    continue
+                mix = place["row_mix"]
+                kind = mix[int(_hash01(x, z, 1) * len(mix)) % len(mix)]
+                out.append(_tree(x, z, kind))
+                taken.append((x, z))
+
+    # Willows: groups on the biggest lawns in the ring, kept apart.
+    lawns = []
+    for a in data.get("areas", []):
+        if a["k"] != "grass":
+            continue
+        poly = _poly(a)
+        size = _area(poly)
+        mx = sum(p[0] for p in poly) / len(poly)
+        mz = sum(p[1] for p in poly) / len(poly)
+        if size >= place["willow_min_area"] and lo < math.hypot(mx - cx, mz - cz) < hi:
+            lawns.append((size, poly, mx, mz))
+    lawns.sort(key=lambda t: (-t[0], t[2]))
+    centres = []
+    for size, poly, mx, mz in lawns:
+        if len(centres) >= place["willow_groups"]:
+            break
+        heart = None
+        for dx, dz in ((0, 0), (20, 0), (-20, 0), (0, 20), (0, -20), (35, 35), (-35, -35)):
+            if _inside(mx + dx, mz + dz, poly):
+                heart = (mx + dx, mz + dz)
+                break
+        if heart is None or any(math.hypot(heart[0] - a, heart[1] - b) < place["willow_gap"] for a, b in centres):
+            continue
+        group = []
+        for j in range(7):
+            ang = _hash01(heart[0], heart[1], 5 + j) * math.tau
+            dist = 2.0 + _hash01(heart[0], heart[1], 20 + j) * 9.0
+            x, z = heart[0] + math.cos(ang) * dist, heart[1] + math.sin(ang) * dist
+            if len(group) < 5 and ok(x, z, poly):
+                group.append(_tree(x, z, "willow"))
+                taken.append((x, z))
+        if len(group) >= 3:
+            out.extend(group)
+            centres.append(heart)
+    return out
+
+
+
+
+def plant_garden(data, place, solids=None):
+    """A court or yard garden (K6): up to `count` trees on a ring-first grid round the centre, at
+    spots clear of buildings, roads, lamps and the scanned trees (TREE_GAP, or `gap` apart from
+    each other). Deterministic."""
+    cx, cz = place["centre"]
+    r = place["radius"]
+    step = place["step"]
+    solids = solids or P.Solids(data)
+    trees = data.get("trees3d", [])
+    taken = [(trees[i], trees[i + 1]) for i in range(0, len(trees) - 5, 6)
+             if math.hypot(trees[i] - cx, trees[i + 1] - cz) < r + 10]
+    pois = [(p["x"], p["z"]) for p in data.get("pois", []) if p.get("k") != "address"]
+    cands = []
+    n = int(r / step)
+    for i in range(-n, n + 1):
+        for j in range(-n, n + 1):
+            x, z = cx + i * step, cz + j * step
+            d = math.hypot(x - cx, z - cz)
+            if d <= r:
+                cands.append((round(d, 3), x, z))
+    cands.sort()
+    out = []
+    mine = []
+    for _, x, z in cands:
+        if len(out) >= place["count"]:
+            break
+        if any(math.hypot(x - tx, z - tz) < TREE_GAP for tx, tz in taken):
+            continue
+        if any(math.hypot(x - tx, z - tz) < place["gap"] for tx, tz in mine):
+            continue
+        if any(math.hypot(x - px, z - pz) < 1.5 for px, pz in pois):
+            continue
+        if solids.blocked(x, z, CLEAR + 0.6, skip=("tree",)):
+            continue
+        mix = place["mix"]
+        out.append(_tree(x, z, mix[int(_hash01(x, z, 1) * len(mix)) % len(mix)]))
+        mine.append((x, z))
+    return out
+
+
 def plant(data, place, solids=None):
     """The new trees for one place, [x, z, top, radius, base, 0] each (not yet in the data)."""
+    if place.get("kind") == "grounds":
+        return plant_grounds(data, place, solids)
+    if place.get("kind") == "garden":
+        return plant_garden(data, place, solids)
     zone = zone_of(place)
     trees = data.get("trees3d", [])
     near = [(trees[i], trees[i + 1], trees[i + 2]) for i in range(0, len(trees) - 5, 6)
@@ -372,7 +578,12 @@ def apply(data, verbose=True):
     crowns = data.setdefault("trees3d_crown", [])
     have = [(trees[i], trees[i + 1]) for i in range(0, len(trees) - 5, 6)]
     added = 0
+    done = data.setdefault("planted_places", [])
     for place in PLACES:
+        if place.get("kind") in ("grounds", "garden") and place["id"] in done:
+            if verbose:
+                print(f"planted trees: {place['id']}: already planted")
+            continue
         paved = regrade(data, place)
         if paved and verbose:
             print(f"planted trees: {place['id']}: {paved} pedestrian surfaces re-tagged {place['paving']}")
@@ -388,6 +599,8 @@ def apply(data, verbose=True):
         crowns.extend(scales)
         have.extend((t[0], t[1]) for t in new)
         added += len(new)
+        if place.get("kind") in ("grounds", "garden"):
+            done.append(place["id"])
         if verbose:
             print(f"planted trees: {place['id']}: {len(new)} young trees added")
     furnish(data, verbose)

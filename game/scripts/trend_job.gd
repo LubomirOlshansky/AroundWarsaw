@@ -358,6 +358,34 @@ func _look() -> void:
 			return
 
 
+## G12c: the places for the full map's ZADANIA AUTO list while nothing is on: the open Wiralek
+## slots ("Na czasie", only those not cooling down, so driving there brings the request), Cringulo's
+## van while it is out (Mlask) and PISTACJA's door during its Friday drop (Limitka). Each:
+## {group, at (map x, z), colour, name [pl, en]}, as jobs.gd `offer_places`.
+func offer_places() -> Array:
+	var out: Array = []
+	if state != State.IDLE or life == null or _dest == Vector2.INF:
+		return out
+	var hour: float = life.hour_now()
+	for i in life.slot_doors.size():
+		var door: Vector2 = life.slot_doors[i]
+		if door == Vector2.INF or i >= life.slots_now.size() or _session < float(_cool.get(i, 0.0)):
+			continue
+		var st: Dictionary = life.slots_now[i]
+		if offers(st, hour):
+			out.append({"group": "trend", "at": door, "colour": COLOUR,
+					"name": ["Na czasie · %s" % st["word"], "On trend · %s" % st["word"]]})
+	if not van.is_empty() and van_out(hour) and _session >= float(_cool.get(-3, 0.0)):
+		out.append({"group": "mlask", "at": Vector2(van["ring"].x, van["ring"].z), "colour": ML_COLOUR,
+				"name": ["Mlask · van Cringula", "Smack · Cringulo's van"]})
+	if crowds != null and Crowds.pistacja_drop(hour, life.weekday_now()) and crowds.by_id.has(Crowds.PISTACJA_ID) \
+			and _session >= float(_cool.get(-1, 0.0)):
+		var site: Dictionary = crowds.sites[crowds.by_id[Crowds.PISTACJA_ID]]
+		out.append({"group": "drop", "at": site["door"], "colour": DROP_COLOUR,
+				"name": ["Limitka · PISTACJA DO KOŃCA", "Limited drop · PISTACJA DO KOŃCA"]})
+	return out
+
+
 ## The request at slot `i` (--trend-job too). False if no door fits.
 func offer(i: int) -> bool:
 	var door: Vector2 = life.slot_doors[i]

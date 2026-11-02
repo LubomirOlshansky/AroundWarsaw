@@ -201,6 +201,9 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     def coords(ids):
         return [project(*nodes[i]) for i in ids if i in nodes]
 
+    split_legs = bake_roads.mark_split_legs(ways, coords, DRIVABLE)
+    print(f"widths (map review C): {split_legs} one-lane one-way legs of a split street kept one lane wide")
+
     def touches_bbox(ids):
         return any(i in nodes and in_bbox(*nodes[i]) for i in ids)
 
@@ -450,6 +453,13 @@ def main(src, trees_src, dst, extras_src=None, more_src=None):
     # turned to face the walk (tools/snap_props.py; the same code runs on a baked map).
     import snap_props
     snap_props.apply(out)
+    # F (2026-11-02): streets closed to cars since OpenStreetMap drew them (Złota's linear park):
+    # their roads out, their graph edges car-free, a pedestrian zone, the new trees (tools/car_free.py).
+    import car_free
+    print("car_free: " + car_free.apply(out))
+    # Idea #9 (2026-11-02): the white bike pictograms on the cycle paths (tools/bike_marks.py).
+    import bike_marks
+    print("bike_marks: " + bike_marks.apply(out))
     # Krajobraz places (2026-11-02): the young trees of the newest streets that the laser scan
     # predates (ul. Bracka's woonerf), before the content POIs, which keep clear of trees.
     import planted_trees

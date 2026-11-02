@@ -44,9 +44,10 @@ RADIUS = {"duck": 0.3, "swan": 0.5, "footbridge": 3.6, "fountain": 3.3, "rowboat
 MAX_ITEMS = 700
 SECTOR = 512.0
 
-# Each park: the point inside its big green area, the numbers of the scattered pieces.
+# Each park: the point inside its big green area, the numbers of the scattered pieces. Ogród Saski's
+# sandstone allegories stand at their real OpenStreetMap spots now (tools/bake_monuments.py, 2026-11-02).
 PARKS = {
-    "saski": dict(poi=(-1125.2, -691.8), seated=0.30, statues=16, picnic=4, yoga=1, squirrels=7, ducks=8, swans=2),
+    "saski": dict(poi=(-1125.2, -691.8), seated=0.30, statues=0, picnic=4, yoga=1, squirrels=7, ducks=8, swans=2),
     "krasinski": dict(poi=(-1481.2, -1579.6), seated=0.30, statues=0, picnic=4, yoga=1, squirrels=7, ducks=9, swans=2),
     "ujazdowski": dict(poi=(109.2, 1224.0), seated=0.28, statues=0, picnic=6, yoga=1, squirrels=8, ducks=10, swans=3),
     # The strip of green by Al. Jana Pawła II west of Arkadia (K8): the rope course plays here.

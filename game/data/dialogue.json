@@ -1,9 +1,9 @@
 {
-  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json. Crash scenes (crash_scenes.gd, 2026-11-01): crash_scene \"driver\", \"officer\", \"medic\", \"gawker\" (bubbles at a fender bender); radio_host \"crash\" ({street}: the road's name, starting the line). Office crowds at Rondo Daszyńskiego (crowds.gd \"office\" sites and walkers, 2026-11-02): office (\"morning\" 07-10, \"lunch\" 11-14, \"evening\" 16-19, \"rain\"; untagged anywhere): overheard corporate jokes, no brand names. Beta radio (2026-11-02): the host's greeting when the game starts (dialogue.gd greeting) = radio_hello_morning / _day / _evening / _night + radio_weather_warm / _mild / _cold / _rain ({t}: the temperature, \"20 stopni\" / \"20 degrees\") + radio_bye (\"morning\", \"day\", \"evening\", \"night\").",
+  "_about": "Original lines for Around Warsaw: affectionate Warsaw humour about the city and its stereotypes, never about real private people, no brand names. Each line is [Polish, English], optionally with a third element of notes for the game: {\"only\": tag or [tags]} limits it to one situation (kebab orders: \"powisle\", \"praga\" across the river, \"office\"; rescues: \"roof\", \"street\", \"river\", \"child\", \"square\"; słoiki: \"all\" jars intact, \"some\"; water_tow, loop 10a: \"river\", \"pond\"), {\"customer\": name} names who ordered. {\"poster\": [lines]} (column_posters, loop 1) is how the poster on an advertising column breaks the line: at most four lines of eight letters. Loop 3g-1 (police, docs/design/police.md section 6): police_warn \"speed\", \"red\", \"bump\"; police_chase \"start\", \"backup\", \"roadblock\" (untagged: every 10 to 12 s); police_lost \"escaped\", \"shift\", \"heli\"; police_stop \"routine\", \"roosters\", \"trap\", \"kebab\", \"sloik\" (untagged: the generic opener); police_reply \"trap\", \"kebab\" (untagged: always offered; at most 28 characters, they are buttons); police_caution \"police\", \"fifth\"; radio_host \"traps\" ({pl} / {en}: the day's three speed traps). Speech bubbles stay under 70 characters in Polish. Loop MW-0 (Moja Warszawa, docs/design/vision.md section 7): radio_polnoc (PÓŁNOC FM's host Kuba, \"south_gate\": entering the box from Plac Na Rozdrożu); radio_host (the Hyrax line); club_door (the bouncer: \"reject\", \"queue\", \"car\", \"car_black\", \"dawn\"); clubbers; dawn_crowd (\"palm\"); police_club (the units parked by the clubs, \"sober\"); schodki (\"sunset\", \"guitar\", \"fourth\"); viral (Wiralek: \"queue\", \"new\", \"gone\", \"glon\", \"late\"); runners (\"zajac\", \"hyrax\"); dog_walkers (\"horn\", \"influencer\"); cyclists (\"lane\"); metro_announce; bus_stop (\"night\"); podwozka_request and podwozka_passenger \"club\" (dawn rides from the club doors); notes (the notebook toasts: \"found\", \"chapter\", \"kadr\"); four signs and four column_posters. The notebook's place cards are in places.json and the tape's then cards in then_cards.json. Crash scenes (crash_scenes.gd, 2026-11-01): crash_scene \"driver\", \"officer\", \"medic\", \"gawker\" (bubbles at a fender bender); radio_host \"crash\" ({street}: the road's name, starting the line). Office crowds at Rondo Daszyńskiego (crowds.gd \"office\" sites and walkers, 2026-11-02): office (\"morning\" 07-10, \"lunch\" 11-14, \"evening\" 16-19, \"rain\"; untagged anywhere): overheard corporate jokes, no brand names. Beta radio (2026-11-02): the host's greeting when the game starts (dialogue.gd greeting) = radio_hello_morning / _day / _evening / _night + radio_weather_warm / _mild / _cold / _rain ({t}: the temperature, \"20 stopni\" / \"20 degrees\") + radio_bye (\"morning\", \"day\", \"evening\", \"night\"). City-life satire #1, loud cars (loud_cars.gd, 2026-11-02): car_meet (the crowd at the Browary meet; \"rev\" when a parked car revs), loud_driver (a passing loud supercar's driver), radio_host \"loud\" (KEBAB FM: \"Sąsiedzi znów liczą obroty\").",
   "radio_host": [
     [
-      "KEBAB FM, 87,3. Na Marszałkowskiej znowu remont. Czyli wszystko po staremu.",
-      "KEBAB FM, 87.3. Roadworks on Marszałkowska again. So, business as usual."
+      "Na Marszałkowskiej znowu remont. Czyli wszystko po staremu.",
+      "Roadworks on Marszałkowska again. So, business as usual."
     ],
     [
       "Korek na Rondzie Dmowskiego. Jeśli tam stoisz — pozdrawiamy, zostań z nami, mamy czas.",
@@ -101,16 +101,16 @@
       "Pasaż Wiecha: a queue for green coffee. Yes, it's tea."
     ],
     [
-      "KEBAB FM. W TIMBER rekord: tysiąc dopasowań i jedna randka. W LORETCE.",
-      "KEBAB FM. A TIMBER record: a thousand matches, one date. At LORETKA."
+      "W TIMBER rekord: tysiąc dopasowań i jedna randka. W LORETCE.",
+      "A TIMBER record: a thousand matches, one date. At LORETKA."
     ],
     [
-      "KEBAB FM. Trzecia w nocy, WACZEK na Marszałkowskiej: cała Warszawa w jednej kolejce.",
-      "KEBAB FM. 3 a.m., WACZEK on Marszałkowska: all of Warsaw in one queue."
+      "Trzecia w nocy, WACZEK na Marszałkowskiej: cała Warszawa w jednej kolejce.",
+      "3 a.m., WACZEK on Marszałkowska: all of Warsaw in one queue."
     ],
     [
-      "KEBAB FM. Gra planszowa w PRZEGRYWKACH: trzy godziny, jedna kłótnia, zero zwycięzców.",
-      "KEBAB FM. A board game at PRZEGRYWKI: three hours, one row, no winners."
+      "Gra planszowa w PRZEGRYWKACH: trzy godziny, jedna kłótnia, zero zwycięzców.",
+      "A board game at PRZEGRYWKI: three hours, one row, no winners."
     ],
     [
       "Kolejka pod KUKŁĄ sięga Królewskiej. Naleśniki podobno też są.",
@@ -137,8 +137,8 @@
       "Cringulo gave three smacks. The place is closed for repairs. Of the soul."
     ],
     [
-      "KEBAB FM. Kino Muranów wyświetla film o gołębiu. Trzy godziny, bez dialogów, sala pełna.",
-      "KEBAB FM. Kino Muranów is showing a film about a pigeon. Three hours, no dialogue, sold out."
+      "Kino Muranów wyświetla film o gołębiu. Trzy godziny, bez dialogów, sala pełna.",
+      "Kino Muranów is showing a film about a pigeon. Three hours, no dialogue, sold out."
     ],
     [
       "Atlantic na Chmielnej: seans o 20:00, a o 19:30 już cała ulica w czerni i z okularami.",
@@ -194,8 +194,8 @@
       "Housing market: central prices fell by a full zero percent. Yes, five years in a row."
     ],
     [
-      "KEBAB FM radzi: kawalerka na Woli to nie mieszkanie, to subskrypcja. Płacisz, a i tak nie jest twoja.",
-      "KEBAB FM tip: a studio in Wola isn't a flat, it's a subscription. You pay, and it's still not yours."
+      "Radzimy: kawalerka na Woli to nie mieszkanie, to subskrypcja. Płacisz, a i tak nie jest twoja.",
+      "Our tip: a studio in Wola isn't a flat, it's a subscription. You pay, and it's still not yours."
     ],
     [
       "Pytanie słuchacza: czy da się kupić mieszkanie w Warszawie? Odpowiadamy: da się, jeśli się urodzisz w nim w 1987.",
@@ -204,6 +204,34 @@
     [
       "Dom Wielkiego Kredytu zaprasza na dzień otwarty. Wstęp wolny, wyjście po trzydziestu latach.",
       "Dom Wielkiego Kredytu invites you to an open day. Free entry, exit after thirty years."
+    ],
+    [
+      "Sąsiedzi znów liczą obroty. Okolice Browarów: ktoś sprawdza, czy szyby w oknach są hartowane.",
+      "The neighbours are counting the revs again. Around the Browary: someone is testing whether the windows are tempered.",
+      {
+        "only": "loud"
+      }
+    ],
+    [
+      "Sąsiedzi znów liczą obroty. Mieszkańcy Woli proszą: obroty tak, ale nie o trzeciej w nocy.",
+      "The neighbours are counting the revs again. Wola's residents ask: revs, fine, but not at three in the morning.",
+      {
+        "only": "loud"
+      }
+    ],
+    [
+      "Pomiar hałasu na Grzybowskiej: start samolotu, tylko z gorszą muzyką. Sąsiedzi znów liczą obroty.",
+      "Noise reading on Grzybowska: a jet taking off, only with worse music. The neighbours are counting the revs again.",
+      {
+        "only": "loud"
+      }
+    ],
+    [
+      "Komunikat: na ulicach znów głośne auta. Policja mówi, że słyszy. Wszyscy słyszą.",
+      "Announcement: the loud cars are out again. The police say they can hear them. Everyone can hear them.",
+      {
+        "only": "loud"
+      }
     ]
   ],
   "kebab_order": [
@@ -998,6 +1026,10 @@
       {
         "only": "zag_rozen"
       }
+    ],
+    [
+      "Mięso? Mieszane. Sos? Mieszane. Zamówienie przyjęte, jedź!",
+      "Meat? Mixed. Sauce? Mixed. Order taken, go!"
     ]
   ],
   "rescue_person": [
@@ -2466,6 +2498,76 @@
       }
     ],
     [
+      "Płakałam przy pierwszym kęsie. Płakałam też przy drugiej godzinie w kolejce.",
+      "I cried at the first bite. I also cried at the second hour in the queue.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
+      "Ciasto ma trzy dni, a ja trzy godziny. Sprawiedliwie.",
+      "The dough is three days old and I've waited three hours. Fair.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
+      "To nie pizza. To doświadczenie. Pan mi tak powiedział, kiedy wziął pieniądze.",
+      "It's not a pizza. It's an experience. The man told me so when he took my money.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
+      "Zjadłem i wróciłem na koniec kolejki. Na prawo, nie oceniam.",
+      "I ate it and went back to the end of the queue. No judgement.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
+      "Mama dzwoni: „wracaj na obiad”. Mamo, ja stoję po obiad.",
+      "Mum calls: \"come home for dinner\". Mum, I'm queuing for dinner.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
+      "Stoję w kolejce do kolejki. Ta kolejka jest po to, żeby wejść do kolejki.",
+      "I'm queuing for the queue. This queue is for getting into the queue.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
+      "Pan z tabliczką „POCZĄTEK KOLEJKI” stoi w kolejce po tabliczkę „POCZĄTEK KOLEJKI”.",
+      "The man with the \"START OF THE QUEUE\" sign is queuing for the \"START OF THE QUEUE\" sign.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
+      "Podobno koniec kolejki jest przy Rondzie. Początek jest w następnej kolejce.",
+      "They say the end of the queue is at the Rondo. The start is in the next queue.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
+      "Dostałam numerek do numerków. Jestem czterysta trzydziesta w numerkach.",
+      "I got a ticket for the tickets. I'm four hundred and thirtieth in the tickets.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
+      "Najlepsza pizza w Warszawie. Tak mówią ci, którzy już stoją.",
+      "The best pizza in Warsaw. So say those already standing in line.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
       "Dalej, dalej! Kolejka sama się nie przesunie.",
       "Dalej, dalej! The queue won't move itself.",
       {
@@ -2491,6 +2593,41 @@
       "Two scoops, thirty minutes. The maths works.",
       {
         "only": "lody"
+      }
+    ],
+    [
+      "„Mięso?” „Mieszane.” „Sos?” „Mieszane.” Od lat tak.",
+      "\"Meat?\" \"Mixed.\" \"Sauce?\" \"Mixed.\" Always has been.",
+      {
+        "only": "mieszane"
+      }
+    ],
+    [
+      "Nie czytam menu. Menu to formalność. Mieszane.",
+      "I don't read the menu. The menu is a formality. Mixed.",
+      {
+        "only": "mieszane"
+      }
+    ],
+    [
+      "Pan już wie, co chcę. Pan zawsze wie. Mieszane, mieszane.",
+      "The man knows what I want. He always does. Mixed, mixed.",
+      {
+        "only": "mieszane"
+      }
+    ],
+    [
+      "Raz spróbowałem „samo mięso”. Nie rozmawiamy o tym.",
+      "I once tried \"just meat\". We don't talk about it.",
+      {
+        "only": "mieszane"
+      }
+    ],
+    [
+      "Trzecia w nocy, kolejka nie krótsza. Mieszane warte każdej minuty.",
+      "Three a.m., the queue no shorter. Mixed is worth every minute.",
+      {
+        "only": "mieszane"
       }
     ]
   ],
@@ -3205,6 +3342,309 @@
       "I'd play till dawn, but the café shuts at three.",
       {
         "only": "dj"
+      }
+    ]
+  ],
+  "sound_healing": [
+    [
+      "Osiemdziesiąt złotych za ciszę. Cisza jest w cenie.",
+      "Eighty zloty for silence. The silence is included."
+    ],
+    [
+      "Gong czyści czakry. Sąsiad czyści uszy.",
+      "The gong cleans the chakras. The neighbour cleans his ears."
+    ],
+    [
+      "Misa tybetańska z Pruszkowa. Autentyczna.",
+      "A Tibetan bowl from Pruszków. Authentic."
+    ],
+    [
+      "Czuję wibracje. Albo to tramwaj.",
+      "I feel the vibrations. Or that's the tram."
+    ],
+    [
+      "Wchodzę w głęboki relaks. Zapłaciłam za godzinę, więc wchodzę.",
+      "Going into deep relaxation. I paid for the hour, so I'm going in."
+    ],
+    [
+      "Dziewięćdziesiąt minut bez powiadomień. Prawie.",
+      "Ninety minutes without notifications. Almost."
+    ],
+    [
+      "Leżę i rezonuję.",
+      "I lie here and resonate."
+    ],
+    [
+      "Mata dla początkujących kosztuje dodatkowo.",
+      "The beginners' mat costs extra."
+    ],
+    [
+      "Gong ma certyfikat. Ja nie.",
+      "The gong is certified. I'm not."
+    ],
+    [
+      "Oddychaj. Teraz wydychaj. Teraz zapłać za następną sesję.",
+      "Breathe in. Out. Now pay for the next session.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Pozwólcie dźwiękowi was przeniknąć. Telefony proszę wyciszyć.",
+      "Let the sound pass through you. Phones on silent, please.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Cisza... ktoś pisze na grupie... cisza.",
+      "Silence... someone's typing in the group chat... silence.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Ciszej proszę, to jest sesja!",
+      "Quiet, please, this is a session!",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Pański silnik jest w złym stroju.",
+      "Your engine is off-key.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Klakson? Poproszę czterysta trzydzieści dwa herca.",
+      "A horn? 432 hertz, please.",
+      {
+        "only": "car"
+      }
+    ]
+  ],
+  "techno_yoga": [
+    [
+      "Pies z głową w dół, chomik z głową w kole.",
+      "Downward dog, hamster head in the wheel."
+    ],
+    [
+      "Chomik robi dziesięć kilometrów. Ja trzy skłony.",
+      "The hamster does ten kilometres. I do three bends."
+    ],
+    [
+      "Techno o ósmej rano. Moje ciało nie pytało.",
+      "Techno at eight a.m. My body wasn't asked."
+    ],
+    [
+      "Bas dziewięćdziesiąt decybeli, oddech spokojny.",
+      "Bass at ninety decibels, breathing calm."
+    ],
+    [
+      "Chomik w kuli wtoczył mi się w pozę drzewa.",
+      "A hamster ball rolled into my tree pose."
+    ],
+    [
+      "Namaste, ale w rytmie sto trzydzieści.",
+      "Namaste, but at 130 bpm."
+    ],
+    [
+      "Chomiki mają certyfikat. Ja jeszcze nie.",
+      "The hamsters are certified. I'm not yet."
+    ],
+    [
+      "Ta poza to jest drop.",
+      "This pose is the drop."
+    ],
+    [
+      "Wdech na trzy, wydech na cztery, drop na pięć.",
+      "In for three, out for four, drop on five."
+    ],
+    [
+      "Zero kaca, sto trzydzieści uderzeń na minutę.",
+      "Zero hangover, 130 beats a minute."
+    ],
+    [
+      "Czujcie bit w kręgosłupie i chomika pod piętą.",
+      "Feel the beat in your spine and the hamster under your heel.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Teraz kotek. Chomiku, zjedź z maty.",
+      "Now cat pose. Hamster, off the mat.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Oddychajcie w rytmie. Nie, nie w moim, w basu.",
+      "Breathe in rhythm. No, not mine, the bass's.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Ścisz auto, mamy tu własny bas!",
+      "Turn your car down, we've got our own bass!",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Zwolnij, przejeżdżasz przez strefę chomików.",
+      "Slow down, you're crossing a hamster zone.",
+      {
+        "only": "car"
+      }
+    ]
+  ],
+  "club_40": [
+    [
+      "Budzimy małą dziewczynkę. Wstała i chce kawę.",
+      "We're waking the little girl. She's up and wants coffee."
+    ],
+    [
+      "Moja mała dziewczynka jest zmęczona. Daj jej pospać.",
+      "My little girl is tired. Let her sleep."
+    ],
+    [
+      "Hula-hoop po czterdziestce to nie ruch, to deklaracja.",
+      "A hula hoop after forty isn't exercise, it's a statement."
+    ],
+    [
+      "Dziewczynka w środku ma cztery lata i dużo pomysłów.",
+      "The girl inside is four years old and full of ideas."
+    ],
+    [
+      "Pierwszy raz od lat bawię się w kółko graniaste.",
+      "First time in years I'm playing ring-a-ring-o'-roses."
+    ],
+    [
+      "Śmiejemy się, a potem każda opowiada o swojej działce.",
+      "We laugh, and then each tells about her allotment."
+    ],
+    [
+      "Mąż pyta, gdzie jestem. Budzę dziewczynkę.",
+      "My husband asks where I am. Waking the girl."
+    ],
+    [
+      "Dziewczynka chce lody. Dorosła też.",
+      "The girl wants ice cream. So does the grown-up."
+    ],
+    [
+      "Balony dla dziewczynki, musujące dla dorosłej.",
+      "Balloons for the girl, something sparkling for the grown-up."
+    ],
+    [
+      "Nie, to nie sekta. To klub.",
+      "No, it's not a cult. It's a club."
+    ],
+    [
+      "Zamknijcie oczy. Widzicie ją? Macha.",
+      "Close your eyes. Can you see her? She's waving.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Powtarzajcie: jesteśmy pełnią!",
+      "Repeat after me: we are the full moon!",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "A teraz każda mówi dziewczynce, że dobrze jej szło.",
+      "Now each tells the girl she did well.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Jedź ostrożnie, w środku jest dziewczynka!",
+      "Drive carefully, there's a little girl inside!",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Dziewczynki machają do pana. Niech pan zwolni!",
+      "The girls are waving at you. Slow down!",
+      {
+        "only": "car"
+      }
+    ]
+  ],
+  "park_kungfu": [
+    [
+      "Żuraw w locie. Technika sprzed wieków. Ćwiczę od wtorku.",
+      "Flying crane. A centuries-old technique. I've trained since Tuesday."
+    ],
+    [
+      "Mistrz mówi: bądź jak woda. Woda nie ma pleców.",
+      "The master says be like water. Water has no back."
+    ],
+    [
+      "Wolny ruch jest trudniejszy niż szybki.",
+      "A slow move is harder than a fast one."
+    ],
+    [
+      "Jesteśmy ninja. Wszyscy widzą, że tu stoimy.",
+      "We're ninjas. Everyone can see us standing here."
+    ],
+    [
+      "Ćwiczę kung-fu w parku, bo na siłowni nie ma gołębi.",
+      "I do kung-fu in the park because gyms have no pigeons."
+    ],
+    [
+      "Siedemnasta forma: ptak, który zapomniał, dokąd leci.",
+      "Form seventeen: the bird that forgot where it was flying."
+    ],
+    [
+      "Równowaga jest w nogach. U mnie w kolanach, niestety.",
+      "Balance is in the legs. In mine, in the knees, sadly."
+    ],
+    [
+      "Oddech, ruch, kawa. W tej kolejności.",
+      "Breath, move, coffee. In that order."
+    ],
+    [
+      "Wolniej. Jeszcze wolniej. Wolniej, niż myślisz.",
+      "Slower. Slower still. Slower than you think.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Cisza. Słyszę tylko, jak ktoś czeka na zielone.",
+      "Silence. I only hear someone waiting for the green light.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Gołąb nie jest częścią formy. Gołąb to nauczyciel.",
+      "The pigeon is not part of the form. The pigeon is a teacher.",
+      {
+        "only": "leader"
+      }
+    ],
+    [
+      "Mistrz mówi: samochód to też żywioł.",
+      "The master says a car is an element too.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Wolniej, nie zakłócaj energii qi.",
+      "Slower, don't disturb the qi.",
+      {
+        "only": "car"
       }
     ]
   ],
@@ -3999,6 +4439,535 @@
       {
         "only": "night"
       }
+    ]
+  ],
+  "car_meet": [
+    [
+      "Ooo, nowy! Jakie to ma koni? Cztery? Z rodzeństwem?",
+      "Ooh, a newcomer! How many horsepower? Four? With siblings?",
+      {
+        "only": "stop"
+      }
+    ],
+    [
+      "Parkuj śmiało, tylko nie obok lakieru.",
+      "Park wherever, just not next to the paint.",
+      {
+        "only": "stop"
+      }
+    ],
+    [
+      "Przyszedłeś na zlot czy się zgubiłeś? Obie opcje są OK.",
+      "Here for the meet or just lost? Both are fine.",
+      {
+        "only": "stop"
+      }
+    ],
+    [
+      "Fajna bryka. Ma jakiś nick na Instagramie?",
+      "Nice ride. Does it have a handle on Instagram?",
+      {
+        "only": "stop"
+      }
+    ],
+    [
+      "Nie dotykaj! Lakier ma więcej obserwujących niż ty.",
+      "Don't touch! The paint has more followers than you."
+    ],
+    [
+      "Ile pali? Nie pytaj. Pali głównie wypłatę.",
+      "Fuel economy? Don't ask. It mostly burns salaries."
+    ],
+    [
+      "Leasing na 96 rat, ale posłuchaj tego dźwięku!",
+      "A 96-month lease, but listen to that sound!"
+    ],
+    [
+      "Odpal jeszcze raz, nie nagrałem w pionie!",
+      "Rev it again, I didn't film it vertical!"
+    ],
+    [
+      "Najszybsze auto na Woli. Stoi tu od trzech godzin.",
+      "The fastest car in Wola. It's been standing here for three hours."
+    ],
+    [
+      "On nie jeździ. On się pokazuje.",
+      "He doesn't drive. He gets seen."
+    ],
+    [
+      "Ziomek ma dwa miejsca w aucie i trzy kamery.",
+      "The guy has two seats in the car and three cameras."
+    ],
+    [
+      "Prawdziwy fan poznaje silnik po kaszlu sąsiada.",
+      "A real fan knows the engine by the neighbour's cough."
+    ],
+    [
+      "Jeszcze raz! Jeszcze raz!",
+      "Again! Again!",
+      {
+        "only": "rev"
+      }
+    ],
+    [
+      "Słyszałeś te strzały z wydechu? Poezja.",
+      "Hear those pops from the exhaust? Poetry.",
+      {
+        "only": "rev"
+      }
+    ],
+    [
+      "Moje bębenki właśnie złożyły wypowiedzenie.",
+      "My eardrums just handed in their notice.",
+      {
+        "only": "rev"
+      }
+    ],
+    [
+      "Obok włączył się alarm w aucie. Z zazdrości.",
+      "A car alarm went off down the road. Out of jealousy.",
+      {
+        "only": "rev"
+      }
+    ]
+  ],
+  "loud_driver": [
+    [
+      "Słyszysz? To nie hałas, to charakter.",
+      "Hear that? That's not noise, that's character."
+    ],
+    [
+      "Tłumik? Oddałem na złom. Był za cichy.",
+      "The silencer? Scrapped it. It was too quiet."
+    ],
+    [
+      "Wkręcam do odcięcia, żeby sąsiedzi wiedzieli, że wróciłem.",
+      "I rev to the limiter so the neighbours know I'm home."
+    ],
+    [
+      "Zwalniam tylko przy witrynach. Żeby się w nich zobaczyć.",
+      "I only slow down at shop windows. To see myself in them."
+    ],
+    [
+      "Paliwo drogie, ale emocje bezcenne.",
+      "Fuel's dear, but the feelings are priceless."
+    ],
+    [
+      "Do Browarów po kawę. Dookoła Ronda Daszyńskiego. Trzy razy.",
+      "Off to the Browary for a coffee. Round Rondo Daszyńskiego. Three times."
+    ]
+  ],
+  "kibice": [
+    [
+      "Eee, gdzie jest mój bilet? A, w szaliku.",
+      "Eh, where's my ticket? Oh, in my scarf."
+    ],
+    [
+      "Śpiewamy od trzeciej. Mecz jest o ósmej.",
+      "We've been singing since three. Kick-off's at eight."
+    ],
+    [
+      "Szalik po dziadku. Pachnie jak rok dziewięćdziesiąty piąty.",
+      "Grandad's scarf. Smells like 1995."
+    ],
+    [
+      "To nie raca, to dymek z atestem. Różowy, bo z miłości.",
+      "Not a flare, a certified smoke puff. Pink, because it's love."
+    ],
+    [
+      "Bęben pożyczony od sąsiada. Sąsiad też tu jest. Gra na nim.",
+      "The drum's borrowed from my neighbour. He's here too. He's playing it."
+    ],
+    [
+      "Jeden gol i idziemy na pierogi. Dwa gole: ruskie i z mięsem.",
+      "One goal and we go for pierogi. Two goals: both kinds."
+    ],
+    [
+      "Wynik nieważny. Ważne, że kiełbasa ciepła.",
+      "The score doesn't matter. What matters is the sausage is hot."
+    ],
+    [
+      "Trzy godziny śpiewu, zero głosu, sto procent szczęścia.",
+      "Three hours of singing, no voice left, one hundred per cent happy."
+    ],
+    [
+      "Mama myśli, że jestem na basenie. Basen też jest zielony.",
+      "Mum thinks I'm at the pool. The pool's green too."
+    ],
+    [
+      "Każdy rzut rożny to dla nas małe święto narodowe.",
+      "Every corner kick is a small national holiday for us."
+    ],
+    [
+      "Bilet był drogi, ale śpiewanie przed stadionem jest gratis.",
+      "The ticket was pricey, but singing outside is free."
+    ],
+    [
+      "Sąsiad z trybuny zna mój głos lepiej niż żona.",
+      "The guy next to me in the stand knows my voice better than my wife does."
+    ],
+    [
+      "Ja tu tylko po kanapkę, a mam już trzy szaliki.",
+      "I only came for a sandwich and now I've got three scarves."
+    ],
+    [
+      "Ćwiczę doping na balkonie. Sąsiedzi już znają refren.",
+      "I practise the chants on my balcony. The neighbours know the chorus."
+    ],
+    [
+      "Kto nie skacze, ten nie zjadł kiełbasy!",
+      "Whoever's not jumping hasn't had a sausage!",
+      {
+        "only": "chant"
+      }
+    ],
+    [
+      "Ooo-oo-oo! Słów nie pamiętam, ale melodię tak!",
+      "Ooo-oo-oo! Can't remember the words, but I've got the tune!",
+      {
+        "only": "chant"
+      }
+    ],
+    [
+      "Raz, dwa, trzy! Biało, czerwono, zielono!",
+      "One, two, three! White, red and green!",
+      {
+        "only": "chant"
+      }
+    ],
+    [
+      "Śpiewamy dla trawy! Trawa dziś wygląda świetnie!",
+      "We sing for the grass! The grass looks great tonight!",
+      {
+        "only": "chant"
+      }
+    ],
+    [
+      "Bęben, szalik, refren! I jeszcze raz, głośniej!",
+      "Drum, scarf, chorus! Once more, louder!",
+      {
+        "only": "chant"
+      }
+    ],
+    [
+      "Skaczemy, bo zimno! I trochę z radości!",
+      "We jump because it's cold! And a bit for joy!",
+      {
+        "only": "chant"
+      }
+    ],
+    [
+      "O, trąbi! Kierowca z nami! Śpiewamy dla kierowcy!",
+      "Oh, a honk! The driver's with us! This one's for the driver!",
+      {
+        "only": "honk"
+      }
+    ],
+    [
+      "Trąbka to też instrument! Jeszcze raz!",
+      "A horn's an instrument too! Again!",
+      {
+        "only": "honk"
+      }
+    ],
+    [
+      "Dziękujemy za doping z samochodu! Szalik dla pana!",
+      "Thanks for the support from the car! A scarf for you!",
+      {
+        "only": "honk"
+      }
+    ],
+    [
+      "Słyszeliście? Nawet auta są dziś z nami!",
+      "Hear that? Even the cars are with us tonight!",
+      {
+        "only": "honk"
+      }
+    ],
+    [
+      "Kierowco, trąbnij dla drużyny!",
+      "Driver, give us a honk for the team!",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Zwolnij, tu się śpiewa, nie jeździ!",
+      "Slow down, this is for singing, not driving!",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Masz szalik w schowku? Każdy ma szalik w schowku.",
+      "Got a scarf in the glovebox? Everyone's got one.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Podwieziesz bęben? Sam nie chce iść.",
+      "Give the drum a lift? It won't walk by itself.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Ładne auto! Biało-czerwono-zielone byłoby ładniejsze.",
+      "Nice car! White, red and green would be nicer.",
+      {
+        "only": "car"
+      }
+    ],
+    [
+      "Mój palec jest większy niż mój tata!",
+      "My finger's bigger than my dad!",
+      {
+        "only": "kid"
+      }
+    ],
+    [
+      "Tata obiecał, że jak strzelą, to mogę krzyczeć do jutra.",
+      "Dad said if they score I can shout until tomorrow.",
+      {
+        "only": "kid"
+      }
+    ],
+    [
+      "Mam piankowy palec numer jeden. Jestem numer jeden!",
+      "I've got the number-one foam finger. I'm number one!",
+      {
+        "only": "kid"
+      }
+    ],
+    [
+      "Pierwszy raz na meczu! Na razie najlepsza jest kiełbasa.",
+      "My first match! So far the sausage is the best bit.",
+      {
+        "only": "kid"
+      }
+    ],
+    [
+      "Idziemy na mecz! Kiełbasa czeka, drużyna też.",
+      "Off to the match! The sausage is waiting, and so is the team.",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Szalik jest, bilet jest, głos jeszcze jest.",
+      "Scarf: yes. Ticket: yes. Voice: still yes.",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Tata, a daleko jeszcze? Synku, słychać już bęben.",
+      "Dad, is it far? Son, you can already hear the drum.",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Wziąłem trzy kanapki. Mecz trwa dwa razy po czterdzieści pięć.",
+      "I packed three sandwiches. The match is two halves of forty-five.",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Z przystanku do bramy śpiewamy na rozgrzewkę.",
+      "From the stop to the gate we sing to warm up.",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Pani z kwiaciarni pyta, kto gra. My, proszę pani!",
+      "The florist asks who's playing. We are, madam!",
+      {
+        "only": "walk"
+      }
+    ],
+    [
+      "Biegiem! Już wychodzą na boisko!",
+      "Run! They're already walking out onto the pitch!",
+      {
+        "only": "late"
+      }
+    ],
+    [
+      "Zawsze wierni, czasem punktualni! Szybciej!",
+      "Always faithful, sometimes on time! Faster!",
+      {
+        "only": "late"
+      }
+    ],
+    [
+      "Mówiłem, żeby nie stać w kolejce po zapiekankę!",
+      "I told you not to queue for the zapiekanka!",
+      {
+        "only": "late"
+      }
+    ],
+    [
+      "Wygraliśmy! Jutro do pracy bez głosu, ale szczęśliwy.",
+      "We won! Tomorrow I'm at work with no voice, but happy.",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Trzy punkty! I jeszcze trzy pierogi na kolację.",
+      "Three points! And three pierogi for dinner.",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Tak się cieszę, że przytulę kierowcę autobusu.",
+      "I'm so happy I'll hug the bus driver.",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Mamo, wygraliśmy! Tak, zjadłem coś ciepłego.",
+      "Mum, we won! Yes, I ate something warm.",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Śpiewamy do samego przystanku, a potem w autobusie!",
+      "We sing all the way to the stop, and then on the bus!",
+      {
+        "only": "win"
+      }
+    ],
+    [
+      "Remis. Ale kiełbasa była na pięć punktów.",
+      "A draw. But the sausage was worth five points.",
+      {
+        "only": "draw"
+      }
+    ],
+    [
+      "Następnym razem! Zawsze jest następny raz.",
+      "Next time! There's always a next time.",
+      {
+        "only": "draw"
+      }
+    ],
+    [
+      "Jeden punkt to też punkt. Matematyka się zgadza.",
+      "One point is still a point. The maths checks out.",
+      {
+        "only": "draw"
+      }
+    ],
+    [
+      "Remis, ale za to jaki ładny remis.",
+      "A draw, but what a lovely draw.",
+      {
+        "only": "draw"
+      }
+    ],
+    [
+      "Uwaga, auto! Spokojnie, przepuszczamy!",
+      "Car! Easy, we'll let you through!",
+      {
+        "only": "dodge"
+      }
+    ],
+    [
+      "Hop na bok! Kierowco, my tylko na mecz!",
+      "Hop aside! Driver, we're only off to the match!",
+      {
+        "only": "dodge"
+      }
+    ],
+    [
+      "Szaliki w górę, nogi w bok!",
+      "Scarves up, feet to the side!",
+      {
+        "only": "dodge"
+      }
+    ],
+    [
+      "Ej, wolniej! Tu się chodzi po kiełbasę!",
+      "Hey, slow down! People walk to the sausages here!",
+      {
+        "only": "dodge"
+      }
+    ],
+    [
+      "Przepuśćmy kierowcę, może też kibicuje.",
+      "Let the driver through, maybe they're a fan too.",
+      {
+        "only": "dodge"
+      }
+    ],
+    [
+      "Bez biletu, ale z radiem. Komentator krzyczy, my też.",
+      "No ticket, but we've got a radio. He shouts, we shout.",
+      {
+        "only": "match"
+      }
+    ],
+    [
+      "Słychać trybuny! Chyba rzut rożny. Albo przywieźli hot-dogi.",
+      "Hear the stands? Must be a corner. Or the hot dogs arrived.",
+      {
+        "only": "match"
+      }
+    ],
+    [
+      "Pilnujemy bębna, reszta ogląda. Ktoś musi.",
+      "We mind the drum, the rest are watching. Someone has to.",
+      {
+        "only": "match"
+      }
+    ],
+    [
+      "Mecz z ulicy też się liczy. Kiełbasa bliżej.",
+      "The match from the street counts too. The sausage is closer.",
+      {
+        "only": "match"
+      }
+    ],
+    [
+      "Radio się zacina, więc śpiewamy, aż wróci zasięg.",
+      "The radio keeps cutting out, so we sing till the signal's back.",
+      {
+        "only": "match"
+      }
+    ]
+  ],
+  "police_kibice": [
+    [
+      "Mecz za godzinę, kawa za trzy minuty. Priorytety.",
+      "Kick-off in an hour, coffee in three minutes. Priorities."
+    ],
+    [
+      "Najgroźniejsza jest tu kiełbasa. Bardzo gorąca.",
+      "The most dangerous thing here is the sausage. Very hot."
+    ],
+    [
+      "Śpiewają fałszywie, ale to nie jest wykroczenie.",
+      "They sing off-key, but that's not an offence."
+    ],
+    [
+      "Patrol? Nie. Kawa z widokiem na bęben.",
+      "On patrol? No. Coffee with a view of the drum."
+    ],
+    [
+      "Różowy dymek sprawdzony. Pachnie jak wata cukrowa.",
+      "Pink smoke checked. Smells like candyfloss."
+    ],
+    [
+      "Szalik mam w radiowozie. Służbowo, oczywiście.",
+      "I've got a scarf in the patrol car. Strictly for work, of course."
     ]
   ]
 }

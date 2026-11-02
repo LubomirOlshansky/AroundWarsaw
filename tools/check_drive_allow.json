@@ -88,6 +88,17 @@
    "name": "Most Łazienkowski's Praga ramps (deck 20)",
    "reason": "loop 3e: found by the routes over every structure: a 0.7 m step where a ramp's deck meets the ground (R8 work left, as the lane entry at 2045, 815)",
    "source": "check_drive.gd --no-allow --routes=100 on the loop 3e bake"
+  },
+  {
+   "kind": "jump",
+   "at": [
+    2041,
+    868
+   ],
+   "r": 6,
+   "name": "Most Łazienkowski's Praga loop ramp (deck 8)",
+   "reason": "map review C (2026-11-02): a 0.35 m step on edge 1891 where the loop ramp's slab meets the next piece (R8, BACKLOG 'From loop 3e'); the bake in the cloud shows it before and after the street widths (the Mac's bake doesn't), so not from this change",
+   "source": "check_drive.gd on the cloud bake of 2026-11-02"
   }
  ]
 }

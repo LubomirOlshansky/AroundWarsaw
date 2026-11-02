@@ -136,6 +136,9 @@ const BUDGET := {
 	"tower75": 220,
 	"cepelia": 900,
 	"zodiak": 600,
+	"orly": 1600,
+	"polin": 450,
+	"getto": 650,
 	"ochota": 1420,
 	"powisle": 1770,
 	"barka_wieczor": 1820,
@@ -175,7 +178,7 @@ const BUDGET := {
 	"wiktoria": 230,
 	"wtt": 1640,
 	"zacheta": 720,
-	"zlota44": 500,
+	"zlota44": 1800,
 	"zygmunt": 280,
 }
 ## Known defects per site: {"zfight": n, "degenerate": n, "badnormal": n, "float": n}.

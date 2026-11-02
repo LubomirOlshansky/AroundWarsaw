@@ -15,6 +15,27 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
+- **2026-11-02 · landmarks · POLIN and the Ghetto Heroes Monument** — Built from `refs/polin/` on the Mac (25 Commons photos, the ortho, REPORT.md) and the LoD2 roof (spec `polin.md`). Look check on the Mac or the phone: the fins' grey-green (S_FINS reads as panels every 2.4 m, the real fins are 0.3 m with a speckled letter frit), the canyon wedge's width and lean, the west lens's size, and the monument's steps, reliefs and menorahs. Estimates from photos only: the 18 m height (LoD2 agrees), the monument's 9.5 m width. Default built: as the report measured.
+- **2026-11-02 · map · junction lines and the loop 3e structures: one Mac pass** — Both v1.0 lines
+  ("Junction lines checked against photos", "Loop 3e leftovers") can't be done in the cloud: the
+  cloud's network refuses the GUGiK orthophoto (and every other imagery host), and a structure fix
+  needs a re-bake from data/raw (the surface model sets the deck heights). Default built: nothing
+  changed. Mac brief (map-engineer, Opus): (1) `python3 tools/overlay_ortho.py shots/jl_p3k.png -77 670 90`,
+  `... shots/jl_ponir.png 1381 -344 110`, `... shots/jl_walm.png 1514 -147 110` (Plac Trzech Krzyży,
+  the Poniatowski ramps, Wał Miedzeszyński) and judge each white/yellow line inside the junctions
+  against the photo; cut the ones Warsaw doesn't paint in `bake_roads.py` (`_crossed` /
+  `bake_edges`), keep the real edge lines. (2) The three structure leftovers in BACKLOG "From loop 3e":
+  Łazienkowski's Praga loop ramps (slab per piece), deck 4's parapet collider, the Karowa footbridge's
+  Praga end 2.2 m in the air at (304, −1554) (a longer ramp or stairs to Okrzei). Then the whole chain
+  and `verify.sh`.
+- **2026-11-02 · content · Kibice match day: where do the fans come from?** — The map has no tram near Stadion Leguminy, so the walkers come from the two bus platforms by the Trasa Łazienkowska (about 1331,1234, east of the stadium), along Łazienkowska from the west (Agrykola / Myśliwiecka) and up Czerniakowska from the south (`ROUTES` in fans.gd). Do real match-day crowds come mostly from these, or from somewhere we should add (a tram stop further off, the metro)? Also a phone look: are the bunches readable at the default zoom (`--fans-now --fans-phase=arrive --at=1292,1290 --heading=200`)? Default built: the four routes, kick-off 1.5 h into the evening, a win 65 % of the time, a draw otherwise, never a loss.
+- **2026-11-02 · content · Wellness circles (F's ideas #2, #3, #4, #8)** — Mac look check: the eight spots (docs/design/wellness.md) are read off the baked lawns, not seen. Do the sound-healing ring, the techno-yoga rows with their hamster balls, the 40+ circle round its tree and the kung-fu schools sit well in Park Świętokrzyski, Skwer Kościuszki, near Rondo Daszyńskiego, at Browary, in Ogród Saski, Park Ujazdowski and Ogród Krasińskich? Built default: daylight hours only, one sign each ("DŹWIĘKOTERAPIA, WEJŚCIE 80 ZŁ", "TECHNO JOGA + CHOMIKI", "KLUB PEŁNI 40+ / BUDZIMY MAŁĄ DZIEWCZYNKĘ", "SZKOŁA ŻURAWIA"); say if a joke is too sharp for the women's club.
+- **2026-11-02 · landmarks · railway S3c-e (Wschodnia, Gdańska, WKD entrances): photo gather on the Mac** — The railway lane is otherwise done (S1-S3b, L1-L4, T1, map edges). These three are not built, on purpose: F's rule is photos first, and the OSM outlines mislead (Śródmieście WKD's "propeller" roof, Ochota WKD stop, Wschodnia and Gdańska at the map's edge). Default built: nothing (the edge ring and the rails running on stay). Needed: a Mac gather of Commons photos + GUGiK ortho into refs/wschodnia (exists, 2026-11-01), refs/gdanska (exists), refs/wkd_srodmiescie and refs/wkd_ochota (new) with a REPORT.md in game coordinates; then one Sonnet thread per station. Wschodnia and Gdańska are mostly off-map, so WKD first.
+
+- **2026-11-02 · content · KRINGULA PIZZA joke (F's ideas #6)** — The final joke is yours to write. Built default (placeholder): the neon sign KRINGULA / PIZZA on Poznańska (52.22725, 21.01575, corner approximate), a line of 24 (40 at Fri/Sat dinner and Sunday afternoon, open 12:00-23:00), six placeholder fan lines tagged `kringula` in dialogue.json ("I cried at the first bite..."). Also: is Poznańska the right spot, and should the van or Frogs poster point to it? The longer morning queues at NERWO pavilion and KOSZTA Marszałkowska (16, working days 7-11) are a guess too. Mac look check of the door and the line.
+- **2026-11-02 · map · Street widths (map review C)** — Built: one-lane one-way streets 5.5 m (6.5 m tertiary) instead of 3 m, two-lane two-way streets 7 m instead of 6 m (F said yes to both). Left: a phone/Mac look at Mokotowska, Wilcza, Hoża and a two-lane street such as Koszykowa: do the wider streets read right between the houses?
+- **2026-11-02 · map · Krajobraz places: Stadion Narodowy grounds** — Mac look check: do the 80 new trees (lime/plane rows 9 m apart on both edges of the four mapped entrance plazas, 9 groups of 3-5 pollarded willows on the big lawns, `tools/planted_trees.py` place `stadion`) match the orthophoto's avenues and groves, and are the shrub belts and the avenues' paving worth adding? Default built: trees only.
+- **2026-11-02 · map/landmarks · Skwer Linearny na Złotej and Dom pod Orłami** — Mac look check against your photos: the building's eagles (pose, size), the tower drums' steps, the portals, the metal letters (built as the parody KRAJOWA / RADA SPÓŁDZIELNI ORŁÓW, dim warm grey); on the square, the stone blocks round the rock fountain and on the lawns, the benches, the curved bench by the Marszałkowska fountain, the café gardens and the bollards at Jasna (`skwer_zlota.gd` ITEMS), and the limes (`tools/car_free.py`). Also: is Zgoda in front of the building closed to cars now? Built default: Złota car-free with a 20 km/h zone, Zgoda left as the map has it.
 - **2026-11-02 · map · Paving and kerbs at the start (first-scene items 4-5)** — Phone look at a fresh start: do the grey pavements round the start (`ground.gdshader` `START_BOX`) read as Warsaw's grey concrete, or too cold next to the warm map outside, and is the 12 m fade at the box's edge visible? Do the yellow tactile pads at the crossings and the platforms' edge and tactile lines read at the default zoom or only up close, and is their yellow too loud? Built default: the grey only in the start box, pads at every crossing city-wide, `TACTILE_COL` #c6ad60 (ground) and #b89f58 (platforms). The bench on the iPhone 11 (shader only and two triangles a pad, +0 draw calls expected).
 - **2026-11-02 · map · Roadworks at the map's edges** — Mac look check: drive to an edge (e.g. `--at=-3110,1336 --heading=270`, Jerozolimskie west; `--at=-170,1700 --heading=180`, Armii Ludowej south) by day and night: do the barriers, the ROBOTY DROGOWE / OBJAZD boards, the excavator and the tarp fence read as real Warsaw roadworks at phone zoom, and is it too samey across 237 closures? Built default: one kit for all, sized by the road (BACKLOG "Roadworks at the map's edges").
 - **2026-11-02 · landmarks · Krajobraz K3: Varso Place** — Mac photo check (refs/varso_place/, Commons + the GUGiK orthophoto; the cloud got 403): built from the developer's and ZinCo's pages only (spec docs/landmarks/specs/varso_place.md). Check: where the sky garden's 16 hawthorns really stand (the 205 m step on the tower's north-west half is our guess, and whether it is glazed), whether Varso 1's top and Varso 2's 80/72 m roofs are planted terraces at all and how many trees (default: up to 9 small trees each), the name stone's spot and look (default: granite plinth by Al. Jana Pawła II, VERSO PLACE in warm white) and the erratic's spot and size (default 4.2 x 3.2 x 2.1 m by the tower's north-east corner), the 6 young trees in Chmielna's bare beds. Not built: the lobby's olive trees, Varso 1's 7th-floor terrace.
@@ -81,8 +102,8 @@ Newest first. One entry per question.
   docs/design/start-area-real.md can't be placed from the cloud (no photos, no orthophoto there).
   R8: from refs/msn/2.jpg and 4.jpg, where the museum's mid-height dark ribbon runs and where it
   breaks on each long face (metres from the north end), and how far and where the roofline steps
-  down near the south end. R3 part 2: from the orthophoto, the kerb line, Złota's sett street and
-  elm alley, the fountain at the old tunnel mouth and the three new crossings on Marszałkowska.
+  down near the south end. R3 part 2: from the orthophoto, the kerb line and the three new crossings
+  on Marszałkowska (Złota and its fountain are now the 2026 linear park, built 2026-11-02).
   Default built: the ribbon all round, the flat roofline, today's kerbs and crossings. A Mac
   session with the photos (model-from-photos skill) can measure and build both.
 - **2026-11-01 · landmarks · MDM arcades, towers, reliefs: Mac look check** — Built in the cloud
@@ -132,6 +153,7 @@ Newest first. One entry per question.
   and night: does the ring meet the real ground without a step or a gap, does the fade read as
   distance (not fog), are the blocks the right scale. Shots of the cloud look are in the PR.
 
+- **2026-11-02 · landmarks · Krakowskie Przedmieście: one Mac gather for everything K1-K6 left** — The cloud has no photos (`refs/` is empty here), so by the photos-only rule nothing more is modelled until a Mac session fills `refs/krakowskie/` (Commons photos + GUGiK ortho, SOURCES.md, a REPORT.md in game coordinates). Wanted, in order: (1) Mickiewicz's spot and facing; (2) the University gate's true spot and width, Pałac Kazimierzowski's front; (3) Bristol's dome corner and facade colours; (4) Pałac Czapskich's front direction and colour (own model: landmarks thread); (5) the southern Potocki guardhouse; (6) the Carmelite front's pilasters; (7) the granite setts' extent beyond Nowy Świat's top; (8) awnings, café gardens (Bristol, Europejski), the carriage rank for the street-by-street pass. Default built: everything as in the entry below. POLIN, the monuments pass and the Castle are other threads' and are left out.
 - **2026-11-01 · landmarks · Krakowskie Przedmieście's photo check (K1-K6, M2)** — Built from
   the OSM outlines alone, so every height and a few spots are guesses (Default built, the specs'
   "photo check" notes list them). For F on the Mac, in order of how much they could be wrong:
@@ -549,8 +571,13 @@ Newest first. One entry per question.
   ones? Look at the before/after shots in the PR. Default built: 18 towers in their own skins
   and colours, Złote Tarasy golden, Muzeum Narodowe in stone, new bus shelters. Say which
   still look wrong and how. Where: PR (landmark models).
-- **2026-10-30 · landmarks/models** — Złota 44's top is cut on a slope, high at its north end.
-  Options: keep / high at the south end / flat. Default built: high at the north end.
+- **2026-10-30 · landmarks/models** — ~~Złota 44's top is cut on a slope, high at its north end.~~
+  Answered by F's photos (2026-11-02): the tip is the south-east corner; rebuilt that way.
+- **2026-11-02 · landmarks/Złota 44 · Mac photo check** — The tower was rebuilt from F's two
+  photos (spec `docs/landmarks/specs/zlota44.md`). On the Mac, put Commons photos beside the
+  game: is the crown box (184 m, from 45 % of the roof slope, 4.5 m back from the east face) the
+  right size, does the wing lean the right amount (9 m at the top, the waist at 64 m), and is
+  the podium garden on the right block? Default built: as the spec says.
 - **2026-10-30 · web · deploy** — May I deploy the web build? It creates the Worker
   `aroundwarsaw-play` with the custom domain play.aroundwarsaw.app (a new DNS record in the
   aroundwarsaw.app zone) and uploads build/web (~141 MB), then redeploys the landing so the
@@ -670,7 +697,8 @@ backlog. Lasting decisions also go into BACKLOG's "Decided" sections, DEMO.md or
   kept as place names (they are also the halls' trade names); the new tower and museum are
   never named. Rename the halls descriptively ("Hala na Koszykowej")? Default built: kept.
   **Answered 2026-10-30 (F):** kept.
-- **2026-11-02 · gameplay · G12** — Rescues are on the HELI line in the spec, but most calls are street/park rescues the ambulance car does well. Default built: rescue calls follow the vehicle (flying: roof/sandbar, driving: street/park/shore, heli-only ones in violet); the notebook does not list quests yet. Make every rescue heli-only and give the car only jobs? Default built: no.
+- **2026-11-02 · gameplay · G12** — Rescues are on the HELI line in the spec, but most calls are street/park rescues the ambulance car does well. Default built: rescue calls follow the vehicle (flying: roof/sandbar, driving: street/park/shore, heli-only ones in violet); the full map's ZADANIA card lists them since 2026-11-02 (G12 part 2). Make every rescue heli-only and give the car only jobs? Default built: no.
+- **2026-11-02 · gameplay · G12b** — On the full map's ZADANIA card the pad takes the picked row with Y, because A is the teleport hold. Default built: X tab, D-pad pick, Y take. Alternative: a short A press takes the row and only a held A teleports.
 - **2026-11-02 · gameplay · G10** — START KURS appears within 25 m of the waiting passenger and boards at once (the car is not auto-braked). Phone check: is a tap enough, or should driving through the ring start it too?
 - **2026-11-02 · landmarks · Warsaw Spire** — Rebuilt from F's three photos and the map alone, so these are guesses to check on the Mac: (1) which rim the roof fin stands on (built: the east rim, peaking over the north half); (2) the entrance side (built: north, towards the plaza between the wings); (3) the canopy's size and the V legs' spread; (4) how much narrower the lobby is (built: 0.74 of the roof plan); (5) the wings' colour and top storey. Default built: that. Alternative: move the fin or canopy to the side the photos show.
 
