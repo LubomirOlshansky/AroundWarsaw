@@ -16,7 +16,9 @@ inside the map into a class:
   crossing  cycleway=crossing (a P-11 crossing)
 
 then samples each way every STEP metres and counts a sample as drawn when the map has a cycle
-path, cycle crossing or painted cycle lane within NEAR metres. Prints metres in the box and the
+path, cycle crossing or painted cycle lane within NEAR metres (NEAR_LANE for a painted lane,
+which lies at the kerb), and a contraflow, bus-lane or sharrow way as drawn when tools/bike_network.py
+painted a bike of its kind on it. Prints metres in the box and the
 share drawn per class, and with --list the longest undrawn stretches with their street names
 (the "missing links" to fix in the bake, by data). Reads only. Standard library.
 """
@@ -31,6 +33,12 @@ import bake_osm  # noqa: E402  (the projection and the box)
 
 STEP = 5.0
 NEAR = 4.0
+# A painted lane lies at the kerb, up to half a wide street from the way's centreline.
+NEAR_LANE = 9.0
+# Contraflow, bus lanes open to bikes and sharrows are marked by bikes painted on the street
+# (tools/bike_network.py): a way counts as drawn when one of its kind lies this near its line.
+SIGNED = {"contra": "contra", "busway": "busway", "sharrow": "sharrow"}
+SIGN_NEAR = 8.0
 CELL = 25.0
 
 
@@ -84,12 +92,29 @@ def main(argv):
         if m["k"] in ("cycle", "cyclefill"):
             add(m["p"])
 
-    def drawn(x, z):
+    signs = collections.defaultdict(list)
+    for m in data.get("symbols", []):
+        if m.get("on") in SIGNED.values():
+            signs[m["on"]].append((m["x"], m["z"]))
+
+    def marked(kind, pts):
+        for sx, sz in signs[kind]:
+            for a, b in zip(pts, pts[1:]):
+                if min(a[0], b[0]) - SIGN_NEAR <= sx <= max(a[0], b[0]) + SIGN_NEAR and \
+                        min(a[1], b[1]) - SIGN_NEAR <= sz <= max(a[1], b[1]) + SIGN_NEAR:
+                    dx, dz = b[0] - a[0], b[1] - a[1]
+                    ll = dx * dx + dz * dz
+                    t = 0.0 if ll < 1e-9 else max(0.0, min(1.0, ((sx - a[0]) * dx + (sz - a[1]) * dz) / ll))
+                    if math.hypot(sx - a[0] - t * dx, sz - a[1] - t * dz) < SIGN_NEAR:
+                        return True
+        return False
+
+    def drawn(x, z, near=NEAR):
         for a, b in grid.get((int(x // CELL), int(z // CELL)), []):
             dx, dz = b[0] - a[0], b[1] - a[1]
             ll = dx * dx + dz * dz
             t = 0.0 if ll < 1e-9 else max(0.0, min(1.0, ((x - a[0]) * dx + (z - a[1]) * dz) / ll))
-            if math.hypot(x - a[0] - t * dx, z - a[1] - t * dz) < NEAR:
+            if math.hypot(x - a[0] - t * dx, z - a[1] - t * dz) < near:
                 return True
         return False
 
@@ -109,6 +134,8 @@ def main(argv):
         if not c:
             continue
         pts = [bake_osm.project(*nodes[n]) for n in e.get("nodes", []) if n in nodes]
+        signed = c in SIGNED and marked(SIGNED[c], pts)
+        near = NEAR_LANE if c == "lane" else NEAR
         run = 0.0
         for a, b in zip(pts, pts[1:]):
             seg = math.dist(a, b)
@@ -119,7 +146,7 @@ def main(argv):
                 if not inside(x, z):
                     continue
                 total[c] += seg / n
-                if drawn(x, z):
+                if signed or drawn(x, z, near):
                     have[c] += seg / n
                     if run > 20:
                         gaps.append((run, c, t.get("name", ""), e["id"], round(x), round(z)))
