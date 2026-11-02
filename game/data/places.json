@@ -943,6 +943,32 @@
       "district": "trakt"
     },
     {
+      "id": "kolejki",
+      "chapter": "trendy",
+      "name_pl": "Kolejki",
+      "name_en": "The queues",
+      "osm": "the KUKŁA pancake window on Nowy Świat, where the queue starts",
+      "near": [
+        52.2320,
+        21.0198
+      ],
+      "radius": 30,
+      "fact": [
+        "Kolejki były symbolem PRL-u. Dziś stoi się po naleśnika z kremem.",
+        "Queues were the symbol of the People's Republic. Today you queue for a crêpe with cream."
+      ],
+      "joke": [
+        "Kolejka jest dowodem jakości. Nikt nie wie, na co stoi, ale stoi.",
+        "A queue is proof of quality. Nobody knows what it is for, but they stand."
+      ],
+      "tags": [
+        "queue",
+        "kukla",
+        "street"
+      ],
+      "district": "trakt"
+    },
+    {
       "id": "ratusz_arsenal",
       "chapter": "metro",
       "name_pl": "Metro Ratusz Arsenał",

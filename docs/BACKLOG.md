@@ -614,8 +614,9 @@ real ones added to `brand_denylist.json`). One PR each:
       `loretka_plan`), couples on its poufs May-September on dry evenings (crowds.gd `terrace`,
       10-16); the board-game bar is PRZEGRYWKI (Zagrywki parody, was PIONEK); WACZEK ×5, the burger
       chain with an upside-down golden W, at the real chain's central restaurants, 2026-11-01.
+- [x] The notebook card "Kolejki" (place `kolejki`, chapter Kolejka po trend, at KUKŁA on Nowy Świat), 2026-11-02.
 - [ ] Left from G3-G5: the
-      Podwózka `timber` passengers, a notebook card "Kolejki", fans standing by Cringulo's van, an
+      Podwózka `timber` passengers, fans standing by Cringulo's van, an
       egg (the car parked by the van while he films), the van's CRINGULO TV lettering, the egg
       card; phone checks of every sign's size, the queues and the job's legs.
 - [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the
