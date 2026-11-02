@@ -267,10 +267,12 @@ modelled (site `zbawiciela`, spec `zbawiciela.md`, 1029 tris).
   check parked (QUESTIONS): arcade rhythm and depth, tower heights, the real reliefs.
 - Pass 5 (cloud, Sonnet, 2026-11-02): Plac Zbawiciela's cafés and the church at night. Four neon cafés
   (`Storefronts.ZBAWICIELA`: KAWA ZBAWIENIE, SZARLOTKA NA ROGU, PLAN Z, PO MSZY SPRITZ) and six parasol
-  terraces round the ring (`bake_street_details.py` TERRACES, 15 café sets, planters at the row ends);
+  terraces round the ring (`bake_street_details.py` TERRACES, 16 café sets, planters at the row ends);
   the church gets lit gilt crosses and balls, a stained rose that glows, four porch lanterns and 12
   floodlamps (1199 tris, budget 1250). Open: Mac look check (QUESTIONS), the signs on the real doors,
   heaters and awnings on the terraces, a café crowd (crowds.gd zone), the floodlit plaster wash.
+  Fixed 2026-11-02: verify `stops` failed on main since this pass (K5, a set 5 m off the east-end
+  shopfront); terraces now take only `Placer.frontage` spots and two rows moved 1 m in, all 16 stand.
 - Next on the street: the reliefs' real subjects, Marszałkowska's houses, roads and street life
   street by street.
 - Pass 2 (cloud, Sonnet): people waiting on Marszałkowska's 12 mapped tram platforms (`crowds.gd`
