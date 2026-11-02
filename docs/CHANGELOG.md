@@ -10,7 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
-- Nowy Świat gets four more neon shops: a Blikle-style old confectioner (BLIKLINA 1869), a coffee shortcut at Chmielna, a vinyl bar at Foksal and a haberdashery.
+- Nowy Świat gets four more neon shops: an old-fashioned confectioner (BLIKLINA 1869), a coffee shortcut at Chmielna, a vinyl bar at Foksal and a haberdashery.
 - Cringulo's cream van now carries CRINGULO TV in dark letters on both sides.
 - Evening rides in Podwózka sometimes carry a first-date passenger from the dating app TIMBER, heading for the LORETKA roof bar. Cringulo's van now has a handful of fans standing behind it, chatting, and parking right by the van while he films finds a new easter egg.
 - Powiśle's Piano House now has a keyboard for a front, white keys and black window strips, and Cube House next door is a white cube with its bays stepping out floor by floor.
