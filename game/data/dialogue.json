@@ -2438,6 +2438,34 @@
       }
     ],
     [
+      "Zakwas trzy dni, rożen sześć godzin. Ja czekam dwadzieścia minut, więc jestem w tyle.",
+      "Sourdough for three days, the spit for six hours. I wait twenty minutes, so I'm the one falling behind.",
+      {
+        "only": "zakwas"
+      }
+    ],
+    [
+      "Pan kroi nożem, który ma imię. Ja mam tylko numerek.",
+      "The man carves with a knife that has a name. All I have is a ticket number.",
+      {
+        "only": "zakwas"
+      }
+    ],
+    [
+      "Normalny kebab jest za sześć minut. Ten jest za sześć minut i za pół życia.",
+      "A normal kebab is six minutes away. This one is six minutes and half a lifetime away.",
+      {
+        "only": "zakwas"
+      }
+    ],
+    [
+      "Stoję w kolejce po kebab bez kolejki obok. Obok. Dosłownie obok.",
+      "I'm queuing for a kebab with no queue next door. Next door. Literally.",
+      {
+        "only": "zakwas"
+      }
+    ],
+    [
       "Dalej, dalej! Kolejka sama się nie przesunie.",
       "Dalej, dalej! The queue won't move itself.",
       {

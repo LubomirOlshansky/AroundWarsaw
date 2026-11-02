@@ -345,6 +345,10 @@ func _check_sites(c: Crowds) -> void:
 		if not sl.is_empty():
 			_expect(float(sl[0]["y"]) > 20.0, "LORETKA's terrace: seats at %.1f m (on the roof?)" % float(sl[0]["y"]))
 	_expect(c.by_id.has(Crowds.GELATO[0]), "no crowd at DALEJ DALLA GELATO")
+	_expect(c.by_id.has(Crowds.ZAKWAS_ID), "no crowd at ZAKWAS I ROŻEN")
+	_expect(Crowds.zakwas_queue(11.0, 2)[0] == 0 and Crowds.zakwas_queue(13.0, 2) == [8, "zakwas"]
+			and Crowds.zakwas_queue(20.0, 5) == [Crowds.ZAKWAS_MAX, "zakwas"]
+			and Crowds.zakwas_queue(20.0, 2) == [14, "zakwas"], "ZAKWAS I ROŻEN: its line by hour")
 	_expect(c.by_id.has(Crowds.PADEL_ID), "no crowd at PADELNIA")
 	_expect(c.by_id.has(Crowds.PISTACJA_ID), "no crowd at PISTACJA")
 	if c.by_id.has(Crowds.PISTACJA_ID):

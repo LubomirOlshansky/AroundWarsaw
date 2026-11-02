@@ -49,6 +49,7 @@ const Models := preload("res://scripts/models.gd")
 const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
 const Notebook := preload("res://scripts/notebook.gd")
 const Storefronts := preload("res://scripts/storefronts.gd")
+const Zaglebie := preload("res://scripts/zaglebie.gd")
 
 ## Seconds between two ticks of the logic.
 const TICK := 0.5
@@ -232,6 +233,13 @@ const GELATO_MAX := 24
 const GELATO_WINTER_MIN := 12
 ## The winter queue's coats: black and navy puffers, a mustard one, a cream one, a red scarf's worth.
 const COATS := ["#1f1f22", "#1c2230", "#2b2c2f", "#3a3b3f", "#c9a23a", "#e8e4d8", "#8a2b2b", "#2f4f4a"]
+## ZAKWAS I ROŻEN, the craft kebab in the Zagłębie Kebabowe (docs/design/zaglebie-kebabowe.md): the
+## hand-carved one is worth a wait. Open 12:00-24:00, 8 in the queue most of the day, 18 on
+## Friday and Saturday evenings (18-23), 14 on the other evenings; tag "zakwas". Same trend-queue
+## machinery as KUKŁA; the shop's spot comes from `Zaglebie.SHOPS`.
+const ZAKWAS_TAG := "zag_rozen"
+const ZAKWAS_ID := "trend_zakwas"
+const ZAKWAS_MAX := 18
 ## vision 4.5's hour curves (the hour's whole part; missing hours are 0). Lusterko's 09-12 is 0.5
 ## on a Sunday only (`queue_factor`).
 const CURVES := {
@@ -479,6 +487,15 @@ static func milk_queue(hour: float, weekday: int) -> Array:
 	return [10, "kolejka"]
 
 
+## ZAKWAS I ROŻEN's line now: [people, "zakwas"]. 12:00-24:00; see ZAKWAS_MAX.
+static func zakwas_queue(hour: float, weekday: int) -> Array:
+	if hour < 12.0:
+		return [0, ""]
+	if hour >= 18.0 and hour < 23.0:
+		return [ZAKWAS_MAX if weekday == 5 or weekday == 6 else 14, "zakwas"]
+	return [8, "zakwas"]
+
+
 ## DALEJ DALLA GELATO's line now: [people, tag]. 11:00-21:00; a winter month (Nov-Mar) keeps at
 ## least GELATO_WINTER_MIN and peaks at 18 on a weekend afternoon (tag "lody_zima"); summer peaks
 ## at GELATO_MAX in the afternoon (tag "lody").
@@ -617,6 +634,11 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		var ll: Array = Storefronts.HYPE[vid]
 		_add_site({"id": vid, "kind": "trend", "max": PIURE_MAX if vid == PIURE_ID else (MILK_MAX if vid in MILK else (GELATO_MAX if vid in GELATO else KUKLA_MAX)), "tag": "",
 				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
+	var zak: Dictionary = Zaglebie.shop(ZAKWAS_TAG)
+	if not zak.is_empty():
+		var zl: Array = zak["ll"]
+		_add_site({"id": ZAKWAS_ID, "kind": "trend", "max": ZAKWAS_MAX, "tag": "",
+				"at": Notebook.project(data.get("origin", [52.234, 21.024]), float(zl[0]), float(zl[1]))})
 	var lor := Landmarks.loretka_plan(data)
 	if not lor.is_empty():
 		var lo: PackedVector2Array = lor["outline"]
@@ -1487,6 +1509,8 @@ func tick(step: float) -> void:
 					q = gelato_queue(hour, weekday, month)
 				elif s["id"] == PIURE_ID:
 					q = piure_queue(hour, weekday)
+				elif s["id"] == ZAKWAS_ID:
+					q = zakwas_queue(hour, weekday)
 				elif trend.is_valid():
 					q = trend.call(str(s["id"]))
 				if int(q[0]) > 0 and int(cringulo.get(str(s["id"]), -1)) == weekday:
