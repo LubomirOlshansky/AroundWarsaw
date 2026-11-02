@@ -314,6 +314,9 @@ const INFO := {
 	"ujazdowski": ["Zamek Ujazdowski",
 			"Z 1624 roku, zburzony w 1944, odbudowany. Dziś sztuka współczesna.",
 			"Built 1624, razed 1944, rebuilt. Now a centre for modern art."],
+	"sobieski": ["Radysław Blu",
+			"Hotel przy placu Zawiszy, w kolorowych pasach.",
+			"A hotel on Plac Zawiszy, in colourful bands."],
 	"mariensztat": ["Rynek Mariensztacki",
 			"Osiedle odbudowane w 1949 roku; bohater filmu „Przygoda na Mariensztacie” z 1954 roku.",
 			"The estate rebuilt in 1949, and the star of the 1954 film \"Przygoda na Mariensztacie\"."],
@@ -1137,6 +1140,8 @@ func build(surface, near := Rect2(), only := "") -> void:
 				_build_polonia(s)
 			"ujazdowski":
 				_build_ujazdowski(s)
+			"sobieski":
+				_build_sobieski(s)
 			"bristol":
 				_mark_zone(s)  # the mass stays LoD2's, in its skin; the corner tower is ours
 				_build_bristol(s)
@@ -11026,6 +11031,11 @@ func _find_hotels() -> void:
 		_add_site("polonia", [polonia])
 		if not sites.is_empty() and sites[-1]["key"] == "polonia":
 			sites[-1]["ring"] = _simplify(polonia, 0.7)
+	var sobieski := _landmark("Radisson Blu Sobieski")
+	if sobieski.size() >= 3:
+		_add_site("sobieski", [sobieski])
+		if not sites.is_empty() and sites[-1]["key"] == "sobieski":
+			sites[-1]["ring"] = _simplify(sobieski, 1.2)
 	for h: Dictionary in HOTELS:
 		_o = h["o"]
 		_b = h["out"]
@@ -11702,3 +11712,81 @@ func _dormers(g: float) -> void:
 			_hip(u, -2.2, 0.7, 0.75, y + 2.1, 0.8, UJ_COPPER.lightened(0.05))
 			_mode = M_GLASS
 			_wall(_w(u - 0.32, -1.59), _w(u + 0.32, -1.59), y + 0.4, y + 1.7, out, Color("#353a40"))
+const SOBIESKI_H := 31.0
+## The postmodern bands of the hotel on Plac Zawiszy: salmon, butter yellow, mint, teal, one magenta stripe.
+const SOBIESKI_BANDS := [Color("#e59a86"), Color("#f0d27a"), Color("#8fd0b4"), Color("#2f8f9a")]
+const SOBIESKI_MAGENTA := Color("#c2287a")
+
+
+## Radisson Blu Sobieski (Plac Zawiszy 1) as "Radysław Blu": the OSM outline is a plain extrusion,
+## the real hotel is a block in colourful postmodern bands. Built whole from the outline's `ring`:
+## three set-back tiers in salmon, yellow and mint under a teal crown, a magenta stripe, coloured
+## fins on every public front, and a canopy with the name on the longest one. Spec sobieski.md.
+func _build_sobieski(site: Dictionary) -> void:
+	var ring: PackedVector2Array = site["ring"]
+	var g := _ground_under(ring)
+	_g = g
+	var none := Color(0, 0, 0, 0)
+	var n := ring.size()
+	var salmon: Color = SOBIESKI_BANDS[0]
+	var yellow: Color = SOBIESKI_BANDS[1]
+	var mint: Color = SOBIESKI_BANDS[2]
+	var teal: Color = SOBIESKI_BANDS[3]
+	var glass := Color("#3a4650")
+	_mode = M_STONE
+	_prism(_inset_ring(ring, -0.3), g - 0.6, g + 4.6, teal.darkened(0.25), none, M_STONE)  # the plinth
+	_bays(ring, 0.9, 4.0, 4.0, 2.2, glass, PackedVector2Array())
+	_prism(ring, g + 4.6, g + 13.0, salmon, none, M_MONUMENT)
+	_prism(_inset_ring(ring, -0.35), g + 13.0, g + 13.7, _magenta_dark(), none, M_STONE)  # the stripe
+	var t2 := _inset_ring(ring, 1.4)
+	_prism(t2, g + 13.7, g + 22.0, yellow, none, M_MONUMENT)
+	_prism(_inset_ring(t2, -0.3), g + 22.0, g + 22.6, SOBIESKI_MAGENTA, none, M_STONE)
+	var t3 := _inset_ring(ring, 2.8)
+	_prism(t3, g + 22.6, g + SOBIESKI_H - 2.2, mint, none, M_MONUMENT)
+	_prism(_inset_ring(t3, -0.25), g + SOBIESKI_H - 2.2, g + SOBIESKI_H, teal, teal.lightened(0.1), M_STONE, M_STONE)  # the crown
+	var avoid_front := -1
+	var front_len := 0.0
+	for i in n:
+		var a := ring[i]
+		var b := ring[(i + 1) % n]
+		var el := a.distance_to(b)
+		if el > front_len:
+			front_len = el
+			avoid_front = i
+		if el < 10.0:
+			continue
+		_o = a
+		_b = _out(ring, a, b)
+		_a = (b - a) / el
+		var cnt := floori((el - 3.0) / 6.0)
+		var u0 := (el - (cnt - 1) * 6.0) * 0.5
+		for j in cnt:  # coloured fins up the salmon and yellow tiers
+			var u := u0 + j * 6.0
+			var col: Color = SOBIESKI_BANDS[(j + i) % 4]
+			_lbox(u, 0.2, 0.28, 0.3, g + 4.6, g + 13.0, col.darkened(0.08), M_STONE, col)
+			_lbox(u, -1.2, 0.28, 0.3, g + 13.7, g + 22.0, col.lightened(0.05), M_STONE, col)
+	if avoid_front < 0 or front_len < 16.0:
+		_collide(ring)
+		return
+	var a2 := ring[avoid_front]
+	var b2 := ring[(avoid_front + 1) % n]
+	var out := _out(ring, a2, b2)
+	_o = (a2 + b2) * 0.5
+	_b = out
+	_a = (b2 - a2) / front_len
+	_mode = M_PAVILION
+	_wall(_w(-3.2, 0.62), _w(3.2, 0.62), g + 0.05, g + 4.0, out, Color("#f3d9a8"))
+	_mode = M_STONE
+	_lbox(0.0, 2.2, 4.2, 1.6, g + 4.2, g + 4.5, SOBIESKI_MAGENTA, M_STONE, SOBIESKI_MAGENTA.lightened(0.12))
+	for sd: float in [-1.0, 1.0]:
+		_column(sd * 3.8, 3.4, 0.14, g - 0.2, g + 4.2, Color("#f2ebd8"))
+	_lbox(0.0, 0.55, 5.0, 0.12, g + 4.8, g + 6.4, Color("#1f2a33"), M_STONE, Color("#2a3844"))
+	var word := "RADYSŁAW BLU"
+	var face := _w(0.0, 0.7)
+	signs.append([word, Vector3(face.x, g + 5.05, face.y), Vector3(out.x, 0.0, out.y),
+			minf(0.2, 8.6 / Neon.length_of(word)), Color(0.3, 0.85, 1.0)])
+	_collide(ring)
+
+
+func _magenta_dark() -> Color:
+	return SOBIESKI_MAGENTA.darkened(0.15)

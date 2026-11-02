@@ -21,6 +21,7 @@ someone writes its lines.
 - Plac Bankowy looks like the real square: the Blue Skyscraper is blue mirror glass (not gold), and the city hall palace, the Voivodeship wing, the old Stock Exchange and Bank, the Arsenal and two small palaces wear their real colours (yellow palace with white columns).
 - Gdański Business Center near Dworzec Gdański is built: the blue glass tower with its slanted crown and the glass blocks with white floor bands and dark top floors, their tenants as parody logos (AWIWA, NIELZEN).
 - Mirek's garage now sells upgrades: tyres and an engine in three levels each, a nitro button ("Kebab Boost") and a faster, lower car, the Ołdi TT, all paid in złoty.
+- The big hotel on Plac Zawiszy is a real building now, in colourful postmodern bands of salmon, yellow, mint and teal with magenta stripes and a lit canopy, under the parody name Radysław Blu (with a card).
 - The helicopter's camera now turns with it while you fly, like the car's, instead of swinging round only after you stop.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
