@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Hotel Warszawa, the old Prudential, stands as Warsaw's first skyscraper on Plac Powstańców: cream stone with eight tall pilasters, a stepped crown with masts and a flag, WARSZAWA cut over the door, and floodlit stripes at night. Down the avenue Cedet, the old department store by Krucza, has its ribbon glass between cream floor bands, rounded corners, the swept-up roof wings and the big steel loop that glows blue at night.
 - Sliding along a building no longer wedges the car in a gap or a notch between two houses (it got stuck and towed by the glass corner on the Chmielna square): the car slides on past them everywhere in the city.
 - The POLIN museum in Muranów stands as it is: a box of grey-green glass fins split by the tall sand-coloured canyon of its entrance, a glazed slot across the roof and a big glass lens on the west side, with the Ghetto Heroes Monument on the square in front, its bronze fighters, steps and menorahs.
 - In your first race Pani Halina waits at the start until you move, and if you sit still she tells you to step on it and follow the pink arrow, with a finger showing how to drive.
