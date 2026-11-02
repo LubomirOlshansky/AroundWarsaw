@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- On wide phones the radio's line no longer slides in cut off at the screen edge, and the orange delivery marker stays under speech bubbles and banners, with its distance clear of its arrow.
 - The narrow one-way streets of the centre (Mokotowska, Wilcza, Hoża, Żurawia and about 280 more) are as wide as the real ones now, room for the parked cars, instead of a lane-wide strip, and the two-lane side streets are a metre wider, as on the aerial photo.
 - Złota 44 looks like itself: a white tower with fine grey stripes whose south-east corner sweeps out like a wing to a sharp tip, a dark glass crown on the roof and a garden on the low block at its feet.
 - The radio's jokes between songs no longer name KEBAB FM and come more rarely, every 4 to 5 minutes, as a surprise.
