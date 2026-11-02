@@ -551,8 +551,13 @@ Newest first. One entry per question.
   ones? Look at the before/after shots in the PR. Default built: 18 towers in their own skins
   and colours, Złote Tarasy golden, Muzeum Narodowe in stone, new bus shelters. Say which
   still look wrong and how. Where: PR (landmark models).
-- **2026-10-30 · landmarks/models** — Złota 44's top is cut on a slope, high at its north end.
-  Options: keep / high at the south end / flat. Default built: high at the north end.
+- **2026-10-30 · landmarks/models** — ~~Złota 44's top is cut on a slope, high at its north end.~~
+  Answered by F's photos (2026-11-02): the tip is the south-east corner; rebuilt that way.
+- **2026-11-02 · landmarks/Złota 44 · Mac photo check** — The tower was rebuilt from F's two
+  photos (spec `docs/landmarks/specs/zlota44.md`). On the Mac, put Commons photos beside the
+  game: is the crown box (184 m, from 45 % of the roof slope, 4.5 m back from the east face) the
+  right size, does the wing lean the right amount (9 m at the top, the waist at 64 m), and is
+  the podium garden on the right block? Default built: as the spec says.
 - **2026-10-30 · web · deploy** — May I deploy the web build? It creates the Worker
   `aroundwarsaw-play` with the custom domain play.aroundwarsaw.app (a new DNS record in the
   aroundwarsaw.app zone) and uploads build/web (~141 MB), then redeploys the landing so the
