@@ -155,6 +155,11 @@ then the Launch gate.
       Barbican, Old Town gables, PZU/JM Tower and the rest), and the parked Mac photo checks
 - [x] Street furniture along the main line's route (Krakowskie Przedmieście, Nowy Świat, the Old
       Town's edge, Plac Zbawiciela, the boulevards, Rondo Daszyńskiego)
+- [ ] The estate, the halls and Jana Pawła II (F, 2026-11-01; BACKLOG section):
+  - [x] Osiedle Za Żelazną Bramą: eleven blocks as a model with its own skin, 2026-11-01
+  - [x] Hala Mirowska: market stalls on the square, 2026-11-01 (the hall itself was done)
+  - [x] Aleja Jana Pawła II: mid-century plasters on every plain building along it, 2026-11-01
+  - [ ] Mac photo checks for the estate and the stalls (QUESTIONS); then the boulevard street by street
 - [ ] Nowy Świat street by street (F, 2026-11-01; BACKLOG "Nowy Świat"):
   - [x] N1 café terraces along the whole street (about three times as many) and six named houses with skins and cards, 2026-11-01
   - [ ] N2 Mac look check, Café Blikle-style pastry shop parody, Chmielna and Foksal corners, Pałac Staszica to the rondo's tenement fronts from photos
