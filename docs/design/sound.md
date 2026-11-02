@@ -13,7 +13,7 @@ beta follows.
 
 | Moment | What you hear | Status |
 | --- | --- | --- |
-| The opening (title and flyover, first launch) | **The opening theme**: its own gentle piece with the city's sounds in it, nothing from the radio | to generate; the game plays the radio there today |
+| The opening (title and flyover; the first start and after a new game only, never on every launch) | **The opening theme**: its own gentle piece with the city's sounds in it, nothing from the radio | to generate; the game plays the radio there today |
 | The first seconds of driving | The announcer's greeting (her voice), then the radio | the greeting is text on the ticker today; voice clips to generate |
 | Driving | KEBAB FM (vaporwave) or MORDOR FM (minimal techno), RADIO cycles them and Off, ▶▶| skips | built (PR #304); one synth loop each until the songs come |
 | Between songs | Station idents, the host's jokes (ticker) | idents to generate |
@@ -21,7 +21,7 @@ beta follows.
 ## 2. The opening theme
 
 **Separate from everything else in the game**: it plays only under the title and the opening
-flyover, then fades into the city as the car gets control, and the radio starts after it.
+flyover, on the first start and after a new game (F, 2026-11-02), never on a normal launch; then fades into the city as the car gets control, and the radio starts after it.
 Gentle, warm, a little wistful: the city waking up. The reference F gave (a YouTube Short)
 couldn't be played from the cloud; the description below is from F's words ("gently music with
 city sounds").
@@ -49,7 +49,7 @@ Early morning city ambience in Central Europe, a tram passing with a two-tone be
 
 ## 3. The announcer
 
-**The opening line (F, 2026-11-02): one clip, the same every time**, short (about 12 s), sunny, with
+**The opening line (F, 2026-11-02): one clip, the same every time, on the first start and after a new game only** (the launches that get the opening flyover; a normal launch goes straight to the radio), short (about 12 s), sunny, with
 one city joke, over the opening only (F picked the roadworks one; no laughing tag); the weather variants below are for later.
 
 ```
