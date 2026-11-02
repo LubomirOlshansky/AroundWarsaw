@@ -187,6 +187,16 @@ const BULWARY := {
 	"chill_bulwary_8": [Vector2(640.0, -632.0), 18, 30.0],
 	"chill_bulwary_9": [Vector2(690.0, -590.0), 16, 30.0],
 }
+## Nowy Świat pass 2 (2026-11-02): the café street's pavements, people at the terraces and between
+## the shops, on the chill curve (a lunch crowd that fills towards a long evening). id -> [spot (the
+## café terraces the street details put on its pavement), most people, radius]. The same machinery
+## as CHILL. Spots read off street_details.json's café sets.
+const NOWY_SWIAT := {
+	"chill_nowy_1": [Vector2(-412.0, -296.0), 12, 20.0],
+	"chill_nowy_2": [Vector2(-380.0, -331.0), 12, 20.0],
+	"chill_nowy_3": [Vector2(-386.0, -231.0), 10, 20.0],
+	"chill_nowy_4": [Vector2(-356.0, -72.0), 12, 22.0],
+}
 ## The boulevard's reach (m) round a BULWARY spot: the view this near it is "on the boulevards".
 const BULWARY_R := 90.0
 ## KROWA 2.0, the milk bar in Norblin (our parody; a bar mleczny rebuilt as a start-up): it opens
@@ -558,6 +568,7 @@ func setup(places: Array, data: Dictionary, seed_value := 1703) -> void:
 		_add_site({"id": STEPS_ID, "kind": "steps", "at": at[STEPS_ID], "max": STEPS_MAX})
 	var yards := CHILL.duplicate()
 	yards.merge(BULWARY)
+	yards.merge(NOWY_SWIAT)
 	for cid: String in yards:
 		var cs: Array = yards[cid]
 		_add_site({"id": cid, "kind": "chill", "at": cs[0], "max": int(cs[1]), "radius": float(cs[2])})

@@ -302,6 +302,9 @@ func _check_sites(c: Crowds) -> void:
 			and Crowds.milk_queue(10.0, 3)[0] == 10 and Crowds.milk_queue(13.0, 7)[0] < Crowds.MILK_MAX, "KROWA 2.0: its line by hour")
 	_expect(Crowds.chill_level(19.0, 7, false) == 1.0 and Crowds.chill_level(8.0, 7, false) == 0.0
 			and Crowds.chill_level(19.0, 1, false) > 0.3 and Crowds.chill_level(19.0, 7, true) < 0.2, "chill yards: evening full, morning empty, winter a third, rain few")
+	# Nowy Świat pass 2: the café street's chill spots are sites with people.
+	_expect(Crowds.NOWY_SWIAT.size() >= 4 and Crowds.NOWY_SWIAT.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
+			"Nowy Świat: %d chill spots are sites" % Crowds.NOWY_SWIAT.size())
 	# F, 2026-11-01: the Vistula boulevards' chill spots.
 	_expect(Crowds.BULWARY.size() >= 8 and Crowds.BULWARY.values().all(func(v: Array) -> bool: return int(v[1]) > 0 and float(v[2]) > 0.0),
 			"Bulwary: %d chill spots with people and a radius" % Crowds.BULWARY.size())
