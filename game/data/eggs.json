@@ -1065,6 +1065,29 @@
 				"respect": 20
 			},
 			"district": "trakt"
+		},
+		{
+			"id": "easter_mlask",
+			"name": [
+				"W kadrze u Cringula",
+				"In Cringulo's shot"
+			],
+			"place": "plac_zbawiciela",
+			"line": [
+				"W kadrze. Cringulo: „Kto to?” Fani: „Nikt, ale ma auto”.",
+				"In shot. Cringulo: \"Who's that?\" Fans: \"Nobody, has a car.\""
+			],
+			"trigger": {
+				"kind": "event",
+				"hours": [
+					11,
+					21
+				]
+			},
+			"reward": {
+				"respect": 20
+			},
+			"district": "poludnie"
 		}
 	]
 }
