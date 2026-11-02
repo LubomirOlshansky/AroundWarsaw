@@ -50,6 +50,14 @@ per event, to its trace file:
 - Time limits on elapsed episode time, never on the game clock that keeps running.
 - Drive by waypoints along real streets (the road data in `game/map`, the codex), not compass
   headings: players follow streets.
+- **Count a stop only on the road**: within the carriageway of a road in `game/map/centrum.json`
+  `roads` (`p` is a flat x,z list, `w` its width). Run 3's framed hard stops were all the agent
+  driving 30 m off the road into car park walls: correct collisions, not bugs. Off-road events
+  go to a separate list, read only for clipping and under-the-ground.
+- Compare the car's height with `map.drive_height`, never the raw terrain grid: dug ground (the
+  excavation by Fangora) is below the grid on purpose.
+- **One street per run** when the streets are far apart (run 3 kept the first street's momentum
+  and never reached the last three); slow to about 50 km/h near waypoints 15 m apart.
 - **One street per option**, forced in turn (run 2's agent picked Marszałkowska every time and
   never drove the other eight). A steering deadband of about 14° keeps it on the street.
 - A **stuck** is under 1.2 m/s for over 2 s with the gas held; when one lasts 10 s, reverse or

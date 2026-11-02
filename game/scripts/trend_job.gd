@@ -72,6 +72,18 @@ const CZ_FROM := 400.0
 const CZ_TO := 1500.0
 const CZ_MIN_QUEUE := 10
 const CZ_COLOUR := Color("#2fd0e0")
+## "Czwarty" at WTS DESKA (landmarks.gd DESKI, docs/design/padel.md): a friend phones from the court
+## by the Vistula: the fourth player broke a leg at pole dance, come at once (drive or fly) and play.
+## Once the player has driven a while, 8:00-22:00, then every DESKI_COOL s of play. No pickup: the
+## beacon is the club's gate; a helicopter within DESKI_FLY_R m of it counts.
+const DESKI_GATE := Vector2(1475.0, 985.0)
+const DESKI_HOURS := [8.0, 22.0]
+const DESKI_FIRST := 150.0
+const DESKI_COOL := 1200.0
+const DESKI_LIMIT := 480.0
+const DESKI_FLY_R := 28.0
+const DESKI_CALLERS := ["Kuba", "Zuzia", "Bartek", "Iga", "Olek", "Magda"]
+const DESKI_INJURED := ["Marta", "Ola", "Michał od Excela", "Prezes z Mokotowa"]
 const CZ_PLAYERS := ["Prezes z Mokotowa", "Pani Basia", "Trener Dominik", "kuzyn Kuby", "Ola z recepcji", "Michał od Excela"]
 ## "Mlask" (G5): the van's spots (places.json ids) by weekday, its hours, the offer's reach, the
 ## legs' limits, the pay *guess*.
@@ -88,9 +100,20 @@ const ML_RESPECT := 15
 const ML_COLOUR := Color("#ffbf5f")
 const ML_GRADES := [7.5, 8.0, 8.5, 9.0, 9.5]
 const ML_COLD_GRADE := 3.0
+const PixelFont := preload("res://scripts/pixel_font.gd")
 const VAN_CREAM := Color("#efe6cf")
 const VAN_PINK := Color("#d9467f")
 const VAN_DARK := Color("#26262b")
+## The fans by the van (while it is out): their shirts, a bubble every FAN_GAP seconds when the
+## car is within FAN_TALK_R m (the `viral` "cringulo" lines).
+const FAN_SHIRTS := ["#e57aa0", "#2f6fb5", "#e0b23a", "#f2efe8", "#7a4fa8"]
+const FAN_GAP := [14.0, 26.0]
+const FAN_TALK_R := 22.0
+## The egg "In Cringulo's shot" (eggs.json easter_mlask): the car stopped (under 1 m/s) within
+## EGG_R m of the van for EGG_SECS seconds while he is out and filming.
+const EGG_ID := "easter_mlask"
+const EGG_R := 9.0
+const EGG_SECS := 3.0
 const DEST_ID := "rondo_daszynskiego"
 const DEST_R := 300.0
 const RESULT_LIFE := 10.0
@@ -137,11 +160,21 @@ var _hold := 0.0
 var _beacon: Node3D
 var _rng := RandomNumberGenerator.new()
 var _session := 0.0
+## Set by the game each frame: where the player is (the car, or the helicopter in the air).
+var player_pos := Vector3.ZERO
+## When the DESKA call may ring next (_session seconds).
+var _deski_at := DESKI_FIRST
 ## "Mlask": the places' points (setup), the van {spot, at: Vector3, ring: Vector3, yaw} or {}, its node.
 var _places := {}
 var van := {}
 var _van_node: MeshInstance3D
 var _van_day := -1
+## The fans' node (a child of the van), their bubble timer, the egg's stop timer and its callback
+## (main.gd: egg_book.fire).
+var _fans: MeshInstance3D
+var _fan_t := 8.0
+var _egg_t := 0.0
+var egg: Callable
 
 
 ## The pay for a delivery `road_m` metres by road on the trend's day `day`: {zl, base, tip,
@@ -198,6 +231,11 @@ func setup(nodes: Dictionary, places: Dictionary, world: Node3D) -> void:
 	_van_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_van_node.visible = false
 	world.add_child(_van_node)
+	_fans = MeshInstance3D.new()
+	_fans.mesh = fans_mesh()
+	_fans.material_override = Models.material()
+	_fans.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_van_node.add_child(_fans)
 	hud.card_pressed.connect(_on_card)
 	hud.abort_pressed.connect(func() -> void:
 		if state == State.PICKUP or state == State.DELIVER:
@@ -300,6 +338,10 @@ func _look() -> void:
 			_cool[-1] = _session + SLOT_COOL
 			if offer_drop():
 				return
+	if hour >= DESKI_HOURS[0] and hour < DESKI_HOURS[1] and _session >= _deski_at:
+		_deski_at = _session + DESKI_COOL
+		if offer_deski_call():
+			return
 	if crowds != null and crowds.by_id.has(Crowds.PADEL_ID) and int(Crowds.padel_queue(hour, life.weekday_now())[0]) >= CZ_MIN_QUEUE:
 		var psite: Dictionary = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]
 		if p.distance_to(psite["door"]) <= OFFER_R and _session >= float(_cool.get(-2, 0.0)):
@@ -388,6 +430,7 @@ func offer_czwarty() -> bool:
 	var site: Dictionary = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]
 	var door: Vector2 = site["door"]
 	var out: Vector2 = site["out"]
+	var venue := "PADELNIA"
 	var k: Dictionary = jobs._kerb(door, door - out * 4.0, 3.5, [1.4, 2.2, 3.0])
 	if k.is_empty():
 		return false
@@ -397,26 +440,52 @@ func offer_czwarty() -> bool:
 	var from: Dictionary = jobs._pick_address(k["edge"], k["s"], kerb, CZ_FROM, CZ_TO, rng, func(_a: Dictionary) -> bool: return true)
 	if from.is_empty():
 		if log_on:
-			print("trend job: no door %.0f-%.0f m from PADELNIA" % [CZ_FROM, CZ_TO])
+			print("trend job: no door %.0f-%.0f m from %s" % [CZ_FROM, CZ_TO, venue])
 		return false
 	order = {"kind": "czwarty", "slot": -1, "word": "PADEL", "day": 0, "ring": from["ring"],
-			"door_ring": Vector3(kerb.x, graph.surface(k["edge"], kerb), kerb.y), "road": float(from["road"]),
-			"name": "PADELNIA", "customer": CZ_PLAYERS[rng.randi() % CZ_PLAYERS.size()], "from": str(from["name"])}
+			"door_ring": Vector3(kerb.x, graph.surface(k["edge"], kerb), kerb.y),
+			"road": float(from["road"]), "name": venue, "customer": CZ_PLAYERS[rng.randi() % CZ_PLAYERS.size()], "from": str(from["name"])}
 	state = State.OFFER
 	_t = 0.0
-	hud.show_side_card("CZWARTY · PADELNIA", "Grają we trzech. Zabierz %s spod %s i dowieź na kort w 7 min." % [order["customer"], order["from"]],
-			PackedStringArray(["ACCEPT", "SKIP"]), CZ_COLOUR, "Fourth player · PADELNIA",
+	hud.show_side_card("CZWARTY · " + venue.to_upper(), "Grają we trzech. Zabierz %s spod %s i dowieź na kort w 7 min." % [order["customer"], order["from"]],
+			PackedStringArray(["ACCEPT", "SKIP"]), CZ_COLOUR, "Fourth player · " + venue,
 			"Three players are waiting. Fetch %s from %s and bring them to the court in 7 min." % [order["customer"], order["from"]])
 	hud.ticker_out()
 	if log_on:
-		print("trend job: czwarty offer at PADELNIA: %s from %s, %.0f m by road" % [order["customer"], order["from"], order["road"]])
+		print("trend job: czwarty offer at %s: %s from %s, %.0f m by road" % [venue, order["customer"], order["from"], order["road"]])
+	return true
+
+
+## The DESKA call (--trend-job=7 too): a friend phones, the club is short of a fourth. Accepting
+## sets the gate as the target at once (no pickup). False in the air or with a job on.
+func offer_deski_call(force := false) -> bool:
+	if not force and not _free():
+		return false
+	var rng := RandomNumberGenerator.new()
+	rng.seed = done * 7001 + 53 + roundi(_session)
+	var who: String = DESKI_CALLERS[rng.randi() % DESKI_CALLERS.size()]
+	var hurt: String = DESKI_INJURED[rng.randi() % DESKI_INJURED.size()]
+	var gy: float = map.terrain_height(DESKI_GATE.x, DESKI_GATE.y)
+	var dist := Vector2(player_pos.x, player_pos.z).distance_to(DESKI_GATE)
+	order = {"kind": "czwarty", "call": true, "slot": -1, "word": "PADEL", "day": 0, "ring": Vector3(DESKI_GATE.x, gy, DESKI_GATE.y),
+			"door_ring": Vector3(DESKI_GATE.x, gy, DESKI_GATE.y), "road": dist * 1.3,
+			"name": "WTS DESKA", "customer": who, "from": "", "hurt": hurt}
+	state = State.OFFER
+	_t = 0.0
+	hud.show_side_card("📞 %s DZWONI" % who.to_upper(),
+			"„Halo? Gramy na Desce w padla, a jedno z nas ma nogę w gipsie po pole dance (%s) i wypadło z gry! Brakuje czwartego. Dojedź albo doleć na kort DESKA przy Zaruskiego, 8 minut!”" % hurt,
+			PackedStringArray(["PRZYJEDŹ", "NIE TERAZ"]), CZ_COLOUR, "%s is calling" % who,
+			"\"Hello? We're playing padel at DESKA, but one of us has a leg in plaster after pole dance (%s) and dropped out! We need a fourth. Drive or fly to the court on Zaruskiego, 8 minutes!\"" % hurt)
+	hud.ticker_out()
+	if log_on:
+		print("trend job: DESKA call from %s: %s broke a leg, %.0f m away" % [who, hurt, dist])
 	return true
 
 
 # --- "Mlask": Cringulo's review (G5) ----------------------------------------------------------
 
 ## The van's mesh: a cream box van, a pink band, dark windows, the big lens on the roof, in the
-## models' one material (~150 triangles). Local frame: +Z forward, origin on the ground.
+## models' one material (~150 plus the lettering). Local frame: +Z forward, origin on the ground.
 static func van_mesh() -> ArrayMesh:
 	var st := Models._begin()
 	Models.box(st, Vector3(0, 1.25, 0), Vector3(2.0, 1.9, 5.2), VAN_CREAM)
@@ -430,6 +499,62 @@ static func van_mesh() -> ArrayMesh:
 	Models.box(st, Vector3(0, 2.3, -0.4), Vector3(0.5, 0.2, 0.5), VAN_DARK)
 	Models.box(st, Vector3(0, 2.62, -0.4), Vector3(0.62, 0.44, 0.9), VAN_DARK)
 	Models.box(st, Vector3(0, 2.62, 0.12), Vector3(0.5, 0.36, 0.16), VAN_PINK)
+	var mesh := st.commit()
+	var tx := _van_lettering("CRINGULO TV", -0.2, 0.58)
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, tx.surface_get_arrays(0))
+	return mesh
+
+
+## `text` in the pixel font (5 cm pixels, flat dark quads, a row's lit run is one quad) on both
+## flanks of the van, centred at (zc, yc), below the pink band: a second surface of the van mesh.
+static func _van_lettering(text: String, zc: float, yc: float) -> ArrayMesh:
+	var s := Models.Shape.new()
+	var f := Models.fin(VAN_DARK)
+	var px := 0.05
+	var wide := PixelFont.width(text) * px
+	var runs := {}  # row -> sorted columns
+	PixelFont.each_pixel(text, 0, func(col: int, row: int) -> void:
+		if not runs.has(row):
+			runs[row] = []
+		runs[row].append(col))
+	for sgn: float in [-1.0, 1.0]:
+		# Seen from +x the text runs towards -z, from -x towards +z.
+		var x := sgn * 1.03
+		var start := zc + sgn * wide * 0.5
+		var top := yc + 3.5 * px + PixelFont.BODY * px
+		for row: int in runs:
+			var cols: Array = runs[row]
+			cols.sort()
+			var i := 0
+			while i < cols.size():
+				var j := i
+				while j + 1 < cols.size() and int(cols[j + 1]) == int(cols[j]) + 1:
+					j += 1
+				var za := start - sgn * int(cols[i]) * px
+				var zb := start - sgn * (int(cols[j]) + 1) * px
+				var yt := top - row * px
+				s.side_rect(x, sgn, yt - px, yt, minf(za, zb), maxf(za, zb), f)
+				i = j + 1
+	return s.mesh()
+
+
+## Five fans standing behind the van along the kerb, one holding a phone up: a single mesh in the
+## van's local frame (a child of it, so it parks and hides with it).
+static func fans_mesh() -> ArrayMesh:
+	var st := Models._begin()
+	var spots := [Vector3(-0.7, 0, -3.4), Vector3(0.5, 0, -3.7), Vector3(-0.1, 0, -4.5), Vector3(1.0, 0, -4.6), Vector3(-1.1, 0, -4.9)]
+	for i in spots.size():
+		var o: Vector3 = spots[i]
+		var shirt := Color(FAN_SHIRTS[i % FAN_SHIRTS.size()])
+		for side in [-1.0, 1.0]:
+			Models.box(st, o + Vector3(0.11 * side, 0.43, 0), Vector3(0.17, 0.86, 0.22), VAN_DARK)
+		Models.box(st, o + Vector3(0, 1.15, 0), Vector3(0.46, 0.62, 0.28), shirt)
+		for side in [-1.0, 1.0]:
+			Models.box(st, o + Vector3(0.29 * side, 1.12, 0), Vector3(0.12, 0.56, 0.16), shirt)
+		Models.box(st, o + Vector3(0, 1.58, 0), Vector3(0.26, 0.26, 0.26), Color("#e2b48c"))
+		Models.box(st, o + Vector3(0, 1.72, 0.02), Vector3(0.28, 0.08, 0.3), Color("#4a3426"))
+	# The phone, raised towards the van: the third fan's arm up, a dark slab with a lit face.
+	Models.box(st, spots[2] + Vector3(0.2, 1.62, 0.28), Vector3(0.1, 0.18, 0.04), VAN_DARK)
 	return st.commit()
 
 
@@ -471,6 +596,30 @@ func _van_tick(hour: float, weekday: int) -> void:
 	var show := out and not van.is_empty()
 	if _van_node != null and _van_node.visible != show:
 		_van_node.visible = show
+	if show:
+		_fans_tick(hour)
+	else:
+		_egg_t = 0.0
+
+
+## Twice a second while the van is out: the fans' chatter when the car is near, and the egg (the
+## car parked by the van while he films). `hour` is the game hour.
+func _fans_tick(_hour: float) -> void:
+	var at: Vector3 = van["at"]
+	var d := Vector2(car.global_position.x - at.x, car.global_position.z - at.z).length()
+	if d <= FAN_TALK_R and dialogue != null:
+		_fan_t -= 0.5
+		if _fan_t <= 0.0:
+			_fan_t = _rng.randf_range(FAN_GAP[0], FAN_GAP[1])
+			var back := Vector3(at.x, at.y, at.z) + (_van_node.global_transform.basis * Vector3(0, 0, -4.0))
+			dialogue.say_ambient(func() -> Vector3: return back, "", "viral", "cringulo", 4.0, ML_COLOUR, 2.2, true)
+	if d <= EGG_R and not flying and car.velocity.length() < 1.0:
+		_egg_t += 0.5
+		if _egg_t >= EGG_SECS and egg.is_valid():
+			_egg_t = -1000.0
+			egg.call(EGG_ID)
+	elif _egg_t > 0.0:
+		_egg_t = 0.0
 
 
 ## The van by the kerb nearest the place `spot` (or at the point `near`): {spot, at, ring, yaw}.
@@ -660,6 +809,9 @@ func _on_card(index: int) -> void:
 
 
 func _accept() -> void:
+	if bool(order.get("call", false)):
+		_accept_call()
+		return
 	state = State.PICKUP
 	_t = 0.0
 	_hold = 0.0
@@ -681,6 +833,23 @@ func _accept() -> void:
 		hud.toast("Na czasie: odbiór przy kolejce", "On trend: pick up by the queue")
 	if log_on:
 		print("trend job: accepted")
+
+
+func _accept_call() -> void:
+	state = State.DELIVER
+	_clock = 0.0
+	_t = 0.0
+	hud.hide_card()
+	missions.close()
+	missions.paused = true
+	hud.hide_pill()
+	hud.hide_challenge()
+	_beacon.recolour(CZ_COLOUR)
+	_beacon.waving = true
+	_beacon.place(order["door_ring"], ARRIVE - 0.5)
+	hud.toast("Czwarty: na kort Deski, jedź albo leć", "Fourth player: to the DESKA court, drive or fly")
+	if log_on:
+		print("trend job: DESKA call accepted")
 
 
 func _pickup_tick(dt: float) -> void:
@@ -729,7 +898,11 @@ func _pickup_tick(dt: float) -> void:
 
 func _deliver_tick(dt: float) -> void:
 	_clock += dt
-	var d := _flat(car.global_position, order["door_ring"])
+	var is_call := bool(order.get("call", false))
+	var d := _flat(player_pos if is_call else car.global_position, order["door_ring"])
+	if is_call and flying and d < DESKI_FLY_R:
+		_arrive()
+		return
 	if d < ARRIVE and car.vel.length() < ARRIVE_SPEED and not flying:
 		_arrive()
 		return
@@ -738,11 +911,11 @@ func _deliver_tick(dt: float) -> void:
 		return
 	var drop := _is_drop()
 	var cz := _is_cz()
-	var limit := DROP_LIMIT if drop else (CZ_LIMIT if cz else LIMIT)
+	var limit := DROP_LIMIT if drop else ((DESKI_LIMIT if is_call else CZ_LIMIT) if cz else LIMIT)
 	var tint := DROP_COLOUR if drop else (CZ_COLOUR if cz else COLOUR)
 	var left := limit - _clock
 	var clock := ("%d:%02d" % [int(left) / 60, int(left) % 60]) if left > 0.0 else "+%d:%02d" % [int(-left) / 60, int(-left) % 60]
-	var hint := (["Jedź do turkusowego światła", "Head for the teal beacon"] if cz else ["Jedź do zielonego światła", "Head for the green beacon"] if drop else ["Jedź do różowego światła", "Head for the pink beacon"]) if d > 40.0 else ["Stań pod drzwiami", "Stop at the door"]
+	var hint := (["Jedź lub leć do turkusowego światła", "Drive or fly to the teal beacon"] if is_call else ["Jedź do turkusowego światła", "Head for the teal beacon"] if cz else ["Jedź do zielonego światła", "Head for the green beacon"] if drop else ["Jedź do różowego światła", "Head for the pink beacon"]) if d > 40.0 else ["Stań pod drzwiami", "Stop at the door"]
 	if left <= 0.0:
 		hint = ["Spóźnione, ale dowieź", "Late, but deliver it"]
 	hud.show_status(("CZWARTY → %s" if cz else "LIMITKA → %s" if drop else "NA CZASIE → %s") % order["name"], clock, "%d m" % roundi(d), hint[0],
@@ -802,11 +975,15 @@ func _arrive() -> void:
 
 
 func _arrive_cz() -> void:
-	var on_time := _clock <= CZ_LIMIT
+	var on_time := _clock <= (DESKI_LIMIT if bool(order.get("call", false)) else CZ_LIMIT)
 	var r := cz_pay(float(order["road"]), on_time)
 	wallet.pay(int(r["zl"]), int(r["respect"]), "trend")
 	done += 1
 	var line := ["Jesteśmy w czterech! Ściana nas nie zje.", "Four of us! The wall won't eat us."]
+	if bool(order.get("call", false)):
+		line = ["Czwarty jest! Gramy do dwóch setów. %s kibicuje z gipsem." % order["hurt"], "The fourth is here! We play two sets. %s cheers from the bench in a cast." % order["hurt"]]
+		if not on_time:
+			line = ["Zagraliśmy w trzech, ale piłka i tak wróciła. Dzięki, że dojechałeś.", "We played three-a-side, the ball came back anyway. Thanks for coming."]
 	if not on_time:
 		line = ["Zagraliśmy w trzech. Piłka i tak wróciła.", "We played three-a-side. The ball came back anyway."]
 	var head := "CZWARTY · +%d zł" % int(r["zl"])
@@ -818,7 +995,7 @@ func _arrive_cz() -> void:
 	_beacon.waving = false
 	_beacon.place(order["door_ring"], ARRIVE - 0.5, false, true)
 	hud.show_side_card(head, body, PackedStringArray(["OK"]), CZ_COLOUR, "Fourth player · +%d zł" % int(r["zl"]), body_en)
-	print("trend job: delivered %s (Czwarty) to PADELNIA in %.0f s (%s): +%d zł (base %d, tip %d), +%d respect" % [order["customer"], _clock,
+	print("trend job: delivered %s (Czwarty) to %s in %.0f s (%s): +%d zł (base %d, tip %d), +%d respect" % [order["customer"], order["name"], _clock,
 			"on time" if on_time else "late", int(r["zl"]), int(r["base"]), int(r["tip"]), int(r["respect"])])
 
 
