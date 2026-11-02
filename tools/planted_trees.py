@@ -71,6 +71,12 @@ SPECIES = {
     "linden_row": [9.4, 2.7, 3.1],    # lipa
     "plane_row": [10.2, 3.0, 3.4],    # platan
     "willow": [6.4, 2.9, 2.0],        # wierzba głowiasta
+    # Norblin and Browary (K6, 2021): the court's multi-stem planes trained as candelabras (a short
+    # trunk, a broad head), and the Central Garden's lindens, birches and maples over the vaults.
+    "candelabra": [10.5, 3.6, 3.0],   # platan kandelabrowy
+    "garden_linden": [7.2, 2.4, 2.4],   # lipa
+    "birch": [8.0, 1.9, 2.8],         # brzoza
+    "garden_maple": [7.0, 2.2, 2.3],  # klon
 }
 
 # ul. Chmielna, Nowy Świat to Pasaż Wiecha (RS Architektura Krajobrazu for ZTP, opened 2024): the
@@ -154,6 +160,32 @@ PLACES = [
         "willow_groups": 9,
         "willow_gap": 45.0,           # groups at least this far apart
         "willow_min_area": 1500.0,    # a lawn at least this big (m²) takes a group
+    },
+    {
+        # K6: Fabryka Norblina's court (2021): the big multi-stem planes trained as candelabras are
+        # the site's landmark. The court is the open ground inside the three wings.
+        "id": "norblin",
+        "name": "Fabryka Norblina's court (candelabra planes, 2021)",
+        "kind": "garden",
+        "centre": (-2262.0, 56.0),
+        "radius": 26.0,
+        "count": 5,
+        "step": 5.0,
+        "gap": 9.0,                   # candelabras stand well apart
+        "mix": ["candelabra"],
+    },
+    {
+        # K6: Browary Warszawskie's Central Garden over the Leżakownia and the two-level plaza
+        # beside it (2021): lindens, birches and maples in the open ground of the yard.
+        "id": "browary",
+        "name": "Browary Warszawskie's Central Garden (2021)",
+        "kind": "garden",
+        "centre": (-2503.0, -100.0),
+        "radius": 24.0,
+        "count": 12,
+        "step": 4.0,
+        "gap": 5.5,
+        "mix": ["garden_linden", "birch", "garden_maple", "garden_linden", "birch"],
     },
 ]
 
@@ -363,10 +395,52 @@ def plant_grounds(data, place, solids=None):
 
 
 
+def plant_garden(data, place, solids=None):
+    """A court or yard garden (K6): up to `count` trees on a ring-first grid round the centre, at
+    spots clear of buildings, roads, lamps and the scanned trees (TREE_GAP, or `gap` apart from
+    each other). Deterministic."""
+    cx, cz = place["centre"]
+    r = place["radius"]
+    step = place["step"]
+    solids = solids or P.Solids(data)
+    trees = data.get("trees3d", [])
+    taken = [(trees[i], trees[i + 1]) for i in range(0, len(trees) - 5, 6)
+             if math.hypot(trees[i] - cx, trees[i + 1] - cz) < r + 10]
+    pois = [(p["x"], p["z"]) for p in data.get("pois", []) if p.get("k") != "address"]
+    cands = []
+    n = int(r / step)
+    for i in range(-n, n + 1):
+        for j in range(-n, n + 1):
+            x, z = cx + i * step, cz + j * step
+            d = math.hypot(x - cx, z - cz)
+            if d <= r:
+                cands.append((round(d, 3), x, z))
+    cands.sort()
+    out = []
+    mine = []
+    for _, x, z in cands:
+        if len(out) >= place["count"]:
+            break
+        if any(math.hypot(x - tx, z - tz) < TREE_GAP for tx, tz in taken):
+            continue
+        if any(math.hypot(x - tx, z - tz) < place["gap"] for tx, tz in mine):
+            continue
+        if any(math.hypot(x - px, z - pz) < 1.5 for px, pz in pois):
+            continue
+        if solids.blocked(x, z, CLEAR + 0.6, skip=("tree",)):
+            continue
+        mix = place["mix"]
+        out.append(_tree(x, z, mix[int(_hash01(x, z, 1) * len(mix)) % len(mix)]))
+        mine.append((x, z))
+    return out
+
+
 def plant(data, place, solids=None):
     """The new trees for one place, [x, z, top, radius, base, 0] each (not yet in the data)."""
     if place.get("kind") == "grounds":
         return plant_grounds(data, place, solids)
+    if place.get("kind") == "garden":
+        return plant_garden(data, place, solids)
     zone = zone_of(place)
     trees = data.get("trees3d", [])
     near = [(trees[i], trees[i + 1], trees[i + 2]) for i in range(0, len(trees) - 5, 6)
@@ -506,7 +580,7 @@ def apply(data, verbose=True):
     added = 0
     done = data.setdefault("planted_places", [])
     for place in PLACES:
-        if place.get("kind") == "grounds" and place["id"] in done:
+        if place.get("kind") in ("grounds", "garden") and place["id"] in done:
             if verbose:
                 print(f"planted trees: {place['id']}: already planted")
             continue
@@ -525,7 +599,7 @@ def apply(data, verbose=True):
         crowns.extend(scales)
         have.extend((t[0], t[1]) for t in new)
         added += len(new)
-        if place.get("kind") == "grounds":
+        if place.get("kind") in ("grounds", "garden"):
             done.append(place["id"])
         if verbose:
             print(f"planted trees: {place['id']}: {len(new)} young trees added")

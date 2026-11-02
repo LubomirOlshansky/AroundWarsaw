@@ -139,8 +139,11 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
   pines, rowan), 51 shrub beds and 11 benches in the open ground round Skyliner, Generation Park
   and Mennica Legacy Tower (`tools/plaza_gardens.py`, spec docs/design/rondo-plazas.md). Open for
   the Mac (QUESTIONS): the groves against photos, the wooden benches on terraces (flat ground here).
-- [ ] K6 Browary Warszawskie's Central Garden over the Leżakownia and Norblin's candelabra
-  planes and climbers (Sonnet; with "Norblin, Browary" below).
+- [x] K6 (2026-11-02, `planted_trees.py` kind `garden`): 5 candelabra planes (broad heads on short
+  trunks) in Fabryka Norblina's court and 12 lindens, birches and maples in Browary's Central Garden
+  yard, at spots clear of walls, roads, lamps and the scanned trees. Left (Mac photo check, QUESTIONS):
+  the real positions (the Leżakownia's vaults, the candelabras' places), the climbers on the walls
+  and the garden terraces upstairs (not modelled), and the tree count in the Browary yard.
 - [x] K7 Bulwary Wiślane stages 1-2 (2026-11-02, site `bulwary_basen`, spec bulwary_basen.md): the
   splash pool and 3 fish (the 6 pavilions are the boulevard dressing, PR #310). Left: the amphitheatre, trampolines and the "living river"
   garden (not in OSM, need the orthophoto), and the Mac look check (QUESTIONS).
