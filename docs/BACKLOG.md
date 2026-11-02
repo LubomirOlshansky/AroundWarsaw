@@ -3,6 +3,22 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## City inventory (F, 2026-11-02)
+
+docs/CITY_INVENTORY.md lists every characteristic place in the box, ranked, with its status; Part 3
+is the order of the next threads. Found while building it:
+- **Monuments are almost missing.** OSM's memorial and statue points are not in `centrum.json`, so only
+  the hand-built ones exist (Zygmunt, Grób, Mickiewicz, Kopernik, Prus, Wyszyński, de Gaulle, the
+  Syrenki). Nike, Słowacki, Starzyński, Mały Powstaniec, Kiliński, Plac Piłsudskiego's, the Uprising
+  monument, Umschlagplatz, the Eastern memorial, Reagan, Dmowski, Witos, Skłodowska-Curie and Sapera are ✗.
+  The OSM points are now cached in `docs/inventory/osm_candidates.json` (tools/city_list.py, 2026-11-02;
+  CITY_INVENTORY Part 2 lists 216 monuments and sculptures, 26 murals, 267 bars and about 690 plaques by
+  street); a bake of them into `pois` would place them; each still needs a model from photos.
+- **Rule:** a tier S or A model starts from photos (F's or `refs/` on the Mac). About 50 outline builds wait
+  for their Mac photo check (QUESTIONS); their photo re-pass is Part 3 item 9.
+- 455 named OSM outlines (tier C: tenements, offices, embassies) are plain blocks; street passes take them
+  street by street from Part 2.
+
 ## Site analytics (F, 2026-11-02)
 
 - After the next `wrangler deploy`: F checks Cloudflare -> Websites -> aroundwarsaw.app -> Analytics & Logs -> Traffic shows visits. If the Worker deploy fails on the Analytics Engine binding (needs it enabled once in the dashboard: Workers & Pages -> Analytics Engine), enable it and redeploy.
