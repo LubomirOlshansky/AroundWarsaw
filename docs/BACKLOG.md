@@ -935,8 +935,8 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   their checks (`first10`, `first10-run`, `opening`, `cassettes`, `save`, `hud`), merge #115 then
   #121. Built, not verified on the phone.
 - **The first scene's open items** (design/first-scene.md items 4-5; BACKLOG "High priority: the
-  first scene"): the pavilions and towers behind the Eastern Wall stores, the park strip in front of
-  the museum, lowered kerbs at the crossings. Gap. The paving, the crossings' tactile pads and the
+  first scene"): the pavilions and towers behind the Eastern Wall stores (a solid OSM block, needs
+  Mac photos). The park strip's benches and lamps and the lowered kerbs were built 2026-11-02. The paving, the crossings' tactile pads and the
   tram platforms' edges were built 2026-11-02 (first-scene.md "Items 4 and 5 as built"); items 6-7
   (pedestrians and sound at the start) built 2026-11-02; both phone checks parked.
 
