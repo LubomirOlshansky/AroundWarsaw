@@ -15,6 +15,7 @@ const CityMaps := preload("res://scripts/city_maps.gd")
 const Models := preload("res://scripts/models.gd")
 const Trains := preload("res://scripts/trains.gd")
 const MapEdge := preload("res://scripts/map_edge.gd")
+const EdgeRoadworks := preload("res://scripts/edge_roadworks.gd")
 ## Tile size for instanced things (trees, lamps, parked cars). Loop 2b: 512 m (was 256): one
 ## MultiMesh is one draw call, and the iPhone pays per draw call, not per instance.
 const INSTANCE_TILE := 512.0
@@ -306,6 +307,10 @@ func setup_streamed(index: Dictionary, building_mat: ShaderMaterial, flat_mat: S
 	var edge: Node3D = MapEdge.build(self)
 	if edge != null:
 		add_child(edge)
+	# 2026-11-02: roadworks close every road that leaves the map (edge_roadworks.gd).
+	var works: Node3D = EdgeRoadworks.build(self)
+	if works != null:
+		add_child(works)
 
 
 ## Loop 3c: each sector's lowest ground (- 20 m: tunnels, the river bed) and its highest roof
