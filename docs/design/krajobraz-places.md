@@ -168,7 +168,8 @@ Garden over it, trees on slabs and over the restored vaults, the restored line o
 Norblin (2021): big multi-stem planes trained as candelabras (the site's landmark), climbers on
 the walls, garden terraces upstairs. **Game:** both are L2 sites (BACKLOG "Norblin, Browary");
 add the candelabra planes and the Central Garden, and fold in that section's Mac checks.
-Sonnet.
+Sonnet. **Built 2026-11-02** (`planted_trees.py` kind `garden`): 5 candelabra planes in Norblin's
+court, 12 lindens, birches and maples in Browary's yard; climbers and terraces left for the Mac.
 
 ## K7 Bulwary Wiślane, stages 1 and 2
 

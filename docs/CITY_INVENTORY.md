@@ -9,6 +9,9 @@ changes its status here in the same PR, like ROADMAP's v1.0 checklist). **Part 2
 places street by street, regenerated from the map data with `python3 -I tools/city_inventory.py`
 (it reads Part 1's statuses, so edit Part 1 and re-run). docs/LANDMARKS.md keeps the build detail
 of each model; this file only says what exists and what is next.
+The wiki's Model progress page (wiki.aroundwarsaw.app/models/) is generated from Part 1. A row counts as
+*researching* when its Next cell says "photos gathered" (or its status is ⏳): write that when the Mac's
+`refs/<slug>/` and REPORT exist, before the model is built.
 
 ## Why some places were rebuilt "outline only"
 
@@ -47,7 +50,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 **C** texture (named tenements, offices, embassies, small institutions) in Part 2 only.
 
 <!-- counts:start -->
-**Counts** (Part 1, 140 ranked rows): ★ 16 photo builds · ◐ 54 outline builds · ○ 16 dress only · ⏳ 2 in progress · ✗ 52 not done. Part 2 adds 543 named outlines (tier C): 19 with a model of their own, 69 dressed or named in the game, 455 plain blocks.
+**Counts** (Part 1, 144 ranked rows): ★ 16 photo builds · ◐ 54 outline builds · ○ 23 dress only · ⏳ 8 in progress · ✗ 43 not done. Part 2 adds 543 named outlines (tier C): 19 with a model of their own, 74 dressed or named in the game, 450 plain blocks. From OpenStreetMap points (the monuments and plaques stand as generic pieces from tools/bake_monuments.py since 2026-11-02, the rest are not baked): 216 monuments and sculptures, 26 murals, 267 bars and clubs, 102 museums and galleries, 38 theatres and cinemas, 4 malls, 34 hotels, 688 plaques and memorial stones (the named office buildings are already outlines above).
 <!-- counts:end -->
 
 ## Part 1. The ranked list
@@ -125,12 +128,12 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 62 | Centrum LIM (Marriott) and Novotel | Aleje Jerozolimskie / Marszałkowska | hotel towers | ★ | Novotel from the Rondo photos; LIM's lit cells |
 | 63 | Błękitny Wieżowiec and Plac Bankowy | Plac Bankowy | skyscraper, square | ○ | photo check of the glass |
 | 64 | Plac Bankowy's palaces: Ratusz (OSM: Urząd Miasta Stołecznego Warszawy), Mazowiecki Urząd Wojewódzki, Gmach Giełdy i Banku Polskiego, Arsenał | Plac Bankowy / Długa | palaces | ○ | **photo build** of the colonnaded front (Corazzi's buildings) |
-| 65 | Pomnik Juliusza Słowackiego and Pomnik Stefana Starzyńskiego | Plac Bankowy | monuments | ✗ | build both from photos |
-| 66 | Pomnik Bohaterów Warszawy (Nike) | Aleja Solidarności | monument | ✗ | build from photos |
-| 67 | Pomnik Małego Powstańca and Pomnik Jana Kilińskiego | Podwale | monuments | ✗ | build from photos |
-| 68 | Pomnik Józefa Piłsudskiego, the Smolensk monuments, Pomnik Lecha Kaczyńskiego | Plac Piłsudskiego | monuments | ✗ | build from photos (affectionate, no politics on cards) |
-| 69 | Pomnik Poległym i Pomordowanym na Wschodzie | Muranowska | monument | ✗ | build from photos (the railway truck of crosses) |
-| 70 | Umschlagplatz memorial | Stawki | memorial | ✗ | build from photos, a quiet card |
+| 65 | Pomnik Juliusza Słowackiego and Pomnik Stefana Starzyńskiego | Plac Bankowy | monuments | ⏳ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread |
+| 66 | Pomnik Bohaterów Warszawy (Nike) | Aleja Solidarności | monument | ⏳ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread |
+| 67 | Pomnik Małego Powstańca and Pomnik Jana Kilińskiego | Podwale | monuments | ⏳ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread |
+| 68 | Pomnik Józefa Piłsudskiego, the Smolensk monuments, Pomnik Lecha Kaczyńskiego | Plac Piłsudskiego | monuments | ⏳ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread (affectionate, no politics on cards) |
+| 69 | Pomnik Poległym i Pomordowanym na Wschodzie | Muranowska | monument | ⏳ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread (the railway truck of crosses) |
+| 70 | Umschlagplatz memorial | Stawki | memorial | ⏳ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread, a quiet card |
 | 71 | Warszawa Śródmieście, Ochota, Powiśle, Stadion stations | Aleje Jerozolimskie / Wybrzeże Kościuszkowskie | stations | ★ | Śródmieście and Stadion still ◐ (photo check) |
 | 72 | Dworzec Gdański and its metro (OSM: Dworzec Warszawa Gdańska) | Słomińskiego | station | ✗ | railway S3d (Mac photos first) |
 | 73 | Warszawa Wschodnia | Lubelska | station | ✗ | railway S3c (Mac photos first) |
@@ -178,10 +181,10 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 110 | Zamek Ostrogskich and the Chopin Institute | Tamka | palace | ◐ | photo check |
 | 111 | Piano House, Cube House, Hortus, Moderna, Dobra and Tamka tenements | Topiel / Leszczyńska / Drewniana / Zajęcza / Dobra / Tamka | upscale flats, tenements | ◐ | photo check |
 | 112 | Kamienica Pod Gigantami, Pałac Pod Karczochem, Kamienica Ławrynowicza and Aleje Ujazdowskie's villas (OSM: Pałacyk Rembielińskiego) | Aleje Ujazdowskie | tenements, villas | ✗ | Aleje Ujazdowskie street pass from photos |
-| 113 | Pomnik Ronalda Reagana, Pomnik Romana Dmowskiego (Plac Na Rozdrożu) | Aleje Ujazdowskie | monuments | ✗ | build from photos |
-| 114 | Pomnik Polskiego Państwa Podziemnego i Armii Krajowej, Pomnik Wincentego Witosa, Pomnik Ignacego Daszyńskiego | Wiejska | monuments | ✗ | build from photos, with the Sejm pass |
-| 115 | Pomnik Marii Skłodowskiej-Curie | Kościelna | statue | ✗ | build from photos |
-| 116 | Pomnik Sapera | Czerniakowska | monument | ✗ | build from photos |
+| 113 | Pomnik Ronalda Reagana, Pomnik Romana Dmowskiego (Plac Na Rozdrożu) | Aleje Ujazdowskie | monuments | ○ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); build from photos |
+| 114 | Pomnik Polskiego Państwa Podziemnego i Armii Krajowej, Pomnik Wincentego Witosa, Pomnik Ignacego Daszyńskiego | Wiejska | monuments | ○ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); build from photos, with the Sejm pass |
+| 115 | Pomnik Marii Skłodowskiej-Curie | Kościelna | statue | ○ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); build from photos |
+| 116 | Pomnik Sapera | Czerniakowska | monument | ○ | a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); build from photos |
 | 117 | Pomnik Kardynała Wyszyńskiego, Pomnik Bolesława Prusa | Krakowskie Przedmieście | monuments | ◐ | photo check |
 | 118 | Kamienica Wedla | Szpitalna | tenement, chocolate shop | ✗ | photo build of the corner and its sign (parody) |
 | 119 | Kamienica pod Gryfami, Kamienica Johna | Plac Trzech Krzyży / Krakowskie Przedmieście | tenements | ✗ | photo pass |
@@ -206,6 +209,10 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 138 | Muzeum Karykatury, Kinomuzeum, Muzeum Niepodległości, Muzeum Wodociągów | Krakowskie Przedmieście / Marszałkowska / Aleja Solidarności / Nowogrodzka | small museums | ✗ | card and sign each |
 | 139 | Warszawska Opera Kameralna, Teatr WARSawy, Pałac Ślubów | Aleja Solidarności / Freta / Rynek | culture | ✗ | card and sign each |
 | 140 | Stara Prochownia, Collegium Nobilium, Klasztor Ojców Dominikanów (Kościół pw. Świętego Jacka) | Boleść / Miodowa / Freta | historic | ◐ | St Hyacinth is the church kit's; the others ✗ |
+| 141 | Talking benches (ławeczki): Ławeczka Jana Karskiego, Ławeczka Jana Nowaka-Jeziorańskiego, Ławeczka księdza Twardowskiego, Ławeczka Henryka Sławika i Józsefa Antalla, Ławeczka Studenta, Ławeczka Jerzego Janickiego, Ławeczka Wandy Tazbir | (see Part 2 per street) | bronze benches | ○ | one shared bronze bench with a sitting figure at each OSM spot (tools/bake_monuments.py, 2026-11-02); a card each left |
+| 142 | Monuments OSM adds: Janusz Korczak, Witold Pilecki, Napoleon Bonaparte, Monte Cassino, Pomnik Ofiar Rzezi Woli, Kobietom Powstania Warszawskiego, Jan Rodowicz "Anoda", Wojciech Korfanty, Ignacy Jan Paderewski, Wojciech Bogusławski, Stanisław Moniuszko, Kotwica z żaglowca szkolnego "Lwów" | (see Part 2 per street) | monuments | ○ | a generic statue, bust, stele or stone at each OSM spot (tools/bake_monuments.py, 2026-11-02: 75 statues, 32 busts, 68 steles, 66 stones, 26 sculptures, Ogród Saski's 19 allegories at their real spots); photo builds one by one; Moniuszko and Bogusławski stand at Teatr Wielki |
+| 143 | Murals (26 named in OSM) | (see Part 2) | murals | ✗ | original paintings on the mapped walls (a decal per wall), never copies of the real artworks |
+| 144 | Plaques and memorial stones (about 690: Tchorek's Uprising plaques, stones, steles) | (every street) | plaques | ○ | a sandstone Tchorek-style plaque with a cross, a ribbon and two candles on the nearest drawn wall at 520 OSM plaque points (tools/bake_monuments.py, 2026-11-02; 49 with no wall within 12 m left out); the count per street is in Part 2 |
 
 Tier C (named tenements, offices, embassies, small institutions) has no rows here: Part 2
 lists all of them street by street with their status.
@@ -219,297 +226,394 @@ Proposed order for the next threads (photos first, see "Why some places were reb
 3. Pomnik Powstania Warszawskiego and Plac Krasińskich's palace (22, 79).
 4. Hotel Warszawa / Prudential (29) and Cedet (30): the start area's south.
 5. Rondo ONZ towers by photo: Q22 and Rondo 1 first (28).
-6. The monuments pass: Nike, Słowacki, Starzyński, Mały Powstaniec, Kiliński, Plac Piłsudskiego's (65-68), then 69, 70, 113-116.
+6. The monuments pass: Nike, Słowacki, Starzyński, Mały Powstaniec, Kiliński, Plac Piłsudskiego's (65-68), then 69, 70, 113-116. Started 2026-11-02: every OSM monument and plaque now stands as a generic piece (tools/bake_monuments.py); the photo builds of 65-70 wait for the Mac photo pass.
 7. Plac Bankowy's colonnades (64).
 8. Świętokrzyska's big three: NBP, Poczta Główna, PAST-a (75, 76, 78); Filharmonia (77).
-9. Photo re-pass of the outline builds on the first ten minutes' routes: Varso, Złote Tarasy, Teatr Wielki, Krakowskie Przedmieście (7, 8, 18, 24-27).
+9. Photo re-pass of the outline builds on the first ten minutes' routes: Varso, Złote Tarasy, Teatr Wielki, Krakowskie Przedmieście (7, 8, 18, 24-27). Krakowskie Przedmieście's gather list is parked in QUESTIONS (2026-11-02).
 10. Praga's faces: the cathedral of St Michael and St Florian, Koneser, Bazar Różyckiego, Wschodnia (84-86, 73).
 
 <!-- streets:start -->
 ## Part 2. Street by street
 
-Generated by `python3 -I tools/city_inventory.py` from the map data and Part 1. Ranked places in bold with their number; the rest are named outlines in OpenStreetMap (tier C), marked "◐ model" when a hand-built site stands in them (the church kit, the hotels' fronts), "○ in game" when the game names them (a card, a sign, a skin), "○ old-town dress" for the dressed Old Town houses, and ✗ when they are a plain block. Streets are the nearest address point, so a corner building can sit on the cross street.
+Generated by `python3 -I tools/city_inventory.py` from the map data and Part 1. Ranked places in bold with their number; the rest are named outlines in OpenStreetMap (tier C), marked "◐ model" when a hand-built site stands in them (the church kit, the hotels' fronts), "○ in game" when the game names them (a card, a sign, a skin), "○ old-town dress" for the dressed Old Town houses, and ✗ when they are a plain block. Streets are the nearest address point, so a corner building can sit on the cross street. After the buildings, each street lists the OpenStreetMap points the map does not bake as buildings (monuments, murals, bars, museums, stages, malls, hotels, offices; real venue names, which the game only shows as parodies) and a count of its plaques and memorial stones. Monuments marked "○ in game" stand as a generic piece at least (tools/bake_monuments.py, game/data/monuments.json), as do the plaques.
+
+### Across the city (5 places)
+
+- **many streets**: **#74 Metro stations: Centrum, Świętokrzyska, Ratusz-Arsenał, Politechnika, Rondo ONZ, Rondo Daszyńskiego, Nowy Świat-Uniwersytet, Centrum Nauki Kopernik, Stadion Narodowy, Dworzec Gdański** ○; **#141 Talking benches (ławeczki): Ławeczka Jana Karskiego, Ławeczka Jana Nowaka-Jeziorańskiego, Ławeczka księdza Twardowskiego, Ławeczka Henryka Sławika i Józsefa Antalla, Ławeczka Studenta, Ławeczka Jerzego Janickiego, Ławeczka Wandy Tazbir** ○; **#142 Monuments OSM adds: Janusz Korczak, Witold Pilecki, Napoleon Bonaparte, Monte Cassino, Pomnik Ofiar Rzezi Woli, Kobietom Powstania Warszawskiego, Jan Rodowicz "Anoda", Wojciech Korfanty, Ignacy Jan Paderewski, Wojciech Bogusławski, Stanisław Moniuszko, Kotwica z żaglowca szkolnego "Lwów"** ○; **#143 Murals (26 named in OSM)** ✗; **#144 Plaques and memorial stones (about 690: Tchorek's Uprising plaques, stones, steles)** ○
 
 ### Praga (50 places)
 
-- **Targowa**: **#86 Bazar Różyckiego** ✗; **#135 Galeria Wileńska and Dworzec Wileński** ✗; Pasaż Handlowy "Targowa 33A" (commercial) ✗
-- **Lubelska**: **#73 Warszawa Wschodnia** ✗; Klasztor pallotynów (monastery) ✗; Koleje Mazowieckie (offices) ✗; Warszawa Wschodnia (podmiejski) (station) ✗
-- **Floriańska**: **#84 Bazylika Katedralna Świętego Michała Archanioła i Świętego Floriana Męczennika** ✗
-- **Księdza Ignacego Kłopotowskiego**: Centrum Praha (public) ✗; Hit ✗; Kamienica Juliana Różyckiego (flats) ✗; Rainbow Center (government) ✗; Stacja Dializ (hospital) ✗; Symfonia (flats) ✗
-- **Stefana Okrzei**: Kamienica pod Sowami (flats) ✗; Latarnia (flats) ✗; Manufaktura Praska (flats) ✗; Na Okrzei (flats) ✗; Port II (flats) ✗; Rezydencja Symfonia (flats) ✗
-- **Grochowska**: Kościół pw. Matki Boskiej Zwycięskiej (cathedral) ◐ model; Allegro ✗; Plebania (presbytery) ✗; SPC (shop) ✗
+- **Targowa**: **#86 Bazar Różyckiego** ✗; **#135 Galeria Wileńska and Dworzec Wileński** ✗; Pasaż Handlowy "Targowa 33A" (commercial) ✗; *monuments:* Praski miś ○ in game, Zaklęty Rewir ✗; *murals:* Foton ✗, Molozol - Muchozol - Sanitozol ✗; *bars:* Pub & Bar Kijowska 2 ✗; *museums:* Muzeum Warszawskiej Pragi ✗, Osińska, Litawińska, Szczodry ✗, Wind0wlicker ✗, Środek ✗; *plaques and memorial stones:* 2
+- **Lubelska**: **#73 Warszawa Wschodnia** ✗; Klasztor pallotynów (monastery) ✗; Koleje Mazowieckie (offices) ✗; Warszawa Wschodnia (podmiejski) (station) ✗; *murals:* Jan Karski ○ in game
+- **Floriańska**: **#84 Bazylika Katedralna Świętego Michała Archanioła i Świętego Floriana Męczennika** ✗; *monuments:* Ks. Ignacy Jan Skorupka ○ in game, Pomnik Praskiej Kapeli Podwórkowej ○ in game; *plaques and memorial stones:* 4
+- **Księdza Ignacego Kłopotowskiego**: Centrum Praha (public) ✗; Hit ✗; Kamienica Juliana Różyckiego (flats) ✗; Rainbow Center (government) ✗; Stacja Dializ (hospital) ✗; Symfonia (flats) ✗; *monuments:* Warszawski Południk Zerowy ✗, Witold Pilecki ○, Сккльптура ангела ○ in game; *hotels:* Hetman ✗; *plaques and memorial stones:* 3
+- **Stefana Okrzei**: Kamienica pod Sowami (flats) ✗; Latarnia (flats) ✗; Manufaktura Praska (flats) ✗; Na Okrzei (flats) ✗; Port II (flats) ✗; Rezydencja Symfonia (flats) ✗; *monuments:* Pomnik Kościuszkowców ○ in game; *murals:* Generational connection ✗, Miejska dżungla ✗; *bars:* Bazar ✗, Centrum Zarządzania Światem ✗, Inclusive Barista ✗; *stages:* Mazowiecki Teatr Muzyczny im. Jana Kiepury ✗; *plaques and memorial stones:* 1
+- **Grochowska**: Kościół pw. Matki Boskiej Zwycięskiej (cathedral) ◐ model; Allegro ✗; Plebania (presbytery) ✗; SPC (shop) ✗; *monuments:* Kąpiąca się ○ in game, Pomnik Poległych i zmarłych ○ in game; *murals:* E. Wedel 1851 ✗; *plaques and memorial stones:* 4
+- **Jana Zamoyskiego**: Dworzec PKP Warszawa Stadion (station) ○ in game; Hotel Dedek Park (hotel) ✗; *monuments:* 70 lat Totalizatora Sportowego ○ in game, Tancerka ○ in game; *bars:* Bar pod Kufelkiem ✗, Sala bankietowa Dedek Park ✗; *museums:* Muzeum Fabryka Czekolady Wedla ✗; *hotels:* Tulip Residences Warsaw Targowa ✗; *plaques and memorial stones:* 1
+- **Sokola**: Marcowy Zając (offices) ✗; Narodowe Centrum Sportu (offices) ✗; *plaques and memorial stones:* 1
+- **Bliska**: Bliska Residence ✗; *murals:* Bird and snake murales ✗
+- **Francuska**: Restauracja Dom Polski (house) ✗; *plaques and memorial stones:* 4
 - **Genewska**: Boathouse ✗; Wisełka (hotel) ✗
+- **Jagiellońska**: Prokuratura Rejonowa Warszawa-Praga Północ (offices) ✗; *stages:* Baj ✗
 - **Jakuba Jasińskiego**: Budynek A (hospital) ✗; Przychodnia przyszpitalna (hospital) ✗
-- **Jana Zamoyskiego**: Dworzec PKP Warszawa Stadion (station) ○ in game; Hotel Dedek Park (hotel) ✗
-- **Sokola**: Marcowy Zając (offices) ✗; Narodowe Centrum Sportu (offices) ✗
-- **Bliska**: Bliska Residence ✗
+- **Jakubowska**: Dom Funkcjonalny (semidetached_house) ✗; *monuments:* Kazimierz Górski ○ in game, Sztafeta ○ in game, pomnik Bohaterów 10 Pułku Piechoty 4 Dywizji im. Kilińskiego ○ in game; *bars:* Strefa Kibica ✗
+- **Józefa Sierakowskiego**: Centralne Biuro Śledcze Policji (public) ✗; *bars:* BRAĆ polskie wina ✗; *plaques and memorial stones:* 1
+- **Katowicka**: Dajemy Dzieciom Siłę (offices) ✗; *museums:* Galeria Le Guern ✗; *plaques and memorial stones:* 1
+- **Markowska**: Zbór „Praga dla Chrystusa” ✗; *murals:* Mural Jamnik ✗
+- **Olszowa**: Urząd Stanu Cywilnego Warszawa Praga-Północ (government) ✗; *plaques and memorial stones:* 1
+- **Panieńska**: Szpitalny Oddział Ratunkowy (hospital) ✗; *monuments:* Kajaki jesienią ○ in game
+- **Skaryszewska**: Kaplica pw. Matki Boskiej Częstochowskiej (church) ✗; *plaques and memorial stones:* 5
+- **Wał Miedzeszyński**: Ambasada Gruzji ✗; *bars:* Erewań ✗
+- **Wrzesińska**: DOSIR "Prawy Brzeg" (sports) ✗; *murals:* Praski Grajek ✗; *bars:* Port Winoland ✗
+- **Aleja Jerzego Waszyngtona**: *monuments:* Edward Mandell House ○ in game, Ignacy Jan Paderewski ○, Jerzy Waszyngton ○ in game; *plaques and memorial stones:* 2
+- **Brzeska**: *plaques and memorial stones:* 6
+- **Dąbrowiecka**: *monuments:* René Goscinny ○ in game; *bars:* Hocki Klocki w Lunaparku ✗; *plaques and memorial stones:* 1
+- **Elsterska**: *plaques and memorial stones:* 2
 - **Finlandzka**: Pracownia Sztuk Plastycznych (offices) ✗
-- **Francuska**: Restauracja Dom Polski (house) ✗
-- **Jagiellońska**: Prokuratura Rejonowa Warszawa-Praga Północ (offices) ✗
-- **Jakubowska**: Dom Funkcjonalny (semidetached_house) ✗
-- **Józefa Sierakowskiego**: Centralne Biuro Śledcze Policji (public) ✗
-- **Katowicka**: Dajemy Dzieciom Siłę (offices) ✗
 - **Kijowska**: Ośrodek Dokumentacji Geodezyjnej PKP (offices) ✗
 - **Kryniczna**: Białoruski Dom w Warszawie (commercial) ✗
 - **Królowej Aldony**: Ambasada Łotwy (offices) ✗
+- **Lipska**: *plaques and memorial stones:* 2
 - **Luksemburska**: Dwór Genzlów (house) ✗
-- **Markowska**: Zbór „Praga dla Chrystusa” ✗
-- **Olszowa**: Urząd Stanu Cywilnego Warszawa Praga-Północ (government) ✗
-- **Panieńska**: Szpitalny Oddział Ratunkowy (hospital) ✗
+- **Obrońców**: *monuments:* Agnieszka Osiecka ○ in game; *bars:* Wine Bar ✗; *plaques and memorial stones:* 1
 - **Poselska**: Rezydencja ambasadora Portugalii (offices) ✗
-- **Skaryszewska**: Kaplica pw. Matki Boskiej Częstochowskiej (church) ✗
-- **Wał Miedzeszyński**: Ambasada Gruzji ✗
-- **Wrzesińska**: DOSIR "Prawy Brzeg" (sports) ✗
+- **Radziłowska**: *plaques and memorial stones:* 1
+- **Walecznych**: *plaques and memorial stones:* 2
+- **Zakopiańska**: *plaques and memorial stones:* 2
+- **Zwycięzców**: *monuments:* Bolesław Prus ◐; *plaques and memorial stones:* 2
+- **Łotewska**: *plaques and memorial stones:* 1
 
 ### Stare Miasto (53 places)
 
-- **Rynek Starego Miasta**: **#12 Rynek Starego Miasta and its Syrenka** ◐; **#39 Old Town and New Town tenements: Kamienica Pod Bazyliszkiem, Pod Murzynkiem, Fukierowska, Baryczkowska, Pod Okrętem** ○; Kamienica Balcerowska (flats) ○ old-town dress; Kamienica Baryczkowska (flats) ○ old-town dress; Kamienica Busserowska (flats) ○ old-town dress; Kamienica Falkiewiczowska (flats) ○ old-town dress; Kamienica Kazubowska (flats) ○ old-town dress; Kamienica Kleinpoldowska (flats) ○ old-town dress; Kamienica Klemensowska (flats) ○ old-town dress; Kamienica Pod Murzynkiem ○ old-town dress; Kamienica Talentich (flats) ○ old-town dress; Staromiejski Dom Kultury Słowa ✗
-- **Miodowa**: **#99 Pałac Paca, Pałac Branickich (Miodowa), Pałac Prymasowski, Pałac Blanka, Pałac Jabłonowskich** ✗; **#100 Katedra polowa, the Cerkiew, Kapucyni (Miodowa churches)** ◐; Cerkiew pw. Zaśnięcia Najświętszej Marii Panny (church) ◐ model; Katedra polowa Wojska Polskiego Najświętszej Maryi Panny Królowej Polski (church) ◐ model; Bursa Szkolnictwa Artystycznego (dormitory) ✗; Monaster Zaśnięcia Najświętszej Bogurodzicy i św. Jozafata biskupa i męczennika (monastery) ✗
-- **Nowomiejska**: **#23 Barbakan and the city walls** ◐; Kamienica Czechowska (flats) ○ old-town dress; Kamienica Montelupich (flats) ○ old-town dress; Kamienica Smockich (flats) ○ old-town dress; Kamienica pod św. Anną (flats) ○ old-town dress
-- **Podwale**: **#67 Pomnik Małego Powstańca and Pomnik Jana Kilińskiego** ✗; Kościół pw. Świętego Ducha (church) ◐ model; Archiwum Główne Akt Dawnych (public) ✗
-- **Jezuicka**: Archikatedra pw. Świętego Jana Chrzciciela ○ in game; Kamienica Długoszowa ○ old-town dress; Kamienica Pod Okrętem (flats) ○ old-town dress; Sanktuarium Matki Bożej Łaskawej ✗
-- **Kanonia**: Arkady Kubickiego ✗; Dwór Dziekana Kapituły (flats) ✗; Stołeczne Centrum Edukacji Kulturalnej ✗
-- **Piwna**: Kamienica Loupich (flats) ○ old-town dress; Kościół pw. Świętego Marcina (church) ◐ model; Dom Zakonny Sióstr Franciszkanek Służebnic Krzyża (monastery) ✗
-- **Plac Zamkowy**: Kamienica Pod Pelikanem ○ old-town dress; Biblioteka Publiczna m. st. Warszawy (flats) ✗; Mansjonaria (flats) ✗
-- **Szeroki Dunaj**: Kamienica Fukierowska (flats) ○ old-town dress; Kamienica Gizińska (flats) ○ old-town dress; Dom Szewców ✗
-- **Długa**: Kamienica Gaszyńskiego ○ old-town dress; Komora Celna ✗
-- **Freta**: Kamienica Piotra Hawermana ○ old-town dress; Kamienica Schenka ○ old-town dress
-- **Krzywe Koło**: Kamienica Gębińska (flats) ○ old-town dress; Kamienica Mirosławska (flats) ○ old-town dress
-- **Brzozowa**: Kamienica Bornbachów (flats) ○ old-town dress
-- **Bugaj**: Wieczór nad Wisłą (boat) ○ in game
-- **Mostowa**: Warszawskie Centrum Innowacji Edukacyjno-Społecznych i Szkoleń ✗
-- **Piekarska**: Dom Prowincjalny Sióstr Elżbietanek (convent) ✗
-- **Świętojerska**: Mazowieckie Samorządowe Centrum Doskonalenia Nauczycieli (offices) ✗
+- **Rynek Starego Miasta**: **#12 Rynek Starego Miasta and its Syrenka** ◐; **#39 Old Town and New Town tenements: Kamienica Pod Bazyliszkiem, Pod Murzynkiem, Fukierowska, Baryczkowska, Pod Okrętem** ○; Kamienica Balcerowska (flats) ○ old-town dress; Kamienica Baryczkowska (flats) ○ old-town dress; Kamienica Busserowska (flats) ○ old-town dress; Kamienica Falkiewiczowska (flats) ○ old-town dress; Kamienica Kazubowska (flats) ○ old-town dress; Kamienica Kleinpoldowska (flats) ○ old-town dress; Kamienica Klemensowska (flats) ○ old-town dress; Kamienica Pod Murzynkiem ○ old-town dress; Kamienica Talentich (flats) ○ old-town dress; Staromiejski Dom Kultury Słowa ✗; *monuments:* Syrenka Warszawska ◐; *museums:* Muzeum Literatury ✗, Muzeum Warszawy ✗, Muzeum Świat Iluzji ✗; *plaques and memorial stones:* 8
+- **Miodowa**: **#99 Pałac Paca, Pałac Branickich (Miodowa), Pałac Prymasowski, Pałac Blanka, Pałac Jabłonowskich** ✗; **#100 Katedra polowa, the Cerkiew, Kapucyni (Miodowa churches)** ◐; Cerkiew pw. Zaśnięcia Najświętszej Marii Panny (church) ◐ model; Katedra polowa Wojska Polskiego Najświętszej Maryi Panny Królowej Polski (church) ◐ model; Bursa Szkolnictwa Artystycznego (dormitory) ✗; Monaster Zaśnięcia Najświętszej Bogurodzicy i św. Jozafata biskupa i męczennika (monastery) ✗; *stages:* Teatr Collegium Nobilium ✗; *plaques and memorial stones:* 4
+- **Nowomiejska**: **#23 Barbakan and the city walls** ◐; Kamienica Czechowska (flats) ○ old-town dress; Kamienica Montelupich (flats) ○ old-town dress; Kamienica Smockich (flats) ○ old-town dress; Kamienica pod św. Anną (flats) ○ old-town dress; *bars:* Same Krafty Vis-a-Vis ✗; *plaques and memorial stones:* 3
+- **Podwale**: **#67 Pomnik Małego Powstańca and Pomnik Jana Kilińskiego** ⏳; Kościół pw. Świętego Ducha (church) ◐ model; Archiwum Główne Akt Dawnych (public) ✗; *museums:* Muzeum Domków Lalek, Gier i Zabawek ✗; *plaques and memorial stones:* 4
+- **Jezuicka**: Archikatedra pw. Świętego Jana Chrzciciela ○ in game; Kamienica Długoszowa ○ old-town dress; Kamienica Pod Okrętem (flats) ○ old-town dress; Sanktuarium Matki Bożej Łaskawej ✗; *museums:* Muzeum Zimnej Wojny ✗; *plaques and memorial stones:* 6
+- **Kanonia**: Arkady Kubickiego ✗; Dwór Dziekana Kapituły (flats) ✗; Stołeczne Centrum Edukacji Kulturalnej ✗; *monuments:* Dzwon na Kanonii ✗, Siłacz ○ in game; *museums:* Galeria Obok ZPAF ✗, Muzeum Archidiecezji Warszawskiej ✗, Stara Galeria ✗; *stages:* Teatr Małego Widza ✗; *plaques and memorial stones:* 9
+- **Piwna**: Kamienica Loupich (flats) ○ old-town dress; Kościół pw. Świętego Marcina (church) ◐ model; Dom Zakonny Sióstr Franciszkanek Służebnic Krzyża (monastery) ✗; *plaques and memorial stones:* 5
+- **Plac Zamkowy**: Kamienica Pod Pelikanem ○ old-town dress; Biblioteka Publiczna m. st. Warszawy (flats) ✗; Mansjonaria (flats) ✗; *monuments:* Jan Zachwatowicz ○ in game; *museums:* Zamek Królewski w Warszawie ✗; *hotels:* Castle Inn ✗; *plaques and memorial stones:* 12
+- **Szeroki Dunaj**: Kamienica Fukierowska (flats) ○ old-town dress; Kamienica Gizińska (flats) ○ old-town dress; Dom Szewców ✗; *monuments:* Rycerz ○ in game; *museums:* Muzeum Cechu Rzemiosł Skórzanych ✗; *plaques and memorial stones:* 2
+- **Długa**: Kamienica Gaszyńskiego ○ old-town dress; Komora Celna ✗; *monuments:* Pomnik Powstania Warszawskiego ✗; *museums:* Powstanie Warszawskie - Spragnieni Wolności ✗; *plaques and memorial stones:* 10
+- **Freta**: Kamienica Piotra Hawermana ○ old-town dress; Kamienica Schenka ○ old-town dress; *bars:* Elephant ✗, Piwnica Pod Michałem ✗; *museums:* Muzeum Marii Skłodowskiej-Curie ✗; *plaques and memorial stones:* 3
+- **Krzywe Koło**: Kamienica Gębińska (flats) ○ old-town dress; Kamienica Mirosławska (flats) ○ old-town dress; *bars:* Same Krafty ✗; *museums:* Instytut Słowacki ✗; *stages:* Scena Letnia w Lapidarium ✗
+- **Brzozowa**: Kamienica Bornbachów (flats) ○ old-town dress; *monuments:* Piosenka dla Warszawy ○ in game; *museums:* Muzeum Odbudowy Starówki ✗; *plaques and memorial stones:* 3
+- **Bugaj**: Wieczór nad Wisłą (boat) ○ in game; *monuments:* Julian Kulski i Stefan Starzyński ○ in game; *museums:* Plenerowa Galeria Zbigniewa Maleszewskiego ✗
+- **Mostowa**: Warszawskie Centrum Innowacji Edukacyjno-Społecznych i Szkoleń ✗; *monuments:* Galeria Rzeźby ○ in game; *plaques and memorial stones:* 4
+- **Piekarska**: Dom Prowincjalny Sióstr Elżbietanek (convent) ✗; *monuments:* Jan Kiliński ○ in game; *museums:* Muzeum Rzemiosł Artystycznych i Precyzyjnych ✗; *plaques and memorial stones:* 5
+- **Świętojerska**: Mazowieckie Samorządowe Centrum Doskonalenia Nauczycieli (offices) ✗; *museums:* Centrum Design ✗, Muzeum Grawitacji ✗
+- **Jana Kilińskiego**: *plaques and memorial stones:* 1
+- **Nowy Zjazd**: *plaques and memorial stones:* 2
+- **Rycerska**: *monuments:* Oświęcim II ○ in game; *museums:* Muzeum Farmacji ✗
+- **Wąski Dunaj**: *monuments:* Mały Powstaniec ○ in game; *bars:* Podwale Bar and Books ✗
 
 ### Muranów (47 places)
 
-- **Mordechaja Anielewicza**: **#20 Muzeum Historii Żydów Polskich Polin and Pomnik Bohaterów Getta** ★; SM Miła (offices) ✗
-- **Stawki**: **#70 Umschlagplatz memorial** ✗; Budynek dydaktyczny - Szkoła Rodzenia "Baby Care" (hospital) ✗
+- **Mordechaja Anielewicza**: **#20 Muzeum Historii Żydów Polskich Polin and Pomnik Bohaterów Getta** ★; SM Miła (offices) ✗; *monuments:* Pierwszy Pomnik Bohaterów Getta ○ in game, Ławeczka Jana Karskiego ○; *bars:* Paradox Cafe ✗; *plaques and memorial stones:* 1
+- **Stawki**: **#70 Umschlagplatz memorial** ⏳; Budynek dydaktyczny - Szkoła Rodzenia "Baby Care" (hospital) ✗; *plaques and memorial stones:* 4
 - **Inflancka**: **#132 Gdański Business Center** ◐
-- **Dzielna**: Hala Sportowa SP210 (school) ✗; Kamienica Muranów (flats) ✗; Przedszkole nr 124 (kindergarten) ✗; Społem (shop) ✗; Spółdzielnia Mieszkaniowa "Muranów" (offices) ✗; Szkoła Podstawowa nr 210 im. Bohaterów Pawiaka (school) ✗
-- **Długa**: Biuro Rzecznika Praw Obywatelskich (public) ✗; Pałac Marii z Lubomirskich Radziwiłłowej (palace) ✗; Pałac Teppera-Dückerta (palace) ✗; Pałac na Podkańskiem ✗; Wydział Nauk Ekonomicznych UW ✗; Złota Milonga ✗
-- **Aleja „Solidarności”**: Kościół Ewangelicko-Reformowany (church) ◐ model; Dom Dysydentów ✗; Kamienica Jacobsona (flats) ✗
-- **Nowolipki**: Kościół pw. Świętego Augustyna (church) ◐ model; Pałac Mostowskich (public) ✗; ZGN Wola (offices) ✗
-- **Senatorska**: Dom Bankowy Landaua ○ in game; Pałac Mniszchów ○ in game; Pałac Błękitny ✗
-- **Spokojna**: Izba Wytrzeźwień ✗; Katakumby ✗; Kościół pw. Świętego Karola Boromeusza ✗
-- **Karmelicka**: Kościół parafialny pw. Narodzenia Najświętszej Maryi Panny (church) ◐ model; Akademia WSB Wydział Zamiejscowy w Warszawie (university) ✗
-- **Niska**: Bursa nr 6 w Warszawie (dormitory) ✗; Rezydencja Niska 30 (flats) ✗
-- **Nowolipie**: Centrum Aktywności Międzypokoleniowej „Nowolipie” (public) ✗; Pałac Działyńskich (university) ✗
-- **Zygmunta Słomińskiego**: Apartamenty Gdański ✗; Słomińskiego Art Office (offices) ✗
-- **Świętojerska**: Instytut Pamięci Narodowej ✗; Sąd Najwyższy ✗
-- **Aleja Jana Pawła II**: Kamienica Trachtenberga ✗
-- **Antonia Corazziego**: Carrefour Express (shop) ✗
-- **Generała Władysława Andersa**: Ibis Warszawa Stare Miasto ✗
-- **Ludwika Zamenhofa**: Dom studencki nr 4 (dormitory) ✗
-- **Miła**: NZOZ Karmelicka (commercial) ✗
-- **Okopowa**: Vizja Park (offices) ✗
+- **Dzielna**: Hala Sportowa SP210 (school) ✗; Kamienica Muranów (flats) ✗; Przedszkole nr 124 (kindergarten) ✗; Społem (shop) ✗; Spółdzielnia Mieszkaniowa "Muranów" (offices) ✗; Szkoła Podstawowa nr 210 im. Bohaterów Pawiaka (school) ✗; *monuments:* Drzewo Pawiackie ○ in game; *museums:* Galeria LETO ✗, Muzeum Więzienia Pawiak ✗; *plaques and memorial stones:* 6
+- **Długa**: Biuro Rzecznika Praw Obywatelskich (public) ✗; Pałac Marii z Lubomirskich Radziwiłłowej (palace) ✗; Pałac Teppera-Dückerta (palace) ✗; Pałac na Podkańskiem ✗; Wydział Nauk Ekonomicznych UW ✗; Złota Milonga ✗; *monuments:* Kobietom Powstania Warszawskiego ○; *hotels:* Metalowcy ✗; *plaques and memorial stones:* 5
+- **Aleja „Solidarności”**: Kościół Ewangelicko-Reformowany (church) ◐ model; Dom Dysydentów ✗; Kamienica Jacobsona (flats) ✗; *monuments:* Ignacy Paderewski ○ in game; *murals:* Ludziom Alei Solidarności/Ulicy Leszno ✗, Mural Emiliana Kamińskiego ✗, Ulica Leszno ✗; *bars:* Paragraf ✗; *stages:* Teatr Kamienica ✗; *plaques and memorial stones:* 6
+- **Nowolipki**: Kościół pw. Świętego Augustyna (church) ◐ model; Pałac Mostowskich (public) ✗; ZGN Wola (offices) ✗; *monuments:* Miejsce ukrycia Archiwum Ringelbluma ○ in game, Pomnik Żołnierzy 1 Armii WP ○ in game; *murals:* Bohdan Lahert ✗, Cytaty w Esperanto ✗, Warszawscy Muzykanci ✗; *bars:* Right Place ✗, Spawn ✗, The Backstage Bar ✗; *museums:* Ewa Opałka ✗, Państwowe Ognisko Artystyczne "Nowolipki" ✗; *stages:* Potem o Tem ✗; *plaques and memorial stones:* 4
+- **Senatorska**: Dom Bankowy Landaua ○ in game; Pałac Błękitny ○ in game; Pałac Mniszchów ○ in game; *monuments:* Święty Jan Nepomucen ○ in game; *stages:* Teatr Żydowski ✗; *plaques and memorial stones:* 4
+- **Spokojna**: Izba Wytrzeźwień ✗; Katakumby ✗; Kościół pw. Świętego Karola Boromeusza ✗; *bars:* Mielżyński ✗
+- **Karmelicka**: Kościół parafialny pw. Narodzenia Najświętszej Maryi Panny (church) ◐ model; Akademia WSB Wydział Zamiejscowy w Warszawie (university) ✗; *monuments:* Umschlagplatz ⏳; *plaques and memorial stones:* 2
+- **Niska**: Bursa nr 6 w Warszawie (dormitory) ✗; Rezydencja Niska 30 (flats) ✗; *monuments:* Pomnik litery A ○ in game; *plaques and memorial stones:* 1
+- **Nowolipie**: Centrum Aktywności Międzypokoleniowej „Nowolipie” (public) ✗; Pałac Działyńskich (university) ✗; *murals:* Kobiety Muranowa ✗; *museums:* Galeria Szydłowski ✗; *plaques and memorial stones:* 2
+- **Zygmunta Słomińskiego**: Apartamenty Gdański ✗; Słomińskiego Art Office (offices) ✗; *stages:* Cinema City ✗; *plaques and memorial stones:* 3
+- **Świętojerska**: Instytut Pamięci Narodowej ✗; Sąd Najwyższy ✗; *monuments:* Rybacy ✗; *museums:* Pałac Rzeczypospolitej ✗; *plaques and memorial stones:* 3
+- **Aleja Jana Pawła II**: Kamienica Trachtenberga ✗; *murals:* Kapitan Zbigniew Ścibor-Rylski "Motyl" ✗; *plaques and memorial stones:* 3
+- **Antonia Corazziego**: Carrefour Express (shop) ✗; *museums:* Żydowski Instytut Historyczny ✗; *plaques and memorial stones:* 1
+- **Generała Władysława Andersa**: Ibis Warszawa Stare Miasto ✗; *monuments:* Poległym i Pomordowanym na Wschodzie ⏳; *bars:* Craft Beer Muranów ✗; *stages:* Muranów ○; *plaques and memorial stones:* 4
+- **Ludwika Zamenhofa**: Dom studencki nr 4 (dormitory) ✗; *monuments:* Drzewo Wspólnej Pamięci ✗, Emanuel Ringelblum ○ in game, Józef Lewartowski ○ in game, Michal Klepfisz ○ in game, Pomnik Bohaterów Getta ★, Powstanie w Getcie ○ in game; *museums:* Autonomia ✗, Jednostka ✗, Program ✗; *plaques and memorial stones:* 2
+- **Miła**: NZOZ Karmelicka (commercial) ✗; *monuments:* Arie Wilner ○ in game, Mordechaj Anielewicz ○ in game; *plaques and memorial stones:* 3
+- **Okopowa**: Vizja Park (offices) ✗; *plaques and memorial stones:* 1
+- **Stare Nalewki**: Villa Bogoria (flats) ✗; *monuments:* Monte Cassino ○, Pomnik Ofiar w Pasażu Simonsa ○ in game; *museums:* Państwowe Muzeum Archeologiczne ✗; *plaques and memorial stones:* 4
+- **Dzika**: *monuments:* Getto Żydowskie ○ in game; *plaques and memorial stones:* 1
+- **Józefa Lewartowskiego**: *plaques and memorial stones:* 1
+- **Nalewki**: *plaques and memorial stones:* 1
+- **Nowiniarska**: *plaques and memorial stones:* 2
+- **Orla**: *plaques and memorial stones:* 1
 - **Pawia**: Pływalnia Foka (sports hall) ✗
-- **Stare Nalewki**: Villa Bogoria (flats) ✗
+- **Plac Bankowy**: *monuments:* Eugeniusz Kwiatkowski ○ in game, Juliusz Słowacki ○ in game, Stefan Starzyński ○ in game; *museums:* Galeria Porczyńskich ✗; *plaques and memorial stones:* 7
+- **Stanisława Dubois**: *monuments:* Frumka Płotnicka ○ in game, Icchak Nyssenbaum ○ in game, Meir Majerowicz ○ in game, Paweł Frenkel i Dawid Apfelbaum ○ in game; *plaques and memorial stones:* 2
 
 ### Śródmieście (97 places)
 
-- **Świętokrzyska**: **#75 Narodowy Bank Polski** ✗; **#76 Poczta Główna** ✗; **#105 Ministerstwo Finansów** ◐; Instytut Ekonomiki Rolnictwa i Gospodarki Żywnościowej ✗
-- **Bracka**: **#80 Vitkac** ✗; **#81 Dom Towarowy Braci Jabłkowskich** ✗; Kamienica Zofii Kiersnowskiej (flats) ✗; Pałac Brzozowskich (flats) ✗
-- **Chmielna**: **#7 Varso Tower (with Varso I, Varso II)** ◐; **#97 Kawiarnia and bar street of Chmielna, Mokotowska, Hoża, Poznańska** ○; Kamienica Braci Jabłkowskich (commercial) ✗; Kamienica Lilpopów (flats) ✗
-- **Jasna**: **#77 Filharmonia Narodowa** ✗; **#103 Dom pod Orłami and Skwer Linearny na Złotej** ★; Centrum Jasna ✗; Kamienica Maksymiliana Harczyka (flats) ✗
-- **Złota**: **#5 Złota 44** ★; **#8 Złote Tarasy (with Lumen, Skylight)** ◐; Kiseki (shop) ✗; Wojskowe Biuro Emerytalne ✗
-- **Królewska**: **#104 Hotel Wiktoria (Sofitel Victoria) and Królewska** ◐; **#106 Saski Crescent, Saski Park, Senator** ✗
-- **Zielna**: **#78 PAST-a** ✗; Mała PAST-a (commercial) ✗; Pałac Janaszów (offices) ✗
-- **Plac Grzybowski**: **#102 Plac Grzybowski and Kościół Wszystkich Świętych** ◐; Kamienica Brenkina ✗
-- **Bagno**: **#128 Atelier Residence, Rezydencja Foksal, Apartamenty Flare, Młotek, Solec Residence, Złota Chmielna** ✗
-- **Próżna**: **#101 Synagoga Nożyków and Próżna's pre-war tenements (Kamienica Zalmana Nożyka, Kamienica Wolanowskiego)** ◐
-- **Szpitalna**: **#118 Kamienica Wedla** ✗
-- **Marszałkowska**: Central Point ✗; Centrum Królewska ✗; Centrum Marszałkowska ✗; PKO BP ✗; Wolf Marszałkowska ✗
-- **Miodowa**: Kościół Przemienienia Pańskiego (church) ◐ model; Klasztor Ojców Kapucynów (monastery) ✗; Pałac Arcybiskupi d. Pałac Borchów (palace) ✗; Pałac Chodkiewiczów ✗; Pałac Szaniawskich (palace) ✗
-- **Senatorska**: Kościół Świętego Antoniego Padewskiego (church) ◐ model; Biuro Rent Zagranicznych Zakładu Ubezpieczeń Społecznych (offices) ✗; Kamienica Małachowskiego (offices) ✗; Pałac Biskupów Krakowskich (palace) ✗; Zakład Ubezpieczeń Społecznych ✗
-- **Grzybowska**: Grzybowska Park (commercial) ✗; Osiedle "Graniczna" (flats) ✗; Pasaż Saski (flats) ✗; Radisson Collection Hotel (hotel) ✗
-- **Nowogrodzka**: Hotel Metropol ○ in game; Novotel Warszawa Centrum ○ in game; Gmach Urzędu Telekomunikacyjnego i Telegraficznego (offices) ✗; N21 (offices) ✗
-- **Aleje Jerozolimskie**: PKP Warszawa Śródmieście (station) ○ in game; Kamienica Hoserów (flats) ✗; Kamienica Lipińskiego (flats) ✗
-- **Tadeusza Czackiego**: Brain Embassy (offices) ✗; Dom Technika (offices) ✗; Kapsuła Hostel (commercial) ✗
-- **Emilii Plater**: Warszawskie Centrum Finansowe ○ in game; Igrek ✗
-- **Kredytowa**: Ministerstwo Cyfryzacji (government) ✗; Urząd m.st. Warszawy (flats) ✗
-- **Mazowiecka**: Hotel Mazowiecki ✗; Okręg Warszawski Związku Polskich Artystów Plastyków ✗
+- **Świętokrzyska**: **#75 Narodowy Bank Polski** ✗; **#76 Poczta Główna** ✗; **#105 Ministerstwo Finansów** ◐; Instytut Ekonomiki Rolnictwa i Gospodarki Żywnościowej ✗; *monuments:* Pomnik Powstańców Warszawy ○ in game, Ławeczka Laury Petrarki ○ in game; *bars:* Bar Studio ✗, Chillin ✗, Królik ✗; *museums:* Centrum Pieniądza NBP ✗; *stages:* Teatr Lalka ✗, Teatr Studio ✗; *plaques and memorial stones:* 1
+- **Bracka**: **#80 Vitkac** ✗; **#81 Dom Towarowy Braci Jabłkowskich** ✗; Kamienica Zofii Kiersnowskiej (flats) ✗; Pałac Brzozowskich (flats) ✗; *monuments:* Pisklę. Drozd śpiewak ○ in game; *bars:* Mały Wojtek ✗; *museums:* Instytut Goethego ✗
+- **Chmielna**: **#7 Varso Tower (with Varso I, Varso II)** ◐; **#97 Kawiarnia and bar street of Chmielna, Mokotowska, Hoża, Poznańska** ○; Kamienica Braci Jabłkowskich (commercial) ✗; Kamienica Lilpopów (flats) ✗; *bars:* Bless ✗, Connect ✗, Frodo ✗, HighGarden Rooftop Lounge ✗, Hoppiness ✗; *stages:* Multikino ✗; *hotels:* Mamaison Residence Diana ✗, NYX ✗; *plaques and memorial stones:* 3
+- **Jasna**: **#77 Filharmonia Narodowa** ✗; **#103 Dom pod Orłami and Skwer Linearny na Złotej** ★; Centrum Jasna ✗; Kamienica Maksymiliana Harczyka (flats) ✗; *bars:* Jasna 1 ○ in game, Warszawska ✗; *museums:* Muzeum Historii Spółdzielczości w Polsce ✗, Spotkania z Europą ✗; *plaques and memorial stones:* 1
+- **Złota**: **#5 Złota 44** ★; **#8 Złote Tarasy (with Lumen, Skylight)** ◐; Kiseki (shop) ✗; Wojskowe Biuro Emerytalne ✗; *monuments:* Tindaro ○ in game; *murals:* Bez tytułu (Jacek Kuroń) 2020 ✗; *bars:* Hybrydy ✗, Kulturalna ✗; *museums:* Mi Polin Mezuzah Center ✗, Muzeum Ewolucji ✗, Muzeum Neonów ✗; *stages:* Kinoteka ○, Palladium ✗, Sala Kongresowa ✗; *malls:* TK Maxx ✗; *plaques and memorial stones:* 8
+- **Królewska**: **#104 Hotel Wiktoria (Sofitel Victoria) and Królewska** ◐; **#106 Saski Crescent, Saski Park, Senator** ✗; *monuments:* Lech Kaczyński ○ in game, Pomnik Ofiar Tragedii Smoleńskiej ○ in game; *plaques and memorial stones:* 4
+- **Zielna**: **#78 PAST-a** ✗; Mała PAST-a (commercial) ✗; Pałac Janaszów (offices) ✗; *bars:* Inspector Lounge ✗, Piętro Niżej ✗; *plaques and memorial stones:* 4
+- **Plac Grzybowski**: **#102 Plac Grzybowski and Kościół Wszystkich Świętych** ◐; Kamienica Brenkina ✗; *plaques and memorial stones:* 1
+- **Bagno**: **#128 Atelier Residence, Rezydencja Foksal, Apartamenty Flare, Młotek, Solec Residence, Złota Chmielna** ✗; *plaques and memorial stones:* 1
+- **Próżna**: **#101 Synagoga Nożyków and Próżna's pre-war tenements (Kamienica Zalmana Nożyka, Kamienica Wolanowskiego)** ◐; *museums:* Austriackie Forum Kultury ✗
+- **Szpitalna**: **#118 Kamienica Wedla** ✗; *bars:* Afera ✗, El Koktel ✗; *plaques and memorial stones:* 2
+- **Marszałkowska**: Central Point ✗; Centrum Królewska ✗; Centrum Marszałkowska ✗; PKO BP ✗; Wolf Marszałkowska ✗; *monuments:* Pamięci Polaków poległych w II wojnie światowej ○ in game; *bars:* Capitol ✗; *museums:* Centralny Przystanek Historia ✗; *stages:* Teatr Capitol ✗, Teatr Kwadrat ✗; *plaques and memorial stones:* 2
+- **Miodowa**: Kościół Przemienienia Pańskiego (church) ◐ model; Klasztor Ojców Kapucynów (monastery) ✗; Pałac Arcybiskupi d. Pałac Borchów (palace) ✗; Pałac Chodkiewiczów ✗; Pałac Szaniawskich (palace) ✗; *monuments:* Stefan Kardynał Wyszyński ◐, Ławeczka z "Bezdomnym Jezusem" ✗; *plaques and memorial stones:* 3
+- **Senatorska**: Kościół Świętego Antoniego Padewskiego (church) ◐ model; Biuro Rent Zagranicznych Zakładu Ubezpieczeń Społecznych (offices) ✗; Kamienica Małachowskiego (offices) ✗; Pałac Biskupów Krakowskich (palace) ✗; Zakład Ubezpieczeń Społecznych ✗; *monuments:* #NieZapominajmy ○ in game, Maria Konopnicka ○ in game, Warszawska Nike ○ in game; *bars:* Resort ✗, Verte Bar ✗; *stages:* Resort Komedii ✗; *hotels:* Bellotto ✗, Verte ✗; *plaques and memorial stones:* 8
+- **Grzybowska**: Grzybowska Park (commercial) ✗; Osiedle "Graniczna" (flats) ✗; Pasaż Saski (flats) ✗; Radisson Collection Hotel (hotel) ✗; *monuments:* Piotr Drzewiecki ○ in game; *bars:* City Wine ✗, Cześć ✗, Executive Club Lounge ✗, Warshishawa ✗; *museums:* Station of Art ✗; *plaques and memorial stones:* 1
+- **Nowogrodzka**: Hotel Metropol ○ in game; Novotel Warszawa Centrum ○ in game; Gmach Urzędu Telekomunikacyjnego i Telegraficznego (offices) ✗; N21 (offices) ✗; *bars:* Angel's ✗, Azyl ✗, Barbara ✗, Bardzo Bardzo ✗, Disparo ✗, Feliks Bar ✗, Ginnery ✗, Jabeerwocky ✗, Kufle i Kapsle ✗, Pinta ✗, Princesa ✗, Scity ✗, Steam Bar ✗, Weles ✗; *museums:* Instytut Cervantesa ✗; *hotels:* No.4 Residence ✗; *plaques and memorial stones:* 6
+- **Aleje Jerozolimskie**: PKP Warszawa Śródmieście (station) ○ in game; Kamienica Hoserów (flats) ✗; Kamienica Lipińskiego (flats) ✗; *bars:* Bollywood Lounge ✗, Foxy ✗, Hood ✗, Lobby Bar ✗, Zebra Shot Bar ✗; *museums:* Fotoplastikon Warszawski ✗, Muzeum Narodowe w Warszawie ✗, Narodowe Muzeum Techniki ✗; *stages:* Teatr Dramatyczny ✗; *plaques and memorial stones:* 9
+- **Tadeusza Czackiego**: Brain Embassy (offices) ✗; Dom Technika (offices) ✗; Kapsuła Hostel (commercial) ✗; *plaques and memorial stones:* 3
+- **Emilii Plater**: Warszawskie Centrum Finansowe ○ in game; Igrek ✗; *monuments:* Torreador ○ in game; *murals:* Rewolucja ✗; *bars:* Panorama Sky Bar ✗, Tosca ✗; *hotels:* Presidential ✗; *plaques and memorial stones:* 1
+- **Kredytowa**: Ministerstwo Cyfryzacji (government) ✗; Urząd m.st. Warszawy (flats) ✗; *plaques and memorial stones:* 4
+- **Mazowiecka**: Hotel Mazowiecki ✗; Okręg Warszawski Związku Polskich Artystów Plastyków ✗; *bars:* Bank Club ✗, Blu Club ✗, Czupito ✗, Enklawa ✗, La Pose ✗, Mazo ✗, Ritual ✗, Room 13 ✗, Sketch Nite ✗, Tygmont ✗; *museums:* Muzeum Etnograficzne ✗; *plaques and memorial stones:* 7
+- **Twarda**: Spektrum Tower ○ in game; Biały Budynek (flats) ✗; *monuments:* Jan Paweł II ○ in game, You and Me ✗; *bars:* CodeRED ✗; *plaques and memorial stones:* 1
+- **Widok**: Puro Warszawa Centrum (hotel) ○ in game; Widok Towers ○ in game; *bars:* Loreta Bar ✗, Ramona ✗, Sultan Club ✗; *museums:* Instytut Francuski ✗; *stages:* Atlantic ○; *plaques and memorial stones:* 1
+- **Wierzbowa**: Kamienica Dmuszewskiego (offices) ✗; Kamienica Petyskusa ✗; *monuments:* Geodezja Europejska ○ in game, Wojciech Bogusławski ○; *museums:* Muzeum Teatralne ✗; *plaques and memorial stones:* 2
+- **Aleja Jana Pawła II**: PZU Tower ○ in game; *plaques and memorial stones:* 2
+- **Bielańska**: Kościół św. Brata Alberta i św. Andrzeja Apostoła (church) ◐ model; *plaques and memorial stones:* 8
+- **Daniłowiczowska**: Reduta Bank Polski ○ in game; *plaques and memorial stones:* 1
+- **Gabriela Piotra Boduena**: Naczelny Sąd Administracyjny (civic) ✗; *monuments:* Napoleon Bonaparte ○; *plaques and memorial stones:* 1
+- **Henryka Sienkiewicza**: Urząd Ochrony Konkurencji i Konsumentów ✗; *bars:* Lemon Bar ✗, Oblako ✗, The Taps ✗
+- **Krzysztofa Kamila Baczyńskiego**: Rezydencja Warecka (flats) ✗; *hotels:* Hotel Gromada Warszawa Centrum ✗
+- **Mysia**: Polska Grupa Energetyczna ✗; *monuments:* Memoriał Wolnego Słowa ○ in game; *malls:* Muji ✗
+- **Niecała**: PURO Warszawa Stare Miasto (hotel) ✗; *monuments:* Astronomia ○ in game, Chłopiec z łabędziem ✗, Inteligencja ○ in game, Prawda ○ in game, Sława ○ in game, Twórczość ○ in game, Wiedza ○ in game; *museums:* Muzeum Wódki ✗; *plaques and memorial stones:* 2
+- **Nowy Świat**: Nowy Świat 2.0 ✗; *monuments:* Charles de Gaulle ◐, Palma ○ in game, Zamach na Café Club ✗; *bars:* Chicas & Gorillas ✗, La Casa del Habano ✗, Newonce Bar ✗, Rakieta ✗, Zagrywki ✗, Zamieszanie ✗, Świetlica Wolności ✗; *plaques and memorial stones:* 5
+- **Plac Jana Henryka Dąbrowskiego**: Ambasada Włoch (flats) ✗; *monuments:* Chłopiec z krokodylem ○ in game; *plaques and memorial stones:* 1
+- **Plac Stanisława Małachowskiego**: Kamienica Krasińskich ✗; *monuments:* Pomnik Peowiaka ○ in game; *plaques and memorial stones:* 1
 - **Przeskok**: Astoria ✗; Wojewódzki Sąd Administracyjny (flats) ✗
-- **Ptasia**: Pałac Lubomirskich ✗; Tadeusz Kościuszko ✗
-- **Twarda**: Spektrum Tower ○ in game; Biały Budynek (flats) ✗
-- **Widok**: Puro Warszawa Centrum (hotel) ○ in game; Widok Towers ○ in game
-- **Wierzbowa**: Kamienica Dmuszewskiego (offices) ✗; Kamienica Petyskusa ✗
-- **Aleja Jana Pawła II**: PZU Tower ○ in game
+- **Ptasia**: Tadeusz Kościuszko ○ in game; Pałac Lubomirskich ✗
+- **Sienna**: Mercure Warszawa Centrum ✗; *museums:* Kolejkowo ✗; *plaques and memorial stones:* 2
+- **Stanisława Moniuszki**: Telewizja Polska (commercial) ✗; *museums:* Instytut Liszta ✗; *plaques and memorial stones:* 4
+- **Wojciecha Górskiego**: Restaura Górskiego (flats) ✗; *plaques and memorial stones:* 1
+- **Żurawia**: Ministerstwo Aktywów Państwowych (government) ✗; *bars:* Beer & Bones ✗, Glam ✗, Hopito ✗, Izba ✗, Myata Lounge ✗, Wesele ✗; *stages:* Amondo ✗; *plaques and memorial stones:* 4
 - **Aleja „Solidarności”**: Dom Pod Królami (palace) ✗
-- **Bielańska**: Kościół św. Brata Alberta i św. Andrzeja Apostoła (church) ◐ model
-- **Daniłowiczowska**: Reduta Bank Polski ✗
+- **Aleksandra Fredry**: *monuments:* Architektura Wojskowa ○ in game, Arytmetyka ○ in game, Chwała ○ in game, Flora ○ in game, Geografia ○ in game, Historia ○ in game, Jesień ○ in game, Jowisz ○ in game, Malarstwo ○ in game, Medycyna ○ in game, Muzyka ○ in game, Rzeźbiarstwo ○ in game, Wenus ○ in game, Zima ○ in game; *bars:* Teatro Cubano ✗
 - **Elektoralna**: Mazowiecki Instytut Kultury (public) ✗
-- **Gabriela Piotra Boduena**: Naczelny Sąd Administracyjny (civic) ✗
-- **Henryka Sienkiewicza**: Urząd Ochrony Konkurencji i Konsumentów ✗
+- **Graniczna**: *monuments:* Syrenka ◐; *plaques and memorial stones:* 1
+- **Jana Pankiewicza**: *plaques and memorial stones:* 1
 - **Kapitulna**: Pałac Młodziejowskiego (palace) ✗
+- **Krakowskie Przedmieście**: *plaques and memorial stones:* 1
 - **Krucza**: Mercure Warszawa Grand ✗
-- **Krzysztofa Kamila Baczyńskiego**: Rezydencja Warecka (flats) ✗
 - **Leona Schillera**: Sąd Rejonowy dla Warszawy-Mokotowa ✗
 - **Mariańska**: Skysawa ○ in game
-- **Mysia**: Polska Grupa Energetyczna ✗
-- **Niecała**: PURO Warszawa Stare Miasto (hotel) ✗
-- **Nowy Świat**: Nowy Świat 2.0 ✗
-- **Plac Jana Henryka Dąbrowskiego**: Ambasada Włoch (flats) ✗
-- **Plac Stanisława Małachowskiego**: Kamienica Krasińskich ✗
-- **Sienna**: Mercure Warszawa Centrum ✗
-- **Stanisława Moniuszki**: Telewizja Polska (commercial) ✗
-- **Wojciecha Górskiego**: Restaura Górskiego (flats) ✗
+- **Moliera**: *monuments:* Polskim Artystom Baletu ○ in game, Stanisław Moniuszko ○; *bars:* Ave Pegaz ✗, Bar Rascal ✗; *stages:* Opera Narodowa ✗
+- **Poznańska**: *bars:* Lobby bar ✗
+- **Rondo ONZ**: *plaques and memorial stones:* 1
+- **Smolna**: *monuments:* Generał Maria Wittek ✗
+- **Warecka**: *plaques and memorial stones:* 2
+- **Zgoda**: *monuments:* Neon "Warszawa" ✗; *bars:* Metropolis ✗, Niewinność ✗, Quiz Game ✗, Shamrock ✗; *plaques and memorial stones:* 4
+- **Śliska**: *bars:* +One Bar ✗, Back2Rock ✗, Śliska The Lounge ✗; *museums:* Muzeum Getta Warszawskiego (w budowie) ✗; *plaques and memorial stones:* 1
 - **Świętej Barbary**: Urząd Dzielnicy Śródmieście ✗
-- **Żurawia**: Ministerstwo Aktywów Państwowych (government) ✗
 
 ### Trakt Królewski (76 places)
 
-- **Krakowskie Przedmieście**: **#25 Kościół św. Anny** ◐; **#26 Hotel Bristol and Hotel Europejski** ◐; **#27 Pałac Prezydencki** ◐; **#32 Pomnik Mikołaja Kopernika and Pałac Staszica** ◐; **#33 Pomnik Adama Mickiewicza** ◐; **#34 Kościół Świętego Krzyża** ◐; **#35 Brama Uniwersytetu Warszawskiego and Pałac Kazimierzowski** ◐; **#36 Kościół Wizytek, Kościół Karmelitów** ◐; **#37 Pałac Potockich, Kordegarda, Pałac Czapskich** ◐; **#108 Uniwersytet: Auditorium Maximum, Stary BUW, Biblioteka Królewska** ✗; **#117 Pomnik Kardynała Wyszyńskiego, Pomnik Bolesława Prusa** ◐; **#136 Skwer Hoovera's pavilions and the Christmas lights** ✗; **#138 Muzeum Karykatury, Kinomuzeum, Muzeum Niepodległości, Muzeum Wodociągów** ✗; Kościół Niepokalanego Poczęcia Najświętszej Maryi Panny (church) ◐ model; Kościół Wniebowzięcia Najświętszej Maryi Panny i świętego Józefa Oblubieńca (church) ○ in game; Kościół pw. Świętego Krzyża (church) ○ in game; Kościół pw. Świętej Anny (church) ○ in game; Centrum Nauczania Języków Obcych UW (university) ✗; Departament Mecenatu Państwa Ministerstwa Kultury i Dziedzictwa Narodowego ✗; Dom Polonii (offices) ✗; Dziekanka (offices) ✗; Instytut Filologii Klasycznej UW (university) ✗; Instytut Kultury Polskiej UW (university) ✗; Kamienica Heyna (flats) ✗; Kamienica Roesslera i Hurtiga (shop) ✗; Kamienica Skalskiego (flats) ✗; Narodowy Instytut Kultury i Dziedzictwa Wsi (public) ✗; Nowa Dziekanka (dormitory) ✗; Wydział Filozofii UW (university) ✗; Wydział Geografii i Studiów Regionalnych UW (university) ✗; Wydział Historii UW (university) ✗; Wydział Nauk Politycznych i Studiów Międzynarodowych (university) ✗; Wydział Prawa i Administracji UW (university) ✗
-- **Nowy Świat**: **#40 Nowy Świat tenements and palaces (Zamoyski, Mikulski, Bürger, Jasiński, Kossakowski)** ○; **#48 Dom Partii and Rondo de Gaulle'a's palm** ◐; **#49 Pawilony za Nowym Światem** ◐; Kamienica Bürgera (flats) ○ in game; Kamienica Jasińskiego (flats) ○ in game; Kamienica Mikulskiego przy Nowym Świecie 53 (flats) ○ in game; Kamienica Mikulskiego przy Nowym Świecie 55 (flats) ○ in game; Pałac Kossakowskich (commercial) ○ in game; Pałac Zamoyskich (university) ○ in game
-- **Plac Trzech Krzyży**: **#41 Kościół Świętego Aleksandra and Plac Trzech Krzyży** ◐; **#119 Kamienica pod Gryfami, Kamienica Johna** ✗
-- **Karowa**: Biuro Bezpieczeństwa Narodowego (government) ✗; Budynek "pod Wizytkami" (university) ✗; Dawne Centrum Informatyczne UW (university) ✗; Instytut Slawistyki Zachodniej i Południowej UW (university) ✗; Klasztor Sióstr Wizytek (convent) ✗; Polskie Towarzystwo Higieniczne ✗; Wydział Socjologii (offices) ✗
-- **Oboźna**: Collegium Iuridicum III (university) ✗; Stołówka Uniwersytecka (university) ✗; Wydział Archeologii UW (university) ✗; Wydział Kultur Azji i Afryki (university) ✗; Wydział Neofilologii (university) ✗; Wydział Polonistyki UW (university) ✗
-- **Królewska**: Departament Wojskowej Służby Zdrowia (offices) ○ in game; Dom Bez Kantów ○ in game; Kamienica Grodzickiego ✗; Oficyna Pałacu Potockich (Archiwum UW) (university) ✗; Pałac Tyszkiewiczów-Potockich (university) ✗
+- **Krakowskie Przedmieście**: **#25 Kościół św. Anny** ◐; **#26 Hotel Bristol and Hotel Europejski** ◐; **#27 Pałac Prezydencki** ◐; **#32 Pomnik Mikołaja Kopernika and Pałac Staszica** ◐; **#33 Pomnik Adama Mickiewicza** ◐; **#34 Kościół Świętego Krzyża** ◐; **#35 Brama Uniwersytetu Warszawskiego and Pałac Kazimierzowski** ◐; **#36 Kościół Wizytek, Kościół Karmelitów** ◐; **#37 Pałac Potockich, Kordegarda, Pałac Czapskich** ◐; **#108 Uniwersytet: Auditorium Maximum, Stary BUW, Biblioteka Królewska** ✗; **#117 Pomnik Kardynała Wyszyńskiego, Pomnik Bolesława Prusa** ◐; **#136 Skwer Hoovera's pavilions and the Christmas lights** ✗; **#138 Muzeum Karykatury, Kinomuzeum, Muzeum Niepodległości, Muzeum Wodociągów** ✗; Kościół Niepokalanego Poczęcia Najświętszej Maryi Panny (church) ◐ model; Kościół Wniebowzięcia Najświętszej Maryi Panny i świętego Józefa Oblubieńca (church) ○ in game; Kościół pw. Świętego Krzyża (church) ○ in game; Kościół pw. Świętej Anny (church) ○ in game; Centrum Nauczania Języków Obcych UW (university) ✗; Departament Mecenatu Państwa Ministerstwa Kultury i Dziedzictwa Narodowego ✗; Dom Polonii (offices) ✗; Dziekanka (offices) ✗; Instytut Filologii Klasycznej UW (university) ✗; Instytut Kultury Polskiej UW (university) ✗; Kamienica Heyna (flats) ✗; Kamienica Roesslera i Hurtiga (shop) ✗; Kamienica Skalskiego (flats) ✗; Narodowy Instytut Kultury i Dziedzictwa Wsi (public) ✗; Nowa Dziekanka (dormitory) ✗; Wydział Filozofii UW (university) ✗; Wydział Geografii i Studiów Regionalnych UW (university) ✗; Wydział Historii UW (university) ✗; Wydział Nauk Politycznych i Studiów Międzynarodowych (university) ✗; Wydział Prawa i Administracji UW (university) ✗; *monuments:* Adam Mickiewicz ◐, Józef Piłsudski ○ in game, Józef Poniatowski ◐, Matka Boska Passawska ○ in game, Mikołaj Kopernik ◐, Ławeczka Studenta ○; *bars:* Indeks ✗, Klar ✗, Longbar ✗, Molly Malone's ✗; *museums:* Galeria Instytutu Pileckiego w Domu Bez Kantów ✗; *stages:* Kino Kultura ✗; *hotels:* Jess ✗; *plaques and memorial stones:* 33
+- **Nowy Świat**: **#40 Nowy Świat tenements and palaces (Zamoyski, Mikulski, Bürger, Jasiński, Kossakowski)** ○; **#48 Dom Partii and Rondo de Gaulle'a's palm** ◐; **#49 Pawilony za Nowym Światem** ◐; Kamienica Bürgera (flats) ○ in game; Kamienica Jasińskiego (flats) ○ in game; Kamienica Mikulskiego przy Nowym Świecie 53 (flats) ○ in game; Kamienica Mikulskiego przy Nowym Świecie 55 (flats) ○ in game; Pałac Kossakowskich (commercial) ○ in game; Pałac Zamoyskich (university) ○ in game; *monuments:* Jeleń ○ in game, Melchior Wańkowicz ○ in game, Pomnik Partyzanta Armii Ludowej ○ in game, Wojciech Górski ○ in game; *murals:* Mural Kory Jackowskiej ✗; *bars:* Babajaga ✗, Biały Nalew ✗, CafeFajka ✗, Cybermachina ✗, Cynamon ✗, Do Dna ✗, Dom Whisky ✗, Fajka Bar ✗, Ginger ✗, High Heels ✗, Hopster ✗, In Side ✗, Jolly Joker ✗, Klepsydra ✗, Klubowa No.24 ✗, Komix ✗, Labirynt ✗, Lenistwo ✗, Manhattan ✗, Mezza ✗, Och! & Ach! ✗, Pijalnia Wódki i Piwa ✗, Precedens ✗, Shot Gun ✗, Szprycer ✗, The Club No 1 ✗, Zakątek ✗, Żyrafa ✗; *hotels:* Colette ✗, Teatro ✗; *plaques and memorial stones:* 17
+- **Plac Trzech Krzyży**: **#41 Kościół Świętego Aleksandra and Plac Trzech Krzyży** ◐; **#119 Kamienica pod Gryfami, Kamienica Johna** ✗; *bars:* Wozownia ✗; *plaques and memorial stones:* 2
+- **Karowa**: Biuro Bezpieczeństwa Narodowego (government) ✗; Budynek "pod Wizytkami" (university) ✗; Dawne Centrum Informatyczne UW (university) ✗; Instytut Slawistyki Zachodniej i Południowej UW (university) ✗; Klasztor Sióstr Wizytek (convent) ✗; Polskie Towarzystwo Higieniczne ✗; Wydział Socjologii (offices) ✗; *monuments:* Ławeczka księdza Twardowskiego ○; *bars:* Karova ✗; *museums:* Dom Spotkań z Historią ✗; *plaques and memorial stones:* 5
+- **Oboźna**: Collegium Iuridicum III (university) ✗; Stołówka Uniwersytecka (university) ✗; Wydział Archeologii UW (university) ✗; Wydział Kultur Azji i Afryki (university) ✗; Wydział Neofilologii (university) ✗; Wydział Polonistyki UW (university) ✗; *monuments:* Kazimierz Dejmek ○ in game, Leon Schiller ○ in game; *bars:* Gi Gi ✗, Space Games Pub ✗; *hotels:* Flaner ✗; *plaques and memorial stones:* 8
+- **Królewska**: Departament Wojskowej Służby Zdrowia (offices) ○ in game; Dom Bez Kantów ○ in game; Kamienica Grodzickiego ✗; Oficyna Pałacu Potockich (Archiwum UW) (university) ✗; Pałac Tyszkiewiczów-Potockich (university) ✗; *monuments:* Stefan Wyszyński ◐; *bars:* Laco ✗; *museums:* Muzeum Uniwersytetu Warszawskiego ✗; *hotels:* Tiffi ✗; *plaques and memorial stones:* 3
+- **Bracka**: Polska Agencja Prasowa (offices) ✗; Wydział Stosowanych Nauk Społecznych i Resocjalizacji UW (university) ✗; *bars:* Margariteros ✗, Niebo ★; *plaques and memorial stones:* 3
+- **Senatorska**: Kamienica Prażmowskich (flats) ✗; Pałac Małachowskiego (flats) ✗; *monuments:* Fragmenty Kolumny Zygmunta ○ in game, Kolumna Zygmunta ◐; *stages:* PolkLore & History. Folk & Heritage Show ✗; *hotels:* Dom Literatury ✗; *plaques and memorial stones:* 4
+- **Aleje Jerozolimskie**: Kuratorium Oświaty (offices) ✗; *plaques and memorial stones:* 2
 - **Bednarska**: Kamienica Wernera (flats) ✗; Państwowa Szkoła Muzyczna II St. nr 2 im. Fryderyka Chopina (school) ✗
-- **Bracka**: Polska Agencja Prasowa (offices) ✗; Wydział Stosowanych Nauk Społecznych i Resocjalizacji UW (university) ✗
-- **Senatorska**: Kamienica Prażmowskich (flats) ✗; Pałac Małachowskiego (flats) ✗
+- **Hoża**: Ministerstwo Nauki i Szkolnictwa Wyższego (government) ✗; *plaques and memorial stones:* 1
+- **Kozia**: Pałac Wesslów ✗; *plaques and memorial stones:* 1
+- **Romualda Traugutta**: Dom zakonny Księży Misjonarzy (monastery) ✗; *monuments:* Bartolomeo Colleoni ○ in game; *museums:* Salon Akademii ✗; *plaques and memorial stones:* 2
+- **Sewerynów**: Dom Generalny Zgromadzenia Sługi Jezusa (flats) ✗; *plaques and memorial stones:* 1
+- **Smolna**: Indigo (commercial) ✗; *bars:* Burley ✗, Smolna ✗
 - **Żurawia**: Ministerstwo Funduszy i Polityki Regionalnej (government) ✗; Ministerstwo Rozwoju i Technologii ✗
-- **Aleje Jerozolimskie**: Kuratorium Oświaty (offices) ✗
-- **Hoża**: Ministerstwo Nauki i Szkolnictwa Wyższego (government) ✗
-- **Kozia**: Pałac Wesslów ✗
-- **Romualda Traugutta**: Dom zakonny Księży Misjonarzy (monastery) ✗
-- **Sewerynów**: Dom Generalny Zgromadzenia Sługi Jezusa (flats) ✗
-- **Smolna**: Indigo (commercial) ✗
+- **Aleje Ujazdowskie**: *monuments:* Wincenty Witos ○ in game; *plaques and memorial stones:* 2
+- **Białoskórnicza**: *plaques and memorial stones:* 1
+- **Chmielna**: *bars:* Queens ✗
+- **Dobra**: *monuments:* Stanisław Jankowski "Agaton" ✗
+- **Emiliana Konopczyńskiego**: *plaques and memorial stones:* 1
+- **Foksal**: *bars:* Cafe Foksal ✗, Chaton ✗, Golden Moon ✗, Hany Bany ✗, Le Melange ✗, Meta na Foksal ✗, Ministerstwo Śledzia i Wódki ✗, Pawilon 31 ✗, Rozbiegówka ✗; *stages:* Teatr Sabat ✗; *plaques and memorial stones:* 3
+- **Garbarska**: *plaques and memorial stones:* 1
+- **Konstantego Ildefonsa Gałczyńskiego**: *museums:* Miejsce Projektów Zachęty ✗
+- **Książęca**: *monuments:* Jakub Falkowski ○ in game, Ławeczka Wandy Tazbir ○; *plaques and memorial stones:* 6
+- **Mariensztat**: *monuments:* Przekupka ○ in game; *hotels:* Mariensztat 8 Apartments ✗; *plaques and memorial stones:* 2
+- **Mikołaja Kopernika**: *monuments:* Pomnik „Solidarności” ○ in game, Tadeusz Mazowiecki ○ in game; *plaques and memorial stones:* 4
+- **Miodowa**: *bars:* Irish Pub ✗; *plaques and memorial stones:* 1
+- **Okólnik**: *museums:* Objekt ✗
+- **Plac Zamkowy**: *plaques and memorial stones:* 1
+- **Podwale**: *plaques and memorial stones:* 1
+- **Warecka**: *museums:* Jaskółka ✗; *plaques and memorial stones:* 5
+- **Wiślana**: *plaques and memorial stones:* 1
+- **Wojciecha Górskiego**: *plaques and memorial stones:* 2
+- **Świętokrzyska**: *monuments:* Powstali ○ in game
 
 ### Powiśle (55 places)
 
-- **Wybrzeże Kościuszkowskie**: **#15 Most Świętokrzyski** ◐; **#16 Centrum Nauki Kopernik and Planetarium** ★; **#31 Pomnik Syreny nad Wisłą** ◐; **#93 The river barges and the marina (Wieczorek, Biała Barka, Marinka, Kaskadka)** ◐; **#94 Bulwary Wiślane: Schodki, the pavilions, the containers** ⏳; Dworzec Wodny ○ in game; Marina Warszawa (boat) ○ in game; Pawilon 512 ✗; Pracownia Przewrotu Kopernikańskiego ✗
-- **Dobra**: **#17 Biblioteka Uniwersytecka (BUW) and its roof garden** ★; **#55 Elektrownia Powiśle** ◐; Bella Italia (shop) ✗; Kamienica Jana Struskiego (flats) ✗; Młodsza Siostra (shop) ✗; Pawilon Tańca ✗; Wydział "Artes Liberales" UW (university) ✗; Wydział Prawa i Administracji UW. Collegium Iuridicum IV (university) ✗
-- **Tamka**: **#110 Zamek Ostrogskich and the Chopin Institute** ◐; Narodowy Instytut Fryderyka Chopina (offices) ○ in game; Parafia Świętej Teresy od Dzieciątka Jezus (church) ○ in game; Hostel Tatamka (hotel) ✗
+- **Wybrzeże Kościuszkowskie**: **#15 Most Świętokrzyski** ◐; **#16 Centrum Nauki Kopernik and Planetarium** ★; **#31 Pomnik Syreny nad Wisłą** ◐; **#93 The river barges and the marina (Wieczorek, Biała Barka, Marinka, Kaskadka)** ◐; **#94 Bulwary Wiślane: Schodki, the pavilions, the containers** ⏳; Dworzec Wodny ○ in game; Marina Warszawa (boat) ○ in game; Pawilon 512 ✗; Pracownia Przewrotu Kopernikańskiego ✗; *monuments:* 105 Rocznica Powstania ZNP ○ in game, Rockspinner ✗, Spragniony ○ in game, Syrena ✗, Wielka waga ✗; *bars:* BarKa ✗, Ivy Lounge ✗, Kalima ✗, Kandela Bar ✗, La Vinotheque ✗, Plac Zabaw nad Wisłą ✗, Schodki ⏳, Wir ✗, Wynurzenie ✗; *stages:* Teatr Ateneum - Scena 20 ✗; *hotels:* Sava Boutique Hotel ✗; *plaques and memorial stones:* 5
+- **Dobra**: **#17 Biblioteka Uniwersytecka (BUW) and its roof garden** ★; **#55 Elektrownia Powiśle** ◐; Bella Italia (shop) ✗; Kamienica Jana Struskiego (flats) ✗; Młodsza Siostra (shop) ✗; Pawilon Tańca ✗; Wydział "Artes Liberales" UW (university) ✗; Wydział Prawa i Administracji UW. Collegium Iuridicum IV (university) ✗; *monuments:* Inca Garcilaso de la Vega ○ in game, Kantata Ewolucji Wszechświata ✗, Ruszt biblioteczny ✗, Szkic sytuacyjny I ○ in game, Szkic sytuacyjny II ○ in game, Szkic sytuacyjny III ○ in game; *bars:* Messa ✗; *plaques and memorial stones:* 5
+- **Tamka**: **#110 Zamek Ostrogskich and the Chopin Institute** ◐; Narodowy Instytut Fryderyka Chopina (offices) ○ in game; Parafia Świętej Teresy od Dzieciątka Jezus (church) ○ in game; Hostel Tatamka (hotel) ✗; *monuments:* Klucz wiolinowy ○ in game, Zgrupowanie AK "Krybar" ✗, Złota Kaczka ○ in game; *bars:* Winem Powiśle ✗; *museums:* Muzeum Fryderyka Chopina ✗; *plaques and memorial stones:* 1
 - **Topiel**: **#111 Piano House, Cube House, Hortus, Moderna, Dobra and Tamka tenements** ◐
-- **Aleja 3 Maja**: Autoreduta Powiśle (shop) ✗; Centrum Handlowe Arkada (shop) ✗; Nordic Park (offices) ✗; Orlen (shop) ✗
-- **Zajęcza**: Moderna Powiśle (flats) ○ in game; Barceló (hotel) ✗; Carpathia Office House (offices) ✗; Stacja elektroenergetyczna 110/15 kV „RPZ Warszawa Powiśle” (offices) ✗
-- **Foksal**: Dom Dziennikarza (commercial) ✗; Pawilon wystawowo-konferencyjny SARP (offices) ✗; Pałac Przezdzieckich (government) ✗
-- **Smolna**: Dworzec PKP Powiśle ○ in game; Klub Bankowca (offices) ✗; XVIII Liceum Ogólnokształcące im. Jana Zamoyskiego (school) ✗
-- **Frascati**: Biały Pałacyk ✗; Willa Pniewskiego ✗
+- **Aleja 3 Maja**: Autoreduta Powiśle (shop) ✗; Centrum Handlowe Arkada (shop) ✗; Nordic Park (offices) ✗; Orlen (shop) ✗; *bars:* Karma Crew Warsaw ✗, Przy3maj ✗; *plaques and memorial stones:* 2
+- **Zajęcza**: Moderna Powiśle (flats) ○ in game; Barceló (hotel) ✗; Carpathia Office House (offices) ✗; Stacja elektroenergetyczna 110/15 kV „RPZ Warszawa Powiśle” (offices) ✗; *monuments:* Captain America ○ in game; *bars:* Centrala Bar ✗, Champs ✗, Gatsby Warsaw ✗, Kakadu Karaoke ✗
+- **Foksal**: Dom Dziennikarza (commercial) ✗; Pawilon wystawowo-konferencyjny SARP (offices) ✗; Pałac Przezdzieckich (government) ✗; *bars:* Piw Paw ✗; *plaques and memorial stones:* 1
+- **Smolna**: Dworzec PKP Powiśle ○ in game; Klub Bankowca (offices) ✗; XVIII Liceum Ogólnokształcące im. Jana Zamoyskiego (school) ✗; *monuments:* Dowborczykom ○ in game, Nieznanym Mieszkańcom Warszawy ✗, Obrona Warszawy ○ in game; *bars:* Chopin Taras Cafe ✗, Klub Wieżyca ✗; *museums:* Dom Kultury Śródmieście ✗; *plaques and memorial stones:* 6
+- **Frascati**: Biały Pałacyk ✗; Willa Pniewskiego ✗; *museums:* Muzeum Harcerstwa ✗, Muzeum Ziemi PAN ✗; *stages:* Garnizon Sztuki ✗, Studio Buffo ✗
+- **Wioślarska**: The Tides (offices) ✗; Warszawskie Towarzystwo Wioślarskie (offices) ✗; *bars:* Przyjaźń ✗, Sen ✗
+- **Wiślana**: Bursa Salezjańska dla Młodzieży Męskiej imienia Księdza Siemca (dormitory) ✗; Szary Dom ✗; *plaques and memorial stones:* 1
+- **Adama Idźkowskiego**: Pałacyk Simona de Symonowicza (kindergarten) ✗; *monuments:* Płyta Desantu 3 Dywizji Piechoty I Armii WP ○ in game; *bars:* Cud nad Wisłą ✗, Pod Gigantami ✗
+- **Browarna**: Dom Księży Misjonarzy św. Wincentego a Paulo ✗; *bars:* Cheers! ✗; *plaques and memorial stones:* 1
+- **Emiliana Konopczyńskiego**: Motel One Warsaw-Chopin ✗; *monuments:* Emilian Konopczyński ○ in game; *plaques and memorial stones:* 2
+- **Juliana Smulikowskiego**: Związek Nauczycielstwa Polskiego (offices) ✗; *museums:* Kwiaciarnia Grafiki ✗; *plaques and memorial stones:* 3
 - **Książęca**: Domek Holenderski (house) ✗; Yours House (offices) ✗
-- **Wioślarska**: The Tides (offices) ✗; Warszawskie Towarzystwo Wioślarskie (offices) ✗
-- **Wiślana**: Bursa Salezjańska dla Młodzieży Męskiej imienia Księdza Siemca (dormitory) ✗; Szary Dom ✗
-- **Adama Idźkowskiego**: Pałacyk Simona de Symonowicza (kindergarten) ✗
+- **Ludna**: GfK Polonia (offices) ✗; *monuments:* Ławeczka Jerzego Janickiego ○; *bars:* Przekąski u Romana ✗; *plaques and memorial stones:* 2
+- **Oboźna**: Dom Strażaka (offices) ✗; *plaques and memorial stones:* 1
+- **Aleja Na Skarpie**: *monuments:* Wygasłe źródełko ✗
+- **Aleje Jerozolimskie**: *bars:* Emerald Irish Pub ✗, Luzztro ✗
 - **Bednarska**: Wydział Dziennikarstwa, Informacji i Bibliologii (university) ✗
-- **Browarna**: Dom Księży Misjonarzy św. Wincentego a Paulo ✗
+- **Cicha**: *plaques and memorial stones:* 1
+- **Czerniakowska**: *museums:* Visual Crafters ✗; *plaques and memorial stones:* 1
+- **Czerwonego Krzyża**: *plaques and memorial stones:* 3
 - **Dynasy**: Rotunda na Dynasach ✗
-- **Emiliana Konopczyńskiego**: Motel One Warsaw-Chopin ✗
-- **Juliana Smulikowskiego**: Związek Nauczycielstwa Polskiego (offices) ✗
+- **Elektryczna**: *museums:* Pontiseum ✗
+- **Ignacego Potockiego**: *plaques and memorial stones:* 3
+- **Leona Kruczkowskiego**: *monuments:* Eliza Orzeszkowa ○ in game; *bars:* Warszawa Powiśle ○ in game; *plaques and memorial stones:* 1
 - **Lipowa**: Collegium Iuridicum II (university) ○ in game
-- **Ludna**: GfK Polonia (offices) ✗
+- **Marii Konopnickiej**: *plaques and memorial stones:* 1
 - **Mieczysława Orłowicza**: Rezydencja Orłowicza (flats) ✗
-- **Oboźna**: Dom Strażaka (offices) ✗
 - **Okólnik**: Gmach Biblioteki Ordynacji Krasińskich (commercial) ✗
+- **Rozbrat**: *monuments:* Unity ○ in game
+- **Solec**: *bars:* Heritage Shop & Wine ✗, Pod Mosteczkiem ✗; *museums:* Muzeum Azji i Pacyfiku ✗; *plaques and memorial stones:* 1
+- **Stefana Jaracza**: *stages:* Ateneum ✗; *hotels:* Logos ✗; *plaques and memorial stones:* 2
+- **Szara**: *monuments:* Pamięci Armii Krajowej ○ in game
+- **Wiejska**: *bars:* Xoxo ✗; *plaques and memorial stones:* 2
+- **Wilanowska**: *monuments:* Ksiądz Józef Stanek ○ in game, Zbigniew Ścibor-Rylski ○ in game; *bars:* Grunt i Woda ✗
+- **Zagórna**: *monuments:* Chwała Saperom ○ in game; *bars:* Miami Wars ✗
 
 ### Wola (121 places)
 
-- **Aleje Jerozolimskie**: **#9 Warszawa Centralna** ★; **#47 Muzeum Narodowe and Muzeum Wojska Polskiego's yard** ◐; **#62 Centrum LIM (Marriott) and Novotel** ★; **#71 Warszawa Śródmieście, Ochota, Powiśle, Stadion stations** ★; **#89 Hotel Polonia Palace, Radisson Blu Sobieski (Radysław Blu)** ◐; **#91 Bars and clubs with parody names: Lusterko, Smoła, Jasna 0, Lombard, Miłość Hipoteczna, 1499 M2, Plan C, Apteczka, Przegryzki Zagryzki, Kasa Biletowa, Żwir, Bar Pyzowy, Hocki Bloki** ○; **#92 Level 26** ◐; **#125 Equator, Equator II, Brama Zachodnia, Proximo I and II, Crown Square, Prosta Office Center** ✗; Warszawa Ochota (station) ○ in game; Kamienica Stanisława Rostkowskiego (flats) ✗; Nimbus ✗
-- **Aleja Jana Pawła II**: **#58 Westfield Arkadia (Arkadka)** ◐; **#59 Forest** ◐; **#123 Aleja Jana Pawła II's blocks and Kaskada** ○; **#124 Babka Tower, Atrium 2, Intraco Prime, North Gate** ✗; The Westin Warsaw ○ in game; Atrium Centrum ✗; Atrium Plaza ✗; Deloitte House ✗; Life Building ✗; Wise Point ✗
-- **Grzybowska**: **#57 Browary Warszawskie** ◐; **#61 Wola towers: The Bridge, Generation Park X and Z, Atlas Tower, Pekao Tower, Warsaw Towers** ○; **#129 Platinum Towers, Łucka City, Ilmet, Central Tower, Spektrum, PZU, JM Tower, Chałubińskiego 8, Westynka, Chilton** ○; Biura przy Bramie (offices) ○ in game; Biura przy Warzelni ○ in game; Biura przy Willi ○ in game; Concept Tower ✗; Kamienica Gawłowiczów (flats) ✗; Karolkowa Business Park ✗; Kolmex ✗; Prime Corporate Center ✗; Wydział Ruchu Drogowego Komendy Stołecznej Policji ✗
-- **Prosta**: **#56 Fabryka Norblina** ◐; Crown Point (offices) ✗; Mennica Legacy Tower Budynek Zachodni (commercial) ✗; Prosta Tower ✗; Studio A ✗
-- **Chłodna**: **#120 Kamienica pod Zegarem and Chłodna's footbridge memorial (Kładka)** ✗; Kamienica Markowskiego (flats) ✗; Meridian (flats) ✗
-- **Przyokopowa**: **#21 Muzeum Powstania Warszawskiego** ✗; Proximo II (offices) ✗; Wola Center ✗
-- **Plac Europejski**: **#6 Warsaw Spire** ★; Bellona (offices) ✗
-- **Plac Mirowski**: **#53 Hala Mirowska and Hala Gwardii** ◐; Kamienica Mulmanów (flats) ✗
+- **Aleje Jerozolimskie**: **#9 Warszawa Centralna** ★; **#47 Muzeum Narodowe and Muzeum Wojska Polskiego's yard** ◐; **#62 Centrum LIM (Marriott) and Novotel** ★; **#71 Warszawa Śródmieście, Ochota, Powiśle, Stadion stations** ★; **#89 Hotel Polonia Palace, Radisson Blu Sobieski (Radysław Blu)** ◐; **#91 Bars and clubs with parody names: Lusterko, Smoła, Jasna 0, Lombard, Miłość Hipoteczna, 1499 M2, Plan C, Apteczka, Przegryzki Zagryzki, Kasa Biletowa, Żwir, Bar Pyzowy, Hocki Bloki** ○; **#92 Level 26** ◐; **#125 Equator, Equator II, Brama Zachodnia, Proximo I and II, Crown Square, Prosta Office Center** ✗; Warszawa Ochota (station) ○ in game; Kamienica Stanisława Rostkowskiego (flats) ✗; Nimbus ✗; *bars:* Level 27 ✗; *plaques and memorial stones:* 1
+- **Aleja Jana Pawła II**: **#58 Westfield Arkadia (Arkadka)** ◐; **#59 Forest** ◐; **#123 Aleja Jana Pawła II's blocks and Kaskada** ○; **#124 Babka Tower, Atrium 2, Intraco Prime, North Gate** ✗; The Westin Warsaw ○ in game; Atrium Centrum ✗; Atrium Plaza ✗; Deloitte House ✗; Life Building ✗; Wise Point ✗; *museums:* Galeria XX1 ✗; *plaques and memorial stones:* 2
+- **Grzybowska**: **#57 Browary Warszawskie** ◐; **#61 Wola towers: The Bridge, Generation Park X and Z, Atlas Tower, Pekao Tower, Warsaw Towers** ○; **#129 Platinum Towers, Łucka City, Ilmet, Central Tower, Spektrum, PZU, JM Tower, Chałubińskiego 8, Westynka, Chilton** ○; Biura przy Bramie (offices) ○ in game; Biura przy Warzelni ○ in game; Biura przy Willi ○ in game; Concept Tower ✗; Kamienica Gawłowiczów (flats) ✗; Karolkowa Business Park ✗; Kolmex ✗; Prime Corporate Center ✗; Wydział Ruchu Drogowego Komendy Stołecznej Policji ✗; *monuments:* Mur pamięci ○ in game; *bars:* Asap Club ✗, Browar Warszawski ✗, Nine's Sports Bar ✗, Pistaccio ✗, Savore ✗; *museums:* Muzeum Nurkowania ✗, SOA Gallery ✗; *hotels:* Leonardo Royal Hotel Warsaw ✗, Royal Tulip Warsaw Centre ✗; *plaques and memorial stones:* 5
+- **Prosta**: **#56 Fabryka Norblina** ◐; Crown Point (offices) ✗; Mennica Legacy Tower Budynek Zachodni (commercial) ✗; Prosta Tower ✗; Studio A ✗; *monuments:* Pamięci uciekinierów z getta ○ in game; *bars:* Amare Mio! ✗, Instytut ✗, Piano Bar ✗, Torres Wine Bar ✗, Wiśniewski ✗; *hotels:* Holiday Inn Express Warsaw ✗; *plaques and memorial stones:* 1
+- **Chłodna**: **#120 Kamienica pod Zegarem and Chłodna's footbridge memorial (Kładka)** ✗; Kamienica Markowskiego (flats) ✗; Meridian (flats) ✗; *monuments:* Kładka Pamięci ○ in game, Matka Boska Łaskawa ○ in game; *museums:* Fundacja Archeologii Fotografii ✗; *plaques and memorial stones:* 2
+- **Przyokopowa**: **#21 Muzeum Powstania Warszawskiego** ✗; Proximo II (offices) ✗; Wola Center ✗; *monuments:* Stefan Kuryłowicz ○ in game; *museums:* Muzeum Powstania Warszawskiego ✗; *plaques and memorial stones:* 1
+- **Plac Europejski**: **#6 Warsaw Spire** ★; Bellona (offices) ✗; *plaques and memorial stones:* 1
+- **Plac Mirowski**: **#53 Hala Mirowska and Hala Gwardii** ◐; Kamienica Mulmanów (flats) ✗; *monuments:* Feliks "Papa" Stamm ✗; *plaques and memorial stones:* 1
 - **Okopowa**: **#134 Klif** ✗
-- **Żelazna**: Dom Kereta ✗; Feniks (commercial) ✗; Kamienica "Pod Strzelcem" (flats) ✗; Kamienica Partowicza (flats) ✗; SwedeCenter ✗; Wojewódzka Stacja Sanitarno-Epidemiologiczna ✗; Zgromadzenie Sióstr Franciszkanek Rodziny Maryi (religious) ✗
-- **Nowogrodzka**: Kościół parafialny pw. Dzieciątka Jezus (church) ◐ model; Dom Księdza Boduena ✗; Muzeum Wodociągów i Kanalizacji ✗; Ośrodek Edukacji Informatycznej i Zastosowań Komputerów (university) ✗; Placówka opiekuńczo-wychowawcza "Bajkowy Dworek" ✗; Warszawskie Centrum Zdrowia (shop) ✗
-- **Łucka**: Platinum Tower A (flats) ○ in game; Platinum Tower B (flats) ○ in game; Cosinus (school) ✗; Galwan (commercial) ✗; Plater (commercial) ✗; Studio B ✗
-- **Aleja „Solidarności”**: Chronos ✗; Kamienica Jabłońskiego ✗; Sąd Okręgowy w Warszawie (offices) ✗; Willa Natalia (flats) ✗
+- **Żelazna**: Dom Kereta ✗; Feniks (commercial) ✗; Kamienica "Pod Strzelcem" (flats) ✗; Kamienica Partowicza (flats) ✗; SwedeCenter ✗; Wojewódzka Stacja Sanitarno-Epidemiologiczna ✗; Zgromadzenie Sióstr Franciszkanek Rodziny Maryi (religious) ✗; *bars:* Estry ✗; *plaques and memorial stones:* 4
+- **Nowogrodzka**: Kościół parafialny pw. Dzieciątka Jezus (church) ◐ model; Dom Księdza Boduena ✗; Muzeum Wodociągów i Kanalizacji ✗; Ośrodek Edukacji Informatycznej i Zastosowań Komputerów (university) ✗; Placówka opiekuńczo-wychowawcza "Bajkowy Dworek" ✗; Warszawskie Centrum Zdrowia (shop) ✗; *monuments:* Sokrates Starynkiewicz ○ in game; *bars:* 147 Break ✗; *museums:* Niewidzialna Wystawa ✗
+- **Łucka**: Platinum Tower A (flats) ○ in game; Platinum Tower B (flats) ○ in game; Cosinus (school) ✗; Galwan (commercial) ✗; Plater (commercial) ✗; Studio B ✗; *bars:* Gimlet ✗, Old Shaker ✗, Pandan ✗, Uwaga Piwo ✗; *museums:* Cosmos Muzeum ✗; *stages:* Kinogram ✗; *malls:* Galeria Platinum Towers ✗; *hotels:* Platinum Residence ✗
+- **Aleja „Solidarności”**: Chronos ✗; Kamienica Jabłońskiego ✗; Sąd Okręgowy w Warszawie (offices) ✗; Willa Natalia (flats) ✗; *bars:* Win ✗; *plaques and memorial stones:* 3
+- **Wronia**: Hilton Warsaw City ○ in game; Bar a Boo (shop) ✗; Office House ✗; Oxygen (flats) ✗; *murals:* Boskie Matki ✗, Światowy Dzień Oceanów 2017 ✗
+- **Chmielna**: HOP (offices) ✗; Kamienica Bagieńskiego (flats) ✗; V Tower ✗; *plaques and memorial stones:* 3
+- **Ogrodowa**: City Gate (offices) ✗; Ibis Warszawa Centrum ✗; Wojewódzki Fundusz Ochrony Środowiska i Gospodarki Wodnej (offices) ✗; *monuments:* Władysław Bartoszewski ○ in game; *plaques and memorial stones:* 6
 - **Sienna**: Kościół Zielonoświątkowy (church) ◐ model; Instytut Pileckiego (offices) ✗; Nowa Sienna Building (offices) ✗; Sienna Center (offices) ✗
-- **Wronia**: Hilton Warsaw City ○ in game; Bar a Boo (shop) ✗; Office House ✗; Oxygen (flats) ✗
-- **Chmielna**: HOP (offices) ✗; Kamienica Bagieńskiego (flats) ✗; V Tower ✗
-- **Ogrodowa**: City Gate (offices) ✗; Ibis Warszawa Centrum ✗; Wojewódzki Fundusz Ochrony Środowiska i Gospodarki Wodnej (offices) ✗
-- **Skwer Kardynała Stefana Wyszyńskiego**: Kościół pw. Miłosierdzia Bożego i Świętej Faustyny (church) ◐ model; Dom Sióstr Uczennic Boskiego Mistrza (convent) ✗; Katolicka Agencja Informacyjna (commercial) ✗
+- **Skwer Kardynała Stefana Wyszyńskiego**: Kościół pw. Miłosierdzia Bożego i Świętej Faustyny (church) ◐ model; Dom Sióstr Uczennic Boskiego Mistrza (convent) ✗; Katolicka Agencja Informacyjna (commercial) ✗; *monuments:* Św. Faustyna ○ in game
+- **Grójecka**: Kościół parafialny pw. Niepokalanego Poczęcia Najświętszej Maryi Panny ✗; Mazowiecki Dom Pogrzebowy (shop) ✗; *bars:* Dekada ✗; *museums:* Struktury Natury ✗; *plaques and memorial stones:* 4
+- **Pańska**: The Form ✗; Verit (commercial) ✗; *bars:* Arena ✗
 - **Towarowa**: Generation Park Z ✗; Moxy Warsaw City (hotel) ✗; Vibe ✗
+- **Twarda**: Holiday Inn Warszawa City Centre ✗; Kamienica Lejba Osnosa (flats) ✗; *plaques and memorial stones:* 1
+- **Waliców**: Ibis Styles Warszawa City (hotel) ✗; Kaplica Kościoła Baptystów (chapel) ✗; *bars:* EWNS ✗
+- **Złota**: Kamienica Wolfa Krongolda (flats) ✗; Zarząd Dróg Miejskich (government) ✗; *plaques and memorial stones:* 1
+- **Biała**: Kościól Św. Karola Boromeusza (church) ◐ model; *plaques and memorial stones:* 1
 - **Daleka**: Centrum Zaopatrzenia Fryzjerów (shop) ✗; Salzburg Center ✗
-- **Grójecka**: Kościół parafialny pw. Niepokalanego Poczęcia Najświętszej Maryi Panny ✗; Mazowiecki Dom Pogrzebowy (shop) ✗
 - **Hrubieszowska**: Crown Tower (offices) ✗; Metropoint Office (offices) ✗
-- **Pańska**: The Form ✗; Verit (commercial) ✗
+- **Icchoka Lejba Pereca**: Apartamenty Pereca (flats) ✗; *plaques and memorial stones:* 1
+- **Juliana Ursyna Niemcewicza**: Stacja ozonowania pośredniego „Sokrates” (industrial) ✗; *plaques and memorial stones:* 1
+- **Krochmalna**: Rezydencja Krochmalna 44 (flats) ✗; *bars:* Executive Lounge ✗, Veselka ✗; *plaques and memorial stones:* 1
+- **Plac Sokratesa Starynkiewicza**: Miejskie Przedsiębiorstwo Wodociągów i Kanalizacji (offices) ✗; *plaques and memorial stones:* 1
 - **Raszyńska**: Cartech (industrial) ✗; Ośrodek Edukacji Informatycznej i Zastosowań Komputerów w Warszawie ✗
+- **Spiska**: Instytut Edukacji Artystycznej Akademii Pedagogiki Specjalnej (flats) ✗; *monuments:* Maria Grzegorzewska ○ in game; *plaques and memorial stones:* 1
+- **Srebrna**: Pałacyk Sikorskiego (public) ✗; *monuments:* Warszawa Główna ✗; *museums:* Muzeum Woli ✗; *plaques and memorial stones:* 2
 - **Słupecka**: Polityka (offices) ✗; Sala św. Faustyny (chapel) ✗
 - **Tadeusza Joteyki**: Pauza Ochota (flats) ✗; Wojewódzka Stacja Pogotowia Ratunkowego (hospital) ✗
-- **Twarda**: Holiday Inn Warszawa City Centre ✗; Kamienica Lejba Osnosa (flats) ✗
-- **Waliców**: Ibis Styles Warszawa City (hotel) ✗; Kaplica Kościoła Baptystów (chapel) ✗
-- **Złota**: Kamienica Wolfa Krongolda (flats) ✗; Zarząd Dróg Miejskich (government) ✗
-- **Biała**: Kościól Św. Karola Boromeusza (church) ◐ model
-- **Icchoka Lejba Pereca**: Apartamenty Pereca (flats) ✗
-- **Juliana Ursyna Niemcewicza**: Stacja ozonowania pośredniego „Sokrates” (industrial) ✗
-- **Krochmalna**: Rezydencja Krochmalna 44 (flats) ✗
+- **Adama Asnyka**: *plaques and memorial stones:* 1
+- **Barska**: *plaques and memorial stones:* 1
+- **Ciepła**: *plaques and memorial stones:* 1
+- **Elektoralna**: *plaques and memorial stones:* 1
+- **Filtrowa**: *monuments:* Gabriel Narutowicz ○ in game; *plaques and memorial stones:* 6
+- **Jaktorowska**: *monuments:* Janusz Korczak ○
+- **Kaliska**: *plaques and memorial stones:* 2
+- **Kolejowa**: *bars:* Odessa ✗, Smok ✗, Space Club ✗; *museums:* Pinball Station ✗, Stacja Muzeum ✗
+- **Koszykowa**: *plaques and memorial stones:* 1
+- **Leszno**: *monuments:* Pomnik Ofiar Rzezi Woli ○
 - **Miedziana**: M7 ✗
-- **Plac Sokratesa Starynkiewicza**: Miejskie Przedsiębiorstwo Wodociągów i Kanalizacji (offices) ✗
-- **Spiska**: Instytut Edukacji Artystycznej Akademii Pedagogiki Specjalnej (flats) ✗
-- **Srebrna**: Pałacyk Sikorskiego (public) ✗
+- **Platynowa**: *hotels:* Campanile ✗, Golden Tulip ✗, Premiere Classe ✗
+- **Rondo Ignacego Daszyńskiego**: *hotels:* Crowne Plaza ✗
 - **Sękocińska**: Wojskowe Centrum Rekrutacji Warszawa-Ochota (offices) ✗
+- **Tarczyńska**: *bars:* Bar Weterana ✗, Drugie Dno ✗; *museums:* Galeria Ta3 ✗; *plaques and memorial stones:* 2
+- **Williama Heerleina Lindleya**: *monuments:* Cmentarz Szpitala Dzieciątka Jezus ○ in game
+- **Wolska**: *plaques and memorial stones:* 1
+- **Żytnia**: *murals:* Dziwisz się? ✗
 
 ### Śródmieście Południowe (89 places)
 
-- **Marszałkowska**: **#2 Rotunda** ★; **#3 Domy Towarowe Centrum: Junior, Sawa, Wars** ★; **#4 Muzeum Sztuki Nowoczesnej** ★; **#50 Plac Konstytucji and MDM** ◐; **#51 Kościół Najświętszego Zbawiciela and Plac Zbawiciela** ◐; **#52 Rondo Dmowskiego and Patelnia (Metro Centrum)** ◐; **#90 Plac Defilad's pavilions: Cepelia, Zodiak, Scena Relax** ◐; **#95 Milk bars: Bar Prasowy (Marszałkowska), Bar Familijny (Nowy Świat), Bar Bambino (Krucza), Bar Pod Barbakanem (Mostowa)** ✗; **#137 Ogród Saski, Ogród Krasińskich, Park Ujazdowski** ○; Kamienica Domańskich (flats) ✗; M76 (offices) ✗
-- **Koszykowa**: **#54 Hala Koszyki** ◐; Biblioteka Publiczna m.st. Warszawy (public) ✗; Dom Medyków ✗; Gmach Matematyki i Nauk Informacyjnych ✗; Gmach Szkoły Biznesu (university) ✗; Gmach Technologii Chemicznej ✗; Katedra i Zakład Medycyny Sądowej (university) ✗; Klinika Dermatologiczna WUM (university) ✗; Nobu Hotel Warsaw (hotel) ✗; Nowa Kreślarnia (university) ✗
-- **Wspólna**: **#127 Żyletkowiec, Dom Słowa Polskiego, Dom Chłopa, Smyk's corner** ✗; Kościół pw. Świętych Apostołów Piotra i Pawła (church) ◐ model; Hampton by Hilton Warsaw City Centre ✗; Park Avenue ✗; Ufficio Primo (offices) ✗
-- **Emilii Plater**: **#126 Warsaw Corporate Centre, Centrum Giełdowe, Mysia 3, Liberty Corner, Nautilus, Ethos** ✗; Komuna Warszawa (school) ✗; Rezydencja Ambasadora Maroka (house) ✗
-- **Krucza**: **#30 Cedet (Dom Towarowy CDT)** ✗; Referat Paszportów nr 1 (flats) ✗
+- **Marszałkowska**: **#2 Rotunda** ★; **#3 Domy Towarowe Centrum: Junior, Sawa, Wars** ★; **#4 Muzeum Sztuki Nowoczesnej** ★; **#50 Plac Konstytucji and MDM** ◐; **#51 Kościół Najświętszego Zbawiciela and Plac Zbawiciela** ◐; **#52 Rondo Dmowskiego and Patelnia (Metro Centrum)** ◐; **#90 Plac Defilad's pavilions: Cepelia, Zodiak, Scena Relax** ◐; **#95 Milk bars: Bar Prasowy (Marszałkowska), Bar Familijny (Nowy Świat), Bar Bambino (Krucza), Bar Pod Barbakanem (Mostowa)** ✗; **#137 Ogród Saski, Ogród Krasińskich, Park Ujazdowski** ○; Kamienica Domańskich (flats) ✗; M76 (offices) ✗; *bars:* W Orbicie Słońca ✗, Warmut ✗; *museums:* QueerMuzeum ✗; *stages:* Polonia ◐; *hotels:* Level rooms ✗; *plaques and memorial stones:* 5
+- **Koszykowa**: **#54 Hala Koszyki** ◐; Biblioteka Publiczna m.st. Warszawy (public) ○ in game; Dom Medyków ✗; Gmach Matematyki i Nauk Informacyjnych ✗; Gmach Szkoły Biznesu (university) ✗; Gmach Technologii Chemicznej ✗; Katedra i Zakład Medycyny Sądowej (university) ✗; Klinika Dermatologiczna WUM (university) ✗; Nobu Hotel Warsaw (hotel) ✗; Nowa Kreślarnia (university) ✗; *bars:* BackRoom Bar ✗, Bar Koszyki ✗, Klub Medyka ✗, Machupisko ✗, Sakebar by Nobu ✗, Upper Deck ✗; *plaques and memorial stones:* 12
+- **Wspólna**: **#127 Żyletkowiec, Dom Słowa Polskiego, Dom Chłopa, Smyk's corner** ✗; Kościół pw. Świętych Apostołów Piotra i Pawła (church) ◐ model; Hampton by Hilton Warsaw City Centre ✗; Park Avenue ✗; Ufficio Primo (offices) ✗; *monuments:* Batalion AK "Zaremba-Piorun" ✗, Chrystus i Jawnogrzesznica ○ in game; *bars:* Drink Bar ✗; *museums:* Raster ✗
+- **Emilii Plater**: **#126 Warsaw Corporate Centre, Centrum Giełdowe, Mysia 3, Liberty Corner, Nautilus, Ethos** ✗; Komuna Warszawa (school) ✗; Rezydencja Ambasadora Maroka (house) ✗; *monuments:* All The Things ✗; *plaques and memorial stones:* 3
+- **Krucza**: **#30 Cedet (Dom Towarowy CDT)** ✗; Referat Paszportów nr 1 (flats) ✗; *plaques and memorial stones:* 1
 - **Plac Zbawiciela**: **#96 Plan B's corner, Plac Zbawiciela's café row** ○
 - **Filtrowa**: Ministerstwo Obrony Narodowej ○ in game; Ambasada Izraela ✗; Focus ✗; Gmach Rektorska 4 ✗; Instytut Techniki Budowlanej ✗; Najwyższa Izba Kontroli ✗; Ośrodek Akademicki "Przy Filtrowej" (dormitory) ✗; Spółdzielnia Budowlano-Mieszkaniowa (offices) ✗; Stołówka Centralna (university) ✗
-- **Nowowiejska**: Budynek Starej Kotłowni (university) ✗; Gmach Aerodynamiki (university) ✗; Gmach Elektrotechniki (university) ✗; Gmach Fizyki (university) ✗; Gmach Inżynierii Środowiska (university) ✗; Gmach Mechaniki (university) ✗; Muzeum Politechniki Warszawskiej (university) ✗; Specjalistyczna Przychodnia Lekarska dla Pracowników Wojska ✗
-- **Aleja Niepodległości**: Gmach Lotniczy (university) ✗; Gmach Nowy Lotniczy (university) ✗; ITLIMS ✗; Pałacyk Rektorski ✗; Służba Wywiadu Wojskowego (offices) ✗
-- **Piękna**: IPC Business Centre ✗; Stoen Operator ✗; The Nest (offices) ✗; Willa Struvego (offices) ✗; Zaułek Piękna ✗
-- **Nowogrodzka**: Dom Katolicki "Roma" (commercial) ✗; Dom Parafialny im. Prymasa Tysiąclecia ✗; Prima Court (offices) ✗; RCKiK w Warszawie TO III Warszawa (hospital) ✗
-- **Stanisława Noakowskiego**: Budynek Pod Kominem (university) ✗; Gmach Chemii (university) ✗; Instytut Techniki Cieplnej ✗; Wydział Transportu PW ✗
-- **Księdza Ignacego Skorupki**: Bankowy Fundusz Gwarancyjny (offices) ✗; Skłot "Przychodnia" (commercial) ✗; Stratos Office Center (offices) ✗
-- **Mokotowska**: Instytut Adama Mickiewicza (offices) ✗; Mokotowska Square (offices) ✗; Wydział Pedagogiczny UW (university) ✗
-- **Polna**: 2 Społeczne Liceum Ogólnokształcące STO imienia Pawła Jasienicy (school) ✗; Bazar Polna (shop) ✗; Wydział Elektroniki i Technik Informacyjnych (university) ✗
-- **Wilcza**: Komenda Rejonowa Policji Warszawa I (public) ✗; Muzeum i Instytut Zoologii PAN (commercial) ✗; Skłot "Syrena" (flats) ✗
-- **Aleje Jerozolimskie**: Kamienica Mikołaja Szelechowa (flats) ✗; Nowogrodzka Square ✗
-- **Lwowska**: Gmach Architektury (university) ✗; Norway House (offices) ✗
-- **Hoża**: PGE Energetyka Kolejowa (offices) ✗
-- **Jana i Jędrzeja Śniadeckich**: Instytut Matematyczny PAN (offices) ✗
-- **Ludwika Waryńskiego**: Polna Corner (offices) ✗
-- **Tytusa Chałubińskiego**: Collegium Anatomicum (hospital) ✗
-- **Świętej Barbary**: Centrum Systemów Telekomunikacyjnych (offices) ✗
-- **Żurawia**: Dom Spółdzielczości Pracy (flats) ✗
+- **Nowowiejska**: Budynek Starej Kotłowni (university) ✗; Gmach Aerodynamiki (university) ✗; Gmach Elektrotechniki (university) ✗; Gmach Fizyki (university) ✗; Gmach Inżynierii Środowiska (university) ✗; Gmach Mechaniki (university) ✗; Muzeum Politechniki Warszawskiej (university) ✗; Specjalistyczna Przychodnia Lekarska dla Pracowników Wojska ✗; *monuments:* Mieczysław Pożaryski ○ in game; *bars:* Brać Polskie Wina ✗; *stages:* Klub Komediowy ✗; *plaques and memorial stones:* 3
+- **Aleja Niepodległości**: Gmach Lotniczy (university) ✗; Gmach Nowy Lotniczy (university) ✗; ITLIMS ✗; Pałacyk Rektorski ✗; Służba Wywiadu Wojskowego (offices) ✗; *monuments:* Ignacemu Mościckiemu ○ in game; *plaques and memorial stones:* 2
+- **Piękna**: IPC Business Centre ✗; Stoen Operator ✗; The Nest (offices) ✗; Willa Struvego (offices) ✗; Zaułek Piękna ✗; *bars:* Ragazzi ✗, Łaskawość Tytusa ✗; *museums:* Muzeum Życia w PRL ✗, Rio ✗; *hotels:* Sen Pszczoły ✗; *plaques and memorial stones:* 6
+- **Nowogrodzka**: Dom Katolicki "Roma" (commercial) ✗; Dom Parafialny im. Prymasa Tysiąclecia ✗; Prima Court (offices) ✗; RCKiK w Warszawie TO III Warszawa (hospital) ✗; *stages:* Teatr Muzyczny "Roma" ✗
+- **Stanisława Noakowskiego**: Budynek Pod Kominem (university) ✗; Gmach Chemii (university) ✗; Instytut Techniki Cieplnej ✗; Wydział Transportu PW ✗; *monuments:* Batalion AK "Golski" ✗; *bars:* Bar a Wino ✗; *stages:* Stand up Lokal ✗; *plaques and memorial stones:* 6
+- **Księdza Ignacego Skorupki**: Bankowy Fundusz Gwarancyjny (offices) ✗; Skłot "Przychodnia" (commercial) ✗; Stratos Office Center (offices) ✗; *bars:* Republika Wina ✗; *hotels:* Residence 1898 ✗; *plaques and memorial stones:* 2
+- **Mokotowska**: Instytut Adama Mickiewicza (offices) ✗; Mokotowska Square (offices) ✗; Wydział Pedagogiczny UW (university) ✗; *bars:* Charlie ✗, Le Rendez Vous ✗; *stages:* Współczesny ✗; *plaques and memorial stones:* 2
+- **Polna**: 2 Społeczne Liceum Ogólnokształcące STO imienia Pawła Jasienicy (school) ✗; Bazar Polna (shop) ✗; Wydział Elektroniki i Technik Informacyjnych (university) ✗; *plaques and memorial stones:* 3
+- **Wilcza**: Komenda Rejonowa Policji Warszawa I (public) ✗; Muzeum i Instytut Zoologii PAN (commercial) ✗; Skłot "Syrena" (flats) ✗; *murals:* Miasta dla ludzi ✗; *bars:* Aficionado Room ✗, Gorączka Złota ✗, H.4.0.S ✗, Jassmine ✗, Kita Koguta ✗, Lodi Dodi ✗, Musa ✗, Rausz ✗; *museums:* Centrala ✗, Maison D'Art ✗; *plaques and memorial stones:* 7
+- **Aleje Jerozolimskie**: Kamienica Mikołaja Szelechowa (flats) ✗; Nowogrodzka Square ✗; *malls:* Galeria pod Rondem Czterdziestolatka ✗; *plaques and memorial stones:* 3
+- **Lwowska**: Gmach Architektury (university) ✗; Norway House (offices) ✗; *monuments:* Bohdan Pniewski ○ in game; *bars:* Beer Station ✗, Buns & Bottles ✗; *museums:* Totu ✗; *plaques and memorial stones:* 7
+- **Hoża**: PGE Energetyka Kolejowa (offices) ✗; *bars:* Aura ✗, Pacyfik ✗; *plaques and memorial stones:* 10
+- **Jana i Jędrzeja Śniadeckich**: Instytut Matematyczny PAN (offices) ✗; *plaques and memorial stones:* 8
+- **Ludwika Waryńskiego**: Polna Corner (offices) ✗; *plaques and memorial stones:* 1
+- **Tytusa Chałubińskiego**: Collegium Anatomicum (hospital) ✗; *plaques and memorial stones:* 1
+- **Świętej Barbary**: Centrum Systemów Telekomunikacyjnych (offices) ✗; *bars:* Centro ✗; *plaques and memorial stones:* 1
+- **Żurawia**: Dom Spółdzielczości Pracy (flats) ✗; *bars:* Soul ✗; *hotels:* SCSK Żurawia ✗; *plaques and memorial stones:* 2
+- **Aleja Wyzwolenia**: *bars:* Plan B ○
+- **Jaworzyńska**: *plaques and memorial stones:* 1
+- **Plac Konstytucji**: *monuments:* Płaskorzeźba "Otwarcie MDM" ✗; *bars:* Leonardo Daj Winko ✗; *museums:* Galeria Test ✗, Warszawskie Obserwatorium Kultury ✗; *hotels:* Hotel MDM ✗; *plaques and memorial stones:* 1
+- **Poznańska**: *bars:* Beirut ✗, Kraken ✗, República de San Escobar ✗, VHS ✗; *hotels:* H15 ✗; *plaques and memorial stones:* 1
+- **Progi**: *museums:* Muzeum Marii Dąbrowskiej ✗; *plaques and memorial stones:* 1
+- **Stefanii Sempołowskiej**: *stages:* Luna ○
 
 ### Ujazdów i Łazienki (55 places)
 
-- **Wiejska**: **#42 Sejm and Senat** ◐; **#82 Sheraton Grand Warsaw** ✗; **#114 Pomnik Polskiego Państwa Podziemnego i Armii Krajowej, Pomnik Wincentego Witosa, Pomnik Ignacego Daszyńskiego** ✗; Kamienica Karskich (offices) ✗
-- **Aleje Ujazdowskie**: **#112 Kamienica Pod Gigantami, Pałac Pod Karczochem, Kamienica Ławrynowicza and Aleje Ujazdowskie's villas** ✗; **#113 Pomnik Ronalda Reagana, Pomnik Romana Dmowskiego (Plac Na Rozdrożu)** ✗; Kamienica Jakuba Lindelfelda ✗; Kamienica Kulkiewicza (offices) ✗; Kamienica Pusłowskiego (flats) ✗; Pałac Karnickich (offices) ✗; Pałac Sobańskich (offices) ✗; Pałacyk Dziewulskich ✗; Willa L. Jaroszczyńskiego ✗
-- **Jazdów**: **#43 Zamek Ujazdowski** ◐; Główna Biblioteka Lekarska im. Stanisława Konopki ○ in game; Instytut Teatralny im. Z. Raszewskiego ○ in game; Dawna Łaźnia (offices) ✗; Oddział XV Dzienny Psychiatryczny Rehabilitacyjny (hospital) ✗; Rotacyjny Dom Kultury (house) ✗
-- **Czerniakowska**: **#116 Pomnik Sapera** ✗
-- **Górnośląska**: Sejm RP ○ in game; Kamienica Leona Breslauera (flats) ✗; Monkey Love (shop) ✗; Stary Dom Poselski ✗; Yutori ✗
-- **Aleja Róż**: Ambasada Serbii (offices) ✗; Kamienica Szelechowa (government) ✗; Pałacyk Wielopolskich (offices) ✗; Wydział Konsularny Ambasady Czech (commercial) ✗
-- **Fryderyka Chopina**: Ambasada Węgier (offices) ✗; Pałacyk Leszczyńskich ✗; Pałacyk Śleszyńskich (commercial) ✗
-- **Jana Matejki**: Ambasada Kanady Wydział Wizowy i Imigracji (government) ✗; Budynek Komisji Sejmowych ✗; Desa Unicum (commercial) ✗
-- **Myśliwiecka**: Dom Oficerski Funduszu Kwaterunku Wojskowego (flats) ✗; Oficyna Ermitażu ✗; Polskie Radio ✗
-- **Zagórna**: Matki Bożej Częstochowskiej (church) ◐ model; Ibis Budget Warszawa Centrum (hotel) ✗; Ibis Styles (hotel) ✗
-- **Fabryczna**: Biuro Legia Sekcja Strzelecka (offices) ✗; Strzelnica Legia ✗
-- **Frascati**: Dom Poselski (hotel) ✗; Kancelaria Senatu (government) ✗
-- **Mokotowska**: Kamienica "Krakowiacy i Górale" (shop) ✗; Mokotowska 69 (shop) ✗
-- **Przemysłowa**: Kościół Matki Bożej Jerozolimskiej (church) ◐ model; Torwar II (sports hall) ✗
-- **Aleja Na Skarpie**: Stary Budynek Komisji Sejmowych ✗
+- **Wiejska**: **#42 Sejm and Senat** ◐; **#82 Sheraton Grand Warsaw** ✗; **#114 Pomnik Polskiego Państwa Podziemnego i Armii Krajowej, Pomnik Wincentego Witosa, Pomnik Ignacego Daszyńskiego** ○; Kamienica Karskich (offices) ○ in game; *monuments:* Pomnik Państwa Podziemnego i AK ○ in game; *plaques and memorial stones:* 3
+- **Aleje Ujazdowskie**: **#112 Kamienica Pod Gigantami, Pałac Pod Karczochem, Kamienica Ławrynowicza and Aleje Ujazdowskie's villas** ✗; **#113 Pomnik Ronalda Reagana, Pomnik Romana Dmowskiego (Plac Na Rozdrożu)** ○; Kamienica Jakuba Lindelfelda ✗; Kamienica Kulkiewicza (offices) ✗; Kamienica Pusłowskiego (flats) ✗; Pałac Karnickich (offices) ✗; Pałac Sobańskich (offices) ✗; Pałacyk Dziewulskich ✗; Willa L. Jaroszczyńskiego ✗; *monuments:* Bojan Penew ○ in game, Dawid ○ in game, Ronald Reagan ○ in game; *bars:* Klub SPATiF ✗; *museums:* Aspekty ✗, Centrum Kultury Filmowej im. Andrzeja Wajdy ✗; *plaques and memorial stones:* 2
+- **Jazdów**: **#43 Zamek Ujazdowski** ◐; Główna Biblioteka Lekarska im. Stanisława Konopki ○ in game; Instytut Teatralny im. Z. Raszewskiego ○ in game; Dawna Łaźnia (offices) ✗; Oddział XV Dzienny Psychiatryczny Rehabilitacyjny (hospital) ✗; Rotacyjny Dom Kultury (house) ✗; *monuments:* Ewa ○ in game, Kompozycja ○ in game, Rozkwit ○ in game, Siedząca ○ in game, Szpital Ujazdowski ○ in game; *museums:* Centrum Sztuki Współczesnej ✗, Domek Filmowy ✗; *stages:* U–jazdowski ✗; *plaques and memorial stones:* 13
+- **Czerniakowska**: **#116 Pomnik Sapera** ○; *monuments:* Ławeczka Jana Nowaka-Jeziorańskiego ○; *plaques and memorial stones:* 1
+- **Górnośląska**: Sejm RP ○ in game; Kamienica Leona Breslauera (flats) ✗; Monkey Love (shop) ✗; Stary Dom Poselski ✗; Yutori ✗; *murals:* Chopin w Warszawie ✗; *plaques and memorial stones:* 3
+- **Aleja Róż**: Ambasada Serbii (offices) ✗; Kamienica Szelechowa (government) ✗; Pałacyk Wielopolskich (offices) ✗; Wydział Konsularny Ambasady Czech (commercial) ✗; *monuments:* Ławeczka Henryka Sławika i Józsefa Antalla ○; *plaques and memorial stones:* 4
+- **Fryderyka Chopina**: Ambasada Węgier (offices) ✗; Pałacyk Leszczyńskich ✗; Pałacyk Śleszyńskich (commercial) ✗; *monuments:* Gladiator ○ in game, Stefan "Grot" Rowecki ✗; *plaques and memorial stones:* 4
+- **Jana Matejki**: Ambasada Kanady Wydział Wizowy i Imigracji (government) ✗; Budynek Komisji Sejmowych ✗; Desa Unicum (commercial) ✗; *monuments:* Georges Clemenceau ○ in game, Perseusz ○ in game; *plaques and memorial stones:* 5
+- **Myśliwiecka**: Dom Oficerski Funduszu Kwaterunku Wojskowego (flats) ✗; Oficyna Ermitażu ✗; Polskie Radio ✗; *monuments:* Dąb Pamięci Tadeusza Mazowieckiego ✗, Król Stefan Batory ✗; *bars:* Rezerwat ✗, Źródełko ✗; *plaques and memorial stones:* 1
+- **Zagórna**: Matki Bożej Częstochowskiej (church) ◐ model; Ibis Budget Warszawa Centrum (hotel) ✗; Ibis Styles (hotel) ✗; *monuments:* Kotwica z żaglowca szkolnego "Lwów" ○; *plaques and memorial stones:* 3
+- **Fabryczna**: Biuro Legia Sekcja Strzelecka (offices) ✗; Strzelnica Legia ✗; *monuments:* Kazimierz Deyna ○ in game; *bars:* Miejsce ✗; *plaques and memorial stones:* 1
+- **Frascati**: Dom Poselski (hotel) ✗; Kancelaria Senatu (government) ✗; *monuments:* Francesco Nullo ○ in game
+- **Mokotowska**: Kamienica "Krakowiacy i Górale" (shop) ✗; Mokotowska 69 (shop) ✗; *bars:* Grono ✗; *plaques and memorial stones:* 6
+- **Przemysłowa**: Kościół Matki Bożej Jerozolimskiej (church) ◐ model; Torwar II (sports hall) ✗; *bars:* Legia Sports Bar ✗; *museums:* Muzeum Legii Warszawa (w remoncie) ✗; *plaques and memorial stones:* 5
+- **Aleja Na Skarpie**: Stary Budynek Komisji Sejmowych ✗; *monuments:* Halina Mikołajska ○ in game; *plaques and memorial stones:* 1
+- **Piękna**: Willa Raua (government) ✗; *murals:* Mural Franciszka Pieczki ✗
+- **Plac Na Rozdrożu**: Rozdroże 1974 (shop) ✗; *monuments:* Roman Dmowski ○ in game, Wojciech Korfanty ○; *bars:* Przejście ✗; *plaques and memorial stones:* 1
+- **Świętej Teresy**: Ministerstwo Sprawiedliwości (government) ✗; *monuments:* Jan Rodowicz "Anoda" ○; *museums:* Cele Bezpieki ✗
+- **Aleja Armii Ludowej**: *monuments:* Ignacy Daszyński ○ in game; *plaques and memorial stones:* 1
+- **Aleja Przyjaciół**: *plaques and memorial stones:* 2
+- **Aleja Wyzwolenia**: *museums:* Apteka Sztuki ✗; *plaques and memorial stones:* 2
 - **Francesca Nulla**: Wolf Nullo (offices) ✗
-- **Piękna**: Willa Raua (government) ✗
-- **Plac Na Rozdrożu**: Rozdroże 1974 (shop) ✗
 - **Profesorska**: Ambasada Tunezji (commercial) ✗
-- **Świętej Teresy**: Ministerstwo Sprawiedliwości (government) ✗
+- **Rozbrat**: *plaques and memorial stones:* 2
 
-### poza dzielnicami (40 places)
+### poza dzielnicami (39 places)
 
-- **Plac Bankowy**: **#63 Błękitny Wieżowiec and Plac Bankowy** ○; **#64 Plac Bankowy's palaces: Ratusz, Mazowiecki Urząd Wojewódzki, Gmach Giełdy i Banku Polskiego, Arsenał** ○; **#65 Pomnik Juliusza Słowackiego and Pomnik Stefana Starzyńskiego** ✗; **#121 Hotel Saski, Pasaż Muranów, the Muranów estate** ✗
+- **Plac Bankowy**: **#63 Błękitny Wieżowiec and Plac Bankowy** ○; **#64 Plac Bankowy's palaces: Ratusz, Mazowiecki Urząd Wojewódzki, Gmach Giełdy i Banku Polskiego, Arsenał** ○; **#65 Pomnik Juliusza Słowackiego and Pomnik Stefana Starzyńskiego** ⏳; **#121 Hotel Saski, Pasaż Muranów, the Muranów estate** ✗
 - **Plac Zamkowy**: **#10 Zamek Królewski** ⏳; **#11 Kolumna Zygmunta** ◐; **#38 Plac Zamkowy's houses and Mariensztat** ○; **#109 Pałac Pod Blachą and Biblioteka Królewska** ✗
-- **Aleja Solidarności**: **#66 Pomnik Bohaterów Warszawy (Nike)** ✗; **#87 Park Praski's bear enclosure (Wybieg dla niedźwiedzi)** ✗; **#139 Warszawska Opera Kameralna, Teatr WARSawy, Pałac Ślubów** ✗
-- **Plac Piłsudskiego**: **#19 Grób Nieznanego Żołnierza and Plac Piłsudskiego** ◐; **#46 Metropolitan** ◐; **#68 Pomnik Józefa Piłsudskiego, the Smolensk monuments, Pomnik Lecha Kaczyńskiego** ✗
+- **Aleja Solidarności**: **#66 Pomnik Bohaterów Warszawy (Nike)** ⏳; **#87 Park Praski's bear enclosure (Wybieg dla niedźwiedzi)** ✗; **#139 Warszawska Opera Kameralna, Teatr WARSawy, Pałac Ślubów** ✗
+- **Plac Piłsudskiego**: **#19 Grób Nieznanego Żołnierza and Plac Piłsudskiego** ◐; **#46 Metropolitan** ◐; **#68 Pomnik Józefa Piłsudskiego, the Smolensk monuments, Pomnik Lecha Kaczyńskiego** ⏳
 - **Plac Krasińskich**: **#22 Pomnik Powstania Warszawskiego** ✗; **#79 Pałac Krasińskich and Ogród Krasińskich** ✗
 - **Plac Małachowskiego**: **#44 Zachęta** ★; **#45 Kościół Świętej Trójcy** ★
 - **Łazienkowska**: **#130 Torwar** ✗; **#131 Stadion Leguminy** ◐
-- **(84 entrances)**: **#74 Metro stations: Centrum, Świętokrzyska, Ratusz-Arsenał, Politechnika, Rondo ONZ, Rondo Daszyńskiego, Nowy Świat-Uniwersytet, Centrum Nauki Kopernik, Stadion Narodowy, Dworzec Gdański** ○
 - **Aleja Poniatowskiego**: **#14 Most Poniatowskiego (towers and deck)** ◐
 - **Aleja Zieleniecka**: **#13 Stadion Narodowy** ★
 - **Andersa**: **#98 Kina: Muranów, Atlantic, Luna, Kultura, Elektronik, Femina, Kinoteka, Iluzjon (south of the box)** ○
 - **Boleść**: **#140 Stara Prochownia, Collegium Nobilium, Klasztor Ojców Dominikanów (Kościół pw. Świętego Jacka)** ◐
 - **Karasia**: **#83 Teatr Polski and Teatr Powszechny** ✗
-- **Kościelna**: **#115 Pomnik Marii Skłodowskiej-Curie** ✗
-- **Muranowska**: **#69 Pomnik Poległym i Pomordowanym na Wschodzie** ✗
+- **Kościelna**: **#115 Pomnik Marii Skłodowskiej-Curie** ○
+- **Muranowska**: **#69 Pomnik Poległym i Pomordowanym na Wschodzie** ⏳
 - **Noakowskiego**: **#107 Gmach Główny Politechniki Warszawskiej** ✗
 - **Plac Defilad**: **#1 Pałac Kultury i Nauki** ★
 - **Plac Powstańców Warszawy**: **#29 Hotel Warszawa (the 1934 Prudential)** ✗
