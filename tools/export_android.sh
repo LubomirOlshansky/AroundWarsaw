@@ -25,6 +25,10 @@ for arg in "$@"; do
 	esac
 done
 cd "${0:A:h}/../game"
+# The Autopilot playtest autoload must never ship (tools/autopilot.sh).
+if grep -q '^AutopilotPlaytest=' project.godot; then
+	echo "Autopilot is on in project.godot: run tools/autopilot.sh off first" >&2; exit 1
+fi
 
 # The version comes from the preset, so the file name and Play's version code always agree.
 opts=$(awk 'f&&/^\[preset\.[0-9]+\]/{exit} /^\[preset\.[0-9]+\]/{s=0} /^name="Android"/{s=1}
