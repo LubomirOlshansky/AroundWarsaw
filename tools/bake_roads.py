@@ -42,6 +42,7 @@ MAIN = {"motorway", "trunk", "primary", "secondary", "tertiary",
 MINOR = {"service", "living_street"}
 # Map review C: one-way streets whose single mapped lane is drawn at least DEFAULT_WIDTH wide.
 ONE_LANE_STREET = {"residential", "unclassified", "tertiary"}
+TWO_LANE_STREET = 7.0  # ...and a two-way one with `lanes=2` at least this wide (F, 2026-11-02)
 SPLIT_GAP = 14.0    # ...unless another one-way runs the other way this near (centre to centre)...
 SPLIT_SHARE = 0.3  # ...along this share of the street
 # area:highway values that are road surface; hatched areas are painted on asphalt.
@@ -211,6 +212,11 @@ def road_width(t):
             # the street with no lane count (DEFAULT_WIDTH). Not a leg of a split round an island or a
             # narrow median (`mark_split_legs`): those are one lane wide.
             w = max(w, DEFAULT_WIDTH[hw])
+        elif n == 2 and hw in ONE_LANE_STREET and oneway_of(t) == 0 and t.get("bridge") in (None, "no") \
+                and t.get("tunnel") in (None, "no"):
+            # Map review C, F's yes (2026-11-02): a two-way street with `lanes=2` measured ~7.5 m over
+            # the photo, not 2 x 3.0 m: drawn TWO_LANE_STREET wide.
+            w = max(w, TWO_LANE_STREET)
         return w + bl + br, bl, br
     w = DEFAULT_WIDTH.get(hw, 5.5)
     if t.get("service") == "parking_aisle":

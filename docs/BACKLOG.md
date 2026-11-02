@@ -746,7 +746,8 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   game's roads over the GUGiK orthophoto in every district of the box and map north (district sheets
   and a width measure across every street), and the worst mismatch fixed in the bake: one-lane one-way
   streets were 3 m strips (505 ways, 31 km: Mokotowska, Wilcza, Hoża, Żurawia, Noakowskiego...) and are
-  now the street's default width, 5.5 m (6.5 m tertiary), split legs round an island kept at one lane.
+  now the street's default width, 5.5 m (6.5 m tertiary), split legs round an island kept at one lane;
+  two-lane two-way streets 6 → 7 m (423 ways, F's yes).
 - Already listed and still open: lines inside junctions not checked against photos and the dark
   Jerozolimskie / Nowy Świat at night ("From map review B"); the loop 3e structures (Łazienkowski's
   Praga end R8, the rail cutting, Rozdroże's tubes, Nowy Zjazd's wall, deck 4); Most Łazienkowski
@@ -1937,9 +1938,9 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   30 % of it, `mark_split_legs`, 222 ways) stay one lane. Zebras 12,215 → 12,701 m of asphalt.
   check_roads 0 not allowed, check_streets S1 0.
 - **Fixed**: the bake crashed on main in `_blurred` (a joined bike path of one point); skipped.
-- **Measured, open**: two-lane streets drawn 6.0 m (residential, tertiary with `lanes=2`) measure
-  ~7.5 m over the photo (the measure reads ~1.5 m wide on known carriageways). Widening them to 7 m
-  touches ~1,000 ways and the medians beside them: a decision for the next roads pass.
+- **Fixed (F said yes, 2026-11-02)**: two-way streets with `lanes=2` (residential, tertiary,
+  unclassified; not bridges or tunnels) were 6.0 m and measure ~7.5 m over the photo: now at least
+  `TWO_LANE_STREET` 7.0 m (423 ways). Zebras on the asphalt 12,701 → 12,982 m; medians unchanged.
 - **Measured, open**: one-lane links (`*_link`, 3.25 m) read 4.5-5 m (shoulders); left, they ride the
   deck solver.
 - **Alignment**: OSM sits on the photo within ~2 m everywhere looked at (Praga, Powiśle, Łazienki's edge,
