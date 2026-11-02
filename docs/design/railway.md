@@ -68,8 +68,8 @@ the saucer with its rim and the neon WARSZAWA POWIŚLE, the platform canopies, t
 | --- | --- | --- |
 | S3a | Warszawa Stadion | the 1955-58 pavilion (Romanowicz and Szymaniak too), renovated for Euro 2012; side platforms with canopies; the stadium's crowd route |
 | S3b | Śródmieście and Śródmieście WKD | underground: the entrances in Aleje Jerozolimskie's passages (stair heads with signs), the vents |
-| S3c | Warszawa Wschodnia | at the east edge: the hall's front only (low priority, mostly off the map) |
-| S3d | Warszawa Gdańska | at the north edge: the platforms' canopies and the footbridge (low priority) |
+| S3c | Warszawa Wschodnia | at the east edge: the hall's front only (low priority, mostly off the map); the yard runs on past the edge since 2026-11-01 (`map_edge.gd`) |
+| S3d | Warszawa Gdańska | at the north edge: the platforms' canopies and the footbridge (low priority); the land and tracks run on past the edge since 2026-11-01 (`map_edge.gd`) |
 | S3e | Ochota WKD | the WKD stop next to Ochota in the cutting: platform shelters |
 
 ## 3. The line itself
@@ -98,7 +98,9 @@ the bake (the "rail cutting" leftovers of loop 3e stay with the map lane).
 ### L4. Most Średnicowy
 
 The deck is there; the bridge's look (spans, girders, piers) from photos on the Mac. Photo
-check first, then a model like the other bridges.
+check first, then a model like the other bridges. Built 2026-11-01 after the Mac photo check:
+`map_builder._build_srednicowy` (granite piers with cutwaters, steel arch-truss spans under the
+deck, in the walls surface).
 
 ## 4. Trains (T1, `trains.gd`, a new check and verify step)
 

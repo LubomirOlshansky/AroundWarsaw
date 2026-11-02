@@ -21,6 +21,7 @@ extends Node
 ##   in the district's % on the full map.
 ## Cost: the 5 Hz look (`spent_usec`: the bench's "syrenki" line).
 
+const Lang := preload("res://scripts/lang.gd")
 const Access := preload("res://scripts/access.gd")
 const Districts := preload("res://scripts/districts.gd")
 const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
@@ -386,7 +387,7 @@ func collect(id: String, date := 0) -> bool:
 	var count := found_count()
 	var name: Array = e.get("name", ["", ""])
 	var line: Array = e.get("line", ["", ""])
-	_note("SYRENKA %d/%d · MERMAID" % [count, entries.size()], "%s\n%s\n%s" % [name[0], line[0], line[1]])
+	_note(Lang.pick("SYRENKA %d/%d", "MERMAID %d/%d") % [count, entries.size()], "%s\n%s" % [Lang.pick(name[0], name[1]), Lang.pick(line[0], line[1])])
 	if blip.is_valid():
 		blip.call()
 	Access.buzz(40, 0.4)
@@ -409,7 +410,7 @@ func _reward(r: Dictionary, count: int) -> void:
 	elif gain > 0:
 		wallet.add_respect(gain)
 	var text: Array = r.get("text", ["", ""])
-	_note("SYRENKI %d/%d · NAGRODA · REWARD" % [count, entries.size()], "%s\n%s" % [text[0], text[1]])
+	_note(Lang.pick("SYRENKI %d/%d · NAGRODA", "MERMAIDS %d/%d · REWARD") % [count, entries.size()], Lang.pick(text[0], text[1]))
 	if log_on:
 		print("syrenki: reward at %d: %d zł, %d respect%s" % [count, zl, gain, ", paint " + str(r["paint"]) if r.has("paint") else ""])
 

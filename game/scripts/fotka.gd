@@ -14,6 +14,8 @@ extends Node
 ## Cost: nothing while closed. The UI (a CanvasLayer of a few Controls) is built at the first
 ## open and hidden after; the camera is not current, so it draws nothing; no _process.
 
+const Lang := preload("res://scripts/lang.gd")
+
 signal opened
 signal closed
 
@@ -248,13 +250,9 @@ func _button(name: String, pl: String, en: String, size_pt: Vector2, round := fa
 	words.alignment = BoxContainer.ALIGNMENT_CENTER
 	words.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	words.add_theme_constant_override("separation", 0)
-	var a := _label(pl, T_BODY, INK)
+	var a := _label(Lang.pick(pl, en), T_BODY, INK)  # one language (lang.gd)
 	a.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	words.add_child(a)
-	if en != "":
-		var e := _label(en, T_LABEL, SUB)
-		e.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		words.add_child(e)
 	b.add_child(words)
 	_buttons[name] = b
 	return b
@@ -277,11 +275,11 @@ func build_ui() -> void:
 	if not safe.has_area():
 		safe = Rect2(Vector2.ZERO, _root.get_viewport_rect().size)
 	var m := 12.0 * pt
-	var close_b := _button("fotka_close", "WRÓĆ", "back", Vector2(76, 48))
+	var close_b := _button("fotka_close", "WRÓĆ", "BACK", Vector2(76, 48))
 	close_b.position = Vector2(safe.end.x - m - close_b.size.x, safe.position.y + m)
 	close_b.pressed.connect(close)
 	_root.add_child(close_b)
-	var shutter := _button("fotka_shutter", "FOTKA", "photo", Vector2(84, 84), true)
+	var shutter := _button("fotka_shutter", "FOTKA", "PHOTO", Vector2(84, 84), true)
 	shutter.position = Vector2(safe.end.x - m - shutter.size.x, safe.end.y - m - shutter.size.y)
 	shutter.pressed.connect(func() -> void: shoot())
 	_root.add_child(shutter)
@@ -307,9 +305,10 @@ func build_ui() -> void:
 	lines.add_theme_constant_override("separation", 0)
 	lines.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	plate.add_child(lines)
-	lines.add_child(_label("FOTKA", T_TITLE, ACCENT))
-	_hint_pl = _label("Przeciągnij palcem, by obrócić widok.", T_SUB, INK)
-	_hint_en = _label("Drag one finger to turn the view.", T_LABEL, SUB)
+	lines.add_child(_label(Lang.pick("FOTKA", "PHOTO"), T_TITLE, ACCENT))
+	_hint_pl = _label(Lang.pick("Przeciągnij palcem, by obrócić widok.", "Drag one finger to turn the view."), T_SUB, INK)
+	_hint_en = _label("", T_LABEL, SUB)
+	_hint_en.visible = false
 	lines.add_child(_hint_pl)
 	lines.add_child(_hint_en)
 	plate.position = Vector2(safe.position.x + m, safe.position.y + m)
@@ -397,12 +396,12 @@ func shoot() -> String:
 	if log_on:
 		print("fotka: saved %s (%dx%d)" % [ProjectSettings.globalize_path(path) if path != "" else "nothing (no image here)",
 				img.get_width() if img != null else 0, img.get_height() if img != null else 0])
-	var said := ["ZAPISANO · saved", ""]
+	var said := [Lang.pick("ZAPISANO", "SAVED"), ""]
 	if not k.is_empty():
 		said = _kadr(k, path)
 	elif log_on:
 		print("kadr: none (%s)" % kadr_miss())
-	_saved.text = said[0] if said[1] == "" else "%s\n%s" % [said[0], said[1]]
+	_saved.text = said[0] if said[1] == "" else Lang.pick(said[0], said[1])
 	_saved.visible = true
 	_saved_left = 2.5
 	return path
@@ -425,7 +424,7 @@ func _kadr(k: Dictionary, path: String) -> Array:
 		hud.notebook_changed()
 	print("kadr: %d ok (%s%s)" % [n, id, ", first: +%d respect" % KADR_RESPECT if first else ""])
 	var name: Array = k["name"]
-	return ["KADR! %s%s" % [name[0], " · +%d ★" % KADR_RESPECT if first else ""], "Got the shot! %s" % name[1]]
+	return ["KADR! %s%s" % [name[0], " · +%d ★" % KADR_RESPECT if first else ""], "Got the shot! %s%s" % [name[1], " · +%d ★" % KADR_RESPECT if first else ""]]
 
 
 ## The Kadr spot in this view now ({} for none): open, at its time of day, its subject inside the

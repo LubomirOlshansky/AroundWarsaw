@@ -47,6 +47,7 @@ loop 2b row in docs/ROADMAP.md, and say so in your report.
 | --- | --- |
 | Bench route | `godot --path . --disable-vsync -- --bench --nosave` (+ `--time=night`, `--weather=rain --time=night`) |
 | One view, standing still | `godot --path . --resolution 2532x1170 --fixed-fps 60 -- --probe --nosave --at=X,Z --heading=DEG` |
+| The railway (trains, catenary, Most Średnicowy) | the same + `--at=171,89 --train=171,89` (Powiśle) or `--at=1148,-720 --train=1148,-720` (the bridge) |
 | Rank single costs | `--exp=a,b` switches named costs off (see `main.gd` / `bench.gd` for the names) |
 | Frame cap | `--fps=0` uncapped, `--fps=60` / `--fps=30` |
 | On the phone | the BENCH button (performance overlay or Settings) shows a card; COPY puts it on the clipboard; or the device-run skill |

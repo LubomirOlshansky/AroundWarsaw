@@ -14,6 +14,7 @@ const CityMaps := preload("res://scripts/city_maps.gd")
 ## Loop 2c: the parked cars' mesh and paints come from the vehicles' models (one source).
 const Models := preload("res://scripts/models.gd")
 const Trains := preload("res://scripts/trains.gd")
+const MapEdge := preload("res://scripts/map_edge.gd")
 ## Tile size for instanced things (trees, lamps, parked cars). Loop 2b: 512 m (was 256): one
 ## MultiMesh is one draw call, and the iPhone pays per draw call, not per instance.
 const INSTANCE_TILE := 512.0
@@ -300,6 +301,9 @@ func setup_streamed(index: Dictionary, building_mat: ShaderMaterial, flat_mat: S
 	_index_raised()
 	_make_shared()
 	_build_edge_walls()
+	var edge: Node3D = MapEdge.build(self)
+	if edge != null:
+		add_child(edge)
 
 
 ## Loop 3c: each sector's lowest ground (- 20 m: tunnels, the river bed) and its highest roof
@@ -571,6 +575,7 @@ func _build_parts(marks, roofs_only: bool) -> void:
 	_build_portals(walls)
 	_build_rail_portals(walls)
 	_build_catenary(walls)
+	_build_srednicowy(walls)
 	_build_garage_doors(walls)
 	_build_guard_rails(walls)
 	_build_shore()
@@ -1633,6 +1638,173 @@ func _mast(st, p: Vector2, out: Vector2, d: Vector2, y: float) -> void:
 	_box_oriented(st, Vector3(mid.x, y + CATENARY_H + 0.35, mid.y), sideways, Vector3(0.12, 0.12, MAST_OUT + 0.4), MAST_COL.darkened(0.15))
 	_box_oriented(st, Vector3(mid.x, y + CATENARY_H + 1.2, mid.y), sideways, Vector3(0.08, 0.08, MAST_OUT + 0.2), MAST_COL.darkened(0.15))
 	_box_oriented(st, Vector3(p.x, y + CATENARY_H + 0.2, p.y), arm, Vector3(0.06, 0.4, 0.06), WIRE_COL)
+
+
+## Railway L4 (Mac photo check 2026-11-01): Most Średnicowy, the cross-city line's bridge over
+## the Vistula. The real one is steel arch-truss spans (a shallow arch for the bottom chord,
+## verticals and diagonals under the deck) on a few massive stone piers; the bake gives it the
+## rows of thin piers every road bridge gets. Over the river and the Praga floodplain those are
+## skipped (`_srednicowy_skips`) and this draws granite piers with cutwaters and the trusses
+## between them, in the walls surface (no new draw calls). Found from the deck piece that starts
+## at MS_A; a bake without it keeps the thin piers.
+const MS_A := Vector2(746.8, -389.1)
+## Along the bridge from MS_A: the stone piers (the bake's pier rows at 96, 172 ... 476 m).
+const MS_PIERS: Array[float] = [96.0, 172.0, 248.0, 324.0, 400.0, 476.0]
+## Across it (from MS_A's track, + towards the north-east side): the four truss planes, two per
+## pair of tracks, and the piers' sides.
+const MS_TRUSS: Array[float] = [-10.9, -3.5, -1.3, 5.7]
+const MS_SIDE := Vector2(-13.0, 7.8)
+const MS_HALF := 3.5        ## half a pier's thickness along the bridge
+const MS_DEPTH_END := 8.0   ## truss depth over a pier (the arch's springing)
+const MS_DEPTH_MID := 2.4   ## and at mid-span (the arch's crown)
+const MS_PANELS := 10
+const MS_STEEL := Color("#58625d")
+const MS_STONE := Color("#a59d90")
+
+
+## The bridge's frame [origin, along, across, deck group], or [] when the bake has no such deck.
+func _srednicowy_frame() -> Array:
+	for d: Dictionary in _decks:
+		if d["k"] != "rail":
+			continue
+		var pts: PackedVector2Array = d["pts"]
+		if pts[0].distance_to(MS_A) < 2.0 and pts[0].distance_to(pts[pts.size() - 1]) > 400.0:
+			var u := (pts[pts.size() - 1] - pts[0]).normalized()
+			return [pts[0], u, Vector2(-u.y, u.x), int(d["g"])]
+	return []
+
+
+## True for a bake pier the stone piers and trusses replace.
+func _srednicowy_skips(f: Array, c: Vector2) -> bool:
+	if f.is_empty():
+		return false
+	var q: Vector2 = c - f[0]
+	var s: float = q.dot(f[1])
+	var t: float = q.dot(f[2])
+	return s > MS_PIERS[0] - 20.0 and s < MS_PIERS[MS_PIERS.size() - 1] + 20.0 and t > MS_SIDE.x - 2.0 and t < MS_SIDE.y + 2.0
+
+
+func _build_srednicowy(st) -> void:
+	var f := _srednicowy_frame()
+	if f.is_empty():
+		return
+	_uv2 = Vector2(0.5, -1.0)
+	var o: Vector2 = f[0]
+	var u: Vector2 = f[1]
+	var n: Vector2 = f[2]
+	var g: int = f[3]
+	var u3 := Vector3(u.x, 0.0, u.y)
+	var n3 := Vector3(n.x, 0.0, n.y)
+	var mid_t := (MS_SIDE.x + MS_SIDE.y) * 0.5
+	for s: float in MS_PIERS:
+		var c := o + u * s + n * mid_t
+		if _in_sector and not _sector_rect.has_point(c):
+			continue
+		var top := deck_height(g, c.x, c.y) - 1.4 - MS_DEPTH_END - 0.45
+		_ms_pier(st, o, u, n, s, top)
+	for k in MS_PIERS.size() - 1:
+		var s0: float = MS_PIERS[k] + MS_HALF
+		var s1: float = MS_PIERS[k + 1] - MS_HALF
+		for t: float in MS_TRUSS:
+			var tops: Array[Vector3] = []
+			var bots: Array[Vector3] = []
+			for i in MS_PANELS + 1:
+				var a := float(i) / MS_PANELS
+				var p := o + u * lerpf(s0, s1, a) + n * t
+				var yt := deck_height(g, p.x, p.y) - 1.4
+				var depth := MS_DEPTH_MID + (MS_DEPTH_END - MS_DEPTH_MID) * pow(2.0 * a - 1.0, 2.0)
+				tops.append(Vector3(p.x, yt, p.y))
+				bots.append(Vector3(p.x, yt - depth, p.y))
+			for i in MS_PANELS:
+				var m := (tops[i] + bots[i + 1]) * 0.5
+				if _in_sector and not _sector_rect.has_point(Vector2(m.x, m.z)):
+					continue  # the sector holding the panel's middle draws it
+				_ms_strut(st, tops[i] + Vector3.DOWN * 0.4, tops[i + 1] + Vector3.DOWN * 0.4, 0.6, 0.8, n3)
+				_ms_strut(st, bots[i], bots[i + 1], 0.7, 0.9, n3)
+				if i > 0:
+					_ms_strut(st, bots[i], tops[i], 0.45, 0.45, n3)
+				# Diagonals falling towards mid-span, as in a Pratt truss.
+				if i * 2 < MS_PANELS:
+					_ms_strut(st, tops[i], bots[i + 1], 0.35, 0.35, n3)
+				else:
+					_ms_strut(st, bots[i], tops[i + 1], 0.35, 0.35, n3)
+			# The end posts over the piers.
+			for i in [0, MS_PANELS]:
+				var e: Vector3 = bots[i]
+				if not _in_sector or _sector_rect.has_point(Vector2(e.x, e.z)):
+					_ms_strut(st, bots[i] + Vector3.DOWN * 0.45, tops[i], 0.7, 0.7, n3)
+		# Cross beams between each pair's two planes at the bottom chord, every other panel point.
+		for pair in [[MS_TRUSS[0], MS_TRUSS[1]], [MS_TRUSS[2], MS_TRUSS[3]]]:
+			for i in range(1, MS_PANELS, 2):
+				var a := float(i) / MS_PANELS
+				var s := lerpf(s0, s1, a)
+				var p0 := o + u * s + n * float(pair[0])
+				var p1 := o + u * s + n * float(pair[1])
+				var pm := (p0 + p1) * 0.5
+				if _in_sector and not _sector_rect.has_point(pm):
+					continue
+				var depth := MS_DEPTH_MID + (MS_DEPTH_END - MS_DEPTH_MID) * pow(2.0 * a - 1.0, 2.0)
+				var y := deck_height(g, pm.x, pm.y) - 1.4 - depth
+				_ms_strut(st, Vector3(p0.x, y, p0.y), Vector3(p1.x, y, p1.y), 0.4, 0.5, u3)
+	_uv2 = Vector2.ZERO
+
+
+## A steel member from a to b, w wide (along `side`, horizontal) and h deep.
+func _ms_strut(st, a: Vector3, b: Vector3, w: float, h: float, side: Vector3) -> void:
+	var z := b - a
+	var length := z.length()
+	if length < 0.05:
+		return
+	z /= length
+	var x := (side - z * side.dot(z)).normalized()
+	var basis := Basis(x, z.cross(x), z)
+	_box_oriented(st, (a + b) * 0.5, basis, Vector3(w, h, length), MS_STEEL)
+
+
+## One granite pier at s along the bridge, from below the ground to `top`: a long block across
+## the bridge's whole width with a pointed cutwater at each end, a paler cap, solid for the car.
+func _ms_pier(st, o: Vector2, u: Vector2, n: Vector2, s: float, top: float) -> void:
+	var local := [Vector2(-MS_HALF, MS_SIDE.x), Vector2(0.0, MS_SIDE.x - 2.5), Vector2(MS_HALF, MS_SIDE.x),
+			Vector2(MS_HALF, MS_SIDE.y), Vector2(0.0, MS_SIDE.y + 2.5), Vector2(-MS_HALF, MS_SIDE.y)]
+	var c := o + u * s + n * (MS_SIDE.x + MS_SIDE.y) * 0.5
+	var ground := INF
+	var poly := PackedVector2Array()
+	var cap := PackedVector2Array()
+	for q: Vector2 in local:
+		var p := o + u * (s + q.x) + n * q.y
+		poly.append(p)
+		cap.append(p + (p - c).normalized() * 0.45)
+		ground = minf(ground, terrain_height(p.x, p.y))
+	var y0 := ground - 1.5
+	var y1 := top - 0.7
+	for ring in [[poly, y0, y1, MS_STONE], [cap, y1, top, MS_STONE.lightened(0.12)]]:
+		var pts: PackedVector2Array = ring[0]
+		var lo: float = ring[1]
+		var hi: float = ring[2]
+		var col: Color = ring[3]
+		for i in pts.size():
+			var a := pts[i]
+			var b := pts[(i + 1) % pts.size()]
+			var e := (b - a).normalized()
+			var nn := Vector2(e.y, -e.x)
+			if nn.dot((a + b) * 0.5 - c) < 0.0:
+				nn = -nn
+			# Courses: the shaft in bands a shade apart every 1.2 m, as dressed stone reads.
+			var y := lo
+			var band := 0
+			while y < hi - 0.01:
+				var y2 := minf(y + 1.2, hi) if pts == poly else hi
+				var shade := col.darkened(0.06) if band % 2 == 1 else col
+				_quad(st, Vector3(a.x, y, a.y), Vector3(b.x, y, b.y), Vector3(b.x, y2, b.y), Vector3(a.x, y2, a.y),
+						Vector3(nn.x, 0.0, nn.y), shade)
+				y = y2
+				band += 1
+		_fill(st, pts, hi, col.lightened(0.05))
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		_wall_faces.append_array([Vector3(a.x, y0, a.y), Vector3(b.x, y0, b.y), Vector3(b.x, top, b.y),
+				Vector3(a.x, y0, a.y), Vector3(b.x, top, b.y), Vector3(a.x, top, a.y)])
 
 
 ## Loop 3b: a garage door at each ramp top where R9 ended a service way (`garage_doors`): a
@@ -3596,7 +3768,10 @@ func _build_bridge_structures(st) -> void:
 				if (piers or d["k"] == "path" or d["k"] == "tram") and drop2 > 1.0:
 					_wall_faces.append_array([Vector3(k0.x, ya - 0.2, k0.y), Vector3(k1.x, yb - 0.2, k1.y), Vector3(k1.x, yb + 1.6, k1.y),
 							Vector3(k0.x, ya - 0.2, k0.y), Vector3(k1.x, yb + 1.6, k1.y), Vector3(k0.x, ya + 1.6, k0.y)])
+	var ms := _srednicowy_frame()
 	for p: Dictionary in data.get("decks", {}).get("piers", []):
+		if _srednicowy_skips(ms, Vector2(float(p["c"][0]), float(p["c"][1]))):
+			continue  # Most Średnicowy's stone piers stand here (`_build_srednicowy`)
 		_pier(st, p, concrete.darkened(0.1))
 	_uv2 = Vector2.ZERO
 	if not _in_sector:
@@ -4833,6 +5008,16 @@ func _osm_colour(value, fallback: Color) -> Color:
 	return c.lerp(fallback, 0.3)
 
 
+## A landmark keeps this spot clear of trees (landmarks.gd tree_free: Powiśle's saucer).
+func _tree_blocked(x: float, z: float) -> bool:
+	if _marks == null:
+		return false
+	for c: Array in _marks.tree_free:
+		if Vector2(x, z).distance_to(c[0]) < float(c[1]):
+			return true
+	return false
+
+
 func _build_trees() -> void:
 	var list: Array = data.get("trees", [])
 	var canopy: Array = CANOPY_AUTUMN if season == "autumn" else CANOPY_SUMMER
@@ -4844,6 +5029,8 @@ func _build_trees() -> void:
 	for i in range(0, list.size() - 3, 4):
 		var x := float(list[i])
 		var z := float(list[i + 1])
+		if _tree_blocked(x, z):
+			continue
 		var s := float(list[i + 2])
 		var h := fposmod(sin(x * 12.9898 + z * 78.233) * 43758.5453, 1.0)
 		var t := Transform3D(Basis(Vector3.UP, h * TAU).scaled(Vector3(s, s * (0.9 + h * 0.3), s)), Vector3(x, terrain_height(x, z) - 0.2, z))
@@ -4866,6 +5053,8 @@ func _build_trees() -> void:
 	for i in range(0, real.size() - 5, 6):
 		var x := float(real[i])
 		var z := float(real[i + 1])
+		if _tree_blocked(x, z):
+			continue
 		var f := float(crowns[i / 6]) / 100.0 if i / 6 < crowns.size() else 1.0
 		var base := minf(float(real[i + 4]), float(real[i + 2]) - 1.5)
 		var top := base + (float(real[i + 2]) - base) * f
@@ -5016,6 +5205,14 @@ func _make_shared() -> void:
 	for x in [-0.7, 0.7]:
 		_box(bench, Vector3(x, 0.22, 0), Vector3(0.08, 0.44, 0.45), Color("#2e3033"))
 	_shared["bench"] = bench.commit()
+	# The Chopin bench: black granite, a plain seat and a low back, the steel button on the arm.
+	var chopin := SurfaceTool.new()
+	chopin.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var granite := Color("#26282b")
+	_box(chopin, Vector3(0, 0.3, 0), Vector3(1.8, 0.6, 0.5), granite)
+	_box(chopin, Vector3(0, 0.8, 0.22), Vector3(1.8, 0.4, 0.1), granite)
+	_box(chopin, Vector3(0.82, 0.64, -0.1), Vector3(0.14, 0.04, 0.14), Color("#c4c8cc"))
+	_shared["bench_chopin"] = chopin.commit()
 	var bin := SurfaceTool.new()
 	bin.begin(Mesh.PRIMITIVE_TRIANGLES)
 	_box(bin, Vector3(0, 0.45, 0), Vector3(0.45, 0.9, 0.45), Color("#3e5a44"))
@@ -5294,7 +5491,13 @@ const CANDELABRA_HEAD := Vector3(0, 8.5, 0)
 ## The landmarks loop (Old Town): the historic districts (x, z, radius), the Old Town and the
 ## New Town, where GUGiK models a whole block of tenements as one building (Rynek's sides are
 ## 49 and 84 OpenStreetMap houses in one model), so it stood in one colour like a modern block.
-const HISTORIC := [Vector3(-760.0, -1680.0, 200.0), Vector3(-830.0, -1920.0, 170.0)]
+const HISTORIC := [Vector3(-760.0, -1680.0, 200.0), Vector3(-830.0, -1920.0, 170.0), Vector3(-724.2, -1465.4, 105.0)]
+## Plac Zamkowy's houses (F, 2026-11-01): OpenStreetMap's colours there are muddy (olive,
+## mustard, brown), so within PLAC_PALETTE_R of the column a house takes one of these pastels
+## (the rebuilt Old Town's cream, apricot, rose, sage, powder blue, sand), a quarter of the
+## mapped colour left in for variety.
+const PLAC_PALETTE_R := 110.0
+const PLAC_PASTELS := ["#ecd9a4", "#e9bda8", "#e3b5b0", "#c6d3b3", "#bfd2e0", "#efe4cf", "#e6cba0", "#d9c6d6"]
 ## Mariensztat (the Mariensztat review, 2026-11-01): the 1948-49 estate under the escarpment
 ## (Rynek Mariensztacki, Mariensztat, Sowia, Garbarska, Furmańska and lower Bednarska), small
 ## pastel houses under steep red tile roofs with dormers, so it takes the Old Town's dress too.
@@ -5310,7 +5513,11 @@ const MARIENSZTAT := [Vector2(-546.7, -1395.0), Vector2(-333.3, -1395.0), Vector
 const TENEMENTS := ["#d9a441", "#e1968f", "#ebe1d1", "#c8733f", "#efd9a0", "#a9b98a", "#9fb6cf",
 		"#f0c1ab", "#9c4a43", "#e8c07a", "#cf8c59", "#dcc9a3"]
 ## Their pitched roofs' tiles, half mixed into the aerial photo's colour (which reads pale pink).
-const TILES := ["#9c4a35", "#a85a3e", "#8a4434", "#b0603f", "#94503c"]
+const TILES := ["#9c4a35", "#a85a3e", "#8a4434", "#b0603f", "#94503c", "#7a3b30", "#c0714a", "#b2663a",
+		"#84483a", "#a4503a", "#5f6168", "#6b6d73", "#8c9299", "#6e8f80"]
+## G7: how often each tile appears (same order): terracotta ones common, slate and zinc grey and
+## the odd green copper rare.
+const TILE_WEIGHTS := [10, 10, 8, 8, 8, 5, 5, 5, 5, 5, 3, 2, 2, 1]
 ## Kinds whose walls keep their own colour there (the churches: a skin or brick of their own).
 const NOT_TENEMENTS := ["church", "cathedral", "chapel", "monastery", "convent", "religious"]
 
@@ -5465,9 +5672,12 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 		var hsh := absi(int(poly[0].x * 73.0 + poly[0].y * 31.0))
 		var k := polys.size()
 		polys.append(poly)
-		looks.append(_osm_colour(bld["c"], Color(TENEMENTS[hsh % TENEMENTS.size()])))
+		var look := _osm_colour(bld["c"], Color(TENEMENTS[hsh % TENEMENTS.size()]))
+		if box.get_center().distance_to(OldTownRoofs.PLAC) < PLAC_PALETTE_R:
+			look = Color(PLAC_PASTELS[hsh % PLAC_PASTELS.size()]).lerp(look, 0.25)
+		looks.append(look)
 		seeds.append(fposmod(hsh * 0.6180339887, 1.0))
-		roofs.append(Color(TILES[hsh % TILES.size()]))
+		roofs.append(_tile_colour(hsh))
 		for gx in range(floori(box.position.x / cell), floori(box.end.x / cell) + 1):
 			for gz in range(floori(box.position.y / cell), floori(box.end.y / cell) + 1):
 				var key := Vector2i(gx, gz)
@@ -5509,6 +5719,22 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 	return [col, uv2, dress]
 
 
+## G7: a house's roof colour from its hash: a weighted pick from TILES, then a lightness shift of
+## up to +-9 per cent so neighbours of one tile still differ.
+func _tile_colour(hsh: int) -> Color:
+	var total := 0
+	for w: int in TILE_WEIGHTS:
+		total += w
+	var pick := (hsh * 7) % total
+	var i := 0
+	while pick >= TILE_WEIGHTS[i]:
+		pick -= TILE_WEIGHTS[i]
+		i += 1
+	var shade := (float((hsh / 11) % 100) / 99.0 - 0.5) * 0.18
+	var col := Color(TILES[i])
+	return col.lightened(shade) if shade > 0.0 else col.darkened(-shade)
+
+
 ## Appends `extra` ("pos", "nrm", "col") to `dress`. Packed arrays are copies when read out of
 ## a Dictionary, so they are written back.
 func _add_dress(dress: Dictionary, extra: Dictionary) -> void:
@@ -5543,7 +5769,10 @@ func _gable_ends(pos: PackedVector3Array, nrm: PackedVector3Array) -> Dictionary
 
 func _near_square(at: Vector2) -> bool:
 	var d := at.distance_to(OldTownRoofs.RYNEK)
-	return d > OldTownRoofs.GABLE_NEAR and d < OldTownRoofs.GABLE_FAR
+	if d > OldTownRoofs.GABLE_NEAR and d < OldTownRoofs.GABLE_FAR:
+		return true
+	var p := at.distance_to(OldTownRoofs.PLAC)
+	return p > OldTownRoofs.PLAC_NEAR and p < OldTownRoofs.PLAC_FAR
 
 
 ## Stepped gables (OldTownRoofs.gable) on the top edge of a wall triangle `t` of a house round
@@ -5564,10 +5793,15 @@ func _square_gables(pos: PackedVector3Array, nrm: PackedVector3Array, t: int, po
 			continue  # not a top edge
 		var mid := (p + q) * 0.5
 		var at := Vector2(mid.x, mid.z)
-		# East side only (right of the square's centre), the front turned towards the square.
-		if not _near_square(at) or at.x < OldTownRoofs.RYNEK.x + 8.0 or covered.has(_edge_key(p, q)):
+		if covered.has(_edge_key(p, q)) or not _near_square(at):
 			continue
-		if n.dot(Vector3(OldTownRoofs.RYNEK.x - mid.x, 0.0, OldTownRoofs.RYNEK.y - mid.z).normalized()) < 0.6:
+		# Rynek: the east side only (right of the square's centre), the front turned towards it.
+		# Plac Zamkowy: every front turned towards the column, in a mix of gable kinds.
+		var on_plac := at.distance_to(OldTownRoofs.PLAC) < OldTownRoofs.PLAC_FAR
+		var centre := OldTownRoofs.PLAC if on_plac else OldTownRoofs.RYNEK
+		if not on_plac and at.x < OldTownRoofs.RYNEK.x + 8.0:
+			continue
+		if n.dot(Vector3(centre.x - mid.x, 0.0, centre.y - mid.z).normalized()) < 0.6:
 			continue
 		var length := p.distance_to(q)
 		var bays := maxi(1, roundi(length / OldTownRoofs.GABLE_BAY))
@@ -5583,7 +5817,7 @@ func _square_gables(pos: PackedVector3Array, nrm: PackedVector3Array, t: int, po
 					wall = looks[h]
 					seed = seeds[h]
 					break
-			var extra := OldTownRoofs.gable(a, b, n, wall, seed)
+			var extra := OldTownRoofs.plac_gable(a, b, n, wall, seed) if on_plac else OldTownRoofs.gable(a, b, n, wall, seed)
 			if not extra.is_empty():
 				_add_dress(dress, extra)
 
@@ -5849,7 +6083,9 @@ func _build_props() -> void:
 	_make_shared()
 	var metal: Material = _shared["prop_metal"]
 	var none: Array[Color] = []
-	_props(_shared["bench"], metal, data.get("benches", []), 0.0, none, true)
+	var split := _split_chopin_benches(data.get("benches", []))
+	_props(_shared["bench"], metal, split[0], 0.0, none, true)
+	_props(_shared["bench_chopin"], metal, split[1], 0.0, none, true)
 	_props(_shared["bin"], metal, data.get("bins", []), 0.0, none, true)
 	_props(_shared["rack"], metal, data.get("bikes", []), 0.0, none, true)
 	var tints: Array[Color] = []
@@ -5862,6 +6098,47 @@ func _build_props() -> void:
 	glows.resize(shelters.size() / 3)
 	glows.fill(SHELTER_GLOW)
 	_props(_shared["shelter"], _shared["fixture"], shelters, 4.0, none, false, glows)
+
+
+## The Royal Route's black granite benches (the Chopin benches, with the button that plays him):
+## the benches within CHOPIN_REACH m of Krakowskie Przedmieście or Nowy Świat, split from the
+## rest as [other triples, Chopin triples]. A 32 m grid of the two streets' segments keeps it
+## to a few thousand lookups at load.
+const CHOPIN_REACH := 14.0
+const CHOPIN_STREETS := ["Krakowskie Przedmieście", "Nowy Świat"]
+
+
+func _split_chopin_benches(list: Array) -> Array:
+	var cells := {}
+	for r: Dictionary in data.get("roads", []):
+		if not CHOPIN_STREETS.has(str(r.get("name", ""))):
+			continue
+		var p: Array = r["p"]
+		for i in range(0, p.size() - 3, 2):
+			var seg := [float(p[i]), float(p[i + 1]), float(p[i + 2]), float(p[i + 3])]
+			var x0 := floori((minf(seg[0], seg[2]) - CHOPIN_REACH) / 32.0)
+			var x1 := floori((maxf(seg[0], seg[2]) + CHOPIN_REACH) / 32.0)
+			var z0 := floori((minf(seg[1], seg[3]) - CHOPIN_REACH) / 32.0)
+			var z1 := floori((maxf(seg[1], seg[3]) + CHOPIN_REACH) / 32.0)
+			for cx in range(x0, x1 + 1):
+				for cz in range(z0, z1 + 1):
+					var key := Vector2i(cx, cz)
+					if not cells.has(key):
+						cells[key] = []
+					(cells[key] as Array).append(seg)
+	var rest := []
+	var chopin := []
+	for i in range(0, list.size() - 2, 3):
+		var at := Vector2(float(list[i]), float(list[i + 1]))
+		var near := false
+		for seg: Array in cells.get(Vector2i(floori(at.x / 32.0), floori(at.y / 32.0)), []):
+			var c := Geometry2D.get_closest_point_to_segment(at, Vector2(seg[0], seg[1]), Vector2(seg[2], seg[3]))
+			if c.distance_to(at) <= CHOPIN_REACH:
+				near = true
+				break
+		var dest: Array = chopin if near else rest
+		dest.append_array([list[i], list[i + 1], list[i + 2]])
+	return [rest, chopin]
 
 
 ## Instances of one prop at (x, z, yaw) triples; props bigger than `solid` metres

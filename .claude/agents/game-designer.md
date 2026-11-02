@@ -6,6 +6,7 @@ model: opus
 effort: high
 skills:
   - warsaw-tone
+  - dialogue-scenes
 ---
 
 You are the game designer and writer on Around Warsaw: a free fan game, an isometric

@@ -18,6 +18,7 @@ extends Control
 ## under the top row; a bubble that finds no free spot above or below where it wanted to be
 ## keeps that spot (`overlaps` counts them, for tools/check_hud.gd).
 
+const Lang := preload("res://scripts/lang.gd")
 const Access := preload("res://scripts/access.gd")
 
 ## Loop 2b: time spent in this script's per-frame work since the bench last read it (µs).
@@ -79,6 +80,8 @@ func _px(points: float) -> int:
 func say(anchor: Variant, speaker: String, line: String, subtitle := "", seconds := 4.0,
 		accent := Color("#ffd23f"), height := 2.6) -> void:
 	accent = Access.tint(accent)  # colour-safe (access.gd)
+	line = Lang.pick(line, subtitle)  # one language (lang.gd)
+	subtitle = ""
 	hush(anchor)
 	var typing := line.length() / TYPE_RATE
 	var b := {"anchor": anchor, "speaker": speaker, "line": line, "sub": subtitle, "age": 0.0,
@@ -86,6 +89,25 @@ func say(anchor: Variant, speaker: String, line: String, subtitle := "", seconds
 	b["wide"] = _measure(b, WIDTH)
 	_bubbles.append(b)
 	queue_redraw()
+
+
+## Ambient chatter (crowds, dog walkers, bus stops...) keeps quiet while the player drives
+## faster than AMBIENT_MUTE_KMH; quest, police and rival lines use `say` and always show.
+const AMBIENT_MUTE_KMH := 40.0
+
+## Gives the player's speed in km/h (main.gd); unset means never muted.
+var kmh: Callable
+
+
+func muted() -> bool:
+	return kmh.is_valid() and float(kmh.call()) > AMBIENT_MUTE_KMH
+
+
+## `say` for ambient chatter: dropped while the player drives fast (G16).
+func say_ambient(anchor: Variant, speaker: String, line: String, subtitle := "", seconds := 4.0,
+		accent := Color("#ffd23f"), height := 2.6) -> void:
+	if not muted():
+		say(anchor, speaker, line, subtitle, seconds, accent, height)
 
 
 ## A bubble's size with its text wrapped `width` points wide: {size, name_h, line_h}.

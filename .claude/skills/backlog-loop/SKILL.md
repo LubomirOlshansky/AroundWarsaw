@@ -25,6 +25,11 @@ Take the first open item, top to bottom:
 5. `docs/BACKLOG.md`: fixes not yet triaged (the oldest section first), then notes that turned
    out to be fixes. Decisions are parked questions, not work.
 
+6. When all of that is done or blocked (F, 2026-11-01): go **street by street** through the
+   centre. Analyse every landmark on the street, improve its houses, roads, parks, furniture and
+   people, with the landmark lane's approach (photos when there are any, a spec, shots against
+   them), and keep the city alive and real. Record what each street still lacks in BACKLOG.
+
 Skip an item when its lane is taken (section 3), when it waits on a parked question, or when
 it needs something only the user can give (section 4). Skipping is not stopping: take the
 next one.
