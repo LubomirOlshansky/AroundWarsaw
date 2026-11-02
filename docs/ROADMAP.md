@@ -95,7 +95,8 @@ then the Launch gate.
 ### Left: landmarks and street details
 - [ ] Krajobraz places (F, 2026-11-02; docs/design/krajobraz-places.md, BACKLOG "Krajobraz places"): the newest public spaces as built
   - [x] K1 ul. Bracka's woonerf: its 22 missing young trees planted in the mapped beds (33 in all)
-  - [ ] K2 Chmielna, K3 Varso Place, K4 Świętokrzyska, K5 Rondo Daszyńskiego plazas, K6 Browary/Norblin gardens, K7 the boulevards' pavilions, K8 Arkadia's playground, K9 the stadium's grounds; K10 Muzeum Historii Polski is off the map (QUESTIONS)
+  - [x] K7 Bulwary Wiślane: the splash pool and three fish (site `bulwary_basen`, spec bulwary_basen.md; the pavilions are the boulevard dressing lane)
+  - [ ] K2 Chmielna, K3 Varso Place, K4 Świętokrzyska, K5 Rondo Daszyńskiego plazas, K6 Browary/Norblin gardens, K8 Arkadia's playground, K9 the stadium's grounds; K10 Muzeum Historii Polski is off the map (QUESTIONS)
 - [x] Stadion Leguminy (Legia's ground on Łazienkowska, F, 2026-11-01): modelled from the mapped bowl outline (site `legia`, spec legia.md); Mac photo check parked (QUESTIONS)
 
 - [x] All churches designed by one set of rules (F, 2026-11-01; rules and inventory in

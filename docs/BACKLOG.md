@@ -25,8 +25,9 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
   benches on terraces), Generation Park's and Mennica Legacy Tower's plazas (Sonnet, Opus spec).
 - [ ] K6 Browary Warszawskie's Central Garden over the Leżakownia and Norblin's candelabra
   planes and climbers (Sonnet; with "Norblin, Browary" below).
-- [ ] K7 Bulwary Wiślane stages 1-2: the 6 floating pavilions, the splash pool, the Vistula fish,
-  the amphitheatre and trampolines, checked against the orthophoto (Sonnet).
+- [x] K7 Bulwary Wiślane stages 1-2 (2026-11-02, site `bulwary_basen`, spec bulwary_basen.md): the
+  splash pool and 3 fish (the 6 pavilions are the boulevard dressing, PR #310). Left: the amphitheatre, trampolines and the "living river"
+  garden (not in OSM, need the orthophoto), and the Mac look check (QUESTIONS).
 - [ ] K8 Arkadia's playground (Al. Jana Pawła II 82, 2018): the ribbon rope course, trampolines,
   the wooden bench-sculpture, lamps on cables (Sonnet, small).
 - [ ] K9 Stadion Narodowy's grounds: entrance avenues, tree rows, pollarded willows (Sonnet, small).
