@@ -433,6 +433,7 @@ func _check_full_map(hud: CanvasLayer, tag: String) -> int:
 	var fm: Control = hud.full_map
 	if not fm.rects().has("goal"):
 		problems.append("%s: no goal card for the main line" % where)
+	await _check_quest_card(fm, where, pt, safe)
 	# Loop 3h slice 3: the DRABINKA card (a ladder half way up, the longest rows).
 	var lw := Wallet.new()
 	lw.persistent = false
@@ -502,6 +503,76 @@ func _check_full_map(hud: CanvasLayer, tag: String) -> int:
 		print("  %s: ✕ %s, head %s, hint %s; pan %.0f px, pinch %.2f×" % [where, _pts(rs["close"], pt), _pts(rs["head"], pt),
 				_pts(rs["hint"], pt), moved, fm.ppm / ppm0])
 	return 1
+
+
+## G12 part 2: the ZADANIA card (full_map.gd `set_quests`) with the longest names: inside the safe
+## area, clear of the other cards, its tabs and rows MIN_TOUCH tall; the HELI tab lists only heli
+## quests; a tapped place becomes the pin and emits it, tapped again the pin goes; a request emits
+## and closes the map; the ≡ cards take its place.
+func _check_quest_card(fm: Control, where: String, pt: float, safe: Rect2) -> void:
+	const L := preload("res://scripts/quest_lines.gd")
+	var e: Array = [
+		L.entry("ride", "ride", L.Line.CAR, "Podwózka · poproś o kurs", "Podwózka · ask for a ride", Vector2.INF,
+				Color("#4fd8c4"), "ride"),
+		L.entry("garage", "garage", L.Line.CAR, "Warsztat u Mirka", "Mirek's garage", Vector2(400, 300), Color("#5aa0ff")),
+		L.entry("k", "kebab", L.Line.CAR, "Kebab · Zakwas I Rożen", "Kebab · Zakwas I Rożen", Vector2(-1800, -2400),
+				Color("#ff8a3d")),
+		L.entry("s", "sloik", L.Line.CAR, "Słoiki · Dworzec Gdański", "Jars · Dworzec Gdański", Vector2(-2000, -2700),
+				Color("#4fd8c4")),
+		L.entry("call", "call", L.Line.HELI, "Wezwanie · ratunek z helikoptera", "Rescue call · by helicopter",
+				Vector2.INF, L.HELI_COLOUR, "call"),
+		L.entry("c1", "cassette", L.Line.HELI, "Kaseta · Dach Pałacu Kultury", "Cassette · The Palace roof",
+				Vector2(900, -100), Color("#ff5fa2")),
+	]
+	fm.set_quests(e, L.Line.CAR)
+	await process_frame
+	var rs: Dictionary = fm.rects()
+	if not rs.has("quests"):
+		problems.append("%s: no ZADANIA card" % where)
+		return
+	if not safe.grow(0.5).encloses(rs["quests"]):
+		problems.append("%s: the ZADANIA card %s is outside the safe area %s" % [where, _pts(rs["quests"], pt), _pts(safe, pt)])
+	for k in rs:
+		if k != "quests" and (rs[k] as Rect2).intersects(rs["quests"]):
+			problems.append("%s: the ZADANIA card and %s overlap" % [where, k])
+	var tabs: Array = fm.get("_tab_buttons")
+	var rows: Array = fm.get("_quest_buttons")
+	if rows.size() != 4:
+		problems.append("%s: the car tab shows %d rows (want 4)" % [where, rows.size()])
+	for b: Button in tabs + rows:
+		if b.get_global_rect().size.y < MIN_TOUCH * pt - 0.5:
+			problems.append("%s: ZADANIA %s is %.0f pt tall (< %d)" % [where, b.name, b.get_global_rect().size.y / pt, MIN_TOUCH])
+	_check_fonts(fm.get("_quests"), where + " quests", pt)
+	(tabs[1] as Button).pressed.emit()
+	await process_frame
+	if fm.quest_line != L.Line.HELI or not fm.quest_rows.all(func(r: Dictionary) -> bool: return int(r["line"]) == L.Line.HELI):
+		problems.append("%s: the HELI tab lists car quests" % where)
+	var got: Array = []
+	var on_pick := func(x: Dictionary) -> void: got.append(x)
+	fm.quest_picked.connect(on_pick)
+	fm.pick_row(1)  # the cassette
+	if got.size() != 1 or str(got[0].get("id", "")) != "c1" or str(fm.quest_pick.get("id", "")) != "c1" \
+			or fm.centre.distance_to(Vector2(900, -100)) > 1.0:
+		problems.append("%s: a tapped place did not become the pin %s" % [where, got])
+	fm.pick_row(1)
+	if got.size() != 2 or not (got[1] as Dictionary).is_empty() or not fm.quest_pick.is_empty():
+		problems.append("%s: a second tap did not take the pin off" % where)
+	(fm.get("_cards") as Button).pressed.emit()
+	await process_frame
+	if fm.rects().has("quests"):
+		problems.append("%s: the ZADANIA card stays under the ≡ cards" % where)
+	(fm.get("_cards") as Button).pressed.emit()
+	await process_frame
+	fm.pick_row(0)  # the rescue call: a request closes the map
+	if got.size() != 3 or str(got[2].get("action", "")) != "call" or fm.visible:
+		problems.append("%s: a request did not emit and close the map" % where)
+	fm.quest_picked.disconnect(on_pick)
+	fm.set_quests([], L.Line.CAR)
+	var hud: CanvasLayer = fm.hud
+	hud.open_full_map(Vector2(10.0, 20.0), 0.5, PackedVector2Array([Vector2(100.0, 50.0)]))
+	await process_frame
+	if verbose:
+		print("  %s: ZADANIA %s" % [where, _pts(rs["quests"], pt)])
 
 
 ## F's ask (2026-10-31): the full map's hold to teleport. Held HOLD_S still, it emits `teleport`

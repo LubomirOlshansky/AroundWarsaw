@@ -531,6 +531,9 @@ var start_heat := -1.0
 var craft_plain := false
 # --- loop 2d-1: Podwózka (rides.gd) and its testing flags ---
 var rides: Rides
+## G12 part 2: the quest pin, a place picked on the full map's ZADANIA card (quest_lines.gd entry;
+## {} none): the arrow and minimap dot point at it while nothing else is on, until it is reached.
+var quest_pin: Dictionary = {}
 ## --ride=N: ride N's request, the car by its passenger; --ride-quirk=, --passenger=, --stars=X
 ## (the live rating's start), --ignore-app (the autopilot drives the shortest road, not the
 ## app's), --parody-log (`ride:` and `gps:` lines).
@@ -646,6 +649,9 @@ var open_settings_at_start := false
 ## F's asks (2026-10-30): --fullmap opens the full-screen map at the start (screenshots).
 var open_map_at_start := false
 var fullmap_span := 0.0
+## G12 part 2, --quest-pick=N (tests, shots): the full map opens at the start and row N of the
+## ZADANIA tab shown (the vehicle's) is tapped; a place's pick then closes the map.
+var quest_pick_flag := -1
 var map_jump := Vector2.INF
 var hold_stick := Vector2.INF
 var hold_pedal := ""
@@ -3792,6 +3798,9 @@ func _parse_args() -> void:
 			# 2026-10-31: the full map's hold-to-teleport to x,z once the drive starts (tests).
 			var xz := arg.trim_prefix("--map-jump=").split(",")
 			map_jump = Vector2(float(xz[0]), float(xz[1]))
+		elif arg.begins_with("--quest-pick="):
+			quest_pick_flag = int(arg.trim_prefix("--quest-pick="))
+			open_map_at_start = true
 		elif arg == "--fullmap" or arg.begins_with("--fullmap="):
 			open_map_at_start = true
 			# --fullmap=M (2026-10-31): open it M metres across the screen's height (shots).
@@ -4222,10 +4231,70 @@ func _open_full_map() -> void:
 				syrenki.entries.size() if syrenki != null else 0)  # loop 3h slice 1 (+ slice 2: the Syrenki line)
 	if rivals != null:
 		hud.full_map.set_ladder(rivals.ladder_rows())  # loop 3h slice 3: the DRABINKA card
+	hud.full_map.set_quests(_quest_entries(), Lines.Line.HELI if flying else Lines.Line.CAR,
+			str(quest_pin.get("id", "")))  # G12 part 2: the ZADANIA card
 	if not hud.full_map.closed.is_connected(_close_full_map):
 		hud.full_map.closed.connect(_close_full_map)
 		hud.full_map.teleport.connect(_teleport_from_map)
+		hud.full_map.quest_picked.connect(_on_quest_picked)
+	if quest_pick_flag >= 0:
+		var rows: Array = hud.full_map.quest_rows
+		print("quest list: %d rows on the %s tab: %s" % [rows.size(), "HELI" if flying else "AUTO",
+				", ".join(rows.map(func(r: Dictionary) -> String: return "%s %s" % [r["id"], r["far"][1]]))])
+		hud.full_map.pick_row(quest_pick_flag)
+		quest_pick_flag = -1
+		if hud.full_map.is_open():
+			hud.full_map.close()
 		hud.full_map.can_teleport = _teleport_refusal
+
+
+## G12 part 2: what the ZADANIA card lists now (quest_lines.gd entries). AUTO: the kebab stands,
+## the słoiki stations and the Leżak depots (jobs.gd `offer_places`), Warsztat u Mirka, and "ask for
+## a ride" (Podwózka's rule). HELI: the cassettes on the roofs not taken, and "a rescue call" (one
+## only the helicopter reaches). Nothing while a race, a job or a rescue is on.
+func _quest_entries() -> Array:
+	var out: Array = []
+	if (rivals != null and rivals.busy()) or (missions != null and missions.has_target()):
+		return out
+	if jobs != null:
+		for p: Dictionary in jobs.offer_places():
+			out.append(Lines.entry("%s_%.0f_%.0f" % [p["group"], p["at"].x, p["at"].y], str(p["group"]), Lines.Line.CAR,
+					str(p["name"][0]), str(p["name"][1]), p["at"], p["colour"]))
+		if jobs.busy():
+			return out
+	if rides != null and rides.can_request():
+		out.append(Lines.entry("ride", "ride", Lines.Line.CAR, "Podwózka · poproś o kurs", "Podwózka · ask for a ride",
+				Vector2.INF, Rides.COLOUR, "ride"))
+	if garage != null and garage.at != Vector3.INF:
+		out.append(Lines.entry("garage", "garage", Lines.Line.CAR, "Warsztat u Mirka", "Mirek's garage",
+				Vector2(garage.at.x, garage.at.z), Garage.GARAGE_COLOUR))
+	if missions != null and missions.can_request():
+		out.append(Lines.entry("call", "call", Lines.Line.HELI, "Wezwanie · ratunek z helikoptera",
+				"Rescue call · by helicopter", Vector2.INF, Lines.HELI_COLOUR, "call"))
+	if cassettes != null and cassettes.ready_ok:
+		for c: Dictionary in cassettes.entries:
+			var at: Vector3 = c.get("pos", Vector3.INF)
+			if at == Vector3.INF or cassettes.is_taken(str(c["id"])):
+				continue
+			var nm: Array = c.get("name", ["", ""])
+			out.append(Lines.entry("cassette_" + str(c["id"]), "cassette", Lines.Line.HELI, "Kaseta · %s" % nm[0],
+					"Cassette · %s" % nm[1], Vector2(at.x, at.z), Cassettes.COLOUR))
+	return out
+
+
+## G12 part 2: a row of the ZADANIA card: a request starts now (the map has closed: a ride's
+## request, or a heli rescue call's card), a place becomes the quest pin ({}: the pin goes).
+func _on_quest_picked(e: Dictionary) -> void:
+	match str(e.get("action", "")):
+		"ride":
+			rides.request()
+			quest_pin = {}
+		"call":
+			missions.request_call(true)
+			quest_pin = {}
+		_:
+			quest_pin = e
+	print("quest list: %s" % (str(e["id"]) if not e.is_empty() else "pin off"))
 
 
 ## F's ask (2026-10-31): why a hold on the full map can't teleport now ([pl, en]), or [] when it
@@ -5628,6 +5697,25 @@ func _show_target() -> void:
 		_put_target(Vector2(j.x, j.z), jobs.target_colour(), _guide_on())
 		_new_target("job", j)
 		return
+	# G12 part 2: the quest pin picked on the full map, while nothing else is on; reached, it goes.
+	if not quest_pin.is_empty() and not missions.has_target():
+		var qp: Vector2 = quest_pin["at"]
+		var at_q := _vehicle_position()
+		var cassette := str(quest_pin["group"]) == "cassette"
+		var cid := str(quest_pin["id"]).trim_prefix("cassette_")
+		if (cassettes.is_taken(cid) if cassette else Lines.pin_reached(quest_pin, Vector2(at_q.x, at_q.z))):
+			print("quest list: pin %s reached" % quest_pin["id"])
+			quest_pin = {}
+		elif Lines.shows(int(quest_pin["line"]), flying):
+			var mq := roundi(Vector2(qp.x - at_q.x, qp.y - at_q.z).length())
+			var yq: float = map.ground_height(qp.x, qp.y) + 3.5
+			if cassette:
+				yq = cassettes.at(cassettes.index_of(cid)).y + 3.5
+			var on_q := cam.unproject_position(Vector3(qp.x, yq, qp.y)) * float(view.stretch_shrink)
+			var cq: Color = quest_pin["colour"]
+			hud.set_target(on_q, "%d m" % mq, cq, mq > 12)
+			_put_target(qp, cq, false)
+			return
 	# Loop 3h slice 4: the guide's arrow (the first stand, the boulevard tape, Powiśle, the garage).
 	if not missions.has_target() and first10 != null and first10.hint_shown():
 		var fp: Vector3 = first10.hint_at
