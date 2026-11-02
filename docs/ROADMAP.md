@@ -227,8 +227,8 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
       entrances (what stays, what stops colliding, what goes) (Opus)
 - [ ] G6 Under-the-bridge entries (owned by the bridge joins thread; report in BACKLOG)
 - [x] G7 Old Town roofs less repetitive (the dormer and tile pattern) (Sonnet) (2026-11-01, tile tones, dormer/skylight/chimney variants)
-- [ ] G8 Bus stops on the kerb; buses dwell about ten seconds, people get off and on, people wait (Opus)
-- [ ] G9 Street furniture (chairs, benches) placed where it belongs, not at random (Sonnet)
+- [x] G8 Bus stops on the kerb; buses dwell about ten seconds, people get off and on, people wait (2026-11-01; shelters snapped and turned by tools/snap_props.py, service in buses.gd; phone look check open)
+- [x] G9 Street furniture (chairs, benches) placed where it belongs, not at random (2026-11-01; benches face the walk, cafe sets only on a shopfront, tools/check_stops.py)
 - [x] G10 Podwózka off the main line: a visible rider icon and a START RIDE button with clear directions (Opus) · 2026-11-02, START KURS button within 25 m, bigger "!"; phone check open
 - [x] G11 Better map icons on the minimap and the full map (Sonnet) (2026-11-01, kind shapes, metro and hospital pins, legend; rider and heli icons ride with G10)
 - [x] G12 Separate quest lines: helicopter quests and car quests, each with its own list and map colour (Opus) · 2026-11-02, first pass: rescue calls follow the vehicle, heli colour, car arrows hide while flying; the notebook list and the car/heli split of mixed rescues are parked

@@ -34,6 +34,8 @@ someone writes its lines.
 - The football ground on Łazienkowska is a real stadium now (as "Stadion Leguminy"): a panelled facade under a red and green band, a white roof round an open middle, white, green and red stands round a striped pitch, floodlight masts at the corners and LEGUMINA in green neon, with a card.
 
 
+
+- Bus stops stand on the kerb now, turned to the road, and the buses really stop at them: about ten seconds, with passengers stepping off and the people waiting at the shelter getting on. Benches face the footpath, and café tables only stand against a shopfront.
 - Twenty-two more churches stand as real buildings with towers, steep roofs and a front door instead of plain boxes, and the houses round Plac Zamkowy are painted in Old Town pastels with a mix of gable shapes.
 
 
