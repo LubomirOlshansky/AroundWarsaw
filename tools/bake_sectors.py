@@ -114,7 +114,7 @@ SITE_NAMES = ["Pałac Kultury i Nauki", "Złote Tarasy", "Lumen", "Skylight", "R
               "Hotel Metropol",
               # Ujazdowski Castle (2026-11-01): a model on its mapped outline
               "Zamek Ujazdowski",
-              # HOTEL PIURE's rooftop sign LUŹNO (landmarks.gd _build_piure_sign reads its parts' height)
+              # HOTEL PIURE's rooftop sign LORETKA (landmarks.gd _build_loretka reads its parts' height)
               "Puro Warszawa Centrum",
               # Level 26, the rooftop club on the Atlas Tower (landmarks.gd _build_level26_club reads its crown)
               "Atlas Tower",
