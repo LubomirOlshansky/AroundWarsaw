@@ -127,7 +127,7 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 61 | Wola towers: The Bridge, Generation Park X and Z, Atlas Tower, Pekao Tower, Warsaw Towers | Grzybowska / Aleje Jerozolimskie / Sienna | office skyscrapers | ○ | The Bridge and Atlas are the table's; Pekao Tower and Warsaw Towers ✗; photo build |
 | 62 | Centrum LIM (Marriott) and Novotel | Aleje Jerozolimskie / Marszałkowska | hotel towers | ★ | Novotel from the Rondo photos; LIM's lit cells |
 | 63 | Błękitny Wieżowiec and Plac Bankowy | Plac Bankowy | skyscraper, square | ○ | photo check of the glass |
-| 64 | Plac Bankowy's palaces: Ratusz (OSM: Urząd Miasta Stołecznego Warszawy), Mazowiecki Urząd Wojewódzki, Gmach Giełdy i Banku Polskiego, Arsenał | Plac Bankowy / Długa | palaces | ○ | **photo build** of the colonnaded front (Corazzi's buildings) |
+| 64 | Plac Bankowy's palaces: Ratusz (OSM: Urząd Miasta Stołecznego Warszawy), Mazowiecki Urząd Wojewódzki, Gmach Giełdy i Banku Polskiego, Arsenał | Plac Bankowy / Długa | palaces | ○ | photos gathered ([ratusz](landmarks/photo-reports/ratusz.md)); **photo build** of the colonnaded front (Corazzi's buildings) |
 | 65 | Pomnik Juliusza Słowackiego and Pomnik Stefana Starzyńskiego | Plac Bankowy | monuments | ⏳ | photos gathered ([slowacki](landmarks/photo-reports/slowacki.md), [starzynski](landmarks/photo-reports/starzynski.md)); a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread |
 | 66 | Pomnik Bohaterów Warszawy (Nike) | Aleja Solidarności | monument | ⏳ | photos gathered ([nike](landmarks/photo-reports/nike.md)); a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread |
 | 67 | Pomnik Małego Powstańca and Pomnik Jana Kilińskiego | Podwale | monuments | ⏳ | photos gathered ([maly_powstaniec](landmarks/photo-reports/maly_powstaniec.md), [kilinski](landmarks/photo-reports/kilinski.md)); a generic stand-in from OSM since 2026-11-02 (tools/bake_monuments.py); the photo build is the monuments thread |
@@ -138,20 +138,20 @@ often, known to every visitor; **B** characteristic, known to locals, gives a st
 | 72 | Dworzec Gdański and its metro (OSM: Dworzec Warszawa Gdańska) | Słomińskiego | station | ✗ | photos gathered ([gdanska](landmarks/photo-reports/gdanska.md)); railway S3d (Mac photos first) |
 | 73 | Warszawa Wschodnia | Lubelska | station | ✗ | photos gathered ([wschodnia](landmarks/photo-reports/wschodnia.md)); railway S3c (Mac photos first) |
 | 74 | Metro stations: Centrum, Świętokrzyska, Ratusz-Arsenał, Politechnika, Rondo ONZ, Rondo Daszyńskiego, Nowy Świat-Uniwersytet, Centrum Nauki Kopernik, Stadion Narodowy, Dworzec Gdański | (84 entrances) | metro | ○ | the kit's canopies, stairwells and M posts are in; each station's own face (Świętokrzyska's glass, Nowy Świat's pavilions, Kopernik's art) is ✗ |
-| 75 | Narodowy Bank Polski | Świętokrzyska | bank | ✗ | photo build of the 1970s stone block |
-| 76 | Poczta Główna | Świętokrzyska | post office | ✗ | photo build |
-| 77 | Filharmonia Narodowa | Jasna / Sienkiewicza | concert hall | ✗ | photo build |
-| 78 | PAST-a | Zielna | historic telephone tower | ✗ | photo build: the 1908 tower, a famous Uprising site |
-| 79 | Pałac Krasińskich and Ogród Krasińskich | Plac Krasińskich | palace, park | ✗ | photo build (the park's details are in) |
-| 80 | Vitkac | Bracka | luxury department store | ✗ | photo build: the black stone block, start area |
-| 81 | Dom Towarowy Braci Jabłkowskich | Bracka | historic department store | ✗ | photo build of the 1914 front |
-| 82 | Sheraton Grand Warsaw | Wiejska / Plac Trzech Krzyży | hotel | ✗ | photo build |
-| 83 | Teatr Polski and Teatr Powszechny | Karasia / Zamoyskiego | theatres | ✗ | photo build |
-| 84 | Bazylika Katedralna Świętego Michała Archanioła i Świętego Floriana Męczennika | Floriańska | Praga cathedral | ✗ | photo build: the twin spires seen across the river |
-| 85 | Koneser and Ząbkowska's tenements | Ząbkowska | vodka works, tenements | ✗ | photo build; the box's north-east edge cuts close, check first |
-| 86 | Bazar Różyckiego | Targowa | bazaar | ✗ | stalls and the gate from photos |
+| 75 | Narodowy Bank Polski | Świętokrzyska | bank | ✗ | photos gathered ([nbp](landmarks/photo-reports/nbp.md)); photo build of the 1970s stone block |
+| 76 | Poczta Główna | Świętokrzyska | post office | ✗ | photos gathered ([poczta](landmarks/photo-reports/poczta.md)); photo build |
+| 77 | Filharmonia Narodowa | Jasna / Sienkiewicza | concert hall | ✗ | photos gathered ([filharmonia](landmarks/photo-reports/filharmonia.md)); photo build |
+| 78 | PAST-a | Zielna | historic telephone tower | ✗ | photos gathered ([pasta](landmarks/photo-reports/pasta.md)); photo build: the 1908 tower, a famous Uprising site |
+| 79 | Pałac Krasińskich and Ogród Krasińskich | Plac Krasińskich | palace, park | ✗ | photos gathered ([palac_krasinskich](landmarks/photo-reports/palac_krasinskich.md)); photo build (the park's details are in) |
+| 80 | Vitkac | Bracka | luxury department store | ✗ | photos gathered ([vitkac](landmarks/photo-reports/vitkac.md)); photo build: the black stone block, start area |
+| 81 | Dom Towarowy Braci Jabłkowskich | Bracka | historic department store | ✗ | photos gathered ([jablkowskich](landmarks/photo-reports/jablkowskich.md)); photo build of the 1914 front |
+| 82 | Sheraton Grand Warsaw | Wiejska / Plac Trzech Krzyży | hotel | ✗ | photos gathered ([sheraton](landmarks/photo-reports/sheraton.md)); photo build |
+| 83 | Teatr Polski and Teatr Powszechny | Karasia / Zamoyskiego | theatres | ✗ | photos gathered ([teatr_polski](landmarks/photo-reports/teatr_polski.md)); photo build |
+| 84 | Bazylika Katedralna Świętego Michała Archanioła i Świętego Floriana Męczennika | Floriańska | Praga cathedral | ✗ | photos gathered ([st_florian](landmarks/photo-reports/st_florian.md)); photo build: the twin spires seen across the river |
+| 85 | Koneser and Ząbkowska's tenements | Ząbkowska | vodka works, tenements | ✗ | photos gathered ([koneser](landmarks/photo-reports/koneser.md)); photo build; the box's north-east edge cuts close, check first |
+| 86 | Bazar Różyckiego | Targowa | bazaar | ✗ | photos gathered ([bazar_rozyckiego](landmarks/photo-reports/bazar_rozyckiego.md)); stalls and the gate from photos |
 | 87 | Park Praski's bear enclosure (Wybieg dla niedźwiedzi) | Aleja Solidarności | park | ✗ | the rock enclosure and the bears, a card |
-| 88 | Multimedialny Park Fontann | Wybrzeże Gdańskie | fountains | ✗ | the fountain field and the evening show |
+| 88 | Multimedialny Park Fontann | Wybrzeże Gdańskie | fountains | ✗ | photos gathered ([fontanny](landmarks/photo-reports/fontanny.md)); the fountain field and the evening show |
 | 89 | Hotel Polonia Palace, Radisson Blu Sobieski (Radysław Blu) | Aleje Jerozolimskie / Plac Zawiszy | hotels | ◐ | photo check |
 | 90 | Plac Defilad's pavilions: Cepelia, Zodiak, Scena Relax (OSM: Pawilon Cepelii) | Marszałkowska | modernist pavilions | ◐ | photo check |
 
