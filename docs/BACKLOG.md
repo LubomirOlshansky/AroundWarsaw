@@ -462,10 +462,12 @@ Built (cloud, Sonnet): eight shopfronts (`Storefronts.KRAKOWSKIE`, 93 venue sign
   the castle's turret corner and entrance; the church's front, tower and colours; the Syrenka's
   plinth against the flood wall (its corner touches the plinth in the cloud render); what Kaskada
   is; a tree on Kaskada's deck.
-- Left: boulevard dressing (deck strips, bar containers), Hortus, Moderna Powiśle, Tamka's and
-  Dobra's tenements and street details. (Piano House and Cube House DONE 2026-11-02, specs
-  `piano_house.md`, `cube_house.md`; Mac photo check: Piano House's real facade rhythm and whether
-  its top floor is set back; where Cube House's real bays or loggias are and its colours.)
+- Left: boulevard dressing (deck strips, bar containers), Tamka's and Dobra's tenements and street
+  details. (Piano House and Cube House DONE 2026-11-02, specs `piano_house.md`, `cube_house.md`;
+  Mac photo check: Piano House's real facade rhythm and whether its top floor is set back; where
+  Cube House's real bays or loggias are and its colours. Hortus and Moderna DONE 2026-11-02, specs
+  `hortus.md`, `moderna.md`; Mac photo check: Hortus's glass and frame colours, its piers, the
+  Drewniana flats' plaster and roof; which part of Moderna is the old tenement and their heights.)
 - `check_landmarks` stops in the cloud (no terrain data); run it on the Mac.
 - L1 track that reads as railway: sleepers, raised rails, ballast shoulders (no new draw calls).
 - ~~L2 catenary, L3 the tunnel's mouths~~ Done 2026-11-01 (`map_builder` `_build_catenary`,
@@ -664,7 +666,7 @@ neon fascias, twists), the craft kebab's choice card, Szlak Szpili, the welcome 
 Spec and sources: `docs/design/trends-2025-26.md`. Built: eight parody trend spots (`Storefronts.TRENDY`).
 - [ ] Wykop/X/TikTok skim (cloud could not fetch them); adjust the trend list.
 - [ ] Phone check of the PISTACJA queue (Friday 16:00-18:30 drop, 36 people) and the "Limitka" job (`--trend-job=4`): line on the footway, 5 s wait, 5 min delivery. Built 2026-11-01.
-- [ ] Padel thread (F, 2026-11-01; docs/design/padel.md): built: PADELNIA queue, 11 lines (Trener Dominik, Pani Basia, Prezes z Mokotowa speak in the queue), a notebook place, the "Czwarty" job (`--trend-job=5`). Still to build: more notebook lore, the roof court "Ściana Płaczu", the Pro Shop. Phone check of the queue and the job.
+- [ ] Padel thread (F, 2026-11-01; docs/design/padel.md): built: PADELNIA queue, 11 lines (Trener Dominik, Pani Basia, Prezes z Mokotowa speak in the queue), a notebook place, the "Czwarty" job (`--trend-job=5`). DESKA (2026-11-02, parody of WTS DeSki): built on Zaruskiego (a closed tennis hall over four mapped pitches, one outdoor glass padel court with 4 players, floodlights, DESKA neon, notebook place `deski`, 3 padel lines, "Czwarty" as a friend's phone call that sends you by car or helicopter to its gate, `--trend-job=7`); phone check of the look and of the gate offer, Mac photo check of the court colours and the clubhouse, the call rings after 150 s of play then every 20 min, 8:00-22:00 (feel open); the lane graph has no road at the gate. Still to build: more notebook lore, the roof court "Ściana Płaczu", the Pro Shop. Phone check of the queue and the job.
 - [ ] E-scooter 12 km/h zones: four discs built (Złota, Zgody, Bracka, Plac Centralny; `scooter_zones.gd`, centres *guess*, toast on entry, car not capped). Still open: check the centres against the real streets, scooter riders that slow down, a zone pill.
 - [x] Lines about matcha, padel, natural wine, queue, scooter rules: 8 column posters and 5 signs in dialogue.json (PL + EN).
 - [ ] Phone check: do the new column posters read (rows ≤ 8 letters)? Not run, no Godot in the cloud.
