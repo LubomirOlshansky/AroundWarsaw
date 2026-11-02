@@ -73,12 +73,17 @@ Left:
 ## Playtest bugs (Autopilot, 2026-11-02)
 
 The free-play bug log is `docs/PLAYTEST.md` "The bug log" (PT-n ids, severity, status); fix
-threads take its confirmed rows one by one. After two runs: PT-1 confirmed (a dead stop on
-Marszałkowska just north of the start, in 3 runs), PT-2, PT-4 (Rondo Dmowskiego) and PT-5 (side
+threads take its confirmed rows one by one. After two runs: PT-1 fixed 2026-11-02 (a dead stop on
+Marszałkowska at Centrum's tram stop; every new PT spot joins `game/tools/check_stuck_spots.gd`), PT-2, PT-4 (Rondo Dmowskiego) and PT-5 (side
 streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug). Run 3 (the Śródmieście grid): PT-6 the guide's bubble
 covers the minimap and +/- buttons (not reproduced on main: check_hud sweep clean; needs the frame, 2026-11-02). Design question for the driving lane: a hit from 108 km/h
 stops the car dead in 0.2-0.4 s with no slide; is that the arcade feel we want, or should it
 bounce or slide off a wall?
+- Found with PT-1: a free spot (`main.gd _free_car_spot`, a tow) only tests the box against the
+  wall faces, so a spot fully inside a solid outline (a building, now a 0.9 m platform) counts as
+  free. Not seen in play; reject spots inside platforms and footprints if it shows up.
+- Found with PT-1: head on into a solid platform's end the car stops like at any wall and is
+  turned out after 1.5 s (Centrum's north tip faces the left lane of Marszałkowska).
 
 ## Pokorna 2 (F, 2026-11-02)
 
