@@ -86,11 +86,27 @@ const FIRST_ROLL := 12.0
 ## so she stood held 12 m in front of the car on the 3 m street (no room to pass) and the car
 ## crawled into her at a wall's 6-7 km/h for the whole 20 s prompt.
 const FIRST_SNAP := 15.0
+## PT-11 (the design half): after START! in the first race she waits at the line until the player
+## moves (faster than FIRST_MOVE m/s) or FIRST_HOLD s pass, so a new player who doesn't yet know to
+## drive is not left behind. Still after FIRST_IDLE s: the GO nudge (the banner GAZ!, the ghost
+## finger on the stick, her line "go"). Stopped (slower than FIRST_STOP m/s) for FIRST_STALL s
+## mid-race, more than FIRST_EASE m from the Palm: the "stall" nudge, at most FIRST_STALLS times.
+const FIRST_HOLD := 12.0
+const FIRST_IDLE := 2.0
+const FIRST_MOVE := 3.0
+const FIRST_STOP := 1.5
+const FIRST_STALL := 5.0
+const FIRST_STALLS := 2
+## The nudge banner's words (Polish only, like WYŚCIG and START!) and how long it stays (s).
+const FIRST_GO_BANNER := "GAZ! JEDŹ ZA STRZAŁKĄ"
+const FIRST_GO_BANNER_S := 3.0
 ## Her words for it, [Polish, English] (each at most 70 characters).
 const FIRST_LINES := {
 	"call": ["Dziecko drogie! Babcia mruga. Do Palmy, kto pierwszy?", "Kiddo! Granny's flashing you. Race you to the Palm?"],
 	"nudge": ["Mrugnij, dziecko. Babcia nie ma całego dnia.", "Flash back, kiddo. Granny hasn't got all day."],
 	"gone": ["Ech, ta młodzież. To innym razem.", "Kids these days. Another time, then."],
+	"go": ["No jedź, dziecko! Gaz i za różową strzałką!", "Go on, kiddo! Step on it and follow the pink arrow!"],
+	"stall": ["Co tak stoisz? Palma sama nie przyjdzie!", "Why have you stopped? The Palm won't come to you!"],
 }
 
 ## Each rival: name, tag colour, car style (models.gd), box size, and lines as
@@ -265,6 +281,14 @@ var _call_up := false
 var _nudged := false
 var first_race := false
 var first_result := ""
+## PT-11: the first race's start hold and nudges: she waits at the line (`_first_hold`), the GO
+## nudge given, how long the car has stood still mid-race (s), the stall nudges given, and the
+## seconds left on the nudge banner.
+var _first_hold := false
+var _go_nudged := false
+var _stall_t := 0.0
+var _stalls := 0
+var _nudge_banner_t := 0.0
 
 
 func setup(lane_graph: LaneGraph, traffic_node: Traffic, hud_layer: CanvasLayer, bubble_layer: Control,
@@ -630,7 +654,9 @@ func _frame(dt: float) -> void:
 				_go()
 		State.RACE:
 			_race_time += dt
-			if _t > 1.0:
+			if first_race:
+				_first_start(dt)
+			if _t > 1.0 and _nudge_banner_t <= 0.0:
 				hud.hide_banner()
 			_track(dt)
 
@@ -674,6 +700,14 @@ func _go() -> void:
 	_rank_timer = 0.0
 	var d = _drivers[rival]
 	d.held = false
+	# PT-11: in the first race she waits at the line until the player moves (`_first_start`).
+	_first_hold = first_race
+	_go_nudged = false
+	_stall_t = 0.0
+	_stalls = 0
+	_nudge_banner_t = 0.0
+	if _first_hold:
+		d.held = true
 	# Loop 3h slice 3: each rung's own pace (Halina 1.25 ... Mike 1.5; the final 1.45), was 1.45 flat.
 	var pace := Ladder.pace(Ladder.FINAL if final_on else Ladder.rung_of(RIVALS[rival]["name"]))
 	d.speed_factor = FIRST_PACE if first_race else pace.x
@@ -686,6 +720,64 @@ func _go() -> void:
 	if _ghost != null:
 		_ghost.held = false
 	Access.buzz(80, 0.7)
+
+
+## What the first race's start does now, from the seconds since START! and the car's speed (m/s):
+## "release" (she goes), "nudge" (still: tell the player to drive) or "wait".
+static func first_start_step(t: float, speed: float) -> String:
+	if speed >= FIRST_MOVE or t >= FIRST_HOLD:
+		return "release"
+	if t >= FIRST_IDLE:
+		return "nudge"
+	return "wait"
+
+
+## A stall nudge is due mid-race: stopped for FIRST_STALL s, fewer than FIRST_STALLS given, and
+## more than FIRST_EASE m left (on the last stretch the finish is in sight).
+static func first_stall_due(stopped_s: float, given: int, left: float) -> bool:
+	return stopped_s >= FIRST_STALL and given < FIRST_STALLS and left > FIRST_EASE
+
+
+## PT-11: every frame of the first race: the start hold, the GO nudge, the stall nudges.
+func _first_start(dt: float) -> void:
+	_nudge_banner_t = maxf(0.0, _nudge_banner_t - dt)
+	var speed := Vector2(car.vel.x, car.vel.z).length()
+	if _first_hold:
+		match first_start_step(_t, speed):
+			"release":
+				_first_hold = false
+				_drivers[rival].held = false
+				if hud.finger_shown():
+					hud.ghost_finger(false)
+				print("first race: %s goes at %.1f s (%s)" % [RIVALS[rival]["name"], _t, "the player moved" if speed >= FIRST_MOVE else "the wait ran out"])
+			"nudge":
+				if not _go_nudged:
+					_go_nudged = true
+					_nudge(FIRST_LINES["go"], true)
+		return
+	# A held car (a police stop, a card) is not a stall.
+	_stall_t = _stall_t + dt if speed < FIRST_STOP and not car.parked else 0.0
+	if first_stall_due(_stall_t, _stalls, _player_left):
+		_stalls += 1
+		_stall_t = 0.0
+		_nudge(FIRST_LINES["stall"], false)
+
+
+## The nudge: her line, the GAZ! banner for FIRST_GO_BANNER_S s and (at the start) the ghost
+## finger on the stick, which the first touch takes away (hud.gd).
+func _nudge(line: Array, finger: bool) -> void:
+	_say(rival, line[0], line[1], 3.5)
+	hud.show_banner(FIRST_GO_BANNER, RACE_COLOUR)
+	_nudge_banner_t = FIRST_GO_BANNER_S
+	if finger:
+		hud.ghost_finger(true)
+	Access.buzz(60, 0.5)
+	print("first race: nudge (%s) at %.1f s" % ["go" if finger else "stall", _race_time])
+
+
+## PT-11: the first race's GO nudge shows the ghost finger (first10.gd leaves it up meanwhile).
+func first_nudging() -> bool:
+	return first_race and _first_hold and _go_nudged
 
 
 ## Who is in front and the race status; the finish decides it.
@@ -761,6 +853,10 @@ func _finish_race(won: bool, why: String) -> void:
 	state = State.RESULT
 	hud.hide_banner()
 	hud.hide_status()
+	if first_race and hud.finger_shown():
+		hud.ghost_finger(false)
+	_first_hold = false
+	_nudge_banner_t = 0.0
 	_beacon.visible = false
 	var d = _drivers[rival]
 	traffic.stop_racing(d)

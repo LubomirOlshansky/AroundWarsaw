@@ -15,6 +15,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
+- **2026-11-02 · landmarks · POLIN and the Ghetto Heroes Monument** — Built from `refs/polin/` on the Mac (25 Commons photos, the ortho, REPORT.md) and the LoD2 roof (spec `polin.md`). Look check on the Mac or the phone: the fins' grey-green (S_FINS reads as panels every 2.4 m, the real fins are 0.3 m with a speckled letter frit), the canyon wedge's width and lean, the west lens's size, and the monument's steps, reliefs and menorahs. Estimates from photos only: the 18 m height (LoD2 agrees), the monument's 9.5 m width. Default built: as the report measured.
 - **2026-11-02 · map · junction lines and the loop 3e structures: one Mac pass** — Both v1.0 lines
   ("Junction lines checked against photos", "Loop 3e leftovers") can't be done in the cloud: the
   cloud's network refuses the GUGiK orthophoto (and every other imagery host), and a structure fix
