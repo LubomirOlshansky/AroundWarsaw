@@ -3,6 +3,11 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Site analytics (F, 2026-11-02)
+
+- After the next `wrangler deploy`: F checks Cloudflare -> Websites -> aroundwarsaw.app -> Analytics & Logs -> Traffic shows visits. If the Worker deploy fails on the Analytics Engine binding (needs it enabled once in the dashboard: Workers & Pages -> Analytics Engine), enable it and redeploy.
+- The landing's store buttons do not exist yet: when the apps are listed, set `IOS_URL`/`ANDROID_URL` in site/wrangler.jsonc and link the buttons to `/go/ios` and `/go/android`.
+
 ## Beta radio (F, 2026-11-02)
 
 - PÓŁNOC FM is out of the beta lineup, but the tape, the cassettes and eggs still unlock "a PÓŁNOC FM track" the player can't tune to (QUESTIONS, default: leave it).
