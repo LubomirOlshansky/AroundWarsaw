@@ -302,6 +302,11 @@ func _check_sites(c: Crowds) -> void:
 			and Crowds.milk_queue(10.0, 3)[0] == 10 and Crowds.milk_queue(13.0, 7)[0] < Crowds.MILK_MAX, "KROWA 2.0: its line by hour")
 	_expect(Crowds.chill_level(19.0, 7, false) == 1.0 and Crowds.chill_level(8.0, 7, false) == 0.0
 			and Crowds.chill_level(19.0, 1, false) > 0.3 and Crowds.chill_level(19.0, 7, true) < 0.2, "chill yards: evening full, morning empty, winter a third, rain few")
+	# F, 2026-11-01: DALEJ DALLA GELATO, the Powiśle gelateria: a line in snow too.
+	_expect(Crowds.gelato_queue(10.0, 2, 7)[0] == 0 and Crowds.gelato_queue(21.5, 2, 7)[0] == 0
+			and Crowds.gelato_queue(16.0, 2, 7) == [Crowds.GELATO_MAX, "lody"]
+			and Crowds.gelato_queue(12.0, 2, 1) == [Crowds.GELATO_WINTER_MIN, "lody_zima"]
+			and Crowds.gelato_queue(16.0, 7, 12)[0] > Crowds.GELATO_WINTER_MIN, "DALEJ DALLA GELATO: its line by hour, winter too")
 	# F, 2026-11-01: the Vistula boulevards' chill spots.
 	_expect(Crowds.BULWARY.size() >= 8 and Crowds.BULWARY.values().all(func(v: Array) -> bool: return int(v[1]) > 0 and float(v[2]) > 0.0),
 			"Bulwary: %d chill spots with people and a radius" % Crowds.BULWARY.size())
@@ -331,6 +336,7 @@ func _check_sites(c: Crowds) -> void:
 		_expect(sl.size() == 16 and sl.size() % 2 == 0, "LORETKA's terrace: %d seats (want 16, in twos)" % sl.size())
 		if not sl.is_empty():
 			_expect(float(sl[0]["y"]) > 20.0, "LORETKA's terrace: seats at %.1f m (on the roof?)" % float(sl[0]["y"]))
+	_expect(c.by_id.has(Crowds.GELATO[0]), "no crowd at DALEJ DALLA GELATO")
 	_expect(c.by_id.has(Crowds.PADEL_ID), "no crowd at PADELNIA")
 	_expect(c.by_id.has(Crowds.PISTACJA_ID), "no crowd at PISTACJA")
 	if c.by_id.has(Crowds.PISTACJA_ID):

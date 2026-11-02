@@ -79,6 +79,8 @@ const WACZEK_TUBE := Color(1.0, 0.78, 0.1)
 const NERWO_TUBE := Color(0.35, 1.0, 0.55)
 const KUKLA_TUBE := Color(1.0, 0.85, 0.35)
 const KROWA_TUBE := Color(0.62, 0.86, 1.0)
+## DALEJ DALLA GELATO, the Powiśle ice-cream parlour with the all-year queue: pistachio mint.
+const DALEJ_TUBE := Color(0.55, 1.0, 0.8)
 ## The cinemas' marquee tubes: amber, a deep red and a cool white-blue, so a street of them is not one colour.
 const CINEMA_TUBE := Color(1.0, 0.72, 0.25)
 const CINEMA_TUBE_B := Color(1.0, 0.25, 0.3)
@@ -92,6 +94,10 @@ const NOWY_WINE := Color(0.95, 0.3, 0.45)
 const POWISLE_TUBE_A := Color(0.5, 0.95, 0.55)
 const POWISLE_TUBE_B := Color(1.0, 0.55, 0.3)
 const POWISLE_TUBE_C := Color(0.8, 0.62, 1.0)
+## Marszałkowska's shopfront tubes (pass 4, 2026-11-02): the old high street, sodium orange and PRL green.
+const MARSZ_ORANGE := Color(1.0, 0.62, 0.2)
+const MARSZ_GREEN := Color(0.4, 1.0, 0.55)
+const MARSZ_BLUE := Color(0.5, 0.75, 1.0)
 ## The venues' fascias (vision 3.0-3.2): place id -> [the lines of the sign, tube colour, metres
 ## up (the sign's bottom)]. The words are the parody names of places.json (Glon na Powiślu: GLON).
 const VENUES := {
@@ -152,6 +158,8 @@ const VENUES := {
 	"waczek_femina": [["W", "WACZEK"], WACZEK_TUBE, 3.0],
 	# The milk bar in Norblin (F, 2026-11-01): a bar mleczny rebuilt as a start-up, cream and blue.
 	"krowa_norblin": [["BAR MLECZNY", "KROWA 2.0"], KROWA_TUBE, 2.8],
+	# The Powiśle gelateria (F, 2026-11-01): Poles queue for lody in winter too.
+	"dalej_gelato": [["DALEJ DALLA", "GELATO LODY"], DALEJ_TUBE, 2.8],
 	# Warsaw's classic and arthouse cinemas (F, 2026-11-02): the real independent halls under their
 	# own names (place names, not brands; the multiplex chains stay out), amber marquee tubes.
 	"kino_muranow": [["KINO", "MURANÓW"], CINEMA_TUBE, 3.2],
@@ -180,6 +188,15 @@ const VENUES := {
 	"nowy_winiarnia": [["WINIARNIA", "POD GRUSZĄ"], NOWY_WINE, 2.8],
 	"nowy_galeria": [["GALERIA", "NIEPOJĘTA"], Color(1.0, 1.0, 1.0), 2.8],
 	"nowy_kantor": [["KANTOR", "DOBRY KURS"], Color(0.2, 1.0, 0.45), 2.8],
+	# Marszałkowska's shopfronts (street-by-street pass 4, 2026-11-02): old-fashioned trades, original names.
+	"marsz_bar": [["BAR MLECZNY", "KOTLET DNIA"], MARSZ_GREEN, 2.8],
+	"marsz_pralnia": [["PRALNIA", "CHEMICZNA"], MARSZ_BLUE, 2.8],
+	"marsz_zegarmistrz": [["ZEGARMISTRZ", "OD 1912"], MARSZ_ORANGE, 2.8],
+	"marsz_cukiernia": [["CUKIERNIA", "SMAK PRL"], NOWY_ROSE, 2.8],
+	"marsz_optyk": [["OPTYK", "DOBRY WZROK"], MARSZ_BLUE, 2.8],
+	"marsz_kwiaciarnia": [["KWIACIARNIA", "PRZY TORACH"], MARSZ_GREEN, 2.8],
+	"marsz_pasmanteria": [["PASMANTERIA", "GUZIK"], MARSZ_ORANGE, 2.8],
+	"marsz_zielarnia": [["ZIELARNIA", "NA WSZYSTKO"], MARSZ_GREEN, 2.8],
 	"zag_femina": [["KINO", "FEMINA"], Color(1.0, 0.3, 0.35), 4.6],
 	"zag_krol": [["KEBAB KRÓL", "MAZOWSZA"], Color(1.0, 0.72, 0.12), 2.8],
 	"zag_stambul": [["STAMBUŁ 24"], Color(0.1, 0.9, 1.0), 2.8],
@@ -247,6 +264,8 @@ const HYPE := {
 	"waczek_femina": [52.2424, 20.9980],
 	# KROWA 2.0, the milk bar on the Żelazna front of Norblin (the Mac look check parks the door).
 	"krowa_norblin": [52.23367, 20.99107],
+	# DALEJ DALLA GELATO on Tamka at Powiśle (the Mac look check parks the door).
+	"dalej_gelato": [52.237885, 21.027375],
 }
 ## Warsaw's classic and arthouse cinemas (F, 2026-11-02; BACKLOG "Lore: coffee raves and arthouse
 ## cinemas"): Kino Muranów (Andersa 1), Atlantic (Chmielna 33), Luna (Marszałkowska 28), Kultura
@@ -296,6 +315,20 @@ const NOWY_SWIAT := {
 	"nowy_butik": [52.23585, 21.01816],
 	"nowy_galeria": [52.23622, 21.01831],
 	"nowy_kantor": [52.23707, 21.01777],
+}
+## Marszałkowska's shopfronts (F's street-by-street pass 4, 2026-11-02): eight old-fashioned trades
+## (milk bar, dry cleaner, watchmaker, pastry shop, optician, florist, haberdashery, herbalist) at
+## the mapped house numbers 140, 124, 85, 83, 62, 58, 53 and 43, both sides, plac Bankowy to plac
+## Zbawiciela. Like the cafés, not notebook places; the nearest address snaps each sign to a wall.
+const MARSZALKOWSKA := {
+	"marsz_bar": [52.23717, 21.00795],
+	"marsz_pralnia": [52.23409, 21.01003],
+	"marsz_zegarmistrz": [52.22656, 21.01309],
+	"marsz_cukiernia": [52.22573, 21.01358],
+	"marsz_optyk": [52.22433, 21.01568],
+	"marsz_kwiaciarnia": [52.22392, 21.01590],
+	"marsz_pasmanteria": [52.22317, 21.01497],
+	"marsz_zielarnia": [52.22039, 21.01706],
 }
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
@@ -404,7 +437,7 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, zaglebie_table()]:
+	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, MARSZALKOWSKA, zaglebie_table()]:
 		for id: String in table:
 			var ll: Array = table[id]
 			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})

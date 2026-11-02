@@ -292,7 +292,24 @@
     ],
     [
       "Niedziela, Dworzec Centralny, dwie torby słoików. Klasyka.",
-      "Sunday, Central Station, two bags of jars. A classic."
+      "Sunday, Central Station, two bags of jars. A classic.",
+      {
+        "only": "centralny"
+      }
+    ],
+    [
+      "Dworzec Gdański, niedziela, kolejka po taksówki do końca świata. Dobrze, że mam kierowcę.",
+      "Gdański station, Sunday, a taxi queue to the end of the world. Good thing I have a driver.",
+      {
+        "only": "gdanski"
+      }
+    ],
+    [
+      "Mama dała bigos na tydzień i ogórki na rok. Do Muranowa jakoś dowiozę.",
+      "Mum gave me a week of bigos and a year of pickles. To Muranów, somehow.",
+      {
+        "only": "gdanski"
+      }
     ]
   ],
   "sloik_bump": [
@@ -966,6 +983,20 @@
       {
         "only": "square"
       }
+    ],
+    [
+      "Kraaa-aaak! (Uciekłem z Łazienek. Stąd lepiej widać ogród.)",
+      "Screeeee-ow! (I escaped from Łazienki. The garden looks better from up here.)",
+      {
+        "only": "peacock"
+      }
+    ],
+    [
+      "Nie jestem gołębiem. Proszę to zapisać w protokole.",
+      "I am not a pigeon. Please put that in the report.",
+      {
+        "only": "peacock"
+      }
     ]
   ],
   "rescue_done": [
@@ -980,6 +1011,13 @@
     [
       "Na SOR-ze mówią, że rekord. Pielęgniarka nawet podniosła wzrok.",
       "A&E says it's a record. The nurse even looked up."
+    ],
+    [
+      "Ptak przekazany. Ogon dwa metry, ciśnienie w normie, duma bez zmian.",
+      "Bird handed over. Tail two metres, pressure normal, pride unchanged.",
+      {
+        "only": "peacock"
+      }
     ]
   ],
   "easter_palma": [
@@ -2246,6 +2284,83 @@
       "I've got the shirt with his face. On the back: \"go chunky\".",
       {
         "only": "cringulo"
+      }
+    ],
+    [
+      "Lody w listopadzie? A co, już nie wolno?",
+      "Ice cream in November? What, is that banned now?",
+      {
+        "only": "lody_zima"
+      }
+    ],
+    [
+      "Minus trzy, szalik, rożek. Tak się żyje.",
+      "Minus three, a scarf and a cone. That's living.",
+      {
+        "only": "lody_zima"
+      }
+    ],
+    [
+      "Zimą lody są mniej roztopione. Samo zdrowie.",
+      "In winter ice cream melts less. Pure health.",
+      {
+        "only": "lody_zima"
+      }
+    ],
+    [
+      "Dwadzieścia osób w puchówkach po gałkę pistacji. Normalny wtorek.",
+      "Twenty people in puffer jackets for one scoop of pistachio. A normal Tuesday.",
+      {
+        "only": "lody_zima"
+      }
+    ],
+    [
+      "Śnieg pada, kolejka stoi. Dalej, dalej!",
+      "Snow falls, the queue stands. Dalej, dalej!",
+      {
+        "only": "lody_zima"
+      }
+    ],
+    [
+      "Rękawiczki zdejmuję tylko do rożka.",
+      "I only take my gloves off for the cone.",
+      {
+        "only": "lody_zima"
+      }
+    ],
+    [
+      "Babcia mówiła: nie jedz lodów zimą. Babcia stoi trzecia w kolejce.",
+      "Grandma said: no ice cream in winter. Grandma is third in line.",
+      {
+        "only": "lody_zima"
+      }
+    ],
+    [
+      "Dalej, dalej! Kolejka sama się nie przesunie.",
+      "Dalej, dalej! The queue won't move itself.",
+      {
+        "only": "lody"
+      }
+    ],
+    [
+      "Smak dnia: pistacja. Smak każdego dnia: pistacja.",
+      "Flavour of the day: pistachio. Flavour of every day: pistachio.",
+      {
+        "only": "lody"
+      }
+    ],
+    [
+      "Lato w Powiślu: gałka lodów i godzina nad Wisłą.",
+      "Summer in Powiśle: one scoop and an hour by the Vistula.",
+      {
+        "only": "lody"
+      }
+    ],
+    [
+      "Dwie gałki, trzydzieści minut. Rachunek się zgadza.",
+      "Two scoops, thirty minutes. The maths works.",
+      {
+        "only": "lody"
       }
     ]
   ],
