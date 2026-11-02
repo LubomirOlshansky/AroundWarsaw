@@ -68,6 +68,10 @@ rain={
 "type": "float",
 "value": 0.0
 }
+edge_haze={
+"type": "vec3",
+"value": Vector3(0.39, 0.61, 0.79)
+}
 city_ao={
 "type": "sampler2DArray",
 "value": ""

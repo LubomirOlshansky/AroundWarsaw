@@ -31,7 +31,10 @@ made from it) are derived databases and are offered under the same licence, ODbL
   draws itself.
 
 The game shows "© OpenStreetMap contributors · 3D buildings, aerial photo, terrain: GUGiK" at
-the bottom of the screen while you play.
+the bottom of the screen while you play, and the full list (this file's data licences, the engine,
+the add-ons and every radio track with its licence) under Settings → DŹWIĘK → LICENCJE
+(`game/scripts/credits.gd`; `game/tools/check_credits.gd` keeps it, the add-on folders and
+`radio.json` in step with this file).
 
 ## Music
 

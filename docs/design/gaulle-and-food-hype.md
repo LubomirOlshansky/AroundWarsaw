@@ -130,6 +130,12 @@ At about (-171, 273), the lawn's curved cut-out north-west of the Party House's 
 - Check: `check_cringulo.gd` (the steps, the pay, the cooling, the effect's queue, the lines,
   the denylist) joins verify and CI.
 
+## 3b. What was built (2026-11-01)
+G1 and G2 as specified (PR #185). G2's bars, G3 and G4 as neons in `Storefronts.HYPE`, LUŹNO as
+the hotel's crown sign; the dates are a line at HOTEL PIURE's door (waiting for the lift), not
+yet figures on the roof. G5 lives in `trend_job.gd` (one activity at a time with the other jobs)
+with the van as one mesh; `--trend-job=6` parks it by the car. Left: BACKLOG's G3-G5 leftovers.
+
 ## 4. Order and cost
 G1, G2 (Opus, landmark lane) → G3, G4 (Sonnet-sized content, one PR) → G5 (Opus design, then
 content). Cost: G1 ≈ 1.5k triangles in the sector's building mesh (+0 draw calls); G2's extras

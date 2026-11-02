@@ -17,6 +17,7 @@ extends Node
 ##   ├ SequenceReactive  Chase    : IsRole(chaser) → pursue (re-planned 1 Hz by police.gd)
 ##   ├ SequenceReactive  Trap     : IsRole(trap) → stay_parked
 ##   ├ SequenceReactive  Club     : IsRole(club) → stay_parked (loop MW-3: parked by a club)
+##   ├ SequenceReactive  Crash    : IsRole(crash) → attend (a crash scene's car: parked, lights on)
 ##   ├ SequenceReactive  GuardFollow: IsRole(guard_follow) → guard_follow (loop 3g-2: the guards'
 ##   │                              car after the player at 25 km/h, amber beacon; guards.gd routes)
 ##   ├ SequenceReactive  Guard    : IsRole(guard) → drive_as_guard (the guards' car round the zone)
@@ -30,9 +31,9 @@ const IsPhase := preload("res://scripts/police/bt/is_phase.gd")
 const IsPullOver := preload("res://scripts/police/bt/is_pull_over.gd")
 const UnitAction := preload("res://scripts/police/bt/unit_action.gd")
 
-## Chasers: the player's top speed (30 m/s) x 0.92, traffic's acceleration x 1.2, and the gap
+## Chasers: the player's top speed (30 m/s) x 0.8 (a flat-out run opens ~6 m/s: 100 m in ~15 s), traffic's acceleration x 1.2, and the gap
 ## they keep behind the player's car (they never ram; police.md section 4).
-const CHASE_TOP := 27.6
+const CHASE_TOP := 24.0
 const CHASE_ACCEL := 1.2
 const CHASE_GAP := 10.0
 ## Searching: to the last-seen point, then round it within SEARCH_REACH at 30 km/h.
@@ -89,6 +90,8 @@ func build() -> void:
 	top.add_child(_branch("Trap", [_role("trap")], "stay_parked"))
 	# Loop MW-3: a car parked by a club (police.gd club_park) just stays.
 	top.add_child(_branch("Club", [_role("club")], "stay_parked"))
+	# The crash scenes: a car at a scene (police.gd scene_car) stands there, lights on.
+	top.add_child(_branch("Crash", [_role("crash")], "attend"))
 	top.add_child(_branch("GuardFollow", [_role("guard_follow")], "guard_follow"))
 	top.add_child(_branch("Guard", [_role("guard")], "drive_as_guard"))
 	top.add_child(_action("drive_as_traffic"))
@@ -229,6 +232,15 @@ func stay_parked() -> int:
 	if _mode != "parked":
 		_mode = "parked"
 		traffic.set_lights(driver, false)
+	return BeehaveNode.RUNNING
+
+
+## The crash scenes: parked at the scene with the lights on (crash_scenes.gd clears it).
+func attend() -> int:
+	if _mode != "crash":
+		_mode = "crash"
+		traffic.set_lights(driver, true)
+		driver.held = true
 	return BeehaveNode.RUNNING
 
 

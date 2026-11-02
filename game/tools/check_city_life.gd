@@ -39,6 +39,9 @@ class FakeDialogue extends Node:
 		said.append([speaker, group, tag])
 		return ["…", "…"]
 
+	func say_ambient(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false) -> Array:
+		return say(_anchor, speaker, group, tag, _s, _a, _h, _p)
+
 	func count(group: String, tag: String) -> int:
 		var n := 0
 		for l: Array in said:
@@ -115,6 +118,11 @@ func _check_rules() -> void:
 		var n := CityLife.rider_count(row[0])
 		_expect(n == int(row[1]), "riders at %.1f: %d (want %d)" % [row[0], n, row[1]])
 	_expect(CityLife.rider_count(8.0, 2.0) <= CityLife.BIKE_CAP, "riders at --life=2 over the cap")
+	# F, 2026-11-01: the Vistula boulevards: twice the riders, capped, still 06-22 only.
+	_expect(CityLife.rider_count(12.0, 1.0, true) == 8 and CityLife.rider_count(8.0, 1.0, true) == CityLife.BLVD_RIDERS_MAX
+			and CityLife.rider_count(5.5, 1.0, true) == 0, "boulevard riders: 8 midday, %d at rush, none before 06" % CityLife.BLVD_RIDERS_MAX)
+	_expect(CityLife.rider_count(8.0, 2.0, true) + 6 <= CityLife.BIKE_CAP * 2 and CityLife.BLVD_V.x > 8.0 and CityLife.BLVD_FAST < 1.0,
+			"boulevard riders: fast ones are a share, not all")
 	var kinds := [0, 0, 0, 0]
 	for i in 100:
 		kinds[CityLife.rider_kind(i / 100.0)] += 1
@@ -205,6 +213,23 @@ func _check_trends() -> void:
 	var cl := TrendJob.cz_pay(1500.0, false)
 	_expect(int(cp["base"]) == 69 and int(cp["zl"]) == 84 and int(cp["respect"]) == TrendJob.CZ_RESPECT, "czwarty pay on time: %s" % [cp])
 	_expect(int(cl["zl"]) == 35 and int(cl["respect"]) == 0, "czwarty pay late: %s" % [cl])
+	# "Mlask" (docs/design/gaulle-and-food-hype.md G5): 40 zł + 10 zł a km both ways, tip 15 when
+	# warm and on time, half otherwise; his grade's Polish forms; the van's spots and hours, its mesh.
+	var mp := TrendJob.ml_pay(1500.0, true, true)
+	var mc := TrendJob.ml_pay(1500.0, false, true)
+	_expect(int(mp["base"]) == 70 and int(mp["zl"]) == 85 and int(mp["respect"]) == TrendJob.ML_RESPECT, "mlask pay: %s" % [mp])
+	_expect(int(mc["zl"]) == 35 and int(mc["tip"]) == 0 and int(mc["respect"]) == 0, "mlask pay cold: %s" % [mc])
+	_expect(TrendJob.grade_words(7.5) == ["7,5 MLASKA", "7.5 SMACKS"] and TrendJob.grade_words(3.0)[0] == "3 MLASKI"
+			and TrendJob.grade_words(9.0)[0] == "9 MLASKÓW" and TrendJob.grade_words(1.0) == ["1 MLASK", "1 SMACK"],
+			"mlask grades: %s %s %s" % [TrendJob.grade_words(7.5), TrendJob.grade_words(3.0), TrendJob.grade_words(9.0)])
+	_expect(TrendJob.van_out(12.0) and not TrendJob.van_out(10.5) and not TrendJob.van_out(21.0), "Cringulo's van hours")
+	var spots := {}
+	for wd in range(1, 8):
+		spots[TrendJob.van_spot(wd)] = true
+	_expect(spots.size() == TrendJob.ML_SPOTS.size(), "Cringulo's van: %d spots over the week" % spots.size())
+	var vtris := TrendJob.van_mesh().surface_get_array_len(0) / 3
+	_expect(vtris <= 200, "Cringulo's van: %d triangles (budget 200)" % vtris)
+	_summary["mlask"] = "%d zł warm, %d cold, van %d tris" % [int(mp["zl"]), int(mc["zl"]), vtris]
 	# Each slot runs days 1-8 in turn, the queue by day, the word until WKRÓTCE.
 	for slot in 3:
 		var last_trend := -1

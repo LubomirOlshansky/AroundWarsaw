@@ -36,7 +36,10 @@ file dumps, logs and shot sets; keep the summary. Say which model each delegatio
 The work never stops for a question: park it in `docs/QUESTIONS.md` with the default that was
 built, and take the next item by priority (backlog-loop skill). One item per thread, one session
 per area (driving, map, visuals, content, performance, landing, store); check open PRs, recent
-main commits and "In progress" first. A cloud session merges its own PR once every check is green.
+main commits and "In progress" first. A cloud session merges its own PR once every check is green. When an item is done, check
+ROADMAP "v1.0 checklist" for the next open line; if nothing is left, go street by street through
+the centre (F, 2026-11-01): analyse every landmark and improve the houses, roads, parks and
+everything else, with our best approaches, until the city feels alive and real.
 Irreversible things, paid tools, device runs and store submissions wait for the user's yes.
 
 ## Hard rules
@@ -84,6 +87,10 @@ tools/export_android.sh [--skip-city|--apk]   # the signed Play AAB
   in `docs/CHANGELOG.md` only for a change the player or visitor can see (it feeds the live
   /progress/ page), and the item's line ticked (or added) in ROADMAP "v1.0 checklist" in the
   same PR, so progress stays checkable in one place. No progress-log row.
+- **Add-ons check.** Whenever you create or change NPC/agent behaviour or a conversation, decide
+  on Beehave / Dialogue Manager first (skills `beehave-trees`, `dialogue-scenes`) and write
+  "used / not used, because ..." in the PR. Default: not used outside the police and authored
+  branching scenes.
 - **Definition of done** is light or full by change kind (docs/WORKFLOW.md): light for content,
   text, site, docs, polish; full (verify, shots, bench, `--ios`) for gameplay, geometry and
   anything per-frame. Name what only the phone can show.
