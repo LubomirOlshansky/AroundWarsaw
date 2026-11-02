@@ -4420,6 +4420,8 @@ func _build_buildings(st, keep: Array, marks) -> void:
 			_uv2.x = skin["mode"]
 		elif not glass and not _historic(plan.get_center(), 0.0):
 			_uv2.x = typed_seed(_building_type(str(bld["kind"]), poly, h), _uv2.x)
+		if skin.is_empty() and not glass and _nowy_swiat(plan.get_center()):
+			wall = Color(NOWY_PASTELS[(hsh / 7) % NOWY_PASTELS.size()]).lerp(wall, 0.25)
 
 		var run := 0.0
 		for i in poly.size():
@@ -5438,6 +5440,19 @@ const MARIENSZTAT := [Vector2(-546.7, -1395.0), Vector2(-333.3, -1395.0), Vector
 		Vector2(-246.7, -1236.7), Vector2(-270.0, -1223.3), Vector2(-306.7, -1260.0), Vector2(-350.0, -1233.3),
 		Vector2(-403.3, -1233.3), Vector2(-403.3, -1205.0), Vector2(-506.8, -1195.9), Vector2(-509.8, -1210.3),
 		Vector2(-534.3, -1213.4), Vector2(-544.0, -1236.5), Vector2(-546.7, -1286.7)]
+## Nowy Świat (the street-by-street pass 2, 2026-11-02): the street's houses were rebuilt after
+## 1945 in a classicist dress and stand in plaster of their own, house by house (ivory, butter,
+## ochre, salmon, grey-green, powder blue, sand), not in the one grey the aerial photo gives. Within
+## NOWY_REACH metres of the street's centre line (south of NOWY_END_Z, Al. Jerozolimskie) a house
+## takes one of these, a quarter of the mapped colour left in. Walls only: no tiles, dormers or
+## gables (the roofs stay the flat and hipped roofs the aerial photo shows). A *guess* from
+## memory of the street until the Mac photo check (QUESTIONS).
+const NOWY_PASTELS := ["#efe3c8", "#e8d49a", "#dcc08a", "#e4b5a2", "#e8c3c0", "#c3cfb4", "#b9cbd8", "#e6d8bd",
+		"#d8c7a4", "#cdbfd0"]
+const NOWY_REACH := 30.0
+const NOWY_END_Z := 262.0
+const NOWY_STREET := "Nowy Świat"
+
 ## Their tenements' own colours where OpenStreetMap has none (ochre, salmon, cream, terracotta,
 ## pale yellow, sage, blue-grey, peach, oxblood): the rebuilt Old Town's palette.
 const TENEMENTS := ["#d9a441", "#e1968f", "#ebe1d1", "#c8733f", "#efd9a0", "#a9b98a", "#9fb6cf",
@@ -5652,6 +5667,7 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 	var looks: Array[Color] = []
 	var seeds: Array[float] = []
 	var roofs: Array[Color] = []
+	var plain: Array[bool] = []  # Nowy Świat's houses: the plaster only
 	for bld in data.get("buildings", []):
 		var p: Array = bld["p"]
 		if p.size() < 6 or NOT_TENEMENTS.has(str(bld.get("kind", ""))):
@@ -5660,12 +5676,16 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 		var box := Rect2(poly[0], Vector2.ZERO)
 		for q in poly:
 			box = box.expand(q)
-		if not _historic(box.get_center(), 40.0):
+		var nowy := _nowy_swiat(box.get_center())
+		if not nowy and not _historic(box.get_center(), 40.0):
 			continue
 		var hsh := absi(int(poly[0].x * 73.0 + poly[0].y * 31.0))
 		var k := polys.size()
 		polys.append(poly)
+		plain.append(nowy)
 		var look := _osm_colour(bld["c"], Color(TENEMENTS[hsh % TENEMENTS.size()]))
+		if nowy:
+			look = Color(NOWY_PASTELS[(hsh / 7) % NOWY_PASTELS.size()]).lerp(look, 0.25)
 		if box.get_center().distance_to(OldTownRoofs.PLAC) < PLAC_PALETTE_R:
 			look = Color(PLAC_PASTELS[hsh % PLAC_PASTELS.size()]).lerp(look, 0.25)
 		looks.append(look)
@@ -5687,11 +5707,18 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 		var c := (pos[t] + pos[t + 1] + pos[t + 2]) / 3.0
 		# A wall's house is a metre behind it; a roof slope's is under its centre.
 		var probe := Vector2(c.x, c.z) if pitched else Vector2(c.x, c.z) - Vector2(nrm[t].x, nrm[t].z).normalized()
-		if not _historic(probe, 0.0):
-			continue
 		var cands: Array = grid.get(Vector2i(floori(probe.x / cell), floori(probe.y / cell)), [])
+		if cands.is_empty():
+			continue
+		var in_old := _historic(probe, 0.0)
 		for k in cands:
-			if Geometry2D.is_point_in_polygon(probe, polys[k]):
+			if (in_old or plain[k]) and Geometry2D.is_point_in_polygon(probe, polys[k]):
+				if plain[k]:
+					if not pitched:
+						for v in 3:
+							col[t + v] = looks[k]
+							uv2[t + v].x = seeds[k]
+					break
 				for v in 3:
 					if pitched:
 						col[t + v] = col[t + v].lerp(roofs[k], 0.5)
@@ -5825,6 +5852,28 @@ func _historic(at: Vector2, slack: float) -> bool:
 		_mariensztat = PackedVector2Array(MARIENSZTAT)
 	return Geometry2D.is_point_in_polygon(at, _mariensztat)
 var _mariensztat := PackedVector2Array()
+
+
+## Whether a point stands in the houses of Nowy Świat (NOWY_REACH of its centre line, short of
+## Al. Jerozolimskie), apart from the historic districts, which keep their own dress.
+func _nowy_swiat(at: Vector2) -> bool:
+	if _nowy_segs.is_empty():
+		for r in data.get("roads", []):
+			if str(r.get("name", "")) != NOWY_STREET or bool(r.get("bridge", false)):
+				continue
+			var p: Array = r["p"]
+			for i in range(0, p.size() - 3, 2):
+				var a := Vector2(float(p[i]), float(p[i + 1]))
+				var b := Vector2(float(p[i + 2]), float(p[i + 3]))
+				if a.y < NOWY_END_Z and b.y < NOWY_END_Z:
+					_nowy_segs.append([a, b])
+	for sg: Array in _nowy_segs:
+		if absf(at.x - sg[0].x) > 80.0 or absf(at.y - sg[0].y) > 80.0:
+			continue
+		if Geometry2D.get_closest_point_to_segment(at, sg[0], sg[1]).distance_to(at) < NOWY_REACH:
+			return not _historic(at, 0.0)
+	return false
+var _nowy_segs: Array = []
 
 
 ## The named Royal Route streets' segments in this map or sector: [a, b, half width + reach].

@@ -205,9 +205,10 @@ the Treasury palace's portico columns and wing pavilions; they now read in yello
 ## Nowy Świat street by street (F, 2026-11-02), pass 1
 Built (cloud, Sonnet): eight parody shopfronts (`Storefronts.NOWY_SWIAT`, check_parodies 68 venues). Open:
 - Mac look check of the eight signs (QUESTIONS); move them to real doors.
-- Houses: per-house plaster colours and the tenements' cornices against photos; the north end (Staszic Palace, Visitation) and the Palm end.
-- Café gardens (street_details cafés exist; no awnings or heaters), pavement setts, night lighting ("From map review B").
-- People: a lunch crowd on the cafés (crowds.gd `stop`/zone sites) and an evening one.
+- Pass 2 (cloud, Sonnet, 2026-11-02): per-house plaster (`NOWY_PASTELS` within 30 m of the street south of Jerozolimskie, walls only, both paths), patio heaters (13, `heater` kind), chill crowds at four terraces (`Crowds.NOWY_SWIAT`, 10-12 people each on the chill curve). Cloud shot checked the plain path only (no LoD2 in the cloud).
+- Houses: the plaster palette and the tenements' cornices against photos; the north end (Staszic Palace, Visitation) and the Palm end.
+- Café gardens: shop awnings (need photos), pavement setts, night lighting ("From map review B"); heaters have no glow yet.
+- People: the crowd spots are read off the café sets; no evening-only or rain behaviour beyond the chill curve.
 
 ## Marszałkowska street by street (F, 2026-11-01)
 
