@@ -115,7 +115,7 @@ const NITRO_SECONDS := 3.5
 const NITRO_REFILL := 20.0
 const NITRO_MIN := 0.25
 var nitro_owned := false
-## The button (hud.gd's, or the N key) is held.
+## The button (hud.gd's, Shift, or LB / RB on a pad) is held.
 var nitro_hold := false
 var nitro_on := false
 var nitro_charge := 1.0
