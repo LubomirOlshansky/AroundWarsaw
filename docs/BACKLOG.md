@@ -18,7 +18,11 @@ Small problems that agents reported or that showed up in screenshots. They are f
   together, and centrum.json's cycle paths are re-tidied from the pre-#258 input
   (street_details.json's source hash follows). check_landmarks failed the four bar barges (rays
   from the water side, the heli at 6 m over 6.7 m decks): barges now need 5 of 12 rays and the
-  heli flies at 4 m. Before CI these stayed unseen since #205/#248/#258.
+  heli flies at 4 m. Before CI these stayed unseen since #205/#248/#258. After merging today's main:
+  archikatedra.md and ostrogski.md had no parts table, a Plac Zbawiciela café set stood off its
+  shopfront (check_stops K5; `square_terraces` now uses the same CAFE_FRONT rule, 45 sets), Dworzec
+  Wodny needs the barges' bank-side rays, and the heli aims at Zamek Ostrogskich's tallest cell (its
+  box's middle is the courtyard).
 - Open: F publishes release `map-pack-1` (until then the map job skips with a warning). A required
   check: GitHub Settings → Rules → a ruleset on main requiring `quick` and `map`, so a PR can't merge
   on red or before its run ends (#261 did). After a full bake that changes lod2 or terrain:

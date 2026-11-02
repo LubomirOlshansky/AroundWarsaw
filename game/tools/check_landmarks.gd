@@ -84,11 +84,11 @@ func _check() -> int:
 				info["name"], tallest - ground, at.round(), ("it" + above) if tap == k else "id %d" % tap, hits])
 		# A bridge's pylon stands in the median between two carriageways: a car from along the
 		# deck passes beside it, so Most Świętokrzyski needs fewer stopped rays.
-		# A moored barge (barka_*) lies in the river: only the rays from the bank side meet a car's
+		# A moored barge (barka_*, and the floating Dworzec Wodny) lies in the river: only the rays from the bank side meet a car's
 		# way, the others start over the water (2026-11-02, the first CI map run: 7-8 of 12).
 		var need := 6 if info["key"] == "swieto" else 10
-		if str(info["key"]).begins_with("barka_"):
-			need = 5
+		if str(info["key"]).begins_with("barka_") or info["key"] == "dworzec_wodny":
+			need = 5  # Dworzec Wodny floats at the boulevard's edge like the barges
 		if tap != k or hits < need:
 			failures += 1
 	# Roof rescues that the landmarks' outlines now give (missions.gd's own search).
@@ -172,8 +172,8 @@ func _fly_checks() -> int:
 					if h > top:
 						top = h
 						top_at = Vector2(x, z)
-		if info["key"] in ["elektrownia", "stadion_pkp"]:
-			c = top_at  # open yards and platforms: the box's middle is air, aim at the tallest cell
+		if info["key"] in ["elektrownia", "stadion_pkp", "ostrogski"]:
+			c = top_at  # open yards and platforms (Ostrogski's courtyard between its two blocks): the box's middle is air, aim at the tallest cell
 		var alt := clampf(top * 0.5, 6.0, 45.0)
 		if info["key"] == "tr":
 			alt = 6.0  # a building site: the cranes are thin, the theatre's closed floors stand 9 m
