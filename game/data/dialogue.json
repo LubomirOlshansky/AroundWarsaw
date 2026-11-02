@@ -822,6 +822,76 @@
       {
         "only": "hala"
       }
+    ],
+    [
+      "Zestaw Królewski: trzy mięsa i korona z sałaty. Jedź!",
+      "The Royal Set: three meats and a lettuce crown. Go!",
+      {
+        "only": "zag_krol"
+      }
+    ],
+    [
+      "Pasza gniewa się na Stambuł, a Król na obu. Ty jedź.",
+      "Pasha's cross with Istanbul, King with both. You just drive.",
+      {
+        "only": "zag_krol"
+      }
+    ],
+    [
+      "U nas otwarte całą dobę. Szczególnie w święta.",
+      "Open round the clock here. Especially on holidays.",
+      {
+        "only": "zag_stambul"
+      }
+    ],
+    [
+      "Po północy porcja większa, napiwek też. Tradycja od 2009.",
+      "After midnight, bigger portions and bigger tips. Since 2009.",
+      {
+        "only": "zag_stambul"
+      }
+    ],
+    [
+      "Szybki Pasza: kebab stygnie, zanim powiesz „czosnkowy”.",
+      "Quick Pasha: the kebab cools before you say \"garlic\".",
+      {
+        "only": "zag_pasza"
+      }
+    ],
+    [
+      "Król ma korony, ja mam rożen. Dowieź i zobacz, kto tu rządzi.",
+      "The King has crowns, I have a spit. Deliver and see who rules.",
+      {
+        "only": "zag_pasza"
+      }
+    ],
+    [
+      "To dla rodziny, więc porządnie. Wujek Erdal pamięta kierowców.",
+      "For family, so do it right. Uncle Erdal remembers drivers.",
+      {
+        "only": "zag_erdal"
+      }
+    ],
+    [
+      "Napiwek od rodziny podwójny, ale ciocia liczy minuty.",
+      "Family tips double, but Auntie counts the minutes.",
+      {
+        "only": "zag_erdal"
+      }
+    ],
+    [
+      "Mięso marynowane na zakwasie. Tak, na zakwasie. Serio.",
+      "Meat marinated in sourdough. Yes, sourdough. Really.",
+      {
+        "only": "zag_rozen"
+      }
+    ],
+    [
+      "Kroję ręcznie, na zamówienie. Szybko? Pasza naprzeciwko.",
+      "Hand-carved to order. In a hurry? Pasha's across the way.",
+      {
+        "only": "zag_rozen"
+      }
     ]
   ],
   "rescue_person": [
@@ -3107,6 +3177,50 @@
       "The one on the left's to blame. I can feel it.",
       {
         "only": "gawker"
+      }
+    ]
+  ],
+  "zaglebie": [
+    [
+      "Zagłębie Kebabowe: pięć budek, jedna aleja, wojna o sos.",
+      "Kebab Basin: five shops, one avenue, a sauce war.",
+      {
+        "only": "welcome"
+      }
+    ],
+    [
+      "Pod Feminą pięć kebabów, każdy ma „najlepszy sos”.",
+      "Five kebabs by Femina, each with \"the best sauce\".",
+      {
+        "only": "welcome"
+      }
+    ],
+    [
+      "Z seansu prosto do Zagłębia. Z Feminy wszyscy wychodzą głodni.",
+      "From the film to the Basin. Femina empties hungry.",
+      {
+        "only": "welcome"
+      }
+    ],
+    [
+      "Legenda: nikt nie zjadł dnia w pięciu budkach. Szlak Szpili czeka.",
+      "Legend: nobody ate at all five in a day. The Skewer Trail awaits.",
+      {
+        "only": "welcome"
+      }
+    ],
+    [
+      "Pasza z Królem milczą od sporu o czosnkowy. Erdal pośredniczy.",
+      "Pasha and King haven't spoken since the garlic dispute. Erdal mediates.",
+      {
+        "only": "welcome"
+      }
+    ],
+    [
+      "Rzemieślniczy kebab: zakwas, rożen i kolejka. Z hasztagiem.",
+      "The craft kebab: sourdough, a spit and a queue. With a hashtag.",
+      {
+        "only": "welcome"
       }
     ]
   ]

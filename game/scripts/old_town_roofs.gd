@@ -49,10 +49,52 @@ static func dress(a: Vector3, b: Vector3, c: Vector3, n: Vector3, wall: Color, t
 	# The roof point of the dormer: the triangle's incentre, so the cheeks stay on the slope.
 	var p := (a * la + b * lb + c * lc) / perimeter
 	var across := Vector3(-run.z, 0.0, run.x)
-	var half := 0.62 + 0.18 * fposmod(seed * 7.0, 1.0)
-	var wall_h := 1.0 + 0.3 * fposmod(seed * 3.0, 1.0)
-	var rise := half * (0.75 + 0.25 * fposmod(seed * 5.0, 1.0))
+	var tri2 := PackedVector2Array([Vector2(a.x, a.z), Vector2(b.x, b.z), Vector2(c.x, c.z)])
+	# G7 (2026-11-01): what a slope carries comes from its hash, so a street is not one row of
+	# the same dormer: a gabled dormer (some wide, some narrow), a pair of skylights, a chimney
+	# alone, or a bare slope; the piece sits off the incentre by a hash too, and a chimney varies
+	# in height, width and plaster or brick.
+	var kind := fposmod(seed * 17.0, 1.0)
+	var shift := (fposmod(seed * 23.0, 1.0) - 0.5) * 0.5 * (2.0 * area / perimeter)
+	var half := 0.55 + 0.5 * fposmod(seed * 7.0, 1.0)
+	var spot := p + across * shift
+	if kind < 0.5:
+		p = _inside(p, spot, across, half + 0.3, tri2)
+		_dormer(out, p, run, across, r, half, seed, wall, tile)
+	elif kind < 0.68:
+		p = _inside(p, spot, across, 1.2, tri2)
+		_skylights(out, p, run, across, r, n, seed, tri2)
+	var chimney_odds := 0.35 if kind < 0.5 else (0.9 if kind < 0.85 else 0.5)
+	if kind < 0.68:
+		half += 0.2
+	else:
+		half = 0.6
+	# A chimney on some slopes: a stack on the same contour (so the same roof height).
+	var side_sign := -1.0 if fposmod(seed * 29.0, 1.0) < 0.5 else 1.0
+	var cb := p + across * side_sign * (half + 1.3)
+	if fposmod(seed * 11.0, 1.0) < chimney_odds and Geometry2D.is_point_in_polygon(Vector2(cb.x, cb.z), tri2):
+		_chimney(out, cb, seed, wall)
+	if (out["pos"] as Array).is_empty():
+		return {}
+	return {"pos": PackedVector3Array(out["pos"]), "nrm": PackedVector3Array(out["nrm"]), "col": PackedColorArray(out["col"])}
+
+
+## The dormer's roof point: `spot` when its two cheeks (`reach` m either side along `across`) stay
+## inside the triangle `tri`, else the incentre `p`.
+static func _inside(p: Vector3, spot: Vector3, across: Vector3, reach: float, tri: PackedVector2Array) -> Vector3:
+	for sgn in [-1.0, 1.0]:
+		var q: Vector3 = spot + across * sgn * reach
+		if not Geometry2D.is_point_in_polygon(Vector2(q.x, q.z), tri):
+			return p
+	return spot
+
+
+## A gabled dormer at roof point `p`: a cream frame round a dark window under a tiled cap.
+static func _dormer(out: Dictionary, p: Vector3, run: Vector3, across: Vector3, r: float, half: float, seed: float,
+		wall: Color, tile: Color) -> void:
 	var up := Vector3.UP
+	var wall_h := 0.9 + 0.5 * fposmod(seed * 3.0, 1.0)
+	var rise := half * (0.6 + 0.4 * fposmod(seed * 5.0, 1.0))
 	var b1 := p - across * half
 	var b2 := p + across * half
 	var e1 := b1 + up * wall_h
@@ -63,10 +105,11 @@ static func dress(a: Vector3, b: Vector3, c: Vector3, n: Vector3, wall: Color, t
 	var ridge := apex - run * ((wall_h + rise) / r)
 	var centre := p + up * (wall_h * 0.5) - run * 0.5
 	var roof := tile.darkened(0.12)
+	var front := wall.lerp(FRAME, 0.7)
 	# The front: a cream pentagon, then the window pane just proud of it.
-	_tri(out, b1, b2, e2, wall.lerp(FRAME, 0.7), centre)
-	_tri(out, b1, e2, e1, wall.lerp(FRAME, 0.7), centre)
-	_tri(out, e1, e2, apex, wall.lerp(FRAME, 0.7), centre)
+	_tri(out, b1, b2, e2, front, centre)
+	_tri(out, b1, e2, e1, front, centre)
+	_tri(out, e1, e2, apex, front, centre)
 	var f := run * 0.03
 	var g1 := b1 + across * 0.18 + up * 0.22 + f
 	var g2 := b2 - across * 0.18 + up * 0.22 + f
@@ -81,28 +124,51 @@ static func dress(a: Vector3, b: Vector3, c: Vector3, n: Vector3, wall: Color, t
 	_tri(out, e1, ridge, q1, roof, centre)
 	_tri(out, e2, apex, ridge, roof, centre)
 	_tri(out, e2, ridge, q2, roof, centre)
-	# A chimney on some slopes: a brick stack beside the dormer, up the slope.
-	var cb := p + across * (half + 1.3)  # on the same contour, so the same roof height
-	if fposmod(seed * 11.0, 1.0) < 0.35 and Geometry2D.is_point_in_polygon(Vector2(cb.x, cb.z),
-			PackedVector2Array([Vector2(a.x, a.z), Vector2(b.x, b.z), Vector2(c.x, c.z)])):
-		var s := 0.38
-		var top := 1.6 + SINK
-		cb.y -= SINK  # its foot goes under the slope, so no gap shows on the downhill side
-		var c0 := cb + Vector3(-s, 0, -s)
-		var c1 := cb + Vector3(s, 0, -s)
-		var c2 := cb + Vector3(s, 0, s)
-		var c3 := cb + Vector3(-s, 0, s)
-		var t0 := c0 + up * top
-		var t1 := c1 + up * top
-		var t2 := c2 + up * top
-		var t3 := c3 + up * top
-		var cc := cb + up * (top * 0.5)
-		for quad: Array in [[c0, c1, t1, t0], [c1, c2, t2, t1], [c2, c3, t3, t2], [c3, c0, t0, t3]]:
-			_tri(out, quad[0], quad[1], quad[2], BRICK, cc)
-			_tri(out, quad[0], quad[2], quad[3], BRICK, cc)
-		_tri(out, t0, t1, t2, BRICK.darkened(0.25), cc)
-		_tri(out, t0, t2, t3, BRICK.darkened(0.25), cc)
-	return {"pos": PackedVector3Array(out["pos"]), "nrm": PackedVector3Array(out["nrm"]), "col": PackedColorArray(out["col"])}
+
+
+## Two roof windows (a dark frame, a pale pane) lying on the slope at `p`, side by side.
+static func _skylights(out: Dictionary, p: Vector3, run: Vector3, across: Vector3, r: float, n: Vector3, seed: float,
+		tri: PackedVector2Array) -> void:
+	var upslope := (-run + Vector3.UP * r).normalized()
+	var lift := n * 0.07
+	var w := 0.38 + 0.12 * fposmod(seed * 31.0, 1.0)
+	var h := 0.5 + 0.2 * fposmod(seed * 37.0, 1.0)
+	for sgn in [-1.0, 1.0]:
+		var m: Vector3 = p + across * sgn * (w + 0.12)
+		if not Geometry2D.is_point_in_polygon(Vector2(m.x, m.z), tri):
+			continue
+		for k: Array in [[1.0, Color("#3b3d42"), 0.0], [0.72, Color("#6d8aa3"), 0.03]]:
+			var s: float = k[0]
+			var o := lift + n * float(k[2])
+			var q0 := m - across * w * s - upslope * h * s + o
+			var q1 := m + across * w * s - upslope * h * s + o
+			var q2 := m + across * w * s + upslope * h * s + o
+			var q3 := m - across * w * s + upslope * h * s + o
+			_tri(out, q0, q1, q2, k[1], m - n)
+			_tri(out, q0, q2, q3, k[1], m - n)
+
+
+## A brick or plastered chimney stack at roof point `cb`, its height, width and cap by `seed`.
+static func _chimney(out: Dictionary, cb: Vector3, seed: float, wall: Color) -> void:
+	var up := Vector3.UP
+	var s := 0.3 + 0.16 * fposmod(seed * 41.0, 1.0)
+	var top := 1.1 + 1.4 * fposmod(seed * 43.0, 1.0) + SINK
+	var body := BRICK.lerp(wall, 0.65) if fposmod(seed * 47.0, 1.0) < 0.3 else BRICK.darkened(0.12 * fposmod(seed * 53.0, 1.0))
+	cb.y -= SINK  # its foot goes under the slope, so no gap shows on the downhill side
+	var c0 := cb + Vector3(-s, 0, -s)
+	var c1 := cb + Vector3(s, 0, -s)
+	var c2 := cb + Vector3(s, 0, s)
+	var c3 := cb + Vector3(-s, 0, s)
+	var t0 := c0 + up * top
+	var t1 := c1 + up * top
+	var t2 := c2 + up * top
+	var t3 := c3 + up * top
+	var cc := cb + up * (top * 0.5)
+	for quad: Array in [[c0, c1, t1, t0], [c1, c2, t2, t1], [c2, c3, t3, t2], [c3, c0, t0, t3]]:
+		_tri(out, quad[0], quad[1], quad[2], body, cc)
+		_tri(out, quad[0], quad[2], quad[3], body, cc)
+	_tri(out, t0, t1, t2, body.darkened(0.3), cc)
+	_tri(out, t0, t2, t3, body.darkened(0.3), cc)
 
 
 ## One triangle, wound and lit so its normal points away from `inside`.

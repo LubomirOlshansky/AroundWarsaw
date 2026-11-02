@@ -27,6 +27,7 @@ then the Launch gate.
 - [x] Landmarks: the Palace, Centralna, Złote Tarasy, the towers, MSN, the Rotunda, BUW, Kopernik,
       the stadium, Plac Piłsudskiego, the start street's stores, many churches (Mac photo checks
       for some), the Ministry of Finance (2026-11-01, spec `mf.md`; Mac photo check parked)
+- [x] Classic cinemas: seven neon marquees, Muranów, Atlantic, Luna, Kultura, Elektronik, Femina, Kinoteka (F, 2026-11-02; signs only, positions need a Mac look)
 - [x] Gdański Business Center (tower, two blocks, parody logos; 2026-11-02, spec `gbc.md`; Mac photo check parked)
 - [x] Flat-price jokes: radio, passengers, Podwózka, traffic, dog walkers and three developer billboards (F, 2026-11-01; text only, billboard spots need a Mac look)
 - [x] Retro vaporwave filter replaces the VHS tape look; the Styl obrazu picker removed, always Sharp (2026-11-01; phone look check parked in QUESTIONS)
@@ -188,6 +189,7 @@ then the Launch gate.
   - [x] G3 HOTEL PIURE, the LUŹNO date bar and TIMBER jokes, 2026-11-01
   - [x] G4 KOSZTA COFFEE, GREEN CAFFE NERWO, KUKŁA and the queues, 2026-11-01
   - [x] G5 Cringulo: the "Mlask" job, his pizza, fans and news, 2026-11-01
+- [x] Zagłębie Kebabowe and Kino Femina (F, 2026-11-02; spec docs/design/zaglebie-kebabowe.md): five parody kebab shops on Al. Solidarności, Femina's neon, delivery twists, the craft kebab's choice, Szlak Szpili, 2026-11-02 (the Mac photo check of Femina's front is open)
   - [ ] Leftovers (BACKLOG): dates on LUŹNO's roof, Podwózka dates, "Kolejki" card, van fans and egg
 - [x] Gamepad support (2026-11-01, `gamepad.gd`, `check_gamepad`): Xbox, PlayStation and MFi
       pads for driving, the helicopter, the mission card, Settings, the full map and the title;
@@ -211,11 +213,11 @@ Beta goal: a visitor explores the city with everything open, an easy city drive,
 - [x] G5 Flicker and "lag wall" audit: the dithered fade patches, wall-like props, the metro
       entrances (what stays, what stops colliding, what goes) (Opus)
 - [ ] G6 Under-the-bridge entries (owned by the bridge joins thread; report in BACKLOG)
-- [ ] G7 Old Town roofs less repetitive (the dormer and tile pattern) (Sonnet)
+- [x] G7 Old Town roofs less repetitive (the dormer and tile pattern) (Sonnet) (2026-11-01, tile tones, dormer/skylight/chimney variants)
 - [ ] G8 Bus stops on the kerb; buses dwell about ten seconds, people get off and on, people wait (Opus)
 - [ ] G9 Street furniture (chairs, benches) placed where it belongs, not at random (Sonnet)
 - [x] G10 Podwózka off the main line: a visible rider icon and a START RIDE button with clear directions (Opus) · 2026-11-02, START KURS button within 25 m, bigger "!"; phone check open
-- [ ] G11 Better map icons on the minimap and the full map (Sonnet)
+- [x] G11 Better map icons on the minimap and the full map (Sonnet) (2026-11-01, kind shapes, metro and hospital pins, legend; rider and heli icons ride with G10)
 - [x] G12 Separate quest lines: helicopter quests and car quests, each with its own list and map colour (Opus) · 2026-11-02, first pass: rescue calls follow the vehicle, heli colour, car arrows hide while flying; the notebook list and the car/heli split of mixed rescues are parked
 - [ ] G13 Upgrade shop: Audi TT parody (faster car), nitro, tuning, paid in zł (Opus design, Sonnet content)
 - [x] G14 POMOC DROGOWA (unstuck) and NOWA GRA (two-tap reset) at the top of Settings → Jazda (quick win)

@@ -5442,7 +5442,11 @@ const MARIENSZTAT := [Vector2(-546.7, -1395.0), Vector2(-333.3, -1395.0), Vector
 const TENEMENTS := ["#d9a441", "#e1968f", "#ebe1d1", "#c8733f", "#efd9a0", "#a9b98a", "#9fb6cf",
 		"#f0c1ab", "#9c4a43", "#e8c07a", "#cf8c59", "#dcc9a3"]
 ## Their pitched roofs' tiles, half mixed into the aerial photo's colour (which reads pale pink).
-const TILES := ["#9c4a35", "#a85a3e", "#8a4434", "#b0603f", "#94503c"]
+const TILES := ["#9c4a35", "#a85a3e", "#8a4434", "#b0603f", "#94503c", "#7a3b30", "#c0714a", "#b2663a",
+		"#84483a", "#a4503a", "#5f6168", "#6b6d73", "#8c9299", "#6e8f80"]
+## G7: how often each tile appears (same order): terracotta ones common, slate and zinc grey and
+## the odd green copper rare.
+const TILE_WEIGHTS := [10, 10, 8, 8, 8, 5, 5, 5, 5, 5, 3, 2, 2, 1]
 ## Kinds whose walls keep their own colour there (the churches: a skin or brick of their own).
 const NOT_TENEMENTS := ["church", "cathedral", "chapel", "monastery", "convent", "religious"]
 
@@ -5602,7 +5606,7 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 			look = Color(PLAC_PASTELS[hsh % PLAC_PASTELS.size()]).lerp(look, 0.25)
 		looks.append(look)
 		seeds.append(fposmod(hsh * 0.6180339887, 1.0))
-		roofs.append(Color(TILES[hsh % TILES.size()]))
+		roofs.append(_tile_colour(hsh))
 		for gx in range(floori(box.position.x / cell), floori(box.end.x / cell) + 1):
 			for gz in range(floori(box.position.y / cell), floori(box.end.y / cell) + 1):
 				var key := Vector2i(gx, gz)
@@ -5642,6 +5646,22 @@ func _tenement_facades(pos: PackedVector3Array, nrm: PackedVector3Array, col: Pa
 					_square_gables(pos, nrm, t, polys, grid, cell, looks, seeds, covered, dress)
 				break
 	return [col, uv2, dress]
+
+
+## G7: a house's roof colour from its hash: a weighted pick from TILES, then a lightness shift of
+## up to +-9 per cent so neighbours of one tile still differ.
+func _tile_colour(hsh: int) -> Color:
+	var total := 0
+	for w: int in TILE_WEIGHTS:
+		total += w
+	var pick := (hsh * 7) % total
+	var i := 0
+	while pick >= TILE_WEIGHTS[i]:
+		pick -= TILE_WEIGHTS[i]
+		i += 1
+	var shade := (float((hsh / 11) % 100) / 99.0 - 0.5) * 0.18
+	var col := Color(TILES[i])
+	return col.lightened(shade) if shade > 0.0 else col.darkened(-shade)
 
 
 ## Appends `extra` ("pos", "nrm", "col") to `dress`. Packed arrays are copies when read out of
