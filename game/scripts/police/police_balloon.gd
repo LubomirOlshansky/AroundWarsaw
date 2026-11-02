@@ -10,6 +10,8 @@ extends PanelContainer
 ## The portraits are drawn from simple shapes until part two brings the PixelLab ones
 ## (police.md section 9: Sierżant Bogdan, Posterunkowy Kacper, Strażnik Henio).
 
+const Lang := preload("res://scripts/lang.gd")
+
 signal advanced
 signal replied(index: int)
 
@@ -99,9 +101,9 @@ func show_line(speaker: String, polish: String, english: String, replies: Array)
 	var guard := speaker.begins_with("Strażnik")
 	_style.border_color = GUARD_MUSTARD if guard else POLICE_BLUE
 	_speaker.add_theme_color_override("font_color", NAME_MUSTARD if guard else NAME_BLUE)
-	_pl.text = polish
-	_en.text = english
-	_en.visible = english != ""
+	_pl.text = Lang.pick(polish, english)
+	_en.text = ""
+	_en.visible = false
 	for c in _replies.get_children():
 		_replies.remove_child(c)
 		c.queue_free()
@@ -113,6 +115,8 @@ func show_line(speaker: String, polish: String, english: String, replies: Array)
 
 
 func _reply_button(i: int, pl: String, en: String) -> Button:
+	pl = Lang.pick(pl, en)
+	en = ""
 	var b := Button.new()
 	b.name = "reply%d" % i
 	b.focus_mode = Control.FOCUS_NONE
@@ -141,6 +145,7 @@ func _reply_button(i: int, pl: String, en: String) -> Button:
 		var l := _label(t[1], t[2])
 		l.text = t[0]
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.visible = t[0] != ""
 		words.add_child(l)
 		w = maxf(w, font.get_string_size(t[0], HORIZONTAL_ALIGNMENT_LEFT, -1, roundi(float(t[1]) * pt)).x)
 	b.add_child(words)

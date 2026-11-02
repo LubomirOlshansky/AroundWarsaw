@@ -15,6 +15,7 @@ extends Node
 ## camera's turn, so the stick means the same direction on screen during a moment.
 ## Between moments the host isn't run at all (main.gd moves the camera itself): no cost.
 
+const Lang := preload("res://scripts/lang.gd")
 const PCamHost := preload("res://addons/phantom_camera/scripts/phantom_camera_host/phantom_camera_host.gd")
 const PCam := preload("res://addons/phantom_camera/scripts/phantom_camera/phantom_camera_3d.gd")
 const PCamTween := preload("res://addons/phantom_camera/scripts/resources/tween_resource.gd")
@@ -470,10 +471,12 @@ func _make_caption(lines: PackedStringArray) -> void:
 	big.variation_embolden = 1.1
 	big.variation_transform = Transform2D(Vector2(1.0, 0.0), Vector2(-0.2, 1.0), Vector2.ZERO)
 	big.spacing_glyph = int(h * 0.006)
-	_caption_box.add_child(_caption_label("WARSZAWA", big, h * 0.095, Color.WHITE))
+	_caption_box.add_child(_caption_label(Lang.pick("WARSZAWA", "WARSAW"), big, h * 0.095, Color.WHITE))
 	var colours := [Color("#ffd23f"), Color("#c9c2d8")]
-	for i in mini(lines.size(), 2):
-		_caption_box.add_child(_caption_label(lines[i], ThemeDB.fallback_font, h * (0.05 if i == 0 else 0.04), colours[i]))
+	if lines.size() >= 1:
+		# One language: the place in Polish or in English (lang.gd).
+		var shown := Lang.pick(lines[0], lines[1] if lines.size() > 1 else "")
+		_caption_box.add_child(_caption_label(shown, ThemeDB.fallback_font, h * 0.05, colours[0]))
 
 
 func _caption_label(text: String, font: Font, px: float, colour: Color) -> Label:

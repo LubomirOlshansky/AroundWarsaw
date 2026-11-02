@@ -54,6 +54,8 @@ class FakeBubbles extends Control:
 		said += 1
 	func hush(_anchor: Variant) -> void:
 		pass
+	func muted() -> bool:
+		return false
 
 
 var problems: Array[String] = []

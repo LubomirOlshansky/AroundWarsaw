@@ -4,6 +4,47 @@ Small problems that agents reported or that showed up in screenshots. They are f
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
 
+## Language choice follow-ups (F, 2026-11-02)
+
+The game shows one language, Polish or English (`lang.gd`, Settings → DŹWIĘK → Język, the title's POLSKI / ENGLISH). Left:
+- Polish-only text that has no English yet shows as it is in English mode: mission-status titles beyond `Lang.TITLE_WORDS`, the drawn pedal words in Polish-only tests, the Polish world signs (shop names are places, meant to stay).
+- The notebook page, the pedals' words and the full map's labels are drawn text: `check_language` does not read them; look at them on the phone (QUESTIONS).
+- A new `hud.show_*` call must pass both languages (Polish, English); `Lang.pick` shows one. A text with an inline "A · B" pair is a bug.
+## All churches and Plac Zamkowy's houses (F, 2026-11-01)
+
+F: "improve the houses near the plac; all the churches should be designed with best practices;
+add it to the plan." Rules and the full inventory (39 named religious buildings, status each):
+`docs/design/churches.md`. Built in a cloud thread (Sonnet), no photos:
+- **Church kit** (`landmarks.gd` `CHURCHES`, spec `churches.md`): 22 churches as models, 250-950
+  tris each, a card each. The older fronts (Anna, Krzyż, Wszystkich Świętych, Wizytki, Karmelici,
+  Aleksander, Trójca, Zbawiciela, Teresy, Archikatedra) keep their own builders.
+- **Plac Zamkowy's houses**: `HISTORIC` has a third circle (the column, 105 m), so the plac's
+  west side and Krakowskie Przedmieście's first houses take the Old Town dress; within 110 m a
+  house takes a pastel from `PLAC_PASTELS` (a quarter of the mapped colour kept); every front
+  facing the column within 92 m gets an attic gable of one of three kinds by seed
+  (`OldTownRoofs.plac_gable`: stepped, pediment, curved). The cloud has no LoD2, so the gables
+  were tested as geometry (`check_old_town_roofs`), not seen on real walls.
+- **Open, Mac:** the front end and tower count of every kit church; the gables on the real LoD2
+  walls (do they stand on the right edges, z-fight, read at phone zoom); the palette against
+  photos of Plac Zamkowy's west side (Kamienica pod Messalką, Baryczków).
+- **Open, build:** Praga cathedral, Archikatedra's tower and apse, the Dominican, Capuchin,
+  Franciscan and Pallotine monasteries; lit belfries at night; the Kościół Niepokalanego Poczęcia
+  outline is only 20 x 14 m (a chapel, check its name).
+- **Roofs (owned by the gameplay pass thread):** F's "roofs on the old city look strange, a lot of
+  the same elements" is about `OldTownRoofs.dress` (one dormer per slope, the same chimney);
+  this thread did not touch it, only the gables at the plac. Ideas for that thread: vary the
+  dormer kind (hipped, round, none) and size by house seed, group dormers on a ridge line, drop
+  them where a slope is under 8 m.
+
+## Bike paths (F, 2026-11-02)
+
+- Fixed: gaps under 3 m between cycle path ends, ways split into pieces, spikes and sharp corners (`tools/cycleways.py`; riders turned back at every gap).
+- Open: about 600 cycle path ends still stop 3-8 m from the next path (many are the two sides of a street: needs a crossing, not a snap); ride them on the Mac against OSM; the cyclecross ways (398) and the 19 deck paths are untouched; riders' side offset jumps at a join.
+
+## Gdański Business Center (F, 2026-11-02)
+
+- Built (PR in this change, site `gbc`). Open: Mac photo check (QUESTIONS); the plaza's planters, the lit lobby's glazing detail and the KPMG-style second logo on the tower are not built. Found: `bake_city` failed on main for the church of the Saviour (its SITE_AREAS box was missing); fixed in `tools/bake_sectors.py`.
+
 ## Gameplay pass (F, 2026-11-01, six phone screenshots)
 
 F played on the phone and asked for an easier, calmer, more open beta: "a city, not racing; most
@@ -19,7 +60,7 @@ chases still refuse the teleport. Accept: fresh save shows HELI in the top row a
 off, a map hold teleports; `check_hud`, `check_first10`, `check_settings` pass. Files: first10.gd,
 main.gd, hud.gd, game/tools/check_hud.gd.
 
-**G2 · Traffic: calmer default and a findable control (P0, Sonnet, quick win).** The setting
+**G2 · Traffic: calmer default and a findable control (done 2026-11-02: Low by default, stepped slider in Settings → Świat).** The setting
 exists (Settings → Świat → "Ruch uliczny", four steps) but defaults to Normal (about 17 cars on
 screen) and F did not find it. Task: default to Low for new saves (`Settings.NORMAL_TRAFFIC` → 1;
 old saves keep their choice); change the control to a stepped slider with a live label. Accept:
@@ -34,25 +75,28 @@ hidden in cinematic moments and photo mode; they call `_zoom_view`. Accept: five
 the five steps and save; no overlap with the pill, wallet or minimap at 2532x1170 and 2868x1320
 (shots). Files: hud.gd (new signals), main.gd.
 
-**G4 · Easy city driving (P1, Opus, feel).** F: "very drifty and sensitive; it's a city, not a
-racer". Task: a Cruise handling profile as the default: lower steering rate at speed, speed-
-sensitive steering limit, stronger lateral grip (less slide), gentler yaw response, softer
-throttle onset; keep a Sport profile for the old feel (Settings → Jazda). Accept: check_steering
-at `--fixed-fps 60` green; a lane change at 50 km/h and a 90° corner at 25 km/h with full lock held
-do not slide (`slip` under a set value, new check); phone check parked. Files: car.gd,
-drive_controls.gd, settings*.gd, check_steering.gd, archive "Driving".
+**G5 · Flicker and "lag wall" audit (DONE 2026-11-01).** Finding: the flicker in IMG 7138, 7137
+and 7135 is the occlusion ghost's halftone rim on building walls beside the car, not z-fighting.
+The Bayer pattern is fixed on screen while the band slides over the wall, so it strobes. Fix
+(`ghost.gdshaderinc`, mirrored in `main.gd` `_pick_unghosted`): the rim is 0.74-0.84 of the radius
+(was 0.65-0.9) and the depth ramp 1-2 m (was 1-4 m), a thin seam instead of a wide halftone band.
+The 7136 block is a sunken metro stair; metro canopies and stairs have no collider at all
+(`Props.add_metro_entrance` is mesh only), so the car never stops on them. Collision table:
 
-**G5 · Flicker and "lag wall" audit (P1, Opus).** Screenshots: (a) dithered fade patches on
-building walls beside the car (the occlusion fade; reads as flicker at the road edge, IMG 7138,
-7137, 7135), (b) wall-like blocks at the metro mouths (the vaulted M1/M2 canopies and stairwells),
-(c) stair walls and low retaining walls by the road (7136), (d) road-edge geometry that pops.
-Task: list every prop and wall kind that is solid and decide per kind: stays solid (buildings,
-high kerbs, bollards), becomes non-colliding (metro canopies and stairs beside the road,
-planters, signs, low walls under 0.4 m, fences) or is removed; tune the fade dither so it doesn't
-strobe at the road edge; run a two-frame flicker probe on the start box, Marszałkowska and the
-bridge ramps. Accept: a table in this file (kind, decision, why); the car drives through nothing
-it shouldn't and stops on nothing it shouldn't; `check_drive`, `check_roads` green. Files:
-street_details.gd, props.gd, map_builder.gd, car.gd collision layers, shaders/building.gdshader.
+| Kind | Decision | Why |
+| --- | --- | --- |
+| Buildings, LoD2 walls, viaduct piers, garage doors | solid | real walls |
+| Cutting and retaining walls (`_build_walls`) | solid | a drop beside the road |
+| Barrier `wall` 1.9 m, `hedge` 1.2 m, `fence` 1.6 m | solid | they bound yards; a car through them looks wrong |
+| Barrier `platform` (stop, 0.25 m) | no collision | kerb height, already so |
+| Metro entrances, stairs, canopies, lifts | no collision (mesh only) | beside the road, pure dressing |
+| Kiosk, stall, ice-cream cart | solid (small boxes) | stand on the pavement edge |
+| Bollards, posts, ticket machines, columns | no collision | already so |
+| Trees (trunk 1.3 m+), parked cars | solid | already so |
+| Guard rails, bridge parapets | solid only over a drop | already so |
+
+Open: a phone check of the thinner seam (the cloud has no phone); whether the 1.2 m hedges should
+also go non-colliding is F's call.
 
 **G6 · Going under bridges at entries (P1, owner: the "Finish remaining bridge joins" thread).**
 F: "when I was entering the bridge I went down under it". Not touched here. For that thread:
@@ -60,13 +104,6 @@ reproduce at the ramps of the Poniatowski, Świętokrzyski, Śląsko-Dąbrowski,
 Łazienkowski bridges and the Średnicowy flyover (7138 shows a flyover with a road below): the lane
 graph's or the ground's height at the approach lets the car under the deck. Accept: the car stays
 on the ramp across every bridge entry in check_drive's bridge pass.
-
-**G7 · Old Town roofs repetitive (P2, Sonnet).** IMG 7135: every tenement carries the same brown
-tile, the same small dormers in the same rows, the same chimney pots. Task: vary tile colour (4-5
-related tones), dormer count, size and spacing by a per-building hash, some flat or tin roofs, a
-few skylights and chimneys of different heights; real landmarks' roofs stay. Both city paths.
-Accept: before/after shots of the Rynek and Piwna; no extra draw calls (shader or per-instance
-only); roof checks green. Files: old_town_roofs.gd, roof_dress.gd, shaders/building.gdshader.
 
 **G8/G9 · Bus stops, buses and street furniture (done 2026-11-01).** Cause found: the OSM shelters
 got their yaw from the road's direction, so roofs ran across the road (half with their glass back to
@@ -79,35 +116,17 @@ where they were (turned only), 7 inside a lane or a building were left out; tram
 and the first scene's authored cafe tables are unchanged; night service (N buses) is still only
 the Centralny hub.
 
-**G10 · Podwózka off the main line, with a clear start (P1, Opus).** Today (`rides.gd`): a
-request card for 10 s, the pickup is a teal pin and you must stop within 7 m (a waiting passenger
-waves 30-60 m away). F: too hard to catch. Task: a visible rider marker (icon over the person, a
-bigger teal "!", on the minimap and full map); inside 25 m a START RIDE button appears and the
-ride begins on tap (the car auto-brakes as in stop assist); then the beacon and a direction arrow
-to the drop-off, with the distance. Podwózka never counts toward the main line. Accept: from 25 m a
-tap starts the ride within 1 s; no 7 m ring needed; `check_rides`, `check_stop_assist` green.
-Files: rides.gd, ride_rules.gd, hud.gd, stop_assist.gd, main_line.gd. Dialogue Manager not used.
 
-**G11 · Better map icons (P2, Sonnet).** The minimaps show identical black-and-yellow "?" squares
-and orange squares for everything (7138, 7134). Task: a distinct icon per kind (job, rider, food,
-garage, landmark, heli pad, bus, metro, quest star) by shape and colour (colour-safe mode kept),
-larger on the full map, with a legend. Accept: shots of both maps; one atlas (no extra draw
-calls). Files: map_icons.gd, full_map.gd, hud.gd minimap.
-
-**G12 · Separate heli and car quests (P2, Opus design).** Today rescues, jobs and the main line
-share one list. Task: CAR (kebab, Podwózka, couriers, races) and HELI (rescues, rooftop pickups,
-the cassette, sightseeing) with their own marker colours; flying shows only heli quests, driving
-only car quests; the main line stays one path. Accept: the notebook lists both; no car quest
-completes from the heli and the reverse. Files: missions.gd, jobs.gd, main_line.gd, notebook.gd,
-map_icons.gd.
-
-**G13 · Upgrade shop (P2, Opus design, Sonnet content).** Today the garage (`garage.gd`, Warsztat
-u Mirka) sells paints only. Task: a second tab "Części i auta": (1) a faster car, a parody of the
-Audi TT (low coupe, parody name and badge, about 2,500 zł); (2) nitro: a short boost button with a
-refill timer, about 600 zł; (3) tyres (grip) and engine (top speed) levels 1-3, 150-400 zł each.
-Prices so a first purchase is reachable after about 15 minutes of jobs. New car handles as Cruise
-(G4 first). Accept: purchases saved (save migration), a stat card, `check_garage` extended, bench
-for the new model. Files: garage.gd, garage_card.gd, car.gd, models.gd, wallet.gd. Dialogue: none.
+**G13 · Upgrade shop: done (2026-11-02).** Warsztat u Mirka's card has a second tab, "Części i auta":
+the Ołdi TT (2,500 zł, faster, a lower coupe model), the nitro "Kebab Boost" (600 zł; a bolt disc left
+of the horn or the N key: 3.5 s of boost, 20 s refill), tyres (grip) and engine (top speed and pull),
+levels 1-3 at 150-400 zł. Saved in the [garage] section (no version bump). Left, found on the way:
+- **G13a (P2, phone).** Is the pricing right (first part after a few jobs, the nitro after about 15
+  minutes, the TT as the goal), does the nitro feel good and is the bolt easy to hit with the thumb,
+  does the TT read as a coupe from the 80 m view? Tune `upgrades.gd` and car.gd `NITRO_*` after F's run.
+- **G13b (P3, Sonnet).** Done 2026-11-02: two tail flames (one see-through mesh, only while it burns), a `nitro_whoosh` and a buzz when it lights (`car.nitro_started`; `--pedal=nitro` for shots); the phone must judge the flame size and the buzz. Left:
+  gamepads have no nitro button (X is "secondary"); the police chase speeds were not retuned for
+  the TT's 130 km/h (a TT with the engine at level 3 outruns every patrol car).
 
 **G14 · Unstuck and reset easy to find (P0, quick win).** F: "in Settings there should be reset
 game, and unstuck: if the user is stuck in textures, click and move to the main road". POMOC
@@ -121,24 +140,30 @@ well; make the start and end points bigger and add assistance to pickup". Task: 
 "stopped" under 6 m/s, look-ahead 60 m, aim 3 m inside. Left for the phone: is it enough, or
 should a pickup start by driving through the ring without stopping (G10). Files: stop_assist.gd.
 
-**G16 · Fewer texts while driving (P2, Sonnet).** F: "less texts when the user goes on the road".
-Task: count the toasts and bubbles per minute in a 5-minute drive (a log), merge or drop the
-repeats and hints, rate-limit toasts to one per 20 s except for quest and danger lines, no
-speech bubbles above 40 km/h except police. Accept: at most 3 popups in a 5-minute free drive.
-Files: hud.gd toast, bubbles.gd, dialogue.gd, gps_moments.gd, first10.gd.
-
-**G17 · Stuck against other cars (P1, Opus).** F: "stuck with another cars". Task: reproduce
-(a car pinned against traffic or parked cars at junctions), make traffic yield or ghost through
-the player when contact lasts over 1.5 s, and tow the player to the lane after 8 s pinned with an
-unstuck toast. Accept: a check with the car pinned between two traffic cars frees itself in under
-8 s; `check_drive`, `check_steering` green. Files: car.gd, traffic.gd, main.gd.
 
 **G18 · Ujazdów and the castle (P1, Opus, landmark thread).** F: improve Ujazdów and Zamek
 Ujazdowski. One landmark thread: compare the castle's model and the park with the orthophoto and
 photos, per the landmark recipe in docs/LANDMARKS.md.
 
 Split for parallel threads: G4 (driving), G5 (collisions and flicker), G8+G9 (street life),
-G10+G12 (quests), G13 (shop, after G4), G7+G11 (visual content), G16 (text), G17 (traffic), G18 (Ujazdów). G1-G4, G14 and G15 are done by this thread.
+G10+G12 (quests), G13 (shop, done), G16 (text), G17 (traffic), G18 (Ujazdów). G1-G4, G14 and G15 are done by this thread.
+
+## Plac Bankowy as in real life (F, 2026-11-02)
+
+Pass 1 (cloud, Sonnet, light definition of done): the Blue Skyscraper (OSM "Błękitny Wieżowiec")
+is blue reflective float glass (S_MIRROR, glass #5f94c6, grey roof, cool podium), the gold was its
+copper first cladding; kept skins with cards for the Treasury palace / city hall (`ratusz`, the
+OSM name "Urząd Miasta Stołecznego Warszawy", cream-yellow, grey-green roof), its Voivodeship wing
+(`wojewodzki`; OSM maps it teal, now palace yellow), the old Stock Exchange and Bank of Poland
+(`gielda`), the Arsenal (`arsenal`), Pałac Mniszchów, Dom Bankowy Landaua. The OSM already maps
+the Treasury palace's portico columns and wing pavilions; they now read in yellow with pale columns.
+- Pass 2: a modelled pediment over the main portico and the stepped gables on the wings' square
+  ends (Corazzi's facade has a six-column Corinthian portico, wings two storeys on the square), the
+  Arsenal's real front (central risalit, tall roof), Giełda's rotunda, the Bankowa tenements
+  (unnamed in OSM: need a site by point, like `_tallest_at`).
+- Pałac Jabłonowskich (the old Ratusz with the clock tower) is on Plac Teatralny, not here, and is
+  not modelled yet (OSM "Pałac Jabłonowskich", 39 points near (-990, -1185)); next to `teatr`.
+- Overlaps Za Żelazną Bramą (PR #215): none; it works west of Al. Jana Pawła II.
 
 ## Marszałkowska street by street (F, 2026-11-01)
 
@@ -229,6 +254,15 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
 - The scene's people stand still (no gestures); the onlookers' phones are not modelled.
 - A scene on a one-lane road (none today: they need 2+ lanes so the traffic can go round).
 
+## Ujazdowski Castle (2026-11-01)
+- Done: site `ujazdowski` (landmarks.gd `_build_ujazdowski`, spec `ujazdowski.md`) and the notebook place
+  `zamek_ujazdowski` (district Ujazdów i Łazienki had none).
+- Left: Mac photo check (colour, tower caps, entrance side, courtyard); the district still has no egg and
+  only this one place besides the padel court; Ujazdowski Park (paths, benches, the pond), the Botanic Garden,
+  Chopin's monument and the Trasa Łazienkowska trench are the next steps (DEMO 2.3 rows B).
+- The cloud's bake_city prints the same site mismatches as main (now 17 with `ujazdowski`): the Mac's
+  full re-bake settles them.
+
 ## Grand hotels (2026-11-01, hotels pass)
 - Done: Hotel Bristol's body (`bristol`: plinth, courses, cornice, slate mansard, dormers, canopied
   door with BRISTOL in gold neon on the Krakowskie front, pediment) and Hotel Polonia Palace (`polonia`,
@@ -237,7 +271,10 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
 - Left, all for the Mac photo check: real colours of both facades, the real storey count (Polonia 25.5 m
   and Bristol 27.4 m are mapped or estimated), where the entrances are, the mansards' true profile;
   the other grand hotels (Hotel Metropol 1960s block, Mercure Grand, Hotel Saski) stay generic;
-  Radisson Blu Sobieski, Sheraton, Hilton, Holiday Inn and the Ibises are plain OSM extrusions.
+  Sheraton, Hilton, Holiday Inn and the Ibises are plain OSM extrusions.
+- Radisson Blu Sobieski (Plac Zawiszy 1) done 2026-11-02 as "Radysław Blu" (`sobieski`, spec `sobieski.md`) from the
+  OSM outline, no photo: Mac check of band colours and order, storey count (31 m assumed), entrance. The Atlas Tower
+  (-2230,1015) next door is a separate thread and untouched here.
 
 ## Old Town hotels (2026-11-01)
 - Done: `hotel_kasztel` (Castle Inn, Plac Zamkowy), `hotel_canaletto` (Hotel Bellotto), `hotel_starowka`
@@ -376,6 +413,23 @@ Plan: docs/design/railway.md. One PR per item, in this order:
     Powiśle (171,89) and Most Średnicowy (1148,-720); cloud 158 / 119 draw calls (archive
     "Performance budgets", the godot-mobile-perf skill). Left: the same two on the Mac and phone.
 
+## The river's barges (F, 2026-11-01)
+
+- ~~The bar barges and houseboats were 14 m office blocks standing in the water~~ Done 2026-11-01
+  (sites `barka_wieczor`, `barka_biala`, `barka_marina`, `barka_kaskada`, `houseboats`, spec
+  docs/landmarks/specs/barki.md, 900-1866 tris each, +0 draw calls).
+- Mac photo check: hull colours, where the deckhouse sits and how long, the terraces' furniture,
+  which barge is which (the unnamed `boat` north of Wieczór is taken as the white BarKa).
+- OSM maps only four of the boulevards' barges: River Cafe, Dworzec Wodny, Dzień i Noc, Kalima,
+  Nowa Fala, WIR and the others are missing; add them as map points (a bake) or by hand.
+- ~~The unnamed 14 m "building" in Port Czerniakowski's water~~ Done 2026-11-02: it is the marina's club house (site `marina`, spec przystan.md) with sailboats; Marinka is a two-deck white barge. Mac photo check: club house colours and storeys, the real berth count, whether the finger piers hold the boats the way the model has them (OSM maps the piers only as footpaths).
+- The marina's boats float with no wake or reflection; masts have no lights at night (only the pier lamps glow).
+- The 12 `boathouse` sheds by the harbours (Port Czerniakowski, the Praga side) and the "yes"
+  building at the harbour's mouth still stand 14 m tall (OSM gives no height): a sensible height
+  in the bake, or small models.
+- The barges' festoons and stall hatches glow (M_LAMP) but cast no light on the water; a warm
+  reflection under each lit barge at night would sell it.
+
 ## The Mac App Store version and gamepads (F, 2026-11-01)
 
 Lane file: [docs/store/mac-and-gamepad.md](store/mac-and-gamepad.md). F wants the game ready for
@@ -456,6 +510,15 @@ real ones added to `brand_denylist.json`). One PR each:
 - [ ] Mac checks: the statue's spot and facing against the orthophoto; Dom Partii's height and the
       skin on the LoD2 model; KUKŁA/KOSZTA/NERWO spots on the real streets.
 - [x] `Tinder` in a run-club line replaced by TIMBER (it would fail the new denylist entry).
+
+## Zagłębie Kebabowe and Kino Femina (F, 2026-11-02)
+
+Spec: `docs/design/zaglebie-kebabowe.md`. Built: five parody kebab shops by Kino Femina (stands,
+neon fascias, twists), the craft kebab's choice card, Szlak Szpili, the welcome lore. Left:
+- Mac photo check: Femina's real front (colour, marquee) and the shops' real frontage; a marquee
+  or poster board over Femina's door would make it read as a cinema from the car.
+- A queue outside ZAKWAS I ROŻEN (crowds.gd, like KROWA 2.0) and KEBAB FM lines about the basin.
+- The phone: feel of the craft kebab's 6 s wait, the five stands' spacing (23 m apart).
 
 ## Trends 2025–26 (F, 2026-11-01)
 
@@ -862,6 +925,23 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
 - A beat from the rave booth (sfx.gd positional voice), a rave notebook card or egg, a DJ crate
   courier job, a radio mention.
 
+## Powiśle streets (F, 2026-11-02)
+Built: eight original-name neon shop signs (`Storefronts.POWISLE`, same venue code as the cinemas)
+on Tamka, Dobra, Browarna, Topiel and Solec. Left:
+- Mac look check (QUESTIONS); doors, window light and a terrace for Flat Biały, the stairwell bar behind Altana.
+- The tenements' ground floors, the Dobra and Tamka kerbs and pavements, trees and street furniture street by street; Czerwonego Krzyża and Ludna have no sign yet.
+- Syrenka's statue by the foot of Tamka still only an egg (3h-syrenki).
+- Doors, terraces and ground floors need a props pass (café tables and umbrellas as one MultiMesh, doors with window glow); no terrace helper exists yet and it adds geometry, so full definition of done (bench, shots): an Opus thread with a renderer, not a light cloud change.
+
+## Vistula boulevards: life (F, 2026-11-01)
+Built: nine `chill_bulwary_*` spots (`Crowds.BULWARY`) along the river edge from Karowa past Kopernik,
+twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. Left:
+- E-scooters on the bike path (the bike MultiMesh family has four shapes in the shader; a fifth
+  needs actor.gdshader's shape channel widened). The marina thread owns the water side.
+- Spot coordinates are read off the baked steps/benches, not placed by eye; a phone look check
+  (QUESTIONS) may move some. Seating on the actual steps (snap a third of the sitters to
+  `steps` polylines) instead of footways.
+
 ## Lore: coffee raves and arthouse cinemas (the user, 2026-10-31)
 - **Shisha lounges** built (five parody signs, `Storefronts.LOUNGES`): only the phone can show the sign size on each wall and whether the spots read as lounges. Not notebook places; add smoky window glow or a door scene if wanted.
 - **Asked**: add *coffee raves* and *arthouse cinemas* to Warsaw's lore. Content item, not built;
@@ -874,6 +954,14 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
   or three parody venues, e.g. **Kawa Zero** (a courtyard in Praga), **Flat Biały** (a
   Powiśle cafe with a terrace) and a pop-up on the Bulwary. Crowd: cargo bikes, oat-milk jokes,
   strollers with headphones, a queue for the barista rather than the door. Shut at night.
+- **Classic cinemas BUILT 2026-11-02** (F: "add all classic cinemas, Kino Muranów, Kino Atlantic and
+  others"): seven neon marquees (`Storefronts.CINEMAS`, same venue code as the cafés, `check_parodies`
+  counts them): Kino Muranów (Andersa), Atlantic (Chmielna), Luna (Marszałkowska), Kultura
+  (Krakowskie Przedmieście), Elektronik (Czerwonego Krzyża), Femina (Al. Solidarności, beside the
+  kebab district) and the Kinoteka at the Palace's west wing. Independent halls keep their real names
+  (place names, not brands); the multiplex chains stay out. Left: Iluzjon (Narbutta, Mokotów, south of
+  the map), Kino Wisła (location unverified), the evening queue and repertory board, notebook cards,
+  poster-board facades, dialogue lines.
 - **Arthouse cinemas** (kina studyjne): small screens in old halls, a bar, a repertory board.
   Parody names for the real ones: **Kino Muranek** (for Muranów), **Iluzja** (Iluzjon),
   **Kultura 24** (Kultura), **Elektroniczne** (Elektronik), **Kinoteka Pałacowa** (Kinoteka, in
@@ -1902,6 +1990,7 @@ gear names (WĄWÓZ, CEGŁA, SPECJAŁ, GARNEK, SZPAN). Left:
 - Build time: the monolithic build 58 → 75 s (the set fills' corridor tests in `terrain_height`).
 
 ## From map north (Rondo Radosława, Arkadia, Forest; 2026-10-31)
+- ~~Arkadia roof car park and the Forest's look~~ **Done 2026-11-01** (F's ask): Arkadka redesigned and its roof car park modelled (static cars), the Forest wears BANK PEPEO and has a roof terrace with a crowd (spec `arkadia.md`). Left: Mac photo check (colours, skylights, entrances); a drivable deck for DEMO 6.4; the terrace's bar kiosk and lounge.
 - **For the landmarks lane** (docs/DEMO.md 2.1 "Hand-over"): Rondo Radosława's flag mast (not in
   OpenStreetMap; the surface model has a 57.8 m column at (−2,850, −2,295)) and the island round it,
   Forest's tower (OSM part 923445779, 120 m; drawn today as OSM blocks), Arkadia (LoD2 today; its roof
@@ -2730,7 +2819,7 @@ discovery, "?" marks and completion on the full map (DEMO G3). Left for the late
   hint finger, the first order, the first race, the `--first10` replay check), **the end card** (can
   read `percent_total()` and the discovered count)~~ (done in slice 4, see below; the end card doesn't
   show the districts' %).
-- Ujazdów i Łazienki has no notebook place or egg (the park lies south of the map; only the Sejm is
+- Ujazdów i Łazienki has one notebook place (Ujazdów Castle, 2026-11-01) besides the padel court and no egg (the park lies south of the map; only the Sejm is
   in it): completion there is its 2 jobs, and it shows no "?" marks. The designer (places for the
   Sejm, Ujazdowski Castle, Plac na Rozdrożu) or the map lane (the park) would fill it. Wola has 2
   places, Stare Miasto 4: thin for "3 ?" for long.

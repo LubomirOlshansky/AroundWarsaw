@@ -38,6 +38,9 @@ class FakeDialogue extends Node:
 		said.append([speaker, group, tag])
 		return ["…", "…"]
 
+	func say_ambient(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false) -> Array:
+		return say(_anchor, speaker, group, tag, _s, _a, _h, _p)
+
 	func count(group: String, tag: String) -> int:
 		var n := 0
 		for l: Array in said:
@@ -299,6 +302,9 @@ func _check_sites(c: Crowds) -> void:
 			and Crowds.milk_queue(10.0, 3)[0] == 10 and Crowds.milk_queue(13.0, 7)[0] < Crowds.MILK_MAX, "KROWA 2.0: its line by hour")
 	_expect(Crowds.chill_level(19.0, 7, false) == 1.0 and Crowds.chill_level(8.0, 7, false) == 0.0
 			and Crowds.chill_level(19.0, 1, false) > 0.3 and Crowds.chill_level(19.0, 7, true) < 0.2, "chill yards: evening full, morning empty, winter a third, rain few")
+	# F, 2026-11-01: the Vistula boulevards' chill spots.
+	_expect(Crowds.BULWARY.size() >= 8 and Crowds.BULWARY.values().all(func(v: Array) -> bool: return int(v[1]) > 0 and float(v[2]) > 0.0),
+			"Bulwary: %d chill spots with people and a radius" % Crowds.BULWARY.size())
 	_expect(Crowds.stop_level(8.0, 2, false) == 1.0 and Crowds.stop_level(8.0, 7, false) < 0.5
 			and Crowds.stop_level(3.0, 2, false) == 0.0 and Crowds.stop_level(11.0, 2, true) > Crowds.stop_level(11.0, 2, false),
 			"Marszałkowska platforms: rush hour full, Sunday thin, night empty, rain fuller")
