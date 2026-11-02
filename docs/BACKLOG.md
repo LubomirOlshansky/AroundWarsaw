@@ -3,6 +3,10 @@
 Small problems that agents reported or that showed up in screenshots. They are fixed in the
 "loop" stage after the roadmap versions (or earlier, when an agent is already in that file).
 
+## Beta radio (F, 2026-11-02)
+
+- PÓŁNOC FM is out of the beta lineup, but the tape, the cassettes and eggs still unlock "a PÓŁNOC FM track" the player can't tune to (QUESTIONS, default: leave it).
+- KEBAB FM and MORDOR FM still play one synth loop each until F's songs arrive (docs/MUSIC.md "The beta radio"); remove the loops from radio.json then.
 ## Rondo Dmowskiego and the metro entrances (F, 2026-11-02)
 
 F sent two aerials, a night aerial and the city's traffic plan of Rondo Dmowskiego and asked for the
@@ -91,8 +95,10 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
   part; not built: the lobby's 12 olive trees, Varso 1's 7th-floor terrace, the raised crossing.
 - [x] K4 Zielona Świętokrzyska (2018): built, see docs/design/krajobraz-places.md (open for the Mac: a street photo
   compare of the planters' places; trees stay as scanned).
-- [ ] K5 Rondo Daszyńskiego plazas: Skyliner's green passage (forest-like three tiers, wooden
-  benches on terraces), Generation Park's and Mennica Legacy Tower's plazas (Sonnet, Opus spec).
+- [x] K5 Rondo Daszyńskiego plazas (2026-11-02): 121 young trees (birch, linden, hornbeam, a few
+  pines, rowan), 51 shrub beds and 11 benches in the open ground round Skyliner, Generation Park
+  and Mennica Legacy Tower (`tools/plaza_gardens.py`, spec docs/design/rondo-plazas.md). Open for
+  the Mac (QUESTIONS): the groves against photos, the wooden benches on terraces (flat ground here).
 - [ ] K6 Browary Warszawskie's Central Garden over the Leżakownia and Norblin's candelabra
   planes and climbers (Sonnet; with "Norblin, Browary" below).
 - [ ] K7 Bulwary Wiślane stages 1-2: the 6 floating pavilions, the splash pool, the Vistula fish,
