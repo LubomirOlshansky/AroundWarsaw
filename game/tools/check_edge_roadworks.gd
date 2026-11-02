@@ -11,6 +11,9 @@ extends SceneTree
 ##      span) and along every shut lane hit the closures' collider before the edge wall.
 ##   W4 the budget: one surface per mesh, at most MAX_PIECE_TRIS triangles in a CHUNK square and
 ##      MAX_TRIS in all, the halos only in the night lights' group.
+##   W5 the boards in both languages (lang.gd): English words, no wider than the Polish ones (the
+##      board keeps its size by the barriers); a language change (`rebuild`) puts a new node with
+##      its colliders and meshes in the old one's place.
 ## Prints `check_edge_roadworks: OK (...)` (exit 0) or the problems (exit 1).
 ##   godot --headless --path game --script res://tools/check_edge_roadworks.gd
 
@@ -79,7 +82,7 @@ func _run() -> void:
 			await physics_frame
 		var w3 := _solid(map, graph, list, works)
 		var w4 := _budget(works)
-		w1 += "; W3 " + w3 + "; W4 " + w4
+		w1 += "; W3 " + w3 + "; W4 " + w4 + "; W5 " + _boards() + ", " + await _relabel(map, works)
 	map.queue_free()
 	await process_frame
 	if problems.is_empty():
@@ -256,6 +259,66 @@ static func _hits(space: PhysicsDirectSpaceState3D, a: Vector2, b: Vector2, barr
 	var q := PhysicsRayQueryParameters3D.create(Vector3(a.x, 0.6, a.y), Vector3(b.x, 0.6, b.y))
 	var hit := space.intersect_ray(q)
 	return not hit.is_empty() and hit["collider"] == barriers
+
+
+# --- W5 the boards' languages ------------------------------------------------------------------
+
+func _boards() -> String:
+	var PixelFont := preload("res://scripts/pixel_font.gd")
+	var out := []
+	for pair: Array in [[EdgeRoadworks.works_lines(false), EdgeRoadworks.works_lines(true)],
+			[EdgeRoadworks.detour_lines(false), EdgeRoadworks.detour_lines(true)]]:
+		var w := [0, 0]
+		for i in 2:
+			for l: String in pair[i]:
+				w[i] = maxi(w[i], PixelFont.width(l))
+		if pair[0] == pair[1]:
+			problems.append("W5 the board %s has no English" % " ".join(pair[0]))
+		if w[1] > w[0]:
+			problems.append("W5 the English board %s (%d px) is wider than the Polish (%d px)" % [" ".join(pair[1]), w[1], w[0]])
+		out.append("%s/%s" % [" ".join(pair[0]), " ".join(pair[1])])
+	return ", ".join(out)
+
+
+## The language changes to English: the roadworks are made again, the old node gone.
+func _relabel(map, old: Node3D) -> String:
+	var Lang := preload("res://scripts/lang.gd")
+	var polish := _tris(old)
+	var was: String = Lang.code
+	Lang.set_code(Lang.EN)
+	EdgeRoadworks.rebuild(map)
+	Lang.set_code(was)
+	var works := map.get_node_or_null("EdgeRoadworks") as Node3D
+	if works == null or works == old or is_instance_valid(old) and old.is_inside_tree():
+		problems.append("W5 a language change did not make the roadworks again")
+		return "no rebuild"
+	if works.get_node_or_null("Barriers") == null:
+		problems.append("W5 the rebuilt roadworks have no colliders")
+	var t0 := Time.get_ticks_msec()
+	var pieces := 0
+	while Time.get_ticks_msec() - t0 < 60000:
+		await process_frame
+		pieces = 0
+		for n in works.get_children():
+			if n is MeshInstance3D:
+				pieces += 1
+		if not works.has_meta(&"builder"):
+			break
+	if pieces == 0:
+		problems.append("W5 the rebuilt roadworks have no meshes")
+	# Other words, other glyphs: the same triangles would mean the boards stayed Polish.
+	var english := _tris(works)
+	if english == polish:
+		problems.append("W5 the rebuilt roadworks have the Polish boards' triangles (%d)" % polish)
+	return "rebuilt in English: %d pieces, %d -> %d triangles" % [pieces, polish, english]
+
+
+static func _tris(works: Node3D) -> int:
+	var n := 0
+	for c in works.get_children():
+		if c is MeshInstance3D:
+			n += (c as MeshInstance3D).mesh.surface_get_array_len(0) / 3
+	return n
 
 
 # --- W4 the budget -------------------------------------------------------------------------------

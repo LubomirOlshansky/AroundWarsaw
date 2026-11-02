@@ -18,7 +18,7 @@ except where a plan says otherwise, because they are crowd spots and single line
 | 7 | Legia fans | BUILT (#336) | Friendly scarf-and-song fans near Stadion Leguminy, harmless red smoke | Opus |
 | 8 | Park activities | BUILT (#343) | Yoga and kung-fu practice on park lawns (Łazienki, Pole Mokotowskie, Skaryszak) | Sonnet |
 | 9 | Bike paths | BUILT (bike markings, #341) | Compare our cycleways with Warsaw's real network and fill the gaps | Opus |
-| 10 | Map edges: roadworks | DONE | PR #309 closed all 393 road ends (`edge_roadworks.gd`) | - |
+| 10 | Map edges: roadworks | DONE | PR #309 closed all 393 road ends (`edge_roadworks.gd`); English boards #350 | - |
 | 11 | Kebab "mieszane-mieszane" | BUILT | A neon kebab shop beside the Zagłębie | Sonnet |
 | 12 | The Nose Agency | BUILT | A big crown sign on the Skyliner at Rondo Daszyńskiego | Sonnet |
 
@@ -73,8 +73,8 @@ put a rider density on the main ones (Wisłostrada, Marszałkowska, Świętokrzy
 
 ## 10 Map edges (DONE)
 PR #309 `edge_roadworks.gd`: 237 closures with "ROBOTY DROGOWE" and "OBJAZD". Nothing to build.
-Left from F's note: add an English "UNDER CONSTRUCTION" line on the boards when the language is
-English (BACKLOG, small).
+~~Left from F's note: an English line on the boards~~ done (#350): in English they read ROAD WORKS
+and DETOUR → (the British words; UNDER CONSTRUCTION would not fit the board), rebuilt on a language change.
 
 ## 11 Kebab "mieszane-mieszane" (BUILT)
 "Mieszane" is what a Pole says when the kebab man asks about the meat and then the sauce:

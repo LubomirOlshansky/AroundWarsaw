@@ -39,8 +39,11 @@ const KINDS := {
 	"queue": {"file": "queue_chatter", "db": -15.0, "unit": 6.0, "reach": 40.0, "up": 1.5},
 	# The fans by Stadion Leguminy (fans.gd): a drum and a wordless crowd chant on match evenings.
 	"chant": {"file": "fan_chant", "db": -12.0, "unit": 10.0, "reach": 90.0, "up": 1.5},
+	# The wellness circles (wellness.gd): a sound-healing ring's gong and bowls, the techno-yoga speaker's thump.
+	"gong": {"file": "gong_bowls", "db": -13.0, "unit": 8.0, "reach": 60.0, "up": 1.0},
+	"thump": {"file": "techno_thump", "db": -12.0, "unit": 8.0, "reach": 70.0, "up": 1.0},
 }
-const LOOPING := ["club", "busker", "murmur", "guitar", "queue", "chant"]
+const LOOPING := ["club", "busker", "murmur", "guitar", "queue", "chant", "gong", "thump"]
 ## A train below a metro entrance every 3-4 minutes (vision.md 3.5).
 const METRO_GAP := Vector2(180.0, 240.0)
 ## The Patelnia's busker from 19:00 to 22:00 (vision.md 3.10: "at 19:00").

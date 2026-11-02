@@ -139,8 +139,11 @@ fresh thread per item; ul. Złota and Zgoda stay with the Skwer Linearny thread.
   pines, rowan), 51 shrub beds and 11 benches in the open ground round Skyliner, Generation Park
   and Mennica Legacy Tower (`tools/plaza_gardens.py`, spec docs/design/rondo-plazas.md). Open for
   the Mac (QUESTIONS): the groves against photos, the wooden benches on terraces (flat ground here).
-- [ ] K6 Browary Warszawskie's Central Garden over the Leżakownia and Norblin's candelabra
-  planes and climbers (Sonnet; with "Norblin, Browary" below).
+- [x] K6 (2026-11-02, `planted_trees.py` kind `garden`): 5 candelabra planes (broad heads on short
+  trunks) in Fabryka Norblina's court and 12 lindens, birches and maples in Browary's Central Garden
+  yard, at spots clear of walls, roads, lamps and the scanned trees. Left (Mac photo check, QUESTIONS):
+  the real positions (the Leżakownia's vaults, the candelabras' places), the climbers on the walls
+  and the garden terraces upstairs (not modelled), and the tree count in the Browary yard.
 - [x] K7 Bulwary Wiślane stages 1-2 (2026-11-02, site `bulwary_basen`, spec bulwary_basen.md): the
   splash pool and 3 fish (the 6 pavilions are the boulevard dressing, PR #310). Left: the amphitheatre, trampolines and the "living river"
   garden (not in OSM, need the orthophoto), and the Mac look check (QUESTIONS).
@@ -204,6 +207,9 @@ west end: 90 → 93 draw calls (main 34 → 36, shadow 17 → 18), 0.39 → 0.41
 - [ ] Traffic queues at a closure while it is on screen (a closed road is picked only when nothing else is open);
       real drivers would turn round. A U-turn at the barriers would need a turning lane in the graph.
 - [ ] `--no-edge-roadworks` removes the meshes and colliders but the traffic still stops at the lines.
+- ~~English boards~~ (satire doc #10, 2026-11-02): in English the boards read ROAD WORKS / DETOUR → (the
+  British words, as wide as the Polish, so the board keeps its size); a language change in Settings builds the
+  roadworks again (`EdgeRoadworks.rebuild`, colliders at once, meshes over the next frames). Check W5.
 
 ## Playtest bugs (Autopilot, 2026-11-02)
 
@@ -941,8 +947,8 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   their checks (`first10`, `first10-run`, `opening`, `cassettes`, `save`, `hud`), merge #115 then
   #121. Built, not verified on the phone.
 - **The first scene's open items** (design/first-scene.md items 4-5; BACKLOG "High priority: the
-  first scene"): the pavilions and towers behind the Eastern Wall stores, the park strip in front of
-  the museum, lowered kerbs at the crossings. Gap. The paving, the crossings' tactile pads and the
+  first scene"): the pavilions and towers behind the Eastern Wall stores (a solid OSM block, needs
+  Mac photos). The park strip's benches and lamps and the lowered kerbs were built 2026-11-02. The paving, the crossings' tactile pads and the
   tram platforms' edges were built 2026-11-02 (first-scene.md "Items 4 and 5 as built"); items 6-7
   (pedestrians and sound at the start) built 2026-11-02; both phone checks parked.
 
@@ -1342,8 +1348,10 @@ Built (`wellness.gd`, docs/design/wellness.md; ideas 2, 3, 4 and 8 of docs/desig
 spots (Park Świętokrzyski, Skwer Kościuszki, Rondo Daszyńskiego, Browary Warszawskie, Ogród Saski, Park Ujazdowski,
 Ogród Krasińskich) in daylight hours, 58 lines (`sound_healing`, `techno_yoga`, `club_40`, `park_kungfu`), check
 `wellness`. Left:
-- No sound yet: a soft gong when the car passes a sound-healing ring and a thump near a techno row
-  (sfx.gd positional voices, one new make_sfx.py sound each).
+- ~~No sound yet~~ DONE (2026-11-02): `gong_bowls` (gong every 6 s, singing bowl between, 12 s loop) at each sound-healing
+  ring and `techno_thump` (muffled 128 BPM four-on-the-floor, 7.5 s loop) at each techno row, through city_sounds.gd's new
+  `gong` and `thump` kinds (reach 60 and 70 m, sounding while the spot is on); `check_sfx` covers both loops. Only a phone
+  or Mac listen can judge the levels (-13 / -12 dB, cloud has no ears).
 - Mac look check (QUESTIONS): the spots are read off the baked lawns, not seen; Łazienki Królewskie, Pole
   Mokotowskie and Skaryszak (the design doc's other park spots) lie outside the map.
 - Only the phone can show whether the 7-10 figures, the signs' text and the hamster balls read at the default

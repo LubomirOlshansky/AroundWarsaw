@@ -10,11 +10,14 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- The roadworks at the city's edges now speak English too: ROAD WORKS and DETOUR when you play in English.
+- Fabryka Norblina's courtyard has its big spreading plane trees, and the yard of Browary Warszawskie has a garden of lindens, birches and maples.
+- The start of the game has a park strip in front of the museum: benches and slim lamps, and every zebra crossing now has a lowered kerb.
 - On match evenings friendly fans gather outside Stadion Leguminy: scarves up over their heads on the drum's beat, pink smoke, funny banners, a kid with a giant foam finger, and a police officer who just drinks a coffee. Honk and they start singing.
 - On match days the fans now walk to Stadion Leguminy in little bunches from the bus stops and along Łazienkowska and Czerniakowska, the last few running late for kick-off, and after full time they stream home: singing with their scarves up after a win, or telling each other "next time" after a draw.
 - Loud cars: a meet of low, wide supercars in acid colours (no badges) on the square by the Browary Warszawskie gate, with people filming them on their phones, and a few of them out on the streets, revving and crackling as they pass. KEBAB FM reports that the neighbours are counting the revs again.
 - A kebab shop called MIESZANE MIESZANE glows on Al. Solidarności by the Kebab Basin, named after the only two answers you give at the counter ("Mięso?" "Mieszane." "Sos?" "Mieszane."), with a late-night queue of regulars, and the Skyliner at Rondo Daszyńskiego wears the NOSE AGENCY on its crown.
-- Warsaw's wellness crowd is out in the parks: sound healing round a gong ("DŹWIĘKOTERAPIA, wejście 80 zł"), techno yoga with hamsters in rolling balls, a women's 40+ club turning round a tree to wake the little girl inside, and a kung-fu school doing one very slow move in step.
+- Warsaw's wellness crowd is out in the parks: sound healing round a gong ("DŹWIĘKOTERAPIA, wejście 80 zł"), techno yoga with hamsters in rolling balls, a women's 40+ club turning round a tree to wake the little girl inside, and a kung-fu school doing one very slow move in step. Walk up to a sound-healing ring and you hear the gong and the singing bowls; near a techno-yoga row, a muffled beat thumps from the speaker.
 - Pani Halina now always pulls up behind you to challenge you to the first race, never in front of you where she could block a narrow street.
 - Railway tracks now look like tracks: pale gravel shoulders, concrete sleepers and shiny rail heads.
 - A new pizzeria, KRINGULA PIZZA, with a huge queue of people who cry over the first bite, and longer morning queues at two hyped coffee chains.
