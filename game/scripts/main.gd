@@ -41,6 +41,7 @@ extends Node
 ## Loop G1b: --last-session=struggled|calm starts Auto as if the last session at the sharp image
 ## struggled (the ×2 fallback) or was calm (the sharp image), and writes nothing of it.
 
+const Lang := preload("res://scripts/lang.gd")  # one language at a time (2026-11-02)
 const Release := preload("res://scripts/release.gd")  # DEMO 3j: no flags in a release build
 const Access := preload("res://scripts/access.gd")
 const MapBuilder := preload("res://scripts/map_builder.gd")
@@ -296,6 +297,8 @@ var start_in_tunnel := false
 var ghost_debug := 0
 ## --left-handed: the left-handed layout for this run (Settings → DOSTĘP keeps it otherwise).
 var _flag_left_handed := false
+## --lang=pl|en: the language for this run (not saved), over the saved choice and the phone's.
+var _flag_lang := ""
 ## --lift=M: aim the camera M metres above the vehicle (close-ups of tall landmarks).
 var cam_lift := 0.0
 ## The ghosted footprint's sunlight: given back in full above GHOST_SUN_HIGH degrees of
@@ -461,6 +464,9 @@ var paint_flag := ""
 var garage_flag := false
 ## --garage=ring: the car 16 m short of the ring (the ring in view, no card).
 var garage_ring_only := false
+## G13: --garage=parts opens the card on the parts tab; --upgrades=all|tt|nitro starts with them.
+var garage_parts := false
+var upgrades_flag := ""
 var garage_log := false
 var life_flag := 1
 var dogs_log := false
@@ -486,6 +492,8 @@ var pedzik_kerb := false
 var armchair_flag := false
 var start_sloik := -1
 var start_heat := -1.0
+## Testing (loop Zagłębie): --craft=plain, the autopilot takes the plain kebab at the craft shop.
+var craft_plain := false
 # --- loop 2d-1: Podwózka (rides.gd) and its testing flags ---
 var rides: Rides
 ## --ride=N: ride N's request, the car by its passenger; --ride-quirk=, --passenger=, --stars=X
@@ -702,6 +710,7 @@ func _ready() -> void:
 	if show_title:
 		title = Title.new()
 		title.touch_off = no_touch  # desktop: --no-touch
+		title.language_chosen.connect(_on_language_chosen)
 		add_child(title)
 	else:
 		loading = _loading_card()
@@ -760,7 +769,7 @@ func _ready() -> void:
 		title.dismissed.connect(_on_title_dismissed)
 		title.new_game.connect(_on_new_game)
 		title.can_resume = (wallet.has_progress() and wallet.persistent and not wallet.newer) or title_choice in ["ask", "new"] or not resume_flag.is_empty()
-		title.resume_line = "%s · respekt %d" % [Wallet.money(wallet.zl), wallet.respect]
+		title.resume_line = _resume_line()
 		title.auto_go = _new_game_pending
 		_new_game_pending = false
 		# The loading fix: "tap to drive" once the sectors round the start are in (_title_frame).
@@ -1069,6 +1078,7 @@ func _build_world() -> void:
 	ped_zones = PedZones.new(data.get("ped_zones", []))
 	car = Car.new()
 	car.ground_height = map.drive_height
+	car.set_sensitivity(settings.sensitivity)
 	car.set_handling(settings.handling)  # G4: Cruise by default, Sport from Settings → Jazda
 	world.add_child(car)
 	_xray = TunnelXray.new()
@@ -1449,6 +1459,10 @@ func _build_sound(data: Dictionary, world: Node3D) -> void:
 	world.add_child(sfx)
 	sfx.setup(data)
 	car.impact.connect(sfx.impact)
+	# G13b: the nitro lights with a whoosh and a short strong buzz.
+	car.nitro_started.connect(func() -> void:
+		sfx.play_at("nitro_whoosh", car.global_position)
+		Access.buzz(90, 0.8))
 	if trams != null:
 		trams.bell.connect(sfx.tram_bell)
 	if traffic != null:
@@ -1779,7 +1793,7 @@ func _start_phone_bench() -> void:
 		if hit.is_empty():
 			busy = "Brak trasy · No route"
 	if busy != "":
-		hud.toast(busy)
+		hud.toast(Lang.split(busy))
 		return
 	_phone_saved = {"at": car.global_transform, "mask": car.collision_mask, "size": base_size,
 			"wallet": [wallet.zl, wallet.respect, wallet.jobs.duplicate(true), wallet.best.duplicate(true),
@@ -1869,6 +1883,7 @@ func _build_side_jobs(data: Dictionary, world: Node3D) -> void:
 			"rivals": rivals, "graph": graph, "traffic": traffic, "map": map, "car": car, "tod": tod}
 	jobs = Jobs.new()
 	jobs.autopilot = autopilot
+	jobs.craft_plain = craft_plain
 	if start_heat >= 0.0:
 		jobs.start_heat = start_heat
 	add_child(jobs)
@@ -2140,7 +2155,15 @@ func _build_garage(world: Node3D) -> void:
 	if paint_flag != "":
 		garage.preset(paint_flag)
 	garage.force = garage_flag
+	if garage_parts:
+		garage.start_tab = "parts"
 	garage.setup(world)
+	if upgrades_flag != "":
+		garage.preset_upgrades(upgrades_flag)
+	garage.upgraded.connect(func(id: String) -> void:
+		if id == "nitro":
+			hud.toast("Nitro gotowe: przytrzymaj błyskawicę przy klaksonie (klawisz N).",
+					"Nitro fitted: hold the bolt by the horn (N key)."))
 	if garage_flag:
 		_put_at_garage()
 	garage.opened.connect(func() -> void:
@@ -3305,6 +3328,8 @@ func _parse_args() -> void:
 	for arg in game_args():
 		if arg == "--demo":
 			demo = true
+		elif arg.begins_with("--lang="):
+			_flag_lang = arg.trim_prefix("--lang=")  # pl or en, for shots and checks
 		elif arg == "--left-handed":
 			_flag_left_handed = true  # accessibility (2026-11-01): the mirrored controls, for shots
 		elif arg.begins_with("--shots="):
@@ -3454,6 +3479,8 @@ func _parse_args() -> void:
 			start_sloik = maxi(0, int(arg.trim_prefix("--sloik="))) if arg.contains("=") else 0
 		elif arg.begins_with("--heat="):
 			start_heat = clampf(float(arg.trim_prefix("--heat=")), 0.0, 1.0)
+		elif arg == "--craft=plain":
+			craft_plain = true
 		# --- loop 2d-1: Podwózka's flags ---
 		elif arg.begins_with("--ride="):
 			start_ride = maxi(0, int(arg.trim_prefix("--ride=")))
@@ -3610,14 +3637,17 @@ func _parse_args() -> void:
 			free_roam = true
 		elif arg.begins_with("--paint="):
 			paint_flag = arg.trim_prefix("--paint=")  # the garage loop
-		elif arg == "--garage" or arg == "--garage=ring":
+		elif arg == "--garage" or arg == "--garage=ring" or arg == "--garage=parts":
 			garage_flag = true
 			garage_ring_only = arg == "--garage=ring"
+			garage_parts = arg == "--garage=parts"
 			garage_log = true
 			show_title = false
 			free_roam = true
 		elif arg == "--garage-log":
 			garage_log = true
+		elif arg.begins_with("--upgrades="):
+			upgrades_flag = arg.trim_prefix("--upgrades=")  # G13: all | tt | nitro, for this run
 		elif arg.begins_with("--egg="):
 			egg_flag = arg.trim_prefix("--egg=")
 		elif arg.begins_with("--district="):
@@ -3759,6 +3789,7 @@ func _parse_args() -> void:
 func _load_settings() -> void:
 	settings.persistent = not no_save
 	settings.load_file()
+	Lang.set_code(_flag_lang if _flag_lang in Lang.CODES else Lang.resolve(settings.lang))
 	Access.apply(settings)
 	if _flag_left_handed:
 		Access.left_handed = true
@@ -4014,10 +4045,34 @@ func _settings_state() -> Dictionary:
 			"auto": auto_name,
 			"master": settings.master, "music": settings.music, "effects": settings.effects, "perf": int(show_perf),
 			"fps": maxi(0, Settings.FPS.find(settings.fps)), "style": style_index, "vhs": int(vhs),
-			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on), "handling": settings.handling,
+			"weather": weather.state, "time": tod.mode, "wander": int(spacer != null and spacer.on), "zones": int(zone_cap_on), "handling": settings.handling, "sensitivity": settings.sensitivity,
 			"text_large": int(settings.text_large), "calm": int(settings.calm), "color_safe": int(settings.color_safe),
 			"vibration": int(settings.vibration), "stop_assist": int(settings.stop_assist),
-			"left_handed": int(settings.left_handed)}
+			"left_handed": int(settings.left_handed), "lang": maxi(0, Lang.CODES.find(Lang.code))}
+
+
+## The save's line on the title screen: "1 240 zł · respekt 87" in the chosen language.
+func _resume_line() -> String:
+	return "%s · %s %d" % [Wallet.money(wallet.zl), Lang.pick("respekt", "respect"), wallet.respect]
+
+
+## The title's POLSKI / ENGLISH buttons: keep the choice (a --nosave run keeps it for the session
+## only) and renew the line under the prompt.
+func _on_language_chosen(code: String) -> void:
+	_set_language(code)
+	if title != null and wallet != null:
+		title.resume_line = _resume_line()
+
+
+## One language at a time (lang.gd): the choice is saved and every surface that was built in the
+## old language is made again (the settings panel at once; the full map when it next opens).
+func _set_language(code: String) -> void:
+	Lang.set_code(code)
+	settings.lang = code
+	settings.save()
+	print("language: %s" % code)
+	if hud != null:
+		hud.language_changed(_settings_state())
 
 
 func _close_settings() -> void:
@@ -4082,6 +4137,9 @@ func _on_setting(key: String, value: Variant) -> void:
 			settings.wander = int(value) == 1
 			if spacer != null:
 				spacer.set_on(settings.wander)
+		"sensitivity":
+			settings.sensitivity = clampf(float(value), 0.0, 1.0)
+			car.set_sensitivity(settings.sensitivity)
 		"handling":
 			settings.handling = clampi(int(value), 0, 1)
 			car.set_handling(settings.handling)
@@ -4094,6 +4152,8 @@ func _on_setting(key: String, value: Variant) -> void:
 			Access.apply(settings)
 			hud.set_left_handed(Access.left_handed)
 			hud.apply_text_scale()
+		"lang":
+			_set_language(Lang.CODES[clampi(int(value), 0, Lang.CODES.size() - 1)])
 		"master", "music", "effects":
 			settings.set(key, float(value))
 			Sfx.set_levels(settings.master, settings.music, settings.effects)
@@ -5420,6 +5480,9 @@ func _read_input(dt: float) -> void:
 		stick = pad_stick
 		stick_on = true
 	controls.drive(car, stick, stick_on, keys, hud.gas or Gamepad.gas(), hud.brake or Gamepad.brake(), cam_yaw, dt)
+	# G13: the nitro (bought at the garage): the disc by the horn, N or Shift on a keyboard.
+	car.nitro_hold = car.nitro_owned and (hud.nitro_held or Input.is_physical_key_pressed(KEY_N) or Input.is_physical_key_pressed(KEY_SHIFT))
+	hud.set_nitro(car.nitro_owned, car.nitro_charge)
 	# Loop 3g-1: a pull-over holds the car; the police's test drivers (--police-auto, --trap with
 	# --pedal=gas, the soak's roaming autopilot) drive it.
 	if police != null and police.control_car(car, dt):
@@ -5447,7 +5510,7 @@ func _read_heli_input(left: bool, right: bool, up: bool, down: bool, dt: float) 
 	if not hud.stick_active() and pad_stick != Vector2.ZERO:
 		stick = pad_stick
 	var aim := Vector2(float(right) - float(left), float(down) - float(up))
-		_heli_held = hud.stick_active() or pad_stick != Vector2.ZERO or aim != Vector2.ZERO
+	_heli_held = hud.stick_active() or pad_stick != Vector2.ZERO or aim != Vector2.ZERO
 	_heli_release = 0.0 if _heli_held else _heli_release + dt
 	if stick.length() > 0.2:
 		aim = stick.normalized() * clampf((stick.length() - 0.2) / 0.8, 0.0, 1.0)
@@ -5906,13 +5969,13 @@ func _update_camera(dt: float) -> void:
 		_view_size = fcam.zoom_step(_view_size, heli_view, heli_zoom, dt)
 		focus_rate = 3.5
 	else:
-		var zoom := base_size * FollowCamera.SPEED_ZOOM * clampf(speed / car.max_speed, 0.0, 1.0)
+		var zoom := base_size * FollowCamera.SPEED_ZOOM * clampf(speed / (car.max_speed * car.top_mult), 0.0, 1.0)
 		size = base_size + zoom
 		_view_size = fcam.zoom_step(_view_size, base_size, zoom, dt)
 	# The look-ahead along the way it goes, and the dead zone's window (follow_camera.gd).
 	var forward := Vector3(-basis.z.x, 0.0, -basis.z.z).normalized() \
 			if follow and not flying and controls.scheme == Controls.CLASSIC else Vector3.ZERO
-	var lead := fcam.lead_step(heli.vel if flying else car.vel, Heli.MAX_SPEED if flying else car.max_speed,
+	var lead := fcam.lead_step(heli.vel if flying else car.vel, Heli.MAX_SPEED if flying else car.max_speed * car.top_mult,
 			_view_size, dt, forward)
 	cam_focus = fcam.focus_step(cam_focus, focus + lead, basis, _view_size, focus_rate, dt)
 

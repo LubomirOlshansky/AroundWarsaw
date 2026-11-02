@@ -5,6 +5,11 @@ extends Control
 ## line, the paints as swatches in two rows of five (each 44 pt or more: the colour, its Polish
 ## name, the price or "masz" / "na aucie"), then the action for the swatch picked (buy, switch,
 ## or why not) and WYJAZD · Drive off. Polish over English throughout. Built at the first open.
+## G13: two tabs in the header, LAKIER (the paints) and CZĘŚCI I AUTA (the Ołdi TT, the nitro, tyres
+## and engine: upgrades.gd, six cells in two columns), with a stat card (top speed, pull, grip now
+## -> after buying the item picked) in place of the paints; the same action button buys it.
+
+const Lang := preload("res://scripts/lang.gd")
 
 signal closed
 
@@ -21,6 +26,9 @@ var pt := 1.0
 var safe := Rect2()
 ## The swatch picked (a paint id).
 var picked := ""
+## G13: the tab shown ("paint" or "parts") and the shop item picked on the parts tab (upgrades.gd id).
+var tab := "paint"
+var picked_item := "tt"
 
 var _built := false
 ## The dim over the HUD and the city behind the card (drawn by this Control, `_draw`).
@@ -33,6 +41,12 @@ var _line: Label
 var _line_en: Label
 var _grid: GridContainer
 var _swatches := {}
+var _items := {}
+var _parts: GridContainer
+var _stats: Label
+var _stats_en: Label
+var _tab_paint: Button
+var _tab_parts: Button
 var _action: Button
 var _leave: Button
 
@@ -68,8 +82,14 @@ func _build() -> void:
 	_title.text = str(garage.NAME[0]).to_upper()
 	names.add_child(_title)
 	_title_en = hud._label(hud.T_LABEL, hud.SUB)
-	_title_en.text = "%s · %s, Praga" % [garage.NAME[1], garage.STREET]
+	_title_en.text = "%s, Praga" % garage.STREET
 	names.add_child(_title_en)
+	_tab_paint = hud._chip(head, "LAKIER", "Paint")
+	_tab_paint.name = "tab_paint"
+	_tab_paint.pressed.connect(func() -> void: show_tab("paint"))
+	_tab_parts = hud._chip(head, "CZĘŚCI I AUTA", "Parts and cars")
+	_tab_parts.name = "tab_parts"
+	_tab_parts.pressed.connect(func() -> void: show_tab("parts"))
 	_money = hud._label(hud.T_BODY, hud.ACCENT)
 	_money.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_money.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -88,6 +108,19 @@ func _build() -> void:
 	col.add_child(_grid)
 	for p: Dictionary in garage.PAINTS:
 		_swatches[str(p["id"])] = _swatch(p)
+	_parts = GridContainer.new()
+	_parts.columns = 2
+	_parts.add_theme_constant_override("h_separation", roundi(GAP * pt))
+	_parts.add_theme_constant_override("v_separation", roundi(GAP * pt))
+	col.add_child(_parts)
+	for id: String in garage.Upgrades.ORDER:
+		_items[id] = _item(id, width)
+	_stats = hud._label(hud.T_SUB, hud.INK)
+	hud._wrap(_stats, width)
+	col.add_child(_stats)
+	_stats_en = hud._label(hud.T_LABEL, hud.SUB)
+	hud._wrap(_stats_en, width)
+	col.add_child(_stats_en)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", roundi(GAP * pt))
 	col.add_child(row)
@@ -124,7 +157,7 @@ func _swatch(p: Dictionary) -> Button:
 	stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(stripe)
 	var name_l: Label = hud._label(hud.T_LABEL, hud.INK)
-	name_l.text = str(p["name"][0])
+	name_l.text = Lang.pick(str(p["name"][0]), str(p["name"][1]))
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_l.clip_text = true
 	name_l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -139,12 +172,61 @@ func _swatch(p: Dictionary) -> Button:
 	return b
 
 
+## One shop cell (a car, the nitro or a part): its name over its state or price.
+func _item(id: String, width: float) -> Button:
+	var hud := _hud()
+	var row: Dictionary = garage.Upgrades.find(id)
+	var b := Button.new()
+	b.name = "item_%s" % id
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2((width - GAP) * 0.5, 46.0) * pt
+	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	var box := VBoxContainer.new()
+	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 0)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(box)
+	var name_l: Label = hud._label(hud.T_SUB, hud.INK)
+	name_l.name = "name"
+	name_l.text = str(row["name"][0])
+	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_l.clip_text = true
+	name_l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	box.add_child(name_l)
+	var state: Label = hud._label(hud.T_LABEL, hud.SUB)
+	state.name = "price"
+	state.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	state.clip_text = true
+	box.add_child(state)
+	b.pressed.connect(func() -> void: pick_item(id))
+	_parts.add_child(b)
+	return b
+
+
+## G13: the tab shown ("paint" or "parts").
+func show_tab(t: String) -> void:
+	tab = "parts" if t == "parts" else "paint"
+	_say("parts" if tab == "parts" else "hello")
+	_refresh()
+
+
+## A shop cell tapped: it is picked, and Mirek says what it is (its blurb) or why not.
+func pick_item(id: String) -> void:
+	picked_item = id
+	var row: Dictionary = garage.Upgrades.find(id)
+	_line.text = str((row["blurb"] as Array)[0])
+	_line_en.text = str((row["blurb"] as Array)[1])
+	_refresh()
+
+
 ## Opens on the paint the car wears, with Mirek's hello.
-func open() -> void:
+func open(start_tab := "paint") -> void:
 	if not _built:
 		_build()
 	picked = garage.current()
-	_say("hello")
+	tab = start_tab
+	_say("parts" if tab == "parts" else "hello")
 	_refresh()
 	visible = true
 	_place.call_deferred()
@@ -172,6 +254,16 @@ func pick(id: String) -> void:
 
 ## The action button: buy or switch to the picked paint.
 func _on_action() -> void:
+	if tab == "parts":
+		var r: String = garage.choose_item(picked_item)
+		if r == "buy":
+			var maxed: bool = garage.Upgrades.kind(picked_item) == "part" \
+					and garage.Upgrades.level(garage.wallet.tune, picked_item) >= garage.Upgrades.MAX_LEVEL
+			_say(picked_item if picked_item in ["tt", "nitro"] else ("max" if maxed else "part"))
+		elif r == "switch":
+			_say("switch")
+		_refresh()
+		return
 	var first: bool = not garage.wallet.paints.has(picked)
 	var r: String = garage.choose(picked)
 	if r == "buy":
@@ -186,14 +278,29 @@ func _say(tag: String) -> void:
 	var l: Array = garage.line(tag)
 	if str(l[0]) == "" and tag in ["black", "green"]:
 		l = garage.line("buy")
-	_line.text = str(l[0])
-	_line_en.text = str(l[1])
+	_line.text = Lang.pick(str(l[0]), str(l[1]))
+	_line_en.text = ""
+	_line_en.visible = false
 
 
 func _refresh() -> void:
 	var hud := _hud()
 	var w: Node = garage.wallet
 	_money.text = w.money(int(w.zl)) if w != null else ""
+	var on_parts := tab == "parts"
+	_grid.visible = not on_parts
+	_parts.visible = on_parts
+	_stats.visible = on_parts
+	_stats_en.visible = on_parts
+	for t: Array in [[_tab_paint, "paint"], [_tab_parts, "parts"]]:
+		var tb: Button = t[0]
+		var tstyle: StyleBoxFlat = hud._box(hud.CARD_BG, hud.ACCENT if tab == t[1] else Color(1, 1, 1, 0.22), 2.0 if tab == t[1] else 1.0)
+		for s in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
+			tb.add_theme_stylebox_override(s, tstyle)
+	if on_parts:
+		_refresh_parts()
+		_place()
+		return
 	var cur: String = garage.current()
 	for id: String in _swatches:
 		var b: Button = _swatches[id]
@@ -202,14 +309,14 @@ func _refresh() -> void:
 		var price := b.find_child("price", true, false) as Label
 		match r:
 			"on":
-				price.text = "na aucie · on"
+				price.text = Lang.pick("na aucie", "on the car")
 			"switch":
-				price.text = "masz · yours" if not (p.has("eggs") or p.has("syrenki")) or w.paints.has(id) else "gratis · free"
+				price.text = Lang.pick("masz", "yours") if not (p.has("eggs") or p.has("syrenki")) or w.paints.has(id) else Lang.pick("gratis", "free")
 			"locked":
 				if p.has("syrenki"):
-					price.text = "%d/%d Syrenek" % [garage.syrenki_now(), int(p["syrenki"])]
+					price.text = Lang.pick("%d/%d Syrenek", "%d/%d Mermaids") % [garage.syrenki_now(), int(p["syrenki"])]
 				else:
-					price.text = "%d/%d sekretów" % [garage.eggs_now(), int(p["eggs"])]
+					price.text = Lang.pick("%d/%d sekretów", "%d/%d easter eggs") % [garage.eggs_now(), int(p["eggs"])]
 			_:
 				price.text = w.money(int(p["price"]))
 		var lit := id == picked
@@ -244,6 +351,88 @@ func _refresh() -> void:
 	_place()
 
 
+## G13: the parts tab: each cell's state, the stat card, the action for the cell picked.
+func _refresh_parts() -> void:
+	var hud := _hud()
+	var w: Node = garage.wallet
+	var U: GDScript = garage.Upgrades
+	var st: Dictionary = garage.shop_state()
+	for id: String in _items:
+		var b: Button = _items[id]
+		var r: String = garage.item_rule_now(id)
+		var row: Dictionary = U.find(id)
+		var price := b.find_child("price", true, false) as Label
+		var name_l := b.find_child("name", true, false) as Label
+		name_l.text = str(row["name"][0])
+		match r:
+			"on":
+				price.text = "na aucie · on"
+			"switch", "owned":
+				price.text = "masz · yours"
+			"max":
+				price.text = "poziom %d/%d · max" % [U.MAX_LEVEL, U.MAX_LEVEL]
+			_:
+				if U.kind(id) == "part":
+					price.text = "poz. %d → %d · %s" % [U.level(st["tune"], id), U.level(st["tune"], id) + 1, w.money(U.price(id, st["tune"]))]
+				else:
+					price.text = w.money(U.price(id, st["tune"]))
+		var lit := id == picked_item
+		var worn: bool = r in ["on", "owned", "max"]
+		var edge: Color = hud.ACCENT if lit else (garage.GARAGE_COLOUR if worn else Color(1, 1, 1, 0.22))
+		var style: StyleBoxFlat = hud._box(hud.CARD_BG, edge, 2.0 if lit or worn else 1.0)
+		for s in ["normal", "hover", "pressed", "hover_pressed", "disabled"]:
+			b.add_theme_stylebox_override(s, style)
+	var now: Dictionary = U.stats(str(st["car"]), st["tune"], bool(st["nitro"]))
+	var after: Dictionary = U.stats_after(picked_item, st)
+	var rule: String = garage.item_rule_now(picked_item)
+	var shows_after: bool = rule in ["buy", "short", "switch"]
+	_stats.text = _stat_line(now, after if shows_after else now)
+	_stats_en.text = "top speed · pull · grip · nitro (now → after buying)"
+	var row2: Dictionary = U.find(picked_item)
+	var name_pl := str(row2["name"][0])
+	var name_en := str(row2["name"][1])
+	match rule:
+		"on":
+			hud._set_chip(_action, "NA AUCIE", "%s is on the road" % name_en)
+			_action.disabled = true
+		"owned":
+			hud._set_chip(_action, "MASZ: NITRO", "Owned: the button is by the horn")
+			_action.disabled = true
+		"max":
+			hud._set_chip(_action, "POZIOM MAX", "%s is maxed" % name_en.to_lower())
+			_action.disabled = true
+		"switch":
+			hud._set_chip(_action, "JEDŹ: %s" % name_pl.to_upper(), "Drive the %s, free" % name_en)
+			_action.disabled = false
+		"buy":
+			hud._set_chip(_action, "KUP ZA %s" % w.money(U.price(picked_item, st["tune"])).to_upper(), "Buy: %s" % name_en)
+			_action.disabled = false
+		_:
+			var miss: int = U.price(picked_item, st["tune"]) - int(w.zl)
+			hud._set_chip(_action, "BRAKUJE %s" % w.money(miss).to_upper(), "%s short" % _money_en(miss))
+			_action.disabled = true
+	_action.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+
+## The stat card's line: top speed, pull and grip now (and after the item picked, when it changes them).
+## One line: the English gloss under it is fixed (`_stats_en`).
+static func _stat_line(now: Dictionary, after: Dictionary) -> String:
+	var parts: Array[String] = []
+	var labels := ["", "przysp. ", "przyczep. "]
+	var keys := ["top_kmh", "pull", "grip"]
+	for i in 3:
+		var a: float = float(now[keys[i]])
+		var b: float = float(after[keys[i]])
+		var unit := " km/h" if i == 0 else ""
+		var fmt := "%d" if i == 0 else "%.2f"
+		var txt: String = labels[i] + (fmt % a)
+		if not is_equal_approx(a, b):
+			txt += " → " + (fmt % b)
+		parts.append(txt + unit)
+	parts.append("nitro %s" % ("tak" if bool(after["nitro"]) else "nie"))
+	return " · ".join(parts)
+
+
 static func _money_en(amount: int) -> String:
 	var s := str(amount)
 	if amount >= 1000:
@@ -273,9 +462,14 @@ func _draw() -> void:
 
 ## For check_hud: the card and its buttons, in pixels.
 func ui_rects() -> Dictionary:
-	var out := {"card": _card.get_global_rect(), "action": _action.get_global_rect(), "leave": _leave.get_global_rect()}
-	for id: String in _swatches:
-		out["paint_" + id] = (_swatches[id] as Button).get_global_rect()
+	var out := {"card": _card.get_global_rect(), "action": _action.get_global_rect(), "leave": _leave.get_global_rect(),
+			"tab_paint": _tab_paint.get_global_rect(), "tab_parts": _tab_parts.get_global_rect()}
+	if tab == "parts":
+		for id: String in _items:
+			out["item_" + id] = (_items[id] as Button).get_global_rect()
+	else:
+		for id: String in _swatches:
+			out["paint_" + id] = (_swatches[id] as Button).get_global_rect()
 	return out
 
 
