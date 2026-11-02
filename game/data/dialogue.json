@@ -137,6 +137,38 @@
       "Cringulo gave three smacks. The place is closed for repairs. Of the soul."
     ],
     [
+      "KEBAB FM. Kino Muranów wyświetla film o gołębiu. Trzy godziny, bez dialogów, sala pełna.",
+      "KEBAB FM. Kino Muranów is showing a film about a pigeon. Three hours, no dialogue, sold out."
+    ],
+    [
+      "Atlantic na Chmielnej: seans o 20:00, a o 19:30 już cała ulica w czerni i z okularami.",
+      "Atlantic on Chmielna: the show is at 8 p.m., but by 7:30 the whole street is in black, wearing glasses."
+    ],
+    [
+      "Kino Luna na Marszałkowskiej świeci neonem do ostatniego seansu. Potem świeci dla zasady.",
+      "Kino Luna on Marszałkowska glows in neon till the last show. After that, on principle."
+    ],
+    [
+      "Kino Kultura na Krakowskim: popcorn za dwanaście, bilet za tyle, co kawa. Kultura kosztuje.",
+      "Kino Kultura on Krakowskie: popcorn twelve złoty, a ticket the price of a coffee. Culture costs."
+    ],
+    [
+      "Kinoteka w Pałacu: film o Warszawie, oglądany z Warszawy, w budynku z filmu. Zapętliliśmy się.",
+      "Kinoteka in the Palace: a film about Warsaw, watched in Warsaw, in a building from the film. We've looped."
+    ],
+    [
+      "Z Feminy wszyscy wychodzą głodni, a pięć kebabów obok to nie przypadek.",
+      "Everyone leaves Femina hungry, and five kebabs next door are no accident."
+    ],
+    [
+      "Zagłębie Kebabowe: w sporze o sos Pasza i Król nadal milczą. Erdal podaje chusteczki.",
+      "The Kebab Basin: in the sauce dispute Pasha and King are still not speaking. Erdal hands out tissues."
+    ],
+    [
+      "Kino Elektronik na Czerwonego Krzyża: seans dla trzech osób i jednego kota. Kot ocenia najsurowiej.",
+      "Kino Elektronik on Czerwonego Krzyża: a screening for three people and one cat. The cat is the harshest critic."
+    ],
+    [
       "{street}: stłuczka. Policja i karetka na miejscu, kierowcy wciąż się kłócą, kto miał zielone.",
       "{street}: a fender bender. Police and an ambulance are there; the drivers are still arguing over who had the green.",
       {
@@ -467,6 +499,27 @@
     [
       "Uwagi: „do dewelopera, mam kredyt i zero rozsądku”.",
       "Note: \"to the developer's, I've got a mortgage and no sense\"."
+    ],
+    [
+      "Uwagi: „pierwsza randka z TIMBERA, proszę nie komentować”.",
+      "Note: \"first date from TIMBER, please don't comment\".",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Uwagi: „jedziemy do LORETKI, ona napisała, że lubi dachy”.",
+      "Note: \"off to LORETKA, she wrote she likes rooftops\".",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Uwagi: „mam 40 dopasowań i jedną randkę, nie psuj tego”.",
+      "Note: \"40 matches and one date, don't ruin it\".",
+      {
+        "only": "timber"
+      }
     ]
   ],
   "podwozka_pickup": [
@@ -602,6 +655,34 @@
     [
       "Czynsz mam tak wysoki, że sąsiad z góry to współlokator.",
       "My rent's so high the upstairs neighbour is basically a flatmate."
+    ],
+    [
+      "Rąbnęła w prawo! Pierwszy raz w życiu ktoś rąbnął w prawo.",
+      "She chopped right! First time in my life anyone has.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Jak wyglądam? Na zdjęciu miałem dziesięć lat mniej i psa.",
+      "How do I look? In the photo I had ten fewer years and a dog.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Jeśli zapyta o hobby, powiem: jazda po Warszawie.",
+      "If she asks about hobbies, I'll say: driving around Warsaw.",
+      {
+        "only": "timber"
+      }
+    ],
+    [
+      "Można jechać wolniej? Napisała, że będzie za dwadzieścia minut.",
+      "Can we go slower? She texted she'll be twenty minutes.",
+      {
+        "only": "timber"
+      }
     ]
   ],
   "podwozka_rating": [
@@ -2114,6 +2195,27 @@
     [
       "Prezes z Mokotowa: trzy rakiety, zero meczów. Grupa działa.",
       "The Mokotów boss: three rackets, no matches. The group chat thrives.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Na Desce hala tenisowa jest od lat, a szklany kort od wiosny. Hala ma historię, szkło ma Instagram.",
+      "At DESKA the tennis hall is decades old, the glass court since spring. The hall has history, glass has Instagram.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Trener Dominik nad Wisłą: z tenisa wyniosłem jedno, bij w piłkę. W padlu bij w ścianę.",
+      "Coach Dominik by the Vistula: tennis taught me one thing, hit the ball. In padel, hit the wall.",
+      {
+        "only": "padel"
+      }
+    ],
+    [
+      "Kort przy Wiśle otwarty całą dobę. Prezes z Mokotowa twierdzi, że gra o czwartej rano. Nikt go nie widział.",
+      "The court by the river is open round the clock. The Mokotów boss says he plays at four a.m. Nobody has seen him.",
       {
         "only": "padel"
       }

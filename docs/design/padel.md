@@ -16,6 +16,13 @@ sport is mostly about the hoodie, the story from the court and finding a fourth 
   the ball, like an old email, always comes back.
 - **Pro Shop "Rakieta w Cenie"** (idea): sells racket, hoodie and a "partner finder" board.
 
+- **WTS DESKA** (built 2026-11-02, `landmarks.gd` DESKI; parody of the real WTS DeSki at Zaruskiego 8
+  by Most Łazienkowski): a closed tennis hall over four mapped pitches, one outdoor glass padel
+  court (blue, lit at night, floodlights) with four players, a DESKA neon on the clubhouse. Notebook place `deski`, three padel lines about it, and a
+  "Czwarty" phone call (`trend_job.gd offer_deski_call`, `--trend-job=7`): a friend rings, one of
+  the four hurt a leg at pole dance, drive or fly to the gate within 8 minutes (the helicopter
+  counts within 28 m). Tone: affectionate, no private people.
+
 ## Characters (ideas, none built yet)
 - **Trener Dominik**: ex-tennis, "nie biegaj, ustaw się". Appears as a padel court voice.
 - **Pani Basia z recepcji**: knows who booked what, since 2024; "wolny kort jest tylko w

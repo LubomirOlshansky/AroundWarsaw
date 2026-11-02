@@ -43,6 +43,10 @@ const QUIRK_SHARE := 0.35
 ## Passenger types (*guess*): normal 65 %, GPS believer 25 %, in a hurry 10 %.
 const BELIEVER_SHARE := 0.25
 const HURRY_SHARE := 0.10
+## G3 leftover: in the evening (18:00-01:00) a "timber" passenger, off to a date from the dating
+## app TIMBER, takes this share of the normal rides (club doors at dawn still win).
+const TIMBER_SHARE := 0.2
+const TIMBER_HOURS := [18.0, 25.0]
 const BOARD := StopAssist.RING
 const BOARD_SPEED := StopAssist.STOP_SPEED
 const BOARD_HOLD := 1.0
@@ -688,6 +692,8 @@ func _make_ride(n: int, e: int, s: float, from: Vector2, lo: float, hi: float) -
 	r["name"] = Jobs.CUSTOMERS[rng.randi() % Jobs.CUSTOMERS.size()]
 	var roll := rng.randf()
 	var kind := "believer" if roll < BELIEVER_SHARE else ("hurry" if roll < BELIEVER_SHARE + HURRY_SHARE else "normal")
+	if kind == "normal" and rng.randf() < TIMBER_SHARE and timber_hour():
+		kind = "timber"
 	if club != "":
 		kind = "club"
 	if force_passenger != "":
@@ -722,7 +728,7 @@ func _make_ride(n: int, e: int, s: float, from: Vector2, lo: float, hi: float) -
 	r["night"] = _night()
 	r["rain"] = _rain()
 	r["eta"] = Rules.eta_for(r["road"], kind == "hurry")
-	var l: Array = dialogue.line("podwozka_request", "club", true) if kind == "club" else dialogue.line("podwozka_request")
+	var l: Array = dialogue.line("podwozka_request", kind, true) if kind == "club" or kind == "timber" else dialogue.line("podwozka_request")
 	r["note"] = [l[0], l[1]] if not l.is_empty() else []
 	return r
 
@@ -1536,6 +1542,14 @@ func _remove_ghost() -> void:
 ## The player's rating: the last 20 rides (a new save counts as 4,87).
 func _rating() -> float:
 	return Rules.rating(wallet.keep.get("podwozka_ratings", []))
+
+
+## Is it the TIMBER evening, 18:00-01:00 (the dates)? Without a clock, never.
+func timber_hour() -> bool:
+	if tod == null:
+		return false
+	var h := float(tod.local_clock()["hour"])
+	return h >= float(TIMBER_HOURS[0]) or h < float(TIMBER_HOURS[1]) - 24.0
 
 
 ## Night or Live after dusk: the MNOŻNIK's ×1.5.
