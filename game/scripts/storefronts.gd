@@ -21,8 +21,9 @@ extends Node3D
 ##    `scooter_zone` (the one by Metro Nowy Świat-Uniwersytet holds a standing Leżak: egg
 ##    `easter_lezak`); the car within 1.2 m pushes one 1-3 m (never onto a lane), a clatter and
 ##    the `lezak` `knock` aside once a minute.
-##  - **Metro entrances** (vision 3.5): a canopy with an M post at each street `subway_entrance`
-##    poi, facing its `yaw`.
+##  - **Metro entrances** (vision 3.5): at each street `subway_entrance` poi, facing its `yaw`, in
+##    the form its `f` says (glass-vault canopy, granite stairwell, footway passage mouth) with a
+##    treaded opening, a red M post and, on 3 in 5, a glass lift (`Props.add_metro_entrance`).
 ##  - **Kebab** (6.1): U ZDZICHA and NA CIENKIM name boards on the stands nearest those places,
 ##    the vendors' `zdzich`, `cienkim`, `hala`, `stadium` tags (jobs.gd draws the other stands in
 ##    a MultiMesh per tile); **billboards** (6.2): the four new `signs` lines (eggs.gd's
@@ -32,6 +33,7 @@ extends Node3D
 ## the street props (metro entrances, zones), children of the sector's root (gone with it); no sun
 ## shadow. Nothing runs per frame but a 2 Hz tick (stamps) and the car's 16 m cell of scooters.
 
+const Lang := preload("res://scripts/lang.gd")
 const Models := preload("res://scripts/models.gd")
 const Props := preload("res://scripts/props.gd")
 const PixelFont := preload("res://scripts/pixel_font.gd")
@@ -39,6 +41,7 @@ const Neon := preload("res://scripts/neon_signs.gd")
 const InstanceBuffers := preload("res://scripts/instance_buffers.gd")
 const Notebook := preload("res://scripts/notebook.gd")
 const EggBook := preload("res://scripts/egg_book.gd")
+const Zaglebie := preload("res://scripts/zaglebie.gd")
 
 ## The sector size (the city's 512 m tiles: map_builder.gd SECTOR).
 const TILE := 512.0
@@ -75,6 +78,19 @@ const KOSZTA_TUBE := Color(0.95, 0.35, 0.3)
 const NERWO_TUBE := Color(0.35, 1.0, 0.55)
 const KUKLA_TUBE := Color(1.0, 0.85, 0.35)
 const KROWA_TUBE := Color(0.62, 0.86, 1.0)
+## The cinemas' marquee tubes: amber, a deep red and a cool white-blue, so a street of them is not one colour.
+const CINEMA_TUBE := Color(1.0, 0.72, 0.25)
+const CINEMA_TUBE_B := Color(1.0, 0.25, 0.3)
+const CINEMA_TUBE_C := Color(0.75, 0.88, 1.0)
+## Nowy Świat's shopfront tubes (F's street-by-street pass, 2026-11-02): warm, soft shades, a café street.
+const NOWY_CREAM := Color(1.0, 0.82, 0.5)
+const NOWY_ROSE := Color(1.0, 0.55, 0.7)
+const NOWY_SKY := Color(0.62, 0.86, 1.0)
+const NOWY_WINE := Color(0.95, 0.3, 0.45)
+## Powiśle's small shops: a leaf green, a brick orange and a soft lilac.
+const POWISLE_TUBE_A := Color(0.5, 0.95, 0.55)
+const POWISLE_TUBE_B := Color(1.0, 0.55, 0.3)
+const POWISLE_TUBE_C := Color(0.8, 0.62, 1.0)
 ## The venues' fascias (vision 3.0-3.2): place id -> [the lines of the sign, tube colour, metres
 ## up (the sign's bottom)]. The words are the parody names of places.json (Glon na Powiślu: GLON).
 const VENUES := {
@@ -128,6 +144,40 @@ const VENUES := {
 	"kukla_nowy_swiat": [["KUKŁA", "NALEŚNIKI"], KUKLA_TUBE, 2.8],
 	# The milk bar in Norblin (F, 2026-11-01): a bar mleczny rebuilt as a start-up, cream and blue.
 	"krowa_norblin": [["BAR MLECZNY", "KROWA 2.0"], KROWA_TUBE, 2.8],
+	# Warsaw's classic and arthouse cinemas (F, 2026-11-02): the real independent halls under their
+	# own names (place names, not brands; the multiplex chains stay out), amber marquee tubes.
+	"kino_muranow": [["KINO", "MURANÓW"], CINEMA_TUBE, 3.2],
+	"kino_atlantic": [["KINO", "ATLANTIC"], CINEMA_TUBE_B, 3.2],
+	"kino_luna": [["KINO", "LUNA"], CINEMA_TUBE_C, 3.2],
+	"kino_kultura": [["KINO", "KULTURA"], CINEMA_TUBE, 3.2],
+	"kino_elektronik": [["KINO", "ELEKTRONIK"], CINEMA_TUBE_B, 3.2],
+	"kino_kinoteka": [["KINOTEKA"], CINEMA_TUBE, 3.2],
+	# Powiśle's streets (F, 2026-11-02): the small shops of a student and cyclist quarter, original
+	# names, one tube each, low over the door.
+	"pow_flat_bialy": [["FLAT", "BIAŁY"], CAFE_TUBE, 2.8],
+	"pow_rowerownia": [["ROWEROWNIA", "SERWIS"], POWISLE_TUBE_A, 2.8],
+	"pow_winyle": [["WINYLE", "NA SKARPIE"], POWISLE_TUBE_B, 2.8],
+	"pow_ksiegarnia": [["KSIĘGARNIA", "POD SYRENKĄ"], POWISLE_TUBE_C, 2.8],
+	"pow_bar_topiel": [["BAR", "TOPIEL"], POWISLE_TUBE_A, 2.8],
+	"pow_piekarnia": [["PIEKARNIA", "NA POWIŚLU"], CAFE_TUBE, 2.8],
+	"pow_altana": [["ALTANA"], POWISLE_TUBE_B, 2.8],
+	"pow_przy_solcu": [["PRZY SOLCU"], POWISLE_TUBE_C, 2.8],
+	# Zagłębie Kebabowe on Al. Solidarności (zaglebie.gd): Kino Femina's fascia and the five shops'.
+	# Nowy Świat's shopfronts (street-by-street pass, 2026-11-02): original names, no chains.
+	"nowy_paczki": [["PĄCZKARNIA", "TŁUSTE DNI"], NOWY_ROSE, 2.8],
+	"nowy_lody": [["LODY", "BEZ KOLEJKI"], NOWY_SKY, 2.8],
+	"nowy_ksiegarnia": [["KSIĘGARNIA", "PRZY KAWIE"], NOWY_CREAM, 2.8],
+	"nowy_antykwariat": [["ANTYKWARIAT", "MA CENĘ"], NOWY_CREAM, 2.8],
+	"nowy_butik": [["BUTIK", "ZOFIA"], NOWY_ROSE, 2.8],
+	"nowy_winiarnia": [["WINIARNIA", "POD GRUSZĄ"], NOWY_WINE, 2.8],
+	"nowy_galeria": [["GALERIA", "NIEPOJĘTA"], Color(1.0, 1.0, 1.0), 2.8],
+	"nowy_kantor": [["KANTOR", "DOBRY KURS"], Color(0.2, 1.0, 0.45), 2.8],
+	"zag_femina": [["KINO", "FEMINA"], Color(1.0, 0.3, 0.35), 4.6],
+	"zag_krol": [["KEBAB KRÓL", "MAZOWSZA"], Color(1.0, 0.72, 0.12), 2.8],
+	"zag_stambul": [["STAMBUŁ 24"], Color(0.1, 0.9, 1.0), 2.8],
+	"zag_pasza": [["DONER", "PASZA"], Color(1.0, 0.1, 0.4), 2.8],
+	"zag_erdal": [["U WUJKA", "ERDALA"], Color(0.2, 1.0, 0.45), 2.8],
+	"zag_rozen": [["ZAKWAS", "I ROŻEN", "CRAFT KEBAB"], Color(1.0, 0.85, 0.35), 2.8],
 }
 ## COFFEECHAIR (BACKLOG, the user 2026-10-31): a parody of a real coffee-shop chain, our own name
 ## and a warm cream tube (no logo, no chair icon of anyone's). Small cafés that are not notebook
@@ -182,6 +232,55 @@ const HYPE := {
 	# KROWA 2.0, the milk bar on the Żelazna front of Norblin (the Mac look check parks the door).
 	"krowa_norblin": [52.23367, 20.99107],
 }
+## Warsaw's classic and arthouse cinemas (F, 2026-11-02; BACKLOG "Lore: coffee raves and arthouse
+## cinemas"): Kino Muranów (Andersa 1), Atlantic (Chmielna 33), Luna (Marszałkowska 28), Kultura
+## (Krakowskie Przedmieście 21/23), Elektronik (Czerwonego Krzyża 3/5) and the Kinoteka in the Palace
+## (Kino Femina's fascia is zaglebie.gd's `zag_femina`). Like the cafés, not notebook places;
+## same venue code, the nearest road snaps the sign. Iluzjon (Narbutta, Mokotów) is south of the map.
+const CINEMAS := {
+	"kino_muranow": [52.24620, 21.00030],
+	"kino_atlantic": [52.23180, 21.01400],
+	"kino_luna": [52.22830, 21.01360],
+	"kino_kultura": [52.24060, 21.01680],
+	"kino_elektronik": [52.23480, 21.02900],
+	"kino_kinoteka": [52.23100, 21.00450],
+}
+## Powiśle's streets (F, 2026-11-02; BACKLOG "Powiśle streets"): a cafe on Tamka, a bike workshop and
+## a bakery on Dobra, a record shop and a bookshop towards the Library, a bar on Topiel, a stairwell
+## bar on Browarna and a corner shop on Solec. Original names; like the cafés, not notebook places,
+## same venue code, the nearest road snaps the sign (the Mac look check moves the doors). Spots sit on the baked Tamka, Dobra, Browarna, Topiel and Solec.
+const POWISLE := {
+	"pow_flat_bialy": [52.23719, 21.02554],
+	"pow_rowerownia": [52.23953, 21.02693],
+	"pow_winyle": [52.24085, 21.02231],
+	"pow_ksiegarnia": [52.23654, 21.02192],
+	"pow_bar_topiel": [52.23878, 21.02489],
+	"pow_piekarnia": [52.23780, 21.02893],
+	"pow_altana": [52.24161, 21.02179],
+	"pow_przy_solcu": [52.23463, 21.03380],
+}
+## Zagłębie Kebabowe's venue anchors: id -> [lat, lon] (Femina and the five shops' doors).
+static func zaglebie_table() -> Dictionary:
+	var t := {Zaglebie.FEMINA_ID: Zaglebie.FEMINA}
+	for sh: Dictionary in Zaglebie.SHOPS:
+		t[sh["id"]] = sh["ll"]
+	return t
+
+
+## Nowy Świat's shopfronts (F's street-by-street pass, 2026-11-02; docs/design/nowy-swiat.md):
+## eight small shops on the café street between the Palm and Karowa, alternating sides, ~60 m
+## apart, placed from the road line (the Mac look check moves them to real doors). Like the cafés,
+## not notebook places; same venue code, the nearest road snaps each sign to a wall in reach.
+const NOWY_SWIAT := {
+	"nowy_paczki": [52.23246, 21.02019],
+	"nowy_lody": [52.23296, 21.01953],
+	"nowy_ksiegarnia": [52.23346, 21.01948],
+	"nowy_antykwariat": [52.23424, 21.01879],
+	"nowy_winiarnia": [52.23477, 21.01884],
+	"nowy_butik": [52.23585, 21.01816],
+	"nowy_galeria": [52.23622, 21.01831],
+	"nowy_kantor": [52.23707, 21.01777],
+}
 ## A venue sign's letter pixel (m) and the smallest it shrinks to on a short wall.
 const VENUE_PX := 0.12
 const VENUE_PX_MIN := 0.08
@@ -199,7 +298,9 @@ const STAND_TAG_REACH := 220.0
 ## The four new billboards (6.2): the line's first word -> the place they stand by, the colours.
 const BILLBOARDS := {"FROGS": ["swietokrzyska_metro", "#4fae3b", "#fbf7ee"], "PODWÓZKA": ["dworzec_centralny", "#1f1f22", "#e8f4ff"],
 		"PĘDZIK": ["hala_mirowska", "#c23a7e", "#fbf7ee"], "LEŻAK": ["nowy_swiat_uniwersytet", "#8e44d9", "#fbf7ee"],
-		"WIRALEK": ["wiralek_chmielna", "#1c1f26", "#ff7ac8"]}
+		"WIRALEK": ["wiralek_chmielna", "#1c1f26", "#ff7ac8"],
+		"KLATKA": ["hala_mirowska", "#1d3b5c", "#fbf7ee"], "METRAŻ": ["swietokrzyska_metro", "#f4f1ea", "#1d3b5c"],
+		"KREDYT": ["dworzec_centralny", "#c8282a", "#fbf7ee"]}
 
 var map: Node3D
 var graph  # LaneGraph
@@ -231,6 +332,8 @@ var venues: Array[Dictionary] = []
 var scooters: Array[Dictionary] = []
 var zones: Array[Dictionary] = []
 var metros: Array[Dictionary] = []
+## The city-bike docks (ROWERILO) from the bake's `bicycle_rental` pois: `at`, `yaw` along the row, `n` bikes.
+var docks: Array[Dictionary] = []
 ## Loop jobs-2 (E40, vision 3.9 T17): the old card payphone at Plac Konstytucji {at: Vector3, yaw, key}
 ## ({} when the place or a pavement spot isn't found); in its sector's street-prop mesh.
 var payphone := {}
@@ -285,7 +388,7 @@ func setup(data: Dictionary, places: Array) -> void:
 		if str(p.get("k", "")) == "kebab":
 			avoid.append(Vector2(float(p["x"]), float(p["z"])))
 	var with_cafes: Array = places.duplicate()
-	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE]:
+	for table: Dictionary in [CAFES, LOUNGES, TRENDY, HYPE, CINEMAS, NOWY_SWIAT, POWISLE, zaglebie_table()]:
 		for id: String in table:
 			var ll: Array = table[id]
 			with_cafes.append({"id": id, "at": Notebook.project(data.get("origin", [52.234, 21.024]), float(ll[0]), float(ll[1]))})
@@ -300,6 +403,7 @@ func setup(data: Dictionary, places: Array) -> void:
 			nt += 1
 	_load_scooters(data.get("pois", []))
 	_load_metros(data.get("pois", []))
+	_load_docks(data.get("pois", []))
 	_pick_payphone(at)
 	for i in shops.size():
 		_add_to_key("shops", shops[i]["key"], i)
@@ -311,8 +415,10 @@ func setup(data: Dictionary, places: Array) -> void:
 		_add_to_key("zones", zones[i]["key"], i)
 	for i in metros.size():
 		_add_to_key("metros", metros[i]["key"], i)
+	for i in docks.size():
+		_add_to_key("docks", docks[i]["key"], i)
 	if not payphone.is_empty() and not _by_key.has(payphone["key"]):
-		_by_key[payphone["key"]] = {"shops": [], "venues": [], "scooters": [], "zones": [], "metros": []}
+		_by_key[payphone["key"]] = {"shops": [], "venues": [], "scooters": [], "zones": [], "metros": [], "docks": []}
 	_shop_mesh = Props.frogs_shop()
 	_lezak_mesh = Props.lezak()
 	_build_atlas()
@@ -329,7 +435,7 @@ func setup(data: Dictionary, places: Array) -> void:
 		if not payphone.is_empty():
 			egg_book.move_egg("e40", Vector2(payphone["at"].x, payphone["at"].z))
 	counts = {"frogs": shops.size(), "triple": nt, "venues": venues.size(), "lezak": scooters.size(), "zones": zones.size(),
-			"metro": metros.size()}
+			"metro": metros.size(), "docks": docks.size()}
 	print("storefronts: %d Frogs (%d on %d triple corners), %d venue signs, %d Leżaks, %d zones, %d metro entrances, in %.1f ms" % [
 			shops.size(), nt, triple_at.size(), venues.size(), scooters.size(), zones.size(), metros.size(), (Time.get_ticks_usec() - t0) / 1000.0])
 	# Sectors already in.
@@ -342,7 +448,7 @@ func setup(data: Dictionary, places: Array) -> void:
 
 func _add_to_key(kind: String, key: Vector2i, i: int) -> void:
 	if not _by_key.has(key):
-		_by_key[key] = {"shops": [], "venues": [], "scooters": [], "zones": [], "metros": []}
+		_by_key[key] = {"shops": [], "venues": [], "scooters": [], "zones": [], "metros": [], "docks": []}
 	(_by_key[key][kind] as Array).append(i)
 
 
@@ -1119,7 +1225,24 @@ func _load_metros(pois: Array) -> void:
 		var x := float(p["x"])
 		var z := float(p["z"])
 		metros.append({"at": Vector3(x, map.ground_height(x, z), z), "yaw": float(p["yaw"]), "station": str(p.get("st", "")),
-				"ref": str(p.get("ref", "")), "key": key_of(Vector2(x, z))})
+				"ref": str(p.get("ref", "")), "key": key_of(Vector2(x, z)), "form": str(p.get("f", "canopy")),
+				"lift": (int(absf(x * 7.0 + z * 13.0)) % 5) < 3})
+
+
+## The Rowerilo docks from the bake's `bicycle_rental` pois (`yaw` along the rack row, `l` its length
+## when mapped as an area): a row of 4-8 bikes (`l` / 0.85 m, 6 when unmapped) and a terminal. They are
+## drawn into the sector's StreetProps mesh, so they add no draw call where that mesh already stands.
+func _load_docks(pois: Array) -> void:
+	if map == null:
+		return
+	for p: Dictionary in pois:
+		if str(p.get("k", "")) != "bicycle_rental":
+			continue
+		var x := float(p["x"])
+		var z := float(p["z"])
+		var n := clampi(int(float(p["l"]) / 0.85) if p.has("l") else 6, 4, 8)
+		docks.append({"at": Vector3(x, map.ground_height(x, z), z), "yaw": float(p.get("yaw", 0.0)), "n": n,
+				"key": key_of(Vector2(x, z))})
 
 
 ## Loop jobs-2: the payphone's spot: on the pavement by Plac Konstytucji's nearest lanes (2.4 m past
@@ -1179,7 +1302,7 @@ func _pick_payphone(at: Dictionary) -> void:
 func _build_props(key: Vector2i, root: Node3D) -> void:
 	var b: Dictionary = _by_key[key]
 	var phone: bool = not payphone.is_empty() and payphone["key"] == key
-	if (b["metros"] as Array).is_empty() and (b["zones"] as Array).is_empty() and not phone:
+	if (b["metros"] as Array).is_empty() and (b["zones"] as Array).is_empty() and (b["docks"] as Array).is_empty() and not phone:
 		return
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -1187,13 +1310,18 @@ func _build_props(key: Vector2i, root: Node3D) -> void:
 	var first := true
 	for i: int in b["metros"]:
 		var m := metros[i]
-		Props.add_metro_entrance(st, Transform3D(Basis(Vector3.UP, float(m["yaw"])), m["at"]))
+		Props.add_metro_entrance(st, Transform3D(Basis(Vector3.UP, float(m["yaw"])), m["at"]), m["form"], m["lift"])
 		box = AABB(m["at"], Vector3.ZERO) if first else box.expand(m["at"])
 		first = false
 	for i: int in b["zones"]:
 		var z := zones[i]
 		Props.add_scooter_zone(st, Transform3D(Basis(Vector3.UP, float(z["yaw"])), z["at"]))
 		box = AABB(z["at"], Vector3.ZERO) if first else box.expand(z["at"])
+		first = false
+	for i: int in b["docks"]:
+		var d := docks[i]
+		Props.add_bike_dock(st, Transform3D(Basis(Vector3.UP, float(d["yaw"])), d["at"]), int(d["n"]))
+		box = AABB(d["at"], Vector3.ZERO) if first else box.expand(d["at"])
 		first = false
 	if phone:
 		Props.add_payphone(st, Transform3D(Basis(Vector3.UP, float(payphone["yaw"])), payphone["at"]))
@@ -1364,7 +1492,7 @@ func _stop_at(i: int) -> void:
 	if not r["stamp"]:
 		if _clock - _line_t > LINE_GAP and dialogue != null:
 			_line_t = _clock
-			dialogue.say(func() -> Vector3: return at3, "Frogs", "rechotka", "", 4.0, FROGS_COLOUR, 2.6)
+			dialogue.say_ambient(func() -> Vector3: return at3, "Frogs", "rechotka", "", 4.0, FROGS_COLOUR, 2.6)
 		return
 	today.append(i)
 	stamps += 1
@@ -1375,15 +1503,15 @@ func _stop_at(i: int) -> void:
 		if wallet != null:
 			wallet.add_respect(FREE_RESPECT)
 		if hud != null:
-			hud.show_note("HOT DOG GRATIS! · FREE HOT DOG!", "Karta stałego klienta: 10/10 · +%d ★" % FREE_RESPECT, FROGS_COLOUR)
+			hud.show_note(Lang.pick("HOT DOG GRATIS!", "FREE HOT DOG!"), Lang.pick("Karta stałego klienta: 10/10 · +%d ★", "Loyalty card: 10/10 · +%d ★") % FREE_RESPECT, FROGS_COLOUR)
 		if dialogue != null:
-			dialogue.say(func() -> Vector3: return at3, "Frogs", "rechotka", "free", 4.5, FROGS_COLOUR, 2.6, true)
+			dialogue.say_ambient(func() -> Vector3: return at3, "Frogs", "rechotka", "free", 4.5, FROGS_COLOUR, 2.6, true)
 	else:
 		print("rechotka: stamp %d (shop %d, %d today)" % [stamps, i, today.size()])
 		if hud != null:
 			hud.toast("FROGS · PIECZĄTKA %d/%d" % [stamps, STAMPS_CARD], "Frogs · stamp %d of %d" % [stamps, STAMPS_CARD])
 		if dialogue != null:
-			dialogue.say(func() -> Vector3: return at3, "Frogs", "rechotka", "stamp", 4.0, FROGS_COLOUR, 2.6, true)
+			dialogue.say_ambient(func() -> Vector3: return at3, "Frogs", "rechotka", "stamp", 4.0, FROGS_COLOUR, 2.6, true)
 	_line_t = _clock
 	if wallet != null:
 		wallet.keep["frogs_stamps"] = stamps
@@ -1480,7 +1608,7 @@ func _knock(i: int, away: Vector2, kmh: float) -> void:
 		var l: Array = dialogue.line("lezak", "knock", true)
 		if not l.is_empty():
 			var p3: Vector3 = s["at"]
-			dialogue.bubbles.say(func() -> Vector3: return p3, "", l[0], l[1], 3.5, Color("#8e44d9"), 1.6)
+			dialogue.bubbles.say_ambient(func() -> Vector3: return p3, "", l[0], l[1], 3.5, Color("#8e44d9"), 1.6)
 
 
 # --- loop jobs-2: the round-up's side (roundup_job.gd) ----------------------------------------------

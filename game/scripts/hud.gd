@@ -29,10 +29,12 @@ extends CanvasLayer
 var spent_usec := 0
 
 const Access := preload("res://scripts/access.gd")
+const Lang := preload("res://scripts/lang.gd")  # one language at a time: every pl/en pair below shows one
 const SettingsPanel := preload("res://scripts/settings_panel.gd")
 const FullMap := preload("res://scripts/full_map.gd")
 const MapArt := preload("res://scripts/map_art.gd")
 const MainLine := preload("res://scripts/main_line.gd")
+const MapIcons := preload("res://scripts/map_icons.gd")
 const ScreenPoints := preload("res://scripts/screen_points.gd")
 ## drive_controls.gd's schemes (POINT, CLASSIC, FIXED).
 const CLASSIC := 1
@@ -79,6 +81,10 @@ const PAD_REACH := 40.0
 const HORN_R := 22.0
 const HORN_REACH := 27.0
 const HORN_CLEAR := 14.0
+## G13 (the upgrade shop): the nitro's disc (52 pt across, bigger than the horn: it is the one a
+## thumb reaches for), left of the horn, shown once the nitro is bought; its ring is the tank.
+const NITRO_R := 26.0
+const NITRO_REACH := 31.0
 ## Loop 2e: the player's car sits about the middle of the screen (the view leads it a little);
 ## the passing panels (toasts, the ticker, notes, the overlay, the banner) keep out of a box
 ## this big round the middle. The cards and the status come first and may cover it.
@@ -121,6 +127,7 @@ const PINCH_STICK := 0.15
 ## Loop 3h slice 4: the ghost finger's gesture, once every this many seconds.
 const FINGER_LOOP := 1.8
 signal vehicle_pressed
+signal zoom_pressed(steps: int)       # G3 (2026-11-01): the − (+1, wider) and + (-1, closer) buttons
 signal card_pressed(index: int)       # a button on the mission card
 signal pill_pressed                   # the context button: a rescue call that came in
 signal context_pressed(owner: String) # loop 2d-1: the context button, whoever showed it
@@ -132,6 +139,7 @@ signal tapped(at: Vector2)            # a short tap on the city, not on a contro
 signal perf_gesture                   # three fingers down at once: the performance overlay
 signal settings_pressed               # loop 2a: the gear
 signal map_pressed                    # F's asks (2026-10-30): a tap on the minimap (the full-screen map)
+signal nitro_pressed                  # G13: the nitro's disc went down (nitro_held while the finger stays)
 signal horn_pressed                   # the night-buses loop: the horn (a disc over BRAKE / GAS)
 
 var stick := Vector2.ZERO   # -1..1 in screen space, x right, y down
@@ -174,6 +182,8 @@ var _gear: Button
 var _speed: Label
 var _speed_text := ""
 var _vehicle_button: Button
+var _zoom_out_button: Button
+var _zoom_in_button: Button
 var _radio_button: Button
 ## Seconds RADIO is held before it skips to the station's next track (2026-10-30: the phone's
 ## skip; a tap still changes the station). Long enough that a slow tap isn't a skip.
@@ -217,6 +227,10 @@ var _toast_box: PanelContainer
 var _toast: Label
 var _toast_gloss: Label
 var _toast_left := 0.0
+var _kmh := 0
+var _ambient_toast_at := -999.0
+## G16: ambient toasts (flavour, hints) come at most this often while the car is moving.
+const AMBIENT_TOAST_GAP := 20.0
 ## The performance overlay.
 var _perf: PanelContainer
 var _perf_label: Label
@@ -275,6 +289,12 @@ var _mini_final := Vector2.INF
 var _mini_final_colour := Color.WHITE
 const GARAGE_REACH := 1500.0
 var _mini_poi_colours := PackedColorArray()
+## G11: the shape of each place's mark (MapIcons.POI_*), parallel to _mini_pois; a short or empty array
+## means squares.
+var _mini_poi_shapes := PackedInt32Array()
+## G11 (2026-11-01): a place's mark by kind, so the minimap and the full map are not rows of
+## identical squares: a kebab stand a round badge with a white cone, the station a triangle, a
+## depot a little house, a scooter a dot, anything else the square.
 ## The main line (main_line.gd, set by main.gd's `_main_line_tick`): its marker (a gold star in a
 ## pulsing ring, pinned to the minimap's rim at any distance; INF: this step has no place) and its
 ## goal line [Polish, English] for the full map. Side quests keep their colours (a ringed dot for
@@ -306,6 +326,11 @@ var _stick_point := Vector2.ZERO
 var _brake_index := -1
 ## The night-buses loop: the finger on the horn (-1: none).
 var _horn_index := -1
+## G13: the nitro bought (the disc shows), the tank 0..1 (the ring), and the finger on it (-1: none).
+var nitro_owned := false
+var nitro_charge := 1.0
+var nitro_held := false
+var _nitro_index := -1
 ## Touches that are neither the stick nor the pedals; two of them make a pinch (or a twist).
 var _free_touches := {}
 var _pinch_distance := 0.0
@@ -463,7 +488,7 @@ func _ready() -> void:
 			pill_pressed.emit()
 		context_pressed.emit(pill_owner))
 	_pill.visible = false
-	_radio_button = _chip(self, "RADIO", "wył. · off")
+	_radio_button = _chip(self, Lang.pick("RADIO wył.", "RADIO off"), "")
 	_radio_button.button_down.connect(func():
 		_radio_down_ms = Time.get_ticks_msec()
 		_radio_skipped = false)
@@ -472,8 +497,18 @@ func _ready() -> void:
 		if not _radio_skipped:
 			radio_pressed.emit()
 		_radio_skipped = false)
-	_vehicle_button = _chip(self, "HELI", "helicopter")
+	_vehicle_button = _chip(self, "HELI", "HELI")
 	_vehicle_button.pressed.connect(func(): vehicle_pressed.emit())
+	# G3 (F, 2026-11-01): pinch is hard to discover, so − and + sit beside the speed (the car's
+	# view only: the helicopter has its own height pads).
+	_zoom_out_button = _chip(self, "−", "", Color(0, 0, 0, 0))
+	_zoom_out_button.name = "zoom_out"
+	_zoom_out_button.pressed.connect(func(): zoom_pressed.emit(1))
+	_zoom_in_button = _chip(self, "+", "", Color(0, 0, 0, 0))
+	_zoom_in_button.name = "zoom_in"
+	_zoom_in_button.pressed.connect(func(): zoom_pressed.emit(-1))
+	for zb: Button in [_zoom_out_button, _zoom_in_button]:
+		_set_chip(zb, zb.get_child(0).get_child(0).text, "", 44.0)
 
 	_credit = _label(T_LABEL, Color(1, 1, 1, 0.88), true)
 	_credit.text = "© OpenStreetMap contributors · 3D buildings, aerial photo, terrain: GUGiK"
@@ -591,6 +626,8 @@ func _chip(parent: Node, pl: String, en: String, accent := Color(0, 0, 0, 0)) ->
 
 ## New words on a chip; its width follows them (at least 64 pt).
 func _set_chip(b: Button, pl: String, en: String, min_width := 64.0) -> void:
+	pl = Lang.pick(pl, en)
+	en = ""
 	var words := b.get_child(0)
 	var top := words.get_child(0) as Label
 	var low := words.get_child(1) as Label
@@ -659,6 +696,15 @@ func _layout_fixed() -> void:
 		_minimap.position = Vector2(x0, below)
 		_minimap.size = Vector2.ONE * MINI_D * pt
 		_mini_overlay.size = _minimap.size
+		# G3: the zoom buttons stand in a column right of the minimap (the top row has no room
+		# beside a centred context button on a small phone).
+		var zy := _minimap.position.y
+		var zx := _minimap.position.x + _minimap.size.x + 6.0 * pt
+		for zb: Button in [_zoom_in_button, _zoom_out_button]:
+			zb.visible = not flying
+			zb.size = zb.custom_minimum_size
+			zb.position = Vector2(zx, zy)
+			zy += zb.size.y + 6.0 * pt
 		below = _minimap.position.y + _minimap.size.y + 6.0 * pt
 	_wallet.position = Vector2(x0, below)
 	_wallet.size = Vector2(_wallet_width(), 30.0 * pt)
@@ -669,7 +715,7 @@ func _layout_fixed() -> void:
 	_credit.position = Vector2(credit_x, _safe.end.y - 3.0 * pt - _credit.size.y)
 	_top_y = (ROW_Y + ROW_H + GAP) * pt
 	_col_y = _wallet.position.y + _wallet.size.y + GAP * pt
-	_col_right = maxf(_wallet.position.x + _wallet.size.x, below - 6.0 * pt if _minimap == null else _minimap.position.x + _minimap.size.x) + GAP * pt
+	_col_right = maxf(_wallet.position.x + _wallet.size.x, below - 6.0 * pt if _minimap == null else _minimap.position.x + _minimap.size.x + (0.0 if flying else 6.0 * pt + _zoom_in_button.size.x)) + GAP * pt
 	# Loop 3g-1: the koguty beside the wallet, on its row.
 	_koguty.position = Vector2(_wallet.position.x + _wallet.size.x + 6.0 * pt, _wallet.position.y)
 	_koguty.size = Vector2(KOGUTY_W * pt, _wallet.size.y)
@@ -690,7 +736,7 @@ func _layout() -> void:
 	_taken.clear()
 	_placed.clear()
 	_unplaced.clear()
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _minimap, _wallet, _credit, _koguty]:
+	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _minimap, _wallet, _credit, _koguty]:
 		if c != null and c.visible:
 			_taken.append(Rect2(c.position, c.size))
 	_taken.append(_speed_rect())
@@ -815,6 +861,8 @@ func _pedal_rects() -> Array[Rect2]:
 		return out
 	out.append(disc.call(_brake_centre(), ((CLASSIC_BRAKE_R if scheme == CLASSIC else BRAKE_R) + 4.0) * pt))
 	out.append(disc.call(_horn_centre(), (HORN_R + 4.0) * pt))  # the night-buses loop: the horn
+	if nitro_owned:
+		out.append(disc.call(_nitro_centre(), (NITRO_R + 4.0) * pt))  # G13: the nitro
 	if scheme == CLASSIC:
 		out.append(disc.call(_gas_centre(), (GAS_R + 4.0) * pt))
 		var o := _strip_hint_centre()
@@ -887,7 +935,7 @@ func touch_targets() -> Dictionary:
 	if _dirty:
 		_layout()
 	var out := {}
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _challenge]:
+	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _challenge]:
 		if c.is_visible_in_tree():
 			out[c.name] = c.get_global_rect()
 	for c: Control in [_card, _status, _bench_card] + _panel_spots.keys():
@@ -905,6 +953,8 @@ func touch_targets() -> Dictionary:
 		out["brake"] = disc.call(_brake_centre(), (CLASSIC_BRAKE_R if scheme == CLASSIC else BRAKE_R) * pt)
 		if not _pedals_hidden:
 			out["horn"] = disc.call(_horn_centre(), HORN_R * pt)
+			if nitro_owned:
+				out["nitro"] = disc.call(_nitro_centre(), NITRO_R * pt)
 		if scheme == CLASSIC:
 			out["gas"] = disc.call(_gas_centre(), GAS_R * pt)
 	return out
@@ -915,7 +965,7 @@ func named_rects() -> Dictionary:
 	if _dirty:
 		_layout()
 	var out := {}
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _minimap, _wallet, _credit, _koguty]:
+	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _minimap, _wallet, _credit, _koguty]:
 		if c != null and c.visible:
 			out[c.name] = Rect2(c.position, c.size)
 	out["speed"] = _speed_rect()
@@ -931,6 +981,7 @@ func named_rects() -> Dictionary:
 
 ## The speed (and the helicopter's height) beside the gear.
 func set_speed(kmh: int, metres := -1) -> void:
+	_kmh = kmh
 	var text := "%d km/h" % kmh if metres < 0 else "%d km/h · %d m" % [kmh, metres]
 	if text != _speed_text:
 		_speed_text = text
@@ -939,7 +990,23 @@ func set_speed(kmh: int, metres := -1) -> void:
 
 
 func set_radio_name(station_name: String) -> void:
-	_set_chip(_radio_button, "RADIO", "wył. · off" if station_name == "OFF" else station_name)
+	_radio_name = station_name
+	# One line: the station (its own name is the same in both languages), or RADIO off.
+	_set_chip(_radio_button, Lang.pick("RADIO wył.", "RADIO off") if station_name == "OFF" else station_name, "")
+
+
+## The station the radio button shows (renewed when the language changes).
+var _radio_name := "OFF"
+
+
+## Settings → JĘZYK (or the title's buttons): every surface the HUD built once is made again in
+## the chosen language (lang.gd). The settings panel is rebuilt at once, on its open tab; the full
+## map when it next opens.
+func language_changed(state: Dictionary) -> void:
+	set_radio_name(_radio_name)
+	_set_chip(_vehicle_button, "AUTO" if flying else "HELI", "CAR" if flying else "HELI")
+	if settings_panel != null:
+		settings_panel.rebuild.call_deferred(state)
 
 
 ## The context button: a call came in (Polish, English under it); pressing it emits pill_pressed.
@@ -1052,10 +1119,10 @@ func _build_bench_card() -> void:
 	words.add_theme_constant_override("separation", 0)
 	head.add_child(words)
 	var title := _label(T_TITLE, ACCENT)
-	title.text = "TEST WYDAJNOŚCI"
+	title.text = Lang.pick("TEST WYDAJNOŚCI", "PERFORMANCE TEST")
 	words.add_child(title)
 	var sub := _label(T_SUB, SUB)
-	sub.text = "Benchmark · wklej to w czacie, paste it into the chat"
+	sub.text = Lang.pick("Benchmark · wklej to w czacie", "Benchmark · paste it into the chat")
 	words.add_child(sub)
 	_bench_copy = _chip(head, "KOPIUJ", "copy")
 	_bench_copy.name = "copy"
@@ -1131,6 +1198,8 @@ func _build_ticker() -> void:
 ## Shows a line on the now-playing ticker for a few seconds: the radio's station changes, and
 ## the radio host's lines with an English subtitle (held longer and wrapped to a readable width).
 func ticker(text: String, colour: Color, subtitle := "") -> void:
+	text = Lang.pick(text, subtitle)
+	subtitle = ""
 	colour = Access.tint(colour)  # colour-safe (access.gd)
 	var font := ThemeDB.fallback_font
 	var room := minf(TICKER_W * pt, _safe.size.x * 0.5)
@@ -1191,7 +1260,19 @@ func _build_toast() -> void:
 ## A short line at the bottom for 3 s. Loop 10a: with `gloss`, the Polish line sits above its
 ## English gloss (smaller, the sub-text colour). Loop 2e: on a dark card, so it reads on any
 ## street by day or night.
+## A toast for flavour or a hint, not a quest or danger line: while driving it is dropped if
+## another ambient toast came in the last AMBIENT_TOAST_GAP seconds (G16).
+func ambient_toast(text: String, gloss := "") -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	if _kmh > 10 and now - _ambient_toast_at < AMBIENT_TOAST_GAP:
+		return
+	_ambient_toast_at = now
+	toast(text, gloss)
+
+
 func toast(text: String, gloss := "") -> void:
+	text = Lang.pick(text, gloss)
+	gloss = ""
 	# A long line wraps at TOAST_W points rather than running off a phone's screen.
 	var font := ThemeDB.fallback_font
 	for pair: Array in [[_toast, text, T_TITLE], [_toast_gloss, gloss, T_SUB]]:
@@ -1324,6 +1405,10 @@ func _build_mission_panels() -> void:
 func show_card(title: String, body: String, buttons: PackedStringArray, accent: Color, bottom := false,
 		title_en := "", body_en := "") -> void:
 	accent = Access.tint(accent)  # colour-safe (access.gd)
+	title = Lang.pick(title, title_en)
+	body = Lang.pick(body, body_en)
+	title_en = ""
+	body_en = ""
 	# Loop 2d-1: any other card is the centred one again.
 	if _card_side and not _side_call:
 		_card_side = false
@@ -1367,6 +1452,9 @@ func hide_card() -> void:
 func show_status(title: String, clock: String, distance: String, hint: String, progress: float, accent: Color,
 		badge := "", icons := {}, hint_en := "") -> void:
 	accent = Access.tint(accent)  # colour-safe (access.gd)
+	hint = Lang.pick(hint, hint_en)
+	hint_en = ""
+	title = Lang.title(title)
 	if icons != _icons:
 		if icons.is_empty() != _icons.is_empty():
 			_mark()
@@ -1500,7 +1588,8 @@ func _frame(dt: float) -> void:
 ## the car back.
 func set_flying(on: bool) -> void:
 	flying = on
-	_set_chip(_vehicle_button, "AUTO" if on else "HELI", "car" if on else "helicopter")
+	_mark()
+	_set_chip(_vehicle_button, "AUTO" if on else "HELI", "CAR" if on else "HELI")
 	brake = false
 	_brake_index = -1
 	gas = false
@@ -1531,7 +1620,7 @@ func set_minimap_target(xz: Vector2, colour: Color) -> void:
 
 ## Touches on the buttons and cards belong to them, not to the stick.
 func _over_panel(p: Vector2) -> bool:
-	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _card, _status, _challenge, _bench_card]:
+	for c: Control in [_gear, _pill, _radio_button, _vehicle_button, _zoom_out_button, _zoom_in_button, _card, _status, _challenge, _bench_card]:
 		if c != null and c.visible and c.get_global_rect().has_point(p):
 			return true
 	return false
@@ -1742,9 +1831,8 @@ func _paint_minimap_overlay() -> void:
 		var r := ((_mini_pois[i] - _mini_car) * s).rotated(_mini_yaw)
 		var far := r.length() > _mini_radius - 5.0 * pt
 		r = r.limit_length(_mini_radius - 5.0 * pt)
-		var half := (2.0 if far else 2.8) * pt
-		_tri_rect(Rect2(centre + r - Vector2.ONE * (half + 1.0 * pt), Vector2.ONE * (half + 1.0 * pt) * 2.0), OUTLINE)
-		_tri_rect(Rect2(centre + r - Vector2.ONE * half, Vector2.ONE * half * 2.0), Color(_mini_poi_colours[i], blink))
+		var half := (2.0 if far else 3.2) * pt
+		poi_mark(centre + r, half, Color(_mini_poi_colours[i], blink), _mini_poi_shapes[i] if i < _mini_poi_shapes.size() else MapIcons.POI_SQUARE)
 	# The garage loop: the garage's diamond, pinned to the rim up to GARAGE_REACH m away.
 	if _mini_garage != Vector2.INF and _mini_garage.distance_to(_mini_car) <= GARAGE_REACH:
 		var g := ((_mini_garage - _mini_car) * s).rotated(_mini_yaw).limit_length(_mini_radius - 6.0 * pt)
@@ -1822,6 +1910,39 @@ func main_star(at: Vector2, k: float) -> void:
 	_tri_star(at, 4.0 * pt * k, MainLine.COLOUR)
 
 
+## G11: a place's mark at `at` (`half`: about half its width) in `colour`, by shape (MapIcons.POI_*), each
+## with the dark outline and, where it has one, a white glyph; triangles into the batch.
+func poi_mark(at: Vector2, half: float, colour: Color, shape: int) -> void:
+	var o := 1.0 * pt
+	var white := Color(1, 1, 1, colour.a)
+	match shape:
+		MapIcons.POI_KEBAB:
+			_tri_fan(at, half + o, 0.0, TAU, Color(OUTLINE, colour.a))
+			_tri_fan(at, half, 0.0, TAU, colour)
+			_tri(at + Vector2(0, -half * 0.62), at + Vector2(half * 0.46, half * 0.56), at + Vector2(-half * 0.46, half * 0.56), white, white, white)
+		MapIcons.POI_STATION:
+			var out := Color(OUTLINE, colour.a)
+			var e := half * 1.3 + o * 1.4
+			_tri(at + Vector2(0, -e), at + Vector2(e, e * 0.8), at + Vector2(-e, e * 0.8), out, out, out)
+			var t := half * 1.3
+			_tri(at + Vector2(0, -t), at + Vector2(t, t * 0.8), at + Vector2(-t, t * 0.8), colour, colour, colour)
+			_tri_rect(Rect2(at + Vector2(-t * 0.12, -t * 0.1), Vector2(t * 0.24, t * 0.5)), white)
+		MapIcons.POI_DEPOT:
+			var out := Color(OUTLINE, colour.a)
+			var e := half + o
+			_tri_rect(Rect2(at + Vector2(-e, -e * 0.15), Vector2(e * 2.0, e * 1.15)), out)
+			_tri(at + Vector2(-e * 1.25, -e * 0.1), at + Vector2(e * 1.25, -e * 0.1), at + Vector2(0, -e * 1.2), out, out, out)
+			_tri_rect(Rect2(at + Vector2(-half, 0.0), Vector2(half * 2.0, half * 0.95)), colour)
+			_tri(at + Vector2(-half * 1.15, 0.0), at + Vector2(half * 1.15, 0.0), at + Vector2(0, -half * 1.05), colour, colour, colour)
+			_tri_rect(Rect2(at + Vector2(-half * 0.2, half * 0.2), Vector2(half * 0.4, half * 0.75)), white)
+		MapIcons.POI_SCOOTER:
+			_tri_fan(at, half * 0.8 + o, 0.0, TAU, Color(OUTLINE, colour.a))
+			_tri_fan(at, half * 0.8, 0.0, TAU, colour)
+		_:
+			_tri_rect(Rect2(at - Vector2.ONE * (half + o), Vector2.ONE * (half + o) * 2.0), Color(OUTLINE, colour.a))
+			_tri_rect(Rect2(at - Vector2.ONE * half, Vector2.ONE * half * 2.0), colour)
+
+
 ## A side quest's target at `at` (k: its size): a dot in its colour inside a white ring, with the
 ## dark outline.
 func side_pin(at: Vector2, k: float, colour: Color) -> void:
@@ -1842,6 +1963,8 @@ func _tri_star(at: Vector2, r: float, colour: Color) -> void:
 
 ## The main line's marker (map x, z; INF: none) and its goal line (main.gd, a few times a second).
 func set_main_line(at: Vector2, pl: String, en: String) -> void:
+	pl = Lang.pick(pl, en)
+	en = ""
 	_main_at = at
 	main_goal = PackedStringArray([pl, en])
 	if full_map != null and full_map.is_open():
@@ -1936,9 +2059,10 @@ func set_minimap_final(p: Vector2, colour: Color) -> void:
 
 
 ## Side-job places on the minimap (map coordinates), drawn as blinking squares.
-func set_minimap_pois(points: PackedVector2Array, colours: PackedColorArray) -> void:
+func set_minimap_pois(points: PackedVector2Array, colours: PackedColorArray, shapes := PackedInt32Array()) -> void:
 	_mini_pois = points
 	_mini_poi_colours = colours
+	_mini_poi_shapes = shapes
 
 
 # --- loop 2d-1: the Podwózka app's route (rides.gd) -------------------------------------------
@@ -2149,10 +2273,13 @@ func show_note(title: String, body: String, colour: Color) -> void:
 ## v0.8: a landmark's info card (it was tapped): the name, a Polish line or two and the
 ## English under it. It takes the note card's place for eight seconds.
 func show_info(title: String, polish: String, english: String) -> void:
+	polish = Lang.pick(polish, english)
+	english = ""
 	_set_note_width()  # landmark card fix
 	_info_title.text = title
 	_info_pl.text = polish
 	_info_en.text = english
+	_info_en.visible = english != ""
 	_show(_note, false)
 	_note_left = 0.0
 	_info_card.reset_size()
@@ -2299,13 +2426,40 @@ func _on_pedals(p: Vector2) -> bool:
 	if flying or _pedals_hidden or touch_off:
 		return false
 	return p.distance_to(_brake_centre()) < _brake_reach() or (scheme == CLASSIC and p.distance_to(_gas_centre()) < GAS_REACH * pt) \
-			or _on_horn(p)
+			or _on_horn(p) or _on_nitro(p)
 
 
 ## The night-buses loop: the horn's centre, left of BRAKE (none in the helicopter).
 func _horn_centre() -> Vector2:
 	var r := CLASSIC_BRAKE_R if scheme == CLASSIC else BRAKE_R
 	return _side(_brake_right() + Vector2(-(r + HORN_CLEAR + HORN_R), r - HORN_R) * pt)
+
+
+## G13: the nitro's centre, left of the horn (right of it in the left-handed layout, which
+## mirrors the horn already).
+func _nitro_centre() -> Vector2:
+	var step := (HORN_R + NITRO_R + 10.0) * pt
+	return _horn_centre() + Vector2(step if left_handed else -step, 0.0)
+
+
+## G13: a touch at `p` is on the nitro's disc.
+func _on_nitro(p: Vector2) -> bool:
+	return nitro_owned and not touch_off and not flying and not _pedals_hidden and p.distance_to(_nitro_centre()) < NITRO_REACH * pt
+
+
+## G13: the nitro's state from the car (main.gd, every frame): owned (the disc shows) and the tank.
+## The disc redraws only when the ring would move by a visible step.
+func set_nitro(owned: bool, charge: float) -> void:
+	var q := roundf(charge * 48.0) / 48.0
+	if owned == nitro_owned and is_equal_approx(q, nitro_charge):
+		return
+	if not owned:
+		nitro_held = false
+		_nitro_index = -1
+	nitro_owned = owned
+	nitro_charge = q
+	if _pad != null:
+		_pad.queue_redraw()
 
 
 ## The night-buses loop: a touch at `p` presses the horn.
@@ -2347,6 +2501,10 @@ func hold_pedal(which: String) -> void:
 	elif which == "brake":
 		_brake_index = 97
 		brake = true
+	elif which == "nitro":  # G13b: gas and the nitro disc, for shots of the flame
+		_gas_index = 98
+		gas = true
+		nitro_held = true
 	_pad.queue_redraw()
 
 
@@ -2357,6 +2515,8 @@ func release_all() -> void:
 	_brake_index = -1
 	brake = false
 	_horn_index = -1
+	_nitro_index = -1
+	nitro_held = false
 	_gas_index = -1
 	gas = false
 	_climb_index = -1
@@ -2411,6 +2571,7 @@ func open_full_map(car_xz: Vector2, car_yaw: float, found: PackedVector2Array) -
 	full_map.target_colour = _mini_target_colour
 	full_map.side_spots = _mini_pois
 	full_map.side_colours = _mini_poi_colours
+	full_map.side_shapes = _mini_poi_shapes
 	full_map.set_main_line(_main_at, main_goal[0], main_goal[1])
 	full_map.open(car_xz, car_yaw)
 
@@ -2476,6 +2637,11 @@ func _input(event: InputEvent) -> void:
 			elif _on_horn(touch.position):
 				_horn_index = touch.index
 				horn_pressed.emit()
+			elif _on_nitro(touch.position):
+				_nitro_index = touch.index
+				nitro_held = true
+				nitro_pressed.emit()
+				_pad.queue_redraw()
 			elif not touch_off and not flying and scheme == CLASSIC and touch.position.distance_to(_gas_centre()) < GAS_REACH * pt:
 				_gas_index = touch.index
 				gas = true
@@ -2508,6 +2674,10 @@ func _input(event: InputEvent) -> void:
 				brake = false
 			if touch.index == _horn_index:
 				_horn_index = -1
+			if touch.index == _nitro_index:
+				_nitro_index = -1
+				nitro_held = false
+				_pad.queue_redraw()
 			if touch.index == _gas_index:
 				_gas_index = -1
 				gas = false
@@ -2621,6 +2791,8 @@ func _pinch_angle() -> float:
 
 ## Polish over English, centred on a pedal (the Polish word smaller if it would not fit).
 func _pad_words(c: Vector2, r: float, pl: String, en: String) -> void:
+	pl = Lang.pick(pl, en.to_upper())
+	en = ""
 	var font := ThemeDB.fallback_font
 	var fs := _px(T_SUB)
 	if font.get_string_size(pl, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x > r * 2.0 - 10.0 * pt:
@@ -2748,6 +2920,8 @@ func _draw_pad() -> void:
 	_plate(bc, br, brake)
 	_pad_words(bc, br, "HAMULEC", "brake")
 	_draw_horn(_horn_centre(), _horn_index != -1)
+	if nitro_owned:
+		_draw_nitro(_nitro_centre(), nitro_held)
 	if scheme == CLASSIC:
 		var gc := _gas_centre()
 		_plate(gc, GAS_R * pt, gas)
@@ -2784,6 +2958,27 @@ func _draw_horn(c: Vector2, held: bool) -> void:
 	for k in 2:
 		var rr := (4.5 + 4.0 * k) * pt
 		_horn_ring(pts, cols, idx, o + Vector2(6.0, 0.0) * pt, rr - 0.7 * pt, rr + 0.7 * pt, -0.7, 0.7, 8, ink)
+	RenderingServer.canvas_item_add_triangle_array(_pad.get_canvas_item(), idx, pts, cols)
+
+
+## G13: the nitro on its plate: a lightning bolt, in a ring that is the tank (orange while it can
+## burn, grey while it refills, bright while held), one triangle array like the horn's.
+func _draw_nitro(c: Vector2, held: bool) -> void:
+	var pts := PackedVector2Array()
+	var cols := PackedColorArray()
+	var idx := PackedInt32Array()
+	var r := NITRO_R * pt
+	var ready := nitro_charge >= 0.25
+	var hot := Color(1.0, 0.55, 0.12) if ready else Color(0.6, 0.6, 0.62)
+	_horn_disc(pts, cols, idx, c, r, CARD_BG)
+	if held and nitro_charge > 0.0:
+		_horn_disc(pts, cols, idx, c, r, Color(1.0, 0.55, 0.12, 0.32))
+	_horn_ring(pts, cols, idx, c, r - 3.0 * pt, r, 0.0, TAU, 40, Color(1, 1, 1, 0.14))
+	if nitro_charge > 0.01:
+		_horn_ring(pts, cols, idx, c, r - 3.0 * pt, r, -PI * 0.5, -PI * 0.5 + TAU * nitro_charge, maxi(3, roundi(40.0 * nitro_charge)), hot)
+	var ink := ACCENT if held and nitro_charge > 0.0 else (INK if ready else SUB)
+	_horn_fan(pts, cols, idx, [c + Vector2(3, -10) * pt, c + Vector2(-5, 2) * pt, c + Vector2(1, 2) * pt], ink)
+	_horn_fan(pts, cols, idx, [c + Vector2(-3, 10) * pt, c + Vector2(5, -2) * pt, c + Vector2(-1, -2) * pt], ink)
 	RenderingServer.canvas_item_add_triangle_array(_pad.get_canvas_item(), idx, pts, cols)
 
 
@@ -2966,12 +3161,15 @@ func _koguty_tris() -> void:
 
 ## The police pill at the top centre (Polish over English); empty words hide it.
 func police_pill(pl: String, en: String) -> void:
+	pl = Lang.pick(pl, en)
+	en = ""
 	if pl == "":
 		_show(_police_pill, false)
 		return
 	if _police_pl.text != pl or _police_en.text != en:
 		_police_pl.text = pl
 		_police_en.text = en
+		_police_en.visible = en != ""
 		_police_pill.reset_size()
 	_show(_police_pill, true)
 

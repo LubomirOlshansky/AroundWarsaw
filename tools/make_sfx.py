@@ -33,6 +33,8 @@ levels (if their folder is given) to balance the buses against.
   horn_player  the night-buses loop: the player's little hatch's own horn, one short bright
       "meep" (494 / 622 Hz, 0.3 s, a nasal square through a 1.3 kHz band): the B key and
       the HUD's horn button (buses.gd)
+  nitro_whoosh G13b (car.gd nitro_started): the Kebab Boost lighting, 0.9 s: a low thump, then
+      band-passed noise sweeping 500 -> 3,200 Hz and back, a hiss of gas on top
   pigeons      a flock flushing
   tram_creak   the vintage-tram loop (old_tram.gd): the old set's low creak, 1.1 s: a stick-slip
       pulse train wandering 70-110 Hz through two body resonances (380 / 820 Hz), swelling in
@@ -536,6 +538,29 @@ def horn_player():
             out[i] += amp * sq * env
     out = mix((0.45, biquad(out, "lp", 2400.0, 0.7)), (0.9, biquad(out, "bp", 1300.0, 2.2)))
     return saturate(out, 1.5)
+
+
+def nitro_whoosh(seed):
+    """G13b: the nitro lights: a thump, then a rising and falling rush of air."""
+    rnd = random.Random(seed)
+    n = int(0.9 * RATE)
+    w = noise(n, rnd)
+    out = zeros(n)
+    chunk = 441
+    for a in range(0, n, chunk):
+        t = a / n
+        f = 500.0 + 2700.0 * math.sin(math.pi * min(1.0, t * 1.15)) ** 1.5
+        seg = biquad(w[a:a + chunk * 2] if a + chunk * 2 <= n else w[a:], "bp", f, 1.6)
+        env = min(1.0, t / 0.08) * (1.0 - t) ** 1.2
+        for i in range(min(chunk, n - a)):
+            out[a + i] = seg[i] * env
+    thump_exc = zeros(n)
+    for i in range(int(0.12 * RATE)):
+        thump_exc[i] = math.sin(2 * math.pi * 70.0 * i / RATE) * math.exp(-i / (0.035 * RATE))
+    hiss = biquad(w, "hp", 4500.0, 0.7)
+    for i in range(n):
+        hiss[i] *= 0.25 * (1.0 - i / n) ** 2
+    return fade(saturate(mix((1.0, out), (0.8, thump_exc), (0.5, hiss)), 1.3), 0.004, 0.08)
 
 
 def tram_creak(seed):
@@ -1248,6 +1273,8 @@ CITY = {"club_leak": lambda: [club_leak(71)], "metro_chime": lambda: [metro_chim
         "frog_chime": lambda: [frog_chime(89)], "scooter_clatter": lambda: [scooter_clatter(90)],
         # The night-buses loop (buses.gd): the player's horn.
         "horn_player": lambda: [horn_player()],
+        # G13b (car.gd): the nitro lighting.
+        "nitro_whoosh": lambda: [nitro_whoosh(93)],
         # The vintage-tram loop (old_tram.gd): the old set's creak and its bell.
         "tram_creak": lambda: [tram_creak(91)], "old_tram_bell": lambda: [old_tram_bell(92)]}
 

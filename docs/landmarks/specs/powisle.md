@@ -14,7 +14,7 @@ Two little 1960s pavilions at either end of a station on an embankment: the uppe
 hall under a white roof stretched between two concrete arches and sagging between them ("a kite
 floating in the air"), at the Aleje level by the Poniatowski Bridge, right over the cross-city
 tunnel's mouth; the lower one a round glass drum under a white saucer with its rim turned up
-(the "UFO"), the café-club "Warszawa Powiśle" with the station's name in red neon on the rim.
+(the "UFO"), the café-club "Warszawa Powiśle" with the station's name in yellow tube letters on top of the rim.
 Romanowicz and Szymaniak, designed 1954-55, opened 1963.
 
 ## 2. Massing
@@ -36,23 +36,26 @@ Romanowicz and Szymaniak, designed 1954-55, opened 1963.
 
 ## 4. Roof
 
-- Upper: a 10 x 10 grid; height over the floor 3.4 m at the side edges rising to 7.2 m along the
-  middle (a parabola across), sagging 0.9 m between the two arches (the gutter). Two concrete
-  arch ribs (0.45 m) along the ends, springing from the floor past the corners.
-- Lower: an inverted dome, a shallow saucer of r 10.6 m: rim 4.5 m over the floor, the middle
-  0.8 m lower, a 0.45 m rim face, a grey underside sloping up from the drum to the rim.
+- Upper (after the Mac photo check, 2026-11-01): a 10 x 10 grid, the kite sagging: 4.4 m over
+  the floor across its middle, its two ends turned up to 7.2 m (a parabola along), its long sides
+  dipping 0.6 m. A dark fascia (0.4 m) along both long sides follows the sag. The base down the
+  escarpment is glass with mullions, and the blue WARSZAWA POWIŚLE letters hang over the doors on
+  the side the game's camera sees.
+- Lower: an inverted dome, a shallow saucer of r 14.6 m (it overhangs the drum about twice, per
+  the photos): rim 4.5 m over the floor, the middle 0.8 m lower, a 0.45 m rim face, a grey
+  underside sloping up from the drum to the rim. No tree grows under it (`tree_free`).
 
 ## 5. Colour and material
 
 White #e6e4dd (roofs, arches, canopy slabs), grey #8d9095 (undersides, plinth), dark #2f3236
-(mullions, X supports), glass #5d717c, neon red. Everything in the city's one building surface
+(mullions, X supports, fascia), glass #5d717c, neon yellow (the round pavilion) and blue (the upper one). Everything in the city's one building surface
 (M_STONE, M_PAVILION) plus one neon word (`neon_signs.gd` LANDMARK_WORDS): no new draw calls
 beyond the sign's.
 
 ## 6. Ground and night
 
 The embankment, the rails, the platforms and the tunnel's mouth are the map's own (portals are
-item L3). At night both halls glow warm, the neon WARSZAWA POWIŚLE burns red on the saucer's
+item L3). At night both halls glow warm, the neon WARSZAWA POWIŚLE burns yellow on the saucer's
 rim on the side the game's camera sees. Car collision round the upper hall (from the plinth's
 foot to 4 m over the floor) and round the drum.
 
@@ -64,11 +67,12 @@ L3, budget 1770 triangles (in `check_mesh_quality.gd`; built 1470).
 
 | id | shape | size | position | material | feature |
 | --- | --- | --- | --- | --- | --- |
-| plinth | prism | the upper outline, 6 m | under the upper hall | grey | the escarpment's edge |
+| base | glass prism + mullions | the upper outline, 6 m | under the upper hall | glass | the escarpment's edge |
 | upper_hall | glass panels | outline - 1.6 m | the upper outline | M_PAVILION | glass up to the roof |
 | upper_roof | grid 10 x 10 | 3.4-7.2 m, sag 0.9 m | over the upper outline | white / grey | the kite between two arches |
-| arches | beams | 0.45 m | the roof's two ends | concrete | the arches the roof hangs from |
+| fascia | swept rib | 0.4 m | the roof's long sides | dark | the kite's edge |
+| letters | neon | WARSZAWA POWIŚLE | over the doors, camera side | blue neon | the station's name |
 | drum | glass prism | r 7.8 m, 3.4 m | (400.8, -6.3) | M_PAVILION | the round ticket hall, now a bar |
-| saucer | rings | r 10.6 m, rim 4.5 m, dish 0.8 m | over the drum | white / grey | the inverted dome |
-| neon | sign | WARSZAWA POWIŚLE | on the rim, camera side | red neon | the bar's letters |
+| saucer | rings | r 14.6 m, rim 4.5 m, dish 0.8 m | over the drum | white / grey | the inverted dome |
+| neon | sign | WARSZAWA POWIŚLE | standing on the rim's edge, camera side | yellow neon | the bar's tube letters |
 | canopies | slab + X supports | 72 m x 4.8 m, 3.6 m high | each side platform's middle | white / dark steel | the X canopies |

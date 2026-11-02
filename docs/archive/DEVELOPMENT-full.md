@@ -1566,7 +1566,7 @@ and started Core Haptics' engine inside the call's frame (the call's 61–117 ms
 phones; the log's `haptics:` line at load, and `rescue call ringing (buzz N ms)`).
 
 **Moved into Settings** (four tabs, so the panel fits a phone 390 pt tall without shrinking):
-Jazda · Driving: Controls (Point / Classic, with a line on what the scheme does) and "Kamera za
+Jazda · Driving (G4, 2026-11-01: car.gd PROFILES, Cruise default and Sport = the loop 2a numbers, `Prowadzenie · Handling`, `Czułość · Steering` slider (settings.gd `sensitivity` 0..1, car.gd `steer_gain` 0.6..1.4), settings.gd `handling`, tools/check_handling.gd; "Tryb gry" moved to Świat): Controls (Point / Classic, with a line on what the scheme does) and "Kamera za
 autem · Camera follows the car" On / Off (the old CAM button, now with its state in view: the
 user had switched Classic's following off without noticing; Point with it off is the Fixed
 camera scheme; C still toggles it and a toast says which way; loop MW-6 "Tryb gry · Game mode";
@@ -4714,6 +4714,17 @@ landmarks lane is the table under it).
 | check_outline (O1-O5) | 120 | 0 |
 | check_lod2 (L1 doubled / L2 lost) | 16 / 81 | 15 / 73 |
 | check_drive (both paths) | 0 not allowed, 62 allowed; 98 routes | 0 not allowed, 62 allowed; 128 routes (22 through the roundabout), 0 jumps |
+
+**The joins loop (loop 3e leftovers, 2026-11-01).** `bake_structures.py`: a trench wall (`place_walls`)
+no longer stands inside a tube's mouth (its foot under `MOUTH` over the floor: Plac Na Rozdrożu's west
+portals); a low wall no longer stands where a lane runs at its foot (`in_lane` below `top - WALL_MIN * 0.8`,
+was `top - 0.5`: Nowy Zjazd); a deck's guard rail is cut where a bus box on a deck lane of its group would
+touch it (`BUS_BOX`, `BUS_STEP`, `BUS_PAD`, main roads only: lane_graph classes 0 and 1). Map numbers that
+change: retaining wall runs 1,479 → 1,473 (16,094 → 16,042 m, solid 8,976 → 8,969 m), fences, walls and guard
+rails cut from the lanes 12,813 → 12,913 m; centrum.json is the only committed bake output that moved.
+check_drive `--no-allow`: 51 lane spots → 26 (jumps 11, unchanged), allowlist 11 → 8 entries; check_roads
+0 not allowed / 304 allowed (unchanged); the bench route is not near these places: 135 draw calls, 3.04 ms.
+`check_drive.gd --who` prints the colliders a lane hit meets (the sector's one body, so only the sector).
 | Vertices (`count_vertices.gd`) | 18.70 M (meshes 11.50, instances 7.20) | 19.70 M (12.15, 7.55): +1.00 M, the extension's (0.96 M a km²); LoD2 in the box 1,549,362 → 1,548,197 vertices |
 | Probe draw calls (spawn, river, zoomed out, helicopter; 3D main / shadow) | 137, 104, 150, 220 (58/38, 36/25, 66/40, 111/74) | 138, 104, 151, 224 (58/38, 36/25, 66/41, 112/76): the city +0 (the helicopter view with `--no-traffic` 102/68 both); one more car or tram in view |
 | Probe over Rondo Radosława (`--at=-2833,-2292 --heading=60 --heli --size=150`; the car on Jana Pawła II `--at=-2790,-2200 --heading=340`) | (the map's edge) | 203 (100/68), 115 (46/28): inside the helicopter's 224 |
@@ -5096,6 +5107,14 @@ home screen).
 | Draw calls: zoomed out (the same + `--size=220`) | 190 | 215 | 300 |
 | Draw calls: helicopter (`--at=1300,-420 --heading=60 --heli --size=150`) | 245 | 270 | 360 |
 | Draw calls at any view, ever | | 500 | 500 |
+
+**Railway spots** (2026-11-01, the railway lane): two `--probe` views on the line, each with a
+train brought into view by `--train=X,Z` (the same X,Z as `--at`): Powiśle station and its
+tunnel mouth (`--at=171,89 --train=171,89`) and Most Średnicowy from Wybrzeże Szczecińskie
+(`--at=1148,-720 --train=1148,-720`). Cloud lavapipe at 1266×585, High, day: 158 and 119 draw
+calls (main pass 58 / 50, shadow 65 / 34), 0.64 / 0.51 M triangles in all passes, trains' script
+0.26 ms on the cloud CPU. The Mac's and the phone's numbers are still to take (under the 200
+ceiling for a default view).
 | Triangles, main pass (spawn / zoomed out) | 0.25 M / 0.36 M | 0.32 M / 0.50 M | 0.45 M / 0.70 M |
 | Triangles, shadow pass (spawn / zoomed out) | 0.14 M / 0.27 M | 0.18 M / 0.35 M | 0.25 M / 0.45 M |
 | Scripts, all systems (`scripts … ms` at the spawn, Mac) | 0.6–0.9 ms | 1.0 ms | 1.3 ms |
@@ -5525,6 +5544,7 @@ Command-line options (after `--`):
 | `--heading=deg` | the car's heading at the start (0 north, 90 east), for testing: with `--demo` it drives off that way |
 | `--nohud` | hide the controls |
 | `--left-handed` | accessibility (2026-11-01): the left-handed layout for this run (the pedals, the horn and the helicopter's pads bottom left, the stick's side and Classic's strip on the right, the credit line bottom right), as Settings → DOSTĘP → "Dla leworęcznych" sets it; for shots (`tools/check_hud.gd` checks it) |
+| `--lang=pl\|en` | the language for this run (2026-11-02): over the saved choice and the phone's, not saved; `tools/check_language.gd` runs every screen in both |
 | `--no-touch` | desktop (trailer loop, 2026-10-29): no touch-only controls on screen (the pedals and HAMULEC, the stick's knob and Classic's strip hint, the helicopter's ▲/▼ pads, the title's "tap to drive"); the top row, minimap, wallet, cards, bubbles and the radio caption stay, and the panels get the pedals' room; the keys still drive. For recording on the computer (`tools/check_hud.gd` checks it) |
 | `--no-input` | loop 3d-1: the window never takes the keyboard focus (`WINDOW_FLAG_NO_FOCUS`): test renders whose windows hold the focus for minutes (`check_streaming.gd` passes it; keys typed in another app had toggled the time of day, the overlay and the radio) |
 | `--prebuilt` | load the prebuilt sectors like the exported game (loop 3c: `map/index.res`, `map/proxies.scn`, `map/sectors/s_<i>_<j>.scn`; `city.scn` before) instead of building each sector from its file |
@@ -5580,6 +5600,7 @@ Command-line options (after `--`):
 | `--gps-in=S` | loop 2d-1: the app-taxis' first GPS moment is looked for S seconds in (screenshots) |
 | `--pullover-frame=N` | loop 2d-1: the `--pullover=TAG` conversation at frame N instead of 60 (e.g. during a `--ride`) |
 | `--heat=X` | the kebab's starting heat, 0–1 (for a cold-arrival screenshot) |
+| `--craft=plain` | the autopilot takes the plain kebab at Zagłębie Kebabowe's craft shop (`--kebab=47`; by default it waits for the hand-carved one) |
 | `--host-in=S` | the radio host's first line after S seconds |
 | `--barriers=YYYYMMDD` | place the roadworks for that day |
 | `--free` | free roam: no call (loop 2e: there's no call card at the start anyway; with `--free` the first call comes in 90 s into play instead of 60) |
@@ -5654,6 +5675,9 @@ Command-line options (after `--`):
 | `--life-soak` | loop MW-4: a Friday dusk; the car is driven at the nearest dog walker or rider at 7 m/s, every frame counts a dog, walker or rider inside the car's footprint (`life: soak done … overlaps 0`); verify step `life-soak` |
 | `--paint=<id>` | garage loop: the car starts in that paint (`red`, `cream`, `green`, `blue`, `yellow`, `black`, `pink`, `gold`), owned for the run (use with `--nosave`) |
 | `--garage` / `--garage=ring` | garage loop: start in Warsztat u Mirka's ring on Brzeska, the garage shown whatever the wallet, the paint card open a moment in (free roam, no title; implies `--garage-log`); `=ring`: 16 m short of the ring, no card |
+| `--garage=parts` | G13: like `--garage`, the card opens on the parts tab ("Części i auta") |
+| `--pedal=nitro` | G13b: gas and the nitro disc held (with `--upgrades=nitro`), for shots of the tail flame |
+| `--upgrades=all\|tt\|nitro` | G13: the car starts with the Ołdi TT, the nitro, and (all) tyres and engine at level 3, owned for the run (use with `--nosave`); the nitro is the N / Shift key or the bolt disc by the horn |
 | `--garage-log` | garage loop: print `garage:` lines: the place, the card opening and closing, each buy and switch |
 | `--club=<id>` | loop MW-3: start at that club (`lusterko`, `smola`, `jasna_0`, `lombard`, `milosc_hipoteczna`, or its name): the car on the lane nearest its door (within 60 m), free roam, no title |
 | `--notes-log` | loop MW-1: print `notes:` lines: each place's resolution at load (`notes: place <id> address\|name\|poi\|near N m from the hint (x, z)`), each find (`notes: found <id> (chapter N, k/8)`) and each chapter completed |
@@ -5662,6 +5686,7 @@ Command-line options (after `--`):
 | `--clicks=X:Y:F,...` / `--drag=X:Y:F:DX:DY:F2` | loop 2a testing aids: a click at screen pixel X,Y on frame F; a finger down at X,Y on frame F, moved by DX,DY over ten frames, lifted on frame F2 (through the real input path) |
 | `--lift=M` | loop 1: aim the camera M metres above the vehicle (close-ups of tall landmarks: `--at=-1206,244 --lift=156 --yaw=110 --size=24 --lines=1080` looks at the Palace clock's east dial) |
 | `--probe` | loop 2b: stand where `--at` / `--heading` put the car (free roam), let 240 frames (or 8 s) pass, measure the next `--bench-frames` (default 600, or `--bench-seconds`, default 30) and print the bench's lines plus what is in view (nodes, instances, shadow casters, materials, shaders, kinds); quits |
+| `--no-map-edge` | railway lane (2026-11-01): the city without the land past the map's edge (`map_edge.gd`: the ring of ground, tree line, far blocks and the rails and roads running on), for a before/after `--probe` at the edge |
 | `--bench-frames=N` / `--bench-seconds=S` | loop 2b: frames to measure for `--bench` / `--probe` (default 600) and a time cap (default 30 s; with `--bench-button`, the BENCH run's length, default 55 s) |
 | `--bench-button` | loop 2b: press TEST · BENCH at frame 60 (the phone's run, at the current settings and cap) |
 | `--fps=N` | loop 2b: cap the frame rate for this run (0: none; else the setting, 60 or 30). `--bench` and `--probe` run uncapped, headless runs too |

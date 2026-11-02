@@ -32,10 +32,13 @@ dark cutting and the tracks under it.
 
 ## 4. Roof
 
-The hyperbolic paraboloid as a bilinear patch on 14 x 14 rulings: high corners (-u,-v) and
-(+u,+v) at 8.34 m over the deck, low corners at 3.0 m, 0.16 m thick at its straight edges.
-White on top; underneath, stripes alternate black and white along one family of rulings (the
-mosaic). Supports: the two low corners on raked concrete struts with footing blocks on the deck,
+A deep saddle (after the Mac photo check, 2026-11-01): a bilinear patch on 14 x 14 rulings,
+its high corners at 10.6 m over the deck and its low corners at 3.0 m, with the middle sagging a
+further 1.1 m (`OCH_SAG`), 0.16 m thick at its edges, which follow the shell. The high diagonal is
+the one whose far corner lies away from the game's camera, so the whole top reads. Stripes along
+one family of rulings: black and white underneath (the mosaic), white and light grey on top (the
+game's camera never sees the underside). The blue WARSZAWA OCHOTA letters stand on a dark steel
+frame (two posts and a bar, 4.2 m) by the entrance on the street side. Supports: the two low corners on raked concrete struts with footing blocks on the deck,
 one high corner on a slim dark column (the sliding bearing), the other high corner free.
 
 ## 5. Colour and material
@@ -65,7 +68,8 @@ L3, budget 1420 triangles (in `check_mesh_quality.gd`; built 1178).
 | band | tiles | 0.6 x 0.6 m | round the hall at the floor | black and white | the mosaic band |
 | hall | glass trapezoids | 17.25 m square | the OSM outline | M_PAVILION | glass up to the shell |
 | mullions | thin quads | 0.12 m, every 1.7 m | the hall's walls | steel | the glazing grid |
-| shell | ruled grid | ~20 m square, 3.0-8.34 m | over the hall | white / striped | the hyperbolic paraboloid |
+| shell | ruled grid | ~20 m square, 3.0-10.6 m, sag 1.1 m | over the hall | white / striped | the saddle |
+| letters | frame + neon | WARSZAWA OCHOTA, 4.2 m | by the entrance | dark steel / blue neon | the station's name |
 | struts | raked beams | 0.55 m | the two low corners | concrete | hinged supports |
 | column | slim beam | 0.32 m | under one high corner | steel | the sliding bearing |
 | stairs | step prisms | 3.2 m wide | from the hall down to the platform | concrete | the way down to the trains |

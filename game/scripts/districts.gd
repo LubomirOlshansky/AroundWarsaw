@@ -25,6 +25,7 @@ extends Node
 ## A district was discovered for the first time (its id); `card` false when quietly.
 signal discovered(id: String, card: bool)
 
+const Lang := preload("res://scripts/lang.gd")
 const Access := preload("res://scripts/access.gd")
 const DATA_PATH := "res://data/districts.json"
 const PLACES_PATH := "res://data/places.json"
@@ -275,10 +276,10 @@ func card_text(id: String) -> PackedStringArray:
 	var d: Dictionary = districts[by_id[id]]
 	var line: Array = d.get("line", ["", ""])
 	var marks := mini(MARKS, (_order.get(id, PackedStringArray()) as PackedStringArray).size())
-	var body := "%s discovered\n%s\n%s" % [d["name_en"], line[0], line[1]]
+	var body := Lang.pick(str(line[0]), str(line[1]))
 	if marks > 0:
-		body += "\n%d × ? na mapie · on the map" % marks
-	return PackedStringArray(["Odkryto: %s" % d["name_pl"], body])
+		body += Lang.pick("\n%d × ? na mapie", "\n%d × ? on the map") % marks
+	return PackedStringArray([Lang.pick("Odkryto: %s", "Discovered: %s") % Lang.pick(d["name_pl"], d["name_en"]), body])
 
 
 static func today() -> int:
