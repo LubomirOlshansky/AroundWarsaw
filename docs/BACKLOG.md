@@ -1016,8 +1016,10 @@ compared with main instead of passing them (memory note, PRs #117 #125). No full
   two-lane two-way streets 6 → 7 m (423 ways, F's yes).
 - Already listed and still open: lines inside junctions not checked against photos ("From map
   review B"; the dark Jerozolimskie / Nowy Świat at night fixed 2026-11-02); the loop 3e structures (Łazienkowski's
-  Praga end R8, the rail cutting, Rozdroże's tubes, Nowy Zjazd's wall, deck 4); Most Łazienkowski
-  cut by the east edge ("From loop 3d-1", a decision).
+  Praga end R8, the rail cutting, deck 4, the Karowa footbridge's Praga end; Rozdroże's tubes and
+  Nowy Zjazd's wall done); ~~Most Łazienkowski cut by the east edge~~ settled 2026-11-02 (the river
+  crossing is whole since the box reached 21.056). Both lines wait on the Mac: the junction lines
+  need the GUGiK orthophoto and the structures a re-bake from data/raw (QUESTIONS, 2026-11-02).
 
 ### P1: street details beyond the start (content/map, Sonnet with an Opus spec)
 - **Landed** (2026-11-01, thread "Add street details along the main route", spec
@@ -2264,6 +2266,11 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   lane line lie inside the clusters of junction nodes (most at Plac Trzech Krzyży (-77, 670), the
   Poniatowski ramps (1381, -344), Wał Miedzeszyński (1514, -147)); measured, not yet checked
   against the photo one by one (many are a real edge line along a wide junction's side).
+  2026-11-02: blocked in the cloud (mapy.geoportal.gov.pl and every other imagery host are refused
+  by the cloud's network, and data/work/demo/ortho.bmp is Mac-only); the Mac brief is in QUESTIONS.
+  Note for that pass: a cloud measure of lane lines inside crossing strips also counts Rondo
+  Dmowskiego's spiral lines (real) and the multi-lane fans at Jerozolimskie/Plater, so judge by the
+  overlay, not by metres.
 - ~~At night Al. Jerozolimskie at (-615, 394) and Nowy Świat at (-331, 18) read much darker than
   Marszałkowska.~~ Fixed 2026-11-02 in `tools/bake_lights.py`: the lamps it adds on unlit stretches
   stood 34 m apart a side, so the pools (lit bands 9-12 m) left gaps on the wide avenues; primary and
@@ -2394,9 +2401,11 @@ twice the dog walkers there, twice the cyclists (cap 16) and 45 % of them fast. 
   data (3c's note). Loop 3d-2.
 - **The runtime path's start**: the roof pass over 88 sector files (3c measured 2 s for 32) and the
   monolithic build (`count_vertices.gd` 36 s): a cached roof grid. Loop 3d-2.
-- **Most Łazienkowski is cut by the east edge** (x 1,773 mid-river): its deck ends in the air at the
-  rim like Most Świętokrzyski's did on the first box. DEMO 2.1 said no bridge is cut; that held
-  for the 30 km² box only. Move the east edge to ~21.056 (the fetch reaches it) or accept.
+- ~~**Most Łazienkowski is cut by the east edge** (x 1,773 mid-river)~~ **Settled 2026-11-02**: the
+  box's east edge is 21.056 now (x 2,182), so the whole river crossing is in the map (the main
+  deck runs x 1,306-1,976); only the Praga approach viaducts over Wał Miedzeszyński (deck groups
+  9-11) end at the outline (x 2,182, z 744-934), where the edge roadworks (PR #309) close them on
+  the deck. No change; taking the Praga end in whole needs a fetch past 21.056 (not planned).
 - **Speed traps 5-7** (`tools/bake_traps.py`): Warsaw's blocks give straight runs of 157-195 m
   (police.md asks 250 m with no junction within 80 m: the officer stands mid-run, the junctions
   78-98 m away); trap 6's road is named Aleja Armii Ludowej in OSM (radio phrase unchanged),
