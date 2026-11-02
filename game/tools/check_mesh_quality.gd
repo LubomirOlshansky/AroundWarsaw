@@ -49,6 +49,7 @@ const BUDGET := {
 	"bristol": 2450,
 	"polonia": 1450,
 	"ujazdowski": 1650,
+	"sobieski": 1500,
 	"hotel_kasztel": 330,
 	"hotel_canaletto": 330,
 	"hotel_starowka": 330,

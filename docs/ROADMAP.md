@@ -106,6 +106,8 @@ then the Launch gate.
       a pediment, an east bay, dormers and chimneys, 1379 tris, spec ujazdowski.md) and the notebook
       place `zamek_ujazdowski` (chapter Retro i szyk, district Ujazdów i Łazienki, which had no
       place); Mac look check parked (QUESTIONS)
+- [x] Radysław Blu (F, 2026-11-02): the Radisson Blu Sobieski on Plac Zawiszy built whole in postmodern
+      colour bands (`sobieski` site, spec `sobieski.md`, card, neon name); Mac photo check parked (BACKLOG "Grand hotels")
 - [x] Old Town hotels (F, 2026-11-01): fronts on three tenements (portal, canopy, neon name, flags,
       lanterns, card), under parody names KASZTEL INN (Castle Inn), CANALETTO (Hotel Bellotto),
       STARÓWKA (an aparthotel on the Rynek); Mac look check parked (QUESTIONS, BACKLOG "Old Town hotels")
