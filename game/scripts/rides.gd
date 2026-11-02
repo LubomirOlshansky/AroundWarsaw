@@ -43,9 +43,17 @@ const QUIRK_SHARE := 0.35
 ## Passenger types (*guess*): normal 65 %, GPS believer 25 %, in a hurry 10 %.
 const BELIEVER_SHARE := 0.25
 const HURRY_SHARE := 0.10
+## G3 leftover: in the evening (18:00-01:00) a "timber" passenger, off to a date from the dating
+## app TIMBER, takes this share of the normal rides (club doors at dawn still win).
+const TIMBER_SHARE := 0.2
+const TIMBER_HOURS := [18.0, 25.0]
 const BOARD := StopAssist.RING
 const BOARD_SPEED := StopAssist.STOP_SPEED
 const BOARD_HOLD := 1.0
+## G10: this close (m) to the waiting passenger the context button reads START KURS and a tap
+## starts the ride (no stopping in a ring needed). The rider's "!" is drawn BANG_SCALE times larger.
+const START_REACH := 25.0
+const BANG_SCALE := 1.6
 const ARRIVE := StopAssist.RING
 const ARRIVE_SPEED := StopAssist.STOP_SPEED
 ## A quirk's waypoint counts as driven within REACH; Nawigacja speaks SAY_AT from it; a believer
@@ -261,6 +269,7 @@ func _build_rider(world: Node3D) -> void:
 	m.cull_mode = BaseMaterial3D.CULL_DISABLED
 	_bang.material_override = m
 	_bang.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_bang.scale = Vector3.ONE * BANG_SCALE
 	_rider.add_child(_bang)
 	_rider.visible = false
 	world.add_child(_rider)
@@ -508,7 +517,21 @@ func _set_pill(on: bool) -> void:
 		hud.hide_pill()
 
 
+## G10: the context button reads START KURS while the passenger waits within START_REACH.
+func _set_start(on: bool) -> void:
+	var shown: bool = hud.pill_shown("ride_start")
+	if on and not shown:
+		hud.show_pill("START KURS", "start the ride", "ride_start")
+	elif not on and shown:
+		hud.hide_pill()
+
+
 func _on_context(owner: String) -> void:
+	if owner == "ride_start":
+		if state == State.PICKUP and not flying:
+			_set_start(false)
+			_board()
+		return
 	if owner == "ride" and state == State.IDLE and _pill_at < 0.0:
 		_pill_at = _t
 		hud.toast("Szukam kursu…", "Finding you a ride…")
@@ -669,6 +692,8 @@ func _make_ride(n: int, e: int, s: float, from: Vector2, lo: float, hi: float) -
 	r["name"] = Jobs.CUSTOMERS[rng.randi() % Jobs.CUSTOMERS.size()]
 	var roll := rng.randf()
 	var kind := "believer" if roll < BELIEVER_SHARE else ("hurry" if roll < BELIEVER_SHARE + HURRY_SHARE else "normal")
+	if kind == "normal" and rng.randf() < TIMBER_SHARE and timber_hour():
+		kind = "timber"
 	if club != "":
 		kind = "club"
 	if force_passenger != "":
@@ -703,7 +728,7 @@ func _make_ride(n: int, e: int, s: float, from: Vector2, lo: float, hi: float) -
 	r["night"] = _night()
 	r["rain"] = _rain()
 	r["eta"] = Rules.eta_for(r["road"], kind == "hurry")
-	var l: Array = dialogue.line("podwozka_request", "club", true) if kind == "club" else dialogue.line("podwozka_request")
+	var l: Array = dialogue.line("podwozka_request", kind, true) if kind == "club" or kind == "timber" else dialogue.line("podwozka_request")
 	r["note"] = [l[0], l[1]] if not l.is_empty() else []
 	return r
 
@@ -777,6 +802,7 @@ func _pickup_tick(dt: float) -> void:
 		_said_pickup = true
 		dialogue.say(_rider, _ride["name"], "podwozka_pickup", "offset" if _ride["offset"] else "", 4.0, COLOUR, 6.5,
 				_ride["offset"])
+	_set_start(to_rider < START_REACH and not flying)
 	if to_rider < BOARD and speed < BOARD_SPEED and not flying:
 		_hold += dt
 		if _hold >= BOARD_HOLD:
@@ -797,6 +823,7 @@ func _pickup_tick(dt: float) -> void:
 
 
 func _board() -> void:
+	_set_start(false)
 	state = State.RIDE
 	_ride["picked_after"] = _t
 	_t = 0.0
@@ -814,7 +841,9 @@ func _board() -> void:
 	_beacon.place(_ride["ring"], ARRIVE - 0.5, true, false)
 	_plan()
 	hud.set_minimap_route(_route, COLOUR)
-	hud.toast("%s wsiada · cel: %s" % [_ride["name"], _ride["dest"]], "%s gets in · off to %s" % [_ride["name"], _ride["dest"]])
+	var km := roundi(_flat(car.global_position, _ride["ring"]))
+	hud.toast("%s wsiada · cel: %s (%d m, strzałka)" % [_ride["name"], _ride["dest"], km],
+			"%s gets in · off to %s (%d m, follow the arrow)" % [_ride["name"], _ride["dest"], km])
 	_log("pickup: %s got in at %d,%d after %.1f s%s" % [_ride["name"], roundi(car.global_position.x), roundi(car.global_position.z),
 			_t_pickup(), (" (the pin was %d m off)" % roundi(_ride["off_m"])) if _ride["offset"] else " (at the pin)"])
 
@@ -1081,6 +1110,7 @@ func _why() -> Array:
 func _cancel(by_passenger: bool) -> void:
 	var riding := state == State.RIDE
 	state = State.RESULT
+	_set_start(false)
 	_result_in = 0.0
 	_result_at = car.global_position
 	_t = 0.0
@@ -1512,6 +1542,14 @@ func _remove_ghost() -> void:
 ## The player's rating: the last 20 rides (a new save counts as 4,87).
 func _rating() -> float:
 	return Rules.rating(wallet.keep.get("podwozka_ratings", []))
+
+
+## Is it the TIMBER evening, 18:00-01:00 (the dates)? Without a clock, never.
+func timber_hour() -> bool:
+	if tod == null:
+		return false
+	var h := float(tod.local_clock()["hour"])
+	return h >= float(TIMBER_HOURS[0]) or h < float(TIMBER_HOURS[1]) - 24.0
 
 
 ## Night or Live after dusk: the MNOŻNIK's ×1.5.

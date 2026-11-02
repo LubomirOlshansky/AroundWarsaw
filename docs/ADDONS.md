@@ -12,9 +12,14 @@ is off); beehave (bitbrain, v2.9.3, loop 3g-1; the police units' behaviour trees
 hand at 5 Hz; editor plugin off, no autoloads: `police/police_tree.gd` has a lean `_ready`; one
 local line in `debug/debugger_messages.gd`, no messages without a debugger); Dialogue Manager
 (Nathan Hoad, v4.1.0, loop 3g-1; the pull-over's flow, `dialogue/police.dialogue` compiled at
-runtime by `police.gd`; editor plugin off, so no import plugin and no autoload). **Our own, not an add-on:**
+runtime by `police.gd`; editor plugin off, so no import plugin and no autoload). Autopilot (ramenvr/autopilot, v1.0.0, Apache-2.0, 2026-11-02; the free-play playtester, skill
+`autopilot-playtest`; GDScript only; **off in git**: `tools/autopilot.sh on|off` turns the editor
+plugin and its `AutopilotPlaytest` autoload on for a Mac run; excluded from every export and the
+export scripts refuse to run while it is on). **Our own, not an add-on:**
 `addons/nw_android_export/` (an editor plugin, on; it only marks Vulkan required in the Android
 export's manifest; docs/archive/DEVELOPMENT-full.md "Android (Google Play)"). Candidates when a loop
 needs them: Folder Import Rules, Lente photo mode, the In-app Review and Share plugins.
+
+Zagłębie Kebabowe (2026-11-02): Dialogue Manager not used, because the craft shop's only choice is a two-button job card and the rest are single vendor lines (JSON bags); Beehave not used.
 
 When to use Beehave and Dialogue Manager (decision rules and build patterns): skills `beehave-trees` and `dialogue-scenes` in `.claude/skills/`.

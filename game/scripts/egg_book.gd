@@ -1,5 +1,5 @@
 extends Node
-## Loop MW-6 (docs/design/vision.md section 8 and 4.7): the easter eggs as notebook cards. The 47
+## Loop MW-6 (docs/design/vision.md section 8 and 4.7): the easter eggs as notebook cards. The 48
 ## cards of `data/eggs.json`: the five eggs of v0.65 (eggs.gd finds them, as before: `legacy`),
 ## vision's 40 and loop MW-2's two (easter_rechotka, easter_lezak: storefronts.gd moves them). Each has a place (a notebook place, or one of eggs.gd's spots), a trigger, a line
 ## and a reward; the first find puts the card in the notebook (wallet.gd `eggs`: id -> the day),
@@ -41,6 +41,7 @@ extends Node
 
 signal found(id: String)
 
+const Lang := preload("res://scripts/lang.gd")
 const Access := preload("res://scripts/access.gd")
 const EGGS_PATH := "res://data/eggs.json"
 const DIALOGUE_PATH := "res://data/dialogue.json"
@@ -603,8 +604,8 @@ func record(id: String, date := 0) -> bool:
 			(", " + ", ".join(extra)) if not extra.is_empty() else ""])
 	if hud != null:
 		var words := reward_text(e)
-		hud.show_note("SEKRET %d/%d · EASTER EGG" % [found_total(), eggs.size()],
-				"%s\n%s\n%s" % [name[0], name[1] if str(name[1]) != str(name[0]) else words[1], words[0]], EGG_COLOUR)
+		hud.show_note(Lang.pick("SEKRET %d/%d", "EASTER EGG %d/%d") % [found_total(), eggs.size()],
+				"%s\n%s" % [Lang.pick(name[0], name[1]), Lang.pick(words[0], words[1])], EGG_COLOUR)
 		hud.notebook_changed()
 	if blip.is_valid():
 		blip.call()

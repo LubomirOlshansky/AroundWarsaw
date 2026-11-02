@@ -103,6 +103,16 @@ const ML_COLD_GRADE := 3.0
 const VAN_CREAM := Color("#efe6cf")
 const VAN_PINK := Color("#d9467f")
 const VAN_DARK := Color("#26262b")
+## The fans by the van (while it is out): their shirts, a bubble every FAN_GAP seconds when the
+## car is within FAN_TALK_R m (the `viral` "cringulo" lines).
+const FAN_SHIRTS := ["#e57aa0", "#2f6fb5", "#e0b23a", "#f2efe8", "#7a4fa8"]
+const FAN_GAP := [14.0, 26.0]
+const FAN_TALK_R := 22.0
+## The egg "In Cringulo's shot" (eggs.json easter_mlask): the car stopped (under 1 m/s) within
+## EGG_R m of the van for EGG_SECS seconds while he is out and filming.
+const EGG_ID := "easter_mlask"
+const EGG_R := 9.0
+const EGG_SECS := 3.0
 const DEST_ID := "rondo_daszynskiego"
 const DEST_R := 300.0
 const RESULT_LIFE := 10.0
@@ -158,6 +168,12 @@ var _places := {}
 var van := {}
 var _van_node: MeshInstance3D
 var _van_day := -1
+## The fans' node (a child of the van), their bubble timer, the egg's stop timer and its callback
+## (main.gd: egg_book.fire).
+var _fans: MeshInstance3D
+var _fan_t := 8.0
+var _egg_t := 0.0
+var egg: Callable
 
 
 ## The pay for a delivery `road_m` metres by road on the trend's day `day`: {zl, base, tip,
@@ -214,6 +230,11 @@ func setup(nodes: Dictionary, places: Dictionary, world: Node3D) -> void:
 	_van_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_van_node.visible = false
 	world.add_child(_van_node)
+	_fans = MeshInstance3D.new()
+	_fans.mesh = fans_mesh()
+	_fans.material_override = Models.material()
+	_fans.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_van_node.add_child(_fans)
 	hud.card_pressed.connect(_on_card)
 	hud.abort_pressed.connect(func() -> void:
 		if state == State.PICKUP or state == State.DELIVER:
@@ -480,6 +501,26 @@ static func van_mesh() -> ArrayMesh:
 	return st.commit()
 
 
+## Five fans standing behind the van along the kerb, one holding a phone up: a single mesh in the
+## van's local frame (a child of it, so it parks and hides with it).
+static func fans_mesh() -> ArrayMesh:
+	var st := Models._begin()
+	var spots := [Vector3(-0.7, 0, -3.4), Vector3(0.5, 0, -3.7), Vector3(-0.1, 0, -4.5), Vector3(1.0, 0, -4.6), Vector3(-1.1, 0, -4.9)]
+	for i in spots.size():
+		var o: Vector3 = spots[i]
+		var shirt := Color(FAN_SHIRTS[i % FAN_SHIRTS.size()])
+		for side in [-1.0, 1.0]:
+			Models.box(st, o + Vector3(0.11 * side, 0.43, 0), Vector3(0.17, 0.86, 0.22), VAN_DARK)
+		Models.box(st, o + Vector3(0, 1.15, 0), Vector3(0.46, 0.62, 0.28), shirt)
+		for side in [-1.0, 1.0]:
+			Models.box(st, o + Vector3(0.29 * side, 1.12, 0), Vector3(0.12, 0.56, 0.16), shirt)
+		Models.box(st, o + Vector3(0, 1.58, 0), Vector3(0.26, 0.26, 0.26), Color("#e2b48c"))
+		Models.box(st, o + Vector3(0, 1.72, 0.02), Vector3(0.28, 0.08, 0.3), Color("#4a3426"))
+	# The phone, raised towards the van: the third fan's arm up, a dark slab with a lit face.
+	Models.box(st, spots[2] + Vector3(0.2, 1.62, 0.28), Vector3(0.1, 0.18, 0.04), VAN_DARK)
+	return st.commit()
+
+
 ## Is the van out at `hour`? Its spot on `weekday` (1 Monday .. 7 Sunday).
 static func van_out(hour: float) -> bool:
 	return hour >= float(ML_HOURS[0]) and hour < float(ML_HOURS[1])
@@ -518,6 +559,30 @@ func _van_tick(hour: float, weekday: int) -> void:
 	var show := out and not van.is_empty()
 	if _van_node != null and _van_node.visible != show:
 		_van_node.visible = show
+	if show:
+		_fans_tick(hour)
+	else:
+		_egg_t = 0.0
+
+
+## Twice a second while the van is out: the fans' chatter when the car is near, and the egg (the
+## car parked by the van while he films). `hour` is the game hour.
+func _fans_tick(_hour: float) -> void:
+	var at: Vector3 = van["at"]
+	var d := Vector2(car.global_position.x - at.x, car.global_position.z - at.z).length()
+	if d <= FAN_TALK_R and dialogue != null:
+		_fan_t -= 0.5
+		if _fan_t <= 0.0:
+			_fan_t = _rng.randf_range(FAN_GAP[0], FAN_GAP[1])
+			var back := Vector3(at.x, at.y, at.z) + (_van_node.global_transform.basis * Vector3(0, 0, -4.0))
+			dialogue.say_ambient(func() -> Vector3: return back, "", "viral", "cringulo", 4.0, ML_COLOUR, 2.2, true)
+	if d <= EGG_R and not flying and car.velocity.length() < 1.0:
+		_egg_t += 0.5
+		if _egg_t >= EGG_SECS and egg.is_valid():
+			_egg_t = -1000.0
+			egg.call(EGG_ID)
+	elif _egg_t > 0.0:
+		_egg_t = 0.0
 
 
 ## The van by the kerb nearest the place `spot` (or at the point `near`): {spot, at, ring, yaw}.

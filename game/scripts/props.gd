@@ -742,6 +742,17 @@ static func add_cafe_set(st: SurfaceTool, xf: Transform3D, canopy: Color) -> voi
 		obox(st, xf * (side * Vector3(0, 2.24, 1.29)), (xf.basis * side).orthonormalized(), Vector3(2.6, 0.16, 0.03), Color("#f4efe2"))
 
 
+## A patio heater (a café garden's gas "mushroom", Nowy Świat pass 2): a round base, a 2.1 m steel
+## pole, a reflector hood and the warm burner ring under it. ~50 tris.
+static func add_patio_heater(st: SurfaceTool, xf: Transform3D) -> void:
+	var steel := Color("#8e949a")
+	_xbox(st, xf, Vector3(0, 0.03, 0), Vector3(0.46, 0.06, 0.46), Color("#3a3b3f"))
+	_xbox(st, xf, Vector3(0, 1.06, 0), Vector3(0.07, 2.0, 0.07), steel)
+	_xbox(st, xf, Vector3(0, 2.02, 0), Vector3(0.22, 0.14, 0.22), Color("#ff9a3c"))
+	_xbox(st, xf, Vector3(0, 2.14, 0), Vector3(0.78, 0.05, 0.78), steel)
+	_xbox(st, xf, Vector3(0, 2.2, 0), Vector3(0.44, 0.07, 0.44), steel.lightened(0.1))
+
+
 ## A flower stall (a kwiaciarnia's table on the pavement), 2.2 m wide: a green trestle with rows
 ## of buckets of flowers stepping up to the back, a striped awning on four posts, KWIATY on a
 ## board over the front. ~330 tris.
@@ -884,6 +895,18 @@ static func add_stop_post(st: SurfaceTool, xf: Transform3D) -> void:
 	_xbox(st, xf, Vector3(0, 2.5, -0.06), Vector3(0.5, 0.5, 0.04), Color("#c9d94a"))
 	_xbox(st, xf, Vector3(0, 2.5, -0.09), Vector3(0.3, 0.3, 0.03), Color("#2b2f36"))
 	_xbox(st, xf, Vector3(0, 1.75, -0.08), Vector3(0.4, 0.55, 0.05), Color("#eeeadc"))
+
+
+## A tram-stop bench (ławka): a 1.8 m slatted seat and back on two graphite feet, the back to
+## +z (away from the street), like the stop kits. ~60 triangles.
+static func add_stop_bench(st: SurfaceTool, xf: Transform3D) -> void:
+	var wood := Color("#8a6a45")
+	var graphite := Color("#33363b")
+	_xbox(st, xf, Vector3(0, 0.46, 0.0), Vector3(1.8, 0.06, 0.42), wood)
+	_xbox(st, xf, Vector3(0, 0.78, 0.22), Vector3(1.8, 0.34, 0.05), wood)
+	for x in [-0.78, 0.78]:
+		_xbox(st, xf, Vector3(x, 0.22, 0.0), Vector3(0.07, 0.44, 0.4), graphite)
+		_xbox(st, xf, Vector3(x, 0.6, 0.22), Vector3(0.07, 0.6, 0.07), graphite)
 
 
 ## A ticket machine (BILETY, tickets): a 1.7 m grey-and-yellow box with a lit screen and the word in

@@ -682,8 +682,8 @@
       "name_en": "Most Śląsko-Dąbrowski",
       "osm": "the bridge's west end above Wybrzeże Gdańskie, by the W-Z tunnel",
       "near": [
-        52.2508,
-        21.02
+        52.2481,
+        21.0194
       ],
       "radius": 40,
       "fact": [
@@ -941,6 +941,32 @@
         "cafes"
       ],
       "district": "trakt"
+    },
+    {
+      "id": "kolejki",
+      "chapter": "trendy",
+      "name_pl": "Kolejki",
+      "name_en": "The queues",
+      "osm": "the KUKŁA pancake window on Nowy Świat, where the queue starts",
+      "near": [
+        52.2320,
+        21.0198
+      ],
+      "radius": 30,
+      "fact": [
+        "Kolejki były symbolem PRL-u. Dziś stoi się po naleśnika z kremem.",
+        "Queues were the symbol of the People's Republic. Today you queue for a crêpe with cream."
+      ],
+      "joke": [
+        "Kolejka jest dowodem jakości. Nikt nie wie, na co stoi, ale stoi.",
+        "A queue is proof of quality. Nobody knows what it is for, but they stand."
+      ],
+      "tags": [
+        "queue",
+        "kukla",
+        "street"
+      ],
+      "district": "srodmiescie"
     },
     {
       "id": "ratusz_arsenal",
@@ -2074,8 +2100,33 @@
       "district": "lazienki"
     },
     {
+      "id": "zamek_ujazdowski",
+      "chapter": "retro",
+      "name_pl": "Zamek Ujazdowski",
+      "name_en": "Ujazdów Castle",
+      "osm": "the castle on the Ujazdów escarpment, in the middle of its courtyard (Al. Ujazdowskie 6)",
+      "near": [
+        52.2196,
+        21.0308
+      ],
+      "radius": 40,
+      "fact": [
+        "Zamek z 1624 roku. Po wojnie odbudowany niemal od zera.",
+        "A castle of 1624. Rebuilt almost from scratch after the war."
+      ],
+      "joke": [
+        "Sztuka współczesna w środku. Na zewnątrz ławka z lepszym widokiem.",
+        "Contemporary art inside. Outside, a bench with a better view."
+      ],
+      "tags": [
+        "castle",
+        "culture"
+      ],
+      "district": "lazienki"
+    },
+    {
       "id": "deski",
-      "chapter": "trendy",
+      "chapter": "codziennie",
       "name_pl": "Klub DESKA",
       "name_en": "The DESKA club",
       "osm": "WTS DESKA (parody of WTS DeSki), Zaruskiego 8: a closed tennis hall and one outdoor glass padel court by Most Łazienkowski (landmarks.gd DESKI)",

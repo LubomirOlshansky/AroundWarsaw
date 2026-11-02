@@ -21,12 +21,14 @@ extends Node
 var spent_usec := 0
 
 const Access := preload("res://scripts/access.gd")
+const MapIcons := preload("res://scripts/map_icons.gd")
 const Beacon := preload("res://scripts/beacon.gd")
 const StopAssist := preload("res://scripts/stop_assist.gd")
 const Models := preload("res://scripts/models.gd")
 const Props := preload("res://scripts/props.gd")
 const LaneGraph := preload("res://scripts/lane_graph.gd")
 const CourierRace := preload("res://scripts/courier_race.gd")
+const Zaglebie := preload("res://scripts/zaglebie.gd")
 
 const KEBAB_COLOUR := Color("#ff8a3d")
 const SLOIK_COLOUR := Color("#4fd8c4")
@@ -63,6 +65,17 @@ const FIRST_ROAD := 300.0
 const CUSTOMERS := ["Ania", "Kasia", "Ola", "Magda", "Zosia", "Ewa", "Basia", "Marta",
 		"Tomek", "Kuba", "Piotrek", "Michał", "Paweł", "Marek", "Wojtek", "Krzysiek"]
 const NEWCOMERS := ["Kuba", "Ola", "Bartek", "Kasia", "Michał", "Magda"]
+## DEMO 6.3: the second słoiki station, Dworzec Gdański (the bake maps only Warszawa Centralna as a
+## "station" POI; the platforms of Gdańska lie past the north edge, its hall and forecourt inside).
+## `door` is a point on Słomińskiego by the hall (the kerb search snaps to the lane graph within 30 m),
+## `x`/`z` the building. Its newcomers go to Muranów, the blocks south of the station: a flat of
+## `dest` (a box x0, z0, x1, z1 in map metres, offices left out) 600 to 2000 m by road. The first
+## station's flats are in Powiśle, 1000 to 2400 m by road (data "d" = powisle).
+const GDANSKI := {"k": "station", "name": "Dworzec Gdański", "x": -2008.0, "z": -2700.0,
+		"door": [-2001.0, -2664.0], "w": 10.0, "dest": "muranow", "dest_pl": "Muranów", "dest_en": "Muranów",
+		"box": [-2700.0, -2700.0, -1500.0, -1500.0], "lo": 600.0, "hi": 2000.0, "tag": "gdanski"}
+const CENTRALNY_DEST := {"dest": "powisle", "dest_pl": "Powiśle", "dest_en": "Powiśle", "lo": 1000.0, "hi": 2400.0,
+		"tag": "centralny"}
 
 enum Job { NONE, KEBAB, SLOIK }
 enum State { IDLE, ORDER, DELIVER, RESULT }
@@ -111,6 +124,8 @@ var _stand_tiles: Array[MultiMeshInstance3D] = []
 var _stand_mesh: ArrayMesh
 var _world: Node3D
 ## The station pick-up: {ring, at, yaw, heading, person, marker, cool}.
+## Every słoiki station (the OSM one, then Dworzec Gdański), and the one a run is on.
+var _stations: Array[Dictionary] = []
 var _station: Dictionary = {}
 ## Addresses: {name, door: Vector2, at: Vector2, office, d}.
 var _addresses: Array[Dictionary] = []
@@ -142,6 +157,13 @@ var _rng := RandomNumberGenerator.new()
 ## Loop 3h slice 4: the stand whose next order is the guided first order (first10.gd `pin_first`;
 ## -1: none). Cleared once that order is made.
 var pinned := -1
+## Zagłębie Kebabowe: Kino Femina's point (the welcome line), whether the craft kebab's wait runs (s
+## left; the order's "premium" is set when it ends) and whether the welcome played this session.
+var _femina := Vector2.INF
+var _craft_t := 0.0
+var _welcomed := false
+## Testing: --craft=plain makes the autopilot take the plain kebab at the craft shop.
+var craft_plain := false
 
 
 func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
@@ -161,7 +183,10 @@ func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
 	var stand_mesh := Props.kebab_stand()
 	_stand_halo = Props.halo(7.5, Color(1.0, 0.5, 0.25, 0.5))
 	_halo_mat = Props.glow_material(true)
-	for p in data.get("pois", []):
+	var pois: Array = data.get("pois", []).duplicate()
+	# Zagłębie Kebabowe (docs/design/zaglebie-kebabowe.md): five shops on Al. Solidarności by Kino Femina.
+	pois.append_array(Zaglebie.extra_pois(data.get("origin", [52.234, 21.024])))
+	for p in pois:
 		match String(p["k"]):
 			"kebab":
 				_add_stand(p, stand_mesh, world)
@@ -171,9 +196,13 @@ func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
 				var door: Array = p["door"]
 				_addresses.append({"name": p["name"], "door": Vector2(door[0], door[1]), "at": Vector2(p["x"], p["z"]),
 						"office": p.has("o"), "d": String(p.get("d", ""))})
+	if not _station_near(Vector2(GDANSKI["x"], GDANSKI["z"])):
+		_add_station(GDANSKI, world)
 	_world = world
 	_stand_mesh = stand_mesh
+	_femina = Zaglebie.femina_at(data.get("origin", [52.234, 21.024]))
 	_build_stand_tiles()
+	_name_zaglebie()
 	for s in _stands:
 		s["across"] = _district_near(Vector2(s["ring"].x, s["ring"].z)) == "praga"
 	_beacon = Beacon.new()
@@ -202,11 +231,20 @@ func setup(nodes: Dictionary, data: Dictionary, world: Node3D) -> void:
 	var where := PackedStringArray()
 	for st in _stands:
 		where.append("%d,%d" % [roundi(st["at"].x), roundi(st["at"].z)])
-	print("jobs: %d kebab stands (%s), %d addresses, station %s in %d ms" % [_stands.size(), " ".join(where), _addresses.size(),
-			"%d,%d" % [roundi(_station["ring"].x), roundi(_station["ring"].z)] if not _station.is_empty() else "none", Time.get_ticks_msec() - t0])
+	print("jobs: %d kebab stands (%s), %d addresses, stations %s in %d ms" % [_stands.size(), " ".join(where), _addresses.size(),
+			" ".join(_stations.map(func(st: Dictionary) -> String: return "%s %d,%d" % [st["name"], roundi(st["ring"].x), roundi(st["ring"].z)])) \
+			if not _stations.is_empty() else "none", Time.get_ticks_msec() - t0])
 
 
 # --- loop MW-2: the stands' drawing, names and tags (storefronts.gd) ---------------------------
+
+## Zagłębie Kebabowe's five stands wear their shops' boards and vendor tags.
+func _name_zaglebie() -> void:
+	for i in _stands.size():
+		var shop := Zaglebie.shop(String(_stands[i]["zag"]))
+		if not shop.is_empty():
+			name_stand(i, String(shop["board"]), String(shop["tag"]))
+
 
 ## The generic stands' kiosks: one MultiMesh per 512 m tile (made again when a stand is named).
 func _build_stand_tiles() -> void:
@@ -362,7 +400,8 @@ func _add_stand(p: Dictionary, _mesh: ArrayMesh, world: Node3D) -> void:
 	world.add_child(marker)
 	marker.global_position = ring
 	_stands.append({"ring": ring, "at": at, "heading": k["heading"], "node": node, "marker": marker, "cool": false,
-			"edge": k["edge"], "s": k["s"], "xf": Transform3D(Basis(Vector3.UP, yaw), at), "name": "", "tag": ""})
+			"edge": k["edge"], "s": k["s"], "xf": Transform3D(Basis(Vector3.UP, yaw), at), "name": "", "tag": "",
+			"zag": String(p.get("zag", ""))})
 
 
 func _add_station(p: Dictionary, world: Node3D) -> void:
@@ -385,8 +424,21 @@ func _add_station(p: Dictionary, world: Node3D) -> void:
 	var marker := _marker(SLOIK_COLOUR, PULL_IN - 1.0)
 	world.add_child(marker)
 	marker.global_position = ring
-	_station = {"ring": ring, "at": person.global_position, "heading": k["heading"], "person": person,
-			"marker": marker, "cool": false, "edge": k["edge"], "s": k["s"], "name": String(p["name"])}
+	var dest: Dictionary = p if p.has("dest") else CENTRALNY_DEST
+	_stations.append({"ring": ring, "at": person.global_position, "heading": k["heading"], "person": person,
+			"marker": marker, "cool": false, "edge": k["edge"], "s": k["s"], "name": String(p["name"]),
+			"dest": dest.get("dest", "powisle"), "dest_pl": dest.get("dest_pl", "Powiśle"),
+			"dest_en": dest.get("dest_en", "Powiśle"), "box": dest.get("box", []), "lo": dest.get("lo", 1000.0),
+			"hi": dest.get("hi", 2400.0), "tag": dest.get("tag", "centralny")})
+
+
+## A słoiki station of the OSM data already stands within 150 m of `at` (a later bake that maps
+## Gdańska itself must not get a second one).
+func _station_near(at: Vector2) -> bool:
+	for st in _stations:
+		if _flat(Vector3(at.x, 0.0, at.y), st["ring"]) < 150.0:
+			return true
+	return false
 
 
 ## A ring on the road: "pull in here" (the stand's own sign and the minimap mark
@@ -526,6 +578,7 @@ func _process(dt: float) -> void:
 
 
 func _look_for_work() -> void:
+	_welcome()
 	var free := _free()
 	_show_places(free)
 	if not free:
@@ -540,12 +593,14 @@ func _look_for_work() -> void:
 		elif d < PULL_IN and slow:
 			_begin_kebab(i, _orders)
 			return
-	if not _station.is_empty():
-		var d := _flat(p, _station["ring"])
-		if _station["cool"]:
-			_station["cool"] = d < 25.0
+	for st in _stations:
+		var d := _flat(p, st["ring"])
+		if st["cool"]:
+			st["cool"] = d < 25.0
 		elif d < PULL_IN and slow:
+			_station = st
 			_begin_sloik(_orders)
+			return
 
 
 ## Rings, columns and minimap squares for the job places while nothing else runs.
@@ -555,23 +610,27 @@ func _show_places(on: bool, again := false) -> void:
 	_places_shown = on
 	for s in _stands:
 		(s["marker"] as Node3D).visible = on
-	if not _station.is_empty():
-		(_station["marker"] as Node3D).visible = on
+	for st in _stations:
+		(st["marker"] as Node3D).visible = on
 	var pts := PackedVector2Array()
 	var colours := PackedColorArray()
+	var shapes := PackedInt32Array()
 	if on:
 		for s in _stands:
 			pts.append(Vector2(s["ring"].x, s["ring"].z))
 			colours.append(KEBAB_COLOUR)
-		if not _station.is_empty():
-			pts.append(Vector2(_station["ring"].x, _station["ring"].z))
+			shapes.append(MapIcons.POI_KEBAB)
+		for st in _stations:
+			pts.append(Vector2(st["ring"].x, st["ring"].z))
 			colours.append(SLOIK_COLOUR)
+			shapes.append(MapIcons.POI_STATION)
 	# Loop jobs-2: the Leżak depots at night.
 	if roundup != null and roundup._shown and not round_busy():
 		for q: Vector2 in roundup.depot_points():
 			pts.append(q)
 			colours.append(roundup.COLOUR)
-	hud.set_minimap_pois(pts, colours)
+			shapes.append(MapIcons.POI_DEPOT)
+	hud.set_minimap_pois(pts, colours, shapes)
 
 
 ## Loop jobs-2: the round-up's depots came on or went (night, a job): the minimap squares again.
@@ -603,8 +662,8 @@ func _release() -> void:
 	hud.hide_status()
 	missions.paused = false
 	missions.close()
-	if not _station.is_empty():
-		(_station["person"] as Node3D).visible = true
+	for st in _stations:
+		(st["person"] as Node3D).visible = true
 	_remove_ghost()
 
 
@@ -620,8 +679,11 @@ func _make_kebab_order(i: int, n: int, first := false) -> Dictionary:
 	var want_across := rng.randf() < 0.3 and not first
 	var from := Vector2(s["ring"].x, s["ring"].z)
 	var pick := first_pick(i) if first else {}
+	# Zagłębie Kebabowe: a shop may send only longer trips (Zestaw Królewski).
+	var zag: String = s["zag"]
+	var lo := maxf(ORDER_MIN, float(Zaglebie.shop(zag).get("min_road", 0.0)))
 	if pick.is_empty():
-		pick = _pick_address(s["edge"], s["s"], from, ORDER_MIN, ACROSS_MAX if want_across else ORDER_MAX, rng,
+		pick = _pick_address(s["edge"], s["s"], from, lo, ACROSS_MAX if want_across else ORDER_MAX, rng,
 				func(a: Dictionary) -> bool: return want_across == ((a["d"] == "praga") != bool(s["across"])))
 	if pick.is_empty():
 		pick = _pick_address(s["edge"], s["s"], from, ORDER_MIN, ORDER_MAX, rng, func(_a: Dictionary) -> bool: return true)
@@ -638,7 +700,9 @@ func _make_kebab_order(i: int, n: int, first := false) -> Dictionary:
 	pick["stand"] = i
 	pick["n"] = n
 	# A decent drive takes about this long; the kebab is lukewarm by then.
-	pick["fair"] = 25.0 + float(pick["road"]) / 8.0
+	pick["fair"] = (25.0 + float(pick["road"]) / 8.0) * Zaglebie.fair(zag, false)
+	pick["zag"] = zag
+	pick["premium"] = false
 	return pick
 
 
@@ -720,12 +784,29 @@ func _begin_kebab(i: int, n: int) -> void:
 	var night := " Night pays ×%.1f." % NIGHT_BONUS if _night() else ""
 	var extra_pl := " Za rzeką: „w sumie to centrum”." if o["across"] else ""
 	var night_pl := (" Nocą ×%s." % ("%.1f" % NIGHT_BONUS).replace(".", ",")) if _night() else ""
-	hud.show_card("ZAMÓWIENIE · KEBAB · %d m" % roundi(o["road"]),
-			"Dla: %s.%s Im cieplejszy dojedzie, tym większy napiwek.%s" % [where, extra_pl, night_pl],
-			PackedStringArray(["GO!", "NOT NOW"]), KEBAB_COLOUR, true, "Kebab order · %d m" % roundi(o["road"]),
-			"It cools on the way: the hotter, the bigger the tip.%s%s" % [extra, night])
+	var zag: Dictionary = Zaglebie.shop(String(_stands[i]["zag"]))
+	_craft_t = 0.0
+	if bool(zag.get("craft", false)):
+		# Zagłębie Kebabowe's craft kebab: the card's two buttons are the choice (not GO / NOT NOW).
+		o["craft"] = true
+		hud.show_card("ZAMÓWIENIE · ROŻEN · %d m" % roundi(o["road"]),
+				"Dla: %s.%s Rzemieślnik kroi ręcznie, z zakwasu: poczekaj %d s, a kebab pójdzie ×%s i wolniej stygnie. Albo weź zwykły.%s" % [
+				where, extra_pl, roundi(Zaglebie.CRAFT_WAIT), ("%.1f" % Zaglebie.CRAFT_PAY).replace(".", ","), night_pl],
+				PackedStringArray(["POCZEKAM", "ZWYKŁY"]), KEBAB_COLOUR, true, "Craft kebab · %d m" % roundi(o["road"]),
+				"Hand-carved, on sourdough: wait %d s and it pays ×%.1f and cools slower. Or take a plain one.%s%s" % [
+				roundi(Zaglebie.CRAFT_WAIT), Zaglebie.CRAFT_PAY, extra, night])
+	else:
+		hud.show_card("ZAMÓWIENIE · KEBAB · %d m" % roundi(o["road"]),
+				"Dla: %s.%s Im cieplejszy dojedzie, tym większy napiwek.%s%s" % [where, extra_pl, night_pl,
+				(" " + String(zag["set"]) + ": ×%s.") % ("%.2f" % Zaglebie.pay(String(zag["tag"]), false, false)).replace(".", ",")
+				if not zag.is_empty() and float(zag["pay"]) > 1.0 else ""],
+				PackedStringArray(["GO!", "NOT NOW"]), KEBAB_COLOUR, true, "Kebab order · %d m" % roundi(o["road"]),
+				"It cools on the way: the hotter, the bigger the tip.%s%s" % [extra, night])
 	print("kebab order %d: stand %d -> %s (%s), %d m by road%s" % [n, i, o["name"], o["customer"], roundi(o["road"]),
 			", across the river" if o["across"] else ""])
+	# The autopilot answers the craft kebab's card: it waits for the hand-carved one (--craft=plain: no).
+	if autopilot and bool(o.get("craft", false)):
+		_on_card(1 if craft_plain else 0)
 	# Loop jobs-2 (parodies.md 4.3): a courier waiting here may challenge (at night, 1 in 4).
 	courier.set_road(float(o["road"]))
 	courier.on_order(_stands[i]["at"], o["ring"], n, _night(), int(o["edge"]) if bool(o["reached"]) else -1, float(o["s"]), func() -> void:
@@ -742,11 +823,21 @@ func _order_tick() -> void:
 		var l: Array = _order["line"]
 		if not l.is_empty():
 			bubbles.say(_stands[_order["stand"]]["node"], "Kebab 24h", l[0], l[1], 3.5, KEBAB_COLOUR, 5.2)
-	if _flat(car.global_position, at) > PULL_IN + 7.0 or _t > (4.0 if autopilot else 9.0):
+	if job == Job.KEBAB and _craft_t > 0.0:
+		# The craft kebab's wait: done, or the car drove off (then the plain one goes).
+		if _t >= _craft_t:
+			_order["premium"] = true
+			_order["fair"] = float(_order["fair"]) * Zaglebie.CRAFT_FAIR
+			_go()
+		elif _flat(car.global_position, at) > PULL_IN + 7.0:
+			_go()
+		return
+	if _flat(car.global_position, at) > PULL_IN + 7.0 or _t > (4.0 if autopilot else (14.0 if bool(_order.get("craft", false)) else 9.0)):
 		_go()
 
 
 func _go() -> void:
+	_craft_t = 0.0
 	state = State.DELIVER
 	_t = 0.0
 	_clock = 0.0
@@ -835,10 +926,12 @@ func _kebab_result() -> void:
 	var hot := _heat >= 0.4
 	var road: float = _order["road"]
 	var fare := roundi(12.0 + road * 0.015)
-	var tip := roundi(_heat * (10.0 + road * 0.02)) if hot else 0
+	var zag := String(_order.get("zag", ""))
+	var tip := roundi(_heat * (10.0 + road * 0.02) * Zaglebie.tip(zag)) if hot else 0
 	var bonus := NIGHT_BONUS if _night() else 1.0
-	var total := roundi((fare + tip) * bonus)
+	var total := roundi((fare + tip) * bonus * Zaglebie.pay(zag, _night(), bool(_order.get("premium", false))))
 	wallet.pay(total, 10 if hot else 0, "kebab")
+	_trail(zag)
 	# Loop jobs-2: the courier race, if one ran (its +30 zł +30 respect are paid by courier_race.gd).
 	var race := courier.finish()
 	var race_pl := ""
@@ -874,17 +967,51 @@ func _kebab_result() -> void:
 			roundi(_heat * 100.0), "hot" if hot else "cold", total, wallet.zl])
 
 
+## Szlak Szpili: one delivery from each of the Zagłębie's five shops pays TRAIL_ZL once.
+func _trail(zag: String) -> void:
+	if Zaglebie.shop(zag).is_empty():
+		return
+	var r: Array = Zaglebie.trail_add(String(wallet.keep.get(Zaglebie.KEEP_TRAIL, "")), zag)
+	wallet.keep[Zaglebie.KEEP_TRAIL] = r[0]
+	if bool(r[1]):
+		wallet.pay(Zaglebie.TRAIL_ZL, Zaglebie.TRAIL_RESPECT)
+		hud.toast("SZLAK SZPILI: pięć kebabów, pięć zagłębi! +%d zł" % Zaglebie.TRAIL_ZL,
+				"Skewer Trail: five kebabs from five shops! +%d zł" % Zaglebie.TRAIL_ZL)
+		print("jobs: Szlak Szpili complete")
+
+
+## The Zagłębie's welcome line, once, when the car first comes near Kino Femina.
+func _welcome() -> void:
+	if _welcomed or _femina == Vector2.INF or _flat(car.global_position, Vector3(_femina.x, 0.0, _femina.y)) > Zaglebie.WELCOME_R:
+		return
+	_welcomed = true
+	if int(wallet.keep.get(Zaglebie.KEEP_SEEN, 0)) > 0:
+		return
+	wallet.keep[Zaglebie.KEEP_SEEN] = 1
+	var l: Array = dialogue.line("zaglebie", "welcome")
+	if not l.is_empty():
+		hud.toast(l[0], l[1])
+
+
 # --- słoiki ------------------------------------------------------------------------------
 
 func _begin_sloik(n: int) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = n * 3571 + 11
 	var from := Vector2(_station["ring"].x, _station["ring"].z)
-	var pick := _pick_address(_station["edge"], _station["s"], from, 1000.0, 2400.0, rng, func(a: Dictionary) -> bool:
-		return a["d"] == "powisle" and not a["office"])
+	var box: Array = _station["box"]
+	var dest: String = _station["dest"]
+	var pick := _pick_address(_station["edge"], _station["s"], from, _station["lo"], _station["hi"], rng, func(a: Dictionary) -> bool:
+		if a["office"]:
+			return false
+		if box.is_empty():
+			return a["d"] == dest
+		var at: Vector2 = a["at"]
+		return at.x >= box[0] and at.y >= box[1] and at.x <= box[2] and at.y <= box[3])
 	if pick.is_empty():
 		hud.toast("Nikt nie potrzebuje podwózki", "Nobody needs a lift right now")
 		_station["cool"] = true
+		_station = {}
 		return
 	_orders += 1
 	job = Job.SLOIK
@@ -894,12 +1021,12 @@ func _begin_sloik(n: int) -> void:
 	_order["customer"] = NEWCOMERS[rng.randi() % NEWCOMERS.size()]
 	_claim()
 	var person: Node3D = _station["person"]
-	dialogue.say(person, _order["customer"], "sloik_start", "", 4.0, SLOIK_COLOUR, 2.9)
+	dialogue.say(person, _order["customer"], "sloik_start", _station["tag"], 4.0, SLOIK_COLOUR, 2.9)
 	hud.show_card("SŁOIKI · NIEDZIELNY WIECZÓR",
-			"%s wraca od mamy z %d słoikami. Cel: %s, Powiśle (%d m). Dziury, hamowanie i szybkie zakręty tłuką słoiki." % [
-			_order["customer"], JARS, _order["name"], roundi(_order["road"])],
+			"%s wraca od mamy z %d słoikami. Cel: %s, %s (%d m). Dziury, hamowanie i szybkie zakręty tłuką słoiki." % [
+			_order["customer"], JARS, _order["name"], _station["dest_pl"], roundi(_order["road"])],
 			PackedStringArray(["GO!", "NOT NOW"]), SLOIK_COLOUR, true, "The słoiki run · Sunday evening",
-			"Back from home with %d of mum's jars, to a rented flat in Powiśle. Bumps, braking and fast corners break jars." % JARS)
+			"Back from home with %d of mum's jars, to a rented flat in %s. Bumps, braking and fast corners break jars." % [JARS, _station["dest_en"]])
 	print("słoiki run %d: %s to %s, %d m by road" % [n, _order["customer"], _order["name"], roundi(_order["road"])])
 
 
@@ -1006,7 +1133,16 @@ func _sloik_result() -> void:
 func _on_card(index: int) -> void:
 	match state:
 		State.ORDER:
-			if index == 0:
+			if bool(_order.get("craft", false)):
+				# Craft kebab: POCZEKAM (0) waits for the hand-carved one, ZWYKŁY (1) goes at once.
+				if index == 0 and _craft_t <= 0.0:
+					_craft_t = _t + Zaglebie.CRAFT_WAIT
+					hud.hide_card()
+					hud.toast("Rzemieślnik kroi… %d s" % roundi(Zaglebie.CRAFT_WAIT), "Carving by hand… %d s" % roundi(Zaglebie.CRAFT_WAIT))
+				elif index == 1:
+					_craft_t = 0.0
+					_go()
+			elif index == 0:
 				_go()
 			else:
 				# Not now: the place waits until the car has driven off.
@@ -1134,10 +1270,11 @@ func start_kebab(n: int) -> bool:
 	return state == State.ORDER
 
 
-## --sloik: puts the car at the station and starts the run (`broken` jars already gone).
-func start_sloik(broken := 0) -> bool:
-	if _station.is_empty():
+## --sloik: puts the car at station `station` (0 Centralny, 1 Gdański) and starts the run (`broken` jars already gone).
+func start_sloik(broken := 0, station := 0) -> bool:
+	if _stations.is_empty():
 		return false
+	_station = _stations[posmod(station, _stations.size())]
 	start_broken = broken
 	_put_car(_station)
 	_begin_sloik(0)

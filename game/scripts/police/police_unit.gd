@@ -31,9 +31,12 @@ const IsPhase := preload("res://scripts/police/bt/is_phase.gd")
 const IsPullOver := preload("res://scripts/police/bt/is_pull_over.gd")
 const UnitAction := preload("res://scripts/police/bt/unit_action.gd")
 
-## Chasers: the player's top speed (30 m/s) x 0.92, traffic's acceleration x 1.2, and the gap
-## they keep behind the player's car (they never ram; police.md section 4).
-const CHASE_TOP := 27.6
+## Chasers: CHASE_SHARE of the player's own top speed (police.gd `chase_top`: the car's model, the
+## Ołdi TT and the engine level; a flat-out run opens a fifth of it, 100 m in ~15 s at any speed),
+## traffic's acceleration x 1.2, and the gap they keep behind the player's car (they never ram;
+## police.md section 4). CHASE_TOP is the share of the default hatch's 30 m/s, the fallback.
+const CHASE_SHARE := 0.8
+const CHASE_TOP := 24.0
 const CHASE_ACCEL := 1.2
 const CHASE_GAP := 10.0
 ## Searching: to the last-seen point, then round it within SEARCH_REACH at 30 km/h.
@@ -191,10 +194,11 @@ func pursue() -> int:
 		d.chase = true
 		d.held = false
 		d.persistent = true
-		d.v_cap = CHASE_TOP
 		d.accel_factor = CHASE_ACCEL
 		d.keep_gap = CHASE_GAP
 		police.request_replan(self)
+	# Every tick: a car swapped or tuned at the garage mid-chase changes the pace at once.
+	driver.v_cap = police.chase_top()
 	return BeehaveNode.RUNNING
 
 
@@ -283,7 +287,7 @@ func escort_lead() -> int:
 		if escort_node >= 0:
 			traffic.race_to(d, escort_node, escort_route)
 	d.held = tree.blackboard.get_value("escort_wait", false)
-	d.v_cap = maxf(float(tree.blackboard.get_value("escort_v", CHASE_TOP)), 2.0)
+	d.v_cap = maxf(float(tree.blackboard.get_value("escort_v", police.chase_top())), 2.0)
 	return BeehaveNode.RUNNING
 
 

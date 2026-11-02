@@ -42,13 +42,16 @@ def main():
         if pl.excluded(x, z):
             bad.append("%s at %.1f,%.1f is in an excluded area" % (kind, x, z))
         skip = ("shelter", "platform", "island") if kind in ("post", "ticket") else ()
-        why = pl.solids.blocked(x, z, B.RADIUS[kind] - 0.05, skip=skip)
+        if colour == B.ON_PLATFORM:
+            skip = B.PLATFORM_SKIP
+        why = pl.solids.blocked(x, z, (B.PLATFORM_R if colour == B.ON_PLATFORM else B.RADIUS[kind]) - 0.05, skip=skip)
         # a prop is checked against the others by the bake (the items list); here against the map
         if why:
             bad.append("%s at %.1f,%.1f is blocked by %s" % (kind, x, z, why))
     for key, n in sectors.items():
-        if n > B.MAX_SECTOR:
-            bad.append("sector %s holds %d items, over %d" % (key, n, B.MAX_SECTOR))
+        # the placer stops at B.MAX_SECTOR (85); the stop and island kits add a few, up to the loader's 100
+        if n > 100:
+            bad.append("sector %s holds %d items, over %d" % (key, n, 100))
     for kind in ("kiosk", "stall"):
         pts = [(i[1], i[2]) for i in items if i[0] == kind]
         for a in range(len(pts)):

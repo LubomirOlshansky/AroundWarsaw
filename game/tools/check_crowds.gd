@@ -38,6 +38,9 @@ class FakeDialogue extends Node:
 		said.append([speaker, group, tag])
 		return ["…", "…"]
 
+	func say_ambient(_anchor: Variant, speaker: String, group: String, tag := "", _s := 4.0, _a := Color.WHITE, _h := 2.6, _p := false) -> Array:
+		return say(_anchor, speaker, group, tag, _s, _a, _h, _p)
+
 	func count(group: String, tag: String) -> int:
 		var n := 0
 		for l: Array in said:
@@ -290,7 +293,7 @@ func _check_sites(c: Crowds) -> void:
 	_expect(Crowds.padel_queue(18.0, 2) == [Crowds.PADEL_MAX, "padel"] and Crowds.padel_queue(10.0, 6)[0] == 10 and Crowds.padel_queue(3.0, 6)[0] == 0
 			and Crowds.padel_queue(14.0, 2)[0] == 3, "PADELNIA: its line by hour")
 	# The food hype (gaulle-and-food-hype.md G3, G4): KUKŁA's line is never under 8 while open,
-	# HOTEL PIURE's lift line to LUŹNO is an evening one, past midnight counted from the evening.
+	# HOTEL PIURE's lift line to LORETKA is an evening one, past midnight counted from the evening.
 	_expect(Crowds.kukla_queue(8.5, 2)[0] == 0 and Crowds.kukla_queue(21.5, 2)[0] == 0, "KUKŁA: a line outside 9-21")
 	_expect(Crowds.kukla_queue(13.0, 3) == [Crowds.KUKLA_MAX, "kolejka"] and Crowds.kukla_queue(16.0, 7)[0] == Crowds.KUKLA_MAX
 			and Crowds.kukla_queue(16.0, 2)[0] == 14 and Crowds.kukla_queue(9.5, 2)[0] == 8, "KUKŁA: its line by hour")
@@ -299,6 +302,17 @@ func _check_sites(c: Crowds) -> void:
 			and Crowds.milk_queue(10.0, 3)[0] == 10 and Crowds.milk_queue(13.0, 7)[0] < Crowds.MILK_MAX, "KROWA 2.0: its line by hour")
 	_expect(Crowds.chill_level(19.0, 7, false) == 1.0 and Crowds.chill_level(8.0, 7, false) == 0.0
 			and Crowds.chill_level(19.0, 1, false) > 0.3 and Crowds.chill_level(19.0, 7, true) < 0.2, "chill yards: evening full, morning empty, winter a third, rain few")
+	# Nowy Świat pass 2: the café street's chill spots are sites with people.
+	_expect(Crowds.NOWY_SWIAT.size() >= 4 and Crowds.NOWY_SWIAT.keys().all(func(id: String) -> bool: return c.by_id.has(id)),
+			"Nowy Świat: %d chill spots are sites" % Crowds.NOWY_SWIAT.size())
+	# F, 2026-11-01: DALEJ DALLA GELATO, the Powiśle gelateria: a line in snow too.
+	_expect(Crowds.gelato_queue(10.0, 2, 7)[0] == 0 and Crowds.gelato_queue(21.5, 2, 7)[0] == 0
+			and Crowds.gelato_queue(16.0, 2, 7) == [Crowds.GELATO_MAX, "lody"]
+			and Crowds.gelato_queue(12.0, 2, 1) == [Crowds.GELATO_WINTER_MIN, "lody_zima"]
+			and Crowds.gelato_queue(16.0, 7, 12)[0] > Crowds.GELATO_WINTER_MIN, "DALEJ DALLA GELATO: its line by hour, winter too")
+	# F, 2026-11-01: the Vistula boulevards' chill spots.
+	_expect(Crowds.BULWARY.size() >= 8 and Crowds.BULWARY.values().all(func(v: Array) -> bool: return int(v[1]) > 0 and float(v[2]) > 0.0),
+			"Bulwary: %d chill spots with people and a radius" % Crowds.BULWARY.size())
 	_expect(Crowds.stop_level(8.0, 2, false) == 1.0 and Crowds.stop_level(8.0, 7, false) < 0.5
 			and Crowds.stop_level(3.0, 2, false) == 0.0 and Crowds.stop_level(11.0, 2, true) > Crowds.stop_level(11.0, 2, false),
 			"Marszałkowska platforms: rush hour full, Sunday thin, night empty, rain fuller")
@@ -313,6 +327,19 @@ func _check_sites(c: Crowds) -> void:
 			and Crowds.piure_queue(0.5, 1)[0] == 10 and Crowds.piure_queue(1.5, 6)[0] == 0, "HOTEL PIURE: its line by hour")
 	for vid: String in Crowds.KUKLA + [Crowds.PIURE_ID]:
 		_expect(c.by_id.has(vid), "no crowd at %s" % vid)
+	# F (2026-11-01): LORETKA's summer terrace, couples on the model's own poufs, summer evenings.
+	_expect(Crowds.loretka_terrace(20.0, 5, 7, false, 16) == 16 and Crowds.loretka_terrace(20.0, 2, 7, false, 16) == Crowds.LORETKA_WEEKNIGHT
+			and Crowds.loretka_terrace(0.5, 7, 7, false, 16) == 16 and Crowds.loretka_terrace(16.0, 5, 7, false, 16) == 0
+			and Crowds.loretka_terrace(20.0, 5, 11, false, 16) == 0 and Crowds.loretka_terrace(20.0, 5, 7, true, 16) == 0
+			and Crowds.loretka_terrace(1.5, 6, 7, false, 16) == 0, "LORETKA's terrace: its couples by hour, month and rain")
+	_expect(c.by_id.has(Crowds.LORETKA_ID), "no crowd on LORETKA's terrace")
+	if c.by_id.has(Crowds.LORETKA_ID):
+		var lt: Dictionary = c.sites[c.by_id[Crowds.LORETKA_ID]]
+		var sl: Array = lt["slots"]
+		_expect(sl.size() == 16 and sl.size() % 2 == 0, "LORETKA's terrace: %d seats (want 16, in twos)" % sl.size())
+		if not sl.is_empty():
+			_expect(float(sl[0]["y"]) > 20.0, "LORETKA's terrace: seats at %.1f m (on the roof?)" % float(sl[0]["y"]))
+	_expect(c.by_id.has(Crowds.GELATO[0]), "no crowd at DALEJ DALLA GELATO")
 	_expect(c.by_id.has(Crowds.PADEL_ID), "no crowd at PADELNIA")
 	_expect(c.by_id.has(Crowds.PISTACJA_ID), "no crowd at PISTACJA")
 	if c.by_id.has(Crowds.PISTACJA_ID):

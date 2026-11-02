@@ -343,6 +343,9 @@ const int S_TILE = 9;
 const int S_EASTWALL = 10;
 const int S_PUNCHED = 11;
 const int S_SLAB = 12;
+const int S_ESTATE = 14;
+const int S_MIRROR = 13;
+const int S_KEYS = 15;
 
 vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool cut) {
 	glow = vec3(0.0);
@@ -392,6 +395,14 @@ vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool 
 		frame = fract(u / 1.5) < 0.1 || fract(h / fh) < 0.08;
 		frame_col = srgb_to_linear(vec3(0.42, 0.33, 0.2)) * mix(0.3, 1.0, daylight);
 		c = mix(c, col * mix(0.35, 1.0, daylight) * 1.15, 0.6);
+	} else if (s == S_MIRROR) {
+		// The Blue Skyscraper's reflective float glass (1991): plain blue mirror panes, the sky
+		// shining in them in slow streaks, a fine pale-silver spandrel at every floor and a
+		// hairline mullion every 2.4 m (not the gold of its first, copper-tinted cladding).
+		frame = fract(h / fh) < 0.07 || fract(u / 2.4) < 0.04;
+		frame_col = mix(silver, white, 0.3) * 0.92;
+		c = mix(c, sky * mix(0.4, 1.0, daylight), 0.28);
+		c *= 0.9 + 0.2 * value_noise(vec2(u * 0.11, h * 0.025));
 	} else if (s == S_TILE) {
 		// Novotel's shaft (the Rondo photos, 2026-10-31): white tiled panels, a hairline grid
 		// every 3.4 m by one floor, floodlit white at night, a window slit now and then.
@@ -461,6 +472,77 @@ vec3 skin(int s, vec3 col, float u, float h, float top, out vec3 glow, out bool 
 			glow = WARM * 0.5;
 		}
 		return deep;
+	} else if (s == S_ESTATE) {
+		// Osiedle Za Żelazną Bramą (2026-11-01, spec zelazna.md): a large-panel slab of the
+		// 1960s-70s, pale concrete panels in 3 m bays, a wide ribbon window in each, and in
+		// every fourth bay a loggia stack with a coloured parapet (blue, ochre or brick, by
+		// stack), dark inside; warm windows and a few lit loggias at night.
+		float pf = 2.8;
+		float wy = fract(h / pf);
+		float lvl = floor(h / pf);
+		float bay = floor(u / 3.0);
+		float wx = fract(u / 3.0);
+		vec3 panel = col * mix(0.3, 1.0, daylight);
+		if (h < pf || h > top - 0.7) {
+			return panel * (h < pf ? 0.82 : 1.05);
+		}
+		if (wy < 0.035 || wx < 0.025) {
+			return panel * 0.8;                         // the panel joints
+		}
+		if (mod(bay, 4.0) > 2.5) {
+			float hue = hash12(vec2(floor(bay / 4.0), 1.7));
+			vec3 accent = hue < 0.33 ? vec3(0.27, 0.43, 0.62) : (hue < 0.66 ? vec3(0.78, 0.6, 0.27) : vec3(0.62, 0.3, 0.24));
+			if (wy < 0.4) {
+				return srgb_to_linear(accent) * mix(0.3, 1.0, daylight);   // the coloured parapet
+			}
+			vec3 deep = col * 0.4 * mix(0.35, 1.0, daylight);
+			if (lights_on > 0.001 && hash12(vec2(bay, lvl) + 5.9) < 0.18 * lights_on) {
+				glow = WARM * 0.55;
+			}
+			return deep;
+		}
+		if (wy > 0.3 && wy < 0.78 && wx > 0.12 && wx < 0.88) {
+			vec3 pane = mix(srgb_to_linear(vec3(0.17, 0.2, 0.24)), sky * 0.4, 0.3) * mix(0.35, 1.0, daylight);
+			if (lights_on > 0.001 && hash12(vec2(bay, lvl) + 3.3) < 0.4 * lights_on) {
+				glow = WARM_PALE * 0.9;
+				return pane * 0.3;
+			}
+			return pane;
+		}
+		return panel;
+	} else if (s == S_KEYS) {
+		// Piano House on Zajęcza (2026-11-02, spec piano_house.md): white plaster with full-height
+		// dark window strips in a keyboard's rhythm, white keys 1.25 m wide and a black one over
+		// the joints after the 1st, 2nd, 4th, 5th and 6th of every seven (2 and 3, like an
+		// octave). A glazed ground floor, a plain band under the top; warm strips at night.
+		float kw = 1.25;
+		float x = mod(u, kw * 7.0) / kw;
+		float n = floor(x + 0.5);
+		float lvl = floor(h / 3.1);
+		vec3 plaster = col * mix(0.3, 1.0, daylight);
+		if (h < 3.6) {
+			if (lights_on > 0.001) {
+				glow = WARM_PALE * 0.8;
+				return c * 0.4;
+			}
+			return mix(srgb_to_linear(vec3(0.18, 0.2, 0.23)), sky * 0.4, 0.25) * mix(0.35, 1.0, daylight);
+		}
+		if (h > top - 0.7) {
+			return plaster * 1.04;
+		}
+		bool black = abs(x - n) < 0.3 && (n == 1.0 || n == 2.0 || n == 4.0 || n == 5.0 || n == 6.0);
+		if (black) {
+			vec3 key = mix(srgb_to_linear(vec3(0.07, 0.075, 0.085)), sky * 0.3, refl) * mix(0.35, 1.0, daylight);
+			if (fract(h / 3.1) < 0.06) {
+				return key * 0.6;
+			}
+			if (lights_on > 0.001 && hash12(vec2(floor(u / kw), lvl) + 6.7) < 0.4 * lights_on) {
+				glow = WARM_PALE * 0.9;
+				return key * 0.4;
+			}
+			return key;
+		}
+		return fract(x) < 0.025 || fract(x) > 0.975 ? plaster * 0.86 : plaster;
 	} else if (s == S_FRAME) {
 		frame = fract(u / 3.2) < 0.14 || fract(h / 4.4) < 0.1 || h > top - 0.9;
 		frame_col = mix(silver, white, 0.5);

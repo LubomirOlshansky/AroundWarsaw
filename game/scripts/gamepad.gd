@@ -10,7 +10,8 @@ extends RefCounted
 ##   LT or B      brake / reverse; the helicopter sinks (LT)
 ## Buttons (one press, `command`), named after the keys they stand for:
 ##   A primary (M)     X secondary (K)     Y car / helicopter (H)
-##   LB / RB turn the view (Q / E)          R3 follow camera (C)     L3 horn (B)
+##   LB or RB held: the nitro (Shift), once bought   right stick flicked left / right: turn the view (Q / E)
+##   R3 follow camera (C)     L3 horn (B)
 ##   D-pad up / down zoom in / out (= / -)  D-pad right radio (R)     D-pad left flash lights (L)
 ##   Back / Share / View: the full map      Start / Options / Menu: Settings (Esc)
 ## Menus: Godot's own ui_up..ui_right carry the D-pad and the left stick; `install` adds A to
@@ -33,14 +34,19 @@ const STICK_ACTIONS := {
 }
 const GAS := "pad_gas"
 const BRAKE := "pad_brake"
+## G13 leftovers (2026-11-02): the nitro is a hold, so it needs a button no press-command uses;
+## the shoulders were the view's turn, which moved to the right stick (the usual camera stick).
+const NITRO := "pad_nitro"
+## The right stick turns the view one step per flick: past FLICK of its throw, armed again once it
+## is back under FLICK_REST (so a held stick turns once, not every frame).
+const FLICK := 0.6
+const FLICK_REST := 0.3
 
 ## One press, one command (main.gd `_pad_command`).
 const BUTTONS := {
 	JOY_BUTTON_A: "primary",
 	JOY_BUTTON_X: "secondary",
 	JOY_BUTTON_Y: "vehicle",
-	JOY_BUTTON_LEFT_SHOULDER: "rotate_left",
-	JOY_BUTTON_RIGHT_SHOULDER: "rotate_right",
 	JOY_BUTTON_RIGHT_STICK: "follow",
 	JOY_BUTTON_LEFT_STICK: "horn",
 	JOY_BUTTON_DPAD_UP: "zoom_in",
@@ -56,10 +62,16 @@ const BUTTONS := {
 static var _seq := 0
 static var last_pad := 0
 static var last_other := 0
+## The right stick is back near the centre, so the next flick turns the view.
+static var _flick_armed := true
 
 
 ## Adds the pad's actions once (main.gd `_ready`; the check calls it too). Device -1: any pad.
+static var _installed := false
+
+
 static func install() -> void:
+	_installed = true
 	for action: String in STICK_ACTIONS:
 		_add(action, DEAD, _axis(STICK_ACTIONS[action][0], STICK_ACTIONS[action][1]))
 	_add(GAS, TRIGGER, _axis(JOY_AXIS_TRIGGER_RIGHT, 1.0))
@@ -68,6 +80,8 @@ static func install() -> void:
 	b.device = -1
 	b.button_index = JOY_BUTTON_B
 	InputMap.action_add_event(BRAKE, b)
+	_add_button(NITRO, JOY_BUTTON_LEFT_SHOULDER)
+	_add_button(NITRO, JOY_BUTTON_RIGHT_SHOULDER)
 	# Godot's ui_accept / ui_cancel carry no pad button out of the box (the D-pad is in ui_up..):
 	# A presses the focused button, B backs out (the garage card, the settings card).
 	_add_button("ui_accept", JOY_BUTTON_A)
@@ -75,6 +89,8 @@ static func install() -> void:
 
 
 static func _add_button(action: String, button: JoyButton) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action)
 	for e in InputMap.action_get_events(action):
 		if e is InputEventJoypadButton and (e as InputEventJoypadButton).button_index == button:
 			return
@@ -102,19 +118,46 @@ static func _axis(axis: JoyAxis, dir: float) -> InputEventJoypadMotion:
 ## The left stick in screen space (-1..1, x right, y down, like hud.gd's `stick`), dead zone
 ## taken out and rescaled so the throw past it still reaches 1.
 static func stick() -> Vector2:
+	if not _installed:
+		install()  # a card read before main.gd ran (tools/check_hud.gd builds the HUD alone)
 	return Input.get_vector("pad_left", "pad_right", "pad_up", "pad_down")
 
 
 static func gas() -> bool:
+	if not _installed:
+		install()  # a card read before main.gd ran (tools/check_hud.gd builds the HUD alone)
 	return Input.is_action_pressed(GAS)
 
 
 static func brake() -> bool:
+	if not _installed:
+		install()  # a card read before main.gd ran (tools/check_hud.gd builds the HUD alone)
 	return Input.is_action_pressed(BRAKE)
+
+
+## LB or RB held (main.gd feeds it to car.nitro_hold with the disc and Shift).
+static func nitro() -> bool:
+	return Input.is_action_pressed(NITRO)
+
+
+## The right stick's flick: -1 (left) or 1 (right) once per flick past FLICK, 0 for anything else
+## (main.gd turns the view by it, like Q / E).
+static func view_flick(event: InputEvent) -> int:
+	var m := event as InputEventJoypadMotion
+	if m == null or m.axis != JOY_AXIS_RIGHT_X:
+		return 0
+	if absf(m.axis_value) < FLICK_REST:
+		_flick_armed = true
+	elif _flick_armed and absf(m.axis_value) >= FLICK:
+		_flick_armed = false
+		return 1 if m.axis_value > 0.0 else -1
+	return 0
 
 
 ## The helicopter's height: RT up, LT down (-1..1, analogue).
 static func climb() -> float:
+	if not _installed:
+		install()  # a card read before main.gd ran (tools/check_hud.gd builds the HUD alone)
 	return Input.get_action_strength(GAS) - Input.get_action_strength(BRAKE)
 
 
@@ -142,6 +185,45 @@ static func note(event: InputEvent) -> void:
 	elif event is InputEventScreenTouch or event is InputEventKey or event is InputEventMouseButton:
 		_seq += 1
 		last_other = _seq
+
+
+## The accent ring a pad-focused control wears (settings, garage; the bars and the notebook draw
+## their own in the same colour).
+const RING := Color("#ffd23f")
+
+
+static func ring(pt: float) -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.draw_center = false
+	box.border_color = RING
+	box.set_border_width_all(maxi(2, roundi(2.0 * pt)))
+	box.set_corner_radius_all(roundi(6.0 * pt))
+	box.set_expand_margin_all(2.0 * pt)
+	return box
+
+
+## Every Button under `root` takes pad focus (the D-pad / stick moves it, A presses) with the ring.
+## Only called once the pad opened a card, so touch never sees a focus ring.
+static func focus_all(root: Node, pt: float) -> void:
+	var box := ring(pt)
+	for b in root.find_children("*", "Button", true, false):
+		(b as Button).focus_mode = Control.FOCUS_ALL
+		(b as Button).add_theme_stylebox_override("focus", box)
+
+
+## Back to touch's way (a card opened by a finger after the pad): no Button under `root` takes focus.
+static func focus_none(root: Node) -> void:
+	for b in root.find_children("*", "Button", true, false):
+		(b as Button).focus_mode = Control.FOCUS_NONE
+
+
+## Drops the focus if it is inside `root` (a card closing).
+static func drop_focus(root: Control) -> void:
+	if not root.is_inside_tree():
+		return
+	var focused := root.get_viewport().gui_get_focus_owner()
+	if focused != null and (focused == root or root.is_ancestor_of(focused)):
+		focused.release_focus()
 
 
 ## True when the pad was used last: the HUD hides the touch pedals and shows the pad's words.

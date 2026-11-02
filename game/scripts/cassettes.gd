@@ -17,6 +17,7 @@ extends Node
 ##   PÓŁNOC FM track (radio.gd `unlock_track`, "cassette"), whose own toast follows.
 ## Cost: the 5 Hz look (`spent_usec`).
 
+const Lang := preload("res://scripts/lang.gd")
 const Districts := preload("res://scripts/districts.gd")
 const Models := preload("res://scripts/models.gd")
 const Access := preload("res://scripts/access.gd")
@@ -186,7 +187,7 @@ func take(id: String) -> bool:
 	var name: Array = e.get("name", ["", ""])
 	var line: Array = e.get("line", ["", ""])
 	if hud != null:
-		hud.show_note("KASETA Z MUZYKĄ · MIXTAPE", "%s\n%s\n%s" % [name[0], line[0], line[1]], COLOUR)
+		hud.show_note(Lang.pick("KASETA Z MUZYKĄ", "MIXTAPE"), "%s\n%s" % [Lang.pick(name[0], name[1]), Lang.pick(line[0], line[1])], COLOUR)
 	if blip.is_valid():
 		blip.call()
 	Access.buzz(40, 0.4)
