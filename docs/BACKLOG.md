@@ -289,6 +289,17 @@ add it to the plan." Rules and the full inventory (39 named religious buildings,
   dormer kind (hipped, round, none) and size by house seed, group dormers on a ridge line, drop
   them where a slope is under 8 m.
 
+## City-life satire ideas (F, 2026-11-02)
+
+Twelve ideas, plans in docs/design/city-life-satire.md. Built: #11 MIESZANE MIESZANE neon (HYPE
+`kebab_mieszane`; evening queue `Crowds.MIESZANE`, "mieszane" lines in `viral`, one vendor line in `kebab_vendor`), #12 NOSE AGENCY crown sign on the Skyliner. Done before: #10 (PR #309). Open, each its own thread:
+- **Loud cars (#1, Opus)**: sports-car meet at Browary Warszawskie (generic bodies, no marques) and revving cars in traffic with a louder engine layer.
+- **Wellness circles (#2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu; Sonnet, ONE thread)**: one new crowd spot kind `circle`.
+- **Queues (#5) and KRINGULA PIZZA (#6, Sonnet)**: extend the queue sites; the brick pizzeria and its fans; the joke text goes to F (QUESTIONS).
+- **Legia fans (#7, Opus)**: friendly scarves, drum, pink-red harmless smoke on match evenings near Stadion Leguminy; no violence, no crest, no real chants.
+- **Bike paths (#9, Opus)**: compare with the real network, fill gaps by data, rider density on the main ones.
+- Small: English "UNDER CONSTRUCTION" on the edge roadworks boards; Mac look check of both new signs (the shop's door is a guess 40 m west of KEBAB KRÓL; Godot did not run in the cloud for this change).
+
 ## Bike paths (F, 2026-11-02)
 
 - Fixed: gaps under 3 m between cycle path ends, ways split into pieces, spikes and sharp corners (`tools/cycleways.py`; riders turned back at every gap).

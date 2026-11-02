@@ -1026,6 +1026,10 @@
       {
         "only": "zag_rozen"
       }
+    ],
+    [
+      "Mięso? Mieszane. Sos? Mieszane. Zamówienie przyjęte, jedź!",
+      "Meat? Mixed. Sauce? Mixed. Order taken, go!"
     ]
   ],
   "rescue_person": [
@@ -2561,6 +2565,41 @@
       "Two scoops, thirty minutes. The maths works.",
       {
         "only": "lody"
+      }
+    ],
+    [
+      "„Mięso?” „Mieszane.” „Sos?” „Mieszane.” Od lat tak.",
+      "\"Meat?\" \"Mixed.\" \"Sauce?\" \"Mixed.\" Always has been.",
+      {
+        "only": "mieszane"
+      }
+    ],
+    [
+      "Nie czytam menu. Menu to formalność. Mieszane.",
+      "I don't read the menu. The menu is a formality. Mixed.",
+      {
+        "only": "mieszane"
+      }
+    ],
+    [
+      "Pan już wie, co chcę. Pan zawsze wie. Mieszane, mieszane.",
+      "The man knows what I want. He always does. Mixed, mixed.",
+      {
+        "only": "mieszane"
+      }
+    ],
+    [
+      "Raz spróbowałem „samo mięso”. Nie rozmawiamy o tym.",
+      "I once tried \"just meat\". We don't talk about it.",
+      {
+        "only": "mieszane"
+      }
+    ],
+    [
+      "Trzecia w nocy, kolejka nie krótsza. Mieszane warte każdej minuty.",
+      "Three a.m., the queue no shorter. Mixed is worth every minute.",
+      {
+        "only": "mieszane"
       }
     ]
   ],
