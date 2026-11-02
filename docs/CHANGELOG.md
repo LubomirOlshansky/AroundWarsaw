@@ -41,6 +41,7 @@ someone writes its lines.
 - Getting wedged between traffic cars no longer ends the drive: push against them for a moment and your car slips through, and after eight seconds in a jam it is towed onto the road.
 
 ## 2026-11-01
+- With a game controller you can now set the volumes, browse the city notebook, pick a paint at the garage, and pan, zoom and teleport on the full map.
 - Small houses without a detailed model now have pitched roofs, gabled or hipped: red tile, red sheet metal in MDM, and green copper or red on the Royal Route.
 - LORETKA, the pink rooftop date bar, now has its summer terrace up on the hotel roof: pink parasols, greenery, string lights and couples on summer evenings. Also new: the PRZEGRYWKI board-game bar and WACZEK burger joints with an upside-down golden W.
 - Osiedle Za Żelazną Bramą now stands as eleven proper concrete blocks with ribbon windows and coloured balconies, Hala Mirowska has its market stalls on the square, and the buildings along Aleja Jana Pawła II each wear their own post-war plaster.

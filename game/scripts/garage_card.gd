@@ -13,6 +13,8 @@ const Lang := preload("res://scripts/lang.gd")
 
 signal closed
 
+const Gamepad := preload("res://scripts/gamepad.gd")  # the gamepad follow-ups
+
 ## The swatches' size in points (at least 44 tall: the touch rule).
 const SWATCH := Vector2(114.0, 58.0)
 const GAP := 6.0
@@ -231,9 +233,16 @@ func open(start_tab := "paint") -> void:
 	visible = true
 	_place.call_deferred()
 	_place()
+	if Gamepad.in_use():
+		# The gamepad follow-ups: the swatches and the two chips take focus, on the paint worn.
+		Gamepad.focus_all(_card, pt)
+		(_swatches.get(picked, _leave) as Button).grab_focus()
+	else:
+		Gamepad.focus_none(_card)
 
 
 func close() -> void:
+	Gamepad.drop_focus(self)
 	visible = false
 
 
@@ -478,6 +487,6 @@ func card_rect() -> Rect2:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if visible and event.is_action_pressed("ui_cancel"):
+	if visible and (event.is_action_pressed("ui_cancel") or Gamepad.closes(event)):
 		get_viewport().set_input_as_handled()
 		closed.emit()
