@@ -155,12 +155,9 @@ const BUDGET := {
 	"zacheta": 720,
 	"zlota44": 500,
 	"zygmunt": 280,
-	"level26_club": 720,
 }
 ## Known defects per site: {"zfight": n, "degenerate": n, "badnormal": n, "float": n}.
-## level26_club: a rooftop deck on the Atlas Tower; its 58 parts stand on the roof, which this
-## check's stub map has no roof grid for, so they read as floating (2026-11-02).
-const KNOWN := {"level26_club": {"float": 58}}
+const KNOWN := {}
 const ZFIGHT_AREA := 0.01
 const ZFIGHT_PLANE := 0.02
 const ZFIGHT_WINDOW := 0.3  ## coarse sort window; _coplanar decides
