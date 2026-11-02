@@ -318,6 +318,9 @@ var no_ao := false
 var prebuilt := false
 ## --no-map-edge: without the land past the map's edge (map_edge.gd), for a before/after probe.
 var _flag_no_map_edge := false
+## --no-edge-roadworks: without the roadworks closing the roads at the map's edge (edge_roadworks.gd;
+## their colliders go too, the edge wall stays), for a before/after probe.
+var _flag_no_edge_roadworks := false
 var _started := false
 ## Time of day (N / TIME / --time=), the radio (R / RADIO / --radio=), the VHS
 ## overlay (V / VHS / --vhs) and the title screen (skipped by the testing flags).
@@ -431,7 +434,7 @@ var _sunsets := {}
 ## --life=0|1|2 (none, normal, double; the Low tier halves it), --dogs-log, --trend-log,
 ## --life-log, --life-soak (the car driven at the dogs and riders, overlaps counted), --zajac
 ## (Live, Wednesday 28 October 2026 at 18:59, the car by Kolka's start; with --autopilot it paces
-## the club), --trend-day=N (the trend cycle's day number), --trend-job[=slot] (the request at a
+## the club), --trend-day=N (the trend cycle's day number), --trend-job[=slot, 5 padel court, 6 van, 7 the DeSki call] (the request at a
 ## Wiralek slot, 1-3).
 var life: CityLife
 var trend_job: TrendJob
@@ -664,6 +667,13 @@ var _water_test_at := Vector2.INF
 ## 2 driving into the back of it, 3 done. The car rammed, the clock, when it was hit (s, -1: not
 ## yet) and the unsticks before the test.
 var ram_test := 0
+## First scene items 6-7 (2026-11-02), --first-life: after FIRST_LIFE_S s of play at the start, logs
+## the start's life and sound (the busy pavements' walkers, the street sites' people, the trams'
+## greeting bell, the square's bed) as "first life: OK (...)" or its problems (tools/verify.sh
+## `firstlife`, with --at= and --heading= on the start).
+var first_life := false
+var _first_life_t := 0.0
+const FIRST_LIFE_S := 15.0
 var _ram_driver: RefCounted
 var _ram_t := 0.0
 var _ram_hit := -1.0
@@ -744,6 +754,8 @@ func _ready() -> void:
 		start_index = radio.station_index(station_flag)
 		if start_index < 0:
 			push_warning("--station=%s: no such station in radio.json" % station_flag)
+	# First scene item 7: a first launch hears the song from its first bar.
+	radio.from_top = show_title and First10.guide_due(wallet)
 	radio.tune(start_index, true)
 	print("save: %s (%s)" % [wallet.summary(), ProjectSettings.globalize_path(Wallet.PATH) if not no_save else "not saved"])
 	_resume_start()  # save and resume: the car where the last session left it
@@ -924,6 +936,7 @@ func _on_title_dismissed() -> void:
 	dialogue.host_on = true
 	title = null
 	radio.now_playing()
+	_radio_greeting()
 	_fallback_toast()
 	if cinematic_flyin:
 		_fly_in()
@@ -947,6 +960,8 @@ func _opening_due() -> bool:
 ## flyover on a first launch.
 func _fly_in() -> void:
 	var vehicle: Node3D = heli if flying else car
+	# First scene items 6-7: the start's trams where the first frame wants them when the camera lands.
+	_first_scene_trams(CameraShots.OPEN_TIME if _opening_due() else CameraShots.FLY_TIME)
 	if _opening_due():
 		_opening_on = true
 		hud.visible = false
@@ -1070,6 +1085,10 @@ func _build_world() -> void:
 			var edge := map.get_node_or_null("MapEdge")
 			if edge != null:
 				edge.free()
+		if _flag_no_edge_roadworks:
+			var works := map.get_node_or_null("EdgeRoadworks")
+			if works != null:
+				works.free()
 	else:
 		map = MapBuilder.new()
 		world.add_child(map)
@@ -1176,7 +1195,11 @@ func _build_world() -> void:
 	hud.radio_pressed.connect(radio.next)
 	hud.radio_skip_pressed.connect(radio.next_track)
 	hud.perf_gesture.connect(func(): _set_perf(not show_perf); settings.perf = show_perf; settings.save())
-	radio.station_changed.connect(func(_i: int, _s: Dictionary): hud.set_radio_name(radio.label()))
+	radio.station_changed.connect(_on_station_changed)
+	# Beta radio: the next key beside RADIO while the station has another song.
+	radio.track_changed.connect(func(_i: Dictionary, _t: Dictionary, _n: bool): hud.set_radio_skip(radio.can_skip()))
+	radio.track_unlocked.connect(func(_n: int, _t: Dictionary, _w: String): hud.set_radio_skip(radio.can_skip()))
+	_on_station_changed(radio.station, radio.stations[radio.station] if radio.station >= 0 else {})
 	radio.ticker.connect(hud.ticker)
 	hud.set_radio_name(radio.label())
 	hud.visible = not hide_hud
@@ -1409,6 +1432,9 @@ func _build_life(data: Dictionary, world: Node3D) -> void:
 	walkers = Pedestrians.new()
 	world.add_child(walkers)
 	walkers.setup(map, cam, traffic, data)
+	# First scene item 6: busier pavements on Marszałkowska by the start.
+	var busy := walkers.set_busy(FirstScene.FRAME_O, FirstScene.FRAME_S, FirstScene.FRAME_T, FirstScene.BUSY_BANDS, FIRST_SCENE)
+	print("first scene: %d busy pavement points" % busy)
 	traffic.bumped_driver.connect(dialogue.on_driver_bumped)
 	traffic.blocked_by_player.connect(dialogue.on_driver_blocked)
 	rivals = Rivals.new()
@@ -1468,15 +1494,30 @@ func _build_park_details(world: Node3D) -> void:
 ## Świętokrzyska and the Eastern Wall's stores puts a tram in the first frame: one northbound
 ## rolling up from behind the car (it passes in the first seconds), one southbound coming down
 ## the street ahead. They are two of the city's trams, taken from where they were.
+## 2026-11-02 (items 6-7): placed again when play begins (the title's tap starts the fly-in or the
+## opening flyover, a camera cut), `lead` seconds earlier along their rails, so they are where the
+## first frame wants them when the camera reaches the car, not long gone while the title was up;
+## the first of them to pass the car rings its bell (trams.gd greet).
 const FIRST_SCENE := Rect2(-1080.0, -160.0, 200.0, 420.0)
 const MARSZALKOWSKA_NORTH := Vector2(-0.349, -0.937)
-func _first_scene_trams() -> void:
+const FIRST_UP_V := 7.0
+const FIRST_DOWN_V := 8.0
+## How long the first seconds' bell may wait for a tram to pass the car, after the camera lands.
+const FIRST_BELL_S := 20.0
+func _first_scene_trams(lead := 0.0) -> void:
 	var at := Vector2(car.global_position.x, car.global_position.z)
-	if not FIRST_SCENE.has_point(at) or trams.trams.size() < 2:
+	if flying or not FIRST_SCENE.has_point(at) or trams == null or trams.trams.size() < 2:
 		return
-	var up_ok := trams.place_near(trams.trams[0], at, -18.0, MARSZALKOWSKA_NORTH, 7.0)
-	var down_ok := trams.place_near(trams.trams[1], at + MARSZALKOWSKA_NORTH * 110.0, 0.0, -MARSZALKOWSKA_NORTH, 8.0)
-	print("first scene: trams up %s, down %s" % [up_ok, down_ok])
+	var up_ok := trams.place_near(trams.trams[0], at, -18.0 - FIRST_UP_V * lead, MARSZALKOWSKA_NORTH, FIRST_UP_V)
+	var down_ok := trams.place_near(trams.trams[1], at + MARSZALKOWSKA_NORTH * (110.0 + FIRST_DOWN_V * lead), 0.0,
+			-MARSZALKOWSKA_NORTH, FIRST_DOWN_V)
+	var greet: Array[Trams.Tram] = []
+	if up_ok:
+		greet.append(trams.trams[0])
+	if down_ok:
+		greet.append(trams.trams[1])
+	trams.greet(greet, lead + FIRST_BELL_S)
+	print("first scene: trams up %s, down %s, %.1f s ahead of the first frame" % [up_ok, down_ok, lead])
 
 
 ## v0.9: the sound (sfx.gd), fed by the car's knocks, the trams' bells, the drivers'
@@ -1488,6 +1529,7 @@ func _build_sound(data: Dictionary, world: Node3D) -> void:
 	sfx.tod = tod
 	sfx.weather = weather
 	sfx.radio = radio
+	sfx.square_box = FIRST_SCENE  # first scene item 7: the square's talk at the start
 	world.add_child(sfx)
 	sfx.setup(data)
 	car.impact.connect(sfx.impact)
@@ -2069,7 +2111,7 @@ func _build_crowds(data: Dictionary, world: Node3D) -> void:
 	if city_sounds != null:
 		for st: Dictionary in crowds.sites:
 			var site := st
-			if site["kind"] in ["queue", "steps", "plan_c", "chill"]:
+			if site["kind"] in ["queue", "steps", "plan_c", "chill", "office"]:
 				var at: Vector2 = site["door"]
 				city_sounds.add_crowd(str(site["id"]), "murmur", Vector3(at.x, map.ground_height(at.x, at.y), at.y),
 						func() -> bool: return int(site["n"]) >= 4)
@@ -2488,6 +2530,12 @@ func _life_start() -> void:
 			if not trend_job.offer_mlask(true):
 				print("trend job: --trend-job=6: no request (no van spot or new place)")
 			return
+		if trend_job_flag == 7:
+			# "Czwarty" at WTS DeSki's padel courts (landmarks.gd DESKI), whatever the clock.
+			life.tick(0.0)
+			if not trend_job.offer_deski_call(true):
+				print("trend job: --trend-job=7: no request (no kerb or door fits)")
+			return
 		if trend_job_flag == 5 and crowds != null and crowds.by_id.has(Crowds.PADEL_ID):
 			var cd: Vector2 = crowds.sites[crowds.by_id[Crowds.PADEL_ID]]["door"]
 			_put_car_near(cd, 60.0)
@@ -2839,6 +2887,25 @@ func _apply_spacer(on: bool) -> void:
 		rivals.quiet = on
 	if police != null:
 		police.gentle = on
+
+
+## Beta radio: the RADIO chip follows the station: its name, its colour, the next key.
+func _on_station_changed(_index: int, info: Dictionary) -> void:
+	hud.set_radio_name(radio.label())
+	hud.set_radio_skip(radio.can_skip())
+	hud.set_radio_colour(info.get("colour", Color.WHITE) if not info.is_empty() else Color("#c9c4d8"))
+
+
+## Beta radio (2026-11-02): when the title goes, the host says good morning (or evening) to
+## Warsaw with the weather and the temperature for the game's hour and month, 4 s after the
+## station's caption.
+func _radio_greeting() -> void:
+	await get_tree().create_timer(4.0).timeout
+	if not is_inside_tree() or radio == null or dialogue == null:
+		return
+	var st := _egg_state()
+	var day: int = int(st["date"]) % 100 if int(st["date"]) > 0 else int(Time.get_date_dict_from_system()["day"])
+	dialogue.greet(float(st["hour"]), bool(st["rain"]), int(st["month"]), day)
 
 
 ## The eggs' probe (egg_book.gd `tick`, tape.gd's E36/E37): the vehicle and the game clock.
@@ -3470,6 +3537,8 @@ func _parse_args() -> void:
 			free_roam = true
 		elif arg == "--no-map-edge":
 			_flag_no_map_edge = true
+		elif arg == "--no-edge-roadworks":
+			_flag_no_edge_roadworks = true
 		elif arg.begins_with("--exp="):
 			_exp = arg.trim_prefix("--exp=").split(",")
 		elif arg.begins_with("--time="):
@@ -3665,7 +3734,7 @@ func _parse_args() -> void:
 		elif arg.begins_with("--trend-day="):
 			trend_day_flag = maxi(0, int(arg.trim_prefix("--trend-day=")))
 		elif arg == "--trend-job" or arg.begins_with("--trend-job="):
-			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 6)
+			trend_job_flag = clampi(int(arg.trim_prefix("--trend-job=")) if arg.contains("=") else 1, 1, 7)
 			trend_log = true
 		elif arg.begins_with("--club="):
 			# Loop MW-3: the car at a club's door (places.json id or name), no title.
@@ -3760,6 +3829,8 @@ func _parse_args() -> void:
 			_water_test_at = Vector2(float(wz[0]), float(wz[1]))
 		elif arg == "--ram-test":
 			ram_test = 1
+		elif arg == "--first-life":
+			first_life = true
 		elif arg == "--traffic-overlaps":
 			_traffic_overlaps = true
 		elif arg.begins_with("--tram-watch="):
@@ -3782,7 +3853,7 @@ func _parse_args() -> void:
 	# Test runs go straight to the city (--title brings the title screen back).
 	if demo or not shots.is_empty() or autopilot or start_race > 0 or start_mission > 0 or start_rival > 0 or bench or probe \
 			or start_kebab >= 0 or start_sloik >= 0 or sound_check or open_settings_at_start or open_map_at_start or hold_stick != Vector2.INF or bench_button \
-			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0 or old_tram_flag != "":
+			or _water_test_at != Vector2.INF or cam_test != "" or ram_test > 0 or tram_watch >= 0 or old_tram_flag != "" or first_life:
 		show_title = false
 	if start_ride >= 0 or place_flag != "" or roundup_flag or district_card != "" or syrenka_flag != "" or trzy_mosty_flag:
 		show_title = false  # loop 2d-1: --ride is a test run too (loop MW-1: and --place; loop 3h: --district=)
@@ -4516,6 +4587,42 @@ func _water_test_frame() -> void:
 		water_test = 2
 
 
+## First scene items 6-7, --first-life: the start's life and sound after FIRST_LIFE_S s (see `first_life`).
+func _first_life_frame(dt: float) -> void:
+	_first_life_t += dt
+	if _first_life_t < FIRST_LIFE_S:
+		return
+	first_life = false
+	var problems: Array[String] = []
+	var at := Vector2(car.global_position.x, car.global_position.z)
+	if not FIRST_SCENE.has_point(at):
+		problems.append("the car at (%.0f, %.0f) is not in the start's box" % [at.x, at.y])
+	var on_pavements := walkers.busy_count()
+	if not walkers.busy_now():
+		problems.append("the walkers' boost is off over the start")
+	if on_pavements < 6:
+		problems.append("%d walkers on Marszałkowska's pavements (want 6+)" % on_pavements)
+	var standing := 0
+	if crowds != null:
+		for fid: String in Crowds.FIRST_SCENE:
+			if crowds.by_id.has(fid):
+				standing += int(crowds.sites[int(crowds.by_id[fid])]["want"])
+		if standing < 8:
+			problems.append("%d people at the start's furniture (want 8+)" % standing)
+	if trams.greeted < 1:
+		problems.append("no tram bell in the first %.0f s" % FIRST_LIFE_S)
+	if sfx != null and sfx.bed_now() != Sfx.SQUARE_BED:
+		problems.append("the bed at the start is '%s' (want %s)" % [sfx.bed_now(), Sfx.SQUARE_BED])
+	var line := "%d walkers (%d on the pavements, limit %d), %d standing, %d tram bell, bed %s" % [
+			walkers.alive_count(), on_pavements, walkers.limit, standing, trams.greeted, sfx.bed_now() if sfx != null else "-"]
+	if problems.is_empty():
+		print("first life: OK (%s)" % line)
+	else:
+		for pr in problems:
+			push_error("first life: %s" % pr)
+		print("first life: %d problems (%s)" % [problems.size(), line])
+
+
 ## The driving-feel loop, --ram-test: after 2 s of traffic, the moving car (not police, not a bus)
 ## with the longest straight run left on its lane gets the player's car put 14 m behind it, going
 ## 6 m/s faster; the stick then points along that lane (Point) at 65 km/h. Logs the hit (`traffic`'s
@@ -4832,6 +4939,7 @@ func _process(dt: float) -> void:
 		rides.away = title != null or _bench_ghost != null or _phone_bench
 		if trend_job != null:
 			trend_job.flying = flying
+			trend_job.player_pos = pos
 			trend_job.away = rides.away
 		eggs.player = pos
 		eggs.player_vel = heli.vel if flying else car.vel
@@ -5538,6 +5646,8 @@ func _read_input(dt: float) -> void:
 		_ram_test_frame(dt)
 	if tram_watch >= 0:
 		_tram_watch_frame()
+	if first_life:
+		_first_life_frame(dt)
 	if old_tram_flag == "follow":
 		_old_tram_follow_frame()  # the vintage-tram loop
 
