@@ -113,6 +113,7 @@ const BUDGET := {
 	"browary": 3600,
 	"koszyki": 1370,
 	"elektrownia": 1950,
+	"mpw": 3200,
 	"metropolitan": 3100,
 	"muzeum": 840,
 	"palace": 3900,
