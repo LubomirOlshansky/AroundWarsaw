@@ -54,6 +54,11 @@ const SPOTS := [
 	[-2768.0, -2180.0, "Jana Pawła II south of the ring"], [-2770.0, -2080.0, "Jana Pawła II at the old north edge"],
 	[-2905.0, -2560.0, "Jana Pawła II north of the ring"], [-2900.0, -2180.0, "Okopowa"],
 	[-2650.0, -2380.0, "Słomińskiego by Arkadia"], [-1880.0, -2560.0, "Andersa's start"],
+	# Rondo Dmowskiego (2026-11-02, landmarks.gd RONDO_*): its ring past the dressed island and the
+	# blue tubes over the underpass stairs, and Marszałkowska by the south-east stairs (PT-4).
+	[-848.2, 428.1, "Rondo Dmowskiego, the ring's north side"], [-803.4, 449.4, "Rondo Dmowskiego, the ring's east side"],
+	[-824.5, 494.0, "Rondo Dmowskiego, the ring's south side"], [-869.4, 472.7, "Rondo Dmowskiego, the ring's west side"],
+	[-798.0, 500.0, "Marszałkowska by the south-east stairs (PT-4)"],
 ]
 const SPOT_REACH := 8.0
 const ROUTE_REACH := 150.0 # each route runs this far on either side of its structure
