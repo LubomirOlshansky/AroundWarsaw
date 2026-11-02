@@ -2533,6 +2533,34 @@
       }
     ],
     [
+      "Stoję w kolejce do kolejki. Ta kolejka jest po to, żeby wejść do kolejki.",
+      "I'm queuing for the queue. This queue is for getting into the queue.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
+      "Pan z tabliczką „POCZĄTEK KOLEJKI” stoi w kolejce po tabliczkę „POCZĄTEK KOLEJKI”.",
+      "The man with the \"START OF THE QUEUE\" sign is queuing for the \"START OF THE QUEUE\" sign.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
+      "Podobno koniec kolejki jest przy Rondzie. Początek jest w następnej kolejce.",
+      "They say the end of the queue is at the Rondo. The start is in the next queue.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
+      "Dostałam numerek do numerków. Jestem czterysta trzydziesta w numerkach.",
+      "I got a ticket for the tickets. I'm four hundred and thirtieth in the tickets.",
+      {
+        "only": "kringula"
+      }
+    ],
+    [
       "Najlepsza pizza w Warszawie. Tak mówią ci, którzy już stoją.",
       "The best pizza in Warsaw. So say those already standing in line.",
       {

@@ -312,7 +312,7 @@ Twelve ideas, plans in docs/design/city-life-satire.md. Built: #11 MIESZANE MIES
 `kebab_mieszane`; evening queue `Crowds.MIESZANE`, "mieszane" lines in `viral`, one vendor line in `kebab_vendor`), #12 NOSE AGENCY crown sign on the Skyliner. Done before: #10 (PR #309). Open, each its own thread:
 - **Loud cars (#1, Opus)**: sports-car meet at Browary Warszawskie (generic bodies, no marques) and revving cars in traffic with a louder engine layer.
 - **Wellness circles (#2 sound healing, #3 techno yoga with hamsters, #4 women's club 40+, #8 park yoga and kung-fu; Sonnet, ONE thread)**: one new crowd spot kind `circle`.
-- **Queues (#5) and KRINGULA PIZZA (#6, Sonnet)**: extend the queue sites; the brick pizzeria and its fans; the joke text goes to F (QUESTIONS).
+- Queues (#5) and KRINGULA PIZZA (#6): built, with the "kolejka w kolejce" lines (2026-11-02). Left: F rewrites the joke text if he likes (QUESTIONS), Mac look check of the queue spots.
 - Legia fans (#7): built (PR #336); what is left is in "Kibice by Stadion Leguminy".
 - **Bike paths (#9, Opus)**: compare with the real network, fill gaps by data, rider density on the main ones.
 - Small: English "UNDER CONSTRUCTION" on the edge roadworks boards; Mac look check of both new signs (the shop's door is a guess 40 m west of KEBAB KRÓL; Godot did not run in the cloud for this change).
