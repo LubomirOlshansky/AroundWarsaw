@@ -244,7 +244,10 @@ traffic queueing and going round parked cars (traffic.gd PARKED_LOOK / PARKED_WA
 - Left, all for the Mac photo check: real colours of both facades, the real storey count (Polonia 25.5 m
   and Bristol 27.4 m are mapped or estimated), where the entrances are, the mansards' true profile;
   the other grand hotels (Hotel Metropol 1960s block, Mercure Grand, Hotel Saski) stay generic;
-  Radisson Blu Sobieski, Sheraton, Hilton, Holiday Inn and the Ibises are plain OSM extrusions.
+  Sheraton, Hilton, Holiday Inn and the Ibises are plain OSM extrusions.
+- Radisson Blu Sobieski (Plac Zawiszy 1) done 2026-11-02 as "Radysław Blu" (`sobieski`, spec `sobieski.md`) from the
+  OSM outline, no photo: Mac check of band colours and order, storey count (31 m assumed), entrance. The Atlas Tower
+  (-2230,1015) next door is a separate thread and untouched here.
 
 ## Old Town hotels (2026-11-01)
 - Done: `hotel_kasztel` (Castle Inn, Plac Zamkowy), `hotel_canaletto` (Hotel Bellotto), `hotel_starowka`

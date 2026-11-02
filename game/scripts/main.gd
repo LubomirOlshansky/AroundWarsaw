@@ -5451,7 +5451,7 @@ func _read_heli_input(left: bool, right: bool, up: bool, down: bool, dt: float) 
 	if not hud.stick_active() and pad_stick != Vector2.ZERO:
 		stick = pad_stick
 	var aim := Vector2(float(right) - float(left), float(down) - float(up))
-		_heli_held = hud.stick_active() or pad_stick != Vector2.ZERO or aim != Vector2.ZERO
+	_heli_held = hud.stick_active() or pad_stick != Vector2.ZERO or aim != Vector2.ZERO
 	_heli_release = 0.0 if _heli_held else _heli_release + dt
 	if stick.length() > 0.2:
 		aim = stick.normalized() * clampf((stick.length() - 0.2) / 0.8, 0.0, 1.0)
