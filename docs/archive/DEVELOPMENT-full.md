@@ -4733,6 +4733,15 @@ was `top - 0.5`: Nowy Zjazd); a deck's guard rail is cut where a bus box on a de
 touch it (`BUS_BOX`, `BUS_STEP`, `BUS_PAD`, main roads only: lane_graph classes 0 and 1). Map numbers that
 change: retaining wall runs 1,479 → 1,473 (16,094 → 16,042 m, solid 8,976 → 8,969 m), fences, walls and guard
 rails cut from the lanes 12,813 → 12,913 m; centrum.json is the only committed bake output that moved.
+
+**Skwer Linearny na Złotej (2026-11-02).** `tools/car_free.py` (`apply(out)`, called by `bake_osm.py` after
+`snap_props`, and a command line tool for the baked map, idempotent): streets the city closed to cars after
+OSM drew them. Złota between Marszałkowska and Jasna (the linear park, opened 3 August 2026): 6 roads out
+(the one-way loop and three service stubs), 3 graph edges `cf: 1` (lane_graph.gd keeps the index but leaves
+them out of the adjacency and the grid; 2 nodes off `scc`), 5 road-bed walls and fills out, ped zone
+"zlota", 36 limes in `trees3d` (crown 100). Map numbers that change: roads 8,487 → 8,481, ped_zones 83 →
+84, scanned trees 44,832 → 44,868 (check_map_data EXPECTED), walls 1,497 → 1,494, fills 682 → 680. ao.bin
+keeps no shade under the new limes until the next full bake.
 check_drive `--no-allow`: 51 lane spots → 26 (jumps 11, unchanged), allowlist 11 → 8 entries; check_roads
 0 not allowed / 304 allowed (unchanged); the bench route is not near these places: 135 draw calls, 3.04 ms.
 `check_drive.gd --who` prints the colliders a lane hit meets (the sector's one body, so only the sector).

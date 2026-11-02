@@ -31,6 +31,20 @@ threads take its confirmed rows one by one. After two runs: PT-1 confirmed (a de
 Marszałkowska just north of the start, in 3 runs), PT-2, PT-4 (Rondo Dmowskiego) and PT-5 (side
 streets west of Marszałkowska) suspects, PT-3 closed (low ground, not a bug).
 
+## Skwer Linearny na Złotej and Dom pod Orłami (F, 2026-11-02)
+
+- Built: Złota between Marszałkowska and Jasna is the linear park that opened on 3 August 2026
+  (`tools/car_free.py`: the old car loop, its stubs and road-bed walls out, traffic edges `cf`, a
+  20 km/h pedestrian zone, 36 young limes; `skwer_zlota.gd`: stone blocks, the rock fountain's jets,
+  benches, the curved bench by the fountain, café gardens, bollards at Jasna). Dom pod Orłami is a
+  model (site `orly`, spec orly.md): corner towers with bronze eagles, pediment, parody letters.
+- Open: Mac look check (QUESTIONS); the square in front of Dom pod Orłami and Zgoda's own
+  rebuild (pergolas, tree rows, the Philharmonic's square) are not modelled: Zgoda stays as the map
+  has it; the new trees have no baked shade in ao.bin until the next full bake on the Mac.
+- Found: OpenStreetMap already maps the 2026 lawns, tree pits, walks and both fountains, but still
+  draws the old one-way loop as a living street; any later OSM fix of the loop leaves car_free a
+  no-op (it is idempotent and matches by name and box).
+
 ## Pokorna 2 (F, 2026-11-02)
 
 - Pokorna 2 remodelled as flats (site `pokorna2`, spec pokorna2.md). Open: Mac look check (QUESTIONS); the Gdański Business Center thread works nearby (Dworzec Gdański), keep its site zone clear of the outline at (-2123, -2217).
@@ -941,8 +955,8 @@ plan: docs/design/start-area-real.md (items R1-R8, ticked in ROADMAP "v1.0 check
   draw call), but it now reaches the spawn end, so the bench's opening view counts it and its
   shadow: draw calls 130 -> 132. Props: add_street_plates, add_bike_dock, add_tram_shelter. The plates on the
   buildings' corners (where Warsaw mostly hangs them) wait for the Mac photo check.
-- **Open:** R3 part 2: granite kerbs, Złota's setts and elm alley, the fountain at the
-  old tunnel mouth, the three new crossings (orthophoto check on the Mac); R8 the museum's ribbon in stretches and the stepped roofline.
+- **Open:** R3 part 2: granite kerbs, the three new crossings (Złota itself is now the 2026 linear
+  park with its fountain on the old tunnel ramp, see "Skwer Linearny na Złotej" above) (orthophoto check on the Mac); R8 the museum's ribbon in stretches and the stepped roofline.
 - Found: the cloud can't read Wykop (login wall) or Commons (403); the trends come from Google's
   2025 year in search and the trade press. A Mac pass could add Wykop's own tags.
 

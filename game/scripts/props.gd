@@ -947,3 +947,45 @@ static func add_ice_cream_cart(st: SurfaceTool, xf: Transform3D, awning: Color) 
 ## cafés, carts and columns). 2 triangles.
 static func add_contact_pad(st: SurfaceTool, xf: Transform3D, half: Vector2) -> void:
 	_xbox(st, xf, Vector3(0, 0.02, 0), Vector3(half.x * 2.0, 0.02, half.y * 2.0), Color("#6f6b68"))
+
+
+## Skwer Linearny na Złotej (2026-11-02): a free-standing pale stone block on the lawn (people sit
+## on them), `size` metres: the block, a slightly smaller top course set off it, chamfered by a
+## turned middle course so it reads as cut stone, not a crate. 36 triangles.
+static func add_stone_block(st: SurfaceTool, xf: Transform3D, size: Vector3, stone: Color) -> void:
+	_xbox(st, xf, Vector3(0, size.y * 0.4, 0), Vector3(size.x, size.y * 0.8, size.z), stone)
+	_xbox(st, xf, Vector3(0, size.y * 0.9, 0), Vector3(size.x * 0.88, size.y * 0.2, size.z * 0.88), stone.lightened(0.06))
+	var turn := Basis(Vector3.UP, 0.12)
+	obox(st, xf * Vector3(0.04, size.y * 0.5, 0), (xf.basis * turn).orthonormalized(),
+			Vector3(size.x * 0.96, size.y * 0.7, size.z * 1.02), stone.darkened(0.04))
+
+
+## A long park bench (Złota's square): `length` m of larch slats on three grey concrete feet, a low
+## back on the +z side. ~60 triangles.
+static func add_long_bench(st: SurfaceTool, xf: Transform3D, length: float) -> void:
+	var concrete := Color("#a9a69e")
+	var wood := Color("#a8743f")
+	var feet := maxi(2, ceili(length / 2.2) + 1)
+	for k in feet:
+		var x := (k / float(feet - 1) - 0.5) * (length - 0.4)
+		_xbox(st, xf, Vector3(x, 0.2, 0), Vector3(0.22, 0.4, 0.55), concrete)
+	_xbox(st, xf, Vector3(0, 0.44, 0), Vector3(length, 0.08, 0.6), wood)
+	_xbox(st, xf, Vector3(0, 0.72, 0.27), Vector3(length, 0.34, 0.06), wood.darkened(0.08))
+
+
+## The rock fountain's water: a thin pale jet and the foam round its foot. 24 triangles.
+static func add_spout(st: SurfaceTool, xf: Transform3D) -> void:
+	var water := Color("#dfeef4")
+	_xbox(st, xf, Vector3(0, 0.55, 0), Vector3(0.12, 1.1, 0.12), water)
+	_xbox(st, xf, Vector3(0, 0.25, 0), Vector3(0.5, 0.5, 0.5), water.darkened(0.05))
+
+
+## A slim park lamp (Złota's square): a 4.6 m graphite pole and a flat round head that glows warm
+## white when the city's lights are on (LIT_SIGN). No light pool of its own (lights.bin is baked).
+## 36 triangles.
+static func add_park_lamp(st: SurfaceTool, xf: Transform3D) -> void:
+	var pole := Color("#33373c")
+	_xbox(st, xf, Vector3(0, 0.15, 0), Vector3(0.3, 0.3, 0.3), pole)
+	_xbox(st, xf, Vector3(0, 2.35, 0), Vector3(0.1, 4.4, 0.1), pole)
+	_xbox(st, xf, Vector3(0, 4.62, 0), Vector3(0.62, 0.14, 0.62), pole)
+	_xbox(st, xf, Vector3(0, 4.52, 0), Vector3(0.5, 0.06, 0.5), Color("#fff1d0"), LIT_SIGN)

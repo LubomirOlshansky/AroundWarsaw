@@ -47,7 +47,9 @@ MAP = os.path.join(ROOT, "game", "map")
 # (+971: convenience 260, subway_entrance 84, bicycle_rental 92, 11 places' addresses, scooter_zone 56,
 # scooter 468; tools/check_pois.py checks them). Before: 3601.
 # G8 (2026-11-01): 4,571: one lying Leżak at the Centralny stop had no clear spot once its shelter stood on the kerb (tools/snap_props.py).
-EXPECTED = {"trees3d": 268992, "pois": 4571, "trees3d_crown": 44832}
+# Skwer Linearny na Złotej (F, 2026-11-02, tools/car_free.py): 36 young limes on Złota's new park
+# (44,868 trees; 216 values). Before: 268992 / 44832.
+EXPECTED = {"trees3d": 269208, "pois": 4571, "trees3d_crown": 44868}
 # docs/DEMO.md 7 row 7: the lane graph's strongly connected share at least this.
 SCC_SHARE = 0.95
 

@@ -10,6 +10,7 @@ rows in the progress log but no section here is listed automatically from the lo
 someone writes its lines.
 
 ## 2026-11-02
+- Złota is now the green linear park that opened this summer: no cars between Marszałkowska and Jasna, rows of young limes, lawns with pale stone blocks to sit on, a rock fountain, benches, café gardens, and Dom pod Orłami over it with its two bronze eagles on the corner towers.
 - The notebook MOJA WARSZAWA has a new card, "Kolejki" (The queues), found by the KUKŁA pancake window on Nowy Świat; it fills the "Queueing for the trend" chapter to ten.
 - Plac Zbawiciela comes alive: four neon cafés round the roundabout (Kawa Zbawienie, Szarlotka na rogu, Plan Z and Po mszy Spritz) with parasol terraces in front of the blocks, and the Church of the Holiest Saviour is lit at night: gilded crosses, a glowing stained-glass rose, lanterns at the porch and floodlamps up the front.
 - Krakowskie Przedmieście gets eight neon shopfronts along the royal route: an amber and silver shop, a chemist under the column, royal ice cream, sheet music and records, a reading café, pierogi at Bona's, mermaid souvenirs and an exchange office by the Castle.

@@ -15,6 +15,7 @@ One session per lane. Add a row when you start an item, remove it when the item 
 | all | The audit beyond the landmarks: BACKLOG "Audit: what is verified beyond the landmarks", its P0 items handed out next | cloud thread "Audit what's left beyond landmarks" | 2026-11-01 |
 
 ## Waiting
+- **2026-11-02 · map/landmarks · Skwer Linearny na Złotej and Dom pod Orłami** — Mac look check against your photos: the building's eagles (pose, size), the tower drums' steps, the portals, the metal letters (built as the parody KRAJOWA / RADA SPÓŁDZIELNI ORŁÓW, dim warm grey); on the square, the stone blocks round the rock fountain and on the lawns, the benches, the curved bench by the Marszałkowska fountain, the café gardens and the bollards at Jasna (`skwer_zlota.gd` ITEMS), and the limes (`tools/car_free.py`). Also: is Zgoda in front of the building closed to cars now? Built default: Złota car-free with a 20 km/h zone, Zgoda left as the map has it.
 - **2026-11-02 · map · Plac Zbawiciela cafés and church night (pass 5)** — Mac look check: the four neon cafés (`Storefronts.ZBAWICIELA`) on the real doors, the six parasol terraces in front of the MDM blocks (spots from the outlines: `TERRACES` in `bake_street_details.py`), and the church at night (lit crosses, amber rose, floodlamps; is the real church floodlit?). Built default: parody names, no heaters or awnings. Own photos of the square's real cafés would settle the doors.
 - **2026-11-02 · content · Nowy Świat shopfronts** — Mac look check for the eight signs (`Storefronts.NOWY_SWIAT`): each sits on a wall chosen from the road line, not a real door, so move any that land on a gap, a side street or the wrong side; are the pastel tubes readable at dusk beside the KUKŁA and NERWO signs? Still open (needs photos/orthophoto): per-house plaster colours, real shop awnings, café gardens, the Visitation and Staszic ends. Default built: neon only, no queues, no notebook cards.
 - **2026-11-02 · content · Krakowskie Przedmieście shopfronts** — Mac look check for the eight signs (`Storefronts.KRAKOWSKIE`): each sits on the wall nearest a mapped house number, not a real door, so move any that land on a gap, a side street or the wrong side. Open (photos): real awnings, café gardens, a carriage rank. Default built: neon only, no queues, no notebook cards.
@@ -62,8 +63,8 @@ Newest first. One entry per question.
   docs/design/start-area-real.md can't be placed from the cloud (no photos, no orthophoto there).
   R8: from refs/msn/2.jpg and 4.jpg, where the museum's mid-height dark ribbon runs and where it
   breaks on each long face (metres from the north end), and how far and where the roofline steps
-  down near the south end. R3 part 2: from the orthophoto, the kerb line, Złota's sett street and
-  elm alley, the fountain at the old tunnel mouth and the three new crossings on Marszałkowska.
+  down near the south end. R3 part 2: from the orthophoto, the kerb line and the three new crossings
+  on Marszałkowska (Złota and its fountain are now the 2026 linear park, built 2026-11-02).
   Default built: the ribbon all round, the flat roofline, today's kerbs and crossings. A Mac
   session with the photos (model-from-photos skill) can measure and build both.
 - **2026-11-01 · landmarks · MDM arcades, towers, reliefs: Mac look check** — Built in the cloud

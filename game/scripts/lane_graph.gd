@@ -59,6 +59,9 @@ var e_dk := PackedInt32Array()
 var e_tn := PackedInt32Array()
 ## Loop 3b: which ends of a tunnel edge are portals (1 its start, 2 its end; bake `po`).
 var e_po := PackedByteArray()
+## Streets closed to cars since the map was drawn (tools/car_free.py `cf`: Złota's linear park):
+## kept so edge indices stay put, but out of the adjacency and the spawn grid.
+var e_cf := PackedByteArray()
 var e_name := PackedStringArray()
 ## The same road the other way (for U-turns at dead ends), or -1.
 var e_reverse := PackedInt32Array()
@@ -120,7 +123,8 @@ func _init(graph: Dictionary, map: Node3D) -> void:
 		e_dk.append(int(e.get("dk", -1)))
 		e_tn.append(int(e.get("tn", -1)))
 		e_po.append(int(e.get("po", 0)))
-		if TUNNELS_DRIVEN or e_tn[i] < 0:
+		e_cf.append(int(e.get("cf", 0)))
+		if (TUNNELS_DRIVEN or e_tn[i] < 0) and e_cf[i] == 0:
 			node_out[a].append(i)
 			node_in[b].append(i)
 		var p: Array = e["p"]
@@ -220,7 +224,7 @@ func _seg_dir(i: int) -> Vector2:
 
 func _build_grid() -> void:
 	for e in e_a.size():
-		if e_tn[e] >= 0 and not TUNNELS_DRIVEN:
+		if (e_tn[e] >= 0 and not TUNNELS_DRIVEN) or e_cf[e] != 0:
 			continue
 		var seen := {}
 		var i0 := e_first[e]

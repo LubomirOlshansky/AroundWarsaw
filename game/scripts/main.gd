@@ -85,6 +85,8 @@ const Syrenki := preload("res://scripts/syrenki.gd")
 const Cassettes := preload("res://scripts/cassettes.gd")
 ## First scene items 4-5: the kiosk, stall, cafés and planters by the start (first_scene.gd).
 const FirstScene := preload("res://scripts/first_scene.gd")
+## Skwer Linearny na Złotej (2026-11-02): the park's stone blocks, benches, cafés (skwer_zlota.gd).
+const SkwerZlota := preload("res://scripts/skwer_zlota.gd")
 ## Street details along the main line (street_details.gd, tools/bake_street_details.py).
 const StreetDetails := preload("res://scripts/street_details.gd")
 ## Park details: statues, a carousel, ducks, people on the benches (park_details.gd, tools/bake_park_details.py).
@@ -1238,6 +1240,7 @@ func _build_world() -> void:
 	_build_syrenki(world)
 	_build_cassettes(world)
 	_build_first_scene(world)
+	_build_skwer_zlota(world)
 	_build_street_details(world)
 	_build_park_details(world)
 	_build_garage(world)
@@ -1438,6 +1441,17 @@ func _build_first_scene(world: Node3D) -> void:
 	fs.map = map
 	world.add_child(fs)
 	fs.build()
+
+
+## Skwer Linearny na Złotej (skwer_zlota.gd): the linear park's furniture, on both city paths.
+func _build_skwer_zlota(world: Node3D) -> void:
+	if solo_site != "":
+		return
+	var sz := SkwerZlota.new()
+	sz.name = "SkwerZlota"
+	sz.map = map
+	world.add_child(sz)
+	sz.build()
 
 
 ## Street details along the main line (street_details.gd): kiosks, stalls, cafés, planters and
